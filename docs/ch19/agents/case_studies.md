@@ -20,7 +20,7 @@ User Query → Intent Classification → Knowledge Retrieval → LLM Generation 
 - 첫해에 약 30%의 값을 아꼈다. 주로 판에 박힌 물음 처리에 필요한 인원이 줄어서이다.
 - 사람 상담원을 복잡한 경우(분쟁, 자문 서비스)로 옮겨 값진 응대의 좋음이 나아졌다.
 
-**Challenges encountered.** The model initially struggled with multi-account queries (e.g., "Transfer \$500 from my checking to my savings") that required coordinating across multiple backend systems. This required custom function-calling pipelines with explicit transaction validation steps.
+**부딪힌 어려움.** 모델은 처음에 여러 뒷단 얼개를 아울러야 하는 여러 계좌 물음("내 입출금 통장에서 저축 통장으로 \$500 옮겨 줘" 따위)에 애를 먹었다. 그래서 거래를 드러내 놓고 따지는 걸음을 넣은 맞춤 함수 부르기 흐름이 필요했다.
 
 ### 사례 2: 의료 — 가상 건강 도우미
 

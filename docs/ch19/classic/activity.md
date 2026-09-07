@@ -4,11 +4,11 @@
 
 ## 문제 서술
 
-**Input.** A set $S = \{a_1, a_2, \ldots, a_n\}$ of $n$ activities. Each activity $a_i$ has a start time $s_i$ and a finish time $f_i$, with $s_i < f_i$.
+**들임.** 활동 $n$개의 모음 $S = \{a_1, a_2, \ldots, a_n\}$. 활동 $a_i$마다 비롯하는 시각 $s_i$과 마치는 시각 $f_i$이 있고 $s_i < f_i$이다.
 
-**Compatibility.** Two activities $a_i$ and $a_j$ are **compatible** if their intervals do not overlap: $f_i \leq s_j$ or $f_j \leq s_i$.
+**어울림.** 두 활동 $a_i$과 $a_j$의 구간이 겹치지 않으면, 곧 $f_i \leq s_j$이거나 $f_j \leq s_i$이면 둘은 **어울린다**.
 
-**Goal.** Find a maximum-size subset $A \subseteq S$ of mutually compatible activities.
+**목표.** 서로 어울리는 활동으로 이루어진 가장 큰 부분 모음 $A \subseteq S$을 찾아라.
 
 ## 왜 가장 이른 마침 시각인가?
 
@@ -16,10 +16,10 @@
 
 | 전략 | 욕심쟁이 규칙 | 가장 좋은가? |
 |----------|-------------|----------|
-| Earliest start time | Pick $\min(s_i)$ | No |
-| Shortest duration | Pick $\min(f_i - s_i)$ | No |
+| 가장 이른 비롯하는 시각 | $\min(s_i)$을 고른다 | 아니다 |
+| 가장 짧은 걸림 | $\min(f_i - s_i)$을 고른다 | 아니다 |
 | 부딪힘이 가장 적은 것 | 다른 것과 가장 적게 겹치는 활동을 고른다 | 아니다 |
-| **Earliest finish time** | **Pick $\min(f_i)$** | **Yes** |
+| **가장 이른 마침 시각** | **$\min(f_i)$을 고른다** | **그렇다** |
 
 가장 이른 마침 시각 전략이 통하는 것은 뒤이을 활동에 남는 시간을 가장 많이 남기기 때문이다. 될 수 있는 한 일찍 끝냄으로써 그 뒤에 고를 수 있는 어울리는 활동의 수를 가장 크게 한다.
 
@@ -27,9 +27,9 @@
 
 !!! note "욕심쟁이 활동 고르기"
 
-    1. Sort activities by finish time: $f_1 \leq f_2 \leq \cdots \leq f_n$.
+    1. 활동을 마침 시각으로 줄 세운다: $f_1 \leq f_2 \leq \cdots \leq f_n$.
     2. $a_1$(가장 일찍 끝나는 활동)을 고른다.
-    3. For $i = 2, \ldots, n$: if $s_i \geq f_{\text{last}}$ (where $f_{\text{last}}$ is the finish time of the most recently selected activity), select $a_i$.
+    3. $i = 2, \ldots, n$에 대해 $s_i \geq f_{\text{last}}$이면($f_{\text{last}}$은 가장 마지막에 고른 활동의 마침 시각이다) $a_i$을 고른다.
 
 ## 풀이 예제
 
@@ -48,14 +48,14 @@
 
 **욕심쟁이 실행:**
 
-1. Select $a_1$ (finishes at 4). Set $f_{\text{last}} = 4$.
+1. $a_1$을 고른다(4에 마친다). $f_{\text{last}} = 4$으로 둔다.
 2. $a_2$: $s_2 = 3 < 4$. 건너뜀(겹침).
 3. $a_3$: $s_3 = 0 < 4$. 건너뜀(겹침).
 4. $a_4$: $s_4 = 5 \geq 4$. Select. Set $f_{\text{last}} = 7$.
 5. $a_5$: $s_5 = 3 < 7$. 건너뜀.
 6. $a_6$: $s_6 = 5 < 7$. 건너뜀.
 
-**Result:** $\{a_1, a_4\}$ with 2 activities. This is maximum --- no set of 3 mutually compatible activities exists.
+**결과:** 활동 2개로 된 $\{a_1, a_4\}$이다. 서로 어울리는 활동 3개짜리 모음은 없으므로 이것이 가장 크다.
 
 ## 옳음의 증명
 
@@ -65,11 +65,11 @@
 
 **욕심쟁이 고름 성질.** $a_1$(가장 일찍 끝나는 활동)을 담은 가장 좋은 풀이가 있다.
 
-*Proof.* Let $S^* = \{a_{j_1}, a_{j_2}, \ldots, a_{j_k}\}$ be an optimal solution sorted by finish time. If $a_{j_1} = a_1$, done. Otherwise, $f_1 \leq f_{j_1}$, so replacing $a_{j_1}$ with $a_1$ preserves compatibility with all subsequent activities. The resulting set has the same cardinality $k$. $\square$
+*증명.* $S^* = \{a_{j_1}, a_{j_2}, \ldots, a_{j_k}\}$을 마침 시각으로 줄 세운 가장 좋은 풀이라 하자. $a_{j_1} = a_1$이면 끝이다. 아니라면 $f_1 \leq f_{j_1}$이므로 $a_{j_1}$을 $a_1$으로 갈음해도 뒤이은 활동과의 어울림이 지켜진다. 그렇게 나온 모음의 크기는 그대로 $k$이다. $\square$
 
-**Optimal substructure.** If an optimal solution contains $a_1$, then the remaining activities $\{a_1\} \cup R$ have $R$ optimal for $S' = \{a_i \in S : s_i \geq f_1\}$.
+**가장 좋은 아래 짜임.** 가장 좋은 풀이가 $a_1$을 담으면 남은 활동 $\{a_1\} \cup R$에서 $R$은 $S' = \{a_i \in S : s_i \geq f_1\}$에 대해 가장 좋다.
 
-*Proof.* Cut-and-paste: if $R$ is not optimal for $S'$, a better $R'$ would yield $\{a_1\} \cup R'$ with $|R'| > |R|$, contradicting $|S^*| = k$. $\square$
+*증명.* 잘라 붙이기로 보인다. $R$이 $S'$에 대해 가장 좋지 않다면 더 나은 $R'$이 있어 $|R'| > |R|$인 $\{a_1\} \cup R'$을 얻는데, 이는 $|S^*| = k$과 어긋난다. $\square$
 
 **매듭.** 활동의 개수에 대한 귀납법으로, 욕심쟁이 알고리즘은 가장 큰 모음을 고른다.
 
@@ -188,7 +188,7 @@ $$
 구간이 $(1,4), (3,5), (0,6), (5,7), (3,9), (5,9), (6,10), (8,11), (8,12), (2,14), (12,16)$인 활동에 활동 고르기 알고리즘을 써라. 어떤 활동이 골라지는가?
 
 ??? success "연습문제 1 풀이"
-    Sort by finish time: $(1,4), (3,5), (0,6), (5,7), (3,9), (5,9), (6,10), (8,11), (8,12), (2,14), (12,16)$. Select $(1,4)$ (first to finish). Skip $(3,5)$ and $(0,6)$ (overlap). Select $(5,7)$. Skip $(3,9), (5,9), (6,10)$. Select $(8,11)$. Skip $(8,12), (2,14)$. Select $(12,16)$. Selected: $\{(1,4), (5,7), (8,11), (12,16)\}$ — 4 activities. $\square$
+    마침 시각으로 줄 세운다: $(1,4), (3,5), (0,6), (5,7), (3,9), (5,9), (6,10), (8,11), (8,12), (2,14), (12,16)$. $(1,4)$을 고른다(가장 먼저 마친다). $(3,5)$과 $(0,6)$은 겹치므로 건너뛴다. $(5,7)$을 고른다. $(3,9), (5,9), (6,10)$을 건너뛴다. $(8,11)$을 고른다. $(8,12), (2,14)$을 건너뛴다. $(12,16)$을 고른다. 고른 것은 $\{(1,4), (5,7), (8,11), (12,16)\}$으로 활동 4개다. $\square$
 
 ---
 
@@ -196,7 +196,7 @@ $$
 가장 일찍 끝나는 활동을 고르는 것이 가장 좋은 풀이로 이어지는 욕심쟁이 고름임을 증명하여라.
 
 ??? success "연습문제 2 풀이"
-    Let $a_1$ be the activity with the earliest finish time. Suppose optimal solution $O$ does not include $a_1$. Let $a_k$ be the first activity in $O$ (earliest finish time in $O$). Since $a_1$ finishes no later than $a_k$, replacing $a_k$ with $a_1$ in $O$ yields a solution $O'$ that is still feasible (no new overlaps, since $a_1$ finishes earlier) and has the same size. Therefore an optimal solution including $a_1$ exists. By induction on the remaining subproblem (activities starting after $a_1$ finishes), the greedy strategy is optimal. $\square$
+    $a_1$을 마침 시각이 가장 이른 활동이라 하자. 가장 좋은 풀이 $O$이 $a_1$을 담지 않는다고 하자. $a_k$을 $O$에서 첫 활동($O$ 안에서 마침 시각이 가장 이른 것)이라 하자. $a_1$이 $a_k$보다 늦게 마치지 않으므로 $O$에서 $a_k$을 $a_1$으로 갈음하면 여전히 되는 풀이 $O'$을 얻고($a_1$이 더 일찍 마치므로 새 겹침이 없다) 크기도 같다. 그러므로 $a_1$을 담은 가장 좋은 풀이가 있다. 남은 아래 문제($a_1$이 마친 뒤 비롯하는 활동)에 대해 미루어 나아가면 욕심쟁이 전략이 가장 좋다. $\square$
 
 ---
 
@@ -204,7 +204,7 @@ $$
 길이가 가장 짧은 활동을 고르면 왜 늘 가장 좋은 풀이가 되지 않는가?
 
 ??? success "연습문제 3 풀이"
-    Counterexample: activities $(0, 3), (2, 5), (4, 7)$. The shortest duration is $(2,5)$ with length 3. Selecting it conflicts with both others, giving only 1 activity. But selecting $(0,3)$ and $(4,7)$ gives 2 non-overlapping activities. The shortest-duration heuristic fails because it does not account for how an activity's time slot blocks other activities. Earliest finish time correctly minimizes blocking. $\square$
+    어긋나는 보기: 활동 $(0, 3), (2, 5), (4, 7)$. 걸림이 가장 짧은 것은 길이 3인 $(2,5)$이다. 이를 고르면 나머지 둘과 모두 부딪혀 활동 하나만 얻는다. 그런데 $(0,3)$과 $(4,7)$을 고르면 겹치지 않는 활동 둘을 얻는다. 가장 짧은 걸림이라는 어림짐작은 어떤 활동의 시간 자리가 다른 활동을 얼마나 막는지 헤아리지 않아 어그러진다. 가장 이른 마침 시각은 막힘을 옳게 가장 작게 한다. $\square$
 
 ---
 
@@ -212,4 +212,4 @@ $$
 활동 고르기 문제를 무게 있는 경우로 넓혀라. 곧 활동마다 값이 있고 전체 값을 가장 크게 하려 한다. 욕심쟁이 방식을 여전히 쓸 수 있는가?
 
 ??? success "연습문제 4 풀이"
-    The greedy approach (by finish time) does not work for weighted activity selection. Counterexample: activities $(0,3, \text{value}=1)$ and $(1,2, \text{value}=100)$. Greedy selects the first (finishes earlier), getting value 1, but the optimal is the second with value 100. The weighted problem requires dynamic programming: sort by finish time, and for each activity, compute the best value by either including it (add its value to the best value of compatible earlier activities) or excluding it. This runs in $O(n \log n)$. $\square$
+    짐이 붙은 활동 고르기에는 (마침 시각을 쓰는) 욕심쟁이 길이 통하지 않는다. 어긋나는 보기: 활동 $(0,3, \text{value}=1)$과 $(1,2, \text{value}=100)$. 욕심쟁이는 더 일찍 마치는 첫째를 골라 값 1을 얻지만 가장 좋은 것은 값 100인 둘째다. 짐이 붙은 문제에는 갈피 다지기가 든다. 마침 시각으로 줄 세우고 활동마다 그것을 넣거나(그 값에 어울리는 앞선 활동의 가장 좋은 값을 더한다) 빼는 두 가지 가운데 가장 좋은 값을 셈한다. 이는 $O(n \log n)$에 돈다. $\square$

@@ -4,7 +4,7 @@
 
 ## 욕심쟁이 방식
 
-Given denominations $d_1 > d_2 > \cdots > d_k$ and a target amount $A$, the greedy algorithm repeatedly selects the largest denomination that fits:
+액면 $d_1 > d_2 > \cdots > d_k$과 목표 금액 $A$이 주어지면 욕심쟁이 알고리즘은 들어맞는 가장 큰 액면을 거듭 고른다.
 
 1. 남은 값 $= A$, 개수 $= 0$으로 둔다.
 2. For each denomination $d_i$ (largest first): use $\lfloor \text{remaining} / d_i \rfloor$ coins, update remaining.

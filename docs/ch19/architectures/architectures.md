@@ -63,7 +63,7 @@ class RMSNorm(nn.Module):
 
 $$\text{SwiGLU}(x) = \text{Swish}(xW_1) \otimes (xW_2)$$
 
-Where $\text{Swish}(x) = x \cdot \sigma(x)$ and $\sigma$ is sigmoid.
+여기서 $\text{Swish}(x) = x \cdot \sigma(x)$이고 $\sigma$은 시그모이드다.
 
 ```python
 class SwiGLU(nn.Module):
@@ -88,9 +88,9 @@ class SwiGLU(nn.Module):
 
 | 깨어남 | 매개변수 | 성능 | 쓰이는 곳 |
 |------------|------------|-------------|---------|
-| ReLU | $2 \cdot d \cdot d_{ff}$ | Baseline | Original Transformer |
+| ReLU | $2 \cdot d \cdot d_{ff}$ | 밑금 | 맨 처음 변환기 |
 | GELU | $2 \cdot d \cdot d_{ff}$ | +1% | GPT-2, BERT |
-| SwiGLU | $3 \cdot d \cdot d_{ff}$ | +2% | LLaMA, Mistral |
+| SwiGLU | $3 \cdot d \cdot d_{ff}$ | +2% | LLaMA, 미스트랄 |
 
 ## 자리 부호
 
@@ -266,7 +266,7 @@ class GroupedQueryAttention(nn.Module):
 | 갈래 | 열쇠-값 머리 | 열쇠-값 곳간 크기 | 좋음 | 쓰이는 곳 |
 |------|----------|---------------|---------|---------|
 | MHA | H | $2 \cdot H \cdot d_h$ | Best | GPT-3 |
-| GQA | H/G | $2 \cdot H/G \cdot d_h$ | Near-MHA | LLaMA-2 70B |
+| 묶은 물음 눈길 | H/G | $2 \cdot H/G \cdot d_h$ | 여러 머리 눈길에 가깝다 | LLaMA-2 70B |
 | MQA | 1 | $2 \cdot d_h$ | Good | PaLM |
 
 ## 미끄러지는 창 주의
@@ -430,7 +430,7 @@ GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 �
 자기되돌리기 말 나타내기와 가린 말 나타내기의 차이는 무엇인가? 요즘 큰 말 모델은 왜 대부분 자기되돌리기인가?
 
 ??? success "연습문제 3 풀이"
-    **Autoregressive** models predict the next token given all previous tokens: $p(x_t | x_{<t})$. **Masked** models predict randomly masked tokens given all unmasked tokens: $p(x_t | x_{\setminus t})$. Autoregressive models dominate because: (1) they naturally generate text left-to-right, matching how humans read and write, (2) the causal structure enables efficient KV-caching during inference, (3) scaling laws favor autoregressive objectives (better sample efficiency at scale), and (4) in-context learning and instruction following emerge more naturally from next-token prediction.
+    **자기되돌리기** 모델은 앞선 토막을 모두 보고 다음 토막을 미루어 본다. $p(x_t | x_{<t})$이다. **가린** 모델은 가리지 않은 토막을 모두 보고 아무렇게나 가린 토막을 미루어 본다. $p(x_t | x_{\setminus t})$이다. 자기되돌리기 모델이 널리 쓰이는 까닭은 이렇다. (1) 사람이 읽고 쓰는 것과 맞게 왼쪽에서 오른쪽으로 자연스레 글을 만든다. (2) 인과 짜임 덕에 미룸 때 열쇠-값 갈무리가 잘 든다. (3) 크기 법칙이 자기되돌리기 목표에 이롭다(크게 키울 때 표본을 더 아낀다). (4) 앞뒤 흐름 속 배우기와 지시 따르기가 다음 토막 미루어 보기에서 더 자연스레 돋아난다.
 
 ---
 

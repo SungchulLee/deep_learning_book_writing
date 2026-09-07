@@ -127,7 +127,7 @@ gpt3_config = {
 | 익힘 토막 | 3000억 |
 | 셈 | 약 3.14 × 10²³ FLOPs |
 | 익히는 시간 | V100 1024대로 약 34일 |
-| Cost estimate | \$4.6M |
+| 값 어림 | \$460만 |
 
 ### 맥락 안에서 배우기의 틀
 
@@ -385,7 +385,7 @@ class GPT(nn.Module):
 2. Radford, A., et al. (2019). Language Models are Unsupervised Multitask Learners.
 3. Brown, T., et al. (2020). Language Models are Few-Shot Learners.
 4. Ouyang, L., et al. (2022). Training language models to follow instructions with human feedback.
-5. OpenAI. (2023). GPT-4 Technical Report.
+5. OpenAI. (2023). GPT-4 기술 보고서.
 
 ## 연습문제
 
@@ -415,7 +415,7 @@ GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 �
 자기되돌리기 말 나타내기와 가린 말 나타내기의 차이는 무엇인가? 요즘 큰 말 모델은 왜 대부분 자기되돌리기인가?
 
 ??? success "연습문제 3 풀이"
-    **Autoregressive** models predict the next token given all previous tokens: $p(x_t | x_{<t})$. **Masked** models predict randomly masked tokens given all unmasked tokens: $p(x_t | x_{\setminus t})$. Autoregressive models dominate because: (1) they naturally generate text left-to-right, matching how humans read and write, (2) the causal structure enables efficient KV-caching during inference, (3) scaling laws favor autoregressive objectives (better sample efficiency at scale), and (4) in-context learning and instruction following emerge more naturally from next-token prediction.
+    **자기되돌리기** 모델은 앞선 토막을 모두 보고 다음 토막을 미루어 본다. $p(x_t | x_{<t})$이다. **가린** 모델은 가리지 않은 토막을 모두 보고 아무렇게나 가린 토막을 미루어 본다. $p(x_t | x_{\setminus t})$이다. 자기되돌리기 모델이 널리 쓰이는 까닭은 이렇다. (1) 사람이 읽고 쓰는 것과 맞게 왼쪽에서 오른쪽으로 자연스레 글을 만든다. (2) 인과 짜임 덕에 미룸 때 열쇠-값 갈무리가 잘 든다. (3) 크기 법칙이 자기되돌리기 목표에 이롭다(크게 키울 때 표본을 더 아낀다). (4) 앞뒤 흐름 속 배우기와 지시 따르기가 다음 토막 미루어 보기에서 더 자연스레 돋아난다.
 
 ---
 
