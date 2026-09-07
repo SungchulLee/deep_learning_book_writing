@@ -7,7 +7,7 @@
 깊이 우선 돌아보기 바탕 위상 정렬은 유향 비순환 그래프 위 돌아보기의 핵심 성질을 써먹는다. 곧 변 $(u, v)$이 있으면 $v$이 $u$보다 먼저 끝난다. 돌아보기가 $u$으로 돌아오기 앞서 $v$과 그 자손을 모두 살펴보기 때문이다. 그러므로 마침 시각 차례를 뒤집으면 $u$이 $v$ 앞에 놓여 위상 차례 제약을 채운다.
 
 !!! tip "마침 시각 성질"
-    In a DFS of a DAG $G = (V, E)$, for every edge $(u, v) \in E$, vertex $u$ has a later finish time than $v$. Sorting vertices by decreasing finish time yields a topological ordering.
+    유향 비순환 그래프 $G = (V, E)$의 돌아보기에서는 모든 변 $(u, v) \in E$에 대해 꼭짓점 $u$의 마침 시각이 $v$보다 늦다. 꼭짓점을 마침 시각이 늦은 차례로 줄 세우면 위상 차례가 나온다.
 
 ## 알고리즘
 
@@ -206,7 +206,7 @@ Iterative topological order: [0, 2, 1, 3, 4]
 깊이 우선 돌아보기 바탕 위상 정렬 알고리즘을 설명하고 그 옳음을 증명하여라.
 
 ??? success "연습문제 1 풀이"
-    Run DFS on the entire graph. When a vertex finishes (all descendants explored), prepend it to the output list. The result is a reverse post-order. **Correctness**: for any edge $(u, v)$ in a DAG, $v$ finishes before $u$ (since $v$ is either a descendant of $u$, or was already finished when $(u,v)$ was examined). Therefore $u$ appears before $v$ in the output list, satisfying the topological order condition. Time: $O(V + E)$. $\square$
+    그래프 전체에서 돌아보기를 돌린다. 꼭짓점이 마치면(자손을 모두 살피면) 그것을 날임 목록 앞에 붙인다. 그 결과가 뒤 차례를 거꾸로 한 것이다. **옳음**: 유향 비순환 그래프의 어떤 변 $(u, v)$에 대해서도 $v$이 $u$보다 먼저 마친다($v$은 $u$의 자손이거나 $(u,v)$을 볼 때 이미 마쳤기 때문이다). 그러므로 날임 목록에서 $u$이 $v$보다 앞에 와 위상 차례 조건을 채운다. 시간은 $O(V + E)$이다. $\square$
 
 ---
 
@@ -214,7 +214,7 @@ Iterative topological order: [0, 2, 1, 3, 4]
 순환이 있는 그래프에서 깊이 우선 돌아보기 바탕 위상 정렬을 돌리면 어떻게 되는가?
 
 ??? success "연습문제 2 풀이"
-    The algorithm still produces an ordering, but it is not a valid topological sort (since no valid ordering exists for a graph with cycles). To detect this, check for back edges during DFS: if an edge $(u, v)$ is found where $v$ is gray (on the current recursion stack), a cycle exists. The algorithm should report an error. Without this check, the output may appear valid but will violate the ordering requirement for at least one edge. $\square$
+    알고리즘은 여전히 어떤 차례를 내놓지만 그것은 옳은 위상 정렬이 아니다(순환이 있는 그래프에는 옳은 차례가 없기 때문이다). 이를 알아내려면 돌아보기 도중 되돌아가는 변을 살핀다. $v$이 회색인(이제 되부름 쌓기에 있는) 변 $(u, v)$을 찾으면 순환이 있는 것이다. 이때 알고리즘은 오류를 알려야 한다. 이 살핌이 없으면 날임이 옳아 보여도 적어도 변 하나에서 차례 조건을 어긴다. $\square$
 
 ---
 

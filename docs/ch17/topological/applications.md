@@ -82,7 +82,7 @@ Execution order: ['design', 'implement', 'test', 'document', 'deploy']
 
 ## 유향 비순환 그래프의 최단 경로와 최장 경로
 
-In a general weighted graph, shortest path algorithms like Dijkstra or Bellman-Ford have complexities of $O((V + E) \log V)$ or $O(VE)$. In a DAG, topological ordering enables a single-pass solution in $O(V + E)$ time, even with negative edge weights.
+여느 짐 붙은 그래프에서는 데이크스트라나 벨먼-포드 같은 최단 경로 알고리즘의 복잡도가 $O((V + E) \log V)$이나 $O(VE)$이다. 유향 비순환 그래프에서는 위상 차례 덕에 변의 짐이 음수라도 한 번 훑어 $O(V + E)$ 시간에 풀 수 있다.
 
 **알고리즘.** 꼭짓점을 위상 차례로 다룬다. 꼭짓점 $u$마다 나가는 변을 모두 늦춘다:
 
@@ -92,7 +92,7 @@ $$
 
 위상 차례에서 $u$이 $v$ 앞에 오므로 변 $(u, v)$을 다룰 때 $d[u]$은 이미 확정되어 있다.
 
-For the **longest path**, simply negate all weights or replace $\min$ with $\max$. The longest path in a general graph is NP-hard, but in a DAG it is solvable in linear time.
+**가장 긴 경로**는 짐의 부호를 모두 뒤집거나 $\min$을 $\max$으로 갈음하면 된다. 여느 그래프에서 가장 긴 경로는 NP-어려움이지만 유향 비순환 그래프에서는 선형 시간에 풀린다.
 
 ```python
 """
@@ -219,7 +219,7 @@ Make, Gradle, Bazel 같은 빌드 체계는 소스 파일의 달림을 유향 �
 소프트웨어 공학에서 위상 정렬의 쓰임새 세 가지를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    (1) **Build systems**: compile source files in dependency order (e.g., Makefiles). A file must be compiled before files that depend on it. (2) **Package managers**: install packages in dependency order (e.g., apt, pip). Each package is installed after all its dependencies. (3) **Task scheduling**: execute tasks in a project where some tasks depend on others. Topological sort gives a valid execution order. All three require a DAG; cycles indicate unresolvable dependencies. $\square$
+    (1) **빌드 얼개**: 소스 파일을 매인 차례대로 엮는다(메이크파일 따위). 어떤 파일에 매인 파일보다 그 파일을 먼저 엮어야 한다. (2) **꾸러미 관리자**: 꾸러미를 매인 차례대로 깐다(apt, pip 따위). 꾸러미마다 그것이 매인 것을 모두 깐 뒤에 깔린다. (3) **일 일정**: 어떤 일이 다른 일에 매인 프로젝트에서 일을 해 나간다. 위상 정렬이 옳은 실행 차례를 준다. 셋 다 유향 비순환 그래프여야 하며 순환은 풀 수 없는 매임을 뜻한다. $\square$
 
 ---
 
@@ -227,7 +227,7 @@ Make, Gradle, Bazel 같은 빌드 체계는 소스 파일의 달림을 유향 �
 강의 짜임의 선행 조건이 유향 비순환 그래프를 이룬다. 위상 정렬은 올바른 수강 차례를 어떻게 정하는가?
 
 ??? success "연습문제 2 풀이"
-    Model courses as vertices and prerequisites as directed edges ($A \to B$ means "A is a prerequisite for B"). Run topological sort to get a linear ordering. Any course appears after all its prerequisites in this ordering. Students can take courses in this order and always satisfy prerequisites. If multiple valid orderings exist, they represent different valid course plans. The sort also reveals the minimum number of semesters needed (the longest path in the DAG). $\square$
+    강의를 꼭짓점으로, 선행 조건을 방향 있는 변으로 그린다($A \to B$은 "A이 B의 선행 조건"이라는 뜻이다). 위상 정렬을 돌려 한 줄 차례를 얻는다. 이 차례에서 강의는 모두 그 선행 조건 뒤에 온다. 학생은 이 차례대로 들으면 늘 선행 조건을 채운다. 옳은 차례가 여럿이면 저마다 다른 옳은 수강 계획을 나타낸다. 이 정렬은 가장 적게 드는 학기 수(유향 비순환 그래프의 가장 긴 경로)도 알려 준다. $\square$
 
 ---
 
@@ -235,7 +235,7 @@ Make, Gradle, Bazel 같은 빌드 체계는 소스 파일의 달림을 유향 �
 유향 비순환 그래프의 최단/최장 경로를 셈하는 데 위상 정렬을 어떻게 쓸 수 있는가?
 
 ??? success "연습문제 3 풀이"
-    Process vertices in topological order. For each vertex $v$, relax all outgoing edges: $d[u] = \min(d[u], d[v] + w(v,u))$ for shortest paths, or $d[u] = \max(d[u], d[v] + w(v,u))$ for longest paths. Since vertices are processed in dependency order, all incoming edges to $v$ have already been relaxed before processing $v$. This gives correct shortest/longest path distances in $O(V + E)$ — faster than Dijkstra or Bellman-Ford for DAGs. $\square$
+    꼭짓점을 위상 차례대로 다룬다. 꼭짓점 $v$마다 나가는 변을 모두 늦춘다. 최단 경로면 $d[u] = \min(d[u], d[v] + w(v,u))$, 가장 긴 경로면 $d[u] = \max(d[u], d[v] + w(v,u))$이다. 꼭짓점을 매인 차례대로 다루므로 $v$을 다루기 앞에 $v$으로 들어오는 변은 모두 이미 늦춰졌다. 그래서 $O(V + E)$에 옳은 최단/최장 경로 거리를 얻는다. 유향 비순환 그래프에서는 데이크스트라나 벨먼-포드보다 빠르다. $\square$
 
 ---
 
@@ -243,4 +243,4 @@ Make, Gradle, Bazel 같은 빌드 체계는 소스 파일의 달림을 유향 �
 위상 정렬이 표 계산기의 칸 값매김에 어떻게 쓰이는지 설명하여라.
 
 ??? success "연습문제 4 풀이"
-    In a spreadsheet, cells may reference other cells in formulas, creating a dependency DAG. Cell A1 depending on B2 means B2 must be evaluated before A1. Topological sort of the dependency graph gives a valid evaluation order. If a cycle exists (e.g., A1 depends on B2 which depends on A1), the spreadsheet reports a circular reference error. This is how Excel and Google Sheets determine cell evaluation order. $\square$
+    표 계산기에서는 칸이 수식으로 다른 칸을 가리킬 수 있어 매임의 유향 비순환 그래프가 생긴다. 칸 A1이 B2에 매였다면 A1보다 B2을 먼저 셈해야 한다. 매임 그래프를 위상 정렬하면 옳은 셈 차례가 나온다. 순환이 있으면(A1이 B2에 매이고 B2이 다시 A1에 매이는 따위) 표 계산기가 순환 참조 오류를 알린다. 엑셀과 구글 스프레드시트가 칸의 셈 차례를 이렇게 정한다. $\square$

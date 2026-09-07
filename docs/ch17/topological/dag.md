@@ -4,9 +4,9 @@
 
 ## 정의
 
-A **directed acyclic graph (DAG)** is a directed graph $G = (V, E)$ that contains no directed cycle. Equivalently, there is no vertex $v \in V$ such that a directed path from $v$ leads back to $v$.
+**유향 비순환 그래프**는 방향 있는 순환을 담지 않는 방향 그래프 $G = (V, E)$이다. 같은 말로, $v$에서 비롯한 방향 있는 경로가 다시 $v$으로 돌아오는 꼭짓점 $v \in V$이 없다는 뜻이다.
 
-More precisely, $G$ is a DAG if and only if there is no sequence of vertices $v_0, v_1, \ldots, v_k$ with $k \geq 1$ such that $(v_i, v_{i+1}) \in E$ for all $0 \leq i < k$ and $v_k = v_0$.
+더 엄밀히 말하면, $G$이 유향 비순환 그래프인 것은 모든 $0 \leq i < k$에 대해 $(v_i, v_{i+1}) \in E$이고 $v_k = v_0$인 꼭짓점 이음 $v_0, v_1, \ldots, v_k$($k \geq 1$)이 없는 것과 같은 뜻이다.
 
 ## 핵심 정리
 
@@ -15,9 +15,9 @@ More precisely, $G$ is a DAG if and only if there is no sequence of vertices $v_
 !!! tip "유향 비순환 그래프와 위상 차례의 같음"
     방향 그래프 $G$에 위상 차례가 있는 것은 $G$이 유향 비순환 그래프일 때 그리고 오직 그때뿐이다.
 
-**Proof sketch (forward direction).** Suppose $G$ has a topological ordering $v_1, v_2, \ldots, v_n$ where every edge $(v_i, v_j)$ satisfies $i < j$. If $G$ contained a directed cycle $v_{a_1} \to v_{a_2} \to \cdots \to v_{a_k} \to v_{a_1}$, then we would need $a_1 < a_2 < \cdots < a_k < a_1$, which is a contradiction. Therefore $G$ must be acyclic. $\square$
+**증명 얼개(정방향).** $G$에 모든 변 $(v_i, v_j)$이 $i < j$을 채우는 위상 차례 $v_1, v_2, \ldots, v_n$이 있다고 하자. $G$에 방향 있는 순환 $v_{a_1} \to v_{a_2} \to \cdots \to v_{a_k} \to v_{a_1}$이 있었다면 $a_1 < a_2 < \cdots < a_k < a_1$이어야 하는데 이는 어긋난다. 그러므로 $G$은 비순환이어야 한다. $\square$
 
-**Proof sketch (reverse direction).** Suppose $G$ is a DAG. Every DAG has at least one vertex with in-degree zero (otherwise, following predecessors indefinitely in a finite graph would produce a cycle). Remove such a vertex, add it to the ordering, and repeat on the remaining graph (which is still a DAG). This process produces a valid topological ordering of all vertices. $\square$
+**증명 얼개(역방향).** $G$이 유향 비순환 그래프라고 하자. 유향 비순환 그래프에는 들어오는 차수가 0인 꼭짓점이 적어도 하나 있다(그렇지 않으면 마디 있는 그래프에서 앞선 꼭짓점을 끝없이 따라가다 순환이 생긴다). 그런 꼭짓점을 없애 차례에 넣고 남은 그래프(여전히 유향 비순환 그래프다)에서 되풀이한다. 이 과정이 모든 꼭짓점의 옳은 위상 차례를 낳는다. $\square$
 
 ## 유향 비순환 그래프의 성질
 
@@ -27,7 +27,7 @@ More precisely, $G$ is a DAG if and only if there is no sequence of vertices $v_
 
 **최장 경로.** 유향 비순환 그래프의 최장 경로는 위상 정렬 뒤에 동적 계획을 써서 $O(V + E)$ 시간에 셈할 수 있다. 최장 경로 찾기가 NP-어려움인 일반 방향 그래프와 견주어 보라.
 
-**Number of topological orderings.** A DAG may have many valid topological orderings. The number of distinct orderings depends on the graph structure. A path graph $v_1 \to v_2 \to \cdots \to v_n$ has exactly one topological order, while a graph with no edges on $n$ vertices has $n!$ orderings.
+**위상 차례의 수.** 유향 비순환 그래프에는 옳은 위상 차례가 여럿 있을 수 있다. 서로 다른 차례의 수는 그래프 짜임에 달렸다. 경로 그래프 $v_1 \to v_2 \to \cdots \to v_n$에는 위상 차례가 꼭 하나뿐이고, 꼭짓점이 $n$개이고 변이 없는 그래프에는 $n!$가지가 있다.
 
 ## 고리 알아내기
 
@@ -117,9 +117,9 @@ Cyclic graph has cycle: True
 방향 그래프에 위상 차례가 있는 것은 그것이 유향 비순환 그래프일 때 그리고 오직 그때뿐임을 증명하여라.
 
 ??? success "연습문제 1 풀이"
-    $(\Rightarrow)$ If $G$ has a topological ordering $v_1, v_2, \ldots, v_n$, then every edge $(v_i, v_j)$ has $i < j$. A directed cycle $v_{i_1} \to v_{i_2} \to \cdots \to v_{i_k} \to v_{i_1}$ would require $i_1 < i_2 < \cdots < i_k < i_1$, a contradiction. So $G$ is acyclic.
+    $(\Rightarrow)$ $G$에 위상 차례 $v_1, v_2, \ldots, v_n$이 있으면 모든 변 $(v_i, v_j)$이 $i < j$이다. 방향 있는 순환 $v_{i_1} \to v_{i_2} \to \cdots \to v_{i_k} \to v_{i_1}$이 있으려면 $i_1 < i_2 < \cdots < i_k < i_1$이어야 하는데 이는 어긋난다. 그러므로 $G$은 비순환이다.
 
-    $(\Leftarrow)$ If $G$ is a DAG, it has at least one vertex with in-degree 0 (otherwise, following incoming edges would create a cycle). Remove this vertex and repeat. The removal order is a valid topological sort. $\square$
+    $(\Leftarrow)$ $G$이 유향 비순환 그래프이면 들어오는 차수가 0인 꼭짓점이 적어도 하나 있다(그렇지 않으면 들어오는 변을 따라가다 순환이 생긴다). 이 꼭짓점을 없애고 되풀이한다. 없앤 차례가 옳은 위상 정렬이다. $\square$
 
 ---
 
@@ -127,7 +127,7 @@ Cyclic graph has cycle: True
 유향 비순환 그래프에 위상 차례가 여럿 있을 수 있는가? 차례가 하나뿐인 때는 언제인가?
 
 ??? success "연습문제 2 풀이"
-    Yes. A DAG has a unique topological ordering if and only if there is a Hamiltonian path in the DAG (a directed path visiting every vertex). Otherwise, at some step, multiple vertices have in-degree 0, and choosing differently gives different orderings. Example: $A \to C, B \to C$ has orderings $[A, B, C]$ and $[B, A, C]$. The chain $A \to B \to C$ has only $[A, B, C]$. $\square$
+    그렇다. 유향 비순환 그래프의 위상 차례가 하나뿐인 것은 그 안에 해밀턴 경로(모든 꼭짓점을 들르는 방향 있는 경로)가 있는 것과 같은 뜻이다. 그렇지 않으면 어느 걸음에선가 들어오는 차수가 0인 꼭짓점이 여럿이 되고, 다르게 고르면 다른 차례가 나온다. 보기로 $A \to C, B \to C$에는 차례 $[A, B, C]$과 $[B, A, C]$이 있다. 사슬 $A \to B \to C$에는 $[A, B, C]$뿐이다. $\square$
 
 ---
 
@@ -135,7 +135,7 @@ Cyclic graph has cycle: True
 유향 비순환 그래프마다 들어오는 차수가 0인 꼭짓점과 나가는 차수가 0인 꼭짓점이 적어도 하나씩 있음을 증명하여라.
 
 ??? success "연습문제 3 풀이"
-    **In-degree 0**: Suppose every vertex has in-degree $\geq 1$. Start at any vertex and follow incoming edges backward: $v_0 \leftarrow v_1 \leftarrow v_2 \leftarrow \cdots$. Since there are finitely many vertices, some vertex must repeat, creating a directed cycle. This contradicts the DAG property. **Out-degree 0**: Analogously, if every vertex has out-degree $\geq 1$, following outgoing edges forward creates a cycle. $\square$
+    **들어오는 차수 0**: 꼭짓점마다 들어오는 차수가 $\geq 1$이라고 하자. 아무 꼭짓점에서 비롯해 들어오는 변을 거꾸로 따라간다. $v_0 \leftarrow v_1 \leftarrow v_2 \leftarrow \cdots$이다. 꼭짓점이 마디 있게 많으므로 어떤 꼭짓점이 되풀이되어 방향 있는 순환이 생긴다. 이는 유향 비순환 그래프의 결과 어긋난다. **나가는 차수 0**: 마찬가지로 꼭짓점마다 나가는 차수가 $\geq 1$이면 나가는 변을 따라가다 순환이 생긴다. $\square$
 
 ---
 
@@ -143,4 +143,4 @@ Cyclic graph has cycle: True
 유향 비순환 그래프의 최장 경로란 무엇인가? 모든 일의 일정을 짜는 데 필요한 최소 켜 수와 어떻게 이어지는가?
 
 ??? success "연습문제 4 풀이"
-    The longest path in a DAG (also called the critical path) has length equal to the number of edges on the longest directed path. It determines the minimum number of sequential steps needed: tasks on the critical path cannot be parallelized with each other. The minimum number of levels (parallel scheduling depth) equals the critical path length plus 1. This is computed in $O(V + E)$ by processing vertices in topological order and tracking maximum distances. $\square$
+    유향 비순환 그래프의 가장 긴 경로(고비 경로라고도 한다)의 길이는 가장 긴 방향 있는 경로 위의 변 수와 같다. 이것이 차례로 밟아야 하는 가장 적은 걸음 수를 정한다. 고비 경로 위의 일은 서로 나란히 할 수 없기 때문이다. 가장 적은 켜 수(나란히 일정을 잡을 때의 깊이)는 고비 경로 길이에 1을 더한 값이다. 꼭짓점을 위상 차례대로 다루며 가장 먼 거리를 좇으면 $O(V + E)$에 셈한다. $\square$

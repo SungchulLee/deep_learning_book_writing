@@ -202,9 +202,9 @@ Second formula: Unsatisfiable
 
 | 제약 | 마디 |
 |---|---|
-| "At least one of $a$, $b$ is true" | $(a \lor b)$ |
-| "At most one of $a$, $b$ is true" | $(\neg a \lor \neg b)$ |
-| "Exactly one of $a$, $b$ is true" | $(a \lor b) \land (\neg a \lor \neg b)$ |
+| "$a$과 $b$ 가운데 적어도 하나가 참" | $(a \lor b)$ |
+| "$a$과 $b$ 가운데 많아야 하나가 참" | $(\neg a \lor \neg b)$ |
+| "$a$과 $b$ 가운데 꼭 하나가 참" | $(a \lor b) \land (\neg a \lor \neg b)$ |
 | "$a$ implies $b$" | $(\neg a \lor b)$ |
 | "$a$ must be true" | $(a \lor a)$ |
 | "$a$ must be false" | $(\neg a \lor \neg a)$ |
@@ -220,15 +220,15 @@ Second formula: Unsatisfiable
 2-SAT 문제를 정의하고 강한 이음 조각과 어떻게 이어지는지 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    **2-SAT**: given a Boolean formula in CNF where each clause has exactly 2 literals, determine if a satisfying assignment exists. Each clause $(a \lor b)$ is equivalent to implications $(\neg a \Rightarrow b)$ and $(\neg b \Rightarrow a)$. Build an implication graph with vertices for each literal and its negation, and edges for implications. The formula is satisfiable if and only if no variable $x$ has $x$ and $\neg x$ in the same SCC. Time: $O(V + E)$ using Tarjan's or Kosaraju's. $\square$
+    **2-SAT**: 마디마다 글자가 정확히 둘인 논리곱 표준형 불 식이 주어졌을 때 충족하는 배정이 있는지 가린다. 마디 $(a \lor b)$은 함의 $(\neg a \Rightarrow b)$과 $(\neg b \Rightarrow a)$과 같다. 글자와 그 부정마다 꼭짓점을 두고 함의마다 변을 두어 함의 그래프를 세운다. 이 식이 충족 가능한 것은 어떤 변수 $x$도 $x$과 $\neg x$이 같은 강한 이음 조각에 들지 않는 것과 같은 뜻이다. 타잔이나 코사라주를 쓰면 시간은 $O(V + E)$이다. $\square$
 
 ---
 
 **연습문제 2.**
-Construct the implication graph for: $(x_1 \lor x_2) \land (\neg x_1 \lor x_3) \land (\neg x_2 \lor \neg x_3)$.
+$(x_1 \lor x_2) \land (\neg x_1 \lor x_3) \land (\neg x_2 \lor \neg x_3)$의 함의 그래프를 세워라.
 
 ??? success "연습문제 2 풀이"
-    Clause $(x_1 \lor x_2)$: add $\neg x_1 \to x_2$ and $\neg x_2 \to x_1$. Clause $(\neg x_1 \lor x_3)$: add $x_1 \to x_3$ and $\neg x_3 \to \neg x_1$. Clause $(\neg x_2 \lor \neg x_3)$: add $x_2 \to \neg x_3$ and $x_3 \to \neg x_2$. The implication graph has 6 vertices ($x_1, \neg x_1, x_2, \neg x_2, x_3, \neg x_3$) and 6 edges. SCCs: check that no $x_i$ and $\neg x_i$ are in the same SCC. If not, the formula is satisfiable. $\square$
+    마디 $(x_1 \lor x_2)$: $\neg x_1 \to x_2$과 $\neg x_2 \to x_1$을 더한다. 마디 $(\neg x_1 \lor x_3)$: $x_1 \to x_3$과 $\neg x_3 \to \neg x_1$을 더한다. 마디 $(\neg x_2 \lor \neg x_3)$: $x_2 \to \neg x_3$과 $x_3 \to \neg x_2$을 더한다. 함의 그래프에는 꼭짓점 6개($x_1, \neg x_1, x_2, \neg x_2, x_3, \neg x_3$)와 변 6개가 있다. 강한 이음 조각을 보아 어떤 $x_i$과 $\neg x_i$도 같은 조각에 없는지 살핀다. 그러면 이 식은 충족 가능하다. $\square$
 
 ---
 
@@ -236,7 +236,7 @@ Construct the implication graph for: $(x_1 \lor x_2) \land (\neg x_1 \lor x_3) \
 3-SAT은 NP-완전인데 2-SAT은 왜 다항 시간인가?
 
 ??? success "연습문제 3 풀이"
-    2-SAT clauses have exactly 2 literals, creating implications that form a directed graph. SCC analysis on this graph solves 2-SAT in $O(V + E)$. 3-SAT clauses have 3 literals, and no similar implication graph structure exists — the interaction between 3 literals cannot be reduced to binary implications. The reduction from any NP problem to 3-SAT (Cook-Levin theorem) shows 3-SAT is NP-complete. Adding just one more literal per clause makes the problem fundamentally harder. $\square$
+    2-SAT의 마디에는 글자가 정확히 둘 있어 방향 그래프를 이루는 함의가 생긴다. 이 그래프에서 강한 이음 조각을 살피면 2-SAT을 $O(V + E)$에 푼다. 3-SAT의 마디에는 글자가 셋이라 비슷한 함의 그래프 얼개가 없다. 글자 셋 사이의 주고받음은 둘씩의 함의로 줄일 수 없기 때문이다. 어떤 NP 문제든 3-SAT으로 되돌릴 수 있다는 것(쿡-레빈 정리)이 3-SAT이 NP-완전임을 보인다. 마디마다 글자를 하나만 더해도 문제가 밑바탕부터 어려워진다. $\square$
 
 ---
 
@@ -244,4 +244,4 @@ Construct the implication graph for: $(x_1 \lor x_2) \land (\neg x_1 \lor x_3) \
 함의 그래프에서 강한 이음 조각을 찾은 뒤 실제 변수 배정을 어떻게 뽑아내는가?
 
 ??? success "연습문제 4 풀이"
-    Process SCCs in reverse topological order (from sinks to sources in the condensation). For each variable $x_i$: if $x_i$'s SCC comes after $\neg x_i$'s SCC in topological order, set $x_i = \text{True}$; otherwise, set $x_i = \text{False}$. This works because if $\neg x_i$ is in an earlier SCC, the implication chain forces $x_i$ to be true. Tarjan's algorithm conveniently produces SCCs in reverse topological order, so assignments can be read directly. $\square$
+    강한 이음 조각을 위상 차례의 거꾸로로 다룬다(오그린 그래프의 바닥에서 근원 쪽으로). 변수 $x_i$마다 $x_i$의 조각이 위상 차례에서 $\neg x_i$의 조각보다 뒤에 오면 $x_i = \text{True}$으로 두고 아니면 $x_i = \text{False}$으로 둔다. $\neg x_i$이 더 이른 조각에 있으면 함의 사슬이 $x_i$을 참이 되게 하므로 이렇게 하면 된다. 타잔 알고리즘이 마침 위상 차례의 거꾸로로 조각을 내놓으므로 배정을 곧바로 읽을 수 있다. $\square$

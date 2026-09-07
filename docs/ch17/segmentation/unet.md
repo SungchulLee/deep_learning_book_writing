@@ -328,11 +328,11 @@ fused = torch.cat([encoder_features, decoder_features], dim=1)
 
 **수학으로 본 관점:**
 
-Let $\mathbf{E}$ be encoder features and $\mathbf{D}$ be upsampled decoder features.
+$\mathbf{E}$을 부호기 결, $\mathbf{D}$을 촘촘하게 한 풀개 결이라 하자.
 
-Addition: $\mathbf{F} = \mathbf{E} + \mathbf{D}$ constrains how the network can combine information.
+더하기: $\mathbf{F} = \mathbf{E} + \mathbf{D}$은 그물이 소식을 아우르는 방식을 옭아맨다.
 
-Concatenation: $\mathbf{F} = [\mathbf{E}; \mathbf{D}]$ followed by convolution with learned weights $\mathbf{W}$:
+이어 붙이기: $\mathbf{F} = [\mathbf{E}; \mathbf{D}]$ 뒤에 배운 짐 $\mathbf{W}$으로 누비기를 건다.
 
 $$\mathbf{O} = \mathbf{W}_E \cdot \mathbf{E} + \mathbf{W}_D \cdot \mathbf{D}$$
 
@@ -783,7 +783,7 @@ U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요�
 그림 나누기에는 어떤 손실 함수가 흔히 쓰이는가? 엇갈린 엔트로피 손실과 다이스 손실을 견주어라.
 
 ??? success "연습문제 3 풀이"
-    **Cross-entropy loss** treats each pixel independently: $L_{CE} = -\sum_i y_i \log \hat{y}_i$. It is well-calibrated but can be dominated by the majority class. **Dice loss** measures overlap between predicted and ground-truth masks: $L_{Dice} = 1 - \frac{2|P \cap G|}{|P| + |G|}$. Dice loss directly optimizes the evaluation metric (Dice coefficient) and handles class imbalance better since it weighs all classes equally regardless of pixel count. In practice, a combination $L = \lambda L_{CE} + (1-\lambda) L_{Dice}$ often works best.
+    **엇결 엔트로피 잃음**은 화소마다 따로 다룬다. $L_{CE} = -\sum_i y_i \log \hat{y}_i$이다. 눈금은 잘 맞지만 수가 많은 갈래에 휘둘릴 수 있다. **다이스 잃음**은 미루어 본 가림과 참 가림이 겹치는 정도를 잰다. $L_{Dice} = 1 - \frac{2|P \cap G|}{|P| + |G|}$이다. 다이스 잃음은 따짐 자(다이스 계수)를 곧바로 가장 좋게 하고, 화소 수와 상관없이 갈래마다 같은 짐을 주므로 갈래 치우침도 더 잘 다룬다. 참으로는 둘을 섞은 $L = \lambda L_{CE} + (1-\lambda) L_{Dice}$이 가장 잘 듣는 일이 잦다.
 
 ---
 

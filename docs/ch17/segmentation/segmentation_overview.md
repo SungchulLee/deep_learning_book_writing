@@ -36,17 +36,17 @@
 
 ### 수식으로 나타내기
 
-Given an input image $\mathbf{X} \in \mathbb{R}^{H \times W \times C}$ where $H$ is height, $W$ is width, and $C$ is the number of channels (typically 3 for RGB), semantic segmentation produces an output:
+들임 그림 $\mathbf{X} \in \mathbb{R}^{H \times W \times C}$이 주어졌을 때(여기서 $H$은 높이, $W$은 너비, $C$은 갈래 수이며 RGB이면 흔히 3이다) 뜻 나누기는 다음 날임을 내놓는다.
 
 $$\mathbf{Y} \in \{0, 1, 2, \ldots, K-1\}^{H \times W}$$
 
-where $K$ is the number of semantic classes. Each pixel $(i, j)$ receives a class label $y_{i,j} \in \{0, 1, \ldots, K-1\}$.
+여기서 $K$은 뜻 갈래의 수다. 화소 $(i, j)$마다 갈래 이름표 $y_{i,j} \in \{0, 1, \ldots, K-1\}$을 받는다.
 
 실전에서 신경망은 화소마다 갈래에 대한 확률 분포를 내놓는다:
 
 $$\mathbf{\hat{Y}} \in [0, 1]^{H \times W \times K}$$
 
-where $\hat{y}_{i,j,k}$ represents the probability that pixel $(i, j)$ belongs to class $k$. The final prediction is obtained via:
+여기서 $\hat{y}_{i,j,k}$은 화소 $(i, j)$이 갈래 $k$에 들 확률을 나타낸다. 마지막 미루어 봄은 다음으로 얻는다.
 
 $$y_{i,j} = \arg\max_k \hat{y}_{i,j,k}$$
 
@@ -56,7 +56,7 @@ $$y_{i,j} = \arg\max_k \hat{y}_{i,j,k}$$
 
 뜻 나누기는 화소 자리마다 그림 가르기를 하는 일로 볼 수 있다. 그러나 화소마다 갈래 매개를 따로 돌리는 이 막무가내 방식은 셈이 감당하기 어렵고 결정적인 자리 맥락을 놓친다.
 
-Consider an image of size $512 \times 512$:
+크기가 $512 \times 512$인 그림을 보자.
 
 - 전체 화소: $262,144$
 - 화소마다 둘레 자리의 맥락이 필요하다
@@ -137,7 +137,7 @@ Output Mask (H×W×K)
 - 모으기나 성큼 누비기로 차츰 줄여 뽑기
 - 갈수록 추상적이고 뜻이 담긴 특징을 담아낸다
 - 받는 자리를 넓혀 전체 맥락을 이해한다
-- Typical progression: $H \times W \rightarrow H/2 \times W/2 \rightarrow H/4 \times W/4 \rightarrow \ldots$
+- 흔한 흐름: $H \times W \rightarrow H/2 \times W/2 \rightarrow H/4 \times W/4 \rightarrow \ldots$
 
 **병목:**
 
@@ -493,7 +493,7 @@ U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요�
 그림 나누기에는 어떤 손실 함수가 흔히 쓰이는가? 엇갈린 엔트로피 손실과 다이스 손실을 견주어라.
 
 ??? success "연습문제 3 풀이"
-    **Cross-entropy loss** treats each pixel independently: $L_{CE} = -\sum_i y_i \log \hat{y}_i$. It is well-calibrated but can be dominated by the majority class. **Dice loss** measures overlap between predicted and ground-truth masks: $L_{Dice} = 1 - \frac{2|P \cap G|}{|P| + |G|}$. Dice loss directly optimizes the evaluation metric (Dice coefficient) and handles class imbalance better since it weighs all classes equally regardless of pixel count. In practice, a combination $L = \lambda L_{CE} + (1-\lambda) L_{Dice}$ often works best.
+    **엇결 엔트로피 잃음**은 화소마다 따로 다룬다. $L_{CE} = -\sum_i y_i \log \hat{y}_i$이다. 눈금은 잘 맞지만 수가 많은 갈래에 휘둘릴 수 있다. **다이스 잃음**은 미루어 본 가림과 참 가림이 겹치는 정도를 잰다. $L_{Dice} = 1 - \frac{2|P \cap G|}{|P| + |G|}$이다. 다이스 잃음은 따짐 자(다이스 계수)를 곧바로 가장 좋게 하고, 화소 수와 상관없이 갈래마다 같은 짐을 주므로 갈래 치우침도 더 잘 다룬다. 참으로는 둘을 섞은 $L = \lambda L_{CE} + (1-\lambda) L_{Dice}$이 가장 잘 듣는 일이 잦다.
 
 ---
 
