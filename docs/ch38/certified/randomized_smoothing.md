@@ -1,78 +1,78 @@
-# Certified Robustness
-## Introduction
+# 밝혀 낸 든든함
+## 들머리
 
-**Certified robustness** provides mathematical guarantees that a classifier's prediction will not change under any perturbation within a specified radius. Unlike empirical defenses (which are tested against specific attacks), certified defenses offer **provable guarantees** that hold against all possible attacks.
+**밝혀 낸 든든함**은 정해진 반지름 안의 어떤 흔듦에도 가름개의 미루어 봄이 바뀌지 않음을 수학으로 다짐한다. 남다른 치기로 시험해 보는 겪은 막이와 달리, 밝혀 낸 막이는 있을 수 있는 모든 치기에 대해 **증명할 수 있는 다짐**을 준다.
 
-## Empirical vs Certified Robustness
+## 겪은 든든함과 밝혀 낸 든든함
 
-| Aspect | Empirical | Certified |
+| 결 | 겪은 것 | 밝혀 낸 것 |
 |--------|-----------|-----------|
-| **Guarantee** | None (tested against known attacks) | Mathematical proof |
-| **Security** | May be broken by new attacks | Provably secure within radius |
-| **Accuracy** | Higher | Lower |
-| **Certification** | N/A | Computed per-example |
+| **다짐** | 없다(아는 치기로 시험할 뿐) | 수학의 증명 |
+| **지킴** | 새 치기에 무너질 수 있다 | 반지름 안에서는 증명된 지킴 |
+| **맞음** | 높음 | 낮음 |
+| **밝히기** | 해당 없음 | 보기마다 셈한다 |
 
-## Randomized Smoothing
+## 아무렇게나 매끄럽게 하기
 
-### Core Idea
+### 고갱이 깨침
 
-**Randomized smoothing** (Cohen et al., 2019) transforms any classifier into a certifiably robust one by averaging predictions over Gaussian noise.
+**아무렇게나 매끄럽게 하기**(코언 등, 2019)은 가우스 잡음에 걸쳐 미루어 봄을 고르게 하여 어떤 가름개든 밝혀 낼 수 있게 든든한 것으로 바꾼다.
 
-Given a base classifier $f: \mathbb{R}^d \to \mathcal{Y}$, construct the **smoothed classifier**:
+밑 가름개 $f: \mathbb{R}^d \to \mathcal{Y}$이 있을 때 **매끄럽게 한 가름개**을 짓는다.
 
 $$
 g(\mathbf{x}) = \arg\max_c \mathbb{P}_{\boldsymbol{\epsilon} \sim \mathcal{N}(0, \sigma^2 I)}[f(\mathbf{x} + \boldsymbol{\epsilon}) = c]
 $$
 
-**Intuition:** Add Gaussian noise to input, take majority vote over noisy predictions.
+**느낌으로:** 들임에 가우스 잡음을 더하고, 잡음 섞인 미루어 봄에 대해 많은 쪽을 고른다.
 
-### Certification Theorem
+### 밝히기 정리
 
-**Theorem (Cohen et al., 2019):** If the smoothed classifier $g$ predicts class $c_A$ at input $\mathbf{x}$ with probability $p_A$, and the runner-up class $c_B$ has probability $p_B$, then $g(\mathbf{x}) = c_A$ is certifiably robust within $\ell_2$ radius:
+**정리(코언 등, 2019):** 매끄럽게 한 가름개 $g$이 들임 $\mathbf{x}$에서 갈래 $c_A$을 낌새 $p_A$으로 미루어 보고, 다음 갈래 $c_B$의 낌새가 $p_B$이면, $g(\mathbf{x}) = c_A$은 다음 $\ell_2$ 반지름 안에서 밝혀 낸 든든함을 지닌다.
 
 $$
 R = \frac{\sigma}{2}\left(\Phi^{-1}(p_A) - \Phi^{-1}(p_B)\right)
 $$
 
-where $\Phi^{-1}$ is the inverse CDF of the standard normal distribution.
+여기서 $\Phi^{-1}$은 잣대 정규 분포의 쌓인 분포 함수의 거꿀이다.
 
-### Intuition
+### 느낌으로 알기
 
-- $p_A$ is the probability that class $c_A$ wins the majority vote
-- If $p_A \gg p_B$, the certified radius $R$ is large (high confidence)
-- If $p_A \approx p_B$, the certified radius $R$ is small (low confidence)
-- $\sigma$ scales the radius: larger noise = larger certified region
+- $p_A$은 갈래 $c_A$이 많은 쪽이 될 낌새
+- $p_A \gg p_B$이면 밝혀 낸 반지름 $R$이 크다(크게 자신함)
+- $p_A \approx p_B$이면 밝혀 낸 반지름 $R$이 작다(머뭇거림)
+- $\sigma$이 반지름의 잣대를 잡는다. 잡음이 클수록 밝혀 낸 자리가 넓다
 
-### Certification Algorithm
+### 밝히는 알고리즘
 
-**Two-stage process:**
+**두 도막으로 이루어진다.**
 
-1. **Selection:** Find the predicted class
-   - Sample $n_0$ noisy predictions
-   - Take majority vote to determine $\hat{c}$
+1. **고르기:** 미루어 볼 갈래를 찾는다
+   - 잡음 섞인 미루어 봄을 $n_0$번 뽑는다
+   - 많은 쪽을 골라 $\hat{c}$을 정한다
 
-2. **Certification:** Estimate radius
-   - Sample $n$ more noisy predictions
-   - Compute confidence intervals for $p_A$
-   - Calculate certified radius $R$
+2. **밝히기:** 반지름을 어림한다
+   - 잡음 섞인 미루어 봄을 $n$번 더 뽑는다
+   - $p_A$의 믿음 구간을 셈한다
+   - 밝혀 낸 반지름 $R$을 셈한다
 
-### Monte Carlo Estimation
+### 몬테카를로 어림
 
-We estimate probabilities via sampling:
+낌새는 뽑아서 어림한다.
 
 $$
 \hat{p}_A = \frac{1}{N} \sum_{i=1}^N \mathbf{1}[f(\mathbf{x} + \boldsymbol{\epsilon}_i) = c_A], \quad \boldsymbol{\epsilon}_i \sim \mathcal{N}(0, \sigma^2 I)
 $$
 
-Using **Clopper-Pearson confidence intervals**, we obtain:
+**클로퍼-피어슨 믿음 구간**을 쓰면
 
 $$
 \mathbb{P}(p_A \geq \underline{p}_A) \geq 1 - \alpha
 $$
 
-This gives certified radius with probability $\geq 1 - \alpha$.
+이로써 낌새 $\geq 1 - \alpha$으로 밝혀 낸 반지름을 얻는다.
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
 ```python
 import torch
@@ -86,18 +86,18 @@ import math
 
 class RandomizedSmoothing:
     """
-    Certified Robustness via Randomized Smoothing.
+    아무렇게나 매끄럽게 하여 밝혀 낸 든든함.
     
-    Provides provable L2 robustness guarantees by smoothing
-    predictions with Gaussian noise.
+    가우스 잡음으로 미루어 봄을 매끄럽게 하여
+    증명할 수 있는 L2 든든함 다짐을 준다.
     
     Parameters
     ----------
     base_classifier : nn.Module
-        Base classifier to smooth
+        매끄럽게 할 밑 가름개
     sigma : float
-        Standard deviation of Gaussian noise
-        Larger σ: larger certified radius, lower accuracy
+        가우스 잡음의 잣대 어긋남
+        σ이 클수록 밝혀 낸 반지름은 크고 맞음은 낮다
     """
     
     def __init__(
@@ -121,24 +121,24 @@ class RandomizedSmoothing:
         batch_size: int = 1000
     ) -> torch.Tensor:
         """
-        Sample predictions under Gaussian noise.
+        가우스 잡음 아래에서 미루어 봄을 뽑는다.
         
         Parameters
         ----------
         x : torch.Tensor
-            Single input image, shape (C, H, W)
+            들임 그림 하나, 꼴 (C, H, W)
         num_samples : int
-            Number of noisy samples
+            잡음 섞인 표본의 수
         batch_size : int
-            Batch size for processing
+            다룰 묶음 크기
             
         Returns
         -------
         counts : torch.Tensor
-            Prediction counts for each class
+            갈래마다의 미루어 봄 셈
         """
         with torch.no_grad():
-            # Determine number of classes
+            # 갈래의 수를 가린다
             if self.num_classes is None:
                 test_out = self.base_classifier(x.unsqueeze(0).to(self.device))
                 self.num_classes = test_out.shape[1]
@@ -152,18 +152,18 @@ class RandomizedSmoothing:
                 current_batch = min(batch_size, remaining)
                 remaining -= current_batch
                 
-                # Repeat input
+                # 들임을 되풀이한다
                 batch = x.unsqueeze(0).repeat(current_batch, 1, 1, 1).to(self.device)
                 
-                # Add Gaussian noise
+                # 가우스 잡음을 더한다
                 noise = torch.randn_like(batch) * self.sigma
                 noisy_batch = batch + noise
                 
-                # Get predictions
+                # 미루어 봄을 얻는다
                 logits = self.base_classifier(noisy_batch)
                 predictions = logits.argmax(dim=1)
                 
-                # Count predictions
+                # 미루어 봄을 센다
                 for c in range(self.num_classes):
                     counts[c] += (predictions == c).sum()
             
@@ -176,8 +176,8 @@ class RandomizedSmoothing:
         alpha: float
     ) -> float:
         """
-        Compute lower confidence bound for binomial proportion.
-        Uses Clopper-Pearson (exact) method.
+        두 값 몫의 믿음 아래끝을 셈한다.
+        클로퍼-피어슨(정확한) 길을 쓴다.
         """
         if count == 0:
             return 0.0
@@ -185,14 +185,14 @@ class RandomizedSmoothing:
     
     def _compute_radius(self, p_A: float, p_B: float) -> float:
         """
-        Compute certified radius from probabilities.
+        낌새로 밝혀 낸 반지름을 셈한다.
         
         R = σ/2 * (Φ^{-1}(p_A) - Φ^{-1}(p_B))
         """
         if p_A <= 0.5:
             return 0.0
         
-        # Clamp to avoid infinity
+        # 무한을 비껴가려 잘라 낸다
         p_A = min(p_A, 0.999999)
         p_B = max(p_B, 0.000001)
         
@@ -208,50 +208,50 @@ class RandomizedSmoothing:
         batch_size: int = 1000
     ) -> Tuple[int, float]:
         """
-        Certify a single input.
+        들임 하나를 밝힌다.
         
         Parameters
         ----------
         x : torch.Tensor
-            Input image, shape (C, H, W)
+            들임 그림, 꼴 (C, H, W)
         n0 : int
-            Samples for selection phase
+            고르는 도막의 표본 수
         n : int
-            Samples for certification phase
+            밝히는 도막의 표본 수
         alpha : float
-            Confidence level (default: 99.9%)
+            믿음 켜(기본값: 99.9%)
         batch_size : int
-            Batch size for Monte Carlo
+            몬테카를로의 묶음 크기
             
         Returns
         -------
         predicted_class : int
-            Predicted class (-1 if abstain)
+            미루어 본 갈래(삼가면 -1)
         certified_radius : float
-            Certified L2 radius (0 if abstain)
+            밝혀 낸 L2 반지름(삼가면 0)
         """
         x = x.to(self.device)
         
-        # Stage 1: Selection
+        # 1도막: 고르기
         counts_selection = self._sample_predictions(x, n0, batch_size)
         top_class = counts_selection.argmax().item()
         
-        # Stage 2: Certification
+        # 2도막: 밝히기
         counts_cert = self._sample_predictions(x, n, batch_size)
         
-        # Count for top class
+        # 으뜸 갈래의 셈
         count_top = counts_cert[top_class].item()
         
-        # Lower confidence bound for p_A
+        # p_A의 믿음 아래끝
         p_A_lower = self._lower_confidence_bound(int(count_top), n, alpha)
         
-        # If p_A_lower <= 0.5, we cannot certify
+        # p_A_lower <= 0.5이면 밝힐 수 없다
         if p_A_lower <= 0.5:
-            return -1, 0.0  # Abstain
+            return -1, 0.0  # 삼간다
         
-        # Compute certified radius
-        # For binary case, p_B_upper = 1 - p_A_lower
-        # For multiclass, use more conservative bound
+        # 밝혀 낸 반지름을 셈한다
+        # 둘 가름에서는 p_B_upper = 1 - p_A_lower
+        # 여러 갈래에서는 더 조심스러운 테두리를 쓴다
         radius = self.sigma * norm.ppf(p_A_lower)
         
         return top_class, radius
@@ -266,14 +266,14 @@ class RandomizedSmoothing:
         radii_to_check: list = [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5]
     ) -> Dict[str, float]:
         """
-        Certify a batch of images.
+        그림 묶음을 밝힌다.
         
         Returns
         -------
         results : dict
-            - clean_accuracy: Fraction correctly predicted
-            - certified_accuracy_r=X: Fraction certified at radius X
-            - avg_certified_radius: Average certified radius
+            - clean_accuracy: 옳게 미루어 본 몫
+            - certified_accuracy_r=X: 반지름 X에서 밝혀 낸 몫
+            - avg_certified_radius: 밝혀 낸 반지름의 평균
         """
         num_images = len(images)
         predictions = []
@@ -287,7 +287,7 @@ class RandomizedSmoothing:
         predictions = torch.tensor(predictions, device=labels.device)
         radii = torch.tensor(radii)
         
-        # Metrics
+        # 자
         correct = (predictions == labels)
         abstain = (predictions == -1)
         
@@ -297,7 +297,7 @@ class RandomizedSmoothing:
             'avg_certified_radius': radii[correct & ~abstain].mean().item() if (correct & ~abstain).any() else 0.0
         }
         
-        # Certified accuracy at different radii
+        # 반지름마다 밝혀 낸 맞음
         for r in radii_to_check:
             certified = correct & (radii >= r)
             results[f'certified_accuracy_r={r}'] = certified.float().mean().item()
@@ -310,14 +310,14 @@ class RandomizedSmoothing:
         n: int = 1000,
         batch_size: int = 500
     ) -> int:
-        """Predict class (without certification)."""
+        """갈래를 미루어 본다(밝히기 없이)."""
         counts = self._sample_predictions(x, n, batch_size)
         return counts.argmax().item()
 
 
 class SmoothClassifier(nn.Module):
     """
-    Wrapper that makes a classifier smooth for training/inference.
+    익힘과 미루어 봄에서 가름개를 매끄럽게 해 주는 감싸개.
     """
     
     def __init__(self, base_classifier: nn.Module, sigma: float, num_samples: int = 1):
@@ -328,17 +328,17 @@ class SmoothClassifier(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass with noise augmentation.
+        잡음을 불려 앞으로 걸음.
         
-        During training: single noise sample (for efficiency)
-        During inference: average over multiple samples
+        익힐 때: 잡음 표본 하나(잘 들도록)
+        미루어 볼 때: 표본 여럿의 평균
         """
         if self.training:
-            # Single noise sample during training
+            # 익힐 때는 잡음 표본 하나
             noise = torch.randn_like(x) * self.sigma
             return self.base_classifier(x + noise)
         else:
-            # Average over multiple samples during inference
+            # 미루어 볼 때는 표본 여럿의 평균
             batch_size = x.shape[0]
             outputs = []
             
@@ -349,57 +349,57 @@ class SmoothClassifier(nn.Module):
             return torch.stack(outputs).mean(dim=0)
 ```
 
-### Usage Example
+### 쓰는 보기
 
 ```python
 import torchvision
 import torchvision.transforms as transforms
 
-# Load model
+# 모형을 얹는다
 base_model = torchvision.models.resnet18(num_classes=10)
 base_model.load_state_dict(torch.load('cifar10_resnet18.pth'))
 
-# Create smoothed classifier
+# 매끄럽게 한 가름개를 만든다
 smoother = RandomizedSmoothing(base_model, sigma=0.25)
 
-# Load test data
+# 시험 자료를 얹는다
 transform = transforms.ToTensor()
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, transform=transform)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
 
-# Get a batch
+# 묶음 하나를 얻는다
 images, labels = next(iter(test_loader))
 
-# Certify
+# 밝힌다
 results = smoother.certify_batch(
-    images[:50], labels[:50],  # Certify 50 examples (slow)
-    n=10000,                    # 10k samples per example
-    alpha=0.001                 # 99.9% confidence
+    images[:50], labels[:50],  # 보기 50개를 밝힌다(느리다)
+    n=10000,                    # 보기마다 표본 1만 개
+    alpha=0.001                 # 믿음 99.9%
 )
 
-print("Certification Results:")
-print(f"  Clean Accuracy: {results['clean_accuracy']:.2%}")
-print(f"  Abstain Rate: {results['abstain_rate']:.2%}")
-print(f"  Avg Certified Radius: {results['avg_certified_radius']:.4f}")
-print(f"  Certified @ r=0.25: {results['certified_accuracy_r=0.25']:.2%}")
-print(f"  Certified @ r=0.50: {results['certified_accuracy_r=0.5']:.2%}")
-print(f"  Certified @ r=1.00: {results['certified_accuracy_r=1.0']:.2%}")
+print("밝히기 결과:")
+print(f"  맑은 맞음: {results['clean_accuracy']:.2%}")
+print(f"  삼간 비율: {results['abstain_rate']:.2%}")
+print(f"  밝혀 낸 반지름 평균: {results['avg_certified_radius']:.4f}")
+print(f"  r=0.25에서 밝힘: {results['certified_accuracy_r=0.25']:.2%}")
+print(f"  r=0.50에서 밝힘: {results['certified_accuracy_r=0.5']:.2%}")
+print(f"  r=1.00에서 밝힘: {results['certified_accuracy_r=1.0']:.2%}")
 ```
 
-## Training for Certified Robustness
+## 밝혀 낸 든든함을 위한 익힘
 
-### Gaussian Data Augmentation
+### 가우스 자료 불리기
 
-The simplest approach: train with Gaussian noise augmentation.
+가장 단순한 길은 가우스 잡음으로 불려 익히는 것이다.
 
 ```python
 def train_with_noise(model, train_loader, sigma, epochs):
-    """Train with Gaussian noise augmentation."""
+    """가우스 잡음으로 불려 익힌다."""
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
     
     for epoch in range(epochs):
         for x, y in train_loader:
-            # Add Gaussian noise
+            # 가우스 잡음을 더한다
             noise = torch.randn_like(x) * sigma
             x_noisy = x + noise
             
@@ -409,128 +409,128 @@ def train_with_noise(model, train_loader, sigma, epochs):
             optimizer.step()
 ```
 
-### Consistency Regularization
+### 한결같음 다독이기
 
-Encourage consistent predictions across noise samples:
+잡음 표본에 걸쳐 미루어 봄이 한결같도록 이끈다.
 
 $$
 \mathcal{L} = \mathcal{L}_{\text{CE}} + \lambda \cdot \text{KL}(f(\mathbf{x} + \boldsymbol{\epsilon}_1) \| f(\mathbf{x} + \boldsymbol{\epsilon}_2))
 $$
 
-## Key Parameters and Trade-offs
+## 고갱이 매개변수와 맞바꿈
 
-### Noise Level sigma
+### 잡음의 크기 시그마
 
-| $\sigma$ | Certified Radius | Clean Accuracy |
+| $\sigma$ | 밝혀 낸 반지름 | 맑은 맞음 |
 |----------|------------------|----------------|
-| 0.12 | Small (~0.25) | High (~85%) |
-| 0.25 | Medium (~0.5) | Medium (~75%) |
-| 0.50 | Large (~1.0) | Low (~60%) |
-| 1.00 | Very large (~2.0) | Very low (~40%) |
+| 0.12 | 작음(약 0.25) | 높음(약 85%) |
+| 0.25 | 가운데(약 0.5) | 가운데(약 75%) |
+| 0.50 | 큼(약 1.0) | 낮음(약 60%) |
+| 1.00 | 아주 큼(약 2.0) | 아주 낮음(약 40%) |
 
-**Trade-off:** Larger $\sigma$ = larger certified region, but lower accuracy.
+**맞바꿈:** $\sigma$이 클수록 밝혀 낸 자리는 넓어지나 맞음은 낮아진다.
 
-### Sampling Parameters
+### 뽑기 매개변수
 
-| Parameter | Value | Effect |
+| 매개변수 | 값 | 미침 |
 |-----------|-------|--------|
-| $n_0$ (selection) | 100 | Higher = more reliable selection |
-| $n$ (certification) | 10,000+ | Higher = tighter confidence |
-| $\alpha$ (confidence) | 0.001 | Lower = more conservative |
+| $n_0$(고르기) | 100 | 클수록 고르기가 미덥다 |
+| $n$(밝히기) | 10,000 넘음 | 클수록 믿음이 촘촘하다 |
+| $\alpha$(믿음) | 0.001 | 작을수록 조심스럽다 |
 
-### Computational Cost
+### 셈 값
 
-Certification is **expensive**:
+밝히기는 **비싸다**.
 
-- $n = 10,000$ samples per input
-- Each sample requires full forward pass
-- Certifying 10,000 test examples: 100M forward passes
+- 들임마다 표본 $n = 10,000$개
+- 표본마다 온전한 앞으로 걸음이 있어야 한다
+- 시험 보기 1만 개를 밝히려면 앞으로 걸음이 1억 번
 
-## Comparison: Empirical vs Certified
+## 견주기: 겪은 것과 밝혀 낸 것
 
-**CIFAR-10, $\varepsilon = 0.5$ (L2):**
+**CIFAR-10, $\varepsilon = 0.5$(L2):**
 
-| Method | Clean Acc | Robust Acc | Certified? |
+| 방법 | 맑은 맞음 | 든든한 맞음 | 밝혔나? |
 |--------|-----------|------------|------------|
-| Standard | 95% | 0% | No |
-| PGD-AT | 85% | ~50% | No |
-| Randomized Smoothing | 75% | ~60% | **Yes** |
+| 여느 것 | 95% | 0% | 아니다 |
+| PGD 맞서며 익히기 | 85% | 약 50% | 아니다 |
+| 아무렇게나 매끄럽게 하기 | 75% | 약 60% | **그렇다** |
 
-Certified accuracy may exceed empirical robust accuracy because:
+밝혀 낸 맞음이 겪은 든든한 맞음을 넘을 수도 있다. 까닭은
 
-- Empirical attacks may not find optimal adversarial examples
-- Certification provides guaranteed lower bound
+- 겪은 치기가 가장 좋은 맞서는 보기를 못 찾을 수 있다
+- 밝히기는 다짐된 아래끝을 준다
 
-## Limitations
+## 한계
 
-1. **L2 norm only**: Randomized smoothing certifies L2 perturbations, not L∞
-2. **Accuracy drop**: Significant clean accuracy reduction
-3. **Computational cost**: Slow certification
-4. **Limited scalability**: Challenging for large models/datasets
+1. **L2 노름만**: 아무렇게나 매끄럽게 하기는 L∞이 아니라 L2 흔듦을 밝힌다
+2. **맞음 떨어짐**: 맑은 맞음이 꽤 줄어든다
+3. **셈 값**: 밝히기가 느리다
+4. **크게 늘리기 어려움**: 큰 모형이나 자료 꾸러미에는 만만치 않다
 
-## Advanced Topics
+## 한발 더 나간 이야기
 
-### Certified Robustness for L∞
+### L∞의 밝혀 낸 든든함
 
-Approaches like **Interval Bound Propagation (IBP)** provide L∞ certification:
+**사이 테두리 퍼뜨리기(IBP)** 같은 길이 L∞ 밝히기를 준다.
 
 $$
 [\underline{z}, \overline{z}] = \text{IBP}(f, [\mathbf{x} - \varepsilon, \mathbf{x} + \varepsilon])
 $$
 
-If $\underline{z}_y > \max_{i \neq y} \overline{z}_i$, the prediction is certified.
+$\underline{z}_y > \max_{i \neq y} \overline{z}_i$이면 그 미루어 봄은 밝혀진다.
 
-### Tighter Certificates
+### 더 촘촘한 밝힘
 
-- **SmoothAdv**: Adversarial training + smoothing
-- **MACER**: Maximize certified radius during training
-- **Denoised smoothing**: Train denoiser to improve base accuracy
+- **SmoothAdv**: 맞서며 익히기 + 매끄럽게 하기
+- **MACER**: 익히는 동안 밝혀 낸 반지름을 가장 크게 한다
+- **잡음 지운 매끄럽게 하기**: 잡음 지우개를 익혀 밑 맞음을 올린다
 
-## Summary
+## 간추림
 
-| Concept | Key Point |
+| 깨침 | 고갱이 |
 |---------|-----------|
-| **Randomized smoothing** | Average over Gaussian noise |
-| **Certified radius** | $R = \frac{\sigma}{2}(\Phi^{-1}(p_A) - \Phi^{-1}(p_B))$ |
-| **Trade-off** | Larger $\sigma$ = larger R, lower accuracy |
-| **Guarantee** | Provable for all perturbations $\|\boldsymbol{\delta}\|_2 \leq R$ |
+| **아무렇게나 매끄럽게 하기** | 가우스 잡음에 걸쳐 고르게 한다 |
+| **밝혀 낸 반지름** | $R = \frac{\sigma}{2}(\Phi^{-1}(p_A) - \Phi^{-1}(p_B))$ |
+| **맞바꿈** | $\sigma$이 클수록 R은 크고 맞음은 낮다 |
+| **다짐** | $\|\boldsymbol{\delta}\|_2 \leq R$인 모든 흔듦에 증명된다 |
 
-Certified robustness provides the strongest theoretical guarantees, at the cost of accuracy and computational overhead.
+밝혀 낸 든든함은 가장 센 이론의 다짐을 주되, 맞음과 셈 값을 내주어야 한다.
 
-## References
+## 살펴볼 거리
 
 1. Cohen, J., Rosenfeld, E., & Kolter, Z. (2019). "Certified Adversarial Robustness via Randomized Smoothing." ICML.
 2. Salman, H., et al. (2019). "Provably Robust Deep Learning via Adversarially Trained Smoothed Classifiers." NeurIPS.
 3. Zhai, R., et al. (2020). "MACER: Attack-Free and Scalable Robust Training via Maximizing Certified Radius." ICLR.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
