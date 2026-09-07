@@ -59,8 +59,8 @@ Internal Covariate Shift:
 
 Batch Normalization Solution:
   - Normalizes layer inputs for each mini-batch
-  - Reduces internal covariate shift
-  - Allows higher learning rates
+  - 안쪽 함께 바뀜의 옮겨감을 줄인다
+  - 배움 빠르기를 더 크게 쓸 수 있다
   - Reduces sensitivity to initialization
   - Acts as regularization (like dropout)
 

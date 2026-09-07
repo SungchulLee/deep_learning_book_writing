@@ -276,7 +276,7 @@ labels_onehot = F.one_hot(labels_indices, num_classes=3).float()
 ```python
 class LabelSmoothingLoss(nn.Module):
     """
-    Cross-entropy loss with label smoothing.
+    레이블 스무딩을 곁들인 엇갈린 엔트로피 잃음.
     Requires one-hot encoded targets internally.
     """
     def __init__(self, num_classes: int, smoothing: float = 0.1):

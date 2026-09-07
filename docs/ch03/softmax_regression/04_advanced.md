@@ -9,19 +9,19 @@
 ```python
 """
 ===============================================================================
-LEVEL 4: Advanced Softmax Regression Techniques
+4단계: 앞선 소프트맥스 회귀 솜씨
 ===============================================================================
-Difficulty: Intermediate-Advanced
-Prerequisites: Level 1, 2, 3
+어려움: 가운데~앞선
+미리 알아 둘 것: 1, 2, 3단계
 배움 목표:
-  - Implement softmax regression from scratch (numpy)
-  - Advanced regularization techniques (L2, dropout, batch normalization)
+  - 소프트맥스 회귀를 맨바닥부터 짠다(넘파이)
+  - 앞선 정칙화 솜씨(L2, 드롭아웃, 묶음 정규화)
   - 배움 빠르기 짜기
   - 일찍 멈추기
-  - Gradient clipping
-  - Custom loss functions and metrics
+  - 기울기 자르기
+  - 맞춤 잃음 함수와 자
 
-Time to complete: 60-90 minutes
+마치는 데 드는 때: 60~90분
 ===============================================================================
 """
 
@@ -53,19 +53,19 @@ print("=" * 80)
 
 class SoftmaxRegressionNumPy:
     """
-    Softmax regression implemented from scratch using only NumPy.
-    This helps understand what PyTorch does under the hood.
+    넘파이만으로 맨바닥부터 짠 소프트맥스 회귀.
+    PyTorch이 속에서 무엇을 하는지 이해하는 데 도움이 된다.
     """
     
     def __init__(self, input_dim, num_classes, lr=0.01, reg_lambda=0.01):
         """
-        Initialize the softmax regression model.
+        소프트맥스 회귀 모형의 첫자리를 잡는다.
         
         Args:
             input_dim: 들임 특징의 수
             num_classes: 내놓음 갈래의 수
-            lr: Learning rate
-            reg_lambda: L2 regularization parameter
+            lr: 배움 빠르기
+            reg_lambda: L2 정칙화 매개변수
         """
         # 가중치와 편향을 작은 무작위 값으로 초기화한다
         self.W = np.random.randn(input_dim, num_classes) * 0.01
@@ -76,13 +76,13 @@ class SoftmaxRegressionNumPy:
         
     def softmax(self, z):
         """
-        Compute softmax values for each row of z.
+        z의 줄마다 소프트맥스 값을 셈한다.
         
         Args:
-            z: Logits of shape (batch_size, num_classes)
+            z: 꼴이 (batch_size, num_classes)인 로짓
         
         Returns:
-            Probabilities of shape (batch_size, num_classes)
+            꼴이 (batch_size, num_classes)인 확률
         """
         # 수치적 안정성을 위해 최댓값을 뺀다
         z_shifted = z - np.max(z, axis=1, keepdims=True)
@@ -91,13 +91,13 @@ class SoftmaxRegressionNumPy:
     
     def forward(self, X):
         """
-        Forward pass: compute class probabilities.
+        앞으로 걸음: 갈래 확률을 셈한다.
         
         Args:
-            X: Input features of shape (batch_size, input_dim)
+            X: 꼴이 (batch_size, input_dim)인 들임 특징
         
         Returns:
-            Probabilities of shape (batch_size, num_classes)
+            꼴이 (batch_size, num_classes)인 확률
         """
         logits = np.dot(X, self.W) + self.b
         probs = self.softmax(logits)
@@ -105,14 +105,14 @@ class SoftmaxRegressionNumPy:
     
     def compute_loss(self, X, y):
         """
-        Compute cross-entropy loss with L2 regularization.
+        L2 정칙화를 곁들인 엇갈린 엔트로피 잃음을 셈한다.
         
         Args:
-            X: Input features
-            y: True labels (class indices)
+            X: 들임 특징
+            y: 참 이름표(갈래 번호)
         
         Returns:
-            Average loss value
+            평균 잃음 값
         """
         m = X.shape[0]  # Number of samples
         probs = self.forward(X)
@@ -133,8 +133,8 @@ class SoftmaxRegressionNumPy:
         뒤로 걸음: 기울기를 셈한다.
         
         Args:
-            X: Input features
-            y: True labels
+            X: 들임 특징
+            y: 참 이름표
         """
         m = X.shape[0]
         probs = self.forward(X)
@@ -153,11 +153,11 @@ class SoftmaxRegressionNumPy:
     
     def train_step(self, X, y):
         """
-        Perform one gradient descent step.
+        기울기 내림을 한 걸음 한다.
         
         Args:
-            X: Training features
-            y: Training labels
+            X: 익힘 특징
+            y: 익힘 이름표
         """
         # 경사를 계산한다
         dW, db = self.backward(X, y)
@@ -174,27 +174,27 @@ class SoftmaxRegressionNumPy:
     
     def predict(self, X):
         """
-        Predict class labels.
+        갈래 이름표를 예측한다.
         
         Args:
-            X: Input features
+            X: 들임 특징
         
         Returns:
-            Predicted class indices
+            예측한 갈래 번호
         """
         probs = self.forward(X)
         return np.argmax(probs, axis=1)
     
     def accuracy(self, X, y):
         """
-        Compute accuracy.
+        맞음을 셈한다.
         
         Args:
-            X: Input features
-            y: True labels
+            X: 들임 특징
+            y: 참 이름표
         
         Returns:
-            Accuracy value
+            맞음 값
         """
         predictions = self.predict(X)
         return np.mean(predictions == y)
@@ -245,23 +245,23 @@ print("PART 2: Batch Normalization")
 print("=" * 80)
 
 """
-Batch Normalization:
+묶음 정규화:
 -------------------
-- Normalizes the inputs to each layer
-- Helps with training stability
-- Allows higher learning rates
-- Acts as a regularizer
-- Reduces internal covariate shift
+- 층마다 들임의 잣대를 맞춘다
+- 익힘을 든든하게 한다
+- 배움 빠르기를 더 크게 쓸 수 있다
+- 정칙화 노릇을 한다
+- 안쪽 함께 바뀜의 옮겨감을 줄인다
 """
 
 class AdvancedClassifier(nn.Module):
     """
-    Neural network with batch normalization.
+    묶음 정규화를 곁들인 신경망.
     
-    Batch normalization normalizes layer inputs, which:
-    1. Speeds up training
-    2. Reduces sensitivity to initialization
-    3. Acts as a regularizer
+    묶음 정규화는 층의 들임을 맞추어 다음을 이룬다.
+    1. 익힘을 빠르게 한다
+    2. 첫자리 잡기에 덜 흔들린다
+    3. 정칙화 노릇을 한다
     """
     
     def __init__(self, input_size, hidden_size1, hidden_size2, num_classes,
@@ -365,12 +365,12 @@ print("PART 3: Learning Rate Scheduling")
 print("=" * 80)
 
 """
-Learning Rate Scheduling:
+배움 빠르기 짜기:
 ------------------------
-Instead of using a fixed learning rate, we can:
-- Start with a high LR for fast initial learning
-- Gradually decrease it for fine-tuning
-- Use different strategies: step decay, exponential, cosine, etc.
+붙박인 배움 빠르기를 쓰는 대신 다음을 할 수 있다.
+- 처음에 빠르게 배우도록 큰 배움 빠르기로 비롯한다
+- 곱게 다듬으려고 차츰 줄인다
+- 여러 꾀를 쓴다: 계단 잦아들기, 지수, 코사인 따위
 """
 
 class LRSchedulerDemo:
@@ -379,27 +379,27 @@ class LRSchedulerDemo:
     @staticmethod
     def step_lr_schedule(initial_lr, epoch, step_size=30, gamma=0.1):
         """
-        Step decay: Reduce LR by gamma every step_size epochs.
+        계단 잦아들기: step_size 판마다 배움 빠르기를 gamma배로 줄인다.
         
-        Example: LR = 0.1 → 0.01 → 0.001 (if gamma=0.1, step_size=30)
+        보기: 배움 빠르기 = 0.1 → 0.01 → 0.001(gamma=0.1, step_size=30이면)
         """
         return initial_lr * (gamma ** (epoch // step_size))
     
     @staticmethod
     def exponential_schedule(initial_lr, epoch, gamma=0.95):
         """
-        Exponential decay: LR = initial_lr * gamma^epoch
+        지수 잦아들기: 배움 빠르기 = initial_lr * gamma^epoch
         
-        Smooth, continuous decay.
+        매끄럽고 이어지게 잦아든다.
         """
         return initial_lr * (gamma ** epoch)
     
     @staticmethod
     def cosine_schedule(initial_lr, epoch, total_epochs):
         """
-        Cosine annealing: LR follows a cosine curve.
+        코사인 달구기: 배움 빠르기가 코사인 굽이를 따른다.
         
-        Starts high, smoothly decreases, popular for modern training.
+        크게 비롯해 매끄럽게 줄어든다. 요즘 익힘에서 널리 쓴다.
         """
         return initial_lr * 0.5 * (1 + np.cos(np.pi * epoch / total_epochs))
 
@@ -470,23 +470,23 @@ print("PART 4: Early Stopping")
 print("=" * 80)
 
 """
-Early Stopping:
+일찍 멈추기:
 --------------
-Stop training when validation loss stops improving.
-This prevents overfitting and saves time.
+다짐 잃음이 더 나아지지 않으면 익힘을 멈춘다.
+지나치게 맞춰짐을 막고 때를 아낀다.
 """
 
 class EarlyStopping:
     """
-    Early stopping to stop training when validation loss stops improving.
+    다짐 잃음이 더 나아지지 않으면 익힘을 멈추는 일찍 멈추기.
     """
     
     def __init__(self, patience=5, min_delta=0.001, verbose=True):
         """
         Args:
-            patience: How many epochs to wait before stopping
-            min_delta: Minimum change to qualify as improvement
-            verbose: Print messages
+            patience: 멈추기 앞에 몇 판을 기다릴지
+            min_delta: 나아졌다고 볼 가장 작은 바뀜
+            verbose: 알림을 찍는다
         """
         self.patience = patience
         self.min_delta = min_delta
@@ -498,14 +498,14 @@ class EarlyStopping:
         
     def __call__(self, val_loss, model):
         """
-        Check if we should stop training.
+        익힘을 멈춰야 할지 살핀다.
         
         Args:
-            val_loss: Current validation loss
-            model: Current model (to save best version)
+            val_loss: 이제 다짐 잃음
+            model: 이제 모형(가장 좋은 판을 갈무리하려고)
         
         Returns:
-            True if we should stop, False otherwise
+            멈춰야 하면 True, 아니면 False
         """
         if self.best_loss is None:
             self.best_loss = val_loss
@@ -592,19 +592,19 @@ print("PART 5: Gradient Clipping")
 print("=" * 80)
 
 """
-Gradient Clipping:
+기울기 자르기:
 -----------------
-Prevents exploding gradients by limiting their magnitude.
-Useful for training stability, especially with RNNs/LSTMs.
+기울기의 크기를 옭아매어 터지는 것을 막는다.
+익힘을 든든하게 하며 특히 되도는 신경망과 LSTM에 쓸모 있다.
 """
 
 def train_with_gradient_clipping(model, train_loader, criterion, optimizer,
                                 max_norm=1.0, num_epochs=10):
     """
-    Train model with gradient clipping.
+    기울기 자르기를 곁들여 모형을 익힌다.
     
     Args:
-        max_norm: Maximum norm for gradients
+        max_norm: 기울기의 가장 큰 노름
     """
     print(f"Training with gradient clipping (max_norm={max_norm})...")
     
@@ -649,27 +649,27 @@ print("PART 6: Label Smoothing")
 print("=" * 80)
 
 """
-Label Smoothing:
+레이블 스무딩:
 ---------------
-Instead of using hard targets (0 or 1), use soft targets.
-Example: Instead of [0, 1, 0], use [0.05, 0.9, 0.05]
+딱딱한 과녁(0이나 1) 대신 부드러운 과녁을 쓴다.
+보기: [0, 1, 0] 대신 [0.05, 0.9, 0.05]을 쓴다
 
 Benefits:
-- Prevents overconfidence
-- Acts as regularization
-- Often improves generalization
+- 지나친 자신을 막는다
+- 정칙화 노릇을 한다
+- 두루 미침이 나아지는 일이 잦다
 """
 
 class LabelSmoothingCrossEntropy(nn.Module):
     """
-    Cross-entropy loss with label smoothing.
+    레이블 스무딩을 곁들인 엇갈린 엔트로피 잃음.
     """
     
     def __init__(self, num_classes, smoothing=0.1):
         """
         Args:
-            num_classes: Number of classes
-            smoothing: Smoothing parameter (0 = no smoothing, 1 = uniform)
+            num_classes: 갈래의 수
+            smoothing: 매끄럽게 하기 매개변수(0이면 안 함, 1이면 고르게)
         """
         super().__init__()
         self.num_classes = num_classes
@@ -678,11 +678,11 @@ class LabelSmoothingCrossEntropy(nn.Module):
         
     def forward(self, predictions, targets):
         """
-        Compute label smoothing loss.
+        레이블 스무딩 잃음을 셈한다.
         
         Args:
-            predictions: Model logits (batch_size, num_classes)
-            targets: True class indices (batch_size,)
+            predictions: 모형 로짓 (batch_size, num_classes)
+            targets: 참 갈래 번호 (batch_size,)
         """
         # 로그 소프트맥스를 적용한다
         log_probs = torch.nn.functional.log_softmax(predictions, dim=1)
@@ -743,19 +743,19 @@ print("SUMMARY - What You Learned")
 print("=" * 80)
 
 print("""
-✅ Implemented softmax regression from scratch in NumPy
-✅ Used batch normalization for training stability
-✅ Applied learning rate scheduling strategies
-✅ Implemented early stopping to prevent overfitting
-✅ Used gradient clipping for training stability
-✅ Explored label smoothing as a regularization technique
+✅ 넘파이로 소프트맥스 회귀를 맨바닥부터 짰다
+✅ 익힘을 든든하게 하려고 묶음 정규화를 썼다
+✅ 배움 빠르기 짜기 꾀를 걸었다
+✅ 지나치게 맞춰짐을 막으려고 일찍 멈추기를 짰다
+✅ 익힘을 든든하게 하려고 기울기 자르기를 썼다
+✅ 정칙화 솜씨로 레이블 스무딩을 살펴보았다
 
-Advanced Techniques Summary:
+앞선 솜씨 간추림:
 ---------------------------
-1. Batch Normalization
-   - Normalizes layer inputs
-   - Speeds up training
-   - Acts as regularizer
+1. 묶음 정규화
+   - 층의 들임을 맞춘다
+   - 익힘을 빠르게 한다
+   - 정칙화 노릇을 한다
 
 2. Learning Rate Scheduling
    - Step decay: Drop LR at intervals
@@ -774,7 +774,7 @@ Advanced Techniques Summary:
 
 5. Label Smoothing
    - Soft targets instead of hard
-   - Prevents overconfidence
+   - 지나친 자신을 막는다
    - Better generalization
 
 Best Practices:

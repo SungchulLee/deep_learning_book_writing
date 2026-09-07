@@ -568,7 +568,7 @@ class ExperimentRunner:
             dataset_name: Name of dataset
             model_type: Type of model
             num_epochs: Number of training epochs
-            lr: Learning rate
+            lr: 배움 빠르기
             use_scheduler: Whether to use LR scheduling
         """
         experiment_name = f"{dataset_name}_{model_type}_lr{lr}"

@@ -20,7 +20,7 @@
   - 자료 불러오개와 작은 묶음 익히기를 쓴다
   - 그림에 대한 예측을 그림으로 본다
 
-Time to complete: 45-60 minutes
+마치는 데 드는 때: 45~60분
 ===============================================================================
 """
 
@@ -50,13 +50,13 @@ print("PART 1: Loading MNIST Dataset")
 print("=" * 80)
 
 """
-MNIST Dataset:
+MNIST 자료 묶음:
 --------------
-- 70,000 handwritten digit images (0-9)
-- 28x28 pixels, grayscale
-- 60,000 training images
-- 10,000 test images
-- One of the most famous datasets in machine learning!
+- 손글씨 숫자 그림 70,000장(0~9)
+- 28x28 화소, 잿빛
+- 익힘 그림 60,000장
+- 시험 그림 10,000장
+- 기계 배움에서 가장 이름난 자료 묶음의 하나다!
 """
 
 # 데이터에 적용할 변환을 정의한다
@@ -98,11 +98,11 @@ print("=" * 80)
 
 def show_images(dataset, num_images=10):
     """
-    Display a grid of sample images from the dataset.
+    자료 묶음에서 보기 그림을 격자로 보인다.
     
     Args:
-        dataset: PyTorch dataset
-        num_images: Number of images to display
+        dataset: PyTorch 자료 묶음
+        num_images: 보일 그림의 수
     """
     fig, axes = plt.subplots(2, 5, figsize=(12, 6))
     axes = axes.ravel()
@@ -140,12 +140,12 @@ print("PART 3: Setting Up Data Loaders")
 print("=" * 80)
 
 """
-Data Loaders:
+자료 불러오개:
 -------------
-Instead of loading all data at once, we use data loaders to:
-- Load data in mini-batches (saves memory)
-- Shuffle data each epoch (prevents overfitting)
-- Enable parallel data loading (faster training)
+자료를 한꺼번에 올리는 대신 자료 불러오개로 다음을 한다.
+- 자료를 작은 묶음으로 불러온다(기억 자리를 아낀다)
+- 판마다 자료를 섞는다(지나치게 맞춰짐을 막는다)
+- 나란히 자료를 불러온다(익힘이 빨라진다)
 """
 
 # 학습 데이터를 학습 집합과 검증 집합으로 나눈다
@@ -201,32 +201,32 @@ print("=" * 80)
 
 class MNISTClassifier(nn.Module):
     """
-    Neural network for MNIST digit classification.
+    MNIST 숫자 가름을 위한 신경망.
     
     Architecture:
-        Flatten (28×28) → 784 features
+        펼치기(28×28) → 특징 784개
           ↓
-        Linear Layer (784 → 256) + ReLU + Dropout
+        선형 층(784 → 256) + ReLU + 드롭아웃
           ↓
-        Linear Layer (256 → 128) + ReLU + Dropout
+        선형 층(256 → 128) + ReLU + 드롭아웃
           ↓
-        Output Layer (128 → 10 classes)
+        내놓음 층(128 → 갈래 10개)
     
-    Note: Dropout helps prevent overfitting by randomly dropping neurons
-          during training (they're always active during inference).
+    눈여겨볼 것: 드롭아웃은 익히는 동안 뉴런을 마구잡이로 떨어뜨려 지나치게
+          맞춰짐을 막는다(미룸 때는 늘 살아 있다).
     """
     
     def __init__(self, input_size=784, hidden_size1=256, hidden_size2=128, 
                  num_classes=10, dropout_rate=0.2):
         """
-        Initialize the network.
+        그물의 첫자리를 잡는다.
         
         Args:
-            input_size: Number of input features (28*28=784 for MNIST)
-            hidden_size1: Neurons in first hidden layer
-            hidden_size2: Neurons in second hidden layer
-            num_classes: Number of output classes (10 digits)
-            dropout_rate: Dropout probability (0.2 = drop 20% of neurons)
+            input_size: 들임 특징의 수(MNIST에서는 28*28=784)
+            hidden_size1: 첫 숨은 층의 뉴런 수
+            hidden_size2: 둘째 숨은 층의 뉴런 수
+            num_classes: 내놓음 갈래의 수(숫자 10개)
+            dropout_rate: 드롭아웃 확률(0.2이면 뉴런의 20%를 떨어뜨린다)
         """
         super(MNISTClassifier, self).__init__()
         
@@ -248,13 +248,13 @@ class MNISTClassifier(nn.Module):
         
     def forward(self, x):
         """
-        Forward pass.
+        앞으로 걸음.
         
         Args:
-            x: Input tensor of shape (batch_size, 1, 28, 28)
+            x: 꼴이 (batch_size, 1, 28, 28)인 들임 텐서
         
         Returns:
-            Logits of shape (batch_size, num_classes)
+            꼴이 (batch_size, num_classes)인 로짓
         """
         # 이미지를 평탄화한다: (batch, 1, 28, 28) → (batch, 784)
         x = self.flatten(x)
@@ -315,11 +315,11 @@ print(f"Training epochs: {num_epochs}")
 
 def train_one_epoch(model, train_loader, criterion, optimizer, device):
     """
-    Train the model for one epoch.
+    모형을 한 판 익힌다.
     
     Returns:
-        avg_loss: Average loss for the epoch
-        accuracy: Training accuracy
+        avg_loss: 그 판의 평균 잃음
+        accuracy: 익힘 맞음
     """
     model.train()  # 익힘 결로 둔다
     running_loss = 0.0
@@ -353,11 +353,11 @@ def train_one_epoch(model, train_loader, criterion, optimizer, device):
 
 def validate(model, val_loader, criterion, device):
     """
-    Evaluate the model on validation set.
+    다짐 묶음에서 모형을 따진다.
     
     Returns:
-        avg_loss: Average validation loss
-        accuracy: Validation accuracy
+        avg_loss: 평균 다짐 잃음
+        accuracy: 다짐 맞음
     """
     model.eval()  # Set to evaluation mode
     running_loss = 0.0
@@ -426,7 +426,7 @@ print("=" * 80)
 
 def test_model(model, test_loader, device):
     """
-    Evaluate model on test set and return detailed metrics.
+    시험 묶음에서 모형을 따지고 자세한 자를 돌려준다.
     """
     model.eval()
     correct = 0
@@ -465,7 +465,7 @@ print("=" * 80)
 
 def visualize_predictions(model, test_loader, device, num_images=10):
     """
-    Show sample predictions with their probabilities.
+    보기 예측과 그 확률을 보인다.
     """
     model.eval()
     
@@ -614,25 +614,25 @@ print("SUMMARY - What You Learned")
 print("=" * 80)
 
 print(f"""
-✅ Loaded and explored MNIST dataset
-✅ Used DataLoader for efficient batch processing
-✅ Implemented train/validation/test splits
-✅ Built a deeper neural network with dropout
-✅ Trained on a real-world dataset
+✅ MNIST 자료 묶음을 불러와 살펴보았다
+✅ 잘 드는 묶음 다루기에 DataLoader을 썼다
+✅ 익힘/다짐/시험 나누기를 짰다
+✅ 드롭아웃을 곁들인 더 깊은 신경망을 지었다
+✅ 참 세상 자료 묶음으로 익혔다
 ✅ Achieved {test_accuracy:.2%} accuracy on test set
-✅ Visualized predictions and analyzed errors
-✅ Generated confusion matrix and per-class metrics
+✅ 예측을 그림으로 보고 어긋남을 살폈다
+✅ 헷갈림 행렬과 갈래마다의 자를 만들었다
 ✅ 익힌 모형을 갈무리하고 불러왔다
 
 고갱이 개념:
 -------------
-• Mini-batch training: Process data in small batches
-• Data loaders: Efficient data handling with shuffling
-• Dropout: Regularization to prevent overfitting
-• train() vs eval() modes: Different behavior for dropout/batchnorm
-• Confusion matrix: Understand which classes are confused
+• 작은 묶음 익히기: 자료를 작은 묶음으로 다룬다
+• 자료 불러오개: 섞기를 곁들여 자료를 잘 다룬다
+• 드롭아웃: 지나치게 맞춰짐을 막는 정칙화
+• train()과 eval() 결: 드롭아웃과 묶음 정규화가 다르게 움직인다
+• 헷갈림 행렬: 어떤 갈래가 서로 헷갈리는지 안다
 
-Performance Summary:
+성능 간추림:
 --------------------
 Training time: {training_time:.2f} seconds
 Final train accuracy: {history['train_acc'][-1]:.2%}
@@ -641,11 +641,11 @@ Test accuracy: {test_accuracy:.2%}
 
 다음 걸음:
 -----------
-→ Level 4: Implement custom training from scratch
-→ Level 5: Advanced techniques (learning rate scheduling, data augmentation)
-→ Experiment: Try different architectures, hyperparameters
+→ 4단계: 맞춤 익힘을 맨바닥부터 짜기
+→ 5단계: 앞선 솜씨(배움 빠르기 짜기, 자료 불리기)
+→ 실험: 여러 얼개와 웃매개변수를 써 보기
 
-🎉 Excellent work! You've successfully trained on MNIST!
+🎉 훌륭하다! MNIST으로 익히기를 해냈다!
 """)
 
 
