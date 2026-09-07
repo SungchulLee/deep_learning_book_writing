@@ -1,81 +1,81 @@
-# DeepFool
-## Introduction
+# 딥풀
+## 들머리
 
-**DeepFool** (Moosavi-Dezfooli et al., 2016) is a geometric adversarial attack that finds the **minimal perturbation** to move an input across the nearest decision boundary. Unlike fixed-budget attacks (FGSM, PGD) that use a predetermined $\varepsilon$, DeepFool iteratively computes the smallest perturbation needed for misclassification, providing insight into the model's local decision geometry.
+**딥풀**(무사비-데즈풀리 등, 2016)은 들임을 가장 가까운 판단의 금 너머로 옮기는 **가장 작은 흔듦**을 찾는 꼴 바탕의 맞서는 치기다. 미리 정한 $\varepsilon$을 쓰는 예산 붙박이 치기(FGSM, PGD)와 달리, 딥풀은 틀리게 가르게 만드는 가장 작은 흔듦을 거듭 셈해 모형의 그 자리 판단 꼴을 들여다보게 해 준다.
 
-## Mathematical Foundation
+## 수학 밑바탕
 
-### Binary Classifier Case
+### 둘 가름개일 때
 
-Consider a binary affine classifier $f(\mathbf{x}) = \mathbf{w}^\top \mathbf{x} + b$. The decision boundary is the hyperplane $\{\mathbf{x} : f(\mathbf{x}) = 0\}$. The minimum perturbation to cross this boundary is the orthogonal projection onto the hyperplane:
+둘 가름 아핀 가름개 $f(\mathbf{x}) = \mathbf{w}^\top \mathbf{x} + b$을 보자. 판단의 금은 넘평면 $\{\mathbf{x} : f(\mathbf{x}) = 0\}$이다. 이 금을 넘는 가장 작은 흔듦은 그 넘평면으로의 곧은 되비춤이다.
 
 $$
 \boldsymbol{\delta}^* = -\frac{f(\mathbf{x})}{\|\mathbf{w}\|_2^2} \mathbf{w}
 $$
 
-with magnitude:
+그 크기는
 
 $$
 \|\boldsymbol{\delta}^*\|_2 = \frac{|f(\mathbf{x})|}{\|\mathbf{w}\|_2}
 $$
 
-This is simply the distance from $\mathbf{x}$ to the decision hyperplane.
+이는 곧 $\mathbf{x}$에서 판단 넘평면까지의 거리다.
 
-### Extension to Neural Networks
+### 신경 그물로 넓히기
 
-For a nonlinear classifier, DeepFool linearizes the decision boundary at the current point and iteratively projects onto the linearized boundary. At each iteration $t$:
+곧지 않은 가름개에서 딥풀은 이제의 점에서 판단의 금을 곧게 펴고 그 금으로 거듭 되비춘다. 되돌이 $t$마다
 
-1. Approximate the classifier as locally affine around $\mathbf{x}^{(t)}$
-2. Compute the minimal perturbation to cross the approximate boundary
-3. Update: $\mathbf{x}^{(t+1)} = \mathbf{x}^{(t)} + \boldsymbol{\delta}^{(t)}$
-4. Repeat until misclassification
+1. $\mathbf{x}^{(t)}$ 둘레에서 가름개를 그 자리 아핀으로 어림한다
+2. 어림한 금을 넘는 가장 작은 흔듦을 셈한다
+3. 고친다: $\mathbf{x}^{(t+1)} = \mathbf{x}^{(t)} + \boldsymbol{\delta}^{(t)}$
+4. 틀리게 갈릴 때까지 되풀이한다
 
-### Multi-Class Extension
+### 여러 갈래로 넓히기
 
-For a multi-class classifier with logits $Z_k(\mathbf{x})$, the decision boundary between class $y$ (true) and class $k$ is:
+로짓이 $Z_k(\mathbf{x})$인 여러 갈래 가름개에서 갈래 $y$(참)과 갈래 $k$ 사이의 판단의 금은
 
 $$
 \{\mathbf{x} : Z_y(\mathbf{x}) = Z_k(\mathbf{x})\}
 $$
 
-At each iteration, DeepFool:
+되돌 때마다 딥풀은 다음을 한다.
 
-1. Computes the linearized distance to each class boundary:
+1. 갈래마다의 금까지 곧게 편 거리를 셈한다.
 
 $$
 d_k = \frac{|Z_k(\mathbf{x}^{(t)}) - Z_y(\mathbf{x}^{(t)})|}{\|\nabla_\mathbf{x} Z_k(\mathbf{x}^{(t)}) - \nabla_\mathbf{x} Z_y(\mathbf{x}^{(t)})\|_2}
 $$
 
-2. Selects the nearest boundary: $\hat{k} = \arg\min_{k \neq y} d_k$
+2. 가장 가까운 금을 고른다: $\hat{k} = \arg\min_{k \neq y} d_k$
 
-3. Computes the perturbation toward that boundary:
+3. 그 금 쪽으로의 흔듦을 셈한다.
 
 $$
 \boldsymbol{\delta}^{(t)} = \frac{Z_{\hat{k}}(\mathbf{x}^{(t)}) - Z_y(\mathbf{x}^{(t)})}{\|\mathbf{w}_{\hat{k}} - \mathbf{w}_y\|_2^2} (\mathbf{w}_{\hat{k}} - \mathbf{w}_y)
 $$
 
-where $\mathbf{w}_k = \nabla_\mathbf{x} Z_k(\mathbf{x}^{(t)})$.
+여기서 $\mathbf{w}_k = \nabla_\mathbf{x} Z_k(\mathbf{x}^{(t)})$이다.
 
-## Algorithm
+## 알고리즘
 
-**Algorithm: DeepFool**
+**알고리즘: 딥풀**
 
-**Input:** Input $\mathbf{x}$, classifier $f$, max iterations $T$, overshoot $\eta$
+**들임:** 들임 $\mathbf{x}$, 가름개 $f$, 가장 많은 되돌이 $T$, 지나침 $\eta$
 
-**Output:** Minimal adversarial perturbation $\hat{\boldsymbol{\delta}}$
+**날임:** 가장 작은 맞서는 흔듦 $\hat{\boldsymbol{\delta}}$
 
-1. Initialize: $\mathbf{x}^{(0)} = \mathbf{x}$, $\hat{\boldsymbol{\delta}} = \mathbf{0}$
-2. While $f(\mathbf{x}^{(t)}) = f(\mathbf{x})$ and $t < T$:
-    - For each class $k \neq y$: compute $\mathbf{w}_k' = \nabla_\mathbf{x} Z_k - \nabla_\mathbf{x} Z_y$ and $f_k' = Z_k - Z_y$
-    - Find nearest boundary: $\hat{k} = \arg\min_{k \neq y} \frac{|f_k'|}{\|\mathbf{w}_k'\|_2}$
-    - Compute step: $\boldsymbol{\delta}^{(t)} = \frac{|f_{\hat{k}}'|}{\|\mathbf{w}_{\hat{k}}'\|_2^2} \mathbf{w}_{\hat{k}}'$
-    - Update: $\mathbf{x}^{(t+1)} = \mathbf{x}^{(t)} + (1 + \eta) \boldsymbol{\delta}^{(t)}$
-    - Accumulate: $\hat{\boldsymbol{\delta}} \leftarrow \hat{\boldsymbol{\delta}} + (1 + \eta) \boldsymbol{\delta}^{(t)}$
-3. Return $\hat{\boldsymbol{\delta}}$
+1. 첫자리: $\mathbf{x}^{(0)} = \mathbf{x}$, $\hat{\boldsymbol{\delta}} = \mathbf{0}$
+2. $f(\mathbf{x}^{(t)}) = f(\mathbf{x})$이고 $t < T$인 동안:
+    - 갈래 $k \neq y$마다 $\mathbf{w}_k' = \nabla_\mathbf{x} Z_k - \nabla_\mathbf{x} Z_y$과 $f_k' = Z_k - Z_y$을 셈한다
+    - 가장 가까운 금을 찾는다: $\hat{k} = \arg\min_{k \neq y} \frac{|f_k'|}{\|\mathbf{w}_k'\|_2}$
+    - 걸음을 셈한다: $\boldsymbol{\delta}^{(t)} = \frac{|f_{\hat{k}}'|}{\|\mathbf{w}_{\hat{k}}'\|_2^2} \mathbf{w}_{\hat{k}}'$
+    - 고친다: $\mathbf{x}^{(t+1)} = \mathbf{x}^{(t)} + (1 + \eta) \boldsymbol{\delta}^{(t)}$
+    - 쌓는다: $\hat{\boldsymbol{\delta}} \leftarrow \hat{\boldsymbol{\delta}} + (1 + \eta) \boldsymbol{\delta}^{(t)}$
+3. $\hat{\boldsymbol{\delta}}$을 돌려준다
 
-The overshoot parameter $\eta > 0$ (typically 0.02) ensures the perturbation crosses the boundary rather than landing exactly on it.
+지나침 매개변수 $\eta > 0$(흔히 0.02)은 흔듦이 금 위에 딱 걸치지 않고 넘어가도록 한다.
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
 ```python
 import torch
@@ -84,21 +84,21 @@ from typing import Optional, Dict
 
 class DeepFool:
     """
-    DeepFool Attack: finds minimal L2 perturbation for misclassification.
+    딥풀 치기: 틀리게 가르게 하는 가장 작은 L2 흔듦을 찾는다.
     
-    Iteratively linearizes the decision boundary and projects
-    onto the nearest class boundary.
+    판단의 금을 거듭 곧게 펴고 가장 가까운 갈래의 금으로
+    되비춘다.
     
     Parameters
     ----------
     model : nn.Module
-        Neural network to attack
+        칠 신경 그물
     num_classes : int
-        Number of output classes
+        날임 갈래의 수
     max_iter : int
-        Maximum iterations
+        가장 많은 되돌이
     overshoot : float
-        Overshoot parameter to ensure boundary crossing
+        금을 반드시 넘게 하는 지나침 매개변수
     """
     
     def __init__(
@@ -120,14 +120,14 @@ class DeepFool:
     
     def _attack_single(self, x: torch.Tensor) -> tuple:
         """
-        Attack a single input.
+        들임 하나를 친다.
         
-        Returns (perturbation, iterations, original_label, final_label)
+        (흔듦, 되돌이 수, 본디 이름표, 마지막 이름표)을 돌려준다
         """
         x = x.unsqueeze(0).to(self.device).clone().detach()
         x_orig = x.clone()
         
-        # Get original prediction
+        # 본디 미루어 봄을 얻는다
         with torch.no_grad():
             logits = self.model(x)
             orig_label = logits.argmax(dim=1).item()
@@ -143,7 +143,7 @@ class DeepFool:
             if pred != orig_label:
                 break
             
-            # Compute gradients for each class
+            # 갈래마다 기울기를 셈한다
             grads = []
             for k in range(self.num_classes):
                 if k == orig_label:
@@ -157,7 +157,7 @@ class DeepFool:
                 logits[0, k].backward(retain_graph=True)
                 grad_k = x_pert.grad.data.clone()
                 
-                # Also need gradient of original class
+                # 본디 갈래의 기울기도 있어야 한다
                 self.model.zero_grad()
                 x_pert.grad.zero_()
                 logits[0, orig_label].backward(retain_graph=True)
@@ -165,7 +165,7 @@ class DeepFool:
                 
                 grads.append(grad_k - grad_orig)
             
-            # Find nearest boundary
+            # 가장 가까운 금을 찾는다
             min_dist = float('inf')
             best_delta = None
             
@@ -189,7 +189,7 @@ class DeepFool:
             if best_delta is None:
                 break
             
-            # Update with overshoot
+            # 지나침을 곁들여 고친다
             step = (1 + self.overshoot) * best_delta
             total_pert += step
             x_pert = (x_orig + total_pert).detach()
@@ -208,19 +208,19 @@ class DeepFool:
         **kwargs
     ) -> torch.Tensor:
         """
-        Generate adversarial examples for a batch.
+        묶음 하나에 대해 맞서는 보기를 만든다.
         
         Parameters
         ----------
         x : torch.Tensor
-            Clean inputs, shape (N, C, H, W)
+            맑은 들임, 꼴 (N, C, H, W)
         y : torch.Tensor
-            True labels (used only for evaluation)
+            참 이름표(따질 때만 쓴다)
             
         Returns
         -------
         x_adv : torch.Tensor
-            Adversarial examples
+            맞서는 보기
         """
         x_adv = x.clone()
         
@@ -236,7 +236,7 @@ class DeepFool:
         y: torch.Tensor,
         x_adv: torch.Tensor
     ) -> Dict[str, float]:
-        """Evaluate attack with perturbation statistics."""
+        """흔듦의 자와 함께 치기를 따진다."""
         with torch.no_grad():
             x_dev = x.to(self.device)
             y_dev = y.to(self.device)
@@ -262,74 +262,74 @@ class DeepFool:
         }
 ```
 
-## Properties and Comparison
+## 결과 견주기
 
-### Strengths
+### 센 데
 
-- **Finds minimal perturbations**: Unlike fixed-$\varepsilon$ attacks, reveals the true distance to the decision boundary
-- **Geometric insight**: Directly measures decision boundary proximity
-- **No hyperparameter tuning**: No $\varepsilon$ to choose (except overshoot and max iterations)
-- **Theoretically grounded**: Optimal for affine classifiers
+- **가장 작은 흔듦을 찾는다**: $\varepsilon$이 붙박인 치기와 달리 판단의 금까지의 참 거리를 드러낸다
+- **꼴로 보는 깨침**: 판단의 금이 얼마나 가까운지를 곧바로 잰다
+- **하이퍼파라미터를 맞출 것 없음**: 고를 $\varepsilon$이 없다(지나침과 가장 많은 되돌이만 빼면)
+- **이론에 뿌리내림**: 아핀 가름개에서는 가장 좋다
 
-### Limitations
+### 한계
 
-- **Slow**: Requires per-class gradient computation at each iteration
-- **L2 only**: Natural formulation is for $\ell_2$ norm; $\ell_\infty$ variant (Universal DeepFool) exists but is less elegant
-- **Not strongest attack**: For fixed-budget evaluation, PGD and C&W are preferred
-- **Sequential**: Each example must be processed individually
+- **느리다**: 되돌 때마다 갈래마다의 기울기를 셈해야 한다
+- **L2만**: 본디 꼴이 $\ell_2$ 노름에 맞다. $\ell_\infty$ 갈래(두루 쓰는 딥풀)도 있으나 덜 깔끔하다
+- **가장 센 치기는 아니다**: 예산이 붙박인 따짐에는 PGD과 C&W이 낫다
+- **차례로 해야 한다**: 보기 하나하나를 따로 다뤄야 한다
 
-### Comparison with Other Attacks
+### 다른 치기와 견주기
 
-| Aspect | DeepFool | PGD | C&W |
+| 결 | 딥풀 | PGD | C&W |
 |--------|----------|-----|-----|
-| Finds minimal $\|\boldsymbol{\delta}\|$ | Yes | No | Yes |
-| Fixed-$\varepsilon$ evaluation | No | Yes | No |
-| Speed | Slow | Moderate | Very slow |
-| Primary norm | $\ell_2$ | $\ell_\infty$ or $\ell_2$ | $\ell_2$ |
-| Use case | Geometry analysis | Robustness evaluation | Defense breaking |
+| 가장 작은 $\|\boldsymbol{\delta}\|$을 찾음 | 그렇다 | 아니다 | 그렇다 |
+| $\varepsilon$ 붙박인 따짐 | 아니다 | 그렇다 | 아니다 |
+| 빠르기 | 느림 | 가운데 | 아주 느림 |
+| 으뜸 노름 | $\ell_2$ | $\ell_\infty$ 또는 $\ell_2$ | $\ell_2$ |
+| 쓸 자리 | 꼴 살피기 | 든든함 따지기 | 막이 깨기 |
 
-## Applications
+## 쓸 자리
 
-DeepFool is particularly valuable for:
+딥풀은 다음에 더욱 값지다.
 
-- **Measuring robustness margins**: The average minimum perturbation across a dataset quantifies how close typical inputs are to decision boundaries
-- **Comparing architectures**: Reveals which models have wider margins
-- **Understanding decision geometry**: The direction of minimal perturbation indicates the most vulnerable input dimensions
-- **Financial applications**: Measuring how much a model's credit decision or trading signal would change under minimal input perturbation
+- **든든함의 여유 재기**: 자료 꾸러미에 걸친 가장 작은 흔듦의 평균은 여느 들임이 판단의 금에 얼마나 가까운지를 수로 알려 준다
+- **얼개 견주기**: 어느 모형의 여유가 더 넓은지 드러낸다
+- **판단 꼴 알아보기**: 가장 작은 흔듦의 방향이 가장 무른 들임 차수를 알려 준다
+- **금융에 쓰기**: 들임을 아주 조금 흔들었을 때 모형의 미쁨 판단이나 거래 신호가 얼마나 바뀌는지 재기
 
-## References
+## 살펴볼 거리
 
 1. Moosavi-Dezfooli, S. M., Fawzi, A., & Frossard, P. (2016). "DeepFool: A Simple and Accurate Method to Fool Deep Neural Networks." CVPR.
 2. Moosavi-Dezfooli, S. M., et al. (2017). "Universal Adversarial Perturbations." CVPR.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
