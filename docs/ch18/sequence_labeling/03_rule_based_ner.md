@@ -241,7 +241,7 @@ class RuleBasedNER:
         4. 정렬한 것의 목록을 돌려준다
         
         인수:
-            text: Input text string
+            text: 들임 글월 문자열
             
         반환값:
             다음 항목을 담은 것 사전의 목록:
@@ -357,7 +357,7 @@ class RuleBasedNER:
         - 기계 배움 모델을 위한 특징 뽑기
         
         인수:
-            text: Original text
+            text: 본디 글월
             entity: 것 사전
             window_size: 양쪽에 넣을 낱말의 개수
             
@@ -400,7 +400,7 @@ class RuleBasedNER:
         글 속의 것을 눈으로 볼 수 있게 나타낸다.
         
         인수:
-            text: Original text
+            text: 본디 글월
             entities: 것 사전의 목록
         """
         # 표시한 판 만들기

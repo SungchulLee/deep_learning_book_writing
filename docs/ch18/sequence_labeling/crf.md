@@ -468,7 +468,7 @@ class BiLSTMCRF(nn.Module):
     차례 이름표 붙이기를 위한 두 방향 LSTM-CRF 모델.
     
     구조:
-        Embedding → BiLSTM → Linear → CRF
+        묻힘 → 양방향 LSTM → 선형 → CRF
     """
     
     def __init__(

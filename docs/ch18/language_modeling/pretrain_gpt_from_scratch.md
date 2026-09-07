@@ -260,7 +260,7 @@ print("=" * 60)
 
 print("""
   실제로 미리 익힐 때는 여러 GPU를 쓰려 HuggingFace Accelerate를 쓴다.
-  Launch with: accelerate launch --num_processes 4 train.py
+  이렇게 띄운다: accelerate launch --num_processes 4 train.py
 """)
 
 print("Done.")

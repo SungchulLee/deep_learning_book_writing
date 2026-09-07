@@ -98,7 +98,7 @@ class Entity:
         Entity 첫자리매김.
         
         인수:
-            text: The entity text span
+            text: 개체가 걸친 글월 마디
             entity_type: 것의 갈래(PER, ORG, LOC 등)
             start: 시작 글자 자리
             end: 끝 글자 자리
@@ -163,7 +163,7 @@ class Token:
         Token 첫자리매김.
         
         인수:
-            text: Token text
+            text: 토큰 글월
             start: 본디 글에서의 시작 글자 자리
             end: 본디 글에서의 끝 글자 자리
         """
@@ -227,7 +227,7 @@ class SimpleTokenizer:
         글을 Token 개체로 토막내기.
         
         인수:
-            text: Input text string
+            text: 들임 글월 문자열
             
         반환값:
             글과 글자 자리를 담은 Token 개체의 목록
@@ -266,7 +266,7 @@ class SimpleTokenizer:
         그리고 어떤 갈래인지 가리키는 이름표를 받는다.
         
         인수:
-            text: Input text string
+            text: 들임 글월 문자열
             entities: 글 속 Entity 개체의 목록
             
         반환값:
@@ -332,7 +332,7 @@ class NERDataset:
         자료 뭉치에 표본 하나 더하기.
         
         인수:
-            text: Text string
+            text: 글월 문자열
             entities: 글 속 Entity 개체의 목록
         """
         self.samples.append((text, entities))

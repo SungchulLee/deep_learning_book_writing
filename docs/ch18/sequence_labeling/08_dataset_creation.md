@@ -42,7 +42,7 @@ class NERDatasetBuilder:
         자료 뭉치에 표본 하나 더하기.
         
         인수:
-            text: Text string
+            text: 글월 문자열
             entities: 'text', 'type', 'start', 'end'를 담은 것 사전의 목록
         """
         self.samples.append({

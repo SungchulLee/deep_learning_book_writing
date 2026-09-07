@@ -117,7 +117,7 @@ def poly_multiply(a: list[float], b: list[float]) -> list[float]:
 
     인수:
         a: Coefficients of first polynomial (a[i] = coefficient of x^i).
-        b: Coefficients of second polynomial.
+        b: 둘째 다항식의 계수.
 
     반환값:
         곱 다항식의 계수.

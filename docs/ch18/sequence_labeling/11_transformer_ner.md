@@ -97,7 +97,7 @@ class TransformerNER(nn.Module):
         글 속의 것 어림하기.
         
         인수:
-            text: Input text string
+            text: 들임 글월 문자열
             
         반환값:
             (토막, 이름표) 짝의 목록

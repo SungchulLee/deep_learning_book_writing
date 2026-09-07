@@ -148,7 +148,7 @@ class FeedforwardLM(nn.Module):
     앞먹임 신경 말 모델(Bengio 외, 2003).
     
     구조:
-        Embedding → Concatenate → Hidden → Output → Softmax
+        묻힘 → 이어 붙이기 → 숨은 층 → 내놓음 → 소프트맥스
     
     인수:
         vocab_size: 낱말 곳간의 크기

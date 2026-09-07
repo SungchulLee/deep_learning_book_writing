@@ -151,7 +151,7 @@ def align_entities_to_tokens(
     글자 수준의 것을 토막 수준의 이름표에 맞추기.
     
     인수:
-        text: Original text string
+        text: 본디 글월 문자열
         entities: 글자 어긋남을 담은 Entity 개체의 목록
         token_spans: 토막마다의 (start, end) 글자 자리 목록
         
