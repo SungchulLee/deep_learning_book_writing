@@ -342,7 +342,7 @@ print(f"CrossEntropyLoss: {loss.item():.4f}")
 ```python
 def cross_entropy_manual(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     """
-    Manual implementation of cross-entropy loss.
+    엇갈린 엔트로피 잃음을 손수 짠 것.
 
     CE = -mean(log(softmax(logits))[true_class])
        = mean(-log_softmax(logits)[true_class])
@@ -392,13 +392,13 @@ ignore_ce = nn.CrossEntropyLoss(ignore_index=-100)
 # 초점 손실 (직접 구현)
 def focal_loss(logits, targets, alpha=1.0, gamma=2.0):
     """
-    Focal Loss for dense object detection.
+    촘촘한 물체 알아내기를 위한 초점 잃음.
 
     Args:
-        logits: Raw model outputs
-        targets: Ground truth class indices
-        alpha: Weighting factor
-        gamma: Focusing parameter
+        logits: 모형의 날것 내놓음
+        targets: 참값 갈래 번호
+        alpha: 무게 값
+        gamma: 초점 매개변수
     """
     ce_loss = F.cross_entropy(logits, targets, reduction='none')
     pt = torch.exp(-ce_loss)  # pt = probability of true class
@@ -411,7 +411,7 @@ def focal_loss(logits, targets, alpha=1.0, gamma=2.0):
 ```python
 def verify_gradient_derivation():
     """
-    Verify our analytical gradients match PyTorch autograd.
+    우리가 해석으로 얻은 기울기가 PyTorch 자동 미분과 맞는지 따진다.
     """
     torch.manual_seed(42)
 
@@ -456,7 +456,7 @@ verify_gradient_derivation()
 ```python
 def visualize_gradient_flow():
     """
-    Show how gradients flow through softmax + cross-entropy.
+    소프트맥스 + 엇갈린 엔트로피를 지나 기울기가 어떻게 흐르는지 보인다.
     """
     torch.manual_seed(42)
 
@@ -498,8 +498,8 @@ import numpy as np
 
 class SoftmaxRegressionNumPy:
     """
-    Softmax regression implemented from scratch.
-    Demonstrates the gradient derivations in code.
+    맨바닥부터 짠 소프트맥스 회귀.
+    이끌어 낸 기울기를 코드로 보인다.
     """
 
     def __init__(self, input_dim: int, num_classes: int):
@@ -526,9 +526,9 @@ class SoftmaxRegressionNumPy:
 
     def backward(self, X: np.ndarray, y: np.ndarray) -> tuple:
         """
-        Backward pass: compute gradients.
+        뒤로 걸음: 기울기를 셈한다.
 
-        The key insight: ∂L/∂z = π - y (one-hot)
+        고갱이 눈썰미: ∂L/∂z = π - y(원핫)
         """
         N = len(y)
 

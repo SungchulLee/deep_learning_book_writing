@@ -139,19 +139,19 @@ $$
 
 ```python
 """
-Regularized Logistic Regression — Complete Implementation
+정칙화한 로지스틱 회귀 — 온전한 짜보기
 ==========================================================
 
-A production-ready implementation covering:
-- L2 regularization via weight_decay
-- L1 regularization via manual penalty
-- Elastic Net regularization
-- Data handling with train/val/test splits
-- Training with early stopping
-- Comprehensive evaluation metrics
-- Regularization strength tuning
+참으로 굴릴 수 있는 짜보기이며 다음을 다룬다.
+- weight_decay으로 하는 L2 정칙화
+- 손수 벌을 주는 L1 정칙화
+- 엘라스틱넷 정칙화
+- 익힘/다짐/시험 나누기를 곁들인 자료 다루기
+- 일찍 멈추기를 곁들인 익힘
+- 두루 갖춘 따짐 자
+- 정칙화 세기 손보기
 
-Author: Deep Learning Foundations
+지은이: 깊은 배움 바탕
 """
 
 import torch
@@ -181,15 +181,15 @@ print("=" * 70)
 
 class BinaryClassificationDataset(Dataset):
     """
-    Custom Dataset for binary classification.
+    둘 가름을 위한 맞춤 Dataset.
 
-    Handles data preprocessing including standardization.
+    표준화를 비롯한 자료 미리 다듬기를 다룬다.
 
     Args:
-        X: Feature matrix of shape (n_samples, n_features)
-        y: Labels of shape (n_samples,) with values in {0, 1}
-        scaler: Optional pre-fitted StandardScaler
-        fit_scaler: Whether to fit the scaler (True for training data)
+        X: 꼴이 (n_samples, n_features)인 특징 행렬
+        y: 꼴이 (n_samples,)이고 값이 {0, 1}인 이름표
+        scaler: 미리 맞춘 StandardScaler(골라 쓴다)
+        fit_scaler: 잣대 잡개를 맞출지 여부(익힘 자료에는 True)
     """
 
     def __init__(
@@ -267,15 +267,15 @@ def prepare_data(
 
 class LogisticRegression(nn.Module):
     """
-    Logistic Regression with optional regularization.
+    정칙화를 골라 쓸 수 있는 로지스틱 회귀.
 
-    Architecture: Linear → Sigmoid
+    얼개: 선형 → 시그모이드
 
-    For numerically stable training, use BCEWithLogitsLoss
-    and call logits() instead of forward().
+    수치가 든든하게 익히려면 BCEWithLogitsLoss을 쓰고
+    forward() 대신 logits()을 불러라.
 
     Args:
-        n_features: Number of input features
+        n_features: 들임 특징의 수
     """
 
     def __init__(self, n_features: int):
@@ -322,25 +322,25 @@ def train_model(
     verbose: bool = True,
 ) -> Dict:
     """
-    Train logistic regression with optional L1/L2 regularization.
+    L1/L2 정칙화를 골라 쓰며 로지스틱 회귀를 익힌다.
 
-    L2 regularization is applied via optimizer weight_decay.
-    L1 regularization is applied as a manual penalty term in the loss.
-    For Elastic Net, set both l1_lambda > 0 and l2_lambda > 0.
+    L2 정칙화는 가장 좋게 하개의 weight_decay으로 건다.
+    L1 정칙화는 잃음에 손수 벌 마디를 더해 건다.
+    엘라스틱넷을 쓰려면 l1_lambda > 0과 l2_lambda > 0을 함께 둔다.
 
     Args:
-        model: LogisticRegression model
-        train_loader: Training DataLoader
-        val_loader: Validation DataLoader
-        num_epochs: Maximum training epochs
-        learning_rate: Learning rate
-        l1_lambda: L1 regularization strength
-        l2_lambda: L2 regularization strength (weight_decay)
-        patience: Early stopping patience
-        verbose: Print progress
+        model: LogisticRegression 모형
+        train_loader: 익힘 DataLoader
+        val_loader: 다짐 DataLoader
+        num_epochs: 가장 많은 익힘 판 수
+        learning_rate: 배움 빠르기
+        l1_lambda: L1 정칙화 세기
+        l2_lambda: L2 정칙화 세기(weight_decay)
+        patience: 일찍 멈추기 참을성
+        verbose: 나아가는 모습을 찍는다
 
     Returns:
-        Training history dictionary
+        익힘 자취 사전
     """
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(

@@ -162,15 +162,15 @@ def kl_divergence(mu: torch.Tensor, logvar: torch.Tensor,
                   reduction: str = 'sum') -> torch.Tensor:
     """q = N(mu, diag(exp(logvar)))에서 p = N(0, I)로의 KL 발산.
 
-    Formula: D_KL = -0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+    식: D_KL = -0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
 
     Args:
-        mu: Mean of q, shape (batch_size, latent_dim).
-        logvar: Log variance of q, shape (batch_size, latent_dim).
-        reduction: 'sum', 'mean', or 'none'.
+        mu: q의 평균, 꼴 (batch_size, latent_dim).
+        logvar: q의 로그 흩어짐, 꼴 (batch_size, latent_dim).
+        reduction: 'sum', 'mean', 'none' 가운데 하나.
 
     Returns:
-        KL divergence with specified reduction.
+        밝힌 줄이기 방식을 쓴 KL 갈림.
     """
     kl = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
     if reduction == 'sum':
@@ -195,14 +195,14 @@ def vae_loss(recon_x: torch.Tensor, x: torch.Tensor,
     """완전한 VAE 손실: 복원 + beta * KL.
 
     Args:
-        recon_x: Reconstructed data, shape (batch_size, data_dim).
-        x: Original data, shape (batch_size, data_dim).
-        mu: Encoder mean, shape (batch_size, latent_dim).
-        logvar: Encoder log-variance, shape (batch_size, latent_dim).
-        beta: KL weight (beta-VAE).
+        recon_x: 되살린 자료, 꼴 (batch_size, data_dim).
+        x: 본디 자료, 꼴 (batch_size, data_dim).
+        mu: 부호기 평균, 꼴 (batch_size, latent_dim).
+        logvar: 부호기 로그 흩어짐, 꼴 (batch_size, latent_dim).
+        beta: KL 무게(베타 VAE).
 
     Returns:
-        (total_loss, recon_loss, kl_loss) tuple.
+        (total_loss, recon_loss, kl_loss) 튜플.
     """
     recon_loss = F.binary_cross_entropy(recon_x, x, reduction='sum')
     kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())

@@ -49,7 +49,7 @@ APPLICATIONS:
 - Speech recognition
 - Topic modeling
 
-AUTHOR: PyTorch MLE Tutorial
+지은이: PyTorch 최대가능도 익힘
 DATE: 2025
 ================================================================================
 """

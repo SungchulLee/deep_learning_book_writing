@@ -42,7 +42,7 @@ APPLICATIONS:
 - Active learning (query high-uncertainty points)
 - Risk-sensitive decision making
 
-AUTHOR: PyTorch MLE Tutorial
+지은이: PyTorch 최대가능도 익힘
 DATE: 2025
 ================================================================================
 """

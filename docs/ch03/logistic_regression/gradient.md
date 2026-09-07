@@ -315,17 +315,17 @@ $$
 
 ```python
 """
-Gradient, Hessian, and IRLS for Logistic Regression
+로지스틱 회귀의 기울기, 헤세, IRLS
 =====================================================
 
 Demonstrates:
-- Manual gradient computation and verification against autograd
-- Hessian computation and PSD verification
-- Newton's method with quadratic convergence
-- IRLS algorithm and equivalence to Newton's method
-- Convergence comparison across all three methods
+- 손수 하는 기울기 셈과 자동 미분과의 견줌
+- 헤세 셈과 양의 준정부호 따져 보기
+- 이차로 모여드는 뉴턴 방법
+- IRLS 알고리즘과 뉴턴 방법과의 같음
+- 세 방법의 모여듦 견주기
 
-Author: Deep Learning Foundations
+지은이: 깊은 배움 바탕
 """
 
 import torch

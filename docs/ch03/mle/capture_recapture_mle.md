@@ -10,40 +10,40 @@
 #!/usr/bin/env python3
 """
 ================================================================================
-CAPTURE-RECAPTURE MLE - Wildlife Population Estimation
+표지-재포획 최대가능도 — 야생 개체 수 어림
 ================================================================================
 
-DIFFICULTY: ⭐⭐ Medium (Level 2)
+어려움: ⭐⭐ 보통(2단계)
 
-PROBLEM: Estimate the total population size of animals in a habitat using
-the capture-recapture method.
+문제: 표지-재포획 방법으로 어떤 서식지의 온 동물 수를
+어림하여라.
 
 METHODOLOGY:
-1. Capture C animals, mark them, and release
-2. Later, capture R animals
-3. Observe T marked animals in the recapture
+1. 동물 C마리를 잡아 표시하고 놓아준다
+2. 나중에 동물 R마리를 잡는다
+3. 다시 잡은 것 가운데 표시된 T마리를 본다
 
-QUESTION: What is the total population N?
+물음: 온 개체 수 N은 얼마인가?
 
 INTUITION: T/R ≈ C/N  =>  N ≈ (C × R) / T
 
-This is the Lincoln-Petersen estimator, which is the MLE!
+이것이 링컨-피터슨 어림값이며 곧 최대가능도 어림값이다!
 
-MATHEMATICAL MODEL:
-The number of marked animals in recapture follows a hypergeometric distribution:
+수학 모형:
+다시 잡은 것 가운데 표시된 수는 초기하 분포를 따른다.
 P(T | N) = C(C, T) × C(N-C, R-T) / C(N, R)
 
-where C(n, k) is the binomial coefficient "n choose k"
+여기서 C(n, k)은 이항 계수 "n에서 k 고르기"다
 
-MLE: Find N that maximizes P(T | N)
+최대가능도: P(T | N)을 가장 크게 하는 N을 찾는다
 
-REAL APPLICATIONS:
-- Wildlife population studies
-- Epidemiology (estimating disease prevalence)
-- Software testing (estimating number of bugs)
-- Census correction (estimating undercounts)
+참 세상에서의 쓰임:
+- 야생 개체 수 조사
+- 역학(병이 얼마나 퍼졌는지 어림하기)
+- 프로그램 시험(벌레 수 어림하기)
+- 인구 조사 바로잡기(덜 센 수 어림하기)
 
-AUTHOR: PyTorch MLE Tutorial
+지은이: PyTorch 최대가능도 익힘
 DATE: 2025
 ================================================================================
 """
@@ -61,14 +61,14 @@ from typing import Tuple
 
 def compute_hypergeometric_pmf(N: int, C: int, R: int, T: int) -> float:
     """
-    Compute probability P(T | N, C, R) using hypergeometric distribution.
+    초기하 분포로 확률 P(T | N, C, R)을 셈한다.
     
     P(T) = C(C, T) × C(N-C, R-T) / C(N, R)
     
     Parameters:
     -----------
-    N : Total population size
-    C : Number initially captured and marked
+    N : 온 개체 수
+    C : 처음에 잡아 표시한 수
     R : Number in recapture sample
     T : Number of marked animals in recapture
     

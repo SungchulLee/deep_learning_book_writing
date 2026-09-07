@@ -37,7 +37,7 @@ This is equivalent to MINIMIZING binary cross-entropy loss!
 
 KEY INSIGHT: Cross-entropy = Negative log-likelihood
 
-AUTHOR: PyTorch MLE Tutorial  
+지은이: PyTorch 최대가능도 익힘
 DATE: 2025
 ================================================================================
 """

@@ -13,7 +13,7 @@
 NORMAL DISTRIBUTION MLE - Estimating Mean and Variance
 ================================================================================
 
-DIFFICULTY: ⭐⭐ Medium (Level 2)
+어려움: ⭐⭐ 보통(2단계)
 
 Learn to estimate both mean (μ) and variance (σ²) of a Gaussian distribution
 simultaneously using MLE.

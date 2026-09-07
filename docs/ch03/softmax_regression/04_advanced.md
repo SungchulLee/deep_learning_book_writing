@@ -130,7 +130,7 @@ class SoftmaxRegressionNumPy:
     
     def backward(self, X, y):
         """
-        Backward pass: compute gradients.
+        뒤로 걸음: 기울기를 셈한다.
         
         Args:
             X: Input features
