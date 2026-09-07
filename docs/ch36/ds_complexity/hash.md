@@ -1,147 +1,142 @@
-# Hash Table
+# 해시 표
 
-Hash tables provide the fastest average-case lookup of any data structure by mapping
-keys to array indices through a hash function. The trade-off is that worst-case
-performance degrades to $O(n)$ when many keys collide, and hash tables do not support
-ordered operations (min, max, predecessor) efficiently.
+해시 표는 해시 함수로 열쇠를 배열 번호에 이어 주어, 어떤 자료 얼개보다도 고르게
+빠른 찾기를 준다. 맞바꿈은 열쇠가 많이 부딪히면 가장 나쁠 때 $O(n)$까지 떨어지고,
+차례에 매인 연산(가장 작은 것, 가장 큰 것, 앞 이웃)을 잘 받치지 못한다는 것이다.
 
-## Hash Function Basics
+## 해시 함수 밑바탕
 
-A hash function maps a key $k$ from a universe $U$ to an index in a table of size $m$.
-The most common method is the division method:
+해시 함수는 온 세상 $U$의 열쇠 $k$을 크기 $m$인 표의 번호에 이어 준다.
+가장 흔한 길은 나눗셈 방법이다.
 
 $$
 h(k) = k \bmod m
 $$
 
-Other methods include the multiplication method, $h(k) = \lfloor m(kA \bmod 1) \rfloor$
-for a constant $A$, and universal hashing, which selects $h$ randomly from a family to
-guarantee expected $O(1)$ performance.
+다른 길로는 붙박이 수 $A$에 대한 곱셈 방법 $h(k) = \lfloor m(kA \bmod 1) \rfloor$과,
+어림 $O(1)$ 됨됨이를 보장하려고 함수 집안에서 $h$을 아무렇게나 고르는 두루 해시가 있다.
 
-## Operation Complexities by Resolution Strategy
+## 부딪힘 푸는 꾀마다의 연산 복잡도
 
-### Chaining (Separate Chaining)
+### 사슬 잇기(따로 사슬 잇기)
 
-Each table slot holds a linked list of colliding elements.
+표의 칸마다 부딪힌 원소의 이음 목록을 지닌다.
 
-| Operation | Average | Worst | Notes |
+| 연산 | 고르게 | 가장 나쁠 때 | 짚을 것 |
 |---|---|---|---|
-| Search | $O(1 + \alpha)$ | $O(n)$ | $\alpha = n/m$ is the load factor |
-| Insert | $O(1)$ | $O(1)$ | Insert at head of chain |
-| Delete | $O(1 + \alpha)$ | $O(n)$ | Search + delete from list |
-| Space | $O(n + m)$ | -- | $n$ elements + $m$ slots |
+| 찾기 | $O(1 + \alpha)$ | $O(n)$ | $\alpha = n/m$은 채움 비 |
+| 넣기 | $O(1)$ | $O(1)$ | 사슬 머리에 넣는다 |
+| 지우기 | $O(1 + \alpha)$ | $O(n)$ | 찾고 나서 목록에서 지운다 |
+| 자리 | $O(n + m)$ | -- | 원소 $n$개 + 칸 $m$개 |
 
-Under simple uniform hashing, the expected chain length is $\alpha$. Keeping
-$\alpha \le 1$ (by resizing) ensures $O(1)$ expected time for all operations.
+단순한 고른 해시 아래에서 바라는 사슬 길이는 $\alpha$이다. (크기를 늘려)
+$\alpha \le 1$을 지키면 모든 연산의 바라는 때가 $O(1)$이 된다.
 
-### Open Addressing
+### 열린 주소 매기기
 
-All elements are stored directly in the table array. Collisions are resolved by
-probing for the next available slot.
+원소를 모두 표 배열에 곧바로 담는다. 부딪히면 다음 빈 칸을 더듬어 푼다.
 
-| Probing Method | Search (avg, successful) | Search (avg, unsuccessful) | Clustering |
+| 더듬는 길 | 찾기(고르게, 있을 때) | 찾기(고르게, 없을 때) | 뭉침 |
 |---|---|---|---|
-| Linear probing | $\frac{1}{2}\!\left(1 + \frac{1}{1-\alpha}\right)$ | $\frac{1}{2}\!\left(1 + \frac{1}{(1-\alpha)^2}\right)$ | Primary clustering |
-| Quadratic probing | $\approx 1 - \ln(1-\alpha) - \alpha/2$ | $\frac{1}{1-\alpha} - \alpha - \ln(1-\alpha)$ | Secondary clustering |
-| Double hashing | $\frac{1}{\alpha}\ln\!\frac{1}{1-\alpha}$ | $\frac{1}{1-\alpha}$ | No clustering |
+| 죽 더듬기 | $\frac{1}{2}\!\left(1 + \frac{1}{1-\alpha}\right)$ | $\frac{1}{2}\!\left(1 + \frac{1}{(1-\alpha)^2}\right)$ | 으뜸 뭉침 |
+| 제곱 더듬기 | $\approx 1 - \ln(1-\alpha) - \alpha/2$ | $\frac{1}{1-\alpha} - \alpha - \ln(1-\alpha)$ | 버금 뭉침 |
+| 겹 해시 | $\frac{1}{\alpha}\ln\!\frac{1}{1-\alpha}$ | $\frac{1}{1-\alpha}$ | 뭉치지 않음 |
 
-!!! warning "Load Factor for Open Addressing"
-    Open addressing requires $\alpha < 1$ (the table must have empty slots). As
-    $\alpha \to 1$, probe counts grow without bound. Practical implementations
-    keep $\alpha \le 0.7$ and resize when exceeded.
+!!! warning "열린 주소 매기기의 채움 비"
+    열린 주소 매기기는 $\alpha < 1$이어야 한다(표에 빈 칸이 있어야 한다).
+    $\alpha \to 1$이면 더듬는 횟수가 끝없이 는다. 참으로 쓰는 짜보기는
+    $\alpha \le 0.7$을 지키고 넘으면 크기를 늘린다.
 
-## Resizing Complexity
+## 크기 늘리기 복잡도
 
-When the load factor exceeds a threshold, the table doubles in size and all elements
-are rehashed.
+채움 비가 문턱을 넘으면 표가 두 곱절로 커지고 원소를 모두 다시 해시한다.
 
-| Operation | Cost | Frequency | Amortized |
+| 연산 | 값 | 잦기 | 고르게 나눈 |
 |---|---|---|---|
-| Single insert (no resize) | $O(1)$ | Most inserts | -- |
-| Resize + rehash | $O(n)$ | After $n$ inserts | $O(1)$ |
-| Sequence of $n$ inserts | -- | -- | $O(n)$ total |
+| 넣기 한 번(늘리지 않음) | $O(1)$ | 거의 모든 넣기 | -- |
+| 크기 늘리기 + 다시 해시 | $O(n)$ | 넣기 $n$번 뒤 | $O(1)$ |
+| 넣기 $n$번의 열 | -- | -- | 모두 $O(n)$ |
 
-The amortized $O(1)$ per insert follows from the same doubling argument used for
-dynamic arrays: each element is copied $O(\log n)$ times across all resizes, and the
-total cost across $n$ inserts is $O(n)$.
+넣기마다 고르게 나눈 $O(1)$은 움직이는 배열에 쓴 두 곱절 늘리기 따짐과 같다.
+원소마다 온 크기 늘리기에 걸쳐 $O(\log n)$번 베껴지고, 넣기 $n$번의 온 값이
+$O(n)$이다.
 
-## Specialized Hash Structures
+## 남다른 해시 얼개
 
-| Structure | Space | False Positive | Use Case |
+| 얼개 | 자리 | 거짓 맞음 | 쓰일 자리 |
 |---|---|---|---|
-| Bloom filter | $O(m)$ bits | $\left(1 - e^{-kn/m}\right)^k$ | Membership test (no false negatives) |
-| Count-Min sketch | $O(w \times d)$ | Overestimates by $\epsilon n$ | Frequency estimation |
-| Cuckoo hash table | $O(n)$ | $O(1)$ worst-case lookup | Guaranteed $O(1)$ search |
-| Robin Hood hashing | $O(n)$ | -- | Reduces variance in probe length |
+| 블룸 필터 | $O(m)$ 비트 | $\left(1 - e^{-kn/m}\right)^k$ | 들었는지 따지기(거짓 아님이 없다) |
+| 세는 가장 작은 것 밑그림 | $O(w \times d)$ | $\epsilon n$만큼 크게 본다 | 잦기 어림하기 |
+| 뻐꾸기 해시 표 | $O(n)$ | 가장 나쁠 때도 $O(1)$ 찾기 | $O(1)$ 찾기를 보장한다 |
+| 로빈 후드 해시 | $O(n)$ | -- | 더듬는 길이의 들쭉날쭉함을 줄인다 |
 
-Here $k$ is the number of hash functions, $w$ is the width, and $d$ is the depth of
-the sketch.
+여기서 $k$은 해시 함수의 수, $w$은 밑그림의 너비, $d$은 깊이다.
 
-## Complexity Summary
+## 복잡도 간추림
 
-| Operation | Chaining (avg) | Open Addressing (avg) | Cuckoo (worst) |
+| 연산 | 사슬 잇기(고르게) | 열린 주소 매기기(고르게) | 뻐꾸기(가장 나쁠 때) |
 |---|---|---|---|
-| Search | $O(1)$ | $O(1)$ | $O(1)$ |
-| Insert | $O(1)$ | $O(1)$ | $O(1)$ amort. |
-| Delete | $O(1)$ | $O(1)$ with tombstones | $O(1)$ |
-| Space | $O(n + m)$ | $O(m)$ | $O(n)$ |
+| 찾기 | $O(1)$ | $O(1)$ | $O(1)$ |
+| 넣기 | $O(1)$ | $O(1)$ | 고르게 나눈 $O(1)$ |
+| 지우기 | $O(1)$ | 무덤 표시를 쓰면 $O(1)$ | $O(1)$ |
+| 자리 | $O(n + m)$ | $O(m)$ | $O(n)$ |
 
-!!! tip "Hash Tables vs Balanced BSTs"
-    Hash tables provide $O(1)$ average operations but $O(n)$ worst case and no
-    ordering. Balanced BSTs provide $O(\log n)$ guaranteed operations with ordered
-    iteration. Use hash tables when you need fast lookup without ordering; use BSTs
-    when you need min/max, range queries, or sorted traversal.
+!!! tip "해시 표 대 고른 이진 찾기 나무"
+    해시 표는 고르게 $O(1)$ 연산을 주지만 가장 나쁠 때 $O(n)$이고 차례가 없다.
+    고른 이진 찾기 나무는 $O(\log n)$을 보장하며 차례대로 돌 수 있다. 차례가
+    필요 없고 빠르게 찾기만 하면 될 때는 해시 표를, 가장 작은/큰 것, 너비 물음,
+    줄 세워 훑기가 필요할 때는 이진 찾기 나무를 쓰라.
 
-## Language Implementations
+## 말마다의 짜보기
 
-| Language | Hash Map | Hash Set | Ordered Map |
+| 말 | 해시 짝지음 | 해시 모임 | 차례 있는 짝지음 |
 |---|---|---|---|
-| Python | `dict` | `set` | -- (use `sorted()`) |
-| C++ | `unordered_map` | `unordered_set` | `map` (Red-Black tree) |
-| Java | `HashMap` | `HashSet` | `TreeMap` (Red-Black tree) |
-| Go | `map` | -- (use `map[K]bool`) | -- |
+| 파이썬 | `dict` | `set` | -- (`sorted()`을 쓴다) |
+| C++ | `unordered_map` | `unordered_set` | `map` (붉은검은 나무) |
+| 자바 | `HashMap` | `HashSet` | `TreeMap` (붉은검은 나무) |
+| Go | `map` | -- (`map[K]bool`을 쓴다) | -- |
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Knuth, D. *The Art of Computer Programming, Vol. 3: Sorting and Searching*. 2nd ed. Addison-Wesley, 1998.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare chaining and open addressing for hash table collision resolution. What are the tradeoffs in time, space, and cache performance?
+**익힘 1.**
+해시 표의 부딪힘 풀기를 두고 사슬 잇기와 열린 주소 매기기를 견주어라. 때, 자리, 캐시 빠르기에서 맞바꿈은 무엇인가?
 
-??? success "Solution to Exercise 1"
-    **Chaining**: each bucket stores a linked list of colliding elements. Insertion: $O(1)$ (prepend to list). Search: $O(1 + \alpha)$ average where $\alpha = n/m$ is the load factor. Space: $n$ elements + $n$ pointers + $m$ bucket pointers. Cache performance: poor (linked list nodes are scattered in memory). **Open addressing**: all elements stored in the table itself. On collision, probe the next slot (linear, quadratic, or double hashing). Insertion/search: $O(1/(1-\alpha))$ average. Must keep $\alpha < 0.7$ for good performance. Space: no pointer overhead, but table must be larger to maintain low load factor. Cache performance: better (elements are contiguous; linear probing has excellent locality). Open addressing wins on cache performance and memory (no pointers). Chaining is simpler and degrades more gracefully at high load factors. $\square$
-
----
-
-**Exercise 2.**
-A hash table with $n$ elements and $m$ buckets has load factor $\alpha = n/m$. Derive the expected number of probes for a successful and unsuccessful search with chaining.
-
-??? success "Solution to Exercise 2"
-    **Unsuccessful search** (element not in table): the search must traverse the entire chain at a random bucket. Expected chain length: $\alpha = n/m$. Expected probes: $1 + \alpha$ (one hash computation + traversal). **Successful search**: the expected number of elements examined when searching for a random element. An element inserted at time $i$ (when the table had $i-1$ elements) was placed in a chain of expected length $1 + (i-1)/m$. Averaging over all $n$ elements: $\frac{1}{n} \sum_{i=1}^{n} (1 + (i-1)/m) = 1 + (n-1)/(2m) \approx 1 + \alpha/2$. For $\alpha = 1$: successful search takes $\approx 1.5$ probes, unsuccessful takes $\approx 2$ probes. $\square$
+??? success "익힘 1 풀이"
+    **사슬 잇기**: 두레박마다 부딪힌 원소의 이음 목록을 담는다. 넣기: $O(1)$(목록 앞에 붙인다). 찾기: 채움 비 $\alpha = n/m$일 때 고르게 $O(1 + \alpha)$. 자리: 원소 $n$개 + 손가락질 $n$개 + 두레박 손가락질 $m$개. 캐시 빠르기: 나쁘다(이음 목록 마디가 기억에 흩어져 있다). **열린 주소 매기기**: 원소를 표 자체에 담는다. 부딪히면 다음 칸을 더듬는다(죽, 제곱, 겹 해시). 넣기/찾기: 고르게 $O(1/(1-\alpha))$. 잘 돌려면 $\alpha < 0.7$을 지켜야 한다. 자리: 손가락질 짐이 없으나 채움 비를 낮게 지키려면 표가 더 커야 한다. 캐시 빠르기: 낫다(원소가 잇닿아 있고 죽 더듬기는 지역성이 아주 좋다). 캐시 빠르기와 기억(손가락질 없음)에서는 열린 주소 매기기가 이긴다. 사슬 잇기는 더 단순하고 채움 비가 높아져도 더 곱게 무너진다. $\square$
 
 ---
 
-**Exercise 3.**
-Explain why hash tables do not support efficient range queries or ordered iteration. What data structure should be used instead?
+**익힘 2.**
+원소가 $n$개이고 두레박이 $m$개인 해시 표의 채움 비는 $\alpha = n/m$이다. 사슬 잇기에서 찾기가 성공할 때와 실패할 때 바라는 더듬는 횟수를 이끌어 내어라.
 
-??? success "Solution to Exercise 3"
-    Hash functions map keys to pseudorandom bucket positions, destroying any ordering. Two keys that are numerically adjacent (e.g., 100 and 101) map to unrelated buckets. A range query "find all keys in $[a, b]$" must check every bucket ($O(m + n)$), equivalent to scanning the entire table. Ordered iteration requires sorting all elements ($O(n \log n)$). For range queries and ordered access, use a balanced BST ($O(\log n)$ search + $O(k)$ traversal for $k$ results) or a B-tree. A skip list is another option with $O(\log n)$ search and sequential access along the bottom level. If both hash-speed point lookups and range queries are needed, use a combined approach: a hash table for point queries and a sorted index for range queries. $\square$
-
----
-
-**Exercise 4.**
-A hash table experiences a "resize storm" when the load factor threshold is crossed frequently. Describe the problem and propose a solution.
-
-??? success "Solution to Exercise 4"
-    If the load factor threshold is $\alpha = 0.75$ and the table grows by doubling, a sequence of alternating insertions and deletions near the threshold causes repeated resize-up and resize-down operations, each costing $O(n)$. Example: $n = 750$ in a 1000-slot table ($\alpha = 0.75$). Insert triggers resize to 2000 slots. Delete brings $n = 749$. If the shrink threshold is $\alpha = 0.25$ ($n < 500$), no shrink yet. But with a shrink threshold of $\alpha = 0.375$ ($n < 750$), the delete triggers shrink back to 1000, and the next insert triggers growth again. Solution: use asymmetric thresholds -- grow at $\alpha = 0.75$, shrink at $\alpha = 0.25$. This ensures that between a grow and a shrink, at least $n/2$ operations occur, amortizing both resizes to $O(1)$ per operation. $\square$
+??? success "익힘 2 풀이"
+    **찾기 실패**(원소가 표에 없음): 아무 두레박의 사슬을 통째로 훑어야 한다. 바라는 사슬 길이는 $\alpha = n/m$이다. 바라는 더듬는 횟수는 $1 + \alpha$이다(해시 셈 한 번 + 훑기). **찾기 성공**: 아무 원소를 찾을 때 살피는 원소의 기댓값이다. 때 $i$에 넣은 원소는(표에 원소가 $i-1$개일 때) 바라는 길이가 $1 + (i-1)/m$인 사슬에 놓였다. 원소 $n$개에 걸쳐 고르게 하면 $\frac{1}{n} \sum_{i=1}^{n} (1 + (i-1)/m) = 1 + (n-1)/(2m) \approx 1 + \alpha/2$이다. $\alpha = 1$이면 찾기 성공은 $\approx 1.5$번, 실패는 $\approx 2$번 더듬는다. $\square$
 
 ---
 
-**Exercise 5.**
-Python dictionaries use open addressing with a probing sequence. Explain why Python dicts maintain insertion order since Python 3.7 and what data structure enables this.
+**익힘 3.**
+해시 표가 너비 물음이나 차례대로 돌기를 잘 받치지 못하는 까닭을 밝혀라. 대신 어떤 자료 얼개를 써야 하는가?
 
-??? success "Solution to Exercise 5"
-    Since CPython 3.6 (official guarantee in 3.7), dictionaries maintain insertion order using a **compact dict** design with two arrays: (1) a hash table of indices (sparse array, 1-2 bytes per slot) mapping hash positions to positions in the dense array. (2) A dense array of (hash, key, value) tuples stored in insertion order. Insertion appends to the dense array and records the index in the hash table. Iteration traverses the dense array sequentially (preserving insertion order). Deletion marks entries as deleted in the dense array (tombstone) and the hash table. This design improves memory efficiency (the hash table stores small indices instead of full key-value pairs) and provides insertion-order iteration for free. The trade-off: slightly more complex probing (indirection through the index table), but the overall performance is better due to the dense array's cache-friendly layout. $\square$
+??? success "익힘 3 풀이"
+    해시 함수는 열쇠를 아무렇게나 보이는 두레박 자리에 이어 주어 차례를 부순다. 수로 이웃한 두 열쇠(보기로 100과 101)가 아무 상관없는 두레박에 놓인다. "$[a, b]$에 든 열쇠를 모두 찾기"라는 너비 물음은 두레박을 모두 살펴야 하므로($O(m + n)$) 표를 통째로 훑는 것과 같다. 차례대로 돌려면 원소를 모두 줄 세워야 한다($O(n \log n)$). 너비 물음과 차례대로 닿기에는 고른 이진 찾기 나무(찾기 $O(\log n)$ + 열매 $k$개에 훑기 $O(k)$)나 B 나무를 쓰라. 건너뛰기 목록도 찾기 $O(\log n)$에 맨 아래 켜를 따라 차례대로 닿을 수 있는 또 다른 길이다. 해시만큼 빠른 점 찾기와 너비 물음이 함께 있어야 하면, 점 물음에는 해시 표를, 너비 물음에는 줄 세운 색인을 쓰는 아우른 길을 쓴다. $\square$
+
+---
+
+**익힘 4.**
+해시 표에서 채움 비 문턱을 자주 넘나들면 "크기 늘리기 몰아침"이 생긴다. 그 문제를 밝히고 푸는 길을 내놓아라.
+
+??? success "익힘 4 풀이"
+    채움 비 문턱이 $\alpha = 0.75$이고 표가 두 곱절로 커진다면, 문턱 언저리에서 넣기와 지우기가 갈마들 때 크기를 늘렸다 줄였다 하며 저마다 $O(n)$을 치른다. 보기로 칸 1000개짜리 표에 $n = 750$($\alpha = 0.75$)이라 하자. 넣기가 칸 2000개로 늘리기를 부른다. 지우기로 $n = 749$이 된다. 줄이는 문턱이 $\alpha = 0.25$($n < 500$)면 아직 줄이지 않는다. 그런데 줄이는 문턱이 $\alpha = 0.375$($n < 750$)면 그 지우기가 1000으로 줄이기를 부르고, 다음 넣기가 다시 늘리기를 부른다. 푸는 길: 문턱을 서로 다르게 잡는다. $\alpha = 0.75$에서 늘리고 $\alpha = 0.25$에서 줄인다. 그러면 늘리기와 줄이기 사이에 적어도 $n/2$번의 연산이 있게 되어 두 크기 바꿈이 연산마다 $O(1)$으로 고르게 나뉜다. $\square$
+
+---
+
+**익힘 5.**
+파이썬 사전은 더듬는 열을 쓰는 열린 주소 매기기를 쓴다. 파이썬 3.7부터 사전이 넣은 차례를 지키는 까닭과 이를 가능하게 한 자료 얼개를 밝혀라.
+
+??? success "익힘 5 풀이"
+    CPython 3.6부터(3.7에서 정식으로 보장) 사전은 배열 둘을 쓰는 **촘촘한 사전** 설계로 넣은 차례를 지킨다. (1) 해시 자리를 빽빽한 배열의 자리에 이어 주는 번호의 해시 표(성긴 배열, 칸마다 1~2바이트). (2) (해시, 열쇠, 값) 튜플을 넣은 차례로 담은 빽빽한 배열. 넣기는 빽빽한 배열에 붙이고 그 번호를 해시 표에 적는다. 돌기는 빽빽한 배열을 차례대로 훑는다(넣은 차례가 지켜진다). 지우기는 빽빽한 배열과 해시 표에서 그 항목을 지워졌다고 표시한다(무덤 표시). 이 설계는 기억 살림을 낫게 하고(해시 표가 온전한 열쇠-값 짝이 아니라 작은 번호를 담는다) 넣은 차례로 도는 것을 거저 준다. 맞바꿈은 더듬기가 조금 더 까다로워진다는 것이지만(번호 표를 한 번 거친다), 빽빽한 배열이 캐시에 잘 맞아 두루 보아 더 빠르다. $\square$

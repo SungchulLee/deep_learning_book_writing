@@ -1,165 +1,162 @@
-# Linked List Complexities
+# 이음 목록 복잡도
 
-Linked lists store elements in nodes connected by pointers rather than in contiguous
-memory. This design makes insertion and deletion at a known position $O(1)$ but
-sacrifices the $O(1)$ random access that arrays provide. Understanding when the
-pointer-based trade-off is worthwhile requires knowing the exact complexity of each
-operation for each list variant.
+이음 목록은 원소를 잇닿은 기억이 아니라 손가락질로 이은 마디에 담는다. 이 설계
+덕에 아는 자리에서의 넣기와 지우기가 $O(1)$이 되지만, 배열이 주는 $O(1)$의
+아무 데나 닿기를 내준다. 손가락질에 기댄 이 맞바꿈이 값진지 가리려면 목록
+갈래마다 연산의 복잡도를 또렷이 알아야 한다.
 
-## Singly Linked List
+## 홑 이음 목록
 
-Each node stores a value and a pointer to the next node. Traversal is possible only
-in the forward direction.
+마디마다 값과 다음 마디를 가리키는 손가락질을 담는다. 앞으로만 훑을 수 있다.
 
-| Operation | Time | Notes |
+| 연산 | 때 | 짚을 것 |
 |---|---|---|
-| Access by index | $O(n)$ | Must traverse from head |
-| Search | $O(n)$ | Linear scan |
-| Insert at head | $O(1)$ | Update head pointer |
-| Insert at tail | $O(1)$ with tail pointer, $O(n)$ without | Need to traverse without tail pointer |
-| Insert after given node | $O(1)$ | Update one pointer |
-| Delete head | $O(1)$ | Update head pointer |
-| Delete after given node | $O(1)$ | Update one pointer |
-| Delete by value | $O(n)$ | Search + delete |
-| Find length | $O(n)$ | Must traverse entire list |
-| Reverse | $O(n)$ | Three-pointer technique |
+| 번호로 닿기 | $O(n)$ | 머리에서 훑어야 한다 |
+| 찾기 | $O(n)$ | 죽 훑는다 |
+| 머리에 넣기 | $O(1)$ | 머리 손가락질을 고친다 |
+| 꼬리에 넣기 | 꼬리 손가락질이 있으면 $O(1)$, 없으면 $O(n)$ | 없으면 훑어야 한다 |
+| 주어진 마디 뒤에 넣기 | $O(1)$ | 손가락질 하나를 고친다 |
+| 머리 지우기 | $O(1)$ | 머리 손가락질을 고친다 |
+| 주어진 마디 뒤를 지우기 | $O(1)$ | 손가락질 하나를 고친다 |
+| 값으로 지우기 | $O(n)$ | 찾고 나서 지운다 |
+| 길이 재기 | $O(n)$ | 목록을 통째로 훑어야 한다 |
+| 뒤집기 | $O(n)$ | 손가락질 셋을 쓰는 재주 |
 
-!!! tip "Always Maintain a Tail Pointer"
-    If your workload includes frequent appends, maintain both head and tail
-    pointers. This converts append from $O(n)$ to $O(1)$ at the cost of one extra
-    pointer update during insertion and deletion.
+!!! tip "꼬리 손가락질을 늘 지녀라"
+    뒤에 붙이는 일이 잦다면 머리와 꼬리 손가락질을 함께 지녀라. 그러면
+    붙이기가 $O(n)$에서 $O(1)$이 되고, 값으로는 넣고 지울 때 손가락질을
+    한 번 더 고치면 된다.
 
-## Doubly Linked List
+## 겹 이음 목록
 
-Each node stores pointers to both the next and previous nodes, enabling bidirectional
-traversal and $O(1)$ deletion given a node reference.
+마디마다 다음과 앞 마디를 가리키는 손가락질을 함께 담아 앞뒤로 훑을 수 있고,
+마디를 가리키는 것만 있으면 $O(1)$에 지울 수 있다.
 
-| Operation | Time | Notes |
+| 연산 | 때 | 짚을 것 |
 |---|---|---|
-| Access by index | $O(n)$ | Can start from either end |
-| Search | $O(n)$ | Linear scan in either direction |
-| Insert at head | $O(1)$ | Update head + new node's pointers |
-| Insert at tail | $O(1)$ | Update tail + new node's pointers |
-| Insert before/after given node | $O(1)$ | Update two pairs of pointers |
-| Delete given node | $O(1)$ | Update neighbors' pointers |
-| Delete by value | $O(n)$ | Search + $O(1)$ delete |
-| Reverse | $O(n)$ | Swap next and prev for each node |
+| 번호로 닿기 | $O(n)$ | 어느 끝에서든 시작할 수 있다 |
+| 찾기 | $O(n)$ | 어느 쪽으로든 죽 훑는다 |
+| 머리에 넣기 | $O(1)$ | 머리와 새 마디의 손가락질을 고친다 |
+| 꼬리에 넣기 | $O(1)$ | 꼬리와 새 마디의 손가락질을 고친다 |
+| 주어진 마디 앞/뒤에 넣기 | $O(1)$ | 손가락질 두 쌍을 고친다 |
+| 주어진 마디 지우기 | $O(1)$ | 이웃의 손가락질을 고친다 |
+| 값으로 지우기 | $O(n)$ | 찾고 나서 $O(1)$에 지운다 |
+| 뒤집기 | $O(n)$ | 마디마다 next와 prev를 맞바꾼다 |
 
-The key advantage over singly linked lists is $O(1)$ deletion given a reference to
-the node, because the previous node is directly accessible.
+홑 이음 목록보다 나은 고갱이는, 마디를 가리키는 것만 있으면 $O(1)$에 지울 수
+있다는 것이다. 앞 마디에 곧바로 닿기 때문이다.
 
-## Circular Linked List
+## 고리 이음 목록
 
-The last node points back to the first, forming a ring. This variant supports cyclic
-iteration without null checks.
+마지막 마디가 첫 마디를 도로 가리켜 고리를 이룬다. 이 갈래는 널 살핌 없이
+빙 돌 수 있게 해 준다.
 
-| Operation | Time | Notes |
+| 연산 | 때 | 짚을 것 |
 |---|---|---|
-| Traverse all nodes | $O(n)$ | Stop when returning to start |
-| Insert after given node | $O(1)$ | Same as singly linked |
-| Delete after given node | $O(1)$ | Same as singly linked |
-| Search | $O(n)$ | Must detect when full cycle is complete |
-| Josephus problem | $O(n^2)$ naive, $O(n)$ with formula | Classic circular list application |
+| 온 마디 훑기 | $O(n)$ | 시작으로 돌아오면 멈춘다 |
+| 주어진 마디 뒤에 넣기 | $O(1)$ | 홑 이음과 같다 |
+| 주어진 마디 뒤를 지우기 | $O(1)$ | 홑 이음과 같다 |
+| 찾기 | $O(n)$ | 한 바퀴를 다 돌았는지 가려내야 한다 |
+| 요세푸스 문제 | 곧이곧대로 $O(n^2)$, 꼴을 쓰면 $O(n)$ | 고리 목록의 이름난 쓰임 |
 
-## Space Complexity
+## 자리 복잡도
 
-| Variant | Space per Node | Total Space | Notes |
+| 갈래 | 마디마다의 자리 | 온 자리 | 짚을 것 |
 |---|---|---|---|
-| Singly linked | 1 pointer + data | $O(n)$ | Minimal overhead |
-| Doubly linked | 2 pointers + data | $O(n)$ | Extra pointer per node |
-| Circular singly | 1 pointer + data | $O(n)$ | Same as singly |
-| Circular doubly | 2 pointers + data | $O(n)$ | Same as doubly |
-| XOR linked list | 1 XOR-pointer + data | $O(n)$ | Saves one pointer but hard to debug |
+| 홑 이음 | 손가락질 1개 + 자료 | $O(n)$ | 붙는 짐이 가장 적다 |
+| 겹 이음 | 손가락질 2개 + 자료 | $O(n)$ | 마디마다 손가락질이 하나 더 든다 |
+| 고리 홑 이음 | 손가락질 1개 + 자료 | $O(n)$ | 홑 이음과 같다 |
+| 고리 겹 이음 | 손가락질 2개 + 자료 | $O(n)$ | 겹 이음과 같다 |
+| XOR 이음 목록 | XOR 손가락질 1개 + 자료 | $O(n)$ | 손가락질 하나를 아끼나 벌레잡기가 어렵다 |
 
-## Linked List vs Array
+## 이음 목록 대 배열
 
-| Operation | Array | Singly Linked | Doubly Linked |
+| 연산 | 배열 | 홑 이음 | 겹 이음 |
 |---|---|---|---|
-| Access by index | $O(1)$ | $O(n)$ | $O(n)$ |
-| Insert at beginning | $O(n)$ | $O(1)$ | $O(1)$ |
-| Insert at end | $O(1)$ amort. | $O(1)$ with tail | $O(1)$ |
-| Insert at middle | $O(n)$ | $O(1)$ after search | $O(1)$ after search |
-| Delete at beginning | $O(n)$ | $O(1)$ | $O(1)$ |
-| Delete given element | $O(n)$ | $O(n)$ | $O(1)$ given node |
-| Memory layout | Contiguous | Scattered | Scattered |
-| Cache performance | Excellent | Poor | Poor |
+| 번호로 닿기 | $O(1)$ | $O(n)$ | $O(n)$ |
+| 앞에 넣기 | $O(n)$ | $O(1)$ | $O(1)$ |
+| 뒤에 넣기 | 고르게 나눈 $O(1)$ | 꼬리가 있으면 $O(1)$ | $O(1)$ |
+| 가운데 넣기 | $O(n)$ | 찾은 뒤 $O(1)$ | 찾은 뒤 $O(1)$ |
+| 앞에서 지우기 | $O(n)$ | $O(1)$ | $O(1)$ |
+| 주어진 원소 지우기 | $O(n)$ | $O(n)$ | 마디가 있으면 $O(1)$ |
+| 기억에 놓인 결 | 잇닿음 | 흩어짐 | 흩어짐 |
+| 캐시 빠르기 | 아주 좋음 | 나쁨 | 나쁨 |
 
-!!! warning "Cache Performance"
-    Linked lists suffer from poor cache locality because nodes are scattered in
-    memory. For small lists ($n < 1000$), arrays are almost always faster in
-    practice, even for operations where linked lists have better theoretical
-    complexity.
+!!! warning "캐시 빠르기"
+    이음 목록은 마디가 기억에 흩어져 있어 캐시 지역성이 나쁘다. 작은
+    목록($n < 1000$)이면 이론 복잡도가 이음 목록 쪽이 나은 연산에서도
+    참으로는 배열이 거의 늘 빠르다.
 
-## Common Linked List Algorithms
+## 흔한 이음 목록 알고리즘
 
-| Algorithm | Time | Space | Description |
+| 알고리즘 | 때 | 자리 | 밝힘 |
 |---|---|---|---|
-| Floyd's cycle detection | $O(n)$ | $O(1)$ | Slow/fast pointer to detect cycles |
-| Find middle node | $O(n)$ | $O(1)$ | Slow/fast pointer |
-| Merge two sorted lists | $O(m + n)$ | $O(1)$ | Two-pointer merge |
-| Sort a linked list | $O(n \log n)$ | $O(\log n)$ | Merge sort (preferred for lists) |
-| Detect intersection | $O(m + n)$ | $O(1)$ | Two-pointer with length alignment |
-| Reverse in groups of $k$ | $O(n)$ | $O(1)$ | Iterative reversal |
+| 플로이드 맴돌이 찾기 | $O(n)$ | $O(1)$ | 느린/빠른 손가락질로 맴돌이를 찾는다 |
+| 가운데 마디 찾기 | $O(n)$ | $O(1)$ | 느린/빠른 손가락질 |
+| 줄 세운 목록 둘 합치기 | $O(m + n)$ | $O(1)$ | 손가락질 둘로 합친다 |
+| 이음 목록 줄 세우기 | $O(n \log n)$ | $O(\log n)$ | 합치기 줄 세우기(목록에 알맞다) |
+| 만나는 데 찾기 | $O(m + n)$ | $O(1)$ | 길이를 맞춘 손가락질 둘 |
+| $k$개씩 묶어 뒤집기 | $O(n)$ | $O(1)$ | 되풀이하며 뒤집는다 |
 
-## When to Use Linked Lists
+## 이음 목록을 쓸 때
 
-| Use Case | Recommended? | Why |
+| 쓰일 자리 | 권하는가? | 까닭 |
 |---|---|---|
-| LRU cache | Yes | $O(1)$ move-to-front with doubly linked + hash map |
-| Undo/redo history | Yes | $O(1)$ insert and remove at ends |
-| Polynomial arithmetic | Yes | Variable-length coefficient lists |
-| General-purpose list | No | Arrays are faster due to caching |
-| Random access needed | No | $O(n)$ access is prohibitive |
-| Small fixed-size data | No | Array overhead is lower |
+| LRU 캐시 | 예 | 겹 이음 + 해시 짝지음으로 $O(1)$에 앞으로 옮긴다 |
+| 되돌리기/다시 하기 자취 | 예 | 양 끝에서 $O(1)$에 넣고 뺀다 |
+| 다항식 셈 | 예 | 길이가 들쭉날쭉한 계수 목록 |
+| 두루 쓰는 목록 | 아니오 | 캐시 덕에 배열이 빠르다 |
+| 아무 데나 닿아야 할 때 | 아니오 | $O(n)$ 닿기는 감당할 수 없다 |
+| 작고 크기가 붙박인 자료 | 아니오 | 배열의 붙는 짐이 더 적다 |
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Sedgewick, R. and Wayne, K. *Algorithms*. 4th ed. Addison-Wesley, 2011.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare singly-linked lists, doubly-linked lists, and arrays for insertion at the front, insertion at the back, deletion by value, and random access.
+**익힘 1.**
+앞에 넣기, 뒤에 넣기, 값으로 지우기, 아무 데나 닿기를 두고 홑 이음 목록, 겹 이음 목록, 배열을 견주어라.
 
-??? success "Solution to Exercise 1"
-    | Operation | Singly LL | Doubly LL | Array |
+??? success "익힘 1 풀이"
+    | 연산 | 홑 이음 | 겹 이음 | 배열 |
     |---|---|---|---|
-    | Insert front | $O(1)$ | $O(1)$ | $O(n)$ |
-    | Insert back | $O(n)$* | $O(1)$** | $O(1)$ amortized |
-    | Delete by value | $O(n)$ | $O(n)$ search + $O(1)$ unlink | $O(n)$ |
-    | Random access | $O(n)$ | $O(n)$ | $O(1)$ |
+    | 앞에 넣기 | $O(1)$ | $O(1)$ | $O(n)$ |
+    | 뒤에 넣기 | $O(n)$* | $O(1)$** | 고르게 나눈 $O(1)$ |
+    | 값으로 지우기 | $O(n)$ | 찾기 $O(n)$ + 떼기 $O(1)$ | $O(n)$ |
+    | 아무 데나 닿기 | $O(n)$ | $O(n)$ | $O(1)$ |
 
-    *$O(1)$ with a tail pointer. **With a tail pointer. Linked lists win for front insertion and deletion at known positions. Arrays win for random access and cache performance. $\square$
-
----
-
-**Exercise 2.**
-Explain why linked list deletion given a pointer to the node is $O(1)$ for doubly-linked lists but $O(n)$ for singly-linked lists.
-
-??? success "Solution to Exercise 2"
-    To delete a node, we must update the predecessor's `next` pointer. In a doubly-linked list, the node has a `prev` pointer, so the predecessor is accessed in $O(1)$: set `node.prev.next = node.next` and `node.next.prev = node.prev`. In a singly-linked list, there is no `prev` pointer. Finding the predecessor requires traversing from the head until reaching a node whose `next` is the target: $O(n)$ in the worst case. A trick for singly-linked lists: copy the next node's value into the target node and delete the next node. This is $O(1)$ but fails for the last node (no next node to copy). $\square$
+    *꼬리 손가락질이 있으면 $O(1)$. **꼬리 손가락질이 있을 때. 앞에 넣기와 아는 자리에서 지우기는 이음 목록이 이긴다. 아무 데나 닿기와 캐시 빠르기는 배열이 이긴다. $\square$
 
 ---
 
-**Exercise 3.**
-Describe how a linked list is used to implement an LRU cache with $O(1)$ operations.
+**익힘 2.**
+마디를 가리키는 손가락질이 있을 때 겹 이음 목록에서는 지우기가 $O(1)$인데 홑 이음 목록에서는 $O(n)$인 까닭을 밝혀라.
 
-??? success "Solution to Exercise 3"
-    Use a doubly-linked list combined with a hash map. The list maintains access order: most recently accessed at the head, least recently at the tail. The hash map maps keys to list nodes. `get(key)`: look up the node in the hash map ($O(1)$). Move the node to the head of the list ($O(1)$ pointer operations). Return the value. `put(key, value)`: if key exists, update and move to head. If new, create a node at the head, add to hash map. If over capacity, remove the tail node from the list and hash map ($O(1)$). All operations are $O(1)$. $\square$
-
----
-
-**Exercise 4.**
-Prove that detecting a cycle in a linked list can be done in $O(n)$ time and $O(1)$ space using Floyd's tortoise and hare algorithm.
-
-??? success "Solution to Exercise 4"
-    Use two pointers: slow (advances 1 step) and fast (advances 2 steps). If there is no cycle, fast reaches null in $O(n)$ steps. If there is a cycle of length $c$ starting at position $\mu$: once both pointers enter the cycle, the fast pointer gains 1 step per iteration on the slow pointer. Since the cycle has $c$ nodes, they meet within $c$ steps after slow enters the cycle. Time: slow travels at most $\mu + c$ steps before meeting; fast travels at most $2(\mu + c)$ steps. Both are $O(n)$ since $\mu + c \le n$. Space: only two pointer variables, so $O(1)$. After detecting the cycle, finding its start: reset slow to head. Advance both pointers 1 step at a time. They meet at the cycle start after $\mu$ steps (proof: their distance modulo $c$ equals 0 when slow has traveled $\mu$ steps). $\square$
+??? success "익힘 2 풀이"
+    마디를 지우려면 앞 마디의 `next` 손가락질을 고쳐야 한다. 겹 이음 목록에서는 마디에 `prev` 손가락질이 있으므로 앞 마디에 $O(1)$에 닿는다. `node.prev.next = node.next`과 `node.next.prev = node.prev`을 하면 된다. 홑 이음 목록에는 `prev` 손가락질이 없다. 앞 마디를 찾으려면 머리에서 `next`이 겨눈 마디인 마디에 이를 때까지 훑어야 하므로 가장 나쁠 때 $O(n)$이다. 홑 이음 목록의 꾀 하나는 다음 마디의 값을 겨눈 마디에 베끼고 다음 마디를 지우는 것이다. 이는 $O(1)$이지만 마지막 마디에는 쓸 수 없다(베낄 다음 마디가 없다). $\square$
 
 ---
 
-**Exercise 5.**
-When should you use a linked list instead of a dynamic array in practice? Give two scenarios where linked lists provide a genuine advantage.
+**익힘 3.**
+이음 목록으로 모든 연산이 $O(1)$인 LRU 캐시를 어떻게 짜는지 밝혀라.
 
-??? success "Solution to Exercise 5"
-    (1) **Constant-time splicing**: merging or splitting lists at known positions is $O(1)$ with linked lists (redirect pointers) but $O(n)$ with arrays (copy elements). Example: a text editor's undo buffer, where paragraphs are frequently moved, split, or merged. (2) **Guaranteed $O(1)$ insertion/deletion without amortization**: linked lists never resize or copy. Arrays have $O(n)$ worst-case insertion (during resize). In real-time systems where worst-case latency matters, linked lists provide predictable $O(1)$ operations. In most other cases, arrays are superior due to cache performance. Modern practice often uses arrays (or deques) even when linked lists have better theoretical bounds, because the 10--20x cache performance advantage of arrays outweighs the occasional $O(n)$ resize. $\square$
+??? success "익힘 3 풀이"
+    겹 이음 목록과 해시 짝지음을 아울러 쓴다. 목록이 닿은 차례를 지닌다. 가장 최근에 닿은 것이 머리에, 가장 오래 안 쓴 것이 꼬리에 있다. 해시 짝지음은 열쇠를 목록 마디에 이어 준다. `get(key)`: 해시 짝지음에서 마디를 찾는다($O(1)$). 그 마디를 목록 머리로 옮긴다(손가락질 연산이니 $O(1)$). 값을 내놓는다. `put(key, value)`: 열쇠가 있으면 값을 고치고 머리로 옮긴다. 새것이면 머리에 마디를 만들고 해시 짝지음에 넣는다. 담는 크기를 넘으면 꼬리 마디를 목록과 해시 짝지음에서 뺀다($O(1)$). 모든 연산이 $O(1)$이다. $\square$
+
+---
+
+**익힘 4.**
+플로이드의 거북이와 토끼 알고리즘으로 이음 목록의 맴돌이를 $O(n)$ 때와 $O(1)$ 자리에 찾을 수 있음을 증명하여라.
+
+??? success "익힘 4 풀이"
+    손가락질 둘을 쓴다. 느린 것(한 걸음씩)과 빠른 것(두 걸음씩)이다. 맴돌이가 없으면 빠른 것이 $O(n)$걸음에 널에 이른다. 자리 $\mu$에서 시작하는 길이 $c$의 맴돌이가 있으면, 둘이 맴돌이에 들어선 뒤로 빠른 것이 되풀이마다 느린 것을 한 걸음씩 따라잡는다. 맴돌이의 마디가 $c$개이므로 느린 것이 맴돌이에 든 뒤 $c$걸음 안에 만난다. 때: 느린 것은 만나기까지 많아야 $\mu + c$걸음, 빠른 것은 많아야 $2(\mu + c)$걸음 간다. $\mu + c \le n$이므로 둘 다 $O(n)$이다. 자리: 손가락질 변수 둘뿐이니 $O(1)$이다. 맴돌이를 찾은 뒤 그 시작을 찾으려면 느린 것을 머리로 되돌린다. 둘을 한 걸음씩 나아가게 하면 $\mu$걸음 뒤 맴돌이의 시작에서 만난다(증명: 느린 것이 $\mu$걸음 갔을 때 둘의 거리가 $c$으로 나눈 나머지로 0이 된다). $\square$
+
+---
+
+**익힘 5.**
+참으로는 언제 움직이는 배열 대신 이음 목록을 써야 하는가? 이음 목록이 참으로 앞서는 자리 둘을 들어라.
+
+??? success "익힘 5 풀이"
+    (1) **한결같은 때에 이어 붙이기**: 아는 자리에서 목록을 합치거나 가르는 일이 이음 목록에서는 $O(1)$이지만(손가락질만 돌리면 된다) 배열에서는 $O(n)$이다(원소를 베껴야 한다). 보기로 글월 다듬개의 되돌리기 담이가 있는데, 여기서는 문단을 자주 옮기고 가르고 합친다. (2) **고르게 나누지 않고도 보장되는 $O(1)$ 넣기/지우기**: 이음 목록은 크기를 늘리거나 베끼는 일이 없다. 배열은 가장 나쁠 때 넣기가 $O(n)$이다(크기를 늘릴 때). 가장 나쁠 때의 늦음이 중요한 제때 얼개에서는 이음 목록이 미리 그릴 수 있는 $O(1)$ 연산을 준다. 그 밖의 거의 모든 자리에서는 캐시 빠르기 덕에 배열이 낫다. 요즘은 이론 울타리가 이음 목록 쪽이 나을 때조차 배열(이나 덱)을 쓰는 일이 많은데, 배열의 10~20곱절 캐시 빠르기가 이따금 드는 $O(n)$ 크기 늘리기보다 값지기 때문이다. $\square$

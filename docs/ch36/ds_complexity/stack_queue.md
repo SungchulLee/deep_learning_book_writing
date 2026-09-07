@@ -1,155 +1,156 @@
-# Stack and Queue
+# 쌓개와 줄
 
-Stacks and queues are restricted-access data structures: stacks enforce last-in
-first-out (LIFO) order, while queues enforce first-in first-out (FIFO) order. These
-restrictions make every operation $O(1)$, which is why stacks and queues appear as
-building blocks inside BFS, DFS, expression evaluation, and many other algorithms.
+쌓개와 줄은 닿는 길을 옭아맨 자료 얼개다. 쌓개는 나중에 든 것이 먼저 나가는
+(LIFO) 차례를, 줄은 먼저 든 것이 먼저 나가는(FIFO) 차례를 지킨다. 이렇게
+옭아맨 덕에 모든 연산이 $O(1)$이 되고, 그래서 쌓개와 줄이 너비 먼저 훑기,
+깊이 먼저 훑기, 식 셈하기를 비롯한 많은 알고리즘의 벽돌로 쓰인다.
 
-## Stack Operations
+## 쌓개 연산
 
-A stack supports two primary operations: push (add to top) and pop (remove from top).
+쌓개는 으뜸 연산 둘을 받친다. 밀어 넣기(맨 위에 더하기)와 빼기(맨 위를 빼기)다.
 
-| Operation | Array-Based | Linked-List-Based | Notes |
+| 연산 | 배열 바탕 | 이음 목록 바탕 | 짚을 것 |
 |---|---|---|---|
-| Push | $O(1)$ amortized | $O(1)$ | Array may resize |
-| Pop | $O(1)$ | $O(1)$ | Remove top element |
-| Peek (top) | $O(1)$ | $O(1)$ | Read without removing |
-| Is empty | $O(1)$ | $O(1)$ | Check size or head pointer |
-| Size | $O(1)$ | $O(1)$ | Maintained as counter |
-| Search | $O(n)$ | $O(n)$ | Must traverse |
+| 밀어 넣기 | 고르게 나눈 $O(1)$ | $O(1)$ | 배열은 크기를 늘릴 수 있다 |
+| 빼기 | $O(1)$ | $O(1)$ | 맨 위 원소를 뺀다 |
+| 엿보기(맨 위) | $O(1)$ | $O(1)$ | 빼지 않고 읽는다 |
+| 비었는가 | $O(1)$ | $O(1)$ | 크기나 머리 손가락질을 본다 |
+| 크기 | $O(1)$ | $O(1)$ | 세개로 지닌다 |
+| 찾기 | $O(n)$ | $O(n)$ | 훑어야 한다 |
 
-Both implementations provide $O(1)$ for the core operations. Array-based stacks have
-better cache performance; linked-list-based stacks avoid the amortized resize cost.
+두 짜보기 모두 고갱이 연산이 $O(1)$이다. 배열 바탕 쌓개는 캐시 빠르기가 낫고,
+이음 목록 바탕 쌓개는 고르게 나눈 크기 늘리기 값을 치르지 않는다.
 
-## Queue Operations
+## 줄 연산
 
-A queue supports enqueue (add to back) and dequeue (remove from front).
+줄은 넣기(뒤에 더하기)와 빼기(앞에서 빼기)를 받친다.
 
-| Operation | Circular Array | Linked List | Notes |
+| 연산 | 고리 배열 | 이음 목록 | 짚을 것 |
 |---|---|---|---|
-| Enqueue | $O(1)$ amortized | $O(1)$ | Array may resize |
-| Dequeue | $O(1)$ | $O(1)$ | Remove front element |
-| Peek (front) | $O(1)$ | $O(1)$ | Read without removing |
-| Is empty | $O(1)$ | $O(1)$ | Check size or pointers |
-| Size | $O(1)$ | $O(1)$ | Maintained as counter |
-| Search | $O(n)$ | $O(n)$ | Must traverse |
+| 넣기 | 고르게 나눈 $O(1)$ | $O(1)$ | 배열은 크기를 늘릴 수 있다 |
+| 빼기 | $O(1)$ | $O(1)$ | 앞 원소를 뺀다 |
+| 엿보기(앞) | $O(1)$ | $O(1)$ | 빼지 않고 읽는다 |
+| 비었는가 | $O(1)$ | $O(1)$ | 크기나 손가락질을 본다 |
+| 크기 | $O(1)$ | $O(1)$ | 세개로 지닌다 |
+| 찾기 | $O(n)$ | $O(n)$ | 훑어야 한다 |
 
-!!! warning "Naive Array Queue"
-    Using a plain array with dequeue shifting all elements gives $O(n)$ per
-    dequeue. Always use a circular buffer or linked list to achieve $O(1)$
-    dequeue.
+!!! warning "곧이곧대로 만든 배열 줄"
+    여느 배열을 쓰면서 뺄 때마다 원소를 모두 미는 방식은 빼기가 $O(1)$이
+    아니라 $O(n)$이다. $O(1)$ 빼기를 얻으려면 늘 고리 버퍼나 이음 목록을
+    쓰라.
 
-## Deque (Double-Ended Queue)
+## 덱(양끝 줄)
 
-A deque supports insertion and removal at both ends.
+덱은 양 끝에서 넣고 빼기를 받친다.
 
-| Operation | Circular Array | Doubly Linked List | Notes |
+| 연산 | 고리 배열 | 겹 이음 목록 | 짚을 것 |
 |---|---|---|---|
-| Push front | $O(1)$ amortized | $O(1)$ | |
-| Push back | $O(1)$ amortized | $O(1)$ | |
-| Pop front | $O(1)$ | $O(1)$ | |
-| Pop back | $O(1)$ | $O(1)$ | |
-| Peek front | $O(1)$ | $O(1)$ | |
-| Peek back | $O(1)$ | $O(1)$ | |
-| Access by index | $O(1)$ | $O(n)$ | Array advantage |
-| Size | $O(1)$ | $O(1)$ | |
+| 앞에 밀어 넣기 | 고르게 나눈 $O(1)$ | $O(1)$ | |
+| 뒤에 밀어 넣기 | 고르게 나눈 $O(1)$ | $O(1)$ | |
+| 앞에서 빼기 | $O(1)$ | $O(1)$ | |
+| 뒤에서 빼기 | $O(1)$ | $O(1)$ | |
+| 앞 엿보기 | $O(1)$ | $O(1)$ | |
+| 뒤 엿보기 | $O(1)$ | $O(1)$ | |
+| 번호로 닿기 | $O(1)$ | $O(n)$ | 배열이 앞선다 |
+| 크기 | $O(1)$ | $O(1)$ | |
 
-A deque can serve as both a stack (use one end) and a queue (use both ends),
-making it a versatile building block.
+덱은 (한쪽 끝만 쓰면) 쌓개로도, (양 끝을 쓰면) 줄로도 쓸 수 있어 두루 쓰는
+벽돌이 된다.
 
-## Specialized Variants
+## 남다른 갈래
 
-| Variant | Key Operations | Time | Use Case |
+| 갈래 | 고갱이 연산 | 때 | 쓰일 자리 |
 |---|---|---|---|
-| Min-stack | Push, pop, get-min | $O(1)$ each | Track minimum in $O(1)$ |
-| Max-stack | Push, pop, get-max | $O(1)$ each | Track maximum in $O(1)$ |
-| Monotonic stack | Push with eviction | $O(n)$ total for $n$ elements | Next greater/smaller element |
-| Monotonic deque | Push/pop with eviction | $O(n)$ total for $n$ elements | Sliding window min/max |
-| Two-stack queue | Enqueue, dequeue | $O(1)$ amortized | Queue from two stacks |
-| Priority queue | Insert, extract-min | $O(\log n)$ | Not FIFO; ordered by priority |
+| 가장 작은 것 쌓개 | 밀어 넣기, 빼기, 가장 작은 것 얻기 | 저마다 $O(1)$ | 가장 작은 것을 $O(1)$에 좇는다 |
+| 가장 큰 것 쌓개 | 밀어 넣기, 빼기, 가장 큰 것 얻기 | 저마다 $O(1)$ | 가장 큰 것을 $O(1)$에 좇는다 |
+| 한 방향 쌓개 | 내보내며 밀어 넣기 | 원소 $n$개에 모두 $O(n)$ | 다음으로 큰/작은 원소 |
+| 한 방향 덱 | 내보내며 넣고 빼기 | 원소 $n$개에 모두 $O(n)$ | 미끄럼 창의 가장 작은/큰 값 |
+| 쌓개 둘로 만든 줄 | 넣기, 빼기 | 고르게 나눈 $O(1)$ | 쌓개 둘로 줄을 만든다 |
+| 앞선 줄 | 넣기, 가장 작은 것 빼기 | $O(\log n)$ | FIFO이 아니라 앞섬으로 차례를 매긴다 |
 
-!!! tip "Min-Stack Trick"
-    Maintain a second stack that tracks the current minimum. On push, push the
-    min of the new element and the current minimum onto the auxiliary stack. On
-    pop, pop from both stacks. This gives $O(1)$ get-min with $O(n)$ extra space.
+!!! tip "가장 작은 것 쌓개의 꾀"
+    지금 가장 작은 값을 좇는 둘째 쌓개를 함께 지닌다. 밀어 넣을 때 새 원소와
+    지금 가장 작은 값 가운데 작은 것을 도움 쌓개에 밀어 넣는다. 뺄 때는 두
+    쌓개에서 함께 뺀다. 자리를 $O(n)$ 더 쓰고 가장 작은 것 얻기를 $O(1)$에
+    한다.
 
-## Space Complexity
+## 자리 복잡도
 
-| Structure | Implementation | Space | Overhead |
+| 얼개 | 짜보기 | 자리 | 붙는 짐 |
 |---|---|---|---|
-| Stack (array) | Dynamic array | $O(n)$ | Up to $n$ wasted slots |
-| Stack (linked) | Singly linked list | $O(n)$ | 1 pointer per element |
-| Queue (circular array) | Circular buffer | $O(n)$ | Up to $n$ wasted slots |
-| Queue (linked) | Singly linked list | $O(n)$ | 1 pointer per element |
-| Deque (array) | Circular buffer | $O(n)$ | Up to $n$ wasted slots |
-| Deque (linked) | Doubly linked list | $O(n)$ | 2 pointers per element |
+| 쌓개(배열) | 움직이는 배열 | $O(n)$ | 빈 칸이 $n$개까지 남는다 |
+| 쌓개(이음) | 홑 이음 목록 | $O(n)$ | 원소마다 손가락질 1개 |
+| 줄(고리 배열) | 고리 버퍼 | $O(n)$ | 빈 칸이 $n$개까지 남는다 |
+| 줄(이음) | 홑 이음 목록 | $O(n)$ | 원소마다 손가락질 1개 |
+| 덱(배열) | 고리 버퍼 | $O(n)$ | 빈 칸이 $n$개까지 남는다 |
+| 덱(이음) | 겹 이음 목록 | $O(n)$ | 원소마다 손가락질 2개 |
 
-## Applications and Their Complexities
+## 쓰이는 자리와 그 복잡도
 
-| Application | Structure | Per-Operation | Total for $n$ Elements |
+| 쓰임 | 얼개 | 연산마다 | 원소 $n$개에 모두 |
 |---|---|---|---|
-| DFS traversal | Stack | $O(1)$ push/pop | $O(V + E)$ |
-| BFS traversal | Queue | $O(1)$ enqueue/dequeue | $O(V + E)$ |
-| Parenthesis matching | Stack | $O(1)$ per character | $O(n)$ |
-| Infix to postfix | Stack | $O(1)$ per token | $O(n)$ |
-| Sliding window max | Monotonic deque | $O(1)$ amortized per element | $O(n)$ |
-| Next greater element | Monotonic stack | $O(1)$ amortized per element | $O(n)$ |
-| Undo/redo | Two stacks | $O(1)$ per action | $O(n)$ |
-| Function call stack | Stack | $O(1)$ per call | $O(d)$, $d$ = max depth |
+| 깊이 먼저 훑기 | 쌓개 | 밀어 넣기/빼기 $O(1)$ | $O(V + E)$ |
+| 너비 먼저 훑기 | 줄 | 넣기/빼기 $O(1)$ | $O(V + E)$ |
+| 괄호 맞추기 | 쌓개 | 글자마다 $O(1)$ | $O(n)$ |
+| 가운데 적기를 뒤 적기로 | 쌓개 | 낱마다 $O(1)$ | $O(n)$ |
+| 미끄럼 창의 가장 큰 값 | 한 방향 덱 | 원소마다 고르게 나눈 $O(1)$ | $O(n)$ |
+| 다음으로 큰 원소 | 한 방향 쌓개 | 원소마다 고르게 나눈 $O(1)$ | $O(n)$ |
+| 되돌리기/다시 하기 | 쌓개 둘 | 움직임마다 $O(1)$ | $O(n)$ |
+| 함수 부름 쌓개 | 쌓개 | 부름마다 $O(1)$ | $O(d)$, $d$ = 가장 깊은 깊이 |
 
-## Language Implementations
+## 말마다의 짜보기
 
-| Language | Stack | Queue | Deque |
+| 말 | 쌓개 | 줄 | 덱 |
 |---|---|---|---|
-| Python | `list` (append/pop) | `collections.deque` | `collections.deque` |
+| 파이썬 | `list` (append/pop) | `collections.deque` | `collections.deque` |
 | C++ | `std::stack` | `std::queue` | `std::deque` |
-| Java | `ArrayDeque` | `ArrayDeque` or `LinkedList` | `ArrayDeque` |
+| 자바 | `ArrayDeque` | `ArrayDeque`나 `LinkedList` | `ArrayDeque` |
 
-!!! warning "Python list as Queue"
-    Using Python's `list` as a queue with `pop(0)` is $O(n)$ because it shifts
-    all elements. Always use `collections.deque` which provides $O(1)$ `popleft()`.
+!!! warning "파이썬 list을 줄로 쓰기"
+    파이썬 `list`을 줄로 쓰며 `pop(0)`을 부르면 원소를 모두 밀므로 $O(n)$이다.
+    $O(1)$ `popleft()`을 주는 `collections.deque`을 늘 쓰라.
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Sedgewick, R. and Wayne, K. *Algorithms*. 4th ed. Addison-Wesley, 2011.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Implement a queue using two stacks. What are the amortized time complexities for enqueue and dequeue?
+**익힘 1.**
+쌓개 둘로 줄을 짜라. 넣기와 빼기의 고르게 나눈 때 복잡도는 얼마인가?
 
-??? success "Solution to Exercise 1"
-    Use stack `in` for enqueue and stack `out` for dequeue. Enqueue: push to `in` ($O(1)$). Dequeue: if `out` is empty, pop all elements from `in` and push to `out` (reversing the order). Pop from `out`. Amortized analysis: each element is pushed to `in` once ($O(1)$), moved from `in` to `out` once ($O(1)$ amortized), and popped from `out` once ($O(1)$). Total amortized cost per element: $O(1)$ for both enqueue and dequeue. The worst-case dequeue is $O(n)$ (when `out` is empty and all $n$ elements must be transferred), but this is amortized over $n$ operations. $\square$
-
----
-
-**Exercise 2.**
-A monotonic deque maintains elements in non-decreasing order. Describe how to use it to find the maximum element in every sliding window of size $k$ in $O(n)$ total time.
-
-??? success "Solution to Exercise 2"
-    Maintain a deque storing indices. Invariant: elements at deque indices are in decreasing order. For each element $a[i]$: (1) Remove indices from the back while $a[\text{back}] \le a[i]$ (they can never be the maximum in any future window). (2) Push $i$ to the back. (3) Remove the front if its index is outside the window ($i - \text{front} \ge k$). (4) The front of the deque is the index of the current window maximum. Each element is pushed and popped at most once, so total operations: $O(n)$. The deque always contains the "candidates" for future window maxima in decreasing order. $\square$
+??? success "익힘 1 풀이"
+    넣기에 쌓개 `in`을, 빼기에 쌓개 `out`을 쓴다. 넣기: `in`에 밀어 넣는다($O(1)$). 빼기: `out`이 비었으면 `in`의 원소를 모두 빼서 `out`에 밀어 넣는다(차례가 뒤집힌다). 그러고 나서 `out`에서 뺀다. 고르게 나누어 따지면, 원소마다 `in`에 한 번 밀어 넣고($O(1)$), `in`에서 `out`으로 한 번 옮기고(고르게 나눈 $O(1)$), `out`에서 한 번 뺀다($O(1)$). 원소마다 고르게 나눈 값은 넣기와 빼기 모두 $O(1)$이다. 가장 나쁠 때의 빼기는 $O(n)$이지만(`out`이 비어 원소 $n$개를 모두 옮겨야 할 때) 이는 연산 $n$번에 고르게 나뉜다. $\square$
 
 ---
 
-**Exercise 3.**
-Describe how a stack is used to evaluate postfix (Reverse Polish Notation) expressions in $O(n)$ time.
+**익힘 2.**
+한 방향 덱은 원소를 줄지 않는 차례로 지닌다. 이것으로 크기 $k$인 미끄럼 창마다 가장 큰 원소를 모두 $O(n)$ 때에 찾는 길을 밝혀라.
 
-??? success "Solution to Exercise 3"
-    Scan the postfix expression left to right. If the token is a number, push it onto the stack. If the token is an operator ($+, -, \times, /$), pop the top two elements ($b$ then $a$), compute $a \mathbin{\text{op}} b$, and push the result. After processing all tokens, the stack contains exactly one element: the result. Time: $O(n)$ where $n$ is the number of tokens (each token is processed once). Space: $O(n)$ for the stack in the worst case (all operands before any operator). Example: "3 4 + 2 *" evaluates as: push 3, push 4, pop 4 and 3, compute 3+4=7, push 7, push 2, pop 2 and 7, compute 7*2=14. Result: 14. $\square$
-
----
-
-**Exercise 4.**
-A min-stack supports push, pop, top, and get-min all in $O(1)$ time. Describe the design.
-
-??? success "Solution to Exercise 4"
-    Maintain two stacks: the main stack and a min-stack. The min-stack's top always holds the current minimum of the main stack. **Push(x)**: push $x$ onto the main stack. If $x \le$ min-stack's top (or min-stack is empty), push $x$ onto the min-stack. **Pop**: pop from the main stack. If the popped value equals the min-stack's top, pop from the min-stack too. **Top**: return main stack's top. **Get-min**: return min-stack's top. All operations are $O(1)$. Space: at most $2n$ total across both stacks. The min-stack tracks the "history of minimums": each entry represents the minimum value at some point in the stack's history. When that minimum is popped from the main stack, it is also removed from the min-stack. $\square$
+??? success "익힘 2 풀이"
+    번호를 담는 덱을 지닌다. 불변 조건: 덱에 든 번호의 원소가 줄어드는 차례다. 원소 $a[i]$마다 이렇게 한다. (1) $a[\text{뒤}] \le a[i]$인 동안 뒤에서 번호를 뺀다(앞으로 어느 창에서도 가장 클 수 없다). (2) $i$을 뒤에 밀어 넣는다. (3) 앞의 번호가 창 밖이면($i - \text{앞} \ge k$) 앞에서 뺀다. (4) 덱의 앞이 지금 창에서 가장 큰 원소의 번호다. 원소마다 많아야 한 번 밀어 넣고 한 번 빼므로 온 연산이 $O(n)$이다. 덱에는 앞으로의 창에서 가장 클 만한 "후보"가 줄어드는 차례로 늘 담겨 있다. $\square$
 
 ---
 
-**Exercise 5.**
-Compare stack-based DFS and queue-based BFS for graph traversal. What properties of the exploration order differ?
+**익힘 3.**
+쌓개로 뒤 적기(거꾸로 폴란드 적기) 식을 $O(n)$ 때에 셈하는 길을 밝혀라.
 
-??? success "Solution to Exercise 5"
-    **Stack-based DFS**: explores as deep as possible before backtracking. Visits nodes in depth-first order. Properties: discovers back edges (cycles), enables topological sorting, strongly connected components, and tree-edge classification. Uses $O(V)$ space (stack depth bounded by $V$). Does not find shortest paths in unweighted graphs. **Queue-based BFS**: explores all neighbors at distance $d$ before distance $d+1$. Visits nodes in breadth-first (level-order). Properties: finds shortest paths in unweighted graphs, discovers nodes layer by layer, enables bipartiteness checking. Uses $O(V)$ space (queue can hold up to $V$ nodes). Both run in $O(V + E)$ time. Choose DFS for structural properties (cycles, components); BFS for shortest paths and level-order exploration. $\square$
+??? success "익힘 3 풀이"
+    뒤 적기 식을 왼쪽에서 오른쪽으로 훑는다. 낱이 수면 쌓개에 밀어 넣는다. 낱이 셈 기호($+, -, \times, /$)면 맨 위 둘을 빼고($b$ 다음 $a$) $a \mathbin{\text{op}} b$을 셈해 열매를 밀어 넣는다. 낱을 모두 다루고 나면 쌓개에 원소가 꼭 하나 남는데 그것이 답이다. 때: 낱의 수가 $n$일 때 $O(n)$이다(낱마다 한 번 다룬다). 자리: 가장 나쁠 때 쌓개에 $O(n)$(셈 기호 앞에 셈할 것이 모두 오는 때). 보기로 "3 4 + 2 *"은 이렇게 셈한다. 3을 넣고, 4를 넣고, 4와 3을 빼서 3+4=7을 셈해 넣고, 2를 넣고, 2와 7을 빼서 7*2=14를 셈한다. 답은 14다. $\square$
+
+---
+
+**익힘 4.**
+가장 작은 것 쌓개는 밀어 넣기, 빼기, 맨 위 보기, 가장 작은 것 얻기를 모두 $O(1)$에 받친다. 그 설계를 밝혀라.
+
+??? success "익힘 4 풀이"
+    쌓개 둘을 지닌다. 으뜸 쌓개와 가장 작은 것 쌓개다. 가장 작은 것 쌓개의 맨 위에는 늘 으뜸 쌓개의 지금 가장 작은 값이 있다. **밀어 넣기(x)**: $x$을 으뜸 쌓개에 밀어 넣는다. $x \le$ 가장 작은 것 쌓개의 맨 위이거나 그 쌓개가 비었으면 $x$을 가장 작은 것 쌓개에도 밀어 넣는다. **빼기**: 으뜸 쌓개에서 뺀다. 뺀 값이 가장 작은 것 쌓개의 맨 위와 같으면 그 쌓개에서도 뺀다. **맨 위 보기**: 으뜸 쌓개의 맨 위를 내놓는다. **가장 작은 것 얻기**: 가장 작은 것 쌓개의 맨 위를 내놓는다. 모든 연산이 $O(1)$이다. 자리는 두 쌓개를 통틀어 많아야 $2n$이다. 가장 작은 것 쌓개는 "가장 작은 값의 자취"를 좇는다. 항목마다 쌓개 자취의 어느 때에 가장 작았던 값을 나타내며, 그 값이 으뜸 쌓개에서 빠질 때 가장 작은 것 쌓개에서도 빠진다. $\square$
+
+---
+
+**익힘 5.**
+그래프 훑기를 두고 쌓개 바탕 깊이 먼저 훑기와 줄 바탕 너비 먼저 훑기를 견주어라. 훑는 차례의 어떤 됨됨이가 다른가?
+
+??? success "익힘 5 풀이"
+    **쌓개 바탕 깊이 먼저 훑기**: 되짚어 돌아오기 앞서 될 수 있는 한 깊이 들어간다. 마디를 깊이 먼저 차례로 들른다. 됨됨이: 되돌아가는 변(맴돌이)을 찾아내고, 갈래 세우기, 세게 이어진 조각, 나무 변 가르기를 할 수 있다. 자리는 $O(V)$이다(쌓개 깊이가 $V$을 넘지 않는다). 짐 없는 그래프에서 가장 짧은 길을 찾지는 못한다. **줄 바탕 너비 먼저 훑기**: 거리 $d$인 이웃을 모두 살핀 뒤에야 거리 $d+1$로 간다. 마디를 너비 먼저(켜 차례로) 들른다. 됨됨이: 짐 없는 그래프에서 가장 짧은 길을 찾고, 마디를 켜마다 찾아내며, 두 쪽으로 나뉘는지 살필 수 있다. 자리는 $O(V)$이다(줄에 마디가 $V$개까지 든다). 둘 다 $O(V + E)$ 때에 돈다. 얼개의 됨됨이(맴돌이, 조각)에는 깊이 먼저를, 가장 짧은 길과 켜 차례 살피기에는 너비 먼저를 고르라. $\square$
