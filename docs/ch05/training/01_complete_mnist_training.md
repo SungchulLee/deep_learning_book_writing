@@ -490,8 +490,8 @@ print("""
 
 2. 보여 준 모범 사례:
    ✓ 효율적인 배치 처리를 위해 DataLoader를 쓴다
-   ✓ Set model.train() / model.eval() appropriately
-   ✓ Use torch.no_grad() for inference
+   ✓ model.train()과 model.eval()을 알맞게 설정한다
+   ✓ 추론에는 torch.no_grad()를 쓴다
    ✓ 학습 중 지표를 추적한다
    ✓ 메타데이터와 함께 체크포인트를 저장한다
    ✓ 학습률 스케줄링을 쓴다
@@ -500,20 +500,20 @@ print("""
 3. 실서비스에서 살필 점:
    ✓ 설정 다루기
    ✓ 되풀이할 수 있음(마구잡이 씨앗)
-   ✓ Device handling (CPU/GPU)
+   ✓ 장치 처리(CPU와 GPU)
    ✓ 진행 상황 기록
-   ✓ Error handling (not shown but important)
+   ✓ 오류 처리(여기 나오지 않지만 중요하다)
    ✓ 모델 버전 관리
 
 4. 최적화 선택:
-   • SGD with momentum (reliable, well-tested)
-   • CrossEntropyLoss (standard for classification)
-   • StepLR scheduler (gradual learning rate decay)
-   • Dropout (prevents overfitting)
+   • 모멘텀을 쓰는 SGD(믿을 만하고 검증되었다)
+   • CrossEntropyLoss(분류의 표준)
+   • StepLR 스케줄러(점진적인 학습률 감쇠)
+   • 드롭아웃(과적합을 막는다)
 
 다음 단계:
 → 여러 구조로 실험해 보라
-→ Try other optimizers (Adam, AdamW)
+→ 다른 최적화기(Adam, AdamW)를 써 보라
 → 데이터 증강을 더해 보라
 → 조기 종료를 구현해 보라
 → 시각화에는 텐서보드를 쓰라

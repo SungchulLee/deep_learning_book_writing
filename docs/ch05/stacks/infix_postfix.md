@@ -89,7 +89,7 @@ def tokenize(expression):
 
 
 def infix_to_postfix(expression):
-    """Convert an infix expression to postfix (RPN) notation.
+    """중위 식을 후위(역폴란드) 표기로 바꾼다.
 
     데이크스트라의 조차장 알고리즘을 쓴다.
     모든 연산자가 왼쪽에서 오른쪽으로 결합한다고 가정한다.

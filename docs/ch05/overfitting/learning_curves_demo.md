@@ -300,13 +300,13 @@ if __name__ == "__main__":
     print("Key Insights from Learning Curves:")
     print("="*70)
     print("""
-1. HIGH BIAS (Underfitting):
+1. 높은 편향(과소적합):
    • 두 곡선이 모두 높은 오차에서 평평해진다
    • 학습과 검증 사이의 간격이 작다
    • 데이터를 더 모아도 큰 도움이 안 된다
    → 해법: 모델 복잡도를 높인다
 
-2. HIGH VARIANCE (Overfitting):
+2. 높은 분산(과적합):
    • 두 곡선 사이의 간격이 크다
    • 학습 오차는 낮고 검증 오차는 높다
    • 데이터를 더 모으면 도움이 된다

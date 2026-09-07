@@ -44,22 +44,22 @@ print("""
 기울기의 두 가지 큰 문제:
 
 1. 기울기 폭발:
-   • Gradients become very large (>1000)
+   • 기울기가 매우 커진다(1000 초과)
    • 학습이 불안정해진다
    • 가중치가 엄청나게 크게 갱신된다
    • 손실이 NaN이나 Inf가 된다
    • RNN과 아주 깊은 신경망에서 흔하다
 
 2. 기울기 소실:
-   • Gradients become very small (<0.001)
+   • 기울기가 매우 작아진다(0.001 미만)
    • 앞쪽 층이 학습하지 못한다
    • 학습이 매우 느리다
    • 활성화나 정규화가 알맞지 않은 깊은 신경망에서 흔하다
 
 SOLUTIONS:
-   • Gradient clipping (for explosion)
-   • Better architectures (ResNet, BatchNorm)
-   • Better activations (ReLU instead of sigmoid)
+   • 기울기 절단(폭발에 대비)
+   • 더 나은 구조(ResNet, 배치 정규화)
+   • 더 나은 활성화(시그모이드 대신 ReLU)
    • 신중한 초기화
 """)
 
@@ -141,7 +141,7 @@ print("-" * 80)
 print("""
 노름 기준 기울기 절단:
   • 노름이 임계값을 넘으면 기울기의 크기를 다시 맞춘다
-  • Formula: g_clipped = (max_norm / norm(g)) × g  if norm(g) > max_norm
+  • 식: norm(g) > max_norm이면 g_clipped = (max_norm / norm(g)) × g
   • 기울기 방향을 보존한다
   • 가장 흔한 절단 방법이다
   
@@ -204,7 +204,7 @@ print("-" * 80)
 
 print("""
 값 기준 기울기 절단:
-  • Clip each gradient element to [-clip_value, clip_value]
+  • 기울기 원소마다 [-clip_value, clip_value]로 자른다
   • 더 단순하지만 기울기 방향을 일그러뜨릴 수 있다
   • 노름 기준 절단보다 덜 쓴다
   
@@ -255,7 +255,7 @@ print("""
   • 적은 메모리로 큰 배치 크기를 흉내 낸다
   • 여러 번의 순전파에 걸쳐 기울기를 쌓는다
   • N번 쌓은 뒤 매개변수를 갱신한다
-  • Effective batch size = batch_size × accumulation_steps
+  • 유효 배치 크기 = batch_size × accumulation_steps
   
 쓰임새:
   • GPU 메모리가 부족하다
@@ -395,7 +395,7 @@ print("""
 
 1. 기울기를 살펴라:
    • 학습 중 기울기 노름을 기록한다
-   • Watch for explosion (>10) or vanishing (<0.0001)
+   • 폭발(10 초과)이나 소실(0.0001 미만)을 살피라
    • 시각화에는 텐서보드나 wandb를 쓴다
 
 2. 기울기 절단을 써라:
@@ -432,8 +432,8 @@ print("""
    • ReLU나 그 변형을 쓴다
 
 4. 뜻하지 않게 기울기가 쌓이기:
-   • Always call optimizer.zero_grad()
-   • Before loss.backward()
+   • 늘 optimizer.zero_grad()를 부르라
+   • loss.backward() 앞에서
 """)
 
 # ============================================================================
@@ -490,9 +490,9 @@ print("""
    • 소실: 기울기가 너무 작다 → 학습이 느리거나 멈춘다
 
 2. 기울기 절단:
-   • By norm: torch.nn.utils.clip_grad_norm_(params, max_norm)
+   • 노름 기준: torch.nn.utils.clip_grad_norm_(params, max_norm)
      → 방향을 보존하며 가장 흔하다
-   • By value: torch.nn.utils.clip_grad_value_(params, clip_value)
+   • 값 기준: torch.nn.utils.clip_grad_value_(params, clip_value)
      → 더 단순하지만 방향을 일그러뜨릴 수 있다
 
 3. 기울기 누적:
@@ -506,8 +506,8 @@ print("""
    • 학습 중에 기록하고 시각화하라
 
 5. IMPLEMENTATION:
-   • Clip after backward(), before step()
-   • Typical max_norm: 0.5 - 5.0 (start with 1.0)
+   • backward() 뒤, step() 앞에서 자른다
+   • 흔한 max_norm: 0.5~5.0(1.0으로 시작하라)
    • 알맞은 초기화와 구조를 함께 쓰라
 
 6. 언제 절단을 쓰는가:
@@ -520,7 +520,7 @@ print("""
 → 학습 루프에 기울기 감시를 더하라
 → 절단 임계값을 달리하여 실험해 보라
 → 유효 배치 크기를 키우려면 기울기 누적을 쓰라
-→ Study advanced techniques (gradient centralization, etc.)
+→ 고급 기법(기울기 중심화 등)을 살펴보라
 """)
 print("=" * 80)
 

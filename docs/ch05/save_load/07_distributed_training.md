@@ -203,7 +203,7 @@ print("=" * 70)
 print("""
 SAVING:
 -------
-1. Always save model.module.state_dict() for DataParallel
+1. DataParallel에서는 늘 model.module.state_dict()를 저장하라
    - 'module.' 접두사가 자동으로 없어진다
    - 체크포인트를 옮겨 쓰기 좋게 만든다
 
@@ -231,7 +231,7 @@ LOADING:
    - 필요하면 그다음 감싼다
    - 과정을 더 잘 다룰 수 있다
 
-2. Use strict=False for flexibility
+2. 유연하게 하려면 strict=False를 쓰라
    - 빠졌거나 예상 밖인 키를 처리한다
 
 3. 'module.' 접두사가 있으면 없앤다
@@ -251,11 +251,11 @@ Example:
 --------------
 1. RuntimeError: 키가 빠졌거나 예상 밖의 키
    → 'module.' 접두사가 맞는지 확인하라
-   → Use remove_module_prefix() function
+   → remove_module_prefix() 함수를 쓰라
 
 2. DataParallel로 저장하고 없이 불러오기
    → 상태 사전에 'module.' 접두사가 있다
-   → Load with strict=False or clean prefix
+   → strict=False로 불러오거나 접두사를 정리하라
 
 3. DataParallel 없이 저장하고 함께 불러오기
    → 'module.' 접두사를 붙여야 한다

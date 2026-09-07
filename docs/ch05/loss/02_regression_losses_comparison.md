@@ -161,19 +161,19 @@ print("DECISION GUIDE: Which Loss Should You Use?")
 print("-" * 80)
 
 print("""
-📊 USE MEAN SQUARED ERROR (MSE) when:
+📊 평균 제곱 오차(MSE)를 쓸 때:
    ✓ 데이터가 깨끗하고 이상치가 적다
    ✓ 큰 오차에 큰 벌점을 주어야 한다
    ✓ 최적화를 위해 매끄러운 기울기를 원한다
    ✓ 예: 안정된 시장에서 집값 예측
 
-📏 USE MEAN ABSOLUTE ERROR (MAE) when:
+📏 평균 절대 오차(MAE)를 쓸 때:
    ✓ 데이터에 이상치가 있다
    ✓ 모든 오차를 더 고르게 다루어야 한다
    ✓ 오차를 데이터와 같은 단위로 보고 싶다
-   ✓ Example: Predicting delivery times (traffic outliers common)
+   ✓ 예: 배달 시간 예측(교통 이상치가 흔하다)
 
-🎯 USE SMOOTH L1 LOSS (Huber) when:
+🎯 Smooth L1 손실(후버)을 쓸 때:
    ✓ 이상치에 강건하기를 바란다
    ✓ 그러면서도 매끄러운 최적화를 원한다
    ✓ 이따금 이상값이 섞인 실제 데이터에 가장 알맞다
@@ -270,7 +270,7 @@ print("""
 다음 단계:
 → 자신의 데이터로 시도해 보라
 → 이상치의 크기를 달리하여 실험해 보라
-→ Learn about classification losses (CrossEntropy, etc.)
+→ 분류 손실(교차 엔트로피 등)을 배워 보라
 """)
 print("=" * 80)
 

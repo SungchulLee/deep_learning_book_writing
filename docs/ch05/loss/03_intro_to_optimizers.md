@@ -45,9 +45,9 @@ print("""
 갱신하는 알고리즘이다.
 
 이렇게 생각해 보라:
-1. Your model makes predictions (forward pass)
+1. 모델이 예측한다(순전파)
 2. 손실 함수가 "이만큼 틀렸다"라고 알려 준다
-3. PyTorch computes gradients (backward pass)
+3. PyTorch가 기울기를 계산한다(역전파)
 4. 최적화기가 기울기를 써서 매개변수를 갱신한다
 5. 손실이 충분히 낮아질 때까지 되풀이한다
 
@@ -230,15 +230,15 @@ print("""
    모델은 무작위 가중치와 편향으로 시작했다
    처음 예측은 정답과 크게 어긋났다
 
-2. ITERATION (repeated 1000 times):
-   a) Forward: Model makes predictions
-   b) Loss: Measure how wrong predictions are
-   c) Backward: Compute gradients (direction to improve)
-   d) Step: Update parameters in the right direction
+2. 반복(1000번 되풀이):
+   a) 순전파: 모델이 예측한다
+   b) 손실: 예측이 얼마나 틀렸는지 잰다
+   c) 역전파: 기울기를 계산한다(개선할 방향)
+   d) 갱신: 매개변수를 옳은 방향으로 고친다
 
 3. RESULT:
    손실이 높은 값에서 낮은 값으로 줄었다
-   Parameters converged to the true values (w≈2, b≈1)
+   매개변수가 참값으로 수렴했다(w≈2, b≈1)
    이제 모델이 정확하게 예측한다!
 
 4. 핵심 구성 요소:
@@ -256,12 +256,12 @@ print("HOW THE OPTIMIZER UPDATES PARAMETERS")
 print("-" * 80)
 
 print("""
-For Stochastic Gradient Descent (SGD):
+확률적 경사 하강법(SGD)에서는:
 
     new_parameter = old_parameter - learning_rate × gradient
 
 우리 학습에서 가져온 예:
-    If weight gradient = 2.5 and learning_rate = 0.01
+    가중치 기울기가 2.5이고 learning_rate가 0.01이면
     new_weight = old_weight - 0.01 × 2.5
     new_weight = old_weight - 0.025
 
@@ -276,17 +276,17 @@ print("COMMON PITFALLS (And How to Avoid Them)")
 print("-" * 80)
 
 print("""
-❌ MISTAKE 1: Forgetting optimizer.zero_grad()
+❌ 실수 1: optimizer.zero_grad()를 잊는다
    → 기울기가 쌓여 잘못된 갱신이 일어난다
-   ✓ Always call optimizer.zero_grad() before loss.backward()
+   ✓ loss.backward() 앞에서 늘 optimizer.zero_grad()를 부르라
 
 ❌ 실수 2: 연산 순서가 틀렸다
    → 반드시 순전파 → 손실 → zero_grad → backward → step 순이어야 한다
    ✓ 학습 루프에서 이 순서를 정확히 지켜라
 
-❌ MISTAKE 3: Using torch.no_grad() during training
+❌ 실수 3: 학습 중에 torch.no_grad()를 쓴다
    → 기울기 계산이 막혀 모델이 학습하지 못한다
-   ✓ Only use no_grad() for evaluation/testing
+   ✓ no_grad()는 평가와 시험에만 쓰라
 
 ❌ 실수 4: 손실을 추적하지 않는다
    → 모델이 학습하고 있는지 알 수 없다
@@ -316,18 +316,18 @@ print("""
 
 3. 학습률이 매우 중요하다.
    • 매 단계에서 매개변수가 얼마나 바뀔지 조절한다
-   • Too high = unstable, too low = slow learning
+   • 너무 크면 불안정하고 너무 작으면 학습이 느리다
    • 보통 0.01이나 0.001로 시작한다
 
-4. SGD (Stochastic Gradient Descent) is the simplest optimizer
-   • Updates: parameter -= learning_rate × gradient
+4. SGD(확률적 경사 하강법)는 가장 단순한 최적화기이다
+   • 갱신: parameter -= learning_rate × gradient
    • 많은 문제에서 잘 작동한다
-   • Other optimizers (Adam, RMSprop) add improvements
+   • 다른 최적화기(Adam, RMSprop)는 여기에 개선을 더한다
 
 다음 단계:
 → 학습률을 달리하여 어떤 일이 일어나는지 보라
 → 더 복잡한 모델로 실험해 보라
-→ Learn about advanced optimizers (Adam, AdamW)
+→ 고급 최적화기(Adam, AdamW)를 배워 보라
 """)
 print("=" * 80)
 

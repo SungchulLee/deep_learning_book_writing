@@ -44,32 +44,32 @@ print("OPTIMIZATION ALGORITHMS OVERVIEW")
 print("-" * 80)
 
 print("""
-STOCHASTIC GRADIENT DESCENT (SGD):
-  • Simplest optimizer: param -= learning_rate × gradient
+확률적 경사 하강법(SGD):
+  • 가장 단순한 최적화기: param -= learning_rate × gradient
   • 장점: 단순하며 모멘텀과 잘 어울린다
   • 단점: 느릴 수 있고 학습률에 민감하다
   • 알맞은 곳: 잘 알려진 문제, 조율할 시간이 있을 때
 
 모멘텀을 쓰는 SGD:
   • "속도"를 더해 국소 최솟값을 뚫고 나간다
-  • Accumulates gradients over time: v = momentum × v + gradient
+  • 기울기를 시간에 걸쳐 쌓는다: v = momentum × v + gradient
   • 잡음 섞인 기울기를 매끄럽게 한다
   • 알맞은 곳: 깊은 신경망, 잡음 섞인 기울기
 
-ADAM (Adaptive Moment Estimation):
+Adam(적응적 모멘트 추정):
   • 매개변수마다 배움 빠르기를 맞춘다
   • 모멘텀과 RMSprop을 합친다
   • 장점: 기본 설정으로도 잘 돌고 빠르게 수렴한다
   • 단점: SGD보다 일반화가 나쁠 수 있고 메모리를 더 쓴다
   • 알맞은 곳: 빠른 시제품 제작, 대부분의 딥러닝 과제
 
-ADAMW (Adam with Weight Decay):
+AdamW(가중치 감쇠를 갖춘 Adam):
   • 가중치 감쇠를 올바로 구현한 Adam
   • Adam보다 일반화가 낫다
   • Adam의 가중치 감쇠 결함을 고친다
   • 알맞은 곳: 트랜스포머, 최신 구조, 가중치 감쇠를 쓸 때
 
-RMSPROP (Root Mean Square Propagation):
+RMSprop(제곱평균제곱근 전파):
   • 제곱 기울기의 이동평균으로 학습률을 조절한다
   • 비정상 문제에 알맞다
   • 알맞은 곳: RNN, 온라인 학습
@@ -274,7 +274,7 @@ print("DETAILED OPTIMIZER MECHANICS")
 print("-" * 80)
 
 print("""
-1. SGD (STOCHASTIC GRADIENT DESCENT):
+1. SGD(확률적 경사 하강법):
    Update: θ = θ - lr × ∇L
    
    • 가장 단순한 알고리즘
@@ -286,7 +286,7 @@ print("""
    Velocity: v = β × v + ∇L
    Update: θ = θ - lr × v
    
-   • Accumulates past gradients (β typically 0.9)
+   • 지난 기울기를 쌓는다(β는 보통 0.9)
    • "관성"을 쌓아 작은 굴곡을 뚫고 나간다
    • 잡음 섞인 기울기를 매끄럽게 한다
    • 최적값을 지나칠 수 있다
@@ -300,7 +300,7 @@ print("""
    • 학습률이 너무 작아지는 것을 막는다
    • 비정상 목적함수에 알맞다
 
-4. ADAM (Adaptive Moment Estimation):
+4. Adam(적응적 모멘트 추정):
    Momentum: m = β₁ × m + (1-β₁) × ∇L
    Velocity: v = β₂ × v + (1-β₂) × ∇L²
    Update: θ = θ - lr × (m / √v)
@@ -329,28 +329,28 @@ print("-" * 80)
 
 print("""
 🎯 Adam을 쓸 때:
-   ✓ Starting a new project (good default)
+   ✓ 새 프로젝트를 시작할 때(좋은 기본값)
    ✓ 빠른 수렴이 필요하다
    ✓ 초매개변수를 조율할 시간이 적다
    ✓ RNN이나 트랜스포머를 다룬다
    ✓ 예: 빠른 시제품 제작, 연구 실험
 
 📊 SGD + 모멘텀을 쓸 때:
-   ✓ Final model training (often better generalization)
+   ✓ 최종 모델 학습(일반화가 더 나을 때가 많다)
    ✓ 학습률을 조율할 시간이 있다
-   ✓ Training CNNs (especially ResNet, VGG)
+   ✓ CNN 학습(특히 ResNet, VGG)
    ✓ 가장 안정적인 장기 성능을 원한다
    ✓ 예: 실서비스 모델, ImageNet 학습
 
 🔬 AdamW를 쓸 때:
-   ✓ Training transformers (BERT, GPT, etc.)
+   ✓ 트랜스포머 학습(BERT, GPT 등)
    ✓ 가중치 감쇠 정칙화를 쓴다
    ✓ Adam보다 나은 일반화가 필요하다
    ✓ 최신 모범 사례를 따른다
    ✓ 예: 자연어 처리 모델, 대규모 학습
 
 ⚡ RMSprop을 쓸 때:
-   ✓ Training RNNs (historically popular)
+   ✓ RNN 학습(예전부터 널리 썼다)
    ✓ 비정상 문제
    ✓ 온라인 학습 상황
    ✓ 예: 시계열, 온라인 추천
@@ -381,9 +381,9 @@ LEARNING RATE (lr):
 
 MOMENTUM (SGD):
   • Typical: 0.9 or 0.95
-  • Higher = more smoothing but can overshoot
+  • 클수록 더 매끄럽지만 지나칠 수 있다
 
-BETAS (Adam/AdamW):
+베타(Adam과 AdamW):
   • β₁ (momentum): typically 0.9
   • β₂ (RMS): typically 0.999
   • 이 값을 바꿀 일은 거의 없다
@@ -391,10 +391,10 @@ BETAS (Adam/AdamW):
 가중치 감쇠:
   • 정칙화 세기
   • Typical: 0.0001 to 0.01
-  • Higher = more regularization
+  • 클수록 정칙화가 세다
   • 올바른 구현을 원하면 AdamW를 쓴다
 
-EPSILON (Adam/RMSprop):
+엡실론(Adam과 RMSprop):
   • 수치 안정을 위한 상수
   • Default: 1e-8
   • 바꿀 일이 거의 없다
@@ -423,9 +423,9 @@ print("""
    • 실서비스 모델에 선호된다
 
 4. 언제나 손실 곡선을 살펴라.
-   • Smooth decrease = good
-   • Oscillations = learning rate too high
-   • Plateau = learning rate too low or converged
+   • 매끄럽게 줄어들면 좋다
+   • 진동하면 학습률이 너무 크다
+   • 평평하면 학습률이 너무 작거나 이미 수렴했다
 
 5. 하나뿐인 "최고" 최적화기는 없다.
    • 문제, 구조, 데이터에 달렸다
@@ -436,7 +436,7 @@ print("""
 → 학습률을 달리하여 실험해 보라
 → 학습률 스케줄러를 배워 보라
 → 최적화기와 정칙화를 함께 써 보라
-→ Study advanced optimizers (RAdam, Lookahead, etc.)
+→ 고급 최적화기(RAdam, Lookahead 등)를 살펴보라
 """)
 print("=" * 80)
 

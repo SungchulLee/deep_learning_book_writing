@@ -41,7 +41,7 @@ print("WHY CREATE CUSTOM LOSS FUNCTIONS?")
 print("-" * 80)
 
 print("""
-Standard losses (MSE, CrossEntropy) don't always match your goals:
+표준 손실(MSE, 교차 엔트로피)이 늘 목표에 들어맞지는 않는다.
 
 1. 분야에 특화된 목적:
    • 의료 영상: 분할 겹침을 재는 다이스 손실
@@ -159,7 +159,7 @@ print("FOCAL LOSS: Handling Class Imbalance")
 print("-" * 80)
 
 print("""
-PROBLEM: Imbalanced datasets (e.g., 95% negative, 5% positive)
+문제: 불균형한 데이터셋(예: 음성 95%, 양성 5%)
   • 늘 음성으로 예측해도 정확도 95%가 나온다
   • 분류하기 어려운 예제가 무시된다
   
@@ -167,7 +167,7 @@ PROBLEM: Imbalanced datasets (e.g., 95% negative, 5% positive)
   • 쉬운 예제의 가중치를 낮춘다
   • 어려운 예제에 집중한다
   • Formula: FL = -α(1-p)^γ log(p)
-    where γ controls focusing (typical: 2)
+    여기서 γ는 초점의 세기를 정한다(흔히 2)
 """)
 
 class FocalLoss(nn.Module):
@@ -258,10 +258,10 @@ print("-" * 80)
 print("""
 다이스 계수: 예측과 참값이 얼마나 겹치는지 잰다
   • 의료 영상 분할에 쓴다
-  • Range: 0 (no overlap) to 1 (perfect overlap)
+  • 범위: 0(전혀 안 겹침)부터 1(완전히 겹침)까지
   • Formula: Dice = 2|A ∩ B| / (|A| + |B|)
   
-DICE LOSS = 1 - Dice Coefficient
+다이스 손실 = 1 - 다이스 계수
 """)
 
 class DiceLoss(nn.Module):
@@ -347,10 +347,10 @@ print("""
 여러 목적을 한꺼번에 최적화하고 싶을 때가 많다.
   • 재구성 + 정칙화
   • 과제 손실 + 일관성 손실
-  • Multiple task losses (multi-task learning)
+  • 여러 과제 손실(다중 과제 학습)
   
 접근: 손실의 가중합
-  Total Loss = α₁ × Loss₁ + α₂ × Loss₂ + ...
+  전체 손실 = α₁ × 손실₁ + α₂ × 손실₂ + ...
 """)
 
 class CombinedLoss(nn.Module):
@@ -414,24 +414,24 @@ print("-" * 80)
 print("""
 ✓ DO:
   1. 손실에는 nn.Module 기반 클래스를 쓴다
-  2. Keep all operations in PyTorch (not numpy)
+  2. 모든 연산을 PyTorch로 한다(넘파이 말고)
   3. 작은 예제로 기울기 흐름을 시험한다
-  4. Add numerical stability (smooth terms, clamps)
+  4. 수치 안정성을 더한다(완충 항, 값 제한)
   5. 손실 함수를 잘 문서화한다
   6. 기본 초매개변수를 제공한다
   7. 역전파를 위해 스칼라를 돌려준다
-  8. Consider numerical stability (avoid log(0), div by 0)
+  8. 수치 안정성을 살핀다(log(0)과 0으로 나누기를 피한다)
 
 ✗ DON'T:
-  1. Use .item() inside loss (breaks gradients)
+  1. 손실 안에서 .item()을 쓴다(기울기가 끊긴다)
   2. 제자리 연산을 함부로 쓴다
   3. 경계 상황 처리를 잊는다
   4. 손실이 텐서가 아닌 상수에 의존하게 만든다
   5. 기울기가 없는 연산을 쓴다
 
 손실 시험하기:
-  1. Check it returns correct shape (scalar)
-  2. Verify gradients flow: loss.backward()
+  1. 올바른 모양(스칼라)을 돌려주는지 확인한다
+  2. 기울기가 흐르는지 확인한다: loss.backward()
   3. 이미 아는 입력과 출력으로 시험한다
   4. 참조 구현이 있으면 견주어 본다
   5. 경계 상황에서 수치 안정성을 확인한다
@@ -487,7 +487,7 @@ print("""
 
 2. 두 가지 접근:
    • 함수: 단순하며 빠른 실험에 알맞다
-   • Class (nn.Module): Professional, configurable, recommended
+   • 클래스(nn.Module): 전문적이고 설정 가능하며 권장된다
 
 3. 고급 손실 예:
    • 초점 손실: 불균형 분류용

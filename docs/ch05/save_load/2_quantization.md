@@ -365,14 +365,14 @@ def compare_model_outputs(
 def quantization_best_practices():
     """양자화의 좋은 관행을 출력한다"""
     print("""
-    === Quantization Best Practices ===
+    === 양자화 모범 사례 ===
     
     1. 알맞은 방법을 골라라:
        - 동적: LSTM, 트랜스포머, 빠른 배포
        - 정적: CNN, 최고 성능
        - 양자화 인지 학습: 정확도 손실을 받아들일 수 없을 때
     
-    2. CALIBRATION (for static quantization):
+    2. 보정(정적 양자화용):
        - 대표성 있는 데이터를 쓴다
        - 보통 100~1000개 표본이면 넉넉하다
        - 입력 분포를 고루 덮어야 한다
@@ -389,7 +389,7 @@ def quantization_best_practices():
        - 임베딩 층: 보통 건너뛴다
     
     5. 배포할 때 살필 점:
-       - Check hardware support (INT8, INT4)
+       - 하드웨어가 받쳐 주는지 확인하라(INT8, INT4)
        - 런타임 호환성을 확인하라
        - 대상 장치에서 성능을 재어 보라
     

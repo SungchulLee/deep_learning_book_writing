@@ -109,7 +109,7 @@ for i in range(6):
     plt.imshow(example_data[i][0], cmap='gray')  # 회색조 이미지 보이기
     plt.title(f'Label: {example_targets[i]}')    # 참 레이블 보이기
     plt.axis('off')                         # 깔끔하게 보이려고 축 감추기
-# plt.show()  # Uncomment to display the plot
+# plt.show()  # 그림을 보려면 주석을 풀어라
 
 # ============================================================================
 # TensorBoard: 표본 이미지 기록

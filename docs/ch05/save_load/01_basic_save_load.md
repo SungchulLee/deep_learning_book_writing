@@ -463,8 +463,8 @@ print("=" * 60)
 print("""
 ✅ DO's:
 --------
-1. Use .state_dict() approach for saving models in production
-2. Always call model.eval() before inference
+1. 실서비스에서는 .state_dict() 방식으로 모델을 저장하라
+2. 추론 앞에서 늘 model.eval()을 부르라
 3. 데이터 손실을 막으려면 학습 중에 체크포인트를 저장하라
 4. 버전과 에폭 정보를 담은 뜻 있는 파일 이름을 써라
    예: 'model_epoch50_acc0.95.pth'
@@ -475,8 +475,8 @@ print("""
 ❌ DON'Ts:
 ----------
 1. 실서비스 코드에서 모델 전체를 저장하지 마라
-2. Don't forget to call model.eval() for inference
-3. Don't mix up train() and eval() modes
+2. 추론할 때 model.eval() 부르기를 잊지 마라
+3. train() 모드와 eval() 모드를 헷갈리지 마라
 4. 임시 텐서나 캐시 텐서를 체크포인트에 저장하지 마라
 5. 불러올 때 장치가 같다고 가정하지 마라
 6. 빠졌거나 예상 밖인 키에 대한 경고를 무시하지 마라
@@ -487,10 +487,10 @@ print("""
    → 모델 구조가 저장된 상태 사전과 맞지 않는다
    
 2. 불러올 때 CUDA 메모리 부족
-   → Use map_location='cpu' to load to CPU first
+   → 먼저 CPU로 불러오려면 map_location='cpu'를 쓰라
    
 3. 추론할 때와 학습할 때 동작이 다르다
-   → Forgot to call model.eval()
+   → model.eval()을 부르지 않았다
    
 4. 학습을 제대로 이어 갈 수 없다
    → 최적화기 상태를 저장하거나 불러오기를 잊었다

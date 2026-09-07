@@ -50,7 +50,7 @@
 # === 후위 표기 계산기 ========================================================
 
 def evaluate_postfix(expression):
-    """Evaluate a postfix (RPN) expression.
+    """후위(역폴란드) 식을 계산한다.
 
     인수:
         expression: 수와 연산자를 빈칸으로 나눈 문자열.

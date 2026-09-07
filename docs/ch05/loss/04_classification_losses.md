@@ -41,9 +41,9 @@ print("CLASSIFICATION VS REGRESSION")
 print("-" * 80)
 
 print("""
-REGRESSION (Covered in previous tutorials):
+회귀(앞선 튜토리얼에서 다루었다):
   • 연속값을 예측한다
-  • Example: House price ($150,000), Temperature (25.3°C)
+  • 예: 집값(\$150,000), 온도(25.3°C)
   • 손실: MSE, MAE, 후버
   
 CLASSIFICATION:
@@ -130,10 +130,10 @@ print("UNDERSTANDING LOGITS (RAW OUTPUTS)")
 print("-" * 80)
 
 print("""
-In practice, neural networks output "logits" (raw, unbounded values).
+실제로 신경망은 "로짓"(가공하지 않은 무계 값)을 출력한다.
 시그모이드 함수로 로짓을 확률로 바꾼다.
 
-Logit (raw) → Sigmoid → Probability (0 to 1)
+로짓(원본) → 시그모이드 → 확률(0에서 1)
 """)
 
 # 예시 로짓 (어떤 값이든 될 수 있다)
@@ -159,7 +159,7 @@ print("-" * 80)
 
 print("""
 모델 → 시그모이드 → BCE 손실 대신
-Use:        Model → BCEWithLogitsLoss (combines both!)
+쓰기:       모델 → BCEWithLogitsLoss(둘을 합친다!)
 
 Benefits:
   ✓ 수치가 더 든든하다
@@ -291,12 +291,12 @@ print("""
 ╔═══════════════════╦════════════════════╦═════════════════════════╗
 ║                   ║ 이진               ║ 다중 클래스             ║
 ╠═══════════════════╬════════════════════╬═════════════════════════╣
-║ Classes           ║ 2 (e.g., Yes/No)   ║ 3+ (e.g., Cat/Dog/Bird) ║
-║ Model Output      ║ 1 logit            ║ N logits (N = classes)  ║
+║ 클래스 수         ║ 2(예: 예/아니오)   ║ 3 이상(예: 고양이/개/새)║
+║ 모델 출력         ║ 로짓 1개           ║ 로짓 N개(N = 클래스 수) ║
 ║ 활성화            ║ 시그모이드         ║ 소프트맥스              ║
-║ Output Range      ║ [0, 1]             ║ [0, 1] (sum to 1)       ║
+║ 출력 범위         ║ [0, 1]             ║ [0, 1](합이 1)          ║
 ║ 손실 함수         ║ BCEWithLogitsLoss  ║ CrossEntropyLoss        ║
-║ True Label Format ║ 0 or 1             ║ Class index (0 to N-1)  ║
+║ 참 레이블 형식    ║ 0 또는 1           ║ 클래스 인덱스(0~N-1)    ║
 ╚═══════════════════╩════════════════════╩═════════════════════════╝
 """)
 
@@ -311,19 +311,19 @@ print("""
 ✓ DO:
   • 이진 분류에는 BCEWithLogitsLoss를 쓴다
   • 다중 클래스 분류에는 CrossEntropyLoss를 쓴다
-  • Let loss functions handle activation (sigmoid/softmax) internally
+  • 활성화(시그모이드나 소프트맥스)는 손실 함수가 안에서 처리하게 하라
   • CrossEntropyLoss의 레이블에는 클래스 인덱스를 쓴다
   • 수렴을 확인하려면 학습 중 손실을 살핀다
 
 ✗ DON'T:
-  • Apply sigmoid before BCEWithLogitsLoss (it does it internally!)
-  • Apply softmax before CrossEntropyLoss (it does it internally!)
-  • Use BCELoss with raw logits (use BCEWithLogitsLoss instead)
-  • One-hot encode labels for CrossEntropyLoss (use class indices)
+  • BCEWithLogitsLoss 앞에 시그모이드를 걸기(안에서 이미 한다!)
+  • CrossEntropyLoss 앞에 소프트맥스를 걸기(안에서 이미 한다!)
+  • 원본 로짓에 BCELoss 쓰기(대신 BCEWithLogitsLoss를 쓰라)
+  • CrossEntropyLoss에 원-핫 레이블 쓰기(클래스 인덱스를 쓰라)
 
 흔한 모델 구조:
-  Binary:     [...layers...] → Linear(in_features, 1) → BCEWithLogitsLoss
-  Multi-Class: [...layers...] → Linear(in_features, num_classes) → CrossEntropyLoss
+  이진:       [...층...] → Linear(in_features, 1) → BCEWithLogitsLoss
+  다중 클래스: [...층...] → Linear(in_features, num_classes) → CrossEntropyLoss
 """)
 
 # ============================================================================
@@ -335,23 +335,23 @@ print("=" * 80)
 print("""
 1. 분류는 연속값이 아니라 이산 범주를 예측한다
 
-2. Binary Classification (2 classes):
+2. 이진 분류(클래스 2개):
    • BCEWithLogitsLoss를 쓴다
-   • Model outputs 1 value (logit)
+   • 모델이 값 하나(로짓)를 출력한다
    • 시그모이드가 로짓을 확률로 바꾼다
    • 레이블은 0 또는 1이다
 
-3. Multi-Class Classification (3+ classes):
+3. 다중 클래스 분류(클래스 3개 이상):
    • CrossEntropyLoss를 쓴다
-   • Model outputs N values (logits), one per class
+   • 모델이 클래스마다 하나씩 N개의 값(로짓)을 출력한다
    • 소프트맥스가 로짓을 확률 분포로 바꾼다
-   • Labels are class indices (0, 1, 2, ...)
+   • 레이블은 클래스 인덱스(0, 1, 2, ...)이다
 
 4. 두 손실 함수 모두 활성화를 안에서 처리한다
    • 손실 앞에서 시그모이드나 소프트맥스를 직접 걸지 마라!
    • 이렇게 하면 수치적으로 더 안정적이다
 
-5. For inference (making predictions):
+5. 추론할 때(예측할 때):
    • 이진: 시그모이드 뒤 0.5를 기준으로 나눈다
    • 다중 클래스: 소프트맥스 뒤 argmax를 취한다
 

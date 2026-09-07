@@ -332,26 +332,26 @@ print("""
    ✓ 단순하고 예측 가능한 스케줄링을 원한다
    ✓ 정해진 에폭 수만큼 학습한다
    ✓ 전통적인 비전 과제에서 흔하다
-   ✓ Example: StepLR(step_size=30, gamma=0.1) for 100 epochs
+   ✓ 예: 100 에폭에 StepLR(step_size=30, gamma=0.1)
    
 📉 지수 학습률을 쓸 때:
    ✓ 매끄럽고 연속적인 감쇠를 원한다
    ✓ 많은 에폭 동안 학습한다
-   ✓ Example: ExponentialLR(gamma=0.95)
+   ✓ 예: ExponentialLR(gamma=0.95)
    
 🌊 코사인 어닐링을 쓸 때:
    ✓ 최신 심층 신경망을 학습한다
    ✓ 매끄럽고 점진적인 감소를 원한다
    ✓ ImageNet과 트랜스포머에서 널리 쓴다
    ✓ 주기적 재시작에는 CosineAnnealingWarmRestarts를 쓸 수 있다
-   ✓ Example: CosineAnnealingLR(T_max=epochs, eta_min=1e-6)
+   ✓ 예: CosineAnnealingLR(T_max=epochs, eta_min=1e-6)
    
 🎯 ReduceLROnPlateau를 쓸 때:
    ✓ 최적의 스케줄을 미리 알 수 없다
    ✓ 적응적인 동작을 원한다
    ✓ 살펴볼 검증 지표가 있다
    ✓ 학습 길이가 달라질 수 있다
-   ✓ Example: ReduceLROnPlateau(patience=10, factor=0.5)
+   ✓ 예: ReduceLROnPlateau(patience=10, factor=0.5)
 
 💡 실전 요령:
    가장 좋은 결과를 얻으려면 스케줄러에 워밍업을 곁들여라!
@@ -430,14 +430,14 @@ print("""
    • ReduceLROnPlateau: 지표에 따라 적응한다
 
 3. 일반적인 전략:
-   • Start with high LR (explore)
-   • Gradually decrease (fine-tune)
+   • 큰 학습률로 시작한다(탐색)
+   • 차츰 줄인다(정밀 조정)
    • 필요하면 처음에 워밍업을 쓴다
 
 4. 구현은 단순하다.
    • 최적화기를 만든 뒤 스케줄러를 만든다
-   • Call scheduler.step() after each epoch
-   • ReduceLROnPlateau needs metric: scheduler.step(val_loss)
+   • 에폭마다 scheduler.step()을 부른다
+   • ReduceLROnPlateau에는 지표가 필요하다: scheduler.step(val_loss)
 
 5. 학습 중에 학습률을 살핀다.
    • 스케줄이 잘 도는지 보려면 기록하라
