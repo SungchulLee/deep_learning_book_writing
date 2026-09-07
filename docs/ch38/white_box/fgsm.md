@@ -1,107 +1,107 @@
-# Fast Gradient Sign Method (FGSM)
-## Introduction
+# 빠른 기울기 부호 방법(FGSM)
+## 들머리
 
-The **Fast Gradient Sign Method (FGSM)** is the foundational gradient-based adversarial attack, introduced by Goodfellow et al. (2015). Its simplicity—requiring only a single gradient computation—makes it computationally efficient and serves as the building block for more sophisticated attacks.
+**빠른 기울기 부호 방법(FGSM)**은 굿펠로 등(2015)이 내놓은, 기울기에 기댄 맞서는 치기의 밑바탕이다. 기울기를 한 번만 셈하면 되는 단순함 덕에 셈이 잘 들고, 더 정교한 치기의 벽돌이 된다.
 
-## Mathematical Foundation
+## 수학 밑바탕
 
-### The Linear Hypothesis
+### 선형 짐작
 
-FGSM is motivated by the observation that neural networks behave approximately linearly in high-dimensional space. Consider a linear model:
+FGSM은 신경 그물이 차수 높은 밭에서 거의 선형으로 움직인다는 살핌에서 비롯한다. 선형 모형을 보자.
 
 $$
 f(\mathbf{x}) = \mathbf{w}^\top \mathbf{x}
 $$
 
-For a perturbation $\boldsymbol{\delta}$, the change in output is:
+흔듦 $\boldsymbol{\delta}$에 대해 날임의 바뀜은
 
 $$
 f(\mathbf{x} + \boldsymbol{\delta}) - f(\mathbf{x}) = \mathbf{w}^\top \boldsymbol{\delta}
 $$
 
-To maximize this under $\ell_\infty$ constraint $\|\boldsymbol{\delta}\|_\infty \leq \varepsilon$, the optimal perturbation is:
+$\ell_\infty$ 옭아맴 $\|\boldsymbol{\delta}\|_\infty \leq \varepsilon$ 아래에서 이를 가장 크게 하는 흔듦은
 
 $$
 \delta_i^* = \varepsilon \cdot \text{sign}(w_i)
 $$
 
-This yields maximum change:
+그러면 가장 큰 바뀜은
 
 $$
 \mathbf{w}^\top \boldsymbol{\delta}^* = \varepsilon \|\mathbf{w}\|_1
 $$
 
-In high dimensions, even small $\varepsilon$ produces significant $\varepsilon \|\mathbf{w}\|_1$.
+차수가 높으면 작은 $\varepsilon$으로도 $\varepsilon \|\mathbf{w}\|_1$이 꽤 커진다.
 
-### Extension to Neural Networks
+### 신경 그물로 넓히기
 
-For a neural network $f_\theta$ with loss function $\mathcal{L}$, we linearize via first-order Taylor expansion:
+잃음 함수 $\mathcal{L}$을 지닌 신경 그물 $f_\theta$에서 일차 테일러 펼침으로 곧게 편다.
 
 $$
 \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y) \approx \mathcal{L}(f_\theta(\mathbf{x}), y) + \boldsymbol{\delta}^\top \nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y)
 $$
 
-The gradient $\nabla_\mathbf{x} \mathcal{L}$ acts as the "weights" in our linear approximation. Applying the same logic:
+기울기 $\nabla_\mathbf{x} \mathcal{L}$이 선형 어림에서 "짐" 노릇을 한다. 같은 이치를 쓰면
 
 $$
 \boxed{\mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y))}
 $$
 
-This is the **FGSM attack**.
+이것이 **FGSM 치기**이다.
 
-### Intuition
+### 느낌으로 알기
 
-The gradient $\nabla_\mathbf{x} \mathcal{L}$ tells us the direction in input space that most increases the loss. The sign function extracts only the direction ($+1$ or $-1$) for each coordinate, then we take the maximum allowed step ($\varepsilon$) in that direction.
+기울기 $\nabla_\mathbf{x} \mathcal{L}$은 들임 밭에서 잃음을 가장 크게 올리는 방향을 알려 준다. 부호 함수는 자리마다 방향($+1$ 또는 $-1$)만 뽑아내고, 우리는 그 방향으로 받아 주는 가장 큰 걸음($\varepsilon$)을 밟는다.
 
-**Visual Interpretation:**
+**그림으로 보기:**
 
 ```
-Clean input x ────────────────> Loss L(f(x), y)
-                gradient
+맑은 들임 x ──────────────> 잃음 L(f(x), y)
+                기울기
                   ∇L
                    │
                    ▼
-Perturbed x + ε·sign(∇L) ───> Loss L(f(x_adv), y) ≫ L(f(x), y)
+흔든 x + ε·sign(∇L) ───> 잃음 L(f(x_adv), y) ≫ L(f(x), y)
 ```
 
-## Algorithm
+## 알고리즘
 
-### Untargeted FGSM
+### 과녁 없는 FGSM
 
-**Input:** Clean example $\mathbf{x}$, true label $y$, model $f_\theta$, epsilon $\varepsilon$
+**들임:** 맑은 보기 $\mathbf{x}$, 참 이름표 $y$, 모형 $f_\theta$, 엡실론 $\varepsilon$
 
-**Output:** Adversarial example $\mathbf{x}_{\text{adv}}$
+**날임:** 맞서는 보기 $\mathbf{x}_{\text{adv}}$
 
-1. Compute loss: $\mathcal{L} = \text{CrossEntropy}(f_\theta(\mathbf{x}), y)$
-2. Compute gradient: $\mathbf{g} = \nabla_\mathbf{x} \mathcal{L}$
-3. Compute perturbation: $\boldsymbol{\delta} = \varepsilon \cdot \text{sign}(\mathbf{g})$
-4. Generate adversarial example: $\mathbf{x}_{\text{adv}} = \text{clip}(\mathbf{x} + \boldsymbol{\delta}, 0, 1)$
+1. 잃음을 셈한다: $\mathcal{L} = \text{CrossEntropy}(f_\theta(\mathbf{x}), y)$
+2. 기울기를 셈한다: $\mathbf{g} = \nabla_\mathbf{x} \mathcal{L}$
+3. 흔듦을 셈한다: $\boldsymbol{\delta} = \varepsilon \cdot \text{sign}(\mathbf{g})$
+4. 맞서는 보기를 만든다: $\mathbf{x}_{\text{adv}} = \text{clip}(\mathbf{x} + \boldsymbol{\delta}, 0, 1)$
 
-**Complexity:** $O(1)$ — single forward-backward pass
+**번거로움:** $O(1)$ — 앞으로-되돌아 걸음 한 번
 
-### Targeted FGSM
+### 과녁 있는 FGSM
 
-For targeted attack toward class $y_{\text{target}}$:
+갈래 $y_{\text{target}}$을 노린 과녁 있는 치기에서는
 
 $$
 \mathbf{x}_{\text{adv}} = \mathbf{x} - \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y_{\text{target}}))
 $$
 
-Note the **minus sign**: we descend the loss to pull predictions toward the target.
+**빼기 부호**에 눈여겨보라. 잃음을 내려가며 미루어 봄을 과녁 쪽으로 끌어당긴다.
 
-### L2 FGSM Variant
+### L2 FGSM 갈래
 
-For $\ell_2$ constraint instead of $\ell_\infty$:
+$\ell_\infty$ 대신 $\ell_2$으로 옭아매면
 
 $$
 \mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_2}
 $$
 
-This normalizes the gradient to unit length, then scales by $\varepsilon$.
+기울기를 길이 1로 맞춘 뒤 $\varepsilon$으로 잣대를 잡는다.
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
-### Complete FGSM Class
+### 온전한 FGSM 갈래
 
 ```python
 import torch
@@ -113,42 +113,42 @@ import numpy as np
 
 class FGSM:
     """
-    Fast Gradient Sign Method (FGSM) Attack.
+    빠른 기울기 부호 방법(FGSM) 치기.
     
-    Generates adversarial examples by taking a single gradient step
-    in the direction that maximizes the loss.
+    잃음을 가장 크게 하는 방향으로 기울기 한 걸음을 밟아
+    맞서는 보기를 만든다.
     
-    Mathematical Formulation
+    수학 꼴
     ------------------------
     x_adv = x + ε · sign(∇_x L(f(x), y))
     
-    where:
-    - ∇_x L is the gradient of loss w.r.t. input
-    - ε is the perturbation budget
-    - sign(·) returns element-wise signs
+    여기서:
+    - ∇_x L은 들임에 대한 잃음의 기울기
+    - ε은 흔듦 예산
+    - sign(·)은 낱낱의 부호를 돌려준다
     
     Parameters
     ----------
     model : nn.Module
-        Neural network to attack
+        칠 신경 그물
     epsilon : float
-        Maximum L∞ perturbation (default: 8/255 for images)
-    loss_fn : nn.Module, optional
-        Loss function (default: CrossEntropyLoss)
+        가장 큰 L∞ 흔듦(기본값: 그림에서 8/255)
+    loss_fn : nn.Module, 골라 씀
+        잃음 함수(기본값: CrossEntropyLoss)
     clip_min : float
-        Minimum valid input value (default: 0.0)
+        옳은 들임의 가장 작은 값(기본값: 0.0)
     clip_max : float
-        Maximum valid input value (default: 1.0)
-    device : torch.device, optional
-        Computation device
+        옳은 들임의 가장 큰 값(기본값: 1.0)
+    device : torch.device, 골라 씀
+        셈할 장치
     
-    Example
+    보기
     -------
     >>> model = load_pretrained_model()
     >>> attack = FGSM(model, epsilon=8/255)
     >>> x_adv = attack.generate(images, labels)
     >>> metrics = attack.evaluate(images, labels, x_adv)
-    >>> print(f"Attack success rate: {metrics['attack_success_rate']:.2%}")
+    >>> print(f"치기가 먹힌 비율: {metrics['attack_success_rate']:.2%}")
     """
     
     def __init__(
@@ -167,7 +167,7 @@ class FGSM:
         self.clip_max = clip_max
         self.device = device or next(model.parameters()).device
         
-        # Set model to evaluation mode
+        # 모형을 따짐 모드로 둔다
         self.model.eval()
         self.model.to(self.device)
     
@@ -179,59 +179,59 @@ class FGSM:
         target_labels: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        Generate adversarial examples using FGSM.
+        FGSM으로 맞서는 보기를 만든다.
         
         Parameters
         ----------
         x : torch.Tensor
-            Clean images, shape (N, C, H, W)
+            맑은 그림, 꼴 (N, C, H, W)
         y : torch.Tensor
-            True labels, shape (N,)
+            참 이름표, 꼴 (N,)
         targeted : bool
-            If True, perform targeted attack
-        target_labels : torch.Tensor, optional
-            Target labels for targeted attack
+            True이면 과녁 있는 치기를 한다
+        target_labels : torch.Tensor, 골라 씀
+            과녁 있는 치기의 과녁 이름표
             
         Returns
         -------
         x_adv : torch.Tensor
-            Adversarial examples, shape (N, C, H, W)
+            맞서는 보기, 꼴 (N, C, H, W)
         """
-        # Move inputs to device
+        # 들임을 장치로 옮긴다
         x = x.to(self.device)
         y = y.to(self.device)
         
-        # Enable gradient computation for input
+        # 들임에 기울기 셈을 켠다
         x_adv = x.clone().detach().requires_grad_(True)
         
-        # Forward pass
+        # 앞으로 걸음
         logits = self.model(x_adv)
         
-        # Compute loss
+        # 잃음을 셈한다
         if targeted:
             if target_labels is None:
-                raise ValueError("target_labels required for targeted attack")
+                raise ValueError("과녁 있는 치기에는 target_labels이 있어야 한다")
             target_labels = target_labels.to(self.device)
             loss = self.loss_fn(logits, target_labels)
         else:
             loss = self.loss_fn(logits, y)
         
-        # Backward pass to compute gradient
+        # 기울기를 셈하려 되돌아 걸음
         self.model.zero_grad()
         loss.backward()
         
-        # Get gradient with respect to input
+        # 들임에 대한 기울기를 얻는다
         grad = x_adv.grad.data
         
-        # Compute perturbation
+        # 흔듦을 셈한다
         if targeted:
-            # Descend for targeted attack
+            # 과녁 있는 치기에서는 내려간다
             perturbation = -self.epsilon * torch.sign(grad)
         else:
-            # Ascend for untargeted attack
+            # 과녁 없는 치기에서는 올라간다
             perturbation = self.epsilon * torch.sign(grad)
         
-        # Apply perturbation and clip
+        # 흔듦을 걸고 잘라 낸다
         x_adv = x + perturbation
         x_adv = torch.clamp(x_adv, self.clip_min, self.clip_max)
         
@@ -245,14 +245,14 @@ class FGSM:
         target_labels: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        Generate adversarial examples using L2-FGSM.
+        L2-FGSM으로 맞서는 보기를 만든다.
         
-        Instead of sign(gradient), normalizes gradient to unit L2 norm.
+        sign(기울기) 대신 기울기를 L2 노름 1로 맞춘다.
         
         Returns
         -------
         x_adv : torch.Tensor
-            Adversarial examples
+            맞서는 보기
         """
         x = x.to(self.device)
         y = y.to(self.device)
@@ -262,7 +262,7 @@ class FGSM:
         
         if targeted:
             if target_labels is None:
-                raise ValueError("target_labels required for targeted attack")
+                raise ValueError("과녁 있는 치기에는 target_labels이 있어야 한다")
             loss = self.loss_fn(logits, target_labels.to(self.device))
         else:
             loss = self.loss_fn(logits, y)
@@ -272,7 +272,7 @@ class FGSM:
         
         grad = x_adv.grad.data
         
-        # Normalize gradient per example
+        # 보기마다 기울기의 잣대를 맞춘다
         grad_flat = grad.view(grad.shape[0], -1)
         grad_norm = torch.norm(grad_flat, p=2, dim=1, keepdim=True)
         grad_normalized = grad_flat / (grad_norm + 1e-8)
@@ -296,36 +296,36 @@ class FGSM:
         verbose: bool = True
     ) -> dict:
         """
-        Evaluate attack effectiveness.
+        치기가 얼마나 잘 먹히는지 따진다.
         
         Parameters
         ----------
         x : torch.Tensor
-            Clean images
+            맑은 그림
         y : torch.Tensor
-            True labels
+            참 이름표
         x_adv : torch.Tensor
-            Adversarial images
+            맞서는 그림
         verbose : bool
-            Print results
+            결과를 찍는다
             
         Returns
         -------
         metrics : dict
-            Evaluation metrics
+            따지는 자
         """
         with torch.no_grad():
-            # Clean predictions
+            # 맑은 미루어 봄
             clean_logits = self.model(x.to(self.device))
             clean_pred = clean_logits.argmax(dim=1)
             clean_correct = (clean_pred == y.to(self.device)).sum().item()
             
-            # Adversarial predictions
+            # 맞서는 미루어 봄
             adv_logits = self.model(x_adv.to(self.device))
             adv_pred = adv_logits.argmax(dim=1)
             adv_correct = (adv_pred == y.to(self.device)).sum().item()
             
-            # Perturbation statistics
+            # 흔듦의 자
             delta = (x_adv - x).view(len(x), -1)
             linf_norm = delta.abs().max(dim=1)[0].mean().item()
             l2_norm = torch.norm(delta, p=2, dim=1).mean().item()
@@ -341,14 +341,14 @@ class FGSM:
         
         if verbose:
             print("=" * 50)
-            print("FGSM Attack Results")
+            print("FGSM 치기 결과")
             print("=" * 50)
-            print(f"Epsilon: {self.epsilon:.4f}")
-            print(f"Clean Accuracy: {metrics['clean_accuracy']:.2%}")
-            print(f"Robust Accuracy: {metrics['robust_accuracy']:.2%}")
-            print(f"Attack Success Rate: {metrics['attack_success_rate']:.2%}")
-            print(f"Avg L∞ Perturbation: {linf_norm:.6f}")
-            print(f"Avg L2 Perturbation: {l2_norm:.4f}")
+            print(f"엡실론: {self.epsilon:.4f}")
+            print(f"맑은 맞음: {metrics['clean_accuracy']:.2%}")
+            print(f"든든한 맞음: {metrics['robust_accuracy']:.2%}")
+            print(f"치기가 먹힌 비율: {metrics['attack_success_rate']:.2%}")
+            print(f"평균 L∞ 흔듦: {linf_norm:.6f}")
+            print(f"평균 L2 흔듦: {l2_norm:.4f}")
             print("=" * 50)
         
         return metrics
@@ -363,34 +363,34 @@ class FGSM:
         figsize: Tuple[int, int] = (15, 9)
     ) -> plt.Figure:
         """
-        Visualize clean images, adversarial images, and perturbations.
+        맑은 그림, 맞서는 그림, 흔듦을 그린다.
         
         Parameters
         ----------
         x : torch.Tensor
-            Clean images
+            맑은 그림
         y : torch.Tensor
-            True labels
+            참 이름표
         x_adv : torch.Tensor
-            Adversarial images
-        class_names : list, optional
-            List of class names
+            맞서는 그림
+        class_names : list, 골라 씀
+            갈래 이름의 목록
         num_examples : int
-            Number of examples to show
+            보일 보기의 수
         figsize : tuple
-            Figure size
+            그림 크기
             
         Returns
         -------
         fig : matplotlib.Figure
-            Visualization figure
+            그린 그림
         """
-        # Get predictions
+        # 미루어 봄을 얻는다
         with torch.no_grad():
             clean_pred = self.model(x.to(self.device)).argmax(dim=1)
             adv_pred = self.model(x_adv.to(self.device)).argmax(dim=1)
         
-        # Convert to numpy
+        # 넘파이로 옮긴다
         x_np = x[:num_examples].cpu().numpy()
         x_adv_np = x_adv[:num_examples].cpu().numpy()
         y_np = y[:num_examples].cpu().numpy()
@@ -402,7 +402,7 @@ class FGSM:
         fig, axes = plt.subplots(3, num_examples, figsize=figsize)
         
         for i in range(num_examples):
-            # Determine if grayscale or RGB
+            # 잿빛인지 RGB인지 가린다
             if x_np.shape[1] == 1:
                 clean_img = x_np[i, 0]
                 adv_img = x_adv_np[i, 0]
@@ -414,41 +414,41 @@ class FGSM:
                 pert_img = np.transpose(perturbations[i], (1, 2, 0))
                 cmap = None
             
-            # Row 1: Clean images
+            # 1줄: 맑은 그림
             axes[0, i].imshow(np.clip(clean_img, 0, 1), cmap=cmap)
             true_label = class_names[y_np[i]] if class_names else y_np[i]
             pred_label = class_names[clean_pred_np[i]] if class_names else clean_pred_np[i]
-            axes[0, i].set_title(f'Clean\nTrue: {true_label}', fontsize=9)
+            axes[0, i].set_title(f'맑음\n참: {true_label}', fontsize=9)
             axes[0, i].axis('off')
             
-            # Row 2: Adversarial images
+            # 2줄: 맞서는 그림
             axes[1, i].imshow(np.clip(adv_img, 0, 1), cmap=cmap)
             pred_label = class_names[adv_pred_np[i]] if class_names else adv_pred_np[i]
             color = 'red' if adv_pred_np[i] != y_np[i] else 'green'
-            axes[1, i].set_title(f'Adversarial\nPred: {pred_label}', 
+            axes[1, i].set_title(f'맞섬\n미루어 봄: {pred_label}', 
                                 fontsize=9, color=color)
             axes[1, i].axis('off')
             
-            # Row 3: Perturbations (magnified)
+            # 3줄: 흔듦(키워서)
             pert_magnified = pert_img * 10 + 0.5
             axes[2, i].imshow(np.clip(pert_magnified, 0, 1), cmap='RdBu_r')
-            axes[2, i].set_title('Perturbation\n(10× magnified)', fontsize=9)
+            axes[2, i].set_title('흔듦\n(10배 키움)', fontsize=9)
             axes[2, i].axis('off')
         
-        plt.suptitle(f'FGSM Attack (ε = {self.epsilon:.4f})', fontsize=12)
+        plt.suptitle(f'FGSM 치기 (ε = {self.epsilon:.4f})', fontsize=12)
         plt.tight_layout()
         
         return fig
 ```
 
-### Usage Example
+### 쓰는 보기
 
 ```python
 import torch
 import torchvision
 import torchvision.transforms as transforms
 
-# Load CIFAR-10
+# CIFAR-10을 얹는다
 transform = transforms.Compose([
     transforms.ToTensor(),
 ])
@@ -458,43 +458,43 @@ testset = torchvision.datasets.CIFAR10(
 )
 testloader = torch.utils.data.DataLoader(testset, batch_size=32, shuffle=False)
 
-# Load pretrained model
+# 미리 익힌 모형을 얹는다
 model = torchvision.models.resnet18(pretrained=False, num_classes=10)
 model.load_state_dict(torch.load('cifar10_resnet18.pth'))
 
-# Create FGSM attack
+# FGSM 치기를 만든다
 attack = FGSM(model, epsilon=8/255)
 
-# Get a batch
+# 묶음 하나를 얻는다
 images, labels = next(iter(testloader))
 
-# Generate adversarial examples
+# 맞서는 보기를 만든다
 adv_images = attack.generate(images, labels)
 
-# Evaluate
+# 따진다
 metrics = attack.evaluate(images, labels, adv_images)
 
-# Visualize
+# 그린다
 class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
                'dog', 'frog', 'horse', 'ship', 'truck']
 fig = attack.visualize(images, labels, adv_images, class_names=class_names)
 plt.savefig('fgsm_visualization.png', dpi=150, bbox_inches='tight')
 ```
 
-## Analysis and Properties
+## 살피기와 결
 
-### Epsilon Sensitivity
+### 엡실론에 예민함
 
-The choice of $\varepsilon$ critically affects attack success:
+$\varepsilon$을 어떻게 고르느냐가 치기가 먹히는 데 크게 걸린다.
 
-| Epsilon (8-bit) | Epsilon (float) | Effect |
+| 엡실론(8비트) | 엡실론(뜨는 소수) | 미침 |
 |-----------------|-----------------|--------|
-| 1/255 | 0.004 | Imperceptible, low success |
-| 4/255 | 0.016 | Subtle, moderate success |
-| 8/255 | 0.031 | **Standard**, high success |
-| 16/255 | 0.063 | Visible, very high success |
+| 1/255 | 0.004 | 알아챌 수 없고 잘 안 먹힘 |
+| 4/255 | 0.016 | 은근하고 웬만큼 먹힘 |
+| 8/255 | 0.031 | **여느 값**, 잘 먹힘 |
+| 16/255 | 0.063 | 눈에 띄고 아주 잘 먹힘 |
 
-**Experiment: Epsilon vs. Attack Success Rate**
+**해 봄: 엡실론과 치기가 먹힌 비율**
 
 ```python
 def epsilon_sensitivity_study(
@@ -504,7 +504,7 @@ def epsilon_sensitivity_study(
     y,
     epsilons=[1/255, 2/255, 4/255, 8/255, 16/255, 32/255]
 ):
-    """Study how attack success rate varies with epsilon."""
+    """엡실론에 따라 치기가 먹힌 비율이 어떻게 바뀌는지 살핀다."""
     results = []
     
     for eps in epsilons:
@@ -521,40 +521,40 @@ def epsilon_sensitivity_study(
     return results
 ```
 
-### Strengths and Limitations
+### 센 데와 한계
 
-**Strengths:**
+**센 데:**
 
-- Extremely fast (single gradient computation)
-- Effective baseline for robustness evaluation
-- Easy to implement and understand
-- Works against most undefended models
+- 아주 빠르다(기울기 셈 한 번)
+- 든든함을 따지는 쓸 만한 밑금이다
+- 짜기도 알기도 쉽다
+- 막이 없는 모형에는 거의 다 먹힌다
 
-**Limitations:**
+**한계:**
 
-- Single-step attack is suboptimal
-- Easily defended against via adversarial training
-- May fail against gradient-masked models
-- Not suitable for finding minimal perturbations
+- 한 걸음 치기라 가장 좋지는 않다
+- 맞서며 익히기로 쉽게 막힌다
+- 기울기를 가린 모형에는 듣지 않을 수 있다
+- 가장 작은 흔듦을 찾는 데는 맞지 않다
 
-### Comparison to Random Noise
+### 아무 잡음과 견주기
 
-FGSM vastly outperforms random noise of the same magnitude:
+같은 크기의 아무 잡음보다 FGSM이 훨씬 잘 먹힌다.
 
 ```python
 def compare_fgsm_to_random(model, x, y, epsilon):
-    """Compare FGSM to random perturbations."""
+    """FGSM과 아무 흔듦을 견준다."""
     device = next(model.parameters()).device
     
     # FGSM
     attack = FGSM(model, epsilon=epsilon)
     x_adv_fgsm = attack.generate(x, y)
     
-    # Random uniform noise
+    # 고르게 뽑은 아무 잡음
     noise = torch.empty_like(x).uniform_(-epsilon, epsilon)
     x_adv_random = torch.clamp(x + noise, 0, 1)
     
-    # Evaluate both
+    # 둘 다 따진다
     with torch.no_grad():
         y_dev = y.to(device)
         
@@ -564,32 +564,32 @@ def compare_fgsm_to_random(model, x, y, epsilon):
         random_pred = model(x_adv_random.to(device)).argmax(dim=1)
         random_success = (random_pred != y_dev).float().mean().item()
     
-    print(f"FGSM Success Rate: {fgsm_success:.2%}")
-    print(f"Random Noise Success Rate: {random_success:.2%}")
+    print(f"FGSM이 먹힌 비율: {fgsm_success:.2%}")
+    print(f"아무 잡음이 먹힌 비율: {random_success:.2%}")
     
     return fgsm_success, random_success
 ```
 
-Typical results on CIFAR-10 with $\varepsilon = 8/255$:
+CIFAR-10에서 $\varepsilon = 8/255$일 때의 흔한 결과는
 
-- FGSM: ~60-80% success rate
-- Random: ~5-10% success rate
+- FGSM: 먹힌 비율 약 60~80%
+- 아무 잡음: 먹힌 비율 약 5~10%
 
-## Variants and Extensions
+## 갈래와 넓힘
 
-### Fast Gradient Method (FGM)
+### 빠른 기울기 방법(FGM)
 
-Uses actual gradient instead of sign:
+부호 대신 기울기를 그대로 쓴다.
 
 $$
 \mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \nabla_\mathbf{x} \mathcal{L}
 $$
 
-This is non-normalized and may violate $\ell_\infty$ constraints.
+잣대를 맞추지 않으므로 $\ell_\infty$ 옭아맴을 어길 수 있다.
 
-### Randomized FGSM
+### 아무렇게나 비롯하는 FGSM
 
-Adds random initialization before FGSM:
+FGSM에 앞서 첫자리를 아무렇게나 잡는다.
 
 $$
 \begin{aligned}
@@ -598,78 +598,78 @@ $$
 \end{aligned}
 $$
 
-This helps escape poor local optima and is used in adversarial training.
+이는 그 자리의 나쁜 봉우리를 벗어나게 도우며 맞서며 익히기에 쓰인다.
 
-### FGSM with Momentum
+### 밀어 나감을 곁들인 FGSM
 
-Accumulates gradient history (leads to MI-FGSM, covered in PGD section):
+기울기의 자취를 쌓는다(PGD 마디에서 다룰 MI-FGSM으로 이어진다).
 
 $$
 \mathbf{g}_t = \mu \cdot \mathbf{g}_{t-1} + \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_1}
 $$
 
-## Connection to Adversarial Training
+## 맞서며 익히기와의 이어짐
 
-FGSM is central to adversarial training. The min-max optimization:
+FGSM은 맞서며 익히기의 고갱이다. 가장 작게-가장 크게 하기
 
 $$
 \min_\theta \mathbb{E}_{(\mathbf{x},y)}[\max_{\|\boldsymbol{\delta}\| \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y)]
 $$
 
-approximates the inner max using FGSM:
+에서 안쪽의 가장 크게 하기를 FGSM으로 어림한다.
 
 $$
 \boldsymbol{\delta}^{\text{FGSM}} = \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y))
 $$
 
-Training on FGSM adversarial examples provides basic robustness, though PGD-based training is stronger.
+FGSM 맞서는 보기로 익히면 밑바탕 든든함을 얻는다. 다만 PGD에 기댄 익힘이 더 세다.
 
-## Summary
+## 간추림
 
-| Aspect | FGSM |
+| 결 | FGSM |
 |--------|------|
-| **Formula** | $\mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L})$ |
-| **Complexity** | $O(1)$ — one forward-backward pass |
-| **Strength** | Moderate (baseline) |
-| **Standard $\varepsilon$** | \$8/255$ for CIFAR-10 |
-| **Key limitation** | Single-step, easily defended |
+| **식** | $\mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L})$ |
+| **번거로움** | $O(1)$ — 앞으로-되돌아 걸음 한 번 |
+| **세기** | 가운데(밑금) |
+| **여느 $\varepsilon$** | CIFAR-10에서 $8/255$ |
+| **고갱이 한계** | 한 걸음이라 쉽게 막힌다 |
 
-FGSM provides the conceptual foundation for understanding adversarial attacks. While stronger attacks like PGD and C&W exist, FGSM remains valuable for efficient evaluation and adversarial training.
+FGSM은 맞서는 치기를 알아보는 깨침의 밑바탕을 준다. PGD과 C&W 같은 더 센 치기가 있지만, FGSM은 잘 드는 따짐과 맞서며 익히기에 여전히 값지다.
 
-## References
+## 살펴볼 거리
 
 1. Goodfellow, I. J., Shlens, J., & Szegedy, C. (2015). "Explaining and Harnessing Adversarial Examples." ICLR.
 2. Kurakin, A., Goodfellow, I., & Bengio, S. (2017). "Adversarial Examples in the Physical World." ICLR Workshop.
 3. Tramèr, F., et al. (2018). "Ensemble Adversarial Training: Attacks and Defenses." ICLR.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
