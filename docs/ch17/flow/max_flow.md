@@ -6,21 +6,21 @@
 
 **흐름 그물**은 다음을 갖는 방향 그래프 $G = (V, E)$이다:
 
-- A **source** vertex $s \in V$ (no incoming edges in the standard formulation).
-- A **sink** vertex $t \in V$ (no outgoing edges in the standard formulation).
-- A **capacity function** $c: E \to \mathbb{R}_{\ge 0}$ assigning a non-negative capacity to each edge.
+- **샘** 꼭짓점 $s \in V$(여느 꼴에서는 들어오는 이음이 없다).
+- **웅덩이** 꼭짓점 $t \in V$(여느 꼴에서는 나가는 이음이 없다).
+- 이음마다 음이 아닌 담는 힘을 매기는 **담는 힘 함수** $c: E \to \mathbb{R}_{\ge 0}$.
 
 ## 흐름의 정의
 
-A **flow** is a function $f: E \to \mathbb{R}_{\ge 0}$ satisfying two conditions:
+**흐름**은 다음 두 조건을 채우는 함수 $f: E \to \mathbb{R}_{\ge 0}$이다.
 
-**Capacity constraint.** For every edge $(u, v) \in E$:
+**담는 힘 매임.** 모든 이음 $(u, v) \in E$에 대해
 
 $$
 0 \le f(u, v) \le c(u, v)
 $$
 
-**Flow conservation.** For every vertex $v \in V \setminus \{s, t\}$:
+**흐름 지킴.** 모든 꼭짓점 $v \in V \setminus \{s, t\}$에 대해
 
 $$
 \sum_{(u,v) \in E} f(u, v) = \sum_{(v,w) \in E} f(v, w)
@@ -44,7 +44,7 @@ $$
 
 ## 자름과 쌍대성
 
-An **$s$-$t$ cut** is a partition $(S, T)$ of $V$ with $s \in S$ and $t \in T$. The **capacity** of a cut is:
+**$s$-$t$ 자름**은 $s \in S$이고 $t \in T$인 $V$의 가름 $(S, T)$이다. 자름의 **담는 힘**은 다음과 같다.
 
 $$
 c(S, T) = \sum_{\substack{u \in S,\, v \in T \\ (u,v) \in E}} c(u, v)
@@ -70,11 +70,11 @@ $$
 
 | 알고리즘 | 시간 복잡도 | 비고 |
 |-----------|:---------------:|:------|
-| Ford-Fulkerson | $O(\|f^*\| \cdot E)$ | DFS-based; depends on flow value |
-| Edmonds-Karp | $O(V E^2)$ | BFS shortest augmenting paths |
-| Dinic | $O(V^2 E)$ | Blocking flows in layered graph |
-| Push-Relabel | $O(V^2 E)$ | Local operations, no path search |
-| Push-Relabel (FIFO) | $O(V^3)$ | Best general-purpose variant |
+| 포드-풀커슨 | $O(\|f^*\| \cdot E)$ | 깊이 먼저 찾기 바탕. 흐름 값에 매인다 |
+| 에드먼즈-카프 | $O(V E^2)$ | 너비 먼저 찾기로 가장 짧은 늘리는 길 |
+| 디닉 | $O(V^2 E)$ | 켜 그래프에서의 막는 흐름 |
+| 밀어 다시 붙이기 | $O(V^2 E)$ | 그 자리 셈만 하고 길을 찾지 않는다 |
+| 밀어 다시 붙이기(선입선출) | $O(V^3)$ | 두루 쓰기에 가장 좋은 갈래 |
 
 ## 구현
 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
 Maximum flow: 17
 ```
 
-The source can push at most $10$ units through vertex $a$ and $8$ through vertex $b$. The cross edge $(a, b)$ with capacity $5$ lets excess capacity on the $a$-side flow through $b$ to the sink. The minimum cut is $\{s\} | \{a, b, t\}$ with capacity $10 + 8 = 18$, but the actual min-cut is $\{s, a\} | \{b, t\}$ with capacity $5 + 7 = 12$... checking: total capacity from $s$ side is $8 + 5 + 7 = 20$. The maximum flow of $17$ is achieved as verified by the algorithm.
+샘은 꼭짓점 $a$을 거쳐 많아야 $10$ 단위를, 꼭짓점 $b$을 거쳐 $8$ 단위를 밀어 넣을 수 있다. 담는 힘이 $5$인 엇이음 $(a, b)$ 덕에 $a$ 쪽의 남는 담는 힘이 $b$을 거쳐 웅덩이로 흐른다. 가장 작은 자름은 담는 힘이 $10 + 8 = 18$인 $\{s\} | \{a, b, t\}$처럼 보이지만, 참으로 가장 작은 자름은 담는 힘이 $5 + 7 = 12$인 $\{s, a\} | \{b, t\}$이다. 따져 보면 $s$ 쪽에서 나가는 온 담는 힘은 $8 + 5 + 7 = 20$이다. 알고리즘으로 따져 본 대로 가장 큰 흐름 $17$을 이룬다.
 
 ## 응용
 
@@ -195,7 +195,7 @@ The source can push at most $10$ units through vertex $a$ and $8$ through vertex
 최대 흐름 문제를 엄밀히 정의하여라. 담이 제약과 흐름 보존 제약은 무엇인가?
 
 ??? success "연습문제 1 풀이"
-    Given directed graph $G = (V, E)$ with capacity $c(u,v) \geq 0$ for each edge, source $s$, and sink $t$, find a flow $f: E \to \mathbb{R}_{\geq 0}$ maximizing $|f| = \sum_{v} f(s,v)$ subject to: (1) **Capacity constraint**: $0 \leq f(u,v) \leq c(u,v)$ for all edges. (2) **Conservation**: $\sum_u f(u,v) = \sum_w f(v,w)$ for all $v \neq s, t$ (flow in equals flow out). $\square$
+    이음마다 담는 힘 $c(u,v) \geq 0$을 지닌 방향 있는 그래프 $G = (V, E)$과 샘 $s$, 웅덩이 $t$이 주어졌을 때 다음을 지키며 $|f| = \sum_{v} f(s,v)$을 가장 크게 하는 흐름 $f: E \to \mathbb{R}_{\geq 0}$을 찾아라. (1) **담는 힘 매임**: 모든 이음에 대해 $0 \leq f(u,v) \leq c(u,v)$. (2) **지킴**: 모든 $v \neq s, t$에 대해 $\sum_u f(u,v) = \sum_w f(v,w)$(들어온 흐름과 나간 흐름이 같다). $\square$
 
 ---
 
@@ -203,7 +203,7 @@ The source can push at most $10$ units through vertex $a$ and $8$ through vertex
 최대 흐름 최소 자름 정리를 느슨하게 증명하여라. 최대 흐름이 왜 최소 자름과 같아야 하는가?
 
 ??? success "연습문제 2 풀이"
-    Any flow is bounded by any cut's capacity (flow must cross the cut to reach $t$). So max flow $\leq$ min cut. Ford-Fulkerson terminates when no augmenting path exists. At termination, the vertices reachable from $s$ in the residual graph form set $S$, and $T = V \setminus S$ contains $t$. Every edge from $S$ to $T$ is saturated (otherwise an augmenting path would exist). The cut $(S, T)$ has capacity equal to the flow value. So max flow $\geq$ min cut. Together: max flow $=$ min cut. $\square$
+    어떤 흐름도 어떤 자름의 담는 힘으로 마디 지어진다($t$에 닿으려면 흐름이 자름을 가로질러야 하기 때문이다). 그러므로 가장 큰 흐름 $\leq$ 가장 작은 자름이다. 포드-풀커슨은 늘리는 길이 없을 때 끝난다. 끝날 때 나머지 그래프에서 $s$부터 닿을 수 있는 꼭짓점이 묶음 $S$을 이루고 $T = V \setminus S$이 $t$을 담는다. $S$에서 $T$으로 가는 이음은 모두 가득 차 있다(안 그러면 늘리는 길이 있을 것이다). 자름 $(S, T)$의 담는 힘은 흐름 값과 같다. 그러므로 가장 큰 흐름 $\geq$ 가장 작은 자름이다. 둘을 아우르면 가장 큰 흐름 $=$ 가장 작은 자름이다. $\square$
 
 ---
 
@@ -211,7 +211,7 @@ The source can push at most $10$ units through vertex $a$ and $8$ through vertex
 최대 흐름 알고리즘의 실제 쓰임새 세 가지를 들어라.
 
 ??? success "연습문제 3 풀이"
-    (1) **Network routing**: maximize data throughput from source to destination in a communication network with bandwidth constraints. (2) **Bipartite matching**: reduce to max-flow with unit capacities to find maximum matchings. (3) **Image segmentation**: model pixels as vertices with edge weights based on similarity; the min-cut separates foreground from background, minimizing the total cost of cutting similar pixels apart. Also: airline scheduling, baseball elimination, project selection. $\square$
+    (1) **그물 길잡기**: 띠너비가 매인 소식 그물에서 샘부터 목적지까지 자료 흐름을 가장 크게 한다. (2) **두 쪽 짝짓기**: 담는 힘을 1로 둔 가장 큰 흐름으로 되돌려 가장 큰 짝짓기를 찾는다. (3) **그림 나누기**: 낱그림점을 꼭짓점으로, 닮음을 이음 짐으로 그린다. 가장 작은 자름이 앞바탕과 뒷바탕을 갈라 닮은 낱그림점을 떼어 놓는 값의 합을 가장 작게 한다. 그 밖에 비행기 차례 잡기, 야구 탈락 가리기, 일감 고르기에도 쓴다. $\square$
 
 ---
 
@@ -219,4 +219,4 @@ The source can push at most $10$ units through vertex $a$ and $8$ through vertex
 최대 흐름이 근원과 바닥이 여럿인 경우를 다룰 수 있는가? 어떻게 다루는가?
 
 ??? success "연습문제 4 풀이"
-    Yes. Add a **super-source** $S$ connected to all original sources with capacity $\infty$ (or the source's supply limit). Add a **super-sink** $T$ connected from all original sinks with capacity $\infty$ (or the sink's demand limit). Run max-flow from $S$ to $T$. The resulting flow respects all original capacity constraints, and the flow decomposition gives the flow from each source to each sink. $\square$
+    그렇다. **큰 샘** $S$을 더해 본디 샘 모두에 담는 힘 $\infty$(또는 그 샘이 댈 수 있는 한도)으로 잇는다. **큰 웅덩이** $T$을 더해 본디 웅덩이 모두에서 담는 힘 $\infty$(또는 그 웅덩이가 바라는 한도)으로 잇는다. $S$에서 $T$으로 가장 큰 흐름을 돌린다. 그렇게 나온 흐름은 본디 담는 힘의 매임을 모두 지키고, 흐름을 쪼개어 보면 샘마다 웅덩이마다의 흐름을 알 수 있다. $\square$

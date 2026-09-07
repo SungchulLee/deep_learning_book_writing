@@ -1,16 +1,16 @@
 # 헝가리 알고리즘
 
-The assignment problem asks: given $n$ workers and $n$ jobs, with a cost $c_{ij}$ for assigning worker $i$ to job $j$, find a one-to-one assignment that minimizes total cost. While this can be modeled as a linear program or a min-cost flow problem, the **Hungarian algorithm** (Kuhn, 1955) solves it directly in $O(n^3)$ time by exploiting the combinatorial structure of the cost matrix.
+맡기기 문제는 이렇게 묻는다. 일꾼 $n$명과 일 $n$개가 있고 일꾼 $i$에게 일 $j$을 맡기는 값이 $c_{ij}$일 때, 값의 합이 가장 작은 일대일 맡기기를 찾아라. 이는 선형 계획이나 값이 가장 작은 흐름 문제로 그릴 수도 있지만, **헝가리 알고리즘**(쿤, 1955)은 값 행렬의 짜임새를 써서 $O(n^3)$ 때에 곧바로 푼다.
 
 ## 문제 정식화
 
-Given an $n \times n$ cost matrix $C = [c_{ij}]$, find a permutation $\pi$ of $\{1, 2, \dots, n\}$ that minimizes:
+$n \times n$ 값 행렬 $C = [c_{ij}]$이 주어졌을 때 다음을 가장 작게 하는 $\{1, 2, \dots, n\}$의 자리바꿈 $\pi$을 찾아라.
 
 $$
 \sum_{i=1}^{n} c_{i,\pi(i)}
 $$
 
-Equivalently, find a perfect matching in the complete bipartite graph $K_{n,n}$ with minimum total weight.
+같은 말로, 온 두 쪽 그래프 $K_{n,n}$에서 짐의 합이 가장 작은 온전한 짝짓기를 찾는 것이다.
 
 ## 핵심 통찰
 
@@ -27,9 +27,9 @@ Equivalently, find a perfect matching in the complete bipartite graph $K_{n,n}$ 
 
 **3단계: 0 덮기.** 모든 0을 덮는 데 필요한 줄(가로줄과 세로줄)의 최소 개수를 찾는다. 그 수가 $n$과 같으면 값이 0인 완전 짝짓기가 있으므로 끝이다.
 
-**Step 4: Create new zeros.** Find the smallest uncovered entry $\delta$. Subtract $\delta$ from all uncovered entries, and add $\delta$ to all doubly-covered entries (entries at the intersection of two covering lines). Return to Step 3.
+**걸음 4: 새 0 만들기.** 덮이지 않은 값 가운데 가장 작은 $\delta$을 찾는다. 덮이지 않은 값에서 모두 $\delta$을 빼고, 두 번 덮인 값(덮는 금 둘이 만나는 자리)에 모두 $\delta$을 더한다. 걸음 3으로 돌아간다.
 
-Each iteration of Steps 3--4 increases the number of covering lines by at least one, so the algorithm terminates in at most $n$ iterations. Each iteration takes $O(n^2)$ time, giving an overall $O(n^3)$ complexity.
+걸음 3~4을 한 번 돌 때마다 덮는 금이 적어도 하나 늘므로 알고리즘은 많아야 $n$ 번 돌고 끝난다. 되돌이마다 $O(n^2)$ 때가 들어 온 복잡도는 $O(n^3)$이다.
 
 ## 구현
 
@@ -149,7 +149,7 @@ Minimum cost: 13
 | Time   | $O(n^3)$ |
 | Space  | $O(n^2)$ |
 
-The $O(n^3)$ bound comes from $n$ augmentation phases, each performing a shortest-path search in $O(n^2)$ time using the potential function to maintain non-negative reduced costs.
+$O(n^3)$ 테두리는 늘리는 판이 $n$개이고, 판마다 줄인 값이 음이 아니도록 지키는 잠재 함수를 써서 $O(n^2)$ 때에 가장 짧은 길을 찾기 때문이다.
 
 ## 선형 계획과의 이음
 
@@ -159,7 +159,7 @@ $$
 \max \sum_{i} u_i + \sum_{j} v_j \quad \text{subject to} \quad u_i + v_j \le c_{ij} \;\; \forall\, i, j
 $$
 
-The Hungarian algorithm maintains complementary slackness: matched pairs $(i, j)$ satisfy $u_i + v_j = c_{ij}$.
+헝가리 알고리즘은 서로 채우는 느슨함을 지킨다. 짝지은 $(i, j)$은 $u_i + v_j = c_{ij}$을 채운다.
 
 ## 응용
 
@@ -178,7 +178,7 @@ The Hungarian algorithm maintains complementary slackness: matched pairs $(i, j)
 헝가리 알고리즘과 그것이 푸는 문제의 갈래를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    The Hungarian algorithm solves the **assignment problem**: given an $n \times n$ cost matrix, assign $n$ workers to $n$ jobs (one-to-one) to minimize total cost. The algorithm works by: (1) subtract row and column minima to create zeros, (2) find a maximum matching using only zero-cost entries, (3) if the matching is not perfect, adjust the matrix using a dual variable update (covering lines), (4) repeat until a perfect matching is found. Time: $O(n^3)$. $\square$
+    헝가리 알고리즘은 **맡기기 문제**를 푼다. $n \times n$ 값 행렬이 주어졌을 때 일꾼 $n$명을 일 $n$개에 일대일로 맡겨 값의 합을 가장 작게 한다. 이렇게 돈다. (1) 줄과 칸의 가장 작은 값을 빼서 0을 만든다. (2) 값이 0인 자리만 써서 가장 큰 짝짓기를 찾는다. (3) 짝짓기가 온전하지 않으면 짝 변수 고치기(덮는 금)로 행렬을 손본다. (4) 온전한 짝짓기가 나올 때까지 되풀이한다. 때는 $O(n^3)$이다. $\square$
 
 ---
 
@@ -186,7 +186,7 @@ The Hungarian algorithm maintains complementary slackness: matched pairs $(i, j)
 값 행렬의 한 줄(또는 한 칸) 전체에서 상수를 빼도 가장 좋은 배정이 바뀌지 않음을 증명하여라.
 
 ??? success "연습문제 2 풀이"
-    Let $C'$ be the matrix after subtracting constant $k$ from row $i$. For any assignment $\sigma$, the new cost is $\sum_j C'[j][\sigma(j)] = \sum_j C[j][\sigma(j)] - k$. Since $k$ is subtracted from every assignment equally, the assignment that minimizes $\sum C$ also minimizes $\sum C'$. The optimal assignment is unchanged; only the optimal cost shifts by $-k$. This holds for column subtractions as well. $\square$
+    줄 $i$에서 상수 $k$을 뺀 행렬을 $C'$이라 하자. 어떤 맡기기 $\sigma$에 대해서도 새 값은 $\sum_j C'[j][\sigma(j)] = \sum_j C[j][\sigma(j)] - k$이다. 모든 맡기기에서 $k$이 똑같이 빠지므로 $\sum C$을 가장 작게 하는 맡기기가 $\sum C'$도 가장 작게 한다. 가장 좋은 맡기기는 그대로이고 가장 좋은 값만 $-k$만큼 옮겨간다. 칸을 뺄 때도 마찬가지다. $\square$
 
 ---
 
@@ -194,7 +194,7 @@ The Hungarian algorithm maintains complementary slackness: matched pairs $(i, j)
 헝가리 알고리즘의 시간 복잡도는 무엇인가? 정사각이 아닌 배정 문제도 풀 수 있는가?
 
 ??? success "연습문제 3 풀이"
-    The standard Hungarian algorithm runs in $O(n^3)$ for an $n \times n$ matrix. For non-square problems ($m$ workers, $n$ jobs, $m \neq n$), add dummy workers or jobs with zero cost to make the matrix square, then solve. Alternatively, use the Jonker-Volgenant algorithm, which handles rectangular matrices directly. The optimal assignment among the real workers/jobs ignores dummy assignments. $\square$
+    여느 헝가리 알고리즘은 $n \times n$ 행렬에서 $O(n^3)$ 때에 돈다. 네모가 아닌 문제(일꾼 $m$명, 일 $n$개, $m \neq n$)에서는 값이 0인 허깨비 일꾼이나 일을 더해 행렬을 네모로 만든 뒤 푼다. 아니면 직사각 행렬을 곧바로 다루는 용커-볼허난트 알고리즘을 쓴다. 참 일꾼과 참 일 사이의 가장 좋은 맡기기는 허깨비 맡기기를 셈에서 뺀다. $\square$
 
 ---
 
@@ -202,4 +202,4 @@ The Hungarian algorithm maintains complementary slackness: matched pairs $(i, j)
 헝가리 알고리즘과 배정을 최소 값 최대 흐름 문제로 푸는 것을 견주어라.
 
 ??? success "연습문제 4 풀이"
-    Both solve the assignment problem optimally. The min-cost max-flow approach constructs a bipartite flow network with costs on edges and uses algorithms like successive shortest paths or cycle-canceling. Time: $O(n^3)$ with efficient implementations (e.g., SPFA-based). The Hungarian algorithm is $O(n^3)$ with better constants for dense problems. For sparse assignment problems, the flow approach may be faster. Both are exact; the Hungarian is preferred for dense cost matrices, while flow-based methods generalize to non-bipartite or capacitated variants. $\square$
+    둘 다 맡기기 문제를 가장 좋게 푼다. 값이 가장 작은 가장 큰 흐름 길은 이음에 값을 붙인 두 쪽 흐름 그물을 짓고 잇따른 가장 짧은 길이나 돌이 지우기 같은 알고리즘을 쓴다. 잘 짜면 때는 $O(n^3)$이다(SPFA 바탕 따위). 헝가리 알고리즘도 $O(n^3)$이지만 빽빽한 문제에서 상수가 더 낫다. 성긴 맡기기 문제에서는 흐름 길이 더 빠를 수 있다. 둘 다 딱 맞는 답을 준다. 빽빽한 값 행렬에는 헝가리를 쓰고, 흐름 바탕 방법은 두 쪽이 아니거나 담는 힘이 있는 갈래로 넓히기 좋다. $\square$

@@ -212,7 +212,7 @@ if __name__ == "__main__":
 에드먼즈-카프에서 늘림 경로 바퀴는 많아야 몇 번인가? 까닭을 대어라.
 
 ??? success "연습문제 3 풀이"
-    At most $O(VE)$. For each distance level $d$ (shortest path length), at most $O(E)$ augmentations occur before the distance increases (each augmentation saturates at least one edge at distance $d$, and an edge can be saturated at this distance at most $O(V)$ times). Since $d$ ranges from 1 to at most $V - 1$, total augmentations $\leq O(V \cdot E) = O(VE)$. Each augmentation uses BFS in $O(E)$, giving $O(VE^2)$ total. $\square$
+    많아야 $O(VE)$ 번이다. 거리 켜 $d$(가장 짧은 길의 길이)마다 거리가 늘기 앞에 늘리기가 많아야 $O(E)$ 번 일어난다(늘릴 때마다 거리 $d$의 이음을 적어도 하나 가득 채우고, 이음 하나는 이 거리에서 많아야 $O(V)$ 번 가득 찬다). $d$이 1부터 많아야 $V - 1$까지이므로 늘리기는 모두 $\leq O(V \cdot E) = O(VE)$ 번이다. 늘릴 때마다 $O(E)$의 너비 먼저 찾기를 쓰므로 모두 $O(VE^2)$이다. $\square$
 
 ---
 
@@ -220,4 +220,4 @@ if __name__ == "__main__":
 에드먼즈-카프를 짜고, 근원 $s = 0$, 바닥 $t = 3$, 담이가 $(0,1,10), (0,2,8), (1,2,5), (1,3,5), (2,3,10)$인 변을 갖는 그래프에서 최대 흐름을 찾아라.
 
 ??? success "연습문제 4 풀이"
-    BFS finds path $0 \to 1 \to 3$, push 5. Then $0 \to 2 \to 3$, push 8. Then $0 \to 1 \to 2 \to 3$, push 2 (limited by residual $1 \to 2$: capacity 5, but also limited by $2 \to 3$: residual $10 - 8 = 2$). No more augmenting paths. Max flow $= 5 + 8 + 2 = 15$. $\square$
+    너비 먼저 찾기가 길 $0 \to 1 \to 3$을 찾아 5을 밀어 넣는다. 다음으로 $0 \to 2 \to 3$에 8을 밀어 넣는다. 그다음 $0 \to 1 \to 2 \to 3$에 2을 밀어 넣는다(나머지 $1 \to 2$의 담는 힘은 5이지만 $2 \to 3$의 나머지 $10 - 8 = 2$에 매인다). 더는 늘리는 길이 없다. 가장 큰 흐름은 $= 5 + 8 + 2 = 15$이다. $\square$
