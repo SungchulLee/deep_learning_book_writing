@@ -1,157 +1,155 @@
-# Comparison Tables
+# 견줌 표
 
-Choosing the right data structure requires comparing operations side by side. This page
-consolidates the time complexity of fundamental operations across all major data
-structures, organized by use case. Use these tables as a quick reference when deciding
-which structure fits your problem's access pattern.
+알맞은 자료 얼개를 고르려면 연산을 나란히 놓고 견주어야 한다. 이 쪽은 으뜸 자료
+얼개를 통틀어 밑바탕 연산의 때 복잡도를 쓰일 자리에 따라 한데 모은다. 제 문제의
+닿는 결에 어느 얼개가 맞는지 가릴 때 이 표를 빠른 길잡이로 쓰라.
 
-## Core Operations Comparison
+## 고갱이 연산 견주기
 
-The following table compares the four most fundamental operations across basic data
-structures. All complexities are worst-case unless noted.
+다음 표는 밑바탕 자료 얼개를 통틀어 가장 밑바탕이 되는 연산 넷을 견준다. 따로
+적지 않으면 모두 가장 나쁠 때의 값이다.
 
-| Structure | Access | Search | Insert | Delete |
+| 얼개 | 닿기 | 찾기 | 넣기 | 지우기 |
 |---|---|---|---|---|
-| Array | $O(1)$ | $O(n)$ | $O(n)$ | $O(n)$ |
-| Sorted array | $O(1)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
-| Dynamic array | $O(1)$ | $O(n)$ | $O(1)$ amort. end | $O(n)$ |
-| Singly linked list | $O(n)$ | $O(n)$ | $O(1)$ at head | $O(n)$ |
-| Doubly linked list | $O(n)$ | $O(n)$ | $O(1)$ given node | $O(1)$ given node |
-| Hash table | -- | $O(1)$ avg / $O(n)$ worst | $O(1)$ avg | $O(1)$ avg |
-| BST (balanced) | -- | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ |
-| Heap (binary) | $O(1)$ top only | $O(n)$ | $O(\log n)$ | $O(\log n)$ |
-| Trie | -- | $O(L)$ | $O(L)$ | $O(L)$ |
+| 배열 | $O(1)$ | $O(n)$ | $O(n)$ | $O(n)$ |
+| 줄 세운 배열 | $O(1)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
+| 움직이는 배열 | $O(1)$ | $O(n)$ | 끝에 고르게 나눈 $O(1)$ | $O(n)$ |
+| 홑 이음 목록 | $O(n)$ | $O(n)$ | 머리에 $O(1)$ | $O(n)$ |
+| 겹 이음 목록 | $O(n)$ | $O(n)$ | 마디가 있으면 $O(1)$ | 마디가 있으면 $O(1)$ |
+| 해시 표 | -- | 고르게 $O(1)$ / 가장 나쁠 때 $O(n)$ | 고르게 $O(1)$ | 고르게 $O(1)$ |
+| 이진 찾기 나무(고름) | -- | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ |
+| 더미(두 갈래) | 맨 위만 $O(1)$ | $O(n)$ | $O(\log n)$ | $O(\log n)$ |
+| 트라이 | -- | $O(L)$ | $O(L)$ | $O(L)$ |
 
-Here $L$ is the key length for trie operations. A dash indicates the operation is not
-naturally supported.
+여기서 $L$은 트라이 연산의 열쇠 길이다. 줄표는 그 연산을 절로 받치지 않는다는
+뜻이다.
 
-## Ordered Operations Comparison
+## 차례 있는 연산 견주기
 
-When you need elements in sorted order or need predecessor/successor queries, only
-certain structures qualify.
+원소를 줄 세운 차례로 얻거나 앞/뒤 이웃을 물어야 할 때는 몇몇 얼개만 쓸 수 있다.
 
-| Structure | Find Min | Find Max | Predecessor | Successor | Range Query |
+| 얼개 | 가장 작은 것 | 가장 큰 것 | 앞 이웃 | 뒤 이웃 | 너비 물음 |
 |---|---|---|---|---|---|
-| Sorted array | $O(1)$ | $O(1)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n + k)$ |
-| BST (balanced) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n + k)$ |
-| Min-heap | $O(1)$ | $O(n)$ | -- | -- | -- |
-| Max-heap | $O(n)$ | $O(1)$ | -- | -- | -- |
-| Skip list | $O(\log n)$ exp. | $O(\log n)$ exp. | $O(\log n)$ exp. | $O(\log n)$ exp. | $O(\log n + k)$ |
+| 줄 세운 배열 | $O(1)$ | $O(1)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n + k)$ |
+| 이진 찾기 나무(고름) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n + k)$ |
+| 작은 더미 | $O(1)$ | $O(n)$ | -- | -- | -- |
+| 큰 더미 | $O(n)$ | $O(1)$ | -- | -- | -- |
+| 건너뛰기 목록 | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 어림 $O(\log n)$ | $O(\log n + k)$ |
 
-Here $k$ is the number of elements in the query range.
+여기서 $k$은 물음 너비에 든 원소의 수다.
 
-!!! tip "When Order Matters"
-    If you need both fast search and ordered iteration, a balanced BST or skip list
-    is the right choice. Hash tables provide faster search but cannot enumerate
-    elements in sorted order without a separate sort step.
+!!! tip "차례가 중요할 때"
+    빠른 찾기와 차례대로 돌기가 함께 필요하면 고른 이진 찾기 나무나 건너뛰기
+    목록이 알맞다. 해시 표는 찾기가 더 빠르지만 따로 줄 세우지 않고는 원소를
+    줄 세운 차례로 늘어놓을 수 없다.
 
-## Space Comparison
+## 자리 견주기
 
-| Structure | Space | Overhead per Element | Notes |
+| 얼개 | 자리 | 원소마다 붙는 짐 | 짚을 것 |
 |---|---|---|---|
-| Array | $O(n)$ | 0 (just the element) | Contiguous memory |
-| Dynamic array | $O(n)$ | Up to $n$ wasted slots | Doubling policy |
-| Singly linked list | $O(n)$ | 1 pointer | Non-contiguous |
-| Doubly linked list | $O(n)$ | 2 pointers | More flexible deletion |
-| Hash table (chaining) | $O(n + m)$ | 1 pointer + node | $m$ = table size |
-| Hash table (open addr.) | $O(m)$ | None beyond element | Load factor $< 1$ |
-| BST | $O(n)$ | 2 pointers | Left and right children |
-| AVL tree | $O(n)$ | 2 pointers + balance | 1 byte extra |
-| Red-Black tree | $O(n)$ | 2 pointers + color | 1 bit extra |
-| Binary heap | $O(n)$ | 0 (array-based) | Implicit structure |
-| B-tree (order $m$) | $O(n)$ | $m$ pointers per node | Large nodes |
-| Trie | $O(N \cdot \Sigma)$ | $\Sigma$ pointers per node | $\Sigma$ = alphabet size |
+| 배열 | $O(n)$ | 0(원소뿐) | 잇닿은 기억 |
+| 움직이는 배열 | $O(n)$ | 빈 칸이 $n$개까지 | 두 곱절 늘리기 방침 |
+| 홑 이음 목록 | $O(n)$ | 손가락질 1개 | 잇닿지 않음 |
+| 겹 이음 목록 | $O(n)$ | 손가락질 2개 | 지우기가 더 너그럽다 |
+| 해시 표(사슬 잇기) | $O(n + m)$ | 손가락질 1개 + 마디 | $m$ = 표 크기 |
+| 해시 표(열린 주소) | $O(m)$ | 원소 말고는 없음 | 채움 비 $< 1$ |
+| 이진 찾기 나무 | $O(n)$ | 손가락질 2개 | 왼 자식과 오른 자식 |
+| AVL 나무 | $O(n)$ | 손가락질 2개 + 고름 값 | 1바이트가 더 든다 |
+| 붉은검은 나무 | $O(n)$ | 손가락질 2개 + 빛깔 | 1비트가 더 든다 |
+| 두 갈래 더미 | $O(n)$ | 0(배열 바탕) | 얼개가 속에 숨어 있다 |
+| B 나무(차수 $m$) | $O(n)$ | 마디마다 손가락질 $m$개 | 마디가 크다 |
+| 트라이 | $O(N \cdot \Sigma)$ | 마디마다 손가락질 $\Sigma$개 | $\Sigma$ = 낱자 모둠 크기 |
 
-## Priority Queue Implementations
+## 앞선 줄 짜보기
 
-Different structures offer different trade-offs for priority queue operations.
+얼개마다 앞선 줄 연산의 맞바꿈이 다르다.
 
-| Structure | Insert | Extract-Min | Decrease-Key | Merge | Build |
+| 얼개 | 넣기 | 가장 작은 것 빼기 | 열쇠 낮추기 | 합치기 | 세우기 |
 |---|---|---|---|---|---|
-| Unsorted array | $O(1)$ | $O(n)$ | $O(1)$ | $O(1)$ | $O(n)$ |
-| Sorted array | $O(n)$ | $O(1)$ | $O(n)$ | $O(n)$ | $O(n \log n)$ |
-| Binary heap | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
-| Binomial heap | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
-| Fibonacci heap | $O(1)$ | $O(\log n)$ amort. | $O(1)$ amort. | $O(1)$ | $O(n)$ |
-| Pairing heap | $O(1)$ | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(1)$ | $O(n)$ |
+| 줄 세우지 않은 배열 | $O(1)$ | $O(n)$ | $O(1)$ | $O(1)$ | $O(n)$ |
+| 줄 세운 배열 | $O(n)$ | $O(1)$ | $O(n)$ | $O(n)$ | $O(n \log n)$ |
+| 두 갈래 더미 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
+| 이항 더미 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
+| 피보나치 더미 | $O(1)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(1)$ | $O(1)$ | $O(n)$ |
+| 짝짓기 더미 | $O(1)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | $O(1)$ | $O(n)$ |
 
-!!! warning "Fibonacci Heap Caveat"
-    Fibonacci heaps have the best theoretical bounds but large constant factors.
-    In practice, binary heaps outperform Fibonacci heaps for $n < 10^6$ due to
-    cache efficiency and simpler operations.
+!!! warning "피보나치 더미를 조심하라"
+    피보나치 더미는 이론 울타리가 가장 좋으나 붙박이 곱이 크다. 참으로는 캐시
+    살림과 단순한 연산 덕에 $n < 10^6$이면 두 갈래 더미가 피보나치 더미를
+    앞선다.
 
-## Dictionary/Map Implementations
+## 사전/짝지음 짜보기
 
-| Structure | Search | Insert | Delete | Ordered? |
+| 얼개 | 찾기 | 넣기 | 지우기 | 차례가 있는가? |
 |---|---|---|---|---|
-| Hash table | $O(1)$ avg | $O(1)$ avg | $O(1)$ avg | No |
-| Balanced BST | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | Yes |
-| Skip list | $O(\log n)$ exp. | $O(\log n)$ exp. | $O(\log n)$ exp. | Yes |
-| Trie | $O(L)$ | $O(L)$ | $O(L)$ | Yes (lexicographic) |
-| Sorted array | $O(\log n)$ | $O(n)$ | $O(n)$ | Yes |
+| 해시 표 | 고르게 $O(1)$ | 고르게 $O(1)$ | 고르게 $O(1)$ | 아니오 |
+| 고른 이진 찾기 나무 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | 예 |
+| 건너뛰기 목록 | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 예 |
+| 트라이 | $O(L)$ | $O(L)$ | $O(L)$ | 예(낱말 차례로) |
+| 줄 세운 배열 | $O(\log n)$ | $O(n)$ | $O(n)$ | 예 |
 
-## Choosing by Access Pattern
+## 닿는 결로 고르기
 
-| Access Pattern | Best Structure | Why |
+| 닿는 결 | 가장 나은 얼개 | 까닭 |
 |---|---|---|
-| Random access by index | Array | $O(1)$ access |
-| Fast membership test | Hash set | $O(1)$ average |
-| Ordered enumeration | Balanced BST | In-order traversal |
-| Fast min/max extraction | Heap | $O(1)$ peek, $O(\log n)$ extract |
-| FIFO processing | Queue (linked or circular) | $O(1)$ enqueue and dequeue |
-| LIFO processing | Stack (array) | $O(1)$ push and pop |
-| Prefix matching | Trie | $O(L)$ per query |
-| Range queries on points | Segment tree / BIT | $O(\log n)$ per query |
+| 번호로 아무 데나 닿기 | 배열 | $O(1)$ 닿기 |
+| 빠르게 들었는지 따지기 | 해시 모임 | 고르게 $O(1)$ |
+| 차례대로 늘어놓기 | 고른 이진 찾기 나무 | 가운데 차례 훑기 |
+| 가장 작은/큰 것 빨리 빼기 | 더미 | 엿보기 $O(1)$, 빼기 $O(\log n)$ |
+| 먼저 든 것 먼저 다루기 | 줄(이음이나 고리) | 넣기와 빼기가 $O(1)$ |
+| 나중에 든 것 먼저 다루기 | 쌓개(배열) | 밀어 넣기와 빼기가 $O(1)$ |
+| 앞가지 맞추기 | 트라이 | 물음마다 $O(L)$ |
+| 점에 대한 너비 물음 | 마디 나무 / 페닉 나무 | 물음마다 $O(\log n)$ |
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Sedgewick, R. and Wayne, K. *Algorithms*. 4th ed. Addison-Wesley, 2011.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-You need a data structure supporting insert, delete, search, and ordered iteration. Compare hash tables, balanced BSTs, and skip lists for this use case.
+**익힘 1.**
+넣기, 지우기, 찾기, 차례대로 돌기를 받치는 자료 얼개가 있어야 한다. 이 자리를 두고 해시 표, 고른 이진 찾기 나무, 건너뛰기 목록을 견주어라.
 
-??? success "Solution to Exercise 1"
-    | Operation | Hash Table | Balanced BST | Skip List |
+??? success "익힘 1 풀이"
+    | 연산 | 해시 표 | 고른 이진 찾기 나무 | 건너뛰기 목록 |
     |---|---|---|---|
-    | Insert | $O(1)$ avg | $O(\log n)$ | $O(\log n)$ exp |
-    | Delete | $O(1)$ avg | $O(\log n)$ | $O(\log n)$ exp |
-    | Search | $O(1)$ avg | $O(\log n)$ | $O(\log n)$ exp |
-    | Ordered iter. | $O(n \log n)$ sort | $O(n)$ in-order | $O(n)$ level-0 scan |
-    | Min/Max | $O(n)$ | $O(\log n)$ | $O(1)$ with pointers |
+    | 넣기 | 고르게 $O(1)$ | $O(\log n)$ | 어림 $O(\log n)$ |
+    | 지우기 | 고르게 $O(1)$ | $O(\log n)$ | 어림 $O(\log n)$ |
+    | 찾기 | 고르게 $O(1)$ | $O(\log n)$ | 어림 $O(\log n)$ |
+    | 차례대로 돌기 | 줄 세우기 $O(n \log n)$ | 가운데 차례로 $O(n)$ | 0켜 훑기 $O(n)$ |
+    | 가장 작은/큰 것 | $O(n)$ | $O(\log n)$ | 손가락질이 있으면 $O(1)$ |
 
-    Hash tables are fastest for point operations but cannot iterate in order. BSTs and skip lists support all four operations in $O(\log n)$ with $O(n)$ ordered iteration. BSTs are the best choice for this combined requirement. $\square$
-
----
-
-**Exercise 2.**
-A system needs to support: (a) insert a number, (b) delete a number, (c) find the median. Which data structure provides the best time complexity for all three operations?
-
-??? success "Solution to Exercise 2"
-    Use **two heaps**: a max-heap for the lower half and a min-heap for the upper half, maintaining the invariant that their sizes differ by at most 1. Insert: add to the appropriate heap and rebalance if sizes differ by more than 1. $O(\log n)$. Median: the top of the larger heap (or the average of both tops). $O(1)$. Delete: requires an indexed heap or augmented structure for $O(\log n)$ deletion by value. Alternative: an **order-statistic tree** (balanced BST with subtree sizes) supports all three in $O(\log n)$: insert/delete via BST operations, median via rank query for $\lfloor n/2 \rfloor$. The order-statistic tree is more versatile; the two-heap approach has a smaller constant factor for median queries. $\square$
+    점 연산은 해시 표가 가장 빠르나 차례대로 돌 수 없다. 이진 찾기 나무와 건너뛰기 목록은 넷을 모두 $O(\log n)$에 받치고 차례대로 돌기는 $O(n)$이다. 이 네 가지를 함께 바라면 이진 찾기 나무가 가장 알맞다. $\square$
 
 ---
 
-**Exercise 3.**
-For each scenario, select the optimal data structure: (a) frequent membership tests, (b) maintaining a sorted collection with range queries, (c) LIFO processing of tasks, (d) priority-based event scheduling.
+**익힘 2.**
+어떤 얼개가 (가) 수 넣기, (나) 수 지우기, (다) 가운뎃값 찾기를 받쳐야 한다. 셋 모두에 때 복잡도가 가장 좋은 자료 얼개는 무엇인가?
 
-??? success "Solution to Exercise 3"
-    (a) **Hash set**: $O(1)$ expected membership test. If approximate answers are acceptable, a Bloom filter uses less memory. (b) **Balanced BST** (or B-tree for disk): $O(\log n)$ insert, delete, search; $O(\log n + k)$ range query returning $k$ results. (c) **Stack** (array-based): $O(1)$ push and pop, minimal overhead. (d) **Binary heap** (priority queue): $O(\log n)$ insert and extract-min. If decrease-key is frequent, use a Fibonacci heap or indexed priority queue. Each choice minimizes the complexity of the dominant operations for that scenario. $\square$
-
----
-
-**Exercise 4.**
-Explain why there is no single "best" data structure. Use the concept of tradeoffs to justify why multiple structures exist.
-
-??? success "Solution to Exercise 4"
-    Every data structure makes tradeoffs between: (1) **Time for different operations**: arrays have $O(1)$ access but $O(n)$ insertion; linked lists have $O(1)$ insertion but $O(n)$ access. (2) **Space**: hash tables use $O(n)$ with overhead for empty buckets; arrays are more compact. (3) **Worst-case vs. average-case**: hash tables are $O(1)$ average but $O(n)$ worst case; BSTs are $O(\log n)$ guaranteed. (4) **Static vs. dynamic**: sorted arrays are optimal for static data (binary search); BSTs are optimal for dynamic data. No single structure can be simultaneously optimal for all operations, all input distributions, and all memory constraints. The choice depends on the workload: which operations are frequent, whether worst-case guarantees are needed, and how much memory is available. This is why data structures is a rich field -- each structure occupies a different point in the tradeoff space. $\square$
+??? success "익힘 2 풀이"
+    **더미 둘**을 쓴다. 아래 반쪽에 큰 더미를, 위 반쪽에 작은 더미를 두고 두 크기의 차이가 많아야 1이게 지킨다. 넣기: 알맞은 더미에 넣고 크기 차이가 1을 넘으면 다시 맞춘다. $O(\log n)$. 가운뎃값: 더 큰 더미의 맨 위(또는 두 맨 위의 평균)다. $O(1)$. 지우기: 값으로 $O(\log n)$에 지우려면 색인 붙은 더미나 덧붙인 얼개가 있어야 한다. 다른 길: **차례 셈속 나무**(밑나무 크기를 지닌 고른 이진 찾기 나무)가 셋 모두를 $O(\log n)$에 받친다. 넣기/지우기는 이진 찾기 나무 연산으로, 가운뎃값은 $\lfloor n/2 \rfloor$의 등수 물음으로 한다. 차례 셈속 나무가 더 두루 쓰이고, 더미 둘은 가운뎃값 물음의 붙박이 곱이 작다. $\square$
 
 ---
 
-**Exercise 5.**
-A database index must support: point lookups ($O(1)$), range scans ($O(\log n + k)$), and ordered iteration ($O(n)$). Can any single data structure achieve all three? If not, what combination works?
+**익힘 3.**
+자리마다 가장 좋은 자료 얼개를 고르라. (가) 들었는지 자주 따지기, (나) 너비 물음을 곁들여 줄 세운 모둠 지니기, (다) 일감을 나중에 든 것 먼저 다루기, (라) 앞섬에 따른 사건 차례 잡기.
 
-??? success "Solution to Exercise 5"
-    No single standard structure achieves $O(1)$ point lookup and $O(\log n + k)$ range scan simultaneously. Hash tables provide $O(1)$ lookups but $O(n \log n)$ range scans. B-trees provide $O(\log n)$ lookups and $O(\log n + k)$ range scans. The combination: maintain both a **hash index** for point lookups and a **B-tree index** on the same column. Point queries use the hash index; range queries use the B-tree. The cost: double the memory for indexes and maintaining consistency on updates. Many databases support this: PostgreSQL allows creating both a hash index and a B-tree index on the same column. The query optimizer automatically selects the appropriate index for each query type. $\square$
+??? success "익힘 3 풀이"
+    (가) **해시 모임**: 어림 $O(1)$에 들었는지 따진다. 어림 답으로 넉넉하면 블룸 필터가 기억을 덜 쓴다. (나) **고른 이진 찾기 나무**(원반이면 B 나무): 넣기, 지우기, 찾기가 $O(\log n)$이고 열매 $k$개를 내놓는 너비 물음이 $O(\log n + k)$다. (다) **쌓개**(배열 바탕): 밀어 넣기와 빼기가 $O(1)$이고 붙는 짐이 가장 적다. (라) **두 갈래 더미**(앞선 줄): 넣기와 가장 작은 것 빼기가 $O(\log n)$이다. 열쇠 낮추기가 잦으면 피보나치 더미나 색인 붙은 앞선 줄을 쓴다. 고른 것마다 그 자리에서 판치는 연산의 복잡도를 가장 작게 한다. $\square$
+
+---
+
+**익힘 4.**
+"가장 좋은" 자료 얼개가 하나뿐일 수 없는 까닭을 밝혀라. 맞바꿈이라는 생각으로 여러 얼개가 있는 까닭을 밝혀라.
+
+??? success "익힘 4 풀이"
+    자료 얼개마다 다음을 맞바꾼다. (1) **연산마다의 때**: 배열은 닿기가 $O(1)$이나 넣기가 $O(n)$이고, 이음 목록은 넣기가 $O(1)$이나 닿기가 $O(n)$이다. (2) **자리**: 해시 표는 빈 두레박까지 안고 $O(n)$을 쓰고, 배열이 더 촘촘하다. (3) **가장 나쁠 때 대 고르게**: 해시 표는 고르게 $O(1)$이나 가장 나쁠 때 $O(n)$이고, 이진 찾기 나무는 $O(\log n)$을 보장한다. (4) **붙박이 대 움직이는**: 줄 세운 배열은 붙박이 자료에 가장 좋고(이진 찾기), 이진 찾기 나무는 바뀌는 자료에 가장 좋다. 어느 얼개도 모든 연산, 모든 들임 퍼짐, 모든 기억 매임에서 한꺼번에 가장 좋을 수 없다. 고름은 일감에 달렸다. 어느 연산이 잦은지, 가장 나쁠 때의 보장이 있어야 하는지, 기억이 얼마나 있는지다. 그래서 자료 얼개는 넉넉한 밭이다. 얼개마다 맞바꿈 밭의 다른 자리를 차지한다. $\square$
+
+---
+
+**익힘 5.**
+데이터베이스 색인이 점 찾기($O(1)$), 너비 훑기($O(\log n + k)$), 차례대로 돌기($O(n)$)를 모두 받쳐야 한다. 자료 얼개 하나로 셋을 다 이룰 수 있는가? 없다면 어떤 어우름이 되는가?
+
+??? success "익힘 5 풀이"
+    여느 얼개 하나로 $O(1)$ 점 찾기와 $O(\log n + k)$ 너비 훑기를 함께 이룰 수는 없다. 해시 표는 찾기가 $O(1)$이나 너비 훑기가 $O(n \log n)$이다. B 나무는 찾기가 $O(\log n)$이고 너비 훑기가 $O(\log n + k)$다. 아우르는 길: 같은 칸에 점 찾기용 **해시 색인**과 **B 나무 색인**을 함께 둔다. 점 물음은 해시 색인을, 너비 물음은 B 나무를 쓴다. 값으로는 색인 기억이 두 곱절 들고 고칠 때 둘을 맞추어야 한다. 많은 데이터베이스가 이를 받친다. PostgreSQL은 같은 칸에 해시 색인과 B 나무 색인을 함께 만들 수 있다. 물음 다듬이가 물음 갈래마다 알맞은 색인을 저절로 고른다. $\square$

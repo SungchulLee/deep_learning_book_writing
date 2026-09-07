@@ -1,146 +1,145 @@
-# BST Family
+# 이진 찾기 나무 집안
 
-Binary search trees maintain the invariant that every node's left subtree contains
-only smaller keys and its right subtree contains only larger keys. This property
-enables $O(h)$ search, insertion, and deletion, where $h$ is the tree height. The
-various BST variants differ in how they bound $h$ to prevent degeneration to $O(n)$.
+이진 찾기 나무는 마디마다 왼 밑나무에 작은 열쇠만, 오른 밑나무에 큰 열쇠만
+있다는 불변 조건을 지킨다. 이 됨됨이 덕에 찾기, 넣기, 지우기가 $O(h)$이며
+$h$은 나무의 높이다. 여러 이진 찾기 나무 갈래는 $h$이 $O(n)$으로 무너지지
+않게 어떻게 매어 두느냐에서 갈린다.
 
-## Unbalanced BST
+## 고르지 않은 이진 찾기 나무
 
-A plain BST provides no height guarantee. If keys are inserted in sorted order, the
-tree degenerates into a linked list.
+여느 이진 찾기 나무는 높이를 보장하지 않는다. 열쇠를 줄 세운 차례로 넣으면
+나무가 이음 목록으로 무너진다.
 
-| Operation | Best | Average (random) | Worst | Space |
+| 연산 | 가장 좋을 때 | 고르게(아무렇게나) | 가장 나쁠 때 | 자리 |
 |---|---|---|---|---|
-| Search | $O(1)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
-| Insert | $O(1)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
-| Delete | $O(\log n)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
-| Min / Max | $O(\log n)$ | $O(\log n)$ | $O(n)$ | -- |
-| Successor / Predecessor | $O(\log n)$ | $O(\log n)$ | $O(n)$ | -- |
-| In-order traversal | $O(n)$ | $O(n)$ | $O(n)$ | $O(h)$ |
+| 찾기 | $O(1)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
+| 넣기 | $O(1)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
+| 지우기 | $O(\log n)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
+| 가장 작은 것 / 큰 것 | $O(\log n)$ | $O(\log n)$ | $O(n)$ | -- |
+| 뒤 이웃 / 앞 이웃 | $O(\log n)$ | $O(\log n)$ | $O(n)$ | -- |
+| 가운데 차례 훑기 | $O(n)$ | $O(n)$ | $O(n)$ | $O(h)$ |
 
-The expected height of a randomly built BST with $n$ keys is $O(\log n)$, specifically
-$E[h] = 4.311 \ln n$ asymptotically.
+열쇠 $n$개를 아무렇게나 넣어 세운 이진 찾기 나무의 바라는 높이는 $O(\log n)$이며,
+자세히는 큰 $n$에서 $E[h] = 4.311 \ln n$이다.
 
-## Self-Balancing BSTs
+## 스스로 고르는 이진 찾기 나무
 
-Self-balancing BSTs guarantee $O(\log n)$ height through rotations or restructuring
-after each modification.
+스스로 고르는 이진 찾기 나무는 고칠 때마다 돌리기나 다시 세우기로 높이를
+$O(\log n)$으로 보장한다.
 
-| Tree Type | Search | Insert | Delete | Height Bound | Rotations per Op |
+| 나무 갈래 | 찾기 | 넣기 | 지우기 | 높이 울타리 | 연산마다의 돌리기 |
 |---|---|---|---|---|---|
-| AVL | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $1.44 \log_2 n$ | $O(1)$ insert, $O(\log n)$ delete |
-| Red-Black | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $2 \log_2(n+1)$ | $O(1)$ |
-| Splay | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(n)$ worst | $O(\log n)$ amort. |
-| Treap | $O(\log n)$ exp. | $O(\log n)$ exp. | $O(\log n)$ exp. | $O(\log n)$ expected | $O(1)$ expected |
-| Scapegoat | $O(\log n)$ | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(\log n)$ | Rebuild subtree |
+| AVL | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $1.44 \log_2 n$ | 넣기 $O(1)$, 지우기 $O(\log n)$ |
+| 붉은검은 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $2 \log_2(n+1)$ | $O(1)$ |
+| 펼침 | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | 가장 나쁠 때 $O(n)$ | 고르게 나눈 $O(\log n)$ |
+| 트립 | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 어림 $O(1)$ |
+| 희생양 | $O(\log n)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | $O(\log n)$ | 밑나무를 다시 세운다 |
 
-!!! tip "AVL vs Red-Black"
-    AVL trees have tighter balance (height at most $1.44 \log n$) and are faster
-    for lookup-heavy workloads. Red-Black trees allow slightly worse balance
-    ($2 \log n$) but require fewer rotations on insertion and deletion, making
-    them preferred for modification-heavy workloads. C++ `std::map` and Java
-    `TreeMap` use Red-Black trees.
+!!! tip "AVL 대 붉은검은"
+    AVL 나무는 더 빡빡하게 고르고(높이가 많아야 $1.44 \log n$) 찾기가 잦은
+    일감에서 빠르다. 붉은검은 나무는 고름이 조금 느슨하지만($2 \log n$) 넣고
+    지울 때 돌리기가 적어 고치기가 잦은 일감에 낫다. C++ `std::map`과 자바
+    `TreeMap`이 붉은검은 나무를 쓴다.
 
-## B-Trees and Variants
+## B 나무와 그 갈래
 
-B-trees generalize BSTs to have multiple keys per node, reducing tree height and disk
-I/O for external storage.
+B 나무는 마디마다 열쇠를 여럿 두어 이진 찾기 나무를 넓힌 것으로, 나무 높이와
+바깥 갈무리의 원반 들고남을 줄인다.
 
-| Tree Type | Search | Insert | Delete | Height | Node Size |
+| 나무 갈래 | 찾기 | 넣기 | 지우기 | 높이 | 마디 크기 |
 |---|---|---|---|---|---|
-| B-tree (order $m$) | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | $m - 1$ keys |
-| B+ tree | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | Leaves linked |
-| 2-3 tree ($m = 3$) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | 1--2 keys |
-| 2-3-4 tree ($m = 4$) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | 1--3 keys |
+| B 나무(차수 $m$) | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | 열쇠 $m - 1$개 |
+| B+ 나무 | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | 잎이 이어진다 |
+| 2-3 나무($m = 3$) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | 열쇠 1~2개 |
+| 2-3-4 나무($m = 4$) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | 열쇠 1~3개 |
 
-For databases with block size $B$, setting $m = B$ minimizes disk accesses:
+덩이 크기가 $B$인 데이터베이스에서 $m = B$으로 잡으면 원반에 닿는 횟수가 가장 작아진다.
 
 $$
-\text{disk accesses} = O(\log_{B} n)
+\text{원반에 닿는 횟수} = O(\log_{B} n)
 $$
 
-## Augmented BSTs
+## 덧붙인 이진 찾기 나무
 
-Augmenting BST nodes with extra information enables specialized queries without
-changing the asymptotic complexity of basic operations.
+이진 찾기 나무의 마디에 소식을 덧붙이면 밑바탕 연산의 복잡도를 바꾸지 않고도
+남다른 물음을 받칠 수 있다.
 
-| Augmentation | Extra Field | Supported Query | Query Time |
+| 덧붙임 | 더 두는 칸 | 받치는 물음 | 물음 때 |
 |---|---|---|---|
-| Order statistics | Subtree size | $k$-th smallest element | $O(\log n)$ |
-| Interval tree | Max endpoint in subtree | Overlapping intervals | $O(\log n + k)$ |
-| Range tree | -- (uses nested trees) | 2D range query | $O(\log^2 n + k)$ |
+| 차례 셈속 | 밑나무 크기 | $k$번째로 작은 원소 | $O(\log n)$ |
+| 사이 나무 | 밑나무의 가장 큰 끝점 | 겹치는 사이 | $O(\log n + k)$ |
+| 너비 나무 | -- (안에 나무를 겹쳐 쓴다) | 2차원 너비 물음 | $O(\log^2 n + k)$ |
 
-Here $k$ is the number of results returned.
+여기서 $k$은 내놓는 열매의 수다.
 
-## Space Comparison
+## 자리 견주기
 
-| Tree Type | Space per Node | Total Space | Notes |
+| 나무 갈래 | 마디마다의 자리 | 온 자리 | 짚을 것 |
 |---|---|---|---|
-| Unbalanced BST | 2 pointers + key | $O(n)$ | Minimal overhead |
-| AVL | 2 pointers + key + balance factor | $O(n)$ | 1 extra byte |
-| Red-Black | 2 pointers + key + color bit | $O(n)$ | 1 extra bit |
-| Splay | 2 pointers + key + parent | $O(n)$ | Parent pointer needed |
-| B-tree (order $m$) | $m$ pointers + $m-1$ keys | $O(n)$ | Large nodes |
+| 고르지 않은 이진 찾기 나무 | 손가락질 2개 + 열쇠 | $O(n)$ | 붙는 짐이 가장 적다 |
+| AVL | 손가락질 2개 + 열쇠 + 고름 값 | $O(n)$ | 1바이트가 더 든다 |
+| 붉은검은 | 손가락질 2개 + 열쇠 + 빛깔 비트 | $O(n)$ | 1비트가 더 든다 |
+| 펼침 | 손가락질 2개 + 열쇠 + 어버이 | $O(n)$ | 어버이 손가락질이 있어야 한다 |
+| B 나무(차수 $m$) | 손가락질 $m$개 + 열쇠 $m-1$개 | $O(n)$ | 마디가 크다 |
 
-## When to Use Each Variant
+## 어느 갈래를 언제 쓸까
 
-| Use Case | Recommended Tree | Why |
+| 쓰일 자리 | 권하는 나무 | 까닭 |
 |---|---|---|
-| General-purpose ordered map | Red-Black | Good balance of lookup and modification |
-| Read-heavy, few writes | AVL | Tighter balance gives faster lookup |
-| Recently accessed keys are hot | Splay | Amortized $O(\log n)$ with working set property |
-| Database index | B+ tree | Minimizes disk I/O |
-| Need randomized balance | Treap | Simple implementation, expected $O(\log n)$ |
+| 두루 쓰는 차례 있는 짝지음 | 붉은검은 | 찾기와 고치기의 저울이 좋다 |
+| 읽기가 잦고 쓰기가 드묾 | AVL | 더 빡빡한 고름으로 찾기가 빠르다 |
+| 요즘 닿은 열쇠가 뜨거움 | 펼침 | 일하는 모임 됨됨이와 고르게 나눈 $O(\log n)$ |
+| 데이터베이스 색인 | B+ 나무 | 원반 들고남을 가장 작게 한다 |
+| 아무렇게나 고르는 고름이 필요함 | 트립 | 짜기가 단순하고 어림 $O(\log n)$ |
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Sedgewick, R. and Wayne, K. *Algorithms*. 4th ed. Addison-Wesley, 2011.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare unbalanced BST, AVL tree, red-black tree, and B-tree in terms of worst-case search, insert, and delete time.
+**익힘 1.**
+가장 나쁠 때의 찾기, 넣기, 지우기 때를 두고 고르지 않은 이진 찾기 나무, AVL 나무, 붉은검은 나무, B 나무를 견주어라.
 
-??? success "Solution to Exercise 1"
-    | Structure | Search | Insert | Delete | Balance |
+??? success "익힘 1 풀이"
+    | 얼개 | 찾기 | 넣기 | 지우기 | 고름 |
     |---|---|---|---|---|
-    | Unbalanced BST | $O(n)$ | $O(n)$ | $O(n)$ | None |
-    | AVL tree | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | Height $\le 1.44 \log n$ |
-    | Red-black tree | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | Height $\le 2 \log n$ |
-    | B-tree (order $m$) | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | All leaves same depth |
+    | 고르지 않은 이진 찾기 나무 | $O(n)$ | $O(n)$ | $O(n)$ | 없음 |
+    | AVL 나무 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | 높이 $\le 1.44 \log n$ |
+    | 붉은검은 나무 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | 높이 $\le 2 \log n$ |
+    | B 나무(차수 $m$) | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | 온 잎이 같은 깊이 |
 
-    AVL trees are more strictly balanced (faster lookups) but require more rotations on insertion. Red-black trees allow slightly taller trees but need fewer rotations (at most 2 per insert), making them faster for insert-heavy workloads. B-trees minimize disk I/O by maximizing branching factor. $\square$
-
----
-
-**Exercise 2.**
-Prove that an AVL tree with $n$ nodes has height at most $1.44 \log_2(n + 2)$.
-
-??? success "Solution to Exercise 2"
-    Let $N(h)$ be the minimum number of nodes in an AVL tree of height $h$. The AVL property requires subtree heights to differ by at most 1, so the minimum tree of height $h$ has subtrees of heights $h-1$ and $h-2$: $N(h) = N(h-1) + N(h-2) + 1$ with $N(0) = 1$, $N(1) = 2$. This recurrence is similar to Fibonacci: $N(h) > F(h+2) - 1$ where $F$ is the Fibonacci sequence. Since $F(k) \approx \phi^k / \sqrt{5}$ where $\phi = (1 + \sqrt{5})/2$: $n \ge N(h) > \phi^{h+2}/\sqrt{5} - 2$. Solving for $h$: $h < \log_\phi(n+2) \cdot \sqrt{5} \approx 1.44 \log_2(n+2)$. Therefore, the height is $O(\log n)$ with constant $\approx 1.44$. $\square$
+    AVL 나무는 더 엄히 고르므로(찾기가 빠르다) 넣을 때 돌리기가 더 든다. 붉은검은 나무는 나무가 조금 높아지지만 돌리기가 적어(넣기마다 많아야 2번) 넣기가 잦은 일감에서 빠르다. B 나무는 갈래 수를 크게 해 원반 들고남을 가장 작게 한다. $\square$
 
 ---
 
-**Exercise 3.**
-Explain why red-black trees are preferred over AVL trees in standard library implementations (e.g., C++ `std::map`, Java `TreeMap`).
+**익힘 2.**
+마디가 $n$개인 AVL 나무의 높이가 많아야 $1.44 \log_2(n + 2)$임을 증명하여라.
 
-??? success "Solution to Exercise 3"
-    Red-black trees perform at most 2 rotations per insertion and at most 3 per deletion, with recolorings propagating upward in $O(\log n)$. AVL trees may perform up to $O(\log n)$ rotations per deletion (one at each level). For workloads with frequent insertions and deletions, red-black trees have lower overhead per modification. AVL trees have a tighter height bound (1.44 vs. 2 times $\log n$), making lookups $\sim$30% faster in the worst case. But the difference is small in practice (one or two fewer comparisons for $n = 10^6$). Standard libraries prioritize balanced performance across all operations, making red-black trees the better default. AVL trees are preferred in read-heavy applications (databases, lookup tables) where the tighter height bound matters. $\square$
-
----
-
-**Exercise 4.**
-An order-statistic tree augments a BST with subtree sizes. Describe how to find the $k$-th smallest element in $O(\log n)$.
-
-??? success "Solution to Exercise 4"
-    Each node stores `size`: the number of nodes in its subtree ($\text{size} = 1 + \text{left.size} + \text{right.size}$). To find the $k$-th smallest: start at root. Let $r = \text{left.size} + 1$ (the rank of the root). If $k = r$: return root. If $k < r$: recurse on left subtree with same $k$. If $k > r$: recurse on right subtree with $k - r$. Each step descends one level, so time is $O(h) = O(\log n)$ for a balanced BST. The size field is updated in $O(1)$ per node during insertions, deletions, and rotations, so all operations remain $O(\log n)$. $\square$
+??? success "익힘 2 풀이"
+    높이가 $h$인 AVL 나무의 가장 적은 마디 수를 $N(h)$이라 하자. AVL 됨됨이는 밑나무의 높이 차이가 많아야 1이기를 바라므로, 높이 $h$의 가장 작은 나무는 높이 $h-1$과 $h-2$인 밑나무를 지닌다. 곧 $N(0) = 1$, $N(1) = 2$에 대해 $N(h) = N(h-1) + N(h-2) + 1$이다. 이 되돌이 식은 피보나치와 비슷해, $F$을 피보나치 열이라 할 때 $N(h) > F(h+2) - 1$이다. $\phi = (1 + \sqrt{5})/2$일 때 $F(k) \approx \phi^k / \sqrt{5}$이므로 $n \ge N(h) > \phi^{h+2}/\sqrt{5} - 2$이다. $h$에 대해 풀면 $h < \log_\phi(n+2) \cdot \sqrt{5} \approx 1.44 \log_2(n+2)$이다. 따라서 높이는 붙박이 곱이 $\approx 1.44$인 $O(\log n)$이다. $\square$
 
 ---
 
-**Exercise 5.**
-A splay tree has $O(\log n)$ amortized time per operation but $O(n)$ worst case for a single operation. Explain when splay trees are preferable to balanced BSTs.
+**익힘 3.**
+여느 곳집 짜보기(보기로 C++ `std::map`, 자바 `TreeMap`)에서 AVL 나무보다 붉은검은 나무를 고르는 까닭을 밝혀라.
 
-??? success "Solution to Exercise 5"
-    Splay trees move accessed nodes to the root via rotations (splaying). This provides two advantages: (1) **Temporal locality**: recently accessed elements are near the root, so repeated accesses are $O(1)$. If the access pattern has a small working set, splay trees outperform balanced BSTs. (2) **Simplicity**: no balance metadata (no colors, no heights) -- just the splay operation. Easier to implement and lower memory overhead. Splay trees are preferable when: (a) the access pattern is skewed (some elements accessed much more than others); (b) simplicity of implementation matters; (c) amortized bounds are acceptable. They are not suitable when: (a) worst-case $O(\log n)$ per operation is required (real-time systems); (b) the access pattern is uniform (all elements equally likely) -- splay's constant factor is higher than red-black trees. $\square$
+??? success "익힘 3 풀이"
+    붉은검은 나무는 넣기마다 많아야 2번, 지우기마다 많아야 3번 돌리고, 빛깔 고치기가 위로 $O(\log n)$만큼 퍼진다. AVL 나무는 지우기마다 $O(\log n)$번까지 돌릴 수 있다(켜마다 한 번). 넣고 지우는 일이 잦은 일감에서는 붉은검은 나무가 고침마다의 짐이 적다. AVL 나무는 높이 울타리가 더 빡빡해($\log n$의 1.44곱절 대 2곱절) 가장 나쁠 때 찾기가 $\sim$30% 빠르다. 그러나 참으로는 그 차이가 작다($n = 10^6$이면 견줌이 한두 번 줄 뿐이다). 여느 곳집은 모든 연산의 저울을 앞세우므로 붉은검은 나무가 맡긴 값으로 낫다. AVL 나무는 빡빡한 높이 울타리가 값진, 읽기가 잦은 쓰임(데이터베이스, 찾기 표)에서 낫다. $\square$
+
+---
+
+**익힘 4.**
+차례 셈속 나무는 이진 찾기 나무에 밑나무 크기를 덧붙인 것이다. $k$번째로 작은 원소를 $O(\log n)$에 찾는 길을 밝혀라.
+
+??? success "익힘 4 풀이"
+    마디마다 밑나무의 마디 수인 `size`을 담는다($\text{size} = 1 + \text{왼.size} + \text{오른.size}$). $k$번째로 작은 것을 찾으려면 뿌리에서 시작한다. $r = \text{왼.size} + 1$(뿌리의 등수)이라 하자. $k = r$이면 뿌리를 내놓는다. $k < r$이면 같은 $k$으로 왼 밑나무를 되돌이한다. $k > r$이면 $k - r$으로 오른 밑나무를 되돌이한다. 걸음마다 한 켜씩 내려가므로 고른 이진 찾기 나무에서 때가 $O(h) = O(\log n)$이다. size 칸은 넣기, 지우기, 돌리기 동안 마디마다 $O(1)$에 고쳐지므로 모든 연산이 $O(\log n)$으로 남는다. $\square$
+
+---
+
+**익힘 5.**
+펼침 나무는 연산마다 고르게 나눈 $O(\log n)$이지만 연산 하나로는 가장 나쁠 때 $O(n)$이다. 고른 이진 찾기 나무보다 펼침 나무가 나은 때를 밝혀라.
+
+??? success "익힘 5 풀이"
+    펼침 나무는 닿은 마디를 돌리기로 뿌리까지 올린다(펼치기). 여기에 나은 점이 둘 있다. (1) **때 지역성**: 요즘 닿은 원소가 뿌리 가까이 있어 되풀이해 닿으면 $O(1)$이다. 닿는 결의 일하는 모임이 작으면 펼침 나무가 고른 이진 찾기 나무를 앞선다. (2) **단순함**: 고름을 위한 딸림 자료(빛깔도 높이도)가 없고 펼치기 연산만 있다. 짜기 쉽고 기억 짐이 적다. 펼침 나무가 나은 때는 (가) 닿는 결이 한쪽으로 쏠릴 때(어떤 원소에 훨씬 자주 닿을 때), (나) 짜기가 단순해야 할 때, (다) 고르게 나눈 울타리로 넉넉할 때다. 맞지 않는 때는 (가) 연산마다 가장 나쁠 때 $O(\log n)$이 있어야 할 때(제때 얼개), (나) 닿는 결이 고를 때(원소마다 낌새가 같을 때)다. 펼침의 붙박이 곱이 붉은검은 나무보다 크기 때문이다. $\square$

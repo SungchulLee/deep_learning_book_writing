@@ -1,147 +1,146 @@
-# Heap Family
+# 더미 집안
 
-A heap is a tree-based data structure that satisfies the heap property: in a min-heap,
-every parent is smaller than or equal to its children. This simple invariant gives
-$O(1)$ access to the minimum element and $O(\log n)$ insertion and extraction,
-making heaps the standard implementation for priority queues.
+더미는 더미 됨됨이를 채우는 나무 바탕 자료 얼개다. 가장 작은 것이 위로 오는
+더미에서는 어버이가 자식보다 작거나 같다. 이 단순한 불변 조건 덕에 가장 작은
+원소에 $O(1)$에 닿고 넣기와 빼기가 $O(\log n)$이 되어, 더미가 앞선 줄을 짜는
+여느 길이 된다.
 
-## Binary Heap
+## 두 갈래 더미
 
-The binary heap stores elements in an array where the children of index $i$ are at
-indices $2i + 1$ and $2i + 2$ (0-indexed). This implicit tree structure eliminates
-pointer overhead and provides excellent cache performance.
+두 갈래 더미는 원소를 배열에 담되 번호 $i$의 자식이 번호 $2i + 1$과 $2i + 2$에
+오게 한다(0부터 셀 때). 이렇게 속에 숨은 나무 얼개는 손가락질 짐을 없애고
+캐시 빠르기를 아주 좋게 한다.
 
-| Operation | Time | Notes |
+| 연산 | 때 | 짚을 것 |
 |---|---|---|
-| Find min (or max) | $O(1)$ | Root of the heap |
-| Insert | $O(\log n)$ | Append + sift up |
-| Extract min (or max) | $O(\log n)$ | Swap root with last, sift down |
-| Decrease key | $O(\log n)$ | Update value + sift up |
-| Delete arbitrary | $O(\log n)$ | Decrease to $-\infty$, then extract |
-| Build heap | $O(n)$ | Bottom-up heapify |
-| Heap sort | $O(n \log n)$ | Build + $n$ extractions |
-| Merge two heaps | $O(n)$ | Build heap on concatenation |
+| 가장 작은(큰) 것 찾기 | $O(1)$ | 더미의 뿌리 |
+| 넣기 | $O(\log n)$ | 뒤에 붙이고 위로 올린다 |
+| 가장 작은(큰) 것 빼기 | $O(\log n)$ | 뿌리와 마지막을 맞바꾸고 아래로 내린다 |
+| 열쇠 낮추기 | $O(\log n)$ | 값을 고치고 위로 올린다 |
+| 아무거나 지우기 | $O(\log n)$ | $-\infty$으로 낮춘 뒤 뺀다 |
+| 더미 세우기 | $O(n)$ | 아래에서 위로 더미로 만들기 |
+| 더미 줄 세우기 | $O(n \log n)$ | 세우기 + 빼기 $n$번 |
+| 더미 둘 합치기 | $O(n)$ | 이어 붙인 것으로 더미를 세운다 |
 
-The $O(n)$ build-heap bound follows from the fact that most nodes are near the
-bottom of the tree. Specifically, the total work is:
+$O(n)$의 더미 세우기 울타리는 거의 모든 마디가 나무 아래쪽에 있다는 데서 나온다.
+자세히는 온 품이 이렇다.
 
 $$
 \sum_{h=0}^{\lfloor \log n \rfloor} \left\lceil \frac{n}{2^{h+1}} \right\rceil \cdot O(h) = O(n)
 $$
 
-where $h$ is the height of each node.
+여기서 $h$은 마디마다의 높이다.
 
-!!! tip "Why Build Heap is O(n), Not O(n log n)"
-    A common mistake is assuming build-heap costs $O(n \log n)$ by inserting
-    elements one at a time. The bottom-up approach (Floyd's algorithm) is faster
-    because it performs sift-down on each node, and most nodes are at low heights
-    where sift-down is cheap.
+!!! tip "더미 세우기가 왜 O(n log n)이 아니라 O(n)인가"
+    원소를 하나씩 넣어 더미를 세우면 $O(n \log n)$이라고 여기기 쉬운데 이는
+    잘못이다. 아래에서 위로 하는 길(플로이드 알고리즘)은 마디마다 아래로
+    내리기를 하는데, 거의 모든 마디가 높이가 낮아 내리기가 싸므로 더 빠르다.
 
-## d-ary Heap
+## d 갈래 더미
 
-A $d$-ary heap generalizes the binary heap by allowing each node to have $d$ children.
+$d$ 갈래 더미는 마디마다 자식을 $d$개 둘 수 있게 두 갈래 더미를 넓힌 것이다.
 
-| Operation | Time | Trade-off |
+| 연산 | 때 | 맞바꿈 |
 |---|---|---|
-| Find min | $O(1)$ | Same as binary |
-| Insert | $O(\log_d n)$ | Faster sift-up |
-| Extract min | $O(d \log_d n)$ | Compare $d$ children per level |
-| Decrease key | $O(\log_d n)$ | Faster than binary for large $d$ |
+| 가장 작은 것 찾기 | $O(1)$ | 두 갈래와 같다 |
+| 넣기 | $O(\log_d n)$ | 위로 올리기가 빠르다 |
+| 가장 작은 것 빼기 | $O(d \log_d n)$ | 켜마다 자식 $d$개를 견준다 |
+| 열쇠 낮추기 | $O(\log_d n)$ | $d$이 크면 두 갈래보다 빠르다 |
 
-Increasing $d$ makes insertions faster (shallower tree) but extractions slower (more
-comparisons per level). For Dijkstra's algorithm, $d = E/V$ balances the number of
-decrease-key and extract-min operations.
+$d$을 키우면 넣기가 빨라지지만(나무가 얕아진다) 빼기가 느려진다(켜마다 견줌이
+는다). 데이크스트라 알고리즘에서는 $d = E/V$이 열쇠 낮추기와 가장 작은 것 빼기의
+횟수를 저울질한다.
 
-## Advanced Heap Variants
+## 앞선 더미 갈래
 
-| Heap Type | Insert | Extract-Min | Decrease-Key | Merge | Space |
+| 더미 갈래 | 넣기 | 가장 작은 것 빼기 | 열쇠 낮추기 | 합치기 | 자리 |
 |---|---|---|---|---|---|
-| Binary | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
-| Binomial | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
-| Fibonacci | $O(1)$ | $O(\log n)$ amort. | $O(1)$ amort. | $O(1)$ | $O(n)$ |
-| Pairing | $O(1)$ | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(1)$ | $O(n)$ |
-| Leftist | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
-| Skew | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(n)$ |
+| 두 갈래 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
+| 이항 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
+| 피보나치 | $O(1)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(1)$ | $O(1)$ | $O(n)$ |
+| 짝짓기 | $O(1)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | $O(1)$ | $O(n)$ |
+| 왼쪽 치우친 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
+| 비스듬한 | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | $O(n)$ |
 
-!!! warning "Fibonacci Heap Practicality"
-    Fibonacci heaps achieve the best theoretical bounds for decrease-key and merge,
-    making them optimal for Dijkstra ($O(V \log V + E)$) and Prim ($O(E + V \log V)$).
-    However, the large constant factors and complex implementation make binary
-    heaps faster in practice for $n < 10^6$.
+!!! warning "피보나치 더미를 참으로 쓸 수 있는가"
+    피보나치 더미는 열쇠 낮추기와 합치기에서 이론으로 가장 좋은 울타리를 이루어,
+    데이크스트라($O(V \log V + E)$)와 프림($O(E + V \log V)$)에 가장 좋다.
+    그러나 붙박이 곱이 크고 짜기가 까다로워 $n < 10^6$이면 참으로는 두 갈래
+    더미가 빠르다.
 
-## Heap Applications and Their Complexities
+## 더미가 쓰이는 자리와 그 복잡도
 
-| Application | Algorithm | Heap Operations | Total Time |
+| 쓰임 | 알고리즘 | 더미 연산 | 온 때 |
 |---|---|---|---|
-| Priority queue | -- | Insert + extract-min | $O(\log n)$ each |
-| Heap sort | Build + extract all | $n$ extract-min | $O(n \log n)$ |
-| $k$ largest elements | Build min-heap of size $k$ | $n$ conditional inserts | $O(n \log k)$ |
-| Merge $k$ sorted lists | Min-heap of size $k$ | $N$ extract + insert | $O(N \log k)$ |
-| Running median | Two heaps (max + min) | Insert + rebalance | $O(\log n)$ per element |
-| Dijkstra's algorithm | Min-heap | $V$ extract + $E$ decrease-key | $O((V+E) \log V)$ |
+| 앞선 줄 | -- | 넣기 + 가장 작은 것 빼기 | 저마다 $O(\log n)$ |
+| 더미 줄 세우기 | 세우고 모두 빼기 | 가장 작은 것 빼기 $n$번 | $O(n \log n)$ |
+| 가장 큰 원소 $k$개 | 크기 $k$의 작은 더미를 세운다 | 조건부 넣기 $n$번 | $O(n \log k)$ |
+| 줄 세운 목록 $k$개 합치기 | 크기 $k$의 작은 더미 | 빼기 + 넣기 $N$번 | $O(N \log k)$ |
+| 흘러가는 가운뎃값 | 더미 둘(큰 것 + 작은 것) | 넣기 + 다시 맞추기 | 원소마다 $O(\log n)$ |
+| 데이크스트라 알고리즘 | 작은 더미 | 빼기 $V$번 + 열쇠 낮추기 $E$번 | $O((V+E) \log V)$ |
 
-Here $N$ is the total number of elements across all lists.
+여기서 $N$은 온 목록에 걸친 원소의 온 수다.
 
-## Binary Heap vs Sorted Array for Priority Queue
+## 앞선 줄로서 두 갈래 더미 대 줄 세운 배열
 
-| Operation | Binary Heap | Sorted Array | Unsorted Array |
+| 연산 | 두 갈래 더미 | 줄 세운 배열 | 줄 세우지 않은 배열 |
 |---|---|---|---|
-| Insert | $O(\log n)$ | $O(n)$ | $O(1)$ |
-| Extract-min | $O(\log n)$ | $O(1)$ | $O(n)$ |
-| Peek min | $O(1)$ | $O(1)$ | $O(n)$ |
-| Build from $n$ | $O(n)$ | $O(n \log n)$ | $O(n)$ |
-| Decrease-key | $O(\log n)$ | $O(n)$ | $O(1)$ |
+| 넣기 | $O(\log n)$ | $O(n)$ | $O(1)$ |
+| 가장 작은 것 빼기 | $O(\log n)$ | $O(1)$ | $O(n)$ |
+| 가장 작은 것 엿보기 | $O(1)$ | $O(1)$ | $O(n)$ |
+| 원소 $n$개로 세우기 | $O(n)$ | $O(n \log n)$ | $O(n)$ |
+| 열쇠 낮추기 | $O(\log n)$ | $O(n)$ | $O(1)$ |
 
-The binary heap provides the best balance: $O(\log n)$ for both insert and extract.
-Use an unsorted array only when inserts dominate and extractions are rare.
+두 갈래 더미가 저울이 가장 좋다. 넣기와 빼기가 모두 $O(\log n)$이다. 넣기가
+판치고 빼기가 드물 때만 줄 세우지 않은 배열을 쓰라.
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Fredman, M. L. and Tarjan, R. E. "Fibonacci heaps and their uses in improved network optimization algorithms." *JACM*, 34(3), 1987.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare binary heaps and Fibonacci heaps in terms of insert, extract-min, and decrease-key operations. When is a Fibonacci heap worth the implementation complexity?
+**익힘 1.**
+넣기, 가장 작은 것 빼기, 열쇠 낮추기를 두고 두 갈래 더미와 피보나치 더미를 견주어라. 짜기가 까다로운데도 피보나치 더미가 값진 때는 언제인가?
 
-??? success "Solution to Exercise 1"
-    | Operation | Binary Heap | Fibonacci Heap |
+??? success "익힘 1 풀이"
+    | 연산 | 두 갈래 더미 | 피보나치 더미 |
     |---|---|---|
-    | Insert | $O(\log n)$ | $O(1)$ amortized |
-    | Extract-min | $O(\log n)$ | $O(\log n)$ amortized |
-    | Decrease-key | $O(\log n)$ | $O(1)$ amortized |
+    | 넣기 | $O(\log n)$ | 고르게 나눈 $O(1)$ |
+    | 가장 작은 것 빼기 | $O(\log n)$ | 고르게 나눈 $O(\log n)$ |
+    | 열쇠 낮추기 | $O(\log n)$ | 고르게 나눈 $O(1)$ |
 
-    Fibonacci heaps improve decrease-key from $O(\log n)$ to $O(1)$, which matters in algorithms that call decrease-key frequently: Dijkstra's algorithm ($O(E$ decrease-keys) improves from $O((V+E) \log V)$ to $O(E + V \log V)$; Prim's MST similarly. Fibonacci heaps are worth the complexity for dense graphs ($E = \Theta(V^2)$) where the improvement is from $O(V^2 \log V)$ to $O(V^2)$. For sparse graphs ($E = O(V)$), the improvement is marginal. In practice, binary heaps are preferred due to simpler implementation and better cache performance; Fibonacci heaps are mainly of theoretical interest. $\square$
-
----
-
-**Exercise 2.**
-Prove that building a binary heap from $n$ elements using the bottom-up (Floyd's) method takes $O(n)$ time, not $O(n \log n)$.
-
-??? success "Solution to Exercise 2"
-    Floyd's algorithm starts at the last internal node and sifts each node down to restore the heap property. A node at height $h$ takes $O(h)$ sift-down operations. The number of nodes at height $h$ in a complete binary tree is $\lceil n / 2^{h+1} \rceil$. Total work: $\sum_{h=0}^{\lfloor \log n \rfloor} \lceil n / 2^{h+1} \rceil \cdot O(h) \le n \sum_{h=0}^{\infty} h / 2^{h+1} = n \cdot 2 = O(n)$. The sum converges because $\sum h / 2^h = 2$. The key insight: most nodes are near the bottom (height 0 or 1), where sift-down is cheap. Only $O(1)$ nodes are at height $\log n$, where sift-down is expensive. This is faster than $n$ individual insertions ($O(n \log n)$) because insertions sift up, and most nodes are at high levels. $\square$
+    피보나치 더미는 열쇠 낮추기를 $O(\log n)$에서 $O(1)$으로 낫게 하는데, 이는 열쇠 낮추기를 자주 부르는 알고리즘에서 값지다. 데이크스트라 알고리즘($O(E)$번의 열쇠 낮추기)은 $O((V+E) \log V)$에서 $O(E + V \log V)$으로 나아지고, 프림의 가장 작은 뻗는 나무도 마찬가지다. 변이 빽빽한 그래프($E = \Theta(V^2)$)에서는 $O(V^2 \log V)$이 $O(V^2)$으로 나아지므로 까다로움을 감수할 만하다. 성긴 그래프($E = O(V)$)에서는 나아지는 것이 적다. 참으로는 짜기가 단순하고 캐시 빠르기가 나은 두 갈래 더미를 즐겨 쓰며, 피보나치 더미는 주로 이론에서 값지다. $\square$
 
 ---
 
-**Exercise 3.**
-A priority queue supports insert and extract-min. Describe how to efficiently support a "merge" operation that combines two priority queues.
+**익힘 2.**
+원소 $n$개로 두 갈래 더미를 세울 때 아래에서 위로(플로이드) 하는 길이 $O(n \log n)$이 아니라 $O(n)$임을 증명하여라.
 
-??? success "Solution to Exercise 3"
-    **Binary heap**: merging two heaps of sizes $m$ and $n$ requires concatenating the arrays and rebuilding the heap in $O(m + n)$. This is the best possible for binary heaps but expensive for repeated merges. **Binomial heap**: merge in $O(\log n)$ by merging sorted lists of binomial trees (similar to binary addition). Supports insert in $O(1)$ amortized and extract-min in $O(\log n)$. **Fibonacci heap**: merge in $O(1)$ -- just concatenate the root lists. All other operations maintain their amortized bounds. **Leftist/skew heap**: merge in $O(\log n)$ with a simple recursive algorithm. For applications requiring frequent merges (e.g., Huffman coding, external sorting), binomial or Fibonacci heaps are preferred. For simple priority queue operations without merging, a binary heap suffices. $\square$
-
----
-
-**Exercise 4.**
-Explain why a sorted array can serve as a priority queue with $O(1)$ extract-min but $O(n)$ insert. When is this tradeoff acceptable?
-
-??? success "Solution to Exercise 4"
-    In a sorted array, the minimum is always at position 0 (or $n-1$), so extract-min is $O(1)$ (read and remove the first/last element). Insertion requires finding the correct position ($O(\log n)$ via binary search) and shifting elements to make room ($O(n)$). The $O(n)$ insert makes sorted arrays unsuitable for general priority queues. This tradeoff is acceptable when: (1) all elements are known in advance and can be sorted once ($O(n \log n)$), then extracted one by one ($O(1)$ each). Example: processing events in sorted order. (2) Insertions are rare but extract-min is frequent. (3) The array is small enough that $O(n)$ insertion is fast in absolute terms. $\square$
+??? success "익힘 2 풀이"
+    플로이드 알고리즘은 마지막 속마디에서 시작해 마디마다 아래로 내려 더미 됨됨이를 되살린다. 높이 $h$의 마디는 아래로 내리기가 $O(h)$번 든다. 온전한 두 갈래 나무에서 높이 $h$의 마디 수는 $\lceil n / 2^{h+1} \rceil$이다. 온 품은 $\sum_{h=0}^{\lfloor \log n \rfloor} \lceil n / 2^{h+1} \rceil \cdot O(h) \le n \sum_{h=0}^{\infty} h / 2^{h+1} = n \cdot 2 = O(n)$이다. $\sum h / 2^h = 2$으로 모이므로 합이 모인다. 고갱이 깨침은 거의 모든 마디가 아래쪽(높이 0이나 1)에 있어 내리기가 싸다는 것이다. 높이 $\log n$인 마디는 $O(1)$개뿐인데 거기서만 내리기가 비싸다. 이는 하나씩 $n$번 넣는 것($O(n \log n)$)보다 빠른데, 넣기는 위로 올리는 데다 거의 모든 마디가 높은 켜에 있기 때문이다. $\square$
 
 ---
 
-**Exercise 5.**
-A financial system processes market orders by price-time priority (lowest price first, ties broken by earliest arrival). Design a priority queue that supports insert, extract-min, and cancel (delete by order ID) in $O(\log n)$.
+**익힘 3.**
+앞선 줄은 넣기와 가장 작은 것 빼기를 받친다. 앞선 줄 둘을 아우르는 "합치기" 연산을 잘 들게 받치는 길을 밝혀라.
 
-??? success "Solution to Exercise 5"
-    Use a **binary heap** augmented with a **hash map** from order ID to heap position. Insert: add to the heap and record the position in the hash map. $O(\log n)$. Extract-min: remove the root, update the hash map. $O(\log n)$. Cancel by ID: look up the position in the hash map ($O(1)$), replace the element with the last element, sift up or down to restore the heap property ($O(\log n)$), remove from the hash map. The composite key is (price, timestamp), ensuring price-time priority. This is the standard design used in financial matching engines. Alternative: use an indexed priority queue (a heap that maintains a position array) for $O(\log n)$ decrease-key and cancel operations without an external hash map. $\square$
+??? success "익힘 3 풀이"
+    **두 갈래 더미**: 크기 $m$과 $n$인 더미 둘을 합치려면 배열을 이어 붙이고 더미를 다시 세워야 하므로 $O(m + n)$이다. 두 갈래 더미로는 이것이 가장 좋으나 되풀이해 합치기에는 비싸다. **이항 더미**: 이항 나무의 줄 세운 목록을 합쳐(두 값 덧셈과 비슷하다) $O(\log n)$에 합친다. 넣기는 고르게 나눈 $O(1)$, 가장 작은 것 빼기는 $O(\log n)$이다. **피보나치 더미**: 뿌리 목록을 이어 붙이기만 하면 되므로 $O(1)$에 합친다. 다른 연산도 고르게 나눈 울타리를 그대로 지킨다. **왼쪽 치우친/비스듬한 더미**: 단순한 되돌이 알고리즘으로 $O(\log n)$에 합친다. 합치기가 잦은 쓰임(보기로 허프먼 부호, 바깥 줄 세우기)에는 이항이나 피보나치 더미가 낫다. 합치기 없이 여느 앞선 줄 연산만 하면 두 갈래 더미로 넉넉하다. $\square$
+
+---
+
+**익힘 4.**
+줄 세운 배열이 왜 가장 작은 것 빼기가 $O(1)$이고 넣기가 $O(n)$인 앞선 줄이 되는지 밝혀라. 이 맞바꿈이 받아들일 만한 때는 언제인가?
+
+??? success "익힘 4 풀이"
+    줄 세운 배열에서는 가장 작은 것이 늘 자리 0(또는 $n-1$)에 있으므로 가장 작은 것 빼기가 $O(1)$이다(첫/마지막 원소를 읽고 뺀다). 넣기는 알맞은 자리를 찾고($O(\log n)$, 이진 찾기) 자리를 내려고 원소를 밀어야 하므로($O(n)$) 비싸다. $O(n)$ 넣기 탓에 줄 세운 배열은 두루 쓰는 앞선 줄로 맞지 않는다. 이 맞바꿈이 받아들일 만한 때는 (1) 원소를 미리 다 알아 한 번 줄 세우고($O(n \log n)$) 하나씩 빼기만 할 때다. 보기로 사건을 줄 세운 차례로 다루는 자리다. (2) 넣기가 드물고 가장 작은 것 빼기가 잦을 때. (3) 배열이 작아 $O(n)$ 넣기도 참으로는 빠를 때. $\square$
+
+---
+
+**익힘 5.**
+어느 금융 얼개가 값-때 앞섬(값이 낮은 것 먼저, 같으면 먼저 온 것)으로 저자 주문을 다룬다. 넣기, 가장 작은 것 빼기, 물리기(주문 번호로 지우기)를 모두 $O(\log n)$에 받치는 앞선 줄을 꾸며라.
+
+??? success "익힘 5 풀이"
+    주문 번호를 더미 자리에 이어 주는 **해시 짝지음**을 덧붙인 **두 갈래 더미**를 쓴다. 넣기: 더미에 넣고 그 자리를 해시 짝지음에 적는다. $O(\log n)$. 가장 작은 것 빼기: 뿌리를 빼고 해시 짝지음을 고친다. $O(\log n)$. 번호로 물리기: 해시 짝지음에서 자리를 찾고($O(1)$), 그 원소를 마지막 원소로 갈음한 뒤 더미 됨됨이를 되살리려고 위나 아래로 옮기고($O(\log n)$), 해시 짝지음에서 지운다. 아우른 열쇠는 (값, 때 도장)이므로 값-때 앞섬이 지켜진다. 이것이 금융 짝짓기 엔진의 여느 설계다. 다른 길: 자리 배열을 지니는 색인 붙은 앞선 줄을 쓰면 바깥 해시 짝지음 없이도 열쇠 낮추기와 물리기를 $O(\log n)$에 할 수 있다. $\square$
