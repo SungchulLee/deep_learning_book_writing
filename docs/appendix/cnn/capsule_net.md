@@ -52,7 +52,7 @@ class DigitCaps(nn.Module):
         W = torch.cat([self.W] * batch_size, dim=0)
         u_hat = torch.matmul(W, x)
         
-        # Routing
+        # 길잡이
         b_ij = torch.zeros(batch_size, self.num_routes, self.num_capsules, 1)
         if x.is_cuda:
             b_ij = b_ij.cuda()
@@ -81,7 +81,7 @@ class CapsNet(nn.Module):
         self.primary_capsules = PrimaryCaps()
         self.digit_capsules = DigitCaps(num_capsules=num_classes)
         
-        # Decoder
+        # 풀개
         self.decoder = nn.Sequential(
             nn.Linear(16 * num_classes, 512),
             nn.ReLU(inplace=True),

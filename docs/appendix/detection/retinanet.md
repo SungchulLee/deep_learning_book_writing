@@ -23,26 +23,26 @@ import torch.nn as nn
 class FPN(nn.Module):
     def __init__(self):
         super().__init__()
-        # Bottom-up pathway
+        # 아래에서 위로 가는 길
         self.conv1 = nn.Conv2d(3, 64, 7, 2, 3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(3, 2, 1)
         
-        # Lateral connections
+        # 옆으로 잇기
         self.lateral3 = nn.Conv2d(64, 256, 1)
         
-        # Top-down pathway
+        # 위에서 아래로 가는 길
         self.smooth = nn.Conv2d(256, 256, 3, 1, 1)
     
     def forward(self, x):
         c1 = self.relu(self.bn1(self.conv1(x)))
         c1 = self.maxpool(c1)
         
-        # Lateral connection
+        # 옆으로 잇기
         p3 = self.lateral3(c1)
         
-        # Smooth
+        # 매끄럽게 하기
         p3 = self.smooth(p3)
         
         return [p3]
@@ -52,7 +52,7 @@ class RetinaNet(nn.Module):
         super().__init__()
         self.fpn = FPN()
         
-        # Classification subnet
+        # 가름 잔그물
         self.cls_subnet = nn.Sequential(
             nn.Conv2d(256, 256, 3, 1, 1),
             nn.ReLU(inplace=True),
@@ -61,7 +61,7 @@ class RetinaNet(nn.Module):
             nn.Conv2d(256, num_anchors * num_classes, 3, 1, 1)
         )
         
-        # Box regression subnet
+        # 상자 되돌이 잔그물
         self.box_subnet = nn.Sequential(
             nn.Conv2d(256, 256, 3, 1, 1),
             nn.ReLU(inplace=True),

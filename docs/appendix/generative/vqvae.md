@@ -9,13 +9,13 @@ VQ-VAE은 2017년 글 "Neural Discrete Representation Learning"에서 나왔다.
 ```python
 #!/usr/bin/env python3
 """
-VQ-VAE - Vector Quantized Variational Autoencoder
-Paper: "Neural Discrete Representation Learning" (2017)
-Key idea:
-  - Replace continuous latent space with discrete codebook entries
-  - Enables powerful autoregressive priors
+VQ-VAE - 벡터를 수로 줄인 변이 제 부호기
+글: "신경 그물로 따로 떨어진 드러냄 배우기" (2017)
+고갱이 깨침:
+  - 이어진 숨은 밭을 따로 떨어진 부호책 항목으로 갈음한다
+  - 힘센 제 되돌이 앞선 분포를 쓸 수 있다
 
-File: appendix/generative/vqvae.py
+두루마리: appendix/generative/vqvae.py
 """
 
 import torch
@@ -28,7 +28,7 @@ import torch.nn.functional as F
 
 
 class VectorQuantizer(nn.Module):
-    """Codebook for discrete latent variables."""
+    """따로 떨어진 숨은 변수를 담는 부호책."""
     def __init__(self, num_embeddings=512, embedding_dim=64):
         super().__init__()
         self.embedding = nn.Embedding(num_embeddings, embedding_dim)
@@ -47,7 +47,7 @@ class VectorQuantizer(nn.Module):
 
 
 class VQVAE(nn.Module):
-    """Minimal VQ-VAE."""
+    """가장 단출한 VQ-VAE."""
     def __init__(self, latent_dim=64):
         super().__init__()
         self.encoder = nn.Linear(784, latent_dim)

@@ -74,16 +74,16 @@ class GAN(nn.Module):
         return self.generator(z)
 
 # ---------------------------------------------------------------------------
-# GAN Training Loop
+# GAN 익힘 되돌이
 # ---------------------------------------------------------------------------
-# The minimax game alternates between:
-#   1. Update D: maximize log D(x) + log(1 - D(G(z)))
-#   2. Update G: minimize log(1 - D(G(z)))  [or equivalently maximize log D(G(z))]
-# In practice, step 2 uses the "non-saturating" loss: -log(D(G(z)))
-# because it provides stronger gradients early in training.
+# 가장 작게-가장 크게 겨루기는 다음을 번갈아 한다:
+#   1. D 고치기: log D(x) + log(1 - D(G(z)))을 가장 크게
+#   2. G 고치기: log(1 - D(G(z)))을 가장 작게  [또는 같은 뜻으로 log D(G(z))을 가장 크게]
+# 참으로는 둘째 걸음에서 "잦아들지 않는" 잃음 -log(D(G(z)))을 쓴다
+# 익힘 이른 판에 기울기가 더 세기 때문이다.
 
 def update_D(X, Z, net_D, net_G, loss, trainer_D):
-    """Update discriminator: maximize log D(x) + log(1 - D(G(z)))."""
+    """가름개 고치기: log D(x) + log(1 - D(G(z)))을 가장 크게."""
     batch_size = X.shape[0]
     ones = torch.ones(batch_size, 1, device=X.device)
     zeros = torch.zeros(batch_size, 1, device=X.device)
@@ -98,7 +98,7 @@ def update_D(X, Z, net_D, net_G, loss, trainer_D):
 
 
 def update_G(Z, net_D, net_G, loss, trainer_G):
-    """Update generator: maximize log D(G(z))  (non-saturating loss)."""
+    """만들개 고치기: log D(G(z))을 가장 크게(잦아들지 않는 잃음)."""
     batch_size = Z.shape[0]
     ones = torch.ones(batch_size, 1, device=Z.device)
     trainer_G.zero_grad()
@@ -112,7 +112,7 @@ def update_G(Z, net_D, net_G, loss, trainer_G):
 
 def train_gan(net_G, net_D, data_iter, num_epochs, latent_dim,
               lr_D=0.0002, lr_G=0.0002, device='cpu'):
-    """Full GAN training loop with loss tracking."""
+    """잃음을 좇는 온전한 GAN 익힘 되돌이."""
     loss = nn.BCELoss()
     net_G, net_D = net_G.to(device), net_D.to(device)
     trainer_D = torch.optim.Adam(net_D.parameters(), lr=lr_D, betas=(0.5, 0.999))

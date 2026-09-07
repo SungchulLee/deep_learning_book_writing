@@ -9,16 +9,16 @@ DQN은 2015년 글 "Human-level control through deep reinforcement learning"에�
 ```python
 #!/usr/bin/env python3
 """
-DQN - Deep Q-Network
-Paper: "Human-level control through deep reinforcement learning" (2015)
-Authors: Volodymyr Mnih et al.
-Key idea:
-  - Approximate Q(s,a) with a neural network
-  - Train with TD target using a *target network*
-  - Use experience replay to break correlation
+DQN - 깊은 Q 그물
+글: "깊은 북돋움 배움으로 사람 수준 다루기" (2015)
+지은이: 볼로디미르 므니 외
+고갱이 깨침:
+  - 신경 그물로 Q(s,a)을 어림한다
+  - *과녁 그물*을 쓰는 TD 과녁으로 익힌다
+  - 겪음 되짚기로 얽힘을 끊는다
 
-File: appendix/rl/dqn.py
-Note: Educational reference: model + replay + TD loss computation (no full env loop).
+두루마리: appendix/rl/dqn.py
+눈여겨볼 것: 배우기 위한 본이다. 모형 + 되짚기 + TD 잃음 셈(온전한 둘레 되돌이는 없다).
 """
 
 from dataclasses import dataclass
@@ -35,7 +35,7 @@ import torch.nn.functional as F
 
 
 class QNetwork(nn.Module):
-    """Simple MLP Q(s,a) approximator for discrete actions."""
+    """따로 떨어진 움직임을 위한 단순한 MLP Q(s,a) 어림개."""
     def __init__(self, obs_dim: int, num_actions: int, hidden: int = 128):
         super().__init__()
         self.net = nn.Sequential(
@@ -53,7 +53,7 @@ class QNetwork(nn.Module):
 
 @dataclass
 class Transition:
-    """One experience tuple stored in replay buffer."""
+    """되짚기 곳간에 담는 겪음 하나."""
     s: torch.Tensor
     a: torch.Tensor
     r: torch.Tensor
@@ -62,7 +62,7 @@ class Transition:
 
 
 class ReplayBuffer:
-    """Fixed-size FIFO replay buffer."""
+    """크기가 붙박인 선입선출 되짚기 곳간."""
     def __init__(self, capacity: int = 100_000):
         self.buf = deque(maxlen=capacity)
 
@@ -71,7 +71,7 @@ class ReplayBuffer:
 
     def sample(self, batch_size: int):
         batch = random.sample(self.buf, batch_size)
-        # Stack fields into batch tensors
+        # 밭을 쌓아 묶음 텐서로 만든다
         s = torch.stack([b.s for b in batch], dim=0)
         a = torch.stack([b.a for b in batch], dim=0)
         r = torch.stack([b.r for b in batch], dim=0)
@@ -85,26 +85,26 @@ class ReplayBuffer:
 
 def dqn_td_loss(q_net: nn.Module, target_net: nn.Module, batch, gamma: float = 0.99):
     """
-    Compute DQN TD loss.
+    DQN의 TD 잃음을 셈한다.
 
-    For each transition (s,a,r,s',done):
+    넘어감 (s,a,r,s',done)마다:
       target = r + gamma * (1-done) * max_a' Q_target(s', a')
       loss = MSE( Q(s,a), target )
 
-    Note:
-      - a is discrete action index (shape: (B,))
-      - done is 1 if terminal else 0
+    눈여겨볼 것:
+      - a은 따로 떨어진 움직임의 번호다(꼴: (B,))
+      - done은 끝이면 1, 아니면 0이다
     """
     s, a, r, s2, done = batch
 
-    # Current Q-values for all actions: (B, A)
+    # 모든 움직임에 대한 이제의 Q 값: (B, A)
     q_values = q_net(s)
 
-    # Select Q(s,a) using gather:
-    # a must be shape (B,1) for gather on dim=1
+    # gather으로 Q(s,a)을 고른다:
+    # dim=1에서 gather 하려면 a의 꼴이 (B,1)이어야 한다
     q_sa = q_values.gather(1, a.long().unsqueeze(1)).squeeze(1)  # (B,)
 
-    # Compute target using target network (no grad)
+    # 과녁 그물로 과녁을 셈한다(기울기 없이)
     with torch.no_grad():
         q_next = target_net(s2)                   # (B, A)
         max_q_next = q_next.max(dim=1).values     # (B,)
@@ -115,12 +115,12 @@ def dqn_td_loss(q_net: nn.Module, target_net: nn.Module, batch, gamma: float = 0
 
 
 if __name__ == "__main__":
-    # Toy smoke test (no environment)
+    # 장난감 맛보기 시험(둘레 없음)
     obs_dim, num_actions = 8, 4
     q = QNetwork(obs_dim, num_actions)
     tgt = QNetwork(obs_dim, num_actions)
 
-    # Fake batch
+    # 거짓 묶음
     B = 5
     s = torch.randn(B, obs_dim)
     a = torch.randint(0, num_actions, (B,))

@@ -9,16 +9,16 @@
 ```python
 #!/usr/bin/env python3
 """
-Loss Functions - Common deep learning losses
-Includes:
-  - Cross-Entropy (classification)
-  - MSE (regression)
-  - BCEWithLogits (binary)
-  - Focal Loss (dense detection)
-  - KL divergence helper (VAE-like)
+잃음 함수 - 흔한 깊은 배움 잃음
+담긴 것:
+  - 엇결 엔트로피(가름)
+  - MSE(되돌이)
+  - BCEWithLogits(둘 가름)
+  - 초점 잃음(촘촘한 알아내기)
+  - KL 갈림 도우미(VAE 꼴)
 
-File: appendix/utils/losses.py
-Note: Educational implementations for clarity.
+두루마리: appendix/utils/losses.py
+눈여겨볼 것: 알아보기 쉽도록 배우기 위해 짜 본 것이다.
 """
 
 import torch
@@ -32,26 +32,26 @@ import torch.nn.functional as F
 
 def focal_loss(logits, targets, alpha=0.25, gamma=2.0, reduction="mean"):
     """
-    Focal loss for binary classification (often extended to multi-class).
+    둘 가름을 위한 초점 잃음(흔히 여러 갈래로 넓힌다).
 
-    logits:  (B,) or (B,1) raw scores
-    targets: (B,) in {0,1}
+    logits:  (B,) 또는 (B,1) 날것 점수
+    targets: (B,), {0,1} 안의 값
 
     FL = - alpha_t * (1 - p_t)^gamma * log(p_t)
-    where p_t is model probability of the true class.
+    여기서 p_t은 참 갈래에 모형이 준 낌새다.
     """
     targets = targets.float()
 
-    # Compute probability with sigmoid
+    # 시그모이드로 낌새를 셈한다
     p = torch.sigmoid(logits)
 
-    # p_t = p if y=1 else (1-p)
+    # y=1이면 p_t = p, 아니면 (1-p)
     p_t = p * targets + (1 - p) * (1 - targets)
 
-    # alpha_t = alpha if y=1 else (1-alpha)
+    # y=1이면 alpha_t = alpha, 아니면 (1-alpha)
     alpha_t = alpha * targets + (1 - alpha) * (1 - targets)
 
-    # Standard BCE loss term: -log(p_t)
+    # 여느 BCE 잃음 마디: -log(p_t)
     ce = -torch.log(p_t.clamp(min=1e-8))
 
     loss = alpha_t * ((1 - p_t) ** gamma) * ce
@@ -65,7 +65,7 @@ def focal_loss(logits, targets, alpha=0.25, gamma=2.0, reduction="mean"):
 
 def kl_normal(mu, logvar):
     """
-    KL divergence between N(mu, sigma^2) and N(0,1) per sample.
+    보기마다 N(mu, sigma^2)과 N(0,1) 사이의 KL 갈림.
 
     KL = -0.5 * sum(1 + logvar - mu^2 - exp(logvar))
     """

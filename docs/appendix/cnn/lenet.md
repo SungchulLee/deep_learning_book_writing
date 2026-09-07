@@ -7,11 +7,11 @@ LeNet-5은 얀 르쿤과 그 동아리가 1998년 글 "글월 알아보기에 �
 ```python
 #!/usr/bin/env python3
 """
-LeNet-5 - Convolutional Neural Network
-Paper: "Gradient-Based Learning Applied to Document Recognition" (1998)
-Authors: Yann LeCun et al.
-Key: Early CNN architecture using convolution, average pooling, and fully
-connected layers; widely used for MNIST digit classification.
+LeNet-5 - 엮음 신경 그물
+글: "글월 알아보기에 쓰인 기울기 바탕 배우기" (1998)
+지은이: 얀 르쿤 외
+고갱이: 엮음, 고르게 모으기, 온통 이은 켜를 쓰는 이른 CNN 얼개.
+MNIST 숫자 가름에 널리 쓰였다.
 """
 
 import torch
@@ -27,11 +27,11 @@ class LeNet(nn.Module):
     def __init__(self, num_classes=10):
         super().__init__()
 
-        # Convolutional layers
+        # 엮음 켜
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5)
         self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5)
 
-        # Fully connected layers
+        # 온통 이은 켜
         self.fc1 = nn.Linear(16 * 4 * 4, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, num_classes)

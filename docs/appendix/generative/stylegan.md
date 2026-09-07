@@ -9,13 +9,13 @@ StyleGAN은 2019년 글 "A Style-Based Generator Architecture for GANs"에서 �
 ```python
 #!/usr/bin/env python3
 """
-StyleGAN - Style-Based Generator Architecture
-Paper: "A Style-Based Generator Architecture for GANs" (2019)
-Key idea:
-  - Separate latent mapping network
-  - Style modulation at each layer
+StyleGAN - 결 바탕 만들개 얼개
+글: "맞겨루기 만들개를 위한 결 바탕 만들개 얼개" (2019)
+고갱이 깨침:
+  - 따로 둔 숨은 옮김 그물
+  - 켜마다 결을 다스린다
 
-File: appendix/generative/stylegan.py
+두루마리: appendix/generative/stylegan.py
 """
 
 import torch
@@ -27,7 +27,7 @@ import torch.nn as nn
 
 
 class MappingNetwork(nn.Module):
-    """Maps latent z → style w."""
+    """숨은 z을 결 w으로 옮긴다."""
     def __init__(self, z_dim=512, w_dim=512):
         super().__init__()
         self.net = nn.Sequential(
@@ -41,7 +41,7 @@ class MappingNetwork(nn.Module):
 
 
 class StyleGenerator(nn.Module):
-    """Simplified StyleGAN generator."""
+    """단순하게 만든 StyleGAN 만들개."""
     def __init__(self, w_dim=512):
         super().__init__()
         self.mapping = MappingNetwork()

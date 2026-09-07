@@ -9,16 +9,16 @@
 ```python
 #!/usr/bin/env python3
 """
-Bidirectional RNN / GRU / LSTM - Processing sequences in both directions
-Key idea: run one RNN forward (t=1..T) and another backward (t=T..1),
-then combine their outputs (concat or sum).
+두 방향 RNN / GRU / LSTM - 이음을 두 방향으로 다루기
+고갱이 깨침: RNN 하나는 앞으로(t=1..T), 다른 하나는 뒤로(t=T..1) 돌린 뒤
+그 날임을 아우른다(이어 붙이거나 더한다).
 
-This file provides:
-  - Bidirectional wrapper around a *cell-based* RNN (vanilla), GRU, or LSTM-like module
-  - For simplicity and clarity, we implement a bidirectional vanilla RNN here.
+이 두루마리가 주는 것:
+  - *칸 바탕* RNN(맨 것), GRU, LSTM 꼴 묶음을 두 방향으로 감싸는 것
+  - 단순하고 알아보기 쉽도록 여기서는 두 방향 맨 RNN을 짠다.
 
-File: appendix/sequence/bidirectional.py
-Note: Educational, fully commented implementation (batch-first).
+두루마리: appendix/sequence/bidirectional.py
+눈여겨볼 것: 주석을 빠짐없이 단, 배우기 위한 짜보기다(묶음을 앞에 둔다).
 """
 
 import torch
@@ -31,7 +31,7 @@ import torch.nn as nn
 
 class RNNCell(nn.Module):
     """
-    Reuse a simple vanilla RNN cell.
+    단순한 맨 RNN 칸을 되쓴다.
 
     h_t = tanh(Wx x_t + Wh h_{t-1})
     """
@@ -46,28 +46,28 @@ class RNNCell(nn.Module):
 
 class BidirectionalRNN(nn.Module):
     """
-    Bidirectional vanilla RNN.
+    두 방향 맨 RNN.
 
-    We maintain:
-      - forward hidden state h_f (left -> right)
-      - backward hidden state h_b (right -> left)
+    지니는 것:
+      - 앞으로 가는 숨은 상태 h_f (왼쪽 -> 오른쪽)
+      - 뒤로 가는 숨은 상태 h_b (오른쪽 -> 왼쪽)
 
-    For each time step t:
-      forward:  h_f[t] = f(x[t], h_f[t-1])
-      backward: h_b[t] = f(x[t], h_b[t+1])   (computed by iterating reversed time)
+    때 걸음 t마다:
+      앞으로:  h_f[t] = f(x[t], h_f[t-1])
+      뒤로: h_b[t] = f(x[t], h_b[t+1])   (때를 거꾸로 돌며 셈한다)
 
-    Output combination (common choices):
-      - concat: y[t] = [h_f[t], h_b[t]]  -> dimension 2*hidden
-      - sum:    y[t] = h_f[t] + h_b[t]  -> dimension hidden
+    날임 아우르기(흔히 고르는 것):
+      - 이어 붙이기: y[t] = [h_f[t], h_b[t]]  -> 차수 2*hidden
+      - 더하기:    y[t] = h_f[t] + h_b[t]  -> 차수 hidden
 
-    Here we implement concatenation (most common).
+    여기서는 이어 붙이기를 짠다(가장 흔하다).
     """
     def __init__(self, input_size: int, hidden_size: int, concat: bool = True):
         super().__init__()
         self.hidden_size = hidden_size
         self.concat = concat
 
-        # Two independent RNN cells: one forward, one backward
+        # 따로 도는 RNN 칸 둘: 하나는 앞으로, 하나는 뒤로
         self.cell_f = RNNCell(input_size, hidden_size)
         self.cell_b = RNNCell(input_size, hidden_size)
 
@@ -75,53 +75,53 @@ class BidirectionalRNN(nn.Module):
         """
         x: (B, T, input_size)
 
-        Returns:
-          y: (B, T, 2*hidden) if concat=True else (B, T, hidden)
-          (hT_f, hT_b): final forward/backward hidden states (B, hidden)
+        돌려주는 것:
+          y: concat=True이면 (B, T, 2*hidden), 아니면 (B, T, hidden)
+          (hT_f, hT_b): 마지막 앞으로/뒤로 숨은 상태 (B, hidden)
         """
         B, T, _ = x.shape
         device = x.device
 
-        # Initialize hidden states if not provided
+        # 숨은 상태가 주어지지 않으면 첫자리를 잡는다
         h_f = torch.zeros(B, self.hidden_size, device=device) if h0_f is None else h0_f
         h_b = torch.zeros(B, self.hidden_size, device=device) if h0_b is None else h0_b
 
-        # ---- Forward pass (t = 0..T-1) ----
+        # ---- 앞으로 걸음 (t = 0..T-1) ----
         forward_states = []
         for t in range(T):
             x_t = x[:, t, :]               # (B, input)
             h_f = self.cell_f(x_t, h_f)    # update forward hidden
             forward_states.append(h_f)     # store h_f[t]
 
-        # ---- Backward pass (t = T-1..0) ----
+        # ---- 뒤로 걸음 (t = T-1..0) ----
         backward_states_reversed = []
         for t in reversed(range(T)):
             x_t = x[:, t, :]               # (B, input)
             h_b = self.cell_b(x_t, h_b)    # update backward hidden (moving right->left)
             backward_states_reversed.append(h_b)  # this is h_b[t], but collected reversed
 
-        # Reverse backward list so it aligns with time order 0..T-1
+        # 뒤로 간 목록을 되뒤집어 때 차례 0..T-1에 맞춘다
         backward_states = list(reversed(backward_states_reversed))
 
-        # ---- Combine forward and backward states per time step ----
+        # ---- 때 걸음마다 앞으로/뒤로 상태를 아우른다 ----
         y_steps = []
         for t in range(T):
             hf_t = forward_states[t]       # (B, hidden)
             hb_t = backward_states[t]      # (B, hidden)
 
             if self.concat:
-                # Concatenate along feature dimension -> (B, 2*hidden)
+                # 결 차수를 따라 이어 붙인다 -> (B, 2*hidden)
                 y_t = torch.cat([hf_t, hb_t], dim=1)
             else:
-                # Sum -> (B, hidden)
+                # 더한다 -> (B, hidden)
                 y_t = hf_t + hb_t
 
             y_steps.append(y_t)
 
-        # Stack to (B, T, feat_dim)
+        # 쌓아서 (B, T, feat_dim)으로 만든다
         y = torch.stack(y_steps, dim=1)
 
-        # Final hidden states (after last updates in each direction)
+        # 마지막 숨은 상태(방향마다 마지막으로 고친 뒤)
         hT_f = forward_states[-1]          # (B, hidden)
         hT_b = backward_states[0]          # (B, hidden)  (backward final corresponds to t=0 in aligned order)
 
@@ -129,7 +129,7 @@ class BidirectionalRNN(nn.Module):
 
 
 if __name__ == "__main__":
-    # Quick sanity check
+    # 얼른 해 보는 맛보기 살핌
     model = BidirectionalRNN(input_size=8, hidden_size=16, concat=True)
     x = torch.randn(2, 5, 8)
 

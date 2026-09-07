@@ -38,7 +38,7 @@ class PyramidBasicBlock(nn.Module):
         out = self.conv2(torch.nn.functional.relu(self.bn2(out)))
         out = self.bn3(out)
         
-        # Zero padding for dimension matching
+        # 차수를 맞추려는 0 덧대기
         shortcut = self.shortcut(x)
         if shortcut.size(1) != out.size(1):
             pad_size = out.size(1) - shortcut.size(1)

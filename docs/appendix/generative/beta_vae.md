@@ -9,13 +9,13 @@ Beta-VAE은 2017년 글 "β-VAE: Learning Basic Visual Concepts with a Constrain
 ```python
 #!/usr/bin/env python3
 """
-Beta-VAE - Variational Autoencoder with Disentanglement Control
-Paper: "β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework" (2017)
-Key idea:
-  - Add a β coefficient to the KL term
-  - Larger β → stronger disentanglement, worse reconstruction
+Beta-VAE - 풀어 헤치기를 다스리는 변이 제 부호기
+글: "β-VAE: 옭아맨 변이 틀로 밑바탕 보기 깨침 배우기" (2017)
+고갱이 깨침:
+  - KL 마디에 β 값을 더한다
+  - β이 클수록 풀어 헤치기는 세지고 되살리기는 나빠진다
 
-File: appendix/generative/beta_vae.py
+두루마리: appendix/generative/beta_vae.py
 """
 
 import torch
@@ -28,7 +28,7 @@ import torch.nn.functional as F
 
 
 class Encoder(nn.Module):
-    """Encodes input x into latent mean and log-variance."""
+    """들임 x을 숨은 평균과 로그 흩어짐으로 부호로 바꾼다."""
     def __init__(self, latent_dim=16):
         super().__init__()
         self.fc = nn.Linear(784, 256)
@@ -41,7 +41,7 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    """Decodes latent variable z back to input space."""
+    """숨은 변수 z을 들임 밭으로 되돌린다."""
     def __init__(self, latent_dim=16):
         super().__init__()
         self.fc = nn.Linear(latent_dim, 256)
@@ -53,7 +53,7 @@ class Decoder(nn.Module):
 
 
 class BetaVAE(nn.Module):
-    """β-VAE model."""
+    """β-VAE 모형."""
     def __init__(self, latent_dim=16, beta=4.0):
         super().__init__()
         self.encoder = Encoder(latent_dim)

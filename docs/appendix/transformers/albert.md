@@ -9,19 +9,19 @@ ALBERT은 2019년 글 "ALBERT: A Lite BERT for Self-supervised Learning of Langu
 ```python
 #!/usr/bin/env python3
 """
-ALBERT - A Lite BERT
-Paper: "ALBERT: A Lite BERT for Self-supervised Learning of Language Representations" (2019)
-Authors: Zhenzhong Lan et al.
-Key ideas:
-  1) Factorized embedding parameterization:
-       vocab embedding dim (E) smaller than hidden dim (H)
-       embed: vocab -> E, then project E -> H
-  2) Cross-layer parameter sharing:
-       reuse the same Transformer layer weights across all layers
-  3) Sentence-order prediction (SOP) (often discussed vs NSP)
+ALBERT - 가벼운 BERT
+글: "ALBERT: 말 드러냄을 스스로 이끌며 배우기 위한 가벼운 BERT" (2019)
+지은이: 전중 란 외
+고갱이 깨침:
+  1) 나눈 담음 매기기:
+       낱말 담음 차수(E)를 숨은 차수(H)보다 작게 둔다
+       담기: 낱말 -> E, 그다음 E -> H으로 되비춘다
+  2) 켜를 넘나드는 매개변수 나눠 쓰기:
+       같은 변환기 켜의 짐을 모든 켜에서 되쓴다
+  3) 월 차례 미루어 보기(SOP)(흔히 NSP과 견주어 이야기된다)
 
-File: appendix/transformers/albert.py
-Note: Educational implementation showing factorized embeddings + shared layer.
+두루마리: appendix/transformers/albert.py
+눈여겨볼 것: 나눈 담음과 나누어 쓰는 켜를 보이는, 배우기 위한 짜보기다.
 """
 
 import torch
@@ -33,7 +33,7 @@ import torch.nn as nn
 
 
 class SharedTransformerBlock(nn.Module):
-    """One transformer encoder layer, intended to be reused multiple times."""
+    """여러 번 되쓰려고 만든 변환기 부호기 켜 하나."""
     def __init__(self, d_model=768, nhead=12):
         super().__init__()
         self.layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
@@ -44,9 +44,9 @@ class SharedTransformerBlock(nn.Module):
 
 class ALBERT(nn.Module):
     """
-    ALBERT encoder-only model with:
-      - factorized embeddings
-      - shared transformer block repeated num_layers times
+    다음을 갖춘 부호기만 있는 ALBERT 모형:
+      - 나눈 담음
+      - 나누어 쓰는 변환기 덩이를 num_layers 번 되풀이
     """
     def __init__(self, vocab_size=30000, embed_dim=128, hidden_dim=768, nhead=12, num_layers=12):
         super().__init__()
@@ -59,22 +59,22 @@ class ALBERT(nn.Module):
         self.lm_head = nn.Linear(hidden_dim, vocab_size)
 
     def forward(self, input_ids, attention_mask=None):
-        # Token embedding in low dimension E
+        # 낮은 차수 E에서의 낱말 담기
         x = self.token_embed(input_ids)     # (B, S, E)
 
-        # Project to hidden dimension H
+        # 숨은 차수 H으로 되비춘다
         x = self.embed_proj(x)              # (B, S, H)
 
-        # Padding mask (True = ignore)
+        # 덧대기 가림(True이면 셈에서 뺀다)
         src_key_padding_mask = None
         if attention_mask is not None:
             src_key_padding_mask = ~attention_mask.bool()
 
-        # Reuse the same block multiple times (parameter sharing)
+        # 같은 덩이를 여러 번 되쓴다(매개변수 나눠 쓰기)
         for _ in range(self.num_layers):
             x = self.shared_block(x, src_key_padding_mask=src_key_padding_mask)
 
-        # MLM logits
+        # MLM 로짓
         logits = self.lm_head(x)            # (B, S, vocab)
         return logits
 

@@ -9,13 +9,13 @@ Pix2Pix은 2017년 글 "Image-to-Image Translation with Conditional Adversarial 
 ```python
 #!/usr/bin/env python3
 """
-Pix2Pix - Paired Image-to-Image Translation
-Paper: "Image-to-Image Translation with Conditional Adversarial Networks" (2017)
-Key idea:
-  - Conditional GAN
-  - Requires paired (x, y) training data
+Pix2Pix - 짝지은 그림에서 그림으로 옮기기
+글: "조건 붙은 맞겨루기 그물로 그림에서 그림으로 옮기기" (2017)
+고갱이 깨침:
+  - 조건 붙은 맞겨루기 만들개
+  - 짝지은 (x, y) 익힘 자료가 든다
 
-File: appendix/generative/pix2pix.py
+두루마리: appendix/generative/pix2pix.py
 """
 
 import torch
@@ -27,7 +27,7 @@ import torch.nn as nn
 
 
 class Generator(nn.Module):
-    """Simple conditional generator."""
+    """단순한 조건 붙은 만들개."""
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
@@ -41,7 +41,7 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-    """Conditional discriminator."""
+    """조건 붙은 가름개."""
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(

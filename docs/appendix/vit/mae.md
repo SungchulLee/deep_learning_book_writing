@@ -9,16 +9,16 @@ MAE은 2021년 글 "Masked Autoencoders Are Scalable Vision Learners"에서 나�
 ```python
 #!/usr/bin/env python3
 """
-MAE - Masked Autoencoders
-Paper: "Masked Autoencoders Are Scalable Vision Learners" (2021)
-Authors: Kaiming He et al.
-Key idea:
-  - Mask most image patches (e.g., 75%)
-  - Encode only visible patches
-  - Lightweight decoder reconstructs masked patches
+MAE - 가린 제 부호기
+글: "가린 제 부호기는 크게 키울 수 있는 보기 배움꾼이다" (2021)
+지은이: 카이밍 허 외
+고갱이 깨침:
+  - 그림 조각 대부분을 가린다(예: 75%)
+  - 보이는 조각만 부호로 바꾼다
+  - 가벼운 풀개가 가린 조각을 되살린다
 
-File: appendix/vit/mae.py
-Note: Educational implementation (encoder-decoder structure).
+두루마리: appendix/vit/mae.py
+눈여겨볼 것: 배우기 위한 짜보기다(부호기-풀개 얼개).
 """
 
 import torch
@@ -31,18 +31,18 @@ import torch.nn as nn
 
 class MAE(nn.Module):
     """
-    Masked Autoencoder with ViT-style encoder and decoder.
+    ViT 결의 부호기와 풀개를 지닌 가린 제 부호기.
     """
     def __init__(self, embed_dim=768, decoder_dim=512, num_patches=196):
         super().__init__()
 
-        # Encoder processes visible patches only
+        # 부호기는 보이는 조각만 다룬다
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embed_dim, nhead=12, batch_first=True
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=12)
 
-        # Decoder reconstructs masked patches
+        # 풀개가 가린 조각을 되살린다
         decoder_layer = nn.TransformerEncoderLayer(
             d_model=decoder_dim, nhead=8, batch_first=True
         )
@@ -55,28 +55,28 @@ class MAE(nn.Module):
 
     def forward(self, x, mask):
         """
-        x   : (B, N, D) patch embeddings
-        mask: (B, N) True for masked patches
+        x   : (B, N, D) 조각 담음
+        mask: (B, N) 가린 조각이면 True
         """
-        # Keep only visible patches
+        # 보이는 조각만 남긴다
         visible = x[~mask].view(x.size(0), -1, x.size(-1))
 
-        # Encode visible patches
+        # 보이는 조각을 부호로 바꾼다
         enc = self.encoder(visible)
 
-        # Project to decoder dimension
+        # 풀개 차수로 되비춘다
         dec_input = self.enc_to_dec(enc)
 
-        # Append mask tokens for reconstruction
+        # 되살리기를 위해 가림 낱말을 덧붙인다
         num_masked = mask.sum(dim=1).max()
         mask_tokens = self.mask_token.expand(x.size(0), num_masked, -1)
 
         dec_input = torch.cat([dec_input, mask_tokens], dim=1)
 
-        # Decode
+        # 푼다
         dec = self.decoder(dec_input)
 
-        # Predict reconstructed patch embeddings
+        # 되살린 조각 담음을 미루어 본다
         recon = self.head(dec)
         return recon
 

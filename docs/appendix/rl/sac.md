@@ -9,16 +9,16 @@ SAC은 2018년 글 "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforce
 ```python
 #!/usr/bin/env python3
 """
-SAC - Soft Actor-Critic (continuous control)
-Paper: "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning" (2018)
-Authors: Tuomas Haarnoja et al.
-Key idea:
-  - Actor maximizes expected return + entropy (exploration)
-  - Two Q networks (double Q) to reduce positive bias
-  - Target Q networks for stability
+SAC - 부드러운 움직이는 이-따지는 이(이어진 다루기)
+글: "부드러운 움직이는 이-따지는 이: 방침 밖 가장 큰 엔트로피 깊은 북돋움 배움" (2018)
+지은이: 투오마스 하르노야 외
+고갱이 깨침:
+  - 움직이는 이가 바라는 되받음 + 엔트로피(둘러보기)를 가장 크게 한다
+  - Q 그물 둘(겹 Q)로 위로 치우침을 줄인다
+  - 든든함을 위해 과녁 Q 그물을 쓴다
 
-File: appendix/rl/sac.py
-Note: Educational reference (networks + core target computations).
+두루마리: appendix/rl/sac.py
+눈여겨볼 것: 배우기 위한 본이다(그물 + 고갱이 과녁 셈).
 """
 
 import torch
@@ -32,8 +32,8 @@ import torch.nn.functional as F
 
 class GaussianPolicy(nn.Module):
     """
-    Stochastic actor for continuous actions:
-      a ~ N(mu(s), sigma(s)), then typically tanh-squashed to bounds [-1,1].
+    이어진 움직임을 위한 확률 움직이는 이:
+      a ~ N(mu(s), sigma(s))을 뽑은 뒤 흔히 tanh으로 [-1,1] 안에 눌러 넣는다.
     """
     def __init__(self, obs_dim: int, act_dim: int, hidden: int = 256):
         super().__init__()
@@ -55,21 +55,21 @@ class GaussianPolicy(nn.Module):
 
     def sample(self, obs):
         """
-        Reparameterized sampling:
+        매개변수를 다시 잡은 뽑기:
           a = tanh(mu + std * eps)
-        Also returns log_prob(a) adjusted for tanh squashing (omitted for brevity).
+        tanh 눌러 넣기를 셈에 넣은 log_prob(a)도 돌려준다(짧게 하려고 여기서는 뺐다).
         """
         mu, std = self.forward(obs)
         eps = torch.randn_like(std)
         pre_tanh = mu + std * eps
         a = torch.tanh(pre_tanh)
-        # For a real SAC implementation, compute log_prob with tanh correction.
+        # 참 SAC 짜보기에서는 tanh 바로잡음을 넣어 log_prob을 셈한다.
         log_prob = None
         return a, log_prob
 
 
 class QNetwork(nn.Module):
-    """Critic Q(s,a) for continuous actions."""
+    """이어진 움직임을 위한 따지는 이 Q(s,a)."""
     def __init__(self, obs_dim: int, act_dim: int, hidden: int = 256):
         super().__init__()
         self.net = nn.Sequential(
@@ -87,11 +87,11 @@ class QNetwork(nn.Module):
 
 def sac_target(q1_tgt, q2_tgt, policy, s2, r, done, gamma=0.99, alpha=0.2):
     """
-    Compute SAC target:
+    SAC 과녁을 셈한다:
       a' ~ pi(s')
       y = r + gamma*(1-done) * ( min(Q1_tgt(s',a'), Q2_tgt(s',a')) - alpha * log pi(a'|s') )
 
-    Here, log pi term is omitted for brevity; include it in a full implementation.
+    여기서는 짧게 하려고 log pi 마디를 뺐다. 온전한 짜보기에서는 넣어야 한다.
     """
     with torch.no_grad():
         a2, logp2 = policy.sample(s2)
@@ -99,7 +99,7 @@ def sac_target(q1_tgt, q2_tgt, policy, s2, r, done, gamma=0.99, alpha=0.2):
         q2v = q2_tgt(s2, a2)
         qmin = torch.min(q1v, q2v)
 
-        # If logp2 is None (as in this educational code), ignore entropy term.
+        # logp2이 None이면(이 배우기용 코드처럼) 엔트로피 마디를 셈에서 뺀다.
         if logp2 is None:
             backup = qmin
         else:

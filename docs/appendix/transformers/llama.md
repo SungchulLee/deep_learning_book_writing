@@ -9,18 +9,18 @@ LLaMA은 2023년 글 "LLaMA: Open and Efficient Foundation Language Models"에�
 ```python
 #!/usr/bin/env python3
 """
-LLaMA - Large Language Model Meta AI
-Paper: "LLaMA: Open and Efficient Foundation Language Models" (2023)
-Authors: Meta AI
-Key ideas (high-level):
-  - Decoder-only Transformer (GPT-style)
-  - RMSNorm instead of LayerNorm
-  - SwiGLU feedforward
-  - Rotary positional embeddings (RoPE) instead of learned absolute positions
+LLaMA - 메타 AI의 큰 말 모형
+글: "LLaMA: 열려 있고 잘 드는 밑바탕 말 모형" (2023)
+지은이: 메타 AI
+고갱이 깨침(크게 보아):
+  - 풀개만 있는 변환기(GPT 결)
+  - 켜 잣대 잡기 대신 RMSNorm
+  - SwiGLU 앞먹임
+  - 배운 붙박이 자리 대신 도는 자리 담기(RoPE)
 
-File: appendix/transformers/llama.py
-Note: Educational, commented implementation focusing on RMSNorm + SwiGLU + causal attention.
-      This is NOT an optimized LLaMA; it's a readable reference.
+두루마리: appendix/transformers/llama.py
+눈여겨볼 것: RMSNorm + SwiGLU + 앞만 보는 눈길에 마음을 둔, 주석을 단 배우기용 짜보기다.
+      잘 다듬은 LLaMA이 아니라 읽기 쉬운 본이다.
 """
 
 import torch
@@ -34,7 +34,7 @@ import torch.nn.functional as F
 
 class RMSNorm(nn.Module):
     """
-    RMSNorm: normalize by root-mean-square (no mean subtraction).
+    RMSNorm: 제곱 평균의 제곱근으로 잣대를 맞춘다(평균을 빼지 않는다).
 
     x_norm = x / sqrt(mean(x^2) + eps) * weight
     """
@@ -51,11 +51,11 @@ class RMSNorm(nn.Module):
 
 class SwiGLU(nn.Module):
     """
-    SwiGLU feedforward (used in many modern LLMs):
+    SwiGLU 앞먹임(요즘 큰 말 모형에서 널리 쓴다):
 
       FF(x) = (SiLU(xW1) * (xW3)) W2
 
-    Compared to standard GELU FFN, this gating often improves quality/efficiency.
+    여느 GELU 앞먹임과 견주면 이 문 얼개가 됨됨이와 잘 듦을 흔히 올린다.
     """
     def __init__(self, dim: int, hidden_dim: int):
         super().__init__()
@@ -69,8 +69,8 @@ class SwiGLU(nn.Module):
 
 class CausalSelfAttention(nn.Module):
     """
-    Causal (masked) self-attention (multi-head).
-    For simplicity, we omit RoPE math and use a standard causal mask.
+    앞만 보는(가린) 스스로 눈길(여러 머리).
+    쉽게 하려고 RoPE 셈은 빼고 여느 앞만 보는 가림을 쓴다.
     """
     def __init__(self, dim: int, nhead: int):
         super().__init__()
@@ -89,34 +89,34 @@ class CausalSelfAttention(nn.Module):
         qkv = self.qkv(x)                 # (B, S, 3D)
         q, k, v = qkv.chunk(3, dim=-1)    # each: (B, S, D)
 
-        # Reshape into heads: (B, nhead, S, head_dim)
+        # 머리 꼴로 바꾼다: (B, nhead, S, head_dim)
         q = q.view(B, S, self.nhead, self.head_dim).transpose(1, 2)
         k = k.view(B, S, self.nhead, self.head_dim).transpose(1, 2)
         v = v.view(B, S, self.nhead, self.head_dim).transpose(1, 2)
 
-        # Attention scores: (B, nhead, S, S)
+        # 눈길 점수: (B, nhead, S, S)
         scores = (q @ k.transpose(-2, -1)) / (self.head_dim ** 0.5)
 
-        # Causal mask: prevent attention to future tokens
+        # 앞만 보는 가림: 뒤에 올 낱말에 눈길을 주지 못하게 한다
         mask = torch.triu(torch.ones(S, S, device=x.device), diagonal=1).bool()
         scores = scores.masked_fill(mask, float("-inf"))
 
         attn = F.softmax(scores, dim=-1)
         out = attn @ v  # (B, nhead, S, head_dim)
 
-        # Merge heads back: (B, S, D)
+        # 머리를 다시 합친다: (B, S, D)
         out = out.transpose(1, 2).contiguous().view(B, S, D)
         return self.out(out)
 
 
 class LLaMABlock(nn.Module):
     """
-    One LLaMA-style transformer block (simplified):
+    LLaMA 결의 변환기 덩이 하나(단순하게 만듦):
       - RMSNorm
-      - Causal self-attention
+      - 앞만 보는 스스로 눈길
       - RMSNorm
-      - SwiGLU FFN
-      - Residual connections
+      - SwiGLU 앞먹임
+      - 나머지 이음
     """
     def __init__(self, dim: int, nhead: int, ff_hidden: int):
         super().__init__()
@@ -133,11 +133,11 @@ class LLaMABlock(nn.Module):
 
 class LLaMA(nn.Module):
     """
-    Decoder-only language model (GPT-style).
+    풀개만 있는 말 모형(GPT 결).
 
-    Inputs:
+    들임:
       input_ids: (B, S)
-    Outputs:
+    날임:
       logits: (B, S, vocab_size)
     """
     def __init__(self, vocab_size=32000, dim=512, nhead=8, num_layers=8, ff_hidden=2048):

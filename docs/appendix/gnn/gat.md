@@ -9,15 +9,15 @@ GAT은 2018년 글 "Graph Attention Networks"에서 나왔다. - 붙박인 잣�
 ```python
 #!/usr/bin/env python3
 """
-GAT - Graph Attention Network
-Paper: "Graph Attention Networks" (2018)
-Authors: Petar Veličković et al.
-Key idea:
-  - Learn attention weights over neighbors instead of fixed normalization
-  - For node i: aggregate neighbors j with alpha_{ij} learned from features
+GAT - 그림 눈길 그물
+글: "그림 눈길 그물" (2018)
+지은이: 페타르 벨리치코비치 외
+고갱이 깨침:
+  - 붙박인 잣대 맞추기 대신 이웃에 대한 눈길 짐을 배운다
+  - 마디 i에서는 결에서 배운 alpha_{ij}으로 이웃 j을 모은다
 
-File: appendix/gnn/gat.py
-Note: Educational implementation with dense adjacency, single-head attention.
+두루마리: appendix/gnn/gat.py
+눈여겨볼 것: 빽빽한 이웃 행렬과 머리 하나짜리 눈길을 쓰는, 배우기 위한 짜보기다.
 """
 
 import torch
@@ -31,12 +31,12 @@ import torch.nn.functional as F
 
 class GATLayer(nn.Module):
     """
-    Single-head GAT layer (dense adjacency).
+    머리 하나짜리 GAT 켜(빽빽한 이웃 행렬).
 
-    Steps:
-      1) Linear transform: Wh_i = W x_i
-      2) Attention scores: e_{ij} = LeakyReLU(a^T [Wh_i || Wh_j])
-      3) Mask non-edges
+    걸음:
+      1) 선형 바꿈: Wh_i = W x_i
+      2) 눈길 점수: e_{ij} = LeakyReLU(a^T [Wh_i || Wh_j])
+      3) 이음 없는 곳을 가린다
       4) alpha_{ij} = softmax_j(e_{ij})
       5) h'_i = sum_j alpha_{ij} Wh_j
     """
@@ -44,38 +44,38 @@ class GATLayer(nn.Module):
         super().__init__()
         self.W = nn.Linear(in_dim, out_dim, bias=False)
 
-        # a is split into two parts (equivalent to a^T [Wh_i || Wh_j])
+        # a을 두 조각으로 가른다(a^T [Wh_i || Wh_j]와 같다)
         self.attn_l = nn.Linear(out_dim, 1, bias=False)
         self.attn_r = nn.Linear(out_dim, 1, bias=False)
 
         self.leaky_relu = nn.LeakyReLU(leaky_slope)
 
     def forward(self, X: torch.Tensor, A: torch.Tensor) -> torch.Tensor:
-        # X: (N, Fin), A: (N, N) adjacency (0/1)
+        # X: (N, Fin), A: (N, N) 이웃 행렬 (0/1)
         H = self.W(X)  # (N, Fout)
 
-        # Compute attention logits efficiently:
+        # 눈길 로짓을 잘 들게 셈한다:
         # e_{ij} = LeakyReLU( a_l(H_i) + a_r(H_j) )
         e_l = self.attn_l(H)  # (N, 1)
         e_r = self.attn_r(H)  # (N, 1)
         e = e_l + e_r.T        # (N, N)
         e = self.leaky_relu(e)
 
-        # Mask out non-neighbors:
-        # Use a very negative value so softmax ~ 0 for non-edges
+        # 이웃이 아닌 곳을 가린다:
+        # 아주 작은 음수를 써서 이음 없는 곳의 소프트맥스가 0에 가깝게 한다
         mask = (A == 0)
         e = e.masked_fill(mask, float("-inf"))
 
-        # Normalize across neighbors j
+        # 이웃 j에 걸쳐 잣대를 맞춘다
         alpha = F.softmax(e, dim=1)  # (N, N)
 
-        # Weighted sum of neighbor features
+        # 이웃 결의 짐 실은 합
         H_out = alpha @ H  # (N, Fout)
         return H_out
 
 
 class GAT(nn.Module):
-    """2-layer GAT for node classification (single-head)."""
+    """마디 가름을 위한 두 켜 GAT(머리 하나)."""
     def __init__(self, in_dim: int, hidden_dim: int, num_classes: int):
         super().__init__()
         self.gat1 = GATLayer(in_dim, hidden_dim)

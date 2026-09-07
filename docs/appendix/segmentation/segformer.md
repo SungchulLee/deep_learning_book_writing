@@ -9,11 +9,11 @@ SegFormer은 2021년 글 "SegFormer: Simple and Efficient Design for Semantic Se
 ```python
 #!/usr/bin/env python3
 """
-SegFormer - Simple and Efficient Design for Semantic Segmentation
-Paper: "SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers" (2021)
-Authors: Enze Xie et al.
-Key: Transformer-based encoder with lightweight MLP decoder; no positional
-encoding and no convolutions in the decoder.
+SegFormer - 뜻 나누기를 위한 단순하고 잘 드는 꾸밈
+글: "SegFormer: 변환기로 뜻 나누기를 하는 단순하고 잘 드는 꾸밈" (2021)
+지은이: 언쩌 셰 외
+고갱이: 변환기 바탕 부호기에 가벼운 MLP 풀개를 붙였고,
+풀개에는 자리 담기도 엮음도 없다.
 """
 
 import torch
@@ -26,7 +26,7 @@ import torch.nn.functional as F
 
 
 class MLP(nn.Module):
-    """Simple MLP used in SegFormer decoder"""
+    """SegFormer 풀개에서 쓰는 단순한 MLP"""
     def __init__(self, in_dim, out_dim):
         super().__init__()
         self.proj = nn.Linear(in_dim, out_dim)
@@ -37,23 +37,23 @@ class MLP(nn.Module):
 
 class SegFormer(nn.Module):
     """
-    Simplified SegFormer-style model (educational version)
+    단순하게 만든 SegFormer 결의 모형(배우기 위한 갈래)
 
-    - Transformer-like encoder is mocked by convolution layers
-    - Lightweight MLP decoder
-    - Suitable for appendix / conceptual understanding
+    - 변환기 꼴 부호기를 엮음 켜로 흉내 낸다
+    - 가벼운 MLP 풀개
+    - 부록이나 깨침을 잡는 데 알맞다
     """
 
     def __init__(self, num_classes=21):
         super().__init__()
 
-        # Encoder (simplified, CNN-based for clarity)
+        # 부호기(알아보기 쉽도록 CNN 바탕으로 단순하게 만듦)
         self.enc1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
         self.enc2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.enc3 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         self.enc4 = nn.Conv2d(256, 512, kernel_size=3, padding=1)
 
-        # Decoder (MLP head)
+        # 풀개(MLP 머리)
         self.mlp1 = MLP(64, 256)
         self.mlp2 = MLP(128, 256)
         self.mlp3 = MLP(256, 256)
@@ -62,13 +62,13 @@ class SegFormer(nn.Module):
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
     def forward(self, x):
-        # Encoder
+        # 부호기
         f1 = F.relu(self.enc1(x))              # (B, 64, H, W)
         f2 = F.relu(self.enc2(f1))             # (B, 128, H, W)
         f3 = F.relu(self.enc3(f2))             # (B, 256, H, W)
         f4 = F.relu(self.enc4(f3))             # (B, 512, H, W)
 
-        # Flatten spatial dimensions
+        # 자리 차수를 펼친다
         def mlp_process(f, mlp):
             B, C, H, W = f.shape
             f = f.flatten(2).transpose(1, 2)   # (B, HW, C)
@@ -81,10 +81,10 @@ class SegFormer(nn.Module):
         f3 = mlp_process(f3, self.mlp3)
         f4 = mlp_process(f4, self.mlp4)
 
-        # Fuse features
+        # 결을 녹여 아우른다
         fused = f1 + f2 + f3 + f4
 
-        # Segmentation head
+        # 나누기 머리
         out = self.classifier(fused)
         return out
 

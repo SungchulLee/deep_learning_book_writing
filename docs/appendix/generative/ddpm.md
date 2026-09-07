@@ -9,13 +9,13 @@ DDPM은 2020년 글 "Denoising Diffusion Probabilistic Models"에서 나왔다. 
 ```python
 #!/usr/bin/env python3
 """
-DDPM - Denoising Diffusion Probabilistic Models
-Paper: "Denoising Diffusion Probabilistic Models" (2020)
-Key idea:
-  - Gradually add Gaussian noise
-  - Learn to reverse the diffusion process
+DDPM - 잡소리 없애는 번짐 낌새 모형
+글: "잡소리 없애는 번짐 낌새 모형" (2020)
+고갱이 깨침:
+  - 가우스 시끄러움을 차츰 더한다
+  - 번짐 흐름을 거꾸로 되돌리는 것을 배운다
 
-File: appendix/generative/ddpm.py
+두루마리: appendix/generative/ddpm.py
 """
 
 import torch
@@ -27,7 +27,7 @@ import torch.nn as nn
 
 
 class Denoiser(nn.Module):
-    """Predicts noise ε given x_t."""
+    """x_t이 주어졌을 때 시끄러움 ε을 미루어 본다."""
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
@@ -41,7 +41,7 @@ class Denoiser(nn.Module):
 
 
 class DDPM(nn.Module):
-    """Simplified DDPM."""
+    """단순하게 만든 DDPM."""
     def __init__(self):
         super().__init__()
         self.denoiser = Denoiser()

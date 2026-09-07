@@ -23,7 +23,7 @@ import torch.nn as nn
 class SSD(nn.Module):
     def __init__(self, num_classes=21):
         super().__init__()
-        # Base network (VGG-like)
+        # 밑 그물(VGG 꼴)
         self.base = nn.Sequential(
             nn.Conv2d(3, 64, 3, padding=1),
             nn.ReLU(inplace=True),
@@ -38,7 +38,7 @@ class SSD(nn.Module):
             nn.MaxPool2d(2, 2),
         )
         
-        # Extra layers for multi-scale detection
+        # 여러 잣대로 알아내려는 덧붙은 켜
         self.extras = nn.Sequential(
             nn.Conv2d(128, 256, 3, padding=1),
             nn.ReLU(inplace=True),
@@ -46,7 +46,7 @@ class SSD(nn.Module):
             nn.ReLU(inplace=True),
         )
         
-        # Detection heads
+        # 알아내기 머리
         self.loc = nn.Conv2d(256, 4 * 4, 3, padding=1)  # 4 default boxes * 4 coords
         self.conf = nn.Conv2d(256, 4 * num_classes, 3, padding=1)  # 4 boxes * num_classes
     

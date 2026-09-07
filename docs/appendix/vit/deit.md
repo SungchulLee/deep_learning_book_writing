@@ -9,15 +9,15 @@ DeiT은 2021년 글 "Training data-efficient image transformers & distillation t
 ```python
 #!/usr/bin/env python3
 """
-DeiT - Data-efficient Image Transformers
-Paper: "Training data-efficient image transformers & distillation through attention" (2021)
-Authors: Hugo Touvron et al.
-Key idea:
-  - Train ViT with less data using knowledge distillation
-  - Introduce a *distillation token* in addition to the class token
+DeiT - 자료를 아끼는 그림 변환기
+글: "자료를 아끼는 그림 변환기 익히기와 눈길을 거친 앎 옮기기" (2021)
+지은이: 위고 투브롱 외
+고갱이 깨침:
+  - 앎 옮기기로 더 적은 자료로 ViT을 익힌다
+  - 갈래 낱말에 더해 *옮김 낱말*을 둔다
 
-File: appendix/vit/deit.py
-Note: Educational implementation (forward pass only).
+두루마리: appendix/vit/deit.py
+눈여겨볼 것: 배우기 위한 짜보기다(앞으로 걸음만 담았다).
 """
 
 import torch
@@ -29,7 +29,7 @@ import torch.nn as nn
 
 
 class PatchEmbedding(nn.Module):
-    """Split image into patches and embed them."""
+    """그림을 조각으로 나누어 담는다."""
     def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768):
         super().__init__()
         self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
@@ -43,31 +43,31 @@ class PatchEmbedding(nn.Module):
 
 class DeiT(nn.Module):
     """
-    DeiT = ViT + distillation token.
+    DeiT = ViT + 옮김 낱말.
 
-    Tokens:
-      - [CLS] token: standard classification token
-      - [DIST] token: learns from teacher predictions
+    낱말:
+      - [CLS] 낱말: 여느 가름 낱말
+      - [DIST] 낱말: 스승의 미루어 봄에서 배운다
     """
     def __init__(self, num_classes=1000, embed_dim=768, num_patches=196):
         super().__init__()
 
         self.patch_embed = PatchEmbedding(embed_dim=embed_dim)
 
-        # Learnable tokens
+        # 배울 수 있는 낱말
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         self.dist_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
 
-        # Position embedding includes both tokens
+        # 자리 담기에 두 낱말이 모두 들어간다
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 2, embed_dim))
 
-        # Transformer encoder (simplified)
+        # 변환기 부호기(단순하게 만듦)
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embed_dim, nhead=12, batch_first=True
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=12)
 
-        # Two heads: one for cls, one for distillation
+        # 머리 둘: 하나는 가름, 하나는 앎 옮기기
         self.head_cls = nn.Linear(embed_dim, num_classes)
         self.head_dist = nn.Linear(embed_dim, num_classes)
 
@@ -76,22 +76,22 @@ class DeiT(nn.Module):
 
         x = self.patch_embed(x)  # (B, N, D)
 
-        # Expand tokens for batch
+        # 낱말을 묶음 크기로 넓힌다
         cls = self.cls_token.expand(B, -1, -1)
         dist = self.dist_token.expand(B, -1, -1)
 
-        # Concatenate tokens with patch embeddings
+        # 낱말과 조각 담음을 이어 붙인다
         x = torch.cat([cls, dist, x], dim=1)
         x = x + self.pos_embed
 
-        # Transformer encoding
+        # 변환기 부호로 바꾸기
         x = self.encoder(x)
 
-        # Separate outputs
+        # 날임을 갈라 낸다
         cls_out = x[:, 0]
         dist_out = x[:, 1]
 
-        # Two prediction heads
+        # 미루어 봄 머리 둘
         logits_cls = self.head_cls(cls_out)
         logits_dist = self.head_dist(dist_out)
 

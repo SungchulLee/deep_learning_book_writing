@@ -26,7 +26,7 @@ class LSTMModel(nn.Module):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         
-        # LSTM layer
+        # LSTM 켜
         self.lstm = nn.LSTM(
             input_size=input_size,
             hidden_size=hidden_size,
@@ -35,18 +35,18 @@ class LSTMModel(nn.Module):
             dropout=0.2
         )
         
-        # Fully connected layer
+        # 온통 이은 켜
         self.fc = nn.Linear(hidden_size, num_classes)
     
     def forward(self, x):
-        # Initialize hidden state and cell state
+        # 숨은 상태와 칸 상태의 첫자리를 잡는다
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
         c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
         
-        # LSTM forward pass
+        # LSTM 앞으로 걸음
         out, _ = self.lstm(x, (h0, c0))
         
-        # Decode the hidden state of the last time step
+        # 마지막 때 걸음의 숨은 상태를 푼다
         out = self.fc(out[:, -1, :])
         return out
 

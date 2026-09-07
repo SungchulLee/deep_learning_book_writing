@@ -10,34 +10,34 @@
 #!/usr/bin/env python3
 """
 ================================================================================
-Vision Transformer (ViT) - An Image is Worth 16x16 Words
+보기 변환기(ViT) - 그림 하나는 16x16 낱말만 하다
 ================================================================================
 
-Paper: "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"
-Authors: Alexey Dosovitskiy et al. (Google Research)
-Link: https://arxiv.org/abs/2010.11929
+글: "그림 하나는 16x16 낱말만 하다: 크게 키운 그림 알아보기를 위한 변환기"
+지은이: 알렉세이 도소비츠키 외(구글 리서치)
+이음: https://arxiv.org/abs/2010.11929
 
 ================================================================================
-HISTORICAL SIGNIFICANCE
+발자취에서의 뜻
 ================================================================================
-ViT demonstrated that pure transformer architectures can achieve excellent 
-performance on image classification when pre-trained on sufficient data.
+ViT은 자료가 넉넉할 때 미리 익히면 순수한 변환기 얼개만으로도
+그림 가름에서 빼어난 됨됨이를 이룰 수 있음을 보였다.
 
-- With enough data, ViT outperforms ResNet with 4× less compute
-- Attention patterns show emergent object localization
-
-================================================================================
-KEY INSIGHT: IMAGES AS SEQUENCES OF PATCHES
-================================================================================
-
-For 16×16 patches on 224×224 image: (224/16)² = 196 patches
-Each patch → Linear embedding → Sequence of "visual tokens"
+- 자료가 넉넉하면 ViT은 셈을 4배 적게 쓰고도 ResNet을 앞선다
+- 눈길 무늬에서 물체의 자리가 절로 드러난다
 
 ================================================================================
-CURRICULUM MAPPING
+고갱이 깨침: 그림을 조각의 이음으로 보기
 ================================================================================
 
-Related: swin_transformer.py, convnext.py
+224×224 그림에 16×16 조각이면: (224/16)² = 196 조각
+조각마다 → 선형 담기 → "보기 낱말"의 이음
+
+================================================================================
+배움 차례에서의 자리
+================================================================================
+
+이어지는 것: swin_transformer.py, convnext.py
 ================================================================================
 """
 
@@ -51,7 +51,7 @@ from typing import Tuple
 
 
 class PatchEmbedding(nn.Module):
-    """Convert image into sequence of patch embeddings using Conv2d."""
+    """Conv2d으로 그림을 조각 담음의 이음으로 바꾼다."""
     
     def __init__(self, img_size=224, patch_size=16, in_channels=3, embed_dim=768):
         super().__init__()
@@ -66,15 +66,15 @@ class PatchEmbedding(nn.Module):
 
 class VisionTransformer(nn.Module):
     """
-    Vision Transformer (ViT) for Image Classification
+    그림 가름을 위한 보기 변환기(ViT)
     
-    Args:
-        img_size: Input image size. Default: 224
-        patch_size: Size of each patch. Default: 16
-        num_classes: Number of output classes. Default: 1000
-        embed_dim: Embedding dimension. Default: 768
-        depth: Number of transformer layers. Default: 12
-        num_heads: Number of attention heads. Default: 12
+    매개변수:
+        img_size: 들임 그림 크기. 기본값: 224
+        patch_size: 조각 하나의 크기. 기본값: 16
+        num_classes: 날임 갈래의 수. 기본값: 1000
+        embed_dim: 담음 차수. 기본값: 768
+        depth: 변환기 켜의 수. 기본값: 12
+        num_heads: 눈길 머리의 수. 기본값: 12
     """
     
     def __init__(self, img_size=224, patch_size=16, num_classes=1000, embed_dim=768, depth=12, num_heads=12):

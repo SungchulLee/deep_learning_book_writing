@@ -23,7 +23,7 @@ class Autoencoder(nn.Module):
     def __init__(self, input_dim=784, encoding_dim=32):
         super().__init__()
         
-        # Encoder
+        # 부호기
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 512),
             nn.ReLU(),
@@ -34,7 +34,7 @@ class Autoencoder(nn.Module):
             nn.Linear(128, encoding_dim)
         )
         
-        # Decoder
+        # 풀개
         self.decoder = nn.Sequential(
             nn.Linear(encoding_dim, 128),
             nn.ReLU(),

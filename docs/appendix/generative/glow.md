@@ -9,12 +9,12 @@ Glow은 2018년 글 "Glow: Generative Flow with Invertible 1x1 Convolutions"에�
 ```python
 #!/usr/bin/env python3
 """
-Glow - Flow-based Generative Model with Invertible 1x1 Convolutions
-Paper: "Glow: Generative Flow with Invertible 1x1 Convolutions" (2018)
-Key idea:
-  - Improve RealNVP with learned invertible 1x1 convolutions
+Glow - 되돌릴 수 있는 1x1 엮음을 쓰는 흐름 바탕 만들개 모형
+글: "Glow: 되돌릴 수 있는 1x1 엮음을 쓰는 만들개 흐름" (2018)
+고갱이 깨침:
+  - 배운 되돌릴 수 있는 1x1 엮음으로 RealNVP을 낫게 한다
 
-File: appendix/generative/glow.py
+두루마리: appendix/generative/glow.py
 """
 
 import torch
@@ -26,7 +26,7 @@ import torch.nn as nn
 
 
 class Invertible1x1Conv(nn.Module):
-    """Invertible linear transform."""
+    """되돌릴 수 있는 선형 바꿈."""
     def __init__(self, dim=784):
         super().__init__()
         W = torch.qr(torch.randn(dim, dim))[0]

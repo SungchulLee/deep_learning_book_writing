@@ -9,14 +9,14 @@
 ```python
 #!/usr/bin/env python3
 """
-Vanilla RNN - Recurrent Neural Network (Elman RNN)
-Classic idea: maintain a hidden state that is updated sequentially over time.
+맨 RNN - 되도는 신경 그물(엘만 RNN)
+옛 깨침: 때를 따라 차례로 고쳐지는 숨은 상태를 지닌다.
 
-Reference: "Finding Structure in Time" (1990), Jeffrey L. Elman (popularized simple RNN)
-Key: h_t = tanh(W_x x_t + W_h h_{t-1} + b)
+본: "때 속에서 얼개 찾기" (1990), 제프리 엘만(단순한 RNN을 널리 알렸다)
+고갱이: h_t = tanh(W_x x_t + W_h h_{t-1} + b)
 
-File: appendix/sequence/rnn.py
-Note: Educational, fully commented implementation (single-layer, batch-first).
+두루마리: appendix/sequence/rnn.py
+눈여겨볼 것: 주석을 빠짐없이 단, 배우기 위한 짜보기다(한 켜, 묶음을 앞에 둔다).
 """
 
 import torch
@@ -29,14 +29,14 @@ import torch.nn as nn
 
 class RNNCell(nn.Module):
     """
-    A single vanilla RNN cell (one time step).
+    맨 RNN 칸 하나(때 걸음 하나).
 
-    Shapes:
+    꼴:
       x_t     : (B, input_size)
       h_prev  : (B, hidden_size)
       h_t     : (B, hidden_size)
 
-    Update:
+    고침:
       h_t = tanh( W_x * x_t + W_h * h_{t-1} + b )
     """
     def __init__(self, input_size: int, hidden_size: int):
@@ -44,25 +44,25 @@ class RNNCell(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
 
-        # Linear layers to transform input and previous hidden state
+        # 들임과 앞선 숨은 상태를 바꾸는 선형 켜
         self.Wx = nn.Linear(input_size, hidden_size, bias=True)
         self.Wh = nn.Linear(hidden_size, hidden_size, bias=False)
 
     def forward(self, x_t: torch.Tensor, h_prev: torch.Tensor) -> torch.Tensor:
-        # Combine transformed input and hidden state, then apply tanh nonlinearity
+        # 바꾼 들임과 숨은 상태를 아우른 뒤 tanh을 건다
         h_t = torch.tanh(self.Wx(x_t) + self.Wh(h_prev))
         return h_t
 
 
 class RNN(nn.Module):
     """
-    Vanilla RNN (manual unroll across time).
+    맨 RNN(때를 따라 손으로 풀어 놓음).
 
-    Input:
-      x : (B, T, input_size)  batch-first sequence
-    Output:
-      y : (B, T, hidden_size) all hidden states across time
-      h_T : (B, hidden_size) final hidden state
+    들임:
+      x : (B, T, input_size)  묶음을 앞에 둔 이음
+    날임:
+      y : (B, T, hidden_size) 때에 걸친 모든 숨은 상태
+      h_T : (B, hidden_size) 마지막 숨은 상태
     """
     def __init__(self, input_size: int, hidden_size: int):
         super().__init__()
@@ -70,11 +70,11 @@ class RNN(nn.Module):
         self.hidden_size = hidden_size
 
     def forward(self, x: torch.Tensor, h0: torch.Tensor | None = None):
-        # Extract batch size and time length
+        # 묶음 크기와 때 길이를 뽑는다
         B, T, _ = x.shape
         device = x.device
 
-        # Initialize hidden state (zeros) if not provided
+        # 숨은 상태가 주어지지 않으면 0으로 첫자리를 잡는다
         if h0 is None:
             h_t = torch.zeros(B, self.hidden_size, device=device)
         else:
@@ -82,22 +82,22 @@ class RNN(nn.Module):
 
         outputs = []
         for t in range(T):
-            # Take input for time step t
+            # 때 걸음 t의 들임을 가져온다
             x_t = x[:, t, :]               # (B, input_size)
 
-            # Update hidden state using the RNN cell
+            # RNN 칸으로 숨은 상태를 고친다
             h_t = self.cell(x_t, h_t)      # (B, hidden_size)
 
-            # Store hidden state for this time step
+            # 이 때 걸음의 숨은 상태를 담아 둔다
             outputs.append(h_t)
 
-        # Stack hidden states across time into a single tensor
+        # 때에 걸친 숨은 상태를 쌓아 텐서 하나로 만든다
         y = torch.stack(outputs, dim=1)     # (B, T, hidden_size)
         return y, h_t
 
 
 if __name__ == "__main__":
-    # Quick sanity check: run a forward pass and print shapes
+    # 얼른 해 보는 맛보기 살핌: 앞으로 걸음을 돌리고 꼴을 찍는다
     model = RNN(input_size=8, hidden_size=16)
     x = torch.randn(2, 5, 8)     # (B=2, T=5, input=8)
     y, hT = model(x)

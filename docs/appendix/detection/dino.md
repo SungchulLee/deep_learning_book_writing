@@ -9,19 +9,19 @@ DINO은 2022년 글 "DINO: DETR with Improved Denoising Anchor Boxes for End-to-
 ```python
 #!/usr/bin/env python3
 """
-DINO - DETR with Improved Denoising Anchor Boxes
-Paper: "DINO: DETR with Improved Denoising Anchor Boxes for End-to-End Object Detection" (2022)
-Authors: IDEA Research (Feng Li et al.)
-Key ideas (high-level):
-  1) Denoising training (DN): add noisy GT queries to stabilize training.
-  2) Better query initialization (often anchor-like / reference points).
-  3) Multi-scale features (often via deformable attention variants in practice).
+DINO - 잡소리 없애는 닻 상자를 나아지게 한 DETR
+글: "DINO: 끝에서 끝까지 물체 알아내기를 위해 잡소리 없애는 닻 상자를 나아지게 한 DETR" (2022)
+지은이: IDEA Research (펑 리 외)
+고갱이 깨침(크게 보아):
+  1) 잡소리 없애며 익히기(DN): 시끄러운 참값 물음을 더해 익힘을 든든하게 한다.
+  2) 더 나은 물음 첫자리 잡기(흔히 닻이나 기준 점 꼴).
+  3) 여러 잣대의 결(참으로는 흔히 일그러뜨리는 눈길 갈래를 쓴다).
 
-File: appendix/detection/dino.py
-Note: Educational/simplified implementation:
-  - Shows "reference points" concept and a DN-style query augmentation hook.
-  - Uses nn.Transformer (not deformable attention).
-  - Skips full matching/loss details.
+두루마리: appendix/detection/dino.py
+눈여겨볼 것: 배우기 위한 단순한 짜보기다.
+  - "기준 점" 깨침과 DN 결의 물음 불리기 걸개를 보인다.
+  - nn.Transformer을 쓴다(일그러뜨리는 눈길이 아니다).
+  - 온전한 짝짓기와 잃음의 속내는 건너뛴다.
 """
 
 import torch
@@ -34,7 +34,7 @@ import torch.nn.functional as F
 
 
 class TinyBackbone(nn.Module):
-    """Small CNN backbone producing a feature map (single-scale for simplicity)."""
+    """결 그림을 내는 작은 CNN 등뼈(쉽게 하려고 한 잣대만 쓴다)."""
     def __init__(self, d_model=256):
         super().__init__()
         self.net = nn.Sequential(
@@ -50,20 +50,20 @@ class TinyBackbone(nn.Module):
 
 
 def inverse_sigmoid(x: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
-    """Common DETR-family trick for box refinement in logit space."""
+    """로짓 밭에서 상자를 다듬는, DETR 집안에서 흔한 솜씨."""
     x = x.clamp(min=eps, max=1 - eps)
     return torch.log(x / (1 - x))
 
 
 class DINO(nn.Module):
     """
-    Simplified DINO-like detector:
-    - object queries + "reference points" (normalized boxes) used for iterative refinement idea
-    - optional denoising queries (DN) in training mode
+    단순하게 만든 DINO 꼴 알아내개:
+    - 물체 물음 + "기준 점"(잣대 맞춘 상자)으로 거듭 다듬는 깨침을 보인다
+    - 익힘 결에서 골라 쓰는 잡소리 없애기 물음(DN)
 
-    Output:
+    날임:
       - pred_logits: (B, num_queries, num_classes+1)
-      - pred_boxes : (B, num_queries, 4) normalized
+      - pred_boxes : (B, num_queries, 4), 잣대 맞춤
     """
     def __init__(
         self,
@@ -93,14 +93,14 @@ class DINO(nn.Module):
             batch_first=False,
         )
 
-        # Learnable queries (content embeddings)
+        # 배울 수 있는 물음(속내 담음)
         self.query_embed = nn.Embedding(num_queries, d_model)
 
-        # Reference points (anchor-like initialization in normalized coordinates)
-        # In real DINO, these can be predicted/updated per decoder layer.
+        # 기준 점(잣대 맞춘 자리 값에서 닻처럼 첫자리를 잡는다)
+        # 참 DINO에서는 풀개 켜마다 이를 미루어 보거나 고칠 수 있다.
         self.refpoint_embed = nn.Embedding(num_queries, 4)
 
-        # Heads
+        # 머리
         self.class_head = nn.Linear(d_model, num_classes + 1)
         self.box_head = nn.Sequential(
             nn.Linear(d_model, d_model), nn.ReLU(inplace=True),
@@ -108,36 +108,36 @@ class DINO(nn.Module):
             nn.Linear(d_model, 4),
         )
 
-        # DN config (used only if gt provided)
+        # DN 설정(참값이 주어질 때만 쓴다)
         self.dn_num_queries = dn_num_queries
         self.dn_noise_scale = dn_noise_scale
 
     def make_denoising_queries(self, gt_boxes: torch.Tensor, gt_labels: torch.Tensor):
         """
-        Create denoising (DN) queries from ground-truth:
-          - Add noise to GT boxes
-          - Use them as extra queries during training to stabilize learning
+        참값에서 잡소리 없애기(DN) 물음을 짓는다:
+          - 참값 상자에 시끄러움을 더한다
+          - 익히는 동안 덧붙은 물음으로 써서 배움을 든든하게 한다
 
-        gt_boxes: (B, M, 4) normalized (cx,cy,w,h)
-        gt_labels: (B, M) class ids in [0, num_classes-1]
+        gt_boxes: (B, M, 4), 잣대 맞춘 (cx,cy,w,h)
+        gt_labels: (B, M), [0, num_classes-1] 안의 갈래 번호
 
-        Returns:
+        돌려주는 것:
           dn_query_embed: (Tdn, B, C)
           dn_refpoints : (Tdn, B, 4)
         """
         B, M, _ = gt_boxes.shape
         device = gt_boxes.device
 
-        # Choose up to dn_num_queries GT boxes per batch (simple truncation)
+        # 묶음마다 참값 상자를 dn_num_queries개까지 고른다(단순히 잘라 낸다)
         M_use = min(M, self.dn_num_queries)
         boxes = gt_boxes[:, :M_use, :]  # (B, M_use, 4)
 
-        # Add noise in normalized space (educational)
+        # 잣대 맞춘 밭에서 시끄러움을 더한다(배우기 위함)
         noise = (torch.rand_like(boxes) - 0.5) * self.dn_noise_scale
         noisy_boxes = (boxes + noise).clamp(0.0, 1.0)
 
-        # Create DN content embeddings:
-        # Real methods embed labels + mask; here we just use a learned "dn token" repeated.
+        # DN 속내 담음을 짓는다:
+        # 참 방법은 이름표와 가림을 담는다. 여기서는 배운 "dn 낱말"을 되풀이해 쓸 뿐이다.
         dn_token = torch.zeros(B, M_use, self.d_model, device=device)
         dn_token = dn_token.permute(1, 0, 2).contiguous()  # (Tdn=M_use, B, C)
 
@@ -147,37 +147,37 @@ class DINO(nn.Module):
     def forward(self, x, gt_boxes=None, gt_labels=None):
         """
         x: (B, 3, H, W)
-        gt_boxes/gt_labels: optional, used to add DN queries in training-like mode
+        gt_boxes/gt_labels: 골라 쓴다. 익힘 결에서 DN 물음을 더할 때 쓴다
         """
         feat = self.backbone(x)
         B, C, H, W = feat.shape
 
-        # Encoder input: flatten spatial feature map
+        # 부호기 들임: 자리 결 그림을 펼친다
         src = feat.flatten(2).permute(2, 0, 1)  # (S=H*W, B, C)
 
-        # Standard learned queries
+        # 여느 배운 물음
         q_content = self.query_embed.weight.unsqueeze(1).repeat(1, B, 1)  # (T, B, C)
         q_ref = torch.sigmoid(self.refpoint_embed.weight).unsqueeze(1).repeat(1, B, 1)  # (T, B, 4)
 
-        # Optionally add denoising queries (DN) in front of normal queries
+        # 골라서 여느 물음 앞에 잡소리 없애기 물음(DN)을 더한다
         if (gt_boxes is not None) and (gt_labels is not None):
             dn_content, dn_ref = self.make_denoising_queries(gt_boxes, gt_labels)
             q_content = torch.cat([dn_content, q_content], dim=0)  # (Tdn+T, B, C)
             q_ref = torch.cat([dn_ref, q_ref], dim=0)              # (Tdn+T, B, 4)
 
-        # Decoder output tokens
+        # 풀개 날임 낱말
         hs = self.transformer(src=src, tgt=q_content)  # (Ttotal, B, C)
         hs = hs.permute(1, 0, 2)                       # (B, Ttotal, C)
 
-        # Predict class logits
+        # 갈래 로짓을 미루어 본다
         pred_logits = self.class_head(hs)  # (B, Ttotal, num_classes+1)
 
-        # Predict box deltas, then "refine" around reference points (common DETR-family idea)
-        # In practice, refinement happens layer-by-layer. Here: one-shot refinement.
+        # 상자 차이를 미루어 본 뒤 기준 점 둘레에서 "다듬는다"(DETR 집안에서 흔한 깨침)
+        # 참으로는 켜마다 다듬는다. 여기서는 한 번에 다듬는다.
         delta = self.box_head(hs)                 # (B, Ttotal, 4)
         ref = q_ref.permute(1, 0, 2).contiguous() # (B, Ttotal, 4)
 
-        # refinement in logit space: inv_sigmoid(ref) + delta -> sigmoid
+        # 로짓 밭에서 다듬기: inv_sigmoid(ref) + delta -> sigmoid
         pred_boxes = torch.sigmoid(inverse_sigmoid(ref) + delta)  # (B, Ttotal, 4)
 
         return {"pred_logits": pred_logits, "pred_boxes": pred_boxes}
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     print("no-DN pred_logits:", y["pred_logits"].shape)
     print("no-DN pred_boxes :", y["pred_boxes"].shape)
 
-    # Example DN mode with fake GT boxes/labels
+    # 거짓 참값 상자와 이름표로 DN 결을 보이는 보기
     gt_boxes = torch.rand(2, 10, 4)     # (B=2, M=10, 4) normalized
     gt_labels = torch.randint(0, 20, (2, 10))
     y_dn = model(x, gt_boxes=gt_boxes, gt_labels=gt_labels)

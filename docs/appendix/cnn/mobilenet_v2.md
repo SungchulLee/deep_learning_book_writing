@@ -47,7 +47,7 @@ class InvertedResidual(nn.Module):
 class MobileNetV2(nn.Module):
     def __init__(self, num_classes=1000, width_mult=1.0):
         super().__init__()
-        # Implementation details...
+        # 짜보기 속내...
         self.features = nn.Sequential(
             nn.Conv2d(3, 32, 3, 2, 1, bias=False),
             nn.BatchNorm2d(32),

@@ -9,15 +9,15 @@
 ```python
 #!/usr/bin/env python3
 """
-Data Augmentation - Common vision augmentations (tensor-based)
-Includes:
-  - Random horizontal flip
-  - Random crop (naive)
-  - Color jitter (simple brightness/contrast)
-  - Mixup (classification)
+자료 불리기 - 흔한 보기 불리기(텐서 바탕)
+담긴 것:
+  - 아무렇게나 좌우 뒤집기
+  - 아무렇게나 오려 내기(손쉽게 짠 것)
+  - 빛깔 흔들기(단순한 밝기와 결 차이)
+  - 섞어 올리기(가름)
 
-File: appendix/utils/augmentation.py
-Note: Educational implementations (not as feature-complete as torchvision.transforms).
+두루마리: appendix/utils/augmentation.py
+눈여겨볼 것: 배우기 위한 짜보기다(torchvision.transforms만큼 갖추지는 않았다).
 """
 
 import torch
@@ -29,7 +29,7 @@ import torch
 
 def random_horizontal_flip(x, p=0.5):
     """
-    Randomly flip images horizontally.
+    그림을 아무렇게나 좌우로 뒤집는다.
 
     x: (B, C, H, W)
     """
@@ -40,7 +40,7 @@ def random_horizontal_flip(x, p=0.5):
 
 def random_crop(x, crop_h, crop_w):
     """
-    Naive random crop.
+    손쉽게 짠 아무렇게나 오려 내기.
 
     x: (B, C, H, W)
     """
@@ -55,12 +55,12 @@ def random_crop(x, crop_h, crop_w):
 
 def mixup(x, y, alpha=0.2):
     """
-    Mixup augmentation for classification.
+    가름을 위한 섞어 올리기 불리기.
 
     x: (B, C, H, W)
-    y: (B,) class indices OR (B, num_classes) one-hot
+    y: (B,) 갈래 번호 또는 (B, num_classes) 원핫
 
-    Returns:
+    돌려주는 것:
       x_mix, y_a, y_b, lam
     """
     if alpha <= 0:

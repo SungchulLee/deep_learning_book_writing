@@ -9,13 +9,13 @@ CycleGAN은 2017년 글 "Unpaired Image-to-Image Translation using Cycle-Consist
 ```python
 #!/usr/bin/env python3
 """
-CycleGAN - Unpaired Image-to-Image Translation
-Paper: "Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks" (2017)
-Key idea:
-  - Two generators (A→B, B→A)
-  - Cycle-consistency loss enforces invertibility
+CycleGAN - 짝짓지 않은 그림에서 그림으로 옮기기
+글: "돌이 한결같은 맞겨루기 그물로 짝짓지 않은 그림에서 그림으로 옮기기" (2017)
+고갱이 깨침:
+  - 만들개 둘(A→B, B→A)
+  - 돌이 한결같음 잃음이 되돌릴 수 있음을 다그친다
 
-File: appendix/generative/cyclegan.py
+두루마리: appendix/generative/cyclegan.py
 """
 
 import torch
@@ -27,7 +27,7 @@ import torch.nn as nn
 
 
 class Generator(nn.Module):
-    """Generator mapping between domains."""
+    """두 밭 사이를 옮기는 만들개."""
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
@@ -41,7 +41,7 @@ class Generator(nn.Module):
 
 
 class CycleGAN(nn.Module):
-    """CycleGAN with two generators."""
+    """만들개 둘을 지닌 CycleGAN."""
     def __init__(self):
         super().__init__()
         self.G_AB = Generator()

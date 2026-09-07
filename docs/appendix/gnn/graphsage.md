@@ -9,16 +9,16 @@ GraphSAGE은 2017년 글 "Inductive Representation Learning on Large Graphs"에�
 ```python
 #!/usr/bin/env python3
 """
-GraphSAGE - Inductive Representation Learning on Large Graphs
-Paper: "Inductive Representation Learning on Large Graphs" (2017)
-Authors: Will Hamilton, Zhitao Ying, Jure Leskovec
-Key idea:
-  - Sample and aggregate neighbors
-  - Inductive: can generalize to unseen nodes/graphs
-  - Typical update: h'_i = sigma( W [h_i || AGG({h_j, j in N(i)})] )
+GraphSAGE - 큰 그림에서 미루어 넓히며 드러냄 배우기
+글: "큰 그림에서 미루어 넓히며 드러냄 배우기" (2017)
+지은이: 윌 해밀턴, 즈타오 잉, 유레 레스코베츠
+고갱이 깨침:
+  - 이웃을 뽑아 모은다
+  - 미루어 넓히는 결: 본 적 없는 마디나 그림에도 두루 미친다
+  - 흔한 고침: h'_i = sigma( W [h_i || AGG({h_j, j in N(i)})] )
 
-File: appendix/gnn/graphsage.py
-Note: Educational implementation using mean aggregation with dense adjacency.
+두루마리: appendix/gnn/graphsage.py
+눈여겨볼 것: 빽빽한 이웃 행렬에 평균 모으기를 쓰는, 배우기 위한 짜보기다.
 """
 
 import torch
@@ -31,9 +31,9 @@ import torch.nn.functional as F
 
 
 class MeanAggregator(nn.Module):
-    """Compute mean of neighbor features."""
+    """이웃 결의 평균을 셈한다."""
     def forward(self, X: torch.Tensor, A: torch.Tensor) -> torch.Tensor:
-        # A: (N, N) adjacency (0/1), assume includes self-loops if desired
+        # A: (N, N) 이웃 행렬(0/1). 바라면 제 고리를 담은 것으로 본다
         deg = A.sum(dim=1, keepdim=True).clamp(min=1.0)  # avoid divide-by-zero
         neigh_mean = (A @ X) / deg
         return neigh_mean
@@ -41,7 +41,7 @@ class MeanAggregator(nn.Module):
 
 class GraphSAGELayer(nn.Module):
     """
-    One GraphSAGE layer with mean aggregation.
+    평균 모으기를 쓰는 GraphSAGE 켜 하나.
 
     h'_i = sigma( W [h_i || mean_{j in N(i)} h_j] )
     """
@@ -57,7 +57,7 @@ class GraphSAGELayer(nn.Module):
 
 
 class GraphSAGE(nn.Module):
-    """2-layer GraphSAGE for node classification."""
+    """마디 가름을 위한 두 켜 GraphSAGE."""
     def __init__(self, in_dim: int, hidden_dim: int, num_classes: int):
         super().__init__()
         self.sage1 = GraphSAGELayer(in_dim, hidden_dim)
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     N, Fin, C = 5, 8, 4
     X = torch.randn(N, Fin)
 
-    # Include self-loops to make neighbor mean include node itself (common trick)
+    # 제 고리를 넣어 이웃 평균에 제 마디도 들어가게 한다(흔한 솜씨)
     A = torch.tensor([
         [1, 1, 0, 0, 0],
         [1, 1, 1, 0, 0],

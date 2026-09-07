@@ -23,19 +23,19 @@ import torch.nn as nn
 class MaskRCNN(nn.Module):
     def __init__(self, num_classes=81):
         super().__init__()
-        # Simplified backbone
+        # 단순하게 만든 등뼈
         self.backbone = nn.Sequential(
             nn.Conv2d(3, 64, 7, 2, 3),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(3, 2, 1)
         )
         
-        # RPN (Region Proposal Network)
+        # RPN(자리 제안 그물)
         self.rpn_conv = nn.Conv2d(64, 512, 3, 1, 1)
         self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 9 anchors, 2 classes (obj/not)
         self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 9 anchors, 4 coords
         
-        # ROI Head
+        # ROI 머리
         self.roi_head = nn.Sequential(
             nn.Linear(64 * 7 * 7, 1024),
             nn.ReLU(inplace=True),
@@ -43,11 +43,11 @@ class MaskRCNN(nn.Module):
             nn.ReLU(inplace=True)
         )
         
-        # Classification and bounding box regression
+        # 가름과 두른 상자 되돌이
         self.cls_score = nn.Linear(1024, num_classes)
         self.bbox_pred = nn.Linear(1024, num_classes * 4)
         
-        # Mask prediction
+        # 가림 미루어 보기
         self.mask_conv = nn.Sequential(
             nn.Conv2d(64, 256, 3, 1, 1),
             nn.ReLU(inplace=True),
@@ -62,7 +62,7 @@ class MaskRCNN(nn.Module):
         rpn_cls = self.rpn_cls(rpn_feat)
         rpn_reg = self.rpn_reg(rpn_feat)
         
-        # Simplified output
+        # 단순하게 만든 날임
         return {'features': features, 'rpn_cls': rpn_cls, 'rpn_reg': rpn_reg}
 
 if __name__ == "__main__":

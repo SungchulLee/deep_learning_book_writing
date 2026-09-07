@@ -9,13 +9,13 @@ RealNVP은 2017년 글 "Density Estimation using Real NVP"에서 나왔다. - �
 ```python
 #!/usr/bin/env python3
 """
-RealNVP - Real-valued Non-Volume Preserving Flows
-Paper: "Density Estimation using Real NVP" (2017)
-Key idea:
-  - Invertible transformations
-  - Exact likelihood via change-of-variables
+RealNVP - 부피를 지키지 않는 실수 값 흐름
+글: "Real NVP으로 빽빽함 어림하기" (2017)
+고갱이 깨침:
+  - 되돌릴 수 있는 바꿈
+  - 변수 바꾸기로 그럴듯함을 딱 맞게 셈한다
 
-File: appendix/generative/realnvp.py
+두루마리: appendix/generative/realnvp.py
 """
 
 import torch
@@ -27,7 +27,7 @@ import torch.nn as nn
 
 
 class CouplingLayer(nn.Module):
-    """Affine coupling layer."""
+    """아핀 짝짓기 켜."""
     def __init__(self, dim=784):
         super().__init__()
         self.scale = nn.Linear(dim // 2, dim // 2)

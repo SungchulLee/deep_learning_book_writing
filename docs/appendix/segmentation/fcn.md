@@ -23,7 +23,7 @@ import torch.nn as nn
 class FCN8s(nn.Module):
     def __init__(self, num_classes=21):
         super().__init__()
-        # VGG-style encoder
+        # VGG 결의 부호기
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 64, 3, padding=1),
             nn.ReLU(inplace=True),
@@ -50,10 +50,10 @@ class FCN8s(nn.Module):
             nn.MaxPool2d(2, stride=2)
         )
         
-        # Score layers for skip connections
+        # 건너뛰는 이음을 위한 점수 켜
         self.score_pool3 = nn.Conv2d(256, num_classes, 1)
         
-        # Upsampling
+        # 촘촘하게 하기
         self.upscore = nn.ConvTranspose2d(num_classes, num_classes, 16, stride=8)
     
     def forward(self, x):

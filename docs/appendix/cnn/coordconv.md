@@ -126,7 +126,7 @@ CoordConv이 만들개 모형(맞겨루기 만들개 따위)에 더욱 이로운
             B, _, H, W = x.size()
             xx = torch.linspace(-1, 1, W, device=x.device).view(1, 1, 1, W).expand(B, 1, H, W)
             yy = torch.linspace(-1, 1, H, device=x.device).view(1, 1, H, 1).expand(B, 1, H, W)
-            # Subtract reference point
+            # 기준 점을 뺀다
             dx = xx - ref_x.view(B, 1, 1, 1)
             dy = yy - ref_y.view(B, 1, 1, 1)
             dr = torch.sqrt(dx ** 2 + dy ** 2)

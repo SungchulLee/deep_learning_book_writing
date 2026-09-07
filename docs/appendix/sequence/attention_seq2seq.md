@@ -33,11 +33,11 @@ class Attention(nn.Module):
         batch_size = encoder_outputs.shape[0]
         seq_len = encoder_outputs.shape[1]
         
-        # Repeat decoder hidden state seq_len times
+        # 풀개의 숨은 상태를 seq_len 번 되풀이한다
         hidden = hidden.permute(1, 0, 2)  # [batch, 1, hidden_size]
         hidden = hidden.repeat(1, seq_len, 1)  # [batch, seq_len, hidden_size]
         
-        # Calculate attention energies
+        # 눈길 힘을 셈한다
         energy = torch.tanh(self.attn(torch.cat((hidden, encoder_outputs), dim=2)))
         attention = self.v(energy).squeeze(2)  # [batch, seq_len]
         
@@ -54,14 +54,14 @@ class AttentionDecoder(nn.Module):
     def forward(self, input, hidden, encoder_outputs):
         embedded = self.embedding(input)
         
-        # Calculate attention weights
+        # 눈길 짐을 셈한다
         a = self.attention(hidden, encoder_outputs)
         a = a.unsqueeze(1)  # [batch, 1, seq_len]
         
-        # Calculate context vector
+        # 앞뒤 흐름 벡터를 셈한다
         context = torch.bmm(a, encoder_outputs)  # [batch, 1, hidden_size]
         
-        # Concatenate embedded input and context
+        # 담은 들임과 앞뒤 흐름을 이어 붙인다
         rnn_input = torch.cat((embedded, context), dim=2)
         
         output, hidden = self.rnn(rnn_input, hidden)

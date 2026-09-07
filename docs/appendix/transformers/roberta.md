@@ -9,16 +9,16 @@ RoBERTa은 2019년 글 "RoBERTa: A Robustly Optimized BERT Pretraining Approach"
 ```python
 #!/usr/bin/env python3
 """
-RoBERTa - Robustly Optimized BERT Pretraining Approach
-Paper: "RoBERTa: A Robustly Optimized BERT Pretraining Approach" (2019)
-Authors: Yinhan Liu et al.
-Key differences vs BERT (high-level):
-  - Trains longer, with larger batches and more data
-  - Removes next sentence prediction (NSP)
-  - Uses dynamic masking
+RoBERTa - 든든하게 다듬은 BERT 미리 익히기 길
+글: "RoBERTa: 든든하게 다듬은 BERT 미리 익히기 길" (2019)
+지은이: 인한 류 외
+BERT과의 고갱이 다름(크게 보아):
+  - 더 오래, 더 큰 묶음과 더 많은 자료로 익힌다
+  - 다음 월 미루어 보기(NSP)를 뺀다
+  - 움직이는 가림을 쓴다
 
-File: appendix/transformers/roberta.py
-Note: Educational implementation of a BERT-like encoder-only Transformer.
+두루마리: appendix/transformers/roberta.py
+눈여겨볼 것: 부호기만 있는 BERT 꼴 변환기를 배우기 위해 짜 본 것이다.
 """
 
 import torch
@@ -31,32 +31,32 @@ import torch.nn as nn
 
 class RoBERTa(nn.Module):
     """
-    Encoder-only Transformer for masked language modeling (MLM).
+    가린 말 모형 짓기(MLM)를 위한, 부호기만 있는 변환기.
 
-    Inputs:
+    들임:
       input_ids: (B, S)
-      attention_mask: (B, S) 1 for tokens, 0 for padding
+      attention_mask: (B, S) 낱말이면 1, 덧대기면 0
 
-    Outputs:
-      logits: (B, S, vocab_size) token-level vocab logits for MLM
+    날임:
+      logits: (B, S, vocab_size) MLM을 위한 낱말 수준의 낱말 로짓
     """
     def __init__(self, vocab_size=50265, d_model=768, nhead=12, num_layers=12):
         super().__init__()
 
-        # Token embeddings (RoBERTa also uses learned positional embeddings; omitted for brevity)
+        # 낱말 담기(RoBERTa은 배운 자리 담기도 쓰지만 짧게 하려고 뺐다)
         self.embed = nn.Embedding(vocab_size, d_model)
 
-        # Encoder stack
+        # 부호기 더미
         enc_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
         self.encoder = nn.TransformerEncoder(enc_layer, num_layers=num_layers)
 
-        # MLM head: predict original token IDs
+        # MLM 머리: 본디 낱말 번호를 미루어 본다
         self.lm_head = nn.Linear(d_model, vocab_size)
 
     def forward(self, input_ids, attention_mask=None):
         x = self.embed(input_ids)  # (B, S, D)
 
-        # Convert attention_mask to src_key_padding_mask (True = ignore)
+        # attention_mask을 src_key_padding_mask으로 바꾼다(True이면 셈에서 뺀다)
         src_key_padding_mask = None
         if attention_mask is not None:
             src_key_padding_mask = ~attention_mask.bool()

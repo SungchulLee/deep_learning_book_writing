@@ -9,17 +9,17 @@ Longformer은 2020년 글 "Longformer: The Long-Document Transformer"에서 나�
 ```python
 #!/usr/bin/env python3
 """
-Longformer - The Long-Document Transformer
-Paper: "Longformer: The Long-Document Transformer" (2020)
-Authors: Iz Beltagy, Matthew E. Peters, Arman Cohan
-Key idea:
-  - Replace full O(S^2) attention with:
-      (a) sliding-window local attention (O(S * window))
-      (b) optional global attention tokens (e.g., [CLS], question tokens)
+Longformer - 긴 글월 변환기
+글: "Longformer: 긴 글월 변환기" (2020)
+지은이: 이즈 벨타기, 매슈 피터스, 아르만 코한
+고갱이 깨침:
+  - 온전한 O(S^2) 눈길을 다음으로 갈음한다:
+      (가) 미닫이 창 그 자리 눈길 (O(S * window))
+      (나) 골라 쓰는 두루 눈길 낱말(예: [CLS], 물음 낱말)
 
-File: appendix/transformers/longformer.py
-Note: Educational implementation of *local attention* (windowed self-attention).
-      This is NOT an optimized kernel; it's a clear reference implementation.
+두루마리: appendix/transformers/longformer.py
+눈여겨볼 것: *그 자리 눈길*(창을 쓰는 스스로 눈길)을 배우기 위해 짜 본 것이다.
+      잘 다듬은 알갱이가 아니라 또렷하게 보이려는 본이다.
 """
 
 import torch
@@ -33,10 +33,10 @@ import torch.nn.functional as F
 
 class WindowSelfAttention(nn.Module):
     """
-    Naive windowed self-attention (single-head for clarity).
+    손쉽게 짠 창 스스로 눈길(알아보기 쉽도록 머리 하나).
 
-    For each position i, attend only to tokens in [i-w, i+w].
-    Complexity becomes ~O(S * window) instead of O(S^2).
+    자리 i마다 [i-w, i+w] 안의 낱말에만 눈길을 준다.
+    번거로움이 O(S^2)이 아니라 ~O(S * window)이 된다.
     """
     def __init__(self, d_model=256, window=4):
         super().__init__()
@@ -56,16 +56,16 @@ class WindowSelfAttention(nn.Module):
 
         outputs = []
         for i in range(S):
-            # Determine local window indices
+            # 그 자리 창의 번호를 정한다
             left = max(0, i - self.window)
             right = min(S, i + self.window + 1)
 
-            # Compute attention for token i against local window tokens
+            # 낱말 i과 그 자리 창의 낱말 사이 눈길을 셈한다
             q_i = Q[:, i : i + 1, :]            # (B, 1, D)
             k_w = K[:, left:right, :]           # (B, W, D)
             v_w = V[:, left:right, :]           # (B, W, D)
 
-            # Scaled dot-product attention
+            # 잣대 맞춘 점곱 눈길
             scores = (q_i @ k_w.transpose(1, 2)) / (D ** 0.5)  # (B, 1, W)
             attn = F.softmax(scores, dim=-1)                   # (B, 1, W)
             out_i = attn @ v_w                                 # (B, 1, D)
@@ -76,7 +76,7 @@ class WindowSelfAttention(nn.Module):
 
 
 class LongformerBlock(nn.Module):
-    """One transformer-like block using window attention + feedforward network."""
+    """창 눈길 + 앞먹임 그물을 쓰는 변환기 꼴 덩이 하나."""
     def __init__(self, d_model=256, window=4, ff_dim=1024):
         super().__init__()
         self.attn = WindowSelfAttention(d_model, window)
@@ -90,17 +90,17 @@ class LongformerBlock(nn.Module):
         self.norm2 = nn.LayerNorm(d_model)
 
     def forward(self, x):
-        # Attention + residual + norm
+        # 눈길 + 나머지 + 잣대 잡기
         x = self.norm1(x + self.attn(x))
 
-        # FFN + residual + norm
+        # 앞먹임 + 나머지 + 잣대 잡기
         x = self.norm2(x + self.ff(x))
         return x
 
 
 class Longformer(nn.Module):
     """
-    Longformer-like encoder using windowed attention blocks.
+    창 눈길 덩이를 쓰는 Longformer 꼴 부호기.
     """
     def __init__(self, vocab_size=30522, d_model=256, window=4, num_layers=4):
         super().__init__()

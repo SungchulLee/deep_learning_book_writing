@@ -9,14 +9,14 @@
 ```python
 #!/usr/bin/env python3
 """
-Positional Encodings - Common variants for sequence models
-Includes:
-  - Sinusoidal positional encoding (Transformer)
-  - Learnable positional embedding
-  - Rotary positional embedding (RoPE) (conceptual helper)
+자리 담기 - 이음 모형을 위한 흔한 갈래
+담긴 것:
+  - 사인 자리 담기(변환기)
+  - 배울 수 있는 자리 담기
+  - 도는 자리 담기(RoPE)(깨침을 잡기 위한 도우미)
 
-File: appendix/utils/positional.py
-Note: Educational reference; RoPE included as a conceptual minimal.
+두루마리: appendix/utils/positional.py
+눈여겨볼 것: 배우기 위한 본이다. RoPE은 깨침을 잡을 만큼만 넣었다.
 """
 
 import math
@@ -30,7 +30,7 @@ import torch.nn as nn
 
 class SinusoidalPositionalEncoding(nn.Module):
     """
-    Classic sinusoidal encoding from "Attention Is All You Need".
+    "눈길만 있으면 된다"에 나온 옛 사인 자리 담기.
 
     PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))
     PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
@@ -45,13 +45,13 @@ class SinusoidalPositionalEncoding(nn.Module):
         pe[:, 0::2] = torch.sin(pos * div)
         pe[:, 1::2] = torch.cos(pos * div)
 
-        # Register as buffer: saved with model, not trainable
+        # 버퍼로 올린다. 모형과 함께 갈무리되지만 익히지는 않는다
         self.register_buffer("pe", pe.unsqueeze(0))  # (1, max_len, d_model)
 
     def forward(self, x):
         """
         x: (B, T, D)
-        Returns:
+        돌려주는 것:
           x + PE[:T]
         """
         T = x.size(1)
@@ -59,7 +59,7 @@ class SinusoidalPositionalEncoding(nn.Module):
 
 
 class LearnablePositionalEmbedding(nn.Module):
-    """Learnable position embeddings used in BERT/ViT-like models."""
+    """BERT이나 ViT 꼴 모형에서 쓰는, 배울 수 있는 자리 담기."""
     def __init__(self, max_len: int, d_model: int):
         super().__init__()
         self.pos = nn.Embedding(max_len, d_model)
@@ -72,8 +72,8 @@ class LearnablePositionalEmbedding(nn.Module):
 
 def rope_rotate_half(x):
     """
-    Helper for RoPE: rotate last dimension pairs.
-    If x = [..., 2i, 2i+1], rotate to [-x_{2i+1}, x_{2i}]
+    RoPE 도우미: 마지막 차수의 짝을 돌린다.
+    x = [..., 2i, 2i+1]이면 [-x_{2i+1}, x_{2i}]으로 돌린다
     """
     x1 = x[..., ::2]
     x2 = x[..., 1::2]
@@ -82,11 +82,11 @@ def rope_rotate_half(x):
 
 def apply_rope(q, k, cos, sin):
     """
-    Apply rotary positional embeddings to q and k.
-    This is a conceptual helper used in LLaMA-like models.
+    q과 k에 도는 자리 담기를 건다.
+    LLaMA 꼴 모형에서 쓰는, 깨침을 잡기 위한 도우미다.
 
-    q, k: (..., D) where D is even
-    cos, sin: (..., D) or broadcastable to q/k
+    q, k: (..., D), D은 짝수다
+    cos, sin: (..., D) 또는 q/k으로 펴 맞출 수 있는 꼴
     """
     q_rot = (q * cos) + (rope_rotate_half(q) * sin)
     k_rot = (k * cos) + (rope_rotate_half(k) * sin)

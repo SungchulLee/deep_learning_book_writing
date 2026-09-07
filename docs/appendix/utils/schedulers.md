@@ -1,6 +1,6 @@
 # 배움 빠르기 짜개
 
-Includes:
+담긴 것:
 
 여기 짜보기는 Learning Rate Schedulers을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -9,14 +9,14 @@ Includes:
 ```python
 #!/usr/bin/env python3
 """
-Learning Rate Schedulers - Common patterns
-Includes:
-  - Warmup + cosine decay
-  - Step decay (PyTorch built-in note)
-  - ReduceLROnPlateau (PyTorch built-in note)
+배움 빠르기 짜개 - 흔한 무늬
+담긴 것:
+  - 몸 풀기 + 코사인 잦아들기
+  - 계단 잦아들기(PyTorch 붙박이 적바림)
+  - ReduceLROnPlateau(PyTorch 붙박이 적바림)
 
-File: appendix/utils/schedulers.py
-Note: Educational scheduler that returns lr multiplier given step.
+두루마리: appendix/utils/schedulers.py
+눈여겨볼 것: 걸음을 받아 배움 빠르기 곱값을 돌려주는 배우기용 짜개다.
 """
 
 import math
@@ -28,24 +28,24 @@ import math
 
 def warmup_cosine_lr(step, warmup_steps, total_steps, base_lr):
     """
-    Warmup + cosine decay schedule.
+    몸 풀기 + 코사인 잦아들기 짜임.
 
-    - Linearly increase lr from 0 -> base_lr during warmup
-    - Then cosine decay from base_lr -> 0
+    - 몸 푸는 동안 배움 빠르기를 0에서 base_lr까지 곧게 올린다
+    - 그다음 base_lr에서 0까지 코사인으로 잦아든다
 
-    Returns:
-      lr at current step
+    돌려주는 것:
+      이제 걸음의 배움 빠르기
     """
     if step < warmup_steps:
         return base_lr * (step / max(1, warmup_steps))
 
-    # Cosine decay phase
+    # 코사인 잦아들기 판
     progress = (step - warmup_steps) / max(1, total_steps - warmup_steps)
     return base_lr * 0.5 * (1.0 + math.cos(math.pi * progress))
 
 
-# Note:
-# For production, you typically use PyTorch schedulers:
+# 눈여겨볼 것:
+# 참으로 굴릴 때는 흔히 PyTorch 짜개를 쓴다:
 #   torch.optim.lr_scheduler.StepLR
 #   torch.optim.lr_scheduler.CosineAnnealingLR
 #   torch.optim.lr_scheduler.ReduceLROnPlateau

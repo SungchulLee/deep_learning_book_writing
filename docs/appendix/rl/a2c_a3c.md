@@ -9,17 +9,17 @@ A2C / A3C - 이득 움직이는 이-따지는 이 글:
 ```python
 #!/usr/bin/env python3
 """
-A2C / A3C - Advantage Actor-Critic
-Papers:
-  - A3C: "Asynchronous Methods for Deep Reinforcement Learning" (2016)
-  - A2C: synchronous variant commonly used in practice
-Key idea:
-  - Actor outputs policy π(a|s)
-  - Critic outputs value V(s)
-  - Use advantage: A = R - V(s) (or GAE) to update actor
+A2C / A3C - 이득 움직이는 이-따지는 이
+글:
+  - A3C: "깊은 북돋움 배움을 위한 발 맞추지 않는 방법" (2016)
+  - A2C: 참으로 흔히 쓰는 발 맞추는 갈래
+고갱이 깨침:
+  - 움직이는 이는 방침 π(a|s)을 낸다
+  - 따지는 이는 값 V(s)을 낸다
+  - 이득 A = R - V(s)(또는 GAE)으로 움직이는 이를 고친다
 
-File: appendix/rl/a2c_a3c.py
-Note: Educational implementation of the *losses* (policy loss + value loss + entropy).
+두루마리: appendix/rl/a2c_a3c.py
+눈여겨볼 것: *잃음*(방침 잃음 + 값 잃음 + 엔트로피)을 배우기 위해 짜 본 것이다.
 """
 
 import torch
@@ -33,9 +33,9 @@ import torch.nn.functional as F
 
 class ActorCritic(nn.Module):
     """
-    Shared backbone with two heads:
-      - policy logits over discrete actions
-      - state value estimate
+    머리 둘을 지닌, 나누어 쓰는 등뼈:
+      - 따로 떨어진 움직임에 대한 방침 로짓
+      - 상태 값 어림
     """
     def __init__(self, obs_dim: int, num_actions: int, hidden: int = 128):
         super().__init__()
@@ -57,34 +57,34 @@ class ActorCritic(nn.Module):
 
 def a2c_loss(logits, values, actions, returns, entropy_coef=0.01, value_coef=0.5):
     """
-    Compute A2C/A3C losses.
+    A2C/A3C 잃음을 셈한다.
 
-    Inputs:
-      logits:  (B, A) policy logits
-      values:  (B,) critic V(s)
-      actions: (B,) actions taken
-      returns: (B,) empirical returns (e.g., n-step)
+    들임:
+      logits:  (B, A) 방침 로짓
+      values:  (B,) 따지는 이의 V(s)
+      actions: (B,) 한 움직임
+      returns: (B,) 겪어 본 되받음(n 걸음 따위)
 
-    Advantage:
+    이득:
       adv = returns - values
 
-    Loss:
+    잃음:
       policy_loss = - E[ log pi(a|s) * adv ]
       value_loss  = MSE(values, returns)
-      entropy_bonus encourages exploration
+      entropy_bonus은 둘러보기를 북돋운다
     """
-    # Log-probabilities of the chosen actions
+    # 고른 움직임의 로그 낌새
     logp = F.log_softmax(logits, dim=1)  # (B, A)
     logp_a = logp.gather(1, actions.long().unsqueeze(1)).squeeze(1)  # (B,)
 
-    # Advantage (stop gradient through advantage when updating actor)
+    # 이득(움직이는 이를 고칠 때 이득으로 흐르는 기울기는 끊는다)
     adv = (returns - values).detach()
 
     policy_loss = -(logp_a * adv).mean()
 
     value_loss = F.mse_loss(values, returns)
 
-    # Entropy: -sum p log p (higher entropy = more exploration)
+    # 엔트로피: -sum p log p (엔트로피가 클수록 더 둘러본다)
     p = F.softmax(logits, dim=1)
     entropy = -(p * logp).sum(dim=1).mean()
 

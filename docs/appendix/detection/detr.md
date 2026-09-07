@@ -9,14 +9,14 @@ DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔
 ```python
 #!/usr/bin/env python3
 """
-DETR - End-to-End Object Detection with Transformers
-Paper: "End-to-End Object Detection with Transformers" (2020)
-Authors: Nicolas Carion et al.
-Key: CNN backbone + Transformer encoder/decoder + fixed set of object queries.
-     Predicts a set of boxes/classes directly (no anchors, no NMS in original formulation).
+DETR - 변환기로 끝에서 끝까지 물체 알아내기
+글: "변환기로 끝에서 끝까지 물체 알아내기" (2020)
+지은이: 니콜라 카리옹 외
+고갱이: CNN 등뼈 + 변환기 부호기/풀개 + 붙박인 물체 물음 묶음.
+     상자와 갈래를 곧바로 한 벌로 미루어 본다(본디 꼴에는 닻도 NMS도 없다).
 
-File: appendix/detection/detr.py
-Note: Educational/simplified implementation focusing on the model forward pass.
+두루마리: appendix/detection/detr.py
+눈여겨볼 것: 모형의 앞으로 걸음에 마음을 둔, 배우기 위한 단순한 짜보기다.
 """
 
 import math
@@ -31,8 +31,8 @@ import torch.nn.functional as F
 
 class PositionalEncoding2D(nn.Module):
     """
-    Simple 2D sine-cosine positional encoding for feature maps.
-    Real DETR uses learned or sine-cos embeddings; this is a compact sine-cos version.
+    결 그림을 위한 단순한 2차원 사인-코사인 자리 담기.
+    참 DETR은 배운 담음이나 사인-코사인 담음을 쓴다. 여기서는 옹골찬 사인-코사인 갈래다.
     """
     def __init__(self, d_model: int = 256, temperature: int = 10000):
         super().__init__()
@@ -49,11 +49,11 @@ class PositionalEncoding2D(nn.Module):
         y = torch.arange(H, device=device).unsqueeze(1).repeat(1, W)  # (H, W)
         x = torch.arange(W, device=device).unsqueeze(0).repeat(H, 1)  # (H, W)
 
-        # Normalize to [0, 2pi] range
+        # [0, 2pi] 사이로 잣대를 맞춘다
         y = y / (H - 1 + 1e-6) * 2 * math.pi
         x = x / (W - 1 + 1e-6) * 2 * math.pi
 
-        # Compute frequencies
+        # 잦기를 셈한다
         dim_t = torch.arange(self.d_model // 4, device=device, dtype=torch.float32)
         dim_t = self.temperature ** (2 * (dim_t // 2) / (self.d_model // 2))
 
@@ -61,7 +61,7 @@ class PositionalEncoding2D(nn.Module):
         pos_x = x[..., None] / dim_t
         pos_y = y[..., None] / dim_t
 
-        # sine-cos pairs
+        # 사인-코사인 짝
         pos_x = torch.stack((pos_x.sin(), pos_x.cos()), dim=-1).flatten(-2)  # (H, W, D/2)
         pos_y = torch.stack((pos_y.sin(), pos_y.cos()), dim=-1).flatten(-2)  # (H, W, D/2)
 
@@ -72,8 +72,8 @@ class PositionalEncoding2D(nn.Module):
 
 class TinyBackbone(nn.Module):
     """
-    Very small CNN backbone producing a feature map.
-    In real DETR: ResNet + 1x1 projection to d_model.
+    결 그림을 내는 아주 작은 CNN 등뼈.
+    참 DETR에서는 ResNet + d_model으로 가는 1x1 되비춤.
     """
     def __init__(self, d_model=256):
         super().__init__()
@@ -91,16 +91,16 @@ class TinyBackbone(nn.Module):
 
 class DETR(nn.Module):
     """
-    Simplified DETR:
-    - backbone -> feature map
-    - add pos encoding
-    - transformer encoder/decoder
-    - object queries -> decoder outputs
-    - heads: class logits + box coordinates
+    단순하게 만든 DETR:
+    - 등뼈 -> 결 그림
+    - 자리 담기를 더한다
+    - 변환기 부호기/풀개
+    - 물체 물음 -> 풀개 날임
+    - 머리: 갈래 로짓 + 상자 자리 값
 
-    Output:
-      - pred_logits: (B, num_queries, num_classes+1)  (+1 for "no object")
-      - pred_boxes : (B, num_queries, 4) in normalized cx,cy,w,h (sigmoid)
+    날임:
+      - pred_logits: (B, num_queries, num_classes+1)  (+1은 "물체 없음")
+      - pred_boxes : (B, num_queries, 4), 잣대 맞춘 cx,cy,w,h (시그모이드)
     """
     def __init__(self, num_classes=20, num_queries=100, d_model=256, nhead=8, num_enc=6, num_dec=6):
         super().__init__()
@@ -111,7 +111,7 @@ class DETR(nn.Module):
         self.backbone = TinyBackbone(d_model=d_model)
         self.pos_enc = PositionalEncoding2D(d_model=d_model)
 
-        # PyTorch Transformer uses sequence-first: (S, B, E)
+        # PyTorch 변환기는 이음을 앞에 둔다: (S, B, E)
         self.transformer = nn.Transformer(
             d_model=d_model,
             nhead=nhead,
@@ -122,10 +122,10 @@ class DETR(nn.Module):
             batch_first=False,
         )
 
-        # Learnable object queries (num_queries, d_model)
+        # 배울 수 있는 물체 물음 (num_queries, d_model)
         self.query_embed = nn.Embedding(num_queries, d_model)
 
-        # Prediction heads
+        # 미루어 봄 머리
         self.class_head = nn.Linear(d_model, num_classes + 1)  # +1: "no-object"
         self.box_head = nn.Sequential(
             nn.Linear(d_model, d_model), nn.ReLU(inplace=True),
@@ -137,12 +137,12 @@ class DETR(nn.Module):
         """
         x: (B, 3, H, W)
 
-        Steps:
-        1) backbone -> feat (B, C, H', W')
-        2) flatten spatial -> src sequence (S=H'*W', B, C)
-        3) create query sequence (T=num_queries, B, C)
+        걸음:
+        1) 등뼈 -> feat (B, C, H', W')
+        2) 자리를 펼침 -> src 이음 (S=H'*W', B, C)
+        3) 물음 이음을 짓는다 (T=num_queries, B, C)
         4) transformer(src, tgt) -> hs (T, B, C)
-        5) heads -> logits/boxes
+        5) 머리 -> 로짓/상자
         """
         feat = self.backbone(x)               # (B, C, H', W')
         pos = self.pos_enc(feat)              # (B, C, H', W')
@@ -151,16 +151,16 @@ class DETR(nn.Module):
         src = feat.flatten(2).permute(2, 0, 1)  # (S=H*W, B, C)
         pos = pos.flatten(2).permute(2, 0, 1)   # (S, B, C)
 
-        # Add position to src (common DETR trick)
+        # src에 자리를 더한다(DETR에서 흔한 솜씨)
         src = src + pos
 
-        # Object queries as initial target tokens (T, B, C)
+        # 물체 물음을 첫 과녁 낱말로 쓴다 (T, B, C)
         query = self.query_embed.weight.unsqueeze(1).repeat(1, B, 1)
 
-        # Transformer: encoder processes src, decoder processes query attending to src
+        # 변환기: 부호기가 src을 다루고, 풀개가 src에 눈길을 주며 물음을 다룬다
         hs = self.transformer(src=src, tgt=query)  # (T, B, C)
 
-        # Convert to batch-first: (B, T, C)
+        # 묶음을 앞에 두도록 바꾼다: (B, T, C)
         hs = hs.permute(1, 0, 2)
 
         pred_logits = self.class_head(hs)           # (B, T, num_classes+1)

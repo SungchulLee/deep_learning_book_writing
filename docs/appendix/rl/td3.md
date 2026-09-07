@@ -9,16 +9,16 @@ TD3은 2018년 글 "Addressing Function Approximation Error in Actor-Critic Meth
 ```python
 #!/usr/bin/env python3
 """
-TD3 - Twin Delayed DDPG
-Paper: "Addressing Function Approximation Error in Actor-Critic Methods" (2018)
-Authors: Scott Fujimoto, Herke van Hoof, David Meger
-Key ideas:
-  1) Twin Q networks (min of two critics)
-  2) Target policy smoothing (add noise to target action)
-  3) Delayed actor updates
+TD3 - 쌍둥이에 늦춘 DDPG
+글: "움직이는 이-따지는 이 방법의 함수 어림 어긋남 다루기" (2018)
+지은이: 스콧 후지모토, 헤르케 판 호프, 데이비드 메거
+고갱이 깨침:
+  1) 쌍둥이 Q 그물(따지는 이 둘 가운데 작은 값)
+  2) 과녁 방침 매끄럽게 하기(과녁 움직임에 시끄러움을 더한다)
+  3) 움직이는 이를 늦추어 고치기
 
-File: appendix/rl/td3.py
-Note: Educational reference (core target computation + networks).
+두루마리: appendix/rl/td3.py
+눈여겨볼 것: 배우기 위한 본이다(고갱이 과녁 셈 + 그물).
 """
 
 import torch
@@ -31,7 +31,7 @@ import torch.nn.functional as F
 
 
 class Actor(nn.Module):
-    """Deterministic policy a = pi(s)."""
+    """딱 정해진 방침 a = pi(s)."""
     def __init__(self, obs_dim: int, act_dim: int, hidden: int = 256):
         super().__init__()
         self.net = nn.Sequential(
@@ -48,7 +48,7 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    """Q(s,a) critic."""
+    """Q(s,a) 따지는 이."""
     def __init__(self, obs_dim: int, act_dim: int, hidden: int = 256):
         super().__init__()
         self.net = nn.Sequential(
@@ -66,16 +66,16 @@ class Critic(nn.Module):
 
 def td3_target(q1_tgt, q2_tgt, actor_tgt, s2, r, done, gamma=0.99, noise_std=0.2, noise_clip=0.5):
     """
-    TD3 target:
+    TD3 과녁:
       a' = actor_tgt(s') + clipped_noise
       y  = r + gamma*(1-done) * min(Q1_tgt(s',a'), Q2_tgt(s',a'))
 
-    Target policy smoothing reduces overestimation from sharp Q peaks.
+    과녁 방침을 매끄럽게 하면 뾰족한 Q 봉우리에서 오는 지나친 어림이 줄어든다.
     """
     with torch.no_grad():
         a2 = actor_tgt(s2)
 
-        # Add clipped Gaussian noise
+        # 잘라 낸 가우스 시끄러움을 더한다
         noise = torch.randn_like(a2) * noise_std
         noise = noise.clamp(-noise_clip, noise_clip)
         a2 = (a2 + noise).clamp(-1.0, 1.0)

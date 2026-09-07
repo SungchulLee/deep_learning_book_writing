@@ -9,17 +9,17 @@ Dueling DQN은 2016년 글 "Dueling Network Architectures for Deep Reinforcement
 ```python
 #!/usr/bin/env python3
 """
-Dueling DQN - Separate value and advantage streams
-Paper: "Dueling Network Architectures for Deep Reinforcement Learning" (2016)
-Authors: Ziyu Wang et al.
-Key idea:
-  - Learn V(s) and A(s,a) separately, then combine to Q(s,a)
-  - Helps when many actions have similar value
+Dueling DQN - 값 흐름과 이득 흐름을 따로 두기
+글: "깊은 북돋움 배움을 위한 겨루는 그물 얼개" (2016)
+지은이: 쯔위 왕 외
+고갱이 깨침:
+  - V(s)과 A(s,a)을 따로 배운 뒤 Q(s,a)으로 아우른다
+  - 값이 비슷한 움직임이 많을 때 도움이 된다
 
-Combination:
+아우르기:
   Q(s,a) = V(s) + ( A(s,a) - mean_a A(s,a) )
 
-File: appendix/rl/dueling_dqn.py
+두루마리: appendix/rl/dueling_dqn.py
 """
 
 import torch
@@ -32,8 +32,8 @@ import torch.nn as nn
 
 class DuelingQNetwork(nn.Module):
     """
-    Dueling network:
-      shared trunk -> value head + advantage head
+    겨루는 그물:
+      나누어 쓰는 몸통 -> 값 머리 + 이득 머리
     """
     def __init__(self, obs_dim: int, num_actions: int, hidden: int = 128):
         super().__init__()
@@ -44,10 +44,10 @@ class DuelingQNetwork(nn.Module):
             nn.ReLU(inplace=True),
         )
 
-        # Value stream outputs a single scalar V(s)
+        # 값 흐름은 홑값 V(s) 하나를 낸다
         self.value = nn.Linear(hidden, 1)
 
-        # Advantage stream outputs A(s,a) for all actions
+        # 이득 흐름은 모든 움직임에 대한 A(s,a)을 낸다
         self.adv = nn.Linear(hidden, num_actions)
 
     def forward(self, obs: torch.Tensor) -> torch.Tensor:
@@ -56,7 +56,7 @@ class DuelingQNetwork(nn.Module):
         V = self.value(h)           # (B, 1)
         A = self.adv(h)             # (B, A)
 
-        # Center advantages to keep Q identifiable (otherwise V/A not unique)
+        # 이득을 가운데로 맞추어 Q을 하나로 짚을 수 있게 한다(안 그러면 V/A이 하나로 안 정해진다)
         A_centered = A - A.mean(dim=1, keepdim=True)
 
         Q = V + A_centered          # (B, A)

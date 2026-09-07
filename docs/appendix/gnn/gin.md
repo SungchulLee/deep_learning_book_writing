@@ -9,16 +9,16 @@ GIN은 2019년 글 "How Powerful are Graph Neural Networks?"에서 나왔다. - 
 ```python
 #!/usr/bin/env python3
 """
-GIN - Graph Isomorphism Network
-Paper: "How Powerful are Graph Neural Networks?" (2019)
-Authors: Keyulu Xu et al.
-Key idea:
-  - Use sum aggregation + MLP
-  - Update: h'_i = MLP( (1 + eps) * h_i + sum_{j in N(i)} h_j )
-  - Proven as powerful as the Weisfeiler-Lehman test (under assumptions)
+GIN - 그림 같은꼴 그물
+글: "그림 신경 그물은 얼마나 힘센가?" (2019)
+지은이: 커율루 쉬 외
+고갱이 깨침:
+  - 더하기 모으기 + MLP을 쓴다
+  - 고침: h'_i = MLP( (1 + eps) * h_i + sum_{j in N(i)} h_j )
+  - (몇 가지 가정 아래) 바이스파일러-레만 시험만큼 힘세다고 밝혀졌다
 
-File: appendix/gnn/gin.py
-Note: Educational implementation with dense adjacency.
+두루마리: appendix/gnn/gin.py
+눈여겨볼 것: 빽빽한 이웃 행렬을 쓰는, 배우기 위한 짜보기다.
 """
 
 import torch
@@ -31,7 +31,7 @@ import torch.nn.functional as F
 
 
 class MLP(nn.Module):
-    """Small MLP used inside GIN."""
+    """GIN 안에서 쓰는 작은 MLP."""
     def __init__(self, in_dim: int, out_dim: int, hidden_dim: int = 64):
         super().__init__()
         self.net = nn.Sequential(
@@ -46,10 +46,10 @@ class MLP(nn.Module):
 
 class GINLayer(nn.Module):
     """
-    One GIN layer:
+    GIN 켜 하나:
       h'_i = MLP( (1 + eps) * h_i + sum_{j in N(i)} h_j )
 
-    eps can be fixed or learnable; here we make it learnable.
+    eps은 붙박아 두거나 배우게 할 수 있다. 여기서는 배우게 한다.
     """
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
@@ -57,14 +57,14 @@ class GINLayer(nn.Module):
         self.mlp = MLP(in_dim, out_dim, hidden_dim=2 * out_dim)
 
     def forward(self, X: torch.Tensor, A: torch.Tensor) -> torch.Tensor:
-        # For sum aggregation, we can use A @ X if A contains edges (optionally without self-loops)
+        # 더하기 모으기에는 A이 이음을 담고 있으면 A @ X을 쓸 수 있다(제 고리는 골라 뺀다)
         neigh_sum = A @ X  # (N, in_dim)
         out = (1.0 + self.eps) * X + neigh_sum
         return self.mlp(out)
 
 
 class GIN(nn.Module):
-    """2-layer GIN for node classification."""
+    """마디 가름을 위한 두 켜 GIN."""
     def __init__(self, in_dim: int, hidden_dim: int, num_classes: int):
         super().__init__()
         self.gin1 = GINLayer(in_dim, hidden_dim)
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     N, Fin, C = 4, 6, 3
     X = torch.randn(N, Fin)
 
-    # Adjacency without self-loops is okay for GIN because (1+eps)*X provides self contribution
+    # GIN에서는 (1+eps)*X이 제 몫을 주므로 제 고리 없는 이웃 행렬이라도 괜찮다
     A = torch.tensor([
         [0, 1, 1, 0],
         [1, 0, 1, 0],

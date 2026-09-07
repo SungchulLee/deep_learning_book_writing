@@ -42,7 +42,7 @@ class ResidualBlock(nn.Module):
 class YOLOv3(nn.Module):
     def __init__(self, num_classes=80):
         super().__init__()
-        # Darknet-53 backbone (simplified)
+        # Darknet-53 등뼈(단순하게 만듦)
         self.conv1 = ConvBlock(3, 32, 3)
         self.conv2 = ConvBlock(32, 64, 3, stride=2)
         self.res1 = ResidualBlock(64)
@@ -53,7 +53,7 @@ class YOLOv3(nn.Module):
         self.conv4 = ConvBlock(128, 256, 3, stride=2)
         self.res3 = nn.Sequential(*[ResidualBlock(256) for _ in range(8)])
         
-        # Detection heads at different scales
+        # 서로 다른 잣대의 알아내기 머리
         self.detect1 = nn.Conv2d(256, (5 + num_classes) * 3, 1)  # 3 anchors per scale
     
     def forward(self, x):

@@ -40,9 +40,9 @@ exclude_docs: |
 
 nav:
 
-  - Home: index.md
-  - I Foundations:
-    - 1 Introduction:
+  - 첫머리: index.md
+  - I 밑바탕:
+    - 1 들어가기:
       - 장 개요: ch01/index.md
       - 1.1 알고리즘이란 무엇인가:
         - 알고리즘의 정의: ch01/what/definition.md
@@ -70,7 +70,7 @@ nav:
         - 알고리즘을 위한 파이썬: ch01/languages/python.md
         - 알고리즘을 위한 C++: ch01/languages/cpp.md
         - 언어 선택: ch01/languages/choosing.md
-    - 2 Algorithm Analysis:
+    - 2 알고리즘 분석:
       - 장 개요: ch02/index.md
       - 2.1 점근 표기법:
         - 빅오 표기법: ch02/asymptotic/big_o.md
@@ -199,7 +199,7 @@ nav:
         - 다항 특징: ch03/linear_regression/polynomial_features.md
         - 릿지 회귀: ch03/linear_regression/ridge_regression.md
         - '코드: SPY에 대한 WMT 회귀': ch03/linear_regression/wmt_on_spy.md
-    - 2 PyTorch Fundamentals:
+    - 2 PyTorch 기초:
       - 장 개요: ch02/index.md
       - 2.2 텐서:
         - '코드: 스칼라를 텐서로': ch02/tensors/01_scalar_to_tensor.md
@@ -345,7 +345,7 @@ nav:
         - 다항 특징: ch03/linear_regression/polynomial_features.md
         - 릿지 회귀: ch03/linear_regression/ridge_regression.md
         - '코드: SPY에 대한 WMT 회귀': ch03/linear_regression/wmt_on_spy.md
-  - II Elementary Data Structures:
+  - II 기본 자료 구조:
     - 4 배열과 연결 리스트:
       - 장 개요: ch04/index.md
       - 4.1 배열:
@@ -545,7 +545,7 @@ nav:
         - 가중치 초기화: ch04/weight_initialization/weight_initialization.md
         - He 초기화: ch04/weight_initialization/he_init.md
       - 4.4 정규화 층:
-        - RMSNorm: ch04/normalization/rms_norm.md
+        - RMSNorm (제곱평균제곱근 층 정규화): ch04/normalization/rms_norm.md
         - '코드: 배치 정규화': ch04/normalization/batch_normalization.md
         - '코드: 사례 정규화': ch04/normalization/instance_normalization.md
         - '코드: 층 정규화': ch04/normalization/layer_normalization.md
@@ -661,7 +661,7 @@ nav:
         - '코드: 배열 기반 스택': ch05/stacks/array.md
         - '코드: 스택으로 쓰는 덱': ch05/stacks/deque_stack.md
         - '코드: 연결 리스트': ch05/stacks/linked.md
-  - II - Core Architectures:
+  - II - 핵심 얼개:
     - 6 합성곱 신경망:
       - 장 개요: ch06/index.md
       - 6.1 합성곱 신경망:
@@ -682,7 +682,7 @@ nav:
         - '코드: 이진 분류': ch06/cnn/08_binary_classification.md
         - '코드: CNN 유틸리티': ch06/cnn/cnn_utils.md
         - '코드: 밑바닥부터 만드는 합성곱': ch06/cnn/conv_from_scratch.md
-  - III Trees:
+  - III 트리:
     - 7 이진 트리:
       - 장 개요: ch07/index.md
       - 7.1 트리의 기초:
@@ -910,7 +910,7 @@ nav:
         - '코드: ViT 학습': ch08/transformers_vision/train_vit.md
         - '코드: 시각화': ch08/transformers_vision/visualizations.md
         - '코드: ViT 모델': ch08/transformers_vision/vit_model.md
-  - III - Learning Paradigms:
+  - III - 배움의 틀:
     - 9 자기 지도 학습:
       - 장 개요: ch09/index.md
       - 9.2 대조 학습:
@@ -1012,7 +1012,7 @@ nav:
         - '코드: 샴 망': ch11/few_shot/siamese_network.md
       - 메타 학습:
         - 배운 최적화기: ch11/meta_learning/learned_optimizers.md
-        - MAML: ch11/meta_learning/maml.md
+        - 모델 가리지 않는 메타 학습(MAML): ch11/meta_learning/maml.md
         - 과제 분포: ch11/meta_learning/task_distribution.md
       - 거리 학습:
         - 원형 망: ch11/metric_learning/prototypical.md
@@ -1109,7 +1109,7 @@ nav:
       - 돌아보기:
         - '"코드: BFS의 성질"': ch14/traversals/bfs_properties.md
         - '"코드: DFS의 성질"': ch14/traversals/dfs_properties.md
-  - IV - Probabilistic Methods:
+  - IV - 확률 방법:
     - 13 베이즈의 바탕:
       - 장 훑어보기: ch13/index.md
       - 13.1 핵심 이론:
@@ -1242,7 +1242,7 @@ nav:
         - 가능도 없는 추론: ch15/abc/likelihood_free.md
         - ABC 물리치기 표집: ch15/abc/rejection_sampling.md
         - ABC-MCMC: ch15/abc/abc_mcmc.md
-        - ABC-SMC: ch15/abc/abc_smc.md
+        - ABC-SMC(잇단 몬테카를로 ABC): ch15/abc/abc_smc.md
       - 15.6 마르코프 사슬 몬테카를로 방법 견주기:
         - 방법 둘러보기: ch15/mcmc_comparison/overview.md
         - 이론으로 견주기: ch15/mcmc_comparison/theoretical.md
@@ -1694,7 +1694,7 @@ nav:
         - 다시 세우기 살피기: ch21/ae/reconstruction_analysis.md
       - 변형:
         - 오그리는 자기 부호기: ch21/variants/contractive.md
-  - VII String Algorithms:
+  - VII 문자열 알고리즘:
     - 22 변분 자기 부호기:
       - 장 살펴보기: ch22/index.md
       - 22.1 딱 맞는 찾기:
@@ -1929,8 +1929,8 @@ nav:
     - 27 셈 복잡도:
       - 장 살펴보기: ch27/index.md
       - 27.1 복잡도 갈래:
-        - P: ch27/classes/p.md
-        - NP: ch27/classes/np.md
+        - 갈래 P: ch27/classes/p.md
+        - 갈래 NP: ch27/classes/np.md
         - 다항 줄임: ch27/classes/reductions.md
         - NP 완전성: ch27/classes/np_complete.md
         - NP 어려움: ch27/classes/np_hard.md
@@ -1956,7 +1956,7 @@ nav:
         - 거짓 다항 시간: ch27/coping/pseudo_polynomial.md
       - 27.4 NP 너머:
         - PSPACE: ch27/beyond/pspace.md
-        - '#P': ch27/beyond/sharp_p.md
+        - '샤프 P: 세기 복잡도': ch27/beyond/sharp_p.md
         - 어긋남이 가둬진 다항과 마구잡이 다항: ch27/beyond/bpp_rp.md
         - 복잡도 동물원: ch27/beyond/zoo.md
   - X 특별한 주제:
@@ -2086,7 +2086,7 @@ nav:
         - 흐름 모형: ch29/streaming/model.md
         - 잦음 어림: ch29/streaming/frequency.md
         - Count-Min 스케치: ch29/streaming/count_min.md
-        - HyperLogLog: ch29/streaming/hyperloglog.md
+        - 하이퍼로그로그: ch29/streaming/hyperloglog.md
         - 저수지 뽑기: ch29/streaming/reservoir.md
         - 미스라-그리스: ch29/streaming/misra_gries.md
         - 어림 가운뎃값: ch29/streaming/median.md
@@ -2166,7 +2166,7 @@ nav:
         - '코드: GraphGAN': ch31/one_shot/graphgan.md
         - GraphVAE: ch31/one_shot/graphvae.md
         - '코드: GraphVAE': ch31/one_shot/graphvae.md
-  - XI Practice and Applications:
+  - XI 실전과 응용:
     - 32 알고리즘 설계 재주:
       - 장 살펴보기: ch32/index.md
       - 32.1 문제 가르기:
@@ -2343,218 +2343,218 @@ nav:
         - 이어진 거래 코드: ch34/finance/continuous_trading.md
         - 무릅씀에 예민한 힘 북돋우는 배움: ch34/finance/risk_sensitive.md
         - 무릅씀에 예민한 힘 북돋우는 배움 코드: ch34/finance/risk_sensitive.md
-    - 35 Reinforcement Learning for Quant Finance:
-      - Chapter Overview: ch35/index.md
-      - 35.1 Database Systems:
-        - B-Tree Indexing: ch35/database/btree.md
-        - Hash Indexing: ch35/database/hash.md
-        - Log-Structured Merge Trees: ch35/database/lsm.md
-        - Query Optimization: ch35/database/query.md
-        - Join Algorithms: ch35/database/joins.md
-        - External Sort-Merge: ch35/database/sort_merge.md
-      - 35.2 Networking:
-        - Routing Algorithms: ch35/networking/routing.md
-        - Dijkstra in Open Shortest Path First: ch35/networking/ospf.md
-        - Bellman-Ford in Routing Info Protocol: ch35/networking/rip.md
-        - Packet Scheduling: ch35/networking/scheduling.md
-        - Load Balancing: ch35/networking/load_balancing.md
-      - 35.3 Operating Systems:
-        - Process Scheduling: ch35/os/scheduling.md
-        - Memory Allocation: ch35/os/memory.md
-        - File System Trees: ch35/os/filesystem.md
-        - Page Replacement: ch35/os/paging.md
-      - 35.4 Search Engines:
-        - Inverted Index: ch35/search/inverted_index.md
-        - PageRank: ch35/search/pagerank.md
-        - Web Crawling: ch35/search/crawling.md
-        - Autocomplete (Trie): ch35/search/autocomplete.md
-      - 35.5 Compression:
-        - Huffman Coding: ch35/compression/huffman.md
-        - LZ77 and LZ78: ch35/compression/lz.md
-        - LZW: ch35/compression/lzw.md
-        - Run-Length Encoding: ch35/compression/rle.md
-        - Burrows-Wheeler Transform: ch35/compression/bwt.md
-      - Backtesting:
-        - '"Code: Framework"': ch35/backtesting/framework.md
-        - '"Code: Metrics"': ch35/backtesting/metrics.md
-        - '"Code: Significance"': ch35/backtesting/significance.md
-        - '"Code: Walk Forward"': ch35/backtesting/walk_forward.md
-      - Challenges:
-        - '"Code: Non Stationarity"': ch35/challenges/non_stationarity.md
-        - '"Code: Overfitting"': ch35/challenges/overfitting.md
-        - Regimes: ch35/challenges/regimes.md
-        - '"Code: Regimes"': ch35/challenges/regimes.md
-        - '"Code: Snr"': ch35/challenges/snr.md
-      - Environments:
-        - Actions: ch35/environments/actions.md
-        - Rewards: ch35/environments/rewards.md
-        - Simulation: ch35/environments/simulation.md
-        - State: ch35/environments/state.md
-      - Production:
-        - '"Code: Live Trading"': ch35/production/live_trading.md
-        - '"Code: Monitoring"': ch35/production/monitoring.md
-        - '"Code: Paper Trading"': ch35/production/paper_trading.md
-        - '"Code: Risk Controls"': ch35/production/risk_controls.md
-      - Risk:
-        - '"Code: Drawdown"': ch35/risk/drawdown.md
-        - Rewards: ch35/risk/rewards.md
-        - Var Constraints: ch35/risk/var_constraints.md
-    - 36 Complexity Reference:
-      - Chapter Overview: ch36/index.md
-      - 36.1 Data Structure Complexity:
-        - Array Complexities: ch36/ds_complexity/array.md
-        - Linked List Complexities: ch36/ds_complexity/linked_list.md
-        - Stack and Queue: ch36/ds_complexity/stack_queue.md
-        - Hash Table: ch36/ds_complexity/hash.md
-        - Binary Search Tree Family: ch36/ds_complexity/bst.md
-        - Heap Family: ch36/ds_complexity/heap.md
-        - Trie Complexities: ch36/ds_complexity/trie.md
-        - Comparison Tables: ch36/ds_complexity/comparison.md
-      - 36.2 Algorithm Complexity:
-        - Sorting Complexities: ch36/algo_complexity/sorting.md
-        - Graph Algorithm Complexities: ch36/algo_complexity/graph.md
-        - String Algorithm Complexities: ch36/algo_complexity/string.md
-        - Search Algorithm Complexities: ch36/algo_complexity/search.md
-        - Dynamic Programming Complexities: ch36/algo_complexity/dp.md
-        - Comparison Tables: ch36/algo_complexity/comparison.md
-      - 36.3 Problem Solving Cheatsheet:
-        - Pattern Recognition Guide: ch36/cheatsheet/patterns.md
-        - Time Limit to Complexity: ch36/cheatsheet/time_limit.md
-        - Common Mistakes: ch36/cheatsheet/mistakes.md
-        - Interview Preparation: ch36/cheatsheet/interview.md
-      - 36.1 Foundations:
-        - Introduction: ch36/foundations/introduction.md
-        - Taxonomy: ch36/foundations/taxonomy.md
-        - Evaluation: ch36/foundations/evaluation.md
-      - 36.2 Gradient Methods:
-        - Saliency Maps: ch36/gradient_methods/saliency_maps.md
+    - 35 계량 금융을 위한 힘 북돋우는 배움:
+      - 장 개요: ch35/index.md
+      - 35.1 자료 곳간 얼개:
+        - B 나무 색인: ch35/database/btree.md
+        - 해시 색인: ch35/database/hash.md
+        - LSM 나무: ch35/database/lsm.md
+        - 물음 다듬기: ch35/database/query.md
+        - 맞이음 알고리즘: ch35/database/joins.md
+        - 바깥 줄 세워 합치기: ch35/database/sort_merge.md
+      - 35.2 그물 잇기:
+        - 길잡기 알고리즘: ch35/networking/routing.md
+        - OSPF 속의 데이크스트라: ch35/networking/ospf.md
+        - RIP 속의 벨먼-포드: ch35/networking/rip.md
+        - 꾸러미 차례 잡기: ch35/networking/scheduling.md
+        - 짐 고르기: ch35/networking/load_balancing.md
+      - 35.3 부림 얼개:
+        - 흐름 차례 잡기: ch35/os/scheduling.md
+        - 기억 자리 내주기: ch35/os/memory.md
+        - 두루마리 얼개 나무: ch35/os/filesystem.md
+        - 쪽 갈아 끼우기: ch35/os/paging.md
+      - 35.4 찾기 틀:
+        - 뒤집은 색인: ch35/search/inverted_index.md
+        - 페이지랭크: ch35/search/pagerank.md
+        - 누리 기어 다니기: ch35/search/crawling.md
+        - 트라이로 하는 자동 채우기: ch35/search/autocomplete.md
+      - 35.5 옥죄기:
+        - 허프먼 부호: ch35/compression/huffman.md
+        - LZ77과 LZ78: ch35/compression/lz.md
+        - LZW 옥죄기: ch35/compression/lzw.md
+        - 이어짐 길이 엮기: ch35/compression/rle.md
+        - 버로스-휠러 옮김: ch35/compression/bwt.md
+      - 되짚어 시험하기:
+        - 되짚어 시험하기 틀: ch35/backtesting/framework.md
+        - 됨됨이 재기: ch35/backtesting/metrics.md
+        - 통계로 뜻있음: ch35/backtesting/significance.md
+        - 앞으로 걸어가며 살피기: ch35/backtesting/walk_forward.md
+      - 어려움:
+        - 흐름 바뀜: ch35/challenges/non_stationarity.md
+        - 지나치게 맞추기 막기: ch35/challenges/overfitting.md
+        - 판 바뀜: ch35/challenges/regimes.md
+        - 판 바뀜: ch35/challenges/regimes.md
+        - 낮은 신호 대 잡음 비: ch35/challenges/snr.md
+      - 둘레:
+        - 움직임 공간: ch35/environments/actions.md
+        - 보상 만들기: ch35/environments/rewards.md
+        - 저자 흉내내기: ch35/environments/simulation.md
+        - 상태 나타내기: ch35/environments/state.md
+      - 실제 굴리기:
+        - 살아 있는 거래: ch35/production/live_trading.md
+        - 지켜보기: ch35/production/monitoring.md
+        - 종이 거래: ch35/production/paper_trading.md
+        - 무릅씀 다스리개: ch35/production/risk_controls.md
+      - 무릅씀:
+        - 내림폭: ch35/risk/drawdown.md
+        - 무릅씀을 맞춘 보상: ch35/risk/rewards.md
+        - 무릅씀 값 매임: ch35/risk/var_constraints.md
+    - 36 모형 풀이하기:
+      - 장 개요: ch36/index.md
+      - 36.1 자료 얼개 복잡도:
+        - 배열 복잡도: ch36/ds_complexity/array.md
+        - 이음 목록 복잡도: ch36/ds_complexity/linked_list.md
+        - 쌓개와 줄: ch36/ds_complexity/stack_queue.md
+        - 해시 표: ch36/ds_complexity/hash.md
+        - 이진 찾기 나무 집안: ch36/ds_complexity/bst.md
+        - 더미 집안: ch36/ds_complexity/heap.md
+        - 트라이 복잡도 살피기: ch36/ds_complexity/trie.md
+        - 견줌 표: ch36/ds_complexity/comparison.md
+      - 36.2 알고리즘 복잡도:
+        - 줄 세우기 복잡도: ch36/algo_complexity/sorting.md
+        - 그래프 알고리즘 복잡도: ch36/algo_complexity/graph.md
+        - 글자열 알고리즘 복잡도: ch36/algo_complexity/string.md
+        - 찾기 알고리즘 복잡도: ch36/algo_complexity/search.md
+        - 갈피 다지기 문제 복잡도: ch36/algo_complexity/dp.md
+        - 견줌 표: ch36/algo_complexity/comparison.md
+      - 36.3 문제 풀이 도움쪽:
+        - 결 알아보기 길잡이: ch36/cheatsheet/patterns.md
+        - 때 한도에서 복잡도로: ch36/cheatsheet/time_limit.md
+        - 흔한 잘못: ch36/cheatsheet/mistakes.md
+        - 면담 채비: ch36/cheatsheet/interview.md
+      - 36.1 밑바탕:
+        - 모형 풀이하기 들머리: ch36/foundations/introduction.md
+        - 풀이 방법의 갈래 나누기: ch36/foundations/taxonomy.md
+        - 풀이 방법 따지기: ch36/foundations/evaluation.md
+      - 36.2 기울기 방법:
+        - 두드러짐 그림과 맨 기울기: ch36/gradient_methods/saliency_maps.md
         - Grad-CAM: ch36/gradient_methods/gradcam.md
         - Grad-CAM++: ch36/gradient_methods/gradcam_plusplus.md
-        - Integrated Gradients: ch36/gradient_methods/integrated_gradients.md
+        - 쌓은 기울기: ch36/gradient_methods/integrated_gradients.md
         - SmoothGrad: ch36/gradient_methods/smoothgrad.md
-        - Guided Backprop: ch36/gradient_methods/guided_backprop.md
-        - 'Code: Attention VISualization': ch36/gradient_methods/attention_visualization.md
-        - 'Code: Example Attention': ch36/gradient_methods/example_attention.md
-        - 'Code: Example Grad-CAM': ch36/gradient_methods/example_gradcam.md
-        - 'Code: Grad-CAM': ch36/gradient_methods/gradcam.md
+        - 이끈 되짚기: ch36/gradient_methods/guided_backprop.md
+        - '코드: 눈길 그림 그리기': ch36/gradient_methods/attention_visualization.md
+        - '코드: 눈길 보기': ch36/gradient_methods/example_attention.md
+        - '코드: Grad-CAM 보기': ch36/gradient_methods/example_gradcam.md
+        - '코드: Grad-CAM': ch36/gradient_methods/gradcam.md
         - 'Code: SmoothGrad': ch36/gradient_methods/03_smoothgrad.md
-        - 'Code: Integrated Gradients': ch36/gradient_methods/04_integrated_gradients.md
-        - 'Code: Grad-CAM': ch36/gradient_methods/05_gradcam.md
-        - 'Code: Guided Backpropagation': ch36/gradient_methods/06_guided_backpropagation.md
-        - 'Code: Guided Grad-CAM': ch36/gradient_methods/07_guided_gradcam.md
-        - 'Code: Comparative Analysis': ch36/gradient_methods/08_comparative_analysis.md
-        - 'Code: Advanced Techniques': ch36/gradient_methods/09_advanced_techniques.md
-      - 36.3 Attention Visualization:
-        - Pattern Analysis: ch36/attention_viz/pattern_analysis.md
-        - 'Code: Intermediate Cross Attention': ch36/attention_viz/06_intermediate_cross_attention.md
-        - 'Code: Advanced VIT Attention': ch36/attention_viz/07_advanced_vit_attention.md
-        - 'Code: Advanced Attention Flow': ch36/attention_viz/08_advanced_attention_flow.md
-        - 'Code: Advanced Gradient Attention': ch36/attention_viz/09_advanced_gradient_attention.md
-      - 36.4 Feature Attribution:
-        - Kernel SHAP: ch36/feature_attribution/kernel_shap.md
-        - Deep SHAP: ch36/feature_attribution/deep_shap.md
-        - Tree SHAP: ch36/feature_attribution/tree_shap.md
-        - Interaction Effects: ch36/feature_attribution/interactions.md
-      - 36.5 Concept Methods:
-        - Concept Activation Vectors: ch36/concept_methods/cav.md
-        - Testing with Concept Activation Vectors: ch36/concept_methods/tcav.md
-        - Concept Bottleneck: ch36/concept_methods/concept_bottleneck.md
-        - Prototype Networks: ch36/concept_methods/prototypes.md
-      - 36.6 Model-Specific:
-        - Convolutional Neural Network Visualization: ch36/model_specific/cnn_visualization.md
-        - Feature Inversion: ch36/model_specific/feature_inversion.md
-        - Transformer Probing: ch36/model_specific/transformer_probing.md
-        - Graph Neural Network Explanation: ch36/model_specific/gnn_explanation.md
-      - 36.7 Evaluation:
-        - Stability: ch36/evaluation/stability.md
-        - Comprehensiveness: ch36/evaluation/comprehensiveness.md
-      - 36.8 Finance Applications:
-        - Factor Attribution: ch36/finance/factor_attribution.md
-    - 37 Bias and Fairness:
-      - Chapter Overview: ch37/index.md
-      - 37.1 Foundations:
-        - 'Code: Bias Detection': ch37/fairness_code/bias_detection.md
-        - 'Code: Bias Mitigation': ch37/fairness_code/bias_mitigation.md
-        - 'Code: Fairness Metrics': ch37/fairness_code/fairness_metrics.md
-        - 'Code: Practical Example': ch37/fairness_code/practical_example.md
-    - 38 Adversarial Robustness:
-      - Chapter Overview: ch38/index.md
-      - 38.1 Foundations:
-        - Introduction: ch38/foundations/introduction.md
-        - Threat Models: ch38/foundations/threat_models.md
-        - Perturbation Types: ch38/foundations/perturbations.md
-        - Robustness Definitions: ch38/foundations/definitions.md
-      - 38.2 White-Box Attacks:
-        - Fast Gradient Sign Method: ch38/white_box/fgsm.md
-        - Projected Gradient Descent: ch38/white_box/pgd.md
-        - 'C&W Attack': ch38/white_box/cw_attack.md
-        - DeepFool: ch38/white_box/deepfool.md
-        - AutoAttack: ch38/white_box/autoattack.md
-        - 'Code: FGSM Basic': ch38/adversarial/01_fgsm_basic.md
-        - 'Code: PGD Attack': ch38/adversarial/02_pgd_attack.md
-        - 'Code: C&W Attack': ch38/adversarial/03_cw_attack.md
-        - 'Code: Adversarial Training': ch38/adversarial/04_adversarial_training.md
-        - 'Code: Certified Defenses': ch38/adversarial/05_certified_defenses.md
-        - Natural Language Processing Adversarial Attacks: ch38/adversarial/nlp_adversarial.md
-      - 38.3 Black-Box Attacks:
-        - Transfer Attacks: ch38/black_box/transfer.md
-        - Query-Based: ch38/black_box/query_based.md
-        - Score-Based: ch38/black_box/score_based.md
-        - Decision-Based: ch38/black_box/decision_based.md
-      - 38.4 Physical Attacks:
-        - Adversarial Patches: ch38/physical/patches.md
-        - 3D Attacks: ch38/physical/3d_attacks.md
-        - Real-World Robustness: ch38/physical/real_world.md
-      - 38.5 Adversarial Training:
-        - Standard AT: ch38/adversarial_training/standard.md
+        - '코드: 쌓은 기울기': ch36/gradient_methods/04_integrated_gradients.md
+        - '코드: Grad-CAM': ch36/gradient_methods/05_gradcam.md
+        - '코드: 이끈 되짚기': ch36/gradient_methods/06_guided_backpropagation.md
+        - '코드: 이끈 Grad-CAM': ch36/gradient_methods/07_guided_gradcam.md
+        - '코드: 견주어 살피기': ch36/gradient_methods/08_comparative_analysis.md
+        - '코드: 앞선 재주': ch36/gradient_methods/09_advanced_techniques.md
+      - 36.3 눈길 그림 그리기:
+        - 눈길 결 살피기: ch36/attention_viz/pattern_analysis.md
+        - '코드: 가운데 엇결 눈길': ch36/attention_viz/06_intermediate_cross_attention.md
+        - '코드: 앞선 ViT 눈길': ch36/attention_viz/07_advanced_vit_attention.md
+        - '코드: 앞선 눈길 흐름': ch36/attention_viz/08_advanced_attention_flow.md
+        - '코드: 앞선 기울기 눈길': ch36/attention_viz/09_advanced_gradient_attention.md
+      - 36.4 결 몫 매기기:
+        - 커널 SHAP: ch36/feature_attribution/kernel_shap.md
+        - 깊은 SHAP: ch36/feature_attribution/deep_shap.md
+        - 나무 SHAP: ch36/feature_attribution/tree_shap.md
+        - 결 사이 서로 미침: ch36/feature_attribution/interactions.md
+      - 36.5 개념 방법:
+        - 개념 살아남 벡터(CAV): ch36/concept_methods/cav.md
+        - 'TCAV: 개념 살아남 벡터로 따지기': ch36/concept_methods/tcav.md
+        - 개념 목 모형: ch36/concept_methods/concept_bottleneck.md
+        - 풀이를 위한 본보기 그물: ch36/concept_methods/prototypes.md
+      - 36.6 모형에 매인 방법:
+        - CNN 그림 그리기와 쪼개기 방법: ch36/model_specific/cnn_visualization.md
+        - 결 되돌리기: ch36/model_specific/feature_inversion.md
+        - 변환기 더듬기: ch36/model_specific/transformer_probing.md
+        - GNN 풀이 방법: ch36/model_specific/gnn_explanation.md
+      - 36.7 따지기:
+        - 든든함 따지기: ch36/evaluation/stability.md
+        - 두루 갖춤 따지기: ch36/evaluation/comprehensiveness.md
+      - 36.8 금융에 쓰기:
+        - 인자 몫 매기기: ch36/finance/factor_attribution.md
+    - 37 치우침과 고름:
+      - 장 개요: ch37/index.md
+      - 37.1 밑바탕:
+        - '코드: 치우침 알아내기': ch37/fairness_code/bias_detection.md
+        - '코드: 치우침 눅이기': ch37/fairness_code/bias_mitigation.md
+        - '코드: 고름 자': ch37/fairness_code/fairness_metrics.md
+        - '코드: 손에 잡히는 보기': ch37/fairness_code/practical_example.md
+    - 38 맞섬에 든든하기:
+      - 장 개요: ch38/index.md
+      - 38.1 밑바탕:
+        - 맞섬에 든든하기 들머리: ch38/foundations/introduction.md
+        - 으름 얼개: ch38/foundations/threat_models.md
+        - 흔듦의 갈래: ch38/foundations/perturbations.md
+        - 든든함 뜻매김: ch38/foundations/definitions.md
+      - 38.2 흰 상자 치기:
+        - 빠른 기울기 부호 방법(FGSM): ch38/white_box/fgsm.md
+        - 되비춘 기울기 내림(PGD) 치기: ch38/white_box/pgd.md
+        - '칼리니-와그너(C&W) 치기': ch38/white_box/cw_attack.md
+        - 딥풀: ch38/white_box/deepfool.md
+        - 오토어택: ch38/white_box/autoattack.md
+        - '코드: FGSM 밑바탕': ch38/adversarial/01_fgsm_basic.md
+        - '코드: PGD 치기': ch38/adversarial/02_pgd_attack.md
+        - '코드: C&W 치기': ch38/adversarial/03_cw_attack.md
+        - '코드: 맞서며 익히기': ch38/adversarial/04_adversarial_training.md
+        - '코드: 밝혀 낸 막이': ch38/adversarial/05_certified_defenses.md
+        - 글월 모형에 대한 맞서는 치기: ch38/adversarial/nlp_adversarial.md
+      - 38.3 검은 상자 치기:
+        - 옮아가는 치기: ch38/black_box/transfer.md
+        - 물음 바탕 치기: ch38/black_box/query_based.md
+        - 점수 바탕 치기: ch38/black_box/score_based.md
+        - 판단 바탕 치기: ch38/black_box/decision_based.md
+      - 38.4 몸으로 하는 치기:
+        - 맞서는 헝겊: ch38/physical/patches.md
+        - 3차원 맞서는 치기: ch38/physical/3d_attacks.md
+        - 참 세상에서의 든든함: ch38/physical/real_world.md
+      - 38.5 맞서며 익히기:
+        - 맞서며 익히기: ch38/adversarial_training/standard.md
         - TRADES: ch38/adversarial_training/trades.md
         - MART: ch38/adversarial_training/mart.md
-        - Free AT: ch38/adversarial_training/free_at.md
-        - Fast AT: ch38/adversarial_training/fast_at.md
-      - 38.6 Certified Defenses:
-        - Randomized Smoothing: ch38/certified/randomized_smoothing.md
-        - Interval Bound Propagation: ch38/certified/ibp.md
+        - 값싼 맞서며 익히기: ch38/adversarial_training/free_at.md
+        - 빠른 맞서며 익히기: ch38/adversarial_training/fast_at.md
+      - 38.6 밝혀 낸 막이:
+        - 밝혀 낸 든든함: ch38/certified/randomized_smoothing.md
+        - 사이 테두리 퍼뜨리기(IBP): ch38/certified/ibp.md
         - CROWN: ch38/certified/crown.md
-        - Lipschitz Networks: ch38/certified/lipschitz.md
-      - 38.7 Detection Methods:
-        - Statistical Detection: ch38/detection/statistical.md
-        - Feature Squeezing: ch38/detection/feature_squeezing.md
-        - Input Transformation: ch38/detection/input_transform.md
-      - 38.8 Evaluation:
-        - Robustness Benchmarks: ch38/evaluation/benchmarks.md
-        - Adaptive Attacks: ch38/evaluation/adaptive.md
-        - Certified Accuracy: ch38/evaluation/certified_accuracy.md
-      - 38.9 Finance Applications:
-        - Fraud Detection Robustness: ch38/finance/fraud.md
-        - Market Manipulation: ch38/finance/manipulation.md
-        - Model Security: ch38/finance/security.md
-    - 39 Model Uncertainty:
-      - Chapter Overview: ch39/index.md
-      - 39.2 Monte Carlo Dropout:
-        - Theoretical Foundations: ch39/mc_dropout/theory.md
-        - Convergence Analysis: ch39/mc_dropout/convergence.md
-        - Dropout Rate Selection: ch39/mc_dropout/dropout_rate.md
-      - 39.4 Bayesian Methods:
-        - Prior Specification: ch39/bayesian_methods/priors.md
-        - Posterior Inference: ch39/bayesian_methods/posterior.md
-        - Variational Bayesian Neural Networks: ch39/bayesian_methods/variational_bnn.md
-        - Markov Chain Monte Carlo for Bayesian Neural Networks: ch39/bayesian_methods/mcmc_bnn.md
-        - Laplace Approximation: ch39/bayesian_methods/laplace.md
-        - Stochastic Weight Averaging Gaussian: ch39/bayesian_methods/swag.md
-        - Monte Carlo Dropout as Bayesian Inference: ch39/bayesian_methods/mc_dropout_connection.md
-      - 39.6 Evaluation:
-        - Uncertainty Quantification: ch39/evaluation/uncertainty_quantification.md
-      - 39.8 Finance Applications:
-        - Practical Applications: ch39/finance/practical_applications.md
-  - 'XI - Practice & Capstone':
-    - 40 Model Deployment:
-      - Chapter Overview: ch40/index.md
-      - 40.2 Optimization:
-        - Quantization: ch40/optimization/quantization.md
-        - Knowledge Distillation: ch40/optimization/distillation.md
-        - Neural Architecture Search: ch40/optimization/nas.md
-  - Appendix - Model Implementations:
-    - A1 Classic Convolutional Neural Networks:
+        - 립시츠로 옭아맨 그물: ch38/certified/lipschitz.md
+      - 38.7 알아내는 방법:
+        - 자로 맞서는 보기 알아내기: ch38/detection/statistical.md
+        - 결 쥐어짜기: ch38/detection/feature_squeezing.md
+        - 들임 바꾸어 막기: ch38/detection/input_transform.md
+      - 38.8 따지기:
+        - 따지기와 잣대 재기: ch38/evaluation/benchmarks.md
+        - 맞추어 오는 치기와 기울기 가리기: ch38/evaluation/adaptive.md
+        - 밝혀 낸 맞음: ch38/evaluation/certified_accuracy.md
+      - 38.9 금융에 쓰기:
+        - 속임수 알아내기의 든든함: ch38/finance/fraud.md
+        - 저자 흔들기 알아내기: ch38/finance/manipulation.md
+        - 금융 얼개의 모형 지킴: ch38/finance/security.md
+    - 39 모형 아리송함:
+      - 장 개요: ch39/index.md
+      - 39.2 몬테카를로 드롭아웃:
+        - 몬테카를로 드롭아웃의 이론 밑바탕: ch39/mc_dropout/theory.md
+        - 몬테카를로 드롭아웃의 표본 모임: ch39/mc_dropout/convergence.md
+        - MC 드롭아웃의 드롭아웃 비율 고르기: ch39/mc_dropout/dropout_rate.md
+      - 39.4 베이즈 방법:
+        - 신경 그물 짐의 앞선 분포: ch39/bayesian_methods/priors.md
+        - 베이즈 신경 그물의 뒷분포 미루어 봄: ch39/bayesian_methods/posterior.md
+        - 변이 베이즈 신경 그물: ch39/bayesian_methods/variational_bnn.md
+        - 베이즈 신경 그물의 MCMC 방법: ch39/bayesian_methods/mcmc_bnn.md
+        - 신경 그물의 라플라스 어림: ch39/bayesian_methods/laplace.md
+        - 'SWAG: 확률 짐 고르기 가우스': ch39/bayesian_methods/swag.md
+        - 'MC 드롭아웃: 어림 베이즈 미루어 봄으로서의 드롭아웃': ch39/bayesian_methods/mc_dropout_connection.md
+      - 39.6 따지기:
+        - 신경 그물의 아리송함 재기: ch39/evaluation/uncertainty_quantification.md
+      - 39.8 금융에 쓰기:
+        - 모형 아리송함을 손에 잡히게 쓰기: ch39/finance/practical_applications.md
+  - XI - 실전과 마무리:
+    - 40 모형 내놓기:
+      - 장 개요: ch40/index.md
+      - 40.2 다듬기:
+        - 수 줄이기: ch40/optimization/quantization.md
+        - 앎 옮기기: ch40/optimization/distillation.md
+        - 신경 얼개 찾기: ch40/optimization/nas.md
+  - 부록 - 모형 짜보기:
+    - A1 옛 엮음 신경 그물:
       - LeNet: appendix/cnn/lenet.md
       - Inception v3: appendix/cnn/inception_v3.md
       - ResNeXt: appendix/cnn/res_next.md
@@ -2577,34 +2577,34 @@ nav:
       - HRNet: appendix/cnn/hrnet.md
       - CoordConv: appendix/cnn/coordconv.md
       - CapsuleNet: appendix/cnn/capsule_net.md
-    - A2 Vision Transformers:
+    - A2 보기 변환기:
       - ViT: appendix/vit/vision_transformer_vit.md
       - DeiT: appendix/vit/deit.md
       - Swin Transformer: appendix/vit/swin_transformer.md
       - BEiT: appendix/vit/beit.md
       - MAE: appendix/vit/mae.md
       - CLIP: appendix/vit/clip.md
-    - A3 Segmentation Models:
-      - Fully Convolutional Network: appendix/segmentation/fcn.md
+    - A3 나누기 모형:
+      - 온통 엮음 그물(FCN): appendix/segmentation/fcn.md
       - DeepLab v3+: appendix/segmentation/deeplabv3.md
       - PSPNet: appendix/segmentation/pspnet.md
       - Mask R-CNN: appendix/segmentation/mask_rcnn.md
       - SegFormer: appendix/segmentation/segformer.md
-    - A4 Detection Models:
+    - A4 알아내기 모형:
       - Faster R-CNN: appendix/detection/faster_rcnn.md
       - YOLO v3: appendix/detection/yolo_v3.md
-      - Single Shot Detector: appendix/detection/ssd.md
+      - 한 방 알아내기(SSD): appendix/detection/ssd.md
       - RetinaNet: appendix/detection/retinanet.md
       - DETR: appendix/detection/detr.md
       - DINO: appendix/detection/dino.md
-    - A5 Sequence Models:
-      - Vanilla RNN: appendix/sequence/rnn.md
-      - Long Short-Term Memory: appendix/sequence/lstm.md
-      - Gated Recurrent Unit: appendix/sequence/gru.md
-      - Bidirectional: appendix/sequence/bidirectional.md
+    - A5 이음 모형:
+      - 맨 RNN: appendix/sequence/rnn.md
+      - LSTM: appendix/sequence/lstm.md
+      - GRU: appendix/sequence/gru.md
+      - 두 방향 RNN / GRU / LSTM: appendix/sequence/bidirectional.md
       - Seq2Seq: appendix/sequence/seq2seq.md
-      - Attention Seq2Seq: appendix/sequence/attention_seq2seq.md
-    - A6 Transformers:
+      - 눈길 Seq2Seq: appendix/sequence/attention_seq2seq.md
+    - A6 변환기:
       - T5: appendix/transformers/t5.md
       - RoBERTa: appendix/transformers/roberta.md
       - ALBERT: appendix/transformers/albert.md
@@ -2612,42 +2612,42 @@ nav:
       - Longformer: appendix/transformers/longformer.md
       - LLaMA: appendix/transformers/llama.md
       - Wav2Vec: appendix/transformers/wav2vec.md
-    - A7 Generative Models:
-      - Autoencoder: appendix/generative/autoencoder.md
+    - A7 만들개 모형:
+      - 제 부호기: appendix/generative/autoencoder.md
       - Beta-VAE: appendix/generative/beta_vae.md
       - VQ-VAE: appendix/generative/vqvae.md
-      - Generative Adversarial Network: appendix/generative/gan.md
+      - 맞겨루기 만들개 그물(GAN): appendix/generative/gan.md
       - DCGAN: appendix/generative/dcgan.md
       - StyleGAN: appendix/generative/stylegan.md
       - Pix2Pix: appendix/generative/pix2pix.md
       - CycleGAN: appendix/generative/cyclegan.md
-      - Denoising Diffusion Probabilistic Model: appendix/generative/ddpm.md
+      - 잡소리 없애는 번짐 모형(DDPM): appendix/generative/ddpm.md
       - Stable Diffusion: appendix/generative/stable_diffusion.md
       - RealNVP: appendix/generative/realnvp.md
       - Glow: appendix/generative/glow.md
-      - Neural ODE: appendix/generative/neural_ode.md
-    - A8 Graph Neural Networks:
-      - Graph Convolutional Network: appendix/gnn/gcn.md
-      - Graph Attention Network: appendix/gnn/gat.md
+      - 신경 ODE: appendix/generative/neural_ode.md
+    - A8 그림 신경 그물:
+      - 그림 엮음 그물(GCN): appendix/gnn/gcn.md
+      - 그림 눈길 그물(GAT): appendix/gnn/gat.md
       - GraphSAGE: appendix/gnn/graphsage.md
-      - Graph Isomorphism Network: appendix/gnn/gin.md
-      - Message Passing: appendix/gnn/mpnn.md
-    - A9 Reinforcement Learning:
-      - Deep Q-Network: appendix/rl/dqn.md
-      - Double Deep Q-Network: appendix/rl/double_dqn.md
-      - Dueling Deep Q-Network: appendix/rl/dueling_dqn.md
+      - 그림 같은꼴 그물(GIN): appendix/gnn/gin.md
+      - 알림 넘기기(MPNN): appendix/gnn/mpnn.md
+    - A9 북돋움 배움:
+      - 깊은 Q 그물(DQN): appendix/rl/dqn.md
+      - 겹 깊은 Q 그물(Double DQN): appendix/rl/double_dqn.md
+      - 겨루는 깊은 Q 그물(Dueling DQN): appendix/rl/dueling_dqn.md
       - A2C/A3C: appendix/rl/a2c_a3c.md
-      - Proximal Policy Optimization: appendix/rl/ppo.md
-      - Soft Actor-Critic: appendix/rl/sac.md
+      - 가까운 방침 다듬기(PPO): appendix/rl/ppo.md
+      - 부드러운 움직이는 이-따지는 이(SAC): appendix/rl/sac.md
       - TD3: appendix/rl/td3.md
-    - A10 Utility Modules:
-      - Attention Mechanisms: appendix/utils/attention.md
-      - Normalization Layers: appendix/utils/normalization.md
-      - Activation Functions: appendix/utils/activations.md
-      - Positional Encodings: appendix/utils/positional.md
-      - Loss Functions: appendix/utils/losses.md
-      - Learning Rate Schedulers: appendix/utils/schedulers.md
-      - Data Augmentation: appendix/utils/augmentation.md
+    - A10 잔손질 묶음:
+      - 눈길 얼개: appendix/utils/attention.md
+      - 잣대 잡기 켜: appendix/utils/normalization.md
+      - 살림 함수: appendix/utils/activations.md
+      - 자리 담기: appendix/utils/positional.md
+      - 잃음 함수: appendix/utils/losses.md
+      - 배움 빠르기 짜개: appendix/utils/schedulers.md
+      - 자료 불리기: appendix/utils/augmentation.md
 
 plugins:
     - search

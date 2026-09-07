@@ -170,7 +170,7 @@ HRNet의 꾸밈은 촘촘한 미루어 봄 일에 몹시 세다. 사람 자세 �
                 nn.Sequential(*[LightBasicBlock(channels[i]) for _ in range(2)])
                 for i in range(num_branches)
             ])
-            # All fusions use pool + 1x1 conv (down) or 1x1 conv + upsample (up)
-            # Implementation follows the same fuse_layers pattern but replaces
-            # strided 3x3 convolutions with avg_pool2d + 1x1 convolution.
+            # 녹이기는 모두 모으기 + 1x1 엮음(내림)이나 1x1 엮음 + 촘촘하게 하기(오름)를 쓴다
+            # 짜보기는 같은 fuse_layers 무늬를 따르되
+            # 걸음 있는 3x3 엮음을 avg_pool2d + 1x1 엮음으로 갈음한다.
     ```

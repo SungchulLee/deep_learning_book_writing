@@ -9,14 +9,14 @@
 ```python
 #!/usr/bin/env python3
 """
-Attention Mechanisms - Common building blocks
-Includes:
-  - Scaled Dot-Product Attention
-  - Multi-Head Attention (minimal)
-  - Additive (Bahdanau) Attention (for seq2seq)
+눈길 얼개 - 흔한 벽돌
+담긴 것:
+  - 잣대 맞춘 점곱 눈길
+  - 여러 머리 눈길(가장 단출한 꼴)
+  - 더하기(바다나우) 눈길(seq2seq을 위함)
 
-File: appendix/utils/attention.py
-Note: Educational, heavily commented reference implementations.
+두루마리: appendix/utils/attention.py
+눈여겨볼 것: 주석을 넉넉히 단, 배우기 위한 본 짜보기다.
 """
 
 import torch
@@ -30,46 +30,46 @@ import torch.nn.functional as F
 
 def scaled_dot_product_attention(Q, K, V, mask=None):
     """
-    Scaled dot-product attention (core Transformer attention).
+    잣대 맞춘 점곱 눈길(변환기 눈길의 고갱이).
 
-    Inputs:
-      Q: queries   (B, H, Tq, Dh)
-      K: keys      (B, H, Tk, Dh)
-      V: values    (B, H, Tk, Dh)
-      mask: optional attention mask broadcastable to (B, H, Tq, Tk)
-            - True/1 indicates "keep", False/0 indicates "mask out"
+    들임:
+      Q: 물음   (B, H, Tq, Dh)
+      K: 열쇠      (B, H, Tk, Dh)
+      V: 값    (B, H, Tk, Dh)
+      mask: (B, H, Tq, Tk)으로 펴 맞출 수 있는, 골라 쓰는 눈길 가림
+            - True/1이면 "남긴다", False/0이면 "가린다"
 
-    Output:
+    날임:
       out: (B, H, Tq, Dh)
-      attn: (B, H, Tq, Tk) attention weights
+      attn: (B, H, Tq, Tk) 눈길 짐
     """
     Dh = Q.size(-1)
 
-    # Raw attention scores: (B, H, Tq, Tk)
+    # 날것 눈길 점수: (B, H, Tq, Tk)
     scores = (Q @ K.transpose(-2, -1)) / (Dh ** 0.5)
 
-    # If mask is provided, set masked positions to -inf before softmax
+    # 가림이 주어지면 소프트맥스 앞에서 가린 자리를 -inf으로 둔다
     if mask is not None:
-        # Convert mask to boolean where False means masked out
+        # 가림을 참거짓으로 바꾼다. False이면 가린 것이다
         scores = scores.masked_fill(~mask.bool(), float("-inf"))
 
-    # Softmax across keys dimension
+    # 열쇠 차수를 따라 소프트맥스
     attn = F.softmax(scores, dim=-1)
 
-    # Weighted sum of values
+    # 값의 짐 실은 합
     out = attn @ V
     return out, attn
 
 
 class MultiHeadAttention(nn.Module):
     """
-    Minimal Multi-Head Attention layer.
+    가장 단출한 여러 머리 눈길 켜.
 
-    Steps:
-      1) Project input to Q,K,V
-      2) Split into heads
-      3) Apply scaled dot-product attention
-      4) Merge heads + output projection
+    걸음:
+      1) 들임을 Q,K,V으로 되비춘다
+      2) 머리로 가른다
+      3) 잣대 맞춘 점곱 눈길을 건다
+      4) 머리를 합치고 날임으로 되비춘다
     """
     def __init__(self, d_model: int, nhead: int):
         super().__init__()
@@ -85,9 +85,9 @@ class MultiHeadAttention(nn.Module):
 
     def forward(self, x, context=None, mask=None):
         """
-        x: (B, Tq, D) queries come from x
-        context: (B, Tk, D) keys/values come from context (if None, self-attention)
-        mask: optional mask broadcastable to (B, H, Tq, Tk)
+        x: (B, Tq, D) 물음은 x에서 온다
+        context: (B, Tk, D) 열쇠와 값은 context에서 온다(None이면 스스로 눈길)
+        mask: (B, H, Tq, Tk)으로 펴 맞출 수 있는, 골라 쓰는 가림
         """
         if context is None:
             context = x
@@ -95,20 +95,20 @@ class MultiHeadAttention(nn.Module):
         B, Tq, D = x.shape
         Tk = context.size(1)
 
-        # Project to Q,K,V in model dimension
+        # 모형 차수에서 Q,K,V으로 되비춘다
         Q = self.q_proj(x)        # (B, Tq, D)
         K = self.k_proj(context)  # (B, Tk, D)
         V = self.v_proj(context)  # (B, Tk, D)
 
-        # Reshape into heads: (B, H, T, Dh)
+        # 머리 꼴로 바꾼다: (B, H, T, Dh)
         Q = Q.view(B, Tq, self.nhead, self.dh).transpose(1, 2)
         K = K.view(B, Tk, self.nhead, self.dh).transpose(1, 2)
         V = V.view(B, Tk, self.nhead, self.dh).transpose(1, 2)
 
-        # Compute attention
+        # 눈길을 셈한다
         out, attn = scaled_dot_product_attention(Q, K, V, mask=mask)
 
-        # Merge heads back: (B, Tq, D)
+        # 머리를 다시 합친다: (B, Tq, D)
         out = out.transpose(1, 2).contiguous().view(B, Tq, D)
         out = self.out_proj(out)
         return out, attn
@@ -116,14 +116,14 @@ class MultiHeadAttention(nn.Module):
 
 class AdditiveAttention(nn.Module):
     """
-    Additive (Bahdanau) attention, common in seq2seq RNN models.
+    더하기(바다나우) 눈길. seq2seq RNN 모형에서 흔하다.
 
-    Score:
+    점수:
       e_{t,s} = v^T tanh(W_h h_s + W_q q_t)
 
-    Where:
-      - h_s = encoder hidden at source position s
-      - q_t = decoder hidden at target position t
+    여기서:
+      - h_s = 밑 자리 s에서의 부호기 숨은 상태
+      - q_t = 과녁 자리 t에서의 풀개 숨은 상태
     """
     def __init__(self, hidden_size: int):
         super().__init__()
@@ -134,23 +134,23 @@ class AdditiveAttention(nn.Module):
     def forward(self, encoder_outputs, query):
         """
         encoder_outputs: (B, S, H)
-        query: (B, H)  (e.g., decoder hidden at time t)
+        query: (B, H)  (때 t에서의 풀개 숨은 상태 따위)
 
-        Returns:
+        돌려주는 것:
           context: (B, H)
-          alpha:   (B, S) attention weights over source positions
+          alpha:   (B, S) 밑 자리에 대한 눈길 짐
         """
-        # Project encoder and query into same space
+        # 부호기와 물음을 같은 밭으로 되비춘다
         h_proj = self.W_h(encoder_outputs)              # (B, S, H)
         q_proj = self.W_q(query).unsqueeze(1)           # (B, 1, H)
 
-        # Scores: (B, S, 1) -> (B, S)
+        # 점수: (B, S, 1) -> (B, S)
         scores = self.v(torch.tanh(h_proj + q_proj)).squeeze(-1)
 
-        # Attention weights over source tokens
+        # 밑 낱말에 대한 눈길 짐
         alpha = F.softmax(scores, dim=1)                # (B, S)
 
-        # Weighted sum of encoder outputs
+        # 부호기 날임의 짐 실은 합
         context = torch.bmm(alpha.unsqueeze(1), encoder_outputs).squeeze(1)  # (B, H)
         return context, alpha
 

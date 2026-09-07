@@ -9,15 +9,15 @@
 ```python
 #!/usr/bin/env python3
 """
-Normalization Layers - Common variants used in deep learning
-Includes:
-  - BatchNorm1d/2d (PyTorch builtin wrapper)
-  - LayerNorm (PyTorch builtin wrapper)
-  - GroupNorm (PyTorch builtin wrapper)
-  - RMSNorm (commonly used in modern LLMs)
+잣대 잡기 켜 - 깊은 배움에 쓰이는 흔한 갈래
+담긴 것:
+  - BatchNorm1d/2d(PyTorch 붙박이를 감싼 것)
+  - LayerNorm(PyTorch 붙박이를 감싼 것)
+  - GroupNorm(PyTorch 붙박이를 감싼 것)
+  - RMSNorm(요즘 큰 말 모형에서 흔히 쓴다)
 
-File: appendix/utils/normalization.py
-Note: Educational, with comments explaining when to use each.
+두루마리: appendix/utils/normalization.py
+눈여겨볼 것: 저마다 언제 쓰는지 주석으로 밝힌 배우기용 짜보기다.
 """
 
 import torch
@@ -30,13 +30,13 @@ import torch.nn as nn
 
 class RMSNorm(nn.Module):
     """
-    RMSNorm (Root Mean Square Layer Normalization)
+    RMSNorm(제곱 평균 제곱근 켜 잣대 잡기)
 
-    Unlike LayerNorm, RMSNorm:
-      - does NOT subtract mean
-      - only divides by RMS (sqrt(mean(x^2)))
+    켜 잣대 잡기와 달리 RMSNorm은:
+      - 평균을 빼지 않는다
+      - RMS(sqrt(mean(x^2)))으로 나누기만 한다
 
-    Often used in LLaMA-like models.
+    LLaMA 꼴 모형에서 흔히 쓴다.
     """
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
@@ -49,14 +49,14 @@ class RMSNorm(nn.Module):
         return (x / rms) * self.weight
 
 
-# Note:
-# - BatchNorm, LayerNorm, GroupNorm are in PyTorch.
-# - You typically import and use:
+# 눈여겨볼 것:
+# - BatchNorm, LayerNorm, GroupNorm은 PyTorch에 들어 있다.
+# - 흔히 이렇게 들여와 쓴다:
 #     nn.BatchNorm2d(C)
 #     nn.LayerNorm(D)
 #     nn.GroupNorm(num_groups, C)
 #
-# This file adds RMSNorm plus short usage notes.
+# 이 두루마리는 RMSNorm과 짧은 쓰는 법 적바림을 더한다.
 
 
 if __name__ == "__main__":

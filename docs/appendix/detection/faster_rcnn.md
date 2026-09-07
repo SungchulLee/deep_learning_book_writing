@@ -23,7 +23,7 @@ import torch.nn as nn
 class FasterRCNN(nn.Module):
     def __init__(self, num_classes=21):
         super().__init__()
-        # Feature extractor
+        # 결 뽑개
         self.features = nn.Sequential(
             nn.Conv2d(3, 64, 3, 1, 1),
             nn.ReLU(inplace=True),
@@ -39,7 +39,7 @@ class FasterRCNN(nn.Module):
         self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 2 classes * 9 anchors
         self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 4 coords * 9 anchors
         
-        # ROI pooling and classification
+        # ROI 모으기와 가름
         self.roi_pool = nn.AdaptiveMaxPool2d((7, 7))
         self.fc = nn.Sequential(
             nn.Linear(64 * 7 * 7, 4096),

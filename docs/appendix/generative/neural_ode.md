@@ -41,7 +41,7 @@ class ODEBlock(nn.Module):
         self.step_size = step_size
     
     def forward(self, x):
-        # Simple Euler integration (for demonstration)
+        # 단순한 오일러 쌓기(보이기 위함)
         t = 0
         t_end = 1
         

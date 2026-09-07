@@ -9,15 +9,15 @@ DistilBERT은 2019년 글 "DistilBERT, a distilled version of BERT: smaller, fas
 ```python
 #!/usr/bin/env python3
 """
-DistilBERT - Distilled version of BERT
-Paper: "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter" (2019)
-Authors: Victor Sanh et al.
-Key idea:
-  - Knowledge distillation: train a smaller student Transformer to match a larger teacher
-  - Typically fewer layers, similar hidden size
+DistilBERT - 앎을 옮겨 담은 BERT
+글: "DistilBERT, 앎을 옮겨 담은 BERT: 더 작고 빠르고 값싸고 가볍다" (2019)
+지은이: 빅토르 상 외
+고갱이 깨침:
+  - 앎 옮기기: 더 큰 스승에 맞추도록 더 작은 제자 변환기를 익힌다
+  - 흔히 켜는 적고 숨은 크기는 비슷하다
 
-File: appendix/transformers/distilbert.py
-Note: Educational implementation of a smaller encoder-only Transformer.
+두루마리: appendix/transformers/distilbert.py
+눈여겨볼 것: 부호기만 있는 더 작은 변환기를 배우기 위해 짜 본 것이다.
 """
 
 import torch
@@ -30,10 +30,10 @@ import torch.nn as nn
 
 class DistilBERT(nn.Module):
     """
-    DistilBERT-like encoder-only Transformer.
+    부호기만 있는 DistilBERT 꼴 변환기.
 
-    This resembles BERT/RoBERTa but uses fewer encoder layers.
-    Distillation happens during training (not shown here).
+    BERT나 RoBERTa와 비슷하되 부호기 켜가 더 적다.
+    앎 옮기기는 익히는 동안 일어난다(여기서는 보이지 않는다).
     """
     def __init__(self, vocab_size=30522, d_model=768, nhead=12, num_layers=6):
         super().__init__()

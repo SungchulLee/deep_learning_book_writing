@@ -1,23 +1,23 @@
-# Algorithms and Data Structures
+# 깊은 배움
 
-This book provides a structured path through algorithms and data structures, combining rigorous analysis with practical Python implementations. Each topic builds toward the tools needed to reason about efficiency, correctness, and design trade-offs in real systems.
+이 책은 깊은 배움을 밑바탕부터 차근차근 짚어 가는 길이다. 엄밀한 수학과 손으로 돌려 볼 수 있는 파이썬 코드를 나란히 두어, 얼개가 왜 그렇게 생겼는지와 그것을 어떻게 짜는지를 함께 익히게 한다.
 
-Consider a simple question: given a sorted array of $n$ elements, how quickly can we find a target value? A linear scan checks every element in $O(n)$ time, but binary search exploits the sorted order to find the answer in $O(\log n)$ time -- an exponential speedup that illustrates the power of choosing the right algorithm.
+간단한 물음에서 비롯해 보자. 그림 한 장을 보고 그 안의 물체를 알아맞히려면 무엇이 있어야 하는가? 낱그림점을 그대로 온통 이은 켜에 밀어 넣으면 매개변수가 걷잡을 수 없이 불어나지만, 엮음은 짐을 나누어 쓰고 가까운 자리끼리만 이어 매개변수를 몇 자릿수나 줄인다. 알맞은 얼개를 고르는 일이 얼마나 힘이 센지 보여 주는 대목이다.
 
-The material progresses from foundations and recursion through data structures, sorting, graph algorithms, and advanced topics including dynamic programming, string matching, and machine learning.
+책은 밑바탕과 PyTorch에서 비롯해 신경 그물의 벽돌과 익힘 흐름, 엮음 그물과 변환기 같은 고갱이 얼개, 배움의 여러 틀과 확률 방법을 지나, 모형 풀이하기, 치우침과 고름, 맞섬에 든든하기, 모형 아리송함, 모형 내놓기까지 나아간다.
 
-## How to Use This Book
+## 이 책을 읽는 법
 
-Each chapter builds on previous material. Start with **Part I** for foundational concepts including algorithm analysis and recursion, then progress through data structures, sorting algorithms, graph theory, and advanced topics. Every section pairs formal analysis with runnable Python code so you can verify the theory hands-on.
+장마다 앞 장에 기대어 나아간다. **I 밑바탕**에서 셈법 살피기와 PyTorch 기초를 다진 뒤, 신경 그물의 구성 요소와 익힘 흐름, 고갱이 얼개, 확률 방법, 그리고 나아간 주제로 넘어가라. 마디마다 이론과 돌아가는 파이썬 코드를 짝지어 두었으니 손으로 따져 보며 읽을 수 있다.
 
-## Prerequisites
+## 미리 알아 둘 것
 
-- Basic programming knowledge (Python preferred)
-- High school mathematics (algebra, basic probability)
-- Curiosity and willingness to think algorithmically
+- 기본적인 프로그래밍 지식(파이썬이면 좋다)
+- 고등학교 수준의 수학(대수, 기초 확률)
+- 궁금해하는 마음과 스스로 따져 보려는 뜻
 
-## References
+## 참고 문헌
 
-[Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+[Deep Learning (Goodfellow, Bengio, Courville)](https://www.deeplearningbook.org/)
 
-[Algorithm Design Manual (Skiena)](https://www.algorist.com/)
+[Dive into Deep Learning (Zhang et al.)](https://d2l.ai/)

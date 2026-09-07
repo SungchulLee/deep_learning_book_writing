@@ -9,16 +9,16 @@ BEiT은 2021년 글 "BEiT: BERT Pre-Training of Image Transformers"에서 나왔
 ```python
 #!/usr/bin/env python3
 """
-BEiT - BERT Pre-Training of Image Transformers
-Paper: "BEiT: BERT Pre-Training of Image Transformers" (2021)
-Authors: Hangbo Bao et al.
-Key idea:
-  - Self-supervised pretraining
-  - Predict *discrete visual tokens* instead of pixels
-  - Inspired by BERT masked language modeling
+BEiT - 그림 변환기를 BERT처럼 미리 익히기
+글: "BEiT: 그림 변환기를 BERT처럼 미리 익히기" (2021)
+지은이: 항보 바오 외
+고갱이 깨침:
+  - 스스로 이끌며 미리 익힌다
+  - 낱그림점 대신 *따로 떨어진 보기 낱말*을 미루어 본다
+  - BERT의 가린 말 모형에서 실마리를 얻었다
 
-File: appendix/vit/beit.py
-Note: Educational implementation (masked patch prediction).
+두루마리: appendix/vit/beit.py
+눈여겨볼 것: 배우기 위한 짜보기다(가린 조각 미루어 보기).
 """
 
 import torch
@@ -31,12 +31,12 @@ import torch.nn as nn
 
 class BEiT(nn.Module):
     """
-    BEiT pretraining model.
+    BEiT 미리 익히기 모형.
 
-    Steps:
-      1) Tokenize image into patches
-      2) Mask some patches
-      3) Predict their discrete visual tokens (codebook indices)
+    걸음:
+      1) 그림을 조각으로 나누어 낱말처럼 만든다
+      2) 조각 얼마를 가린다
+      3) 그 조각의 따로 떨어진 보기 낱말(부호책 번호)을 미루어 본다
     """
     def __init__(self, vocab_size=8192, embed_dim=768, num_patches=196):
         super().__init__()
@@ -50,24 +50,24 @@ class BEiT(nn.Module):
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=12)
 
-        # Predict discrete token ids
+        # 따로 떨어진 낱말 번호를 미루어 본다
         self.head = nn.Linear(embed_dim, vocab_size)
 
     def forward(self, patch_feats, mask):
         """
-        patch_feats: (B, N, D) patch embeddings
-        mask:        (B, N) boolean mask (True = masked)
+        patch_feats: (B, N, D) 조각 담음
+        mask:        (B, N) 참거짓 가림(True이면 가린 것)
         """
         x = self.patch_embed(patch_feats)
 
-        # Replace masked patches with mask token
+        # 가린 조각을 가림 낱말로 갈음한다
         mask_token = self.mask_token.expand(x.size(0), x.size(1), -1)
         x = torch.where(mask.unsqueeze(-1), mask_token, x)
 
         x = x + self.pos_embed
         x = self.encoder(x)
 
-        # Predict visual tokens
+        # 보기 낱말을 미루어 본다
         logits = self.head(x)  # (B, N, vocab_size)
         return logits
 

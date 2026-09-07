@@ -9,19 +9,19 @@ MPNN은 2017년 글 "Neural Message Passing for Quantum Chemistry"에서 나왔�
 ```python
 #!/usr/bin/env python3
 """
-MPNN - Message Passing Neural Network (General Framework)
-Paper: "Neural Message Passing for Quantum Chemistry" (2017)
-Authors: Justin Gilmer et al.
-Key idea:
-  - Separate *message* function and *update* function
-  - Iterative propagation for T steps:
+MPNN - 알림 넘기기 신경 그물(두루 쓰는 틀)
+글: "양자 화학을 위한 신경 알림 넘기기" (2017)
+지은이: 저스틴 길머 외
+고갱이 깨침:
+  - *알림* 함수와 *고침* 함수를 따로 둔다
+  - T 걸음 동안 거듭 퍼뜨린다:
       m_i^{t+1} = sum_{j in N(i)} M(h_i^t, h_j^t, e_{ij})
       h_i^{t+1} = U(h_i^t, m_i^{t+1})
 
-File: appendix/gnn/mpnn.py
-Note: Educational implementation with:
-  - Dense adjacency
-  - Optional edge features matrix E (N, N, E_dim)
+두루마리: appendix/gnn/mpnn.py
+눈여겨볼 것: 배우기 위한 짜보기이며 이런 것을 쓴다:
+  - 빽빽한 이웃 행렬
+  - 골라 쓰는 이음 결 행렬 E (N, N, E_dim)
 """
 
 import torch
@@ -35,8 +35,8 @@ import torch.nn.functional as F
 
 class MessageFn(nn.Module):
     """
-    Message function M(h_i, h_j, e_ij).
-    Here: concatenate and pass through an MLP.
+    알림 함수 M(h_i, h_j, e_ij).
+    여기서는 이어 붙인 뒤 MLP에 넣는다.
     """
     def __init__(self, node_dim: int, edge_dim: int, msg_dim: int):
         super().__init__()
@@ -47,7 +47,7 @@ class MessageFn(nn.Module):
         )
 
     def forward(self, h_i, h_j, e_ij):
-        # h_i, h_j: (msg_dim?) but here node_dim
+        # h_i, h_j: (msg_dim?) 이지만 여기서는 node_dim
         # e_ij: (edge_dim)
         x = torch.cat([h_i, h_j, e_ij], dim=-1)
         return self.net(x)
@@ -55,29 +55,29 @@ class MessageFn(nn.Module):
 
 class UpdateFn(nn.Module):
     """
-    Update function U(h_i, m_i).
-    Here: GRUCell-like update (simple and common).
+    고침 함수 U(h_i, m_i).
+    여기서는 GRUCell 꼴 고침을 쓴다(단순하고 흔하다).
     """
     def __init__(self, node_dim: int, msg_dim: int):
         super().__init__()
         self.gru = nn.GRUCell(input_size=msg_dim, hidden_size=node_dim)
 
     def forward(self, h_i, m_i):
-        # m_i: (node_dim?) here msg_dim
+        # m_i: (node_dim?) 여기서는 msg_dim
         return self.gru(m_i, h_i)
 
 
 class MPNN(nn.Module):
     """
-    Generic message passing network.
+    두루 쓰는 알림 넘기기 그물.
 
-    Inputs:
-      X: (N, node_dim) node features
-      A: (N, N) adjacency (0/1)
-      E: (N, N, edge_dim) edge features (optional; if None, use zeros)
+    들임:
+      X: (N, node_dim) 마디 결
+      A: (N, N) 이웃 행렬 (0/1)
+      E: (N, N, edge_dim) 이음 결(골라 쓴다. None이면 0을 쓴다)
 
-    Output:
-      H: (N, node_dim) updated node representations after T steps
+    날임:
+      H: (N, node_dim) T 걸음 뒤 고쳐진 마디 드러냄
     """
     def __init__(self, node_dim: int, edge_dim: int = 0, msg_dim: int = 64, T: int = 3):
         super().__init__()
@@ -93,27 +93,27 @@ class MPNN(nn.Module):
         N = X.size(0)
         device = X.device
 
-        # If no edge features are provided, treat edges as having empty/zero features
+        # 이음 결이 주어지지 않으면 이음의 결을 0으로 본다
         if E is None:
             E = torch.zeros(N, N, self.edge_dim, device=device)
 
         H = X  # current node states (N, node_dim)
 
-        # Perform T rounds of message passing
+        # 알림 넘기기를 T 번 돈다
         for _ in range(self.T):
             messages = []
 
-            # For each node i, aggregate messages from neighbors j
+            # 마디 i마다 이웃 j에서 온 알림을 모은다
             for i in range(N):
                 m_i_list = []
 
                 for j in range(N):
-                    # Only send message if edge exists (A[i, j] == 1)
+                    # 이음이 있을 때만 알림을 보낸다 (A[i, j] == 1)
                     if A[i, j] > 0:
                         m_ij = self.message(H[i], H[j], E[i, j])  # (msg_dim,)
                         m_i_list.append(m_ij)
 
-                # Sum aggregation (common in MPNN)
+                # 더하기 모으기(MPNN에서 흔하다)
                 if len(m_i_list) == 0:
                     m_i = torch.zeros(self.msg_dim, device=device)
                 else:
@@ -123,7 +123,7 @@ class MPNN(nn.Module):
 
             M = torch.stack(messages, dim=0)  # (N, msg_dim)
 
-            # Update node states using update function
+            # 고침 함수로 마디 상태를 고친다
             H = self.update(H, M)  # (N, node_dim)
 
         return H

@@ -9,19 +9,19 @@ PPO은 2017년 글 "Proximal Policy Optimization Algorithms"에서 나왔다. - 
 ```python
 #!/usr/bin/env python3
 """
-PPO - Proximal Policy Optimization
-Paper: "Proximal Policy Optimization Algorithms" (2017)
-Authors: John Schulman et al.
-Key idea:
-  - Policy gradient with a *clipped surrogate objective* to prevent large updates
-  - Often uses GAE advantages and minibatch epochs
+PPO - 가까운 방침 다듬기
+글: "가까운 방침 다듬기 셈법" (2017)
+지은이: 존 슐먼 외
+고갱이 깨침:
+  - 크게 고쳐지는 것을 막는 *잘라 낸 대리 목표*를 쓰는 방침 기울기
+  - 흔히 GAE 이득과 작은 묶음 판을 쓴다
 
-Clipped objective:
+잘라 낸 목표:
   r_t = pi(a|s) / pi_old(a|s)
   L_clip = E[ min( r_t * A_t, clip(r_t, 1-eps, 1+eps) * A_t ) ]
 
-File: appendix/rl/ppo.py
-Note: Educational implementation of PPO loss (discrete actions).
+두루마리: appendix/rl/ppo.py
+눈여겨볼 것: PPO 잃음을 배우기 위해 짜 본 것이다(따로 떨어진 움직임).
 """
 
 import torch
@@ -44,33 +44,33 @@ def ppo_loss(
     entropy_coef=0.01,
 ):
     """
-    Compute PPO losses:
-      - clipped policy loss
-      - value loss
-      - entropy bonus
+    PPO 잃음을 셈한다:
+      - 잘라 낸 방침 잃음
+      - 값 잃음
+      - 엔트로피 덤
     """
-    # Compute log probs under new and old policies
+    # 새 방침과 옛 방침에서의 로그 낌새를 셈한다
     logp_new = F.log_softmax(logits_new, dim=1)
     logp_old = F.log_softmax(logits_old, dim=1)
 
     logp_new_a = logp_new.gather(1, actions.long().unsqueeze(1)).squeeze(1)
     logp_old_a = logp_old.gather(1, actions.long().unsqueeze(1)).squeeze(1)
 
-    # Importance ratio r_t = exp(log pi_new - log pi_old)
+    # 종요로움 견줌 r_t = exp(log pi_new - log pi_old)
     ratio = torch.exp(logp_new_a - logp_old_a)
 
-    # Advantages are typically standardized; detach so actor doesn't backprop into advantage
+    # 이득은 흔히 잣대를 맞춘다. 움직이는 이가 이득으로 되짚지 않도록 떼어 낸다
     A = advantages.detach()
 
-    # Clipped surrogate objective
+    # 잘라 낸 대리 목표
     unclipped = ratio * A
     clipped = torch.clamp(ratio, 1.0 - clip_eps, 1.0 + clip_eps) * A
     policy_loss = -torch.min(unclipped, clipped).mean()
 
-    # Value function loss
+    # 값 함수 잃음
     value_loss = F.mse_loss(values, returns)
 
-    # Entropy bonus (encourage exploration)
+    # 엔트로피 덤(둘러보기를 북돋운다)
     p_new = torch.softmax(logits_new, dim=1)
     entropy = -(p_new * logp_new).sum(dim=1).mean()
 

@@ -9,15 +9,15 @@ GCN은 2017년 글 "Semi-Supervised Classification with Graph Convolutional Netw
 ```python
 #!/usr/bin/env python3
 """
-GCN - Graph Convolutional Network
-Paper: "Semi-Supervised Classification with Graph Convolutional Networks" (2017)
-Authors: Thomas N. Kipf, Max Welling
-Key idea:
-  - Node features are updated by aggregating (normalized) neighbor features
-  - Uses normalized adjacency:  D^{-1/2} (A + I) D^{-1/2}
+GCN - 그림 엮음 그물
+글: "그림 엮음 그물로 반쯤 이끄는 가름" (2017)
+지은이: 토마스 킵프, 막스 벨링
+고갱이 깨침:
+  - 마디 결은 (잣대 맞춘) 이웃 결을 모아 고친다
+  - 잣대 맞춘 이웃 행렬을 쓴다:  D^{-1/2} (A + I) D^{-1/2}
 
-File: appendix/gnn/gcn.py
-Note: Educational implementation using dense adjacency for clarity.
+두루마리: appendix/gnn/gcn.py
+눈여겨볼 것: 알아보기 쉽도록 빽빽한 이웃 행렬을 쓰는, 배우기 위한 짜보기다.
 """
 
 import torch
@@ -31,25 +31,25 @@ import torch.nn.functional as F
 
 def normalize_adjacency(A: torch.Tensor) -> torch.Tensor:
     """
-    Compute normalized adjacency:  D^{-1/2} (A + I) D^{-1/2}
+    잣대 맞춘 이웃 행렬을 셈한다:  D^{-1/2} (A + I) D^{-1/2}
 
-    A: (N, N) adjacency matrix (0/1 or weighted)
-    Returns:
+    A: (N, N) 이웃 행렬(0/1이거나 짐 실린 값)
+    돌려주는 것:
       A_norm: (N, N)
     """
     N = A.size(0)
 
-    # Add self-loops: A_hat = A + I
+    # 제 고리를 더한다: A_hat = A + I
     A_hat = A + torch.eye(N, device=A.device)
 
-    # Degree matrix: D_hat[i] = sum_j A_hat[i, j]
+    # 자릿수 행렬: D_hat[i] = sum_j A_hat[i, j]
     deg = A_hat.sum(dim=1)  # (N,)
 
-    # D^{-1/2}: careful about division by zero
+    # D^{-1/2}: 0으로 나누지 않도록 살핀다
     deg_inv_sqrt = torch.pow(deg, -0.5)
     deg_inv_sqrt[torch.isinf(deg_inv_sqrt)] = 0.0
 
-    # Normalize: D^{-1/2} A_hat D^{-1/2}
+    # 잣대 맞추기: D^{-1/2} A_hat D^{-1/2}
     D_inv_sqrt = torch.diag(deg_inv_sqrt)
     A_norm = D_inv_sqrt @ A_hat @ D_inv_sqrt
     return A_norm
@@ -57,31 +57,31 @@ def normalize_adjacency(A: torch.Tensor) -> torch.Tensor:
 
 class GCNLayer(nn.Module):
     """
-    One GCN layer:
+    GCN 켜 하나:
       H^{(l+1)} = sigma( A_norm H^{(l)} W )
 
-    Where:
-      - H^{(l)} is node feature matrix (N, Fin)
-      - W is learnable weight (Fin, Fout)
-      - A_norm is normalized adjacency (N, N)
+    여기서:
+      - H^{(l)}은 마디 결 행렬 (N, Fin)
+      - W은 배울 수 있는 짐 (Fin, Fout)
+      - A_norm은 잣대 맞춘 이웃 행렬 (N, N)
     """
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
         self.lin = nn.Linear(in_dim, out_dim, bias=False)
 
     def forward(self, X: torch.Tensor, A_norm: torch.Tensor) -> torch.Tensor:
-        # Multiply features by weight, then propagate via graph structure
+        # 결에 짐을 곱한 뒤 그림 얼개를 따라 퍼뜨린다
         return A_norm @ self.lin(X)  # (N, out_dim)
 
 
 class GCN(nn.Module):
     """
-    A simple 2-layer GCN for node classification.
+    마디 가름을 위한 단순한 두 켜 GCN.
 
-    Inputs:
-      X: (N, Fin) node features
-      A: (N, N) adjacency
-    Output:
+    들임:
+      X: (N, Fin) 마디 결
+      A: (N, N) 이웃 행렬
+    날임:
       logits: (N, num_classes)
     """
     def __init__(self, in_dim: int, hidden_dim: int, num_classes: int):
@@ -97,11 +97,11 @@ class GCN(nn.Module):
 
 
 if __name__ == "__main__":
-    # Toy example with 4 nodes
+    # 마디 4개짜리 장난감 보기
     N, Fin, C = 4, 8, 3
     X = torch.randn(N, Fin)
 
-    # Simple undirected adjacency
+    # 단순한 방향 없는 이웃 행렬
     A = torch.tensor([
         [0, 1, 1, 0],
         [1, 0, 1, 0],

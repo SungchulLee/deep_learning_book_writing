@@ -9,13 +9,13 @@ Stable Diffusion은 2022년 글 "High-Resolution Image Synthesis with Latent Dif
 ```python
 #!/usr/bin/env python3
 """
-Stable Diffusion (Conceptual)
-Paper: "High-Resolution Image Synthesis with Latent Diffusion Models" (2022)
-Key idea:
-  - Diffusion in *latent space*
-  - Text-conditioned via cross-attention
+Stable Diffusion (깨침 수준)
+글: "숨은 번짐 모형으로 높은 결의 그림 짓기" (2022)
+고갱이 깨침:
+  - *숨은 밭*에서의 번짐
+  - 엇결 눈길로 글월을 조건으로 삼는다
 
-File: appendix/generative/stable_diffusion.py
+두루마리: appendix/generative/stable_diffusion.py
 """
 
 import torch
@@ -27,7 +27,7 @@ import torch.nn as nn
 
 
 class LatentUNet(nn.Module):
-    """Noise predictor in latent space."""
+    """숨은 밭에서 시끄러움을 미루어 보는 것."""
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
@@ -37,12 +37,12 @@ class LatentUNet(nn.Module):
         )
 
     def forward(self, z, text_emb):
-        # text_emb would condition via cross-attention in real models
+        # 참 모형에서는 text_emb이 엇결 눈길로 조건이 된다
         return self.net(z)
 
 
 class StableDiffusion(nn.Module):
-    """Conceptual Stable Diffusion."""
+    """깨침 수준의 Stable Diffusion."""
     def __init__(self):
         super().__init__()
         self.unet = LatentUNet()

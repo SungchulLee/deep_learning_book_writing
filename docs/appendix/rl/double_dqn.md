@@ -9,18 +9,18 @@ Double DQN은 2016년 글 "Deep Reinforcement Learning with Double Q-learning"�
 ```python
 #!/usr/bin/env python3
 """
-Double DQN - Reducing overestimation bias in Q-learning
-Paper: "Deep Reinforcement Learning with Double Q-learning" (2016)
-Authors: Hado van Hasselt, Arthur Guez, David Silver
-Key idea:
-  - Use online network to *select* action
-  - Use target network to *evaluate* that action
+Double DQN - Q 배움에서 지나치게 높이 어림하는 치우침 줄이기
+글: "겹 Q 배움을 쓰는 깊은 북돋움 배움" (2016)
+지은이: 하도 판 하셀트, 아르투어 게즈, 데이비드 실버
+고갱이 깨침:
+  - 이어진 그물로 움직임을 *고른다*
+  - 과녁 그물로 그 움직임을 *따진다*
 
-Target:
+과녁:
   a* = argmax_a Q_online(s', a)
   y  = r + gamma * (1-done) * Q_target(s', a*)
 
-File: appendix/rl/double_dqn.py
+두루마리: appendix/rl/double_dqn.py
 """
 
 import torch
@@ -34,23 +34,23 @@ import torch.nn.functional as F
 
 def double_dqn_td_loss(q_online: nn.Module, q_target: nn.Module, batch, gamma: float = 0.99):
     """
-    Compute Double DQN TD loss.
+    Double DQN의 TD 잃음을 셈한다.
 
-    Difference vs DQN:
-      - DQN uses max_a Q_target(s', a)
-      - Double DQN uses argmax from online, value from target
+    DQN과의 다름:
+      - DQN은 max_a Q_target(s', a)을 쓴다
+      - Double DQN은 argmax은 이어진 그물에서, 값은 과녁 그물에서 얻는다
     """
     s, a, r, s2, done = batch
 
-    # Current Q(s,a)
+    # 이제의 Q(s,a)
     q_values = q_online(s)  # (B, A)
     q_sa = q_values.gather(1, a.long().unsqueeze(1)).squeeze(1)
 
     with torch.no_grad():
-        # Action selection by online network
+        # 이어진 그물이 움직임을 고른다
         a_star = q_online(s2).argmax(dim=1)  # (B,)
 
-        # Action evaluation by target network
+        # 과녁 그물이 움직임을 따진다
         q_next_target = q_target(s2)  # (B, A)
         q_s2_astar = q_next_target.gather(1, a_star.unsqueeze(1)).squeeze(1)
 
