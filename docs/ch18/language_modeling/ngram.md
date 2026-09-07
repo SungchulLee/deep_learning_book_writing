@@ -14,7 +14,7 @@
 
 ## 말 나타내기 들어가기
 
-Language modeling is the task of assigning probabilities to sequences of words. Given a sequence of words $w_1, w_2, \ldots, w_n$, a language model computes:
+말 모델 짓기는 낱말의 이음에 확률을 매기는 일이다. 낱말의 이음 $w_1, w_2, \ldots, w_n$이 주어지면 말 모델은 다음을 셈한다.
 
 $$P(w_1, w_2, \ldots, w_n)$$
 
@@ -325,8 +325,8 @@ class TrigramModel:
 n-그램 모델의 근본 어려움은 **자료의 성김**이다. 곧 올바른 낱말 차례가 익힘에 한 번도 나오지 않는다. 다음을 보자:
 
 - 영어 낱말 곳간: 흔한 낱말 약 50,000개
-- Possible bigrams: $50,000^2 = 2.5 \times 10^9$
-- Possible trigrams: $50,000^3 = 1.25 \times 10^{14}$
+- 나올 수 있는 두낱말: $50,000^2 = 2.5 \times 10^9$
+- 나올 수 있는 세낱말: $50,000^3 = 1.25 \times 10^{14}$
 
 대부분의 n-그램은 셈이 0이 되어 다음이 따라온다:
 

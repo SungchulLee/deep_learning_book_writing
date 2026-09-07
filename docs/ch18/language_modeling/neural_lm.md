@@ -52,10 +52,10 @@ Output: P(w_t | context)
 
 ### 수식으로 나타내기
 
-Given context words $w_{t-n+1}, \ldots, w_{t-1}$:
+앞뒤 흐름 낱말 $w_{t-n+1}, \ldots, w_{t-1}$이 주어지면
 
 1. **Embedding**: $\mathbf{e}_i = C(w_i) \in \mathbb{R}^d$
-2. **Concatenation**: $\mathbf{x} = [\mathbf{e}_{t-n+1}; \ldots; \mathbf{e}_{t-1}] \in \mathbb{R}^{(n-1) \cdot d}$
+2. **이어 붙이기**: $\mathbf{x} = [\mathbf{e}_{t-n+1}; \ldots; \mathbf{e}_{t-1}] \in \mathbb{R}^{(n-1) \cdot d}$
 3. **Hidden layer**: $\mathbf{h} = \tanh(\mathbf{W}\mathbf{x} + \mathbf{b})$
 4. **Output**: $\mathbf{s} = \mathbf{U}\mathbf{h} + \mathbf{c}$
 5. **Softmax**: $P(w_t = v | \text{context}) = \frac{\exp(s_v)}{\sum_{v'} \exp(s_{v'})}$
@@ -279,7 +279,7 @@ For each time step t:
     P(w_t | w_1,...,w_{t-1}) = softmax(y_t)
 ```
 
-The hidden state $\mathbf{h}_t$ summarizes the entire history $w_1, \ldots, w_{t-1}$.
+숨은 상태 $\mathbf{h}_t$은 지나온 $w_1, \ldots, w_{t-1}$ 모두를 간추린다.
 
 ### 구현
 
@@ -612,7 +612,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
 
 ### 스스로 눈길 얼개
 
-Given a sequence of representations $\mathbf{X} = [\mathbf{x}_1, \ldots, \mathbf{x}_n]$:
+나타냄의 이음 $\mathbf{X} = [\mathbf{x}_1, \ldots, \mathbf{x}_n]$이 주어지면
 
 $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}$$
 
@@ -628,7 +628,7 @@ $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\fr
 
 $$\text{mask}_{ij} = \begin{cases} 0 & \text{if } j \leq i \\ -\infty & \text{otherwise} \end{cases}$$
 
-This ensures $P(w_t | w_1, \ldots, w_{t-1})$ only depends on past words.
+이러면 $P(w_t | w_1, \ldots, w_{t-1})$이 지나간 낱말에만 기대게 된다.
 
 ### 구현
 

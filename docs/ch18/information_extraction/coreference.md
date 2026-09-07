@@ -11,7 +11,7 @@
 
 ### 예
 
-*"**Apple** announced **its** quarterly earnings. **The tech giant** reported revenue of \$90B. **CEO Tim Cook** said **the company** exceeded expectations."*
+*"**애플**이 **그** 분기 실적을 알렸다. **그 기술 거인**은 매출 \$90B을 밝혔다. **최고경영자 팀 쿡**은 **그 회사**가 기대를 넘어섰다고 말했다."*
 
 무리 1: {Apple, its, The tech giant, the company}
 무리 2: {CEO Tim Cook}
@@ -47,9 +47,9 @@ $$P(a_j \mid m_i) = \frac{\exp(s(m_i, m_j))}{\sum_{k \leq i} \exp(s(m_i, m_k)) +
 ### 구조
 
 1. **구간 늘어놓기**: 길이 $L$까지의 모든 구간을 헤아린다
-2. **Span Representation**: $\mathbf{g}_i = [\mathbf{h}_{\text{start}}; \mathbf{h}_{\text{end}}; \hat{\mathbf{h}}_i; \phi(i)]$ where $\hat{\mathbf{h}}_i$ is an attention-weighted head word representation and $\phi(i)$ encodes span width
-3. **Mention Score**: $s_m(i) = \text{FFNN}_m(\mathbf{g}_i)$
-4. **Antecedent Score**: $s_a(i, j) = \text{FFNN}_a([\mathbf{g}_i; \mathbf{g}_j; \mathbf{g}_i \circ \mathbf{g}_j; \phi(i,j)])$
+2. **구간 나타내기**: $\mathbf{g}_i = [\mathbf{h}_{\text{start}}; \mathbf{h}_{\text{end}}; \hat{\mathbf{h}}_i; \phi(i)]$이며 $\hat{\mathbf{h}}_i$은 눈길 짐을 실은 머리 낱말 나타냄이고 $\phi(i)$은 구간 너비를 담는다
+3. **언급 점수**: $s_m(i) = \text{FFNN}_m(\mathbf{g}_i)$
+4. **앞선 말 점수**: $s_a(i, j) = \text{FFNN}_a([\mathbf{g}_i; \mathbf{g}_j; \mathbf{g}_i \circ \mathbf{g}_j; \phi(i,j)])$
 5. **짝 점수**: $s(i, j) = s_m(i) + s_m(j) + s_a(i, j)$
 
 ### 학습 목표
@@ -58,7 +58,7 @@ $$P(a_j \mid m_i) = \frac{\exp(s(m_i, m_j))}{\sum_{k \leq i} \exp(s(m_i, m_k)) +
 
 $$\mathcal{L} = -\sum_{i=1}^{N} \log \frac{\sum_{j \in \mathcal{Y}(i)} \exp(s(i, j))}{\sum_{j' \in \mathcal{C}(i)} \exp(s(i, j'))}$$
 
-where $\mathcal{Y}(i)$ is the set of correct antecedents and $\mathcal{C}(i)$ includes all candidates plus a dummy "new entity" antecedent.
+여기서 $\mathcal{Y}(i)$은 옳은 앞선 말의 묶음이고 $\mathcal{C}(i)$은 모든 후보에 허깨비 "새 개체" 앞선 말을 더한 것이다.
 
 ```python
 import torch

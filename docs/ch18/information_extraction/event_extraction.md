@@ -15,7 +15,7 @@
 
 ### 예
 
-Input: *"Apple acquired Beats Electronics for approximately \$3 billion on May 28, 2014."*
+들임: *"애플이 2014년 5월 28일에 비츠 일렉트로닉스를 약 \$30억에 사들였다."*
 
 | 조각 | 값 | 몫 |
 |-----------|-------|------|
@@ -23,7 +23,7 @@ Input: *"Apple acquired Beats Electronics for approximately \$3 billion on May 2
 | 사건 갈래 | 인수 | -- |
 | 딸린 것 | Apple | 사는 쪽 |
 | 딸린 것 | Beats Electronics | 대상 |
-| Argument | \$3 billion | Price |
+| 인자 | \$30억 | 값 |
 | 딸린 것 | 2014년 5월 28일 | 날짜 |
 
 ## 두 단계 물길
@@ -34,7 +34,7 @@ Input: *"Apple acquired Beats Electronics for approximately \$3 billion on May 2
 
 $$P(\text{type}_i \mid x_i, \mathbf{x}) = \text{softmax}(\mathbf{W}_t \mathbf{h}_i + \mathbf{b}_t)$$
 
-where $\mathbf{h}_i$ is the contextualized representation of token $i$.
+여기서 $\mathbf{h}_i$은 앞뒤 흐름을 담은 토막 $i$의 나타냄이다.
 
 ### 2단계: 딸린 것 뽑기
 
@@ -81,7 +81,7 @@ class EventExtractor(nn.Module):
 
 월 수준 모델은 여러 월에 흩어진 딸린 것을 놓친다:
 
-*"Apple announced a major deal on Monday. The tech giant will pay \$3 billion for Beats Electronics. Tim Cook called it a great acquisition."*
+*"애플이 월요일에 큰 거래를 알렸다. 그 기술 거인은 비츠 일렉트로닉스에 \$30억을 치를 것이다. 팀 쿡은 이를 훌륭한 인수라고 불렀다."*
 
 인수 사건에 딸린 것이 월 셋에 걸쳐 있다. 글월 수준 모델은 월을 넘나드는 눈길이나 같은 것 가리키기로 흩어진 딸린 것을 잇는다.
 

@@ -201,11 +201,11 @@ if __name__ == "__main__":
 
 ## 논의
 
-N-gram models decompose the probability of a sentence into a product of conditional probabilities using the chain rule and a Markov assumption. A unigram model treats each word as independent, computing $P(w) = \text{count}(w) / N$ where $N$ is the total word count. This captures word frequency but ignores all context. A bigram model conditions on one previous word: $P(w_i \mid w_{i-1}) = \text{count}(w_{i-1}, w_i) / \text{count}(w_{i-1})$, capturing simple dependencies like "the cat" being more likely than "the the." Trigram models extend this to two words of context, capturing longer patterns at the cost of sparser counts.
+n낱말 모델은 사슬 법칙과 마르코프 가정을 써서 월의 확률을 조건부 확률의 곱으로 쪼갠다. 한낱말 모델은 낱말마다 서로 아랑곳없다고 보고 $P(w) = \text{count}(w) / N$을 셈한다. 여기서 $N$은 온 낱말 수다. 이는 낱말 잦기는 담지만 앞뒤 흐름을 모두 버린다. 두낱말 모델은 바로 앞 낱말 하나를 조건으로 삼아 $P(w_i \mid w_{i-1}) = \text{count}(w_{i-1}, w_i) / \text{count}(w_{i-1})$을 쓰며, "the the"보다 "the cat"이 더 그럴듯하다는 단순한 매임을 담는다. 세낱말 모델은 이를 앞 낱말 둘로 넓혀 더 긴 무늬를 담되 세는 수가 더 성글어진다.
 
 n-그램 모델의 근본 맞바꿈은 나타내는 힘과 자료의 성김 사이에 있다. $n$이 커질수록 더 먼 얽힘을 담아낼 수 있지만 가능한 n-그램의 수가 지수로 늘어나, 올바른 n-그램이 익힘 자료에 한 번도 안 나올 가능성이 점점 커진다. 이 "확률 0" 문제는 본 적 없는 바이그램이나 트라이그램 하나 때문에 월 전체의 확률이 0이 되어 그 들임에 모델을 쓸 수 없게 만든다. 이 한계 때문에 (이어지는 길잡이에서 다룰) 부드럽게 하기 재주가 나왔고, 끝내는 이어진 나타냄으로 두루 통하는 신경 말 모델의 발전으로 이어졌다.
 
-Log probabilities are used throughout these implementations for numerical stability. Multiplying many small probabilities leads to floating-point underflow, while summing log probabilities remains numerically stable. The relationship $\log P(w_1, \ldots, w_n) = \sum_i \log P(w_i \mid \text{context}_i)$ allows us to work in log-space throughout, converting back to probabilities only when needed for interpretation.
+여기 짜보기에서는 수치가 든든하도록 내내 로그 확률을 쓴다. 작은 확률을 여럿 곱하면 뜨는 수가 아래로 넘치지만 로그 확률을 더하면 수치가 든든하다. $\log P(w_1, \ldots, w_n) = \sum_i \log P(w_i \mid \text{context}_i)$ 덕에 내내 로그 밭에서 셈하고, 풀이할 때만 확률로 되돌리면 된다.
 
 ## 연습문제
 

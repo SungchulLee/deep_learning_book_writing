@@ -24,10 +24,10 @@ Raw Text
 
 단계마다 앞 단계 위에 쌓는다:
 
-1. **NER** identifies entity mentions: "Apple", "Tim Cook", "\$3 billion"
+1. **개체명 알아내기**는 개체 언급을 짚는다: "애플", "팀 쿡", "\$30억"
 2. **같은 것 가리키기 풀기**는 언급을 같은 것에 잇는다. 곧 "Apple" = "the company" = "it"
 3. **관계 뽑기**는 뜻의 관계를 가려낸다. 곧 (Tim Cook, CEO-of, Apple)
-4. **Event Extraction** identifies structured events: Acquisition(buyer=Apple, target=Beats, price=\$3B)
+4. **사건 뽑기**는 짜임새 있는 사건을 짚는다: 인수(사는 이=애플, 과녁=비츠, 값=\$30억)
 5. **앎 그래프 세우기**는 세 쌍을 모아 물을 수 있는 그래프로 만든다
 
 ### 닫힌 앎 뽑기와 열린 앎 뽑기
@@ -57,7 +57,7 @@ $$\mathcal{L}_{\text{joint}} = \mathcal{L}_{\text{NER}} + \lambda \mathcal{L}_{\
 
 ### 보기: 금융 뉴스 앎 뽑기
 
-Input: *"Goldman Sachs announced Thursday it will acquire GreenSky for approximately \$2.24 billion in an all-stock deal."*
+들임: *"골드만삭스는 목요일에 그린스카이를 모두 주식으로 약 \$22억 4천만에 사들이겠다고 알렸다."*
 
 뽑아낸 짜임:
 
@@ -66,7 +66,7 @@ Input: *"Goldman Sachs announced Thursday it will acquire GreenSky for approxima
 | 사건 갈래 | 인수 |
 | 사는 쪽 | Goldman Sachs |
 | 대상 | GreenSky |
-| Price | \$2.24 billion |
+| 값 | \$22억 4천만 |
 | 거래 갈래 | 전액 주식 |
 | 날짜 | 목요일 |
 

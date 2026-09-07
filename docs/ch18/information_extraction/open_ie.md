@@ -15,9 +15,9 @@
 
 열린 앎 뽑기의 내놓음:
 
-- (Einstein, was born in, Ulm)
-- (Einstein, developed, the theory of relativity)
-- (Einstein, working at, the patent office)
+- (아인슈타인, 태어난 곳은, 울름)
+- (아인슈타인, 세웠다, 상대성 이론)
+- (아인슈타인, 일한 곳은, 특허청)
 
 ## 핵심 체계
 

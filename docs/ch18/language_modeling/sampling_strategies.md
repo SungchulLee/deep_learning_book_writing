@@ -3,7 +3,7 @@
 
 자기되돌리기 말 모델은 앞선 토막이 주어질 때 다음 토막에 대한 확률 분포를 정한다. 미룸 때에는 이 분포에서 **풀어내어** 글을 만들어야 한다. 어떤 풀기 전략을 고르느냐가 내놓음의 좋음, 여러 갈래임, 조리, 셈 값에 깊이 영향을 준다.
 
-Let $p_\theta(x_t \mid x_{<t})$ denote the model's conditional distribution over token $x_t$ given context $x_{<t} = (x_1, \ldots, x_{t-1})$. The model outputs **logits** $z \in \mathbb{R}^{|V|}$ (one per vocabulary token), which are converted to probabilities via softmax:
+$p_\theta(x_t \mid x_{<t})$을 앞뒤 흐름 $x_{<t} = (x_1, \ldots, x_{t-1})$이 주어졌을 때 토막 $x_t$에 대한 모델의 조건부 분포라 하자. 모델은 **로짓** $z \in \mathbb{R}^{|V|}$(낱말 사전 토막마다 하나)을 내놓고, 이를 소프트맥스로 확률로 바꾼다.
 
 $$
 p_\theta(x_t = v \mid x_{<t}) = \frac{\exp(z_v)}{\sum_{v' \in V} \exp(z_{v'})}
@@ -54,7 +54,7 @@ def greedy_decode(
 
 **성질**:
 
-- Fast: $O(T \cdot |V|)$ per sequence
+- 빠르다: 이음마다 $O(T \cdot |V|)$
 - 정해진 대로: 같은 들임은 늘 같은 내놓음을 낸다
 - 봉우리 좇기: 전체 최적이 아니라 가까운 최댓값을 찾는다
 - 되풀이와 밋밋한 내놓음에 빠지기 쉽다
@@ -73,15 +73,15 @@ $$
 
 ### 수학으로 살피기
 
-Temperature affects the **entropy** of the distribution. Let $H(p) = -\sum_v p_v \log p_v$ denote entropy.
+온도는 분포의 **엔트로피**에 영향을 준다. $H(p) = -\sum_v p_v \log p_v$을 엔트로피라 하자.
 
 **정리(온도와 엔트로피).** 로짓이 $z$인 아무 분포 $p$에 대해:
 
-1. $\lim_{T \to 0^+} p_T$ converges to a point mass on $\arg\max_v z_v$
-2. $\lim_{T \to \infty} p_T$ converges to the uniform distribution
+1. $\lim_{T \to 0^+} p_T$은 $\arg\max_v z_v$ 한 점에 모여든다
+2. $\lim_{T \to \infty} p_T$은 고른 분포로 모여든다
 3. $H(p_T)$은 $T$에 대해 단조로 늘어난다
 
-*Proof sketch*: As $T \to 0$, $z_v/T \to \pm\infty$ depending on whether $z_v$ is maximal, concentrating all mass. As $T \to \infty$, $z_v/T \to 0$ for all $v$, yielding uniform distribution. Monotonicity follows from log-sum-exp properties. $\square$
+*밝히기 얼개*: $T \to 0$이면 $z_v$이 가장 큰지에 따라 $z_v/T \to \pm\infty$이 되어 무게가 한곳에 몰린다. $T \to \infty$이면 모든 $v$에 대해 $z_v/T \to 0$이 되어 고른 분포가 된다. 한 방향으로만 바뀜은 로그-합-지수의 결에서 따라 나온다. $\square$
 
 ### 엔트로피 관점
 
@@ -91,7 +91,7 @@ $$
 p_T(v) \propto p_1(v)^{1/T}
 $$
 
-This follows because $\exp(z_v/T) = \exp(z_v)^{1/T}$.
+$\exp(z_v/T) = \exp(z_v)^{1/T}$이므로 이는 따라 나온다.
 
 ```python
 def temperature_sample(
@@ -197,7 +197,7 @@ def top_k_sample(
 
 ### 정의
 
-Given threshold $p \in (0, 1]$, the **nucleus** $V_p$ is the smallest set of tokens whose cumulative probability exceeds $p$:
+문턱 $p \in (0, 1]$이 주어질 때 **알맹이** $V_p$은 쌓은 확률이 $p$을 넘는 가장 작은 토막 묶음이다.
 
 $$
 V_p = \arg\min_{V' \subseteq V} |V'| \quad \text{s.t.} \quad \sum_{v \in V'} p_\theta(v \mid x_{<t}) \geq p
@@ -340,7 +340,7 @@ def combined_sample(
 
 ## 6. 최소 p 표집
 
-**Min-p sampling** (recent alternative to top-p) keeps all tokens with probability at least $p_{\min} \times p_{\max}$, where $p_{\max}$ is the highest token probability.
+**최소 p 표집**(top-p의 요즘 대안)은 확률이 적어도 $p_{\min} \times p_{\max}$인 토막을 모두 남긴다. 여기서 $p_{\max}$은 가장 높은 토막 확률이다.
 
 ### 정의
 
@@ -352,8 +352,8 @@ $$
 
 최소 p는 가장 그럴듯한 토막을 기준으로 문턱값의 잣수를 맞춘다. 곧:
 
-- When the model is confident ($p_{\max}$ high), threshold is high → few tokens
-- When uncertain ($p_{\max}$ low), threshold is low → many tokens
+- 모델이 자신할 때($p_{\max}$이 높을 때) 문턱이 높아 토막이 적다
+- 아리송할 때($p_{\max}$이 낮을 때) 문턱이 낮아 토막이 많다
 
 ```python
 def min_p_sample(
@@ -420,7 +420,7 @@ $$
 
 ### 정의
 
-The **typical set** $A_\epsilon$ contains tokens whose information content is within $\epsilon$ of the entropy:
+**흔한 묶음** $A_\epsilon$은 소식 양이 엔트로피에서 $\epsilon$ 안쪽인 토막을 담는다.
 
 $$
 A_\epsilon = \{v \in V : |I(v) - H| < \epsilon\}
@@ -491,11 +491,11 @@ def typical_sample(
 ### 정의
 
 1. 분포의 엔트로피 $H$을 셈한다
-2. Set threshold: $\eta = \min(\epsilon, \sqrt{\epsilon} \cdot e^{-H})$
-3. Keep tokens where $p(v) > \eta$
+2. 문턱을 잡는다: $\eta = \min(\epsilon, \sqrt{\epsilon} \cdot e^{-H})$
+3. $p(v) > \eta$인 토막을 남긴다
 4. 남는 토막이 없으면 상위 p로 물러난다
 
-The key insight: $\eta$ decreases as entropy increases (more uncertainty → lower threshold).
+고갱이 깨침은 엔트로피가 커질수록 $\eta$이 작아진다는 것이다(더 아리송할수록 문턱이 낮아진다).
 
 ```python
 def eta_sample(
@@ -557,7 +557,7 @@ def eta_sample(
 
 ### 알고리즘(미로스탯-2)
 
-1. Set target surprisal $\tau$ (e.g., 5.0 ≈ perplexity 148)
+1. 과녁 놀람도 $\tau$을 잡는다(보기: 5.0 ≈ 헷갈림도 148)
 2. 놀라움의 흐르는 어림값을 좇는다
 3. 목표 쪽으로 이끌도록 상위 k를 그때그때 맞춘다
 
@@ -652,7 +652,7 @@ z_v & \text{otherwise}
 \end{cases}
 $$
 
-where $\theta > 1$ is the penalty factor.
+여기서 $\theta > 1$은 벌 값이다.
 
 ```python
 def apply_repetition_penalty(
@@ -697,8 +697,8 @@ $$
 z'_v = z_v - \alpha_{\text{freq}} \cdot \text{count}(v) - \alpha_{\text{pres}} \cdot \mathbf{1}[v \in \text{generated}]
 $$
 
-- **Frequency penalty** ($\alpha_{\text{freq}}$): Penalizes proportional to how often token appeared
-- **Presence penalty** ($\alpha_{\text{pres}}$): Flat penalty if token appeared at all
+- **잦기 벌**($\alpha_{\text{freq}}$): 토막이 나온 잦기에 비례해 벌을 준다
+- **나옴 벌**($\alpha_{\text{pres}}$): 토막이 한 번이라도 나왔으면 똑같이 벌을 준다
 
 ```python
 def apply_frequency_presence_penalty(
@@ -801,7 +801,7 @@ $$
 \text{score}_{\text{LP}}(x_{1:t}) = \frac{\sum_{i=1}^{t} \log p_\theta(x_i \mid x_{<i})}{((5 + t) / 6)^\alpha}
 $$
 
-where $\alpha > 0$ encourages longer sequences, $\alpha < 0$ favors shorter.
+여기서 $\alpha > 0$이면 더 긴 이음을 북돋우고 $\alpha < 0$이면 더 짧은 쪽을 좋아한다.
 
 ```python
 def beam_search(
@@ -956,12 +956,12 @@ $$
 
 - $V_k$은 확률로 뽑은 상위 k개 후보이다
 - $h_v$은 토막 $v$의 숨은 나타냄이다
-- $\text{sim}$ is cosine similarity
-- $\alpha \in [0, 1]$ balances likelihood vs. distinctiveness
+- $\text{sim}$은 코사인 닮음이다
+- $\alpha \in [0, 1]$은 그럴듯함과 남다름 사이를 저울질한다
 
 ### 직관
 
-The **degeneration penalty** term $\max_j \text{sim}(h_v, h_{x_j})$ discourages tokens whose representations are too similar to previous context, reducing repetitive patterns.
+**퇴화 벌** 마디 $\max_j \text{sim}(h_v, h_{x_j})$은 나타냄이 앞선 앞뒤 흐름과 너무 닮은 토막을 눌러 되풀이되는 무늬를 줄인다.
 
 ```python
 def contrastive_search(
@@ -1047,8 +1047,8 @@ def contrastive_search(
 
 ### 알고리즘
 
-1. Draft model generates $\gamma$ tokens autoregressively
-2. Target model scores all $\gamma$ tokens in one forward pass
+1. 초안 모델이 자기되돌리기로 토막 $\gamma$개를 만든다
+2. 과녁 모델이 앞으로 걸음 한 번에 토막 $\gamma$개를 모두 점수 매긴다
 3. 물리치기 표집으로 토막마다 받아들이거나 물리친다
 4. 물리쳤으면 바로잡은 분포에서 다시 뽑는다
 
@@ -1133,7 +1133,7 @@ def speculative_decode(
 
 ### 빨라짐 살피기
 
-Let $\alpha$ be the average acceptance rate. Expected tokens per iteration:
+$\alpha$을 평균 받아들임 비율이라 하자. 되돌이마다 바라는 토막 수는 다음과 같다.
 
 $$
 \mathbb{E}[\text{tokens}] = \sum_{i=1}^{\gamma} \alpha^{i-1}(1-\alpha) \cdot i + \alpha^\gamma \cdot \gamma = \frac{1 - \alpha^{\gamma+1}}{1 - \alpha}
@@ -1141,9 +1141,9 @@ $$
 
 빨라짐은 다음에 달렸다:
 
-- Draft model quality (higher $\alpha$)
+- 초안 모델의 좋음(더 높은 $\alpha$)
 - 밑그림 모델과 목표 모델의 값 비율
-- $\gamma$ (more drafts = higher potential gain but more wasted work if rejected)
+- $\gamma$(초안이 많을수록 얻을 것도 크지만 물리면 버리는 일감도 는다)
 
 ---
 
@@ -1420,7 +1420,7 @@ Start
 $n$-그램 말 모델에서 모델의 복잡함과 자료의 성김 사이 맞바꿈을 밝혀라. $n$을 늘려도 왜 늘 헷갈림도가 나아지지는 않는가?
 
 ??? success "연습문제 1 풀이"
-    Larger $n$ captures longer dependencies but requires exponentially more data to estimate probabilities reliably. A vocabulary of size $V$ has $V^n$ possible $n$-grams; most are never observed in the training corpus, leading to zero-probability estimates. Smoothing techniques (Laplace, Kneser-Ney) mitigate this but cannot fully compensate. In practice, 3-grams or 5-grams often outperform higher-order models on moderate-sized corpora because the bias-variance trade-off favors simpler models when data is limited.
+    $n$이 클수록 더 먼 매임을 담지만 확률을 믿을 만하게 어림하려면 자료가 지수만큼 더 든다. 크기가 $V$인 낱말 사전에는 $n$낱말이 $V^n$가지 있을 수 있는데, 대부분은 익힘 뭉치에 한 번도 나오지 않아 확률이 0으로 어림된다. 매끄럽게 하기(라플라스, 크네서-네이)로 이를 눅일 수는 있으나 온전히 메우지는 못한다. 참으로는 어지간한 크기의 뭉치에서 3낱말이나 5낱말이 더 높은 차수의 모델보다 나은 일이 잦은데, 자료가 적을 때는 치우침-흩어짐 맞바꿈이 더 단순한 모델의 손을 들어 주기 때문이다.
 
 ---
 
@@ -1428,7 +1428,7 @@ $n$-그램 말 모델에서 모델의 복잡함과 자료의 성김 사이 맞�
 헷갈림도를 정의하고 엇갈린 엔트로피와의 관계를 보여라. 어떤 모델이 시험 뭉치에서 헷갈림도 50을 얻었다. 직관으로 이는 무슨 뜻인가?
 
 ??? success "연습문제 2 풀이"
-    Perplexity is defined as $\text{PP} = 2^{H(p, q)}$ where $H(p, q) = -\frac{1}{N}\sum_{i=1}^N \log_2 q(w_i | w_{<i})$ is the cross-entropy of the model $q$ on the test data with true distribution $p$. A perplexity of 50 means the model is, on average, as uncertain as if it were choosing uniformly among 50 words at each position. Lower perplexity indicates better predictive performance.
+    헷갈림도는 $\text{PP} = 2^{H(p, q)}$으로 매기며, $H(p, q) = -\frac{1}{N}\sum_{i=1}^N \log_2 q(w_i | w_{<i})$은 참 분포가 $p$인 시험 자료에서 모델 $q$의 엇결 엔트로피다. 헷갈림도가 50이면 모델이 평균으로 보아 자리마다 낱말 50개 가운데 고르게 하나를 고르는 만큼 아리송하다는 뜻이다. 헷갈림도가 낮을수록 미루어 봄이 낫다.
 
 ---
 
@@ -1436,7 +1436,7 @@ $n$-그램 말 모델에서 모델의 복잡함과 자료의 성김 사이 맞�
 글 만들어 내기에서 상위 $k$ 표집, 알갱이(상위 $p$) 표집, 온도 맞추기를 견주어라. 저마다 언제 쓰겠는가?
 
 ??? success "연습문제 3 풀이"
-    **Top-$k$**: samples from the $k$ highest-probability tokens. Simple but the fixed $k$ can be too restrictive (for peaked distributions) or too permissive (for flat distributions). **Nucleus/top-$p$**: samples from the smallest set of tokens whose cumulative probability exceeds $p$, adapting to the distribution's shape. **Temperature $\tau$**: scales logits by $1/\tau$ before softmax; $\tau < 1$ sharpens, $\tau > 1$ flattens. Top-$p$ is generally preferred for open-ended generation (adaptive truncation); temperature is useful for controlling creativity; top-$k$ is simple and effective for constrained generation.
+    **위 $k$**: 확률이 가장 높은 토막 $k$개에서 뽑는다. 단순하지만 붙박인 $k$은 (뾰족한 분포에서는) 너무 좁고 (평평한 분포에서는) 너무 헐거울 수 있다. **알맹이/위 $p$**: 쌓은 확률이 $p$을 넘는 가장 작은 토막 묶음에서 뽑아 분포의 꼴에 맞춘다. **온도 $\tau$**: 소프트맥스 앞에서 로짓에 $1/\tau$을 곱한다. $\tau < 1$이면 뾰족해지고 $\tau > 1$이면 평평해진다. 열린 글 만들기에는 흔히 위 $p$을 쓰고(맞추어 잘라 낸다), 온도는 새로움을 다스리는 데 쓸모 있으며, 위 $k$은 옭아맨 글 만들기에 단순하고 잘 듣는다.
 
 ---
 

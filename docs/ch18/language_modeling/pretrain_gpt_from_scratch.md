@@ -284,11 +284,11 @@ ConstantLengthDataset은 인과 말 모델 익히기에 꼭 필요한 다듬기�
 `ConstantLengthDataset` 클래스를 쓸 때, 글자 100만 개의 말뭉치에서 차례 길이 1024와 토막마다 평균 글자 3.6개를 쓰면 익힘 차례가 대략 몇 개 나오는지 셈하여라.
 
 ??? success "연습문제 1 풀이"
-    Total tokens $\approx 1{,}000{,}000 / 3.6 \approx 277{,}778$ tokens.
+    온 토막 수는 $\approx 1{,}000{,}000 / 3.6 \approx 277{,}778$개다.
     
-    Number of complete sequences $= \lfloor 277{,}778 / 1024 \rfloor = 271$ sequences.
+    온전한 이음의 수는 $= \lfloor 277{,}778 / 1024 \rfloor = 271$개다.
     
-    Each sequence contains exactly 1024 tokens, so the dataset discards the remaining $277{,}778 - 271 \times 1024 = 277{,}778 - 277{,}504 = 274$ leftover tokens.
+    이음마다 토막이 꼭 1024개이므로 자료 묶음은 남은 토막 $277{,}778 - 271 \times 1024 = 277{,}778 - 277{,}504 = 274$개를 버린다.
 
 ---
 
@@ -296,7 +296,7 @@ ConstantLengthDataset은 인과 말 모델 익히기에 꼭 필요한 다듬기�
 GPT-2를 익힐 때 치우침 매개변수와 LayerNorm 무게에서 무게 줄이기를 빼야 하는 까닭을 밝혀라. 모든 매개변수에 무게 줄이기를 한결같이 쓰면 어떻게 되겠는가?
 
 ??? success "연습문제 2 풀이"
-    Weight decay (L2 regularization) penalizes large parameter values by adding $\lambda \|w\|^2$ to the loss. For bias terms and LayerNorm parameters, this regularization is counterproductive:
+    짐 줄이기(L2 다독임)는 잃음에 $\lambda \|w\|^2$을 더해 큰 매개변수 값에 벌을 준다. 치우침 마디와 켜 잣대 잡기 매개변수에는 이 다독임이 도리어 해롭다.
     
     - **치우침 항**은 깨어남을 옮기는 몫이므로 0 쪽으로 묶어서는 안 된다. 그러면 층마다 알맞은 어긋남을 배우는 힘이 줄어든다.
     - **LayerNorm 무게**(잣수 매개변수)는 1.0으로 첫자리매김되며 고르게 맞춘 깨어남의 잣수를 다스린다. 이를 0 쪽으로 줄이면 사실상 층의 내놓음을 눌러 익히기를 흔들리게 한다.
