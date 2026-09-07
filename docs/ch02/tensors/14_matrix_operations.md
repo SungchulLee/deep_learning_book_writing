@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 14: Matrix Operations - Linear algebra essentials for ML"""
+"""익힘 14: 행렬 셈 - 기계 배움에 꼭 필요한 선형대수"""
 import torch
 
 # ========================================================================

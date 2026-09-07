@@ -356,7 +356,7 @@ print("""
    ✓ Works for any differentiable function
    ✓ Scales to complex models
 
-Next Steps:
+다음 걸음:
 - Tutorial 05: Use nn.Module for cleaner code
 - Tutorial 06: Multiple input features
 - Tutorial 07: Polynomial regression

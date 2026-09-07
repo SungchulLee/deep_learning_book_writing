@@ -367,7 +367,7 @@ Why This Approach:
 - Understanding manual computation helps debug models
 - Shows that PyTorch doesn't change the underlying math
 
-Next Steps:
+다음 걸음:
 - Tutorial 04: Use autograd for automatic gradient computation
 - No more manual gradient formulas!
 - Focus on model architecture and training

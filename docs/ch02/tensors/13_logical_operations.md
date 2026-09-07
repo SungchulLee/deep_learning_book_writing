@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 13: Logical Operations - Boolean operations and masking"""
+"""익힘 13: 논리 셈 - 참거짓 셈과 가리기"""
 import torch
 
 # ========================================================================

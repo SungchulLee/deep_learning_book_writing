@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 17: Tensor Comparison - Element-wise and tensor comparisons"""
+"""익힘 17: 텐서 견주기 - 원소별 견줌과 텐서 견줌"""
 import torch
 
 # ========================================================================

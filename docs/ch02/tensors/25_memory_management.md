@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 25: Memory Management - Optimizing memory usage"""
+"""익힘 25: 기억 자리 다루기 - 기억 자리 씀씀이 다듬기"""
 import torch
 import torch.nn as nn
 
@@ -59,11 +59,11 @@ def main():
     header("5. Gradient Accumulation")
     print("""
     Instead of:
-        batch_size = 128  # Might run out of memory!
+        batch_size = 128  # 기억 자리가 모자랄 수 있다!
         
-    Use gradient accumulation:
+    기울기 쌓기를 쓴다.
         batch_size = 32
-        accumulation_steps = 4  # Effective batch size = 128
+        accumulation_steps = 4  # 실제 묶음 크기 = 128
         
     for i, (x, y) in enumerate(dataloader):
         output = model(x)
@@ -77,7 +77,7 @@ def main():
     
     header("6. Checkpoint Activations")
     print("""
-    For very deep networks, use gradient checkpointing:
+    아주 깊은 그물에는 기울기 되짚음 저장을 쓴다.
     
     from torch.utils.checkpoint import checkpoint
     
@@ -89,7 +89,7 @@ def main():
             x = checkpoint(self.layer3, x)
             return x
     
-    Trades 30% more compute for 10x less memory!
+    셈을 30% 더 하는 대신 기억 자리를 10분의 1로 줄인다!
     """)
     
     header("7. Empty Cache (GPU)")
@@ -105,7 +105,7 @@ def main():
     
     header("8. Memory Profiling")
     print("""
-    Use PyTorch's memory profiler:
+    PyTorch의 기억 자리 살피개를 쓴다.
     
     from torch.profiler import profile, ProfilerActivity
     
@@ -118,18 +118,18 @@ def main():
     
     header("9. Best Practices Summary")
     print("""
-    Memory Optimization Tips:
+    기억 자리 다듬기 요령:
     
-    1. Use torch.no_grad() during inference
-    2. Call .detach() when you don't need gradients
-    3. Use in-place operations (_) when safe
-    4. Accumulate gradients for larger effective batch sizes
-    5. Use mixed precision training (see tutorial 24)
-    6. Delete large tensors when done: del x
-    7. Clear GPU cache: torch.cuda.empty_cache()
-    8. Use gradient checkpointing for deep networks
-    9. Profile memory usage to find bottlenecks
-    10. Consider smaller batch sizes or model size
+    1. 미룸 때는 torch.no_grad()을 써라
+    2. 기울기가 필요 없으면 .detach()을 불러라
+    3. 안전할 때는 제자리 셈(_)을 써라
+    4. 실제 묶음 크기를 키우려면 기울기를 쌓아라
+    5. 섞인 촘촘함 익히기를 써라(익힘 24을 보아라)
+    6. 다 쓴 큰 텐서는 지워라: del x
+    7. GPU 갈무리를 비워라: torch.cuda.empty_cache()
+    8. 깊은 그물에는 기울기 되짚음 저장을 써라
+    9. 기억 자리 씀씀이를 살펴 목을 찾아라
+    10. 묶음 크기나 모형 크기를 줄이는 것도 생각해 보아라
     """)
 
 if __name__ == "__main__":

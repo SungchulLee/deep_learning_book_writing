@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 27: Model Checkpointing - Saving and loading models"""
+"""익힘 27: 모형 되짚음 저장 - 모형 갈무리하고 불러오기"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -116,7 +116,7 @@ def main():
     
     header("9. Cross-Platform Compatibility")
     print("""
-    For maximum compatibility:
+    가장 널리 맞물리게 하려면
     
     # 저장
     torch.save(model.state_dict(), 'model.pth', _use_new_zipfile_serialization=True)
@@ -130,20 +130,20 @@ def main():
     
     header("10. Best Practices")
     print("""
-    Model Checkpointing Best Practices:
+    모형 되짚음 저장을 잘 하는 버릇:
     
-    1. Save state_dict (not full model) for flexibility
-    2. Save training state (epoch, optimizer, loss)
-    3. Keep only N best checkpoints to save space
-    4. Use descriptive filenames (epoch, metric, date)
-    5. Checkpoint after every epoch or N steps
-    6. Verify checkpoint loads correctly after saving
-    7. Use map_location='cpu' for cross-device loading
-    8. Save additional metadata (hyperparameters, etc.)
-    9. Test your loading code regularly
-    10. Keep separate inference-only checkpoints
+    1. 너그럽게 쓰려면 온 모형이 아니라 state_dict을 갈무리하라
+    2. 익힘 상태(판, 가장 좋게 하개, 잃음)를 갈무리하라
+    3. 자리를 아끼려면 가장 좋은 것 N개만 남겨라
+    4. 알아보기 쉬운 이름을 써라(판, 자, 날짜)
+    5. 판마다 또는 N 걸음마다 갈무리하라
+    6. 갈무리한 뒤 제대로 불러와지는지 따져라
+    7. 다른 기기에서 불러올 때는 map_location='cpu'을 써라
+    8. 곁들인 정보(웃매개변수 따위)도 갈무리하라
+    9. 불러오는 코드를 자주 시험하라
+    10. 미룸 전용 갈무리를 따로 두어라
     
-    Example naming: model_epoch50_loss0.123_acc0.95.pth
+    이름 보기: model_epoch50_loss0.123_acc0.95.pth
     """)
     
     # 정리

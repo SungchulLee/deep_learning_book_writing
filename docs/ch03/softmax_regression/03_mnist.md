@@ -639,7 +639,7 @@ Final train accuracy: {history['train_acc'][-1]:.2%}
 Final validation accuracy: {history['val_acc'][-1]:.2%}
 Test accuracy: {test_accuracy:.2%}
 
-Next Steps:
+다음 걸음:
 -----------
 → Level 4: Implement custom training from scratch
 → Level 5: Advanced techniques (learning rate scheduling, data augmentation)

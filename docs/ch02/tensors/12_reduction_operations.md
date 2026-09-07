@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 12: Reduction Operations - Aggregating tensor data (sum, mean, min, max, etc.)"""
+"""익힘 12: 줄이는 셈 - 텐서 자료 모으기(sum, mean, min, max 따위)"""
 import torch
 
 # ========================================================================

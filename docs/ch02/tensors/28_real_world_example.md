@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 28: Real-World Example - Complete MNIST digit classifier"""
+"""익힘 28: 참 세상 보기 - 온전한 MNIST 숫자 가름개"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -31,7 +31,7 @@ class SyntheticMNIST(Dataset):
         return self.data[idx], self.labels[idx]
 
 class ConvNet(nn.Module):
-    """Convolutional Neural Network for digit classification."""
+    """숫자 가름을 위한 누비기 신경망."""
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3)
@@ -51,7 +51,7 @@ class ConvNet(nn.Module):
         return x
 
 def train_epoch(model, dataloader, criterion, optimizer, device):
-    """Train for one epoch."""
+    """한 판 익힌다."""
     model.train()
     total_loss = 0
     correct = 0
@@ -76,7 +76,7 @@ def train_epoch(model, dataloader, criterion, optimizer, device):
     return avg_loss, accuracy
 
 def validate(model, dataloader, criterion, device):
-    """Validate the model."""
+    """모형을 다진다."""
     model.eval()
     total_loss = 0
     correct = 0
@@ -171,14 +171,14 @@ def main():
     print("Training Complete!")
     print("="*70)
     print("""
-    Next Steps:
-    1. Try with real MNIST dataset (torchvision.datasets.MNIST)
-    2. Experiment with different architectures
-    3. Add data augmentation
-    4. Try different optimizers and learning rates
-    5. Implement early stopping
-    6. Add logging with tensorboard
-    7. Deploy the model for production use
+    다음 걸음:
+    1. 참 MNIST 자료 묶음으로 해 보아라(torchvision.datasets.MNIST)
+    2. 여러 얼개를 이리저리 바꾸어 보아라
+    3. 자료 불리기를 더하여라
+    4. 여러 가장 좋게 하개와 배움 빠르기를 써 보아라
+    5. 일찍 멈추기를 짜라
+    6. 텐서보드로 적바림을 더하여라
+    7. 모형을 참으로 굴릴 수 있게 내놓아라
     """)
 
 if __name__ == "__main__":

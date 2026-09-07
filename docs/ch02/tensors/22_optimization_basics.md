@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 22: Optimization Basics - Optimizers and training"""
+"""익힘 22: 가장 좋게 하기 기초 - 가장 좋게 하개와 익힘"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -89,14 +89,14 @@ def main():
     
     header("6. Comparing Optimizers")
     print("""
-    Common optimizers:
+    흔한 가장 좋게 하개:
     
-    SGD: Simple, requires tuning, good generalization
-    Adam: Adaptive, works well out-of-box, may overfit
-    RMSprop: Good for RNNs
-    AdaGrad: Good for sparse gradients
+    SGD: 단순하고 손봐야 하지만 두루 잘 미친다
+    Adam: 맞추어 가며 그대로 써도 잘 듣지만 지나치게 맞춰질 수 있다
+    RMSprop: 되도는 신경망에 좋다
+    AdaGrad: 성긴 기울기에 좋다
     
-    Rule of thumb: Start with Adam, switch to SGD for final tuning
+    어림 규칙: Adam으로 비롯하고 마지막 손질에는 SGD으로 갈아탄다
     """)
 
 if __name__ == "__main__":

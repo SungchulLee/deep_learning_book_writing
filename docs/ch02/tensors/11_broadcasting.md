@@ -304,10 +304,10 @@ def main():
     다음 익힘을 해 보아라.
     
     1. (5,) 텐서를 (3, 5) 행렬에 더하여라
-    2. Multiply a (4, 1) column vector with a (1, 3) row vector
-    3. Normalize a (10, 20) matrix by subtracting column means
-    4. Create a (5, 5) distance matrix from 5 points in 1D
-    5. Broadcast a (2, 3, 1) tensor with a (1, 1, 4) tensor
+    2. (4, 1) 칸 벡터와 (1, 3) 줄 벡터를 곱하여라
+    3. (10, 20) 행렬에서 칸 평균을 빼어 잣대를 맞추어라
+    4. 1차원의 점 5개로 (5, 5) 거리 행렬을 만들어라
+    5. (2, 3, 1) 텐서와 (1, 1, 4) 텐서를 펴 맞추어라
     """)
     
     # 해답

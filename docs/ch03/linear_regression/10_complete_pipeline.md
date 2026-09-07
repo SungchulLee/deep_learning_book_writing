@@ -557,7 +557,7 @@ This tutorial demonstrated:
 ✓ Multiple evaluation metrics
 ✓ Professional visualizations
 
-Next Steps:
+다음 걸음:
 1. Try with different models (add hidden layers)
 2. Experiment with hyperparameters
 3. Apply to your own datasets

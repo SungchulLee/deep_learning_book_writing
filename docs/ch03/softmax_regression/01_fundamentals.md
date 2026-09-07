@@ -419,7 +419,7 @@ print("""
    - Takes class indices as targets (NOT one-hot)
    - Combines softmax + log + NLL internally
 
-Next Steps:
+다음 걸음:
 -----------
 → Level 2: Build a simple neural network for classification
 → Level 3: Train on real datasets (MNIST)

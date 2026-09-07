@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 26: Data Loading - Efficient data pipelines with DataLoader"""
+"""익힘 26: 자료 불러오기 - DataLoader으로 잘 드는 자료 흐름 만들기"""
 import torch
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import numpy as np
@@ -17,7 +17,7 @@ import numpy as np
 def header(title): print(f"\n{'='*70}\n{title}\n{'='*70}")
 
 class CustomDataset(Dataset):
-    """Example custom dataset."""
+    """맞춤 자료 묶음 보기."""
     def __init__(self, size=100):
         self.data = torch.randn(size, 10)
         self.labels = torch.randint(0, 2, (size,))
@@ -139,7 +139,7 @@ def main():
     
     header("7. Collate Function - Custom Batching")
     def custom_collate(batch):
-        """Custom function to batch samples."""
+        """표본을 묶는 맞춤 함수."""
         data = torch.stack([item[0] for item in batch])
         labels = torch.tensor([item[1] for item in batch])
         # 여기에 사용자 정의 처리를 추가한다
@@ -153,18 +153,18 @@ def main():
     
     header("8. Best Practices")
     print("""
-    DataLoader Best Practices:
+    DataLoader을 잘 쓰는 버릇:
     
-    1. Use multiple workers (num_workers > 0) for faster loading
-    2. Enable pin_memory=True when using GPU
-    3. Shuffle training data (shuffle=True)
-    4. Don't shuffle validation/test data
-    5. Use appropriate batch size (powers of 2 often work well)
-    6. Prefetch data with persistent_workers=True
-    7. Use drop_last=True if batch size matters
-    8. Implement efficient __getitem__ in custom datasets
-    9. Cache preprocessed data when possible
-    10. Profile data loading time vs training time
+    1. 더 빨리 불러오려면 일꾼을 여럿 써라(num_workers > 0)
+    2. GPU을 쓸 때는 pin_memory=True을 켜라
+    3. 익힘 자료를 섞어라(shuffle=True)
+    4. 다짐/시험 자료는 섞지 마라
+    5. 알맞은 묶음 크기를 써라(2의 거듭제곱이 잘 듣는 일이 잦다)
+    6. persistent_workers=True으로 자료를 미리 가져와라
+    7. 묶음 크기가 종요로우면 drop_last=True을 써라
+    8. 맞춤 자료 묶음에서는 __getitem__을 잘 들게 짜라
+    9. 될 수 있으면 미리 다듬은 자료를 갈무리해 두어라
+    10. 자료 불러오는 때와 익히는 때를 견주어 살펴라
     """)
 
 if __name__ == "__main__":

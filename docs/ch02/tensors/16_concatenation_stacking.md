@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 16: Concatenation and Stacking - Combining tensors"""
+"""익힘 16: 이어 붙이기와 쌓기 - 텐서 아우르기"""
 import torch
 
 # ========================================================================

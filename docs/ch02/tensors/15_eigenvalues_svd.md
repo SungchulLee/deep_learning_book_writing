@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 15: Eigenvalues and SVD - Advanced matrix decompositions"""
+"""익힘 15: 고윳값과 특잇값 쪼개기 - 앞선 행렬 쪼개기"""
 import torch
 
 # ========================================================================

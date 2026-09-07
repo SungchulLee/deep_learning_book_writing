@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 19: Gradient Computation - Advanced gradient operations"""
+"""익힘 19: 기울기 셈 - 앞선 기울기 셈"""
 import torch
 
 # ========================================================================

@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 20: Custom Autograd Functions - Extending PyTorch's differentiation"""
+"""익힘 20: 맞춤 자동 미분 함수 - PyTorch의 미분 넓히기"""
 import torch
 
 # ========================================================================
@@ -59,12 +59,12 @@ def main():
     
     header("3. When to Use Custom Functions")
     print("""
-    Use custom autograd functions when:
-    1. Implementing new operations not in PyTorch
-    2. Need custom gradient behavior
-    3. Optimizing performance of specific operations
-    4. Interfacing with external libraries
-    5. Research: testing new activation functions
+    다음 때에 맞춤 자동 미분 함수를 쓴다.
+    1. PyTorch에 없는 새 셈을 짤 때
+    2. 남다른 기울기 움직임이 필요할 때
+    3. 어떤 셈의 성능을 다듬을 때
+    4. 바깥 꾸러미와 이을 때
+    5. 연구: 새 살림 함수를 시험할 때
     """)
     
     header("4. Built-in vs Custom")

@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 23: GPU Operations - CUDA and device management"""
+"""익힘 23: GPU 셈 - CUDA과 기기 다루기"""
 import torch
 
 # ========================================================================
@@ -98,15 +98,15 @@ def main():
     
     header("8. Best Practices")
     print("""
-    GPU Best Practices:
+    GPU을 잘 쓰는 버릇:
     
-    1. Create tensors directly on GPU when possible
-    2. Minimize CPU ↔ GPU data transfers
-    3. Use larger batch sizes to saturate GPU
-    4. Clear cache when running out of memory
-    5. Use torch.cuda.synchronize() for accurate timing
-    6. Use mixed precision (see tutorial 24)
-    7. Monitor memory with torch.cuda.memory_allocated()
+    1. 될 수 있으면 텐서를 GPU에서 곧바로 만들어라
+    2. CPU ↔ GPU 자료 옮김을 가장 적게 하라
+    3. GPU을 가득 채우도록 묶음 크기를 키워라
+    4. 기억 자리가 모자라면 갈무리를 비워라
+    5. 때를 정확히 재려면 torch.cuda.synchronize()을 써라
+    6. 섞인 촘촘함을 써라(익힘 24을 보아라)
+    7. torch.cuda.memory_allocated()으로 기억 자리를 지켜보아라
     """)
 
 if __name__ == "__main__":

@@ -785,7 +785,7 @@ Best Practices:
 • Clip gradients for RNNs or unstable training
 • Consider label smoothing for better generalization
 
-Next Steps:
+다음 걸음:
 -----------
 → Level 5: Compare multiple datasets and architectures
 → Experiment with different combinations of techniques

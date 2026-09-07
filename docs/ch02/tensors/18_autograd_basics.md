@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 18: Autograd Basics - Automatic differentiation fundamentals"""
+"""익힘 18: 자동 미분 기초 - 자동 미분의 바탕"""
 import torch
 
 # ========================================================================

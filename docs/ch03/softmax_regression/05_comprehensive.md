@@ -770,7 +770,7 @@ Professional Tips:
 4. Compare models fairly (same data, device, seeds)
 5. Document all hyperparameters and configurations
 
-Next Steps:
+다음 걸음:
 -----------
 → Extend with more datasets (CIFAR-100, ImageNet, custom)
 → Add convolutional architectures

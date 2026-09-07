@@ -546,7 +546,7 @@ Key Training Loop Components:
 4. Backward pass: loss.backward()
 5. Update weights: optimizer.step()
 
-Next Steps:
+다음 걸음:
 -----------
 → Level 3: Train on real datasets (MNIST, Fashion-MNIST)
 → Level 4: Implement from scratch (custom training)

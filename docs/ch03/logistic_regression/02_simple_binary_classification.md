@@ -255,7 +255,7 @@ print("-" * 40)
 print("""
 Optimizer: Algorithm that updates model parameters (weights and biases)
 
-Common optimizers:
+흔한 가장 좋게 하개:
     - SGD (Stochastic Gradient Descent): Basic but reliable
     - Adam: Adaptive learning rate, usually converges faster
     - RMSprop: Good for RNNs

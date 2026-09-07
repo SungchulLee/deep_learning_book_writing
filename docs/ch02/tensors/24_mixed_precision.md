@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Tutorial 24: Mixed Precision Training - Faster training with less memory"""
+"""익힘 24: 섞인 촘촘함 익히기 - 기억 자리를 덜 쓰며 더 빠르게"""
 import torch
 import torch.nn as nn
 
@@ -18,11 +18,11 @@ def header(title): print(f"\n{'='*70}\n{title}\n{'='*70}")
 def main():
     header("1. What is Mixed Precision?")
     print("""
-    Mixed Precision Training:
-    - Uses float16 (half precision) for forward/backward passes
-    - Uses float32 (full precision) for parameter updates
-    - Benefits: 2-3x speedup, 50% memory reduction
-    - Requires: GPU with Tensor Cores (V100, A100, RTX 20/30 series)
+    섞인 촘촘함 익히기:
+    - 앞으로/뒤로 걸음에는 float16(반 촘촘함)을 쓴다
+    - 매개변수를 고칠 때는 float32(온 촘촘함)을 쓴다
+    - 좋은 점: 2~3배 빨라지고 기억 자리가 50% 준다
+    - 필요한 것: 텐서 코어를 지닌 GPU(V100, A100, RTX 20/30 계열)
     """)
     
     header("2. Float16 vs Float32")
@@ -67,16 +67,16 @@ def main():
     
     header("5. When to Use Mixed Precision")
     print("""
-    Use Mixed Precision when:
-    ✓ Training large models
-    ✓ Working with limited GPU memory
-    ✓ Have compatible GPU (Tensor Cores)
-    ✓ Batch size bottleneck
+    다음 때에 섞인 촘촘함을 쓴다.
+    ✓ 큰 모형을 익힐 때
+    ✓ GPU 기억 자리가 넉넉하지 않을 때
+    ✓ 맞는 GPU(텐서 코어)이 있을 때
+    ✓ 묶음 크기가 목이 될 때
     
-    Be careful with:
-    ✗ Very small gradients (use GradScaler)
-    ✗ Custom operations (may not support fp16)
-    ✗ Numerical stability issues
+    조심할 것:
+    ✗ 아주 작은 기울기(GradScaler을 써라)
+    ✗ 맞춤 셈(fp16을 받치지 않을 수 있다)
+    ✗ 수치가 흔들리는 탈
     """)
     
     header("6. Complete Training Example")
