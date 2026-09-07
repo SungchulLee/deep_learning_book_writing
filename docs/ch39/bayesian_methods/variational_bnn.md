@@ -1,112 +1,112 @@
-# Variational Bayesian Neural Networks
-**Variational Bayesian Neural Networks** (Variational BNNs) provide a principled framework for approximate posterior inference by casting the intractable Bayesian inference problem as an optimization problem. By maximizing the Evidence Lower Bound (ELBO), we learn a tractable approximating distribution over network weights, enabling scalable uncertainty quantification in deep learning.
+# 변이 베이즈 신경 그물
+**변이 베이즈 신경 그물**(변이 BNN)은 다룰 수 없는 베이즈 미루어 봄 문제를 가장 좋게 하기 문제로 바꾸어 어림 뒷분포 미루어 봄을 이치에 닿게 이룬다. 밑거리 아래끝(ELBO)을 가장 크게 하여 그물 짐에 대한 다룰 수 있는 어림 분포를 배우고, 깊은 배움에서 크게 늘릴 수 있는 아리송함 재기를 이룬다.
 
 ---
 
-## Motivation: Scalable Bayesian Inference
+## 왜 하는가: 크게 늘릴 수 있는 베이즈 미루어 봄
 
-### The Posterior Inference Challenge
+### 뒷분포 미루어 봄의 어려움
 
-The true posterior over neural network weights is intractable:
+신경 그물 짐에 대한 참 뒷분포는 다룰 수 없다.
 
 $$
 p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})}
 $$
 
-**Challenges**:
+**어려움**:
 
-- The evidence $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) p(\theta) d\theta$ has no closed form
-- High-dimensional parameter space ($10^6$-$10^9$ parameters)
-- Complex, multimodal posterior landscape
-- MCMC methods are too slow for large networks
+- 밑거리 $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) p(\theta) d\theta$에는 닫힌 꼴이 없다
+- 매개변수 밭의 차수가 높다(매개변수 $10^6$~$10^9$개)
+- 뒷분포의 터가 얽히고 봉우리가 여럿이다
+- MCMC 방법은 큰 그물에 너무 더디다
 
-### The Variational Approach
+### 변이의 길
 
-**Key idea**: Approximate the intractable posterior with a tractable distribution:
+**고갱이 깨침**: 다룰 수 없는 뒷분포를 다룰 수 있는 분포로 어림한다.
 
 $$
 p(\theta \mid \mathcal{D}) \approx q_\phi(\theta)
 $$
 
-where $q_\phi(\theta)$ is from a tractable family (e.g., Gaussian) with parameters $\phi$.
+여기서 $q_\phi(\theta)$은 매개변수 $\phi$을 지닌 다룰 수 있는 갈래(가우스 따위)에서 온다.
 
-**Optimization objective**: Find $\phi$ that minimizes the KL divergence:
+**가장 좋게 하기 목표**: KL 갈림을 가장 작게 하는 $\phi$을 찾는다.
 
 $$
 \phi^* = \arg\min_\phi \text{KL}(q_\phi(\theta) \| p(\theta \mid \mathcal{D}))
 $$
 
-### Advantages of Variational Inference
+### 변이 미루어 봄의 나은 점
 
-| Advantage | Description |
+| 나은 점 | 풀이 |
 |-----------|-------------|
-| **Scalability** | Reduces inference to optimization |
-| **Flexibility** | Can choose approximation family |
-| **Efficiency** | Amenable to stochastic optimization |
-| **Integration** | Works with standard deep learning tools |
+| **크게 늘리기** | 미루어 봄을 가장 좋게 하기로 바꾼다 |
+| **너그러움** | 어림 갈래를 고를 수 있다 |
+| **잘 듦** | 확률로 가장 좋게 하기에 잘 맞는다 |
+| **어울림** | 여느 깊은 배움 연장과 함께 쓴다 |
 
 ---
 
-## The Evidence Lower Bound (ELBO)
+## 밑거리 아래끝(ELBO)
 
-### Derivation
+### 이끌어 내기
 
-Starting from the log evidence:
+로그 밑거리에서 비롯한다.
 
 $$
 \log p(\mathcal{D}) = \log \int p(\mathcal{D} \mid \theta) p(\theta) d\theta
 $$
 
-Introduce the variational distribution $q_\phi(\theta)$:
+변이 분포 $q_\phi(\theta)$을 들인다.
 
 $$
 \log p(\mathcal{D}) = \log \int \frac{q_\phi(\theta)}{q_\phi(\theta)} p(\mathcal{D} \mid \theta) p(\theta) d\theta
 $$
 
-Apply Jensen's inequality:
+옌센 부등식을 쓴다.
 
 $$
 \log p(\mathcal{D}) \geq \int q_\phi(\theta) \log \frac{p(\mathcal{D} \mid \theta) p(\theta)}{q_\phi(\theta)} d\theta = \mathcal{L}(\phi)
 $$
 
-This lower bound $\mathcal{L}(\phi)$ is the **Evidence Lower Bound (ELBO)**.
+이 아래끝 $\mathcal{L}(\phi)$이 **밑거리 아래끝(ELBO)**이다.
 
-### ELBO Decomposition
+### ELBO 쪼개기
 
-The ELBO can be written as:
+ELBO은 이렇게 적을 수 있다.
 
 $$
 \boxed{\mathcal{L}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(\mathcal{D} \mid \theta)] - \text{KL}(q_\phi(\theta) \| p(\theta))}
 $$
 
-**Interpretation**:
+**풀이**:
 
-- **First term**: Expected log-likelihood (data fit)
-- **Second term**: KL divergence to prior (complexity penalty)
+- **첫째 항**: 바라는 로그 그럴듯함(자료 맞춤)
+- **둘째 항**: 앞선 분포에 대한 KL 갈림(번거로움 벌)
 
-**Alternative form**:
+**다른 꼴**:
 
 $$
 \mathcal{L}(\phi) = \log p(\mathcal{D}) - \text{KL}(q_\phi(\theta) \| p(\theta \mid \mathcal{D}))
 $$
 
-Since $\text{KL} \geq 0$, maximizing ELBO is equivalent to minimizing KL to the posterior.
+$\text{KL} \geq 0$이므로 ELBO을 가장 크게 하는 일은 뒷분포에 대한 KL을 가장 작게 하는 일과 같다.
 
-### ELBO as Loss Function
+### 잃음 함수로서의 ELBO
 
-For neural network training, minimize the negative ELBO:
+신경 그물을 익힐 때는 음수 ELBO을 가장 작게 한다.
 
 $$
 \boxed{\mathcal{L}_{\text{VI}}(\phi) = -\mathbb{E}_{q_\phi(\theta)}[\log p(\mathcal{D} \mid \theta)] + \text{KL}(q_\phi(\theta) \| p(\theta))}
 $$
 
-For regression with Gaussian likelihood:
+가우스 그럴듯함을 쓰는 되돌이에서
 
 $$
 \mathcal{L}_{\text{VI}}(\phi) = \frac{1}{2\sigma^2} \mathbb{E}_{q_\phi}\left[\sum_{i=1}^N (y_i - f_\theta(x_i))^2\right] + \text{KL}(q_\phi \| p)
 $$
 
-For classification with categorical likelihood:
+갈래 그럴듯함을 쓰는 가름에서
 
 $$
 \mathcal{L}_{\text{VI}}(\phi) = -\mathbb{E}_{q_\phi}\left[\sum_{i=1}^N \sum_c y_{ic} \log \text{softmax}(f_\theta(x_i))_c\right] + \text{KL}(q_\phi \| p)
@@ -114,104 +114,104 @@ $$
 
 ---
 
-## Mean-Field Variational Inference
+## 평균 마당 변이 미루어 봄
 
-### Factorized Approximation
+### 곱으로 가른 어림
 
-The **mean-field** assumption factorizes the posterior:
+**평균 마당** 가정은 뒷분포를 곱으로 가른다.
 
 $$
 q_\phi(\theta) = \prod_{j=1}^d q_{\phi_j}(\theta_j)
 $$
 
-Each parameter has its own independent distribution.
+매개변수마다 남남인 제 분포를 지닌다.
 
-### Gaussian Mean-Field
+### 가우스 평균 마당
 
-The most common choice is diagonal Gaussian:
+가장 흔히 고르는 것은 대각 가우스다.
 
 $$
 \boxed{q_\phi(\theta) = \prod_{j=1}^d \mathcal{N}(\theta_j \mid \mu_j, \sigma_j^2)}
 $$
 
-**Variational parameters**: $\phi = \{(\mu_j, \sigma_j)\}_{j=1}^d$
+**변이 매개변수**: $\phi = \{(\mu_j, \sigma_j)\}_{j=1}^d$
 
-**Total parameters**: $2d$ (double the original network)
+**온 매개변수**: $2d$(본디 그물의 두 배)
 
-### KL Divergence for Gaussian Distributions
+### 가우스 분포의 KL 갈림
 
-For Gaussian prior $p(\theta) = \mathcal{N}(0, \sigma_p^2 I)$:
+가우스 앞선 분포 $p(\theta) = \mathcal{N}(0, \sigma_p^2 I)$에서
 
 $$
 \text{KL}(q_\phi \| p) = \frac{1}{2} \sum_{j=1}^d \left[ \frac{\mu_j^2 + \sigma_j^2}{\sigma_p^2} - 1 - \log \frac{\sigma_j^2}{\sigma_p^2} \right]
 $$
 
-**Per-parameter KL**:
+**매개변수마다의 KL**:
 
 $$
 \text{KL}(\mathcal{N}(\mu, \sigma^2) \| \mathcal{N}(0, \sigma_p^2)) = \frac{\mu^2 + \sigma^2}{2\sigma_p^2} - \frac{1}{2} - \log \frac{\sigma}{\sigma_p}
 $$
 
-### Limitations of Mean-Field
+### 평균 마당의 한계
 
-**Independence assumption**: Ignores correlations between weights
+**남남임 가정**: 짐끼리의 얽힘을 놓친다
 
-- Cannot capture weight interactions
-- May underestimate uncertainty
-- Posterior covariance is diagonal
+- 짐끼리 주고받음을 담지 못한다
+- 아리송함을 낮게 볼 수 있다
+- 뒷분포의 함께 바뀜이 대각이다
 
-**Unimodality**: Gaussian approximation captures single mode
+**봉우리 하나**: 가우스 어림은 봉우리 하나만 담는다
 
-- Cannot represent multimodal posteriors
-- May miss important posterior structure
+- 봉우리가 여럿인 뒷분포를 드러내지 못한다
+- 종요로운 뒷분포 얼개를 놓칠 수 있다
 
 ---
 
-## The Reparameterization Trick
+## 매개변수 다시 잡기 재주
 
-### The Gradient Problem
+### 기울기 문제
 
-To optimize the ELBO, we need:
+ELBO을 가장 좋게 하려면 다음이 있어야 한다.
 
 $$
 \nabla_\phi \mathbb{E}_{q_\phi(\theta)}[\log p(\mathcal{D} \mid \theta)]
 $$
 
-**Challenge**: The expectation is over $q_\phi$, which depends on $\phi$.
+**어려움**: 바람이 $\phi$에 매인 $q_\phi$에 대한 것이다.
 
-### Reparameterization Solution
+### 매개변수 다시 잡기 풀이
 
-**Key insight**: Express $\theta$ as a deterministic function of $\phi$ and noise:
+**고갱이 깨침**: $\theta$을 $\phi$과 잡음의 붙박인 함수로 적는다.
 
 $$
 \theta = g(\phi, \epsilon) = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
 $$
 
-Now the expectation is over $\epsilon$, independent of $\phi$:
+이제 바람은 $\phi$과 남남인 $\epsilon$에 대한 것이다.
 
 $$
 \mathbb{E}_{q_\phi(\theta)}[f(\theta)] = \mathbb{E}_{\epsilon \sim \mathcal{N}(0,I)}[f(\mu + \sigma \odot \epsilon)]
 $$
 
-### Gradient Computation
+### 기울기 셈하기
 
-The gradient becomes:
+기울기는 이렇게 된다.
 
 $$
 \nabla_\phi \mathbb{E}_{q_\phi}[f(\theta)] = \mathbb{E}_{\epsilon}\left[\nabla_\phi f(\mu + \sigma \odot \epsilon)\right]
 $$
 
-**Monte Carlo estimate** with single sample:
+표본 하나로 하는 **몬테카를로 어림**:
 
 $$
 \nabla_\phi \mathbb{E}_{q_\phi}[f(\theta)] \approx \nabla_\phi f(\mu + \sigma \odot \epsilon), \quad \epsilon \sim \mathcal{N}(0, I)
 $$
 
-### Practical Implementation
+### 참으로 짜기
 
-**Parameterization for positivity**: Use $\rho$ such that $\sigma = \log(1 + e^\rho)$ (softplus)
+**양이 되게 하는 매개변수 잡기**: $\sigma = \log(1 + e^\rho)$이 되는 $\rho$을 쓴다(소프트플러스)
 
-**Gradient flow**:
+**기울기 흐름**:
 
 $$
 \frac{\partial \mathcal{L}}{\partial \mu} = \frac{\partial \mathcal{L}}{\partial \theta}, \quad \frac{\partial \mathcal{L}}{\partial \rho} = \frac{\partial \mathcal{L}}{\partial \theta} \cdot \epsilon \cdot \frac{e^\rho}{1 + e^\rho}
@@ -219,78 +219,78 @@ $$
 
 ---
 
-## Bayes by Backprop
+## 되돌아가며 베이즈
 
-### Algorithm Overview
+### 알고리즘 두루 보기
 
-**Bayes by Backprop** (Blundell et al., 2015) is the foundational algorithm for training variational BNNs:
+**되돌아가며 베이즈**(블런델 등, 2015)은 변이 BNN을 익히는 밑바탕 알고리즘이다.
 
-**Algorithm: Bayes by Backprop**
+**알고리즘: 되돌아가며 베이즈**
 
 ```
-Input: Dataset D, prior p(θ), network architecture
-Output: Variational parameters φ = {μ, ρ}
+들임: 자료 꾸러미 D, 앞선 분포 p(θ), 그물 얼개
+날임: 변이 매개변수 φ = {μ, ρ}
 
-Initialize μ, ρ randomly
-For each epoch:
-    For each minibatch B:
-        1. Sample ε ~ N(0, I)
-        2. Compute θ = μ + softplus(ρ) ⊙ ε
-        3. Compute loss:
+μ, ρ의 첫자리를 아무렇게나 잡는다
+판마다:
+    잔 묶음 B마다:
+        1. ε ~ N(0, I)을 뽑는다
+        2. θ = μ + softplus(ρ) ⊙ ε을 셈한다
+        3. 잃음을 셈한다:
            L = -log p(B|θ) + (1/M) * KL(q_φ || p)
-           where M = number of minibatches
-        4. Compute gradients ∇_μ L, ∇_ρ L
-        5. Update μ ← μ - α ∇_μ L
-        6. Update ρ ← ρ - α ∇_ρ L
+           여기서 M = 잔 묶음의 수
+        4. 기울기 ∇_μ L, ∇_ρ L을 셈한다
+        5. μ ← μ - α ∇_μ L으로 고친다
+        6. ρ ← ρ - α ∇_ρ L으로 고친다
 ```
 
-### Minibatch ELBO
+### 잔 묶음 ELBO
 
-For minibatch training, scale the ELBO appropriately:
+잔 묶음으로 익힐 때는 ELBO의 잣대를 알맞게 맞춘다.
 
 $$
 \mathcal{L}(\phi) \approx \frac{N}{|B|} \sum_{i \in B} \log p(y_i \mid x_i, \theta) - \text{KL}(q_\phi \| p)
 $$
 
-**KL weighting**: The KL term is computed once per minibatch, scaled by $1/M$ where $M$ is the number of minibatches.
+**KL 짐 주기**: KL 항은 잔 묶음마다 한 번 셈하고 $1/M$으로 잣대를 맞춘다. 여기서 $M$은 잔 묶음의 수다.
 
-### Weight Uncertainty
+### 짐의 아리송함
 
-The trained variational distribution gives:
+익힌 변이 분포는 다음을 준다.
 
 $$
 W_{ij} \sim \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)
 $$
 
-**Interpretation**:
+**풀이**:
 
-- $\mu_{ij}$: Most likely weight value
-- $\sigma_{ij}$: Uncertainty about weight value
-- Large $\sigma$ → high uncertainty → less confident predictions
+- $\mu_{ij}$: 가장 그럴듯한 짐 값
+- $\sigma_{ij}$: 짐 값의 아리송함
+- $\sigma$이 크면 → 아리송함이 크고 → 미루어 봄을 덜 자신한다
 
 ---
 
-## Local Reparameterization Trick
+## 그 자리 매개변수 다시 잡기 재주
 
-### Motivation
+### 왜 하는가
 
-Standard reparameterization samples weights:
+여느 매개변수 다시 잡기는 짐을 뽑는다.
 
 $$
 W = \mu_W + \sigma_W \odot \epsilon_W
 $$
 
-Then computes activations:
+그러고 나서 살림을 셈한다.
 
 $$
 a = Wx
 $$
 
-**Problem**: High variance in gradient estimates when network is wide.
+**문제**: 그물이 너르면 기울기 어림의 흩어짐이 크다.
 
-### Local Reparameterization
+### 그 자리 매개변수 다시 잡기
 
-**Key insight**: For linear layers, directly sample activations:
+**고갱이 깨침**: 선형 켜에서는 살림을 곧바로 뽑는다.
 
 $$
 a = Wx = (\mu_W + \sigma_W \odot \epsilon_W)x
@@ -300,33 +300,33 @@ $$
 a \sim \mathcal{N}(\mu_W x, (\sigma_W^2 \odot x^2) \mathbf{1})
 $$
 
-**Reparameterize at activation level**:
+**살림 켜에서 매개변수를 다시 잡는다**:
 
 $$
 a = \mu_W x + \sqrt{\sigma_W^2 \odot x^2} \odot \epsilon_a
 $$
 
-where $\epsilon_a \sim \mathcal{N}(0, I)$ has dimension equal to output size.
+여기서 $\epsilon_a \sim \mathcal{N}(0, I)$의 차수는 날임 크기와 같다.
 
-### Benefits
+### 나은 점
 
-| Aspect | Standard | Local |
+| 결 | 여느 것 | 그 자리 |
 |--------|----------|-------|
-| Noise dimension | $d$ (weights) | $n$ (activations) |
-| Gradient variance | Higher | Lower |
-| Computational cost | Same | Same |
-| Correlation | Weights correlated | Activations independent |
+| 잡음의 차수 | $d$(짐) | $n$(살림) |
+| 기울기 흩어짐 | 크다 | 작다 |
+| 셈 값 | 같다 | 같다 |
+| 얽힘 | 짐끼리 얽힌다 | 살림끼리 남남이다 |
 
-### Implementation
+### 짜기
 
-For a layer with weight matrix $W \in \mathbb{R}^{m \times n}$:
+짐 행렬이 $W \in \mathbb{R}^{m \times n}$인 켜에서
 
 ```python
-# Standard reparameterization
+# 여느 매개변수 다시 잡기
 W = mu_W + sigma_W * eps_W  # eps_W: (m, n)
 a = W @ x                    # a: (n,)
 
-# Local reparameterization
+# 그 자리 매개변수 다시 잡기
 a_mu = mu_W @ x                           # (n,)
 a_var = (sigma_W**2) @ (x**2)            # (n,)
 a = a_mu + sqrt(a_var) * eps_a           # eps_a: (n,)
@@ -334,55 +334,55 @@ a = a_mu + sqrt(a_var) * eps_a           # eps_a: (n,)
 
 ---
 
-## KL Divergence Strategies
+## KL 갈림을 다루는 꾀
 
-### Exact KL (Closed Form)
+### 정확한 KL(닫힌 꼴)
 
-For Gaussian-to-Gaussian KL:
+가우스와 가우스 사이의 KL에서
 
 $$
 \text{KL}(q \| p) = \frac{1}{2}\left[\text{tr}(\Sigma_p^{-1}\Sigma_q) + (\mu_p - \mu_q)^\top \Sigma_p^{-1}(\mu_p - \mu_q) - d + \log\frac{|\Sigma_p|}{|\Sigma_q|}\right]
 $$
 
-For diagonal Gaussians with zero-mean prior:
+평균이 0인 앞선 분포를 지닌 대각 가우스에서
 
 $$
 \text{KL} = \frac{1}{2}\sum_j \left[\frac{\mu_j^2 + \sigma_j^2}{\sigma_p^2} - 1 - \log\frac{\sigma_j^2}{\sigma_p^2}\right]
 $$
 
-### Monte Carlo KL Estimation
+### 몬테카를로 KL 어림
 
-For non-conjugate priors, estimate KL via sampling:
+짝이 맞지 않는 앞선 분포에서는 뽑아서 KL을 어림한다.
 
 $$
 \text{KL}(q \| p) = \mathbb{E}_{q}[\log q(\theta) - \log p(\theta)] \approx \frac{1}{S}\sum_{s=1}^S [\log q(\theta^{(s)}) - \log p(\theta^{(s)})]
 $$
 
-### KL Annealing
+### KL 천천히 올리기
 
-**Problem**: KL term can dominate early in training, collapsing $q$ to prior.
+**문제**: 익힘 초에 KL 항이 힘을 크게 써서 $q$이 앞선 분포로 주저앉을 수 있다.
 
-**Solution**: Gradually increase KL weight:
+**풀이**: KL 짐을 차츰 올린다.
 
 $$
 \mathcal{L}_t(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \beta_t \cdot \text{KL}(q_\phi \| p)
 $$
 
-**Annealing schedules**:
+**올리는 짜임**:
 
-**Linear**:
+**곧게**:
 
 $$
 \beta_t = \min(1, t / T_{\text{warmup}})
 $$
 
-**Sigmoid**:
+**시그모이드**:
 
 $$
 \beta_t = \frac{1}{1 + \exp(-(t - T_{\text{mid}})/\tau)}
 $$
 
-**Cyclical**:
+**돌림**:
 
 $$
 \beta_t = \min(1, \text{mod}(t, T_{\text{cycle}}) / T_{\text{rise}})
@@ -390,148 +390,148 @@ $$
 
 ---
 
-## Beyond Mean-Field
+## 평균 마당을 넘어
 
-### Full Covariance Gaussian
+### 온전한 함께 바뀜 가우스
 
 $$
 q(\theta) = \mathcal{N}(\mu, \Sigma)
 $$
 
-**Parameters**: $d + d(d+1)/2$ (mean + lower triangular Cholesky)
+**매개변수**: $d + d(d+1)/2$(평균 + 아래 세모 촐레스키)
 
-**Problem**: $O(d^2)$ parameters and $O(d^3)$ computation — intractable for large networks.
+**문제**: 매개변수 $O(d^2)$개와 셈 $O(d^3)$ — 큰 그물에서는 다룰 수 없다.
 
-### Low-Rank Approximations
+### 낮은 자리 어림
 
-**Low-rank plus diagonal**:
+**낮은 자리 더하기 대각**:
 
 $$
 \Sigma = D + VV^\top
 $$
 
-where $D$ is diagonal and $V \in \mathbb{R}^{d \times r}$ with $r \ll d$.
+여기서 $D$은 대각이고 $V \in \mathbb{R}^{d \times r}$이며 $r \ll d$이다.
 
-**Parameters**: $d + dr$
+**매개변수**: $d + dr$
 
-**Sampling**: $\theta = \mu + D^{1/2}\epsilon_1 + V\epsilon_2$ where $\epsilon_1 \in \mathbb{R}^d$, $\epsilon_2 \in \mathbb{R}^r$.
+**뽑기**: $\theta = \mu + D^{1/2}\epsilon_1 + V\epsilon_2$이고 여기서 $\epsilon_1 \in \mathbb{R}^d$, $\epsilon_2 \in \mathbb{R}^r$이다.
 
-### Matrix-Variate Gaussian
+### 행렬 변수 가우스
 
-For weight matrix $W \in \mathbb{R}^{m \times n}$:
+짐 행렬 $W \in \mathbb{R}^{m \times n}$에서
 
 $$
 q(W) = \mathcal{MN}(M, U, V)
 $$
 
-where $U \in \mathbb{R}^{m \times m}$ and $V \in \mathbb{R}^{n \times n}$.
+여기서 $U \in \mathbb{R}^{m \times m}$이고 $V \in \mathbb{R}^{n \times n}$이다.
 
-**Parameters**: $mn + m^2 + n^2$ (much less than $mn(mn+1)/2$)
+**매개변수**: $mn + m^2 + n^2$($mn(mn+1)/2$보다 훨씬 적다)
 
-### Normalizing Flows
+### 잣대 맞추는 흐름
 
-Transform a simple distribution through invertible functions:
+되돌릴 수 있는 함수로 단순한 분포를 바꾼다.
 
 $$
 \theta = f_K \circ f_{K-1} \circ \cdots \circ f_1(z), \quad z \sim \mathcal{N}(0, I)
 $$
 
-**Density**:
+**밀도**:
 
 $$
 q(\theta) = q_0(f^{-1}(\theta)) \left|\det \frac{\partial f^{-1}}{\partial \theta}\right|
 $$
 
-**Popular flows**:
+**즐겨 쓰는 흐름**:
 
-- **Planar flows**: $f(z) = z + u \cdot \tanh(w^\top z + b)$
-- **Radial flows**: $f(z) = z + \beta h(\alpha, r)(z - z_0)$
-- **RealNVP**: Coupling layers with tractable Jacobian
-- **IAF**: Inverse autoregressive flow
+- **판판한 흐름**: $f(z) = z + u \cdot \tanh(w^\top z + b)$
+- **살 흐름**: $f(z) = z + \beta h(\alpha, r)(z - z_0)$
+- **RealNVP**: 야코비 행렬을 다룰 수 있는 짝 켜
+- **IAF**: 거꿀 제 되돌이 흐름
 
 ---
 
-## Practical Considerations
+## 참으로 헤아릴 것
 
-### Prior Selection
+### 앞선 분포 고르기
 
-The prior $p(\theta)$ affects both regularization and uncertainty:
+앞선 분포 $p(\theta)$은 정칙화와 아리송함에 함께 걸린다.
 
-**Standard Gaussian**:
+**여느 가우스**:
 
 $$
 p(\theta) = \mathcal{N}(0, \sigma_p^2 I)
 $$
 
-**Scale mixture** (for robustness):
+**잣대 섞기**(든든하도록):
 
 $$
 p(\theta) = \pi \mathcal{N}(0, \sigma_1^2) + (1-\pi) \mathcal{N}(0, \sigma_2^2)
 $$
 
-**Empirical guidelines**:
+**겪어 본 길잡이**:
 
-- Start with $\sigma_p = 1$
-- Tune based on validation performance
-- Consider hierarchical priors for automatic tuning
+- $\sigma_p = 1$에서 비롯한다
+- 따짐 됨됨이를 보고 맞춘다
+- 절로 맞추려면 층진 앞선 분포를 헤아린다
 
-### Initialization
+### 첫자리 잡기
 
-**Mean initialization**: 
+**평균의 첫자리**: 
 
-- Standard initialization (Xavier, He)
-- Or pre-trained weights
+- 여느 첫자리 잡기(자비에, 허)
+- 또는 미리 익힌 짐
 
-**Variance initialization**:
+**흩어짐의 첫자리**:
 
-- Small initial variance: $\sigma_{\text{init}} \approx 0.01$-$0.1$
-- Ensures early training resembles deterministic network
+- 작은 첫 흩어짐: $\sigma_{\text{init}} \approx 0.01$~$0.1$
+- 익힘 초가 붙박인 그물과 비슷해지게 한다
 
-### Number of Monte Carlo Samples
+### 몬테카를로 표본의 수
 
-**Training**: Often $S = 1$ sample suffices (unbiased gradient)
+**익힘**: 흔히 표본 $S = 1$이면 넉넉하다(치우치지 않은 기울기)
 
-**Evaluation**: Use more samples ($S = 10$-$100$) for stable predictions
+**따지기**: 미루어 봄이 든든하도록 표본을 더 쓴다($S = 10$~$100$)
 
-**Trade-off**: More samples → better estimates, higher cost
+**맞바꿈**: 표본이 많을수록 → 어림은 좋아지고 값은 비싸진다
 
-### Computational Overhead
+### 더 드는 셈
 
-| Component | Cost vs. Standard NN |
+| 몫 | 여느 신경 그물 대비 값 |
 |-----------|---------------------|
-| Parameters | 2× (mean + variance) |
-| Forward pass | ~1× (with local reparam) |
-| Backward pass | ~1.5× |
-| Memory | 2× |
-| Inference | S× (for S samples) |
+| 매개변수 | 2배(평균 + 흩어짐) |
+| 앞으로 걸음 | 약 1배(그 자리 다시 잡기를 쓰면) |
+| 되돌아 걸음 | 약 1.5배 |
+| 기억 | 2배 |
+| 미루어 봄 | S배(표본 S개일 때) |
 
 ---
 
-## Variational Inference Variants
+## 변이 미루어 봄의 갈래
 
-### Multiplicative Normalizing Flows (MNF)
+### 곱하는 잣대 맞추는 흐름(MNF)
 
-Auxiliary variables for more expressive posteriors:
+더 잘 드러내는 뒷분포를 위한 도움 변수:
 
 $$
 q(\theta) = \int q(\theta \mid z) q(z) dz
 $$
 
-where $q(\theta \mid z)$ is Gaussian and $q(z)$ is a normalizing flow.
+여기서 $q(\theta \mid z)$은 가우스이고 $q(z)$은 잣대 맞추는 흐름이다.
 
-### Noisy Natural Gradient (NNG)
+### 잡음 섞은 제 기울기(NNG)
 
-Use natural gradient with noise for better optimization:
+더 잘 가장 좋게 하려고 잡음을 섞은 제 기울기를 쓴다.
 
 $$
 \theta_{t+1} = \theta_t - \alpha F^{-1} (\nabla \mathcal{L} + \epsilon)
 $$
 
-where $F$ is the Fisher information matrix.
+여기서 $F$은 피셔 소식 행렬이다.
 
-### Variational Online Gauss-Newton (VOGN)
+### 살아 있는 변이 가우스-뉴턴(VOGN)
 
-Approximate natural gradient variational inference:
+제 기울기 변이 미루어 봄의 어림:
 
 $$
 \mu_{t+1} = \mu_t - \alpha \Sigma_t \nabla_\mu \mathcal{L}
@@ -541,31 +541,31 @@ $$
 \Sigma_{t+1}^{-1} = (1-\alpha)\Sigma_t^{-1} + \alpha \hat{F}
 $$
 
-### Functional Variational Inference
+### 함수 변이 미루어 봄
 
-Place variational distribution in function space:
+변이 분포를 함수 밭에 둔다.
 
 $$
 q(f) \approx p(f \mid \mathcal{D})
 $$
 
-**Advantages**:
+**나은 점**:
 
-- More interpretable priors
-- Better uncertainty in function space
-- Avoids weight-space pathologies
+- 앞선 분포를 풀이하기 쉽다
+- 함수 밭에서 아리송함이 낫다
+- 짐 밭의 뒤틀림을 비껴간다
 
 ---
 
-## Python Implementation
+## 파이썬으로 짜기
 
 ```python
 """
-Variational Bayesian Neural Networks
+변이 베이즈 신경 그물
 
-This module provides complete implementations of variational inference
-for neural networks, including Bayes by Backprop, local reparameterization,
-KL annealing, and various posterior approximations.
+이 묶음은 신경 그물의 변이 미루어 봄을 온전히 짜 놓았다.
+되돌아가며 베이즈, 그 자리 매개변수 다시 잡기, KL 천천히 올리기,
+그리고 여러 뒷분포 어림이 들어 있다.
 """
 
 import numpy as np
@@ -578,36 +578,36 @@ from abc import ABC, abstractmethod
 
 
 # =============================================================================
-# Variational Layers
+# 변이 켜
 # =============================================================================
 
 class VariationalLayer(ABC):
-    """Abstract base class for variational layers."""
+    """변이 켜의 뼈대 갈래."""
     
     @abstractmethod
     def forward(self, x: np.ndarray, sample: bool = True) -> np.ndarray:
-        """Forward pass with optional sampling."""
+        """골라 뽑기를 곁들인 앞으로 걸음."""
         pass
     
     @abstractmethod
     def kl_divergence(self) -> float:
-        """Compute KL divergence to prior."""
+        """앞선 분포에 대한 KL 갈림을 셈한다."""
         pass
     
     @abstractmethod
     def get_params(self) -> Dict[str, np.ndarray]:
-        """Get variational parameters."""
+        """변이 매개변수를 얻는다."""
         pass
     
     @abstractmethod
     def set_params(self, params: Dict[str, np.ndarray]):
-        """Set variational parameters."""
+        """변이 매개변수를 얹는다."""
         pass
 
 
 class VariationalLinear(VariationalLayer):
     """
-    Variational linear layer with Gaussian weights.
+    가우스 짐을 지닌 변이 선형 켜.
     
     W_ij ~ N(mu_W_ij, sigma_W_ij^2)
     b_j ~ N(mu_b_j, sigma_b_j^2)
@@ -625,67 +625,67 @@ class VariationalLinear(VariationalLayer):
         Parameters
         ----------
         in_features : int
-            Input dimension
+            들임 차수
         out_features : int
-            Output dimension
+            날임 차수
         prior_sigma : float
-            Prior standard deviation
+            앞선 분포의 잣대 어긋남
         init_sigma : float
-            Initial posterior standard deviation
+            뒷분포의 첫 잣대 어긋남
         use_local_reparam : bool
-            Use local reparameterization trick
+            그 자리 매개변수 다시 잡기 재주를 쓴다
         """
         self.in_features = in_features
         self.out_features = out_features
         self.prior_sigma = prior_sigma
         self.use_local_reparam = use_local_reparam
         
-        # Initialize variational parameters
-        # Weight mean: Xavier initialization
+        # 변이 매개변수의 첫자리를 잡는다
+        # 짐의 평균: 자비에 첫자리 잡기
         self.mu_W = np.random.randn(in_features, out_features) * np.sqrt(2.0 / in_features)
-        # Weight log-variance (use rho parameterization: sigma = softplus(rho))
+        # 짐의 로그 흩어짐(rho으로 매긴다: sigma = softplus(rho))
         self.rho_W = np.full((in_features, out_features), np.log(np.exp(init_sigma) - 1))
         
-        # Bias mean and log-variance
+        # 치우침의 평균과 로그 흩어짐
         self.mu_b = np.zeros(out_features)
         self.rho_b = np.full(out_features, np.log(np.exp(init_sigma) - 1))
         
-        # Store last sampled weights for gradient computation
+        # 기울기 셈에 쓰려고 마지막에 뽑은 짐을 담는다
         self.last_eps_W = None
         self.last_eps_b = None
     
     @property
     def sigma_W(self) -> np.ndarray:
-        """Compute sigma from rho using softplus."""
+        """소프트플러스로 rho에서 sigma을 셈한다."""
         return np.log(1 + np.exp(self.rho_W))
     
     @property
     def sigma_b(self) -> np.ndarray:
-        """Compute sigma from rho using softplus."""
+        """소프트플러스로 rho에서 sigma을 셈한다."""
         return np.log(1 + np.exp(self.rho_b))
     
     def forward(self, x: np.ndarray, sample: bool = True) -> np.ndarray:
         """
-        Forward pass.
+        앞으로 걸음.
         
         Parameters
         ----------
-        x : ndarray of shape (batch_size, in_features)
-            Input
+        x : (batch_size, in_features) 꼴의 ndarray
+            들임
         sample : bool
-            If True, sample weights; if False, use mean
+            True이면 짐을 뽑고, False이면 평균을 쓴다
         
         Returns
         -------
-        ndarray of shape (batch_size, out_features)
-            Output
+        (batch_size, out_features) 꼴의 ndarray
+            날임
         """
         if not sample:
-            # Deterministic forward pass (use mean)
+            # 붙박인 앞으로 걸음(평균을 쓴다)
             return x @ self.mu_W + self.mu_b
         
         if self.use_local_reparam:
-            # Local reparameterization: sample activations directly
+            # 그 자리 매개변수 다시 잡기: 살림을 곧바로 뽑는다
             # a ~ N(x @ mu_W + mu_b, x^2 @ sigma_W^2 + sigma_b^2)
             
             mu_a = x @ self.mu_W + self.mu_b
@@ -695,7 +695,7 @@ class VariationalLinear(VariationalLayer):
             return mu_a + np.sqrt(var_a + 1e-8) * eps_a
         
         else:
-            # Standard reparameterization: sample weights
+            # 여느 매개변수 다시 잡기: 짐을 뽑는다
             self.last_eps_W = np.random.randn(*self.mu_W.shape)
             self.last_eps_b = np.random.randn(*self.mu_b.shape)
             
@@ -706,14 +706,14 @@ class VariationalLinear(VariationalLayer):
     
     def kl_divergence(self) -> float:
         """
-        Compute KL divergence from q(W) to prior p(W).
+        q(W)에서 앞선 분포 p(W)까지의 KL 갈림을 셈한다.
         
         KL(N(mu, sigma^2) || N(0, sigma_p^2)) = 
             0.5 * (mu^2/sigma_p^2 + sigma^2/sigma_p^2 - 1 - log(sigma^2/sigma_p^2))
         """
         prior_var = self.prior_sigma ** 2
         
-        # KL for weights
+        # 짐의 KL
         kl_W = 0.5 * np.sum(
             self.mu_W ** 2 / prior_var +
             self.sigma_W ** 2 / prior_var -
@@ -721,7 +721,7 @@ class VariationalLinear(VariationalLayer):
             np.log(self.sigma_W ** 2 / prior_var + 1e-10)
         )
         
-        # KL for biases
+        # 치우침의 KL
         kl_b = 0.5 * np.sum(
             self.mu_b ** 2 / prior_var +
             self.sigma_b ** 2 / prior_var -
@@ -732,7 +732,7 @@ class VariationalLinear(VariationalLayer):
         return kl_W + kl_b
     
     def get_params(self) -> Dict[str, np.ndarray]:
-        """Get variational parameters."""
+        """변이 매개변수를 얻는다."""
         return {
             'mu_W': self.mu_W.copy(),
             'rho_W': self.rho_W.copy(),
@@ -741,26 +741,26 @@ class VariationalLinear(VariationalLayer):
         }
     
     def set_params(self, params: Dict[str, np.ndarray]):
-        """Set variational parameters."""
+        """변이 매개변수를 얹는다."""
         self.mu_W = params['mu_W'].copy()
         self.rho_W = params['rho_W'].copy()
         self.mu_b = params['mu_b'].copy()
         self.rho_b = params['rho_b'].copy()
     
     def n_params(self) -> int:
-        """Number of variational parameters."""
+        """변이 매개변수의 수."""
         return 2 * (self.in_features * self.out_features + self.out_features)
 
 
 # =============================================================================
-# Variational Neural Network
+# 변이 신경 그물
 # =============================================================================
 
 class VariationalMLP:
     """
-    Variational Multi-Layer Perceptron.
+    변이 여러 켜 퍼셉트론.
     
-    Implements Bayes by Backprop with mean-field Gaussian posterior.
+    평균 마당 가우스 뒷분포로 되돌아가며 베이즈를 짜 놓았다.
     """
     
     def __init__(
@@ -775,29 +775,29 @@ class VariationalMLP:
         Parameters
         ----------
         layer_sizes : list
-            [input_dim, hidden1, ..., output_dim]
+            [들임 차수, 숨은 켜1, ..., 날임 차수]
         prior_sigma : float
-            Prior standard deviation
+            앞선 분포의 잣대 어긋남
         init_sigma : float
-            Initial posterior standard deviation
+            뒷분포의 첫 잣대 어긋남
         activation : str
-            'relu' or 'tanh'
+            'relu' 또는 'tanh'
         use_local_reparam : bool
-            Use local reparameterization
+            그 자리 매개변수 다시 잡기를 쓴다
         """
         self.layer_sizes = layer_sizes
         self.prior_sigma = prior_sigma
         self.n_layers = len(layer_sizes) - 1
         
-        # Activation function
+        # 살림 함수
         if activation == 'relu':
             self.act_fn = lambda x: np.maximum(x, 0)
         elif activation == 'tanh':
             self.act_fn = np.tanh
         else:
-            raise ValueError(f"Unknown activation: {activation}")
+            raise ValueError(f"모르는 살림 함수: {activation}")
         
-        # Create variational layers
+        # 변이 켜를 만든다
         self.layers = []
         for i in range(self.n_layers):
             layer = VariationalLinear(
@@ -810,17 +810,17 @@ class VariationalMLP:
             self.layers.append(layer)
     
     def forward(self, x: np.ndarray, sample: bool = True) -> np.ndarray:
-        """Forward pass through all layers."""
+        """켜를 모두 지나는 앞으로 걸음."""
         h = x
         for i, layer in enumerate(self.layers):
             h = layer.forward(h, sample=sample)
-            # Activation except last layer
+            # 마지막 켜만 빼고 살림
             if i < self.n_layers - 1:
                 h = self.act_fn(h)
         return h
     
     def kl_divergence(self) -> float:
-        """Total KL divergence across all layers."""
+        """켜 모두에 걸친 온 KL 갈림."""
         return sum(layer.kl_divergence() for layer in self.layers)
     
     def predict(
@@ -829,14 +829,14 @@ class VariationalMLP:
         n_samples: int = 100
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Make predictions with uncertainty.
+        아리송함을 곁들여 미루어 본다.
         
         Returns
         -------
         mean : ndarray
-            Predictive mean
+            미루어 본 평균
         std : ndarray
-            Predictive standard deviation
+            미루어 본 잣대 어긋남
         """
         predictions = []
         for _ in range(n_samples):
@@ -850,17 +850,17 @@ class VariationalMLP:
         return mean, std
     
     def n_variational_params(self) -> int:
-        """Total number of variational parameters."""
+        """변이 매개변수의 온 수."""
         return sum(layer.n_params() for layer in self.layers)
 
 
 # =============================================================================
-# Training
+# 익힘
 # =============================================================================
 
 class BayesByBackprop:
     """
-    Bayes by Backprop training algorithm.
+    되돌아가며 베이즈 익힘 알고리즘.
     """
     
     def __init__(
@@ -875,15 +875,15 @@ class BayesByBackprop:
         Parameters
         ----------
         model : VariationalMLP
-            Variational neural network
+            변이 신경 그물
         likelihood_sigma : float
-            Observation noise standard deviation
+            살핌 잡음의 잣대 어긋남
         kl_weight : float
-            Weight on KL term (for annealing)
+            KL 항의 짐(천천히 올리기용)
         lr : float
-            Learning rate
+            배움 비율
         lr_decay : float
-            Learning rate decay per epoch
+            판마다의 배움 비율 줄이기
         """
         self.model = model
         self.likelihood_sigma = likelihood_sigma
@@ -899,34 +899,34 @@ class BayesByBackprop:
         n_samples: int = 1
     ) -> Tuple[float, float, float]:
         """
-        Compute ELBO loss.
+        ELBO 잃음을 셈한다.
         
         Returns
         -------
         loss : float
-            Total loss (-ELBO)
+            온 잃음(-ELBO)
         nll : float
-            Negative log-likelihood term
+            음수 로그 그럴듯함 항
         kl : float
-            KL divergence term
+            KL 갈림 항
         """
         batch_size = len(X)
         
-        # Monte Carlo estimate of expected NLL
+        # 바라는 NLL의 몬테카를로 어림
         nll = 0.0
         for _ in range(n_samples):
             pred = self.model.forward(X, sample=True)
-            # Gaussian NLL
+            # 가우스 NLL
             nll += 0.5 * np.sum((y - pred) ** 2) / (self.likelihood_sigma ** 2)
         nll /= n_samples
         
-        # Scale for full dataset
+        # 온 자료 꾸러미에 맞게 잣대를 맞춘다
         nll *= (n_total / batch_size)
         
-        # KL divergence
+        # KL 갈림
         kl = self.model.kl_divergence()
         
-        # Total loss
+        # 온 잃음
         loss = nll + self.kl_weight * kl
         
         return loss, nll, kl
@@ -939,9 +939,9 @@ class BayesByBackprop:
         eps: float = 1e-5
     ) -> List[Dict[str, np.ndarray]]:
         """
-        Compute gradients numerically (for simplicity).
+        기울기를 수로 셈한다(단순하게).
         
-        In practice, use automatic differentiation.
+        참으로는 절로 미분하기를 쓴다.
         """
         gradients = []
         
@@ -953,7 +953,7 @@ class BayesByBackprop:
                 grad = np.zeros_like(param_value)
                 
                 for idx in np.ndindex(param_value.shape):
-                    # Compute finite difference
+                    # 마디 있는 차를 셈한다
                     original = param_value[idx]
                     
                     param_value[idx] = original + eps
@@ -982,24 +982,24 @@ class BayesByBackprop:
         n_total: int
     ) -> Tuple[float, float, float]:
         """
-        Single training step.
+        익힘 한 걸음.
         
         Returns
         -------
         loss, nll, kl : float
-            Loss components
+            잃음의 몫
         """
-        # Compute gradients
+        # 기울기를 셈한다
         gradients = self.compute_gradients(X, y, n_total)
         
-        # Update parameters
+        # 매개변수를 고친다
         for layer, grads in zip(self.model.layers, gradients):
             params = layer.get_params()
             for param_name in params:
                 params[param_name] -= self.lr * grads[param_name]
             layer.set_params(params)
         
-        # Compute final loss
+        # 마지막 잃음을 셈한다
         return self.compute_loss(X, y, n_total)
     
     def train(
@@ -1013,12 +1013,12 @@ class BayesByBackprop:
         verbose: bool = True
     ) -> Dict[str, List[float]]:
         """
-        Train the variational BNN.
+        변이 BNN을 익힌다.
         
         Returns
         -------
         history : dict
-            Training history with 'loss', 'nll', 'kl'
+            'loss', 'nll', 'kl'을 담은 익힘 자취
         """
         N = len(X)
         if batch_size is None:
@@ -1027,14 +1027,14 @@ class BayesByBackprop:
         history = {'loss': [], 'nll': [], 'kl': []}
         
         for epoch in range(n_epochs):
-            # KL annealing
+            # KL 천천히 올리기
             if kl_annealing:
                 self.kl_weight = min(1.0, epoch / annealing_epochs)
             
-            # Learning rate decay
+            # 배움 비율 줄이기
             current_lr = self.lr * (1 - self.lr_decay) ** epoch
             
-            # Shuffle data
+            # 자료를 뒤섞는다
             perm = np.random.permutation(N)
             X_shuffled = X[perm]
             y_shuffled = y[perm]
@@ -1064,40 +1064,40 @@ class BayesByBackprop:
             history['kl'].append(epoch_kl)
             
             if verbose and epoch % 10 == 0:
-                print(f"Epoch {epoch}: Loss={epoch_loss:.4f}, "
+                print(f"{epoch}판: 잃음={epoch_loss:.4f}, "
                       f"NLL={epoch_nll:.4f}, KL={epoch_kl:.4f}")
         
         return history
 
 
 # =============================================================================
-# KL Annealing Schedules
+# KL 천천히 올리는 짜임
 # =============================================================================
 
 def linear_annealing(epoch: int, total_epochs: int, warmup_epochs: int) -> float:
-    """Linear KL annealing schedule."""
+    """곧게 KL을 올리는 짜임."""
     return min(1.0, epoch / warmup_epochs)
 
 
 def sigmoid_annealing(epoch: int, total_epochs: int, midpoint: int, steepness: float = 0.1) -> float:
-    """Sigmoid KL annealing schedule."""
+    """시그모이드로 KL을 올리는 짜임."""
     return 1.0 / (1.0 + np.exp(-steepness * (epoch - midpoint)))
 
 
 def cyclical_annealing(epoch: int, cycle_length: int, ratio: float = 0.5) -> float:
-    """Cyclical KL annealing schedule."""
+    """돌림으로 KL을 올리는 짜임."""
     cycle_position = epoch % cycle_length
     rise_length = int(cycle_length * ratio)
     return min(1.0, cycle_position / rise_length)
 
 
 # =============================================================================
-# Scale Mixture Prior
+# 잣대 섞기 앞선 분포
 # =============================================================================
 
 class ScaleMixturePrior:
     """
-    Scale mixture of Gaussians prior.
+    가우스를 잣대로 섞은 앞선 분포.
     
     p(w) = pi * N(0, sigma1^2) + (1-pi) * N(0, sigma2^2)
     """
@@ -1112,22 +1112,22 @@ class ScaleMixturePrior:
         Parameters
         ----------
         pi : float
-            Mixture weight
+            섞는 짐
         sigma1 : float
-            Standard deviation of first component
+            첫째 몫의 잣대 어긋남
         sigma2 : float
-            Standard deviation of second component
+            둘째 몫의 잣대 어긋남
         """
         self.pi = pi
         self.sigma1 = sigma1
         self.sigma2 = sigma2
     
     def log_prob(self, w: np.ndarray) -> float:
-        """Compute log probability."""
+        """로그 낌새를 셈한다."""
         log_p1 = stats.norm.logpdf(w, 0, self.sigma1)
         log_p2 = stats.norm.logpdf(w, 0, self.sigma2)
         
-        # Log-sum-exp for numerical stability
+        # 셈이 든든하도록 log-sum-exp
         log_mix = np.logaddexp(
             np.log(self.pi) + log_p1,
             np.log(1 - self.pi) + log_p2
@@ -1138,7 +1138,7 @@ class ScaleMixturePrior:
 
 class VariationalLinearMixturePrior(VariationalLayer):
     """
-    Variational linear layer with scale mixture prior.
+    잣대 섞기 앞선 분포를 지닌 변이 선형 켜.
     """
     
     def __init__(
@@ -1152,7 +1152,7 @@ class VariationalLinearMixturePrior(VariationalLayer):
         self.out_features = out_features
         self.prior = prior
         
-        # Initialize variational parameters
+        # 변이 매개변수의 첫자리를 잡는다
         self.mu_W = np.random.randn(in_features, out_features) * np.sqrt(2.0 / in_features)
         self.rho_W = np.full((in_features, out_features), np.log(np.exp(init_sigma) - 1))
         self.mu_b = np.zeros(out_features)
@@ -1180,25 +1180,25 @@ class VariationalLinearMixturePrior(VariationalLayer):
     
     def kl_divergence(self, n_samples: int = 1) -> float:
         """
-        Monte Carlo estimate of KL divergence.
+        KL 갈림의 몬테카를로 어림.
         
         KL(q||p) = E_q[log q - log p]
         """
         kl = 0.0
         
         for _ in range(n_samples):
-            # Sample weights
+            # 짐을 뽑는다
             eps_W = np.random.randn(*self.mu_W.shape)
             eps_b = np.random.randn(*self.mu_b.shape)
             
             W = self.mu_W + self.sigma_W * eps_W
             b = self.mu_b + self.sigma_b * eps_b
             
-            # Log q (variational posterior)
+            # 로그 q(변이 뒷분포)
             log_q_W = np.sum(stats.norm.logpdf(W, self.mu_W, self.sigma_W))
             log_q_b = np.sum(stats.norm.logpdf(b, self.mu_b, self.sigma_b))
             
-            # Log p (prior)
+            # 로그 p(앞선 분포)
             log_p_W = self.prior.log_prob(W)
             log_p_b = self.prior.log_prob(b)
             
@@ -1222,7 +1222,7 @@ class VariationalLinearMixturePrior(VariationalLayer):
 
 
 # =============================================================================
-# Visualization
+# 그리기
 # =============================================================================
 
 def plot_weight_distributions(
@@ -1230,17 +1230,17 @@ def plot_weight_distributions(
     layer_idx: int = 0,
     n_weights: int = 5
 ):
-    """Visualize learned weight distributions."""
+    """배운 짐 분포를 그린다."""
     
     layer = model.layers[layer_idx]
     
     fig, axes = plt.subplots(1, n_weights, figsize=(3*n_weights, 3))
     
-    # Flatten weights for visualization
+    # 그리려고 짐을 편다
     mu_flat = layer.mu_W.flatten()
     sigma_flat = layer.sigma_W.flatten()
     
-    # Select random weights
+    # 짐을 아무렇게나 고른다
     indices = np.random.choice(len(mu_flat), n_weights, replace=False)
     
     x = np.linspace(-3, 3, 200)
@@ -1249,48 +1249,48 @@ def plot_weight_distributions(
         mu = mu_flat[idx]
         sigma = sigma_flat[idx]
         
-        # Plot posterior
+        # 뒷분포를 그린다
         posterior = stats.norm.pdf(x, mu, sigma)
-        ax.plot(x, posterior, 'b-', linewidth=2, label='Posterior')
+        ax.plot(x, posterior, 'b-', linewidth=2, label='뒷분포')
         
-        # Plot prior
+        # 앞선 분포를 그린다
         prior = stats.norm.pdf(x, 0, model.prior_sigma)
-        ax.plot(x, prior, 'k--', linewidth=1, label='Prior')
+        ax.plot(x, prior, 'k--', linewidth=1, label='앞선 분포')
         
         ax.axvline(mu, color='red', linestyle=':', label=f'μ={mu:.2f}')
-        ax.set_title(f'Weight {idx}\nσ={sigma:.3f}')
-        ax.set_xlabel('Weight value')
+        ax.set_title(f'짐 {idx}\nσ={sigma:.3f}')
+        ax.set_xlabel('짐 값')
         
         if i == 0:
             ax.legend()
     
-    plt.suptitle(f'Layer {layer_idx} Weight Distributions')
+    plt.suptitle(f'{layer_idx}번 켜의 짐 분포')
     plt.tight_layout()
     plt.show()
 
 
 def plot_training_history(history: Dict[str, List[float]]):
-    """Plot training curves."""
+    """익힘 굽이를 그린다."""
     
     fig, axes = plt.subplots(1, 3, figsize=(12, 4))
     
-    # Total loss
+    # 온 잃음
     axes[0].plot(history['loss'], 'b-', linewidth=2)
-    axes[0].set_xlabel('Epoch')
-    axes[0].set_ylabel('Loss')
-    axes[0].set_title('Total Loss (-ELBO)')
+    axes[0].set_xlabel('판')
+    axes[0].set_ylabel('잃음')
+    axes[0].set_title('온 잃음(-ELBO)')
     
     # NLL
     axes[1].plot(history['nll'], 'g-', linewidth=2)
-    axes[1].set_xlabel('Epoch')
+    axes[1].set_xlabel('판')
     axes[1].set_ylabel('NLL')
-    axes[1].set_title('Negative Log-Likelihood')
+    axes[1].set_title('음수 로그 그럴듯함')
     
     # KL
     axes[2].plot(history['kl'], 'r-', linewidth=2)
-    axes[2].set_xlabel('Epoch')
+    axes[2].set_xlabel('판')
     axes[2].set_ylabel('KL')
-    axes[2].set_title('KL Divergence')
+    axes[2].set_title('KL 갈림')
     
     plt.tight_layout()
     plt.show()
@@ -1304,13 +1304,13 @@ def plot_predictions_with_uncertainty(
     y_true: Optional[np.ndarray] = None,
     n_samples: int = 100
 ):
-    """Plot predictions with uncertainty bands."""
+    """아리송함 띠를 곁들여 미루어 봄을 그린다."""
     
     mean, std = model.predict(X_test, n_samples=n_samples)
     
     plt.figure(figsize=(10, 6))
     
-    # Uncertainty band
+    # 아리송함 띠
     X_flat = X_test.flatten()
     mean_flat = mean.flatten()
     std_flat = std.flatten()
@@ -1322,39 +1322,39 @@ def plot_predictions_with_uncertainty(
         alpha=0.3, color='blue', label='±2σ'
     )
     
-    # Mean prediction
-    plt.plot(X_flat, mean_flat, 'b-', linewidth=2, label='Mean')
+    # 평균 미루어 봄
+    plt.plot(X_flat, mean_flat, 'b-', linewidth=2, label='평균')
     
-    # True function
+    # 참 함수
     if y_true is not None:
-        plt.plot(X_flat, y_true.flatten(), 'k--', linewidth=1, label='True')
+        plt.plot(X_flat, y_true.flatten(), 'k--', linewidth=1, label='참')
     
-    # Training data
+    # 익힘 자료
     plt.scatter(X_train.flatten(), y_train.flatten(), 
-                c='red', s=30, zorder=5, label='Data')
+                c='red', s=30, zorder=5, label='자료')
     
     plt.xlabel('x')
     plt.ylabel('y')
-    plt.title('Variational BNN Predictions')
+    plt.title('변이 BNN의 미루어 봄')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.show()
 
 
 # =============================================================================
-# Demo Functions
+# 보여 주는 함수
 # =============================================================================
 
 def demo_variational_bnn():
-    """Demonstrate variational BNN training."""
+    """변이 BNN 익히기를 보여 준다."""
     
     print("=" * 70)
-    print("VARIATIONAL BAYESIAN NEURAL NETWORK")
+    print("변이 베이즈 신경 그물")
     print("=" * 70)
     
     np.random.seed(42)
     
-    # Generate data
+    # 자료를 만든다
     N = 50
     X_train = np.random.uniform(-4, 4, N).reshape(-1, 1)
     y_train = np.sin(X_train) + np.random.normal(0, 0.2, (N, 1))
@@ -1362,10 +1362,10 @@ def demo_variational_bnn():
     X_test = np.linspace(-6, 6, 200).reshape(-1, 1)
     y_true = np.sin(X_test)
     
-    print(f"\nTraining data: {N} points")
-    print(f"Test data: {len(X_test)} points")
+    print(f"\n익힘 자료: {N}점")
+    print(f"시험 자료: {len(X_test)}점")
     
-    # Create model
+    # 모형을 만든다
     model = VariationalMLP(
         layer_sizes=[1, 20, 20, 1],
         prior_sigma=1.0,
@@ -1374,10 +1374,10 @@ def demo_variational_bnn():
         use_local_reparam=True
     )
     
-    print(f"Model: {model.layer_sizes}")
-    print(f"Variational parameters: {model.n_variational_params()}")
+    print(f"모형: {model.layer_sizes}")
+    print(f"변이 매개변수: {model.n_variational_params()}")
     
-    # Train
+    # 익힌다
     trainer = BayesByBackprop(
         model,
         likelihood_sigma=0.2,
@@ -1385,7 +1385,7 @@ def demo_variational_bnn():
         lr=0.01
     )
     
-    print("\nTraining (this may take a while)...")
+    print("\n익히는 중(좀 걸릴 수 있다)...")
     history = trainer.train(
         X_train, y_train,
         n_epochs=50,
@@ -1395,30 +1395,30 @@ def demo_variational_bnn():
         verbose=True
     )
     
-    # Evaluate
+    # 따진다
     mean, std = model.predict(X_test, n_samples=100)
     
-    print(f"\nPrediction statistics:")
-    print(f"  Mean std (epistemic): {np.mean(std):.4f}")
-    print(f"  Max std: {np.max(std):.4f}")
+    print(f"\n미루어 봄의 자:")
+    print(f"  평균 잣대 어긋남(앎의): {np.mean(std):.4f}")
+    print(f"  가장 큰 잣대 어긋남: {np.max(std):.4f}")
     
     return model, history
 
 
 def demo_kl_annealing():
-    """Demonstrate different KL annealing schedules."""
+    """여러 KL 올리기 짜임을 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("KL ANNEALING SCHEDULES")
+    print("KL 천천히 올리는 짜임")
     print("=" * 70)
     
     n_epochs = 100
     epochs = np.arange(n_epochs)
     
     schedules = {
-        'Linear (warmup=30)': [linear_annealing(e, n_epochs, 30) for e in epochs],
-        'Sigmoid (mid=30)': [sigmoid_annealing(e, n_epochs, 30, 0.2) for e in epochs],
-        'Cyclical (cycle=40)': [cyclical_annealing(e, 40, 0.5) for e in epochs],
+        '곧게 (몸풀기=30)': [linear_annealing(e, n_epochs, 30) for e in epochs],
+        '시그모이드 (가운데=30)': [sigmoid_annealing(e, n_epochs, 30, 0.2) for e in epochs],
+        '돌림 (돌림=40)': [cyclical_annealing(e, 40, 0.5) for e in epochs],
     }
     
     plt.figure(figsize=(10, 5))
@@ -1426,64 +1426,64 @@ def demo_kl_annealing():
     for name, values in schedules.items():
         plt.plot(epochs, values, linewidth=2, label=name)
     
-    plt.xlabel('Epoch')
-    plt.ylabel('KL Weight (β)')
-    plt.title('KL Annealing Schedules')
+    plt.xlabel('판')
+    plt.ylabel('KL 짐 (β)')
+    plt.title('KL 천천히 올리는 짜임')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.show()
     
-    print("\nKL annealing prevents posterior collapse in early training.")
+    print("\nKL을 천천히 올리면 익힘 초에 뒷분포가 주저앉는 것을 막는다.")
 
 
 def demo_local_reparameterization():
-    """Compare standard vs local reparameterization."""
+    """여느 매개변수 다시 잡기와 그 자리 다시 잡기를 견준다."""
     
     print("\n" + "=" * 70)
-    print("LOCAL REPARAMETERIZATION TRICK")
+    print("그 자리 매개변수 다시 잡기 재주")
     print("=" * 70)
     
     np.random.seed(42)
     
-    # Create two layers
+    # 켜 둘을 만든다
     layer_standard = VariationalLinear(10, 5, use_local_reparam=False)
     layer_local = VariationalLinear(10, 5, use_local_reparam=True)
     
-    # Copy parameters
+    # 매개변수를 베낀다
     layer_local.mu_W = layer_standard.mu_W.copy()
     layer_local.rho_W = layer_standard.rho_W.copy()
     layer_local.mu_b = layer_standard.mu_b.copy()
     layer_local.rho_b = layer_standard.rho_b.copy()
     
-    # Test input
+    # 시험 들임
     x = np.random.randn(1, 10)
     
-    # Multiple forward passes
+    # 앞으로 걸음 여러 번
     n_samples = 1000
     
     outputs_standard = np.array([layer_standard.forward(x).flatten() for _ in range(n_samples)])
     outputs_local = np.array([layer_local.forward(x).flatten() for _ in range(n_samples)])
     
-    print("\nOutput statistics (should be similar):")
-    print(f"  Standard - Mean: {np.mean(outputs_standard, axis=0)[:3]}")
-    print(f"  Local    - Mean: {np.mean(outputs_local, axis=0)[:3]}")
-    print(f"  Standard - Std:  {np.std(outputs_standard, axis=0)[:3]}")
-    print(f"  Local    - Std:  {np.std(outputs_local, axis=0)[:3]}")
+    print("\n날임의 자(비슷해야 한다):")
+    print(f"  여느 것 - 평균: {np.mean(outputs_standard, axis=0)[:3]}")
+    print(f"  그 자리   - 평균: {np.mean(outputs_local, axis=0)[:3]}")
+    print(f"  여느 것 - 잣대 어긋남:  {np.std(outputs_standard, axis=0)[:3]}")
+    print(f"  그 자리   - 잣대 어긋남:  {np.std(outputs_local, axis=0)[:3]}")
     
-    print("\n*** Local reparameterization gives same distribution")
-    print("*** but with lower gradient variance")
+    print("\n*** 그 자리 다시 잡기도 같은 분포를 준다")
+    print("*** 다만 기울기 흩어짐이 더 작다")
 
 
 def demo_uncertainty_quality():
-    """Demonstrate uncertainty behavior of variational BNN."""
+    """변이 BNN의 아리송함 결을 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("UNCERTAINTY QUALITY")
+    print("아리송함의 됨됨이")
     print("=" * 70)
     
     np.random.seed(42)
     
-    # Generate data with gap
+    # 틈이 있는 자료를 만든다
     X_train = np.concatenate([
         np.random.uniform(-4, -1, 25),
         np.random.uniform(1, 4, 25)
@@ -1492,9 +1492,9 @@ def demo_uncertainty_quality():
     
     X_test = np.linspace(-6, 6, 200).reshape(-1, 1)
     
-    print("Data has gap in [-1, 1] region")
+    print("자료에 [-1, 1] 자리의 틈이 있다")
     
-    # Create and train model
+    # 모형을 만들고 익힌다
     model = VariationalMLP(
         layer_sizes=[1, 30, 1],
         prior_sigma=1.0,
@@ -1505,20 +1505,20 @@ def demo_uncertainty_quality():
     trainer = BayesByBackprop(model, likelihood_sigma=0.15, lr=0.02)
     trainer.train(X_train, y_train, n_epochs=100, verbose=False)
     
-    # Evaluate
+    # 따진다
     mean, std = model.predict(X_test, n_samples=100)
     
-    # Analyze uncertainty in different regions
+    # 자리마다 아리송함을 살핀다
     in_gap = (X_test.flatten() > -1) & (X_test.flatten() < 1)
     near_data = ~in_gap & (np.abs(X_test.flatten()) < 4)
     extrapolation = np.abs(X_test.flatten()) > 4
     
-    print(f"\nMean uncertainty (std):")
-    print(f"  In gap region:      {np.mean(std[in_gap]):.4f}")
-    print(f"  Near training data: {np.mean(std[near_data]):.4f}")
-    print(f"  Extrapolation:      {np.mean(std[extrapolation]):.4f}")
+    print(f"\n평균 아리송함(잣대 어긋남):")
+    print(f"  틈 자리:      {np.mean(std[in_gap]):.4f}")
+    print(f"  익힘 자료 가까이: {np.mean(std[near_data]):.4f}")
+    print(f"  밖으로 늘림:      {np.mean(std[extrapolation]):.4f}")
     
-    print("\n*** Uncertainty should be higher in gap and extrapolation regions")
+    print("\n*** 아리송함은 틈과 밖으로 늘린 자리에서 더 커야 한다")
 
 
 if __name__ == "__main__":
@@ -1530,83 +1530,83 @@ if __name__ == "__main__":
 
 ---
 
-## Summary
+## 간추림
 
-### Core Concepts
+### 고갱이 깨침
 
-**Variational Inference** approximates the intractable posterior:
+**변이 미루어 봄**은 다룰 수 없는 뒷분포를 어림한다.
 
 $$
 p(\theta \mid \mathcal{D}) \approx q_\phi(\theta)
 $$
 
-**ELBO** (Evidence Lower Bound):
+**ELBO**(밑거리 아래끝):
 
 $$
 \mathcal{L}(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \text{KL}(q_\phi \| p)
 $$
 
-**Reparameterization Trick**:
+**매개변수 다시 잡기 재주**:
 
 $$
 \theta = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
 $$
 
-### Mean-Field Gaussian
+### 평균 마당 가우스
 
-| Component | Formula |
+| 몫 | 식 |
 |-----------|---------|
-| **Posterior** | $q(\theta) = \prod_j \mathcal{N}(\theta_j \mid \mu_j, \sigma_j^2)$ |
-| **Parameters** | $\phi = \{\mu, \rho\}$ where $\sigma = \text{softplus}(\rho)$ |
-| **KL to prior** | $\frac{1}{2}\sum_j \left[\frac{\mu_j^2 + \sigma_j^2}{\sigma_p^2} - 1 - \log\frac{\sigma_j^2}{\sigma_p^2}\right]$ |
+| **뒷분포** | $q(\theta) = \prod_j \mathcal{N}(\theta_j \mid \mu_j, \sigma_j^2)$ |
+| **매개변수** | $\phi = \{\mu, \rho\}$이고 $\sigma = \text{softplus}(\rho)$ |
+| **앞선 분포에 대한 KL** | $\frac{1}{2}\sum_j \left[\frac{\mu_j^2 + \sigma_j^2}{\sigma_p^2} - 1 - \log\frac{\sigma_j^2}{\sigma_p^2}\right]$ |
 
-### Bayes by Backprop Algorithm
+### 되돌아가며 베이즈 알고리즘
 
 1. Sample $\epsilon \sim \mathcal{N}(0, I)$
-2. Compute $\theta = \mu + \text{softplus}(\rho) \odot \epsilon$
-3. Compute loss: $\mathcal{L} = \text{NLL}(\theta) + \beta \cdot \text{KL}(q \| p)$
-4. Backpropagate and update $\mu, \rho$
+2. $\theta = \mu + \text{softplus}(\rho) \odot \epsilon$을 셈한다
+3. 잃음을 셈한다: $\mathcal{L} = \text{NLL}(\theta) + \beta \cdot \text{KL}(q \| p)$
+4. 되돌아가며 $\mu, \rho$을 고친다
 
-### Practical Considerations
+### 참으로 헤아릴 것
 
-| Aspect | Recommendation |
+| 결 | 즐겨 쓸 길 |
 |--------|----------------|
-| **Prior** | $\sigma_p = 1.0$ (tune on validation) |
-| **Init variance** | $\sigma_{\text{init}} = 0.01$-$0.1$ |
-| **MC samples (train)** | 1 (unbiased gradient) |
-| **MC samples (test)** | 30-100 |
-| **KL annealing** | Linear warmup over 20-50 epochs |
-| **Learning rate** | 0.001-0.01 |
+| **앞선 분포** | $\sigma_p = 1.0$(따짐 꾸러미로 맞춘다) |
+| **첫 흩어짐** | $\sigma_{\text{init}} = 0.01$~$0.1$ |
+| **MC 표본(익힘)** | 1(치우치지 않은 기울기) |
+| **MC 표본(시험)** | 30~100 |
+| **KL 천천히 올리기** | 20~50판에 걸쳐 곧게 몸풀기 |
+| **배움 비율** | 0.001~0.01 |
 
-### Beyond Mean-Field
+### 평균 마당을 넘어
 
-| Method | Expressiveness | Cost |
+| 방법 | 드러냄 | 값 |
 |--------|---------------|------|
-| Mean-Field | Low | $O(d)$ |
-| Low-Rank | Medium | $O(dr)$ |
-| Matrix-Variate | Medium | $O(m^2 + n^2)$ |
-| Normalizing Flows | High | $O(dK)$ |
+| 평균 마당 | 낮음 | $O(d)$ |
+| 낮은 자리 | 가운데 | $O(dr)$ |
+| 행렬 변수 | 가운데 | $O(m^2 + n^2)$ |
+| 잣대 맞추는 흐름 | 높음 | $O(dK)$ |
 
-### Advantages and Limitations
+### 나은 점과 한계
 
-| Advantages | Limitations |
+| 나은 점 | 한계 |
 |------------|-------------|
-| Scalable to large networks | Approximate posterior |
-| Principled uncertainty | May underestimate uncertainty |
-| Works with backprop | KL requires careful handling |
-| Flexible prior specification | Mean-field ignores correlations |
+| 큰 그물로 늘릴 수 있다 | 뒷분포가 어림이다 |
+| 이치에 닿는 아리송함 | 아리송함을 낮게 볼 수 있다 |
+| 되돌아가기와 함께 쓴다 | KL을 조심스레 다뤄야 한다 |
+| 앞선 분포를 너그럽게 정한다 | 평균 마당은 얽힘을 놓친다 |
 
-### Connections to Other Chapters
+### 다른 장과의 이어짐
 
-| Topic | Chapter | Connection |
+| 이야기 | 장 | 이어짐 |
 |-------|---------|------------|
-| Prior specification | Ch13: Prior on Weights | Prior in KL term |
-| Uncertainty | Ch13: Uncertainty | Posterior enables decomposition |
-| MC Dropout | Ch13: MC Dropout | Implicit VI alternative |
-| Posterior inference | Ch13: Posterior Inference | VI as inference method |
-| Model comparison | Ch13: Model Evidence | ELBO bounds evidence |
+| 앞선 분포 정하기 | 13장: 짐의 앞선 분포 | KL 항 속의 앞선 분포 |
+| 아리송함 | 13장: 아리송함 | 뒷분포가 쪼갬을 이룬다 |
+| MC 드롭아웃 | 13장: MC 드롭아웃 | 넌지시 하는 VI 갈음 |
+| 뒷분포 미루어 봄 | 13장: 뒷분포 미루어 봄 | 미루어 봄 방법으로서의 VI |
+| 모형 견주기 | 13장: 모형 밑거리 | ELBO이 밑거리를 마디 짓는다 |
 
-### Key References
+### 고갱이 살펴볼 거리
 
 - Blundell, C., et al. (2015). Weight uncertainty in neural networks. *ICML*.
 - Kingma, D. P., & Welling, M. (2014). Auto-encoding variational Bayes. *ICLR*.
@@ -1615,34 +1615,34 @@ $$
 - Zhang, G., et al. (2018). Noisy natural gradient as variational inference. *ICML*.
 - Osawa, K., et al. (2019). Practical deep learning with Bayesian principles. *NeurIPS*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+**익힘 1.**
+ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
 
-??? success "Solution to Exercise 1"
-    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
-
----
-
-**Exercise 2.**
-Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
-
-??? success "Solution to Exercise 2"
-    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+**익힘 2.**
+이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
 
-??? success "Solution to Exercise 3"
-    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+??? success "익힘 2 풀이"
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE이 낮다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+**익힘 3.**
+베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
-??? success "Solution to Exercise 4"
-    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$
+??? success "익힘 3 풀이"
+    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
+
+---
+
+**익힘 4.**
+이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+
+??? success "익힘 4 풀이"
+    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$
