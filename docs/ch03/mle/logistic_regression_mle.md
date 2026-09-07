@@ -10,32 +10,32 @@
 #!/usr/bin/env python3
 """
 ================================================================================
-LOGISTIC REGRESSION MLE - Binary Classification
+로지스틱 회귀 최대가능도 — 둘 가름
 ================================================================================
 
-DIFFICULTY: ⭐⭐⭐ Advanced (Level 3)
+어려움: ⭐⭐⭐ 앞선(3단계)
 
 배움 목표:
-- Understand logistic regression as MLE
-- See connection to binary cross-entropy loss
-- Implement classification in PyTorch
-- Learn about sigmoid function and log-odds
+- 로지스틱 회귀를 최대가능도로 이해한다
+- 둘 엇갈린 엔트로피 잃음과의 이음을 본다
+- PyTorch으로 가름을 짠다
+- 시그모이드 함수와 로그 승산을 배운다
 
-PROBLEM: Binary classification - predict y ∈ {0, 1} from features x
+문제: 둘 가름 — 특징 x에서 y ∈ {0, 1}을 예측한다
 
-MODEL: P(y=1 | x) = σ(w^T x + b) = 1 / (1 + exp(-(w^T x + b)))
+모형: P(y=1 | x) = σ(w^T x + b) = 1 / (1 + exp(-(w^T x + b)))
 
-where σ is the sigmoid/logistic function
+여기서 σ은 시그모이드(로지스틱) 함수다
 
-MLE FORMULATION:
+최대가능도로 세우기:
 Likelihood: L(w, b) = ∏ P(y_i | x_i, w, b)
            = ∏ σ(w^T x_i + b)^y_i * (1 - σ(w^T x_i + b))^(1-y_i)
 
-Log-likelihood: ℓ(w, b) = Σ [y_i log(σ(w^T x_i + b)) + (1-y_i) log(1 - σ(w^T x_i + b))]
+로그 가능도: ℓ(w, b) = Σ [y_i log(σ(w^T x_i + b)) + (1-y_i) log(1 - σ(w^T x_i + b))]
 
-This is equivalent to MINIMIZING binary cross-entropy loss!
+이는 둘 엇갈린 엔트로피 잃음을 가장 작게 하는 것과 같다!
 
-KEY INSIGHT: Cross-entropy = Negative log-likelihood
+고갱이 눈썰미: 엇갈린 엔트로피 = 음의 로그 가능도
 
 지은이: PyTorch 최대가능도 익힘
 DATE: 2025
@@ -81,7 +81,7 @@ def generate_classification_data(n_samples: int = 200, seed: int = 42):
 
 def compute_log_likelihood(X, y, w, b):
     """
-    Compute log-likelihood for logistic regression.
+    로지스틱 회귀의 로그 가능도를 셈한다.
     
     ℓ(w,b) = Σ [y_i log(σ(z_i)) + (1-y_i) log(1 - σ(z_i))]
     where z_i = w^T x_i + b
@@ -295,9 +295,9 @@ def visualize_results(X, y, model, history):
     f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
     
     metrics_text = f"""
-Accuracy:  {accuracy:.3f}
-Precision: {precision:.3f}
-Recall:    {recall:.3f}
+맞음:  {accuracy:.3f}
+정밀도: {precision:.3f}
+재현율:    {recall:.3f}
 F1-Score:  {f1:.3f}
 """
     ax6.text(0.5, -0.25, metrics_text, ha='center', va='top',
@@ -370,30 +370,30 @@ def main():
 """
 🎓 EXERCISES:
 
-1. MEDIUM: Multi-class logistic regression (softmax)
-   - Extend to 3+ classes
-   - Use categorical cross-entropy
-   - Visualize decision boundaries
+1. 보통: 여러 갈래 로지스틱 회귀(소프트맥스)
+   - 갈래를 3개 넘게로 넓힌다
+   - 갈래 엇갈린 엔트로피를 쓴다
+   - 가름 테두리를 그림으로 본다
 
-2. MEDIUM: Regularized logistic regression
-   - Add L2 regularization: loss + λ||w||²
-   - This is equivalent to MAP with Gaussian prior!
-   - Compare regularized vs unregularized
+2. 보통: 정칙화한 로지스틱 회귀
+   - L2 정칙화를 더한다: 잃음 + λ||w||²
+   - 이는 정규 앞확률을 쓴 최대사후와 같다!
+   - 정칙화한 것과 안 한 것을 견준다
 
-3. CHALLENGING: Feature engineering
-   - Add polynomial features (x₁², x₁x₂, x₂²)
-   - Create non-linear decision boundaries
-   - Compare with linear features
+3. 어려움: 특징 만들기
+   - 다항 특징을 더한다(x₁², x₁x₂, x₂²)
+   - 비선형 가름 테두리를 만든다
+   - 선형 특징과 견준다
 
-4. CHALLENGING: Imbalanced classes
-   - Generate data with 10:1 class ratio
-   - Try weighted loss functions
-   - Evaluate with precision, recall, F1
+4. 어려움: 치우친 갈래
+   - 갈래 비가 10:1인 자료를 만든다
+   - 무게 실은 잃음 함수를 써 본다
+   - 정밀도, 재현율, F1으로 따진다
 
-5. CHALLENGING: Probabilistic interpretation
-   - Plot calibration curves (predicted vs actual probability)
-   - Implement Platt scaling for calibration
-   - Compare well-calibrated vs poorly-calibrated models
+5. 어려움: 확률로 읽기
+   - 눈금 굽이를 그린다(예측 확률과 참 확률)
+   - 눈금 맞추기에 플랫 잣대를 짠다
+   - 눈금이 잘 맞는 모형과 안 맞는 모형을 견준다
 """
 
 

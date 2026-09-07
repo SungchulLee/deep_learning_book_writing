@@ -16,7 +16,7 @@ Prerequisites: Level 1, basic PyTorch
 Learning Goals:
   - Build a simple neural network for multi-class classification
   - Understand the training loop structure
-  - Visualize decision boundaries
+  - 가름 테두리를 그림으로 본다
   - 모형의 성능을 따진다
 
 Time to complete: 30-45 minutes

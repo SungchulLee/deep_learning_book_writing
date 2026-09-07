@@ -13,7 +13,7 @@
 NEURAL NETWORK MLE - Deep Learning with Maximum Likelihood
 ================================================================================
 
-DIFFICULTY: ⭐⭐⭐ Advanced (Level 3)
+어려움: ⭐⭐⭐ 앞선(3단계)
 
 배움 목표:
 - Understand how neural networks use MLE

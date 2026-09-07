@@ -10,44 +10,44 @@
 #!/usr/bin/env python3
 """
 ================================================================================
-MIXTURE OF GAUSSIANS MLE - Expectation-Maximization Algorithm
+가우스 섞음 최대가능도 — 기댓값-최대화 알고리즘
 ================================================================================
 
-DIFFICULTY: ⭐⭐⭐ Advanced (Level 3)
+어려움: ⭐⭐⭐ 앞선(3단계)
 
 배움 목표:
-- Understand latent variable models
-- Learn the Expectation-Maximization (EM) algorithm
-- Implement soft clustering
-- See how MLE handles missing/latent data
+- 숨은 변수 모형을 이해한다
+- 기댓값-최대화(EM) 알고리즘을 배운다
+- 부드러운 무리 짓기를 짠다
+- 최대가능도가 빠진 자료와 숨은 자료를 어떻게 다루는지 본다
 
-PROBLEM: We observe data from K different Gaussian distributions, but don't
-know which point came from which distribution. Estimate all parameters!
+문제: 서로 다른 가우스 분포 K개에서 나온 자료를 보지만 어떤 점이 어느
+분포에서 왔는지는 모른다. 매개변수를 모두 어림하여라!
 
 MODEL:
-- K Gaussian components with means μₖ, covariances Σₖ
-- Mixing weights πₖ (probability of component k)
-- Latent variable zᵢ indicates which component generated xᵢ
+- 평균이 μₖ, 공분산이 Σₖ인 가우스 조각 K개
+- 섞음 무게 πₖ(조각 k일 확률)
+- 숨은 변수 zᵢ이 xᵢ을 만든 조각을 가리킨다
 
-LIKELIHOOD (with latent variables):
+가능도(숨은 변수를 넣어):
 P(x, z | θ) = ∏ [πₖ N(xᵢ | μₖ, Σₖ)]^{z_ik}
 
-But we don't observe z! So we use EM algorithm:
+그런데 z은 볼 수 없다! 그래서 EM 알고리즘을 쓴다.
 
-E-STEP: Compute posterior probabilities (responsibilities)
+E 걸음: 뒤확률(맡은 몫)을 셈한다
 γᵢₖ = P(z_ik = 1 | xᵢ, θ)
 
-M-STEP: Update parameters to maximize expected complete-data log-likelihood
+M 걸음: 온 자료 로그 가능도의 기댓값을 가장 크게 하도록 매개변수를 고친다
 πₖ = (1/N) Σ γᵢₖ
 μₖ = (Σ γᵢₖ xᵢ) / (Σ γᵢₖ)
 Σₖ = (Σ γᵢₖ (xᵢ - μₖ)(xᵢ - μₖ)ᵀ) / (Σ γᵢₖ)
 
 APPLICATIONS:
-- Clustering (soft k-means)
-- Anomaly detection
-- Image segmentation  
-- Speech recognition
-- Topic modeling
+- 무리 짓기(부드러운 k 평균)
+- 이상 알아내기
+- 그림 나누기
+- 말소리 알아듣기
+- 주제 모형 짓기
 
 지은이: PyTorch 최대가능도 익힘
 DATE: 2025
@@ -154,7 +154,7 @@ class GaussianMixture:
     
     def e_step(self, X):
         """
-        E-step: Compute responsibilities (posterior probabilities).
+        E 걸음: 맡은 몫(뒤확률)을 셈한다.
         
         γᵢₖ = πₖ N(xᵢ | μₖ, Σₖ) / Σⱼ πⱼ N(xᵢ | μⱼ, Σⱼ)
         """
@@ -173,7 +173,7 @@ class GaussianMixture:
     
     def m_step(self, X, responsibilities):
         """
-        M-step: Update parameters to maximize expected log-likelihood.
+        M 걸음: 로그 가능도의 기댓값을 가장 크게 하도록 매개변수를 고친다.
         """
         n_samples, n_features = X.shape
         
@@ -459,32 +459,32 @@ def main():
 """
 🎓 EXERCISES:
 
-1. MEDIUM: Automatic model selection
-   - Try different numbers of components (K)
-   - Use BIC or AIC for model selection
-   - Plot BIC vs K
+1. 보통: 모형을 절로 고르기
+   - 조각 수(K)를 바꾸어 본다
+   - 모형 고르기에 BIC이나 AIC을 쓴다
+   - BIC과 K을 견주어 그린다
 
-2. MEDIUM: Different covariance structures
+2. 보통: 여러 공분산 짜임
    - Spherical: Σₖ = σₖ²I
-   - Diagonal: Σₖ = diag(σₖ₁², ..., σₖₚ²)
-   - Full: Σₖ (current implementation)
-   - Compare performance and speed
+   - 대각: Σₖ = diag(σₖ₁², ..., σₖₚ²)
+   - 온전한 것: Σₖ(이제 짜보기)
+   - 성능과 빠르기를 견준다
 
-3. CHALLENGING: Initialization strategies
-   - Random initialization
-   - K-means++ initialization
-   - Multiple random restarts
+3. 어려움: 첫자리 잡는 꾀
+   - 마구잡이 첫자리
+   - K 평균++ 첫자리
+   - 여러 번 마구잡이로 다시 비롯하기
    - 모여드는 모습을 견준다
 
-4. CHALLENGING: Bayesian GMM
-   - Add Dirichlet prior on mixture weights
-   - Add Gaussian-Wishart prior on means and covariances
-   - Implement variational inference
+4. 어려움: 베이즈 가우스 섞음 모형
+   - 섞음 무게에 디리클레 앞확률을 둔다
+   - 평균과 공분산에 가우스-위샤트 앞확률을 둔다
+   - 변이 추론을 짠다
 
-5. CHALLENGING: Applications
-   - Image segmentation using GMM
-   - Anomaly detection (low probability points)
-   - Density estimation and sampling
+5. 어려움: 쓰임새
+   - 가우스 섞음 모형으로 하는 그림 나누기
+   - 이상 알아내기(확률이 낮은 점)
+   - 밀도 어림과 뽑기
 """
 
 

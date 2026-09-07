@@ -69,12 +69,12 @@ def compute_hypergeometric_pmf(N: int, C: int, R: int, T: int) -> float:
     -----------
     N : 온 개체 수
     C : 처음에 잡아 표시한 수
-    R : Number in recapture sample
-    T : Number of marked animals in recapture
+    R : 다시 잡은 표본의 수
+    T : 다시 잡은 것 가운데 표시된 수
     
     Returns:
     --------
-    probability : Probability of observing T marked animals
+    probability : 표시된 T마리를 볼 확률
     """
     # 유효성을 확인한다
     if T > C or T > R or R - T > N - C or N < C or N < R:
@@ -101,13 +101,13 @@ def compute_log_likelihood(N: int, C: int, R: int, T: int) -> float:
 
 def lincoln_petersen_estimator(C: int, R: int, T: int) -> float:
     """
-    Compute the Lincoln-Petersen estimator (MLE approximation).
+    링컨-피터슨 어림값(최대가능도 어림)을 셈한다.
     
     N̂ = (C × R) / T
     
-    This is the MLE for large populations and is very intuitive!
+    개체 수가 많을 때의 최대가능도이며 느낌으로도 잘 잡힌다!
     
-    Intuition: If T/R = C/N (proportion marked in sample = proportion in population)
+    느낌: T/R = C/N이면(표본에서 표시된 몫 = 온 무리에서 표시된 몫)
     Then: N = (C × R) / T
     """
     if T == 0:
@@ -117,12 +117,12 @@ def lincoln_petersen_estimator(C: int, R: int, T: int) -> float:
 
 def find_mle_exact(C: int, R: int, T: int, max_N: int = 10000) -> Tuple[int, np.ndarray]:
     """
-    Find MLE by computing likelihood for all possible N values.
+    나올 수 있는 N마다 가능도를 셈해 최대가능도를 찾는다.
     
     Returns:
     --------
-    N_mle : Most likely population size
-    likelihoods : Array of likelihoods for each N
+    N_mle : 가장 그럴듯한 개체 수
+    likelihoods : N마다의 가능도 배열
     """
     # 가능한 최소 개체수
     min_N = max(C, R)
@@ -218,15 +218,15 @@ def visualize_results(C: int, R: int, T: int, N_true: int,
     
     results_text = f"""
 Observations:
-• Initially marked: C = {C}
+• 처음에 표시한 수: C = {C}
 • Recaptured: R = {R}  
-• Marked in recapture: T = {T}
+• 다시 잡은 것 가운데 표시된 수: T = {T}
 
 Estimates:
-• True population: N = {N_true}
-• MLE estimate: N̂ = {N_mle}
-• L-P estimate: N̂ = {N_lp:.1f}
-• Error: {abs(N_mle - N_true)} animals
+• 참 개체 수: N = {N_true}
+• 최대가능도 어림: N̂ = {N_mle}
+• 링컨-피터슨 어림: N̂ = {N_lp:.1f}
+• 어긋남: {abs(N_mle - N_true)}마리
 """
     ax.text(0.5, 0.425, results_text, ha='center', va='center',
            fontsize=9, family='monospace', transform=ax.transAxes)
@@ -377,27 +377,27 @@ def main():
 """
 🎓 EXERCISES:
 
-1. EASY: Try different values of C, R, T
-   - What happens if T = 0 (no recaptures)?
-   - How does increasing C and R improve accuracy?
+1. 쉬움: C, R, T 값을 바꾸어 보아라
+   - T = 0이면(다시 잡힌 표시가 없으면) 어떻게 되는가?
+   - C과 R을 키우면 맞음이 어떻게 나아지는가?
 
-2. MEDIUM: Add confidence intervals
-   - Use likelihood-based confidence intervals
-   - Find N values where likelihood drops by factor of exp(-1.92)
+2. 보통: 믿음 구간을 더하여라
+   - 가능도 바탕 믿음 구간을 쓴다
+   - 가능도가 exp(-1.92)배로 떨어지는 N 값을 찾는다
 
-3. MEDIUM: Multiple recapture sessions
-   - Extend to 3+ capture sessions
-   - Schnabel method for multiple recaptures
+3. 보통: 여러 번 다시 잡기
+   - 잡기를 3번 넘게로 넓힌다
+   - 여러 번 다시 잡을 때의 슈나벨 방법
 
-4. CHALLENGING: Violations of assumptions
-   - Simulate unequal catchability (trap-happy/trap-shy)
-   - Population not closed (births, deaths, migration)
-   - How robust is MLE to assumption violations?
+4. 어려움: 가정이 깨질 때
+   - 잡히는 정도가 다른 경우를 흉내낸다(덫을 좋아하거나 꺼리는 개체)
+   - 무리가 닫혀 있지 않을 때(태어남, 죽음, 옮겨감)
+   - 가정이 깨질 때 최대가능도는 얼마나 든든한가?
 
-5. CHALLENGING: Bayesian version
-   - Add prior on N (e.g., Uniform or Geometric)
-   - Compute posterior distribution
-   - Compare Bayesian credible interval to MLE confidence interval
+5. 어려움: 베이즈 갈래
+   - N에 앞확률을 둔다(보기: 고른 분포나 기하 분포)
+   - 뒤확률 분포를 셈한다
+   - 베이즈 믿음 구간과 최대가능도 믿음 구간을 견준다
 """
 
 
