@@ -1,95 +1,95 @@
-# 35.4.3 VaR Constraints
-## Learning Objectives
+# 35.4.3 무릅씀 값 매임
+## 배움 목표
 
-- Implement Value-at-Risk constraints in RL portfolio optimization
-- Understand parametric, historical, and Monte Carlo VaR estimation
-- Design constrained RL formulations with VaR limits
-- Handle VaR constraints via Lagrangian relaxation in policy optimization
+- 힘 북돋우는 배움 밑천 나누기 가장 좋게 하기에 무릅씀 값 매임을 만든다
+- 매개변수 방식, 지난 자료 방식, 몬테카를로 방식의 무릅씀 값 어림을 이해한다
+- 무릅씀 값 위끝을 둔 매인 힘 북돋우는 배움 꼴을 설계한다
+- 방침 가장 좋게 하기에서 라그랑주 느슨히 하기로 무릅씀 값 매임을 다룬다
 
-## Introduction
+## 들머리
 
-Value-at-Risk (VaR) quantifies the maximum expected loss over a given time horizon at a specified confidence level. For example, a 1-day 95% VaR of \$1M means there is a 5% chance of losing more than \$1M in a single day. Regulatory requirements (Basel III) mandate VaR-based capital reserves, making VaR constraints essential in production systems.
+무릅씀 값(VaR)은 주어진 때 눈길과 믿음 수준에서 겪을 수 있는 가장 큰 어림 손실을 잰다. 보기로 하루 95% 무릅씀 값이 \$100만이라는 것은 하루에 \$100만보다 크게 잃을 낌새가 5%라는 뜻이다. 규제(바젤 III)가 무릅씀 값에 바탕을 둔 밑천 쌓아 두기를 매기므로, 서비스 시스템에서 무릅씀 값 매임은 꼭 있어야 한다.
 
-## VaR Definition
+## 무릅씀 값의 뜻매김
 
 $$\text{VaR}_\alpha = -\inf\{x : P(R \leq x) > \alpha\}$$
 
-At confidence level $(1-\alpha)$: the loss that is exceeded with probability $\alpha$.
+믿음 수준 $(1-\alpha)$에서, 낌새 $\alpha$으로 넘어서는 손실이다.
 
-## VaR Estimation Methods
+## 무릅씀 값 어림 방법
 
-### 1. Parametric (Variance-Covariance)
+### 1. 매개변수 방식(흩어짐-함께 흩어짐)
 
-Assumes Gaussian returns:
+돌아옴이 가우스라고 여긴다.
 
 $$\text{VaR}_\alpha = -(\mu_p - z_\alpha \cdot \sigma_p) \cdot V$$
 
-where $z_\alpha$ is the standard normal quantile, $\mu_p$ and $\sigma_p$ are portfolio return mean and standard deviation.
+여기서 $z_\alpha$은 표준 정규 분위수이고 $\mu_p$과 $\sigma_p$은 밑천 돌아옴의 평균과 표준편차다.
 
-### 2. Historical Simulation
+### 2. 지난 자료 흉내내기
 
-Use the empirical distribution of past returns:
+지난 돌아옴의 겪음 분포를 쓴다.
 
 $$\text{VaR}_\alpha = -\text{Quantile}_\alpha(\{R_1, R_2, \ldots, R_T\}) \cdot V$$
 
-### 3. Monte Carlo
+### 3. 몬테카를로
 
-Simulate future returns from a fitted model and compute the quantile.
+맞춘 모형에서 앞날 돌아옴을 흉내 내고 그 분위수를 셈한다.
 
-## Constrained RL with VaR
+## 무릅씀 값을 둔 매인 힘 북돋우는 배움
 
-### Lagrangian Relaxation
+### 라그랑주 느슨히 하기
 
-$$\mathcal{L}(\theta, \lambda) = \mathbb{E}_\pi\left[\sum r_t\right] + \lambda \cdot \left(\text{VaR}_\alpha^{\text{limit}} - \text{VaR}_\alpha(\pi)\right)$$
+$$\mathcal{L}(\theta, \lambda) = \mathbb{E}_\pi\left[\sum r_t\right] + \lambda \cdot \left(\text{VaR}_\alpha^{\text{위끝}} - \text{VaR}_\alpha(\pi)\right)$$
 
-Dual update: $\lambda \leftarrow \max(0, \lambda + \eta (\text{VaR}_\alpha(\pi) - \text{VaR}_\alpha^{\text{limit}}))$
+쌍대 고침: $\lambda \leftarrow \max(0, \lambda + \eta (\text{VaR}_\alpha(\pi) - \text{VaR}_\alpha^{\text{위끝}}))$
 
-### Reward Penalty
+### 보상 벌
 
-$$r_t^{\text{constrained}} = r_t - \lambda_{\text{var}} \cdot \max(0, \hat{\text{VaR}}_t - \text{VaR}_{\text{limit}})$$
+$$r_t^{\text{매임}} = r_t - \lambda_{\text{var}} \cdot \max(0, \hat{\text{VaR}}_t - \text{VaR}_{\text{위끝}})$$
 
-### Action Masking
+### 움직임 가리기
 
-Before executing an action, check if the resulting portfolio VaR exceeds the limit. If so, scale down the action.
+움직임을 벌이기 앞서 그 결과로 나올 밑천 무릅씀 값이 위끝을 넘는지 살핀다. 넘으면 움직임을 줄여 잣댄다.
 
-## Summary
+## 요약
 
-VaR constraints ensure RL policies operate within regulatory and risk management bounds. The combination of Lagrangian relaxation for soft constraints and action masking for hard constraints provides robust VaR control.
+무릅씀 값 매임은 힘 북돋우는 배움 방침이 규제와 무릅씀 다루기의 테두리 안에서 돌게 한다. 무른 매임에는 라그랑주 느슨히 하기를, 굳은 매임에는 움직임 가리기를 함께 쓰면 굳센 무릅씀 값 다스리기를 얻는다.
 
-## References
+## 참고 문헌
 
 - Jorion, P. (2006). Value at Risk: The New Benchmark for Managing Financial Risk. McGraw-Hill.
 - Chow, Y., et al. (2017). Risk-Constrained Reinforcement Learning with Percentile Risk Criteria. JMLR.
 - Tamar, A., et al. (2015). Optimizing the CVaR via Sampling. AAAI.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Design a Gymnasium-compatible environment for the financial problem described in this section. Specify the observation space, action space, reward function, and episode termination conditions.
+**연습문제 1.**
+이 절에서 밝힌 금융 문제를 위해 Gymnasium과 어울리는 둘레를 설계하여라. 봄 공간, 움직임 공간, 보상 함수, 에피소드 끝내기 조건을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Observation space: a vector containing recent returns, current position, portfolio value, and relevant market features (e.g., volatility, volume). Action space: depends on the problem (discrete for buy/hold/sell, continuous for position sizing). Reward: risk-adjusted return per step (e.g., log return minus penalty for risk). Episode terminates after a fixed horizon (e.g., one trading year) or if portfolio value drops below a threshold (margin call). The environment must handle transaction costs, slippage, and market impact realistically. $\square$
-
----
-
-**Exercise 2.**
-Analyze the reward shaping trade-offs for this financial RL problem. Compare at least three candidate reward functions and discuss which properties of the optimal policy each preserves.
-
-??? success "Solution to Exercise 2"
-    Candidate rewards: (1) raw PnL -- simple but high variance and delayed; (2) Sharpe-based differential reward $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- directly optimizes the Sharpe ratio but complex; (3) log return with drawdown penalty $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- balances return with risk control. The potential-based shaping theorem guarantees that adding $\gamma\Phi(s') - \Phi(s)$ preserves the optimal policy. The Sharpe-based reward changes the optimization objective (may alter optimal policy), while pure PnL preserves it but learns slowly. $\square$
+??? success "연습문제 1 풀이"
+    봄 공간: 최근 돌아옴, 지금 자리, 밑천 값, 걸맞은 저자 특징(보기로 흔들림, 거래량)을 담은 벡터. 움직임 공간: 문제에 달렸다(사기/쥐기/팔기라면 따로 떨어진 것, 자리 크기 잡기라면 이어진 것). 보상: 걸음마다 무릅씀을 맞춘 돌아옴(보기로 로그 돌아옴에서 무릅씀 벌을 뺀 것). 에피소드는 붙박인 눈길(보기로 거래 한 해)이 지나거나 밑천 값이 문턱 아래로 떨어지면(증거금 부름) 끝난다. 둘레는 거래 비용, 미끄러짐, 저자 흔듦을 참에 가깝게 다루어야 한다. $\square$
 
 ---
 
-**Exercise 3.**
-Discuss the non-stationarity challenge specific to this financial application. Propose a concrete strategy for adapting the RL agent to regime changes.
+**연습문제 2.**
+이 금융 힘 북돋우는 배움 문제에서 보상 다듬기의 맞바꿈을 살펴라. 후보 보상 함수를 적어도 셋 견주고, 저마다 가장 좋은 방침의 어떤 성질을 지키는지 따져라.
 
-??? success "Solution to Exercise 3"
-    Financial markets exhibit regime changes (bull/bear, high/low volatility) that violate the MDP stationarity assumption. A concrete adaptation strategy: (1) include a regime indicator as part of the state (e.g., HMM-estimated regime probabilities); (2) use a meta-learning approach where the agent maintains multiple policies and selects based on detected regime; (3) implement continual learning with an expanding replay buffer weighted toward recent experience (exponential decay weights). The agent should also monitor its own performance and reduce position sizes when out-of-distribution inputs are detected. $\square$
+??? success "연습문제 2 풀이"
+    후보 보상: (1) 날 손익 -- 쉽지만 흩어짐이 크고 늦게 온다. (2) 샤프 바탕 미분 보상 $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- 샤프 비를 곧바로 가장 좋게 하지만 얽혔다. (3) 내림폭 벌을 곁들인 로그 돌아옴 $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- 돌아옴과 무릅씀 다스리기의 저울을 맞춘다. 퍼텐셜에 바탕을 둔 다듬기 정리는 $\gamma\Phi(s') - \Phi(s)$을 더해도 가장 좋은 방침이 지켜짐을 보장한다. 샤프 바탕 보상은 가장 좋게 하는 목표 자체를 바꾸므로(가장 좋은 방침이 달라질 수 있다) 그렇지 않고, 날 손익은 방침을 지키지만 더디게 배운다. $\square$
 
 ---
 
-**Exercise 4.**
-Compare the backtesting results one would expect from this RL approach versus a simple heuristic baseline. What statistical tests should be used to determine if the RL agent genuinely outperforms?
+**연습문제 3.**
+이 금융 쓰임새에 딸린 흐름 바뀜 어려움을 따져라. 부림꾼을 판 바뀜에 맞춰 가게 하는 또렷한 꾀를 내놓아라.
 
-??? success "Solution to Exercise 4"
-    Baselines: buy-and-hold, equal-weight, or momentum strategy. The RL agent should be evaluated on walk-forward out-of-sample periods (never on training data). Statistical tests: (1) paired t-test on daily returns for mean difference; (2) bootstrap confidence interval on the Sharpe ratio difference; (3) multiple hypothesis testing correction (e.g., Bonferroni or Holm) if comparing multiple strategies. A common pitfall is p-hacking through hyperparameter tuning on the test set. The evaluation must use a hold-out period that was never used for any model selection. Report both statistical significance and economic significance (transaction costs, capacity). $\square$
+??? success "연습문제 3 풀이"
+    금융 저자에는 판 바뀜(오름장/내림장, 높은/낮은 흔들림)이 있어 마르코프 결정 과정의 흐름이 바뀌지 않는다는 여김을 깨뜨린다. 또렷한 맞춰 감 꾀는 이렇다. (1) 판 알림을 상태의 한 몫으로 넣는다(보기로 숨은 마르코프 모형으로 어림한 판 낌새). (2) 부림꾼이 방침 여럿을 지니고 알아낸 판에 따라 고르는 메타 배움 길을 쓴다. (3) 최근 겪음에 무게를 더 준(지수로 삭이는 무게) 넓혀 가는 되돌려 보기 버퍼로 이어 가는 배움을 만든다. 부림꾼은 제 됨됨이도 지켜보다가 분포 밖 들임이 드러나면 자리 크기를 줄여야 한다. $\square$
+
+---
+
+**연습문제 4.**
+이 힘 북돋우는 배움 길과 쉬운 어림 잣대에서 나올 되짚어 시험 열매를 견주어라. 부림꾼이 참으로 앞서는지 가리려면 어떤 통계 검정을 써야 하는가?
+
+??? success "연습문제 4 풀이"
+    잣대: 사서 쥐기, 고르게 나누기, 밀기 꾀. 부림꾼은 (익힘 자료에서는 결코 하지 않고) 앞으로 걸어가며 뽑기 밖 구간에서 따져야 한다. 통계 검정: (1) 하루 돌아옴에 대한 짝 지은 t 검정으로 평균 차이를 본다. (2) 샤프 비 차이에 대한 부트스트랩 믿음 구간을 얻는다. (3) 여러 꾀를 견준다면 여러 가설 검정 바로잡기(보기로 본페로니나 홀름)를 매긴다. 흔히 빠지는 함정은 시험 자료에서 매개변수를 벼려 p값을 후려치는 일이다. 따지기는 어떤 모형 고르기에도 쓰이지 않은 남겨 둔 구간을 써야 한다. 통계로 뜻있음과 살림살이로 뜻있음(거래 비용, 담을 수 있는 크기)을 함께 알려야 한다. $\square$

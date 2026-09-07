@@ -1,108 +1,108 @@
-# 35.4.1 Risk-Adjusted Rewards
-## Learning Objectives
+# 35.4.1 무릅씀을 맞춘 보상
+## 배움 목표
 
-- Design reward functions that incorporate risk into RL objectives
-- Implement Sharpe ratio, Sortino ratio, and Calmar ratio as rewards
-- Understand the differential Sharpe ratio for single-step optimization
-- Compare risk-neutral vs. risk-adjusted policy behavior
+- 무릅씀을 힘 북돋우는 배움 목표에 넣는 보상 함수를 설계한다
+- 샤프 비, 소르티노 비, 칼마 비를 보상으로 만든다
+- 한 걸음 가장 좋게 하기를 위한 미분 샤프 비를 이해한다
+- 무릅씀에 무덤덤한 방침과 무릅씀을 맞춘 방침의 거동을 견준다
 
-## Introduction
+## 들머리
 
-In financial RL, maximizing raw returns without risk consideration leads to catastrophic outcomes—high leverage, concentrated positions, and extreme drawdowns. Risk-adjusted rewards ensure the agent learns to balance return generation with risk management, producing policies suitable for real-world deployment.
+금융 힘 북돋우는 배움에서 무릅씀을 살피지 않고 날 돌아옴만 가장 크게 하면 끔찍한 끝을 본다. 지렛대가 커지고, 자리가 한곳에 몰리며, 내림폭이 극단으로 간다. 무릅씀을 맞춘 보상은 부림꾼이 돌아옴 내기와 무릅씀 다루기의 저울을 맞추도록 배우게 하여, 실제로 서비스에 올릴 만한 방침을 낳는다.
 
-## Risk-Adjusted Reward Functions
+## 무릅씀을 맞춘 보상 함수
 
-### 1. Risk-Penalized Return
+### 1. 무릅씀에 벌준 돌아옴
 
-$$r_t^{\text{adj}} = r_t^{\text{return}} - \lambda \cdot \text{Risk}_t$$
+$$r_t^{\text{맞춤}} = r_t^{\text{돌아옴}} - \lambda \cdot \text{무릅씀}_t$$
 
-where $\lambda$ controls the risk aversion level.
+여기서 $\lambda$이 무릅씀을 얼마나 꺼리는지를 다스린다.
 
-### 2. Differential Sharpe Ratio
+### 2. 미분 샤프 비
 
-Moody & Saffell (2001) derived a single-step reward that approximates the gradient of the rolling Sharpe ratio:
+무디와 새펠(2001)은 흐르는 샤프 비의 기울기를 어림하는 한 걸음 보상을 이끌어 냈다.
 
 $$D_t = \frac{B_{t-1} \Delta A_t - \frac{1}{2} A_{t-1} \Delta B_t}{(B_{t-1} - A_{t-1}^2)^{3/2}}$$
 
-where:
+여기서:
 
-- $A_t = A_{t-1} + \eta(r_t - A_{t-1})$ (exponential moving average of returns)
-- $B_t = B_{t-1} + \eta(r_t^2 - B_{t-1})$ (EMA of squared returns)
+- $A_t = A_{t-1} + \eta(r_t - A_{t-1})$ (돌아옴의 지수 이동 평균)
+- $B_t = B_{t-1} + \eta(r_t^2 - B_{t-1})$ (돌아옴 제곱의 지수 이동 평균)
 
-### 3. Sortino-Based Reward
+### 3. 소르티노 바탕 보상
 
-Penalizes only downside volatility:
+아래쪽 흔들림에만 벌을 준다.
 
-$$r_t^{\text{sortino}} = r_t - \lambda \cdot \max(0, -r_t)^2$$
+$$r_t^{\text{소르티노}} = r_t - \lambda \cdot \max(0, -r_t)^2$$
 
-### 4. Return-to-Drawdown Reward
+### 4. 돌아옴 대 내림폭 보상
 
-$$r_t^{\text{calmar}} = r_t - \lambda \cdot \frac{V_{\text{peak}} - V_t}{V_{\text{peak}}}$$
+$$r_t^{\text{칼마}} = r_t - \lambda \cdot \frac{V_{\text{꼭대기}} - V_t}{V_{\text{꼭대기}}}$$
 
-### 5. Risk Parity Reward
+### 5. 무릅씀 고루 나누기 보상
 
-Encourages equal risk contribution across assets:
+자산끼리 무릅씀을 고르게 나누도록 북돋운다.
 
-$$r_t = r_t^{\text{return}} - \lambda \cdot \sum_i \left(\text{RC}_i - \frac{1}{N}\right)^2$$
+$$r_t = r_t^{\text{돌아옴}} - \lambda \cdot \sum_i \left(\text{RC}_i - \frac{1}{N}\right)^2$$
 
-## Comparison of Reward Functions
+## 보상 함수 견주기
 
-| Reward | Optimizes | Behavior |
+| 보상 | 가장 좋게 하는 것 | 거동 |
 |--------|-----------|----------|
-| Raw return | $\mathbb{E}[R]$ | Aggressive, high variance |
-| Sharpe-based | $\mathbb{E}[R]/\sigma$ | Balanced risk-return |
-| Sortino-based | $\mathbb{E}[R]/\sigma_{\text{down}}$ | Tolerates upside volatility |
-| Calmar-based | $\mathbb{E}[R]/\text{MDD}$ | Drawdown-averse |
-| CVaR-adjusted | $\mathbb{E}[R] + \lambda\text{CVaR}$ | Tail-risk aware |
+| 날 돌아옴 | $\mathbb{E}[R]$ | 사납고 흩어짐이 크다 |
+| 샤프 바탕 | $\mathbb{E}[R]/\sigma$ | 무릅씀과 돌아옴의 저울이 맞다 |
+| 소르티노 바탕 | $\mathbb{E}[R]/\sigma_{\text{아래}}$ | 위쪽 흔들림은 받아들인다 |
+| 칼마 바탕 | $\mathbb{E}[R]/\text{MDD}$ | 내림폭을 꺼린다 |
+| CVaR 맞춤 | $\mathbb{E}[R] + \lambda\text{CVaR}$ | 꼬리 무릅씀을 살핀다 |
 
-## Risk Aversion Parameter lambda
+## 무릅씀 꺼림 매개변수 lambda
 
-The choice of $\lambda$ significantly impacts policy behavior:
+$\lambda$을 어떻게 고르느냐가 방침 거동에 크게 미친다.
 
-- $\lambda = 0$: Pure return maximization (risk-neutral)
-- $\lambda \in (0, 1)$: Moderate risk aversion
-- $\lambda > 1$: Strong risk aversion, conservative positions
+- $\lambda = 0$: 오로지 돌아옴만 가장 크게 함(무릅씀에 무덤덤함)
+- $\lambda \in (0, 1)$: 어중간하게 꺼림
+- $\lambda > 1$: 크게 꺼려 조심스러운 자리를 잡음
 
-In practice, $\lambda$ can be treated as a hyperparameter tuned via validation, or the agent can be conditioned on $\lambda$ for a family of policies.
+실제로는 $\lambda$을 살피기 자료로 벼리는 매개변수로 다루거나, 부림꾼을 $\lambda$에 매어 두어 방침의 갈래를 한꺼번에 얻을 수 있다.
 
-## Summary
+## 요약
 
-Risk-adjusted rewards are essential for financial RL. The differential Sharpe ratio provides an elegant single-step reward, while Sortino and Calmar variants target specific risk dimensions. The risk aversion parameter $\lambda$ controls the aggressiveness of the learned policy.
+무릅씀을 맞춘 보상은 금융 힘 북돋우는 배움에 꼭 있어야 한다. 미분 샤프 비는 한 걸음 보상을 산뜻하게 주고, 소르티노와 칼마 갈래는 남다른 무릅씀 결을 겨눈다. 무릅씀 꺼림 매개변수 $\lambda$이 배운 방침의 사나움을 다스린다.
 
-## References
+## 참고 문헌
 
 - Moody, J. & Saffell, M. (2001). Learning to Trade via Direct Reinforcement. IEEE Transactions on Neural Networks.
 - Sharpe, W. (1966). Mutual Fund Performance. Journal of Business.
 - Sortino, F. & van der Meer, R. (1991). Downside Risk. Journal of Portfolio Management.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Design a Gymnasium-compatible environment for the financial problem described in this section. Specify the observation space, action space, reward function, and episode termination conditions.
+**연습문제 1.**
+이 절에서 밝힌 금융 문제를 위해 Gymnasium과 어울리는 둘레를 설계하여라. 봄 공간, 움직임 공간, 보상 함수, 에피소드 끝내기 조건을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Observation space: a vector containing recent returns, current position, portfolio value, and relevant market features (e.g., volatility, volume). Action space: depends on the problem (discrete for buy/hold/sell, continuous for position sizing). Reward: risk-adjusted return per step (e.g., log return minus penalty for risk). Episode terminates after a fixed horizon (e.g., one trading year) or if portfolio value drops below a threshold (margin call). The environment must handle transaction costs, slippage, and market impact realistically. $\square$
-
----
-
-**Exercise 2.**
-Analyze the reward shaping trade-offs for this financial RL problem. Compare at least three candidate reward functions and discuss which properties of the optimal policy each preserves.
-
-??? success "Solution to Exercise 2"
-    Candidate rewards: (1) raw PnL -- simple but high variance and delayed; (2) Sharpe-based differential reward $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- directly optimizes the Sharpe ratio but complex; (3) log return with drawdown penalty $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- balances return with risk control. The potential-based shaping theorem guarantees that adding $\gamma\Phi(s') - \Phi(s)$ preserves the optimal policy. The Sharpe-based reward changes the optimization objective (may alter optimal policy), while pure PnL preserves it but learns slowly. $\square$
+??? success "연습문제 1 풀이"
+    봄 공간: 최근 돌아옴, 지금 자리, 밑천 값, 걸맞은 저자 특징(보기로 흔들림, 거래량)을 담은 벡터. 움직임 공간: 문제에 달렸다(사기/쥐기/팔기라면 따로 떨어진 것, 자리 크기 잡기라면 이어진 것). 보상: 걸음마다 무릅씀을 맞춘 돌아옴(보기로 로그 돌아옴에서 무릅씀 벌을 뺀 것). 에피소드는 붙박인 눈길(보기로 거래 한 해)이 지나거나 밑천 값이 문턱 아래로 떨어지면(증거금 부름) 끝난다. 둘레는 거래 비용, 미끄러짐, 저자 흔듦을 참에 가깝게 다루어야 한다. $\square$
 
 ---
 
-**Exercise 3.**
-Discuss the non-stationarity challenge specific to this financial application. Propose a concrete strategy for adapting the RL agent to regime changes.
+**연습문제 2.**
+이 금융 힘 북돋우는 배움 문제에서 보상 다듬기의 맞바꿈을 살펴라. 후보 보상 함수를 적어도 셋 견주고, 저마다 가장 좋은 방침의 어떤 성질을 지키는지 따져라.
 
-??? success "Solution to Exercise 3"
-    Financial markets exhibit regime changes (bull/bear, high/low volatility) that violate the MDP stationarity assumption. A concrete adaptation strategy: (1) include a regime indicator as part of the state (e.g., HMM-estimated regime probabilities); (2) use a meta-learning approach where the agent maintains multiple policies and selects based on detected regime; (3) implement continual learning with an expanding replay buffer weighted toward recent experience (exponential decay weights). The agent should also monitor its own performance and reduce position sizes when out-of-distribution inputs are detected. $\square$
+??? success "연습문제 2 풀이"
+    후보 보상: (1) 날 손익 -- 쉽지만 흩어짐이 크고 늦게 온다. (2) 샤프 바탕 미분 보상 $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- 샤프 비를 곧바로 가장 좋게 하지만 얽혔다. (3) 내림폭 벌을 곁들인 로그 돌아옴 $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- 돌아옴과 무릅씀 다스리기의 저울을 맞춘다. 퍼텐셜에 바탕을 둔 다듬기 정리는 $\gamma\Phi(s') - \Phi(s)$을 더해도 가장 좋은 방침이 지켜짐을 보장한다. 샤프 바탕 보상은 가장 좋게 하는 목표 자체를 바꾸므로(가장 좋은 방침이 달라질 수 있다) 그렇지 않고, 날 손익은 방침을 지키지만 더디게 배운다. $\square$
 
 ---
 
-**Exercise 4.**
-Compare the backtesting results one would expect from this RL approach versus a simple heuristic baseline. What statistical tests should be used to determine if the RL agent genuinely outperforms?
+**연습문제 3.**
+이 금융 쓰임새에 딸린 흐름 바뀜 어려움을 따져라. 부림꾼을 판 바뀜에 맞춰 가게 하는 또렷한 꾀를 내놓아라.
 
-??? success "Solution to Exercise 4"
-    Baselines: buy-and-hold, equal-weight, or momentum strategy. The RL agent should be evaluated on walk-forward out-of-sample periods (never on training data). Statistical tests: (1) paired t-test on daily returns for mean difference; (2) bootstrap confidence interval on the Sharpe ratio difference; (3) multiple hypothesis testing correction (e.g., Bonferroni or Holm) if comparing multiple strategies. A common pitfall is p-hacking through hyperparameter tuning on the test set. The evaluation must use a hold-out period that was never used for any model selection. Report both statistical significance and economic significance (transaction costs, capacity). $\square$
+??? success "연습문제 3 풀이"
+    금융 저자에는 판 바뀜(오름장/내림장, 높은/낮은 흔들림)이 있어 마르코프 결정 과정의 흐름이 바뀌지 않는다는 여김을 깨뜨린다. 또렷한 맞춰 감 꾀는 이렇다. (1) 판 알림을 상태의 한 몫으로 넣는다(보기로 숨은 마르코프 모형으로 어림한 판 낌새). (2) 부림꾼이 방침 여럿을 지니고 알아낸 판에 따라 고르는 메타 배움 길을 쓴다. (3) 최근 겪음에 무게를 더 준(지수로 삭이는 무게) 넓혀 가는 되돌려 보기 버퍼로 이어 가는 배움을 만든다. 부림꾼은 제 됨됨이도 지켜보다가 분포 밖 들임이 드러나면 자리 크기를 줄여야 한다. $\square$
+
+---
+
+**연습문제 4.**
+이 힘 북돋우는 배움 길과 쉬운 어림 잣대에서 나올 되짚어 시험 열매를 견주어라. 부림꾼이 참으로 앞서는지 가리려면 어떤 통계 검정을 써야 하는가?
+
+??? success "연습문제 4 풀이"
+    잣대: 사서 쥐기, 고르게 나누기, 밀기 꾀. 부림꾼은 (익힘 자료에서는 결코 하지 않고) 앞으로 걸어가며 뽑기 밖 구간에서 따져야 한다. 통계 검정: (1) 하루 돌아옴에 대한 짝 지은 t 검정으로 평균 차이를 본다. (2) 샤프 비 차이에 대한 부트스트랩 믿음 구간을 얻는다. (3) 여러 꾀를 견준다면 여러 가설 검정 바로잡기(보기로 본페로니나 홀름)를 매긴다. 흔히 빠지는 함정은 시험 자료에서 매개변수를 벼려 p값을 후려치는 일이다. 따지기는 어떤 모형 고르기에도 쓰이지 않은 남겨 둔 구간을 써야 한다. 통계로 뜻있음과 살림살이로 뜻있음(거래 비용, 담을 수 있는 크기)을 함께 알려야 한다. $\square$
