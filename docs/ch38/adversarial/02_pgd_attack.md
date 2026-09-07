@@ -1,90 +1,90 @@
-# PGD Attack
+# PGD 치기
 
-Module 62.2: Projected Gradient Descent (PGD) Attack - Intermediate Level This module implements the Projected Gradient Descent (PGD) attack, a stronger
+62.2 묶음: 되비춘 기울기 내림(PGD) 치기 - 가운데 걸음. 이 묶음은 더 센 치기인 되비춘 기울기 내림(PGD)을 짜 놓았다
 
-Adversarial robustness is a critical concern for deploying neural networks in safety-sensitive applications. This implementation demonstrates adversarial robustness concepts, showing how small perturbations can fool models and how defenses can be constructed.
+맞섬에 든든하기는 안전이 걸린 자리에 신경 그물을 내놓을 때 종요로운 걱정거리다. 이 짜보기는 작은 흔듦이 어떻게 모형을 속이는지, 막이는 어떻게 지을 수 있는지 보이며 맞섬에 든든하기의 깨침을 드러낸다.
 
-## Code
+## 코드
 
 ```python
 """
-Module 62.2: Projected Gradient Descent (PGD) Attack - Intermediate Level
+62.2 묶음: 되비춘 기울기 내림(PGD) 치기 - 가운데 걸음
 
-This module implements the Projected Gradient Descent (PGD) attack, a stronger
-iterative variant of FGSM. PGD is considered one of the strongest first-order
-adversarial attacks and is commonly used to evaluate model robustness.
+이 묶음은 FGSM의 더 센 되돌이 갈래인 되비춘 기울기 내림(PGD) 치기를
+짜 놓았다. PGD은 가장 센 일차 맞서는 치기의 하나로 여겨지며
+모형의 든든함을 따지는 데 흔히 쓰인다.
 
-MATHEMATICAL BACKGROUND:
+수학 밑그림:
 =======================
 
-PGD extends FGSM by applying multiple small gradient steps, projecting back
-onto the allowed perturbation set after each step. This makes it much stronger
-than the single-step FGSM.
+PGD은 작은 기울기 걸음을 여러 번 밟고 걸음마다 받아 주는 흔듦 모임으로
+되비추어 FGSM을 넓힌다. 그래서 한 걸음짜리 FGSM보다
+훨씬 세다.
 
-Given a model f with parameters θ, input x, label y, and perturbation budget ε:
+매개변수가 θ인 모형 f, 들임 x, 이름표 y, 흔듦 예산 ε이 있을 때:
 
-PGD solves:
+PGD은 다음을 푼다:
     maximize_{||δ||_∞ ≤ ε} L(θ, x + δ, y)
 
-Algorithm (untargeted):
+알고리즘(과녁 없음):
 -----------------------
-1. Initialize: x^(0) = x + uniform_noise[-ε, ε]  (random start)
-2. For t = 0 to T-1:
+1. 첫자리: x^(0) = x + uniform_noise[-ε, ε]  (아무 비롯 자리)
+2. t = 0에서 T-1까지:
        x^(t+1) = Π_{x+S}(x^(t) + α · sign(∇_x L(θ, x^(t), y)))
-3. Return x^(T)
+3. x^(T)을 돌려준다
 
-where:
-- Π_{x+S} is projection onto the ε-ball: Π(z) = clip(z, x-ε, x+ε)
-- α is the step size (typically α = ε/num_iter or α = 2.5·ε/num_iter)
-- S = {δ : ||δ||_∞ ≤ ε} is the allowed perturbation set
-- T is the number of iterations
+여기서:
+- Π_{x+S}은 ε 공으로의 되비춤: Π(z) = clip(z, x-ε, x+ε)
+- α은 걸음 크기(흔히 α = ε/num_iter 또는 α = 2.5·ε/num_iter)
+- S = {δ : ||δ||_∞ ≤ ε}은 받아 주는 흔듦 모임
+- T은 되돌이 횟수
 
-KEY DIFFERENCES FROM FGSM:
+FGSM과 다른 고갱이:
 ===========================
-1. **Multi-step**: PGD takes multiple small steps (typically 10-100)
-2. **Random initialization**: Starts from random point in ε-ball
-3. **Projection**: After each step, project back to ε-ball
-4. **Stronger**: Much better at finding adversarial examples
+1. **여러 걸음**: PGD은 작은 걸음을 여러 번 밟는다(흔히 10~100)
+2. **아무 첫자리**: ε 공 안의 아무 점에서 비롯한다
+3. **되비추기**: 걸음마다 ε 공으로 되비춘다
+4. **더 셈**: 맞서는 보기를 훨씬 잘 찾는다
 
-RANDOM INITIALIZATION:
+아무 첫자리:
 =====================
-Random initialization is crucial for PGD's strength:
-- Helps escape poor local optima
-- Explores different regions of the ε-ball
-- Makes attack less sensitive to initial conditions
+아무 첫자리는 PGD의 세기에 종요롭다:
+- 그 자리의 나쁜 봉우리를 벗어나게 돕는다
+- ε 공의 여러 자리를 둘러본다
+- 치기가 첫 조건에 덜 예민해진다
 
-Common strategies:
-- Uniform: x^(0) ~ Uniform[x-ε, x+ε]
-- Gaussian: x^(0) ~ N(x, σ²I), then project to ε-ball
+흔한 꾀:
+- 고르게: x^(0) ~ Uniform[x-ε, x+ε]
+- 가우스: x^(0) ~ N(x, σ²I) 뒤 ε 공으로 되비춤
 
-PROJECTION OPERATOR:
+되비추는 셈:
 ===================
-The projection Π ensures perturbation stays within ε-ball:
+되비춤 Π은 흔듦이 ε 공 안에 머물게 한다:
 
-For L∞ norm:
+L∞ 노름에서는:
     Π(z)_i = clip(z_i, x_i - ε, x_i + ε)
 
-This is element-wise clipping to the box [x-ε, x+ε].
+이는 [x-ε, x+ε] 상자로 낱낱이 잘라 내는 것이다.
 
-For L2 norm:
-    If ||z - x||_2 ≤ ε: Π(z) = z
-    Else: Π(z) = x + ε · (z - x) / ||z - x||_2
+L2 노름에서는:
+    ||z - x||_2 ≤ ε이면: Π(z) = z
+    아니면: Π(z) = x + ε · (z - x) / ||z - x||_2
 
-STEP SIZE SELECTION:
+걸음 크기 고르기:
 ===================
-The step size α controls the trade-off between:
-- Larger α: Faster convergence but may overshoot
-- Smaller α: More precise but needs more iterations
+걸음 크기 α은 다음의 맞바꿈을 다룬다:
+- α이 크면: 빨리 모이나 지나칠 수 있다
+- α이 작으면: 더 꼭 집으나 되돌이가 더 든다
 
-Common choices:
-- α = ε / T (each step is 1/T of total budget)
-- α = 2.5 · ε / T (slightly more aggressive)
-- α = 2 · ε / T (from Madry et al., 2018)
+흔히 고르는 것:
+- α = ε / T (걸음마다 온 예산의 1/T)
+- α = 2.5 · ε / T (조금 더 세게)
+- α = 2 · ε / T (매드리 등, 2018)
 
-Author: Educational Materials
-Date: November 2025
-Difficulty: Intermediate
-Prerequisites: FGSM (Module 62.1), iterative optimization
+지은이: 가르침 감
+날짜: 2025년 11월
+어려움: 가운데 걸음
+먼저 알 것: FGSM(62.1 묶음), 되돌이 다듬기
 """
 
 import torch
@@ -97,48 +97,48 @@ from tqdm import tqdm
 import copy
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 class PGD:
     """
-    Projected Gradient Descent (PGD) Attack
+    되비춘 기울기 내림(PGD) 치기
     
-    PGD is an iterative adversarial attack that applies multiple gradient steps
-    with projection back onto the allowed perturbation set. It's significantly
-    stronger than FGSM and is the de facto standard for evaluating robustness.
+    PGD은 기울기 걸음을 여러 번 밟고 받아 주는 흔듦 모임으로 되비추는
+    되돌이 맞서는 치기다. FGSM보다 훨씬 세며
+    든든함을 따지는 사실상의 잣대다.
     
-    Mathematical Formulation:
+    수학 꼴:
     -------------------------
-    The PGD attack solves the constrained optimization problem:
+    PGD 치기는 옭아맨 다듬기 문제를 푼다:
     
         maximize L(θ, x + δ, y)  subject to ||δ||_p ≤ ε
     
-    using projected gradient descent:
+    되비춘 기울기 내림을 써서:
     
         x^(t+1) = Π_{x+S}(x^(t) + α · sign(∇_x L(θ, x^(t), y)))
     
-    where Π is the projection operator onto the ε-ball.
+    여기서 Π은 ε 공으로 되비추는 셈이다.
     
-    Attributes:
+    속성:
     -----------
     model : nn.Module
-        The neural network to attack
+        칠 신경 그물
     epsilon : float
-        Maximum perturbation magnitude
+        가장 큰 흔듦의 크기
     alpha : float
-        Step size for each iteration
+        되돌 때마다의 걸음 크기
     num_iter : int
-        Number of iterations to run
+        돌릴 되돌이 횟수
     norm : str
-        Norm to use ('linf' or 'l2')
+        쓸 노름('linf' 또는 'l2')
     random_init : bool
-        Whether to use random initialization
+        아무 첫자리를 쓸지
     loss_fn : nn.Module
-        Loss function to maximize
+        가장 크게 할 잃음 함수
     early_stop : bool
-        Whether to stop early if attack succeeds
+        치기가 먹히면 일찍 멈출지
     """
     
     def __init__(
@@ -156,41 +156,41 @@ class PGD:
         early_stop: bool = False
     ):
         """
-        Initialize the PGD attack.
+        PGD 치기의 첫자리를 잡는다.
         
-        Parameters:
+        매개변수:
         -----------
         model : nn.Module
-            The neural network to attack
-        epsilon : float, default=0.03
-            Maximum perturbation magnitude (L∞ or L2 norm)
-            For CIFAR-10: ε=8/255≈0.031 is standard
-        alpha : float, default=0.01
-            Step size for each iteration
-            Common choice: α = 2.5 * ε / num_iter
-            If not specified, defaults to ε / 4
-        num_iter : int, default=40
-            Number of PGD iterations
-            More iterations = stronger attack but slower
-            Common values: 10 (fast), 40 (standard), 100 (strong)
-        norm : str, default='linf'
-            Norm to use: 'linf' (L∞) or 'l2' (L2)
-            L∞: all pixels bounded by ε
-            L2: total perturbation bounded by ε
-        random_init : bool, default=True
-            Whether to randomly initialize perturbation
-            True: more robust attack (recommended)
-            False: starts from original image (like I-FGSM)
-        loss_fn : nn.Module, optional
-            Loss function to use
-        device : torch.device, optional
-            Computation device
-        clip_min : float, default=0.0
-            Minimum valid pixel value
-        clip_max : float, default=1.0
-            Maximum valid pixel value
-        early_stop : bool, default=False
-            Stop iteration if attack succeeds
+            칠 신경 그물
+        epsilon : float, 기본값=0.03
+            가장 큰 흔듦의 크기(L∞ 또는 L2 노름)
+            CIFAR-10에서는 ε=8/255≈0.031이 여느 값이다
+        alpha : float, 기본값=0.01
+            되돌 때마다의 걸음 크기
+            흔히 고르는 값: α = 2.5 * ε / num_iter
+            밝히지 않으면 기본값은 ε / 4이다
+        num_iter : int, 기본값=40
+            PGD 되돌이 횟수
+            되돌이가 많을수록 치기는 세지고 느려진다
+            흔한 값: 10(빠름), 40(여느 것), 100(셈)
+        norm : str, 기본값='linf'
+            쓸 노름: 'linf'(L∞) 또는 'l2'(L2)
+            L∞: 낱그림점 모두가 ε으로 마디 지어진다
+            L2: 온 흔듦이 ε으로 마디 지어진다
+        random_init : bool, 기본값=True
+            흔듦의 첫자리를 아무렇게나 잡을지
+            True: 더 든든한 치기(즐겨 씀)
+            False: 본디 그림에서 비롯한다(I-FGSM처럼)
+        loss_fn : nn.Module, 골라 씀
+            쓸 잃음 함수
+        device : torch.device, 골라 씀
+            셈할 장치
+        clip_min : float, 기본값=0.0
+            옳은 낱그림점의 가장 작은 값
+        clip_max : float, 기본값=1.0
+            옳은 낱그림점의 가장 큰 값
+        early_stop : bool, 기본값=False
+            치기가 먹히면 되돌이를 멈춘다
         """
         self.model = model
         self.epsilon = epsilon
@@ -204,78 +204,78 @@ class PGD:
         self.clip_max = clip_max
         self.early_stop = early_stop
         
-        # Set model to evaluation mode
+        # 모형을 따짐 모드로 둔다
         self.model.eval()
         self.model = self.model.to(self.device)
         
-        # Validate parameters
+        # 매개변수를 따진다
         if self.norm not in ['linf', 'l2']:
             raise ValueError(f"norm must be 'linf' or 'l2', got {self.norm}")
         
-        # Print configuration
-        print(f"PGD Attack Configuration:")
-        print(f"  Epsilon (ε): {self.epsilon}")
-        print(f"  Alpha (α): {self.alpha}")
-        print(f"  Iterations: {self.num_iter}")
-        print(f"  Norm: L{self.norm}")
-        print(f"  Random init: {self.random_init}")
-        print(f"  Early stopping: {self.early_stop}")
+        # 차림을 찍는다
+        print(f"PGD 치기 차림:")
+        print(f"  엡실론 (ε): {self.epsilon}")
+        print(f"  알파 (α): {self.alpha}")
+        print(f"  되돌이: {self.num_iter}")
+        print(f"  노름: L{self.norm}")
+        print(f"  아무 첫자리: {self.random_init}")
+        print(f"  일찍 멈추기: {self.early_stop}")
     
     def _initialize_perturbation(
         self,
         images: torch.Tensor
     ) -> torch.Tensor:
         """
-        Initialize the perturbation.
+        흔듦의 첫자리를 잡는다.
         
-        Two strategies:
-        1. Random initialization (recommended):
-           - Sample uniformly from ε-ball
-           - Helps escape local optima
-           - More robust attack
+        두 가지 꾀가 있다:
+        1. 아무 첫자리(즐겨 씀):
+           - ε 공에서 고르게 뽑는다
+           - 그 자리 봉우리를 벗어나게 돕는다
+           - 더 든든한 치기
         
-        2. Zero initialization:
-           - Start from original image
-           - Equivalent to iterated FGSM (I-FGSM)
-           - Faster but potentially weaker
+        2. 0에서 비롯하기:
+           - 본디 그림에서 비롯한다
+           - 되돌이 FGSM(I-FGSM)과 같다
+           - 빠르나 더 여릴 수 있다
         
-        Mathematical Detail (L∞):
+        수학의 자세한 것(L∞):
         -------------------------
-        Random init: δ^(0) ~ Uniform[-ε, ε] for each dimension
-        Then project: x^(0) = clip(x + δ^(0), [clip_min, clip_max])
+        아무 첫자리: 차수마다 δ^(0) ~ Uniform[-ε, ε]
+        그다음 되비춘다: x^(0) = clip(x + δ^(0), [clip_min, clip_max])
         
-        Parameters:
+        매개변수:
         -----------
         images : torch.Tensor
-            Clean images
+            맑은 그림
         
-        Returns:
+        돌려주는 것:
         --------
         perturbed_images : torch.Tensor
-            Initialized adversarial images
+            첫자리를 잡은 맞서는 그림
         """
         if self.random_init:
-            # Random initialization within ε-ball
+            # ε 공 안의 아무 첫자리
             if self.norm == 'linf':
-                # Uniform random noise in [-ε, +ε]
-                # This explores the entire L∞ ball uniformly
+                # [-ε, +ε]의 고른 아무 잡음
+                # 이는 L∞ 공 전체를 고르게 둘러본다
                 delta = torch.empty_like(images).uniform_(-self.epsilon, self.epsilon)
             else:  # l2
-                # Random direction, then scale to random radius ≤ ε
+                # 아무 방향을 잡고 반지름 ≤ ε으로 아무렇게나 잣대를 잡는다
                 delta = torch.randn_like(images)
-                # Normalize to unit sphere
+                # 낱 공으로 잣대를 맞춘다
                 delta_norm = delta.view(len(delta), -1).norm(p=2, dim=1)
                 delta = delta / delta_norm.view(-1, 1, 1, 1)
-                # Scale to random radius in [0, ε]
+                # [0, ε]의 아무 반지름으로 잣대를 잡는다
                 random_radius = torch.rand(len(delta), device=images.device)
                 random_radius = random_radius * self.epsilon
                 delta = delta * random_radius.view(-1, 1, 1, 1)
             
-            # Apply perturbation and clip to valid range
+            # 흔듦을 걸고 옳은 자리로 잘라 낸다
             perturbed_images = images + delta
             perturbed_images = torch.clamp(perturbed_images, self.clip_min, self.clip_max)
         else:
-            # Start from clean images (zero perturbation)
+            # 맑은 그림에서 비롯한다(흔듦 없음)
             perturbed_images = images.clone()
         
         return perturbed_images
@@ -286,61 +286,61 @@ class PGD:
         original_images: torch.Tensor
     ) -> torch.Tensor:
         """
-        Project perturbed images back onto the ε-ball around original images.
+        흔든 그림을 본디 그림 둘레 ε 공으로 되비춘다.
         
-        This is the key operation that keeps perturbations bounded.
-        After taking a gradient step, we may have ||δ|| > ε, so we need
-        to project back to the feasible set.
+        이것이 흔듦을 마디 안에 붙잡아 두는 고갱이 셈이다.
+        기울기 한 걸음을 밟으면 ||δ|| > ε이 될 수 있으므로
+        될 수 있는 모임으로 되비춰야 한다.
         
-        L∞ Projection:
+        L∞ 되비춤:
         --------------
-        For each pixel i:
+        낱그림점 i마다:
             δ_i = clip(δ_i, -ε, +ε)
         
-        This is element-wise clipping to the box [-ε, +ε].
+        이는 [-ε, +ε] 상자로 낱낱이 잘라 내는 것이다.
         
-        L2 Projection:
+        L2 되비춤:
         --------------
-        If ||δ||_2 ≤ ε: no projection needed
-        Else: δ = ε · δ / ||δ||_2
+        ||δ||_2 ≤ ε이면 되비출 것이 없다
+        아니면: δ = ε · δ / ||δ||_2
         
-        This scales δ to have exactly norm ε, maintaining direction.
+        이는 방향은 지키면서 δ의 노름을 꼭 ε으로 맞춘다.
         
-        Parameters:
+        매개변수:
         -----------
         perturbed_images : torch.Tensor
-            Current adversarial images
+            이제의 맞서는 그림
         original_images : torch.Tensor
-            Original clean images
+            본디 맑은 그림
         
-        Returns:
+        돌려주는 것:
         --------
         projected_images : torch.Tensor
-            Images projected back to ε-ball
+            ε 공으로 되비춘 그림
         """
-        # Compute current perturbation
+        # 이제의 흔듦을 셈한다
         delta = perturbed_images - original_images
         
         if self.norm == 'linf':
-            # L∞ projection: clip each element to [-ε, +ε]
+            # L∞ 되비춤: 낱낱을 [-ε, +ε]으로 잘라 낸다
             delta = torch.clamp(delta, -self.epsilon, self.epsilon)
         else:  # l2
-            # L2 projection: scale to have norm ≤ ε
+            # L2 되비춤: 노름 ≤ ε이 되도록 잣대를 잡는다
             batch_size = len(delta)
-            # Compute L2 norm for each example
+            # 보기마다 L2 노름을 셈한다
             delta_norm = delta.view(batch_size, -1).norm(p=2, dim=1)
-            # Create mask for examples that exceed ε
+            # ε을 넘는 보기의 가리개를 만든다
             exceed_mask = delta_norm > self.epsilon
-            # Scale down perturbations that exceed ε
+            # ε을 넘는 흔듦을 줄인다
             if exceed_mask.any():
                 scale = self.epsilon / delta_norm[exceed_mask]
                 delta[exceed_mask] = delta[exceed_mask] * scale.view(-1, 1, 1, 1)
         
-        # Apply projected perturbation
+        # 되비춘 흔듦을 건다
         projected_images = original_images + delta
         
-        # Also clip to valid pixel range [clip_min, clip_max]
-        # This ensures images remain valid (e.g., in [0, 1])
+        # 옳은 낱그림점 자리 [clip_min, clip_max]으로도 잘라 낸다
+        # 이로써 그림이 옳게 남는다([0, 1] 따위)
         projected_images = torch.clamp(projected_images, self.clip_min, self.clip_max)
         
         return projected_images
@@ -354,115 +354,115 @@ class PGD:
         verbose: bool = False
     ) -> torch.Tensor:
         """
-        Generate adversarial examples using PGD.
+        PGD으로 맞서는 보기를 만든다.
         
-        This is the main PGD algorithm:
+        이것이 PGD의 으뜸 알고리즘이다:
         
-        Algorithm:
+        알고리즘:
         ----------
-        1. Initialize x^(0) (randomly or from x)
-        2. For t = 0 to T-1:
-             a. Compute loss L(θ, x^(t), y)
-             b. Compute gradient g = ∇_x L
-             c. Update: x^(t+1) = x^(t) + α · sign(g)  [for L∞]
-             d. Project: x^(t+1) = Π(x^(t+1))
-             e. Clip to valid range
-        3. Return x^(T)
+        1. x^(0)의 첫자리를 잡는다(아무렇게나 또는 x에서)
+        2. t = 0에서 T-1까지:
+             a. 잃음 L(θ, x^(t), y)을 셈한다
+             b. 기울기 g = ∇_x L을 셈한다
+             c. 고친다: x^(t+1) = x^(t) + α · sign(g)  [L∞에서]
+             d. 되비춘다: x^(t+1) = Π(x^(t+1))
+             e. 옳은 자리로 잘라 낸다
+        3. x^(T)을 돌려준다
         
-        The projection step (d) is crucial: it keeps perturbation within ε-ball.
+        되비추는 걸음 (d)이 종요롭다. 흔듦을 ε 공 안에 붙잡아 둔다.
         
-        Parameters:
+        매개변수:
         -----------
         images : torch.Tensor
-            Clean images
+            맑은 그림
         labels : torch.Tensor
-            True labels (or target labels for targeted attack)
-        targeted : bool, default=False
-            Whether to perform targeted attack
-        target_labels : torch.Tensor, optional
-            Target labels for targeted attack
-        verbose : bool, default=False
-            Print iteration progress
+            참 이름표(과녁 있는 치기에서는 과녁 이름표)
+        targeted : bool, 기본값=False
+            과녁 있는 치기를 할지
+        target_labels : torch.Tensor, 골라 씀
+            과녁 있는 치기의 과녁 이름표
+        verbose : bool, 기본값=False
+            되돌이가 나아가는 것을 찍는다
         
-        Returns:
+        돌려주는 것:
         --------
         adv_images : torch.Tensor
-            Adversarial images after PGD iterations
+            PGD 되돌이를 마친 맞서는 그림
         """
-        # Move to device
+        # 장치로 옮긴다
         images = images.to(self.device)
         labels = labels.to(self.device)
         
-        # Initialize adversarial images
+        # 맞서는 그림의 첫자리를 잡는다
         adv_images = self._initialize_perturbation(images)
         
-        # For targeted attack
+        # 과녁 있는 치기에서
         if targeted and target_labels is not None:
             target_labels = target_labels.to(self.device)
         
-        # Iterative attack
+        # 되돌이 치기
         iterator = range(self.num_iter)
         if verbose:
             iterator = tqdm(iterator, desc="PGD iterations")
         
         for i in iterator:
-            # Enable gradient tracking for adversarial images
+            # 맞서는 그림에 기울기 좇기를 켠다
             adv_images = adv_images.detach().clone()
             adv_images.requires_grad = True
             
-            # Forward pass
+            # 앞으로 걸음
             outputs = self.model(adv_images)
             
-            # Compute loss
+            # 잃음을 셈한다
             if targeted:
-                # For targeted attack: minimize loss w.r.t. target
+                # 과녁 있는 치기: 과녁에 대한 잃음을 가장 작게
                 loss = -self.loss_fn(outputs, target_labels)
             else:
-                # For untargeted attack: maximize loss w.r.t. true label
+                # 과녁 없는 치기: 참 이름표에 대한 잃음을 가장 크게
                 loss = self.loss_fn(outputs, labels)
             
-            # Backward pass
+            # 되돌아 걸음
             self.model.zero_grad()
             if adv_images.grad is not None:
                 adv_images.grad.zero_()
             loss.backward()
             
-            # Get gradient
+            # 기울기를 얻는다
             grad = adv_images.grad.data
             
-            # Gradient ascent step
+            # 기울기 오름 걸음
             if self.norm == 'linf':
-                # For L∞: take step in direction of sign of gradient
+                # L∞: 기울기 부호 방향으로 걷는다
                 # x^(t+1) = x^(t) + α · sign(∇L)
                 adv_images = adv_images + self.alpha * torch.sign(grad)
             else:  # l2
-                # For L2: take step in direction of normalized gradient
+                # L2: 잣대 맞춘 기울기 방향으로 걷는다
                 # x^(t+1) = x^(t) + α · ∇L / ||∇L||_2
                 grad_norm = grad.view(len(grad), -1).norm(p=2, dim=1)
-                # Avoid division by zero
+                # 0으로 나누기를 비껴간다
                 grad_norm = torch.clamp(grad_norm, min=1e-12)
                 normalized_grad = grad / grad_norm.view(-1, 1, 1, 1)
                 adv_images = adv_images + self.alpha * normalized_grad
             
-            # Project back to ε-ball around original images
+            # 본디 그림 둘레 ε 공으로 되비춘다
             adv_images = self._project(adv_images, images)
             
-            # Early stopping: if attack succeeds, no need to continue
+            # 일찍 멈추기: 치기가 먹히면 더 갈 것 없다
             if self.early_stop:
                 with torch.no_grad():
                     outputs = self.model(adv_images)
                     _, predicted = torch.max(outputs, 1)
                     if targeted:
-                        # For targeted: check if all examples reach target
+                        # 과녁 있음: 보기가 모두 과녁에 닿았는지 살핀다
                         if (predicted == target_labels).all():
                             if verbose:
-                                print(f"\nEarly stop at iteration {i+1}: all attacks succeeded")
+                                print(f"\n{i+1}번째 되돌이에서 일찍 멈춘다: 치기가 모두 먹혔다")
                             break
                     else:
-                        # For untargeted: check if all examples are misclassified
+                        # 과녁 없음: 보기가 모두 틀리게 갈렸는지 살핀다
                         if (predicted != labels).all():
                             if verbose:
-                                print(f"\nEarly stop at iteration {i+1}: all attacks succeeded")
+                                print(f"\n{i+1}번째 되돌이에서 일찍 멈춘다: 치기가 모두 먹혔다")
                             break
         
         return adv_images.detach()
@@ -477,45 +477,45 @@ class PGD:
         verbose: bool = False
     ) -> torch.Tensor:
         """
-        PGD with multiple random restarts.
+        아무렇게나 여러 번 다시 비롯하는 PGD.
         
-        Multiple random restarts make PGD even stronger by:
-        1. Trying different starting points in the ε-ball
-        2. Selecting the best adversarial example from all runs
-        3. Reducing sensitivity to initialization
+        여러 번 다시 비롯하면 PGD이 더 세진다:
+        1. ε 공 안의 여러 비롯 자리를 해 본다
+        2. 돌린 것 가운데 가장 좋은 맞서는 보기를 고른다
+        3. 첫자리에 덜 예민해진다
         
-        Algorithm:
+        알고리즘:
         ----------
-        For r = 1 to num_restarts:
-            x_adv^(r) = PGD(x, y) with random initialization
-        Return x_adv with highest loss (or best fooling)
+        r = 1에서 num_restarts까지:
+            아무 첫자리로 x_adv^(r) = PGD(x, y)
+        잃음이 가장 큰(가장 잘 속인) x_adv을 돌려준다
         
-        This is the strongest variant of PGD and is recommended for
-        robustness evaluation.
+        이것이 PGD의 가장 센 갈래이며 든든함을 따질 때
+        즐겨 쓴다.
         
-        Parameters:
+        매개변수:
         -----------
         images : torch.Tensor
-            Clean images
+            맑은 그림
         labels : torch.Tensor
-            True labels
-        num_restarts : int, default=5
-            Number of random restarts
-            More restarts = stronger but slower
-            Common values: 1 (no restart), 5 (standard), 10 (strong)
-        targeted : bool, default=False
-            Targeted attack flag
-        target_labels : torch.Tensor, optional
-            Target labels for targeted attack
-        verbose : bool, default=False
-            Print progress
+            참 이름표
+        num_restarts : int, 기본값=5
+            아무렇게나 다시 비롯하는 횟수
+            많을수록 세지고 느려진다
+            흔한 값: 1(다시 비롯 없음), 5(여느 것), 10(셈)
+        targeted : bool, 기본값=False
+            과녁 있는 치기 표시
+        target_labels : torch.Tensor, 골라 씀
+            과녁 있는 치기의 과녁 이름표
+        verbose : bool, 기본값=False
+            나아가는 것을 찍는다
         
-        Returns:
+        돌려주는 것:
         --------
         best_adv_images : torch.Tensor
-            Adversarial examples with highest loss from all restarts
+            다시 비롯한 것 가운데 잃음이 가장 큰 맞서는 보기
         """
-        # Ensure random initialization is enabled
+        # 아무 첫자리가 켜져 있는지 확인한다
         original_random_init = self.random_init
         self.random_init = True
         
@@ -524,14 +524,14 @@ class PGD:
         
         for restart in range(num_restarts):
             if verbose:
-                print(f"\nRestart {restart + 1}/{num_restarts}")
+                print(f"\n다시 비롯 {restart + 1}/{num_restarts}")
             
-            # Generate adversarial examples with this restart
+            # 이번 다시 비롯으로 맞서는 보기를 만든다
             adv_images = self.generate(
                 images, labels, targeted, target_labels, verbose=False
             )
             
-            # Compute loss for these adversarial examples
+            # 이 맞서는 보기의 잃음을 셈한다
             with torch.no_grad():
                 outputs = self.model(adv_images)
                 if targeted:
@@ -539,15 +539,15 @@ class PGD:
                 else:
                     loss = self.loss_fn(outputs, labels).item()
             
-            # Keep best adversarial examples (highest loss)
+            # 가장 좋은 맞서는 보기를 남긴다(잃음이 가장 큰 것)
             if best_loss is None or loss > best_loss:
                 best_loss = loss
                 best_adv_images = adv_images.clone()
             
             if verbose:
-                print(f"Loss: {loss:.4f} (best: {best_loss:.4f})")
+                print(f"잃음: {loss:.4f} (가장 좋음: {best_loss:.4f})")
         
-        # Restore original setting
+        # 본디 차림을 되돌린다
         self.random_init = original_random_init
         
         return best_adv_images
@@ -560,57 +560,57 @@ class PGD:
         verbose: bool = True
     ) -> Dict[str, float]:
         """
-        Comprehensive evaluation of PGD attack.
+        PGD 치기를 두루 따진다.
         
-        Computes various metrics to assess attack effectiveness:
-        - Clean accuracy
-        - Adversarial accuracy
-        - Attack success rate
-        - Perturbation statistics (L∞, L2, L1)
+        치기가 잘 먹히는지 재는 여러 자를 셈한다:
+        - 맑은 맞음
+        - 맞섬 맞음
+        - 치기 먹힘 비율
+        - 흔듦의 자(L∞, L2, L1)
         
-        Parameters:
+        매개변수:
         -----------
         clean_images : torch.Tensor
-            Original clean images
+            본디 맑은 그림
         labels : torch.Tensor
-            True labels
+            참 이름표
         adv_images : torch.Tensor
-            Adversarial images
-        verbose : bool, default=True
-            Print results
+            맞서는 그림
+        verbose : bool, 기본값=True
+            결과를 찍는다
         
-        Returns:
+        돌려주는 것:
         --------
         metrics : Dict[str, float]
-            Dictionary of evaluation metrics
+            따지는 자를 담은 사전
         """
         with torch.no_grad():
-            # Clean accuracy
+            # 맑은 맞음
             clean_outputs = self.model(clean_images.to(self.device))
             _, clean_pred = torch.max(clean_outputs, 1)
             clean_correct = (clean_pred == labels.to(self.device)).sum().item()
             clean_accuracy = clean_correct / len(labels)
             
-            # Adversarial accuracy
+            # 맞섬 맞음
             adv_outputs = self.model(adv_images.to(self.device))
             _, adv_pred = torch.max(adv_outputs, 1)
             adv_correct = (adv_pred == labels.to(self.device)).sum().item()
             adv_accuracy = adv_correct / len(labels)
             
-            # Attack success rate
+            # 치기 먹힘 비율
             success_rate = 1.0 - adv_accuracy
             
-            # Perturbation statistics
+            # 흔듦의 자
             perturbation = (adv_images - clean_images).cpu()
             
-            # L∞ norm (maximum absolute change)
+            # L∞ 노름(가장 큰 바뀜의 크기)
             linf_norm = torch.max(torch.abs(perturbation)).item()
             
-            # L2 norm (Euclidean distance)
+            # L2 노름(유클리드 거리)
             l2_norms = torch.norm(perturbation.view(len(perturbation), -1), p=2, dim=1)
             l2_norm = l2_norms.mean().item()
             
-            # L1 norm (sum of absolute values)
+            # L1 노름(크기의 합)
             l1_norms = torch.norm(perturbation.view(len(perturbation), -1), p=1, dim=1)
             l1_norm = l1_norms.mean().item()
         
@@ -625,21 +625,21 @@ class PGD:
         
         if verbose:
             print("=" * 60)
-            print("PGD Attack Evaluation Results")
+            print("PGD 치기 따짐 결과")
             print("=" * 60)
-            print(f"Configuration:")
-            print(f"  Epsilon: {self.epsilon}")
-            print(f"  Alpha: {self.alpha}")
-            print(f"  Iterations: {self.num_iter}")
-            print(f"  Norm: L{self.norm}")
-            print(f"\nResults:")
-            print(f"  Clean Accuracy: {clean_accuracy:.2%}")
-            print(f"  Adversarial Accuracy: {adv_accuracy:.2%}")
-            print(f"  Attack Success Rate: {success_rate:.2%}")
-            print(f"\nPerturbation Statistics:")
-            print(f"  Max L∞: {linf_norm:.6f}")
-            print(f"  Avg L2: {l2_norm:.6f}")
-            print(f"  Avg L1: {l1_norm:.6f}")
+            print(f"차림:")
+            print(f"  엡실론: {self.epsilon}")
+            print(f"  알파: {self.alpha}")
+            print(f"  되돌이: {self.num_iter}")
+            print(f"  노름: L{self.norm}")
+            print(f"\n결과:")
+            print(f"  맑은 맞음: {clean_accuracy:.2%}")
+            print(f"  맞섬 맞음: {adv_accuracy:.2%}")
+            print(f"  치기 먹힘 비율: {success_rate:.2%}")
+            print(f"\n흔듦의 자:")
+            print(f"  가장 큰 L∞: {linf_norm:.6f}")
+            print(f"  평균 L2: {l2_norm:.6f}")
+            print(f"  평균 L1: {l1_norm:.6f}")
             print("=" * 60)
         
         return metrics
@@ -654,33 +654,33 @@ def compare_fgsm_pgd(
     device: Optional[torch.device] = None
 ) -> Dict[int, Dict[str, float]]:
     """
-    Compare PGD with different numbers of iterations (including FGSM).
+    되돌이 횟수를 달리한 PGD을 견준다(FGSM을 아울러).
     
-    This function demonstrates how PGD strength increases with iterations:
-    - 1 iteration = FGSM (baseline)
-    - 10 iterations = fast PGD
-    - 40 iterations = standard PGD
-    - 100 iterations = strong PGD
+    이 함수는 되돌이가 늘수록 PGD이 세지는 것을 보여 준다:
+    - 되돌이 1 = FGSM(밑금)
+    - 되돌이 10 = 빠른 PGD
+    - 되돌이 40 = 여느 PGD
+    - 되돌이 100 = 센 PGD
     
-    Parameters:
+    매개변수:
     -----------
     model : nn.Module
-        Model to attack
+        칠 모형
     images : torch.Tensor
-        Clean images
+        맑은 그림
     labels : torch.Tensor
-        True labels
-    epsilon : float, default=0.03
-        Perturbation budget
-    num_iter_list : List[int], default=[1, 10, 40, 100]
-        List of iteration counts to try
-    device : torch.device, optional
-        Computation device
+        참 이름표
+    epsilon : float, 기본값=0.03
+        흔듦 예산
+    num_iter_list : List[int], 기본값=[1, 10, 40, 100]
+        해 볼 되돌이 횟수의 목록
+    device : torch.device, 골라 씀
+        셈할 장치
     
-    Returns:
+    돌려주는 것:
     --------
     results : Dict[int, Dict[str, float]]
-        Results for each iteration count
+        되돌이 횟수마다의 결과
     """
     if device is None:
         device = next(model.parameters()).device
@@ -689,10 +689,10 @@ def compare_fgsm_pgd(
     
     for num_iter in num_iter_list:
         print(f"\n{'='*60}")
-        print(f"Testing PGD with {num_iter} iteration(s)")
+        print(f"되돌이 {num_iter}번으로 PGD을 해 본다")
         print(f"{'='*60}")
         
-        # Create PGD attack
+        # PGD 치기를 만든다
         alpha = 2.5 * epsilon / num_iter if num_iter > 1 else epsilon
         attack = PGD(
             model=model,
@@ -703,18 +703,18 @@ def compare_fgsm_pgd(
             device=device
         )
         
-        # Generate adversarial examples
+        # 맞서는 보기를 만든다
         adv_images = attack.generate(images, labels)
         
-        # Evaluate
+        # 따진다
         metrics = attack.evaluate(clean_images=images, labels=labels, adv_images=adv_images)
         results[num_iter] = metrics
     
-    # Print comparison
+    # 견줌을 찍는다
     print(f"\n{'='*60}")
-    print("PGD Iteration Comparison")
+    print("PGD 되돌이 견주기")
     print(f"{'='*60}")
-    print(f"{'Iterations':<12} {'Success Rate':<15} {'Adv Accuracy':<15}")
+    print(f"{'되돌이':<12} {'먹힘 비율':<15} {'맞섬 맞음':<15}")
     print(f"{'-'*60}")
     for num_iter in num_iter_list:
         success = results[num_iter]['attack_success_rate']
@@ -725,77 +725,77 @@ def compare_fgsm_pgd(
     return results
 
 
-# Example usage
+# 쓰는 보기
 if __name__ == "__main__":
     """
-    Demonstration of PGD attack.
+    PGD 치기를 보여 준다.
     
-    This example shows:
-    1. Basic PGD attack
-    2. PGD with multiple restarts
-    3. Comparison with different iteration counts
+    이 보기는 다음을 보인다:
+    1. 밑바탕 PGD 치기
+    2. 여러 번 다시 비롯하는 PGD
+    3. 되돌이 횟수를 달리한 견줌
     """
     print("=" * 70)
-    print("PGD Attack Demonstration")
+    print("PGD 치기 보여 주기")
     print("=" * 70)
-    print("\nThis script demonstrates the Projected Gradient Descent (PGD)")
-    print("attack, a strong iterative adversarial attack.")
-    print("\nNote: This requires utils.py for data loading and model utilities.")
+    print("\n이 글은 센 되돌이 맞서는 치기인 되비춘 기울기 내림(PGD)")
+    print("치기를 보여 준다.")
+    print("\n붙임말: 자료 얹기와 모형 잔손질에 utils.py이 있어야 한다.")
     print("=" * 70)```
 
-## Discussion
+## 논의
 
-The loss computation connects the model's outputs to the optimization objective. Choosing the appropriate loss function is critical because it defines what the model learns to optimize, directly shaping the learned representations and decision boundaries.
+잃음 셈하기는 모형의 날임을 다듬는 목표에 이어 준다. 알맞은 잃음 함수를 고르는 일이 종요로운 까닭은, 그것이 모형이 무엇을 다듬도록 배울지를 정하여 배운 드러냄과 판단의 금을 곧바로 빚기 때문이다.
 
-Visualization plays an important role in understanding model behavior and diagnosing training issues. The plotting code provides insight into the learned representations, convergence dynamics, or evaluation metrics, making abstract computations tangible.
+그려 보기는 모형의 결을 알아보고 익힘의 탈을 짚어내는 데 큰 몫을 한다. 그리는 코드는 배운 드러냄, 모여 가는 결, 따지는 자를 들여다보게 하여 어림잡기 어려운 셈을 손에 잡히게 한다.
 
-The patterns demonstrated here extend naturally to more complex scenarios. Experimenting with hyperparameters, architectural variations, and different datasets deepens understanding and builds practical intuition for model security tasks.
+여기서 보인 결은 더 얽힌 자리로도 자연스레 넓어진다. 하이퍼파라미터, 얼개의 갈래, 다른 자료 꾸러미로 해 보면 앎이 깊어지고 모형 지킴 일에 손에 잡히는 느낌이 붙는다.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Read through the code and identify the key design decisions. List three specific implementation choices and explain why each is appropriate for adversarial robustness.
+**익힘 1.**
+코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 맞섬에 든든하기에 알맞은지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Design decisions vary by implementation but commonly include: (1) choice of activation functions -- ReLU variants provide non-saturating gradients for faster training; (2) normalization strategy -- batch normalization stabilizes training by reducing internal covariate shift; (3) residual connections -- when present, they enable gradient flow in deep networks by providing skip paths. Each choice reflects a trade-off between expressiveness, computational cost, and training stability.
-
----
-
-**Exercise 2.**
-Add input validation to the main function or class to check that inputs have the expected shape and dtype. Raise informative error messages for invalid inputs.
-
-??? success "Solution to Exercise 2"
-    At the start of the `forward` method (or relevant function), add checks like: `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'` and `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. For shape validation, check critical dimensions: `B, C, H, W = x.shape; assert C == self.expected_channels`. Informative error messages significantly speed up debugging and make the code more robust for reuse.
+??? success "익힘 1 풀이"
+    설계 판단은 짜보기마다 다르나 흔히 이런 것이 있다. (1) 살림 함수 고르기 -- ReLU 갈래는 기울기가 잦아들지 않아 익히기가 빠르다. (2) 고르게 하는 꾀 -- 묶음 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 익힘을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 그물에서 기울기가 흐르게 한다. 고른 것마다 나타내는 힘, 셈 값, 익힘의 든든함 사이의 맞바꿈을 드러낸다.
 
 ---
 
-**Exercise 3.**
-Describe two potential failure modes of this implementation and explain how you would diagnose and fix each one.
+**익힘 2.**
+들임의 꼴과 자료 갈래가 바라는 대로인지 살피는 들임 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 들임에는 알아듣기 쉬운 어긋남 알림을 띄워라.
 
-??? success "Solution to Exercise 3"
-    Common failure modes include: (1) **Vanishing/exploding gradients** -- diagnosed by monitoring gradient norms (`torch.nn.utils.clip_grad_norm_` or logging `param.grad.norm()` per layer). Fix with gradient clipping, better initialization (Xavier/Kaiming), or architectural changes (residual connections, normalization). (2) **Overfitting** -- diagnosed when training loss decreases but validation loss increases. Fix with regularization (dropout, weight decay, data augmentation) or reducing model capacity. Always monitor both training and validation metrics to catch these issues early.
+??? success "익힘 2 풀이"
+    `forward` 방법(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 꼴을 살피려면 종요로운 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 벌레잡기를 크게 앞당기고 코드를 되쓰기 든든하게 한다.
 
 ---
 
-**Exercise 4.**
-Write a comprehensive test function that validates the PGD Attack implementation. Test edge cases including empty inputs, single-element inputs, very large inputs, and inputs with extreme values (zeros, very large numbers).
+**익힘 3.**
+이 짜보기가 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
-??? success "Solution to Exercise 4"
-    Create a test function that exercises boundary conditions:
+??? success "익힘 3 풀이"
+    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 얼개 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 살핌 잃음이 오르면 짚어낸다. 정칙화(드롭아웃, 짐 줄이기, 자료 늘리기)나 모형 크기 줄이기로 고친다. 익힘과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+
+---
+
+**익힘 4.**
+PGD 치기 짜보기를 살피는 두루 갖춘 시험 함수를 써라. 빈 들임, 원소 하나짜리 들임, 아주 큰 들임, 그리고 끝자락 값(0, 아주 큰 수)이 든 들임 같은 가장자리 자리를 시험하여라.
+
+??? success "익힘 4 풀이"
+    금 언저리 조건을 두루 건드리는 시험 함수를 짓는다.
     ```python
     def test_pgd():
         model = PGD(...)
-        # Normal input
+        # 여느 들임
         assert model(normal_input).shape == expected_shape
-        # Single element batch
+        # 원소 하나짜리 묶음
         assert model(single_input).shape == (1, ...)
-        # Large values (check for overflow)
+        # 큰 값(넘침을 살핀다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # Gradient flow
+        # 기울기 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    Testing gradient flow is especially important to ensure the architecture supports end-to-end training.
+    얼개가 끝에서 끝까지 익히기를 받치는지 알려면 기울기 흐름을 시험하는 것이 특히 중요하다.
