@@ -1,102 +1,102 @@
-# Memory Allocation
+# 기억 자리 내주기
 
-An operating system must manage a pool of physical memory, allocating and freeing blocks of varying sizes as processes request and release memory. The **memory allocation** problem is to satisfy allocation requests quickly while minimizing wasted space (fragmentation). Different algorithms trade off speed, fragmentation, and implementation complexity.
+운영 얼개는 몸으로 있는 기억 못을 다루면서, 흐름이 기억을 달라거나 놓아줄 때마다 크기가 갖가지인 덩이를 내주고 거두어야 한다. **기억 자리 내주기** 문제는 자리를 달라는 요청을 빨리 채우면서도 버려지는 자리(부스러짐)를 가장 적게 하는 것이다. 알고리즘마다 빠르기, 부스러짐, 짜기의 까다로움을 맞바꾼다.
 
-## The Allocation Problem
+## 자리 내주기 문제
 
-Given a contiguous memory region of $N$ bytes and a sequence of allocation requests (of size $s_i$) and free operations, find a free block of at least $s_i$ bytes for each request.
+잇닿은 기억 밭 $N$바이트와, 크기 $s_i$짜리 자리를 달라는 요청과 놓아주는 연산의 열이 주어졌을 때, 요청마다 적어도 $s_i$바이트인 빈 덩이를 찾아라.
 
-Two types of fragmentation arise:
+부스러짐은 두 갈래다.
 
-- **External fragmentation**: Free memory is scattered in small blocks, so a large request cannot be satisfied even though total free memory is sufficient.
-- **Internal fragmentation**: An allocated block is larger than requested; the excess is wasted.
+- **바깥 부스러짐**: 빈 기억이 작은 덩이로 흩어져, 온 빈 기억은 넉넉한데도 큰 요청을 채우지 못한다.
+- **안 부스러짐**: 내준 덩이가 달라던 것보다 커서 남는 만큼이 버려진다.
 
-## First-Fit
+## 첫 맞음
 
-Scan the free list from the beginning and allocate the **first** block large enough:
-
-$$
-T_{\text{alloc}} = O(n), \quad T_{\text{free}} = O(n)
-$$
-
-where $n$ is the number of free blocks. First-fit tends to fragment the beginning of memory, but is fast in practice because it stops at the first match.
-
-## Best-Fit
-
-Scan the entire free list and choose the **smallest** block that satisfies the request:
+빈 목록을 앞에서부터 훑어 넉넉히 큰 **첫** 덩이를 내준다.
 
 $$
-T_{\text{alloc}} = O(n), \quad T_{\text{free}} = O(n)
+T_{\text{내주기}} = O(n), \quad T_{\text{놓아주기}} = O(n)
 $$
 
-Best-fit minimizes immediate waste but tends to create many tiny leftover fragments that are too small to be useful.
+여기서 $n$은 빈 덩이의 수다. 첫 맞음은 기억의 앞머리를 부스러뜨리기 쉬우나, 첫 맞는 것에서 멈추므로 참으로는 빠르다.
 
-## Worst-Fit
+## 가장 알맞은 맞음
 
-Choose the **largest** free block, leaving a large remainder that may still be usable:
-
-$$
-T_{\text{alloc}} = O(n), \quad T_{\text{free}} = O(n)
-$$
-
-In practice, worst-fit performs poorly because it rapidly exhausts large blocks.
-
-## Buddy System
-
-The **buddy system** constrains all block sizes to powers of two, enabling $O(\log N)$ allocation and coalescing.
-
-To allocate $s$ bytes:
-
-1. Round $s$ up to the next power of two: $2^k$ where $k = \lceil \log_2 s \rceil$.
-2. If a free block of size $2^k$ exists, allocate it.
-3. Otherwise, find the smallest free block of size $2^j > 2^k$, and recursively split it in half until a block of size $2^k$ is obtained.
-
-To free a block of size $2^k$ at address $a$:
-
-1. Compute the buddy address: $a \oplus 2^k$ (XOR flips the $k$-th bit).
-2. If the buddy is free, merge them into a block of size $2^{k+1}$ and repeat.
+빈 목록을 통째로 훑어 요청을 채우는 **가장 작은** 덩이를 고른다.
 
 $$
-T_{\text{alloc}} = O(\log N), \quad T_{\text{free}} = O(\log N)
+T_{\text{내주기}} = O(n), \quad T_{\text{놓아주기}} = O(n)
 $$
 
-!!! warning "Internal fragmentation in buddy systems"
-    A request for $2^k + 1$ bytes wastes nearly half the allocated block ($2^{k+1}$ bytes). The worst-case internal fragmentation is approximately 50%.
+가장 알맞은 맞음은 그때그때 버려지는 자리를 가장 작게 하지만, 너무 작아 쓸모없는 부스러기를 많이 남기기 쉽다.
 
-## Comparison
+## 가장 큰 맞음
 
-| Algorithm | Alloc Time | Free Time | External Frag. | Internal Frag. |
+**가장 큰** 빈 덩이를 골라 아직 쓸 만한 큰 나머지를 남긴다.
+
+$$
+T_{\text{내주기}} = O(n), \quad T_{\text{놓아주기}} = O(n)
+$$
+
+참으로는 큰 덩이를 금세 다 써 버리므로 잘 돌지 않는다.
+
+## 짝꿍 얼개
+
+**짝꿍 얼개**는 모든 덩이 크기를 2의 거듭제곱으로 묶어 $O(\log N)$의 자리 내주기와 아우르기를 이룬다.
+
+$s$바이트를 내주려면
+
+1. $s$을 다음 2의 거듭제곱으로 올린다. $k = \lceil \log_2 s \rceil$일 때 $2^k$이다.
+2. 크기 $2^k$인 빈 덩이가 있으면 그것을 내준다.
+3. 없으면 크기 $2^j > 2^k$인 가장 작은 빈 덩이를 찾아, 크기 $2^k$짜리가 나올 때까지 되돌이로 반씩 쪼갠다.
+
+주소 $a$에 있는 크기 $2^k$짜리 덩이를 놓아주려면
+
+1. 짝꿍의 주소 $a \oplus 2^k$을 셈한다(XOR이 $k$째 비트를 뒤집는다).
+2. 짝꿍이 비어 있으면 둘을 크기 $2^{k+1}$인 덩이로 아우르고 되풀이한다.
+
+$$
+T_{\text{내주기}} = O(\log N), \quad T_{\text{놓아주기}} = O(\log N)
+$$
+
+!!! warning "짝꿍 얼개의 안 부스러짐"
+    $2^k + 1$바이트를 달라면 내준 덩이($2^{k+1}$바이트)의 거의 반이 버려진다. 가장 나쁠 때 안 부스러짐이 50% 남짓이다.
+
+## 견주기
+
+| 알고리즘 | 내주는 때 | 놓아주는 때 | 바깥 부스러짐 | 안 부스러짐 |
 |---|---|---|---|---|
-| First-fit | $O(n)$ | $O(n)$ | Moderate | Low |
-| Best-fit | $O(n)$ | $O(n)$ | High (tiny fragments) | Minimal |
-| Worst-fit | $O(n)$ | $O(n)$ | High | Moderate |
-| Buddy system | $O(\log N)$ | $O(\log N)$ | Low | Up to 50% |
+| 첫 맞음 | $O(n)$ | $O(n)$ | 가운데 | 적음 |
+| 가장 알맞은 맞음 | $O(n)$ | $O(n)$ | 많음(잔 부스러기) | 아주 적음 |
+| 가장 큰 맞음 | $O(n)$ | $O(n)$ | 많음 | 가운데 |
+| 짝꿍 얼개 | $O(\log N)$ | $O(\log N)$ | 적음 | 50%까지 |
 
-## Implementation
+## 짜보기
 
 ```python
 """
-Memory Allocation -- first-fit, best-fit, and buddy system.
+기억 자리 내주기 -- 첫 맞음, 가장 알맞은 맞음, 짝꿍 얼개.
 
-Simulates three allocation strategies on a contiguous memory pool
-and reports fragmentation after a sequence of allocations and frees.
+잇닿은 기억 못에서 자리 내주기 꾀 셋을 흉내내고, 내주기와
+놓아주기를 잇달아 한 뒤의 부스러짐을 알린다.
 """
 
 from __future__ import annotations
 
 
-# === First-Fit Allocator ======================================================
+# === 첫 맞음 내주개 =========================================================
 
 class FirstFitAllocator:
-    """Allocate using the first sufficiently large free block."""
+    """넉넉히 큰 첫 빈 덩이를 내준다."""
 
     def __init__(self, size: int):
         self.size = size
-        self.free_blocks: list[tuple[int, int]] = [(0, size)]  # (start, size)
-        self.allocated: dict[int, int] = {}  # start -> size
+        self.free_blocks: list[tuple[int, int]] = [(0, size)]  # (첫 자리, 크기)
+        self.allocated: dict[int, int] = {}  # 첫 자리 -> 크기
 
     def alloc(self, request: int) -> int | None:
-        """Allocate *request* bytes. Returns start address or None."""
+        """*request*바이트를 내준다. 첫 주소나 None을 내놓는다."""
         for i, (start, bsize) in enumerate(self.free_blocks):
             if bsize >= request:
                 self.allocated[start] = request
@@ -108,7 +108,7 @@ class FirstFitAllocator:
         return None
 
     def free(self, addr: int) -> None:
-        """Free the block at *addr*."""
+        """*addr*에 있는 덩이를 놓아준다."""
         size = self.allocated.pop(addr)
         self.free_blocks.append((addr, size))
         self.free_blocks.sort()
@@ -124,33 +124,33 @@ class FirstFitAllocator:
         self.free_blocks = merged
 
     def fragmentation(self) -> int:
-        """Number of free fragments."""
+        """빈 부스러기의 수."""
         return len(self.free_blocks)
 
 
-# === Buddy System =============================================================
+# === 짝꿍 얼개 ==============================================================
 
 class BuddyAllocator:
-    """Power-of-two buddy system allocator."""
+    """2의 거듭제곱을 쓰는 짝꿍 얼개 내주개."""
 
     def __init__(self, total_size: int):
         self.total_order = total_size.bit_length() - 1
         if (1 << self.total_order) < total_size:
             self.total_order += 1
         self.total_size = 1 << self.total_order
-        # free_lists[k] = set of free block start addresses of size 2^k
+        # free_lists[k] = 크기 2^k인 빈 덩이의 첫 주소 모임
         self.free_lists: list[set[int]] = [set() for _ in range(self.total_order + 1)]
         self.free_lists[self.total_order].add(0)
-        self.allocated: dict[int, int] = {}  # start -> order
+        self.allocated: dict[int, int] = {}  # 첫 자리 -> 차수
 
     def alloc(self, request: int) -> int | None:
-        """Allocate at least *request* bytes. Returns start address."""
+        """적어도 *request*바이트를 내준다. 첫 주소를 내놓는다."""
         order = max(0, (request - 1).bit_length())
-        # Find smallest available block >= 2^order
+        # 2^order 이상인 가장 작은 빈 덩이를 찾는다
         for k in range(order, self.total_order + 1):
             if self.free_lists[k]:
                 addr = self.free_lists[k].pop()
-                # Split down to target order
+                # 바라는 차수까지 쪼갠다
                 while k > order:
                     k -= 1
                     buddy = addr + (1 << k)
@@ -160,7 +160,7 @@ class BuddyAllocator:
         return None
 
     def free(self, addr: int) -> None:
-        """Free the block at *addr* and coalesce with buddy if possible."""
+        """*addr*의 덩이를 놓아주고 될 수 있으면 짝꿍과 아우른다."""
         order = self.allocated.pop(addr)
         while order < self.total_order:
             buddy = addr ^ (1 << order)
@@ -173,90 +173,90 @@ class BuddyAllocator:
         self.free_lists[order].add(addr)
 
 
-# === Main =====================================================================
+# === 메인 ===================================================================
 
 if __name__ == "__main__":
-    print("First-Fit Allocator (1024 bytes):")
+    print("첫 맞음 내주개(1024바이트):")
     ff = FirstFitAllocator(1024)
     a1 = ff.alloc(200)
     a2 = ff.alloc(300)
     a3 = ff.alloc(100)
-    print(f"  Allocated: {a1}, {a2}, {a3}")
-    ff.free(a2)  # free middle block
-    print(f"  After freeing {a2}: {ff.fragmentation()} free fragments")
+    print(f"  내줌: {a1}, {a2}, {a3}")
+    ff.free(a2)  # 가운데 덩이를 놓아준다
+    print(f"  {a2}을 놓아준 뒤: 빈 부스러기 {ff.fragmentation()}개")
     a4 = ff.alloc(250)
-    print(f"  Alloc 250 -> {a4} (reuses freed block)")
+    print(f"  250 내주기 -> {a4} (놓아준 덩이를 되쓴다)")
 
-    print("\nBuddy Allocator (1024 bytes):")
+    print("\n짝꿍 내주개(1024바이트):")
     buddy = BuddyAllocator(1024)
-    b1 = buddy.alloc(100)  # gets 128
-    b2 = buddy.alloc(200)  # gets 256
-    b3 = buddy.alloc(50)   # gets 64
-    print(f"  Allocated: {b1} (128B), {b2} (256B), {b3} (64B)")
+    b1 = buddy.alloc(100)  # 128을 받는다
+    b2 = buddy.alloc(200)  # 256을 받는다
+    b3 = buddy.alloc(50)   # 64를 받는다
+    print(f"  내줌: {b1} (128B), {b2} (256B), {b3} (64B)")
     buddy.free(b1)
     buddy.free(b3)
-    print(f"  Freed {b1} and {b3}")
-    b4 = buddy.alloc(60)   # gets 64
-    print(f"  Alloc 60 -> {b4} (gets 64B block)")
+    print(f"  {b1}과 {b3}을 놓아줌")
+    b4 = buddy.alloc(60)   # 64를 받는다
+    print(f"  60 내주기 -> {b4} (64B 덩이를 받는다)")
 ```
 
-**Output:**
+**내놓기:**
 
 ```
-First-Fit Allocator (1024 bytes):
-  Allocated: 0, 200, 500
-  After freeing 200: 2 free fragments
-  Alloc 250 -> 200 (reuses freed block)
+첫 맞음 내주개(1024바이트):
+  내줌: 0, 200, 500
+  200을 놓아준 뒤: 빈 부스러기 2개
+  250 내주기 -> 200 (놓아준 덩이를 되쓴다)
 
-Buddy Allocator (1024 bytes):
-  Allocated: 0 (128B), 256 (256B), 128 (64B)
-  Freed 0 and 128
-  Alloc 60 -> 0 (gets 64B block)
+짝꿍 내주개(1024바이트):
+  내줌: 0 (128B), 256 (256B), 128 (64B)
+  0과 128을 놓아줌
+  60 내주기 -> 0 (64B 덩이를 받는다)
 ```
 
-First-fit reuses the freed middle block for the next allocation. The buddy system demonstrates power-of-two splitting and coalescing, with the XOR-based buddy computation enabling efficient merge operations.
+첫 맞음은 놓아준 가운데 덩이를 다음 내주기에 되쓴다. 짝꿍 얼개는 2의 거듭제곱으로 쪼개고 아우르는 결을 보여 주며, XOR로 짝꿍을 셈하는 덕에 아우르기가 잘 든다.
 
-## Reference
+## 살펴볼 거리
 
 - Knuth, D.E. *The Art of Computer Programming, Vol. 1: Fundamental Algorithms*. Addison-Wesley
 - Silberschatz, A., Galvin, P.B., and Gagne, G. *Operating System Concepts*. Wiley
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare first-fit, best-fit, and worst-fit allocation strategies. Which minimizes external fragmentation in practice?
+**익힘 1.**
+첫 맞음, 가장 알맞은 맞음, 가장 큰 맞음 자리 내주기 꾀를 견주어라. 참으로 바깥 부스러짐을 가장 적게 하는 것은 어느 것인가?
 
-??? success "Solution to Exercise 1"
-    **First-fit**: scan the free list from the start, allocate the first block that is large enough. Fast ($O(n)$ worst case, often $O(1)$ with a sorted list). Tends to fragment the beginning of memory. **Best-fit**: search for the smallest block that fits. Minimizes wasted space per allocation but creates many tiny unusable fragments. Slow ($O(n)$ without optimization). **Worst-fit**: allocate the largest available block. The leftover fragment is larger and potentially reusable. But it quickly consumes large blocks needed for big allocations. In practice, first-fit minimizes fragmentation best: it is fast, produces moderate-sized fragments, and performs well across diverse workloads. Best-fit creates too many tiny fragments; worst-fit wastes large blocks. Knuth's simulations confirmed first-fit's superiority for general workloads. $\square$
-
----
-
-**Exercise 2.**
-Explain the buddy system for memory allocation. What are its time complexity and fragmentation characteristics?
-
-??? success "Solution to Exercise 2"
-    The buddy system divides memory into blocks of sizes $2^k$. To allocate a request of size $s$: find the smallest $k$ such that $2^k \ge s$. If no free block of size $2^k$ exists, split a larger block ($2^{k+1}$) into two "buddies" of size $2^k$. On deallocation, if a block's buddy is also free, merge them into a $2^{k+1}$ block (recursively). Time complexity: allocation and deallocation are $O(\log n)$ where $n$ is the total memory size (at most $\log_2 n$ levels of splitting/merging). Fragmentation: internal fragmentation can be up to 50% (a request for $2^k + 1$ bytes wastes nearly half of a $2^{k+1}$ block). External fragmentation is limited because merging consolidates adjacent free blocks. The buddy system is used in the Linux kernel's page allocator. $\square$
+??? success "익힘 1 풀이"
+    **첫 맞음**: 빈 목록을 앞에서부터 훑어 넉넉히 큰 첫 덩이를 내준다. 빠르다(가장 나쁠 때 $O(n)$이고 줄 세운 목록이면 흔히 $O(1)$). 기억의 앞머리를 부스러뜨리기 쉽다. **가장 알맞은 맞음**: 들어맞는 가장 작은 덩이를 찾는다. 내주기마다 버려지는 자리는 가장 적으나 쓸 수 없는 잔 부스러기를 많이 남긴다. 다듬지 않으면 느리다($O(n)$). **가장 큰 맞음**: 있는 것 가운데 가장 큰 덩이를 내준다. 남는 부스러기가 커서 되쓸 만하다. 그러나 큰 내주기에 있어야 할 큰 덩이를 금세 다 써 버린다. 참으로는 첫 맞음이 부스러짐을 가장 잘 다스린다. 빠르고, 알맞은 크기의 부스러기를 남기며, 갖가지 일감에서 두루 잘 돈다. 가장 알맞은 맞음은 잔 부스러기를 너무 많이 만들고, 가장 큰 맞음은 큰 덩이를 버린다. 크누스의 흉내내기가 두루 쓰는 일감에서 첫 맞음이 낫다는 것을 밝혔다. $\square$
 
 ---
 
-**Exercise 3.**
-A process requests blocks of sizes 100, 250, 50, 300, 200, 150 from a 1000-byte heap. Show the state of the free list after each allocation using first-fit, and identify when fragmentation prevents allocation despite sufficient total free space.
+**익힘 2.**
+기억 자리 내주기의 짝꿍 얼개를 밝혀라. 때 복잡도와 부스러짐 결은 어떠한가?
 
-??? success "Solution to Exercise 3"
-    Initial free list: [0-999] (1000 bytes). Alloc 100: [100-999] free. Alloc 250: [350-999] free. Alloc 50: [400-999] free. Alloc 300: [700-999] free (300 bytes left). Alloc 200: [900-999] free (100 bytes left). Alloc 150: fails! Only 100 bytes free, need 150. Total allocated: 100+250+50+300+200 = 900 bytes. Total free: 100 bytes. No fragmentation issue here -- simply not enough total free space. Now consider: free the 250-byte block (positions 100-349). Free list: [100-349] (250), [900-999] (100). Total free: 350 bytes. Alloc 300: 300 fits in [100-349]. Success. But if we had freed the 100-byte block instead: free list: [0-99] (100), [900-999] (100). Total free: 200 bytes. Alloc 150: fails despite 200 bytes free -- external fragmentation. $\square$
-
----
-
-**Exercise 4.**
-Describe slab allocation (used in the Linux kernel). Why is it more efficient than general-purpose allocation for kernel objects?
-
-??? success "Solution to Exercise 4"
-    The kernel frequently allocates and frees objects of fixed sizes (inodes, task structs, socket buffers). A slab allocator pre-allocates pages ("slabs") divided into fixed-size slots matching specific object types. Each object type has a cache of pre-initialized slabs. Allocation: take a free slot from the cache ($O(1)$). Deallocation: return the slot ($O(1)$). Advantages over general-purpose allocators: (1) **Zero fragmentation** for the target object size (all slots are exactly the right size). (2) **Constructor reuse**: freed objects retain partial initialization, so re-allocation skips expensive setup. (3) **Cache locality**: objects of the same type are packed into contiguous pages, improving CPU cache hit rates. (4) **No search overhead**: free slots are tracked per-cache, not in a global free list. The tradeoff: memory used by inactive caches is not available for other purposes until the cache is shrunk. $\square$
+??? success "익힘 2 풀이"
+    짝꿍 얼개는 기억을 크기 $2^k$인 덩이로 나눈다. 크기 $s$짜리 요청을 내주려면 $2^k \ge s$인 가장 작은 $k$을 찾는다. 크기 $2^k$인 빈 덩이가 없으면 더 큰 덩이($2^{k+1}$)를 크기 $2^k$인 "짝꿍" 둘로 쪼갠다. 거두어들일 때 어떤 덩이의 짝꿍도 비어 있으면 둘을 $2^{k+1}$짜리 덩이로 아우른다(되돌이로). 때 복잡도는 내주기와 거두기가 $O(\log n)$이고 $n$은 온 기억 크기다(쪼개거나 아우르는 켜가 많아야 $\log_2 n$). 부스러짐은 이렇다. 안 부스러짐이 50%까지 갈 수 있다($2^k + 1$바이트를 달라면 $2^{k+1}$ 덩이의 거의 반이 버려진다). 아우르기가 이웃한 빈 덩이를 뭉치므로 바깥 부스러짐은 크지 않다. 리눅스 낟알의 쪽 내주개가 짝꿍 얼개를 쓴다. $\square$
 
 ---
 
-**Exercise 5.**
-Explain how `malloc` in glibc manages memory using arenas, bins, and mmap. Why does it use different strategies for small and large allocations?
+**익힘 3.**
+어떤 흐름이 1000바이트짜리 더미에서 크기 100, 250, 50, 300, 200, 150인 덩이를 달라 한다. 첫 맞음으로 내줄 때마다 빈 목록의 모습을 보이고, 온 빈 자리는 넉넉한데도 부스러짐 때문에 내주지 못하는 자리를 짚어라.
 
-??? success "Solution to Exercise 5"
-    glibc `malloc` (ptmalloc2) uses: (1) **Arenas**: each thread has a preferred arena (a separate heap region) to reduce lock contention in multithreaded programs. (2) **Bins**: free chunks are organized by size into bins. Small bins (exact sizes up to 512 bytes) use doubly-linked lists. Large bins (512+ bytes) use sorted lists with best-fit search. Fast bins cache recently freed small chunks for immediate reuse without coalescing. (3) **mmap**: allocations above a threshold (default 128 KB) use `mmap` to obtain memory directly from the OS, bypassing the heap entirely. Freed mmap'd regions are returned to the OS immediately. Small allocations use bins because they are frequent and must be fast; pooling avoids system call overhead. Large allocations use mmap because they are rare, and returning memory to the OS prevents long-lived large blocks from fragmenting the heap. The dual strategy optimizes both throughput (small allocations) and memory efficiency (large allocations). $\square$
+??? success "익힘 3 풀이"
+    처음 빈 목록: [0-999](1000바이트). 100 내주기: [100-999]이 빈다. 250 내주기: [350-999]이 빈다. 50 내주기: [400-999]이 빈다. 300 내주기: [700-999]이 빈다(300바이트 남음). 200 내주기: [900-999]이 빈다(100바이트 남음). 150 내주기: 무너진다! 빈 것이 100바이트뿐인데 150이 있어야 한다. 내준 것은 모두 100+250+50+300+200 = 900바이트, 빈 것은 100바이트다. 여기서는 부스러짐 탓이 아니라 그저 온 빈 자리가 모자란 것이다. 이제 250바이트 덩이(자리 100-349)를 놓아준다고 하자. 빈 목록은 [100-349](250), [900-999](100)이고 온 빈 자리는 350바이트다. 300 내주기: 300이 [100-349]에 들어가 된다. 그런데 그 대신 100바이트 덩이를 놓아주었다면 빈 목록이 [0-99](100), [900-999](100)이고 온 빈 자리는 200바이트다. 150 내주기: 200바이트가 비어 있는데도 무너진다. 바깥 부스러짐이다. $\square$
+
+---
+
+**익힘 4.**
+(리눅스 낟알이 쓰는) 판 자리 내주기를 밝혀라. 낟알 물체에는 왜 두루 쓰는 자리 내주기보다 잘 드는가?
+
+??? success "익힘 4 풀이"
+    낟알은 크기가 붙박인 물체(inode, task struct, 소켓 버퍼)를 자주 내주고 거둔다. 판 내주개는 쪽("판")을 미리 잡아 두고 특정 물체 갈래에 맞는 붙박이 크기의 자리로 나눈다. 물체 갈래마다 미리 첫자리를 잡은 판의 캐시를 지닌다. 내주기는 캐시에서 빈 자리를 집어 오면 되고($O(1)$), 거두기는 그 자리를 되돌리면 된다($O(1)$). 두루 쓰는 내주개보다 나은 점은 이렇다. (1) 겨눈 물체 크기에 **부스러짐이 없다**(모든 자리가 꼭 알맞은 크기다). (2) **세우기 되쓰기**: 거둔 물체가 첫자리 잡은 것을 얼마쯤 지니고 있어, 다시 내줄 때 비싼 차림을 건너뛴다. (3) **캐시 지역성**: 같은 갈래의 물체가 잇닿은 쪽에 빽빽이 담겨 CPU 캐시 맞음률이 오른다. (4) **찾는 짐이 없다**: 빈 자리를 온 세상 빈 목록이 아니라 캐시마다 좇는다. 맞바꿈은 놀고 있는 캐시가 쓰는 기억을 캐시를 줄이기 전까지 다른 데 쓸 수 없다는 것이다. $\square$
+
+---
+
+**익힘 5.**
+glibc의 `malloc`이 마당, 통, mmap으로 기억을 어떻게 다루는지 밝혀라. 작은 내주기와 큰 내주기에 왜 다른 꾀를 쓰는가?
+
+??? success "익힘 5 풀이"
+    glibc `malloc`(ptmalloc2)은 이렇게 한다. (1) **마당**: 실마다 즐겨 쓰는 마당(따로 떨어진 더미 밭)을 두어 여러 실이 도는 프로그램에서 빗장 다툼을 줄인다. (2) **통**: 빈 토막을 크기에 따라 통에 갈라 담는다. 작은 통(512바이트까지의 꼭 맞는 크기)은 두 갈래 이음 목록을 쓴다. 큰 통(512바이트 넘음)은 줄 세운 목록에 가장 알맞은 맞음으로 찾는다. 빠른 통은 방금 거둔 작은 토막을 아우르지 않고 갈무리해 곧바로 되쓴다. (3) **mmap**: 문턱(맡긴 값 128 KB)을 넘는 내주기는 `mmap`으로 운영 얼개에서 곧바로 기억을 얻어 더미를 아예 지나친다. 거둔 mmap 밭은 곧바로 운영 얼개에 되돌린다. 작은 내주기는 잦고 빨라야 하므로 통을 쓰며, 못에 담아 두어 얼개 부름의 짐을 던다. 큰 내주기는 드물고, 기억을 운영 얼개에 되돌리면 오래 사는 큰 덩이가 더미를 부스러뜨리는 것을 막으므로 mmap을 쓴다. 이 두 갈래 꾀가 나름(작은 내주기)과 기억 살림(큰 내주기)을 함께 다듬는다. $\square$

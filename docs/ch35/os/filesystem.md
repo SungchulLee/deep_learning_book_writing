@@ -1,70 +1,70 @@
-# File System Trees
+# 두루마리 얼개 나무
 
-Operating systems organize files on disk using tree-structured data to balance two competing demands: fast lookup by name (directory traversal) and efficient sequential access to file contents (block allocation). The choice of data structure determines how quickly files can be created, opened, and extended, especially as the file system scales to millions of entries.
+운영 얼개는 서로 다투는 두 바람, 곧 이름으로 빨리 찾기(목록 훑기)와 두루마리 속살에 차례대로 잘 닿기(덩이 내주기)를 저울질하려고 원반의 두루마리를 나무 꼴 자료로 갈무리한다. 어떤 자료 얼개를 고르느냐가 두루마리를 짓고 열고 늘리는 빠르기를 가르며, 두루마리 얼개가 항목 수백만 개로 커질수록 더 그렇다.
 
-## Directory Trees
+## 목록 나무
 
-A file system directory maps names to file metadata (inodes). The simplest directory is a linear list of (name, inode) pairs, but lookups take $O(n)$ time. Modern file systems use tree structures:
+두루마리 얼개의 목록은 이름을 두루마리 딸림 자료(inode)에 이어 준다. 가장 단순한 목록은 (이름, inode) 짝을 줄지어 놓은 것이나, 찾기에 $O(n)$이 든다. 요즘 두루마리 얼개는 나무 얼개를 쓴다.
 
-- **B-trees / B+ trees**: ext4, NTFS, and HFS+ store directory entries in balanced B+ trees keyed by filename hash or name. Lookup, insert, and delete take $O(\log_B n)$ disk I/Os where $B$ is the branching factor (typically hundreds).
-- **Hash trees (HTree)**: ext3/ext4 use hash-based directory indexing with a B-tree structure, achieving $O(1)$ expected lookup for typical directories.
+- **B 나무 / B+ 나무**: ext4, NTFS, HFS+은 목록 항목을 두루마리 이름의 해시나 이름을 열쇠로 삼는 고른 B+ 나무에 갈무리한다. 찾기, 넣기, 지우기에 $O(\log_B n)$번의 원반 들고남이 들고 $B$은 갈래 수(흔히 수백)다.
+- **해시 나무(HTree)**: ext3/ext4은 B 나무 얼개에 해시 바탕 목록 색인을 쓰며, 흔한 목록에서 어림 $O(1)$ 찾기를 이룬다.
 
-For a B+ tree with branching factor $B$ and $n$ entries:
-
-$$
-\text{I/O per lookup} = O(\log_B n)
-$$
-
-With $B = 256$ and $n = 10^6$ entries, this is about $\log_{256}(10^6) \approx 2.5$ disk reads -- effectively constant.
-
-## Inode Structure
-
-An **inode** stores file metadata and block pointers:
-
-- **Direct pointers**: $d$ pointers to data blocks (typically $d = 12$).
-- **Single indirect**: pointer to a block of $B$ pointers.
-- **Double indirect**: pointer to a block of $B$ pointers, each pointing to a block of $B$ pointers.
-- **Triple indirect**: one more level of indirection.
-
-Maximum file size with block size $b$ and $B = b / \text{pointer\_size}$ pointers per block:
+갈래 수가 $B$이고 항목이 $n$개인 B+ 나무에서
 
 $$
-\text{max size} = (d + B + B^2 + B^3) \times b
+\text{찾기마다의 들고남} = O(\log_B n)
 $$
 
-With $b = 4\text{KB}$, $d = 12$, $B = 1024$: max size $\approx 4\text{TB}$.
+$B = 256$이고 항목이 $n = 10^6$개면 $\log_{256}(10^6) \approx 2.5$번의 원반 읽기이니 사실상 붙박이다.
 
-## Extent-Based Allocation
+## inode 얼개
 
-Modern file systems (ext4, XFS, NTFS) replace per-block pointers with **extents** -- contiguous ranges described by (start\_block, length) pairs. An extent tree (B+ tree of extents) supports:
+**inode**은 두루마리 딸림 자료와 덩이 손가락질을 담는다.
+
+- **곧은 손가락질**: 자료 덩이를 가리키는 손가락질 $d$개(흔히 $d = 12$).
+- **한 겹 건넘**: 손가락질 $B$개를 담은 덩이를 가리키는 손가락질.
+- **두 겹 건넘**: 손가락질 $B$개를 담은 덩이를 가리키고, 그 하나하나가 다시 손가락질 $B$개를 담은 덩이를 가리킨다.
+- **세 겹 건넘**: 한 켜를 더 건넌다.
+
+덩이 크기가 $b$이고 덩이마다 손가락질이 $B = b / \text{손가락질 크기}$개일 때 가장 큰 두루마리 크기는
 
 $$
-\text{I/O per random read} = O(\log_B E)
+\text{가장 큰 크기} = (d + B + B^2 + B^3) \times b
 $$
 
-where $E$ is the number of extents. For mostly sequential files, $E$ is small (often 1), making access nearly $O(1)$.
+$b = 4\text{KB}$, $d = 12$, $B = 1024$이면 가장 큰 크기가 $\approx 4\text{TB}$이다.
 
-!!! tip "B-trees and disk I/O"
-    B-trees are the natural choice for disk-based data structures because their high branching factor ($B = 100$--$1000$) matches the disk block size, minimizing the number of I/O operations. A tree with branching factor 256 and height 3 can index billions of entries.
+## 뻗음 바탕 내주기
 
-## Implementation
+요즘 두루마리 얼개(ext4, XFS, NTFS)는 덩이마다의 손가락질을 **뻗음**으로 갈음한다. 뻗음은 (첫 덩이, 길이) 짝으로 적은 잇닿은 너비다. 뻗음 나무(뻗음의 B+ 나무)는 다음을 받친다.
+
+$$
+\text{아무 데나 읽기마다의 들고남} = O(\log_B E)
+$$
+
+여기서 $E$은 뻗음의 수다. 거의 차례대로 놓인 두루마리는 $E$이 작으므로(흔히 1) 닿기가 거의 $O(1)$이다.
+
+!!! tip "B 나무와 원반 들고남"
+    B 나무는 갈래 수가 커서($B = 100$~$1000$) 원반 덩이 크기에 잘 맞고 들고남 횟수를 가장 작게 하므로, 원반 바탕 자료 얼개에 저절로 고르게 된다. 갈래 수가 256이고 높이가 3인 나무가 수십억 항목을 색인한다.
+
+## 짜보기
 
 ```python
 """
-File System Trees -- inode block lookup and B+ tree directory.
+두루마리 얼개 나무 -- inode 덩이 찾기와 B+ 나무 목록.
 
-Demonstrates how multi-level inode indirection and B+ tree
-directory indexing work for file systems.
+두루마리 얼개에서 여러 켜 inode 건넘과 B+ 나무 목록 색인이
+어떻게 도는지 보인다.
 """
 
 from __future__ import annotations
 import math
 
 
-# === Inode Block Lookup =======================================================
+# === inode 덩이 찾기 ========================================================
 
 class InodeCalculator:
-    """Calculate which block pointer to follow for a given file offset."""
+    """주어진 두루마리 자리에 어느 덩이 손가락질을 따라갈지 셈한다."""
 
     def __init__(self, block_size: int = 4096, pointer_size: int = 4,
                  direct_count: int = 12):
@@ -77,65 +77,65 @@ class InodeCalculator:
         self.triple_max = self.double_max + B * B * B
 
     def max_file_size(self) -> int:
-        """Maximum file size in bytes."""
+        """가장 큰 두루마리 크기(바이트)."""
         return self.triple_max * self.block_size
 
     def lookup_depth(self, block_number: int) -> str:
-        """Determine the indirection level for a logical block number."""
+        """속뜻 덩이 번호의 건넘 켜를 가려낸다."""
         if block_number < self.direct:
-            return "direct"
+            return "곧은 손가락질"
         elif block_number < self.single_max:
-            return "single indirect"
+            return "한 겹 건넘"
         elif block_number < self.double_max:
-            return "double indirect"
+            return "두 겹 건넘"
         elif block_number < self.triple_max:
-            return "triple indirect"
+            return "세 겹 건넘"
         else:
-            return "beyond max file size"
+            return "가장 큰 두루마리 크기를 넘음"
 
 
-# === Simple B+ Tree Directory =================================================
+# === 단순한 B+ 나무 목록 ====================================================
 
 class BPlusDirectory:
-    """Simplified B+ tree directory index (in-memory simulation)."""
+    """단순하게 줄인 B+ 나무 목록 색인(기억 안 흉내내기)."""
 
     def __init__(self, order: int = 4):
         self.order = order
-        self.entries: dict[str, int] = {}  # name -> inode
+        self.entries: dict[str, int] = {}  # 이름 -> inode
 
     def insert(self, name: str, inode: int) -> None:
-        """Add a directory entry."""
+        """목록 항목을 넣는다."""
         self.entries[name] = inode
 
     def lookup(self, name: str) -> int | None:
-        """Look up an inode by filename."""
+        """두루마리 이름으로 inode을 찾는다."""
         return self.entries.get(name)
 
     def list_entries(self) -> list[tuple[str, int]]:
-        """List all entries sorted by name."""
+        """모든 항목을 이름으로 줄 세워 내놓는다."""
         return sorted(self.entries.items())
 
     def io_cost(self, n: int) -> float:
-        """Estimated disk I/Os for lookup in a B+ tree with n entries."""
+        """항목이 n개인 B+ 나무에서 찾기에 드는 어림 원반 들고남."""
         if n <= 1:
             return 1.0
         return math.ceil(math.log(n) / math.log(self.order))
 
 
-# === Main =====================================================================
+# === 메인 ===================================================================
 
 if __name__ == "__main__":
-    # Inode structure analysis
+    # inode 얼개 살피기
     inode = InodeCalculator()
-    print("Inode structure (4KB blocks, 4-byte pointers):")
-    print(f"  Pointers per block: {inode.pointers_per_block}")
-    print(f"  Max file size: {inode.max_file_size() / (1024**4):.1f} TB")
+    print("inode 얼개(4KB 덩이, 4바이트 손가락질):")
+    print(f"  덩이마다의 손가락질: {inode.pointers_per_block}")
+    print(f"  가장 큰 두루마리 크기: {inode.max_file_size() / (1024**4):.1f} TB")
 
     for block in [0, 11, 12, 1035, 1036, 100000]:
-        print(f"  Block {block:>7}: {inode.lookup_depth(block)}")
+        print(f"  덩이 {block:>7}: {inode.lookup_depth(block)}")
 
-    # Directory B+ tree
-    print("\nB+ tree directory (order=256):")
+    # 목록 B+ 나무
+    print("\nB+ 나무 목록(차수=256):")
     directory = BPlusDirectory(order=256)
     for i, name in enumerate(["readme.txt", "main.py", "data.csv", "config.yml"]):
         directory.insert(name, inode=100 + i)
@@ -146,75 +146,75 @@ if __name__ == "__main__":
 
     for n in [100, 10_000, 1_000_000, 1_000_000_000]:
         ios = directory.io_cost(n)
-        print(f"  {n:>13,} entries -> ~{ios:.0f} disk I/Os")
+        print(f"  항목 {n:>13,}개 -> 원반 들고남 ~{ios:.0f}번")
 ```
 
-**Output:**
+**내놓기:**
 
 ```
-Inode structure (4KB blocks, 4-byte pointers):
-  Pointers per block: 1024
-  Max file size: 4.0 TB
+inode 얼개(4KB 덩이, 4바이트 손가락질):
+  덩이마다의 손가락질: 1024
+  가장 큰 두루마리 크기: 4.0 TB
 
-  Block       0: direct
-  Block      11: direct
-  Block      12: single indirect
-  Block    1035: single indirect
-  Block    1036: double indirect
-  Block  100000: double indirect
+  덩이       0: 곧은 손가락질
+  덩이      11: 곧은 손가락질
+  덩이      12: 한 겹 건넘
+  덩이    1035: 한 겹 건넘
+  덩이    1036: 두 겹 건넘
+  덩이  100000: 두 겹 건넘
 
-B+ tree directory (order=256):
+B+ 나무 목록(차수=256):
   lookup('main.py'): inode=101
   lookup('missing.txt'): inode=None
-            100 entries -> ~1 disk I/Os
-         10,000 entries -> ~2 disk I/Os
-      1,000,000 entries -> ~3 disk I/Os
-  1,000,000,000 entries -> ~4 disk I/Os
+  항목           100개 -> 원반 들고남 ~1번
+  항목        10,000개 -> 원반 들고남 ~2번
+  항목     1,000,000개 -> 원반 들고남 ~3번
+  항목 1,000,000,000개 -> 원반 들고남 ~4번
 ```
 
-The inode analysis shows how different block numbers map to indirection levels. The B+ tree directory demonstrates that even a billion entries require only about 4 disk reads -- the power of high-branching-factor trees for disk-based indexing.
+inode 살핌은 덩이 번호마다 어느 건넘 켜에 놓이는지를 보여 준다. B+ 나무 목록은 항목이 십억 개여도 원반 읽기가 네 번쯤이면 된다는 것을 보여 준다. 갈래 수가 큰 나무가 원반 바탕 색인에서 지니는 힘이다.
 
-## Reference
+## 살펴볼 거리
 
 - Silberschatz, A., Galvin, P.B., and Gagne, G. *Operating System Concepts*. Wiley
 - Cormen, T.H., Leiserson, C.E., Rivest, R.L., and Stein, C. *Introduction to Algorithms*. MIT Press
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare inode-based file systems (ext4) with B-tree-based file systems (Btrfs) for directory lookup performance on a directory with 1 million files.
+**익힘 1.**
+두루마리 100만 개가 든 목록에서 찾기 빠르기를 두고 inode 바탕 두루마리 얼개(ext4)와 B 나무 바탕 두루마리 얼개(Btrfs)를 견주어라.
 
-??? success "Solution to Exercise 1"
-    **ext4 with htree**: directories use a hash tree (B-tree variant) indexed by filename hash. Lookup: hash the filename, traverse the htree in $O(\log n)$ I/Os where $n$ is the number of entries. For 1 million files, the htree has $\sim$3 levels, so lookup takes $\sim$3 disk reads. **Btrfs**: directories are stored as items in the global B-tree, keyed by (directory inode, hash(filename)). Lookup: one B-tree search in $O(\log N)$ where $N$ is the total number of items in the filesystem. For a typical Btrfs tree with branching factor $\sim$100 and millions of items, this is $\sim$3--4 levels. Performance is similar for single lookups. Btrfs has an advantage for operations spanning multiple directories (copy-on-write snapshots, atomic renames across directories) because everything is in one B-tree. ext4 is simpler and has lower per-I/O overhead. $\square$
-
----
-
-**Exercise 2.**
-Explain how ext4's extent tree replaces the traditional indirect block scheme. What are the performance benefits for large files?
-
-??? success "Solution to Exercise 2"
-    Traditional indirect blocks: a file's inode has 12 direct pointers, plus single/double/triple indirect block pointers. For a 1 GB file with 4 KB blocks, $\sim$256K block addresses must be stored across many indirect blocks, requiring multiple I/Os to traverse. Ext4's extent tree: each extent records (logical block, physical start block, length). A contiguous 1 GB file needs just one extent: (0, physical_start, 262144). The inode holds up to 4 extents directly; more extents use a B-tree of extent nodes. Benefits: (1) a contiguous file needs 1 extent vs. 256K block pointers -- dramatically less metadata; (2) sequential reads can issue large I/O requests (the OS knows the file is contiguous); (3) the extent tree is shallow (3--4 levels covers petabytes). For fragmented files, extent trees degrade but are still better than indirect blocks because each extent covers multiple blocks. $\square$
+??? success "익힘 1 풀이"
+    **htree을 쓰는 ext4**: 목록이 두루마리 이름의 해시로 색인한 해시 나무(B 나무의 한 갈래)를 쓴다. 찾기는 두루마리 이름을 해시하고 htree을 $O(\log n)$번의 들고남으로 훑는 것이며 $n$은 항목의 수다. 두루마리 100만 개면 htree이 $\sim$3켜이므로 찾기에 원반 읽기가 $\sim$3번 든다. **Btrfs**: 목록이 (목록 inode, 해시(두루마리 이름))을 열쇠로 삼아 온 세상 B 나무의 항목으로 갈무리된다. 찾기는 B 나무 찾기 한 번이고 $O(\log N)$이며 $N$은 두루마리 얼개의 온 항목 수다. 갈래 수가 $\sim$100이고 항목이 수백만 개인 흔한 Btrfs 나무면 $\sim$3~4켜다. 한 번 찾는 빠르기는 비슷하다. Btrfs는 모든 것이 나무 하나에 있으므로 여러 목록에 걸친 일(베껴 쓰기 찍기, 목록을 넘나드는 쪼갤 수 없는 이름 바꾸기)에서 낫다. ext4은 더 단순하고 들고남마다의 짐이 적다. $\square$
 
 ---
 
-**Exercise 3.**
-A file system must support $O(1)$ time allocation of a free disk block. Describe how a bitmap-based free space manager achieves this and analyze the space overhead.
+**익힘 2.**
+ext4의 뻗음 나무가 여느 건넘 덩이 얼개를 어떻게 갈음하는지 밝혀라. 큰 두루마리에서 무엇이 빨라지는가?
 
-??? success "Solution to Exercise 3"
-    A bitmap allocates one bit per disk block: 1 = used, 0 = free. For a 1 TB disk with 4 KB blocks: $1 \text{ TB} / 4 \text{ KB} = 2.5 \times 10^8$ blocks, requiring $2.5 \times 10^8$ bits $= 31.25$ MB for the bitmap. Space overhead: $31.25 / (10^6) \approx 0.003\%$. For $O(1)$ allocation: maintain a "hint" pointer to the last allocated position. Search forward from the hint for a 0 bit. On average, the search scans $1/(1-\alpha)$ bits where $\alpha$ is the utilization. At 90% full, this is 10 bits -- effectively $O(1)$. For guaranteed $O(1)$: maintain a free-block stack or linked list. Bitmaps are preferred because they support contiguous allocation (find $k$ consecutive 0 bits for extent allocation) and are compact. $\square$
-
----
-
-**Exercise 4.**
-Explain journaling in file systems (ext4, NTFS). How does it prevent corruption after a crash, and what is the performance cost?
-
-??? success "Solution to Exercise 4"
-    Without journaling, a crash during a multi-step file operation (e.g., creating a file requires updating the directory, inode table, and data blocks) can leave the file system in an inconsistent state. Journaling writes a **log** of pending changes before applying them to the main file system. On crash recovery, the journal is replayed: committed transactions are applied, and uncommitted ones are discarded. Three modes: (1) **Full journal**: logs both metadata and data. Safest but slowest (data written twice). (2) **Ordered journal** (ext4 default): logs metadata only but ensures data blocks are written before the metadata journal entry is committed. Good balance. (3) **Writeback journal**: logs metadata only with no ordering guarantee. Fastest but data may be lost on crash. Performance cost: journal writes are sequential (fast), but they add I/O overhead. For metadata-only journaling, the cost is $\sim$5--10% of write throughput. Full journaling costs $\sim$30--50% due to double-writing all data. $\square$
+??? success "익힘 2 풀이"
+    여느 건넘 덩이: 두루마리의 inode에 곧은 손가락질 12개와 한 겹/두 겹/세 겹 건넘 덩이 손가락질이 있다. 4 KB 덩이를 쓰는 1 GB 두루마리면 덩이 주소 $\sim$26만 개를 여러 건넘 덩이에 걸쳐 갈무리해야 하고 훑는 데 들고남이 여러 번 든다. ext4의 뻗음 나무: 뻗음마다 (속뜻 덩이, 몸 첫 덩이, 길이)를 적는다. 잇닿은 1 GB 두루마리는 뻗음 하나 (0, 몸_첫_덩이, 262144)면 된다. inode이 뻗음 4개까지 곧바로 담고, 그보다 많으면 뻗음 마디의 B 나무를 쓴다. 나은 점은 이렇다. (1) 잇닿은 두루마리에 덩이 손가락질 26만 개가 아니라 뻗음 하나면 되니 딸림 자료가 확 준다. (2) 차례로 읽을 때 큰 들고남 요청을 걸 수 있다(운영 얼개가 두루마리가 잇닿았음을 안다). (3) 뻗음 나무가 얕다(3~4켜로 페타바이트를 덮는다). 부스러진 두루마리에서는 뻗음 나무가 나빠지지만, 뻗음마다 여러 덩이를 덮으므로 건넘 덩이보다는 여전히 낫다. $\square$
 
 ---
 
-**Exercise 5.**
-A log-structured file system (LFS) converts all writes to sequential appends. Explain the write path, the garbage collection challenge, and why LFS is well-suited for SSDs.
+**익힘 3.**
+어떤 두루마리 얼개가 빈 원반 덩이를 $O(1)$ 때에 내주어야 한다. 비트 그림 바탕 빈자리 다룸꾼이 이를 어떻게 이루는지 밝히고 자리 짐을 따져라.
 
-??? success "Solution to Exercise 5"
-    **Write path**: all modifications (data and metadata) are buffered in memory and periodically written as a contiguous segment to the end of the log. The segment contains data blocks, inode updates, and a segment summary. An inode map (also stored in the log) tracks the latest location of each inode. Writes are always sequential -- never in-place. **Garbage collection**: as files are updated, old versions of blocks become dead (orphaned in earlier segments). A cleaner process identifies segments with many dead blocks, copies the live blocks to the current segment, and frees the old segment. This adds write amplification. **SSD suitability**: SSDs cannot overwrite -- they must erase blocks before rewriting. LFS's append-only pattern aligns with this constraint, avoiding the costly erase-before-write cycle. LFS also distributes writes evenly (wear leveling). The garbage collector's segment cleaning mirrors SSD firmware's own garbage collection, potentially reducing redundant work. $\square$
+??? success "익힘 3 풀이"
+    비트 그림은 원반 덩이마다 비트 하나를 둔다. 1은 씀, 0은 빔이다. 4 KB 덩이를 쓰는 1 TB 원반이면 $1 \text{ TB} / 4 \text{ KB} = 2.5 \times 10^8$개의 덩이이므로 비트 그림에 $2.5 \times 10^8$비트 $= 31.25$ MB이 든다. 자리 짐은 $31.25 / (10^6) \approx 0.003\%$이다. $O(1)$ 내주기를 하려면 마지막으로 내준 자리를 가리키는 "귀띔" 손가락질을 지닌다. 귀띔에서 앞으로 나아가며 0 비트를 찾는다. 고르게 보아 $1/(1-\alpha)$비트를 훑고 $\alpha$은 씀씀이다. 90% 찼으면 10비트이니 사실상 $O(1)$이다. 보장된 $O(1)$을 바라면 빈 덩이 쌓개나 이음 목록을 지닌다. 그래도 비트 그림을 즐겨 쓰는 것은 잇닿은 내주기를 받치고(뻗음 내주기에 쓸 잇닿은 0 비트 $k$개를 찾는다) 자리를 적게 쓰기 때문이다. $\square$
+
+---
+
+**익힘 4.**
+두루마리 얼개(ext4, NTFS)의 적바림하기를 밝혀라. 무너진 뒤 망가짐을 어떻게 막으며 빠르기로 치르는 값은 무엇인가?
+
+??? success "익힘 4 풀이"
+    적바림이 없으면 여러 걸음짜리 두루마리 일(보기로 두루마리를 지으려면 목록, inode 표, 자료 덩이를 모두 고쳐야 한다) 도중에 무너질 때 두루마리 얼개가 어긋난 채로 남는다. 적바림하기는 바뀔 것을 으뜸 두루마리 얼개에 걸기 앞서 **기록**에 적는다. 무너짐에서 되살릴 때 적바림을 되돌린다. 맺은 거래는 걸고 맺지 못한 것은 버린다. 세 결이 있다. (1) **온 적바림**: 딸림 자료와 자료를 다 적는다. 가장 든든하나 가장 느리다(자료를 두 번 쓴다). (2) **차례 지킨 적바림**(ext4의 맡긴 값): 딸림 자료만 적되 딸림 자료 적바림을 맺기 앞서 자료 덩이가 먼저 쓰이게 한다. 저울이 잘 맞는다. (3) **되쓰기 적바림**: 딸림 자료만 적고 차례를 보장하지 않는다. 가장 빠르나 무너지면 자료를 잃을 수 있다. 빠르기로 치르는 값은 이렇다. 적바림 쓰기는 차례대로여서 빠르지만 들고남 짐이 붙는다. 딸림 자료만 적바림하면 쓰기 나름의 $\sim$5~10%다. 온 적바림은 자료를 모두 두 번 쓰므로 $\sim$30~50%다. $\square$
+
+---
+
+**익힘 5.**
+기록 꼴 두루마리 얼개(LFS)는 모든 쓰기를 차례대로 덧붙이는 것으로 바꾼다. 쓰는 길, 쓰레기 거두기의 걸림돌, 그리고 LFS가 SSD에 잘 맞는 까닭을 밝혀라.
+
+??? success "익힘 5 풀이"
+    **쓰는 길**: 모든 고침(자료와 딸림 자료)을 기억에 담아 두었다가 이따금 기록의 끝에 잇닿은 토막으로 쓴다. 토막에는 자료 덩이, inode 고침, 토막 간추림이 든다. (역시 기록에 갈무리하는) inode 그림이 inode마다의 가장 새 자리를 좇는다. 쓰기는 늘 차례대로이고 제자리에 덮어쓰는 일이 없다. **쓰레기 거두기**: 두루마리가 고쳐지면서 덩이의 옛 갈래가 죽는다(앞선 토막에 버려진 채 남는다). 치우는 흐름이 죽은 덩이가 많은 토막을 찾아 살아 있는 덩이를 지금 토막으로 옮기고 옛 토막을 놓아준다. 여기서 적기 부풀림이 붙는다. **SSD에 맞음**: SSD는 덮어쓸 수 없고 다시 쓰기 앞서 덩이를 지워야 한다. LFS의 덧붙이기만 하는 결이 이 매임에 잘 맞아 쓰기 앞서 지우는 비싼 돌이를 피한다. LFS는 쓰기를 고루 흩기도 한다(닳음 고르기). 치우개의 토막 치우기가 SSD 펌웨어 제 쓰레기 거두기와 겹치므로 겹치는 품을 줄일 낌새도 있다. $\square$

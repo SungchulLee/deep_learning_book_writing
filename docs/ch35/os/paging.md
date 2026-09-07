@@ -1,90 +1,90 @@
-# Page Replacement
+# 쪽 갈아 끼우기
 
-Virtual memory allows processes to use more memory than is physically available by storing inactive pages on disk. When a process accesses a page not in physical memory (a **page fault**), the operating system must choose a page to evict. The **page replacement algorithm** determines which page to remove, directly affecting the number of page faults and overall system performance.
+헛 기억은 놀고 있는 쪽을 원반에 갈무리해 몸으로 있는 것보다 많은 기억을 흐름이 쓰게 해 준다. 흐름이 몸 기억에 없는 쪽에 닿으면(**쪽 빗나감**) 운영 얼개가 내보낼 쪽을 골라야 한다. **쪽 갈아 끼우기 알고리즘**이 어느 쪽을 뺄지 정하며, 이것이 쪽 빗나감의 횟수와 얼개 전체의 빠르기를 곧바로 가른다.
 
-## Problem Formulation
+## 문제 세우기
 
-A cache holds $k$ pages. A sequence of page requests $r_1, r_2, \ldots, r_n$ arrives online. On a **cache hit**, the page is already in memory and access is immediate. On a **cache miss** (page fault), one of the $k$ cached pages must be evicted to make room. The goal is to minimize the total number of page faults.
+캐시가 쪽 $k$개를 담는다. 쪽 요청 열 $r_1, r_2, \ldots, r_n$이 미리 알 수 없이 들어온다. **캐시 맞음**이면 쪽이 이미 기억에 있어 곧바로 닿는다. **캐시 빗나감**(쪽 빗나감)이면 자리를 내려고 캐시에 든 쪽 $k$개 가운데 하나를 내보내야 한다. 온 쪽 빗나감의 횟수를 가장 작게 하는 것이 뜻이다.
 
-## Optimal (OPT / Belady's Algorithm)
+## 가장 좋은 것(OPT / 벨레이디 알고리즘)
 
-The offline optimal strategy evicts the page that will not be used for the **longest time in the future**:
-
-$$
-\text{evict} = \arg\max_{p \in \text{cache}} \text{next\_use}(p)
-$$
-
-OPT achieves the minimum possible number of faults but requires knowledge of the future request sequence. It serves as a benchmark for evaluating online algorithms.
-
-## FIFO (First-In First-Out)
-
-Evict the page that has been in the cache the **longest** (oldest arrival). Implemented with a simple queue.
-
-- **Advantage**: $O(1)$ per operation.
-- **Disadvantage**: Suffers from **Belady's anomaly** -- increasing cache size can sometimes increase the fault rate.
-
-## LRU (Least Recently Used)
-
-Evict the page that was accessed **least recently**:
+미리 아는 가장 좋은 꾀는 **앞으로 가장 오래도록** 쓰이지 않을 쪽을 내보낸다.
 
 $$
-\text{evict} = \arg\min_{p \in \text{cache}} \text{last\_access}(p)
+\text{내보냄} = \arg\max_{p \in \text{캐시}} \text{다음 쓰임}(p)
 $$
 
-LRU is widely used because it approximates OPT under temporal locality. Its **competitive ratio** (worst-case ratio of faults to OPT) is:
+OPT은 있을 수 있는 가장 적은 빗나감을 이루지만 앞으로 올 요청 열을 알아야 한다. 미리 알 수 없는 알고리즘을 재는 밑금 노릇을 한다.
+
+## FIFO(먼저 든 것이 먼저 나감)
+
+캐시에 **가장 오래** 있던 쪽(가장 먼저 온 것)을 내보낸다. 단순한 줄로 짠다.
+
+- **나은 점**: 연산마다 $O(1)$.
+- **나쁜 점**: **벨레이디의 얄궂음**을 겪는다. 캐시를 키웠는데 오히려 빗나감률이 오르기도 한다.
+
+## LRU(가장 오래 안 쓴)
+
+**가장 오래도록** 닿지 않은 쪽을 내보낸다.
+
+$$
+\text{내보냄} = \arg\min_{p \in \text{캐시}} \text{마지막 닿음}(p)
+$$
+
+때 지역성이 있으면 LRU가 OPT에 가깝게 가므로 널리 쓴다. 그 **겨룸 비**(가장 나쁠 때 빗나감이 OPT의 몇 곱절인가)는 다음과 같다.
 
 $$
 c_{\text{LRU}} = k
 $$
 
-where $k$ is the cache size. This is tight: no deterministic online algorithm can achieve a competitive ratio better than $k$.
+여기서 $k$은 캐시 크기다. 이는 빈틈이 없다. 미리 알 수 없는 붙박이 알고리즘 가운데 겨룸 비가 $k$보다 나은 것은 없다.
 
-## Clock Algorithm
+## 시계 알고리즘
 
-The **Clock** (or second-chance) algorithm approximates LRU with $O(1)$ per operation:
+**시계**(또는 두 번째 틈) 알고리즘은 연산마다 $O(1)$으로 LRU에 가깝게 간다.
 
-1. Pages are arranged in a circular buffer with a "clock hand."
-2. Each page has a **reference bit**, set to 1 on access.
-3. On a fault, advance the clock hand:
-   - If the current page's reference bit is 1, set it to 0 and advance.
-   - If the reference bit is 0, evict this page.
+1. 쪽을 "시계 바늘"이 있는 고리 버퍼에 늘어놓는다.
+2. 쪽마다 **닿음 비트**를 두고 닿을 때 1로 놓는다.
+3. 빗나가면 시계 바늘을 민다.
+   - 지금 쪽의 닿음 비트가 1이면 0으로 놓고 민다.
+   - 닿음 비트가 0이면 이 쪽을 내보낸다.
 
-Clock avoids the overhead of maintaining a full access-time ordering while capturing recency information through the reference bits.
+시계는 닿음 비트로 얼마나 최근인지를 담아내면서도 닿은 때를 온전히 차례 매기는 짐을 지지 않는다.
 
-## Comparison
+## 견주기
 
-| Algorithm | Per-Fault Time | Competitive Ratio | Belady's Anomaly |
+| 알고리즘 | 빗나감마다의 때 | 겨룸 비 | 벨레이디의 얄궂음 |
 |---|---|---|---|
-| OPT | $O(n)$ (lookahead) | 1 (optimal) | No |
-| LRU | $O(1)$ amortized | $k$ | No |
-| FIFO | $O(1)$ | $k$ | Yes |
-| Clock | $O(1)$ amortized | $k$ | No |
+| OPT | $O(n)$(앞을 봄) | 1(가장 좋음) | 없음 |
+| LRU | 고른 $O(1)$ | $k$ | 없음 |
+| FIFO | $O(1)$ | $k$ | 있음 |
+| 시계 | 고른 $O(1)$ | $k$ | 없음 |
 
-## Implementation
+## 짜보기
 
 ```python
 """
-Page Replacement -- OPT, LRU, FIFO, and Clock algorithms.
+쪽 갈아 끼우기 -- OPT, LRU, FIFO, 시계 알고리즘.
 
-Simulates each algorithm on a page reference sequence and counts
-the number of page faults for comparison.
+쪽 닿기 열에 알고리즘마다를 흉내내고 쪽 빗나감의 횟수를 세어
+견준다.
 """
 
 from __future__ import annotations
 from collections import OrderedDict, deque
 
 
-# === OPT (Offline Optimal) ====================================================
+# === OPT(미리 아는 가장 좋은 것) ============================================
 
 def opt_faults(pages: list[int], cache_size: int) -> int:
-    """Count page faults using Belady's optimal algorithm."""
+    """벨레이디의 가장 좋은 알고리즘으로 쪽 빗나감을 센다."""
     cache: set[int] = set()
     faults = 0
     for i, page in enumerate(pages):
         if page not in cache:
             faults += 1
             if len(cache) >= cache_size:
-                # Evict page with farthest next use
+                # 다음 쓰임이 가장 먼 쪽을 내보낸다
                 farthest = -1
                 evict = None
                 for p in cache:
@@ -100,10 +100,10 @@ def opt_faults(pages: list[int], cache_size: int) -> int:
     return faults
 
 
-# === LRU ======================================================================
+# === LRU ====================================================================
 
 def lru_faults(pages: list[int], cache_size: int) -> int:
-    """Count page faults using LRU replacement."""
+    """LRU 갈아 끼우기로 쪽 빗나감을 센다."""
     cache: OrderedDict[int, None] = OrderedDict()
     faults = 0
     for page in pages:
@@ -112,15 +112,15 @@ def lru_faults(pages: list[int], cache_size: int) -> int:
         else:
             faults += 1
             if len(cache) >= cache_size:
-                cache.popitem(last=False)  # evict least recently used
+                cache.popitem(last=False)  # 가장 오래 안 쓴 것을 내보낸다
             cache[page] = None
     return faults
 
 
-# === FIFO =====================================================================
+# === FIFO ===================================================================
 
 def fifo_faults(pages: list[int], cache_size: int) -> int:
-    """Count page faults using FIFO replacement."""
+    """FIFO 갈아 끼우기로 쪽 빗나감을 센다."""
     cache: set[int] = set()
     queue: deque[int] = deque()
     faults = 0
@@ -135,10 +135,10 @@ def fifo_faults(pages: list[int], cache_size: int) -> int:
     return faults
 
 
-# === Clock ====================================================================
+# === 시계 ===================================================================
 
 def clock_faults(pages: list[int], cache_size: int) -> int:
-    """Count page faults using the Clock (second-chance) algorithm."""
+    """시계(두 번째 틈) 알고리즘으로 쪽 빗나감을 센다."""
     cache: list[int | None] = [None] * cache_size
     ref_bit: list[int] = [0] * cache_size
     hand = 0
@@ -147,7 +147,7 @@ def clock_faults(pages: list[int], cache_size: int) -> int:
 
     for page in pages:
         if page in page_set:
-            # Set reference bit
+            # 닿음 비트를 세운다
             idx = cache.index(page)
             ref_bit[idx] = 1
         else:
@@ -165,80 +165,80 @@ def clock_faults(pages: list[int], cache_size: int) -> int:
     return faults
 
 
-# === Main =====================================================================
+# === 메인 ===================================================================
 
 if __name__ == "__main__":
     pages = [1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5]
     cache_size = 3
 
-    print(f"Page sequence: {pages}")
-    print(f"Cache size: {cache_size}\n")
+    print(f"쪽 열: {pages}")
+    print(f"캐시 크기: {cache_size}\n")
 
     for name, func in [
         ("OPT", opt_faults),
         ("LRU", lru_faults),
         ("FIFO", fifo_faults),
-        ("Clock", clock_faults),
+        ("시계", clock_faults),
     ]:
         faults = func(pages, cache_size)
-        print(f"{name:6s}: {faults} page faults")
+        print(f"{name:6s}: 쪽 빗나감 {faults}번")
 ```
 
-**Output:**
+**내놓기:**
 
 ```
-Page sequence: [1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5]
-Cache size: 3
+쪽 열: [1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5]
+캐시 크기: 3
 
-OPT   : 7 page faults
-LRU   : 10 page faults
-FIFO  : 9 page faults
-Clock : 10 page faults
+OPT   : 쪽 빗나감 7번
+LRU   : 쪽 빗나감 10번
+FIFO  : 쪽 빗나감 9번
+시계   : 쪽 빗나감 10번
 ```
 
-OPT achieves the fewest faults (7) since it knows the future. LRU and Clock produce the same count (10), confirming that Clock approximates LRU behavior. FIFO falls between the two, but in other sequences it can exhibit Belady's anomaly.
+OPT은 앞날을 알므로 빗나감이 가장 적다(7번). LRU와 시계가 같은 수(10번)를 내니 시계가 LRU의 결을 잘 흉내냄을 밝혀 준다. FIFO은 그 사이에 놓이지만 다른 열에서는 벨레이디의 얄궂음을 드러내기도 한다.
 
-## Reference
+## 살펴볼 거리
 
 - Sleator, D.D. and Tarjan, R.E. "Amortized Efficiency of List Update and Paging Rules." *CACM*, 1985
 - Silberschatz, A., Galvin, P.B., and Gagne, G. *Operating System Concepts*. Wiley
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-A system has 4 page frames and receives the page reference string 1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5. Compute the number of page faults under FIFO, LRU, and OPT (Belady's optimal).
+**익힘 1.**
+쪽 틀이 4개인 얼개에 쪽 닿기 열 1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5이 들어온다. FIFO, LRU, OPT(벨레이디의 가장 좋은 것)에서 쪽 빗나감의 횟수를 셈하여라.
 
-??? success "Solution to Exercise 1"
-    **FIFO**: frames after each reference: [1], [1,2], [1,2,3], [1,2,3,4], hit, hit, [2,3,4,5] evict 1, [3,4,5,1] evict 2, [4,5,1,2] evict 3, [5,1,2,3] evict 4, [1,2,3,4] evict 5, [2,3,4,5] evict 1. Faults: 10. **LRU**: [1], [1,2], [1,2,3], [1,2,3,4], hit(1 moves to recent), hit(2), [1,2,4,5] evict 3, hit(1), hit(2), [1,2,5,3] evict 4, [1,2,3,4] evict 5, [2,3,4,5] evict 1. Faults: 8. **OPT**: [1], [1,2], [1,2,3], [1,2,3,4], hit, hit, [1,2,4,5] evict 3 (used farthest at position 10), hit, hit, [1,2,5,3] evict 4, [1,2,3,4] evict 5, [2,3,4,5] evict 1. Faults: 8. In this case, LRU matches OPT. $\square$
-
----
-
-**Exercise 2.**
-Prove that Belady's OPT algorithm (evict the page used farthest in the future) minimizes the number of page faults.
-
-??? success "Solution to Exercise 2"
-    Proof by exchange argument. Consider any algorithm $A$ and OPT. Process the reference string left to right. At the first point where $A$ and OPT differ in their eviction choice: let $A$ evict page $p$ and OPT evict page $q$. OPT chose $q$ because $q$ is used farthest in the future among all pages in memory. If $A$ evicts $p$ instead, then $p$ is used sooner than $q$. Eventually, $A$ will fault on $p$ before OPT faults on $q$. We can transform $A$'s eviction to match OPT's without increasing the total fault count: replace the eviction of $p$ with the eviction of $q$. The resulting algorithm has $\le$ as many faults as $A$ and agrees with OPT on one more step. By induction, OPT's total faults $\le$ any algorithm's faults. $\square$
+??? success "익힘 1 풀이"
+    **FIFO**: 닿기마다의 틀은 [1], [1,2], [1,2,3], [1,2,3,4], 맞음, 맞음, 1을 내보내고 [2,3,4,5], 2를 내보내고 [3,4,5,1], 3을 내보내고 [4,5,1,2], 4를 내보내고 [5,1,2,3], 5를 내보내고 [1,2,3,4], 1을 내보내고 [2,3,4,5]. 빗나감 10번. **LRU**: [1], [1,2], [1,2,3], [1,2,3,4], 맞음(1이 최근으로 옮겨감), 맞음(2), 3을 내보내고 [1,2,4,5], 맞음(1), 맞음(2), 4를 내보내고 [1,2,5,3], 5를 내보내고 [1,2,3,4], 1을 내보내고 [2,3,4,5]. 빗나감 8번. **OPT**: [1], [1,2], [1,2,3], [1,2,3,4], 맞음, 맞음, 3을 내보내고(자리 10에서야 쓰이니 가장 멀다) [1,2,4,5], 맞음, 맞음, 4를 내보내고 [1,2,5,3], 5를 내보내고 [1,2,3,4], 1을 내보내고 [2,3,4,5]. 빗나감 8번. 이 자리에서는 LRU가 OPT과 같다. $\square$
 
 ---
 
-**Exercise 3.**
-Explain Belady's anomaly: give an example where increasing the number of page frames increases the number of FIFO page faults.
+**익힘 2.**
+벨레이디의 OPT 알고리즘(앞으로 가장 멀리 쓰일 쪽을 내보냄)이 쪽 빗나감의 횟수를 가장 작게 함을 증명하여라.
 
-??? success "Solution to Exercise 3"
-    Reference string: 1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5. With 3 frames (FIFO): faults at positions 1,2,3,4,5,6,7,10,11,12 = 9 faults. With 4 frames (FIFO): faults at 1,2,3,4,7,8,9,10,11,12 = 10 faults. More frames, more faults! This counterintuitive result occurs because FIFO does not use recency information. Adding frames changes the eviction order in a way that evicts soon-to-be-needed pages. LRU does not exhibit Belady's anomaly because it is a "stack algorithm": the set of pages in $k$ frames is always a subset of the pages in $k+1$ frames. FIFO violates this property. $\square$
-
----
-
-**Exercise 4.**
-The clock algorithm approximates LRU with $O(1)$ overhead per page fault. Describe the algorithm and explain why exact LRU is too expensive for operating systems.
-
-??? success "Solution to Exercise 4"
-    The clock algorithm maintains page frames in a circular buffer with a "hand" pointer. Each page has a reference bit, set to 1 by hardware on access. On a page fault: advance the hand. If the current page's reference bit is 1, clear it and advance (give it a "second chance"). If 0, evict this page. This approximates LRU: recently accessed pages have their bits set and survive the hand's sweep. Exact LRU requires updating a data structure on every memory access (not just page faults). With billions of memory accesses per second, even an $O(1)$ LRU update per access is prohibitively expensive. The clock algorithm updates only on page faults (thousands per second, not billions), using hardware reference bits that are set for free by the MMU. $\square$
+??? success "익힘 2 풀이"
+    맞바꿈 따짐으로 증명한다. 아무 알고리즘 $A$과 OPT을 놓고 닿기 열을 왼쪽에서 오른쪽으로 다룬다. $A$과 OPT의 내보내기 고름이 처음으로 갈리는 자리에서 $A$이 쪽 $p$을, OPT이 쪽 $q$을 내보낸다 하자. OPT이 $q$을 고른 것은 기억에 든 쪽 가운데 $q$이 앞으로 가장 멀리 쓰이기 때문이다. $A$이 그 대신 $p$을 내보내면 $p$은 $q$보다 일찍 쓰인다. 그러면 OPT이 $q$에서 빗나가기에 앞서 $A$이 $p$에서 빗나간다. 온 빗나감 횟수를 늘리지 않으면서 $A$의 내보내기를 OPT의 것에 맞출 수 있다. $p$을 내보내는 자리를 $q$을 내보내는 것으로 갈음하면 된다. 이렇게 얻은 알고리즘은 빗나감이 $A$ 이하이고 OPT과 한 걸음 더 맞는다. 되풀이해 밀면 OPT의 온 빗나감이 어떤 알고리즘의 빗나감보다 크지 않다. $\square$
 
 ---
 
-**Exercise 5.**
-A database system implements its own buffer pool manager rather than relying on the OS page cache. Explain the advantages of application-level page replacement for database workloads.
+**익힘 3.**
+벨레이디의 얄궂음을 밝혀라. 쪽 틀을 늘렸는데 FIFO의 쪽 빗나감이 되레 느는 보기를 들어라.
 
-??? success "Solution to Exercise 5"
-    (1) **Workload-aware eviction**: the database knows which pages will be needed (e.g., during a sequential scan, pages are read once and should be evicted immediately; the OS would keep them in cache). The database can use specialized policies like MRU for scans and LRU for index lookups. (2) **Prefetching**: the database knows the query plan and can prefetch pages before they are needed (e.g., all leaf pages for a range scan). The OS can only detect sequential access patterns. (3) **Controlled flushing**: the database must write dirty pages in a specific order for crash recovery (write-ahead logging protocol). The OS may flush pages in arbitrary order, violating this constraint. (4) **Memory pinning**: the database can pin critical pages (e.g., B-tree root, hot index pages) to prevent eviction. The OS treats all pages equally. These advantages justify the complexity of a custom buffer manager in high-performance databases. $\square$
+??? success "익힘 3 풀이"
+    닿기 열: 1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5. 틀이 3개인 FIFO에서는 자리 1,2,3,4,5,6,7,10,11,12에서 빗나가 9번이다. 틀이 4개인 FIFO에서는 자리 1,2,3,4,7,8,9,10,11,12에서 빗나가 10번이다. 틀을 늘렸는데 빗나감이 늘었다! 이 얄궂은 열매는 FIFO이 얼마나 최근인지를 쓰지 않기 때문에 생긴다. 틀을 늘리면 내보내는 차례가 바뀌어 곧 쓰일 쪽을 내보내게 된다. LRU는 "쌓개 알고리즘"이므로 벨레이디의 얄궂음을 겪지 않는다. 틀 $k$개에 든 쪽의 모임이 늘 틀 $k+1$개에 든 쪽의 부분 모임이다. FIFO은 이 됨됨이를 어긴다. $\square$
+
+---
+
+**익힘 4.**
+시계 알고리즘은 쪽 빗나감마다 $O(1)$의 짐으로 LRU에 가깝게 간다. 이 알고리즘을 밝히고, 운영 얼개에 참 LRU가 너무 비싼 까닭을 밝혀라.
+
+??? success "익힘 4 풀이"
+    시계 알고리즘은 쪽 틀을 고리 버퍼에 두고 "바늘" 손가락질을 지닌다. 쪽마다 닿음 비트가 있고 닿을 때 쇠 붙임새가 1로 놓는다. 쪽이 빗나가면 바늘을 민다. 지금 쪽의 닿음 비트가 1이면 지우고 밀어("두 번째 틈"을 준다), 0이면 이 쪽을 내보낸다. 이는 LRU에 가깝다. 최근에 닿은 쪽은 비트가 세워져 있어 바늘이 훑고 지나가도 살아남는다. 참 LRU는 (쪽 빗나감만이 아니라) 기억에 닿을 때마다 자료 얼개를 고쳐야 한다. 초마다 기억에 닿는 일이 수십억 번인데 닿을 때마다 $O(1)$ LRU 고침조차 감당할 수 없이 비싸다. 시계 알고리즘은 쪽 빗나감 때만(수십억 번이 아니라 초마다 수천 번) 고치고, MMU가 거저 세워 주는 쇠 붙임새 닿음 비트를 쓴다. $\square$
+
+---
+
+**익힘 5.**
+어느 데이터베이스 얼개가 운영 얼개의 쪽 캐시에 기대지 않고 제 버퍼 못 다룸꾼을 따로 짠다. 데이터베이스 일감에서 응용 켜의 쪽 갈아 끼우기가 나은 점을 밝혀라.
+
+??? success "익힘 5 풀이"
+    (1) **일감을 아는 내보내기**: 데이터베이스는 어느 쪽이 필요할지 안다(보기로 차례로 훑는 동안 쪽은 한 번만 읽히므로 곧바로 내보내야 하는데, 운영 얼개는 그것을 캐시에 남겨 둔다). 데이터베이스는 훑기에는 MRU, 색인 찾기에는 LRU처럼 자리에 맞는 방침을 쓸 수 있다. (2) **미리 읽기**: 데이터베이스는 물음 꾀를 알므로 쪽이 필요해지기 앞서 미리 읽을 수 있다(보기로 너비 훑기에 쓸 잎 쪽을 모두). 운영 얼개는 차례로 닿는 결만 알아챌 수 있다. (3) **다스린 흘려보내기**: 데이터베이스는 무너짐에서 되살리려고 더러운 쪽을 정해진 차례로 써야 한다(미리 적는 기록 규약). 운영 얼개는 아무 차례로나 흘려보내 이 매임을 어길 수 있다. (4) **기억에 못 박기**: 데이터베이스는 목숨이 걸린 쪽(보기로 B 나무 뿌리, 뜨거운 색인 쪽)을 못 박아 내보내지지 않게 할 수 있다. 운영 얼개는 모든 쪽을 똑같이 다룬다. 이런 나은 점이 빠른 데이터베이스에서 제 버퍼 다룸꾼을 따로 짜는 품을 값지게 한다. $\square$
