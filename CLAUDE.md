@@ -70,15 +70,20 @@ book_name/
 |---|---|---|
 | `<name>.md` | ✅ committed | ✅ published |
 | `<name>_score.md` | ✅ committed | ❌ excluded via `mkdocs.yml` |
-| `<name>_v[0-9]*.md` | ❌ gitignored | ❌ never built |
+| `<name>.v[0-9]*.md` | ❌ gitignored | ❌ never built |
 
-`.gitignore` entry: `docs/**/*_v[0-9]*.md`
+`.gitignore` entry: `docs/**/*.v[0-9]*.md`
+
+> The snapshot separator is a **dot**, not an underscore. An underscore pattern
+> (`*_v[0-9]*.md`) also matches real content pages such as `mobilenet_v2.md`,
+> `inception_v3.md`, and `yolo_v3.md`, which silently excludes them from git and
+> breaks the `--strict` CI build.
 
 `mkdocs.yml` exclusion:
 ```yaml
 exclude_docs: |
   *_score.md
-  *_v[0-9]*.md
+  *.v[0-9]*.md
 ```
 
 Commit after `update` — stage only `<name>.md` and `<name>_score.md`:
