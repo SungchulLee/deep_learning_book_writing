@@ -32,7 +32,7 @@ $$
 \text{OPT}(\mathcal{P}) = \{g\} \cup \text{OPT}(\mathcal{P}')
 $$
 
-where $g$ is the greedy choice and $\mathcal{P}'$ is the residual subproblem.
+여기서 $g$은 욕심쟁이 고름이고 $\mathcal{P}'$은 남은 아래 문제다.
 
 ## 증명 재주 1: 맞바꿈 논증
 
@@ -40,11 +40,11 @@ where $g$ is the greedy choice and $\mathcal{P}'$ is the residual subproblem.
 
 **일반 틀:**
 
-1. Let $S^*$ be an arbitrary optimal solution.
-2. If $S^*$ already includes the greedy choice $g$, we are done.
+1. $S^*$을 아무 가장 좋은 풀이라 하자.
+2. $S^*$이 이미 욕심쟁이 고름 $g$을 담고 있으면 끝이다.
 3. Otherwise, identify an element $x \in S^*$ that can be replaced by $g$.
-4. Show that the modified solution $S' = (S^* \setminus \{x\}) \cup \{g\}$ is feasible.
-5. Show that $\text{cost}(S') \leq \text{cost}(S^*)$ (for minimization) or $\text{value}(S') \geq \text{value}(S^*)$ (for maximization).
+4. 고친 풀이 $S' = (S^* \setminus \{x\}) \cup \{g\}$이 되는 풀이임을 보인다.
+5. 가장 작게 하는 문제이면 $\text{cost}(S') \leq \text{cost}(S^*)$을, 가장 크게 하는 문제이면 $\text{value}(S') \geq \text{value}(S^*)$을 보인다.
 6. $S'$이 가장 좋고 $g$을 담고 있다고 매듭짓는다.
 
 맞바꿈 논증은 가장 널리 쓰이는 재주이다. 욕심쟁이 고름과 그렇지 않은 고름 사이에, 될 수 있음을 지키는 자연스러운 "맞바꿈"이 있을 때 잘 듣는다.
@@ -52,7 +52,7 @@ where $g$ is the greedy choice and $\mathcal{P}'$ is the residual subproblem.
 ??? example "맞바꿈 논증: 활동 고르기"
     **욕심쟁이 규칙**: 늘 가장 일찍 끝나는 활동을 고른다.
 
-    Let $S^* = \{a_{j_1}, \ldots, a_{j_k}\}$ be optimal, sorted by finish time. Let $a_1$ be the activity with the globally earliest finish time. If $a_{j_1} = a_1$, done. Otherwise, $f_1 \leq f_{j_1}$, so replacing $a_{j_1}$ with $a_1$ preserves compatibility with $a_{j_2}, \ldots, a_{j_k}$. The resulting set has the same cardinality $k$, so it is optimal and contains $a_1$. $\square$
+    $S^* = \{a_{j_1}, \ldots, a_{j_k}\}$을 마침 시각으로 줄 세운 가장 좋은 풀이라 하자. $a_1$을 온 활동 가운데 마침 시각이 가장 이른 것이라 하자. $a_{j_1} = a_1$이면 끝이다. 아니라면 $f_1 \leq f_{j_1}$이므로 $a_{j_1}$을 $a_1$으로 갈음해도 $a_{j_2}, \ldots, a_{j_k}$과의 어울림이 지켜진다. 그렇게 나온 모음의 크기는 그대로 $k$이므로 가장 좋으면서 $a_1$을 담는다. $\square$
 
 ## 증명 재주 2: 욕심쟁이가 앞선다
 
@@ -60,22 +60,22 @@ where $g$ is the greedy choice and $\mathcal{P}'$ is the residual subproblem.
 
 **일반 틀:**
 
-1. Let $G = (g_1, g_2, \ldots, g_k)$ be the greedy solution and $O = (o_1, o_2, \ldots, o_m)$ be any feasible solution, both ordered by the algorithm's processing order.
+1. $G = (g_1, g_2, \ldots, g_k)$을 욕심쟁이 풀이라 하고 $O = (o_1, o_2, \ldots, o_m)$을 되는 아무 풀이라 하자. 둘 다 알고리즘이 다루는 차례로 늘어놓는다.
 2. 나아감을 재는 잣대를 정한다(보기로 마침 시각, 부분 값).
 3. 이 잣대로 볼 때 욕심쟁이 풀이의 $i$번째 고름이 $O$의 $i$번째 고름만큼은 좋음을 $i$에 대한 귀납법으로 증명한다.
-4. Conclude that $k \geq m$ (for maximization of count) or that the greedy cost is no worse.
+4. (수를 가장 크게 하는 문제이면) $k \geq m$이거나 욕심쟁이의 값이 더 나쁘지 않다고 맺는다.
 
 ??? example "욕심쟁이가 앞선다: 활동 고르기"
-    Let $G = (g_1, \ldots, g_k)$ be the greedy solution (sorted by finish time) and $O = (o_1, \ldots, o_m)$ be any optimal solution (sorted by finish time).
+    $G = (g_1, \ldots, g_k)$을 (마침 시각으로 줄 세운) 욕심쟁이 풀이라 하고 $O = (o_1, \ldots, o_m)$을 (마침 시각으로 줄 세운) 아무 가장 좋은 풀이라 하자.
 
-    **Claim**: for all $i \leq \min(k, m)$, the finish time of $g_i$ is at most the finish time of $o_i$: $f(g_i) \leq f(o_i)$.
+    **주장**: 모든 $i \leq \min(k, m)$에 대해 $g_i$의 마침 시각이 $o_i$의 마침 시각보다 늦지 않다. 곧 $f(g_i) \leq f(o_i)$이다.
 
     **$i$에 대한 귀납법 증명**:
 
-    - *Base case* ($i = 1$): the greedy algorithm picks the activity with the earliest finish time, so $f(g_1) \leq f(o_1)$.
-    - *Inductive step*: assume $f(g_{i-1}) \leq f(o_{i-1})$. Since $o_i$ starts after $o_{i-1}$ finishes, we have $s(o_i) \geq f(o_{i-1}) \geq f(g_{i-1})$. So $o_i$ is available when the greedy algorithm makes its $i$-th choice. The greedy algorithm picks the available activity with the earliest finish time, so $f(g_i) \leq f(o_i)$.
+    - *밑 자리*($i = 1$): 욕심쟁이 알고리즘이 마침 시각이 가장 이른 활동을 고르므로 $f(g_1) \leq f(o_1)$이다.
+    - *미루어 나아가는 걸음*: $f(g_{i-1}) \leq f(o_{i-1})$이라 하자. $o_i$은 $o_{i-1}$이 마친 뒤 비롯하므로 $s(o_i) \geq f(o_{i-1}) \geq f(g_{i-1})$이다. 그러므로 욕심쟁이 알고리즘이 $i$번째로 고를 때 $o_i$을 고를 수 있다. 욕심쟁이 알고리즘은 고를 수 있는 활동 가운데 마침 시각이 가장 이른 것을 고르므로 $f(g_i) \leq f(o_i)$이다.
 
-    Since $f(g_i) \leq f(o_i)$ for all $i$, the greedy solution is at least as long as any other: $k \geq m$. $\square$
+    모든 $i$에 대해 $f(g_i) \leq f(o_i)$이므로 욕심쟁이 풀이는 다른 어떤 풀이 못지않게 길다. 곧 $k \geq m$이다. $\square$
 
 ## 알맞은 재주 고르기
 

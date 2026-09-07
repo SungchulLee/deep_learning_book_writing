@@ -6,9 +6,9 @@
 
 맞바꿈 논증은 어긋남 이끌기와 세우기를 아울러 돌아간다. 욕심쟁이 풀이가 하나뿐임을 증명하는 것이 아니라, 욕심쟁이 고름과 맞는 가장 좋은 풀이가 있음을 증명한다:
 
-1. Start with any optimal solution $S^*$.
-2. Find the first point where $S^*$ and the greedy solution $G$ differ.
-3. Swap one element of $S^*$ to match $G$ at that point.
+1. 아무 가장 좋은 풀이 $S^*$에서 비롯한다.
+2. $S^*$과 욕심쟁이 풀이 $G$이 처음 달라지는 자리를 찾는다.
+3. 그 자리에서 $G$과 맞도록 $S^*$의 원소 하나를 맞바꾼다.
 4. 그 맞바꿈이 될 수 있음을 지키고 목표를 나쁘게 하지 않음을 보인다.
 5. Repeat until $S^* = G$.
 
@@ -19,42 +19,42 @@
 !!! note "맞바꿈 논증 틀"
     **목표**: 욕심쟁이 알고리즘 $G$이 가장 좋은 풀이를 냄을 증명한다.
 
-    **Step 1 (Setup).** Let $S^* = (s_1^*, s_2^*, \ldots, s_m^*)$ be any optimal solution. Let $G = (g_1, g_2, \ldots, g_k)$ be the greedy solution. Both are ordered by the algorithm's selection order.
+    **걸음 1(차림).** $S^* = (s_1^*, s_2^*, \ldots, s_m^*)$을 아무 가장 좋은 풀이라 하자. $G = (g_1, g_2, \ldots, g_k)$을 욕심쟁이 풀이라 하자. 둘 다 알고리즘이 고르는 차례로 늘어놓는다.
 
-    **Step 2 (Find first difference).** Let $i$ be the smallest index where $s_i^* \neq g_i$.
+    **걸음 2(처음 달라지는 곳 찾기).** $s_i^* \neq g_i$인 가장 작은 자리 번호를 $i$이라 하자.
 
-    **Step 3 (Exchange).** Construct $S' = (S^* \setminus \{s_i^*\}) \cup \{g_i\}$ (swap $s_i^*$ for $g_i$).
+    **걸음 3(맞바꿈).** $S' = (S^* \setminus \{s_i^*\}) \cup \{g_i\}$을 짓는다($s_i^*$을 $g_i$으로 맞바꾼다).
 
     **4단계(될 수 있음).** $S'$이 문제의 모든 제약을 채움을 보인다.
 
-    **Step 5 (Quality).** Show $\text{cost}(S') \leq \text{cost}(S^*)$ (minimization) or $\text{value}(S') \geq \text{value}(S^*)$ (maximization).
+    **걸음 5(좋음).** 가장 작게 하는 문제이면 $\text{cost}(S') \leq \text{cost}(S^*)$을, 가장 크게 하는 문제이면 $\text{value}(S') \geq \text{value}(S^*)$을 보인다.
 
     **6단계(매듭짓기).** $S'$은 가장 좋고 $G$과 고름 하나를 더 맞춘다. 온전히 맞을 때까지 되풀이한다.
 
 ## 보기 1: 활동 고르기
 
-**Problem.** Select the maximum number of mutually compatible (non-overlapping) activities from a set $\{a_1, \ldots, a_n\}$, where each activity $a_i$ has start time $s_i$ and finish time $f_i$.
+**문제.** 활동 $a_i$마다 비롯하는 시각 $s_i$과 마치는 시각 $f_i$을 지닌 모음 $\{a_1, \ldots, a_n\}$에서 서로 어울리는(겹치지 않는) 활동을 될 수 있는 대로 많이 골라라.
 
 **욕심쟁이 규칙.** 늘 가장 일찍 끝나는 활동을 고른다.
 
 **정리.** 욕심쟁이 알고리즘은 가장 좋은 풀이를 낸다.
 
 ??? example "맞바꿈 논증에 의한 증명"
-    Let $S^* = \{a_{j_1}, a_{j_2}, \ldots, a_{j_k}\}$ be an optimal set of compatible activities, sorted by finish time. Let $a_1$ be the activity with the globally earliest finish time (the greedy first choice).
+    $S^* = \{a_{j_1}, a_{j_2}, \ldots, a_{j_k}\}$을 마침 시각으로 줄 세운 가장 좋은 어울리는 활동 모음이라 하자. $a_1$을 온 활동 가운데 마침 시각이 가장 이른 것(욕심쟁이의 첫 고름)이라 하자.
 
-    **Case 1:** $a_{j_1} = a_1$. The optimal solution already includes the greedy choice.
+    **첫째 갈래:** $a_{j_1} = a_1$. 가장 좋은 풀이가 이미 욕심쟁이 고름을 담고 있다.
 
-    **Case 2:** $a_{j_1} \neq a_1$. Since $a_1$ has the earliest finish time among all activities, $f_1 \leq f_{j_1}$. Construct:
+    **둘째 갈래:** $a_{j_1} \neq a_1$. $a_1$의 마침 시각이 온 활동 가운데 가장 이르므로 $f_1 \leq f_{j_1}$이다. 다음을 짓는다.
 
     $$
     S' = (S^* \setminus \{a_{j_1}\}) \cup \{a_1\}
     $$
 
-    **Feasibility:** Activity $a_1$ finishes at time $f_1 \leq f_{j_1}$, so $a_1$ is compatible with $a_{j_2}$ (which starts at $s_{j_2} \geq f_{j_1} \geq f_1$). All other pairwise compatibilities in $S^*$ are unchanged.
+    **됨:** 활동 $a_1$은 시각 $f_1 \leq f_{j_1}$에 마치므로 $a_1$은 $a_{j_2}$($s_{j_2} \geq f_{j_1} \geq f_1$에 비롯한다)과 어울린다. $S^*$ 안의 다른 짝끼리의 어울림은 그대로다.
 
-    **Quality:** $|S'| = |S^*| = k$, so $S'$ is also a maximum-size compatible set.
+    **좋음:** $|S'| = |S^*| = k$이므로 $S'$도 크기가 가장 큰 어울리는 모음이다.
 
-    Therefore, $S'$ is optimal and includes $a_1$. By optimal substructure, the subproblem $\{a_i : s_i \geq f_1\}$ has an optimal solution that combines with $a_1$ to give an optimal overall solution. The greedy algorithm solves this subproblem recursively, so by induction it is correct. $\square$
+    그러므로 $S'$은 가장 좋으면서 $a_1$을 담는다. 가장 좋은 아래 짜임에 따라 아래 문제 $\{a_i : s_i \geq f_1\}$에는 $a_1$과 아울러 온 문제의 가장 좋은 풀이를 이루는 가장 좋은 풀이가 있다. 욕심쟁이 알고리즘이 이 아래 문제를 되부르며 풀므로 미루어 나아가면 옳다. $\square$
 
 ## 보기 2: 쪼갤 수 있는 배낭
 
@@ -65,23 +65,23 @@
 **정리.** 욕심쟁이 알고리즘은 가장 좋은 풀이를 낸다.
 
 ??? example "맞바꿈 논증에 의한 증명"
-    Without loss of generality, assume $r_1 \geq r_2 \geq \cdots \geq r_n$. Let $S^* = (x_1^*, x_2^*, \ldots, x_n^*)$ be any optimal solution, where $x_i^* \in [0, 1]$ is the fraction of item $i$ taken.
+    일반성을 잃지 않고 $r_1 \geq r_2 \geq \cdots \geq r_n$이라 하자. $S^* = (x_1^*, x_2^*, \ldots, x_n^*)$을 아무 가장 좋은 풀이라 하고 $x_i^* \in [0, 1]$을 가져간 물건 $i$의 몫이라 하자.
 
-    Let the greedy solution be $G = (x_1^G, x_2^G, \ldots, x_n^G)$. In $G$, items are taken greedily: $x_1^G = \min(1, W/w_1)$, then fill remaining capacity with item 2, and so on.
+    욕심쟁이 풀이를 $G = (x_1^G, x_2^G, \ldots, x_n^G)$이라 하자. $G$에서는 물건을 욕심껏 가져간다. $x_1^G = \min(1, W/w_1)$이고 그다음 남은 담는 힘을 물건 2으로 채우는 식이다.
 
-    Suppose $S^* \neq G$. Let $j$ be the first index where $x_j^* \neq x_j^G$. Since the greedy algorithm takes as much of item $j$ as possible, $x_j^G > x_j^*$. Let $\delta = x_j^G - x_j^*$. The greedy solution takes $\delta$ more of item $j$.
+    $S^* \neq G$이라 하자. $x_j^* \neq x_j^G$인 첫 자리 번호를 $j$이라 하자. 욕심쟁이 알고리즘이 물건 $j$을 될 수 있는 대로 많이 가져가므로 $x_j^G > x_j^*$이다. $\delta = x_j^G - x_j^*$이라 하자. 욕심쟁이 풀이는 물건 $j$을 $\delta$만큼 더 가져간다.
 
-    In $S^*$, the capacity freed by reducing item $j$ must be allocated to items $k > j$ (which have lower ratios). Construct $S'$ by increasing $x_j$ by some amount and decreasing later items by the same weight. Since $r_j \geq r_k$ for all $k > j$:
+    $S^*$에서는 물건 $j$을 줄여 남은 담는 힘을 (견줌이 더 낮은) 물건 $k > j$에 나눠 주어야 한다. $x_j$을 얼마쯤 늘리고 뒤 물건을 같은 무게만큼 줄여 $S'$을 짓는다. 모든 $k > j$에 대해 $r_j \geq r_k$이므로
 
     $$
     \text{value}(S') - \text{value}(S^*) = \delta \cdot w_j \cdot r_j - \sum_{k>j} \Delta_k \cdot w_k \cdot r_k \geq 0
     $$
 
-    because we replace lower-ratio capacity usage with higher-ratio usage. So $S'$ is at least as good and agrees with $G$ on one more item. Repeat. $\square$
+    견줌이 낮은 쪽이 쓰던 담는 힘을 견줌이 높은 쪽으로 갈음했기 때문이다. 그러므로 $S'$은 못지않게 좋고 $G$과 물건 하나만큼 더 같아진다. 이를 되풀이한다. $\square$
 
 ## 보기 3: 허프먼 부호
 
-**Problem.** Construct a prefix-free binary code minimizing the weighted path length $\sum_i f_i \cdot d_i$, where $f_i$ is the frequency of character $i$ and $d_i$ is its code length.
+**문제.** 짐 실은 경로 길이 $\sum_i f_i \cdot d_i$을 가장 작게 하는 머리말 없는 이진 부호를 지어라. 여기서 $f_i$은 글자 $i$의 잦기이고 $d_i$은 그 부호의 길이다.
 
 **욕심쟁이 규칙.** 잦기가 가장 낮은 글자 둘을 거듭 어울린다.
 
@@ -98,7 +98,7 @@
 차례에서 이웃한 원소 둘을 맞바꾸고 나아짐을 보인다. 일정 짜기 문제에 흔하다.
 
 ??? example "이웃 맞바꿈: 무게를 준 마침 시각 가장 작게 하기"
-    Given jobs with processing times $p_i$ and weights $w_i$, schedule to minimize $\sum w_i C_i$ where $C_i$ is the completion time. The greedy rule is to sort by $w_i / p_i$ in decreasing order.
+    처리 시간 $p_i$과 짐 $w_i$을 지닌 일이 주어졌을 때 $\sum w_i C_i$을 가장 작게 하도록 일정을 짜라. 여기서 $C_i$은 마침 시각이다. 욕심쟁이 규칙은 $w_i / p_i$이 큰 차례로 줄 세우는 것이다.
 
     어떤 일정에서 이웃한 일 $j$과 $k$을 보자. $w_j / p_j < w_k / p_k$이면 $k$이 먼저 오도록 맞바꾸면 무게를 준 전체 마침 시각이 줄어든다:
 
@@ -106,7 +106,7 @@
     w_j(p_j + p_k) + w_k \cdot p_k > w_k(p_k + p_j) + w_j \cdot p_j
     $$
 
-    simplifies to $w_j \cdot p_k > w_k \cdot p_j$, i.e., $w_j / p_j < w_k / p_k$, which is our assumption. So any inversion increases cost, and the greedy order is optimal. $\square$
+    이를 간추리면 $w_j \cdot p_k > w_k \cdot p_j$, 곧 $w_j / p_j < w_k / p_k$이 되는데 이것이 우리 가정이다. 그러므로 어떤 뒤집힘이든 값을 늘리며 욕심쟁이 차례가 가장 좋다. $\square$
 
 ### 나무 맞바꿈
 나무 짜임에서 자리를 맞바꾼다. 허프먼 부호 증명에 쓴다.
@@ -132,7 +132,7 @@
 욕심쟁이 알고리즘의 맞바꿈 논증 증명 재주를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    The exchange argument proves a greedy algorithm is optimal by showing: (1) Start with any optimal solution $O$. (2) If $O$ differs from the greedy solution $G$, find a specific element where they differ. (3) Modify $O$ by "exchanging" that element to match $G$, creating solution $O'$. (4) Show $O'$ is still feasible and no worse than $O$. (5) Repeat until $O$ matches $G$, proving $G$ is optimal. The key is constructing the exchange that maintains or improves the objective. $\square$
+    맞바꿈 따짐은 다음을 보여 욕심쟁이 알고리즘이 가장 좋음을 밝힌다. (1) 아무 가장 좋은 풀이 $O$에서 비롯한다. (2) $O$이 욕심쟁이 풀이 $G$과 다르면 달라지는 원소를 콕 집어 찾는다. (3) 그 원소를 $G$과 맞도록 "맞바꾸어" $O$을 고쳐 풀이 $O'$을 만든다. (4) $O'$이 여전히 되는 풀이이고 $O$보다 나쁘지 않음을 보인다. (5) $O$이 $G$과 같아질 때까지 되풀이하여 $G$이 가장 좋음을 밝힌다. 고갱이는 목표를 지키거나 낫게 하는 맞바꿈을 짓는 것이다. $\square$
 
 ---
 
@@ -140,7 +140,7 @@
 일정 짜기 문제에서 일을 마감으로 정렬하면 최대 늦음이 가장 작아짐을 맞바꿈 논증으로 증명하여라.
 
 ??? success "연습문제 2 풀이"
-    Suppose optimal schedule $O$ has an inversion: jobs $i, j$ where $d_i < d_j$ but $j$ is scheduled before $i$. Swap $i$ and $j$ in $O$. Job $j$ now finishes earlier (less lateness). Job $i$ now finishes later, but since $d_i < d_j$, $i$'s lateness with $j$'s old completion time is at most $j$'s old lateness. The maximum lateness does not increase. Repeat to eliminate all inversions, arriving at the sorted-by-deadline schedule. Therefore sorting by deadline is optimal. $\square$
+    가장 좋은 일정 $O$에 뒤집힘이 있다고 하자. 곧 $d_i < d_j$인데 일 $j$이 일 $i$보다 앞에 놓였다고 하자. $O$에서 $i$과 $j$을 맞바꾼다. 이제 일 $j$이 더 일찍 마치므로 늦음이 준다. 일 $i$은 더 늦게 마치지만 $d_i < d_j$이므로 $j$의 옛 마침 시각에서 $i$의 늦음은 $j$의 옛 늦음보다 크지 않다. 그러므로 가장 큰 늦음은 늘지 않는다. 이를 되풀이해 뒤집힘을 모두 없애면 마감으로 줄 세운 일정에 이른다. 따라서 마감으로 줄 세우는 것이 가장 좋다. $\square$
 
 ---
 

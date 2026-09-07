@@ -52,13 +52,13 @@ $$L(N, D) = E + \frac{A}{N^\alpha} + \frac{B}{D^\beta}$$
 
 맞춘 매개변수로:
 
-- $E \approx 1.69$ (irreducible loss)
+- $E \approx 1.69$(더 줄일 수 없는 잃음)
 - $A \approx 406.4$, $\alpha \approx 0.34$
 - $B \approx 410.7$, $\beta \approx 0.28$
 
 ### 셈에 가장 알맞은 익히기
 
-For a compute budget $C \approx 6ND$ (forward + backward passes):
+셈 예산이 $C \approx 6ND$(앞으로 걸음 + 뒤로 걸음)일 때
 
 **가장 좋은 매개변수**:
 
@@ -75,7 +75,7 @@ $$D_{opt} \propto C^{0.50}$$
 | 모델 | 매개변수 | 익힘 토막 | 셈 |
 |-------|------------|-----------------|---------|
 | Gopher | 280B | 300B | ~$5 \times 10^{23}$ |
-| Chinchilla | 70B | 1.4T | ~$5 \times 10^{23}$ |
+| 친칠라 | 700억 | 1조 4000억 | ~$5 \times 10^{23}$ |
 
 친칠라는 4배 작고 자료를 4배 더 써서 대부분의 잣대에서 Gopher를 앞섰다.
 
