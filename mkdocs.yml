@@ -2437,7 +2437,7 @@ nav:
         - '코드: 눈길 보기': ch36/gradient_methods/example_attention.md
         - '코드: Grad-CAM 보기': ch36/gradient_methods/example_gradcam.md
         - '코드: Grad-CAM': ch36/gradient_methods/gradcam.md
-        - 'Code: SmoothGrad': ch36/gradient_methods/03_smoothgrad.md
+        - '코드: SmoothGrad': ch36/gradient_methods/03_smoothgrad.md
         - '코드: 쌓은 기울기': ch36/gradient_methods/04_integrated_gradients.md
         - '코드: Grad-CAM': ch36/gradient_methods/05_gradcam.md
         - '코드: 이끈 되짚기': ch36/gradient_methods/06_guided_backpropagation.md
