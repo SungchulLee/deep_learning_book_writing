@@ -1,107 +1,107 @@
-# Persistent Arrays
+# 영속 배열
 
-A standard array supports read and write in $O(1)$ time, but every write destroys the previous state. In many applications -- undo systems, version control, functional programming -- we need to keep old versions accessible. A **persistent array** augments the basic array so that every modification produces a new version while all older versions remain queryable.
+여느 배열은 읽기와 적기를 $O(1)$ 때에 받쳐 주지만 적을 때마다 앞선 상태가 무너진다. 되돌리기 시스템, 판 다루기, 함수형 짜기 같은 많은 쓰임새에서는 옛 판에 닿을 수 있어야 한다. **영속 배열**은 여느 배열을 늘려, 고칠 때마다 새 판을 내놓으면서도 더 오래된 판에 모두 물음을 던질 수 있게 한다.
 
-## Persistence Models
+## 영속 모형
 
-There are two levels of persistence relevant to arrays:
+배열에 걸맞은 영속의 켜는 둘이다.
 
-- **Partial persistence**: old versions can be read but not modified. Only the latest version is mutable.
-- **Full persistence**: every version (past or present) can be both read and modified, spawning new versions.
+- **부분 영속**: 옛 판을 읽을 수는 있으나 고칠 수는 없다. 마지막 판만 바꿀 수 있다.
+- **완전 영속**: 지난 판이든 지금 판이든 모두 읽고 고칠 수 있으며, 고치면 새 판이 돋아난다.
 
-For an array of size $n$, the naive approach copies the entire array on every write, giving $O(n)$ per update and $O(n)$ extra space per version. The techniques below reduce these costs.
+크기 $n$인 배열에서 막무가내 길은 적을 때마다 배열을 통째로 베끼므로 고침마다 $O(n)$이 들고 판마다 $O(n)$ 덧자리를 쓴다. 아래 재주들이 이 비용을 줄인다.
 
-## Copy-on-Write Arrays
+## 적을 때 베끼는 배열
 
-The simplest practical persistent array uses **copy-on-write** (COW). A new version initially shares the underlying storage with its parent. Only when a cell is modified does the system copy the affected portion.
+가장 쉽고 쓸 만한 영속 배열은 **적을 때 베끼기**(COW)를 쓴다. 새 판은 처음에 어버이와 밑에 깔린 곳간을 함께 쓴다. 칸을 고칠 때에만 시스템이 그에 걸린 몫을 베낀다.
 
-For a flat array, a write to version $v$ at index $i$:
+납작한 배열에서 판 $v$의 번호 $i$에 적으면:
 
-1. Copy the entire backing array to create version $v+1$.
-2. Modify position $i$ in the new copy.
-
-$$
-T_{\text{write}} = O(n), \quad T_{\text{read}} = O(1), \quad S_{\text{per version}} = O(n)
-$$
-
-This is acceptable when writes are rare relative to reads, but the linear write cost motivates more sophisticated techniques.
-
-## Fat-Node Arrays
-
-Each array cell stores a list of (version, value) pairs sorted by version number. A read at version $v$ and index $i$ binary-searches the list at position $i$ for the latest entry whose version is at most $v$.
+1. 받치는 배열을 통째로 베껴 판 $v+1$을 만든다.
+2. 새 벌의 자리 $i$을 고친다.
 
 $$
-T_{\text{read}}(i, v) = O(\log m_i)
+T_{\text{적기}} = O(n), \quad T_{\text{읽기}} = O(1), \quad S_{\text{판마다}} = O(n)
 $$
 
-where $m_i$ is the number of modifications to cell $i$. A write appends a new (version, value) pair:
+읽기에 견주어 적기가 드물면 받아들일 만하지만, 곧게 늘어나는 적기 비용이 더 야무진 재주를 불러낸다.
+
+## 살진 마디 배열
+
+배열 칸마다 판 번호로 매긴 (판, 값) 짝의 목록을 갈무리한다. 판 $v$의 번호 $i$을 읽으면 자리 $i$의 목록에서 판이 많아야 $v$인 마지막 항목을 두 갈래로 찾는다.
 
 $$
-T_{\text{write}} = O(1) \text{ amortized}, \quad S_{\text{per write}} = O(1)
+T_{\text{읽기}}(i, v) = O(\log m_i)
 $$
 
-The total space across all versions is $O(n + M)$ where $M$ is the total number of writes.
+여기서 $m_i$은 칸 $i$에 벌인 고침의 개수다. 적기는 새 (판, 값) 짝을 덧붙인다.
 
-## Backer's Trick
+$$
+T_{\text{적기}} = O(1) \text{ 나눠 갚음}, \quad S_{\text{적기마다}} = O(1)
+$$
 
-Backer's trick (also called the "rerooting" trick) achieves $O(1)$ amortized access for the most recently used version while maintaining full persistence. The idea stores the full array for one "current" version and records diffs (index, old-value) on edges of the version tree.
+온 판에 걸친 온 자리는 온 적기 횟수를 $M$이라 할 때 $O(n + M)$이다.
 
-To access version $v$:
+## 베이커의 재주
 
-1. Walk the version tree from $v$ to the current root, collecting diffs.
-2. Apply diffs in reverse to transform the root array into version $v$.
-3. Reroot the version tree at $v$ so that subsequent accesses to $v$ are $O(1)$.
+베이커의 재주("뿌리 옮기기" 재주라고도 한다)는 완전 영속을 지키면서도 가장 늦게 쓴 판에 $O(1)$ 나눠 갚는 닿기를 이룬다. 그 생각은 "지금" 판 하나에는 온 배열을 갈무리하고, 판 나무의 변에 다름(번호, 옛값)을 적어 두는 것이다.
 
-The amortized cost per access is $O(1)$ when accesses exhibit temporal locality (repeatedly querying the same or nearby versions).
+판 $v$에 닿으려면:
 
-## Complexity Summary
+1. $v$에서 지금 뿌리까지 판 나무를 걸으며 다름을 모은다.
+2. 다름을 거꾸로 매겨 뿌리 배열을 판 $v$으로 바꾼다.
+3. 판 나무의 뿌리를 $v$으로 옮겨, 뒤이어 $v$에 닿을 때 $O(1)$이 되게 한다.
 
-| Technique | Read | Write | Space per Version |
+닿기가 때 지역성을 보이면(같거나 가까운 판에 되풀이해 물으면) 닿기마다 나눠 갚는 비용이 $O(1)$이다.
+
+## 복잡도 간추림
+
+| 재주 | 읽기 | 적기 | 판마다 자리 |
 |---|---|---|---|
-| Full copy | $O(1)$ | $O(n)$ | $O(n)$ |
-| Fat nodes | $O(\log m_i)$ | $O(1)$ amort. | $O(1)$ amort. |
-| Backer's trick | $O(1)$ amort.* | $O(1)$ amort. | $O(1)$ amort. |
+| 통째로 베끼기 | $O(1)$ | $O(n)$ | $O(n)$ |
+| 살진 마디 | $O(\log m_i)$ | $O(1)$ 나눠 갚음 | $O(1)$ 나눠 갚음 |
+| 베이커의 재주 | $O(1)$ 나눠 갚음* | $O(1)$ 나눠 갚음 | $O(1)$ 나눠 갚음 |
 
-\* Amortized $O(1)$ with rerooting; worst case $O(n)$ for a cold version.
+\* 뿌리 옮기기를 쓸 때 나눠 갚아 $O(1)$이며, 식은 판에서는 가장 나쁠 때 $O(n)$이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Persistent Array -- fat-node implementation.
+영속 배열 -- 살진 마디로 만들기.
 
-Each cell stores a history of (version, value) pairs. Reads at any
-version use binary search; writes append a new entry in O(1).
+칸마다 (판, 값) 짝의 내력을 갈무리한다. 어느 판에서 읽든 두
+갈래 찾기를 쓰고, 적기는 O(1)에 새 항목을 덧붙인다.
 """
 
 from bisect import bisect_right
 
 
-# === Fat-Node Persistent Array ================================================
+# === 살진 마디 영속 배열 ======================================================
 
 class PersistentArray:
-    """Array supporting O(1) amortized writes and O(log m) reads per cell."""
+    """칸마다 O(1) 나눠 갚는 적기와 O(log m) 읽기를 받쳐 주는 배열."""
 
     def __init__(self, initial: list):
         self.version = 0
-        # Each cell stores a sorted list of (version, value)
+        # 칸마다 (판, 값)의 매긴 목록을 갈무리한다
         self._history: list[list[tuple[int, object]]] = [
             [(0, val)] for val in initial
         ]
 
     def read(self, index: int, version: int | None = None) -> object:
-        """Read cell at *index* as of *version* (default: latest)."""
+        """*version* 시점의 *index* 칸을 읽는다(기본값: 마지막 판)."""
         if version is None:
             version = self.version
         cell = self._history[index]
-        # Binary search for the last entry with ver <= version
+        # 판 <= version인 마지막 항목을 두 갈래로 찾는다
         pos = bisect_right(cell, (version, float("inf"))) - 1
         if pos < 0:
             raise ValueError(f"No data at index {index} for version {version}")
         return cell[pos][1]
 
     def write(self, index: int, value: object) -> int:
-        """Write *value* at *index*, returning the new version number."""
+        """*index*에 *value*을 적고 새 판 번호를 돌려준다."""
         self.version += 1
         self._history[index].append((self.version, value))
         return self.version
@@ -110,28 +110,28 @@ class PersistentArray:
         return len(self._history)
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     arr = PersistentArray([10, 20, 30, 40, 50])
 
-    # Version 0: original
+    # 판 0: 처음 것
     print("v0:", [arr.read(i, 0) for i in range(5)])
 
-    # Version 1: write index 2
+    # 판 1: 번호 2에 적는다
     v1 = arr.write(2, 99)
     print(f"v{v1}:", [arr.read(i, v1) for i in range(5)])
 
-    # Version 2: write index 0
+    # 판 2: 번호 0에 적는다
     v2 = arr.write(0, 77)
     print(f"v{v2}:", [arr.read(i, v2) for i in range(5)])
 
-    # Old versions still accessible
+    # 옛 판에도 그대로 닿는다
     print("v0 (again):", [arr.read(i, 0) for i in range(5)])
     print(f"v{v1} (again):", [arr.read(i, v1) for i in range(5)])
 ```
 
-**Output:**
+**출력:**
 
 ```
 v0: [10, 20, 30, 40, 50]
@@ -141,49 +141,49 @@ v0 (again): [10, 20, 30, 40, 50]
 v1 (again): [10, 20, 99, 40, 50]
 ```
 
-The output confirms that writes create new versions without destroying previous states, and every historical version remains accessible.
+이 출력은 적기가 앞선 상태를 무너뜨리지 않고 새 판을 만들며 지난 판에 모두 닿을 수 있음을 알려 준다.
 
-## Reference
+## 참고 문헌
 
 - Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
 - [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Explain the tradeoff between full copying and path copying for making arrays persistent. What are the time and space complexities of each approach?
+**연습문제 1.**
+배열을 영속하게 만들 때 통째로 베끼기와 길 베끼기의 맞바꿈을 풀어라. 두 길의 때와 자리 복잡도는 얼마인가?
 
-??? success "Solution to Exercise 1"
-    **Full copying**: on each write, copy the entire array of size $n$. Read any version in $O(1)$, write creates a new version in $O(n)$ time and $O(n)$ space. After $m$ writes, total space is $O(nm)$. **Path copying via a balanced binary tree over the array indices**: represent the array as a complete binary tree of height $\lceil \log_2 n \rceil$ with values at the leaves. A write copies only the $O(\log n)$ nodes on the root-to-leaf path, sharing the rest. Read requires traversing $O(\log n)$ nodes. After $m$ writes, total space is $O(n + m \log n)$. The tradeoff: full copying has $O(1)$ read but $O(n)$ write; path copying has $O(\log n)$ read and write. Path copying is preferable when $m$ is large relative to $n$. $\square$
-
----
-
-**Exercise 2.**
-Describe how to implement a persistent array using a segment tree. What are the complexities for point read, point write, and range query across versions?
-
-??? success "Solution to Exercise 2"
-    Build a segment tree over the $n$ array positions. For a point write at index $i$ in version $v$: create a new root for version $v+1$, copy only the $O(\log n)$ nodes on the path from root to leaf $i$, pointing to shared children from version $v$ for unchanged subtrees. Point read at version $v$: traverse the segment tree root for version $v$ down to the leaf in $O(\log n)$. Range query $[l, r]$ at version $v$: traverse the version-$v$ tree in $O(\log n)$, combining results from at most $O(\log n)$ nodes. Each new version creates $O(\log n)$ new nodes. After $m$ updates, total space is $O(n + m \log n)$. $\square$
+??? success "연습문제 1 풀이"
+    **통째로 베끼기**: 적을 때마다 크기 $n$인 배열을 통째로 베낀다. 아무 판이나 $O(1)$에 읽고, 적기는 $O(n)$ 때와 $O(n)$ 자리로 새 판을 만든다. $m$번 적은 뒤 온 자리는 $O(nm)$이다. **배열 번호 위에 세운 고른 이진 나무로 하는 길 베끼기**: 배열을 잎에 값을 둔, 높이 $\lceil \log_2 n \rceil$인 온전한 이진 나무로 나타낸다. 적기는 뿌리부터 잎까지의 길에 놓인 마디 $O(\log n)$개만 베끼고 나머지는 함께 쓴다. 읽기는 마디 $O(\log n)$개를 지나야 한다. $m$번 적은 뒤 온 자리는 $O(n + m \log n)$이다. 맞바꿈은 이렇다. 통째로 베끼기는 읽기가 $O(1)$이지만 적기가 $O(n)$이고, 길 베끼기는 읽기와 적기가 $O(\log n)$이다. $n$에 견주어 $m$이 크면 길 베끼기가 낫다. $\square$
 
 ---
 
-**Exercise 3.**
-A persistent array stores stock prices over time. Version $t$ represents the price array at time $t$. Design a query that, given two time points $t_1$ and $t_2$ and a stock index $i$, returns the price change. What is the time complexity?
+**연습문제 2.**
+구간 나무로 영속 배열을 만드는 길을 밝혀라. 판을 가로지르는 낱점 읽기, 낱점 적기, 범위 물음의 복잡도는 얼마인가?
 
-??? success "Solution to Exercise 3"
-    Store the price array as a persistent segment tree. Each write (price update) creates a new version. To compute the price change for stock $i$ between times $t_1$ and $t_2$: perform a point read on version $t_1$ at index $i$ to get $p_1$, and a point read on version $t_2$ at index $i$ to get $p_2$. Return $p_2 - p_1$. Time: $O(\log n)$ per read, so $O(\log n)$ total (two reads, each $O(\log n)$). Space: $O(n + T \log n)$ where $T$ is the total number of updates across all time steps. This approach naturally supports historical queries without maintaining separate snapshots. $\square$
-
----
-
-**Exercise 4.**
-Prove that a persistent array implemented via path copying on a balanced binary tree has amortized $O(\log n)$ space per update.
-
-??? success "Solution to Exercise 4"
-    Each update modifies one leaf and copies the $O(\log n)$ nodes on the path from that leaf to the root. All other nodes are shared with the previous version via pointers. Therefore, each update creates exactly $\lceil \log_2 n \rceil + 1$ new nodes (one per tree level). The initial version requires $O(n)$ nodes (the full tree). After $m$ updates, the total number of nodes is $O(n + m \log n)$. The space per update is $O(\log n)$ (not amortized -- it is worst-case per update). This is optimal for tree-based approaches because any path from root to leaf has length $\Theta(\log n)$, and a single-position update must modify at least the nodes on this path to create a new root distinguishable from the old root. $\square$
+??? success "연습문제 2 풀이"
+    배열 자리 $n$개 위에 구간 나무를 세운다. 판 $v$의 번호 $i$에 낱점으로 적을 때: 판 $v+1$의 새 뿌리를 만들고, 뿌리에서 잎 $i$까지의 길에 놓인 마디 $O(\log n)$개만 베끼며, 바뀌지 않은 밑나무는 판 $v$의 함께 쓰는 자식을 가리키게 한다. 판 $v$의 낱점 읽기: 판 $v$의 구간 나무 뿌리에서 잎까지 $O(\log n)$에 내려간다. 판 $v$의 범위 물음 $[l, r]$: 판 $v$의 나무를 $O(\log n)$에 지나며 많아야 마디 $O(\log n)$개의 열매를 엮는다. 새 판마다 새 마디 $O(\log n)$개를 만든다. $m$번 고친 뒤 온 자리는 $O(n + m \log n)$이다. $\square$
 
 ---
 
-**Exercise 5.**
-Compare persistent arrays with the "copy-on-write" technique used in modern operating systems for process forking. What structural similarity and what practical difference exist?
+**연습문제 3.**
+어떤 영속 배열이 때에 따른 주식 값을 갈무리한다. 판 $t$은 때 $t$의 값 배열이다. 때 두 점 $t_1$과 $t_2$과 주식 번호 $i$이 주어질 때 값 바뀜을 돌려주는 물음을 설계하여라. 때 복잡도는 얼마인가?
 
-??? success "Solution to Exercise 5"
-    **Structural similarity**: both share unchanged data between versions and copy only what is modified. In copy-on-write (CoW) forking, the parent and child process share all memory pages, and a page is duplicated only when either process writes to it. In a persistent array via path copying, old and new versions share all unmodified subtrees, and only the path to the modified element is duplicated. Both achieve $O(\text{changes})$ space per version rather than $O(n)$. **Practical difference**: CoW operates at the page granularity (typically 4 KB), while persistent arrays operate at the element granularity. CoW is managed by the OS/hardware MMU transparently, while persistent arrays are an explicit data structure. CoW is not fully persistent -- after a page is copied and modified, the original page in the child is lost unless explicitly preserved. Persistent arrays retain all versions permanently by design. $\square$
+??? success "연습문제 3 풀이"
+    값 배열을 영속 구간 나무로 갈무리한다. 적을 때마다(값을 고칠 때마다) 새 판이 생긴다. 때 $t_1$과 $t_2$ 사이 주식 $i$의 값 바뀜을 셈하려면 판 $t_1$의 번호 $i$에 낱점 읽기를 벌여 $p_1$을 얻고, 판 $t_2$의 번호 $i$에 낱점 읽기를 벌여 $p_2$을 얻은 뒤 $p_2 - p_1$을 돌려준다. 때: 읽기마다 $O(\log n)$이므로 온통 $O(\log n)$이다(읽기 두 번이 저마다 $O(\log n)$이다). 자리: 온 때 걸음에 걸친 온 고침 횟수를 $T$이라 할 때 $O(n + T \log n)$이다. 이 길은 따로 찰나본을 지니지 않고도 지난날 물음을 절로 받쳐 준다. $\square$
+
+---
+
+**연습문제 4.**
+고른 이진 나무 위의 길 베끼기로 만든 영속 배열이 고침마다 나눠 갚아 $O(\log n)$ 자리를 씀을 증명하여라.
+
+??? success "연습문제 4 풀이"
+    고침마다 잎 하나를 고치고 그 잎에서 뿌리까지의 길에 놓인 마디 $O(\log n)$개를 베낀다. 다른 모든 마디는 손가락질로 앞 판과 함께 쓴다. 따라서 고침마다 꼭 새 마디 $\lceil \log_2 n \rceil + 1$개(나무 켜마다 하나)를 만든다. 처음 판에는 마디 $O(n)$개(온 나무)가 있다. $m$번 고친 뒤 마디의 온 개수는 $O(n + m \log n)$이다. 고침마다 자리는 $O(\log n)$이다(나눠 갚은 것이 아니라 고침마다 가장 나쁠 때의 값이다). 뿌리에서 잎까지의 아무 길이나 길이가 $\Theta(\log n)$이고, 한 자리를 고칠 때 옛 뿌리와 가릴 수 있는 새 뿌리를 만들려면 적어도 이 길 위의 마디를 고쳐야 하므로 이는 나무에 바탕을 둔 길에서 가장 좋다. $\square$
+
+---
+
+**연습문제 5.**
+영속 배열을 요즘 운영 체제가 프로세스를 갈라 낼 때 쓰는 "적을 때 베끼기" 재주와 견주어라. 얼개에서 어떤 닮음이 있고 쓰임에서 어떤 다름이 있는가?
+
+??? success "연습문제 5 풀이"
+    **얼개의 닮음**: 둘 다 바뀌지 않은 자료를 판 사이에서 함께 쓰고 고친 것만 베낀다. 적을 때 베끼기(CoW)로 갈라 낼 때 어버이와 자식 프로세스가 모든 기억 쪽을 함께 쓰고, 어느 한쪽이 적을 때에만 그 쪽을 겹으로 만든다. 길 베끼기를 쓰는 영속 배열에서는 옛 판과 새 판이 고치지 않은 밑나무를 모두 함께 쓰고 고친 원소로 가는 길만 겹으로 만든다. 둘 다 판마다 $O(n)$이 아니라 $O(\text{바뀐 것})$ 자리를 이룬다. **쓰임의 다름**: CoW는 쪽 잘기(흔히 4 KB)로 돌고 영속 배열은 원소 잘기로 돈다. CoW는 운영 체제와 기계의 기억 다루개가 훤히 맡아 주지만 영속 배열은 드러낸 자료 얼개다. CoW는 완전 영속이 아니다. 쪽을 베껴 고치고 나면 따로 지켜 두지 않는 한 자식 쪽의 처음 쪽은 사라진다. 영속 배열은 설계로써 모든 판을 오래도록 지닌다. $\square$

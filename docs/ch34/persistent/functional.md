@@ -1,73 +1,73 @@
-# Functional Data Structures
+# 함수형 자료 얼개
 
-In imperative programming, data structures are typically mutable: an insert modifies the structure in place. **Functional data structures** are immutable by design -- every operation returns a new version, and the old version persists automatically. This makes them inherently persistent without any extra bookkeeping, and they are naturally thread-safe since no mutation can occur.
+명령형 짜기에서 자료 얼개는 흔히 바뀔 수 있다. 넣기가 얼개를 그 자리에서 고친다. **함수형 자료 얼개**는 설계로써 바뀌지 않는다. 연산마다 새 판을 돌려주고 옛 판은 절로 남는다. 그래서 따로 적바림하지 않아도 본디부터 영속이며, 바뀜이 없으므로 절로 실에 안전하다.
 
-## Structural Sharing
+## 얼개 함께 쓰기
 
-The key insight that makes functional data structures efficient is **structural sharing**: a new version reuses most of the old version's memory, copying only the nodes that change. For a balanced tree of $n$ nodes, an insert touches $O(\log n)$ nodes on a root-to-leaf path, so the new version shares all but $O(\log n)$ nodes with its predecessor.
-
-$$
-S_{\text{per operation}} = O(\log n) \text{ for balanced trees}
-$$
-
-Without structural sharing, every operation would require $O(n)$ copying, making persistence impractical.
-
-## Functional Lists (Cons Lists)
-
-The simplest functional data structure is the **cons list**, built from pairs (head, tail) where the tail points to the rest of the list. Prepending a new element creates a single new cons cell pointing to the existing list:
+함수형 자료 얼개를 값싸게 만드는 종요로운 눈길은 **얼개 함께 쓰기**다. 새 판이 옛 판의 기억을 거의 되쓰고 바뀌는 마디만 베낀다. 마디 $n$개의 고른 나무에서 넣기는 뿌리-잎 길의 마디 $O(\log n)$개를 건드리므로, 새 판은 $O(\log n)$개를 뺀 모든 마디를 앞 판과 함께 쓴다.
 
 $$
-T_{\text{prepend}} = O(1), \quad S_{\text{prepend}} = O(1)
+S_{\text{연산마다}} = O(\log n) \text{ (고른 나무)}
 $$
 
-Multiple versions can share the same tail, forming a tree of list versions.
+얼개를 함께 쓰지 않으면 연산마다 $O(n)$을 베껴야 하므로 영속이 쓸모없어진다.
 
-!!! warning "Append is expensive"
-    Appending to a cons list requires copying the entire spine: $O(n)$ time and space. Functional code therefore favors prepend over append, reversing the final result if order matters.
+## 함수형 목록(cons 목록)
 
-## Functional Trees
+가장 쉬운 함수형 자료 얼개는 **cons 목록**으로, 꼬리가 목록의 나머지를 가리키는 짝(머리, 꼬리)으로 지어진다. 새 원소를 앞에 붙이면 있던 목록을 가리키는 cons 칸 하나만 새로 생긴다.
 
-A functional balanced BST (e.g., a functional red-black tree or AVL tree) supports insert, delete, and search while maintaining immutability:
+$$
+T_{\text{앞에 붙이기}} = O(1), \quad S_{\text{앞에 붙이기}} = O(1)
+$$
 
-| Operation | Time | Extra Space |
+여러 판이 같은 꼬리를 함께 쓸 수 있어 목록 판의 나무를 이룬다.
+
+!!! warning "뒤에 붙이기는 비싸다"
+    cons 목록에 뒤로 붙이려면 등뼈를 통째로 베껴야 하므로 $O(n)$ 때와 자리가 든다. 그래서 함수형 코드는 뒤에 붙이기보다 앞에 붙이기를 즐기고, 차례가 대수로우면 마지막 열매를 뒤집는다.
+
+## 함수형 나무
+
+함수형 고른 이진 찾기 나무(보기로 함수형 붉은-검은 나무나 AVL 나무)는 바뀌지 않음을 지키면서 넣기, 지우기, 찾기를 받쳐 준다.
+
+| 연산 | 때 | 덧자리 |
 |---|---|---|
-| Search | $O(\log n)$ | $O(1)$ |
-| Insert | $O(\log n)$ | $O(\log n)$ |
-| Delete | $O(\log n)$ | $O(\log n)$ |
+| 찾기 | $O(\log n)$ | $O(1)$ |
+| 넣기 | $O(\log n)$ | $O(\log n)$ |
+| 지우기 | $O(\log n)$ | $O(\log n)$ |
 
-Each insert or delete copies the root-to-modification path and shares the remaining subtrees. This is identical to the path-copying technique but arises naturally from the programming style rather than as an explicit persistence mechanism.
+넣거나 지울 때마다 뿌리부터 고칠 곳까지의 길을 베끼고 나머지 밑나무를 함께 쓴다. 이는 길 베끼기 재주와 똑같지만, 드러낸 영속 장치가 아니라 짜는 결에서 절로 우러난다.
 
-## Amortization and Persistence
+## 나눠 갚기와 영속
 
-A subtle issue arises when combining amortized data structures with persistence. In ephemeral structures, amortized analysis works because expensive operations are paid for by prior cheap operations. In persistent structures, a single version can be the source of multiple future operations, potentially replaying the expensive step without the accumulated "credit."
+나눠 갚는 자료 얼개를 영속과 엮을 때 미묘한 문제가 생긴다. 덧없는 얼개에서 나눠 갚는 따짐이 듣는 까닭은 값비싼 연산의 값을 앞선 값싼 연산이 치러 주기 때문이다. 영속 얼개에서는 판 하나가 앞날의 여러 연산의 샘이 될 수 있어, 쌓아 둔 "빚돈" 없이 값비싼 걸음을 되풀이할 수 있다.
 
-Okasaki (1998) addresses this with **lazy evaluation**: deferred computations are memoized so that an expensive step is performed at most once regardless of how many times the version is accessed.
+오카사키(1998)는 **게으른 셈하기**로 이를 다룬다. 미룬 셈을 적어 두어, 판에 몇 번 닿든 값비싼 걸음을 많아야 한 번만 벌인다.
 
 $$
-T_{\text{amortized}}^{\text{persistent}} = T_{\text{amortized}}^{\text{ephemeral}} \text{ with lazy evaluation}
+T_{\text{나눠 갚음}}^{\text{영속}} = T_{\text{나눠 갚음}}^{\text{덧없음}} \text{ (게으른 셈하기를 쓸 때)}
 $$
 
-Without laziness, persistent versions of amortized structures may lose their amortized bounds.
+게으름이 없으면 나눠 갚는 얼개의 영속 판은 나눠 갚는 매임을 잃을 수 있다.
 
-## Functional Queues
+## 함수형 큐
 
-A standard queue requires $O(1)$ enqueue and dequeue, which is trivial with mutable pointers but non-obvious with immutability. The **banker's queue** uses two lists:
+여느 큐는 $O(1)$ 넣기와 빼기를 바라는데, 바꿀 수 있는 손가락질로는 쉽지만 바뀌지 않음 아래에서는 뻔하지 않다. **은행원 큐**는 목록 둘을 쓴다.
 
-- **Front list** $F$: dequeue takes from the head.
-- **Rear list** $R$: enqueue prepends to $R$.
+- **앞 목록** $F$: 빼기가 머리에서 가져간다.
+- **뒤 목록** $R$: 넣기가 $R$의 앞에 붙인다.
 
-When $F$ is empty, reverse $R$ and swap: $F' = \text{reverse}(R)$, $R' = []$. The reversal costs $O(n)$ but happens at most once per $n$ enqueues, giving $O(1)$ amortized cost per operation.
+$F$이 비면 $R$을 뒤집어 바꿔 넣는다. $F' = \text{reverse}(R)$, $R' = []$. 뒤집기는 $O(n)$이 들지만 넣기 $n$번마다 많아야 한 번 일어나므로 연산마다 나눠 갚아 $O(1)$이 된다.
 
-With lazy evaluation, the reversal is deferred and memoized, preserving the $O(1)$ amortized bound even under persistence.
+게으른 셈하기를 쓰면 뒤집기가 미뤄지고 적어 두어져, 영속 아래에서도 $O(1)$ 나눠 갚는 매임이 지켜진다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Functional Data Structures -- cons list and functional BST.
+함수형 자료 얼개 -- cons 목록과 함수형 이진 찾기 나무.
 
-All operations return new versions without mutating existing ones.
-Structural sharing keeps space overhead proportional to the path length.
+모든 연산이 있는 것을 바꾸지 않고 새 판을 돌려준다. 얼개 함께
+쓰기 덕분에 자리 덧듦이 길 길이에 견준다.
 """
 
 from __future__ import annotations
@@ -75,16 +75,16 @@ from dataclasses import dataclass
 from typing import Iterator
 
 
-# === Cons List ================================================================
+# === cons 목록 ================================================================
 
 @dataclass(frozen=True)
 class ConsList:
-    """Immutable singly linked list (cons cell)."""
+    """바뀌지 않는 한 겹 이음 목록(cons 칸)."""
     head: object
     tail: ConsList | None = None
 
     def prepend(self, value: object) -> ConsList:
-        """Return a new list with *value* at the front."""
+        """*value*을 앞에 둔 새 목록을 돌려준다."""
         return ConsList(value, self)
 
     def __iter__(self) -> Iterator:
@@ -97,42 +97,42 @@ class ConsList:
         return list(self)
 
 
-# === Functional BST ===========================================================
+# === 함수형 이진 찾기 나무 ====================================================
 
 @dataclass(frozen=True)
 class FuncNode:
-    """Immutable BST node."""
+    """바뀌지 않는 이진 찾기 나무 마디."""
     key: int
     left: FuncNode | None = None
     right: FuncNode | None = None
 
 
 def func_insert(root: FuncNode | None, key: int) -> FuncNode:
-    """Return a new tree with *key* inserted (path copying)."""
+    """*key*을 넣은 새 나무를 돌려준다(길 베끼기)."""
     if root is None:
         return FuncNode(key)
     if key < root.key:
         return FuncNode(root.key, func_insert(root.left, key), root.right)
     elif key > root.key:
         return FuncNode(root.key, root.left, func_insert(root.right, key))
-    return root  # key already present
+    return root  # 열쇠가 이미 있다
 
 
 def func_inorder(root: FuncNode | None) -> list[int]:
-    """In-order traversal of an immutable BST."""
+    """바뀌지 않는 이진 찾기 나무의 가운데 먼저 훑기."""
     if root is None:
         return []
     return func_inorder(root.left) + [root.key] + func_inorder(root.right)
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
-    # Cons list: multiple versions sharing tails
+    # cons 목록: 여러 판이 꼬리를 함께 쓴다
     v1 = ConsList(3)
     v2 = v1.prepend(2)
     v3 = v2.prepend(1)
-    v4 = v1.prepend(9)  # branches from v1, not v3
+    v4 = v1.prepend(9)  # v3이 아니라 v1에서 갈라진다
 
     print("v1:", v1.to_list())
     print("v2:", v2.to_list())
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     print("v4:", v4.to_list())
     print(f"v3.tail.tail is v4.tail? {v3.tail.tail is v4.tail}  (shared tail)")
 
-    # Functional BST: versions with structural sharing
+    # 함수형 이진 찾기 나무: 얼개를 함께 쓰는 판들
     print()
     trees = [None]
     for k in [5, 3, 7, 2, 4]:
@@ -150,7 +150,7 @@ if __name__ == "__main__":
         print(f"tree v{i}: {func_inorder(t)}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 v1: [3]
@@ -167,49 +167,49 @@ tree v4: [2, 3, 5, 7]
 tree v5: [2, 3, 4, 5, 7]
 ```
 
-The cons list demonstrates structural sharing: `v3` and `v4` both share the tail node containing `3`. The functional BST shows that every historical version remains intact after each insert.
+cons 목록은 얼개 함께 쓰기를 보여 준다. `v3`과 `v4`이 `3`을 담은 꼬리 마디를 함께 쓴다. 함수형 이진 찾기 나무는 넣을 때마다 지난 판이 모두 그대로 남음을 보여 준다.
 
-## Reference
+## 참고 문헌
 
 - Okasaki, C. *Purely Functional Data Structures.* Cambridge University Press, 1998
 - Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Explain why a cons-list (singly-linked list with prepend) is naturally persistent. What is the time complexity of prepend, head, and tail operations?
+**연습문제 1.**
+cons 목록(앞에 붙이는 한 겹 이음 목록)이 절로 영속인 까닭을 풀어라. 앞에 붙이기, 머리, 꼬리 연산의 때 복잡도는 얼마인가?
 
-??? success "Solution to Exercise 1"
-    A cons-list is a singly-linked list where each node contains a value and a pointer to the next node. Prepending creates a new node pointing to the existing list head. The old list is unchanged because no node is modified -- the new node simply points to it. Both the old list (old head) and the new list (new head) coexist, sharing all nodes except the new one. This is structural sharing, making the list inherently persistent. Time complexities: `prepend` (cons): $O(1)$ -- allocate one node. `head` (car): $O(1)$ -- return the first node's value. `tail` (cdr): $O(1)$ -- return the pointer to the next node. Random access at index $i$: $O(i)$ -- follow $i$ pointers. Append: $O(n)$ -- must copy the entire spine. $\square$
-
----
-
-**Exercise 2.**
-Describe Okasaki's purely functional queue that achieves $O(1)$ amortized enqueue and dequeue. Why is a naive two-list approach not sufficient for persistent use?
-
-??? success "Solution to Exercise 2"
-    Okasaki's queue uses two lists: a front list (for dequeue) and a rear list (for enqueue, stored in reverse). Enqueue prepends to the rear; dequeue takes from the front. When the front is empty, reverse the rear into a new front. In an ephemeral setting, this is $O(1)$ amortized via the banker's method. For persistent use, the same version can be dequeued multiple times, each time triggering the expensive reversal. The amortized argument breaks because the "cost" of reversal is not "paid" across multiple operations on the same version. Okasaki solves this using **lazy evaluation with memoization**: the reversal is suspended as a thunk. The first access computes it and caches the result; subsequent accesses (from any version referencing this thunk) use the cached result. This restores $O(1)$ amortized bounds even under persistence. $\square$
+??? success "연습문제 1 풀이"
+    cons 목록은 마디마다 값 하나와 다음 마디를 가리키는 손가락질을 담는 한 겹 이음 목록이다. 앞에 붙이면 있던 목록 머리를 가리키는 새 마디가 생긴다. 어떤 마디도 고쳐지지 않고 새 마디가 그저 그것을 가리킬 뿐이므로 옛 목록은 그대로다. 옛 목록(옛 머리)과 새 목록(새 머리)이 함께 있으면서 새 마디를 뺀 모든 마디를 함께 쓴다. 이것이 얼개 함께 쓰기이며 목록을 본디부터 영속하게 만든다. 때 복잡도: `prepend`(cons)는 $O(1)$이다(마디 하나를 마련한다). `head`(car)는 $O(1)$이다(첫 마디의 값을 돌려준다). `tail`(cdr)은 $O(1)$이다(다음 마디를 가리키는 손가락질을 돌려준다). 번호 $i$에 아무렇게나 닿기는 $O(i)$이다(손가락질을 $i$번 따라간다). 뒤에 붙이기는 $O(n)$이다(등뼈를 통째로 베껴야 한다). $\square$
 
 ---
 
-**Exercise 3.**
-Prove that a balanced binary tree used as a functional map (persistent sorted map) supports insert and lookup in $O(\log n)$ time with $O(\log n)$ new nodes per insert.
+**연습문제 2.**
+$O(1)$ 나눠 갚는 넣기와 빼기를 이루는 오카사키의 순수 함수형 큐를 밝혀라. 막무가내로 목록 둘을 쓰는 길이 영속 쓰임에 모자란 까닭은 무엇인가?
 
-??? success "Solution to Exercise 3"
-    Insert follows the BST search path from root to the insertion point, creating a new node at the leaf and copying all nodes on the path from root to leaf. Unchanged subtrees are shared via pointers. The path length in a balanced tree is $O(\log n)$, so $O(\log n)$ nodes are created. Each new node links to the unchanged children of the corresponding old node, so no additional copying is needed. Lookup traverses the tree from the root for the queried version, following pointers at each level. Since the tree is balanced, this takes $O(\log n)$. The key insight: immutability means no node in the old tree is modified, so the old root still provides a valid $O(\log n)$ lookup. Both old and new versions coexist with $O(\log n)$ space overhead. $\square$
-
----
-
-**Exercise 4.**
-Explain why arrays are difficult to make purely functional with good performance. What is the best known time complexity for a persistent functional array?
-
-??? success "Solution to Exercise 4"
-    Arrays require $O(1)$ random access, which depends on contiguous memory addressing. In a functional (immutable) setting, updating one element requires creating a new array. A full copy costs $O(n)$. Using a balanced binary tree indexed by position reduces the update cost to $O(\log n)$ but also increases read cost from $O(1)$ to $O(\log n)$. Hash array mapped tries (HAMTs, used in Clojure and Scala) provide a practical compromise: branching factor of 32 gives depth $\le \log_{32} n$, so for $n \le 10^9$, depth $\le 6$. This gives practical $O(1)$ performance (with a constant of $\sim$6) for both read and update. Theoretically, the best known persistent array has $O(\log \log n)$ per operation using van Emde Boas-style decomposition, but this is impractical. $\square$
+??? success "연습문제 2 풀이"
+    오카사키의 큐는 목록 둘을 쓴다. 앞 목록(빼기용)과 (거꾸로 갈무리하는) 뒤 목록(넣기용)이다. 넣기는 뒤에 앞붙이고 빼기는 앞에서 가져간다. 앞이 비면 뒤를 뒤집어 새 앞으로 삼는다. 덧없는 자리에서는 은행원 방식으로 이것이 $O(1)$ 나눠 갚음이다. 영속 쓰임에서는 같은 판에서 여러 번 뺄 수 있고 그때마다 값비싼 뒤집기가 불린다. 뒤집기의 "비용"이 같은 판의 여러 연산에 걸쳐 "치러지지" 않으므로 나눠 갚는 따짐이 무너진다. 오카사키는 **적어 두는 게으른 셈하기**로 이를 푼다. 뒤집기를 덩어리로 미뤄 둔다. 처음 닿을 때 그것을 셈하고 열매를 갈무리하며, (이 덩어리를 가리키는 어느 판에서든) 뒤이어 닿을 때에는 갈무리한 열매를 쓴다. 이로써 영속 아래에서도 $O(1)$ 나눠 갚는 매임이 되살아난다. $\square$
 
 ---
 
-**Exercise 5.**
-Functional data structures are naturally thread-safe. Explain why, and discuss when this property is advantageous compared to using concurrent mutable data structures with locks.
+**연습문제 3.**
+함수형 표(영속 매긴 표)로 쓰는 고른 이진 나무가 넣기와 찾기를 $O(\log n)$ 때에, 넣기마다 새 마디 $O(\log n)$개로 받쳐 줌을 증명하여라.
 
-??? success "Solution to Exercise 5"
-    Functional data structures are thread-safe because they are immutable: no thread can observe a partially modified state because no modification occurs. Each "update" returns a new version while the old version remains intact. Threads reading the old version see a consistent snapshot without locks, memory barriers, or atomic operations. This is advantageous when: (1) read-heavy workloads dominate -- readers pay zero synchronization cost; (2) snapshot isolation is needed -- each thread can hold a reference to its version indefinitely; (3) debugging and reasoning -- no data races, no deadlocks, no memory corruption. Concurrent mutable structures are preferable when: (1) write-heavy workloads require in-place mutation for performance; (2) memory is constrained and structural sharing's overhead is unacceptable; (3) the workload requires atomic compound operations (e.g., transfer between two accounts) that are awkward to express functionally. $\square$
+??? success "연습문제 3 풀이"
+    넣기는 뿌리에서 넣을 곳까지 이진 찾기 나무 찾기 길을 따라가며 잎에 새 마디를 만들고 뿌리부터 잎까지 길 위의 마디를 모두 베낀다. 바뀌지 않은 밑나무는 손가락질로 함께 쓴다. 고른 나무에서 길 길이가 $O(\log n)$이므로 마디 $O(\log n)$개가 생긴다. 새 마디마다 그에 맞는 옛 마디의 바뀌지 않은 자식에 이어지므로 더 베낄 것이 없다. 찾기는 물음을 던진 판의 뿌리에서 나무를 지나며 켜마다 손가락질을 따라간다. 나무가 고르므로 $O(\log n)$이 든다. 종요로운 눈길은 이렇다. 바뀌지 않으므로 옛 나무의 어떤 마디도 고쳐지지 않고, 따라서 옛 뿌리가 여전히 옳은 $O(\log n)$ 찾기를 준다. 옛 판과 새 판이 $O(\log n)$ 자리 덧듦으로 함께 있다. $\square$
+
+---
+
+**연습문제 4.**
+배열을 좋은 성능으로 순수 함수형으로 만들기 어려운 까닭을 풀어라. 영속 함수형 배열에 알려진 가장 좋은 때 복잡도는 얼마인가?
+
+??? success "연습문제 4 풀이"
+    배열은 $O(1)$ 아무 닿기를 바라며 이는 이어진 기억 주소에 기댄다. 함수형(바뀌지 않는) 자리에서 원소 하나를 고치려면 새 배열을 만들어야 한다. 통째로 베끼면 $O(n)$이 든다. 자리로 번호를 매긴 고른 이진 나무를 쓰면 고침 비용이 $O(\log n)$으로 줄지만 읽기 비용도 $O(1)$에서 $O(\log n)$으로 는다. (클로저와 스칼라가 쓰는) 해시 배열 맞댄 트라이(HAMT)는 쓸 만한 타협을 준다. 갈래 수 32이면 깊이가 $\le \log_{32} n$이므로 $n \le 10^9$에서 깊이가 $\le 6$이다. 이로써 읽기와 고치기 둘 다 (상수가 약 6인) 실제 $O(1)$ 성능을 얻는다. 이치상으로는 판 엠데 보아스 꼴 쪼개기를 쓰는 영속 배열이 연산마다 $O(\log \log n)$으로 가장 좋다고 알려졌으나 쓸모가 없다. $\square$
+
+---
+
+**연습문제 5.**
+함수형 자료 얼개는 절로 실에 안전하다. 그 까닭을 풀고, 잠금을 쓰는 한꺼번에 쓰는 바뀔 수 있는 자료 얼개에 견주어 이 성질이 언제 이로운지 따져라.
+
+??? success "연습문제 5 풀이"
+    함수형 자료 얼개가 실에 안전한 까닭은 바뀌지 않기 때문이다. 고침이 아예 없으므로 어떤 실도 반쯤 고쳐진 상태를 볼 수 없다. "고침"마다 새 판을 돌려주고 옛 판은 그대로 남는다. 옛 판을 읽는 실은 잠금도, 기억 울짱도, 원자적인 연산도 없이 한결같은 찰나본을 본다. 이는 다음일 때 이롭다. (1) 읽기가 많은 일감이 판칠 때 -- 읽는 이가 발맞추기 비용을 하나도 물지 않는다. (2) 찰나본 갈라놓기가 있어야 할 때 -- 실마다 제 판을 끝없이 가리키고 있을 수 있다. (3) 벌레잡기와 따지기 -- 자료 겨룸도, 맞물려 멈춤도, 기억 망가짐도 없다. 한꺼번에 쓰는 바뀔 수 있는 얼개가 나은 때는 다음이다. (1) 적기가 많은 일감이라 성능을 위해 그 자리에서 바꾸어야 할 때. (2) 기억이 빠듯해 얼개 함께 쓰기의 덧듦을 받아들일 수 없을 때. (3) 함수형으로 나타내기 어색한, 원자적으로 묶인 연산(보기로 두 셈틀 사이의 옮기기)이 있어야 할 때. $\square$

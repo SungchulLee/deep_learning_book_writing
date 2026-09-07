@@ -1,102 +1,102 @@
-# Path Copying
+# 길 베끼기
 
-When a node in a linked structure changes, only that node and its ancestors need updating -- the rest of the structure can be shared verbatim. **Path copying** exploits this observation by duplicating only the nodes on the root-to-modification path, linking them to the unchanged subtrees of the previous version. This yields a simple, general technique for making any tree-based data structure persistent.
+이음 얼개에서 마디 하나가 바뀌면 그 마디와 조상만 고치면 되고 나머지 얼개는 그대로 함께 쓸 수 있다. **길 베끼기**는 이 눈길을 살려 뿌리에서 고칠 곳까지의 길에 놓인 마디만 겹으로 만들고, 이를 앞 판의 바뀌지 않은 밑나무에 잇는다. 이로써 나무에 바탕을 둔 어떤 자료 얼개든 영속하게 만드는 쉽고 두루 쓰이는 재주를 얻는다.
 
-## Key Observation
+## 종요로운 눈길
 
-In a rooted tree, every node has a unique path from the root. Modifying a node at depth $d$ affects only $d + 1$ nodes (the node itself plus its $d$ ancestors). All other nodes are unreachable from the modification point without going through an ancestor, so they can be shared.
+뿌리 있는 나무에서 마디마다 뿌리부터 이르는 길이 하나뿐이다. 깊이 $d$의 마디를 고치면 마디 $d + 1$개(그 마디와 조상 $d$개)에만 미친다. 다른 모든 마디는 조상을 거치지 않고서는 고칠 곳에서 다다를 수 없으므로 함께 쓸 수 있다.
 
 $$
-\text{Nodes copied per update} = O(d)
+\text{고침마다 베낀 마디} = O(d)
 $$
 
-For a balanced tree of $n$ nodes, $d = O(\log n)$, giving logarithmic overhead per operation.
+마디가 $n$개인 고른 나무에서 $d = O(\log n)$이므로 연산마다 로그 덧듦이 든다.
 
-## Algorithm
+## 알고리즘
 
-Given a tree rooted at $r_v$ (version $v$) and a modification at node $x$:
+뿌리가 $r_v$(판 $v$)인 나무와 마디 $x$에서의 고침이 주어졌을 때:
 
-1. **Copy the root**: create $r_{v+1}$ with the same key/data as $r_v$.
-2. **Walk toward** $x$: at each level, copy the node on the path to $x$ and point the copied parent to the new child. Point all other children to the originals from version $v$.
-3. **Apply the modification** at the copied version of $x$.
-4. Store $r_{v+1}$ as the root of version $v+1$.
+1. **뿌리를 베낀다**: $r_v$과 같은 열쇠/자료를 지닌 $r_{v+1}$을 만든다.
+2. $x$을 **향해 걷는다**: 켜마다 $x$으로 가는 길 위의 마디를 베끼고 베낀 어버이가 새 자식을 가리키게 한다. 다른 모든 자식은 판 $v$의 처음 것을 가리키게 한다.
+3. $x$의 베낀 판에 **고침을 매긴다**.
+4. $r_{v+1}$을 판 $v+1$의 뿌리로 갈무리한다.
 
-The result is two trees, $r_v$ and $r_{v+1}$, sharing all nodes except those on the copied path.
+그 열매는 베낀 길 위의 마디를 뺀 모든 마디를 함께 쓰는 두 나무 $r_v$과 $r_{v+1}$이다.
 
-## Complexity Analysis
+## 복잡도 살피기
 
-For a tree with branching factor $b$ and height $h$:
+갈래 수가 $b$이고 높이가 $h$인 나무에서:
 
-| Operation | Time | Extra Space |
+| 연산 | 때 | 덧자리 |
 |---|---|---|
-| Modify (insert/delete) | $O(h)$ | $O(h)$ |
-| Search | $O(h)$ | $O(1)$ |
+| 고치기(넣기/지우기) | $O(h)$ | $O(h)$ |
+| 찾기 | $O(h)$ | $O(1)$ |
 
-For a balanced BST ($h = O(\log n)$):
-
-$$
-T_{\text{modify}} = O(\log n), \quad S_{\text{modify}} = O(\log n)
-$$
-
-After $M$ total modifications, the total space is:
+고른 이진 찾기 나무($h = O(\log n)$)에서는 다음과 같다.
 
 $$
-S_{\text{total}} = O(n + M \log n)
+T_{\text{고치기}} = O(\log n), \quad S_{\text{고치기}} = O(\log n)
 $$
 
-where $n$ is the initial tree size.
-
-!!! tip "Path copying vs fat nodes"
-    Path copying has faster reads ($O(\log n)$ standard BST search) but uses more space per update ($O(\log n)$ vs $O(1)$ amortized for fat nodes). It is the preferred technique when read performance matters and the version tree is queried frequently.
-
-## Linked Lists
-
-Path copying also works for singly linked lists. Modifying the $k$-th node requires copying all $k$ nodes from the head to that position, since each predecessor's "next" pointer must change:
+온통 $M$번 고친 뒤 온 자리는 다음과 같다.
 
 $$
-T_{\text{modify at position } k} = O(k), \quad S_{\text{modify}} = O(k)
+S_{\text{온}} = O(n + M \log n)
 $$
 
-For modifications at the head ($k = 1$), the cost is $O(1)$, which is why cons lists (prepend-only linked lists) are naturally persistent.
+여기서 $n$은 처음 나무 크기다.
 
-## Full Persistence
+!!! tip "길 베끼기와 살진 마디"
+    길 베끼기는 읽기가 더 빠르지만(여느 이진 찾기 나무 찾기인 $O(\log n)$) 고침마다 자리를 더 쓴다(살진 마디의 $O(1)$ 나눠 갚음에 견주어 $O(\log n)$). 읽기 성능이 대수롭고 판 나무에 물음을 자주 던진다면 즐겨 쓰는 재주다.
 
-Path copying directly supports **full persistence** -- modifying any version, not just the latest. Modifying version $v$ at node $x$ copies the root-to-$x$ path in version $v$'s tree, creating a new version that branches from $v$. The version history forms a tree (or DAG) rather than a linear sequence.
+## 이음 목록
 
-## Implementation
+길 베끼기는 한 겹 이음 목록에도 듣는다. $k$번째 마디를 고치려면 앞선 마디마다 "다음" 손가락질이 바뀌어야 하므로 머리에서 그 자리까지 마디 $k$개를 모두 베껴야 한다.
+
+$$
+T_{\text{자리 } k \text{에서 고치기}} = O(k), \quad S_{\text{고치기}} = O(k)
+$$
+
+머리에서 고치면($k = 1$) 비용이 $O(1)$이며, 이것이 cons 목록(앞에만 붙이는 이음 목록)이 절로 영속인 까닭이다.
+
+## 완전 영속
+
+길 베끼기는 **완전 영속**을 곧바로 받쳐 준다. 곧 마지막 판뿐 아니라 아무 판이나 고칠 수 있다. 판 $v$의 마디 $x$을 고치면 판 $v$ 나무에서 뿌리부터 $x$까지의 길을 베껴 $v$에서 갈라지는 새 판을 만든다. 판 내력은 곧은 열이 아니라 나무(또는 유향 비순환 그래프)를 이룬다.
+
+## 구현
 
 ```python
 """
-Path Copying -- persistent linked list and BST.
+길 베끼기 -- 영속 이음 목록과 이진 찾기 나무.
 
-Demonstrates path copying on two data structures: a singly linked
-list (copy the prefix) and a BST (copy the root-to-node path).
+자료 얼개 둘에서 길 베끼기를 보인다. 한 겹 이음 목록(앞부분을
+베낀다)과 이진 찾기 나무(뿌리부터 마디까지의 길을 베낀다)이다.
 """
 
 from __future__ import annotations
 from dataclasses import dataclass
 
 
-# === Persistent Linked List ===================================================
+# === 영속 이음 목록 ===========================================================
 
 @dataclass(frozen=True)
 class ListNode:
-    """Immutable linked list node."""
+    """바뀌지 않는 이음 목록 마디."""
     value: int
     next: ListNode | None = None
 
 
 def list_set(head: ListNode | None, index: int, value: int) -> ListNode | None:
-    """Return a new list with position *index* changed to *value*."""
+    """자리 *index*을 *value*으로 바꾼 새 목록을 돌려준다."""
     if head is None:
         raise IndexError("index out of range")
     if index == 0:
-        return ListNode(value, head.next)  # copy this node, share the tail
+        return ListNode(value, head.next)  # 이 마디를 베끼고 꼬리는 함께 쓴다
     return ListNode(head.value, list_set(head.next, index - 1, value))
 
 
 def to_list(head: ListNode | None) -> list[int]:
-    """Convert linked list to Python list."""
+    """이음 목록을 파이썬 목록으로 바꾼다."""
     result = []
     while head is not None:
         result.append(head.value)
@@ -104,48 +104,48 @@ def to_list(head: ListNode | None) -> list[int]:
     return result
 
 
-# === Persistent BST ===========================================================
+# === 영속 이진 찾기 나무 ======================================================
 
 @dataclass(frozen=True)
 class TreeNode:
-    """Immutable BST node."""
+    """바뀌지 않는 이진 찾기 나무 마디."""
     key: int
     left: TreeNode | None = None
     right: TreeNode | None = None
 
 
 def tree_insert(root: TreeNode | None, key: int) -> TreeNode:
-    """Return a new tree with *key* inserted via path copying."""
+    """길 베끼기로 *key*을 넣은 새 나무를 돌려준다."""
     if root is None:
         return TreeNode(key)
     if key < root.key:
         return TreeNode(root.key, tree_insert(root.left, key), root.right)
     elif key > root.key:
         return TreeNode(root.key, root.left, tree_insert(root.right, key))
-    return root  # duplicate
+    return root  # 겹침
 
 
 def tree_inorder(root: TreeNode | None) -> list[int]:
-    """In-order traversal."""
+    """가운데 먼저 훑기."""
     if root is None:
         return []
     return tree_inorder(root.left) + [root.key] + tree_inorder(root.right)
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
-    # --- Persistent linked list ---
+    # --- 영속 이음 목록 ---
     v0 = ListNode(1, ListNode(2, ListNode(3, ListNode(4))))
-    v1 = list_set(v0, 2, 99)  # change index 2 from 3 to 99
+    v1 = list_set(v0, 2, 99)  # 번호 2를 3에서 99로 바꾼다
 
     print("Linked list path copying:")
     print(f"  v0: {to_list(v0)}")
     print(f"  v1: {to_list(v1)}")
-    # Tail sharing check
+    # 꼬리를 함께 쓰는지 살핀다
     print(f"  v0 tail is v1 tail? {v0.next.next.next is v1.next.next.next}")
 
-    # --- Persistent BST ---
+    # --- 영속 이진 찾기 나무 ---
     print("\nBST path copying:")
     trees = [None]
     for k in [5, 3, 7, 1, 6]:
@@ -154,11 +154,11 @@ if __name__ == "__main__":
     for i, t in enumerate(trees):
         print(f"  v{i}: {tree_inorder(t)}")
 
-    # Sharing: inserting 6 (goes right->left) does not copy left subtree
+    # 함께 쓰기: 6을 넣으면(오른쪽->왼쪽으로 간다) 왼쪽 밑나무를 베끼지 않는다
     print(f"  v5.left is v4.left? {trees[5].left is trees[4].left}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 Linked list path copying:
@@ -176,49 +176,49 @@ BST path copying:
   v5.left is v4.left? True
 ```
 
-The tail-sharing check for the linked list confirms that modifying index 2 copies only nodes at indices 0, 1, and 2, while sharing the tail at index 3. The BST sharing check shows that inserting 6 (which goes into the right subtree) leaves the left subtree physically shared between versions.
+이음 목록의 꼬리 함께 쓰기 살핌은 번호 2를 고칠 때 번호 0, 1, 2의 마디만 베끼고 번호 3의 꼬리는 함께 씀을 알려 준다. 이진 찾기 나무의 함께 쓰기 살핌은 (오른쪽 밑나무로 들어가는) 6을 넣어도 왼쪽 밑나무가 판 사이에서 참으로 함께 쓰임을 보인다.
 
-## Reference
+## 참고 문헌
 
 - Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
 - Okasaki, C. *Purely Functional Data Structures.* Cambridge University Press, 1998
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Draw the state of a persistent BST (using path copying) after inserting keys 5, 3, 7, 2 sequentially. Show which nodes are shared between versions.
+**연습문제 1.**
+열쇠 5, 3, 7, 2을 차례로 넣은 뒤 (길 베끼기를 쓰는) 영속 이진 찾기 나무의 상태를 그려라. 어느 마디가 판 사이에서 함께 쓰이는지 보여라.
 
-??? success "Solution to Exercise 1"
-    Version 0: empty. Version 1: single node [5]. Version 2: insert 3 -- copy root to get [5'], set 5'.left = new node [3]. Version 1's root [5] is unchanged. Version 3: insert 7 -- copy root to get [5''], set 5''.left = [3] (shared from v2), 5''.right = new node [7]. Version 2's root [5'] is unchanged, with its left child [3] shared by both v2 and v3. Version 4: insert 2 -- copy root to [5'''], copy [3] to [3']. Set 5'''.left = [3'], 3'.left = new node [2], 5'''.right = [7] (shared). Shared nodes: [7] is shared by v3 and v4; original [3] is still referenced by v2; [5] by v1. Each version has its own root pointer. Total new nodes per version: 1, 2, 2, 3 (matching path lengths). $\square$
-
----
-
-**Exercise 2.**
-Prove that path copying on a balanced BST with $n$ nodes creates $O(\log n)$ new nodes per update and uses $O(n + m \log n)$ total space after $m$ updates.
-
-??? success "Solution to Exercise 2"
-    An update (insert or delete) in a balanced BST modifies nodes along a root-to-leaf path of length $O(\log n)$. Path copying duplicates each node on this path, creating $O(\log n)$ new nodes per update. Unchanged subtrees are shared via pointers, requiring no additional copies. The initial tree has $O(n)$ nodes. Each of the $m$ updates adds $O(\log n)$ nodes. Total: $O(n) + m \cdot O(\log n) = O(n + m \log n)$. This bound is tight: in the worst case, each update modifies a distinct root-to-leaf path of length $\Theta(\log n)$, and no nodes from different updates are shared (though in practice, updates to nearby keys share subtrees, using less space). $\square$
+??? success "연습문제 1 풀이"
+    판 0: 비었다. 판 1: 마디 하나 [5]. 판 2: 3을 넣는다 -- 뿌리를 베껴 [5']을 얻고 5'.left = 새 마디 [3]으로 둔다. 판 1의 뿌리 [5]은 그대로다. 판 3: 7을 넣는다 -- 뿌리를 베껴 [5'']을 얻고 5''.left = [3](v2에서 함께 씀), 5''.right = 새 마디 [7]으로 둔다. 판 2의 뿌리 [5']은 그대로이고 그 왼쪽 자식 [3]은 v2와 v3이 함께 쓴다. 판 4: 2을 넣는다 -- 뿌리를 [5''']으로 베끼고 [3]을 [3']으로 베낀다. 5'''.left = [3'], 3'.left = 새 마디 [2], 5'''.right = [7](함께 씀)으로 둔다. 함께 쓰는 마디: [7]은 v3과 v4이 함께 쓰고, 처음 [3]은 아직 v2이 가리키며, [5]은 v1이 가리킨다. 판마다 제 뿌리 손가락질을 지닌다. 판마다 새로 만든 마디의 온 개수는 1, 2, 2, 3으로 길 길이와 들어맞는다. $\square$
 
 ---
 
-**Exercise 3.**
-Path copying requires storing a root pointer per version. If there are $m$ versions, what is the overhead of the version table, and how can it be made more efficient for range version queries?
+**연습문제 2.**
+마디가 $n$개인 고른 이진 찾기 나무에서 길 베끼기가 고침마다 새 마디를 $O(\log n)$개 만들고, $m$번 고친 뒤 온 자리로 $O(n + m \log n)$을 씀을 증명하여라.
 
-??? success "Solution to Exercise 3"
-    The version table stores $m$ root pointers, one per version. If each pointer is 8 bytes, the overhead is $8m$ bytes -- negligible compared to the $O(n + m \log n)$ node storage. For range version queries (e.g., "find the first version where key $k$ exists"), a linear scan of the version table costs $O(m)$. To improve this: (1) store the version table as a sorted array and binary search for the relevant version in $O(\log m)$; (2) build a persistent segment tree over the version indices, enabling range queries in $O(\log m)$; (3) for specific queries like "when was key $k$ first inserted," augment each version's root with metadata and use fractional cascading across versions for $O(\log n + \log m)$ queries. $\square$
-
----
-
-**Exercise 4.**
-Explain why path copying does not work efficiently for data structures with back-pointers (e.g., doubly-linked lists). What alternative persistence technique handles this case?
-
-??? success "Solution to Exercise 4"
-    Path copying requires that modifying a node only necessitates updating its ancestors (nodes that point to it). In a tree, each node has exactly one parent, so copying a node requires updating only the parent's pointer -- propagating up the path to the root. In a doubly-linked list, each node has both a `next` and `prev` pointer. Copying a node requires updating both its predecessor's `next` and its successor's `prev`. Updating the predecessor triggers copying it, which requires updating its predecessor, cascading through the entire list. The result is $O(n)$ copies per modification -- no better than full copying. The fat-node technique handles this case: instead of copying nodes, modifications are stored as timestamped logs within each node, achieving $O(1)$ amortized space per modification regardless of pointer structure. $\square$
+??? success "연습문제 2 풀이"
+    고른 이진 찾기 나무에서 고침(넣기나 지우기)은 길이 $O(\log n)$인 뿌리부터 잎까지의 길에 놓인 마디를 바꾼다. 길 베끼기는 이 길 위의 마디를 저마다 겹으로 만들어 고침마다 새 마디를 $O(\log n)$개 만든다. 바뀌지 않은 밑나무는 손가락질로 함께 쓰므로 더 베낄 것이 없다. 처음 나무에는 마디가 $O(n)$개 있다. $m$번의 고침이 저마다 마디를 $O(\log n)$개 더한다. 온통 $O(n) + m \cdot O(\log n) = O(n + m \log n)$이다. 이 매임은 팽팽하다. 가장 나쁠 때 고침마다 길이 $\Theta(\log n)$인 서로 다른 뿌리-잎 길을 바꾸고 서로 다른 고침의 마디를 하나도 함께 쓰지 않는다(다만 실제로는 가까운 열쇠를 고치면 밑나무를 함께 써서 자리를 덜 쓴다). $\square$
 
 ---
 
-**Exercise 5.**
-Design a persistent stack using path copying. What are the time and space complexities for push, pop, and top operations? How many versions can be maintained simultaneously?
+**연습문제 3.**
+길 베끼기는 판마다 뿌리 손가락질을 갈무리해야 한다. 판이 $m$개이면 판 표의 덧듦은 얼마이며, 판 범위 물음을 더 낫게 하려면 어떻게 하는가?
 
-??? success "Solution to Exercise 5"
-    A stack is a singly-linked list with a top pointer. Push: create a new node pointing to the current top. The new top is the new node; the old version's top pointer is unchanged. No copying needed -- this is structural sharing, equivalent to path copying on a list of depth 1. Pop: the new version's top points to `top.next`. Again, no copying. Top: return `top.value`. All operations are $O(1)$ time and $O(1)$ space (push creates one node; pop and top create zero nodes). The number of simultaneous versions is unlimited -- each version is just a pointer to a node in the shared linked list. With $m$ push operations across all versions, total space is $O(m)$. This is the simplest example of a persistent data structure: a cons-list is inherently persistent because it has no back-pointers and no mutations. $\square$
+??? success "연습문제 3 풀이"
+    판 표는 판마다 하나씩 뿌리 손가락질 $m$개를 갈무리한다. 손가락질 하나가 8바이트이면 덧듦은 $8m$ 바이트로, $O(n + m \log n)$인 마디 갈무리에 견주면 셈에 넣지 않아도 될 만큼 작다. 판 범위 물음(보기로 "열쇠 $k$이 있는 첫 판을 찾아라")은 판 표를 곧게 훑으면 $O(m)$이 든다. 이를 낫게 하려면: (1) 판 표를 매긴 배열로 갈무리해 걸맞은 판을 $O(\log m)$에 두 갈래로 찾는다. (2) 판 번호 위에 영속 구간 나무를 세워 범위 물음을 $O(\log m)$에 한다. (3) "열쇠 $k$이 처음 들어온 때는 언제인가" 같은 붙박인 물음에는 판마다 뿌리에 딸림 정보를 더하고 판을 가로지르는 조각 줄줄이 넘기기를 써서 $O(\log n + \log m)$ 물음을 이룬다. $\square$
+
+---
+
+**연습문제 4.**
+되돌아가는 손가락질을 지닌 자료 얼개(보기로 두 겹 이음 목록)에서 길 베끼기가 잘 듣지 않는 까닭을 풀어라. 이 경우를 다루는 다른 영속 재주는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    길 베끼기는 마디를 고칠 때 그것을 가리키는 조상만 고치면 된다는 것을 밑에 깐다. 나무에서는 마디마다 어버이가 꼭 하나이므로 마디를 베끼면 어버이의 손가락질만 고치면 되고, 이것이 뿌리까지 길을 타고 올라간다. 두 겹 이음 목록에서는 마디마다 `next`과 `prev` 손가락질을 함께 지닌다. 마디를 베끼려면 앞 마디의 `next`과 뒤 마디의 `prev`을 둘 다 고쳐야 한다. 앞 마디를 고치면 그것을 베껴야 하고, 그러면 다시 그 앞 마디를 고쳐야 하여 온 목록으로 줄줄이 번진다. 그 열매는 고침마다 $O(n)$번 베끼는 것으로, 통째로 베끼는 것보다 나을 것이 없다. 살진 마디 재주가 이 경우를 다룬다. 마디를 베끼는 대신 고침을 마디 안에 때 도장 붙은 기록으로 갈무리하여, 손가락질 얼개와 상관없이 고침마다 $O(1)$ 나눠 갚는 자리를 이룬다. $\square$
+
+---
+
+**연습문제 5.**
+길 베끼기로 영속 스택을 설계하여라. push, pop, top 연산의 때와 자리 복잡도는 얼마인가? 판을 한꺼번에 몇 개나 지닐 수 있는가?
+
+??? success "연습문제 5 풀이"
+    스택은 꼭대기 손가락질을 둔 한 겹 이음 목록이다. push: 지금 꼭대기를 가리키는 새 마디를 만든다. 새 꼭대기는 그 새 마디이고 옛 판의 꼭대기 손가락질은 그대로다. 베낄 것이 없다. 이는 얼개를 함께 쓰는 것이며 깊이 1인 목록에 길 베끼기를 한 것과 같다. pop: 새 판의 꼭대기가 `top.next`을 가리킨다. 이번에도 베낄 것이 없다. top: `top.value`을 돌려준다. 모든 연산이 $O(1)$ 때와 $O(1)$ 자리다(push는 마디 하나를 만들고 pop과 top은 하나도 만들지 않는다). 한꺼번에 지닐 수 있는 판의 개수에는 매임이 없다. 판마다 그저 함께 쓰는 이음 목록의 어느 마디를 가리키는 손가락질일 뿐이다. 온 판에 걸쳐 push를 $m$번 하면 온 자리는 $O(m)$이다. 이는 영속 자료 얼개의 가장 쉬운 보기다. cons 목록은 되돌아가는 손가락질도 없고 바꿈도 없으므로 본디부터 영속이다. $\square$

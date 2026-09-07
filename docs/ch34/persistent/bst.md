@@ -1,83 +1,83 @@
-# Persistent BSTs
+# 영속 이진 찾기 나무
 
-A binary search tree (BST) supports search, insert, and delete in $O(h)$ time where $h$ is the tree height. In the standard (ephemeral) version, each insert or delete mutates the tree, destroying the previous shape. A **persistent BST** retains all prior versions so that any historical state can be queried or, in the fully persistent case, modified to spawn new versions.
+이진 찾기 나무는 찾기, 넣기, 지우기를 $O(h)$ 때에 받쳐 준다. 여기서 $h$은 나무 높이다. 여느(덧없는) 판에서는 넣거나 지울 때마다 나무가 바뀌어 앞선 꼴이 무너진다. **영속 이진 찾기 나무**는 앞선 판을 모두 지녀, 지난 어느 상태에든 물음을 던지거나 완전 영속이라면 그것을 고쳐 새 판을 돋아나게 할 수 있다.
 
-## Why Path Copying Works for Trees
+## 나무에서 길 베끼기가 듣는 까닭
 
-Trees have a key structural property that makes persistence efficient: every node has exactly one parent. When a node changes, only its ancestors need new copies -- the rest of the tree can be shared. For a balanced BST of $n$ nodes with height $h = O(\log n)$, an insert touches at most $h + 1$ nodes on a root-to-leaf path, so path copying creates only $O(\log n)$ new nodes per operation.
+나무에는 영속을 값싸게 만드는 종요로운 얼개 성질이 있다. 마디마다 어버이가 꼭 하나다. 마디가 바뀌면 그 조상만 새로 베끼면 되고 나머지 나무는 함께 쓸 수 있다. 높이가 $h = O(\log n)$인 마디 $n$개의 고른 이진 찾기 나무에서 넣기는 뿌리부터 잎까지의 길에 놓인 많아야 $h + 1$개의 마디를 건드리므로, 길 베끼기는 연산마다 새 마디를 $O(\log n)$개만 만든다.
 
-## Path-Copying Insert
+## 길 베끼기 넣기
 
-To insert key $k$ into version $v$:
+판 $v$에 열쇠 $k$을 넣으려면:
 
-1. Walk from the root of version $v$ down to the insertion point, copying each visited node.
-2. Create a new leaf for $k$.
-3. Link the copied ancestors together and return the new root as version $v+1$.
+1. 판 $v$의 뿌리에서 넣을 곳까지 내려가며 들르는 마디를 저마다 베낀다.
+2. $k$을 담을 새 잎을 만든다.
+3. 베낀 조상들을 서로 잇고 새 뿌리를 판 $v+1$으로 돌려준다.
 
-The old root and all its shared subtrees remain intact, so version $v$ is still accessible.
+옛 뿌리와 그것이 함께 쓰는 밑나무는 모두 그대로이므로 판 $v$에 여전히 닿을 수 있다.
 
-**Time and space per insert:**
-
-$$
-T_{\text{insert}} = O(h), \quad S_{\text{insert}} = O(h)
-$$
-
-For a balanced BST, $h = O(\log n)$, giving $O(\log n)$ time and $O(\log n)$ extra space per version.
-
-## Path-Copying Search
-
-Searching version $v$ follows the standard BST search starting from the root of version $v$. No copying is needed since search does not modify the tree:
+**넣기마다 때와 자리:**
 
 $$
-T_{\text{search}} = O(h)
+T_{\text{넣기}} = O(h), \quad S_{\text{넣기}} = O(h)
 $$
 
-## Path-Copying Delete
+고른 이진 찾기 나무에서는 $h = O(\log n)$이므로 판마다 $O(\log n)$ 때와 $O(\log n)$ 덧자리가 든다.
 
-Deletion follows the same path-copying principle. Find the node to delete, copy the root-to-node path, and adjust pointers in the copies to remove the node (handling the standard BST deletion cases: leaf, one child, two children with in-order successor). The cost is:
+## 길 베끼기 찾기
+
+판 $v$을 찾을 때에는 판 $v$의 뿌리에서 시작해 여느 이진 찾기 나무 찾기를 따른다. 찾기는 나무를 고치지 않으므로 베낄 것이 없다.
 
 $$
-T_{\text{delete}} = O(h), \quad S_{\text{delete}} = O(h)
+T_{\text{찾기}} = O(h)
 $$
 
-## Complexity Summary
+## 길 베끼기 지우기
 
-| Operation | Time | Extra Space |
+지우기도 같은 길 베끼기 이치를 따른다. 지울 마디를 찾고 뿌리부터 그 마디까지의 길을 베낀 뒤, 베낀 것들의 손가락질을 다잡아 그 마디를 없앤다(잎, 자식 하나, 가운데 먼저 뒤따르는 것을 쓰는 자식 둘이라는 여느 이진 찾기 나무 지우기 경우를 다룬다). 비용은 다음과 같다.
+
+$$
+T_{\text{지우기}} = O(h), \quad S_{\text{지우기}} = O(h)
+$$
+
+## 복잡도 간추림
+
+| 연산 | 때 | 덧자리 |
 |---|---|---|
-| Search(version $v$, key $k$) | $O(\log n)$ | $O(1)$ |
-| Insert(version $v$, key $k$) | $O(\log n)$ | $O(\log n)$ |
-| Delete(version $v$, key $k$) | $O(\log n)$ | $O(\log n)$ |
+| 찾기(판 $v$, 열쇠 $k$) | $O(\log n)$ | $O(1)$ |
+| 넣기(판 $v$, 열쇠 $k$) | $O(\log n)$ | $O(\log n)$ |
+| 지우기(판 $v$, 열쇠 $k$) | $O(\log n)$ | $O(\log n)$ |
 
-These bounds assume a balanced BST. Without balancing, the worst case is $O(n)$ per operation.
+이 매임은 고른 이진 찾기 나무를 여긴 것이다. 고르게 하지 않으면 연산마다 가장 나쁠 때 $O(n)$이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Persistent BST -- path-copying implementation.
+영속 이진 찾기 나무 -- 길 베끼기로 만들기.
 
-Each insert or delete creates a new root sharing unchanged subtrees
-with previous versions. All historical versions remain accessible.
+넣거나 지울 때마다 앞 판과 바뀌지 않은 밑나무를 함께 쓰는 새
+뿌리를 만든다. 지난 판에는 모두 그대로 닿을 수 있다.
 """
 
 from __future__ import annotations
 from dataclasses import dataclass
 
 
-# === Node =====================================================================
+# === 마디 =====================================================================
 
 @dataclass
 class Node:
-    """Immutable BST node. Children may be shared across versions."""
+    """바뀌지 않는 이진 찾기 나무 마디. 자식은 판 사이에서 함께 쓸 수 있다."""
     key: int
     left: Node | None = None
     right: Node | None = None
 
 
-# === Persistent Operations ====================================================
+# === 영속 연산 ================================================================
 
 def insert(root: Node | None, key: int) -> Node:
-    """Return a new root with *key* inserted (path-copying)."""
+    """*key*을 넣은 새 뿌리를 돌려준다(길 베끼기)."""
     if root is None:
         return Node(key)
     if key < root.key:
@@ -85,10 +85,10 @@ def insert(root: Node | None, key: int) -> Node:
     elif key > root.key:
         return Node(root.key, root.left, insert(root.right, key))
     else:
-        return root  # duplicate key: no change
+        return root  # 겹치는 열쇠: 바뀌지 않는다
 
 def search(root: Node | None, key: int) -> bool:
-    """Search for *key* starting from *root*."""
+    """*root*에서 시작해 *key*을 찾는다."""
     if root is None:
         return False
     if key == root.key:
@@ -99,19 +99,19 @@ def search(root: Node | None, key: int) -> bool:
         return search(root.right, key)
 
 def inorder(root: Node | None) -> list[int]:
-    """Return the in-order traversal as a list."""
+    """가운데 먼저 훑기를 목록으로 돌려준다."""
     if root is None:
         return []
     return inorder(root.left) + [root.key] + inorder(root.right)
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
-    # Build version 0 (empty)
+    # 판 0을 세운다(비었다)
     versions: list[Node | None] = [None]
 
-    # Insert keys, creating new versions
+    # 열쇠를 넣으며 새 판을 만든다
     for key in [5, 3, 7, 1, 4, 6, 8]:
         new_root = insert(versions[-1], key)
         versions.append(new_root)
@@ -122,11 +122,11 @@ if __name__ == "__main__":
     print(f"After 1 insert  (v1): {inorder(versions[1])}")
     print(f"Empty original  (v0): {inorder(versions[0])}")
 
-    # Verify sharing: v7's right subtree root is the same object as v6's
+    # 함께 쓰기 살피기: v7의 왼쪽 밑나무가 v6의 것과 같은 것인지
     print(f"\nSharing check: v7.left is v6.left? {versions[7].left is versions[6].left}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 Number of versions: 8
@@ -138,49 +138,49 @@ Empty original  (v0): []
 Sharing check: v7.left is v6.left? True
 ```
 
-The sharing check confirms that path copying reuses unchanged subtrees: the left subtree of version 7 is the exact same object as the left subtree of version 6, since inserting 8 (which goes right) does not modify the left side.
+이 함께 쓰기 살핌은 길 베끼기가 바뀌지 않은 밑나무를 되씀을 알려 준다. (오른쪽으로 가는) 8을 넣어도 왼쪽은 고쳐지지 않으므로, 판 7의 왼쪽 밑나무는 판 6의 왼쪽 밑나무와 똑같은 것이다.
 
-## Reference
+## 참고 문헌
 
 - Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
 - [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Describe how to make a BST partially persistent using path copying. What is the time and space cost per insert operation?
+**연습문제 1.**
+길 베끼기로 이진 찾기 나무를 부분 영속하게 만드는 길을 밝혀라. 넣기 연산마다 때와 자리 비용은 얼마인가?
 
-??? success "Solution to Exercise 1"
-    For partial persistence (old versions are read-only, only the latest is modified): on each insert, the new key is placed at a leaf position. Copy all nodes from the root to the new leaf, linking each copied node's unchanged child to the original subtree. The new root becomes the latest version; the old root still points to the old tree. Time per insert: $O(h)$ where $h$ is the tree height (same as ephemeral BST). Space per insert: $O(h)$ new nodes (one per level on the root-to-leaf path). For a balanced BST (AVL or red-black), $h = O(\log n)$, so both time and space per insert are $O(\log n)$. After $m$ insertions, total space is $O(n + m \log n)$. $\square$
-
----
-
-**Exercise 2.**
-Explain the difference between partial persistence and full persistence. Give an example where full persistence is necessary but partial persistence is insufficient.
-
-??? success "Solution to Exercise 2"
-    **Partial persistence**: all versions are queryable, but only the latest version can be modified. Versions form a linear sequence: $v_0 \to v_1 \to v_2 \to \cdots$. **Full persistence**: any version can be modified to produce a new version, creating a branching version tree. Example requiring full persistence: a version control system where a user checks out an old commit (version $v_3$) and makes a new edit, creating version $v_3'$ that branches off from $v_3$ rather than continuing from the latest $v_{10}$. With partial persistence, editing $v_3$ is impossible -- only $v_{10}$ can be modified. Another example: an undo tree in a text editor where the user can undo to any point and create a new branch of edits, rather than a linear undo/redo stack. $\square$
+??? success "연습문제 1 풀이"
+    부분 영속(옛 판은 읽기뿐이고 마지막 판만 고친다)에서는 넣을 때마다 새 열쇠가 잎 자리에 놓인다. 뿌리에서 새 잎까지의 마디를 모두 베끼고, 베낀 마디마다 바뀌지 않은 자식을 처음 밑나무에 잇는다. 새 뿌리가 마지막 판이 되고 옛 뿌리는 여전히 옛 나무를 가리킨다. 넣기마다 때: 나무 높이를 $h$이라 할 때 $O(h)$이다(덧없는 이진 찾기 나무와 같다). 넣기마다 자리: 새 마디 $O(h)$개(뿌리-잎 길의 켜마다 하나)다. 고른 이진 찾기 나무(AVL이나 붉은-검은)에서는 $h = O(\log n)$이므로 넣기마다 때와 자리가 모두 $O(\log n)$이다. $m$번 넣은 뒤 온 자리는 $O(n + m \log n)$이다. $\square$
 
 ---
 
-**Exercise 3.**
-A persistent red-black tree inserts a key that triggers a rebalancing rotation. How many additional nodes must be copied compared to a simple path-copying insert without rotation?
+**연습문제 2.**
+부분 영속과 완전 영속의 다름을 풀어라. 완전 영속이 있어야 하고 부분 영속으로는 모자란 보기를 들어라.
 
-??? success "Solution to Exercise 3"
-    A red-black tree insert may trigger up to $O(\log n)$ recolorings (which are pointer-field changes on existing nodes) and at most 2 rotations. Each recoloring along the path requires copying the recolored node (which is already on the root-to-leaf path, so it would be copied anyway). Each rotation involves rearranging parent-child pointers among 2--3 nodes. If the rotated nodes are on the insertion path, they are already being copied. If a rotation involves a node's sibling (off the path), that sibling must also be copied -- at most 1 additional node per rotation. With at most 2 rotations, the additional nodes are at most 2. Total nodes copied: $O(\log n) + O(1) = O(\log n)$. The rotations do not change the asymptotic cost. $\square$
-
----
-
-**Exercise 4.**
-Design a persistent BST that supports the operation "count the number of keys in the range $[a, b]$ at version $v$" in $O(\log n)$ time. What augmentation is needed?
-
-??? success "Solution to Exercise 4"
-    Augment each node with a `size` field storing the number of nodes in its subtree. This is maintained during insertions: when copying nodes on the insertion path, update each copied node's size as the sum of its children's sizes plus 1. To count keys in $[a, b]$ at version $v$: define `rank(x, v)` as the number of keys $\le x$ in version $v$, computed by traversing the tree for version $v$ in $O(\log n)$ using the size fields. The count in $[a, b]$ is $\text{rank}(b, v) - \text{rank}(a-1, v)$, requiring two $O(\log n)$ traversals. The size augmentation adds $O(1)$ space per node and $O(1)$ time per node during updates, so the persistent BST's asymptotic complexities remain $O(\log n)$ per operation. $\square$
+??? success "연습문제 2 풀이"
+    **부분 영속**: 모든 판에 물음을 던질 수 있으나 마지막 판만 고칠 수 있다. 판이 곧은 열 $v_0 \to v_1 \to v_2 \to \cdots$을 이룬다. **완전 영속**: 아무 판이나 고쳐 새 판을 내놓을 수 있어 갈라지는 판 나무가 생긴다. 완전 영속이 있어야 하는 보기: 쓰는 이가 옛 넣음(판 $v_3$)을 꺼내어 새로 고쳐, 마지막 $v_{10}$에서 이어지지 않고 $v_3$에서 갈라지는 판 $v_3'$을 만드는 판 다루기 시스템이다. 부분 영속에서는 $v_3$을 고칠 수 없고 오직 $v_{10}$만 고칠 수 있다. 다른 보기: 쓰는 이가 아무 곳으로나 되돌린 뒤 곧은 되돌리기/다시 하기 스택이 아니라 새 고침 갈래를 만들 수 있는 글월 다듬개의 되돌리기 나무다. $\square$
 
 ---
 
-**Exercise 5.**
-Compare persistent BSTs implemented via path copying versus fat nodes. Under what conditions does each approach use less total space after $m$ operations on a tree of $n$ elements?
+**연습문제 3.**
+영속 붉은-검은 나무가 다시 고르는 돌리기를 부르는 열쇠를 넣는다. 돌리기가 없는 그냥 길 베끼기 넣기에 견주어 마디를 몇 개나 더 베껴야 하는가?
 
-??? success "Solution to Exercise 5"
-    **Path copying**: each update copies $O(\log n)$ nodes. Total space after $m$ operations: $O(n + m \log n)$. Each version has its own root pointer. **Fat nodes**: each update stores $O(1)$ field changes in the modified nodes (with amortized $O(1)$ space per update if the node has bounded in-degree). Total space: $O(n + m)$. However, queries must search through modification logs at each node, adding $O(\log m)$ time per node access (binary search on timestamps). Path copying uses less space when $m$ is small ($m \ll n$), since the initial $O(n)$ dominates. Fat nodes use less space when $m$ is large ($m \gg n / \log n$), since $O(m)$ vs. $O(m \log n)$ becomes significant. The crossover is at $m \approx n / \log n$. Path copying is simpler to implement and has no query-time overhead, making it the preferred choice in competitive programming and most practical applications. $\square$
+??? success "연습문제 3 풀이"
+    붉은-검은 나무 넣기는 (있는 마디의 손가락질 밭을 바꾸는) 빛깔 다시 칠하기를 $O(\log n)$번까지, 돌리기를 많아야 2번 부를 수 있다. 길을 따라 다시 칠할 때마다 다시 칠한 마디를 베껴야 하는데, 그 마디는 이미 뿌리-잎 길 위에 있으므로 어차피 베낀다. 돌리기마다 마디 2~3개 사이에서 어버이-자식 손가락질을 다시 늘어놓는다. 돌린 마디가 넣기 길 위에 있으면 이미 베끼는 중이다. 돌리기에 (길 밖의) 어느 마디의 동기가 걸리면 그 동기도 베껴야 하므로 돌리기마다 많아야 마디 1개가 더 든다. 돌리기가 많아야 2번이므로 더 드는 마디는 많아야 2개다. 온통 베끼는 마디는 $O(\log n) + O(1) = O(\log n)$이다. 돌리기는 점근 비용을 바꾸지 않는다. $\square$
+
+---
+
+**연습문제 4.**
+"판 $v$에서 범위 $[a, b]$ 안의 열쇠 개수를 세어라"라는 연산을 $O(\log n)$ 때에 받쳐 주는 영속 이진 찾기 나무를 설계하여라. 어떤 덧붙임이 있어야 하는가?
+
+??? success "연습문제 4 풀이"
+    마디마다 그 밑나무의 마디 개수를 갈무리하는 `size` 밭을 덧붙인다. 이는 넣는 동안 지킨다. 넣기 길의 마디를 베낄 때 베낀 마디의 크기를 자식들의 크기 합에 1을 더한 값으로 고친다. 판 $v$에서 $[a, b]$ 안의 열쇠를 세려면, 판 $v$에서 $x$ 이하인 열쇠의 개수를 `rank(x, v)`이라 하고 크기 밭을 써서 판 $v$의 나무를 $O(\log n)$에 지나며 셈한다. $[a, b]$ 안의 개수는 $\text{rank}(b, v) - \text{rank}(a-1, v)$이며 $O(\log n)$짜리 훑기 두 번이면 된다. 크기 덧붙임은 마디마다 $O(1)$ 자리를 더하고 고칠 때 마디마다 $O(1)$ 때를 더하므로, 영속 이진 찾기 나무의 점근 복잡도는 연산마다 $O(\log n)$으로 그대로다. $\square$
+
+---
+
+**연습문제 5.**
+길 베끼기로 만든 영속 이진 찾기 나무와 살진 마디로 만든 것을 견주어라. 원소 $n$개의 나무에 연산을 $m$번 벌인 뒤, 어느 조건에서 어느 길이 온 자리를 덜 쓰는가?
+
+??? success "연습문제 5 풀이"
+    **길 베끼기**: 고칠 때마다 마디 $O(\log n)$개를 베낀다. $m$번 연산한 뒤 온 자리는 $O(n + m \log n)$이다. 판마다 제 뿌리 손가락질을 지닌다. **살진 마디**: 고칠 때마다 고친 마디에 밭 바뀜 $O(1)$개를 갈무리한다(마디의 들어오는 차수가 매여 있으면 고침마다 나눠 갚아 $O(1)$ 자리다). 온 자리는 $O(n + m)$이다. 다만 물음은 마디마다 고침 기록을 뒤져야 하므로 마디에 닿을 때마다 $O(\log m)$ 때가 더 든다(때 도장에 두 갈래 찾기를 한다). $m$이 작으면($m \ll n$) 처음의 $O(n)$이 판치므로 길 베끼기가 자리를 덜 쓴다. $m$이 크면($m \gg n / \log n$) $O(m)$과 $O(m \log n)$의 차이가 두드러지므로 살진 마디가 자리를 덜 쓴다. 뒤집히는 자리는 $m \approx n / \log n$이다. 길 베끼기는 만들기가 더 쉽고 물음 때 덧듦이 없어 겨루기 짜기와 거의 모든 쓰임새에서 즐겨 쓴다. $\square$
