@@ -154,7 +154,7 @@ $$
 | Grade school | $n^2$ | $O(n^2)$ |
 | Karatsuba | $n^{\log_2 3}$ | $O(n^{1.585})$ |
 
-For $n = 1000$ digits, grade school requires $\sim 10^6$ operations; Karatsuba requires $\sim 10^{4.76} \approx 57{,}500$ -- a 17x speedup.
+$n = 1000$자리라면 학교 방식은 $\sim 10^6$ 번 셈해야 하고 카라추바는 $\sim 10^{4.76} \approx 57{,}500$ 번이면 되니 17배 빠르다.
 
 ## 올바름
 
@@ -164,19 +164,19 @@ $$
 x \cdot y = p_1 \cdot 10^{2m} + (p_3 - p_1 - p_2) \cdot 10^m + p_2
 $$
 
-and induction on $n$. The base case (direct multiplication for small $n$) is correct by definition. For the inductive step, assume Karatsuba correctly computes products of numbers with fewer than $n$ digits. Then $p_1$, $p_2$, and $p_3$ are correct, and the formula above gives the correct product. $\square$
+그리고 $n$에 대한 미루어 나아가기를 쓴다. 밑 자리(작은 $n$에서 곧바로 곱하기)는 뜻매김에 따라 옳다. 미루어 나아가는 걸음에서는 카라추바가 $n$자리보다 적은 수의 곱을 옳게 셈한다고 하자. 그러면 $p_1$, $p_2$, $p_3$이 옳고 위의 식이 옳은 곱을 준다. $\square$
 
 ## 실용적인 고려
 
 !!! tip "바탕 경우의 문턱값"
-    In practice, Karatsuba is slower than grade-school multiplication for small numbers due to the overhead of additions, subtractions, and recursive calls. Implementations typically switch to the grade-school method when $n$ drops below a threshold (e.g., $n \le 64$ digits).
+    참으로는 작은 수에서 더하기, 빼기, 되부름의 덤 때문에 카라추바가 학교 방식보다 느리다. 그래서 흔히 $n$이 어떤 문턱 아래로 내려가면($n \le 64$자리 따위) 학교 방식으로 갈아탄다.
 
 !!! note "카라추바를 넘어"
-    Karatsuba's approach generalizes: Toom-Cook splits numbers into 3 or more pieces, further reducing the exponent. The current asymptotically fastest known algorithm (Harvey-van der Hoeven, 2019) achieves $O(n \log n)$ for integer multiplication, though Karatsuba remains practical for moderately large numbers.
+    카라추바의 길은 더 넓힐 수 있다. 툼-쿡은 수를 3조각 넘게 쪼개어 지수를 더 낮춘다. 이제까지 알려진 점근으로 가장 빠른 알고리즘(하비-판 데르 호번, 2019)은 정수 곱하기를 $O(n \log n)$에 해내지만, 어지간히 큰 수에는 카라추바가 여전히 쓸모 있다.
 
 ## 풀이 예제
 
-Compute $1234 \times 5678$ using Karatsuba.
+카라추바로 $1234 \times 5678$을 셈하여라.
 
 Set $m = 2$, so $10^m = 100$:
 
@@ -199,11 +199,11 @@ $$
 = 6720000 + 2840 \times 100 + 2652 = 6720000 + 284000 + 2652 = 7006652
 $$
 
-Verification: $1234 \times 5678 = 7006652$. Correct.
+따져 보기: $1234 \times 5678 = 7006652$. 맞다.
 
 ## 요약
 
-Karatsuba multiplication reduces the number of recursive multiplications from four to three by computing the middle coefficient as $p_3 - p_1 - p_2$ instead of computing $x_1 y_0$ and $x_0 y_1$ separately. This simple algebraic trick improves the complexity from $O(n^2)$ to $O(n^{\log_2 3}) \approx O(n^{1.585})$, demonstrating how reducing the number of subproblems by even one can dramatically improve asymptotic performance.
+카라추바 곱하기는 $x_1 y_0$과 $x_0 y_1$을 따로 셈하는 대신 가운데 계수를 $p_3 - p_1 - p_2$으로 얻어 되부르는 곱하기를 넷에서 셋으로 줄인다. 이 단순한 대수 솜씨가 복잡도를 $O(n^2)$에서 $O(n^{\log_2 3}) \approx O(n^{1.585})$으로 낮추니, 잔문제를 하나만 줄여도 점근 됨됨이가 크게 나아짐을 보여 준다.
 
 ## 참고 문헌
 

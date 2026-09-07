@@ -75,7 +75,7 @@ peak(lst)
     |-----------|-----------|-----------|-------|
     | 막무가내 | $O(nm)$ | $O(n)$ | $O(1)$ |
     | KMP | $O(n + m)$ | $O(n)$ | 어그러짐 함수에 $O(m)$ |
-    | Boyer-Moore | $O(nm)$ (pathological) | $O(n/m)$ (sublinear!) | $O(m + |\Sigma|)$ |
+    | 보이어-무어 | $O(nm)$(아주 나쁠 때) | $O(n/m)$(선형보다 빠르다!) | $O(m + |\Sigma|)$ |
 
     KMP는 한 줄 시간을 보장한다. 보이어-무어는 (글자를 건너뛰므로) 실전에서 대개 더 빠르지만 갈릴 다듬기를 쓰지 않으면 가장 나쁜 경우 $O(nm)$이다.
 
@@ -93,14 +93,14 @@ peak(lst)
 KMP의 어그러짐 함수란 무엇인가? 무늬 "ABABCAB"에 대해 셈하여라.
 
 ??? success "연습문제 3 풀이"
-    The failure function $\pi[i]$ gives the length of the longest proper prefix of $P[0..i]$ that is also a suffix. For "ABABCAB":
+    어그러짐 함수 $\pi[i]$은 $P[0..i]$의 진부분 머리말 가운데 꼬리말이기도 한 가장 긴 것의 길이를 준다. "ABABCAB"에서는
 
     | $i$ | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
     |-----|---|---|---|---|---|---|---|
     | $P[i]$ | A | B | A | B | C | A | B |
     | $\pi[i]$ | 0 | 0 | 1 | 2 | 0 | 1 | 2 |
 
-    For example, $\pi[3] = 2$ because "AB" is both a prefix and suffix of "ABAB".
+    보기로 "AB"은 "ABAB"의 머리말이면서 꼬리말이므로 $\pi[3] = 2$이다.
 
 ---
 
@@ -108,4 +108,4 @@ KMP의 어그러짐 함수란 무엇인가? 무늬 "ABABCAB"에 대해 셈하여
 라빈-카프에 쓰이는 굴리는 해시 재주를 설명하여라. 헛맞음이 일어날 확률은 얼마인가?
 
 ??? success "연습문제 4 풀이"
-    Rabin-Karp computes a hash of the pattern and slides a hash window over the text. The **rolling hash** updates in $O(1)$: $h(T[i+1..i+m]) = (h(T[i..i+m-1]) - T[i] \cdot d^{m-1}) \cdot d + T[i+m] \pmod{q}$ where $d$ is the base and $q$ is a prime. A spurious hit occurs when hashes match but strings differ. For a random prime $q$, the probability of a single spurious hit is $O(1/q)$, and for $n-m+1$ positions, the expected number of spurious hits is $O(n/q)$. Choosing $q \approx n^2$ gives expected $O(1)$ spurious hits.
+    라빈-카프는 무늬의 해시를 셈하고 해시 창을 글월 위로 밀고 간다. **구르는 해시**는 $O(1)$에 고쳐진다. $h(T[i+1..i+m]) = (h(T[i..i+m-1]) - T[i] \cdot d^{m-1}) \cdot d + T[i+m] \pmod{q}$이며 $d$은 밑수, $q$은 소수다. 해시는 같은데 글자열이 다르면 헛맞음이 난다. 아무렇게나 고른 소수 $q$에 대해 한 번 헛맞을 낌새는 $O(1/q)$이고 자리가 $n-m+1$개이므로 바라는 헛맞음 수는 $O(n/q)$이다. $q \approx n^2$으로 고르면 바라는 헛맞음이 $O(1)$이다.

@@ -4,7 +4,7 @@
 
 ## 문제 서술
 
-Given $n$ keys $k_1 < k_2 < \cdots < k_n$ with search probabilities $p_1, p_2, \dots, p_n$ and $n + 1$ dummy keys $d_0, d_1, \dots, d_n$ representing unsuccessful searches with probabilities $q_0, q_1, \dots, q_n$, where:
+찾을 낌새가 $p_1, p_2, \dots, p_n$인 열쇠 $n$개 $k_1 < k_2 < \cdots < k_n$과, 못 찾는 일을 나타내며 낌새가 $q_0, q_1, \dots, q_n$인 허깨비 열쇠 $n + 1$개 $d_0, d_1, \dots, d_n$이 주어졌다고 하자. 여기서
 
 $$
 \sum_{i=1}^{n} p_i + \sum_{j=0}^{n} q_j = 1
@@ -20,9 +20,9 @@ $$
 
 ## 가장 좋은 밑짜임
 
-If an optimal BST has $k_r$ as its root, then the left subtree (containing $k_1, \dots, k_{r-1}$) must be an optimal BST for those keys, and similarly for the right subtree. This optimal substructure enables a DP solution.
+가장 좋은 이진 찾기 나무의 뿌리가 $k_r$이면, 왼쪽 잔나무($k_1, \dots, k_{r-1}$을 담는다)도 그 열쇠들에 대해 가장 좋은 이진 찾기 나무여야 하고 오른쪽 잔나무도 마찬가지다. 이 가장 좋은 잔얼개 덕에 갈피 다지기로 풀 수 있다.
 
-Define $e[i, j]$ as the expected cost of an optimal BST for keys $k_i, \dots, k_j$ (with dummy keys $d_{i-1}, \dots, d_j$). The weight of this subproblem is:
+$e[i, j]$을 열쇠 $k_i, \dots, k_j$(허깨비 열쇠 $d_{i-1}, \dots, d_j$과 함께)에 대한 가장 좋은 이진 찾기 나무의 바라는 값이라 하자. 이 잔문제의 짐은 다음과 같다.
 
 $$
 w[i, j] = \sum_{\ell=i}^{j} p_\ell + \sum_{\ell=i-1}^{j} q_\ell
@@ -30,13 +30,13 @@ $$
 
 ## 점화식
 
-When $k_r$ is chosen as the root of the subtree for keys $k_i, \dots, k_j$, the cost increases by $w[i, j]$ (each node's depth increases by 1 when it becomes a child of $k_r$):
+열쇠 $k_i, \dots, k_j$의 잔나무 뿌리로 $k_r$을 고르면 값이 $w[i, j]$만큼 는다($k_r$의 자식이 되면서 마디마다 깊이가 1씩 늘기 때문이다).
 
 $$
 e[i, j] = \min_{i \le r \le j} \bigl\{e[i, r{-}1] + e[r{+}1, j] + w[i, j]\bigr\}
 $$
 
-Base case: $e[i, i{-}1] = q_{i-1}$ (a subtree containing only the dummy key $d_{i-1}$).
+밑 자리: $e[i, i{-}1] = q_{i-1}$(허깨비 열쇠 $d_{i-1}$만 담는 잔나무).
 
 ## 구현
 
@@ -144,15 +144,15 @@ Optimal BST structure:
 | Time   | $O(n^3)$ |
 | Space  | $O(n^2)$ |
 
-The three nested loops (length, start position, root choice) give $O(n^3)$ time. Knuth's optimization reduces this to $O(n^2)$ by observing that $\text{root}[i, j-1] \le \text{root}[i, j] \le \text{root}[i+1, j]$, which limits the search range for $r$.
+겹친 되돌이 셋(길이, 비롯하는 자리, 뿌리 고르기) 때문에 $O(n^3)$ 때가 든다. 크누스의 다듬기는 $\text{root}[i, j-1] \le \text{root}[i, j] \le \text{root}[i+1, j]$임을 살펴 $r$을 찾을 구간을 좁혀 이를 $O(n^2)$으로 줄인다.
 
 ## 균형 이진 탐색 트리와의 비교
 
 | 전략 | 기대 값 | 보장 |
 |----------|:------------:|:---------:|
 | 가장 좋은 이진 찾기 나무 | 가능한 최솟값 | 잦기를 알아야 한다 |
-| Balanced BST | $O(\log n)$ per search | No frequency knowledge needed |
-| Splay tree | $O(\log n)$ amortized | Adapts to access patterns |
+| 고른 이진 찾기 나무 | 찾을 때마다 $O(\log n)$ | 잦기를 몰라도 된다 |
+| 스플레이 나무 | 고르게 나누어 $O(\log n)$ | 쓰는 무늬에 맞추어 간다 |
 
 가장 좋은 이진 찾기 나무는 붙박이 짜임이다. 다가감 잦기가 때에 따라 바뀌면 스플레이 나무 같은 스스로 고치는 나무가 움직이는 대안이 된다.
 

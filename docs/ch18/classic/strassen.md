@@ -1,20 +1,20 @@
 # 슈트라센 행렬 곱셈
 
-Multiplying two $n \times n$ matrices using the standard algorithm requires $O(n^3)$ scalar multiplications. In 1969, Volker Strassen showed that by cleverly combining seven recursive multiplications of $n/2 \times n/2$ submatrices -- instead of the eight required by the standard divide-and-conquer approach -- the complexity drops to $O(n^{\log_2 7}) \approx O(n^{2.807})$. Like [Karatsuba multiplication](karatsuba.md) for integers, the key insight is reducing the number of recursive multiplications at each level.
+$n \times n$ 행렬 둘을 여느 알고리즘으로 곱하면 홑값 곱하기가 $O(n^3)$ 번 든다. 1969년 폴커 슈트라센은 $n/2 \times n/2$ 잔행렬의 되부르는 곱하기를 여느 나누어 다스리기가 쓰는 여덟 번 대신 일곱 번만 슬기롭게 아우르면 복잡도가 $O(n^{\log_2 7}) \approx O(n^{2.807})$으로 내려감을 보였다. 정수에 대한 [카라추바 곱하기](karatsuba.md)와 마찬가지로, 고갱이 깨침은 켜마다 되부르는 곱하기의 수를 줄이는 것이다.
 
 ## 보통의 행렬 곱셈
 
-The product $C = A \cdot B$ of two $n \times n$ matrices is defined by
+$n \times n$ 행렬 둘의 곱 $C = A \cdot B$은 다음과 같이 매긴다.
 
 $$
 C_{ij} = \sum_{k=1}^{n} A_{ik} \cdot B_{kj}
 $$
 
-Computing each of the $n^2$ entries requires $n$ multiplications and $n - 1$ additions, giving $\Theta(n^3)$ total work.
+값 $n^2$개를 저마다 셈하는 데 곱하기 $n$ 번과 더하기 $n - 1$ 번이 드니 온 일감은 $\Theta(n^3)$이다.
 
 ## 막무가내 나누어 이기기
 
-Partition each $n \times n$ matrix into four $n/2 \times n/2$ submatrices:
+$n \times n$ 행렬을 저마다 $n/2 \times n/2$ 잔행렬 넷으로 가른다.
 
 $$
 A = \begin{pmatrix} A_{11} & A_{12} \\ A_{21} & A_{22} \end{pmatrix}, \quad B = \begin{pmatrix} B_{11} & B_{12} \\ B_{21} & B_{22} \end{pmatrix}, \quad C = \begin{pmatrix} C_{11} & C_{12} \\ C_{21} & C_{22} \end{pmatrix}
@@ -38,13 +38,13 @@ $$
 C_{22} = A_{21}B_{12} + A_{22}B_{22}
 $$
 
-This requires **8** multiplications of $n/2 \times n/2$ matrices plus **4** additions of $n/2 \times n/2$ matrices. The recurrence is
+$n/2 \times n/2$ 행렬의 곱하기 **8** 번과 $n/2 \times n/2$ 행렬의 더하기 **4** 번이 든다. 되돌이 식은 다음과 같다.
 
 $$
 T(n) = 8T\!\left(\frac{n}{2}\right) + \Theta(n^2)
 $$
 
-By the Master Theorem ($a = 8$, $b = 2$, $\log_2 8 = 3$, $f(n) = \Theta(n^2)$, case 1):
+으뜸 정리($a = 8$, $b = 2$, $\log_2 8 = 3$, $f(n) = \Theta(n^2)$, 첫째 갈래)에 따라
 
 $$
 T(n) = \Theta(n^3)
@@ -104,7 +104,7 @@ $$
 
 ### 옳음 확인
 
-We verify $C_{11}$ as a representative example.
+본보기로 $C_{11}$을 따져 본다.
 
 $$
 C_{11} = M_1 + M_4 - M_5 + M_7
@@ -138,13 +138,13 @@ $$
 = A_{11}B_{11} + A_{12}B_{21}
 $$
 
-This matches the definition of $C_{11}$. The other three entries can be verified similarly. $\square$
+이는 $C_{11}$의 뜻매김과 맞는다. 나머지 세 값도 마찬가지로 따져 볼 수 있다. $\square$
 
 ## 복잡도 분석
 
 ### 점화식
 
-Strassen's algorithm performs 7 recursive multiplications on $n/2 \times n/2$ matrices, plus $O(n^2)$ work for the 18 matrix additions and subtractions:
+슈트라센 알고리즘은 $n/2 \times n/2$ 행렬에 되부르는 곱하기를 7 번 하고, 행렬 더하기와 빼기 18 번에 $O(n^2)$ 일감을 쓴다.
 
 $$
 T(n) = 7T\!\left(\frac{n}{2}\right) + \Theta(n^2)
@@ -158,7 +158,7 @@ $$
 \log_b a = \log_2 7 \approx 2.807
 $$
 
-Since $f(n) = \Theta(n^2) = O(n^{\log_2 7 - \epsilon})$ for $\epsilon \approx 0.807$, this is case 1:
+$\epsilon \approx 0.807$에 대해 $f(n) = \Theta(n^2) = O(n^{\log_2 7 - \epsilon})$이므로 첫째 갈래다.
 
 $$
 T(n) = \Theta(n^{\log_2 7}) \approx \Theta(n^{2.807})
@@ -169,10 +169,10 @@ $$
 | 알고리즘 | 곱셈 횟수 | 덧셈 횟수 | 시간 |
 |---|---|---|---|
 | Standard | $n^3$ | $n^3 - n^2$ | $\Theta(n^3)$ |
-| Naive D&C | 8 recursive | 4 matrix adds | $\Theta(n^3)$ |
-| Strassen | 7 recursive | 18 matrix adds | $\Theta(n^{2.807})$ |
+| 손쉬운 나누어 다스리기 | 되부름 8 번 | 행렬 더하기 4 번 | $\Theta(n^3)$ |
+| 슈트라센 | 되부름 7 번 | 행렬 더하기 18 번 | $\Theta(n^{2.807})$ |
 
-For $n = 1024$, the standard method performs $\sim 10^9$ multiplications, while Strassen requires $\sim 10^{8.58} \approx 3.8 \times 10^8$ -- roughly a 2.8x speedup at this size.
+$n = 1024$이면 여느 방법은 곱하기를 $\sim 10^9$ 번 하고 슈트라센은 $\sim 10^{8.58} \approx 3.8 \times 10^8$ 번이면 되니 이 크기에서 대략 2.8배 빠르다.
 
 ## 실용적인 고려
 
@@ -180,28 +180,28 @@ For $n = 1024$, the standard method performs $\sim 10^9$ multiplications, while 
     슈트라센 알고리즘은 (4번이 아니라) 18번의 덧셈과 되돌이로 쪼개는 덧짐 때문에 보통의 알고리즘보다 상수 인자가 크다. 실전에서는 $n$이 갈리는 지점 아래로 내려가면 보통의 알고리즘으로 바꾸는데, 그 지점은 하드웨어에 따라 대개 $n = 32$에서 $n = 128$쯤이다.
 
 !!! warning "수치의 든든함"
-    Strassen's algorithm is less numerically stable than the standard algorithm because it involves subtractions that can cause cancellation. For applications requiring high numerical precision, the standard $O(n^3)$ algorithm or algorithms with better stability properties may be preferred.
+    슈트라센 알고리즘은 값이 서로 지워질 수 있는 빼기를 쓰므로 여느 알고리즘보다 수치가 덜 든든하다. 수치가 아주 촘촘해야 하는 자리에서는 여느 $O(n^3)$ 알고리즘이나 더 든든한 알고리즘을 쓰는 편이 낫다.
 
 ### 기억 공간 덧짐
 
-The naive implementation of Strassen's algorithm creates many temporary matrices at each recursive level, leading to significant memory overhead. Careful implementation can reduce this to $O(n^2)$ additional space by reusing buffers.
+슈트라센 알고리즘을 손쉽게 짜면 되부름 켜마다 잠깐 쓰는 행렬을 많이 만들어 기억 자리 덤이 크다. 꼼꼼히 짜서 버퍼를 되쓰면 덧붙은 자리를 $O(n^2)$으로 줄일 수 있다.
 
 ## 슈트라센을 넘어
 
 슈트라센의 결과는 더 빠른 행렬 곱셈 알고리즘을 찾는 흐름에 불을 붙였다:
 
-| Algorithm | Year | Exponent $\omega$ |
+| 알고리즘 | 해 | 지수 $\omega$ |
 |---|---|---|
 | 보통 | -- | 3.000 |
 | 슈트라센 | 1969 | 2.807 |
 | 코퍼스미스-위노그라드 | 1990 | 2.376 |
 | 알만-바실레프스카 윌리엄스 | 2021 | 2.373 |
 
-The theoretical lower bound is $\omega \ge 2$ (since the output has $n^2$ entries). Whether $\omega = 2$ is achievable remains one of the major open problems in theoretical computer science.
+이론상 아래 테두리는 $\omega \ge 2$이다(날임에 값이 $n^2$개 있기 때문이다). $\omega = 2$을 이룰 수 있는지는 이론 셈틀 학문의 큰 열린 문제 가운데 하나로 남아 있다.
 
 ## 요약
 
-Strassen's algorithm reduces matrix multiplication from $\Theta(n^3)$ to $\Theta(n^{2.807})$ by replacing 8 recursive multiplications with 7, at the cost of more additions. The approach mirrors Karatsuba's strategy for integer multiplication: reducing the number of expensive recursive operations by one, even at the expense of more cheap operations (additions), yields an asymptotic improvement. The resulting recurrence $T(n) = 7T(n/2) + \Theta(n^2)$ is solved by the Master Theorem (case 1).
+슈트라센 알고리즘은 되부르는 곱하기 8 번을 7 번으로 갈음하여 행렬 곱하기를 $\Theta(n^3)$에서 $\Theta(n^{2.807})$으로 줄이되 더하기를 더 쓴다. 이 길은 정수 곱하기에 쓴 카라추바의 꾀와 닮았다. 값싼 셈(더하기)이 늘더라도 값비싼 되부름을 하나만 줄이면 점근으로 나아진다. 그렇게 나온 되돌이 식 $T(n) = 7T(n/2) + \Theta(n^2)$은 으뜸 정리(첫째 갈래)로 풀린다.
 
 ## 참고 문헌
 

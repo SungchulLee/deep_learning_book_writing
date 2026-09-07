@@ -2,11 +2,11 @@
 
 음수가 들어 있을 수 있는 수의 배열이 주어질 때 **최대 부분 배열 문제**는 합이 가장 큰 잇닿은 부분 배열을 묻는다. 이 문제는 금융 살피기(가장 이득이 큰 거래 기간 찾기), 신호 다루기(가장 센 신호 토막 찾기), 유전체학(생물학적으로 뜻있는 자리 가려내기)에서 자연스레 나타난다.
 
-While Kadane's algorithm solves the problem in $O(n)$ time using dynamic programming, the divide-and-conquer approach provides an elegant $O(n \log n)$ solution that illustrates the paradigm's mechanics clearly, especially the combine step.
+카데인 알고리즘은 갈피 다지기로 이 문제를 $O(n)$ 때에 풀지만, 나누어 다스리는 길은 $O(n \log n)$의 멋진 풀이를 주며 이 틀이 어떻게 도는지를, 무엇보다 아우르는 걸음을 또렷이 보여 준다.
 
 ## 문제 서술
 
-Given an array $A[0 \,..\, n-1]$ of real numbers, find indices $i$ and $j$ with $0 \le i \le j \le n-1$ that maximize
+실수 배열 $A[0 \,..\, n-1]$이 주어졌을 때 다음을 가장 크게 하는 자리 번호 $i$과 $j$($0 \le i \le j \le n-1$)을 찾아라.
 
 $$
 \sum_{k=i}^{j} A[k]
@@ -16,31 +16,31 @@ $$
 
 ## 나누어 이기기 방식
 
-The key insight is that a maximum subarray of $A[\text{lo} \,..\, \text{hi}]$ must lie in exactly one of three positions relative to the midpoint $\text{mid} = \lfloor (\text{lo} + \text{hi}) / 2 \rfloor$:
+고갱이 깨침은 $A[\text{lo} \,..\, \text{hi}]$의 가장 큰 잔배열이 가운데 자리 $\text{mid} = \lfloor (\text{lo} + \text{hi}) / 2 \rfloor$을 두고 다음 세 자리 가운데 꼭 하나에 있다는 것이다.
 
-1. **Entirely in the left half**: $A[\text{lo} \,..\, \text{mid}]$
-2. **Entirely in the right half**: $A[\text{mid}+1 \,..\, \text{hi}]$
-3. **Crossing the midpoint**: some $A[i \,..\, j]$ with $i \le \text{mid} < j$
+1. **온통 왼쪽 반에**: $A[\text{lo} \,..\, \text{mid}]$
+2. **온통 오른쪽 반에**: $A[\text{mid}+1 \,..\, \text{hi}]$
+3. **가운데 자리를 가로질러**: $i \le \text{mid} < j$인 어떤 $A[i \,..\, j]$
 
 1번과 2번 경우는 같은 꼴의 작은 문제이다(되돌이로 푼다). 3번 경우는 따로 **아우르기** 단계가 필요하다.
 
 ### 최대 걸침 부분 배열 찾기
 
-A crossing subarray includes $A[\text{mid}]$ and extends left to some index $i$ and right to some index $j$. We find the best leftward extension and the best rightward extension independently, then combine them.
+가로지르는 잔배열은 $A[\text{mid}]$을 담고 왼쪽으로 어떤 자리 번호 $i$까지, 오른쪽으로 어떤 자리 번호 $j$까지 뻗는다. 왼쪽으로 가장 좋게 뻗는 것과 오른쪽으로 가장 좋게 뻗는 것을 따로 찾은 뒤 아우른다.
 
-**Left extension.** Starting from $\text{mid}$, scan leftward, tracking the maximum suffix sum:
+**왼쪽으로 뻗기.** $\text{mid}$에서 비롯해 왼쪽으로 훑으며 가장 큰 꼬리 합을 좇는다.
 
 $$
 \text{left\_sum} = \max_{i \le \text{mid}} \sum_{k=i}^{\text{mid}} A[k]
 $$
 
-**Right extension.** Starting from $\text{mid}+1$, scan rightward, tracking the maximum prefix sum:
+**오른쪽으로 뻗기.** $\text{mid}+1$에서 비롯해 오른쪽으로 훑으며 가장 큰 머리 합을 좇는다.
 
 $$
 \text{right\_sum} = \max_{j \ge \text{mid}+1} \sum_{k=\text{mid}+1}^{j} A[k]
 $$
 
-The maximum crossing sum is $\text{left\_sum} + \text{right\_sum}$, computed in $O(n)$ time with a single pass in each direction.
+가로지르는 가장 큰 합은 $\text{left\_sum} + \text{right\_sum}$이며, 방향마다 한 번씩 훑어 $O(n)$ 때에 셈한다.
 
 ### 알고리즘
 
@@ -167,7 +167,7 @@ def max_subarray_dc(arr, lo=None, hi=None):
 
 ## 올바름
 
-The algorithm is correct because it exhausts all possibilities for where the maximum subarray can lie. Every contiguous subarray of $A[\text{lo} \,..\, \text{hi}]$ either lies entirely in the left half, entirely in the right half, or crosses the midpoint. The recursive calls correctly handle the first two cases (by induction), and `MAX-CROSSING-SUBARRAY` correctly handles the third by independently optimizing the left and right extensions.
+이 알고리즘은 가장 큰 잔배열이 있을 수 있는 자리를 모두 훑으므로 옳다. $A[\text{lo} \,..\, \text{hi}]$의 이어진 잔배열은 모두 온통 왼쪽 반에 있거나, 온통 오른쪽 반에 있거나, 가운데 자리를 가로지른다. 되부름이 앞의 두 자리를 옳게 다루고(미루어 나아가기에 따라), `MAX-CROSSING-SUBARRAY`이 왼쪽과 오른쪽으로 뻗는 것을 따로 가장 좋게 하여 셋째를 옳게 다룬다.
 
 ## 복잡도 분석
 
@@ -187,13 +187,13 @@ $$
 
 ### 되돌이 관계식 풀기
 
-By the Master Theorem with $a = 2$, $b = 2$, and $f(n) = \Theta(n)$:
+$a = 2$, $b = 2$, $f(n) = \Theta(n)$인 으뜸 정리에 따라
 
 $$
 \log_b a = \log_2 2 = 1
 $$
 
-Since $f(n) = \Theta(n^1)$, this is case 2:
+$f(n) = \Theta(n^1)$이므로 둘째 갈래다.
 
 $$
 T(n) = \Theta(n \log n)
@@ -201,26 +201,26 @@ $$
 
 ### 공간 복잡도
 
-The recursion depth is $O(\log n)$, and each level uses $O(1)$ auxiliary space (besides the recursive calls), giving $O(\log n)$ total space.
+되부름 깊이가 $O(\log n)$이고 켜마다 (되부름 말고는) 덧붙은 자리를 $O(1)$만큼 쓰므로 온 자리는 $O(\log n)$이다.
 
 ## 풀이 예제
 
 $n = 7$인 $A = [2, -4, 3, -1, 2, -5, 4]$을 보자.
 
-**Top-level call** on $A[0..6]$, $\text{mid} = 3$:
+$A[0..6]$에 대한 **맨 위 부름**, $\text{mid} = 3$:
 
 - **왼쪽** $A[0..3] = [2, -4, 3, -1]$: 되돌이 부름이 합이 $3$인 부분 배열 $[3]$을 돌려준다.
 - **오른쪽** $A[4..6] = [2, -5, 4]$: 되돌이 부름이 합이 $4$인 부분 배열 $[4]$을 돌려준다.
 - **걸침**: 번호 3에서 왼쪽으로 가장 좋게 뻗은 것은 합이 $2$인 $A[2..3]$이고, 번호 4에서 오른쪽으로 가장 좋게 뻗은 것은 합이 $2$인 $A[4]$이다. 걸침 합 = $4$.
 
-Maximum of $\{3, 4, 4\} = 4$, achieved by either the right subarray $[4]$ or the crossing subarray $A[2..4] = [3, -1, 2]$.
+$\{3, 4, 4\} = 4$ 가운데 가장 큰 값이며, 오른쪽 잔배열 $[4]$이나 가로지르는 잔배열 $A[2..4] = [3, -1, 2]$에서 이루어진다.
 
 ## 카데인 알고리즘과의 견줌
 
 | 성질 | 나누어 이기기 | 카데인 알고리즘 |
 |---|---|---|
-| Time complexity | $O(n \log n)$ | $O(n)$ |
-| Space complexity | $O(\log n)$ | $O(1)$ |
+| 때 복잡도 | $O(n \log n)$ | $O(n)$ |
+| 자리 복잡도 | $O(\log n)$ | $O(1)$ |
 | 틀 | 나누어 이기기 | 동적 계획 |
 | 나란히 하기 | 가능(왼쪽과 오른쪽 반) | 불가(차례대로 훑음) |
 | 배움의 값 | 나누어 이기기의 아우르기 단계를 보여 준다 | 동적 계획과 욕심쟁이를 보여 준다 |
@@ -229,7 +229,7 @@ Maximum of $\{3, 4, 4\} = 4$, achieved by either the right subarray $[4]$ or the
 
 ## 요약
 
-The divide-and-conquer solution to the maximum subarray problem splits the array at the midpoint, recursively finds the maximum subarrays in each half, and combines by finding the maximum crossing subarray in $O(n)$ time. The resulting $O(n \log n)$ algorithm is slower than Kadane's $O(n)$ solution but provides a clean illustration of all three divide-and-conquer steps, especially the combine step that handles the crossing case.
+가장 큰 잔배열 문제를 나누어 다스리는 풀이는 배열을 가운데에서 쪼개고, 반쪽마다 가장 큰 잔배열을 되부르며 찾은 뒤, 가로지르는 가장 큰 잔배열을 $O(n)$ 때에 찾아 아우른다. 그렇게 나온 $O(n \log n)$ 알고리즘은 카데인의 $O(n)$ 풀이보다 느리지만, 나누어 다스리기의 세 걸음을, 무엇보다 가로지름을 다루는 아우르는 걸음을 깔끔하게 보여 준다.
 
 ## 참고 문헌
 
