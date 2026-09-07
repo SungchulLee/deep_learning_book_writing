@@ -7,9 +7,9 @@ Xception("끝까지 간 Inception")은 2017년 프랑수아 숄레가 내놓았�
 ```python
 #!/usr/bin/env python3
 '''
-Xception - Extreme Inception with Depthwise Separable Convolutions
-Paper: "Xception: Deep Learning with Depthwise Separable Convolutions" (2017)
-Key: Replace Inception modules with depthwise separable convolutions
+Xception - 깊이 방향으로 가를 수 있는 엮음을 끝까지 밀어붙인 인셉션
+논문: "Xception: Deep Learning with Depthwise Separable Convolutions" (2017)
+고갱이: 인셉션 묶음을 깊이 방향으로 가를 수 있는 엮음으로 갈음한다
 '''
 import torch
 import torch.nn as nn

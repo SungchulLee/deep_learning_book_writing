@@ -9,9 +9,9 @@ Mask R-CNN은 2017년 글 "Mask R-CNN"에서 나왔다. Faster R-CNN에 가림 �
 ```python
 #!/usr/bin/env python3
 '''
-Mask R-CNN - Instance Segmentation Framework
-Paper: "Mask R-CNN" (2017)
-Key: Extends Faster R-CNN by adding mask prediction branch
+Mask R-CNN - 낱낱 나누기 얼개
+논문: "Mask R-CNN" (2017)
+고갱이: Faster R-CNN에 덮개 예측 가지를 더해 넓혔다
 '''
 import torch
 import torch.nn as nn

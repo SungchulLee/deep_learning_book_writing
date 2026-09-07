@@ -7,9 +7,9 @@ HRNet(높은 결 그물)은 2019년 글 "보고 알아보기를 위한 깊은 �
 ```python
 #!/usr/bin/env python3
 '''
-HRNet - High-Resolution Network
-Paper: "Deep High-Resolution Representation Learning" (2019)
-Key: Maintains high-resolution representations through the network
+HRNet - 높은 해상도 그물
+논문: "Deep High-Resolution Representation Learning" (2019)
+고갱이: 그물을 지나는 동안 높은 해상도 드러냄을 지킨다
 '''
 import torch
 import torch.nn as nn

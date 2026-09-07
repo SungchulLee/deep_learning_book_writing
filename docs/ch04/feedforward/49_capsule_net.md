@@ -9,9 +9,9 @@ CapsNet은 2017년 논문 "Dynamic Routing Between Capsules"에서 소개되었�
 ```python
 #!/usr/bin/env python3
 '''
-CapsNet - Capsule Networks
-Paper: "Dynamic Routing Between Capsules" (2017)
-Key: Capsules with vector outputs, dynamic routing
+CapsNet - 꼬투리 그물
+논문: "Dynamic Routing Between Capsules" (2017)
+고갱이: 벡터를 내놓는 꼬투리와 움직이는 길 잡기
 '''
 import torch
 import torch.nn as nn

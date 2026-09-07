@@ -9,9 +9,9 @@ YOLOv3은 2018년 글 "YOLOv3: An Incremental Improvement"에서 나왔다. 한 
 ```python
 #!/usr/bin/env python3
 '''
-YOLOv3 - You Only Look Once v3
-Paper: "YOLOv3: An Incremental Improvement" (2018)
-Key: Single-shot object detection, predicts at 3 scales
+YOLOv3 - 한 번만 본다 v3
+논문: "YOLOv3: An Incremental Improvement" (2018)
+고갱이: 한 방에 끝내는 물체 알아내기로 세 가지 자에서 예측한다
 '''
 import torch
 import torch.nn as nn

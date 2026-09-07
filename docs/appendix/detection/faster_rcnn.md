@@ -9,9 +9,9 @@ Faster R-CNN은 2015년 글 "Faster R-CNN: Towards Real-Time Object Detection"�
 ```python
 #!/usr/bin/env python3
 '''
-Faster R-CNN - Towards Real-Time Object Detection with Region Proposal Networks
-Paper: "Faster R-CNN: Towards Real-Time Object Detection" (2015)
-Key: RPN for region proposals, end-to-end trainable
+Faster R-CNN - 자리 제안 그물로 하는 실시간 물체 알아내기
+논문: "Faster R-CNN: Towards Real-Time Object Detection" (2015)
+고갱이: 자리를 제안하는 RPN과 끝에서 끝까지 익힐 수 있는 얼개
 '''
 import torch
 import torch.nn as nn

@@ -7,9 +7,9 @@ ShuffleNet은 2018년 글 "ShuffleNet: 손전화를 위한 아주 잘 드는 엮
 ```python
 #!/usr/bin/env python3
 '''
-ShuffleNet - Efficient CNN with Channel Shuffle Operation
-Paper: "ShuffleNet: An Extremely Efficient CNN for Mobile Devices" (2017)
-Key: Channel shuffle operation, group convolutions for efficiency
+ShuffleNet - 채널 섞기를 쓰는 잘 드는 엮음 신경 그물
+논문: "ShuffleNet: An Extremely Efficient CNN for Mobile Devices" (2017)
+고갱이: 채널 섞기와 잘 들게 하는 무리 엮음
 '''
 import torch
 import torch.nn as nn

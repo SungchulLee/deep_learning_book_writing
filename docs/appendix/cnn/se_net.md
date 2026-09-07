@@ -7,10 +7,10 @@
 ```python
 #!/usr/bin/env python3
 '''
-SENet - Squeeze-and-Excitation Networks
-Paper: "Squeeze-and-Excitation Networks" (2018)
+SENet - 쥐어짜고 돋우는 그물
+논문: "Squeeze-and-Excitation Networks" (2018)
 Won ILSVRC 2017
-Key: Channel attention mechanism, recalibrate channel-wise features
+고갱이: 채널 눈길 얼개로 채널마다 특징을 다시 맞춘다
 '''
 import torch
 import torch.nn as nn

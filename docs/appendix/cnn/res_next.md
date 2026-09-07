@@ -7,9 +7,9 @@ ResNeXt은 2017년 글 "깊은 신경 그물을 위한 모은 나머지 바꿈"�
 ```python
 #!/usr/bin/env python3
 '''
-ResNeXt - Aggregated Residual Transformations
-Paper: "Aggregated Residual Transformations for Deep Neural Networks" (2017)
-Key: Cardinality (number of paths) as important dimension beyond depth/width
+ResNeXt - 모아 엮은 나머지 바꿈
+논문: "Aggregated Residual Transformations for Deep Neural Networks" (2017)
+고갱이: 깊이와 너비를 넘어선 종요로운 차원인 갈래 수(길의 수)
 '''
 import torch
 import torch.nn as nn

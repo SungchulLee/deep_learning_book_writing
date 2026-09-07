@@ -7,9 +7,9 @@ Inception v3은 2015년 글 "Inception 얼개 다시 보기"에서 나왔으며,
 ```python
 #!/usr/bin/env python3
 '''
-Inception v3 - Improved Inception Architecture
-Paper: "Rethinking the Inception Architecture" (2015)
-Key: Factorized convolutions (nx1 and 1xn), label smoothing, auxiliary classifiers
+Inception v3 - 다듬은 인셉션 얼개
+논문: "Rethinking the Inception Architecture" (2015)
+고갱이: 인수로 나눈 엮음(nx1과 1xn), 레이블 스무딩, 곁들이 가름개
 '''
 import torch
 import torch.nn as nn

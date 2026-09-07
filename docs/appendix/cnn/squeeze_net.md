@@ -7,9 +7,9 @@ SqueezeNet은 2016년 글 "SqueezeNet: 매개변수 50배 적게 AlexNet만 한 
 ```python
 #!/usr/bin/env python3
 '''
-SqueezeNet - Efficient Architecture with Fire Modules
-Paper: "SqueezeNet: AlexNet-level accuracy with 50x fewer parameters" (2016)
-Key: Fire modules (squeeze + expand), very few parameters (~1.2M)
+SqueezeNet - 불 묶음을 쓰는 잘 드는 얼개
+논문: "SqueezeNet: AlexNet-level accuracy with 50x fewer parameters" (2016)
+고갱이: 불 묶음(쥐어짜기 + 넓히기), 매우 적은 매개변수(120만쯤)
 '''
 import torch
 import torch.nn as nn

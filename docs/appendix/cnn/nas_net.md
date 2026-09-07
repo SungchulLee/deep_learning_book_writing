@@ -7,9 +7,9 @@ NASNet(신경 얼개 찾기 그물)은 신경 그물 꾸미기의 틀을 바꾸�
 ```python
 #!/usr/bin/env python3
 '''
-NASNet - Neural Architecture Search Network
-Paper: "Learning Transferable Architectures for Scalable Image Recognition" (2018)
-Key: Architecture discovered by neural architecture search (AutoML)
+NASNet - 신경 얼개 찾기 그물
+논문: "Learning Transferable Architectures for Scalable Image Recognition" (2018)
+고갱이: 신경 얼개 찾기(AutoML)로 찾아낸 얼개
 '''
 import torch
 import torch.nn as nn

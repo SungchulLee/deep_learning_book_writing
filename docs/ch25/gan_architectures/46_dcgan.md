@@ -8,7 +8,7 @@
 #!/usr/bin/env python3
 '''
 DCGAN - 깊은 겹말기 맞겨루기 만들개
-Paper: "Unsupervised Representation Learning with Deep Convolutional GANs" (2015)
+논문: "Unsupervised Representation Learning with Deep Convolutional GANs" (2015)
 핵심: 여러 층 신경망을 겹말기 층으로 바꾼 맞겨루기 만들개의 얼개 지침
 '''
 import torch

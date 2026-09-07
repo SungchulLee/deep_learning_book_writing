@@ -8,7 +8,7 @@ Wav2Vec 2.0은 2020년 논문 "wav2vec 2.0: A Framework for Self-Supervised Lear
 #!/usr/bin/env python3
 '''
 Wav2Vec 2.0 — 말소리 알아듣기를 위한 스스로 살피는 배움
-Paper: "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations" (2020)
+논문: "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations" (2020)
 핵심: 말소리를 위한 맞대어 배우기, 양자화, 변환기 부호기
 '''
 import torch

@@ -7,9 +7,9 @@ CoordConv은 2018년 글 "엮음 신경 그물의 흥미로운 어그러짐과 C
 ```python
 #!/usr/bin/env python3
 '''
-CoordConv - Adding Spatial Coordinates to CNNs
-Paper: "An Intriguing Failing of Convolutional Neural Networks" (2018)
-Key: Adds coordinate channels to help with spatial reasoning
+CoordConv - 엮음 신경 그물에 자리 좌표 더하기
+논문: "An Intriguing Failing of Convolutional Neural Networks" (2018)
+고갱이: 자리 헤아림을 돕도록 좌표 채널을 더한다
 '''
 import torch
 import torch.nn as nn

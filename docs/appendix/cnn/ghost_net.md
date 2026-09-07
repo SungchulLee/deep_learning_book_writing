@@ -7,9 +7,9 @@ GhostNet은 2020년 글 "GhostNet: 값싼 셈으로 더 많은 결 얻기"에서
 ```python
 #!/usr/bin/env python3
 '''
-GhostNet - More Features from Cheap Operations
-Paper: "GhostNet: More Features from Cheap Operations" (2020)
-Key: Ghost modules generate more features with fewer parameters
+GhostNet - 값싼 셈으로 특징 더 뽑기
+논문: "GhostNet: More Features from Cheap Operations" (2020)
+고갱이: 그림자 묶음이 더 적은 매개변수로 더 많은 특징을 만들어 낸다
 '''
 import torch
 import torch.nn as nn

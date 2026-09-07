@@ -7,9 +7,9 @@ ConvNeXt V2은 2023년 글 "ConvNeXt V2: 가린 제 부호기와 함께 엮음 �
 ```python
 #!/usr/bin/env python3
 '''
-ConvNeXt V2 - Modern ConvNet with Improved Design
-Paper: "ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders" (2023)
-Key: Global Response Normalization (GRN), improved training strategies
+ConvNeXt V2 - 설계를 다듬은 요즘 엮음 그물
+논문: "ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders" (2023)
+고갱이: 두루 반응 고르기(GRN)와 다듬은 익히기 방책
 '''
 import torch
 import torch.nn as nn

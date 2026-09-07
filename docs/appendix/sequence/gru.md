@@ -9,9 +9,9 @@ GRU은 2014년 글 "Learning Phrase Representations using RNN Encoder-Decoder"�
 ```python
 #!/usr/bin/env python3
 '''
-GRU - Gated Recurrent Unit
-Paper: "Learning Phrase Representations using RNN Encoder-Decoder" (2014)
-Key: Simplified gating mechanism compared to LSTM, fewer parameters
+GRU - 문 달린 되도는 알갱이
+논문: "Learning Phrase Representations using RNN Encoder-Decoder" (2014)
+고갱이: LSTM보다 단출한 문 얼개와 더 적은 매개변수
 '''
 import torch
 import torch.nn as nn

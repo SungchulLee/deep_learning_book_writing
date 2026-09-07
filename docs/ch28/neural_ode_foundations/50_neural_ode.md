@@ -10,7 +10,7 @@
 #!/usr/bin/env python3
 '''
 신경 상미분 방정식 - Neural Ordinary Differential Equations
-Paper: "Neural Ordinary Differential Equations" (2018)
+논문: "Neural Ordinary Differential Equations" (2018)
 2018년 NeurIPS 최우수 논문상을 받았다
 핵심: 이어진 깊이 모델, 기억을 아끼는 뒷걸음 퍼뜨리기
 '''

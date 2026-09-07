@@ -8,8 +8,8 @@
 #!/usr/bin/env python3
 '''
 GAN - 맞겨루기 만들개
-Paper: "Generative Adversarial Networks" (2014)
-Key: Two networks (Generator and Discriminator) in adversarial training
+논문: "Generative Adversarial Networks" (2014)
+고갱이: 맞겨루며 익히는 두 그물(만들개와 가름개)
 '''
 import torch
 import torch.nn as nn

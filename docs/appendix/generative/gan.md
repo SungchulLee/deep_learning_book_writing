@@ -9,9 +9,9 @@ GAN은 2014년 글 "Generative Adversarial Networks"에서 나왔다. 그물 둘
 ```python
 #!/usr/bin/env python3
 '''
-GAN - Generative Adversarial Networks
-Paper: "Generative Adversarial Networks" (2014)
-Key: Two networks (Generator and Discriminator) in adversarial training
+GAN - 맞겨루기 만들개 그물
+논문: "Generative Adversarial Networks" (2014)
+고갱이: 맞겨루며 익히는 두 그물(만들개와 가름개)
 '''
 import torch
 import torch.nn as nn

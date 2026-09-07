@@ -9,9 +9,9 @@ DeepLabV3은 2017년 글 "Rethinking Atrous Convolution for Semantic Image Segme
 ```python
 #!/usr/bin/env python3
 '''
-DeepLabV3 - Rethinking Atrous Convolution for Semantic Segmentation
-Paper: "Rethinking Atrous Convolution for Semantic Image Segmentation" (2017)
-Key: Atrous Spatial Pyramid Pooling (ASPP), multiple dilation rates
+DeepLabV3 - 뜻 나누기를 위한 성긴 엮음 다시 보기
+논문: "Rethinking Atrous Convolution for Semantic Image Segmentation" (2017)
+고갱이: 성긴 자리 피라미드 모으기(ASPP), 여러 벌림 비율
 '''
 import torch
 import torch.nn as nn

@@ -9,9 +9,9 @@ Seq2Seq은 2014년 글 "Sequence to Sequence Learning with Neural Networks"에�
 ```python
 #!/usr/bin/env python3
 '''
-Seq2Seq - Sequence to Sequence Learning with Neural Networks
-Paper: "Sequence to Sequence Learning with Neural Networks" (2014)
-Key: Encoder-Decoder architecture for sequence transduction
+Seq2Seq - 신경 그물로 하는 이음에서 이음으로 배우기
+논문: "Sequence to Sequence Learning with Neural Networks" (2014)
+고갱이: 이음을 옮기기 위한 부호기-풀개 얼개
 '''
 import torch
 import torch.nn as nn

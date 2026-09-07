@@ -7,9 +7,9 @@ MixNet은 깊이별 엮음 켜 하나 안에서 여러 알갱이 크기를 쓰�
 ```python
 #!/usr/bin/env python3
 '''
-MixNet - Mixed Depthwise Convolutional Kernels
-Paper: "MixConv: Mixed Depthwise Convolutional Kernels" (2019)
-Key: Multiple kernel sizes in a single depthwise convolution layer
+MixNet - 섞은 깊이 방향 엮음 알맹이
+논문: "MixConv: Mixed Depthwise Convolutional Kernels" (2019)
+고갱이: 깊이 방향 엮음 층 하나에 여러 알맹이 크기를 담는다
 '''
 import torch
 import torch.nn as nn

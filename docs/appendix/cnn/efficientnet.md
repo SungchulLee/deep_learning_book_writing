@@ -7,9 +7,9 @@ EfficientNet은 2019년 글 "EfficientNet: 엮음 신경 그물의 모형 키우
 ```python
 #!/usr/bin/env python3
 '''
-EfficientNet - Rethinking Model Scaling
-Paper: "EfficientNet: Rethinking Model Scaling for CNNs" (2019)
-Key: Compound scaling (depth, width, resolution), highly efficient
+EfficientNet - 모형 키우기 다시 보기
+논문: "EfficientNet: Rethinking Model Scaling for CNNs" (2019)
+고갱이: 깊이·너비·해상도를 함께 키우며 매우 잘 든다
 '''
 import torch
 import torch.nn as nn

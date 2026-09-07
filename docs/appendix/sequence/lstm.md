@@ -9,9 +9,9 @@ LSTM은 1997년 글 "Long Short-Term Memory"에서 나왔다. 이음 속 멀리 
 ```python
 #!/usr/bin/env python3
 '''
-LSTM - Long Short-Term Memory Networks
-Paper: "Long Short-Term Memory" (1997)
-Key: Gating mechanisms to capture long-term dependencies in sequences
+LSTM - 긴 짧은 기억 그물
+논문: "Long Short-Term Memory" (1997)
+고갱이: 이음에서 멀리 걸친 기댐을 담아내는 문 얼개
 '''
 import torch
 import torch.nn as nn

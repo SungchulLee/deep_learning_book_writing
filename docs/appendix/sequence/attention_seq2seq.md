@@ -9,9 +9,9 @@
 ```python
 #!/usr/bin/env python3
 '''
-Attention Mechanism in Seq2Seq
-Paper: "Neural Machine Translation by Jointly Learning to Align and Translate" (2014)
-Key: Attention mechanism to focus on relevant parts of input
+Seq2Seq의 눈길 얼개
+논문: "Neural Machine Translation by Jointly Learning to Align and Translate" (2014)
+고갱이: 들임에서 걸리는 곳에 마음을 두게 하는 눈길 얼개
 '''
 import torch
 import torch.nn as nn

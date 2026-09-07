@@ -9,9 +9,9 @@ Swin Transformer은 2021년 글 "Swin Transformer: Hierarchical Vision Transform
 ```python
 #!/usr/bin/env python3
 '''
-Swin Transformer - Hierarchical Vision Transformer with Shifted Windows
-Paper: "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows" (2021)
-Key: Shifted window attention for efficiency, hierarchical feature maps
+Swin Transformer - 옮긴 창을 쓰는 층 이룬 보기 변환기
+논문: "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows" (2021)
+고갱이: 잘 들도록 옮긴 창 눈길과 층을 이룬 특징 지도
 '''
 import torch
 import torch.nn as nn

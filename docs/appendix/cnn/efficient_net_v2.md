@@ -7,9 +7,9 @@ EfficientNetV2은 2021년 글 "EfficientNetV2: 더 작은 모형과 더 빠른 �
 ```python
 #!/usr/bin/env python3
 '''
-EfficientNetV2 - Improved Efficiency and Speed
-Paper: "EfficientNetV2: Smaller Models and Faster Training" (2021)
-Key: Fused-MBConv layers, progressive learning, improved training speed
+EfficientNetV2 - 나아진 효율과 빠르기
+논문: "EfficientNetV2: Smaller Models and Faster Training" (2021)
+고갱이: Fused-MBConv 층, 차츰 나아가는 배움, 빨라진 익히기
 '''
 import torch
 import torch.nn as nn

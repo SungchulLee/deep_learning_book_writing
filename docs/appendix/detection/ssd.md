@@ -9,9 +9,9 @@ SSD은 2016년 글 "SSD: Single Shot MultiBox Detector"에서 나왔다. 여러 
 ```python
 #!/usr/bin/env python3
 '''
-SSD - Single Shot MultiBox Detector
-Paper: "SSD: Single Shot MultiBox Detector" (2016)
-Key: Multi-scale feature maps for detection, single forward pass
+SSD - 한 방에 끝내는 여러 상자 알아내개
+논문: "SSD: Single Shot MultiBox Detector" (2016)
+고갱이: 알아내기를 위한 여러 자의 특징 지도와 한 번의 앞으로 걸음
 '''
 import torch
 import torch.nn as nn

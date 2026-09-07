@@ -9,9 +9,9 @@ PSPNet은 2017년 글 "Pyramid Scene Parsing Network"에서 나왔다. 여러 �
 ```python
 #!/usr/bin/env python3
 '''
-PSPNet - Pyramid Scene Parsing Network
-Paper: "Pyramid Scene Parsing Network" (2017)
-Key: Pyramid pooling module to aggregate multi-scale context
+PSPNet - 피라미드 장면 뜯어보기 그물
+논문: "Pyramid Scene Parsing Network" (2017)
+고갱이: 여러 자의 앞뒤 흐름을 모으는 피라미드 모으기 묶음
 '''
 import torch
 import torch.nn as nn

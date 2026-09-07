@@ -7,9 +7,9 @@ RegNet은 2020년 페이스북 AI 연구소가 내놓았으며, 신경 얼개를
 ```python
 #!/usr/bin/env python3
 '''
-RegNet - Designing Network Design Spaces
-Paper: "Designing Network Design Spaces" (2020)
-Key: Quantized linear parametrization of network width/depth
+RegNet - 그물 설계 자리 설계하기
+논문: "Designing Network Design Spaces" (2020)
+고갱이: 그물의 너비와 깊이를 띄엄띄엄한 선형으로 매기기
 '''
 import torch
 import torch.nn as nn

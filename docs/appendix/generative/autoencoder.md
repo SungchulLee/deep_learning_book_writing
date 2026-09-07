@@ -10,7 +10,7 @@
 #!/usr/bin/env python3
 '''
 제 부호기 - 차수 줄이기와 결 배우기
-Key: Encoder-decoder structure for unsupervised learning
+고갱이: 이끎 없는 배움을 위한 부호기-풀개 짜임
 '''
 import torch
 import torch.nn as nn

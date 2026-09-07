@@ -9,9 +9,9 @@ RetinaNet은 2017년 글 "Focal Loss for Dense Object Detection"에서 나왔다
 ```python
 #!/usr/bin/env python3
 '''
-RetinaNet - Focal Loss for Dense Object Detection
-Paper: "Focal Loss for Dense Object Detection" (2017)
-Key: Focal loss to handle class imbalance, Feature Pyramid Network (FPN)
+RetinaNet - 촘촘한 물체 알아내기를 위한 초점 손실
+논문: "Focal Loss for Dense Object Detection" (2017)
+고갱이: 갈래가 치우친 것을 다루는 초점 손실과 특징 피라미드 그물(FPN)
 '''
 import torch
 import torch.nn as nn

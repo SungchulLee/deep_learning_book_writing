@@ -9,9 +9,9 @@ FCN은 2015년 글 "Fully Convolutional Networks for Semantic Segmentation"에�
 ```python
 #!/usr/bin/env python3
 '''
-FCN - Fully Convolutional Networks for Semantic Segmentation
-Paper: "Fully Convolutional Networks for Semantic Segmentation" (2015)
-Key: First end-to-end CNN for semantic segmentation, replaces FC with conv layers
+FCN - 뜻 나누기를 위한 온전 엮음 그물
+논문: "Fully Convolutional Networks for Semantic Segmentation" (2015)
+고갱이: 뜻 나누기를 끝에서 끝까지 하는 첫 엮음 신경 그물로, 온이음 층을 엮음 층으로 갈음한다
 '''
 import torch
 import torch.nn as nn

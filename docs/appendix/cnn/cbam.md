@@ -7,9 +7,9 @@
 ```python
 #!/usr/bin/env python3
 '''
-CBAM - Convolutional Block Attention Module
-Paper: "CBAM: Convolutional Block Attention Module" (2018)
-Key: Sequential channel and spatial attention mechanisms
+CBAM - 엮음 덩이 눈길 묶음
+논문: "CBAM: Convolutional Block Attention Module" (2018)
+고갱이: 채널 눈길과 자리 눈길을 차례로 거는 얼개
 '''
 import torch
 import torch.nn as nn

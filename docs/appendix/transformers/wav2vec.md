@@ -9,9 +9,9 @@ WAV2VEC은 2020년 글 "wav2vec 2.0: A Framework for Self-Supervised Learning of
 ```python
 #!/usr/bin/env python3
 '''
-Wav2Vec 2.0 - Self-Supervised Learning for Speech Recognition
-Paper: "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations" (2020)
-Key: Contrastive learning for speech, quantization, transformer encoder
+Wav2Vec 2.0 - 말 알아듣기를 위한 스스로 이끄는 배움
+논문: "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations" (2020)
+고갱이: 말을 위한 견줌 배움, 수 줄이기, 변환기 부호기
 '''
 import torch
 import torch.nn as nn

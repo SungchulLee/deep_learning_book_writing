@@ -7,9 +7,9 @@ ConvNeXt은 2022년 글 "2020년대를 위한 엮음 그물"에서 나왔으며,
 ```python
 #!/usr/bin/env python3
 '''
-ConvNeXt - A ConvNet for the 2020s
-Paper: "A ConvNet for the 2020s" (2022)
-Key: Modernized ResNet with design choices from Vision Transformers
+ConvNeXt - 2020년대를 위한 엮음 그물
+논문: "A ConvNet for the 2020s" (2022)
+고갱이: 보기 변환기의 설계를 들여와 요즘에 맞게 고친 ResNet
 '''
 import torch
 import torch.nn as nn

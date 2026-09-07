@@ -7,9 +7,9 @@ ResNeSt(가른 눈길 그물)은 2020년에 나왔으며, 나머지 덩이마다
 ```python
 #!/usr/bin/env python3
 '''
-ResNeSt - Split-Attention Networks
-Paper: "ResNeSt: Split-Attention Networks" (2020)
-Key: Split-attention blocks with channel-wise attention across feature groups
+ResNeSt - 나눔 눈길 그물
+논문: "ResNeSt: Split-Attention Networks" (2020)
+고갱이: 특징 무리를 가로질러 채널마다 눈길을 두는 나눔 눈길 덩이
 '''
 import torch
 import torch.nn as nn

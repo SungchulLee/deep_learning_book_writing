@@ -7,9 +7,9 @@ PyramidNet은 2017년 글 "그림 알아보기를 위한 깊은 두겁 나머지
 ```python
 #!/usr/bin/env python3
 '''
-PyramidNet - Deep Pyramidal Residual Networks
-Paper: "Deep Pyramidal Residual Networks" (2017)
-Key: Gradually increases feature map dimensions
+PyramidNet - 깊은 피라미드 나머지 그물
+논문: "Deep Pyramidal Residual Networks" (2017)
+고갱이: 특징 지도의 차원을 차츰 늘린다
 '''
 import torch
 import torch.nn as nn

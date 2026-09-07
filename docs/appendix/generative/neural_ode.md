@@ -9,10 +9,10 @@ Neural ODEs은 2018년 글 "Neural Ordinary Differential Equations"에서 나왔
 ```python
 #!/usr/bin/env python3
 '''
-Neural ODEs - Neural Ordinary Differential Equations
-Paper: "Neural Ordinary Differential Equations" (2018)
-Won NeurIPS 2018 Best Paper Award
-Key: Continuous depth models, memory-efficient backpropagation
+Neural ODEs - 신경 상미분 방정식
+논문: "Neural Ordinary Differential Equations" (2018)
+NeurIPS 2018 최우수 논문상을 받았다
+고갱이: 깊이가 이어지는 모형과 기억을 아끼는 뒤로 퍼뜨리기
 '''
 import torch
 import torch.nn as nn

@@ -7,9 +7,9 @@ MobileNetV2은 2018년 글 "MobileNetV2: 뒤집힌 나머지와 선형 목"에�
 ```python
 #!/usr/bin/env python3
 '''
-MobileNetV2 - Efficient CNN for Mobile Devices
-Paper: "MobileNetV2: Inverted Residuals and Linear Bottlenecks" (2018)
-Key: Inverted residual blocks, depthwise separable convolutions
+MobileNetV2 - 손전화 장치를 위한 잘 드는 엮음 신경 그물
+논문: "MobileNetV2: Inverted Residuals and Linear Bottlenecks" (2018)
+고갱이: 뒤집은 나머지 덩이와 깊이 방향으로 가를 수 있는 엮음
 '''
 import torch
 import torch.nn as nn

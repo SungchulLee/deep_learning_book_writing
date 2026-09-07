@@ -9,9 +9,9 @@ DCGAN은 2015년 글 "Unsupervised Representation Learning with Deep Convolution
 ```python
 #!/usr/bin/env python3
 '''
-DCGAN - Deep Convolutional GAN
-Paper: "Unsupervised Representation Learning with Deep Convolutional GANs" (2015)
-Key: Replaces MLP with convolutional layers, architectural guidelines for GANs
+DCGAN - 깊은 엮음 GAN
+논문: "Unsupervised Representation Learning with Deep Convolutional GANs" (2015)
+고갱이: 다층 퍼셉트론을 엮음 층으로 갈음하고 GAN 얼개의 길잡이를 준다
 '''
 import torch
 import torch.nn as nn
