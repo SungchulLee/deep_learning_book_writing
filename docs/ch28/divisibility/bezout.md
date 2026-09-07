@@ -92,7 +92,7 @@ $$
 
 ```python
 """
-Bezout's Identity verification.
+베주 항등식 따져 보기.
 
 gcd(a, b)을 늘 선형 결합 ax + by으로 적을 수 있음을 보여 주고
 그리고 보기 몇 가지로 결과를 확인한다.
@@ -104,7 +104,7 @@ import math
 # === 베주 계수를 위한 넓힌 최대 공약수 ===
 
 def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
-    """Return (g, x, y) such that a*x + b*y = g = gcd(a, b)."""
+    """a*x + b*y = g = gcd(a, b)를 이루는 (g, x, y)를 돌려준다."""
     if b == 0:
         return a, 1, 0
     g, x, y = extended_gcd(b, a % b)
@@ -114,7 +114,7 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
 # === 확인 ===
 
 def verify_bezout(a: int, b: int) -> None:
-    """Verify Bezout's identity for given a and b."""
+    """주어진 a와 b에 대해 베주 항등식을 따져 본다."""
     g, x, y = extended_gcd(a, b)
     assert a * x + b * y == g, "Bezout identity failed"
     print(f"gcd({a}, {b}) = {g},  {a}*({x}) + {b}*({y}) = {a*x + b*y}")

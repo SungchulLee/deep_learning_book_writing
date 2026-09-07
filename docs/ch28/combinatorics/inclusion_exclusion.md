@@ -122,7 +122,7 @@ def inclusion_exclusion(
     """넣고 빼기로 모임의 합집합의 원소를 센다.
 
     인수:
-        universe_size: Not used directly; sets contain elements.
+        universe_size: 곧바로 쓰지는 않는다. 모임이 원소를 담는다.
         sets: 합집합의 크기를 알고 싶은 모임의 목록.
 
     반환값:
@@ -141,7 +141,7 @@ def inclusion_exclusion(
 
 
 def count_derangements(n: int) -> int:
-    """Count derangements of [n] using the inclusion-exclusion formula."""
+    """넣고 빼기 식으로 [n]의 완전 어긋난 차례 수를 센다."""
     result = 0
     factorial = 1
     for k in range(n + 1):

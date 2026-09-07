@@ -100,11 +100,11 @@ import numpy as np
 
 def exponential_ode(y: torch.Tensor, t: float, k: float = 1.0) -> torch.Tensor:
     """
-    Exponential growth/decay: dy/dt = k*y
+    지수 늘어남과 줄어듦: dy/dt = k*y
     
     인수:
-        y: Current state (batch_size, dim)
-        t: Current time (unused in this autonomous ODE)
+        y: 이제 상태 (batch_size, dim)
+        t: 이제 때(이 자율 상미분 방정식에서는 쓰지 않는다)
         k: 자람 빠르기 매개변수
         
     반환값:
@@ -114,7 +114,7 @@ def exponential_ode(y: torch.Tensor, t: float, k: float = 1.0) -> torch.Tensor:
 
 # 확인을 위한 닫힌 꼴 풀이
 def exponential_analytical(y0: torch.Tensor, t: torch.Tensor, k: float = 1.0) -> torch.Tensor:
-    """Analytical solution: y(t) = y_0 * exp(k*t)"""
+    """해석 풀이: y(t) = y_0 * exp(k*t)"""
     return y0 * torch.exp(k * t)
 ```
 
@@ -136,10 +136,10 @@ def damped_oscillator(y: torch.Tensor, t: float,
     """
     일차 계로 나타낸 감쇠 조화 떨개.
     
-    State: y = [position, velocity]
+    상태: y = [자리, 빠르기]
     
     인수:
-        y: State tensor (batch_size, 2)
+        y: 상태 텐서 (batch_size, 2)
         t: 지금 때
         omega_0: 고유 진동수
         zeta: 감쇠비
@@ -174,7 +174,7 @@ def lotka_volterra(state: torch.Tensor, t: float,
     로트카-볼테라 잡아먹개-먹이 움직임.
     
     인수:
-        state: [prey, predator] populations
+        state: [먹이, 사냥꾼]의 수
         t: Time (unused)
         alpha: 먹이의 자람 빠르기
         beta: 잡아먹는 빠르기
@@ -234,8 +234,8 @@ def euler_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
     
     인수:
         f: 상미분 방정식 함수
-        y0: Initial state (batch_size, dim)
-        t_span: (t_start, t_end)
+        y0: 첫 상태 (batch_size, dim)
+        t_span: (처음 때, 끝 때)
         dt: 때 걸음
         
     반환값:
@@ -359,10 +359,10 @@ def integrate_adaptive(f, y0, t_eval, method='dopri5', rtol=1e-7, atol=1e-9):
     맞추어 가는 걸음 크기 다스리기로 상미분 방정식을 적분한다.
     
     인수:
-        f: ODE function (must accept (t, y) in that order for torchdiffeq)
+        f: 상미분 방정식 함수(torchdiffeq은 (t, y) 차례로 받아야 한다)
         y0: 처음 상태
         t_eval: 풀이를 돌려줄 때
-        method: Solver method ('dopri5', 'rk4', 'euler', etc.)
+        method: 푸는 방법('dopri5', 'rk4', 'euler' 따위)
         rtol: 상대 허용 오차
         atol: 절대 허용 오차
         
@@ -405,7 +405,7 @@ $$\lim_{L \to \infty, \Delta t \to 0} h_L = h(T) \quad \text{where} \quad \frac{
 
 ```python
 class ResNetBlock(nn.Module):
-    """Standard ResNet block: h_{l+1} = h_l + f(h_l)"""
+    """여느 ResNet 덩이: h_{l+1} = h_l + f(h_l)"""
     
     def __init__(self, dim: int, hidden_dim: int = 64):
         super().__init__()
@@ -603,7 +603,7 @@ from torchdiffeq import odeint
 
 class ODEFunc(nn.Module):
     """
-    Defines the dynamics dh/dt = f(h, t).
+    움직임 dh/dt = f(h, t)를 뜻매김한다.
     
     중요: torchdiffeq은 f(y, t)이 아니라 f(t, y) 꼴을 바란다!
     """
@@ -697,13 +697,13 @@ class NeuralODEBlock(nn.Module):
     
     def forward(self, h0):
         """
-        Integrate ODE from t=0 to t=T.
+        t=0에서 t=T까지 상미분 방정식을 적분한다.
         
         인수:
-            h0: Initial state (batch_size, dim)
+            h0: 첫 상태 (batch_size, dim)
             
         반환값:
-            h(T): Final state (batch_size, dim)
+            h(T): 마지막 상태 (batch_size, dim)
         """
         h_trajectory = odeint(
             self.func, h0, self.t,
@@ -758,7 +758,7 @@ class HypernetODEFunc(nn.Module):
     """
     윗신경망 때 조건 주기를 쓴 움직임.
     
-    A small network generates layer weights as a function of time,
+    작은 그물이 때의 함수로 층의 무게를 만들어 낸다.
     드러난 이어 붙임 없이 때에 따라 매끄럽게 바뀌는 움직임을 가능하게 한다.
     """
     
@@ -810,9 +810,9 @@ class NeuralODEClassifier(nn.Module):
     그림 가름을 위한 온전한 신경 상미분 방정식 모델.
     
     구조:
-        1. Downsampling convolutions (input → features)
-        2. Neural ODE block (continuous transformation)
-        3. Classification head (features → logits)
+        1. 줄이는 엮음(들임 → 특징)
+        2. 신경 상미분 방정식 덩이(이어진 바꿈)
+        3. 가름 머리(특징 → 로짓)
     """
     
     def __init__(self, in_channels: int = 1, 
@@ -1077,7 +1077,7 @@ class HybridNeuralODE(nn.Module):
     """
     띄엄띄엄한 중간 바꿈이 있는 신경 상미분 방정식.
     어떤 바꿈이 본디 띄엄띄엄할 때 쓸모 있다
-    (e.g., pooling, attention, or market open/close events).
+    (보기: 모으기, 눈여겨보기, 장 열고 닫는 일).
     """
     
     def __init__(self, dim, hidden_dim=64):
@@ -1186,7 +1186,7 @@ np.random.seed(42)
 
 class LearnableODE(nn.Module):
     """
-    A learnable ODE dynamics function: dh/dt = f_theta(h, t).
+    배울 수 있는 상미분 방정식 움직임 함수: dh/dt = f_theta(h, t).
     """
     
     def __init__(self, dim: int, hidden_dim: int = 64, time_dependent: bool = True):
@@ -1267,17 +1267,17 @@ def demonstrate_ode_fundamentals():
     print("SUMMARY")
     print("=" * 70)
     print("""
-    1. ODEs describe continuous-time dynamics: dy/dt = f(y, t)
+    1. 상미분 방정식은 이어진 때의 움직임을 나타낸다: dy/dt = f(y, t)
     
-    2. Numerical methods approximate solutions:
+    2. 수치 방법이 풀이를 어림한다.
        - 오일러: 온 어긋남 O(dt), 단순하지만 부정확하다
        - RK4: 온 어긋남 O(dt^4), 정확도와 비용의 균형이 좋다
        - 맞추어 가는 방법: 저절로 어긋남 다스리기
     
-    3. ResNet IS Euler discretization with dt=1:
+    3. ResNet은 dt=1인 오일러 띄엄띄엄 나눔 그 자체다.
        h_{l+1} = h_l + f(h_l)  ←→  y_{n+1} = y_n + dt·f(y_n, t_n)
     
-    4. Neural ODE is the continuous limit (L → ∞, dt → 0)
+    4. 신경 상미분 방정식은 이어진 끝값이다(L → ∞, dt → 0)
     
     5. 위상 그림이 움직임의 질적인 모습을 드러낸다
     """)

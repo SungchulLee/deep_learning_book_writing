@@ -47,7 +47,7 @@ def human_normalized_score(agent_score: float, game: str) -> float:
 
 def d4rl_normalized_score(agent_score: float, random_score: float,
                           expert_score: float) -> float:
-    """D4RL normalized score: 0 = random, 100 = expert."""
+    """D4RL 고른 점수: 0은 마구잡이, 100은 전문가."""
     return (agent_score - random_score) / (expert_score - random_score + 1e-8) * 100
 
 
@@ -121,7 +121,7 @@ CLASSIC_CONTROL = {
 
 
 def check_solved(env_name: str, mean_return: float) -> bool:
-    """Check if environment is 'solved' by standard criteria."""
+    """여느 잣대로 환경이 '풀렸는지' 살핀다."""
     if env_name in CLASSIC_CONTROL:
         return mean_return >= CLASSIC_CONTROL[env_name]['solved']
     return False

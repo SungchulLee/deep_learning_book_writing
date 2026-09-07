@@ -27,7 +27,7 @@
 작은 것을 큰 것에 합치기(나무 위 서로소 집합 합치기).
 
 늘 작은 것을 큰 것에 합쳐 아이 모임을 어버이 모임에 합치며
-moving elements from the smaller set to the larger one,
+작은 모임의 원소를 큰 모임으로 옮기며,
 모두 O(n log n)번의 셈을 이룸을 보인다.
 """
 
@@ -41,12 +41,12 @@ def small_to_large(adj, colors, root=0):
     """작은 것을 큰 것에 합치기로 밑나무마다 서로 다른 빛깔 수를 센다.
 
     인수:
-        adj: adjacency list (list of lists)
-        colors: color[v] is the color of vertex v
+        adj: 이웃 목록(목록의 목록)
+        colors: color[v]는 꼭짓점 v의 빛깔
         root: 나무의 뿌리
 
     반환값:
-        distinct: distinct[v] = number of distinct colors in subtree of v
+        distinct: distinct[v]는 v의 아래나무에 있는 서로 다른 빛깔의 수
         total_moves: 이뤄진 전체 원소 옮김 수
     """
     n = len(adj)

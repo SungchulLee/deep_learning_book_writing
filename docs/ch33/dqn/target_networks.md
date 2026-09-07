@@ -88,7 +88,7 @@ def soft_update(target_net: nn.Module, online_net: nn.Module, tau: float = 0.005
 
 
 def compute_parameter_distance(net1: nn.Module, net2: nn.Module) -> float:
-    """L2 distance between two networks' parameters."""
+    """두 그물의 매개변수 사이 L2 거리."""
     dist = 0.0
     for p1, p2 in zip(net1.parameters(), net2.parameters()):
         dist += (p1 - p2).pow(2).sum().item()

@@ -115,7 +115,7 @@ class EfficientReplayBuffer:
 class CombinedReplayBuffer:
     """섞은 겪음 되돌려 보기: 가장 최근 옮김을 늘 넣는다.
     
-    Reference: Zhang & Sutton (2017), "A Deeper Look at Experience Replay"
+    참고: Zhang & Sutton (2017), "A Deeper Look at Experience Replay"
     
     가장 최근 옮김이 늘 묶음에 들어가 새 겪음이 곧바로 배움에
     쓰이도록 보장한다.
@@ -156,7 +156,7 @@ class CombinedReplayBuffer:
 class FrameStackReplayBuffer:
     """틀을 쌓은 살핌을 위한 기억 아끼는 되돌려 보기 담개.
     
-    Instead of storing 4 stacked frames per transition (redundant),
+    옮김마다 쌓은 그림 4장을 갈무리하는 대신(겹치는 자료),
     틀을 낱낱이 갈무리하고 뽑을 때 쌓음을 다시 짓는다.
     기억 아낌: 틀 4개 쌓음에서 75%쯤.
     """

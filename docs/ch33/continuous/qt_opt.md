@@ -65,10 +65,10 @@ class CEM:
         
         인수:
             q_network: Q 그물
-            state: single state tensor, shape (state_dim,) or (1, state_dim)
+            state: 상태 텐서 하나, 꼴 (state_dim,) 또는 (1, state_dim)
             
         반환값:
-            Best action found, shape (action_dim,)
+            찾아낸 가장 좋은 움직임, 꼴 (action_dim,)
         """
         if state.dim() == 1:
             state = state.unsqueeze(0)

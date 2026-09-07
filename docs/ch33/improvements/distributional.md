@@ -153,7 +153,7 @@ class QRDQNNetwork(nn.Module):
         return self.output(feat).view(-1, self.action_dim, self.n_quantiles)
 
     def q_values(self, x: torch.Tensor) -> torch.Tensor:
-        """Expected Q = mean of quantile values."""
+        """기대 Q는 분위 값의 평균이다."""
         return self.forward(x).mean(dim=2)
 
 

@@ -80,8 +80,8 @@ $$
 """
 최대 공약수 항등식으로 얻는 최소 공배수.
 
-Demonstrates LCM computation for two integers and for a list of integers,
-using the identity lcm(a, b) = a * b / gcd(a, b).
+lcm(a, b) = a * b / gcd(a, b) 항등식을 써서 정수 두 개와
+정수 목록의 최소공배수를 셈하는 법을 보인다.
 """
 
 import math

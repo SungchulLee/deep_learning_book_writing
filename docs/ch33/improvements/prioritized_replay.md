@@ -28,8 +28,8 @@ from typing import Tuple, List
 class SumTree:
     """O(log n) 우선순위 뽑기를 위한 두 갈래 합 나무.
     
-    Leaves store priorities; internal nodes store partial sums.
-    Total priority = root node value.
+    잎은 우선순위를, 안쪽 마디는 부분합을 담는다.
+    온 우선순위는 뿌리 마디의 값이다.
     """
 
     def __init__(self, capacity: int):

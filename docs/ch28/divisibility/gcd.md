@@ -82,9 +82,9 @@ $b \le a/2$이면 $a \bmod b < b \le a/2$이고 $b > a/2$이면 $a \bmod b = a -
 
 ```python
 """
-Greatest Common Divisor via Euclid's Algorithm.
+유클리드 알고리즘으로 구하는 최대공약수.
 
-Demonstrates the iterative Euclidean algorithm for computing GCD,
+최대공약수를 셈하는 되풀이꼴 유클리드 알고리즘을 보인다.
 시험 사례 몇 가지에서 옳음을 확인하는 것을 담는다.
 """
 

@@ -32,9 +32,9 @@ $n$의 소인수 $p$을 준다.
 
 ```python
 """
-Pollard's rho algorithm for integer factorization.
+정수 인수분해를 위한 폴라드 로 알고리즘.
 
-Expected time: O(n^{1/4}) arithmetic operations.
+기대 시간: 산술 연산 O(n^{1/4})번.
 """
 
 import math

@@ -34,7 +34,7 @@ class NoisyLinear(nn.Module):
     """인수분해 가우스 시끄러운 그물 선형 켜.
     
     y = (mu_w + sigma_w * eps_w) @ x + (mu_b + sigma_b * eps_b)
-    where eps is factorized: eps_ij = f(eps_i) * f(eps_j), f(x) = sign(x)*sqrt(|x|)
+    여기서 eps는 eps_ij = f(eps_i) * f(eps_j), f(x) = sign(x)*sqrt(|x|)로 인수분해된다
     """
 
     def __init__(self, in_features: int, out_features: int, sigma_init: float = 0.5):

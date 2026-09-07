@@ -35,17 +35,17 @@ def compute_vtrace(
     """V자취 과녁과 이점을 셈한다.
     
     인수:
-        values: V(s_t) for t=0..T (T+1 values, last is bootstrap)
-        rewards: rewards r_t for t=0..T-1
-        dones: done flags for t=0..T-1
-        target_log_probs: log π(a_t|s_t) under current policy
-        behavior_log_probs: log μ(a_t|s_t) under behavior policy
+        values: t=0..T에 대한 V(s_t)(값 T+1개이며 마지막은 부트스트랩)
+        rewards: t=0..T-1에 대한 갚음 r_t
+        dones: t=0..T-1에 대한 끝남 깃발
+        target_log_probs: 이제 방침 아래의 log π(a_t|s_t)
+        behavior_log_probs: 행동 방침 아래의 log μ(a_t|s_t)
         gamma: 깎기 인수
         rho_bar: 값 바로잡기의 자르기
         c_bar: 자취 퍼뜨리기의 자르기
         
     반환값:
-        (vs, advantages): V-trace values and policy gradient advantages
+        (vs, advantages): V 자취 값과 방침 기울기 이점
     """
     T = len(rewards)
     

@@ -93,7 +93,7 @@ $$
 
 ```python
 def pascal_triangle(n: int) -> list[list[int]]:
-    """Build Pascal's triangle with rows 0 through n.
+    """0번째 줄부터 n번째 줄까지 파스칼 삼각형을 짓는다.
 
     시간: O(n^2). 공간: O(n^2).
     """
@@ -112,7 +112,7 @@ def pascal_triangle(n: int) -> list[list[int]]:
 
 ```python
 def pascal_row(n: int) -> list[int]:
-    """Compute row n of Pascal's triangle in O(n) space.
+    """자리 O(n)으로 파스칼 삼각형의 n번째 줄을 셈한다.
 
     지금 되풀이에 필요한 값을 덮어쓰지 않도록
     배열 하나를 오른쪽에서 왼쪽으로 고친다.

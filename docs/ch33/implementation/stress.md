@@ -44,7 +44,7 @@ def brute_force(arr):
 # ===================================================================
 
 def optimized(arr):
-    """Find maximum subarray sum using Kadane's algorithm, O(n)."""
+    """카데인 알고리즘으로 가장 큰 부분배열 합을 찾는다. O(n)."""
     if not arr:
         return 0
     max_ending = arr[0]

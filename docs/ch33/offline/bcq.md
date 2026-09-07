@@ -6,7 +6,7 @@
 
 ```python
 """
-33.5.3 Batch-Constrained Q-Learning (BCQ)
+33.5.3 묶음으로 옭아맨 Q 배우기(BCQ)
 ===========================================
 
 움직임 본뜨기 매임을 지닌 조각난 BCQ.
@@ -34,7 +34,7 @@ class QNetwork(nn.Module):
 
 
 class BehaviorModel(nn.Module):
-    """Behavior cloning model: estimates P(a|s) from dataset."""
+    """행동 본뜨기 모델: 자료 묶음에서 P(a|s)를 어림한다."""
     def __init__(self, sd, ad, h=128):
         super().__init__()
         self.net = nn.Sequential(nn.Linear(sd, h), nn.ReLU(),

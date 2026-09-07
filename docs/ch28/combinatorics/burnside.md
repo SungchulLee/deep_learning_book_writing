@@ -96,7 +96,7 @@ def burnside_count(
     elements: list,
     group: list[Callable],
 ) -> int:
-    """Count distinct objects under a group action using Burnside's lemma.
+    """번사이드 보조정리로 군 작용 아래 서로 다른 대상의 수를 센다.
 
     인수:
         elements: 모임 X의 모든 대상 목록.

@@ -99,7 +99,7 @@ $m = p$이 소수이면 $\varphi(p) = p - 1$이 되어 페르마의 결과를 �
 
 ```python
 """
-Fermat's Little Theorem: verification and primality testing.
+페르마의 작은 정리: 따져 보기와 소수 시험.
 
 수치 보기로 정리를 보여 주고
 페르마 소수 시험을 짠다.
@@ -109,21 +109,21 @@ Fermat's Little Theorem: verification and primality testing.
 # === 페르마 정리 확인 ===
 
 def verify_fermat(a: int, p: int) -> bool:
-    """Verify a^(p-1) = 1 (mod p) for prime p."""
+    """소수 p에 대해 a^(p-1) = 1 (mod p)임을 따져 본다."""
     return pow(a, p - 1, p) == 1
 
 
 # === 페르마 소수 시험 ===
 
 def fermat_test(n: int, k: int = 10) -> str:
-    """Probabilistic primality test using Fermat's little theorem.
+    """페르마의 작은 정리를 쓰는 확률 소수 시험.
 
     인수:
         n: 시험할 정수.
         k: 시험할 아무 밑의 개수.
 
     반환값:
-        'composite' if a witness is found, 'probably prime' otherwise.
+        증인을 찾으면 'composite', 아니면 'probably prime'.
     """
     if n < 2:
         return "composite"

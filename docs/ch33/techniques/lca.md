@@ -62,7 +62,7 @@ class LCA:
         """두 갈래 들어 올리기 표를 짓는다.
 
         인수:
-            adj: adjacency list (list of lists)
+            adj: 이웃 목록(목록의 목록)
             root: 뿌리 마디 번호
         """
         self.n = len(adj)

@@ -78,7 +78,7 @@ def mod_pow(base, exp, mod=MOD):
     return result
 
 def mod_inv(a, mod=MOD):
-    """Modular inverse using Fermat's little theorem (mod must be prime)."""
+    """페르마의 작은 정리를 쓰는 법 역원(법은 소수여야 한다)."""
     return mod_pow(a, mod - 2, mod)
 
 # ===================================================================
@@ -140,7 +140,7 @@ class SegTree:
             self.tree[pos] = self.tree[2 * pos] + self.tree[2 * pos + 1]
 
     def query(self, l, r):
-        """Query the range [l, r) (0-indexed, exclusive end)."""
+        """구간 [l, r)을 묻는다(0부터 세며 끝은 넣지 않는다)."""
         res = 0
         l += self.n
         r += self.n
@@ -160,10 +160,10 @@ class SegTree:
 # ===================================================================
 
 def dijkstra(adj, src, n):
-    """Dijkstra's algorithm with binary heap.
+    """두 갈래 힙을 쓰는 데이크스트라 알고리즘.
 
     인수:
-        adj: adjacency list as dict of {node: [(neighbor, weight), ...]}
+        adj: {마디: [(이웃, 무게), ...]} 사전으로 나타낸 이웃 목록
         src: 시작 마디
         n: 마디 개수
 

@@ -85,7 +85,7 @@ from functools import reduce
 # === 넓힌 최대 공약수 ===
 
 def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
-    """Return (g, x, y) such that a*x + b*y = g = gcd(a, b)."""
+    """a*x + b*y = g = gcd(a, b)를 이루는 (g, x, y)를 돌려준다."""
     if b == 0:
         return a, 1, 0
     g, x, y = extended_gcd(b, a % b)
@@ -95,7 +95,7 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
 # === 법 역원 ===
 
 def mod_inverse(a: int, m: int) -> int:
-    """Compute a^{-1} mod m. Requires gcd(a, m) = 1."""
+    """a^{-1} mod m을 셈한다. gcd(a, m) = 1이어야 한다."""
     g, x, _ = extended_gcd(a % m, m)
     if g != 1:
         raise ValueError(f"Inverse does not exist: gcd({a}, {m}) = {g}")
@@ -107,15 +107,15 @@ def mod_inverse(a: int, m: int) -> int:
 def crt(remainders: list[int], moduli: list[int]) -> int:
     """중국인 나머지 정리로 합동 연립을 푼다.
 
-    Given x = a_i (mod m_i) for pairwise coprime m_i,
-    returns the unique x in [0, M) where M = product of all m_i.
+    서로 소인 m_i에 대해 x = a_i (mod m_i)가 주어질 때,
+    M이 모든 m_i의 곱일 때 [0, M) 안의 유일한 x를 돌려준다.
 
     인수:
-        remainders: List of remainders [a_1, ..., a_k].
-        moduli: List of pairwise coprime moduli [m_1, ..., m_k].
+        remainders: 나머지의 목록 [a_1, ..., a_k].
+        moduli: 서로 소인 법의 목록 [m_1, ..., m_k].
 
     반환값:
-        The unique solution x modulo M = m_1 * m_2 * ... * m_k.
+        법 M = m_1 * m_2 * ... * m_k에 대한 유일한 풀이 x.
     """
     M = reduce(lambda a, b: a * b, moduli)
     x = 0

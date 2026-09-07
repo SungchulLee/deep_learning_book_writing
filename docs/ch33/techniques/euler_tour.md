@@ -154,7 +154,7 @@ def euler_tour(adj, root, n):
 
 # === 밑나무 물음 도우미 ===
 def subtree_range(tin, tout, v):
-    """Return the range [l, r] in the flat array for the subtree of v."""
+    """v의 아래나무에 딸린 평평한 배열의 구간 [l, r]을 돌려준다."""
     return tin[v], tout[v]
 
 

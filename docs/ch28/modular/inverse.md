@@ -81,14 +81,14 @@ $3^{-1} \pmod{7}$ 찾기:
 법 역원 셈하기.
 
 방법 둘을 준다: 넓힌 유클리드 알고리즘(어떤 법에도 통한다)과
-coprime modulus) and Fermat's little theorem (prime modulus only).
+서로 소인 법)과 페르마의 작은 정리(소수 법만)를 견준다.
 """
 
 
 # === 넓힌 최대 공약수 방법 ===
 
 def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
-    """Return (g, x, y) such that a*x + b*y = g = gcd(a, b)."""
+    """a*x + b*y = g = gcd(a, b)를 이루는 (g, x, y)를 돌려준다."""
     if b == 0:
         return a, 1, 0
     g, x, y = extended_gcd(b, a % b)
@@ -96,9 +96,9 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
 
 
 def mod_inverse_egcd(a: int, m: int) -> int:
-    """Compute a^{-1} mod m using the extended Euclidean algorithm.
+    """넓힌 유클리드 알고리즘으로 a^{-1} mod m을 셈한다.
 
-    Raises ValueError if gcd(a, m) != 1.
+    gcd(a, m) != 1이면 ValueError를 일으킨다.
     """
     g, x, _ = extended_gcd(a % m, m)
     if g != 1:
@@ -109,9 +109,9 @@ def mod_inverse_egcd(a: int, m: int) -> int:
 # === 페르마 방법(소수 법) ===
 
 def mod_inverse_fermat(a: int, p: int) -> int:
-    """Compute a^{-1} mod p using Fermat's little theorem.
+    """페르마의 작은 정리로 a^{-1} mod p을 셈한다.
 
-    Assumes p is prime and gcd(a, p) = 1.
+    p가 소수이고 gcd(a, p) = 1이라고 본다.
     """
     return pow(a, p - 2, p)
 

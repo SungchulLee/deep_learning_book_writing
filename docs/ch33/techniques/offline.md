@@ -39,7 +39,7 @@ $$
 
 ```python
 """
-Mo's algorithm for offline range queries.
+오프라인 구간 물음을 위한 모 알고리즘.
 
 물음을 다시 줄 세워 전체 가리개 움직임을 가장 작게 하며 고정된 배열의
 범위 물음을 다뤄 O((n+q)*sqrt(n))을 이룬다.
@@ -52,11 +52,11 @@ import math
 # ===================================================================
 
 def mos_algorithm(arr, queries):
-    """Answer range sum queries using Mo's algorithm.
+    """모 알고리즘으로 구간 합 물음에 답한다.
 
     인수:
         arr: 들임 정수 배열
-        queries: list of (left, right) pairs (0-indexed, inclusive)
+        queries: (왼쪽, 오른쪽) 짝의 목록(0부터 세며 양 끝을 넣는다)
 
     반환값:
         본디 물음 차례의 답 목록

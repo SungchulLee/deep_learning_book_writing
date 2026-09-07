@@ -36,16 +36,16 @@ def compute_retrace_targets(
     
     인수:
         q_values: 때 걸음마다 (s_t, a_t)에서의 Q 값
-        next_q_max: max_a' Q(s_{t+1}, a') for each timestep
+        next_q_max: 때 걸음마다의 max_a' Q(s_{t+1}, a')
         rewards: 때 걸음마다의 보상
-        dones: terminal flags (1.0 = done)
-        target_policy_probs: π(a_t | s_t) under target (current) policy
-        behavior_policy_probs: μ(a_t | s_t) under behavior (data) policy
+        dones: 끝남 깃발(1.0이면 끝났다)
+        target_policy_probs: 과녁(이제) 방침 아래의 π(a_t | s_t)
+        behavior_policy_probs: 행동(자료) 방침 아래의 μ(a_t | s_t)
         gamma: 깎기 인수
         lambda_: 리트레이스 람다 값
         
     반환값:
-        Retrace targets, shape (T,)
+        리트레이스 과녁, 꼴 (T,)
     """
     T = len(rewards)
     
@@ -86,13 +86,13 @@ def compute_retrace_batch(
     인수:
         q_online: 온라인 Q 그물
         q_target: 과녁 Q 그물
-        trajectories: List of dicts with keys: states, actions, rewards, 
-                      next_states, dones, behavior_probs
+        trajectories: states, actions, rewards, next_states, dones,
+                      behavior_probs 열쇠를 지닌 사전의 목록
         gamma: 깎기
         lambda_: 리트레이스 람다
         
     반환값:
-        (all_q_values, all_targets) concatenated across trajectories
+        자취를 가로질러 이어 붙인 (all_q_values, all_targets)
     """
     all_q = []
     all_targets = []

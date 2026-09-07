@@ -70,7 +70,7 @@ class QNetwork(nn.Module):
 def dqn_target(online_net: nn.Module, target_net: nn.Module,
                next_states: torch.Tensor, rewards: torch.Tensor,
                dones: torch.Tensor, gamma: float) -> torch.Tensor:
-    """Standard DQN target: y = r + γ max_a' Q_target(s', a')"""
+    """여느 DQN 과녁: y = r + γ max_a' Q_target(s', a')"""
     with torch.no_grad():
         next_q = target_net(next_states).max(dim=1)[0]
         return rewards + (1 - dones) * gamma * next_q
@@ -79,7 +79,7 @@ def dqn_target(online_net: nn.Module, target_net: nn.Module,
 def double_dqn_target(online_net: nn.Module, target_net: nn.Module,
                       next_states: torch.Tensor, rewards: torch.Tensor,
                       dones: torch.Tensor, gamma: float) -> torch.Tensor:
-    """Double DQN target: y = r + γ Q_target(s', argmax_a' Q_online(s', a'))"""
+    """이중 DQN 과녁: y = r + γ Q_target(s', argmax_a' Q_online(s', a'))"""
     with torch.no_grad():
         # 온라인 그물이 움직임을 고름
         best_actions = online_net(next_states).argmax(dim=1)

@@ -26,7 +26,7 @@
 """
 에라토스테네스의 체.
 
-Time : O(n log log n)
+때 : O(n log log n)
 Space: O(n)
 """
 

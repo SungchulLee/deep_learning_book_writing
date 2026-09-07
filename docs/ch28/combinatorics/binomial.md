@@ -102,9 +102,9 @@ if __name__ == "__main__":
 
 ```python
 def pascal_table(n: int) -> list[list[int]]:
-    """Build Pascal's triangle up to row n.
+    """n번째 줄까지 파스칼 삼각형을 짓는다.
 
-    Returns a 2D list where C[i][j] = C(i, j).
+    C[i][j] = C(i, j)인 2차원 목록을 돌려준다.
     """
     C = [[0] * (n + 1) for _ in range(n + 1)]
     for i in range(n + 1):
@@ -127,7 +127,7 @@ $n$번째 줄 하나만 필요하면 오른쪽에서 왼쪽으로 고치는 1차
 
 ```python
 def pascal_row(n: int) -> list[int]:
-    """Compute row n of Pascal's triangle in O(n) space."""
+    """자리 O(n)으로 파스칼 삼각형의 n번째 줄을 셈한다."""
     row = [0] * (n + 1)
     row[0] = 1
     for i in range(1, n + 1):

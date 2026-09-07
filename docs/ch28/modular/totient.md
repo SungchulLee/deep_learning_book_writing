@@ -107,17 +107,17 @@ $$
 
 ```python
 """
-Euler's Totient Function and Euler's Theorem.
+오일러 파이 함수와 오일러 정리.
 
 소인수 분해 공식으로 파이 함수를 셈한다
-and verifies Euler's theorem with numerical examples.
+그리고 수치 보기로 오일러 정리를 따져 본다.
 """
 
 
 # === 파이 함수 ===
 
 def euler_totient(n: int) -> int:
-    """Compute Euler's totient function phi(n).
+    """오일러 파이 함수 phi(n)을 셈한다.
 
     모든 소인수를 찾아 곱 공식을 쓴다.
 
@@ -125,7 +125,7 @@ def euler_totient(n: int) -> int:
         n: 양의 정수.
 
     반환값:
-        phi(n), the count of integers in [1, n] coprime to n.
+        phi(n), 곧 [1, n] 안에서 n과 서로 소인 정수의 개수.
     """
     result = n
     p = 2

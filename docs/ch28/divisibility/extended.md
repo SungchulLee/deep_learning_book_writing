@@ -109,14 +109,14 @@ $$
 넓힌 유클리드 알고리즘.
 
 다음을 만족하는 베주 계수 x, y과 함께 gcd(a, b)을 셈한다
-a*x + b*y = gcd(a, b). Provides both recursive and iterative versions.
+a*x + b*y = gcd(a, b). 되돌이꼴과 되풀이꼴을 모두 담는다.
 """
 
 
 # === 되돌이 넓힌 최대 공약수 ===
 
 def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
-    """Compute (g, x, y) such that a*x + b*y = g = gcd(a, b).
+    """a*x + b*y = g = gcd(a, b)를 이루는 (g, x, y)를 셈한다.
 
     여느 이끌어 냄을 따르는 되돌이 짜기.
 
@@ -125,7 +125,7 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
         b: 둘째 정수.
 
     반환값:
-        Tuple (g, x, y) where g = gcd(a, b) and a*x + b*y = g.
+        g = gcd(a, b)이고 a*x + b*y = g인 튜플 (g, x, y).
     """
     if b == 0:
         return a, 1, 0
@@ -136,7 +136,7 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
 # === 되풀이 넓힌 최대 공약수 ===
 
 def extended_gcd_iterative(a: int, b: int) -> tuple[int, int, int]:
-    """Compute (g, x, y) such that a*x + b*y = g = gcd(a, b).
+    """a*x + b*y = g = gcd(a, b)를 이루는 (g, x, y)를 셈한다.
 
     여분 공간 O(1)을 쓰는 되풀이 짜기.
     """

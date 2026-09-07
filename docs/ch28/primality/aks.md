@@ -99,7 +99,7 @@ import math
 
 # === 완전 거듭제곱 살피기 ===
 def is_perfect_power(n: int) -> bool:
-    """Check if n = b^k for some b >= 2, k >= 2."""
+    """b >= 2, k >= 2인 어떤 b, k에 대해 n = b^k인지 살핀다."""
     if n <= 3:
         return False
     for k in range(2, n.bit_length() + 1):
@@ -112,7 +112,7 @@ def is_perfect_power(n: int) -> bool:
 
 # === 곱셈 차수 ===
 def multiplicative_order(n: int, r: int) -> int:
-    """Return the smallest k such that n^k = 1 (mod r)."""
+    """n^k = 1 (mod r)을 이루는 가장 작은 k를 돌려준다."""
     if math.gcd(n, r) > 1:
         return 0
     result = 1

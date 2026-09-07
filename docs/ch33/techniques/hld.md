@@ -166,7 +166,7 @@ class HLD:
     def path_query(self, u, v, seg_query):
         """토막 나무 물음 함수로 u-v 길을 묻는다.
 
-        seg_query(l, r) should return the answer for range [l, r].
+        seg_query(l, r)은 구간 [l, r]의 답을 돌려주어야 한다.
         """
         result = 0
         while self.head[u] != self.head[v]:

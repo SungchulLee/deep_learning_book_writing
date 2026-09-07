@@ -9,7 +9,7 @@
 33.1.4 DQN 짜기
 ==========================
 
-Complete, production-ready DQN implementation with logging,
+적기까지 갖춘, 참으로 굴릴 수 있는 온전한 DQN 짜기,
 CartPole-v1에서 값 매기기와 중간 갈무리.
 """
 
@@ -229,7 +229,7 @@ class DQNAgent:
         return loss_val
 
     def evaluate(self, env, n_episodes: int = 10) -> Dict[str, float]:
-        """Evaluate with greedy policy (ε=0)."""
+        """욕심쟁이 방침(ε=0)으로 따진다."""
         returns = []
         lengths = []
         for _ in range(n_episodes):

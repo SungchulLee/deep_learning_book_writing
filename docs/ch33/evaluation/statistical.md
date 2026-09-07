@@ -22,7 +22,7 @@ from scipy import stats
 
 
 def welch_ttest(scores_a: np.ndarray, scores_b: np.ndarray) -> Dict:
-    """Welch's t-test for comparing two algorithms."""
+    """두 알고리즘을 견주는 웰치 t 시험."""
     t_stat, p_value = stats.ttest_ind(scores_a, scores_b, equal_var=False)
     return {'t_statistic': t_stat, 'p_value': p_value,
             'significant_005': p_value < 0.05, 'significant_001': p_value < 0.01}
@@ -66,7 +66,7 @@ def paired_bootstrap_test(scores_a: np.ndarray, scores_b: np.ndarray,
 
 
 def cohens_d(scores_a: np.ndarray, scores_b: np.ndarray) -> float:
-    """Cohen's d effect size."""
+    """코헨의 d 효과 크기."""
     n_a, n_b = len(scores_a), len(scores_b)
     pooled_std = np.sqrt(((n_a - 1) * scores_a.std()**2 + (n_b - 1) * scores_b.std()**2)
                          / (n_a + n_b - 2))

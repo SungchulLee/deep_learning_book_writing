@@ -9,7 +9,7 @@
 33.1.1 DQN의 바탕
 ========================
 
-Core DQN components: Q-network architectures, action selection,
+DQN의 고갱이 조각: Q 그물 얼개, 움직임 고르기,
 그리고 기본 DQN 익히기 되돌이.
 """
 
@@ -109,7 +109,7 @@ class EpsilonGreedy:
         """엡실론 욕심쟁이 방침으로 움직임을 고른다.
         
         인수:
-            q_values: Q-values for current state, shape (1, action_dim)
+            q_values: 이제 상태의 Q 값, 꼴 (1, action_dim)
             training: 거짓이면 늘 욕심쟁이 움직임을 고른다
             
         반환값:
@@ -151,7 +151,7 @@ class BasicDQNAgent:
         return self.explorer.select_action(q_values, training)
 
     def update(self, state, action, reward, next_state, done) -> float:
-        """Single-sample online update (for illustration; not recommended)."""
+        """표본 하나로 하는 온라인 고침(보이기용이며 권하지 않는다)."""
         state_t = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         next_state_t = torch.FloatTensor(next_state).unsqueeze(0).to(self.device)
 
@@ -194,7 +194,7 @@ def compute_td_error(q_network: nn.Module, target_network: nn.Module,
         gamma: 깎기 인수
         
     반환값:
-        TD errors of shape (batch,)
+        꼴이 (batch,)인 시간차 어긋남
     """
     # 고른 움직임의 Q(s, a)
     q_values = q_network(states).gather(1, actions.unsqueeze(1)).squeeze(1)
