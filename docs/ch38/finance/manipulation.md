@@ -1,63 +1,63 @@
-# Market Manipulation Detection
-## Introduction
+# 저자 흔들기 알아내기
+## 들머리
 
-Market manipulation—the deliberate attempt to interfere with free market operation—represents a uniquely adversarial domain for machine learning. Unlike standard adversarial robustness where perturbations are mathematical constructs, market manipulation involves real economic agents who strategically modify observable signals to deceive both human and algorithmic participants.
+저자 흔들기, 곧 자유로운 저자의 굴러감을 일부러 건드리는 일은 기계 배움에서 남달리 겨루는 밭이다. 흔듦이 수학의 지어냄인 여느 맞섬에 든든하기와 달리, 저자 흔들기에는 사람과 알고리즘 참여자를 함께 속이려고 보이는 신호를 꾀 부려 고치는 참 돈벌이 무리가 있다.
 
-## Manipulation as an Adversarial Attack
+## 맞서는 치기로 본 흔들기
 
-### Parallels to Adversarial ML
+### 맞섬 기계 배움과의 닮은꼴
 
-| Adversarial ML Concept | Market Manipulation Analog |
+| 맞섬 기계 배움의 깨침 | 저자 흔들기의 짝 |
 |------------------------|---------------------------|
-| Input perturbation | Spoofing orders, wash trading |
-| Targeted attack | Triggering specific algorithmic trading signals |
-| Evasion attack | Avoiding surveillance system detection |
-| Perturbation budget | Regulatory risk, capital constraints |
-| Black-box attack | Manipulating without knowing surveillance model |
+| 들임 흔듦 | 속임 주문, 짜고 하는 거래 |
+| 과녁 있는 치기 | 어떤 알고리즘 거래 신호를 일부러 불러냄 |
+| 비껴가기 치기 | 살핌 얼개의 알아내기를 비껴감 |
+| 흔듦 예산 | 규정의 무릅씀, 밑천의 옭아맴 |
+| 검은 상자 치기 | 살핌 모형을 모른 채 흔듦 |
 
-### Formal Framework
+### 꼴로 적기
 
-A market manipulator modifies observable market signals $\mathbf{x}_t$ (prices, volumes, order book) to achieve an objective:
+저자를 흔드는 이는 목표를 이루려고 보이는 저자 신호 $\mathbf{x}_t$(값, 거래량, 주문 장부)을 고친다.
 
 $$
 \mathbf{x}_t^{\text{manip}} = \mathbf{x}_t + \boldsymbol{\delta}_t, \quad \text{subject to } \boldsymbol{\delta}_t \in \mathcal{C}_t
 $$
 
-where $\mathcal{C}_t$ encodes economic and regulatory constraints:
+여기서 $\mathcal{C}_t$은 돈과 규정의 옭아맴을 담는다.
 
-- Orders must be executable (valid price/quantity)
-- Manipulation cost must be recoverable from the strategy's profit
-- Pattern must not trigger simple rule-based surveillance
+- 주문을 채울 수 있어야 한다(옳은 값과 수량)
+- 흔드는 값을 그 꾀의 벌이로 메울 수 있어야 한다
+- 결이 단순한 규칙 바탕 살핌에 걸리지 않아야 한다
 
-## Types of Manipulation
+## 흔들기의 갈래
 
-### Spoofing and Layering
+### 속임 주문과 겹쳐 쌓기
 
-Placing orders with intent to cancel before execution, creating false impressions of supply/demand:
+채우기 앞서 물릴 뜻으로 주문을 넣어 팔 뜻과 살 뜻에 대한 거짓 느낌을 만든다.
 
-- **Adversarial effect**: Fools order-book-based ML models into predicting price movements
-- **Detection challenge**: Distinguishes from legitimate order modification
-- **Robustness requirement**: Detection models must be robust to adversarial order patterns
+- **맞섬의 미침**: 주문 장부 바탕의 기계 배움 모형을 속여 값 움직임을 잘못 미루어 보게 한다
+- **알아내기의 어려움**: 옳은 주문 고침과 가르기 어렵다
+- **든든함 요건**: 알아내는 모형이 맞서는 주문 결에 든든해야 한다
 
-### Wash Trading
+### 짜고 하는 거래
 
-Self-dealing transactions that inflate volume without genuine economic activity:
+참 돈벌이 없이 스스로 주고받아 거래량만 부풀린다.
 
-- **Adversarial effect**: Inflates volume-based signals used by trading algorithms
-- **Detection challenge**: Transactions appear individually legitimate
-- **Robustness requirement**: Models must identify coordinated patterns across transactions
+- **맞섬의 미침**: 거래 알고리즘이 쓰는 거래량 바탕 신호를 부풀린다
+- **알아내기의 어려움**: 거래 하나하나는 옳아 보인다
+- **든든함 요건**: 모형이 거래에 걸친 짜 맞춘 결을 짚어내야 한다
 
-### Pump-and-Dump
+### 띄웠다 던지기
 
-Coordinated campaigns to inflate asset prices through false promotion:
+거짓 부추김으로 자산 값을 부풀리는 짜 맞춘 몰이다.
 
-- **Adversarial effect**: Manipulates sentiment and momentum signals
-- **Detection challenge**: Combines legitimate-looking market activity with social media manipulation
-- **Robustness requirement**: Multi-modal robustness across price, volume, and text data
+- **맞섬의 미침**: 분위기와 밀어 나감 신호를 흔든다
+- **알아내기의 어려움**: 옳아 보이는 저자 움직임과 어울림 마당 흔들기를 함께 쓴다
+- **든든함 요건**: 값, 거래량, 글월 자료에 걸친 여러 갈래의 든든함
 
-## Robust Surveillance Systems
+## 든든한 살핌 얼개
 
-### Architecture for Robust Detection
+### 든든하게 알아내는 얼개
 
 ```python
 import torch
@@ -66,10 +66,10 @@ from typing import Dict, List
 
 class RobustSurveillanceSystem:
     """
-    Market manipulation detection with adversarial robustness.
+    맞섬에 든든한 저자 흔들기 알아내기.
     
-    Combines multiple detection signals with adversarial
-    training to resist adaptive manipulators.
+    알아내는 신호 여럿을 맞서며 익히기와 아울러
+    맞추어 오는 흔드는 이에게 버틴다.
     """
     
     def __init__(
@@ -78,8 +78,8 @@ class RobustSurveillanceSystem:
         pattern_model: nn.Module,
         ensemble_weights: List[float] = [0.5, 0.5]
     ):
-        self.order_model = order_model      # Order-level features
-        self.pattern_model = pattern_model    # Sequence-level patterns
+        self.order_model = order_model      # 주문 켜의 결
+        self.pattern_model = pattern_model    # 이음 켜의 결
         self.weights = ensemble_weights
     
     def detect(
@@ -88,16 +88,16 @@ class RobustSurveillanceSystem:
         sequence_features: torch.Tensor
     ) -> Dict[str, torch.Tensor]:
         """
-        Multi-signal manipulation detection.
+        여러 신호로 흔들기를 알아낸다.
         
-        Ensembles order-level and pattern-level models
-        for robustness against single-signal manipulation.
+        주문 켜 모형과 결 켜 모형을 모둠으로 묶어
+        신호 하나만 흔드는 일에 든든하게 한다.
         """
         with torch.no_grad():
             score_order = torch.sigmoid(self.order_model(order_features))
             score_pattern = torch.sigmoid(self.pattern_model(sequence_features))
             
-            # Weighted ensemble
+            # 짐 준 모둠
             combined = (
                 self.weights[0] * score_order +
                 self.weights[1] * score_pattern
@@ -111,50 +111,50 @@ class RobustSurveillanceSystem:
         }
 ```
 
-### Defense Strategies
+### 막이 꾀
 
-1. **Multi-signal detection**: Combine price, volume, order book, and behavioral signals so that manipulating one channel is insufficient
-2. **Temporal consistency**: Check that patterns are consistent across multiple time scales
-3. **Cross-market validation**: Verify signals across related markets and instruments
-4. **Adversarial training**: Train detection models against simulated manipulation strategies
+1. **여러 신호로 알아내기**: 값, 거래량, 주문 장부, 몸짓 신호를 아울러 한 갈래만 흔들어서는 안 되게 한다
+2. **때의 한결같음**: 여러 때 잣대에 걸쳐 결이 한결같은지 살핀다
+3. **저자를 넘나드는 따짐**: 이어진 저자와 물건에 걸쳐 신호를 따진다
+4. **맞서며 익히기**: 흉내 낸 흔들기 꾀에 맞서 알아내는 모형을 익힌다
 
-## Summary
+## 간추림
 
-Market manipulation detection is adversarial robustness applied to a domain with genuine adversaries. The key insight is that manipulation must be economically viable, which constrains the adversary's perturbation space in ways that can be exploited for more effective detection.
+저자 흔들기 알아내기는 참 겨루는 이가 있는 밭에 맞섬의 든든함을 쓴 것이다. 고갱이 깨침은 흔들기가 돈으로 될 만해야 한다는 것이며, 이것이 겨루는 이의 흔듦 밭을 옭아매어 더 잘 드는 알아내기의 실마리가 된다.
 
-## References
+## 살펴볼 거리
 
 1. Cao, Y., et al. (2021). "Adversarial Attacks on Machine Learning-Based Market Surveillance." Journal of Financial Data Science.
 2. Golmohammadi, K., & Zaiane, O. R. (2015). "Time Series Contextual Anomaly Detection for Detecting Market Manipulation in Stock Market." IEEE DSAA.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$

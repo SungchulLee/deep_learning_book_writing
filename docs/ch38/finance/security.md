@@ -1,89 +1,89 @@
-# Model Security in Financial Systems
-## Introduction
+# 금융 얼개의 모형 지킴
+## 들머리
 
-Deploying machine learning models in production financial systems introduces security considerations that extend beyond adversarial robustness of individual predictions. This section covers the end-to-end security of ML-based financial systems, from model theft and data poisoning to secure deployment practices.
+기계 배움 모형을 참 금융 얼개에 내놓으면 미루어 봄 하나하나의 든든함을 넘어서는 지킴 문제가 생긴다. 이 마디는 모형 훔치기와 자료에 독 타기에서 든든히 내놓는 버릇에 이르기까지, 기계 배움 금융 얼개의 끝에서 끝까지의 지킴을 다룬다.
 
-## Threat Landscape
+## 으름의 터
 
-### Model Extraction
+### 모형 빼내기
 
-An adversary with API access can **steal** the model by training a surrogate on query-response pairs:
+API을 쓸 수 있는 겨루는 이는 물음과 되받음의 짝으로 대신 쓸 모형을 익혀 모형을 **훔칠** 수 있다.
 
 $$
 f_{\text{surrogate}} \approx f_{\text{target}} \quad \text{via} \quad \{(\mathbf{x}_i, f_{\text{target}}(\mathbf{x}_i))\}_{i=1}^N
 $$
 
-**Financial impact**: Proprietary trading signals, credit scoring models, and risk models represent significant intellectual property. Extraction enables both model theft and subsequent white-box adversarial attacks.
+**금융에 미침**: 제 것인 거래 신호, 미쁨 점수 모형, 무릅씀 모형은 큰 앎의 재산이다. 빼내기는 모형 훔치기와 그에 이어지는 흰 상자 맞서는 치기를 함께 이룬다.
 
-**Defenses**:
+**막이**:
 
-- Query rate limiting and anomaly detection
-- Output perturbation (add calibrated noise to predictions)
-- Watermarking (embed detectable patterns in model behavior)
+- 물음 잦기 마디 짓기와 튀는 것 알아내기
+- 날임 흔들기(미루어 봄에 눈금 맞춘 잡음 더하기)
+- 물무늬 넣기(모형의 결에 짚어낼 수 있는 무늬 박기)
 
-### Data Poisoning
+### 자료에 독 타기
 
-Adversaries who can influence training data can inject **poisoned examples** that degrade model performance or create targeted backdoors:
+익힘 자료에 힘을 미칠 수 있는 겨루는 이는 모형의 됨됨이를 떨어뜨리거나 과녁 있는 뒷문을 만드는 **독 탄 보기**를 끼워 넣을 수 있다.
 
 $$
 \mathcal{D}_{\text{poisoned}} = \mathcal{D}_{\text{clean}} \cup \{(\mathbf{x}_{\text{poison}}, y_{\text{target}})\}
 $$
 
-**Financial examples**:
+**금융에서의 보기**:
 
-- Manipulating historical price data used for model training
-- Injecting fraudulent transactions labeled as legitimate into training sets
-- Corrupting alternative data sources (satellite imagery, web scraping)
+- 모형 익힘에 쓰는 지난 값 자료를 흔들기
+- 옳다고 이름표 붙인 속임 거래를 익힘 꾸러미에 끼워 넣기
+- 다른 자료 밑동(별그림, 누리 긁기)을 망가뜨리기
 
-#### Targeted Poisoning via Feature Collision
+#### 결 부딪힘으로 하는 과녁 있는 독 타기
 
-A particularly insidious form of data poisoning is **clean-label poisoning**, where the attacker does not need to change any labels. Instead, the attacker crafts poisoned training instances that collide with the target in feature space:
+자료에 독 타기 가운데 특히 음흉한 것이 **맑은 이름표 독 타기**이다. 치는 이가 이름표를 하나도 바꿀 필요가 없다. 그 대신 결 밭에서 과녁과 부딪히는 독 탄 익힘 보기를 지어낸다.
 
 $$
 \mathbf{x}_{\text{poison}} = \arg\min_{\mathbf{x}} \| f(\mathbf{x}) - f(\mathbf{x}_{\text{target}}) \|_2^2 + \beta \| \mathbf{x} - \mathbf{x}_{\text{base}} \|_2^2
 $$
 
-where $f(\cdot)$ extracts the learned feature representation, $\mathbf{x}_{\text{target}}$ is the instance the attacker wants misclassified at test time, and $\mathbf{x}_{\text{base}}$ is a legitimate example from the attacker's chosen class. The first term ensures feature-space collision with the target, while the second keeps the poison visually similar to a legitimate base instance (so its label appears correct).
+여기서 $f(\cdot)$은 배운 결을 뽑아내고, $\mathbf{x}_{\text{target}}$은 치는 이가 시험 때 틀리게 갈리길 바라는 보기이며, $\mathbf{x}_{\text{base}}$은 치는 이가 고른 갈래의 옳은 보기다. 첫째 항은 과녁과 결 밭에서 부딪히게 하고, 둘째 항은 독 탄 것이 옳은 밑 보기와 눈으로 비슷하게 남게 한다(그래서 이름표가 맞아 보인다).
 
-When the model trains on this poisoned example, it learns features that associate the target's representation with the poison's class — causing misclassification of the target at test time without any label corruption.
+모형이 이 독 탄 보기로 익히면 과녁의 결을 독 탄 것의 갈래와 이어 붙이는 결을 배운다. 그러면 이름표를 하나도 망가뜨리지 않고도 시험 때 과녁이 틀리게 갈린다.
 
-**Why this matters for quant**: In financial ML, training data often comes from third-party vendors, alternative data providers, or scraped sources. An adversary could craft synthetic market data points that are statistically consistent with legitimate data (pass all quality checks) yet subtly shift the model's decision boundary to misclassify specific securities or market conditions.
+**계량 금융에 걸리는 까닭**: 금융 기계 배움의 익힘 자료는 흔히 바깥 업체, 다른 자료 대는 곳, 긁어 온 데서 온다. 겨루는 이는 옳은 자료와 통계로 들어맞아 됨됨이 살핌을 다 지나면서도, 모형의 판단의 금을 은근히 밀어 어떤 증권이나 저자 형편을 틀리게 가르게 하는 지어낸 저자 자료 점을 만들 수 있다.
 
-#### Defenses Against Data Poisoning
+#### 자료에 독 타기를 막기
 
-| Defense | Mechanism | Trade-off |
+| 막이 | 얼개 | 맞바꿈 |
 |---------|-----------|-----------|
-| Data sanitization | Remove outliers in feature space before training | May discard legitimate rare events |
-| Influence functions | Identify training points with high influence on specific predictions | Computationally expensive for large datasets |
-| Spectral signatures | Detect poisoned samples via spectral analysis of feature covariance | Requires sufficient poison concentration |
-| Differential privacy | Add noise during training to limit any single point's influence | Reduces model accuracy |
-| Ensemble agreement | Compare predictions across models trained on different data subsets | Increases compute cost |
+| 자료 씻기 | 익히기 앞서 결 밭의 튀는 값을 없앤다 | 드물지만 옳은 일까지 버릴 수 있다 |
+| 미침 함수 | 어떤 미루어 봄에 크게 미치는 익힘 점을 짚어낸다 | 자료가 크면 셈이 비싸다 |
+| 스펙트럼 자국 | 결의 함께 바뀜을 스펙트럼으로 살펴 독 탄 보기를 짚어낸다 | 독이 어느 만큼 몰려 있어야 한다 |
+| 차이 사사로움 | 익히는 동안 잡음을 더해 점 하나의 미침을 옭아맨다 | 모형의 맞음이 떨어진다 |
+| 모둠의 뜻 맞음 | 자료를 나눠 익힌 모형들의 미루어 봄을 견준다 | 셈 값이 는다 |
 
 
-### Backdoor Attacks
+### 뒷문 치기
 
-A **backdoor** is a hidden trigger pattern that causes targeted misclassification when present:
+**뒷문**은 있으면 과녁대로 틀리게 가르게 만드는 숨은 방아쇠 결이다.
 
 $$
 f(\mathbf{x} + \text{trigger}) = y_{\text{target}} \quad \forall \mathbf{x}
 $$
 
-while $f(\mathbf{x}) = y_{\text{correct}}$ on clean inputs.
+맑은 들임에서는 $f(\mathbf{x}) = y_{\text{correct}}$이다.
 
-**Financial risk**: A backdoored credit model could approve specific fraudulent applications when they contain a particular feature pattern.
+**금융의 무릅씀**: 뒷문이 심긴 미쁨 모형은 어떤 결 무늬가 든 속임 신청을 받아 줄 수 있다.
 
-## Secure Deployment Practices
+## 든든히 내놓는 버릇
 
-### Defense-in-Depth Architecture
+### 여러 켜 막이 얼개
 
 ```
-Input Validation → Feature Monitoring → Model Ensemble → Output Validation → Decision
+들임 따지기 → 결 지켜보기 → 모형 모둠 → 날임 따지기 → 판단
        ↓                  ↓                   ↓                ↓
-   Anomaly             Distribution       Disagreement      Range &
-   Detection            Shift Alert        Detection       Consistency
+   튀는 것            분포 옮겨감        어긋남           자리와
+   알아내기            알림              알아내기        한결같음
 ```
 
-### Input Validation
+### 들임 따지기
 
 ```python
 import torch
@@ -91,10 +91,10 @@ from typing import Dict, Optional
 
 class InputValidator:
     """
-    Validate model inputs before prediction.
+    미루어 보기 앞서 모형 들임을 따진다.
     
-    Checks for out-of-distribution inputs, adversarial
-    indicators, and data quality issues.
+    밖 분포 들임, 맞섬의 낌새, 자료 됨됨이의 탈을
+    살핀다.
     """
     
     def __init__(
@@ -113,18 +113,18 @@ class InputValidator:
     
     def validate(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
-        Validate inputs and return quality flags.
+        들임을 따지고 됨됨이 표시를 돌려준다.
         """
-        # Z-score check: flag extreme values
+        # z 점수 살피기: 아주 튀는 값에 표시한다
         z_scores = (x - self.means) / (self.stds + 1e-8)
         extreme = (z_scores.abs() > self.z_threshold).any(dim=1)
         
-        # Range check: flag out-of-training-range values
+        # 자리 살피기: 익힘 자리 밖의 값에 표시한다
         below = (x < self.mins).any(dim=1)
         above = (x > self.maxs).any(dim=1)
         out_of_range = below | above
         
-        # Missing value check
+        # 빠진 값 살피기
         has_nan = torch.isnan(x).any(dim=1)
         
         return {
@@ -136,80 +136,80 @@ class InputValidator:
         }
 ```
 
-### Model Monitoring
+### 모형 지켜보기
 
-Continuous monitoring for signs of adversarial activity or model degradation:
+맞서는 움직임이나 모형이 떨어지는 낌새를 끊임없이 지켜본다.
 
-| Signal | Indicates | Action |
+| 신호 | 뜻하는 바 | 할 일 |
 |--------|-----------|--------|
-| Prediction distribution shift | Data drift or manipulation | Alert + investigate |
-| Unusual query patterns | Model extraction attempt | Rate limit + block |
-| Sudden accuracy drop | Poisoning or distribution shift | Fallback to backup model |
-| Feature importance change | Concept drift or attack | Retrain with validation |
-| Ensemble disagreement spike | Out-of-distribution inputs | Flag for human review |
+| 미루어 봄 분포 옮겨감 | 자료 옮겨감이나 흔들기 | 알리고 살핀다 |
+| 여느 것과 다른 물음 결 | 모형 빼내기 시도 | 잦기를 마디 짓고 막는다 |
+| 갑작스러운 맞음 떨어짐 | 독 타기나 분포 옮겨감 | 대비 모형으로 물러난다 |
+| 결 중요도 바뀜 | 뜻 옮겨감이나 치기 | 따지며 다시 익힌다 |
+| 모둠 어긋남이 치솟음 | 밖 분포 들임 | 사람이 살피도록 표시한다 |
 
-### Regulatory Considerations
+### 규정에서 헤아릴 것
 
-Financial ML models face specific regulatory requirements:
+금융 기계 배움 모형에는 남다른 규정 요건이 있다.
 
-- **Model Risk Management (SR 11-7)**: Models must be validated, documented, and monitored
-- **Explainability requirements**: Adversarial robustness must be documented and tested
-- **Fair lending laws**: Robustness evaluation must consider protected attributes
-- **Data governance**: Training data integrity must be maintained and auditable
+- **모형 무릅씀 다루기(SR 11-7)**: 모형을 따지고 적고 지켜봐야 한다
+- **풀이할 수 있어야 함**: 맞섬의 든든함을 적고 시험해야 한다
+- **고르게 빌려주기 법**: 든든함을 따질 때 지켜야 할 됨됨이를 헤아려야 한다
+- **자료 다스리기**: 익힘 자료의 온전함을 지키고 되짚어 볼 수 있어야 한다
 
-## Comprehensive Security Checklist
+## 두루 갖춘 지킴 살핌표
 
-For deploying ML models in financial production systems:
+기계 배움 모형을 참 금융 얼개에 내놓을 때 살필 것들이다.
 
-- [ ] Adversarial robustness evaluation (AutoAttack or domain-specific)
-- [ ] Input validation and anomaly detection
-- [ ] Model extraction defenses (rate limiting, output perturbation)
-- [ ] Data poisoning resistance (training data validation)
-- [ ] Backdoor detection (neural cleanse or similar)
-- [ ] Ensemble disagreement monitoring
-- [ ] Distribution shift detection
-- [ ] Fallback mechanisms (rule-based backup)
-- [ ] Audit trail for all model decisions
-- [ ] Regular red-team exercises
+- [ ] 맞섬의 든든함 따지기(오토어택이나 그 밭에 맞는 것)
+- [ ] 들임 따지기와 튀는 것 알아내기
+- [ ] 모형 빼내기 막이(잦기 마디 짓기, 날임 흔들기)
+- [ ] 자료에 독 타기 버티기(익힘 자료 따지기)
+- [ ] 뒷문 알아내기(뉴럴 클렌즈 따위)
+- [ ] 모둠 어긋남 지켜보기
+- [ ] 분포 옮겨감 알아내기
+- [ ] 물러설 얼개(규칙 바탕의 대비)
+- [ ] 모형의 모든 판단에 대한 되짚음 자취
+- [ ] 붉은 편 겨루기를 꾸준히 하기
 
-## Summary
+## 간추림
 
-Model security in financial systems requires a holistic approach that goes beyond adversarial robustness of individual predictions. Defense-in-depth—combining input validation, robust models, output monitoring, and organizational processes—provides the most reliable protection against the diverse threat landscape of production financial ML.
+금융 얼개의 모형 지킴에는 미루어 봄 하나하나의 든든함을 넘어 통틀어 보는 길이 있어야 한다. 들임 따지기, 든든한 모형, 날임 지켜보기, 조직의 절차를 아우른 여러 켜 막이가 참 금융 기계 배움의 갖가지 으름에 가장 미더운 지킴을 준다.
 
-## References
+## 살펴볼 거리
 
 1. Kumar, R. S. S., et al. (2020). "Adversarial Machine Learning—Industry Perspectives." IEEE S&P Workshop.
 2. Goldblum, M., et al. (2022). "Dataset Security for Machine Learning: Data Poisoning, Backdoor Attacks, and Defenses." IEEE TPAMI.
 3. Board of Governors of the Federal Reserve System (2011). "Supervisory Guidance on Model Risk Management (SR 11-7)."
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
