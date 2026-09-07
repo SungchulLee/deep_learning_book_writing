@@ -1,66 +1,66 @@
-# TTL Expiry
+# 살날 다함
 
-Cache eviction policies like LRU and LFU decide *which* item to remove when space runs out, but they do not address *stale data*. An item cached hours ago may no longer reflect the current state of the underlying data source. **Time-To-Live (TTL)** expiry ensures cache freshness by associating each entry with an expiration timestamp. Once a TTL expires, the entry is considered invalid regardless of how recently or frequently it was accessed.
+LRU와 LFU 같은 캐시 내보내기 방침은 자리가 모자랄 때 *어느* 항목을 뺄지 정하지만 *낡은 자료*는 다루지 못한다. 몇 시간 앞서 갈무리한 항목은 밑에 깔린 자료 샘의 지금 상태를 더는 비추지 못할 수 있다. **살날**(TTL) 다함은 항목마다 다하는 때 도장을 매어 캐시의 싱싱함을 지킨다. 살날이 다하면 그 항목은 얼마나 최근에 얼마나 자주 닿았든 상관없이 못 쓰는 것으로 여긴다.
 
-## Design
+## 설계
 
-Each cache entry stores a tuple $(key, value, expiry)$ where:
+캐시 항목마다 세 짝 $(열쇠, 값, 다함)$을 갈무리하며 여기서 다음이 성립한다.
 
 $$
-expiry = t_{\text{insert}} + \text{TTL}
+\text{다함} = t_{\text{넣음}} + \text{TTL}
 $$
 
-An entry is valid if and only if the current time $t_{\text{now}} < expiry$.
+지금 때 $t_{\text{이제}} < \text{다함}$일 때 그리고 그때에만 그 항목이 쓸모 있다.
 
-### Expiration Strategies
+### 다함 꾀
 
-**Lazy expiration**: Check the TTL only on access. When a `get` request arrives, compare $t_{\text{now}}$ against $expiry$. If expired, delete the entry and return a miss. This is simple but allows expired entries to consume space until accessed.
+**게으른 다함**: 닿을 때만 살날을 살핀다. `get` 부름이 오면 $t_{\text{이제}}$을 $\text{다함}$과 견준다. 다했으면 항목을 지우고 빗나감을 돌려준다. 쉽지만 다한 항목이 닿기 전까지 자리를 차지한다.
 
-**Active expiration**: A background process periodically scans entries and removes expired ones. This keeps memory usage tighter but adds complexity.
+**부지런한 다함**: 뒤에서 도는 일이 이따금 항목을 훑어 다한 것을 없앤다. 기억 쓰임을 더 바짝 잡지만 품이 는다.
 
-**Hybrid**: Combine lazy expiration on every access with periodic active cleanup for entries that are never re-requested.
+**섞음**: 닿을 때마다 게으르게 다하기를 하면서, 다시 부르지 않는 항목을 위해 이따금 부지런히 치운다.
 
-## Implementation
+## 구현
 
 ```python
 """
-TTL (Time-To-Live) cache with lazy expiration.
+게으른 다함을 쓰는 살날(TTL) 캐시.
 
-Combines LRU eviction with per-entry TTL. Expired entries
-are removed lazily on access and periodically via cleanup.
+LRU 내보내기와 항목별 살날을 엮는다. 다한 항목은 닿을 때
+게으르게 없애고 이따금 치우기로도 없앤다.
 """
 
 import time
 from collections import OrderedDict
 
 # ===================================================================
-# TTL Cache
+# TTL 캐시
 # ===================================================================
 
 class TTLCache:
-    """Cache with per-entry time-to-live and LRU eviction.
+    """항목별 살날과 LRU 내보내기를 쓰는 캐시.
 
-    Args:
-        capacity: maximum number of items
-        default_ttl: default TTL in seconds
+    인수:
+        capacity: 항목의 최대 개수
+        default_ttl: 초 단위 기본 살날
     """
 
     def __init__(self, capacity, default_ttl=5.0):
         self.capacity = capacity
         self.default_ttl = default_ttl
-        self.cache = OrderedDict()  # key -> (value, expiry_time)
+        self.cache = OrderedDict()  # 열쇠 -> (값, 다하는 때)
         self.hits = 0
         self.misses = 0
         self.expirations = 0
 
     def get(self, key):
-        """Get value if key exists and has not expired.
+        """열쇠가 있고 살날이 다하지 않았으면 값을 얻는다.
 
-        Args:
-            key: lookup key
+        인수:
+            key: 찾을 열쇠
 
-        Returns:
-            Value or None if missing/expired
+        돌려주는 값:
+            값, 없거나 다했으면 None
         """
         if key not in self.cache:
             self.misses += 1
@@ -68,7 +68,7 @@ class TTLCache:
 
         value, expiry = self.cache[key]
         if time.time() > expiry:
-            # Lazy expiration
+            # 게으른 다함
             del self.cache[key]
             self.expirations += 1
             self.misses += 1
@@ -79,12 +79,12 @@ class TTLCache:
         return value
 
     def put(self, key, value, ttl=None):
-        """Insert or update with TTL.
+        """살날과 함께 넣거나 고친다.
 
-        Args:
-            key: cache key
-            value: value to store
-            ttl: time-to-live in seconds (uses default if None)
+        인수:
+            key: 캐시 열쇠
+            value: 갈무리할 값
+            ttl: 초 단위 살날(None이면 기본값을 쓴다)
         """
         if ttl is None:
             ttl = self.default_ttl
@@ -98,7 +98,7 @@ class TTLCache:
             self.cache.popitem(last=False)
 
     def cleanup(self):
-        """Remove all expired entries (active expiration)."""
+        """다한 항목을 모두 없앤다(부지런한 다함)."""
         now = time.time()
         expired_keys = [k for k, (v, exp) in self.cache.items()
                         if now > exp]
@@ -108,36 +108,36 @@ class TTLCache:
         return len(expired_keys)
 
     def size(self):
-        """Return current number of entries (including expired)."""
+        """지금 항목 개수를 돌려준다(다한 것을 넣는다)."""
         return len(self.cache)
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
-    # Use simulated time for reproducible output
+    # 되풀이할 수 있는 출력을 얻으려고 흉내 낸 때를 쓴다
     cache = TTLCache(capacity=5, default_ttl=10.0)
 
-    # Insert entries with different TTLs
-    cache.put("A", 1, ttl=1.0)   # expires quickly
-    cache.put("B", 2, ttl=10.0)  # long TTL
+    # 서로 다른 살날로 항목을 넣는다
+    cache.put("A", 1, ttl=1.0)   # 빨리 다한다
+    cache.put("B", 2, ttl=10.0)  # 긴 살날
     cache.put("C", 3, ttl=10.0)
-    cache.put("D", 4, ttl=0.5)   # very short TTL
+    cache.put("D", 4, ttl=0.5)   # 아주 짧은 살날
 
     print("TTL Cache (capacity=5, default_ttl=10s)")
     print(f"  Initial size: {cache.size()}")
 
-    # Immediate access -- all valid
+    # 곧바로 닿음 -- 모두 쓸모 있다
     for key in ["A", "B", "C", "D"]:
         result = cache.get(key)
         print(f"  get({key}) = {result}")
 
-    # Wait for short TTLs to expire
+    # 짧은 살날이 다하기를 기다린다
     print("\n  Waiting 1.5 seconds...")
     time.sleep(1.5)
 
-    # Access again -- A and D should be expired
+    # 다시 닿음 -- A와 D는 다했어야 한다
     for key in ["A", "B", "C", "D"]:
         result = cache.get(key)
         status = "valid" if result is not None else "expired"
@@ -147,13 +147,13 @@ if __name__ == "__main__":
     print(f"  Misses:      {cache.misses}")
     print(f"  Expirations: {cache.expirations}")
 
-    # Active cleanup
+    # 부지런히 치우기
     removed = cache.cleanup()
     print(f"  Cleanup removed: {removed} entries")
     print(f"  Final size: {cache.size()}")
 ```
 
-**Output:**
+**출력:**
 ```
 TTL Cache (capacity=5, default_ttl=10s)
   Initial size: 4
@@ -175,65 +175,65 @@ TTL Cache (capacity=5, default_ttl=10s)
   Final size: 2
 ```
 
-## TTL Selection Tradeoffs
+## 살날 고르기의 맞바꿈
 
-| TTL Length | Benefit | Risk |
+| 살날 길이 | 좋은 점 | 무릅쓰는 것 |
 |---|---|---|
-| Short (seconds) | Data stays fresh | High miss rate, more backend load |
-| Long (hours) | High hit rate, low backend load | Stale data served to users |
-| Per-key variable | Tailored freshness per data type | More complex management |
+| 짧음(초) | 자료가 싱싱하다 | 빗나감률이 높고 뒷단 짐이 는다 |
+| 김(시간) | 맞음률이 높고 뒷단 짐이 적다 | 낡은 자료가 쓰는 이에게 나간다 |
+| 열쇠마다 다름 | 자료 갈래마다 싱싱함을 맞춘다 | 다루기가 더 얽힌다 |
 
-## Combining TTL with Eviction Policies
+## 살날과 내보내기 방침 엮기
 
-TTL and eviction policies address different concerns and are typically combined:
+살날과 내보내기 방침은 서로 다른 걱정을 다루므로 흔히 함께 쓴다.
 
-- **LRU + TTL**: On access, check TTL first. If expired, treat as miss. Otherwise, apply LRU ordering. This is the most common production configuration.
-- **LFU + TTL**: Expired entries are removed regardless of frequency. Useful when data freshness is critical.
-- **ARC + TTL**: Expired ghost entries should be removed from ghost lists to avoid misleading the adaptation parameter.
+- **LRU + 살날**: 닿을 때 살날을 먼저 살핀다. 다했으면 빗나감으로 다룬다. 아니면 LRU 차례를 매긴다. 실제 서비스에서 가장 흔한 얼개다.
+- **LFU + 살날**: 다한 항목은 잦기와 상관없이 없앤다. 자료 싱싱함이 매우 종요로울 때 쓸모 있다.
+- **ARC + 살날**: 맞춰 가는 매개변수를 그르치지 않도록 다한 넋 항목을 넋 줄에서 없애야 한다.
 
-!!! note "TTL does not replace eviction"
-    TTL handles data freshness (correctness concern), while LRU/LFU handle space management (performance concern). A cache needs both: TTL prevents serving stale data, and eviction prevents running out of memory.
+!!! note "살날은 내보내기를 갈음하지 않는다"
+    살날은 자료 싱싱함(옳음에 대한 걱정)을 다루고 LRU/LFU는 자리 다루기(성능에 대한 걱정)를 다룬다. 캐시에는 둘 다 있어야 한다. 살날이 낡은 자료를 내주지 않게 막고 내보내기가 기억이 바닥나지 않게 막는다.
 
-## Reference
+## 참고 문헌
 
 - Nishtala, R. et al. (2013). "Scaling Memcache at Facebook." *NSDI*.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Describe the difference between active TTL expiry (eagerly removing expired entries) and passive TTL expiry (checking on access). What are the tradeoffs in CPU usage and memory consumption?
+**연습문제 1.**
+부지런한 살날 다함(다한 항목을 서둘러 없앰)과 게으른 살날 다함(닿을 때 살핌)의 다름을 밝혀라. CPU 쓰임과 기억 쓰임에서 맞바꿈은 무엇인가?
 
-??? success "Solution to Exercise 1"
-    Active expiry uses a background thread or periodic sweep to remove entries whose TTL has elapsed. It keeps memory consumption low because expired entries are promptly deleted, but it consumes CPU cycles proportional to the number of entries checked, even if no one accesses them. Passive expiry checks the TTL only when an entry is accessed: if expired, it returns a miss and deletes the entry lazily. This uses zero CPU for entries that are never accessed again, but expired entries linger in memory until accessed or evicted by the cache's size-based policy. In practice, systems like Redis use a hybrid: passive checks on every access plus a periodic active sweep that samples a fraction of entries, bounding both memory waste and CPU overhead. $\square$
-
----
-
-**Exercise 2.**
-A cache uses TTL of 60 seconds and serves 1000 requests/second for a given key. The backend database takes 50 ms to respond. Estimate the "thundering herd" load on the database when the TTL expires, and propose a mitigation strategy.
-
-??? success "Solution to Exercise 2"
-    When the TTL expires, all 1000 req/s see a cache miss simultaneously and issue backend queries. During the 50 ms backend response time, $1000 \times 0.05 = 50$ concurrent requests hit the database for the same key. This can overwhelm the database. Mitigation: **request coalescing** (also called "single-flight" or "lock-based cache fill") -- when the first miss occurs, acquire a lock for that key. Subsequent misses for the same key wait on the lock instead of issuing redundant backend queries. Only the first request fetches from the database and populates the cache; all waiting requests receive the cached result. This reduces the thundering herd from 50 concurrent queries to exactly 1. $\square$
+??? success "연습문제 1 풀이"
+    부지런한 다함은 뒤에서 도는 실이나 이따금 하는 쓸기로 살날이 흐른 항목을 없앤다. 다한 항목을 곧바로 지우므로 기억 쓰임은 낮게 지키지만, 아무도 닿지 않더라도 살핀 항목 수에 견주는 CPU 걸음을 쓴다. 게으른 다함은 항목에 닿을 때에만 살날을 살핀다. 다했으면 빗나감을 돌려주고 게으르게 항목을 지운다. 다시 닿지 않는 항목에는 CPU를 하나도 쓰지 않지만, 다한 항목이 닿거나 캐시의 크기 방침으로 내보내지기 전까지 기억에 남는다. 실제로 Redis 같은 시스템은 섞음을 쓴다. 닿을 때마다 게으르게 살피고, 여기에 항목의 한 조각을 뽑아 보는 이따금의 부지런한 쓸기를 더해 기억 낭비와 CPU 덧듦을 함께 매어 둔다. $\square$
 
 ---
 
-**Exercise 3.**
-Design a TTL cache entry structure that supports $O(1)$ insertion, $O(1)$ lookup with passive expiry check, and $O(1)$ amortized active expiry. What data structures are needed?
+**연습문제 2.**
+어떤 캐시가 살날 60초를 쓰고 한 열쇠에 대해 초당 1000번의 부름을 받는다. 뒷단 데이터베이스는 답하는 데 50 ms가 걸린다. 살날이 다할 때 데이터베이스에 걸리는 "우르르 몰림" 짐을 어림하고 누그러뜨릴 길을 내놓아라.
 
-??? success "Solution to Exercise 3"
-    Each entry stores: key, value, and expiration timestamp ($\text{insertion\_time} + \text{TTL}$). Use a hash map for $O(1)$ key lookup. For active expiry, maintain entries in a **min-heap** (priority queue) keyed by expiration time, or more efficiently, a **doubly-linked list sorted by expiration time** (since TTLs typically produce entries in roughly chronological order). On lookup: check if `current_time > expiration`; if so, delete and return miss. For active sweep: pop entries from the front of the sorted list (or top of the heap) while their expiration is past. If all entries share the same TTL, they expire in insertion order, so a simple FIFO queue suffices and each expiry check is $O(1)$. With variable TTLs, a timer wheel (hashed by expiration time into buckets) provides $O(1)$ amortized active expiry. $\square$
-
----
-
-**Exercise 4.**
-Explain the concept of "jittered TTL" and prove that it reduces the probability of simultaneous cache invalidation for $n$ keys that would otherwise expire at the same time.
-
-??? success "Solution to Exercise 4"
-    Jittered TTL adds a random offset to each entry's TTL: instead of all entries expiring at exactly $T$ seconds, each entry $i$ expires at $T + U_i$ where $U_i \sim \text{Uniform}(-\delta, +\delta)$ for some jitter range $\delta$. Without jitter, all $n$ keys expire simultaneously, causing $n$ backend fetches at one instant. With jitter, expirations are spread over a window of $2\delta$. The expected number of keys expiring in any interval of length $\Delta t$ is $n \cdot \Delta t / (2\delta)$. For the peak load not to exceed the backend's capacity $C$ (queries/second), we need $n / (2\delta) \le C$, giving $\delta \ge n / (2C)$. The probability that all $n$ keys expire within the same 1-second window is $(1 / (2\delta))^{n-1}$, which is negligibly small for $\delta \ge 5$ seconds and $n > 10$. $\square$
+??? success "연습문제 2 풀이"
+    살날이 다하면 초당 1000번의 부름이 한꺼번에 캐시 빗나감을 보고 뒷단에 묻는다. 뒷단이 답하는 50 ms 동안 $1000 \times 0.05 = 50$개의 부름이 같은 열쇠로 데이터베이스에 한꺼번에 닿는다. 이것이 데이터베이스를 짓누를 수 있다. 누그러뜨릴 길은 **부름 뭉치기**("한 번 날리기"나 "잠금을 쓰는 캐시 채우기"라고도 한다)이다. 첫 빗나감이 생기면 그 열쇠에 잠금을 얻는다. 같은 열쇠의 뒤이은 빗나감은 뒷단에 겹쳐 묻는 대신 그 잠금을 기다린다. 오직 첫 부름만 데이터베이스에서 가져와 캐시를 채우고, 기다리던 모든 부름이 갈무리된 값을 받는다. 이로써 우르르 몰림이 한꺼번에 묻는 50번에서 꼭 1번으로 줄어든다. $\square$
 
 ---
 
-**Exercise 5.**
-A system caches exchange rate data with a 30-second TTL. A client reads a stale rate and executes a trade. Discuss the consistency implications of TTL-based caching in financial systems and propose a design that balances freshness and performance.
+**연습문제 3.**
+$O(1)$ 넣기, 게으른 다함 살피기를 곁들인 $O(1)$ 찾기, $O(1)$ 나눠 갚는 부지런한 다함을 받쳐 주는 살날 캐시 항목 얼개를 설계하여라. 어떤 자료 얼개가 있어야 하는가?
 
-??? success "Solution to Exercise 5"
-    TTL caching introduces a staleness window: data can be up to TTL seconds old. For exchange rates, a 30-second-old rate might differ by several basis points from the current rate, leading to trades at incorrect prices. The risk scales with volatility and trade size. Design proposal: (1) **Short TTL + event-driven invalidation**: use a 5-second TTL as a safety net, but also subscribe to a real-time rate feed that invalidates the cache entry immediately when the rate changes. (2) **Read-through with version checks**: on cache hit, include the rate's timestamp in the response. The trading engine rejects rates older than a configurable threshold (e.g., 2 seconds). (3) **Write-through for critical paths**: for order execution, bypass the cache and always fetch the live rate. Use the cache only for display and analytics where staleness is acceptable. This architecture separates latency-sensitive reads from consistency-critical writes. $\square$
+??? success "연습문제 3 풀이"
+    항목마다 열쇠, 값, 다하는 때 도장($\text{넣은 때} + \text{TTL}$)을 갈무리한다. $O(1)$ 열쇠 찾기에는 해시 표를 쓴다. 부지런한 다함을 위해서는 다하는 때를 열쇠로 삼는 **가장 작은 더미**(우선순위 큐)에 항목을 지니거나, 더 나은 길로 **다하는 때로 매긴 두 겹 이음줄**을 쓴다(살날은 보통 대략 때 차례대로 항목을 내놓기 때문이다). 찾을 때에는 `지금 때 > 다함`인지 살펴 그렇다면 지우고 빗나감을 돌려준다. 부지런히 쓸 때에는 다함이 지난 동안 매긴 줄의 앞(또는 더미의 꼭대기)에서 항목을 빼낸다. 모든 항목이 같은 살날을 지니면 넣은 차례대로 다하므로 그저 선입선출 큐면 넉넉하고 다함 살피기가 저마다 $O(1)$이다. 살날이 저마다 다르면 (다하는 때로 해시하여 두레박에 넣는) 때 바퀴가 $O(1)$ 나눠 갚는 부지런한 다함을 준다. $\square$
+
+---
+
+**연습문제 4.**
+"흔든 살날"이라는 생각을 풀고, 그러지 않았다면 한꺼번에 다했을 열쇠 $n$개가 동시에 못 쓰게 될 낌새를 그것이 줄임을 증명하여라.
+
+??? success "연습문제 4 풀이"
+    흔든 살날은 항목마다 살날에 아무 어긋남을 더한다. 모든 항목이 꼭 $T$초에 다하는 대신 항목 $i$은 $T + U_i$에 다하며 여기서 어떤 흔듦 너비 $\delta$에 대해 $U_i \sim \text{Uniform}(-\delta, +\delta)$이다. 흔들지 않으면 열쇠 $n$개가 한꺼번에 다하여 한순간에 뒷단 가져오기가 $n$번 생긴다. 흔들면 다함이 너비 $2\delta$인 창에 퍼진다. 길이 $\Delta t$인 아무 사이에서 다하는 열쇠의 어림 개수는 $n \cdot \Delta t / (2\delta)$이다. 꼭두머리 짐이 뒷단의 용량 $C$(초당 물음)을 넘지 않으려면 $n / (2\delta) \le C$여야 하고 따라서 $\delta \ge n / (2C)$이다. 열쇠 $n$개가 모두 같은 1초 창 안에 다할 낌새는 $(1 / (2\delta))^{n-1}$이며, 이는 $\delta \ge 5$초이고 $n > 10$일 때 셈에 넣지 않아도 될 만큼 작다. $\square$
+
+---
+
+**연습문제 5.**
+어떤 시스템이 환율 자료를 살날 30초로 갈무리한다. 손이 낡은 환율을 읽고 거래를 벌인다. 금융 시스템에서 살날에 바탕을 둔 캐시가 한결같음에 미치는 뜻을 따지고, 싱싱함과 성능의 저울을 맞추는 설계를 내놓아라.
+
+??? success "연습문제 5 풀이"
+    살날 캐시는 낡음 창을 들여온다. 자료가 살날만큼 오래된 것일 수 있다. 환율에서 30초 된 값은 지금 값과 몇 베이시스 포인트 어긋날 수 있어 틀린 값으로 거래하게 된다. 무릅쓰는 몫은 흔들림과 거래 크기에 따라 커진다. 설계는 이렇다. (1) **짧은 살날 + 사건이 이끄는 못 쓰게 하기**: 5초 살날을 그물망으로 두되, 값이 바뀌면 곧바로 캐시 항목을 못 쓰게 하는 실시간 환율 흐름도 받아 본다. (2) **판 살피기를 곁들인 읽어 내리기**: 캐시가 맞으면 답에 그 값의 때 도장을 함께 담는다. 거래 엔진은 정해 둔 문턱(보기로 2초)보다 오래된 값을 물리친다. (3) **종요로운 길에는 곧바로 적기**: 주문을 벌일 때에는 캐시를 건너뛰고 늘 살아 있는 값을 가져온다. 캐시는 낡음을 받아들일 수 있는 보여 주기와 살피기에만 쓴다. 이 얼개는 늦음에 예민한 읽기와 한결같음이 종요로운 적기를 갈라놓는다. $\square$

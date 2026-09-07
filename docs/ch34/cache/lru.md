@@ -1,43 +1,43 @@
-# LRU Cache
+# 가장 오래 안 쓴 캐시
 
-Caches store a subset of data closer to the consumer to reduce access latency. When the cache is full and a new item must be inserted, an **eviction policy** determines which item to remove. **Least Recently Used (LRU)** evicts the item that has not been accessed for the longest time, betting that recently used items are more likely to be used again. LRU is the most widely deployed cache eviction policy, used in CPU caches, operating system page replacement, and application-level caches.
+캐시는 자료의 한 부분을 쓰는 쪽 가까이에 두어 닿는 데 걸리는 늦음을 줄인다. 캐시가 꽉 찼는데 새 항목을 넣어야 하면 **내보내기 방침**이 어느 항목을 뺄지 정한다. **가장 오래 안 쓴**(LRU) 방침은 가장 오래도록 닿지 않은 항목을 내보내며, 최근에 쓴 항목이 다시 쓰일 낌새가 크다는 데 건다. LRU는 가장 널리 쓰이는 캐시 내보내기 방침으로 CPU 캐시, 운영 체제의 쪽 갈아 끼우기, 응용 켜의 캐시에 두루 쓰인다.
 
-## Design
+## 설계
 
-An $O(1)$ LRU cache combines two data structures:
+$O(1)$ LRU 캐시는 자료 얼개 둘을 엮는다.
 
-- **Hash map**: Provides $O(1)$ key lookup.
-- **Doubly-linked list**: Maintains access order, with the most recently used item at the tail and the least recently used at the head.
+- **해시 표**: $O(1)$ 열쇠 찾기를 준다.
+- **두 겹 이음줄**: 닿은 차례를 지킨다. 가장 늦게 쓴 항목이 꼬리에, 가장 오래 안 쓴 항목이 머리에 있다.
 
-### Operations
+### 연산
 
-**Get(key)**: Look up the key in the hash map. If found, move the node to the tail of the list (mark as most recently used) and return the value. If not found, return a miss indicator.
+**Get(열쇠)**: 해시 표에서 열쇠를 찾는다. 있으면 그 마디를 줄 꼬리로 옮기고(가장 늦게 썼다고 표시한다) 값을 돌려준다. 없으면 빗나감 표시를 돌려준다.
 
-**Put(key, value)**: If the key exists, update its value and move it to the tail. If the key is new and the cache is full, remove the head node (least recently used), then insert the new node at the tail.
+**Put(열쇠, 값)**: 열쇠가 이미 있으면 값을 고치고 꼬리로 옮긴다. 열쇠가 새것이고 캐시가 꽉 찼으면 머리 마디(가장 오래 안 쓴 것)를 빼낸 뒤 새 마디를 꼬리에 넣는다.
 
-Both operations run in $O(1)$ time.
+두 연산 모두 $O(1)$ 때에 돈다.
 
-## Implementation
+## 구현
 
 ```python
 """
-LRU (Least Recently Used) Cache.
+가장 오래 안 쓴(LRU) 캐시.
 
-Uses Python's OrderedDict to combine hash map and doubly-linked
-list behavior, providing O(1) get and put operations.
+파이썬의 OrderedDict으로 해시 표와 두 겹 이음줄의 거동을
+한데 엮어 O(1) get과 put을 준다.
 """
 
 from collections import OrderedDict
 
 # ===================================================================
-# LRU Cache
+# LRU 캐시
 # ===================================================================
 
 class LRUCache:
-    """LRU cache with O(1) get and put.
+    """O(1) get과 put을 주는 LRU 캐시.
 
-    Args:
-        capacity: maximum number of items in cache
+    인수:
+        capacity: 캐시에 담을 수 있는 항목의 최대 개수
     """
 
     def __init__(self, capacity):
@@ -45,13 +45,13 @@ class LRUCache:
         self.cache = OrderedDict()
 
     def get(self, key):
-        """Get value by key. Returns -1 on miss.
+        """열쇠로 값을 얻는다. 빗나가면 -1을 돌려준다.
 
-        Args:
-            key: lookup key
+        인수:
+            key: 찾을 열쇠
 
-        Returns:
-            Cached value or -1 if not found
+        돌려주는 값:
+            갈무리된 값, 없으면 -1
         """
         if key not in self.cache:
             return -1
@@ -59,14 +59,14 @@ class LRUCache:
         return self.cache[key]
 
     def put(self, key, value):
-        """Insert or update key-value pair.
+        """열쇠-값 짝을 넣거나 고친다.
 
-        If the cache is at capacity, evicts the least recently
-        used item before inserting the new one.
+        캐시가 용량에 다다랐으면 새것을 넣기 앞서 가장 오래
+        안 쓴 항목을 내보낸다.
 
-        Args:
-            key: cache key
-            value: value to store
+        인수:
+            key: 캐시 열쇠
+            value: 갈무리할 값
         """
         if key in self.cache:
             self.cache.move_to_end(key)
@@ -75,7 +75,7 @@ class LRUCache:
             self.cache.popitem(last=False)
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -86,10 +86,10 @@ if __name__ == "__main__":
         ("put", "B", 2),
         ("put", "C", 3),
         ("get", "A", None),
-        ("put", "D", 4),   # evicts B (least recently used)
+        ("put", "D", 4),   # B를 내보낸다(가장 오래 안 씀)
         ("get", "B", None),
         ("get", "C", None),
-        ("put", "E", 5),   # evicts D (A, C were used more recently)
+        ("put", "E", 5),   # D를 내보낸다(A, C를 더 늦게 씀)
         ("get", "D", None),
         ("get", "A", None),
     ]
@@ -105,7 +105,7 @@ if __name__ == "__main__":
             print(f"  get({op[1]}) = {result} [{status}]")
 ```
 
-**Output:**
+**출력:**
 ```
 LRU Cache (capacity=3):
   put(A, 1)
@@ -120,75 +120,75 @@ LRU Cache (capacity=3):
   get(A) = 1 [HIT]
 ```
 
-!!! tip "Why B is evicted before C"
-    After `get(A)`, the order is B, C, A (least to most recent). When D is inserted, B is at the head and gets evicted. C and A remain because they were accessed more recently than B.
+!!! tip "왜 C보다 B가 먼저 나가는가"
+    `get(A)` 뒤 차례는 B, C, A다(가장 오래 안 쓴 것부터 가장 늦게 쓴 것까지). D를 넣을 때 머리에 있는 B가 내보내진다. C와 A는 B보다 늦게 닿았으므로 남는다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Space |
+| 연산 | 때 | 자리 |
 |---|---|---|
 | `get` | $O(1)$ | -- |
-| `put` | $O(1)$ amortized | -- |
-| Total space | -- | $O(c)$ |
+| `put` | $O(1)$ 나눠 갚음 | -- |
+| 온 자리 | -- | $O(c)$ |
 
-## LRU from Scratch
+## 밑바닥부터 만드는 LRU
 
-Python's `OrderedDict` hides the underlying linked list. A manual implementation uses an explicit doubly-linked list with sentinel nodes:
+파이썬의 `OrderedDict`은 밑에 깔린 이음줄을 감춘다. 손수 만들 때에는 파수 마디를 둔 두 겹 이음줄을 드러내 쓴다.
 
-- **Sentinel head/tail**: Eliminate edge cases for insertion and deletion.
-- **Hash map**: Maps keys to linked list nodes for $O(1)$ access.
-- **Move to end**: Detach the node from its current position, attach before the tail sentinel.
-- **Evict**: Remove the node after the head sentinel.
+- **파수 머리/꼬리**: 넣기와 지우기의 가장자리 경우를 없앤다.
+- **해시 표**: 열쇠를 이음줄 마디로 맞대어 $O(1)$에 닿게 한다.
+- **꼬리로 옮기기**: 마디를 지금 자리에서 떼어 내 꼬리 파수 앞에 붙인다.
+- **내보내기**: 머리 파수 다음 마디를 없앤다.
 
-## Weaknesses
+## 약점
 
-- **Scan pollution**: A sequential scan of many distinct items flushes the entire cache, evicting useful entries.
-- **No frequency awareness**: An item accessed once recently ranks above an item accessed 1000 times but not in the last second.
-- **Fixed policy**: LRU cannot adapt to changing access patterns.
+- **훑기 더럽힘**: 서로 다른 항목을 줄줄이 훑으면 캐시 전체가 씻겨 나가 쓸모 있던 항목까지 내보내진다.
+- **잦기를 모름**: 최근에 한 번 닿은 항목이, 1000번 닿았지만 마지막 한 순간에 닿지 않은 항목보다 위에 놓인다.
+- **붙박인 방침**: LRU는 바뀌는 닿기 결을 따라가지 못한다.
 
-These weaknesses motivate alternatives like [LFU](lfu.md) (frequency-based) and [ARC](arc.md) (adaptive).
+이런 약점이 [LFU](lfu.md)(잦기에 바탕을 둔 것)와 [ARC](arc.md)(맞춰 가는 것) 같은 다른 길을 불러낸다.
 
-## Reference
+## 참고 문헌
 
-- Tanenbaum, A. S. *Modern Operating Systems*, Chapter on Memory Management.
-- LeetCode Problem 146: LRU Cache.
+- Tanenbaum, A. S. *Modern Operating Systems*, 기억 다루기 장.
+- LeetCode 146번 문제: LRU Cache.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Design an LRU cache that supports `get(key)` and `put(key, value)` in $O(1)$ time. Describe the data structures and how they interact.
+**연습문제 1.**
+`get(key)`과 `put(key, value)`을 $O(1)$ 때에 받쳐 주는 LRU 캐시를 설계하여라. 쓰는 자료 얼개와 그것들이 어떻게 맞물리는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Use a **hash map** mapping keys to nodes in a **doubly-linked list**. The list maintains access order: the most recently used item is at the head, and the least recently used is at the tail. `get(key)`: look up the node in the hash map ($O(1)$), move it to the head of the list ($O(1)$ pointer operations), return the value. `put(key, value)`: if key exists, update its value and move to head. If key does not exist, create a new node at the head, insert into the hash map. If capacity is exceeded, remove the tail node from the list and delete its entry from the hash map. All operations are $O(1)$. $\square$
-
----
-
-**Exercise 2.**
-Trace through an LRU cache of capacity 2 on the sequence: put(1,A), put(2,B), get(1), put(3,C). Show the cache state after each operation.
-
-??? success "Solution to Exercise 2"
-    After put(1,A): list = [1:A], map = {1}. After put(2,B): list = [2:B, 1:A], map = {1, 2}. After get(1): move 1 to head; list = [1:A, 2:B], map = {1, 2}, returns A. After put(3,C): cache full, evict tail (2:B); list = [3:C, 1:A], map = {1, 3}. Key 2 is evicted because it was the least recently used -- even though it was inserted more recently than key 1, key 1 was accessed via get after key 2's insertion. $\square$
+??? success "연습문제 1 풀이"
+    열쇠를 **두 겹 이음줄**의 마디로 맞대는 **해시 표**를 쓴다. 줄은 닿은 차례를 지킨다. 가장 늦게 쓴 항목이 머리에, 가장 오래 안 쓴 항목이 꼬리에 있다. `get(key)`: 해시 표에서 마디를 찾고($O(1)$) 줄 머리로 옮긴 뒤($O(1)$ 손가락질 연산) 값을 돌려준다. `put(key, value)`: 열쇠가 있으면 값을 고치고 머리로 옮긴다. 없으면 머리에 새 마디를 만들고 해시 표에 넣는다. 용량을 넘으면 줄에서 꼬리 마디를 없애고 해시 표에서도 그 항목을 지운다. 모든 연산이 $O(1)$이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that LRU achieves the optimal hit rate for any workload where the access sequence exhibits temporal locality (the probability of accessing an item decreases monotonically with time since last access).
+**연습문제 2.**
+용량이 2인 LRU 캐시에서 put(1,A), put(2,B), get(1), put(3,C) 차례를 따라가라. 연산마다 캐시 상태를 보여라.
 
-??? success "Solution to Exercise 3"
-    Under the Independent Reference Model with a monotonically decreasing reuse probability, an item accessed $t$ steps ago has probability $p(t)$ of being accessed next, where $p$ is decreasing. A cache of size $k$ should store the $k$ items with the highest probability of near-term access. Since $p$ is decreasing in $t$, these are exactly the $k$ most recently accessed items -- which is precisely the set LRU maintains. Any other eviction policy would sometimes retain an item last accessed at time $t_1$ while evicting one last accessed at $t_2 < t_1$, accepting probability $p(t_1) \le p(t_2)$ instead of $p(t_2)$, yielding a weakly lower hit rate. Therefore LRU is optimal under this model. $\square$
-
----
-
-**Exercise 4.**
-Describe a workload pattern where LRU performs poorly compared to the optimal offline algorithm (Belady's). Quantify the gap in hit rates.
-
-??? success "Solution to Exercise 4"
-    Consider a cache of size $k$ and a cyclic workload accessing items $1, 2, \ldots, k+1, 1, 2, \ldots, k+1, \ldots$ LRU always evicts the item needed soonest: when accessing item $i$, item $i - 1$ (mod $k+1$) was just accessed and item $i - k$ (mod $k+1$) is evicted, but item $i + 1$ is the next request and is guaranteed to be the one just evicted. Hit rate: $0\%$ (every access is a miss). Belady's optimal algorithm, which evicts the item accessed furthest in the future, achieves hit rate $(k-1)/(k+1)$ by keeping the next $k$ items. For $k = 99$, LRU gets 0% while optimal gets $\approx 98\%$. This pathological case shows LRU's competitive ratio is $k$ against the offline optimum. $\square$
+??? success "연습문제 2 풀이"
+    put(1,A) 뒤: 줄 = [1:A], 표 = {1}. put(2,B) 뒤: 줄 = [2:B, 1:A], 표 = {1, 2}. get(1) 뒤: 1을 머리로 옮긴다. 줄 = [1:A, 2:B], 표 = {1, 2}이고 A를 돌려준다. put(3,C) 뒤: 캐시가 꽉 찼으므로 꼬리(2:B)를 내보낸다. 줄 = [3:C, 1:A], 표 = {1, 3}. 열쇠 2가 내보내지는 까닭은 가장 오래 안 썼기 때문이다. 열쇠 1보다 늦게 들어왔지만, 열쇠 2가 들어온 뒤에 열쇠 1이 get으로 닿았다. $\square$
 
 ---
 
-**Exercise 5.**
-Explain how an LRU cache can be approximated without a doubly-linked list using the "clock algorithm" (also called second-chance). What is the tradeoff?
+**연습문제 3.**
+닿기 열이 때 지역성을 보이는(마지막으로 닿은 뒤 흐른 때가 길수록 닿을 낌새가 한결같이 줄어드는) 아무 일감에서 LRU가 가장 좋은 맞음률을 이룸을 증명하여라.
 
-??? success "Solution to Exercise 5"
-    The clock algorithm arranges cache entries in a circular buffer with a "hand" pointer. Each entry has a reference bit, set to 1 on access. On eviction: advance the hand; if the current entry's bit is 1, clear it and advance; if 0, evict that entry. This approximates LRU because frequently accessed items have their bits repeatedly set, surviving multiple passes of the hand, while inactive items are evicted. The tradeoff: the clock algorithm uses only 1 bit per entry (vs. a full linked list with pointers), making it much cheaper in memory and implementation complexity. However, it only approximates recency -- two items accessed 1 step and 100 steps ago are treated identically if both have their bit set. This coarse approximation reduces hit rates compared to true LRU, particularly on workloads with moderate temporal locality. $\square$
+??? success "연습문제 3 풀이"
+    닿기가 서로 매이지 않은 모형에서 다시 쓸 낌새가 한결같이 줄어든다고 하자. $t$걸음 앞서 닿은 항목이 다음에 닿을 낌새를 $p(t)$이라 하면 $p$은 줄어드는 함수다. 크기 $k$인 캐시는 가까운 앞날에 닿을 낌새가 가장 큰 항목 $k$개를 지녀야 한다. $p$이 $t$에 대해 줄어들므로 그 항목들은 바로 가장 늦게 닿은 $k$개이며, 이것이 곧 LRU가 지니는 모임이다. 다른 어떤 내보내기 방침이든 때로는 마지막으로 $t_1$에 닿은 항목을 남기고 $t_2 < t_1$에 닿은 항목을 내보내어, $p(t_2)$ 대신 $p(t_1) \le p(t_2)$을 받아들이게 되고 맞음률이 약하게 더 낮아진다. 따라서 이 모형에서 LRU가 가장 좋다. $\square$
+
+---
+
+**연습문제 4.**
+가장 좋은 미리 아는 알고리즘(벨레이디의 것)에 견주어 LRU가 나쁘게 도는 일감 결을 밝혀라. 맞음률의 벌어짐을 재어라.
+
+??? success "연습문제 4 풀이"
+    크기 $k$인 캐시와 항목 $1, 2, \ldots, k+1, 1, 2, \ldots, k+1, \ldots$에 돌아가며 닿는 일감을 여겨 보자. LRU는 늘 가장 빨리 쓰일 항목을 내보낸다. 항목 $i$에 닿을 때 항목 $i - 1$($k+1$로 나눈 나머지)은 방금 닿았고 항목 $i - k$($k+1$로 나눈 나머지)이 내보내지는데, 바로 그 항목이 다음 부름인 $i + 1$이다. 맞음률은 $0\%$이다(닿을 때마다 빗나간다). 앞날에 가장 멀리 쓰일 항목을 내보내는 벨레이디의 가장 좋은 알고리즘은 다음 $k$개 항목을 지녀 맞음률 $(k-1)/(k+1)$을 이룬다. $k = 99$이면 LRU는 0%이고 가장 좋은 것은 약 98%이다. 이 고약한 경우는 미리 아는 가장 좋은 것에 맞선 LRU의 겨룸 비가 $k$임을 보인다. $\square$
+
+---
+
+**연습문제 5.**
+두 겹 이음줄 없이 "시계 알고리즘"(두 번째 기회라고도 한다)으로 LRU를 어림하는 길을 밝혀라. 맞바꿈은 무엇인가?
+
+??? success "연습문제 5 풀이"
+    시계 알고리즘은 캐시 항목을 돌림 버퍼에 늘어놓고 "바늘" 손가락질을 둔다. 항목마다 닿을 때 1로 켜지는 눈길 비트가 있다. 내보낼 때에는 바늘을 앞으로 옮긴다. 지금 항목의 비트가 1이면 그것을 끄고 나아가고, 0이면 그 항목을 내보낸다. 자주 닿는 항목은 비트가 되풀이해 켜져 바늘이 여러 번 지나가도 살아남고, 놀고 있는 항목은 내보내지므로 이것이 LRU를 어림한다. 맞바꿈은 이렇다. 시계 알고리즘은 항목마다 비트 하나만 쓰므로(손가락질이 달린 온전한 이음줄에 견주어) 기억과 만들기 품이 훨씬 싸다. 그러나 늦음을 어림할 뿐이어서, 1걸음 앞과 100걸음 앞에 닿은 두 항목이 둘 다 비트가 켜져 있으면 똑같이 다루어진다. 이 거친 어림 탓에 참 LRU보다 맞음률이 떨어지며, 때 지역성이 어중간한 일감에서 더욱 그러하다. $\square$

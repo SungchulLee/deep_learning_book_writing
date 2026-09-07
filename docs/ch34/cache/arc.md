@@ -1,79 +1,78 @@
-# ARC Cache
+# 맞춰 가는 갈아 끼우기 캐시
 
-LRU evicts the least recently used item, which works well for recency-driven workloads but fails when frequently accessed items are not recently accessed. LFU evicts the least frequently used item, which handles frequency well but reacts slowly to changing access patterns. **Adaptive Replacement Cache (ARC)** combines the strengths of both by dynamically balancing between recency and frequency, automatically adapting to the workload without manual tuning.
+LRU는 가장 오래 안 쓴 항목을 내보내므로 늦음이 이끄는 일감에서는 잘 돌지만, 자주 닿는 항목에 최근 닿지 않았을 때에는 어그러진다. LFU는 가장 드물게 쓴 항목을 내보내므로 잦기는 잘 다루지만 바뀌는 닿기 결에 더디게 움직인다. **맞춰 가는 갈아 끼우기 캐시**(ARC)는 늦음과 잦기 사이의 저울을 움직이며 맞추어 둘의 힘을 함께 얻고, 손으로 벼리지 않아도 일감에 절로 맞춰 간다.
 
-## Design Overview
+## 설계 훑어보기
 
-ARC maintains four lists that together track both recent and frequent access patterns:
+ARC는 최근 닿기 결과 잦은 닿기 결을 함께 좇는 줄 넷을 지닌다.
 
-- **$T_1$**: Pages accessed recently (once since entering the cache). This is the recency list.
-- **$T_2$**: Pages accessed frequently (at least twice since entering the cache). This is the frequency list.
-- **$B_1$**: Ghost entries recently evicted from $T_1$. Tracks recently used pages that no longer fit.
-- **$B_2$**: Ghost entries recently evicted from $T_2$. Tracks frequently used pages that no longer fit.
+- **$T_1$**: 최근에 닿은 쪽(캐시에 들어온 뒤 한 번 닿음). 늦음 줄이다.
+- **$T_2$**: 자주 닿은 쪽(캐시에 들어온 뒤 적어도 두 번 닿음). 잦기 줄이다.
+- **$B_1$**: $T_1$에서 최근 내보내진 넋 항목. 이제 들어가지 못하는, 최근에 쓴 쪽을 좇는다.
+- **$B_2$**: $T_2$에서 최근 내보내진 넋 항목. 이제 들어가지 못하는, 자주 쓴 쪽을 좇는다.
 
-The cache holds items in $T_1 \cup T_2$, with $|T_1| + |T_2| \le c$ where $c$ is the cache capacity. The ghost lists $B_1$ and $B_2$ store only keys (no values), so they consume minimal extra memory.
+캐시는 $T_1 \cup T_2$에 항목을 지니며 $|T_1| + |T_2| \le c$이다. 여기서 $c$은 캐시 용량이다. 넋 줄 $B_1$과 $B_2$은 (값 없이) 열쇠만 갈무리하므로 덧드는 기억이 아주 적다.
 
-## Adaptation Parameter
+## 맞춰 가는 매개변수
 
-ARC uses a single parameter $p$ (initialized to 0) that determines the target size of $T_1$:
+ARC는 $T_1$의 목표 크기를 정하는 매개변수 $p$ 하나(처음에 0)를 쓴다.
 
-- **Hit in $B_1$** (a recently evicted recency item is requested again): increase $p$ by $\delta_1 = \max(1, |B_2| / |B_1|)$. This expands the recency portion.
-- **Hit in $B_2$** (a recently evicted frequency item is requested again): decrease $p$ by $\delta_2 = \max(1, |B_1| / |B_2|)$. This expands the frequency portion.
+- **$B_1$에서 맞음**(최근 내보내진 늦음 항목을 다시 부름): $p$을 $\delta_1 = \max(1, |B_2| / |B_1|)$만큼 올린다. 늦음 몫이 넓어진다.
+- **$B_2$에서 맞음**(최근 내보내진 잦기 항목을 다시 부름): $p$을 $\delta_2 = \max(1, |B_1| / |B_2|)$만큼 내린다. 잦기 몫이 넓어진다.
 
-The parameter $p$ is bounded: $0 \le p \le c$.
+매개변수 $p$은 $0 \le p \le c$으로 매인다.
 
-## Algorithm
+## 알고리즘
 
-On a cache request for page $x$:
+쪽 $x$을 캐시에 부를 때:
 
-1. **Hit in $T_1$ or $T_2$**: Move $x$ to the MRU position of $T_2$ (it is now a frequent item). Cache hit.
-2. **Hit in $B_1$**: Ghost hit -- the page was recently evicted from the recency list. Increase $p$. If $|T_1| + |T_2| = c$, evict from $T_1$ or $T_2$ based on $p$. Fetch $x$ and insert into $T_2$.
-3. **Hit in $B_2$**: Ghost hit -- the page was recently evicted from the frequency list. Decrease $p$. Evict if needed. Fetch $x$ and insert into $T_2$.
-4. **Complete miss**: $x$ not in any list. Evict if needed. Insert $x$ into $T_1$.
+1. **$T_1$이나 $T_2$에서 맞음**: $x$을 $T_2$의 가장 늦게 쓴 자리로 옮긴다(이제 잦은 항목이다). 캐시 맞음.
+2. **$B_1$에서 맞음**: 넋 맞음이다. 그 쪽은 늦음 줄에서 최근 내보내졌다. $p$을 올린다. $|T_1| + |T_2| = c$이면 $p$에 따라 $T_1$이나 $T_2$에서 내보낸다. $x$을 가져와 $T_2$에 넣는다.
+3. **$B_2$에서 맞음**: 넋 맞음이다. 그 쪽은 잦기 줄에서 최근 내보내졌다. $p$을 내린다. 필요하면 내보낸다. $x$을 가져와 $T_2$에 넣는다.
+4. **아주 빗나감**: $x$이 어느 줄에도 없다. 필요하면 내보낸다. $x$을 $T_1$에 넣는다.
 
-### Eviction Rule (Replace)
+### 내보내기 규칙(갈아 끼우기)
 
-When eviction is required, choose the victim based on $p$:
+내보내야 할 때 $p$에 따라 제물을 고른다.
 
-- If $|T_1| > p$: evict the LRU item from $T_1$ (move it to $B_1$).
-- Otherwise: evict the LRU item from $T_2$ (move it to $B_2$).
+- $|T_1| > p$이면 $T_1$에서 가장 오래 안 쓴 항목을 내보낸다($B_1$으로 옮긴다).
+- 아니면 $T_2$에서 가장 오래 안 쓴 항목을 내보낸다($B_2$으로 옮긴다).
 
-## Implementation
+## 구현
 
 ```python
 """
-Adaptive Replacement Cache (ARC).
+맞춰 가는 갈아 끼우기 캐시(ARC).
 
-Maintains recency list T1, frequency list T2, and ghost
-lists B1, B2. Adapts the balance between recency and
-frequency based on ghost hits.
+늦음 줄 T1, 잦기 줄 T2, 넋 줄 B1과 B2을 지닌다. 넋 맞음에
+따라 늦음과 잦기 사이의 저울을 맞춰 간다.
 """
 
 from collections import OrderedDict
 
 # ===================================================================
-# ARC Cache
+# ARC 캐시
 # ===================================================================
 
 class ARCCache:
-    """Adaptive Replacement Cache with capacity c.
+    """용량이 c인 맞춰 가는 갈아 끼우기 캐시.
 
-    Args:
-        capacity: maximum number of items in cache (T1 + T2)
+    인수:
+        capacity: 캐시에 담을 항목의 최대 개수(T1 + T2)
     """
 
     def __init__(self, capacity):
         self.c = capacity
-        self.p = 0  # adaptation parameter
-        self.t1 = OrderedDict()  # recency
-        self.t2 = OrderedDict()  # frequency
-        self.b1 = OrderedDict()  # ghost recency
-        self.b2 = OrderedDict()  # ghost frequency
+        self.p = 0  # 맞춰 가는 매개변수
+        self.t1 = OrderedDict()  # 늦음
+        self.t2 = OrderedDict()  # 잦기
+        self.b1 = OrderedDict()  # 넋 늦음
+        self.b2 = OrderedDict()  # 넋 잦기
         self.hits = 0
         self.misses = 0
 
     def get(self, key):
-        """Look up key in cache. Returns value or None on miss."""
+        """캐시에서 열쇠를 찾는다. 빗나가면 None을 돌려준다."""
         if key in self.t1:
             val = self.t1.pop(key)
             self.t2[key] = val
@@ -87,7 +86,7 @@ class ARCCache:
         return None
 
     def put(self, key, value):
-        """Insert or update key-value pair."""
+        """열쇠-값 짝을 넣거나 고친다."""
         if key in self.t1:
             self.t1.pop(key)
             self.t2[key] = value
@@ -98,7 +97,7 @@ class ARCCache:
             return
 
         if key in self.b1:
-            # Ghost hit in B1: favor recency
+            # B1에서 넋 맞음: 늦음을 아껴 준다
             delta = max(1, len(self.b2) // max(1, len(self.b1)))
             self.p = min(self.c, self.p + delta)
             self.b1.pop(key)
@@ -107,7 +106,7 @@ class ARCCache:
             return
 
         if key in self.b2:
-            # Ghost hit in B2: favor frequency
+            # B2에서 넋 맞음: 잦기를 아껴 준다
             delta = max(1, len(self.b1) // max(1, len(self.b2)))
             self.p = max(0, self.p - delta)
             self.b2.pop(key)
@@ -115,7 +114,7 @@ class ARCCache:
             self.t2[key] = value
             return
 
-        # Complete miss
+        # 아주 빗나감
         total = len(self.t1) + len(self.b1)
         if total >= self.c:
             if len(self.t1) < self.c:
@@ -125,14 +124,14 @@ class ARCCache:
         self._replace(key)
         self.t1[key] = value
 
-        # Cap ghost lists
+        # 넋 줄의 길이를 막는다
         while len(self.b1) > self.c:
             self.b1.popitem(last=False)
         while len(self.b2) > self.c:
             self.b2.popitem(last=False)
 
     def _replace(self, key):
-        """Evict one item if cache is full."""
+        """캐시가 꽉 찼으면 항목 하나를 내보낸다."""
         if len(self.t1) + len(self.t2) < self.c:
             return
         if self.t1 and (len(self.t1) > self.p or
@@ -144,7 +143,7 @@ class ARCCache:
             self.b2[evicted_key] = None
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -167,7 +166,7 @@ if __name__ == "__main__":
     print(f"p (adaptation): {cache.p}")
 ```
 
-**Output:**
+**출력:**
 ```
 ARC Cache simulation (capacity=3):
   A: MISS -> inserted
@@ -185,69 +184,69 @@ Hits: 4/10 (40%)
 p (adaptation): 1
 ```
 
-## Complexity
+## 복잡도
 
-All ARC operations run in $O(1)$ amortized time using hash maps and doubly-linked lists (via `OrderedDict`).
+ARC의 모든 연산은 해시 표와 두 겹 이음줄(`OrderedDict`으로)을 써서 $O(1)$ 나눠 갚는 때에 돈다.
 
-| Operation | Time | Space |
+| 연산 | 때 | 자리 |
 |---|---|---|
 | `get` | $O(1)$ | -- |
-| `put` | $O(1)$ amortized | -- |
-| Total space | -- | $O(c)$ for cache + $O(c)$ for ghost lists |
+| `put` | $O(1)$ 나눠 갚음 | -- |
+| 온 자리 | -- | 캐시에 $O(c)$ + 넋 줄에 $O(c)$ |
 
-## Comparison with LRU and LFU
+## LRU, LFU와 견주기
 
-| Property | LRU | LFU | ARC |
+| 성질 | LRU | LFU | ARC |
 |---|---|---|---|
-| Adapts to workload | No | No | Yes |
-| Handles scan resistance | No | Yes | Yes |
-| Handles recency shifts | Yes | No | Yes |
-| Space overhead | $O(c)$ | $O(c)$ | $O(2c)$ (ghost lists) |
-| Implementation complexity | Simple | Moderate | Moderate |
+| 일감에 맞춰 감 | 아니오 | 아니오 | 예 |
+| 훑기를 버팀 | 아니오 | 예 | 예 |
+| 늦음이 옮겨감을 다룸 | 예 | 아니오 | 예 |
+| 자리 덧듦 | $O(c)$ | $O(c)$ | $O(2c)$ (넋 줄) |
+| 만들기 품 | 쉬움 | 어중간 | 어중간 |
 
-!!! note "Scan resistance"
-    A sequential scan of many distinct items can flush the entire LRU cache, destroying useful entries. ARC resists this because scanned items enter $T_1$, leaving $T_2$ (frequent items) unaffected. The ghost lists detect when this pattern occurs and adjust $p$ accordingly.
+!!! note "훑기 버팀"
+    서로 다른 항목을 줄줄이 훑으면 LRU 캐시 전체가 씻겨 나가 쓸모 있던 항목이 망가진다. ARC는 훑은 항목이 $T_1$에 들어가고 $T_2$(잦은 항목)은 건드리지 않으므로 이를 버틴다. 넋 줄이 이런 결이 생겼음을 알아채고 그에 맞추어 $p$을 고친다.
 
-## Reference
+## 참고 문헌
 
 - Megiddo, N. and Modha, D. S. (2003). "ARC: A self-tuning, low overhead replacement cache." *FAST*.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Describe the four lists maintained by ARC and explain the role of each. What does the parameter $p$ control?
+**연습문제 1.**
+ARC가 지니는 줄 넷을 밝히고 저마다의 몫을 풀어라. 매개변수 $p$은 무엇을 다스리는가?
 
-??? success "Solution to Exercise 1"
-    ARC maintains four lists: (1) $T_1$ -- recently accessed items seen only once (recency list, actual cache), (2) $T_2$ -- recently accessed items seen at least twice (frequency list, actual cache), (3) $B_1$ -- ghost entries evicted from $T_1$ (metadata only, no data), (4) $B_2$ -- ghost entries evicted from $T_2$ (metadata only). The cache stores data only in $T_1 \cup T_2$, with $|T_1| + |T_2| \le c$ (cache capacity). The parameter $p$ ($0 \le p \le c$) is the target size for $T_1$. When $|T_1| > p$, ARC prefers to evict from $T_1$; when $|T_1| < p$, it prefers to evict from $T_2$. ARC adapts $p$ dynamically: a hit in $B_1$ increases $p$ (favoring recency), and a hit in $B_2$ decreases $p$ (favoring frequency). $\square$
-
----
-
-**Exercise 2.**
-Trace through ARC with cache capacity $c = 3$ on the access sequence $[A, B, C, D, A, B, E, A]$. Show the state of $T_1$, $T_2$, $B_1$, $B_2$, and $p$ after each access.
-
-??? success "Solution to Exercise 2"
-    Initial: $T_1 = T_2 = B_1 = B_2 = \emptyset$, $p = 0$. Access A: miss, $T_1 = [A]$. Access B: miss, $T_1 = [A, B]$. Access C: miss, $T_1 = [A, B, C]$. Access D: miss, cache full, evict LRU of $T_1$ (A) to $B_1$; $T_1 = [B, C, D]$, $B_1 = [A]$. Access A: hit in $B_1$ -- increase $p$ by $\max(1, |B_2|/|B_1|) = 1$, so $p = 1$. Move A to MRU of $T_2$, evict LRU of $T_1$ (B) to $B_1$; $T_1 = [C, D]$, $T_2 = [A]$, $B_1 = [B]$. Access B: hit in $B_1$ -- increase $p$ to 2. Move B to $T_2$, evict LRU of $T_1$ (C) to $B_1$; $T_1 = [D]$, $T_2 = [A, B]$, $B_1 = [C]$. Access E: miss, evict from $T_1$ (since $|T_1| = 1 \le p = 2$, but only D available); $T_1 = [E]$, $B_1 = [C, D]$, $T_2 = [A, B]$. Access A: hit in $T_2$, move to MRU of $T_2$; $T_2 = [B, A]$. $\square$
+??? success "연습문제 1 풀이"
+    ARC는 줄 넷을 지닌다. (1) $T_1$ -- 한 번만 본, 최근에 닿은 항목(늦음 줄, 참 캐시). (2) $T_2$ -- 적어도 두 번 본, 최근에 닿은 항목(잦기 줄, 참 캐시). (3) $B_1$ -- $T_1$에서 내보내진 넋 항목(자료 없이 딸림 정보만). (4) $B_2$ -- $T_2$에서 내보내진 넋 항목(딸림 정보만). 캐시는 오직 $T_1 \cup T_2$에만 자료를 갈무리하며 $|T_1| + |T_2| \le c$(캐시 용량)이다. 매개변수 $p$($0 \le p \le c$)은 $T_1$의 목표 크기다. $|T_1| > p$이면 ARC는 $T_1$에서 내보내기를 즐기고, $|T_1| < p$이면 $T_2$에서 내보내기를 즐긴다. ARC는 $p$을 움직이며 맞춰 간다. $B_1$에서 맞으면 $p$이 오르고(늦음을 아껴 준다) $B_2$에서 맞으면 $p$이 내린다(잦기를 아껴 준다). $\square$
 
 ---
 
-**Exercise 3.**
-Prove that ARC's adaptation mechanism converges: if the workload is purely recency-driven (LRU-optimal), $p$ approaches $c$; if purely frequency-driven (LFU-optimal), $p$ approaches $0$.
+**연습문제 2.**
+캐시 용량이 $c = 3$인 ARC에서 닿기 차례 $[A, B, C, D, A, B, E, A]$을 따라가라. 닿을 때마다 $T_1$, $T_2$, $B_1$, $B_2$, $p$의 상태를 보여라.
 
-??? success "Solution to Exercise 3"
-    In a purely recency-driven workload, items are accessed once, used soon after, and then not reused. Items evicted from $T_1$ are not accessed again, so $B_1$ never produces hits. Items that are re-accessed after a gap appear in $T_2$, but the dominant pattern fills $T_2$ slowly. Any ghost hit in $B_1$ increases $p$, and ghost hits in $B_2$ are rare because $T_2$ and $B_2$ are sparsely populated. Over time, $p$ increases toward $c$, allocating nearly all cache space to $T_1$ (the recency list), which mimics LRU. Conversely, in a frequency-driven workload, popular items cycle through $T_1 \to B_1 \to T_2$, and $B_2$ accumulates ghost entries of formerly popular items. $B_2$ hits decrease $p$, shifting capacity from $T_1$ to $T_2$, eventually making $p \to 0$. The adaptation is stable because the ghost directories provide unbiased feedback about which eviction policy would have been beneficial. $\square$
-
----
-
-**Exercise 4.**
-Compare the space overhead of ARC versus LRU. Why do practical implementations often limit the ghost directory sizes?
-
-??? success "Solution to Exercise 4"
-    LRU maintains a single doubly-linked list and a hash map, using $O(c)$ space total. ARC maintains the same structures for $T_1$ and $T_2$ (total capacity $c$ for data) plus ghost directories $B_1$ and $B_2$. In the original formulation, $|T_1| + |B_1| \le c$ and $|T_2| + |B_2| \le c$, so the ghost directories can hold up to $c$ entries each, totaling $2c$ metadata entries beyond the $c$ cache entries. Each ghost entry stores only the key (no data), so the overhead is roughly $2c \times (\text{key size})$. For large caches or large keys, this doubles the metadata cost. Practical implementations limit ghost sizes to a fraction of $c$ (e.g., $c/4$) to reduce memory, accepting slightly slower adaptation in exchange. The ghost entries enable scan resistance without the full $2c$ overhead in most workloads. $\square$
+??? success "연습문제 2 풀이"
+    처음: $T_1 = T_2 = B_1 = B_2 = \emptyset$, $p = 0$. A에 닿음: 빗나감, $T_1 = [A]$. B에 닿음: 빗나감, $T_1 = [A, B]$. C에 닿음: 빗나감, $T_1 = [A, B, C]$. D에 닿음: 빗나감, 캐시가 꽉 찼으므로 $T_1$의 가장 오래 안 쓴 것(A)을 $B_1$으로 내보낸다. $T_1 = [B, C, D]$, $B_1 = [A]$. A에 닿음: $B_1$에서 맞음 -- $p$을 $\max(1, |B_2|/|B_1|) = 1$만큼 올려 $p = 1$이다. A을 $T_2$의 가장 늦게 쓴 자리로 옮기고 $T_1$의 가장 오래 안 쓴 것(B)을 $B_1$으로 내보낸다. $T_1 = [C, D]$, $T_2 = [A]$, $B_1 = [B]$. B에 닿음: $B_1$에서 맞음 -- $p$을 2로 올린다. B을 $T_2$으로 옮기고 $T_1$의 가장 오래 안 쓴 것(C)을 $B_1$으로 내보낸다. $T_1 = [D]$, $T_2 = [A, B]$, $B_1 = [C]$. E에 닿음: 빗나감, $T_1$에서 내보낸다($|T_1| = 1 \le p = 2$이지만 쓸 수 있는 것이 D뿐이다). $T_1 = [E]$, $B_1 = [C, D]$, $T_2 = [A, B]$. A에 닿음: $T_2$에서 맞음, $T_2$의 가장 늦게 쓴 자리로 옮긴다. $T_2 = [B, A]$. $\square$
 
 ---
 
-**Exercise 5.**
-Design a workload that causes LRU to perform poorly but ARC to maintain high hit rates. Explain the mechanism behind ARC's advantage.
+**연습문제 3.**
+ARC의 맞춰 가는 장치가 모여듦을 증명하여라. 곧 일감이 온전히 늦음에 이끌리면(LRU가 가장 좋으면) $p$이 $c$으로 다가가고, 온전히 잦기에 이끌리면(LFU가 가장 좋으면) $p$이 $0$으로 다가감을 보여라.
 
-??? success "Solution to Exercise 5"
-    Consider a cache of size $c = 100$ and a workload alternating between two phases: (1) a "scan" phase that accesses 200 distinct items sequentially (e.g., a sequential file read), and (2) a "working set" phase that repeatedly accesses 50 fixed items. Under LRU, the scan phase evicts all working-set items because 200 > 100. When the working-set phase resumes, every access is a miss until the 50 items are reloaded. Under ARC, the scan items enter $T_1$ and are quickly evicted to $B_1$. They do not hit $B_1$ again (each scan item is unique), so $p$ does not increase. The working-set items accumulate in $T_2$ (seen multiple times). When the scan phase starts, ARC evicts primarily from $T_1$, preserving the working set in $T_2$. The adaptation parameter $p$ decreases as $B_2$ accumulates working-set ghosts during scans, protecting $T_2$. ARC achieves near-optimal hit rates on both phases. $\square$
+??? success "연습문제 3 풀이"
+    온전히 늦음이 이끄는 일감에서는 항목에 한 번 닿고 곧 쓴 뒤 다시 쓰지 않는다. $T_1$에서 내보내진 항목에는 다시 닿지 않으므로 $B_1$은 결코 맞음을 내지 않는다. 사이를 두고 다시 닿는 항목은 $T_2$에 나타나지만 판을 치는 결에서는 $T_2$이 더디게 찬다. $B_1$에서 넋이 맞으면 $p$이 오르고, $T_2$과 $B_2$이 성기게 차므로 $B_2$의 넋 맞음은 드물다. 때가 흐르면 $p$이 $c$으로 올라 캐시 자리의 거의 모두를 $T_1$(늦음 줄)에 내주며, 이는 LRU를 흉내 낸다. 거꾸로 잦기가 이끄는 일감에서는 인기 있는 항목이 $T_1 \to B_1 \to T_2$으로 돌고, $B_2$에 지난날 인기 있던 항목의 넋이 쌓인다. $B_2$의 맞음이 $p$을 내려 용량을 $T_1$에서 $T_2$으로 옮기고 끝내 $p \to 0$이 된다. 넋 목록이 어느 내보내기 방침이 이로웠을지에 대해 치우치지 않은 되먹임을 주므로 이 맞춰 감은 든든하다. $\square$
+
+---
+
+**연습문제 4.**
+ARC와 LRU의 자리 덧듦을 견주어라. 실제로 만들 때 넋 목록의 크기를 자주 매어 두는 까닭은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    LRU는 두 겹 이음줄 하나와 해시 표 하나를 지녀 온통 $O(c)$ 자리를 쓴다. ARC는 $T_1$과 $T_2$에 같은 얼개를(자료를 담는 온 용량 $c$) 지니고 여기에 넋 목록 $B_1$과 $B_2$을 더한다. 처음 꼴에서는 $|T_1| + |B_1| \le c$이고 $|T_2| + |B_2| \le c$이므로 넋 목록이 저마다 항목 $c$개까지 담을 수 있어, 캐시 항목 $c$개 말고도 딸림 정보 항목 $2c$개가 든다. 넋 항목은 (자료 없이) 열쇠만 갈무리하므로 덧듦은 대략 $2c \times (\text{열쇠 크기})$이다. 캐시가 크거나 열쇠가 크면 이는 딸림 정보 비용을 곱절로 만든다. 실제로 만들 때에는 기억을 줄이려고 넋 크기를 $c$의 한 조각(보기로 $c/4$)으로 매어 두고, 그 값으로 맞춰 감이 조금 더뎌짐을 받아들인다. 넋 항목은 거의 모든 일감에서 온전한 $2c$ 덧듦 없이도 훑기 버팀을 이루게 한다. $\square$
+
+---
+
+**연습문제 5.**
+LRU는 나쁘게 돌지만 ARC는 높은 맞음률을 지키는 일감을 설계하여라. ARC가 앞서는 장치를 풀어라.
+
+??? success "연습문제 5 풀이"
+    크기 $c = 100$인 캐시와 두 마디를 오가는 일감을 여겨 보자. (1) 서로 다른 항목 200개에 줄줄이 닿는 "훑기" 마디(보기로 파일을 차례대로 읽기). (2) 붙박인 항목 50개에 되풀이해 닿는 "일하는 모임" 마디. LRU에서는 200 > 100이므로 훑기 마디가 일하는 모임의 항목을 모두 내보낸다. 일하는 모임 마디가 다시 시작되면 항목 50개를 다시 실을 때까지 닿을 때마다 빗나간다. ARC에서는 훑기 항목이 $T_1$에 들어갔다가 곧 $B_1$으로 내보내진다. 훑기 항목은 저마다 하나뿐이므로 $B_1$에서 다시 맞지 않고 따라서 $p$이 오르지 않는다. 일하는 모임의 항목은 (여러 번 보이므로) $T_2$에 쌓인다. 훑기 마디가 시작되면 ARC는 주로 $T_1$에서 내보내어 일하는 모임을 $T_2$에 지킨다. 훑는 동안 $B_2$에 일하는 모임의 넋이 쌓이면서 맞춰 가는 매개변수 $p$이 내려가 $T_2$을 지킨다. ARC는 두 마디 모두에서 거의 가장 좋은 맞음률을 이룬다. $\square$
