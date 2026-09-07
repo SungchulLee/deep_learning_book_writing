@@ -543,8 +543,8 @@ def compute_fisher_information_matrix(data: torch.Tensor,
     """
     피셔 정보 행렬을 수치로 셈한다.
     
-    Uses the observed Fisher Information (negative Hessian at MLE)
-    via finite differences: I_ij = -∂²ℓ/∂θ_i∂θ_j
+    최대가능도에서의 관측 피셔 정보(음의 헤세)를 유한 차분으로 쓴다.
+    I_ij = -∂²ℓ/∂θ_i∂θ_j
     """
     n_params = len(params)
     hessian = torch.zeros(n_params, n_params)

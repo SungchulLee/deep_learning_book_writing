@@ -523,7 +523,7 @@ print("""
 
 3. 보통: 익힘/시험 나누기를 바꾸어 보아라
    - test_size을 0.1과 0.5으로 바꾸어라
-   - How does it affect results?
+   - 결과에 어떤 영향을 주는가?
 
 4. 어려움: 새 자료를 예측하는 함수를 짜라.
    def predict(model, x1, x2):

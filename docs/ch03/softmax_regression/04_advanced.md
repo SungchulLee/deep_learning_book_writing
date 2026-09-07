@@ -13,7 +13,7 @@ LEVEL 4: Advanced Softmax Regression Techniques
 ===============================================================================
 Difficulty: Intermediate-Advanced
 Prerequisites: Level 1, 2, 3
-Learning Goals:
+배움 목표:
   - Implement softmax regression from scratch (numpy)
   - Advanced regularization techniques (L2, dropout, batch normalization)
   - 배움 빠르기 짜기

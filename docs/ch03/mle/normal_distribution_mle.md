@@ -10,19 +10,19 @@
 #!/usr/bin/env python3
 """
 ================================================================================
-NORMAL DISTRIBUTION MLE - Estimating Mean and Variance
+정규 분포 최대가능도 — 평균과 흩어짐 어림
 ================================================================================
 
 어려움: ⭐⭐ 보통(2단계)
 
-Learn to estimate both mean (μ) and variance (σ²) of a Gaussian distribution
-simultaneously using MLE.
+가우스 분포의 평균(μ)과 흩어짐(σ²)을 최대가능도로 한꺼번에
+어림하는 법을 배운다.
 
-MLE Solutions:
-μ̂ = (1/N) Σ xᵢ  (sample mean)
-σ̂² = (1/N) Σ (xᵢ - μ̂)²  (sample variance)
+최대가능도 풀이:
+μ̂ = (1/N) Σ xᵢ  (표본 평균)
+σ̂² = (1/N) Σ (xᵢ - μ̂)²  (표본 흩어짐)
 
-This is a foundational example for understanding multivariate MLE!
+다변량 최대가능도를 이해하는 밑바탕 보기다!
 ================================================================================
 """
 
@@ -45,7 +45,7 @@ def generate_normal_data(n_samples: int, true_mu: float, true_sigma: float, seed
 
 def compute_log_likelihood(data: torch.Tensor, mu: torch.Tensor, sigma: torch.Tensor):
     """
-    Compute log-likelihood for normal distribution.
+    정규 분포의 로그 가능도를 셈한다.
     
     ℓ(μ, σ²) = -N/2 * log(2πσ²) - (1/2σ²) * Σ(xᵢ - μ)²
     """
@@ -66,9 +66,9 @@ def analytical_mle(data: torch.Tensor):
 
 def gradient_based_mle(data: torch.Tensor, n_iterations: int = 1000):
     """
-    Estimate parameters using gradient ascent on log-likelihood.
+    로그 가능도에 기울기 오름을 써서 매개변수를 어림한다.
     
-    We use log-parameterization for sigma to ensure positivity:
+    시그마가 양수가 되도록 로그로 매긴다.
     σ = exp(log_sigma)
     """
     # 매개변수를 초기화한다

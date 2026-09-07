@@ -9,17 +9,17 @@
 ```python
 """
 ===============================================================================
-LEVEL 1: Softmax Regression Fundamentals
+1단계: 소프트맥스 회귀 기초
 ===============================================================================
-Difficulty: Beginner
-Prerequisites: Basic Python, basic NumPy
-Learning Goals:
-  - Understand what softmax function does
-  - Learn how cross-entropy loss works
-  - Compare NumPy and PyTorch implementations
-  - Understand the relationship between logits, probabilities, and loss
+어려움: 첫걸음
+미리 알아 둘 것: 기본 파이썬, 기본 넘파이
+배움 목표:
+  - 소프트맥스 함수가 무엇을 하는지 이해한다
+  - 엇갈린 엔트로피 잃음이 어떻게 도는지 배운다
+  - 넘파이와 PyTorch 짜보기를 견준다
+  - 로짓, 확률, 잃음 사이의 사이를 이해한다
 
-Time to complete: 20-30 minutes
+마치는 데 드는 때: 20~30분
 ===============================================================================
 """
 
@@ -39,12 +39,12 @@ print("PART 1: Understanding Softmax")
 print("=" * 80)
 
 """
-What is Softmax?
+소프트맥스란 무엇인가?
 ----------------
-Softmax converts a vector of real numbers (called logits) into a probability
-distribution. Each output is between 0 and 1, and they all sum to 1.
+소프트맥스는 실수 벡터(로짓이라 한다)를 확률 분포로 바꾼다. 내놓음마다
+0과 1 사이이고 모두 더하면 1이다.
 
-Formula: softmax(x_i) = exp(x_i) / sum(exp(x_j) for all j)
+식: softmax(x_i) = exp(x_i) / sum(exp(x_j) for all j)
 
 Why do we use it?
 - Converts raw scores to interpretable probabilities

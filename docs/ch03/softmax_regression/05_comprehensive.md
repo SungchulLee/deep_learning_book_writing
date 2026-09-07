@@ -13,7 +13,7 @@ LEVEL 5: Comprehensive Multi-Dataset Classification Project
 ===============================================================================
 Difficulty: Advanced
 Prerequisites: Level 1-4
-Learning Goals:
+배움 목표:
   - Work with multiple real datasets
   - Build a flexible model factory
   - Implement comprehensive experiment tracking

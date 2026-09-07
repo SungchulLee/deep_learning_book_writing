@@ -210,14 +210,14 @@ print("=" * 70)
 print("""
 torch.no_grad()은 기울기 좇기를 잠깐 끈다.
 다음 때에 쓴다.
-1. Making predictions (inference)
-2. Updating parameters (as we did in the training loop)
-3. Any operation where you don't need gradients
+1. 예측할 때(미룸)
+2. 매개변수를 고칠 때(익힘 되돌이에서 한 것처럼)
+3. 기울기가 필요 없는 어떤 셈에서든
 
 Benefits:
-- Saves memory (no computational graph)
-- Faster computation
-- Prevents accidental gradient computation
+- 기억 자리를 아낀다(셈 그래프를 만들지 않는다)
+- 셈이 더 빠르다
+- 뜻하지 않은 기울기 셈을 막는다
 
 Example:
 """)

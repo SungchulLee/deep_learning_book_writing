@@ -13,7 +13,7 @@ LEVEL 2: Building Your First Softmax Classifier
 ===============================================================================
 Difficulty: Beginner-Intermediate
 Prerequisites: Level 1, basic PyTorch
-Learning Goals:
+배움 목표:
   - Build a simple neural network for multi-class classification
   - Understand the training loop structure
   - 가름 테두리를 그림으로 본다

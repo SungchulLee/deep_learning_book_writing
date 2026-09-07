@@ -10,37 +10,37 @@
 #!/usr/bin/env python3
 """
 ================================================================================
-NEURAL NETWORK MLE - Deep Learning with Maximum Likelihood
+신경망 최대가능도 — 최대가능도로 하는 깊은 배움
 ================================================================================
 
 어려움: ⭐⭐⭐ 앞선(3단계)
 
 배움 목표:
-- Understand how neural networks use MLE
-- See the connection between loss functions and likelihood
-- Implement custom MLE-based losses
-- Learn about heteroscedastic regression (predicting uncertainty)
+- 신경망이 최대가능도를 어떻게 쓰는지 이해한다
+- 잃음 함수와 가능도 사이의 이음을 본다
+- 최대가능도 바탕 맞춤 잃음을 짠다
+- 이분산 회귀(불확실성 예측)를 배운다
 
-KEY INSIGHT: Neural network training IS maximum likelihood estimation!
+고갱이 눈썰미: 신경망 익힘이 곧 최대가능도 어림이다!
 
-STANDARD REGRESSION:
-- Network predicts: ŷ = f(x; θ)
-- Assume: y ~ N(ŷ, σ²) with fixed σ
-- MLE objective: minimize Σ(y - ŷ)² (MSE loss)
+여느 회귀:
+- 그물이 예측한다: ŷ = f(x; θ)
+- 가정: σ이 붙박인 y ~ N(ŷ, σ²)
+- 최대가능도 목표: Σ(y - ŷ)²을 가장 작게 한다(MSE 잃음)
 
-HETEROSCEDASTIC REGRESSION:
-- Network predicts BOTH mean AND variance: (μ̂, σ̂²) = f(x; θ)
-- Model: y ~ N(μ̂, σ̂²) with varying σ
-- MLE objective: maximize Σ log N(y | μ̂, σ̂²)
-             = minimize Σ [log(σ̂²) + (y - μ̂)²/σ̂²]
+이분산 회귀:
+- 그물이 평균과 흩어짐을 모두 예측한다: (μ̂, σ̂²) = f(x; θ)
+- 모형: σ이 달라지는 y ~ N(μ̂, σ̂²)
+- 최대가능도 목표: Σ log N(y | μ̂, σ̂²)을 가장 크게 한다
+             = Σ [log(σ̂²) + (y - μ̂)²/σ̂²]을 가장 작게 한다
 
-This allows the network to express UNCERTAINTY in its predictions!
+그러면 그물이 제 예측의 불확실성을 나타낼 수 있다!
 
 APPLICATIONS:
-- Regression with uncertainty quantification
-- Robust regression (outlier handling)
-- Active learning (query high-uncertainty points)
-- Risk-sensitive decision making
+- 불확실성을 수로 나타내는 회귀
+- 든든한 회귀(튄값 다루기)
+- 앞장선 배움(불확실성이 큰 점을 묻는다)
+- 무릅씀을 살피는 판단
 
 지은이: PyTorch 최대가능도 익힘
 DATE: 2025
@@ -60,7 +60,7 @@ from typing import Tuple
 
 def generate_heteroscedastic_data(n_samples: int = 300, seed: int = 42):
     """
-    Generate data where noise varies with x (heteroscedastic).
+    x에 따라 잡음이 달라지는 자료를 만든다(이분산).
     
     y = sin(x) + ε, where ε ~ N(0, σ(x)²) and σ(x) increases with |x|
     """
@@ -100,9 +100,9 @@ class StandardNN(nn.Module):
 
 class HeteroscedasticNN(nn.Module):
     """
-    Neural network predicting BOTH mean and variance.
+    평균과 흩어짐을 함께 예측하는 신경망.
     
-    This is the MLE approach for heteroscedastic regression!
+    이것이 이분산 회귀의 최대가능도 길이다!
     """
     
     def __init__(self, hidden_size=50):
@@ -125,8 +125,8 @@ class HeteroscedasticNN(nn.Module):
     def forward(self, x):
         """
         Returns:
-            mean: Predicted mean
-            logvar: Predicted log-variance (log(σ²))
+            mean: 예측한 평균
+            logvar: 예측한 로그 흩어짐(log(σ²))
         """
         features = self.shared(x)
         mean = self.mean_head(features)
@@ -136,14 +136,14 @@ class HeteroscedasticNN(nn.Module):
 
 def gaussian_nll_loss(y_true, y_pred_mean, y_pred_logvar):
     """
-    Gaussian Negative Log-Likelihood loss.
+    가우스 음의 로그 가능도 잃음.
     
-    This is the MLE objective for heteroscedastic regression!
+    이것이 이분산 회귀의 최대가능도 목표다!
     
     NLL = -log N(y | μ, σ²)
         = 0.5 * [log(2π) + log(σ²) + (y - μ)² / σ²]
     
-    Ignoring constants:
+    상수를 셈에서 빼면
     NLL = 0.5 * [log(σ²) + (y - μ)² / σ²]
         = 0.5 * [log_var + (y - μ)² / exp(log_var)]
     """
@@ -451,32 +451,32 @@ def main():
 """
 🎓 EXERCISES:
 
-1. MEDIUM: Classification with uncertainty
-   - Extend to classification task
-   - Predict class probabilities (softmax)
-   - Use negative log-likelihood (cross-entropy)
-   - Visualize prediction confidence
+1. 보통: 불확실성을 곁들인 가름
+   - 가름 일로 넓힌다
+   - 갈래 확률을 예측한다(소프트맥스)
+   - 음의 로그 가능도(엇갈린 엔트로피)를 쓴다
+   - 예측의 자신도를 그림으로 본다
 
-2. MEDIUM: Different noise models
-   - Laplace noise: use absolute error instead of squared
-   - Student-t noise: robust to outliers
-   - Compare likelihood functions
+2. 보통: 여러 잡음 모형
+   - 라플라스 잡음: 제곱 대신 절대 어긋남을 쓴다
+   - 스튜던트 t 잡음: 튄값에 든든하다
+   - 가능도 함수를 견준다
 
-3. CHALLENGING: Bayesian Neural Networks
-   - Add dropout for uncertainty estimation
-   - Monte Carlo dropout: multiple forward passes
-   - Compare epistemic vs aleatoric uncertainty
+3. 어려움: 베이즈 신경망
+   - 불확실성 어림을 위해 드롭아웃을 더한다
+   - 몬테카를로 드롭아웃: 앞으로 걸음을 여러 번 한다
+   - 앎의 불확실성과 타고난 불확실성을 견준다
 
-4. CHALLENGING: Multi-output regression
-   - Predict vector outputs with covariance
-   - Full covariance matrix vs diagonal
-   - Multivariate Gaussian likelihood
+4. 어려움: 내놓음이 여럿인 회귀
+   - 공분산을 곁들여 벡터 내놓음을 예측한다
+   - 온 공분산 행렬과 대각 행렬을 견준다
+   - 다변량 가우스 가능도
 
-5. CHALLENGING: Active learning
-   - Use uncertainty to select informative samples
-   - Train on small dataset
-   - Iteratively query high-uncertainty points
-   - Show learning curve improves faster
+5. 어려움: 앞장선 배움
+   - 불확실성으로 알려 주는 바가 큰 표본을 고른다
+   - 작은 자료 묶음으로 익힌다
+   - 불확실성이 큰 점을 거듭 묻는다
+   - 배움 굽이가 더 빨리 나아짐을 보인다
 """
 
 

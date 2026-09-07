@@ -13,7 +13,7 @@ LEVEL 3: Softmax Regression on MNIST Dataset
 ===============================================================================
 Difficulty: Intermediate
 Prerequisites: Level 1 & 2, understanding of image data
-Learning Goals:
+배움 목표:
   - Work with real-world image dataset (MNIST)
   - Handle data loading and batching
   - 익힘/다짐/시험 나누기를 제대로 짠다

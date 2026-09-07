@@ -242,7 +242,7 @@ def heteroscedastic_nll(y: torch.Tensor,
                         mean: torch.Tensor, 
                         log_var: torch.Tensor) -> torch.Tensor:
     """
-    Negative log-likelihood for heteroscedastic Gaussian.
+    이분산 가우스의 음의 로그 가능도.
     
     NLL = 0.5 * [log(2π) + log_var + (y - mean)² / exp(log_var)]
     """
