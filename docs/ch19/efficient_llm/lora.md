@@ -22,8 +22,8 @@ $$
 
 여기서:
 
-- $B \in \mathbb{R}^{d_{out} \times r}$ (down-projection)
-- $A \in \mathbb{R}^{r \times d_{in}}$ (up-projection)  
+- $B \in \mathbb{R}^{d_{out} \times r}$(내림 되비춤)
+- $A \in \mathbb{R}^{r \times d_{in}}$(오름 되비춤)
 - $r \ll \min(d_{in}, d_{out})$ is the rank
 
 ### 낮은 계수가 통하는 까닭
@@ -48,19 +48,19 @@ $$
 h = W_0 x + \frac{\alpha}{r} BAx
 $$
 
-Where $\alpha$ is a constant (typically $\alpha = 2r$ or $\alpha = r$). This scaling ensures:
+여기서 $\alpha$은 상수다(흔히 $\alpha = 2r$이나 $\alpha = r$). 이렇게 잣대를 잡으면 다음이 보장된다.
 
-- The magnitude of $\Delta W$ is independent of rank choice
-- Hyperparameter transfer: same $\alpha$ works across different ranks
+- $\Delta W$의 크기가 계수를 어떻게 고르든 달라지지 않는다
+- 웃매개변수 옮기기: 같은 $\alpha$이 여러 계수에서 두루 통한다
 - 든든한 익히기 흐름
 
 ### 매개변수 아끼기
 
-For a linear layer with dimensions $d_{in} \times d_{out}$:
+차수가 $d_{in} \times d_{out}$인 선형 층에서는
 
 | 방법 | 매개변수 |
 |--------|------------|
-| Full fine-tuning | $d_{in} \times d_{out}$ |
+| 온전한 곱게 다듬기 | $d_{in} \times d_{out}$ |
 | LoRA (rank $r$) | $r \times (d_{in} + d_{out})$ |
 
 **Example**: For $d_{in} = d_{out} = 4096$, $r = 8$:
@@ -405,11 +405,11 @@ def unmerge_lora_weights(model: nn.Module):
 
 흔한 전략:
 
-- $\alpha = r$: Conservative scaling
-- $\alpha = 2r$: **Default**, balanced
-- $\alpha = 4r$: Aggressive updates
+- $\alpha = r$: 조심스러운 잣대
+- $\alpha = 2r$: **기본값**, 고르다
+- $\alpha = 4r$: 세게 고치기
 
-The ratio $\alpha/r$ determines the effective learning rate for LoRA parameters. Higher ratio = larger updates.
+견줌 $\alpha/r$이 LoRA 매개변수의 실제 배움 빠르기를 정한다. 견줌이 클수록 크게 고친다.
 
 ### 목표 단원 고르기
 

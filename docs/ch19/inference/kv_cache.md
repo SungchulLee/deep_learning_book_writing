@@ -34,7 +34,7 @@ Generate token 3: Load cached K, V; compute only for token2
 
 ## 수학적 바탕
 
-At timestep $t$, given new token $x_t$ and cached $K_{1:t-1}$, $V_{1:t-1}$:
+때 걸음 $t$에서 새 토막 $x_t$과 갈무리한 $K_{1:t-1}$, $V_{1:t-1}$이 주어지면
 
 $$
 \begin{aligned}
@@ -259,7 +259,7 @@ $$
 열쇠-값 곳간이 자기되돌리기 풀기를 어떻게 빠르게 하는지 밝혀라. 기억 공간의 맞바꿈은 무엇인가?
 
 ??? success "연습문제 1 풀이"
-    During autoregressive generation, each new token attends to all previous tokens. Without caching, generating token $t$ recomputes the key and value projections for all $t-1$ previous tokens, giving $O(t^2)$ total computation for a sequence of length $T$. With KV-caching, keys and values from previous steps are stored and reused, so only the new token's K/V are computed at each step, reducing computation to $O(T)$ total. The trade-off: KV-cache memory grows as $O(T \cdot L \cdot d)$ where $L$ is the number of layers and $d$ is the hidden dimension. For long sequences with large models, this can consume significant GPU memory.
+    자기되돌리기로 글을 만들 때 새 토막마다 앞선 토막 모두에 눈길을 준다. 갈무리하지 않으면 토막 $t$을 만들 때 앞선 토막 $t-1$개의 열쇠와 값 되비춤을 다시 셈하므로 길이 $T$의 이음에 온 셈이 $O(t^2)$이 된다. 열쇠-값 갈무리를 쓰면 앞선 걸음의 열쇠와 값을 담아 두었다가 되쓰므로 걸음마다 새 토막의 열쇠와 값만 셈하면 되어 온 셈이 $O(T)$으로 준다. 맞바꿈은 이렇다. 열쇠-값 갈무리의 기억 자리가 $O(T \cdot L \cdot d)$으로 늘어난다. 여기서 $L$은 층 수, $d$은 숨은 차수다. 큰 모델로 긴 이음을 다루면 GPU 기억 자리를 크게 잡아먹을 수 있다.
 
 ---
 
@@ -267,7 +267,7 @@ $$
 플래시 눈길의 고갱이 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
 
 ??? success "연습문제 2 풀이"
-    Flash Attention exploits the GPU memory hierarchy. Standard attention materializes the $N \times N$ attention matrix in HBM (slow GPU memory), causing memory-bound computation. Flash Attention tiles the computation into blocks that fit in SRAM (fast on-chip memory), computing attention block-by-block without ever materializing the full attention matrix. It uses online softmax (tracking running max and sum) to compute exact attention incrementally. The speedup comes from reduced HBM reads/writes (IO complexity drops from $O(N^2 d)$ to $O(N^2 d^2 / M)$ where $M$ is SRAM size), not from fewer FLOPs. This provides 2-4x wall-clock speedup and $O(N)$ memory.
+    플래시 눈길은 GPU 기억 자리의 층 얼개를 쓴다. 여느 눈길은 $N \times N$ 눈길 행렬을 HBM(느린 GPU 기억 자리)에 실제로 만들어 기억 자리에 매인 셈이 된다. 플래시 눈길은 셈을 SRAM(빠른 칩 안 기억 자리)에 들어가는 덩이로 쪼개어, 온전한 눈길 행렬을 한 번도 만들지 않고 덩이마다 눈길을 셈한다. 이어 가는 소프트맥스(달리는 최댓값과 합을 좇는다)로 딱 맞는 눈길을 조금씩 셈한다. 빨라지는 까닭은 뜨는 셈 횟수가 줄어서가 아니라 HBM 읽고 쓰기가 줄어서다(입출력 복잡도가 $O(N^2 d)$에서 $O(N^2 d^2 / M)$으로 떨어지며 $M$은 SRAM 크기다). 그래서 벽시계 시간이 2~4배 빨라지고 기억 자리는 $O(N)$이 된다.
 
 ---
 

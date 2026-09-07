@@ -70,9 +70,9 @@ $$
 \text{Prefix params} = l \times L \times 2 \times H \times d_h = 2 \times l \times L \times d_{model}
 $$
 
-**Example**: GPT-2 Medium ($L=24$, $d_{model}=1024$) with prefix length 10:
+**보기**: 머리말 길이가 10인 GPT-2 Medium($L=24$, $d_{model}=1024$)에서는
 
-- Prefix parameters: $2 \times 10 \times 24 \times 1024 = 491,520$ (0.14% of 345M)
+- 머리말 매개변수: $2 \times 10 \times 24 \times 1024 = 491,520$개(3억 4500만 개의 0.14%)
 
 ## 구현
 

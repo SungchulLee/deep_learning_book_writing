@@ -24,7 +24,7 @@
 
 ### 수학 바탕
 
-Instead of updating weight matrix $W \in \mathbb{R}^{d_{out} \times d_{in}}$ directly, LoRA adds a low-rank decomposition:
+무게 행렬 $W \in \mathbb{R}^{d_{out} \times d_{in}}$을 곧바로 고치는 대신 LoRA은 낮은 계수 쪼갬을 더한다.
 
 $$
 W' = W + \Delta W = W + BA
@@ -32,11 +32,11 @@ $$
 
 여기서:
 
-- $B \in \mathbb{R}^{d_{out} \times r}$ (down-projection)
-- $A \in \mathbb{R}^{r \times d_{in}}$ (up-projection)
+- $B \in \mathbb{R}^{d_{out} \times r}$(내림 되비춤)
+- $A \in \mathbb{R}^{r \times d_{in}}$(오름 되비춤)
 - $r \ll \min(d_{in}, d_{out})$ is the rank
 
-**Parameter savings**: Instead of $d_{in} \times d_{out}$ parameters, LoRA uses $r \times (d_{in} + d_{out})$.
+**매개변수 아낌**: LoRA은 매개변수 $d_{in} \times d_{out}$개 대신 $r \times (d_{in} + d_{out})$개를 쓴다.
 
 For $d_{in} = d_{out} = 4096$ and $r = 8$:
 
@@ -45,13 +45,13 @@ For $d_{in} = d_{out} = 4096$ and $r = 8$:
 
 ### 잣수 인자
 
-LoRA uses a scaling factor $\alpha$ to control the magnitude of updates:
+LoRA은 잣대 값 $\alpha$으로 고침의 크기를 다스린다.
 
 $$
 W' = W + \frac{\alpha}{r} BA
 $$
 
-Typically $\alpha = 2r$ or $\alpha = r$, so the effective scaling is constant regardless of rank choice.
+흔히 $\alpha = 2r$이나 $\alpha = r$을 쓰므로 계수를 어떻게 고르든 실제 잣대는 한결같다.
 
 ### 구현
 
