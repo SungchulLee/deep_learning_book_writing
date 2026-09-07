@@ -7,23 +7,23 @@
 ```python
 """
 ================================================================================
-Level 1 - Example 1: Manual Gradient Descent with NumPy
+1단계 - 보기 1: 넘파이로 손수 하는 기울기 내림
 ================================================================================
 
 배움 목표:
-- Understand gradient descent from first principles
-- Manually compute gradients using calculus
-- Implement gradient descent without any ML libraries
-- Visualize the optimization process
+- 기울기 내림을 첫 원리부터 이해한다
+- 미적분으로 기울기를 손수 셈한다
+- 기계 배움 꾸러미 없이 기울기 내림을 짠다
+- 가장 좋게 하는 과정을 그림으로 본다
 
-DIFFICULTY: ⭐ Beginner
+어려움: ⭐ 첫걸음
 
-TIME: 20-30 minutes
+걸리는 때: 20~30분
 
 PREREQUISITES:
-- Basic Python
-- Elementary calculus (derivatives)
-- Understanding of linear functions
+- 기본 파이썬
+- 기초 미적분(도함수)
+- 선형 함수 이해
 
 ================================================================================
 """
@@ -69,33 +69,33 @@ print(f"Initial prediction for x=5: y = {w * 5:.3f} (should be 10.0)\n")
 
 def model_forward(x, weight):
     """
-    Forward pass: compute predictions
+    앞으로 걸음: 예측을 셈한다
     
-    Our model: y_pred = w * x
+    우리 모형: y_pred = w * x
     
     Args:
-        x: input data (array or scalar)
-        weight: current weight parameter
+        x: 들임 자료(배열이나 홑값)
+        weight: 이제의 무게 매개변수
     
     Returns:
-        predictions: model output
+        predictions: 모형의 내놓음
     """
     return weight * x
 
 
 def compute_loss(y_true, y_pred):
     """
-    Mean Squared Error (MSE) Loss Function
+    평균 제곱 어긋남(MSE) 잃음 함수
     
-    Loss measures how wrong our predictions are:
+    잃음은 우리 예측이 얼마나 어긋났는지 잰다.
     L(w) = (1/N) * Σ(y_pred - y_true)²
     
     Args:
-        y_true: actual target values
-        y_pred: predicted values
+        y_true: 참 과녁 값
+        y_pred: 예측한 값
     
     Returns:
-        loss: average squared error (scalar)
+        loss: 제곱 어긋남의 평균(홑값)
     """
     # 제곱 차이 계산
     squared_errors = (y_pred - y_true) ** 2
@@ -106,9 +106,9 @@ def compute_loss(y_true, y_pred):
 
 def compute_gradient(x, y_true, y_pred):
     """
-    Manually compute gradient dL/dw
+    기울기 dL/dw을 손수 셈한다
     
-    Mathematical Derivation:
+    수학 이끌어 내기:
     ------------------------
     Loss:     L(w) = (1/N) * Σ(w*x - y)²
     
@@ -116,15 +116,15 @@ def compute_gradient(x, y_true, y_pred):
                        = (2/N) * Σ x*(w*x - y)
                        = (2/N) * Σ x*(y_pred - y_true)
     
-    In code: gradient = mean(2 * x * (y_pred - y_true))
+    코드로는: gradient = mean(2 * x * (y_pred - y_true))
     
     Args:
-        x: input data
-        y_true: actual targets
-        y_pred: predicted values
+        x: 들임 자료
+        y_true: 참 과녁
+        y_pred: 예측한 값
     
     Returns:
-        gradient: dL/dw (tells us which direction to update w)
+        gradient: dL/dw(w을 어느 쪽으로 고칠지 알려 준다)
     """
     # 위에서 유도한 공식으로 경사 계산
     gradient = np.mean(2 * x * (y_pred - y_true))
@@ -260,38 +260,38 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. GRADIENT DESCENT is an iterative optimization algorithm
-   - Start with random parameters
-   - Compute gradient (derivative of loss w.r.t. parameters)
-   - Update parameters in opposite direction of gradient
-   - Repeat until convergence
+1. 기울기 내림은 되돌이로 가장 좋게 하는 알고리즘이다
+   - 마구잡이 매개변수에서 비롯한다
+   - 기울기를 셈한다(매개변수에 대한 잃음의 도함수)
+   - 기울기의 반대쪽으로 매개변수를 고친다
+   - 모여들 때까지 되풀이한다
 
-2. LEARNING RATE controls step size
-   - Too large: might overshoot and diverge
-   - Too small: slow convergence
-   - Typical values: 0.001 to 0.1
+2. 배움 빠르기가 걸음 크기를 다스린다
+   - 너무 크면 지나쳐 퍼져 나갈 수 있다
+   - 너무 작으면 더디게 모여든다
+   - 흔한 값: 0.001 ~ 0.1
 
-3. LOSS FUNCTION measures prediction quality
-   - MSE for regression problems
-   - Different losses for different tasks
+3. 잃음 함수가 예측의 좋음을 잰다
+   - 회귀 문제에는 MSE
+   - 일마다 다른 잃음을 쓴다
 
-4. GRADIENT points in the direction of steepest increase
-   - We move in opposite direction (-gradient) to decrease loss
+4. 기울기는 가장 가파르게 오르는 쪽을 가리킨다
+   - 잃음을 줄이려고 반대쪽(-기울기)으로 간다
 
-5. CONVERGENCE happens when gradients become very small
-   - Loss stops decreasing significantly
-   - Parameters stabilize around optimal values
+5. 기울기가 아주 작아지면 모여든 것이다
+   - 잃음이 뚜렷하게 줄지 않는다
+   - 매개변수가 가장 좋은 값 언저리에서 자리를 잡는다
 """)
 
 print("="*80)
 print("EXPERIMENT IDEAS:")
 print("="*80)
 print("""
-Try modifying the code to explore:
-1. Different learning rates (0.001, 0.1, 0.5) - what happens?
-2. Different initial weights (5.0, -3.0) - does it still converge?
-3. More training data points - does it improve accuracy?
-4. Noisy data (add random noise to y) - how robust is gradient descent?
+코드를 고쳐 가며 살펴보아라.
+1. 여러 배움 빠르기(0.001, 0.1, 0.5) — 어떻게 되는가?
+2. 여러 첫 무게(5.0, -3.0) — 그래도 모여드는가?
+3. 익힘 자료 점을 더 늘리면 — 맞음이 나아지는가?
+4. 잡음 섞인 자료(y에 마구잡이 잡음을 더한다) — 기울기 내림은 얼마나 든든한가?
 """)
 print("="*80)
 

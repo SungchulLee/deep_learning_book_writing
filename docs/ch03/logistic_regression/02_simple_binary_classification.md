@@ -178,7 +178,7 @@ class LogisticRegression(nn.Module):
     
     def forward(self, x):
         """
-        Forward pass through the network
+        그물을 지나는 앞으로 걸음
         
         Args:
             x: Input tensor of shape (batch_size, n_features)

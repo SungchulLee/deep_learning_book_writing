@@ -494,7 +494,7 @@ print("KEY TAKEAWAYS")
 print("=" * 80)
 print(f"""
 1. Complete ML Pipeline:
-   ✓ Data loading and preprocessing
+   ✓ 자료 불러오기와 미리 다듬기
    ✓ Model architecture design
    ✓ Training loop with monitoring
    ✓ Evaluation on held-out test set

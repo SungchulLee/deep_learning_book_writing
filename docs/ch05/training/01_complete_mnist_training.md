@@ -481,8 +481,8 @@ print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
 1. COMPLETE PIPELINE:
-   ✓ Data loading and preprocessing
-   ✓ Model definition
+   ✓ 자료 불러오기와 미리 다듬기
+   ✓ 모형 매기기
    ✓ Loss function and optimizer setup
    ✓ Training loop with validation
    ✓ Model saving and loading

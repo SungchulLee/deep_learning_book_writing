@@ -16,7 +16,7 @@ Level 1 - Example 3: Simple Linear Regression with PyTorch
 - Implement training and evaluation loops
 - Visualize model predictions
 
-DIFFICULTY: ⭐ Beginner
+어려움: ⭐ 첫걸음
 
 TIME: 30-40 minutes
 
@@ -99,7 +99,7 @@ class LinearRegressionModel(nn.Module):
     
     def forward(self, x):
         """
-        Forward pass: compute predictions
+        앞으로 걸음: 예측을 셈한다
         
         Args:
             x: input tensor of shape (batch_size, input_dim)

@@ -16,7 +16,7 @@ Prerequisites: Level 1 & 2, understanding of image data
 Learning Goals:
   - Work with real-world image dataset (MNIST)
   - Handle data loading and batching
-  - Implement proper train/validation/test splits
+  - 익힘/다짐/시험 나누기를 제대로 짠다
   - Use data loaders and mini-batch training
   - Visualize predictions on images
 

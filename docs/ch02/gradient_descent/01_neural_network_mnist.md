@@ -7,34 +7,34 @@
 ```python
 """
 ================================================================================
-Level 4 - Project 1: Neural Network for MNIST Digit Classification
+4단계 - 과제 1: MNIST 숫자 가름을 위한 신경망
 ================================================================================
 
 배움 목표:
-- Build a complete neural network from scratch
-- Train on a real-world dataset (MNIST)
-- Implement proper train/validation/test splits
-- Apply all gradient descent concepts learned
-- Achieve >95% accuracy
+- 온전한 신경망을 맨바닥부터 짓는다
+- 참 세상의 자료 묶음(MNIST)으로 익힌다
+- 익힘/다짐/시험 나누기를 제대로 짠다
+- 배운 기울기 내림 개념을 모두 쓴다
+- 맞음 95%를 넘긴다
 
-DIFFICULTY: ⭐⭐⭐⭐ Project
+어려움: ⭐⭐⭐⭐ 과제
 
-TIME: 60-90 minutes
+걸리는 때: 60~90분
 
 PREREQUISITES:
-- Completed Levels 1-3
-- Understanding of neural networks
-- Comfortable with PyTorch
+- 1~3단계를 마쳤을 것
+- 신경망을 이해하고 있을 것
+- PyTorch에 익숙할 것
 
-PROJECT DESCRIPTION:
+과제 밝힘:
 --------------------
-MNIST is a dataset of 70,000 handwritten digits (0-9):
-- Training set: 60,000 images
-- Test set: 10,000 images
-- Image size: 28x28 grayscale
-- Task: Classify each image into one of 10 classes (0-9)
+MNIST은 손글씨 숫자(0~9) 70,000개의 자료 묶음이다.
+- 익힘 묶음: 그림 60,000장
+- 시험 묶음: 그림 10,000장
+- 그림 크기: 28x28 잿빛
+- 일: 그림마다 10갈래(0~9) 가운데 하나로 가른다
 
-This is a classic benchmark problem in machine learning!
+기계 배움의 대표 잣대 문제다!
 
 ================================================================================
 """
@@ -150,13 +150,13 @@ print("="*80)
 
 class MNISTNet(nn.Module):
     """
-    Neural Network for MNIST Classification
+    MNIST 가름을 위한 신경망
     
     Architecture:
-    - Input: 28x28 = 784 features
-    - Hidden Layer 1: 128 neurons + ReLU
-    - Hidden Layer 2: 64 neurons + ReLU
-    - Output Layer: 10 neurons (one per digit)
+    - 들임: 28x28 = 특징 784개
+    - 숨은 층 1: 뉴런 128개 + ReLU
+    - 숨은 층 2: 뉴런 64개 + ReLU
+    - 내놓음 층: 뉴런 10개(숫자마다 하나)
     """
     
     def __init__(self):
@@ -176,13 +176,13 @@ class MNISTNet(nn.Module):
     
     def forward(self, x):
         """
-        Forward pass through the network
+        그물을 지나는 앞으로 걸음
         
         Args:
-            x: input tensor of shape (batch_size, 1, 28, 28)
+            x: 꼴이 (batch_size, 1, 28, 28)인 들임 텐서
         
         Returns:
-            output: logits of shape (batch_size, 10)
+            output: 꼴이 (batch_size, 10)인 로짓
         """
         # 이미지 펼치기: (배치, 1, 28, 28) → (배치, 784)
         x = x.view(-1, 28 * 28)
@@ -248,7 +248,7 @@ print(f"Scheduler: ReduceLROnPlateau")
 # ============================================================================
 
 def train_epoch(model, train_loader, criterion, optimizer):
-    """Train for one epoch"""
+    """한 판 익힌다"""
     model.train()  # Set model to training mode
     
     total_loss = 0
@@ -278,7 +278,7 @@ def train_epoch(model, train_loader, criterion, optimizer):
 
 
 def validate(model, val_loader, criterion):
-    """Validate the model"""
+    """모형을 다진다"""
     model.eval()  # Set model to evaluation mode
     
     total_loss = 0
@@ -462,23 +462,23 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. COMPLETE ML PIPELINE:
-   ✓ Data loading and preprocessing
-   ✓ Train/validation/test splits
-   ✓ Model definition
-   ✓ Training loop with proper evaluation
-   ✓ Visualization and model saving
+1. 온전한 기계 배움 흐름:
+   ✓ 자료 불러오기와 미리 다듬기
+   ✓ 익힘/다짐/시험 나누기
+   ✓ 모형 매기기
+   ✓ 제대로 따지는 익힘 되돌이
+   ✓ 그림으로 보기와 모형 갈무리
 
-2. BEST PRACTICES:
-   • Always use validation set for hyperparameter tuning
-   • Never touch test set until final evaluation
-   • Use dropout for regularization
-   • Implement learning rate scheduling
-   • Save models for later use
+2. 좋은 버릇:
+   • 웃매개변수를 손볼 때는 늘 다짐 묶음을 써라
+   • 마지막으로 따질 때까지 시험 묶음에 손대지 마라
+   • 정칙화에는 드롭아웃을 써라
+   • 배움 빠르기 짜기를 넣어라
+   • 나중에 쓰도록 모형을 갈무리하라
 
-3. GRADIENT DESCENT IN ACTION:
-   • Adam optimizer converges quickly
-   • Batch training with DataLoader
+3. 움직이는 기울기 내림:
+   • Adam 가장 좋게 하개는 빨리 모여든다
+   • DataLoader로 하는 묶음 익힘
    • Automatic differentiation handles complex network
    • All concepts from Levels 1-3 applied here!
 

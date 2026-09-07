@@ -363,18 +363,18 @@ print("="*80)
 print("EXPERIMENTS TO TRY")
 print("="*80)
 print("""
-1. Different batch sizes: 8, 16, 64, 128, 256
+1. 여러 묶음 크기: 8, 16, 64, 128, 256
    - 모여듦에 어떤 영향을 주는가?
-   - What about training time?
+   - 익힘 때는 어떠한가?
 
-2. Larger dataset (10,000 samples)
-   - Which variant is fastest now?
+2. 더 큰 자료 묶음(표본 10,000개)
+   - 이제는 어느 갈래가 가장 빠른가?
 
-3. Different learning rates for each variant
-   - SGD might need smaller lr
-   - Batch GD might work with larger lr
+3. 갈래마다 다른 배움 빠르기
+   - SGD에는 더 작은 배움 빠르기가 필요할 수 있다
+   - 묶음 GD은 더 큰 배움 빠르기로도 될 수 있다
 
-4. Add momentum (next example!)
+4. 여세를 더해 보아라(다음 보기다!)
    - optimizer = torch.optim.SGD(..., momentum=0.9)
 """)
 print("="*80)

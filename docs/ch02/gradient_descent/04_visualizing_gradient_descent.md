@@ -16,7 +16,7 @@ Level 1 - Example 4: Visualizing Gradient Descent in Action
 - Observe effect of learning rate
 - Visualize convergence paths
 
-DIFFICULTY: ⭐ Beginner
+어려움: ⭐ 첫걸음
 
 TIME: 25-35 minutes
 

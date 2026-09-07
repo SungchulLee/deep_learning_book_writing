@@ -16,7 +16,7 @@ Level 1 - Example 2: PyTorch Autograd Basics
 - Compare manual vs automatic gradient computation
 - Master requires_grad and backward() methods
 
-DIFFICULTY: ⭐ Beginner
+어려움: ⭐ 첫걸음
 
 TIME: 25-35 minutes
 
