@@ -486,10 +486,10 @@ if __name__ == "__main__":
 
 | 차례 길이 | 보통 눈길 | 플래시 눈길 |
 |-----------------|-------------------|-----------------|
-| 1K | 4MB | O(block_size) |
-| 4K | 64MB | O(block_size) |
-| 16K | 1GB | O(block_size) |
-| 64K | 16GB | O(block_size) |
+| 1K | 4메가바이트 | O(block_size) |
+| 4K | 64메가바이트 | O(block_size) |
+| 16K | 1기가바이트 | O(block_size) |
+| 64K | 16기가바이트 | O(block_size) |
 
 ### 빠르기(흔한 경우)
 

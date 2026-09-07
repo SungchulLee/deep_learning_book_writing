@@ -21,7 +21,7 @@ $$\text{PPL} = \exp\!\left(-\frac{1}{T}\sum_{t=1}^{T} \log p_\theta(x_t \mid x_{
 
 **읽는 법**: 헷갈림도는 모델이 걸음마다 "고르는" 실효 낱말 곳간의 크기와 같다. 헷갈림도 20은 모델이 평균적으로 똑같이 그럴듯한 토막 20개에서 고르게 고르는 것만큼 흔들린다는 뜻이다. 낮을수록 좋다.
 
-**Relationship to cross-entropy**: Perplexity is $2^H$ where $H$ is the cross-entropy in bits per token, or equivalently $e^{H'}$ where $H'$ is cross-entropy in nats. The [scaling laws](../scaling/scaling_overview.md) predict that perplexity decreases as a power law with model size and training data.
+**엇갈린 엔트로피와의 사이**: 헷갈림도는 $2^H$이며 $H$은 토막마다 비트로 잰 엇갈린 엔트로피다. 같은 말로 $e^{H'}$이며 $H'$은 냇으로 잰 엇갈린 엔트로피다. [크기 법칙](../scaling/scaling_overview.md)은 헷갈림도가 모델 크기와 익힘 자료에 따라 거듭제곱 법칙으로 줄어든다고 미루어 본다.
 
 **바이트당 비트(BPB)**: 헷갈림도는 토막내개에 달렸으므로(곳간이 큰 모델은 토막당 헷갈림도가 낮은 편이다) **바이트당 비트**가 토막내개에 매이지 않는 견줌을 준다:
 
@@ -48,7 +48,7 @@ $$\text{BPB} = \frac{\text{total cross-entropy (bits)}}{\text{total bytes in tes
 
 ### 2.1 BLEU
 
-**BLEU** (Bilingual Evaluation Understudy; Papineni et al., 2002) measures $n$-gram precision between generated output $\hat{y}$ and reference $y$:
+**BLEU**(두 말 따짐 대역; 파피네니 외, 2002)는 만든 내놓음 $\hat{y}$과 본보기 $y$ 사이의 $n$낱말 정밀도를 잰다.
 
 $$\text{BLEU} = \text{BP} \cdot \exp\!\left(\sum_{n=1}^{N} w_n \log p_n\right)$$
 
@@ -171,7 +171,7 @@ $$P(y_A \succ y_B \mid x) = \frac{\exp(R_A)}{\exp(R_A) + \exp(R_B)}$$
 
 $$E_A = \frac{1}{1 + 10^{(R_B - R_A)/400}}, \quad R_A' = R_A + K(S_A - E_A)$$
 
-where $R_A, R_B$ are current ratings, $E_A$ is the expected win probability, $S_A \in \{0, 0.5, 1\}$ is the outcome, and $K$ is the update step size. As of 2024, Chatbot Arena is widely considered the most reliable public ranking of LLM quality due to its large-scale, blind, user-driven evaluation.
+여기서 $R_A, R_B$은 이제의 점수, $E_A$은 이길 바라는 확률, $S_A \in \{0, 0.5, 1\}$은 결과, $K$은 고침 걸음 크기다. 2024년 기준으로 챗봇 아레나는 크고 눈가림이며 쓰는 이가 이끄는 따짐 덕에 큰 말 모델의 좋음을 재는 가장 믿을 만한 공개 순위로 널리 여겨진다.
 
 ### 4.3 표시하는 사람들 사이의 일치
 

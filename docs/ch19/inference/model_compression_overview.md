@@ -194,7 +194,7 @@ $$
 w_i \approx c_{j}, \quad j = \arg\min_j |w_i - c_j|
 $$
 
-Gradients are accumulated per cluster and applied to the shared centroid, allowing the codebook to be fine-tuned during training. This reduces storage from 32 bits per weight to $\log_2(k)$ bits (typically 4-8 bits depending on layer type). Convolutional layers use fewer clusters (typically 256, i.e. 8 bits) while fully-connected layers can use even fewer (16-32 clusters, i.e. 4-5 bits).
+기울기를 무리마다 쌓아 함께 쓰는 가운데점에 걸므로 익히는 동안 부호책을 곱게 다듬을 수 있다. 그래서 담는 자리가 무게마다 32비트에서 $\log_2(k)$비트로 준다(층 갈래에 따라 흔히 4~8비트다). 누비기 층은 무리를 더 적게 쓰고(흔히 256개, 곧 8비트) 온통 이은 층은 더 적게도 쓸 수 있다(16~32개, 곧 4~5비트).
 
 #### 3단계: 허프먼 부호
 
@@ -204,8 +204,8 @@ Gradients are accumulated per cluster and applied to the shared centroid, allowi
 
 | 모델 | 본디 크기 | 가지친 뒤 | 양자화한 뒤 | 허프먼 뒤 | 전체 눌러 담기 |
 |-------|--------------|---------------|-------------------|---------------|-------------------|
-| AlexNet | 240 MB | 27 MB (9x) | 6.9 MB (35x) | 6.2 MB (39x) | **39x** |
-| VGG-16 | 552 MB | 42 MB (13x) | 11.3 MB (49x) | 11.0 MB (50x) | **49x** |
+| AlexNet | 240메가바이트 | 27메가바이트(9배) | 6.9메가바이트(35배) | 6.2메가바이트(39배) | **39배** |
+| VGG-16 | 552메가바이트 | 42메가바이트(13배) | 11.3메가바이트(49배) | 11.0메가바이트(50배) | **49배** |
 
 #### 계량 금융에 뜻하는 바
 

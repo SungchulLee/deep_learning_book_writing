@@ -348,13 +348,13 @@ if __name__ == "__main__":
 
 ### 걸음마다의 기대 토막 수
 
-If the acceptance rate is $\alpha$, expected accepted tokens per step:
+받아들임 비율이 $\alpha$이면 걸음마다 받아들이는 토막의 바라는 수는 다음과 같다.
 
 $$
 \mathbb{E}[\text{tokens}] = \sum_{k=1}^{K} k \cdot \alpha^{k-1}(1-\alpha) + (K+1)\alpha^K
 $$
 
-For $K=4$ and $\alpha=0.8$: $\mathbb{E} \approx 3.36$ tokens per step.
+$K=4$이고 $\alpha=0.8$이면 걸음마다 $\mathbb{E} \approx 3.36$개다.
 
 ### 빨라짐 살피기
 
@@ -363,14 +363,14 @@ For $K=4$ and $\alpha=0.8$: $\mathbb{E} \approx 3.36$ tokens per step.
 - $T_t$ = 목표 모델의 앞먹임 시간
 - $T_d$ = 밑그림 모델의 앞먹임 시간
 - $K$ = 밑그림 길이
-- $\alpha$ = acceptance rate
+- $\alpha$ = 받아들임 비율
 
-**Without speculation**: Generate $N$ tokens takes $N \cdot T_t$
+**미리 짐작하지 않으면**: 토막 $N$개를 만드는 데 $N \cdot T_t$이 든다
 
 **미리 짚을 때**:
 
 - Steps needed: $\approx N / \mathbb{E}[\text{tokens}]$
-- Time per step: $K \cdot T_d + T_t$ (K draft passes + 1 verify)
+- 걸음마다 드는 시간: $K \cdot T_d + T_t$(초안 걸음 K번 + 따짐 1번)
 
 **빨라짐**:
 

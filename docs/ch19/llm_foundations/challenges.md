@@ -17,13 +17,13 @@
 
 쓰는 이의 들임이 아리송하면(올바른 풀이가 여럿이면) 모델은 되물어 밝히기보다 익힘 분포에 바탕해 가장 그럴듯한 풀이를 고르는 것이 보통이다. 그러면 아리송한 물음의 *틀린* 풀이에 자신 있게 답할 수 있다.
 
-**Dialogue state tracking (DST)** is an active research direction aimed at maintaining explicit representations of the conversation state — user goals, mentioned entities, resolved and unresolved slots — to improve contextual accuracy. Formally, a DST system maintains a belief state $\mathbf{b}_t$ at each turn:
+**주고받기 상태 좇기(DST)**는 앞뒤 흐름의 맞음을 올리려고 주고받기 상태, 곧 쓰는 이의 목표, 언급된 개체, 채워진 자리와 아직 안 채워진 자리를 드러내 놓고 지니려는 활발한 연구 갈래다. 엄밀히 말하면 DST 얼개는 차례마다 믿음 상태 $\mathbf{b}_t$을 지닌다.
 
 $$
 \mathbf{b}_t = f_{\text{DST}}(\mathbf{b}_{t-1}, u_t, r_{t-1})
 $$
 
-where $\mathbf{b}_t$ encodes the system's understanding of user intent, mentioned entities, and dialogue progress. Current ChatGPT models do not use explicit DST; contextual understanding is handled implicitly through attention over the full conversation history.
+여기서 $\mathbf{b}_t$은 쓰는 이의 뜻, 언급된 개체, 주고받기가 나아간 정도에 대한 얼개의 이해를 담는다. 이제의 ChatGPT 모델은 DST을 드러내 놓고 쓰지 않는다. 앞뒤 흐름의 이해는 주고받기 전체에 대한 눈길로 넌지시 다룬다.
 
 !!! info "연구 방향: 기억을 덧붙인 모델"
     대화 간추림을 담아 두고 불러오는 찾아 붙이는 얼개 같은 바깥 기억 얼개가, 붙박이 창을 넘어 실효 맥락을 넓히려 연구되고 있다. 이 방식은 모델의 매개변수 기억을 드러나고 찾을 수 있는 기억 곳간으로 채워 준다.
@@ -32,7 +32,7 @@ where $\mathbf{b}_t$ encodes the system's understanding of user intent, mentione
 
 **헛것 지어내기**란 모델이 매끄럽고 그럴듯하지만 사실과 다른 글을 만들어 내는 것을 말한다. 쓰는 이의 믿음을 무너뜨리고 걸린 것이 큰 분야에 펼쳤을 때 실제 해를 끼칠 수 있어, 요즘 말 모델의 가장 결정적인 한계라 할 만하다.
 
-Hallucination arises from the fundamental training objective: the model is trained to produce *probable* text, not *true* text. The probability of a token sequence under the model $p_\theta(y \mid x)$ reflects statistical patterns in the training data, not verified factual knowledge.
+헛소리는 밑바탕 익힘 목표에서 비롯한다. 모델은 *참된* 글이 아니라 *그럴듯한* 글을 내놓도록 익힌다. 모델에서 토막 이음의 확률 $p_\theta(y \mid x)$은 따져 본 사실 지식이 아니라 익힘 자료의 통계 결을 비춘다.
 
 헛것 지어내기의 갈래는 다음과 같다:
 
@@ -53,7 +53,7 @@ Hallucination arises from the fundamental training objective: the model is train
 
 ChatGPT는 익힘 자료에 있는 치우침을 물려받고 키울 수 있다. 큰 규모의 웹 자료로 익히므로 성별 고정관념, 인종 치우침, 문화적 가정, 정치적 기울기 같은 사회의 치우침을 비출 수 있다.
 
-Formally, bias can be characterized as a systematic deviation in model outputs across protected groups. For a prompt $x$ and demographic attribute $a \in \{a_1, a_2\}$, bias exists when:
+엄밀히 말하면 치우침은 지켜야 할 집단에 걸쳐 모델의 내놓음이 짜임새 있게 벗어나는 것이라 할 수 있다. 물음 $x$과 인구 속성 $a \in \{a_1, a_2\}$에 대해 다음이 이루어지면 치우침이 있다.
 
 $$
 p_\theta(y \mid x, a = a_1) \neq p_\theta(y \mid x, a = a_2)
