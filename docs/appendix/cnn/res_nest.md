@@ -1,6 +1,6 @@
 # ResNeSt
 
-ResNeSt (Split-Attention Networks), proposed in 2020, extends ResNet by introducing split-attention blocks that apply channel-wise attention across multiple feature-map groups within each residual block. Inspired by SE-Net and SK-Net, ResNeSt captures cross-channel interactions at a finer granularity, improving representation learning for tasks like image classification, object detection, and semantic segmentation without significantly increasing computational cost.
+ResNeSt(가른 눈길 그물)은 2020년에 나왔으며, 나머지 덩이마다 여러 결 그림 무리에 갈래별 눈길을 거는 가른 눈길 덩이를 넣어 ResNet을 넓혔다. SE-Net과 SK-Net에서 실마리를 얻어, ResNeSt은 갈래를 넘나드는 주고받음을 더 잘게 담아, 셈 값을 크게 늘리지 않고도 그림 가름, 물체 알아내기, 뜻 나누기 같은 일의 드러냄 배우기를 낫게 한다.
 
 ## 코드
 

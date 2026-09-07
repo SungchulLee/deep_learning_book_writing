@@ -1,8 +1,8 @@
 # DETR
 
-DETR was introduced in the 2020 paper "End-to-End Object Detection with Transformers." CNN backbone + Transformer encoder/decoder + fixed set of object queries.      Predicts a set of boxes/classes directly (no anchors, no NMS in original formulation)..
+DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔다. CNN 등뼈 + 변환기 부호기/풀개 + 붙박인 물체 물음 묶음. 상자와 갈래를 곧바로 한 벌로 미루어 본다(본디 꼴에는 닻도 NMS도 없다).
 
-This implementation provides a concise, educational reference for DETR. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 DETR을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

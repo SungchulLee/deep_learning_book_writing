@@ -1,8 +1,8 @@
 # Beta-VAE
 
-Beta-VAE was introduced in the 2017 paper "β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework." - Add a β coefficient to the KL term   - Larger β → stronger disentanglement, worse reconstruction.
+Beta-VAE은 2017년 글 "β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework"에서 나왔다. - KL 마디에 β 값을 더한다 - β이 클수록 풀어 헤치기는 세지고 되살리기는 나빠진다.
 
-This implementation provides a concise, educational reference for Beta-VAE. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Beta-VAE을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

@@ -1,8 +1,8 @@
-# Bidirectional RNN / GRU / LSTM
+# 두 방향 RNN / GRU / LSTM
 
-Bidirectional RNN / GRU / LSTM - Processing sequences in both directions Key idea: run one RNN forward (t=1..T) and another backward (t=T..1),
+두 방향 RNN / GRU / LSTM - 이음을 두 방향으로 다루기. 고갱이 깨침: RNN 하나는 앞으로(t=1..T), 다른 하나는 뒤로(t=T..1) 돌린다,
 
-This implementation provides a concise, educational reference for Bidirectional RNN / GRU / LSTM. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Bidirectional RNN / GRU / LSTM을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

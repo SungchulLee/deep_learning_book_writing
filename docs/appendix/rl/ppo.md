@@ -1,8 +1,8 @@
 # PPO
 
-PPO was introduced in the 2017 paper "Proximal Policy Optimization Algorithms." - Policy gradient with a *clipped surrogate objective* to prevent large updates   - Often uses GAE advantages and minibatch epochs.
+PPO은 2017년 글 "Proximal Policy Optimization Algorithms"에서 나왔다. - 크게 고쳐지는 것을 막는 *잘라 낸 대리 목표*를 쓰는 방침 기울기 - 흔히 GAE 이득과 작은 묶음 판을 쓴다.
 
-This implementation provides a concise, educational reference for PPO. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 PPO을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-This implementation demonstrates key concepts in reinforcement learning using clean, readable PyTorch code. The modular structure makes it easy to study individual components and adapt them for different tasks or datasets.
+이 짜보기는 깔끔하고 읽기 쉬운 PyTorch 코드로 북돋움 배움의 고갱이 깨침을 보인다. 묶음으로 나눈 얼개 덕에 몫 하나하나를 살펴보고 다른 일이나 자료 묶음에 맞추어 바꾸기 쉽다.
 
 여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 고갱이 깨침은 크기와 상관없이 그대로다.
 
@@ -114,7 +114,7 @@ This implementation demonstrates key concepts in reinforcement learning using cl
 ---
 
 **익힘 4.**
-Write a comprehensive test function that validates the PPO implementation. Test edge cases including empty inputs, single-element inputs, very large inputs, and inputs with extreme values (zeros, very large numbers).
+PPO 짜보기가 옳은지 두루 따지는 시험 함수를 써라. 빈 들임, 원소 하나짜리 들임, 아주 큰 들임, 값이 끝으로 치우친 들임(0, 아주 큰 수)까지 금 언저리를 시험하여라.
 
 ??? success "익힘 4 풀이"
     금 언저리 조건을 두루 건드리는 시험 함수를 짓는다.

@@ -1,6 +1,6 @@
 # PyramidNet
 
-PyramidNet, proposed in "Deep Pyramidal Residual Learning for Image Recognition" (2017), gradually increases the feature map dimensions across residual blocks rather than using the conventional step-wise increases at downsampling stages. This smooth, pyramidal widening distributes the representational load more evenly across layers, reducing information loss at transition points and improving gradient flow during training.
+PyramidNet은 2017년 글 "그림 알아보기를 위한 깊은 두겁 나머지 배우기"에서 나왔으며, 성기게 하는 도막에서 계단처럼 늘리던 여느 길 대신 나머지 덩이를 지나며 결 그림의 차수를 차츰 늘린다. 이렇게 매끄럽게 두겁처럼 넓히면 드러냄의 짐이 켜에 더 고루 퍼져, 넘어가는 자리에서 소식을 덜 잃고 익히는 동안 기울기가 더 잘 흐른다.
 
 ## 코드
 

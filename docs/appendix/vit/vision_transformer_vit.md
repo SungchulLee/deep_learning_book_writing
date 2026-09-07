@@ -1,8 +1,8 @@
 # Vision Transformer VIT
 
-Vision Transformer (ViT) - An Image is Worth 16x16 Words Link: https://arxiv.org/abs/2010.11929
+보기 변환기(ViT) - 그림 하나는 16x16 낱말만 하다. 이음: https://arxiv.org/abs/2010.11929
 
-This implementation provides a concise, educational reference for Vision Transformer VIT. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Vision Transformer VIT을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

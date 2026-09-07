@@ -1,8 +1,8 @@
 # GAT
 
-GAT was introduced in the 2018 paper "Graph Attention Networks." - Learn attention weights over neighbors instead of fixed normalization   - For node i: aggregate neighbors j with alpha_{ij} learned from features.
+GAT은 2018년 글 "Graph Attention Networks"에서 나왔다. - 붙박인 잣대 맞추기 대신 이웃에 대한 눈길 짐을 배운다 - 마디 i에서는 결에서 배운 alpha_{ij}으로 이웃 j을 모은다.
 
-This implementation provides a concise, educational reference for GAT. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 GAT을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

@@ -1,8 +1,8 @@
 # GraphSAGE
 
-GraphSAGE was introduced in the 2017 paper "Inductive Representation Learning on Large Graphs." - Sample and aggregate neighbors   - Inductive: can generalize to unseen nodes/graphs   - Typical update: h'_i = sigma( W [h_i || AGG({h_j, j in N(i)})] ).
+GraphSAGE은 2017년 글 "Inductive Representation Learning on Large Graphs"에서 나왔다. - 이웃을 뽑아 모은다 - 미루어 넓히는 결: 본 적 없는 마디나 그림에도 두루 미친다 - 흔한 고침: h'_i = sigma( W [h_i || AGG({h_j, j in N(i)})] ).
 
-This implementation provides a concise, educational reference for GraphSAGE. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 GraphSAGE을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

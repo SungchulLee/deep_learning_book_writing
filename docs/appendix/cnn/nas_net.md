@@ -1,6 +1,6 @@
 # NASNet
 
-NASNet (Neural Architecture Search Network) represents a paradigm shift in neural network design: instead of hand-crafting architectures, NASNet uses reinforcement learning to discover optimal cell structures automatically. Published by Google Brain in 2018, the approach searches for two types of convolutional cells (normal and reduction) on a small dataset, then transfers them to larger tasks by stacking the discovered cells.
+NASNet(신경 얼개 찾기 그물)은 신경 그물 꾸미기의 틀을 바꾸었다. 얼개를 손으로 짜는 대신 북돋움 배움으로 가장 좋은 칸 얼개를 절로 찾아낸다. 2018년 구글 브레인이 내놓았으며, 작은 자료 묶음에서 엮음 칸 두 갈래(여느 칸과 줄임 칸)를 찾고, 찾아낸 칸을 쌓아 더 큰 일로 옮긴다.
 
 ## 코드
 

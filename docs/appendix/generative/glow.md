@@ -1,8 +1,8 @@
 # Glow
 
-Glow was introduced in the 2018 paper "Glow: Generative Flow with Invertible 1x1 Convolutions." - Improve RealNVP with learned invertible 1x1 convolutions.
+Glow은 2018년 글 "Glow: Generative Flow with Invertible 1x1 Convolutions"에서 나왔다. - 배운 되돌릴 수 있는 1x1 엮음으로 RealNVP을 낫게 한다.
 
-This implementation provides a concise, educational reference for Glow. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Glow을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

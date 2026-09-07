@@ -1,8 +1,8 @@
 # Stable Diffusion
 
-Stable Diffusion was introduced in the 2022 paper "High-Resolution Image Synthesis with Latent Diffusion Models." - Diffusion in *latent space*   - Text-conditioned via cross-attention.
+Stable Diffusion은 2022년 글 "High-Resolution Image Synthesis with Latent Diffusion Models"에서 나왔다. - *숨은 밭*에서의 번짐 - 엇결 눈길로 글월을 조건으로 삼는다.
 
-This implementation provides a concise, educational reference for Stable Diffusion. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Stable Diffusion을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

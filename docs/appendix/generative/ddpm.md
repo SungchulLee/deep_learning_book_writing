@@ -1,8 +1,8 @@
 # DDPM
 
-DDPM was introduced in the 2020 paper "Denoising Diffusion Probabilistic Models." - Gradually add Gaussian noise   - Learn to reverse the diffusion process.
+DDPM은 2020년 글 "Denoising Diffusion Probabilistic Models"에서 나왔다. - 가우스 시끄러움을 차츰 더한다 - 번짐 흐름을 거꾸로 되돌리는 것을 배운다.
 
-This implementation provides a concise, educational reference for DDPM. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 DDPM을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

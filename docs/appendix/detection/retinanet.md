@@ -1,8 +1,8 @@
 # RetinaNet
 
-RetinaNet was introduced in the 2017 paper "Focal Loss for Dense Object Detection." Focal loss to handle class imbalance, Feature Pyramid Network (FPN).
+RetinaNet은 2017년 글 "Focal Loss for Dense Object Detection"에서 나왔다. 갈래가 치우친 것을 다루는 초점 잃음과 결 두겁 그물(FPN)을 쓴다.
 
-This implementation provides a concise, educational reference for RetinaNet. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 RetinaNet을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
 이 짜보기는 갈래 2개(`FPN`, `RetinaNet`)를 매기고, 이들이 어울려 온전한 물체 알아내기 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch이 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
-The loss computation connects the model's outputs to the optimization objective. Choosing the appropriate loss function is critical because it defines what the model learns to optimize, directly shaping the learned representations and decision boundaries.
+잃음 셈은 모형의 날임을 다듬기의 목표와 잇는다. 알맞은 잃음 함수를 고르는 일은 몹시 종요롭다. 모형이 무엇을 다듬도록 배울지를 매기고, 배운 드러냄과 가름 테두리를 곧바로 빚어내기 때문이다.
 
 여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 고갱이 깨침은 크기와 상관없이 그대로다.
 

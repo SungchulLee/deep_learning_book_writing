@@ -1,8 +1,8 @@
 # Pix2Pix
 
-Pix2Pix was introduced in the 2017 paper "Image-to-Image Translation with Conditional Adversarial Networks." - Conditional GAN   - Requires paired (x, y) training data.
+Pix2Pix은 2017년 글 "Image-to-Image Translation with Conditional Adversarial Networks"에서 나왔다. - 조건 붙은 맞겨루기 만들개 - 짝지은 (x, y) 익힘 자료가 든다.
 
-This implementation provides a concise, educational reference for Pix2Pix. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Pix2Pix을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

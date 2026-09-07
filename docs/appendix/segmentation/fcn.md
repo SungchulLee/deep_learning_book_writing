@@ -1,8 +1,8 @@
 # FCN
 
-FCN was introduced in the 2015 paper "Fully Convolutional Networks for Semantic Segmentation." First end-to-end CNN for semantic segmentation, replaces FC with conv layers.
+FCN은 2015년 글 "Fully Convolutional Networks for Semantic Segmentation"에서 나왔다. 뜻 나누기를 위한 첫 끝에서 끝까지 CNN이며 온통 이은 켜를 엮음 켜로 갈음한다.
 
-This implementation provides a concise, educational reference for FCN. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 FCN을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

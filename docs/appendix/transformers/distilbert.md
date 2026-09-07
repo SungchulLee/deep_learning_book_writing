@@ -1,8 +1,8 @@
 # DistilBERT
 
-DistilBERT was introduced in the 2019 paper "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter." - Knowledge distillation: train a smaller student Transformer to match a larger teacher   - Typically fewer layers, similar hidden size.
+DistilBERT은 2019년 글 "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter"에서 나왔다. - 앎 옮기기: 더 큰 스승에 맞추도록 더 작은 제자 변환기를 익힌다 - 흔히 켜는 적고 숨은 크기는 비슷하다.
 
-This implementation provides a concise, educational reference for DistilBERT. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 DistilBERT을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

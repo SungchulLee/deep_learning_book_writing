@@ -1,8 +1,8 @@
 # SSD
 
-SSD was introduced in the 2016 paper "SSD: Single Shot MultiBox Detector." Multi-scale feature maps for detection, single forward pass.
+SSD은 2016년 글 "SSD: Single Shot MultiBox Detector"에서 나왔다. 여러 잣대의 결 그림으로 알아내며 앞으로 걸음 한 번이면 된다.
 
-This implementation provides a concise, educational reference for SSD. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 SSD을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

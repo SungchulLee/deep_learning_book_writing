@@ -1,8 +1,8 @@
 # DeiT
 
-DeiT was introduced in the 2021 paper "Training data-efficient image transformers & distillation through attention." - Train ViT with less data using knowledge distillation   - Introduce a *distillation token* in addition to the class token.
+DeiT은 2021년 글 "Training data-efficient image transformers & distillation through attention"에서 나왔다. - 앎 옮기기로 더 적은 자료로 ViT을 익힌다 - 갈래 낱말에 더해 *옮김 낱말*을 둔다.
 
-This implementation provides a concise, educational reference for DeiT. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 DeiT을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

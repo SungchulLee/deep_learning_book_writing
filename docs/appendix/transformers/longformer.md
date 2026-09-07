@@ -1,8 +1,8 @@
 # Longformer
 
-Longformer was introduced in the 2020 paper "Longformer: The Long-Document Transformer." - Replace full O(S^2) attention with:       (a) sliding-window local attention (O(S * window))       (b) optional global attention tokens (e.g., [CLS], question tokens).
+Longformer은 2020년 글 "Longformer: The Long-Document Transformer"에서 나왔다. - 온전한 O(S^2) 눈길을 다음으로 갈음한다: (가) 미닫이 창 그 자리 눈길(O(S * 창)) (나) 골라 쓰는 두루 눈길 낱말(예: [CLS], 물음 낱말).
 
-This implementation provides a concise, educational reference for Longformer. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Longformer을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

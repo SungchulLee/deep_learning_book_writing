@@ -1,6 +1,6 @@
 # ShuffleNet
 
-ShuffleNet, introduced in "ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices" (2018), achieves high efficiency through two key operations: pointwise group convolutions to reduce computation and channel shuffle operations to enable information flow between groups. This design enables real-time inference on mobile devices while maintaining competitive accuracy.
+ShuffleNet은 2018년 글 "ShuffleNet: 손전화를 위한 아주 잘 드는 엮음 신경 그물"에서 나왔으며, 고갱이 셈 둘로 크게 잘 든다. 셈을 줄이는 점별 무리 엮음과, 무리 사이에 소식이 흐르게 하는 갈래 섞기다. 이 꾸밈은 쓸 만한 맞음을 지키면서 손전화에서 곧바로 미루어 볼 수 있게 한다.
 
 ## 코드
 

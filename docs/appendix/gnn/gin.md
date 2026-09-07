@@ -1,8 +1,8 @@
 # GIN
 
-GIN was introduced in the 2019 paper "How Powerful are Graph Neural Networks?." - Use sum aggregation + MLP   - Update: h'_i = MLP( (1 + eps) * h_i + sum_{j in N(i)} h_j )   - Proven as powerful as the Weisfeiler-Lehman test (under assumptions).
+GIN은 2019년 글 "How Powerful are Graph Neural Networks?"에서 나왔다. - 더하기 모으기 + MLP을 쓴다 - 고침: h'_i = MLP( (1 + eps) * h_i + sum_{j in N(i)} h_j ) - (몇 가지 가정 아래) 바이스파일러-레만 시험만큼 힘세다고 밝혀졌다.
 
-This implementation provides a concise, educational reference for GIN. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 GIN을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

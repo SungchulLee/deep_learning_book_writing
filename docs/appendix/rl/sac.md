@@ -1,8 +1,8 @@
 # SAC
 
-SAC was introduced in the 2018 paper "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning." - Actor maximizes expected return + entropy (exploration)   - Two Q networks (double Q) to reduce positive bias   - Target Q networks for stability.
+SAC은 2018년 글 "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning"에서 나왔다. - 움직이는 이가 바라는 되받음 + 엔트로피(둘러보기)를 가장 크게 한다 - Q 그물 둘(겹 Q)로 위로 치우침을 줄인다 - 든든함을 위해 과녁 Q 그물을 쓴다.
 
-This implementation provides a concise, educational reference for SAC. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 SAC을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

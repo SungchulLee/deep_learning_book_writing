@@ -1,8 +1,8 @@
 # Vanilla RNN
 
-Vanilla RNN - Recurrent Neural Network (Elman RNN) Classic idea: maintain a hidden state that is updated sequentially over time.
+맨 RNN - 되도는 신경 그물(엘만 RNN). 옛 깨침: 때를 따라 차례로 고쳐지는 숨은 상태를 지닌다.
 
-This implementation provides a concise, educational reference for Vanilla RNN. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Vanilla RNN을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

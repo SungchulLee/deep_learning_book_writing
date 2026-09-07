@@ -1,6 +1,6 @@
 # ConvNeXt V2
 
-ConvNeXt V2, introduced in the 2023 paper "ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders," extends the original ConvNeXt with two key innovations: a self-supervised pretraining strategy using masked autoencoders (FCMAE) and a new normalization layer called Global Response Normalization (GRN). Together, these improvements enable ConvNeXt V2 to scale more effectively and achieve stronger performance across a wide range of model sizes.
+ConvNeXt V2은 2023년 글 "ConvNeXt V2: 가린 제 부호기와 함께 엮음 그물을 꾸미고 키우기"에서 나왔으며, 본디 ConvNeXt에 두 가지 고갱이 새로움을 더한다. 가린 제 부호기(FCMAE)로 스스로 이끌며 미리 익히는 꾀와, 두루 되받음 잣대 잡기(GRN)이라는 새 잣대 잡기 켜다. 이 둘 덕에 ConvNeXt V2은 더 잘 커지고 여러 크기에서 더 나은 됨됨이를 보인다.
 
 ## 코드
 
@@ -71,32 +71,32 @@ if __name__ == "__main__":
 
 ## 논의
 
-The Global Response Normalization (GRN) layer is the architectural centerpiece of ConvNeXt V2. It addresses the feature collapse problem that arises when training ConvNets with masked autoencoder pretraining. GRN operates by first computing the $L^2$ norm of each channel's spatial response, then normalizing these norms relative to their mean across channels, and finally using the normalized values to re-scale the original features. The learnable parameters $\gamma$ and $\beta$ provide flexibility, and the residual connection ensures the layer can initially behave as an identity.
+두루 되받음 잣대 잡기(GRN) 켜가 ConvNeXt V2 얼개의 고갱이다. 가린 제 부호기로 엮음 그물을 미리 익힐 때 생기는 결 주저앉음을 다룬다. GRN은 먼저 갈래마다 자리 되받음의 $L^2$ 노름을 셈하고, 그 노름을 갈래에 걸친 평균에 견주어 맞춘 뒤, 맞춘 값으로 본디 결의 잣대를 다시 잡는다. 배울 수 있는 매개변수 $\gamma$과 $\beta$이 너그러움을 주고, 나머지 이음 덕에 처음에는 제 자리 함수처럼 움직일 수 있다.
 
-The motivation for GRN comes from the observation that masked autoencoder pretraining, which works well for Vision Transformers, causes feature redundancy in ConvNets. Without GRN, many channels learn similar representations, reducing the effective capacity of the model. By encouraging competition among channels through global normalization, GRN promotes feature diversity and makes each channel's contribution more distinctive.
+GRN은 보기 변환기에는 잘 듣는 가린 제 부호기 미리 익히기가 엮음 그물에서는 결의 군더더기를 낳는다는 살핌에서 비롯했다. GRN이 없으면 많은 갈래가 비슷한 결을 배워 모형이 참으로 담는 힘이 줄어든다. 두루 잣대를 맞추어 갈래끼리 겨루게 하면 GRN이 결의 다양함을 북돋우고 갈래마다의 몫을 더 뚜렷하게 한다.
 
-Compared to the original ConvNeXt, the V2 block replaces the layer scale mechanism with GRN placed after the GELU activation in the inverted bottleneck. This change, combined with the fully convolutional masked autoencoder (FCMAE) pretraining strategy, allows ConvNeXt V2 to match or surpass transformer-based models across a spectrum of model sizes, from tiny (4M parameters) to huge (600M+ parameters).
+본디 ConvNeXt과 견주면 V2 덩이는 켜 잣대 얼개를 없애고 뒤집힌 목의 GELU 살림 뒤에 GRN을 둔다. 이 고침과 온통 엮음으로 된 가린 제 부호기(FCMAE) 미리 익히기를 함께 쓰면, ConvNeXt V2은 아주 작은 것(매개변수 400만)에서 아주 큰 것(6억 넘음)에 이르는 여러 크기에서 변환기 바탕 모형에 맞먹거나 앞선다.
 
 ## 익힘 문제
 
 **익힘 1.**
-For an input tensor of shape $(B, H, W, D)$ in the GRN layer, describe the shape of $G_x$ and $N_x$ at each step.
+GRN 켜에 꼴이 $(B, H, W, D)$인 들임 텐서가 들어올 때 걸음마다 $G_x$과 $N_x$의 꼴을 밝혀라.
 
 ??? success "익힘 1 풀이"
-    Starting with input $x$ of shape $(B, H, W, D)$: (1) $G_x = \|x\|_2$ computed over dimensions $(1, 2)$ (height and width) with keepdim gives shape $(B, 1, 1, D)$. This is the $L^2$ norm of each channel's spatial response. (2) $G_x.\text{mean}(\text{dim}=-1, \text{keepdim}=\text{True})$ averages across the $D$ dimension, producing shape $(B, 1, 1, 1)$. (3) $N_x = G_x / (\text{mean} + \epsilon)$ has shape $(B, 1, 1, D)$, representing the normalized response of each channel relative to the average channel response. The final output $\gamma \cdot (x \cdot N_x) + \beta + x$ has shape $(B, H, W, D)$.
+    꼴이 $(B, H, W, D)$인 들임 $x$에서 비롯한다. (1) 차수 $(1, 2)$(높이와 너비)에 걸쳐 keepdim으로 셈한 $G_x = \|x\|_2$의 꼴은 $(B, 1, 1, D)$이다. 이는 갈래마다 자리 되받음의 $L^2$ 노름이다. (2) $G_x.\text{mean}(\text{dim}=-1, \text{keepdim}=\text{True})$은 $D$ 차수에 걸쳐 고르게 하여 꼴이 $(B, 1, 1, 1)$이다. (3) $N_x = G_x / (\text{mean} + \epsilon)$의 꼴은 $(B, 1, 1, D)$이며, 갈래마다의 되받음을 갈래 평균에 견준 값이다. 마지막 날임 $\gamma \cdot (x \cdot N_x) + \beta + x$의 꼴은 $(B, H, W, D)$이다.
 
 ---
 
 **익힘 2.**
-Compare GRN to Squeeze-and-Excitation (SE) blocks. What are the key similarities and differences in how they modulate channel responses?
+GRN과 쥐어짜 북돋우기(SE) 덩이를 견주어라. 갈래 되받음을 다스리는 방식에서 무엇이 닮고 무엇이 다른가?
 
 ??? success "익힘 2 풀이"
-    Both GRN and SE blocks perform channel-wise feature recalibration based on global spatial information. SE blocks squeeze spatial dimensions via global average pooling, then learn channel weights through a bottleneck MLP with sigmoid activation, producing weights in $[0, 1]$. GRN instead computes $L^2$ norms over spatial dimensions and normalizes them by their cross-channel mean, producing unbounded scaling factors. Key differences: (1) SE uses a learned nonlinear transformation (MLP) while GRN uses a fixed normalization formula with learned affine parameters. (2) SE weights are bounded by sigmoid, while GRN scaling is unbounded. (3) GRN includes a residual connection by design. (4) GRN has far fewer parameters (just $2D$) compared to SE ($2D^2/r$ where $r$ is the reduction ratio).
+    GRN과 SE 덩이는 둘 다 두루 걸친 자리 소식으로 갈래마다 결의 눈금을 다시 잡는다. SE 덩이는 두루 고르게 모으기로 자리 차수를 쥐어짜고 시그모이드를 쓰는 목 MLP으로 갈래 짐을 배워 $[0, 1]$의 짐을 낸다. GRN은 그 대신 자리 차수에 걸쳐 $L^2$ 노름을 셈하고 갈래를 넘나드는 평균으로 맞추어 마디 없는 잣대 값을 낸다. 고갱이 다름은 이렇다. (1) SE은 배운 곧지 않은 바꿈(MLP)을 쓰고 GRN은 붙박인 잣대 맞추기 식에 배운 아핀 매개변수를 곁들인다. (2) SE의 짐은 시그모이드로 마디 지어지고 GRN의 잣대는 마디가 없다. (3) GRN에는 나머지 이음이 처음부터 들어 있다. (4) GRN의 매개변수는 $2D$개뿐이라 SE($r$이 줄임 견줌일 때 $2D^2/r$개)보다 훨씬 적다.
 
 ---
 
 **익힘 3.**
-Implement a variant of GRN that operates in NCHW format (without requiring the permute to NHWC), making it compatible with standard convolutional layers.
+NHWC으로 옮기지 않고 NCHW 꼴에서 움직여 여느 엮음 켜와 맞물리는 GRN 갈래를 짜라.
 
 ??? success "익힘 3 풀이"
     ```python
@@ -112,4 +112,4 @@ Implement a variant of GRN that operates in NCHW format (without requiring the p
             Nx = Gx / (Gx.mean(dim=1, keepdim=True) + 1e-6)    # (B, C, 1, 1)
             return self.gamma * (x * Nx) + self.beta + x
     ```
-    The key change is adjusting the norm dimensions from $(1, 2)$ to $(2, 3)$ and the mean dimension from $-1$ to $1$, and reshaping the learnable parameters to $(1, D, 1, 1)$ for broadcasting compatibility with NCHW tensors.
+    고갱이 고침은 노름의 차수를 $(1, 2)$에서 $(2, 3)$으로, 평균의 차수를 $-1$에서 $1$으로 바꾸고, 배울 수 있는 매개변수의 꼴을 $(1, D, 1, 1)$으로 바꾸어 NCHW 텐서와 펴 맞추기가 되게 하는 것이다.

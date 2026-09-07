@@ -1,8 +1,8 @@
 # GCN
 
-GCN was introduced in the 2017 paper "Semi-Supervised Classification with Graph Convolutional Networks." - Node features are updated by aggregating (normalized) neighbor features   - Uses normalized adjacency:  D^{-1/2} (A + I) D^{-1/2}.
+GCN은 2017년 글 "Semi-Supervised Classification with Graph Convolutional Networks"에서 나왔다. - 마디 결은 (잣대 맞춘) 이웃 결을 모아 고친다 - 잣대 맞춘 이웃 행렬을 쓴다: D^{-1/2} (A + I) D^{-1/2}.
 
-This implementation provides a concise, educational reference for GCN. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 GCN을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

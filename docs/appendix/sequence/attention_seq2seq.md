@@ -1,8 +1,8 @@
 # Attention SEQ2SEQ
 
-Attention SEQ2SEQ was introduced in the 2014 paper "Neural Machine Translation by Jointly Learning to Align and Translate." Attention mechanism to focus on relevant parts of input.
+Attention SEQ2SEQ은 2014년 글 "Neural Machine Translation by Jointly Learning to Align and Translate"에서 나왔다. 들임에서 걸리는 곳에 마음을 두게 하는 눈길 얼개를 쓴다.
 
-This implementation provides a concise, educational reference for Attention SEQ2SEQ. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Attention SEQ2SEQ을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

@@ -1,8 +1,8 @@
 # YOLOv3
 
-YOLOv3 was introduced in the 2018 paper "YOLOv3: An Incremental Improvement." Single-shot object detection, predicts at 3 scales.
+YOLOv3은 2018년 글 "YOLOv3: An Incremental Improvement"에서 나왔다. 한 방에 물체를 알아내며 잣대 셋에서 미루어 본다.
 
-This implementation provides a concise, educational reference for YOLOv3. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 YOLOv3을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

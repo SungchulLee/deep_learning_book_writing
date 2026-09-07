@@ -1,8 +1,8 @@
 # BEiT
 
-BEiT was introduced in the 2021 paper "BEiT: BERT Pre-Training of Image Transformers." - Self-supervised pretraining   - Predict *discrete visual tokens* instead of pixels   - Inspired by BERT masked language modeling.
+BEiT은 2021년 글 "BEiT: BERT Pre-Training of Image Transformers"에서 나왔다. - 스스로 이끌며 미리 익힌다 - 낱그림점 대신 *따로 떨어진 보기 낱말*을 미루어 본다 - BERT의 가린 말 모형에서 실마리를 얻었다.
 
-This implementation provides a concise, educational reference for BEiT. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 BEiT을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

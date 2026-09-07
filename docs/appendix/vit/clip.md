@@ -1,8 +1,8 @@
 # CLIP
 
-CLIP was introduced in the 2021 paper "Learning Transferable Visual Models From Natural Language Supervision." - Jointly train image encoder + text encoder   - Align them using contrastive loss in a shared embedding space.
+CLIP은 2021년 글 "Learning Transferable Visual Models From Natural Language Supervision"에서 나왔다. - 그림 부호기와 글월 부호기를 함께 익힌다 - 나누어 쓰는 담음 밭에서 맞대어 잃음으로 둘을 맞춘다.
 
-This implementation provides a concise, educational reference for CLIP. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 CLIP을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

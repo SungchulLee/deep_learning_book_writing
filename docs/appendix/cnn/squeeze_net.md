@@ -1,6 +1,6 @@
 # SqueezeNet
 
-SqueezeNet, proposed in "SqueezeNet: AlexNet-level accuracy with 50x fewer parameters" (2016), demonstrates that compact architectures can match larger models. Its fire modules use 1x1 squeeze convolutions to reduce channel dimensions before expanding with a mix of 1x1 and 3x3 filters. The resulting model achieves AlexNet-level accuracy on ImageNet with 50 times fewer parameters.
+SqueezeNet은 2016년 글 "SqueezeNet: 매개변수 50배 적게 AlexNet만 한 맞음"에서 나왔으며, 옹골찬 얼개도 더 큰 모형에 맞먹을 수 있음을 보였다. 불꽃 묶음은 1x1 쥐어짜기 엮음으로 갈래 차수를 줄인 뒤 1x1과 3x3 거르개를 섞어 넓힌다. 그렇게 나온 모형은 매개변수가 50배 적으면서도 이미지넷에서 AlexNet만 한 맞음을 이룬다.
 
 ## 코드
 

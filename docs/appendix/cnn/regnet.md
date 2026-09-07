@@ -1,6 +1,6 @@
 # RegNet
 
-RegNet, introduced by Facebook AI Research in 2020, takes a design-space approach to neural architecture development. Rather than searching for a single optimal network, RegNet defines a structured design space parameterized by a small number of variables (depth, initial width, slope, and group width). Networks sampled from this space follow a simple linear parameterization of widths across stages, yielding models that are fast, memory-efficient, and highly competitive.
+RegNet은 2020년 페이스북 AI 연구소가 내놓았으며, 신경 얼개를 짓는 데 꾸밈 밭이라는 길을 쓴다. 가장 좋은 그물 하나를 찾는 대신, RegNet은 몇 안 되는 변수(깊이, 첫 너비, 기울기, 무리 너비)로 매기는 짜임새 있는 꾸밈 밭을 세운다. 이 밭에서 뽑은 그물은 도막을 지나며 너비가 단순한 선형으로 매겨지고, 빠르고 기억을 아끼며 아주 쓸 만한 모형이 나온다.
 
 ## 코드
 

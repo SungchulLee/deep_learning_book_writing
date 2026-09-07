@@ -1,6 +1,6 @@
 # ResNeXt
 
-ResNeXt, introduced in "Aggregated Residual Transformations for Deep Neural Networks" (2017), extends ResNet by replacing standard residual blocks with aggregated transformations. Each block splits its computation into multiple parallel pathways (cardinality), each applying the same transformation but with different learned weights. This multi-branch design increases the network's representational power while maintaining a simple, homogeneous topology.
+ResNeXt은 2017년 글 "깊은 신경 그물을 위한 모은 나머지 바꿈"에서 나왔으며, 여느 나머지 덩이를 모은 바꿈으로 갈음해 ResNet을 넓혔다. 덩이마다 셈을 여러 나란한 길(갈래 수)로 가르고, 길마다 같은 바꿈을 걸되 배운 짐은 서로 다르다. 이 여러 가지 꾸밈은 단순하고 고른 짜임새를 지키면서 그물이 드러내는 힘을 키운다.
 
 ## 코드
 

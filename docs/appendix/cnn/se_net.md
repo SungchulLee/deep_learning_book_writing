@@ -1,6 +1,6 @@
 # SENet
 
-Squeeze-and-Excitation Networks (SE-Net), proposed in the 2018 paper "Squeeze-and-Excitation Networks," introduce a channel attention mechanism that adaptively recalibrates feature responses. Each SE block first squeezes spatial information into a channel descriptor via global average pooling, then uses two fully connected layers to learn channel-wise importance weights. This lightweight module can be inserted into any CNN architecture to boost performance.
+쥐어짜 북돋우는 그물(SE-Net)은 2018년 글 "쥐어짜 북돋우는 그물"에서 나왔으며, 결 되받음의 눈금을 맞추어 가며 다시 잡는 갈래 눈길 얼개를 내놓았다. SE 덩이마다 먼저 두루 고르게 모으기로 자리 소식을 갈래 밝힘으로 쥐어짜고, 온통 이은 켜 둘로 갈래마다의 종요로움 짐을 배운다. 이 가벼운 묶음은 어떤 CNN 얼개에나 끼워 넣어 됨됨이를 올릴 수 있다.
 
 ## 코드
 

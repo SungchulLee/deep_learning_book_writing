@@ -1,8 +1,8 @@
-# Loss Functions
+# 잃음 함수
 
-Loss Functions - Common deep learning losses Includes:
+잃음 함수 - 흔한 깊은 배움 잃음. 담긴 것:
 
-This implementation provides a concise, educational reference for Loss Functions. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Loss Functions을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-The loss computation connects the model's outputs to the optimization objective. Choosing the appropriate loss function is critical because it defines what the model learns to optimize, directly shaping the learned representations and decision boundaries.
+잃음 셈은 모형의 날임을 다듬기의 목표와 잇는다. 알맞은 잃음 함수를 고르는 일은 몹시 종요롭다. 모형이 무엇을 다듬도록 배울지를 매기고, 배운 드러냄과 가름 테두리를 곧바로 빚어내기 때문이다.
 
 여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 고갱이 깨침은 크기와 상관없이 그대로다.
 
@@ -108,7 +108,7 @@ The loss computation connects the model's outputs to the optimization objective.
 ---
 
 **익힘 4.**
-Write a comprehensive test function that validates the Loss Functions implementation. Test edge cases including empty inputs, single-element inputs, very large inputs, and inputs with extreme values (zeros, very large numbers).
+Loss Functions 짜보기가 옳은지 두루 따지는 시험 함수를 써라. 빈 들임, 원소 하나짜리 들임, 아주 큰 들임, 값이 끝으로 치우친 들임(0, 아주 큰 수)까지 금 언저리를 시험하여라.
 
 ??? success "익힘 4 풀이"
     금 언저리 조건을 두루 건드리는 시험 함수를 짓는다.

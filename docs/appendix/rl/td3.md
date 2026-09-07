@@ -1,8 +1,8 @@
 # TD3
 
-TD3 was introduced in the 2018 paper "Addressing Function Approximation Error in Actor-Critic Methods." 1) Twin Q networks (min of two critics)   2) Target policy smoothing (add noise to target action)   3) Delayed actor updates.
+TD3은 2018년 글 "Addressing Function Approximation Error in Actor-Critic Methods"에서 나왔다. 1) 쌍둥이 Q 그물(따지는 이 둘 가운데 작은 값) 2) 과녁 방침 매끄럽게 하기(과녁 움직임에 시끄러움을 더한다) 3) 움직이는 이를 늦추어 고치기.
 
-This implementation provides a concise, educational reference for TD3. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 TD3을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

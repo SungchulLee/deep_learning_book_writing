@@ -1,8 +1,8 @@
 # Seq2Seq
 
-Seq2Seq was introduced in the 2014 paper "Sequence to Sequence Learning with Neural Networks." Encoder-Decoder architecture for sequence transduction.
+Seq2Seq은 2014년 글 "Sequence to Sequence Learning with Neural Networks"에서 나왔다. 이음을 옮기는 부호기-풀개 얼개다.
 
-This implementation provides a concise, educational reference for Seq2Seq. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Seq2Seq을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

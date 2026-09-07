@@ -1,8 +1,8 @@
 # MPNN
 
-MPNN was introduced in the 2017 paper "Neural Message Passing for Quantum Chemistry." - Separate *message* function and *update* function   - Iterative propagation for T steps:       m_i^{t+1} = sum_{j in N(i)} M(h_i^t, h_j^t, e_{ij})       h_i^{t+1} = U(h_i^t, m_i^{t+1}).
+MPNN은 2017년 글 "Neural Message Passing for Quantum Chemistry"에서 나왔다. - *알림* 함수와 *고침* 함수를 따로 둔다 - T 걸음 동안 거듭 퍼뜨린다: m_i^{t+1} = sum_{j in N(i)} M(h_i^t, h_j^t, e_{ij}) h_i^{t+1} = U(h_i^t, m_i^{t+1}).
 
-This implementation provides a concise, educational reference for MPNN. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 MPNN을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

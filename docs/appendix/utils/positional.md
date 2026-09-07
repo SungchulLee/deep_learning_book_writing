@@ -1,8 +1,8 @@
-# Positional Encodings
+# 자리 담기
 
-Positional Encodings - Common variants for sequence models Includes:
+자리 담기 - 이음 모형을 위한 흔한 갈래. 담긴 것:
 
-This implementation provides a concise, educational reference for Positional Encodings. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 Positional Encodings을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

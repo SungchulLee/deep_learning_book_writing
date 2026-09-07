@@ -1,6 +1,6 @@
 # EfficientNet V2
 
-EfficientNetV2, presented in the 2021 paper "EfficientNetV2: Smaller Models and Faster Training," improves upon the original EfficientNet with Fused-MBConv layers and a progressive learning strategy. These changes significantly reduce training time while maintaining or improving accuracy. The architecture was discovered through a combination of neural architecture search and manual refinement, optimizing for both training speed and parameter efficiency.
+EfficientNetV2은 2021년 글 "EfficientNetV2: 더 작은 모형과 더 빠른 익힘"에서 나왔으며, 녹여 붙인 MBConv 켜와 차근차근 배우는 꾀로 본디 EfficientNet을 낫게 한다. 이로써 맞음은 지키거나 올리면서 익힘 때는 크게 준다. 얼개는 신경 얼개 찾기와 손질을 아울러 찾아냈으며, 익힘 빠르기와 매개변수의 잘 듦을 함께 다듬었다.
 
 ## 코드
 
@@ -52,32 +52,32 @@ if __name__ == "__main__":
 
 ## 논의
 
-The central architectural innovation in EfficientNetV2 is the Fused-MBConv block, which replaces the depthwise separable convolution in early stages with a regular $3 \times 3$ convolution. While depthwise separable convolutions are parameter-efficient, they underutilize modern accelerator hardware (GPUs/TPUs) due to low arithmetic intensity. The fused variant uses a standard $3 \times 3$ convolution to expand channels, followed by a $1 \times 1$ projection, achieving better hardware utilization at the cost of slightly more parameters. EfficientNetV2 uses Fused-MBConv in early stages (where feature maps are large) and standard MBConv in later stages.
+EfficientNetV2의 고갱이 얼개 새로움은 녹여 붙인 MBConv 덩이다. 이른 도막에서 깊이별로 가른 엮음을 여느 $3 \times 3$ 엮음으로 갈음한다. 깊이별로 가른 엮음은 매개변수가 적지만 셈의 밀도가 낮아 요즘 빠르게 하는 쇠 붙임새(GPU/TPU)를 덜 쓴다. 녹여 붙인 갈래는 여느 $3 \times 3$ 엮음으로 갈래를 넓힌 뒤 $1 \times 1$으로 되비추어, 매개변수가 조금 늘지만 쇠 붙임새를 더 잘 쓴다. EfficientNetV2은 결 그림이 큰 이른 도막에는 녹여 붙인 MBConv을, 늦은 도막에는 여느 MBConv을 쓴다.
 
-The progressive learning strategy is another key contribution. During training, the image resolution and regularization strength (dropout, data augmentation) are gradually increased. Early epochs use smaller images with weaker augmentation, allowing the model to learn coarse features quickly, while later epochs use full-resolution images with strong regularization. This adaptive approach can reduce training time by up to 11x compared to fixed-resolution training.
+차근차근 배우는 꾀도 고갱이 이바지다. 익히는 동안 그림의 결과 다독임의 셈(드롭아웃, 자료 불리기)을 차츰 올린다. 이른 판에는 작은 그림과 여린 불리기를 써서 거친 결을 빨리 배우게 하고, 늦은 판에는 온 결의 그림과 센 다독임을 쓴다. 이 맞추어 가는 길은 결을 붙박은 익힘보다 익힘 때를 최대 11배까지 줄일 수 있다.
 
-EfficientNetV2 also uses SiLU (Swish) activation throughout, which has been shown to outperform ReLU in many settings. The SiLU function $f(x) = x \cdot \sigma(x)$ is smooth and non-monotonic, providing better gradient flow during training.
+EfficientNetV2은 어디에나 SiLU(Swish) 살림을 쓰는데, 여러 자리에서 ReLU보다 낫다고 밝혀졌다. SiLU 함수 $f(x) = x \cdot \sigma(x)$은 매끄럽고 한 방향으로만 오르지 않아 익히는 동안 기울기가 더 잘 흐른다.
 
 ## 익힘 문제
 
 **익힘 1.**
-Compare the computational cost (in FLOPs) of a standard MBConv block versus a FusedMBConv block, given input shape $(1, 32, 56, 56)$ with expand ratio 4 and output channels 32.
+들임 꼴이 $(1, 32, 56, 56)$, 넓힘 견줌 4, 날임 갈래 32일 때 여느 MBConv 덩이와 녹여 붙인 MBConv 덩이의 셈 값(뜨는 셈 횟수)을 견주어라.
 
 ??? success "익힘 1 풀이"
-    For MBConv: (1) $1 \times 1$ expansion: $32 \times 128 \times 56 \times 56 \approx 12.8M$ FLOPs. (2) $3 \times 3$ depthwise: $128 \times 9 \times 56 \times 56 \approx 3.6M$ FLOPs. (3) $1 \times 1$ projection: $128 \times 32 \times 56 \times 56 \approx 12.8M$ FLOPs. Total: $\approx 29.2M$ FLOPs. For FusedMBConv: (1) $3 \times 3$ regular conv: $32 \times 128 \times 9 \times 56 \times 56 \approx 115.6M$ FLOPs. (2) $1 \times 1$ projection: $128 \times 32 \times 56 \times 56 \approx 12.8M$ FLOPs. Total: $\approx 128.4M$ FLOPs. FusedMBConv uses about 4.4x more FLOPs but achieves higher hardware utilization, often resulting in faster wall-clock time on GPUs.
+    MBConv에서는 (1) $1 \times 1$ 넓힘: $32 \times 128 \times 56 \times 56 \approx 12.8M$번. (2) $3 \times 3$ 깊이별: $128 \times 9 \times 56 \times 56 \approx 3.6M$번. (3) $1 \times 1$ 되비춤: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 29.2M$번이다. 녹여 붙인 MBConv에서는 (1) $3 \times 3$ 여느 엮음: $32 \times 128 \times 9 \times 56 \times 56 \approx 115.6M$번. (2) $1 \times 1$ 되비춤: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 128.4M$번이다. 녹여 붙인 MBConv은 셈이 약 4.4배 많지만 쇠 붙임새를 더 잘 써서 GPU에서는 벽시계 때가 더 빠른 일이 잦다.
 
 ---
 
 **익힘 2.**
-Explain why progressive learning (increasing resolution during training) is more beneficial for EfficientNet-style models than for fixed-resolution models like ResNet.
+차근차근 배우기(익히는 동안 결을 올리기)가 ResNet처럼 결이 붙박인 모형보다 EfficientNet 결의 모형에 더 이로운 까닭을 밝혀라.
 
 ??? success "익힘 2 풀이"
-    EfficientNet models use compound scaling that jointly adjusts depth, width, and resolution. Their architecture is specifically designed to work across different resolutions. Progressive learning exploits this by starting at low resolution (fewer pixels to process, faster iterations) and gradually increasing to full resolution. The features learned at lower resolution transfer naturally because the network structure is resolution-agnostic. ResNets have fixed architectural assumptions and their performance is more sensitive to resolution changes. Additionally, the regularization scheduling in progressive learning (weaker augmentation at low resolution, stronger at high resolution) prevents the model from overfitting to augmented small images, a problem less relevant for ResNets that train at fixed resolution.
+    EfficientNet 모형은 깊이, 너비, 결을 함께 손보는 겹 잣대를 쓴다. 그 얼개는 여러 결에서 두루 듣도록 꾸며졌다. 차근차근 배우기는 이를 써서 낮은 결(다룰 낱그림점이 적어 되돌이가 빠름)에서 비롯해 차츰 온 결로 올린다. 그물 얼개가 결을 가리지 않으므로 낮은 결에서 배운 결이 자연스레 옮아간다. ResNet은 얼개의 가정이 붙박여 결이 바뀌면 됨됨이가 더 흔들린다. 게다가 차근차근 배우기의 다독임 짜임(낮은 결에는 여린 불리기, 높은 결에는 센 불리기)은 모형이 불린 작은 그림에 지나치게 맞춰지는 것을 막는데, 결을 붙박고 익히는 ResNet에는 덜 걸리는 탈이다.
 
 ---
 
 **익힘 3.**
-Implement a complete `FusedMBConv` block with squeeze-and-excitation (SE) attention and a skip connection.
+쥐어짜 북돋우기(SE) 눈길과 건너뛰는 이음을 갖춘 온전한 `FusedMBConv` 덩이를 짜라.
 
 ??? success "익힘 3 풀이"
     ```python

@@ -1,8 +1,8 @@
 # WAV2VEC
 
-WAV2VEC was introduced in the 2020 paper "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations." Contrastive learning for speech, quantization, transformer encoder.
+WAV2VEC은 2020년 글 "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations"에서 나왔다. 말소리를 위한 맞대어 배우기, 수 줄이기, 변환기 부호기를 쓴다.
 
-This implementation provides a concise, educational reference for WAV2VEC. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
+여기 짜보기는 WAV2VEC을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 코드
 

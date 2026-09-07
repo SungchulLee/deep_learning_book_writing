@@ -1,6 +1,6 @@
 # Xception
 
-Xception ("Extreme Inception"), proposed by Francois Chollet in 2017, takes the Inception hypothesis to its logical extreme by replacing standard Inception modules with depthwise separable convolutions. The architecture completely decouples the learning of spatial and channel-wise features, achieving better performance than Inception V3 on ImageNet while using a similar parameter count.
+Xception("끝까지 간 Inception")은 2017년 프랑수아 숄레가 내놓았으며, 여느 Inception 묶음을 깊이별로 가른 엮음으로 갈음해 Inception의 가정을 이치대로 끝까지 밀고 갔다. 이 얼개는 자리 결 배우기와 갈래 결 배우기를 아주 떼어 놓아, 매개변수 수는 비슷하면서도 이미지넷에서 Inception V3보다 나은 됨됨이를 이룬다.
 
 ## 코드
 

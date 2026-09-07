@@ -1,6 +1,6 @@
 # MobileNetV2
 
-MobileNetV2, introduced in the 2018 paper "MobileNetV2: Inverted Residuals and Linear Bottlenecks," is a lightweight convolutional neural network designed for mobile and embedded devices. It introduces inverted residual blocks where the input is first expanded to a higher dimension, processed with depthwise separable convolutions, and then projected back to a lower dimension. The linear bottleneck design removes nonlinearities in the narrow layers to preserve information.
+MobileNetV2은 2018년 글 "MobileNetV2: 뒤집힌 나머지와 선형 목"에서 나왔으며, 손전화나 붙박이 기기를 위해 꾸민 가벼운 엮음 신경 그물이다. 뒤집힌 나머지 덩이를 내놓았는데, 들임을 먼저 더 높은 차수로 넓히고 깊이별로 가른 엮음으로 다룬 뒤 더 낮은 차수로 되비춘다. 선형 목 꾸밈은 좁은 켜에서 곧지 않은 살림을 없애 소식을 지킨다.
 
 ## 코드
 

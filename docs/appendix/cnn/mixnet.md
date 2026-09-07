@@ -1,6 +1,6 @@
 # MixNet
 
-MixNet introduced the idea of using multiple kernel sizes within a single depthwise convolution layer, allowing the network to capture patterns at different spatial scales simultaneously. Proposed in the 2019 paper "MixConv: Mixed Depthwise Convolutional Kernels," MixNet builds on the efficiency of depthwise separable convolutions used in MobileNets while enriching the feature extraction by mixing kernels of sizes 3, 5, and 7.
+MixNet은 깊이별 엮음 켜 하나 안에서 여러 알갱이 크기를 쓰는 깨침을 내놓아, 그물이 서로 다른 자리 잣대의 무늬를 한꺼번에 담게 했다. 2019년 글 "MixConv: 섞은 깊이별 엮음 알갱이"에서 나왔으며, MobileNet이 쓰는 깊이별로 가른 엮음의 잘 듦에 기대면서 크기 3, 5, 7의 알갱이를 섞어 결 뽑기를 넉넉하게 한다.
 
 ## 코드
 

@@ -1,6 +1,6 @@
 # CoordConv
 
-CoordConv, introduced in the 2018 paper "An Intriguing Failing of Convolutional Neural Networks and the CoordConv Solution," addresses a fundamental limitation of standard convolutions: they are translation equivariant by design, which means they cannot natively encode spatial position. By concatenating coordinate channels to the input, CoordConv allows networks to learn position-dependent filters, dramatically improving performance on tasks requiring spatial awareness such as coordinate regression and object detection.
+CoordConv은 2018년 글 "엮음 신경 그물의 흥미로운 어그러짐과 CoordConv 풀이"에서 나왔으며, 여느 엮음의 밑바탕 한계를 다룬다. 여느 엮음은 꾸밈부터 옮겨도 함께 움직이므로 자리를 그 자체로 담지 못한다. 들임에 자리 값 갈래를 이어 붙이면 CoordConv은 그물이 자리에 매인 거르개를 배우게 하여, 자리 값 되돌이나 물체 알아내기처럼 자리를 알아야 하는 일의 됨됨이를 크게 올린다.
 
 ## 코드
 
@@ -88,32 +88,32 @@ if __name__ == "__main__":
 
 ## 논의
 
-The key insight behind CoordConv is that standard convolutions apply the same learned filter everywhere across the spatial dimensions, making them inherently unable to distinguish between different positions. While this translation equivariance is desirable for many tasks (e.g., recognizing an object regardless of where it appears), it becomes a liability for tasks that require understanding absolute or relative spatial position, such as converting pixel coordinates to one-hot grids or detecting objects at specific locations.
+CoordConv의 고갱이 깨침은, 여느 엮음이 자리 차수 어디에나 같은 거르개를 걸기에 자리를 가릴 수 없다는 것이다. 옮겨도 함께 움직이는 결은 많은 일에 이롭지만(어디에 있든 물체를 알아보는 따위), 낱그림점 자리 값을 원핫 격자로 옮기거나 어떤 자리의 물체를 알아내는 것처럼 붙박이거나 견준 자리를 알아야 하는 일에는 걸림돌이 된다.
 
-The `AddCoords` module generates normalized coordinate grids ranging from $-1$ to $1$ along both spatial axes. These are concatenated as additional input channels before the convolution, effectively breaking translation equivariance in a controlled way. The optional radial coordinate channel $r = \sqrt{x^2 + y^2}$ provides distance-from-center information, which is useful for tasks with radial symmetry. Importantly, the coordinate channels add no learnable parameters; the network learns through the standard convolution weights how much to rely on positional information.
+`AddCoords` 묶음은 두 자리 축을 따라 $-1$에서 $1$까지 잣대 맞춘 자리 값 격자를 만든다. 이를 엮음 앞에서 덧붙은 들임 갈래로 이어 붙여, 옮겨도 함께 움직이는 결을 다스린 채로 깬다. 골라 쓰는 살 자리 값 갈래 $r = \sqrt{x^2 + y^2}$은 가운데에서의 거리 소식을 주어 살 대칭이 있는 일에 쓸모 있다. 종요롭게도 자리 값 갈래에는 배울 매개변수가 없다. 그물은 여느 엮음 짐으로 자리 소식에 얼마나 기댈지 배운다.
 
-The overhead of CoordConv is minimal: only 2 (or 3) additional input channels per convolution layer. The original paper demonstrated that this simple modification solved the "coordinate transform" problem that standard CNNs completely failed at, and improved performance on generative models and object detection. CoordConv has since become a standard tool in architectures where spatial awareness is critical.
+CoordConv의 덤은 아주 적다. 엮음 켜마다 들임 갈래 2개(또는 3개)만 는다. 본디 글은 이 단순한 고침만으로 여느 CNN이 아예 못 풀던 "자리 값 바꾸기" 문제가 풀렸고, 만들개 모형과 물체 알아내기의 됨됨이도 나아졌음을 보였다. 그 뒤로 CoordConv은 자리를 아는 일이 종요로운 얼개에서 여느 연장이 되었다.
 
 ## 익힘 문제
 
 **익힘 1.**
-For an input of shape $(2, 3, 8, 8)$, what is the output shape of `AddCoords` with `with_r=True`? What are the values at position $(0, 0)$ and $(7, 7)$ in the x-coordinate channel?
+꼴이 $(2, 3, 8, 8)$인 들임에서 `with_r=True`인 `AddCoords`의 날임 꼴은 무엇인가? x 자리 값 갈래의 $(0, 0)$과 $(7, 7)$ 자리의 값은 얼마인가?
 
 ??? success "익힘 1 풀이"
-    The output shape is $(2, 6, 8, 8)$: the original 3 channels plus x-coordinate, y-coordinate, and r-coordinate channels. At position $(0, 0)$: $x = 0/(8-1) \times 2 - 1 = -1$. At position $(7, 7)$: $x = 7/7 \times 2 - 1 = 1$. The coordinate channels span from $-1$ to $1$ linearly across the spatial dimensions.
+    날임 꼴은 $(2, 6, 8, 8)$이다. 본디 갈래 3개에 x 자리 값, y 자리 값, r 자리 값 갈래가 더해진다. $(0, 0)$ 자리에서는 $x = 0/(8-1) \times 2 - 1 = -1$이고, $(7, 7)$ 자리에서는 $x = 7/7 \times 2 - 1 = 1$이다. 자리 값 갈래는 자리 차수를 따라 $-1$에서 $1$까지 곧게 뻗는다.
 
 ---
 
 **익힘 2.**
-Explain why CoordConv is particularly beneficial for generative models (e.g., GANs). What specific failure mode does it address?
+CoordConv이 만들개 모형(맞겨루기 만들개 따위)에 더욱 이로운 까닭을 밝혀라. 어떤 어그러짐을 콕 집어 다루는가?
 
 ??? success "익힘 2 풀이"
-    In generative models, the generator must map from a latent vector to a spatially organized output image. With standard transposed convolutions, the generator has no built-in notion of absolute position, so it must implicitly learn spatial structure from the data. This often leads to repeating patterns and difficulty generating content that varies systematically with position (e.g., placing an object at a specific location). CoordConv gives the generator explicit access to spatial coordinates, allowing it to learn position-dependent generation rules directly. This reduces artifacts like checkerboard patterns and improves the generator's ability to control spatial placement of generated content.
+    만들개 모형에서 만들개는 숨은 벡터를 자리로 짜인 날임 그림으로 옮겨야 한다. 여느 뒤집은 엮음에는 붙박인 자리에 대한 깨침이 없어, 만들개가 자료에서 자리 얼개를 넌지시 배워야 한다. 그래서 되풀이되는 무늬가 생기고 자리에 따라 짜임새 있게 달라지는 것(어떤 자리에 물체를 놓기 따위)을 만들기 어렵다. CoordConv은 만들개에 자리 값을 드러내 놓고 주어 자리에 매인 만들기 규칙을 곧바로 배우게 한다. 이로써 바둑판 무늬 같은 자국이 줄고 만든 것의 자리를 다스리는 힘이 는다.
 
 ---
 
 **익힘 3.**
-Design a `RelativeCoordConv` variant where, instead of absolute coordinates, each position receives coordinates relative to a given reference point $(r_x, r_y)$. This could be useful for tasks like keypoint detection.
+붙박인 자리 값 대신 주어진 기준 점 $(r_x, r_y)$에 견준 자리 값을 자리마다 주는 `RelativeCoordConv` 갈래를 꾸며라. 고갱이 점 알아내기 같은 일에 쓸모 있을 것이다.
 
 ??? success "익힘 3 풀이"
     ```python
@@ -132,4 +132,4 @@ Design a `RelativeCoordConv` variant where, instead of absolute coordinates, eac
             dr = torch.sqrt(dx ** 2 + dy ** 2)
             return torch.cat([x, dx, dy, dr], dim=1)
     ```
-    This provides each spatial position with its displacement from the reference point, enabling the network to reason about relative distances and directions.
+    이러면 자리마다 기준 점에서 얼마나 떨어졌는지를 주므로 그물이 견준 거리와 방향을 따져 볼 수 있다.
