@@ -1,15 +1,14 @@
-# Baseline Methods
+# 밑금 방법
 
-Baseline Methods is an important concept in policy gradient foundations. in policy gradient algorithms. This implementation provides a hands-on demonstration of the key algorithms and data structures involved, illustrating both the theoretical foundations and practical considerations for real-world deployment.
+밑금 방법은 방침 기울기 바탕에서 종요로운 생각이다. 방침 기울기 알고리즘에서 쓰인다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.1.4: Baseline Methods
+34.1.4장: 밑금 방법
 =================================
-Implementation of various baseline methods for variance reduction
-in policy gradient algorithms.
+방침 기울기 알고리즘에서 흩어짐을 줄이는 여러 밑금 방법의 구현.
 """
 
 import torch
@@ -22,16 +21,16 @@ from typing import List, Tuple
 from collections import deque
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 # ---------------------------------------------------------------------------
-# Networks
+# 그물
 # ---------------------------------------------------------------------------
 
 class ValueNetwork(nn.Module):
-    """State value function V(s) used as a baseline."""
+    """밑금으로 쓰는 상태 값 함수 V(s)."""
     
     def __init__(self, obs_dim: int, hidden_dim: int = 128):
         super().__init__()
@@ -46,7 +45,7 @@ class ValueNetwork(nn.Module):
 
 
 class PolicyNetwork(nn.Module):
-    """Simple categorical policy for discrete actions."""
+    """따로 떨어진 움직임을 위한 쉬운 갈래 방침."""
     
     def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
         super().__init__()
@@ -61,11 +60,11 @@ class PolicyNetwork(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Baseline Strategies
+# 밑금 꾀
 # ---------------------------------------------------------------------------
 
 class ConstantBaseline:
-    """Running average of returns as a constant baseline."""
+    """돌아옴의 흐르는 평균을 상수 밑금으로 쓴다."""
     
     def __init__(self, decay: float = 0.99):
         self.value = 0.0
@@ -85,7 +84,7 @@ class ConstantBaseline:
 
 
 class LearnedBaseline:
-    """Learned state-dependent value function baseline V_phi(s)."""
+    """배운, 상태에 딸린 값 함수 밑금 V_phi(s)."""
     
     def __init__(self, obs_dim: int, hidden_dim: int = 128, lr: float = 1e-3, n_epochs: int = 5):
         self.value_net = ValueNetwork(obs_dim, hidden_dim)
@@ -107,19 +106,19 @@ class LearnedBaseline:
 
 
 # ---------------------------------------------------------------------------
-# REINFORCE with Baseline Agent
+# 밑금을 쓰는 REINFORCE 부림꾼
 # ---------------------------------------------------------------------------
 
 class REINFORCEWithBaseline:
     """
-    REINFORCE agent with configurable baseline methods.
+    밑금 방법을 골라 쓸 수 있는 REINFORCE 부림꾼.
     
-    Parameters
+    매개변수
     ----------
     env : gym.Env
-        Environment.
+        둘레.
     baseline_type : str
-        One of 'none', 'constant', 'learned'.
+        'none', 'constant', 'learned' 가운데 하나.
     """
     
     def __init__(
@@ -185,7 +184,7 @@ class REINFORCEWithBaseline:
         returns = self.compute_returns(rewards)
         states_t = torch.FloatTensor(np.array(states))
         
-        # Compute advantages
+        # 이점을 셈한다
         if self.baseline is None:
             advantages = returns.clone()
         elif self.baseline_type == "constant":
@@ -198,7 +197,7 @@ class REINFORCEWithBaseline:
         if self.normalize_advantages and len(advantages) > 1:
             advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         
-        # Policy loss
+        # 방침 손실
         log_probs_t = torch.stack(log_probs).squeeze()
         entropies_t = torch.stack(entropies).squeeze()
         
@@ -237,11 +236,11 @@ class REINFORCEWithBaseline:
 
 
 # ---------------------------------------------------------------------------
-# Advantage estimation demonstrations
+# 이점 어림 보여 주기
 # ---------------------------------------------------------------------------
 
 def compute_mc_advantages(rewards, values, gamma=0.99):
-    """Monte Carlo advantage: A_t = G_t - V(s_t)."""
+    """몬테카를로 이점: A_t = G_t - V(s_t)."""
     returns = []
     G = 0.0
     for r in reversed(rewards):
@@ -252,13 +251,13 @@ def compute_mc_advantages(rewards, values, gamma=0.99):
 
 
 def compute_td_advantages(rewards, values, next_values, dones, gamma=0.99):
-    """One-step TD advantage: A_t = r_t + γV(s_{t+1}) - V(s_t)."""
+    """한 걸음 때 차이 이점: A_t = r_t + γV(s_{t+1}) - V(s_t)."""
     td_targets = torch.tensor(rewards) + gamma * next_values * (1 - torch.tensor(dones, dtype=torch.float32))
     return td_targets - values
 
 
 def compute_nstep_advantages(rewards, values, next_values, dones, gamma=0.99, n=5):
-    """N-step TD advantage estimation."""
+    """n걸음 때 차이 이점 어림."""
     T = len(rewards)
     advantages = torch.zeros(T)
     
@@ -277,18 +276,18 @@ def compute_nstep_advantages(rewards, values, next_values, dones, gamma=0.99, n=
 
 
 def demo_advantage_comparison():
-    """Compare different advantage estimation methods."""
+    """이점 어림 방법들을 견준다."""
     print("=" * 60)
     print("Advantage Estimation Comparison")
     print("=" * 60)
     
-    # Simulated episode data
+    # 흉내 낸 에피소드 자료
     T = 20
     torch.manual_seed(42)
-    rewards = [1.0] * T  # Constant reward
-    rewards[-1] = 10.0   # Terminal bonus
+    rewards = [1.0] * T  # 붙박인 보상
+    rewards[-1] = 10.0   # 끝 덤
     
-    # Simulated value estimates (imperfect)
+    # 흉내 낸 값 어림(온전하지 않다)
     true_values = torch.tensor([
         sum(0.99 ** (k - t) * rewards[k] for k in range(t, T))
         for t in range(T)
@@ -298,7 +297,7 @@ def demo_advantage_comparison():
     next_values = torch.cat([estimated_values[1:], torch.zeros(1)])
     dones = [False] * (T - 1) + [True]
     
-    # Compute advantages
+    # 이점을 셈한다
     mc_adv = compute_mc_advantages(rewards, estimated_values, gamma=0.99)
     td_adv = compute_td_advantages(rewards, estimated_values, next_values, dones, gamma=0.99)
     n5_adv = compute_nstep_advantages(rewards, estimated_values, next_values, dones, gamma=0.99, n=5)
@@ -315,11 +314,11 @@ def demo_advantage_comparison():
 
 
 # ---------------------------------------------------------------------------
-# Compare baselines on CartPole
+# CartPole에서 밑금 견주기
 # ---------------------------------------------------------------------------
 
 def compare_baselines():
-    """Compare different baselines on CartPole."""
+    """CartPole에서 여러 밑금을 견준다."""
     print("\n" + "=" * 60)
     print("Baseline Comparison on CartPole-v1")
     print("=" * 60)
@@ -362,11 +361,11 @@ def compare_baselines():
 
 
 # ---------------------------------------------------------------------------
-# Variance analysis
+# 흩어짐 살피기
 # ---------------------------------------------------------------------------
 
 def analyze_gradient_variance():
-    """Measure gradient variance with different baselines."""
+    """밑금에 따라 기울기 흩어짐을 잰다."""
     print("\n" + "=" * 60)
     print("Gradient Variance Analysis")
     print("=" * 60)
@@ -378,7 +377,7 @@ def analyze_gradient_variance():
     torch.manual_seed(42)
     policy = PolicyNetwork(obs_dim, act_dim, hidden_dim=64)
     
-    # Collect episodes
+    # 에피소드를 모은다
     n_episodes = 50
     all_episodes = []
     for _ in range(n_episodes):
@@ -398,7 +397,7 @@ def analyze_gradient_variance():
             done = terminated or truncated
         all_episodes.append(episode)
     
-    # Compute gradients with different baselines for each episode
+    # 에피소드마다 밑금을 달리하여 기울기를 셈한다
     baselines_to_test = {
         "No baseline": lambda returns, states: torch.zeros_like(returns),
         "Mean return": lambda returns, states: torch.full_like(returns, returns.mean()),
@@ -409,7 +408,7 @@ def analyze_gradient_variance():
         grad_norms = []
         
         for ep in all_episodes:
-            # Compute returns
+            # 돌아옴을 셈한다
             G = 0.0
             returns = []
             for r in reversed(ep["rewards"]):
@@ -422,7 +421,7 @@ def analyze_gradient_variance():
             baseline_vals = bl_fn(returns, states_t)
             advantages = returns - baseline_vals
             
-            # Compute gradient
+            # 기울기를 셈한다
             policy.zero_grad()
             dist = policy(states_t)
             log_probs = dist.log_prob(actions_t)
@@ -449,34 +448,34 @@ if __name__ == "__main__":
     compare_baselines()
     analyze_gradient_variance()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `ValueNetwork`, `PolicyNetwork`, `ConstantBaseline` classes, which encapsulate the core logic of baseline methods. The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 밑금 방법의 한가운데 논리를 담은 `ValueNetwork`, `PolicyNetwork`, `ConstantBaseline` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration function shows the practical application of these components on standard reinforcement learning benchmarks. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 여느 힘 북돋우는 배움 잣대에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in policy gradient foundations. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 방침 기울기 바탕에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.

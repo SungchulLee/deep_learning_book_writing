@@ -1,15 +1,15 @@
-# Policy Parameterization
+# 방침 매개변수 나타내기
 
-Policy Parameterization is an important concept in policy gradient foundations. both discrete and continuous action spaces. This implementation provides a hands-on demonstration of the key algorithms and data structures involved, illustrating both the theoretical foundations and practical considerations for real-world deployment.
+방침 매개변수 나타내기는 방침 기울기 바탕에서 종요로운 생각이다. 따로 떨어진 움직임 공간과 이어진 움직임 공간을 함께 다룬다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.1.1: Policy Parameterization
+34.1.1장: 방침 매개변수 나타내기
 ========================================
-Implementations of various policy parameterization strategies for
-both discrete and continuous action spaces.
+따로 떨어진 움직임 공간과 이어진 움직임 공간을 위한 여러 방침
+매개변수 나타내기 꾀의 구현.
 """
 
 import torch
@@ -20,40 +20,40 @@ import numpy as np
 import gymnasium as gym
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 # ---------------------------------------------------------------------------
-# Weight initialization utilities
+# 무게 첫 값 매기기 도구
 # ---------------------------------------------------------------------------
 
 def layer_init(layer: nn.Linear, std: float = np.sqrt(2), bias_const: float = 0.0):
-    """Orthogonal initialization following PPO best practices."""
+    """PPO의 좋은 버릇을 따르는 직교 첫 값 매기기."""
     nn.init.orthogonal_(layer.weight, std)
     nn.init.constant_(layer.bias, bias_const)
     return layer
 
 
 # ---------------------------------------------------------------------------
-# Discrete Policy (Softmax / Categorical)
+# 따로 떨어진 방침 (소프트맥스 / 갈래)
 # ---------------------------------------------------------------------------
 
 class DiscretePolicy(nn.Module):
     """
-    Categorical policy for discrete action spaces.
+    따로 떨어진 움직임 공간을 위한 갈래 방침.
     
-    The network outputs logits that are converted to a categorical
-    distribution via softmax. Log-softmax is used for numerical stability.
+    그물이 로짓을 내놓고 소프트맥스로 갈래 분포로 바꾼다. 셈이
+    든든하도록 로그 소프트맥스를 쓴다.
     
-    Parameters
+    매개변수
     ----------
     obs_dim : int
-        Dimension of the observation space.
+        봄 공간의 차원.
     act_dim : int
-        Number of discrete actions.
+        따로 떨어진 움직임의 개수.
     hidden_dim : int
-        Hidden layer size.
+        숨은 켜의 크기.
     """
     
     def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 64):
@@ -63,20 +63,20 @@ class DiscretePolicy(nn.Module):
             nn.Tanh(),
             layer_init(nn.Linear(hidden_dim, hidden_dim)),
             nn.Tanh(),
-            layer_init(nn.Linear(hidden_dim, act_dim), std=0.01),  # Small init for near-uniform
+            layer_init(nn.Linear(hidden_dim, act_dim), std=0.01),  # 거의 고르도록 작게 매긴다
         )
     
     def forward(self, obs: torch.Tensor):
-        """Return action logits."""
+        """움직임 로짓을 돌려준다."""
         return self.network(obs)
     
     def get_distribution(self, obs: torch.Tensor) -> Categorical:
-        """Return categorical distribution over actions."""
+        """움직임에 대한 갈래 분포를 돌려준다."""
         logits = self.forward(obs)
         return Categorical(logits=logits)
     
     def get_action(self, obs: torch.Tensor):
-        """Sample action and return action, log_prob, entropy."""
+        """움직임을 뽑아 움직임, 로그 낌새, 엔트로피를 돌려준다."""
         dist = self.get_distribution(obs)
         action = dist.sample()
         log_prob = dist.log_prob(action)
@@ -84,7 +84,7 @@ class DiscretePolicy(nn.Module):
         return action, log_prob, entropy
     
     def evaluate_actions(self, obs: torch.Tensor, actions: torch.Tensor):
-        """Evaluate log_prob and entropy for given state-action pairs."""
+        """주어진 상태-움직임 짝의 로그 낌새와 엔트로피를 따진다."""
         dist = self.get_distribution(obs)
         log_prob = dist.log_prob(actions)
         entropy = dist.entropy()
@@ -92,29 +92,29 @@ class DiscretePolicy(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Gaussian Policy (Continuous, unbounded)
+# 가우스 방침 (이어진 것, 매이지 않음)
 # ---------------------------------------------------------------------------
 
 class GaussianPolicy(nn.Module):
     """
-    Diagonal Gaussian policy for continuous action spaces.
+    이어진 움직임 공간을 위한 대각 가우스 방침.
     
-    Two variants:
-    - State-independent log_std: learnable parameter (default, used in PPO)
-    - State-dependent log_std: output by the network
+    갈래 둘:
+    - 상태와 매이지 않은 log_std: 배우는 매개변수(기본값, PPO에서 씀)
+    - 상태에 딸린 log_std: 그물이 내놓음
     
-    Parameters
+    매개변수
     ----------
     obs_dim : int
-        Dimension of the observation space.
+        봄 공간의 차원.
     act_dim : int
-        Dimension of the continuous action space.
+        이어진 움직임 공간의 차원.
     hidden_dim : int
-        Hidden layer size.
+        숨은 켜의 크기.
     state_dependent_std : bool
-        If True, std depends on state via the network.
+        True이면 표준편차가 그물을 거쳐 상태에 딸린다.
     log_std_init : float
-        Initial value for log standard deviation.
+        로그 표준편차의 첫 값.
     """
     
     def __init__(
@@ -129,7 +129,7 @@ class GaussianPolicy(nn.Module):
         self.state_dependent_std = state_dependent_std
         self.act_dim = act_dim
         
-        # Shared feature extractor
+        # 함께 쓰는 특징 뽑개
         self.features = nn.Sequential(
             layer_init(nn.Linear(obs_dim, hidden_dim)),
             nn.Tanh(),
@@ -137,46 +137,46 @@ class GaussianPolicy(nn.Module):
             nn.Tanh(),
         )
         
-        # Mean head
+        # 평균 머리
         self.mean_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
         
         if state_dependent_std:
-            # State-dependent: network outputs log_std
+            # 상태에 딸림: 그물이 log_std를 내놓는다
             self.log_std_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
         else:
-            # State-independent: learnable parameter
+            # 상태와 매이지 않음: 배우는 매개변수
             self.log_std = nn.Parameter(torch.full((act_dim,), log_std_init))
     
     def forward(self, obs: torch.Tensor):
-        """Return mean and log_std of the Gaussian policy."""
+        """가우스 방침의 평균과 log_std를 돌려준다."""
         features = self.features(obs)
         mean = self.mean_head(features)
         
         if self.state_dependent_std:
             log_std = self.log_std_head(features)
-            log_std = torch.clamp(log_std, min=-20, max=2)  # Stability clamp
+            log_std = torch.clamp(log_std, min=-20, max=2)  # 든든함을 위한 자르기
         else:
             log_std = self.log_std.expand_as(mean)
         
         return mean, log_std
     
     def get_distribution(self, obs: torch.Tensor) -> Normal:
-        """Return Normal distribution for the policy."""
+        """방침의 정규 분포를 돌려준다."""
         mean, log_std = self.forward(obs)
         std = log_std.exp()
         return Normal(mean, std)
     
     def get_action(self, obs: torch.Tensor):
-        """Sample action and return action, log_prob, entropy."""
+        """움직임을 뽑아 움직임, 로그 낌새, 엔트로피를 돌려준다."""
         dist = self.get_distribution(obs)
         action = dist.sample()
-        # Sum log_prob across action dimensions for multivariate
+        # 여러 변수일 때 움직임 차원에 걸쳐 로그 낌새를 더한다
         log_prob = dist.log_prob(action).sum(dim=-1)
         entropy = dist.entropy().sum(dim=-1)
         return action, log_prob, entropy
     
     def evaluate_actions(self, obs: torch.Tensor, actions: torch.Tensor):
-        """Evaluate log_prob and entropy for given state-action pairs."""
+        """주어진 상태-움직임 짝의 로그 낌새와 엔트로피를 따진다."""
         dist = self.get_distribution(obs)
         log_prob = dist.log_prob(actions).sum(dim=-1)
         entropy = dist.entropy().sum(dim=-1)
@@ -184,30 +184,30 @@ class GaussianPolicy(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Squashed Gaussian Policy (SAC-style, bounded actions)
+# 눌러 담은 가우스 방침 (SAC 꼴, 매인 움직임)
 # ---------------------------------------------------------------------------
 
 class SquashedGaussianPolicy(nn.Module):
     """
-    Squashed Gaussian policy for bounded continuous action spaces.
+    매인 이어진 움직임 공간을 위한 눌러 담은 가우스 방침.
     
-    Samples from a Gaussian and applies tanh to bound actions to [-1, 1].
-    Applies the change-of-variables correction to the log-probability.
+    가우스에서 뽑고 tanh를 매겨 움직임을 [-1, 1]으로 매어 둔다.
+    로그 낌새에 변수 바꿈 바로잡기를 매긴다.
     
-    Used in SAC (Soft Actor-Critic).
+    SAC(부드러운 행위자-비평가)에서 쓴다.
     
-    Parameters
+    매개변수
     ----------
     obs_dim : int
-        Dimension of the observation space.
+        봄 공간의 차원.
     act_dim : int
-        Dimension of the action space.
+        움직임 공간의 차원.
     hidden_dim : int
-        Hidden layer size.
+        숨은 켜의 크기.
     action_scale : float
-        Scale factor for actions (to map to actual action bounds).
+        움직임의 잣대 인자(참 움직임 매임으로 맞대려고 쓴다).
     action_bias : float
-        Bias for actions.
+        움직임의 치우침.
     """
     
     LOG_STD_MIN = -20
@@ -233,12 +233,12 @@ class SquashedGaussianPolicy(nn.Module):
         self.mean_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
         self.log_std_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
         
-        # Action rescaling
+        # 움직임 다시 잣대기
         self.register_buffer("action_scale", torch.tensor(action_scale, dtype=torch.float32))
         self.register_buffer("action_bias", torch.tensor(action_bias, dtype=torch.float32))
     
     def forward(self, obs: torch.Tensor):
-        """Return mean and log_std."""
+        """평균과 log_std를 돌려준다."""
         features = self.features(obs)
         mean = self.mean_head(features)
         log_std = self.log_std_head(features)
@@ -247,16 +247,16 @@ class SquashedGaussianPolicy(nn.Module):
     
     def get_action(self, obs: torch.Tensor, deterministic: bool = False):
         """
-        Sample action with tanh squashing.
+        tanh로 눌러 담아 움직임을 뽑는다.
         
-        Returns
+        돌려주는 값
         -------
         action : Tensor
-            Squashed and rescaled action.
+            눌러 담고 다시 잣댄 움직임.
         log_prob : Tensor
-            Log probability with change-of-variables correction.
+            변수 바꿈 바로잡기를 매긴 로그 낌새.
         mean : Tensor
-            Mean action (for deterministic evaluation).
+            평균 움직임(붙박이로 따질 때 쓴다).
         """
         mean, log_std = self.forward(obs)
         std = log_std.exp()
@@ -265,18 +265,18 @@ class SquashedGaussianPolicy(nn.Module):
         if deterministic:
             u = mean
         else:
-            u = dist.rsample()  # Reparameterized sample for gradient flow
+            u = dist.rsample()  # 기울기가 흐르도록 다시 매개변수 매긴 뽑기
         
-        # Tanh squashing
+        # tanh로 눌러 담기
         action = torch.tanh(u)
         
-        # Log-probability with change-of-variables correction
+        # 변수 바꿈 바로잡기를 매긴 로그 낌새
         log_prob = dist.log_prob(u)
-        # Correction: log|det(da/du)| = sum(log(1 - tanh^2(u)))
+        # 바로잡기: log|det(da/du)| = sum(log(1 - tanh^2(u)))
         log_prob -= torch.log(1 - action.pow(2) + self.EPS)
         log_prob = log_prob.sum(dim=-1)
         
-        # Rescale to actual action bounds
+        # 참 움직임 매임으로 다시 잣댄다
         action = action * self.action_scale + self.action_bias
         mean_action = torch.tanh(mean) * self.action_scale + self.action_bias
         
@@ -284,23 +284,23 @@ class SquashedGaussianPolicy(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Beta Policy (naturally bounded)
+# 베타 방침 (본디부터 매여 있음)
 # ---------------------------------------------------------------------------
 
 class BetaPolicy(nn.Module):
     """
-    Beta distribution policy for bounded continuous action spaces [0, 1].
+    매인 이어진 움직임 공간 [0, 1]을 위한 베타 분포 방침.
     
-    Avoids the need for tanh squashing and log-probability corrections.
+    tanh로 눌러 담기와 로그 낌새 바로잡기가 필요 없다.
     
-    Parameters
+    매개변수
     ----------
     obs_dim : int
-        Dimension of the observation space.
+        봄 공간의 차원.
     act_dim : int
-        Dimension of the action space.
+        움직임 공간의 차원.
     hidden_dim : int
-        Hidden layer size.
+        숨은 켜의 크기.
     """
     
     def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 64):
@@ -315,9 +315,9 @@ class BetaPolicy(nn.Module):
         self.beta_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
     
     def forward(self, obs: torch.Tensor):
-        """Return alpha and beta parameters."""
+        """알파와 베타 매개변수를 돌려준다."""
         features = self.network(obs)
-        alpha = F.softplus(self.alpha_head(features)) + 1.0  # > 1 for unimodal
+        alpha = F.softplus(self.alpha_head(features)) + 1.0  # 봉우리가 하나이려면 > 1
         beta = F.softplus(self.beta_head(features)) + 1.0
         return alpha, beta
     
@@ -334,15 +334,15 @@ class BetaPolicy(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Actor-Critic with shared backbone
+# 등뼈를 함께 쓰는 행위자-비평가
 # ---------------------------------------------------------------------------
 
 class ActorCriticShared(nn.Module):
     """
-    Shared-backbone actor-critic network.
+    등뼈를 함께 쓰는 행위자-비평가 그물.
     
-    Uses a common feature extractor with separate policy and value heads.
-    Supports both discrete and continuous action spaces.
+    함께 쓰는 특징 뽑개에 방침 머리와 값 머리를 따로 둔다.
+    따로 떨어진 움직임 공간과 이어진 움직임 공간을 모두 받쳐 준다.
     """
     
     def __init__(
@@ -355,7 +355,7 @@ class ActorCriticShared(nn.Module):
         super().__init__()
         self.continuous = continuous
         
-        # Shared feature extractor
+        # 함께 쓰는 특징 뽑개
         self.features = nn.Sequential(
             layer_init(nn.Linear(obs_dim, hidden_dim)),
             nn.Tanh(),
@@ -363,14 +363,14 @@ class ActorCriticShared(nn.Module):
             nn.Tanh(),
         )
         
-        # Policy head
+        # 방침 머리
         if continuous:
             self.mean_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
             self.log_std = nn.Parameter(torch.zeros(act_dim))
         else:
             self.policy_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
         
-        # Value head
+        # 값 머리
         self.value_head = layer_init(nn.Linear(hidden_dim, 1), std=1.0)
     
     def get_value(self, obs: torch.Tensor) -> torch.Tensor:
@@ -400,15 +400,15 @@ class ActorCriticShared(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Separate Actor-Critic networks
+# 따로 둔 행위자-비평가 그물
 # ---------------------------------------------------------------------------
 
 class ActorCriticSeparate(nn.Module):
     """
-    Separate-network actor-critic.
+    그물을 따로 두는 행위자-비평가.
     
-    Uses independent networks for policy and value to avoid
-    gradient interference between the two objectives.
+    방침과 값에 서로 매이지 않은 그물을 써서 두 목표 사이에서
+    기울기가 서로를 방해하지 않게 한다.
     """
     
     def __init__(
@@ -421,13 +421,13 @@ class ActorCriticSeparate(nn.Module):
         super().__init__()
         self.continuous = continuous
         
-        # Actor network
+        # 행위자 그물
         if continuous:
             self.actor = GaussianPolicy(obs_dim, act_dim, hidden_dim)
         else:
             self.actor = DiscretePolicy(obs_dim, act_dim, hidden_dim)
         
-        # Critic network
+        # 비평가 그물
         self.critic = nn.Sequential(
             layer_init(nn.Linear(obs_dim, hidden_dim)),
             nn.Tanh(),
@@ -451,15 +451,15 @@ class ActorCriticSeparate(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Temperature-scaled policy
+# 온도로 잣댄 방침
 # ---------------------------------------------------------------------------
 
 class TemperatureScaledPolicy(nn.Module):
     """
-    Wrapper that applies temperature scaling to a discrete policy.
+    따로 떨어진 방침에 온도 잣대기를 매기는 감싸개.
     
-    Lower temperature → more greedy (exploitation)
-    Higher temperature → more uniform (exploration)
+    온도가 낮으면 더 욕심스럽다(써먹기)
+    온도가 높으면 더 고르다(살펴보기)
     """
     
     def __init__(self, base_policy: DiscretePolicy, temperature: float = 1.0):
@@ -481,11 +481,11 @@ class TemperatureScaledPolicy(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Demo
+# 보여 주기
 # ---------------------------------------------------------------------------
 
 def demo_discrete_policy():
-    """Demonstrate discrete policy with CartPole."""
+    """CartPole로 따로 떨어진 방침을 보인다."""
     print("=" * 60)
     print("Discrete Policy Demo (CartPole-v1)")
     print("=" * 60)
@@ -513,7 +513,7 @@ def demo_discrete_policy():
 
 
 def demo_gaussian_policy():
-    """Demonstrate Gaussian policy with Pendulum."""
+    """Pendulum으로 가우스 방침을 보인다."""
     print("\n" + "=" * 60)
     print("Gaussian Policy Demo (Pendulum-v1)")
     print("=" * 60)
@@ -542,7 +542,7 @@ def demo_gaussian_policy():
 
 
 def demo_squashed_gaussian():
-    """Demonstrate squashed Gaussian policy."""
+    """눌러 담은 가우스 방침을 보인다."""
     print("\n" + "=" * 60)
     print("Squashed Gaussian Policy Demo")
     print("=" * 60)
@@ -560,16 +560,16 @@ def demo_squashed_gaussian():
 
 
 def demo_actor_critic():
-    """Demonstrate actor-critic architectures."""
+    """행위자-비평가 얼개를 보인다."""
     print("\n" + "=" * 60)
     print("Actor-Critic Architecture Demo")
     print("=" * 60)
     
     obs_dim, act_dim = 4, 2
     
-    # Shared backbone
+    # 등뼈를 함께 씀
     shared = ActorCriticShared(obs_dim, act_dim, continuous=False)
-    obs = torch.randn(8, obs_dim)  # Batch of 8
+    obs = torch.randn(8, obs_dim)  # 묶음 크기 8
     action, log_prob, entropy, value = shared.get_action_and_value(obs)
     print(f"\nShared Actor-Critic:")
     print(f"  Actions shape: {action.shape}")
@@ -577,7 +577,7 @@ def demo_actor_critic():
     print(f"  Values shape: {value.shape}")
     print(f"  Params: {sum(p.numel() for p in shared.parameters()):,}")
     
-    # Separate networks
+    # 그물을 따로 둠
     separate = ActorCriticSeparate(obs_dim, act_dim, continuous=False)
     action, log_prob, entropy, value = separate.get_action_and_value(obs)
     print(f"\nSeparate Actor-Critic:")
@@ -593,34 +593,34 @@ if __name__ == "__main__":
     demo_squashed_gaussian()
     demo_actor_critic()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `DiscretePolicy`, `GaussianPolicy`, `SquashedGaussianPolicy` classes, which encapsulate the core logic of policy parameterization. The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 방침 매개변수 나타내기의 한가운데 논리를 담은 `DiscretePolicy`, `GaussianPolicy`, `SquashedGaussianPolicy` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration functions show the practical application of these components on standard reinforcement learning benchmarks. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 여느 힘 북돋우는 배움 잣대에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in policy gradient foundations. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 방침 기울기 바탕에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
