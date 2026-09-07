@@ -1,153 +1,153 @@
-# Posterior Inference in Bayesian Neural Networks
-**Posterior inference** is the central computational challenge in Bayesian neural networks. Given a prior $p(\theta)$ and likelihood $p(\mathcal{D} \mid \theta)$, we seek the posterior distribution $p(\theta \mid \mathcal{D})$. For neural networks, this posterior is intractable, necessitating approximate inference methods ranging from sampling (MCMC) to optimization (variational inference) to implicit approximations (dropout, ensembles).
+# 베이즈 신경 그물의 뒷분포 미루어 봄
+**뒷분포 미루어 봄**은 베이즈 신경 그물에서 셈으로 부딪히는 가장 큰 어려움이다. 앞선 분포 $p(\theta)$과 그럴듯함 $p(\mathcal{D} \mid \theta)$이 주어지면 뒷분포 $p(\theta \mid \mathcal{D})$을 찾는다. 신경 그물에서는 이 뒷분포를 다룰 수 없으므로, 표본 뽑기(MCMC)에서 가장 좋게 하기(변이 미루어 봄), 넌지시 하는 어림(드롭아웃, 모둠)에 이르는 어림 방법이 있어야 한다.
 
 ---
 
-## The Inference Challenge
+## 미루어 봄의 어려움
 
-### The Posterior Distribution
+### 뒷분포
 
-By Bayes' theorem, the posterior over network weights is:
+베이즈 정리에 따르면 그물 짐에 대한 뒷분포는 이렇다.
 
 $$
 \boxed{p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})}}
 $$
 
-where:
+여기서
 
-- $p(\mathcal{D} \mid \theta) = \prod_{i=1}^N p(y_i \mid x_i, \theta)$ is the likelihood
-- $p(\theta)$ is the prior
-- $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta$ is the evidence (marginal likelihood)
+- $p(\mathcal{D} \mid \theta) = \prod_{i=1}^N p(y_i \mid x_i, \theta)$은 그럴듯함
+- $p(\theta)$은 앞선 분포
+- $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta$은 밑거리(가장자리 그럴듯함)
 
-### Why Exact Inference is Intractable
+### 정확한 미루어 봄을 다룰 수 없는 까닭
 
-**1. High dimensionality**: Modern networks have $d = 10^6$ to $10^9$ parameters
+**1. 높은 차수**: 요즘 그물의 매개변수는 $d = 10^6$에서 $10^9$이다
 
-**2. Non-conjugacy**: Neural network likelihoods are not conjugate to standard priors:
+**2. 짝이 맞지 않음**: 신경 그물의 그럴듯함은 여느 앞선 분포와 짝이 맞지 않는다.
 
 $$
 p(y \mid x, \theta) = \mathcal{N}(y \mid f_\theta(x), \sigma^2)
 $$
 
-where $f_\theta$ is a complex nonlinear function.
+여기서 $f_\theta$은 얽히고 곧지 않은 함수다.
 
-**3. Intractable normalization**: The evidence integral has no closed form:
+**3. 다룰 수 없는 잣대 맞추기**: 밑거리 적분에는 닫힌 꼴이 없다.
 
 $$
 p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta
 $$
 
-**4. Multimodality**: The posterior landscape has many modes due to:
+**4. 여러 봉우리**: 뒷분포의 터에는 다음 까닭으로 봉우리가 많다.
 
-- Weight space symmetries (permutation, scaling)
-- Multiple good solutions
-- Complex loss surfaces
+- 짐 밭의 맞바꿈 대칭(자리 바꾸기, 잣대 바꾸기)
+- 좋은 풀이가 여럿임
+- 잃음 낯이 얽힘
 
-### Desiderata for Inference Methods
+### 미루어 봄 방법에 바라는 것
 
-| Property | Description |
+| 결 | 풀이 |
 |----------|-------------|
-| **Scalability** | Handle millions of parameters |
-| **Accuracy** | Capture posterior shape faithfully |
-| **Uncertainty** | Produce well-calibrated uncertainty |
-| **Efficiency** | Reasonable computation time |
-| **Simplicity** | Easy to implement and tune |
+| **크게 늘리기** | 매개변수 수백만 개를 다룬다 |
+| **맞음** | 뒷분포의 꼴을 미덥게 담는다 |
+| **아리송함** | 눈금이 잘 맞은 아리송함을 낸다 |
+| **잘 듦** | 셈하는 때가 알맞다 |
+| **단순함** | 짜고 맞추기가 쉽다 |
 
-No single method excels at all criteria—different methods trade off these properties.
+모든 잣대에서 앞서는 방법 하나는 없다. 방법마다 이 결들을 맞바꾼다.
 
 ---
 
-## Overview of Inference Methods
+## 미루어 봄 방법 두루 보기
 
-### Taxonomy
+### 갈래 나누기
 
 ```
-Posterior Inference Methods
-├── Sampling Methods (MCMC)
-│   ├── Metropolis-Hastings
-│   ├── Hamiltonian Monte Carlo (HMC)
-│   ├── Stochastic Gradient MCMC
-│   │   ├── SGLD (Langevin Dynamics)
-│   │   ├── SGHMC (Hamiltonian)
-│   │   └── SGFS (Fisher Scoring)
-│   └── Ensemble Methods
-├── Variational Inference
-│   ├── Mean-Field VI
-│   ├── Full-Covariance VI
-│   └── Normalizing Flows
-├── Laplace Approximation
-│   ├── Full Laplace
-│   ├── Diagonal Laplace
-│   └── KFAC Laplace
-└── Implicit Methods
-    ├── MC Dropout
-    ├── Deep Ensembles
+뒷분포 미루어 봄 방법
+├── 표본 뽑기 방법(MCMC)
+│   ├── 메트로폴리스-헤이스팅스
+│   ├── 해밀턴 몬테카를로(HMC)
+│   ├── 확률 기울기 MCMC
+│   │   ├── SGLD(랑주뱅 움직임)
+│   │   ├── SGHMC(해밀턴)
+│   │   └── SGFS(피셔 점수 매기기)
+│   └── 모둠 방법
+├── 변이 미루어 봄
+│   ├── 평균 마당 VI
+│   ├── 온전한 함께 바뀜 VI
+│   └── 잣대 맞추는 흐름
+├── 라플라스 어림
+│   ├── 온전한 라플라스
+│   ├── 대각 라플라스
+│   └── KFAC 라플라스
+└── 넌지시 하는 방법
+    ├── MC 드롭아웃
+    ├── 깊은 모둠
     └── SWAG
 ```
 
-### Method Comparison
+### 방법 견주기
 
-| Method | Accuracy | Scalability | Simplicity | Cost |
+| 방법 | 맞음 | 크게 늘리기 | 단순함 | 값 |
 |--------|----------|-------------|------------|------|
-| HMC | High | Low | Low | Very High |
-| SGLD | Medium | High | Medium | Low |
-| Mean-Field VI | Low-Medium | High | Medium | Medium |
-| Laplace | Medium | Medium | High | Low |
-| MC Dropout | Low-Medium | Very High | Very High | Very Low |
-| Deep Ensembles | Medium-High | High | High | Medium |
+| HMC | 높음 | 낮음 | 낮음 | 아주 비쌈 |
+| SGLD | 가운데 | 높음 | 가운데 | 쌈 |
+| 평균 마당 VI | 낮음~가운데 | 높음 | 가운데 | 가운데 |
+| 라플라스 | 가운데 | 가운데 | 높음 | 쌈 |
+| MC 드롭아웃 | 낮음~가운데 | 아주 높음 | 아주 높음 | 아주 쌈 |
+| 깊은 모둠 | 가운데~높음 | 높음 | 높음 | 가운데 |
 
 ---
 
-## Markov Chain Monte Carlo (MCMC)
+## 마르코프 사슬 몬테카를로(MCMC)
 
-### Fundamentals
+### 밑바탕
 
-MCMC constructs a Markov chain whose stationary distribution is the posterior:
+MCMC은 머문 분포가 뒷분포가 되는 마르코프 사슬을 짓는다.
 
 $$
 \theta^{(t+1)} \sim T(\theta^{(t+1)} \mid \theta^{(t)})
 $$
 
-such that $\theta^{(t)} \to p(\theta \mid \mathcal{D})$ as $t \to \infty$.
+그리하여 $t \to \infty$일 때 $\theta^{(t)} \to p(\theta \mid \mathcal{D})$이 된다.
 
-**Using samples**: Given samples $\{\theta^{(t)}\}_{t=1}^T$, approximate expectations:
+**표본 쓰기**: 표본 $\{\theta^{(t)}\}_{t=1}^T$이 주어지면 바람을 어림한다.
 
 $$
 \mathbb{E}_{p(\theta \mid \mathcal{D})}[f(\theta)] \approx \frac{1}{T} \sum_{t=1}^T f(\theta^{(t)})
 $$
 
-### Metropolis-Hastings
+### 메트로폴리스-헤이스팅스
 
-**Algorithm**:
+**알고리즘**:
 
-1. Propose $\theta' \sim q(\theta' \mid \theta^{(t)})$
-2. Compute acceptance probability:
+1. $\theta' \sim q(\theta' \mid \theta^{(t)})$을 내놓는다
+2. 받을 낌새를 셈한다.
 
 $$
 \alpha = \min\left(1, \frac{p(\theta' \mid \mathcal{D}) \, q(\theta^{(t)} \mid \theta')}{p(\theta^{(t)} \mid \mathcal{D}) \, q(\theta' \mid \theta^{(t)})}\right)
 $$
 
-3. Accept with probability $\alpha$: $\theta^{(t+1)} = \theta'$ or $\theta^{(t+1)} = \theta^{(t)}$
+3. 낌새 $\alpha$으로 받는다: $\theta^{(t+1)} = \theta'$ 또는 $\theta^{(t+1)} = \theta^{(t)}$
 
-**For neural networks**: Random walk proposals ($q(\theta' \mid \theta) = \mathcal{N}(\theta, \epsilon^2 I)$) are inefficient in high dimensions.
+**신경 그물에서는**: 아무렇게나 걷는 내놓기($q(\theta' \mid \theta) = \mathcal{N}(\theta, \epsilon^2 I)$)는 차수가 높으면 잘 듣지 않는다.
 
-### Hamiltonian Monte Carlo (HMC)
+### 해밀턴 몬테카를로(HMC)
 
-HMC uses gradient information to make informed proposals.
+HMC은 기울기 소식을 써서 앎에 바탕한 내놓기를 한다.
 
-**Augmented system**: Introduce momentum $\rho$ and define Hamiltonian:
+**덧댄 얼개**: 밀어 나감 $\rho$을 들여 해밀턴 값을 매긴다.
 
 $$
 H(\theta, \rho) = -\log p(\theta \mid \mathcal{D}) + \frac{1}{2}\rho^\top M^{-1} \rho
 $$
 
-**Hamiltonian dynamics**:
+**해밀턴 움직임**:
 
 $$
 \frac{d\theta}{dt} = M^{-1} \rho, \quad \frac{d\rho}{dt} = \nabla_\theta \log p(\theta \mid \mathcal{D})
 $$
 
-**Leapfrog integrator** (for $L$ steps with step size $\epsilon$):
+**개구리뜀 적분기**(걸음 크기 $\epsilon$으로 $L$걸음):
 
 $$
 \rho^{(t+1/2)} = \rho^{(t)} + \frac{\epsilon}{2} \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D})
@@ -161,57 +161,57 @@ $$
 \rho^{(t+1)} = \rho^{(t+1/2)} + \frac{\epsilon}{2} \nabla_\theta \log p(\theta^{(t+1)} \mid \mathcal{D})
 $$
 
-**HMC Algorithm**:
+**HMC 알고리즘**:
 
-1. Sample momentum: $\rho \sim \mathcal{N}(0, M)$
-2. Run leapfrog for $L$ steps
-3. Accept/reject with Metropolis correction
+1. 밀어 나감을 뽑는다: $\rho \sim \mathcal{N}(0, M)$
+2. 개구리뜀을 $L$걸음 돌린다
+3. 메트로폴리스 바로잡기로 받거나 물린다
 
-**Advantages**: Explores posterior efficiently, low correlation between samples.
+**나은 점**: 뒷분포를 잘 둘러보고 표본끼리 덜 얽힌다.
 
-**Challenges for NNs**: Requires full gradient computation (expensive for large datasets).
+**신경 그물에서의 어려움**: 온전한 기울기 셈이 있어야 한다(큰 자료 꾸러미에서는 비싸다).
 
 ---
 
-## Stochastic Gradient MCMC
+## 확률 기울기 MCMC
 
-### Motivation
+### 왜 하는가
 
-Full-batch gradients are expensive. Stochastic gradient MCMC uses minibatch gradients:
+온 묶음 기울기는 비싸다. 확률 기울기 MCMC은 잔 묶음 기울기를 쓴다.
 
 $$
 \nabla_\theta \log p(\theta \mid \mathcal{D}) \approx \nabla_\theta \log p(\theta) + \frac{N}{|B|} \sum_{i \in B} \nabla_\theta \log p(y_i \mid x_i, \theta)
 $$
 
-where $B$ is a minibatch of size $|B|$.
+여기서 $B$은 크기가 $|B|$인 잔 묶음이다.
 
-### Stochastic Gradient Langevin Dynamics (SGLD)
+### 확률 기울기 랑주뱅 움직임(SGLD)
 
-**Update rule**:
+**고치는 규칙**:
 
 $$
 \boxed{\theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D}) + \eta_t, \quad \eta_t \sim \mathcal{N}(0, \epsilon_t I)}
 $$
 
-**Key insight**: With decreasing step size $\epsilon_t \to 0$, the Metropolis acceptance step can be skipped.
+**고갱이 깨침**: 걸음 크기가 $\epsilon_t \to 0$으로 줄면 메트로폴리스 받기 걸음을 건너뛸 수 있다.
 
-**Step size schedule**: Must satisfy:
+**걸음 크기 짜임**: 다음을 채워야 한다.
 
 $$
 \sum_{t=1}^\infty \epsilon_t = \infty, \quad \sum_{t=1}^\infty \epsilon_t^2 < \infty
 $$
 
-Common choice: $\epsilon_t = a(b + t)^{-\gamma}$ with $\gamma \in (0.5, 1]$.
+흔한 고름: $\gamma \in (0.5, 1]$인 $\epsilon_t = a(b + t)^{-\gamma}$.
 
-**Practical SGLD**:
+**참으로 쓰는 SGLD**:
 
 $$
 \theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \left[ \nabla_\theta \log p(\theta^{(t)}) + \frac{N}{|B|} \sum_{i \in B} \nabla_\theta \log p(y_i \mid x_i, \theta^{(t)}) \right] + \eta_t
 $$
 
-### Stochastic Gradient Hamiltonian Monte Carlo (SGHMC)
+### 확률 기울기 해밀턴 몬테카를로(SGHMC)
 
-Adds momentum to SGLD for better exploration:
+더 잘 둘러보도록 SGLD에 밀어 나감을 더한다.
 
 $$
 \theta^{(t+1)} = \theta^{(t)} + \rho^{(t)}
@@ -221,127 +221,127 @@ $$
 \rho^{(t+1)} = (1 - \alpha) \rho^{(t)} + \epsilon_t \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D}) + \eta_t
 $$
 
-where $\alpha$ is a friction coefficient and $\eta_t \sim \mathcal{N}(0, 2\alpha\epsilon_t I)$.
+여기서 $\alpha$은 쓸림 값이고 $\eta_t \sim \mathcal{N}(0, 2\alpha\epsilon_t I)$이다.
 
-### Preconditioned SGLD
+### 미리 다듬은 SGLD
 
-Use preconditioning matrix $G(\theta)$ for better scaling:
+잣대가 더 잘 맞도록 미리 다듬는 행렬 $G(\theta)$을 쓴다.
 
 $$
 \theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \left[ G(\theta^{(t)}) \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D}) + \Gamma(\theta^{(t)}) \right] + \eta_t
 $$
 
-where $\eta_t \sim \mathcal{N}(0, \epsilon_t G(\theta^{(t)}))$ and $\Gamma$ is a correction term.
+여기서 $\eta_t \sim \mathcal{N}(0, \epsilon_t G(\theta^{(t)}))$이고 $\Gamma$은 바로잡는 항이다.
 
-**Common choices for $G$**:
+**$G$으로 흔히 고르는 것**:
 
-- RMSprop preconditioner
-- Adam preconditioner
-- Fisher information matrix
+- RMSprop 미리 다듬개
+- Adam 미리 다듬개
+- 피셔 소식 행렬
 
-### Cyclical SGLD
+### 돌림 SGLD
 
-Use cyclical learning rates to escape local modes:
+그 자리 봉우리를 벗어나도록 돌림 배움 비율을 쓴다.
 
 $$
 \epsilon_t = \epsilon_0 \left( \cos\left(\frac{\pi \, \text{mod}(t, T_{\text{cycle}})}{T_{\text{cycle}}}\right) + 1 \right) / 2
 $$
 
-Collect samples at the end of each cycle when step size is small.
+걸음 크기가 작아지는 돌림의 끝에서 표본을 모은다.
 
 ---
 
-## Laplace Approximation
+## 라플라스 어림
 
-### Concept
+### 깨침
 
-Approximate the posterior with a Gaussian centered at the MAP estimate:
+뒷분포를 MAP 어림을 가운데로 삼는 가우스로 어림한다.
 
 $$
 \boxed{p(\theta \mid \mathcal{D}) \approx q(\theta) = \mathcal{N}(\theta \mid \hat{\theta}_{\text{MAP}}, \Sigma)}
 $$
 
-where:
+여기서
 
 - $\hat{\theta}_{\text{MAP}} = \arg\max_\theta \log p(\theta \mid \mathcal{D})$
 - $\Sigma = \left[ -\nabla^2_\theta \log p(\theta \mid \mathcal{D}) \big|_{\hat{\theta}_{\text{MAP}}} \right]^{-1}$
 
-### Derivation
+### 이끌어 내기
 
-Taylor expand the log posterior around the MAP:
+로그 뒷분포를 MAP 언저리에서 테일러로 펼친다.
 
 $$
 \log p(\theta \mid \mathcal{D}) \approx \log p(\hat{\theta} \mid \mathcal{D}) - \frac{1}{2}(\theta - \hat{\theta})^\top H (\theta - \hat{\theta})
 $$
 
-where $H = -\nabla^2_\theta \log p(\theta \mid \mathcal{D})|_{\hat{\theta}}$ is the Hessian.
+여기서 $H = -\nabla^2_\theta \log p(\theta \mid \mathcal{D})|_{\hat{\theta}}$은 헤세 행렬이다.
 
-Exponentiating gives a Gaussian with covariance $\Sigma = H^{-1}$.
+지수를 취하면 함께 바뀜이 $\Sigma = H^{-1}$인 가우스가 된다.
 
-### Hessian Computation
+### 헤세 행렬 셈하기
 
-**Full Hessian**: $O(d^2)$ storage, $O(d^3)$ inversion — intractable for large networks.
+**온전한 헤세 행렬**: 자리 $O(d^2)$, 거꿀 셈 $O(d^3)$ — 큰 그물에서는 다룰 수 없다.
 
-**Diagonal approximation**:
+**대각 어림**:
 
 $$
 \Sigma = \text{diag}(\sigma_1^2, \ldots, \sigma_d^2)
 $$
 
-where $\sigma_i^2 = 1/H_{ii}$.
+여기서 $\sigma_i^2 = 1/H_{ii}$이다.
 
-**Kronecker-Factored (KFAC)**:
+**크로네커로 쪼갠 것(KFAC)**:
 
-For layer $l$ with weights $W^{(l)}$:
+짐이 $W^{(l)}$인 켜 $l$에서
 
 $$
 H^{(l)} \approx A^{(l)} \otimes G^{(l)}
 $$
 
-where:
+여기서
 
-- $A^{(l)} = \mathbb{E}[a^{(l-1)} (a^{(l-1)})^\top]$ (input activations)
-- $G^{(l)} = \mathbb{E}[g^{(l)} (g^{(l)})^\top]$ (output gradients)
+- $A^{(l)} = \mathbb{E}[a^{(l-1)} (a^{(l-1)})^\top]$(들임 살림)
+- $G^{(l)} = \mathbb{E}[g^{(l)} (g^{(l)})^\top]$(날임 기울기)
 
-**Inversion**:
+**거꿀**:
 
 $$
 (A \otimes G)^{-1} = A^{-1} \otimes G^{-1}
 $$
 
-Reduces $O(d^3)$ to $O(n_l^3 + n_{l-1}^3)$ per layer.
+켜마다 $O(d^3)$을 $O(n_l^3 + n_{l-1}^3)$으로 줄인다.
 
-### Last-Layer Laplace
+### 마지막 켜 라플라스
 
-Apply Laplace only to the last layer, keeping earlier layers fixed:
+앞 켜는 붙박아 두고 마지막 켜에만 라플라스를 건다.
 
 $$
 p(\theta_L \mid \mathcal{D}, \theta_{1:L-1}) \approx \mathcal{N}(\theta_L \mid \hat{\theta}_L, \Sigma_L)
 $$
 
-**Advantages**:
+**나은 점**:
 
-- Much smaller Hessian
-- Often captures most uncertainty
-- Feature extractor remains deterministic
+- 헤세 행렬이 훨씬 작다
+- 아리송함의 거의를 담는 일이 잦다
+- 결 뽑개는 붙박인 채로 남는다
 
-### Predictive Distribution
+### 미루어 보는 분포
 
-For regression with Gaussian likelihood:
+가우스 그럴듯함을 쓰는 되돌이에서
 
 $$
 p(y^* \mid x^*, \mathcal{D}) = \int p(y^* \mid x^*, \theta) \, q(\theta) \, d\theta
 $$
 
-**Linearization** around MAP:
+MAP 언저리에서 **곧게 펴기**:
 
 $$
 f_\theta(x) \approx f_{\hat{\theta}}(x) + J_{\hat{\theta}}(x)(\theta - \hat{\theta})
 $$
 
-where $J_{\hat{\theta}}(x) = \nabla_\theta f_\theta(x)|_{\hat{\theta}}$ is the Jacobian.
+여기서 $J_{\hat{\theta}}(x) = \nabla_\theta f_\theta(x)|_{\hat{\theta}}$은 야코비 행렬이다.
 
-**Predictive variance**:
+**미루어 본 흩어짐**:
 
 $$
 \text{Var}[f(x^*)] \approx J_{\hat{\theta}}(x^*)^\top \Sigma \, J_{\hat{\theta}}(x^*)
@@ -349,100 +349,100 @@ $$
 
 ---
 
-## 변분 추론
+## 변이 미루어 봄
 
-### The Variational Objective
+### 변이 목표
 
-Approximate $p(\theta \mid \mathcal{D})$ with a tractable distribution $q_\phi(\theta)$ by minimizing KL divergence:
+KL 갈림을 가장 작게 하여 $p(\theta \mid \mathcal{D})$을 다룰 수 있는 분포 $q_\phi(\theta)$으로 어림한다.
 
 $$
 \phi^* = \arg\min_\phi \text{KL}(q_\phi(\theta) \| p(\theta \mid \mathcal{D}))
 $$
 
-**Evidence Lower Bound (ELBO)**:
+**밑거리 아래끝(ELBO)**:
 
 $$
 \boxed{\mathcal{L}(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \text{KL}(q_\phi(\theta) \| p(\theta))}
 $$
 
-**Derivation**:
+**이끌어 내기**:
 
 $$
 \log p(\mathcal{D}) = \mathcal{L}(\phi) + \text{KL}(q_\phi \| p(\theta \mid \mathcal{D})) \geq \mathcal{L}(\phi)
 $$
 
-Maximizing ELBO is equivalent to minimizing KL to the posterior.
+ELBO을 가장 크게 하는 일은 뒷분포에 대한 KL을 가장 작게 하는 일과 같다.
 
-### Mean-Field Variational Inference
+### 평균 마당 변이 미루어 봄
 
-**Factorized approximation**:
+**곱으로 가른 어림**:
 
 $$
 q_\phi(\theta) = \prod_{i=1}^d q_{\phi_i}(\theta_i)
 $$
 
-**Gaussian mean-field**:
+**가우스 평균 마당**:
 
 $$
 q_\phi(\theta) = \prod_{i=1}^d \mathcal{N}(\theta_i \mid \mu_i, \sigma_i^2)
 $$
 
-Parameters: $\phi = \{\mu_i, \sigma_i\}_{i=1}^d$ (or $\log \sigma_i$ for positivity).
+매개변수: $\phi = \{\mu_i, \sigma_i\}_{i=1}^d$(양이 되게 하려면 $\log \sigma_i$).
 
-### Reparameterization Trick
+### 매개변수 다시 잡기 재주
 
-To compute gradients through stochastic sampling:
+확률 표본 뽑기를 지나 기울기를 셈하려면
 
 $$
 \theta = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
 $$
 
-**Gradient of ELBO**:
+**ELBO의 기울기**:
 
 $$
 \nabla_\phi \mathcal{L} = \nabla_\phi \mathbb{E}_{\epsilon}[\log p(\mathcal{D} \mid \mu + \sigma \odot \epsilon)] - \nabla_\phi \text{KL}(q_\phi \| p)
 $$
 
-The first term is estimated via Monte Carlo; the second often has closed form.
+첫째 항은 몬테카를로로 어림하고, 둘째 항은 흔히 닫힌 꼴을 지닌다.
 
-### KL Divergence for Gaussian Priors
+### 가우스 앞선 분포의 KL 갈림
 
-For $q(\theta) = \mathcal{N}(\mu, \text{diag}(\sigma^2))$ and $p(\theta) = \mathcal{N}(0, \sigma_0^2 I)$:
+$q(\theta) = \mathcal{N}(\mu, \text{diag}(\sigma^2))$과 $p(\theta) = \mathcal{N}(0, \sigma_0^2 I)$에서
 
 $$
 \text{KL}(q \| p) = \frac{1}{2} \sum_{i=1}^d \left[ \frac{\mu_i^2 + \sigma_i^2}{\sigma_0^2} - 1 - \log\frac{\sigma_i^2}{\sigma_0^2} \right]
 $$
 
-### Bayes by Backprop
+### 되돌아가며 베이즈
 
-**Algorithm** (Blundell et al., 2015):
+**알고리즘**(블런델 등, 2015):
 
-1. Sample $\epsilon \sim \mathcal{N}(0, I)$
-2. Compute $\theta = \mu + \log(1 + e^\rho) \odot \epsilon$ (softplus for $\sigma$)
-3. Compute loss: $\mathcal{L} = \log q_\phi(\theta) - \log p(\theta) - \log p(\mathcal{D} \mid \theta)$
-4. Backpropagate and update $\phi = \{\mu, \rho\}$
+1. $\epsilon \sim \mathcal{N}(0, I)$을 뽑는다
+2. $\theta = \mu + \log(1 + e^\rho) \odot \epsilon$을 셈한다($\sigma$에 소프트플러스)
+3. 잃음을 셈한다: $\mathcal{L} = \log q_\phi(\theta) - \log p(\theta) - \log p(\mathcal{D} \mid \theta)$
+4. 되돌아가며 $\phi = \{\mu, \rho\}$을 고친다
 
-**Minibatch ELBO**:
+**잔 묶음 ELBO**:
 
 $$
 \mathcal{L} \approx \frac{N}{|B|} \sum_{i \in B} \log p(y_i \mid x_i, \theta) - \text{KL}(q_\phi \| p)
 $$
 
-### Beyond Mean-Field
+### 평균 마당을 넘어
 
-**Full covariance**: $q(\theta) = \mathcal{N}(\mu, \Sigma)$
+**온전한 함께 바뀜**: $q(\theta) = \mathcal{N}(\mu, \Sigma)$
 
-- $O(d^2)$ parameters — often intractable
+- 매개변수가 $O(d^2)$개 — 흔히 다룰 수 없다
 
-**Low-rank plus diagonal**:
+**낮은 자리 더하기 대각**:
 
 $$
 \Sigma = D + VV^\top
 $$
 
-where $D$ is diagonal and $V \in \mathbb{R}^{d \times r}$ with rank $r \ll d$.
+여기서 $D$은 대각이고 $V \in \mathbb{R}^{d \times r}$의 자리는 $r \ll d$이다.
 
-**Normalizing flows**: Transform simple distribution through invertible functions
+**잣대 맞추는 흐름**: 되돌릴 수 있는 함수로 단순한 분포를 바꾼다
 
 $$
 q(\theta) = q_0(f^{-1}(\theta)) \left| \det \frac{\partial f^{-1}}{\partial \theta} \right|
@@ -450,41 +450,41 @@ $$
 
 ---
 
-## Implicit Variational Methods
+## 넌지시 하는 변이 방법
 
-### Deep Ensembles
+### 깊은 모둠
 
-Train $M$ networks independently with different initializations:
+첫값을 달리해 그물 $M$개를 서로 남남으로 익힌다.
 
 $$
 \{\theta^{(m)}\}_{m=1}^M \quad \text{where each } \theta^{(m)} = \arg\min_\theta \mathcal{L}(\theta; \mathcal{D})
 $$
 
-**Predictive distribution**:
+**미루어 보는 분포**:
 
 $$
 p(y^* \mid x^*, \mathcal{D}) \approx \frac{1}{M} \sum_{m=1}^M p(y^* \mid x^*, \theta^{(m)})
 $$
 
-**Interpretation**: Implicit posterior approximation sampling different modes.
+**풀이**: 서로 다른 봉우리를 뽑는 넌지시 하는 뒷분포 어림이다.
 
-**Advantages**:
+**나은 점**:
 
-- Simple to implement
-- Embarrassingly parallel
-- Often well-calibrated
+- 짜기가 단순하다
+- 나란히 하기가 더없이 쉽다
+- 눈금이 잘 맞는 일이 잦다
 
-**Disadvantages**:
+**아쉬운 점**:
 
-- $M\times$ training cost
-- $M\times$ storage and inference cost
-- Not a proper Bayesian method
+- 익힘 값이 $M$배
+- 자리와 미루어 봄 값이 $M$배
+- 제대로 된 베이즈 방법은 아니다
 
-### Stochastic Weight Averaging Gaussian (SWAG)
+### 확률 짐 고르기 가우스(SWAG)
 
-Collect statistics during SGD training:
+SGD으로 익히는 동안 자를 모은다.
 
-**Running statistics**:
+**달리는 자**:
 
 $$
 \bar{\theta} = \frac{1}{T} \sum_{t=1}^T \theta^{(t)}
@@ -494,126 +494,126 @@ $$
 \bar{\theta^2} = \frac{1}{T} \sum_{t=1}^T (\theta^{(t)})^2
 $$
 
-**Diagonal variance**:
+**대각 흩어짐**:
 
 $$
 \Sigma_{\text{diag}} = \text{diag}(\bar{\theta^2} - \bar{\theta}^2)
 $$
 
-**Low-rank component** (from deviations):
+**낮은 자리 몫**(벗어남에서):
 
 $$
 D = [\theta^{(t_1)} - \bar{\theta}, \ldots, \theta^{(t_K)} - \bar{\theta}]
 $$
 
-**SWAG posterior**:
+**SWAG 뒷분포**:
 
 $$
 q(\theta) = \mathcal{N}\left(\bar{\theta}, \frac{1}{2}(\Sigma_{\text{diag}} + \frac{1}{K-1}DD^\top)\right)
 $$
 
-### MC Dropout
+### MC 드롭아웃
 
-Use dropout at test time as approximate variational inference:
+어림 변이 미루어 봄으로 시험할 때 드롭아웃을 쓴다.
 
 $$
 q(\theta) = \prod_l q(W^{(l)})
 $$
 
-where $q(W^{(l)})$ has columns randomly set to zero.
+여기서 $q(W^{(l)})$은 기둥이 아무렇게나 0으로 되는 분포다.
 
-See the dedicated chapter on MC Dropout for details.
+자세한 것은 MC 드롭아웃을 다룬 장을 보라.
 
 ---
 
-## Practical Considerations
+## 참으로 헤아릴 것
 
-### Choosing an Inference Method
+### 미루어 봄 방법 고르기
 
-**Use SGLD when**:
+**SGLD을 쓸 때**:
 
-- Need theoretically grounded samples
-- Can afford longer training
-- Posterior multimodality is important
+- 이론에 뿌리내린 표본이 있어야 할 때
+- 오래 익힐 수 있을 때
+- 뒷분포의 여러 봉우리가 종요로울 때
 
-**Use Laplace approximation when**:
+**라플라스 어림을 쓸 때**:
 
-- Have a trained network (post-hoc uncertainty)
-- Need quick uncertainty estimates
-- Gaussian approximation is reasonable
+- 이미 익힌 그물이 있을 때(일 끝난 뒤 아리송함)
+- 아리송함 어림이 빨리 있어야 할 때
+- 가우스 어림이 그럴듯할 때
 
-**Use variational inference when**:
+**변이 미루어 봄을 쓸 때**:
 
-- Need scalable training
-- Can specify a reasonable variational family
-- Willing to tune hyperparameters
+- 크게 늘릴 수 있는 익힘이 있어야 할 때
+- 그럴듯한 변이 갈래를 정할 수 있을 때
+- 하이퍼파라미터를 맞출 뜻이 있을 때
 
-**Use ensembles when**:
+**모둠을 쓸 때**:
 
-- Simplicity is paramount
-- Have computational resources for multiple models
-- Need robust uncertainty
+- 단순함이 무엇보다 종요로울 때
+- 모형 여럿을 돌릴 셈 밑천이 있을 때
+- 든든한 아리송함이 있어야 할 때
 
-**Use MC Dropout when**:
+**MC 드롭아웃을 쓸 때**:
 
-- Need minimal code changes
-- Already using dropout
-- Computational efficiency is critical
+- 코드를 되도록 적게 고쳐야 할 때
+- 이미 드롭아웃을 쓰고 있을 때
+- 셈이 잘 들어야 할 때
 
-### Hyperparameter Considerations
+### 하이퍼파라미터에서 헤아릴 것
 
 **SGLD**:
 
-- Learning rate schedule (critical)
-- Burn-in period
-- Thinning interval
+- 배움 비율 짜임(가장 종요롭다)
+- 몸풀기 동안
+- 솎아 내는 틈
 
-**Variational inference**:
+**변이 미루어 봄**:
 
-- Prior variance $\sigma_0^2$
-- KL weight (warm-up schedule)
-- Number of MC samples
+- 앞선 분포의 흩어짐 $\sigma_0^2$
+- KL 짐(몸풀기 짜임)
+- MC 표본의 수
 
-**Laplace**:
+**라플라스**:
 
-- Hessian approximation (diagonal, KFAC, etc.)
-- Prior precision
+- 헤세 행렬 어림(대각, KFAC 따위)
+- 앞선 분포의 촘촘함
 
-### Computational Costs
+### 셈 값
 
-| Method | Training | Inference | Storage |
+| 방법 | 익힘 | 미루어 봄 | 자리 |
 |--------|----------|-----------|---------|
-| MAP (baseline) | $O(1)$ | $O(1)$ | $O(d)$ |
+| MAP(밑금) | $O(1)$ | $O(1)$ | $O(d)$ |
 | SGLD | $O(T)$ | $O(S)$ | $O(Sd)$ |
-| Mean-Field VI | $O(1)$-$O(2)$ | $O(S)$ | $O(2d)$ |
-| Laplace (diag) | $O(1) + O(d)$ | $O(1)$ | $O(2d)$ |
-| Laplace (KFAC) | $O(1) + O(\sum n_l^2)$ | $O(1)$ | $O(\sum n_l^2)$ |
-| Ensemble ($M$) | $O(M)$ | $O(M)$ | $O(Md)$ |
-| MC Dropout | $O(1)$ | $O(S)$ | $O(d)$ |
+| 평균 마당 VI | $O(1)$~$O(2)$ | $O(S)$ | $O(2d)$ |
+| 라플라스(대각) | $O(1) + O(d)$ | $O(1)$ | $O(2d)$ |
+| 라플라스(KFAC) | $O(1) + O(\sum n_l^2)$ | $O(1)$ | $O(\sum n_l^2)$ |
+| 모둠($M$) | $O(M)$ | $O(M)$ | $O(Md)$ |
+| MC 드롭아웃 | $O(1)$ | $O(S)$ | $O(d)$ |
 
-### Evaluating Inference Quality
+### 미루어 봄의 됨됨이 따지기
 
-**Calibration**: Do predicted uncertainties match empirical errors?
+**눈금 맞음**: 미루어 본 아리송함이 겪은 어긋남과 들어맞는가?
 
-**Negative log-likelihood**: $-\frac{1}{N_{\text{test}}} \sum_i \log p(y_i \mid x_i, \mathcal{D})$
+**음수 로그 그럴듯함**: $-\frac{1}{N_{\text{test}}} \sum_i \log p(y_i \mid x_i, \mathcal{D})$
 
-**Coverage**: Fraction of true values in predicted intervals
+**덮음**: 미루어 본 구간에 참값이 드는 몫
 
-**OOD detection**: Can uncertainty identify out-of-distribution inputs?
+**밖 분포 알아내기**: 아리송함이 밖 분포 들임을 짚어낼 수 있는가?
 
 ---
 
-## Python Implementation
+## 파이썬으로 짜기
 
 ```python
 """
-Posterior Inference for Bayesian Neural Networks
+베이즈 신경 그물의 뒷분포 미루어 봄
 
-This module provides implementations of various posterior inference methods:
-- Stochastic Gradient Langevin Dynamics (SGLD)
-- Laplace Approximation
-- Mean-Field Variational Inference
-- Deep Ensembles
+이 묶음은 여러 뒷분포 미루어 봄 방법을 짜 놓았다:
+- 확률 기울기 랑주뱅 움직임(SGLD)
+- 라플라스 어림
+- 평균 마당 변이 미루어 봄
+- 깊은 모둠
 - SWAG
 """
 
@@ -627,15 +627,15 @@ import warnings
 
 
 # =============================================================================
-# Base Classes
+# 밑 갈래
 # =============================================================================
 
 class BayesianInference(ABC):
-    """Abstract base class for Bayesian inference methods."""
+    """베이즈 미루어 봄 방법의 뼈대 갈래."""
     
     @abstractmethod
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """Fit the model to data."""
+        """모형을 자료에 맞춘다."""
         pass
     
     @abstractmethod
@@ -645,24 +645,24 @@ class BayesianInference(ABC):
         n_samples: int = 100
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Make predictions with uncertainty.
+        아리송함을 곁들여 미루어 본다.
         
         Returns
         -------
         mean : ndarray
-            Predictive mean
+            미루어 본 평균
         std : ndarray
-            Predictive standard deviation
+            미루어 본 잣대 어긋남
         """
         pass
 
 
 # =============================================================================
-# Simple Neural Network
+# 단순 신경 그물
 # =============================================================================
 
 class SimpleNN:
-    """Simple neural network for demonstration."""
+    """보여 주기용 단순 신경 그물."""
     
     def __init__(
         self,
@@ -679,10 +679,10 @@ class SimpleNN:
             self.act_fn = lambda x: np.maximum(x, 0)
             self.act_grad = lambda x: (x > 0).astype(float)
         else:
-            raise ValueError(f"Unknown activation: {activation}")
+            raise ValueError(f"모르는 살림 함수: {activation}")
     
     def init_weights(self, scale: float = 1.0) -> Dict[str, np.ndarray]:
-        """Initialize weights with He scaling."""
+        """허 잣대로 짐의 첫자리를 잡는다."""
         weights = {}
         for i in range(self.n_layers):
             fan_in = self.layer_sizes[i]
@@ -697,7 +697,7 @@ class SimpleNN:
         X: np.ndarray,
         weights: Dict[str, np.ndarray]
     ) -> np.ndarray:
-        """Forward pass."""
+        """앞으로 걸음."""
         h = X
         for i in range(self.n_layers):
             h = h @ weights[f'W{i}'] + weights[f'b{i}']
@@ -706,11 +706,11 @@ class SimpleNN:
         return h
     
     def flatten_weights(self, weights: Dict[str, np.ndarray]) -> np.ndarray:
-        """Flatten weights to vector."""
+        """짐을 벡터로 편다."""
         return np.concatenate([weights[k].flatten() for k in sorted(weights.keys())])
     
     def unflatten_weights(self, flat: np.ndarray) -> Dict[str, np.ndarray]:
-        """Unflatten vector to weights."""
+        """벡터를 짐으로 되돌린다."""
         weights = {}
         idx = 0
         for i in range(self.n_layers):
@@ -727,7 +727,7 @@ class SimpleNN:
         return weights
     
     def n_params(self) -> int:
-        """Total number of parameters."""
+        """온 매개변수의 수."""
         total = 0
         for i in range(self.n_layers):
             total += self.layer_sizes[i] * self.layer_sizes[i + 1]  # W
@@ -736,15 +736,15 @@ class SimpleNN:
 
 
 # =============================================================================
-# Stochastic Gradient Langevin Dynamics (SGLD)
+# 확률 기울기 랑주뱅 움직임(SGLD)
 # =============================================================================
 
 class SGLD(BayesianInference):
     """
-    Stochastic Gradient Langevin Dynamics for posterior sampling.
+    뒷분포 표본을 뽑는 확률 기울기 랑주뱅 움직임.
     
     Update: θ_{t+1} = θ_t + (ε_t/2) * ∇log p(θ|D) + η_t
-    where η_t ~ N(0, ε_t * I)
+    여기서 η_t ~ N(0, ε_t * I)
     """
     
     def __init__(
@@ -763,23 +763,23 @@ class SGLD(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            Neural network architecture
+            신경 그물 얼개
         prior_std : float
-            Prior standard deviation on weights
+            짐의 앞선 분포 잣대 어긋남
         noise_std : float
-            Observation noise standard deviation
+            살핌 잡음의 잣대 어긋남
         lr_init : float
-            Initial learning rate
+            처음 배움 비율
         lr_decay : float
-            Learning rate decay exponent (should be in (0.5, 1])
+            배움 비율 줄이기 지수((0.5, 1]에 들어야 한다)
         n_iterations : int
-            Total number of iterations
+            온 되돌이 횟수
         burn_in : int
-            Number of burn-in iterations
+            몸풀기 되돌이 횟수
         thinning : int
-            Keep every thinning-th sample
+            thinning번째 표본마다 남긴다
         batch_size : int
-            Minibatch size
+            잔 묶음 크기
         """
         self.network = network
         self.prior_std = prior_std
@@ -794,11 +794,11 @@ class SGLD(BayesianInference):
         self.samples = []
     
     def _learning_rate(self, t: int) -> float:
-        """Compute learning rate at iteration t."""
+        """되돌이 t에서의 배움 비율을 셈한다."""
         return self.lr_init / (1 + t) ** self.lr_decay
     
     def _log_prior_grad(self, theta: np.ndarray) -> np.ndarray:
-        """Gradient of log prior (Gaussian)."""
+        """로그 앞선 분포의 기울기(가우스)."""
         return -theta / (self.prior_std ** 2)
     
     def _log_likelihood_grad(
@@ -809,13 +809,13 @@ class SGLD(BayesianInference):
         N: int
     ) -> np.ndarray:
         """
-        Gradient of log likelihood (scaled for minibatch).
-        Uses numerical differentiation for simplicity.
+        로그 그럴듯함의 기울기(잔 묶음에 맞게 잣대를 맞춤).
+        단순하게 수로 미분해 셈한다.
         """
         weights = self.network.unflatten_weights(theta)
         pred = self.network.forward(X, weights)
         
-        # Numerical gradient
+        # 수로 셈하는 기울기
         eps = 1e-5
         grad = np.zeros_like(theta)
         
@@ -830,20 +830,20 @@ class SGLD(BayesianInference):
             weights_minus = self.network.unflatten_weights(theta_minus)
             pred_minus = self.network.forward(X, weights_minus)
             
-            # Gradient of log likelihood = -1/(2σ²) * d/dθ ||y - f(x,θ)||²
+            # 로그 그럴듯함의 기울기 = -1/(2σ²) * d/dθ ||y - f(x,θ)||²
             ll_plus = -0.5 * np.sum((y - pred_plus)**2) / (self.noise_std**2)
             ll_minus = -0.5 * np.sum((y - pred_minus)**2) / (self.noise_std**2)
             
             grad[i] = (ll_plus - ll_minus) / (2 * eps)
         
-        # Scale for minibatch
+        # 잔 묶음에 맞게 잣대를 맞춘다
         return grad * (N / len(X))
     
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """Run SGLD sampling."""
+        """SGLD 표본 뽑기를 돌린다."""
         N = len(X)
         
-        # Initialize
+        # 첫자리를 잡는다
         weights = self.network.init_weights()
         theta = self.network.flatten_weights(weights)
         
@@ -851,42 +851,42 @@ class SGLD(BayesianInference):
         self.losses = []
         
         for t in range(self.n_iterations):
-            # Get minibatch
+            # 잔 묶음을 얻는다
             idx = np.random.choice(N, min(self.batch_size, N), replace=False)
             X_batch = X[idx]
             y_batch = y[idx]
             
-            # Learning rate
+            # 배움 비율
             lr = self._learning_rate(t)
             
-            # Compute gradients
+            # 기울기를 셈한다
             grad_prior = self._log_prior_grad(theta)
             grad_likelihood = self._log_likelihood_grad(X_batch, y_batch, theta, N)
             grad = grad_prior + grad_likelihood
             
-            # SGLD update
+            # SGLD 고침
             noise = np.random.randn(len(theta)) * np.sqrt(lr)
             theta = theta + (lr / 2) * grad + noise
             
-            # Store sample
+            # 표본을 담는다
             if t >= self.burn_in and (t - self.burn_in) % self.thinning == 0:
                 self.samples.append(theta.copy())
             
-            # Track loss
+            # 잃음을 좇는다
             if t % 100 == 0:
                 weights = self.network.unflatten_weights(theta)
                 pred = self.network.forward(X, weights)
                 loss = np.mean((y - pred)**2)
                 self.losses.append(loss)
         
-        print(f"SGLD: Collected {len(self.samples)} samples")
+        print(f"SGLD: 표본 {len(self.samples)}개를 모았다")
     
     def predict(
         self,
         X: np.ndarray,
         n_samples: Optional[int] = None
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Make predictions using posterior samples."""
+        """뒷분포 표본으로 미루어 본다."""
         if n_samples is None:
             samples = self.samples
         else:
@@ -903,22 +903,22 @@ class SGLD(BayesianInference):
         mean = np.mean(predictions, axis=0)
         std = np.std(predictions, axis=0)
         
-        # Add observation noise
+        # 살핌 잡음을 더한다
         total_std = np.sqrt(std**2 + self.noise_std**2)
         
         return mean.flatten(), total_std.flatten()
 
 
 # =============================================================================
-# Laplace Approximation
+# 라플라스 어림
 # =============================================================================
 
 class LaplaceApproximation(BayesianInference):
     """
-    Laplace approximation for posterior inference.
+    뒷분포 미루어 봄을 위한 라플라스 어림.
     
-    Approximates posterior as Gaussian centered at MAP estimate.
-    Uses diagonal Hessian approximation for scalability.
+    뒷분포를 MAP 어림을 가운데로 삼는 가우스로 어림한다.
+    크게 늘리려고 대각 헤세 행렬 어림을 쓴다.
     """
     
     def __init__(
@@ -933,15 +933,15 @@ class LaplaceApproximation(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            Neural network architecture
+            신경 그물 얼개
         prior_std : float
-            Prior standard deviation
+            앞선 분포의 잣대 어긋남
         noise_std : float
-            Observation noise standard deviation
+            살핌 잡음의 잣대 어긋남
         n_iterations : int
-            Number of optimization iterations for MAP
+            MAP을 찾는 가장 좋게 하기 되돌이 횟수
         lr : float
-            Learning rate for MAP optimization
+            MAP 가장 좋게 하기의 배움 비율
         """
         self.network = network
         self.prior_std = prior_std
@@ -958,15 +958,15 @@ class LaplaceApproximation(BayesianInference):
         X: np.ndarray,
         y: np.ndarray
     ) -> float:
-        """Compute negative log posterior."""
+        """음수 로그 뒷분포를 셈한다."""
         weights = self.network.unflatten_weights(theta)
         pred = self.network.forward(X, weights)
         
-        # Log likelihood
+        # 로그 그럴듯함
         ll = -0.5 * np.sum((y - pred)**2) / (self.noise_std**2)
         ll -= 0.5 * len(y) * np.log(2 * np.pi * self.noise_std**2)
         
-        # Log prior
+        # 로그 앞선 분포
         lp = -0.5 * np.sum(theta**2) / (self.prior_std**2)
         lp -= 0.5 * len(theta) * np.log(2 * np.pi * self.prior_std**2)
         
@@ -979,7 +979,7 @@ class LaplaceApproximation(BayesianInference):
         y: np.ndarray,
         eps: float = 1e-5
     ) -> np.ndarray:
-        """Compute gradient numerically."""
+        """기울기를 수로 셈한다."""
         grad = np.zeros_like(theta)
         
         for i in range(len(theta)):
@@ -1002,7 +1002,7 @@ class LaplaceApproximation(BayesianInference):
         y: np.ndarray,
         eps: float = 1e-4
     ) -> np.ndarray:
-        """Compute diagonal of Hessian numerically."""
+        """헤세 행렬의 대각을 수로 셈한다."""
         hess_diag = np.zeros_like(theta)
         f0 = self._neg_log_posterior(theta, X, y)
         
@@ -1020,12 +1020,12 @@ class LaplaceApproximation(BayesianInference):
         return hess_diag
     
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """Find MAP estimate and compute Hessian."""
-        # Initialize
+        """MAP 어림을 찾고 헤세 행렬을 셈한다."""
+        # 첫자리를 잡는다
         weights = self.network.init_weights()
         theta = self.network.flatten_weights(weights)
         
-        # Optimize for MAP
+        # MAP을 찾아 가장 좋게 한다
         for t in range(self.n_iterations):
             grad = self._numerical_gradient(theta, X, y)
             theta = theta - self.lr * grad
@@ -1033,31 +1033,31 @@ class LaplaceApproximation(BayesianInference):
             if t % 200 == 0:
                 loss = self._neg_log_posterior(theta, X, y)
                 if t % 200 == 0:
-                    pass  # Silent training
+                    pass  # 말없이 익힌다
         
         self.theta_map = theta
         
-        # Compute diagonal Hessian
+        # 대각 헤세 행렬을 셈한다
         self.hessian_diag = self._numerical_hessian_diag(theta, X, y)
         
-        # Ensure positive definite (add small value if needed)
+        # 양으로 굳게 한다(있어야 하면 작은 값을 더한다)
         self.hessian_diag = np.maximum(self.hessian_diag, 1e-6)
         
-        # Posterior variance is inverse Hessian
+        # 뒷분포 흩어짐은 헤세 행렬의 거꿀이다
         self.posterior_var = 1.0 / self.hessian_diag
         
-        print(f"Laplace: MAP found, posterior variance computed")
+        print(f"라플라스: MAP을 찾고 뒷분포 흩어짐을 셈했다")
     
     def predict(
         self,
         X: np.ndarray,
         n_samples: int = 100
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Make predictions by sampling from Laplace posterior."""
+        """라플라스 뒷분포에서 뽑아 미루어 본다."""
         predictions = []
         
         for _ in range(n_samples):
-            # Sample from Gaussian posterior
+            # 가우스 뒷분포에서 뽑는다
             theta = self.theta_map + np.sqrt(self.posterior_var) * np.random.randn(len(self.theta_map))
             
             weights = self.network.unflatten_weights(theta)
@@ -1068,21 +1068,21 @@ class LaplaceApproximation(BayesianInference):
         mean = np.mean(predictions, axis=0)
         std = np.std(predictions, axis=0)
         
-        # Add observation noise
+        # 살핌 잡음을 더한다
         total_std = np.sqrt(std**2 + self.noise_std**2)
         
         return mean.flatten(), total_std.flatten()
 
 
 # =============================================================================
-# Mean-Field Variational Inference
+# 평균 마당 변이 미루어 봄
 # =============================================================================
 
 class MeanFieldVI(BayesianInference):
     """
-    Mean-field variational inference for BNNs.
+    베이즈 신경 그물을 위한 평균 마당 변이 미루어 봄.
     
-    Approximates posterior with factorized Gaussian:
+    뒷분포를 곱으로 가른 가우스로 어림한다:
     q(θ) = ∏_i N(θ_i | μ_i, σ_i²)
     """
     
@@ -1100,19 +1100,19 @@ class MeanFieldVI(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            Neural network architecture
+            신경 그물 얼개
         prior_std : float
-            Prior standard deviation
+            앞선 분포의 잣대 어긋남
         noise_std : float
-            Observation noise standard deviation
+            살핌 잡음의 잣대 어긋남
         n_iterations : int
-            Number of optimization iterations
+            가장 좋게 하기 되돌이 횟수
         lr : float
-            Learning rate
+            배움 비율
         n_mc_samples : int
-            Number of MC samples for gradient estimation
+            기울기를 어림할 MC 표본의 수
         kl_weight : float
-            Weight on KL term (for KL annealing)
+            KL 항의 짐(KL을 천천히 올리기용)
         """
         self.network = network
         self.prior_std = prior_std
@@ -1126,13 +1126,13 @@ class MeanFieldVI(BayesianInference):
         self.log_sigma = None
     
     def _sample_weights(self) -> np.ndarray:
-        """Sample weights using reparameterization trick."""
+        """매개변수 다시 잡기 재주로 짐을 뽑는다."""
         eps = np.random.randn(len(self.mu))
         sigma = np.exp(self.log_sigma)
         return self.mu + sigma * eps
     
     def _kl_divergence(self) -> float:
-        """KL divergence from q to prior."""
+        """q에서 앞선 분포까지의 KL 갈림."""
         sigma = np.exp(self.log_sigma)
         kl = 0.5 * np.sum(
             (self.mu**2 + sigma**2) / (self.prior_std**2) -
@@ -1147,7 +1147,7 @@ class MeanFieldVI(BayesianInference):
         N: int
     ) -> Tuple[float, np.ndarray, np.ndarray]:
         """
-        Compute ELBO and gradients.
+        ELBO과 기울기를 셈한다.
         
         Returns
         -------
@@ -1157,30 +1157,30 @@ class MeanFieldVI(BayesianInference):
         """
         n_batch = len(X)
         
-        # Monte Carlo estimate of expected log likelihood
+        # 바라는 로그 그럴듯함의 몬테카를로 어림
         total_ll = 0.0
         grad_mu_ll = np.zeros_like(self.mu)
         grad_log_sigma_ll = np.zeros_like(self.log_sigma)
         
         for _ in range(self.n_mc_samples):
-            # Sample weights
+            # 짐을 뽑는다
             eps = np.random.randn(len(self.mu))
             sigma = np.exp(self.log_sigma)
             theta = self.mu + sigma * eps
             
-            # Forward pass
+            # 앞으로 걸음
             weights = self.network.unflatten_weights(theta)
             pred = self.network.forward(X, weights)
             
-            # Log likelihood
+            # 로그 그럴듯함
             ll = -0.5 * np.sum((y - pred)**2) / (self.noise_std**2)
             total_ll += ll
             
-            # Numerical gradients for simplicity
+            # 단순하게 수로 셈하는 기울기
             delta = 1e-5
             
             for i in range(len(self.mu)):
-                # Gradient w.r.t. mu
+                # mu에 대한 기울기
                 theta_plus = theta.copy()
                 theta_plus[i] += delta
                 weights_plus = self.network.unflatten_weights(theta_plus)
@@ -1189,7 +1189,7 @@ class MeanFieldVI(BayesianInference):
                 
                 grad_mu_ll[i] += (ll_plus - ll) / delta
                 
-                # Gradient w.r.t. log_sigma (through reparameterization)
+                # log_sigma에 대한 기울기(매개변수 다시 잡기를 지나)
                 # d/d(log σ) = d/dθ * dθ/d(log σ) = d/dθ * σ * ε
                 grad_log_sigma_ll[i] += (ll_plus - ll) / delta * sigma[i] * eps[i]
         
@@ -1197,13 +1197,13 @@ class MeanFieldVI(BayesianInference):
         grad_mu_ll /= self.n_mc_samples
         grad_log_sigma_ll /= self.n_mc_samples
         
-        # Scale for full dataset
+        # 온 자료 꾸러미에 맞게 잣대를 맞춘다
         scale = N / n_batch
         total_ll *= scale
         grad_mu_ll *= scale
         grad_log_sigma_ll *= scale
         
-        # KL divergence and gradients
+        # KL 갈림과 기울기
         kl = self._kl_divergence()
         sigma = np.exp(self.log_sigma)
         grad_mu_kl = self.mu / (self.prior_std**2)
@@ -1217,37 +1217,37 @@ class MeanFieldVI(BayesianInference):
         return elbo, grad_mu, grad_log_sigma
     
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """Optimize variational parameters."""
+        """변이 매개변수를 가장 좋게 한다."""
         N = len(X)
         n_params = self.network.n_params()
         
-        # Initialize variational parameters
+        # 변이 매개변수의 첫자리를 잡는다
         self.mu = np.random.randn(n_params) * 0.1
         self.log_sigma = np.ones(n_params) * np.log(0.1)
         
         self.elbo_history = []
         
         for t in range(self.n_iterations):
-            # Compute ELBO and gradients
+            # ELBO과 기울기를 셈한다
             elbo, grad_mu, grad_log_sigma = self._elbo(X, y, N)
             
-            # Update
+            # 고친다
             self.mu += self.lr * grad_mu
-            self.log_sigma += self.lr * 0.1 * grad_log_sigma  # Smaller LR for variance
+            self.log_sigma += self.lr * 0.1 * grad_log_sigma  # 흩어짐에는 더 작은 배움 비율
             
             self.elbo_history.append(elbo)
             
             if t % 500 == 0:
-                pass  # Silent training
+                pass  # 말없이 익힌다
         
-        print(f"VI: Optimization complete, final ELBO = {elbo:.2f}")
+        print(f"VI: 가장 좋게 하기를 마쳤다, 마지막 ELBO = {elbo:.2f}")
     
     def predict(
         self,
         X: np.ndarray,
         n_samples: int = 100
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Make predictions by sampling from variational posterior."""
+        """변이 뒷분포에서 뽑아 미루어 본다."""
         predictions = []
         
         for _ in range(n_samples):
@@ -1260,21 +1260,21 @@ class MeanFieldVI(BayesianInference):
         mean = np.mean(predictions, axis=0)
         std = np.std(predictions, axis=0)
         
-        # Add observation noise
+        # 살핌 잡음을 더한다
         total_std = np.sqrt(std**2 + self.noise_std**2)
         
         return mean.flatten(), total_std.flatten()
 
 
 # =============================================================================
-# Deep Ensembles
+# 깊은 모둠
 # =============================================================================
 
 class DeepEnsemble(BayesianInference):
     """
-    Deep ensemble for uncertainty estimation.
+    아리송함을 어림하는 깊은 모둠.
     
-    Trains M networks independently with different initializations.
+    첫값을 달리해 그물 M개를 서로 남남으로 익힌다.
     """
     
     def __init__(
@@ -1289,15 +1289,15 @@ class DeepEnsemble(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            Neural network architecture
+            신경 그물 얼개
         n_members : int
-            Number of ensemble members
+            모둠 갈래의 수
         noise_std : float
-            Observation noise standard deviation
+            살핌 잡음의 잣대 어긋남
         n_iterations : int
-            Training iterations per member
+            갈래마다의 익힘 되돌이 횟수
         lr : float
-            Learning rate
+            배움 비율
         """
         self.network = network
         self.n_members = n_members
@@ -1313,14 +1313,14 @@ class DeepEnsemble(BayesianInference):
         y: np.ndarray,
         seed: int
     ) -> np.ndarray:
-        """Train a single ensemble member."""
+        """모둠 갈래 하나를 익힌다."""
         np.random.seed(seed)
         
         weights = self.network.init_weights()
         theta = self.network.flatten_weights(weights)
         
         for t in range(self.n_iterations):
-            # Compute gradient (numerical)
+            # 기울기를 셈한다(수로)
             grad = self._numerical_gradient(theta, X, y)
             theta = theta - self.lr * grad
         
@@ -1333,7 +1333,7 @@ class DeepEnsemble(BayesianInference):
         y: np.ndarray,
         eps: float = 1e-5
     ) -> np.ndarray:
-        """Compute MSE gradient numerically."""
+        """MSE의 기울기를 수로 셈한다."""
         grad = np.zeros_like(theta)
         
         weights = self.network.unflatten_weights(theta)
@@ -1353,21 +1353,21 @@ class DeepEnsemble(BayesianInference):
         return grad
     
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """Train all ensemble members."""
+        """모둠 갈래를 모두 익힌다."""
         self.members = []
         
         for m in range(self.n_members):
             theta = self._train_member(X, y, seed=m * 42)
             self.members.append(theta)
         
-        print(f"Ensemble: Trained {self.n_members} members")
+        print(f"모둠: 갈래 {self.n_members}개를 익혔다")
     
     def predict(
         self,
         X: np.ndarray,
         n_samples: Optional[int] = None
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Make predictions using ensemble."""
+        """모둠으로 미루어 본다."""
         predictions = []
         
         for theta in self.members:
@@ -1379,14 +1379,14 @@ class DeepEnsemble(BayesianInference):
         mean = np.mean(predictions, axis=0)
         std = np.std(predictions, axis=0)
         
-        # Add observation noise
+        # 살핌 잡음을 더한다
         total_std = np.sqrt(std**2 + self.noise_std**2)
         
         return mean.flatten(), total_std.flatten()
 
 
 # =============================================================================
-# Visualization and Evaluation
+# 그리기와 따지기
 # =============================================================================
 
 def plot_inference_comparison(
@@ -1397,7 +1397,7 @@ def plot_inference_comparison(
     methods: Dict[str, BayesianInference],
     figsize: Tuple[float, float] = (15, 4)
 ):
-    """Compare different inference methods visually."""
+    """여러 미루어 봄 방법을 눈으로 견준다."""
     n_methods = len(methods)
     fig, axes = plt.subplots(1, n_methods, figsize=figsize)
     
@@ -1414,9 +1414,9 @@ def plot_inference_comparison(
             alpha=0.3,
             label='±2σ'
         )
-        ax.plot(X_test, mean, 'b-', linewidth=2, label='Mean')
-        ax.plot(X_test, y_true, 'k--', linewidth=1, label='True')
-        ax.scatter(X_train, y_train, c='red', s=20, zorder=5, label='Data')
+        ax.plot(X_test, mean, 'b-', linewidth=2, label='평균')
+        ax.plot(X_test, y_true, 'k--', linewidth=1, label='참')
+        ax.scatter(X_train, y_train, c='red', s=20, zorder=5, label='자료')
         
         ax.set_xlabel('x')
         ax.set_ylabel('y')
@@ -1433,13 +1433,13 @@ def evaluate_calibration(
     y_test: np.ndarray,
     n_bins: int = 10
 ) -> Dict[str, float]:
-    """Evaluate calibration of uncertainty estimates."""
+    """아리송함 어림의 눈금 맞음을 따진다."""
     mean, std = method.predict(X_test)
     
-    # Compute z-scores
+    # z 점수를 셈한다
     z = (y_test.flatten() - mean) / std
     
-    # Expected coverage at different levels
+    # 켜마다 바라는 덮음
     coverages = {}
     expected_coverages = [0.5, 0.8, 0.9, 0.95, 0.99]
     
@@ -1462,19 +1462,19 @@ def evaluate_calibration(
 
 
 # =============================================================================
-# Demo Functions
+# 보여 주는 함수
 # =============================================================================
 
 def demo_inference_methods():
-    """Compare different inference methods on a simple problem."""
+    """단순한 문제에서 여러 미루어 봄 방법을 견준다."""
     
     print("=" * 70)
-    print("COMPARING POSTERIOR INFERENCE METHODS")
+    print("뒷분포 미루어 봄 방법 견주기")
     print("=" * 70)
     
     np.random.seed(42)
     
-    # Generate data
+    # 자료를 만든다
     N = 20
     X_train = np.random.uniform(-3, 3, N).reshape(-1, 1)
     y_train = np.sin(X_train) + np.random.normal(0, 0.2, (N, 1))
@@ -1482,18 +1482,18 @@ def demo_inference_methods():
     X_test = np.linspace(-5, 5, 200).reshape(-1, 1)
     y_true = np.sin(X_test)
     
-    print(f"\nTraining data: {N} points")
-    print(f"True function: sin(x)")
+    print(f"\n익힘 자료: {N}점")
+    print(f"참 함수: sin(x)")
     
-    # Create network
+    # 그물을 만든다
     network = SimpleNN([1, 20, 1], activation='tanh')
-    print(f"Network: {network.layer_sizes}, {network.n_params()} parameters")
+    print(f"그물: {network.layer_sizes}, 매개변수 {network.n_params()}개")
     
-    # Train different methods
+    # 여러 방법을 익힌다
     methods = {}
     
-    # Laplace
-    print("\n--- Laplace Approximation ---")
+    # 라플라스
+    print("\n--- 라플라스 어림 ---")
     laplace = LaplaceApproximation(
         network, prior_std=1.0, noise_std=0.2,
         n_iterations=500, lr=0.05
@@ -1501,8 +1501,8 @@ def demo_inference_methods():
     laplace.fit(X_train, y_train)
     methods['Laplace'] = laplace
     
-    # Ensemble
-    print("\n--- Deep Ensemble ---")
+    # 모둠
+    print("\n--- 깊은 모둠 ---")
     ensemble = DeepEnsemble(
         network, n_members=5, noise_std=0.2,
         n_iterations=500, lr=0.05
@@ -1510,9 +1510,9 @@ def demo_inference_methods():
     ensemble.fit(X_train, y_train)
     methods['Ensemble'] = ensemble
     
-    # Evaluate
-    print("\n--- Evaluation ---")
-    print(f"{'Method':<15} {'NLL':>8} {'RMSE':>8} {'Cov90%':>8}")
+    # 따진다
+    print("\n--- 따지기 ---")
+    print(f"{'방법':<15} {'NLL':>8} {'RMSE':>8} {'덮음90%':>8}")
     print("-" * 45)
     
     for name, method in methods.items():
@@ -1524,22 +1524,22 @@ def demo_inference_methods():
 
 
 def demo_sgld():
-    """Demonstrate SGLD sampling."""
+    """SGLD 표본 뽑기를 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("STOCHASTIC GRADIENT LANGEVIN DYNAMICS")
+    print("확률 기울기 랑주뱅 움직임")
     print("=" * 70)
     
     np.random.seed(42)
     
-    # Simple 1D problem
+    # 단순한 1차 문제
     N = 30
     X_train = np.random.uniform(-3, 3, N).reshape(-1, 1)
     y_train = np.sin(X_train) + np.random.normal(0, 0.2, (N, 1))
     
     network = SimpleNN([1, 10, 1], activation='tanh')
     
-    print(f"\nRunning SGLD with {network.n_params()} parameters...")
+    print(f"\n매개변수 {network.n_params()}개로 SGLD을 돌리는 중...")
     
     sgld = SGLD(
         network,
@@ -1550,40 +1550,40 @@ def demo_sgld():
         n_iterations=3000,
         burn_in=1500,
         thinning=5,
-        batch_size=N  # Full batch for stability
+        batch_size=N  # 든든하도록 온 묶음
     )
     
     sgld.fit(X_train, y_train)
     
-    # Evaluate
+    # 따진다
     X_test = np.linspace(-5, 5, 100).reshape(-1, 1)
     mean, std = sgld.predict(X_test)
     
-    print(f"\nSamples collected: {len(sgld.samples)}")
-    print(f"Mean prediction std: {np.mean(std):.3f}")
+    print(f"\n모은 표본: {len(sgld.samples)}")
+    print(f"미루어 봄의 평균 잣대 어긋남: {np.mean(std):.3f}")
     
     return sgld
 
 
 def demo_variational_inference():
-    """Demonstrate mean-field variational inference."""
+    """평균 마당 변이 미루어 봄을 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("MEAN-FIELD VARIATIONAL INFERENCE")
+    print("평균 마당 변이 미루어 봄")
     print("=" * 70)
     
     np.random.seed(42)
     
-    # Simple problem
+    # 단순한 문제
     N = 30
     X_train = np.random.uniform(-3, 3, N).reshape(-1, 1)
     y_train = np.sin(X_train) + np.random.normal(0, 0.2, (N, 1))
     
-    # Small network for faster VI
+    # VI을 빠르게 하려고 작은 그물
     network = SimpleNN([1, 10, 1], activation='tanh')
     
-    print(f"\nRunning VI with {network.n_params()} parameters...")
-    print("(This may take a while due to numerical gradients)")
+    print(f"\n매개변수 {network.n_params()}개로 VI을 돌리는 중...")
+    print("(수로 셈하는 기울기 탓에 좀 걸릴 수 있다)")
     
     vi = MeanFieldVI(
         network,
@@ -1596,12 +1596,12 @@ def demo_variational_inference():
     
     vi.fit(X_train, y_train)
     
-    # Examine learned posterior
+    # 배운 뒷분포를 살핀다
     sigma = np.exp(vi.log_sigma)
-    print(f"\nPosterior statistics:")
-    print(f"  Mean |μ|: {np.mean(np.abs(vi.mu)):.4f}")
-    print(f"  Mean σ:   {np.mean(sigma):.4f}")
-    print(f"  Max σ:    {np.max(sigma):.4f}")
+    print(f"\n뒷분포 자:")
+    print(f"  평균 |μ|: {np.mean(np.abs(vi.mu)):.4f}")
+    print(f"  평균 σ:   {np.mean(sigma):.4f}")
+    print(f"  가장 큰 σ:    {np.max(sigma):.4f}")
     
     return vi
 
@@ -1614,76 +1614,76 @@ if __name__ == "__main__":
 
 ---
 
-## Summary
+## 간추림
 
-### Inference Methods Overview
+### 미루어 봄 방법 두루 보기
 
-| Method | Approach | Accuracy | Scalability |
+| 방법 | 길 | 맞음 | 크게 늘리기 |
 |--------|----------|----------|-------------|
-| **HMC** | Exact MCMC | High | Low |
-| **SGLD** | Stochastic MCMC | Medium-High | High |
-| **Laplace** | Gaussian at MAP | Medium | Medium-High |
-| **Mean-Field VI** | Factorized optimization | Low-Medium | High |
-| **Deep Ensembles** | Multiple MAPs | Medium-High | Medium |
-| **MC Dropout** | Implicit VI | Low-Medium | Very High |
+| **HMC** | 정확한 MCMC | 높음 | 낮음 |
+| **SGLD** | 확률 MCMC | 가운데~높음 | 높음 |
+| **라플라스** | MAP에서의 가우스 | 가운데 | 가운데~높음 |
+| **평균 마당 VI** | 곱으로 가른 가장 좋게 하기 | 낮음~가운데 | 높음 |
+| **깊은 모둠** | MAP 여럿 | 가운데~높음 | 가운데 |
+| **MC 드롭아웃** | 넌지시 하는 VI | 낮음~가운데 | 아주 높음 |
 
-### Key Formulas
+### 고갱이 식
 
-**Posterior**:
+**뒷분포**:
 
 $$
 p(\theta \mid \mathcal{D}) \propto p(\mathcal{D} \mid \theta) \, p(\theta)
 $$
 
-**SGLD Update**:
+**SGLD 고침**:
 
 $$
 \theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \nabla \log p(\theta^{(t)} \mid \mathcal{D}) + \mathcal{N}(0, \epsilon_t I)
 $$
 
-**ELBO** (Variational Inference):
+**ELBO**(변이 미루어 봄):
 
 $$
 \mathcal{L}(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \text{KL}(q_\phi \| p)
 $$
 
-**Laplace Approximation**:
+**라플라스 어림**:
 
 $$
 q(\theta) = \mathcal{N}(\theta_{\text{MAP}}, H^{-1})
 $$
 
-### Computational Complexity
+### 셈 번거로움
 
-| Method | Training | Inference | Storage |
+| 방법 | 익힘 | 미루어 봄 | 자리 |
 |--------|----------|-----------|---------|
 | MAP | $O(E \cdot N)$ | $O(1)$ | $O(d)$ |
 | SGLD | $O(T \cdot B)$ | $O(S)$ | $O(Sd)$ |
-| Laplace | $O(E \cdot N + d^2)$ | $O(S)$ | $O(d^2)$ |
+| 라플라스 | $O(E \cdot N + d^2)$ | $O(S)$ | $O(d^2)$ |
 | VI | $O(E \cdot N)$ | $O(S)$ | $O(2d)$ |
-| Ensemble | $O(M \cdot E \cdot N)$ | $O(M)$ | $O(Md)$ |
+| 모둠 | $O(M \cdot E \cdot N)$ | $O(M)$ | $O(Md)$ |
 
-### Method Selection Guide
+### 방법 고르기 길잡이
 
-| Scenario | Recommended Method |
+| 형편 | 즐겨 쓸 방법 |
 |----------|-------------------|
-| Post-hoc uncertainty | Laplace, SWAG |
-| Scalable training | VI, MC Dropout |
-| Best uncertainty | HMC (small), SGLD (large) |
-| Simple implementation | Ensembles, MC Dropout |
-| Limited compute | MC Dropout, Laplace |
+| 일 끝난 뒤 아리송함 | 라플라스, SWAG |
+| 크게 늘릴 수 있는 익힘 | VI, MC 드롭아웃 |
+| 가장 좋은 아리송함 | HMC(작을 때), SGLD(클 때) |
+| 단순한 짜기 | 모둠, MC 드롭아웃 |
+| 셈이 넉넉지 않을 때 | MC 드롭아웃, 라플라스 |
 
-### Connections to Other Chapters
+### 다른 장과의 이어짐
 
-| Topic | Chapter | Connection |
+| 이야기 | 장 | 이어짐 |
 |-------|---------|------------|
-| Prior specification | Ch13: Prior on Weights | Input to posterior |
-| Uncertainty | Ch13: Uncertainty | Posterior enables decomposition |
-| MC Dropout | Ch13: MC Dropout | Implicit variational inference |
-| Variational BNN | Ch13: Variational BNN | Detailed VI treatment |
-| Model comparison | Ch13: Information Criteria | Marginal likelihood |
+| 앞선 분포 정하기 | 13장: 짐의 앞선 분포 | 뒷분포의 들임 |
+| 아리송함 | 13장: 아리송함 | 뒷분포가 쪼갬을 이룬다 |
+| MC 드롭아웃 | 13장: MC 드롭아웃 | 넌지시 하는 변이 미루어 봄 |
+| 변이 베이즈 신경 그물 | 13장: 변이 베이즈 신경 그물 | VI을 자세히 다룸 |
+| 모형 견주기 | 13장: 소식 잣대 | 가장자리 그럴듯함 |
 
-### Key References
+### 고갱이 살펴볼 거리
 
 - Welling, M., & Teh, Y. W. (2011). Bayesian learning via stochastic gradient Langevin dynamics. *ICML*.
 - Blundell, C., et al. (2015). Weight uncertainty in neural networks. *ICML*.
@@ -1692,34 +1692,34 @@ $$
 - Lakshminarayanan, B., et al. (2017). Simple and scalable predictive uncertainty estimation using deep ensembles. *NeurIPS*.
 - Maddox, W., et al. (2019). A simple baseline for Bayesian inference in deep learning. *NeurIPS*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+**익힘 1.**
+ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
 
-??? success "Solution to Exercise 1"
-    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
-
----
-
-**Exercise 2.**
-Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
-
-??? success "Solution to Exercise 2"
-    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+**익힘 2.**
+이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
 
-??? success "Solution to Exercise 3"
-    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+??? success "익힘 2 풀이"
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE이 낮다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+**익힘 3.**
+베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
-??? success "Solution to Exercise 4"
-    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$
+??? success "익힘 3 풀이"
+    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
+
+---
+
+**익힘 4.**
+이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+
+??? success "익힘 4 풀이"
+    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$
