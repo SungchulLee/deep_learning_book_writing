@@ -102,7 +102,7 @@ PyTorch는 기본적으로 **행 우선** 순서를 쓰며, 같은 행의 원소
 x = torch.tensor([[1, 2, 3],
                   [4, 5, 6]])
 # 저장소: [1, 2, 3, 4, 5, 6]
-#          |row 0 | row 1 |
+#          |줄 0 | 줄 1 |
 
 print(x.stride())  # (3, 1) - row stride > column stride
 ```
@@ -589,7 +589,7 @@ inspect_tensor(x[:, ::2], "Strided slice")
     import torch
     t = torch.randn(3, 4)
     t_transposed = t.T  # shape (4, 3), strides (1, 4) -- non-contiguous
-    # t_transposed.view(12)  # RuntimeError!
+    # t_transposed.view(12)  # 실행 오류!
     t_reshaped = t_transposed.reshape(12)  # Works -- copies data
     ```
     `view()`는 데이터를 옮기지 않고 모양 메타데이터만 바꾸므로 연속된 메모리를 요구한다. 전치 후에는 스트라이드가 연속인 `(3, 1)`이 아니라 `(1, 4)`이므로 원소들이 행 우선 순서가 아니다. `reshape()`는 이를 감지하여 재구성 전에 연속 복사본을 만든다.

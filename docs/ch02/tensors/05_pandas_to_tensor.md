@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Pandas to tensor."""
+"""판다스에서 텐서로."""
 import torch
 import pandas as pd
 import numpy as np
@@ -83,25 +83,25 @@ def main():
         print("Non-numeric Series error:", e)
 
     # ---------------------- 참고(COPY / SHARE / 공유 시도) ----------------------
-    # • Pandas → NumPy:
+    # • 판다스 → 넘파이:
     #     s.to_numpy(dtype=..., copy=False)     # 바탕 데이터와 SHARE하거나(복사 없음) 뷰를 만들 수 있다
     #     s.values                               # to_numpy()와 같은 개념. 명시적 제어를 원하면 to_numpy를 쓴다
     #
-    # • NumPy → Torch:
+    # • 넘파이 → 토치:
     #     torch.tensor(ndarray)        → **COPY**(항상 새로운 독립 저장소)
     #     torch.from_numpy(ndarray)    → **SHARE**(복사 없음. 변경이 양쪽에 반영된다)
     #     torch.as_tensor(ndarray)     → **공유 시도**(호환되면 공유: 수치형, 쓰기 가능,
     #                                        스트라이드가 지원되면 공유, 아니면 COPY로 되돌아간다)
     #
     # • 파이썬 리스트/튜플을 쓸 때(NumPy가 아닐 때):
-    #     torch.tensor(list_like)      → **COPY**
+    #     torch.tensor(list_like)      → **베낌**
     #     torch.as_tensor(list_like)   → **COPY**(공유할 것이 없다)
     #
     # • Autograd:
     #     새로 만든 텐서는 requires_grad=False이다.
     #     역전파를 할 것이라면 실수/복소수 텐서에 requires_grad=True를 설정한다.
     #
-    # • Device/dtype:
+    # • 기기/자료 갈래:
     #     dtype를 명시하는 편이 좋다(예: 학습에는 float32). 필요하면 장치를 옮긴다:
     #         t = torch.from_numpy(arr).to("cuda")   # CPU에서 먼저 공유한 뒤 GPU로 COPY
     #         t = torch.tensor(df.to_numpy(np.float32), device="cuda")  # GPU로 바로 **COPY**

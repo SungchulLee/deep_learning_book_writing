@@ -6,18 +6,18 @@
 
 ```python
 """
-Tutorial 09: Reshaping and Views
+익힘 09: 꼴 바꾸기와 보기
 =================================
 
-Learn how to change tensor dimensions without copying data (when possible).
-Understanding views vs copies is crucial for memory efficiency.
+될 수 있으면 자료를 베끼지 않고 텐서의 차원을 바꾸는 법을 배운다.
+보기와 베낌의 다름을 아는 것이 기억 자리를 아끼는 데 꼭 필요하다.
 
-Key Concepts:
-- reshape() vs view() vs contiguous()
-- Adding/removing dimensions (unsqueeze/squeeze)
-- Permuting dimensions (transpose/permute)
-- Flattening tensors
-- Memory layout and contiguity
+고갱이 개념:
+- reshape(), view(), contiguous() 견주기
+- 차원 더하기와 없애기(unsqueeze/squeeze)
+- 차원 자리바꿈(transpose/permute)
+- 텐서 펼치기
+- 기억 자리 얼개와 이어짐
 """
 
 import torch
@@ -34,7 +34,7 @@ def header(title: str):
 
 
 def print_tensor_info(tensor, name="Tensor"):
-    """Helper to display tensor properties."""
+    """텐서의 속성을 보여 주는 도우미."""
     print(f"{name}:")
     print(f"  Value: {tensor}")
     print(f"  Shape: {tensor.shape}")
@@ -294,31 +294,31 @@ def main():
     header("10. Best Practices and Tips")
     
     print("""
-    Key Takeaways:
+    고갱이 배움:
     
-    1. **reshape() vs view()**
-       - Use reshape(): Safer, works always (copies if needed)
-       - Use view(): Faster IF you know the tensor is contiguous
+    1. **reshape()과 view() 견주기**
+       - reshape()을 써라: 더 안전하고 늘 된다(필요하면 베낀다)
+       - view()를 써라: 텐서가 이어져 있음을 안다면 더 빠르다
     
     2. **Contiguity**
-       - Operations like transpose() create non-contiguous views
-       - Call contiguous() before view() if unsure
-       - reshape() handles this automatically
+       - transpose() 같은 셈은 이어지지 않은 보기를 만든다
+       - 확실하지 않으면 view() 앞에 contiguous()을 불러라
+       - reshape()은 이를 절로 다룬다
     
-    3. **Memory Efficiency**
-       - Reshaping operations are usually FREE (create views)
-       - contiguous() creates a COPY (takes time and memory)
-       - Only call contiguous() when necessary
+    3. **기억 자리 아끼기**
+       - 꼴 바꾸기는 대개 공짜다(보기를 만든다)
+       - contiguous()은 베낌을 만든다(때와 기억 자리가 든다)
+       - 꼭 필요할 때만 contiguous()을 불러라
     
-    4. **Dimension Management**
-       - unsqueeze() adds dimensions (useful for broadcasting)
-       - squeeze() removes size-1 dimensions
-       - Use -1 for automatic size inference in reshape()
+    4. **차원 다루기**
+       - unsqueeze()은 차원을 더한다(펴 맞추기에 쓸모 있다)
+       - squeeze()은 크기 1인 차원을 없앤다
+       - reshape()에서 크기를 절로 미루게 하려면 -1을 써라
     
-    5. **Common Pitfalls**
-       - Always check tensor shapes after reshaping
-       - Be aware that views share memory with original
-       - Remember: total elements must match in reshape
+    5. **흔한 함정**
+       - 꼴을 바꾼 뒤에는 늘 텐서 꼴을 살펴라
+       - 보기는 본디 텐서와 기억 자리를 나눠 쓴다는 것을 잊지 마라
+       - 기억하라: 꼴을 바꿀 때 온 원소 수가 맞아야 한다
     """)
     
     # -------------------------------------------------------------------------
@@ -327,13 +327,13 @@ def main():
     header("Practice Exercises")
     
     print("""
-    Try these exercises:
+    다음 익힘을 해 보아라.
     
-    1. Create a tensor of shape (4, 5) and reshape it to (2, 2, 5)
-    2. Take a (3, 224, 224) image and add a batch dimension at the start
-    3. Flatten a (10, 5, 4) tensor into a (10, 20) tensor
-    4. Convert a column vector (10, 1) to a row vector (1, 10)
-    5. Create a (2, 3, 4, 5) tensor and rearrange to (5, 2, 4, 3)
+    1. 꼴이 (4, 5)인 텐서를 만들고 (2, 2, 5)으로 바꾸어라
+    2. (3, 224, 224) 그림에 앞쪽으로 묶음 차원을 더하여라
+    3. (10, 5, 4) 텐서를 (10, 20) 텐서로 펼쳐라
+    4. 칸 벡터 (10, 1)을 줄 벡터 (1, 10)으로 바꾸어라
+    5. (2, 3, 4, 5) 텐서를 만들어 (5, 2, 4, 3)으로 자리를 바꾸어라
     
     Solutions:
     """)

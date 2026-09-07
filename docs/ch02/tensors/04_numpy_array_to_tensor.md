@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Numpy array to tensor."""
+"""넘파이 배열에서 텐서로."""
 import numpy as np
 import torch
 
@@ -19,19 +19,19 @@ def header(title: str):
     print("=" * 80)
 
 def ptr_numpy(a: np.ndarray) -> int:
-    """Return the base data pointer of a NumPy array (as a Python int).
+    """넘파이 배열의 밑 자료 가리개를 (파이썬 정수로) 돌려준다.
     Notes:
-      • For a view, this may point into the middle of the base buffer.
-      • This address + strides/shape fully describe where elements live.
+      • 보기라면 밑 버퍼의 가운데를 가리킬 수도 있다.
+      • 이 주소와 걸음/꼴이 원소가 어디에 있는지를 온전히 밝힌다.
     """
     return a.__array_interface__['data'][0]
 
 def ptr_torch(t: torch.Tensor) -> int:
-    """Return the base data pointer of a PyTorch tensor's storage (as a Python int).
+    """PyTorch 텐서 저장소의 밑 자료 가리개를 (파이썬 정수로) 돌려준다.
     Notes:
-      • Equivalent to C++ Tensor.storage().data_ptr().
-      • Two objects “share memory” if they reference the same underlying buffer,
-        but their logical first element may start at different offsets (strides).
+      • C++의 Tensor.storage().data_ptr()과 같다.
+      • 두 객체가 같은 밑 버퍼를 가리키면 "기억 자리를 나눠 쓴다"고 하지만,
+        논리상 첫 원소는 서로 다른 자리(걸음)에서 비롯할 수 있다.
     """
     return t.untyped_storage().data_ptr()
 
@@ -122,7 +122,7 @@ def main():
     # ---------------------------------------------------------------------------
     # NumPy ndarray → PyTorch 텐서: 어떤 생성자를 쓸 것인가?
     #
-    # 1) torch.tensor(ndarray)  → COPY
+    # 1) torch.tensor(ndarray)  → 베낌
     #    • 가장 안전하고 방어적이다. 항상 새로운 독립 텐서를 할당한다.
     #    • ndarray의 공유/스트라이드를 무시한다. 이후 NumPy 변경으로 놀랄 일이 없다.
     #    • dtype/device를 직접 지정할 수 있다(예: device="cuda").
@@ -178,7 +178,7 @@ def main():
         # 다음 중 어느 쪽이든 동작한다:
         print(f"NumPy dtype {a.dtype.name:>8} → Torch dtype {t.dtype}")
         # 또는
-        # print(f"NumPy dtype {str(a.dtype):>8} → Torch dtype {t.dtype}")
+        # print(f"넘파이 dtype {str(a.dtype):>8} → 토치 dtype {t.dtype}")
 
     # ------------------------------------------------------------------------------
     # 5) 비연속/스트라이드 뷰(양수 보폭)도 여전히 **공유한다**

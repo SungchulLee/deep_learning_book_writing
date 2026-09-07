@@ -6,18 +6,18 @@
 
 ```python
 """
-Tutorial 08: Indexing and Slicing Tensors
+익힘 08: 텐서 자리 잡기와 자르기
 ==========================================
 
-Learn how to access and modify specific elements, rows, columns, or sub-tensors.
-This is crucial for data manipulation and neural network operations.
+어떤 원소, 줄, 칸, 아래 텐서에 닿고 그것을 고치는 법을 배운다.
+자료를 다루고 신경망을 셈하는 데 꼭 필요하다.
 
-Key Concepts:
-- Basic indexing (single elements)
-- Slicing (ranges of elements)
-- Advanced indexing (boolean masks, fancy indexing)
-- Multi-dimensional indexing
-- In-place modifications via indexing
+고갱이 개념:
+- 기본 자리 잡기(원소 하나)
+- 자르기(원소의 범위)
+- 앞선 자리 잡기(참거짓 가림, 멋진 자리 잡기)
+- 여러 차원 자리 잡기
+- 자리 잡기로 제자리에서 고치기
 """
 
 import torch
@@ -28,7 +28,7 @@ import torch
 
 
 def print_section(title: str):
-    """Helper to print section headers."""
+    """마디 머리글을 찍는 도우미."""
     print("\n" + "=" * 70)
     print(title)
     print("=" * 70)
@@ -288,15 +288,15 @@ def main():
     print_section("Practice Exercises")
     
     print("""
-    Try these exercises to test your understanding:
+    이해했는지 다음 익힘으로 따져 보아라.
     
-    1. Create a 5x5 matrix and extract its corners (4 elements: [0,0], [0,4], [4,0], [4,4])
-    2. Given a 1D tensor of 20 elements, select every 3rd element starting from index 1
-    3. Create a 4x6 matrix and set all elements in the 2nd row and 3rd column to zero
-    4. Use boolean indexing to find all elements in a tensor that are between 5 and 15
-    5. Create a 3x3 matrix and swap its first and last rows using indexing
+    1. 5x5 행렬을 만들고 네 모서리(원소 4개: [0,0], [0,4], [4,0], [4,4])를 뽑아라
+    2. 원소 20개짜리 1차원 텐서에서 번호 1부터 세 칸마다 하나씩 골라라
+    3. 4x6 행렬을 만들고 둘째 줄과 셋째 칸의 원소를 모두 0으로 두어라
+    4. 참거짓 자리 잡기로 텐서에서 5와 15 사이의 원소를 모두 찾아라
+    5. 3x3 행렬을 만들고 자리 잡기로 첫 줄과 마지막 줄을 맞바꾸어라
     
-    Solutions below...
+    풀이는 아래에 있다...
     """)
     
     # 해결 1

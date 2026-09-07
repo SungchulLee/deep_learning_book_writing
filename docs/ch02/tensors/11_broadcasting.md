@@ -6,18 +6,18 @@
 
 ```python
 """
-Tutorial 11: Broadcasting in PyTorch
+익힘 11: PyTorch의 펴 맞추기
 =====================================
 
-Broadcasting allows PyTorch to perform operations on tensors of different shapes
-by automatically expanding them to compatible shapes without copying data.
+펴 맞추기 덕에 PyTorch은 꼴이 다른 텐서끼리도 자료를 베끼지 않고
+절로 맞는 꼴로 늘려 셈할 수 있다.
 
-Key Concepts:
-- Broadcasting rules
+고갱이 개념:
+- 펴 맞추기 규칙
 - 흔한 펴 맞추기 무늬
-- When broadcasting fails
-- Memory efficiency
-- Broadcasting in neural networks
+- 펴 맞추기가 안 되는 때
+- 기억 자리 아끼기
+- 신경망에서의 펴 맞추기
 """
 
 import torch
@@ -40,11 +40,11 @@ def main():
     header("1. What is Broadcasting?")
     
     print("""
-    Broadcasting is a powerful mechanism that allows PyTorch to work with
-    tensors of different shapes when performing element-wise operations.
+    펴 맞추기는 원소별 셈을 할 때 꼴이 다른 텐서도 다룰 수 있게 하는
+    힘센 얼개다.
     
-    Instead of manually expanding tensors to the same size, PyTorch does it
-    automatically (virtually, without actually copying data).
+    텐서를 손수 같은 크기로 늘리는 대신 PyTorch이 절로
+    해 준다(자료를 참으로 베끼지 않고 겉으로만).
     """)
     
     # 간단한 예: 텐서에 스칼라 더하기
@@ -61,13 +61,13 @@ def main():
     header("2. Broadcasting Rules")
     
     print("""
-    Two tensors are "broadcastable" if:
+    다음이면 두 텐서를 "펴 맞출 수 있다".
     
-    1. Each tensor has at least one dimension, OR one tensor is a scalar
-    2. When iterating from the LAST dimension backwards:
-       - Dimensions are equal, OR
-       - One dimension is 1, OR  
-       - One dimension doesn't exist
+    1. 텐서마다 차원이 적어도 하나 있거나, 한쪽이 홑값이다
+    2. 마지막 차원부터 거꾸로 훑을 때
+       - 차원이 같거나,
+       - 한쪽 차원이 1이거나,
+       - 한쪽 차원이 없다
     
     Examples:
     """)
@@ -128,7 +128,7 @@ def main():
     C = A + B
     print(f"\nA + B (broadcasts to 3x4):\n{C}")
     print("""
-    How it works:
+    어떻게 도는가:
     - A broadcasts: [[0],     →  [[0, 0, 0, 0],
                      [1],          [1, 1, 1, 1],
                      [2]]          [2, 2, 2, 2]]
@@ -229,13 +229,13 @@ def main():
     header("8. Memory Efficiency")
     
     print("""
-    Key insight: Broadcasting doesn't actually copy data!
+    고갱이 눈썰미: 펴 맞추기는 자료를 참으로 베끼지 않는다!
     
-    When you broadcast a (1, 100) tensor to (1000, 100), PyTorch doesn't
-    create 1000 copies. Instead, it uses clever indexing to reuse the same
-    data virtually.
+    (1, 100) 텐서를 (1000, 100)으로 펴 맞출 때 PyTorch은 베낌 1000개를
+    만들지 않는다. 대신 슬기로운 자리 잡기로 같은 자료를 겉으로만
+    되쓴다.
     
-    This makes broadcasting both FAST and MEMORY-EFFICIENT.
+    그래서 펴 맞추기는 빠르면서도 기억 자리를 아낀다.
     """)
     
     # 시연
@@ -276,8 +276,8 @@ def main():
     header("10. Advanced: einsum")
     
     print("""
-    einsum (Einstein summation) provides a concise way to express tensor
-    operations with explicit control over broadcasting.
+    einsum(아인슈타인 합)은 펴 맞추기를 드러내 놓고 다스리며 텐서 셈을
+    짧게 적는 길을 준다.
     """)
     
     # einsum을 이용한 행렬-벡터 곱
@@ -301,9 +301,9 @@ def main():
     header("Practice Exercises")
     
     print("""
-    Try these exercises:
+    다음 익힘을 해 보아라.
     
-    1. Add a (5,) tensor to a (3, 5) matrix
+    1. (5,) 텐서를 (3, 5) 행렬에 더하여라
     2. Multiply a (4, 1) column vector with a (1, 3) row vector
     3. Normalize a (10, 20) matrix by subtracting column means
     4. Create a (5, 5) distance matrix from 5 points in 1D

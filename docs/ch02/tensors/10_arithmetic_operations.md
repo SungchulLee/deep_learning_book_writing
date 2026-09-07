@@ -6,17 +6,17 @@
 
 ```python
 """
-Tutorial 10: Arithmetic Operations
+익힘 10: 셈 연산
 ===================================
 
-Master element-wise and tensor arithmetic operations in PyTorch.
+PyTorch에서 원소별 셈과 텐서 셈을 익힌다.
 
-Key Concepts:
-- Element-wise operations (+, -, *, /, **)
-- In-place operations (add_, mul_, etc.)
-- Mathematical functions (sqrt, exp, log, etc.)
-- Aggregation vs element-wise
-- Broadcasting basics
+고갱이 개념:
+- 원소별 셈(+, -, *, /, **)
+- 제자리 셈(add_, mul_ 따위)
+- 수학 함수(sqrt, exp, log 따위)
+- 모으기와 원소별 셈 견주기
+- 펴 맞추기 기초
 """
 
 import torch
@@ -290,28 +290,28 @@ def main():
     header("10. Common Patterns and Tips")
     
     print("""
-    Key Takeaways:
+    고갱이 배움:
     
-    1. **Element-wise Operations**
-       - Most operators (+, -, *, /) work element-wise
-       - Use @ or torch.matmul() for matrix multiplication
+    1. **원소별 셈**
+       - 셈 기호(+, -, *, /)는 대개 원소별로 움직인다
+       - 행렬 곱에는 @이나 torch.matmul()을 써라
     
-    2. **In-place Operations**
-       - End with underscore: add_(), mul_(), etc.
-       - Modify tensor in memory (no new tensor created)
-       - Can't use on tensors with requires_grad=True
+    2. **제자리 셈**
+       - 밑줄로 끝난다: add_(), mul_() 따위
+       - 기억 자리에서 텐서를 고친다(새 텐서를 만들지 않는다)
+       - requires_grad=True인 텐서에는 쓸 수 없다
     
     3. **Broadcasting**
-       - Scalars automatically broadcast to tensor shape
-       - See tutorial 11 for detailed broadcasting rules
+       - 홑값은 텐서 꼴에 절로 펴 맞춰진다
+       - 자세한 펴 맞추기 규칙은 익힘 11을 보아라
     
-    4. **Function vs Method**
+    4. **함수와 방법 견주기**
        - torch.add(a, b) == a.add(b) == a + b
-       - Use what's most readable for your code
+       - 코드가 가장 읽기 좋은 것을 써라
     
     5. **Performance**
-       - In-place operations save memory but be careful with gradients
-       - Use torch.* functions for better optimization potential
+       - 제자리 셈은 기억 자리를 아끼지만 기울기에 조심하라
+       - 더 잘 다듬어질 수 있도록 torch.* 함수를 써라
     """)
     
     # -------------------------------------------------------------------------
@@ -320,13 +320,13 @@ def main():
     header("Practice Exercises")
     
     print("""
-    Try these:
+    다음을 해 보아라.
     
-    1. Compute: (x^2 + 2*x + 1) for x = [0, 1, 2, 3, 4]
-    2. Normalize values to range [0, 1]: (x - min) / (max - min)
-    3. Compute L2 norm (Euclidean length) of a vector
-    4. Element-wise max of three tensors
-    5. Sigmoid function: 1 / (1 + exp(-x))
+    1. x = [0, 1, 2, 3, 4]에 대해 (x^2 + 2*x + 1)을 셈하여라
+    2. 값을 [0, 1] 범위로 맞추어라: (x - min) / (max - min)
+    3. 벡터의 L2 노름(유클리드 길이)을 셈하여라
+    4. 텐서 셋의 원소별 최댓값
+    5. 시그모이드 함수: 1 / (1 + exp(-x))
     """)
     
     # 해답

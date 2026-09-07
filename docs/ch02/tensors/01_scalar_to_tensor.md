@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Scalar to tensor."""
+"""홑값에서 텐서로."""
 import torch
 
 # ========================================================================
@@ -13,13 +13,13 @@ import torch
 # ========================================================================
 
 def print_info(t):
-    """Pretty printer for quick inspection.
+    """얼른 들여다보기 위한 예쁜 찍개.
 
     Shows:
-      - `t` itself  : value display depends on dtype/precision
-      - `t.shape`   : `torch.Size([])` means a scalar (rank 0)
-      - `t.dtype`   : inferred from the Python value unless specified
-      - `t.requires_grad` : whether autograd will track ops on `t`
+      - `t` 자체  : 값이 어떻게 보이는지는 자료 갈래와 촘촘함에 달렸다
+      - `t.shape`   : `torch.Size([])`은 홑값(계수 0)이라는 뜻이다
+      - `t.dtype`   : 따로 밝히지 않으면 파이썬 값에서 미루어 정한다
+      - `t.requires_grad` : 자동 미분이 `t`의 셈을 좇을지 여부
     """
     print(f"{t = }", f"{t.shape = }", f"{t.dtype = }", f"{t.requires_grad = }",
           sep="\n", end="\n\n")

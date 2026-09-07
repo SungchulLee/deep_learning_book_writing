@@ -624,7 +624,7 @@ print(f"""
 ✅ Generated confusion matrix and per-class metrics
 ✅ Saved and loaded trained models
 
-Key Concepts:
+고갱이 개념:
 -------------
 • Mini-batch training: Process data in small batches
 • Data loaders: Efficient data handling with shuffling

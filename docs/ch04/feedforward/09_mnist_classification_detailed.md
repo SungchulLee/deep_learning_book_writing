@@ -417,7 +417,7 @@ print("""
    - Automatic batching
    - Data shuffling
    - Parallel loading
-   - Memory efficiency
+   - 기억 자리 아끼기
 
 3. CrossEntropyLoss for classification:
    - Combines LogSoftmax + NLLLoss

@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Clone vs inplace."""
+"""베끼기와 제자리 셈 견주기."""
 import torch
 
 # ========================================================================
@@ -20,12 +20,12 @@ def header(title: str):
 
 
 def ptr(t: torch.Tensor) -> int:
-    """Return the base storage data pointer (decimal).
+    """밑 저장소의 자료 가리개를 (십진수로) 돌려준다.
 
-    • Points to the beginning of the underlying storage buffer (not the logical
-      first element if the tensor is a view with offset/strides).
-    • If two tensors share the *same* storage, their data_ptr() values will be
-      equal (even if their shapes/strides differ).
+    • 밑 저장소 버퍼의 첫머리를 가리킨다(텐서가 자리 옮김이나 걸음을 지닌 보기라면
+      논리상 첫 원소를 가리키지는 않는다).
+    • 두 텐서가 *같은* 저장소를 나눠 쓰면 꼴이나 걸음이 달라도
+      data_ptr() 값이 같다.
     """
     return t.storage().data_ptr()
 

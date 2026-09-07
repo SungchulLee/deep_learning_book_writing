@@ -319,7 +319,7 @@ print("\n" + "=" * 70)
 print("SUMMARY")
 print("=" * 70)
 print("""
-Key Takeaways:
+고갱이 배움:
 
 1. AUTOGRAD BASICS:
    - 매개변수에 requires_grad=True을 둔다
