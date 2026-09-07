@@ -4,7 +4,7 @@
 
 ## 정의
 
-**Biconnected graph.** A connected undirected graph $G = (V, E)$ with $|V| \ge 3$ is *biconnected* (or 2-connected) if removing any single vertex leaves the graph connected. Equivalently, $G$ is biconnected if and only if every pair of vertices lies on a common simple cycle.
+**두 겹 이음 그래프.** $|V| \ge 3$인 이어진 방향 없는 그래프 $G = (V, E)$은 어떤 꼭짓점 하나를 없애도 이어진 채로 남으면 *두 겹 이음*(또는 2 이음)이다. 같은 말로, $G$이 두 겹 이음인 것은 어떤 두 꼭짓점도 한 단순 돌이 위에 함께 놓이는 것과 같은 뜻이다.
 
 **두 겹 이음 조각.** $G$의 가장 큰 두 겹 이음 아래그래프. $G$의 변마다 정확히 하나의 두 겹 이음 조각에 든다. 다리(없애면 $G$이 끊어지는 변)는 그 변 하나와 두 끝점만으로 된 두 겹 이음 조각을 이룬다.
 
@@ -21,8 +21,8 @@
 
 깊이 우선 돌아보기 한 번으로 모든 두 겹 이음 조각과 이음매 점을 $O(V + E)$ 시간에 찾는다. 이 알고리즘은 다음을 지닌다:
 
-- $\text{disc}[v]$: the discovery time of vertex $v$.
-- $\text{low}[v]$: the minimum discovery time reachable from the subtree rooted at $v$ using at most one back edge.
+- $\text{disc}[v]$: 꼭짓점 $v$을 찾아낸 때.
+- $\text{low}[v]$: 되돌아가는 이음을 많아야 하나 써서 $v$을 뿌리로 하는 잔나무에서 닿을 수 있는 가장 이른 찾아낸 때.
 
 $$
 \text{low}[v] = \min\!\bigl(\text{disc}[v],\; \min_{(v,w) \text{ back edge}} \text{disc}[w],\; \min_{(v,u) \text{ tree edge}} \text{low}[u]\bigr)
@@ -31,9 +31,9 @@ $$
 꼭짓점 $v$이 이음매 점인 경우는 다음과 같다:
 
 - $v$이 돌아보기 뿌리이고 돌아보기 나무에서 자식이 둘 이상이거나,
-- $v$ is not the root and has a child $u$ with $\text{low}[u] \ge \text{disc}[v]$.
+- $v$이 뿌리가 아니면서 $\text{low}[u] \ge \text{disc}[v]$인 자식 $u$을 지닌다.
 
-To extract biconnected components, maintain an edge stack. When the DFS backtracks from $u$ to $v$ and $\text{low}[u] \ge \text{disc}[v]$, pop all edges from the stack down to and including $(v, u)$; these edges form one biconnected component.
+두 겹 이음 덩이를 뽑아내려면 이음 쌓개를 지닌다. 깊이 먼저 찾기가 $u$에서 $v$으로 되짚어 갈 때 $\text{low}[u] \ge \text{disc}[v]$이면 $(v, u)$까지 넣어 쌓개에서 이음을 모두 뺀다. 이 이음들이 두 겹 이음 덩이 하나를 이룬다.
 
 ## 구현
 
@@ -138,7 +138,7 @@ Articulation points: [2, 3]
   Component 2: vertices [0, 1, 2], edges [(1, 2), (2, 0), (0, 1)]
 ```
 
-The triangle $\{0, 1, 2\}$ forms one biconnected component, the bridge $(2, 3)$ forms another, and the triangle $\{3, 4, 5\}$ forms a third. Vertices $2$ and $3$ are articulation points because they each connect two components.
+세모 $\{0, 1, 2\}$이 두 겹 이음 덩이 하나를, 다리 $(2, 3)$이 또 하나를, 세모 $\{3, 4, 5\}$이 셋째를 이룬다. 꼭짓점 $2$과 $3$은 저마다 덩이 둘을 잇기에 이음매 점이다.
 
 ## 복잡도
 
@@ -166,7 +166,7 @@ The triangle $\{0, 1, 2\}$ forms one biconnected component, the bridge $(2, 3)$ 
 두 겹 이음 조각을 정의하고 이어진 조각과 어떻게 다른지 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    A **biconnected component** (block) is a maximal 2-connected subgraph: it remains connected after removing any single vertex. A connected component only requires connectivity (removing a vertex may disconnect it). Every graph can be decomposed into biconnected components that share at most one vertex (an articulation point). Biconnected components represent the "robust" parts of a graph where no single vertex failure causes disconnection. $\square$
+    **두 겹 이음 덩이**(블록)는 가장 큰 2 이음 잔그래프다. 곧 어떤 꼭짓점 하나를 없애도 이어진 채로 남는다. 이어진 덩이는 이어져 있기만 하면 된다(꼭짓점을 없애면 끊길 수도 있다). 어떤 그래프든 꼭짓점을 많아야 하나(이음매 점) 함께 지니는 두 겹 이음 덩이로 쪼갤 수 있다. 두 겹 이음 덩이는 꼭짓점 하나가 무너져도 끊기지 않는 그래프의 "든든한" 자리를 나타낸다. $\square$
 
 ---
 
@@ -174,7 +174,7 @@ The triangle $\{0, 1, 2\}$ forms one biconnected component, the bridge $(2, 3)$ 
 쌓기를 써서 두 겹 이음 조각을 찾는 깊이 우선 돌아보기 바탕 알고리즘을 설명하여라.
 
 ??? success "연습문제 2 풀이"
-    Maintain an edge stack during DFS. Push each tree edge and back edge onto the stack. When an articulation point condition is detected ($\text{low}[v] \geq \text{disc}[u]$ for child $v$ of $u$), pop edges from the stack until edge $(u, v)$ is reached — these edges form one biconnected component. At the DFS root, after processing each child subtree, pop the remaining edges for the last component. Time: $O(V + E)$. Each edge belongs to exactly one biconnected component. $\square$
+    깊이 먼저 찾기를 도는 동안 이음 쌓개를 지닌다. 나무 이음과 되돌아가는 이음을 쌓개에 넣는다. 이음매 점 조건이 걸리면($u$의 자식 $v$에 대해 $\text{low}[v] \geq \text{disc}[u]$) 이음 $(u, v)$이 나올 때까지 쌓개에서 이음을 뺀다. 이 이음들이 두 겹 이음 덩이 하나를 이룬다. 깊이 먼저 찾기의 뿌리에서는 자식 잔나무를 다 다룬 뒤 남은 이음을 빼어 마지막 덩이를 만든다. 때는 $O(V + E)$이다. 이음마다 꼭 하나의 두 겹 이음 덩이에 든다. $\square$
 
 ---
 
@@ -182,7 +182,7 @@ The triangle $\{0, 1, 2\}$ forms one biconnected component, the bridge $(2, 3)$ 
 두 겹 이음 조각 둘이 많아야 꼭짓점 하나를 함께 가지며 그 함께 갖는 꼭짓점이 이음매 점이어야 함을 증명하여라.
 
 ??? success "연습문제 3 풀이"
-    Suppose components $B_1$ and $B_2$ share two vertices $u$ and $v$. Since both components are 2-connected, there exist two vertex-disjoint paths from $u$ to $v$ in $B_1$ and two in $B_2$. Combining paths from $B_1$ and $B_2$ gives a 2-connected subgraph containing both $B_1$ and $B_2$, contradicting their maximality. Therefore they share at most one vertex. If vertex $w$ belongs to two components, removing $w$ disconnects the edges in these components from each other, making $w$ an articulation point. $\square$
+    덩이 $B_1$과 $B_2$이 꼭짓점 $u$과 $v$ 둘을 함께 지닌다고 하자. 두 덩이가 모두 2 이음이므로 $B_1$ 안에 $u$에서 $v$으로 가는 꼭짓점이 겹치지 않는 길이 둘, $B_2$ 안에도 둘 있다. $B_1$과 $B_2$의 길을 아우르면 $B_1$과 $B_2$을 모두 담는 2 이음 잔그래프가 나오는데, 이는 이들이 가장 크다는 것과 어긋난다. 그러므로 함께 지니는 꼭짓점은 많아야 하나다. 꼭짓점 $w$이 덩이 둘에 들면 $w$을 없앨 때 두 덩이의 이음이 서로 끊기므로 $w$은 이음매 점이다. $\square$
 
 ---
 
@@ -190,4 +190,4 @@ The triangle $\{0, 1, 2\}$ forms one biconnected component, the bridge $(2, 3)$ 
 그래프에 꼭짓점 10개, 변 15개, 이음매 점 3개가 있다. 두 겹 이음 조각은 적어도 몇 개인가?
 
 ??? success "연습문제 4 풀이"
-    Each articulation point belongs to at least 2 biconnected components. The minimum number of components occurs when each articulation point connects exactly 2 components. Starting with 1 component, each articulation point adds at least 1 new component. So minimum components $= 1 + 3 = 4$. For example: a graph with 4 biconnected components connected in a path through 3 articulation points. $\square$
+    이음매 점은 저마다 두 겹 이음 덩이 둘 이상에 든다. 덩이 수가 가장 적을 때는 이음매 점마다 꼭 덩이 둘을 이을 때다. 덩이 하나에서 비롯하면 이음매 점마다 새 덩이가 적어도 하나 는다. 그러므로 가장 적은 덩이 수는 $= 1 + 3 = 4$이다. 보기로 이음매 점 셋을 거쳐 길처럼 이어진 두 겹 이음 덩이 4개짜리 그래프가 있다. $\square$

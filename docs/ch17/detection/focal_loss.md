@@ -14,7 +14,7 @@
 
 ## 초점 손실의 정의
 
-Focal loss adds a modulating factor $(1 - p_t)^\gamma$ to cross-entropy:
+초점 잃음은 엇결 엔트로피에 조절 값 $(1 - p_t)^\gamma$을 더한다.
 
 $$\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$$
 
@@ -22,17 +22,17 @@ $$\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$$
 
 ### 초점 매개변수 gamma의 효과
 
-| $p_t$ (confidence) | CE Loss | FL ($\gamma=2$) | Reduction |
+| $p_t$(자신도) | 엇결 엔트로피 잃음 | 초점 잃음($\gamma=2$) | 줄어든 비율 |
 |---------------------|---------|-----------------|-----------|
 | 0.9(쉬움) | 0.105 | 0.001 | **100×** |
 | 0.5(가운데) | 0.693 | 0.173 | 4× |
 | 0.1(어려움) | 2.303 | 1.867 | 1.2× |
 
-At $\gamma = 2$, well-classified examples are down-weighted by 100× or more, while hard examples are barely affected. This automatically focuses training on informative examples without explicit hard negative mining.
+$\gamma = 2$이면 잘 가려낸 보기의 짐이 100배 넘게 줄지만 어려운 보기는 거의 그대로다. 그래서 어려운 아님 보기를 따로 캐내지 않아도 알려 주는 바가 큰 보기에 익힘이 절로 몰린다.
 
 ### 알파 균형 인자
 
-$\alpha_t$ provides class-level weighting independent of focal weighting. Typical value: $\alpha = 0.25$ (down-weights the more frequent background class).
+$\alpha_t$은 초점 짐과 따로 갈래 수준의 짐을 준다. 흔한 값은 $\alpha = 0.25$이다(더 잦은 바탕 갈래의 짐을 줄인다).
 
 ## PyTorch 구현
 
@@ -94,7 +94,7 @@ class MultiClassFocalLoss(nn.Module):
 
 ## 초매개변수 길잡이
 
-| Setting | $\gamma$ | $\alpha$ | Notes |
+| 설정 | $\gamma$ | $\alpha$ | 적바림 |
 |---------|----------|----------|-------|
 | 약한 치우침 | 1.0 | 0.5 | 약한 초점 |
 | 보통의 알아내기 | 2.0 | 0.25 | 레티나넷 붙박이 |
@@ -103,7 +103,7 @@ class MultiClassFocalLoss(nn.Module):
 
 ## 요약
 
-Focal loss addresses the fundamental class imbalance in dense detection by down-weighting easy examples. With $\gamma = 2$ and $\alpha = 0.25$, it enabled RetinaNet to match two-stage detector accuracy without any sampling heuristics—demonstrating that the accuracy gap was caused by class imbalance, not architectural limitations.
+초점 잃음은 쉬운 보기의 짐을 줄여 촘촘한 알아내기의 밑바탕 갈래 치우침을 다룬다. $\gamma = 2$과 $\alpha = 0.25$을 쓰면 RetinaNet이 어떤 표집 요령도 없이 두 단계 알아내개의 맞음에 맞먹게 되니, 맞음의 틈이 얼개의 한계가 아니라 갈래 치우침에서 왔음을 보여 준다.
 
 ## 참고 문헌
 
@@ -160,4 +160,4 @@ Focal loss addresses the fundamental class imbalance in dense detection by down-
 물체 알아내기의 갈래 치우침 문제와 초점 손실이 그것을 어떻게 다루는지 설명하여라.
 
 ??? success "연습문제 4 풀이"
-    In one-stage detectors, most anchor boxes correspond to background (easy negatives), while only a few contain objects. Standard cross-entropy loss is dominated by the large number of easy negatives, drowning out the gradient signal from hard positives. **Focal Loss** adds a modulating factor: $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$. When $\gamma > 0$, easy examples (high $p_t$) are down-weighted exponentially, focusing training on hard examples. With $\gamma = 2$ and $\alpha = 0.25$, RetinaNet achieves accuracy comparable to two-stage detectors while maintaining one-stage speed.
+    한 단계 알아내개에서는 닻 상자 대부분이 바탕(쉬운 아님 보기)이고 물체를 담은 것은 몇 안 된다. 여느 엇결 엔트로피 잃음은 쉬운 아님 보기가 워낙 많아 그쪽에 휘둘리므로 어려운 맞음 보기의 기울기 신호가 묻힌다. **초점 잃음**은 조절 값을 더한다. $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$이다. $\gamma > 0$이면 쉬운 보기($p_t$이 높은 것)의 짐이 지수로 줄어 어려운 보기에 익힘이 몰린다. $\gamma = 2$과 $\alpha = 0.25$을 쓰면 RetinaNet은 한 단계의 빠르기를 지키면서 두 단계 알아내개에 맞먹는 맞음을 이룬다.

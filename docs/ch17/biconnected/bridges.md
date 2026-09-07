@@ -15,10 +15,10 @@
 
 돌아보기 나무의 나무 변 $(u, v)$($u$이 $v$의 부모)에 대해:
 
-- $(u, v)$ is a bridge if and only if $\text{low}[v] > \text{disc}[u]$.
+- $(u, v)$이 다리인 것은 $\text{low}[v] > \text{disc}[u]$인 것과 같은 뜻이다.
 
 !!! tip "빡빡한 부등호와 느슨한 부등호"
-    For articulation points, the condition is $\text{low}[v] \geq \text{disc}[u]$ (non-strict). For bridges, it is $\text{low}[v] > \text{disc}[u]$ (strict). The difference arises because a back edge from $v$'s subtree to $u$ itself saves $u$ from being a bridge endpoint (the cycle through $u$ provides an alternate path), but it does not save $u$ from being an articulation point.
+    이음매 점의 조건은 $\text{low}[v] \geq \text{disc}[u]$(같아도 된다)이고 다리의 조건은 $\text{low}[v] > \text{disc}[u]$(반드시 커야 한다)이다. 이 다름은 $v$의 잔나무에서 $u$ 자신으로 되돌아가는 이음이 있으면 $u$이 다리의 끝점이 되는 것은 면하지만($u$을 지나는 돌이가 다른 길을 주므로) $u$이 이음매 점이 되는 것은 면하지 못하기 때문이다.
 
 ## 복잡도
 
@@ -132,7 +132,7 @@ Triangle bridges: []
 
 - 두 꼭짓점이 다리로 갈라지는지 묻는 물음에 답하기.
 - 모든 다리를 없애려고 더해야 하는 변의 최소 개수를 셈하기.
-- Finding the number of bridges on any path in $O(\log V)$ time with LCA queries.
+- 최소 공통 조상 물음으로 어떤 길 위의 다리 수를 $O(\log V)$ 때에 찾기.
 
 ## 응용
 
@@ -151,7 +151,7 @@ Triangle bridges: []
 그래프의 다리를 정의하고 깊이 우선 돌아보기로 다리를 찾는 조건을 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    A **bridge** is an edge whose removal disconnects the graph. Edge $(u, v)$ (where $u$ is the parent of $v$ in the DFS tree) is a bridge if and only if $\text{low}[v] > \text{disc}[u]$. This means no vertex in $v$'s subtree has a back edge to $u$ or any ancestor of $u$, so removing $(u, v)$ disconnects $v$'s subtree from the rest. The algorithm runs in $O(V + E)$. $\square$
+    **다리**는 없애면 그래프가 끊어지는 이음이다. 이음 $(u, v)$($u$은 깊이 먼저 찾기 나무에서 $v$의 어버이)이 다리인 것은 $\text{low}[v] > \text{disc}[u]$인 것과 같은 뜻이다. 이는 $v$의 잔나무에 있는 어떤 꼭짓점도 $u$이나 $u$의 조상으로 되돌아가는 이음을 지니지 않는다는 뜻이므로, $(u, v)$을 없애면 $v$의 잔나무가 나머지에서 끊긴다. 이 알고리즘은 $O(V + E)$에 돈다. $\square$
 
 ---
 
@@ -159,7 +159,7 @@ Triangle bridges: []
 다리가 어떤 순환에도 들 수 없음을 증명하여라.
 
 ??? success "연습문제 2 풀이"
-    Suppose edge $e = (u, v)$ is both a bridge and part of cycle $C$. Removing $e$ disconnects the graph by assumption. But in cycle $C$, the remaining edges still provide a path from $u$ to $v$ (going around the cycle the other way). So $u$ and $v$ remain connected, and since all other vertices were connected to either $u$ or $v$ before removal, the graph stays connected — contradicting $e$ being a bridge. $\square$
+    이음 $e = (u, v)$이 다리이면서 돌이 $C$의 한 조각이라고 하자. 가정에 따라 $e$을 없애면 그래프가 끊긴다. 그런데 돌이 $C$에서는 남은 이음들이 여전히 $u$에서 $v$으로 가는 길을 준다(돌이를 반대쪽으로 돌면 된다). 그러니 $u$과 $v$은 그대로 이어져 있고, 없애기 앞에 다른 꼭짓점은 모두 $u$이나 $v$에 이어져 있었으므로 그래프는 이어진 채로 남는다. 이는 $e$이 다리라는 것과 어긋난다. $\square$
 
 ---
 
@@ -167,7 +167,7 @@ Triangle bridges: []
 이어진 그래프에 다리가 없다. 그 변 이어짐에 대해 무엇을 말할 수 있는가?
 
 ??? success "연습문제 3 풀이"
-    If a connected graph has no bridges, its edge connectivity is at least 2: removing any single edge keeps the graph connected. This means the graph is **2-edge-connected**. Equivalently, every edge lies on at least one cycle. Such graphs have at least $V$ edges (they contain a spanning cycle through every edge). $\square$
+    이어진 그래프에 다리가 없으면 이음 이어짐이 적어도 2다. 곧 어떤 이음 하나를 없애도 그래프가 이어진 채로 남는다. 이런 그래프를 **2 이음 이어짐**이라 한다. 같은 말로, 이음마다 적어도 하나의 돌이 위에 있다. 이런 그래프에는 이음이 적어도 $V$개 있다(이음마다 지나는 뻗는 돌이를 담는다). $\square$
 
 ---
 
@@ -175,4 +175,4 @@ Triangle bridges: []
 다리와 두 겹 이음 조각 사이의 관계를 설명하여라.
 
 ??? success "연습문제 4 풀이"
-    Each bridge forms its own biconnected component containing just that single edge (and its two endpoints). Non-bridge edges are grouped into biconnected components with $\geq 2$ edges. The number of biconnected components equals the number of bridges plus the number of maximal 2-edge-connected subgraphs. In the block-cut tree, bridge-blocks are leaf-like structures connecting different parts of the graph. $\square$
+    다리는 저마다 그 이음 하나(와 두 끝점)만 담은 두 겹 이음 덩이를 이룬다. 다리가 아닌 이음은 이음이 $\geq 2$개인 두 겹 이음 덩이로 묶인다. 두 겹 이음 덩이의 수는 다리의 수에 가장 큰 2 이음 이어짐 잔그래프의 수를 더한 값이다. 블록-자름 나무에서 다리 블록은 그래프의 서로 다른 자리를 잇는 잎 같은 얼개다. $\square$

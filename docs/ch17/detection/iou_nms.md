@@ -49,7 +49,7 @@ $$\text{IoU}(A, B) = \frac{|A \cap B|}{|A \cup B|} = \frac{\text{Area of Interse
 
 ### 수학적 유도
 
-For two boxes in $(x_{min}, y_{min}, x_{max}, y_{max})$ format:
+$(x_{min}, y_{min}, x_{max}, y_{max})$ 꼴의 상자 둘에 대해
 
 **Box A**: $(x_1^A, y_1^A, x_2^A, y_2^A)$
 
@@ -202,7 +202,7 @@ def batch_iou(
 
 보통의 겹침 비를 손실 함수로 바로 쓰면 한계가 있다:
 
-1. **Zero gradient when no overlap**: If $\text{IoU} = 0$, the loss provides no learning signal
+1. **겹치지 않으면 기울기가 0**: $\text{IoU} = 0$이면 잃음이 배움 신호를 주지 못한다
 2. **어떻게 안 겹치는지를 가리지 못함**: 멀리 떨어져 안 겹치는 두 상자와 가깝지만 안 겹치는 상자가 똑같이 IoU=0이다
 
 ### 넓힌 겹침 비(GIoU)
@@ -277,7 +277,7 @@ $$\text{DIoU}(A, B) = \text{IoU}(A, B) - \frac{\rho^2(A, B)}{c^2}$$
 
 여기서 각 기호는 다음과 같다.
 
-- $\rho(A, B)$ is the Euclidean distance between box centers
+- $\rho(A, B)$은 상자 가운데 사이의 유클리드 거리다
 - $c$은 감싸는 가장 작은 상자의 대각선 길이이다
 
 **좋은 점**:
@@ -372,10 +372,10 @@ def complete_box_iou(
 
 | 변종 | 식 | 범위 | 핵심 이점 |
 |---------|---------|-------|-------------|
-| **IoU** | $\frac{I}{U}$ | [0, 1] | Simple, intuitive |
-| **GIoU** | $\text{IoU} - \frac{C - U}{C}$ | [-1, 1] | Gradient for non-overlap |
-| **DIoU** | $\text{IoU} - \frac{\rho^2}{c^2}$ | [-1, 1] | Faster convergence |
-| **CIoU** | $\text{DIoU} - \alpha v$ | [-1, 1] | Aspect ratio awareness |
+| **IoU** | $\frac{I}{U}$ | [0, 1] | 단순하고 느낌이 잡힌다 |
+| **GIoU** | $\text{IoU} - \frac{C - U}{C}$ | [-1, 1] | 겹치지 않을 때도 기울기를 준다 |
+| **DIoU** | $\text{IoU} - \frac{\rho^2}{c^2}$ | [-1, 1] | 더 빨리 모여든다 |
+| **CIoU** | $\text{DIoU} - \alpha v$ | [-1, 1] | 가로세로 견줌까지 본다 |
 
 ## 최대가 아닌 것 누르기(NMS)
 
@@ -881,4 +881,4 @@ def batched_detection_postprocess(
 물체 알아내기의 갈래 치우침 문제와 초점 손실이 그것을 어떻게 다루는지 설명하여라.
 
 ??? success "연습문제 4 풀이"
-    In one-stage detectors, most anchor boxes correspond to background (easy negatives), while only a few contain objects. Standard cross-entropy loss is dominated by the large number of easy negatives, drowning out the gradient signal from hard positives. **Focal Loss** adds a modulating factor: $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$. When $\gamma > 0$, easy examples (high $p_t$) are down-weighted exponentially, focusing training on hard examples. With $\gamma = 2$ and $\alpha = 0.25$, RetinaNet achieves accuracy comparable to two-stage detectors while maintaining one-stage speed.
+    한 단계 알아내개에서는 닻 상자 대부분이 바탕(쉬운 아님 보기)이고 물체를 담은 것은 몇 안 된다. 여느 엇결 엔트로피 잃음은 쉬운 아님 보기가 워낙 많아 그쪽에 휘둘리므로 어려운 맞음 보기의 기울기 신호가 묻힌다. **초점 잃음**은 조절 값을 더한다. $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$이다. $\gamma > 0$이면 쉬운 보기($p_t$이 높은 것)의 짐이 지수로 줄어 어려운 보기에 익힘이 몰린다. $\gamma = 2$과 $\alpha = 0.25$을 쓰면 RetinaNet은 한 단계의 빠르기를 지키면서 두 단계 알아내개에 맞먹는 맞음을 이룬다.

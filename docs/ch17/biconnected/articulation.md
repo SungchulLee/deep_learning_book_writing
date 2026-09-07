@@ -15,8 +15,8 @@
 
 꼭짓점 $u$마다 다음을 정한다:
 
-- $\text{disc}[u]$: the discovery time of $u$ in the DFS.
-- $\text{low}[u]$: the minimum discovery time reachable from $u$ through the DFS subtree of $u$, including back edges.
+- $\text{disc}[u]$: 깊이 먼저 찾기에서 $u$을 찾아낸 때.
+- $\text{low}[u]$: 되돌아가는 이음까지 넣어, $u$의 깊이 먼저 찾기 잔나무를 거쳐 $u$에서 닿을 수 있는 가장 이른 찾아낸 때.
 
 $$
 \text{low}[u] = \min\!\Big(\text{disc}[u],\ \min_{\substack{v \text{ child of } u}} \text{low}[v],\ \min_{\substack{(u,w) \text{ back edge}}} \text{disc}[w]\Big)
@@ -25,7 +25,7 @@ $$
 꼭짓점 $u$이 이음매 점인 것은 다음 조건 가운데 하나가 참일 때 그리고 오직 그때뿐이다:
 
 1. **뿌리 조건:** $u$이 돌아보기 나무의 뿌리이고 자식이 둘 이상이다.
-2. **Non-root condition:** $u$ is not the root and has a child $v$ such that $\text{low}[v] \geq \text{disc}[u]$.
+2. **뿌리가 아닐 때의 조건:** $u$이 뿌리가 아니면서 $\text{low}[v] \geq \text{disc}[u]$인 자식 $v$을 지닌다.
 
 !!! tip "조건 뒤에 있는 직관"
     뿌리가 아닐 때의 조건은 이렇다. 곧 $v$의 아래나무에 있는 어느 꼭짓점도 뒤로 가는 변으로 $u$의 조상에 닿을 수 없다면, $u$을 없앴을 때 $v$의 아래나무가 나머지 그래프에서 끊어진다. 뿌리 조건은 뿌리에 부모가 없는 특수한 경우를 다룬다. 곧 뿌리는 서로 얽히지 않은 아래나무가 여럿일 때만 이음매 점이다.
@@ -129,7 +129,7 @@ Articulation points: [3, 4, 5]
 
 ## 풀이 예제
 
-Consider the graph with edges: $\{0\text{-}1,\ 1\text{-}2,\ 2\text{-}3,\ 3\text{-}1,\ 3\text{-}4,\ 4\text{-}5,\ 5\text{-}6\}$.
+이음이 $\{0\text{-}1,\ 1\text{-}2,\ 2\text{-}3,\ 3\text{-}1,\ 3\text{-}4,\ 4\text{-}5,\ 5\text{-}6\}$인 그래프를 보자.
 
 | 꼭짓점 | disc | low | 부모 | 자식 | 이음매 점? |
 |---|---|---|---|---|---|
@@ -141,7 +141,7 @@ Consider the graph with edges: $\{0\text{-}1,\ 1\text{-}2,\ 2\text{-}3,\ 3\text{
 | 5 | 5 | 5 | 4 | 1 | 그렇다(low[6]=6 >= disc[5]=5) |
 | 6 | 6 | 6 | 5 | 0 | 아니다(잎) |
 
-Articulation points: $\{3, 4, 5\}$.
+이음매 점: $\{3, 4, 5\}$.
 
 ## 다리 및 두 겹 이음 조각과의 관계
 
@@ -161,7 +161,7 @@ Articulation points: $\{3, 4, 5\}$.
 이음매 점을 정의하고 그물 믿음성에서 갖는 뜻을 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    An **articulation point** (cut vertex) is a vertex whose removal disconnects the graph. In a network, articulation points are single points of failure: if a router, server, or link at that point fails, parts of the network become unreachable. Identifying articulation points helps design redundant networks. They can be found in $O(V + E)$ using DFS with low-link values. $\square$
+    **이음매 점**(자르는 꼭짓점)은 없애면 그래프가 끊어지는 꼭짓점이다. 그물에서 이음매 점은 홀로 무너지면 끝인 자리다. 그 자리의 길잡이, 서버, 이음이 무너지면 그물의 일부에 닿을 수 없게 된다. 이음매 점을 짚어 두면 겹으로 두터운 그물을 꾸미는 데 도움이 된다. 낮은 이음 값을 쓰는 깊이 먼저 찾기로 $O(V + E)$에 찾을 수 있다. $\square$
 
 ---
 
@@ -169,7 +169,7 @@ Articulation points: $\{3, 4, 5\}$.
 이음매 점을 찾는 깊이 우선 돌아보기 바탕 알고리즘을 설명하여라. 그것을 가려내는 두 조건은 무엇인가?
 
 ??? success "연습문제 2 풀이"
-    Run DFS, computing discovery time $\text{disc}[v]$ and low value $\text{low}[v]$ for each vertex. Vertex $u$ is an articulation point if: (1) $u$ is the DFS root and has $\geq 2$ children in the DFS tree, or (2) $u$ is not the root and has a child $v$ with $\text{low}[v] \geq \text{disc}[u]$ (no vertex in $v$'s subtree can reach above $u$ via a back edge). Condition (2) means removing $u$ would disconnect $v$'s subtree from the rest of the graph. $\square$
+    깊이 먼저 찾기를 돌리며 꼭짓점마다 찾아낸 때 $\text{disc}[v]$과 낮은 값 $\text{low}[v]$을 셈한다. 다음이면 꼭짓점 $u$은 이음매 점이다. (1) $u$이 깊이 먼저 찾기의 뿌리이고 그 나무에서 자식이 $\geq 2$개다. (2) $u$이 뿌리가 아니면서 $\text{low}[v] \geq \text{disc}[u]$인 자식 $v$을 지닌다($v$의 잔나무에 있는 어떤 꼭짓점도 되돌아가는 이음으로 $u$ 위로 갈 수 없다). 조건 (2)는 $u$을 없애면 $v$의 잔나무가 그래프의 나머지에서 끊긴다는 뜻이다. $\square$
 
 ---
 
@@ -177,7 +177,7 @@ Articulation points: $\{3, 4, 5\}$.
 깊이 우선 돌아보기 나무의 뿌리가 이음매 점인 것은 자식이 둘 이상일 때 그리고 오직 그때뿐임을 증명하여라.
 
 ??? success "연습문제 3 풀이"
-    $(\Rightarrow)$ If the root has $\geq 2$ children, removing it disconnects their subtrees (in the DFS tree, all edges between subtrees pass through the root, and there are no cross edges in undirected DFS). $(\Leftarrow)$ If the root has exactly one child, removing it leaves one connected subtree (all vertices are in that subtree, connected via tree and back edges). With zero children, the root is isolated, and its removal doesn't disconnect anything. $\square$
+    $(\Rightarrow)$ 뿌리의 자식이 $\geq 2$개이면 뿌리를 없앨 때 그 잔나무들이 끊긴다(깊이 먼저 찾기 나무에서 잔나무 사이의 이음은 모두 뿌리를 지나고, 방향 없는 깊이 먼저 찾기에는 엇이음이 없다). $(\Leftarrow)$ 뿌리의 자식이 꼭 하나면 뿌리를 없애도 이어진 잔나무 하나가 남는다(모든 꼭짓점이 그 잔나무 안에 있고 나무 이음과 되돌아가는 이음으로 이어져 있다). 자식이 없으면 뿌리는 홀로 떨어져 있으니 없애도 아무것도 끊기지 않는다. $\square$
 
 ---
 
@@ -185,4 +185,4 @@ Articulation points: $\{3, 4, 5\}$.
 그래프에 꼭짓점이 8개이고 2-꼭짓점-이어짐이다(이음매 점이 없다). 변은 적어도 몇 개여야 하는가?
 
 ??? success "연습문제 4 풀이"
-    A 2-vertex-connected graph on $n$ vertices must have at least $n$ edges. This is because it must contain a cycle through every vertex (otherwise, a leaf would be an articulation point of its neighbor). With $n = 8$, a single Hamiltonian cycle provides exactly 8 edges and is 2-connected. Therefore the minimum is 8 edges. $\square$
+    꼭짓점이 $n$개인 2 꼭짓점 이음 그래프에는 이음이 적어도 $n$개 있어야 한다. 모든 꼭짓점을 지나는 돌이가 있어야 하기 때문이다(그렇지 않으면 잎이 그 이웃의 이음매 점이 된다). $n = 8$이면 해밀턴 돌이 하나가 이음 8개를 주고 2 이음이다. 그러므로 가장 적어도 이음 8개다. $\square$

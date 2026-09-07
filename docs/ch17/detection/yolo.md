@@ -837,4 +837,4 @@ YOLO 모델은 실시간 쓰임새에서 빠르기와 정확도의 맞바꿈이 
 물체 알아내기의 갈래 치우침 문제와 초점 손실이 그것을 어떻게 다루는지 설명하여라.
 
 ??? success "연습문제 4 풀이"
-    In one-stage detectors, most anchor boxes correspond to background (easy negatives), while only a few contain objects. Standard cross-entropy loss is dominated by the large number of easy negatives, drowning out the gradient signal from hard positives. **Focal Loss** adds a modulating factor: $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$. When $\gamma > 0$, easy examples (high $p_t$) are down-weighted exponentially, focusing training on hard examples. With $\gamma = 2$ and $\alpha = 0.25$, RetinaNet achieves accuracy comparable to two-stage detectors while maintaining one-stage speed.
+    한 단계 알아내개에서는 닻 상자 대부분이 바탕(쉬운 아님 보기)이고 물체를 담은 것은 몇 안 된다. 여느 엇결 엔트로피 잃음은 쉬운 아님 보기가 워낙 많아 그쪽에 휘둘리므로 어려운 맞음 보기의 기울기 신호가 묻힌다. **초점 잃음**은 조절 값을 더한다. $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$이다. $\gamma > 0$이면 쉬운 보기($p_t$이 높은 것)의 짐이 지수로 줄어 어려운 보기에 익힘이 몰린다. $\gamma = 2$과 $\alpha = 0.25$을 쓰면 RetinaNet은 한 단계의 빠르기를 지키면서 두 단계 알아내개에 맞먹는 맞음을 이룬다.
