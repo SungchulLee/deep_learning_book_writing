@@ -1,128 +1,128 @@
-# Adversarial Attacks on NLP Models
-## Introduction
+# 글월 모형에 대한 맞서는 치기
+## 들머리
 
-While adversarial robustness research began in the image domain (FGSM, PGD, C&W), the rise of NLP-based financial models — sentiment analysis for trading signals, news-driven event detection, earnings call analysis — makes text-domain adversarial attacks directly relevant to quantitative finance. Unlike images where perturbations are continuous, text attacks must operate in a discrete space, replacing words or characters while preserving semantic meaning and grammatical correctness.
+맞섬에 든든하기 연구는 그림 밭에서 비롯했지만(FGSM, PGD, C&W), 글월 바탕의 금융 모형—거래 신호를 위한 분위기 살피기, 소식이 이끄는 일 알아내기, 벌이 이야기 살피기—이 늘면서 글월 밭의 맞서는 치기가 계량 금융에 곧바로 걸리게 되었다. 흔듦이 이어지는 그림과 달리, 글월 치기는 띄엄한 밭에서 움직이며 뜻과 말법을 지킨 채 낱말이나 글자를 갈음해야 한다.
 
-## Taxonomy of NLP Adversarial Attacks
+## 글월 맞서는 치기의 갈래
 
-### Character-Level Attacks
+### 글자 켜의 치기
 
-The simplest attacks introduce typographical perturbations — swapping characters, inserting whitespace, or using homoglyphs (visually similar Unicode characters). While crude, these attacks exploit the fact that many NLP pipelines use subword tokenization sensitive to exact spelling:
+가장 단순한 치기는 글자를 바꿔 넣거나, 빈칸을 끼우거나, 닮은 글자(눈으로 비슷한 유니코드 글자)를 쓰는 등 적기의 흔듦을 들인다. 거칠어도, 많은 글월 흐름이 철자에 예민한 낱말 조각 나누기를 쓴다는 점을 파고든다.
 
 $$
 \text{"profitable"} \rightarrow \text{"prof1table"} \quad (\text{homoglyph substitution})
 $$
 
-**Financial relevance**: Automated text processing of filings, news feeds, or social media can be disrupted by character-level noise, especially in scraped data from unstructured sources.
+**금융에 걸리는 바**: 신고 글월, 소식 줄기, 어울림 마당을 저절로 다루는 일은 글자 켜의 잡음에 흔들릴 수 있다. 짜임새 없는 데서 긁어 온 자료라면 더욱 그렇다.
 
-### Word-Level Attacks
+### 낱말 켜의 치기
 
-More sophisticated attacks replace entire words with semantically similar alternatives that flip the model's prediction. The key challenge is maintaining the original meaning while changing the classification:
+더 정교한 치기는 낱말을 뜻이 비슷한 다른 낱말로 통째로 갈음해 모형의 미루어 봄을 뒤집는다. 어려운 대목은 본디 뜻을 지키면서 가름을 바꾸는 것이다.
 
 $$
 x_{\text{adv}} = \text{Replace}(x, w_i \rightarrow w_i', \; i \in S)
 $$
 
-where $S$ is a selected subset of word positions and each replacement $w_i'$ is chosen to be semantically close to $w_i$ (via word embedding distance or synonym sets) while maximally changing the model's output.
+여기서 $S$은 고른 낱말 자리의 묶음이고, 갈음 $w_i'$은 (낱말 박아 넣기의 거리나 비슷한 말 모임으로) $w_i$과 뜻이 가까우면서 모형의 날임을 가장 크게 바꾸도록 고른다.
 
-### Sentence-Level Attacks
+### 월 켜의 치기
 
-These attacks paraphrase entire sentences or insert adversarial distractors. They are harder to detect but also harder to construct automatically. Examples include appending irrelevant but confident-sounding sentences to shift model predictions.
+이 치기는 월을 통째로 바꿔 쓰거나 맞서는 헷갈림거리를 끼워 넣는다. 짚어내기 어렵지만 저절로 짓기도 어렵다. 걸리지 않는데 자신만만해 보이는 월을 덧붙여 모형의 미루어 봄을 밀어내는 것이 그 보기다.
 
-## TextFooler: A Word-Level Black-Box Attack
+## TextFooler: 낱말 켜의 검은 상자 치기
 
-TextFooler (Jin et al., 2020) is a representative word-level attack that operates in a black-box setting — the attacker can query the target model for confidence scores but has no access to model parameters or gradients.
+TextFooler(진 등, 2020)은 검은 상자 자리에서 움직이는 대표적인 낱말 켜 치기다. 치는 이는 과녁 모형에 물어 자신함 점수를 얻을 수 있지만 매개변수나 기울기는 볼 수 없다.
 
-### Algorithm Overview
+### 알고리즘 두루 보기
 
-The attack proceeds in two stages:
+치기는 두 도막으로 나아간다.
 
-**Stage 1 — Word Importance Ranking**: For each word $w_i$ in the input, compute its importance by measuring the change in prediction confidence when $w_i$ is removed:
+**1도막 — 낱말 중요도 줄 세우기**: 들임의 낱말 $w_i$마다 $w_i$을 뺐을 때 미루어 봄의 자신함이 얼마나 바뀌는지로 중요도를 셈한다.
 
 $$
 I(w_i) = P(y \mid x) - P(y \mid x_{\setminus i})
 $$
 
-Words are sorted by descending importance, prioritizing those whose removal most affects the prediction.
+낱말은 중요도가 큰 것부터 줄 세워, 빼면 미루어 봄이 가장 많이 흔들리는 것을 앞세운다.
 
-**Stage 2 — Word Replacement**: For each word in importance order, find candidate replacements from a counter-fitted embedding space (where synonyms are close and antonyms are far). Filter candidates to ensure:
+**2도막 — 낱말 갈음하기**: 중요도 차례로 낱말마다, 맞맞춘 박아 넣기 밭(비슷한 말은 가깝고 반대말은 먼 밭)에서 갈음 후보를 찾는다. 후보는 다음을 채우도록 거른다.
 
-1. **Semantic similarity**: The replacement $w_i'$ must be close to $w_i$ in embedding space
-2. **Part-of-speech consistency**: $w_i'$ must share the same POS tag as $w_i$
-3. **Sentence similarity**: The overall sentence embedding must remain similar (measured by Universal Sentence Encoder)
+1. **뜻이 비슷함**: 갈음 $w_i'$이 박아 넣기 밭에서 $w_i$과 가까워야 한다
+2. **품사가 한결같음**: $w_i'$이 $w_i$과 같은 품사여야 한다
+3. **월이 비슷함**: 월 전체의 박아 넣기가 비슷하게 남아야 한다(두루 쓰는 월 부호기로 잰다)
 
-Select the replacement that most reduces the target class confidence. Stop when the prediction flips or all important words have been tried.
+과녁 갈래의 자신함을 가장 많이 낮추는 갈음을 고른다. 미루어 봄이 뒤집히거나 종요로운 낱말을 다 해 보면 멈춘다.
 
-### Empirical Results
+### 겪어 본 결과
 
-On a BERT model fine-tuned for movie review sentiment classification (MR dataset):
+영화 평 분위기 가름(MR 자료 꾸러미)에 곱게 맞춘 BERT 모형에서:
 
-| Metric | Value |
+| 자 | 값 |
 |--------|-------|
-| Original accuracy | 90.4% |
-| Accuracy after attack | 79.7% |
-| Average words changed | 15.3% |
-| Average queries per attack | 53.2 |
+| 본디 맞음 | 90.4% |
+| 친 뒤의 맞음 | 79.7% |
+| 바뀐 낱말의 평균 | 15.3% |
+| 치기마다의 평균 물음 수 | 53.2 |
 
-The attack successfully flips ~10.7% of correctly classified samples by changing only ~15% of words per sentence on average. Importantly, the adversarial sentences remain semantically similar to humans — a reviewer reading both versions would assign the same sentiment.
+이 치기는 월마다 평균 약 15%의 낱말만 바꾸어 옳게 갈린 보기의 약 10.7%을 뒤집는다. 종요롭게도, 맞서는 월은 사람이 보기에 뜻이 비슷하게 남는다. 두 판을 다 읽은 사람이라면 같은 분위기를 매길 것이다.
 
-## Defenses for NLP Models
+## 글월 모형의 막이
 
-### Adversarial Training
+### 맞서며 익히기
 
-Augment the training set with adversarial examples generated by the attack itself:
+그 치기로 만든 맞서는 보기를 익힘 꾸러미에 불려 넣는다.
 
 $$
 \min_\theta \mathbb{E}_{(x,y) \sim \mathcal{D}} \left[ \mathcal{L}(f_\theta(x), y) + \lambda \cdot \mathcal{L}(f_\theta(x_{\text{adv}}), y) \right]
 $$
 
-This is computationally expensive for text models due to the discrete search required to generate each adversarial example.
+맞서는 보기마다 띄엄한 뒤지기가 있어야 하므로 글월 모형에서는 셈이 비싸다.
 
-### Certified Robustness via Randomized Smoothing
+### 아무렇게나 매끄럽게 하여 밝혀 낸 든든함
 
-Randomly delete or replace words at inference time, then aggregate predictions across multiple corrupted versions. If the majority prediction is consistent, the model is certifiably robust to a bounded number of word substitutions.
+미루어 볼 때 낱말을 아무렇게나 지우거나 갈음한 뒤, 망가뜨린 여러 판의 미루어 봄을 모은다. 많은 쪽의 미루어 봄이 한결같으면 그 모형은 마디 있는 수의 낱말 갈음에 대해 밝혀 낸 든든함을 지닌다.
 
-### Input Preprocessing
+### 들임 미리 다루기
 
-Apply spell-checking, synonym normalization, or paraphrase detection before feeding text to the model. This reduces the attack surface but may alter legitimate inputs.
+글월을 모형에 넣기 앞서 철자 살피기, 비슷한 말 잣대 맞추기, 바꿔 쓴 말 짚어내기를 건다. 치일 낯은 줄지만 옳은 들임까지 바뀔 수 있다.
 
-### Ensemble Methods
+### 모둠 방법
 
-Combine predictions from models using different tokenization strategies (word-level, character-level, subword) or different architectures. Adversarial examples that fool one tokenization scheme often fail against others.
+낱말 나누기 꾀(낱말 켜, 글자 켜, 낱말 조각)나 얼개가 다른 모형들의 미루어 봄을 아우른다. 한 나누기 얼개를 속인 맞서는 보기가 다른 것에는 듣지 않는 일이 잦다.
 
-## Implications for Quantitative Finance
+## 계량 금융에 걸리는 바
 
-NLP adversarial attacks pose specific risks in financial applications:
+글월 맞서는 치기는 금융 쓰임에 남다른 무릅씀을 안긴다.
 
-### Sentiment Analysis Manipulation
+### 분위기 살피기 흔들기
 
-Trading strategies that rely on news sentiment scores are vulnerable. An adversary could craft social media posts or forum comments that appear neutral to human readers but trigger strong buy/sell signals in automated sentiment models. This is especially concerning for strategies consuming unfiltered social media data.
+소식 분위기 점수에 기대는 거래 꾀는 무르다. 겨루는 이는 사람이 보기엔 밋밋하지만 저절로 도는 분위기 모형에서는 센 삼/팜 신호를 불러내는 어울림 마당 글이나 마당 댓글을 지어낼 수 있다. 거르지 않은 어울림 마당 자료를 먹는 꾀라면 더욱 걱정스럽다.
 
-### Earnings Call Analysis
+### 벌이 이야기 살피기
 
-Automated analysis of earnings transcripts can be manipulated by carefully choosing words that are semantically equivalent to humans but change model-extracted sentiment. A company's IR team could inadvertently (or deliberately) use language that games automated analysis systems.
+벌이 이야기 받아쓴 글을 저절로 살피는 일은, 사람에게는 뜻이 같지만 모형이 뽑는 분위기는 바꾸는 낱말을 골라 흔들 수 있다. 회사의 투자자 소통 무리가 뜻하지 않게(또는 일부러) 저절로 살피는 얼개를 가지고 노는 말을 쓸 수 있다.
 
-### Document Classification
+### 글월 가름
 
-Regulatory filings, loan applications, or insurance claims processed by NLP models can be crafted to influence classification outcomes while appearing legitimate to human reviewers.
+글월 모형이 다루는 규정 신고, 빚 신청, 보험 청구는 사람이 보기엔 옳아 보이면서 가름의 결과를 흔들도록 지어질 수 있다.
 
-### Defense Recommendations for Financial NLP
+### 금융 글월 모형에 즐겨 쓸 막이
 
-1. **Multi-model consensus**: Never rely on a single NLP model for trading decisions. Require agreement across architecturally diverse models (transformer, RNN, traditional ML with TF-IDF features).
-2. **Input auditing**: Log and monitor unusual word choices or patterns in high-stakes text inputs. Flag documents whose word distributions deviate from expected baselines.
-3. **Confidence calibration**: Treat low-confidence predictions as abstentions rather than forcing a classification. Adversarial examples often produce predictions near the decision boundary.
-4. **Human-in-the-loop**: For material trading decisions triggered by NLP signals, maintain human review for edge cases where model confidence is below a threshold.
-5. **Regular red-teaming**: Periodically test financial NLP models with adversarial attacks to identify vulnerabilities before adversaries do.
+1. **여러 모형의 뜻 맞음**: 거래 판단을 글월 모형 하나에 기대지 마라. 얼개가 서로 다른 모형(변환기, RNN, TF-IDF 결을 쓰는 여느 기계 배움)의 뜻이 맞아야 한다.
+2. **들임 되짚어 보기**: 걸린 것이 큰 글월 들임에서 여느 것과 다른 낱말 고름이나 결을 적고 지켜보라. 낱말 분포가 밑금에서 벗어난 글월에 표시하라.
+3. **자신함 눈금 맞추기**: 머뭇거리는 미루어 봄은 억지로 가르지 말고 삼가는 것으로 다루라. 맞서는 보기는 판단의 금 가까이에 미루어 봄을 놓는 일이 잦다.
+4. **사람이 끼어들기**: 글월 신호가 불러낸 큰 거래 판단에서는 모형의 자신함이 문턱 아래인 언저리 자리를 사람이 살피게 하라.
+5. **붉은 편 겨루기를 꾸준히**: 겨루는 이보다 먼저 무른 데를 찾도록 금융 글월 모형을 맞서는 치기로 때때로 시험하라.
 
-## Key Takeaways
+## 고갱이로 챙길 것
 
-1. NLP adversarial attacks operate in discrete space, making them qualitatively different from image-domain attacks but equally dangerous.
-2. Black-box attacks like TextFooler require only query access — no model internals — making them practical threats for any deployed API.
-3. Word-level attacks can flip BERT predictions by changing ~15% of words while preserving human-perceived meaning.
-4. Financial NLP models are attractive targets because small prediction changes can trigger large capital allocation decisions.
-5. Defense requires a combination of adversarial training, ensemble methods, and operational safeguards.
+1. 글월 맞서는 치기는 띄엄한 밭에서 움직여 그림 밭의 치기와 결이 다르지만 못지않게 위험하다.
+2. TextFooler 같은 검은 상자 치기는 물음만 할 수 있으면 되고 모형 속은 볼 필요가 없어, 내놓은 어떤 API에도 손에 잡히는 으름이 된다.
+3. 낱말 켜의 치기는 사람이 느끼는 뜻은 지킨 채 낱말의 약 15%만 바꾸어 BERT의 미루어 봄을 뒤집을 수 있다.
+4. 금융 글월 모형은 미루어 봄이 조금만 바뀌어도 큰 밑천 나눔 판단을 불러내므로 노리기 좋은 과녁이다.
+5. 막으려면 맞서며 익히기, 모둠 방법, 굴러가는 자리의 안전 장치를 아울러야 한다.
 
-## References
+## 살펴볼 거리
 
 1. Jin, D., Jin, Z., Zhou, J. T., & Smeaton, P. (2020). "Is BERT Really Robust? A Strong Baseline for Natural Language Attack and Defense." *AAAI*.
 2. Alzantot, M., et al. (2018). "Generating Natural Language Adversarial Examples." *EMNLP*.
@@ -130,34 +130,34 @@ Regulatory filings, loan applications, or insurance claims processed by NLP mode
 4. Ye, M., et al. (2020). "SAFER: A Structure-free Approach for Certified Robustness to Adversarial Word Substitutions." *ACL*.
 5. Wallace, E., et al. (2019). "Universal Adversarial Triggers for Attacking and Analyzing NLP." *EMNLP*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
