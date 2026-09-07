@@ -77,25 +77,25 @@ if __name__ == "__main__":
 
 ## 논의
 
-The residual connection is the defining feature of ResNet. Each bottleneck block computes a residual function $F(\mathbf{x})$ and adds it to the input: $\mathbf{y} = F(\mathbf{x}) + \mathbf{x}$. If the optimal transformation is close to the identity, the network only needs to learn a small residual, which is easier than learning the full mapping from scratch. This insight enabled training networks with 50, 101, and even 152 layers, far deeper than anything before.
+잔차 연결이 ResNet을 ResNet이게 하는 결이다. 병목 블록마다 잔차 함수 $F(\mathbf{x})$을 셈해 들임에 더한다. $\mathbf{y} = F(\mathbf{x}) + \mathbf{x}$이다. 가장 좋은 변환이 항등에 가까우면 그물은 작은 잔차만 배우면 되므로 온 사상을 맨바닥부터 배우는 것보다 쉽다. 이 눈썰미 덕에 50, 101, 나아가 152켜짜리 그물까지 학습할 수 있게 되었고, 이는 그전 어느 것보다도 훨씬 깊다.
 
-The bottleneck design uses a $1 \times 1$ convolution to reduce the channel dimension, a $3 \times 3$ convolution for spatial processing, and another $1 \times 1$ convolution to restore the channel dimension (expanded by a factor of 4). This keeps the computational cost manageable while maintaining a large number of output channels. When spatial dimensions change between stages, a learned $1 \times 1$ projection with matching stride aligns the shortcut path.
+병목 설계는 $1 \times 1$ 합성곱으로 채널 차원을 줄이고, $3 \times 3$ 합성곱으로 공간을 다루고, 다시 $1 \times 1$ 합성곱으로 채널 차원을 되살린다(4배로 넓힌다). 그래서 날임 채널 수를 크게 지키면서도 셈 값을 감당할 만하게 둔다. 단계 사이에서 공간 차원이 바뀔 때는 보폭을 맞춘 학습된 $1 \times 1$ 투영이 지름길 경로를 맞춘다.
 
 ResNet이 깊은 배움에 미친 영향은 아무리 말해도 지나치지 않다. 건너뛰는 이음이라는 원리는 DenseNet에서 변환기까지 요즘 얼개 거의 모두에 나타난다. ResNet-50은 갈래 매기기, 알아내기, 나누기를 아우르는 여러 일에서 옮겨 배우기의 표준 등뼈로 남아 있다.
 
 ## 연습문제
 
 **연습문제 1.**
-Calculate the total number of multiply-add operations (FLOPs) for a single Bottleneck block with `in_channels=256`, `out_channels=64`, and spatial dimensions $56 \times 56$.
+`in_channels=256`, `out_channels=64`, 공간 크기 $56 \times 56$인 병목 블록 하나의 곱셈-덧셈 연산 수(FLOPs)를 셈하여라.
 
 ??? success "연습문제 1 풀이"
-    For each convolution, FLOPs $\approx 2 \times C_{\text{in}} \times C_{\text{out}} \times K^2 \times H \times W$:
+    합성곱마다 FLOPs $\approx 2 \times C_{\text{in}} \times C_{\text{out}} \times K^2 \times H \times W$이다.
 
     - Conv1 ($1 \times 1$, $256 \to 64$): $2 \times 256 \times 64 \times 1 \times 56 \times 56 = 102{,}760{,}448$
     - Conv2 ($3 \times 3$, $64 \to 64$): $2 \times 64 \times 64 \times 9 \times 56 \times 56 = 231{,}211{,}008$
     - Conv3 ($1 \times 1$, $64 \to 256$): $2 \times 64 \times 256 \times 1 \times 56 \times 56 = 102{,}760{,}448$
 
-    Total: approximately $436{,}731{,}904$ FLOPs ($\approx 437$ MFLOPs) per block.
+    모두 블록마다 약 $436{,}731{,}904$ FLOPs($\approx 437$ MFLOPs)이다.
 
 ---
 
@@ -103,14 +103,14 @@ Calculate the total number of multiply-add operations (FLOPs) for a single Bottl
 `downsample` 길이 왜 단계마다 첫 덩이에만 필요한지 설명하여라. 그것을 없애면 어떻게 되는가?
 
 ??? success "연습문제 2 풀이"
-    The downsample path (a $1 \times 1$ convolution with stride 2) is needed when the spatial dimensions or channel count change between the input and output of a block. This only happens at the first block of each stage, where the stride changes from 1 to 2 and the output channels increase. Subsequent blocks within the same stage have matching input and output dimensions, so the identity shortcut works directly.
+    내림 표본 경로(보폭 2인 $1 \times 1$ 합성곱)는 블록의 들임과 날임 사이에서 공간 차원이나 채널 수가 바뀔 때 필요하다. 이는 단계마다 첫 블록에서만 일어나며 그때 보폭이 1에서 2로 바뀌고 날임 채널이 늘어난다. 같은 단계의 뒤 블록은 들임과 날임 차원이 같으므로 항등 지름길이 그대로 동작한다.
 
-    If the downsample path is removed at stage boundaries, the addition $\text{out} + \text{identity}$ would fail because the tensors have different shapes (different spatial resolution and channel count), resulting in a runtime error.
+    단계 경계에서 내림 표본 경로를 없애면 텐서의 꼴이 달라(공간 해상도와 채널 수가 다르다) $\text{out} + \text{identity}$ 덧셈이 실패하고 실행 오류가 난다.
 
 ---
 
 **연습문제 3.**
-Implement a ResNet-18 variant using basic blocks (two $3 \times 3$ convolutions without bottleneck) with layer configuration $[2, 2, 2, 2]$. Compare the parameter count to ResNet-50.
+병목 없이 $3 \times 3$ 합성곱 둘로 된 기본 블록을 써서 켜 구성이 $[2, 2, 2, 2]$인 ResNet-18 갈래를 짜라. 매개변수 수를 ResNet-50과 견주어라.
 
 ??? success "연습문제 3 풀이"
     ```python

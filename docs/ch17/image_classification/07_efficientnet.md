@@ -71,17 +71,17 @@ if __name__ == "__main__":
 
 ## 논의
 
-The MBConv (Mobile Inverted Bottleneck Convolution) block is the core building block of EfficientNet. It uses an inverted bottleneck structure where channels are first expanded, processed with depthwise convolution, and then projected back to a smaller dimension. The SiLU (Swish) activation function, defined as $f(x) = x \cdot \sigma(x)$, provides smoother gradients than ReLU.
+MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 고갱이 벽돌이다. 뒤집힌 병목 구조를 쓰는데, 채널을 먼저 넓히고 깊이별 합성곱으로 다룬 뒤 더 작은 차원으로 되비춘다. $f(x) = x \cdot \sigma(x)$으로 매긴 SiLU(Swish) 활성 함수는 ReLU보다 매끄러운 기울기를 준다.
 
 이 간추린 짜기는 EfficientNet의 뼈대를 보여 준다. 곧 처음 특징을 뽑는 누비기 줄기, 채널이 늘고 자리 해상도가 줄어드는 MBConv 덩이의 차례, 그리고 전체 평균 모으기 앞에서 1280채널로 부풀리는 갈래 매기기 머리이다.
 
 ## 연습문제
 
 **연습문제 1.**
-Compare the SiLU/Swish activation $f(x) = x \cdot \sigma(x)$ with ReLU. Plot both functions and their derivatives for $x \in [-5, 5]$.
+SiLU/Swish 활성 $f(x) = x \cdot \sigma(x)$을 ReLU와 견주어라. $x \in [-5, 5]$에서 두 함수와 그 도함수를 그려라.
 
 ??? success "연습문제 1 풀이"
-    SiLU is smooth and non-monotonic, with a small negative region near $x \approx -1.28$. Unlike ReLU, it has non-zero gradients for negative inputs, which helps prevent dead neurons. The derivative is $f'(x) = \sigma(x) + x \cdot \sigma(x)(1 - \sigma(x)) = \sigma(x)(1 + x(1 - \sigma(x)))$. At $x = 0$, SiLU outputs 0 with gradient 0.5, while ReLU outputs 0 with undefined gradient.
+    SiLU은 매끄럽고 단조롭지 않으며 $x \approx -1.28$ 언저리에 작은 음수 구간이 있다. ReLU과 달리 음수 들임에서도 기울기가 0이 아니어서 죽은 뉴런을 막는 데 도움이 된다. 도함수는 $f'(x) = \sigma(x) + x \cdot \sigma(x)(1 - \sigma(x)) = \sigma(x)(1 + x(1 - \sigma(x)))$이다. $x = 0$에서 SiLU은 0을 내놓고 기울기가 0.5이지만 ReLU은 0을 내놓고 기울기가 정해지지 않는다.
 
 ---
 
@@ -112,4 +112,4 @@ MBConv 덩이에 쥐어짜기-북돋우기를 더하고 늘어난 매개변수�
             return x * self.se(x)
     ```
 
-    For a hidden dimension of 192 (32 channels with expand ratio 6), SE adds $192 \times 48 + 48 \times 192 = 18{,}432$ parameters -- roughly a 1-2% increase per block.
+    숨은 차원이 192이면(채널 32개에 넓힘 비율 6) SE은 매개변수 $192 \times 48 + 48 \times 192 = 18{,}432$개를 더하니 블록마다 대략 1~2% 늘어난다.

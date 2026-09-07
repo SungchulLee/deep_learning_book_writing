@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
 촘촘한 이음은 앎이 가장 잘 흐르게 한다. 곧 층마다 손실의 기울기와 앞선 모든 층의 특징 지도에 곧바로 닿는다. 이는 넌지시 이루어지는 깊은 이끎을 만들고 특징을 다시 쓰게 북돋운다. 자람 비율 $k$은 층마다 새 앎을 얼마나 보태는지를 다스린다. 그물이 앞선 층에 쌓인 특징을 끌어 쓸 수 있으므로 $k = 12$처럼 작은 값도 잘 된다.
 
-The compression factor $\theta$ in transition layers controls how aggressively channel counts are reduced. Setting $\theta = 0.5$ halves the channels at each transition, preventing the total channel count from growing too large. The bottleneck design ($1 \times 1$ convolution producing $4k$ feature maps before the $3 \times 3$ convolution) further controls computational cost.
+전이 켜의 압축 계수 $\theta$이 채널 수를 얼마나 세게 줄일지 다스린다. $\theta = 0.5$으로 두면 전이마다 채널이 반으로 줄어 온 채널 수가 너무 커지지 않는다. 병목 설계($3 \times 3$ 합성곱 앞에서 $1 \times 1$ 합성곱이 특징 지도 $4k$개를 내놓는 것)가 셈 값을 더 다스린다.
 
 ## 연습문제
 
@@ -106,7 +106,7 @@ The compression factor $\theta$ in transition layers controls how aggressively c
 층이 $L$개이고 자람 비율이 $k$인 촘촘 덩이에서 들임부터 내놓음까지의 이음(곧은 길) 전체 개수 식을 이끌어 내어라.
 
 ??? success "연습문제 1 풀이"
-    In a DenseBlock with $L$ layers, layer $\ell$ receives input from all $\ell$ preceding layers plus the original input. The total number of connections is $\frac{L(L+1)}{2}$. For $L = 6$: $\frac{6 \times 7}{2} = 21$ connections. This quadratic growth in connections is what gives DenseNet its name and its strong gradient flow properties.
+    켜가 $L$개인 DenseBlock에서 켜 $\ell$은 앞선 $\ell$개 켜와 본디 들임에서 모두 들임을 받는다. 연결 수는 모두 $\frac{L(L+1)}{2}$이다. $L = 6$이면 $\frac{6 \times 7}{2} = 21$개다. 연결이 이렇게 이차로 늘어나는 데서 DenseNet이라는 이름과 센 기울기 흐름 성질이 나온다.
 
 ---
 
@@ -119,7 +119,7 @@ DenseNet-121과 ResNet-50을 익힐 때의 기억 공간 씀씀이를 견주고,
 ---
 
 **연습문제 3.**
-Implement an ablation study varying the growth rate $k \in \{8, 12, 24, 32\}$ and report the parameter counts for each configuration.
+성장률을 $k \in \{8, 12, 24, 32\}$으로 바꾸어 가며 없애기 실험을 짜고 구성마다 매개변수 수를 밝혀라.
 
 ??? success "연습문제 3 풀이"
     ```python

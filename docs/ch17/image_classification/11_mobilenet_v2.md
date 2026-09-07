@@ -68,9 +68,9 @@ MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정�
 들임과 내놓음 차원이 같을 때 뒤집은 잔차 덩이와 보통 잔차 덩이의 FLOPs를 견주어라.
 
 ??? success "연습문제 1 풀이"
-    For input channels $C$, output channels $C$, expansion ratio 6, and spatial size $H \times W$:
+    들임 채널 $C$개, 날임 채널 $C$개, 넓힘 비율 6, 공간 크기 $H \times W$일 때
 
-    - Inverted residual: expansion ($C \times 6C$) + depthwise ($6C \times 9$) + projection ($6C \times C$) = $C \times 6C \times H \times W + 6C \times 9 \times H \times W + 6C \times C \times H \times W = (12C^2 + 54C) \times H \times W$
+    - 뒤집힌 잔차: 넓힘($C \times 6C$) + 깊이별($6C \times 9$) + 투영($6C \times C$) = $C \times 6C \times H \times W + 6C \times 9 \times H \times W + 6C \times C \times H \times W = (12C^2 + 54C) \times H \times W$
     - Standard residual ($3 \times 3$): $2 \times C \times C \times 9 \times H \times W = 18C^2 \times H \times W$
 
     For large $C$, inverted residuals are cheaper since $12C^2 < 18C^2$.

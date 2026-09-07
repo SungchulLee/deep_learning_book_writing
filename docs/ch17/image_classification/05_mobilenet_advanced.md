@@ -103,19 +103,19 @@ if __name__ == "__main__":
 
 ## 논의
 
-The inverted residual block reverses the traditional bottleneck pattern. Standard residual blocks go wide-narrow-wide, while inverted residuals go narrow-wide-narrow. The expansion phase uses a $1 \times 1$ convolution to increase the channel count by a factor (typically 6), the depthwise convolution processes spatial information cheaply, and the projection phase compresses back. Critically, the projection uses no activation function (linear bottleneck), preserving information in the low-dimensional output.
+뒤집힌 잔차 블록은 여느 병목 무늬를 뒤집는다. 여느 잔차 블록은 넓게-좁게-넓게 가지만 뒤집힌 잔차는 좁게-넓게-좁게 간다. 넓히는 단계는 $1 \times 1$ 합성곱으로 채널 수를 몇 배(흔히 6배)로 늘리고, 깊이별 합성곱이 공간 정보를 값싸게 다루며, 투영 단계가 다시 압축한다. 종요롭게도 투영에는 활성 함수를 쓰지 않는데(선형 병목), 그래야 낮은 차원의 날임에서 정보가 지켜진다.
 
-Depthwise separable convolutions factorize a standard convolution into a depthwise convolution (one filter per input channel) and a pointwise $1 \times 1$ convolution (combining channels). For a $3 \times 3$ kernel, this reduces parameters by approximately $8{-}9\times$. The width multiplier further controls model size by uniformly scaling channel counts across all layers.
+깊이별 분리 합성곱은 여느 합성곱을 깊이별 합성곱(들임 채널마다 거르개 하나)과 점별 $1 \times 1$ 합성곱(채널 섞기)으로 나눈다. $3 \times 3$ 커널이면 매개변수가 약 $8{-}9\times$ 줄어든다. 너비 곱값은 모든 켜의 채널 수를 고르게 키워 모델 크기를 더 다스린다.
 
 ## 연습문제
 
 **연습문제 1.**
-Calculate the parameter reduction when using depthwise separable convolutions instead of standard convolutions for a $3 \times 3$ layer with 256 input and 256 output channels.
+들임 채널 256개, 날임 채널 256개인 $3 \times 3$ 켜에서 여느 합성곱 대신 깊이별 분리 합성곱을 쓸 때 매개변수가 얼마나 줄어드는지 셈하여라.
 
 ??? success "연습문제 1 풀이"
 
-    - Standard: $256 \times 256 \times 9 = 589{,}824$ parameters
-    - Depthwise separable: $256 \times 9 + 256 \times 256 = 2{,}304 + 65{,}536 = 67{,}840$ parameters
+    - 여느 합성곱: 매개변수 $256 \times 256 \times 9 = 589{,}824$개
+    - 깊이별 분리: $256 \times 9 + 256 \times 256 = 2{,}304 + 65{,}536 = 67{,}840$개
     - Reduction: $589{,}824 / 67{,}840 \approx 8.7\times$
 
 ---

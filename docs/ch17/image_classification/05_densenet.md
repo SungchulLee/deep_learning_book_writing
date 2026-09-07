@@ -100,9 +100,9 @@ if __name__ == "__main__":
 
 ## 논의
 
-The dense connectivity pattern means that layer $\ell$ receives the feature maps of all preceding layers $x_0, x_1, \ldots, x_{\ell-1}$ as input: $x_\ell = H_\ell([x_0, x_1, \ldots, x_{\ell-1}])$, where $[\cdot]$ denotes concatenation. Each layer adds $k$ new feature maps (the growth rate), so after $L$ layers the block has $k_0 + L \times k$ channels. This is in contrast to ResNet, where each block replaces the feature representation.
+빽빽한 연결 무늬란 켜 $\ell$이 앞선 모든 켜 $x_0, x_1, \ldots, x_{\ell-1}$의 특징 지도를 들임으로 받는다는 뜻이다. $x_\ell = H_\ell([x_0, x_1, \ldots, x_{\ell-1}])$이며 $[\cdot]$은 이어 붙이기를 나타낸다. 켜마다 새 특징 지도 $k$개(성장률)를 더하므로 $L$켜 뒤 블록의 채널은 $k_0 + L \times k$개다. 블록마다 특징 표현을 갈아 치우는 ResNet과 대비된다.
 
-Transition layers between dense blocks reduce dimensionality. They apply batch normalization, a $1 \times 1$ convolution to halve the channel count (compression factor $\theta = 0.5$), and $2 \times 2$ average pooling to halve the spatial resolution. Without these, the channel count would grow without bound.
+빽빽한 블록 사이의 전이 켜가 차원을 줄인다. 배치 정규화를 걸고, $1 \times 1$ 합성곱으로 채널 수를 반으로 줄이고(압축 계수 $\theta = 0.5$), $2 \times 2$ 평균 풀링으로 공간 해상도를 반으로 줄인다. 이것이 없으면 채널 수가 끝없이 늘어난다.
 
 DenseNet은 층마다 손실 함수의 기울기와 앞선 모든 층의 특징에 곧바로 닿을 수 있기 때문에, ResNet보다 훨씬 적은 매개변수로 견줄 만한 정확도를 낸다. 이 넌지시 이루어지는 깊은 이끎과 특징 다시 쓰기 덕분에 층마다 좁아도(자람 비율이 작아도) 되어 모델이 아담하게 유지된다. DenseNet-121은 매개변수가 약 800만 개로 ResNet-50의 2560만 개와 견주어 적다.
 
@@ -112,30 +112,30 @@ DenseNet은 층마다 손실 함수의 기울기와 앞선 모든 층의 특징�
 층이 6개, 자람 비율이 $k = 32$, 처음 채널이 64인 촘촘 덩이에서 내놓는 채널 수와 촘촘 층의 매개변수 전체 개수를 셈하여라(치우침은 헤아리지 않는다).
 
 ??? success "연습문제 1 풀이"
-    Output channels: $64 + 6 \times 32 = 256$.
+    날임 채널: $64 + 6 \times 32 = 256$.
 
-    For each DenseLayer $i$ (0-indexed), input channels = $64 + i \times 32$:
+    DenseLayer $i$(0부터 셈)마다 들임 채널 = $64 + i \times 32$이다.
 
-    - Layer 0: bottleneck $64 \to 128$ ($1 \times 1$: $64 \times 128 = 8{,}192$), then $128 \to 32$ ($3 \times 3$: $128 \times 32 \times 9 = 36{,}864$). Total: $45{,}056$.
+    - 켜 0: 병목 $64 \to 128$($1 \times 1$: $64 \times 128 = 8{,}192$), 그다음 $128 \to 32$($3 \times 3$: $128 \times 32 \times 9 = 36{,}864$). 모두 $45{,}056$이다.
     - Layer 1: $96 \times 128 + 128 \times 32 \times 9 = 12{,}288 + 36{,}864 = 49{,}152$.
     - 2~5층: 들임 채널이 늘어나며 마찬가지이다.
 
-    Total parameters: $\sum_{i=0}^{5} [(64 + 32i) \times 128 + 128 \times 32 \times 9] = \sum_{i=0}^{5} [(64 + 32i) \times 128 + 36{,}864]$.
+    모든 매개변수: $\sum_{i=0}^{5} [(64 + 32i) \times 128 + 128 \times 32 \times 9] = \sum_{i=0}^{5} [(64 + 32i) \times 128 + 36{,}864]$.
 
 ---
 
 **연습문제 2.**
-Explain the purpose of the bottleneck ($1 \times 1$ convolution) in each DenseLayer. What would happen to memory usage without it?
+DenseLayer마다 있는 병목($1 \times 1$ 합성곱)이 무엇을 하는지 밝혀라. 그것이 없으면 메모리 씀씀이는 어떻게 되겠는가?
 
 ??? success "연습문제 2 풀이"
-    The bottleneck $1 \times 1$ convolution reduces the number of input channels to $4k$ (where $k$ is the growth rate) before the expensive $3 \times 3$ convolution. Without it, the $3 \times 3$ convolution would operate on an ever-growing number of input channels (since dense connectivity concatenates all prior features).
+    병목 $1 \times 1$ 합성곱은 값비싼 $3 \times 3$ 합성곱 앞에서 들임 채널 수를 $4k$($k$은 성장률)으로 줄인다. 그것이 없으면 $3 \times 3$ 합성곱이 끝없이 늘어나는 들임 채널을 다루어야 한다(빽빽한 연결이 앞선 특징을 모두 이어 붙이기 때문이다).
 
-    For the last layer in a 24-layer block with $k=32$ and initial channels 256, the input would have $256 + 23 \times 32 = 992$ channels. A $3 \times 3$ conv from 992 to 32 channels would require $992 \times 32 \times 9 = 285{,}696$ parameters. With the bottleneck, it first reduces to 128 channels ($992 \times 128 = 126{,}976$) then applies $3 \times 3$ ($128 \times 32 \times 9 = 36{,}864$) for a total of $163{,}840$ -- a 43% parameter reduction.
+    $k=32$이고 첫 채널이 256인 24켜 블록의 마지막 켜에서는 들임 채널이 $256 + 23 \times 32 = 992$개다. 992에서 32채널로 가는 $3 \times 3$ 합성곱에는 매개변수가 $992 \times 32 \times 9 = 285{,}696$개 든다. 병목을 쓰면 먼저 128채널로 줄이고($992 \times 128 = 126{,}976$) $3 \times 3$을 걸어($128 \times 32 \times 9 = 36{,}864$) 모두 $163{,}840$개이니 매개변수가 43% 줄어든다.
 
 ---
 
 **연습문제 3.**
-Implement a DenseNet variant for CIFAR-10 with growth rate $k = 12$, block configuration $[6, 12, 24, 16]$, and compression $\theta = 0.5$. Report the parameter count.
+성장률 $k = 12$, 블록 구성 $[6, 12, 24, 16]$, 압축 $\theta = 0.5$인 CIFAR-10용 DenseNet 갈래를 짜라. 매개변수 수를 밝혀라.
 
 ??? success "연습문제 3 풀이"
     ```python
