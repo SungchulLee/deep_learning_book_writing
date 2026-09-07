@@ -21,7 +21,7 @@ FILE: 06_score_networks.py
     점수 신경망은 ∇log p(x)을 나타내는 벡터 마당을 내놓아야 한다.
     
     설계에서 살필 고갱이:
-    1. No final activation (outputs can be any real value)
+    1. 마지막 활성화가 없다(내놓음이 어떤 실수든 될 수 있다)
     2. 흔히 잡음 수준 σ을 조건으로 삼는다
     3. 안정을 위해 립시츠 이어짐이어야 한다
     4. 복잡한 분포에는 담이를 크게 한다
@@ -83,11 +83,11 @@ class NoiseConditionalScoreNetwork(nn.Module):
         잡음 수준을 조건으로 삼은 앞먹임.
         
         인수:
-            x: Data points, shape (N, D)
+            x: 자료 점, 꼴 (N, D)
             sigma: 잡음 수준, 꼴 (N,)이거나 낱값
         
         반환값:
-            score: Score vectors, shape (N, D)
+            score: 점수 벡터, 꼴 (N, D)
         """
         if not isinstance(sigma, torch.Tensor):
             sigma = torch.tensor([sigma] * len(x), device=x.device)

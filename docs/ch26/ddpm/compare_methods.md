@@ -167,8 +167,8 @@ def main():
        - 품질은 높지만 시간이 걸린다
     
     2. DDIM: 빠르고 정해져 있다
-       - Skips most timesteps (uses only 50)
-       - Deterministic (same seed = same image)
+       - 대부분의 때 걸음을 건너뛴다(50개만 쓴다)
+       - 정해진 대로(같은 씨앗이면 같은 그림)
        - 품질은 비슷하면서 20배 빠르다!
     
     3. 언제 무엇을 쓰는가:

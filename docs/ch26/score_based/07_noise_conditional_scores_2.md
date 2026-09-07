@@ -12,15 +12,15 @@ FILE: 07_noise_conditional_scores.py
 미리 알 것: 04-06, 여러 잣수 나타내기 이해
 
 학습 목표:
-    1. Implement Noise Conditional Score Networks (NCSN)
+    1. 잡음 조건 점수 그물(NCSN)을 짠다
     2. 식힘 랑주뱅 움직임을 이해한다
     3. 여러 잡음 잣수에서 모델을 익힌다
     4. 복잡한 분포에서 품질 높은 표본을 만든다
 
 수학 바탕:
-    NCSN learns scores at multiple noise levels: s_θ(x, σ) ≈ ∇log p_σ(x)
+    NCSN은 여러 잡음 층에서 점수를 배운다: s_θ(x, σ) ≈ ∇log p_σ(x)
     
-    where p_σ(x) = ∫ p(y)N(x|y, σ²I)dy is the data smoothed by Gaussian noise.
+    여기서 p_σ(x) = ∫ p(y)N(x|y, σ²I)dy은 가우스 잡음으로 부드럽게 한 자료다.
     
     익힘 목표:
     L = E_σ E_x E_ε[λ(σ)||s_θ(x+ε, σ) + ε/σ²||²]
@@ -97,7 +97,7 @@ def ncsn_loss(model, x, sigmas):
     
     인수:
         model: 잡음 조건 점수 신경망 모델
-        x: Data samples, shape (N, D)
+        x: 자료 표본, 꼴 (N, D)
         sigmas: 잡음 수준의 목록
     
     반환값:
@@ -135,13 +135,13 @@ def anneal_langevin_sampling(model, sigmas, n_samples=100, n_steps_per_sigma=100
     
     인수:
         model: 익힌 잡음 조건 점수 신경망 모델
-        sigmas: Noise schedule (decreasing), e.g., [10, 1, 0.1, 0.01]
+        sigmas: 잡음 짜임(줄어드는 차례), 보기: [10, 1, 0.1, 0.01]
         n_samples: 만들 표본의 개수
         n_steps_per_sigma: 잡음 수준마다 랑주뱅 걸음 수
         step_size_ratio: σ²에 대한 걸음 크기의 몫
     
     반환값:
-        samples: Final samples, shape (n_samples, dim)
+        samples: 마지막 표본, 꼴 (n_samples, dim)
         trajectory: 뽑기 자취
     """
     # 큰 잡음에서 첫자리매김한다

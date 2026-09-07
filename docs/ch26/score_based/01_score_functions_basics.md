@@ -11,7 +11,7 @@
 
 어려움: 처음
 시간: 2~3시간
-PREREQUISITES: 01_Bayesian_Inference (especially conjugate priors and MAP estimation)
+미리 알아 둘 것: 01_Bayesian_Inference(특히 켤레 앞분포와 최대 사후 어림)
 
 학습 목표:
 -------------------
@@ -24,7 +24,7 @@ PREREQUISITES: 01_Bayesian_Inference (especially conjugate priors and MAP estima
 수학 바탕:
 -----------------------
 Definition:
-    The score function s(x) is the gradient of the log-probability:
+    점수 함수 s(x)는 로그 확률의 기울기다.
     
     s(x) = ∇_x log p(x)
     
@@ -32,7 +32,7 @@ Definition:
     베이즈 미룸에서 우리는 다음을 배웠다.
     p(θ|D) = p(D|θ)p(θ) / p(D)
     
-    The denominator p(D) = ∫ p(D|θ)p(θ) dθ is intractable!
+    분모 p(D) = ∫ p(D|θ)p(θ) dθ은 셈할 수 없다!
     
     그러나 뒷분포의 점수는 다음과 같다.
     ∇_θ log p(θ|D) = ∇_θ log[p(D|θ)p(θ)] - ∇_θ log p(D)
@@ -72,7 +72,7 @@ print("=" * 80)
 print("""
 정의:
 -----------
-For a probability distribution p(x), the score function is:
+확률 분포 p(x)의 점수 함수는 다음과 같다.
 
     s(x) = ∇_x log p(x) = (1/p(x)) * ∇_x p(x)
 
@@ -80,7 +80,7 @@ For a probability distribution p(x), the score function is:
 ---------
 - 점수는 확률이 더 높은 자리를 가리킨다
 - p(x)의 봉우리에서 점수는 0이다
-- The magnitude ||s(x)|| indicates how steeply probability changes
+- 크기 ||s(x)||는 확률이 얼마나 가파르게 바뀌는지 알려 준다
 - 점수에는 고르게 맞추는 상수가 필요 없다!
 
 베이즈 미룸과의 이음:
@@ -106,14 +106,14 @@ Example: Gaussian N(μ, σ²)
 --------------------------
 PDF: p(x) = (1/√(2πσ²)) exp(-(x-μ)²/(2σ²))
 
-Log-PDF: log p(x) = -log(√(2πσ²)) - (x-μ)²/(2σ²)
+로그 확률밀도: log p(x) = -log(√(2πσ²)) - (x-μ)²/(2σ²)
 
 Score: s(x) = d/dx log p(x) = -(x-μ)/σ²
 
 눈여겨볼 점은 다음과 같다.
-1. Constant term -log(√(2πσ²)) disappears! (derivative of constant = 0)
+1. 상수 마디 -log(√(2πσ²))는 사라진다!(상수의 미분은 0)
 2. 점수는 x에 대해 선형이다
-3. Score is ZERO at x=μ (the mode)
+3. x=μ(최빈값)에서 점수는 0이다
 4. 점수는 평균 μ 쪽을 가리킨다
 """)
 
@@ -190,7 +190,7 @@ print("SECTION 3: Score Field for 2D Gaussian")
 print("=" * 80)
 
 print("""
-For multivariate Gaussian N(μ, Σ):
+다변량 가우스 N(μ, Σ)에서는:
 ---------------------------------
 Score: s(x) = ∇_x log p(x) = -Σ^(-1)(x - μ)
 
@@ -282,21 +282,21 @@ print("SECTION 4: Why Score Functions Enable Sampling")
 print("=" * 80)
 
 print("""
-THE FUNDAMENTAL PROBLEM (from Bayesian Inference):
+바탕이 되는 문제(베이즈 미룸에서):
 -------------------------------------------------
 Given: Posterior p(θ|D) ∝ p(D|θ)p(θ)
-Want: Samples from p(θ|D)
-Problem: Can't compute normalizing constant p(D)!
+바라는 것: p(θ|D)에서 뽑은 표본
+문제: 고르개 상수 p(D)를 셈할 수 없다!
 
 점수 풀이:
 ------------------
-Key insight: ∇_θ log p(θ|D) = ∇_θ log[p(D|θ)p(θ)]
+고갱이 눈썰미: ∇_θ log p(θ|D) = ∇_θ log[p(D|θ)p(θ)]
 
-The score DOESN'T need p(D)!
+점수는 p(D)가 필요 없다!
 
-LANGEVIN DYNAMICS (Preview of Module 03):
+랑주뱅 움직임(3단원 미리 보기):
 ----------------------------------------
-If we know the score s(x) = ∇_x log p(x), we can sample via:
+점수 s(x) = ∇_x log p(x)를 알면 다음으로 표본을 뽑을 수 있다.
 
     x_{t+1} = x_t + (ε/2) * s(x_t) + √ε * z_t
     
@@ -380,39 +380,39 @@ print("""
 큰 그림:
 ---------------
 
-1. BAYESIAN INFERENCE (Module 01_Bayesian_Inference):
+1. 베이즈 미룸(01_Bayesian_Inference 단원):
    - p(θ|D) ∝ p(D|θ)p(θ)
    - 고르개 상수를 셈할 수 없다
    - 뽑기 방법이 필요하다
 
-2. SCORE FUNCTIONS (This module):
+2. 점수 함수(이 단원):
    - s(x) = ∇_x log p(x)
    - 고르게 맞추지 않아도 통한다
    - 랑주뱅 뽑기를 가능하게 한다
 
-3. SCORE MATCHING (Next module):
+3. 점수 맞추기(다음 단원):
    - 자료에서 점수를 배운다
    - 잡음 없애기와의 이음
 
-4. MULTI-SCALE SCORES (Later modules):
+4. 여러 자의 점수(뒤 단원):
    - 잡음 수준마다 점수를 배운다
    - σ₁ > σ₂ > ... > σ_L
 
-5. DIFFUSION MODELS (Final modules):
+5. 퍼짐 모델(마지막 단원):
    - 앞으로: 잡음을 차츰 더한다
    - 뒤로: 배운 점수로 잡음을 없앤다
    - 뽑기로 만들어 낸다!
 
 퍼짐을 위한 고갱이 눈썰미:
 -------------------------
-Denoising noisy data = Bayesian posterior inference!
+잡음 섞인 자료의 잡음 지우기가 곧 베이즈 뒷분포 미룸이다!
 
-Given: x_noisy = x_clean + σ * noise
-Find: p(x_clean | x_noisy)
+주어진 것: x_noisy = x_clean + σ * noise
+구할 것: p(x_clean | x_noisy)
 
 이 사후 분포의 점수가 바로 퍼짐 모델이 배우는 것이다!
 
-  ∇_x log p(x|x_noisy) ← This is learned by neural networks!
+  ∇_x log p(x|x_noisy) ← 이것을 신경 그물이 배운다!
 """)
 
 # ============================================================================
@@ -425,7 +425,7 @@ print("=" * 80)
 print("""
 배운 것:
 ---------------
-1. Score function: s(x) = ∇_x log p(x)
+1. 점수 함수: s(x) = ∇_x log p(x)
 2. 점수는 확률 높은 자리를 가리킨다
 3. 점수는 고르개 상수가 필요 없다
 4. 베이즈 사후 추론과의 이음
@@ -441,10 +441,10 @@ print("""
    For N(μ, σ²): s(x) = -(x-μ)/σ²
    For N(μ, Σ): s(x) = -Σ^(-1)(x-μ)
 
-3. Posterior score (Bayesian):
-   ∇_θ log p(θ|D) = ∇_θ log[p(D|θ)p(θ)]  (no p(D) needed!)
+3. 뒷분포 점수(베이즈):
+   ∇_θ log p(θ|D) = ∇_θ log[p(D|θ)p(θ)]  (p(D)가 필요 없다!)
 
-4. Langevin dynamics (preview):
+4. 랑주뱅 움직임(미리 보기):
    x_{t+1} = x_t + (ε/2)*s(x_t) + √ε*z_t
 
 만들어진 파일:
@@ -462,15 +462,15 @@ print("""
 익힘 1: 닫힌 꼴 점수 셈하기
 ---------------------------------------
 다음의 점수 함수를 셈하여라.
-a) Exponential distribution: p(x) = λ exp(-λx) for x ≥ 0
-b) Laplace distribution: p(x) = (1/2b) exp(-|x-μ|/b)
+a) 지수 분포: x ≥ 0에서 p(x) = λ exp(-λx)
+b) 라플라스 분포: p(x) = (1/2b) exp(-|x-μ|/b)
 c) 정규 분포 둘 섞기
 
 익힘 2: 점수의 성질
 ---------------------------
 다음을 밝혀라.
 a) 봉우리에서 점수는 0이다
-b) ∫ p(x) s(x) dx = 0 (mean of score is zero)
+b) ∫ p(x) s(x) dx = 0 (점수의 평균은 0이다)
 c) 정규 분포에서 점수는 선형이다
 
 익힘 3: 짜기
@@ -482,15 +482,15 @@ c) 랑주뱅 움직임을 돌려 뽑는다
 
 익힘 4: 베이즈 추론과의 이음
 -------------------------------------------
-For Beta-Binomial conjugate pair (from 01_Bayesian_Inference):
+베타-이항 켤레 짝에서(01_Bayesian_Inference):
 a) 사후 분포의 점수를 이끌어 낸다
-b) Show it doesn't need the normalizing constant
+b) 고르개 상수가 필요 없음을 보여라
 c) 곧바로 셈한 사후 분포와 견준다
 
 익힘 5: 점수 맞추기 미리 보기
 ---------------------------------
-If we only have samples from p(x), not the formula:
-a) Can we compute s(x) = ∇_x log p(x) directly? Why not?
+식 없이 p(x)에서 뽑은 표본만 있다면:
+a) s(x) = ∇_x log p(x)를 곧바로 셈할 수 있는가? 왜 안 되는가?
 b) 잡음 없애기를 쓴 다른 방식을 내놓는다
 c) 이것이 다음 단원의 까닭이 된다!
 

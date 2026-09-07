@@ -6,7 +6,7 @@
 
 ```python
 """
-MODULE 07: Noise Conditional Score Networks (NCSN)
+7단원: 잡음 조건 점수 그물(NCSN)
 =================================================
 
 어려움: 나아간 단계
@@ -40,18 +40,18 @@ print("""
 왜 잡음 수준이 여럿인가?
 -------------------------
 σ 하나만 쓸 때의 문제:
-- Small σ: Accurate near data, but hard to sample (score vanishes far from data)
+- σ이 작으면: 자료 가까이서는 정확하나 뽑기 어렵다(자료에서 멀면 점수가 사라진다)
 - σ이 크면: 어디서나 뽑기 쉽지만 정밀하지 않다
 
 풀이: 둘 다 쓴다!
-- Start with large σ (easy sampling, covers whole space)
-- Gradually decrease σ (refine to data distribution)
+- σ이 큰 데서 비롯한다(뽑기 쉽고 온 공간을 덮는다)
+- σ을 차츰 줄인다(자료 분포에 맞추어 다듬는다)
 - 이것이 식힘 랑주뱅 움직임이다
 
 퍼짐과의 이음:
 ----------------------
-Forward process: x_0 → x_1 → ... → x_T (add noise)
-Reverse process: x_T ← ... ← x_1 ← x_0 (denoise)
+앞으로 가는 흐름: x_0 → x_1 → ... → x_T(잡음을 더한다)
+거꾸로 가는 흐름: x_T ← ... ← x_1 ← x_0(잡음을 지운다)
 
 걸음마다 알맞은 잡음 수준의 점수를 쓴다!
 이것이 바로 퍼짐 모델의 틀이다!
@@ -76,7 +76,7 @@ class NCSN(nn.Module):
         """
         인수:
             x: Data [B, D]
-            sigma_idx: Noise level index [B], values in [0, noise_levels-1]
+            sigma_idx: 잡음 층 번호 [B], 값은 [0, noise_levels-1]
         """
         # sigma_idx을 [0, 1]으로 고르게 맞춘다
         sigma_embed = (sigma_idx.float() / self.noise_levels).unsqueeze(-1)
@@ -190,8 +190,8 @@ print("""
 
 잡음 짜임 설계:
 ---------------------
-- Geometric progression: σ_i = σ_max * (σ_min/σ_max)^(i/L)
-- More levels = smoother transition, slower sampling
+- 등비 수열: σ_i = σ_max * (σ_min/σ_max)^(i/L)
+- 층이 많을수록 옮겨감이 매끄럽지만 뽑기가 느리다
 - 맞추어 가는 걸음 크기: ε_i ∝ σ_i²
 
 DDPM과의 이음:
@@ -199,11 +199,11 @@ DDPM과의 이음:
 DDPM forward: x_t = √(ᾱ_t) x_0 + √(1-ᾱ_t) ε
 → 차례표에 따라 잡음을 더하는 것과 같다
 
-DDPM reverse: Learn p(x_{t-1}|x_t) via score
+DDPM 거꾸로: 점수로 p(x_{t-1}|x_t)을 배운다
 → 식힘 랑주뱅과 같다!
 
 이제 온전한 점수 바탕 얼개를 지었다!
-Next: Continuous-time formulation (SDEs)
+다음: 이어진 때의 꼴(SDE)
 """)
 
 print("\n✓ Module 07 complete!")

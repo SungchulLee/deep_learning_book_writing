@@ -38,10 +38,10 @@ print("="*80)
 print("""
 이어진 때의 꼴:
 --------------------------
-Instead of discrete steps t=0,1,2,...,T
-Use continuous time t ∈ [0, T]
+띄엄띄엄한 걸음 t=0,1,2,...,T 대신
+이어진 때 t ∈ [0, T]를 쓴다
 
-FORWARD SDE (add noise):
+앞으로 가는 SDE(잡음을 더한다):
 dx = f(x,t)dt + g(t)dw
 
 여기서 각 기호는 다음과 같다.
@@ -49,25 +49,25 @@ dx = f(x,t)dt + g(t)dw
 - g(t): 퍼짐 계수
 - dw: 브라운 움직임
 
-REVERSE SDE (remove noise):
+거꾸로 가는 SDE(잡음을 없앤다):
 dx = [f(x,t) - g(t)²∇log p_t(x)]dt + g(t)dw̄
 
 핵심: 점수 ∇log p_t(x)이 뒤 과정에 나타난다!
-This is learned by neural network: s_θ(x,t) ≈ ∇log p_t(x)
+이것을 신경 그물이 배운다: s_θ(x,t) ≈ ∇log p_t(x)
 
 두 가지 큰 꼴:
 ---------------------
 
 1. VARIANCE EXPLODING (VE):
    Forward: dx = √(dσ²/dt) dw
-   → Variance increases: σ_t² = σ_min² + t(σ_max² - σ_min²)/T
+   → 흩어짐이 커진다: σ_t² = σ_min² + t(σ_max² - σ_min²)/T
    
 2. VARIANCE PRESERVING (VP):
    Forward: dx = -0.5β(t)x dt + √β(t) dw
    → 흩어짐이 가둬져 있다
    → 이것이 이어진 때의 DDPM이다!
 
-β(t) controls noise schedule
+β(t)이 잡음 짜임을 다스린다
 """)
 
 class VESDE:
@@ -93,7 +93,7 @@ class VESDE:
         """
         dx = [-g²∇log p]dt + g dw̄
         
-        For VE, f=0, so reverse drift is just -g²∇log p
+        VE에서는 f=0이므로 거꾸로 표류는 그저 -g²∇log p이다
         """
         sigma = self.sigma_t(t)
         score = score_fn(x, t)
@@ -113,7 +113,7 @@ class VESDE:
         return drift, diffusion
 
 class VPSDE:
-    """Variance Preserving SDE (equivalent to DDPM)"""
+    """흩어짐을 지키는 SDE(DDPM과 같다)"""
     def __init__(self, beta_min=0.1, beta_max=20.0):
         self.beta_min = beta_min
         self.beta_max = beta_max
@@ -196,8 +196,8 @@ dx = [f(x,t) - 0.5*g(t)²∇log p_t(x)]dt
 
 SDE와 가장자리 분포는 같으나 다음이 다르다.
 ✓ Deterministic (no randomness)
-✓ Invertible (can encode/decode)
-✓ Faster (larger steps possible)
+✓ 되돌릴 수 있다(부호로 넣고 풀 수 있다)
+✓ 더 빠르다(걸음을 크게 할 수 있다)
 ✗ 표본 품질이 떨어질 수 있다
 
 이로써 다음이 가능해진다:
@@ -213,15 +213,15 @@ x_{t-1} = √(α_t) [x_t - (1-α_t)/√(1-ᾱ_t) * ε_θ(x_t,t)] + σ_t z
 VP-SDE의 이어진 끝값:
 dx = [-0.5β(t)x - β(t)ε_θ(x,t)]dt + √β(t) dw
 
-They're equivalent! Score s(x,t) = -ε(x,t)/√(1-ᾱ_t)
+둘은 같다! 점수 s(x,t) = -ε(x,t)/√(1-ᾱ_t)
 
 SDE 관점의 고갱이 좋은 점:
 --------------------------
-✓ Unified framework (VE, VP, sub-VP, etc.)
-✓ Flexible samplers (SDE, ODE, predictor-corrector)
+✓ 하나로 된 얼개(VE, VP, sub-VP 따위)
+✓ 두루 쓰는 뽑개(SDE, ODE, 예측-바로잡기)
 ✓ 이론으로 살피기가 쉽다
 ✓ 새로운 얼개와 차례표
-✓ Connects to physics (Brownian motion, Langevin)
+✓ 물리와 이어진다(브라운 운동, 랑주뱅)
 """)
 
 # 단순한 보여 주기
@@ -260,12 +260,12 @@ print("""
 
 3. ODE 푸는개:
    확률 흐름 상미분 방정식을 쓴다
-   Adaptive step size (RK45, DPM-Solver)
+   걸음 크기를 맞추어 간다(RK45, DPM-Solver)
    더 빠르고 정해져 있다
 
 4. DDIM-STYLE:
-   Skip timesteps (non-Markovian)
-   Much faster (10-50 steps)
+   때 걸음을 건너뛴다(마르코프가 아니다)
+   훨씬 빠르다(걸음 10~50개)
    품질의 맞바꿈
 
 SDE 갈래 고르기:

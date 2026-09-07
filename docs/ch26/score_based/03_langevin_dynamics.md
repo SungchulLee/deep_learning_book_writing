@@ -23,11 +23,11 @@
 
 수학 바탕:
 -----------------------
-Langevin Dynamics (Langevin 1908, extended by many):
+랑주뱅 움직임(랑주뱅 1908, 이후 여러 사람이 넓힘):
 
 dx_t = ∇_x log p(x_t) dt + √(2)dW_t
 
-Discrete-time version (Langevin MCMC):
+띄엄띄엄한 때의 꼴(랑주뱅 MCMC):
 
 x_{t+1} = x_t + ε * ∇_x log p(x_t) + √(2ε) * z_t
 
@@ -36,11 +36,11 @@ where z_t ~ N(0, I)
 고갱이 눈썰미:
 - 떠돎 항: ε * ∇_x log p(x_t)이 확률 높은 쪽으로 옮긴다
 - 퍼짐 항: √(2ε) * z_t이 살펴보기 잡음을 더한다
-- Balances exploitation (gradient) with exploration (noise)
+- 캐내기(기울기)와 살펴보기(잡음)의 균형을 잡는다
 - 목표 분포 p(x)으로 모인다!
 
 점수 맞추기와의 이음:
-Since s(x) = ∇_x log p(x), we can sample using learned scores!
+s(x) = ∇_x log p(x)이므로 배운 점수로 표본을 뽑을 수 있다!
 
 x_{t+1} = x_t + ε * s_θ(x_t) + √(2ε) * z_t
 
@@ -73,14 +73,14 @@ print("SECTION 1: Evolution from Metropolis-Hastings to Langevin")
 print("=" * 80)
 
 print("""
-RECALL: METROPOLIS-HASTINGS (from Bayesian Inference)
+떠올리기: 메트로폴리스-헤이스팅스(베이즈 미룸에서)
 ----------------------------------------------------
 1. Propose: x' ~ q(x'|x_t)  (e.g., x' = x_t + N(0, σ²))
-2. Accept with probability: α = min(1, p(x')/p(x_t))
+2. 확률 α = min(1, p(x')/p(x_t))로 받아들인다
 3. If accepted: x_{t+1} = x', else x_{t+1} = x_t
 
 문제:
-- Acceptance rate can be low (many rejected proposals)
+- 받아들임 비율이 낮을 수 있다(물리치는 제안이 많다)
 - 고르게 맞추기까지 담아 p(x)을 셈해야 한다
 - 아무 걸음 제안은 효율이 나쁘다
 
@@ -95,8 +95,8 @@ x' = x_t + N(0, σ²)
 x' = x_t + ε * ∇log p(x_t) + N(0, 2ε)
 
 이점:
-- Proposals move toward high probability (gradient drift)
-- Still explores (Gaussian noise)
+- 제안이 확률이 높은 쪽으로 움직인다(기울기 표류)
+- 그러면서도 살펴본다(가우스 잡음)
 - ε→0의 끝에서는 제안이 늘 받아들여진다!
 - 온전한 확률이 아니라 점수만 필요하다!
 
@@ -139,7 +139,7 @@ def langevin_mcmc_1d(target_logpdf, score_fn, n_samples=5000, epsilon=0.01):
 
 # 목표: 정규 분포 섞기
 def target_logpdf(x):
-    """Log PDF of mixture: 0.3*N(-2,0.5²) + 0.7*N(2,0.5²)"""
+    """섞임 분포의 로그 확률밀도: 0.3*N(-2,0.5²) + 0.7*N(2,0.5²)"""
     from scipy.stats import norm
     p1 = 0.3 * norm.pdf(x, -2, 0.5)
     p2 = 0.7 * norm.pdf(x, 2, 0.5)
@@ -226,7 +226,7 @@ print("=" * 80)
 print("""
 이어진 때의 랑주뱅 움직임:
 ---------------------------------
-Stochastic Differential Equation (SDE):
+확률 미분 방정식(SDE):
 
 dx_t = ∇_x log p(x_t) dt + √2 dW_t
 
@@ -235,11 +235,11 @@ dx_t = ∇_x log p(x_t) dt + √2 dW_t
 느낌으로 보면:
 - 정해진 떠돎: ∇log p(x)이 확률 높은 쪽으로 끈다
 - 확률 퍼짐: √2 dW_t이 공간을 살핀다
-- Balance ensures convergence to p(x)
+- 균형이 p(x)로 모여듦을 보장한다
 
 포커-플랑크 방정식:
 ----------------------
-The distribution p_t(x) of x_t evolves as:
+x_t의 분포 p_t(x)는 다음과 같이 바뀐다.
 
 ∂p_t/∂t = -∇·(p_t ∇log p) + Δp_t
         = ∇·(p_t ∇log(p/p_t))
@@ -257,16 +257,16 @@ x_{t+1} = x_t + ε ∇_x log p(x_t) + √(2ε) z_t
 CONVERGENCE:
 - ε→0이면 띄엄띄엄한 과정 → 이어진 랑주뱅 확률 미분 방정식
 - ε이 넉넉히 작으면 목표 분포로 모인다
-- Convergence rate depends on properties of p(x)
+- 모여드는 빠르기는 p(x)의 성질에 달렸다
 
 실제로 살필 점:
-- Step size ε: Too large = instability, too small = slow convergence
-- Number of steps: More steps = better samples, but slower
-- Initialization: Can start from any distribution (e.g., N(0,I))
+- 걸음 크기 ε: 너무 크면 흔들리고 너무 작으면 느리게 모여든다
+- 걸음 수: 많을수록 표본이 좋아지지만 느려진다
+- 첫자리: 어떤 분포에서 비롯해도 된다(보기: N(0,I))
 
 점수 맞추기와의 이음:
 ----------------------------
-Since we learned s_θ(x) ≈ ∇log p(x) from data,
+자료에서 s_θ(x) ≈ ∇log p(x)를 배웠으므로,
 다음으로 표본을 뽑을 수 있다.
 
 x_{t+1} = x_t + ε s_θ(x_t) + √(2ε) z_t
@@ -350,11 +350,11 @@ def langevin_sampling(score_model, n_samples=500, n_steps=1000, epsilon=0.01,
         n_samples: 만들 표본의 개수
         n_steps: 랑주뱅 걸음 수
         epsilon: 걸음 크기
-        init_x: Initial samples (if None, use N(0, I))
+        init_x: 첫 표본(None이면 N(0, I)을 쓴다)
     
     반환값:
-        samples: Generated samples [n_samples, dim]
-        trajectory: Full sampling trajectory [n_steps, n_samples, dim]
+        samples: 만들어 낸 표본 [n_samples, dim]
+        trajectory: 뽑기의 온 자취 [n_steps, n_samples, dim]
     """
     if init_x is None:
         x = torch.randn(n_samples, 2) * 3  # 더 넓은 분포에서 첫자리매김
@@ -452,16 +452,16 @@ print("SECTION 4: Connection to Diffusion Models")
 print("=" * 80)
 
 print("""
-DIFFUSION MODELS = MULTI-SCALE LANGEVIN DYNAMICS
+퍼짐 모델은 여러 자의 랑주뱅 움직임이다
 -----------------------------------------------
 
 핵심 통찰: 여러 잡음 수준에서 랑주뱅 뽑기를 쓴다!
 
-FORWARD PROCESS (Diffusion):
+앞으로 가는 흐름(퍼짐):
 x_0 → x_1 → x_2 → ... → x_T
-Add noise gradually until x_T ~ N(0, I)
+x_T ~ N(0, I)이 될 때까지 잡음을 차츰 더한다
 
-REVERSE PROCESS (Generation):
+거꾸로 가는 흐름(만들어 내기):
 x_T ← x_{T-1} ← ... ← x_1 ← x_0
 배운 점수로 차츰 잡음을 없앤다!
 
@@ -481,12 +481,12 @@ x_{t-1} = x_t + ε * s_θ(x_t, t) + √(2ε) * z_t
 1. Learn score s_θ(x, σ_i)
 2. 랑주뱅을 돌린다: x ← x + ε * s_θ(x, σ_i) + √(2ε) * z
 
-Start with high noise (easy to sample, imprecise)
-Gradually reduce noise (harder to sample, more precise)
+잡음이 큰 데서 비롯한다(뽑기 쉬우나 성기다)
+잡음을 차츰 줄인다(뽑기 어려우나 더 촘촘하다)
 
 이것이 다음의 밑바탕이다.
-- Score-Based Generative Models (Song & Ermon, 2019)
-- Denoising Diffusion Probabilistic Models (Ho et al., 2020)
+- 점수 바탕 만들어 내는 모델(Song & Ermon, 2019)
+- 잡음 지우기 퍼짐 확률 모델(Ho 외, 2020)
 - 요즘의 모든 퍼짐 모델이다!
 
 여태 배운 것:
@@ -508,7 +508,7 @@ print("=" * 80)
 print("""
 배운 것:
 ---------------
-1. Langevin dynamics = gradient-based MCMC sampling
+1. 랑주뱅 움직임은 기울기 바탕 MCMC 뽑기다
 2. 점수 함수로 뽑기를 이끈다
 3. 아무 걸음 메트로폴리스-헤이스팅스보다 효율이 좋다
 4. 점수 맞추기로 배운 점수와 함께 통한다
@@ -525,7 +525,7 @@ print("""
 3. 점수 바탕 뽑기:
    x_{t+1} = x_t + ε * s_θ(x_t) + √(2ε) * z_t
 
-4. Annealed Langevin (preview):
+4. 달군 랑주뱅(미리 보기):
    잡음 층 σ_1 > ... > σ_L에서 점수를 쓴다
 
 만들어진 파일:
@@ -544,13 +544,13 @@ print("""
 -------------------------------
 For 1D Gaussian N(0,1):
 a) 걸음 크기 ε을 달리해 랑주뱅을 돌린다
-b) Measure convergence rate (KL divergence to target)
+b) 모여드는 빠르기를 재어라(과녁까지의 KL 갈림)
 c) ε에 따른 모임을 그린다
 d) 가장 좋은 걸음 크기를 찾는다
 
 익힘 2: 봉우리 여럿인 분포
 -----------------------------------
-Create 2D mixture with 4 Gaussians (corners of square):
+가우스 4개(정사각형의 꼭짓점)로 2차원 섞임 분포를 만들어라.
 a) 잡음 없애는 점수 맞추기로 점수 신경망을 익힌다
 b) 랑주뱅 뽑기를 돌린다
 c) 모든 봉우리를 들르는가?
@@ -558,15 +558,15 @@ d) 여러 첫자리매김과 걸음 크기를 시험한다
 
 익힘 3: 메트로폴리스로 고친 랑주뱅
 ---------------------------------------
-Implement MALA (adds Metropolis acceptance):
-a) Propose via Langevin: x' = x + ε*∇log p(x) + √(2ε)*z
+MALA를 짜라(메트로폴리스 받아들임을 더한다).
+a) 랑주뱅으로 제안한다: x' = x + ε*∇log p(x) + √(2ε)*z
 b) 메트로폴리스-헤이스팅스 확률로 받아들인다
 c) 고치지 않은 랑주뱅과 견준다
 d) 메트로폴리스로 고친 랑주뱅은 언제 도움이 되는가?
 
 익힘 4: 점수의 어긋남
 -----------------------
-If score network has errors s_θ(x) ≠ ∇log p(x):
+점수 그물에 어긋남이 있어 s_θ(x) ≠ ∇log p(x)이면:
 a) 이것이 표본에 어떤 영향을 주는가?
 b) 일부러 점수를 치우치게 하여 짠다
 c) 분포의 어긋남을 잰다
@@ -575,8 +575,8 @@ d) 퍼짐 모델에 어떤 뜻이 있는가?
 익힘 5: 식힘 차례표
 -----------------------------
 달군 랑주뱅을 짜라.
-a) Define noise schedule σ_1 > σ_2 > ... > σ_L
-b) Train scores for each level (see Module 02)
+a) 잡음 짜임 σ_1 > σ_2 > ... > σ_L을 뜻매김하여라
+b) 층마다 점수를 익혀라(2단원을 보라)
 c) 큰 잡음에서 시작해 뽑는다
 d) 수준 하나의 랑주뱅과 견준다
 
@@ -595,9 +595,9 @@ print("NEXT: Multi-Scale Score Modeling")
 print("=" * 80)
 print("""
 이제 벽돌이 모두 갖추어졌다.
-✓ Score functions (Module 01)
-✓ Score matching to learn them (Module 02)
-✓ Langevin dynamics to sample (Module 03)
+✓ 점수 함수(1단원)
+✓ 그것을 배우는 점수 맞추기(2단원)
+✓ 표본을 뽑는 랑주뱅 움직임(3단원)
 
 다음: 실제 자료(그림 등)에서 이것이 통하게 하려면?
 

@@ -151,7 +151,7 @@ class DDPMSampler:
         ----------
         model : nn.Module
             익힌 잡음 헤아리기 신경망 ε_θ(x_t, t) 또는
-            ε_θ(x_t, t, c) for conditional models.
+            조건 있는 모델의 ε_θ(x_t, t, c).
         n_timesteps : int
             퍼짐 걸음 수 T.
         beta_start, beta_end : float
@@ -159,9 +159,9 @@ class DDPMSampler:
         beta_schedule : str
             짜임 갈래: 'linear' 또는 'cosine'.
         variance_type : str
-            'fixed_lower' (β̃_t), 'fixed_upper' (β_t), or 'learned'.
+            'fixed_lower'(β̃_t), 'fixed_upper'(β_t), 'learned' 가운데 하나.
         clip_denoised : bool
-            Whether to clip x̂_0 predictions to [-1, 1].
+            x̂_0 예측을 [-1, 1]로 자를지 여부.
         device : torch.device
             셈할 기기.
         """
@@ -260,7 +260,7 @@ class DDPMSampler:
         condition: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """
-        Single reverse step: sample x_{t-1} ~ p_θ(x_{t-1} | x_t).
+        거꾸로 한 걸음: x_{t-1} ~ p_θ(x_{t-1} | x_t)에서 표본을 뽑는다.
 
         매개변수
         ----------
@@ -273,7 +273,7 @@ class DDPMSampler:
 
         반환값
         -------
-        x_{t-1} : Tensor, same shape as x_t.
+        x_{t-1} : x_t와 꼴이 같은 텐서.
         """
         batch_size = x_t.shape[0]
         t_tensor = torch.full((batch_size,), t, device=self.device, dtype=torch.long)
@@ -362,7 +362,7 @@ class DDPMSampler:
         """
         가름개 이끌기로 뽑는다(Dhariwal와 Nichol, 2021).
 
-        Modifies the score: ∇ log p(x_t | y) = ∇ log p(x_t) + s · ∇ log p(y | x_t)
+        점수를 고친다: ∇ log p(x_t | y) = ∇ log p(x_t) + s · ∇ log p(y | x_t)
 
         매개변수
         ----------

@@ -134,8 +134,8 @@ def dsm_loss(score_net: nn.Module, x: torch.Tensor,
     """잡음 수준 하나의 잡음 없애는 점수 맞추기 손실.
 
     인수:
-        score_net: Network s(x) mapping [batch, dim] → [batch, dim].
-        x: Clean data [batch, dim].
+        score_net: [batch, dim]을 [batch, dim]으로 보내는 그물 s(x).
+        x: 깨끗한 자료 [batch, dim].
         sigma: 잡음의 표준 편차.
 
     반환값:
@@ -161,7 +161,7 @@ def dsm_loss_energy(energy_net: nn.Module, x: torch.Tensor,
 
     인수:
         energy_net: 낱값 에너지 신경망 E(x).
-        x: Clean data [batch, dim].
+        x: 깨끗한 자료 [batch, dim].
         sigma: 잡음의 표준 편차.
 
     반환값:
@@ -190,7 +190,7 @@ def multi_scale_dsm_loss(
 
     인수:
         score_net: 잡음 조건을 갖춘 신경망 s(x, sigma).
-        x: Clean data [batch, dim].
+        x: 깨끗한 자료 [batch, dim].
         sigmas: 잡음 수준.
         weights: 수준마다 무게(기본: σ²으로 고르게 맞춘 것).
 
@@ -257,7 +257,7 @@ class ScoreNet(nn.Module):
         )
 
     def forward(self, x: torch.Tensor, sigma: torch.Tensor) -> torch.Tensor:
-        """Args: x [batch, dim], sigma [batch, 1]."""
+        """인자: x [batch, dim], sigma [batch, 1]."""
         inp = torch.cat([x, torch.log(sigma) / 4.0], dim=-1)
         return self.net(inp)
 ```

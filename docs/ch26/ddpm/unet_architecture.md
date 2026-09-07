@@ -49,11 +49,11 @@ class ResidualBlock(nn.Module):
     def forward(self, x: torch.Tensor, time_emb: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: Input tensor, shape (batch, in_channels, height, width)
-            time_emb: Time embedding, shape (batch, time_emb_dim)
+            x: 들임 텐서, 꼴 (batch, in_channels, height, width)
+            time_emb: 때 묻힘, 꼴 (batch, time_emb_dim)
         
         반환값:
-            Output tensor, shape (batch, out_channels, height, width)
+            내놓음 텐서, 꼴 (batch, out_channels, height, width)
         """
         residual = self.residual_conv(x)
         
@@ -93,7 +93,7 @@ class AttentionBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: Input tensor, shape (batch, channels, height, width)
+            x: 들임 텐서, 꼴 (batch, channels, height, width)
         
         반환값:
             들임과 같은 꼴의 내놓기 텐서
@@ -250,11 +250,11 @@ class UNet(nn.Module):
         U-Net을 지나는 앞먹임.
         
         인수:
-            x: Noisy input, shape (batch, in_channels, height, width)
-            time: Timesteps, shape (batch,)
+            x: 잡음 섞인 들임, 꼴 (batch, in_channels, height, width)
+            time: 때 걸음, 꼴 (batch,)
         
         반환값:
-            Predicted noise, shape (batch, out_channels, height, width)
+            예측한 잡음, 꼴 (batch, out_channels, height, width)
         """
         # 때 박아 넣기
         time_emb = self.time_embedding(time)

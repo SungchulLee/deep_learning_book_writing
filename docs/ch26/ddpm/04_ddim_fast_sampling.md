@@ -289,8 +289,8 @@ class DDIM(nn.Module):
         DDIM 뽑기: 더 빨리 만들려 때 걸음의 일부만 쓴다.
         
         eta: 확률성을 다스린다
-            - eta=0: deterministic (same seed → same image)
-            - eta=1: equivalent to DDPM (stochastic)
+            - eta=0: 정해진 대로(같은 씨앗 → 같은 그림)
+            - eta=1: DDPM과 같다(마구잡이)
         """
         self.model.eval()
         

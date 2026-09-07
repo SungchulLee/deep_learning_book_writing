@@ -19,7 +19,7 @@ FILE: 10_advanced_applications.py
 
 수학 바탕:
     조건 있는 만들어 내기:
-    Learn s_θ(x, y) = ∇log p(x|y) where y is a condition (e.g., class label).
+    y가 조건(보기: 갈래 이름표)일 때 s_θ(x, y) = ∇log p(x|y)을 배운다.
     
     가름개 이끎:
     s(x|y) = s(x) + ∇log p(y|x)
@@ -62,11 +62,11 @@ class ConditionalScoreNetwork(nn.Module):
     
     def forward(self, x, y):
         """
-        Compute conditional score s(x|y).
+        조건 있는 점수 s(x|y)을 셈한다.
         
         인수:
-            x: Data points, shape (N, D)
-            y: Class labels, shape (N,)
+            x: 자료 점, 꼴 (N, D)
+            y: 갈래 이름표, 꼴 (N,)
         """
         y_emb = self.class_embed(y)
         inp = torch.cat([x, y_emb], dim=-1)
@@ -78,13 +78,13 @@ def inpaint_with_scores(model, x_obs, mask, n_steps=1000, step_size=0.01):
     점수 바탕 방법을 쓴 그림 안 그리기.
     
     전략:
-    1. Run Langevin dynamics to sample from p(x)
+    1. p(x)에서 표본을 뽑으려고 랑주뱅 움직임을 돌린다
     2. 걸음마다 본 화소에 맞도록 쏜다
     
     인수:
         model: 점수 모델
-        x_obs: Observed pixels, shape (H, W, C)
-        mask: Binary mask, 1=observed, 0=unknown, shape (H, W, C)
+        x_obs: 본 화소, 꼴 (H, W, C)
+        mask: 두 값 덮개, 1이면 본 것, 0이면 모르는 것, 꼴 (H, W, C)
         n_steps: 뽑기 걸음 수
         step_size: 랑주뱅 걸음 크기
     

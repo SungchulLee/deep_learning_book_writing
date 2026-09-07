@@ -43,7 +43,7 @@ print("""
 
 그림에서는:
 - Input: [B, C, H, W]
-- Output: [B, C, H, W] (score for each pixel/channel)
+- 내놓음: [B, C, H, W](화소와 통로마다의 점수)
 
 U-Net 얼개:
 1. 부호기: 줄이기 + 특징 뽑기
@@ -150,7 +150,7 @@ print("""
 익힘 꾀:
 -----------------
 1. 그림 x ~ p_data을 뽑는다
-2. Sample noise level t ~ Uniform[0, T]
+2. 잡음 층 t ~ Uniform[0, T]을 뽑는다
 3. Add noise: x_t = √ᾱ_t x + √(1-ᾱ_t) ε
 4. Predict noise: ε_θ(x_t, t)
 5. Loss: ||ε - ε_θ(x_t, t)||²
@@ -243,21 +243,21 @@ print("""
 - 묶음 크기 맞추기
 
 뽑기 빠르기:
-- Standard: 1000 steps (~10s per image)
-- DDIM: 50 steps (~0.5s per image)
-- DPM-Solver: 20 steps (~0.2s per image)
-- Consistency models: 1 step! (future topic)
+- 표준: 걸음 1000개(그림 한 장에 10초쯤)
+- DDIM: 걸음 50개(그림 한 장에 0.5초쯤)
+- DPM-Solver: 걸음 20개(그림 한 장에 0.2초쯤)
+- 한결같음 모델: 걸음 한 개!(앞으로 다룰 이야기)
 
 품질 자:
-- FID (Fréchet Inception Distance)
+- FID(프레셰 인셉션 거리)
 - 인셉션 점수
 - 정밀도와 재현율
 - 사람이 따지기
 
 흔한 결과:
-- MNIST: FID ~5-10 (excellent)
-- CIFAR-10: FID ~3-10 (SOTA)
-- ImageNet 256x256: FID ~2-5 (SOTA)
+- MNIST: FID 5~10쯤(아주 좋음)
+- CIFAR-10: FID 3~10쯤(최고 수준)
+- ImageNet 256x256: FID 2~5쯤(최고 수준)
 
 여태 배운 것과의 이음:
 --------------------------------

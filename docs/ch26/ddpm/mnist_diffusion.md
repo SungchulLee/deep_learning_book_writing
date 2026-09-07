@@ -49,7 +49,7 @@ class MNISTDiffusion:
             timesteps: 퍼짐 때 걸음 수
             batch_size: 익히기 묶음 크기
             learning_rate: 최적화기의 학습률
-            device: Device to train on ('cuda' or 'cpu')
+            device: 익힐 장치('cuda' 또는 'cpu')
         """
         self.timesteps = timesteps
         self.batch_size = batch_size

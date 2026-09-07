@@ -158,7 +158,7 @@ class ResBlock(nn.Module):
 class LatentUNet(nn.Module):
     """
     숨은 공간을 위한 단순한 U-Net.
-    Input: compressed latent (e.g., 4 x 8 x 8)
+    들임: 눌러 담은 숨은 값(보기: 4 x 8 x 8)
     내놓기: 숨은 공간에서 헤아린 잡음
     """
     def __init__(self, latent_dim=LATENT_DIM, base_ch=64, time_dim=128):

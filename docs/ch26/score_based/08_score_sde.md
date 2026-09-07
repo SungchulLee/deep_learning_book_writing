@@ -68,7 +68,7 @@ class ScoreSDE:
     
     def marginal_prob(self, x0, t):
         """
-        Compute mean and std of p_t(x|x₀).
+        p_t(x|x₀)의 평균과 표준편차를 셈한다.
         
         반환값:
             mean: E[x_t | x₀]

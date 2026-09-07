@@ -93,11 +93,11 @@ class NLLEvaluator:
         로그 확률에서 음의 로그 가능도를 셈한다.
         
         인수:
-            log_probs: Log probabilities for each sample [N]
-                       These come from model.log_prob(x)
+            log_probs: 표본마다의 로그 확률 [N]
+                       이 값은 model.log_prob(x)에서 나온다
         
         반환값:
-            NLL value (scalar, lower is better)
+            음의 로그 가능도 값(스칼라이며 작을수록 좋다)
         """
         # 음의 로그 가능도는 평균 로그 확률의 음수이다
         nll = -torch.mean(log_probs)
@@ -112,11 +112,11 @@ class NLLEvaluator:
         흐릿함을 어림하려 평균의 표준 오차를 쓴다.
         
         인수:
-            log_probs: Log probabilities [N]
-            confidence: Confidence level (default 95%)
+            log_probs: 로그 확률 [N]
+            confidence: 믿음 수준(기본값 95%)
         
         반환값:
-            Tuple of (NLL, lower_bound, upper_bound)
+            (음의 로그 가능도, 아래 끝, 위 끝) 튜플
         """
         from scipy import stats
         
@@ -146,8 +146,8 @@ class NLLEvaluator:
         음의 로그 가능도로 만들어 내는 모델을 따진다.
         
         인수:
-            model: Generative model with .log_prob() method
-            test_data: Test data [N, ...]
+            .log_prob() 방법을 지닌 만들어 내는 모델
+            test_data: 시험 자료 [N, ...]
             batch_size: 따질 묶음 크기
         
         반환값:
@@ -293,7 +293,7 @@ class BPDCalculator:
     
     왜 차원마다 비트인가?
     1. 자료 차원에 맞게 고르게 맞춘다
-    2. Information-theoretic interpretation (bits per pixel)
+    2. 정보 이론의 풀이(화소마다의 비트 수)
     3. 자료 묶음에 걸쳐 공정한 견줌을 가능하게 한다
     """
     
@@ -303,7 +303,7 @@ class BPDCalculator:
         음의 로그 가능도를 차원마다 비트로 바꾼다.
         
         인수:
-            nll: Negative log-likelihood (in nats)
+            nll: 음의 로그 가능도(내트 단위)
             dimensions: 온 자료 차원
                        (e.g., 28*28=784 for MNIST, 32*32*3=3072 for CIFAR)
         
@@ -332,7 +332,7 @@ class BPDCalculator:
         로그 확률에서 곧바로 차원마다 비트를 셈한다.
         
         인수:
-            log_probs: Log probabilities [N]
+            log_probs: 로그 확률 [N]
             dimensions: 자료의 차원
         
         반환값:
@@ -349,8 +349,8 @@ class BPDCalculator:
         차원마다 비트로 그림 만들어 내는 모델을 따진다.
         
         인수:
-            model: Generative model with .log_prob() method
-            images: Test images [N, C, H, W]
+            .log_prob() 방법을 지닌 만들어 내는 모델
+            images: 시험 그림 [N, C, H, W]
             batch_size: 묶음 크기
         
         반환값:
@@ -489,7 +489,7 @@ class PerplexityCalculator:
                = exp(-1/T Σ log p(w_t | w_{<t}))
     
     직관: 자리마다 실제로 쓰이는 낱말 수.
-    Lower perplexity = More confident predictions.
+    헷갈림도가 낮을수록 예측이 더 자신 있다.
     """
     
     @staticmethod
@@ -499,7 +499,7 @@ class PerplexityCalculator:
         토큰 로그 확률에서 헷갈림도를 셈한다.
         
         인수:
-            log_probs: Log probabilities [batch, seq_len] or [total_tokens]
+            log_probs: 로그 확률 [batch, seq_len] 또는 [total_tokens]
             lengths: 길이가 다른 묶음을 위한 차례 길이(있으면)
         
         반환값:
@@ -532,8 +532,8 @@ class PerplexityCalculator:
         
         인수:
             model: forward()이 로짓을 돌려주는 말 모델
-            input_ids: Token IDs [N, seq_len]
-            attention_mask: Attention mask [N, seq_len]
+            input_ids: 토큰 번호 [N, seq_len]
+            attention_mask: 눈여겨보기 덮개 [N, seq_len]
             batch_size: 묶음 크기
         
         반환값:

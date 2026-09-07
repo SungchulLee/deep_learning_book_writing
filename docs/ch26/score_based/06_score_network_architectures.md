@@ -64,7 +64,7 @@ class TimeConditionalScoreNetwork(nn.Module):
         )
     
     def get_timestep_embedding(self, timesteps, max_period=10000):
-        """Sinusoidal time embedding (from Transformer)"""
+        """사인 꼴 때 묻힘(변환기에서 가져옴)"""
         half_dim = self.time_embed_dim // 2
         freqs = torch.exp(
             -np.log(max_period) * torch.arange(half_dim, dtype=torch.float32) / half_dim
@@ -76,8 +76,8 @@ class TimeConditionalScoreNetwork(nn.Module):
     def forward(self, x, t):
         """
         인수:
-            x: Data [batch_size, data_dim]
-            t: Time/noise level [batch_size]
+            x: 자료 [batch_size, data_dim]
+            t: 때 또는 잡음 층 [batch_size]
         
         반환값:
             score: ∇_x log p_t(x) [batch_size, data_dim]
@@ -133,7 +133,7 @@ print("""
 
 1. 때 조건 주기:
    - 퍼짐 모델에 꼭 필요하다
-   - Sinusoidal embedding (Transformer-style)
+   - 사인 꼴 묻힘(변환기 방식)
    - 또는 배울 수 있는 박아 넣기
 
 2. 2차원과 표 자료에서:
@@ -141,7 +141,7 @@ print("""
    - SiLU와 GELU 깨움
    - 남은 이음이 도움이 된다
 
-3. FOR IMAGES (covered in Module 09):
+3. 그림에서는(9단원에서 다룬다):
    - U-Net 얼개
    - 눈길 얼개
    - 무리 고르게 맞추기
@@ -151,7 +151,7 @@ print("""
    - 필요하면 인과 가림막
 
 설계 원칙:
-✓ Score is a VECTOR FIELD (same dim as input)
+✓ 점수는 벡터장이다(들임과 차원이 같다)
 ✓ 여러 잡음과 때 수준을 다루어야 한다
 ✓ 매끄럽고 얌전해야 한다
 ✓ 담이는 자료의 복잡함에 따라 커진다

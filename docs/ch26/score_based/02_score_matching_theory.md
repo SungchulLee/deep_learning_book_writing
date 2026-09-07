@@ -11,7 +11,7 @@
 
 어려움: 처음~중간
 시간: 3~4시간
-PREREQUISITES: Module 01 (Score Functions Basics)
+미리 알아 둘 것: 1단원(점수 함수 기초)
 
 학습 목표:
 -------------------
@@ -24,12 +24,12 @@ PREREQUISITES: Module 01 (Score Functions Basics)
 수학 바탕:
 -----------------------
 문제:
-Given dataset {x_i}_{i=1}^N ~ p_data(x), learn s(x) = ∇_x log p_data(x)
+자료 묶음 {x_i}_{i=1}^N ~ p_data(x)가 주어질 때 s(x) = ∇_x log p_data(x)를 배운다
 
-Challenge: We don't know p_data(x)! Only have samples!
+어려움: p_data(x)를 모른다! 표본만 있다!
 
-NAIVE APPROACH (doesn't work):
-Fit p_θ(x) to data, then compute s_θ(x) = ∇_x log p_θ(x)
+어수룩한 길(되지 않는다):
+p_θ(x)를 자료에 맞춘 뒤 s_θ(x) = ∇_x log p_θ(x)를 셈한다
 문제: p_θ(x)을 고르게 맞추어야 하는데 이는 다룰 수 없다!
 
 점수 맞추기 풀이:
@@ -66,31 +66,31 @@ print("=" * 80)
 print("""
 SCENARIO:
 --------
-Given: Dataset {x₁, x₂, ..., x_N} sampled from unknown p_data(x)
-Goal: Learn score function s(x) = ∇_x log p_data(x)
+주어진 것: 알 수 없는 p_data(x)에서 뽑은 자료 묶음 {x₁, x₂, ..., x_N}
+목표: 점수 함수 s(x) = ∇_x log p_data(x)를 배운다
 
 왜 점수를 곧바로 셈할 수 없는가:
 -----------------------------------
-1. Don't have formula for p_data(x)
+1. p_data(x)의 식이 없다
 2. 모델 p_θ(x)을 자료에 맞출 수 있다
-3. But normalizing p_θ(x) requires computing:
+3. 그런데 p_θ(x)를 고르게 하려면 다음을 셈해야 한다.
    Z_θ = ∫ p̃_θ(x) dx  (intractable!)
    
-4. So can't compute: log p_θ(x) = log p̃_θ(x) - log Z_θ
-5. Therefore can't compute: ∇_x log p_θ(x)
+4. 그래서 log p_θ(x) = log p̃_θ(x) - log Z_θ를 셈할 수 없다
+5. 따라서 ∇_x log p_θ(x)도 셈할 수 없다
 
 EXAMPLE:
 -------
-Say we parameterize: p̃_θ(x) = exp(E_θ(x))
+p̃_θ(x) = exp(E_θ(x))로 매긴다고 하자
 여기서 E_θ은 신경망(에너지 함수)이다.
 
 Then: p_θ(x) = exp(E_θ(x)) / Z_θ
-where: Z_θ = ∫ exp(E_θ(x)) dx  ← INTRACTABLE!
+여기서 Z_θ = ∫ exp(E_θ(x)) dx  ← 셈할 수 없다!
 
-But we want: s_θ(x) = ∇_x log p_θ(x) = ∇_x E_θ(x)
+그런데 우리가 바라는 것은 s_θ(x) = ∇_x log p_θ(x) = ∇_x E_θ(x)다
 
 반가운 소식: 점수는 Z_θ가 필요 없다!
-Bad news: Still can't train without knowing p_data(x)!
+안 좋은 소식: p_data(x)를 모르면 여전히 익힐 수 없다!
 
 풀이: 점수 맞추기!
 """)
@@ -112,18 +112,18 @@ D_Fisher(p||q) = (1/2) 𝔼_{x~p} ||∇_x log p(x) - ∇_x log q(x)||²
 Minimize w.r.t. θ:
 J_ESM(θ) = (1/2) 𝔼_{x~p_data} ||∇_x log p_data(x) - s_θ(x)||²
 
-Problem: Still need ∇_x log p_data(x) which we don't have!
+문제: 우리가 갖고 있지 않은 ∇_x log p_data(x)가 여전히 필요하다!
 
-HYVÄRINEN'S TRICK (2005):
+휘바리넨의 재주(2005):
 ------------------------
-Using integration by parts (Stein's identity):
+부분 적분(스타인 항등식)을 쓰면:
 
 J_ESM(θ) = 𝔼_{x~p_data} [ tr(∇_x s_θ(x)) + (1/2)||s_θ(x)||² ] + const
 
 고갱이 눈썰미:
 - 목표에서 ∇_x log p_data(x)을 없앴다!
 - 필요한 것은 p_data의 표본과 s_θ의 미분뿐이다
-- tr(∇_x s_θ(x)) = sum of diagonal elements of Jacobian
+- tr(∇_x s_θ(x)) = 야코비 행렬의 대각 원소의 합
 
 DRAWBACK:
 - tr(∇_x s_θ(x))을 셈하려면 헤세를 셈해야 한다
@@ -219,13 +219,13 @@ ESM의 문제:
 tr(∇_x s_θ(x))을 셈하는 것은 비싸다(헤세가 필요하다).
 차원이 높으면(그림 등) 키울 수 없다.
 
-DENOISING SCORE MATCHING (Vincent 2011):
+잡음 지우기 점수 맞추기(뱅상 2011):
 ---------------------------------------
 핵심 통찰: 대신 잡음 없애는 법을 배운다!
 
 PROCEDURE:
-1. Take clean data x ~ p_data(x)
-2. Add Gaussian noise: x̃ = x + σ * ε, where ε ~ N(0, I)
+1. 깨끗한 자료 x ~ p_data(x)를 가져온다
+2. 가우스 잡음을 더한다: x̃ = x + σ * ε, 여기서 ε ~ N(0, I)
 3. 잡음을 헤아리는 법을 배운다: s_θ(x̃) ≈ -(x̃ - x)/σ²
 
 OBJECTIVE:
@@ -233,25 +233,25 @@ J_DSM(θ) = 𝔼_{x~p_data} 𝔼_{ε~N(0,I)} ||s_θ(x + σε) + ε/σ||²
 
 왜 이것이 되는가:
 --------------
-The score of the noisy distribution q_σ(x̃|x) = N(x̃; x, σ²I) is:
+잡음 분포 q_σ(x̃|x) = N(x̃; x, σ²I)의 점수는 다음과 같다.
 
 ∇_{x̃} log q_σ(x̃|x) = -(x̃ - x)/σ²
 
-And the marginal noisy distribution q_σ(x̃) = ∫ q_σ(x̃|x)p_data(x)dx
+그리고 가장자리 잡음 분포는 q_σ(x̃) = ∫ q_σ(x̃|x)p_data(x)dx이다
 이것으로 어림할 수 있는 점수를 가진다!
 
 베이즈 미룸과의 이음:
 --------------------------------
 잡음 없애기가 곧 베이즈 사후 추론이다!
 
-Given noisy observation x̃ = x + noise,
-infer clean x via posterior: p(x|x̃)
+잡음 섞인 관측 x̃ = x + noise가 주어질 때,
+뒷분포 p(x|x̃)로 깨끗한 x를 미룬다
 
-The score ∇_x log p(x|x̃) tells us how to denoise!
+점수 ∇_x log p(x|x̃)가 잡음을 어떻게 지울지 알려 준다!
 
 퍼짐 모델이 하는 일이 바로 이것이다.
-- Forward: Add noise (known)
-- Reverse: Denoise using learned score (learned)
+- 앞으로: 잡음을 더한다(이미 안다)
+- 거꾸로: 배운 점수로 잡음을 지운다(배운다)
 
 DSM의 좋은 점:
 -----------------
@@ -373,14 +373,14 @@ print("SECTION 4: ESM vs DSM Comparison")
 print("=" * 80)
 
 comparison_table = """
-|  Aspect                | Explicit Score Matching (ESM)     | Denoising Score Matching (DSM)  |
+|  갈래                  | 드러난 점수 맞추기(ESM)           | 잡음 지우기 점수 맞추기(DSM)    |
 |-----------------------|-----------------------------------|----------------------------------|
 | Objective             | 𝔼[tr(∇s_θ) + 0.5||s_θ||²]        | 𝔼||s_θ(x̃) + ε/σ||²             |
-| Derivatives needed    | Second-order (Hessian)            | First-order only                 |
-| Computational cost    | O(d²) per sample                  | O(d) per sample                  |
-| Scalability           | Poor (high dimensions)            | Excellent                        |
+| 필요한 미분           | 이계(헤세)                        | 일계만                           |
+| 셈 비용               | 표본마다 O(d²)                    | 표본마다 O(d)                    |
+| 크기 늘리기           | 나쁨(높은 차원)                   | 아주 좋음                        |
 | 이음                  | 피셔 갈림                         | 베이즈 잡음 지우기               |
-| Practical use         | Rare (too expensive)              | Standard (all modern models)     |
+| 실제 쓰임             | 드묾(너무 비쌈)                   | 표준(요즘 모델 모두)             |
 | 잡음 매개변수         | 필요 없음                         | σ를 골라야 함                    |
 """
 
@@ -415,7 +415,7 @@ print("""
 1. 자료에서 곧바로 점수를 셈하는 것은 다룰 수 없다
 2. 드러난 점수 맞추기는 고르게 맞추기를 피하지만 헤세가 필요하다
 3. 잡음 없애는 점수 맞추기는 쓸모 있고 키울 수 있다
-4. DSM = learning to denoise = Bayesian inference!
+4. DSM은 잡음 지우기를 배우는 것이고 곧 베이즈 미룸이다!
 5. 잡음 없애는 점수 맞추기는 퍼짐 모델의 바탕이다
 
 고갱이 식:
@@ -456,10 +456,10 @@ c) 결과가 비슷한지 확인한다
 
 익힘 3: 잡음 없애는 점수 맞추기 이끌어 내기
 -------------------------
-Show that for q_σ(x̃|x) = N(x̃; x, σ²I):
+q_σ(x̃|x) = N(x̃; x, σ²I)에 대해 다음을 보여라.
 ∇_{x̃} log q_σ(x̃|x) = -(x̃ - x)/σ²
 
-Interpret: denoising = computing posterior score!
+풀이: 잡음 지우기는 뒷분포 점수를 셈하는 일이다!
 
 익힘 4: 잡음 수준 살피기
 -------------------------------
@@ -487,7 +487,7 @@ c) 둘 다 짜서 견준다
 a) σ 하나로 잡음 없애는 점수 맞추기를 익힌다
 b) 모든 봉우리를 담는가?
 c) 여러 σ 값을 시험한다
-d) Motivate multi-scale approach (next module!)
+d) 여러 자를 쓰는 길이 왜 필요한지 밝혀라(다음 단원!)
 """)
 
 print("\n" + "=" * 80)

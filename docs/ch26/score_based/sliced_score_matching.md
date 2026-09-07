@@ -160,9 +160,9 @@ def ssm_loss(
     
     인수:
         score_model: 점수 신경망 s_θ: R^D → R^D
-        samples: Data samples, shape (N, D)
+        samples: 자료 표본, 꼴 (N, D)
         n_projections: 아무 쏘기 횟수 M
-        projection_type: 'rademacher' (recommended) or 'gaussian'
+        projection_type: 'rademacher'(권함) 또는 'gaussian'
     
     반환값:
         낱값 손실

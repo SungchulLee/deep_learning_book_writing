@@ -104,7 +104,7 @@ def knapsack_fptas(W, weights, values, epsilon):
     """
     0/1 배낭의 FPTAS.
 
-    Returns a solution with value >= (1 - epsilon) * OPT.
+    값이 (1 - epsilon) * OPT 이상인 풀이를 돌려준다.
     O(n^3 / epsilon) 시간에 돈다.
     """
     n = len(weights)

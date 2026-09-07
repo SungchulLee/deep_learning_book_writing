@@ -174,7 +174,7 @@ class BitsPerDimension:
         음의 로그 가능도에서 차원마다 비트를 셈한다.
         
         인수:
-            nll: Negative log-likelihood (in nats)
+            nll: 음의 로그 가능도(내트 단위)
             dimensions: 자료의 온 차원 수
                        (e.g., 28*28=784 for MNIST, 32*32*3=3072 for CIFAR)
         

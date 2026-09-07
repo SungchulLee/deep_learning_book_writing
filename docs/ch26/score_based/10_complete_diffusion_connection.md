@@ -9,7 +9,7 @@
 단원 10: 퍼짐 모델과의 온전한 이음
 =================================================
 
-DIFFICULTY: Advanced (Synthesis)
+어려움: 앞섬(모아 엮기)
 시간: 2~3시간
 미리 알 것: 앞의 모든 단원
 
@@ -41,16 +41,16 @@ print("""
 
 개념의 온 여정을 짚어 보자.
 
-1. BAYESIAN INFERENCE (Module 01_Bayesian_Inference):
+1. 베이즈 미룸(01_Bayesian_Inference 단원):
    -----------------------------------------------------
    Problem: p(θ|D) = p(D|θ)p(θ) / p(D)
-   Challenge: Can't compute p(D) = ∫ p(D|θ)p(θ) dθ
+   어려움: p(D) = ∫ p(D|θ)p(θ) dθ을 셈할 수 없다
    
    필요한 풀이: 고르게 맞추지 않은 분포에서 뽑기!
 
-2. SCORE FUNCTIONS (Module 01):
+2. 점수 함수(1단원):
    -----------------------------
-   Key insight: s(x) = ∇_x log p(x)
+   고갱이 눈썰미: s(x) = ∇_x log p(x)
    
    성질:
    ✓ 확률 높은 쪽을 가리킨다
@@ -59,18 +59,18 @@ print("""
    
    그런데 자료만으로 어떻게 셈하는가?
 
-3. SCORE MATCHING (Module 02):
+3. 점수 맞추기(2단원):
    ----------------------------
    표본에서 s_θ(x) ≈ ∇_x log p_data(x)을 배운다
    
-   Key technique: Denoising Score Matching (DSM)
+   고갱이 재주: 잡음 지우기 점수 맞추기(DSM)
    - Add noise: x̃ = x + σε
    - 헤아리는 법을 배운다: s_θ(x̃) ≈ -ε/σ
    
    이음: 잡음 없애기가 곧 베이즈 추론이다!
-   p(x|x̃) posterior → score tells us how to denoise
+   뒷분포 p(x|x̃) → 점수가 잡음 지우는 법을 알려 준다
 
-4. LANGEVIN DYNAMICS (Module 03):
+4. 랑주뱅 움직임(3단원):
    -------------------------------
    배운 점수를 써서 표본을 뽑는다.
    x_{t+1} = x_t + ε s_θ(x_t) + √(2ε) z_t
@@ -78,14 +78,14 @@ print("""
    p_data(x)으로 모인다!
    모든 퍼짐 뽑기의 바탕
 
-5. MULTI-SCALE SCORES (Module 07):
+5. 여러 자의 점수(7단원):
    --------------------------------
    문제: σ 하나로는 어디서나 통하지 않는다
    풀이: 여러 잡음 수준의 s_θ(x, σ_i)을 배운다
    
    이것이 퍼짐에서 때 차원이 된다!
 
-6. CONTINUOUS FORMULATION (Module 08):
+6. 이어진 꼴(8단원):
    ------------------------------------
    SDE는 모든 것을 이어지게 만든다.
    - Forward: dx = f(x,t)dt + g(t)dw
@@ -93,7 +93,7 @@ print("""
    
    모든 변형을 아우르는 틀!
 
-7. IMAGE GENERATION (Module 09):
+7. 그림 만들어 내기(9단원):
    -----------------------------
    그림을 위한 U-Net 얼개
    Training = DSM at multiple times
@@ -101,7 +101,7 @@ print("""
    
    최고 수준의 만들어 내는 모델!
 
-8. DIFFUSION MODELS (This module):
+8. 퍼짐 모델(이 단원):
    --------------------------------
    모든 것이 하나로 묶인다!
 
@@ -110,7 +110,7 @@ print("""
 
 점수 바탕 관점              ↔  퍼짐 관점
 -----------------                ----------------
-Score function s(x,t)         ↔  Noise prediction ε_θ(x,t)
+점수 함수 s(x,t)         ↔  잡음 예측 ε_θ(x,t)
                                  Relation: s(x,t) = -ε/√(1-ᾱ_t)
 
 잡음 없애는 점수 맞추기      ↔  잡음 헤아리기 손실
@@ -160,7 +160,7 @@ class DDPM:
         
         점수 맞추기와의 이음:
         - 이것이 잡음 없애는 점수 맞추기의 "잡음 더하기"이다!
-        - Different t's = different noise levels σ
+        - t가 다르면 잡음 층 σ도 다르다
         """
         if noise is None:
             noise = torch.randn_like(x_0)
@@ -183,7 +183,7 @@ class DDPM:
         
         DSM과의 이음:
         - 이것이 바로 잡음 없애는 점수 맞추기이다!
-        - Different t = different σ in DSM
+        - DSM에서 t가 다르면 σ도 다르다
         - ε을 헤아리는 것은 점수를 헤아리는 것과 같다
         
         이끌어 내기:
@@ -274,15 +274,15 @@ print("""
 요즘의 변형과 넓힘:
 ==============================
 
-1. DDIM (Denoising Diffusion Implicit Models):
-   - Deterministic sampling (ODE)
+1. DDIM(잡음 지우기 퍼짐 감춤 모델):
+   - 정해진 대로 뽑기(ODE)
    - 때 걸음을 건너뛴다
-   - Fast generation (50 steps instead of 1000)
+   - 빠른 만들어 내기(1000걸음 대신 50걸음)
    - DDPM과 같은 익히기
 
 2. 나아진 DDPM:
    - 배운 흩어짐
-   - Better noise schedules (cosine)
+   - 더 나은 잡음 짜임(코사인)
    - 나아진 얼개
 
 3. 이끈 퍼짐:
@@ -290,8 +290,8 @@ print("""
    - 가름개 없는 이끌기: 조건 있는 것과 없는 것을 함께 익힌다
    - 최고 수준의 그림 품질
 
-4. LATENT DIFFUSION (Stable Diffusion):
-   - Run diffusion in latent space (VAE)
+4. 숨은 자리 퍼짐(스테이블 디퓨전):
+   - 숨은 자리에서 퍼짐을 돌린다(VAE)
    - 훨씬 빠르고 싸다
    - CLIP으로 글 조건 주기
 
@@ -316,7 +316,7 @@ print("""
 점수로 퍼짐을 이해하면 다음을 얻는다.
 
 ✓ 이론의 또렷함:
-  - Why it works (sampling theory)
+  - 왜 되는가(뽑기 이론)
   - 랑주뱅 마르코프 사슬 몬테카를로와의 이음
   - 베이즈 풀이
 
@@ -326,9 +326,9 @@ print("""
   - 섞은 방식
 
 ✓ 하나로 된 관점:
-  - Score matching = diffusion training
-  - Langevin = diffusion sampling
-  - Multi-scale = time dimension
+  - 점수 맞추기는 곧 퍼짐 익히기다
+  - 랑주뱅은 곧 퍼짐 뽑기다
+  - 여러 자는 곧 때 차원이다
 
 ✓ EXTENSIONS:
   - 점수 바탕은 정규가 아닌 잡음도 다룰 수 있다
@@ -338,19 +338,19 @@ print("""
 온 여정 지도:
 ====================
 
-Bayesian Inference (01_Bayesian_Inference)
-    ↓ (Need sampling without normalization)
-Score Functions (Module 01)
-    ↓ (How to learn from data?)
-Score Matching / DSM (Module 02)
+베이즈 미룸(01_Bayesian_Inference)
+    ↓ (고르게 하지 않고 뽑아야 한다)
+점수 함수(1단원)
+    ↓ (자료에서 어떻게 배우는가?)
+점수 맞추기 / DSM(2단원)
     ↓ (How to sample?)
-Langevin Dynamics (Module 03)
-    ↓ (Need multiple scales)
-Multi-Scale Scores (Module 07)
+랑주뱅 움직임(3단원)
+    ↓ (여러 자가 필요하다)
+여러 자의 점수(7단원)
     ↓ (Continuous formulation)
-Score-Based SDEs (Module 08)
+점수 바탕 SDE(8단원)
     ↓ (Apply to images)
-U-Net + Training (Module 09)
+U-Net과 익히기(9단원)
     ↓ (Equivalent formulation)
 DDPM / 요즘 퍼짐(단원 10) ← 여기이다!
 
@@ -363,12 +363,12 @@ DDPM / 요즘 퍼짐(단원 10) ← 여기이다!
 - 필요에 따라 섞어 쓰라
 
 쓰임을 위해:
-- Use pretrained models (Stable Diffusion, etc.)
+- 미리 익힌 모델을 쓴다(스테이블 디퓨전 따위)
 - 네 마당에 맞게 미세 조정하라
 - 벌레를 잡으려면 이론을 이해하라
 
 더 배우려면:
-- Original papers (DDPM, Score-Based SDE)
+- 본디 논문(DDPM, 점수 바탕 SDE)
 - Lilian Weng의 블로그
 - Hugging Face diffusers 꾸러미
 - Song Yang의 자료
@@ -385,9 +385,9 @@ DDPM / 요즘 퍼짐(단원 10) ← 여기이다!
 
 앞으로의 방향:
 =================
-- Consistency models (1-step generation)
-- Flow matching (alternative to diffusion)
-- Diffusion transformers (DiT)
+- 한결같음 모델(한 걸음 만들어 내기)
+- 흐름 맞추기(퍼짐을 대신하는 길)
+- 퍼짐 변환기(DiT)
 - 영상과 3차원 만들어 내기
 - 다스릴 수 있는 만들어 내기
 - 더 빠른 뽑기 방법
@@ -406,18 +406,18 @@ print("""
 ------------------------------
 
 1. SCORE-BASED:
-   - Learn score s_θ(x,t) = ∇log p_t(x)
+   - 점수 s_θ(x,t) = ∇log p_t(x)을 배운다
    - 랑주뱅 움직임으로 뽑는다
    - 잡음 수준에 걸쳐 식힌다
 
 2. DIFFUSION-BASED:
    - 앞으로: 잡음을 차츰 더한다
    - 뒤로: 차츰 잡음을 없앤다
-   - Learn noise prediction ε_θ(x,t)
+   - 잡음 예측 ε_θ(x,t)을 배운다
 
 3. SDE-BASED:
    - Forward SDE: dx = f dt + g dw
-   - Reverse SDE: dx = [f - g²∇log p_t]dt + g dw̄
+   - 거꾸로 가는 SDE: dx = [f - g²∇log p_t]dt + g dw̄
    - 이어진 때로 적기
 
 셋은 모두 같다!
@@ -427,20 +427,20 @@ print("""
 s(x,t) = -ε_θ(x,t) / √(1-ᾱ_t)         (score ↔ noise)
 DSM = Noise prediction loss            (training)
 Langevin = Reverse diffusion           (sampling)
-Multi-scale = Time conditioning        (architecture)
+여러 자는 곧 때 조건 주기            (얼개)
 
 한가운데 눈썰미:
 ---------------
 Denoising = Bayesian posterior inference
-Learning to denoise = Learning scores
-Iterative denoising = Sampling via scores
+잡음 지우기를 배우는 것이 곧 점수를 배우는 것이다
+거듭 잡음을 지우는 것이 곧 점수로 표본을 뽑는 것이다
 
 이것은 다음을 잇는다.
-- Classical statistics (Bayes)
-- Sampling theory (Langevin)
-- Deep learning (neural networks)
-- Stochastic processes (SDEs)
-- Modern generative models (diffusion)
+- 고전 통계(베이즈)
+- 뽑기 이론(랑주뱅)
+- 깊은 배움(신경 그물)
+- 확률 흐름(SDE)
+- 요즘 만들어 내는 모델(퍼짐)
 
 아름다운 하나 됨! 🎯
 """)
@@ -454,11 +454,11 @@ print("""
 여정을 마쳤다!
 
 이제 다음을 이해한다.
-✓ Why diffusion works (score theory)
-✓ How to train diffusion models (DSM)
-✓ How to sample (Langevin/reverse SDE)
-✓ Modern architectures (U-Net + time)
-✓ Theoretical foundations (SDEs, Fokker-Planck)
+✓ 퍼짐이 왜 되는가(점수 이론)
+✓ 퍼짐 모델을 어떻게 익히는가(DSM)
+✓ 어떻게 표본을 뽑는가(랑주뱅과 거꾸로 가는 SDE)
+✓ 요즘 얼개(U-Net과 때)
+✓ 이론 바탕(SDE, 포커-플랑크)
 
 이 앎으로 다음을 할 수 있다.
 - 퍼짐 논문을 읽고 이해한다

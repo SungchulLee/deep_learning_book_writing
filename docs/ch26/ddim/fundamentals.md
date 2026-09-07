@@ -124,7 +124,7 @@ class DDIMSampler:
             shape: 내놓기 꼴(묶음, 채널, 높이, 너비)
             device: 토치 장치
             num_steps: 뽑기 걸음 수
-            eta: Stochasticity (0 = deterministic, 1 = DDPM-like)
+            eta: 마구잡이 정도(0이면 정해진 대로, 1이면 DDPM처럼)
         
         반환값:
             만든 표본

@@ -58,7 +58,7 @@ def cosine_beta_schedule(timesteps, s=0.008):
     return torch.clip(betas, 1e-8, 0.999)
 
 def extract(a, t, x_shape):
-    """Gather a[t] and reshape for broadcasting to x_shape."""
+    """a[t]을 모아 x_shape에 퍼뜨릴 수 있게 꼴을 바꾼다."""
     out = a.gather(-1, t).float()
     while out.ndim < len(x_shape):
         out = out[..., None]
@@ -238,7 +238,7 @@ class UNetCond(nn.Module):
         """
         x: [B, C, H, W] noisy images
         t: [B] integer timesteps
-        y: [B] class labels (NUM_CLASSES or NULL_CLASS_ID if CFG null)
+        y: [B] 갈래 이름표(CFG 빈 조건이면 NUM_CLASSES 또는 NULL_CLASS_ID)
         """
         # 때 박아 넣기를 세우고 이름표 박아 넣기를 더한다
         t_emb = self.time_mlp(self.time_sinus(t))  # [B, D]
@@ -328,8 +328,8 @@ class DDPMCond(nn.Module):
     @torch.no_grad()
     def p_mean_var(self, x_t, t, y, y_null=None, cfg_scale=1.0):
         """
-        Compute the mean and variance for p(x_{t-1}|x_t).
-        If cfg_scale>1, do 2 forward passes (cond & null) to get CFG.
+        p(x_{t-1}|x_t)의 평균과 흩어짐을 셈한다.
+        cfg_scale>1이면 CFG를 얻으려고 앞으로 걸음을 두 번 한다(조건 있음과 빈 조건).
         """
         betas_t = extract(self.betas, t, x_t.shape)
         sqrt_one_minus_alphas_cumprod_t = extract(self.sqrt_one_minus_alphas_cumprod, t, x_t.shape)
@@ -350,7 +350,7 @@ class DDPMCond(nn.Module):
     @torch.no_grad()
     def sample(self, n, y=None, cfg_scale=1.0, img_channels=IN_CHANNELS, img_size=IMG_SIZE):
         """
-        Generate 'n' samples conditioned on labels y (shape [n]).
+        이름표 y(꼴 [n])를 조건으로 표본 'n'개를 만든다.
         y이 None이면 아무 이름표를 뽑는다. 가름개 없는 이끌기를 쓰면 빈 이름표도 만든다.
         """
         self.model.eval()

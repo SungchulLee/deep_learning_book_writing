@@ -12,7 +12,7 @@ FILE: 05_sliced_score_matching.py
 PREREQUISITES: 02_score_matching_theory.py, 04_denoising_score_matching.py
 
 학습 목표:
-    1. Understand Sliced Score Matching (SSM)
+    1. 저민 점수 맞추기(SSM)를 이해한다
     2. 아무 쏘기 재주를 짠다
     3. 저민 점수 맞추기와 잡음 없애는 점수 맞추기의 효율을 견준다
     4. 방법 사이의 맞바꿈을 살핀다
@@ -45,7 +45,7 @@ def sliced_score_matching_loss(model, x, n_projections=1):
     
     인수:
         model: 점수 신경망
-        x: Data samples, shape (N, D)
+        x: 자료 표본, 꼴 (N, D)
         n_projections: 표본마다 아무 쏘기 횟수
     
     반환값:

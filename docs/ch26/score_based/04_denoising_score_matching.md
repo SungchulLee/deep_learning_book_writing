@@ -23,7 +23,7 @@ FILE: 04_denoising_score_matching.py
     Training: Minimize E_x E_ε[||s_θ(x + ε) + ε/σ²||²]
     where ε ~ N(0, σ²I)
     
-    This is equivalent to learning ∇log q(x̃|x) where q is the noise kernel.
+    이는 잡음 알맹이 q에 대해 ∇log q(x̃|x)를 배우는 것과 같다.
 """
 
 import numpy as np

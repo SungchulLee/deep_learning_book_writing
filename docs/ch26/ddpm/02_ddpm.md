@@ -465,7 +465,7 @@ class DDPM(nn.Module):
     def p_sample(self, x_t, t):
         """
         뒤 과정: 잡음 없애기 걸음 하나.
-        p(x_{t-1} | x_t) using predicted noise.
+        예측한 잡음으로 셈한 p(x_{t-1} | x_t).
         """
         betas_t = extract(self.betas, t, x_t.shape)
         sqrt_one_minus_alphas_cumprod_t = extract(
@@ -624,7 +624,7 @@ def build_dataloader(config):
 # ==========================================
 @torch.no_grad()
 def to_image_range(x):
-    """Convert from [-1, 1] to [0, 1] for visualization."""
+    """그림으로 보이려고 [-1, 1]을 [0, 1]로 바꾼다."""
     return (x.clamp(-1, 1) + 1) * 0.5
 
 

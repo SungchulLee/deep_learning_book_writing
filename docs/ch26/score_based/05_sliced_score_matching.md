@@ -22,7 +22,7 @@
 
 L_SSM(θ) = 𝔼_x 𝔼_v [v^T ∇s_θ(x) + 0.5||s_θ(x)||² v^T s_θ(x)]
 
-where v ~ Uniform(S^{d-1}) is random unit vector
+여기서 v ~ Uniform(S^{d-1})은 마구잡이 단위 벡터다
 
 지은이: 이성철 @ 연세대학교
 """
@@ -104,19 +104,19 @@ for epoch in range(1000):
 
 print("""
 SSM의 좋은 점:
-✓ More efficient than explicit score matching (no Hessian)
+✓ 드러난 점수 맞추기보다 잘 든다(헤세가 없다)
 ✓ 피셔 벌어짐의 치우치지 않은 어림개
 ✓ 차원이 높아도 잘 듣는다
 ✓ 여러 번 쏘면 흩어짐이 줄어든다
 
 COMPARISON:
 - 잡음 없애는 점수 맞추기: 표본마다 O(d), 잡음이 필요하다
-- SSM: O(d*p) per sample, no noise needed (p=projections)
+- SSM: 표본마다 O(d*p)이며 잡음이 필요 없다(p는 쏘아 내림 수)
 - 드러난 점수 맞추기: 표본마다 O(d²), 쓸 수 없다
 
 언제 SSM을 쓰는가:
 - 잡음을 더하기 어렵거나 부자연스러울 때
-- When you want deterministic training (no noise sampling)
+- 정해진 대로 익히고 싶을 때(잡음을 뽑지 않는다)
 - 어떤 이론상 보장이 필요할 때
 """)
 

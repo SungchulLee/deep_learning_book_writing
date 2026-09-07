@@ -20,7 +20,7 @@ PREREQUISITES: 01_score_functions_basics.py, 02_score_matching_theory.py
 수학 바탕:
     랑주뱅 움직임은 기울기를 써서 분포에서 뽑는 마르코프 사슬 몬테카를로 알고리즘이다.
     
-    Update rule: x_{t+1} = x_t + ε/2 * ∇log p(x_t) + √ε * z_t
+    고침 규칙: x_{t+1} = x_t + ε/2 * ∇log p(x_t) + √ε * z_t
     
     여기서 z_t ~ N(0, I)은 표준 정규 잡음이다.
     
@@ -42,14 +42,14 @@ def langevin_sampling(score_fn, x_init, n_steps=1000, step_size=0.01):
     랑주뱅 움직임으로 분포에서 뽑는다.
     
     인수:
-        score_fn: Function computing ∇log p(x)
-        x_init: Initial position, shape (n_samples, dim)
+        score_fn: ∇log p(x)를 셈하는 함수
+        x_init: 첫 자리, 꼴 (n_samples, dim)
         n_steps: 랑주뱅 걸음 수
         step_size: 걸음 크기 ε
     
     반환값:
-        samples: Final samples, shape (n_samples, dim)
-        trajectory: All intermediate positions, shape (n_steps, n_samples, dim)
+        samples: 마지막 표본, 꼴 (n_samples, dim)
+        trajectory: 중간 자리 모두, 꼴 (n_steps, n_samples, dim)
     """
     x = x_init.clone()
     trajectory = [x.clone()]
