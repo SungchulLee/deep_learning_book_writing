@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
 - **가장 나쁜 경우.** $n$이 소수이면 되풀이가 $\sqrt{n}$까지 모든 홀수를 훑어 나눗셈이 $O(\sqrt{n})$번이다.
 - **가장 좋은 경우.** $n$이 $2$의 거듭제곱이면 인수 분해에 나눗셈이 $O(\log n)$번 든다.
-- **Space.**  The output list has at most $\lfloor \log_2 n \rfloor$ entries.
+- **공간.**  내놓음 목록에는 항목이 많아야 $\lfloor \log_2 n \rfloor$개 있다.
 
 나눗셈마다 비트 연산이 $O(\log^2 n)$번 들므로 온 비트 복잡도는 $O(\sqrt{n} \cdot \log^2 n)$이다.
 

@@ -241,15 +241,15 @@ $$\mathbb{E}_{p_{\text{data}}(x)}[D_{KL}(q_\phi(z|x) \| p(z))] = I_q(X; Z) + D_{
 
 ## 연습문제
 
-### Exercise 1: Closed-Form Derivation
+### 익힘 1: 닫힌 꼴 이끌어 내기
 
 정의에서 KL 벌어짐 식 $D_{KL}(\mathcal{N}(\mu, \sigma^2) \| \mathcal{N}(0, 1))$을 걸음마다 보이며 이끌어 내어라.
 
-### Exercise 2: Numerical Verification
+### 익힘 2: 수치로 따져 보기
 
 표본 10만 개를 쓴 몬테카를로 어림과 견주어 닫힌 꼴 KL을 확인하라.
 
-### Exercise 3: Forward vs Reverse KL
+### 익힘 3: 앞 KL과 뒤 KL 견주기
 
 봉우리 둘인 목표 $p(x) = 0.5\mathcal{N}(-3, 1) + 0.5\mathcal{N}(3, 1)$과 정규 어림 $q(x) = \mathcal{N}(\mu, \sigma^2)$에 대해 앞 KL과 뒤 KL 아래에서 가장 좋은 $q$을 수치로 찾아라. 차이를 그려 보아라.
 

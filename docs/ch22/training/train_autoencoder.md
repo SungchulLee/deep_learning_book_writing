@@ -1,4 +1,4 @@
-# Train Autoencoder
+# 제 부호기 익히기
 
 기본 자기 부호기 익히기 각본
 

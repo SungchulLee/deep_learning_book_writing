@@ -63,7 +63,7 @@ $$\mathbf{s}_c = \text{Embed}(\text{classname}_c) \in \mathbb{R}^D$$
 
 흔한 묻힘 방법은 다음과 같다.
 
-- Word2Vec(Skip-gram, CBOW)
+- Word2Vec(스킵그램, CBOW)
 - GloVe(전역 벡터)
 - FastText(낱말 아래 정보)
 - BERT, GPT 묻힘
@@ -175,8 +175,8 @@ $$\mathcal{L}_{cont} = \sum_{i,j} y_{ij} D_{ij}^2 + (1 - y_{ij}) \max(0, m - D_{
 
 | 모델 | 출력 차원 | 미리 학습 | 흔히 쓰는 층 |
 |-------|------------|--------------|--------------|
-| VGG-19 | 4096 | ImageNet | fc7 |
-| ResNet-101 | 2048 | ImageNet | avg_pool |
+| VGG-19 | 4096 | 이미지넷 | fc7 |
+| ResNet-101 | 2048 | 이미지넷 | avg_pool |
 | Inception-v3 | 2048 | ImageNet | pool3 |
 | CLIP | 512/768 | 4억 쌍 | 마지막 층 |
 

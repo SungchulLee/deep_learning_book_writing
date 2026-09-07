@@ -561,7 +561,7 @@ def compare_methods(X_train, y_train, X_test, y_test,
 
 - "polar bear"
 - "fire truck"
-- "German shepherd"
+- "저먼 셰퍼드"
 
 ### 전략
 

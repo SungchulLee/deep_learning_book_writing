@@ -44,10 +44,10 @@ if __name__ == "__main__":
 
 ??? success "연습문제 1 풀이"
 
-    - Input `x`: `(8, 128)` (batch of token IDs)
-    - After encoder: `encoded` has shape `(8, 128, 768)` -- one 768-dim vector per token
-    - `encoded[:, 0, :]`: shape `(8, 768)` -- the `[CLS]` token for each sample
-    - After pooler linear + tanh: `pooled` has shape `(8, 768)`
+    - 들임 `x`: `(8, 128)`(토막 번호의 묶음)
+    - 부호기 뒤: `encoded`의 꼴은 `(8, 128, 768)`이며 토막마다 768차원 벡터 하나다
+    - `encoded[:, 0, :]`: 꼴 `(8, 768)` — 표본마다의 `[CLS]` 토막
+    - 모으개 선형 + tanh 뒤: `pooled`의 꼴은 `(8, 768)`이다
 
     수열 전체 표현은 128개 자리를 모두 지키고, 풀링된 출력은 수열마다 벡터 하나로 눌러 담는다.
 

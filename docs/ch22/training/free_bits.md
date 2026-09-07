@@ -14,7 +14,7 @@
 
 ---
 
-## The Free Bits Technique
+## 자유 비트 기법
 
 ### 동기
 
@@ -78,7 +78,7 @@ def vae_loss_free_bits(recon_x, x, mu, logvar, free_bits=0.5):
 
 ---
 
-## Free Bits vs KL Annealing
+## 자유 비트와 KL 달구기 견주기
 
 | Aspect | KL Annealing | Free Bits |
 |--------|-------------|-----------|
@@ -108,11 +108,11 @@ def vae_loss_free_bits(recon_x, x, mu, logvar, free_bits=0.5):
 
 ## 연습문제
 
-### Exercise 1: Free Bits Sweep
+### 익힘 1: 자유 비트 훑기
 
 $\lambda \in \{0, 0.1, 0.5, 1.0, 2.0\}$으로 변분 자기 부호기를 익혀라. 깨어 있는 차원과 다시 세우기 품질을 그려라.
 
-### Exercise 2: Combined Strategy
+### 익힘 2: 아우른 꾀
 
 (가) 달구고 식히기만, (나) 공짜 비트만, (다) 둘 다를 견주어라. 어느 것이 가장 좋은 증거 하한을 이루는가?
 

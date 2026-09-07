@@ -13,8 +13,8 @@
 ### 상태 공간 나무
 
 - **결정 $k$**($k = 1, \ldots, n$): 아직 쓰지 않은 원소 가운데 어느 것이 자리 $k$에 놓일지 고른다.
-- **Branching factor**: $n - k + 1$ at level $k$ (the number of unused elements).
-- **Full tree**: the tree has $n!$ leaves, one per permutation.
+- **가지 치는 수**: 켜 $k$에서 $n - k + 1$(아직 쓰지 않은 원소의 수).
+- **꽉 찬 나무**: 나무에 잎이 $n!$개 있고 자리바꿈마다 하나씩이다.
 
 ### 될 수 있는지 살피기
 

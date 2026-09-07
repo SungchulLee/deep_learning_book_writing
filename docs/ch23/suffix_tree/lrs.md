@@ -1,4 +1,4 @@
-# Longest Repeated Substring
+# 가장 긴 되풀이 부분문자열
 
 글줄이 주어질 때 적어도 두 번 나오는 가장 긴 부분 글줄을 찾는 것은 글줄 알고리즘의 고전 문제이다. 자료 눌러 담기(되풀이되는 결 찾기), 생물정보학(DNA의 되풀이 무늬 찾기), 음악 살피기(되풀이되는 악구 알아내기)에 나온다. 부분 글줄 짝을 모두 살피는 막무가내 방식은 $O(n^3)$이 들지만 뒷가지 나무와 뒷가지 배열은 이를 $O(n)$ 시간에 푼다. 이 절은 두 방식과 그 관계를 보인다.
 
@@ -10,7 +10,7 @@ $$
 \text{LRS}(T) = \arg\max_{w} |w| \quad \text{단, 어떤 } i \neq j \text{ 에 대해 } w = T[i..i+|w|-1] = T[j..j+|w|-1]
 $$
 
-## Suffix Tree Solution
+## 꼬리말 나무 풀이
 
 $T\$$의 뒷가지 나무에서 안쪽 마디마다 되풀이 부분 글줄을 뜻한다(안쪽 마디의 자식이 적어도 둘이므로 그 길 이름표가 적어도 두 번 나온다). 가장 긴 되풀이 부분 글줄은 **가장 깊은 안쪽 마디**, 곧 글줄 깊이가 가장 큰 마디의 길 이름표이다.
 
@@ -29,13 +29,13 @@ $$
 ??? example "'banana'의 가장 긴 되풀이 부분 글줄"
     `banana$`의 뒷가지 나무에는 다음 길 이름표를 가진 안쪽 마디가 있다:
 
-    - `a` (depth 1): appears at positions 1, 3, 5
-    - `ana` (depth 3): appears at positions 1, 3
-    - `na` (depth 2): appears at positions 2, 4
+    - `a`(깊이 1): 자리 1, 3, 5에 나온다
+    - `ana`(깊이 3): 자리 1, 3에 나온다
+    - `na`(깊이 2): 자리 2, 4에 나온다
 
     가장 깊은 안쪽 마디의 길 이름표는 깊이 3인 `ana`이므로 $\text{LRS} = \texttt{ana}$이다.
 
-## Suffix Array Solution
+## 꼬리말 배열 풀이
 
 뒷가지 배열과 최장 공통 앞가지 배열이 있으면 최장 공통 앞가지 배열의 최댓값을 취해 가장 긴 되풀이 부분 글줄을 찾는다:
 
@@ -43,7 +43,7 @@ $$
 \text{LRS length} = \max_{1 \leq k \leq n} \text{LCP}[k]
 $$
 
-The LRS itself is $T[\text{SA}[k^*] .. \text{SA}[k^*] + \text{LCP}[k^*] - 1]$, where $k^* = \arg\max_k \text{LCP}[k]$.
+가장 긴 되풀이 부분문자열 자체는 $T[\text{SA}[k^*] .. \text{SA}[k^*] + \text{LCP}[k^*] - 1]$이며 $k^* = \arg\max_k \text{LCP}[k]$이다.
 
 ### 이것이 왜 되나
 
@@ -52,7 +52,7 @@ The LRS itself is $T[\text{SA}[k^*] .. \text{SA}[k^*] + \text{LCP}[k^*] - 1]$, w
 ??? example "뒷가지 배열로 찾는 'banana'의 가장 긴 되풀이 부분 글줄"
     For $T = \texttt{banana\$}$:
 
-    | Rank | SA | Suffix | LCP |
+    | 순위 | SA | 꼬리말 | LCP |
     |------|----|--------|-----|
     | 0 | 6 | `$` | 0 |
     | 1 | 5 | `a$` | 0 |
@@ -62,11 +62,11 @@ The LRS itself is $T[\text{SA}[k^*] .. \text{SA}[k^*] + \text{LCP}[k^*] - 1]$, w
     | 5 | 4 | `na$` | 0 |
     | 6 | 2 | `nana$` | 2 |
 
-    Maximum LCP is 3 at position $k = 3$. The LRS is $T[1..3] = \texttt{ana}$, occurring at positions 1 and 3.
+    가장 큰 LCP은 자리 $k = 3$에서 3이다. 가장 긴 되풀이 부분문자열은 $T[1..3] = \texttt{ana}$이며 자리 1과 3에 나온다.
 
 ## Variations
 
-### Longest Substring Occurring at Least k Times
+### 적어도 k 번 나오는 가장 긴 부분문자열
 
 적어도 $k$번 나오는 가장 긴 부분 글줄을 찾는 것으로 문제를 넓힌다. 뒷가지 나무에서는 아래 나무에 잎이 적어도 $k$개인 가장 깊은 안쪽 마디를 찾는다.
 
@@ -78,7 +78,7 @@ $$
 
 양끝 줄 바탕 미끄러지는 창 최솟값으로 $O(n)$ 시간에 셈할 수 있다.
 
-### Non-Overlapping Longest Repeated Substring
+### 겹치지 않는 가장 긴 되풀이 부분문자열
 
 어떤 쓰임새에서는 겹쳐 나온 것이 쓸모없다. **겹치지 않는 가장 긴 되풀이 부분 글줄**은 $|i - j| \geq |w|$을 요구한다.
 
