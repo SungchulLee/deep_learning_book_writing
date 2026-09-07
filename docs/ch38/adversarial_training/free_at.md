@@ -1,55 +1,55 @@
-# Free Adversarial Training
-## Introduction
+# 값싼 맞서며 익히기
+## 들머리
 
-**Free Adversarial Training** (Shafahi et al., 2019) addresses the primary bottleneck of adversarial training: computational cost. Standard PGD-AT requires $K$ forward-backward passes per batch for the inner maximization, making it 7-10× slower than standard training. Free AT achieves comparable robustness at **nearly the cost of standard training** by recycling gradients.
+**값싼 맞서며 익히기**(샤파히 등, 2019)은 맞서며 익히기의 가장 큰 목, 곧 셈 값을 다룬다. 여느 PGD 맞서며 익히기는 안쪽 가장 크게 하기에 묶음마다 앞으로-되돌아 걸음이 $K$번 들어 여느 익힘보다 7~10배 느리다. 값싼 맞서며 익히기는 기울기를 되써서 **여느 익힘과 엇비슷한 값**으로 맞먹는 든든함을 이룬다.
 
-## Motivation
+## 왜 하는가
 
-In standard adversarial training, the computation graph looks like:
+여느 맞서며 익히기에서 셈의 흐름은 이렇다.
 
 ```
-For each batch:
-    1. PGD inner loop (K forward-backward passes) → generates x_adv
-    2. Forward pass on x_adv → compute loss
-    3. Backward pass → update θ
+묶음마다:
+    1. PGD 안쪽 돌기(앞으로-되돌아 걸음 K번) → x_adv을 만든다
+    2. x_adv으로 앞으로 걸음 → 잃음을 셈한다
+    3. 되돌아 걸음 → θ을 고친다
 ```
 
-Most of the cost is in step 1. Free AT observes that the gradients computed during step 1 contain useful information for updating model parameters $\theta$, not just the perturbation $\boldsymbol{\delta}$.
+값의 거의는 1걸음에 든다. 값싼 맞서며 익히기는 1걸음에서 셈한 기울기가 흔듦 $\boldsymbol{\delta}$뿐 아니라 모형 매개변수 $\theta$을 고치는 데도 쓸모 있음을 알아챈다.
 
-## Mathematical Foundation
+## 수학 밑바탕
 
-### Key Insight: Gradient Reuse
+### 고갱이 깨침: 기울기 되쓰기
 
-During PGD, we compute $\nabla_\mathbf{x} \mathcal{L}$ to update the perturbation. But via the chain rule:
+PGD에서는 흔듦을 고치려 $\nabla_\mathbf{x} \mathcal{L}$을 셈한다. 그런데 사슬 규칙에 따라
 
 $$
 \nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y)
 $$
 
-also depends on model parameters through $f_\theta$. The **same backward pass** can simultaneously compute $\nabla_\theta \mathcal{L}$ for the model update.
+은 $f_\theta$을 거쳐 모형 매개변수에도 매인다. **같은 되돌아 걸음**으로 모형을 고칠 $\nabla_\theta \mathcal{L}$을 한꺼번에 셈할 수 있다.
 
-### Free AT Algorithm
+### 값싼 맞서며 익히기 알고리즘
 
-**Algorithm: Free Adversarial Training**
+**알고리즘: 값싼 맞서며 익히기**
 
-For each epoch, replay each minibatch $m$ times:
+판마다 잔 묶음을 $m$번 되풀이한다.
 
 ```
-For each mini-batch (x, y), repeat m times:
-    1. Compute logits: z = f_θ(x + δ)
-    2. Compute loss: L = CrossEntropy(z, y)
-    3. Single backward pass → get ∇_x L and ∇_θ L simultaneously
-    4. Update perturbation: δ ← δ + ε · sign(∇_x L), then project
-    5. Update parameters: θ ← θ - η · ∇_θ L
+잔 묶음 (x, y)마다 m번 되풀이:
+    1. 로짓을 셈한다: z = f_θ(x + δ)
+    2. 잃음을 셈한다: L = CrossEntropy(z, y)
+    3. 되돌아 걸음 한 번 → ∇_x L과 ∇_θ L을 함께 얻는다
+    4. 흔듦을 고친다: δ ← δ + ε · sign(∇_x L), 그다음 되비춘다
+    5. 매개변수를 고친다: θ ← θ - η · ∇_θ L
 ```
 
-The perturbation $\boldsymbol{\delta}$ persists across the $m$ replays, effectively performing $m$ PGD steps while also updating the model $m$ times.
+흔듦 $\boldsymbol{\delta}$은 $m$번의 되풀이에 걸쳐 이어지므로, 사실상 PGD $m$걸음을 밟으면서 모형도 $m$번 고친다.
 
-### Epoch Equivalence
+### 판 수의 맞바꿈
 
-If standard training runs for $E$ epochs with batch size $B$, Free AT runs for $E/m$ epochs with $m$ replays per batch. The total number of gradient computations is the same as standard training, but each gradient serves dual purpose.
+여느 익힘이 묶음 크기 $B$으로 $E$판을 돈다면, 값싼 맞서며 익히기는 묶음마다 $m$번 되풀이하며 $E/m$판을 돈다. 온 기울기 셈의 수는 여느 익힘과 같지만 기울기마다 두 몫을 한다.
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
 ```python
 import torch
@@ -62,20 +62,20 @@ from tqdm import tqdm
 
 class FreeAdversarialTrainer:
     """
-    Free Adversarial Training.
+    값싼 맞서며 익히기.
     
-    Achieves adversarial robustness at nearly the cost of
-    standard training by reusing gradients for both perturbation
-    updates and parameter updates.
+    기울기를 흔듦 고침과 매개변수 고침에 함께 되써서
+    여느 익힘과 엇비슷한 값으로 맞섬의 든든함을
+    이룬다.
     
     Parameters
     ----------
     model : nn.Module
-        Model to train
+        익힐 모형
     epsilon : float
-        Perturbation budget
+        흔듦 예산
     m : int
-        Number of minibatch replays (PGD steps per batch)
+        잔 묶음을 되풀이하는 횟수(묶음마다의 PGD 걸음)
     """
     
     def __init__(
@@ -99,10 +99,10 @@ class FreeAdversarialTrainer:
         optimizer: optim.Optimizer
     ) -> Dict[str, float]:
         """
-        Train for one epoch with Free AT.
+        값싼 맞서며 익히기로 한 판 익힌다.
         
-        Each batch is replayed m times. The perturbation
-        persists and accumulates across replays.
+        묶음마다 m번 되풀이한다. 흔듦은 되풀이에 걸쳐
+        이어지며 쌓인다.
         """
         self.model.train()
         total_loss = 0
@@ -113,26 +113,26 @@ class FreeAdversarialTrainer:
         for x, y in pbar:
             x, y = x.to(self.device), y.to(self.device)
             
-            # Initialize perturbation (persists across m replays)
+            # 흔듦의 첫자리를 잡는다(m번 되풀이에 걸쳐 이어진다)
             delta = torch.zeros_like(x, requires_grad=False)
             
             for _ in range(self.m):
-                # Apply current perturbation
+                # 이제의 흔듦을 건다
                 x_adv = torch.clamp(x + delta, 0, 1)
                 x_adv.requires_grad_(True)
                 
-                # Forward pass
+                # 앞으로 걸음
                 logits = self.model(x_adv)
                 loss = F.cross_entropy(logits, y)
                 
-                # Single backward pass: computes both ∇_x and ∇_θ
+                # 되돌아 걸음 한 번: ∇_x과 ∇_θ을 함께 셈한다
                 optimizer.zero_grad()
                 loss.backward()
                 
-                # Update model parameters (using ∇_θ)
+                # 모형 매개변수를 고친다(∇_θ으로)
                 optimizer.step()
                 
-                # Update perturbation (using ∇_x)
+                # 흔듦을 고친다(∇_x으로)
                 with torch.no_grad():
                     grad = x_adv.grad.data
                     delta = delta + self.epsilon * grad.sign()
@@ -160,10 +160,10 @@ class FreeAdversarialTrainer:
         optimizer: Optional[optim.Optimizer] = None
     ) -> List[Dict]:
         """
-        Complete training loop.
+        온전한 익힘 돌기.
         
-        Note: Run for epochs/m epochs since each batch
-        is processed m times.
+        붙임말: 묶음마다 m번 다루므로
+        판 수는 epochs/m으로 돈다.
         """
         if optimizer is None:
             optimizer = optim.SGD(
@@ -171,81 +171,81 @@ class FreeAdversarialTrainer:
                 lr=0.1, momentum=0.9, weight_decay=5e-4
             )
         
-        # Adjust epochs for replay factor
+        # 되풀이 값에 맞춰 판 수를 손본다
         adjusted_epochs = max(epochs // self.m, 1)
         
         history = []
         for epoch in range(1, adjusted_epochs + 1):
             metrics = self.train_epoch(train_loader, optimizer)
             history.append(metrics)
-            print(f"Epoch {epoch}/{adjusted_epochs}: "
-                  f"Loss={metrics['loss']:.4f}, "
-                  f"Acc={metrics['accuracy']:.2%}")
+            print(f"{epoch}/{adjusted_epochs}판: "
+                  f"잃음={metrics['loss']:.4f}, "
+                  f"맞음={metrics['accuracy']:.2%}")
         
         return history
 ```
 
-## Computational Comparison
+## 셈 값 견주기
 
-| Method | Forward Passes/Batch | Backward Passes/Batch | Relative Cost |
+| 방법 | 묶음마다 앞으로 걸음 | 묶음마다 되돌아 걸음 | 견준 값 |
 |--------|---------------------|----------------------|---------------|
-| Standard Training | 1 | 1 | 1× |
-| PGD-AT ($K=10$) | 11 | 11 | ~10× |
-| Free AT ($m=8$) | 8 | 8 | ~1.2× (amortized) |
-| Fast AT | 2 | 2 | ~2× |
+| 여느 익힘 | 1 | 1 | 1배 |
+| PGD 맞서며 익히기($K=10$) | 11 | 11 | 약 10배 |
+| 값싼 맞서며 익히기($m=8$) | 8 | 8 | 약 1.2배(고르게 나눔) |
+| 빠른 맞서며 익히기 | 2 | 2 | 약 2배 |
 
-Free AT achieves ~8× speedup over PGD-AT by amortizing the cost across replays.
+값싼 맞서며 익히기는 값을 되풀이에 고르게 나누어 PGD 맞서며 익히기보다 약 8배 빠르다.
 
-## Robustness Results
+## 든든함 결과
 
-CIFAR-10, $\varepsilon = 8/255$:
+CIFAR-10, $\varepsilon = 8/255$일 때:
 
-| Method | Training Time | Clean Acc | Robust Acc (PGD-20) |
+| 방법 | 익힘 때 | 맑은 맞음 | 든든한 맞음(PGD-20) |
 |--------|-------------|-----------|---------------------|
-| Standard | 1× | 95% | 0% |
-| PGD-AT | 10× | 85% | 48% |
-| Free AT ($m=8$) | ~1.2× | 83% | 43% |
+| 여느 것 | 1배 | 95% | 0% |
+| PGD 맞서며 익히기 | 10배 | 85% | 48% |
+| 값싼 맞서며 익히기($m=8$) | 약 1.2배 | 83% | 43% |
 
-Free AT trades a small amount of robustness for dramatic computational savings.
+값싼 맞서며 익히기는 든든함을 조금 내주고 셈을 크게 아낀다.
 
-## Limitations
+## 한계
 
-- **Slightly weaker robustness**: ~3-5% lower robust accuracy than PGD-AT
-- **Catastrophic overfitting risk**: Can suffer from sudden robustness collapse
-- **Hyperparameter sensitivity**: The replay factor $m$ must be chosen carefully
+- **든든함이 조금 여림**: PGD 맞서며 익히기보다 든든한 맞음이 약 3~5% 낮다
+- **무너지듯 지나친 맞춤의 무릅씀**: 든든함이 갑자기 무너질 수 있다
+- **하이퍼파라미터에 예민함**: 되풀이 값 $m$을 조심스레 골라야 한다
 
-## References
+## 살펴볼 거리
 
 1. Shafahi, A., et al. (2019). "Adversarial Training for Free!" NeurIPS.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
