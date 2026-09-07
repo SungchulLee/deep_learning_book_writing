@@ -179,11 +179,11 @@ $$E_A = \frac{1}{1 + 10^{(R_B - R_A)/400}}, \quad R_A' = R_A + K(S_A - E_A)$$
 
 | 잣대 | 식 | 읽는 법 |
 |--------|---------|---------------|
-| Cohen's $\kappa$ | $\kappa = (p_o - p_e)/(1 - p_e)$ | Chance-corrected agreement between 2 raters |
-| Fleiss' $\kappa$ | Generalization to $n$ raters | Multi-rater agreement |
-| Krippendorff's $\alpha$ | Handles missing data, multiple scales | Most robust general measure |
+| 코헨의 $\kappa$ | $\kappa = (p_o - p_e)/(1 - p_e)$ | 우연을 바로잡은 매기는 이 2명 사이의 맞음 |
+| 플라이스의 $\kappa$ | 매기는 이 $n$명으로 넓힌 것 | 여러 사람 사이의 맞음 |
+| 크리펜도르프의 $\alpha$ | 빠진 자료와 여러 잣대를 다룬다 | 가장 든든한 두루 쓰는 자 |
 
-Typical values for dialogue quality annotation: $\kappa \in [0.4, 0.7]$ (moderate to substantial agreement). Pairwise comparison protocols generally achieve higher agreement than Likert scales.
+주고받기의 좋음을 매길 때 흔한 값은 $\kappa \in [0.4, 0.7]$이다(어지간함에서 꽤 높음까지). 짝지어 견주는 방식이 대체로 리커트 잣대보다 맞음이 높다.
 
 ---
 
@@ -191,7 +191,7 @@ Typical values for dialogue quality annotation: $\kappa \in [0.4, 0.7]$ (moderat
 
 ### 5.1 왜 하는가
 
-Human evaluation is expensive (∼\$1–5 per evaluation), slow (days to weeks), and difficult to scale. **LLM-as-judge** uses a strong model (typically GPT-4) to evaluate outputs from other models, enabling fast, cheap, and reproducible evaluation.
+사람이 따지면 값이 비싸고(한 번에 ∼\$1~5) 느리며(며칠에서 몇 주) 크게 늘리기 어렵다. **큰 말 모델을 심판으로 쓰기**는 센 모델(흔히 GPT-4)로 다른 모델의 내놓음을 따져, 빠르고 값싸고 되풀이할 수 있는 따짐을 이룬다.
 
 ### 5.2 방식
 
@@ -233,7 +233,7 @@ Human evaluation is expensive (∼\$1–5 per evaluation), slow (days to weeks),
 | 잣대 | 정의 | 재는 것 |
 |--------|-----------|-----------------|
 | Recall@$k$ | 상위 $k$개 결과에 든 알맞은 글월의 몫 | 덮음 |
-| MRR | $1/\text{rank of first relevant result}$ | Ranking quality |
+| MRR | $1/\text{rank of first relevant result}$ | 순위 매김의 좋음 |
 | NDCG@$k$ | 고르게 맞춘 깎은 누적 이득 | 등급 매긴 맞닿음 |
 
 ### 6.2 끝에서 끝까지의 잣대

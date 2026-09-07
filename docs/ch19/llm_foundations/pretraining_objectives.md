@@ -135,7 +135,7 @@ $$
 \mathcal{L}_{\text{MLM}} = -\sum_{i \in \mathcal{M}} \log P_\theta(x_i | x_{\backslash \mathcal{M}})
 $$
 
-Where $\mathcal{M}$ is the set of masked positions and $x_{\backslash \mathcal{M}}$ denotes all non-masked tokens.
+여기서 $\mathcal{M}$은 가린 자리의 모음이고 $x_{\backslash \mathcal{M}}$은 가리지 않은 토막 모두를 나타낸다.
 
 ### BERT 방식 가리기 전략
 

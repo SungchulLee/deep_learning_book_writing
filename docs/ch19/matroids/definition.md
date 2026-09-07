@@ -4,41 +4,41 @@
 
 ## 엄밀한 정의
 
-A **matroid** is a pair $M = (S, \mathcal{I})$ where $S$ is a finite ground set and $\mathcal{I} \subseteq 2^S$ is a family of subsets (called **independent sets**) satisfying three axioms:
+**매트로이드**는 짝 $M = (S, \mathcal{I})$이며, $S$은 마디 있는 밑 모음이고 $\mathcal{I} \subseteq 2^S$은 다음 세 공리를 채우는 부분 모음의 무리(**홀로 선 모음**이라 한다)다.
 
-**Axiom 1 (Non-emptiness).** $\emptyset \in \mathcal{I}$.
+**공리 1(비지 않음).** $\emptyset \in \mathcal{I}$.
 
-**Axiom 2 (Hereditary property).** If $B \in \mathcal{I}$ and $A \subseteq B$, then $A \in \mathcal{I}$. Every subset of an independent set is independent.
+**공리 2(물림 성질).** $B \in \mathcal{I}$이고 $A \subseteq B$이면 $A \in \mathcal{I}$이다. 홀로 선 모음의 부분 모음은 모두 홀로 서 있다.
 
-**Axiom 3 (Exchange property).** If $A, B \in \mathcal{I}$ and $|A| < |B|$, then there exists $x \in B \setminus A$ such that $A \cup \{x\} \in \mathcal{I}$.
+**공리 3(맞바꿈 성질).** $A, B \in \mathcal{I}$이고 $|A| < |B|$이면 $A \cup \{x\} \in \mathcal{I}$인 $x \in B \setminus A$이 있다.
 
 맞바꿈 성질이 결정적인 공리이다. 벡터 공간의 모든 기저가 같은 차원을 갖듯, 이 성질은 **가장 큰** 서로 얽히지 않는 모음(**기저**라 한다)이 모두 같은 크기를 가짐을 보장한다.
 
 ## 말
 
-- **Independent set.** A member of $\mathcal{I}$.
-- **Dependent set.** A subset of $S$ not in $\mathcal{I}$.
+- **홀로 선 모음.** $\mathcal{I}$의 원소.
+- **매인 모음.** $\mathcal{I}$에 들지 않는 $S$의 부분 모음.
 - **회로.** 가장 작은 얽힌 모음(아무 원소나 없애면 얽히지 않게 된다).
 - **기저.** 가장 큰 얽히지 않는 모음.
-- **Rank.** The rank of a set $A \subseteq S$ is the size of the largest independent subset of $A$: $r(A) = \max\{|B| : B \subseteq A,\; B \in \mathcal{I}\}$.
+- **계수.** 모음 $A \subseteq S$의 계수는 $A$의 홀로 선 부분 모음 가운데 가장 큰 것의 크기다. $r(A) = \max\{|B| : B \subseteq A,\; B \in \mathcal{I}\}$이다.
 
 ## 보기
 
 ### 고른 매트로이드
 
-$U_{k,n} = (S, \mathcal{I})$ where $|S| = n$ and $\mathcal{I} = \{A \subseteq S : |A| \le k\}$. Every subset of size at most $k$ is independent. The bases are all subsets of size exactly $k$.
+$U_{k,n} = (S, \mathcal{I})$이며 $|S| = n$이고 $\mathcal{I} = \{A \subseteq S : |A| \le k\}$이다. 크기가 많아야 $k$인 부분 모음은 모두 홀로 서 있다. 밑틀은 크기가 꼭 $k$인 부분 모음 모두다.
 
 ### 선형(벡터) 매트로이드
 
-Let $S$ be a set of vectors in $\mathbb{R}^d$. Define $\mathcal{I}$ as the collection of linearly independent subsets of $S$. The exchange property follows from the Steinitz exchange lemma in linear algebra.
+$S$을 $\mathbb{R}^d$ 안의 벡터 모음이라 하자. $\mathcal{I}$을 $S$의 선형으로 홀로 선 부분 모음의 무리라 하자. 맞바꿈 성질은 선형대수의 슈타이니츠 맞바꿈 보조정리에서 따라 나온다.
 
 ### 그래프 매트로이드
 
-Given a graph $G = (V, E)$, let $S = E$ and $\mathcal{I} = \{F \subseteq E : F \text{ is acyclic}\}$. The independent sets are forests, the bases are spanning trees, and the circuits are simple cycles. This matroid underlies the correctness of Kruskal's algorithm.
+그래프 $G = (V, E)$이 주어졌을 때 $S = E$이라 하고 $\mathcal{I} = \{F \subseteq E : F \text{ is acyclic}\}$이라 하자. 홀로 선 모음은 숲이고 밑틀은 뻗는 나무이며 회로는 단순 순환이다. 이 매트로이드가 크러스컬 알고리즘의 옳음을 받친다.
 
 ### 나눔 매트로이드
 
-Let $S = S_1 \cup S_2 \cup \cdots \cup S_k$ be a partition. Given bounds $b_1, \dots, b_k$, define $\mathcal{I} = \{A \subseteq S : |A \cap S_i| \le b_i \text{ for all } i\}$.
+$S = S_1 \cup S_2 \cup \cdots \cup S_k$을 가름이라 하자. 테두리 $b_1, \dots, b_k$이 주어지면 $\mathcal{I} = \{A \subseteq S : |A \cap S_i| \le b_i \text{ for all } i\}$이라 둔다.
 
 ## 핵심 성질
 
@@ -46,7 +46,7 @@ Let $S = S_1 \cup S_2 \cup \cdots \cup S_k$ be a partition. Given bounds $b_1, \
     어떤 매트로이드에서도 기저는 모두 크기가 같다. 이는 맞바꿈 성질에서 곧바로 따라 나온다. 곧 기저 $B_1$과 $B_2$의 크기가 다르다면 작은 쪽을 늘릴 수 있어 가장 큼에 어긋난다.
 
 !!! note "매트로이드 쌍대성"
-    Given matroid $M = (S, \mathcal{I})$, the **dual matroid** $M^* = (S, \mathcal{I}^*)$ where $B^*$ is a base of $M^*$ if and only if $S \setminus B^*$ is a base of $M$. The dual of a graphic matroid is called a **cographic matroid**.
+    매트로이드 $M = (S, \mathcal{I})$이 주어졌을 때 **짝 매트로이드** $M^* = (S, \mathcal{I}^*)$은 $S \setminus B^*$이 $M$의 밑틀인 것과 $B^*$이 $M^*$의 밑틀인 것이 같은 뜻이 되도록 매긴다. 그래프 매트로이드의 짝을 **짝 그래프 매트로이드**라 한다.
 
 ## 확인
 
@@ -127,7 +127,7 @@ Fails Axiom 3: {1}, {3, 4}
 Non-matroid check: False
 ```
 
-The uniform matroid $U_{2,3}$ satisfies all three axioms. The second example fails the exchange property: $\{1\}$ and $\{3,4\}$ are independent with $|\{1\}| < |\{3,4\}|$, but neither $\{1,3\}$ nor $\{1,4\}$ is independent.
+고른 매트로이드 $U_{2,3}$은 세 공리를 모두 채운다. 둘째 보기는 맞바꿈 성질을 채우지 못한다. $\{1\}$과 $\{3,4\}$이 홀로 서 있고 $|\{1\}| < |\{3,4\}|$인데 $\{1,3\}$도 $\{1,4\}$도 홀로 서 있지 않다.
 
 ## 참고 문헌
 
