@@ -1,111 +1,111 @@
-# LZ77 and LZ78
+# LZ77과 LZ78
 
-Statistical compressors like Huffman coding require advance knowledge of symbol frequencies.  When the data source is unknown or non-stationary, **dictionary-based** methods adapt on the fly by building a dictionary of previously seen patterns and replacing future occurrences with short references.  Abraham Lempel and Jacob Ziv introduced two foundational approaches in 1977 and 1978 that underpin nearly all modern lossless compressors, from gzip to zstd.
+허프먼 부호 같은 통계 옥죄개는 글자 잦기를 미리 알아야 한다. 자료 샘을 모르거나 그 결이 흐르며 바뀔 때에는 **사전에 바탕을 둔** 방법이 도움이 된다. 앞서 본 무늬의 사전을 쌓아 두었다가 뒤에 다시 나오면 짧은 가리킴으로 갈음하며 그때그때 맞춰 간다. 아브라함 렘펠과 야코브 지브가 1977년과 1978년에 내놓은 두 바탕 길은 gzip에서 zstd에 이르기까지 요즘 잃음 없는 옥죄개의 거의 모두를 떠받친다.
 
-## LZ77 -- Sliding Window
+## LZ77 -- 미끄러지는 창
 
-LZ77 maintains a **sliding window** over the recently processed data.  The window has two parts:
+LZ77은 방금 다룬 자료 위에 **미끄러지는 창**을 지닌다. 창은 두 몫으로 나뉜다.
 
-- **Search buffer** (size $W$): already-encoded data available for back-references.
-- **Look-ahead buffer** (size $L$): upcoming data to be encoded.
+- **찾기 버퍼**(크기 $W$): 이미 엮어 두어 되가리킬 수 있는 자료.
+- **내다보기 버퍼**(크기 $L$): 이제 엮을 자료.
 
-At each step, the encoder finds the **longest match** of the look-ahead buffer content within the search buffer and emits a triple:
+걸음마다 엮개는 내다보기 버퍼의 내용과 **가장 길게 들어맞는 곳**을 찾기 버퍼에서 찾아 세 짝을 내놓는다.
 
 $$
 (d,\, \ell,\, c)
 $$
 
-where $d$ is the **offset** (distance back into the search buffer), $\ell$ is the **match length**, and $c$ is the first character after the match.  If no match is found, the encoder emits $(0, 0, c)$ with the literal character.
+여기서 $d$은 **어긋남**(찾기 버퍼로 되돌아가는 거리)이고, $\ell$은 **들어맞는 길이**이며, $c$은 들어맞은 뒤 첫 글자다. 들어맞는 곳이 없으면 엮개는 날 글자와 함께 $(0, 0, c)$을 내놓는다.
 
-### LZ77 Worked Example
+### LZ77 풀어 본 보기
 
-Encode the string `AABCAABCAA` with search buffer size $W = 7$:
+찾기 버퍼 크기 $W = 7$으로 글자열 `AABCAABCAA`을 엮어 보자.
 
-| Step | Search buffer | Look-ahead | Match | Output |
+| 걸음 | 찾기 버퍼 | 내다보기 | 들어맞음 | 내놓기 |
 |------|--------------|------------|-------|--------|
-| 1    | (empty)      | AABCAABCAA | none  | (0, 0, A) |
-| 2    | A            | ABCAABCAA  | A at offset 1 | (1, 1, B) |
-| 3    | AAB          | CAABCAA    | none  | (0, 0, C) |
-| 4    | AABC         | AABCAA     | AABC at offset 4 | (4, 4, A) |
-| 5    | AABCAABCA   | A          | A at offset 1 | (1, 1, EOF) |
+| 1    | (빔)      | AABCAABCAA | 없음  | (0, 0, A) |
+| 2    | A            | ABCAABCAA  | 어긋남 1의 A | (1, 1, B) |
+| 3    | AAB          | CAABCAA    | 없음  | (0, 0, C) |
+| 4    | AABC         | AABCAA     | 어긋남 4의 AABC | (4, 4, A) |
+| 5    | AABCAABCA   | A          | 어긋남 1의 A | (1, 1, EOF) |
 
-The decoder reconstructs the original by replaying each triple: copy $\ell$ characters from position $d$ behind the current write pointer, then append character $c$.
+푸는 이는 세 짝을 하나씩 되풀이해 처음 것을 다시 세운다. 지금 적는 자리에서 $d$만큼 뒤로 간 곳에서 글자 $\ell$개를 베낀 뒤 글자 $c$을 덧붙인다.
 
-### LZ77 Complexity
+### LZ77 복잡도
 
-| Operation | Time | Space |
+| 연산 | 때 | 자리 |
 |-----------|------|-------|
-| Encode (naive) | $O(n \cdot W \cdot L)$ | $O(W + L)$ |
-| Encode (suffix tree) | $O(n)$ | $O(W)$ |
-| Decode | $O(n)$ | $O(W)$ |
+| 엮기(막무가내) | $O(n \cdot W \cdot L)$ | $O(W + L)$ |
+| 엮기(뒷가지 나무) | $O(n)$ | $O(W)$ |
+| 풀기 | $O(n)$ | $O(W)$ |
 
-Practical implementations (e.g., DEFLATE in gzip) use hash chains for match finding, achieving near-linear performance with $O(W)$ memory.
+실제로 만들 때(보기로 gzip의 DEFLATE)에는 들어맞는 곳 찾기에 해시 사슬을 써서 $O(W)$ 기억으로 거의 곧게 늘어나는 됨됨이를 이룬다.
 
-## LZ78 -- Explicit Dictionary
+## LZ78 -- 드러낸 사전
 
-LZ78 takes a different approach: instead of a sliding window, it builds an **explicit dictionary** that grows during encoding.  The dictionary starts with a single entry: index 0 representing the empty string.
+LZ78은 다른 길을 간다. 미끄러지는 창 대신, 엮는 동안 자라나는 **드러낸 사전**을 세운다. 사전은 빈 글자열을 뜻하는 번호 0 하나로 시작한다.
 
-At each step, the encoder finds the longest prefix of the remaining input that matches a dictionary entry, then outputs a pair:
+걸음마다 엮개는 남은 들임의 앞가지 가운데 사전 항목과 들어맞는 가장 긴 것을 찾아 짝을 내놓는다.
 
 $$
 (i,\, c)
 $$
 
-where $i$ is the index of the matched dictionary entry and $c$ is the next character.  The encoder then adds the concatenation (matched string + $c$) as a new dictionary entry.
+여기서 $i$은 들어맞은 사전 항목의 번호이고 $c$은 다음 글자다. 그런 뒤 엮개는 (들어맞은 글자열 + $c$)을 새 사전 항목으로 더한다.
 
-### LZ78 Worked Example
+### LZ78 풀어 본 보기
 
-Encode `AABCAABCAA`:
+`AABCAABCAA`을 엮어 보자.
 
-| Step | Remaining input | Longest match | Output | New entry |
+| 걸음 | 남은 들임 | 가장 길게 들어맞음 | 내놓기 | 새 항목 |
 |------|----------------|---------------|--------|-----------|
-| 1    | AABCAABCAA     | (empty)       | (0, A) | 1: A      |
-| 2    | ABCAABCAA      | A (index 1)   | (1, B) | 2: AB     |
-| 3    | CAABCAA        | (empty)       | (0, C) | 3: C      |
-| 4    | AABCAA         | A (index 1)   | (1, A) | 4: AA     |
-| 5    | BCAA           | (empty)       | (0, B) | 5: B      |
-| 6    | CAA            | C (index 3)   | (3, A) | 6: CA     |
-| 7    | A              | A (index 1)   | (1, EOF) | --       |
+| 1    | AABCAABCAA     | (빔)       | (0, A) | 1: A      |
+| 2    | ABCAABCAA      | A (번호 1)   | (1, B) | 2: AB     |
+| 3    | CAABCAA        | (빔)       | (0, C) | 3: C      |
+| 4    | AABCAA         | A (번호 1)   | (1, A) | 4: AA     |
+| 5    | BCAA           | (빔)       | (0, B) | 5: B      |
+| 6    | CAA            | C (번호 3)   | (3, A) | 6: CA     |
+| 7    | A              | A (번호 1)   | (1, EOF) | --       |
 
-The decoder rebuilds the dictionary in lockstep with the encoder, so no explicit dictionary transmission is needed.
+푸는 이가 엮는 이와 발을 맞추어 사전을 다시 세우므로 사전을 따로 보낼 까닭이 없다.
 
-### LZ78 Complexity
+### LZ78 복잡도
 
-| Operation | Time | Space |
+| 연산 | 때 | 자리 |
 |-----------|------|-------|
-| Encode | $O(n)$ with trie | $O(n)$ |
-| Decode | $O(n)$ | $O(n)$ |
+| 엮기 | 트라이를 쓰면 $O(n)$ | $O(n)$ |
+| 풀기 | $O(n)$ | $O(n)$ |
 
-The dictionary is stored as a trie, giving $O(1)$ amortized time per input character.  Unlike LZ77, the dictionary can grow unboundedly, so practical implementations impose a maximum dictionary size.
+사전을 트라이로 갈무리하므로 들임 글자마다 $O(1)$ 나눠 갚는 때가 든다. LZ77과 달리 사전이 매임 없이 자랄 수 있으므로 실제로 만들 때에는 사전 크기의 위끝을 둔다.
 
-## LZ77 vs LZ78
+## LZ77과 LZ78 견주기
 
-| Property | LZ77 | LZ78 |
+| 성질 | LZ77 | LZ78 |
 |----------|------|------|
-| Dictionary | Implicit (sliding window) | Explicit (trie) |
-| Memory | $O(W)$ -- bounded | $O(n)$ -- grows with input |
-| Back-references | Offset + length | Dictionary index |
-| Adaptive | Yes (recent context) | Yes (full history) |
-| Derivatives | DEFLATE, LZ4, zstd | LZW, LZC |
+| 사전 | 감춘 것(미끄러지는 창) | 드러낸 것(트라이) |
+| 기억 | $O(W)$ -- 매여 있음 | $O(n)$ -- 들임에 따라 자람 |
+| 되가리킴 | 어긋남 + 길이 | 사전 번호 |
+| 맞춰 감 | 예(가까운 결) | 예(온 내력) |
+| 갈래 | DEFLATE, LZ4, zstd | LZW, LZC |
 
-LZ77 tends to perform better on data with strong local correlations, while LZ78 can exploit patterns that recur at arbitrary distances.
+LZ77은 가까운 자리끼리 강하게 얽힌 자료에서 더 잘 돌고, LZ78은 아무리 멀리 떨어져 되풀이되는 무늬라도 살릴 수 있다.
 
-## Implementation
+## 구현
 
 ```python
 """
-LZ77 Compression -- sliding-window encoder and decoder.
+LZ77 옥죄기 -- 미끄러지는 창 엮개와 푸는 개.
 
-Demonstrates the core LZ77 mechanism using a simple longest-match
-search within a bounded search buffer.
+매인 찾기 버퍼 안에서 가장 길게 들어맞는 곳을 쉽게 찾는 길로
+LZ77의 한가운데 장치를 보인다.
 """
 
-# === Encoder =================================================================
+# === 엮개 ====================================================================
 
 def lz77_encode(data: str, window_size: int = 16) -> list[tuple[int, int, str]]:
-    """Encode a string using LZ77 with a sliding window.
+    """미끄러지는 창을 쓰는 LZ77으로 글자열을 엮는다.
 
-    Returns a list of (offset, length, next_char) triples.
+    (어긋남, 길이, 다음 글자) 세 짝의 목록을 돌려준다.
     """
     i = 0
     tokens = []
@@ -130,10 +130,10 @@ def lz77_encode(data: str, window_size: int = 16) -> list[tuple[int, int, str]]:
     return tokens
 
 
-# === Decoder =================================================================
+# === 푸는 개 =================================================================
 
 def lz77_decode(tokens: list[tuple[int, int, str]]) -> str:
-    """Decode LZ77 tokens back to the original string."""
+    """LZ77 토막을 풀어 처음 글자열로 되돌린다."""
     output = []
     for offset, length, next_char in tokens:
         start = len(output) - offset
@@ -144,7 +144,7 @@ def lz77_decode(tokens: list[tuple[int, int, str]]) -> str:
     return "".join(output)
 
 
-# === Main ====================================================================
+# === 메인 ====================================================================
 
 if __name__ == "__main__":
     original = "AABCAABCAA"
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     print(f"Match   : {original == decoded}")
 ```
 
-**Output:**
+**출력:**
 ```
 Original: AABCAABCAA
 Encoded : [(0, 0, 'A'), (1, 1, 'B'), (0, 0, 'C'), (4, 4, 'A'), (1, 1, '')]
@@ -166,52 +166,52 @@ Decoded : AABCAABCAA
 Match   : True
 ```
 
-## Theoretical Significance
+## 이치에서의 뜻
 
-Lempel and Ziv proved that both LZ77 and LZ78 are **asymptotically optimal**: for any stationary ergodic source, the compression ratio converges to the source entropy rate as the input length grows.  This universality -- achieving optimal compression without knowing the source distribution -- is the key theoretical contribution.
+렘펠과 지브는 LZ77과 LZ78이 모두 **점근으로 가장 좋음**을 증명했다. 흐름이 바뀌지 않는 에르고드 샘에 대해, 들임 길이가 자람에 따라 옥죄기 비가 그 샘의 엔트로피 비율로 모인다. 샘의 분포를 모르고도 가장 좋은 옥죄기를 이루는 이 두루 쓰임이 종요로운 이치 몫이다.
 
-## Reference
+## 참고 문헌
 
 - [A Universal Algorithm for Sequential Data Compression (Ziv & Lempel, 1977)](https://ieeexplore.ieee.org/document/1055714)
 - [Compression of Individual Sequences via Variable-Rate Coding (Ziv & Lempel, 1978)](https://ieeexplore.ieee.org/document/1055934)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Trace LZ77 encoding on the string "abcabcabc" with a search buffer of size 6 and a lookahead buffer of size 4. List all output tokens.
+**연습문제 1.**
+찾기 버퍼 크기 6, 내다보기 버퍼 크기 4으로 글자열 "abcabcabc"에 LZ77 엮기를 따라가라. 내놓는 토막을 모두 적어라.
 
-??? success "Solution to Exercise 1"
-    Position 0: no match in search buffer. Output (0, 0, 'a'). Position 1: no match. Output (0, 0, 'b'). Position 2: no match. Output (0, 0, 'c'). Position 3: "abca" matches at offset 3 with length 3 (then next char 'a'). Output (3, 3, 'a'). Position 7: "bc" matches at offset 6 with length 2 (then end of input or next char). Output (6, 2, end). Total tokens: (0,0,'a'), (0,0,'b'), (0,0,'c'), (3,3,'a'), (6,2,end). The repeated "abc" pattern is captured by back-references, compressing 9 characters into fewer tokens. $\square$
-
----
-
-**Exercise 2.**
-Explain the key difference between LZ77 and LZ78. What are the advantages of each approach?
-
-??? success "Solution to Exercise 2"
-    **LZ77** uses a sliding window: it references previously seen data by (offset, length) pairs pointing back into the search buffer. The dictionary is implicit -- it is the content of the sliding window. **LZ78** builds an explicit dictionary: each new pattern extends an existing dictionary entry by one character, and the output is (dictionary index, next character). Advantages of LZ77: no explicit dictionary overhead; the window naturally "forgets" old data, adapting to changing content. Good for streaming. Advantages of LZ78: dictionary entries grow incrementally and can represent longer patterns earlier; decompression is simpler (just look up dictionary entries). Disadvantage of LZ77: matching against the sliding window can be slow ($O(n \cdot w)$ naive, improved with hash chains or suffix arrays). Disadvantage of LZ78: the dictionary can grow without bound and may need resetting. $\square$
+??? success "연습문제 1 풀이"
+    자리 0: 찾기 버퍼에 들어맞는 곳이 없다. (0, 0, 'a')을 내놓는다. 자리 1: 없다. (0, 0, 'b')을 내놓는다. 자리 2: 없다. (0, 0, 'c')을 내놓는다. 자리 3: "abca"가 어긋남 3에서 길이 3으로 들어맞고 다음 글자가 'a'다. (3, 3, 'a')을 내놓는다. 자리 7: "bc"가 어긋남 6에서 길이 2로 들어맞고 들임이 끝난다. (6, 2, 끝)을 내놓는다. 온 토막: (0,0,'a'), (0,0,'b'), (0,0,'c'), (3,3,'a'), (6,2,끝). 되풀이되는 "abc" 무늬가 되가리킴으로 잡혀 9글자가 더 적은 토막으로 옥죄어진다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that LZ77 is asymptotically optimal: for any ergodic source, the compression ratio of LZ77 converges to the entropy rate as the input length goes to infinity.
+**연습문제 2.**
+LZ77과 LZ78의 종요로운 다름을 풀어라. 각 길의 이로움은 무엇인가?
 
-??? success "Solution to Exercise 3"
-    Ziv and Lempel (1977) proved that for a stationary ergodic source with entropy rate $h$, the LZ77 compression ratio $\rho_n$ satisfies $\rho_n \to h$ as $n \to \infty$ almost surely. The intuition: as the window grows, longer and longer matches are found, and the number of bits to encode each match (offset + length) amortizes to the entropy rate. Formally, the average codeword length per source symbol is bounded above by $h + \epsilon(n)$ where $\epsilon(n) \to 0$. The proof uses the fact that for large $n$, the probability of seeing any particular pattern of length $L$ is approximately $2^{-hL}$, so match lengths grow proportionally to $\log n$, and the encoding cost per symbol approaches $h$. This makes LZ77 a universal compressor -- it achieves optimal compression without knowing the source distribution. $\square$
-
----
-
-**Exercise 4.**
-Modern compressors like zstd and lz4 are based on LZ77 but achieve different speed/compression tradeoffs. Describe two techniques they use to improve upon basic LZ77.
-
-??? success "Solution to Exercise 4"
-    (1) **Hash chains / hash tables for match finding**: instead of searching the entire sliding window for matches (which is slow), modern compressors hash the next 3--4 bytes at each position and use the hash to quickly find candidate match positions. This reduces match-finding from $O(w)$ to expected $O(1)$ per position, dramatically improving compression speed. lz4 uses a single hash table with no chaining (greedy, fastest), while zstd uses multi-level hash tables and optimal parsing for better compression. (2) **Entropy coding of literals and match lengths**: basic LZ77 outputs raw (offset, length, literal) triples. Modern compressors apply Huffman or finite-state entropy (FSE/tANS) coding to the literal bytes, match lengths, and offsets separately, compressing each stream according to its distribution. zstd interleaves FSE-coded streams for high throughput, achieving near-arithmetic-coding compression at speeds close to lz4. $\square$
+??? success "연습문제 2 풀이"
+    **LZ77**은 미끄러지는 창을 쓴다. 찾기 버퍼로 되돌아가는 (어긋남, 길이) 짝으로 앞서 본 자료를 가리킨다. 사전이 감추어져 있으며, 그것이 곧 미끄러지는 창의 내용이다. **LZ78**은 드러낸 사전을 세운다. 새 무늬마다 있던 사전 항목을 글자 하나만큼 늘리고, 내놓는 것은 (사전 번호, 다음 글자)다. LZ77의 이로움: 사전을 따로 보내는 덧듦이 없고, 창이 옛 자료를 절로 "잊어" 바뀌는 내용에 맞춰 간다. 흐름 자료에 좋다. LZ78의 이로움: 사전 항목이 조금씩 자라 긴 무늬를 더 이르게 나타낼 수 있고, 푸는 일이 더 쉽다(그저 사전 항목을 찾으면 된다). LZ77의 나쁜 점: 미끄러지는 창에서 들어맞는 곳을 찾는 일이 더딜 수 있다(막무가내로 $O(n \cdot w)$이며 해시 사슬이나 뒷가지 배열로 낫게 한다). LZ78의 나쁜 점: 사전이 매임 없이 자랄 수 있어 되돌려야 할 수 있다. $\square$
 
 ---
 
-**Exercise 5.**
-A financial system logs 100 million trade records per day, each roughly 200 bytes. Estimate the compression ratio achievable with LZ77-based compression and discuss whether real-time compression is feasible.
+**연습문제 3.**
+LZ77이 점근으로 가장 좋음을 증명하여라. 곧 아무 에르고드 샘에 대해 들임 길이가 끝없이 자라면 LZ77의 옥죄기 비가 엔트로피 비율로 모임을 보여라.
 
-??? success "Solution to Exercise 5"
-    Trade records are highly structured: each has fields like timestamp, symbol, price, quantity in a predictable format. Field values are often repetitive (same symbol appears in many trades, prices vary by small deltas). LZ77-based compressors exploit these repetitions: the symbol "AAPL" appearing thousands of times is encoded once and back-referenced. Typical compression ratios for structured log data: 5:1 to 10:1, reducing 20 GB/day to 2--4 GB. For real-time compression: lz4 compresses at 400+ MB/s on modern hardware. At $200 \times 10^8 / 86400 \approx 231$ KB/s average write rate, even a single core handles compression with $< 0.1\%$ CPU utilization. Peak rates of 10x average ($\approx 2.3$ MB/s) are still trivial. zstd at level 1 compresses at $\sim$500 MB/s with better ratios. Real-time compression is entirely feasible and is standard practice for financial log storage. $\square$
+??? success "연습문제 3 풀이"
+    지브와 렘펠(1977)은 엔트로피 비율이 $h$이고 흐름이 바뀌지 않는 에르고드 샘에 대해 LZ77의 옥죄기 비 $\rho_n$이 $n \to \infty$일 때 거의 틀림없이 $\rho_n \to h$임을 증명했다. 직관은 이렇다. 창이 자랄수록 점점 더 긴 들어맞음을 찾게 되고, 들어맞음 하나를 엮는 비트 수(어긋남 + 길이)가 엔트로피 비율로 나뉘어 갚아진다. 엄밀히는 샘 글자마다 평균 부호말 길이가 $h + \epsilon(n)$으로 위에서 매이며 $\epsilon(n) \to 0$이다. 증명은 $n$이 클 때 길이 $L$인 어떤 무늬가 나타날 낌새가 대략 $2^{-hL}$이라는 사실을 쓴다. 그래서 들어맞는 길이가 $\log n$에 견주어 자라고 글자마다 엮는 비용이 $h$에 다가간다. 이로써 LZ77은 샘의 분포를 모르고도 가장 좋은 옥죄기를 이루는 두루 쓰는 옥죄개가 된다. $\square$
+
+---
+
+**연습문제 4.**
+zstd와 lz4 같은 요즘 옥죄개는 LZ77에 바탕을 두면서도 빠르기와 옥죄기의 맞바꿈을 달리 잡는다. 여느 LZ77을 낫게 하려고 쓰는 재주 둘을 밝혀라.
+
+??? success "연습문제 4 풀이"
+    (1) **들어맞는 곳 찾기를 위한 해시 사슬/해시 표**: 미끄러지는 창 전체를 뒤지는 (더딘) 대신, 요즘 옥죄개는 자리마다 다음 3~4바이트를 해시하고 그 해시로 후보 자리를 빠르게 찾는다. 이로써 자리마다 들어맞는 곳 찾기가 $O(w)$에서 어림 $O(1)$으로 줄어 옥죄는 빠르기가 크게 는다. lz4는 사슬 없는 해시 표 하나만 써서(욕심쟁이로 가장 빠르다) 돌고, zstd는 여러 켜 해시 표와 가장 좋은 가르기를 써서 더 잘 옥죈다. (2) **날 글자와 들어맞는 길이의 엔트로피 부호**: 여느 LZ77은 날 (어긋남, 길이, 글자) 세 짝을 내놓는다. 요즘 옥죄개는 날 바이트, 들어맞는 길이, 어긋남을 따로따로 허프먼이나 유한 상태 엔트로피(FSE/tANS) 부호로 엮어 저마다의 분포에 맞게 옥죈다. zstd는 FSE로 엮은 흐름을 서로 엇갈려 놓아 처리량을 높이며, lz4에 가까운 빠르기로 산술 부호에 버금가는 옥죄기를 이룬다. $\square$
+
+---
+
+**연습문제 5.**
+어떤 금융 시스템이 하루에 거래 기록 1억 건을 남기며 기록마다 대략 200바이트다. LZ77 바탕 옥죄기로 이룰 수 있는 옥죄기 비를 어림하고, 실시간 옥죄기가 될 만한지 따져라.
+
+??? success "연습문제 5 풀이"
+    거래 기록은 짜임이 뚜렷하다. 기록마다 때 도장, 종목 이름, 값, 수량 같은 밭이 어림할 수 있는 꼴로 놓인다. 밭 값도 자주 되풀이된다(같은 종목이 수많은 거래에 나오고 값은 조금씩만 달라진다). LZ77 바탕 옥죄개는 이 되풀이를 살린다. 수천 번 나오는 "AAPL"이 한 번만 엮이고 나머지는 되가리킴이 된다. 짜임 있는 기록 자료의 흔한 옥죄기 비는 5:1에서 10:1이며, 하루 20 GB를 2~4 GB로 줄인다. 실시간 옥죄기: lz4는 요즘 기계에서 초당 400 MB 넘게 옥죈다. 평균 적기 비율이 $200 \times 10^8 / 86400 \approx 231$ KB/s이므로 코어 하나로도 CPU를 $0.1\%$도 쓰지 않고 다룬다. 꼭두머리가 평균의 10배($\approx 2.3$ MB/s)여도 여전히 대수롭지 않다. 1단 zstd는 초당 약 500 MB로 옥죄면서 비가 더 좋다. 실시간 옥죄기는 넉넉히 될 만하며 금융 기록 곳간에서 여느 관행이다. $\square$

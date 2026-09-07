@@ -1,26 +1,26 @@
-# Run-Length Encoding
+# 이어짐 길이 엮기
 
-Many real-world data sources contain long runs of repeated values -- pixel rows in monochrome images, silence in audio streams, or repeated characters in log files.  Run-length encoding (RLE) exploits this structure by replacing each maximal run of identical symbols with a single (count, value) pair, often achieving dramatic compression when repetitions dominate.  This page formalizes the encoding, analyzes its complexity, and examines when RLE helps versus when it hurts.
+참 세상의 자료 샘에는 같은 값이 길게 이어지는 곳이 많다. 흑백 그림의 그림점 줄, 소리 흐름의 고요한 구간, 기록 파일에 되풀이되는 글자가 그러하다. 이어짐 길이 엮기(RLE)는 이 짜임을 살려, 똑같은 글자가 가장 길게 이어진 토막마다 (개수, 값) 짝 하나로 갈음한다. 되풀이가 판칠 때 놀라운 옥죄기를 이룬다. 이 쪽은 그 엮기를 엄밀히 적고 복잡도를 살피며, RLE가 도움이 되는 자리와 되레 해가 되는 자리를 가른다.
 
-## Encoding Definition
+## 엮기의 뜻매김
 
-Given an input sequence of $n$ symbols from an alphabet $\Sigma$, RLE partitions the sequence into **maximal runs** -- contiguous subsequences of identical symbols.
+글자 모임 $\Sigma$에서 뽑은 글자 $n$개의 들임 열이 주어지면, RLE는 그 열을 **가장 긴 이어짐**, 곧 똑같은 글자가 잇달아 붙은 토막으로 가른다.
 
-For input $s = s_1 s_2 \dots s_n$, define the $k$-th run as $(c_k, v_k)$ where $v_k \in \Sigma$ is the repeated symbol and $c_k \geq 1$ is the run length, such that
+들임 $s = s_1 s_2 \dots s_n$에 대해 $k$번째 이어짐을 $(c_k, v_k)$이라 하자. 여기서 $v_k \in \Sigma$은 되풀이되는 글자이고 $c_k \geq 1$은 이어짐의 길이이며 다음이 성립한다.
 
 $$
 s = \underbrace{v_1 v_1 \cdots v_1}_{c_1} \underbrace{v_2 v_2 \cdots v_2}_{c_2} \cdots \underbrace{v_r v_r \cdots v_r}_{c_r}
 $$
 
-where $r$ is the total number of runs and $\sum_{k=1}^{r} c_k = n$.  Adjacent runs must differ: $v_k \neq v_{k+1}$ for all $k$.
+$r$은 이어짐의 온 개수이고 $\sum_{k=1}^{r} c_k = n$이다. 이웃한 이어짐은 서로 달라야 한다. 곧 모든 $k$에 대해 $v_k \neq v_{k+1}$이다.
 
-The encoded output is the sequence of pairs $(c_1, v_1), (c_2, v_2), \dots, (c_r, v_r)$.
+엮어 내놓는 것은 짝의 열 $(c_1, v_1), (c_2, v_2), \dots, (c_r, v_r)$이다.
 
-## Worked Example
+## 풀어 본 보기
 
-Consider the string `AAABBBCCDDDDDDAA`:
+글자열 `AAABBBCCDDDDDDAA`을 여겨 보자.
 
-| Run | Symbol ($v_k$) | Count ($c_k$) |
+| 이어짐 | 글자 ($v_k$) | 개수 ($c_k$) |
 |-----|---------------|---------------|
 | 1   | A             | 3             |
 | 2   | B             | 3             |
@@ -28,42 +28,42 @@ Consider the string `AAABBBCCDDDDDDAA`:
 | 4   | D             | 6             |
 | 5   | A             | 2             |
 
-Encoded: `3A3B2C6D2A` -- 10 characters instead of 16, a compression ratio of $10/16 = 0.625$.
+엮은 결과는 `3A3B2C6D2A`이다. 16글자가 10글자가 되었으니 옥죄기 비는 $10/16 = 0.625$이다.
 
-## Compression Ratio Analysis
+## 옥죄기 비 살피기
 
-If the input has $n$ symbols and $r$ maximal runs, the encoded representation stores $r$ pairs.  The compression ratio depends on the encoding format for counts:
+들임에 글자가 $n$개이고 가장 긴 이어짐이 $r$개이면, 엮은 나타냄은 짝 $r$개를 갈무리한다. 옥죄기 비는 개수를 어떻게 적느냐에 달렸다.
 
-- **Fixed-width counts**: each pair uses $\lceil \log_2 n \rceil + \lceil \log_2 |\Sigma| \rceil$ bits, giving total size $r \cdot (\lceil \log_2 n \rceil + \lceil \log_2 |\Sigma| \rceil)$.
-- **Variable-length counts**: using a prefix-free encoding for counts (such as Elias gamma coding) reduces overhead when most runs are short.
+- **너비가 붙박인 개수**: 짝마다 $\lceil \log_2 n \rceil + \lceil \log_2 |\Sigma| \rceil$ 비트를 쓰므로 온 크기가 $r \cdot (\lceil \log_2 n \rceil + \lceil \log_2 |\Sigma| \rceil)$이다.
+- **길이가 들쭉날쭉한 개수**: 개수에 앞가지가 겹치지 않는 엮기(보기로 엘리아스 감마 부호)를 쓰면, 이어짐이 거의 짧을 때 덧듦이 준다.
 
-RLE achieves compression when $r \ll n$.  In the worst case, every symbol differs from its neighbors, so $r = n$ and the encoded output is larger than the input.  This worst case makes RLE a poor choice for data without long runs (e.g., natural language text).
+RLE는 $r \ll n$일 때 옥죈다. 가장 나쁠 때에는 글자마다 이웃과 다르므로 $r = n$이 되고 엮은 결과가 들임보다 커진다. 이 가장 나쁜 경우 때문에 RLE는 긴 이어짐이 없는 자료(보기로 사람 말 글월)에는 나쁜 고름이다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Space |
+| 연산 | 때 | 자리 |
 |-----------|------|-------|
-| Encode    | $O(n)$ | $O(r)$ |
-| Decode    | $O(n)$ | $O(n)$ |
+| 엮기    | $O(n)$ | $O(r)$ |
+| 풀기    | $O(n)$ | $O(n)$ |
 
-Both encoding and decoding perform a single linear scan.  No auxiliary data structures are needed beyond the output buffer, making RLE one of the simplest compression algorithms.
+엮기와 풀기 모두 한 번 곧게 훑는다. 내놓는 버퍼 말고는 곁들이는 자료 얼개가 없어 RLE는 가장 쉬운 옥죄기 알고리즘 가운데 하나다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Run-Length Encoding (RLE) -- encode and decode demonstration.
+이어짐 길이 엮기(RLE) -- 엮기와 풀기 보여 주기.
 
-RLE replaces consecutive runs of identical symbols with (count, symbol)
-pairs.  This module shows both encoding and decoding in a single pass.
+RLE는 똑같은 글자가 잇달아 붙은 토막을 (개수, 글자) 짝으로
+갈음한다. 이 꾸러미는 엮기와 풀기를 모두 한 번 훑기로 보인다.
 """
 
-# === Encoder =================================================================
+# === 엮개 ====================================================================
 
 def rle_encode(data: str) -> list[tuple[int, str]]:
-    """Encode a string using run-length encoding.
+    """이어짐 길이 엮기로 글자열을 엮는다.
 
-    Returns a list of (count, character) pairs representing maximal runs.
+    가장 긴 이어짐을 나타내는 (개수, 글자) 짝의 목록을 돌려준다.
     """
     if not data:
         return []
@@ -80,14 +80,14 @@ def rle_encode(data: str) -> list[tuple[int, str]]:
     return encoded
 
 
-# === Decoder =================================================================
+# === 푸는 개 =================================================================
 
 def rle_decode(encoded: list[tuple[int, str]]) -> str:
-    """Decode an RLE-encoded list back to the original string."""
+    """RLE로 엮은 목록을 처음 글자열로 되돌린다."""
     return "".join(char * count for count, char in encoded)
 
 
-# === Main ====================================================================
+# === 메인 ====================================================================
 
 if __name__ == "__main__":
     original = "AAABBBCCDDDDDDAA"
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     print(f"Match    : {original == decoded}")
 ```
 
-**Output:**
+**출력:**
 ```
 Original : AAABBBCCDDDDDDAA  (length 16)
 Encoded  : [(3, 'A'), (3, 'B'), (2, 'C'), (6, 'D'), (2, 'A')]
@@ -113,65 +113,65 @@ Decoded  : AAABBBCCDDDDDDAA
 Match    : True
 ```
 
-## When RLE Helps and When It Hurts
+## RLE가 돕는 자리와 해가 되는 자리
 
-!!! tip "Best-case scenarios for RLE"
+!!! tip "RLE에 가장 좋은 자리"
 
-    - **Binary images**: large regions of black or white pixels produce long runs.
-    - **Sparse data**: matrices with many repeated zeros compress well.
-    - **Preprocessing step**: RLE after the Burrows-Wheeler Transform (BWT) exploits the clustering BWT creates.
+    - **두 값 그림**: 검거나 흰 그림점이 넓게 이어져 긴 이어짐을 낳는다.
+    - **성긴 자료**: 0이 되풀이되는 행렬이 잘 옥죄어진다.
+    - **미리 다듬는 걸음**: 버로스-휠러 옮김(BWT) 뒤에 RLE를 쓰면 BWT가 만든 뭉침을 살릴 수 있다.
 
-!!! warning "Worst case"
-    When every adjacent pair differs ($r = n$), RLE *expands* the data because each symbol now requires an additional count field.  For general-purpose compression, RLE alone is insufficient.
+!!! warning "가장 나쁠 때"
+    이웃한 짝이 모두 다르면($r = n$) 글자마다 개수 밭이 하나씩 더 붙으므로 RLE가 자료를 *늘린다*. 두루 쓰는 옥죄기로는 RLE 하나만으로 모자란다.
 
-## Applications
+## 쓰임새
 
-- **BMP and TIFF image formats**: use RLE for simple lossless compression of pixel rows.
-- **PackBits**: a byte-oriented RLE variant used in early Macintosh graphics.
-- **Fax machines (Group 3/4 encoding)**: compress scanned pages that are mostly white with sparse black text, achieving ratios of 10:1 or better.
-- **Preprocessing for BWT-based compressors**: tools like bzip2 apply RLE before and after the Burrows-Wheeler Transform.
+- **BMP와 TIFF 그림 꼴**: 그림점 줄을 잃음 없이 쉽게 옥죌 때 RLE를 쓴다.
+- **PackBits**: 바이트 단위 RLE 갈래로 초기 매킨토시 그림에 쓰였다.
+- **팩스 기계(3군/4군 엮기)**: 거의 흰 바탕에 검은 글씨가 성기게 놓인 훑은 쪽을 옥죄어 10:1 넘는 비를 이룬다.
+- **BWT 바탕 옥죄개의 미리 다듬기**: bzip2 같은 도구는 버로스-휠러 옮김 앞뒤로 RLE를 매긴다.
 
-## Reference
+## 참고 문헌
 
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Encode the string "AAABBBCCCCDDDA" using RLE. Then decode "5X2Y1Z" back to the original string.
+**연습문제 1.**
+글자열 "AAABBBCCCCDDDA"을 RLE로 엮어라. 그런 다음 "5X2Y1Z"을 풀어 처음 글자열로 되돌려라.
 
-??? success "Solution to Exercise 1"
-    Encoding "AAABBBCCCCDDDA": run of 3 A's, 3 B's, 4 C's, 3 D's, 1 A. RLE output: "3A3B4C3D1A". Decoding "5X2Y1Z": 5 X's, 2 Y's, 1 Z. Original string: "XXXXXYYZ". $\square$
-
----
-
-**Exercise 2.**
-Prove that RLE can expand the data. Give an example where the RLE-encoded output is longer than the input, and derive the worst-case expansion ratio.
-
-??? success "Solution to Exercise 2"
-    Consider the string "ABCDEF" (no repeated characters). RLE output: "1A1B1C1D1E1F" -- 12 characters for a 6-character input, a 2:1 expansion. In general, a string of $n$ distinct characters produces $2n$ output characters (count + symbol for each). The worst-case expansion ratio is 2:1 when every run has length 1. For binary encoding, if counts are stored as fixed-width integers ($b$ bits) alongside each symbol ($s$ bits), a single character costs $b + s$ bits vs. $s$ bits uncompressed. With $b = 8$ bits for count and $s = 8$ bits for symbol, each non-repeating byte costs 16 bits (vs. 8), a 2x expansion. This is why RLE is typically combined with other methods (BWT + MTF + RLE) rather than used alone. $\square$
+??? success "연습문제 1 풀이"
+    "AAABBBCCCCDDDA"을 엮으면 A가 3개, B가 3개, C가 4개, D가 3개, A가 1개 이어진다. RLE 결과는 "3A3B4C3D1A"이다. "5X2Y1Z"을 풀면 X가 5개, Y가 2개, Z가 1개이므로 처음 글자열은 "XXXXXYYZ"이다. $\square$
 
 ---
 
-**Exercise 3.**
-RLE is used in bitmap image compression (e.g., BMP format). Explain why it is effective for simple graphics but poor for photographic images.
+**연습문제 2.**
+RLE가 자료를 늘릴 수 있음을 증명하여라. 엮은 결과가 들임보다 긴 보기를 들고, 가장 나쁠 때의 늘어남 비를 이끌어 내어라.
 
-??? success "Solution to Exercise 3"
-    Simple graphics (icons, diagrams, screenshots) have large regions of uniform color. A solid blue rectangle of 1000 pixels compresses to a single (1000, blue) pair -- a 1000:1 ratio for that region. Edges between regions produce short runs, but most pixels are in uniform areas. Photographic images have continuous tonal variation: adjacent pixels differ slightly due to gradients, noise, and texture. Runs of identical pixels are rare -- most runs have length 1 or 2. RLE expands the data in this case (each pixel becomes a count-value pair). This is why photographs use DCT-based compression (JPEG), which exploits spatial frequency rather than exact repetition, while simple graphics use RLE or PNG (which applies filtering to create artificial runs). $\square$
-
----
-
-**Exercise 4.**
-Design a variant of RLE that handles the worst case better by using an escape mechanism. Describe the encoding format and analyze when it outperforms basic RLE.
-
-??? success "Solution to Exercise 4"
-    Escape-based RLE: choose an escape byte $E$ (e.g., 0xFF). Non-repeating bytes are output verbatim. Runs of length $\ge 3$ are encoded as $E$, count, byte. Occurrences of $E$ in the literal data are encoded as $E$, 0 (escape followed by zero count means literal $E$). For non-repeating data: each byte costs 1 byte (no overhead unless $E$ appears), vs. 2 bytes in basic RLE. For runs: a run of length $L$ costs 3 bytes ($E$, $L$, byte) vs. 2 bytes in basic RLE. The escape variant outperforms basic RLE when the data is mostly non-repeating with occasional long runs: the majority of bytes pass through at 1 byte each, while runs still compress well. Basic RLE is better only when the entire input is runs. This is the approach used in PackBits (TIFF) encoding. $\square$
+??? success "연습문제 2 풀이"
+    되풀이되는 글자가 없는 글자열 "ABCDEF"을 여겨 보자. RLE 결과는 "1A1B1C1D1E1F"으로, 들임 6글자에 대해 12글자가 되어 2:1로 늘어난다. 널리 보아 서로 다른 글자 $n$개의 글자열은 (저마다 개수와 글자를 내므로) 결과 글자 $2n$개를 낳는다. 이어짐의 길이가 모두 1일 때 가장 나쁜 늘어남 비가 2:1이다. 비트로 엮을 때 개수를 너비가 붙박인 정수($b$비트)로, 글자를 $s$비트로 갈무리하면 글자 하나에 $b + s$비트가 들어 옥죄지 않은 $s$비트와 견주어진다. 개수에 $b = 8$비트, 글자에 $s = 8$비트를 쓰면 되풀이되지 않는 바이트마다 (8비트가 아니라) 16비트가 들어 두 배로 늘어난다. 이것이 RLE를 홀로 쓰지 않고 다른 방법과 엮는(BWT + MTF + RLE) 까닭이다. $\square$
 
 ---
 
-**Exercise 5.**
-A column-oriented database stores a column of 10 million boolean values (0 or 1). The column has long runs (average run length 500). Compare the storage size with: (a) raw storage, (b) RLE, and (c) bitmap encoding. Which is most efficient?
+**연습문제 3.**
+RLE는 비트맵 그림 옥죄기(보기로 BMP 꼴)에 쓰인다. 쉬운 그림에는 잘 듣고 사진에는 나쁜 까닭을 풀어라.
 
-??? success "Solution to Exercise 5"
-    (a) **Raw storage**: 1 bit per value $= 10^7$ bits $= 1.25$ MB. (b) **RLE**: with average run length 500, there are approximately $10^7 / 500 = 20{,}000$ runs. Each run requires a count (e.g., 16 bits for counts up to 65535) and a value (1 bit, or just alternate between 0 and 1). Total: $20{,}000 \times 16 = 320{,}000$ bits $= 40$ KB. Compression ratio: $1.25 \text{ MB} / 40 \text{ KB} \approx 31:1$. (c) **Bitmap encoding** (store positions of 1s): if half the values are 1, there are 5 million 1s, each needing a 24-bit position index: $5 \times 10^6 \times 24 = 1.2 \times 10^8$ bits $= 15$ MB -- worse than raw. RLE is the clear winner because the data has long runs. For data without runs, bitmap encoding with compression (roaring bitmaps) would be better. $\square$
+??? success "연습문제 3 풀이"
+    쉬운 그림(아이콘, 그림표, 화면 갈무리)에는 한 빛깔이 넓게 이어지는 구역이 많다. 파란 네모 그림점 1000개는 (1000, 파랑) 짝 하나로 옥죄어져 그 구역만 보면 1000:1이다. 구역 사이의 가장자리는 짧은 이어짐을 낳지만 거의 모든 그림점이 한결같은 구역 안에 있다. 사진은 밝기가 이어지며 바뀐다. 이웃한 그림점이 기울기와 잡음과 결 때문에 조금씩 다르다. 똑같은 그림점의 이어짐이 드물어 거의 모든 이어짐의 길이가 1이나 2이다. 이때 RLE는 (그림점마다 개수-값 짝이 되므로) 자료를 늘린다. 그래서 사진은 딱 맞는 되풀이가 아니라 공간 잦기를 살리는 이산 코사인 옮김 바탕 옥죄기(JPEG)를 쓰고, 쉬운 그림은 RLE나 (거르기로 인위 이어짐을 만드는) PNG를 쓴다. $\square$
+
+---
+
+**연습문제 4.**
+벗어남 장치를 써서 가장 나쁠 때를 더 잘 다루는 RLE 갈래를 설계하여라. 엮는 꼴을 밝히고 여느 RLE를 언제 앞서는지 살펴라.
+
+??? success "연습문제 4 풀이"
+    벗어남 바탕 RLE: 벗어남 바이트 $E$(보기로 0xFF)을 고른다. 되풀이되지 않는 바이트는 그대로 내놓는다. 길이가 $\ge 3$인 이어짐은 $E$, 개수, 바이트로 엮는다. 날자료에 $E$이 나오면 $E$, 0으로 엮는다(벗어남 뒤의 0은 날 $E$을 뜻한다). 되풀이되지 않는 자료에서는 ($E$이 나오지 않는 한 덧듦 없이) 바이트마다 1바이트가 들어, 여느 RLE의 2바이트보다 낫다. 이어짐에서는 길이 $L$인 이어짐에 3바이트($E$, $L$, 바이트)가 들어 여느 RLE의 2바이트보다 나쁘다. 곧 벗어남 갈래는 자료가 거의 되풀이되지 않으면서 이따금 긴 이어짐이 섞일 때 여느 RLE를 앞선다. 거의 모든 바이트가 1바이트로 지나가고 이어짐은 그대로 잘 옥죄어지기 때문이다. 여느 RLE가 나은 때는 들임이 온통 이어짐일 때뿐이다. 이것이 PackBits(TIFF) 엮기가 쓰는 길이다. $\square$
+
+---
+
+**연습문제 5.**
+칸 바탕 데이터베이스가 참/거짓 값(0 또는 1) 1000만 개의 칸 하나를 갈무리한다. 이 칸에는 긴 이어짐이 있다(이어짐 길이 평균 500). (가) 날 갈무리, (나) RLE, (다) 비트맵 엮기의 갈무리 크기를 견주어라. 어느 것이 가장 좋은가?
+
+??? success "연습문제 5 풀이"
+    (가) **날 갈무리**: 값마다 1비트이므로 $10^7$비트 $= 1.25$ MB이다. (나) **RLE**: 이어짐 길이 평균이 500이므로 이어짐이 대략 $10^7 / 500 = 20{,}000$개다. 이어짐마다 개수(보기로 65535까지 담는 16비트)와 값(1비트, 또는 0과 1을 번갈아 두면 아예 없어도 된다)이 든다. 온통 $20{,}000 \times 16 = 320{,}000$비트 $= 40$ KB이다. 옥죄기 비는 $1.25 \text{ MB} / 40 \text{ KB} \approx 31:1$이다. (다) **비트맵 엮기**(1의 자리를 갈무리): 값의 절반이 1이면 1이 500만 개이고 저마다 24비트 자리 번호가 드므로 $5 \times 10^6 \times 24 = 1.2 \times 10^8$비트 $= 15$ MB로, 날 갈무리보다 나쁘다. 자료에 긴 이어짐이 있으므로 RLE가 또렷이 이긴다. 이어짐이 없는 자료라면 옥죄기를 곁들인 비트맵 엮기(로어링 비트맵)가 나을 것이다. $\square$

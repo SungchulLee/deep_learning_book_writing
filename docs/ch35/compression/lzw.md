@@ -1,74 +1,74 @@
-# LZW Compression
+# LZW 옥죄기
 
-LZ78 outputs pairs of (dictionary index, next character), which means every output token includes a literal character.  Terry Welch's 1984 refinement, **LZW**, eliminates the explicit character from each output token by initializing the dictionary with all single-character entries.  This simpler output format -- a stream of dictionary indices -- made LZW practical for hardware implementations and led to its adoption in GIF images, early ZIP utilities, and Unix `compress`.
+LZ78은 (사전 번호, 다음 글자) 짝을 내놓으므로 내놓는 토막마다 날 글자가 하나씩 붙는다. 테리 웰치가 1984년에 다듬은 **LZW**는 사전에 한 글자짜리 항목을 모두 미리 채워 두어, 내놓는 토막에서 드러난 글자를 없앤다. 사전 번호만 흐르는 이 쉬운 꼴 덕분에 LZW는 기계로 만들기 좋아졌고, GIF 그림과 초기 ZIP 도구와 유닉스 `compress`에 쓰이게 되었다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
-LZW builds its dictionary incrementally during a single pass over the input.  The dictionary starts pre-loaded with entries for every symbol in the alphabet (e.g., entries 0--255 for 8-bit bytes).
+LZW는 들임을 한 번 지나며 사전을 조금씩 세운다. 사전은 글자 모임의 모든 글자에 대한 항목(보기로 8비트 바이트라면 0~255)을 미리 실은 채로 시작한다.
 
-### Encoding
+### 엮기
 
-1. Initialize dictionary $D$ with all single-character strings, indexed $0$ to $|\Sigma| - 1$.
-2. Set the current string $w \leftarrow$ empty.
-3. For each input character $c$:
-    - If $w + c$ is in $D$, extend: $w \leftarrow w + c$.
-    - Otherwise:
-        - Output the index $D[w]$.
-        - Add $w + c$ to $D$ with the next available index.
-        - Set $w \leftarrow c$.
-4. Output $D[w]$ for the remaining string.
+1. 사전 $D$에 한 글자짜리 글자열을 모두 $0$부터 $|\Sigma| - 1$까지 번호를 매겨 채운다.
+2. 지금 글자열을 $w \leftarrow$ 빈 것으로 둔다.
+3. 들임 글자 $c$마다:
+    - $w + c$이 $D$에 있으면 늘린다: $w \leftarrow w + c$.
+    - 아니면:
+        - 번호 $D[w]$을 내놓는다.
+        - $w + c$을 다음 빈 번호로 $D$에 더한다.
+        - $w \leftarrow c$으로 둔다.
+4. 남은 글자열에 대해 $D[w]$을 내놓는다.
 
-### Decoding
+### 풀기
 
-The decoder rebuilds the same dictionary in lockstep with the encoder.  It reads each index, outputs the corresponding string, and adds a new dictionary entry formed from the previous output string plus the first character of the current output string.
+푸는 이는 엮는 이와 발을 맞추어 똑같은 사전을 다시 세운다. 번호를 하나씩 읽어 그에 맞는 글자열을 내놓고, 앞서 내놓은 글자열에 지금 내놓은 글자열의 첫 글자를 붙여 새 사전 항목으로 더한다.
 
-A subtle edge case arises when the encoder outputs an index that the decoder has **not yet added** -- the "KwKwK" problem.  This happens when the input contains a pattern like $c \cdot S \cdot c \cdot S \cdot c$ where $c \cdot S$ is already in the dictionary.  The decoder handles this by recognizing that the unknown entry must be the previous string plus its own first character.
+미묘한 가장자리 경우는 엮는 이가 푸는 이가 **아직 더하지 않은** 번호를 내놓을 때 생기며, "KwKwK" 문제라 부른다. 들임에 $c \cdot S$이 이미 사전에 있는 상태에서 $c \cdot S \cdot c \cdot S \cdot c$ 같은 무늬가 나올 때 벌어진다. 푸는 이는 모르는 항목이 반드시 앞 글자열에 그 자신의 첫 글자를 붙인 것임을 알아채어 이를 다룬다.
 
-## Worked Example
+## 풀어 본 보기
 
-Encode `ABABABA` with initial dictionary $\{A: 0, B: 1\}$:
+처음 사전이 $\{A: 0, B: 1\}$일 때 `ABABABA`을 엮어 보자.
 
-| Step | $w$ | $c$ | $w + c$ in $D$? | Output | New entry |
+| 걸음 | $w$ | $c$ | $w + c$이 $D$에? | 내놓기 | 새 항목 |
 |------|-----|-----|-----------------|--------|-----------|
-| 1 | (empty) | A | -- | -- | -- |
-| 2 | A | B | No | 0 (A) | 2: AB |
-| 3 | B | A | No | 1 (B) | 3: BA |
-| 4 | A | B | Yes (AB) | -- | -- |
-| 5 | AB | A | No | 2 (AB) | 4: ABA |
-| 6 | A | B | Yes (AB) | -- | -- |
-| 7 | AB | A | Yes (ABA) | -- | -- |
+| 1 | (빔) | A | -- | -- | -- |
+| 2 | A | B | 아니오 | 0 (A) | 2: AB |
+| 3 | B | A | 아니오 | 1 (B) | 3: BA |
+| 4 | A | B | 예 (AB) | -- | -- |
+| 5 | AB | A | 아니오 | 2 (AB) | 4: ABA |
+| 6 | A | B | 예 (AB) | -- | -- |
+| 7 | AB | A | 예 (ABA) | -- | -- |
 | 8 | ABA | (EOF) | -- | 4 (ABA) | -- |
 
-Output stream: `[0, 1, 2, 4]` -- four indices instead of seven characters.
+내놓는 흐름은 `[0, 1, 2, 4]`로, 글자 일곱 개가 번호 넷이 되었다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Space |
+| 연산 | 때 | 자리 |
 |-----------|------|-------|
-| Encode | $O(n)$ amortized | $O(|\text{dict}|)$ |
-| Decode | $O(n)$ amortized | $O(|\text{dict}|)$ |
+| 엮기 | $O(n)$ 나눠 갚음 | $O(|\text{사전}|)$ |
+| 풀기 | $O(n)$ 나눠 갚음 | $O(|\text{사전}|)$ |
 
-Dictionary lookups use a trie or hash table, giving $O(1)$ amortized per character.  In practice, the dictionary is capped at a maximum size (e.g., $2^{12} = 4096$ entries for 12-bit GIF) and either frozen or reset when full.
+사전 찾기에 트라이나 해시 표를 쓰므로 글자마다 $O(1)$ 나눠 갚는 때가 든다. 실제로는 사전 크기에 위끝을 두고(보기로 12비트 GIF는 $2^{12} = 4096$ 항목) 꽉 차면 얼리거나 되돌린다.
 
-## Implementation
+## 구현
 
 ```python
 """
-LZW Compression -- encode and decode demonstration.
+LZW 옥죄기 -- 엮기와 풀기 보여 주기.
 
-LZW builds a dictionary on the fly, outputting only dictionary indices.
-This module shows the complete encode/decode cycle including handling
-of the KwKwK edge case during decoding.
+LZW는 사전을 그때그때 세우며 사전 번호만 내놓는다. 이 꾸러미는
+푸는 동안의 KwKwK 가장자리 경우를 다루는 것까지 온전한 엮기와
+풀기 한 바퀴를 보인다.
 """
 
-# === Encoder =================================================================
+# === 엮개 ====================================================================
 
 def lzw_encode(data: str) -> list[int]:
-    """Encode a string using LZW compression.
+    """LZW 옥죄기로 글자열을 엮는다.
 
-    Returns a list of dictionary indices.
+    사전 번호의 목록을 돌려준다.
     """
-    # Initialize dictionary with single characters
+    # 한 글자짜리로 사전에 첫 값을 매긴다
     dictionary = {chr(i): i for i in range(256)}
     next_code = 256
 
@@ -90,11 +90,11 @@ def lzw_encode(data: str) -> list[int]:
     return output
 
 
-# === Decoder =================================================================
+# === 푸는 개 =================================================================
 
 def lzw_decode(codes: list[int]) -> str:
-    """Decode an LZW-encoded list of indices back to the original string."""
-    # Initialize dictionary with single characters
+    """LZW로 엮은 번호 목록을 풀어 처음 글자열로 되돌린다."""
+    # 한 글자짜리로 사전에 첫 값을 매긴다
     dictionary = {i: chr(i) for i in range(256)}
     next_code = 256
 
@@ -105,7 +105,7 @@ def lzw_decode(codes: list[int]) -> str:
         if code in dictionary:
             entry = dictionary[code]
         elif code == next_code:
-            # KwKwK case: entry not yet in dictionary
+            # KwKwK 경우: 아직 사전에 없는 항목
             entry = w + w[0]
         else:
             raise ValueError(f"Invalid code: {code}")
@@ -118,7 +118,7 @@ def lzw_decode(codes: list[int]) -> str:
     return "".join(result)
 
 
-# === Main ====================================================================
+# === 메인 ====================================================================
 
 if __name__ == "__main__":
     original = "ABABABABABABAB"
@@ -131,11 +131,11 @@ if __name__ == "__main__":
     print(f"Decoded  : {decoded}")
     print(f"Match    : {original == decoded}")
 
-    # Demonstrate compression ratio
+    # 옥죄기 비 보이기
     print(f"\nCompression: {len(original)} chars -> {len(encoded)} codes")
 ```
 
-**Output:**
+**출력:**
 ```
 Original : ABABABABABABAB  (length 14)
 Encoded  : [65, 66, 256, 258, 260, 66]  (6 codes)
@@ -145,65 +145,65 @@ Match    : True
 Compression: 14 chars -> 6 codes
 ```
 
-## Dictionary Management
+## 사전 다루기
 
-In practice, the dictionary cannot grow without bound.  Common strategies when the dictionary reaches its maximum size:
+실제로는 사전이 매임 없이 자랄 수 없다. 사전이 가장 큰 크기에 이르렀을 때 흔히 쓰는 꾀는 다음과 같다.
 
-| Strategy | Description | Used in |
+| 꾀 | 밝힘 | 쓰이는 곳 |
 |----------|-------------|---------|
-| Freeze | Stop adding entries; use existing dictionary | GIF (variable-width codes up to 12 bits) |
-| Reset | Clear dictionary and restart from single characters | Unix `compress` |
-| LRU eviction | Remove least-recently-used entries | Some modern variants |
+| 얼리기 | 더 넣기를 멈추고 있는 사전을 쓴다 | GIF(12비트까지 너비가 들쭉날쭉한 부호) |
+| 되돌리기 | 사전을 비우고 한 글자짜리부터 다시 시작한다 | 유닉스 `compress` |
+| 가장 오래 안 쓴 것 내보내기 | 가장 오래 안 쓴 항목을 없앤다 | 요즘의 몇몇 갈래 |
 
-!!! tip "Variable-width codes"
-    GIF uses variable-width codes that start at the minimum needed for the initial alphabet and grow as the dictionary expands.  Each time the dictionary size exceeds $2^b$, the code width increases to $b + 1$ bits.  This avoids wasting bits on large code widths when the dictionary is still small.
+!!! tip "너비가 들쭉날쭉한 부호"
+    GIF는 처음 글자 모임에 꼭 필요한 너비에서 시작해 사전이 자라면 함께 늘어나는 부호 너비를 쓴다. 사전 크기가 $2^b$을 넘을 때마다 부호 너비가 $b + 1$비트로 는다. 이로써 사전이 아직 작을 때 넓은 부호 너비에 비트를 버리지 않는다.
 
-## Patent History and Legacy
+## 특허 내력과 남긴 것
 
-!!! note "Historical context"
-    LZW was the subject of a notable software patent controversy.  Unisys held patents on LZW (US Patent 4,558,302, filed 1983) and began enforcing licensing fees in the 1990s, particularly targeting the widely-used GIF format.  This controversy motivated the development of PNG as a patent-free alternative using DEFLATE (LZ77 + Huffman).  The Unisys patent expired in 2003 (US) and 2004 (worldwide).
+!!! note "때의 자리"
+    LZW는 이름난 소프트웨어 특허 다툼의 한가운데 있었다. 유니시스가 LZW 특허(미국 특허 4,558,302, 1983년 냄)를 쥐고 1990년대에 삯을 물리기 시작했으며, 널리 쓰이던 GIF 꼴을 크게 겨누었다. 이 다툼이 DEFLATE(LZ77 + 허프먼)를 쓰는 특허 없는 갈음으로 PNG를 낳았다. 유니시스 특허는 미국에서 2003년에, 온 세상에서 2004년에 다했다.
 
-## Reference
+## 참고 문헌
 
 - [A Technique for High-Performance Data Compression (Welch, 1984)](https://ieeexplore.ieee.org/document/1659158)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Trace LZW encoding on the input "ABABABA" with an initial dictionary containing A=0, B=1. Show the dictionary state and output codes after each step.
+**연습문제 1.**
+처음 사전이 A=0, B=1일 때 들임 "ABABABA"에 LZW 엮기를 따라가라. 걸음마다 사전 상태와 내놓는 부호를 보여라.
 
-??? success "Solution to Exercise 1"
-    Initial dictionary: {A:0, B:1}. Next code: 2. Step 1: read A, AB not in dict. Output 0 (A). Add AB=2. Step 2: read B, BA not in dict. Output 1 (B). Add BA=3. Step 3: read A, AB in dict (code 2). Read ABA, ABA not in dict. Output 2 (AB). Add ABA=4. Step 5: read B, BA in dict (code 3). Read BAB, BAB not in dict. Output 3 (BA). Add BAB=5. Step 7: read A, end of input. Output 0 (A). Output codes: 0, 1, 2, 3, 0. Dictionary: {A:0, B:1, AB:2, BA:3, ABA:4, BAB:5}. The dictionary grows by learning new patterns, and previously seen patterns are encoded with single codes. $\square$
-
----
-
-**Exercise 2.**
-Explain the "code not yet in dictionary" edge case in LZW decoding. When does it occur and how is it handled?
-
-??? success "Solution to Exercise 2"
-    This edge case occurs when the encoder outputs a code $c$ that the decoder has not yet added to its dictionary. It happens when the input has a pattern of the form $xSxSx$ where $S$ is a string already in the dictionary and $x$ is a single character. The encoder sees $xS$ (in dict), then $xSx$ (not in dict), so it outputs the code for $xS$ and adds $xSx$. But the decoder, one step behind, has not yet added $xSx$. The fix: if the decoder receives code $c$ that equals the next code to be added, it knows the new string is the previous string plus its first character: $\text{new\_entry} = \text{prev\_entry} + \text{prev\_entry}[0]$. This is the only case where the code is unknown, and the rule uniquely determines the string. $\square$
+??? success "연습문제 1 풀이"
+    처음 사전: {A:0, B:1}. 다음 부호: 2. 1걸음: A를 읽는다. AB가 사전에 없다. 0(A)을 내놓는다. AB=2을 더한다. 2걸음: B를 읽는다. BA가 사전에 없다. 1(B)을 내놓는다. BA=3을 더한다. 3걸음: A를 읽는다. AB가 사전에 있다(부호 2). ABA를 읽는데 사전에 없다. 2(AB)을 내놓는다. ABA=4을 더한다. 5걸음: B를 읽는다. BA가 사전에 있다(부호 3). BAB을 읽는데 사전에 없다. 3(BA)을 내놓는다. BAB=5을 더한다. 7걸음: A를 읽고 들임이 끝난다. 0(A)을 내놓는다. 내놓는 부호: 0, 1, 2, 3, 0. 사전: {A:0, B:1, AB:2, BA:3, ABA:4, BAB:5}. 사전은 새 무늬를 배우며 자라고, 앞서 본 무늬는 부호 하나로 엮인다. $\square$
 
 ---
 
-**Exercise 3.**
-LZW was patented (US Patent 4,558,302, expired 2003). Discuss how the patent affected the adoption of GIF and what alternatives were developed.
+**연습문제 2.**
+LZW를 풀 때 생기는 "아직 사전에 없는 부호" 가장자리 경우를 풀어라. 언제 생기고 어떻게 다루는가?
 
-??? success "Solution to Exercise 3"
-    The LZW patent, held by Unisys, meant that software using LZW (including all GIF encoders) owed royalties. In the 1990s, Unisys began enforcing the patent, sending license demands to websites and developers using GIF images. This prompted two responses: (1) the PNG (Portable Network Graphics) format was created as a patent-free alternative, using DEFLATE (LZ77 + Huffman) instead of LZW. PNG offered better compression and features (alpha transparency, gamma correction) and became the preferred format for web graphics. (2) Some developers switched to JPEG for photographic images. After the patent expired in 2003--2004 (depending on country), GIF's legal risk vanished, but PNG had already become established. The episode demonstrated how patents on compression algorithms can fragment ecosystems and drive innovation in unexpected directions. $\square$
-
----
-
-**Exercise 4.**
-Compare the compression ratios of LZW, LZ77, and Huffman coding on three types of input: random bytes, English text, and a file of all zeros. Explain the differences.
-
-??? success "Solution to Exercise 4"
-    **Random bytes**: entropy is 8 bits/byte. No compressor can improve on this. LZW and LZ77 may slightly expand the data (dictionary/header overhead). Huffman achieves 8 bits/byte (uniform frequencies). All three produce output $\ge$ input size. **English text** (entropy $\approx 1$--$2$ bits/char): LZ77 and LZW exploit repeated words and phrases, achieving 2--4x compression. Huffman exploits frequency imbalance (e/t/a are common), achieving $\sim$1.5--2x. LZ77/LZW outperform Huffman because they capture multi-character patterns, not just single-character frequencies. **All zeros** (entropy = 0): all three compress extremely well. RLE would achieve the best ratio. LZW: after learning a few patterns (0, 00, 000, ...), it encodes exponentially longer runs with single codes. LZ77: one back-reference covers the entire file. Huffman: all weight on one symbol, 1 bit/byte. $\square$
+??? success "연습문제 2 풀이"
+    이 가장자리 경우는 엮는 이가 푸는 이가 아직 제 사전에 더하지 않은 부호 $c$을 내놓을 때 생긴다. 들임에 $xSxSx$ 꼴 무늬가 있을 때 벌어지며, 여기서 $S$은 이미 사전에 있는 글자열이고 $x$은 한 글자다. 엮는 이는 $xS$(사전에 있음)을 보고, 이어서 $xSx$(사전에 없음)을 보므로 $xS$의 부호를 내놓고 $xSx$을 더한다. 그런데 한 걸음 뒤처진 푸는 이는 아직 $xSx$을 더하지 않았다. 고치는 길은 이렇다. 푸는 이가 다음에 더할 부호와 같은 부호 $c$을 받으면, 새 글자열이 앞 글자열에 그 첫 글자를 붙인 것임을 안다. 곧 $\text{새\_항목} = \text{앞\_항목} + \text{앞\_항목}[0]$이다. 부호를 모르는 경우는 이것뿐이며, 이 규칙이 그 글자열을 하나로 정한다. $\square$
 
 ---
 
-**Exercise 5.**
-Design an LZW variant that limits the dictionary size to $2^{16}$ entries. What happens when the dictionary fills up, and what strategies can maintain good compression?
+**연습문제 3.**
+LZW에는 특허가 있었다(미국 특허 4,558,302, 2003년 다함). 그 특허가 GIF의 쓰임에 어떻게 미쳤고 어떤 갈음이 나왔는지 따져라.
 
-??? success "Solution to Exercise 5"
-    When the dictionary reaches $2^{16} = 65536$ entries, no new patterns can be added. Strategies: (1) **Freeze**: stop adding entries but continue using existing ones. Compression degrades gradually as the encoder cannot adapt to new patterns not in the dictionary. (2) **Reset**: clear the dictionary and restart with only the initial single-character entries. This causes a temporary compression drop but allows adaptation to changing data. A reset marker code is sent to synchronize the decoder. (3) **LRU eviction**: replace the least recently used dictionary entry with the new pattern. This is complex (requires the decoder to track usage) but maintains adaptivity. GIF uses strategy (2) with a "clear code" signal. Unix `compress` uses (1) with monitoring -- it resets when the compression ratio stops improving. Strategy (3) is rarely used due to implementation complexity and synchronization overhead between encoder and decoder. $\square$
+??? success "연습문제 3 풀이"
+    유니시스가 쥔 LZW 특허 때문에 LZW를 쓰는 소프트웨어(온 GIF 엮개를 아우른다)는 삯을 물어야 했다. 1990년대에 유니시스가 특허를 물리기 시작해 GIF 그림을 쓰는 누리집과 만드는 이에게 삯 요구를 보냈다. 이에 두 갈래 답이 나왔다. (1) 특허 없는 갈음으로 PNG(Portable Network Graphics) 꼴이 만들어져 LZW 대신 DEFLATE(LZ77 + 허프먼)를 썼다. PNG는 더 나은 옥죄기와 기능(알파 비침, 감마 바로잡기)을 주어 누리 그림에서 즐겨 쓰는 꼴이 되었다. (2) 어떤 이들은 사진에 JPEG으로 옮겨 갔다. 2003~2004년(나라마다 다름)에 특허가 다하면서 GIF의 법 무릅씀은 사라졌으나, 그때는 이미 PNG가 자리를 잡은 뒤였다. 이 일은 옥죄기 알고리즘의 특허가 어떻게 생태를 쪼개고 뜻밖의 쪽으로 새것을 낳는지를 보여 주었다. $\square$
+
+---
+
+**연습문제 4.**
+아무 바이트, 영어 글월, 온통 0인 파일이라는 세 갈래 들임에서 LZW, LZ77, 허프먼 부호의 옥죄기 비를 견주어라. 다름을 풀어라.
+
+??? success "연습문제 4 풀이"
+    **아무 바이트**: 엔트로피가 바이트마다 8비트다. 어떤 옥죄개도 이보다 낫게 할 수 없다. LZW와 LZ77은 (사전과 머리말 덧듦 때문에) 자료를 조금 늘릴 수 있다. 허프먼은 (잦기가 고르므로) 바이트마다 8비트를 이룬다. 셋 다 들임 크기 이상을 내놓는다. **영어 글월**(엔트로피가 글자마다 약 1~2비트): LZ77과 LZW는 되풀이되는 낱말과 어구를 살려 2~4배로 옥죈다. 허프먼은 잦기의 쏠림을 살려(e/t/a가 흔하다) 약 1.5~2배를 이룬다. LZ77과 LZW가 허프먼을 앞서는 까닭은 한 글자의 잦기만이 아니라 여러 글자 무늬를 잡기 때문이다. **온통 0**(엔트로피 = 0): 셋 다 아주 잘 옥죈다. RLE라면 가장 좋은 비를 낼 것이다. LZW는 무늬 몇 개(0, 00, 000, …)를 배운 뒤 지수로 길어지는 이어짐을 부호 하나로 엮는다. LZ77은 되가리킴 하나로 온 파일을 덮는다. 허프먼은 무게가 글자 하나에 몰려 바이트마다 1비트다. $\square$
+
+---
+
+**연습문제 5.**
+사전 크기를 $2^{16}$ 항목으로 매어 두는 LZW 갈래를 설계하여라. 사전이 꽉 차면 무슨 일이 생기며, 어떤 꾀로 좋은 옥죄기를 지킬 수 있는가?
+
+??? success "연습문제 5 풀이"
+    사전이 $2^{16} = 65536$ 항목에 이르면 새 무늬를 더할 수 없다. 꾀는 이렇다. (1) **얼리기**: 더 넣기를 멈추고 있는 것만 계속 쓴다. 엮는 이가 사전에 없는 새 무늬에 맞춰 갈 수 없으므로 옥죄기가 천천히 나빠진다. (2) **되돌리기**: 사전을 비우고 처음 한 글자짜리 항목만으로 다시 시작한다. 잠깐 옥죄기가 떨어지지만 바뀌는 자료에 맞춰 갈 수 있다. 푸는 이와 발을 맞추려 되돌림 표 부호를 보낸다. (3) **가장 오래 안 쓴 것 내보내기**: 가장 오래 안 쓴 사전 항목을 새 무늬로 갈음한다. (푸는 이도 쓰임을 좇아야 하므로) 얽히지만 맞춰 감을 지킨다. GIF는 "비우기 부호" 신호와 함께 (2)를 쓴다. 유닉스 `compress`는 지켜보기를 곁들여 (1)을 쓰며, 옥죄기 비가 더 나아지지 않으면 되돌린다. (3)은 만들기가 얽히고 엮는 이와 푸는 이 사이의 발맞추기 덧듦이 있어 드물게 쓰인다. $\square$

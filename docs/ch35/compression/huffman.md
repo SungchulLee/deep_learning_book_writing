@@ -1,64 +1,64 @@
-# Huffman Coding
+# 허프먼 부호
 
-Fixed-length codes like ASCII assign the same number of bits to every symbol, regardless of how often each symbol appears.  When some symbols occur far more frequently than others, this wastes bits.  Huffman coding exploits frequency imbalance by assigning shorter codes to common symbols and longer codes to rare ones, producing a **prefix-free** code that is provably optimal among all prefix-free codes.  This page presents the algorithm, proves its optimality, and walks through a complete example.
+ASCII처럼 길이가 붙박인 부호는 글자가 얼마나 자주 나오든 상관없이 모든 글자에 같은 비트 수를 매긴다. 어떤 글자가 다른 글자보다 훨씬 자주 나오면 이는 비트를 버리는 일이다. 허프먼 부호는 잦기의 쏠림을 살려 흔한 글자에 짧은 부호를, 드문 글자에 긴 부호를 매겨 **앞가지가 겹치지 않는** 부호를 만든다. 이 부호는 앞가지가 겹치지 않는 모든 부호 가운데 가장 좋음이 증명되어 있다. 이 쪽은 그 알고리즘을 내놓고 가장 좋음을 증명하며 온전한 보기를 따라간다.
 
-## Prefix-Free Codes
+## 앞가지가 겹치지 않는 부호
 
-A **prefix-free code** assigns a binary codeword to each symbol such that no codeword is a prefix of another.  This property guarantees unambiguous decoding without delimiters: the decoder reads bits left to right, and the moment a valid codeword is recognized, it emits the corresponding symbol and starts the next codeword.
+**앞가지가 겹치지 않는 부호**는 어느 부호말도 다른 부호말의 앞가지가 되지 않도록 글자마다 두 값 부호말을 매긴다. 이 성질 덕분에 가름표 없이도 뜻이 하나로 풀린다. 푸는 이는 비트를 왼쪽에서 오른쪽으로 읽다가 옳은 부호말을 알아보는 순간 그에 맞는 글자를 내놓고 다음 부호말을 시작한다.
 
-Prefix-free codes correspond naturally to binary trees.  Each leaf represents a symbol, and the path from root to leaf defines the codeword (left = 0, right = 1).  The depth of a leaf equals its codeword length.
+앞가지가 겹치지 않는 부호는 이진 나무와 자연스럽게 맞물린다. 잎마다 글자 하나를 나타내고, 뿌리에서 잎까지의 길이 부호말을 정한다(왼쪽 = 0, 오른쪽 = 1). 잎의 깊이가 곧 그 부호말의 길이다.
 
-## Optimal Code Objective
+## 가장 좋은 부호의 목표
 
-Given an alphabet $\Sigma = \{a_1, a_2, \dots, a_m\}$ with frequencies $f_1, f_2, \dots, f_m$, the cost of a prefix-free code $C$ is the expected codeword length
+글자 모임 $\Sigma = \{a_1, a_2, \dots, a_m\}$과 잦기 $f_1, f_2, \dots, f_m$이 주어지면, 앞가지가 겹치지 않는 부호 $C$의 비용은 어림 부호말 길이다.
 
 $$
 B(C) = \sum_{i=1}^{m} f_i \cdot d_i
 $$
 
-where $d_i$ is the depth (codeword length) of symbol $a_i$ in the code tree.  Huffman's algorithm finds a code $C^*$ that minimizes $B(C)$ over all prefix-free codes.
+여기서 $d_i$은 부호 나무에서 글자 $a_i$의 깊이(부호말 길이)다. 허프먼 알고리즘은 앞가지가 겹치지 않는 온 부호 가운데 $B(C)$을 가장 작게 하는 부호 $C^*$을 찾는다.
 
-## Algorithm
+## 알고리즘
 
-Huffman's greedy strategy builds the optimal tree bottom-up:
+허프먼의 욕심쟁이 꾀는 가장 좋은 나무를 아래에서 위로 세운다.
 
-1. Create a leaf node for each symbol with its frequency.
-2. Insert all nodes into a min-priority queue keyed by frequency.
-3. While the queue contains more than one node:
-    - Extract the two nodes $x$ and $y$ with the smallest frequencies.
-    - Create a new internal node $z$ with $f_z = f_x + f_y$, setting $x$ and $y$ as its children.
-    - Insert $z$ back into the queue.
-4. The remaining node is the root of the Huffman tree.
+1. 글자마다 그 잦기를 지닌 잎 마디를 만든다.
+2. 온 마디를 잦기를 열쇠로 삼는 가장 작은 우선순위 큐에 넣는다.
+3. 큐에 마디가 하나보다 많은 동안:
+    - 잦기가 가장 작은 마디 둘 $x$과 $y$을 빼낸다.
+    - $f_z = f_x + f_y$인 새 속마디 $z$을 만들고 $x$과 $y$을 그 자식으로 둔다.
+    - $z$을 큐에 다시 넣는다.
+4. 남은 마디가 허프먼 나무의 뿌리다.
 
-## Complexity
+## 복잡도
 
-| Step | Time |
+| 걸음 | 때 |
 |------|------|
-| Build initial heap | $O(m)$ |
-| $m - 1$ extract-min + insert | $O(m \log m)$ |
-| **Total** | $O(m \log m)$ |
+| 처음 더미 세우기 | $O(m)$ |
+| 가장 작은 것 빼내기와 넣기를 $m - 1$번 | $O(m \log m)$ |
+| **온통** | $O(m \log m)$ |
 
-where $m = |\Sigma|$ is the alphabet size.  Note that the complexity depends on the alphabet size, not the input length.
+여기서 $m = |\Sigma|$은 글자 모임의 크기다. 복잡도가 들임 길이가 아니라 글자 모임 크기에 달렸음을 눈여겨보라.
 
-## Worked Example
+## 풀어 본 보기
 
-Consider five symbols with frequencies:
+잦기가 다음과 같은 글자 다섯을 여겨 보자.
 
-| Symbol | A | B | C | D | E |
+| 글자 | A | B | C | D | E |
 |--------|---|---|---|---|---|
-| Frequency | 45 | 13 | 12 | 16 | 9 |
+| 잦기 | 45 | 13 | 12 | 16 | 9 |
 
-**Step-by-step construction:**
+**걸음마다 세우기:**
 
-1. Initial queue: E(9), C(12), B(13), D(16), A(45)
-2. Merge E(9) + C(12) = EC(21).  Queue: B(13), D(16), EC(21), A(45)
-3. Merge B(13) + D(16) = BD(29).  Queue: EC(21), BD(29), A(45)
-4. Merge EC(21) + BD(29) = ECBD(50).  Queue: A(45), ECBD(50)
-5. Merge A(45) + ECBD(50) = root(95)
+1. 처음 큐: E(9), C(12), B(13), D(16), A(45)
+2. E(9) + C(12) = EC(21)을 아우른다. 큐: B(13), D(16), EC(21), A(45)
+3. B(13) + D(16) = BD(29)을 아우른다. 큐: EC(21), BD(29), A(45)
+4. EC(21) + BD(29) = ECBD(50)을 아우른다. 큐: A(45), ECBD(50)
+5. A(45) + ECBD(50) = 뿌리(95)를 아우른다
 
-**Resulting codes:**
+**나온 부호:**
 
-| Symbol | Frequency | Codeword | Bits |
+| 글자 | 잦기 | 부호말 | 비트 |
 |--------|-----------|----------|------|
 | A      | 45        | 0        | 1    |
 | B      | 13        | 110      | 3    |
@@ -66,46 +66,46 @@ Consider five symbols with frequencies:
 | D      | 16        | 111      | 3    |
 | E      | 9         | 100      | 3    |
 
-**Weighted path length:**
+**무게를 준 길 길이:**
 
 $$
 B = 45 \cdot 1 + 13 \cdot 3 + 12 \cdot 3 + 16 \cdot 3 + 9 \cdot 3 = 45 + 150 = 195
 $$
 
-A fixed 3-bit code would cost $95 \times 3 = 285$ bits, so Huffman saves about 32%.
+3비트로 붙박인 부호라면 $95 \times 3 = 285$비트가 들므로 허프먼이 약 32%를 아낀다.
 
-## Optimality
+## 가장 좋음
 
-??? note "Proof sketch of optimality"
-    The proof proceeds by two key lemmas:
+??? note "가장 좋음의 증명 밑그림"
+    증명은 종요로운 도움 정리 둘로 나아간다.
 
-    **Lemma 1 (Greedy choice):** An optimal tree exists in which the two least-frequent symbols are siblings at the maximum depth.
+    **도움 정리 1(욕심쟁이 고름):** 잦기가 가장 작은 글자 둘이 가장 깊은 자리의 동기인 가장 좋은 나무가 있다.
 
-    *Proof:* Take any optimal tree $T^*$.  If the two least-frequent symbols $x, y$ are not deepest siblings, swap them with the current deepest siblings.  Since $f_x$ and $f_y$ are smallest, this swap does not increase the cost.
+    *증명:* 아무 가장 좋은 나무 $T^*$을 잡자. 잦기가 가장 작은 두 글자 $x, y$이 가장 깊은 동기가 아니면 지금 가장 깊은 동기와 자리를 바꾼다. $f_x$과 $f_y$이 가장 작으므로 이 바꿈이 비용을 늘리지 않는다.
 
-    **Lemma 2 (Optimal substructure):** Let $z$ be the internal node formed by merging $x$ and $y$ with $f_z = f_x + f_y$.  Then $T$ is optimal for the original alphabet if and only if $T'$ (with $z$ replacing the subtree $\{x, y\}$) is optimal for the reduced alphabet.
+    **도움 정리 2(가장 좋은 밑짜임):** $x$과 $y$을 아울러 만든 속마디를 $z$이라 하고 $f_z = f_x + f_y$이라 하자. 그러면 $T'$($\{x, y\}$ 밑나무를 $z$으로 갈음한 것)이 줄인 글자 모임에 대해 가장 좋을 때 그리고 그때에만 $T$이 처음 글자 모임에 대해 가장 좋다.
 
-    *Proof:* The cost satisfies $B(T) = B(T') + f_x + f_y$, so minimizing $B(T')$ also minimizes $B(T)$.
+    *증명:* 비용이 $B(T) = B(T') + f_x + f_y$을 채우므로 $B(T')$을 가장 작게 하면 $B(T)$도 가장 작아진다.
 
-    Together, these lemmas establish that the greedy merging strategy produces an optimal prefix-free code.
+    이 둘을 함께 놓으면 욕심쟁이 아우르기 꾀가 앞가지 겹치지 않는 가장 좋은 부호를 낳음이 세워진다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Huffman Coding -- build an optimal prefix-free code from symbol frequencies.
+허프먼 부호 -- 글자 잦기에서 앞가지 겹치지 않는 가장 좋은 부호를 세운다.
 
-Demonstrates the greedy tree construction and code extraction using a
-min-heap priority queue.
+가장 작은 더미 우선순위 큐를 써서 욕심쟁이로 나무를 세우고 부호를
+뽑아내는 과정을 보인다.
 """
 
 import heapq
 from collections import Counter
 
-# === Tree Node ===============================================================
+# === 나무 마디 ===============================================================
 
 class HuffmanNode:
-    """A node in the Huffman tree."""
+    """허프먼 나무의 마디."""
 
     def __init__(self, symbol=None, freq=0, left=None, right=None):
         self.symbol = symbol
@@ -117,10 +117,10 @@ class HuffmanNode:
         return self.freq < other.freq
 
 
-# === Tree Construction =======================================================
+# === 나무 세우기 =============================================================
 
 def build_huffman_tree(frequencies: dict[str, int]) -> HuffmanNode:
-    """Build a Huffman tree from a frequency dictionary."""
+    """잦기 사전에서 허프먼 나무를 세운다."""
     heap = [HuffmanNode(symbol=s, freq=f) for s, f in frequencies.items()]
     heapq.heapify(heap)
 
@@ -133,10 +133,10 @@ def build_huffman_tree(frequencies: dict[str, int]) -> HuffmanNode:
     return heap[0]
 
 
-# === Code Extraction ==========================================================
+# === 부호 뽑아내기 ============================================================
 
 def extract_codes(node: HuffmanNode, prefix: str = "") -> dict[str, str]:
-    """Extract binary codes by traversing the Huffman tree."""
+    """허프먼 나무를 훑어 두 값 부호를 뽑아낸다."""
     if node.symbol is not None:
         return {node.symbol: prefix or "0"}
     codes = {}
@@ -145,7 +145,7 @@ def extract_codes(node: HuffmanNode, prefix: str = "") -> dict[str, str]:
     return codes
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     frequencies = {"A": 45, "B": 13, "C": 12, "D": 16, "E": 9}
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     print(f"Savings              : {(1 - total_bits / fixed_bits) * 100:.1f}%")
 ```
 
-**Output:**
+**출력:**
 ```
 Frequencies: {'A': 45, 'B': 13, 'C': 12, 'D': 16, 'E': 9}
 
@@ -181,63 +181,63 @@ Total bits (fixed-3) : 285
 Savings              : 31.6%
 ```
 
-## Relationship to Entropy
+## 엔트로피와의 사이
 
-The Shannon source coding theorem states that no lossless code can achieve an expected length below the entropy
+섀넌의 샘 부호 정리는 잃음 없는 어떤 부호도 어림 길이를 엔트로피 아래로 낮출 수 없다고 말한다.
 
 $$
 H = -\sum_{i=1}^{m} p_i \log_2 p_i
 $$
 
-where $p_i = f_i / \sum_j f_j$.  Huffman coding satisfies
+여기서 $p_i = f_i / \sum_j f_j$이다. 허프먼 부호는 다음을 채운다.
 
 $$
 H \leq B(C^*) < H + 1
 $$
 
-so the optimal Huffman code is within one bit per symbol of the entropy bound.  For large alphabets or when symbol probabilities are far from powers of $1/2$, arithmetic coding can approach $H$ more closely.
+곧 가장 좋은 허프먼 부호는 글자마다 엔트로피 매임에서 1비트 안에 든다. 글자 모임이 크거나 글자의 낌새가 $1/2$의 거듭제곱에서 멀 때에는 산술 부호가 $H$에 더 가까이 다가갈 수 있다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Build a Huffman tree for the following symbol frequencies: A=45, B=13, C=12, D=16, E=9, F=5. List the code for each symbol and compute the expected bits per symbol.
+**연습문제 1.**
+다음 글자 잦기로 허프먼 나무를 세워라: A=45, B=13, C=12, D=16, E=9, F=5. 글자마다 부호를 적고 글자마다 어림 비트 수를 셈하여라.
 
-??? success "Solution to Exercise 1"
-    Build bottom-up: merge the two smallest frequencies at each step. Step 1: merge F(5) and E(9) into FE(14). Step 2: merge C(12) and B(13) into CB(25). Step 3: merge FE(14) and D(16) into FED(30). Step 4: merge CB(25) and FED(30) into CBFED(55). Step 5: merge A(45) and CBFED(55) into root(100). Codes (one possible assignment): A=0, C=100, B=101, F=1100, E=1101, D=111. Expected bits: $(45 \times 1 + 13 \times 3 + 12 \times 3 + 16 \times 3 + 9 \times 4 + 5 \times 4) / 100 = (45 + 39 + 36 + 48 + 36 + 20) / 100 = 224 / 100 = 2.24$ bits/symbol. The entropy is $H \approx 2.23$ bits, so Huffman is near-optimal here. $\square$
-
----
-
-**Exercise 2.**
-Prove that Huffman coding produces an optimal prefix-free code (no other prefix-free code has a lower expected length).
-
-??? success "Solution to Exercise 2"
-    Proof by induction on the number of symbols $n$. Base case ($n = 2$): assign 0 and 1; both codes have length 1, which is optimal. Inductive step: assume Huffman is optimal for $n - 1$ symbols. For $n$ symbols, let $x$ and $y$ be the two symbols with the smallest frequencies $f_x \le f_y$. In any optimal code, $x$ and $y$ can be made siblings at the maximum depth (swapping with any deeper pair does not increase expected length). Huffman merges $x$ and $y$ into a new symbol $z$ with frequency $f_x + f_y$ and applies the algorithm to the resulting $n - 1$ symbols. By the inductive hypothesis, this produces an optimal code for the $n - 1$ symbols. Expanding $z$ back into $x$ and $y$ (appending 0 and 1) adds exactly $f_x + f_y$ to the total weighted length, which matches the cost of placing $x$ and $y$ as siblings at maximum depth. Therefore, the code is optimal for $n$ symbols. $\square$
+??? success "연습문제 1 풀이"
+    아래에서 위로 세운다. 걸음마다 가장 작은 잦기 둘을 아우른다. 1걸음: F(5)와 E(9)를 아울러 FE(14). 2걸음: C(12)와 B(13)를 아울러 CB(25). 3걸음: FE(14)와 D(16)을 아울러 FED(30). 4걸음: CB(25)와 FED(30)을 아울러 CBFED(55). 5걸음: A(45)와 CBFED(55)를 아울러 뿌리(100). 부호(한 가지 매김): A=0, C=100, B=101, F=1100, E=1101, D=111. 어림 비트: $(45 \times 1 + 13 \times 3 + 12 \times 3 + 16 \times 3 + 9 \times 4 + 5 \times 4) / 100 = (45 + 39 + 36 + 48 + 36 + 20) / 100 = 224 / 100 = 2.24$ 비트/글자다. 엔트로피가 $H \approx 2.23$비트이므로 여기서 허프먼은 거의 가장 좋다. $\square$
 
 ---
 
-**Exercise 3.**
-Explain the difference between static and adaptive (dynamic) Huffman coding. When is each approach used in practice?
+**연습문제 2.**
+허프먼 부호가 앞가지 겹치지 않는 가장 좋은 부호를 낳음을(어림 길이가 더 짧은 다른 앞가지 겹치지 않는 부호가 없음을) 증명하여라.
 
-??? success "Solution to Exercise 3"
-    **Static Huffman**: the frequency table is computed from a first pass over the entire input, the tree is built, and the input is encoded in a second pass. The frequency table must be transmitted alongside the compressed data (overhead). Used when the input is available in full before compression (file compression). **Adaptive (dynamic) Huffman** (Vitter's algorithm): the encoder and decoder start with an empty tree and update it after each symbol, maintaining a valid Huffman tree incrementally. No frequency table needs to be transmitted. Used in streaming or online settings where the input arrives incrementally and two-pass processing is impractical. The tradeoff: static Huffman achieves slightly better compression (exact global frequencies) but requires two passes and frequency-table overhead. Adaptive Huffman is one-pass but has slightly suboptimal compression (early symbols are coded with poor estimates). $\square$
-
----
-
-**Exercise 4.**
-A Huffman code for 256 byte values has maximum code length 30 bits. Explain why this could be problematic and how length-limited Huffman codes address the issue.
-
-??? success "Solution to Exercise 4"
-    A maximum code length of 30 bits means the decoder must buffer 30 bits before resolving a symbol, increasing latency and memory requirements for the decoding table. More critically, table-based decoders (which use a lookup table indexed by the next $L$ bits) require a table of size $2^L$. For $L = 30$, this is $2^{30} \approx 10^9$ entries -- impractically large. Length-limited Huffman codes constrain the maximum code length to $L$ (typically 15 or 16) while remaining as close to optimal as possible. The Kraft inequality ensures that a valid prefix-free code exists if the lengths satisfy $\sum 2^{-l_i} \le 1$. Algorithms like the package-merge algorithm find the optimal length-limited code in $O(nL)$ time. DEFLATE (used in gzip/zlib) limits code lengths to 15 bits. $\square$
+??? success "연습문제 2 풀이"
+    글자 개수 $n$에 대한 귀납법으로 증명한다. 밑동($n = 2$): 0과 1을 매기면 두 부호의 길이가 모두 1이며 이것이 가장 좋다. 귀납 걸음: 글자 $n - 1$개에서 허프먼이 가장 좋다고 여기자. 글자가 $n$개일 때 잦기가 가장 작은 두 글자를 $f_x \le f_y$인 $x$과 $y$이라 하자. 어떤 가장 좋은 부호에서든 $x$과 $y$을 가장 깊은 자리의 동기로 만들 수 있다(더 깊은 아무 짝과 자리를 바꾸어도 어림 길이가 늘지 않는다). 허프먼은 $x$과 $y$을 잦기 $f_x + f_y$인 새 글자 $z$으로 아우르고 남은 $n - 1$개 글자에 알고리즘을 매긴다. 귀납 여김에 따라 이는 $n - 1$개 글자에 가장 좋은 부호를 낳는다. $z$을 다시 $x$과 $y$으로 펼치면(0과 1을 덧붙이면) 무게를 준 온 길이에 꼭 $f_x + f_y$이 더해지는데, 이는 $x$과 $y$을 가장 깊은 동기로 놓는 비용과 같다. 따라서 그 부호가 글자 $n$개에 가장 좋다. $\square$
 
 ---
 
-**Exercise 5.**
-Compare Huffman coding with arithmetic coding in terms of compression ratio, computational cost, and implementation complexity.
+**연습문제 3.**
+붙박인 허프먼 부호와 맞춰 가는(움직이는) 허프먼 부호의 다름을 풀어라. 실제로 각각 언제 쓰는가?
 
-??? success "Solution to Exercise 5"
-    **Compression ratio**: Huffman coding assigns an integer number of bits per symbol, so it can waste up to 1 bit per symbol beyond the entropy (average waste $\approx 0.08$ bits for English text). Arithmetic coding encodes the entire message as a single fraction in $[0, 1)$, achieving compression within 1 bit of the total entropy regardless of symbol count. For skewed distributions (one symbol with probability 0.95), arithmetic coding dramatically outperforms Huffman. **Computational cost**: Huffman is faster -- encoding is a table lookup per symbol. Arithmetic coding requires multiplications and divisions per symbol, though fixed-point implementations make this fast in practice. **Complexity**: Huffman is simpler to implement (tree construction + table lookup). Arithmetic coding requires careful handling of precision, carry propagation, and interval renormalization, making it harder to implement correctly. Modern standards (JPEG, H.264) offer both options; arithmetic coding is used when maximum compression is needed, Huffman when speed matters. $\square$
+??? success "연습문제 3 풀이"
+    **붙박인 허프먼**: 온 들임을 한 번 지나며 잦기 표를 셈하고 나무를 세운 뒤, 두 번째로 지나며 들임을 엮는다. 잦기 표를 옥죈 자료와 함께 보내야 한다(덧듦). 옥죄기 앞서 들임 전체를 손에 쥘 수 있을 때 쓴다(파일 옥죄기). **맞춰 가는(움직이는) 허프먼**(비터의 알고리즘): 엮는 쪽과 푸는 쪽이 빈 나무에서 시작해 글자마다 나무를 고쳐 나가며, 늘 옳은 허프먼 나무를 조금씩 지켜 간다. 잦기 표를 보낼 까닭이 없다. 들임이 조금씩 도착해 두 번 지나기가 마땅치 않은 흐름 자리에서 쓴다. 맞바꿈은 이렇다. 붙박인 허프먼은 (온 세상 잦기를 딱 맞게 알므로) 옥죄기가 조금 낫지만 두 번 지나야 하고 잦기 표 덧듦이 있다. 맞춰 가는 허프먼은 한 번만 지나지만 (앞쪽 글자가 어설픈 어림으로 엮이므로) 옥죄기가 조금 못하다. $\square$
+
+---
+
+**연습문제 4.**
+256개 바이트 값에 대한 허프먼 부호의 가장 긴 부호 길이가 30비트다. 왜 골칫거리가 될 수 있는지, 길이를 매어 둔 허프먼 부호가 이를 어떻게 다루는지 풀어라.
+
+??? success "연습문제 4 풀이"
+    가장 긴 부호 길이가 30비트라는 것은 푸는 이가 글자 하나를 가려내기까지 30비트를 담아 두어야 한다는 뜻이며, 늦음과 푸는 표의 기억이 는다. 더 종요롭게는 (다음 $L$비트를 번호로 삼는 찾기 표를 쓰는) 표 바탕 푸는 개가 크기 $2^L$인 표를 바란다. $L = 30$이면 $2^{30} \approx 10^9$ 항목으로 쓸 수 없을 만큼 크다. 길이를 매어 둔 허프먼 부호는 가장 긴 부호 길이를 $L$(흔히 15나 16)으로 매면서도 가장 좋은 것에 될 수 있는 한 가까이 간다. 크라프트 부등식은 길이가 $\sum 2^{-l_i} \le 1$을 채우면 앞가지 겹치지 않는 옳은 부호가 있음을 보장한다. 꾸러미-아우르기 알고리즘 같은 방법이 길이를 매어 둔 가장 좋은 부호를 $O(nL)$ 때에 찾는다. (gzip/zlib이 쓰는) DEFLATE는 부호 길이를 15비트로 매어 둔다. $\square$
+
+---
+
+**연습문제 5.**
+허프먼 부호와 산술 부호를 옥죄기 비, 셈하는 비용, 만들기 품에서 견주어라.
+
+??? success "연습문제 5 풀이"
+    **옥죄기 비**: 허프먼 부호는 글자마다 정수 비트를 매기므로 엔트로피 너머로 글자마다 1비트까지 버릴 수 있다(영어 글월에서 평균 버림이 약 0.08비트다). 산술 부호는 온 쪽지를 $[0, 1)$ 안의 분수 하나로 엮어, 글자 개수와 상관없이 온 엔트로피에서 1비트 안으로 옥죈다. 한쪽으로 크게 쏠린 분포(어떤 글자의 낌새가 0.95)에서는 산술 부호가 허프먼을 크게 앞선다. **셈하는 비용**: 허프먼이 더 빠르다. 엮기가 글자마다 표를 찾는 일이다. 산술 부호는 글자마다 곱셈과 나눗셈이 있어야 하지만, 고정소수점으로 만들면 실제로는 빠르다. **품**: 허프먼이 만들기 쉽다(나무 세우기와 표 찾기). 산술 부호는 자릿수, 올림 번짐, 사이 다시 고르게 하기를 꼼꼼히 다루어야 해서 옳게 만들기가 더 어렵다. 요즘 표준(JPEG, H.264)은 둘 다 쓸 수 있게 하는데, 가장 크게 옥죄어야 하면 산술 부호를, 빠르기가 대수로우면 허프먼을 쓴다. $\square$

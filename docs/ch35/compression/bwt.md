@@ -1,24 +1,24 @@
-# Burrows-Wheeler Transform
+# 버로스-휠러 옮김
 
-Dictionary-based compressors like LZ77 exploit repeated substrings, while statistical compressors like Huffman exploit frequency imbalances.  The Burrows-Wheeler Transform (BWT) bridges these worlds: it **rearranges** the input so that characters from similar contexts cluster together, creating long runs of identical symbols that simpler methods (RLE, move-to-front coding) can then compress efficiently.  This preprocessing step is the engine behind bzip2, one of the most effective general-purpose compressors.
+LZ77 같은 사전 바탕 옥죄개는 되풀이되는 밑글자열을 살리고, 허프먼 같은 통계 옥죄개는 잦기의 쏠림을 살린다. 버로스-휠러 옮김(BWT)은 이 두 세상을 잇는다. 들임을 **다시 늘어놓아** 비슷한 자리에서 온 글자를 한데 모으고, 똑같은 글자가 길게 이어지도록 만들어, 더 쉬운 방법(RLE, 앞으로 옮기기 부호)이 그것을 값싸게 옥죌 수 있게 한다. 이 미리 다듬는 걸음이 두루 쓰는 가장 좋은 옥죄개 가운데 하나인 bzip2의 엔진이다.
 
-## Forward Transform
+## 앞으로 가는 옮김
 
-Given a string $s$ of length $n$ (with an appended end-of-string sentinel `$` that is lexicographically smaller than all other characters), the BWT proceeds in three steps:
+길이 $n$인 글자열 $s$이 주어질 때(다른 모든 글자보다 사전 차례로 작은 끝 표시 `$`을 뒤에 붙인다) BWT는 세 걸음으로 나아간다.
 
-1. **Generate all cyclic rotations** of $s$, forming an $n \times n$ matrix $M$ where row $i$ is the string rotated left by $i$ positions.
-2. **Sort** the rows of $M$ lexicographically.
-3. **Extract the last column** $L$ of the sorted matrix.  This is the BWT output.
+1. $s$의 **돌림 갈래를 모두 짓는다**. 줄 $i$이 $i$자리만큼 왼쪽으로 돈 글자열인 $n \times n$ 행렬 $M$을 이룬다.
+2. $M$의 줄을 사전 차례로 **매긴다**.
+3. 매긴 행렬의 **마지막 칸** $L$을 뽑아낸다. 이것이 BWT가 내놓는 것이다.
 
-The transform also records the **row index** $I$ where the original string appears in the sorted matrix, needed for inversion.
+이 옮김은 되돌릴 때 필요한, 처음 글자열이 매긴 행렬에서 놓인 **줄 번호** $I$도 적어 둔다.
 
-## Worked Example
+## 풀어 본 보기
 
-Transform the string `banana$`:
+글자열 `banana$`을 옮겨 보자.
 
-**Step 1 -- All rotations:**
+**1걸음 -- 온 돌림 갈래:**
 
-| Index | Rotation |
+| 번호 | 돌림 갈래 |
 |-------|----------|
 | 0     | banana$  |
 | 1     | anana$b  |
@@ -28,9 +28,9 @@ Transform the string `banana$`:
 | 5     | a$banan  |
 | 6     | $banana  |
 
-**Step 2 -- Sort lexicographically:**
+**2걸음 -- 사전 차례로 매기기:**
 
-| Sorted index | First (F) | Rotation | Last (L) |
+| 매긴 번호 | 첫 칸 (F) | 돌림 갈래 | 마지막 칸 (L) |
 |-------------|-----------|----------|----------|
 | 0           | $         | $banana  | a        |
 | 1           | a         | a$banan  | n        |
@@ -40,96 +40,96 @@ Transform the string `banana$`:
 | 5           | n         | na$bana  | a        |
 | 6           | n         | nana$ba  | a        |
 
-**BWT output:** $L = $ `annb$aa`, with original string at row $I = 4$.
+**BWT가 내놓는 것:** $L = $ `annb$aa`이고 처음 글자열은 줄 $I = 4$에 있다.
 
-Notice how the `a`'s and `n`'s cluster together in $L$ -- this is the key property that makes subsequent compression effective.
+$L$에서 `a`끼리, `n`끼리 한데 모인 것을 눈여겨보라. 이것이 뒤이은 옥죄기를 잘 듣게 하는 종요로운 성질이다.
 
-## Why Characters Cluster
+## 글자가 한데 모이는 까닭
 
-The sorted rows group together all rotations that share the same **suffix context**.  Since characters in natural text are correlated with their context (e.g., `t` often follows `s`), the last column -- which contains the character that **precedes** each sorted suffix -- tends to have long runs of identical characters.
+매긴 줄은 같은 **뒷가지 자리**를 지닌 돌림 갈래를 한데 묶는다. 사람 말 글월에서 글자는 제 자리와 얽혀 있으므로(보기로 `t`이 `s` 뒤에 자주 온다), 매긴 뒷가지마다 그 **앞에 오는** 글자를 담은 마지막 칸에는 똑같은 글자가 길게 이어지는 곳이 많아진다.
 
-## Inverse Transform
+## 되돌리는 옮김
 
-The BWT is **reversible** from just $L$ and $I$.  The inverse exploits the **LF-mapping**: the $k$-th occurrence of character $c$ in the last column $L$ corresponds to the $k$-th occurrence of $c$ in the first column $F$.
+BWT는 $L$과 $I$만으로 **되돌릴 수 있다**. 되돌리기는 **LF 맞댐**을 살린다. 마지막 칸 $L$에서 글자 $c$의 $k$번째 나옴은 첫 칸 $F$에서 $c$의 $k$번째 나옴과 짝을 이룬다.
 
-**Algorithm:**
+**알고리즘:**
 
-1. Compute $F$ by sorting $L$.
-2. Build the LF-mapping: for each position $i$ in $L$, find the corresponding position in $F$.
-3. Starting from position $I$, follow the LF-mapping for $n$ steps, prepending each character to reconstruct the original string.
+1. $L$을 매겨 $F$을 셈한다.
+2. LF 맞댐을 세운다. $L$의 자리 $i$마다 $F$의 걸맞은 자리를 찾는다.
+3. 자리 $I$에서 시작해 LF 맞댐을 $n$걸음 따라가며 글자를 앞에 붙여 처음 글자열을 다시 세운다.
 
-The first column $F$ is simply the sorted version of $L$, so it requires no additional information beyond $L$ itself.
+첫 칸 $F$은 그저 $L$을 매긴 것이므로 $L$ 말고 더 필요한 것이 없다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Space |
+| 연산 | 때 | 자리 |
 |-----------|------|-------|
-| Forward (naive) | $O(n^2 \log n)$ | $O(n^2)$ |
-| Forward (suffix array) | $O(n)$ | $O(n)$ |
-| Inverse | $O(n)$ | $O(n + |\Sigma|)$ |
+| 앞으로(막무가내) | $O(n^2 \log n)$ | $O(n^2)$ |
+| 앞으로(뒷가지 배열) | $O(n)$ | $O(n)$ |
+| 되돌리기 | $O(n)$ | $O(n + |\Sigma|)$ |
 
-The naive approach builds and sorts all rotations explicitly.  In practice, the BWT is computed via suffix arrays, avoiding the quadratic space of the rotation matrix entirely.
+막무가내 길은 온 돌림 갈래를 드러내 짓고 매긴다. 실제로는 뒷가지 배열로 BWT를 셈하여 돌림 행렬의 제곱 자리를 아예 비껴간다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Burrows-Wheeler Transform -- forward and inverse demonstrations.
+버로스-휠러 옮김 -- 앞으로 가기와 되돌리기 보여 주기.
 
-The BWT rearranges a string to cluster similar characters together,
-enabling more effective compression by downstream algorithms like
-RLE or move-to-front coding.
+BWT는 글자열을 다시 늘어놓아 비슷한 글자를 한데 모으고, 뒤에
+오는 RLE나 앞으로 옮기기 부호 같은 알고리즘이 더 잘 옥죌 수
+있게 한다.
 """
 
-# === Forward Transform ========================================================
+# === 앞으로 가는 옮김 =========================================================
 
 def bwt_encode(text: str) -> tuple[str, int]:
-    """Compute the Burrows-Wheeler Transform of a string.
+    """글자열의 버로스-휠러 옮김을 셈한다.
 
-    Appends a sentinel '$' and returns (transformed_string, original_row_index).
+    끝 표시 '$'을 붙이고 (옮긴 글자열, 처음 줄 번호)를 돌려준다.
     """
     s = text + "$"
     n = len(s)
 
-    # Generate and sort all rotations
+    # 온 돌림 갈래를 짓고 매긴다
     rotations = sorted(s[i:] + s[:i] for i in range(n))
 
-    # Last column and original index
+    # 마지막 칸과 처음 번호
     last_column = "".join(r[-1] for r in rotations)
     original_index = rotations.index(s)
 
     return last_column, original_index
 
 
-# === Inverse Transform ========================================================
+# === 되돌리는 옮김 ============================================================
 
 def bwt_decode(last_column: str, original_index: int) -> str:
-    """Reconstruct the original string from the BWT output.
+    """BWT가 내놓은 것에서 처음 글자열을 다시 세운다.
 
-    Uses the LF-mapping to walk through the permutation.
+    LF 맞댐을 따라 자리바꿈을 지나간다.
     """
     n = len(last_column)
 
-    # Build the first column by sorting
+    # 매겨서 첫 칸을 세운다
     first_column = sorted(range(n), key=lambda i: last_column[i])
 
-    # Build LF-mapping
+    # LF 맞댐을 세운다
     lf = [0] * n
     for new_pos, old_pos in enumerate(first_column):
         lf[old_pos] = new_pos
 
-    # Reconstruct by following LF-mapping
+    # LF 맞댐을 따라가며 다시 세운다
     result = []
     idx = original_index
     for _ in range(n):
         result.append(last_column[idx])
         idx = lf[idx]
 
-    # Remove sentinel and reverse (we collected in reverse order)
+    # 끝 표시를 없앤다(거꾸로 모았다)
     return "".join(result).rstrip("$")
 
 
-# === Main ====================================================================
+# === 메인 ====================================================================
 
 if __name__ == "__main__":
     original = "banana"
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     print(f"Match    : {original == decoded}")
 ```
 
-**Output:**
+**출력:**
 ```
 Original : banana
 BWT      : annb$aa  (row index = 4)
@@ -151,61 +151,61 @@ Decoded  : banana
 Match    : True
 ```
 
-## BWT in the Compression Pipeline
+## 옥죄기 흐름 속의 BWT
 
-In practice, BWT is never used alone.  The standard bzip2 pipeline combines several stages:
+실제로 BWT를 홀로 쓰는 일은 없다. 여느 bzip2 흐름은 여러 마디를 엮는다.
 
-1. **BWT** -- rearranges the input to cluster similar characters.
-2. **Move-to-front (MTF) coding** -- converts the clustered output into a sequence dominated by small integers (many zeros).
-3. **Run-length encoding** -- compresses the runs of zeros.
-4. **Huffman coding** -- encodes the remaining symbols optimally.
+1. **BWT** -- 들임을 다시 늘어놓아 비슷한 글자를 한데 모은다.
+2. **앞으로 옮기기(MTF) 부호** -- 한데 모인 결과를 작은 정수(0이 많다)가 판치는 열로 바꾼다.
+3. **이어짐 길이 엮기** -- 0이 이어지는 곳을 옥죈다.
+4. **허프먼 부호** -- 남은 글자를 가장 좋게 엮는다.
 
-This combination achieves compression ratios competitive with PPM and LZMA on many data types, while maintaining reasonable encoding and decoding speed.
+이 어우름은 여러 갈래 자료에서 PPM과 LZMA에 뒤지지 않는 옥죄기 비를 이루면서도 엮고 푸는 빠르기를 알맞게 지킨다.
 
-!!! tip "Connection to suffix arrays"
-    Computing the BWT via suffix arrays (as in the SA-IS algorithm) reduces the forward transform to $O(n)$ time and $O(n)$ space, making it practical for large inputs.  The suffix array of $s$ directly gives the sorted order of rotations, and the last column is obtained by looking one position before each suffix start.
+!!! tip "뒷가지 배열과의 이음"
+    (SA-IS 알고리즘처럼) 뒷가지 배열로 BWT를 셈하면 앞으로 가는 옮김이 $O(n)$ 때와 $O(n)$ 자리로 줄어 큰 들임에도 쓸 수 있다. $s$의 뒷가지 배열이 돌림 갈래의 매긴 차례를 곧바로 주고, 마지막 칸은 뒷가지가 시작하는 자리의 한 칸 앞을 보아 얻는다.
 
-## Reference
+## 참고 문헌
 
 - [A Block-sorting Lossless Data Compression Algorithm (Burrows & Wheeler, 1994)](https://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-124.html)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Compute the BWT of the string "banana\$". List all rotations, sort them lexicographically, and extract the last column.
+**연습문제 1.**
+글자열 "banana\$"의 BWT를 셈하여라. 온 돌림 갈래를 적고 사전 차례로 매긴 뒤 마지막 칸을 뽑아내어라.
 
-??? success "Solution to Exercise 1"
-    The 7 rotations of "banana\$" are: banana\$, anana\$b, nana\$ba, ana\$ban, na\$bana, a\$banan, \$banana. Sorted lexicographically: \$banana, a\$banan, ana\$ban, anana\$b, banana\$, na\$bana, nana\$ba. The last column (BWT output) is: a, n, b, \$, a, a, n, giving "annb\$aa". The original string index is 3 (position of \$ in the last column, 0-indexed). The BWT clusters the characters by context: the three 'a's and two 'n's appear together, creating runs that compress well with RLE. $\square$
-
----
-
-**Exercise 2.**
-Explain why the BWT tends to group identical characters together. What property of the rotation sort causes this clustering?
-
-??? success "Solution to Exercise 2"
-    The BWT's last column character at row $i$ is the character immediately preceding the first column character in the original string. Rows that sort adjacently have similar prefixes (since they are sorted lexicographically). Similar prefixes in the rotations correspond to similar right-contexts in the original string. Characters that appear before the same context (e.g., 'a' frequently precedes 'n' in English) cluster together in the last column. Formally, if two rotations share a long common prefix, they are adjacent in sorted order, and their last-column characters come from similar positions in the original string -- positions that share a right-context. This context-clustering is the key insight: BWT groups characters by their right-context, and in natural language, context determines character distribution strongly. $\square$
+??? success "연습문제 1 풀이"
+    "banana\$"의 돌림 갈래 7개는 banana\$, anana\$b, nana\$ba, ana\$ban, na\$bana, a\$banan, \$banana이다. 사전 차례로 매기면 \$banana, a\$banan, ana\$ban, anana\$b, banana\$, na\$bana, nana\$ba이다. 마지막 칸(BWT가 내놓는 것)은 a, n, b, \$, a, a, n이므로 "annb\$aa"이다. 처음 글자열의 번호는 3이다(마지막 칸에서 \$의 자리, 0부터 셈). BWT는 글자를 그 자리에 따라 한데 모은다. 'a' 셋과 'n' 둘이 함께 나타나 RLE로 잘 옥죄이는 이어짐을 이룬다. $\square$
 
 ---
 
-**Exercise 3.**
-Describe the inverse BWT algorithm. Given only the last column and the index of the original string's row, how do you recover the original string in $O(n)$ time?
+**연습문제 2.**
+BWT가 똑같은 글자를 한데 모으는 버릇이 있는 까닭을 풀어라. 돌림 갈래 매기기의 어떤 성질이 이 모임을 낳는가?
 
-??? success "Solution to Exercise 3"
-    Given the last column $L$ and the row index $r$ of the original string: (1) Sort $L$ to get the first column $F$ (since $F$ contains the same characters in sorted order). (2) Build the LF-mapping: for each occurrence of character $c$ in $L$, the $j$-th occurrence of $c$ in $L$ corresponds to the $j$-th occurrence of $c$ in $F$. (3) Starting at row $r$, repeatedly apply the LF-mapping: the character at position $r$ in $L$ is prepended to the output, and $r$ is updated to $\text{LF}(r)$. After $n$ steps, the original string is recovered (in reverse). Constructing $F$ takes $O(n)$ (counting sort). Building the LF-mapping takes $O(n)$ with a rank array. Each step of the traversal is $O(1)$, so the total is $O(n)$. $\square$
-
----
-
-**Exercise 4.**
-The BWT is used as a preprocessing step before move-to-front (MTF) encoding and then Huffman coding. Explain the role of each stage in the bzip2 pipeline and why the order matters.
-
-??? success "Solution to Exercise 4"
-    (1) **BWT**: rearranges the input so that characters from similar contexts are adjacent, creating long runs of identical or similar characters. It does not compress -- the output is the same size. (2) **MTF encoding**: replaces each character with its position in a recently-used list. Since the BWT output has long runs, consecutive characters are often the same, producing many 0s in the MTF output. Characters that are not the same but share a context produce small numbers. The MTF output is heavily skewed toward small values. (3) **Huffman (or arithmetic) coding**: assigns shorter codes to frequent symbols. The MTF output has many 0s and small values, so Huffman coding achieves high compression. The order matters: without BWT, the input has no special structure for MTF to exploit. Without MTF, the BWT output has runs but not the frequency skew that Huffman needs. Each stage prepares the data for the next. $\square$
+??? success "연습문제 2 풀이"
+    BWT에서 줄 $i$의 마지막 칸 글자는 처음 글자열에서 그 줄의 첫 칸 글자 바로 앞에 오는 글자다. 사전 차례로 매기므로 이웃해 놓인 줄은 앞가지가 비슷하다. 돌림 갈래의 비슷한 앞가지는 처음 글자열에서 비슷한 오른쪽 자리와 짝을 이룬다. 같은 자리 앞에 오는 글자(보기로 영어에서 'a'가 'n' 앞에 자주 온다)가 마지막 칸에서 한데 모인다. 엄밀히 말해 두 돌림 갈래가 긴 공통 앞가지를 지니면 매긴 차례에서 이웃하고, 그 마지막 칸 글자는 처음 글자열의 비슷한 자리, 곧 오른쪽 자리를 함께 나누는 자리에서 온다. 이 자리 모으기가 종요로운 눈길이다. BWT는 글자를 오른쪽 자리에 따라 묶는데, 사람 말에서는 자리가 글자 분포를 강하게 정한다. $\square$
 
 ---
 
-**Exercise 5.**
-Prove that the BWT is a reversible transformation: the last column plus the row index uniquely determines the original string.
+**연습문제 3.**
+되돌리는 BWT 알고리즘을 밝혀라. 마지막 칸과 처음 글자열이 놓인 줄 번호만으로 처음 글자열을 $O(n)$ 때에 되찾는 길은 무엇인가?
 
-??? success "Solution to Exercise 5"
-    The last column $L$ and first column $F$ together define a permutation of the rotation matrix rows via the LF-mapping. The key property is: the $j$-th occurrence of character $c$ in $L$ and the $j$-th occurrence of $c$ in $F$ correspond to the same rotation. This holds because sorting the rotations preserves the relative order of rotations starting with the same character, and the last column character of row $i$ is the first column character of some row $\sigma(i)$ -- the LF-mapping. Starting from row $r$ (the original string), each application of $\text{LF}$ produces the next character of the original string. Since the rotation matrix is a permutation, the LF-mapping is a bijection on $\{0, \ldots, n-1\}$, and iterating it for $n$ steps cycles back to $r$, recovering all $n$ characters. Therefore, $(L, r)$ uniquely determines the original string. $\square$
+??? success "연습문제 3 풀이"
+    마지막 칸 $L$과 처음 글자열의 줄 번호 $r$이 주어졌을 때: (1) $L$을 매겨 첫 칸 $F$을 얻는다($F$은 같은 글자를 매긴 차례로 담기 때문이다). (2) LF 맞댐을 세운다. $L$에서 글자 $c$의 $j$번째 나옴은 $F$에서 $c$의 $j$번째 나옴과 짝을 이룬다. (3) 줄 $r$에서 시작해 LF 맞댐을 되풀이 매긴다. $L$의 자리 $r$의 글자를 내놓기 앞에 붙이고 $r$을 $\text{LF}(r)$으로 고친다. $n$걸음 뒤에 처음 글자열이 (거꾸로) 되찾아진다. $F$을 세우는 데 (세는 매기기로) $O(n)$이 든다. LF 맞댐을 세우는 데 등수 배열로 $O(n)$이 든다. 훑는 걸음마다 $O(1)$이므로 온통 $O(n)$이다. $\square$
+
+---
+
+**연습문제 4.**
+BWT는 앞으로 옮기기(MTF) 엮기와 허프먼 부호 앞의 미리 다듬는 걸음으로 쓰인다. bzip2 흐름에서 각 마디의 몫과 차례가 대수로운 까닭을 풀어라.
+
+??? success "연습문제 4 풀이"
+    (1) **BWT**: 비슷한 자리에서 온 글자가 이웃하도록 들임을 다시 늘어놓아, 똑같거나 비슷한 글자가 길게 이어지게 한다. 옥죄지는 않는다. 내놓는 것의 크기가 그대로다. (2) **MTF 엮기**: 글자마다 최근 쓴 목록에서의 자리로 갈음한다. BWT가 내놓은 것에 긴 이어짐이 있으므로 잇단 글자가 흔히 같고, 그래서 MTF 결과에 0이 많이 나온다. 같지는 않아도 자리를 함께 나누는 글자는 작은 수를 낳는다. MTF 결과는 작은 값 쪽으로 크게 쏠린다. (3) **허프먼(또는 산술) 부호**: 잦은 글자에 짧은 부호를 매긴다. MTF 결과에 0과 작은 값이 많으므로 허프먼이 높은 옥죄기를 이룬다. 차례가 대수로운 까닭은 이렇다. BWT가 없으면 들임에 MTF가 살릴 남다른 짜임이 없다. MTF가 없으면 BWT 결과에 이어짐은 있으나 허프먼이 바라는 잦기 쏠림이 없다. 마디마다 다음 마디를 위해 자료를 채비한다. $\square$
+
+---
+
+**연습문제 5.**
+BWT가 되돌릴 수 있는 옮김임을 증명하여라. 곧 마지막 칸과 줄 번호가 처음 글자열을 하나로 정함을 보여라.
+
+??? success "연습문제 5 풀이"
+    마지막 칸 $L$과 첫 칸 $F$은 LF 맞댐으로 돌림 행렬 줄의 자리바꿈을 함께 정한다. 종요로운 성질은 이렇다. $L$에서 글자 $c$의 $j$번째 나옴과 $F$에서 $c$의 $j$번째 나옴은 같은 돌림 갈래에 딸린다. 돌림 갈래를 매겨도 같은 글자로 시작하는 것들의 서로 간 차례가 지켜지고, 줄 $i$의 마지막 칸 글자가 어떤 줄 $\sigma(i)$의 첫 칸 글자이기 때문이다. 이 $\sigma$이 곧 LF 맞댐이다. (처음 글자열인) 줄 $r$에서 시작해 $\text{LF}$을 한 번 매길 때마다 처음 글자열의 다음 글자가 나온다. 돌림 행렬이 자리바꿈이므로 LF 맞댐은 $\{0, \ldots, n-1\}$ 위의 하나씩 맞댐이고, $n$걸음 되풀이하면 $r$으로 돌아오며 글자 $n$개를 모두 되찾는다. 따라서 $(L, r)$이 처음 글자열을 하나로 정한다. $\square$
