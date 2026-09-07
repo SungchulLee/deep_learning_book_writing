@@ -1,15 +1,15 @@
-# Neural Architecture Search
-## Overview
+# 신경 얼개 찾기
+## 두루 보기
 
-Neural Architecture Search (NAS) automates the design of neural network architectures, replacing manual architecture engineering with algorithmic optimization. NAS discovers architectures that are often more efficient than human-designed networks, making it a powerful tool for model compression and deployment optimization.
+신경 얼개 찾기(NAS)은 신경 그물 얼개를 꾸미는 일을 저절로 하게 하여, 손으로 하던 얼개 다듬기를 알고리즘의 가장 좋게 하기로 갈음한다. NAS은 사람이 꾸민 그물보다 잘 드는 얼개를 찾아내는 일이 잦아, 모형 눌러 담기와 내놓기 다듬기의 든든한 연장이 된다.
 
-## Motivation
+## 왜 하는가
 
-Hand-designed architectures involve countless design decisions: number of layers, layer widths, kernel sizes, skip connections, activation functions, and normalization strategies. NAS systematically explores this space to find architectures optimized for specific objectives such as accuracy, latency, or model size.
+손으로 꾸민 얼개에는 켜의 수, 켜의 너비, 알갱이 크기, 건너뛰는 이음, 살림 함수, 잣대 잡기 꾀 같은 헤아릴 수 없이 많은 고름이 든다. NAS은 이 밭을 짜임새 있게 둘러보며 맞음, 늦음, 모형 크기 같은 목표에 맞게 다듬은 얼개를 찾는다.
 
-## Search Space Design
+## 찾을 밭 꾸미기
 
-### Common Search Spaces
+### 흔한 찾을 밭
 
 ```python
 import torch
@@ -17,7 +17,7 @@ import torch.nn as nn
 from typing import List, Dict, Optional, Tuple
 import random
 
-# Define operation candidates for each layer
+# 켜마다 고를 셈의 후보를 매긴다
 OPERATIONS = {
     'conv_3x3': lambda C: nn.Conv2d(C, C, 3, padding=1),
     'conv_5x5': lambda C: nn.Conv2d(C, C, 5, padding=2),
@@ -33,7 +33,7 @@ OPERATIONS = {
 }
 
 class Zero(nn.Module):
-    """Zero operation for NAS (output zeros)."""
+    """NAS의 0 셈(0을 낸다)."""
     def __init__(self, channels):
         super().__init__()
         self.channels = channels
@@ -42,40 +42,40 @@ class Zero(nn.Module):
         return torch.zeros_like(x)
 ```
 
-### One-Shot NAS with Weight Sharing
+### 짐을 나눠 쓰는 한 번 찾기 NAS
 
 ```python
 class SearchCell(nn.Module):
-    """NAS cell with differentiable architecture parameters."""
+    """미분할 수 있는 얼개 매개변수를 지닌 NAS 칸."""
     
     def __init__(self, channels: int, operations: Dict):
         super().__init__()
         self.ops = nn.ModuleDict({
             name: op_fn(channels) for name, op_fn in operations.items()
         })
-        # Architecture parameters (learnable)
+        # 얼개 매개변수(배울 수 있다)
         self.alphas = nn.Parameter(
             torch.randn(len(operations)) * 0.01
         )
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Softmax over architecture parameters
+        # 얼개 매개변수에 소프트맥스
         weights = torch.softmax(self.alphas, dim=0)
         
-        # Weighted sum of all operations
+        # 모든 셈의 짐 준 합
         output = sum(
             w * op(x) for w, (name, op) in zip(weights, self.ops.items())
         )
         return output
     
     def get_best_op(self) -> str:
-        """Return the operation with highest weight."""
+        """짐이 가장 큰 셈을 돌려준다."""
         idx = self.alphas.argmax().item()
         return list(self.ops.keys())[idx]
 
 
 class DARTSNetwork(nn.Module):
-    """DARTS-style differentiable NAS."""
+    """DARTS 결의 미분할 수 있는 NAS."""
     
     def __init__(self, num_cells: int = 8, channels: int = 16,
                  num_classes: int = 10):
@@ -102,26 +102,26 @@ class DARTSNetwork(nn.Module):
         return self.classifier(x)
     
     def architecture_parameters(self):
-        """Return architecture parameters for separate optimization."""
+        """따로 가장 좋게 할 얼개 매개변수를 돌려준다."""
         return [cell.alphas for cell in self.cells]
     
     def weight_parameters(self):
-        """Return weight parameters (excluding architecture params)."""
+        """짐 매개변수를 돌려준다(얼개 매개변수는 뺀다)."""
         arch_params = set(id(p) for p in self.architecture_parameters())
         return [p for p in self.parameters() if id(p) not in arch_params]
     
     def derive_architecture(self) -> List[str]:
-        """Extract the discovered architecture."""
+        """찾아낸 얼개를 뽑아낸다."""
         return [cell.get_best_op() for cell in self.cells]
 ```
 
-## Hardware-Aware NAS
+## 쇠 붙임새를 아는 NAS
 
-Incorporate hardware constraints (latency, memory) into the search objective:
+쇠 붙임새의 옭아맴(늦음, 기억)을 찾기 목표에 넣는다.
 
 ```python
 class LatencyPredictor:
-    """Predict inference latency for architecture candidates."""
+    """후보 얼개의 미루어 봄 늦음을 미리 본다."""
     
     def __init__(self, device='cpu'):
         self.device = device
@@ -129,17 +129,17 @@ class LatencyPredictor:
     
     def measure_latency(self, module: nn.Module, input_shape: Tuple,
                        num_runs: int = 100) -> float:
-        """Measure actual inference latency."""
+        """참 미루어 봄 늦음을 잰다."""
         import time
         x = torch.randn(1, *input_shape).to(self.device)
         module = module.to(self.device).eval()
         
-        # Warmup
+        # 몸풀기
         with torch.no_grad():
             for _ in range(10):
                 module(x)
         
-        # Measure
+        # 잰다
         times = []
         with torch.no_grad():
             for _ in range(num_runs):
@@ -153,13 +153,13 @@ class LatencyPredictor:
 def hardware_aware_loss(logits, targets, architecture_params,
                        latency_predictor, target_latency_ms=10.0,
                        lambda_latency=0.1):
-    """Combined loss: accuracy + latency penalty."""
+    """아우른 잃음: 맞음 + 늦음 벌."""
     import torch.nn.functional as F
     
-    # Task loss
+    # 일 잃음
     task_loss = F.cross_entropy(logits, targets)
     
-    # Latency penalty (differentiable approximation)
+    # 늦음 벌(미분할 수 있는 어림)
     predicted_latency = sum(
         torch.softmax(alpha, dim=0).sum() for alpha in architecture_params
     )
@@ -168,85 +168,85 @@ def hardware_aware_loss(logits, targets, architecture_params,
     return task_loss + lambda_latency * latency_penalty
 ```
 
-## Low-Rank Factorization as Architecture Optimization
+## 얼개 다듬기로서의 낮은 자리 쪼개기
 
-Low-rank factorization can be viewed as an architecture transformation that replaces large layers with smaller equivalents. This connects NAS with matrix decomposition approaches:
+낮은 자리 쪼개기는 큰 켜를 같은 일을 하는 작은 켜로 갈음하는 얼개 바꿈으로 볼 수 있다. 이로써 NAS과 행렬 쪼개기가 이어진다.
 
-# Low-Rank Factorization
+# 낮은 자리 쪼개기
 
-## Overview
+## 두루 보기
 
-Low-rank factorization compresses neural networks by decomposing weight matrices into products of smaller matrices, exploiting the observation that trained weight matrices often have low effective rank. This reduces both storage requirements and computational cost while preserving most of the model's representational capacity.
+낮은 자리 쪼개기는 짐 행렬을 더 작은 행렬들의 곱으로 갈라 신경 그물을 눌러 담는다. 익힌 짐 행렬은 참으로 쓰이는 자리가 낮은 일이 잦다는 살핌을 쓴 것이다. 이로써 모형이 드러내는 힘은 거의 지키면서 담는 자리와 셈 값을 함께 줄인다.
 
-## Mathematical Foundation
+## 수학 밑바탕
 
-### Matrix Rank and Approximation
+### 행렬의 자리와 어림
 
-A matrix $\mathbf{W} \in \mathbb{R}^{m \times n}$ can be approximated by a low-rank factorization:
+행렬 $\mathbf{W} \in \mathbb{R}^{m \times n}$은 낮은 자리 쪼개기로 어림할 수 있다.
 
 $$\mathbf{W} \approx \mathbf{U}\mathbf{V}^T$$
 
-where:
+여기서
 
 - $\mathbf{U} \in \mathbb{R}^{m \times r}$
 - $\mathbf{V} \in \mathbb{R}^{n \times r}$
-- $r \ll \min(m, n)$ is the rank
+- $r \ll \min(m, n)$은 자리
 
-**Parameter reduction:**
+**매개변수 줄어듦:**
 
-- Original: $m \times n$ parameters
-- Factorized: $m \times r + n \times r = r(m + n)$ parameters
-- Reduction factor: $\frac{mn}{r(m+n)}$
+- 본디: 매개변수 $m \times n$개
+- 쪼갠 뒤: 매개변수 $m \times r + n \times r = r(m + n)$개
+- 줄어드는 값: $\frac{mn}{r(m+n)}$
 
-### Singular Value Decomposition (SVD)
+### 특잇값 쪼개기(SVD)
 
-For a weight matrix $\mathbf{W} \in \mathbb{R}^{m \times n}$ with rank $r$, the Singular Value Decomposition (SVD) gives:
+자리가 $r$인 짐 행렬 $\mathbf{W} \in \mathbb{R}^{m \times n}$에서 특잇값 쪼개기(SVD)는 다음을 준다.
 
 $$\mathbf{W} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^T$$
 
-where:
+여기서
 
-- $\mathbf{U} \in \mathbb{R}^{m \times m}$ contains left singular vectors (orthonormal)
-- $\mathbf{\Sigma} \in \mathbb{R}^{m \times n}$ contains singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_r > 0$
-- $\mathbf{V} \in \mathbb{R}^{n \times n}$ contains right singular vectors (orthonormal)
+- $\mathbf{U} \in \mathbb{R}^{m \times m}$은 왼쪽 특이 벡터를 담는다(서로 곧고 길이가 1)
+- $\mathbf{\Sigma} \in \mathbb{R}^{m \times n}$은 특잇값 $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_r > 0$을 담는다
+- $\mathbf{V} \in \mathbb{R}^{n \times n}$은 오른쪽 특이 벡터를 담는다(서로 곧고 길이가 1)
 
-### Truncated SVD (Low-Rank Approximation)
+### 잘라 낸 SVD(낮은 자리 어림)
 
-The best rank-$k$ approximation (in Frobenius norm) is obtained by keeping only the top $k$ singular values:
+(프로베니우스 노름에서) 가장 좋은 자리 $k$의 어림은 으뜸 특잇값 $k$개만 남겨 얻는다.
 
 $$\mathbf{W}_k = \mathbf{U}_k \mathbf{\Sigma}_k \mathbf{V}_k^T$$
 
-where $\mathbf{U}_k \in \mathbb{R}^{m \times k}$, $\mathbf{\Sigma}_k \in \mathbb{R}^{k \times k}$, $\mathbf{V}_k \in \mathbb{R}^{n \times k}$.
+여기서 $\mathbf{U}_k \in \mathbb{R}^{m \times k}$, $\mathbf{\Sigma}_k \in \mathbb{R}^{k \times k}$, $\mathbf{V}_k \in \mathbb{R}^{n \times k}$이다.
 
-**Eckart-Young-Mirsky Theorem:**
+**에카르트-영-미르스키 정리:**
 
 $$\mathbf{W}_k = \arg\min_{\text{rank}(\mathbf{A}) \leq k} \|\mathbf{W} - \mathbf{A}\|_F$$
 
-**Approximation error:**
+**어림 어긋남:**
 
 $$\|\mathbf{W} - \mathbf{W}_k\|_F = \sqrt{\sum_{i=k+1}^{r} \sigma_i^2}$$
 
-### Compression Ratio
+### 눌러 담은 견줌
 
-**Original storage:** $mn$ parameters
+**본디 자리:** 매개변수 $mn$개
 
-**Factorized storage:** $mk + k + kn = k(m + n + 1) \approx k(m + n)$
+**쪼갠 뒤 자리:** $mk + k + kn = k(m + n + 1) \approx k(m + n)$
 
-**Compression ratio:**
+**눌러 담은 견줌:**
 
 $$\rho = \frac{mn}{k(m + n)}$$
 
-For compression, we need $k < \frac{mn}{m + n}$.
+눌러 담으려면 $k < \frac{mn}{m + n}$이어야 한다.
 
-**Example:** For $\mathbf{W} \in \mathbb{R}^{1024 \times 1024}$:
+**보기:** $\mathbf{W} \in \mathbb{R}^{1024 \times 1024}$에서
 
-- Original: 1,048,576 parameters
-- With $k = 64$: 131,136 parameters (8× compression)
-- With $k = 128$: 262,272 parameters (4× compression)
+- 본디: 매개변수 1,048,576개
+- $k = 64$이면: 매개변수 131,136개(8배 눌러 담음)
+- $k = 128$이면: 매개변수 262,272개(4배 눌러 담음)
 
-## Factorizing Linear Layers
+## 선형 켜 쪼개기
 
-### Basic SVD Decomposition
+### 밑바탕 SVD 쪼개기
 
 ```python
 import torch
@@ -257,41 +257,41 @@ from typing import Tuple, Dict, List
 def svd_decomposition(weight: torch.Tensor, 
                       rank: int) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    Decompose weight matrix using truncated SVD.
+    잘라 낸 SVD으로 짐 행렬을 쪼갠다.
     
     Args:
-        weight: Weight matrix to decompose (m x n)
-        rank: Target rank for decomposition
+        weight: 쪼갤 짐 행렬 (m x n)
+        rank: 쪼갤 과녁 자리
         
     Returns:
-        U, V: Factor matrices such that weight ≈ U @ V.T
+        U, V: weight ≈ U @ V.T이 되는 쪼갠 행렬
     """
-    # Perform SVD
+    # SVD을 한다
     U, S, Vh = torch.linalg.svd(weight, full_matrices=False)
     
-    # Truncate to target rank
+    # 과녁 자리로 잘라 낸다
     U_r = U[:, :rank]
     S_r = S[:rank]
     V_r = Vh[:rank, :]
     
-    # Absorb singular values into U
+    # 특잇값을 U에 녹여 넣는다
     U_scaled = U_r * S_r.unsqueeze(0)
     
-    # Reconstruction: weight ≈ U_scaled @ V_r
+    # 되살림: weight ≈ U_scaled @ V_r
     return U_scaled, V_r.T
 
 
 def compute_reconstruction_error(original: torch.Tensor, 
                                  reconstructed: torch.Tensor) -> float:
-    """Compute relative reconstruction error."""
+    """견준 되살림 어긋남을 셈한다."""
     error = torch.norm(original - reconstructed) / torch.norm(original)
     return error.item()
 
 
-# Example: Analyze compression vs error tradeoff
+# 보기: 눌러 담음과 어긋남의 맞바꿈을 살핀다
 def analyze_rank_tradeoff(W: torch.Tensor):
-    """Analyze error and compression at various ranks."""
-    print("Rank Analysis:")
+    """자리마다 어긋남과 눌러 담음을 살핀다."""
+    print("자리 살피기:")
     print("-" * 60)
     
     for rank in [16, 32, 64, 128]:
@@ -303,19 +303,19 @@ def analyze_rank_tradeoff(W: torch.Tensor):
         factored_params = U.numel() + V.numel()
         compression = original_params / factored_params
         
-        print(f"Rank {rank:3d}: Error={error:.4f}, "
-              f"Compression={compression:.2f}x")
+        print(f"자리 {rank:3d}: 어긋남={error:.4f}, "
+              f"눌러 담음={compression:.2f}배")
 ```
 
-### FactorizedLinear Layer
+### FactorizedLinear 켜
 
 ```python
 class FactorizedLinear(nn.Module):
     """
-    Linear layer decomposed into two smaller layers.
+    더 작은 켜 둘로 쪼갠 선형 켜.
     
-    Original: y = Wx + b  (W is m x n)
-    Factored: y = U(Vx) + b  (U is m x r, V is r x n)
+    본디: y = Wx + b  (W은 m x n)
+    쪼갠 뒤: y = U(Vx) + b  (U은 m x r, V은 r x n)
     """
     
     def __init__(self, in_features: int, out_features: int, 
@@ -326,14 +326,14 @@ class FactorizedLinear(nn.Module):
         self.out_features = out_features
         self.rank = rank
         
-        # Factored layers
+        # 쪼갠 켜
         self.V = nn.Linear(in_features, rank, bias=False)
         self.U = nn.Linear(rank, out_features, bias=bias)
         
         self._initialize_weights()
     
     def _initialize_weights(self):
-        """Initialize to approximate identity mapping scaled down."""
+        """잣대를 줄인 제 자리 옮김에 가깝게 첫자리를 잡는다."""
         nn.init.xavier_uniform_(self.V.weight)
         nn.init.xavier_uniform_(self.U.weight)
     
@@ -343,21 +343,21 @@ class FactorizedLinear(nn.Module):
     @classmethod
     def from_linear(cls, linear_layer: nn.Linear, rank: int) -> 'FactorizedLinear':
         """
-        Create factorized layer from existing linear layer.
+        이미 있는 선형 켜에서 쪼갠 켜를 만든다.
         
-        Uses SVD to find optimal factorization.
+        SVD으로 가장 좋은 쪼갬을 찾는다.
         """
         W = linear_layer.weight.data
         b = linear_layer.bias.data if linear_layer.bias is not None else None
         
-        # SVD decomposition
+        # SVD 쪼개기
         U, S, Vh = torch.linalg.svd(W, full_matrices=False)
         
-        # Truncate and distribute singular values evenly
+        # 잘라 내고 특잇값을 고르게 나눈다
         U_r = U[:, :rank] * S[:rank].sqrt().unsqueeze(0)
         V_r = Vh[:rank, :] * S[:rank].sqrt().unsqueeze(1)
         
-        # Create factorized layer
+        # 쪼갠 켜를 만든다
         factorized = cls(
             linear_layer.in_features,
             linear_layer.out_features,
@@ -376,37 +376,37 @@ class FactorizedLinear(nn.Module):
 def svd_decompose_linear(layer: nn.Linear,
                          rank: int) -> Tuple[nn.Linear, nn.Linear]:
     """
-    Decompose a Linear layer using truncated SVD.
+    잘라 낸 SVD으로 선형 켜를 쪼갠다.
     
     W ≈ U_k * Σ_k * V_k^T = A * B
     
-    Original: y = Wx + b
-    Decomposed: y = A(Bx) + b
+    본디: y = Wx + b
+    쪼갠 뒤: y = A(Bx) + b
     
     Args:
-        layer: Linear layer to decompose
-        rank: Target rank for approximation
+        layer: 쪼갤 선형 켜
+        rank: 어림할 과녁 자리
         
     Returns:
-        Two Linear layers (first, second) where output = second(first(x))
+        output = second(first(x))이 되는 선형 켜 둘(first, second)
     """
     W = layer.weight.data  # (out_features, in_features)
     b = layer.bias.data if layer.bias is not None else None
     
-    # SVD decomposition
+    # SVD 쪼개기
     U, S, Vh = torch.linalg.svd(W, full_matrices=False)
     
-    # Truncate to rank k
+    # 자리 k으로 잘라 낸다
     U_k = U[:, :rank]  # (out_features, rank)
     S_k = S[:rank]     # (rank,)
     V_k = Vh[:rank, :]  # (rank, in_features)
     
-    # Create factorized layers
-    # First layer: x -> intermediate (rank dimensions)
+    # 쪼갠 켜를 만든다
+    # 첫 켜: x -> 가운데(자리 차수)
     first = nn.Linear(layer.in_features, rank, bias=False)
     first.weight.data = V_k  # (rank, in_features)
     
-    # Second layer: intermediate -> output
+    # 둘째 켜: 가운데 -> 날임
     second = nn.Linear(rank, layer.out_features, bias=b is not None)
     second.weight.data = U_k @ torch.diag(S_k)  # (out_features, rank)
     if b is not None:
@@ -415,28 +415,28 @@ def svd_decompose_linear(layer: nn.Linear,
     return first, second
 ```
 
-## Factorizing Convolutional Layers
+## 엮음 켜 쪼개기
 
-### Spatial Decomposition (Separable Convolutions)
+### 자리로 쪼개기(가를 수 있는 엮음)
 
-Decompose $k \times k$ convolution into $1 \times k$ and $k \times 1$ convolutions:
+$k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
 
 ```python
 class SeparableConv2d(nn.Module):
     """
-    Spatially separable convolution.
+    자리로 가를 수 있는 엮음.
     
-    Replaces k×k convolution with 1×k followed by k×1.
+    k×k 엮음을 1×k 다음 k×1으로 갈음한다.
     
-    Original: O(C_in × C_out × k × k × H × W)
-    Separable: O(C_in × C_out × 2k × H × W)
+    본디: O(C_in × C_out × k × k × H × W)
+    가른 뒤: O(C_in × C_out × 2k × H × W)
     """
     
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int, 
                  stride: int = 1, padding: int = 0, bias: bool = True):
         super().__init__()
         
-        # 1×k convolution
+        # 1×k 엮음
         self.conv_h = nn.Conv2d(
             in_channels, out_channels, 
             kernel_size=(1, kernel_size),
@@ -445,7 +445,7 @@ class SeparableConv2d(nn.Module):
             bias=False
         )
         
-        # k×1 convolution
+        # k×1 엮음
         self.conv_v = nn.Conv2d(
             out_channels, out_channels,
             kernel_size=(kernel_size, 1),
@@ -460,36 +460,36 @@ class SeparableConv2d(nn.Module):
         return x
 ```
 
-### Depthwise Separable Convolution (MobileNet Style)
+### 깊이별로 가른 엮음(MobileNet 결)
 
-Separate spatial and channel mixing:
+자리 섞기와 갈래 섞기를 나눈다.
 
 ```python
 class DepthwiseSeparableConv2d(nn.Module):
     """
-    Depthwise separable convolution (MobileNet style).
+    깊이별로 가른 엮음(MobileNet 결).
     
-    1. Depthwise: One k×k filter per input channel
-    2. Pointwise: 1×1 convolution to mix channels
+    1. 깊이별: 들임 갈래마다 k×k 거르개 하나
+    2. 점별: 갈래를 섞는 1×1 엮음
     
-    Computation reduction: k²/(k² + C_out) ≈ 1/k² for large C_out
+    셈 줄어듦: C_out이 크면 k²/(k² + C_out) ≈ 1/k²
     """
     
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int,
                  stride: int = 1, padding: int = 0, bias: bool = True):
         super().__init__()
         
-        # Depthwise convolution (groups=in_channels)
+        # 깊이별 엮음(groups=in_channels)
         self.depthwise = nn.Conv2d(
             in_channels, in_channels,
             kernel_size=kernel_size,
             stride=stride,
             padding=padding,
-            groups=in_channels,  # Key: separate filter per channel
+            groups=in_channels,  # 고갱이: 갈래마다 따로 거르개
             bias=False
         )
         
-        # Pointwise convolution (1×1)
+        # 점별 엮음(1×1)
         self.pointwise = nn.Conv2d(
             in_channels, out_channels,
             kernel_size=1,
@@ -502,7 +502,7 @@ class DepthwiseSeparableConv2d(nn.Module):
         return x
 
 
-# Compare parameters
+# 매개변수를 견준다
 def compare_conv_variants():
     in_ch, out_ch, kernel = 64, 128, 3
     
@@ -512,38 +512,38 @@ def compare_conv_variants():
     std_params = sum(p.numel() for p in standard.parameters())
     sep_params = sum(p.numel() for p in separable.parameters())
     
-    print(f"Standard Conv: {std_params:,} parameters")
-    print(f"Depthwise Separable: {sep_params:,} parameters")
-    print(f"Reduction: {std_params/sep_params:.1f}x")
+    print(f"여느 엮음: 매개변수 {std_params:,}개")
+    print(f"깊이별로 가른 엮음: 매개변수 {sep_params:,}개")
+    print(f"줄어듦: {std_params/sep_params:.1f}배")
 ```
 
-### Channel-wise SVD Decomposition
+### 갈래별 SVD 쪼개기
 
 ```python
 def decompose_conv_channel(conv: nn.Conv2d,
                            rank: int) -> nn.Sequential:
     """
-    Decompose Conv2d using channel-wise factorization.
+    갈래별 쪼개기로 Conv2d을 쪼갠다.
     
-    Original: C_in -> C_out with k×k kernel
-    Decomposed:
-    1. C_in -> rank with k×k kernel
-    2. rank -> C_out with 1×1 kernel (pointwise)
+    본디: k×k 알갱이로 C_in -> C_out
+    쪼갠 뒤:
+    1. k×k 알갱이로 C_in -> rank
+    2. 1×1 알갱이로 rank -> C_out(점별)
     """
     W = conv.weight.data  # (C_out, C_in, k_h, k_w)
     
-    # Reshape to (C_out, C_in * k_h * k_w)
+    # (C_out, C_in * k_h * k_w) 꼴로 바꾼다
     W_mat = W.view(conv.out_channels, -1)
     
-    # Apply SVD
+    # SVD을 건다
     U, S, Vh = torch.linalg.svd(W_mat, full_matrices=False)
     
-    # Truncate
+    # 잘라 낸다
     U_k = U[:, :rank]  # (C_out, rank)
     S_k = S[:rank]
     Vh_k = Vh[:rank, :]  # (rank, C_in * k_h * k_w)
     
-    # Create factorized convolutions
+    # 쪼갠 엮음을 만든다
     conv1 = nn.Conv2d(
         conv.in_channels, rank,
         kernel_size=conv.kernel_size,
@@ -566,21 +566,21 @@ def decompose_conv_channel(conv: nn.Conv2d,
     return nn.Sequential(conv1, conv2)
 ```
 
-### Tucker Decomposition
+### 터커 쪼개기
 
-For higher-order tensors, Tucker decomposition provides a generalized low-rank approximation:
+차수가 높은 텐서에서는 터커 쪼개기가 두루 쓰이는 낮은 자리 어림을 준다.
 
 $$\mathcal{K} \approx \mathcal{G} \times_1 \mathbf{U}^{(1)} \times_2 \mathbf{U}^{(2)} \times_3 \mathbf{U}^{(3)} \times_4 \mathbf{U}^{(4)}$$
 
 ```python
 class TuckerConv2d(nn.Module):
     """
-    Tucker decomposition for convolutional layers.
+    엮음 켜의 터커 쪼개기.
     
-    Decomposes C_in × C_out × k × k into:
-    1. 1×1 conv: C_in → r_in (compress input channels)
-    2. r_in × r_out × k × k conv (smaller core)
-    3. 1×1 conv: r_out → C_out (expand output channels)
+    C_in × C_out × k × k을 다음으로 쪼갠다:
+    1. 1×1 엮음: C_in → r_in(들임 갈래를 눌러 담는다)
+    2. r_in × r_out × k × k 엮음(더 작은 알맹이)
+    3. 1×1 엮음: r_out → C_out(날임 갈래를 넓힌다)
     """
     
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int,
@@ -588,16 +588,16 @@ class TuckerConv2d(nn.Module):
                  padding: int = 0, bias: bool = True):
         super().__init__()
         
-        # Compress input channels
+        # 들임 갈래를 눌러 담는다
         self.compress = nn.Conv2d(in_channels, rank_in, 1, bias=False)
         
-        # Core convolution (reduced rank)
+        # 알맹이 엮음(자리를 줄임)
         self.core = nn.Conv2d(
             rank_in, rank_out, kernel_size,
             stride=stride, padding=padding, bias=False
         )
         
-        # Expand output channels
+        # 날임 갈래를 넓힌다
         self.expand = nn.Conv2d(rank_out, out_channels, 1, bias=bias)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -610,19 +610,19 @@ class TuckerConv2d(nn.Module):
 def tucker_decompose_conv(conv: nn.Conv2d,
                           ranks: Tuple[int, int]) -> nn.Sequential:
     """
-    Tucker decomposition for Conv2d layers using tensorly.
+    tensorly으로 하는 Conv2d 켜의 터커 쪼개기.
     
-    Decomposes into three convolutions:
-    1. 1x1 conv: C_in -> rank[1]
-    2. kxk conv: rank[1] -> rank[0]
-    3. 1x1 conv: rank[0] -> C_out
+    엮음 셋으로 쪼갠다:
+    1. 1x1 엮음: C_in -> rank[1]
+    2. kxk 엮음: rank[1] -> rank[0]
+    3. 1x1 엮음: rank[0] -> C_out
     """
     try:
         import tensorly as tl
         from tensorly.decomposition import partial_tucker
         tl.set_backend('pytorch')
     except ImportError:
-        raise ImportError("Tucker decomposition requires tensorly: pip install tensorly")
+        raise ImportError("터커 쪼개기에는 tensorly이 있어야 한다: pip install tensorly")
     
     W = conv.weight.data
     core, factors = partial_tucker(W, modes=[0, 1], rank=ranks, init='svd')
@@ -643,31 +643,31 @@ def tucker_decompose_conv(conv: nn.Conv2d,
     return nn.Sequential(conv_input, conv_spatial, conv_output)
 ```
 
-## Automatic Rank Selection
+## 자리 절로 고르기
 
-### Energy-Based Selection
+### 힘에 기댄 고르기
 
 ```python
 def select_rank_by_energy(weight: torch.Tensor,
                           energy_threshold: float = 0.95) -> int:
     """
-    Select rank that preserves given fraction of energy (squared Frobenius norm).
+    주어진 몫의 힘(프로베니우스 노름 제곱)을 지키는 자리를 고른다.
     
     Args:
-        weight: Weight matrix
-        energy_threshold: Fraction of energy to preserve (0.95 = 95%)
+        weight: 짐 행렬
+        energy_threshold: 지킬 힘의 몫(0.95 = 95%)
         
     Returns:
-        Optimal rank
+        가장 좋은 자리
     """
     _, S, _ = torch.linalg.svd(weight.view(weight.size(0), -1), 
                                full_matrices=False)
     
-    # Compute cumulative energy
+    # 쌓인 힘을 셈한다
     total_energy = (S ** 2).sum()
     cumulative_energy = (S ** 2).cumsum(0) / total_energy
     
-    # Find rank that achieves threshold
+    # 문턱을 이루는 자리를 찾는다
     rank = (cumulative_energy < energy_threshold).sum().item() + 1
     
     return rank
@@ -675,17 +675,17 @@ def select_rank_by_energy(weight: torch.Tensor,
 
 def analyze_singular_values(weight: torch.Tensor) -> Dict:
     """
-    Analyze singular value distribution to determine optimal rank.
+    특잇값의 분포를 살펴 가장 좋은 자리를 정한다.
     """
     _, S, _ = torch.linalg.svd(weight.view(weight.size(0), -1), 
                                full_matrices=False)
     S = S.cpu().numpy()
     
-    # Cumulative energy (explained variance)
+    # 쌓인 힘(설명한 흩어짐)
     total_energy = (S ** 2).sum()
     cumulative_energy = (S ** 2).cumsum() / total_energy
     
-    # Find rank for various energy thresholds
+    # 힘 문턱마다의 자리를 찾는다
     thresholds = [0.9, 0.95, 0.99, 0.999]
     ranks_for_threshold = {}
     for thresh in thresholds:
@@ -703,7 +703,7 @@ def analyze_singular_values(weight: torch.Tensor) -> Dict:
 
 def analyze_layer_ranks(model: nn.Module) -> List[Dict]:
     """
-    Analyze effective ranks of all layers in a model.
+    모형에 든 켜 모두의 참으로 쓰이는 자리를 살핀다.
     """
     results = []
     
@@ -712,7 +712,7 @@ def analyze_layer_ranks(model: nn.Module) -> List[Dict]:
             W = module.weight.data
             _, S, _ = torch.linalg.svd(W, full_matrices=False)
             
-            # Compute effective rank metrics
+            # 참으로 쓰이는 자리의 자를 셈한다
             total_energy = (S ** 2).sum()
             cumulative = (S ** 2).cumsum(0) / total_energy
             
@@ -732,14 +732,14 @@ def analyze_layer_ranks(model: nn.Module) -> List[Dict]:
     return results
 ```
 
-## Model-Level Factorization
+## 모형 켜에서의 쪼개기
 
-### Factorize Entire Model
+### 모형 통째로 쪼개기
 
 ```python
 class LowRankModel(nn.Module):
     """
-    Apply low-rank factorization to a pre-trained model.
+    미리 익힌 모형에 낮은 자리 쪼개기를 건다.
     """
     
     def __init__(self, model: nn.Module, rank_ratio: float = 0.5,
@@ -773,36 +773,36 @@ class LowRankModel(nn.Module):
 def factorize_model(model: nn.Module, rank_ratio: float = 0.5, 
                     min_rank: int = 8) -> nn.Module:
     """
-    Apply low-rank factorization to all linear layers.
+    선형 켜 모두에 낮은 자리 쪼개기를 건다.
     
     Args:
-        model: PyTorch model
-        rank_ratio: Fraction of full rank to use (0.5 = 50%)
-        min_rank: Minimum rank to use
+        model: PyTorch 모형
+        rank_ratio: 쓸 온 자리의 몫(0.5 = 50%)
+        min_rank: 쓸 가장 작은 자리
         
     Returns:
-        Factorized model
+        쪼갠 모형
     """
     for name, module in model.named_children():
         if isinstance(module, nn.Linear):
-            # Compute target rank
+            # 과녁 자리를 셈한다
             full_rank = min(module.weight.shape)
             target_rank = max(min_rank, int(full_rank * rank_ratio))
             
-            # Create factorized version
+            # 쪼갠 것을 만든다
             factorized = FactorizedLinear.from_linear(module, target_rank)
             setattr(model, name, factorized)
             
-            print(f"Factorized {name}: {module.weight.shape} → rank {target_rank}")
+            print(f"{name} 쪼갬: {module.weight.shape} → 자리 {target_rank}")
         
         elif len(list(module.children())) > 0:
-            # Recursively process nested modules
+            # 안에 든 묶음을 되돌아 다룬다
             factorize_model(module, rank_ratio, min_rank)
     
     return model
 ```
 
-### Fine-Tuning After Factorization
+### 쪼갠 뒤 곱게 맞추기
 
 ```python
 def finetune_factorized_model(model: nn.Module,
@@ -812,7 +812,7 @@ def finetune_factorized_model(model: nn.Module,
                               lr: float = 1e-4,
                               device: str = 'cpu') -> Tuple[nn.Module, float]:
     """
-    Fine-tune model after factorization to recover accuracy.
+    쪼갠 뒤 맞음을 되찾으려 모형을 곱게 맞춘다.
     """
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -821,7 +821,7 @@ def finetune_factorized_model(model: nn.Module,
     best_accuracy = 0
     
     for epoch in range(epochs):
-        # Train
+        # 익힌다
         model.train()
         total_loss = 0
         
@@ -835,7 +835,7 @@ def finetune_factorized_model(model: nn.Module,
             optimizer.step()
             total_loss += loss.item()
         
-        # Evaluate
+        # 따진다
         model.eval()
         correct = 0
         total = 0
@@ -851,29 +851,29 @@ def finetune_factorized_model(model: nn.Module,
         accuracy = correct / total
         best_accuracy = max(best_accuracy, accuracy)
         
-        print(f"Epoch {epoch+1}: Loss={total_loss/len(train_loader):.4f}, "
-              f"Accuracy={accuracy*100:.2f}%")
+        print(f"{epoch+1}판: 잃음={total_loss/len(train_loader):.4f}, "
+              f"맞음={accuracy*100:.2f}%")
     
     return model, best_accuracy
 ```
 
-## LoRA: Low-Rank Adaptation
+## LoRA: 낮은 자리로 맞추기
 
-LoRA (Low-Rank Adaptation) adds trainable low-rank matrices to frozen pretrained weights, enabling efficient fine-tuning of large models:
+LoRA(낮은 자리로 맞추기)은 얼려 둔 미리 익힌 짐에 배울 수 있는 낮은 자리 행렬을 더해 큰 모형을 잘 드는 값으로 곱게 맞추게 한다.
 
 $$y = Wx + BAx$$
 
-where $W$ is frozen and $B \in \mathbb{R}^{m \times r}$, $A \in \mathbb{R}^{r \times n}$ are trainable.
+여기서 $W$은 얼려 두고 $B \in \mathbb{R}^{m \times r}$, $A \in \mathbb{R}^{r \times n}$은 배운다.
 
 ```python
 class LoRALinear(nn.Module):
     """
-    LoRA (Low-Rank Adaptation) layer.
+    LoRA(낮은 자리로 맞추기) 켜.
     
-    Keeps original weights frozen and adds trainable low-rank updates:
+    본디 짐은 얼려 두고 배울 수 있는 낮은 자리 고침을 더한다.
     y = Wx + (BA)x
     
-    Where W is frozen and B, A are trainable low-rank matrices.
+    여기서 W은 얼려 두고 B, A은 배우는 낮은 자리 행렬이다.
     """
     
     def __init__(self, original_layer: nn.Linear, rank: int = 8, alpha: float = 16):
@@ -881,55 +881,55 @@ class LoRALinear(nn.Module):
         
         self.original = original_layer
         self.rank = rank
-        self.alpha = alpha  # Scaling factor
+        self.alpha = alpha  # 잣대 값
         
-        # Freeze original weights
+        # 본디 짐을 얼린다
         for param in self.original.parameters():
             param.requires_grad = False
         
-        # Low-rank adaptation matrices
+        # 낮은 자리로 맞추는 행렬
         in_features = original_layer.in_features
         out_features = original_layer.out_features
         
-        # Initialize A with small random values, B with zeros
+        # A은 작은 아무 값으로, B은 0으로 첫자리를 잡는다
         self.lora_A = nn.Parameter(torch.randn(rank, in_features) * 0.01)
         self.lora_B = nn.Parameter(torch.zeros(out_features, rank))
         
         self.scaling = alpha / rank
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Original output
+        # 본디 날임
         original_out = self.original(x)
         
-        # LoRA contribution: x @ A.T @ B.T
+        # LoRA이 보태는 몫: x @ A.T @ B.T
         lora_out = x @ self.lora_A.T @ self.lora_B.T
         
         return original_out + self.scaling * lora_out
     
     def merge_weights(self):
-        """Merge LoRA weights into original for inference."""
+        """미루어 보려고 LoRA 짐을 본디 짐에 녹여 넣는다."""
         with torch.no_grad():
             delta_W = self.scaling * (self.lora_B @ self.lora_A)
             self.original.weight.data += delta_W
     
     def get_trainable_params(self) -> int:
-        """Return number of trainable parameters."""
+        """배울 수 있는 매개변수의 수를 돌려준다."""
         return self.lora_A.numel() + self.lora_B.numel()
 
 
 def apply_lora(model: nn.Module, rank: int = 8, alpha: float = 16,
                target_modules: List[str] = None) -> nn.Module:
     """
-    Apply LoRA to linear layers in model.
+    모형의 선형 켜에 LoRA을 건다.
     
     Args:
-        model: Model to modify
-        rank: LoRA rank
-        alpha: Scaling factor
-        target_modules: List of module names to target (None = all Linear)
+        model: 고칠 모형
+        rank: LoRA 자리
+        alpha: 잣대 값
+        target_modules: 과녁으로 삼을 묶음 이름의 목록(None = 모든 Linear)
         
     Returns:
-        Model with LoRA applied
+        LoRA을 건 모형
     """
     for name, module in model.named_children():
         if isinstance(module, nn.Linear):
@@ -941,7 +941,7 @@ def apply_lora(model: nn.Module, rank: int = 8, alpha: float = 16,
 
 
 def count_lora_params(model: nn.Module) -> Dict[str, int]:
-    """Count trainable vs frozen parameters in LoRA model."""
+    """LoRA 모형에서 배우는 매개변수와 얼린 매개변수를 센다."""
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     frozen = sum(p.numel() for p in model.parameters() if not p.requires_grad)
     
@@ -953,59 +953,59 @@ def count_lora_params(model: nn.Module) -> Dict[str, int]:
     }
 ```
 
-## Trade-offs and Limitations
+## 맞바꿈과 한계
 
-### Compression vs Accuracy
+### 눌러 담음 대 맞음
 
-| Compression Ratio | Typical Accuracy Drop | Recovery Difficulty |
+| 눌러 담은 견줌 | 흔한 맞음 떨어짐 | 되찾기 어려움 |
 |-------------------|----------------------|---------------------|
-| 2× | < 0.5% | Easy (brief fine-tuning) |
-| 4× | 0.5-2% | Moderate |
-| 8× | 2-5% | Challenging |
-| 16× | 5%+ | Very challenging |
+| 2배 | 0.5% 미만 | 쉬움(잠깐 곱게 맞추면 된다) |
+| 4배 | 0.5~2% | 가운데 |
+| 8배 | 2~5% | 만만치 않음 |
+| 16배 | 5% 넘음 | 아주 만만치 않음 |
 
-### When to Use Low-Rank Factorization
+### 낮은 자리 쪼개기를 쓸 때
 
-**Good candidates:**
+**잘 맞는 자리:**
 
-- Large fully connected layers with many parameters
-- Convolutional layers with many channels
-- Layers with naturally low-rank weight distributions
-- Fine-tuning scenarios (LoRA)
+- 매개변수가 많은 큰 온통 이은 켜
+- 갈래가 많은 엮음 켜
+- 짐 분포가 본디 자리가 낮은 켜
+- 곱게 맞추는 자리(LoRA)
 
-**Poor candidates:**
+**잘 맞지 않는 자리:**
 
-- Small layers (overhead may exceed savings)
-- 1×1 convolutions (already efficient)
-- First/last layers (often critical for accuracy)
+- 작은 켜(덤으로 드는 값이 아낀 것보다 클 수 있다)
+- 1×1 엮음(이미 잘 든다)
+- 첫 켜와 마지막 켜(맞음에 걸리는 일이 잦다)
 
-### Computational Overhead
+### 덤으로 드는 셈
 
-Factorization introduces additional operations:
+쪼개기는 셈을 더 들인다.
 
-- One matrix multiply becomes two sequential multiplies
-- Memory access patterns may be less efficient
-- GPU utilization may decrease for small intermediate ranks
+- 행렬 곱 하나가 잇따른 곱 둘이 된다
+- 기억을 짚는 결이 덜 잘 들 수 있다
+- 가운데 자리가 작으면 GPU을 덜 쓰게 될 수 있다
 
-## Summary
+## 간추림
 
-Low-rank factorization reduces model size and computation:
+낮은 자리 쪼개기는 모형 크기와 셈을 줄인다.
 
-1. **SVD decomposition**: Optimal approximation, good for post-training compression
-2. **Spatial separation**: Decompose convolutions spatially (1×k and k×1)
-3. **Depthwise separable**: Standard for efficient architectures (MobileNet)
-4. **Tucker decomposition**: Combined channel and spatial reduction
-5. **LoRA**: Efficient fine-tuning of large pre-trained models
+1. **SVD 쪼개기**: 가장 좋은 어림이며 익힘 뒤 눌러 담기에 좋다
+2. **자리로 가르기**: 엮음을 자리로 쪼갠다(1×k과 k×1)
+3. **깊이별로 가르기**: 잘 드는 얼개의 여느 길이다(MobileNet)
+4. **터커 쪼개기**: 갈래와 자리를 함께 줄인다
+5. **LoRA**: 미리 익힌 큰 모형을 잘 드는 값으로 곱게 맞춘다
 
-Key recommendations:
+고갱이로 즐겨 쓸 길:
 
-- Analyze layer ranks before deciding compression ratio
-- Use energy-based rank selection (95-99% energy retention)
-- Fine-tune after factorization to recover accuracy
-- Combine with other techniques (quantization, pruning) for maximum compression
-- Consider LoRA for efficient adaptation of large models
+- 눌러 담을 견줌을 정하기 앞서 켜의 자리를 살핀다
+- 힘에 기댄 자리 고르기를 쓴다(힘의 95~99%을 지킨다)
+- 쪼갠 뒤 곱게 맞추어 맞음을 되찾는다
+- 가장 크게 눌러 담으려면 다른 재주(수 줄이기, 쳐내기)와 아우른다
+- 큰 모형을 잘 드는 값으로 맞추려면 LoRA을 헤아린다
 
-## References
+## 살펴볼 거리
 
 1. Denton, E., et al. "Exploiting Linear Structure Within Convolutional Networks for Efficient Evaluation." NeurIPS 2014.
 2. Jaderberg, M., et al. "Speeding up Convolutional Neural Networks with Low Rank Expansions." BMVC 2014.
@@ -1017,58 +1017,58 @@ Key recommendations:
 
 ---
 
-## Combined Compression Pipelines
+## 아우른 눌러 담기 흐름
 
-NAS is most effective when combined with other compression techniques in a unified pipeline:
+NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가장 잘 듣는다.
 
-# Combined Compression Pipelines
+# 아우른 눌러 담기 흐름
 
-## Overview
+## 두루 보기
 
-Maximum model compression is achieved by combining multiple techniques: pruning, quantization, knowledge distillation, and low-rank factorization. The key challenge is determining the optimal order and configuration of these methods, as they interact in complex ways.
+모형을 가장 크게 눌러 담으려면 쳐내기, 수 줄이기, 앎 옮기기, 낮은 자리 쪼개기를 아울러야 한다. 이 방법들은 얽혀 서로 주고받으므로 가장 좋은 차례와 차림을 정하는 것이 어려운 대목이다.
 
-## Compression Pipeline Design
+## 눌러 담기 흐름 꾸미기
 
-### Technique Interactions
+### 재주끼리 주고받음
 
-Different compression methods have synergistic and antagonistic interactions:
+눌러 담는 방법끼리는 서로 돕기도 하고 어긋나기도 한다.
 
-| Combination | Interaction | Notes |
+| 짝 | 주고받음 | 붙임말 |
 |-------------|-------------|-------|
-| Pruning → Quantization | Synergistic | Sparse weights have narrower distributions |
-| Quantization → Pruning | Neutral/Negative | Quantized weights harder to rank by magnitude |
-| Distillation → Pruning | Synergistic | Student architecture designed for sparsity |
-| Distillation → Quantization | Synergistic | Distillation can compensate for quantization loss |
-| Low-rank → Quantization | Synergistic | Factorized layers often have simpler distributions |
+| 쳐내기 → 수 줄이기 | 서로 돕는다 | 성긴 짐은 분포가 좁다 |
+| 수 줄이기 → 쳐내기 | 그저 그렇거나 나쁘다 | 수 줄인 짐은 크기로 줄 세우기 어렵다 |
+| 앎 옮기기 → 쳐내기 | 서로 돕는다 | 제자 얼개를 성김에 맞게 꾸민다 |
+| 앎 옮기기 → 수 줄이기 | 서로 돕는다 | 앎 옮기기가 수 줄이기의 잃음을 메운다 |
+| 낮은 자리 → 수 줄이기 | 서로 돕는다 | 쪼갠 켜는 분포가 더 단순한 일이 잦다 |
 
-### Optimal Ordering
+### 가장 좋은 차례
 
-Based on empirical results, the recommended order is:
+겪어 본 결과에 따라 즐겨 쓰는 차례는 이렇다.
 
 ```
-1. Knowledge Distillation (optional, if teacher available)
+1. 앎 옮기기(스승이 있으면, 골라 쓴다)
        ↓
-2. Pruning (structured preferred for speedup)
+2. 쳐내기(빨라지려면 짜임새 있는 쳐내기가 낫다)
        ↓  
-3. Fine-tuning (recover from pruning)
+3. 곱게 맞추기(쳐낸 뒤 되찾기)
        ↓
-4. Low-Rank Factorization (optional)
+4. 낮은 자리 쪼개기(골라 쓴다)
        ↓
-5. Quantization-Aware Training or PTQ
+5. 수 줄이기를 아는 익힘 또는 익힘 뒤 수 줄이기
        ↓
-6. Final calibration and export
+6. 마지막 눈금 맞추기와 내보내기
 ```
 
-**Rationale:**
+**까닭:**
 
-- Distillation first: Student architecture optimized for downstream compression
-- Pruning before quantization: Narrower weight distributions quantize better
-- Fine-tuning between steps: Recover accuracy at each stage
-- Quantization last: Benefits from optimized weight distributions
+- 앎 옮기기를 먼저: 제자 얼개가 뒤이을 눌러 담기에 맞게 다듬어진다
+- 수 줄이기 앞에 쳐내기: 짐 분포가 좁을수록 수 줄이기가 잘 된다
+- 걸음 사이의 곱게 맞추기: 도막마다 맞음을 되찾는다
+- 수 줄이기를 마지막에: 다듬어진 짐 분포의 덕을 본다
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
-### Complete Compression Pipeline
+### 온전한 눌러 담기 흐름
 
 ```python
 import torch
@@ -1082,40 +1082,40 @@ from dataclasses import dataclass
 
 @dataclass
 class CompressionConfig:
-    """Configuration for compression pipeline."""
-    # Distillation
+    """눌러 담기 흐름의 차림."""
+    # 앎 옮기기
     use_distillation: bool = True
     temperature: float = 4.0
     alpha: float = 0.5
     distillation_epochs: int = 20
     
-    # Pruning
+    # 쳐내기
     target_sparsity: float = 0.7
     pruning_method: str = 'structured'  # 'unstructured', 'structured'
     pruning_epochs: int = 10
     
-    # Low-rank
+    # 낮은 자리
     use_low_rank: bool = False
     rank_ratio: float = 0.5
     
-    # Quantization
+    # 수 줄이기
     quantization_method: str = 'qat'  # 'ptq', 'qat'
     qat_epochs: int = 10
     
-    # General
+    # 두루
     learning_rate: float = 1e-3
     device: str = 'cpu'
 
 
 class CompressionPipeline:
     """
-    Unified compression pipeline combining multiple techniques.
+    재주 여럿을 아우른 하나의 눌러 담기 흐름.
     
-    Supports:
-    - Knowledge Distillation (from teacher)
-    - Structured/Unstructured Pruning
-    - Low-Rank Factorization
-    - Post-Training and Quantization-Aware Training
+    받쳐 주는 것:
+    - 앎 옮기기(스승에게서)
+    - 짜임새 있는/없는 쳐내기
+    - 낮은 자리 쪼개기
+    - 익힘 뒤 수 줄이기와 수 줄이기를 아는 익힘
     """
     
     def __init__(self,
@@ -1124,15 +1124,15 @@ class CompressionPipeline:
                  config: Optional[CompressionConfig] = None):
         """
         Args:
-            student: Model to compress
-            teacher: Optional teacher model for distillation
-            config: Compression configuration
+            student: 눌러 담을 모형
+            teacher: 앎 옮기기에 쓸 스승 모형(골라 씀)
+            config: 눌러 담기 차림
         """
         self.student = student
         self.teacher = teacher
         self.config = config or CompressionConfig()
         
-        # Track compression stages
+        # 눌러 담기 도막을 좇는다
         self.history = {
             'stage': [],
             'accuracy': [],
@@ -1146,48 +1146,48 @@ class CompressionPipeline:
                  calibration_loader: Optional[torch.utils.data.DataLoader] = None
                  ) -> nn.Module:
         """
-        Execute full compression pipeline.
+        온 눌러 담기 흐름을 돌린다.
         
         Args:
-            train_loader: Training data
-            test_loader: Test data for evaluation
-            calibration_loader: Calibration data for PTQ (uses train_loader if None)
+            train_loader: 익힘 자료
+            test_loader: 따질 시험 자료
+            calibration_loader: 익힘 뒤 수 줄이기에 쓸 눈금 맞추기 자료(None이면 train_loader을 쓴다)
             
         Returns:
-            Compressed model
+            눌러 담은 모형
         """
         device = self.config.device
         model = self.student.to(device)
         
-        # Log initial state
+        # 처음 상태를 적는다
         self._log_state('initial', model, test_loader)
         
-        # Stage 1: Knowledge Distillation
+        # 1도막: 앎 옮기기
         if self.config.use_distillation and self.teacher is not None:
             print("\n" + "="*60)
-            print("STAGE 1: Knowledge Distillation")
+            print("1도막: 앎 옮기기")
             print("="*60)
             model = self._distillation_stage(model, train_loader, test_loader)
             self._log_state('after_distillation', model, test_loader)
         
-        # Stage 2: Pruning
+        # 2도막: 쳐내기
         print("\n" + "="*60)
-        print("STAGE 2: Pruning")
+        print("2도막: 쳐내기")
         print("="*60)
         model = self._pruning_stage(model, train_loader, test_loader)
         self._log_state('after_pruning', model, test_loader)
         
-        # Stage 3: Low-Rank Factorization (optional)
+        # 3도막: 낮은 자리 쪼개기(골라 씀)
         if self.config.use_low_rank:
             print("\n" + "="*60)
-            print("STAGE 3: Low-Rank Factorization")
+            print("3도막: 낮은 자리 쪼개기")
             print("="*60)
             model = self._low_rank_stage(model, train_loader, test_loader)
             self._log_state('after_low_rank', model, test_loader)
         
-        # Stage 4: Quantization
+        # 4도막: 수 줄이기
         print("\n" + "="*60)
-        print("STAGE 4: Quantization")
+        print("4도막: 수 줄이기")
         print("="*60)
         
         cal_loader = calibration_loader or train_loader
@@ -1199,7 +1199,7 @@ class CompressionPipeline:
         
         self._log_state('final', model, test_loader)
         
-        # Print summary
+        # 간추림을 찍는다
         self._print_summary()
         
         return model
@@ -1208,7 +1208,7 @@ class CompressionPipeline:
                             model: nn.Module,
                             train_loader: torch.utils.data.DataLoader,
                             test_loader: torch.utils.data.DataLoader) -> nn.Module:
-        """Execute distillation training."""
+        """앎 옮기기 익힘을 돌린다."""
         device = self.config.device
         model = model.to(device)
         teacher = self.teacher.to(device)
@@ -1235,7 +1235,7 @@ class CompressionPipeline:
                 optimizer.zero_grad()
                 student_logits = model(data)
                 
-                # Distillation loss
+                # 앎 옮기기 잃음
                 hard_loss = F.cross_entropy(student_logits, target)
                 soft_loss = F.kl_div(
                     F.log_softmax(student_logits / T, dim=1),
@@ -1253,8 +1253,8 @@ class CompressionPipeline:
             
             if (epoch + 1) % 5 == 0:
                 acc = self._evaluate(model, test_loader)
-                print(f"Distillation Epoch {epoch+1}/{self.config.distillation_epochs}, "
-                      f"Loss: {epoch_loss/len(train_loader):.4f}, Acc: {acc*100:.2f}%")
+                print(f"앎 옮기기 {epoch+1}/{self.config.distillation_epochs}판, "
+                      f"잃음: {epoch_loss/len(train_loader):.4f}, 맞음: {acc*100:.2f}%")
         
         return model
     
@@ -1262,7 +1262,7 @@ class CompressionPipeline:
                        model: nn.Module,
                        train_loader: torch.utils.data.DataLoader,
                        test_loader: torch.utils.data.DataLoader) -> nn.Module:
-        """Execute pruning with fine-tuning."""
+        """곱게 맞추기를 곁들여 쳐낸다."""
         device = self.config.device
         model = model.to(device)
         
@@ -1277,22 +1277,22 @@ class CompressionPipeline:
                             model: nn.Module,
                             train_loader: torch.utils.data.DataLoader,
                             test_loader: torch.utils.data.DataLoader) -> nn.Module:
-        """Apply structured (filter) pruning."""
+        """짜임새 있는(거르개) 쳐내기를 건다."""
         import torch.nn.utils.prune as prune
         
-        # Calculate amount to achieve target sparsity
+        # 과녁 성김을 이룰 몫을 셈한다
         amount = self.config.target_sparsity
         
-        # Apply structured pruning to conv layers
+        # 엮음 켜에 짜임새 있는 쳐내기를 건다
         for name, module in model.named_modules():
             if isinstance(module, nn.Conv2d):
                 prune.ln_structured(module, name='weight', amount=amount, n=1, dim=0)
         
-        # Fine-tune
+        # 곱게 맞춘다
         model = self._fine_tune(model, train_loader, test_loader, 
                                self.config.pruning_epochs)
         
-        # Make pruning permanent
+        # 쳐낸 것을 굳힌다
         for name, module in model.named_modules():
             if isinstance(module, nn.Conv2d):
                 try:
@@ -1306,12 +1306,12 @@ class CompressionPipeline:
                               model: nn.Module,
                               train_loader: torch.utils.data.DataLoader,
                               test_loader: torch.utils.data.DataLoader) -> nn.Module:
-        """Apply unstructured (weight) pruning."""
+        """짜임새 없는(짐) 쳐내기를 건다."""
         import torch.nn.utils.prune as prune
         
         amount = self.config.target_sparsity
         
-        # Global unstructured pruning
+        # 두루 걸친 짜임새 없는 쳐내기
         parameters_to_prune = [
             (module, 'weight') 
             for module in model.modules() 
@@ -1324,7 +1324,7 @@ class CompressionPipeline:
             amount=amount
         )
         
-        # Fine-tune with mask maintenance
+        # 가리개를 지키며 곱게 맞춘다
         masks = {}
         for name, module in model.named_modules():
             if isinstance(module, (nn.Conv2d, nn.Linear)):
@@ -1334,7 +1334,7 @@ class CompressionPipeline:
         model = self._fine_tune(model, train_loader, test_loader,
                                self.config.pruning_epochs, masks=masks)
         
-        # Make pruning permanent
+        # 쳐낸 것을 굳힌다
         for module, _ in parameters_to_prune:
             try:
                 prune.remove(module, 'weight')
@@ -1347,31 +1347,31 @@ class CompressionPipeline:
                         model: nn.Module,
                         train_loader: torch.utils.data.DataLoader,
                         test_loader: torch.utils.data.DataLoader) -> nn.Module:
-        """Apply low-rank factorization."""
-        # Replace large linear layers with factorized versions
+        """낮은 자리 쪼개기를 건다."""
+        # 큰 선형 켜를 쪼갠 것으로 갈음한다
         for name, module in list(model.named_modules()):
             if isinstance(module, nn.Linear):
                 max_rank = min(module.in_features, module.out_features)
                 rank = max(8, int(max_rank * self.config.rank_ratio))
                 
                 if rank < max_rank and module.in_features > 64:
-                    # Factorize
+                    # 쪼갠다
                     first, second = self._svd_factorize_linear(module, rank)
                     
-                    # Replace in model
+                    # 모형 안에서 갈음한다
                     parts = name.split('.')
                     parent = model
                     for part in parts[:-1]:
                         parent = getattr(parent, part)
                     setattr(parent, parts[-1], nn.Sequential(first, second))
         
-        # Fine-tune
+        # 곱게 맞춘다
         model = self._fine_tune(model, train_loader, test_loader, 5)
         
         return model
     
     def _svd_factorize_linear(self, layer: nn.Linear, rank: int) -> Tuple[nn.Linear, nn.Linear]:
-        """Factorize linear layer using SVD."""
+        """SVD으로 선형 켜를 쪼갠다."""
         W = layer.weight.data
         U, S, Vh = torch.linalg.svd(W, full_matrices=False)
         
@@ -1393,12 +1393,12 @@ class CompressionPipeline:
                    model: nn.Module,
                    train_loader: torch.utils.data.DataLoader,
                    test_loader: torch.utils.data.DataLoader) -> nn.Module:
-        """Quantization-Aware Training."""
+        """수 줄이기를 아는 익힘."""
         device = self.config.device
         model = model.to(device)
         model.train()
         
-        # Prepare for QAT
+        # QAT을 마련한다
         model.qconfig = quant.get_default_qat_qconfig('fbgemm')
         quant.prepare_qat(model, inplace=True)
         
@@ -1408,7 +1408,7 @@ class CompressionPipeline:
         for epoch in range(self.config.qat_epochs):
             model.train()
             
-            # Freeze observers after half the epochs
+            # 판의 절반이 지나면 살피개를 얼린다
             if epoch >= self.config.qat_epochs // 2:
                 model.apply(quant.disable_observer)
             
@@ -1423,9 +1423,9 @@ class CompressionPipeline:
             
             if (epoch + 1) % 2 == 0:
                 acc = self._evaluate(model, test_loader)
-                print(f"QAT Epoch {epoch+1}/{self.config.qat_epochs}, Acc: {acc*100:.2f}%")
+                print(f"QAT {epoch+1}/{self.config.qat_epochs}판, 맞음: {acc*100:.2f}%")
         
-        # Convert to quantized model
+        # 수 줄인 모형으로 바꾼다
         model.eval()
         model_quantized = quant.convert(model.cpu(), inplace=False)
         
@@ -1434,10 +1434,10 @@ class CompressionPipeline:
     def _ptq_stage(self,
                    model: nn.Module,
                    calibration_loader: torch.utils.data.DataLoader) -> nn.Module:
-        """Post-Training Quantization."""
+        """익힘 뒤 수 줄이기."""
         model.eval()
         
-        # Dynamic quantization (simpler, works for most cases)
+        # 움직이는 수 줄이기(더 단순하고 거의 다 잘 듣는다)
         model_quantized = quant.quantize_dynamic(
             model.cpu(),
             {nn.Linear, nn.Conv2d},
@@ -1452,7 +1452,7 @@ class CompressionPipeline:
                    test_loader: torch.utils.data.DataLoader,
                    epochs: int,
                    masks: Optional[Dict] = None) -> nn.Module:
-        """Fine-tune model with optional mask maintenance."""
+        """가리개를 지키며(골라 씀) 모형을 곱게 맞춘다."""
         device = self.config.device
         model = model.to(device)
         
@@ -1471,7 +1471,7 @@ class CompressionPipeline:
                 loss.backward()
                 optimizer.step()
                 
-                # Maintain masks if provided
+                # 가리개가 주어지면 지킨다
                 if masks:
                     with torch.no_grad():
                         for name, module in model.named_modules():
@@ -1480,13 +1480,13 @@ class CompressionPipeline:
             
             if (epoch + 1) % 2 == 0:
                 acc = self._evaluate(model, test_loader)
-                print(f"Fine-tune Epoch {epoch+1}/{epochs}, Acc: {acc*100:.2f}%")
+                print(f"곱게 맞추기 {epoch+1}/{epochs}판, 맞음: {acc*100:.2f}%")
         
         return model
     
     def _evaluate(self, model: nn.Module, 
                   test_loader: torch.utils.data.DataLoader) -> float:
-        """Evaluate model accuracy."""
+        """모형의 맞음을 따진다."""
         device = self.config.device
         model.eval()
         correct, total = 0, 0
@@ -1502,13 +1502,13 @@ class CompressionPipeline:
         return correct / total
     
     def _get_model_size(self, model: nn.Module) -> float:
-        """Get model size in MB."""
+        """모형 크기를 MB으로 얻는다."""
         param_size = sum(p.nelement() * p.element_size() for p in model.parameters())
         buffer_size = sum(b.nelement() * b.element_size() for b in model.buffers())
         return (param_size + buffer_size) / (1024 ** 2)
     
     def _get_sparsity(self, model: nn.Module) -> float:
-        """Calculate model sparsity."""
+        """모형의 성김을 셈한다."""
         total, zeros = 0, 0
         for param in model.parameters():
             if param.dim() > 1:
@@ -1518,7 +1518,7 @@ class CompressionPipeline:
     
     def _log_state(self, stage: str, model: nn.Module,
                    test_loader: torch.utils.data.DataLoader):
-        """Log compression state."""
+        """눌러 담기 상태를 적는다."""
         acc = self._evaluate(model, test_loader)
         size = self._get_model_size(model)
         sparsity = self._get_sparsity(model)
@@ -1528,15 +1528,15 @@ class CompressionPipeline:
         self.history['size_mb'].append(size)
         self.history['sparsity'].append(sparsity)
         
-        print(f"\n[{stage}] Accuracy: {acc*100:.2f}%, "
-              f"Size: {size:.2f} MB, Sparsity: {sparsity*100:.1f}%")
+        print(f"\n[{stage}] 맞음: {acc*100:.2f}%, "
+              f"크기: {size:.2f} MB, 성김: {sparsity*100:.1f}%")
     
     def _print_summary(self):
-        """Print compression summary."""
+        """눌러 담기 간추림을 찍는다."""
         print("\n" + "="*70)
-        print("COMPRESSION PIPELINE SUMMARY")
+        print("눌러 담기 흐름 간추림")
         print("="*70)
-        print(f"\n{'Stage':<25} {'Accuracy':<12} {'Size (MB)':<12} {'Sparsity':<12}")
+        print(f"\n{'도막':<25} {'맞음':<12} {'크기 (MB)':<12} {'성김':<12}")
         print("-" * 70)
         
         for i, stage in enumerate(self.history['stage']):
@@ -1544,32 +1544,32 @@ class CompressionPipeline:
                   f"{self.history['size_mb'][i]:>8.2f}     "
                   f"{self.history['sparsity'][i]*100:>8.1f}%")
         
-        # Compute overall compression
+        # 통틀어 눌러 담은 정도를 셈한다
         initial_size = self.history['size_mb'][0]
         final_size = self.history['size_mb'][-1]
         initial_acc = self.history['accuracy'][0]
         final_acc = self.history['accuracy'][-1]
         
         print("\n" + "="*70)
-        print("OVERALL METRICS")
+        print("통틀어 본 자")
         print("="*70)
-        print(f"Compression Ratio:    {initial_size/final_size:.1f}×")
-        print(f"Size Reduction:       {(1 - final_size/initial_size)*100:.1f}%")
-        print(f"Accuracy Change:      {(final_acc - initial_acc)*100:+.2f}%")
+        print(f"눌러 담은 견줌:    {initial_size/final_size:.1f}배")
+        print(f"크기 줄어듦:       {(1 - final_size/initial_size)*100:.1f}%")
+        print(f"맞음 바뀜:      {(final_acc - initial_acc)*100:+.2f}%")
         print("="*70)
 ```
 
-## Usage Example
+## 쓰는 보기
 
 ```python
-# Create models
-teacher = LargeTeacherModel()  # Pre-trained teacher
-student = SmallStudentModel()   # Student to compress
+# 모형을 만든다
+teacher = LargeTeacherModel()  # 미리 익힌 스승
+student = SmallStudentModel()   # 눌러 담을 제자
 
-# Load pre-trained teacher
+# 미리 익힌 스승을 얹는다
 teacher.load_state_dict(torch.load('teacher.pth'))
 
-# Configure compression
+# 눌러 담기를 차린다
 config = CompressionConfig(
     use_distillation=True,
     temperature=4.0,
@@ -1584,67 +1584,67 @@ config = CompressionConfig(
     device='cuda' if torch.cuda.is_available() else 'cpu'
 )
 
-# Create and run pipeline
+# 흐름을 만들어 돌린다
 pipeline = CompressionPipeline(student, teacher, config)
 compressed_model = pipeline.compress(train_loader, test_loader)
 
-# Export
+# 내보낸다
 torch.save(compressed_model.state_dict(), 'compressed_model.pth')
 ```
 
-## Best Practices
+## 좋은 버릇
 
-### Configuration Guidelines
+### 차림 길잡이
 
-| Scenario | Distillation | Pruning | Low-Rank | Quantization |
+| 형편 | 앎 옮기기 | 쳐내기 | 낮은 자리 | 수 줄이기 |
 |----------|-------------|---------|----------|--------------|
-| Maximum compression | ✓ | Structured 80% | ✓ | QAT INT8 |
-| Balanced | ✓ | Structured 50% | ✗ | QAT INT8 |
-| Quick deployment | ✗ | ✗ | ✗ | PTQ INT8 |
-| Mobile/Edge | ✓ | Structured 70% | ✗ | QAT INT8/INT4 |
-| Server | ✓ | Unstructured 90% | ✓ | FP16 |
+| 가장 크게 눌러 담기 | ✓ | 짜임새 있게 80% | ✓ | QAT INT8 |
+| 고르게 | ✓ | 짜임새 있게 50% | ✗ | QAT INT8 |
+| 빨리 내놓기 | ✗ | ✗ | ✗ | 익힘 뒤 수 줄이기 INT8 |
+| 손전화/끝단 | ✓ | 짜임새 있게 70% | ✗ | QAT INT8/INT4 |
+| 서비스개 | ✓ | 짜임새 없이 90% | ✓ | FP16 |
 
-### Debugging Pipeline Issues
+### 흐름의 탈 벌레잡기
 
-1. **Accuracy drops too much at one stage**: Reduce that stage's aggressiveness
-2. **Quantization fails**: Check for unsupported operations; use dynamic quantization
-3. **No speedup from pruning**: Switch to structured pruning
-4. **Distillation not helping**: Verify teacher accuracy; adjust temperature
+1. **한 도막에서 맞음이 너무 떨어짐**: 그 도막을 덜 세게 한다
+2. **수 줄이기가 어그러짐**: 받쳐 주지 않는 셈이 있는지 살피고 움직이는 수 줄이기를 쓴다
+3. **쳐내도 빨라지지 않음**: 짜임새 있는 쳐내기로 바꾼다
+4. **앎 옮기기가 듣지 않음**: 스승의 맞음을 따지고 온도를 손본다
 
-## References
+## 살펴볼 거리
 
 1. Polino, A., et al. "Model Compression via Distillation and Quantization." ICLR 2018.
 2. Han, S., et al. "Deep Compression." ICLR 2016.
 3. Cheng, Y., et al. "A Survey of Model Compression and Acceleration." IEEE Signal Processing 2020.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Describe the trade-offs between the optimization techniques discussed in this section in terms of accuracy loss, inference speedup, and implementation complexity.
+**익힘 1.**
+이 마디에서 다룬 다듬기 재주들을 맞음 잃음, 미루어 봄 빨라짐, 짜기의 번거로움으로 견주어 맞바꿈을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Each technique has a different trade-off profile. Quantization (INT8) typically achieves 2--4x speedup with < 1% accuracy loss and moderate implementation effort (supported by frameworks). Pruning achieves variable speedup depending on sparsity pattern (structured pruning is more hardware-friendly) with 1--3% accuracy loss. Knowledge distillation maintains the original architecture's inference cost but uses a smaller student, achieving 2--10x compression with 1--5% accuracy loss. NAS finds optimal architectures but requires massive search compute (thousands of GPU-hours). For financial applications, the acceptable accuracy loss depends on the cost of errors. $\square$
-
----
-
-**Exercise 2.**
-Implement post-training quantization (INT8) for a simple feedforward network and measure the accuracy degradation and inference speedup on a benchmark dataset.
-
-??? success "Solution to Exercise 2"
-    Using PyTorch's quantization API: (1) train a float32 model to baseline accuracy; (2) apply `torch.quantization.quantize_dynamic` for dynamic quantization or calibrate with representative data for static quantization; (3) measure inference time (average over 1000 batches) and accuracy on test set. Typical results: 1.5--3x speedup on CPU, < 0.5% accuracy drop for dynamic quantization, < 0.2% for calibrated static quantization. The model size reduction is approximately 4x (FP32 to INT8). Key: static quantization requires a calibration dataset representative of deployment data. $\square$
+??? success "익힘 1 풀이"
+    재주마다 맞바꿈의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 잃음이 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 잃음은 1~3%이다. 앎 옮기기는 얼개 자체의 미루어 봄 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 잃음은 1~5%이다. 신경 얼개 찾기는 가장 좋은 얼개를 찾아 주지만 찾는 데 엄청난 셈이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 잃음이 어긋남의 값에 매인다. $\square$
 
 ---
 
-**Exercise 3.**
-Design a production monitoring system for a deployed model that detects data drift, concept drift, and model degradation. Specify the metrics and alerting thresholds.
+**익힘 2.**
+단순한 앞먹임 그물에 익힘 뒤 수 줄이기(INT8)을 짜 넣고, 잣대 자료 꾸러미에서 맞음이 얼마나 떨어지고 미루어 봄이 얼마나 빨라지는지 재어라.
 
-??? success "Solution to Exercise 3"
-    Monitor three levels: (1) Data drift: track input feature distributions using KS test or PSI (Population Stability Index). Alert if PSI > 0.2 for any feature. (2) Concept drift: track prediction distribution shift and ground-truth label distribution (when available). Alert if prediction mean shifts by > 2 standard deviations from the baseline period. (3) Model degradation: track live accuracy/loss metrics with a rolling window. Alert if accuracy drops > 3% from baseline or latency exceeds SLA (e.g., p99 > 50ms). Implement dashboards with Grafana, store metrics in Prometheus, and send alerts via PagerDuty. $\square$
+??? success "익힘 2 풀이"
+    PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(묶음 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
 
 ---
 
-**Exercise 4.**
-Explain why latency requirements in financial trading systems are fundamentally different from web serving. How does this affect the deployment optimization strategy?
+**익힘 3.**
+내놓은 모형의 자료 옮겨감, 뜻 옮겨감, 됨됨이 떨어짐을 짚어내는 서비스 지켜보기 얼개를 꾸며라. 자와 알림 문턱을 밝혀라.
 
-??? success "Solution to Exercise 4"
-    Web serving tolerates 100--500ms latency with occasional spikes; trading systems require deterministic sub-millisecond latency (often < 100 microseconds for HFT). This changes the optimization strategy: (1) avoid garbage collection pauses (use C++ inference, not Python); (2) pre-allocate all memory (no dynamic allocation); (3) pin threads to cores (avoid context switches); (4) use FPGA or ASIC for the most latency-critical path; (5) quantization is essential but must not introduce non-deterministic rounding. Batch inference is not applicable (each decision is latency-critical). The deployment stack prioritizes worst-case latency (p99.9) over throughput. $\square$
+??? success "익힘 3 풀이"
+    세 켜를 지켜본다. (1) 자료 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 들임 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 미루어 봄 분포의 옮겨감과 (얻을 수 있으면) 참 이름표 분포를 좇는다. 미루어 봄의 평균이 밑금 동안에서 잣대 어긋남 2배 넘게 옮겨가면 알린다. (3) 모형 떨어짐: 굴러가는 창으로 살아 있는 맞음과 잃음을 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
+
+---
+
+**익힘 4.**
+금융 거래 얼개의 늦음 요건이 웹 서비스와 밑바탕부터 다른 까닭을 밝혀라. 이것이 내놓기 다듬기 꾀에 어떻게 걸리는가?
+
+??? success "익힘 4 풀이"
+    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 묶음 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
