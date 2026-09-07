@@ -60,7 +60,7 @@ class BoltzmannMachine(nn.Module):
     n_visible : int
         드러난 단위의 개수
     n_hidden : int
-        Number of hidden units (0 for no hidden layer)
+        숨은 알갱이의 수(0이면 숨은 층이 없다)
     temperature : float
         마구잡이를 다스리는 온도 매개변수
     """
@@ -159,7 +159,7 @@ class BoltzmannMachine(nn.Module):
         n_steps : int
             깁스 훑기 횟수
         initial_state : torch.Tensor, optional
-            Starting state (random if None)
+            처음 상태(None이면 마구잡이)
         return_trajectory : bool
             참이면 중간 상태를 모두 돌려준다
         """

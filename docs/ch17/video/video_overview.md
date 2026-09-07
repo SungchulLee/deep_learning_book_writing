@@ -313,7 +313,7 @@ def spatial_crop(video: torch.Tensor,
     
     인수:
         video: 들임 텐서 (T, C, H, W)
-        crop_size: (crop_h, crop_w)
+        crop_size: (자를 높이, 자를 너비)
         position: 'center', 'random', 또는 'top_left'
         
     반환값:
@@ -348,7 +348,7 @@ def resize_video(video: torch.Tensor,
     
     인수:
         video: 들임 텐서 (T, C, H, W)
-        target_size: (target_h, target_w)
+        target_size: (과녁 높이, 과녁 너비)
         
     반환값:
         크기를 바꾼 텐서 (T, C, target_h, target_w)

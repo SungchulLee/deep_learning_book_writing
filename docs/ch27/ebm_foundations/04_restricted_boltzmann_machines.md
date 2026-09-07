@@ -10,14 +10,14 @@
 ==========================================================
 
 제한 볼츠만 기계는 에너지 바탕 배움의 가장 성공한 실제 쓰임새이다.
-They restrict connections to be between visible and hidden layers only (bipartite),
+이어짐을 보이는 층과 숨은 층 사이로만 옭아맨다(두 쪽 그래프),
 맞댐 벌어짐으로 익히기를 다룰 만하게 만든다.
 
 학습 목표:
 -------------------
 1. 제한 볼츠만 기계의 얼개와 에너지 함수를 이해한다
 2. 맞댐 벌어짐(CD-k) 알고리즘을 짠다
-3. Train RBMs on real data (MNIST)
+3. 참 자료(MNIST)로 제한 볼츠만 기계를 익힌다
 4. 배운 특징을 그려 본다
 5. 제한 볼츠만 기계를 되짓기와 만들어 내기에 쓴다
 
@@ -53,7 +53,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     """
     제한 볼츠만 기계 짜기.
     
-    RBM is a bipartite undirected graphical model with:
+    제한 볼츠만 기계는 다음을 지닌 두 쪽 방향 없는 그림 모델이다.
     - Visible layer v ∈ {0,1}ⁿ
     - Hidden layer h ∈ {0,1}ᵐ
     - 같은 층 안의 이음이 없다
@@ -79,14 +79,14 @@ class RestrictedBoltzmannMachine(nn.Module):
         self.lr = learning_rate
         
     def sample_hidden(self, v):
-        """Sample hidden units given visible units: P(h=1|v) = σ(Wv + b)"""
+        """보이는 알갱이가 주어질 때 숨은 알갱이를 뽑는다: P(h=1|v) = σ(Wv + b)"""
         activation = F.linear(v, self.W, self.b)
         prob = torch.sigmoid(activation)
         sample = torch.bernoulli(prob)
         return prob, sample
     
     def sample_visible(self, h):
-        """Sample visible units given hidden units: P(v=1|h) = σ(Wᵀh + a)"""
+        """숨은 알갱이가 주어질 때 보이는 알갱이를 뽑는다: P(v=1|h) = σ(Wᵀh + a)"""
         activation = F.linear(h, self.W.t(), self.a)
         prob = torch.sigmoid(activation)
         sample = torch.bernoulli(prob)
@@ -98,7 +98,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     
     def free_energy(self, v):
         """
-        Compute free energy F(v) = -log Σₕ exp(-E(v,h))
+        자유 힘 F(v) = -log Σₕ exp(-E(v,h))을 셈한다
         F(v) = -aᵀv - Σⱼ log(1 + exp(bⱼ + Wⱼv))
         """
         wx_b = F.linear(v, self.W, self.b)
@@ -110,7 +110,7 @@ class RestrictedBoltzmannMachine(nn.Module):
         """
         맞댐 벌어짐 k걸음(CD-k) 익히기.
         
-        Approximate gradient: ∇L ≈ E_data[vh] - E_model_k[vh]
+        어림한 기울기: ∇L ≈ E_data[vh] - E_model_k[vh]
         """
         batch_size = v0.shape[0]
         
@@ -138,7 +138,7 @@ class RestrictedBoltzmannMachine(nn.Module):
         return recon_error.item()
     
     def reconstruct(self, v):
-        """Reconstruct visible units: v → h → v'"""
+        """보이는 알갱이를 되살린다: v → h → v'"""
         _, h = self.sample_hidden(v)
         _, v_recon = self.sample_visible(h)
         return v_recon

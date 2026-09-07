@@ -67,8 +67,8 @@ PASCAL VOC에는 다음이 들어 있다:
 - 갈래 21개(물체 갈래 20개 + 뒷바탕)
 
 갈래: background, aeroplane, bicycle, bird, boat, bottle, bus, car,
-         cat, chair, cow, dining table, dog, horse, motorbike, person,
-         potted plant, sheep, sofa, train, tv/monitor
+         고양이, 의자, 소, 식탁, 개, 말, 오토바이, 사람,
+         화분, 양, 소파, 기차, 텔레비전과 모니터
 """
 
 # 그려 보기용 VOC 빛깔판(갈래마다의 RGB 값)

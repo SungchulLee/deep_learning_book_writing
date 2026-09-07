@@ -90,7 +90,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     이진 드러난 단위와 숨은 단위를 가진 제한 볼츠만 기계.
     
     얼개: 드러난 단위와 숨은 단위 사이의 이음만 있는 두 쪽 그래프.
-    Training: Contrastive Divergence (CD-k)
+    익히기: 견줌 갈림(CD-k)
     
     매개변수
     ----------
@@ -99,7 +99,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     n_hidden : int
         숨은 단위의 개수
     k : int
-        Number of Gibbs steps in CD-k (default: 1)
+        CD-k에서 깁스 걸음의 수(기본값 1)
     learning_rate : float
         매개변수 고침의 배움 빠르기
     """
@@ -152,7 +152,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     
     def free_energy(self, v: torch.Tensor) -> torch.Tensor:
         """
-        Compute free energy F(v) = -log Σ_h exp(-E(v,h))
+        자유 힘 F(v) = -log Σ_h exp(-E(v,h))을 셈한다
         
         F(v) = -a^T v - Σ_j log(1 + exp(b_j + W_j · v))
         """

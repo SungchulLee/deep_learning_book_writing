@@ -418,7 +418,7 @@ class VideoPreprocessor:
         
         인수:
             video: 들임 텐서 (T, C, H, W)
-            crop_size: (crop_h, crop_w)
+            crop_size: (자를 높이, 자를 너비)
             position: 'center', 'random', 또는 'top_left'
             
         반환값:

@@ -88,14 +88,14 @@ class HopfieldNetwork(nn.Module):
         """
         헤브 배움 규칙으로 무늬를 담는다.
         
-        "Neurons that fire together wire together"
+        "함께 터지는 뉴런은 함께 이어진다"
         
         w_ij = (1/P) Σₚ xᵢᵖ xⱼᵖ  for i ≠ j
         
         매개변수
         ----------
         patterns : torch.Tensor
-            Shape (n_patterns, n_neurons), values in {-1, +1}
+            꼴 (n_patterns, n_neurons), 값은 {-1, +1}
         """
         n_patterns = patterns.shape[0]
         
@@ -124,7 +124,7 @@ class HopfieldNetwork(nn.Module):
         매개변수
         ----------
         state : torch.Tensor
-            Shape (n_neurons,) or (batch, n_neurons)
+            꼴 (n_neurons,) 또는 (batch, n_neurons)
         
         반환값
         -------
@@ -182,7 +182,7 @@ class HopfieldNetwork(nn.Module):
         매개변수
         ----------
         initial_state : torch.Tensor
-            Starting state (corrupted pattern)
+            처음 상태(망가진 무늬)
         max_iterations : int
             최대 고침 바퀴 수
         track_energy : bool
@@ -191,7 +191,7 @@ class HopfieldNetwork(nn.Module):
         반환값
         -------
         final_state : torch.Tensor
-            Retrieved pattern (local energy minimum)
+            되찾은 무늬(둘레에서 힘이 가장 낮은 자리)
         n_iterations : int
             모일 때까지의 되풀이 횟수
         """
@@ -596,7 +596,7 @@ class ModernHopfield(nn.Module):
     """
     이어진 상태와 지수 담이를 가진 요즘 홉필드 신경망.
     
-    Based on Ramsauer et al., "Hopfield Networks is All You Need" (2021)
+    Ramsauer 외, "Hopfield Networks is All You Need"(2021)를 바탕으로 한다
     """
     
     def __init__(self, pattern_dim: int, beta: float = 1.0):

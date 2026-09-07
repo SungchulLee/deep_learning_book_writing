@@ -238,7 +238,7 @@ def generalized_box_iou(
         (N,) GIoU 값
         
     참고:
-        Rezatofighi et al., "Generalized Intersection over Union", CVPR 2019
+        Rezatofighi 외, "Generalized Intersection over Union", CVPR 2019
     """
     # 보통의 겹침 비 셈하기
     inter_x1 = torch.max(boxes1[:, 0], boxes2[:, 0])
@@ -317,7 +317,7 @@ def complete_box_iou(
         (N,) CIoU 값
         
     참고:
-        Zheng et al., "Distance-IoU Loss", AAAI 2020
+        Zheng 외, "Distance-IoU Loss", AAAI 2020
     """
     # 겹침 비 셈하기
     inter_x1 = torch.max(boxes1[:, 0], boxes2[:, 0])
@@ -560,7 +560,7 @@ def soft_nms(
         (남긴 상자, 새 점수) 튜플
         
     참고:
-        Bodla et al., "Soft-NMS", ICCV 2017
+        Bodla 외, "Soft-NMS", ICCV 2017
     """
     boxes = boxes.clone()
     scores = scores.clone()

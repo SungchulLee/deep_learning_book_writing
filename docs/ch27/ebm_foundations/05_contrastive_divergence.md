@@ -9,8 +9,8 @@
 맞댐 벌어짐: 효율 좋은 제한 볼츠만 기계 익히기
 ============================================
 
-This module provides a deep dive into Contrastive Divergence (CD),
-the algorithm that made RBMs practical. We explore CD-k variations,
+이 단원은 제한 볼츠만 기계를 쓸모 있게 만든 알고리즘인
+견줌 갈림(CD)을 깊이 파고든다. CD-k의 변형을 살펴본다.
 이어지는 맞댐 벌어짐과 모임의 성질.
 
 걸리는 시간: 75~90분

@@ -9,7 +9,7 @@
 에너지 바탕 모델 익히기를 위한 점수 맞추기
 ============================================
 
-Score matching provides an alternative to maximum likelihood for training EBMs,
+점수 맞추기는 힘 바탕 모델을 익힐 때 최대가능도를 대신하는 길이다.
 다룰 수 없는 나눔 함수를 피한다. 점수는 로그 확률의 기울기이다.
 
 학습 목표:
@@ -23,12 +23,12 @@ Score matching provides an alternative to maximum likelihood for training EBMs,
 핵심 개념:
 ------------
 - Score: ∇ₓ log p(x) = -∇ₓ E(x) / T
-- Score Matching: min E_p[(∇ₓ log p(x) - ∇ₓ log q(x))²]
+- 점수 맞추기: min E_p[(∇ₓ log p(x) - ∇ₓ log q(x))²]
 - 잡음 없애는 점수 맞추기: 쓸모 있는 어림
 - 나눔 함수를 셈할 필요가 없다
 
 걸리는 시간: 90~120분
-Prerequisites: Modules 01-05, Calculus (gradients)
+미리 알아 둘 것: 1~5단원, 미적분(기울기)
 """
 
 import numpy as np

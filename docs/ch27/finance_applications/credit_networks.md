@@ -66,9 +66,9 @@ class CreditNetworkEBM(nn.Module):
     매개변수
     ----------
     n_firms : int
-        Number of firms (visible units)
+        회사의 수(보이는 알갱이)
     n_sectors : int
-        Number of latent sector factors (hidden units)
+        숨은 갈래 요인의 수(숨은 알갱이)
     """
     
     def __init__(self, n_firms: int, n_sectors: int = 5):
@@ -98,9 +98,9 @@ class CreditNetworkEBM(nn.Module):
         매개변수
         ----------
         s : torch.Tensor
-            Default states (batch, n_firms), values in {0, 1}
+            부도 상태 (batch, n_firms), 값은 {0, 1}
         h : torch.Tensor, optional
-            Sector states (batch, n_sectors), values in {0, 1}
+            갈래 상태 (batch, n_sectors), 값은 {0, 1}
         """
         if s.dim() == 1:
             s = s.unsqueeze(0)
@@ -144,7 +144,7 @@ class CreditNetworkEBM(nn.Module):
     def conditional_default_prob(self, firm_idx: int, 
                                  s: torch.Tensor) -> torch.Tensor:
         """
-        P(s_i = 1 | s_{-i}) via mean-field with marginalized sectors.
+        갈래를 주변화한 평균장으로 구한 P(s_i = 1 | s_{-i}).
         """
         # 다른 회사에서 오는 마당
         W_sym = (self.W_visible + self.W_visible.t()) / 2
@@ -342,7 +342,7 @@ def systemic_risk_monitor(model, current_state, historical_states):
 ```python
 def analyze_contagion(model, shocked_firm: int, n_samples: int = 5000):
     """
-    Analyze default contagion from a specific firm's default.
+    어떤 회사의 부도에서 비롯한 부도 옮음을 살핀다.
     
     충격이 있을 때와 없을 때의 부도 확률을 견준다.
     """

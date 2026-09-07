@@ -307,7 +307,7 @@ print(f"Total parameters: {total_params:,}")
 
 식:
     Dice = 2 * |A ∩ B| / (|A| + |B|)
-    Dice Loss = 1 - Dice
+    다이스 잃음 = 1 - 다이스
 """
 
 class DiceLoss(nn.Module):

@@ -234,14 +234,14 @@ $$s(x) = \nabla_x \log p(x) = -\frac{1}{T} \nabla_x E(x)$$
 ```python
 def compute_score(energy_net, x, create_graph=True):
     """
-    Compute score function s(x) = -∇E(x).
+    점수 함수 s(x) = -∇E(x)을 셈한다.
     
     매개변수
     ----------
     energy_net : nn.Module
         신경망 에너지 함수
     x : torch.Tensor
-        Input points, shape (batch, dim)
+        들임 점, 꼴 (batch, dim)
     create_graph : bool
         더 높은 차수의 기울기를 위해 그래프를 만들지 여부
     
