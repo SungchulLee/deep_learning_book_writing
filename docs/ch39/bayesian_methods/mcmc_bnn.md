@@ -1,19 +1,19 @@
-# MCMC Methods for Bayesian Neural Networks
-## Overview
+# 베이즈 신경 그물의 MCMC 방법
+## 두루 보기
 
-Markov Chain Monte Carlo (MCMC) methods provide the most principled approach to posterior inference in Bayesian neural networks, generating samples that asymptotically converge to the true posterior distribution. While computationally expensive, they serve as the gold standard for uncertainty quantification and are essential benchmarks against which approximate methods are evaluated.
+마르코프 사슬 몬테카를로(MCMC) 방법은 베이즈 신경 그물에서 뒷분포를 미루어 보는 가장 이치에 닿는 길로, 끝에 가면 참 뒷분포로 모이는 표본을 낳는다. 셈이 비싸긴 하나 아리송함 재기의 으뜸 잣대 노릇을 하며, 어림 방법을 따질 때 견주는 밑금이 된다.
 
-## Hamiltonian Monte Carlo (HMC)
+## 해밀턴 몬테카를로(HMC)
 
-### The Algorithm
+### 알고리즘
 
-HMC augments the parameter space with momentum variables $\mathbf{r}$ and simulates Hamiltonian dynamics:
+HMC은 매개변수 밭에 밀어 나감 변수 $\mathbf{r}$을 덧대어 해밀턴 움직임을 흉내 낸다.
 
 $$H(\theta, \mathbf{r}) = U(\theta) + K(\mathbf{r})$$
 
-where $U(\theta) = -\log p(\theta | \mathcal{D})$ is the potential energy (negative log-posterior) and $K(\mathbf{r}) = \frac{1}{2}\mathbf{r}^T M^{-1} \mathbf{r}$ is the kinetic energy.
+여기서 $U(\theta) = -\log p(\theta | \mathcal{D})$은 감춘 힘(음수 로그 뒷분포)이고 $K(\mathbf{r}) = \frac{1}{2}\mathbf{r}^T M^{-1} \mathbf{r}$은 움직임의 힘이다.
 
-The leapfrog integrator alternates half-steps:
+개구리뜀 적분기는 반걸음을 번갈아 밟는다.
 
 $$\mathbf{r}_{t+\epsilon/2} = \mathbf{r}_t - \frac{\epsilon}{2} \nabla_\theta U(\theta_t)$$
 
@@ -21,7 +21,7 @@ $$\theta_{t+\epsilon} = \theta_t + \epsilon M^{-1} \mathbf{r}_{t+\epsilon/2}$$
 
 $$\mathbf{r}_{t+\epsilon} = \mathbf{r}_{t+\epsilon/2} - \frac{\epsilon}{2} \nabla_\theta U(\theta_{t+\epsilon})$$
 
-### PyTorch Implementation
+### PyTorch으로 짜기
 
 ```python
 import torch
@@ -32,11 +32,11 @@ from typing import List, Callable, Tuple
 
 class HamiltonianMonteCarlo:
     """
-    HMC sampler for neural network posteriors.
+    신경 그물 뒷분포를 위한 HMC 표본 뽑개.
     
-    Note: Full HMC requires computing gradients over the entire dataset,
-    making it impractical for large-scale problems. Use SGLD/SGHMC
-    for scalable alternatives.
+    붙임말: 온전한 HMC은 자료 꾸러미 온통에 걸쳐 기울기를 셈해야 하므로
+    큰 문제에는 쓰기 어렵다. 크게 늘릴 수 있는 갈음으로는
+    SGLD/SGHMC을 쓴다.
     """
     
     def __init__(
@@ -52,7 +52,7 @@ class HamiltonianMonteCarlo:
         self.step_size = step_size
         self.n_leapfrog = n_leapfrog
         
-        # Flatten parameters for sampling
+        # 표본을 뽑으려고 매개변수를 펴 놓는다
         self.param_shapes = [p.shape for p in model.parameters()]
         self.n_params = sum(p.numel() for p in model.parameters())
     
@@ -79,24 +79,24 @@ class HamiltonianMonteCarlo:
     
     def step(self) -> Tuple[bool, float]:
         """
-        One HMC step: leapfrog integration + Metropolis accept/reject.
+        HMC 한 걸음: 개구리뜀 적분 + 메트로폴리스 받기/물리기.
         
         Returns:
-            accepted: Whether proposal was accepted
-            log_prob: Log probability at current state
+            accepted: 내놓은 값을 받았는지
+            log_prob: 이제 자리의 로그 낌새
         """
-        # Save current state
+        # 이제 상태를 담아 둔다
         current_params = self._flatten_params().clone()
         
-        # Sample momentum
+        # 밀어 나감을 뽑는다
         momentum = torch.randn(self.n_params)
         current_momentum = momentum.clone()
         
-        # Current Hamiltonian
+        # 이제의 해밀턴 값
         current_U = self._compute_potential_energy().item()
         current_K = 0.5 * torch.sum(current_momentum ** 2).item()
         
-        # Leapfrog integration
+        # 개구리뜀 적분
         grad = self._compute_gradient()
         momentum = momentum - 0.5 * self.step_size * grad
         
@@ -107,17 +107,17 @@ class HamiltonianMonteCarlo:
             grad = self._compute_gradient()
             momentum = momentum - self.step_size * grad
         
-        # Final half-step
+        # 마지막 반걸음
         params = self._flatten_params() + self.step_size * momentum
         self._unflatten_params(params)
         grad = self._compute_gradient()
         momentum = momentum - 0.5 * self.step_size * grad
         
-        # Proposed Hamiltonian
+        # 내놓은 자리의 해밀턴 값
         proposed_U = self._compute_potential_energy().item()
         proposed_K = 0.5 * torch.sum(momentum ** 2).item()
         
-        # Metropolis accept/reject
+        # 메트로폴리스 받기/물리기
         log_accept = (current_U + current_K) - (proposed_U + proposed_K)
         
         if np.log(np.random.uniform()) < log_accept:
@@ -129,7 +129,7 @@ class HamiltonianMonteCarlo:
     def sample(
         self, n_samples: int, burn_in: int = 100, thin: int = 1
     ) -> List[torch.Tensor]:
-        """Collect posterior samples."""
+        """뒷분포 표본을 모은다."""
         samples = []
         n_accepted = 0
         
@@ -142,26 +142,26 @@ class HamiltonianMonteCarlo:
         
         total_steps = burn_in + n_samples * thin
         accept_rate = n_accepted / total_steps
-        print(f"Acceptance rate: {accept_rate:.3f}")
+        print(f"받은 비율: {accept_rate:.3f}")
         
         return samples
 ```
 
-## Stochastic Gradient Langevin Dynamics (SGLD)
+## 확률 기울기 랑주뱅 움직임(SGLD)
 
-SGLD enables scalable Bayesian inference by using minibatch gradients with injected noise:
+SGLD은 잔 묶음 기울기에 잡음을 섞어 크게 늘릴 수 있는 베이즈 미루어 봄을 이룬다.
 
 $$\theta_{t+1} = \theta_t + \frac{\epsilon_t}{2}\left(\nabla \log p(\theta_t) + \frac{N}{n}\sum_{i \in S_t} \nabla \log p(y_i | x_i, \theta_t)\right) + \eta_t$$
 
-where $\eta_t \sim \mathcal{N}(0, \epsilon_t I)$ and $\epsilon_t$ is a decaying learning rate.
+여기서 $\eta_t \sim \mathcal{N}(0, \epsilon_t I)$이고 $\epsilon_t$은 줄어드는 배움 비율이다.
 
 ```python
 class SGLDOptimizer(torch.optim.Optimizer):
     """
-    Stochastic Gradient Langevin Dynamics optimizer.
+    확률 기울기 랑주뱅 움직임 가장 좋게 하는 개.
     
-    Combines SGD with Gaussian noise injection for posterior sampling.
-    As learning rate decays, samples converge to the posterior.
+    뒷분포 표본을 뽑으려고 SGD에 가우스 잡음 섞기를 더한다.
+    배움 비율이 줄면 표본은 뒷분포로 모인다.
     """
     
     def __init__(self, params, lr=1e-3, weight_decay=0.0,
@@ -179,15 +179,15 @@ class SGLDOptimizer(torch.optim.Optimizer):
                 
                 d_p = p.grad.data
                 
-                # Weight decay (prior)
+                # 짐 줄이기(앞선 분포)
                 if group['weight_decay'] != 0:
                     d_p = d_p + group['weight_decay'] * p.data
                 
-                # SGD update
+                # SGD 고침
                 lr = group['lr']
                 p.data.add_(d_p, alpha=-lr)
                 
-                # Langevin noise injection
+                # 랑주뱅 잡음 섞기
                 noise = torch.randn_like(p.data)
                 noise_std = (2.0 * lr * group['temperature']) ** 0.5
                 p.data.add_(noise, alpha=noise_std * group['noise_scale'])
@@ -204,9 +204,9 @@ def train_with_sgld(
     dataset_size: int = None
 ) -> List[dict]:
     """
-    Train with SGLD and collect posterior samples.
+    SGLD으로 익히며 뒷분포 표본을 모은다.
     
-    Returns list of parameter snapshots (posterior samples).
+    매개변수 찰칵(뒷분포 표본)의 목록을 돌려준다.
     """
     optimizer = SGLDOptimizer(
         model.parameters(), lr=lr, weight_decay=weight_decay
@@ -221,14 +221,14 @@ def train_with_sgld(
             optimizer.zero_grad()
             loss = criterion(model(x), y)
             
-            # Scale gradient for minibatch
+            # 잔 묶음에 맞게 기울기 잣대를 맞춘다
             if dataset_size is not None:
                 loss = loss * dataset_size / len(y)
             
             loss.backward()
             optimizer.step()
         
-        # Collect samples after burn-in
+        # 몸풀기가 끝난 뒤 표본을 모은다
         if epoch >= burn_in_epochs and epoch % collect_every == 0:
             snapshot = {
                 name: param.data.clone()
@@ -236,23 +236,23 @@ def train_with_sgld(
             }
             samples.append(snapshot)
     
-    print(f"Collected {len(samples)} posterior samples")
+    print(f"뒷분포 표본 {len(samples)}개를 모았다")
     return samples
 ```
 
-## SGHMC: Stochastic Gradient Hamiltonian Monte Carlo
+## SGHMC: 확률 기울기 해밀턴 몬테카를로
 
-SGHMC adds momentum to SGLD for better exploration:
+SGHMC은 더 잘 둘러보도록 SGLD에 밀어 나감을 더한다.
 
 $$\theta_{t+1} = \theta_t + \epsilon_t \mathbf{v}_t$$
 
 $$\mathbf{v}_{t+1} = (1 - \alpha)\mathbf{v}_t + \epsilon_t \hat{\nabla} \log p(\theta_t | \mathcal{D}) + \mathcal{N}(0, 2\alpha\epsilon_t I)$$
 
-where $\alpha$ is the friction coefficient and $\hat{\nabla}$ denotes the stochastic gradient.
+여기서 $\alpha$은 쓸림 값이고 $\hat{\nabla}$은 확률 기울기를 뜻한다.
 
 ```python
 class SGHMCOptimizer(torch.optim.Optimizer):
-    """Stochastic Gradient Hamiltonian Monte Carlo."""
+    """확률 기울기 해밀턴 몬테카를로."""
     
     def __init__(self, params, lr=1e-4, momentum_decay=0.01,
                  noise_scale=1.0):
@@ -275,7 +275,7 @@ class SGHMCOptimizer(torch.optim.Optimizer):
                 lr = group['lr']
                 alpha = group['momentum_decay']
                 
-                # Friction + gradient + noise
+                # 쓸림 + 기울기 + 잡음
                 noise = torch.randn_like(p.data)
                 noise_std = (2.0 * alpha * lr) ** 0.5
                 
@@ -286,7 +286,7 @@ class SGHMCOptimizer(torch.optim.Optimizer):
                 p.data.add_(v, alpha=lr)
 ```
 
-## Prediction with MCMC Samples
+## MCMC 표본으로 미루어 보기
 
 ```python
 def predict_with_mcmc_samples(
@@ -296,14 +296,14 @@ def predict_with_mcmc_samples(
     task: str = 'classification'
 ) -> dict:
     """
-    Make predictions using collected MCMC posterior samples.
+    모아 둔 MCMC 뒷분포 표본으로 미루어 본다.
     """
     all_outputs = []
     
     model.eval()
     with torch.no_grad():
         for sample in samples:
-            # Load sampled weights
+            # 뽑아 둔 짐을 얹는다
             for name, param in model.named_parameters():
                 param.data.copy_(sample[name])
             
@@ -334,65 +334,65 @@ def predict_with_mcmc_samples(
         }
 ```
 
-## Practical Considerations
+## 참으로 헤아릴 것
 
-### When to Use MCMC for BNNs
+### 베이즈 신경 그물에 MCMC을 쓸 때
 
-- Research requiring gold-standard posterior approximations
-- Small to medium models (< 10M parameters)
-- When uncertainty quality is more important than computational cost
-- Benchmarking approximate methods
+- 으뜸 잣대가 되는 뒷분포 어림이 있어야 하는 연구
+- 작거나 가운데 크기의 모형(매개변수 1000만 미만)
+- 셈 값보다 아리송함의 됨됨이가 더 종요로울 때
+- 어림 방법의 밑금을 잡을 때
 
-### Limitations
+### 한계
 
-- **Scalability**: Full HMC requires full-dataset gradients
-- **Mixing**: Poor mixing in high dimensions leads to correlated samples
-- **Diagnostics**: Convergence assessment is challenging for neural networks
-- **Multimodality**: Standard MCMC may not explore all posterior modes
+- **크게 늘리기**: 온전한 HMC은 자료 꾸러미 온통의 기울기가 있어야 한다
+- **섞임**: 차수가 높으면 잘 섞이지 않아 표본이 서로 얽힌다
+- **살펴보기**: 신경 그물에서는 모였는지 따지기가 만만치 않다
+- **여러 봉우리**: 여느 MCMC은 뒷분포의 봉우리를 다 둘러보지 못할 수 있다
 
-### Recommendations
+### 즐겨 쓸 길
 
-| Setting | Method | Notes |
+| 형편 | 방법 | 붙임말 |
 |---------|--------|-------|
-| Small model, gold standard | HMC | Best accuracy, high cost |
-| Medium model, scalable | SGLD | Minibatch-compatible |
-| Better exploration needed | SGHMC | Momentum helps mixing |
-| Large-scale production | Use ensembles/SWAG instead | MCMC too expensive |
+| 작은 모형, 으뜸 잣대 | HMC | 가장 맞으나 값이 비쌈 |
+| 가운데 모형, 크게 늘리기 | SGLD | 잔 묶음과 어울림 |
+| 더 잘 둘러봐야 할 때 | SGHMC | 밀어 나감이 섞임을 돕는다 |
+| 큰 서비스 | 모둠이나 SWAG을 쓴다 | MCMC은 너무 비싸다 |
 
-## References
+## 살펴볼 거리
 
 - Welling, M., & Teh, Y. W. (2011). "Bayesian Learning via Stochastic Gradient Langevin Dynamics." ICML.
 - Chen, T., et al. (2014). "Stochastic Gradient Hamiltonian Monte Carlo." ICML.
 - Neal, R. M. (2011). "MCMC Using Hamiltonian Dynamics." Handbook of MCMC.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+**익힘 1.**
+ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
 
-??? success "Solution to Exercise 1"
-    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
-
----
-
-**Exercise 2.**
-Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
-
-??? success "Solution to Exercise 2"
-    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+**익힘 2.**
+이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
 
-??? success "Solution to Exercise 3"
-    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+??? success "익힘 2 풀이"
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE이 낮다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+**익힘 3.**
+베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
-??? success "Solution to Exercise 4"
-    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$
+??? success "익힘 3 풀이"
+    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
+
+---
+
+**익힘 4.**
+이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+
+??? success "익힘 4 풀이"
+    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$

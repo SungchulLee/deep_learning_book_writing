@@ -1,276 +1,276 @@
-# SWAG: Stochastic Weight Averaging Gaussian
-**SWAG (Stochastic Weight Averaging Gaussian)** provides a simple, scalable approach to Bayesian inference in neural networks by fitting a Gaussian distribution to the trajectory of SGD iterates. This post-hoc method captures both the mean and covariance of the weight posterior using statistics collected during standard training.
+# SWAG: 확률 짐 고르기 가우스
+**SWAG(확률 짐 고르기 가우스)**은 SGD 되돌이의 자취에 가우스 분포를 맞추어 신경 그물에서 베이즈 미루어 봄을 단순하고 크게 늘릴 수 있게 이룬다. 이 일 끝난 뒤 방법은 여느 익힘 동안 모은 자만으로 짐 뒷분포의 평균과 함께 바뀜을 함께 담는다.
 
 ---
 
-## Motivation
+## 왜 하는가
 
-### The Gap Between Training and Bayesian Inference
+### 익힘과 베이즈 미루어 봄 사이의 틈
 
-Standard neural network training produces a point estimate $\hat{\theta}$:
+여느 신경 그물 익힘은 점 어림 $\hat{\theta}$을 낸다.
 
 $$
 \hat{\theta} = \arg\min_\theta \mathcal{L}(\theta; \mathcal{D})
 $$
 
-To get uncertainty estimates, we need the posterior $p(\theta \mid \mathcal{D})$. Full Bayesian methods (MCMC, VI) are expensive and require architectural changes.
+아리송함 어림을 얻으려면 뒷분포 $p(\theta \mid \mathcal{D})$이 있어야 한다. 온전한 베이즈 방법(MCMC, VI)은 값이 비싸고 얼개를 고쳐야 한다.
 
-**SWAG's insight**: The SGD trajectory near convergence implicitly explores the posterior landscape. By collecting statistics along this trajectory, we can approximate the posterior without changing the training procedure.
+**SWAG의 깨침**: 모여 가는 언저리의 SGD 자취는 넌지시 뒷분포의 터를 둘러본다. 이 자취를 따라 자를 모으면 익힘 절차를 바꾸지 않고도 뒷분포를 어림할 수 있다.
 
-### Stochastic Weight Averaging (SWA) Background
+### 확률 짐 고르기(SWA) 밑바탕
 
-**SWA** (Izmailov et al., 2018) improves generalization by averaging weights:
+**SWA**(이즈마일로프 등, 2018)은 짐을 고르게 하여 두루 미침을 낫게 한다.
 
 $$
 \bar{\theta}_{\text{SWA}} = \frac{1}{T} \sum_{t=1}^T \theta_t
 $$
 
-where $\theta_t$ are weights from the last $T$ epochs with cyclical or constant learning rate.
+여기서 $\theta_t$은 돌림 또는 붙박인 배움 비율로 익힌 마지막 $T$판의 짐이다.
 
-**Key observation**: SWA weights lie in flatter, wider regions of the loss landscape, leading to better generalization.
+**고갱이 살핌**: SWA 짐은 잃음 터에서 더 판판하고 너른 자리에 놓여 두루 미침이 나아진다.
 
-**SWAG extends SWA** by also capturing the spread of the weight trajectory, not just the mean.
+**SWAG은 SWA을 넓혀** 평균뿐 아니라 짐 자취의 퍼짐까지 담는다.
 
 ---
 
-## SWAG Algorithm
+## SWAG 알고리즘
 
-### Core Idea
+### 고갱이 깨침
 
-Fit a Gaussian to the SGD trajectory:
+SGD 자취에 가우스를 맞춘다.
 
 $$
 \boxed{q(\theta) = \mathcal{N}(\theta \mid \bar{\theta}, \Sigma_{\text{SWAG}})}
 $$
 
-The covariance $\Sigma_{\text{SWAG}}$ is approximated using a low-rank plus diagonal structure.
+함께 바뀜 $\Sigma_{\text{SWAG}}$은 낮은 자리 더하기 대각 얼개로 어림한다.
 
-### Moment Collection
+### 모멘트 모으기
 
-During training (after initial burn-in), collect:
+익히는 동안(처음 몸풀기가 끝난 뒤) 다음을 모은다.
 
-**First moment** (running mean):
+**첫째 모멘트**(달리는 평균):
 
 $$
 \bar{\theta} = \frac{1}{T} \sum_{t=1}^T \theta_t
 $$
 
-**Second moment** (running squared mean):
+**둘째 모멘트**(달리는 제곱 평균):
 
 $$
 \overline{\theta^2} = \frac{1}{T} \sum_{t=1}^T \theta_t^2
 $$
 
-**Deviation matrix** (for low-rank component):
+**벗어남 행렬**(낮은 자리 몫에 쓴다):
 
 $$
 D = [\theta_1 - \bar{\theta}, \theta_2 - \bar{\theta}, \ldots, \theta_K - \bar{\theta}]
 $$
 
-where we keep only the last $K$ deviations (typically $K = 20$).
+여기서는 마지막 벗어남 $K$개만 남긴다(흔히 $K = 20$).
 
-### Covariance Approximation
+### 함께 바뀜 어림
 
-**Full covariance** would be $O(d^2)$ — intractable for large networks.
+**온전한 함께 바뀜**은 $O(d^2)$이라 큰 그물에서는 다룰 수 없다.
 
-**SWAG approximation**:
+**SWAG 어림**:
 
 $$
 \boxed{\Sigma_{\text{SWAG}} = \Sigma_{\text{diag}} + \Sigma_{\text{low-rank}}}
 $$
 
-**Diagonal component**:
+**대각 몫**:
 
 $$
 \Sigma_{\text{diag}} = \text{diag}\left(\overline{\theta^2} - \bar{\theta}^2\right)
 $$
 
-**Low-rank component**:
+**낮은 자리 몫**:
 
 $$
 \Sigma_{\text{low-rank}} = \frac{1}{K-1} D D^\top
 $$
 
-### Sampling from SWAG
+### SWAG에서 표본 뽑기
 
-To sample $\theta \sim q(\theta)$:
+$\theta \sim q(\theta)$을 뽑으려면
 
 $$
 \theta = \bar{\theta} + \frac{1}{\sqrt{2}} \sqrt{\Sigma_{\text{diag}}} \odot z_1 + \frac{1}{\sqrt{2(K-1)}} D z_2
 $$
 
-where $z_1 \sim \mathcal{N}(0, I_d)$ and $z_2 \sim \mathcal{N}(0, I_K)$.
+여기서 $z_1 \sim \mathcal{N}(0, I_d)$이고 $z_2 \sim \mathcal{N}(0, I_K)$이다.
 
-The $\frac{1}{\sqrt{2}}$ factors ensure proper scaling when combining diagonal and low-rank components.
+$\frac{1}{\sqrt{2}}$ 값은 대각 몫과 낮은 자리 몫을 모을 때 잣대가 제대로 맞도록 한다.
 
 ---
 
-## Algorithm Details
+## 알고리즘의 자세한 것
 
-### Training Protocol
+### 익힘 절차
 
 ```
-Algorithm: SWAG Training
+알고리즘: SWAG 익힘
 ────────────────────────
-Input: Pre-trained network θ₀, learning rate schedule, 
-       collection frequency c, rank K
-Output: SWAG parameters (θ̄, Σ_diag, D)
+들임: 미리 익힌 그물 θ₀, 배움 비율 짜임, 
+       모으는 잦기 c, 자리 K
+날임: SWAG 매개변수 (θ̄, Σ_diag, D)
 
-1. Initialize: θ̄ = 0, θ̄² = 0, D = [], n = 0
-2. Set learning rate to SWA schedule (constant or cyclical)
-3. For each epoch after burn-in:
-   a. Train for c iterations with SGD
-   b. Update running statistics:
+1. 첫자리: θ̄ = 0, θ̄² = 0, D = [], n = 0
+2. 배움 비율을 SWA 짜임(붙박이 또는 돌림)으로 둔다
+3. 몸풀기 뒤의 판마다:
+   a. SGD으로 c번 되돌아 익힌다
+   b. 달리는 자를 고친다:
       n ← n + 1
       θ̄ ← (n-1)/n · θ̄ + 1/n · θ
       θ̄² ← (n-1)/n · θ̄² + 1/n · θ²
-   c. Store deviation:
+   c. 벗어남을 담는다:
       D.append(θ - θ̄)
-      If len(D) > K: D.pop(0)
-4. Compute: Σ_diag = diag(θ̄² - θ̄²)
-5. Return (θ̄, Σ_diag, D)
+      len(D) > K이면: D.pop(0)
+4. 셈한다: Σ_diag = diag(θ̄² - θ̄²)
+5. (θ̄, Σ_diag, D)을 돌려준다
 ```
 
-### Learning Rate Schedule
+### 배움 비율 짜임
 
-**Cyclical schedule** (recommended):
+**돌림 짜임**(즐겨 씀):
 
 $$
 \alpha_t = \alpha_{\min} + \frac{1}{2}(\alpha_{\max} - \alpha_{\min})\left(1 + \cos\left(\frac{\pi \cdot \text{mod}(t, c)}{c}\right)\right)
 $$
 
-Collect samples at the end of each cycle when learning rate is low.
+배움 비율이 낮은 돌림의 끝에서 표본을 모은다.
 
-**Constant schedule**:
+**붙박인 짜임**:
 
 $$
 \alpha_t = \alpha_{\text{SWA}}
 $$
 
-Simpler but may provide less diverse samples.
+더 단순하나 표본이 덜 다양할 수 있다.
 
-### Hyperparameters
+### 하이퍼파라미터
 
-| Parameter | Typical Value | Description |
+| 매개변수 | 흔한 값 | 풀이 |
 |-----------|---------------|-------------|
-| SWA start | 75% of training | When to begin collecting |
-| Collection freq $c$ | 1 epoch | How often to update statistics |
-| Low-rank $K$ | 20 | Number of deviation vectors |
-| Learning rate | 0.01-0.05 | SWA learning rate |
+| SWA 비롯 | 익힘의 75% | 언제부터 모을지 |
+| 모으는 잦기 $c$ | 1판 | 자를 얼마나 자주 고칠지 |
+| 낮은 자리 $K$ | 20 | 벗어남 벡터의 수 |
+| 배움 비율 | 0.01~0.05 | SWA 배움 비율 |
 
 ---
 
-## Prediction with SWAG
+## SWAG으로 미루어 보기
 
-### Monte Carlo Integration
+### 몬테카를로 적분
 
-Given test input $x^*$, sample $S$ weight configurations:
+시험 들임 $x^*$이 주어지면 짐 차림 $S$개를 뽑는다.
 
 $$
 \theta^{(s)} \sim q(\theta) = \mathcal{N}(\bar{\theta}, \Sigma_{\text{SWAG}})
 $$
 
-**Predictive mean**:
+**미루어 본 평균**:
 
 $$
 \hat{\mu}(x^*) = \frac{1}{S} \sum_{s=1}^S f_{\theta^{(s)}}(x^*)
 $$
 
-**Predictive variance** (epistemic):
+**미루어 본 흩어짐**(앎의):
 
 $$
 \hat{\sigma}^2(x^*) = \frac{1}{S} \sum_{s=1}^S \left(f_{\theta^{(s)}}(x^*) - \hat{\mu}(x^*)\right)^2
 $$
 
-### For Classification
+### 가름에서는
 
-Average softmax probabilities:
+소프트맥스 낌새를 평균한다.
 
 $$
 p(y = c \mid x^*, \mathcal{D}) \approx \frac{1}{S} \sum_{s=1}^S \text{softmax}(f_{\theta^{(s)}}(x^*))_c
 $$
 
-**Uncertainty measures**:
+**아리송함 자**:
 
-- **Entropy**: $\mathbb{H}[\bar{p}] = -\sum_c \bar{p}_c \log \bar{p}_c$
-- **Mutual information**: $\mathbb{I}[y; \theta] = \mathbb{H}[\bar{p}] - \frac{1}{S}\sum_s \mathbb{H}[p_s]$
+- **엔트로피**: $\mathbb{H}[\bar{p}] = -\sum_c \bar{p}_c \log \bar{p}_c$
+- **서로 나눈 소식**: $\mathbb{I}[y; \theta] = \mathbb{H}[\bar{p}] - \frac{1}{S}\sum_s \mathbb{H}[p_s]$
 
 ---
 
-## Theoretical Justification
+## 이론으로 뒷받침하기
 
-### Connection to Laplace Approximation
+### 라플라스 어림과의 이어짐
 
-SWAG can be viewed as an approximate Laplace approximation:
+SWAG은 어림 라플라스 어림으로 볼 수 있다.
 
-**Laplace**: $q(\theta) = \mathcal{N}(\theta_{\text{MAP}}, H^{-1})$
+**라플라스**: $q(\theta) = \mathcal{N}(\theta_{\text{MAP}}, H^{-1})$
 
 **SWAG**: $q(\theta) = \mathcal{N}(\bar{\theta}_{\text{SWA}}, \Sigma_{\text{SWAG}})$
 
-The key differences:
+고갱이 다름은 이렇다.
 
-- SWAG uses SWA mean (potentially flatter region) vs MAP
-- SWAG approximates Hessian inverse via trajectory statistics
+- SWAG은 MAP 대신 SWA 평균(더 판판한 자리일 수 있다)을 쓴다
+- SWAG은 자취의 자로 헤세 행렬의 거꿀을 어림한다
 
-### Connection to SGLD
+### SGLD과의 이어짐
 
-Under certain conditions, SGD with noise explores the posterior:
+어떤 자리에서는 잡음이 있는 SGD이 뒷분포를 둘러본다.
 
 $$
 \theta_{t+1} = \theta_t - \alpha \nabla \mathcal{L}(\theta_t) + \epsilon_t
 $$
 
-SWAG captures the marginal statistics of this exploration.
+SWAG은 이 둘러봄의 가장자리 자를 담는다.
 
-### Loss Landscape Perspective
+### 잃음 터로 본 눈
 
-SWAG samples from the "basin" around the SWA solution:
+SWAG은 SWA 풀이 언저리의 "골"에서 표본을 뽑는다.
 
-- Diagonal captures per-parameter variance
-- Low-rank captures principal directions of variation
-- Together they approximate the local posterior geometry
+- 대각은 매개변수마다의 흩어짐을 담는다
+- 낮은 자리는 바뀜의 으뜸 방향을 담는다
+- 둘이 함께 그 자리 뒷분포의 꼴을 어림한다
 
 ---
 
-## SWAG Variants
+## SWAG의 갈래
 
-### SWAG-Diagonal
+### SWAG-대각
 
-Use only the diagonal covariance (no low-rank):
+대각 함께 바뀜만 쓴다(낮은 자리 없음).
 
 $$
 \Sigma = \text{diag}\left(\overline{\theta^2} - \bar{\theta}^2\right)
 $$
 
-**Advantages**: Simpler, less storage
-**Disadvantages**: Ignores weight correlations
+**나은 점**: 더 단순하고 자리를 덜 쓴다
+**아쉬운 점**: 짐 사이의 얽힘을 놓친다
 
-### Multi-SWAG
+### 여럿 SWAG
 
-Run SWAG from multiple random initializations:
+첫값을 아무렇게나 달리해 SWAG을 여러 번 돌린다.
 
 $$
 p(\theta \mid \mathcal{D}) \approx \frac{1}{M} \sum_{m=1}^M q_m(\theta)
 $$
 
-Captures multiple modes of the posterior.
+뒷분포의 봉우리 여럿을 담는다.
 
-### SWAG with BatchNorm
+### 묶음 잣대 잡기가 있는 SWAG
 
-**Challenge**: BatchNorm statistics depend on the batch, not just weights.
+**어려움**: 묶음 잣대 잡기의 자는 짐뿐 아니라 묶음에도 매인다.
 
-**Solution**: After sampling weights, run a forward pass on training data to update BatchNorm running statistics before evaluation.
+**풀이**: 짐을 뽑은 뒤, 따지기 앞서 익힘 자료로 앞으로 걸음을 한 번 돌려 묶음 잣대 잡기의 달리는 자를 고친다.
 
 ---
 
-## Python Implementation
+## 파이썬으로 짜기
 
 ```python
 """
-SWAG: Stochastic Weight Averaging Gaussian
+SWAG: 확률 짐 고르기 가우스
 
-A simple, scalable approach to approximate Bayesian inference
-by fitting a Gaussian to the SGD trajectory.
+SGD 자취에 가우스를 맞추어 베이즈 미루어 봄을 어림하는
+단순하고 크게 늘릴 수 있는 길.
 """
 
 import numpy as np
@@ -280,10 +280,10 @@ from collections import deque
 
 class SWAG:
     """
-    Stochastic Weight Averaging Gaussian.
+    확률 짐 고르기 가우스.
     
-    Approximates the posterior as a Gaussian with low-rank plus diagonal
-    covariance, estimated from the SGD trajectory.
+    SGD 자취에서 어림한 낮은 자리 더하기 대각 함께 바뀜을 지닌
+    가우스로 뒷분포를 어림한다.
     """
     
     def __init__(
@@ -296,17 +296,17 @@ class SWAG:
         Parameters
         ----------
         n_params : int
-            Number of model parameters
+            모형 매개변수의 수
         max_rank : int
-            Maximum rank of low-rank covariance component
+            낮은 자리 함께 바뀜 몫의 가장 큰 자리
         var_clamp : float
-            Minimum variance (for numerical stability)
+            가장 작은 흩어짐(셈이 든든하도록)
         """
         self.n_params = n_params
         self.max_rank = max_rank
         self.var_clamp = var_clamp
         
-        # Statistics
+        # 자
         self.mean = np.zeros(n_params)
         self.sq_mean = np.zeros(n_params)
         self.deviations = deque(maxlen=max_rank)
@@ -314,12 +314,12 @@ class SWAG:
     
     def update(self, params: np.ndarray):
         """
-        Update SWAG statistics with new parameters.
+        새 매개변수로 SWAG 자를 고친다.
         
         Parameters
         ----------
-        params : ndarray of shape (n_params,)
-            Current model parameters
+        params : (n_params,) 꼴의 ndarray
+            이제의 모형 매개변수
         """
         params = np.asarray(params).flatten()
         assert len(params) == self.n_params
@@ -327,88 +327,88 @@ class SWAG:
         self.n_models += 1
         n = self.n_models
         
-        # Update running mean
+        # 달리는 평균을 고친다
         old_mean = self.mean.copy()
         self.mean = (n - 1) / n * self.mean + 1 / n * params
         
-        # Update running squared mean
+        # 달리는 제곱 평균을 고친다
         self.sq_mean = (n - 1) / n * self.sq_mean + 1 / n * (params ** 2)
         
-        # Store deviation from current mean
+        # 이제 평균에서의 벗어남을 담는다
         deviation = params - self.mean
         self.deviations.append(deviation)
     
     @property
     def variance(self) -> np.ndarray:
-        """Diagonal variance."""
+        """대각 흩어짐."""
         var = self.sq_mean - self.mean ** 2
         return np.maximum(var, self.var_clamp)
     
     @property
     def deviation_matrix(self) -> np.ndarray:
-        """Matrix of deviations for low-rank component."""
+        """낮은 자리 몫에 쓰는 벗어남 행렬."""
         if len(self.deviations) == 0:
             return np.zeros((self.n_params, 1))
         return np.column_stack(self.deviations)
     
     def sample(self, scale: float = 1.0) -> np.ndarray:
         """
-        Sample from SWAG distribution.
+        SWAG 분포에서 표본을 뽑는다.
         
         Parameters
         ----------
         scale : float
-            Scale factor for uncertainty (1.0 = full uncertainty)
+            아리송함의 잣대 값(1.0 = 온전한 아리송함)
         
         Returns
         -------
-        ndarray of shape (n_params,)
-            Sampled parameters
+        (n_params,) 꼴의 ndarray
+            뽑은 매개변수
         """
-        # Sample from diagonal component
+        # 대각 몫에서 뽑는다
         z1 = np.random.randn(self.n_params)
         
-        # Sample from low-rank component
+        # 낮은 자리 몫에서 뽑는다
         D = self.deviation_matrix
         K = D.shape[1]
         z2 = np.random.randn(K)
         
-        # Combine (with proper scaling)
+        # 모은다(잣대를 제대로 맞추어)
         std_diag = np.sqrt(self.variance)
         
         if K > 1:
-            # Full SWAG: diagonal + low-rank
+            # 온전한 SWAG: 대각 + 낮은 자리
             sample = (
                 self.mean 
                 + scale * (1.0 / np.sqrt(2.0)) * std_diag * z1
                 + scale * (1.0 / np.sqrt(2.0 * (K - 1))) * D @ z2
             )
         else:
-            # SWAG-Diagonal only
+            # SWAG-대각만
             sample = self.mean + scale * std_diag * z1
         
         return sample
     
     def sample_many(self, n_samples: int, scale: float = 1.0) -> np.ndarray:
         """
-        Sample multiple parameter vectors.
+        매개변수 벡터를 여럿 뽑는다.
         
         Parameters
         ----------
         n_samples : int
-            Number of samples
+            표본의 수
         scale : float
-            Scale factor for uncertainty
+            아리송함의 잣대 값
         
         Returns
         -------
-        ndarray of shape (n_samples, n_params)
-            Sampled parameters
+        (n_samples, n_params) 꼴의 ndarray
+            뽑은 매개변수
         """
         return np.array([self.sample(scale) for _ in range(n_samples)])
     
     def get_state(self) -> Dict[str, np.ndarray]:
-        """Get state for saving."""
+        """담아 둘 상태를 얻는다."""
         return {
             'mean': self.mean,
             'sq_mean': self.sq_mean,
@@ -417,7 +417,7 @@ class SWAG:
         }
     
     def load_state(self, state: Dict[str, np.ndarray]):
-        """Load state."""
+        """상태를 얹는다."""
         self.mean = state['mean']
         self.sq_mean = state['sq_mean']
         self.deviations = deque(state['deviations'], maxlen=self.max_rank)
@@ -426,7 +426,7 @@ class SWAG:
 
 class SWAGTrainer:
     """
-    Trainer for SWAG with cyclical learning rate.
+    돌림 배움 비율을 쓰는 SWAG 익힘개.
     """
     
     def __init__(
@@ -442,17 +442,17 @@ class SWAGTrainer:
         Parameters
         ----------
         model : object
-            Neural network with get_params() and set_params() methods
+            get_params()과 set_params() 방법을 지닌 신경 그물
         swag : SWAG
-            SWAG object for collecting statistics
+            자를 모을 SWAG 물체
         lr_init : float
-            Initial (max) learning rate
+            처음(가장 큰) 배움 비율
         lr_min : float
-            Minimum learning rate
+            가장 작은 배움 비율
         cycle_length : int
-            Number of epochs per cycle
+            돌림 하나의 판 수
         swa_start : int
-            Epoch to start SWAG collection
+            SWAG 모으기를 비롯할 판
         """
         self.model = model
         self.swag = swag
@@ -462,12 +462,12 @@ class SWAGTrainer:
         self.swa_start = swa_start
     
     def get_lr(self, epoch: int) -> float:
-        """Cyclical learning rate schedule."""
+        """돌림 배움 비율 짜임."""
         if epoch < self.swa_start:
-            # Linear warmup or constant
+            # 곧은 몸풀기 또는 붙박이
             return self.lr_init
         
-        # Cyclical after swa_start
+        # swa_start 뒤로는 돌림
         cycle_epoch = (epoch - self.swa_start) % self.cycle_length
         t = cycle_epoch / self.cycle_length
         
@@ -481,17 +481,17 @@ class SWAGTrainer:
         batch_size: int = 32
     ) -> float:
         """
-        Train for one epoch.
+        한 판 익힌다.
         
         Returns
         -------
         float
-            Average loss
+            평균 잃음
         """
         lr = self.get_lr(epoch)
         losses = []
         
-        # Shuffle data
+        # 자료를 뒤섞는다
         indices = np.random.permutation(len(X))
         
         for start in range(0, len(X), batch_size):
@@ -499,16 +499,16 @@ class SWAGTrainer:
             X_batch = X[batch_idx]
             y_batch = y[batch_idx]
             
-            # Compute gradients and loss (model-specific)
+            # 기울기와 잃음을 셈한다(모형마다 다름)
             loss, grads = self.model.compute_gradients(X_batch, y_batch)
             losses.append(loss)
             
-            # SGD update
+            # SGD 고침
             params = self.model.get_params()
             new_params = params - lr * grads
             self.model.set_params(new_params)
         
-        # Update SWAG at end of cycle (when lr is low)
+        # 돌림 끝(배움 비율이 낮을 때) SWAG을 고친다
         if epoch >= self.swa_start:
             cycle_epoch = (epoch - self.swa_start) % self.cycle_length
             if cycle_epoch == self.cycle_length - 1:
@@ -525,36 +525,36 @@ def swag_predict(
     scale: float = 1.0
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Make predictions with SWAG uncertainty.
+    SWAG 아리송함을 곁들여 미루어 본다.
     
     Parameters
     ----------
     model : object
-        Neural network with set_params() and predict() methods
+        set_params()과 predict() 방법을 지닌 신경 그물
     swag : SWAG
-        Fitted SWAG object
+        맞춰 놓은 SWAG 물체
     X : ndarray
-        Input data
+        들임 자료
     n_samples : int
-        Number of posterior samples
+        뒷분포 표본의 수
     scale : float
-        Uncertainty scale factor
+        아리송함 잣대 값
     
     Returns
     -------
     mean : ndarray
-        Mean prediction
+        평균 미루어 봄
     std : ndarray
-        Standard deviation (epistemic uncertainty)
+        잣대 어긋남(앎의 아리송함)
     """
     predictions = []
     
     for _ in range(n_samples):
-        # Sample weights
+        # 짐을 뽑는다
         params = swag.sample(scale=scale)
         model.set_params(params)
         
-        # Make prediction
+        # 미루어 본다
         pred = model.predict(X)
         predictions.append(pred)
     
@@ -563,33 +563,33 @@ def swag_predict(
     mean = np.mean(predictions, axis=0)
     std = np.std(predictions, axis=0)
     
-    # Restore mean weights
+    # 평균 짐으로 되돌린다
     model.set_params(swag.mean)
     
     return mean, std
 
 
 # =============================================================================
-# Demo
+# 보여 주기
 # =============================================================================
 
 def demo_swag():
-    """Demonstrate SWAG on a simple regression problem."""
+    """단순한 되돌이 문제에서 SWAG을 보여 준다."""
     
     print("=" * 60)
-    print("SWAG DEMONSTRATION")
+    print("SWAG 보여 주기")
     print("=" * 60)
     
     np.random.seed(42)
     
-    # Create toy data
+    # 장난감 자료를 만든다
     N = 100
     X = np.random.uniform(-4, 4, N).reshape(-1, 1)
     y = np.sin(X) + 0.2 * np.random.randn(N, 1)
     
-    print(f"\nTraining data: {N} points")
+    print(f"\n익힘 자료: {N}점")
     
-    # Simple MLP for demonstration
+    # 보여 주기용 단순 MLP
     class SimpleMLP:
         def __init__(self, layers):
             self.layers = layers
@@ -610,7 +610,7 @@ def demo_swag():
             self.params = params.copy()
         
         def predict(self, X):
-            # Unpack params and forward pass
+            # 매개변수를 풀고 앞으로 걸음
             idx = 0
             h = X
             for i in range(len(self.layers) - 1):
@@ -625,7 +625,7 @@ def demo_swag():
             return h
         
         def compute_gradients(self, X, y):
-            # Numerical gradients for simplicity
+            # 단순하게 수로 셈하는 기울기
             pred = self.predict(X)
             loss = np.mean((pred - y) ** 2)
             
@@ -641,47 +641,47 @@ def demo_swag():
             
             return loss, grads
     
-    # Create model
+    # 모형을 만든다
     model = SimpleMLP([1, 30, 30, 1])
     n_params = len(model.get_params())
-    print(f"Model parameters: {n_params}")
+    print(f"모형 매개변수: {n_params}")
     
-    # Create SWAG
+    # SWAG을 만든다
     swag = SWAG(n_params, max_rank=20)
     
-    # Pre-train
-    print("\nPre-training...")
+    # 미리 익히기
+    print("\n미리 익히는 중...")
     for epoch in range(50):
         lr = 0.1 * (0.95 ** epoch)
         _, grads = model.compute_gradients(X, y)
         model.set_params(model.get_params() - lr * grads)
     
-    # SWAG collection phase
-    print("Collecting SWAG statistics...")
+    # SWAG 모으기 도막
+    print("SWAG 자를 모으는 중...")
     for epoch in range(30):
-        # Cyclical LR
+        # 돌림 배움 비율
         t = (epoch % 5) / 5
         lr = 0.001 + 0.009 * (1 + np.cos(np.pi * t)) / 2
         
         _, grads = model.compute_gradients(X, y)
         model.set_params(model.get_params() - lr * grads)
         
-        # Collect at end of cycle
+        # 돌림 끝에서 모은다
         if (epoch + 1) % 5 == 0:
             swag.update(model.get_params())
     
-    print(f"SWAG models collected: {swag.n_models}")
+    print(f"모은 SWAG 모형: {swag.n_models}")
     
-    # Make predictions
+    # 미루어 본다
     X_test = np.linspace(-6, 6, 100).reshape(-1, 1)
     
     mean, std = swag_predict(model, swag, X_test, n_samples=50)
     
-    print(f"\nMean epistemic uncertainty: {np.mean(std):.4f}")
-    print(f"Uncertainty in training region [-4,4]: {np.mean(std[np.abs(X_test) < 4]):.4f}")
-    print(f"Uncertainty outside training region: {np.mean(std[np.abs(X_test) > 4]):.4f}")
+    print(f"\n평균 앎의 아리송함: {np.mean(std):.4f}")
+    print(f"익힘 자리 [-4,4] 안의 아리송함: {np.mean(std[np.abs(X_test) < 4]):.4f}")
+    print(f"익힘 자리 밖의 아리송함: {np.mean(std[np.abs(X_test) > 4]):.4f}")
     
-    print("\n*** SWAG uncertainty should be higher outside training region")
+    print("\n*** SWAG 아리송함은 익힘 자리 밖에서 더 커야 한다")
     
     return swag, model
 
@@ -692,146 +692,146 @@ if __name__ == "__main__":
 
 ---
 
-## Comparison with Other Methods
+## 다른 방법과 견주기
 
-### vs. Deep Ensembles
+### 깊은 모둠과
 
-| Aspect | SWAG | Deep Ensembles |
+| 결 | SWAG | 깊은 모둠 |
 |--------|------|----------------|
-| Training | Single network + statistics | M independent networks |
-| Storage | Mean + diagonal + K vectors | M complete networks |
-| Diversity | Gaussian approximation | True ensemble diversity |
-| Uncertainty quality | Good | Often better |
-| Implementation | Post-hoc | From scratch |
+| 익힘 | 그물 하나 + 자 | 서로 남남인 그물 M개 |
+| 자리 | 평균 + 대각 + 벡터 K개 | 온전한 그물 M개 |
+| 다양함 | 가우스 어림 | 참 모둠의 다양함 |
+| 아리송함 됨됨이 | 좋음 | 흔히 더 좋음 |
+| 짜기 | 일 끝난 뒤 | 처음부터 |
 
-### vs. MC Dropout
+### MC 드롭아웃과
 
-| Aspect | SWAG | MC Dropout |
+| 결 | SWAG | MC 드롭아웃 |
 |--------|------|------------|
-| Training | Modified schedule | Standard + dropout |
-| Posterior | Explicit Gaussian | Implicit (Bernoulli masks) |
-| Covariance | Low-rank + diagonal | Implicit |
-| Flexibility | Any architecture | Requires dropout layers |
+| 익힘 | 고친 짜임 | 여느 익힘 + 드롭아웃 |
+| 뒷분포 | 드러난 가우스 | 넌지시(베르누이 가리개) |
+| 함께 바뀜 | 낮은 자리 + 대각 | 넌지시 |
+| 너그러움 | 얼개를 가리지 않음 | 드롭아웃 켜가 있어야 함 |
 
-### vs. Variational Inference
+### 변이 미루어 봄과
 
-| Aspect | SWAG | VI (Bayes by Backprop) |
+| 결 | SWAG | VI(되돌아가며 베이즈) |
 |--------|------|------------------------|
-| Training | Post-hoc | From scratch |
-| Parameters | Same as base | 2× (mean + variance) |
-| Approximation | Empirical Gaussian | Mean-field Gaussian |
-| Scalability | Very high | High |
+| 익힘 | 일 끝난 뒤 | 처음부터 |
+| 매개변수 | 밑 모형과 같음 | 2배(평균 + 흩어짐) |
+| 어림 | 겪어 본 가우스 | 평균 마당 가우스 |
+| 크게 늘리기 | 아주 좋음 | 좋음 |
 
 ---
 
-## Practical Guidelines
+## 참으로 쓸 길잡이
 
-### When to Use SWAG
+### SWAG을 쓸 때
 
-**Good candidates**:
+**잘 맞는 자리**:
 
-- Already have trained networks
-- Need quick uncertainty estimates
-- Large models where VI is expensive
-- Standard architectures (ResNets, etc.)
+- 이미 익힌 그물이 있을 때
+- 아리송함 어림이 빨리 있어야 할 때
+- VI이 비싼 큰 모형
+- 여느 얼개(ResNet 따위)
 
-**Less suitable**:
+**덜 맞는 자리**:
 
-- Need very accurate posteriors
-- Multimodal posteriors expected
-- Real-time inference requirements
+- 아주 맞는 뒷분포가 있어야 할 때
+- 봉우리가 여럿일 것으로 볼 때
+- 제때 미루어 봄이 있어야 할 때
 
-### Implementation Tips
+### 짜기 요령
 
-1. **Pre-train normally**: Get a good solution first
-2. **Use cyclical LR**: Better exploration than constant
-3. **Collect enough samples**: At least 10-20 for stable covariance
-4. **Handle BatchNorm**: Update running stats after sampling
-5. **Scale factor tuning**: Start with 1.0, adjust based on calibration
+1. **여느 대로 미리 익힌다**: 먼저 좋은 풀이를 얻는다
+2. **돌림 배움 비율을 쓴다**: 붙박이보다 더 잘 둘러본다
+3. **표본을 넉넉히 모은다**: 함께 바뀜이 든든하려면 적어도 10~20개
+4. **묶음 잣대 잡기를 다룬다**: 뽑은 뒤 달리는 자를 고친다
+5. **잣대 값 맞추기**: 1.0에서 비롯해 눈금 맞음을 보고 손본다
 
-### Calibration
+### 눈금 맞추기
 
-If predictions are under/overconfident:
+미루어 봄이 지나치게 머뭇거리거나 자신하면
 
-- **Underconfident**: Reduce scale factor
-- **Overconfident**: Increase scale factor, collect more samples
+- **머뭇거림**: 잣대 값을 낮춘다
+- **지나친 자신**: 잣대 값을 높이고 표본을 더 모은다
 
 ---
 
-## Summary
+## 간추림
 
-### Key Formulas
+### 고갱이 식
 
-**SWAG distribution**:
+**SWAG 분포**:
 
 $$
 q(\theta) = \mathcal{N}(\bar{\theta}, \Sigma_{\text{diag}} + \Sigma_{\text{low-rank}})
 $$
 
-**Sampling**:
+**표본 뽑기**:
 
 $$
 \theta = \bar{\theta} + \frac{1}{\sqrt{2}} \sqrt{\Sigma_{\text{diag}}} \odot z_1 + \frac{1}{\sqrt{2(K-1)}} D z_2
 $$
 
-**Running statistics**:
+**달리는 자**:
 
 $$
 \bar{\theta} = \frac{1}{T}\sum_t \theta_t, \quad \Sigma_{\text{diag}} = \text{diag}(\overline{\theta^2} - \bar{\theta}^2)
 $$
 
-### Advantages and Limitations
+### 나은 점과 한계
 
-| Advantages | Limitations |
+| 나은 점 | 한계 |
 |------------|-------------|
-| Simple to implement | Gaussian approximation only |
-| Post-hoc (no retraining) | May underestimate uncertainty |
-| Scalable to large networks | Requires SWA-style training phase |
-| Good empirical performance | Single-mode approximation |
+| 짜기가 단순하다 | 가우스 어림에 그친다 |
+| 일 끝난 뒤(다시 익히지 않음) | 아리송함을 낮게 볼 수 있다 |
+| 큰 그물로 늘릴 수 있다 | SWA 결의 익힘 도막이 있어야 한다 |
+| 겪어 본 됨됨이가 좋다 | 봉우리 하나만 어림한다 |
 
-### Connections to Other Topics
+### 다른 이야기와의 이어짐
 
-| Topic | Connection |
+| 이야기 | 이어짐 |
 |-------|------------|
-| SWA | SWAG extends SWA with covariance |
-| Laplace | Both fit Gaussian at convergence |
-| Deep Ensembles | Can combine (Multi-SWAG) |
-| Uncertainty | Provides epistemic uncertainty estimates |
+| SWA | SWAG은 SWA에 함께 바뀜을 더한다 |
+| 라플라스 | 둘 다 모인 자리에 가우스를 맞춘다 |
+| 깊은 모둠 | 함께 쓸 수 있다(여럿 SWAG) |
+| 아리송함 | 앎의 아리송함 어림을 준다 |
 
-### Key References
+### 고갱이 살펴볼 거리
 
 - Maddox, W., et al. (2019). A simple baseline for Bayesian inference in deep learning. *NeurIPS*.
 - Izmailov, P., et al. (2018). Averaging weights leads to wider optima and better generalization. *UAI*.
 - Wilson, A. G., & Izmailov, P. (2020). Bayesian deep learning and a probabilistic perspective of generalization. *NeurIPS*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+**익힘 1.**
+ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
 
-??? success "Solution to Exercise 1"
-    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
-
----
-
-**Exercise 2.**
-Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
-
-??? success "Solution to Exercise 2"
-    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+**익힘 2.**
+이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
 
-??? success "Solution to Exercise 3"
-    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+??? success "익힘 2 풀이"
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE이 낮다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+**익힘 3.**
+베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
-??? success "Solution to Exercise 4"
-    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$
+??? success "익힘 3 풀이"
+    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
+
+---
+
+**익힘 4.**
+이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+
+??? success "익힘 4 풀이"
+    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$
