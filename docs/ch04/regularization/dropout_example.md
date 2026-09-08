@@ -14,13 +14,14 @@
 """
 
 import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
 # ========================================================================
 # 메인
@@ -29,39 +30,89 @@ from tensorflow.keras import layers
 
 def create_model_without_dropout(input_dim):
     """드롭아웃이 없는 신경망을 만든다."""
-    model = keras.Sequential([
-        layers.Dense(128, activation='relu', input_dim=input_dim),
-        layers.Dense(64, activation='relu'),
-        layers.Dense(32, activation='relu'),
-        layers.Dense(1, activation='sigmoid')
-    ])
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    return model
+    # 마지막 층에 시그모이드를 붙이지 않는다. 아래에서 쓰는
+    # BCEWithLogitsLoss가 시그모이드를 안에 품고 있어, 여기서 또 걸면
+    # 두 번 적용될뿐더러 수치적으로도 불안정해진다
+    return nn.Sequential(
+        nn.Linear(input_dim, 128),
+        nn.ReLU(),
+        nn.Linear(128, 64),
+        nn.ReLU(),
+        nn.Linear(64, 32),
+        nn.ReLU(),
+        nn.Linear(32, 1),
+    )
 
 
 def create_model_with_dropout(input_dim, dropout_rate=0.5):
     """드롭아웃 층이 있는 신경망을 만든다."""
-    # 이 페이지는 이 장에서 드물게 PyTorch가 아니라 케라스를 쓴다.
-    # 뜻은 같지만 학습/평가 모드를 다루는 방식이 다르다. PyTorch는
-    # model.train()과 model.eval()을 손으로 오가야 하지만, 케라스는
-    # fit에서는 드롭아웃을 켜고 evaluate와 predict에서는 알아서 끈다.
-    # 곧 아래 코드에 eval()에 해당하는 줄이 보이지 않는 것이 정상이다
-    model = keras.Sequential([
-        # Dense 뒤에 Dropout을 놓는 순서는 PyTorch 판과 같다
-        layers.Dense(128, activation='relu', input_dim=input_dim),
-        layers.Dropout(dropout_rate),
-        layers.Dense(64, activation='relu'),
-        layers.Dropout(dropout_rate),
-        layers.Dense(32, activation='relu'),
+    return nn.Sequential(
+        # 선형 → 활성화 → 드롭아웃 차례다. 활성화 뒤에 두어야
+        # 활성값을 끄는 것이 된다
+        nn.Linear(input_dim, 128),
+        nn.ReLU(),
+        nn.Dropout(dropout_rate),
+        nn.Linear(128, 64),
+        nn.ReLU(),
+        nn.Dropout(dropout_rate),
+        nn.Linear(64, 32),
+        nn.ReLU(),
         # 세 층 모두 0.5로 같다. 폭이 32인 층에서는 절반을 끄면 남는
         # 뉴런이 16개뿐이라 꽤 센 편이며, 보통은 뒤로 갈수록 비율을
         # 낮춘다. 여기서는 효과를 뚜렷이 보이려고 일부러 세게 걸었다
-        layers.Dropout(dropout_rate),
+        nn.Dropout(dropout_rate),
         # 출력층 뒤에는 드롭아웃이 없다. 예측 자체를 지울 수는 없다
-        layers.Dense(1, activation='sigmoid')
-    ])
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    return model
+        nn.Linear(32, 1),
+    )
+
+
+def run_epoch(model, loader, criterion, optimizer=None):
+    """한 에포크를 돌고 (평균 손실, 정확도)를 돌려준다.
+
+    optimizer가 있으면 학습 모드로, 없으면 평가 모드로 돈다.
+    """
+    # 드롭아웃을 켜고 끄는 것은 이 한 줄이다. train()에서는 뉴런을
+    # 무작위로 끄고 eval()에서는 끄지 않는다. 이것을 빠뜨리면 평가할
+    # 때도 뉴런이 꺼져 같은 입력에 매번 다른 답이 나온다
+    model.train() if optimizer is not None else model.eval()
+
+    total_loss, correct, total = 0.0, 0, 0
+    # 평가할 때는 계산 그래프를 만들지 않아 메모리와 시간을 아낀다
+    context = torch.enable_grad() if optimizer is not None else torch.no_grad()
+    with context:
+        for xb, yb in loader:
+            logits = model(xb)
+            loss = criterion(logits, yb)
+
+            if optimizer is not None:
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+            # 배치 크기를 곱해 두었다가 표본 수로 나눈다. 마지막 배치가
+            # 짧아도 표본 하나하나가 같은 무게를 갖게 하려는 것이다
+            total_loss += loss.item() * xb.size(0)
+            # 로짓이 0보다 크면 확률이 0.5보다 크다는 뜻이라,
+            # 시그모이드를 거치지 않고 바로 견주어도 된다
+            correct += ((logits > 0).float() == yb).sum().item()
+            total += xb.size(0)
+    return total_loss / total, correct / total
+
+
+def train_model(model, train_loader, val_loader, epochs=100, lr=1e-3):
+    """모델을 학습시키고 에포크별 이력을 돌려준다."""
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    history = {'loss': [], 'val_loss': [], 'accuracy': [], 'val_accuracy': []}
+
+    for _ in range(epochs):
+        train_loss, train_acc = run_epoch(model, train_loader, criterion, optimizer)
+        val_loss, val_acc = run_epoch(model, val_loader, criterion)
+        history['loss'].append(train_loss)
+        history['accuracy'].append(train_acc)
+        history['val_loss'].append(val_loss)
+        history['val_accuracy'].append(val_acc)
+    return history
 
 
 def main():
@@ -77,35 +128,46 @@ def main():
     # 이 두 메서드를 바꿔 쓰는 것이 데이터 누출의 가장 흔한 통로다
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
-    
-    # 드롭아웃 없이 모델 학습
-    # 주의: 텐서플로의 씨앗을 심지 않아 실행할 때마다 값이 달라진다.
-    # 두 모델의 차이가 드롭아웃 때문인지 초기화 운 때문인지 가리려면
-    # 여기 앞에 tf.random.set_seed(42)가 있어야 한다
+
+    # 텐서로 옮긴다. 목표는 (N, 1) 모양이어야 한다. (N,)으로 두면
+    # BCEWithLogitsLoss가 (N, 1)인 출력과 방송되어 조용히 틀린 값을 낸다
+    X_train_t = torch.FloatTensor(X_train)
+    y_train_t = torch.FloatTensor(y_train).reshape(-1, 1)
+    X_test_t = torch.FloatTensor(X_test)
+    y_test_t = torch.FloatTensor(y_test).reshape(-1, 1)
+
+    # 학습 집합의 뒤쪽 20%를 검증용으로 떼어 둔다. 앞서
+    # train_test_split이 이미 뒤섞어 두었으므로 뒤에서 자르더라도
+    # 한쪽으로 치우치지 않는다
+    n_val = int(0.2 * len(X_train_t))
+    train_ds = TensorDataset(X_train_t[:-n_val], y_train_t[:-n_val])
+    val_ds = TensorDataset(X_train_t[-n_val:], y_train_t[-n_val:])
+    test_ds = TensorDataset(X_test_t, y_test_t)
+
+    train_loader = DataLoader(train_ds, batch_size=32, shuffle=True)
+    val_loader = DataLoader(val_ds, batch_size=32)
+    test_loader = DataLoader(test_ds, batch_size=32)
+
+    # 모델을 만들기 직전마다 씨앗을 다시 심는다. 이렇게 해야 두 모델이
+    # 같은 초기 가중치에서 출발해, 결과의 차이를 드롭아웃 하나로
+    # 돌릴 수 있다. 씨앗을 한 번만 심으면 초기화 운이 섞여 든다
     print("Training model WITHOUT dropout...")
+    torch.manual_seed(42)
     model_no_dropout = create_model_without_dropout(X_train.shape[1])
-    history_no_dropout = model_no_dropout.fit(
-        X_train, y_train,
-        validation_split=0.2,
-        epochs=100,
-        batch_size=32,
-        verbose=0
-    )
-    
+    history_no_dropout = train_model(model_no_dropout, train_loader, val_loader)
+
     # 드롭아웃과 함께 모델 학습
     print("Training model WITH dropout...")
+    torch.manual_seed(42)
     model_with_dropout = create_model_with_dropout(X_train.shape[1], dropout_rate=0.5)
-    history_with_dropout = model_with_dropout.fit(
-        X_train, y_train,
-        validation_split=0.2,
-        epochs=100,
-        batch_size=32,
-        verbose=0
-    )
-    
-    # 모델 평가
-    _, test_acc_no_dropout = model_no_dropout.evaluate(X_test, y_test, verbose=0)
-    _, test_acc_with_dropout = model_with_dropout.evaluate(X_test, y_test, verbose=0)
+    history_with_dropout = train_model(model_with_dropout, train_loader, val_loader)
+
+    # 모델 평가.
+    # run_epoch에 optimizer를 넘기지 않으므로 평가 모드로 돌고,
+    # 드롭아웃이 꺼진 채 재어진다
+    criterion = nn.BCEWithLogitsLoss()
+    _, test_acc_no_dropout = run_epoch(model_no_dropout, test_loader, criterion)
+    _, test_acc_with_dropout = run_epoch(model_with_dropout, test_loader, criterion)
     
     print(f"\nTest Accuracy without Dropout: {test_acc_no_dropout:.4f}")
     print(f"Test Accuracy with Dropout: {test_acc_with_dropout:.4f}")
@@ -120,10 +182,10 @@ def main():
     # 드롭아웃을 건 쪽에서 그 간격이 좁아지는 것이 이 예제의 요점이다.
     # 드롭아웃 쪽 학습 손실이 더 높게 나오는 것도 정상이다.
     # 뉴런을 꺼 둔 채 잰 값이기 때문이다
-    plt.plot(history_no_dropout.history['loss'], label='Train Loss (No Dropout)')
-    plt.plot(history_no_dropout.history['val_loss'], label='Val Loss (No Dropout)')
-    plt.plot(history_with_dropout.history['loss'], label='Train Loss (With Dropout)', linestyle='--')
-    plt.plot(history_with_dropout.history['val_loss'], label='Val Loss (With Dropout)', linestyle='--')
+    plt.plot(history_no_dropout['loss'], label='Train Loss (No Dropout)')
+    plt.plot(history_no_dropout['val_loss'], label='Val Loss (No Dropout)')
+    plt.plot(history_with_dropout['loss'], label='Train Loss (With Dropout)', linestyle='--')
+    plt.plot(history_with_dropout['val_loss'], label='Val Loss (With Dropout)', linestyle='--')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.title('Training and Validation Loss')
@@ -131,10 +193,10 @@ def main():
     plt.grid(True)
     
     plt.subplot(1, 2, 2)
-    plt.plot(history_no_dropout.history['accuracy'], label='Train Acc (No Dropout)')
-    plt.plot(history_no_dropout.history['val_accuracy'], label='Val Acc (No Dropout)')
-    plt.plot(history_with_dropout.history['accuracy'], label='Train Acc (With Dropout)', linestyle='--')
-    plt.plot(history_with_dropout.history['val_accuracy'], label='Val Acc (With Dropout)', linestyle='--')
+    plt.plot(history_no_dropout['accuracy'], label='Train Acc (No Dropout)')
+    plt.plot(history_no_dropout['val_accuracy'], label='Val Acc (No Dropout)')
+    plt.plot(history_with_dropout['accuracy'], label='Train Acc (With Dropout)', linestyle='--')
+    plt.plot(history_with_dropout['val_accuracy'], label='Val Acc (With Dropout)', linestyle='--')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')
     plt.title('Training and Validation Accuracy')
@@ -190,8 +252,8 @@ if __name__ == "__main__":
 ??? success "연습문제 4 풀이"
     경계 조건을 두루 시험하는 함수를 만든다.
     ```python
-    def test_dropout example():
-        model = Dropout Example(...)
+    def test_dropout_example():
+        model = create_model_with_dropout(input_dim=20, dropout_rate=0.5)
         # 보통의 입력
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치

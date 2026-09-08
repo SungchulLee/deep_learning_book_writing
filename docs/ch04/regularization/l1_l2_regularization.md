@@ -20,79 +20,100 @@ from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Ridge, Lasso, LinearRegression
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers, regularizers
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
 
 # ========================================================================
 # 메인
 # ========================================================================
 
 
-def create_model_no_regularization(input_dim):
-    """정칙화가 없는 신경망을 만든다."""
-    model = keras.Sequential([
-        layers.Dense(128, activation='relu', input_dim=input_dim),
-        layers.Dense(64, activation='relu'),
-        layers.Dense(32, activation='relu'),
-        layers.Dense(1)
-    ])
-    model.compile(optimizer='adam', loss='mse', metrics=['mae'])
-    return model
+def build_mlp(input_dim):
+    """회귀용 다층 퍼셉트론을 만든다.
+
+    네 실험이 모두 같은 구조를 쓴다. 바뀌는 것은 벌점뿐이어야
+    결과의 차이를 정칙화 탓으로 돌릴 수 있다.
+    """
+    return nn.Sequential(
+        nn.Linear(input_dim, 128),
+        nn.ReLU(),
+        nn.Linear(128, 64),
+        nn.ReLU(),
+        nn.Linear(64, 32),
+        nn.ReLU(),
+        # 출력층에는 활성화가 없다. 회귀이므로 출력이 음수도 될 수 있어야 한다
+        nn.Linear(32, 1),
+    )
 
 
-def create_model_l1_regularization(input_dim, l1_factor=0.01):
-    """L1 정칙화를 쓰는 신경망을 만든다."""
-    # 이 페이지는 케라스를 쓴다. 앞의 PyTorch 판에서는 벌점 함수를
-    # 손으로 만들어 손실에 더했지만, 케라스는 층마다 kernel_regularizer를
-    # 달아 두면 알아서 손실에 더해 준다. 하는 일은 같다.
-    # kernel은 가중치를 뜻하고 편향은 손대지 않는다. PyTorch 판에서
-    # model.parameters()가 편향까지 훑어 문제였던 것과 달리,
-    # 여기서는 이름 자체가 가중치만 고르도록 되어 있다
-    model = keras.Sequential([
-        layers.Dense(128, activation='relu', input_dim=input_dim,
-                    kernel_regularizer=regularizers.l1(l1_factor)),
-        layers.Dense(64, activation='relu',
-                    kernel_regularizer=regularizers.l1(l1_factor)),
-        layers.Dense(32, activation='relu',
-                    kernel_regularizer=regularizers.l1(l1_factor)),
-        # 출력층에는 벌점을 걸지 않는다. 회귀의 출력 눈금을 정하는 층이라
-        # 여기까지 누르면 예측이 0 쪽으로 치우친다.
-        # 활성화도 없다. 회귀이므로 출력이 음수도 될 수 있어야 한다
-        layers.Dense(1)
-    ])
-    model.compile(optimizer='adam', loss='mse', metrics=['mae'])
-    return model
+def regularization_penalty(model, l1_factor=0.0, l2_factor=0.0):
+    """가중치에만 적용하는 L1/L2 벌점을 계산한다.
+
+    l1_factor만 주면 라쏘, l2_factor만 주면 능선,
+    둘 다 주면 엘라스틱 넷이 된다.
+    """
+    device = next(model.parameters()).device
+    l1 = torch.tensor(0.0, device=device)
+    l2 = torch.tensor(0.0, device=device)
+    # named_parameters로 이름을 보아 편향을 걸러 낸다. 편향은 과적합의
+    # 원인이 아니라 출력의 중심을 옮기는 자유도라 눌러 둘 까닭이 없다.
+    # model.parameters()를 그냥 훑으면 편향까지 벌점을 받는다
+    for name, param in model.named_parameters():
+        if 'weight' not in name:
+            continue
+        # += 대신 = a + b로 누적한다. 제자리 연산은 덮어쓴 값을 역전파가
+        # 필요로 할 때 탈이 나므로, 누적에는 이 형태가 안전하다
+        l1 = l1 + param.abs().sum()
+        l2 = l2 + param.pow(2).sum()
+    return l1_factor * l1 + l2_factor * l2
 
 
-def create_model_l2_regularization(input_dim, l2_factor=0.01):
-    """L2 정칙화를 쓰는 신경망을 만든다."""
-    model = keras.Sequential([
-        layers.Dense(128, activation='relu', input_dim=input_dim,
-                    kernel_regularizer=regularizers.l2(l2_factor)),
-        layers.Dense(64, activation='relu',
-                    kernel_regularizer=regularizers.l2(l2_factor)),
-        layers.Dense(32, activation='relu',
-                    kernel_regularizer=regularizers.l2(l2_factor)),
-        layers.Dense(1)
-    ])
-    model.compile(optimizer='adam', loss='mse', metrics=['mae'])
-    return model
+def train_mlp(model, X_train, y_train, l1_factor=0.0, l2_factor=0.0,
+              epochs=100, batch_size=32, lr=1e-3):
+    """벌점을 걸어 모델을 학습시키고 에포크별 이력을 돌려준다."""
+    # 벌점은 위의 함수로 직접 만들어 손실에 더한다. 손이 조금 더 가는
+    # 대신, 무엇이 벌점을 받고 무엇이 받지 않는지가 코드에 그대로 보인다
+    n_val = int(0.2 * len(X_train))
+    train_ds = TensorDataset(X_train[:-n_val], y_train[:-n_val])
+    val_ds = TensorDataset(X_train[-n_val:], y_train[-n_val:])
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_ds, batch_size=batch_size)
+
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    history = {'loss': [], 'val_loss': []}
+
+    for _ in range(epochs):
+        model.train()
+        total = 0.0
+        for xb, yb in train_loader:
+            optimizer.zero_grad()
+            mse = criterion(model(xb), yb)
+            loss = mse + regularization_penalty(model, l1_factor, l2_factor)
+            loss.backward()
+            optimizer.step()
+            # 기록은 벌점을 뺀 mse로 한다. 그래야 벌점의 세기가 다른
+            # 실험끼리 손실 곡선을 견줄 수 있다
+            total += mse.item() * xb.size(0)
+        history['loss'].append(total / len(train_ds))
+
+        model.eval()
+        total = 0.0
+        with torch.no_grad():
+            for xb, yb in val_loader:
+                total += criterion(model(xb), yb).item() * xb.size(0)
+        history['val_loss'].append(total / len(val_ds))
+
+    return history
 
 
-def create_model_l1_l2_regularization(input_dim, l1_factor=0.01, l2_factor=0.01):
-    """L1과 L2 정칙화를 모두 쓰는 신경망을 만든다 (엘라스틱 넷)."""
-    model = keras.Sequential([
-        layers.Dense(128, activation='relu', input_dim=input_dim,
-                    kernel_regularizer=regularizers.l1_l2(l1=l1_factor, l2=l2_factor)),
-        layers.Dense(64, activation='relu',
-                    kernel_regularizer=regularizers.l1_l2(l1=l1_factor, l2=l2_factor)),
-        layers.Dense(32, activation='relu',
-                    kernel_regularizer=regularizers.l1_l2(l1=l1_factor, l2=l2_factor)),
-        layers.Dense(1)
-    ])
-    model.compile(optimizer='adam', loss='mse', metrics=['mae'])
-    return model
+def mean_absolute_error(model, X, y):
+    """평균 절대 오차를 잰다."""
+    model.eval()
+    with torch.no_grad():
+        return (model(X) - y).abs().mean().item()
 
 
 def sklearn_regularization_demo():
@@ -180,29 +201,36 @@ def neural_network_regularization_demo():
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     
-    # 모델 학습
-    models = {
-        'No Regularization': create_model_no_regularization(X_train_scaled.shape[1]),
-        'L1 Regularization': create_model_l1_regularization(X_train_scaled.shape[1], 0.001),
-        'L2 Regularization': create_model_l2_regularization(X_train_scaled.shape[1], 0.001),
-        'L1+L2 (Elastic Net)': create_model_l1_l2_regularization(X_train_scaled.shape[1], 0.001, 0.001)
+    # 텐서로 옮긴다. 목표를 (N, 1)로 맞추어야 MSELoss가 (N, 1)인 출력과
+    # 방송되지 않는다. (N,)으로 두면 오류 없이 (N, N) 차이 행렬이 만들어져
+    # 조용히 틀린 손실이 나온다
+    X_train_t = torch.FloatTensor(X_train_scaled)
+    y_train_t = torch.FloatTensor(y_train).reshape(-1, 1)
+    X_test_t = torch.FloatTensor(X_test_scaled)
+    y_test_t = torch.FloatTensor(y_test).reshape(-1, 1)
+
+    # 벌점의 세기만 다르고 구조는 모두 같다. l1과 l2 계수를 어떻게
+    # 주느냐가 곧 라쏘, 능선, 엘라스틱 넷을 가른다
+    settings = {
+        'No Regularization': (0.0, 0.0),
+        'L1 Regularization': (0.001, 0.0),
+        'L2 Regularization': (0.0, 0.001),
+        'L1+L2 (Elastic Net)': (0.001, 0.001),
     }
-    
+
     histories = {}
-    for name, model in models.items():
+    for name, (l1_factor, l2_factor) in settings.items():
         print(f"\nTraining {name}...")
-        history = model.fit(
-            X_train_scaled, y_train,
-            validation_split=0.2,
-            epochs=100,
-            batch_size=32,
-            verbose=0
-        )
-        histories[name] = history
-        
+        # 모델을 만들기 직전마다 씨앗을 심어 네 실험이 같은 초기
+        # 가중치에서 출발하게 한다
+        torch.manual_seed(42)
+        model = build_mlp(X_train_t.shape[1])
+        histories[name] = train_mlp(model, X_train_t, y_train_t,
+                                    l1_factor=l1_factor, l2_factor=l2_factor)
+
         # 평가한다
-        train_mae = model.evaluate(X_train_scaled, y_train, verbose=0)[1]
-        test_mae = model.evaluate(X_test_scaled, y_test, verbose=0)[1]
+        train_mae = mean_absolute_error(model, X_train_t, y_train_t)
+        test_mae = mean_absolute_error(model, X_test_t, y_test_t)
         print(f"  Train MAE: {train_mae:.4f}")
         print(f"  Test MAE: {test_mae:.4f}")
     
@@ -211,7 +239,7 @@ def neural_network_regularization_demo():
     
     plt.subplot(1, 2, 1)
     for name, history in histories.items():
-        plt.plot(history.history['loss'], label=f'{name} (train)')
+        plt.plot(history['loss'], label=f'{name} (train)')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.title('Training Loss Comparison')
@@ -220,7 +248,7 @@ def neural_network_regularization_demo():
     
     plt.subplot(1, 2, 2)
     for name, history in histories.items():
-        plt.plot(history.history['val_loss'], label=name)
+        plt.plot(history['val_loss'], label=name)
     plt.xlabel('Epoch')
     plt.ylabel('Validation Loss')
     plt.title('Validation Loss Comparison')
