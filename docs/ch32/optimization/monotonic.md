@@ -45,6 +45,12 @@ def largest_rectangle_histogram(heights):
 print(largest_rectangle_histogram([2, 1, 5, 6, 2, 3]))  # Output: 10
 ```
 
+**출력:**
+
+```
+10
+```
+
 ---
 
 ## 2. 한 방향 줄(두 끝 줄)
@@ -71,6 +77,12 @@ def sliding_window_max(arr, k):
 
 print(sliding_window_max([1, 3, -1, -3, 5, 3, 6, 7], 3))
 # Output: [3, 3, 5, 5, 6, 7]
+```
+
+**출력:**
+
+```
+[3, 3, 5, 5, 6, 7]
 ```
 
 ---

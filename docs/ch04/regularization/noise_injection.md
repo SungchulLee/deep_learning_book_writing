@@ -315,28 +315,50 @@ class VariationalLayer(nn.Module):
     
     def __init__(self, in_features: int, out_features: int):
         super().__init__()
-        
+        # 앞의 NoisyLinear가 잡음 크기를 사람이 정해 주었다면, 여기서는
+        # 그 크기까지 학습한다. 가중치 하나하나를 값이 아니라 "분포"로
+        # 들고 있는 셈이며, 이것이 베이즈 신경망의 가장 단순한 꼴이다.
+
+        # 분산이 아니라 로그 분산을 매개변수로 둔다. 분산은 반드시
+        # 양수여야 하는데, 로그로 두면 어떤 실수를 넣어도 exp가 양수를
+        # 돌려주므로 제약 없이 최적화할 수 있다
         self.w_mean = nn.Parameter(torch.randn(out_features, in_features) * 0.1)
+        # -10에서 시작한다. exp(-10/2) 는 거의 0이라 처음에는 잡음이 없는
+        # 보통의 층처럼 굴다가, 학습이 진행되며 필요한 만큼만 잡음을 키운다
         self.w_log_var = nn.Parameter(torch.full((out_features, in_features), -10.0))
-        
+
         self.b_mean = nn.Parameter(torch.zeros(out_features))
         self.b_log_var = nn.Parameter(torch.full((out_features,), -10.0))
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training:
+            # 재매개변수화 요령(reparameterization trick).
+            # w ~ N(mean, std^2) 에서 바로 뽑으면 그 뽑기를 미분할 수 없다.
+            # 대신 표준정규에서 뽑아 mean + std * eps 로 만들면, 무작위성이
+            # eps에만 남고 mean과 std로는 기울기가 흘러 학습할 수 있다.
+            # 로그 분산에 0.5를 곱해 exp하면 표준편차가 된다
             w_std = torch.exp(0.5 * self.w_log_var)
             w = self.w_mean + w_std * torch.randn_like(self.w_mean)
-            
+
             b_std = torch.exp(0.5 * self.b_log_var)
             b = self.b_mean + b_std * torch.randn_like(self.b_mean)
         else:
+            # 평가할 때는 분포의 평균만 쓴다. 여러 번 뽑아 평균 내면
+            # 불확실성까지 얻을 수 있으나(MC 드롭아웃과 같은 발상)
+            # 그만큼 느려진다
             w = self.w_mean
             b = self.b_mean
-        
+
         return nn.functional.linear(x, w, b)
-    
+
     def kl_divergence(self) -> torch.Tensor:
         """사전분포(표준정규분포)로부터의 KL 발산."""
+        # 이 항을 손실에 더해야 학습이 성립한다. 없으면 모델이 잡음을
+        # 0으로 줄이는 것이 언제나 이득이라 보통의 층으로 되돌아간다.
+        # KL이 "표준정규에서 너무 멀어지지 말라"는 벌점 노릇을 한다.
+        #
+        # 두 가우스 사이의 KL을 닫힌 꼴로 적은 것이며,
+        # -0.5 * sum(1 + log(s^2) - m^2 - s^2) 가 그 식이다
         kl_w = -0.5 * torch.sum(1 + self.w_log_var - self.w_mean.pow(2) - 
                                  self.w_log_var.exp())
         kl_b = -0.5 * torch.sum(1 + self.b_log_var - self.b_mean.pow(2) - 

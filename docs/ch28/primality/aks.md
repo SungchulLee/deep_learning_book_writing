@@ -221,6 +221,20 @@ if __name__ == "__main__":
         print(f"AKS({val}) = {result}")
 ```
 
+**출력:**
+
+```
+AKS(2) = prime
+AKS(7) = prime
+AKS(10) = composite
+AKS(13) = prime
+AKS(15) = composite
+AKS(31) = prime
+AKS(37) = prime
+AKS(49) = composite
+AKS(97) = prime
+```
+
 !!! warning "성능 알림"
     AKS은 주로 이론에서 중요하다. 실제로는 넉넉한 바퀴의 밀러-라빈(또는 작은 $n$의 정해진 변형)이 훨씬 빠르다. AKS은 다항 시간의 정해진 시험이 *있음*을 밝히지만 상수 때문에 큰 들임에는 쓸 수 없다.
 

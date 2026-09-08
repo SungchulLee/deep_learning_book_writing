@@ -112,6 +112,14 @@ def demonstrate_maxent_boltzmann():
 p_boltz, p_gauss, x = demonstrate_maxent_boltzmann()
 ```
 
+**출력:**
+
+```
+Boltzmann entropy: 1.4189
+Gaussian entropy: 1.7624
+Boltzmann has lower entropy
+```
+
 ---
 
 ## 3. 온도 살피기

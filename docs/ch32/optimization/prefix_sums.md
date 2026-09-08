@@ -32,6 +32,12 @@ prefix = build_prefix_sum(arr)
 print(range_sum(prefix, 2, 5))  # 내놓기: 19  (4+1+5+9)
 ```
 
+**출력:**
+
+```
+19
+```
+
 ---
 
 ## 3. 2차원 앞자락 합
@@ -57,6 +63,12 @@ P = build_2d_prefix(matrix)
 print(submatrix_sum(P, 1, 1, 2, 2))  # 내놓기: 28  (5+6+8+9)
 ```
 
+**출력:**
+
+```
+28
+```
+
 ---
 
 ## 4. 쓰임새: 합이 k인 부분 배열 세기
@@ -76,6 +88,12 @@ def count_subarrays_sum_k(arr, k):
     return count
 
 print(count_subarrays_sum_k([1, 1, 1], 2))  # Output: 2
+```
+
+**출력:**
+
+```
+2
 ```
 
 ---

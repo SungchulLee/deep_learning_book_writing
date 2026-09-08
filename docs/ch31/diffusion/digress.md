@@ -439,6 +439,27 @@ if __name__ == "__main__":
     print("\nDone. DiGress training framework operational.")
 ```
 
+**출력:**
+
+```
+=== DiGress Demo ===
+
+Clean nodes unique: [0, 1, 2]
+Noisy nodes (t=12): [0, 1, 2]
+
+Denoiser parameters: 105,806
+Node logits: torch.Size([50, 8, 3])
+Edge logits: torch.Size([50, 8, 8, 3])
+
+=== Training ===
+Epoch 10: loss=1.7102 (node=0.8820, edge=0.8281)
+Epoch 20: loss=1.5787 (node=0.8579, edge=0.7208)
+Epoch 30: loss=1.2721 (node=0.6792, edge=0.5929)
+Epoch 40: loss=1.4316 (node=0.7327, edge=0.6990)
+
+Done. DiGress training framework operational.
+```
+
 ---
 
 ## 연습문제

@@ -173,6 +173,39 @@ if __name__ == "__main__":
     demo_statistical_testing()
 ```
 
+**출력:**
+
+```
+============================================================
+Statistical Testing Demo
+============================================================
+
+--- A vs B (clear difference) ---
+  DQN: 176.9 ± 27.1
+  DoubleDQN: 200.6 ± 23.7
+  Welch's t-test: p=0.0000
+  Mann-Whitney U: p=0.0000
+  Bootstrap 95% CI: [-31.3, -16.3]
+  Cohen's d: -0.929 (large)
+
+--- A vs C (similar performance) ---
+  DQN: 176.9 ± 27.1
+  DQN-v2: 187.3 ± 37.8
+  Welch's t-test: p=0.0274
+  Cohen's d: -0.316 (small)
+
+--- Bootstrap Confidence Intervals ---
+  DQN: 176.9 [171.5, 182.0]
+  DoubleDQN: 200.6 [195.9, 205.2]
+
+--- Multiple Comparison Correction ---
+  Raw p-values:  ['0.010', '0.030', '0.060', '0.150']
+  Bonferroni:    ['0.040', '0.120', '0.240', '0.600']
+  Holm-Bonf:     ['0.040', '0.090', '0.120', '0.150']
+
+Statistical testing demo complete!
+```
+
 ## 2. 논의
 
 이 짜기는 통계 시험의 핵심 연산을 짜는 여러 연장 함수를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.

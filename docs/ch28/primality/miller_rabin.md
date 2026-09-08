@@ -69,6 +69,20 @@ if __name__ == "__main__":
         print(f"miller_rabin({val}) = {result}")
 ```
 
+**출력:**
+
+```
+miller_rabin(2) = probably prime
+miller_rabin(7) = probably prime
+miller_rabin(15) = composite
+miller_rabin(31) = probably prime
+miller_rabin(49) = composite
+miller_rabin(97) = probably prime
+miller_rabin(561) = composite
+miller_rabin(1009) = probably prime
+miller_rabin(1729) = composite
+```
+
 ---
 
 ## 3. 오차 분석

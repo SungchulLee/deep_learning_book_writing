@@ -358,6 +358,31 @@ if __name__ == "__main__":
     print(f"Matching reduces loss: {loss_match < loss_no_match}")
 ```
 
+**출력:**
+
+```
+=== One-Shot Adjacency Generation Demo ===
+
+Training data: torch.Size([100, 12, 12])
+
+--- MLP Decoder ---
+Output shape: torch.Size([5, 12, 12])
+Symmetry check: True
+Value range: [0.000, 0.570]
+
+--- Factored Decoder ---
+Adj shape: torch.Size([5, 12, 12]), Mask shape: torch.Size([5, 12])
+Avg predicted nodes: 4.0
+
+--- Hungarian Matching ---
+Match quality: 100.0%
+
+--- Permutation-Aligned Loss ---
+Loss without matching: 0.5271
+Loss with matching: 0.4930
+Matching reduces loss: True
+```
+
 ---
 
 ## 연습문제

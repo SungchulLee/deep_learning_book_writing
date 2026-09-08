@@ -440,6 +440,33 @@ if __name__ == "__main__":
     print(f"Gen avg size: {sum(gen_sizes)/len(gen_sizes):.1f}")
 ```
 
+**출력:**
+
+```
+=== Preparing Training Data ===
+Training data: torch.Size([100, 15, 15]), lengths: 9.8 avg
+
+=== Training ===
+Epoch 10: loss=1.2960 (edge=0.6738, stop=0.6223)
+Epoch 20: loss=1.1268 (edge=0.6294, stop=0.4975)
+Epoch 30: loss=0.9484 (edge=0.4856, stop=0.4629)
+
+=== Generation ===
+Graph 0: 5 nodes, 3 edges, density=0.300
+Graph 1: 3 nodes, 1 edges, density=0.333
+Graph 2: 15 nodes, 28 edges, density=0.267
+Graph 3: 3 nodes, 1 edges, density=0.333
+Graph 4: 3 nodes, 0 edges, density=0.000
+Graph 5: 15 nodes, 24 edges, density=0.229
+Graph 6: 4 nodes, 1 edges, density=0.167
+Graph 7: 3 nodes, 2 edges, density=0.667
+Graph 8: 3 nodes, 0 edges, density=0.000
+Graph 9: 12 nodes, 14 edges, density=0.212
+
+Ref avg size: 9.8
+Gen avg size: 6.6
+```
+
 ---
 
 ## 연습문제

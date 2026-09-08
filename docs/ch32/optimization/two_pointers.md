@@ -33,6 +33,12 @@ def two_sum_sorted(arr, target):
 print(two_sum_sorted([1, 2, 4, 6, 8, 10], 10))  # 내놓기: (1, 4)
 ```
 
+**출력:**
+
+```
+(1, 4)
+```
+
 ---
 
 ## 3. 무늬 2: 같은 방향(빠름/느림)
@@ -55,6 +61,12 @@ def remove_duplicates(arr):
 arr = [1, 1, 2, 2, 3, 4, 4, 5]
 length = remove_duplicates(arr)
 print(arr[:length])  # 내놓기: [1, 2, 3, 4, 5]
+```
+
+**출력:**
+
+```
+[1, 2, 3, 4, 5]
 ```
 
 ---
@@ -89,6 +101,12 @@ def three_sum(nums):
 
 print(three_sum([-1, 0, 1, 2, -1, -4]))
 # Output: [[-1, -1, 2], [-1, 0, 1]]
+```
+
+**출력:**
+
+```
+[[-1, -1, 2], [-1, 0, 1]]
 ```
 
 ---

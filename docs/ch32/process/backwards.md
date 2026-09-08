@@ -41,6 +41,12 @@ def min_operations_to_one(n):
 print(min_operations_to_one(10))  # 내놓기: 3 (10->9->3->1)
 ```
 
+**출력:**
+
+```
+3
+```
+
 ---
 
 ## 3. 보기: 과녁 배열 짓기
@@ -70,6 +76,12 @@ def is_possible(target):
         heapq.heappush(heap, -largest)
 
 print(is_possible([9, 3, 5]))  # 내놓기: True
+```
+
+**출력:**
+
+```
+True
 ```
 
 ---

@@ -129,6 +129,22 @@ if __name__ == "__main__":
     print("Direct formula matches DP for C_0 through C_9.")
 ```
 
+**출력:**
+
+```
+C_0 = 1
+C_1 = 1
+C_2 = 2
+C_3 = 5
+C_4 = 14
+C_5 = 42
+C_6 = 132
+C_7 = 429
+C_8 = 1430
+C_9 = 4862
+Direct formula matches DP for C_0 through C_9.
+```
+
 ---
 
 ## 8. 쓰임새: 행렬 사슬 곱하기

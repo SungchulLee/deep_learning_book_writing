@@ -28,6 +28,12 @@ def max_sum_window(arr, k):
 print(max_sum_window([1, 4, 2, 10, 2, 3, 1, 0, 20], 4))  # Output: 24
 ```
 
+**출력:**
+
+```
+24
+```
+
 ---
 
 ## 3. 바뀌는 크기의 창
@@ -49,6 +55,12 @@ def longest_unique_substring(s):
 print(longest_unique_substring("abcabcbb"))  # Output: 3
 ```
 
+**출력:**
+
+```
+3
+```
+
 ---
 
 ## 4. 바뀌는 창: 합이 과녁 이상인 가장 짧은 부분 배열
@@ -67,6 +79,12 @@ def min_subarray_sum(arr, target):
     return min_len if min_len != float('inf') else 0
 
 print(min_subarray_sum([2, 3, 1, 2, 4, 3], 7))  # Output: 2
+```
+
+**출력:**
+
+```
+2
 ```
 
 ---

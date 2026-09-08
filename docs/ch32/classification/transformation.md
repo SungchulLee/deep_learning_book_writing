@@ -57,6 +57,12 @@ grid = [
 print(shortest_path_grid(grid))  # Output: 7
 ```
 
+**출력:**
+
+```
+7
+```
+
 ---
 
 ## 3. 보기: 차이 매임을 최단 길로

@@ -422,6 +422,34 @@ if __name__ == "__main__":
     print(f"Gen avg density: {sum(gen_densities)/len(gen_densities):.3f}")
 ```
 
+**출력:**
+
+```
+=== GraphGAN Demo ===
+
+Training GraphGAN (WGAN-GP)...
+Generator params: 14,978, Discriminator params: 17,537
+Epoch 25: d_loss=-5.0547, g_loss=8.2582, wasserstein=5.7307
+Epoch 50: d_loss=-5.6683, g_loss=8.9556, wasserstein=6.3067
+Epoch 75: d_loss=-5.2272, g_loss=8.3300, wasserstein=5.8805
+Epoch 100: d_loss=-5.4959, g_loss=8.4217, wasserstein=6.1410
+
+=== Generation ===
+Graph 0: 12 nodes, 23 edges, density=0.348
+Graph 1: 12 nodes, 17 edges, density=0.258
+Graph 2: 12 nodes, 21 edges, density=0.318
+Graph 3: 12 nodes, 19 edges, density=0.288
+Graph 4: 11 nodes, 18 edges, density=0.327
+Graph 5: 12 nodes, 30 edges, density=0.455
+Graph 6: 12 nodes, 22 edges, density=0.333
+Graph 7: 12 nodes, 15 edges, density=0.227
+Graph 8: 12 nodes, 20 edges, density=0.303
+Graph 9: 12 nodes, 20 edges, density=0.303
+
+Ref avg density: 0.328
+Gen avg density: 0.316
+```
+
 ---
 
 ## 연습문제

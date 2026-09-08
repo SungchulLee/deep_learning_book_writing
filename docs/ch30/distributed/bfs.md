@@ -164,6 +164,17 @@ if __name__ == "__main__":
         print(f"  Node {node}: distance {dist}")
 ```
 
+**출력:**
+
+```
+Distributed BFS distances from node 0:
+  Node 0: distance 0
+  Node 1: distance 1
+  Node 2: distance 1
+  Node 3: distance 2
+  Node 4: distance 2
+```
+
 ---
 
 ## 6. 응용

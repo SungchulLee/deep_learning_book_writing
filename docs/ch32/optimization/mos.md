@@ -71,6 +71,12 @@ print(mos_algorithm(arr, queries))
 # Output: [3, 3, 4, 4]
 ```
 
+**출력:**
+
+```
+[3, 3, 4, 4]
+```
+
 ---
 
 ## 3. 복잡도

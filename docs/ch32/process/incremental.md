@@ -26,6 +26,12 @@ def kadane(arr):
 print(kadane([-2, 1, -3, 4, -1, 2, 1, -5, 4]))  # Output: 6
 ```
 
+**출력:**
+
+```
+6
+```
+
 ---
 
 ## 3. 보기: 조금씩 쌓는 볼록 껍질
@@ -61,6 +67,12 @@ points = [(0, 0), (1, 1), (2, 2), (0, 2), (2, 0), (1, 0)]
 print(convex_hull(points))
 ```
 
+**출력:**
+
+```
+[(0, 0), (2, 0), (2, 2), (0, 2)]
+```
+
 ---
 
 ## 4. 보기: 이어지는 가운뎃값(조금씩 쌓기)
@@ -90,6 +102,18 @@ rm = RunningMedian()
 for x in [2, 1, 5, 7, 2, 0, 5]:
     rm.add(x)
     print(f"Added {x}, median = {rm.median()}")
+```
+
+**출력:**
+
+```
+Added 2, median = 2
+Added 1, median = 1.5
+Added 5, median = 2
+Added 7, median = 3.5
+Added 2, median = 2
+Added 0, median = 2.0
+Added 5, median = 2
 ```
 
 # 참고 문헌

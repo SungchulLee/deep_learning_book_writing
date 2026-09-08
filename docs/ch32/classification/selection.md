@@ -62,6 +62,12 @@ intervals = [(1, 4), (2, 6), (5, 7), (8, 10), (9, 12)]
 print(min_points_to_cover(intervals))  # 내놓기: [4, 7, 10]
 ```
 
+**출력:**
+
+```
+[4, 7, 10]
+```
+
 # 참고 문헌
 
 - Skiena, S. *The Algorithm Design Manual*, Springer, 2020.

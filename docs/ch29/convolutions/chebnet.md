@@ -181,6 +181,37 @@ if __name__ == "__main__":
     demo_filter_localization()
 ```
 
+**출력:**
+
+```
+============================================================
+Chebyshev Polynomials
+============================================================
+  T_0: max=1.0000, zeros=0
+  T_1: max=1.0000, zeros=1
+  T_2: max=1.0000, zeros=2
+  T_3: max=1.0000, zeros=3
+  T_4: max=1.0000, zeros=4
+  T_5: max=1.0000, zeros=5
+
+============================================================
+ChebNet Node Classification
+============================================================
+  K=1: Test Accuracy = 0.5294
+  K=2: Test Accuracy = 0.5294
+  K=3: Test Accuracy = 0.4706
+  K=5: Test Accuracy = 0.4118
+
+============================================================
+Filter Localization (K-hop)
+============================================================
+  K= 1: spread=1 nodes, support=[10, 10]
+  K= 2: spread=3 nodes, support=[9, 11]
+  K= 3: spread=5 nodes, support=[8, 12]
+  K= 5: spread=9 nodes, support=[6, 14]
+  K=10: spread=19 nodes, support=[1, 19]
+```
+
 ## 2. 논의
 
 이 짜기는 ChebNet의 핵심 논리를 감싼 `ChebConv`, `ChebNet` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.

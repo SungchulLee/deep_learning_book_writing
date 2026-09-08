@@ -120,6 +120,14 @@ if __name__ == "__main__":
     print(f"Full factorization: {factorize(n)}")
 ```
 
+**출력:**
+
+```
+n = 8051
+Non-trivial factor: 97
+Full factorization: [83, 97]
+```
+
 ---
 
 ## 5. 복잡도 분석

@@ -155,6 +155,15 @@ if __name__ == "__main__":
     print(f"Steps: {math.ceil(math.log2(len(data)))}")
 ```
 
+**출력:**
+
+```
+Input: [3, 1, 4, 1, 5, 9, 2, 6]
+Parallel sum: 31
+Parallel max: 9
+Steps: 3
+```
+
 ---
 
 ## 5. PRAM과 다른 모형

@@ -224,6 +224,41 @@ if __name__ == "__main__":
     demo_gcn_financial()
 ```
 
+**출력:**
+
+```
+============================================================
+GCN Layer Computation
+============================================================
+Input: torch.Size([4, 2]) -> Output: torch.Size([4, 4])
+Output:
+tensor([[-0.0049, -0.0004,  0.0152, -0.0025],
+        [-0.0049, -0.0004,  0.0152, -0.0025],
+        [-0.0042, -0.0003,  0.0132, -0.0022],
+        [-0.0028, -0.0002,  0.0086, -0.0014]])
+
+============================================================
+GCN: Karate Club Node Classification
+============================================================
+Overall accuracy: 0.9412
+Test accuracy: 0.9231
+
+============================================================
+Normalization Effect
+============================================================
+Raw aggregation (center node 0): 1.0000
+Raw aggregation (leaf node 1): 1.0000
+
+Normalized aggregation (center): 0.2236
+Normalized aggregation (leaf 1): 0.5000
+Normalization prevents the high-degree center from dominating
+
+============================================================
+GCN: Financial Sector Prediction
+============================================================
+Test accuracy: 0.5000
+```
+
 ## 2. 논의
 
 이 짜기는 그래프 겹말기 신경망(GCN)의 핵심 논리를 감싼 `GCNConvManual`, `GCN` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.

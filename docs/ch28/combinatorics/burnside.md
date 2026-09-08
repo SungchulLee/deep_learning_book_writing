@@ -147,6 +147,12 @@ if __name__ == "__main__":
     # 내놓기: 6
 ```
 
+**출력:**
+
+```
+Distinct square colorings (2 colors, rotations): 6
+```
+
 ---
 
 ## 7. 복잡도

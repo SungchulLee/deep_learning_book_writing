@@ -81,6 +81,13 @@ if __name__ == "__main__":
     print(f"Input: {x.shape}, Output: {model(x).shape}")
 ```
 
+**출력:**
+
+```
+Parameters: 59,210
+Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
+```
+
 ## 2. 논의
 
 이 짜기는 함께 어울려 온전한 깊은 배움 얼개를 이루는 갈래 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 뜻매김한다. 갈래마다 뚜렷한 조각을 감싸 코드를 조각내고 넓히기 쉽게 만든다. `forward` 메서드가 파이토치의 자동 미분에 쓰이는 셈 그래프를 뜻매김한다.

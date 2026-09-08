@@ -55,6 +55,18 @@ if __name__ == "__main__":
     demo()
 ```
 
+**출력:**
+
+```
+============================================================
+Set2Set Readout
+============================================================
+Input: torch.Size([10, 8]), Output: torch.Size([3, 16])
+Output dim = 2 * input_dim = 16
+Sum pool output: torch.Size([3, 8])
+Set2Set output (richer): torch.Size([3, 16])
+```
+
 ## 2. 논의
 
 이 짜기는 Set2Set 읽어내기의 핵심 논리를 감싼 `Set2Set` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.

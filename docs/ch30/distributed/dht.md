@@ -191,6 +191,19 @@ if __name__ == "__main__":
         print(f"Get '{k}' = {val}")
 ```
 
+**출력:**
+
+```
+Key 'apple' (id=64) -> Node 64
+Key 'banana' (id=168) -> Node 192
+Key 'cherry' (id=217) -> Node 0
+Key 'date' (id=214) -> Node 0
+Get 'apple' = value_apple
+Get 'banana' = value_banana
+Get 'cherry' = value_cherry
+Get 'date' = value_date
+```
+
 ---
 
 ## 6. 다른 나눠진 흩기 표 설계

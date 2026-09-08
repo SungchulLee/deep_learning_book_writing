@@ -165,6 +165,14 @@ if __name__ == "__main__":
         print("No factor found (try larger sieve interval)")
 ```
 
+**출력:**
+
+```
+n = 15347
+Factor found: 103
+Other factor: 149
+```
+
 !!! warning "실제 쓰기와 보여 주기"
     실제 이차 체 짜기는 선형 대수 국면에 다항식 체 치기, 큰 소수 변형, 덩이 란초스나 얼개를 갖춘 $\mathbb{F}_2$ 위 가우스 없애기를 쓴다. 위 코드는 오로지 가르치기 위한 것이다.
 

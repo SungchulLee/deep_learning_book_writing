@@ -110,6 +110,14 @@ if __name__ == "__main__":
     print(f"Number of primes up to {n_large}: {count}")
 ```
 
+**출력:**
+
+```
+Primes up to 100: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+Count: 25
+Number of primes up to 10000: 1229
+```
+
 ---
 
 ## 4. 복잡도 분석

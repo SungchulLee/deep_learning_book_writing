@@ -44,6 +44,12 @@ print(activity_selection(activities))
 # Output: [(1, 3), (3, 4), (5, 7), (8, 10)]
 ```
 
+**출력:**
+
+```
+[(1, 3), (3, 4), (5, 7), (8, 10)]
+```
+
 ---
 
 ## 3. 언제 동적 짜기가 필요한가
@@ -69,6 +75,12 @@ def knapsack_01(weights, values, W):
     return dp[n][W]
 
 print(knapsack_01([2, 3, 4, 5], [3, 4, 5, 6], 8))  # Output: 10
+```
+
+**출력:**
+
+```
+10
 ```
 
 ---

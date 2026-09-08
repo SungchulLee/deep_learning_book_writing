@@ -178,6 +178,14 @@ if __name__ == "__main__":
     print("Attn pool shape:", attn_pool(x, batch).shape)         # [2, 8]
 ```
 
+**출력:**
+
+```
+Sum pool shape: torch.Size([2, 8])
+Mean pool shape: torch.Size([2, 8])
+Attn pool shape: torch.Size([2, 8])
+```
+
 ---
 
 ## 4. 모으기 방법 고르기

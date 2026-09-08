@@ -253,14 +253,21 @@ import torch.nn as nn
 
 def monitor_gradients(model: nn.Module) -> dict[str, dict]:
     """역전파 뒤에 기울기 통계를 모은다."""
+    # 반드시 loss.backward() 뒤, optimizer.step() 앞에서 불러야 한다.
+    # step()이 끝나면 기울기가 다음 걸음을 위해 지워지기 때문이다.
     stats = {}
     for name, param in model.named_parameters():
+        # grad가 None인 경우가 있다. 아직 역전파를 하지 않았거나,
+        # requires_grad=False로 얼려 둔 층이거나, 손실까지 이어지지
+        # 않은 층이다. 마지막 경우가 곧 배선이 끊긴 버그다
         if param.grad is not None:
             g = param.grad
             stats[name] = {
+                # 노름이 가장 중요하다. 이 하나로 소실과 폭발을 다 잡아낸다
                 'norm': g.norm().item(),
                 'mean': g.mean().item(),
                 'std':  g.std().item(),
+                # 최댓값은 노름이 멀쩡해도 몇몇 성분만 튀는 경우를 잡는다
                 'max':  g.abs().max().item(),
             }
     return stats
@@ -270,12 +277,17 @@ def print_gradient_report(stats: dict):
     print(f"{'Parameter':<35s} {'Norm':>10s} {'Max':>10s} {'Status':>8s}")
     print("-" * 68)
     for name, s in stats.items():
+        # 문턱값은 눈대중이지만 실무에서 쓸 만하다.
+        # 층 이름 차례로 보아 입력 쪽으로 갈수록 노름이 급히 줄면
+        # 기울기 소실이고, 특정 층에서만 튀면 그 층이 말썽이다
         if s['norm'] < 1e-7:
-            status = "⚠️ VANISH"
+            status = "⚠️ VANISH"    # 사실상 학습이 멎은 층
         elif s['norm'] > 1e3:
-            status = "⚠️ EXPLOD"
+            status = "⚠️ EXPLOD"    # 기울기 절단이 필요한 신호
         else:
             status = "✓"
+        # 지수 표기(2e)로 찍는 까닭은 층 사이에 값의 자릿수가
+        # 몇 배씩 차이 나기 때문이다
         print(f"{name:<35s} {s['norm']:>10.2e} {s['max']:>10.2e} {status:>8s}")
 ```
 

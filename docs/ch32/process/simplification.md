@@ -52,6 +52,12 @@ matrix = [
 print(max_sum_rectangle(matrix))  # Output: 29
 ```
 
+**출력:**
+
+```
+29
+```
+
 **복잡도:** $O(\text{cols}^2 \cdot \text{rows})$. 1차원 알고리즘을 $O(\text{cols}^2)$번 돌려 2차원 문제를 푼다.
 
 ---

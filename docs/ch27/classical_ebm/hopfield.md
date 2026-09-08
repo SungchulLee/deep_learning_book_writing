@@ -328,6 +328,17 @@ def demonstrate_hopfield_retrieval():
 network = demonstrate_hopfield_retrieval()
 ```
 
+**출력:**
+
+```
+Stored 2 patterns via Hebbian learning
+  Network capacity: ~3 patterns
+
+Retrieval completed in 2 iterations
+Overlap with pattern A: 1.000
+Overlap with pattern B: 0.520
+```
+
 ---
 
 ## 5. 신경망 담이

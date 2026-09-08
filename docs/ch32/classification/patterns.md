@@ -61,6 +61,12 @@ def longest_subarray_at_most_k(arr, k):
 print(longest_subarray_at_most_k([1, 2, 3, 1, 1], 5))  # Output: 3
 ```
 
+**출력:**
+
+```
+3
+```
+
 ---
 
 ## 4. 무늬 알아보기의 복잡함

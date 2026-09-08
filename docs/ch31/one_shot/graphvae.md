@@ -502,6 +502,37 @@ if __name__ == "__main__":
         print(f"Step {i}: {n} nodes, {e} edges, density={density:.3f}")
 ```
 
+**출력:**
+
+```
+=== GraphVAE Demo ===
+
+Training GraphVAE...
+Parameters: 28,702
+Epoch 10: loss=1.3004 (recon=1.2895, kl=0.1096)
+Epoch 20: loss=1.0918 (recon=1.0540, kl=0.3786)
+Epoch 30: loss=0.8518 (recon=0.7814, kl=0.7034)
+
+=== Generation ===
+Graph 0: 8 nodes, 0 edges
+Graph 1: 8 nodes, 0 edges
+Graph 2: 9 nodes, 0 edges
+Graph 3: 8 nodes, 0 edges
+Graph 4: 9 nodes, 0 edges
+Graph 5: 8 nodes, 0 edges
+Graph 6: 8 nodes, 0 edges
+Graph 7: 9 nodes, 0 edges
+Graph 8: 8 nodes, 0 edges
+Graph 9: 8 nodes, 0 edges
+
+=== Latent Interpolation ===
+Step 0: 8 nodes, 0 edges, density=0.000
+Step 1: 8 nodes, 0 edges, density=0.000
+Step 2: 8 nodes, 0 edges, density=0.000
+Step 3: 8 nodes, 0 edges, density=0.000
+Step 4: 8 nodes, 0 edges, density=0.000
+```
+
 ---
 
 ## 연습문제

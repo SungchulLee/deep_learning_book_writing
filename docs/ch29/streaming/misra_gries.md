@@ -138,6 +138,13 @@ if __name__ == "__main__":
     print(f"Confirmed heavy hitters (freq > {len(stream)//k}): {confirmed}")
 ```
 
+**출력:**
+
+```
+Candidates: {'a': 3, 'b': 1}
+Confirmed heavy hitters (freq > 3): {'a': 5}
+```
+
 ---
 
 ## 6. 복잡도

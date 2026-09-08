@@ -87,6 +87,14 @@ if __name__ == "__main__":
     print(f"Subset with sum {t2} exists: {subset_sum(S, t2)}")  # False
 ```
 
+**출력:**
+
+```
+S = [3, 7, 1, 8, 4], t = 12
+Subset with sum 12 exists: True
+Subset with sum 2 exists: False
+```
+
 도는 시간은 $O(n \cdot t)$이다. $t$이 들임 크기에 대해 지수만큼 클 수 있으므로($t$을 적는 데 드는 비트 수는 $\log t$이다) 이는 참으로 다항이 아니라 **거짓 다항**이다.
 
 ---

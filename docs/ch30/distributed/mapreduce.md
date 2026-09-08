@@ -108,6 +108,16 @@ if __name__ == "__main__":
         print(f"  {word}: {count}")
 ```
 
+**출력:**
+
+```
+  the: 6
+  cat: 2
+  dog: 2
+  on: 2
+  sat: 2
+```
+
 ---
 
 ## 4. 복잡도 모형

@@ -437,6 +437,29 @@ if __name__ == "__main__":
         print(f"Graph {i}: {n} nodes, {e} edges, density={2*e/(n*(n-1)) if n>1 else 0:.3f}")
 ```
 
+**출력:**
+
+```
+=== GDSS Demo ===
+
+Parameters: 71,811
+Epoch 10: loss=28.9584 (x=19.3119, a=9.6465)
+Epoch 20: loss=16.4836 (x=7.9160, a=8.5676)
+Epoch 30: loss=22.3599 (x=13.0325, a=9.3274)
+Epoch 40: loss=42.5161 (x=25.2931, a=17.2230)
+Epoch 50: loss=20.8322 (x=11.8146, a=9.0176)
+
+=== Generation ===
+Graph 0: 6 nodes, 8 edges, density=0.533
+Graph 1: 6 nodes, 6 edges, density=0.400
+Graph 2: 2 nodes, 1 edges, density=1.000
+Graph 3: 8 nodes, 18 edges, density=0.643
+Graph 4: 7 nodes, 7 edges, density=0.333
+Graph 5: 4 nodes, 2 edges, density=0.333
+Graph 6: 4 nodes, 2 edges, density=0.333
+Graph 7: 5 nodes, 4 edges, density=0.400
+```
+
 ---
 
 ## 연습문제

@@ -142,6 +142,12 @@ if __name__ == "__main__":
     print(f"Minimum tour cost: {tsp_held_karp(dist)}")  # 80
 ```
 
+**출력:**
+
+```
+Minimum tour cost: 80
+```
+
 ---
 
 ## 5. 어림

@@ -89,25 +89,39 @@ import matplotlib.pyplot as plt
 
 def visualize_initialization_problem(n_layers=20, hidden_dim=256, n_samples=512):
     """초기화의 척도가 활성화의 크기에 미치는 영향을 보인다."""
+    # 학습은 전혀 하지 않는다. 무작위로 초기화한 층 20개에 신호를 한 번
+    # 통과시키기만 해도 초기화가 잘못되면 신호가 죽거나 포화된다는 것을
+    # 보이려는 것이다. 곧 이것은 "학습 전에 이미 결정되는" 문제다.
     x = torch.randn(n_samples, hidden_dim)
 
-    scales = {'Too small (0.001)': 0.001, 'Too large (1.0)': 1.0, 'Proper (Xavier)': (2.0 / (hidden_dim + hidden_dim)) ** 0.5}
+    scales = {
+        'Too small (0.001)': 0.001,   # 층마다 신호가 줄어 결국 0으로 사그라든다
+        'Too large (1.0)': 1.0,       # 층마다 신호가 커져 tanh가 +-1로 포화된다
+        # 자비에르(글로로) 초기화: 분산을 2/(fan_in + fan_out)으로 잡는다.
+        # 순전파와 역전파 양쪽에서 분산이 유지되도록 두 값의 평균을 쓴다.
+        # tanh처럼 원점 부근에서 기울기가 1인 활성에 알맞다
+        'Proper (Xavier)': (2.0 / (hidden_dim + hidden_dim)) ** 0.5,
+    }
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 
     for ax, (label, scale) in zip(axes, scales.items()):
-        h = x.clone()
+        h = x.clone()   # 세 경우 모두 같은 입력에서 시작해야 견줄 수 있다
         means, stds = [], []
 
         for _ in range(n_layers):
+            # 층마다 새 가중치를 뽑는다. scale이 표준편차를 정한다
             W = torch.randn(hidden_dim, hidden_dim) * scale
             h = torch.tanh(h @ W)
             means.append(h.mean().item())
+            # 표준편차가 이 실험의 핵심 값이다. 이것이 0으로 가면
+            # 기울기도 함께 사라지고, 1 가까이 붙박이면 포화된 것이다
             stds.append(h.std().item())
 
         ax.plot(stds, 'b-', linewidth=2)
         ax.set_xlabel('Layer')
         ax.set_ylabel('Activation Std')
         ax.set_title(label)
+        # 세 그림의 y축을 같은 범위로 맞춰야 눈으로 견줄 수 있다
         ax.set_ylim(0, 1.5)
 
     plt.tight_layout()

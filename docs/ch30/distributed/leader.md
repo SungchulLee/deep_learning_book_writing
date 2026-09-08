@@ -173,6 +173,14 @@ if __name__ == "__main__":
     print(f"H-S leader: {hs_leader_election(process_ids)}")
 ```
 
+**출력:**
+
+```
+Process IDs: [5, 3, 8, 1, 7, 2]
+LCR leader: 8
+H-S leader: 8
+```
+
 ---
 
 ## 5. 비교
