@@ -572,26 +572,40 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
     from sklearn.linear_model import ElasticNetCV
     from sklearn.preprocessing import StandardScaler
     
+    # 벌점이 모든 계수에 같은 세기로 걸리므로, 특성의 자가 제각각이면
+    # 정칙화의 세기도 제각각이 된다. 표준화가 앞서야 하는 까닭이다
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    
-    # 엘라스틱 넷 적합
+
+    # 엘라스틱 넷 적합.
+    # l1_ratio가 L1과 L2의 배합을 정한다. 1이면 순수 라쏘, 0이면 순수 릿지다.
+    # 0.5쯤이면 라쏘의 성긴 해를 얻으면서도, 서로 상관된 특성 가운데
+    # 하나만 남기고 버리는 라쏘의 변덕을 L2가 눌러 준다.
+    # CV가 붙은 클래스이므로 벌점의 세기(alpha)는 교차 검증으로 알아서 고른다
     model = ElasticNetCV(l1_ratio=alpha, cv=5)
     model.fit(X_scaled, y)
-    
-    # 묶음 선택 분석
+
+    # ── 묶음 선택 분석 ──────────────────────────────────────────────
+    # 엘라스틱 넷 자체는 묶음을 모른다. 계수를 하나씩 따로 볼 뿐이다.
+    # 여기서는 적합이 끝난 뒤 계수를 묶음별로 갈라 "이 묶음이 통째로
+    # 살아남았는지, 흩어져 몇 개만 남았는지"를 사람이 읽는다.
+    # 묶음을 통째로 넣거나 빼려면 group lasso 같은 다른 벌점이 필요하다
     selected_groups = {}
     for group_name, indices in feature_groups.items():
         group_coefs = model.coef_[indices]
+        # 라쏘 성분 덕분에 계수가 정확히 0이 되므로 이 비교가 뜻을 갖는다.
+        # 릿지만 썼다면 0에 가깝기만 할 뿐 0은 아니어서 이렇게 셀 수 없다
         n_selected = np.sum(group_coefs != 0)
         n_total = len(indices)
         selected_groups[group_name] = {
             'selected': n_selected,
             'total': n_total,
-            'ratio': n_selected / n_total,
+            'ratio': n_selected / n_total,   # 묶음이 얼마나 살아남았나
+            # 살아남은 계수의 크기. ratio가 낮아도 이 값이 크면
+            # 그 묶음에 소수의 강한 특성이 있다는 뜻이다
             'mean_coef': np.mean(np.abs(group_coefs))
         }
-    
+
     return selected_groups, model
 ```
 

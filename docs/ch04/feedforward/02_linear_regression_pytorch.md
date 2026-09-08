@@ -10,30 +10,45 @@ import matplotlib.pyplot as plt
 
 torch.manual_seed(42)
 
+# GPU가 있으면 쓰고 없으면 CPU를 쓴다. 아래에서 만드는 텐서를 모두
+# 같은 device에 두어야 한다. 하나라도 다른 곳에 있으면 연산에서 오류가 난다
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# ── 1. 답을 아는 데이터를 만든다 ────────────────────────────────────
 n_samples = 100
-X = torch.rand(n_samples, 1, device=device) * 10
-true_w, true_b = 2.0, 1.0
+X = torch.rand(n_samples, 1, device=device) * 10   # [0, 10) 구간에 고르게
+true_w, true_b = 2.0, 1.0                          # 되찾아야 할 참값
 noise = torch.randn(n_samples, 1, device=device) * 0.5
 y = true_w * X + true_b + noise
 
-w = torch.randn(1, 1, device=device)
+# ── 2. 매개변수를 손으로 만든다 ─────────────────────────────────────
+# requires_grad를 켜지 않는다. 이 예제의 요점이 autograd 없이
+# 기울기를 손으로 셈해 보는 것이기 때문이다
+w = torch.randn(1, 1, device=device)   # (1,1): X @ w 가 되도록 행렬 꼴
 b = torch.zeros(1, 1, device=device)
 
 def forward(X, w, b):
+    # 행렬곱 뒤에 b를 더한다. b는 (1,1)이지만 방송(broadcast)되어
+    # 모든 표본에 같은 값이 더해진다
     return X @ w + b
 
 def compute_loss(y_true, y_pred):
+    # 평균제곱오차. n으로 나누므로 표본 수가 달라져도 손실의 자가 같다
     n = y_true.shape[0]
     return (1 / n) * torch.sum((y_true - y_pred) ** 2)
 
 def compute_gradients(X, y_true, y_pred):
+    # MSE = (1/n) * sum((y - Xw - b)^2) 를 손으로 미분한 것이다.
+    #   dL/dw = (2/n) * X^T (y_pred - y_true)
+    #   dL/db = (2/n) * sum(y_pred - y_true)
+    # 잔차의 부호에 주의한다. (y_pred - y_true)이지 그 반대가 아니다.
+    # 뒤집으면 손실이 커지는 쪽으로 올라간다
     n = y_true.shape[0]
     dw = (2 / n) * X.T @ (y_pred - y_true)
     db = (2 / n) * torch.sum(y_pred - y_true)
     return dw, db
 
+# ── 3. 경사 하강 루프 ───────────────────────────────────────────────
 learning_rate = 0.01
 n_epochs = 100
 loss_history = []
@@ -41,10 +56,15 @@ loss_history = []
 for epoch in range(n_epochs):
     y_pred = forward(X, w, b)
     loss = compute_loss(y, y_pred)
-    loss_history.append(loss.item())
+    loss_history.append(loss.item())   # item()으로 수만 담는다
+
     dw, db = compute_gradients(X, y, y_pred)
+
+    # no_grad가 굳이 필요하지는 않다(requires_grad를 켜지 않았으므로).
+    # 그래도 두는 까닭은 매개변수 갱신을 그래프 밖에서 한다는 버릇을
+    # 들이기 위해서다. autograd를 쓰는 다음 예제에서는 이것이 필수가 된다
     with torch.no_grad():
-        w -= learning_rate * dw
+        w -= learning_rate * dw   # 기울기 반대 방향으로
         b -= learning_rate * db
 
 print(f"True values:    w = {true_w:.4f}, b = {true_b:.4f}")

@@ -335,38 +335,49 @@ class TrackedMLP(nn.Module):
     
     def __init__(self, layer_sizes: list[int]):
         super().__init__()
+        # 너비 목록을 받아 이웃한 쌍마다 층을 하나씩 만든다.
+        # [784, 256, 128, 10] 이면 층이 3개가 된다.
+        # 파이썬 리스트가 아니라 ModuleList라야 안의 매개변수가
+        # model.parameters()와 state_dict에 잡힌다
         self.layers = nn.ModuleList()
         for i in range(len(layer_sizes) - 1):
             self.layers.append(nn.Linear(layer_sizes[i], layer_sizes[i + 1]))
-    
+
     def forward(
         self, x: torch.Tensor, return_intermediates: bool = False
     ) -> torch.Tensor | tuple[torch.Tensor, dict]:
+        # 기본값이 False인 것이 중요하다. 중간값을 늘 들고 있으면
+        # 메모리를 크게 쓰므로, 디버깅할 때만 켜도록 해 둔다
         cache = {'a0': x} if return_intermediates else None
         a = x
-        
+
         for i, layer in enumerate(self.layers):
-            z = layer(a)
+            z = layer(a)   # 활성 함수 앞의 값. 흔히 로짓 또는 pre-activation이라 한다
             if return_intermediates:
                 cache[f'z{i+1}'] = z
-            
-            # 활성화: 은닉층에는 ReLU, 출력층에는 항등함수
+
+            # 활성화: 은닉층에는 ReLU, 출력층에는 항등함수.
+            # 마지막 층에 ReLU를 걸면 음수 로짓이 모두 0이 되어
+            # 갈래 사이의 차이가 뭉개진다. 소프트맥스는 손실 쪽에서 건다
             a = torch.relu(z) if i < len(self.layers) - 1 else z
-            
+
             if return_intermediates:
-                cache[f'a{i+1}'] = a
-        
+                cache[f'a{i+1}'] = a   # z와 a를 따로 담아 두면 활성 함수가
+                                       # 무엇을 얼마나 죽였는지 견줄 수 있다
+
         return (a, cache) if return_intermediates else a
 
 # ── 사용법 ──
 model = TrackedMLP([784, 256, 128, 10])
-x = torch.randn(32, 784)
+x = torch.randn(32, 784)   # 배치 32개
 
 # 표준 추론 (중간값 없음)
 logits = model(x)
 print(f"Output shape: {logits.shape}")
 
-# 디버그 모드 (중간값 포함)
+# 디버그 모드 (중간값 포함).
+# z와 a의 모양이 같고 층마다 너비가 줄어드는 것을 확인할 수 있다.
+# 활성이 죽거나 터지는지 볼 때 이 캐시를 그대로 히스토그램으로 그리면 된다
 logits, cache = model(x, return_intermediates=True)
 print("\nIntermediate shapes:")
 for k, v in cache.items():
