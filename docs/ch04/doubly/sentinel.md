@@ -66,18 +66,32 @@ class SentinelDLL:
 
     def __init__(self):
         self.sentinel = Node()          # 허수아비 노드, 실제 데이터 없음
+        # 자기 자신을 양쪽으로 가리키게 해 고리를 만든다. 이 두 줄이
+        # 이 페이지의 전부라 해도 좋다. 리스트가 비어 있든 차 있든
+        # 모든 노드에 앞과 뒤가 반드시 있게 되므로, prev나 next가
+        # None인 경우가 아예 생기지 않는다.
+        # 앞 절의 DoublyLinkedList가 머리와 꼬리를 따로 검사하다가
+        # 빠뜨리곤 했던 자리들이 여기서는 통째로 사라진다
         self.sentinel.next = self.sentinel
         self.sentinel.prev = self.sentinel
 
     def is_empty(self):
+        # 보초가 자기 자신을 가리키고 있으면 비어 있다는 뜻이다.
+        # head is None으로 묻던 것이 이렇게 바뀐다
         return self.sentinel.next is self.sentinel
 
     def insert_after(self, x, data):
         """'data'를 담은 새 노드를 노드 x 바로 뒤에 넣는다."""
         new_node = Node(data)
+        # 이음선 넷을 고치는 것은 앞 절과 같다. 다른 것은 조건문이
+        # 하나도 없다는 점이다. x가 어디에 있든, 리스트가 비어 있든
+        # 이 네 줄이 그대로 맞는다
         new_node.prev = x
         new_node.next = x.next
+        # x.next는 결코 None이 아니다. 마지막 노드라면 보초를 가리킨다
         x.next.prev = new_node         # None 검사가 필요 없다
+        # 순서에 주의하라. x.next를 먼저 덮어쓰면 바로 윗줄에서 쓸
+        # 옛 다음 노드를 잃는다
         x.next = new_node
         return new_node
 
@@ -87,12 +101,26 @@ class SentinelDLL:
 
     def insert_back(self, data):
         """리스트의 맨 뒤(보초 앞)에 넣는다."""
+        # sentinel.prev가 곧 꼬리다. 고리이므로 보초의 앞이 마지막
+        # 노드이기 때문이며, 덕분에 끝까지 걸어가지 않고 O(1)에 끝난다.
+        # 앞 절의 insert_at_end가 꼬리를 찾느라 O(n)이었던 것과 견주어 보라.
+        # 앞뒤 어느 쪽에든 O(1)로 넣고 뺄 수 있으므로 이 구조가
+        # 데크(deque)의 뼈대가 된다
         return self.insert_after(self.sentinel.prev, data)
 
     def delete(self, x):
         """리스트에서 노드 x를 없앤다. x는 보초여서는 안 된다."""
+        # 두 줄이면 끝난다. 앞 절의 remove가 index==0을 따로 다루고
+        # 마지막 노드에서 None을 만나 터지던 것과 견주어 보라.
+        # x가 첫 노드면 x.prev가 보초이고 마지막 노드면 x.next가
+        # 보초이므로, 어느 경우든 검사 없이 그대로 통한다.
+        # 지울 노드를 이미 손에 쥐고 있으므로 O(1)이다. 인덱스로
+        # 지운다면 그 자리를 찾는 데 O(n)이 든다
         x.prev.next = x.next           # None 검사가 필요 없다
         x.next.prev = x.prev
+        # 떼어 낸 노드의 이음선을 끊어 둔다. 없어도 동작에는 지장이
+        # 없지만, 남겨 두면 지운 노드를 들고 리스트를 훑는 실수를
+        # 저지를 수 있고 참조가 남아 메모리도 붙들린다
         x.prev = None
         x.next = None
         return x.data
@@ -100,6 +128,10 @@ class SentinelDLL:
     def to_list(self):
         """모든 데이터 값을 파이썬 리스트로 돌려준다(정방향)."""
         result = []
+        # 보초 다음이 첫 데이터 노드다. 멈추는 조건도 None이 아니라
+        # "보초로 되돌아왔는가"이다. 고리이므로 이 조건을 빠뜨리면
+        # 영영 돌게 된다.
+        # 보초 자신은 데이터가 없으므로 결과에 들어가지 않는다
         current = self.sentinel.next
         while current is not self.sentinel:
             result.append(current.data)

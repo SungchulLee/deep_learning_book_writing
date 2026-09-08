@@ -43,7 +43,12 @@ class CircularSLL:
     """꼬리 참조를 갖는 원형 단일 연결 리스트."""
 
     def __init__(self):
+        # 머리가 아니라 꼬리를 붙든다는 점이 이 구조의 설계다. 고리이므로
+        # tail.next가 곧 머리라, 꼬리 하나만 들고 있으면 양 끝을 모두
+        # O(1)에 얻는다. 반대로 머리를 붙들면 꼬리를 찾는 데 O(n)이 든다
         self.tail = None
+        # 크기를 따로 세어 둔다. 고리에는 끝이 없어 노드를 훑어 세려면
+        # 출발점으로 돌아왔는지 견주어야 하므로, 필드로 두는 편이 간단하다
         self.size = 0
 
     def is_empty(self):
@@ -68,6 +73,11 @@ class CircularSLL:
 
         새 노드가 새 꼬리가 된다.
         """
+        # 고리에서는 머리와 꼬리가 이웃해 있어, 맨 앞에 넣는 것과 맨 뒤에
+        # 넣는 것이 "어디를 꼬리라 부르는가"의 차이뿐이다. 그래서 새 코드를
+        # 쓰지 않고 앞에 넣은 뒤 꼬리 표시만 옮긴다.
+        # 두 줄 모두 O(1)이라 맨 뒤 넣기도 O(1)이다. 앞 절의
+        # 단일 연결 리스트가 끝까지 걸어가야 했던 것과 견주어 보라
         self.insert_front(data)
         self.tail = self.tail.next     # 꼬리를 새로 넣은 노드로 옮긴다
         # insert_front가 머리에 넣었으므로, 꼬리로 만들면 회전이 된다
@@ -77,9 +87,13 @@ class CircularSLL:
         if self.is_empty():
             raise IndexError("delete from empty list")
         head = self.tail.next
+        # 노드가 하나뿐이면 그것이 머리이자 꼬리다. 이 경우만 따로
+        # 다루는데, 자기 자신을 가리키던 고리를 통째로 없애야 하기 때문이다
         if self.size == 1:
             self.tail = None
         else:
+            # 꼬리가 옛 머리를 건너뛰고 그다음을 가리키게 하면 고리가
+            # 다시 닫힌다. 꼬리는 그대로 두고 머리만 바뀐다
             self.tail.next = head.next
         self.size -= 1
         return head.data
@@ -89,6 +103,11 @@ class CircularSLL:
 
         이는 머리를 뒤로 옮기는 셈이어서 리스트를 한 칸 돌린다.
         """
+        # 노드를 하나도 옮기지 않고 꼬리 표시만 한 칸 밀면 리스트 전체가
+        # 돌아간 것과 같다. O(1)이며, 배열이었다면 모든 원소를 밀어야 해서
+        # O(n)이 든다.
+        # 차례를 돌려 가며 처리하는 일(운영체제의 라운드 로빈 스케줄링,
+        # 요세푸스 문제 등)에 원형 리스트를 쓰는 까닭이 여기 있다
         if not self.is_empty():
             self.tail = self.tail.next
 

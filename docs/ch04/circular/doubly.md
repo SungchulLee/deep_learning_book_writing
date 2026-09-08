@@ -33,6 +33,9 @@ class Node:
 
     def __init__(self, data):
         self.data = data
+        # 만들어지는 순간부터 자기 자신을 양쪽으로 가리킨다. 곧 노드
+        # 하나짜리 고리로 태어나는 셈이라, None인 이음선이 한순간도
+        # 존재하지 않는다. 보초 노드와 같은 효과를 노드 자체로 얻는다
         self.prev = self
         self.next = self
 
@@ -42,7 +45,13 @@ class CircularDLL:
     """머리와 꼬리의 구분이 없는 원형 이중 연결 리스트."""
 
     def __init__(self):
-        self.access = None     # 고리 안의 아무 노드에 대한 참조
+        # 고리 안의 아무 노드에 대한 참조.
+        # 이름이 head가 아니라 access인 까닭이 있다. 고리에는 처음도
+        # 끝도 없어 어느 노드를 붙들든 마찬가지이며, 붙든 자리가
+        # 그저 들어가는 문일 뿐이기 때문이다.
+        # 그래서 아래 순회들도 "머리부터"가 아니라 "이 노드부터
+        # 한 바퀴"라는 뜻이 된다
+        self.access = None
         self.size = 0
 
     def is_empty(self):
@@ -73,8 +82,13 @@ class CircularDLL:
         if self.size == 1:
             self.access = None
         else:
+            # 검사 없이 두 줄로 끝난다. 고리라 node.prev와 node.next가
+            # 결코 None이 아니기 때문이다. 노드를 손에 쥐고 있으므로 O(1)이다
             node.prev.next = node.next
             node.next.prev = node.prev
+            # 지운 노드가 하필 들어가는 문이었다면 문을 옮겨 주어야 한다.
+            # 빠뜨리면 access가 고리에서 떨어져 나간 노드를 가리켜,
+            # 이후 순회가 엉뚱한 곳을 돌게 된다
             if self.access is node:
                 self.access = node.next
         self.size -= 1
@@ -86,6 +100,10 @@ class CircularDLL:
             return []
         result = []
         current = self.access
+        # while True에 뒤쪽 검사를 쓴다. 앞쪽에서 current is self.access를
+        # 물으면 시작하자마자 참이라 한 바퀴도 돌지 못하기 때문이다.
+        # 곧 "적어도 한 번은 돌고 나서 출발점에 되돌아왔는지 본다"는
+        # do-while 꼴이며, 끝이 없는 고리를 훑는 표준 형태다
         while True:
             result.append(current.data)
             current = current.next
