@@ -66,6 +66,13 @@ for _ in range(100):
 print(f"Loss after training classifier: {loss.item():.4f}")
 ```
 
+**출력:**
+
+```
+Reduced torch.Size([100, 20]) inputs to torch.Size([100, 32]) features
+Loss after training classifier: 1.1486
+```
+
 ---
 
 ## 연습문제

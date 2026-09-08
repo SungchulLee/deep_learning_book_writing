@@ -63,6 +63,15 @@ print(f"Steps:  Linear -> ReLU -> Linear (finite, 3 steps)")
 print(f"Deterministic: {torch.equal(model(x), model(x))}")
 ```
 
+**출력:**
+
+```
+Input:  torch.Size([4, 5])
+Output: torch.Size([4, 3])
+Steps:  Linear -> ReLU -> Linear (finite, 3 steps)
+Deterministic: True
+```
+
 ---
 
 ## 연습문제

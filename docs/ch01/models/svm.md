@@ -75,6 +75,14 @@ with torch.no_grad():
     print(f"PyTorch SVM accuracy: {acc:.4f}")
 ```
 
+**출력:**
+
+```
+SVM accuracy: 0.8700
+Support vectors: [82 91]
+PyTorch SVM accuracy: 0.8600
+```
+
 ---
 
 ## 연습문제

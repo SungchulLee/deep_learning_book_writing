@@ -73,6 +73,19 @@ neighbor_labels = y_tr[idx]
 print(f"Neighbor labels for first 5 queries:\n{neighbor_labels}")
 ```
 
+**출력:**
+
+```
+Best k=7, CV accuracy=0.7950
+Test accuracy: 0.8200
+Neighbor labels for first 5 queries:
+tensor([[2, 2, 2, 2, 0, 2, 2],
+        [2, 2, 2, 1, 2, 2, 2],
+        [0, 2, 0, 2, 0, 2, 0],
+        [0, 0, 1, 1, 0, 1, 2],
+        [1, 2, 1, 1, 1, 2, 1]])
+```
+
 ---
 
 ## 연습문제

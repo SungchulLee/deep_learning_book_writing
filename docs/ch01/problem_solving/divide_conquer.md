@@ -67,6 +67,16 @@ print(f"Combined back to shape {combined.shape}")
 print(f"Reconstruction matches: {torch.allclose(Q, combined)}")
 ```
 
+**출력:**
+
+```
+Recursive sum of [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]: 36.0
+Direct sum: 36.0
+Divided into 4 heads of dim 16
+Combined back to shape torch.Size([1, 8, 64])
+Reconstruction matches: True
+```
+
 ---
 
 ## 연습문제

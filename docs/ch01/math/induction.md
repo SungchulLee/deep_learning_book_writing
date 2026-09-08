@@ -80,6 +80,15 @@ print(f"Composed result:   {(composed @ x)[:3]}")
 print(f"Match: {torch.allclose(result, composed @ x, atol=1e-4)}")
 ```
 
+**출력:**
+
+```
+Induction verified for n = 1..100
+Sequential result: tensor([ 0.0679, -0.8439, -1.6294])
+Composed result:   tensor([ 0.0679, -0.8439, -1.6294])
+Match: True
+```
+
 ---
 
 ## 연습문제

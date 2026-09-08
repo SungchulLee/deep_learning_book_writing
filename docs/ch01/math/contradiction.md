@@ -59,6 +59,14 @@ print(f"Number of global minima of x^2 + 1: {num_minima}")
 print(f"Minimum value: {min_val:.4f}")
 ```
 
+**출력:**
+
+```
+Found exact integer p/q with p^2 = 2q^2 for q < 1000: False
+Number of global minima of x^2 + 1: 2
+Minimum value: 1.0000
+```
+
 ---
 
 ## 연습문제

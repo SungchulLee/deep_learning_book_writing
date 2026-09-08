@@ -59,6 +59,15 @@ rhs = sum(comb(n_val, k) * x ** (n_val - k) * y ** k for k in range(n_val + 1))
 print(f"(x+y)^{n_val} = {lhs.item():.0f}, sum of binomial terms = {rhs.item():.0f}")
 ```
 
+**출력:**
+
+```
+P(10,3) = 720
+C(10,3) = 120
+Grid search: 5 params x 4 values = 1024 configs
+(x+y)^4 = 625, sum of binomial terms = 625
+```
+
 ---
 
 ## 연습문제

@@ -56,6 +56,13 @@ for _ in range(200):
 print(f"Gradient descent: w={w.item():.4f}, loss={loss.item():.6f}")
 ```
 
+**출력:**
+
+```
+Brute force: w=1.9970, loss=0.000042
+Gradient descent: w=2.0000, loss=0.000000
+```
+
 ---
 
 ## 연습문제

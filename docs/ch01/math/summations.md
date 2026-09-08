@@ -66,6 +66,19 @@ formula = 100 * 101 / 2
 print(f"\nsum(1..100) = {actual:.0f}, formula = {formula:.0f}")
 ```
 
+**출력:**
+
+```
+Layer widths: [64, 128, 192, 256, 320, 384]
+Total weight params: 286720
+
+Cumulative LR (sum):    0.099485
+Cumulative LR (closed): 0.099485
+Limit as T -> inf:      0.100000
+
+sum(1..100) = 5050, formula = 5050
+```
+
 ---
 
 ## 연습문제

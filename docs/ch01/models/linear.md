@@ -86,6 +86,15 @@ print(f"PyTorch weights:  {np.round(learned, 2)}")
 print(f"Final MSE loss:   {loss.item():.4f}")
 ```
 
+**출력:**
+
+```
+True weights:     [ 3.  -1.5  0.   0.   2. ]
+Estimated weights:[ 2.97 -1.47  0.01  0.03  2.03]
+PyTorch weights:  [ 2.96 -1.46  0.01  0.03  2.01]
+Final MSE loss:   0.2655
+```
+
 ---
 
 ## 연습문제

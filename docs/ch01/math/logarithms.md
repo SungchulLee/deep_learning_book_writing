@@ -70,6 +70,17 @@ print(f"log2({val:.0f}) = {np.log2(val):.2f}")
 print(f"ln({val:.0f}) = {np.log(val):.4f}")
 ```
 
+**출력:**
+
+```
+Softmax probs: [0.6590011715888977, 0.24243298172950745, 0.09856589138507843]
+Cross-entropy loss: 0.4170
+Log-sum-exp (stable): 1002.4076
+Log-sum-exp (builtin): 1002.4076
+log2(1024) = 10.00
+ln(1024) = 6.9315
+```
+
 ---
 
 ## 연습문제
