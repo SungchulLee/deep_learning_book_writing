@@ -139,17 +139,29 @@ import matplotlib.pyplot as plt
 
 def compare_init_relu(n_layers=50, hidden=512, n_samples=1024):
     """여러 층에 걸쳐 ReLU와 함께 Xavier 초기화와 He 초기화를 비교한다."""
+    # 학습은 하지 않는다. 무작위로 초기화한 층 50개에 신호를 한 번
+    # 통과시켜, 층을 지날수록 활성의 표준편차가 어떻게 되는지만 본다.
+    # 이 값이 0으로 가면 기울기도 함께 사라져 학습 자체가 시작되지 못한다.
     x = torch.randn(n_samples, hidden)
 
     results = {}
     for name, init_fn in [
+        # Xavier는 분산을 2/(fan_in+fan_out)으로 잡는다. tanh처럼 원점에서
+        # 기울기가 1인 활성을 가정한 값이라, ReLU와 함께 쓰면 층마다
+        # 절반씩 죽는 몫을 메우지 못해 신호가 사그라든다
         ('Xavier Normal', init.xavier_normal_),
+        # He는 2/fan_in 으로 잡아 ReLU가 죽이는 절반을 미리 메운다.
+        # fan_in 방식은 순전파의 분산을 지키는 쪽이다
         ('He Normal (fan_in)', lambda w: init.kaiming_normal_(w, mode='fan_in', nonlinearity='relu')),
+        # fan_out 방식은 역전파의 분산을 지키는 쪽이다. 정사각 층에서는
+        # fan_in과 fan_out이 같아 둘이 겹치지만, 너비가 바뀌는 망에서는 갈린다
         ('He Normal (fan_out)', lambda w: init.kaiming_normal_(w, mode='fan_out', nonlinearity='relu')),
     ]:
-        h = x.clone()
+        h = x.clone()   # 세 방식 모두 같은 입력에서 시작해야 견줄 수 있다
         stds = []
         for _ in range(n_layers):
+            # bias=False 로 두는 까닭은 편향이 분산에 끼어들어
+            # 초기화 방식의 차이를 흐리기 때문이다
             linear = nn.Linear(hidden, hidden, bias=False)
             init_fn(linear.weight)
             h = torch.relu(linear(h))
@@ -164,6 +176,9 @@ def compare_init_relu(n_layers=50, hidden=512, n_samples=1024):
     ax.set_title('Activation Standard Deviation Through 50 ReLU Layers')
     ax.legend()
     ax.set_ylim(0, 3)
+    # 목표선 1.0. He 초기화의 두 곡선은 이 선 언저리에 머무르고
+    # Xavier 곡선은 층이 깊어질수록 0으로 내려간다.
+    # 주의: 이 axhline은 legend() 뒤에 있어 범례에 나오지 않는다
     ax.axhline(y=1.0, color='gray', linestyle='--', alpha=0.4, label='Target')
     plt.tight_layout()
     plt.savefig('he_vs_xavier_relu.png', dpi=150, bbox_inches='tight')

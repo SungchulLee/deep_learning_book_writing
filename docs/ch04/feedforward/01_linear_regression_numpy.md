@@ -10,45 +10,62 @@ import matplotlib.pyplot as plt
 
 np.random.seed(42)
 
-# 합성 데이터 생성: y = 2x + 1 + 잡음
+# ── 1. 답을 아는 데이터를 만든다 ────────────────────────────────────
+# 참값을 알고 있어야 학습이 제대로 되었는지 판정할 수 있다.
+# 넘파이만 쓰는 까닭은 순전파·손실·기울기·갱신이라는 네 걸음이
+# 프레임워크의 도움 없이도 그저 행렬 연산일 뿐임을 보이려는 것이다.
 n_samples = 100
-X = np.random.rand(n_samples, 1) * 10
+X = np.random.rand(n_samples, 1) * 10       # [0, 10) 구간
 true_w, true_b = 2.0, 1.0
 noise = np.random.randn(n_samples, 1) * 0.5
 y = true_w * X + true_b + noise
 
-# 매개변수를 초기화한다
+# ── 2. 매개변수를 초기화한다 ────────────────────────────────────────
+# 가중치는 무작위로, 편향은 0으로 둔다. 모양을 (1,1)로 잡아야
+# 아래 X @ w 가 행렬곱으로 성립한다
 w = np.random.randn(1, 1)
 b = np.zeros((1, 1))
 
 def forward(X, w, b):
+    # b는 (1,1)이지만 방송(broadcast)되어 모든 표본에 같은 값이 더해진다
     return X @ w + b
 
 def compute_loss(y_true, y_pred):
+    # 평균제곱오차. n으로 나누므로 표본 수가 달라져도 손실의 자가 같다
     n = len(y_true)
     return (1 / n) * np.sum((y_true - y_pred) ** 2)
 
 def compute_gradients(X, y_true, y_pred):
+    # MSE = (1/n)*sum((y - Xw - b)^2) 를 손으로 미분한 것이다.
+    #   dL/dw = (2/n) * X^T (y_pred - y_true)
+    #   dL/db = (2/n) * sum(y_pred - y_true)
+    # 잔차의 부호가 (y_pred - y_true)임에 주의한다. 뒤집으면 아래 갱신이
+    # 손실을 키우는 쪽으로 올라가 버린다.
+    # X.T를 곱하는 까닭은 각 표본의 잔차를 그 표본의 입력값으로 무게를
+    # 주어 더하기 위해서다. 입력이 큰 표본이 가중치를 더 많이 움직인다
     n = len(y_true)
     dw = (2 / n) * X.T @ (y_pred - y_true)
     db = (2 / n) * np.sum(y_pred - y_true)
     return dw, db
 
-# 학습 루프
+# ── 3. 학습 루프 ────────────────────────────────────────────────────
 learning_rate = 0.01
 n_epochs = 100
 loss_history = []
 
 for epoch in range(n_epochs):
-    y_pred = forward(X, w, b)
-    loss = compute_loss(y, y_pred)
+    y_pred = forward(X, w, b)              # 순전파
+    loss = compute_loss(y, y_pred)         # 얼마나 틀렸는지
     loss_history.append(loss)
-    dw, db = compute_gradients(X, y, y_pred)
+    dw, db = compute_gradients(X, y, y_pred)   # 어느 쪽으로 고칠지
+    # 기울기의 "반대" 방향으로 옮긴다. 부호를 빼먹으면 발산한다
     w = w - learning_rate * dw
     b = b - learning_rate * db
 
 print(f"True values:    w = {true_w:.4f}, b = {true_b:.4f}")
 print(f"Learned values: w = {w[0][0]:.4f}, b = {b[0][0]:.4f}")
+# 손실이 0으로 가지 않는 것이 정상이다. 데이터에 표준편차 0.5짜리
+# 잡음을 얹었으므로, 아무리 잘 맞춰도 그 잡음의 분산만큼은 남는다
 print(f"Final loss: {loss_history[-1]:.4f}")
 ```
 

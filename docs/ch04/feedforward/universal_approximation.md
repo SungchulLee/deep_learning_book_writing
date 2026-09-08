@@ -320,20 +320,27 @@ class DeepNarrowNet(nn.Module):
     """너비가 적당한 여러 은닉층."""
     def __init__(self, width: int = 32, depth: int = 4):
         super().__init__()
+        # 입력 1차원 -> width 로 시작한다
         layers = [nn.Linear(1, width), nn.ReLU()]
+        # 가운데 층을 depth-1 번 더 쌓는다. 첫 층을 이미 만들었으므로 -1이다
         for _ in range(depth - 1):
             layers.extend([nn.Linear(width, width), nn.ReLU()])
-        layers.append(nn.Linear(width, 1))
+        layers.append(nn.Linear(width, 1))   # 출력에는 활성을 두지 않는다(회귀)
         self.net = nn.Sequential(*layers)
-    
+
     def forward(self, x):
         return self.net(x)
 
-# 중첩 합성 목표 함수 — 자연히 깊이에 유리하다
+# 중첩 합성 목표 함수 — 자연히 깊이에 유리하다.
+# sin을 세 번 겹쳐 놓았다. 층을 쌓는 것이 곧 함수를 합성하는 것이므로,
+# 이런 목표는 깊은 망의 구조와 결이 맞는다. 얕은 망은 같은 함수를
+# 흉내 내려면 훨씬 많은 조각(뉴런)을 이어 붙여야 한다.
+# 보편 근사 정리는 은닉층 하나로 "가능하다"고만 말할 뿐,
+# 그것이 "값싸다"고는 말하지 않는다. 이 실험이 그 차이를 보인다.
 def nested_target(x):
     return torch.sin(torch.sin(torch.sin(x * 3) * 2) * 4)
 
-x = torch.linspace(-2, 2, 1000).reshape(-1, 1)
+x = torch.linspace(-2, 2, 1000).reshape(-1, 1)   # (1000, 1) 꼴로 만든다
 y = nested_target(x)
 
 def train_model(model, x, y, epochs=5000, lr=1e-3):
@@ -341,6 +348,7 @@ def train_model(model, x, y, epochs=5000, lr=1e-3):
     losses = []
     for _ in range(epochs):
         optimizer.zero_grad()
+        # 여기서는 데이터 전체를 한 배치로 쓴다(표본이 1000개뿐이라 가능하다)
         loss = nn.MSELoss()(model(x), y)
         loss.backward()
         optimizer.step()
@@ -348,6 +356,8 @@ def train_model(model, x, y, epochs=5000, lr=1e-3):
     return losses
 
 torch.manual_seed(42)
+# 두 모델의 매개변수 수를 비슷하게 맞추는 것이 이 비교의 핵심이다.
+# 그래야 "깊이 덕분인지 크기 덕분인지"를 가릴 수 있다
 wide_model = ShallowApproximator(500, activation=nn.ReLU)   # 은닉층 1개, 너비 500
 deep_model = DeepNarrowNet(width=32, depth=5)                # 은닉층 5개, 너비 32
 
@@ -357,6 +367,9 @@ print(f"Deep-narrow  params: {sum(p.numel() for p in deep_model.parameters()):,}
 wide_losses = train_model(wide_model, x, y)
 deep_losses = train_model(deep_model, x, y)
 
+# 매개변수가 비슷한데도 깊은 쪽의 MSE가 작으면, 그 이득은 크기가 아니라
+# 깊이에서 온 것이다. 다만 이 결과는 목표 함수가 합성 꼴이라는 데
+# 기대고 있으므로, 모든 문제에서 깊이가 이긴다는 뜻은 아니다
 print(f"Wide-shallow final MSE: {wide_losses[-1]:.6f}")
 print(f"Deep-narrow  final MSE: {deep_losses[-1]:.6f}")
 ```
