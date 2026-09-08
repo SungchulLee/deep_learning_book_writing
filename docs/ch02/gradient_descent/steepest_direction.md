@@ -209,6 +209,12 @@ loss.backward()
 print(f"Gradient dL/dw = {w.grad.item():.4f}")
 ```
 
+**출력:**
+
+```
+Gradient dL/dw = -33.0000
+```
+
 ### 심층 신경망에서의 연쇄 법칙
 
 합성 함수 $L = L_3 \circ L_2 \circ L_1$에 대해 연쇄 법칙은 다음을 준다.

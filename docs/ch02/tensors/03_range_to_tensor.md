@@ -87,6 +87,40 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+t = tensor([0, 1, 2, 3, 4])
+t.shape = torch.Size([5])
+t.dtype = torch.int64
+t.requires_grad = False
+
+t = tensor([2, 4, 6, 8])
+t.shape = torch.Size([4])
+t.dtype = torch.int64
+t.requires_grad = False
+
+t = tensor([0, 2, 4, 6, 8])
+t.shape = torch.Size([5])
+t.dtype = torch.int64
+t.requires_grad = False
+
+t = tensor([0.0000, 0.2000, 0.4000, 0.6000, 0.8000])
+t.shape = torch.Size([5])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor([0.0000, 0.2500, 0.5000, 0.7500, 1.0000])
+t.shape = torch.Size([5])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor([1, 2, 3, 4])
+t.shape = torch.Size([4])
+t.dtype = torch.int64
+t.requires_grad = False
+```
+
 ## 2. 논의
 
 여기서 보여준 패턴들은 실무적인 PyTorch 개발의 토대이다. 각 개념은 데이터 표현, 자동 미분, 하드웨어 가속을 하나의 일관된 API로 통합하는 텐서 추상화 위에 세워진다.

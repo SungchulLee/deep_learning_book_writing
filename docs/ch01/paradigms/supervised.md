@@ -185,26 +185,40 @@ from scipy.special import expit
 np.random.seed(42)
 n = 1000
 
-# 대출 부도 여부를 이진 분류로 흉내 낸다
-income = np.random.normal(60, 20, n).clip(10)
-dti = np.random.normal(0.3, 0.15, n).clip(0.01, 1.0)
+# ── 1. 참 모델을 정해 두고 그 모델에서 데이터를 만든다 ──────────────
+# 소득이 낮을수록, 부채비율(dti)이 높을수록 부도 확률이 오르게 놓는다
+income = np.random.normal(60, 20, n).clip(10)        # 소득(단위: 천 달러)
+dti = np.random.normal(0.3, 0.15, n).clip(0.01, 1.0) # 소득 대비 부채비율
+
+# 로짓(로그 승산)을 선형으로 놓는다. 이것이 로지스틱 회귀가 가정하는 꼴이다
 log_odds = -3 + 0.01 * (50 - income) + 5 * (dti - 0.3)
+# expit이 곧 시그모이드. 로짓을 확률로 되돌린 뒤 그 확률로 동전을 던진다
 default = np.random.binomial(1, expit(log_odds))
 
-# 훈련과 시험으로 나눈다
+# ── 2. 훈련과 시험으로 나눈다 ───────────────────────────────────────
+# 정리 4가 보장하는 정직한 평가를 얻으려면 시험 자료가 적합에
+# 조금도 쓰이지 않아야 한다
 train, test = np.arange(700), np.arange(700, n)
-X = np.column_stack([np.ones(n), income, dti])
+X = np.column_stack([np.ones(n), income, dti])   # 첫 열의 1은 절편 자리
 
-# 음의 로그가능도를 최소화하여 로지스틱 회귀를 적합한다
+# ── 3. 경험위험 최소화: 음의 로그가능도를 최소화한다 ────────────────
 def neg_log_lik(beta):
     z = X[train] @ beta
+    # 로지스틱 회귀의 음의 로그가능도.
+    # log(1+e^z) 를 log1p(exp(z))로 쓰는 까닭은 z가 클 때
+    # exp(z)가 넘치는 것을 막기 위해서다
     return -np.sum(default[train] * z - np.log1p(np.exp(z)))
 
+# 닫힌 형태가 없으므로 수치 최적화로 푼다. 목적함수가 볼록이라
+# BFGS가 전역 최소로 간다
 beta_hat = minimize(neg_log_lik, np.zeros(3), method="BFGS").x
 
+# ── 4. 시험 집합에서 딱 한 번 평가한다 ──────────────────────────────
 probs_test = expit(X[test] @ beta_hat)
-preds = (probs_test > 0.5).astype(int)
+preds = (probs_test > 0.5).astype(int)   # 0.5를 문턱값으로 갈래를 정한다
 print(f"시험 정확도:      {np.mean(preds == default[test]):.3f}")
+# 정확도만 보면 안 되므로 다수 갈래의 몫을 나란히 찍는다.
+# 둘이 비슷하면 모델이 다수 갈래만 외운 것일 수 있다
 print(f"시험 집합 부도율: {default[test].mean():.3f}")
 print(f"계수:             {beta_hat.round(4)}")
 ```

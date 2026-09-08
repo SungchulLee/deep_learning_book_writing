@@ -91,6 +91,13 @@ loss_beta5 = smooth_l1_beta5(predicted, actual)
 print(f"Smooth L1 Loss (beta=5.0): {loss_beta5.item():.4f}")
 ```
 
+**출력:**
+
+```
+Smooth L1 Loss (beta=1.0): 14.7000
+Smooth L1 Loss (beta=5.0): 13.9800
+```
+
 !!! note "배율 관례"
     `nn.SmoothL1Loss`은 이차 쪽을 `beta`으로 나누므로 식은 다음과 같다.
 
@@ -106,6 +113,12 @@ PyTorch 1.9에 들어왔으며 `delta` 매개변수를 쓰는 표준 후버 식�
 huber = nn.HuberLoss(delta=1.0)
 loss = huber(predicted, actual)
 print(f"Huber Loss (delta=1.0): {loss.item():.4f}")
+```
+
+**출력:**
+
+```
+Huber Loss (delta=1.0): 14.7000
 ```
 
 ### 둘의 비교
@@ -133,6 +146,12 @@ loss_none = nn.SmoothL1Loss(reduction='none')(predicted, actual)
 print(f"Per-element losses: {loss_none}")
 ```
 
+**출력:**
+
+```
+Per-element losses: tensor([ 0.5000,  0.5000,  0.5000,  0.5000, 71.5000])
+```
+
 ---
 
 ## 6. 구간별 분석
@@ -149,6 +168,16 @@ for i, error in enumerate(errors):
         regime = "linear (MAE-like)"
         loss_val = abs_error - 0.5
     print(f"Error {i+1}: {error.item():7.1f} → {regime}, loss={loss_val:.2f}")
+```
+
+**출력:**
+
+```
+Error 1:     1.0 → linear (MAE-like), loss=0.50
+Error 2:     1.0 → linear (MAE-like), loss=0.50
+Error 3:     1.0 → linear (MAE-like), loss=0.50
+Error 4:     1.0 → linear (MAE-like), loss=0.50
+Error 5:   -72.0 → linear (MAE-like), loss=71.50
 ```
 
 ---
@@ -180,6 +209,26 @@ for name, (actual, pred) in scenarios.items():
     print(f"  MSE:       {mse.item():10.2f}")
     print(f"  MAE:       {mae.item():10.2f}")
     print(f"  Smooth L1: {huber.item():10.2f}")
+```
+
+**출력:**
+
+```
+
+Clean data:
+  MSE:             1.00
+  MAE:             1.00
+  Smooth L1:       0.50
+
+Moderate errors:
+  MSE:            25.00
+  MAE:             5.00
+  Smooth L1:       4.50
+
+With outlier:
+  MSE:          1037.60
+  MAE:            15.20
+  Smooth L1:      14.70
 ```
 
 ---

@@ -155,6 +155,47 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Data shapes: X=torch.Size([500, 3]), Y=torch.Size([500, 2])
+W_true (p×q):
+tensor([[ 2.0000, -1.0000],
+        [ 0.5000,  1.5000],
+        [-0.3000,  0.8000]])
+b_true: tensor([ 1., -2.])
+
+Model: Linear(in_features=3, out_features=2, bias=True)
+Weight shape: torch.Size([2, 3])  (stored as q×p = 2×3)
+Bias shape:   torch.Size([2])
+Epoch  50  MSE = 0.039564
+Epoch 100  MSE = 0.039549
+Epoch 150  MSE = 0.039555
+Epoch 200  MSE = 0.039564
+
+Overall Test MSE: 0.045411
+Output 0: R² = 0.9883
+Output 1: R² = 0.9887
+
+Learned W^T (q×p):
+tensor([[ 1.9987,  0.5104, -0.3013],
+        [-1.0053,  1.5158,  0.7967]])
+True    W^T (q×p):
+tensor([[ 2.0000,  0.5000, -0.3000],
+        [-1.0000,  1.5000,  0.8000]])
+
+Learned b: tensor([ 0.9769, -2.0006])
+True    b: tensor([ 1., -2.])
+
+--- Normal Equation Verification ---
+Normal eq bias: [ 0.9759196 -1.9997229]
+Normal eq W:
+[[ 1.99908767 -1.00583516]
+ [ 0.50965376  1.51597945]
+ [-0.30137841  0.79624472]]
+Saved: multiple_outputs.png
+```
+
 ## 2. 논의
 
 단일 출력 회귀와의 핵심 차이는 가중치 행렬의 모양이다. `nn.Linear(3, 2)`는 가중치를 $(2, 3)$ 행렬로 저장하므로(PyTorch에서는 `(out_features, in_features)` 순서로 저장한다), 순전파는 $X$가 $(n, 3)$이고 $\hat{Y}$가 $(n, 2)$일 때 $\hat{Y} = X W^T + b$를 계산한다. MSE 손실 `F.mse_loss`는 출력의 모든 원소에 대해 평균을 내어 각 출력 차원을 동등하게 취급한다. 학습 루프는 바꿀 필요가 없다. 출력 차원과 무관하게 똑같은 `optimizer.zero_grad(); loss.backward(); optimizer.step()` 패턴이 통한다.

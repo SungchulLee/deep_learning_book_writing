@@ -42,6 +42,17 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+x: tensor([ 1.5410, -0.2934, -2.1788], requires_grad=True)
+y = sin(x): tensor([ 0.9996, -0.2892, -0.8208], grad_fn=<SinBackward0>) | shape: (3,)
+As expected, calling y.backward() fails for non-scalar y:
+   grad can be implicitly created only for scalar outputs
+Chosen v: tensor([0.1000, 1.0000, 0.0100])
+x.grad (v^T * J): tensor([ 0.0030,  0.9573, -0.0057])
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

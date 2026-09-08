@@ -190,6 +190,17 @@ if __name__ == "__main__":
     print(f"Size:  {len(dq)}")      # 2
 ```
 
+**출력:**
+
+```
+Front: 5
+Back:  30
+Size:  4
+Pop front: 5
+Pop back:  30
+Size:  2
+```
+
 ---
 
 ## 5. 복잡도 요약

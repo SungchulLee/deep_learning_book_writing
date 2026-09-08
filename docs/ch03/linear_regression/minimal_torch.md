@@ -125,6 +125,24 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Epoch  40  MSE = 2.114635
+Epoch  80  MSE = 0.507749
+Epoch 120  MSE = 0.175647
+Epoch 160  MSE = 0.106049
+Epoch 200  MSE = 0.091250
+
+Test MSE: 0.085761
+Test R²:  0.834527
+
+Learned w: [-0.1025678  -0.3052043  -0.69520104]
+True    w: [-0.11067407 -0.29015508 -0.69889843]
+Learned b: 2.9564  (true: 3.0)
+Saved: minimal_torch.png
+```
+
 ## 2. 논의
 
 최소한의 autograd 루프는 학습 과정의 모든 단계를 겉으로 드러낸다. 매개변수 `w`와 `b`는 `requires_grad=True`인 평범한 텐서이다. 순전파 `y_pred = X_train @ w + b`가 계산 그래프를 만든다. 손실 `((y_pred - y_train) ** 2).mean()`이 그 그래프를 잇는다. `loss.backward()`를 호출하면 그래프를 역방향으로 훑으며 각 매개변수에 대한 손실의 정확한 경사로 `w.grad`와 `b.grad`를 채운다.

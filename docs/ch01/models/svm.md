@@ -56,8 +56,12 @@ print(f"Support vectors: {svm.n_support_}")
 
 # PyTorch: 힌지 손실을 이용한 선형 SVM
 X_t = torch.tensor(X_tr_s, dtype=torch.float32)
+# 힌지 손실은 레이블이 {-1,+1}이라야 한다. y*out 의 부호로 맞고 틀림을 가리기 때문이다
 y_t = torch.tensor(2 * y_tr - 1, dtype=torch.float32)  # {0,1} -> {-1,+1}
 
+# 씨앗을 고정한다. nn.Linear의 초기 가중치가 무작위라 이것이 없으면
+# 실행할 때마다 정확도가 달라져 아래 출력이 재현되지 않는다
+torch.manual_seed(42)
 model = nn.Linear(10, 1)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
 
@@ -80,7 +84,7 @@ with torch.no_grad():
 ```
 SVM accuracy: 0.8700
 Support vectors: [82 91]
-PyTorch SVM accuracy: 0.8600
+PyTorch SVM accuracy: 0.8700
 ```
 
 ---

@@ -110,6 +110,39 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+t = tensor([1, 2, 3, 4, 5])
+t.shape = torch.Size([5])
+t.dtype = torch.int64
+t.requires_grad = False
+
+t = tensor([0.1000, 0.2000, 0.3000], dtype=torch.float64)
+t.shape = torch.Size([3])
+t.dtype = torch.float64
+t.requires_grad = False
+
+t = tensor([0.1000, 0.2000, 0.3000])
+t.shape = torch.Size([3])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor([ True, False,  True])
+t.shape = torch.Size([3])
+t.dtype = torch.bool
+t.requires_grad = False
+
+t = tensor([10., 20., 30.])
+t.shape = torch.Size([3])
+t.dtype = torch.float32
+t.requires_grad = False
+
+   NumPy arr after: [99. 20. 30.]
+   Tensor after    : tensor([99., 20., 30.])
+Non-numeric Series error: can't convert np.ndarray of type numpy.object_. The only supported types are: float64, float32, float16, complex64, complex128, int64, int32, int16, int8, uint64, uint32, uint16, uint8, and bool.
+```
+
 ## 2. 논의
 
 CPU 텐서에서 PyTorch와 NumPy의 상호 운용은 매끄럽다. `torch.from_numpy()`는 배열과 메모리를 공유하는 텐서를 만들고, `torch.tensor()`는 항상 복사한다. 어떤 연산이 저장소를 공유하고 어떤 연산이 독립적인 복사본을 만드는지 이해하는 것이 미묘한 버그를 피하는 데 결정적이다.

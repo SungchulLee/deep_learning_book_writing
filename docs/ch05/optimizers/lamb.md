@@ -99,6 +99,12 @@ if __name__ == "__main__":
         print("Install torch-optimizer: pip install torch-optimizer")
 ```
 
+**출력:**
+
+```
+Install torch-optimizer: pip install torch-optimizer
+```
+
 ---
 
 ## 4. LAMB를 쓸 때

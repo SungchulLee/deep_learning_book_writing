@@ -155,6 +155,15 @@ if __name__ == "__main__":
     print(f"Remaining size: {len(pq)}")     # 4
 ```
 
+**출력:**
+
+```
+Min: 1
+Extract: 1
+Extract: 2
+Remaining size: 4
+```
+
 ---
 
 ## 연습문제

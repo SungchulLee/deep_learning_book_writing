@@ -238,6 +238,12 @@ true_probs = get_true_class_probs(probs, labels)
 print(f"True class probabilities: {true_probs}")  # tensor([0.7, 0.6, 0.5])
 ```
 
+**출력:**
+
+```
+True class probabilities: tensor([0.7000, 0.6000, 0.5000])
+```
+
 ---
 
 ## 7. PyTorch의 CrossEntropyLoss에서 범주형 대 원-핫
@@ -265,6 +271,12 @@ print(f"Loss with indices: {loss_correct.item():.4f}")
 # 틀린 방법: 표준 CrossEntropyLoss에 원-핫 부호를 쓴다
 labels_onehot = F.one_hot(labels_indices, num_classes=3).float()
 # loss_wrong = criterion(logits, labels_onehot)  # 이러면 오류가 난다!
+```
+
+**출력:**
+
+```
+Loss with indices: 0.3854
 ```
 
 ### 원-핫 부호화가 필요할 때

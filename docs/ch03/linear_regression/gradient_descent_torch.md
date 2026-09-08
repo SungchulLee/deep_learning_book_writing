@@ -133,6 +133,27 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Train: torch.Size([400, 3]), Test: torch.Size([100, 3])
+True w: [-0.11067407 -0.29015508 -0.69889843]
+True b: 3.0
+Epoch  20  MSE = 0.087835
+Epoch  40  MSE = 0.087331
+Epoch  60  MSE = 0.087376
+Epoch  80  MSE = 0.087336
+Epoch 100  MSE = 0.087306
+
+Test MSE: 0.079252
+Test R²:  0.847085
+
+Learned w: [-0.11342913 -0.29892412 -0.7245034 ]
+True    w: [-0.11067407 -0.29015508 -0.69889843]
+Learned b: 3.0129  (true: 3.0)
+Saved: gradient_descent_torch.png
+```
+
 ## 2. 논의
 
 직접 계산하는 경사는 NumPy 버전과 같은 벡터화된 공식을 쓰되 PyTorch 텐서 연산으로 표현한다. `grad_w = (2.0 / B) * (X_batch.T @ residual)`과 `grad_b = (2.0 / B) * residual.sum()`이다. 이 연산들은 NumPy와 같은 결과를 내면서도 `.to('cuda')` 호출 한 번으로 GPU에서 실행할 수 있다. autograd 그래프를 만들지 않으므로 매개변수 갱신 `w -= lr * grad_w`은 단순한 제자리 뺄셈이다.

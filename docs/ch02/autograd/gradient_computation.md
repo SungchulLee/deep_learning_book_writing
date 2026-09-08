@@ -116,6 +116,13 @@ print(f"x.grad: {x.grad}")  # tensor([ 8., 16., 24.])
 print(f"y.grad: {y.grad}")  # tensor([ 4.,  8., 12.])
 ```
 
+**출력:**
+
+```
+x.grad: tensor([ 8., 16., 24.])
+y.grad: tensor([ 4.,  8., 12.])
+```
+
 **검증:** $y = 2x = [2, 4, 6]$이고 $z = \sum y_i^2$일 때 다음과 같다.
 
 - $\frac{\partial z}{\partial y_i} = 2y_i$이므로 $\nabla_y z = [4, 8, 12]$이다
@@ -134,6 +141,12 @@ y = x ** 3
 # 경사들의 튜플을 반환한다
 (grad_y,) = torch.autograd.grad(y, x)
 print(f"dy/dx = 3x² = {grad_y}")  # tensor([12.])
+```
+
+**출력:**
+
+```
+dy/dx = 3x² = tensor([12.])
 ```
 
 이는 고계 도함수(고계 경사 참고)를 다룰 때, 그리고 `retain_grad()`를 호출하지 않고 잎이 아닌 텐서의 경사가 필요할 때 특히 유용하다.
@@ -171,6 +184,12 @@ loss.backward(torch.tensor(1.0))   # Explicit v = 1
 print(f"x.grad: {x.grad}")  # tensor([2., 4., 6.])
 ```
 
+**출력:**
+
+```
+x.grad: tensor([2., 4., 6.])
+```
+
 ### 스칼라가 아닌 출력에서의 명시적 VJP
 
 스칼라가 아닌 출력에 대해서는 상류 경사 벡터 $\bar{y}$를 반드시 넘겨야 한다.
@@ -205,6 +224,12 @@ except RuntimeError as e:
     print(f"Error: {e}")
 ```
 
+**출력:**
+
+```
+Error: grad can be implicitly created only for scalar outputs
+```
+
 ### 선형 변환에서의 VJP
 
 $A \in \mathbb{R}^{m \times n}$인 선형 사상 $y = Ax$에 대해 야코비안은 단순히 $J = A$이다.
@@ -225,6 +250,14 @@ expected = A.T @ v
 print(f"x.grad: {x.grad}")
 print(f"A^T @ v: {expected}")
 print(f"Match: {torch.allclose(x.grad, expected)}")
+```
+
+**출력:**
+
+```
+x.grad: tensor([ 5.5000, -3.0000, -4.0000])
+A^T @ v: tensor([ 5.5000, -3.0000, -4.0000])
+Match: True
 ```
 
 ---
@@ -262,6 +295,13 @@ output, jvp_result = jvp(f, (x,), (tangent,))
 
 print(f"f(x) = {output}")
 print(f"J @ [1,0] = {jvp_result}")  # First column of J
+```
+
+**출력:**
+
+```
+f(x) = tensor([0.9093, 3.0000])
+J @ [1,0] = tensor([-0.8323,  2.0000])
 ```
 
 ### 후진 모드: 벡터-야코비 곱(VJP)
@@ -330,6 +370,15 @@ for name, param in model.named_parameters():
     print(f"{name}: grad shape = {param.grad.shape}")
 ```
 
+**출력:**
+
+```
+0.weight: grad shape = torch.Size([256, 784])
+0.bias: grad shape = torch.Size([256])
+2.weight: grad shape = torch.Size([10, 256])
+2.bias: grad shape = torch.Size([10])
+```
+
 ### 메모리와 계산의 절충
 
 후진 모드는 역전파를 위해 **중간 활성값을 저장해야** 하므로 신경망 깊이에 비례하는 메모리 부담이 생긴다.
@@ -382,6 +431,17 @@ print(f"Jacobian shape: {J.shape}")
 print(f"Jacobian:\n{J}")
 ```
 
+**출력:**
+
+```
+Input dim:  3
+Output dim: 2
+Jacobian shape: torch.Size([2, 3])
+Jacobian:
+tensor([[2.0000, 1.0000, 1.0000],
+        [0.5403, 4.0000, 0.0000]])
+```
+
 ### VJP로 야코비안 직접 구하기(행 단위)
 
 원핫 수반 벡터 $e_i$로 역전파를 하면 야코비안의 $i$번 행을 뽑아낼 수 있다.
@@ -418,6 +478,15 @@ print(f"Jacobian:\n{J}")
 #  [0, 6]]    d(x₂²)/d(x₁, x₂)
 ```
 
+**출력:**
+
+```
+Jacobian:
+tensor([[4., 0.],
+        [3., 2.],
+        [0., 6.]])
+```
+
 ### JVP로 야코비안 직접 구하기(열 단위)
 
 원핫 접벡터 $e_j$로 순전파를 하면 $j$번 열을 뽑아낼 수 있다.
@@ -439,6 +508,14 @@ J_col1 = jvp(f, (x,), (torch.tensor([0.0, 1.0]),))[1]
 J_forward = torch.stack([J_col0, J_col1], dim=1)
 
 print(f"Full Jacobian (forward mode):\n{J_forward}")
+```
+
+**출력:**
+
+```
+Full Jacobian (forward mode):
+tensor([[-0.8323, -0.4161],
+        [ 2.0000,  1.0000]])
 ```
 
 ---

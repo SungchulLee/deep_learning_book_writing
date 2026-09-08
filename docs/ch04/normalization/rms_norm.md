@@ -472,6 +472,29 @@ def comprehensive_comparison():
 comprehensive_comparison()
 ```
 
+**출력:**
+
+```
+Normalization Comparison for Transformer Hidden States
+============================================================
+
+Input: mean=-0.0015, std=1.0017
+
+LayerNorm:
+  Output mean: -0.000000
+  Output std:  1.0000
+  Per-token mean std: 0.000000
+
+RMSNorm:
+  Output mean: -0.001524
+  Output std:  1.0000
+  Per-token mean std: 0.044813
+
+Parameter count:
+  LayerNorm: 1024
+  RMSNorm:   512
+```
+
 ---
 
 ## 8. RMSNorm을 언제 쓸 것인가

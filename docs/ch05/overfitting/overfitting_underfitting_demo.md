@@ -175,6 +175,32 @@ if __name__ == "__main__":
     print("- Good fit: Similar training and test errors (balanced complexity)")
 ```
 
+**출력:**
+
+```
+Training polynomial regression models...
+
+======================================================================
+Results Summary
+======================================================================
+Degree     Train MSE       Test MSE        Interpretation      
+----------------------------------------------------------------------
+1          0.6551          0.6294          Underfitting        
+2          0.5687          0.5402          Underfitting        
+3          0.4919          0.4715          Good fit            
+5          0.2497          0.1782          Good fit            
+10         0.1957          0.1913          Good fit            
+15         0.1944          0.1864          Good fit            
+======================================================================
+
+Visualization saved as 'overfitting_underfitting.png'
+
+Key Takeaways:
+- Underfitting: High training and test error (model too simple)
+- Overfitting: Low training error but high test error (model too complex)
+- Good fit: Similar training and test errors (balanced complexity)
+```
+
 ## 2. 논의
 
 차수가 1인 다항 회귀(직선)는 곡률을 나타낼 수 없으므로 사인 모양의 데이터에 과소적합한다. 학습 MSE와 시험 MSE가 모두 높고 서로 비슷하다. 차수가 3~5이면 모델이 밑에 깔린 양상을 잡아내어 학습 MSE와 시험 MSE가 모두 낮고 비슷해진다. 알맞은 적합이다.

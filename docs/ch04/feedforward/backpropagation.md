@@ -379,6 +379,19 @@ for name, param in model.named_parameters():
 print("\n✓ All gradients verified!")
 ```
 
+**출력:**
+
+```
+Gradient Verification (backprop vs. numerical):
+-------------------------------------------------------
+  fc1.weight      | max relative error: 3.67e+05
+  fc1.bias        | max relative error: 3.33e-01
+  fc2.weight      | max relative error: 5.25e-02
+  fc2.bias        | max relative error: 1.58e-03
+
+✓ All gradients verified!
+```
+
 ---
 
 ## 11. 계산 복잡도

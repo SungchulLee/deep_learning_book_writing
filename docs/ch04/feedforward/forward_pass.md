@@ -394,6 +394,14 @@ with torch.no_grad():
 print(f"Max difference: {(logits_train - logits_infer).abs().max().item():.1e}")  # 0.0
 ```
 
+**출력:**
+
+```
+Grad tracking: True
+Grad tracking: False
+Max difference: 0.0e+00
+```
+
 ---
 
 ## 10. 계산 복잡도

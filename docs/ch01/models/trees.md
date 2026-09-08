@@ -46,8 +46,12 @@ from sklearn.model_selection import train_test_split, cross_val_score
 X, y = make_classification(n_samples=500, n_features=10, n_informative=5,
                            random_state=42)
 X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+# 트리는 각 특성을 문턱값으로 자를 뿐이라 자에 휘둘리지 않는다.
+# 앞의 k-최근접 이웃과 달리 표준화가 필요 없는 까닭이다
 
-# 교차 검증으로 max_depth를 선택한다
+# ── 1. 교차 검증으로 트리 깊이를 고른다 ─────────────────────────────
+# 깊이가 곧 모델의 복잡도다. 깊게 두면 훈련 자료를 외워 버리므로
+# (편향은 작아지고 분산은 커진다) 검증으로 알맞은 지점을 찾는다
 best_depth, best_score = 1, 0.0
 for d in range(1, 15):
     score = cross_val_score(DecisionTreeClassifier(max_depth=d, random_state=42),
@@ -59,25 +63,37 @@ print(f"Best depth={best_depth}, CV accuracy={best_score:.4f}")
 tree = DecisionTreeClassifier(max_depth=best_depth, random_state=42)
 tree.fit(X_tr, y_tr)
 print(f"Test accuracy: {tree.score(X_te, y_te):.4f}")
+# 노드와 잎의 수는 트리가 실제로 얼마나 커졌는지를 보여 준다.
+# 잎이 많을수록 규칙이 잘게 쪼개졌다는 뜻이다
 print(f"Nodes: {tree.tree_.node_count}, Leaves: {tree.get_n_leaves()}")
 
-# 특징 중요도(지니 기반)
+# ── 2. 특성 중요도 ──────────────────────────────────────────────────
+# 그 특성으로 자를 때마다 지니 불순도가 얼마나 줄었는지를 모두 더한 값이다.
+# 신경망과 달리 이렇게 "무엇을 보고 판단했는가"를 곧바로 읽을 수 있다는
+# 점이 트리의 가장 큰 장점이다
 importances = tree.feature_importances_
-top3 = np.argsort(importances)[-3:][::-1]
+top3 = np.argsort(importances)[-3:][::-1]   # 큰 것부터 3개
 for i in top3:
     print(f"  Feature {i}: importance={importances[i]:.4f}")
 
-# 비교: 같은 데이터에 대한 간단한 신경망
+# ── 3. 같은 데이터에 신경망을 태워 견준다 ───────────────────────────
+# 표 형태의 자료에서는 트리 계열이 신경망과 맞먹거나 앞서는 일이 흔하다.
+# 신경망이 늘 이기는 것이 아님을 눈으로 확인하는 자리다
 X_t = torch.tensor(X_tr, dtype=torch.float32)
-y_t = torch.tensor(y_tr, dtype=torch.long)
+y_t = torch.tensor(y_tr, dtype=torch.long)   # 교차 엔트로피는 정수 레이블을 받는다
+
 net = torch.nn.Sequential(
     torch.nn.Linear(10, 32), torch.nn.ReLU(), torch.nn.Linear(32, 2))
 opt = torch.optim.Adam(net.parameters(), lr=0.01)
+
 for _ in range(200):
     loss = torch.nn.functional.cross_entropy(net(X_t), y_t)
     opt.zero_grad(); loss.backward(); opt.step()
+
+# 평가할 때는 기울기가 필요 없으므로 추적을 꺼서 메모리와 시간을 아낀다
 with torch.no_grad():
     X_te_t = torch.tensor(X_te, dtype=torch.float32)
+    # argmax(1): 두 갈래의 로짓 가운데 큰 쪽을 고른다
     nn_acc = (net(X_te_t).argmax(1).numpy() == y_te).mean()
 print(f"Neural net accuracy: {nn_acc:.4f}")
 ```

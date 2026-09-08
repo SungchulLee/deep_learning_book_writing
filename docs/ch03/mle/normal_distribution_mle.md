@@ -251,6 +251,40 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+NORMAL DISTRIBUTION MLE - Parameter Estimation
+================================================================================
+
+📋 Setup: N=500, True μ=5.0, True σ=2.0
+
+🎲 Generating data...
+   Sample mean: 5.0872
+   Sample std:  1.9461
+
+📐 Analytical MLE:
+   μ̂ = 5.0872
+   σ̂ = 1.9441
+
+🔄 Gradient-Based MLE:
+   Iter 200: μ=1.1102, σ=2.6428, LL=-1647.75
+   Iter 400: μ=1.6513, σ=3.3708, LL=-1410.32
+   Iter 600: μ=2.1207, σ=3.5664, LL=-1342.78
+   Iter 800: μ=2.6074, σ=3.4296, LL=-1287.00
+   Iter 1000: μ=3.1469, σ=3.1036, LL=-1221.85
+   Final μ̂ = 3.1469
+   Final σ̂ = 3.1017
+
+📊 Creating visualizations...
+
+📊 Figure saved as 'normal_distribution_mle_results.png'
+
+✅ Complete!
+💡 Key takeaway: MLE for normal distribution gives sample mean and variance!
+```
+
 ## 2. 논의
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.

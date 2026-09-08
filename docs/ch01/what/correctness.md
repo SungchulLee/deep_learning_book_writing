@@ -38,32 +38,50 @@ $$
 import torch
 import torch.nn as nn
 
-# 경사 확인: 자동 미분의 정확성을 검증한다
+# ── 검사 1. 경사 확인 (gradient checking) ───────────────────────────
+# 자동 미분이 정말 맞는 값을 주는지 확인하는 표준 방법이다.
+# 미분의 정의로 되돌아가 수치적으로 기울기를 구한 뒤 견준다.
 def numerical_gradient(f, x, eps=1e-5):
     grad = torch.zeros_like(x)
-    for i in range(x.numel()):
+
+    for i in range(x.numel()):   # 성분 하나씩 따로 흔들어 본다
+        # i번째 성분만 +eps 옮긴 점과 -eps 옮긴 점을 만든다.
+        # view(-1)로 평평하게 보면 모양과 상관없이 i로 접근할 수 있다
         x_plus = x.clone(); x_plus.view(-1)[i] += eps
         x_minus = x.clone(); x_minus.view(-1)[i] -= eps
+
+        # 중심차분 (f(x+h) - f(x-h)) / 2h.
+        # 한쪽만 쓰는 (f(x+h)-f(x))/h 보다 오차가 h^2 차수로 작다
         grad.view(-1)[i] = (f(x_plus) - f(x_minus)) / (2 * eps)
+
     return grad
 
 x = torch.randn(3, requires_grad=True)
-f = lambda x: (x ** 3).sum()
-f(x).backward()
+f = lambda x: (x ** 3).sum()   # 손으로 미분하면 3x^2 이므로 답을 안다
+f(x).backward()                # autograd가 x.grad에 기울기를 채운다
 
+# detach()로 계산 그래프에서 떼어 낸 사본을 넘긴다.
+# 수치 미분은 그래프가 필요 없고, 그래프에 얽히면 오히려 방해가 된다
 num_grad = numerical_gradient(f, x.detach())
 print(f"Autograd:   {x.grad.tolist()}")
 print(f"Numerical:  {num_grad.tolist()}")
+# 수치 미분에는 늘 어림 오차가 있으므로 완전 일치가 아니라 근사 일치를 본다
 print(f"Match: {torch.allclose(x.grad, num_grad, atol=1e-4)}")
 
-# 단일 배치 과적합(정확성 검사)
+# ── 검사 2. 배치 하나에 일부러 과적합시키기 ─────────────────────────
+# 모델과 학습 루프가 제대로 이어져 있는지 보는 가장 값싼 검사다.
+# 표본 8개짜리 배치 하나라면 어떤 쓸 만한 모델이든 손실을 0 가까이
+# 떨어뜨릴 수 있다. 떨어지지 않으면 배선이 잘못된 것이다
+# (기울기가 끊겼거나, 레이블이 어긋났거나, 학습률이 터무니없거나).
 model = nn.Linear(5, 2)
 x_batch = torch.randn(8, 5)
 y_batch = torch.randint(0, 2, (8,))
 opt = torch.optim.Adam(model.parameters(), lr=0.1)
-for _ in range(200):
+
+for _ in range(200):   # 같은 배치를 200번 되풀이해 본다
     loss = nn.functional.cross_entropy(model(x_batch), y_batch)
     opt.zero_grad(); loss.backward(); opt.step()
+
 print(f"Single-batch loss: {loss.item():.6f} (should be ~0)")
 ```
 

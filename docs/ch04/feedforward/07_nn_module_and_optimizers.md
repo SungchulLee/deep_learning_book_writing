@@ -65,6 +65,12 @@ with torch.no_grad():
 print(f"Final Accuracy: {accuracy:.2f}%")
 ```
 
+**출력:**
+
+```
+Final Accuracy: 100.00%
+```
+
 ## 2. 논의
 
 `nn.Module`을 상속하려면 메서드 두 개가 필요하다. `__init__`은 층들을 인스턴스 속성으로 정의하고, `forward`는 계산을 정의한다. PyTorch가 모든 `nn.Module`과 `nn.Parameter` 속성을 자동으로 찾아내어, 최적화기에 등록할 수 있도록 `model.parameters()`로, 직렬화할 수 있도록 `model.state_dict()`로 노출한다. 층이 단순히 일렬로 이어질 때는 `nn.Sequential` 컨테이너가 더 간결한 대안이 된다.

@@ -52,6 +52,14 @@ print(f"Learned values: w = {w[0][0]:.4f}, b = {b[0][0]:.4f}")
 print(f"Final loss: {loss_history[-1]:.4f}")
 ```
 
+**출력:**
+
+```
+True values:    w = 2.0000, b = 1.0000
+Learned values: w = 2.0464, b = 0.6563
+Final loss: 0.2601
+```
+
 ## 2. 논의
 
 순전파는 선형 모델 $\hat{y} = Xw + b$으로 예측을 계산하며, 여기서 `@` 연산자가 행렬 곱을 수행한다. MSE 손실 함수 $L = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2$은 예측과 참값의 평균 제곱 편차를 잰다. $w$과 $b$에 대해 미분하면 경사 $\frac{\partial L}{\partial w} = \frac{2}{n}X^T(\hat{y} - y)$과 $\frac{\partial L}{\partial b} = \frac{2}{n}\sum(\hat{y} - y)$을 얻는다.

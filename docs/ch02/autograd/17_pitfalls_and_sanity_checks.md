@@ -35,6 +35,14 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+a.requires_grad: True | b.requires_grad: False
+c = a + b → c.requires_grad (expect True): True
+Inference y.requires_grad (expect False): False
+```
+
 ## 2. 논의
 
 PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법을 제공한다. 각 모듈이 자신의 매개변수와 하위 모듈을 관리하므로 모델을 살펴보고, 저장하고, 장치 사이에 옮기기가 간편하다.

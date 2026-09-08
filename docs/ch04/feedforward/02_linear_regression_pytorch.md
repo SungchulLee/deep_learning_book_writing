@@ -51,6 +51,13 @@ print(f"True values:    w = {true_w:.4f}, b = {true_b:.4f}")
 print(f"Learned values: w = {w.item():.4f}, b = {b.item():.4f}")
 ```
 
+**출력:**
+
+```
+True values:    w = 2.0000, b = 1.0000
+Learned values: w = 2.0336, b = 0.7309
+```
+
 ## 2. 논의
 
 NumPy에서 PyTorch로 넘어가는 일은 거의 문법 차원에 그친다. `np.random.randn`은 `torch.randn`이 되고, `np.sum`은 `torch.sum`이 되며, 배열 인덱싱은 똑같이 동작한다. 새로 더해지는 것은 장치 지정(`device=device`)과, 원소가 하나인 텐서에서 파이썬 스칼라를 꺼내는 `.item()` 메서드이다. 한 연산에 들어가는 모든 텐서는 같은 장치에 있어야 하므로 데이터와 매개변수를 같은 `device` 객체 위에 만든다.

@@ -72,6 +72,41 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+X_data.shape = (288, 34)
+Y_data.shape = (288, 24)
+--------------------------------------------------
+Accuracy of  0-th response: 0.78
+Accuracy of  1-th response: 0.94
+Accuracy of  2-th response: 0.94
+Accuracy of  3-th response: 0.84
+Accuracy of  4-th response: 1.00
+Accuracy of  5-th response: 0.62
+Accuracy of  6-th response: 0.93
+Accuracy of  7-th response: 0.99
+Accuracy of  8-th response: 0.97
+Accuracy of  9-th response: 0.95
+Accuracy of 10-th response: 1.00
+Accuracy of 11-th response: 0.93
+Accuracy of 12-th response: 1.00
+Accuracy of 13-th response: 0.83
+Accuracy of 14-th response: 0.99
+Accuracy of 15-th response: 0.97
+Accuracy of 16-th response: 1.00
+Accuracy of 17-th response: 1.00
+Accuracy of 18-th response: 0.79
+Accuracy of 19-th response: 0.95
+Accuracy of 20-th response: 0.92
+Accuracy of 21-th response: 0.99
+Accuracy of 22-th response: 0.55
+Accuracy of 23-th response: 0.98
+--------------------------------------------------
+records.max() = 1.00
+records.min() = 0.55
+```
+
 ## 2. 논의
 
 이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 로지스틱 회귀의 핵심 개념을 보여준다. 모듈식 구조 덕분에 개별 구성 요소를 따로 살펴보고 다른 과제나 데이터셋에 맞게 고치기가 쉽다.

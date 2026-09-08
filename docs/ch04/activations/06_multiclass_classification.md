@@ -87,6 +87,12 @@ if __name__ == "__main__":
     print(f"Final Test Accuracy: {test_accs[-1]:.4f}")
 ```
 
+**출력:**
+
+```
+Final Test Accuracy: 1.0000
+```
+
 ## 2. 논의
 
 다중 클래스 분류기는 순전파에서 소프트맥스를 적용하지 않고 클래스마다 하나씩 날것의 로짓을 낸다. 이는 PyTorch의 의도적인 설계이다. `CrossEntropyLoss`이 내부에서 `LogSoftmax`와 `NLLLoss`을 합쳐 계산하는데, 이것이 소프트맥스를 따로 적용하는 것보다 수치적으로 안정하다. 목표 이름표는 원-핫 벡터가 아니라 클래스 인덱스(예: 0, 1, 2)를 담은 `LongTensor`로 주어야 한다.

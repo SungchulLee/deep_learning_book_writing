@@ -141,6 +141,23 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Train: (240, 10), Test: (60, 10)
+OLS                             MSE=  176.56  R²=0.9922  nonzero=10/10
+Ridge (α=1)                     MSE=  176.17  R²=0.9922  nonzero=10/10
+Lasso (α=0.1)                   MSE=  176.46  R²=0.9922  nonzero=10/10
+ElasticNet (α=0.1, ρ=0.5)       MSE=  228.49  R²=0.9899  nonzero=10/10
+
+--- Cross-Validated Selection ---
+Best Ridge α: 0.1000
+Best Lasso α: 0.1952
+Best ElasticNet α: 0.1241, l1_ratio: 0.90
+
+Saved: sklearn_comparison.png
+```
+
 ## 2. 논의
 
 `Pipeline` 추상화는 (특징 정규화를 위한) `StandardScaler`와 회귀 모델을 하나의 추정 가능한 객체로 엮는다. `pipe.fit(X_train, y_train)`을 호출하면 먼저 특징을 표준화한 뒤 표준화된 데이터로 모델을 적합시킨다. `pipe.predict(X_test)`를 호출하면 예측 전에 시험 데이터에 같은 표준화를 적용한다. 이로써 전처리가 일관되게 유지되고, 시험 데이터로 스케일러를 적합시켜 생기는 데이터 누출을 막는다.

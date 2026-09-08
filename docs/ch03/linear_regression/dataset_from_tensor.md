@@ -176,6 +176,32 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Using device: cpu
+LinearRegression(
+  (linear): Linear(in_features=3, out_features=1, bias=True)
+)
+Parameters: 4
+Epoch  20  MSE = 0.087968
+Epoch  40  MSE = 0.087341
+Epoch  60  MSE = 0.087362
+Epoch  80  MSE = 0.087392
+Epoch 100  MSE = 0.087456
+
+Train MSE: 0.087166  R²: 0.8757
+Test  MSE: 0.079207  R²: 0.8472
+
+Learned w: [-0.11368361 -0.29891375 -0.7246126 ]
+True    w: [-0.11067407 -0.29015508 -0.69889843]
+Learned b: 3.0135  (true: 3.0)
+
+Model saved to linear_model.pt
+Model loaded and verified — predictions match.
+Saved: dataset_from_tensor.png
+```
+
 ## 2. 논의
 
 `LinearRegression` 모델 하위 클래스는 `nn.Linear(in_features, out_features)`로 완전 연결 층 하나를 정의한다. forward 메서드의 `squeeze(-1)`은 마지막 차원을 없애 출력 모양을 1차원 목표 텐서와 맞춘다. 이는 `nn.Linear`의 출력이 `(batch, 1)` 모양인데 목표는 `(batch,)` 모양일 때 흔히 쓰는 방식이다. 모델은 `.to(device)`로 알맞은 장치로 옮기며, 모든 데이터 텐서도 같은 장치에 있어야 한다.

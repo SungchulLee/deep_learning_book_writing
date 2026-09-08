@@ -31,6 +31,13 @@ print(f"Learned weight: {model.weight.item():.4f} (target: 2.0)")
 print(f"Learned bias: {model.bias.item():.4f} (target: 3.0)")
 ```
 
+**출력:**
+
+```
+Learned weight: 2.0008 (target: 2.0)
+Learned bias: 2.7283 (target: 3.0)
+```
+
 ## 2. 논의
 
 `nn.Linear(1, 1)` 층은 입력 하나와 출력 하나를 갖는 뉴런 하나를 만들며, 무작위로 초기화된 가중치와 편향 매개변수를 담는다. 학습 루프는 정석적인 네 단계 패턴을 따른다. 예측 계산(순전파), 오차 측정(손실), 경사 계산(역전파), 매개변수 갱신(최적화기 단계)이다. 100 에폭이 지나면 학습된 가중치와 편향이 참값 2.0과 3.0에 가깝게 맞아야 한다.

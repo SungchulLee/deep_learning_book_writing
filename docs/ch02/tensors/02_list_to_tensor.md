@@ -104,6 +104,43 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+t = tensor([1., 2., 3.])
+t.shape = torch.Size([3])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor([[1, 2, 3],
+        [4, 5, 6]])
+t.shape = torch.Size([2, 3])
+t.dtype = torch.int64
+t.requires_grad = False
+
+t = tensor([1., 2., 3.], dtype=torch.float64)
+t.shape = torch.Size([3])
+t.dtype = torch.float64
+t.requires_grad = False
+
+t = tensor([1.0000, 2.5000, 3.0000])
+t.shape = torch.Size([3])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor([])
+t.shape = torch.Size([0])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor([ True, False,  True])
+t.shape = torch.Size([3])
+t.dtype = torch.bool
+t.requires_grad = False
+
+Ragged list error: expected sequence of length 2 at dim 1 (got 3)
+```
+
 ## 2. 논의
 
 CPU 텐서에서 PyTorch와 NumPy의 상호 운용은 매끄럽다. `torch.from_numpy()`는 배열과 메모리를 공유하는 텐서를 만들고, `torch.tensor()`는 항상 복사한다. 어떤 연산이 저장소를 공유하고 어떤 연산이 독립적인 복사본을 만드는지 이해하는 것이 미묘한 버그를 피하는 데 결정적이다.

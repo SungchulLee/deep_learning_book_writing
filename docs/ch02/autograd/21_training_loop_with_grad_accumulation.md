@@ -59,6 +59,15 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+Epoch 0: avg loss per microbatch = 2.736446
+Epoch 1: avg loss per microbatch = 2.008073
+Final model weights:
+ {'weight': tensor([[ 0.1366, -0.4661,  0.2192, -0.1120]]), 'bias': tensor([0.4167])}
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사 초기화, 역전파, 매개변수 갱신이다. 각 구성 요소가 결정적인 역할을 한다. 최적화기는 갱신 규칙(SGD, Adam 등)을 캡슐화하고 학습률과 모멘텀 상태를 내부에서 관리한다.

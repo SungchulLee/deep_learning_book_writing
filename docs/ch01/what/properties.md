@@ -40,32 +40,44 @@ $$
 import torch
 import torch.nn as nn
 
-# 유한성 시연: 조기 종료
+# ── 성질 1. 유한성: 알고리즘은 반드시 끝나야 한다 ───────────────────
+# 학습 루프는 그냥 두면 영원히 돌 수 있으므로 끝낼 장치가 두 겹 필요하다.
+#   (가) 최대 에폭 수 — 무슨 일이 있어도 끝나게 하는 바깥 울타리
+#   (나) 조기 종료  — 나아지지 않으면 미리 끊는 안쪽 장치
 model = nn.Linear(10, 1)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
-x, y = torch.randn(50, 10), torch.randn(50, 1)
+x, y = torch.randn(50, 10), torch.randn(50, 1)   # 목표가 무작위라 학습될 것이 없다
 
-best_loss, patience, wait = float("inf"), 5, 0
-for epoch in range(1000):  # 최대 에폭 수가 유한성을 보장한다
+best_loss = float("inf")   # 지금까지 본 가장 낮은 손실
+patience = 5               # 몇 에폭까지 참아 줄 것인가
+wait = 0                   # 나아지지 않은 채 지난 에폭 수
+
+for epoch in range(1000):  # (가) 최대 에폭 수가 유한성을 보장한다
     loss = nn.functional.mse_loss(model(x), y)
     optimizer.zero_grad(); loss.backward(); optimizer.step()
+
+    # 1e-4 이상 좋아져야 "나아졌다"고 친다. 이 여유가 없으면
+    # 소수점 아래에서 흔들리는 것만으로도 영영 멈추지 않는다
     if loss.item() < best_loss - 1e-4:
         best_loss = loss.item()
-        wait = 0
+        wait = 0           # 나아졌으니 참을성을 되돌린다
     else:
-        wait += 1
-    if wait >= patience:
+        wait += 1          # 나아지지 않았다
+
+    if wait >= patience:   # (나) 참을성이 바닥나면 끊는다
         print(f"Early stopping at epoch {epoch}, loss={loss.item():.4f}")
         break
 
-# 결정성과 확률성 시연
+# ── 성질 2. 결정성: 같은 입력에는 같은 출력 ─────────────────────────
+# 신경망은 무작위 수를 쓰지만 그 무작위성은 씨앗이 정한다.
+# 씨앗을 고정하면 결정적 알고리즘이 되고, 그래야 실험을 재현할 수 있다.
 torch.manual_seed(42)
 a = torch.randn(3)
-torch.manual_seed(42)
+torch.manual_seed(42)   # 씨앗을 같은 값으로 되돌린다
 b = torch.randn(3)
 print(f"Same seed -> same output: {torch.equal(a, b)}")
 
-torch.manual_seed(0)
+torch.manual_seed(0)    # 씨앗이 다르면 흐름도 달라진다
 c = torch.randn(3)
 print(f"Different seed -> different output: {not torch.equal(a, c)}")
 ```

@@ -41,15 +41,23 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
 
-# 데이터를 생성하고 스케일을 조정한다
+# ── 1. 데이터를 만들고 나눈 뒤 자를 맞춘다 ──────────────────────────
+# 특성 10개 가운데 5개만 실제로 쓸모가 있다. 나머지는 잡음이며,
+# k-최근접 이웃이 쓸모없는 차원에 얼마나 약한지 보기 좋은 설정이다
 X, y = make_classification(n_samples=500, n_features=10, n_informative=5,
                            n_classes=3, random_state=42)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-scaler = StandardScaler()
-X_train_s = scaler.fit_transform(X_train)
-X_test_s = scaler.transform(X_test)
 
-# 교차 검증으로 k를 선택한다
+# 표준화가 특히 중요하다. 거리로만 판단하는 모델이므로 자가 큰 특성
+# 하나가 거리 전체를 좌우해 버린다
+scaler = StandardScaler()
+X_train_s = scaler.fit_transform(X_train)   # 훈련 자료로만 평균과 표준편차를 잰다
+X_test_s = scaler.transform(X_test)         # 시험 자료에는 그 값을 적용만 한다
+                                            # (전체로 fit하면 시험 정보가 새어 든다)
+
+# ── 2. 교차 검증으로 k를 고른다 ─────────────────────────────────────
+# k는 학습으로 정해지지 않는 초매개변수이므로 따로 골라야 한다.
+# 시험 자료를 쓰면 안 되므로 훈련 자료를 5겹으로 나누어 고른다
 best_k, best_score = 1, 0.0
 for k in range(1, 21):
     score = cross_val_score(KNeighborsClassifier(n_neighbors=k),
@@ -58,17 +66,28 @@ for k in range(1, 21):
         best_k, best_score = k, score
 print(f"Best k={best_k}, CV accuracy={best_score:.4f}")
 
+# weights="distance": 가까운 이웃에 더 큰 표를 준다.
+# 기본값인 "uniform"은 k개 이웃을 모두 똑같이 셈한다
 knn = KNeighborsClassifier(n_neighbors=best_k, weights="distance")
-knn.fit(X_train_s, y_train)
+knn.fit(X_train_s, y_train)   # "학습"이라 하지만 사실 훈련 자료를 저장할 뿐이다
 print(f"Test accuracy: {knn.score(X_test_s, y_test):.4f}")
 
-# PyTorch에서의 KNN(학습된 임베딩을 위한 직접 구현)
+# ── 3. 같은 일을 PyTorch로 직접 해 본다 ─────────────────────────────
+# 학습된 임베딩 위에서 이웃을 찾을 때 쓰는 방식이다. 얼굴 인식이나
+# 검색처럼 신경망이 뽑은 벡터를 견주는 자리에서 그대로 쓰인다
 X_tr = torch.tensor(X_train_s, dtype=torch.float32)
 X_te = torch.tensor(X_test_s, dtype=torch.float32)
 y_tr = torch.tensor(y_train)
 
-dists = torch.cdist(X_te[:5], X_tr)  # 쌍별 거리
+# cdist는 두 묶음 사이의 모든 쌍별 거리를 한 번에 셈한다.
+# 결과 모양은 (질의 5개) x (훈련 표본 400개)
+dists = torch.cdist(X_te[:5], X_tr)
+
+# largest=False 이므로 가장 "작은" k개, 곧 가장 가까운 이웃을 고른다
 _, idx = dists.topk(best_k, largest=False)
+
+# 고른 이웃의 인덱스로 레이블을 가져온다. 실제 예측은 이 레이블들의
+# 다수결(또는 거리 가중 다수결)이 된다
 neighbor_labels = y_tr[idx]
 print(f"Neighbor labels for first 5 queries:\n{neighbor_labels}")
 ```

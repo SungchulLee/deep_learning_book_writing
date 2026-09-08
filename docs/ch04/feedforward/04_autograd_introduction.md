@@ -85,6 +85,14 @@ with torch.no_grad():
 print(f"Final Accuracy: {accuracy:.2f}%")
 ```
 
+**출력:**
+
+```
+dy/dx at x=3: 6.0
+dz/da = 12.0, dz/db = 2.0
+Final Accuracy: 100.00%
+```
+
 ## 2. 논의
 
 계산 그래프는 순전파 중에 동적으로 만들어진다. `requires_grad=True`인 텐서에 대한 모든 연산은 그 연산과 입력을 기록하는 노드를 그래프에 만든다. 손실에 `.backward()`를 호출하면 PyTorch가 이 그래프를 출력에서 입력 쪽으로 훑으며 각 노드에서 연쇄 법칙을 적용해 경사를 계산한다. 이 경사들은 잎 텐서(매개변수)의 `.grad` 속성에 누적된다.

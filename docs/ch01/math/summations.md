@@ -42,24 +42,40 @@ $$
 import torch
 import numpy as np
 
-# 너비가 선형으로 커지는 신경망의 매개변수 개수
+# ── 보기 1. 합 공식으로 신경망의 크기를 미리 셈한다 ─────────────────
+# 층의 너비가 d, 2d, 3d, ... 로 늘어나는 망을 생각한다.
+# 이웃한 두 층 사이의 가중치 행렬 크기는 (너비 i) x (너비 i+1) 이므로
+# 전체 가중치 수는 그 곱들의 합이 된다.
 d = 64
 num_layers = 6
-widths = [i * d for i in range(1, num_layers + 1)]
+widths = [i * d for i in range(1, num_layers + 1)]   # [64, 128, ..., 384]
+
+# 하나씩 더해서 구한 값
 total_params = sum(widths[i] * widths[i + 1] for i in range(len(widths) - 1))
+
+# 같은 값을 합 공식으로 구한 것.
+# (i*d)((i+1)*d) = d^2 * i(i+1) 이므로 d^2 을 밖으로 뺄 수 있다.
+# 이렇게 하면 층이 몇 개든 곱셈 몇 번으로 끝난다
 closed_form = d * d * sum(i * (i + 1) for i in range(1, num_layers))
 print(f"Layer widths: {widths}")
 print(f"Total weight params: {total_params}")
 
-# 등비급수: 지수적 감쇠에서의 누적 학습률
-eta_0, r, T = 0.01, 0.9, 50
-cumulative = sum(eta_0 * r ** t for t in range(T))
-closed = eta_0 * (1 - r ** T) / (1 - r)
+# ── 보기 2. 등비급수로 누적 학습률을 셈한다 ─────────────────────────
+# 학습률을 에폭마다 r배로 줄이면 이동 거리의 총합이 등비급수가 된다.
+# 이 합이 유한하다는 것은 "아무리 오래 학습해도 갈 수 있는 거리에
+# 한계가 있다"는 뜻이므로, 감쇠를 너무 세게 걸면 안 되는 까닭이 된다.
+eta_0, r, T = 0.01, 0.9, 50           # 처음 학습률, 감쇠율, 에폭 수
+
+cumulative = sum(eta_0 * r ** t for t in range(T))     # 하나씩 더한 값
+closed = eta_0 * (1 - r ** T) / (1 - r)                # 등비급수 공식
 print(f"\nCumulative LR (sum):    {cumulative:.6f}")
 print(f"Cumulative LR (closed): {closed:.6f}")
+# T를 무한대로 보내면 r^T -> 0 이므로 합은 eta_0/(1-r) 로 수렴한다.
+# 위의 유한합이 이미 이 값에 거의 닿아 있음을 확인할 수 있다
 print(f"Limit as T -> inf:      {eta_0 / (1 - r):.6f}")
 
-# torch로 등차급수 합 확인
+# ── 보기 3. 등차급수 공식 확인 ──────────────────────────────────────
+# 1 + 2 + ... + n = n(n+1)/2 를 실제로 더한 값과 견준다
 n = torch.arange(1, 101, dtype=torch.float32)
 actual = n.sum().item()
 formula = 100 * 101 / 2

@@ -63,6 +63,14 @@ print(f"KL(q||p) = {KL_qp:.6f}")
 print(f"Difference: {abs(KL_pq - KL_qp):.6f}")  # non-zero
 ```
 
+**출력:**
+
+```
+KL(p||q) = 0.365037
+KL(q||p) = 0.685929
+Difference: 0.320892
+```
+
 ### 독립인 분포에 대한 가법성
 
 $p(x, y) = p(x)p(y)$이고 $q(x, y) = q(x)q(y)$이면 다음이 성립한다.

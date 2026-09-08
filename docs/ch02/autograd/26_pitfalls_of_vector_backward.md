@@ -53,6 +53,17 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+x: tensor([ 0.8033,  0.1748,  0.0890, -0.6137], requires_grad=True)
+y = tanh(x): tensor([ 0.6659,  0.1731,  0.0887, -0.5467], grad_fn=<TanhBackward0>)
+Shape mismatch as expected: Mismatch in shape: grad_output[0] has a shape of torch.Size([2]) and output[0] has a shape of torch.Size([4]).
+After first backward, x.grad: tensor([0.1392, 0.2425, 0.2480, 0.1753])
+After second backward (accumulated), x.grad: tensor([ 0.5408,  0.3299,  0.2925, -0.1316])
+After zero_(), x.grad: tensor([0., 0., 0., 0.])
+```
+
 ## 2. 논의
 
 텐서 생성 함수는 데이터를 초기화하는 유연한 방법을 제공한다. `torch.zeros`, `torch.randn`, `torch.arange` 같은 팩토리 함수는 `dtype`, `device`, `requires_grad` 매개변수를 받으므로 불필요한 복사 없이 목표 장치에 곧바로 할당할 수 있다.

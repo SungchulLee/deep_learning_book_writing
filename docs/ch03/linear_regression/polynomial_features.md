@@ -167,6 +167,13 @@ print(f"Bias:    {model.bias.item():.3f}")
 print(f"Weights: {model.weight.detach().squeeze().tolist()}")
 ```
 
+**출력:**
+
+```
+Bias:    1.144
+Weights: [0.9922938346862793, -2.0556046962738037, 0.49783164262771606, 0.008654450997710228]
+```
+
 ---
 
 ## 4. 편향–분산 절충
@@ -389,6 +396,12 @@ axes[1].legend()
 axes[1].grid(True, alpha=0.3)
 
 plt.tight_layout()
+```
+
+**출력:**
+
+```
+Best degree: 3  (CV MSE: 7.87)
 ```
 
 ---

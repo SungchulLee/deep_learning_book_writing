@@ -59,6 +59,20 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+x: tensor([ 0.3000, -0.7000], requires_grad=True)
+y = f(x): tensor([0.7855, 0.5850], grad_fn=<StackBackward0>)
+v: tensor([ 0.2000, -1.5000])
+x.grad (v^T J): tensor([-1.8337,  0.6863])
+Full Jacobian J:
+ tensor([[ 0.9553, -1.4000],
+        [ 1.3499, -0.6442]])
+v^T J via full J: tensor([-1.8337,  0.6863])
+Difference |x.grad - (v^T J)|: tensor([0., 0.])
+```
+
 ## 2. 논의
 
 경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.

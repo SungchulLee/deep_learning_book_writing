@@ -251,6 +251,14 @@ if __name__ == "__main__":
     print(f"Example 3: p = {p:.6f}")  # 기댓값: ~1.296
 ```
 
+**출력:**
+
+```
+Merge sort: p = 1.000000
+Median of medians: p = 0.839780
+Example 3: p = 1.279084
+```
+
 ---
 
 ## 9. 한계

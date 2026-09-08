@@ -130,6 +130,50 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+Learning Rate Scheduling
+======================================================================
+LEARNING RATE SCHEDULERS IN PyTorch:
+----------------------------------------------------------------------
+StepLR: Reduces LR by 0.1x every 30 epochs
+ExponentialLR: Multiply LR by 0.9 each epoch
+CosineAnnealingLR: Cosine curve over 100 epochs
+ReduceLROnPlateau: Reduce when val loss doesn't improve for 5 epochs
+
+Schedules visualization saved!
+
+======================================================================
+USAGE PATTERN
+======================================================================
+
+# 준비
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
+
+# 학습 루프
+for epoch in range(num_epochs):
+    for batch in train_loader:
+        # 학습 단계
+        loss.backward()
+        optimizer.step()
+    
+    # 학습률을 갱신한다
+    scheduler.step()
+    
+    # 현재 학습률 확인
+    current_lr = optimizer.param_groups[0]['lr']
+    print(f"Epoch {epoch}, LR: {current_lr}")
+
+RECOMMENDATIONS:
+- 기준선을 잡으려면 고정 학습률로 시작하라
+- 단순한 감쇠에는 StepLR을 쓰라
+- 적응적 조정에는 ReduceLROnPlateau를 쓰라
+- 순환 학습에는 CosineAnnealing을 쓰라
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.

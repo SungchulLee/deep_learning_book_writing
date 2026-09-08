@@ -108,6 +108,12 @@ l.insert(1,"blueberry")
 l.print_linked_list()
 ```
 
+**출력:**
+
+```
+banana --> blueberry --> mango --> grapes --> orange
+```
+
 # 참고 문헌
 
 [Linked List - Data Structures & Algorithms Tutorials in Python #4](https://www.youtube.com/watch?v=qp8u-frRAnU&list=PLeo1K3hjS3uu_n_a__MI_KktGTLYopZ12&index=4)

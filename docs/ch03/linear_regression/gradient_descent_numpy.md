@@ -171,6 +171,20 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Train: (240, 4), Test: (60, 4)
+
+Batch GD — final MSE: 94.0956
+Mini-batch GD — final MSE: 94.1023
+Normal equation — test MSE: 75.9175
+Batch GD         test MSE=75.8865  R²=0.9954  max|Δθ|=1.83e-02
+Mini-batch GD    test MSE=76.1105  R²=0.9954  max|Δθ|=5.71e-02
+
+Saved: gradient_descent_numpy.png
+```
+
 ## 2. 논의
 
 설계 행렬 방식은 특징 행렬 앞에 1로 채운 열을 붙여 편향 항을 매개변수 벡터 $\theta$ 안으로 흡수시킨다. 모델은 $\hat{y} = X\theta$가 되며, 여기서 $X$의 모양은 $(n, d+1)$, $\theta$의 모양은 $(d+1,)$이다. $\theta$에 대한 MSE의 경사는 $g = \frac{2}{n} X^T(X\theta - y)$로, 모든 매개변수의 경사를 한꺼번에 계산하는 간결한 행렬 식이다. 이 벡터화된 표현은 매개변수를 하나씩 계산하는 것보다 훨씬 빠르다.

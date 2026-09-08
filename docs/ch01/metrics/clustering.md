@@ -43,19 +43,34 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import (silhouette_score, calinski_harabasz_score,
                              davies_bouldin_score, adjusted_rand_score)
 
+# 군집 4개가 뚜렷이 갈리는 인공 데이터를 만든다.
+# y_true를 함께 받아 두는 까닭은, 아래에서 "정답을 아는 지표"와
+# "정답 없이 쓰는 지표"를 나란히 견주기 위해서다
 X, y_true = make_blobs(n_samples=300, centers=4, cluster_std=0.8, random_state=42)
+
+# 거리 기반 지표는 특성의 자에 휘둘리므로 표준화가 앞선다
 X_scaled = StandardScaler().fit_transform(X)
 
-# KMeans를 적합시키고 모든 지표를 계산한다
+# ── 지표 네 가지를 한꺼번에 셈한다 ──────────────────────────────────
+# n_init=10: 첫 중심을 10번 다르게 잡아 가장 좋은 것을 고른다.
+# K-평균은 국소 최적에 갇힐 수 있으므로 이 되풀이가 사실상 필수다
 km = KMeans(n_clusters=4, random_state=42, n_init=10)
 labels = km.fit_predict(X_scaled)
 
+# 실루엣: 군집 안 거리와 이웃 군집까지의 거리를 견준다. 범위 [-1, 1], 클수록 좋다
 print(f"Silhouette:        {silhouette_score(X_scaled, labels):.4f}")
+# 칼린스키-하라바스: (군집 사이 분산)/(군집 안 분산). 클수록 좋다
 print(f"Calinski-Harabasz: {calinski_harabasz_score(X_scaled, labels):.1f}")
+# 데이비스-불딘: 군집마다 가장 닮은 이웃과의 겹침. 작을수록 좋다
 print(f"Davies-Bouldin:    {davies_bouldin_score(X_scaled, labels):.4f}")
+# 조정 랜드 지수: 참 레이블이 있을 때만 쓴다. 군집 번호를 어떻게
+# 붙이든 값이 같으므로 "정확도"와 달리 군집화에 쓸 수 있다
 print(f"Adjusted Rand:     {adjusted_rand_score(y_true, labels):.4f}")
 
-# 실루엣 점수로 k를 선택한다
+# ── 실루엣 점수로 군집 수 k를 고른다 ────────────────────────────────
+# 군집 내 제곱합은 k가 커지면 무조건 줄어들어 k를 고르는 데 쓸 수 없다.
+# 실루엣은 군집 사이 거리도 함께 보므로 단조롭지 않고, 그래서
+# 최댓값을 주는 k를 고르는 일이 뜻을 갖는다. 여기서는 참값인 k=4가 나와야 한다
 for k in range(2, 8):
     lab = KMeans(n_clusters=k, random_state=42, n_init=10).fit_predict(X_scaled)
     print(f"  k={k}: silhouette={silhouette_score(X_scaled, lab):.4f}")

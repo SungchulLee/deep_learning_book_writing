@@ -33,41 +33,59 @@ $$
 ```python
 import torch
 
-# 증분적 평균과 분산(Welford 알고리즘)
-# BatchNorm의 누적 통계에 사용된다
+# ── 보기 1. 증분적 평균과 분산 (Welford 알고리즘) ───────────────────
+# 데이터를 한 번에 하나씩만 보면서 평균과 분산을 갱신한다.
+# 전체를 메모리에 들고 있을 필요가 없으므로, BatchNorm이 학습 도중
+# 누적 통계를 유지하는 방식이 바로 이것이다.
 def incremental_stats(data: torch.Tensor):
     """평균과 분산을 증분적으로 계산한다."""
-    mean = torch.tensor(0.0)
-    m2 = torch.tensor(0.0)
-    for i, x in enumerate(data, 1):
+    mean = torch.tensor(0.0)   # 지금까지 본 값들의 평균
+    m2 = torch.tensor(0.0)     # 지금까지 본 값들의 (편차 제곱의 합)
+
+    for i, x in enumerate(data, 1):   # i는 1부터: 지금까지 본 개수
+        # 새 값이 옛 평균에서 얼마나 떨어져 있는가
         delta = x - mean
+        # 평균을 그 편차의 1/i 만큼만 옮긴다. i가 커질수록 덜 움직인다
         mean += delta / i
+        # 갱신된 평균 기준으로 편차를 다시 잰다
         delta2 = x - mean
+        # 옛 편차 x 새 편차를 더하면 제곱합이 정확히 누적된다.
+        # 두 편차를 곱하는 것이 Welford의 핵심이며, 이 덕분에
+        # 큰 수에서 큰 수를 빼는 자리(수치 불안정)가 생기지 않는다
         m2 += delta * delta2
-    variance = m2 / len(data)
+
+    variance = m2 / len(data)   # 모분산(n으로 나눈다)
     return mean, variance
 
+# 한 번에 하나씩 본 결과가 전체를 한꺼번에 본 결과와 같은지 견준다
 data = torch.randn(1000)
 inc_mean, inc_var = incremental_stats(data)
 print(f"Incremental mean: {inc_mean.item():.6f}")
 print(f"Incremental var:  {inc_var.item():.6f}")
 print(f"Direct mean:      {data.mean().item():.6f}")
+# correction=0 이라야 n-1이 아니라 n으로 나누어 위와 같은 정의가 된다
 print(f"Direct var:       {data.var(correction=0).item():.6f}")
 
-# 증분적 최적화로서의 SGD
+# ── 보기 2. 증분적 최적화로서의 SGD ─────────────────────────────────
+# 위에서 통계를 한 점씩 갱신했듯, SGD는 가중치를 한 점씩 갱신한다.
+# 같은 "증분" 발상이 최적화에 그대로 쓰인 것이다.
 torch.manual_seed(42)
-w = torch.randn(1, requires_grad=True)
+w = torch.randn(1, requires_grad=True)   # 배울 가중치(무작위로 시작)
 x = torch.randn(100)
-y = 3.0 * x + torch.randn(100) * 0.1
+y = 3.0 * x + torch.randn(100) * 0.1     # 참 기울기 3.0에 잡음을 얹는다
 
 for i in range(50):
-    idx = i % len(x)  # 한 번에 원소 하나씩
-    pred = w * x[idx]
-    loss = (pred - y[idx]) ** 2
-    loss.backward()
+    idx = i % len(x)              # 한 번에 원소 하나씩만 쓴다
+    pred = w * x[idx]             # 그 한 점에 대한 예측
+    loss = (pred - y[idx]) ** 2   # 그 한 점에 대한 제곱오차
+    loss.backward()               # 이 점이 주는 기울기를 셈한다
+
+    # 가중치 갱신 자체는 학습 대상이 아니므로 기울기 추적을 끈다
     with torch.no_grad():
-        w -= 0.01 * w.grad
-        w.grad.zero_()
+        w -= 0.01 * w.grad        # 기울기 반대 방향으로 한 걸음
+        w.grad.zero_()            # 다음 걸음을 위해 기울기를 지운다
+
+# 점 50개만 보고도 참값 3.0 근처에 다가간다
 print(f"Learned w: {w.item():.4f} (true: 3.0)")
 ```
 
