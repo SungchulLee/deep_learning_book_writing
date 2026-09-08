@@ -32,6 +32,15 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+Module 08: Cooperative Training
+Combining EBMs with generators for improved efficiency
+See modules 07 and 09 for related concepts
+✓ Module complete
+```
+
 ## 2. 논의
 
 에너지 바탕 모델 익히기의 한가운데 어려움은 모델 분포에서 음의 표본을 만드는 것이다. 랑주뱅 움직임 같은 마르코프 사슬 몬테카를로 방법은 품질 좋은 표본을 만들려면 걸음이 많이 필요해 익히기가 느리고 흔들릴 수 있다. 함께 익히기는 숨은 잡음 $z \sim \mathcal{N}(0, I)$을 자료 공간으로 옮기는 만들개 신경망 $G_\phi(z)$을 들여와 이를 다루며, 이 신경망은 에너지 바탕 모델의 미리 익힌 뽑개 노릇을 한다.

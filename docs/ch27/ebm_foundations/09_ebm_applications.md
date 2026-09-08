@@ -60,6 +60,33 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+EBM APPLICATIONS
+======================================================================
+
+Out-of-Distribution Detection with EBMs
+Lower energy → In-distribution
+Higher energy → Out-of-distribution
+✓ Can identify anomalies and novel inputs
+
+Image Denoising via Energy Minimization
+Start with noisy image, minimize energy
+✓ Preserves structure while removing noise
+
+Compositional Generation
+E_combined = E_concept1 + E_concept2
+✓ Generate images with multiple attributes
+
+Key Applications:
+  ✓ Anomaly/OOD detection
+  ✓ Image denoising and inpainting
+  ✓ Compositional generation
+  ✓ Adversarial robustness
+```
+
 ## 2. 논의
 
 분포 밖(OOD) 찾기는 아마 에너지 바탕 모델의 가장 자연스러운 쓰임새일 것이다. 에너지 함수가 어떤 들임에도 낱값을 매기므로 모델이 주어진 표본을 얼마나 잘 "설명"하는지 곧바로 잰다. 모델이 익힌 분포 안의 자료는 낮은 에너지를 받고, 다른 분포에서 온 분포 밖 자료는 더 높은 에너지를 받는 편이다. 에너지에 단순한 문턱을 두면 잘 듣는 분포 밖 찾개가 되며, 분포 밖 들임에서 지나치게 자신하는 소프트맥스 자신도 바탕 방법보다 흔히 낫다.

@@ -357,26 +357,44 @@ class TransformerClassifier(nn.Module):
                  num_classes, dropout=0.1):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, d_model)
+
+        # 블록 하나를 만들어 두면 TransformerEncoder가 n_layers번 복제한다.
+        # dim_feedforward=4*d_model 은 원 논문부터 이어져 온 관례다
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model, nhead=n_heads, 
             dim_feedforward=4*d_model, dropout=dropout,
+            # batch_first=True: 입력을 (배치, 길이, 차원)으로 받는다.
+            # 이 인자가 없으면 (길이, 배치, 차원)이라는 옛 차례를 쓰므로
+            # 모양이 조용히 어긋나기 쉽다
             batch_first=True
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, n_layers)
         self.classifier = nn.Linear(d_model, num_classes)
-    
+
     def forward(self, x):
-        x = self.embedding(x)
-        x = self.encoder(x)
-        x = x.mean(dim=1)  # 전역 평균 풀링
+        x = self.embedding(x)   # (배치, 길이) -> (배치, 길이, d_model)
+        x = self.encoder(x)     # 모양은 그대로, 내용만 다듬어진다
+
+        # 길이 축을 평균 내어 문장 하나를 벡터 하나로 줄인다.
+        # BERT처럼 [CLS] 자리를 쓰는 방법도 있으나, 그러려면 그 자리가
+        # 문장을 대표하도록 따로 학습시켜야 한다. 평균 풀링은 그 준비가 필요 없다
+        x = x.mean(dim=1)
         return self.classifier(x)
 
-# 표준 트랜스포머 학습 설정
+# ── 표준 트랜스포머 학습 설정 ───────────────────────────────────────
 model = TransformerClassifier(
     vocab_size=30000, d_model=512, n_heads=8,
     n_layers=6, num_classes=1000
 )
+
+# label_smoothing=0.1: 정답에 1.0 대신 0.9를 주고 나머지 0.1을
+# 다른 갈래에 고루 나눈다. 모델이 어떤 갈래에 확률 1을 주려면 로짓이
+# 무한대로 뻗어야 하는데, 그 지나친 자신감을 막는 장치다.
+# 갈래가 1000개처럼 많고 레이블에 잡음이 섞였을 때 특히 값이 있다
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+
+# 트랜스포머에는 Adam이 아니라 AdamW를 쓴다. 가중치 감쇠가
+# 적응적 학습률에 나눠지지 않고 의도한 세기 그대로 걸리기 때문이다
 optimizer = optim.AdamW(model.parameters(), lr=3e-4, weight_decay=0.01)
 ```
 

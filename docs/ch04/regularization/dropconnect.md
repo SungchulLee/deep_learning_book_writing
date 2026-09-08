@@ -326,15 +326,30 @@ class DropConnectConv2d(nn.Module):
     
     def forward(self, x):
         if self.training and self.p > 0:
+            # 가중치와 같은 모양으로 확률 (1-p) 를 채운 뒤 베르누이로 뽑는다.
+            # 결과는 살릴 자리가 1, 끌 자리가 0인 마스크다.
+            # 마스크를 매 순전파마다 새로 뽑으므로 걸음마다 다른 부분망이 된다
             mask = torch.bernoulli(
                 torch.full_like(self.conv.weight, 1 - self.p)
             )
+
+            # (1-p)로 나누는 것이 "역 드롭아웃" 눈금 맞추기다.
+            # 가중치의 (1-p)만 살아남아 출력의 기댓값이 그만큼 작아지므로
+            # 미리 키워 둔다. 이렇게 해 두면 평가할 때 아무 보정도 하지
+            # 않고 원래 가중치를 그대로 쓸 수 있다
             weight = self.conv.weight * mask / (1 - self.p)
+
+            # self.conv를 부르지 않고 F.conv2d에 가중치를 직접 넘긴다.
+            # self.conv.weight를 제자리에서 바꾸면 학습된 값이 망가지므로,
+            # 마스크를 씌운 사본을 따로 넘기는 것이다
             return F.conv2d(
                 x, weight, self.conv.bias,
                 stride=self.conv.stride,
                 padding=self.conv.padding
             )
+
+        # 평가할 때는 보통의 합성곱. 위에서 이미 눈금을 맞춰 두었으므로
+        # 여기서 (1-p)를 곱하는 보정이 필요 없다
         return self.conv(x)
 ```
 

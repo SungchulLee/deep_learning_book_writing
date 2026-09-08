@@ -185,26 +185,40 @@ class ConvNetELU(nn.Module):
     """더 매끄러운 학습 동역학을 위해 ELU를 쓰는 CNN."""
     def __init__(self, num_classes=10):
         super().__init__()
+        # 입력은 32x32 RGB 이미지(CIFAR 크기)를 가정한다.
         self.features = nn.Sequential(
-            nn.Conv2d(3, 64, 3, padding=1),
+            nn.Conv2d(3, 64, 3, padding=1),        # 32x32 크기 유지, 채널 3 -> 64
+            # inplace=True: 새 텐서를 만들지 않고 입력을 덮어써 메모리를 아낀다.
+            # 이 값이 다른 곳에서 다시 쓰이지 않을 때만 안전하며,
+            # 잔차 연결이 있는 구조에서는 켜서는 안 된다
             nn.ELU(alpha=1.0, inplace=True),
+            # 여기서는 ELU 뒤에 BatchNorm을 두었다. 흔한 차례는 그 반대이며
+            # (Conv -> BN -> 활성) 그쪽이 활성 함수에 들어가는 값의 자를
+            # 맞춰 주므로 보통 더 안정적이다. ELU는 음수 쪽에서도 기울기가
+            # 살아 있어 이 차례에서도 학습이 되지만, 새로 짤 때는 BN을 앞에 두는 편이 낫다
             nn.BatchNorm2d(64),
-            nn.MaxPool2d(2),
-            
+            nn.MaxPool2d(2),                       # 32x32 -> 16x16
+
             nn.Conv2d(64, 128, 3, padding=1),
             nn.ELU(alpha=1.0, inplace=True),
             nn.BatchNorm2d(128),
-            nn.MaxPool2d(2),
+            nn.MaxPool2d(2),                       # 16x16 -> 8x8
         )
         self.classifier = nn.Sequential(
+            # 앞의 두 번의 풀링으로 8x8이 되었고 채널이 128이므로 128*8*8
             nn.Linear(128 * 8 * 8, 256),
             nn.ELU(alpha=1.0, inplace=True),
+            # 완전연결층은 매개변수가 가장 많이 몰린 곳이라 과적합의 주범이다.
+            # 그래서 여기서만 드롭아웃 비율을 0.5로 세게 건다
             nn.Dropout(0.5),
+            # 마지막 층에는 활성을 두지 않는다. CrossEntropyLoss가
+            # 소프트맥스를 안에서 걸기 때문이다
             nn.Linear(256, num_classes),
         )
-    
+
     def forward(self, x):
         x = self.features(x)
+        # (배치, 128, 8, 8) -> (배치, 8192). 완전연결층에 넣기 전에 편다
         x = x.view(x.size(0), -1)
         return self.classifier(x)
 ```

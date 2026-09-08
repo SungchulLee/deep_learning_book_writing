@@ -607,6 +607,27 @@ if __name__ == "__main__":
     print("=" * 70)
 ```
 
+**출력:**
+
+```
+======================================================================
+NOISE SCHEDULE COMPARISON
+======================================================================
+
+Generating schedules for T=1000...
+
+Linear: [0.000100, 0.020000]
+Cosine: [0.000100, 0.999900]
+
+✓ Saved: noise_schedule_comparison.png
+
+KEY DIFFERENCES:
+  Linear: Uniform increase, aggressive at end
+  Cosine: Smooth increase, better for images
+  Recommendation: Use cosine for better quality
+======================================================================
+```
+
 ## 2. 논의
 
 퍼짐 도구의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.
