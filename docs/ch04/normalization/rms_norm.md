@@ -418,28 +418,39 @@ class LLaMA(nn.Module):
                  ffn_dim, norm_eps=1e-5, max_seq_len=2048):
         super().__init__()
         
+        # 토큰 번호를 dim차원 벡터로 바꾼다. 이것이 모델의 입구다
         self.tok_embeddings = nn.Embedding(vocab_size, dim)
-        
+
+        # 같은 꼴의 블록을 n_layers번 쌓는다. 파이썬 리스트가 아니라
+        # ModuleList를 써야 안에 든 매개변수가 model.parameters()에 잡힌다
         self.layers = nn.ModuleList([
             LLaMABlock(dim, n_heads, n_kv_heads, ffn_dim, norm_eps)
             for _ in range(n_layers)
         ])
-        
-        # 출력 사영 앞의 마지막 RMSNorm
+
+        # 출력 사영 앞의 마지막 RMSNorm.
+        # 블록마다 정규화가 입력 쪽에 걸리는(pre-norm) 구조라, 마지막
+        # 블록을 나온 값은 아직 정규화되지 않았다. 그래서 여기서 한 번 더 건다
         self.norm = RMSNorm(dim, eps=norm_eps)
+
+        # bias=False: 어휘가 수만 개라 편향만으로도 매개변수가 크게 늘고,
+        # 뒤에 소프트맥스가 오므로 갈래마다의 상수는 확률을 거의 바꾸지 못한다
         self.output = nn.Linear(dim, vocab_size, bias=False)
-        
-        # 회전 임베딩 미리 계산
+
+        # 회전 임베딩(RoPE)의 회전각을 미리 셈해 둔다. 위치에만 달린 값이라
+        # 학습되지 않으므로 한 번 만들어 두고 모든 층이 나눠 쓴다.
+        # dim // n_heads: RoPE는 머리마다 따로 걸리므로 머리 하나의 차원이 필요하다
         self.freqs_cis = precompute_freqs_cis(dim // n_heads, max_seq_len)
-    
+
     def forward(self, tokens):
-        h = self.tok_embeddings(tokens)
-        
+        h = self.tok_embeddings(tokens)   # (배치, 길이) -> (배치, 길이, dim)
+
+        # 블록을 차례로 지난다. 모양은 그대로이고 내용만 다듬어진다
         for layer in self.layers:
             h = layer(h, freqs_cis=self.freqs_cis)
-        
-        h = self.norm(h)
-        return self.output(h)
+
+        h = self.norm(h)        # 마지막 정규화
+        return self.output(h)   # 어휘 크기만큼의 로짓을 낸다
 ```
 
 ---

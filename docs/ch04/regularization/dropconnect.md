@@ -217,24 +217,33 @@ class NetworkWithDropConnect(nn.Module):
     def __init__(self, input_dim, hidden_dims, output_dim, drop_prob=0.5):
         super().__init__()
         
+        # 은닉층의 너비 목록을 받아 층을 프로그램으로 쌓는다.
+        # 이렇게 해 두면 hidden_dims만 바꾸어 깊이와 너비를 자유롭게 바꿀 수 있다
         layers = []
-        prev_dim = input_dim
-        
+        prev_dim = input_dim   # 다음 층의 입력 차원을 이어 나른다
+
         for hidden_dim in hidden_dims:
             layers.extend([
+                # 드롭아웃이 활성(유닛의 출력)을 끄는 데 견주어,
+                # 드롭커넥트는 가중치 하나하나를 끈다. 끄는 대상이
+                # 훨씬 잘게 나뉘므로 같은 확률에서도 더 다양한 부분망이 만들어진다
                 DropConnect(prev_dim, hidden_dim, p=drop_prob),
                 nn.ReLU(),
             ])
             prev_dim = hidden_dim
-        
-        # 출력층에는 드롭커넥트를 쓰지 않는다
+
+        # 출력층에는 드롭커넥트를 쓰지 않는다.
+        # 여기서 가중치를 끄면 특정 갈래로 가는 길이 통째로 막혀
+        # 그 갈래의 로짓이 무너진다
         layers.append(nn.Linear(prev_dim, output_dim))
+
+        # 리스트를 별표로 풀어 Sequential에 넘긴다
         self.network = nn.Sequential(*layers)
-    
+
     def forward(self, x):
         return self.network(x)
 
-# 사용 예
+# 사용 예: 784 -> 512 -> 256 -> 10
 model = NetworkWithDropConnect(
     input_dim=784, hidden_dims=[512, 256], output_dim=10, drop_prob=0.5
 )
