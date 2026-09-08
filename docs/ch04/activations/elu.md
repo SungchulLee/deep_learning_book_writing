@@ -130,25 +130,38 @@ Output: ['-0.8647', '-0.6321', '0.0000', '1.0000', '2.0000']
 import torch
 import matplotlib.pyplot as plt
 
+# 함수 자체(왼쪽)와 그 도함수(오른쪽)를 나란히 그린다.
+# 활성 함수를 볼 때는 도함수가 더 중요하다. 역전파에서 실제로
+# 곱해지는 것이 도함수이므로, 그 값이 0이 되는 구간이 곧 학습이 멎는 구간이다.
 x = torch.linspace(-4, 4, 1000)
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
-# alpha 값을 달리한 ELU
+# ── 왼쪽 그림: alpha를 달리한 ELU ───────────────────────────────────
 for alpha in [0.5, 1.0, 2.0]:
+    # ELU의 정의. 양수 쪽은 x 그대로, 음수 쪽은 alpha*(e^x - 1).
+    # torch.where(조건, 참일 때, 거짓일 때)로 두 갈래를 한 번에 셈한다
     y = torch.where(x > 0, x, alpha * (torch.exp(x) - 1))
+    # alpha는 음수 쪽이 내려가 멈추는 바닥값(-alpha)을 정한다
     axes[0].plot(x.numpy(), y.numpy(), 
                  label=f'ELU (α={alpha})', linewidth=2)
 
+# 견줄 기준으로 ReLU를 점선으로 겹쳐 그린다.
+# 양수 쪽은 완전히 겹치고 음수 쪽에서만 갈린다는 점이 한눈에 보인다
 axes[0].plot(x.numpy(), torch.relu(x).numpy(), 
              '--', label='ReLU', linewidth=1.5, alpha=0.5)
-axes[0].axhline(0, color='k', linestyle=':', alpha=0.3)
+axes[0].axhline(0, color='k', linestyle=':', alpha=0.3)   # y=0 기준선
 axes[0].set_title('ELU with Different α Values')
 axes[0].legend()
 axes[0].grid(True, alpha=0.3)
 
-# ELU의 도함수
+# ── 오른쪽 그림: 도함수 ─────────────────────────────────────────────
+# ELU의 도함수는 양수 쪽에서 1, 음수 쪽에서 e^x 이다(alpha=1일 때).
+# e^x 는 x가 아무리 작아도 0보다 크므로 기울기가 완전히 죽지 않는다
 elu_grad = torch.where(x > 0, torch.ones_like(x), torch.exp(x))
+
+# ReLU의 도함수는 음수 쪽에서 딱 0이다. 이것이 "죽은 ReLU" 문제의 뿌리로,
+# 한 번 음수 영역에 갇힌 유닛은 기울기가 0이라 되살아날 길이 없다
 relu_grad = (x > 0).float()
 
 axes[1].plot(x.numpy(), elu_grad.numpy(), label="ELU' (α=1)", linewidth=2)

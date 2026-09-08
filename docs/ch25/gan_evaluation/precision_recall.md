@@ -695,6 +695,14 @@ print(f"F0.5 (precision-focused): {f05:.4f}")
 print(f"F2 (recall-focused): {f2:.4f}")
 ```
 
+**출력:**
+
+```
+F1 (balanced): 0.6857
+F0.5 (precision-focused): 0.7500
+F2 (recall-focused): 0.6316
+```
+
 ---
 
 ## 7. 모범 사례
