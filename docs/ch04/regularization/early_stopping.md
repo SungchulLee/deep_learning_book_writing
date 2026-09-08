@@ -407,6 +407,11 @@ class EarlyStoppingWithLRScheduler:
         
         self.best_score = None
         self.best_weights = None
+        # 계수를 둘 둔다. counter는 멈출 때를, lr_counter는 학습률을
+        # 줄일 때를 센다. 아래에서 학습률을 줄인 뒤 lr_counter만 0으로
+        # 되돌리고 counter는 그대로 두는 것이 요점이다. 그래서 인내가
+        # 다 차기까지 학습률을 여러 번(20/5이므로 최대 네 번) 줄여
+        # 볼 수 있다. 둘 다 되돌리면 학습이 영영 끝나지 않는다
         self.counter = 0
         self.lr_counter = 0
         self.num_lr_reductions = 0
@@ -417,6 +422,9 @@ class EarlyStoppingWithLRScheduler:
             self.best_weights = copy.deepcopy(model.state_dict())
             return False
         
+        # 앞의 EarlyStopping과 달리 mode 인자가 없다. 부등호가 <로
+        # 박혀 있어 "작을수록 좋은" 지표, 곧 손실 전용이다.
+        # 정확도를 넘기면 개선을 영영 못 알아채고 첫 인내에 멈춘다
         if score < self.best_score - self.min_delta:
             self.best_score = score
             self.best_weights = copy.deepcopy(model.state_dict())
@@ -428,7 +436,13 @@ class EarlyStoppingWithLRScheduler:
             
             # 정체되면 학습률을 줄인다
             if self.lr_counter >= self.lr_patience:
+                # 주의: 읽기는 첫 묶음에서만 하고 쓰기는 모든 묶음에 한다.
+                # 묶음마다 다른 학습률을 준 경우(층별로 학습률을 달리하는
+                # 미세 조정 등) 여기서 전부 같은 값으로 뭉개진다.
+                # 묶음마다 제 값을 절반으로 줄이려면 아래 반복문 안에서
+                # param_group['lr']을 각각 읽어 고쳐야 한다
                 current_lr = self.optimizer.param_groups[0]['lr']
+                # min_lr에서 멈춘다. 0까지 내려가 학습이 멎는 것을 막는다
                 new_lr = max(current_lr * self.lr_factor, self.min_lr)
                 
                 if new_lr < current_lr:

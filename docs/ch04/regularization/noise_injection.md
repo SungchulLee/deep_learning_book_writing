@@ -432,6 +432,13 @@ def train_with_noise_injection(
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     
+    # 주의: input_noise는 model 안에 등록된 층이 아니라 따로 만든
+    # 모듈이다. 그래서 아래 model.train()과 model.eval()이 이 모듈의
+    # self.training에는 아무 영향도 주지 않는다. 갓 만든 모듈의
+    # training이 True라 학습에서는 뜻대로 동작하지만, 검증에서도
+    # 이것을 부르면 잡음이 계속 더해진다. 아래 검증 구간이 잡음을
+    # 쓰지 않는 것은 그래서 우연이 아니라 필요한 일이다.
+    # 모델 안에 층으로 넣어 두면 모드가 저절로 따라온다
     input_noise = GaussianNoise(std=input_noise_std)
     gradient_noise = GradientNoiseCallback(eta=gradient_noise_eta)
     
@@ -452,6 +459,10 @@ def train_with_noise_injection(
             loss.backward()
             
             # 기울기 잡음 더하기
+            # 자리가 정확하다. backward가 기울기를 채운 "뒤", step이
+            # 그것을 쓰기 "앞"이다. 세 가지 잡음이 서로 다른 지점에
+            # 걸린다는 점을 눈여겨보라. 입력 잡음은 순전파 앞, 가중치
+            # 잡음(NoisyLinear)은 순전파 안, 기울기 잡음은 이 자리다
             gradient_noise.add_gradient_noise(model)
             
             optimizer.step()

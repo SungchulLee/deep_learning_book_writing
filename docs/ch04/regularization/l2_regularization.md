@@ -394,17 +394,32 @@ def create_param_groups_with_l2(model, base_lr=0.001,
         if not param.requires_grad:
             continue
         
-        # 층에 맞는 감쇠율 찾기
+        # 층에 맞는 감쇠율 찾기.
+        # name은 'network.0.weight' 같은 꼴이라, 사전의 열쇠가 그 안에
+        # 들어 있기만 하면 걸린다. 부분 문자열로 맞추는 방식이라
+        # 'fc1'이 'fc10'에도 걸린다는 점을 조심하라.
+        # break가 있어 먼저 걸리는 것 하나만 쓰는데, 사전의 차례가
+        # 곧 우선순위가 되므로 좁은 이름을 앞에 두어야 한다
         weight_decay = 0.01  # 기본값
         for layer_name, decay in layer_decay_rates.items():
             if layer_name in name:
                 weight_decay = decay
                 break
         
-        # 편향은 정칙화하지 않는다 (흔한 관행)
+        # 편향은 정칙화하지 않는다 (흔한 관행).
+        # 위의 층별 설정보다 나중에 오므로 무엇을 지정했든 이 규칙이
+        # 이긴다. 편향은 과적합의 원인이 아니라 출력의 중심을 옮기는
+        # 자유도라 눌러 둘 까닭이 없다.
+        # 이 페이지 앞머리의 l2_regularization 함수가 model.parameters()로
+        # 편향까지 훑던 문제를 여기서는 이름을 보고 갈라 해결한다
         if 'bias' in name:
             weight_decay = 0.0
         
+        # 파라미터 하나에 묶음 하나를 만든다. 최적화기는 묶음마다 다른
+        # 설정을 지닐 수 있으므로, 이렇게 잘게 나누면 층은 물론 가중치와
+        # 편향까지 따로 다룰 수 있다. 묶음 수가 늘어도 셈이 느려지지는
+        # 않는다. 어차피 파라미터마다 갱신하기 때문이다.
+        # 이 목록을 optim.AdamW(param_groups)처럼 넘겨 쓴다
         param_groups.append({
             'params': param,
             'lr': base_lr,
