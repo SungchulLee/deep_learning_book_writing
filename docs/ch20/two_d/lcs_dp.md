@@ -152,6 +152,16 @@ if __name__ == "__main__":
     # 최장 공통 부분 차례: 'GTAB'(길이 4)
 ```
 
+**출력:**
+
+```
+X = AGGTAB
+Y = GXTXAYB
+LCS length (2D):    4
+LCS length (space): 4
+LCS: 'GTAB' (length 4)
+```
+
 ---
 
 ## 6. 풀이 예제

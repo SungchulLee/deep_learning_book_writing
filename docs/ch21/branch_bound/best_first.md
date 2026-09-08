@@ -176,6 +176,16 @@ if __name__ == "__main__":
     # 살핀 마디: 7
 ```
 
+**출력:**
+
+```
+Weights: [2, 3, 4, 5]
+Values:  [3, 4, 5, 6]
+Capacity: 8
+Maximum value: 10
+Nodes explored: 12
+```
+
 ---
 
 ## 연습문제

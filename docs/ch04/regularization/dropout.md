@@ -315,21 +315,39 @@ class TransformerBlockWithDropout(nn.Module):
     
     def __init__(self, d_model, n_heads, d_ff, dropout=0.1):
         super().__init__()
+        # 트랜스포머에는 드롭아웃이 들어가는 자리가 세 곳이다.
+        #   (1) 어텐션 가중치 위 — MultiheadAttention의 dropout 인자
+        #   (2) 피드포워드 안쪽 — 아래 Sequential의 Dropout
+        #   (3) 두 하위층의 출력 — dropout1, dropout2
+        # 셋 다 비율이 같을 필요는 없지만 보통 하나로 맞춘다.
+
+        # (1) 소프트맥스를 지난 어텐션 가중치 일부를 끈다.
+        # 특정 토큰 하나에만 기대는 것을 막는다
         self.attention = nn.MultiheadAttention(d_model, n_heads, dropout=dropout)
+
         self.ffn = nn.Sequential(
-            nn.Linear(d_model, d_ff),
+            nn.Linear(d_model, d_ff),   # 보통 d_ff = 4 * d_model 로 넓혔다가
             nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(d_ff, d_model)
+            nn.Dropout(dropout),        # (2) 넓어진 자리에서 끈다.
+                                        # 매개변수가 가장 많이 몰린 곳이라 효과가 크다
+            nn.Linear(d_ff, d_model)    # 다시 원래 차원으로 좁힌다
         )
+
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
+        # (3) 잔차로 더해지기 직전에 거는 드롭아웃. 하위층마다 따로 둔다
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
-    
+
     def forward(self, x, mask=None):
+        # 자기 어텐션: 질의·열쇠·값에 모두 같은 x를 넣는다
         attn_out, _ = self.attention(x, x, x, attn_mask=mask)
+
+        # 순서가 요점이다. 드롭아웃은 잔차로 더하기 "전"에 걸어야 한다.
+        # 더한 뒤에 걸면 우회로(x)까지 끊겨 깊은 망에서 기울기가 흐르지 못한다.
+        # 여기서는 정규화가 더하기 뒤에 오는 post-norm 방식을 쓴다
         x = self.norm1(x + self.dropout1(attn_out))
+
         ffn_out = self.ffn(x)
         x = self.norm2(x + self.dropout2(ffn_out))
         return x

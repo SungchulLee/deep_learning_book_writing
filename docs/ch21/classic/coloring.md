@@ -145,6 +145,14 @@ if __name__ == "__main__":
     # m=4: [1, 2, 1, 2], 옳은 색칠 전체: 84
 ```
 
+**출력:**
+
+```
+m=2: [1, 2, 1, 2], total valid colorings: 2
+m=3: [1, 2, 1, 2], total valid colorings: 18
+m=4: [1, 2, 1, 2], total valid colorings: 84
+```
+
 ---
 
 ## 6. 풀이 예제

@@ -135,6 +135,15 @@ if __name__ == "__main__":
     # 최장 공통 부분 차례 글줄: BCBA(길이 4)
 ```
 
+**출력:**
+
+```
+X = ABCBDAB
+Y = BDCABA
+LCS length: 4
+LCS string: BCBA (length 4)
+```
+
 ---
 
 ## 연습문제

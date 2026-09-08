@@ -43,6 +43,13 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+PC1 explains 96.1% of variance
+Reconstruction MSE: 0.104872
+```
+
 ## 2. 논의
 
 PyTorch 짜기는 NumPy 판을 거의 줄 단위로 그대로 옮긴 것이며 일부러 그렇게 했다. PyTorch가 NumPy를 쓰던 이에게 낯익도록 만들어졌기 때문이다. 핵심 차이는 `torch.linalg.svd`을 쓴다는 것(이는 $V^T$이 아니라 $V^H$을 돌려주지만 실수 행렬에서는 같다), `.to(device)`으로 기기를 또렷이 다룬다는 것, 아무 텐서에나 `requires_grad=True`을 두어 주성분 분석 물길을 지나는 기울기를 셈할 수 있다는 것이다.

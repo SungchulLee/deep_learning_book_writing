@@ -148,6 +148,14 @@ if __name__ == "__main__":
     # 'ABCB': False
 ```
 
+**출력:**
+
+```
+'ABCCED': True
+'SEE': True
+'ABCB': False
+```
+
 ---
 
 ## 5. 풀이 예제

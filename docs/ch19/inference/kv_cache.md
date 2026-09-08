@@ -202,6 +202,12 @@ if __name__ == "__main__":
     print(f"Generated: {prompt.shape} -> {generated.shape}")
 ```
 
+**출력:**
+
+```
+Generated: torch.Size([1, 10]) -> torch.Size([1, 30])
+```
+
 ---
 
 ## 4. 기억 공간에서 헤아릴 점

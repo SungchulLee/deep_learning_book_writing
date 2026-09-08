@@ -146,6 +146,18 @@ if __name__ == "__main__":
     # 가장 좋은 괄호 매김: ((A1 x (A2 x A3)) x ((A4 x A5) x A6))
 ```
 
+**출력:**
+
+```
+Dimensions: [10, 30, 5, 60]
+Minimum multiplications: 4500
+Optimal parenthesization: ((A1 x A2) x A3)
+
+Dimensions: [30, 35, 15, 5, 10, 20, 25]
+Minimum multiplications: 15125
+Optimal parenthesization: ((A1 x (A2 x A3)) x ((A4 x A5) x A6))
+```
+
 ---
 
 ## 7. 풀이 예제

@@ -179,6 +179,15 @@ if __name__ == "__main__":
     # 'abcdef' -> 자르기 5번: ['a', 'b', 'c', 'd', 'e', 'f']
 ```
 
+**출력:**
+
+```
+'aab' -> 1 cuts: ['aa', 'b']
+'abac' -> 1 cuts: ['aba', 'c']
+'abcba' -> 0 cuts: ['abcba']
+'abcdef' -> 5 cuts: ['a', 'b', 'c', 'd', 'e', 'f']
+```
+
 ---
 
 ## 연습문제

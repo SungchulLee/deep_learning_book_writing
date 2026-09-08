@@ -258,25 +258,39 @@ class ScheduledNoise(nn.Module):
     def __init__(self, initial_std: float = 0.2, final_std: float = 0.01,
                  decay_steps: int = 10000):
         super().__init__()
-        self.initial_std = initial_std
-        self.final_std = final_std
-        self.decay_steps = decay_steps
-        self.current_step = 0
-    
+        # 학습 초기에는 잡음을 세게 넣어 넓게 탐색하게 하고, 뒤로 갈수록
+        # 줄여 세밀하게 수렴시킨다. 학습률 스케줄과 같은 발상이다
+        self.initial_std = initial_std   # 시작할 때의 잡음 크기
+        self.final_std = final_std       # 끝에서의 잡음 크기
+        self.decay_steps = decay_steps   # 몇 걸음에 걸쳐 줄일 것인가
+        self.current_step = 0            # 지금까지 지난 걸음 수
+
     @property
     def current_std(self) -> float:
+        # 다 줄이고 나면 final_std로 붙박는다. 이 가드가 없으면
+        # progress가 1을 넘어 잡음이 음수 쪽으로 넘어간다
         if self.current_step >= self.decay_steps:
             return self.final_std
-        
+
+        # 0에서 1로 가는 진행률에 맞추어 두 값 사이를 선형으로 잇는다.
+        # progress=0이면 initial_std, progress=1이면 final_std가 된다
         progress = self.current_step / self.decay_steps
         return self.initial_std + (self.final_std - self.initial_std) * progress
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # self.training은 model.train()/model.eval()이 세워 주는 깃발이다.
+        # 평가할 때 잡음을 넣으면 같은 입력에 다른 답이 나오므로 반드시 꺼야 한다
         if self.training:
+            # randn_like: x와 모양·자료형·장치가 같은 표준정규 잡음을 만든다
             noise = torch.randn_like(x) * self.current_std
+
+            # 걸음 세기를 forward 안에서 한다. 옵티마이저와 따로 놀지 않게
+            # 하려면 학습 루프에서 명시적으로 올려 주는 편이 더 안전하지만,
+            # 이 방식은 층을 꽂기만 하면 되어 손이 덜 간다
             self.current_step += 1
             return x + noise
-        return x
+
+        return x   # 평가할 때는 아무것도 하지 않는다
 ```
 
 ### 변분 층 (학습 가능한 잡음)

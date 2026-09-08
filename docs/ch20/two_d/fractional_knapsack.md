@@ -169,6 +169,15 @@ if __name__ == "__main__":
     # 최대 값어치: 240.0
 ```
 
+**출력:**
+
+```
+Items (weight, value): [(10, 60), (20, 100), (30, 120)]
+Capacity: 50
+Fractions taken: [1.0, 1.0, 0.667]
+Maximum value: 240.0
+```
+
 ---
 
 ## 연습문제

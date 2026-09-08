@@ -184,6 +184,15 @@ for name, n, d in configs:
     print(f"{name}: predicted loss = {loss:.3f}")
 ```
 
+**출력:**
+
+```
+7B, 1T tokens: predicted loss = 2.052
+13B, 1T tokens: predicted loss = 2.017
+7B, 2T tokens: predicted loss = 2.020
+70B, 1.4T tokens: predicted loss = 1.937
+```
+
 ---
 
 ## 6. 친칠라를 넘어: 최근의 발견

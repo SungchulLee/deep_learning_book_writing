@@ -116,6 +116,16 @@ if __name__ == "__main__":
     # 최장 공통 부분 차례(lru_cache): 4
 ```
 
+**출력:**
+
+```
+X = ABCBDAB
+Y = BDCABA
+LCS (naive):     4
+LCS (memo):      4
+LCS (lru_cache): 4
+```
+
 ---
 
 ## 5. 아래 문제 다시 쓰기 살피기

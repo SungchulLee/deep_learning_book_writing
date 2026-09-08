@@ -138,6 +138,17 @@ if __name__ == "__main__":
     # 최대 값어치: 10, 물건: [1, 3]
 ```
 
+**출력:**
+
+```
+Weights: [2, 3, 4, 5]
+Values:  [3, 4, 5, 6]
+Capacity: 8
+Max value (2D): 10
+Max value (1D): 10
+Max value: 10, items: [1, 3]
+```
+
 ---
 
 ## 5. 공간 줄이기

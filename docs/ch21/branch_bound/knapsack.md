@@ -158,6 +158,16 @@ if __name__ == "__main__":
     # 고른 물건: [1, 2]
 ```
 
+**출력:**
+
+```
+Weights:  [10, 20, 30]
+Values:   [60, 100, 120]
+Capacity: 50
+Max value: 220
+Selected items: [1, 2]
+```
+
 ---
 
 ## 6. 동적 계획과의 견줌

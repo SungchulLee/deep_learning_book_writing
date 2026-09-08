@@ -513,14 +513,24 @@ def select_lambda_cv(X, y, lambdas, cv=5):
         최적의 lambda와 교차 검증 점수
     """
     from sklearn.linear_model import Lasso
-    
+
+    # lambda는 학습으로 정해지지 않는 초매개변수다. 훈련 자료에서 고르면
+    # 늘 lambda=0(벌점 없음)이 이기므로, 반드시 검증으로 골라야 한다
     cv_scores = []
     for lam in lambdas:
-        model = Lasso(alpha=lam)
+        model = Lasso(alpha=lam)   # sklearn에서는 lambda를 alpha라 부른다
+
+        # sklearn의 scoring은 "클수록 좋다"는 규약이므로 MSE에 음수를 붙여 준다.
+        # 그래서 여기서 다시 음수를 씌워 원래의 MSE로 되돌린다
         scores = cross_val_score(model, X, y, cv=cv, scoring='neg_mean_squared_error')
-        cv_scores.append(-scores.mean())
-    
+        cv_scores.append(-scores.mean())   # 겹 5개의 평균 MSE
+
+    # 이제는 보통의 MSE이므로 가장 작은 것을 고른다
     optimal_idx = np.argmin(cv_scores)
+
+    # 곡선 전체를 함께 돌려주는 까닭은, 최솟값 하나보다 곡선의 모양이
+    # 더 많은 것을 말해 주기 때문이다. 바닥이 평평하면 lambda를 조금
+    # 크게 잡아 더 성긴 모델을 고르는 편이 낫다(1-표준오차 규칙)
     return lambdas[optimal_idx], cv_scores
 ```
 
