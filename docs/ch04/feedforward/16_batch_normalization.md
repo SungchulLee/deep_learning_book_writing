@@ -51,14 +51,27 @@ class BNNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.fc1 = nn.Linear(784, 256)
+        # 인자는 정규화할 특징의 수, 곧 앞 층의 출력 크기다. 여기서
+        # 학습되는 것은 특징마다 하나씩인 gamma와 beta 둘뿐이라,
+        # 아래에서 찍히는 매개변수 수는 2*(256+128)=768만 늘어난다.
+        # 이동 평균과 이동 분산도 함께 저장되지만 그쪽은 학습되는
+        # 매개변수가 아니라 버퍼라 이 셈에 들지 않는다
         self.bn1 = nn.BatchNorm1d(256)
         self.fc2 = nn.Linear(256, 128)
         self.bn2 = nn.BatchNorm1d(128)
+        # 마지막 층 뒤에는 정규화를 걸지 않는다. 로짓을 평균 0으로
+        # 맞추어 버리면 클래스별 점수의 절대 위치가 사라진다
         self.fc3 = nn.Linear(128, 10)
         
     def forward(self, x):
         x = x.view(-1, 784)
         x = self.fc1(x)
+        # 선형 → 정규화 → 활성화 순서다. 정규화가 활성화 앞에 오면
+        # ReLU에 들어가는 값이 0 언저리에 모이므로, 절반쯤은 살고
+        # 절반쯤은 죽어 신호가 한쪽으로 쏠리지 않는다.
+        # 이 위치라면 fc1의 편향은 있으나 마나다. 바로 뒤에서 평균을
+        # 빼 버리기 때문이며, 그래서 실무에서는 정규화 앞 층에
+        # bias=False를 주기도 한다
         x = self.bn1(x)  # 활성화 앞의 배치 정규화
         x = torch.relu(x)
         x = self.fc2(x)
@@ -126,6 +139,15 @@ def visualize_batch_norm():
     data = torch.randn(1000, 1) * 5 + 10  # 평균=10, 표준편차=5
     
     bn = nn.BatchNorm1d(1)
+    # 주의: 이 그림은 뜻한 대로 나오지 않는다. 갓 만든 BatchNorm1d의
+    # 이동 통계는 running_mean=0, running_var=1이고, eval()은 배치가
+    # 아니라 그 이동 통계를 쓴다. 따라서 (x - 0) / sqrt(1 + eps)가 되어
+    # 데이터가 사실상 그대로 지나간다. 아래 "After" 히스토그램은
+    # "Before"와 거의 같은 평균 10, 표준편차 5로 그려진다.
+    # 정규화의 효과를 보이려면 bn.train()이어야 한다. 그때 이 배치의
+    # 평균과 분산으로 정규화되어 평균 0, 표준편차 1이 된다.
+    # 이동 통계는 학습을 거치며 쌓이는 값이라, 한 번도 학습하지 않은
+    # 층에서는 쓸 만한 값이 들어 있지 않다
     bn.eval()  # 이동 통계 쓰기
     data_normalized = bn(data)
     

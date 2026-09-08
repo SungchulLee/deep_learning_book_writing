@@ -29,14 +29,21 @@ print("="*70)
 print("Activation Functions Comparison")
 print("="*70)
 
-# 시각화를 위한 입력 구간 만들기
+# 시각화를 위한 입력 구간 만들기.
+# -5에서 5면 시그모이드와 tanh가 양 끝에서 평평해지는 모습이 보인다.
+# 이 구간을 좁히면 그 포화가 그림에서 사라져 기울기 소실을 볼 수 없다
 x = torch.linspace(-5, 5, 200)
 
-# 활성화 함수 사전
+# 활성화 함수 사전.
+# 여섯 가지가 두 갈래로 나뉜다. 시그모이드와 tanh는 위아래로 막혀 있어
+# 양 끝에서 기울기가 0으로 죽고, 나머지 넷은 양수 쪽이 뚫려 있어
+# 기울기가 살아 남는다. 깊은 신경망에서 뒤쪽 넷을 쓰는 까닭이다
 activations = {
     'ReLU': nn.ReLU(),
     'Sigmoid': nn.Sigmoid(),
     'Tanh': nn.Tanh(),
+    # 기본값 0.01이 아니라 0.1을 준 것은 그림에서 음수 쪽 기울기가
+    # 눈에 띄게 하려는 뜻이다. 0.01이면 거의 ReLU처럼 보인다
     'LeakyReLU': nn.LeakyReLU(0.1),
     'ELU': nn.ELU(),
     'Softplus': nn.Softplus()
@@ -47,6 +54,9 @@ fig, axes = plt.subplots(2, 3, figsize=(15, 8))
 axes = axes.flatten()
 
 for idx, (name, activation) in enumerate(activations.items()):
+    # 활성화 함수는 원소마다 따로 적용된다. 그래서 200개짜리 벡터를
+    # 통째로 넣어도 되고, 값 하나하나에 함수를 건 것과 결과가 같다.
+    # 학습되는 매개변수가 없으므로 no_grad도 필요 없다
     y = activation(x)
     axes[idx].plot(x.numpy(), y.numpy(), linewidth=2)
     axes[idx].set_title(name, fontsize=14, fontweight='bold')

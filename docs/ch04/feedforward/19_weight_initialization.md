@@ -40,17 +40,38 @@ class DemoNet(nn.Module):
         self._initialize_weights(init_method)
     
     def _initialize_weights(self, method):
+        # self.modules()는 자기 자신까지 훑으므로 isinstance로 걸러 낸다.
+        # 이렇게 해 두면 층을 몇 개 더 붙여도 이 함수는 고치지 않아도 된다
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 if method == 'xavier':
+                    # 들어오는 쪽과 나가는 쪽을 함께 본다. 순전파의 분산과
+                    # 역전파의 분산을 모두 지키려는 것이라, 두 방향이
+                    # 대칭인 시그모이드나 tanh에 맞는다
                     init.xavier_uniform_(m.weight)
                 elif method == 'he':
+                    # ReLU가 입력의 절반을 0으로 죽여 분산을 반토막 내므로,
+                    # 그만큼 넓게 뽑아 메운다. 그래서 자비에르보다 크다.
+                    # 주의: 이것은 nn.Linear의 기본 초기화와 같지 않다.
+                    # 기본값은 kaiming_uniform_(a=sqrt(5))이라 경계가
+                    # 1/sqrt(fan_in)인데, 여기 nonlinearity='relu'는
+                    # sqrt(6/fan_in)이다. sqrt(6)배, 곧 약 2.45배 넓다
                     init.kaiming_uniform_(m.weight, nonlinearity='relu')
                 elif method == 'normal':
+                    # fan_in을 보지 않는 고정 표준편차다. 층의 폭이
+                    # 달라져도 늘 0.01이라, 넓은 층에서는 신호가 너무
+                    # 작아지고 좁은 층에서는 너무 커진다. 위의 둘이
+                    # 나은 까닭이 여기 있다
                     init.normal_(m.weight, mean=0, std=0.01)
                 elif method == 'zeros':
+                    # 배우지 못하는 초기화다. 한 층의 모든 뉴런이 똑같은
+                    # 값을 내고 똑같은 기울기를 받으므로, 갱신해도 계속
+                    # 나란히 움직인다. 대칭이 영영 깨지지 않아 폭 256인
+                    # 층이 사실상 뉴런 하나짜리로 주저앉는다
                     init.zeros_(m.weight)
                 
+                # 편향은 0으로 두어도 괜찮다. 대칭을 깨는 일은 가중치가
+                # 맡으므로, 가중치만 서로 다르면 뉴런들은 갈라져 나간다
                 if m.bias is not None:
                     init.constant_(m.bias, 0)
     
@@ -66,6 +87,9 @@ methods = ['xavier', 'he', 'normal', 'zeros']
 for method in methods:
     model = DemoNet(method)
     print(f"\n{method.upper()}:")
+    # fc1만 본다. 784 → 256 층이라 fan_in이 가장 커서, 초기화 방법에
+    # 따른 폭 차이가 가장 뚜렷하게 드러나는 자리다.
+    # zeros에서는 평균도 표준편차도 최솟값도 최댓값도 모두 0으로 찍힌다
     w = model.fc1.weight.data
     print(f"  Mean: {w.mean():.6f}")
     print(f"  Std: {w.std():.6f}")
