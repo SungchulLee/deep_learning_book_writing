@@ -198,7 +198,9 @@ def compare_gradient_flow(n_layers=30, hidden=256, n_samples=256):
         ('Xavier', init.xavier_normal_),
         ('He', lambda w: init.kaiming_normal_(w, nonlinearity='relu')),
     ]:
-        # 신경망 만들기
+        # 앞의 실험이 순전파에서 활성이 사그라드는지 보았다면,
+        # 여기서는 역전파에서 기울기가 사그라드는지 본다.
+        # 학습이 멈추는 진짜 원인은 이쪽이다.
         layers = []
         for _ in range(n_layers):
             linear = nn.Linear(hidden, hidden, bias=False)
@@ -211,10 +213,16 @@ def compare_gradient_flow(n_layers=30, hidden=256, n_samples=256):
         activations = []
         for linear in layers:
             h = torch.relu(linear(h))
+            # retain_grad()가 없으면 중간 텐서의 .grad는 채워지지 않는다.
+            # PyTorch는 잎 노드(매개변수와 입력)의 기울기만 남기고
+            # 중간값은 메모리를 아끼려 버리기 때문이다
             h.retain_grad()
             activations.append(h)
 
-        # 역전파
+        # 역전파.
+        # 손실을 sum()으로 잡는 까닭은 실제 학습이 목적이 아니라
+        # 마지막 층에 크기 1짜리 기울기를 넣어 그것이 앞으로 가며
+        # 얼마나 줄어드는지만 보려는 것이기 때문이다
         loss = h.sum()
         loss.backward()
 
@@ -223,10 +231,15 @@ def compare_gradient_flow(n_layers=30, hidden=256, n_samples=256):
 
     fig, ax = plt.subplots(figsize=(10, 5))
     for name, norms in results.items():
+        # x축을 거꾸로(n_layers -> 1) 매긴다. 기울기는 출력에서 입력
+        # 쪽으로 흐르므로, "출력에서 얼마나 멀어졌는가"로 읽는 편이 자연스럽다
         ax.plot(range(n_layers, 0, -1), norms, linewidth=2, label=name)
     ax.set_xlabel('Distance from Output (layers)')
     ax.set_ylabel('Gradient Norm')
     ax.set_title('Gradient Magnitude vs Distance from Output')
+    # 로그 축이라야 한다. 층마다 일정 배수로 줄어들면 로그 축에서
+    # 직선이 되고, 그 기울기가 곧 층당 감쇠율이다.
+    # 선형 축으로 그리면 앞쪽 몇 층 말고는 모두 0에 붙어 보인다
     ax.set_yscale('log')
     ax.legend()
     plt.tight_layout()

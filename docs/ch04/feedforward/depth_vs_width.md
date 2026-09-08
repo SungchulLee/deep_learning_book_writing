@@ -287,16 +287,27 @@ import matplotlib.pyplot as plt
 
 def compute_uniform_width(input_dim, output_dim, depth, budget):
     """주어진 깊이에서 전체 매개변수가 예산에 가깝게 되는 너비 d를 찾는다."""
+    # 깊이를 바꾸면서 매개변수 수는 그대로 두려는 것이다. 그래야
+    # 성능 차이를 "깊이 덕분"이라고 말할 수 있다. 그냥 층만 늘리면
+    # 매개변수도 함께 늘어 무엇이 이겼는지 알 수 없다.
+    #
     # params = d*(input_dim+1) + (depth-2)*d*(d+1) + output_dim*(d+1)
-    # depth >= 3에 대해 d의 이차방정식을 푼다
+    # 가운데 항에 d^2 이 있으므로 d에 대한 이차방정식이 된다
     if depth == 2:
+        # 은닉층이 하나뿐이면 d^2 항이 없어 일차식으로 풀린다
         # params = input_dim * d + d + output_dim * d + output_dim
         d = (budget - output_dim) // (input_dim + 1 + output_dim)
         return max(16, d)
+
+    # 이차방정식 a*d^2 + b*d + c = 0 의 계수
     a = depth - 2
     b = input_dim + 1 + (depth - 2) + output_dim
     c = output_dim - budget
+    # 근의 공식에서 + 쪽만 쓴다. - 쪽은 음수가 되어 너비로 쓸 수 없다
     d = int((-b + (b**2 - 4*a*c)**0.5) / (2*a))
+
+    # 너무 좁아지면 예산과 무관하게 성능이 무너지므로 16에서 끊는다.
+    # 곧 깊이가 아주 클 때는 예산을 맞추지 못하고 넘길 수 있다
     return max(16, d)
 
 param_budget = 100_000
@@ -309,11 +320,13 @@ print("-" * 40)
 
 for L in depths:
     d = compute_uniform_width(784, 10, L, param_budget)
-    arch = [784] + [d] * (L - 1) + [10]
-    
+    arch = [784] + [d] * (L - 1) + [10]   # 은닉층을 모두 같은 너비로
+
+    # 깊이마다 씨앗을 같은 값으로 되돌린다. 초기화의 운이 아니라
+    # 깊이가 성능을 갈랐다고 말하려면 이 줄이 있어야 한다
     torch.manual_seed(42)
     model = create_mlp(arch)
-    params = count_params(model)
+    params = count_params(model)   # 예산에 실제로 얼마나 가까운지 함께 찍는다
     acc, _ = train_and_evaluate(model, train_loader, test_loader, epochs=5)
     results.append((L, d, params, acc))
     print(f"{L:<8d} {d:<8d} {params:<12,d} {acc:<10.2f}%")
@@ -337,6 +350,9 @@ class ResidualBlock(nn.Module):
     """2층 잔차 블록: x + F(x)."""
     def __init__(self, dim: int):
         super().__init__()
+        # 마지막에 ReLU를 두지 않는 것이 요점이다. 활성은 더한 뒤에 건다.
+        # 블록 안에서 걸어 버리면 F(x)가 음수를 낼 수 없어 잔차가
+        # 값을 빼는 쪽으로 고칠 방법이 사라진다
         self.block = nn.Sequential(
             nn.Linear(dim, dim),
             nn.BatchNorm1d(dim),
@@ -344,14 +360,20 @@ class ResidualBlock(nn.Module):
             nn.Linear(dim, dim),
             nn.BatchNorm1d(dim),
         )
-    
+
     def forward(self, x):
+        # x + F(x) 가 잔차 연결이다. 덧셈이므로 역전파에서 기울기가
+        # 1의 몫으로 그대로 지나간다. 그래서 층을 아무리 쌓아도
+        # 기울기가 층 수만큼 곱해지며 사그라들지 않는다.
+        # 입력과 출력의 차원이 같아야 더할 수 있어 dim -> dim으로 잡았다
         return torch.relu(x + self.block(x))
 
 class ResidualMLP(nn.Module):
     """아주 깊은 신경망을 학습시키기 위해 잔차 연결을 쓰는 MLP."""
     def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, num_blocks: int):
         super().__init__()
+        # 784 -> 128 로 먼저 맞춘다. 이 사영이 있어야 뒤의 블록들이
+        # 모두 같은 차원에서 더하기를 할 수 있다
         self.input_proj = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
@@ -360,23 +382,31 @@ class ResidualMLP(nn.Module):
             ResidualBlock(hidden_dim) for _ in range(num_blocks)
         ])
         self.head = nn.Linear(hidden_dim, output_dim)
-    
+
     def forward(self, x):
         x = self.input_proj(x)
         x = self.blocks(x)
         return self.head(x)
 
 # ── 평범한 깊은 신경망과 잔차 깊은 신경망 비교 ──
+# 블록 하나가 선형층 2개이므로 블록 10개면 층 20개다. 곧 두 모델의
+# 깊이가 같고 다른 것은 건너뛰기 연결이 있느냐뿐이다.
+# 매개변수 수를 함께 찍는 까닭도 그 점을 확인하기 위해서다
 torch.manual_seed(42)
 plain_deep = create_mlp([784] + [128] * 20 + [10])      # 은닉층 20개, 건너뛰기 없음
 residual   = ResidualMLP(784, 128, 10, num_blocks=10)    # 블록 10개로 20개 층
 
+# 잔차 쪽이 조금 더 많다. 배치 정규화의 감마와 베타가 더해지기 때문이며,
+# 건너뛰기 연결 자체는 매개변수를 하나도 쓰지 않는다
 print(f"Plain deep:    {count_params(plain_deep):>10,d} params")
 print(f"Residual deep: {count_params(residual):>10,d} params")
 
 plain_acc, _  = train_and_evaluate(plain_deep, train_loader, test_loader, epochs=5)
 resid_acc, _  = train_and_evaluate(residual,   train_loader, test_loader, epochs=5)
 
+# 층 20개짜리 평범한 MLP는 기울기가 입력 쪽까지 닿지 못해 학습이
+# 잘 되지 않는다. 깊이가 같은데도 잔차 쪽이 크게 앞선다면,
+# 그 차이는 표현력이 아니라 "학습이 되느냐"에서 온 것이다
 print(f"\nPlain deep accuracy:    {plain_acc:.2f}%")
 print(f"Residual deep accuracy: {resid_acc:.2f}%")
 ```
