@@ -15,6 +15,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 n_samples = 200
 
 def generate_circle_data(n_samples):
+    # 각도는 0에서 2pi까지 고르게 뿌리고, 반지름만 두 무리로 갈라
+    # 극좌표로 점을 찍는다. 안쪽 무리는 반지름 0~2인 원판(이름표 0),
+    # 바깥 무리는 3~5인 고리(이름표 1)다. 두 무리 사이에 폭 1의 빈 띠가
+    # 있어 분리는 되지만, 어떤 직선으로도 나눌 수 없다.
+    # 은닉층 없이 선형 층 하나로는 못 푸는 문제를 일부러 만든 것이다
     angles = torch.rand(n_samples) * 2 * np.pi
     radii = torch.zeros(n_samples)
     radii[:n_samples//2] = torch.rand(n_samples//2) * 2
@@ -23,14 +28,22 @@ def generate_circle_data(n_samples):
                      radii * torch.sin(angles)], dim=1)
     y = torch.zeros(n_samples, 1)
     y[n_samples//2:] = 1
+    # 빈 띠의 폭이 1인데 잡음의 표준편차가 0.3이라, 경계 근처가 조금
+    # 흐려지되 두 무리가 뒤섞이지는 않는다
     X += torch.randn_like(X) * 0.3
     return X, y
 
 X, y = generate_circle_data(n_samples)
 X, y = X.to(device), y.to(device)
 
+# 가중치를 직접 들고 다닌다. nn.Module도 optimizer도 쓰지 않으므로
+# requires_grad를 켜지 않는다. 아래 backward 함수가 자동 미분을 대신한다.
 input_size, hidden_size, output_size = 2, 8, 1
+# sqrt(2/fan_in) 배는 He 초기화다. ReLU가 입력의 절반을 0으로 죽이는 만큼
+# 분산이 반토막 나므로, 2를 곱해 그 손실을 미리 메워 둔다
 w1 = torch.randn(input_size, hidden_size, device=device) * np.sqrt(2.0 / input_size)
+# 편향은 모양이 (1, hidden)이다. 배치 축으로 방송되어 표본마다 같은 값이
+# 더해진다. 0에서 시작해도 대칭이 깨지지 않는 까닭은 w가 무작위이기 때문이다
 b1 = torch.zeros(1, hidden_size, device=device)
 w2 = torch.randn(hidden_size, output_size, device=device) * np.sqrt(2.0 / hidden_size)
 b2 = torch.zeros(1, output_size, device=device)
@@ -39,9 +52,14 @@ def relu(x):
     return torch.maximum(x, torch.tensor(0.0, device=x.device))
 
 def relu_derivative(x):
+    # x = 0에서 ReLU는 미분할 수 없다. 여기서는 도함수를 0으로 정하는데,
+    # 부분미분 가운데 아무 값이나 골라도 되고 실전에서 차이는 없다
     return (x > 0).float()
 
 def sigmoid(x):
+    # x가 크게 음수면 exp(-x)가 넘쳐 inf가 되지만, 1/(1+inf)가 0으로
+    # 떨어져 NaN 없이 넘어간다. 대신 정확히 0이 나오므로 아래 손실에서
+    # log(0)을 막아 주어야 한다
     return 1 / (1 + torch.exp(-x))
 
 def forward(X, w1, b1, w2, b2):
@@ -49,12 +67,19 @@ def forward(X, w1, b1, w2, b2):
     a1 = relu(z1)
     z2 = a1 @ w2 + b2
     a2 = sigmoid(z2)
+    # 중간값을 남겨 두는 것이 순전파의 숨은 절반이다. 역전파는 z1의
+    # 부호와 a1의 값을 다시 필요로 하는데, 여기서 버리면 그때 다시
+    # 계산해야 한다. 메모리를 써서 계산을 아끼는 맞바꿈이며,
+    # PyTorch의 자동 미분도 속으로 똑같은 일을 한다
     cache = {'z1': z1, 'a1': a1, 'z2': z2, 'a2': a2}
     return a2, cache
 
 def compute_loss(y_true, y_pred):
+    # 예측이 정확히 0이나 1이면 log가 발산한다. 양 끝을 잘라 내
+    # 손실이 무한대가 되는 것을 막는다
     epsilon = 1e-7
     y_pred = torch.clamp(y_pred, epsilon, 1 - epsilon)
+    # 이진 교차 엔트로피. 이름표가 1이면 앞항만, 0이면 뒷항만 살아남는다
     return -torch.mean(y_true * torch.log(y_pred) +
                        (1 - y_true) * torch.log(1 - y_pred))
 
@@ -62,10 +87,21 @@ def backward(X, y_true, y_pred, cache, w2):
     n = X.shape[0]
     a1, a2 = cache['a1'], cache['a2']
     z1 = cache['z1']
+    # 시그모이드와 교차 엔트로피를 이어 붙이면 도함수가 이렇게 깔끔하게
+    # 줄어든다. 손실의 1/y_pred와 시그모이드의 a2(1-a2)가 서로 지워져
+    # "예측 빼기 정답"만 남는다. 그래서 여기 시그모이드의 도함수가
+    # 따로 보이지 않는다
     dz2 = a2 - y_true
+    # 손실이 평균이므로 1/n을 여기서 곱한다. a1.T @ dz2는 표본별 기여를
+    # 이미 더하고 있으니, 나누어 주어야 평균 기울기가 된다
     dw2 = (1 / n) * a1.T @ dz2
     db2 = (1 / n) * torch.sum(dz2, dim=0, keepdim=True)
+    # 여기서부터가 "역"전파다. 오차 신호를 w2의 전치로 되밀어
+    # 은닉층의 활성 a1이 진 책임을 나눈다
     da1 = dz2 @ w2.T
+    # ReLU가 문지기 노릇을 한다. 순전파에서 z1이 양수였던 자리로만
+    # 신호를 통과시키고 나머지는 막는다. 활성 뒤의 a1이 아니라
+    # 활성 전의 z1로 판정해야 한다는 점에 주의하라
     dz1 = da1 * relu_derivative(z1)
     dw1 = (1 / n) * X.T @ dz1
     db1 = (1 / n) * torch.sum(dz1, dim=0, keepdim=True)
@@ -73,15 +109,21 @@ def backward(X, y_true, y_pred, cache, w2):
 
 learning_rate = 0.1
 for epoch in range(1000):
+    # 200개를 통째로 넣는 전배치 경사 하강이다. 미니배치가 없으므로
+    # 에포크 하나가 곧 한 걸음이다
     y_pred, cache = forward(X, w1, b1, w2, b2)
     loss = compute_loss(y, y_pred)
     dw1, db1, dw2, db2 = backward(X, y, y_pred, cache, w2)
+    # 애초에 requires_grad를 켜지 않았으므로 no_grad는 사실 필요 없다.
+    # 다만 이 자리가 optimizer.step()에 해당한다는 표시로 남겨 둔다
     with torch.no_grad():
         w1 -= learning_rate * dw1
         b1 -= learning_rate * db1
         w2 -= learning_rate * dw2
         b2 -= learning_rate * db2
 
+# 주의: y_pred는 마지막 갱신 "전"의 예측이다. 갱신 뒤의 정확도를 재려면
+# forward를 한 번 더 불러야 한다. 여기서는 이미 수렴한 뒤라 차이가 없다
 predictions = (y_pred > 0.5).float()
 accuracy = (predictions == y).float().mean().item() * 100
 print(f"Final Accuracy: {accuracy:.2f}%")

@@ -15,10 +15,20 @@ torch.manual_seed(42)
 
 class SimpleNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
+        # super().__init__()을 빠뜨리면 nn.Module의 내부 장부가 만들어지지
+        # 않아, 아래 층들을 속성으로 붙이는 순간 오류가 난다
         super(SimpleNet, self).__init__()
+        # 층을 속성으로 붙이기만 하면 PyTorch가 알아서 등록한다. 앞 절에서
+        # w1, b1, w2, b2를 손수 들고 다니던 일을 이것이 대신한다.
+        # 등록된 덕에 model.parameters(), state_dict(), .to(device)가
+        # 모두 저절로 동작한다
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(hidden_size, output_size)
+        # 주의: 여기서 시그모이드를 걸고 아래에서 BCELoss를 쓴다. 뜻은
+        # 맞지만, 시그모이드를 빼고 BCEWithLogitsLoss를 쓰는 편이
+        # 수치적으로 안정하다. 그쪽은 log와 exp를 묶어 계산해
+        # 확률이 0이나 1에 붙었을 때 생기는 log(0)을 피한다
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -46,17 +56,28 @@ def generate_circle_data(n_samples):
 X, y = generate_circle_data(n_samples)
 X, y = X.to(device), y.to(device)
 
+# .to(device)를 최적화기를 만들기 "전"에 부르는 순서가 중요하다.
+# 최적화기는 넘겨받은 텐서를 그대로 붙잡으므로, 나중에 옮기면
+# 최적화기가 옛 장치의 텐서를 계속 갱신하게 된다
 model = SimpleNet(2, 16, 1).to(device)
 criterion = nn.BCELoss()
+# model.parameters()는 등록된 파라미터를 훑는 생성자다. 최적화기는 이
+# 목록만 알면 되고, 신경망의 모양은 알 필요가 없다
 optimizer = optim.Adam(model.parameters(), lr=0.01)
 
 for epoch in range(1000):
+    # PyTorch의 표준 다섯 단계. 앞 절에서 손으로 쓰던 backward 함수와
+    # 뺄셈 네 줄이 backward()와 step() 두 줄로 줄었다.
+    # zero_grad가 맨 앞에 오는 까닭은 기울기가 덮어쓰기가 아니라
+    # 누적이기 때문이다. 지우지 않으면 1000 에포크치가 계속 쌓인다
     optimizer.zero_grad()
     outputs = model(X)
     loss = criterion(outputs, y)
     loss.backward()
     optimizer.step()
 
+# 이 신경망에는 드롭아웃도 배치 정규화도 없어 eval()이 실제로 바꾸는 것은
+# 없다. no_grad는 다르다. 계산 그래프를 만들지 않아 메모리와 시간을 아낀다
 model.eval()
 with torch.no_grad():
     y_pred = model(X)
@@ -105,7 +126,14 @@ Adam을 SGD(학습률 0.1, 운동량 0.9)로 바꿔라. 1000 에폭에 걸친 �
     ```python
     for opt_name, opt_cls, kwargs in [('Adam', optim.Adam, {'lr': 0.01}),
                                        ('SGD', optim.SGD, {'lr': 0.1, 'momentum': 0.9})]:
+        # 최적화기마다 모델을 새로 만들어야 한다. 하나를 이어 쓰면
+        # 두 번째 최적화기가 이미 학습된 가중치에서 출발해 견주는
+        # 뜻이 없어진다. 다만 씨앗을 다시 심지 않았으므로 두 모델의
+        # 초기 가중치는 서로 다르다. 엄밀히 견주려면 이 줄 앞에
+        # torch.manual_seed(42)를 넣어야 한다
         model = SimpleNet(2, 16, 1).to(device)
+        # 학습률이 다르다는 점에 주의하라. Adam은 0.01, SGD는 0.1이다.
+        # Adam이 적률로 걸음 크기를 스스로 조절하므로 더 작은 값을 쓴다
         optimizer = opt_cls(model.parameters(), **kwargs)
         losses = []
         for epoch in range(1000):

@@ -86,12 +86,20 @@ class GaussianNoise(nn.Module):
         self.relative = relative
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # self.training이 문지기다. nn.Module이 model.train()과
+        # model.eval()에 맞추어 이 값을 뒤집어 준다. 평가할 때까지
+        # 잡음을 더하면 같은 입력에 매번 다른 답이 나온다
         if self.training and self.std > 0:
             if self.relative:
+                # 절댓값이 큰 자리에 큰 잡음을 준다. 특징마다 눈금이
+                # 제각각인 데이터에서 유용하다. 고정된 std를 쓰면
+                # 눈금이 작은 특징만 잡음에 파묻힌다
                 noise_std = self.std * torch.abs(x)
             else:
                 noise_std = self.std
             noise = torch.randn_like(x) * noise_std
+            # 제자리 연산(x += noise)이 아니라 새 텐서를 돌려준다.
+            # 제자리로 바꾸면 호출한 쪽의 입력까지 함께 오염된다
             return x + noise
         return x
 
@@ -105,6 +113,8 @@ class UniformNoise(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training:
+            # 정규 잡음과 달리 균등 잡음은 [low, high] 밖으로 나가지
+            # 않는다. 아주 드물게라도 큰 값이 튀는 것을 막고 싶을 때 쓴다
             noise = torch.empty_like(x).uniform_(self.low, self.high)
             return x + noise
         return x
@@ -118,10 +128,19 @@ class SaltAndPepperNoise(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training and self.prob > 0:
+            # 앞의 둘은 값을 흔들지만 이쪽은 값을 통째로 갈아 끼운다.
+            # 균등 난수 하나를 뽑아 양 끝에서 prob/2씩 잘라 내므로,
+            # 소금과 후추를 합쳐 대략 prob 비율의 화소가 바뀐다.
+            # 하나의 mask를 양쪽에 쓰는 덕에 두 조건은 겹칠 수 없다
             mask = torch.rand_like(x)
             salt = mask < self.prob / 2
             pepper = mask > (1 - self.prob / 2)
+            # 값을 0과 1로 못박으므로 입력이 [0, 1]로 정규화된 이미지여야
+            # 뜻이 맞는다. ImageNet 평균/표준편차로 표준화한 텐서에
+            # 그대로 걸면 1.0은 흰색이 아니다
             
+            # clone이 필수다. 이 뒤가 제자리 대입이라, 복제하지 않으면
+            # 호출한 쪽이 들고 있는 원본 이미지가 함께 망가진다
             x = x.clone()
             x[salt] = 1.0
             x[pepper] = 0.0
@@ -193,6 +212,11 @@ class GradientNoiseCallback:
     
     def get_noise_std(self) -> float:
         """현재 잡음의 표준편차를 계산한다."""
+        # 일정이 정하는 것은 분산이고 잡음에 곱할 값은 표준편차이므로,
+        # 마지막에 제곱근을 취해야 한다. 이 줄을 빠뜨리면 초반 잡음이
+        # eta 그대로여서 훨씬 세진다.
+        # gamma는 줄어드는 속도다. 0.55는 원 논문의 값으로, 처음에는
+        # 극소점을 벗어날 만큼 흔들다가 뒤로 갈수록 잦아들게 한다
         variance = self.eta / ((1 + self.step) ** self.gamma)
         return variance ** 0.5
     
@@ -200,9 +224,17 @@ class GradientNoiseCallback:
         """모든 기울기에 잡음을 더한다."""
         std = self.get_noise_std()
         
+        # 부르는 자리가 정해져 있다. loss.backward() "뒤", optimizer.step()
+        # "앞"이다. 앞서 부르면 아직 기울기가 없어 아무 일도 하지 않고,
+        # 뒤에 부르면 이미 갱신이 끝난 뒤라 잡음이 다음 걸음으로 밀린다
         with torch.no_grad():
             for param in model.parameters():
+                # 학습에 참여하지 않은 파라미터는 grad가 None이다.
+                # 걸러 내지 않으면 AttributeError가 난다
                 if param.grad is not None:
+                    # 여기서는 제자리 add_가 맞다. 최적화기가 읽는 것은
+                    # param.grad 그 텐서이므로, 새 텐서를 만들면
+                    # 잡음이 반영되지 않는다
                     noise = torch.randn_like(param.grad) * std
                     param.grad.add_(noise)
         
