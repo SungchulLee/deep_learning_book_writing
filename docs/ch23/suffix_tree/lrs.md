@@ -203,6 +203,15 @@ if __name__ == "__main__":
     # 'abcd'의 가장 긴 되풀이 부분 글줄: ''(길이 0)
 ```
 
+**출력:**
+
+```
+LRS of 'banana': 'ana' (length 3)
+LRS of 'abcabc': 'abc' (length 3)
+LRS of 'aabaaab': 'aab' (length 3)
+LRS of 'abcd': '' (length 0)
+```
+
 ---
 
 ## 6. 복잡도 비교

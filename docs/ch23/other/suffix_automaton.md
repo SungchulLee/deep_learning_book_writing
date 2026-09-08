@@ -184,6 +184,20 @@ if __name__ == "__main__":
     # 'abcdef'과 'zbcdf'의 최장 공통 부분 글줄: 'bcd'
 ```
 
+**출력:**
+
+```
+String: 'abcbc'
+States: 8
+Distinct substrings: 12
+  Contains 'abc': True
+  Contains 'bcb': True
+  Contains 'cb': True
+  Contains 'xyz': False
+
+LCS of 'abcdef' and 'zbcdf': 'bcd'
+```
+
 ---
 
 ## 5. 복잡도

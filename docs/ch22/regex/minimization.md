@@ -111,6 +111,13 @@ print(f"Minimized states: {len(new_states)}")
 # 상태 0과 2는 같다(둘 다 받아들이지 않고 몸가짐이 같다)
 ```
 
+**출력:**
+
+```
+Original states: 5
+Minimized states: 4
+```
+
 ---
 
 ## 2. 복잡도

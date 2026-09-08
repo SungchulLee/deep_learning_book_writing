@@ -365,6 +365,14 @@ ax.legend()
 plt.show()
 ```
 
+**출력:**
+
+```
+Original shape:      (200, 2)
+Projected shape:     (200, 1)
+Reconstructed shape: (200, 2)
+```
+
 ### 쓰임새 2: MNIST 눌러 담기
 
 흩어짐의 95%를 남긴 채 784차원 손글씨 숫자 그림을 눌러 담는다:

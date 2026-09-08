@@ -155,6 +155,12 @@ print(f"Max difference: {np.abs(Y_pca - Y_mds).max():.2e}")
 # 기계 엡실론에 가깝다
 ```
 
+**출력:**
+
+```
+Max difference: 1.55e-14
+```
+
 ---
 
 ## 6. 계량 MDS(스트레스 가장 작게 하기)
@@ -303,6 +309,12 @@ mds_nm = MDS(
     normalized_stress='auto'
 )
 Y_nm = mds_nm.fit_transform(D)
+```
+
+**출력:**
+
+```
+Stress: 9775.5425
 ```
 
 ---

@@ -168,6 +168,18 @@ if __name__ == "__main__":
     #   'AACA': [3]
 ```
 
+**출력:**
+
+```
+Text:    AABAACAADAABAABA
+Pattern: AABA
+Matches at: [0, 9, 12]
+
+Multi-pattern search:
+  'AABA': [0, 9, 12]
+  'AACA': [3]
+```
+
 ---
 
 ## 5. 풀이 예제

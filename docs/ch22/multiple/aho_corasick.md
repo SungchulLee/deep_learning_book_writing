@@ -83,6 +83,15 @@ for pos, pat in sorted(matches):
 #   본 'hers'을 자리 4에서 찾음
 ```
 
+**출력:**
+
+```
+  Pattern 'his' found at position 1
+  Pattern 'she' found at position 3
+  Pattern 'he' found at position 4
+  Pattern 'hers' found at position 4
+```
+
 ---
 
 ## 2. 복잡도 분석

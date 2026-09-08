@@ -305,6 +305,24 @@ if __name__ == "__main__":
     test_dcgan()
 ```
 
+**출력:**
+
+```
+Testing DCGAN for 28x28 images (MNIST)...
+Generator output shape: torch.Size([16, 1, 28, 28])
+Discriminator output shape: torch.Size([16, 1])
+Generator parameters: 5,207,424
+Discriminator parameters: 431,872
+
+Testing DCGAN for 64x64 images...
+Generator output shape: torch.Size([16, 3, 64, 64])
+Discriminator output shape: torch.Size([16, 1])
+Generator parameters: 3,576,704
+Discriminator parameters: 2,765,568
+
+All tests passed! ✓
+```
+
 ## 2. 논의
 
 DCGANGenerator은 두 단계 얼개를 쓴다. 곧 먼저 숨은 벡터를 묶음 고르게 맞추기를 갖춘 선형 층으로 공간 특징 지도에 쏜 뒤 자리 바꾼 겹말기로 키운다. 키우는 덩이마다 ConvTranspose2d, BatchNorm2d, ReLU의 결을 따르며 마지막 층은 Tanh으로 $[-1, 1]$ 안의 그림을 만든다. 갈래 적기와 자세한 설명글이 있어 참고 짜기로 알맞다.

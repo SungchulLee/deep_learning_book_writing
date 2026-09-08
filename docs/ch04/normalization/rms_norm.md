@@ -156,26 +156,33 @@ def compare_normalization_effects():
     """LayerNorm과 RMSNorm이 활성화에 미치는 영향을 비교한다."""
     
     torch.manual_seed(42)
-    
+
     dim = 512
-    ln = nn.LayerNorm(dim)
-    rms = RMSNorm(dim)
-    
-    # 서로 다른 입력 분포로 시험
+    ln = nn.LayerNorm(dim)   # 평균을 빼고 표준편차로 나눈다
+    rms = RMSNorm(dim)       # 나누기만 하고 평균은 빼지 않는다
+
+    # 네 가지 입력으로 두 정규화의 차이를 드러낸다.
+    # 특히 "Shifted"가 핵심이다. 중심이 5만큼 밀려 있을 때
+    # LayerNorm은 그 밀림을 없애지만 RMSNorm은 그대로 둔다
     test_cases = [
-        ("Normal", torch.randn(32, dim)),
-        ("Shifted", torch.randn(32, dim) + 5.0),
-        ("Scaled", torch.randn(32, dim) * 10.0),
-        ("Skewed", torch.exp(torch.randn(32, dim))),
+        ("Normal", torch.randn(32, dim)),            # 평균 0, 표준편차 1
+        ("Shifted", torch.randn(32, dim) + 5.0),     # 중심만 옮긴 것
+        ("Scaled", torch.randn(32, dim) * 10.0),     # 자만 키운 것
+        ("Skewed", torch.exp(torch.randn(32, dim))), # 로그정규: 한쪽으로 크게 기운 것
     ]
-    
+
     print("Comparison of LayerNorm vs RMSNorm:")
     print("=" * 60)
-    
+
     for name, x in test_cases:
         ln_out = ln(x)
         rms_out = rms(x)
-        
+
+        # 출력의 평균을 나란히 찍는 것이 이 비교의 요점이다.
+        # LayerNorm의 평균은 어떤 입력에서도 0에 가깝게 나오지만,
+        # RMSNorm은 입력이 밀려 있으면 출력도 밀린 채로 남는다.
+        # 그런데도 트랜스포머에서 잘 도는 까닭은, 학습된 가중치가
+        # 그 밀림을 흡수할 수 있어 중심 맞추기가 굳이 필요 없기 때문이다
         print(f"\n{name} input (mean={x.mean():.2f}, std={x.std():.2f}):")
         print(f"  LayerNorm: mean={ln_out.mean():.4f}, std={ln_out.std():.4f}")
         print(f"  RMSNorm:   mean={rms_out.mean():.4f}, std={rms_out.std():.4f}")

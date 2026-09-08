@@ -137,26 +137,41 @@ class NoiseAugmentation:
         self.noise_types = noise_types
     
     def __call__(self, image):
+        # PIL 이미지로 들어올 수도 있으므로 텐서로 맞춰 둔다.
+        # 아래 연산이 모두 [0,1] 범위의 텐서를 가정하기 때문이다
         if isinstance(image, Image.Image):
             image = T.ToTensor()(image)
-        
+
+        # 매번 하나만 고른다. 셋을 겹쳐 걸면 원본이 너무 망가져
+        # 학습에 도움이 되기보다 방해가 된다
         noise_type = np.random.choice(self.noise_types)
-        
+
         if noise_type == 'gaussian':
+            # 센서 잡음을 흉내 낸다. 표준편차 0.05는 [0,1] 눈금에서
+            # 눈에 거의 띄지 않을 만큼 작은 값이다
             noise = torch.randn_like(image) * 0.05
+            # clamp가 반드시 필요하다. 잡음을 더하면 화솟값이 [0,1]을
+            # 벗어나는데, 그대로 두면 뒤의 정규화가 엉뚱한 값을 받는다
             image = torch.clamp(image + noise, 0, 1)
+
         elif noise_type == 'blur':
+            # 초점이 나갔거나 흔들린 사진을 흉내 낸다.
+            # sigma를 범위로 주면 흐림 정도가 매번 무작위로 뽑힌다
             image = T.GaussianBlur(kernel_size=5, sigma=(0.1, 2.0))(image)
+
         elif noise_type == 'jpeg':
-            # JPEG 압축 잡티 모의실험
-            quality = np.random.randint(30, 95)
+            # JPEG 압축 잡티 모의실험.
+            # 실제로 압축했다 푸는 까닭은, JPEG 특유의 블록 무늬를
+            # 손으로 흉내 내기 어렵기 때문이다. 웹에서 긁어모은
+            # 사진으로 추론할 모델에는 이 잡티에 대한 내성이 중요하다
+            quality = np.random.randint(30, 95)   # 낮을수록 심하게 뭉갠다
             pil_img = T.ToPILImage()(image)
             import io
-            buffer = io.BytesIO()
+            buffer = io.BytesIO()   # 파일 대신 메모리에 쓴다
             pil_img.save(buffer, format='JPEG', quality=quality)
-            buffer.seek(0)
+            buffer.seek(0)          # 방금 쓴 자리를 다시 읽으려면 처음으로 되돌린다
             image = T.ToTensor()(Image.open(buffer))
-        
+
         return image
 ```
 

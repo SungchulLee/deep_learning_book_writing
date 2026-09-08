@@ -213,6 +213,18 @@ if __name__ == "__main__":
     print(f"LCS: '{result}' (length {len(result)})")
 ```
 
+**출력:**
+
+```
+S1: 'abcdefg'
+S2: 'cdefxyz'
+LCS: 'cdef' (length 4)
+
+S1: 'banana'
+S2: 'ananas'
+LCS: 'anana' (length 5)
+```
+
 ---
 
 ## 6. 복잡도 비교

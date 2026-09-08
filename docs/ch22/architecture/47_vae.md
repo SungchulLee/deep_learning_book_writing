@@ -46,6 +46,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 1,082,680
+```
+
 ## 2. 논의
 
 다시 매개변수화 재주가 변분 자기 부호기의 고갱이 새것이다. $z \sim \mathcal{N}(\mu, \sigma^2)$을 곧바로 뽑는(미분할 수 없는) 대신 $\epsilon \sim \mathcal{N}(0, I)$에 대해 $z = \mu + \sigma \odot \epsilon$으로 쓴다. 그러면 무작위가 셈 그래프 밖으로 나가 뒤먹임 퍼뜨리기 때 기울기가 $\mu$과 $\sigma$을 지나 흐를 수 있다.

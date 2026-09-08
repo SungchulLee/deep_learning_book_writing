@@ -230,6 +230,24 @@ if __name__ == "__main__":
     print(f"Expected O(log n) = {2 * 13.8:.1f} (2 * ln 1000)")
 ```
 
+**출력:**
+
+```
+Inserted: [5, 2, 8, 1, 4, 7, 9, 3, 6]
+Inorder:  [1, 2, 3, 4, 5, 6, 7, 8, 9]
+Height:   5
+Root:     key=2, priority=0.0250
+Search 4: True
+Search 10: False
+
+After deleting 5:
+Inorder:  [1, 2, 3, 4, 6, 7, 8, 9]
+Height:   4
+
+Average height of treap with 1000 keys: 21.2
+Expected O(log n) = 27.6 (2 * ln 1000)
+```
+
 ---
 
 ## 7. 가르기와 합치기

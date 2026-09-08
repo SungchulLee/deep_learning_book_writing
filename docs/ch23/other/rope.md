@@ -197,6 +197,16 @@ if __name__ == "__main__":
     # 지운 뒤: 'Hello_World'
 ```
 
+**출력:**
+
+```
+Rope: 'Hello_World'
+Length: 11
+Index 6: 'W'
+After insert: 'Hello Beautiful_World'
+After delete: 'Hello_World'
+```
+
 ---
 
 ## 연습문제

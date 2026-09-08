@@ -156,6 +156,23 @@ if __name__ == "__main__":
         print(f"  LCP[{k}] = {lcp[k]:2d}  suffix: {suffix}")
 ```
 
+**출력:**
+
+```
+Text: banana$
+SA:   [6, 5, 3, 1, 0, 4, 2]
+LCP:  [0, 0, 1, 3, 0, 0, 2]
+
+Verification:
+  LCP[0] =  0  suffix: $
+  LCP[1] =  0  suffix: a$
+  LCP[2] =  1  suffix: ana$
+  LCP[3] =  3  suffix: anana$
+  LCP[4] =  0  suffix: banana$
+  LCP[5] =  0  suffix: na$
+  LCP[6] =  2  suffix: nana$
+```
+
 ---
 
 ## 연습문제

@@ -88,6 +88,13 @@ if __name__ == "__main__":
     print(f"Discriminator Parameters: {sum(p.numel() for p in model.discriminator.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Generator Parameters: 856,065
+Discriminator Parameters: 97,729
+```
+
 ## 2. 논의
 
 DCGAN 얼개는 본디 논문의 중요한 설계 원칙 여럿을 따른다. 만들개는 자리 바꾼 겹말기(이따금 역겹말기라 부른다)로 옹골찬 숨은 나타냄에서 온전한 그림 해상도로 키운다. 층마다 묶음 고르게 맞추기 뒤 ReLU 깨움을 쓰되 내놓기 층만 Tanh을 쓴다. 가름개는 이를 거울처럼 뒤집어 성큼 겹말기로 줄이며 LeakyReLU 깨움과 묶음 고르게 맞추기를 쓴다(들임 층은 뺀다).

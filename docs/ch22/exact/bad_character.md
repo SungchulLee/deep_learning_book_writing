@@ -63,6 +63,12 @@ print(bad_character_search(text, pattern))
 # 내놓기: [6]
 ```
 
+**출력:**
+
+```
+[6]
+```
+
 ---
 
 ## 3. 넓힌 나쁜 글자 규칙

@@ -264,6 +264,19 @@ if __name__ == "__main__":
               f"win_rate={wr:.3f}")
 ```
 
+**출력:**
+
+```
+Nim with 10 stones
+Best action: take 3 stone(s)
+  Visits: 3618, Win rate: 0.961
+
+All moves from root:
+  Take 3: visits=3402, win_rate=0.959
+  Take 2: visits=1500, win_rate=0.923
+  Take 1: visits=98, win_rate=0.612
+```
+
 ---
 
 ## 6. 변형과 확장

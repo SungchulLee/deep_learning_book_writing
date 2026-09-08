@@ -76,6 +76,13 @@ print(f"Good suffix shift table: {table}")
 # 내놓기: 좋은 뒷가지 밀기 표: [4, 4, 4, 4, 2, 1]
 ```
 
+**출력:**
+
+```
+Pattern: ABCBAB
+Good suffix shift table: [4, 4, 4, 4, 2, 3]
+```
+
 ---
 
 ## 4. 보기 따라가기

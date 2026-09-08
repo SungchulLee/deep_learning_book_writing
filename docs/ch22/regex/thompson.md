@@ -121,6 +121,13 @@ nfa = thompson(postfix)
 print(f"Start state: {nfa.start.id}, Accept state: {nfa.accept.id}")
 ```
 
+**출력:**
+
+```
+Postfix: abc|*.d.
+Start state: 0, Accept state: 11
+```
+
 ---
 
 ## 3. 성질

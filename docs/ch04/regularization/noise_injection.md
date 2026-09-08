@@ -138,27 +138,41 @@ class NoisyLinear(nn.Module):
                  noise_std: float = 0.1, bias: bool = True):
         super().__init__()
         self.noise_std = noise_std
-        
+
+        # 1/sqrt(fan_in)으로 나누어 초기화한다. 입력이 많을수록 합이
+        # 커지므로 그만큼 미리 줄여 두어야 출력의 분산이 일정하게 유지된다
         self.weight = nn.Parameter(torch.randn(out_features, in_features) / 
                                    (in_features ** 0.5))
         if bias:
             self.bias = nn.Parameter(torch.zeros(out_features))
         else:
+            # None을 그냥 대입하지 않고 register_parameter로 등록한다.
+            # 이래야 self.bias가 존재하면서 state_dict에도 자리를 남겨
+            # 나중에 저장하고 불러올 때 모양이 어긋나지 않는다
             self.register_parameter('bias', None)
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # 드롭아웃이 활성을 끄는 데 견주어, 여기서는 가중치 자체를 흔든다.
+        # 매 걸음 조금씩 다른 가중치로 학습하는 셈이라, 손실 지형에서
+        # 좁고 뾰족한 골짜기 대신 넓고 평평한 골짜기를 찾게 된다.
+        # 평평한 최소점이 일반화가 낫다는 것이 이 기법의 근거다
         if self.training and self.noise_std > 0:
+            # 주의: 잡음을 self.weight에 제자리로 더하지 않고 새 텐서를
+            # 만든다. 제자리로 더하면 학습된 가중치가 영구히 오염된다
             weight_noise = torch.randn_like(self.weight) * self.noise_std
             noisy_weight = self.weight + weight_noise
-            
+
             if self.bias is not None:
                 bias_noise = torch.randn_like(self.bias) * self.noise_std
                 noisy_bias = self.bias + bias_noise
             else:
                 noisy_bias = None
-            
+
+            # nn.Linear 대신 functional.linear를 쓰는 까닭은, 매 걸음
+            # 달라지는 가중치를 인자로 곧바로 넘겨야 하기 때문이다
             return nn.functional.linear(x, noisy_weight, noisy_bias)
-        
+
+        # 평가할 때는 잡음 없이 배운 가중치를 그대로 쓴다
         return nn.functional.linear(x, self.weight, self.bias)
 ```
 

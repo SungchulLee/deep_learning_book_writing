@@ -211,6 +211,14 @@ if __name__ == "__main__":
     print("Saved visualization to sample_time_series.png")
 ```
 
+**출력:**
+
+```
+Created 195 training sequences
+Input shape: torch.Size([195, 5]), Output shape: torch.Size([195, 1])
+Saved visualization to sample_time_series.png
+```
+
 ## 2. 논의
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.

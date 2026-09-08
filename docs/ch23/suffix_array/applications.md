@@ -254,6 +254,18 @@ if __name__ == "__main__":
     print(f"Distinct substrings: {count}")
 ```
 
+**출력:**
+
+```
+Text: banana$
+SA:  [6, 5, 3, 1, 0, 4, 2]
+LCP: [0, 0, 1, 3, 0, 0, 2]
+
+'ana' found at positions: [1, 3]
+Longest repeated substring: 'ana'
+Distinct substrings: 22
+```
+
 ---
 
 ## 연습문제

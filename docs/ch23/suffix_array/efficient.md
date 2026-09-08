@@ -190,6 +190,22 @@ if __name__ == "__main__":
         print(f"  SA[{i}] = {idx}: {text[idx:]}")
 ```
 
+**출력:**
+
+```
+Text: banana$
+Suffix Array: [6, 5, 3, 1, 0, 4, 2]
+
+Sorted suffixes:
+  SA[0] = 6: $
+  SA[1] = 5: a$
+  SA[2] = 3: ana$
+  SA[3] = 1: anana$
+  SA[4] = 0: banana$
+  SA[5] = 4: na$
+  SA[6] = 2: nana$
+```
+
 ---
 
 ## 연습문제

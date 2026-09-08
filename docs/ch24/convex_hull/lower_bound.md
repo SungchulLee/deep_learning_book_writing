@@ -147,6 +147,15 @@ if __name__ == "__main__":
     print(f"Sorted output: {sorted_numbers}")
 ```
 
+**출력:**
+
+```
+Input numbers: [3, 1, 4, 5, 2]
+Lifted points: [(3, 9), (1, 1), (4, 16), (5, 25), (2, 4)]
+Convex hull:   [(1, 1), (2, 4), (3, 9), (4, 16), (5, 25)]
+Sorted output: [1, 2, 3, 4, 5]
+```
+
 ---
 
 ## 5. 내놓기에 민감한 알고리즘

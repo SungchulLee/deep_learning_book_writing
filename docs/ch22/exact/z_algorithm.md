@@ -44,6 +44,12 @@ print(z_function("aabxaab"))
 # 내놓기: [0, 1, 0, 0, 3, 1, 0]
 ```
 
+**출력:**
+
+```
+[0, 1, 0, 0, 3, 1, 0]
+```
+
 ---
 
 ## 3. 본 찾기에 쓰기
@@ -69,6 +75,12 @@ text = "AABCAABXAAAZ"
 pattern = "AAB"
 print(z_search(text, pattern))
 # 내놓기: [0, 4]
+```
+
+**출력:**
+
+```
+[0, 4]
 ```
 
 ---

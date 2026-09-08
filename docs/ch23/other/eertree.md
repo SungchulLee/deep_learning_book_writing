@@ -153,6 +153,18 @@ if __name__ == "__main__":
     #   길이 3: 1번 나옴
 ```
 
+**출력:**
+
+```
+String: 'abaab'
+Distinct palindromes: 5
+  length 1: occurs 2 times
+  length 1: occurs 3 times
+  length 2: occurs 1 times
+  length 3: occurs 1 times
+  length 4: occurs 1 times
+```
+
 ---
 
 ## 5. 복잡도

@@ -146,6 +146,15 @@ if __name__ == "__main__":
     # 맞은 자리: [9]
 ```
 
+**출력:**
+
+```
+Text:    ABABDABACDABABCABAB
+Pattern: ABABCABAB
+Failure: [0, 0, 1, 2, 0, 1, 2, 3, 4]
+Matches at: [10]
+```
+
 ---
 
 ## 7. 풀이 예제

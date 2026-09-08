@@ -69,6 +69,13 @@ print(f"DFA start: {sorted(start)}")
 print(f"Number of DFA states: {len({start} | {v for v in trans.values()})}")
 ```
 
+**출력:**
+
+```
+DFA start: [0, 1, 2, 4, 7]
+Number of DFA states: 5
+```
+
 ---
 
 ## 2. 복잡도 분석

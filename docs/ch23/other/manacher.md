@@ -144,6 +144,15 @@ if __name__ == "__main__":
     # 'abacaba' -> 'abacaba'(시작=0, 길이=7)
 ```
 
+**출력:**
+
+```
+'babad' -> 'bab' (start=0, length=3)
+'cbbd' -> 'bb' (start=1, length=2)
+'abaaba' -> 'abaaba' (start=0, length=6)
+'abacaba' -> 'abacaba' (start=0, length=7)
+```
+
 ---
 
 ## 6. 풀이 예제

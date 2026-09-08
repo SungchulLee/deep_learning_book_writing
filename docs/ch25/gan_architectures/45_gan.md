@@ -77,6 +77,13 @@ if __name__ == "__main__":
     print(f"Discriminator Parameters: {sum(p.numel() for p in model.discriminator.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Generator Parameters: 1,510,032
+Discriminator Parameters: 533,505
+```
+
 ## 2. 논의
 
 맞겨루기 만들개 얼개는 겨루는 신경망 둘로 이루어진다. 만들개는 아무 숨은 벡터 $z \sim \mathcal{N}(0, I)$을 묶음 고르게 맞추기와 LeakyReLU 깨움을 갖춘 온전 이음 층 여러 개를 지나 옮기고 마침내 Tanh 내놓기로 그림을 만든다. 가름개는 (실제이든 만든 것이든) 그림을 받아 들임이 실제인지 나타내는 확률을 내놓는다. 이 맞겨루기 채비는 최소최대 목표로 갖추어 적는다.

@@ -225,6 +225,21 @@ if __name__ == "__main__":
     print(f"Breakpoints of A and B at sweep={sweep}: y={bp}")
 ```
 
+**출력:**
+
+```
+Sites: A=(1, 3), B=(3, 1), C=(5, 4)
+Circumcircle: center=(3.100, 3.100), r=2.102
+Circle event x = 5.202
+  y=0: parab_A=1.00, parab_B=3.00
+  y=1: parab_A=1.83, parab_B=3.50
+  y=2: parab_A=2.33, parab_B=3.00
+  y=3: parab_A=2.50, parab_B=1.50
+  y=4: parab_A=2.33, parab_B=-1.00
+  y=5: parab_A=1.83, parab_B=-4.50
+Breakpoints of A and B at sweep=4.0: y=[2.449489742783178, -2.449489742783178]
+```
+
 ---
 
 ## 연습문제
