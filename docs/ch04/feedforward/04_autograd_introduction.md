@@ -12,8 +12,12 @@ import numpy as np
 torch.manual_seed(42)
 
 # 자동 미분 기초: x = 3에서 y = x^2의 dy/dx
+# requires_grad=True가 "이 텐서에 얽힌 연산을 기록해 두라"는 표시다.
+# 이것을 켠 텐서만 잎(leaf)이 되어 나중에 .grad를 받는다
 x = torch.tensor(3.0, requires_grad=True)
 y = x ** 2
+# backward()는 스칼라에만 부를 수 있다. y가 벡터라면 어느 방향으로
+# 미분할지 알 수 없어, gradient 인자를 따로 넘겨야 한다
 y.backward()
 print(f"dy/dx at x=3: {x.grad.item()}")  # 2*3 = 6
 
@@ -43,12 +47,19 @@ def generate_circle_data(n_samples):
 X, y = generate_circle_data(n_samples)
 X, y = X.to(device), y.to(device)
 
+# 앞 절(03)과 같은 문제를 같은 구조로 푼다. 다른 것은 requires_grad를
+# 켰다는 점 하나이고, 그 대가로 backward 함수를 손으로 쓰지 않아도 된다.
+# 주의: 앞 절과 달리 He 초기화(sqrt(2/fan_in) 곱하기)가 빠져 있다.
+# 층이 둘뿐이라 큰 탈은 없지만, 깊어지면 이 차이가 드러난다
 w1 = torch.randn(2, 8, device=device, requires_grad=True)
 b1 = torch.zeros(1, 8, device=device, requires_grad=True)
 w2 = torch.randn(8, 1, device=device, requires_grad=True)
 b2 = torch.zeros(1, 1, device=device, requires_grad=True)
 
 def forward(X, w1, b1, w2, b2):
+    # 앞 절에서는 역전파에 쓰려고 z1, a1을 cache에 담아 두었다. 여기서는
+    # 그럴 필요가 없다. autograd가 연산을 따라가며 필요한 중간값을
+    # 스스로 붙들고 있기 때문이다
     z1 = X @ w1 + b1
     a1 = torch.relu(z1)
     z2 = a1 @ w2 + b2
@@ -62,6 +73,9 @@ def compute_loss(y_true, y_pred):
 
 learning_rate = 0.1
 for epoch in range(1000):
+    # 기울기는 덮어쓰기가 아니라 누적이므로 걸음마다 지워야 한다.
+    # 이 네 줄이 곧 optimizer.zero_grad()가 하는 일이다.
+    # 첫 걸음에서는 아직 .grad가 없어 None이라, 검사가 필요하다
     if w1.grad is not None:
         w1.grad.zero_()
         b1.grad.zero_()
@@ -70,8 +84,14 @@ for epoch in range(1000):
 
     y_pred = forward(X, w1, b1, w2, b2)
     loss = compute_loss(y, y_pred)
+    # 이 한 줄이 앞 절의 backward 함수 전체를 대신한다. 연쇄 법칙을
+    # 손으로 펼쳐 쓴 열 줄 남짓이 여기로 접혔다
     loss.backward()
 
+    # 여기서는 no_grad가 정말로 필요하다. w1은 requires_grad가 켜진
+    # 잎이라, 그냥 빼면 그 뺄셈까지 그래프에 기록되어 다음 backward가
+    # 엉키고 메모리도 계속 불어난다. 앞 절(03)에서는 requires_grad를
+    # 켜지 않아 no_grad가 장식이었지만, 이 절에서는 문법적 요구다
     with torch.no_grad():
         w1 -= learning_rate * w1.grad
         b1 -= learning_rate * b1.grad

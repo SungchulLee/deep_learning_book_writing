@@ -437,12 +437,19 @@ class ResidualBlock(nn.Module):
         )
     
     def forward(self, x):
+        # 이 페이지의 답이 이 한 줄에 있다. x + f(x)를 x로 미분하면
+        # 1 + f'(x)이므로, f 쪽 기울기가 아무리 작아져도 1이 남는다.
+        # 층을 스무 번 지나도 기울기가 0으로 사그라들지 않는 까닭이다.
+        # 블록 끝에 활성화를 두지 않고 더한 "뒤"에 거는 순서도 중요하다.
+        # 그래야 항등 경로가 활성화를 거치지 않고 곧장 흐른다
         return torch.relu(x + self.block(x))   # 건너뛰기 연결
 
 class ResidualMLP(nn.Module):
     """잔차 연결을 갖는 깊은 MLP."""
     def __init__(self, input_dim, hidden_dim, output_dim, num_blocks):
         super().__init__()
+        # 잔차 블록은 입력과 출력의 크기가 같아야 더할 수 있다. 그래서
+        # 먼저 784차원을 hidden_dim으로 옮겨 놓고 블록을 쌓는다
         self.proj = nn.Sequential(nn.Linear(input_dim, hidden_dim), nn.ReLU())
         self.blocks = nn.Sequential(*[ResidualBlock(hidden_dim) for _ in range(num_blocks)])
         self.head = nn.Linear(hidden_dim, output_dim)
@@ -454,6 +461,9 @@ class ResidualMLP(nn.Module):
 torch.manual_seed(42)
 model = ResidualMLP(784, 128, 10, num_blocks=10)   # 실효 층 20개
 
+# 배치 크기가 32인 것은 BatchNorm1d 때문이기도 하다. 배치가 1이면
+# 배치 안의 분산이 정의되지 않아 학습 모드에서 오류가 난다.
+# 모델을 eval()로 바꾸지 않았으므로 BN은 이 배치의 통계를 쓴다
 x = torch.randn(32, 784)
 y = torch.randint(0, 10, (32,))
 loss = nn.CrossEntropyLoss()(model(x), y)

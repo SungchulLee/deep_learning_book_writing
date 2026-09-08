@@ -202,6 +202,9 @@ def create_mlp(architecture: list[int]) -> nn.Sequential:
     layers = []
     for i in range(len(architecture) - 1):
         layers.append(nn.Linear(architecture[i], architecture[i + 1]))
+        # 마지막 층 뒤에만 ReLU를 빼는 조건이다. 출력이 로짓이어야
+        # CrossEntropyLoss에 넣을 수 있는데, ReLU를 걸면 음수 로짓이
+        # 모두 0으로 눌려 버린다
         if i < len(architecture) - 2:
             layers.append(nn.ReLU())
     return nn.Sequential(*layers)
@@ -222,10 +225,15 @@ def train_and_evaluate(
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     
+    # 주의: GPU에서는 이 시간이 부정확하다. CUDA 연산은 비동기라
+    # 파이썬이 먼저 앞서 나가므로, 제대로 재려면 t0 앞뒤로
+    # torch.cuda.synchronize()를 불러야 한다
     t0 = time.time()
     for epoch in range(epochs):
         model.train()
         for data, target in train_loader:
+            # MNIST는 (1, 28, 28)로 오므로 784짜리 벡터로 편다.
+            # MLP에는 공간 구조를 다룰 재간이 없어 그냥 펴서 넣는다
             data = data.view(data.size(0), -1).to(device)
             target = target.to(device)
             optimizer.zero_grad()
@@ -258,6 +266,12 @@ train_loader  = DataLoader(train_dataset, batch_size=128, shuffle=True)
 test_loader   = DataLoader(test_dataset,  batch_size=256)
 
 # ── 구조: 매개변수 예산을 대략 같게 맞춘다 ──
+# 주의: 실제로는 예산이 맞지 않는다. 아래에서 찍히는 매개변수 수는
+# 각각 약 814k, 235k, 63k, 335k로 13배 가까이 벌어진다. 첫 층이
+# 784 x 은닉폭이라 전체를 좌우하기 때문이다. 그러므로 이 표에서
+# "깊이가 정확도를 얼마나 올리는가"를 곧바로 읽어 낼 수는 없다.
+# 정확도 차이에는 깊이의 효과와 크기의 효과가 섞여 있다.
+# 예산을 정말로 맞추려면 첫 은닉층의 폭을 조정해야 한다
 architectures = {
     'Wide-Shallow (1 hidden)':   [784, 1024, 10],
     'Medium (2 hidden)':         [784, 256, 128, 10],
@@ -271,6 +285,8 @@ print(f"{'Name':<28s} {'Params':>10s} {'Accuracy':>10s} {'Time (s)':>10s}")
 print("-" * 75)
 
 for name, arch in architectures.items():
+    # 모델을 만들기 직전마다 씨앗을 다시 심는다. 이렇게 해야 초기화의
+    # 운이 아니라 구조의 차이를 보는 것이 된다
     torch.manual_seed(42)
     model = create_mlp(arch)
     params = count_params(model)
