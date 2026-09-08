@@ -1,9 +1,0 @@
-| | v1 | v2 | v3 |
-|---|---|---|---|
-| Math score | 2.0 / 10 | 2.0 / 10 | 9.5 / 10 |
-| Writing score | 1.5 / 10 | 2.0 / 10 | 9.5 / 10 |
-
-v2 → v3  2026-03-26
-Math fixes: 4 (🔴 3, 🟡 1, 🟢 0)
-Writing fixes: 3 (🔴 3, 🟡 0, 🟢 0)
-Skipped: none
