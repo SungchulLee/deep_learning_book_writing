@@ -108,6 +108,10 @@ class NetworkWithDropout(nn.Module):
         prev_dim = input_dim
         
         for hidden_dim in hidden_dims:
+            # 순서가 선형 → 활성화 → 드롭아웃이다. ReLU와 드롭아웃은
+            # 자리를 바꾸어도 결과가 같지만(둘 다 0을 0으로 보낸다),
+            # 시그모이드처럼 0을 0으로 보내지 않는 활성화에서는
+            # 달라지므로 이 순서를 습관으로 두는 편이 낫다
             layers.extend([
                 nn.Linear(prev_dim, hidden_dim),
                 nn.ReLU(),
@@ -115,13 +119,18 @@ class NetworkWithDropout(nn.Module):
             ])
             prev_dim = hidden_dim
         
+        # 출력층 뒤에는 드롭아웃을 걸지 않는다. 로짓을 무작위로
+        # 지우면 그 표본의 예측 자체가 망가지기 때문이다.
+        # 드롭아웃은 은닉 표현에만 건다
         layers.append(nn.Linear(prev_dim, output_dim))
         self.network = nn.Sequential(*layers)
     
     def forward(self, x):
         return self.network(x)
 
-# 학습 모드와 평가 모드
+# 학습 모드와 평가 모드.
+# 두 줄을 잇달아 부르는 것은 쓰임을 보이려는 것일 뿐, 실제로는
+# eval()만 남는다. 학습 루프에서는 에포크마다 둘을 오가야 한다
 model = NetworkWithDropout(784, [512, 256], 10, dropout_rate=0.5)
 model.train()  # 드롭아웃 켜짐
 model.eval()   # 드롭아웃 꺼짐

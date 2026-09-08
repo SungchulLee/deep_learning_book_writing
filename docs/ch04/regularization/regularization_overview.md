@@ -229,10 +229,18 @@ def estimate_bias_variance(degree, n_datasets=200, n_samples=50, noise_std=0.5):
     x_test = torch.linspace(-2, 2, 100).unsqueeze(1)
     y_true = true_function(x_test)
 
-    # 데이터셋마다 예측 모으기
+    # 데이터셋마다 예측 모으기.
+    # 편향과 분산은 데이터셋 하나로는 잴 수 없는 양이다. "같은 분포에서
+    # 데이터를 다시 뽑아 다시 학습시키면 예측이 얼마나 달라지는가"를
+    # 묻는 것이므로, 데이터셋 200개를 만들어 200번 학습시킨다
     all_predictions = []
     for seed in range(n_datasets):
         x_train, y_train = generate_dataset(n_samples, noise_std, seed=seed)
+        # 주의: generate_dataset이 torch.manual_seed(seed)를 부르므로,
+        # 그 뒤에 만들어지는 이 모델의 초기 가중치도 seed에 따라 달라진다.
+        # 그래서 아래 분산에는 데이터의 변동뿐 아니라 초기화의 변동도
+        # 섞여 든다. 데이터의 몫만 보려면 모델을 만들기 직전에
+        # 씨앗을 따로 고정해야 한다
         model = PolynomialModel(degree)
         train_model(model, x_train, y_train)
 
@@ -243,8 +251,17 @@ def estimate_bias_variance(degree, n_datasets=200, n_samples=50, noise_std=0.5):
     predictions = torch.stack(all_predictions)  # (n_datasets, n_test, 1)
     mean_pred = predictions.mean(dim=0)          # E[f_hat(x)]
 
+    # 편향은 "평균적으로 얼마나 빗나가는가"다. 데이터셋 200개의 예측을
+    # 먼저 평균 낸 뒤 참값과 견주므로, 우연한 흔들림은 상쇄되고
+    # 구조적으로 못 맞히는 몫만 남는다. 차수가 낮으면 이 값이 크다
     bias_sq = ((y_true - mean_pred) ** 2).mean().item()
+    # 분산은 "데이터셋이 바뀌면 얼마나 흔들리는가"다. 참값이 식에
+    # 들어가지 않는다는 점을 눈여겨보라. 정답과 무관하게 예측끼리
+    # 얼마나 흩어지는지만 잰다. 차수가 높으면 이 값이 커진다
     variance = predictions.var(dim=0).mean().item()
+    # 참값 y_true와 견준다. 잡음이 섞인 y_train이 아니다. 그래서 이
+    # mse에는 줄일 수 없는 잡음 항이 빠져 있고, 위의 두 값과
+    # bias^2 + variance = mse 관계가 수치적으로 거의 맞아떨어진다
     mse = ((predictions - y_true.unsqueeze(0)) ** 2).mean().item()
 
     return bias_sq, variance, mse

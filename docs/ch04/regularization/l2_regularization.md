@@ -298,11 +298,21 @@ def train_with_l2_regularization(
     criterion = nn.MSELoss()
     
     if use_adamw:
-        # 최적화기에 내장된 가중치 감쇠 쓰기
+        # 최적화기에 내장된 가중치 감쇠 쓰기.
+        # 2를 곱하는 것은 오타가 아니다. 위의 l2_regularization은
+        # lambda * sum(w^2)을 돌려주므로 기울기가 2*lambda*w인데,
+        # weight_decay는 갱신에 wd*w를 곧바로 더한다. 그래서 눈금을
+        # 맞추려면 wd = 2*lambda여야 한다.
+        # 다만 상수를 맞추어도 두 갈래가 똑같아지지는 않는다. 손실에
+        # 더한 벌점은 Adam의 적응 눈금(sqrt(v)로 나누기)을 함께 거치지만
+        # AdamW의 감쇠는 그 눈금을 거치지 않고 가중치에 직접 걸린다.
+        # AdamW가 따로 있는 이유가 바로 이 분리다
         optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=2*lambda_l2)
         manual_l2 = False
     else:
-        # L2 정칙화 직접 구현
+        # L2 정칙화 직접 구현.
+        # weight_decay를 주지 않은 맨 Adam이어야 한다. 여기에 weight_decay를
+        # 또 주면 벌점이 두 번 걸린다
         optimizer = optim.Adam(model.parameters(), lr=lr)
         manual_l2 = True
     
@@ -326,6 +336,9 @@ def train_with_l2_regularization(
             
             total_loss.backward()
             optimizer.step()
+            # 역전파는 total_loss로 하되 기록은 loss로 한다. 벌점을 뺀
+            # 값이라야 lambda_l2가 다른 실험끼리, 또 use_adamw의 두
+            # 갈래끼리 손실 곡선을 견줄 수 있다
             train_loss += loss.item()
         
         # 검증 단계
@@ -337,6 +350,10 @@ def train_with_l2_regularization(
                 val_loss += criterion(predictions, y_batch).item()
         
         # 가중치 통계 계산
+        # 층별 노름을 제곱해 더한 뒤 제곱근을 취해야 전체 노름이 된다.
+        # 노름을 그냥 더하면 다른 값이 나온다.
+        # 이 값이 정칙화가 듣고 있는지 보는 눈금이다. lambda_l2를 키우면
+        # 이 곡선이 더 낮은 자리에서 평평해져야 한다
         total_norm = sum(p.norm().item() ** 2 for p in model.parameters()) ** 0.5
         
         history['train_loss'].append(train_loss / len(train_loader))
@@ -431,14 +448,21 @@ def ridge_regression_analysis(X, y, alphas=None):
     반환값:
         최적 모델과 분석 결과
     """
-    # 특징을 표준화한다
+    # 특징을 표준화한다.
+    # 능선 회귀에서는 이것이 선택이 아니라 필수다. 벌점이 계수의
+    # 크기를 보고 매겨지는데, 눈금이 큰 특징일수록 계수가 작아지므로
+    # 표준화하지 않으면 단위를 무엇으로 쟀느냐가 정칙화의 세기를
+    # 좌우해 버린다
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
     if alphas is None:
         alphas = np.logspace(-4, 4, 50)
     
-    # 최적 alpha를 찾기 위한 교차 검증
+    # 최적 alpha를 찾기 위한 교차 검증.
+    # RidgeCV는 alpha마다 따로 적합시키는 것이 아니라 능선 해의
+    # 닫힌 형태를 이용해 한꺼번에 푼다. 그래서 GridSearchCV로 같은 일을
+    # 하는 것보다 훨씬 빠르다
     ridge_cv = RidgeCV(alphas=alphas, cv=5, scoring='neg_mean_squared_error')
     ridge_cv.fit(X_scaled, y)
     
