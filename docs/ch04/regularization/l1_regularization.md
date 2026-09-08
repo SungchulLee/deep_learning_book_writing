@@ -139,6 +139,10 @@ def l1_regularization(model: nn.Module, lambda_l1: float) -> torch.Tensor:
     반환값:
         L1 벌점 항
     """
+    # requires_grad=True는 사실 필요 없다. 0은 상수이고, 아래에서 더하는
+    # param 쪽이 이미 기울기를 나르기 때문이다.
+    # 주의: device를 맞추지 않아 모델이 GPU에 있으면 덧셈에서 오류가 난다.
+    # 뒤의 l2_regularization은 next(model.parameters()).device로 이를 피한다
     l1_penalty = torch.tensor(0., requires_grad=True)
     for param in model.parameters():
         l1_penalty = l1_penalty + torch.sum(torch.abs(param))
@@ -362,6 +366,16 @@ def proximal_l1(weights: torch.Tensor, lambda_l1: float,
     반환값:
         연성 문턱화를 거친 가중치
     """
+    # 이것이 앞에서 말한 "0에 못박는" 연산이다. 손실에 |w|를 더해
+    # 미분해 내려가는 방식은 가중치를 0 근처로 밀 뿐이지만, 연성
+    # 문턱화는 크기가 문턱값에 못 미치는 가중치를 정확히 0으로 만든다.
+    # 그래서 count_zero_weights의 문턱값 타령이 여기서는 필요 없다.
+    #
+    # 식을 뜯어보면, 부호는 그대로 두고 크기에서 threshold만큼을 빼되
+    # 음수가 되면 0에서 멈춘다. |w| <= threshold인 가중치는 모두 0으로
+    # 떨어지고, 살아남은 가중치도 threshold만큼 0 쪽으로 당겨진다.
+    # 문턱이 lambda * lr인 까닭은 한 걸음에 벌점이 미치는 크기가
+    # 그만큼이기 때문이다
     threshold = lambda_l1 * lr
     return torch.sign(weights) * torch.clamp(torch.abs(weights) - threshold, min=0)
 
@@ -378,6 +392,14 @@ class ProximalL1Optimizer:
         with torch.no_grad():
             for param in self.model.parameters():
                 if param.grad is not None:
+                    # 두 걸음을 나누어 밟는 것이 근접 경사 하강법의 요체다.
+                    # 먼저 벌점을 뺀 손실만으로 보통의 경사 하강을 하고,
+                    # 그다음 벌점을 문턱화라는 별도의 연산으로 적용한다.
+                    # |w|는 0에서 미분할 수 없으므로 벌점을 기울기에
+                    # 섞지 않고 이렇게 떼어 놓는 것이다.
+                    # 주의: param.grad에는 벌점이 들어 있으면 안 된다.
+                    # 손실에 L1을 더해 backward한 뒤 이 최적화기를 쓰면
+                    # 벌점이 두 번 걸린다
                     # 기울기 단계
                     param.data -= self.lr * param.grad
                     # 근접 단계 (연성 문턱화)
@@ -486,10 +508,17 @@ def plot_lasso_path(X, y, eps=1e-3, n_alphas=100):
         n_alphas: alpha 값의 개수
     """
     # 표준화
+    # 벌점이 계수의 크기를 보고 매겨지므로, 눈금을 맞추지 않으면
+    # 단위를 무엇으로 쟀느냐가 어느 특징이 먼저 0이 되는지를 좌우한다.
+    # y를 중심화하면 절편을 따로 다루지 않아도 된다
     X_scaled = (X - X.mean(axis=0)) / X.std(axis=0)
     y_centered = y - y.mean()
     
     # 라쏘 경로 계산
+    # alpha마다 따로 적합시키는 것이 아니라, 라쏘의 해가 alpha에 대해
+    # 조각별 선형이라는 성질을 써서 경로 전체를 한 번에 얻는다.
+    # 그림에서 계수들이 하나씩 0에서 떨어져 나오는 모습이 보이는데,
+    # 그 순서가 곧 특징의 중요도 순위다
     alphas, coefs, _ = lasso_path(X_scaled, y_centered, eps=eps, n_alphas=n_alphas)
     
     # 그래프 그리기
@@ -598,7 +627,12 @@ class SparseInputNetwork(nn.Module):
         super().__init__()
         self.input_l1 = input_l1
         
-        # 첫 층 (강하게 정칙화)
+        # 첫 층 (강하게 정칙화).
+        # 이 층만 따로 떼어 둔 까닭은 여기에만 벌점을 걸기 위해서다.
+        # 입력 특징 하나에 해당하는 것은 weight의 한 "열"이라, 그 열이
+        # 통째로 0이 되면 그 특징은 신경망에 아예 들어오지 못한다.
+        # 곧 특징 선택이다. 은닉층까지 눌러 버리면 표현력만 잃고
+        # 어느 특징이 쓸모없는지는 알 수 없다
         self.input_layer = nn.Linear(input_dim, hidden_dims[0])
         
         # 은닉층
@@ -617,6 +651,12 @@ class SparseInputNetwork(nn.Module):
     
     def get_input_l1_penalty(self):
         """입력층에만 적용하는 L1 벌점."""
+        # .weight만 쓰고 .bias는 빼는 점을 눈여겨보라. 편향은 특정 입력
+        # 특징에 딸린 값이 아니라 뉴런마다 하나씩인 상수라, 특징을
+        # 고르는 일과 관계가 없다.
+        # 다만 원소마다 벌점을 주는 이 형태는 열을 통째로 밀어내지는
+        # 못한다. 한 특징을 확실히 끄려면 열의 노름에 벌점을 주는
+        # 묶음 라쏘가 필요하다
         return self.input_l1 * torch.sum(torch.abs(self.input_layer.weight))
 ```
 

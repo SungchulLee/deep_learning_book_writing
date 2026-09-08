@@ -140,12 +140,23 @@ class LabelSmoothingCrossEntropy(nn.Module):
         log_probs = torch.log_softmax(logits, dim=-1)
         
         # 딱딱한 목표 성분: -log p_k
+        # 원-핫 벡터를 만들어 곱하는 대신 gather로 정답 자리 하나만
+        # 뽑아 온다. 결과는 같으면서 (배치, 클래스) 크기의 임시 텐서를
+        # 만들지 않는다. unsqueeze와 squeeze는 gather가 요구하는
+        # 차원을 맞추었다가 되돌리는 손질이다
         nll_loss = -log_probs.gather(dim=-1, index=targets.unsqueeze(-1)).squeeze(-1)
         
         # 균등 성분: -(1/K) sum_i log p_i
+        # 정답만이 아니라 모든 클래스의 로그 확률을 고르게 본다. 이 항이
+        # 있어 모델이 어느 한 클래스에 확률을 몰아주지 못한다
         smooth_loss = -log_probs.mean(dim=-1)
         
         # 결합된 손실
+        # 목표 분포를 (1-eps)*원핫 + eps*균등으로 섞어 교차 엔트로피를
+        # 재는 것과 같다. 교차 엔트로피가 목표 분포에 대해 선형이라
+        # 이렇게 손실 둘의 가중합으로 갈라 쓸 수 있다.
+        # 여기서 완벽히 맞혀도 손실이 0으로 내려가지 않는 이유가 나온다.
+        # 균등 항이 하한을 남기며, 그 값은 eps와 클래스 수가 정한다
         loss = (1 - self.epsilon) * nll_loss + self.epsilon * smooth_loss
         
         if self.reduction == 'mean':
@@ -182,9 +193,15 @@ class SoftTargetCrossEntropy(nn.Module):
         
         # 요청되면 추가 평활화 적용
         if self.epsilon > 0:
+            # 목표를 균등분포 쪽으로 eps만큼 당긴다. 합이 1인 분포를
+            # 넣으면 나온 것도 합이 1이다. (1-eps) + eps = 1이기 때문이다
             targets = (1 - self.epsilon) * targets + self.epsilon / num_classes
         
         log_probs = torch.log_softmax(logits, dim=-1)
+        # 앞 클래스와 달리 목표가 이미 분포로 주어지므로 교차 엔트로피의
+        # 정의를 그대로 쓴다. targets에 원-핫을 넣으면 앞 클래스와 같은
+        # 값이 나온다. 이 형태라야 지식 증류나 믹스업처럼 목표가 애초에
+        # 부드러운 경우까지 함께 다룰 수 있다
         loss = -(targets * log_probs).sum(dim=-1)
         
         return loss.mean()
@@ -474,11 +491,20 @@ def combined_augmentation_training_step(
         mixed_images = lam * images + (1 - lam) * images[index]
         
         # 믹스업으로 부드러운 목표 만들기
+        # 여기서는 앞의 gather와 반대로, 0으로 채운 뒤 정답 자리에만
+        # 1을 꽂아 원-핫을 짓는다. 목표를 섞으려면 분포 전체가
+        # 있어야 하므로 인덱스만으로는 안 되기 때문이다
         targets_a = torch.zeros(images.size(0), num_classes, device=images.device)
         targets_a.scatter_(1, labels.unsqueeze(1), 1.0)
         targets_b = torch.zeros(images.size(0), num_classes, device=images.device)
         targets_b.scatter_(1, labels[index].unsqueeze(1), 1.0)
         
+        # 앞의 믹스업 페이지는 손실 두 개를 가중합했지만, 여기서는
+        # 목표 분포 자체를 섞는다. 교차 엔트로피가 목표에 대해
+        # 선형이라 두 방식의 값은 같다. 목표를 만들어 두면 그 위에
+        # 평활화를 한 번 더 얹을 수 있어 이쪽을 골랐다.
+        # 이미 부드러워진 목표라, 위 docstring 말대로 평활화는
+        # 평소보다 약하게 걸어야 목표가 지나치게 뭉개지지 않는다
         soft_targets = lam * targets_a + (1 - lam) * targets_b
         
         # 가벼운 추가 평활화 적용
