@@ -57,6 +57,13 @@ if __name__ == "__main__":
     print(f"Input: {x.shape}, Output: {model(x).shape}")
 ```
 
+**출력:**
+
+```
+Parameters: 895,498
+Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
+```
+
 ## 2. 논의
 
 `LSTMModel` 클래스는 PyTorch의 `nn.Module` 인터페이스로 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로 PyTorch의 자동 미분이 학습 중 기울기 계산을 알아서 처리한다. 이런 모듈식 설계 덕분에 부품 하나하나를 고치거나 모델을 더 큰 파이프라인에 넣기 쉽다.

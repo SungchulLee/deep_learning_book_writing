@@ -67,6 +67,12 @@ grad_input_manual = F.conv_transpose2d(grad_output, w, padding=1)
 print(f"Gradient match: {torch.allclose(x.grad, grad_input_manual, atol=1e-5)}")
 ```
 
+**출력:**
+
+```
+Gradient match: True
+```
+
 ---
 
 ## 2. 전치 합성곱이 움직이는 방식
@@ -143,6 +149,13 @@ z = conv_transpose(y)
 print(f"ConvT: {y.shape} → {z.shape}")  # [1, 32, 16, 16] → [1, 64, 32, 32]
 ```
 
+**출력:**
+
+```
+Conv: torch.Size([1, 64, 32, 32]) → torch.Size([1, 32, 16, 16])
+ConvT: torch.Size([1, 32, 16, 16]) → torch.Size([1, 64, 32, 32])
+```
+
 ### `output_padding` 매개변수
 
 보폭이 1보다 크면 보통 합성곱에서 여러 입력 크기가 같은 출력 크기를 낼 수 있다. 이를테면 보폭 2에서는 31×31 입력과 32×32 입력이 모두 16×16 출력을 낸다. `output_padding`이 이 모호함을 없앤다.
@@ -156,6 +169,13 @@ conv_t_with_op = nn.ConvTranspose2d(32, 64, 3, stride=2, padding=1, output_paddi
 y = torch.randn(1, 32, 16, 16)
 print(f"Without output_padding: {conv_t_no_op(y).shape}")     # [1, 64, 31, 31]
 print(f"With output_padding=1: {conv_t_with_op(y).shape}")    # [1, 64, 32, 32]
+```
+
+**출력:**
+
+```
+Without output_padding: torch.Size([1, 64, 31, 31])
+With output_padding=1: torch.Size([1, 64, 32, 32])
 ```
 
 ### 매개변수의 수
@@ -172,6 +192,13 @@ print(f"Conv2d params: {sum(p.numel() for p in conv.parameters()):,}")
 conv_t = nn.ConvTranspose2d(32, 64, 3, bias=False)
 print(f"ConvTranspose2d params: {sum(p.numel() for p in conv_t.parameters()):,}")
 # 32 × 64 × 3 × 3 = 18,432 (같다!)
+```
+
+**출력:**
+
+```
+Conv2d params: 18,432
+ConvTranspose2d params: 18,432
 ```
 
 ---
@@ -247,6 +274,13 @@ print(f"ConvTranspose: {conv_t(x).shape}")     # [1, 32, 32, 32]
 print(f"Resize+Conv:   {resize_conv(x).shape}") # [1, 32, 32, 32]
 ```
 
+**출력:**
+
+```
+ConvTranspose: torch.Size([1, 32, 32, 32])
+Resize+Conv:   torch.Size([1, 32, 32, 32])
+```
+
 ### 해법 3: 부화소 합성곱 (PixelShuffle)
 
 초해상도에서 쓰는 방법으로, 채널을 공간 차원으로 다시 늘어놓는다.
@@ -274,6 +308,12 @@ sub_pixel = SubPixelUpsample(64, 32, upscale_factor=2)
 x = torch.randn(1, 64, 16, 16)
 out = sub_pixel(x)
 print(f"Sub-pixel: {x.shape} → {out.shape}")  # [1, 64, 16, 16] → [1, 32, 32, 32]
+```
+
+**출력:**
+
+```
+Sub-pixel: torch.Size([1, 64, 16, 16]) → torch.Size([1, 32, 32, 32])
 ```
 
 ---
@@ -407,6 +447,15 @@ for name, module in methods.items():
     print(f"{name:<30}: {x.shape} → {out.shape}, params: {params:,}")
 ```
 
+**출력:**
+
+```
+ConvTranspose (K=4, s=2)      : torch.Size([1, 64, 16, 16]) → torch.Size([1, 32, 32, 32]), params: 32,800
+ConvTranspose (K=2, s=2)      : torch.Size([1, 64, 16, 16]) → torch.Size([1, 32, 32, 32]), params: 8,224
+PixelShuffle                  : torch.Size([1, 64, 16, 16]) → torch.Size([1, 32, 32, 32]), params: 73,856
+Bilinear + Conv               : torch.Size([1, 64, 16, 16]) → torch.Size([1, 32, 32, 32]), params: 18,464
+```
+
 ---
 
 ## 7. 1차원 전치 합성곱
@@ -426,6 +475,12 @@ conv_t1d = nn.ConvTranspose1d(
 x = torch.randn(1, 64, 50)  # 시각 50개
 out = conv_t1d(x)
 print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
+```
+
+**출력:**
+
+```
+1D ConvTranspose: torch.Size([1, 64, 50]) → torch.Size([1, 32, 100])
 ```
 
 ---

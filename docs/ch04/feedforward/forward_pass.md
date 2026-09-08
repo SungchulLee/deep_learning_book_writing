@@ -440,21 +440,31 @@ $$
 ```python
 import matplotlib.pyplot as plt
 
+# 층을 지나며 활성값의 분포가 어떻게 달라지는지 눈으로 확인한다.
+# 층이 깊어질수록 분포가 좁아지면 신호가 죽어 가는 것이고(기울기 소실),
+# 자꾸 넓어지면 터지는 쪽이다. 초기화가 잘 되었는지 보는 가장 빠른 방법이다.
 model = TrackedMLP([784, 512, 256, 128, 10])
 x = torch.randn(500, 784)  # 무작위 표본 500개
 
+# return_intermediates=True로 각 층의 활성을 cache에 받아 둔다
 logits, cache = model(x, return_intermediates=True)
 
-fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+fig, axes = plt.subplots(1, 4, figsize=(16, 4))   # 층 4개를 나란히 그린다
 for i, l in enumerate([1, 2, 3, 4]):
+    # detach: 그림을 그릴 뿐이므로 계산 그래프에서 떼어 낸다
+    # flatten: 표본 500개 x 유닛 수를 한 줄로 펴서 히스토그램으로 만든다
     vals = cache[f'a{l}'].detach().numpy().flatten()
+
+    # density=True로 그리면 층마다 유닛 수가 달라도 높이를 견줄 수 있다
     axes[i].hist(vals, bins=50, edgecolor='black', alpha=0.7, density=True)
+
+    # 제목에 평균과 표준편차를 함께 적어 층 사이의 변화를 수로도 본다
     axes[i].set_title(f'Layer {l} activations\n'
                       f'mean={vals.mean():.3f}, std={vals.std():.3f}')
     axes[i].set_xlabel('Activation value')
 
 plt.suptitle('Activation Distributions Through the Network', fontsize=14)
-plt.tight_layout()
+plt.tight_layout()   # 제목과 축 이름이 겹치지 않게 여백을 다시 잡는다
 plt.savefig('forward_pass_activations.png', dpi=150, bbox_inches='tight')
 plt.show()
 ```

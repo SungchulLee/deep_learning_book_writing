@@ -111,15 +111,27 @@ $$
 import sys
 
 # === 용량 증가 추적 ===
-sizes = []
+# 파이썬 리스트는 원소를 하나 더할 때마다 자리를 하나씩 늘리지 않는다.
+# 자리가 꽉 차면 한 번에 여러 칸을 미리 잡아 둔다. 그 "미리 잡는" 순간에만
+# 비용이 크고 나머지는 싸기 때문에, 평균을 내면 append 한 번이 O(1)이 된다.
+# 아래 코드는 그 뛰는 순간이 언제인지를 눈으로 확인한다.
+sizes = []   # (길이, 그때의 바이트 수) 가운데 크기가 바뀐 지점만 담는다
 data = []
 
 for i in range(64):
     data.append(i)
+    # getsizeof는 리스트 껍데기가 잡고 있는 바이트 수를 준다.
+    # 원소 자체의 크기는 빼고 재므로 용량 변화를 보기에 알맞다
     current_size = sys.getsizeof(data)
+
+    # 크기가 바뀐 때만 적는다. 대부분의 append는 크기를 바꾸지 않으며,
+    # 그것이 바로 상각 분석에서 말하는 "싼 연산"이다
     if not sizes or current_size != sizes[-1][1]:
         sizes.append((i + 1, current_size))
 
+# 출력된 길이들 사이의 간격이 점점 벌어지는 것이 핵심이다.
+# 간격이 등비로 늘어나므로 재할당 횟수가 log에 그치고,
+# 총비용이 O(n)이 되어 한 번당 O(1)로 갈린다
 print("Length | sys.getsizeof (bytes)")
 print("-------|---------------------")
 for length, size in sizes:

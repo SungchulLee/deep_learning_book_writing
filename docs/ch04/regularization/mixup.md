@@ -394,15 +394,26 @@ def mixup_regression(x, y, alpha=0.2):
     회귀의 목푯값은 이미 연속이므로 레이블 섞기는
     단순한 보간이 된다.
     """
+    # 섞는 비율 lam을 Beta(alpha, alpha)에서 뽑는다.
+    # alpha가 작으면(0.2 따위) 뽑히는 값이 0이나 1 가까이 몰려
+    # "거의 원본"인 표본이 많아진다. alpha가 1이면 균등분포가 되어
+    # 절반씩 섞인 표본이 많아진다. 곧 alpha가 섞기의 세기를 정한다
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
     else:
-        lam = 1.0
-    
+        lam = 1.0   # alpha=0이면 섞지 않는다(믹스업을 끈 것과 같다)
+
+    # 배치를 뒤섞은 인덱스. 새 배치를 따로 만들지 않고 같은 배치를
+    # 제 자신과 짝지어 섞는 것이 믹스업의 요령이다
     index = torch.randperm(x.size(0), device=x.device)
+
+    # 입력과 목푯값을 같은 lam으로 섞는다. 두 곳에 같은 비율을 써야
+    # "입력을 섞으면 답도 그만큼 섞인다"는 선형성 가정이 지켜진다
     mixed_x = lam * x + (1 - lam) * x[index]
     mixed_y = lam * y + (1 - lam) * y[index]
-    
+
+    # 분류에서는 레이블이 원-핫이라 손실 쪽에서 lam으로 나누어 셈해야 하지만,
+    # 회귀는 목푯값이 이미 연속이므로 이렇게 곧바로 섞으면 끝난다
     return mixed_x, mixed_y
 ```
 
