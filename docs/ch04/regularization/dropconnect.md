@@ -216,10 +216,19 @@ def apply_dropconnect(model: nn.Module, p: float = 0.5) -> nn.Module:
     반환값:
         모든 선형층에 드롭커넥트를 적용한 모델
     """
+    # named_children()은 바로 아래 자식만 준다. named_modules()와 달리
+    # 손자까지 훑지 않으므로, 아래에서 재귀로 직접 내려가야 한다.
+    # 굳이 이렇게 하는 까닭은 setattr로 부모의 자리를 바꿔치기해야 하는데
+    # 그러려면 "누구의 어떤 이름인지"를 알아야 하기 때문이다.
     for name, module in model.named_children():
         if isinstance(module, nn.Linear):
+            # 원래 층을 감싼 것으로 갈아 끼운다. 감싸개가 원래 층을
+            # 그대로 품으므로 학습된 가중치는 잃지 않는다
             setattr(model, name, DropConnectWrapper(module, p=p))
         else:
+            # nn.Linear가 아니면 그 안으로 내려가 같은 일을 되풀이한다.
+            # 주의: 반환값을 쓰지 않아도 되는 까닭은 이 함수가 모델을
+            # 제자리에서 고치기 때문이다. 곧 원본이 바뀐다
             apply_dropconnect(module, p)
     return model
 ```

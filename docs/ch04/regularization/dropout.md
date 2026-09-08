@@ -198,18 +198,29 @@ class MCDropoutModel(nn.Module):
             mean: 평균 예측
             std: 표준편차 (인식적 불확실성)
         """
-        self.train()  # 드롭아웃을 켠 채로 둔다
-        
+        # 여기가 이 기법의 전부다. 보통은 평가할 때 드롭아웃을 끄지만,
+        # 일부러 켜 둔 채로 여러 번 예측한다. 매번 다른 부분망이 답하므로
+        # 그 답들의 흩어짐이 곧 모델의 불확실성이 된다.
+        # 이는 근사 베이즈 추론으로 볼 수 있다는 것이 Gal & Ghahramani의 결과다
+        self.train()
+
+        # 주의: 배치 정규화가 있는 모델이라면 이대로 두면 안 된다.
+        # train() 이 배치 정규화의 이동 통계까지 갱신해 버리기 때문이다.
+        # 그런 경우에는 드롭아웃 모듈만 골라 train()으로 되돌려야 한다.
         predictions = []
-        with torch.no_grad():
+        with torch.no_grad():   # 기울기는 필요 없다. 순전파만 100번 한다
             for _ in range(n_samples):
-                pred = self(x)
+                pred = self(x)   # 매번 다른 마스크가 뽑혀 답이 조금씩 다르다
                 predictions.append(pred)
-        
+
+        # (n_samples, 배치, 출력) 꼴로 쌓은 뒤 표본 축으로 통계를 낸다
         predictions = torch.stack(predictions)
         mean = predictions.mean(dim=0)
+        # 이 표준편차는 "모델이 몰라서 생기는" 인식적 불확실성이다.
+        # 데이터 자체의 잡음(우연적 불확실성)은 여기에 잡히지 않으므로,
+        # 둘을 모두 알고 싶으면 모델이 분산도 함께 내놓도록 해야 한다
         std = predictions.std(dim=0)
-        
+
         return mean, std
 ```
 

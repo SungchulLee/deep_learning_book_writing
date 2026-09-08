@@ -388,36 +388,52 @@ class RegularizedCNN(nn.Module):
 
     def __init__(self, num_classes=10, dropout_rate=0.3):
         super().__init__()
+        # 정칙화를 세 겹으로 겹쳐 건다. 막는 곳이 서로 달라 함께 쓸 수 있다.
+        #   배치 정규화 — 층 입력의 분포를 다스린다
+        #   드롭아웃    — 활성을 흔든다
+        #   가중치 감쇠 — 가중치의 크기를 누른다(아래 옵티마이저에서)
         self.features = nn.Sequential(
-            nn.Conv2d(3, 32, 3, padding=1),
-            nn.BatchNorm2d(32),          # 배치 정규화
+            nn.Conv2d(3, 32, 3, padding=1),   # 32x32 유지
+            # 활성 함수 "앞"에 둔다. ReLU에 들어가는 값의 자를 맞춰야
+            # 한쪽으로 치우쳐 유닛이 죽는 것을 막을 수 있다
+            nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Dropout2d(dropout_rate),  # 공간 드롭아웃
+            nn.MaxPool2d(2),                  # 32x32 -> 16x16
+            # 합성곱 출력은 이웃 화소끼리 값이 거의 같아 화소 하나를 꺼도
+            # 옆 화소가 그 정보를 들고 있다. 그래서 채널을 통째로 끄는
+            # Dropout2d라야 뜻이 있다. 또 배치 정규화 "뒤"에 두어야
+            # 꺼진 값이 배치 통계를 흔들지 않는다
+            nn.Dropout2d(dropout_rate),
 
             nn.Conv2d(32, 64, 3, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.MaxPool2d(2),
+            nn.MaxPool2d(2),                  # 16x16 -> 8x8
             nn.Dropout2d(dropout_rate),
         )
         self.classifier = nn.Sequential(
-            nn.Linear(64 * 8 * 8, 256),
+            nn.Linear(64 * 8 * 8, 256),   # 두 번 풀링해 8x8, 채널 64
             nn.ReLU(),
-            nn.Dropout(dropout_rate),    # 표준 드롭아웃
+            # 완전연결층의 유닛은 서로 이웃하지 않아 값이 겹치지 않는다.
+            # 그래서 여기서는 보통의 Dropout으로 충분하다
+            nn.Dropout(dropout_rate),
+            # 마지막 층에는 아무것도 걸지 않는다. 출력이 갈래별 로짓이므로
             nn.Linear(256, num_classes),
         )
 
     def forward(self, x):
         x = self.features(x)
-        x = x.view(x.size(0), -1)
+        x = x.view(x.size(0), -1)   # (배치, 64, 8, 8) -> (배치, 4096)
         return self.classifier(x)
 
 model = RegularizedCNN()
 optimizer = optim.AdamW(
     model.parameters(),
     lr=1e-3,
-    weight_decay=1e-2  # L2 정칙화 (분리된 방식)
+    # AdamW의 "분리된" 감쇠. 보통의 Adam은 이 항을 기울기에 더하는데,
+    # 그러면 적응적 학습률에 나눠져 매개변수마다 실제 세기가 달라진다.
+    # AdamW는 갱신 단계에서 따로 빼므로 의도한 세기가 그대로 걸린다
+    weight_decay=1e-2
 )
 ```
 
