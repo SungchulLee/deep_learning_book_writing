@@ -144,22 +144,38 @@ class DropConnect(nn.Module):
     def __init__(self, in_features: int, out_features: int, 
                  p: float = 0.5, bias: bool = True):
         super().__init__()
+        # p=1 을 막는 까닭은 아래에서 1-p 로 나누기 때문이다.
+        # 0으로 나누면 무한대가 되어 학습이 곧바로 터진다
         if not 0 <= p < 1:
             raise ValueError(f"drop probability must be in [0, 1), got {p}")
-        
+
         self.p = p
+        # 가중치를 직접 만들지 않고 nn.Linear를 안에 품는다.
+        # 초기화와 저장·불러오기를 PyTorch에 맡길 수 있어 손이 덜 간다
         self.linear = nn.Linear(in_features, out_features, bias=bias)
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training and self.p > 0:
-            # 가중치에 대한 이진 마스크 뽑기
+            # 가중치에 대한 이진 마스크 뽑기.
+            # 가중치와 같은 모양에 확률 (1-p) 를 채워 베르누이로 뽑으므로
+            # 살릴 자리가 1, 끌 자리가 0이 된다.
+            # 드롭아웃이 활성 한 줄을 끄는 데 견주어, 여기서는 연결
+            # 하나하나를 따로 끄므로 만들어지는 부분망이 훨씬 다양하다
             mask = torch.bernoulli(
                 torch.full_like(self.linear.weight, 1 - self.p)
             )
-            # 역 배율 조정과 함께 마스크 적용
+
+            # 역 배율 조정(inverted dropout).
+            # 가중치의 (1-p)만 살아남아 출력의 기댓값이 그만큼 작아지므로
+            # 학습할 때 미리 1/(1-p) 배로 키워 둔다. 그래서 아래 평가 경로에서는
+            # 아무 보정 없이 원래 가중치를 그대로 쓸 수 있다
             effective_weight = self.linear.weight * mask / (1 - self.p)
+
+            # self.linear(x)를 부르지 않고 F.linear에 가중치를 넘긴다.
+            # self.linear.weight를 제자리에서 고치면 학습된 값이 망가진다
             return F.linear(x, effective_weight, self.linear.bias)
-        
+
+        # 평가 경로. 위에서 눈금을 맞춰 두었으므로 그대로 통과시킨다
         return self.linear(x)
 ```
 

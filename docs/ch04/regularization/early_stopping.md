@@ -428,31 +428,41 @@ def analyze_optimal_patience(history: dict, test_patience_values: list):
     반환값:
         인내를 종료 에포크와 최적 val_loss에 대응시키는 사전
     """
+    # 이미 끝난 학습의 이력을 두고 "참을성을 다르게 잡았다면 어디서
+    # 멈췄을까"를 되짚어 본다. 학습을 다시 돌릴 필요가 없으므로
+    # 참을성을 고르는 데 드는 비용이 사실상 0이다.
     val_losses = history['val_loss']
     results = {}
-    
+
     for patience in test_patience_values:
         best_loss = float('inf')
         best_epoch = 0
-        counter = 0
-        
+        counter = 0   # 나아지지 않은 채 지난 에폭 수
+
         for epoch, loss in enumerate(val_losses):
             if loss < best_loss:
                 best_loss = loss
                 best_epoch = epoch
-                counter = 0
+                counter = 0        # 나아졌으니 참을성을 되돌린다
             else:
                 counter += 1
-            
+
             if counter >= patience:
-                break
-        
+                break              # 여기서 조기 종료가 걸렸을 것이다
+
+        # stop_epoch 와 best_epoch 를 함께 담는 것이 요점이다.
+        # 둘의 차이가 곧 "헛되이 더 돌린 에폭 수"이며, 참을성을 키울수록
+        # 이 간격이 벌어진다. 반대로 참을성이 너무 작으면 잠깐 나빠졌다가
+        # 다시 좋아지는 구간을 못 넘기고 일찍 끊겨 best_val_loss가 나빠진다.
+        #
+        # 주의: for가 break 없이 끝나면 epoch는 마지막 값으로 남는다.
+        # 곧 이 경우 stop_epoch는 "멈춘 곳"이 아니라 "끝까지 갔다"는 뜻이다
         results[patience] = {
             'stop_epoch': epoch,
             'best_epoch': best_epoch,
             'best_val_loss': best_loss
         }
-    
+
     return results
 ```
 
@@ -628,12 +638,21 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
     조기 종료 지점과 함께 학습 진행을 시각화한다.
     """
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-    
+
+    # 1부터 세는 까닭은 사람이 읽을 그림이기 때문이다.
+    # 코드 안의 인덱스는 0부터이므로 아래에서 best_epoch에 1을 더한다
     epochs = range(1, len(history['train_loss']) + 1)
-    
-    # 손실 그래프
+
+    # ── 왼쪽: 손실 곡선 ─────────────────────────────────────────────
+    # 훈련과 검증을 반드시 함께 그린다. 검증 손실만 보면 왜 나빠지는지
+    # 알 수 없는데, 훈련 손실이 계속 내려가는 동안 검증이 올라가면
+    # 그것이 과적합의 그림이다
     axes[0].plot(epochs, history['train_loss'], label='Train Loss')
     axes[0].plot(epochs, history['val_loss'], label='Val Loss')
+
+    # 세로 점선이 되돌릴 지점이다. 조기 종료가 걸린 곳이 아니라
+    # 검증 손실이 가장 낮았던 곳을 표시해야 한다. 둘 사이의 간격이
+    # 참을성만큼 벌어져 있는 것이 정상이다
     axes[0].axvline(best_epoch + 1, color='r', linestyle='--', 
                     label=f'Best Epoch ({best_epoch + 1})')
     axes[0].set_xlabel('Epoch')
@@ -641,8 +660,11 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
     axes[0].set_title('Training and Validation Loss')
     axes[0].legend()
     axes[0].grid(True, alpha=0.3)
-    
-    # 정확도 그래프 (있으면)
+
+    # ── 오른쪽: 정확도 곡선(이력에 있을 때만) ───────────────────────
+    # 손실과 정확도의 최적 지점이 어긋나는 일이 흔하다. 손실은
+    # 확신의 정도까지 재지만 정확도는 맞고 틀림만 세기 때문이다.
+    # 어느 쪽으로 조기 종료를 걸지는 실제로 무엇을 중히 여기는지에 달렸다
     if 'train_acc' in history:
         axes[1].plot(epochs, history['train_acc'], label='Train Acc')
         axes[1].plot(epochs, history['val_acc'], label='Val Acc')
@@ -653,8 +675,10 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
         axes[1].set_title('Training and Validation Accuracy')
         axes[1].legend()
         axes[1].grid(True, alpha=0.3)
-    
+
     plt.tight_layout()
+    # show()가 아니라 fig를 돌려준다. 부르는 쪽에서 저장할지 띄울지
+    # 정할 수 있고, 시험 코드에서 그림을 띄우지 않고 검사할 수도 있다
     return fig
 ```
 
