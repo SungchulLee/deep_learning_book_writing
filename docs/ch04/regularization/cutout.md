@@ -120,10 +120,17 @@ class Cutout:
             컷아웃 영역이 적용된 이미지
         """
         h, w = img.shape[-2:]
+        # 구멍을 직접 뚫지 않고 마스크를 만들어 두었다가 마지막에 한 번
+        # 곱한다. 구멍이 여러 개일 때 겹쳐도 문제가 없고, 원본을
+        # 제자리에서 고치지 않아도 되기 때문이다
         mask = torch.ones_like(img)
         
         for _ in range(self.n_holes):
-            # 중심 뽑기
+            # 중심 뽑기.
+            # 중심을 이미지 안 아무 데나 잡으므로 구멍이 가장자리에
+            # 걸리면 아래에서 잘려 length보다 작아진다. 원 논문도 이렇게
+            # 두는데, 구멍이 늘 이미지 안에 온전히 들어가면 가장자리가
+            # 가려지는 일이 없어 치우침이 생기기 때문이다
             cy = np.random.randint(h)
             cx = np.random.randint(w)
             
@@ -135,6 +142,12 @@ class Cutout:
             
             mask[..., y1:y2, x1:x2] = 0
         
+        # 채움값이 0이면 곱셈 한 번으로 끝난다. 아래 일반형과 결과가 같지만
+        # 덧셈을 건너뛰는 지름길이다.
+        # 주의: 이 변환은 Normalize "뒤"에 놓이므로, 0은 검은색이 아니라
+        # 정규화 공간의 원점, 곧 데이터셋의 채널 평균값이다. 평균으로
+        # 채우는 것이 검정으로 채우는 것보다 나은 까닭은, 그 자리가
+        # 통계적으로 아무 정보도 주지 않는 값이 되기 때문이다
         if self.fill_value == 0.0:
             return img * mask
         else:
@@ -273,7 +286,10 @@ class BatchCutout:
         """
         B, C, H, W = batch.shape
         
-        # 어떤 이미지에 컷아웃을 적용할지 정하기
+        # 어떤 이미지에 컷아웃을 적용할지 정하기.
+        # 위의 Cutout은 낱장에 언제나 적용하는 변환이지만, 이쪽은
+        # 이미지마다 확률 p로 켜고 끈다. 그래서 한 배치 안에 가려진
+        # 이미지와 깨끗한 이미지가 섞인다
         apply_mask = torch.rand(B, device=batch.device) < self.p
         
         result = batch.clone()
@@ -288,7 +304,12 @@ class BatchCutout:
             x1 = torch.clamp(cx - self.length // 2, 0, W)
             x2 = torch.clamp(cx + self.length // 2, 0, W)
             
-            # 이미지마다 마스크 만들기
+            # 이미지마다 마스크 만들기.
+            # 채널 축이 1이라 곱할 때 C로 방송된다. 세 채널을 똑같이
+            # 가려야 하므로 채널마다 마스크를 따로 둘 이유가 없다.
+            # 중심 뽑기는 텐서 연산으로 한꺼번에 했지만 잘라 내기는
+            # 이미지마다 폭이 달라 결국 반복문이 남는다. "GPU에 알맞다"고
+            # 했어도 이 부분은 배치 크기만큼 파이썬 반복을 돈다
             mask = torch.ones(B, 1, H, W, device=batch.device)
             for b in range(B):
                 if apply_mask[b]:
@@ -333,6 +354,11 @@ def train_with_cutout(
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), 
                            (0.2470, 0.2435, 0.2616)),
+        # Cutout이 맨 뒤, 그것도 Normalize 뒤에 온다. 텐서를 받는
+        # 변환이라 ToTensor 뒤여야 하고, 가린 자리의 0이 채널 평균이
+        # 되도록 Normalize 뒤여야 한다.
+        # RandomCrop이 앞에 있는 것도 중요하다. 자르기가 먼저 끝나야
+        # 뚫어 놓은 구멍이 잘려 나가지 않는다
         Cutout(n_holes=cutout_n_holes, length=cutout_length),
     ])
     
@@ -351,8 +377,15 @@ def train_with_cutout(
     val_loader = DataLoader(val_set, batch_size=256)
     
     criterion = nn.CrossEntropyLoss()
+    # CIFAR-10의 표준 조리법이다. Adam이 아니라 운동량을 넣은 SGD를
+    # 쓰는데, 이 데이터셋에서는 잘 조율한 SGD가 최종 정확도에서
+    # 여전히 앞선다. lr=0.1은 이 조합에서만 알맞은 큰 값이다
     optimizer = optim.SGD(model.parameters(), lr=lr, 
                           momentum=0.9, weight_decay=5e-4)
+    # 학습률을 코사인 곡선으로 0까지 떨어뜨린다. T_max를 전체 에포크로
+    # 맞추어 두어야 마지막 에포크에서 정확히 0에 닿는다.
+    # 주의: weight_decay와 컷아웃이 함께 걸려 있으므로, 컷아웃만의
+    # 효과를 보려면 둘 다 끈 기준선과 견주어야 한다
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
     
     history = {'train_loss': [], 'val_acc': []}

@@ -209,7 +209,11 @@ def train_with_mixup(
         for X_batch, y_batch in train_loader:
             optimizer.zero_grad()
             
-            # 믹스업 적용
+            # 믹스업 적용.
+            # 컷믹스의 학습 루프와 달리 확률로 켜고 끄지 않고 모든
+            # 배치에 건다. 다만 베타분포에서 뽑은 lam이 0이나 1에
+            # 가까운 배치는 사실상 원본이므로, 깨끗한 이미지도
+            # 자연히 섞여 들어간다
             mixed_x, y_a, y_b, lam = mixup_data(X_batch, y_batch, alpha)
             
             outputs = model(mixed_x)
@@ -217,9 +221,13 @@ def train_with_mixup(
             
             loss.backward()
             optimizer.step()
+            # 이 손실은 섞인 이름표에 대한 값이라 아래 검증 손실과
+            # 같은 자로 잰 값이 아니다. 두 곡선을 겹쳐 그리면 안 된다
             train_loss += loss.item()
         
-        # 검증 (믹스업 없음)
+        # 검증 (믹스업 없음).
+        # 믹스업은 학습에만 건다. 시험에서 만날 것은 섞이지 않은
+        # 이미지이므로, 평가는 그 조건에서 해야 뜻이 있다
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
         
@@ -360,12 +368,20 @@ class BatchMixup:
             index = self._cross_class_permutation(y)
         
         elif self.strategy == 'same_class':
-            # 각 표본을 같은 클래스의 표본과 짝짓기
+            # 각 표본을 같은 클래스의 표본과 짝짓기.
+            # 이 경우 y_a와 y_b가 같아 이름표는 섞이지 않는다. 즉
+            # 정칙화가 아니라 같은 클래스 안에서 새 표본을 지어내는
+            # 쪽에 가깝고, 결정 경계를 매끄럽게 하는 믹스업 본래의
+            # 효과는 사라진다
             index = self._same_class_permutation(y)
         
         else:
             raise ValueError(f"Unknown strategy: {self.strategy}")
         
+        # 컷믹스와 갈리는 지점이다. 컷믹스는 조각을 오려 붙여 어느
+        # 화소든 두 이미지 가운데 하나에서 오지만, 믹스업은 화소마다
+        # 두 이미지를 겹쳐 반투명하게 만든다. 그래서 lam은 넓이의
+        # 비율이 아니라 밝기의 비율이며, 다시 계산할 일도 없다
         mixed_x = lam * x + (1 - lam) * x[index]
         return mixed_x, y, y[index], lam
     
@@ -374,10 +390,15 @@ class BatchMixup:
         batch_size = y.size(0)
         index = torch.randperm(batch_size, device=y.device)
         
-        # 되도록 클래스를 가로질러 짝지으려 시도한다
+        # 되도록 클래스를 가로질러 짝지으려 시도한다.
+        # 같은 클래스끼리 섞으면 이름표가 그대로라 배울 것이 없으므로
+        # 그런 짝을 풀어 준다. 배치가 한 클래스로만 채워졌거나 클래스가
+        # 둘뿐이면 풀 상대가 없어 그대로 남는다. 보장이 아니라 발견법이다
         for i in range(batch_size):
             if y[i] == y[index[i]]:
-                # 클래스가 다른 교환 상대 찾기
+                # 클래스가 다른 교환 상대 찾기.
+                # 앞의 컷믹스판과 달리 i+1부터 훑는다. 이미 손본 앞쪽을
+                # 다시 건드리지 않으므로 고쳐 놓은 짝이 도로 망가지지 않는다
                 for j in range(i + 1, batch_size):
                     if y[i] != y[index[j]] and y[j] != y[index[i]]:
                         index[i], index[j] = index[j].clone(), index[i].clone()

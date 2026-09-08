@@ -99,7 +99,13 @@ def rand_bbox(size, lam):
     반환값:
         경계 상자의 좌표 (x1, y1, x2, y2)
     """
+    # size에서 H, W만 꺼내 쓴다. 즉 상자 하나를 뽑아 배치의 모든 이미지에
+    # 똑같은 자리로 적용한다. 표본마다 다른 자리를 오리려면 아래
+    # saliency_cutmix처럼 반복문을 돌아야 한다
     H, W = size[2], size[3]
+    # 제곱근이 붙는 까닭은 넓이와 길이의 관계 때문이다. 오려 낼 넓이의
+    # 비율이 1-lam이어야 하는데 상자는 가로세로를 함께 줄이므로,
+    # 각 변을 r배 하면 넓이는 r^2배가 된다. 따라서 r = sqrt(1-lam)이다
     cut_rat = np.sqrt(1.0 - lam)
     cut_w = int(W * cut_rat)
     cut_h = int(H * cut_rat)
@@ -108,7 +114,10 @@ def rand_bbox(size, lam):
     cx = np.random.randint(W)
     cy = np.random.randint(H)
 
-    # 이미지 경계로 자르기
+    # 이미지 경계로 자르기.
+    # 중심이 가장자리에 가까우면 상자가 밖으로 삐져나가 잘린다. 그래서
+    # 실제 오려진 넓이가 뜻한 것보다 작아질 수 있고, 아래에서 lam을
+    # 다시 계산하는 까닭이 바로 이것이다
     x1 = np.clip(cx - cut_w // 2, 0, W)
     y1 = np.clip(cy - cut_h // 2, 0, H)
     x2 = np.clip(cx + cut_w // 2, 0, W)
@@ -132,25 +141,39 @@ def cutmix_data(x: torch.Tensor, y: torch.Tensor,
         y_b: 순열을 적용한 레이블
         lam: 조정된 혼합 계수 (잘라 낸 뒤)
     """
+    # alpha=1이면 베타분포가 [0, 1] 균등분포가 되어 조각 크기가 고르게
+    # 뽑힌다. alpha를 키우면 0.5 근처에 몰려 반반씩 섞이고, 0에 가깝게
+    # 하면 양 끝에 몰려 거의 원본이거나 거의 통째로 바뀐다
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
     else:
         lam = 1.0
 
     batch_size = x.size(0)
+    # 섞을 짝을 같은 배치 안에서 찾는다. 데이터를 더 읽지 않아도 되니
+    # 공짜에 가깝다. 다만 배치가 작으면 짝의 다양성도 줄어든다.
+    # 순열이라 자기 자신과 짝지어질 수도 있는데, 그때는 원본을 원본에
+    # 붙이는 셈이라 아무 일도 일어나지 않는다
     index = torch.randperm(batch_size, device=x.device)
 
     # 경계 상자 생성
     x1, y1, x2, y2 = rand_bbox(x.size(), lam)
 
-    # 자르고 붙이기
+    # 자르고 붙이기.
+    # clone이 없으면 x를 제자리에서 고치게 되는데, 오른쪽에서 조각을
+    # 읽어 오는 대상도 같은 x다. 덮어쓰기와 읽기가 섞여 결과가 망가진다
     x_cutmix = x.clone()
     x_cutmix[:, :, y1:y2, x1:x2] = x[index, :, y1:y2, x1:x2]
 
-    # 실제 상자 넓이에 맞추어 lambda 다시 계산
+    # 실제 상자 넓이에 맞추어 lambda 다시 계산.
+    # 이 줄이 컷믹스의 정확성을 지킨다. 가장자리에서 상자가 잘렸으면
+    # 뽑아 둔 lam과 실제 넓이가 어긋나므로, 이름표를 섞을 비율은
+    # 뽑은 값이 아니라 정말로 오려진 넓이에서 나와야 한다
     _, _, H, W = x.shape
     lam = 1 - ((x2 - x1) * (y2 - y1)) / (H * W)
 
+    # 이름표는 섞지 않고 둘 다 그대로 돌려준다. 섞는 일은 아래
+    # cutmix_criterion이 손실 쪽에서 맡는다
     y_a, y_b = y, y[index]
     return x_cutmix, y_a, y_b, lam
 
@@ -158,6 +181,12 @@ def cutmix_criterion(criterion: nn.Module, pred: torch.Tensor,
                      y_a: torch.Tensor, y_b: torch.Tensor,
                      lam: float) -> torch.Tensor:
     """컷믹스 손실을 가중 결합으로 계산한다."""
+    # 섞인 이름표를 만들어 넣는 대신, 딱딱한 이름표 둘로 손실을 두 번
+    # 재어 가중 평균한다. 교차 엔트로피가 목표 분포에 대해 선형이라
+    # 두 방식의 값이 같기 때문이다. 이렇게 하면 원-핫 벡터를 만들지 않고
+    # 클래스 인덱스를 그대로 쓸 수 있어 편하다.
+    # 주의: lam은 스칼라여야 한다. 표본마다 다른 lam을 (B,) 텐서로 넘기면
+    # 결과가 스칼라가 아니게 되어 backward()에서 오류가 난다
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 ```
 
@@ -204,7 +233,11 @@ def train_with_cutmix(
         for X_batch, y_batch in train_loader:
             optimizer.zero_grad()
             
-            # 확률 cutmix_prob으로 컷믹스 적용
+            # 확률 cutmix_prob으로 컷믹스 적용.
+            # 배치 단위로 켜고 끈다. 한 배치는 전부 섞이거나 전부
+            # 안 섞이거나 둘 중 하나다. 섞이지 않은 배치를 남겨 두는
+            # 까닭은, 모델이 실제 시험에서 만날 깨끗한 이미지도
+            # 계속 보아야 하기 때문이다
             if np.random.random() < cutmix_prob:
                 X_mixed, y_a, y_b, lam = cutmix_data(X_batch, y_batch, alpha)
                 outputs = model(X_mixed)
@@ -217,9 +250,15 @@ def train_with_cutmix(
             optimizer.step()
             train_loss += loss.item()
         
+        # 스케줄러는 에포크마다 한 번 부른다. 배치마다 부르면 학습률이
+        # 예정보다 훨씬 빨리 0으로 떨어진다
         scheduler.step()
         
-        # 검증 (컷믹스 없음)
+        # 검증 (컷믹스 없음).
+        # 증강은 학습에만 건다. 그래서 train_loss와 val_loss는 성격이
+        # 달라, 섞인 이미지의 손실과 깨끗한 이미지의 손실을 견주는 셈이다.
+        # 컷믹스가 잘 들으면 학습 손실이 검증 손실보다 높게 나올 수도
+        # 있는데, 이는 이상이 아니다
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
         
@@ -266,11 +305,19 @@ def class_aware_cutmix(x, y, alpha=1.0):
     # 클래스를 가로지르는 순열 만들기
     index = torch.randperm(batch_size, device=x.device)
     
-    # 되도록 다른 클래스가 되도록 시도한다
+    # 되도록 다른 클래스가 되도록 시도한다.
+    # 같은 클래스끼리 짝지어지면 섞어도 배울 것이 없다. 고양이에 고양이를
+    # 붙여 놓고 "고양이 반 고양이 반"이라 가르치는 꼴이기 때문이다.
+    # 이중 반복문이라 배치 크기의 제곱에 비례해 느리고, 어디까지나
+    # 최선을 다하는 발견법이라 모든 짝이 갈라진다는 보장은 없다
     for i in range(batch_size):
         if y[i] == y[index[i]]:
             for j in range(batch_size):
                 if y[i] != y[index[j]] and y[j] != y[index[i]]:
+                    # clone이 필요한 까닭은 오른쪽이 먼저 다 계산된 뒤
+                    # 대입되는 것이 아니라, 같은 텐서의 원소를 서로
+                    # 가리키고 있어 한쪽을 덮어쓰면 다른 쪽도 바뀌기
+                    # 때문이다
                     index[i], index[j] = index[j].clone(), index[i].clone()
                     break
     
@@ -365,13 +412,23 @@ def saliency_cutmix(model, x, y, alpha=1.0):
     참고: Uddin 등, "SaliencyMix" (2020)
     """
     model.eval()
+    # 가중치가 아니라 입력에 대해 미분한다. 그래서 requires_grad를
+    # 파라미터가 아닌 입력 텐서에 켠다
     x_sal = x.clone().requires_grad_(True)
     
-    # 현저도 계산
+    # 현저도 계산.
+    # 손실을 입력으로 미분한 크기가 곧 "이 화소를 조금 바꾸면 판단이
+    # 얼마나 흔들리는가"이다. 값이 큰 자리가 모델이 보고 있는 자리다
     outputs = model(x_sal)
     loss = nn.CrossEntropyLoss()(outputs, y)
+    # 주의: 이 backward는 모델 파라미터에도 기울기를 쌓는다. 학습 루프
+    # 안에서 optimizer.zero_grad() 뒤에 이 함수를 부르면 그 기울기가
+    # 남아 진짜 학습 기울기에 더해진다. 이 함수를 부른 뒤에
+    # zero_grad()를 다시 불러 주어야 안전하다
     loss.backward()
     
+    # 채널 방향으로 평균 내어 색을 지운다. 어느 색 채널이 반응했는지가
+    # 아니라 어느 위치가 중요한지만 남기려는 것이다
     saliency = x_sal.grad.abs().mean(dim=1)  # (B, H, W)
     
     model.train()
@@ -387,9 +444,16 @@ def saliency_cutmix(model, x, y, alpha=1.0):
     cut_w = max(1, int(W * cut_rat))
     cut_h = max(1, int(H * cut_rat))
     
+    # 앞의 rand_bbox와 달리 표본마다 상자를 따로 잡는다. 이미지마다
+    # 두드러진 자리가 다르기 때문이다
     for b in range(B):
+        # 붙일 쪽이 아니라 가져올 쪽(index[b])의 현저도를 본다.
+        # 알맹이가 든 조각을 오려 와야 이름표를 섞는 뜻이 산다.
+        # 무작위 상자는 배경만 오려 와 이름표만 흐려 놓을 때가 있다
         sal = saliency[index[b]]
-        # 가장 두드러진 중심점 찾기
+        # 가장 두드러진 중심점 찾기.
+        # argmax는 평탄화된 위치를 주므로 W로 나누고 남겨 (행, 열)로
+        # 되돌린다
         flat_idx = sal.argmax().item()
         cy, cx = flat_idx // W, flat_idx % W
         
@@ -403,6 +467,11 @@ def saliency_cutmix(model, x, y, alpha=1.0):
     
     # 표본마다 컷믹스 적용
     x_cutmix = x.clone()
+    # 상자가 표본마다 다르니 lam도 표본마다 다르다.
+    # 주의: 그래서 이 함수가 돌려주는 lam은 스칼라가 아니라 (B,) 텐서이며,
+    # 위의 cutmix_criterion에 그대로 넘길 수 없다. 표본별 가중치를 쓰려면
+    # reduction='none'으로 손실을 표본마다 받아 lam을 곱한 뒤
+    # 평균 내는 손실 함수가 따로 필요하다
     lam_actual = torch.zeros(B, device=x.device)
     
     for b in range(B):
