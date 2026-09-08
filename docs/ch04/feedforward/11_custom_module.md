@@ -63,9 +63,17 @@ class BasicNet(nn.Module):
         # PyTorch가 이들을 매개변수로 자동 추적한다
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, output_size)
+        # ReLU는 배울 것이 없는 함수라 하나를 만들어 여러 번 써도 된다.
+        # 드롭아웃도 부를 때마다 새 마스크를 뽑을 뿐이라 마찬가지다.
+        # 반면 배치 정규화처럼 학습되는 매개변수나 이동 통계를 지니는
+        # 층은 자리마다 따로 만들어야 한다. 하나를 돌려 쓰면 서로 다른
+        # 두 자리의 통계가 한 버퍼에 섞인다
         self.relu = nn.ReLU()
         
-        # 매개변수가 아닌 속성도 저장할 수 있다
+        # 매개변수가 아닌 속성도 저장할 수 있다.
+        # nn.Module은 nn.Module과 nn.Parameter만 장부에 올리므로,
+        # 이런 정수는 그냥 파이썬 속성으로 남고 state_dict에도 들어가지
+        # 않는다. 곧 모델을 저장했다 불러올 때 따라오지 않는다
         self.input_size = input_size
         
     def forward(self, x):
@@ -103,8 +111,20 @@ class InitializedNet(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 # ReLU가 뒤따르는 층에는 Xavier 균등 초기화
+                # 주의: 이 주석과 코드는 이 책의 다른 대목과 어긋난다.
+                # 자비에르는 시그모이드나 tanh처럼 양쪽이 대칭인 활성화를
+                # 전제하고, ReLU에는 He(kaiming) 초기화가 맞다. ReLU가
+                # 입력의 절반을 죽여 분산을 반토막 내는 몫을 자비에르는
+                # 셈에 넣지 않기 때문이다.
+                # 층이 둘뿐이라 실제로 학습이 안 되지는 않지만,
+                # 깊어지면 신호가 층마다 줄어든다.
+                # 견주어 볼 곳: 19_weight_initialization.md
                 init.xavier_uniform_(m.weight)
-                # 편향을 작은 양수로 초기화
+                # 편향을 작은 양수로 초기화.
+                # 0이 아니라 0.01로 두면 학습 초반에 ReLU가 양수 쪽에서
+                # 시작하므로, 처음부터 0만 내놓는 뉴런이 줄어든다.
+                # 다만 출력층에도 똑같이 걸리는데 그쪽은 ReLU가 없어
+                # 아무 뜻이 없다
                 init.constant_(m.bias, 0.01)
     
     def forward(self, x):
@@ -137,7 +157,14 @@ class MultiPathNet(nn.Module):
             nn.ReLU()
         )
         
-        # 경로 2: 얕은 경로 (건너뛰기 연결)
+        # 경로 2: 얕은 경로 (건너뛰기 연결).
+        # gradient_flow.md의 잔차 블록과는 다르다. 그쪽은 입력을 손대지
+        # 않고 그대로 더하는 항등 경로라 미분이 1 + f'(x)가 되어 기울기가
+        # 반드시 살아남지만, 이쪽은 Linear를 거치므로 미분에 W가 곱해진다.
+        # 즉 깊은 경로를 우회하는 지름길이기는 해도 기울기 소실을
+        # 막아 준다는 보장은 없다.
+        # 여기서 Linear가 필요한 까닭은 input_size와 hidden_size가 달라
+        # 그냥 더할 수 없기 때문이다
         self.shallow_path = nn.Linear(input_size, hidden_size)
         
         # 경로 합치기
@@ -149,6 +176,9 @@ class MultiPathNet(nn.Module):
         shallow = self.shallow_path(x)
         
         # 잔차 연결로 합치기
+        # 이 한 줄이 이 페이지의 요점이다. nn.Sequential은 층을 한 줄로
+        # 잇는 것밖에 못 하므로, 갈라졌다 합쳐지는 이런 흐름은
+        # forward를 직접 써야만 만들 수 있다
         combined = deep + shallow  # 원소별 덧셈
         
         # 최종 출력

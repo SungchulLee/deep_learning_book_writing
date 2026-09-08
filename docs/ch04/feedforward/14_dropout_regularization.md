@@ -65,11 +65,18 @@ class DropoutNet(nn.Module):
         self.fc1 = nn.Linear(784, 512)
         self.fc2 = nn.Linear(512, 256)
         self.fc3 = nn.Linear(256, 10)
+        # 인스턴스 하나를 아래에서 두 번 쓴다. 드롭아웃은 배울 것도
+        # 기억할 것도 없고 부를 때마다 새 마스크를 뽑을 뿐이라 안전하다.
+        # 배치 정규화라면 이동 통계가 섞여 이렇게 쓰면 안 된다
         self.dropout = nn.Dropout(dropout_rate)
         
     def forward(self, x):
         x = x.view(-1, 784)
         x = torch.relu(self.fc1(x))
+        # 마지막 층 앞에서 멈추고 출력에는 걸지 않는다. 로짓을 지우면
+        # 그 표본의 예측이 통째로 망가진다.
+        # 학습 때 살아남은 활성값은 1/(1-p)배로 부풀려진다. 그래야
+        # 평균이 유지되어, 평가 때 드롭아웃을 꺼도 눈금이 어긋나지 않는다
         x = self.dropout(x)  # 활성화 뒤의 드롭아웃
         x = torch.relu(self.fc2(x))
         x = self.dropout(x)
@@ -79,6 +86,9 @@ def train_and_evaluate(model, name, epochs=10):
     """모델을 학습시키고 학습/시험 정확도를 기록한다."""
     model = model.to(device)
     criterion = nn.CrossEntropyLoss()
+    # 주의: 이 weight_decay가 두 모델 모두에 걸린다. 곧 "드롭아웃이
+    # 없는 모델"도 정칙화가 아주 없는 것은 아니다. 드롭아웃만의 효과를
+    # 보려면 이 값을 0으로 두고 견주어야 한다
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)  # L2 정칙화
     
     train_accs, test_accs = [], []
@@ -96,6 +106,12 @@ def train_and_evaluate(model, name, epochs=10):
             loss.backward()
             optimizer.step()
             
+            # 주의: outputs는 드롭아웃이 켜진 채, 그것도 step() 앞에서
+            # 계산한 값이다. 그래서 여기 나오는 학습 정확도는 드롭아웃
+            # 모델 쪽이 실제보다 낮게 잡힌다.
+            # 이 페이지가 보려는 것이 학습 정확도와 시험 정확도의
+            # 간격이므로, 그 간격의 일부는 드롭아웃 자체가 만든 착시다.
+            # 정확히 재려면 에포크 끝에 eval()로 학습 집합을 다시 훑어야 한다
             _, pred = torch.max(outputs, 1)
             total += labels.size(0)
             correct += (pred == labels).sum().item()
@@ -121,6 +137,9 @@ def train_and_evaluate(model, name, epochs=10):
     
     return train_accs, test_accs
 
+# 주의: 씨앗을 심지 않아 두 모델의 초기 가중치가 서로 다르다.
+# 차이를 온전히 드롭아웃 탓으로 돌리려면 모델을 만들기 직전마다
+# torch.manual_seed(42)를 불러야 한다
 print("\nTraining WITHOUT Dropout:")
 no_drop_train, no_drop_test = train_and_evaluate(NoDropoutNet(), "No Dropout")
 
