@@ -240,41 +240,59 @@ def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
     history = {'train_loss': [], 'val_loss': [], 'train_acc': [], 'val_acc': []}
     
     for epoch in range(epochs):
-        # 학습 단계 - 드롭아웃 켜짐
+        # ── 학습 단계 ────────────────────────────────────────────────
+        # model.train()이 드롭아웃을 켜고 배치 정규화가 배치 통계를
+        # 쓰도록 만든다. 에폭마다 다시 부르는 까닭은 아래 검증 단계에서
+        # eval()로 바꿔 두었기 때문이다. 이 한 줄을 빼먹으면 두 번째
+        # 에폭부터 드롭아웃 없이 학습하게 되어 정칙화가 사라진다
         model.train()
         train_loss, train_correct, train_total = 0, 0, 0
-        
+
         for X_batch, y_batch in train_loader:
-            optimizer.zero_grad()
+            optimizer.zero_grad()   # 지난 배치의 기울기를 지운다
             outputs = model(X_batch)
             loss = criterion(outputs, y_batch)
             loss.backward()
             optimizer.step()
-            
+
+            # item()으로 수만 꺼낸다. 텐서째 더하면 계산 그래프가
+            # 에폭 내내 쌓여 메모리가 샌다
             train_loss += loss.item()
+            # max(1)은 (최댓값, 그 자리)를 준다. 여기서는 자리만 쓴다
             _, predicted = outputs.max(1)
+            # 마지막 배치가 작을 수 있으므로 배치 크기를 고정값이 아니라
+            # 실제 크기로 센다
             train_total += y_batch.size(0)
             train_correct += predicted.eq(y_batch).sum().item()
-        
-        # 검증 단계 - 드롭아웃 꺼짐
+
+        # ── 검증 단계 ────────────────────────────────────────────────
+        # eval()이 드롭아웃을 끄고 배치 정규화가 이동 통계를 쓰게 한다.
+        # 이것이 없으면 검증할 때마다 답이 달라져 곡선을 믿을 수 없다
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
-        
+
+        # no_grad는 eval()과 다른 일을 한다. eval()은 층의 동작을 바꾸고
+        # no_grad는 기울기 추적을 끈다. 둘 다 필요하다
         with torch.no_grad():
             for X_batch, y_batch in val_loader:
                 outputs = model(X_batch)
                 loss = criterion(outputs, y_batch)
-                
+
                 val_loss += loss.item()
                 _, predicted = outputs.max(1)
                 val_total += y_batch.size(0)
                 val_correct += predicted.eq(y_batch).sum().item()
-        
+
+        # 손실은 배치 수로, 정확도는 표본 수로 나눈다. 손실이 이미
+        # 배치 안에서 평균이 나 있기 때문이다. 마지막 배치가 작으면
+        # 이 평균은 정확한 표본 평균이 아니라 살짝 치우친 값이다
         history['train_loss'].append(train_loss / len(train_loader))
         history['val_loss'].append(val_loss / len(val_loader))
         history['train_acc'].append(train_correct / train_total)
         history['val_acc'].append(val_correct / val_total)
-    
+
+    # 드롭아웃이 걸린 모델에서는 학습 손실이 검증 손실보다 높게 나오는
+    # 일이 흔하다. 학습 때만 유닛이 꺼져 있기 때문이며, 고장이 아니다
     return history
 ```
 

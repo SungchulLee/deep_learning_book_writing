@@ -304,38 +304,51 @@ def multi_cutmix(x, y, n_patches=4, alpha=1.0):
         증강된 배치와 부드러운 레이블 벡터
     """
     B, C, H, W = x.shape
+    # 배치에 나타난 가장 큰 레이블로 갈래 수를 짐작한다. 배치에 없는
+    # 갈래가 있으면 이 값이 실제보다 작아지므로, 실무에서는 인자로 받는 편이 낫다
     num_classes = y.max().item() + 1
-    grid_size = int(np.sqrt(n_patches))
-    
+    grid_size = int(np.sqrt(n_patches))   # 4개면 2x2 격자
+
     patch_h = H // grid_size
     patch_w = W // grid_size
-    
-    x_mixed = x.clone()
+
+    x_mixed = x.clone()   # 원본을 건드리지 않도록 사본에 덮어쓴다
     soft_labels = torch.zeros(B, num_classes, device=x.device)
-    
+
     total_area = H * W
-    
+
     for gi in range(grid_size):
         for gj in range(grid_size):
-            # 이 조각의 무작위 출처
+            # 칸마다 새로 뒤섞는다. 칸이 저마다 다른 이미지에서 오므로
+            # 한 장에 여러 갈래가 섞이고, 그래서 "다중" 컷믹스다
             index = torch.randperm(B, device=x.device)
-            
+
             h_start = gi * patch_h
+            # 마지막 칸은 H까지 늘린다. H가 grid_size로 나누어떨어지지
+            # 않을 때 남는 줄을 버리지 않기 위해서다. 그래서 마지막 칸이
+            # 조금 더 클 수 있고, 아래에서 넓이를 그때그때 다시 잰다
             h_end = (gi + 1) * patch_h if gi < grid_size - 1 else H
             w_start = gj * patch_w
             w_end = (gj + 1) * patch_w if gj < grid_size - 1 else W
-            
+
+            # 그 칸만 다른 이미지의 같은 자리 값으로 갈아 끼운다
             x_mixed[:, :, h_start:h_end, w_start:w_end] = \
                 x[index, :, h_start:h_end, w_start:w_end]
-            
+
+            # 레이블은 넓이 몫만큼 섞는다. 이것이 컷믹스의 핵심 규약으로,
+            # "화면의 몇 할을 차지하는가"가 곧 "정답에 몇 할을 기여하는가"다
             patch_area = (h_end - h_start) * (w_end - w_start)
             weight = patch_area / total_area
-            
-            # 부드러운 레이블 누적
+
+            # 부드러운 레이블 누적.
+            # scatter_(1, 자리, 1.0)이 원-핫을 만든다. y[index]를
+            # unsqueeze(1)로 (B,1) 꼴로 만들어야 열 방향 자리로 읽힌다
             patch_labels = torch.zeros(B, num_classes, device=x.device)
             patch_labels.scatter_(1, y[index].unsqueeze(1), 1.0)
             soft_labels += weight * patch_labels
-    
+
+    # 넓이 몫을 모두 더하면 1이므로 soft_labels의 각 행도 합이 1이 된다.
+    # 곧 확률분포이며, 손실은 이 부드러운 목표에 대한 교차 엔트로피로 셈한다
     return x_mixed, soft_labels
 ```
 

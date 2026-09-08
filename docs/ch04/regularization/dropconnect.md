@@ -311,18 +311,29 @@ class MCDropConnectModel(nn.Module):
             mean: 표본에 걸친 평균 예측
             std: 표준편차 (인식적 불확실성)
         """
-        self.train()  # 드롭커넥트를 켠 채로 둔다
-        
+        # 평가할 때 보통은 확률적 요소를 끄지만, 여기서는 일부러 켠 채로
+        # 여러 번 예측한다. 매번 다른 부분망이 답하므로 그 답들의 흩어짐이
+        # 곧 모델의 불확실성이 된다. MC 드롭아웃과 같은 발상이며, 끄는
+        # 대상이 활성이 아니라 가중치라는 점만 다르다.
+        #
+        # 주의: 이 모델에는 배치 정규화가 없어 안전하지만, 있다면
+        # train()이 이동 통계까지 갱신해 버린다. 그런 경우에는
+        # DropConnect 모듈만 골라 켜야 한다.
+        self.train()
+
         predictions = []
-        with torch.no_grad():
+        with torch.no_grad():   # 기울기는 필요 없다. 순전파만 되풀이한다
             for _ in range(n_samples):
-                pred = self(x)
+                pred = self(x)   # 매번 다른 마스크가 뽑힌다
                 predictions.append(pred)
-        
+
+        # (n_samples, 배치, 출력) 꼴로 쌓은 뒤 표본 축으로 통계를 낸다
         predictions = torch.stack(predictions)
         mean = predictions.mean(dim=0)
+        # 이 표준편차는 모델이 몰라서 생기는 인식적 불확실성이다.
+        # 데이터 자체의 잡음은 여기에 잡히지 않는다
         std = predictions.std(dim=0)
-        
+
         return mean, std
 ```
 
