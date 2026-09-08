@@ -210,17 +210,34 @@ def create_comparison_network():
             elif norm_type == 'layer':
                 # 2차원 데이터에 LayerNorm을 쓰려면 모양을 지정해야 한다
                 # 이는 간략한 판본이다
-                self.norm = nn.GroupNorm(1, out_channels)  # 표본이 하나일 때는 층 정규화와 같다
+                # 그룹 하나로 묶으면 채널 전체를 함께 보므로 층 정규화가 된다.
+                # nn.LayerNorm을 쓰려면 (C, H, W)를 미리 알아야 하는데
+                # 합성곱에서는 입력 크기에 따라 H와 W가 달라지므로,
+                # 채널 수만 알면 되는 이쪽이 실용적이다
+                self.norm = nn.GroupNorm(1, out_channels)
             elif norm_type == 'instance':
+                # 주의: nn.InstanceNorm2d의 affine 기본값은 False다.
+                # 위의 BatchNorm2d나 GroupNorm과 달리 gamma와 beta를
+                # 배우지 않으므로, 이 비교에서 인스턴스 정규화만
+                # 학습되는 매개변수가 없다
                 self.norm = nn.InstanceNorm2d(out_channels)
             elif norm_type == 'group':
-                self.norm = nn.GroupNorm(8, out_channels)  # 그룹 8개
+                # 그룹 8개.
+                # out_channels가 8로 나누어떨어져야 한다. 64와 128은
+                # 괜찮지만 채널 수를 3처럼 바꾸면 오류가 난다.
+                # 8은 널리 쓰이는 어림값이며, 원 논문은 그룹당 채널
+                # 16개 언저리를 권한다
+                self.norm = nn.GroupNorm(8, out_channels)
             else:
                 self.norm = nn.Identity()
             
             self.relu = nn.ReLU(inplace=True)
         
         def forward(self, x):
+            # 합성곱 → 정규화 → 활성화. 어느 정규화를 골랐든 자리는
+            # 같다. 정규화가 ReLU 앞에 오므로 활성화에 들어가는 값이
+            # 0 언저리에 모이고, 바로 앞 합성곱의 편향은 곧 지워질
+            # 값이라 사실상 쓸모가 없다
             x = self.conv(x)
             x = self.norm(x)
             x = self.relu(x)
