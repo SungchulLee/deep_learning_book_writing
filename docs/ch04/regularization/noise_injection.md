@@ -228,11 +228,19 @@ class ActivationNoise(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training and self.std > 0:
             if self.additive:
+                # 더하기 잡음: 활성의 크기와 상관없이 같은 세기로 흔든다.
+                # 값이 작은 활성일수록 상대적으로 크게 흔들리는 셈이다
                 noise = torch.randn_like(x) * self.std
                 return x + noise
             else:
+                # 곱하기 잡음: 평균이 1인 값을 곱한다. 활성에 비례해
+                # 흔들리므로 큰 값은 크게, 작은 값은 작게 바뀐다.
+                # 드롭아웃도 사실 곱하기 잡음의 한 갈래다(0 또는 1/(1-p)를 곱한다).
+                # 다만 여기서는 기댓값이 1이라 따로 눈금을 맞출 필요가 없다
                 noise = 1 + torch.randn_like(x) * self.std
                 return x * noise
+        # 평가할 때는 그대로 통과시킨다. 두 방식 모두 잡음의 기댓값이
+        # 각각 0과 1이라 평균으로 보면 항등이기 때문이다
         return x
 
 class NetworkWithActivationNoise(nn.Module):
@@ -243,18 +251,23 @@ class NetworkWithActivationNoise(nn.Module):
         
         layers = []
         prev_dim = input_dim
-        
+
         for hidden_dim in hidden_dims:
             layers.extend([
                 nn.Linear(prev_dim, hidden_dim),
                 nn.ReLU(),
+                # 잡음을 ReLU "뒤"에 둔다. 앞에 두면 잡음이 ReLU를 거치며
+                # 음수 쪽이 잘려 나가 평균이 0이 아니게 되고, 그만큼
+                # 활성 전체가 위로 밀린다
                 ActivationNoise(std=noise_std)
             ])
             prev_dim = hidden_dim
-        
+
+        # 출력층 뒤에는 잡음을 두지 않는다. 예측 자체를 흔들면
+        # 정칙화가 아니라 그냥 성능이 나빠진다
         layers.append(nn.Linear(prev_dim, output_dim))
         self.network = nn.Sequential(*layers)
-    
+
     def forward(self, x):
         return self.network(x)
 ```

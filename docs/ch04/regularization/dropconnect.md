@@ -407,7 +407,9 @@ def train_with_dropconnect(
     history = {'train_loss': [], 'val_loss': [], 'val_acc': []}
     
     for epoch in range(epochs):
-        # 학습 — 드롭커넥트 켜짐
+        # ── 학습 — 드롭커넥트 켜짐 ───────────────────────────────────
+        # 에폭마다 train()을 다시 부른다. 아래 검증에서 eval()로 바꿔
+        # 두었으므로, 이 줄이 없으면 둘째 에폭부터 정칙화가 사라진다
         model.train()
         train_loss = 0
         for X_batch, y_batch in train_loader:
@@ -416,9 +418,11 @@ def train_with_dropconnect(
             loss = criterion(outputs, y_batch)
             loss.backward()
             optimizer.step()
-            train_loss += loss.item()
-        
-        # 검증 — 드롭커넥트 꺼짐
+            train_loss += loss.item()   # 수만 더한다(텐서째 더하면 그래프가 쌓인다)
+
+        # ── 검증 — 드롭커넥트 꺼짐 ───────────────────────────────────
+        # eval()이 층의 동작을 바꾸고, no_grad()가 기울기 추적을 끈다.
+        # 서로 다른 일이므로 둘 다 있어야 한다
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
         with torch.no_grad():
@@ -426,18 +430,22 @@ def train_with_dropconnect(
                 outputs = model(X_batch)
                 loss = criterion(outputs, y_batch)
                 val_loss += loss.item()
-                _, predicted = outputs.max(1)
-                val_total += y_batch.size(0)
+                _, predicted = outputs.max(1)   # 로짓이 가장 큰 갈래
+                val_total += y_batch.size(0)    # 마지막 배치가 작을 수 있다
                 val_correct += predicted.eq(y_batch).sum().item()
-        
+
+        # 손실은 배치 수로, 정확도는 표본 수로 나눈다.
+        # 손실이 이미 배치 안에서 평균이 나 있기 때문이다
         history['train_loss'].append(train_loss / len(train_loader))
         history['val_loss'].append(val_loss / len(val_loader))
         history['val_acc'].append(val_correct / val_total)
-        
+
+        # 10 에폭마다 한 번만 찍는다. 매 에폭 찍으면 출력이 너무 길어져
+        # 흐름을 읽기 어렵다
         if (epoch + 1) % 10 == 0:
             print(f"Epoch {epoch+1}: Train Loss={train_loss/len(train_loader):.4f}, "
                   f"Val Acc={val_correct/val_total:.4f}")
-    
+
     return history
 ```
 

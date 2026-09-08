@@ -186,9 +186,20 @@ def l2_regularization(model: nn.Module, lambda_l2: float) -> torch.Tensor:
     반환값:
         L2 벌점 항 (가중치의 L2 노름의 제곱)
     """
+    # next(model.parameters())로 첫 매개변수를 꺼내 그 device를 따라간다.
+    # 이렇게 해 두면 모델이 GPU에 있든 CPU에 있든 같은 곳에서 셈한다.
+    # device를 맞추지 않으면 아래 덧셈에서 오류가 난다
     l2_penalty = torch.tensor(0., device=next(model.parameters()).device)
+
     for param in model.parameters():
+        # += 가 아니라 = ... + ... 을 쓴다. += 는 제자리 연산이라
+        # autograd가 되돌아갈 값을 덮어써 역전파가 깨질 수 있다
         l2_penalty = l2_penalty + torch.sum(param ** 2)
+
+    # 주의: model.parameters()는 편향과 정규화 층의 감마·베타까지 모두 준다.
+    # 보통은 가중치에만 벌을 주므로, 엄밀히 하려면 이름으로 걸러야 한다.
+    # 편향에 벌을 주면 모델이 출력을 원점 쪽으로 끌어당기게 되어
+    # 목표의 평균이 0에서 멀 때 손해다
     return lambda_l2 * l2_penalty
 
 class L2RegularizedModel(nn.Module):
@@ -214,9 +225,17 @@ class L2RegularizedModel(nn.Module):
     
     def l2_penalty(self, lambda_l2=0.01):
         """모든 매개변수에 대한 L2 벌점을 계산한다."""
+        # 파이썬 정수 0에서 시작한다. 첫 덧셈에서 텐서가 되므로
+        # device를 따로 맞출 필요가 없다는 것이 앞의 함수와 다른 점이다.
+        # 다만 매개변수가 하나도 없는 모델이면 텐서가 아니라 0이 나온다
         penalty = 0
         for param in self.parameters():
             penalty += torch.sum(param ** 2)
+
+        # 쓸 때는 손실에 더한다: loss = criterion(pred, y) + model.l2_penalty()
+        # 옵티마이저의 weight_decay로 거는 것과 수학적으로는 같지만,
+        # 이렇게 손실에 명시하면 벌점 값을 따로 찍어 볼 수 있어
+        # lambda를 고르거나 문제를 찾을 때 편하다
         return lambda_l2 * penalty
 ```
 
