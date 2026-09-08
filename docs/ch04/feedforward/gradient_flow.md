@@ -305,23 +305,35 @@ def gradient_flow_experiment():
     }
     
     results = {}
-    
+
     for act_name, act_cls in activations.items():
-        # 10층 신경망 만들기
+        # 10층 신경망 만들기.
+        # 활성 함수만 바꾸고 나머지는 똑같이 두어야 차이를 활성 탓으로
+        # 돌릴 수 있다
         layers = []
         for _ in range(10):
             layers.extend([nn.Linear(64, 64), act_cls()])
         layers.append(nn.Linear(64, 1))
         model = nn.Sequential(*layers)
-        
-        # 순전파 + 역전파
+
+        # 순전파 + 역전파.
+        # 주의: manual_seed가 모델을 만든 "뒤"에 있다. 그래서 입력 x, y는
+        # 세 경우에 같지만 가중치 초기값은 서로 다르다. 엄밀히 견주려면
+        # 이 줄이 nn.Sequential 앞에 와야 한다
         torch.manual_seed(42)
         x = torch.randn(32, 64)
         y = torch.randn(32, 1)
+        # 목표가 무작위라 배울 것이 없다. 역전파를 한 번 돌려
+        # 기울기의 크기만 보려는 것이다
         loss = nn.MSELoss()(model(x), y)
         loss.backward()
-        
-        # 층마다 가중치 기울기의 노름 모으기
+
+        # 층마다 가중치 기울기의 노름 모으기.
+        # 시그모이드는 도함수의 최댓값이 0.25라, 층을 지날 때마다
+        # 기울기가 최소 4분의 1로 줄어든다. 10층이면 4^10 배이니
+        # 입력 쪽 층은 사실상 학습되지 않는다.
+        # tanh는 최댓값이 1이라 덜하고, ReLU는 양수 쪽에서 정확히 1이라
+        # 가장 잘 흐른다
         norms = []
         for layer in model:
             if isinstance(layer, nn.Linear):

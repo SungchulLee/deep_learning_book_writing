@@ -24,28 +24,40 @@ class RegressionNetwork(nn.Module):
     def forward(self, x):
         x = self.activation(self.fc1(x))
         x = self.activation(self.fc2(x))
-        x = self.fc3(x)  # 출력에는 활성화를 쓰지 마라!
+        # 출력에는 활성화를 쓰지 마라!
+        # 회귀의 목푯값은 어떤 실수든 될 수 있는데, ReLU를 걸면 음수를
+        # 아예 낼 수 없고 시그모이드를 걸면 [0,1]에 갇힌다.
+        # 여기서 목표가 sin이라 음수가 있으므로 ReLU를 걸면 학습이 무너진다
+        x = self.fc3(x)
         return x
 
 def generate_regression_data(n_samples=500):
+    # 주기가 세 번 반복되는 sin 곡선. 곡선을 맞추려면 비선형이
+    # 반드시 있어야 하므로 활성 함수의 몫을 보이기에 알맞다
     X = np.linspace(-3*np.pi, 3*np.pi, n_samples).reshape(-1, 1)
-    y = np.sin(X) + 0.2 * np.random.randn(n_samples, 1)
+    y = np.sin(X) + 0.2 * np.random.randn(n_samples, 1)   # 잡음을 얹는다
+    # 넘파이 기본이 float64라 그대로 넘기면 dtype이 어긋난다.
+    # FloatTensor로 float32에 맞춘다
     X_train = torch.FloatTensor(X)
     y_train = torch.FloatTensor(y)
     return X_train, y_train
 
 def train_regression(model, X, y, epochs=300, lr=0.01):
-    criterion = nn.MSELoss()
+    criterion = nn.MSELoss()   # 회귀의 표준 손실. 조건부 평균을 겨냥한다
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     losses = []
     for epoch in range(epochs):
         model.train()
         optimizer.zero_grad()
+        # 배치로 나누지 않고 500개를 한꺼번에 쓴다(전체 배치 경사 하강).
+        # 표본이 적어 가능하며, 걸음마다의 기울기가 흔들리지 않는다
         predictions = model(X)
         loss = criterion(predictions, y)
         loss.backward()
         optimizer.step()
         losses.append(loss.item())
+    # 손실이 0으로 가지 않는 것이 정상이다. 표준편차 0.2짜리 잡음을
+    # 얹었으므로 아무리 잘 맞춰도 0.04 언저리가 바닥이다
     return losses
 
 if __name__ == "__main__":

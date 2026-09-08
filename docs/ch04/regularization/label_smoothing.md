@@ -300,18 +300,28 @@ def expected_calibration_error(
     반환값:
         ECE 값 (작을수록 잘 보정된 것이다)
     """
+    # 보정이란 "확률 0.8이라 말한 예측이 실제로 80% 맞는가"를 묻는 것이다.
+    # 정확도와는 다른 물음이다. 정확도가 높아도 늘 0.99라고 외치면
+    # 보정은 나쁘다. 확률을 의사결정에 쓰려면 이쪽이 더 중요하다.
     bin_boundaries = np.linspace(0, 1, n_bins + 1)
     ece = 0.0
-    
+
     for i in range(n_bins):
+        # 확신도를 구간별로 나눈다. 왼쪽은 열고 오른쪽은 닫아
+        # 구간이 겹치지 않게 한다
         in_bin = (probs > bin_boundaries[i]) & (probs <= bin_boundaries[i + 1])
         n_in_bin = in_bin.sum()
-        
-        if n_in_bin > 0:
-            avg_confidence = probs[in_bin].mean()
-            avg_accuracy = labels[in_bin].mean()
+
+        if n_in_bin > 0:   # 빈 구간은 건너뛴다
+            avg_confidence = probs[in_bin].mean()    # 모델이 말한 확률
+            avg_accuracy = labels[in_bin].mean()     # 실제로 맞은 비율
+            # 둘의 차이를 구간에 든 표본 수로 무게를 주어 더한다.
+            # 무게를 주는 까닭은 표본이 몇 개뿐인 구간이 결과를
+            # 좌우하지 않게 하기 위해서다
             ece += (n_in_bin / len(probs)) * abs(avg_accuracy - avg_confidence)
-    
+
+    # 완벽히 보정되면 0이다. 구간 수에 따라 값이 달라지므로
+    # 서로 다른 n_bins로 잰 ECE를 견주어서는 안 된다
     return ece
 
 def evaluate_calibration(model, data_loader, device='cpu'):
@@ -323,21 +333,30 @@ def evaluate_calibration(model, data_loader, device='cpu'):
     with torch.no_grad():
         for X_batch, y_batch in data_loader:
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-            outputs = model(X_batch)
+            outputs = model(X_batch)   # 로짓
+            # 모델이 로짓을 내므로 여기서 소프트맥스를 걸어 확률로 만든다.
+            # 학습 때는 CrossEntropyLoss가 안에서 걸어 주므로 필요 없었다
             probs = torch.softmax(outputs, dim=-1)
+            # 가장 큰 확률과 그 자리를 함께 얻는다. ECE는 "고른 갈래에
+            # 대한 확신도"를 보므로 최댓값만 쓴다
             max_probs, predicted = probs.max(1)
-            
+
+            # cpu()로 옮긴 뒤 넘파이로 바꾼다. GPU 텐서는 곧바로
+            # numpy()를 부를 수 없다
             all_probs.append(max_probs.cpu().numpy())
             all_correct.append(predicted.eq(y_batch).cpu().numpy())
-    
+
     probs = np.concatenate(all_probs)
     correct = np.concatenate(all_correct)
-    
+
     ece = expected_calibration_error(probs, correct)
     print(f"ECE: {ece:.4f}")
+    # 정확도와 평균 확신도를 나란히 찍는 것이 요점이다.
+    # 확신도가 정확도보다 높으면 과신(딥러닝에서 흔하다),
+    # 낮으면 과소 확신이다. 레이블 평활화는 이 간격을 줄이려는 장치다
     print(f"Accuracy: {correct.mean():.4f}")
     print(f"Mean confidence: {probs.mean():.4f}")
-    
+
     return ece
 ```
 
