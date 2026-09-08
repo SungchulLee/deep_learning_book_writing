@@ -43,6 +43,12 @@ def create_model_no_regularization(input_dim):
 
 def create_model_l1_regularization(input_dim, l1_factor=0.01):
     """L1 정칙화를 쓰는 신경망을 만든다."""
+    # 이 페이지는 케라스를 쓴다. 앞의 PyTorch 판에서는 벌점 함수를
+    # 손으로 만들어 손실에 더했지만, 케라스는 층마다 kernel_regularizer를
+    # 달아 두면 알아서 손실에 더해 준다. 하는 일은 같다.
+    # kernel은 가중치를 뜻하고 편향은 손대지 않는다. PyTorch 판에서
+    # model.parameters()가 편향까지 훑어 문제였던 것과 달리,
+    # 여기서는 이름 자체가 가중치만 고르도록 되어 있다
     model = keras.Sequential([
         layers.Dense(128, activation='relu', input_dim=input_dim,
                     kernel_regularizer=regularizers.l1(l1_factor)),
@@ -50,6 +56,9 @@ def create_model_l1_regularization(input_dim, l1_factor=0.01):
                     kernel_regularizer=regularizers.l1(l1_factor)),
         layers.Dense(32, activation='relu',
                     kernel_regularizer=regularizers.l1(l1_factor)),
+        # 출력층에는 벌점을 걸지 않는다. 회귀의 출력 눈금을 정하는 층이라
+        # 여기까지 누르면 예측이 0 쪽으로 치우친다.
+        # 활성화도 없다. 회귀이므로 출력이 음수도 될 수 있어야 한다
         layers.Dense(1)
     ])
     model.compile(optimizer='adam', loss='mse', metrics=['mae'])
@@ -93,6 +102,11 @@ def sklearn_regularization_demo():
     print("="*60)
     
     # 데이터셋 생성
+    # 특징 50개 가운데 정말로 쓸모 있는 것은 20개뿐이다. 나머지 30개는
+    # 목표와 아무 관계가 없다. 라쏘가 그 30개의 계수를 0으로 만들어
+    # 스스로 골라내는지 보려고 일부러 이렇게 지었다.
+    # 표본이 200개인데 특징이 50개라 비율이 4:1로 낮아, 정칙화 없이는
+    # 잡음까지 외우기 쉬운 조건이기도 하다
     X, y = make_regression(n_samples=200, n_features=50, n_informative=20,
                           noise=10, random_state=42)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -104,6 +118,9 @@ def sklearn_regularization_demo():
     
     # 모델 학습
     models = {
+        # 강도가 서로 다르다. 두 벌점의 눈금이 달라 같은 alpha를 주면
+        # 라쏘가 훨씬 세게 누르기 때문이다. 이 표에서 볼 것은
+        # 강도별 성능이 아니라 계수를 다루는 방식의 차이다
         'No Regularization': LinearRegression(),
         'L2 (Ridge)': Ridge(alpha=1.0),
         'L1 (Lasso)': Lasso(alpha=0.1)
@@ -116,6 +133,10 @@ def sklearn_regularization_demo():
         test_score = model.score(X_test_scaled, y_test)
         
         # 영이 아닌 계수 세기
+        # 셋 모두에 같은 문턱값을 쓴다. 라쏘는 정확히 0을 만들지만
+        # 능선과 최소제곱은 그러지 못하므로, 이 줄의 결과는 라쏘만
+        # 20 언저리로 떨어지고 나머지 둘은 50에 가깝게 나온다.
+        # 데이터에 심어 둔 유효 특징이 20개였음을 떠올려 보라
         non_zero = np.sum(np.abs(model.coef_) > 1e-5)
         
         results[name] = {

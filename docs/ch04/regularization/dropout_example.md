@@ -41,13 +41,23 @@ def create_model_without_dropout(input_dim):
 
 def create_model_with_dropout(input_dim, dropout_rate=0.5):
     """드롭아웃 층이 있는 신경망을 만든다."""
+    # 이 페이지는 이 장에서 드물게 PyTorch가 아니라 케라스를 쓴다.
+    # 뜻은 같지만 학습/평가 모드를 다루는 방식이 다르다. PyTorch는
+    # model.train()과 model.eval()을 손으로 오가야 하지만, 케라스는
+    # fit에서는 드롭아웃을 켜고 evaluate와 predict에서는 알아서 끈다.
+    # 곧 아래 코드에 eval()에 해당하는 줄이 보이지 않는 것이 정상이다
     model = keras.Sequential([
+        # Dense 뒤에 Dropout을 놓는 순서는 PyTorch 판과 같다
         layers.Dense(128, activation='relu', input_dim=input_dim),
         layers.Dropout(dropout_rate),
         layers.Dense(64, activation='relu'),
         layers.Dropout(dropout_rate),
         layers.Dense(32, activation='relu'),
+        # 세 층 모두 0.5로 같다. 폭이 32인 층에서는 절반을 끄면 남는
+        # 뉴런이 16개뿐이라 꽤 센 편이며, 보통은 뒤로 갈수록 비율을
+        # 낮춘다. 여기서는 효과를 뚜렷이 보이려고 일부러 세게 걸었다
         layers.Dropout(dropout_rate),
+        # 출력층 뒤에는 드롭아웃이 없다. 예측 자체를 지울 수는 없다
         layers.Dense(1, activation='sigmoid')
     ])
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
@@ -62,10 +72,16 @@ def main():
     # 데이터 나누고 척도 맞추기
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     scaler = StandardScaler()
+    # 학습 집합에는 fit_transform, 시험 집합에는 transform이다. 시험
+    # 집합에 fit을 부르면 그 평균과 분산이 학습에 새어 들어간다.
+    # 이 두 메서드를 바꿔 쓰는 것이 데이터 누출의 가장 흔한 통로다
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
     
     # 드롭아웃 없이 모델 학습
+    # 주의: 텐서플로의 씨앗을 심지 않아 실행할 때마다 값이 달라진다.
+    # 두 모델의 차이가 드롭아웃 때문인지 초기화 운 때문인지 가리려면
+    # 여기 앞에 tf.random.set_seed(42)가 있어야 한다
     print("Training model WITHOUT dropout...")
     model_no_dropout = create_model_without_dropout(X_train.shape[1])
     history_no_dropout = model_no_dropout.fit(
@@ -98,6 +114,12 @@ def main():
     plt.figure(figsize=(12, 5))
     
     plt.subplot(1, 2, 1)
+    # 이 그림에서 볼 것은 최종 손실의 높낮이가 아니라 두 곡선의 벌어짐이다.
+    # 드롭아웃이 없는 쪽은 학습 손실이 계속 내려가는데 검증 손실이
+    # 돌아서며 간격이 벌어진다. 그 벌어짐이 곧 과적합이고,
+    # 드롭아웃을 건 쪽에서 그 간격이 좁아지는 것이 이 예제의 요점이다.
+    # 드롭아웃 쪽 학습 손실이 더 높게 나오는 것도 정상이다.
+    # 뉴런을 꺼 둔 채 잰 값이기 때문이다
     plt.plot(history_no_dropout.history['loss'], label='Train Loss (No Dropout)')
     plt.plot(history_no_dropout.history['val_loss'], label='Val Loss (No Dropout)')
     plt.plot(history_with_dropout.history['loss'], label='Train Loss (With Dropout)', linestyle='--')

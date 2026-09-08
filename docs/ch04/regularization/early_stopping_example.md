@@ -66,7 +66,10 @@ def train_with_early_stopping(X_train, y_train, X_val, y_val,
     print(f"Training WITH early stopping (patience={patience})...")
     model = create_model(X_train.shape[1])
     
-    # 조기 종료 콜백 만들기
+    # 조기 종료 콜백 만들기.
+    # 이 디렉터리의 PyTorch판 EarlyStopping 클래스와 하는 일이 같다.
+    # 다만 케라스는 학습 루프 안에서 콜백을 알아서 불러 주므로,
+    # 루프에 if 문을 넣고 break를 거는 일을 하지 않아도 된다
     early_stop = callbacks.EarlyStopping(
         monitor='val_loss',          # 감시할 지표
         patience=patience,            # 개선이 없는 에포크의 수
@@ -91,7 +94,11 @@ def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=20
     print("Training with ADVANCED early stopping (multiple callbacks)...")
     model = create_model(X_train.shape[1])
     
-    # 여러 콜백
+    # 여러 콜백.
+    # 아래 세 콜백의 인내 값이 15와 5로 다른 것이 이 조합의 핵심이다.
+    # 학습률 감소가 5에서 먼저 걸려 모델에게 한 번 더 기회를 주고,
+    # 그래도 나아지지 않으면 15에서 조기 종료가 걸린다. 두 값을
+    # 거꾸로 두면 학습률을 낮춰 보기도 전에 학습이 끝나 버린다
     callback_list = [
         # 검증 손실에 기반한 조기 종료
         callbacks.EarlyStopping(
@@ -100,7 +107,12 @@ def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=20
             restore_best_weights=True,
             verbose=1
         ),
-        # 가장 좋은 모델 저장
+        # 가장 좋은 모델 저장.
+        # 주의: 이쪽은 val_accuracy를 보는데 위의 조기 종료는 val_loss를
+        # 본다. 두 지표의 최고점이 같은 에포크가 아닐 수 있으므로,
+        # 파일에 저장된 모델과 학습이 끝난 뒤 메모리에 남는 모델이
+        # 서로 다른 에포크의 것일 수 있다. 어느 쪽을 쓸지 정해 두거나
+        # 두 콜백이 같은 지표를 보게 맞추는 편이 낫다
         callbacks.ModelCheckpoint(
             'best_model.keras',
             monitor='val_accuracy',
@@ -108,6 +120,9 @@ def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=20
             verbose=1
         ),
         # 검증 손실이 정체되면 학습률을 줄인다
+        # 정체될 때마다 학습률을 절반으로 줄인다. 코사인 감소처럼
+        # 미리 짜 둔 일정과 달리, 실제로 나아지지 않을 때만 반응한다.
+        # min_lr이 있어 학습률이 0으로 내려가 학습이 멎는 것을 막는다
         callbacks.ReduceLROnPlateau(
             monitor='val_loss',
             factor=0.5,
