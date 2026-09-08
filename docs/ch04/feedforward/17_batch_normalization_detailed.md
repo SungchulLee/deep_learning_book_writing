@@ -154,7 +154,12 @@ class NetWithBN(nn.Module):
         self.network = nn.Sequential(
             # 1층
             nn.Linear(28*28, 256),
-            nn.BatchNorm1d(256),  # 선형층 뒤, ReLU 앞의 배치 정규화
+            # 선형층 뒤, ReLU 앞의 배치 정규화.
+            # 이 자리에 두면 ReLU에 들어가는 값이 0 언저리에 모여
+            # 절반쯤 살고 절반쯤 죽으므로 신호가 한쪽으로 쏠리지 않는다.
+            # 바로 앞 Linear의 편향은 사실상 쓸모가 없다. 여기서 평균을
+            # 빼 버리기 때문이며, 그래서 실무에서는 bias=False를 주기도 한다
+            nn.BatchNorm1d(256),
             nn.ReLU(),
             
             # 2층
@@ -190,7 +195,12 @@ print("\n" + "=" * 70)
 print("STEP 3: Understanding BatchNorm Behavior")
 print("=" * 70)
 
-# 시연을 위해 간단한 배치 정규화 층 만들기
+# 시연을 위해 간단한 배치 정규화 층 만들기.
+# 갓 만든 층이라 아래 출력이 gamma=[1,1,1], beta=[0,0,0],
+# running_mean=[0,0,0], running_var=[1,1,1]로 찍힌다. 곧 학습을
+# 한 번도 하지 않은 배치 정규화는 eval() 상태에서 입력을 거의
+# 그대로 통과시킨다. (x - 0) / sqrt(1 + eps)이기 때문이다.
+# 이동 통계는 학습을 거치며 배치마다 조금씩 갱신되어 쌓이는 값이다
 demo_bn = nn.BatchNorm1d(3)
 print("\nBatchNorm1d layer parameters:")
 print(f"  gamma (weight): {demo_bn.weight.data}")
@@ -218,6 +228,11 @@ def train_and_evaluate(model, train_loader, val_loader, optimizer,
     }
     
     for epoch in range(n_epochs):
+        # 주의: GPU에서는 이 시간이 부정확하다. CUDA 연산이 비동기라
+        # 파이썬이 먼저 앞서 나가므로, 제대로 재려면 앞뒤로
+        # torch.cuda.synchronize()를 불러야 한다.
+        # 배치 정규화는 층마다 계산이 더해지므로 에포크 시간이 늘지만,
+        # 대신 수렴이 빨라 전체 학습 시간은 줄어드는 것이 보통이다
         start_time = time.time()
         
         # 학습
@@ -240,7 +255,11 @@ def train_and_evaluate(model, train_loader, val_loader, optimizer,
             train_total += labels.size(0)
             train_correct += (predicted == labels).sum().item()
         
-        # 검증
+        # 검증.
+        # 배치 정규화가 있는 모델에서 eval()은 선택이 아니다. 이 줄이
+        # 없으면 평가에서도 배치 통계를 쓰게 되어, 같은 표본이라도
+        # 어떤 표본들과 한 배치에 묶였느냐에 따라 예측이 달라진다.
+        # 배치 크기가 1이면 분산이 정의되지 않아 오류까지 난다
         model.eval()
         val_loss = 0.0
         val_correct = 0
@@ -285,7 +304,12 @@ print("STEP 5: Training Both Models")
 print("=" * 70)
 
 n_epochs = 15
-learning_rate = 0.01  # 참고: 배치 정규화에서는 학습률을 높게 잡는 편이 낫다!
+# 참고: 배치 정규화에서는 학습률을 높게 잡는 편이 낫다!
+# 다만 아래에서 두 모델이 이 값을 함께 쓴다. 정규화의 강점 하나가
+# "더 큰 학습률을 견딘다"는 것인데, 같은 값을 주면 그 강점은
+# 표에 드러나지 않는다. 정규화 없는 쪽에 0.01이 이미 큰 값이라
+# 학습이 불안정해 보인다면, 그것도 이 실험이 말해 주는 바의 하나다
+learning_rate = 0.01
 
 criterion = nn.CrossEntropyLoss()
 

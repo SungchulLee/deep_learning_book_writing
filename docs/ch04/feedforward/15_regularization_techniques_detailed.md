@@ -199,6 +199,13 @@ def train_epoch(model, train_loader, criterion, optimizer, device):
         optimizer.step()
         
         running_loss += loss.item()
+        # 주의: outputs는 드롭아웃이 켜진 채, 갱신 전 가중치로 계산한
+        # 값이다. 그래서 여기서 나오는 학습 정확도는 드롭아웃을 쓰는
+        # 모델에서만 실제보다 낮게 잡힌다.
+        # 아래 5단계에서 이 값으로 "학습-검증 차이"를 재어 과적합의
+        # 잣대로 삼는데, 그 차이의 일부는 드롭아웃이 만든 착시다.
+        # 두 모델을 공평히 견주려면 에포크 끝에 eval() 상태로
+        # 학습 집합을 다시 훑어 정확도를 재야 한다
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
@@ -248,6 +255,9 @@ print("\n" + "-" * 70)
 print("Training Model 1: SimpleNet (No Regularization)")
 print("-" * 70)
 
+# 주의: 씨앗을 심지 않아 두 모델의 초기 가중치가 다르다. 차이를
+# 정칙화 탓으로만 돌리려면 두 모델을 만들기 직전마다
+# torch.manual_seed(42)를 불러야 한다
 model1 = SimpleNet().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer1 = optim.Adam(model1.parameters(), lr=learning_rate)
@@ -277,8 +287,15 @@ print("\n" + "-" * 70)
 print("Training Model 2: RegularizedNet (With Dropout + Weight Decay)")
 print("-" * 70)
 
+# 기본값 0.5가 아니라 0.3을 넘긴다. 폭이 256과 128인 층이라
+# 절반을 끄면 남는 뉴런이 적어 학습이 더디기 때문이다
 model2 = RegularizedNet(dropout_rate=0.3).to(device)
-# 가중치 감쇠 추가 (L2 정칙화)
+# 가중치 감쇠 추가 (L2 정칙화).
+# 모델 1에는 이 인자가 없으므로, 위와 달리 여기 기준선은 정말로
+# 정칙화가 없는 모델이다.
+# 다만 한 번에 두 가지(드롭아웃과 가중치 감쇠)를 바꾸었으므로,
+# 아래 결과에서 어느 쪽이 일했는지는 갈라낼 수 없다.
+# 그것까지 보려면 셋째 모델로 하나씩만 켜서 견주어야 한다
 optimizer2 = optim.Adam(model2.parameters(), lr=learning_rate, weight_decay=1e-4)
 
 print(f"Regularization parameters:")
@@ -325,6 +342,12 @@ print(f"  Test Accuracy: {test_acc2:.2f}%")
 print(f"  Test Loss: {test_loss2:.4f}")
 
 # 과적합 지표 계산 (학습-검증 차이)
+# 과적합을 "학습 정확도 빼기 검증 정확도"로 잰다. 학습 데이터에서만
+# 잘하고 처음 보는 데이터에서 못하는 정도를 뜻하므로 타당한 잣대다.
+# 다만 위에서 적어 두었듯 model2의 학습 정확도는 드롭아웃이 켜진 채
+# 잰 값이라 실제보다 낮다. 곧 overfit2가 작게 나오는 데에는 정칙화의
+# 효과와 측정 방식의 효과가 함께 들어 있다. 결론의 방향은 대체로
+# 맞지만 숫자를 곧이곧대로 받아들이면 안 된다
 overfit1 = history1['train_acc'][-1] - history1['val_acc'][-1]
 overfit2 = history2['train_acc'][-1] - history2['val_acc'][-1]
 print(f"\nOverfitting Analysis (Train-Val Accuracy Gap):")
