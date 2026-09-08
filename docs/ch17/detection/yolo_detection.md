@@ -549,6 +549,35 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+⚠ ultralytics not installed. Installing...
+Run: pip install ultralytics
+======================================================================
+YOLO OBJECT DETECTION
+======================================================================
+
+This example demonstrates:
+1. Loading pre-trained YOLOv8 models
+2. Running object detection on images
+3. Understanding YOLO outputs
+4. Comparing different model sizes
+5. Real-time performance analysis
+
+Using device: cpu
+⚠ GPU not available. Inference will be slower.
+
+Step 1: Creating Test Images
+----------------------------------------------------------------------
+Created test image 1 with 3 objects
+Created test image 2 with 3 objects
+Created test image 3 with 3 objects
+
+Skipping YOLO demo - ultralytics not installed
+Install with: pip install ultralytics
+```
+
 ## 2. 논의
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.

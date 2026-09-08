@@ -320,6 +320,28 @@ if __name__ == "__main__":
     print("\nAll augmentation tests passed!")
 ```
 
+**출력:**
+
+```
+Testing SimCLR augmentation...
+View 1 shape: torch.Size([3, 224, 224])
+View 2 shape: torch.Size([3, 224, 224])
+
+Testing MoCo augmentation...
+Query shape: torch.Size([3, 224, 224])
+Key shape: torch.Size([3, 224, 224])
+
+Testing MAE augmentation...
+Augmented image shape: torch.Size([3, 224, 224])
+
+Testing Multi-crop augmentation...
+Number of crops: 6
+Global crop shapes: [torch.Size([3, 224, 224]), torch.Size([3, 224, 224])]
+Local crop shapes: [torch.Size([3, 89, 89]), torch.Size([3, 89, 89]), torch.Size([3, 89, 89]), torch.Size([3, 89, 89])]
+
+All augmentation tests passed!
+```
+
 ## 2. 논의
 
 자기 지도 학습에서 불리기 파이프라인의 설계는 시각적 이해에 어떤 불변성이 중요한지에 관한 사전 지식을 담는다. **SimCLR**는 무작위 크기 조정 자르기, 색 흔들기, 흑백 바꾸기, 가우스 흐리기를 아우르는 센 불리기를 쓰며, 자르기와 색 뒤틀기의 짜맞춤이 가장 중요한 조합임을 밝혔다. 어느 하나를 빼도 성능이 크게 떨어진다. 자르기만 쓰면 모형이 여전히 색 히스토그램을 지름길로 쓸 수 있고, 색 뒤틀기만 쓰면 고정된 공간 영역의 결 무늬에 기댈 수 있기 때문이다.

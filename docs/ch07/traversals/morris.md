@@ -136,6 +136,13 @@ if __name__ == "__main__":
     print(f"Morris preorder: {morris_preorder(tree)}")  # [4, 2, 1, 3, 5]
 ```
 
+**출력:**
+
+```
+Morris inorder:  [1, 2, 3, 4, 5]
+Morris preorder: [4, 2, 1, 3, 5]
+```
+
 ---
 
 ## 4. 전체 일의 양이 $O(n)$인 까닭

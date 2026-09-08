@@ -384,6 +384,39 @@ if __name__ == "__main__":
     print(f"Loaded target vocabulary size: {len(loaded_trg_vocab)}")
 ```
 
+**출력:**
+
+```
+Data Preprocessing Example
+--------------------------------------------------
+
+Building vocabularies...
+Source vocabulary size: 26
+Target vocabulary size: 25
+
+Testing encoding/decoding...
+Original: Hello, how are you?
+Tokens: ['hello', ',', 'how', 'are', 'you', '?']
+Indices: [10, 5, 11, 12, 4, 6]
+Decoded: ['hello', ',', 'how', 'are', 'you', '?']
+
+Creating dataset...
+Dataset size: 5
+
+Sample data:
+Source: Hello, how are you?
+Source indices: [10, 5, 11, 12, 4, 6]
+Target: Bonjour, comment allez-vous?
+Target indices: [1, 8, 4, 9, 10, 5, 2]
+
+Saving vocabularies...
+Vocabularies saved!
+
+Loading vocabularies...
+Loaded source vocabulary size: 26
+Loaded target vocabulary size: 25
+```
+
 ## 2. 논의
 
 이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 순차열 모델의 핵심 개념을 보인다. 모듈식 짜임 덕분에 부품 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.

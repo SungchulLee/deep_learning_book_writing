@@ -613,6 +613,12 @@ tilted = exponential_tilting_proposal(target, tilt_parameter=3.0)
 print(f"Original mean: {target.loc}, Tilted mean: {tilted.loc}")
 ```
 
+**출력:**
+
+```
+Original mean: 0.0, Tilted mean: 3.0
+```
+
 ---
 
 ## 8. 핵심 정리

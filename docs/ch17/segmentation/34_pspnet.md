@@ -70,6 +70,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 607,701
+```
+
 ## 2. 논의
 
 여기 짠 것은 함께 어울려 온전한 그림 나누기 얼개를 이루는 클래스 2개(`PyramidPooling`, `PSPNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.

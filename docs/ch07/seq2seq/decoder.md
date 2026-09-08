@@ -366,6 +366,15 @@ if __name__ == "__main__":
     print(f"Attention weights shape: {attention_weights.shape}")
 ```
 
+**출력:**
+
+```
+Input token shape: torch.Size([32, 1])
+Output shape: torch.Size([32, 10000])
+Hidden shape: torch.Size([2, 32, 512])
+Attention weights shape: torch.Size([32, 20])
+```
+
 ## 2. 논의
 
 이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 순차열 모델 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.

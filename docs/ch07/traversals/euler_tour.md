@@ -142,6 +142,23 @@ if __name__ == "__main__":
     print(f"Is C ancestor of F? {is_ancestor(2, 5, tin, tout)}")  # True
 ```
 
+**출력:**
+
+```
+Euler tour: A B D D E E B C F F C A
+
+  A: tin=0, tout=11
+  B: tin=1, tout=6
+  C: tin=7, tout=10
+  D: tin=2, tout=3
+  E: tin=4, tout=5
+  F: tin=8, tout=9
+
+Is A ancestor of D? True
+Is B ancestor of F? False
+Is C ancestor of F? True
+```
+
 ---
 
 ## 5. 응용

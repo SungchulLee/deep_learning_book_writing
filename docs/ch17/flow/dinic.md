@@ -228,6 +228,12 @@ if __name__ == "__main__":
     print(f"Maximum flow: {result}")
 ```
 
+**출력:**
+
+```
+Maximum flow: 16
+```
+
 ---
 
 ## 8. 에드먼즈-카프와의 견줌

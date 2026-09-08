@@ -180,6 +180,14 @@ if __name__ == "__main__":
     print(f"Zigzag:       {zigzag_level_order(tree)}")
 ```
 
+**출력:**
+
+```
+Level-order:  [1, 2, 3, 4, 5, 6]
+By level:     [[1], [2, 3], [4, 5, 6]]
+Zigzag:       [[1], [3, 2], [4, 5, 6]]
+```
+
 ---
 
 ## 연습문제

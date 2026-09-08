@@ -178,21 +178,38 @@ import torch.nn as nn
 from torch.nn.utils import parametrize
 
 class L1Regularizer(nn.Module):
-    """매개변수화로 구현한 L1 가중치 정칙화 장치."""
-    
+    """매개변수화로 구현한 L1 가중치 정칙화 장치.
+
+    L2와 달리 L1은 옵티마이저의 weight_decay로 걸 수 없다. weight_decay는
+    가중치에 비례하는 항을 기울기에 더하는데(= L2), L1의 기울기는 크기와
+    무관한 부호 sign(w)이기 때문이다. 그래서 손실 쪽에서 직접 더해야 한다.
+    """
+
     def __init__(self, lambda_l1: float):
         super().__init__()
-        self.lambda_l1 = lambda_l1
-    
+        self.lambda_l1 = lambda_l1   # 벌점의 세기
+
     def forward(self, weight):
+        # parametrize가 요구하는 자리. 가중치를 바꾸지 않고 그대로 흘려보낸다.
+        # 실제 벌점은 아래 함수에서 손실에 더한다
         return weight
-    
+
     def right_inverse(self, weight):
+        # forward의 역함수. 여기서는 항등이므로 그대로 돌려준다.
+        # 이것이 있어야 가중치를 직접 대입할 때 parametrize가 되돌릴 수 있다
         return weight
 
 def add_l1_regularization_to_loss(model, base_loss, lambda_l1):
     """아무 손실 함수에나 L1 정칙화를 더한다."""
+    # 모든 매개변수의 절댓값을 더한다. 이것이 ||w||_1 이다.
+    # 절댓값은 원점에서 뾰족해 미분이 +-lambda로 뛰므로, 데이터가 주는
+    # 기울기가 lambda보다 작으면 가중치가 정확히 0에 머문다.
+    # L2가 0에 가깝게만 만드는 것과 달리 L1이 성긴 해를 주는 까닭이다
     l1_norm = sum(p.abs().sum() for p in model.parameters())
+
+    # 주의: 편향까지 포함해 더하고 있다. 엄밀하게는 편향에 벌을 주지
+    # 않는 것이 보통이며, 그러려면 model.parameters() 대신
+    # 이름이 'bias'가 아닌 매개변수만 골라야 한다
     return base_loss + lambda_l1 * l1_norm
 ```
 

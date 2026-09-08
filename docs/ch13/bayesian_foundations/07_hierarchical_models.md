@@ -155,6 +155,52 @@ if __name__ == "__main__":
     print("="*70)
 ```
 
+**출력:**
+
+```
+
+======================================================================
+BAYESIAN INFERENCE - MODULE 7: HIERARCHICAL MODELS
+======================================================================
+======================================================================
+HIERARCHICAL MODELS: POOLING STRATEGIES
+======================================================================
+
+True population mean: 8.00
+True between-school std: 5.00
+Within-school std: 15.00
+
+----------------------------------------------------------------------
+School   n     True     Observed     No Pool      Partial Pool    Complete Pool
+----------------------------------------------------------------------
+1        28    10.48    9.15         9.15         8.88            8.52        
+2        8     7.31     10.19        10.19        8.97            8.52        
+3        23    11.24    9.79         9.79         9.17            8.52        
+4        20    15.62    14.05        14.05        11.17           8.52        
+5        12    6.83     7.88         7.88         8.29            8.52        
+6        44    6.83     2.50         2.50         4.49            8.52        
+7        6     15.90    5.33         5.33         7.83            8.52        
+8        11    11.84    9.29         9.29         8.78            8.52        
+
+Key Insight:
+  - Schools with smaller samples are shrunk more toward the grand mean
+  - Partial pooling 'borrows strength' across groups
+  - Provides better estimates than complete or no pooling
+
+======================================================================
+MODULE 7 COMPLETE
+======================================================================
+
+Key takeaways:
+1. Hierarchical models share information across groups
+2. Partial pooling balances group-specific and population estimates
+3. Small groups benefit most from pooling
+4. Shrinkage is automatic and data-driven
+
+Next: Module 8 - Empirical Bayes
+======================================================================
+```
+
 ## 2. 논의
 
 층 베이즈 모형은 불확실성을 여러 켜로 나눈다. 가장 아래 켜에서는 무리마다 그 무리의 매개변수 $\theta_i$에서 자료가 나온다. 다음 켜에서는 이 무리 매개변수가 웃매개변수 $\mu$과 $\tau$이 다스리는 함께 쓰는 모집단 분포에서 뽑힌다. 이 짜임은 부분 모으기라는 자연스러운 얼개를 낳는다. 무리마다의 어림이 그 무리의 표본 크기와 무리 사이 흩어짐에 따라 정해지는 만큼 모집단 평균 쪽으로 끌린다.

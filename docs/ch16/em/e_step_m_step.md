@@ -526,6 +526,24 @@ if __name__ == "__main__":
     print(f"\nLearned mixing proportions: {gmm.pi}")
 ```
 
+**출력:**
+
+```
+Iteration 0: log-likelihood = -1215.1680
+Iteration 10: log-likelihood = -1165.0482
+Iteration 20: log-likelihood = -1127.2839
+Iteration 30: log-likelihood = -1127.2419
+Iteration 40: log-likelihood = -1127.2388
+Converged at iteration 42
+
+Learned means:
+tensor([[-0.0845,  0.2149],
+        [-1.9901,  2.8644],
+        [ 3.1764,  3.1199]])
+
+Learned mixing proportions: tensor([0.3191, 0.3490, 0.3319])
+```
+
 ---
 
 ## 7. E 걸음(기댓값)

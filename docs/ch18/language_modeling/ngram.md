@@ -262,6 +262,16 @@ for context, word in test_bigrams:
     print(f"P({word} | {context}) = {model.probability(word, context):.4f}")
 ```
 
+**출력:**
+
+```
+Trained on 21 bigrams
+Vocabulary: 9 words
+P(cat | the) = 0.3333
+P(sat | cat) = 0.5000
+P(played | dog) = 0.5000
+```
+
 ---
 
 ## 7. 트라이그램 모델
@@ -671,6 +681,12 @@ test_corpus = ["the cat played", "a dog runs"]
 laplace_model = LaplaceBigramModel()
 laplace_model.train(train_corpus)
 print(f"Laplace PPL: {compute_perplexity(laplace_model, test_corpus):.2f}")
+```
+
+**출력:**
+
+```
+Laplace PPL: 8.49
 ```
 
 ---

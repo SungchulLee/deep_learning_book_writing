@@ -324,21 +324,30 @@ Output shape: torch.Size([32, 10])
 구조가 단순하다면 `nn.Sequential`을 쓰면 클래스를 따로 정의하지 않아도 된다.
 
 ```python
-# 간단한 MLP 정의
+# 간단한 MLP 정의.
+# 784 -> 256 -> 128 -> 10 으로 너비가 줄어드는 깔때기 꼴이다.
+# 입력 784는 28x28 이미지를 펴 놓은 것이고, 출력 10은 갈래 수다.
 model = nn.Sequential(
     nn.Linear(784, 256),
-    nn.ReLU(),
-    nn.Dropout(0.2),
+    nn.ReLU(),        # 비선형이 없으면 층을 쌓아도 결국 선형 하나와 같다
+    nn.Dropout(0.2),  # 활성 20%를 무작위로 끈다. 반드시 ReLU 뒤에 둔다.
+                      # ReLU 앞에 두면 이미 죽은 유닛을 또 끄는 헛일이 된다
     nn.Linear(256, 128),
     nn.ReLU(),
     nn.Dropout(0.2),
-    nn.Linear(128, 10),
+    nn.Linear(128, 10),   # 마지막 층에는 활성도 드롭아웃도 두지 않는다.
+                          # 손실 함수(CrossEntropyLoss)가 소프트맥스를
+                          # 안에서 걸기 때문이며, 여기서 유닛을 끄면
+                          # 갈래 하나를 통째로 버리는 셈이 된다
 )
 
-# 층별 모양 살펴보기
-x = torch.randn(1, 784)
+# 층별 모양 살펴보기.
+# Sequential을 그냥 부르지 않고 층을 하나씩 통과시키면 중간 모양을
+# 볼 수 있다. 모양이 어긋나는 버그를 잡는 가장 빠른 방법이다
+x = torch.randn(1, 784)   # 배치 크기 1짜리 가짜 입력
 for i, layer in enumerate(model):
-    x = layer(x)
+    x = layer(x)   # 층 하나를 지날 때마다 x를 갈아 끼운다
+    # ReLU와 Dropout은 모양을 바꾸지 않고 Linear만 바꾼다는 점을 확인할 수 있다
     print(f"Layer {i} ({layer.__class__.__name__:>10s}): {x.shape}")
 ```
 

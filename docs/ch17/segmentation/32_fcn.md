@@ -71,6 +71,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 1,853,802
+```
+
 ## 2. 논의
 
 `FCN8s` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.

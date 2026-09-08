@@ -114,6 +114,13 @@ print(f"Input grad shape: {x.grad.shape}")
 print(f"RNN weight grad: {rnn.weight_ih_l0.grad.shape}")
 ```
 
+**출력:**
+
+```
+Input grad shape: torch.Size([32, 15, 10])
+RNN weight grad: torch.Size([20, 10])
+```
+
 ---
 
 ## 6. 손으로 하는 BPTT 구현

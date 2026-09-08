@@ -69,6 +69,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 1,352,888
+```
+
 ## 2. 논의
 
 MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 고갱이 벽돌이다. 뒤집힌 병목 구조를 쓰는데, 채널을 먼저 넓히고 깊이별 합성곱으로 다룬 뒤 더 작은 차원으로 되비춘다. $f(x) = x \cdot \sigma(x)$으로 매긴 SiLU(Swish) 활성 함수는 ReLU보다 매끄러운 기울기를 준다.

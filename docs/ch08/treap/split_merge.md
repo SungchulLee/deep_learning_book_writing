@@ -126,6 +126,13 @@ if __name__ == "__main__":
     print(f"After delete 5: {inorder(root)}")  # [1, 3, 4, 7, 8, 9]
 ```
 
+**출력:**
+
+```
+After inserts: [1, 3, 4, 5, 7, 8, 9]
+After delete 5: [1, 3, 4, 7, 8, 9]
+```
+
 ---
 
 ## 4. 쪼개기·합치기로 하는 삽입과 삭제

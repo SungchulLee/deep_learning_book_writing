@@ -601,6 +601,24 @@ if __name__ == "__main__":
     visualize_cavi_results(model, history, data, true_mu, true_tau)
 ```
 
+**출력:**
+
+```
+============================================================
+Mean-Field CAVI for Gaussian Model
+============================================================
+
+True μ = 3.0, True τ = 0.5
+Sample mean = 3.0845
+Sample variance = 1.9459
+
+Converged at iteration 4
+
+Final estimates:
+  E[μ] = 3.0842 (true: 3.0)
+  E[τ] = 0.5238 (true: 0.5)
+```
+
 ---
 
 ## 8. 장점과 한계
@@ -1200,6 +1218,25 @@ if __name__ == "__main__":
     
     # 시각화한다
     visualize_gmm_cavi(model, history, data)
+```
+
+**출력:**
+
+```
+============================================================
+Gaussian Mixture Model CAVI
+============================================================
+
+True means: [-3.  0.  4.]
+True weights: [0.3 0.4 0.3]
+Iter  10: ELBO = -58.1256, means = [-2.911948    0.22011478  4.07871   ]
+Iter  20: ELBO = -58.1248, means = [-2.9012287  0.2339373  4.0846953]
+
+Converged at iteration 21
+
+Final estimates:
+  Means: [-2.9011886   0.23398545  4.084713  ]
+  Expected weights: [0.34762272 0.40051472 0.25186256]
 ```
 
 ---

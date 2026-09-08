@@ -179,6 +179,14 @@ if __name__ == "__main__":
     print(f"Output shape: {logits.shape}")
 ```
 
+**출력:**
+
+```
+Total parameters: 13,378,280
+Input shape: torch.Size([2, 3, 224, 224])
+Output shape: torch.Size([2, 1000])
+```
+
 ## 2. 논의
 
 인셉션 모듈은 GoogLeNet의 고갱이 설계 이바지다. 켜마다 거르개 크기를 하나만 고르는 대신, 인셉션은 $1 \times 1$, $3 \times 3$, $5 \times 5$ 합성곱과 $3 \times 3$ 최대 풀링을 나란히 걸고 그 날임을 채널 차원으로 이어 붙인다. 그래서 설계자가 하나를 골라 두지 않아도 그물이 켜마다 어떤 공간 잣대가 가장 알려 주는 바가 큰지 배운다. 더 큰 거르개 앞에 둔 $1 \times 1$ 합성곱은 차원을 줄이는 병목 노릇을 하여 들임 채널 수를 줄이고 셈 값을 크게 낮춘다.

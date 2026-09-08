@@ -415,18 +415,25 @@ def get_cutmix_training_pipeline(image_size=32):
     표준 증강 파이프라인. 컷믹스는 변환 파이프라인이 아니라
     배치 수준(학습 루프 안)에서 적용한다.
     """
+    # 훈련용: 이미지 하나하나에 무작위 변형을 건다.
+    # 컷믹스가 여기 없는 까닭은, 컷믹스가 이미지 두 장을 섞는 연산이라
+    # 이미지 하나만 받는 transform 자리에 들어갈 수 없기 때문이다.
+    # 배치가 만들어진 뒤 학습 루프 안에서 걸어야 한다
     train_transform = T.Compose([
-        T.RandomCrop(image_size, padding=4),
-        T.RandomHorizontalFlip(),
+        T.RandomCrop(image_size, padding=4),   # 위치를 조금씩 옮긴다
+        T.RandomHorizontalFlip(),              # 좌우를 뒤집는다
         T.ToTensor(),
         T.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)),
     ])
-    
+
+    # 검증용에는 무작위 변형을 걸지 않는다. 평가는 되풀이해도 같은 값이
+    # 나와야 하고, 증강은 훈련 자료를 늘리려는 장치이지 평가의 일부가 아니다.
+    # 정규화만 훈련과 똑같이 걸어 두 분포를 맞춘다
     val_transform = T.Compose([
         T.ToTensor(),
         T.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)),
     ])
-    
+
     return train_transform, val_transform
 ```
 

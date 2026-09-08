@@ -445,6 +445,14 @@ last_hidden = h_n[-1]             # 마지막 층의 숨은 상태: (32, 256)
 # 참고: 단방향 LSTM에서는 last_output == last_hidden이다
 ```
 
+**출력:**
+
+```
+Output shape: torch.Size([32, 50, 256])
+Final hidden: torch.Size([2, 32, 256])
+Final cell: torch.Size([2, 32, 256])
+```
+
 ---
 
 ## 7. 실전 응용

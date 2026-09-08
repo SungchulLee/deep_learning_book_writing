@@ -142,6 +142,35 @@ if __name__ == "__main__":
     print("="*70)
 ```
 
+**출력:**
+
+```
+
+======================================================================
+BAYESIAN INFERENCE - MODULE 9: BAYESIAN LINEAR REGRESSION
+======================================================================
+======================================================================
+BAYESIAN LINEAR REGRESSION
+======================================================================
+
+True parameters: β₀=2.0, β₁=1.5
+Posterior mean: β₀=2.630, β₁=1.298
+Posterior std:  β₀=0.711, β₁=0.122
+
+======================================================================
+MODULE 9 COMPLETE
+======================================================================
+
+Key takeaways:
+1. Bayesian regression gives full posterior over parameters
+2. Predictive distribution includes parameter uncertainty
+3. Naturally regularized through prior
+4. Uncertainty quantification is automatic
+
+Next: Module 10 - Advanced Applications
+======================================================================
+```
+
 ## 2. 논의
 
 베이즈 선형 회귀 모형은 $\varepsilon \sim N(0, \sigma^2 I)$인 $y = X\beta + \varepsilon$을 가정하고 정규 앞확률 $\beta \sim N(m_0, V_0)$을 둔다. 뒤확률은 켤레 정규다. 곧 $\beta | y \sim N(m_n, V_n)$이며 $V_n = (V_0^{-1} + \sigma^{-2} X^T X)^{-1}$이고 $m_n = V_n(V_0^{-1} m_0 + \sigma^{-2} X^T y)$이다.

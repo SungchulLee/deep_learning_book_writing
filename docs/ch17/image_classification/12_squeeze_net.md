@@ -59,6 +59,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 646,344
+```
+
 ## 2. 논의
 
 파이어 모듈이 SqueezeNet을 SqueezeNet이게 하는 새로움이다. 쥐어짜기 켜가 채널 수를 작은 값(예: 16)으로 줄이고, 넓히기 켜가 $1 \times 1$과 $3 \times 3$ 합성곱을 나란히 걸어 그 날임을 이어 붙인다. 이 쥐어짜고 넓히는 무늬가 표현력을 지키면서 매개변수를 크게 줄인다.

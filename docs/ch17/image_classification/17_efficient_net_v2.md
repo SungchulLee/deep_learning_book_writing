@@ -43,6 +43,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 1,281,648
+```
+
 ## 2. 논의
 
 녹여 붙인 MBConv은 깊이별 다음 점별이라는 무늬를 여느 $3 \times 3$ 합성곱 하나와 그 뒤의 $1 \times 1$ 투영으로 갈음한다. 깊이별 합성곱이 하드웨어를 덜 쓰는 이른 단계에서 이를 쓴다. 뒤 단계는 채널 수가 넉넉해 이득이 있으므로 여전히 깊이별 분리 합성곱을 쓰는 여느 MBConv을 쓴다.

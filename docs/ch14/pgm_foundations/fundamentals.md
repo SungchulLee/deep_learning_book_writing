@@ -271,6 +271,22 @@ if __name__ == "__main__":
     print(f"X _|_ Y | Z? {dist.is_conditionally_independent('X', 'Y', ['Z'])}")
 ```
 
+**출력:**
+
+```
+Joint distribution P(X, Y, Z), shape: (2, 2, 2)
+Entropy: 2.0162 nats
+
+P(X): tensor([0.4000, 0.6000])
+
+P(X, Y | Z=1):
+tensor([[0.1111, 0.3333],
+        [0.2222, 0.3333]])
+
+X _|_ Y? False
+X _|_ Y | Z? False
+```
+
 ---
 
 ## 7. 근본이 되는 세 짜임
@@ -350,6 +366,15 @@ p_burglary_given_alarm_earthquake = (
 print(f"P(Burglary | Alarm)                = {p_burglary_given_alarm:.4f}")
 print(f"P(Burglary | Alarm, Earthquake)    = {p_burglary_given_alarm_earthquake:.4f}")
 print("\nExplaining away: learning about the earthquake decreased burglary probability.")
+```
+
+**출력:**
+
+```
+P(Burglary | Alarm)                = 0.3736
+P(Burglary | Alarm, Earthquake)    = 0.0033
+
+Explaining away: learning about the earthquake decreased burglary probability.
 ```
 
 ---

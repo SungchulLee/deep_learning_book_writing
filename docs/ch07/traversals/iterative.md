@@ -174,6 +174,15 @@ if __name__ == "__main__":
     print(f"Postorder: {postorder_one_stack(tree)}")  # [4, 5, 2, 3, 1]
 ```
 
+**출력:**
+
+```
+Preorder:  [1, 2, 4, 5, 3]
+Inorder:   [4, 2, 5, 1, 3]
+Postorder: [4, 5, 2, 3, 1]
+Postorder: [4, 5, 2, 3, 1]
+```
+
 ---
 
 ## 연습문제

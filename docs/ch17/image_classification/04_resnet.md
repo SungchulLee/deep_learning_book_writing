@@ -75,6 +75,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 25,557,032
+```
+
 ## 2. 논의
 
 잔차 연결이 ResNet을 ResNet이게 하는 결이다. 병목 블록마다 잔차 함수 $F(\mathbf{x})$을 셈해 들임에 더한다. $\mathbf{y} = F(\mathbf{x}) + \mathbf{x}$이다. 가장 좋은 변환이 항등에 가까우면 그물은 작은 잔차만 배우면 되므로 온 사상을 맨바닥부터 배우는 것보다 쉽다. 이 눈썰미 덕에 50, 101, 나아가 152켜짜리 그물까지 학습할 수 있게 되었고, 이는 그전 어느 것보다도 훨씬 깊다.

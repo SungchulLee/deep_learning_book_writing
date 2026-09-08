@@ -251,20 +251,27 @@ for d in degrees:
 ```python
 import matplotlib.pyplot as plt
 
+# 앞에서 차수를 바꿔 가며 모은 results에서 세 곡선을 뽑는다.
+# 편향의 제곱과 분산, 그리고 그 둘의 합인 MSE를 한 그림에 겹쳐 그려
+# 편향-분산 맞바꿈을 눈으로 확인하는 것이 목적이다.
 degrees_plot = [r['degree'] for r in results]
 biases = [r['bias_sq'] for r in results]
 variances = [r['variance'] for r in results]
 mses = [r['mse'] for r in results]
 
 fig, ax = plt.subplots(figsize=(8, 5))
+# 차수가 오를수록 편향은 단조로 줄어든다. 표현할 수 있는 함수가 넓어지므로
 ax.plot(degrees_plot, biases, 'b-o', label='Bias²')
+# 반대로 분산은 늘어난다. 자료의 잡음까지 따라가기 시작하므로
 ax.plot(degrees_plot, variances, 'r-s', label='Variance')
+# 둘의 합인 MSE는 U자를 그린다. 그 바닥이 고를 만한 복잡도다
 ax.plot(degrees_plot, mses, 'k--^', label='Total MSE')
+
 ax.set_xlabel('Polynomial Degree (Model Complexity)')
 ax.set_ylabel('Error')
 ax.set_title('Bias-Variance Tradeoff')
 ax.legend()
-ax.grid(True, alpha=0.3)
+ax.grid(True, alpha=0.3)   # 격자를 옅게 깔아 값을 읽기 쉽게 한다
 plt.tight_layout()
 plt.savefig('bias_variance_tradeoff.png', dpi=150)
 plt.show()

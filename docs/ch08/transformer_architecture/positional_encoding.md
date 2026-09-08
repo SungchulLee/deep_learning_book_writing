@@ -230,6 +230,19 @@ if __name__ == "__main__":
     print("\nVisualization saved to 'positional_encoding_visualization.png'")
 ```
 
+**출력:**
+
+```
+Input shape: torch.Size([32, 50, 512])
+Output shape: torch.Size([32, 50, 512])
+
+Relative position test:
+PE[10] shape: torch.Size([512])
+PE[15] shape: torch.Size([512])
+
+Visualization saved to 'positional_encoding_visualization.png'
+```
+
 ---
 
 ## 4. 학습된 위치 인코딩
@@ -400,6 +413,13 @@ if __name__ == "__main__":
     print(f"Interpolated PE output shape: {output_long.shape}")
 ```
 
+**출력:**
+
+```
+Learned PE output shape: torch.Size([32, 100, 256])
+Interpolated PE output shape: torch.Size([32, 1000, 256])
+```
+
 ---
 
 ## 5. 회전 위치 임베딩 (RoPE)
@@ -534,6 +554,13 @@ if __name__ == "__main__":
     
     print(f"Query shape: {q_rotated.shape}")
     print(f"Key shape: {k_rotated.shape}")
+```
+
+**출력:**
+
+```
+Query shape: torch.Size([32, 8, 100, 8])
+Key shape: torch.Size([32, 8, 100, 8])
 ```
 
 ---
@@ -725,6 +752,13 @@ if __name__ == "__main__":
     
     print(f"Input shape: {x.shape}")
     print(f"Output shape: {output.shape}")
+```
+
+**출력:**
+
+```
+Input shape: torch.Size([32, 100, 512])
+Output shape: torch.Size([32, 100, 512])
 ```
 
 ---
@@ -1216,6 +1250,28 @@ if __name__ == "__main__":
     # 시각화한다
     visualize_rope_properties()
     print("\nVisualization saved to 'rope_visualization.png'")
+```
+
+**출력:**
+
+```
+Query shape: torch.Size([2, 8, 128, 64]) -> torch.Size([2, 8, 128, 64])
+Key shape: torch.Size([2, 8, 128, 64]) -> torch.Size([2, 8, 128, 64])
+
+Attention input: torch.Size([2, 128, 512])
+Attention output: torch.Size([2, 128, 512])
+KV cache shapes: K=torch.Size([2, 8, 128, 64]), V=torch.Size([2, 8, 128, 64])
+
+--- Testing Incremental Generation ---
+Step 0: output=torch.Size([1, 1, 512]), cache_len=11
+Step 1: output=torch.Size([1, 1, 512]), cache_len=12
+Step 2: output=torch.Size([1, 1, 512]), cache_len=13
+Step 3: output=torch.Size([1, 1, 512]), cache_len=14
+Step 4: output=torch.Size([1, 1, 512]), cache_len=15
+
+Total parameters: 1,048,576
+
+Visualization saved to 'rope_visualization.png'
 ```
 
 #### 다른 방법과 견주기

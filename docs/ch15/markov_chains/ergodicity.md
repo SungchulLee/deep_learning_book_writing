@@ -483,6 +483,27 @@ def demonstrate_mixing_analysis():
 demonstrate_mixing_analysis()
 ```
 
+**출력:**
+
+```
+Mixing Time Analysis
+======================================================================
+
+1. Fast Mixing Chain (Well-Connected)
+--------------------------------------------------
+Spectral gap: 0.900000
+|λ₂|: 0.100000
+Mixing time (ε=0.01): 2 steps
+
+2. Slow Mixing Chain (Bottleneck)
+--------------------------------------------------
+Spectral gap: 0.200000
+|λ₂|: 0.800000
+Mixing time (ε=0.01): 18 steps
+
+Spectral gap ratio: 4.5x
+```
+
 ---
 
 ## 8. 시각화
@@ -690,6 +711,27 @@ classes = classifier_reducible.find_communicating_classes()
 print(f"Communicating classes: {classes}")
 print(f"Irreducible: {classifier_reducible.is_irreducible()}")
 # → 줄일 수 있다. 멈춘 분포가 여럿 있다.
+```
+
+**출력:**
+
+```
+Example 1: Ergodic Chain
+==================================================
+Irreducible: True
+Aperiodic: True
+Ergodic: True
+
+Example 2: Periodic Chain
+==================================================
+This chain cycles: 0 → 1 → 2 → 0 → ...
+Period of state 0: 3
+Ergodic: False (irreducible but periodic)
+
+Example 3: Reducible Chain
+==================================================
+Communicating classes: [{0, 1}, {2, 3}]
+Irreducible: False
 ```
 
 ---

@@ -840,6 +840,22 @@ if __name__ == "__main__":
     print(f"Attention shape: {attn.shape}")
 ```
 
+**출력:**
+
+```
+Input shape: torch.Size([8, 128])
+Output shape: torch.Size([8, 128, 768])
+Number of hidden states: 13
+
+Total parameters: 108,890,112
+Trainable parameters: 108,890,112
+
+--- Testing single encoder block ---
+Block input shape: torch.Size([4, 32, 512])
+Block output shape: torch.Size([4, 32, 512])
+Attention shape: torch.Size([4, 8, 32, 32])
+```
+
 ##### 기울기 흐름 분석
 
 ##### 잔차 연결의 이점

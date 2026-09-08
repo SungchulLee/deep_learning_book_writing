@@ -268,6 +268,14 @@ if __name__ == "__main__":
     print(f"Number of parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Input shape: torch.Size([2, 3, 224, 224])
+Output shape: torch.Size([2, 10])
+Number of parameters: 85,806,346
+```
+
 ## 2. 논의
 
 이 구현은 함께 어울려 온전한 트랜스포머 구조를 이루는 클래스 5개(`PatchEmbedding`, `MultiHeadAttention`, `MLP`, `TransformerBlock`, 그리고 하나 더)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.

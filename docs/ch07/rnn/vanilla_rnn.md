@@ -117,6 +117,13 @@ print(f"Outputs shape: {outputs.shape}")  # (32, 15, 20)
 print(f"Final hidden: {h_n.shape}")       # (1, 32, 20)
 ```
 
+**출력:**
+
+```
+Outputs shape: torch.Size([32, 15, 20])
+Final hidden: torch.Size([1, 32, 20])
+```
+
 `outputs` 텐서는 시각마다의 숨은 상태를 담고 `h_n`은 마지막 숨은 상태만 담는다. `h_n`의 첫 차원은 `num_layers`에 대응하며 한 층짜리 RNN에서는 1이다.
 
 ### 가중치에 접근하기
@@ -127,6 +134,15 @@ print(rnn.weight_ih_l0.shape)  # (20, 10) — W_xh (입력에서 숨은 상태�
 print(rnn.weight_hh_l0.shape)  # (20, 20) — W_hh (숨은 상태에서 숨은 상태로)
 print(rnn.bias_ih_l0.shape)    # (20,)    — b_xh
 print(rnn.bias_hh_l0.shape)    # (20,)    — b_hh
+```
+
+**출력:**
+
+```
+torch.Size([20, 10])
+torch.Size([20, 20])
+torch.Size([20])
+torch.Size([20])
 ```
 
 ---

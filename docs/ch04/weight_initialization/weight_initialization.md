@@ -188,10 +188,21 @@ init.zeros_(linear.bias)
 def init_weights(module):
     """모든 선형층과 합성곱 층에 He 초기화를 적용한다."""
     if isinstance(module, (nn.Linear, nn.Conv2d)):
+        # He(카이밍) 초기화: 분산을 2/fan_in 으로 잡는다.
+        # ReLU가 입력의 절반(음수 쪽)을 0으로 죽이므로 분산이 절반으로
+        # 줄어든다. 그 손실을 미리 2배로 메워 두어야 층을 지나며
+        # 신호가 사그라들지 않는다. nonlinearity='relu'가 이 2배를 정한다
         init.kaiming_normal_(module.weight, nonlinearity='relu')
+
+        # 편향은 0에서 시작한다. 편향에까지 무작위를 넣으면 대칭을 깨는
+        # 데 도움이 되지 않으면서 초기 출력만 흔들린다
         if module.bias is not None:
             init.zeros_(module.bias)
+
     elif isinstance(module, (nn.BatchNorm2d, nn.LayerNorm)):
+        # 정규화 층의 weight(감마)와 bias(베타)는 항등으로 시작해야 한다.
+        # 감마=1, 베타=0 이면 처음에는 정규화 결과를 그대로 통과시키고,
+        # 학습이 진행되며 필요한 만큼만 늘이고 옮기게 된다
         init.ones_(module.weight)
         init.zeros_(module.bias)
 
@@ -200,6 +211,9 @@ model = nn.Sequential(
     nn.Linear(256, 128), nn.ReLU(),
     nn.Linear(128, 10),
 )
+
+# apply는 모든 하위 모듈에 함수를 재귀적으로 건다. 그래서 위 함수가
+# isinstance로 갈래를 나누어 층 종류마다 다른 초기화를 하도록 짜여 있다
 model.apply(init_weights)
 ```
 

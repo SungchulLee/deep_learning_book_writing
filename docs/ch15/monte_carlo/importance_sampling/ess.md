@@ -325,6 +325,22 @@ for name, proposal in proposals.items():
           f"{diag['cv']:10.2f} {diag['max_weight_ratio']:12.1f}x")
 ```
 
+**출력:**
+
+```
+ESS Comparison for Different Proposals
+Target: N(5, 1)
+======================================================================
+Proposal                         ESS      ESS/n         CV  Max/Uniform
+----------------------------------------------------------------------
+Perfect: N(5, 1)              5000.0     100.0%       0.00          1.0x
+Good: N(5, 1.2)               4755.6      95.1%       0.23          1.2x
+Decent: N(4.5, 1.5)           3876.8      77.5%       0.54          1.6x
+Poor: N(3, 2)                 1895.8      37.9%       1.28          3.9x
+Bad: N(5, 0.5)                1538.1      30.8%       1.50         38.9x
+Terrible: N(0, 1)                1.2       0.0%      65.82       4653.5x
+```
+
 ---
 
 ## 5. ESS과 표본 크기 늘리기
@@ -377,6 +393,25 @@ for n in sample_sizes:
 
 print(f"\nESS/n converges to approximately "
       f"{sum(ess_ratios[-3:])/3:.3f}")
+```
+
+**출력:**
+
+```
+
+ESS Scaling with Sample Size
+Target: N(5, 1), Proposal: N(3, 2)
+--------------------------------------------------
+         n          ESS        ESS/n
+--------------------------------------------------
+       100         37.3        0.373
+       500        177.7        0.355
+      1000        372.7        0.373
+      2000        729.3        0.365
+      5000       1859.8        0.372
+     10000       3752.1        0.375
+
+ESS/n converges to approximately 0.371
 ```
 
 ---
@@ -450,6 +485,21 @@ true_value = 5**2 + 1**2  # N(5,1)의 E[X^2]
 verify_variance_ess_relationship(
     target_log_prob, proposal, h, true_value
 )
+```
+
+**출력:**
+
+```
+
+Variance-ESS Relationship Verification
+==================================================
+  Mean ESS: 1867.3
+  Estimated Var_pi(h): 102.8494
+  Predicted Var(estimator): 0.055080
+  Empirical Var(estimator): 0.040884
+  Ratio (empirical/predicted): 0.74
+  Bias: -0.005308
+  RMSE: 0.202066
 ```
 
 ---

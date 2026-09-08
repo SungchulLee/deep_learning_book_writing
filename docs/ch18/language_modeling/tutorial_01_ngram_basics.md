@@ -199,6 +199,20 @@ if __name__ == "__main__":
     demonstrate_ngram_models()
 ```
 
+**출력:**
+
+```
+Trained unigram model on 28 words
+Vocabulary size: 17 unique words
+Trained bigram model on 33 bigrams
+Vocabulary size: 17 unique words
+Trained trigram model on 33 trigrams
+Vocabulary size: 17 unique words
+  'the cat sat': bigram log P = -inf
+  'the dog played': bigram log P = -3.13
+  'the elephant danced': bigram log P = -inf
+```
+
 ## 2. 논의
 
 n낱말 모델은 사슬 법칙과 마르코프 가정을 써서 월의 확률을 조건부 확률의 곱으로 쪼갠다. 한낱말 모델은 낱말마다 서로 아랑곳없다고 보고 $P(w) = \text{count}(w) / N$을 셈한다. 여기서 $N$은 온 낱말 수다. 이는 낱말 잦기는 담지만 앞뒤 흐름을 모두 버린다. 두낱말 모델은 바로 앞 낱말 하나를 조건으로 삼아 $P(w_i \mid w_{i-1}) = \text{count}(w_{i-1}, w_i) / \text{count}(w_{i-1})$을 쓰며, "the the"보다 "the cat"이 더 그럴듯하다는 단순한 매임을 담는다. 세낱말 모델은 이를 앞 낱말 둘로 넓혀 더 긴 무늬를 담되 세는 수가 더 성글어진다.

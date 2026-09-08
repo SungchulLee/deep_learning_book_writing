@@ -141,6 +141,13 @@ if __name__ == "__main__":
     print(f"Iterative preorder: {preorder_iterative(tree)}")  # [1, 2, 4, 5, 3]
 ```
 
+**출력:**
+
+```
+Recursive preorder: [1, 2, 4, 5, 3]
+Iterative preorder: [1, 2, 4, 5, 3]
+```
+
 ---
 
 ## 연습문제

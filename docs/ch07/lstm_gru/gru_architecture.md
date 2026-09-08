@@ -343,6 +343,13 @@ print(f"Final hidden: {h_n.shape}")        # (2, 32, 256) — 층마다 하나
 # GRU가 돌려주는 것:  output, h_n
 ```
 
+**출력:**
+
+```
+Output shape: torch.Size([32, 50, 256])
+Final hidden: torch.Size([2, 32, 256])
+```
+
 ---
 
 ## 6. 실전 응용

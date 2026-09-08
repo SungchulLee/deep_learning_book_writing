@@ -98,6 +98,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 7,978,856
+```
+
 ## 2. 논의
 
 빽빽한 연결 무늬란 켜 $\ell$이 앞선 모든 켜 $x_0, x_1, \ldots, x_{\ell-1}$의 특징 지도를 들임으로 받는다는 뜻이다. $x_\ell = H_\ell([x_0, x_1, \ldots, x_{\ell-1}])$이며 $[\cdot]$은 이어 붙이기를 나타낸다. 켜마다 새 특징 지도 $k$개(성장률)를 더하므로 $L$켜 뒤 블록의 채널은 $k_0 + L \times k$개다. 블록마다 특징 표현을 갈아 치우는 ResNet과 대비된다.

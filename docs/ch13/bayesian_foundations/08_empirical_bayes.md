@@ -137,6 +137,42 @@ if __name__ == "__main__":
     print("="*70)
 ```
 
+**출력:**
+
+```
+
+======================================================================
+BAYESIAN INFERENCE - MODULE 8: EMPIRICAL BAYES
+======================================================================
+======================================================================
+EMPIRICAL BAYES: Baseball Batting Averages
+======================================================================
+
+Number of players: 20
+At-bats range: 20-98
+
+Empirical Bayes prior: Beta(15.99, 43.52)
+  Prior mean: 0.2687
+
+Mean Squared Error:
+  MLE:            0.002670
+  Empirical Bayes: 0.000634
+  Improvement:     76.2%
+
+======================================================================
+MODULE 8 COMPLETE
+======================================================================
+
+Key takeaways:
+1. Empirical Bayes estimates prior from data
+2. Provides automatic shrinkage without full Bayesian machinery
+3. Often outperforms MLE, especially with many parameters
+4. Related to James-Stein estimator
+
+Next: Module 9 - Bayesian Linear Regression
+======================================================================
+```
+
 ## 2. 논의
 
 경험 베이즈는 베이즈 통계와 빈도주의 통계 사이의 흥미로운 자리에 놓인다. 이 길은 주변 분포에 최대 가능도나 적률법 같은 빈도주의 방법을 써서 자료로부터 앞확률을 어림한 다음, 그 어림값을 베이즈 공식에 끼워 넣는다. 엄격한 베이즈 원칙을 어기기는 하지만 실전에서는 아주 좋은 결과를 준다.

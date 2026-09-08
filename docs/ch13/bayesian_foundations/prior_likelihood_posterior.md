@@ -1065,6 +1065,47 @@ if __name__ == "__main__":
     print("See: data_overwhelming_prior.png")
 ```
 
+**출력:**
+
+```
+============================================================
+DEMONSTRATION: PRIOR, LIKELIHOOD, AND POSTERIOR
+============================================================
+
+1. Basic Bayesian Update (Beta-Binomial)
+----------------------------------------
+Prior: Beta(2, 2)
+Data: 7 successes in 10 trials
+Posterior: Beta(9, 5)
+
+Posterior summaries:
+  Mean: 0.6429
+  Mode: 0.6663
+  Std:  0.1237
+  95% CI: (0.38561461461461466, 0.8611381381381382)
+  Evidence p(D): 0.111888
+
+2. Effect of Different Priors
+----------------------------------------
+Data: 6 successes in 10 trials
+MLE: 0.600
+
+See: prior_data_tradeoff.png
+
+3. Data Overwhelming Prior
+----------------------------------------
+Prior: Beta(10, 40) with mean 0.2
+True θ: 0.7
+
+As n increases, posterior mean approaches true value:
+  n =    1: posterior mean = 0.2157
+  n =    5: posterior mean = 0.2182
+  n =   20: posterior mean = 0.4000
+  n =  100: posterior mean = 0.5533
+  n =  500: posterior mean = 0.6436
+See: data_overwhelming_prior.png
+```
+
 ## 연습문제
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span> 센 앞확률과 약한 앞확률이 같은 데이터에서 어떻게 다른 뒤확률을 주는지 정리 5로 설명하시오.

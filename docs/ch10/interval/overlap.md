@@ -133,6 +133,12 @@ if __name__ == "__main__":
         print(f"Query {query}: no overlap found")
 ```
 
+**출력:**
+
+```
+Query (14, 16) overlaps [15, 20]
+```
+
 ---
 
 ## 7. 복잡도

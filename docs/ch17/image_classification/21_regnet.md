@@ -62,6 +62,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 156,872
+```
+
 ## 2. 논의
 
 RegNet의 설계 철학은 좋은 그물을 내놓는 설계 공간의 단순한 매개변수화를 찾는 것이다. 단계마다 너비는 양자화한 선형 함수 $w_j = w_0 + w_a \cdot j$을 따르며 무리 너비의 가장 가까운 배수로 양자화한다. 그러면 반듯하고 미리 헤아릴 수 있는 구조가 나온다.

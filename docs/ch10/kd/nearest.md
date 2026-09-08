@@ -139,6 +139,12 @@ if __name__ == "__main__":
     print(f"Nearest to {query}: {result} (distance={dist:.3f})")
 ```
 
+**출력:**
+
+```
+Nearest to [6, 3]: [7, 2] (distance=1.414)
+```
+
 ---
 
 ## 5. 복잡도

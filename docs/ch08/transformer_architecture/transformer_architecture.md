@@ -411,6 +411,13 @@ if __name__ == "__main__":
     print(f"Total parameters: {total_params:,}")
 ```
 
+**출력:**
+
+```
+Output shape: torch.Size([32, 15, 10000])
+Total parameters: 53,198,608
+```
+
 ---
 
 ## 5. 초매개변수

@@ -54,6 +54,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 773,704
+```
+
 ## 2. 논의
 
 `WindowAttention` 모듈은 자기 주의를 크기가 고정된 (대개 $7 \times 7$ 조각의) 국소 창으로 제한한다. 그러면 전역 주의의 이차 복잡도가 $O(N^2)$에서 $O(N \cdot W^2)$으로 줄며 여기서 $W$은 창 크기이다. QKV 사영과 다중 머리 나누기는 표준 트랜스포머 주의와 같은 방식이지만 창마다 그 안에서만 이루어진다.

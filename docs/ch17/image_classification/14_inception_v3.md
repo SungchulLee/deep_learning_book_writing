@@ -29,6 +29,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 2,077,512
+```
+
 ## 2. 논의
 
 나눈 합성곱이 인셉션 v3의 고갱이 나아짐이다. $5 \times 5$ 합성곱을 $3 \times 3$ 합성곱 둘로 갈음하고, 큰 합성곱은 다시 어긋난 $1 \times n$과 $n \times 1$ 짝으로 나눈다. 그러면 매개변수와 셈이 줄면서 그물의 깊이와 비선형은 늘어난다.
