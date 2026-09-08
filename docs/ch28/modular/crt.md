@@ -2,7 +2,9 @@
 
 중국인 나머지 정리(CRT)는 자연스러운 물음을 다룬다. 어떤 정수를 짝마다 서로 소인 여러 법으로 나눈 나머지를 안다면 본디 정수를 되지을 수 있는가? 답은 그렇다이며 그 되짓기는 모든 법의 곱을 법으로 하여 하나뿐이다. 이 결과는 3세기 중국 수학자 손자에게로 거슬러 올라가며 오늘날 RSA 개선, 큰 정수 셈, 나란한 셈에 쓰인다.
 
-## 이끄는 보기
+---
+
+## 1. 이끄는 보기
 
 어떤 수를 3으로 나누면 나머지가 2, 5으로 나누면 3, 7으로 나누면 2이다. 그 수는 무엇인가?
 
@@ -14,7 +16,9 @@ $$
 
 중국인 나머지 정리는 $3 \cdot 5 \cdot 7 = 105$을 법으로 하는 유일한 풀이를 보장한다. 곧 보겠지만 $x \equiv 23 \pmod{105}$이다.
 
-## 정리의 진술
+---
+
+## 2. 정리의 진술
 
 !!! info "중국인 나머지 정리"
 
@@ -26,7 +30,9 @@ $$
 
     $M$을 법으로 하는 유일한 풀이를 가진다.
 
-## 세워 보이는 밝힘
+---
+
+## 3. 세워 보이는 밝힘
 
 이 밝힘은 풀이를 드러내어 세운다.
 
@@ -44,7 +50,9 @@ $$
 
 **하나뿐임.** $x_1$과 $x_2$이 모두 풀이이면 모든 $i$에 대해 $m_i \mid (x_1 - x_2)$이다. $m_i$이 짝마다 서로 소이므로 $M \mid (x_1 - x_2)$이고 따라서 $x_1 \equiv x_2 \pmod{M}$이다. $\square$
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 $x \equiv 2 \pmod{3}$, $x \equiv 3 \pmod{5}$, $x \equiv 2 \pmod{7}$을 풀어라.
 
@@ -60,7 +68,9 @@ $$
 
 확인: $23 = 7 \cdot 3 + 2 \equiv 2 \pmod{3}$, $23 = 4 \cdot 5 + 3 \equiv 3 \pmod{5}$, $23 = 3 \cdot 7 + 2 \equiv 2 \pmod{7}$. $\checkmark$
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 중국인 나머지 정리의 세움에는 다음이 필요하다:
 
@@ -69,7 +79,9 @@ $$
 
 온 시간: 셈 연산 $O(k \log M)$번.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -81,7 +93,6 @@ $$
 
 from functools import reduce
 
-
 # === 넓힌 최대 공약수 ===
 
 def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
@@ -91,7 +102,6 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
     g, x, y = extended_gcd(b, a % b)
     return g, y, x - (a // b) * y
 
-
 # === 법 역원 ===
 
 def mod_inverse(a: int, m: int) -> int:
@@ -100,7 +110,6 @@ def mod_inverse(a: int, m: int) -> int:
     if g != 1:
         raise ValueError(f"Inverse does not exist: gcd({a}, {m}) = {g}")
     return x % m
-
 
 # === 중국인 나머지 정리 ===
 
@@ -124,7 +133,6 @@ def crt(remainders: list[int], moduli: list[int]) -> int:
         y_i = mod_inverse(M_i, m_i)
         x += a_i * M_i * y_i
     return x % M
-
 
 # === 메인 ===
 
@@ -176,17 +184,16 @@ x = 794 (mod 1001)
   794 mod 13 = 1 (expected 1)
 ```
 
-## 응용
+---
+
+## 7. 응용
 
 - **RSA 개선**: 중국인 나머지 정리는 $m^d \bmod n$을 $p$과 $q$을 법으로 따로 셈하여 RSA 복호를 4배 빠르게 한다
 - **큰 정수 셈**: 큰 수를 작은 소수 여러 개를 법으로 한 나머지로 나타내어 나머지에서 셈한 뒤 되짓는다
 - **알고리즘 겨루기**: 주기가 얽힌 문제에서 합동 연립을 푼다
 - **나란한 셈**: 서로 얽매이지 않은 법에 셈을 나눈다
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
-
+---
 
 ## 연습문제
 
@@ -219,3 +226,11 @@ x = 794 (mod 1001)
 
 ??? success "연습문제 4 풀이"
     $\gcd(m_1, m_2) = d > 1$이면 연립 $x \equiv a_1 \pmod{m_1}, x \equiv a_2 \pmod{m_2}$에 풀이가 있을 필요충분조건은 $a_1 \equiv a_2 \pmod{d}$이다. 이 어울림 조건이 성립하면 풀이는 $\text{lcm}(m_1, m_2)$을 법으로 하여 하나뿐이다. 성립하지 않으면 풀이가 없다. 이는 중국인 나머지 정리를 넓힌 것이다. 짝마다 서로 소이면 오른쪽이 무엇이든 풀이를 보장하지만 그렇지 않으면 어긋나지 않는지 살펴야 한다.
+
+## 정리하며
+
+이 마당은 이끄는 보기、정리의 진술、세워 보이는 밝힘、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.

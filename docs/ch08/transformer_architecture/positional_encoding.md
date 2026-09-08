@@ -1,5 +1,8 @@
 # 위치 인코딩
-## 자리 문제
+
+---
+
+## 1. 자리 문제
 
 자기 주의는 본디 순서를 바꾸어도 그대로이다. 토큰을 수열이 아니라 집합으로 다룬다. 입력 토큰 $\{x_1, x_2, \ldots, x_n\}$이 주어지면 입력 순서와 상관없이 주의의 출력이 같다.
 
@@ -9,7 +12,9 @@ $$
 
 이 성질은 병렬 처리를 가능케 하지만 매우 중요한 차례 정보를 잃는다. 자리 정보가 없으면 "The cat sat on the mat"과 "The mat sat on the cat"이 똑같은 표현을 낸다.
 
-## 사인파 위치 인코딩
+---
+
+## 2. 사인파 위치 인코딩
 
 본디 트랜스포머 논문은 진동수가 다른 사인과 코사인 함수를 써서 사인파 위치 인코딩을 들여온다.
 
@@ -57,7 +62,9 @@ $$
 
 그래서 모형이 선형 사영으로 상대 자리에 주의하기를 배울 수 있다.
 
-## 파이토치 구현: 사인파 인코딩
+---
+
+## 3. 파이토치 구현: 사인파 인코딩
 
 ```python
 import torch
@@ -223,7 +230,9 @@ if __name__ == "__main__":
     print("\nVisualization saved to 'positional_encoding_visualization.png'")
 ```
 
-## 학습된 위치 인코딩
+---
+
+## 4. 학습된 위치 인코딩
 
 다른 방법은 자리 임베딩을 매개변수로 학습하는 것이다.
 
@@ -391,7 +400,9 @@ if __name__ == "__main__":
     print(f"Interpolated PE output shape: {output_long.shape}")
 ```
 
-## 회전 위치 임베딩 (RoPE)
+---
+
+## 5. 회전 위치 임베딩 (RoPE)
 
 RoFormer에서 나오고 LLaMA에 쓰인 RoPE는 복소 공간의 회전으로 자리를 인코딩한다.
 
@@ -525,7 +536,9 @@ if __name__ == "__main__":
     print(f"Key shape: {k_rotated.shape}")
 ```
 
-## ALiBi (선형 편향을 쓰는 주의)
+---
+
+## 6. ALiBi (선형 편향을 쓰는 주의)
 
 ALiBi는 자리에 따라 달라지는 편향을 주의 점수에 곧바로 더한다.
 
@@ -714,7 +727,9 @@ if __name__ == "__main__":
     print(f"Output shape: {output.shape}")
 ```
 
-## 위치 인코딩 방법 견주기
+---
+
+## 7. 위치 인코딩 방법 견주기
 
 | 방법 | 길이 바깥으로 뻗기 | 상대 자리 | 매개변수 | 쓰이는 곳 |
 |--------|---------------------|-------------------|------------|---------|
@@ -723,27 +738,9 @@ if __name__ == "__main__":
 | RoPE | 좋음 | 드러나게 | 0 | LLaMA, GPT-Neo |
 | ALiBi | 아주 좋음 | 드러나게 | 0 | BLOOM, MPT |
 
-## 요약
-
-위치 인코딩은 트랜스포머가 차례가 있는 데이터를 다루는 데 꼭 필요하다. 어떤 인코딩을 고르느냐가 다음에 영향을 준다.
-
-1. **일반화**: 모형이 길이가 다른 수열을 얼마나 잘 다루는가
-2. **효율**: 계산과 기억이 얼마나 드는가
-3. **상대냐 절대냐**: 자리를 절대로 담느냐 상대로 담느냐
-4. **길이 바깥으로 뻗기**: 학습 때 본 것보다 긴 수열을 다룰 수 있는가
-
-요즘 구조는 길이를 바깥으로 뻗는 능력이 뛰어난 상대 자리 방법(RoPE, ALiBi)을 점점 더 좋아한다.
-
-## 참고 문헌
-
-1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
-2. Shaw, P., et al. (2018). "Self-Attention with Relative Position Representations." NAACL.
-3. Su, J., et al. (2021). "RoFormer: Enhanced Transformer with Rotary Position Embedding."
-4. Press, O., et al. (2022). "Train Short, Test Long: Attention with Linear Biases." ICLR.
-
 ---
 
-## RoPE 깊이 들여다보기
+## 8. RoPE 깊이 들여다보기
 
 #### 들어가며
 
@@ -1256,7 +1253,7 @@ RoPE는 다음과 같은 우아한 위치 인코딩을 준다.
 
 ---
 
-## ALiBi 깊이 들여다보기
+## 9. ALiBi 깊이 들여다보기
 
 #### 들어가며
 
@@ -1753,6 +1750,8 @@ ALiBi는 간단하면서도 잘 통하는 위치 인코딩을 준다.
 2. Scao, T., et al. (2022). "BLOOM: A 176B-Parameter Open-Access Multilingual Language Model."
 3. MosaicML (2023). "MPT-7B: A New Standard for Open-Source, Commercially Usable LLMs."
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -1792,3 +1791,23 @@ ALiBi는 간단하면서도 잘 통하는 위치 인코딩을 준다.
         pe[:, 1::2] = torch.cos(pos * div)
         return pe
     ```
+
+## 정리하며
+
+위치 인코딩은 트랜스포머가 차례가 있는 데이터를 다루는 데 꼭 필요하다. 어떤 인코딩을 고르느냐가 다음에 영향을 준다.
+
+1. **일반화**: 모형이 길이가 다른 수열을 얼마나 잘 다루는가
+2. **효율**: 계산과 기억이 얼마나 드는가
+3. **상대냐 절대냐**: 자리를 절대로 담느냐 상대로 담느냐
+4. **길이 바깥으로 뻗기**: 학습 때 본 것보다 긴 수열을 다룰 수 있는가
+
+요즘 구조는 길이를 바깥으로 뻗는 능력이 뛰어난 상대 자리 방법(RoPE, ALiBi)을 점점 더 좋아한다.
+
+**참고 문헌**
+
+1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
+2. Shaw, P., et al. (2018). "Self-Attention with Relative Position Representations." NAACL.
+3. Su, J., et al. (2021). "RoFormer: Enhanced Transformer with Rotary Position Embedding."
+4. Press, O., et al. (2022). "Train Short, Test Long: Attention with Linear Biases." ICLR.
+
+---

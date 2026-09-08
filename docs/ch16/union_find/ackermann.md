@@ -2,7 +2,9 @@
 
 계급으로 합치기와 길 줄이기를 쓴 합치기-찾기는 연산마다 고르게 친 값이 $O(\alpha(n))$이며, 여기서 $\alpha$은 **거꿀 애커만 함수**이다. 이 함수는 아주 느리게 자라서 $2^{2^{2^{65536}}}$까지의 어떤 $n$에 대해서도 $\alpha(n) \leq 4$이다. 이는 볼 수 있는 우주의 원자 수를 훌쩍 넘는 수이다. 실전에서는 $\alpha(n)$이 상수나 마찬가지여서 합치기-찾기 연산은 사실상 고르게 친 $O(1)$이 된다.
 
-## 애커만 함수
+---
+
+## 1. 애커만 함수
 
 애커만 함수 $A(i, j)$은 되돌이로 정한다:
 
@@ -24,7 +26,9 @@ $$
 | 3 | 61 | 2의 탑(테트레이션) |
 | 4 | $2^{2^{2^{65536}}} - 3$ | 헤아릴 수 없음 |
 
-## 거꿀 애커만 함수
+---
+
+## 2. 거꿀 애커만 함수
 
 거꿀 애커만 함수 $\alpha(n)$은 다음과 같이 정한다:
 
@@ -41,7 +45,9 @@ $$
 | $8$에서 $2047$ | $3$ |
 | $2048$에서 $A(3,1) \approx 10^{19728}$ | $4$ |
 
-## 합치기-찾기 살피기에서 하는 일
+---
+
+## 3. 합치기-찾기 살피기에서 하는 일
 
 타잔(1975)은 (계급으로 합치기와 길 줄이기를 쓸 때) 원소 $n$개에 대한 합치기-찾기 연산 $m$번이 모두 $O(m \cdot \alpha(n))$ 시간이 듦을 증명했다. 그 증명은 애커만 함수에 바탕을 둔 퍼텐셜 함수 논증으로 길 줄이기가 시간이 갈수록 나무 짜임을 얼마나 납작하게 만드는지 좇는다.
 
@@ -50,7 +56,9 @@ $$
 !!! note "팽팽한 아래 경계"
     프레드먼과 색스(1989)는 가리개에 바탕을 둔 어떤 합치기-찾기 구현에도 맞아떨어지는 $\Omega(m \cdot \alpha(n))$ 아래 경계를 증명했다. 곧 이 셈 모형 안에서는 고르게 친 $O(\alpha(n))$ 경계를 더 낫게 할 수 없다는 뜻이다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -62,7 +70,6 @@ $$
 """
 
 import math
-
 
 # === 애커만 함수(묶인 셈하기) ===
 
@@ -82,7 +89,6 @@ def ackermann(i: int, j: int, limit: int = 100000) -> int:
         return limit
     return ackermann(i - 1, inner, limit)
 
-
 def inverse_ackermann(n: int) -> int:
     """A(i, i) >= n인 가장 작은 i을 찾아 alpha(n) 셈하기."""
     if n <= 2:
@@ -91,7 +97,6 @@ def inverse_ackermann(n: int) -> int:
         if ackermann(i, i) >= n:
             return i
     return 99
-
 
 # === 길 줄이기와 계급으로 합치기를 쓴 합치기-찾기 ===
 
@@ -125,7 +130,6 @@ class UnionFind:
     def connected(self, a: int, b: int) -> bool:
         """a과 b이 같은 조각에 있는지 살핀다."""
         return self.find(a) == self.find(b)
-
 
 # === 시연 ===
 
@@ -177,7 +181,9 @@ union(0,4) -> merged=True, components=1
 Parent array after path compression: [0, 0, 0, 2, 0, 4, 4, 6]
 ```
 
-## 실전에서의 뜻
+---
+
+## 5. 실전에서의 뜻
 
 실전에서 다룰 만한 들임 크기라면 $\alpha(n) \leq 4$이므로 합치기-찾기 연산은 사실상 $O(1)$이다. 그래서 합치기-찾기는 쓸 수 있는 자료 짜임 가운데 가장 효율적인 축에 든다:
 
@@ -187,11 +193,7 @@ Parent array after path compression: [0, 0, 0, 2, 0, 4, 4, 6]
 | $10^9$ | $10^9$ | $\leq 4 \times 10^9$ |
 | 아무거나 | 실전에서 다룰 만한 아무 $n$ | $\leq 4m$ |
 
-## 참고 문헌
-
-- Tarjan, R. E. (1975). Efficiency of a good but not linear set union algorithm. *Journal of the ACM*, 22(2), 215-225.
-- Fredman, M., & Saks, M. (1989). The cell probe complexity of dynamic data structures. *Proceedings of STOC*, 345-354.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 19장. MIT Press.
+---
 
 ## 연습문제
 
@@ -224,3 +226,13 @@ $\alpha(n)$을 $\log^* n$(되풀이 로그)과 견주어라. 어느 쪽이 더 �
 
 ??? success "연습문제 4 풀이"
     $\log^* n$은 $\leq 1$에 이를 때까지 $\log_2$을 몇 번 씌우는지이다. 이를테면 $\log^*(2^{65536}) = 5$이다. 모든 $n$에 대해 $\alpha(n) \leq \log^*(n)$이고 $\alpha$이 엄격히 더 느리게 자란다. $n = 2^{65536}$이면 $\log^* n = 5$이지만 $\alpha(n) = 4$이다. 실제 들임에서는 둘 다 "실전에서 상수"이지만 이론으로는 $\alpha$이 더 느리게 자란다. 예전 살피기에서는 타잔의 더 팽팽한 $O(m \cdot \alpha(n))$ 경계가 나오기 전에 합치기-찾기가 $O(m \log^* n)$임을 보였다. $\square$
+
+## 정리하며
+
+이 마당은 애커만 함수、거꿀 애커만 함수、합치기-찾기 살피기에서 하는 일、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Tarjan, R. E. (1975). Efficiency of a good but not linear set union algorithm. *Journal of the ACM*, 22(2), 215-225.
+- Fredman, M., & Saks, M. (1989). The cell probe complexity of dynamic data structures. *Proceedings of STOC*, 345-354.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 19장. MIT Press.

@@ -6,7 +6,9 @@
 그 쪽지 복잡도는 그물 위상에 크게
 매인다.
 
-## 문제의 정의
+---
+
+## 1. 문제의 정의
 
 저마다 하나뿐인 번호를 가진 일꾼 $n$개가 주어질 때, 목표는 꼭 한 일꾼이
 "우두머리"를 내놓고 나머지 모두가 "우두머리 아님"을 내놓는 상태에
@@ -19,7 +21,9 @@
 3. **맞섬 깨기.** 일꾼은 하나뿐인 번호로 맞섬을 깬다(많은 모형에서
    이름 없는 우두머리 뽑기는 불가능하다).
 
-## 고리 위상
+---
+
+## 2. 고리 위상
 
 ### LCR 알고리즘(Le Lann, Chang, Roberts)
 
@@ -77,7 +81,9 @@ $O(\log n)$이다.
     들므로 허슈버그-싱클레어는 점근으로 가장
     좋다.
 
-## 일반 그물 위상
+---
+
+## 3. 일반 그물 위상
 
 ### 물 대기 최대 알고리즘
 
@@ -89,7 +95,9 @@ $O(\log n)$이다.
 
 **복잡도:** $m = |E|$일 때 $O(D)$바퀴, 쪽지 $O(D \cdot m)$개.
 
-## 흉내 내기
+---
+
+## 4. 흉내 내기
 
 ```python
 """
@@ -98,7 +106,6 @@ $O(\log n)$이다.
 때 : O(n)바퀴
 쪽지: 가장 나쁜 경우 O(n^2)
 """
-
 
 # === LCR 우두머리 뽑기 ===
 def lcr_leader_election(ids: list[int]) -> int:
@@ -122,7 +129,6 @@ def lcr_leader_election(ids: list[int]) -> int:
         messages = new_messages
 
     return leader
-
 
 # === 허슈버그-싱클레어 흉내내기 ===
 def hs_leader_election(ids: list[int]) -> int:
@@ -159,7 +165,6 @@ def hs_leader_election(ids: list[int]) -> int:
             return ids[i]
     return -1
 
-
 # === 보기 ===
 if __name__ == "__main__":
     process_ids = [5, 3, 8, 1, 7, 2]
@@ -168,7 +173,9 @@ if __name__ == "__main__":
     print(f"H-S leader: {hs_leader_election(process_ids)}")
 ```
 
-## 비교
+---
+
+## 5. 비교
 
 | 알고리즘 | 위상 | 쪽지 | 바퀴 |
 |---|---|---|---|
@@ -176,12 +183,7 @@ if __name__ == "__main__":
 | 허슈버그-싱클레어 | 양 방향 고리 | $O(n \log n)$ | $O(\log n)$ |
 | 물 대기 최대 | 일반 그래프 | $O(D \cdot m)$ | $D$ |
 
-## 참고 문헌
-
-- Lynch, N. *Distributed Algorithms*. Morgan Kaufmann, 1996, Chapters 3--4.
-- Peleg, D. *Distributed Computing: A Locality-Sensitive Approach*.
-  SIAM, 2000.
-
+---
 
 ## 연습문제
 
@@ -214,3 +216,13 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     잡 일꾼 얼개에서 우두머리(조율자)가 온 자리 상태를 다룬다. 모델 잡, 일꾼 맡기기, 맞추기가 그것이다. 우두머리 뽑기는 고장을 견디게 한다. 조율자가 고장 나면 예비가 우두머리 뽑기로 넘겨받는다(보기로 ZooKeeper의 덧없는 마디를 쓴다). 늘었다 줄었다 하는 익히기에서는 일꾼이 들어오거나 나갈 때 우두머리 뽑기로 새 조율자를 고른다. 우두머리는 되짚기 표시, 배움 빠르기 일정, 기울기 눌러 담기 셈속도 조율한다.
+
+## 정리하며
+
+이 마당은 문제의 정의、고리 위상、일반 그물 위상、흉내 내기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Lynch, N. *Distributed Algorithms*. Morgan Kaufmann, 1996, Chapters 3--4.
+- Peleg, D. *Distributed Computing: A Locality-Sensitive Approach*.
+  SIAM, 2000.

@@ -3,7 +3,7 @@
 
 ---
 
-## 왜 하는가: 크게 늘릴 수 있는 베이즈 미루어 봄
+## 1. 왜 하는가: 크게 늘릴 수 있는 베이즈 미루어 봄
 
 ### 뒷분포 미루어 봄의 어려움
 
@@ -47,7 +47,7 @@ $$
 
 ---
 
-## 밑거리 아래끝(ELBO)
+## 2. 밑거리 아래끝(ELBO)
 
 ### 이끌어 내기
 
@@ -114,7 +114,7 @@ $$
 
 ---
 
-## 평균 마당 변이 미루어 봄
+## 3. 평균 마당 변이 미루어 봄
 
 ### 곱으로 가른 어림
 
@@ -167,7 +167,7 @@ $$
 
 ---
 
-## 매개변수 다시 잡기 재주
+## 4. 매개변수 다시 잡기 재주
 
 ### 기울기 문제
 
@@ -219,7 +219,7 @@ $$
 
 ---
 
-## 되돌아가며 베이즈
+## 5. 되돌아가며 베이즈
 
 ### 알고리즘 두루 보기
 
@@ -270,7 +270,7 @@ $$
 
 ---
 
-## 그 자리 매개변수 다시 잡기 재주
+## 6. 그 자리 매개변수 다시 잡기 재주
 
 ### 왜 하는가
 
@@ -334,7 +334,7 @@ a = a_mu + sqrt(a_var) * eps_a           # eps_a: (n,)
 
 ---
 
-## KL 갈림을 다루는 꾀
+## 7. KL 갈림을 다루는 꾀
 
 ### 정확한 KL(닫힌 꼴)
 
@@ -390,7 +390,7 @@ $$
 
 ---
 
-## 평균 마당을 넘어
+## 8. 평균 마당을 넘어
 
 ### 온전한 함께 바뀜 가우스
 
@@ -451,7 +451,7 @@ $$
 
 ---
 
-## 참으로 헤아릴 것
+## 9. 참으로 헤아릴 것
 
 ### 앞선 분포 고르기
 
@@ -507,7 +507,7 @@ $$
 
 ---
 
-## 변이 미루어 봄의 갈래
+## 10. 변이 미루어 봄의 갈래
 
 ### 곱하는 잣대 맞추는 흐름(MNF)
 
@@ -557,7 +557,7 @@ $$
 
 ---
 
-## 파이썬으로 짜기
+## 11. 파이썬으로 짜기
 
 ```python
 """
@@ -575,7 +575,6 @@ from scipy.special import softmax
 from typing import Tuple, List, Optional, Dict, Callable, Union
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-
 
 # =============================================================================
 # 변이 켜
@@ -603,7 +602,6 @@ class VariationalLayer(ABC):
     def set_params(self, params: Dict[str, np.ndarray]):
         """변이 매개변수를 얹는다."""
         pass
-
 
 class VariationalLinear(VariationalLayer):
     """
@@ -751,7 +749,6 @@ class VariationalLinear(VariationalLayer):
         """변이 매개변수의 수."""
         return 2 * (self.in_features * self.out_features + self.out_features)
 
-
 # =============================================================================
 # 변이 신경 그물
 # =============================================================================
@@ -852,7 +849,6 @@ class VariationalMLP:
     def n_variational_params(self) -> int:
         """변이 매개변수의 온 수."""
         return sum(layer.n_params() for layer in self.layers)
-
 
 # =============================================================================
 # 익힘
@@ -1069,7 +1065,6 @@ class BayesByBackprop:
         
         return history
 
-
 # =============================================================================
 # KL 천천히 올리는 짜임
 # =============================================================================
@@ -1078,18 +1073,15 @@ def linear_annealing(epoch: int, total_epochs: int, warmup_epochs: int) -> float
     """곧게 KL을 올리는 짜임."""
     return min(1.0, epoch / warmup_epochs)
 
-
 def sigmoid_annealing(epoch: int, total_epochs: int, midpoint: int, steepness: float = 0.1) -> float:
     """시그모이드로 KL을 올리는 짜임."""
     return 1.0 / (1.0 + np.exp(-steepness * (epoch - midpoint)))
-
 
 def cyclical_annealing(epoch: int, cycle_length: int, ratio: float = 0.5) -> float:
     """돌림으로 KL을 올리는 짜임."""
     cycle_position = epoch % cycle_length
     rise_length = int(cycle_length * ratio)
     return min(1.0, cycle_position / rise_length)
-
 
 # =============================================================================
 # 잣대 섞기 앞선 분포
@@ -1134,7 +1126,6 @@ class ScaleMixturePrior:
         )
         
         return np.sum(log_mix)
-
 
 class VariationalLinearMixturePrior(VariationalLayer):
     """
@@ -1220,7 +1211,6 @@ class VariationalLinearMixturePrior(VariationalLayer):
         self.mu_b = params['mu_b'].copy()
         self.rho_b = params['rho_b'].copy()
 
-
 # =============================================================================
 # 그리기
 # =============================================================================
@@ -1268,7 +1258,6 @@ def plot_weight_distributions(
     plt.tight_layout()
     plt.show()
 
-
 def plot_training_history(history: Dict[str, List[float]]):
     """익힘 굽이를 그린다."""
     
@@ -1294,7 +1283,6 @@ def plot_training_history(history: Dict[str, List[float]]):
     
     plt.tight_layout()
     plt.show()
-
 
 def plot_predictions_with_uncertainty(
     model: VariationalMLP,
@@ -1339,7 +1327,6 @@ def plot_predictions_with_uncertainty(
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.show()
-
 
 # =============================================================================
 # 보여 주는 함수
@@ -1404,7 +1391,6 @@ def demo_variational_bnn():
     
     return model, history
 
-
 def demo_kl_annealing():
     """여러 KL 올리기 짜임을 보여 준다."""
     
@@ -1434,7 +1420,6 @@ def demo_kl_annealing():
     plt.show()
     
     print("\nKL을 천천히 올리면 익힘 초에 뒷분포가 주저앉는 것을 막는다.")
-
 
 def demo_local_reparameterization():
     """여느 매개변수 다시 잡기와 그 자리 다시 잡기를 견준다."""
@@ -1472,7 +1457,6 @@ def demo_local_reparameterization():
     
     print("\n*** 그 자리 다시 잡기도 같은 분포를 준다")
     print("*** 다만 기울기 흩어짐이 더 작다")
-
 
 def demo_uncertainty_quality():
     """변이 BNN의 아리송함 결을 보여 준다."""
@@ -1520,7 +1504,6 @@ def demo_uncertainty_quality():
     
     print("\n*** 아리송함은 틈과 밖으로 늘린 자리에서 더 커야 한다")
 
-
 if __name__ == "__main__":
     model, history = demo_variational_bnn()
     demo_kl_annealing()
@@ -1530,7 +1513,39 @@ if __name__ == "__main__":
 
 ---
 
-## 간추림
+## 연습문제
+
+**연습문제 1.**
+ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
+
+??? success "연습문제 1 풀이"
+    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
+
+---
+
+**연습문제 2.**
+이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
+
+---
+
+**연습문제 3.**
+베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+
+??? success "연습문제 3 풀이"
+    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+
+??? success "연습문제 4 풀이"
+    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$
+
+## 정리하며
 
 ### 고갱이 깨침
 
@@ -1614,35 +1629,3 @@ $$
 - Louizos, C., & Welling, M. (2017). Multiplicative normalizing flows for variational Bayesian neural networks. *ICML*.
 - Zhang, G., et al. (2018). Noisy natural gradient as variational inference. *ICML*.
 - Osawa, K., et al. (2019). Practical deep learning with Bayesian principles. *NeurIPS*.
-
-## 익힘 문제
-
-**익힘 1.**
-ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
-
-??? success "익힘 1 풀이"
-    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
-
----
-
-**익힘 2.**
-이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
-
-??? success "익힘 2 풀이"
-    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
-
----
-
-**익힘 3.**
-베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
-
-??? success "익힘 3 풀이"
-    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
-
----
-
-**익힘 4.**
-이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
-
-??? success "익힘 4 풀이"
-    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$

@@ -1,9 +1,10 @@
 # L2 정칙화 (능선)
-## 개요
 
 능선 회귀 또는 가중치 감쇠라고도 하는 L2 정칙화는 모델 가중치의 크기의 제곱에 비례하는 벌점을 손실 함수에 더한다. L1 정칙화와 달리 L2는 작지만 영이 아닌 가중치를 이끌어 내며, 그 결과 어느 한 가중치도 지나치게 커지지 않는 매끄러운 가중치 분포를 얻는다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### L2 벌점을 더한 표준 손실
 
@@ -83,7 +84,9 @@ $$
 
 **핵심**: 항 $2m\lambda I$은 $X^T X$이 특이행렬일 때에도(예: $n > m$일 때) 행렬이 언제나 가역이 되도록 보장한다.
 
-## 기하학적 해석
+---
+
+## 2. 기하학적 해석
 
 ### 제약 영역
 
@@ -127,7 +130,9 @@ $$
 w_{\text{MAP}} = \arg\max_w \left[ \log p(y|X, w) + \log p(w) \right]
 $$
 
-## 가중치 감쇠로서의 해석
+---
+
+## 3. 가중치 감쇠로서의 해석
 
 ### 경사 하강법과의 관계
 
@@ -159,7 +164,9 @@ w = w - lr * adam_step(grad) - lr * lambda * w
 # 기울기를 거치지 않고 가중치 감쇠를 직접 적용한다
 ```
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ### L2 정칙화 직접 구현하기
 
@@ -384,7 +391,9 @@ param_groups = create_param_groups_with_l2(model, layer_decay_rates=layer_decays
 optimizer = optim.AdamW(param_groups)
 ```
 
-## scikit-learn 구현
+---
+
+## 5. scikit-learn 구현
 
 ```python
 from sklearn.linear_model import Ridge, RidgeCV
@@ -450,7 +459,9 @@ def plot_ridge_coefficients(X, y, alphas):
     return coefs
 ```
 
-## 특잇값 분해의 관점
+---
+
+## 6. 특잇값 분해의 관점
 
 능선 회귀는 SVD를 통해 우아하게 해석된다. $X = U \Sigma V^T$이면 다음과 같다.
 
@@ -486,7 +497,9 @@ def ridge_via_svd(X, y, lambda_reg):
     return w_ridge, d, s
 ```
 
-## 실효 자유도
+---
+
+## 7. 실효 자유도
 
 능선 회귀의 실효 자유도는 다음과 같다.
 
@@ -496,7 +509,9 @@ $$
 
 이는 모델의 복잡도를 잰다. $\lambda \to 0$이면 $\text{df} \to n$(보통최소제곱), $\lambda \to \infty$이면 $\text{df} \to 0$이다.
 
-## 비교: L2와 L1
+---
+
+## 8. 비교: L2와 L1
 
 | 항목 | L2 (능선) | L1 (라쏘) |
 |--------|------------|------------|
@@ -508,7 +523,9 @@ $$
 | 상관된 특징 | 가중치를 고르게 나눈다 | 하나를 고른다 |
 | 베이즈 사전분포 | 정규분포 | 라플라스분포 |
 
-## L2 정칙화를 쓸 때
+---
+
+## 9. L2 정칙화를 쓸 때
 
 ### 알맞은 쓰임새
 
@@ -552,7 +569,9 @@ def select_optimal_l2(model_class, X, y, param_grid, cv=5):
     return grid_search.best_estimator_, grid_search.cv_results_
 ```
 
-## 실무 지침
+---
+
+## 10. 실무 지침
 
 ### 정칙화 강도의 선택
 
@@ -591,11 +610,7 @@ def l2_regularization_weights_only(model, lambda_l2):
     return lambda_l2 * penalty
 ```
 
-## 참고 문헌
-
-1. Hoerl, A. E., & Kennard, R. W. (1970). Ridge Regression: Biased Estimation for Nonorthogonal Problems. *Technometrics*, 12(1), 55-67.
-2. Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning* (2nd ed.). Springer.
-3. Loshchilov, I., & Hutter, F. (2019). Decoupled Weight Decay Regularization. *ICLR 2019*.
+---
 
 ## 연습문제
 
@@ -636,3 +651,13 @@ PyTorch에서 `weight_decay` 매개변수를 쓰는 방법과 벌점을 직접 �
     loss = loss + 0.01 * l2_penalty
     loss.backward()
     ```
+
+## 정리하며
+
+이 마당은 수학적 정식화、기하학적 해석、가중치 감쇠로서의 해석、PyTorch 구현을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Hoerl, A. E., & Kennard, R. W. (1970). Ridge Regression: Biased Estimation for Nonorthogonal Problems. *Technometrics*, 12(1), 55-67.
+2. Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning* (2nd ed.). Springer.
+3. Loshchilov, I., & Hutter, F. (2019). Decoupled Weight Decay Regularization. *ICLR 2019*.

@@ -1,11 +1,16 @@
 # 열린 앎 뽑기
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 틀 없는 세 쌍 뽑기를 이해한다
 - 열린 앎 뽑기와 닫힌 앎 뽑기 방식을 견준다
 - 열린 앎 뽑기를 글 캐어 보기에 쓴다
 
-## 왜 필요한가
+---
+
+## 2. 왜 필요한가
 
 닫힌 앎 뽑기는 미리 정한 관계 틀이 있어야 하는데, 갖가지 글을 다룰 때 이것이 병목이 된다. 열린 앎 뽑기는 붙박이 갈래 체계 없이 아무 (주어, 관계, 목적어) 세 쌍이나 뽑는다.
 
@@ -19,7 +24,9 @@
 - (아인슈타인, 세웠다, 상대성 이론)
 - (아인슈타인, 일한 곳은, 특허청)
 
-## 핵심 체계
+---
+
+## 3. 핵심 체계
 
 ### ReVerb(Fader 외, 2011)
 
@@ -50,7 +57,9 @@ prompt = (
 # (acquisition, occurred in, 2014)
 ```
 
-## 닫힌 앎 뽑기와의 견줌
+---
+
+## 4. 닫힌 앎 뽑기와의 견줌
 
 | 갈래 | 닫힌 앎 뽑기 | 열린 앎 뽑기 |
 |--------|-----------|---------|
@@ -60,22 +69,22 @@ prompt = (
 | 재현율 | 틀에 제한됨 | 더 넓게 덮음 |
 | 쓰임새 | 짜임 있는 데이터베이스 채우기 | 캐어 보는 살피기 |
 
-## 어려움
+---
+
+## 5. 어려움
 
 1. **알맹이 없는 뽑음**: (He, is, good) — 너무 두루뭉술해 쓸모없다
 2. **지나치게 좁은 관계**: 긴 움직씨 마디는 두루 통함을 떨어뜨린다
 3. **숨은 관계**: 모든 관계가 움직씨로 드러나지는 않는다
 4. **겹겹이 든 뽑음**: 복잡한 월은 되돌이로 뽑아야 할 수 있다
 
-## 금융에서의 쓰임새
+---
+
+## 6. 금융에서의 쓰임새
 
 열린 앎 뽑기는 관계 틀이 온전하지 않은 금융 글을 캐어 보게 해 준다. 곧 뉴스에서 새 공급망 관계를 찾아내고, 실적 발표에서 경영진 논평의 무늬를 뽑고, 규제 보고서에서 드러나지 않은 사업 관계를 캔다.
 
-## 참고 문헌
-
-1. Fader, A., Soderland, S., & Etzioni, O. (2011). Identifying Relations for Open Information Extraction. *EMNLP*.
-2. Mausam, et al. (2012). Open Language Learning for Information Extraction. *EMNLP-CoNLL*.
-3. Angeli, G., Premkumar, M. J., & Manning, C. D. (2015). Leveraging Linguistic Structure for Open Domain IE. *ACL*.
+---
 
 ## 연습문제
 
@@ -108,3 +117,13 @@ prompt = (
 
 ??? success "연습문제 4 풀이"
     규칙 바탕 열린 앎 뽑기 체계는 달림 나무에서 주어-움직씨-목적어 무늬를 가려내 세 쌍을 뽑는다. (1) 주된 움직씨(뿌리)를 찾고, (2) 이름씨 주어(nsubj)를 주어로 뽑고, (3) 직접 목적어(dobj)를 목적어로 뽑고, (4) (주어, 움직씨, 목적어) 세 쌍을 만든다. **한계**: (1) 이름씨로 바꾼 표현("Obama's visit to China")의 관계를 놓친다. (2) 마디가 여럿인 복잡한 월을 다루지 못한다. (3) 특별한 규칙 없이는 입음꼴에서 어그러진다. (4) 앞가지가 붙은 월에서는 질 낮은 세 쌍을 낸다. (5) 같은 관계의 서로 다른 겉모습을 하나로 다듬지 못한다.
+
+## 정리하며
+
+이 마당은 학습 목표、왜 필요한가、핵심 체계、닫힌 앎 뽑기와의 견줌을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Fader, A., Soderland, S., & Etzioni, O. (2011). Identifying Relations for Open Information Extraction. *EMNLP*.
+2. Mausam, et al. (2012). Open Language Learning for Information Extraction. *EMNLP-CoNLL*.
+3. Angeli, G., Premkumar, M. J., & Manning, C. D. (2015). Leveraging Linguistic Structure for Open Domain IE. *ACL*.

@@ -1,9 +1,10 @@
 # RMSNorm (제곱평균제곱근 층 정규화)
-## 개요
 
 2019년 Zhang과 Sennrich가 소개한 RMSNorm은 제곱평균제곱근(RMS) 통계량만으로 정규화하여 평균을 빼는 단계를 없앤, 층 정규화의 간소화된 변형이다. 이 단순화는 성능을 유지하거나 오히려 높이면서 계산 비용을 줄여 주어, RMSNorm은 LLaMA, Mistral, Gemma 같은 현대의 대형 언어 모델에서 널리 쓰인다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### 표준 층 정규화 (되짚어 보기)
 
@@ -36,7 +37,9 @@ $$\text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\text{RMS}(\mathbf
 | 학습 가능한 편향 | 있음 ($\beta$) | **없음** |
 | 계산 복잡도 | 통계량에 $O(2n)$ | 통계량에 $O(n)$ |
 
-## PyTorch 구현
+---
+
+## 2. PyTorch 구현
 
 ### 바닥부터 만들기
 
@@ -116,7 +119,9 @@ class LayerNormBaseline(nn.Module):
         return self.weight * (x - mean) / torch.sqrt(var + self.eps) + self.bias
 ```
 
-## RMSNorm이 통하는 이유
+---
+
+## 3. RMSNorm이 통하는 이유
 
 ### 가설: 다시 중심을 맞추는 일은 필요 없다
 
@@ -186,7 +191,9 @@ Skewed input (mean=1.64, std=2.14):
 
 참고: RMSNorm은 출력의 평균을 0으로 맞추지 않지만, 실무에서 이것이 성능을 해치지는 않는다.
 
-## 경사 분석
+---
+
+## 4. 경사 분석
 
 ### 입력에 대한 경사
 
@@ -231,7 +238,9 @@ class RMSNormWithGradientAnalysis(torch.autograd.Function):
         return grad_x, grad_weight, None
 ```
 
-## 계산 효율
+---
+
+## 5. 계산 효율
 
 ### 복잡도 비교
 
@@ -292,7 +301,9 @@ def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations
 
 대표적인 속도 향상은 GPU에서 **1.1~1.3배**이며, CPU에서는 더 크다.
 
-## 현대 대형 언어 모델에서의 쓰임
+---
+
+## 6. 현대 대형 언어 모델에서의 쓰임
 
 ### LLaMA 방식의 구조
 
@@ -415,7 +426,9 @@ class LLaMA(nn.Module):
         return self.output(h)
 ```
 
-## 다른 정규화 기법과의 비교
+---
+
+## 7. 다른 정규화 기법과의 비교
 
 ```python
 def comprehensive_comparison():
@@ -459,7 +472,9 @@ def comprehensive_comparison():
 comprehensive_comparison()
 ```
 
-## RMSNorm을 언제 쓸 것인가
+---
+
+## 8. RMSNorm을 언제 쓸 것인가
 
 ### 알맞은 쓰임새
 
@@ -475,29 +490,7 @@ comprehensive_comparison()
 ❌ 그 과제에서 평균 중심화의 이점이 알려져 있을 때  
 ❌ 기존 사전학습 모델과의 호환이 중요할 때
 
-## 요약
-
-RMSNorm은 다음과 같은 간소화된 정규화 기법이다.
-
-1. 층 정규화에서 **평균 중심화를 없앤다**
-2. 정규화에 분산 대신 **RMS를 쓴다**
-3. **계산 비용을** 약 10~30% **줄인다**
-4. 실무에서 **비슷한 성능을 유지한다**
-
-핵심 성질은 다음과 같다.
-
-- **평균을 빼지 않는다** — RMS로 배율만 조정한다
-- **편향 매개변수** $\beta$ **가 없다**
-- **계산이 더 빠르다** — 축약 연산이 하나 적다
-- **현대 대형 언어 모델의 표준** — LLaMA, Mistral, Gemma 등
-
-## 참고 문헌
-
-1. Zhang, B., & Sennrich, R. (2019). Root Mean Square Layer Normalization. *NeurIPS*.
-
-2. Touvron, H., et al. (2023). LLaMA: Open and Efficient Foundation Language Models. *arXiv preprint arXiv:2302.13971*.
-
-3. Jiang, A. Q., et al. (2023). Mistral 7B. *arXiv preprint arXiv:2310.06825*.
+---
 
 ## 연습문제
 
@@ -539,3 +532,27 @@ RMSNorm을 PyTorch로 구현하고 공식과 일치하는지 확인하라.
 
 ??? success "연습문제 4 풀이"
     경험적으로 LayerNorm의 평균 중심화는 큰 트랜스포머에서 이득이 미미한 반면 계산은 늘린다. RMSNorm은 같은 수준의 학습 안정성과 최종 성능을 더 낮은 지연으로 이루는데, 규모가 커질수록(매개변수 수십억 개, 토큰 수조 개) 이것이 크게 중요해진다.
+
+## 정리하며
+
+RMSNorm은 다음과 같은 간소화된 정규화 기법이다.
+
+1. 층 정규화에서 **평균 중심화를 없앤다**
+2. 정규화에 분산 대신 **RMS를 쓴다**
+3. **계산 비용을** 약 10~30% **줄인다**
+4. 실무에서 **비슷한 성능을 유지한다**
+
+핵심 성질은 다음과 같다.
+
+- **평균을 빼지 않는다** — RMS로 배율만 조정한다
+- **편향 매개변수** $\beta$ **가 없다**
+- **계산이 더 빠르다** — 축약 연산이 하나 적다
+- **현대 대형 언어 모델의 표준** — LLaMA, Mistral, Gemma 등
+
+**참고 문헌**
+
+1. Zhang, B., & Sennrich, R. (2019). Root Mean Square Layer Normalization. *NeurIPS*.
+
+2. Touvron, H., et al. (2023). LLaMA: Open and Efficient Foundation Language Models. *arXiv preprint arXiv:2302.13971*.
+
+3. Jiang, A. Q., et al. (2023). Mistral 7B. *arXiv preprint arXiv:2310.06825*.

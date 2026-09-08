@@ -2,7 +2,9 @@
 
 판 위에 점 $n$개가 있을 때 유클리드 거리가 가장 짧은 짝을 막무가내로 찾으려면 $\binom{n}{2}$ 짝을 모두 살펴야 하므로 $O(n^2)$ 때가 든다. 나누어 다스리는 길은 $O(n \log n)$을 이루는데, 이는 견줌 바탕 알고리즘의 아래 테두리에 딱 맞는다. 고갱이 어려움은 **아우르는 걸음**에 있으며, 여기서 슬기로운 기하 따짐이 금을 가로지르는 짝의 수를 옭아맨다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 $\mathbb{R}^2$ 안의 점 묶음 $P = \{p_1, p_2, \dots, p_n\}$이 주어졌을 때 다음을 찾아라.
 
@@ -10,7 +12,9 @@ $$
 \min_{i \ne j} d(p_i, p_j) = \min_{i \ne j} \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2}
 $$
 
-## 나누어 이기기 알고리즘
+---
+
+## 2. 나누어 이기기 알고리즘
 
 **1단계: 정렬.** 모든 점을 $x$-자리표로 정렬한다. $y$-자리표로 정렬한 복사본도 함께 지닌다.
 
@@ -20,7 +24,9 @@ $$
 
 **걸음 4: 아우르기.** 한 점은 $P_L$에, 다른 점은 $P_R$에 있는 짝 가운데 거리가 $\delta$보다 짧은 것이 있는지 살핀다. 알고리즘이 잘 드는지가 여기서 기하 깨침에 달려 있다.
 
-## 띠 논증
+---
+
+## 3. 띠 논증
 
 가르는 금에서 거리 $\delta$ 안에 있는 점만 더 가까운 짝을 이룰 수 있다. **띠**를 다음과 같이 매긴다.
 
@@ -41,7 +47,9 @@ $$
 T(n) = 2T(n/2) + O(n) = O(n \log n)
 $$
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -111,7 +119,6 @@ def closest_pair(points: list[tuple[float, float]]) -> float:
     py = sorted(points, key=lambda p: p[1])
     return _solve(px, py)
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -141,7 +148,9 @@ Brute force distance: 1.4142
 
 가장 가까운 짝은 $(2, 3)$과 $(3, 4)$이고 거리는 $\sqrt{2} \approx 1.4142$이다. 나누어 다스리는 길과 막무가내로 하는 길이 같은 답을 낸다.
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 항목 | 비용 |
 |--------|:----:|
@@ -150,10 +159,7 @@ Brute force distance: 1.4142
 
 처음 줄 세우기에 $O(n \log n)$이 든다. 되돌이 식 $T(n) = 2T(n/2) + O(n)$은 으뜸 정리에 따라 $O(n \log n)$으로 풀린다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 33장: Computational Geometry.
-- Shamos, M. I., & Hoey, D. (1975). Closest-point problems. *IEEE Symposium on FOCS*, pp. 151--162.
+---
 
 ## 연습문제
 
@@ -186,3 +192,12 @@ Brute force distance: 1.4142
 
 ??? success "연습문제 4 풀이"
     밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 문제 서술、나누어 이기기 알고리즘、띠 논증、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 33장: Computational Geometry.
+- Shamos, M. I., & Hoey, D. (1975). Closest-point problems. *IEEE Symposium on FOCS*, pp. 151--162.

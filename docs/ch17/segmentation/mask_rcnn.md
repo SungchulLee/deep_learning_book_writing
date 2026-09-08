@@ -1,5 +1,8 @@
 # 마스크 R-CNN
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,7 +12,9 @@
 - 미리 익힌 마스크 R-CNN을 낱 물체 나누기 미룸에 쓴다
 - 마스크 R-CNN과 한 단계 낱 물체 나누기 대안을 가린다
 
-## 더 빠른 R-CNN에서 마스크 R-CNN으로
+---
+
+## 2. 더 빠른 R-CNN에서 마스크 R-CNN으로
 
 마스크 R-CNN(He 외, 2017)은 이미 있던 두름 상자 머리와 갈래 매기기 머리 곁에 나란한 **마스크 어림 가지**를 더해 더 빠른 R-CNN을 넓힌다. 핵심 눈썰미는 낱 물체 나누기를 알아내기(두름 상자 + 갈래)와 낱 물체마다의 두 갈래 마스크 어림으로 쪼갤 수 있다는 것이다.
 
@@ -54,7 +59,9 @@ $$\text{RoI Align}: \text{bilinear\_interpolate}(x / \text{stride}) \rightarrow 
 
 사소해 보이는 이 바뀜이 COCO에서 마스크 AP를 1~3점 올린다.
 
-## 마스크 머리 얼개
+---
+
+## 3. 마스크 머리 얼개
 
 가림 머리는 알아낸 낱개마다 두 값 가림을 미루어 보는 작은 온통 누비기 그물이다. RoI로 맞춘 결 위에서 움직이며 갈래마다 크기가 붙박인 가림(흔히 $28 \times 28$이나 $14 \times 14$)을 미루어 본다.
 
@@ -144,7 +151,9 @@ $$\mathcal{L} = \mathcal{L}_{\text{cls}} + \mathcal{L}_{\text{box}} + \mathcal{L
 
 머리마다 같은 RoI 특징 위에서 서로 얽히지 않고 돌아가며, 마스크 손실은 양성(짝지어진) 제안에만 걸린다.
 
-## 미리 익힌 마스크 R-CNN 쓰기
+---
+
+## 4. 미리 익힌 마스크 R-CNN 쓰기
 
 ```python
 import torchvision
@@ -202,7 +211,9 @@ def get_custom_maskrcnn(num_classes: int):
     return model
 ```
 
-## 한 단계 방식과의 견줌
+---
+
+## 5. 한 단계 방식과의 견줌
 
 | 방법 | 갈래 | 빠르기(초당 틀) | 마스크 AP(COCO) | 쓰임새 |
 |--------|------|-------------|----------------|----------|
@@ -213,23 +224,7 @@ def get_custom_maskrcnn(num_classes: int):
 
 마스크 R-CNN은 여전히 표준 두 단계 방식이다. YOLACT 같은 한 단계 방법은 정확도를 내주고 빠르기를 얻는 반면, SOLOv2 같은 요즘 방식은 자리 제안 없이도 견줄 만한 정확도를 낸다.
 
-## 요약
-
-마스크 R-CNN이 이바지한 핵심:
-
-1. **단순한 넓힘**: 짐을 거의 늘리지 않고 더 빠른 R-CNN에 마스크 가지를 더한다
-2. **RoI Align**: 양자화를 없애 자리를 정밀하게 맞춘다
-3. **떼어 놓은 어림**: 갈래마다의 두 갈래 마스크로 갈래끼리 다투지 않는다
-4. **여러 일 익히기**: 알아내기와 나누기를 함께 가장 좋게 한다
-
-이 얼개는 낱 물체 나누기를 풀 만한 문제로 세웠으며, Cascade Mask R-CNN과 PointRend를 비롯한 요즘 방식의 바탕으로 남아 있다.
-
-## 참고 문헌
-
-1. He, K., Gkioxari, G., Dollár, P., & Girshick, R. (2017). Mask R-CNN. ICCV.
-2. Bolya, D., et al. (2019). YOLACT: Real-time Instance Segmentation. ICCV.
-3. Wang, X., et al. (2020). SOLOv2: Dynamic and Fast Instance Segmentation. NeurIPS.
-4. Kirillov, A., et al. (2020). PointRend: Image Segmentation as Rendering. CVPR.
+---
 
 ## 연습문제
 
@@ -262,3 +257,21 @@ U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요�
 
 ??? success "연습문제 4 풀이"
     마스크 R-CNN은 이미 있던 갈래 매기기 가지와 두름 상자 되돌리기 가지 곁에, 알아낸 물체마다 두 갈래 마스크를 어림하는 나란한 가지를 더한다. 핵심 새로움은 RoI 모으기를 갈음하는 **RoIAlign**이다. RoI 모으기는 양자화된 자리표(정수 화소 자리로 반올림)를 써서 특징 지도와 본디 그림 사이가 어긋난다. RoIAlign은 정확한 뜬소수점 자리에서 두 줄 사이 끼움을 써서 양자화 찌꺼기를 없앤다. 이 정밀한 맞춤이 화소 수준 마스크 어림에 결정적이며, RoI 모으기에 견주어 마스크 AP를 상대적으로 10~50% 올린다.
+
+## 정리하며
+
+마스크 R-CNN이 이바지한 핵심:
+
+1. **단순한 넓힘**: 짐을 거의 늘리지 않고 더 빠른 R-CNN에 마스크 가지를 더한다
+2. **RoI Align**: 양자화를 없애 자리를 정밀하게 맞춘다
+3. **떼어 놓은 어림**: 갈래마다의 두 갈래 마스크로 갈래끼리 다투지 않는다
+4. **여러 일 익히기**: 알아내기와 나누기를 함께 가장 좋게 한다
+
+이 얼개는 낱 물체 나누기를 풀 만한 문제로 세웠으며, Cascade Mask R-CNN과 PointRend를 비롯한 요즘 방식의 바탕으로 남아 있다.
+
+**참고 문헌**
+
+1. He, K., Gkioxari, G., Dollár, P., & Girshick, R. (2017). Mask R-CNN. ICCV.
+2. Bolya, D., et al. (2019). YOLACT: Real-time Instance Segmentation. ICCV.
+3. Wang, X., et al. (2020). SOLOv2: Dynamic and Fast Instance Segmentation. NeurIPS.
+4. Kirillov, A., et al. (2020). PointRend: Image Segmentation as Rendering. CVPR.

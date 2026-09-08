@@ -1,9 +1,10 @@
 # GPT: 생성 사전 학습 트랜스포머
-## 들어가며
 
 GPT(생성 사전 학습 트랜스포머)는 자기 회귀 언어 모형화를 위해 설계된 디코더 전용 트랜스포머 구조이다. BERT의 양방향 방식과 달리 GPT는 한 방향(왼쪽에서 오른쪽) 주의를 써서 글 생성 과제에 자연스레 맞는다.
 
-## GPT의 흐름
+---
+
+## 1. GPT의 흐름
 
 | 모형 | 매개변수 | 학습 데이터 | 맥락 길이 |
 |-------|------------|---------------|----------------|
@@ -14,7 +15,9 @@ GPT(생성 사전 학습 트랜스포머)는 자기 회귀 언어 모형화를 �
 
 *보도에 바탕한 어림
 
-## 구조
+---
+
+## 2. 구조
 
 GPT는 인과 자기 주의를 갖춘 디코더 전용 트랜스포머 블록의 더미를 쓴다.
 
@@ -40,7 +43,9 @@ $$
 | 큼 | 36 | 20 | 1280 | 7억 6200만 |
 | 아주 큼 | 48 | 25 | 1600 | 15억 |
 
-## 사전 학습 목표
+---
+
+## 3. 사전 학습 목표
 
 GPT는 표준 언어 모형화(다음 토큰 맞히기)를 쓴다.
 
@@ -56,7 +61,9 @@ $$
 
 여기서 $h_t$은 자리 $t$의 숨은 상태이고 $W_e$은 임베딩 행렬이다(가중치 묶기).
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -367,7 +374,9 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 맥락 안 학습
+---
+
+## 5. 맥락 안 학습
 
 GPT-3은 모형이 프롬프트 안의 예를 보고 과제에 맞추어 가는 맥락 안 학습을 들여왔다.
 
@@ -385,7 +394,9 @@ peppermint => menthe poivrée
 cheese =>
 ```
 
-## 규모 법칙
+---
+
+## 6. 규모 법칙
 
 GPT-3은 규모가 커질 때의 변화를 내다볼 수 있음을 보였다.
 
@@ -403,7 +414,9 @@ $$N_{\text{opt}} \approx 20 \cdot D$$
 
 여기서 $N_{\text{opt}}$은 가장 좋은 매개변수 수이고 $D$은 데이터 예산이다. 이는 GPT-3(매개변수 1750억, 토큰 3000억)이 크게 덜 학습되었음을 뜻한다. 그 연산 예산에서 계산 최적 모형이라면 매개변수 약 700억으로 토큰 약 1.4조 개를 학습했을 것이다.
 
-## 창발하는 능력
+---
+
+## 7. 창발하는 능력
 
 GPT 모형의 규모가 커지면 작은 모형에는 없던 질적으로 새로운 능력이 창발한다.
 
@@ -416,7 +429,9 @@ GPT 모형의 규모가 커지면 작은 모형에는 없던 질적으로 새로
 
 창발의 얼개는 아직 논란거리이다. 손실 지형의 상전이를 나타낼 수도 있고 그저 평가 지표의 해상도가 좋아진 것일 수도 있다.
 
-## GPT에서 ChatGPT로: 정렬
+---
+
+## 8. GPT에서 ChatGPT로: 정렬
 
 GPT 모형은 다음 토큰을 맞히도록 학습되는데, 그것이 늘 도움이 되고 해롭지 않고 정직한 것과 들어맞지는 않는다. GPT에서 ChatGPT로 가는 길은 다음으로 이루어진다.
 
@@ -426,31 +441,9 @@ GPT 모형은 다음 토큰을 맞히도록 학습되는데, 그것이 늘 도�
 
 이 정렬 과정이 다음 토큰 예측기를 지시를 따르는 도우미로 바꾼다.
 
-## 요약
-
-GPT는 자기 회귀 언어 모형화 방식을 자리 잡게 했다.
-
-1. **디코더 전용 구조**: 인코더-디코더보다 간단하고 깔끔하게 커진다
-2. **인과 주의**: 생성에 자연스럽고 효율적인 추론을 위한 KV 캐싱을 가능케 한다
-3. **규모**: 큰 모형은 작은 규모에는 없던 창발 능력을 보인다
-4. **맥락 안 학습**: 프롬프트의 예로 미세 조정 없이 과제에 맞춘다
-5. **가중치 묶기**: 입력 임베딩 층과 출력 사영이 임베딩 행렬 $W_e$을 함께 쓰면($P(x_t | x_{<t}) = \text{softmax}(h_t W_e^T)$) 매개변수가 줄고 한결같음이 나아진다
-
-### 디코더 전용이 주류가 된 까닭
-
-GPT의 디코더 전용 방식이 대형 언어 모형의 주류가 된 것은 매개변수마다 모든 예측에 이바지하기 때문이다. 인코더-디코더 모형에서는 생성 중에 인코더의 매개변수가 놀고 있다. 게다가 하나로 모은 다음 토큰 맞히기 목표는 간단하고 데이터를 아끼며(자리마다 학습 신호를 준다) 큰 규모에서 이해와 생성을 자연스레 함께 받친다.
-
-## 참고 문헌
-
-1. Radford, A., et al. (2018). "Improving Language Understanding by Generative Pre-Training." (GPT-1)
-2. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." (GPT-2)
-3. Brown, T., et al. (2020). "Language Models are Few-Shot Learners." NeurIPS. (GPT-3)
-4. Hoffmann, J., et al. (2022). "Training Compute-Optimal Large Language Models." (Chinchilla)
-5. Ouyang, L., et al. (2022). "Training Language Models to Follow Instructions with Human Feedback." (InstructGPT)
-
 ---
 
-## GPT로 하는 글 생성
+## 9. GPT로 하는 글 생성
 
 #### 생성 과정
 
@@ -803,6 +796,8 @@ GPT의 생성은 다음으로 이루어진다.
 1. Holtzman, A., et al. (2020). "The Curious Case of Neural Text Degeneration."
 2. Su, Y., et al. (2022). "A Contrastive Framework for Neural Text Generation."
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -846,3 +841,27 @@ GPT의 자기 회귀 사전 학습 목표를 설명하고 BERT의 MLM과 어떻�
 
 ??? success "연습문제 4 풀이"
     창발 능력이란 모형의 규모가 커질 때 갑자기 나타나며 작은 모형에는 없는 능력이다. 생각의 사슬 추론(매개변수 약 1000억), 소수 예시 학습(약 100억), 지시 따르기가 그 보기이다. 그 얼개는 논란거리이다. 매끄러운 능력 곡선을 끊긴 지표로 잰 탓이라는 주장도 있다(Schaeffer 외, 2023).
+
+## 정리하며
+
+GPT는 자기 회귀 언어 모형화 방식을 자리 잡게 했다.
+
+1. **디코더 전용 구조**: 인코더-디코더보다 간단하고 깔끔하게 커진다
+2. **인과 주의**: 생성에 자연스럽고 효율적인 추론을 위한 KV 캐싱을 가능케 한다
+3. **규모**: 큰 모형은 작은 규모에는 없던 창발 능력을 보인다
+4. **맥락 안 학습**: 프롬프트의 예로 미세 조정 없이 과제에 맞춘다
+5. **가중치 묶기**: 입력 임베딩 층과 출력 사영이 임베딩 행렬 $W_e$을 함께 쓰면($P(x_t | x_{<t}) = \text{softmax}(h_t W_e^T)$) 매개변수가 줄고 한결같음이 나아진다
+
+### 디코더 전용이 주류가 된 까닭
+
+GPT의 디코더 전용 방식이 대형 언어 모형의 주류가 된 것은 매개변수마다 모든 예측에 이바지하기 때문이다. 인코더-디코더 모형에서는 생성 중에 인코더의 매개변수가 놀고 있다. 게다가 하나로 모은 다음 토큰 맞히기 목표는 간단하고 데이터를 아끼며(자리마다 학습 신호를 준다) 큰 규모에서 이해와 생성을 자연스레 함께 받친다.
+
+**참고 문헌**
+
+1. Radford, A., et al. (2018). "Improving Language Understanding by Generative Pre-Training." (GPT-1)
+2. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." (GPT-2)
+3. Brown, T., et al. (2020). "Language Models are Few-Shot Learners." NeurIPS. (GPT-3)
+4. Hoffmann, J., et al. (2022). "Training Compute-Optimal Large Language Models." (Chinchilla)
+5. Ouyang, L., et al. (2022). "Training Language Models to Follow Instructions with Human Feedback." (InstructGPT)
+
+---

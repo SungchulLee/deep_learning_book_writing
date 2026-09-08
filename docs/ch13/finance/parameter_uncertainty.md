@@ -1,11 +1,10 @@
 # 금융에서의 매개변수 불확실성
-## 개요
 
 금융 모형은 기대 수익률, 변동성, 상관, 요인 적재값처럼 어림에 큰 아리송함이 딸린 매개변수에 기댄다. 베이즈 방법은 이 아리송함을 수로 나타내고 그것을 결정까지 퍼뜨려, 더 튼튼한 포트폴리오 짜기와 위험 다스리기, 전략 평가를 이끈다.
 
 ---
 
-## 어림 위험
+## 1. 어림 위험
 
 ### 문제
 
@@ -37,7 +36,7 @@ $$
 
 ---
 
-## 뒤확률 예측 수익률
+## 2. 뒤확률 예측 수익률
 
 ### 자산 하나
 
@@ -61,7 +60,7 @@ $$
 
 ---
 
-## 오그라뜨리는 어림기
+## 3. 오그라뜨리는 어림기
 
 베이즈식 매개변수 불확실성은 자연스럽게 **오그라들기**, 곧 어림값을 짜임새 있는 앞확률 쪽으로 끌어당기는 일로 이어진다.
 
@@ -89,7 +88,7 @@ $$
 
 ---
 
-## PyTorch 구현
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -157,7 +156,7 @@ class BayesianReturnEstimator:
 
 ---
 
-## 실전을 위한 핵심 통찰
+## 5. 실전을 위한 핵심 통찰
 
 1. **기대 수익률은 변동성이나 상관보다 훨씬 덜 정밀하게 어림된다.** 이 치우침이 모형 설계에 길잡이가 되어야 한다. 수익률 예보는 미더워하지 말고 위험 어림값은 더 믿어라.
 
@@ -168,12 +167,6 @@ class BayesianReturnEstimator:
 4. **차원이 높아질수록 필요한 표본 크기가 커진다.** 자산 $N$개와 관찰 $T$개에서 $N/T$이 커질수록 어림의 질이 빠르게 나빠진다.
 
 ---
-
-## 참고 문헌
-
-- Barberis, N. (2000). Investing for the long run when returns are predictable. *Journal of Finance*, 55(1), 225-264.
-- Kan, R., & Zhou, G. (2007). Optimal portfolio choice with parameter uncertainty. *Journal of Financial and Quantitative Analysis*, 42(3), 621-656.
-- Ledoit, O., & Wolf, M. (2004). A well-conditioned estimator for large-dimensional covariance matrices. *Journal of Multivariate Analysis*, 88(2), 365-411.
 
 ## 연습문제
 
@@ -212,3 +205,13 @@ class BayesianReturnEstimator:
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
     # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
     ```
+
+## 정리하며
+
+이 마당은 어림 위험、뒤확률 예측 수익률、오그라뜨리는 어림기、PyTorch 구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Barberis, N. (2000). Investing for the long run when returns are predictable. *Journal of Finance*, 55(1), 225-264.
+- Kan, R., & Zhou, G. (2007). Optimal portfolio choice with parameter uncertainty. *Journal of Financial and Quantitative Analysis*, 42(3), 621-656.
+- Ledoit, O., & Wolf, M. (2004). A well-conditioned estimator for large-dimensional covariance matrices. *Journal of Multivariate Analysis*, 88(2), 365-411.

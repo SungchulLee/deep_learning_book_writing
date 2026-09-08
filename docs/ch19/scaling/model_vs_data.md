@@ -1,12 +1,17 @@
 # 모델 크기와 자료의 맞바꿈
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 모델 크기와 익힘 자료 양 사이의 맞바꿈을 살핀다
 - 규모 키우기의 세 갈래와 그 실전 뜻을 가려낸다
 - 자료 되풀이의 효과를 이해한다
 - 규모 눈썰미를 펼치기 결정에 쓴다
 
-## 규모 키우기의 세 갈래
+---
+
+## 2. 규모 키우기의 세 갈래
 
 ### 1. 덜 익힌 갈래(D/N < 10)
 
@@ -28,7 +33,9 @@ $$\text{Total Cost} = C_{\text{train}}(N, D) + K \cdot C_{\text{inference}}(N)$$
 
 보기: LLaMA-7B($D/N = 143$), Mistral-7B($D/N \approx 285$)
 
-## 실무적 함의
+---
+
+## 3. 실무적 함의
 
 | 갈래 | 쓸 때 | 금융 쓰임새 |
 |--------|------------|-------------------|
@@ -36,7 +43,9 @@ $$\text{Total Cost} = C_{\text{train}}(N, D) + K \cdot C_{\text{inference}}(N)$$
 | 친칠라 최적 | 연구, 한 번뿐인 살피기 | 큰 규모 연구 모델 |
 | 지나치게 익힘 | 실전 펼치기 | 실시간 거래 신호, API 서비스 |
 
-## 자료 되풀이의 효과
+---
+
+## 4. 자료 되풀이의 효과
 
 Muennighoff 외(2023)는 다음을 찾아냈다:
 
@@ -44,7 +53,9 @@ Muennighoff 외(2023)는 다음을 찾아냈다:
 2. **좋음에 민감함**: 자료가 좋을수록 되풀이를 더 견딘다
 3. **실전 지침**: 웹 자료에서는 약 4세대가 지나면 나빠짐이 눈에 띈다
 
-## 금융에서의 규모 결정
+---
+
+## 5. 금융에서의 규모 결정
 
 ```python
 def recommend_model_size(
@@ -63,18 +74,16 @@ def recommend_model_size(
                 "note": "Good balance for most finance workloads"}
 ```
 
-## 핵심 정리
+---
+
+## 6. 핵심 정리
 
 1. **친칠라 최적이 펼치기 최적은 아니다**: 작은 모델을 지나치게 익히는 편이 내놓기에 값싸다
 2. **자료의 좋음이 규모 법칙이 말하는 것보다 중요하다**: 골라 뽑은 금융 글이 가장 좋은 나눔을 옮긴다
 3. **최전선은 더 작고 더 잘 익힌 모델 쪽으로 옮겨 간다**: Mistral-7B와 Phi는 얼개와 자료의 좋음이 적은 매개변수를 메움을 보여 준다
 4. **금융에서는**: 물음이 많고 늦음이 적어야 하므로 지나치게 익힌 갈래가 훨씬 낫다
 
-## 참고 문헌
-
-1. Hoffmann, J., et al. (2022). "Training Compute-Optimal Large Language Models."
-2. Muennighoff, N., et al. (2023). "Scaling Data-Constrained Language Models."
-3. Sardana, N., et al. (2023). "Beyond Chinchilla-Optimal: Accounting for Inference."
+---
 
 ## 연습문제
 
@@ -107,3 +116,13 @@ def recommend_model_size(
 
 ??? success "연습문제 4 풀이"
     $C = 6ND$(변환기 익힘의 어림 뜨는 셈 횟수)을 쓰는 친칠라 크기 법칙을 쓴다. $10^{23} = 6ND$이고 가장 좋은 $D \approx 20N$이다. 넣어 보면 $10^{23} = 6N \cdot 20N = 120N^2$이므로 $N \approx \sqrt{10^{23}/120} \approx 2.9 \times 10^{10}$, 곧 매개변수 약 290억 개다. 익힘 토막은 $D = 10^{23}/(6 \times 29 \times 10^9) \approx 5750$억 개다. 이렇게 나누면 셈을 가장 잘 쓰는 견줌을 따르므로, 같은 셈 예산에서 덜 익힌 더 큰 모델(1750억을 토막 960억 개로)이나 지나치게 익힌 더 작은 모델(70억을 토막 2조 4000억 개로)보다 낫다.
+
+## 정리하며
+
+이 마당은 학습 목표、규모 키우기의 세 갈래、실무적 함의、자료 되풀이의 효과을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Hoffmann, J., et al. (2022). "Training Compute-Optimal Large Language Models."
+2. Muennighoff, N., et al. (2023). "Scaling Data-Constrained Language Models."
+3. Sardana, N., et al. (2023). "Beyond Chinchilla-Optimal: Accounting for Inference."

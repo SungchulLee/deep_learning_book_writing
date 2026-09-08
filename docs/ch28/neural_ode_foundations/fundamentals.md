@@ -1,5 +1,8 @@
 # 상미분 방정식 바탕
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 마디를 마치면 다음을 하게 된다:
 
@@ -11,7 +14,9 @@
 - `torchdiffeq`으로 온전한 신경 상미분 방정식 모델을 세운다
 - 가름과 되돌이 맞춤 일에 신경 상미분 방정식을 익힌다
 
-## 미리 알아야 할 것
+---
+
+## 2. 미리 알아야 할 것
 
 - 여러 변수 미적분(미분, 적분)
 - 기본 선형 대수(벡터, 행렬)
@@ -20,7 +25,7 @@
 
 ---
 
-## 1. 상미분 방정식이란 무엇인가?
+## 3. 상미분 방정식이란 무엇인가?
 
 **상미분 방정식(ODE)**은 어떤 양이 때에 따라 어떻게 바뀌는지 적어 준다. "상(常)"이라는 말은 이를 편미분 방정식과 갈라 준다. 상미분 방정식은 변수 하나(보통 때)에 대한 미분만 담는다.
 
@@ -77,7 +82,7 @@ $$\frac{dy}{dt} = f(y, t)$$
 
 ---
 
-## 2. 고전 상미분 방정식 보기
+## 4. 고전 상미분 방정식 보기
 
 고전 상미분 방정식을 이해하면 신경망 움직임에 대한 직관이 생긴다.
 
@@ -194,7 +199,7 @@ def lotka_volterra(state: torch.Tensor, t: float,
 
 ---
 
-## 3. 수치 적분 방법
+## 5. 수치 적분 방법
 
 닫힌 꼴 풀이가 없으면(대부분이 그렇다) 수치 적분에 기댄다.
 
@@ -226,7 +231,6 @@ def euler_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
         Next state y_{n+1}
     """
     return y + dt * f(y, t)
-
 
 def euler_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
     """
@@ -324,7 +328,6 @@ def rk4_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
     
     return y + (dt / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
 
-
 def rk4_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
     """RK4 방법으로 상미분 방정식을 적분한다."""
     t_start, t_end = t_span
@@ -374,7 +377,7 @@ def integrate_adaptive(f, y0, t_eval, method='dopri5', rtol=1e-7, atol=1e-9):
 
 ---
 
-## 4. 남은 이음 신경망과 상미분 방정식의 이음
+## 6. 남은 이음 신경망과 상미분 방정식의 이음
 
 이것이 신경 상미분 방정식의 까닭이 되는 핵심 통찰이다.
 
@@ -418,7 +421,6 @@ class ResNetBlock(nn.Module):
     def forward(self, h):
         return h + self.net(h)  # Euler step with dt=1
 
-
 class ODEFunc(nn.Module):
     """ODE dynamics: dh/dt = f(h, t)"""
     
@@ -450,7 +452,7 @@ class ODEFunc(nn.Module):
 
 ---
 
-## 5. 위상 그림과 그려 보기
+## 7. 위상 그림과 그려 보기
 
 위상 그림은 움직임 계의 질적인 모습을 드러낸다.
 
@@ -494,7 +496,6 @@ def plot_vector_field(f, xlim, ylim, n_points=20, ax=None):
     ax.set_ylabel('$y_2$')
     
     return ax
-
 
 def plot_trajectories(f, initial_conditions, t_span, dt=0.01, ax=None):
     """
@@ -586,7 +587,7 @@ def analyze_fixed_point(f, y_star, epsilon=1e-5):
 
 ---
 
-## 6. 신경 상미분 방정식 얼개와 `torchdiffeq`
+## 8. 신경 상미분 방정식 얼개와 `torchdiffeq`
 
 상미분 방정식 풀개를 바닥부터 세워 보았으니 이제 실제로 쓸 신경 상미분 방정식 짜기에는 `torchdiffeq` 꾸러미를 쓴다.
 
@@ -622,7 +623,6 @@ class ODEFunc(nn.Module):
     def forward(self, t, h):
         self.nfe += 1
         return self.net(h)
-
 
 # 기본 앞먹임
 dim = 10
@@ -800,7 +800,7 @@ class HypernetODEFunc(nn.Module):
 
 ---
 
-## 7. 온전한 신경 상미분 방정식 가름개
+## 9. 온전한 신경 상미분 방정식 가름개
 
 ### 7.1 그림 가름을 위한 얼개
 
@@ -938,7 +938,7 @@ def train_neural_ode_classifier():
 
 ---
 
-## 8. 익힐 때 살필 것
+## 10. 익힐 때 살필 것
 
 ### 8.1 허용 오차와 정확도
 
@@ -1040,7 +1040,7 @@ def init_neural_ode_weights(module):
 
 ---
 
-## 9. 나아간 무늬
+## 11. 나아간 무늬
 
 ### 9.1 여러 잣수 신경 상미분 방정식
 
@@ -1102,7 +1102,7 @@ class HybridNeuralODE(nn.Module):
 
 ---
 
-## 10. 신경 상미분 방정식의 벌레 잡기
+## 12. 신경 상미분 방정식의 벌레 잡기
 
 ```python
 def debug_neural_ode(model, sample_input):
@@ -1177,12 +1177,11 @@ def debug_neural_ode(model, sample_input):
 
 ---
 
-## 11. 온전한 보여 주기
+## 13. 온전한 보여 주기
 
 ```python
 torch.manual_seed(42)
 np.random.seed(42)
-
 
 class LearnableODE(nn.Module):
     """
@@ -1219,7 +1218,6 @@ class LearnableODE(nn.Module):
             inputs = h
         
         return self.net(inputs)
-
 
 def demonstrate_ode_fundamentals():
     """상미분 방정식 개념의 온전한 보여 주기."""
@@ -1282,14 +1280,13 @@ def demonstrate_ode_fundamentals():
     5. 위상 그림이 움직임의 질적인 모습을 드러낸다
     """)
 
-
 if __name__ == "__main__":
     demonstrate_ode_fundamentals()
 ```
 
 ---
 
-## 12. 핵심 정리
+## 14. 핵심 정리
 
 1. **상미분 방정식은 이어진 때의 움직임을 적어 준다.** 식 $\frac{dy}{dt} = f(y, t)$으로 나타내며 움직임 함수 $f$이 상태가 어떻게 바뀌는지 정한다.
 
@@ -1305,7 +1302,7 @@ if __name__ == "__main__":
 
 ---
 
-## 13. 익힘
+## 15. 익힘
 
 ### 익힘 1: 중점 방법 짜기
 
@@ -1356,15 +1353,6 @@ MNIST에서 신경 상미분 방정식(맞추어 가는 깊이)을 깊이 2, 4, 
 
 ---
 
-## 참고 문헌
-
-1. Chen, R. T. Q., Rubanova, Y., Bettencourt, J., & Duvenaud, D. (2018). Neural Ordinary Differential Equations. *NeurIPS*.
-2. He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep Residual Learning for Image Recognition. *CVPR*.
-3. Hairer, E., Nørsett, S. P., & Wanner, G. (1993). Solving Ordinary Differential Equations I: Nonstiff Problems. Springer.
-4. Strogatz, S. H. (2015). Nonlinear Dynamics and Chaos. Westview Press.
-5. Finlay, C., Jacobsen, J. H., Nurbekyan, L., & Oberman, A. M. (2020). How to Train Your Neural ODE. *ICML*.
-6. torchdiffeq 문서: https://github.com/rtqichen/torchdiffeq
-
 ## 연습문제
 
 **연습문제 1.**
@@ -1396,3 +1384,16 @@ MNIST에서 신경 상미분 방정식(맞추어 가는 깊이)을 깊이 2, 4, 
 
 ??? success "연습문제 4 풀이"
     앞 방향은 매개변수 개수 $p$과 상관없이 $O(d_{\text{out}})$ 시간에 방향 미분을 셈하고, 딸림은 내놓기 차원과 상관없이 $O(p)$이다. 앞 방향이 나은 때는 (1) 매개변수가 적을 때(보기로 물리 상수), (2) 온전한 야코비 $\partial z/\partial z_0$이 필요할 때, (3) 이차 방법이 야코비-벡터 곱을 요구할 때이다. 앞 방향은 또한 딸림의 어긋남이 쌓이는 뒤엉킨 움직임에서 뒤로 적분할 때의 수치 문제를 피한다. $\square$
+
+## 정리하며
+
+이 마당은 학습 목표、미리 알아야 할 것、상미분 방정식이란 무엇인가?、고전 상미분 방정식 보기을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Chen, R. T. Q., Rubanova, Y., Bettencourt, J., & Duvenaud, D. (2018). Neural Ordinary Differential Equations. *NeurIPS*.
+2. He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep Residual Learning for Image Recognition. *CVPR*.
+3. Hairer, E., Nørsett, S. P., & Wanner, G. (1993). Solving Ordinary Differential Equations I: Nonstiff Problems. Springer.
+4. Strogatz, S. H. (2015). Nonlinear Dynamics and Chaos. Westview Press.
+5. Finlay, C., Jacobsen, J. H., Nurbekyan, L., & Oberman, A. M. (2020). How to Train Your Neural ODE. *ICML*.
+6. torchdiffeq 문서: https://github.com/rtqichen/torchdiffeq

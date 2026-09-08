@@ -2,7 +2,9 @@
 
 꼭짓점의 차수는 그 꼭짓점에 닿는 변의 개수를 세며, 그래프에서 가장 단순하면서도 가장 많은 것을 알려 주는 국소 잣대 가운데 하나이다. 차수 분포는 망이 정규인지, 중심 마디가 짜임을 좌우하는지, 어떤 알고리즘 지름길을 쓸 수 있는지를 드러낸다. 방향 그래프에서는 차수를 들어오는 것과 나가는 것으로 갈라 망을 흐르는 정보나 밑천의 흐름을 드러낸다.
 
-## 무방향 그래프의 차수
+---
+
+## 1. 무방향 그래프의 차수
 
 무방향 그래프 $G = (V, E)$에서 꼭짓점 $v$의 **차수** $\deg(v)$은 $v$에 닿는 변의 개수이다. $v$의 제 고리는 $\deg(v)$에 2을 보탠다(변의 양끝이 모두 $v$이다).
 
@@ -15,7 +17,9 @@ $\deg(v) = 0$인 꼭짓점을 **외톨이 꼭짓점**이라 하고, $\deg(v) = 1
 !!! example "차수 셈하기"
     꼭짓점 $\{a, b, c, d\}$과 변 $\{(a,b), (a,c), (a,d), (b,c)\}$의 그래프를 생각하자. 그러면 $\deg(a) = 3$, $\deg(b) = 2$, $\deg(c) = 2$, $\deg(d) = 1$이다. 꼭짓점 $d$은 잎이다.
 
-## 방향 그래프의 차수
+---
+
+## 2. 방향 그래프의 차수
 
 방향 그래프 $G = (V, E)$에서 변 $(u, v)$마다 $u$에서 $v$으로 가는 방향이 있다. 그래서 꼭짓점마다 차수 잣대가 둘로 갈린다.
 
@@ -36,7 +40,9 @@ $$
 !!! example "들어오는 차수와 나가는 차수"
     변이 $\{(a,b), (a,c), (b,c), (c,a)\}$인 방향 그래프에서 꼭짓점 $a$은 $\deg^+(a) = 2$($b$과 $c$으로 가는 변)이고 $\deg^-(a) = 1$($c$에서 오는 변)이다. 꼭짓점 $c$은 $\deg^+(c) = 1$이고 $\deg^-(c) = 2$이다.
 
-## 변 개수와의 관계
+---
+
+## 3. 변 개수와의 관계
 
 모든 꼭짓점 차수의 합은 변의 개수와 곧바로 이어진다. 무방향 그래프에서 변마다 양끝 꼭짓점의 차수에 꼭 1씩 보태므로 [악수 보조정리](handshaking.md)가 나온다:
 
@@ -50,7 +56,9 @@ $$
 \sum_{v \in V} \deg^-(v) = \sum_{v \in V} \deg^+(v) = |E|
 $$
 
-## 차수 열
+---
+
+## 4. 차수 열
 
 그래프의 **차수 열**은 꼭짓점 차수를 늘어나지 않는 차례로 정렬한 목록이다. 차수 열이 다른 두 그래프는 같은 꼴일 수 없으므로 차수 열은 기본적인 그래프 불변량이다.
 
@@ -63,7 +71,9 @@ $$
 \sum_{i=1}^{k} d_i \leq k(k-1) + \sum_{i=k+1}^{n} \min(d_i, k)
 $$
 
-## 정규 그래프
+---
+
+## 5. 정규 그래프
 
 꼭짓점마다 차수가 꼭 $k$이면 그 그래프는 **$k$-정규**이다. 특별한 경우로 다음이 있다:
 
@@ -77,7 +87,9 @@ $$
 
 꼭짓점 $n$개의 $k$-정규 그래프에서 악수 보조정리는 $|E| = kn/2$을 주므로 $kn$이 짝수여야 한다.
 
-## 차수 셈하기
+---
+
+## 6. 차수 셈하기
 
 ```python
 """
@@ -87,7 +99,6 @@ $$
 차수 열과 정규성 살피기도 함께 다룬다.
 """
 
-
 # === 무방향 차수 ===
 
 def compute_degrees_undirected(adj, n):
@@ -96,7 +107,6 @@ def compute_degrees_undirected(adj, n):
     for u in range(n):
         degrees[u] = len(adj[u])
     return degrees
-
 
 # === 방향 차수 ===
 
@@ -110,14 +120,12 @@ def compute_degrees_directed(adj, n):
             in_deg[v] += 1
     return in_deg, out_deg
 
-
 # === 차수 열 ===
 
 def degree_sequence(adj, n):
     """늘어나지 않는 차례로 차수 열을 되돌린다."""
     degrees = compute_degrees_undirected(adj, n)
     return sorted(degrees, reverse=True)
-
 
 # === 정규성 살피기 ===
 
@@ -127,7 +135,6 @@ def is_k_regular(adj, n):
     if len(set(degrees)) == 1:
         return degrees[0]
     return -1
-
 
 # === 메인 ===
 
@@ -161,10 +168,7 @@ Directed out-degrees: [2, 1, 1, 0]
 Cycle C4 is 2-regular
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
-- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. 1.3절.
+---
 
 ## 연습문제
 
@@ -216,3 +220,12 @@ $k \geq 1$인 $k$-정규 이분 그래프에 완전 짝짓기가 있음(곧 $|L|
 
 ??? success "연습 5의 풀이"
     이분 나눔을 $(L, R)$이라 하자. $L$의 꼭짓점마다 차수가 $k$이므로 변의 총 개수는 $k|L|$이다. $R$의 꼭짓점도 차수가 $k$이므로 총 개수는 $k|R|$이기도 하다. 그러므로 $k|L| = k|R|$이고 $k \geq 1$이므로 $|L| = |R|$이다. 완전 짝짓기가 있음은 홀의 정리에서 따라 나온다. 곧 아무 $S \subseteq L$에 대해 $S$에서 나온 변이 $R$에 변의 끝점 $k|S|$개를 보태는데, ($R$의 꼭짓점마다 차수가 많아야 $k$이므로) 이는 $R$의 서로 다른 꼭짓점 적어도 $|S|$개에 닿아야 한다. 따라서 $|N(S)| \geq |S|$이고 홀의 조건이 만족된다. $\square$
+
+## 정리하며
+
+이 마당은 무방향 그래프의 차수、방향 그래프의 차수、변 개수와의 관계、차수 열을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
+- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. 1.3절.

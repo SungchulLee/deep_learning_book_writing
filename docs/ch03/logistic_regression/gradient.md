@@ -1,5 +1,8 @@
 # 경사 계산
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -11,7 +14,7 @@
 
 ---
 
-## 최적화 문제
+## 2. 최적화 문제
 
 우리는 BCE 손실을 최소화하는 매개변수 $\boldsymbol{\beta}$을 찾고자 한다.
 
@@ -23,7 +26,7 @@ $$
 
 ---
 
-## 단계별 경사 유도
+## 3. 단계별 경사 유도
 
 ### 1단계: 연쇄 법칙 준비
 
@@ -77,7 +80,7 @@ $$
 
 ---
 
-## 전체 경사
+## 4. 전체 경사
 
 ### 평균 손실에 대해
 
@@ -108,7 +111,7 @@ $$
 
 ---
 
-## 경사의 해석
+## 5. 경사의 해석
 
 ### 오차 신호
 
@@ -129,7 +132,7 @@ $(p_i - y_i)$ 항이 **예측 오차**이다.
 
 ---
 
-## 경사 하강법의 갱신 규칙
+## 6. 경사 하강법의 갱신 규칙
 
 ### 표준 (배치) 경사 하강법
 
@@ -155,7 +158,7 @@ $$
 
 ---
 
-## 헤세 행렬의 유도
+## 7. 헤세 행렬의 유도
 
 ### 표본별 이계도함수
 
@@ -197,7 +200,7 @@ $$
 
 ---
 
-## 뉴턴 방법
+## 8. 뉴턴 방법
 
 ### 갱신 규칙
 
@@ -227,7 +230,7 @@ $$
 
 ---
 
-## 반복 재가중 최소제곱 (IRLS)
+## 9. 반복 재가중 최소제곱 (IRLS)
 
 ### 뉴턴 방법으로부터의 유도
 
@@ -311,7 +314,7 @@ $$
 
 ---
 
-## PyTorch 구현
+## 10. PyTorch 구현
 
 ```python
 """
@@ -569,29 +572,6 @@ print("\n✓ Visualization saved!")
 
 ---
 
-## 요약
-
-| 양 | 공식 |
-|----------|---------|
-| 표본별 경사 | $(p_i - y_i)\mathbf{x}_i$ |
-| 배치 경사 | $\frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})$ |
-| 핵심 상쇄 | $\frac{p-y}{p(1-p)} \cdot p(1-p) = p - y$ |
-| 헤세 행렬 | $\mathbf{H} = \mathbf{X}^{\top}\mathbf{B}\mathbf{X}$ |
-| 가중치 행렬 | $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$ |
-| 뉴턴 갱신 | $\boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \mathbf{H}^{-1}\mathbf{g}$ |
-| IRLS 갱신 | $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$ |
-| 작업 반응 | $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$ |
-
-우아한 경사 공식 $(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}$은 효율적인 일차 최적화를 가능케 하고, 헤세 행렬 $\mathbf{X}^\top\mathbf{B}\mathbf{X}$은 볼록성의 증명과 이차 수렴을 갖는 이차 방법(뉴턴/IRLS)의 토대를 함께 제공한다.
-
----
-
-## 참고 문헌
-
-1. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Section 4.3.3
-2. McCullagh, P. & Nelder, J. A. (1989). *Generalized Linear Models*, 2nd ed.
-3. Green, P. J. (1984). Iteratively reweighted least squares for maximum likelihood estimation, and some robust and resistant alternatives. *JRSS-B*, 46(2), 149–192.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -668,3 +648,26 @@ print("\n✓ Visualization saved!")
         return beta
     # 뉴턴은 약 5-10회 반복에 수렴하지만 경사 하강법은 수백 회가 필요하다
     ```
+
+## 정리하며
+
+| 양 | 공식 |
+|----------|---------|
+| 표본별 경사 | $(p_i - y_i)\mathbf{x}_i$ |
+| 배치 경사 | $\frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})$ |
+| 핵심 상쇄 | $\frac{p-y}{p(1-p)} \cdot p(1-p) = p - y$ |
+| 헤세 행렬 | $\mathbf{H} = \mathbf{X}^{\top}\mathbf{B}\mathbf{X}$ |
+| 가중치 행렬 | $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$ |
+| 뉴턴 갱신 | $\boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \mathbf{H}^{-1}\mathbf{g}$ |
+| IRLS 갱신 | $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$ |
+| 작업 반응 | $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$ |
+
+우아한 경사 공식 $(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}$은 효율적인 일차 최적화를 가능케 하고, 헤세 행렬 $\mathbf{X}^\top\mathbf{B}\mathbf{X}$은 볼록성의 증명과 이차 수렴을 갖는 이차 방법(뉴턴/IRLS)의 토대를 함께 제공한다.
+
+---
+
+**참고 문헌**
+
+1. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Section 4.3.3
+2. McCullagh, P. & Nelder, J. A. (1989). *Generalized Linear Models*, 2nd ed.
+3. Green, P. J. (1984). Iteratively reweighted least squares for maximum likelihood estimation, and some robust and resistant alternatives. *JRSS-B*, 46(2), 149–192.

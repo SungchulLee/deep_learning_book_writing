@@ -1,9 +1,10 @@
 # 자기 되돌이 변환기
-## 들어가며
 
 Vaswani 외(2017)가 내놓은 변환기 얼개는 자기 되돌이 차례 나타내기의 으뜸 틀이 되었다. 차례를 한 걸음씩 다루는 되돌이 신경망과 달리 변환기는 **스스로 눈길**로 익히는 동안 나타냄을 나란히 셈하면서 **인과 가림막**으로 자기 되돌이 성질을 지킨다. 이 아우름, 곧 나란한 익히기와 차례대로 만들어 내기가 GPT, LLaMA와 그 뒤를 잇는 요즘 큰 말 모델의 바탕이다.
 
-## 되돌이 그물에서 변환기로
+---
+
+## 1. 되돌이 그물에서 변환기로
 
 ### 되돌이 모델의 한계
 
@@ -23,7 +24,9 @@ Vaswani 외(2017)가 내놓은 변환기 얼개는 자기 되돌이 차례 나�
 - 기울기가 흐를 뚜렷한 길을 준다
 - 그때그때 내용에 바탕한 맥락 모으기를 할 수 있게 한다
 
-## 인과(가린) 스스로 눈길
+---
+
+## 2. 인과(가린) 스스로 눈길
 
 ### 표준 자기 주의
 
@@ -148,7 +151,9 @@ class CausalSelfAttention(nn.Module):
         return output
 ```
 
-## 변환기 풀개 덩이
+---
+
+## 3. 변환기 풀개 덩이
 
 ### 구조
 
@@ -238,7 +243,9 @@ x -> LayerNorm -> Attention -> + -> LayerNorm -> FFN -> +
 
 앞 층 고르게 맞추기는 깊은 모델을 익히는 데 더 안정되며 이제 여느 방식이다.
 
-## GPT 얼개
+---
+
+## 4. GPT 얼개
 
 ### 온전한 모델
 
@@ -404,7 +411,9 @@ def create_gpt2(config_name: str) -> GPT:
     return GPT(**config)
 ```
 
-## 자리 부호
+---
+
+## 5. 자리 부호
 
 ### 배운 자리 박아 넣기
 
@@ -530,7 +539,9 @@ class RotaryPositionalEmbedding(nn.Module):
         return x * cos + rotated * sin
 ```
 
-## 글 만들어 내기
+---
+
+## 6. 글 만들어 내기
 
 ### 자기 되돌이 뽑기
 
@@ -684,7 +695,6 @@ class CausalSelfAttentionWithCache(nn.Module):
         
         return output, cache
 
-
 @torch.no_grad()
 def generate_with_cache(
     model,
@@ -723,7 +733,9 @@ def generate_with_cache(
     return generated
 ```
 
-## 요즘 얼개의 개선
+---
+
+## 7. 요즘 얼개의 개선
 
 ### 다중 질의 어텐션 (MQA)
 
@@ -820,7 +832,9 @@ class RMSNorm(nn.Module):
         return x / rms * self.weight
 ```
 
-## 학습할 때 살필 점
+---
+
+## 8. 학습할 때 살필 점
 
 ### 배움 빠르기 차례표
 
@@ -866,7 +880,9 @@ class GPTWithCheckpointing(GPT):
         # ... 내놓기 쏘기 ...
 ```
 
-## 계량 금융에서의 쓰임
+---
+
+## 9. 계량 금융에서의 쓰임
 
 ### 돈살림 글 만들어 내기
 
@@ -942,27 +958,6 @@ class TimeSeriesTransformer(nn.Module):
         return mean, F.softplus(log_std)
 ```
 
-## 요약
-
-자기 되돌이 변환기는 차례 나타내기의 으뜸 얼개가 되었다.
-
-1. **인과 가림막**은 나란한 익히기와 함께 자기 되돌이로 나타내기를 가능하게 한다
-2. **스스로 눈길**은 어느 자리 사이든 곧바로 이음을 준다
-3. **자리 부호화**(배운 것, 사인 꼴, 돌림)는 차례의 순서를 담는다
-4. **열쇠-값 저장턱**은 효율 좋은 만들어 내기를 가능하게 한다
-5. **요즘의 개선**(무리 물음 눈길, SwiGLU, 제곱평균제곱근 고르게 맞추기)은 효율과 솜씨를 높인다
-
-표현력과 익히기 효율, 키울 수 있음이 어우러져 변환기는 요즘 말 모델의 바탕이 되었고 돈살림을 비롯한 다른 마당에서도 점점 중요해지고 있다.
-
-## 참고 문헌
-
-1. Vaswani, A., et al. (2017). Attention Is All You Need. *NeurIPS*.
-2. Radford, A., et al. (2018). Improving Language Understanding by Generative Pre-Training. *OpenAI*.
-3. Radford, A., et al. (2019). Language Models are Unsupervised Multitask Learners. *OpenAI*.
-4. Brown, T., et al. (2020). Language Models are Few-Shot Learners. *NeurIPS*.
-5. Touvron, H., et al. (2023). LLaMA: Open and Efficient Foundation Language Models. *arXiv*.
-6. Su, J., et al. (2021). RoFormer: Enhanced Transformer with Rotary Position Embedding. *arXiv*.
-
 ---
 
 ## 연습문제
@@ -976,3 +971,26 @@ class TimeSeriesTransformer(nn.Module):
 4. **돈살림 미세 조정**: 작은 GPT 모델을 돈살림 소식으로 미세 조정하고 만들어 내기 품질을 따져 보라.
 
 5. **얼개 떼어 보기**: 여러 눈길 변형(여러 머리 눈길, 여러 물음 눈길, 무리 물음 눈길)으로 모델 솜씨를 견주어라.
+
+## 정리하며
+
+자기 되돌이 변환기는 차례 나타내기의 으뜸 얼개가 되었다.
+
+1. **인과 가림막**은 나란한 익히기와 함께 자기 되돌이로 나타내기를 가능하게 한다
+2. **스스로 눈길**은 어느 자리 사이든 곧바로 이음을 준다
+3. **자리 부호화**(배운 것, 사인 꼴, 돌림)는 차례의 순서를 담는다
+4. **열쇠-값 저장턱**은 효율 좋은 만들어 내기를 가능하게 한다
+5. **요즘의 개선**(무리 물음 눈길, SwiGLU, 제곱평균제곱근 고르게 맞추기)은 효율과 솜씨를 높인다
+
+표현력과 익히기 효율, 키울 수 있음이 어우러져 변환기는 요즘 말 모델의 바탕이 되었고 돈살림을 비롯한 다른 마당에서도 점점 중요해지고 있다.
+
+**참고 문헌**
+
+1. Vaswani, A., et al. (2017). Attention Is All You Need. *NeurIPS*.
+2. Radford, A., et al. (2018). Improving Language Understanding by Generative Pre-Training. *OpenAI*.
+3. Radford, A., et al. (2019). Language Models are Unsupervised Multitask Learners. *OpenAI*.
+4. Brown, T., et al. (2020). Language Models are Few-Shot Learners. *NeurIPS*.
+5. Touvron, H., et al. (2023). LLaMA: Open and Efficient Foundation Language Models. *arXiv*.
+6. Su, J., et al. (2021). RoFormer: Enhanced Transformer with Rotary Position Embedding. *arXiv*.
+
+---

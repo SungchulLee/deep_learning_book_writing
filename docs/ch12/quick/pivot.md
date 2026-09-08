@@ -2,7 +2,9 @@
 
 빠른 정렬의 성능은 좋은 축을 고르는 데 달렸다. 이상적인 축은 배열을 똑같은 반쪽 둘로 쪼개어 $O(n \log n)$ 시간을 낸다. 나쁜 축은 한쪽으로 기운 쪼갬, 극단적으로는 원소를 모두 한쪽에 몰아넣는 쪼갬을 내어 $O(n^2)$으로 이끈다. 참 중앙값을 찾는 데는 (중앙값의 중앙값 알고리즘으로) $O(n)$ 시간이 들므로, 실전의 축 전략은 고르는 데 시간을 너무 들이지 않으면서 최악의 경우를 피하는 "그만하면 좋은" 축을 노린다.
 
-## 자리를 붙박은 축
+---
+
+## 1. 자리를 붙박은 축
 
 ### 첫 원소나 마지막 원소
 
@@ -21,7 +23,9 @@ $$
 
 $A[\lfloor (\ell + r)/2 \rfloor]$을 쓰면 정렬된 입력에서 최악의 경우를 피하지만, 일부러 지어낸 입력에는 여전히 당할 수 있다.
 
-## 무작위 축
+---
+
+## 2. 무작위 축
 
 고르게 무작위인 첨자 $k \in [\ell, r]$을 골라 $A[k]$을 축으로 쓴다(또는 $A[k]$을 $A[r]$과 맞바꾸고 로무토로 이어 간다).
 
@@ -35,7 +39,9 @@ $$
 
 무작위 축은 적수의 최악 입력을 없애는 가장 단순한 전략이며, 정해진 보장이 필요하지 않다면 기본으로 권할 만하다.
 
-## 셋의 중앙값
+---
+
+## 3. 셋의 중앙값
 
 원소 셋, 대개 $A[\ell]$, $A[\lfloor (\ell+r)/2 \rfloor]$, $A[r]$의 **중앙값**을 골라 축으로 쓴다.
 
@@ -55,7 +61,9 @@ $$
 
 이는 셋의 중앙값 쪽에서 자세히 다룬다.
 
-## 중앙값의 중앙값(정해진 선형 고르기)
+---
+
+## 4. 중앙값의 중앙값(정해진 선형 고르기)
 
 **중앙값의 중앙값** 알고리즘(Blum, Floyd, Pratt, Rivest, Tarjan, 1973)은 최악의 경우 $O(n)$ 시간에 참 중앙값을 찾는다.
 
@@ -72,7 +80,9 @@ $$
 
 이것을 빠른 정렬의 축으로 쓰면 **정해진** 최악의 경우 $O(n \log n)$ 시간을 얻는다. 그러나 상수 인자가 커서($\approx 5$배) 실전에서는 무작위 빠른 정렬보다 느리므로 정렬에는 거의 쓰이지 않는다. 주된 쓰임새는 고르기 알고리즘($k$번째로 작은 원소 찾기)이다.
 
-## 아홉수(셋의 중앙값의 중앙값)
+---
+
+## 5. 아홉수(셋의 중앙값의 중앙값)
 
 튜키의 **아홉수**는 셋의 중앙값 셋의 중앙값을 고른다.
 
@@ -82,7 +92,9 @@ $$
 
 원소 9개를 살피는 대신 셋의 중앙값 하나보다 참 중앙값에 더 가깝게 어림한다. 몇몇 고성능 구현(이를테면 `pdqsort`)에서 쓴다.
 
-## 전략의 견줌
+---
+
+## 6. 전략의 견줌
 
 $$
 \begin{array}{lccl}
@@ -97,7 +109,9 @@ $$
 \end{array}
 $$
 
-## 파이썬 구현
+---
+
+## 7. 파이썬 구현
 
 ```python
 """
@@ -109,23 +123,19 @@ $$
 
 import random
 
-
 # === 축 고르기 전략 ===========================================================
 
 def pivot_first(arr: list, left: int, right: int) -> int:
     """첫 원소를 축으로 고른다."""
     return left
 
-
 def pivot_last(arr: list, left: int, right: int) -> int:
     """마지막 원소를 축으로 고른다."""
     return right
 
-
 def pivot_random(arr: list, left: int, right: int) -> int:
     """무작위 원소를 축으로 고른다."""
     return random.randint(left, right)
-
 
 def pivot_median_of_three(arr: list, left: int, right: int) -> int:
     """첫째, 가운데, 마지막 원소의 중앙값을 고른다."""
@@ -133,7 +143,6 @@ def pivot_median_of_three(arr: list, left: int, right: int) -> int:
     candidates = [(arr[left], left), (arr[mid], mid), (arr[right], right)]
     candidates.sort(key=lambda x: x[0])
     return candidates[1][1]  # 중앙값의 첨자
-
 
 # === 축을 골라 쓸 수 있는 빠른 정렬 ===========================================
 
@@ -155,7 +164,6 @@ def quicksort(arr: list, left: int, right: int,
         arr[i], arr[right] = arr[right], arr[i]
         quicksort(arr, left, i - 1, pivot_fn, depth)
         quicksort(arr, i + 1, right, pivot_fn, depth)
-
 
 # === 메인 =====================================================================
 
@@ -198,12 +206,7 @@ Median-of-three                       19
 
 자리를 붙박은 전략은 정렬된 입력에서 깊이가 $O(n)$으로 무너지지만, 무작위와 셋의 중앙값은 깊이 $O(\log n)$을 이룬다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 7.3~7.4절과 9.3절.
-- Blum, M., Floyd, R. W., Pratt, V. R., Rivest, R. L., & Tarjan, R. E. (1973). Time bounds for selection. *Journal of Computer and System Sciences*, 7(4), 448-461.
-- Sedgewick, R. (1978). Implementing Quicksort programs. *Communications of the ACM*, 21(10), 847-857.
-
+---
 
 ## 연습문제
 
@@ -236,3 +239,13 @@ float32 학습 손실 값 1000만 개를 정렬할 때 축 고르기 전략을 �
 
 ??? success "연습문제 4 풀이"
     $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.
+
+## 정리하며
+
+이 마당은 자리를 붙박은 축、무작위 축、셋의 중앙값、중앙값의 중앙값(정해진 선형 고르기)을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 7.3~7.4절과 9.3절.
+- Blum, M., Floyd, R. W., Pratt, V. R., Rivest, R. L., & Tarjan, R. E. (1973). Time bounds for selection. *Journal of Computer and System Sciences*, 7(4), 448-461.
+- Sedgewick, R. (1978). Implementing Quicksort programs. *Communications of the ACM*, 21(10), 847-857.

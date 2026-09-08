@@ -1,11 +1,12 @@
 # 모델 가리지 않는 메타 학습(MAML)
-## 들어가며
 
 Finn 외(2017)가 들여온 모델 가리지 않는 메타 학습(MAML)은 거리 기반 방법과 견주어 소수 예시 학습에 근본부터 다르게 다가간다. 붙박이 묻힘 공간을 배우는 대신, MAML은 기울기 걸음 몇 번만으로 새 과제에 재빨리 맞추어 갈 수 있게 하는 모델 매개변수의 **초기화**를 배운다.
 
 핵심 통찰은 우아하다. 서로 다른 여러 과제의 최적 매개변수에 가까운 처음 매개변수를 찾을 수 있다면, 그 이웃에 있는 어떤 새 과제든 기울기 걸음 몇 번으로 맞추어 갈 수 있다.
 
-## MAML 알고리즘
+---
+
+## 1. MAML 알고리즘
 
 ### 문제 정식화
 
@@ -41,7 +42,9 @@ $$\frac{\partial \theta'_i}{\partial \theta} = I - \alpha \nabla^2_\theta \mathc
 
 여기에 과제 손실의 **헤세 행렬**이 들어가므로 MAML은 이차 최적화 방법이 된다.
 
-## 수학적 분석
+---
+
+## 2. 수학적 분석
 
 ### 기울기 셈하기
 
@@ -74,7 +77,9 @@ $$\theta \leftarrow \theta + \epsilon \cdot \frac{1}{n} \sum_{i=1}^n (\theta'_i 
 
 이는 과제들에 걸쳐 평균 내면서 맞춘 매개변수 쪽으로 움직이는 것으로 풀이할 수 있다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 온전한 MAML 구현
 
@@ -486,7 +491,9 @@ class Reptile:
         return 0.0, meta_accuracy  # Reptile은 메타 손실을 셈하지 않는다
 ```
 
-## 학습 절차
+---
+
+## 4. 학습 절차
 
 ### 완전한 학습 루프
 
@@ -540,7 +547,9 @@ def train_maml(
 | 메타 배치 크기 | 2~8 | 갱신마다의 과제 개수 |
 | 학습 되풀이 | 3만~6만 | 모일 때까지 |
 
-## 변형과 확장
+---
+
+## 5. 변형과 확장
 
 ### Meta-SGD
 
@@ -683,7 +692,9 @@ class TaskAdaptiveMAML(MAML):
         # ... 나머지는 MAML과 비슷하되 학습률에 눈금을 씌운다
 ```
 
-## 이론적 통찰
+---
+
+## 6. 이론적 통찰
 
 ### 숨은 기울기 내려가기
 
@@ -705,7 +716,9 @@ $$\min_\theta \sum_{\mathcal{T}} \mathcal{L}_{\mathcal{T}}(\theta - \alpha \nabl
 
 어떤 조건 아래에서는 넉넉한 용량을 가진 MAML이 어떤 학습 알고리즘이든 어림하도록 배울 수 있어 만능 메타 학습기가 된다.
 
-## 실용적인 고려
+---
+
+## 7. 실용적인 고려
 
 ### MAML에서의 배치 정규화
 
@@ -745,27 +758,7 @@ def inner_loop_checkpointed(self, support_x, support_y, params):
     return unflatten(params_flat)
 ```
 
-## 요약
-
-MAML은 소수 예시 학습에 힘 있는 최적화 기반 접근법을 준다.
-
-1. **배우는 법 배우기**: 재빨리 맞추어 갈 수 있게 하는 초기화를 찾는다
-2. **모델 가리지 않음**: 미분할 수 있는 모델이면 무엇이든 된다
-3. **이론에 뿌리를 둠**: 이차 정보를 쓰는 두 층 최적화
-
-주요 맞바꿈은 다음과 같다.
-
-- 거리 학습보다 두루 쓸 수 있지만 셈이 값비싸다
-- 이차 셈은 어림할 수 있다(FOMAML, Reptile)
-- 배치 정규화를 비롯한 상태를 지닌 연산을 조심스레 다루어야 한다
-
-## 참고 문헌
-
-1. Finn, C., et al. "Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks." ICML 2017.
-2. Nichol, A., et al. "On First-Order Meta-Learning Algorithms." arXiv 2018.
-3. Li, Z., et al. "Meta-SGD: Learning to Learn Quickly for Few-Shot Learning." arXiv 2017.
-4. Raghu, A., et al. "Rapid Learning or Feature Reuse? Towards Understanding the Effectiveness of MAML." ICLR 2020.
-5. Finn, C., et al. "Online Meta-Learning." ICML 2019.
+---
 
 ## 연습문제
 
@@ -806,3 +799,25 @@ MAML의 한계는 무엇인가?
 
 ??? success "연습문제 4 풀이"
     한계: (1) 값비싸다. 이차 기울기와 안쪽 되돌이 걸음이 여럿 필요하다. (2) 기억을 많이 쓴다. 과제마다 계산 그래프를 담아 두어야 한다. (3) 안쪽 학습률과 걸음 수에 민감하다. (4) 모든 과제가 같은 구조를 나누어 쓴다고 놓는다. (5) 깊은 망에서는 흔들릴 수 있다. Reptile이나 ProtoNet 같은 대안이 이 가운데 일부를 다룬다.
+
+## 정리하며
+
+MAML은 소수 예시 학습에 힘 있는 최적화 기반 접근법을 준다.
+
+1. **배우는 법 배우기**: 재빨리 맞추어 갈 수 있게 하는 초기화를 찾는다
+2. **모델 가리지 않음**: 미분할 수 있는 모델이면 무엇이든 된다
+3. **이론에 뿌리를 둠**: 이차 정보를 쓰는 두 층 최적화
+
+주요 맞바꿈은 다음과 같다.
+
+- 거리 학습보다 두루 쓸 수 있지만 셈이 값비싸다
+- 이차 셈은 어림할 수 있다(FOMAML, Reptile)
+- 배치 정규화를 비롯한 상태를 지닌 연산을 조심스레 다루어야 한다
+
+**참고 문헌**
+
+1. Finn, C., et al. "Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks." ICML 2017.
+2. Nichol, A., et al. "On First-Order Meta-Learning Algorithms." arXiv 2018.
+3. Li, Z., et al. "Meta-SGD: Learning to Learn Quickly for Few-Shot Learning." arXiv 2017.
+4. Raghu, A., et al. "Rapid Learning or Feature Reuse? Towards Understanding the Effectiveness of MAML." ICLR 2020.
+5. Finn, C., et al. "Online Meta-Learning." ICML 2019.

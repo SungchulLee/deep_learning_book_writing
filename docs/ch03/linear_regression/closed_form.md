@@ -1,5 +1,4 @@
 # 닫힌 형태의 해
-## 개요
 
 반복적 최적화가 필요한 대부분의 기계 학습 문제와 달리, 선형 회귀에는 **정규 방정식**이라
 불리는 **닫힌 형태**의 해가 있다. 이 페이지에서는 제일원리에서부터 해를 전개한다.
@@ -522,27 +521,6 @@ def verify_against_nn_linear():
 
 ---
 
-## 요약
-
-| 개념 | 핵심 공식 |
-|---------|-------------|
-| 정규 방정식 | $\mathbf{X}^\top\mathbf{X}\boldsymbol{\theta}^* = \mathbf{X}^\top\mathbf{y}$ |
-| 닫힌 형태의 해 | $\boldsymbol{\theta}^* = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$ |
-| 사영 행렬 | $\mathbf{P} = \mathbf{X}(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top$ |
-| 직교성 | $\mathbf{X}^\top(\mathbf{y} - \hat{\mathbf{y}}) = \mathbf{0}$ |
-| ANOVA | $\text{SS}_{\text{tot}} = \text{SS}_{\text{reg}} + \text{SS}_{\text{res}}$ |
-| $R^2$ (기하학적) | 중심화된 $\mathbf{y}$와 $\hat{\mathbf{y}}$ 사이의 $\cos^2\theta$ |
-| 권장 해법 | `torch.linalg.lstsq()` / `np.linalg.solve()` |
-
----
-
-## 참고 문헌
-
-1. Strang, G. (2019). *Linear Algebra and Learning from Data*, Ch. I.4.
-2. Golub, G. H. & Van Loan, C. F. (2013). *Matrix Computations*.
-3. Petersen, K. B. & Pedersen, M. S. *The Matrix Cookbook*, §§2–5.
-4. Lay, D. C. (2016). *Linear Algebra and Its Applications*, Ch. 6.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -583,3 +561,24 @@ $\mathbf{X}^\top\mathbf{X}$의 역행렬을 직접 구하는 것보다 유사역
     w2 = torch.linalg.lstsq(X, y).solution
     print(f"Difference: {(w1 - w2).norm():.2e}")
     ```
+
+## 정리하며
+
+| 개념 | 핵심 공식 |
+|---------|-------------|
+| 정규 방정식 | $\mathbf{X}^\top\mathbf{X}\boldsymbol{\theta}^* = \mathbf{X}^\top\mathbf{y}$ |
+| 닫힌 형태의 해 | $\boldsymbol{\theta}^* = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$ |
+| 사영 행렬 | $\mathbf{P} = \mathbf{X}(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top$ |
+| 직교성 | $\mathbf{X}^\top(\mathbf{y} - \hat{\mathbf{y}}) = \mathbf{0}$ |
+| ANOVA | $\text{SS}_{\text{tot}} = \text{SS}_{\text{reg}} + \text{SS}_{\text{res}}$ |
+| $R^2$ (기하학적) | 중심화된 $\mathbf{y}$와 $\hat{\mathbf{y}}$ 사이의 $\cos^2\theta$ |
+| 권장 해법 | `torch.linalg.lstsq()` / `np.linalg.solve()` |
+
+---
+
+**참고 문헌**
+
+1. Strang, G. (2019). *Linear Algebra and Learning from Data*, Ch. I.4.
+2. Golub, G. H. & Van Loan, C. F. (2013). *Matrix Computations*.
+3. Petersen, K. B. & Pedersen, M. S. *The Matrix Cookbook*, §§2–5.
+4. Lay, D. C. (2016). *Linear Algebra and Its Applications*, Ch. 6.

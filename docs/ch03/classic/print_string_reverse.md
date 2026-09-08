@@ -2,7 +2,9 @@
 
 재귀로 문자열을 거꾸로 출력하는 것은 선형 재귀 패턴의 미묘하지만 중요한 변형을 보여준다. 첫 글자를 처리하고 나머지에 재귀하는 대신, 출력하기 *전에* 재귀 호출을 하면 출력이 역순으로 나온다. "재귀 후 출력"이라는 이 패턴은 후위 순서 처리가 필요한 재귀 알고리즘 곳곳에 나타난다.
 
-## 재귀적 구조
+---
+
+## 1. 재귀적 구조
 
 - **기저 사례**: 문자열이 비어 있다 — 출력할 것이 없으므로 반환한다
 - **재귀 사례**: 마지막 글자를 출력한 뒤 남은 앞부분을 재귀적으로 거꾸로 출력한다
@@ -11,7 +13,6 @@
 
 ```python
 """되부름으로 글자열을 거꾸로 찍는다."""
-
 
 # === 재귀적 역순 출력 ===
 
@@ -22,13 +23,11 @@ def print_reverse_recursive(string):
     print(string[-1], end="")
     print_reverse_recursive(string[:-1])
 
-
 # === 내장 함수와 비교 ===
 
 def print_reverse_builtin(string):
     """파이썬 자르기로 뒤집은 글자열을 찍는다."""
     print(string[::-1])
-
 
 # === 메인 ===
 
@@ -51,7 +50,9 @@ Print string reversely using built-in:
 smelborpbus rellams otni melborp a skaerb noisruceR
 ```
 
-## 복잡도
+---
+
+## 2. 복잡도
 
 점화식은 정방향 출력과 같다.
 
@@ -61,10 +62,7 @@ $$
 
 이는 $O(n)$의 시간 복잡도와 $O(n)$의 스택 공간을 준다. 부분 문자열 슬라이싱은 중간 문자열을 만드는 데 총 $O(n^2)$의 일을 더한다.
 
-## 참고 자료
-
-[Recursion의 개념과 기본 예제들](https://www.youtube.com/watch?v=tuzf1yLPgRI&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=2)
-
+---
 
 ## 연습문제
 
@@ -97,3 +95,11 @@ $n = 8$일 때 문자열을 거꾸로 출력하기의 재귀 트리를 그려라
 
 ??? success "연습문제 4 풀이"
     호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.
+
+## 정리하며
+
+이 마당은 재귀적 구조、복잡도을 차례로 짚었다.
+
+**참고 자료**
+
+[Recursion의 개념과 기본 예제들](https://www.youtube.com/watch?v=tuzf1yLPgRI&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=2)

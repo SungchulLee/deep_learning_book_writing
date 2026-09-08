@@ -2,7 +2,9 @@
 
 순회는 연결 리스트의 가장 기본적인 연산으로, 머리에서 꼬리까지 모든 노드를 차례로 방문하는 일이다. 탐색, 세기, 출력, 합 구하기, 최댓값 찾기 등 연결 리스트의 다른 거의 모든 연산이 순회 위에 세워진다. 단일 연결 리스트의 노드는 메모리에 흩어져 있고 `next` 포인터로만 이어져 있으므로, 모든 원소를 방문하는 유일한 길은 사슬을 한 노드씩 따라가는 것이다. 반복 형태에서는 $O(n)$ 시간과 $O(1)$ 공간이 들며, 이것이 다른 모든 연결 리스트 연산을 재는 기준선이 된다.
 
-## 반복적 순회
+---
+
+## 1. 반복적 순회
 
 표준적인 순회 방식은 머리에서 시작해 노드를 하나씩 나아가는 포인터 하나를 쓴다.
 
@@ -19,7 +21,9 @@
 
 이 방식은 for 반복문으로 배열을 훑는 것에 해당하는 연결 리스트판이다. 핵심 차이는 각 "걸음"이 인덱스 증가가 아니라 포인터 역참조라는 점이며, 그래서 메모리 접근이 순차적이지 않고 캐시에 덜 친화적이다.
 
-## 재귀적 순회
+---
+
+## 2. 재귀적 순회
 
 순회는 재귀로도 표현할 수 있다. 재귀 형태는 현재 노드를 처리한 뒤 리스트의 나머지에 대해 자기 자신을 호출한다.
 
@@ -41,7 +45,9 @@ traverse(node):
 
     재귀적 순회는 우아하지만 $O(n)$의 스택 공간을 쓰므로 긴 리스트에서는 스택 넘침이 난다. 파이썬의 기본 재귀 한도는 1000 프레임이다. 실제로 쓰는 코드에서는 언제나 반복 방식이 낫다.
 
-## 흔한 순회 패턴
+---
+
+## 3. 흔한 순회 패턴
 
 몇 가지 실용적인 연산은 처리 단계만 달리한 순회의 직접적인 응용이다.
 
@@ -73,11 +79,12 @@ traverse(node):
 
 순회 중에 값을 모으고 화살표로 이어 `a -> b -> c -> None` 형식으로 리스트를 보여준다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """단일 연결 리스트의 순회 연산."""
-
 
 # === 노드 클래스 ===
 class Node:
@@ -90,7 +97,6 @@ class Node:
     def __repr__(self):
         return f"Node({self.data})"
 
-
 # === 만들기 도우미 ===
 def build_list(values):
     """반복 가능한 객체에서 연결 리스트를 만들고 머리 노드를 돌려준다."""
@@ -98,7 +104,6 @@ def build_list(values):
     for val in reversed(values):
         head = Node(val, head)
     return head
-
 
 # === 반복적 순회 ===
 def print_list(head):
@@ -110,7 +115,6 @@ def print_list(head):
         current = current.next
     print(" -> ".join(parts) + " -> None")
 
-
 # === 노드 세기 ===
 def count_nodes(head):
     """리스트의 노드 수를 돌려준다. 시간: O(n), 공간: O(1)."""
@@ -121,7 +125,6 @@ def count_nodes(head):
         current = current.next
     return count
 
-
 # === 값 더하기 ===
 def sum_values(head):
     """모든 노드 값의 합을 돌려준다. 시간: O(n), 공간: O(1)."""
@@ -131,7 +134,6 @@ def sum_values(head):
         total += current.data
         current = current.next
     return total
-
 
 # === 최댓값 찾기 ===
 def find_max(head):
@@ -146,7 +148,6 @@ def find_max(head):
         current = current.next
     return max_val
 
-
 # === 파이썬 리스트로 모으기 ===
 def to_list(head):
     """모든 노드 값을 파이썬 리스트로 모은다. 시간: O(n), 공간: O(n)."""
@@ -157,7 +158,6 @@ def to_list(head):
         current = current.next
     return result
 
-
 # === 재귀적 순회 ===
 def print_recursive(node):
     """값을 재귀적으로 출력한다. 시간: O(n), 공간: O(n)."""
@@ -167,7 +167,6 @@ def print_recursive(node):
     print(f"{node.data} -> ", end="")
     print_recursive(node.next)
 
-
 # === 각 노드에 함수 적용 ===
 def for_each(head, func):
     """각 노드의 data에 func을 적용한다. 시간: O(n), 공간: O(1)."""
@@ -175,7 +174,6 @@ def for_each(head, func):
     while current is not None:
         func(current.data)
         current = current.next
-
 
 # === 시연 ===
 if __name__ == "__main__":
@@ -223,7 +221,9 @@ Doubled values:
   100
 ```
 
-## 복잡도 요약
+---
+
+## 5. 복잡도 요약
 
 | 연산         | 시간   | 공간  |
 |-------------------|--------|--------|
@@ -234,10 +234,7 @@ Doubled values:
 | 최댓값 찾기      | $O(n)$ | $O(1)$ |
 | 리스트로 모으기   | $O(n)$ | $O(n)$ |
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -270,3 +267,11 @@ Doubled values:
 
 ??? success "연습문제 4 풀이"
     알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$
+
+## 정리하며
+
+이 마당은 반복적 순회、재귀적 순회、흔한 순회 패턴、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

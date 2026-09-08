@@ -2,7 +2,9 @@
 
 단일 연결 리스트를 뒤집는 일, 즉 마지막 노드를 새 머리로 삼고 모든 포인터의 방향을 뒤집는 일은 연결 리스트의 가장 기본적인 연산 중 하나이다. (회문인지 확인하려고 리스트의 뒤쪽 절반을 뒤집는 것처럼) 여러 알고리즘의 하위 절차로 쓰이며 면접 문제의 흔한 구성 요소이기도 하다. 단일 연결 리스트의 노드는 앞쪽만 가리키므로, 뒤집으려면 남은 리스트를 놓치지 않으면서 각 `next` 포인터를 한 노드씩 조심스럽게 뒤쪽으로 돌려놓아야 한다.
 
-## 반복적 뒤집기
+---
+
+## 1. 반복적 뒤집기
 
 반복 방식은 포인터 세 개로 리스트를 훑으며 한 번의 통과로 각 연결을 뒤집는다.
 
@@ -34,7 +36,9 @@
 
 **공간 복잡도:** $O(1)$이다. 포인터 변수 세 개만 쓴다.
 
-## 재귀적 뒤집기
+---
+
+## 2. 재귀적 뒤집기
 
 재귀 방식은 리스트의 나머지를 먼저 뒤집은 뒤 현재 노드의 포인터를 고친다.
 
@@ -68,7 +72,9 @@
 
     재귀 방식은 $O(n)$의 스택 공간을 쓴다. 노드가 수천 개인 리스트에서는 파이썬에서 스택 넘침이 날 수 있다(기본 재귀 한도가 1000이다). 큰 리스트에는 반복 방식이 낫다.
 
-## 부분 리스트 뒤집기
+---
+
+## 3. 부분 리스트 뒤집기
 
 유용한 변형으로 (1에서 시작하는) 위치 $m$과 $n$ 사이의 노드만 뒤집고 나머지는 그대로 두는 것이 있다.
 
@@ -80,11 +86,12 @@
 
 **시간 복잡도:** $O(n)$이다. 리스트를 한 번 훑는다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """단일 연결 리스트의 뒤집기 연산."""
-
 
 # === 노드 클래스 ===
 class Node:
@@ -97,7 +104,6 @@ class Node:
     def __repr__(self):
         return f"Node({self.data})"
 
-
 # === 도우미 함수 ===
 def build_list(values):
     """반복 가능한 객체에서 연결 리스트를 만들고 머리 노드를 돌려준다."""
@@ -105,7 +111,6 @@ def build_list(values):
     for val in reversed(values):
         head = Node(val, head)
     return head
-
 
 def to_list(head):
     """모든 노드의 값을 파이썬 리스트로 모은다."""
@@ -115,7 +120,6 @@ def to_list(head):
         result.append(current.data)
         current = current.next
     return result
-
 
 # === 반복적 뒤집기 ===
 def reverse_iterative(head):
@@ -132,7 +136,6 @@ def reverse_iterative(head):
         current = next_node
     return prev
 
-
 # === 재귀적 뒤집기 ===
 def reverse_recursive(head):
     """연결 리스트를 재귀 방식으로 뒤집는다.
@@ -145,7 +148,6 @@ def reverse_recursive(head):
     head.next.next = head
     head.next = None
     return new_head
-
 
 # === 부분 리스트 뒤집기 ===
 def reverse_between(head, m, n):
@@ -170,7 +172,6 @@ def reverse_between(head, m, n):
         prev.next = next_node
 
     return dummy.next
-
 
 # === 시연 ===
 if __name__ == "__main__":
@@ -201,7 +202,9 @@ Recursive:   [40, 30, 20, 10]
 Partial [2,4]: [1, 4, 3, 2, 5]
 ```
 
-## 복잡도 요약
+---
+
+## 5. 복잡도 요약
 
 | 변형               | 시간   | 공간  |
 |-----------------------|--------|--------|
@@ -209,10 +212,7 @@ Partial [2,4]: [1, 4, 3, 2, 5]
 | 재귀적 뒤집기    | $O(n)$ | $O(n)$ |
 | 부분 리스트 [m,n] 뒤집기 | $O(n)$ | $O(1)$ |
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -245,3 +245,11 @@ Partial [2,4]: [1, 4, 3, 2, 5]
 
 ??? success "연습문제 4 풀이"
     알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$
+
+## 정리하며
+
+이 마당은 반복적 뒤집기、재귀적 뒤집기、부분 리스트 뒤집기、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

@@ -2,13 +2,17 @@
 
 연결 리스트는 보통 어떤 노드의 `next` 포인터가 `None`일 때 끝난다. 그러나 어떤 노드가 리스트의 앞선 노드를 되가리키면 그 구조에는 **순환**이 있다. `next` 포인터를 따라가도 `None`에 닿지 못하고 영원히 맴돈다. 순환은 대개 버그에서 생기지만, 그것을 찾아내는 일은 중복 탐지, 교착 탐지, 유사난수 생성기 분석에 응용되는 고전적인 알고리즘 문제이다. **플로이드의 순환 탐지 알고리즘**(거북이와 토끼 알고리즘이라고도 한다)은 여분 공간 $O(1)$과 시간 $O(n)$만으로 이 문제를 푼다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 단일 연결 리스트의 머리가 주어졌을 때 그 리스트에 순환이 있는지 판정하라. 있다면 순환이 시작되는 노드를 찾아라.
 
 어떤 노드 $x$이 `next` 포인터를 따라 자기 자신에 닿을 수 있으면, 즉 $x \to x_1 \to x_2 \to \cdots \to x$인 열이 존재하면 순환이 있다. **순환 진입점**은 (머리에서 시작해) 리스트에서 순환에 속하는 첫 노드이다.
 
-## 거북이와 토끼 알고리즘
+---
+
+## 2. 거북이와 토끼 알고리즘
 
 플로이드의 알고리즘은 서로 다른 속도로 리스트를 훑는 포인터 둘을 쓴다.
 
@@ -19,7 +23,9 @@
 
 **2단계 — 순환 진입점 찾기:** 한 포인터를 머리로 되돌리고 다른 하나는 만난 지점에 둔다. 두 포인터를 한 걸음씩 나아가게 한다. 둘이 만나는 노드가 순환 진입점이다.
 
-## 정확성 증명
+---
+
+## 3. 정확성 증명
 
 $\lambda$을 순환이 아닌 앞부분의 길이(머리에서 순환 진입점까지의 거리), $\mu$을 순환의 길이라 하자.
 
@@ -44,7 +50,9 @@ $$
 
 둘은 순환 진입점에서 만난다. $\square$
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 ??? example "단계별 추적"
 
@@ -75,11 +83,12 @@ $$
 
     둘은 노드 3에서 만나며, 그곳이 순환 진입점이다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """단일 연결 리스트를 위한 플로이드 순환 탐지 알고리즘."""
-
 
 # === 노드 클래스 ===
 class Node:
@@ -91,7 +100,6 @@ class Node:
 
     def __repr__(self):
         return f"Node({self.data})"
-
 
 # === 플로이드 순환 탐지 ===
 def has_cycle(head):
@@ -108,7 +116,6 @@ def has_cycle(head):
         if slow is fast:
             return True
     return False
-
 
 def find_cycle_entry(head):
     """연결 리스트에서 순환이 시작되는 지점을 찾는다.
@@ -134,7 +141,6 @@ def find_cycle_entry(head):
         slow = slow.next
     return entry
 
-
 def cycle_length(head):
     """순환의 길이를, 순환이 없으면 0을 돌려준다."""
     entry = find_cycle_entry(head)
@@ -146,7 +152,6 @@ def cycle_length(head):
         current = current.next
         length += 1
     return length
-
 
 # === 시연 ===
 if __name__ == "__main__":
@@ -178,7 +183,9 @@ Has cycle: False
 Cycle entry: None
 ```
 
-## 복잡도 분석
+---
+
+## 6. 복잡도 분석
 
 | 항목            | 복잡도 |
 |-------------------|------------|
@@ -188,11 +195,7 @@ Cycle entry: None
 
 이 알고리즘은 리스트의 크기와 무관하게 포인터 변수 둘만 쓰므로 최적인 $O(1)$ 공간을 달성한다. 방문한 노드를 해시 집합으로 추적하는 대안은 $O(n)$ 공간을 쓴다.
 
-## 참고 문헌
-
-- [Find the Duplicate Number - Floyd's Cycle Detection - Leetcode 287](https://www.youtube.com/watch?v=wjYnzkAhcNk)
-- [287. Find the Duplicate Number](https://leetcode.com/problems/find-the-duplicate-number/)
-
+---
 
 ## 연습문제
 
@@ -225,3 +228,12 @@ Cycle entry: None
 
 ??? success "연습문제 4 풀이"
     알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$
+
+## 정리하며
+
+이 마당은 문제 서술、거북이와 토끼 알고리즘、정확성 증명、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Find the Duplicate Number - Floyd's Cycle Detection - Leetcode 287](https://www.youtube.com/watch?v=wjYnzkAhcNk)
+- [287. Find the Duplicate Number](https://leetcode.com/problems/find-the-duplicate-number/)

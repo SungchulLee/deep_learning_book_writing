@@ -2,13 +2,17 @@
 
 그래프에 고리가 없으면 최단 경로를 셈하기가 훨씬 단순해진다. 방향 비순환 그래프(DAG)는 꼭짓점의 위상 차례를 가지며, 그 차례로 꼭짓점을 다루면 꼭짓점 $v$에 이르기 전에 $v$의 앞선 꼭짓점이 모두 확정되어 있음이 보장된다. 그러면 데이크스트라의 우선순위 줄도 벨먼-포드의 되풀이 훑기도 필요 없어져, 무게가 음인 변도 어렵지 않게 다루는 깔끔한 $O(V + E)$ 알고리즘이 나온다.
 
-## 위상 차례가 왜 되는가
+---
+
+## 1. 위상 차례가 왜 되는가
 
 DAG에서 위상 정렬은 변 $(v_i, v_j)$마다 $i < j$이 되도록 모든 꼭짓점을 줄 세운 차례 $v_1, v_2, \dots, v_n$을 낸다. 곧 꼭짓점 $v_j$을 다룰 때 최단 경로 위에서 $v_j$의 앞선 꼭짓점이 될 수 있는 꼭짓점은 모두 이미 다뤄졌고 그 거리가 확정되었다는 뜻이다.
 
 **모임 성질**에 따라 변 $(u, v)$을 늦출 때 $d[u] = \delta(s, u)$이면 그 뒤에 $d[v] = \delta(s, v)$이다. 위상 차례가 변마다 바로 이 앞선 조건을 보장한다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 ```
 DAG-SHORTEST-PATHS(G, w, s):
@@ -21,7 +25,9 @@ DAG-SHORTEST-PATHS(G, w, s):
 
 꼭짓점마다 꼭 한 번 다루고 변마다 꼭 한 번 늦춘다.
 
-## 올바름
+---
+
+## 3. 올바름
 
 !!! note "맞음 정리"
     `DAG-SHORTEST-PATHS`이 멈춘 뒤 모든 $v \in V$에 대해 $d[v] = \delta(s, v)$이다.
@@ -30,14 +36,18 @@ DAG-SHORTEST-PATHS(G, w, s):
 
 길 늦추기 성질에 따라 $p$의 변을 모두 늦춘 뒤 $d[v_k] = \delta(s, v_k)$이다. $\square$
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 - **시간:** 위상 정렬에 $O(V + E)$이 든다. 주된 되풀이가 꼭짓점마다 한 번, 변마다 한 번 다루므로 역시 $O(V + E)$이다. 합계: $O(V + E)$.
 - **공간:** 거리 배열과 앞선 것 배열에 $O(V)$, 그래프 표현에 $O(V + E)$.
 
 이는 점근으로 가장 좋다. 어떤 알고리즘이든 변마다 적어도 한 번은 살펴야 하기 때문이다.
 
-## 다른 알고리즘과의 견줌
+---
+
+## 5. 다른 알고리즘과의 견줌
 
 | 알고리즘 | 음의 무게를 다루나 | DAG이 필요한가 | 시간 |
 |---|---|---|---|
@@ -47,11 +57,15 @@ DAG-SHORTEST-PATHS(G, w, s):
 
 유향 비순환 그래프 알고리즘이 가장 빠르지만 비순환 그래프에만 쓸 수 있다.
 
-## DAG에서 가장 긴 길
+---
+
+## 6. DAG에서 가장 긴 길
 
 쓸모 있는 변형 하나. DAG에서 **가장 긴 길**을 찾으려면 변의 무게를 모두 음으로 뒤집고 DAG 최단 경로를 돌린다. 아니면 늦추기 조건을 $d[v] < d[u] + w(u, v)$으로 바꾸고 거리를 $-\infty$으로 첫걸음 잡는다. 이는 일감 일정 짜기(PERT/CPM)의 임계 경로 분석에 쓸모 있다.
 
-## 풀이 예제
+---
+
+## 7. 풀이 예제
 
 꼭짓점이 위상 차례 $\langle s, a, b, c, d, e \rangle$인 유향 비순환 그래프를 보자.
 
@@ -79,7 +93,9 @@ DAG-SHORTEST-PATHS(G, w, s):
 
 **마지막 거리:** $d[s]=0, d[a]=5, d[b]=3, d[c]=10, d[d]=7, d[e]=5$.
 
-## 구현
+---
+
+## 8. 구현
 
 ```python
 """
@@ -91,7 +107,6 @@ DAG-SHORTEST-PATHS(G, w, s):
 
 from math import inf
 from collections import defaultdict, deque
-
 
 # === 위상 정렬(칸 알고리즘) ==================================================
 
@@ -136,7 +151,6 @@ def topological_sort(graph: dict, vertices: list) -> list:
         raise ValueError("Graph contains a cycle")
     return order
 
-
 # === 유향 비순환 그래프의 최단 경로 ==========================================
 
 def dag_shortest_paths(graph: dict, vertices: list, source) -> tuple[dict, dict]:
@@ -176,7 +190,6 @@ def dag_shortest_paths(graph: dict, vertices: list, source) -> tuple[dict, dict]
 
     return dist, pred
 
-
 # === 경로 되짚기 =============================================================
 
 def get_path(pred: dict, source, target) -> list:
@@ -188,7 +201,6 @@ def get_path(pred: dict, source, target) -> list:
         v = pred[v]
     path.reverse()
     return path if path and path[0] == source else []
-
 
 # === 보임 ====================================================================
 
@@ -219,10 +231,7 @@ Path s->c: ['s', 'b', 'c']
 Path s->d: ['s', 'b', 'd']
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
-  Algorithms* (4th ed.), Chapter 24.2: Single-Source Shortest Paths in DAGs.
+---
 
 ## 연습문제
 
@@ -255,3 +264,12 @@ DAG에서 가장 긴 길을 찾는 법을 밝혀라. 이 문제가 일반 그래
 
 ??? success "연습문제 4 풀이"
     과제마다 걸리는 시간을 무게로 갖는 꼭짓점으로 본뜬다. 기댐마다 변을 더한다. 앞서 할 것이 없는 과제 모두에 이어진 가상 샘(걸리는 시간 0)과, 뒤따를 것이 없는 과제 모두에서 이어지는 가상 웅덩이를 더한다. 무게를 음으로 뒤집은 DAG 최단 경로 알고리즘(또는 최대 늦추기 판)으로 샘에서 웅덩이까지 가장 긴 길을 찾는다. 임계 경로가 일감을 마치는 최소 시간을 정한다. 이 길 위의 과제는 늦추면 일감 전체가 늦어진다. 시간 복잡도: $O(V + E)$. $\square$
+
+## 정리하며
+
+이 마당은 위상 차례가 왜 되는가、알고리즘、올바름、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
+  Algorithms* (4th ed.), Chapter 24.2: Single-Source Shortest Paths in DAGs.

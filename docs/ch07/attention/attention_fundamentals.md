@@ -1,7 +1,9 @@
 # 어텐션의 기초
 어텐션 장치는 신경망이 모든 정보를 똑같이 다루는 대신 입력의 쓸모 있는 부분에 그때그때 집중하게 해 준다. 본디 순차열 대 순차열 모델의 한계를 풀려고 나왔지만, 이제는 트랜스포머를 비롯한 요즘 구조의 바탕이 되었다.
 
-## 핵심 직관: 부드러운 사전 찾기로 본 어텐션
+---
+
+## 1. 핵심 직관: 부드러운 사전 찾기로 본 어텐션
 
 어텐션을 이해하는 가장 밝은 길 가운데 하나는 **부드러운 사전 찾기**, 곧 열쇠-값 검색을 미분 가능하게 일반화한 것으로 보는 관점이다. 전통적인 사전은 정확히 맞추어 찾는다. 질의가 주어지면 딱 맞는 열쇠에 딸린 값을 돌려준다. 어텐션은 이 개념을 넓혀 유사도에 따라 모든 항목에 걸쳐 **부드러운 가중 검색**을 한다.
 
@@ -73,7 +75,9 @@ $$\alpha_i = \frac{\exp(s_i / T)}{\sum_j \exp(s_j / T)}$$
 
 트랜스포머 어텐션의 배율 인수 $\sqrt{d_k}$은 차원에 맞추어지는 온도 노릇을 한다.
 
-## 역사적 배경: Seq2Seq의 병목
+---
+
+## 2. 역사적 배경: Seq2Seq의 병목
 
 ### 문제
 
@@ -105,7 +109,9 @@ Weights: 0.1  0.7  0.1  0.0  0.0  0.1  → "chat" (French for cat)
 
 모델은 따로 가르쳐 주지 않아도 정렬의 짜임을 암묵적으로 배운다.
 
-## 질의-열쇠-값 형식
+---
+
+## 3. 질의-열쇠-값 형식
 
 요즘 어텐션은 입력 $\mathbf{X} \in \mathbb{R}^{n \times d}$에서 얻은 세 가지 사영으로 움직인다.
 
@@ -132,7 +138,9 @@ $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\fr
 3. **정규화**: $\mathbf{A} = \text{softmax}(\mathbf{S})$ — $i$번째 행이 자리에 대한 분포가 된다
 4. **모으기**: $\mathbf{Z} = \mathbf{A}\mathbf{V}$ — 출력마다 값 벡터의 가중합이다
 
-## 점수 함수
+---
+
+## 4. 점수 함수
 
 점수 함수마다 표현력과 효율을 저울질한다.
 
@@ -168,7 +176,9 @@ $$\text{score}(\mathbf{q}, \mathbf{k}) = \frac{\mathbf{q}^\top \mathbf{k}}{\|\ma
 
 $d$차원의 무작위 단위 벡터에서 내적의 분산은 약 $d$이다. 배율을 조정하지 않으면 $d$이 클 때 소프트맥스가 기울기가 사라지는 포화 영역으로 밀려난다. $\sqrt{d_k}$ 인수가 분산을 1로 정규화하여 기울기가 잘 흐르게 한다. 자세한 분석은 [배율 조정 내적](scaled_dot_product.md)을 보라.
 
-## 어텐션의 갈래
+---
+
+## 5. 어텐션의 갈래
 
 | 갈래 | Q의 출처 | K와 V의 출처 | 쓰임새 |
 |---------|----------|-------------|----------|
@@ -200,7 +210,9 @@ $$\alpha_{ij} = 0 \quad \text{for } j > i$$
 
 미래 토큰을 쓸 수 없는 자기회귀 생성에 꼭 필요하다.
 
-## 가림막 씌우기
+---
+
+## 6. 가림막 씌우기
 
 ### 덧댐 가림막
 
@@ -224,7 +236,9 @@ def causal_mask(size):
 
 가림막은 소프트맥스에 앞서 점수를 $-\infty$으로 두어 씌운다.
 
-## PyTorch 구현
+---
+
+## 7. PyTorch 구현
 
 ### 배율 조정 내적 어텐션
 
@@ -328,7 +342,9 @@ class SoftDictionary(nn.Module):
         return retrieved.squeeze(1), weights.squeeze(1)
 ```
 
-## 어텐션의 성질
+---
+
+## 8. 어텐션의 성질
 
 ### 순열 동변성
 
@@ -350,7 +366,9 @@ $$\text{Attention}(\mathbf{P}\mathbf{X}) = \mathbf{P} \cdot \text{Attention}(\ma
 
 복잡도가 이차라 아주 긴 순차열에는 쓰기 어려운데, 그래서 효율적인 판본(성긴 어텐션, 선형 어텐션, FlashAttention)이 나왔다.
 
-## 다른 개념과의 이음새
+---
+
+## 9. 다른 개념과의 이음새
 
 ### 기억 신경망
 
@@ -382,7 +400,9 @@ RAG 시스템은 어텐션과 비슷한 검색을 큰 규모로 쓴다.
 
 RAG는 바깥 지식 기반에 대한 어텐션으로 볼 수 있으며, 모델의 "기억"을 매개변수 너머로 넓힌다.
 
-## Seq2Seq 어텐션에서 트랜스포머로
+---
+
+## 10. Seq2Seq 어텐션에서 트랜스포머로
 
 RNN 어텐션에서 트랜스포머로 나아가며 핵심적인 통찰이 드러났다.
 
@@ -398,26 +418,7 @@ RNN 어텐션에서 트랜스포머로 나아가며 핵심적인 통찰이 드�
 | 2015 | 루옹 어텐션 | 효율적인 대안 |
 | 2017 | 트랜스포머 | 자기 어텐션이 순환을 대신했다 |
 
-## 요약
-
-| 개념 | 설명 |
-|---------|-------------|
-| **핵심 착상** | 미분 가능한 부드러운 사전. 질의와 열쇠가 맞는 정도에 따른 값의 가중 결합 |
-| **Q, K, V의 구실** | Q는 찾으려는 뜻, K는 찾히기, V는 내용 |
-| **점수 함수** | 내적(빠름), 덧셈형(표현력), 배율 조정(안정적) |
-| **갈래** | 자기(순차열 안), 교차(순차열 사이), 인과(자기회귀) |
-| **복잡도** | 시간 $O(n^2 d)$, 공간 $O(n^2)$ |
-| **온도** | 부드러움과 딱딱함의 정도를 다스린다. $\sqrt{d_k}$ 배율이 차원에 맞추어진다 |
-
-## 참고 문헌
-
-1. Bahdanau, D., Cho, K., & Bengio, Y. (2014). "Neural Machine Translation by Jointly Learning to Align and Translate." *arXiv:1409.0473*.
-2. Luong, M.-T., Pham, H., & Manning, C. D. (2015). "Effective Approaches to Attention-based Neural Machine Translation." *EMNLP*.
-3. Vaswani, A., et al. (2017). "Attention Is All You Need." *NeurIPS*.
-4. Weston, J., Chopra, S., & Bordes, A. (2015). "Memory Networks." *ICLR*.
-5. Sukhbaatar, S., et al. (2015). "End-To-End Memory Networks." *NeurIPS*.
-6. Ramsauer, H., et al. (2020). "Hopfield Networks is All You Need." *ICLR*.
-7. Graves, A., Wayne, G., & Danihelka, I. (2014). "Neural Turing Machines." *arXiv:1410.5401*.
+---
 
 ## 연습문제
 
@@ -461,3 +462,24 @@ $e_{ij} = \text{score}(q_i, k_j)$일 때 어텐션 가중치 $\alpha_{ij} = \tex
             weights = torch.softmax(scores, dim=1)
             return (weights * values).sum(dim=1)
     ```
+
+## 정리하며
+
+| 개념 | 설명 |
+|---------|-------------|
+| **핵심 착상** | 미분 가능한 부드러운 사전. 질의와 열쇠가 맞는 정도에 따른 값의 가중 결합 |
+| **Q, K, V의 구실** | Q는 찾으려는 뜻, K는 찾히기, V는 내용 |
+| **점수 함수** | 내적(빠름), 덧셈형(표현력), 배율 조정(안정적) |
+| **갈래** | 자기(순차열 안), 교차(순차열 사이), 인과(자기회귀) |
+| **복잡도** | 시간 $O(n^2 d)$, 공간 $O(n^2)$ |
+| **온도** | 부드러움과 딱딱함의 정도를 다스린다. $\sqrt{d_k}$ 배율이 차원에 맞추어진다 |
+
+**참고 문헌**
+
+1. Bahdanau, D., Cho, K., & Bengio, Y. (2014). "Neural Machine Translation by Jointly Learning to Align and Translate." *arXiv:1409.0473*.
+2. Luong, M.-T., Pham, H., & Manning, C. D. (2015). "Effective Approaches to Attention-based Neural Machine Translation." *EMNLP*.
+3. Vaswani, A., et al. (2017). "Attention Is All You Need." *NeurIPS*.
+4. Weston, J., Chopra, S., & Bordes, A. (2015). "Memory Networks." *ICLR*.
+5. Sukhbaatar, S., et al. (2015). "End-To-End Memory Networks." *NeurIPS*.
+6. Ramsauer, H., et al. (2020). "Hopfield Networks is All You Need." *ICLR*.
+7. Graves, A., Wayne, G., & Danihelka, I. (2014). "Neural Turing Machines." *arXiv:1410.5401*.

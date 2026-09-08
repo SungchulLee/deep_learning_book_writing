@@ -2,7 +2,9 @@
 
 충족 가능성 문제(SAT)는 불 식을 참으로 만드는 변수 배정이 있는지 묻는다. 일반적으로 SAT은 NP-완전이지만, 마디마다 글자가 정확히 둘인 특수한 경우인 **2-SAT**은 [강하게 이어진 조각](definition.md)을 거쳐 우아한 다항 시간 풀이를 허락한다. 논리에서 그래프 이론으로 옮기는 이 줄임은 조각 쪼갬의 가장 아름다운 쓰임새 가운데 하나이다.
 
-## 문제 정식화
+---
+
+## 1. 문제 정식화
 
 **2-SAT** 사례는 불 변수 $n$개 $x_1, x_2, \ldots, x_n$과 마디 $m$개로 이루어지며, 마디마다 정확히 글자 둘의 논리합이다.
 
@@ -12,7 +14,9 @@ $$
 
 글자 $l_{i,j}$은 저마다 변수 $x_k$이거나 그 부정 $\neg x_k$이다. 목표는 모든 절을 한꺼번에 참으로 만드는 진리값 배정이 있는지 가리는 것이다.
 
-## 함의 그래프
+---
+
+## 2. 함의 그래프
 
 고갱이 눈썰미는 마디 $(a \lor b)$이 논리적으로 함의 둘과 같다는 것이다.
 
@@ -28,7 +32,9 @@ $$
 !!! tip "왜 함의인가?"
     마디 $(a \lor b)$은 "$a$과 $b$ 가운데 적어도 하나는 참이어야 한다"는 뜻이다. $a$이 거짓이면 $b$이 참이어야 하므로 $\neg a \Rightarrow b$이다. 대칭으로 $b$이 거짓이면 $a$이 참이어야 하므로 $\neg b \Rightarrow a$이다.
 
-## 강한 이음 조각에 바탕한 풀이
+---
+
+## 3. 강한 이음 조각에 바탕한 풀이
 
 논리식이 충족 가능한 것은 함의 그래프에서 어떤 변수 $x_i$과 그 부정 $\neg x_i$도 같은 강한 이음 조각에 들지 않는 것과 같은 뜻이다.
 
@@ -39,7 +45,9 @@ $$
 
 **증명 얼개(역방향).** 어떤 변수도 그 부정과 조각을 함께 쓰지 않으면 [오그린 그래프](condensation.md)를 위상 차례의 거꾸로로 다루며 진리값을 앞뒤 맞게 배정할 수 있다. 아직 배정하지 않은 변수마다 위상 차례에서 더 뒤에 오는 조각의 글자을 참으로 둔다. $\square$
 
-## 배정 뽑아내기
+---
+
+## 4. 배정 뽑아내기
 
 충족 가능함을 확인하고 나면 배정을 다음과 같이 뽑아낸다:
 
@@ -49,7 +57,9 @@ $$
 
 직관으로 보면, 오그린 유향 비순환 그래프에서 뒤쪽 조각이 함의 사슬의 앞쪽 조각을 "덮어쓴다".
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 함의 그래프를 세우는 데 $O(n + m)$이 든다. 강한 이음 조각을 찾는 데 $O(V + E) = O(n + m)$이 든다. 따라서:
 
@@ -57,7 +67,9 @@ $$
 T(n, m) = O(n + m)
 $$
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -67,7 +79,6 @@ $$
 어떤 변수와 그 부정이 같은 조각에 드는지 살펴
 충족 가능한지 정한다.
 """
-
 
 # === 타잔의 강한 이음 조각(도우미) ===
 def tarjan_scc(graph, n):
@@ -107,7 +118,6 @@ def tarjan_scc(graph, n):
             dfs(u)
 
     return scc_id
-
 
 # === 2-SAT 풀개 ===
 def solve_2sat(num_vars, clauses):
@@ -169,7 +179,6 @@ def solve_2sat(num_vars, clauses):
 
     return assignment
 
-
 # === 메인 ===
 if __name__ == "__main__":
     # 보기: (x1 또는 x2) 그리고 (x1 아님 또는 x3) 그리고 (x2 아님 또는 x3 아님)
@@ -196,7 +205,9 @@ Assignment: x1=F, x2=T, x3=F
 Second formula: Unsatisfiable
 ```
 
-## 흔한 2-SAT 무늬
+---
+
+## 7. 흔한 2-SAT 무늬
 
 여러 제약 문제가 2-SAT으로 줄어든다:
 
@@ -209,10 +220,7 @@ Second formula: Unsatisfiable
 | "$a$ must be true" | $(a \lor a)$ |
 | "$a$ must be false" | $(\neg a \lor \neg a)$ |
 
-## 참고 문헌
-
-- Aspvall, B., Plass, M. F., & Tarjan, R. E. (1979). A linear-time algorithm for testing the truth of certain quantified Boolean formulas. *Information Processing Letters*, 8(3), 121-123.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 20장.
+---
 
 ## 연습문제
 
@@ -245,3 +253,12 @@ $(x_1 \lor x_2) \land (\neg x_1 \lor x_3) \land (\neg x_2 \lor \neg x_3)$의 함
 
 ??? success "연습문제 4 풀이"
     강한 이음 조각을 위상 차례의 거꾸로로 다룬다(오그린 그래프의 바닥에서 근원 쪽으로). 변수 $x_i$마다 $x_i$의 조각이 위상 차례에서 $\neg x_i$의 조각보다 뒤에 오면 $x_i = \text{True}$으로 두고 아니면 $x_i = \text{False}$으로 둔다. $\neg x_i$이 더 이른 조각에 있으면 함의 사슬이 $x_i$을 참이 되게 하므로 이렇게 하면 된다. 타잔 알고리즘이 마침 위상 차례의 거꾸로로 조각을 내놓으므로 배정을 곧바로 읽을 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 문제 정식화、함의 그래프、강한 이음 조각에 바탕한 풀이、배정 뽑아내기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Aspvall, B., Plass, M. F., & Tarjan, R. E. (1979). A linear-time algorithm for testing the truth of certain quantified Boolean formulas. *Information Processing Letters*, 8(3), 121-123.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 20장.

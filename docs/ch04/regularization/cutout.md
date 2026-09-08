@@ -1,9 +1,10 @@
 # 컷아웃
-## 개요
 
 컷아웃(무작위 지우기라고도 한다)은 학습 중에 입력 이미지의 정사각형 또는 직사각형 영역을 무작위로 가리는 데이터 증강 기법이다. 이미지의 일부를 가림으로써 모델이 변별적인 조각 하나에 매달리지 않고 더 넓은 범위의 공간 특징에 기대게 하여 견고성과 일반화를 높인다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### 핵심 연산
 
@@ -54,7 +55,9 @@ $$
 | 컷믹스 | 다른 이미지의 직사각형 | 다른 표본의 내용 | 그렇다 (비례) | 낭비되는 화소가 없다 |
 | 믹스업 | 전역 혼합 | 두 이미지의 가중합 | 그렇다 (비례) | 매끄러운 결정 경계 |
 
-## 컷아웃이 통하는 이유
+---
+
+## 2. 컷아웃이 통하는 이유
 
 ### 국소 조각에 대한 의존 막기
 
@@ -78,7 +81,9 @@ $$
 
 물체의 부분적인 모습으로 학습하면 모델은 부위만 보고도 물체를 알아보도록 배운다. 모델이 가장 변별적인 영역 하나에 기댈 수 없으므로 약지도 물체 위치 파악이 개선됨이 알려져 있다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 컷아웃 변환 직접 만들기
 
@@ -281,7 +286,9 @@ class BatchCutout:
         return result
 ```
 
-## 학습 예제
+---
+
+## 4. 학습 예제
 
 ```python
 import torch.nn as nn
@@ -371,7 +378,9 @@ def train_with_cutout(
     return history
 ```
 
-## 컷아웃과 무작위 지우기
+---
+
+## 5. 컷아웃과 무작위 지우기
 
 | 특징 | 컷아웃 (DeVries & Taylor) | 무작위 지우기 (Zhong 등) |
 |---------|--------------------------|-------------------------------|
@@ -383,7 +392,9 @@ def train_with_cutout(
 
 무작위 채움은 모델이 지워진 영역을 알아내는 법을 배우지 못하게 하므로(정규화 뒤의 0처럼 채움값이 상수이면 알아내기 쉽다) 요즘 파이프라인에서는 대체로 무작위 지우기를 선호한다.
 
-## 초매개변수 선택
+---
+
+## 6. 초매개변수 선택
 
 ### 컷아웃의 크기
 
@@ -408,7 +419,9 @@ def train_with_cutout(
 - $p = 1.0$: 원래 컷아웃 논문에서 쓴 값(언제나 적용)
 - 다른 강한 증강과 함께 쓸 때는 $p$을 낮춘다
 
-## 다른 기법과 결합하기
+---
+
+## 7. 다른 기법과 결합하기
 
 컷아웃은 다른 대부분의 정칙화 방법과 서로 보완한다.
 
@@ -430,7 +443,9 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 컷믹스는 가림 효과를 포함하면서 섞인 레이블과 정보가 담긴 채움 내용까지 주므로, 컷믹스를 쓸 때에는 보통 컷아웃이 필요 없다. 자세한 내용은 **[컷믹스](cutmix.md)**를 보라.
 
-## 실무 지침
+---
+
+## 8. 실무 지침
 
 ### 컷아웃을 쓸 때
 
@@ -449,12 +464,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 검증이나 시험 중에는 컷아웃을 **결코 적용하지 않는다**. 언제나 손대지 않은 깨끗한 이미지로 평가하라.
 
-## 참고 문헌
-
-1. DeVries, T., & Taylor, G. W. (2017). Improved Regularization of Convolutional Neural Networks with Cutout. *arXiv:1708.04552*.
-2. Zhong, Z., et al. (2020). Random Erasing Data Augmentation. *AAAI*.
-3. Yun, S., et al. (2019). CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features. *ICCV*.
-4. Singh, K. K., & Lee, Y. J. (2017). Hide-and-Seek: Forcing a Network to be Meticulous for Weakly-supervised Object and Action Localization. *ICCV*.
+---
 
 ## 연습문제
 
@@ -500,3 +510,14 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 ??? success "연습문제 4 풀이"
     어림 규칙으로 조각의 크기는 이미지 한 변의 25~50%로 한다. CIFAR-10(32x32)은 $L=16$, ImageNet(224x224)은 $L=112$이다. 너무 작으면 정칙화 효과가 미미하고, 너무 크면 정보를 너무 많이 없애 학습 신호를 해친다.
+
+## 정리하며
+
+이 마당은 수학적 정식화、컷아웃이 통하는 이유、PyTorch 구현、학습 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+1. DeVries, T., & Taylor, G. W. (2017). Improved Regularization of Convolutional Neural Networks with Cutout. *arXiv:1708.04552*.
+2. Zhong, Z., et al. (2020). Random Erasing Data Augmentation. *AAAI*.
+3. Yun, S., et al. (2019). CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features. *ICCV*.
+4. Singh, K. K., & Lee, Y. J. (2017). Hide-and-Seek: Forcing a Network to be Meticulous for Weakly-supervised Object and Action Localization. *ICCV*.

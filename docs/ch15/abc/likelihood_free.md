@@ -3,7 +3,7 @@
 
 ---
 
-## 다룰 수 없는 가능도 문제
+## 1. 다룰 수 없는 가능도 문제
 
 ### 가능도를 쓸 수 없을 때
 
@@ -47,7 +47,7 @@ $\mathbf{u}$을 뽑고 $f$을 셈해 $\mathbf{x} | \theta$을 표집할 수 있�
 
 ---
 
-## 표준 방법이 왜 무너지나
+## 2. 표준 방법이 왜 무너지나
 
 ### MCMC는 가능도 값 매기기가 필요하다
 
@@ -81,7 +81,7 @@ $$
 
 ---
 
-## ABC의 생각
+## 3. ABC의 생각
 
 ### 핵심 통찰
 
@@ -122,7 +122,7 @@ $$
 
 ---
 
-## ABC 뒤확률
+## 4. ABC 뒤확률
 
 ### 해석
 
@@ -155,7 +155,7 @@ $\epsilon$이 끝이 있으면 ABC 뒤확률은 참 뒤확률을 매끄럽게 �
 
 ---
 
-## 간추린 통계량
+## 5. 간추린 통계량
 
 ### 차원의 저주
 
@@ -207,7 +207,7 @@ $$
 
 ---
 
-## 거리 함수
+## 6. 거리 함수
 
 ### 흔히 고르는 것
 
@@ -249,7 +249,7 @@ $$
 
 ---
 
-## 이론의 바탕
+## 7. 이론의 바탕
 
 ### 일치성
 
@@ -289,7 +289,7 @@ $$
 
 ---
 
-## 기본 ABC 너머
+## 8. 기본 ABC 너머
 
 ### 가능도 없는 방법의 갈래
 
@@ -350,7 +350,7 @@ $$
 
 ---
 
-## 가능도 없는 방법을 언제 쓰나
+## 9. 가능도 없는 방법을 언제 쓰나
 
 ### 잘 맞는 경우
 
@@ -379,7 +379,7 @@ $$
 
 ---
 
-## 실전 일머리
+## 10. 실전 일머리
 
 ### 걸음 1: 모형 확인하기
 
@@ -463,7 +463,21 @@ def posterior_predictive_check(simulator, posterior_samples, summary_fn, y_obs):
 
 ---
 
-## 요약
+## 연습문제
+
+1. **흉내내기 보기.** 단순한 생태 모형(이를테면 로트카-볼테라)을 흉내내기 장치로 구현하여라. 자료는 만들 수 있으나 가능도의 값은 매길 수 없음을 확인하여라.
+
+2. **손으로 하는 ABC.** (가능도를 쓸 수 있는) 정규 평균 추론 문제에 ABC 물리치기 표집을 구현하여라. 여러 $\epsilon$에서 ABC 뒤확률을 참 뒤확률과 견주어라.
+
+3. **간추린 통계량의 영향.** 마음대로 고른 모형에서 (a) 충분 통계량, (b) 충분하지는 않으나 알려 주는 바 있는 통계량, (c) 무작위 통계량을 쓴 ABC을 견주어라. 뒤확률이 어떻게 바뀌는가?
+
+4. **너그러움 맞추기.** 위의 맞추기 절차를 구현하여라. 받아들임 비율이 $\epsilon$에 어떻게 기대는가? 그럭저럭한 고름은 무엇인가?
+
+5. **정확한 것과 견주기.** ABC과 정확한 추론이 모두 가능한 모형에서 ABC 어림의 오차를 $\epsilon$의 함수로 재어라.
+
+---
+
+## 정리하며
 
 | 개념 | 설명 |
 |---------|-------------|
@@ -478,24 +492,10 @@ def posterior_predictive_check(simulator, posterior_samples, summary_fn, y_obs):
 
 ---
 
-## 참고 문헌
+**참고 문헌**
 
 1. Beaumont, M. A., Zhang, W., & Balding, D. J. (2002). "Approximate Bayesian Computation in Population Genetics." *Genetics*.
 2. Marin, J.-M., Pudlo, P., Robert, C. P., & Ryder, R. J. (2012). "Approximate Bayesian Computational Methods." *Statistics and Computing*.
 3. Sisson, S. A., Fan, Y., & Beaumont, M. A. (2018). *Handbook of Approximate Bayesian Computation*. CRC Press.
 4. Cranmer, K., Brehmer, J., & Louppe, G. (2020). "The Frontier of Simulation-Based Inference." *PNAS*.
 5. Fearnhead, P., & Prangle, D. (2012). "Constructing Summary Statistics for Approximate Bayesian Computation: Semi-Automatic Approximate Bayesian Computation." *JRSS-B*.
-
-## 연습문제
-
-1. **흉내내기 보기.** 단순한 생태 모형(이를테면 로트카-볼테라)을 흉내내기 장치로 구현하여라. 자료는 만들 수 있으나 가능도의 값은 매길 수 없음을 확인하여라.
-
-2. **손으로 하는 ABC.** (가능도를 쓸 수 있는) 정규 평균 추론 문제에 ABC 물리치기 표집을 구현하여라. 여러 $\epsilon$에서 ABC 뒤확률을 참 뒤확률과 견주어라.
-
-3. **간추린 통계량의 영향.** 마음대로 고른 모형에서 (a) 충분 통계량, (b) 충분하지는 않으나 알려 주는 바 있는 통계량, (c) 무작위 통계량을 쓴 ABC을 견주어라. 뒤확률이 어떻게 바뀌는가?
-
-4. **너그러움 맞추기.** 위의 맞추기 절차를 구현하여라. 받아들임 비율이 $\epsilon$에 어떻게 기대는가? 그럭저럭한 고름은 무엇인가?
-
-5. **정확한 것과 견주기.** ABC과 정확한 추론이 모두 가능한 모형에서 ABC 어림의 오차를 $\epsilon$의 함수로 재어라.
-
----

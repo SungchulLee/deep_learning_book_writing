@@ -1,9 +1,10 @@
 # 스윈 트랜스포머
-## 들어가며
 
 Liu 외(2021)가 내놓은 스윈 트랜스포머(어긋난 창 트랜스포머)는 위계를 이루는 특징 지도와 국소 창 주의를 들여와 비전 트랜스포머의 계산 한계를 푼다. 이 설계는 자기 주의의 힘을 지키면서 그림 크기에 대해 일차 복잡도를 이룬다.
 
-## 왜 필요한가
+---
+
+## 1. 왜 필요한가
 
 표준 비전 트랜스포머는 빽빽한 예측 과제에 두 가지 큰 한계가 있다.
 
@@ -18,7 +19,9 @@ Liu 외(2021)가 내놓은 스윈 트랜스포머(어긋난 창 트랜스포머)
 
 스윈 트랜스포머는 위계를 이루는 구조와 창 주의로 두 문제를 모두 푼다.
 
-## 핵심 혁신
+---
+
+## 2. 핵심 혁신
 
 ### 1. 위계를 이루는 특징 지도
 
@@ -251,7 +254,9 @@ class ShiftedWindowAttention(nn.Module):
         return x
 ```
 
-## 온전한 스윈 트랜스포머 블록
+---
+
+## 3. 온전한 스윈 트랜스포머 블록
 
 ```python
 class SwinTransformerBlock(nn.Module):
@@ -293,7 +298,9 @@ class SwinTransformerBlock(nn.Module):
         return x
 ```
 
-## 조각 합치기
+---
+
+## 4. 조각 합치기
 
 공간 해상도를 줄이고 통로를 늘린다.
 
@@ -334,7 +341,9 @@ class PatchMerging(nn.Module):
         return x
 ```
 
-## 온전한 스윈 트랜스포머
+---
+
+## 5. 온전한 스윈 트랜스포머
 
 ```python
 class SwinTransformer(nn.Module):
@@ -413,7 +422,9 @@ class SwinTransformer(nn.Module):
         return x
 ```
 
-## 계산 복잡도
+---
+
+## 6. 계산 복잡도
 
 ### 표준 비전 트랜스포머 (전역 주의)
 
@@ -430,7 +441,9 @@ $$\Omega(\text{W-MSA}) = 4hwC^2 + 2M^2hwC$$
 
 **주의 복잡도가 64배 줄어든다!**
 
-## 모형의 변형
+---
+
+## 7. 모형의 변형
 
 | 모형 | 매개변수 | C | 깊이 | 머리 | ImageNet Top-1 |
 |-------|--------|---|--------|-------|----------------|
@@ -441,7 +454,9 @@ $$\Omega(\text{W-MSA}) = 4hwC^2 + 2M^2hwC$$
 
 *ImageNet-22K로 사전 학습
 
-## 응용
+---
+
+## 8. 응용
 
 스윈 트랜스포머는 빽빽한 예측 과제에서 뛰어나다.
 
@@ -468,7 +483,9 @@ class SwinUNet(nn.Module):
         self.decoder = UNetDecoder(...)
 ```
 
-## 스윈 V2의 개선
+---
+
+## 9. 스윈 V2의 개선
 
 스윈 트랜스포머 V2는 다음을 들여온다.
 
@@ -476,7 +493,9 @@ class SwinUNet(nn.Module):
 2. **크기를 조정한 코사인 주의**: 서로 다른 해상도를 더 잘 다룬다
 3. **로그 간격의 이어진 상대 자리 편향**: 더 잘 일반화된다
 
-## 금융에서의 쓰임
+---
+
+## 10. 금융에서의 쓰임
 
 스윈 트랜스포머는 효율이 좋아 다음에 알맞다.
 
@@ -485,20 +504,7 @@ class SwinUNet(nn.Module):
 - **여러 크기의 도표**: 여러 해상도의 금융 도표 분석
 - **영상 분석**: 금융 뉴스와 회견 영상 분석
 
-## 요약
-
-스윈 트랜스포머는 다음을 훌륭히 아우른다.
-
-- **트랜스포머의 모형화 힘**: 넉넉한 표현을 위한 자기 주의
-- **합성곱 신경망의 효율**: 일차 복잡도의 위계를 이루는 특징
-- **자유로움**: 분류와 빽빽한 예측 모두에 알맞다
-
-그래서 요즘 컴퓨터 비전 체계의 두루 쓰이는 등뼈가 된다.
-
-## 참고 문헌
-
-1. Liu, Z., et al. "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows." ICCV 2021.
-2. Liu, Z., et al. "Swin Transformer V2: Scaling Up Capacity and Resolution." CVPR 2022.
+---
 
 ## 연습문제
 
@@ -536,3 +542,18 @@ class SwinUNet(nn.Module):
 
 ??? success "연습문제 4 풀이"
     조각 합치기는 이웃한 2×2 조각의 특징을 이어 붙이고 선형 층으로 2C 차원에 사영하여, 공간 해상도를 반으로 줄이면서 통로 차원을 두 배로 만든다. 합성곱 신경망의 풀링이나 걸음을 흉내 내어 특징 피라미드를 만든다. 1단계는 H/4, 2단계는 H/8, 3단계는 H/16, 4단계는 H/32이다.
+
+## 정리하며
+
+스윈 트랜스포머는 다음을 훌륭히 아우른다.
+
+- **트랜스포머의 모형화 힘**: 넉넉한 표현을 위한 자기 주의
+- **합성곱 신경망의 효율**: 일차 복잡도의 위계를 이루는 특징
+- **자유로움**: 분류와 빽빽한 예측 모두에 알맞다
+
+그래서 요즘 컴퓨터 비전 체계의 두루 쓰이는 등뼈가 된다.
+
+**참고 문헌**
+
+1. Liu, Z., et al. "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows." ICCV 2021.
+2. Liu, Z., et al. "Swin Transformer V2: Scaling Up Capacity and Resolution." CVPR 2022.

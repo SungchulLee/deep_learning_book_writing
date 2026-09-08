@@ -1,5 +1,4 @@
 # 묶음 합성곱과 깊이별 분리 합성곱
-## 들어가며
 
 표준 합성곱은 입력 채널과 출력 채널이 조밀하게 이어져 있어 계산 비용이 크다. **묶음 합성곱**과 **깊이별 분리 합성곱**은 합성곱 연산을 쪼개는 구조적 혁신으로, 성능은 지키거나 오히려 높이면서 매개변수와 계산량을 크게 줄인다.
 
@@ -7,7 +6,7 @@
 
 ---
 
-## 표준 합성곱 되짚기
+## 1. 표준 합성곱 되짚기
 
 입력 채널이 $C_{in}$개, 출력 채널이 $C_{out}$개이고 핵 크기가 $K$인 표준 합성곱에 대해 다음과 같다.
 
@@ -18,7 +17,7 @@
 
 ---
 
-## 묶음 합성곱
+## 2. 묶음 합성곱
 
 ### 개념
 
@@ -92,7 +91,7 @@ print(f"Grouped (G=4) output: {conv_grouped_4(x).shape}")
 
 ---
 
-## 깊이별 합성곱
+## 3. 깊이별 합성곱
 
 ### 개념
 
@@ -149,7 +148,7 @@ print(f"Reduction: {standard_params / params:.1f}×")  # 약 58배 줄어듦
 
 ---
 
-## 깊이별 분리 합성곱
+## 4. 깊이별 분리 합성곱
 
 ### 개념
 
@@ -255,7 +254,7 @@ print(f"DS conv output: {ds_conv(x).shape}")
 
 ---
 
-## MobileNet V1 블록
+## 5. MobileNet V1 블록
 
 MobileNet은 깊이별 분리 합성곱에 배치 정규화와 ReLU를 붙여 쓴다.
 
@@ -294,7 +293,7 @@ class MobileNetV1Block(nn.Module):
 
 ---
 
-## MobileNet V2: 뒤집은 잔차
+## 6. MobileNet V2: 뒤집은 잔차
 
 MobileNet V2는 선형 병목을 갖춘 **뒤집은 잔차 블록**을 들여온다.
 
@@ -379,7 +378,7 @@ print(f"Parameters: {sum(p.numel() for p in block.parameters()):,}")
 
 ---
 
-## 채널 섞기 (ShuffleNet)
+## 7. 채널 섞기 (ShuffleNet)
 
 묶음 합성곱은 묶음 사이에 정보가 흐르지 못하게 한다. **채널 섞기**가 이 한계를 푼다.
 
@@ -480,7 +479,7 @@ print(f"ShuffleNet block: {x.shape} → {out.shape}")
 
 ---
 
-## 효율 견주기
+## 8. 효율 견주기
 
 ```python
 import torch
@@ -537,7 +536,7 @@ for name, model in [("Standard", standard),
 
 ---
 
-## 구조 견주기
+## 9. 구조 견주기
 
 | 구조 | 핵심 혁신 | 흔한 쓰임새 |
 |--------------|----------------|------------------|
@@ -549,17 +548,7 @@ for name, model in [("Standard", standard),
 
 ---
 
-## 요약
-
-| 종류 | 매개변수 | 줄어드는 비 | 쓰임새 |
-|------|------------|-----------|----------|
-| 표준 | $C_{out} \times C_{in} \times K^2$ | — | 기준선 |
-| 묶음 (G) | $\div G$ | $G\times$ | ResNeXt |
-| 깊이별 | $C \times K^2$ | $C\times$ | 공간적 거르기 |
-| 깊이별 분리 | $C_{in}(K^2 + C_{out})$ | 약 8~9배 | MobileNet, EfficientNet |
-| 뒤집은 잔차 | 확장과 깊이별 | 효율적 | MobileNetV2 이후 |
-
-## 핵심 정리
+## 10. 핵심 정리
 
 1. **묶음 합성곱**은 채널을 서로 독립인 묶음으로 나누어 매개변수를 $G$배 줄인다
 2. **깊이별 합성곱**은 $G = C_{in}$인 묶음 합성곱으로, 채널마다 필터 하나를 쓴다
@@ -568,13 +557,7 @@ for name, model in [("Standard", standard),
 5. **뒤집은 잔차**(MobileNetV2)는 선형 병목과 함께 좁음 → 넓음 → 좁음의 짜임을 쓴다
 6. 이 기법들 덕분에 정확도를 크게 잃지 않고도 휴대 기기와 말단 장치에 올릴 효율적인 모델을 만들 수 있다
 
-## 참고 문헌
-
-1. Chollet, F. (2017). "Xception: Deep Learning with Depthwise Separable Convolutions."
-2. Howard, A. G., et al. (2017). "MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications."
-3. Sandler, M., et al. (2018). "MobileNetV2: Inverted Residuals and Linear Bottlenecks."
-4. Zhang, X., et al. (2018). "ShuffleNet: An Extremely Computation-Efficient CNN for Mobile Devices."
-5. Tan, M., & Le, Q. V. (2019). "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks."
+---
 
 ## 연습문제
 
@@ -615,3 +598,21 @@ MobileNet과 EfficientNet의 설계에서 묶음 합성곱이 하는 구실을 �
 
 ??? success "연습문제 4 풀이"
     깊이별 분리 합성곱은 매개변수와 계산에서 효율적이지만, 깊이별 단계가 채널을 섞지 않으므로 모델의 용량이 줄어들 수 있다. (1) 모델의 용량이 중요하고 계산이 병목이 아닐 때, (2) 채널 수가 적어 아끼는 양이 얼마 안 될 때, (3) 하드웨어가 조밀한 행렬 곱에 맞추어져 있을 때는 표준 합성곱이 낫다.
+
+## 정리하며
+
+| 종류 | 매개변수 | 줄어드는 비 | 쓰임새 |
+|------|------------|-----------|----------|
+| 표준 | $C_{out} \times C_{in} \times K^2$ | — | 기준선 |
+| 묶음 (G) | $\div G$ | $G\times$ | ResNeXt |
+| 깊이별 | $C \times K^2$ | $C\times$ | 공간적 거르기 |
+| 깊이별 분리 | $C_{in}(K^2 + C_{out})$ | 약 8~9배 | MobileNet, EfficientNet |
+| 뒤집은 잔차 | 확장과 깊이별 | 효율적 | MobileNetV2 이후 |
+
+**참고 문헌**
+
+1. Chollet, F. (2017). "Xception: Deep Learning with Depthwise Separable Convolutions."
+2. Howard, A. G., et al. (2017). "MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications."
+3. Sandler, M., et al. (2018). "MobileNetV2: Inverted Residuals and Linear Bottlenecks."
+4. Zhang, X., et al. (2018). "ShuffleNet: An Extremely Computation-Efficient CNN for Mobile Devices."
+5. Tan, M., & Le, Q. V. (2019). "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks."

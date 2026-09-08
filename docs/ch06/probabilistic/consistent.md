@@ -2,7 +2,9 @@
 
 분산 시스템이 단순한 나머지 해싱 $h(k) = k \bmod m$으로 서버 $m$대에 데이터를 나누어 담을 때, 서버를 하나만 더하거나 빼도 $m$이 바뀌어 거의 모든 키가 다른 서버로 옮겨 가야 한다. 수백만 요청을 처리하는 캐시 무리에서 이러한 대규모 재배치는 **캐시 사태**를 일으킨다. 거의 모든 요청이 동시에 캐시 실패가 되는 것이다. 일관 해싱은 마디를 더하거나 뺄 때 평균적으로 $O(n/m)$개의 키만 옮기게 하여 이 문제를 푼다. 여기서 $n$은 전체 키의 수, $m$은 마디의 수이다.
 
-## 나머지 해싱의 문제
+---
+
+## 1. 나머지 해싱의 문제
 
 $h(k) = k \bmod m$으로 서버 $m$대에 흩어 놓은 키 $n$개를 생각해 보자. 서버의 수가 $m$에서 $m+1$으로 바뀔 때 키 $k$이 같은 서버에 남으려면 다음이 성립해야 한다.
 
@@ -18,7 +20,9 @@ $$
 
 서버가 $m = 100$대이면 서버 한 대를 더할 때 키의 약 99%를 다시 배치해야 한다. 대규모 시스템에서는 받아들일 수 없다.
 
-## 해시 고리
+---
+
+## 2. 해시 고리
 
 일관 해싱은 키와 마디를 모두 크기가 $2^{b}$인 원형 해시 공간("고리")에 올린다. 여기서 $b$은 해시 함수의 출력 비트 수이다.
 
@@ -35,7 +39,9 @@ $$
 ??? example "고리 걸어가기"
     크기가 256인 고리에서 마디 $A$, $B$, $C$이 각각 위치 10, 80, 200으로 해시되었다고 하자. $h(k) = 50$인 키 $k$은 $A$(10)와 $B$(80) 사이에 있으므로 $B$에 배정된다. $h(k) = 210$인 키는 $C$(200)와 (돌아 감아서) $A$(10) 사이에 있으므로 $A$에 배정된다.
 
-## 마디 더하기와 빼기
+---
+
+## 3. 마디 더하기와 빼기
 
 일관 해싱의 핵심 이점은 마디 집합이 바뀔 때 흔들림이 가장 적다는 것이다.
 
@@ -53,7 +59,9 @@ $$
 
 이는 최적이다. 마디 $m$개에 부하를 고르게 나누는 어떤 방식이든 새 마디가 들어오면 적어도 $n/(m+1)$개의 키를 다시 배정해야 한다. 새 마디도 제 몫의 키를 받아야 하기 때문이다.
 
-## 가상 마디
+---
+
+## 4. 가상 마디
 
 고리에 물리적인 마디가 $m$개뿐이면 이웃한 마디 사이의 호 길이가 크게 들쭉날쭉해져 부하가 고르지 않게 된다. 마디가 $m$개일 때 마디마다의 부하의 표준편차는 $O(n / \sqrt{m})$으로 크다.
 
@@ -74,7 +82,9 @@ $$
 !!! tip "가상 마디의 수 고르기"
     가상 마디가 많을수록 균형이 좋아지지만 고리 자료 구조(항목 $vm$개의 정렬된 배열이나 균형 이진 탐색 나무)가 커진다. 조회 시간이 $O(\log m)$에서 $O(\log(vm))$으로 늘지만 그리 크지 않다. Amazon DynamoDB나 Apache Cassandra 같은 시스템은 보통 물리 마디마다 가상 마디를 256개 쓴다.
 
-## 구현
+---
+
+## 5. 구현
 
 고리는 (해시값, 마디 ID) 쌍의 정렬된 배열로 저장한다. 키 조회는 이진 탐색으로 키의 해시에서 시계 방향으로 처음 만나는 마디를 찾는다.
 
@@ -83,7 +93,6 @@ $$
 
 import hashlib
 from bisect import bisect_right
-
 
 # === 일관 해시 고리 ===
 
@@ -123,7 +132,6 @@ class ConsistentHashRing:
             idx = 0  # 한 바퀴 돌아 감기
         return self.ring[idx][1]
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -148,7 +156,9 @@ if __name__ == "__main__":
     print(f"Expected: ~{1000 // 4} keys (n/(m+1) = 1000/4)")
 ```
 
-## 복잡도
+---
+
+## 6. 복잡도
 
 | 연산 | 시간 | 공간 |
 |---|---|---|
@@ -158,7 +168,9 @@ if __name__ == "__main__":
 
 여기서 $v$은 물리 마디마다의 가상 마디 수이고 $m$은 물리 마디의 수이다.
 
-## 부하가 제한된 일관 해싱
+---
+
+## 7. 부하가 제한된 일관 해싱
 
 보통의 일관 해싱은 부하에 대한 확고한 보장을 주지 않는다. **부하가 제한된 일관 해싱**(Mirrokni 등, 2018)은 용량 제약을 더한다. 조율 가능한 매개변수 $\varepsilon > 0$에 대해 각 마디가 많아야 $(1 + \varepsilon) \cdot n/m$개의 키를 갖는다.
 
@@ -170,7 +182,9 @@ $$
 
 구글의 부하 분산기는 이 변형으로 뒷단 서버에 트래픽을 나눈다.
 
-## 응용
+---
+
+## 8. 응용
 
 일관 해싱은 분산 시스템의 바탕이 된다.
 
@@ -179,12 +193,7 @@ $$
 - **콘텐츠 전송망** (Akamai): 요청한 내용을 가진 가장 가까운 캐시로 요청을 보낸다.
 - **부하 분산기**: 세션의 연속성을 지키면서 요청을 뒷단 서버에 나눈다.
 
-## 참고 문헌
-
-- Karger, D., Lehman, E., Leighton, T., Panigrahy, R., Levine, M., & Lewin, D. (1997). Consistent hashing and random trees. *Proceedings of the 29th ACM Symposium on Theory of Computing (STOC)*, 654--663.
-- Mirrokni, V., Thorup, M., & Zadimoghaddam, M. (2018). Consistent hashing with bounded loads. *Proceedings of the 29th ACM-SIAM Symposium on Discrete Algorithms (SODA)*.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 11. MIT Press.
-
+---
 
 ## 연습문제
 
@@ -217,3 +226,13 @@ $\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 
 
 ??? success "연습문제 4 풀이"
     크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$
+
+## 정리하며
+
+이 마당은 나머지 해싱의 문제、해시 고리、마디 더하기와 빼기、가상 마디을 차례로 짚었다.
+
+**참고 문헌**
+
+- Karger, D., Lehman, E., Leighton, T., Panigrahy, R., Levine, M., & Lewin, D. (1997). Consistent hashing and random trees. *Proceedings of the 29th ACM Symposium on Theory of Computing (STOC)*, 654--663.
+- Mirrokni, V., Thorup, M., & Zadimoghaddam, M. (2018). Consistent hashing with bounded loads. *Proceedings of the 29th ACM-SIAM Symposium on Discrete Algorithms (SODA)*.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 11. MIT Press.

@@ -2,7 +2,9 @@
 
 대용량 데이터 흐름에서 모든 원소의 정확한 빈도를 기록하려면 서로 다른 원소의 수에 비례하는 공간이 필요한데, 이는 감당하기 어려울 만큼 클 수 있다. **카운트-민 스케치**(Cormode와 Muthukrishnan, 2005)는 정확한 개수를 근사값으로 바꾸어, 본 원소의 총수를 $n$이라 할 때 모든 빈도 추정값이 적어도 $1 - \delta$의 확률로 참값을 많아야 $\varepsilon n$만큼만 넘어서도록 보장하면서 $O(\frac{1}{\varepsilon} \log \frac{1}{\delta})$ 공간만 쓴다.
 
-## 자료 구조
+---
+
+## 1. 자료 구조
 
 카운트-민 스케치는 0으로 초기화된 이차원 세개 배열 $\text{CM}[1 \ldots d][1 \ldots w]$과, 전체 집합 $U$을 $\{1, 2, \ldots, w\}$으로 보내는 쌍별 독립인 해시 함수 $h_1, h_2, \ldots, h_d$으로 이루어진다.
 
@@ -14,7 +16,9 @@ $$
 
 여기서 $e = 2.718\ldots$은 자연상수이고, $\varepsilon$은 근사 오차를, $\delta$은 실패 확률을 조절한다.
 
-## 연산
+---
+
+## 2. 연산
 
 ### 갱신
 
@@ -62,18 +66,21 @@ $$
 
 $d$개 행이 독립인 해시 함수를 쓰므로 *모든* 행에서 넘치는 몫이 $\varepsilon n$보다 클 확률은 많아야 $(1/e)^d \leq \delta$이다. $\square$
 
-## 점 질의와 구간 질의
+---
+
+## 3. 점 질의와 구간 질의
 
 기본 카운트-민 스케치는 **점 질의**(원소 하나의 빈도)에 답한다. 전체 집합의 크기를 $U$이라 할 때, 서로 다른 결의 스케치를 $\log U$개 두면(이진 구간 분해) **구간 질의**에도 답하도록 넓힐 수 있다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """데이터 흐름에서 빈도를 어림하는 카운트-민 스케치."""
 
 import hashlib
 import math
-
 
 # === 카운트-민 스케치 ===
 
@@ -101,7 +108,6 @@ class CountMinSketch:
         """원소 x의 빈도를 어림한다."""
         return min(self.table[i][self._hash(x, i)] for i in range(self.d))
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -125,7 +131,9 @@ if __name__ == "__main__":
     print(f"elderberry (absent): estimate={est_absent}")
 ```
 
-## 다른 스케치와의 비교
+---
+
+## 5. 다른 스케치와의 비교
 
 | 자료 구조 | 질의의 종류 | 공간 | 오차의 종류 |
 |---|---|---|---|
@@ -136,18 +144,16 @@ if __name__ == "__main__":
 
 한쪽으로만 치우친 오차를 받아들일 수 있을 때(예: 이상 탐지나 대량 사용자 식별에서 빈도를 낮추어 잡지 않는 것이 중요할 때) 카운트-민 스케치를 선호한다.
 
-## 응용
+---
+
+## 6. 응용
 
 - **네트워크 트래픽 감시:** 흐름마다의 패킷 수를 추정하여 대역폭을 지나치게 쓰는 흐름을 찾아낸다.
 - **자연어 처리:** 어휘 전체를 저장하지 않고 큰 말뭉치의 낱말 빈도를 근사한다.
 - **데이터베이스 질의 최적화:** 흐르는 데이터에서 조인의 크기와 선택도를 추정한다.
 - **이상 탐지:** 추정 빈도가 문턱값을 넘는 원소를 표시한다.
 
-## 참고 문헌
-
-- Cormode, G., & Muthukrishnan, S. (2005). An improved data stream summary: The Count-Min sketch and its applications. *Journal of Algorithms*, 55(1), 58--75.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 11. MIT Press.
-
+---
 
 ## 연습문제
 
@@ -180,3 +186,12 @@ $\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 
 
 ??? success "연습문제 4 풀이"
     크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$
+
+## 정리하며
+
+이 마당은 자료 구조、연산、점 질의와 구간 질의、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormode, G., & Muthukrishnan, S. (2005). An improved data stream summary: The Count-Min sketch and its applications. *Journal of Algorithms*, 55(1), 58--75.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 11. MIT Press.

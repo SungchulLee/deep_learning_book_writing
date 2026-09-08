@@ -1,5 +1,4 @@
 # 가능도에 바탕한 따지기
-## 개요
 
 가능도에 바탕한 따지기는 만들어 내는 모델이 실제 자료에 얼마나 잘 확률을 매기는지 잰다. 표본에 바탕한 잣대(FID, 인셉션 점수)와 달리 가능도 잣대는 원칙 있는 앎 이론의 따지기를 준다. 이 마디는 음의 로그 가능도, 차원마다 비트, 헷갈림도를 다룬다.
 
@@ -12,7 +11,9 @@
     - 만들어 내는 모델마다 알맞은 잣대를 고른다
     - 가능도와 표본 품질의 맞바꿈을 안다
 
-## 수학적 바탕
+---
+
+## 1. 수학적 바탕
 
 ### 맞음의 잣대로서의 가능도
 
@@ -50,7 +51,9 @@ $$
 
 **풀이**: 음의 로그 가능도는 모델을 누르기 얼개로 삼아 실제 자료를 담는 데 평균 몇 비트가 필요한지 잰다.
 
-## 음의 로그 가능도(NLL)
+---
+
+## 2. 음의 로그 가능도(NLL)
 
 ### 정의
 
@@ -73,7 +76,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 from typing import Tuple, Optional, Union
-
 
 class NLLEvaluator:
     """
@@ -174,7 +176,6 @@ class NLLEvaluator:
             'n_samples': len(test_data)
         }
 
-
 # 보기: 정규 분포 모델
 class GaussianModel(nn.Module):
     """보여 주기를 위한 단순한 정규 분포 모델."""
@@ -201,7 +202,6 @@ class GaussianModel(nn.Module):
         
         # 차원에 걸쳐 더한다, 꼴: [묶음 크기]
         return log_prob.sum(dim=-1)
-
 
 def demonstrate_nll():
     """음의 로그 가능도 셈하기를 보여 준다."""
@@ -241,11 +241,12 @@ def demonstrate_nll():
     
     print("\nNote: Lower NLL = Better fit to data")
 
-
 demonstrate_nll()
 ```
 
-## 차원마다 비트(BPD)
+---
+
+## 3. 차원마다 비트(BPD)
 
 ### 왜 고르게 맞추는가?
 
@@ -405,7 +406,6 @@ class BPDCalculator:
         else:
             return "Outstanding - near-optimal for natural images"
 
-
 def demonstrate_bpd():
     """차원마다 비트 셈하기와 견주기를 보여 준다."""
     print("=" * 70)
@@ -443,11 +443,12 @@ def demonstrate_bpd():
     
     print("\nKey insight: BPD enables fair comparison across different image sizes!")
 
-
 demonstrate_bpd()
 ```
 
-## 헷갈림도
+---
+
+## 4. 헷갈림도
 
 ### 말 모델에서의 뜻매김
 
@@ -611,7 +612,6 @@ class PerplexityCalculator:
         else:
             return "Outstanding - highly confident predictions"
 
-
 def demonstrate_perplexity():
     """헷갈림도 셈하기를 보여 준다."""
     print("=" * 70)
@@ -652,11 +652,12 @@ def demonstrate_perplexity():
     print("Key insight: Lower perplexity = More confident predictions")
     print("Perplexity = 'Effective vocabulary size' at each position")
 
-
 demonstrate_perplexity()
 ```
 
-## 가능도와 표본 품질의 맞바꿈
+---
+
+## 5. 가능도와 표본 품질의 맞바꿈
 
 ### 결정적인 한계
 
@@ -762,11 +763,12 @@ def demonstrate_likelihood_sample_tradeoff():
     print("   but Model A produces BETTER samples for mode -3!")
     print("\n→ Always combine likelihood metrics with sample-based metrics (FID, IS)")
 
-
 demonstrate_likelihood_sample_tradeoff()
 ```
 
-## 언제 가능도 잣대를 쓸까
+---
+
+## 6. 언제 가능도 잣대를 쓸까
 
 ### 가능도를 다룰 수 있는 모델
 
@@ -786,29 +788,7 @@ demonstrate_likelihood_sample_tradeoff()
 3. **믿음 구간을 알려라**: 흐릿함이 중요하다
 4. **표본 잣대와 아울러라**: FID, 인셉션 점수, 정밀도와 재현율
 
-## 요약
-
-!!! success "핵심 간추리기"
-    
-    1. **음의 로그 가능도는 맞음을 잰다**: 낮을수록 모델이 자료에 더 큰 확률을 매긴다
-    
-    2. **차원마다 비트는 차원에 맞게 고르게 맞춘다**: 자료 묶음에 걸쳐 공정히 견줄 수 있다
-    
-    3. **말에는 헷갈림도**: "실제로 쓰이는 낱말 수"를 나타낸다
-    
-    4. **결정적인 한계**: 높은 가능도 ≠ 좋은 표본
-    
-    5. **가장 좋은 방식**: 늘 표본 바탕 잣대(FID, 인셉션 점수)와 아울러라
-
-## 참고 문헌
-
-1. Theis, L., van den Oord, A., & Bethge, M. (2016). "A Note on the Evaluation of Generative Models." *ICLR*.
-
-2. Bishop, C. M. (2006). "Pattern Recognition and Machine Learning." Springer.
-
-3. Salimans, T., et al. (2016). "Improved Techniques for Training GANs." *NeurIPS*.
-
-4. Kingma, D. P., & Dhariwal, P. (2018). "Glow: Generative Flow with Invertible 1×1 Convolutions." *NeurIPS*.
+---
 
 ## 연습문제
 
@@ -847,3 +827,27 @@ FID가 뛰어난 만들어 내는 모델이 왜 실제 쓰임새에서 실패할
 
 ??? success "연습문제 4 풀이"
     FID는 평균 분포 품질을 재지만 다음을 놓친다. (1) **꼬리 움직임**: 드물지만 중요한 잘못됨(흠, 불쾌한 내용)이 평균에 묻힌다. (2) **조건 충실함**: FID를 흔히 조건 없이 셈하는데 갈래나 글 조건 FID는 다를 수 있다. (3) **외우기**: 익히기 자료를 외운 모델은 FID가 낮지만 만들어 내기에는 쓸모없다. (4) **조건 안의 다양함**: 비슷한 채근에 같은 그림을 내도 FID가 낮을 수 있다. 더 따질 것: 정밀도와 재현율 곡선, 갈래마다 FID, 외우기 알아내기(익히기 묶음까지의 가장 가까운 이웃 거리), 품질과 다양함에 대한 사람 따지기, 쓰임새에 맞춘 잣대(예컨대 글에서 그림으로 모델의 글과 그림 맞음).
+
+## 정리하며
+
+!!! success "핵심 간추리기"
+    
+    1. **음의 로그 가능도는 맞음을 잰다**: 낮을수록 모델이 자료에 더 큰 확률을 매긴다
+    
+    2. **차원마다 비트는 차원에 맞게 고르게 맞춘다**: 자료 묶음에 걸쳐 공정히 견줄 수 있다
+    
+    3. **말에는 헷갈림도**: "실제로 쓰이는 낱말 수"를 나타낸다
+    
+    4. **결정적인 한계**: 높은 가능도 ≠ 좋은 표본
+    
+    5. **가장 좋은 방식**: 늘 표본 바탕 잣대(FID, 인셉션 점수)와 아울러라
+
+**참고 문헌**
+
+1. Theis, L., van den Oord, A., & Bethge, M. (2016). "A Note on the Evaluation of Generative Models." *ICLR*.
+
+2. Bishop, C. M. (2006). "Pattern Recognition and Machine Learning." Springer.
+
+3. Salimans, T., et al. (2016). "Improved Techniques for Training GANs." *NeurIPS*.
+
+4. Kingma, D. P., & Dhariwal, P. (2018). "Glow: Generative Flow with Invertible 1×1 Convolutions." *NeurIPS*.

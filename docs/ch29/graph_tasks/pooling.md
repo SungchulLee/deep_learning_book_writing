@@ -5,7 +5,9 @@
 붙박인 크기의 나타냄 하나를 바란다. 그래프 모으기는 마디 박아 넣기를
 그래프 켜의 벡터로 모아 이 틈을 잇는다.
 
-## 납작한(온 자리) 모으기
+---
+
+## 1. 납작한(온 자리) 모으기
 
 가장 단순한 길은 모든 마디 박아 넣기 $\{\mathbf{h}_v : v \in V\}$에
 자리바꿈에 안 바뀌는 모으기 함수를 쓰는 것이다.
@@ -47,7 +49,9 @@ $$
 그리고 $f$은 배울 수 있는 점수 함수(보통 작은 여러 층 신경망)이다. 이는 모델이
 앎이 가장 많은 마디에 집중하게 한다.
 
-## 켜진 모으기
+---
+
+## 2. 켜진 모으기
 
 납작한 모으기는 모든 마디를 한 걸음에 눌러 담아 그래프 얼개를 버린다.
 켜진 방법은 그래프를 차츰 성글게 하여 여러 잣수의 얼개 앎을
@@ -105,7 +109,9 @@ $$
 
 여기서 $\mathbf{p}$은 배울 수 있는 쏘기 벡터이다.
 
-## 구현
+---
+
+## 3. 구현
 
 ```python
 """
@@ -118,7 +124,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 # === 납작한 모으기 ===
 def global_sum_pool(x: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
     """묶음 번호로 묶어 마디에 대해 합 모으기."""
@@ -127,14 +132,12 @@ def global_sum_pool(x: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
     out.scatter_add_(0, batch.unsqueeze(1).expand_as(x), x)
     return out
 
-
 def global_mean_pool(x: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
     """묶음 번호로 묶어 마디에 대해 평균 모으기."""
     sums = global_sum_pool(x, batch)
     counts = torch.zeros(sums.size(0), device=x.device)
     counts.scatter_add_(0, batch, torch.ones_like(batch, dtype=torch.float))
     return sums / counts.unsqueeze(1).clamp(min=1)
-
 
 # === 눈길 모으기 ===
 class AttentionPool(nn.Module):
@@ -161,7 +164,6 @@ class AttentionPool(nn.Module):
         weighted = x * alpha
         return global_sum_pool(weighted, batch)
 
-
 # === 보기 ===
 if __name__ == "__main__":
     torch.manual_seed(42)
@@ -176,7 +178,9 @@ if __name__ == "__main__":
     print("Attn pool shape:", attn_pool(x, batch).shape)         # [2, 8]
 ```
 
-## 모으기 방법 고르기
+---
+
+## 4. 모으기 방법 고르기
 
 | 방법 | 복잡도 | 지키는 얼개 | 알맞은 곳 |
 |---|---|---|---|
@@ -185,13 +189,7 @@ if __name__ == "__main__":
 | DiffPool | $O(n^2)$ | 켜진 뭉치 | 빽빽하고 짜임새 있는 그래프 |
 | SAGPool | $O(n)$ | 마디 고르기 | 큰 그래프, 효율 |
 
-## 참고 문헌
-
-- Ying, R. et al. "Hierarchical Graph Representation Learning with
-  Differentiable Pooling." NeurIPS 2018.
-- Lee, J. et al. "Self-Attention Graph Pooling." ICML 2019.
-- Xu, K. et al. "How Powerful are Graph Neural Networks?" ICLR 2019.
-
+---
 
 ## 연습문제
 
@@ -224,3 +222,14 @@ Set2Set 모으기를 밝히고 왜 단순한 평균/합 모으기보다 나타�
 
 ??? success "연습문제 4 풀이"
     Set2Set은 장단기 기억망 바탕 눈길 얼개로 그래프 특징을 읽어낸다. 마디 박아 넣기의 모임을 여러 눈길 걸음으로 다루며 걸음마다 다른 마디를 살피는 맥락 벡터를 쌓는다. 마지막 나타냄은 모든 맥락 벡터를 이어 붙인 것이다. 평균/합 모으기는 자리바꿈에 안 바뀌지만 모으기를 한 번만 쓰는 반면, Set2Set은 걸음마다 다른 마디 무리에 집중해 더 복잡한 서로 작용을 담을 수 있다. 분자 성질 헤아리기 일에서 성능을 높이는 것이 보여졌다.
+
+## 정리하며
+
+이 마당은 납작한(온 자리) 모으기、켜진 모으기、구현、모으기 방법 고르기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Ying, R. et al. "Hierarchical Graph Representation Learning with
+  Differentiable Pooling." NeurIPS 2018.
+- Lee, J. et al. "Self-Attention Graph Pooling." ICML 2019.
+- Xu, K. et al. "How Powerful are Graph Neural Networks?" ICLR 2019.

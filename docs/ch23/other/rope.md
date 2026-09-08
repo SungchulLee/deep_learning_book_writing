@@ -2,7 +2,9 @@
 
 배열과 이은 목록 모두 글줄을 잇거나 가운데에 끼울 때 최악의 경우 $O(n)$이 든다. **밧줄**은 잎마다 짧은 글줄 조각을 담고 안쪽 마디마다 왼쪽 아래 나무의 전체 길이를 담는 두 갈래 나무이다. 이 짜임은 잇기, 쪼개기, 끼우기를 $O(\log n)$ 시간에 받쳐 글월 편집기나 큰 글줄을 자주 고치는 다른 쓰임새에 안성맞춤이다.
 
-## 구조
+---
+
+## 1. 구조
 
 밧줄은 다음 성질을 가진 두 갈래 나무이다:
 
@@ -22,7 +24,9 @@
 
 뿌리의 무게는 5("Hello"의 길이)이고 오른쪽 자식의 무게는 1("_"의 길이)이다.
 
-## 연산
+---
+
+## 2. 연산
 
 ### 번호로 찾기 — O(log n)
 
@@ -51,7 +55,9 @@
 
 자리 $i$부터 $j$까지의 글자를 지운다. 곧 $i$과 $j$에서 쪼갠 뒤 바깥 몫을 잇는다.
 
-## 복잡도 비교
+---
+
+## 3. 복잡도 비교
 
 | 연산 | 배열 | 밧줄 |
 |---|---|---|
@@ -61,7 +67,9 @@
 | 끼우기 | $O(n)$ | $O(\log n)$ |
 | 삭제 | $O(n)$ | $O(\log n)$ |
 
-## 파이썬 구현
+---
+
+## 4. 파이썬 구현
 
 ```python
 """
@@ -70,7 +78,6 @@
 큰 고칠 수 있는 글줄에 효율 좋은 잇기, 쪼개기, 번호로 찾기,
 끼우기를 받친다.
 """
-
 
 # === 밧줄 마디 ===
 
@@ -123,7 +130,6 @@ class RopeNode:
             result += self.right.to_string()
         return result
 
-
 # === 밧줄 연산 ===
 
 def concatenate(left: RopeNode | None, right: RopeNode | None) -> RopeNode:
@@ -133,7 +139,6 @@ def concatenate(left: RopeNode | None, right: RopeNode | None) -> RopeNode:
     if right is None:
         return left
     return RopeNode(left=left, right=right)
-
 
 def split(node: RopeNode, i: int) -> tuple[RopeNode | None, RopeNode | None]:
     """밧줄을 자리 i에서 (왼쪽, 오른쪽)으로 쪼갠다."""
@@ -156,20 +161,17 @@ def split(node: RopeNode, i: int) -> tuple[RopeNode | None, RopeNode | None]:
     else:
         return node.left, node.right
 
-
 def insert(node: RopeNode, i: int, text: str) -> RopeNode:
     """자리 i에 글월을 끼운다."""
     left, right = split(node, i)
     new_leaf = RopeNode(text)
     return concatenate(concatenate(left, new_leaf), right)
 
-
 def delete(node: RopeNode, i: int, j: int) -> RopeNode:
     """자리 i부터 j 앞까지의 글자를 지운다."""
     left, temp = split(node, i)
     _, right = split(temp, j - i)
     return concatenate(left, right)
-
 
 # === 메인 ===
 
@@ -195,9 +197,7 @@ if __name__ == "__main__":
     # 지운 뒤: 'Hello_World'
 ```
 
-## 참고 문헌
-
-- Boehm, H., Atkinson, R., & Plass, M. (1995). Ropes: An alternative to strings. *Software: Practice and Experience*, 25(12), 1315-1330.
+---
 
 ## 연습문제
 
@@ -230,3 +230,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 구조、연산、복잡도 비교、파이썬 구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Boehm, H., Atkinson, R., & Plass, M. (1995). Ropes: An alternative to strings. *Software: Practice and Experience*, 25(12), 1315-1330.

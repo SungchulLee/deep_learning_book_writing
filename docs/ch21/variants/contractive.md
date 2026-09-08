@@ -3,8 +3,6 @@
 
 ---
 
-## 개요
-
 **배울 것:**
 
 - 부호기의 야코비 행렬과 민감함을 재는 데서의 노릇
@@ -15,7 +13,7 @@
 
 ---
 
-## 수학적 바탕
+## 1. 수학적 바탕
 
 ### 오그림 벌주기
 
@@ -54,7 +52,7 @@ $$\text{큰 } \lambda \to \text{튼튼함은 더하고 다시 세우기는 못�
 
 ---
 
-## 잡음 없애는 자기 부호기와의 이음
+## 2. 잡음 없애는 자기 부호기와의 이음
 
 ### 이론의 이음
 
@@ -76,7 +74,7 @@ $$\mathcal{L}_{DAE} \approx \|x - g(f(x))\|^2 + \sigma^2 \|J_f(x)\|_F^2$$
 
 ---
 
-## PyTorch 구현
+## 3. PyTorch 구현
 
 ```python
 import torch
@@ -131,7 +129,6 @@ class ContractiveAutoencoder(nn.Module):
         x_recon = self.decode(z)
         return x_recon, z
 
-
 def compute_jacobian_penalty(model, x):
     """
     부호기 야코비 행렬의 프로베니우스 노름 제곱을 셈한다.
@@ -165,7 +162,7 @@ def compute_jacobian_penalty(model, x):
 
 ---
 
-## 학습
+## 4. 학습
 
 ```python
 def train_contractive_autoencoder(
@@ -226,7 +223,7 @@ def train_contractive_autoencoder(
 
 ---
 
-## 민감함 살피기
+## 5. 민감함 살피기
 
 ```python
 def analyze_contraction(model, test_loader, device, noise_std=0.1):
@@ -260,7 +257,6 @@ def analyze_contraction(model, test_loader, device, noise_std=0.1):
                 break
     
     return np.array(sensitivity_scores)
-
 
 def compare_with_standard_ae(train_loader, test_loader, device):
     """
@@ -326,7 +322,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 ---
 
-## 기하학적 해석
+## 6. 기하학적 해석
 
 ### 다양체 배움의 관점
 
@@ -340,7 +336,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 ---
 
-## 계량 금융에서의 응용
+## 7. 계량 금융에서의 응용
 
 오그리는 자기 부호기는 금융에서 **안정된 요인 나타냄**을 배우는 데 값지다:
 
@@ -349,25 +345,6 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 - **벌주기를 갖춘 공분산 어림:** 오그리는 부호기가 배운 공분산 짜임에 넌지시 벌을 주어 차원 높은 상황에서 어림 어긋남을 줄인다
 
 ---
-
-## 요약
-
-| 갈래 | 여느 자기 부호기 | 오그리는 자기 부호기 |
-|--------|-------------|----------------|
-| 손실 | 다시 세우기만 | 다시 세우기 + $\|J\|_F^2$ |
-| 민감함 | 높음(제약 없음) | 낮음(설계상) |
-| 튼튼함 | 제한됨 | 나아짐 |
-| 셈하기 | 빠름 | 느림(야코비 셈하기) |
-| 다양체 배움 | 넌지시 | 벌주기로 또렷이 |
-
-**핵심 눈썰미:** 오그리는 자기 부호기는 부호기의 민감함에 곧바로 벌을 주어 들임의 흔들림에 튼튼한 나타냄을 배우는 원칙 있는 길을 준다. (작은 정규 잡음에서) 잡음 없애는 자기 부호기와 이론상 같다는 점이 겉보기에 다른 두 벌주기 전략을 하나의 얼거리로 아우른다.
-
----
-
-## 참고 문헌
-
-- Rifai, S., et al. (2011). "Contractive Auto-Encoders: Explicit Invariance During Feature Extraction." *ICML*.
-- Alain, G., & Bengio, Y. (2014). "What Regularized Auto-Encoders Learn from the Data-Generating Distribution." *JMLR*.
 
 ## 연습문제
 
@@ -381,3 +358,22 @@ $\lambda \in \{0.001, 0.01, 0.1, 1.0\}$으로 오그리는 자기 부호기를 �
 익힌 오그리는 자기 부호기에서 들임 숫자마다 야코비 행렬을 그려 보아라. 어느 들임 방향이 가장 많이 오그라드는가?
 
 ---
+
+## 정리하며
+
+| 갈래 | 여느 자기 부호기 | 오그리는 자기 부호기 |
+|--------|-------------|----------------|
+| 손실 | 다시 세우기만 | 다시 세우기 + $\|J\|_F^2$ |
+| 민감함 | 높음(제약 없음) | 낮음(설계상) |
+| 튼튼함 | 제한됨 | 나아짐 |
+| 셈하기 | 빠름 | 느림(야코비 셈하기) |
+| 다양체 배움 | 넌지시 | 벌주기로 또렷이 |
+
+**핵심 눈썰미:** 오그리는 자기 부호기는 부호기의 민감함에 곧바로 벌을 주어 들임의 흔들림에 튼튼한 나타냄을 배우는 원칙 있는 길을 준다. (작은 정규 잡음에서) 잡음 없애는 자기 부호기와 이론상 같다는 점이 겉보기에 다른 두 벌주기 전략을 하나의 얼거리로 아우른다.
+
+---
+
+**참고 문헌**
+
+- Rifai, S., et al. (2011). "Contractive Auto-Encoders: Explicit Invariance During Feature Extraction." *ICML*.
+- Alain, G., & Bengio, Y. (2014). "What Regularized Auto-Encoders Learn from the Data-Generating Distribution." *JMLR*.

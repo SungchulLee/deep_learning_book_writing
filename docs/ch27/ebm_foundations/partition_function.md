@@ -1,8 +1,8 @@
 # 나눔 함수
 
+---
 
-
-## 학습 목표
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있다:
 
@@ -11,7 +11,9 @@
 3. 나눔 함수가 왜 다룰 수 없는지와 익히기에 미치는 결과를 밝힌다
 4. 차원이 낮을 때 나눔 함수를 어림하는 수치 방법을 쓴다
 
-## 뜻매김과 몫
+---
+
+## 2. 뜻매김과 몫
 
 나눔 함수는 볼츠만 분포의 고르게 맞추는 상수이다:
 
@@ -21,7 +23,9 @@ $$Z(T) = \int_{\mathcal{X}} \exp\left(-\frac{E(x)}{T}\right) dx$$
 
 "그저" 고르게 맞추는 상수인데도 $Z$은 통계 역학과 에너지 바탕 나타내기에서 가장 중요한 양이라 할 만하다. 이는 계에 대한 온전한 분포 앎을 담는다. 모든 기댓값, 적률, 열역학 양을 $Z$과 그 미분에서 뽑아낼 수 있다.
 
-## Z에서 얻는 열역학 양
+---
+
+## 3. Z에서 얻는 열역학 양
 
 나눔 함수는 열역학 양의 만들개 함수 노릇을 한다:
 
@@ -155,7 +159,9 @@ def visualize_phase_transition_analogy():
 visualize_phase_transition_analogy()
 ```
 
-## 다룰 수 없음 문제
+---
+
+## 4. 다룰 수 없음 문제
 
 차원이 높은 공간에서 나눔 함수는 다룰 수 없어진다:
 
@@ -189,7 +195,9 @@ $Z$을 다룰 수 없다는 점이 여러 아름다운 익히기 방식의 까�
 
 **잡음 맞댐 어림**: 밀도 어림을 자료와 잡음을 가르는 가름 문제로 바꾸며, 나눔 함수가 아니라 에너지 함수만 있으면 된다.
 
-## 나눔 함수 어림
+---
+
+## 5. 나눔 함수 어림
 
 차원이 높으면 $Z$을 정확히 셈할 수 없지만, 몇몇 어림 방법이 따지기, 모델 견주기, 차원 낮은 진단에 쓸모 있다.
 
@@ -259,7 +267,9 @@ def annealed_importance_sampling(energy_fn, dim, n_chains=100,
 
 다리 뽑기는 바탕 분포와 목표 분포 양쪽의 표본을 써서 비 $Z_\text{target}/Z_\text{reference}$을 어림한다. 두 분포 모두 뽑기 쉬울 때는 식힘 중요도 뽑기보다 효율 좋을 수 있지만, 목표에서 뽑는 것 자체가 어려운 에너지 바탕 모델에서는 덜 쓰인다.
 
-## 근본 양으로서의 자유 에너지
+---
+
+## 6. 근본 양으로서의 자유 에너지
 
 실제로는 자유 에너지 $F = -T \log Z$이 $Z$ 자체보다 쓸모 있을 때가 많다. 자유 에너지는 변분 원리를 만족한다:
 
@@ -269,7 +279,9 @@ $$F = \min_q \left[\mathbb{E}_q[E(x)] + T \cdot H[q]\right]$$
 
 이 변분 성격 매김은 기계 배움의 변분 추론과 곧바로 이어진다. 증거 아래 한계(ELBO)는 자유 에너지 한계이며, 변분 자기 부호기는 제한된 변분 분포 무리로 자유 에너지를 가장 작게 하는 것으로 이해할 수 있다.
 
-## 핵심 정리
+---
+
+## 7. 핵심 정리
 
 !!! success "핵심 개념"
 
@@ -285,11 +297,7 @@ $$F = \min_q \left[\mathbb{E}_q[E(x)] + T \cdot H[q]\right]$$
     - $Z$을 다룰 수 없다고 해서 에너지 바탕 모델을 제대로 익힐 수 없다는 뜻은 아니다. 영리한 어림이 필요하다는 뜻이다
     - 차원이 낮을 때의 $Z$ 어림(격자 적분)은 차원의 저주 때문에 차원이 높은 곳으로 넓혀지지 않는다
 
-## 참고 문헌
-
-- Neal, R. M. (2001). Annealed Importance Sampling. *Statistics and Computing*.
-- Meng, X.-L., & Wong, W. H. (1996). Simulating ratios of normalizing constants via a simple identity. *Statistica Sinica*.
-- Salakhutdinov, R., & Murray, I. (2008). On the quantitative analysis of deep belief networks. *ICML*.
+---
 
 ## 연습문제
 
@@ -298,3 +306,13 @@ $$F = \min_q \left[\mathbb{E}_q[E(x)] + T \cdot H[q]\right]$$
 2. **변분 자유 에너지**: 정규 변분 분포 무리 $q$에 대해 변분 자유 에너지 $F_q = \mathbb{E}_q[E] + T \cdot H[q]$을 짜라. $q$을 가장 좋게 하고 변분 한계를 참 자유 에너지와 견주어라.
 
 3. **열역학 적분**: 서로 다른 두 에너지 함수의 로그 나눔 함수 비를 어림하도록 열역학 적분 $\log Z_1 - \log Z_0 = \int_0^1 \langle E_1 - E_0 \rangle_\beta \, d\beta$을 짜라.
+
+## 정리하며
+
+이 마당은 학습 목표、뜻매김과 몫、Z에서 얻는 열역학 양、다룰 수 없음 문제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Neal, R. M. (2001). Annealed Importance Sampling. *Statistics and Computing*.
+- Meng, X.-L., & Wong, W. H. (1996). Simulating ratios of normalizing constants via a simple identity. *Statistica Sinica*.
+- Salakhutdinov, R., & Murray, I. (2008). On the quantitative analysis of deep belief networks. *ICML*.

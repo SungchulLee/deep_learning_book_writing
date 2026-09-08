@@ -1,16 +1,23 @@
 # 전이 학습의 미세 조정 방법
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 특징 뽑기에서 전면 미세 조정까지의 스펙트럼을 이해한다
 - 차츰 녹이기와 층별 학습률을 구현한다
 - 파국적 망각을 알아채고 누그러뜨린다
 - 과제의 요구에 맞는 미세 조정 방법을 고른다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 미세 조정은 사전 학습된 모델을 특정 아래쪽 과제에 맞춘다. 핵심 어려움은 값진 사전 학습 지식을 지키면서 새 데이터에 맞추는 균형을 잡는 것이다. 이 문서는 일반적인 미세 조정 방법을 다룬다. LoRA나 어댑터 같은 매개변수를 아끼는 방법은 15.6절 효율적인 대형 언어 모델 미세 조정을 보라.
 
-## 미세 조정의 스펙트럼
+---
+
+## 3. 미세 조정의 스펙트럼
 
 ```
 Feature Extraction ←――――――――――――――――――→ Full Fine-tuning
@@ -22,7 +29,9 @@ Faster training                        Slower training
 Lower performance ceiling              Higher performance ceiling
 ```
 
-## 전면 미세 조정
+---
+
+## 4. 전면 미세 조정
 
 과제 데이터로 모델의 매개변수를 모두 갱신한다.
 
@@ -71,7 +80,9 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)
 | 예열 | 전체 단계의 6~10% | 초기에 갈라지는 것을 막는다 |
 | 가중치 감쇠 | 0.01 | 규제 |
 
-## 특징 뽑기 (부호기 얼리기)
+---
+
+## 5. 특징 뽑기 (부호기 얼리기)
 
 사전 학습된 가중치를 얼리고 과제에 맞는 머리만 학습한다.
 
@@ -123,7 +134,9 @@ print(f"Trainable parameters: {model.num_trainable_params:,}")  # 약 59만 대 
 optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=1e-3)
 ```
 
-## 차츰 녹이기
+---
+
+## 6. 차츰 녹이기
 
 학습 중에 (출력에 가장 가까운) 위에서부터 층을 차츰 녹인다.
 
@@ -219,7 +232,9 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch}: training...")
 ```
 
-## 층별 학습률
+---
+
+## 7. 층별 학습률
 
 층마다 다른 학습률을 준다. (일반 특징인) 아래 층에는 낮게, (과제에 맞는) 위 층에는 높게 준다.
 
@@ -317,7 +332,9 @@ optimizer = torch.optim.AdamW(param_groups)
 | 11층 | 맨 위 | 1.8e-5 | 1.9e-5 |
 | 분류기 | - | 2.0e-5 | 2.0e-5 |
 
-## 파국적 망각
+---
+
+## 8. 파국적 망각
 
 미세 조정의 중심 어려움은 **파국적 망각**이다. 모델이 특정 과제에 맞추어지면서 사전 학습 지식을 잃는 것이다.
 
@@ -476,7 +493,9 @@ class ReplayDataLoader:
 
 사전 학습 가중치를 얼리는, 매개변수를 아끼는 방법(LoRA, 어댑터)을 쓴다. 15.6절을 보라.
 
-## 방법 고르기
+---
+
+## 9. 방법 고르기
 
 ### 판단의 틀
 
@@ -507,24 +526,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 | 지식을 지켜야 할 때 | LoRA, 어댑터, EWC |
 | 과제가 여럿일 때 | 어댑터 (과제마다 하나) |
 
-## 요약
-
-| 방법 | 학습 매개변수 | 망각 위험 | 잘 맞는 곳 |
-|--------|-----------------|-----------------|----------|
-| 전면 미세 조정 | 100% | 높음 | 최고 성능 |
-| 특징 뽑기 | 1% 미만 | 없음 | 데이터가 적고 빠르게 되풀이할 때 |
-| 차츰 녹이기 | 점진적 | 보통 | 균형 잡힌 적응 |
-| 층별 학습률 | 100% | 보통 | 낮은 수준 특징 지키기 |
-| L2-SP / EWC | 100% | 낮음 | 이어지는 학습 |
-
-매개변수를 아끼는 방법(LoRA, QLoRA, 접두 조정, 어댑터)은 15.6절 효율적인 대형 언어 모델 미세 조정을 보라.
-
-## 참고 문헌
-
-1. Howard, J., & Ruder, S. (2018). "Universal Language Model Fine-tuning for Text Classification." ACL.
-2. Kirkpatrick, J., et al. (2017). "Overcoming Catastrophic Forgetting in Neural Networks." PNAS.
-3. Li, X., et al. (2018). "Explicit Inductive Bias for Transfer Learning with Convolutional Networks." ICML.
-4. Peters, M., et al. (2019). "To Tune or Not to Tune? Adapting Pretrained Representations to Diverse Tasks."
+---
 
 ## 연습문제
 
@@ -564,3 +566,22 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 
 ??? success "연습문제 4 풀이"
     원천 도메인과 목표 도메인이 아주 다를 때(이를테면 시각 특징이 너무 다르면 ImageNet에서 의료 X선으로는 도움이 안 될 수 있다), 목표 데이터셋이 아주 클 때(맨바닥부터 학습해도 똑같이 잘 될 수 있다), 또는 사전 학습 모델의 편향이 목표 과제에 바람직하지 않을 때이다.
+
+## 정리하며
+
+| 방법 | 학습 매개변수 | 망각 위험 | 잘 맞는 곳 |
+|--------|-----------------|-----------------|----------|
+| 전면 미세 조정 | 100% | 높음 | 최고 성능 |
+| 특징 뽑기 | 1% 미만 | 없음 | 데이터가 적고 빠르게 되풀이할 때 |
+| 차츰 녹이기 | 점진적 | 보통 | 균형 잡힌 적응 |
+| 층별 학습률 | 100% | 보통 | 낮은 수준 특징 지키기 |
+| L2-SP / EWC | 100% | 낮음 | 이어지는 학습 |
+
+매개변수를 아끼는 방법(LoRA, QLoRA, 접두 조정, 어댑터)은 15.6절 효율적인 대형 언어 모델 미세 조정을 보라.
+
+**참고 문헌**
+
+1. Howard, J., & Ruder, S. (2018). "Universal Language Model Fine-tuning for Text Classification." ACL.
+2. Kirkpatrick, J., et al. (2017). "Overcoming Catastrophic Forgetting in Neural Networks." PNAS.
+3. Li, X., et al. (2018). "Explicit Inductive Bias for Transfer Learning with Convolutional Networks." ICML.
+4. Peters, M., et al. (2019). "To Tune or Not to Tune? Adapting Pretrained Representations to Diverse Tasks."

@@ -1,5 +1,4 @@
 # 특징 맵
-## 들어가며
 
 **특징 맵**은 입력에 합성곱 필터를 적용한 결과로, 어떤 무늬(특징)가 어디에서 얼마나 강하게 잡혔는지를 나타내는 활성값의 공간 격자이다. 특징 맵은 CNN의 근본적인 중간 표현이며, 데이터가 신경망을 지날수록 점점 더 추상적인 정보를 담는다.
 
@@ -12,7 +11,7 @@
 
 ---
 
-## 특징 맵의 기하
+## 1. 특징 맵의 기하
 
 ### 텐서 모양의 관행
 
@@ -66,7 +65,7 @@ forms a local feature descriptor.
 
 ---
 
-## 신경망을 지나며 특징 맵이 달라지는 방식
+## 2. 신경망을 지나며 특징 맵이 달라지는 방식
 
 ### 특징의 위계
 
@@ -108,7 +107,7 @@ Input Image (3×224×224)
 
 ---
 
-## 매개변수와 메모리 분석
+## 3. 매개변수와 메모리 분석
 
 ### 층마다의 매개변수 수
 
@@ -193,7 +192,7 @@ analyze_feature_maps(named_model)
 
 ---
 
-## "채널은 두 배, 해상도는 절반" 방식
+## 4. "채널은 두 배, 해상도는 절반" 방식
 
 요즘 CNN 구조는 한결같은 설계 방식을 따른다. (보폭 2 합성곱이나 풀링으로) 공간 해상도가 절반이 되면 채널 수를 두 배로 늘린다. 그러면 층마다의 계산 비용이 대체로 일정하게 유지된다.
 
@@ -228,7 +227,7 @@ for name, c, h, w in stages:
 
 ---
 
-## 특징 맵 시각화
+## 5. 특징 맵 시각화
 
 ### 학습된 특징 그려 보기
 
@@ -339,7 +338,7 @@ def feature_map_statistics(model, loader, layer_name, num_batches=10):
 
 ---
 
-## 다채널 합성곱에서의 특징 맵
+## 6. 다채널 합성곱에서의 특징 맵
 
 ### 합성곱 하나가 특징 맵을 만드는 방식
 
@@ -377,7 +376,7 @@ print(f"Parameters: {params:,}")  # 256×64 + 64 = 16,448
 
 ---
 
-## 특징 맵 다시 쓰기: 건너뛰기 연결
+## 7. 특징 맵 다시 쓰기: 건너뛰기 연결
 
 건너뛰기(잔차) 연결은 앞쪽 층의 특징 맵이 중간 층을 건너뛰어 뒤쪽 특징 맵에 더해지거나 이어 붙게 해 준다.
 
@@ -434,19 +433,7 @@ class DenseBlock(nn.Module):
 
 ---
 
-## 요약
-
-| 개념 | 설명 |
-|---------|-------------|
-| **모양** | $(N, C, H, W)$: 배치, 채널, 높이, 너비 |
-| **채널** | 채널 하나 = 학습된 특징 검출기 하나의 공간적 반응 |
-| **위계** | 앞쪽: 모서리와 질감 → 깊은 쪽: 물체와 의미 |
-| **설계 방식** | 해상도를 절반으로 할 때 채널을 두 배로 |
-| **$1 \times 1$ 합성곱** | 채널만 섞고 공간적 거르기는 하지 않음 |
-| **건너뛰기 연결** | 앞쪽 특징 맵을 다시 씀 (더하거나 이어 붙임) |
-| **시각화** | 훅으로 뽑아내면 학습된 표현이 드러남 |
-
-## 핵심 정리
+## 8. 핵심 정리
 
 1. **특징 맵은 3차원 텐서**($C \times H \times W$)이며 채널은 *무엇*을, 공간 차원은 *어디*를 담는다
 2. **점진적인 추상화**: 신경망은 해상도가 높고 채널이 적은 입력을 해상도가 낮고 채널이 많은 표현으로 바꾼다
@@ -455,17 +442,7 @@ class DenseBlock(nn.Module):
 5. **활성값 메모리가 매개변수 메모리를 넘어설 때가 많다.** 특히 해상도가 높은 입력에서 그러하며, GPU 메모리를 가늠할 때 중요한 문제이다
 6. 훅으로 하는 **특징 맵 시각화**는 벌레잡이와 해석에 꼭 필요한 도구이다
 
-## 참고 문헌
-
-1. Zeiler, M. D., & Fergus, R. (2014). "Visualizing and Understanding Convolutional Networks." *ECCV*.
-
-2. He, K., Zhang, X., Ren, S., & Sun, J. (2016). "Deep Residual Learning for Image Recognition." *CVPR*.
-
-3. Huang, G., Liu, Z., van der Maaten, L., & Weinberger, K. Q. (2017). "Densely Connected Convolutional Networks." *CVPR*.
-
-4. Lin, M., Chen, Q., & Yan, S. (2014). "Network In Network." *ICLR*. (1×1 합성곱을 처음 소개한 논문)
-
-5. Simonyan, K., & Zisserman, A. (2015). "Very Deep Convolutional Networks for Large-Scale Image Recognition." *ICLR*.
+---
 
 ## 연습문제
 
@@ -507,3 +484,27 @@ $1 \times 1$ 합성곱(점별 합성곱)은 특징 맵을 어떻게 바꾸는가
 
 ??? success "연습문제 4 풀이"
     $1\times1$ 합성곱은 공간 차원을 바꾸지 않고 공간 위치마다 채널을 섞는다. (1) 채널 차원 줄이기(ResNet의 병목 층), (2) 채널 늘리기, (3) (활성화와 함께) 비선형 더하기에 쓰인다. 공간 위치마다 공유된 MLP를 따로 적용하는 것과 같다.
+
+## 정리하며
+
+| 개념 | 설명 |
+|---------|-------------|
+| **모양** | $(N, C, H, W)$: 배치, 채널, 높이, 너비 |
+| **채널** | 채널 하나 = 학습된 특징 검출기 하나의 공간적 반응 |
+| **위계** | 앞쪽: 모서리와 질감 → 깊은 쪽: 물체와 의미 |
+| **설계 방식** | 해상도를 절반으로 할 때 채널을 두 배로 |
+| **$1 \times 1$ 합성곱** | 채널만 섞고 공간적 거르기는 하지 않음 |
+| **건너뛰기 연결** | 앞쪽 특징 맵을 다시 씀 (더하거나 이어 붙임) |
+| **시각화** | 훅으로 뽑아내면 학습된 표현이 드러남 |
+
+**참고 문헌**
+
+1. Zeiler, M. D., & Fergus, R. (2014). "Visualizing and Understanding Convolutional Networks." *ECCV*.
+
+2. He, K., Zhang, X., Ren, S., & Sun, J. (2016). "Deep Residual Learning for Image Recognition." *CVPR*.
+
+3. Huang, G., Liu, Z., van der Maaten, L., & Weinberger, K. Q. (2017). "Densely Connected Convolutional Networks." *CVPR*.
+
+4. Lin, M., Chen, Q., & Yan, S. (2014). "Network In Network." *ICLR*. (1×1 합성곱을 처음 소개한 논문)
+
+5. Simonyan, K., & Zisserman, A. (2015). "Very Deep Convolutional Networks for Large-Scale Image Recognition." *ICLR*.

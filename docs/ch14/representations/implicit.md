@@ -2,7 +2,9 @@
 
 모든 그래프가 이웃 목록이나 행렬에 말끔히 들어맞지는 않는다. 중요한 그래프 가운데 많은 것이 드러내 저장하기에는 너무 크거나 아예 끝이 없다. 그래도 그 짜임이 단순한 규칙을 따르므로 필요할 때 이웃을 셈할 수 있다. 칸마다 동서남북 이웃에 이어진 장기판, 상태마다 한 번 돌려 닿는 상태에 이어진 루빅 큐브, 체스의 놀이 나무가 모두 자료가 아니라 규칙으로 정해지는 그래프이다. 이런 것을 속뜻 그래프라 하며, 이를 이해하는 일은 찾기, 계획 세우기, 조합 최적화에 꼭 필요하다.
 
-## 정의
+---
+
+## 1. 정의
 
 **속뜻 그래프** $G = (V, E)$은 꼭짓점과 변을 기억 공간에 드러내 저장하지 않는 그래프이다. 그 대신 **뒤따름 함수**(또는 이웃 함수) $\text{neighbors}(v)$이 필요할 때 $v$에 이웃한 꼭짓점의 묶음을 셈한다.
 
@@ -18,7 +20,9 @@ $$
 E = \{(u, v) : v \in \text{neighbors}(u)\}
 $$
 
-## 속뜻 그래프가 왜 중요한가
+---
+
+## 2. 속뜻 그래프가 왜 중요한가
 
 상태 공간이 너무 커서 낱낱이 셀 수 없을 때 속뜻 그래프가 나온다:
 
@@ -32,7 +36,9 @@ $$
 
 루빅 큐브에서 $4.3 \times 10^{19}$개 상태를 모두 드러내 저장하기란 불가능하다. BFS이나 DFS은 시작에서 닿는 상태만 찾아내며 이웃을 게으르게 만든다.
 
-## 격자 그래프
+---
+
+## 3. 격자 그래프
 
 알고리즘 문제에서 가장 흔한 속뜻 그래프는 **격자 그래프**이다. $m \times n$ 격자는 $0 \leq r < m$과 $0 \leq c < n$인 정수 자리 $(r, c)$에 꼭짓점을 둔다. 칸마다 동서남북 이웃 4개(위, 아래, 왼쪽, 오른쪽)에 이어지되 가장자리 조건과 걸림돌을 따른다.
 
@@ -51,7 +57,6 @@ $$
 
 from collections import deque
 
-
 # === 격자 그래프 ===
 
 def grid_neighbors(r, c, rows, cols, blocked=None):
@@ -69,7 +74,6 @@ def grid_neighbors(r, c, rows, cols, blocked=None):
         if 0 <= nr < rows and 0 <= nc < cols and (nr, nc) not in blocked:
             result.append((nr, nc))
     return result
-
 
 def bfs_grid(rows, cols, start, goal, blocked=None):
     """
@@ -95,7 +99,6 @@ def bfs_grid(rows, cols, start, goal, blocked=None):
                 queue.append(((nr, nc), dist + 1))
     return -1
 
-
 # === 낱말 사다리 ===
 
 def word_neighbors(word, dictionary):
@@ -113,7 +116,6 @@ def word_neighbors(word, dictionary):
                 if candidate in dictionary:
                     result.append(candidate)
     return result
-
 
 def bfs_word_ladder(start, goal, dictionary):
     """
@@ -137,7 +139,6 @@ def bfs_word_ladder(start, goal, dictionary):
                 visited.add(neighbor)
                 queue.append((neighbor, dist + 1))
     return -1
-
 
 # === 메인 ===
 
@@ -165,7 +166,9 @@ Grid with wall: -1 (unreachable)
 Word ladder 'hit' -> 'cog': 4 transformations
 ```
 
-## 복잡도에서 살필 점
+---
+
+## 4. 복잡도에서 살필 점
 
 속뜻 그래프에서는 표준 복잡도 잣대가 달라진다:
 
@@ -179,10 +182,7 @@ Word ladder 'hit' -> 'cog': 4 transformations
 !!! warning "끝없는 상태 공간"
     상태 공간이 끝없으면(이를테면 끝없는 격자, 수학 퍼즐) BFS은 최단 경로를 찾음을 보장하지만 풀이가 없으면 끝없이 돌 수 있다. 되풀이 깊이 늘리기 DFS(IDDFS)은 그런 문제에서 BFS의 가장 좋음과 DFS의 공간 효율을 합친다. [되풀이 깊이 늘리기](../traversals/iddfs.md)를 보아라.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
-- Russell, S. J., & Norvig, P. (2021). *Artificial Intelligence: A Modern Approach* (4th ed.). Pearson. Chapter 3.
+---
 
 ## 연습문제
 
@@ -219,3 +219,12 @@ Word ladder 'hit' -> 'cog': 4 transformations
 
 ??? success "연습문제 4 풀이"
     BFS은 거리 $d + 1$의 꼭짓점을 보기 전에 거리 $d$의 꼭짓점을 모두 살펴보며 꼭짓점 $O(b^d)$개를 다녀간다. A*은 $v$에서 목표까지 남은 값을 어림하는 어림짐작 $h(v)$을 써서 $f(v) = g(v) + h(v)$이 작은 꼭짓점을 앞세운다. $h$이 **받아들일 만하고**(참값을 결코 넘겨 어림하지 않고) **한결같으면**(변마다 $h(u) \leq c(u,v) + h(v)$), A*은 가장 좋은 경로를 찾으면서도 보통 BFS보다 훨씬 적은 꼭짓점만 살펴본다. 어림짐작이 찾기를 목표 쪽으로 이끌기 때문이다. $\square$
+
+## 정리하며
+
+이 마당은 정의、속뜻 그래프가 왜 중요한가、격자 그래프、복잡도에서 살필 점을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
+- Russell, S. J., & Norvig, P. (2021). *Artificial Intelligence: A Modern Approach* (4th ed.). Pearson. Chapter 3.

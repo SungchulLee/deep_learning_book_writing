@@ -1,9 +1,10 @@
 # 트랜스포머의 학습과 추론
-## 개요
 
 트랜스포머 구조에서 학습과 추론은 근본적으로 다른 방식을 따른다. 학습 중에는 모형이 원문과 목표문 수열을 모두 받아 효율적인 병렬 계산을 위해 **스승 강제**를 쓴다. 추론 중에는 모형이 자기 회귀로 토큰을 만들며, 한 번에 하나씩 내고 그것을 다음 단계의 입력으로 되먹인다.
 
-## 학습 파이프라인
+---
+
+## 1. 학습 파이프라인
 
 ### 입력 쌍
 
@@ -57,7 +58,9 @@ $$
 2. **사전 학습으로 초기화**: Word2Vec, GloVe, 또는 맥락 임베딩으로 초기화한 뒤 미세 조정하거나 얼려 둔다.
 3. **부분 낱말 임베딩**: 바이트 쌍 부호화(BPE)나 WordPiece를 쓰는 모형은 부분 낱말 단위의 임베딩을 배워 어휘를 더 넓게 덮고 드문 낱말을 더 잘 다룬다.
 
-## 파이토치 학습 구현
+---
+
+## 2. 파이토치 학습 구현
 
 ```python
 import torch
@@ -176,7 +179,9 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
     return total_loss / num_batches
 ```
 
-## 추론 과정
+---
+
+## 3. 추론 과정
 
 ### 자기 회귀 생성
 
@@ -300,7 +305,9 @@ def translate(
     return " ".join(words)
 ```
 
-## 학습과 추론 견주기
+---
+
+## 4. 학습과 추론 견주기
 
 | 측면 | 학습 | 추론 |
 |--------|----------|-----------|
@@ -312,7 +319,9 @@ def translate(
 | **인과 가림** | 앞을 엿보지 못하게 학습 중에 적용한다 | 생성 단계마다 적용한다 |
 | **계산** | 수열 전체에 앞먹임 한 번 | 길이 $T$의 출력에 앞먹임 $T$번 |
 
-## 완전한 학습 예제
+---
+
+## 5. 완전한 학습 예제
 
 ```python
 import math
@@ -477,7 +486,9 @@ if __name__ == "__main__":
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}")
 ```
 
-## 이름표 평활화
+---
+
+## 6. 이름표 평활화
 
 본디 트랜스포머 논문은 $\epsilon = 0.1$의 이름표 매끄럽게 하기를 쓰는데, 확률의 작은 몫을 어휘의 모든 토큰에 흩뿌려 모형이 지나치게 자신하지 않게 한다.
 
@@ -520,22 +531,7 @@ class LabelSmoothingLoss(nn.Module):
         return loss
 ```
 
-## 요약
-
-트랜스포머의 학습 과정과 추론 과정은 디코더를 다루는 방식에서 근본적으로 다르다.
-
-1. **학습**은 오른쪽으로 민 참값과 함께 스승 강제를 써서 자리에 걸쳐 온전히 병렬로 하고 참인 다음 토큰에 대해 손실을 셈한다.
-2. **추론**은 자기 회귀로 만들며 단계마다 토큰 하나를 내고 그 예측을 디코더 입력으로 되먹인다.
-3. **이름표 매끄럽게 하기**는 지나친 자신을 막고 규제 노릇을 한다.
-4. **가림 만들기**는 (길이가 제각각인 수열을 위한) 채움 가림과 (자기 회귀 생성을 위한) 인과 가림을 함께 쓴다.
-
-이 구분을 이해하는 것은 트랜스포머 기반 체계를 구현하고 고치고 다듬는 데 꼭 필요하다.
-
-## 참고 문헌
-
-1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
-2. Szegedy, C., et al. (2016). "Rethinking the Inception Architecture for Computer Vision." CVPR. (Label smoothing)
-3. Williams, R. J., & Zipser, D. (1989). "A Learning Algorithm for Continually Running Fully Recurrent Neural Networks." (Teacher forcing)
+---
 
 ## 연습문제
 
@@ -578,3 +574,20 @@ class LabelSmoothingLoss(nn.Module):
     scheduler.step()
     optimizer.zero_grad()
     ```
+
+## 정리하며
+
+트랜스포머의 학습 과정과 추론 과정은 디코더를 다루는 방식에서 근본적으로 다르다.
+
+1. **학습**은 오른쪽으로 민 참값과 함께 스승 강제를 써서 자리에 걸쳐 온전히 병렬로 하고 참인 다음 토큰에 대해 손실을 셈한다.
+2. **추론**은 자기 회귀로 만들며 단계마다 토큰 하나를 내고 그 예측을 디코더 입력으로 되먹인다.
+3. **이름표 매끄럽게 하기**는 지나친 자신을 막고 규제 노릇을 한다.
+4. **가림 만들기**는 (길이가 제각각인 수열을 위한) 채움 가림과 (자기 회귀 생성을 위한) 인과 가림을 함께 쓴다.
+
+이 구분을 이해하는 것은 트랜스포머 기반 체계를 구현하고 고치고 다듬는 데 꼭 필요하다.
+
+**참고 문헌**
+
+1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
+2. Szegedy, C., et al. (2016). "Rethinking the Inception Architecture for Computer Vision." CVPR. (Label smoothing)
+3. Williams, R. J., & Zipser, D. (1989). "A Learning Algorithm for Continually Running Fully Recurrent Neural Networks." (Teacher forcing)

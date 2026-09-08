@@ -1,9 +1,10 @@
 # 가린 자기 주의
-## 들어가며
 
 가린 자기 주의는 트랜스포머 디코더에서 자기 회귀 생성을 가능케 하는 얼개이다. 자리마다 앞으로의 자리에 주의하지 못하게 막아 왼쪽에서 오른쪽으로의 수열 생성에 필요한 인과 짜임을 지킨다.
 
-## 인과성이라는 요구
+---
+
+## 1. 인과성이라는 요구
 
 언어 모형화에서는 앞선 토큰을 모두 주고 다음 토큰을 맞힌다.
 
@@ -13,7 +14,9 @@ $$
 
 이 인수분해는 $x_t$을 맞힐 때 $x_1, \ldots, x_{t-1}$의 정보만 쓸 것을 요구한다. 가린 주의가 병렬 학습 중에 이 제약을 지키게 한다.
 
-## 수학적 정식화
+---
+
+## 2. 수학적 정식화
 
 ### 표준 자기 주의
 
@@ -51,7 +54,9 @@ $$
 \alpha_{ij} = \begin{cases} \frac{\exp(s_{ij})}{\sum_{k \leq i} \exp(s_{ik})} & \text{if } j \leq i \\ 0 & \text{if } j > i \end{cases}
 $$
 
-## 가림 만들기
+---
+
+## 3. 가림 만들기
 
 ### 아래 삼각 가림
 
@@ -97,7 +102,9 @@ Position 4  │ ✓ │ ✓ │ ✓ │ ✓ │ ✗ │
            Attend          Masked
 ```
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -328,7 +335,9 @@ if __name__ == "__main__":
     print("\nVisualization saved to 'causal_attention_pattern.png'")
 ```
 
-## 인과 가림과 채움 가림 섞기
+---
+
+## 5. 인과 가림과 채움 가림 섞기
 
 실제로는 인과 가림과 채움 가림을 자주 함께 쓴다.
 
@@ -367,7 +376,9 @@ def create_combined_mask(
     return combined_mask
 ```
 
-## 플래시 주의로 효율적으로 구현하기
+---
+
+## 6. 플래시 주의로 효율적으로 구현하기
 
 긴 수열에서는 플래시 주의가 기억을 아끼는 인과 주의를 준다.
 
@@ -397,7 +408,9 @@ def efficient_causal_attention(
     )
 ```
 
-## 접두 언어 모형: 양방향 접두와 인과 접미
+---
+
+## 7. 접두 언어 모형: 양방향 접두와 인과 접미
 
 어떤 모형(T5 디코더, UL2 같은)은 섞은 방식을 쓴다.
 
@@ -436,7 +449,9 @@ def create_prefix_lm_mask(
 # 자리 6 이상: 인과 (접두와 앞선 접미를 볼 수 있다)
 ```
 
-## 미끄러지는 창 주의
+---
+
+## 8. 미끄러지는 창 주의
 
 긴 수열에서 효율을 위해 미끄러지는 창은 주의를 가까운 자리로 제한한다.
 
@@ -469,7 +484,9 @@ def create_sliding_window_causal_mask(
     return mask.bool()
 ```
 
-## 학습과 추론
+---
+
+## 9. 학습과 추론
 
 ### 학습 (병렬)
 
@@ -495,23 +512,7 @@ for t in range(max_tokens):
 
 KV 캐싱을 쓰면 앞선 자리의 주의를 다시 셈하지 않아도 된다.
 
-## 요약
-
-가린 자기 주의는 자기 회귀 모형에 꼭 필요하다.
-
-1. **인과성을 지킨다**: 앞에서 뒤로의 정보 흐름을 막는다
-2. **병렬 학습을 가능케 한다**: 모든 자리를 한꺼번에 셈한다
-3. **생성 순서를 지킨다**: 토큰을 왼쪽에서 오른쪽으로 만든다
-4. **다른 가림과 어울린다**: 채움, 미끄러지는 창 따위와 함께 쓸 수 있다
-
-가린 주의를 이해하는 것은 언어 모형과 글 생성 체계를 구현하는 데 매우 중요하다.
-
-## 참고 문헌
-
-1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
-2. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners."
-3. Dao, T., et al. (2022). "FlashAttention: Fast and Memory-Efficient Attention."
-4. Beltagy, I., et al. (2020). "Longformer: The Long-Document Transformer."
+---
 
 ## 연습문제
 
@@ -549,3 +550,21 @@ KV 캐싱이 인과 가림을 어떻게 이용해 자기 회귀 추론을 빠르
 
 ??? success "연습문제 4 풀이"
     생성 중에 새 토큰마다 앞선 토큰 모두에만 주의하면 된다. KV 캐시를 쓰면 앞 단계의 열쇠와 값 사영을 담아 둔다. 새 토큰에 대해서는 그 질의만 셈해 담아 둔 K, V에 주의한다. 그러면 단계마다의 비용이 $O(n^2)$에서 $O(n)$으로 줄고 앞선 토큰의 표현을 다시 셈하지 않아도 된다.
+
+## 정리하며
+
+가린 자기 주의는 자기 회귀 모형에 꼭 필요하다.
+
+1. **인과성을 지킨다**: 앞에서 뒤로의 정보 흐름을 막는다
+2. **병렬 학습을 가능케 한다**: 모든 자리를 한꺼번에 셈한다
+3. **생성 순서를 지킨다**: 토큰을 왼쪽에서 오른쪽으로 만든다
+4. **다른 가림과 어울린다**: 채움, 미끄러지는 창 따위와 함께 쓸 수 있다
+
+가린 주의를 이해하는 것은 언어 모형과 글 생성 체계를 구현하는 데 매우 중요하다.
+
+**참고 문헌**
+
+1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
+2. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners."
+3. Dao, T., et al. (2022). "FlashAttention: Fast and Memory-Efficient Attention."
+4. Beltagy, I., et al. (2020). "Longformer: The Long-Document Transformer."

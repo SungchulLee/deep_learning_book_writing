@@ -1,5 +1,4 @@
 # 경험 되살리기
-## 들어가며
 
 **경험 되살리기**는 이어 배우기에서 가장 쓸모 있고 직관적인 방법에 든다. 핵심 생각은 단순하다. 앞선 과제의 보기를 담은 기억 버퍼를 지니고, 새 과제를 익히는 동안 그것을 되살려 쓴다. 옛 보기와 새 보기를 섞으면 모델이 새 과제를 배우면서도 앞선 과제의 솜씨를 지킨다.
 
@@ -10,7 +9,9 @@
     - **융통성**: 다른 이어 배우기 기법과 섞을 수 있다
     - **단순함**: 구현하고 이해하기 쉽다
 
-## 이론적 바탕
+---
+
+## 1. 이론적 바탕
 
 ### 되살리기가 통하는 까닭
 
@@ -32,7 +33,9 @@ $$
 
 경험 되살리기는 함께 익히기의 어림으로 볼 수 있다. 기억이 무한하여 앞선 보기를 모두 담아 둘 수 있다면, 되살리기는 모든 데이터를 한꺼번에 익히는 것과 같아지며 그때는 잊음이 없다.
 
-## 기억 버퍼 전략
+---
+
+## 2. 기억 버퍼 전략
 
 ### 저수지 뽑기
 
@@ -148,7 +151,9 @@ class ClassBalancedBuffer:
                 torch.tensor([all_labels[i] for i in indices], dtype=torch.long))
 ```
 
-## 온전한 경험 되살리기 구현
+---
+
+## 3. 온전한 경험 되살리기 구현
 
 ```python
 import torch
@@ -382,7 +387,9 @@ class ExperienceReplayLearner:
         return {'accuracy_matrix': accuracy_matrix}
 ```
 
-## 초매개변수 분석
+---
+
+## 4. 초매개변수 분석
 
 ### 기억 크기의 효과
 
@@ -429,7 +436,9 @@ def analyze_memory_parameters(train_loaders, test_loaders, device):
     return results
 ```
 
-## 한 걸음 나아간 되살리기 전략
+---
+
+## 5. 한 걸음 나아간 되살리기 전략
 
 ### 기울기 기반 고르기
 
@@ -512,7 +521,9 @@ class LossBasedBuffer:
         return examples[indices.cpu()], labels[indices.cpu()]
 ```
 
-## 다른 방법과의 견줌
+---
+
+## 6. 다른 방법과의 견줌
 
 ### 되살리기와 벌주기
 
@@ -534,7 +545,9 @@ Split MNIST 잣대에서는 다음과 같다.
 | ER(1000) | 92% 남짓 | -6% | 보기 1000개 |
 | EWC | 85% 남짓 | -12% | 매개변수의 2배 |
 
-## 실용적인 고려
+---
+
+## 7. 실용적인 고려
 
 ### 경험 되살리기를 언제 쓸까
 
@@ -558,26 +571,7 @@ Split MNIST 잣대에서는 다음과 같다.
 3. **배치 섞기**: 지금 것과 되살린 것을 반반으로 두는 것이 좋은 기본값이다
 4. **데이터 늘리기**: 되살린 표본에도 같은 늘리기를 쓴다
 
-## 요약
-
-경험 되살리기는 이어 배우기에 힘 있고 실전에 맞는 방법이다.
-
-- **장치**: 앞선 보기를 담아 두고 되살린다
-- **쓸모**: 가장 좋은 성능을 내는 방법일 때가 많다
-- **맞바꿈**: 기억을 담아 두어야 한다
-- **융통성**: 다른 방법과 섞기 쉽다
-
-단순하고 성능이 든든해서 기억이 빠듯하지만 않다면 첫손에 꼽을 만하다.
-
-## 참고 문헌
-
-1. Robins, A. (1995). Catastrophic forgetting, rehearsal and pseudorehearsal. *Connection Science*.
-
-2. Rolnick, D., et al. (2019). Experience replay for continual learning. *NeurIPS*.
-
-3. Chaudhry, A., et al. (2019). On tiny episodic memories in continual learning. *ICML Workshop*.
-
-4. Buzzega, P., et al. (2020). Dark experience for general continual learning: a strong, simple baseline. *NeurIPS*.
+---
 
 ## 연습문제
 
@@ -610,3 +604,24 @@ Split MNIST 잣대에서는 다음과 같다.
 
 ??? success "연습문제 4 풀이"
     구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.
+
+## 정리하며
+
+경험 되살리기는 이어 배우기에 힘 있고 실전에 맞는 방법이다.
+
+- **장치**: 앞선 보기를 담아 두고 되살린다
+- **쓸모**: 가장 좋은 성능을 내는 방법일 때가 많다
+- **맞바꿈**: 기억을 담아 두어야 한다
+- **융통성**: 다른 방법과 섞기 쉽다
+
+단순하고 성능이 든든해서 기억이 빠듯하지만 않다면 첫손에 꼽을 만하다.
+
+**참고 문헌**
+
+1. Robins, A. (1995). Catastrophic forgetting, rehearsal and pseudorehearsal. *Connection Science*.
+
+2. Rolnick, D., et al. (2019). Experience replay for continual learning. *NeurIPS*.
+
+3. Chaudhry, A., et al. (2019). On tiny episodic memories in continual learning. *ICML Workshop*.
+
+4. Buzzega, P., et al. (2020). Dark experience for general continual learning: a strong, simple baseline. *NeurIPS*.

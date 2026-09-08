@@ -1,11 +1,16 @@
 # 같은 것 가리키기 풀기
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 언급 찾기와 앞선 말 잇기를 이해한다
 - 끝에서 끝까지의 신경 같은 것 가리키기 풀기를 짠다
 - 글월 수준 앎 뽑기에서 같은 것 가리키기의 몫을 헤아린다
 
-## 일의 정의
+---
+
+## 2. 일의 정의
 
 같은 것 가리키기 풀기는 글월 안에서 같은 실제 것을 가리키는 모든 **언급**을 **무리**로 묶는다.
 
@@ -16,7 +21,9 @@
 무리 1: {Apple, its, The tech giant, the company}
 무리 2: {CEO Tim Cook}
 
-## 언급의 갈래
+---
+
+## 3. 언급의 갈래
 
 | 갈래 | 보기 | 찾는 법 |
 |------|---------|-----------|
@@ -24,7 +31,9 @@
 | 이름씨 마디 | "the company", "the deal" | 이름씨 마디 덩이 짓기 |
 | 대이름씨 | "it", "they", "his" | 품사 붙이기 |
 
-## 고전적인 방식
+---
+
+## 4. 고전적인 방식
 
 ### 언급 짝 모델
 
@@ -40,7 +49,9 @@ $$s(m_i, m_j) = \mathbf{w}^T \phi(m_i, m_j)$$
 
 $$P(a_j \mid m_i) = \frac{\exp(s(m_i, m_j))}{\sum_{k \leq i} \exp(s(m_i, m_k)) + \exp(s_{\text{new}}(m_i))}$$
 
-## 끝에서 끝까지의 신경 같은 것 가리키기(Lee 외, 2017)
+---
+
+## 5. 끝에서 끝까지의 신경 같은 것 가리키기(Lee 외, 2017)
 
 요즘 판을 잡은 방식은 언급 찾기와 같은 것 가리키기 잇기를 함께 한다.
 
@@ -87,7 +98,9 @@ class CorefScorer(nn.Module):
         return s_m_i + s_m_j + s_a
 ```
 
-## 평가 지표
+---
+
+## 6. 평가 지표
 
 | 잣대 | 초점 |
 |--------|-------|
@@ -96,15 +109,13 @@ class CorefScorer(nn.Module):
 | CEAF | 가장 좋은 무리 맞추기 |
 | CoNLL | MUC, B세제곱, CEAF의 평균 |
 
-## 금융에서의 쓰임
+---
+
+## 7. 금융에서의 쓰임
 
 같은 것 가리키기는 글월 수준의 금융 앎 뽑기에 꼭 필요하다. 곧 10-K 보고서(100쪽 이상)에 걸쳐 것의 언급을 좇고, 실적 발표 녹취록의 대이름씨를 말하는 이에게 잇고, 회사의 다른 이름(보기로 "Alphabet" = "Google" = "the search giant")을 풀어낸다.
 
-## 참고 문헌
-
-1. Lee, K., et al. (2017). End-to-End Neural Coreference Resolution. *EMNLP*.
-2. Joshi, M., et al. (2020). SpanBERT: Improving Pre-Training by Representing and Predicting Spans. *TACL*.
-3. Wu, W., et al. (2020). CorefQA: Coreference Resolution as Query-Based Span Prediction. *ACL*.
+---
 
 ## 연습문제
 
@@ -137,3 +148,13 @@ class CorefScorer(nn.Module):
 
 ??? success "연습문제 4 풀이"
     규칙 바탕 열린 앎 뽑기 체계는 달림 나무에서 주어-움직씨-목적어 무늬를 가려내 세 쌍을 뽑는다. (1) 주된 움직씨(뿌리)를 찾고, (2) 이름씨 주어(nsubj)를 주어로 뽑고, (3) 직접 목적어(dobj)를 목적어로 뽑고, (4) (주어, 움직씨, 목적어) 세 쌍을 만든다. **한계**: (1) 이름씨로 바꾼 표현("Obama's visit to China")의 관계를 놓친다. (2) 마디가 여럿인 복잡한 월을 다루지 못한다. (3) 특별한 규칙 없이는 입음꼴에서 어그러진다. (4) 앞가지가 붙은 월에서는 질 낮은 세 쌍을 낸다. (5) 같은 관계의 서로 다른 겉모습을 하나로 다듬지 못한다.
+
+## 정리하며
+
+이 마당은 학습 목표、일의 정의、언급의 갈래、고전적인 방식을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Lee, K., et al. (2017). End-to-End Neural Coreference Resolution. *EMNLP*.
+2. Joshi, M., et al. (2020). SpanBERT: Improving Pre-Training by Representing and Predicting Spans. *TACL*.
+3. Wu, W., et al. (2020). CorefQA: Coreference Resolution as Query-Based Span Prediction. *ACL*.

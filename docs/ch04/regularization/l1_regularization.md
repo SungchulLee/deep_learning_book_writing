@@ -1,9 +1,10 @@
 # L1 정칙화 (라쏘)
-## 개요
 
 라쏘(Least Absolute Shrinkage and Selection Operator)라고도 하는 L1 정칙화는 모델 가중치의 절댓값에 비례하는 벌점을 손실 함수에 더한다. 이 기법은 학습된 매개변수의 희소성을 북돋우며, 관련 없는 특징의 가중치를 정확히 0으로 몰아 사실상 자동 특징 선택을 수행한다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### L1 벌점을 더한 표준 손실
 
@@ -63,7 +64,9 @@ $$
 \nabla_{w} \mathcal{L}_{\text{L1}} = \nabla_{w} \mathcal{L} + \lambda \cdot \text{sign}(w)
 $$
 
-## 기하학적 해석
+---
+
+## 2. 기하학적 해석
 
 ### 제약 영역
 
@@ -91,7 +94,9 @@ L1 제약 영역의 마름모 모양은 좌표축 위에 **모서리**를 갖는
 | 희소한 해 | 그렇다 | 드물다 |
 | 미분 가능 | 아니다 (모서리에서) | 그렇다 |
 
-## 희소성과 특징 선택
+---
+
+## 3. 희소성과 특징 선택
 
 ### L1이 희소한 해를 만드는 이유
 
@@ -113,7 +118,9 @@ $$
 
 여기서 $z_i$은 다른 가중치를 고정했을 때 $w_i$에 대한 보통최소제곱의 해이다. 이것이 **연성 문턱화** 또는 **수축** 연산자이다.
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ### L1 정칙화 직접 구현하기
 
@@ -347,7 +354,9 @@ class ProximalL1Optimizer:
                 param.grad.zero_()
 ```
 
-## scikit-learn 구현
+---
+
+## 5. scikit-learn 구현
 
 ```python
 from sklearn.linear_model import Lasso, LassoCV
@@ -405,7 +414,9 @@ def compare_regularization_strengths(X, y, alphas):
     return results
 ```
 
-## 정칙화 경로
+---
+
+## 6. 정칙화 경로
 
 **정칙화 경로**는 $\lambda$이 변할 때 계수가 어떻게 바뀌는지 보여 준다.
 
@@ -447,7 +458,9 @@ def plot_lasso_path(X, y, eps=1e-3, n_alphas=100):
     return alphas, coefs
 ```
 
-## 비교: L1과 L2
+---
+
+## 7. 비교: L1과 L2
 
 | 항목 | L1 (라쏘) | L2 (능선) |
 |--------|------------|------------|
@@ -459,7 +472,9 @@ def plot_lasso_path(X, y, eps=1e-3, n_alphas=100):
 | 상관된 특징 | 하나를 고른다 | 가중치를 나눈다 |
 | 닫힌 형태의 해 | 없음 | 있음 |
 
-## 초매개변수 선택
+---
+
+## 8. 초매개변수 선택
 
 ### lambda를 위한 교차 검증
 
@@ -506,7 +521,9 @@ $$
 
 여기서 $k$은 영이 아닌 매개변수의 개수이다.
 
-## 딥러닝에서의 응용
+---
+
+## 9. 딥러닝에서의 응용
 
 ### 희소한 입력층
 
@@ -542,7 +559,9 @@ class SparseInputNetwork(nn.Module):
         return self.input_l1 * torch.sum(torch.abs(self.input_layer.weight))
 ```
 
-## 실무 지침
+---
+
+## 10. 실무 지침
 
 ### L1 정칙화를 쓸 때
 
@@ -565,11 +584,7 @@ class SparseInputNetwork(nn.Module):
 3. **미분 불가능성**: 표준 경사 하강법은 어려움을 겪을 수 있으므로 근접 방법을 쓴다
 4. **편향-분산 절충**: $\lambda$이 크면 편향은 늘고 분산은 준다
 
-## 참고 문헌
-
-1. Tibshirani, R. (1996). Regression Shrinkage and Selection via the Lasso. *Journal of the Royal Statistical Society: Series B*, 58(1), 267-288.
-2. Hastie, T., Tibshirani, R., & Wainwright, M. (2015). *Statistical Learning with Sparsity: The Lasso and Generalizations*. CRC Press.
-3. Boyd, S., & Vandenberghe, L. (2004). *Convex Optimization*. Cambridge University Press.
+---
 
 ## 연습문제
 
@@ -607,3 +622,13 @@ L1 정칙화를 라플라스 사전분포로 보는 베이즈적 해석을 유�
 
 ??? success "연습문제 4 풀이"
     라플라스 사전분포는 $p(w) \propto e^{-\lambda|w|}$이다. MAP는 $\log p(w|D) \propto \log p(D|w) - \lambda\sum|w_i| = -L(w) - \lambda\|w\|_1$이다. 그 음수를 최소화하는 것이 L1 정칙화된 손실이다.
+
+## 정리하며
+
+이 마당은 수학적 정식화、기하학적 해석、희소성과 특징 선택、PyTorch 구현을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Tibshirani, R. (1996). Regression Shrinkage and Selection via the Lasso. *Journal of the Royal Statistical Society: Series B*, 58(1), 267-288.
+2. Hastie, T., Tibshirani, R., & Wainwright, M. (2015). *Statistical Learning with Sparsity: The Lasso and Generalizations*. CRC Press.
+3. Boyd, S., & Vandenberghe, L. (2004). *Convex Optimization*. Cambridge University Press.

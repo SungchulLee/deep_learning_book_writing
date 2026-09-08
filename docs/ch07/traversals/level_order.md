@@ -2,7 +2,9 @@
 
 전위·중위·후위 순회가 트리를 깊이 우선으로 살피는 데 반해 **레벨 순서 순회**는 너비 우선으로 노드를 들른다. 깊이 0의 노드(뿌리)를 모두 들르고, 이어 깊이 1, 그다음 깊이 2, 이렇게 이어 간다. 이는 큐로 발견한 순서대로 노드를 처리하는 트리 너비 우선 탐색과 같다.
 
-## 알고리즘
+---
+
+## 1. 알고리즘
 
 레벨 순서 순회는 먼저 넣은 것이 먼저 나오는 큐를 쓴다.
 
@@ -36,7 +38,9 @@
 
     들르는 순서: **1, 2, 3, 4, 5, 6** (층마다 왼쪽에서 오른쪽으로).
 
-## 구현
+---
+
+## 2. 구현
 
 ### 기본 레벨 순서 순회
 
@@ -45,7 +49,6 @@
 
 from __future__ import annotations
 from collections import deque
-
 
 # === 노드 정의 ===
 
@@ -57,7 +60,6 @@ class TreeNode:
         self.val = val
         self.left = left
         self.right = right
-
 
 # === 기본 레벨 순서 순회 ===
 
@@ -137,7 +139,9 @@ def zigzag_level_order(root: TreeNode | None) -> list[list[int]]:
     return result
 ```
 
-## 복잡도
+---
+
+## 3. 복잡도
 
 | 항목 | 복잡도 |
 |---|---|
@@ -149,7 +153,9 @@ def zigzag_level_order(root: TreeNode | None) -> list[list[int]]:
 !!! note "깊이 우선 순회와의 공간 비교"
     깊이 우선 순회(전위·중위·후위)는 높이를 $h$이라 할 때 $O(h)$의 공간을 쓴다. 레벨 순서 순회는 최대 너비를 $w$이라 할 때 $O(w)$의 공간을 쓴다. 균형 잡힌 트리에서는 $h = O(\log n)$인데 $w = O(n)$이므로 깊이 우선이 공간을 덜 쓴다. 치우친 트리에서는 $h = O(n)$인데 $w = O(1)$이므로 레벨 순서가 공간을 덜 쓴다.
 
-## 응용
+---
+
+## 4. 응용
 
 - 벌레잡이나 시각화를 위해 **트리를 층별로 출력하기**.
 - 트리의 **최소 깊이 찾기**(너비 우선 탐색이 처음 만나는 잎이 최소 깊이에 있다).
@@ -157,7 +163,9 @@ def zigzag_level_order(root: TreeNode | None) -> list[list[int]]:
 - **같은 층의 노드 잇기**(예를 들어 "오른쪽 다음" 포인터 채우기).
 - 최대 너비 질의를 위해 층마다 **너비 계산하기**.
 
-## 시연
+---
+
+## 5. 시연
 
 ```python
 # === 시연 ===
@@ -172,10 +180,7 @@ if __name__ == "__main__":
     print(f"Zigzag:       {zigzag_level_order(tree)}")
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 12. MIT Press.
-
+---
 
 ## 연습문제
 
@@ -208,3 +213,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 알고리즘、구현、복잡도、응용을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 12. MIT Press.

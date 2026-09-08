@@ -1,5 +1,8 @@
 # 평균장 변분 추론
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,7 +12,9 @@
 4. 뒤확률의 상관을 무시할 때의 한계 재기
 5. 다변량 모형에 평균장 변분 추론 구현하기
 
-## 평균장 가정
+---
+
+## 2. 평균장 가정
 
 **평균장 어림**은 변분 추론에서 가장 흔한, 단순하게 만드는 가정이다. 변분 분포가 모든 숨은 변수에 걸쳐 온전히 인수로 나뉜다고 놓는다.
 
@@ -33,7 +38,9 @@ $$
 
 변분 추론에서 변수 $\theta_j$은 다른 변수의 온전한 분포가 아니라 그 **기댓값**에 달려 있다.
 
-## 수학으로 따라 나오는 것
+---
+
+## 3. 수학으로 따라 나오는 것
 
 ### 독립 가정
 
@@ -99,7 +106,9 @@ $$
 | 0.95 | 1.151 |
 | 0.99 | 2.296 |
 
-## 가장 좋은 평균장 새로 고치기
+---
+
+## 4. 가장 좋은 평균장 새로 고치기
 
 ### CAVI 새로 고침 공식
 
@@ -141,7 +150,9 @@ $$
 
 가장 좋은 $q_j^*(\theta_j)$은 다른 모든 변수의 지금 변분 분포 아래에서의 **기댓값 충분 통계량**에 달려 있다. 이는 되풀이하는 달림을 낳으며 좌표 오르기로 푼다.
 
-## 좌표 오르기 변분 추론(CAVI)
+---
+
+## 5. 좌표 오르기 변분 추론(CAVI)
 
 ### 알고리즘
 
@@ -172,7 +183,9 @@ Output: Optimized variational factors q₁*, ..., qₖ*
 
 **따름정리**: CAVI는 ELBO의 그 자리 최적점으로 모인다.
 
-## 보기: 평균과 흩어짐을 모르는 가우스
+---
+
+## 6. 보기: 평균과 흩어짐을 모르는 가우스
 
 ### 모형 적기
 
@@ -248,7 +261,9 @@ $$
 \end{aligned}
 $$
 
-## PyTorch 구현
+---
+
+## 7. PyTorch 구현
 
 ```python
 import torch
@@ -446,7 +461,6 @@ class MeanFieldGaussianCAVI:
         q_tau = dist.Gamma(self.alpha_n, self.beta_n)
         return q_mu, q_tau
 
-
 def visualize_cavi_results(model: MeanFieldGaussianCAVI, 
                           history: Dict,
                           data: torch.Tensor,
@@ -552,7 +566,6 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     plt.savefig('mean_field_cavi.png', dpi=150, bbox_inches='tight')
     plt.show()
 
-
 # 사용 예
 if __name__ == "__main__":
     torch.manual_seed(42)
@@ -588,7 +601,9 @@ if __name__ == "__main__":
     visualize_cavi_results(model, history, data, true_mu, true_tau)
 ```
 
-## 장점과 한계
+---
+
+## 8. 장점과 한계
 
 ### 이점
 
@@ -604,7 +619,9 @@ if __name__ == "__main__":
 3. **봉우리 고르기**: 봉우리가 여럿인 뒤확률에서 봉우리를 놓칠 수 있다
 4. **그 자리 최적점**: CAVI는 그 자리 최적점만 찾는다
 
-## 평균장을 언제 쓰나
+---
+
+## 9. 평균장을 언제 쓰나
 
 **다음에 좋다:**
 
@@ -620,57 +637,9 @@ if __name__ == "__main__":
 - MCMC를 감당할 수 있는 작은 문제일 때
 - 뒤확률의 봉우리가 여럿일 가능성이 높을 때
 
-## 요약
-
-평균장 가정
-
-$$
-q(\theta) = \prod_{j=1}^K q_j(\theta_j)
-$$
-
-은 다음의 가장 좋은 새로 고침으로 이어진다:
-
-$$
-q_j^*(\theta_j) \propto \exp\{\mathbb{E}_{q_{-j}}[\log p(\theta, \mathcal{D})]\}
-$$
-
-**핵심 주고받음**: 단순함과 다룰 수 있음 대 상관을 담아내지 못함.
-
-## 연습문제
-
-### 연습 1: 상관의 영향
-
-뒤확률의 상관이 커질수록 평균장 어림의 질이 어떻게 나빠지는지 보이는 흉내내기를 구현하여라.
-
-### 연습 2: 다변량 가우스
-
-평균 벡터를 모르고 공분산이 대각인 다변량 가우스의 평균장 새로 고침을 이끌어 내어라.
-
-### 연습 3: 선형 회귀의 CAVI
-
-가중값과 잡음 흩어짐을 모르는 베이즈 선형 회귀에 CAVI를 구현하여라.
-
-## 참고 문헌
-
-1. Blei, D. M., Kucukelbir, A., & McAuliffe, J. D. (2017). "Variational Inference: A Review for Statisticians."
-
-2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, 10장.
-
-3. Wainwright, M. J., & Jordan, M. I. (2008). "Graphical Models, Exponential Families, and Variational Inference."
-
-4. Parisi, G. (1988). *Statistical Field Theory*. (평균장이라는 말의 뿌리)
-
 ---
 
-# 덧붙임: 좌표 오르기 변분 추론(CAVI)
-
-다음 절에서는 평균장 변분 추론의 고전 최적화 알고리즘인 CAVI의 알고리즘과 구현을 자세히 다룬다.
-
----
-
-# 좌표 오르기 변분 추론
-
-## 학습 목표
+## 10. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -680,7 +649,9 @@ $$
 4. 모임의 성질과 셈 복잡도 살피기
 5. 가우스 섞음 모형에 CAVI 쓰기
 
-## 좌표 오르기 전략
+---
+
+## 11. 좌표 오르기 전략
 
 좌표 오르기 변분 추론(CAVI)은 평균장 가정 아래에서 ELBO를 최적화하는 고전 알고리즘이다. 변분 매개변수를 모두 한꺼번에 최적화하는 대신 CAVI는 다른 것을 붙박아 둔 채 인수를 하나씩 새로 고친다.
 
@@ -724,7 +695,9 @@ Output: Optimized variational factors {qⱼ*}
 4. Return {qⱼ⁽ᵀ⁾} (may not have converged)
 ```
 
-## 수렴 성질
+---
+
+## 12. 수렴 성질
 
 ### 단조로움 정리
 
@@ -768,7 +741,9 @@ $$
 
 여기서 $\rho < 1$은 모이는 빠르기이며 문제의 짜임에 달려 있다.
 
-## 지수 집안 모형의 CAVI
+---
+
+## 13. 지수 집안 모형의 CAVI
 
 온전한 조건부 분포와 변분 인수가 모두 지수 집안에 들면 CAVI의 새로 고침이 특히 우아한 꼴이 된다.
 
@@ -806,7 +781,9 @@ $$
 | 범주 $\text{Cat}(\pi)$ | $\eta_k = \log \pi_k$ | 기댓값 확률의 로그 |
 | 디리클레 $\text{Dir}(\alpha)$ | $\eta_k = \alpha_k - 1$ | 기댓값 로그 확률의 합 |
 
-## 보기: 가우스 섞음 모형
+---
+
+## 14. 보기: 가우스 섞음 모형
 
 가우스 섞음 모형(GMM)은 CAVI의 대표 보기이다.
 
@@ -870,7 +847,9 @@ $$
 \alpha_k = \alpha_0 + \sum_{i=1}^N r_{ik}
 $$
 
-## PyTorch 구현
+---
+
+## 15. PyTorch 구현
 
 ```python
 import torch
@@ -1100,7 +1079,6 @@ class GMMCavi:
         self._update_q_z(data)
         return self.r.argmax(dim=1)
 
-
 def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
                        true_labels: torch.Tensor = None):
     """가우스 섞음 모형 CAVI 결과 그려 보기."""
@@ -1191,7 +1169,6 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     plt.savefig('gmm_cavi.png', dpi=150, bbox_inches='tight')
     plt.show()
 
-
 # 사용 예
 if __name__ == "__main__":
     torch.manual_seed(42)
@@ -1225,7 +1202,9 @@ if __name__ == "__main__":
     visualize_gmm_cavi(model, history, data)
 ```
 
-## 계산 복잡도
+---
+
+## 16. 계산 복잡도
 
 ### 되풀이마다의 값
 
@@ -1243,7 +1222,49 @@ if __name__ == "__main__":
 
 가우스 섞음 모형의 CAVI는 EM 알고리즘과 복잡도가 같지만 점 어림값이 아니라 온전한 뒤확률 분포를 준다.
 
-## 요약
+---
+
+## 연습문제
+
+### 연습 1: 상관의 영향
+
+뒤확률의 상관이 커질수록 평균장 어림의 질이 어떻게 나빠지는지 보이는 흉내내기를 구현하여라.
+
+### 연습 2: 다변량 가우스
+
+평균 벡터를 모르고 공분산이 대각인 다변량 가우스의 평균장 새로 고침을 이끌어 내어라.
+
+### 연습 3: 선형 회귀의 CAVI
+
+가중값과 잡음 흩어짐을 모르는 베이즈 선형 회귀에 CAVI를 구현하여라.
+
+### 연습 1: 인자 분석의 CAVI
+
+확률 인자 분석 모형의 CAVI를 이끌어 내고 구현하여라.
+
+### 연습 2: 모임 살피기
+
+무리가 떨어진 정도의 함수로 가우스 섞음 모형 CAVI의 모이는 빠르기를 경험으로 재어라.
+
+### 연습 3: 첫값에 대한 민감도
+
+첫값 잡기 전략에 따라 마지막 ELBO와 무리의 질이 어떻게 달라지는지 살펴라.
+
+## 정리하며
+
+평균장 가정
+
+$$
+q(\theta) = \prod_{j=1}^K q_j(\theta_j)
+$$
+
+은 다음의 가장 좋은 새로 고침으로 이어진다:
+
+$$
+q_j^*(\theta_j) \propto \exp\{\mathbb{E}_{q_{-j}}[\log p(\theta, \mathcal{D})]\}
+$$
+
+**핵심 주고받음**: 단순함과 다룰 수 있음 대 상관을 담아내지 못함.
 
 CAVI는 ELBO를 최적화하는 차근차근한 길을 준다:
 
@@ -1260,7 +1281,27 @@ CAVI는 ELBO를 최적화하는 차근차근한 길을 준다:
 - 지수 집안에서는 닫힌 꼴로 새로 고친다
 - 섞음 모형에서 EM과 복잡도가 같다
 
-## 참고 문헌
+**참고 문헌**
+
+1. Blei, D. M., Kucukelbir, A., & McAuliffe, J. D. (2017). "Variational Inference: A Review for Statisticians."
+
+2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, 10장.
+
+3. Wainwright, M. J., & Jordan, M. I. (2008). "Graphical Models, Exponential Families, and Variational Inference."
+
+4. Parisi, G. (1988). *Statistical Field Theory*. (평균장이라는 말의 뿌리)
+
+---
+
+# 덧붙임: 좌표 오르기 변분 추론(CAVI)
+
+다음 절에서는 평균장 변분 추론의 고전 최적화 알고리즘인 CAVI의 알고리즘과 구현을 자세히 다룬다.
+
+---
+
+# 좌표 오르기 변분 추론
+
+**참고 문헌**
 
 1. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, 10장.
 
@@ -1269,17 +1310,3 @@ CAVI는 ELBO를 최적화하는 차근차근한 길을 준다:
 3. Hoffman, M. D., Blei, D. M., Wang, C., & Paisley, J. (2013). "Stochastic Variational Inference."
 
 4. Wainwright, M. J., & Jordan, M. I. (2008). "Graphical Models, Exponential Families, and Variational Inference."
-
-## 연습문제
-
-### 연습 1: 인자 분석의 CAVI
-
-확률 인자 분석 모형의 CAVI를 이끌어 내고 구현하여라.
-
-### 연습 2: 모임 살피기
-
-무리가 떨어진 정도의 함수로 가우스 섞음 모형 CAVI의 모이는 빠르기를 경험으로 재어라.
-
-### 연습 3: 첫값에 대한 민감도
-
-첫값 잡기 전략에 따라 마지막 ELBO와 무리의 질이 어떻게 달라지는지 살펴라.

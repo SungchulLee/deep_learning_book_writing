@@ -2,11 +2,15 @@
 
 여러 셈 기하 문제는 점 모음의 바깥 테두리를 가려내는 데서 시작한다. 판에 못을 박고 그 둘레에 고무줄을 두르는 모습을 그려 보라. 그 고무줄이 이루는 꼴이 **볼록 껍질**이다. 이 짜임은 부딪힘 알아내기, 그림 다루기, 지리 앎 체계에 나타난다. 이 쪽에서는 나누어 이기기 볼록 껍질 알고리즘을 펼치고, 짜기가 더 단순하면서 가까이 이어진 앤드루의 단조 사슬과 견준다.
 
-## 정의
+---
+
+## 1. 정의
 
 점 묶음 $P \subset \mathbb{R}^2$의 **볼록 껍질**은 $P$을 담는 가장 작은 볼록 묶음이다. 묶음 $S$이 볼록하다는 것은 어떤 두 점 $a, b \in S$에 대해서도 선분 $\overline{ab}$이 온통 $S$ 안에 있다는 뜻이다. 볼록 껍질의 테두리는 꼭짓점이 $P$의 부분 묶음인 볼록 다각형이다.
 
-## 벡터곱 시험
+---
+
+## 2. 벡터곱 시험
 
 아래 두 알고리즘 모두 차례가 있는 점 셋이 왼쪽으로 도는지, 오른쪽으로 도는지, 한 줄에 있는지 정하는 데 **벡터곱**에 기댄다. 점 $O$, $A$, $B$에 대해 다음을 정한다:
 
@@ -20,7 +24,9 @@ $$
 - **음수**: $O \to A \to B$이 오른쪽(시계) 방향으로 꺾인다.
 - **0**: 세 점이 한 줄에 있다.
 
-## 나누어 이기기 알고리즘
+---
+
+## 3. 나누어 이기기 알고리즘
 
 고전 나누어 이기기 방식은 네 단계로 나아간다.
 
@@ -43,7 +49,9 @@ $$
 T(n) = 2T(n/2) + O(n) = O(n \log n)
 $$
 
-## 앤드루의 단조 사슬
+---
+
+## 4. 앤드루의 단조 사슬
 
 앤드루의 한 방향 사슬은 더 단순하게 짜면서 같은 $O(n \log n)$ 테두리를 이룬다. 두 껍질을 되부르며 합치는 대신, 줄 세운 점을 왼쪽에서 오른쪽으로 훑어 **아래 껍질**을, 오른쪽에서 왼쪽으로 훑어 **위 껍질**을 따로 짓는다. 훑을 때마다 쌓개를 지니며 엇곱 시험으로 볼록하지 않은 꺾임을 만드는 점을 버린다. 그다음 두 반 껍질을 이어 붙여 온전한 껍질을 만든다.
 
@@ -70,7 +78,6 @@ def cross(o: tuple, a: tuple, b: tuple) -> float:
     """
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
-
 # === 점이 껍질 안에 있는지 시험 ===
 
 def point_in_hull(p: tuple, hull_pts: list[tuple]) -> bool:
@@ -91,7 +98,6 @@ def point_in_hull(p: tuple, hull_pts: list[tuple]) -> bool:
         if cross(hull_pts[i], hull_pts[(i + 1) % n], p) < 0:
             return False
     return True
-
 
 # === 볼록 껍질 ===
 
@@ -130,7 +136,6 @@ def convex_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
     # 겹치는 끝점을 빼고 이어 붙이기
     return lower[:-1] + upper[:-1]
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -155,7 +160,9 @@ All points inside hull: True
 
 안쪽 점 $(1, 1)$과 한 줄에 있는 점 $(2, 2)$은 껍질의 꼭짓점이 아니다. 꼭짓점 여섯 개가 들임 점 일곱 개를 모두 감싸는 볼록 다각형을 이룬다.
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 항목 | 비용 |
 |--------|:----:|
@@ -164,17 +171,15 @@ All points inside hull: True
 
 줄 세우는 걸음이 $O(n \log n)$으로 가장 크다. 껍질을 짓는 일 자체는 고르게 나눈 때로 $O(n)$이다. 점마다 쌓개에 꼭 한 번 들어가고 많아야 한 번 빠지므로, 온 훑기에서 넣고 빼는 셈은 모두 많아야 $2n$ 번이다.
 
-## 아래 한계
+---
+
+## 6. 아래 한계
 
 $O(n \log n)$ 알고리즘을 세웠으니, 견줌 바탕 알고리즘이 이보다 나을 수 있는지 묻는 것이 자연스럽다. 답은 아니다.
 
 견줌 모형에서 볼록 껍질을 셈하려면 $\Omega(n \log n)$ 때가 든다. 밝히기는 줄 세우기로 되돌리는 길을 쓴다. 수 $n$개 $x_1, \dots, x_n$이 주어지면 저마다 포물선 $y = x^2$ 위의 점 $(x_i, x_i^2)$으로 옮긴다. 포물선은 반드시 볼록하므로 옮긴 점은 모두 껍질의 꼭짓점이 되고, 껍질은 이들을 $x$의 줄 세운 차례로 지난다. 그러므로 어떤 볼록 껍질 알고리즘도 수 $n$개를 줄 세우는 셈이며, 이는 $\Omega(n \log n)$ 번의 견줌을 든다.
 
-## 참고 문헌
-
-- Andrew, A. M. (1979). Another efficient algorithm for convex hulls in two dimensions. *Information Processing Letters*, 9(5), 216--219.
-- Preparata, F. P. & Shamos, M. I. (1985). *Computational Geometry: An Introduction*. Springer.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 33장: Computational Geometry.
+---
 
 ## 연습문제
 
@@ -207,3 +212,13 @@ $O(n \log n)$ 알고리즘을 세웠으니, 견줌 바탕 알고리즘이 이보
 
 ??? success "연습문제 4 풀이"
     밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 정의、벡터곱 시험、나누어 이기기 알고리즘、앤드루의 단조 사슬을 차례로 짚었다.
+
+**참고 문헌**
+
+- Andrew, A. M. (1979). Another efficient algorithm for convex hulls in two dimensions. *Information Processing Letters*, 9(5), 216--219.
+- Preparata, F. P. & Shamos, M. I. (1985). *Computational Geometry: An Introduction*. Springer.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 33장: Computational Geometry.

@@ -1,9 +1,10 @@
 # 데이터 증강
-## 개요
 
 데이터 증강은 기존 표본을 변형한 판본을 만들어 학습 데이터셋을 인위적으로 넓히는 정칙화 기법이다. 의미를 보존하는 변환된 데이터를 모델에게 보여 줌으로써 무관한 변이에 대한 불변성을 가르치고 일반화를 크게 개선한다.
 
-## 개념적 토대
+---
+
+## 1. 개념적 토대
 
 ### 데이터 증강이 통하는 이유
 
@@ -28,7 +29,9 @@ $$
 f(T(x)) \approx f(x) \quad \forall T \in \mathcal{T}
 $$
 
-## 이미지 증강
+---
+
+## 2. 이미지 증강
 
 ### 기하 변환
 
@@ -222,7 +225,9 @@ def get_val_transforms(image_size: int = 224):
     ])
 ```
 
-## 텍스트 증강
+---
+
+## 3. 텍스트 증강
 
 ### 기본적인 텍스트 증강
 
@@ -369,7 +374,9 @@ class BackTranslation:
         return back_translated
 ```
 
-## 시계열 증강
+---
+
+## 4. 시계열 증강
 
 ```python
 import numpy as np
@@ -458,7 +465,9 @@ class TimeSeriesAugmentation:
         return np.concatenate(segments, axis=0)
 ```
 
-## 표 형식 데이터의 증강
+---
+
+## 5. 표 형식 데이터의 증강
 
 ```python
 import numpy as np
@@ -551,7 +560,9 @@ class MixupTabular:
         return X_mixed, y_mixed
 ```
 
-## AutoAugment와 학습된 증강
+---
+
+## 6. AutoAugment와 학습된 증강
 
 ```python
 class RandAugment:
@@ -632,7 +643,9 @@ class RandAugment:
         return img
 ```
 
-## 실무 지침
+---
+
+## 7. 실무 지침
 
 ### 증강 고르기
 
@@ -655,14 +668,7 @@ class RandAugment:
 
 **검증/시험 데이터는 결코 증강하지 마라.** 공정한 평가를 위해 원래 표본을 쓴다.
 
-## 참고 문헌
-
-1. Shorten, C., & Khoshgoftaar, T. M. (2019). A Survey on Image Data Augmentation for Deep Learning. *Journal of Big Data*, 6(1), 60.
-2. Cubuk, E. D., et al. (2020). RandAugment: Practical Automated Data Augmentation. *NeurIPS*.
-3. Cubuk, E. D., et al. (2019). AutoAugment: Learning Augmentation Strategies from Data. *CVPR*.
-4. Zhang, H., et al. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
-5. DeVries, T., & Taylor, G. W. (2017). Improved Regularization of CNNs with Cutout. *arXiv*.
-6. Yun, S., et al. (2019). CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features. *ICCV*.
+---
 
 ## 연습문제
 
@@ -704,3 +710,16 @@ class RandAugment:
 
 ??? success "연습문제 4 풀이"
     (a) 의료: 회전, 탄성 변형, 명암 크기 조정(좌우가 구분되는 장기에는 좌우 뒤집기를 쓰지 않는다). (b) 위성: 회전, 뒤집기, 색 흔들기, 크기 변화. (c) 텍스트: 유의어 치환, 무작위 삽입/삭제, 역번역, 문장 섞기.
+
+## 정리하며
+
+이 마당은 개념적 토대、이미지 증강、텍스트 증강、시계열 증강을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Shorten, C., & Khoshgoftaar, T. M. (2019). A Survey on Image Data Augmentation for Deep Learning. *Journal of Big Data*, 6(1), 60.
+2. Cubuk, E. D., et al. (2020). RandAugment: Practical Automated Data Augmentation. *NeurIPS*.
+3. Cubuk, E. D., et al. (2019). AutoAugment: Learning Augmentation Strategies from Data. *CVPR*.
+4. Zhang, H., et al. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
+5. DeVries, T., & Taylor, G. W. (2017). Improved Regularization of CNNs with Cutout. *arXiv*.
+6. Yun, S., et al. (2019). CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features. *ICCV*.

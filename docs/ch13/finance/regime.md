@@ -1,11 +1,10 @@
 # 국면 알아채기와 베이즈식 전략 평가
-## 개요
 
 이 절은 계량 금융에서 베이즈 방법의 결정적인 쓰임새 둘을 다룬다. 곧 온라인 베이즈 갱신으로 시장 국면의 바뀜을 알아채는 일과, 베이즈 A/B 시험으로 거래 전략을 평가하는 일이다. 둘 다 베이즈 정리의 차례 갱신 성질을 살려 쓰며 관심 있는 양에 대한 곧은 확률 진술을 준다.
 
 ---
 
-## 베이즈식 국면 알아채기
+## 1. 베이즈식 국면 알아채기
 
 ### 시장 국면
 
@@ -94,7 +93,7 @@ class BayesianRegimeDetector:
 
 ---
 
-## 전략 평가를 위한 베이즈 A/B 시험
+## 2. 전략 평가를 위한 베이즈 A/B 시험
 
 베이즈 A/B 시험은 거래 전략을 견주는 자연스러운 틀을 주며, 어느 전략이 나은지에 대한 곧은 확률 진술과 원칙 있는 일찍 멈추기를 가능하게 한다.
 
@@ -226,7 +225,7 @@ class BayesianABTest:
 
 ---
 
-## 시장 신호를 위한 베이즈 온라인 갱신
+## 3. 시장 신호를 위한 베이즈 온라인 갱신
 
 베이즈식 차례 갱신은 실시간 신호 다루기를 가능하게 한다.
 
@@ -259,23 +258,6 @@ class BayesianSignalTracker:
 ```
 
 ---
-
-## 요약
-
-| 쓰임새 | 베이즈 도구 | 핵심 이득 |
-|-------------|---------------|-------------|
-| **국면 알아채기** | HMM 거르기 | 실시간 국면 확률 |
-| **전략 견줌** | A/B 시험 | 어느 쪽이 나은지에 대한 곧은 확률 |
-| **신호 좇기** | 차례 갱신 | 불확실성을 곁들여 맞추어 가는 어림 |
-| **일찍 멈추기** | 뒤확률 살피기 | p값 조작 없이 원칙 있게 멈추기 |
-
----
-
-## 참고 문헌
-
-- Hamilton, J. D. (1989). A new approach to the economic analysis of nonstationary time series and the business cycle. *Econometrica*, 57(2), 357-384.
-- Harvey, C. R., & Liu, Y. (2015). Backtesting. *Journal of Portfolio Management*, 42(1), 13-28.
-- Kruschke, J. K. (2013). Bayesian estimation supersedes the t test. *Journal of Experimental Psychology: General*, 142(2), 573.
 
 ## 연습문제
 
@@ -314,3 +296,20 @@ class BayesianSignalTracker:
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
     # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
     ```
+
+## 정리하며
+
+| 쓰임새 | 베이즈 도구 | 핵심 이득 |
+|-------------|---------------|-------------|
+| **국면 알아채기** | HMM 거르기 | 실시간 국면 확률 |
+| **전략 견줌** | A/B 시험 | 어느 쪽이 나은지에 대한 곧은 확률 |
+| **신호 좇기** | 차례 갱신 | 불확실성을 곁들여 맞추어 가는 어림 |
+| **일찍 멈추기** | 뒤확률 살피기 | p값 조작 없이 원칙 있게 멈추기 |
+
+---
+
+**참고 문헌**
+
+- Hamilton, J. D. (1989). A new approach to the economic analysis of nonstationary time series and the business cycle. *Econometrica*, 57(2), 357-384.
+- Harvey, C. R., & Liu, Y. (2015). Backtesting. *Journal of Portfolio Management*, 42(1), 13-28.
+- Kruschke, J. K. (2013). Bayesian estimation supersedes the t test. *Journal of Experimental Psychology: General*, 142(2), 573.

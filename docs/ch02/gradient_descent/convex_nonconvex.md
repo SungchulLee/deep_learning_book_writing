@@ -1,9 +1,10 @@
 # 볼록 최적화와 비볼록 최적화
-## 들어가며
 
 **볼록** 최적화와 **비볼록** 최적화의 구분은 경사 하강법이 언제 성공하고 어떤 어려움을 마주할지 이해하는 데 근본이 된다. 이 절에서는 이 개념들과 기계학습에서의 함의, 그리고 이론적인 어려움에도 불구하고 비볼록 최적화가 딥러닝에서 놀랍도록 잘 동작하는 이유를 살펴본다.
 
-## 볼록성: 정의
+---
+
+## 1. 볼록성: 정의
 
 ### 볼록 집합
 
@@ -60,7 +61,9 @@ $$f(\lambda\mathbf{x} + (1-\lambda)\mathbf{y}) < \lambda f(\mathbf{x}) + (1-\lam
 
    $$\nabla^2 f(\mathbf{x}) \succeq 0 \quad \forall \mathbf{x}$$
 
-## 볼록 함수의 예
+---
+
+## 2. 볼록 함수의 예
 
 ### 흔한 볼록 함수
 
@@ -88,7 +91,9 @@ $$L(\mathbf{w}) = \frac{1}{N}\sum_{i=1}^N \log(1 + e^{-y_i \mathbf{w}^T\mathbf{x
 
 이는 $\mathbf{w}$에 대해 볼록이다.
 
-## 볼록 최적화의 성질
+---
+
+## 3. 볼록 최적화의 성질
 
 ### 전역 최적성
 
@@ -114,7 +119,9 @@ $$f(\mathbf{x}_t) - f(\mathbf{x}^*) \leq \left(1 - \frac{\mu}{L}\right)^t (f(\ma
 
 이는 (지수적으로 빠른) **선형 수렴** 을 준다.
 
-## 비볼록 최적화
+---
+
+## 4. 비볼록 최적화
 
 ### 무엇이 함수를 비볼록으로 만드는가?
 
@@ -166,7 +173,9 @@ plt.show()
 3. **초기화에 민감하다**: 출발점이 다르면 다른 해에 이른다
 4. **고원 영역**: 경사가 0에 가까운 평평한 영역
 
-## 딥러닝은 왜 잘 동작하는가?
+---
+
+## 5. 딥러닝은 왜 잘 동작하는가?
 
 비볼록성에도 불구하고 딥러닝은 놀랍도록 잘 성공한다. 여기에는 몇 가지 요인이 있다.
 
@@ -206,7 +215,9 @@ nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
 nn.init.xavier_normal_(layer.weight)
 ```
 
-## 볼록성 시각화하기
+---
+
+## 6. 볼록성 시각화하기
 
 ### 1차원 비교
 
@@ -284,7 +295,9 @@ plt.tight_layout()
 plt.show()
 ```
 
-## 볼록성 확인하기
+---
+
+## 7. 볼록성 확인하기
 
 ### 헤세 행렬 분석
 
@@ -334,7 +347,9 @@ def check_convexity_numerical(f, x, epsilon=1e-3):
 3. **점별 최댓값**: $\max(f_1, f_2, \ldots, f_n)$
 4. **부분 최소화**: $g(\mathbf{x}) = \min_{\mathbf{y}} f(\mathbf{x}, \mathbf{y})$
 
-## 실무적 함의
+---
+
+## 8. 실무적 함의
 
 ### 볼록 문제에서
 
@@ -401,28 +416,16 @@ print(f"Convex: mean={np.mean(convex_results):.4f}, std={np.std(convex_results):
 print(f"Non-convex: mean={np.mean(nonconvex_results):.4f}, std={np.std(nonconvex_results):.4f}")
 ```
 
-## 핵심 요점
+---
 
-1. **볼록 = 쉽다**: 국소 최솟값이 곧 전역 최솟값이다
-2. **신경망은 비볼록이다**: 국소 최솟값이 여럿이고 안장점이 있다
-3. **비볼록도 실무에서는 잘 동작한다**: 좋은 지형 구조, 과매개변수화, SGD 잡음 덕분이다
-4. **초기화가 중요하다**: 특히 비볼록 문제에서 그렇다
-5. **최적화 ≠ 일반화**: 전역 최솟값을 찾는 것이 언제나 목표는 아니다
-6. **정칙화가 도움이 된다**: 일반화되는 해로 최적화를 이끈다
-
-## 다른 주제와의 연결
+## 9. 다른 주제와의 연결
 
 - **임계점**: 국소 최솟값, 안장점, 고원 참고
 - **초기화**: [Xavier 초기화](../../ch04/feedforward/depth_vs_width.md)에서 다룬다
 - **정칙화**: [L2 정칙화](../../ch04/regularization/l2_regularization.md) 참고
 - **적응적 최적화기**: 비볼록 문제에 도움이 된다. [Adam](../../ch05/optimizers/adam.md) 참고
 
-## 참고 문헌
-
-- Boyd, S., & Vandenberghe, L. (2004). *Convex Optimization*. Cambridge University Press.
-- Choromanska, A., et al. (2015). The loss surfaces of multilayer networks. AISTATS.
-- Li, H., et al. (2018). Visualizing the loss landscape of neural nets. NeurIPS.
-- Fort, S., & Ganguli, S. (2019). Emergent properties of the local geometry of neural loss landscapes.
+---
 
 ## 연습문제
 
@@ -490,3 +493,19 @@ $f(x, y) = x^2 - y^2$에 대해 헤세 행렬을 계산하고 그 고윳값을 �
     # 많다는 것을 시사한다(과매개변수화된 신경망에서
     # 흔히 관찰되는 경험적 사실이다).
     ```
+
+## 정리하며
+
+1. **볼록 = 쉽다**: 국소 최솟값이 곧 전역 최솟값이다
+2. **신경망은 비볼록이다**: 국소 최솟값이 여럿이고 안장점이 있다
+3. **비볼록도 실무에서는 잘 동작한다**: 좋은 지형 구조, 과매개변수화, SGD 잡음 덕분이다
+4. **초기화가 중요하다**: 특히 비볼록 문제에서 그렇다
+5. **최적화 ≠ 일반화**: 전역 최솟값을 찾는 것이 언제나 목표는 아니다
+6. **정칙화가 도움이 된다**: 일반화되는 해로 최적화를 이끈다
+
+**참고 문헌**
+
+- Boyd, S., & Vandenberghe, L. (2004). *Convex Optimization*. Cambridge University Press.
+- Choromanska, A., et al. (2015). The loss surfaces of multilayer networks. AISTATS.
+- Li, H., et al. (2018). Visualizing the loss landscape of neural nets. NeurIPS.
+- Fort, S., & Ganguli, S. (2019). Emergent properties of the local geometry of neural loss landscapes.

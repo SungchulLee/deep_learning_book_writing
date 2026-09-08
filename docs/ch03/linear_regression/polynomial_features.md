@@ -1,5 +1,4 @@
 # 다항 특징
-## 개요
 
 선형 회귀는 **매개변수**에 대해 선형일 뿐 특징에 대해서까지 선형일 필요는 없다.
 원래 입력을 다항식(또는 다른 비선형) 변환으로 바꾸어 주면, 보통최소제곱의 최적화
@@ -394,28 +393,6 @@ plt.tight_layout()
 
 ---
 
-## 요약
-
-| 개념 | 핵심 |
-|---------|-----------|
-| 특징 사상 | $\phi(x) = [1, x, x^2, \ldots, x^d]^\top$ — $x$에는 비선형, $\boldsymbol{\theta}$에는 선형 |
-| 확장된 차원 | 입력 $p$개, 차수 $d$에 대해 $\binom{p+d}{d}$개의 특징 |
-| 편향–분산 | 낮은 차수 → 큰 편향; 높은 차수 → 큰 분산 |
-| 모델 선택 | $d$를 고르는 데 $k$-겹 교차 검증이나 AIC/BIC 사용 |
-| 정칙화 | 적당한 $d$에 릿지/라쏘를 쓰는 편이 높은 $d$만 쓰는 것보다 견고 |
-| 스케일링 | 다항식 확장 후에 **반드시** 표준화 |
-
----
-
-## 참고 문헌
-
-1. Hastie, T., Tibshirani, R. & Friedman, J. (2009). *The Elements of
-   Statistical Learning*, §§3.1, 7.10.
-2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, §§1.1,
-   3.1.
-3. Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*,
-   Ch. 11.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -452,3 +429,25 @@ plt.tight_layout()
 
 ??? success "연습문제 4 풀이"
     고차 다항식은 매개변수가 많아 과적합하기 쉽다. 정칙화는 계수의 크기를 제약한다. 릿지는 모든 계수를 줄이고(더 매끄러운 곡선), 라쏘는 불필요한 항을 0으로 만든다(단항식들 사이에서의 자동 특징 선택). 정칙화가 없으면 15차 다항식은 심하게 진동하지만, 릿지($\lambda = 0.1$)를 쓰면 적합이 매끄럽고 일반화도 잘 된다.
+
+## 정리하며
+
+| 개념 | 핵심 |
+|---------|-----------|
+| 특징 사상 | $\phi(x) = [1, x, x^2, \ldots, x^d]^\top$ — $x$에는 비선형, $\boldsymbol{\theta}$에는 선형 |
+| 확장된 차원 | 입력 $p$개, 차수 $d$에 대해 $\binom{p+d}{d}$개의 특징 |
+| 편향–분산 | 낮은 차수 → 큰 편향; 높은 차수 → 큰 분산 |
+| 모델 선택 | $d$를 고르는 데 $k$-겹 교차 검증이나 AIC/BIC 사용 |
+| 정칙화 | 적당한 $d$에 릿지/라쏘를 쓰는 편이 높은 $d$만 쓰는 것보다 견고 |
+| 스케일링 | 다항식 확장 후에 **반드시** 표준화 |
+
+---
+
+**참고 문헌**
+
+1. Hastie, T., Tibshirani, R. & Friedman, J. (2009). *The Elements of
+   Statistical Learning*, §§3.1, 7.10.
+2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, §§1.1,
+   3.1.
+3. Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*,
+   Ch. 11.

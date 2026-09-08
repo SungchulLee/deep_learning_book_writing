@@ -1,5 +1,8 @@
 # 나눠 갚는 변분 추론
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,7 +12,9 @@
 4. 나눠 갚기 틈과 그것이 뜻하는 바 살피기
 5. 큰 문제에 나눠 갚는 변분 추론 쓰기
 
-## 낱낱 추론에서 나눠 갚는 추론으로
+---
+
+## 2. 낱낱 추론에서 나눠 갚는 추론으로
 
 전통 변분 추론은 **관측마다 따로** 변분 매개변수를 최적화한다:
 
@@ -44,7 +49,9 @@ $$
 
 추론 망이 자료 점마다의 가장 좋은 변분 매개변수를 완벽히 담아내지는 못할 수 있다.
 
-## 변분 자동부호기(VAE)
+---
+
+## 3. 변분 자동부호기(VAE)
 
 **변분 자동부호기**는 나눠 갚는 변분 추론의 대표 보기로 다음을 어우른다:
 
@@ -95,7 +102,9 @@ $$
 
 이러면 기울기가 $\mu_\phi$과 $\sigma_\phi$을 지나 흐를 수 있다.
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ### 온전한 VAE 구현
 
@@ -148,7 +157,6 @@ class Encoder(nn.Module):
         logvar = self.fc_logvar(h)
         return mu, logvar
 
-
 class Decoder(nn.Module):
     """
     VAE 풀개: 숨은 z을 되살림 매개변수로 잇는다.
@@ -179,7 +187,6 @@ class Decoder(nn.Module):
         z을 풀어 되살리기.
         """
         return self.decoder(z)
-
 
 class VAE(nn.Module):
     """
@@ -273,7 +280,6 @@ class VAE(nn.Module):
         mu, _ = self.encode(x)  # 평균 쓰기(표집 없음)
         return self.decode(mu)
 
-
 def train_vae(model: VAE, train_loader: DataLoader,
               n_epochs: int = 100, lr: float = 1e-3,
               beta: float = 1.0, verbose: bool = True) -> Dict:
@@ -325,7 +331,6 @@ def train_vae(model: VAE, train_loader: DataLoader,
     
     return history
 
-
 def measure_amortization_gap(model: VAE, x: torch.Tensor,
                               n_opt_steps: int = 1000,
                               lr: float = 0.01) -> Tuple[float, float]:
@@ -368,7 +373,6 @@ def measure_amortization_gap(model: VAE, x: torch.Tensor,
     gap = elbo_optimal - elbo_amortized
     
     return elbo_amortized, elbo_optimal, gap
-
 
 def visualize_vae_results(model: VAE, history: Dict, test_data: torch.Tensor):
     """VAE 결과 두루 그려 보기."""
@@ -467,7 +471,6 @@ def visualize_vae_results(model: VAE, history: Dict, test_data: torch.Tensor):
     plt.savefig('vae_results.png', dpi=150, bbox_inches='tight')
     plt.show()
 
-
 # 사용 예
 if __name__ == "__main__":
     torch.manual_seed(42)
@@ -523,7 +526,9 @@ if __name__ == "__main__":
     print(f"Gap: {gap:.4f}")
 ```
 
-## 조건부 VAE(CVAE)
+---
+
+## 5. 조건부 VAE(CVAE)
 
 **조건부 VAE**은 VAE을 넓혀 $p(x|c)$을 본뜬다. 여기서 $c$은 조건이 되는 변수이다:
 
@@ -547,7 +552,9 @@ $$
 - **그림에서 그림으로 옮기기**: 근원이 주어졌을 때 과녁을 만든다
 - **짜임새 있는 미리봄**: 조건부 분포를 본뜬다
 
-## 나눠 갚기 틈 줄이기
+---
+
+## 6. 나눠 갚기 틈 줄이기
 
 나눠 갚는 최적화와 낱낱 최적화 사이의 틈을 줄이는 기법이 여럿 있다:
 
@@ -590,7 +597,23 @@ $$
 
 고르게 하는 흐름으로 $q_\phi(z|x)$의 유연함을 높인다.
 
-## 요약
+---
+
+## 연습문제
+
+### 연습 1: 합성곱 VAE
+
+그림 자료를 위한 합성곱 부호기와 풀개를 갖춘 VAE을 구현하여라.
+
+### 연습 2: β-VAE
+
+β-VAE을 구현하고 β이 서로 풀림에 주는 영향을 살펴라.
+
+### 연습 3: 조건부 만들어 내기를 위한 CVAE
+
+MNIST에서 갈래를 조건으로 한 만들어 내기를 위해 CVAE을 구현하여라.
+
+## 정리하며
 
 **나눠 갚는 변분 추론**은 함께 쓰는 추론 망을 배운다:
 
@@ -611,7 +634,7 @@ $$
 - 나눠 갚기 틈이 질을 떨어뜨린다
 - 반쯤 나눠 갚는 방법으로 누그러뜨릴 수 있다
 
-## 참고 문헌
+**참고 문헌**
 
 1. Kingma, D. P., & Welling, M. (2014). "Auto-Encoding Variational Bayes."
 
@@ -624,17 +647,3 @@ $$
 5. Higgins, I., et al. (2017). "β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework."
 
 6. Kim, Y., et al. (2018). "Semi-Amortized Variational Autoencoders."
-
-## 연습문제
-
-### 연습 1: 합성곱 VAE
-
-그림 자료를 위한 합성곱 부호기와 풀개를 갖춘 VAE을 구현하여라.
-
-### 연습 2: β-VAE
-
-β-VAE을 구현하고 β이 서로 풀림에 주는 영향을 살펴라.
-
-### 연습 3: 조건부 만들어 내기를 위한 CVAE
-
-MNIST에서 갈래를 조건으로 한 만들어 내기를 위해 CVAE을 구현하여라.

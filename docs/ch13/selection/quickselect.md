@@ -2,7 +2,9 @@
 
 $k$번째로 작은 원소를 찾으려고 배열을 정렬하면 $O(n \log n)$이 드는데, 필요보다 훨씬 많다. 1961년 토니 호어가 지어낸 **빠른 고르기**는 빠른 정렬의 나눔을 손질해 고르기 문제를 기대 시간 $O(n)$에 푼다. 핵심 통찰은 나눈 뒤 축의 어느 쪽에 $k$번째 원소가 있는지 알게 되므로 양쪽이 아니라 **한쪽**에서만 되돌이하면 된다는 것이다. 걸음마다 (평균으로) 일이 반으로 줄어 등비급수를 이루고 그 합이 $O(n)$이 된다.
 
-## 알고리즘
+---
+
+## 1. 알고리즘
 
 배열 $A[lo..hi]$과 목표 순위 $k$(이 부분 배열 안에서 0부터 세는)이 주어지면 다음과 같이 한다.
 
@@ -15,7 +17,9 @@ $k$번째로 작은 원소를 찾으려고 배열을 정렬하면 $O(n \log n)$�
 
 **양쪽**에서 되돌이하는 빠른 정렬과 달리 빠른 고르기는 한쪽에서만 되돌이한다. 이것이 기대 전체 일의 양을 $O(n \log n)$에서 $O(n)$으로 줄인다.
 
-## 기대 시간 분석
+---
+
+## 2. 기대 시간 분석
 
 무작위 축을 쓰면 나눔이 배열을 대체로 반으로 쪼갠다. 기대 전체 일의 양은 다음과 같다.
 
@@ -31,7 +35,9 @@ $$
 
 그러므로 $E[T(n)] = O(n)$이다. 더 빈틈없이 뜯어보면 $E[T(n)] \leq 3.39\, n + o(n)$이다.
 
-## 최악의 경우
+---
+
+## 3. 최악의 경우
 
 최악의 경우는 축마다 가장 작거나 가장 큰 원소일 때 일어난다.
 
@@ -41,7 +47,9 @@ $$
 
 무작위 축에서는 이런 일이 많아야 확률 $O(1/n!)$으로 일어나므로 실전에서는 하찮다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -52,7 +60,6 @@ k번째로 작은 원소를 찾는다.
 """
 
 import random
-
 
 # === 나눔 ===
 
@@ -70,7 +77,6 @@ def partition(arr: list, lo: int, hi: int) -> int:
     arr[i], arr[hi] = arr[hi], arr[i]
     return i
 
-
 # === 빠른 고르기 ===
 
 def quickselect(arr: list, k: int):
@@ -85,7 +91,6 @@ def quickselect(arr: list, k: int):
     data = arr.copy()
     return _quickselect(data, 0, len(data) - 1, k - 1)
 
-
 def _quickselect(arr: list, lo: int, hi: int, k: int):
     """순위 k에 대한 arr[lo..hi]의 되돌이 빠른 고르기."""
     if lo == hi:
@@ -99,7 +104,6 @@ def _quickselect(arr: list, lo: int, hi: int, k: int):
         return _quickselect(arr, lo, pivot_pos - 1, k)
     else:
         return _quickselect(arr, pivot_pos + 1, hi, k)
-
 
 # === 되풀이 판 ===
 
@@ -119,7 +123,6 @@ def quickselect_iterative(arr: list, k: int):
             lo = pivot_pos + 1
 
     return data[lo]
-
 
 # === 시연 ===
 
@@ -159,7 +162,9 @@ Finding median:
   Array size: 10, median (k=5): 7
 ```
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 경우 | 시간 | 공간 |
 |------|------|-------|
@@ -170,11 +175,7 @@ Finding median:
 !!! warning "적수 입력"
     축을 정해 놓고 고르면(이를테면 늘 첫 원소나 마지막 원소) 적수가 $O(n^2)$을 강제할 수 있다. 늘 무작위로 축을 고르거나, 되돌이 깊이가 문턱값을 넘으면 중앙값의 중앙값으로 물러서라.
 
-## 참고 문헌
-
-- Hoare, C. A. R. (1961). Algorithm 65: Find. *Communications of the ACM*, 4(7), 321-322.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 9장. MIT Press.
-
+---
 
 ## 연습문제
 
@@ -207,3 +208,12 @@ Finding median:
 
 ??? success "연습문제 4 풀이"
     응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.
+
+## 정리하며
+
+이 마당은 알고리즘、기대 시간 분석、최악의 경우、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Hoare, C. A. R. (1961). Algorithm 65: Find. *Communications of the ACM*, 4(7), 321-322.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 9장. MIT Press.

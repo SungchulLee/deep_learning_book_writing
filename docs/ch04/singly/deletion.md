@@ -2,7 +2,9 @@
 
 단일 연결 리스트에서 노드를 지우는 일은 개념적으로 단순하다. 지울 노드를 건너뛰도록 포인터를 고치면 된다. 다만 세부는 어느 노드를 지우느냐에 달려 있다. 주된 어려움은 단일 연결이라는 구조에서 온다. 노드를 없애려면 그 **앞 노드**에 닿을 수 있어야 앞 노드의 `next` 포인터를 돌려놓을 수 있다. 단일 연결 리스트에는 뒤로 가는 참조가 없으므로 앞 노드를 찾으려면 머리에서부터 순회해야 한다. 그래서 머리에서의 삭제는 $O(1)$이지만 다른 곳에서의 삭제는 최악의 경우 $O(n)$이다.
 
-## 머리에서의 삭제
+---
+
+## 1. 머리에서의 삭제
 
 첫 노드를 없애는 것이 가장 단순한 경우이다. 머리 포인터를 두 번째 노드로 돌리면 옛 머리에는 닿을 수 없게 된다(파이썬에서는 쓰레기 수집된다).
 
@@ -14,7 +16,9 @@
 
 **시간 복잡도:** $O(1)$이다. 순회가 필요 없다.
 
-## 꼬리에서의 삭제
+---
+
+## 2. 꼬리에서의 삭제
 
 마지막 노드를 없애려면 리스트 전체를 훑어 끝에서 두 번째 노드를 찾은 뒤 그 `next`를 `None`으로 두어야 한다.
 
@@ -27,7 +31,9 @@
 
 **시간 복잡도:** $O(n)$이다. 노드 $n - 1$개를 지나가야 한다.
 
-## 값으로 삭제하기
+---
+
+## 3. 값으로 삭제하기
 
 특정 값을 담은 첫 노드를 지우려면 앞 노드를 추적하며 리스트를 순회한다.
 
@@ -40,7 +46,9 @@
 
 **시간 복잡도:** $O(n)$이다. 리스트 전체를 훑어야 할 수 있다.
 
-## 위치 k에서의 삭제
+---
+
+## 4. 위치 k에서의 삭제
 
 0에서 시작하는 인덱스 $k$의 노드를 지우려면 머리에서 노드 $k$개를 지나간다.
 
@@ -56,11 +64,12 @@
 
     단일 연결 리스트에서 (앞 노드가 아니라) 그 노드에 대한 참조만 있을 때 노드를 지우는 것은 까다롭다. 흔히 쓰는 우회책은 다음 노드의 데이터를 현재 노드로 복사한 뒤 다음 노드를 지우는 것이다. 이 요령은 복사해 올 뒤 노드가 없는 꼬리 노드에서는 통하지 않는다. (다음 절에서 다루는) 이중 연결 리스트는 뒤로 가는 포인터로 이를 우아하게 해결한다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """단일 연결 리스트의 삭제 연산."""
-
 
 # === 노드 클래스 ===
 class Node:
@@ -73,7 +82,6 @@ class Node:
     def __repr__(self):
         return f"Node({self.data})"
 
-
 # === 도우미 함수 ===
 def build_list(values):
     """반복 가능한 객체에서 연결 리스트를 만들고 머리 노드를 돌려준다."""
@@ -81,7 +89,6 @@ def build_list(values):
     for val in reversed(values):
         head = Node(val, head)
     return head
-
 
 def to_list(head):
     """모든 노드의 값을 파이썬 리스트로 모은다."""
@@ -92,14 +99,12 @@ def to_list(head):
         current = current.next
     return result
 
-
 # === 삭제 연산 ===
 def delete_head(head):
     """첫 노드를 지운다. (새 머리, 지운 값)을 돌려준다."""
     if head is None:
         raise IndexError("Cannot delete from an empty list")
     return head.next, head.data
-
 
 def delete_tail(head):
     """마지막 노드를 지운다. (새 머리, 지운 값)을 돌려준다."""
@@ -114,7 +119,6 @@ def delete_tail(head):
     current.next = None
     return head, deleted_value
 
-
 def delete_by_value(head, target):
     """data == target인 첫 노드를 지운다. 새 머리를 돌려준다."""
     if head is None:
@@ -128,7 +132,6 @@ def delete_by_value(head, target):
             return head
         current = current.next
     return head  # 목표를 찾지 못함
-
 
 def delete_at_position(head, k):
     """0부터 세는 인덱스 k의 노드를 지운다. 새 머리를 돌려준다."""
@@ -145,7 +148,6 @@ def delete_at_position(head, k):
         raise IndexError(f"Position {k} out of range")
     current.next = current.next.next
     return head
-
 
 # === 시연 ===
 if __name__ == "__main__":
@@ -180,7 +182,9 @@ After delete 30:   [20, 40]
 Delete at pos 2:   [1, 2, 4, 5]
 ```
 
-## 복잡도 요약
+---
+
+## 6. 복잡도 요약
 
 | 연산            | 시간       | 공간  |
 |----------------------|------------|--------|
@@ -191,10 +195,7 @@ Delete at pos 2:   [1, 2, 4, 5]
 
 모든 삭제 연산은 새 노드를 할당하지 않고 포인터만 고치므로 보조 공간이 $O(1)$이다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -227,3 +228,11 @@ Delete at pos 2:   [1, 2, 4, 5]
 
 ??? success "연습문제 4 풀이"
     알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$
+
+## 정리하며
+
+이 마당은 머리에서의 삭제、꼬리에서의 삭제、값으로 삭제하기、위치 k에서의 삭제을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

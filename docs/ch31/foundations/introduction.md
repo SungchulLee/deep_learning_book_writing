@@ -1,5 +1,8 @@
 # 그래프 만들기 들머리
-## 만들기 문제
+
+---
+
+## 1. 만들기 문제
 
 그래프 만들기는 익히기 모임 $\{\mathcal{G}_1, \ldots, \mathcal{G}_N\}$에서 그래프에 대한 분포 $p_\theta(\mathcal{G})$을 배우고 익히기 분포와 통계로 가려낼 수 없는 새 그래프를 뽑으려 한다. 이 문제는 그래프에만 있는 세 가지 얼개 성질 때문에 그림이나 차례를 만드는 것보다 근본에서 더 어렵다.
 
@@ -13,7 +16,9 @@
 
 **차원이 제각각.** 눈금이 붙박인 그림과 달리 자료 뭉치의 그래프는 마디와 변의 수가 서로 다를 수 있다. 모델은 크기에 조건을 걸거나 자연스러운 멈춤 잣대가 있는 얼개를 써서 이 제각각임을 다루어야 한다.
 
-## 엄밀한 문제 서술
+---
+
+## 2. 엄밀한 문제 서술
 
 그래프마다 $\mathcal{G}_i = (\mathcal{V}_i, \mathcal{E}_i, \mathbf{X}_i, \mathbf{E}_i)$이 마디 $\mathcal{V}_i$, 변 $\mathcal{E}_i$, 마디 특징 $\mathbf{X}_i \in \mathbb{R}^{|\mathcal{V}_i| \times d_n}$, 변 특징 $\mathbf{E}_i \in \mathbb{R}^{|\mathcal{E}_i| \times d_e}$으로 이루어진 자료 뭉치 $\mathcal{D} = \{\mathcal{G}_i\}_{i=1}^N$이 주어질 때 목표는 다음과 같다:
 
@@ -29,7 +34,9 @@ $$
 
 여기서 $\mathbf{P}\mathcal{G}\mathbf{P}^\top$은 이웃 행렬과 마디 특징의 자리를 한꺼번에 바꾸는 것을 뜻한다.
 
-## 두 가지 틀
+---
+
+## 3. 두 가지 틀
 
 ### 자기 되돌이 쪼개기
 
@@ -51,7 +58,9 @@ $$
 
 이는 온전히 나란하지만 붙박인 최대 크기 $n_{\max}$을 다루고 자리바꿈에 안 바뀜을 보장해야 한다. 퍼짐 바탕 방법이 되풀이 다듬기로 이 틀을 넓힌다.
 
-## 만들기 흐름
+---
+
+## 4. 만들기 흐름
 
 ```
 Training Data ──→ Graph Encoder ──→ Latent Space ──→ Graph Decoder ──→ Generated Graph
@@ -69,7 +78,9 @@ Training Data ──→ Graph Encoder ──→ Latent Space ──→ Graph Dec
 4. **풀기**: 숨은 표본을 그래프 얼개로 옮긴다
 5. **뒷손질**: 올바름 매임을 지키고 채운 것을 없앤다
 
-## 계량 금융과의 이음
+---
+
+## 5. 계량 금융과의 이음
 
 금융 그래프 만들기는 위험 다루기의 결정적인 바탕 시설이다. 은행 사이 빌려주기 그물을 보자. 은행마다 속성(자산, 부채, 자본 비율)을 가진 마디이고 방향 변마다 금액과 만기를 가진 빌려주기 노출을 나타낸다. 참 그물은 비밀이고 일부만 볼 수 있다. 이 그물을 그럴듯하게 채우는 일은 다음에 꼭 필요하다:
 
@@ -79,7 +90,9 @@ Training Data ──→ Graph Encoder ──→ Latent Space ──→ Graph Dec
 
 이 장의 방법들이 이 모든 쓰임새의 기술 바탕을 준다.
 
-## 짜기: 그래프 만들기 바탕 갈래
+---
+
+## 6. 짜기: 그래프 만들기 바탕 갈래
 
 ```python
 """
@@ -90,7 +103,6 @@ import torch.nn as nn
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import Optional
-
 
 @dataclass
 class GeneratedGraph:
@@ -119,7 +131,6 @@ class GeneratedGraph:
         max_edges = n * (n - 1) / 2
         return self.num_edges / max_edges if max_edges > 0 else 0.0
 
-
 class GraphGenerator(ABC, nn.Module):
     """그래프 만들개의 추상 바탕 갈래."""
 
@@ -142,19 +153,16 @@ class GraphGenerator(ABC, nn.Module):
     def count_parameters(self) -> int:
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
-
 def adjacency_to_edge_index(adj: torch.Tensor) -> torch.Tensor:
     """이웃 행렬을 PyG의 edge_index 꼴로 바꾼다."""
     row, col = torch.where(adj > 0)
     return torch.stack([row, col], dim=0)
-
 
 def edge_index_to_adjacency(edge_index: torch.Tensor, num_nodes: int) -> torch.Tensor:
     """PyG의 edge_index을 이웃 행렬로 바꾼다."""
     adj = torch.zeros(num_nodes, num_nodes)
     adj[edge_index[0], edge_index[1]] = 1.0
     return adj
-
 
 if __name__ == "__main__":
     # GeneratedGraph 쓰임 보이기
@@ -174,6 +182,8 @@ if __name__ == "__main__":
     print(f"Density: {graph.density:.3f}")
     print(f"Edge index shape: {adjacency_to_edge_index(adj).shape}")
 ```
+
+---
 
 ## 연습문제
 
@@ -206,3 +216,7 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
+
+## 정리하며
+
+이 마당은 만들기 문제、엄밀한 문제 서술、두 가지 틀、만들기 흐름을 차례로 짚었다.

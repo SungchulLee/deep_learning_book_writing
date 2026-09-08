@@ -1,12 +1,17 @@
 # 이름 알아보기를 위한 두 방향 LSTM
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 이름 알아보기에서 두 방향 맥락이 왜 중요한지 이해한다
 - 두 방향 LSTM 바탕 차례 이름표 붙이기 모델을 짠다
 - 꼴 특징을 위해 글자 수준 묻힘을 넣는다
 - 가장 좋은 성능을 위해 두 방향 LSTM과 CRF를 아우른다
 
-## 이름 알아보기에 왜 두 방향 LSTM인가?
+---
+
+## 2. 이름 알아보기에 왜 두 방향 LSTM인가?
 
 이름 있는 것을 정확히 알아보려면 **두 방향 맥락**이 필요하다:
 
@@ -14,7 +19,9 @@
 - **오른쪽 맥락**: "**Microsoft** announced" — 움직씨가 조직임을 가리킨다
 - **두 방향 모두**: "The **New York** Times" — 마디 전체가 필요하다
 
-## 구조
+---
+
+## 3. 구조
 
 ```
 Word: "Apple"  "Inc"  "announced"  "profits"
@@ -31,7 +38,9 @@ Word: "Apple"  "Inc"  "announced"  "profits"
       B-ORG    I-ORG      O           O
 ```
 
-## 수학적 정식화
+---
+
+## 4. 수학적 정식화
 
 ### 앞 방향 LSTM과 뒤 방향 LSTM
 
@@ -51,7 +60,9 @@ $$h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t] \in \mathbb{R}^{2d}$$
 
 $$e_t = W_o \cdot h_t + b_o \in \mathbb{R}^{|L|}$$
 
-## PyTorch 구현
+---
+
+## 5. PyTorch 구현
 
 ### 기본 두 방향 LSTM 이름 알아보기
 
@@ -187,7 +198,6 @@ class CharLSTM(nn.Module):
         char_repr = char_repr.view(batch_size, max_words, -1)
         
         return char_repr
-
 
 class BiLSTMCharNER(nn.Module):
     """글자 수준 묻힘을 갖춘 두 방향 LSTM 이름 알아보기."""
@@ -389,7 +399,9 @@ class BiLSTMCRF(nn.Module):
         return best_tags
 ```
 
-## 견줌: 두 방향 LSTM과 변환기
+---
+
+## 6. 견줌: 두 방향 LSTM과 변환기
 
 | 갈래 | 두 방향 LSTM | 변환기 |
 |--------|--------|-------------|
@@ -400,7 +412,9 @@ class BiLSTMCRF(nn.Module):
 | 글자 특징 | 더하기 쉽다 | 아래낱말이 다룬다 |
 | 미리 익힘의 이점 | GloVe/Word2Vec | BERT/RoBERTa |
 
-## 모범 사례
+---
+
+## 7. 모범 사례
 
 1. **미리 익힌 낱말 묻힘을 쓴다**(GloVe, fastText)
 2. 꼴을 위해 **글자 수준 특징을 더한다**
@@ -409,14 +423,7 @@ class BiLSTMCRF(nn.Module):
 5. **기울기 자르기**(최대 노름 1.0~5.0)
 6. 검증 F1을 보고 **일찍 멈추기**
 
-## 요약
-
-두 방향 LSTM 모델은 여전히 이름 알아보기의 센 바탕이다:
-
-- 두 방향 맥락을 잘 담아낸다
-- 익힘 자료가 적어도 잘 된다
-- 글자 특징으로 넓히기 쉽다
-- CRF 층이 경계 찾기를 낫게 한다
+---
 
 ## 연습문제
 
@@ -464,3 +471,12 @@ BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City
     $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
 
     자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 낱말이 양쪽에서 걸리는 일이 잦으므로 이것이 종요롭다.
+
+## 정리하며
+
+두 방향 LSTM 모델은 여전히 이름 알아보기의 센 바탕이다:
+
+- 두 방향 맥락을 잘 담아낸다
+- 익힘 자료가 적어도 잘 된다
+- 글자 특징으로 넓히기 쉽다
+- CRF 층이 경계 찾기를 낫게 한다

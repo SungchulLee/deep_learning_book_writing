@@ -2,7 +2,9 @@
 
 삽입은 부분 트리의 높이를 많아야 1만큼 늘리므로, AVL 삽입은 균형을 되살리는 데 회전이 많아야 한 번(단일이든 이중이든) 필요하다. 그런데 삭제는 부분 트리의 높이를 줄일 수 있고, 그 결과로 하는 회전이 다시 그 부분 트리의 높이를 줄여 불균형이 위로 퍼질 수 있다. 그래서 삭제 한 번에 최악의 경우 회전이 $O(\log n)$번 필요하며, 두 연산 가운데 더 까다롭다.
 
-## 표준 이진 탐색 트리 삭제
+---
+
+## 1. 표준 이진 탐색 트리 삭제
 
 균형을 다루기에 앞서, 이진 탐색 트리에서 노드 $z$을 지우는 데 세 경우가 있음을 떠올리자.
 
@@ -12,7 +14,9 @@
 
 구조적으로 지운 뒤에는 지운 자리에서 뿌리까지의 경로 위 조상들의 높이가 달라질 수 있다.
 
-## 삭제 뒤의 재균형
+---
+
+## 2. 삭제 뒤의 재균형
 
 실제로 없앤 노드의 부모에서 시작하여 뿌리까지 올라간다. 조상 $x$마다 다음을 한다.
 
@@ -33,13 +37,17 @@
 !!! warning "삭제는 연쇄될 수 있다"
     회전 한 번으로 모든 균형 인수가 되살아나는 삽입과 달리, 삭제에서의 회전은 고친 부분 트리의 높이를 줄일 수 있다. 그 높이 감소가 할아버지 노드의 균형을 깨뜨려 또 회전이 필요해질 수 있다. 최악의 경우 회전이 뿌리까지 퍼져 삭제 한 번에 $O(\log n)$번의 회전이 든다.
 
-## 회전이 여러 번 일어날 수 있는 까닭
+---
+
+## 3. 회전이 여러 번 일어날 수 있는 까닭
 
 $\text{BF}(x) = +2$이고 $\text{BF}(\text{left}(x)) = 0$인 노드 $x$에서 오른쪽 회전을 한다고 하자. 회전 전에 $x$을 뿌리로 하는 부분 트리의 높이는 $h$이다. 회전 뒤 새 뿌리의 $\text{BF} = -1$이 되고 부분 트리의 높이는 $h - 1$으로 줄어든다. 바로 이 높이 감소가 $x$의 부모의 균형을 깨뜨릴 수 있는 상황이다.
 
 반면 삽입 중에 $\text{BF}(\text{left}(x)) = +1$이면 회전이 $\text{BF} = 0$인 새 뿌리를 만들고 부분 트리의 높이가 삽입 전 값으로 돌아가므로 더는 퍼지지 않는다.
 
-## 삭제 알고리즘
+---
+
+## 4. 삭제 알고리즘
 
 ```python
 """
@@ -48,7 +56,6 @@ $\text{BF}(x) = +2$이고 $\text{BF}(\text{left}(x)) = 0$인 노드 $x$에서 �
 이진 탐색 트리 삭제의 세 경우와 그에 이어
 회전이 O(log n)번 필요할 수 있는 아래에서 위로의 균형 되잡기 걸음을 보인다.
 """
-
 
 # === AVL 노드 ===
 
@@ -61,23 +68,19 @@ class AVLNode:
         self.right = None
         self.height = 0
 
-
 # === 높이와 균형 도구 ===
 
 def height(node):
     """노드의 높이를 돌려준다. 널이면 -1이다."""
     return node.height if node else -1
 
-
 def update_height(node):
     """자식에서 높이를 다시 셈한다."""
     node.height = 1 + max(height(node.left), height(node.right))
 
-
 def balance_factor(node):
     """균형 인수 = h(왼쪽) - h(오른쪽)을 셈한다."""
     return height(node.left) - height(node.right)
-
 
 # === 회전 ===
 
@@ -91,7 +94,6 @@ def rotate_right(y):
     update_height(x)
     return x
 
-
 def rotate_left(x):
     """x에서 왼쪽으로 회전하고 새 뿌리를 돌려준다."""
     y = x.right
@@ -101,7 +103,6 @@ def rotate_left(x):
     update_height(x)
     update_height(y)
     return y
-
 
 # === 균형 되잡기 ===
 
@@ -118,7 +119,6 @@ def rebalance(node):
         return rotate_left(node)
     return node
 
-
 # === 삽입 (트리를 세우려고) ===
 
 def insert(node, key):
@@ -134,7 +134,6 @@ def insert(node, key):
     update_height(node)
     return rebalance(node)
 
-
 # === 삭제 ===
 
 def find_min(node):
@@ -142,7 +141,6 @@ def find_min(node):
     while node.left is not None:
         node = node.left
     return node
-
 
 def delete(node, key):
     """AVL 트리에서 열쇠를 지우고 모든 조상의 균형을 되잡는다."""
@@ -168,7 +166,6 @@ def delete(node, key):
     update_height(node)
     return rebalance(node)
 
-
 # === 보이기 ===
 
 def print_tree(node, level=0):
@@ -179,7 +176,6 @@ def print_tree(node, level=0):
     bf = balance_factor(node)
     print(f"{'    ' * level}{node.key} [BF={bf:+d}]")
     print_tree(node.left, level + 1)
-
 
 if __name__ == "__main__":
     # AVL 트리를 세운다
@@ -242,7 +238,9 @@ After deleting 60:
 
 60을 지우고 나면 노드 50이 오른쪽 자식이 되고 노드 30이 새 뿌리가 되며 트리가 다시 균형을 잡는다.
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 연산 | 시간 | 회전 |
 |:--|:-:|:-:|
@@ -252,7 +250,9 @@ After deleting 60:
 
 회전 하나하나는 $O(1)$ 시간이 걸리지만 삭제 한 번에 회전이 $O(\log n)$번까지 일어날 수 있다. 그래도 회전마다 트리의 서로 다른 층에서 일어나므로 전체 일의 양은 $O(\log n)$에 머문다.
 
-## 삽입과 견주기
+---
+
+## 6. 삽입과 견주기
 
 | 성질 | 삽입 | 삭제 |
 |:--|:-:|:-:|
@@ -262,10 +262,7 @@ After deleting 60:
 
 이 비대칭은 삽입이 높이를 더하고 삭제가 높이를 빼기 때문에 생긴다. 삽입 뒤의 회전은 원래 높이를 되살려 전파를 멈춘다. 삭제 뒤의 회전은 부분 트리의 높이를 삭제 전보다 낮출 수 있어 부모의 균형을 깨뜨릴 수 있다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 13~14장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -298,3 +295,11 @@ After deleting 60:
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 표준 이진 탐색 트리 삭제、삭제 뒤의 재균형、회전이 여러 번 일어날 수 있는 까닭、삭제 알고리즘을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 13~14장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

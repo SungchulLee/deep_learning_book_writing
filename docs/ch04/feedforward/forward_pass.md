@@ -1,5 +1,8 @@
 # 순전파
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 !!! abstract "배울 내용"
 
@@ -10,7 +13,9 @@
     - 순전파의 시간·메모리 복잡도 분석하기
     - 소프트맥스와 교차 엔트로피에 수치적 안정성 기법 적용하기
 
-## 미리 알아야 할 것
+---
+
+## 2. 미리 알아야 할 것
 
 | 주제 | 왜 중요한가 |
 |-------|---------------|
@@ -20,7 +25,7 @@
 
 ---
 
-## 개요
+## 3. 개요
 
 **순전파**는 입력이 주어졌을 때 신경망의 출력을 계산하는 과정이다. 데이터가 입력층에서 각 은닉층을 거쳐 출력층까지 차례로 흐르며, 모든 층이 선형 변환 뒤에 비선형 활성화를 적용한다.
 
@@ -28,7 +33,7 @@
 
 ---
 
-## 수학적 정식화
+## 4. 수학적 정식화
 
 ### 표본 하나
 
@@ -81,7 +86,7 @@ $$
 
 ---
 
-## 단계별 수치 예제
+## 5. 단계별 수치 예제
 
 이진 분류를 위한 2층 신경망을 생각하자.
 
@@ -144,7 +149,7 @@ $\hat{y} < 0.5$이므로 예측은 클래스 0이다.
 
 ---
 
-## 계산 그래프
+## 6. 계산 그래프
 
 순전파는 데이터에 수행된 모든 연산을 기록하는 **유향 비순환 그래프(DAG)**, 즉 계산 그래프를 만든다.
 
@@ -172,7 +177,7 @@ x ──→ [z¹ = W¹x + b¹] ──→ [a¹ = ReLU(z¹)] ──→ [z² = W²a
 
 ---
 
-## 순전파에서의 활성화 함수
+## 7. 순전파에서의 활성화 함수
 
 ### ReLU
 
@@ -200,7 +205,7 @@ $$
 
 ---
 
-## 수치적 안정성
+## 8. 수치적 안정성
 
 ### 소프트맥스의 넘침
 
@@ -253,7 +258,7 @@ loss = nn.BCEWithLogitsLoss()(logits, targets)
 
 ---
 
-## PyTorch 구현
+## 9. PyTorch 구현
 
 ### 직접 구현한 순전파
 
@@ -391,7 +396,7 @@ print(f"Max difference: {(logits_train - logits_infer).abs().max().item():.1e}")
 
 ---
 
-## 계산 복잡도
+## 10. 계산 복잡도
 
 ### 시간 복잡도
 
@@ -422,7 +427,7 @@ $$
 
 ---
 
-## 시각화: 활성화의 분포
+## 11. 시각화: 활성화의 분포
 
 ```python
 import matplotlib.pyplot as plt
@@ -450,7 +455,7 @@ plt.show()
 
 ---
 
-## 핵심 정리
+## 12. 핵심 정리
 
 !!! success "요약"
 
@@ -462,12 +467,6 @@ plt.show()
     6. **시간 복잡도**는 $O(B \cdot |\boldsymbol{\theta}|)$이고, 학습 중 **메모리**는 $O(B \sum_l n^{[l]})$으로 늘어난다
 
 ---
-
-## 참고 문헌
-
-- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapter 6.4.
-- PyTorch Documentation: [`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)
-- Griewank, A., & Walther, A. (2008). *Evaluating Derivatives: Principles and Techniques of Algorithmic Differentiation*. SIAM.
 
 ## 연습문제
 
@@ -506,3 +505,13 @@ plt.show()
 
 ??? success "연습문제 4 풀이"
     학습 중에 드롭아웃 같은 확률적 요소는 뉴런을 무작위로 0으로 만들어 공적응을 막는 정칙화 노릇을 한다. 추론에서는 결정적이고 재현 가능한 예측을 원하므로 드롭아웃을 끄고 모든 뉴런을 쓴다(기댓값과 맞도록 가중치의 배율을 조정한다).
+
+## 정리하며
+
+이 마당은 학습 목표、미리 알아야 할 것、개요、수학적 정식화을 차례로 짚었다.
+
+**참고 문헌**
+
+- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapter 6.4.
+- PyTorch Documentation: [`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)
+- Griewank, A., & Walther, A. (2008). *Evaluating Derivatives: Principles and Techniques of Algorithmic Differentiation*. SIAM.

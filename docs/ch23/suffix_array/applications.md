@@ -2,7 +2,9 @@
 
 뒷가지 배열은 특히 최장 공통 앞가지 배열을 곁들이면 갖가지 글줄 처리 문제의 두루 쓰는 바탕이 된다. 예전에는 뒷가지 나무가 필요하던 여러 일, 곧 가장 긴 되풀이 부분 글줄 찾기, 두 글줄의 최장 공통 부분 글줄 찾기, 서로 다른 부분 글줄 세기를 뒷가지 배열로도 똑같이 효율 좋게, 기억 공간은 훨씬 적게 풀 수 있다. 이 절은 가장 중요한 쓰임새를 훑고 저마다의 알고리즘을 준다.
 
-## 본 찾기
+---
+
+## 1. 본 찾기
 
 뒷가지 배열의 가장 바탕이 되는 쓰임새는 글월 $T[0..n-1]$에서 본 $P[0..m-1]$이 나오는 곳을 모두 찾는 것이다.
 
@@ -24,7 +26,9 @@
     - 위 경계 이분 찾기가 $r = 3$을 찾는다($\text{SA}[3] = 1$의 뒷가지 `anana$`)
     - 본 `an`이 자리 3과 1에 나온다
 
-## 가장 긴 되풀이 부분 글줄
+---
+
+## 2. 가장 긴 되풀이 부분 글줄
 
 **가장 긴 되풀이 부분 글줄(LRS)**은 $T$에 적어도 두 번 나오는 가장 긴 글줄이다. 최장 공통 앞가지 배열이 있으면 그저 최댓값이다:
 
@@ -43,7 +47,9 @@ $$
     - $\text{SA}[3] = 1$이므로 가장 긴 되풀이 부분 글줄은 $T[1..3] = \texttt{ana}$이다
     - 실제로 `ana`이 자리 1과 3에 나온다
 
-## 두 글줄의 최장 공통 부분 글줄
+---
+
+## 3. 두 글줄의 최장 공통 부분 글줄
 
 글줄 $S_1$과 $S_2$이 주어질 때 **최장 공통 부분 글줄(LCS)**은 둘을 가르개로 이어 붙여 찾을 수 있다:
 
@@ -61,7 +67,9 @@ $$
 
 **시간 복잡도**: 모두 $O(n_1 + n_2)$.
 
-## 서로 다른 부분 글줄 세기
+---
+
+## 4. 서로 다른 부분 글줄 세기
 
 $T$의 모든 부분 글줄은 어떤 뒷가지의 앞가지이다. 뒷가지 $\text{SA}[k]$은 부분 글줄 $(n - \text{SA}[k])$개를 보탠다(길이 1부터 $n - \text{SA}[k]$까지의 앞가지). 다만 그 가운데 $\text{LCP}[k]$개는 정렬 차례에서 앞선 뒷가지와 나눠 갖는다. 서로 다른 부분 글줄의 총수는 다음과 같다:
 
@@ -71,7 +79,9 @@ $$
 
 **시간 복잡도**: 세운 뒤 $O(n)$.
 
-## 최장 공통 앞가지 묻기
+---
+
+## 5. 최장 공통 앞가지 묻기
 
 (뒷가지 배열에서 이웃한 것뿐 아니라) 아무 두 뒷가지의 최장 공통 앞가지도 **구간 최소 묻기(RMQ)** 성질로 셈할 수 있다:
 
@@ -84,7 +94,9 @@ $$
 !!! tip "선형 미리 다듬기로 하는 구간 최소 묻기"
     (줄이기를 거치면 최장 공통 앞가지 배열이 채우는) $\pm 1$ 구간 최소 묻기의 특별한 경우에 벤더-파라크-콜튼 알고리즘을 쓰면 미리 다듬기에 $O(n)$ 시간만 들면서 묻기 시간은 $O(1)$으로 지킨다.
 
-## 부분 글줄의 사전 차례 견줌
+---
+
+## 6. 부분 글줄의 사전 차례 견줌
 
 부분 글줄 $T[i..i+\ell_1-1]$과 $T[j..j+\ell_2-1]$이 주어질 때 다음으로 사전 차례를 $O(1)$ 시간에 정할 수 있다:
 
@@ -94,11 +106,15 @@ $$
 
 그러면 $O(n)$ 미리 다듬기 뒤에 아무 부분 글줄이나 $O(1)$에 견줄 수 있다.
 
-## 본이 나온 횟수 세기
+---
+
+## 7. 본이 나온 횟수 세기
 
 나온 곳을 찾는 것을 넘어, 이분 찾기로 범위 $[\ell, r]$을 찾으면 본 $P$이 $T$에 몇 번 나오는지 **셀** 수 있다. 자리를 모두 세지 않아도 그 수는 $r - \ell + 1$이다.
 
-## 쓰임새 간추리기
+---
+
+## 8. 쓰임새 간추리기
 
 | 문제 | 자료 짜임 | 시간 |
 |---------|---------------|------|
@@ -110,14 +126,15 @@ $$
 | 아무 두 뒷가지의 최장 공통 앞가지 | 뒷가지 배열 + 최장 공통 앞가지 + 구간 최소 묻기 | 묻기 $O(1)$ |
 | 부분 글줄 사전 차례 견줌 | 뒷가지 배열 + 최장 공통 앞가지 + 구간 최소 묻기 | 묻기 $O(1)$ |
 
-## 구현
+---
+
+## 9. 구현
 
 ```python
 """
 뒷가지 배열의 쓰임새: 본 찾기, 가장 긴 되풀이 부분 글줄,
 서로 다른 부분 글줄 세기.
 """
-
 
 # === 뒷가지 배열 세우기 ===
 
@@ -144,7 +161,6 @@ def build_suffix_array(text: str) -> list[int]:
         k *= 2
     return sa
 
-
 # === 가사이 알고리즘 ===
 
 def build_lcp(text: str, sa: list[int]) -> list[int]:
@@ -166,7 +182,6 @@ def build_lcp(text: str, sa: list[int]) -> list[int]:
         else:
             h = 0
     return lcp
-
 
 # === 쓰임새 ===
 
@@ -201,7 +216,6 @@ def pattern_search(text: str, sa: list[int], pattern: str) -> list[int]:
         return []
     return sorted(sa[k] for k in range(left, right + 1))
 
-
 def longest_repeated_substring(text: str, sa: list[int],
                                 lcp: list[int]) -> str:
     """가장 긴 되풀이 부분 글줄을 찾는다."""
@@ -211,7 +225,6 @@ def longest_repeated_substring(text: str, sa: list[int],
     k = lcp.index(max_lcp)
     return text[sa[k]:sa[k] + max_lcp]
 
-
 def count_distinct_substrings(text: str, sa: list[int],
                                lcp: list[int]) -> int:
     """서로 다른 부분 글줄의 수를 센다."""
@@ -219,7 +232,6 @@ def count_distinct_substrings(text: str, sa: list[int],
     total = sum(n - sa[k] for k in range(n))
     duplicates = sum(lcp[k] for k in range(1, n))
     return total - duplicates
-
 
 # === 메인 ===
 
@@ -242,10 +254,7 @@ if __name__ == "__main__":
     print(f"Distinct substrings: {count}")
 ```
 
-## 참고 문헌
-
-- Manber, U. and Myers, G. (1993). *Suffix arrays: A new method for on-line string searches*. SIAM Journal on Computing, 22(5), 935-948.
-- Abouelhoda, M. I., Kurtz, S., and Ohlebusch, E. (2004). *Replacing suffix trees with enhanced suffix arrays*. Journal of Discrete Algorithms, 2(1), 53-86.
+---
 
 ## 연습문제
 
@@ -278,3 +287,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 본 찾기、가장 긴 되풀이 부분 글줄、두 글줄의 최장 공통 부분 글줄、서로 다른 부분 글줄 세기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Manber, U. and Myers, G. (1993). *Suffix arrays: A new method for on-line string searches*. SIAM Journal on Computing, 22(5), 935-948.
+- Abouelhoda, M. I., Kurtz, S., and Ohlebusch, E. (2004). *Replacing suffix trees with enhanced suffix arrays*. Journal of Discrete Algorithms, 2(1), 53-86.

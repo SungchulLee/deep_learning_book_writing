@@ -1,9 +1,10 @@
 # 제안 분포 설계
-## 개요
 
 제안 분포를 어떻게 고르느냐가 중요도 표집의 성패를 가르는 가장 중요한 한 가지이다. 잘 짠 제안은 흩어짐을 자릿수 단위로 줄일 수 있고, 잘못 고른 제안은 어림자를 쓸모없게 만든다. 이 마당은 좋은 제안 분포를 짜는 원칙과 실전 전략을 다룬다.
 
-## 가장 좋은 제안
+---
+
+## 1. 가장 좋은 제안
 
 ### 이론 결과
 
@@ -36,7 +37,9 @@ $$
 2. $\pi(\theta)$보다 무거운 꼬리
 3. $\pi(\theta)$의 받침 전체를 덮기
 
-## 설계 원칙
+---
+
+## 2. 설계 원칙
 
 ### 원칙 1: 받침 덮기
 
@@ -92,7 +95,9 @@ $$
 2. **값 매기기 쉬움**: $q(\theta)$을 닫힌 꼴로 셈할 수 있음
 3. **되도록 둘 다**: 여러 표준 분포가 이를 만족한다
 
-## 흔한 제안 갈래
+---
+
+## 3. 흔한 제안 갈래
 
 ### 가우스 제안
 
@@ -235,7 +240,6 @@ class MixtureProposal:
         log_probs = torch.stack(log_probs, dim=-1)
         return torch.logsumexp(log_probs, dim=-1)
 
-
 # 보기: 봉우리 둘인 과녁
 # 봉우리에 맞춘 섞음 제안 만들기
 mixture_proposal = MixtureProposal(
@@ -297,7 +301,9 @@ def prior_as_proposal_is(h_function, log_likelihood, prior, n_samples):
     return estimate, ess, samples, weights
 ```
 
-## 나아간 전략
+---
+
+## 4. 나아간 전략
 
 ### 라플라스 어림
 
@@ -345,7 +351,6 @@ def laplace_approximation(log_posterior, init_theta, lr=0.1, n_steps=1000):
     cov = torch.inverse(hessian)
     
     return theta_map, cov
-
 
 def create_laplace_proposal(theta_map, cov, inflation=1.5):
     """
@@ -465,7 +470,9 @@ class AdaptiveImportanceSampler:
         self.mixture_weights = torch.ones(self.n_components) / self.n_components
 ```
 
-## 제안의 질 진단
+---
+
+## 5. 제안의 질 진단
 
 ### 무게 기반 진단
 
@@ -525,7 +532,9 @@ def proposal_diagnostics(weights, name=""):
 
 ESS 기반 진단과 그 풀이를 더 깊이 다룬 것은 [실효 표본 크기](ess.md)를 보아라.
 
-## 실전 권고
+---
+
+## 6. 실전 권고
 
 ### 제안 고르기 결정 나무
 
@@ -560,7 +569,9 @@ Is the posterior approximately Gaussian?
 | < 0.05 | 나쁨 | 제안을 반드시 낫게 해야 함 |
 | < 0.01 | 무너짐 | 결과가 미덥지 않음 |
 
-## 계량 금융에서의 쓰임새
+---
+
+## 7. 계량 금융에서의 쓰임새
 
 ### 꼬리 위험을 위한 제안 설계
 
@@ -602,7 +613,9 @@ tilted = exponential_tilting_proposal(target, tilt_parameter=3.0)
 print(f"Original mean: {target.loc}, Tilted mean: {tilted.loc}")
 ```
 
-## 핵심 정리
+---
+
+## 8. 핵심 정리
 
 !!! success "좋은 제안의 성격"
 
@@ -625,17 +638,7 @@ print(f"Original mean: {target.loc}, Tilted mean: {tilted.loc}")
     3. ESS이 너무 낮으면 제안을 낫게 한다
     4. 복잡한 과녁에는 알아서 맞추는 방법을 생각해 보아라
 
-## 참고 문헌
-
-1. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9.5절: 제안 분포.
-
-2. Cappé, O., Guillin, A., Marin, J. M., & Robert, C. P. (2004). "Population Monte Carlo." *Journal of Computational and Graphical Statistics*, 13(4), 907-929.
-
-3. Cornuet, J. M., Marin, J. M., Mira, A., & Robert, C. P. (2012). "Adaptive multiple importance sampling." *Scandinavian Journal of Statistics*, 39(4), 798-812.
-
-4. Bugallo, M. F., Elvira, V., Martino, L., Luengo, D., Miguez, J., & Djuric, P. M. (2017). "Adaptive importance sampling: The past, the present, and the future." *IEEE Signal Processing Magazine*, 34(4), 60-79.
-
-5. Glasserman, P., Heidelberger, P., & Shahabuddin, P. (1999). "Asymptotically optimal importance sampling and stratification for pricing path-dependent options." *Mathematical Finance*, 9(2), 117-152.
+---
 
 ## 연습문제
 
@@ -650,3 +653,19 @@ $\pi = 0.3 \mathcal{N}(-5, 1) + 0.7 \mathcal{N}(3, 0.5)$의 섞음 제안을 짜
 
 ### 연습 4: 옵션 값 매기기를 위한 지수 기울이기
 블랙-숄즈 아래 $S_0 = 100$, $K = 130$, $\sigma = 0.2$, $T = 0.25$인 유럽식 콜 옵션에서, 로그 수익률 분포를 행사가 쪽으로 옮기는 지수 기울인 제안을 짜라. 소박한 몬테카를로 및 평균만 옮긴 단순 가우스 제안과 흩어짐 줄임을 견주어라.
+
+## 정리하며
+
+이 마당은 가장 좋은 제안、설계 원칙、흔한 제안 갈래、나아간 전략을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9.5절: 제안 분포.
+
+2. Cappé, O., Guillin, A., Marin, J. M., & Robert, C. P. (2004). "Population Monte Carlo." *Journal of Computational and Graphical Statistics*, 13(4), 907-929.
+
+3. Cornuet, J. M., Marin, J. M., Mira, A., & Robert, C. P. (2012). "Adaptive multiple importance sampling." *Scandinavian Journal of Statistics*, 39(4), 798-812.
+
+4. Bugallo, M. F., Elvira, V., Martino, L., Luengo, D., Miguez, J., & Djuric, P. M. (2017). "Adaptive importance sampling: The past, the present, and the future." *IEEE Signal Processing Magazine*, 34(4), 60-79.
+
+5. Glasserman, P., Heidelberger, P., & Shahabuddin, P. (1999). "Asymptotically optimal importance sampling and stratification for pricing path-dependent options." *Mathematical Finance*, 9(2), 117-152.

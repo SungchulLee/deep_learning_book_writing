@@ -3,7 +3,7 @@
 
 ---
 
-## MCMC에서의 차원의 저주
+## 1. MCMC에서의 차원의 저주
 
 ### 차원이 왜 중요한가
 
@@ -39,7 +39,7 @@ $$
 
 ---
 
-## 방법마다의 커짐새 분석
+## 2. 방법마다의 커짐새 분석
 
 ### 무작위 걸음 메트로폴리스
 
@@ -123,7 +123,7 @@ $$
 
 ---
 
-## 겪어 보고 커짐새 확인하기
+## 3. 겪어 보고 커짐새 확인하기
 
 ### 실험 차림
 
@@ -216,7 +216,7 @@ def plot_scaling(results_dict, dimensions):
 
 ---
 
-## 실효 표본마다의 값
+## 4. 실효 표본마다의 값
 
 ### 전체 셈 값
 
@@ -256,7 +256,7 @@ $$
 
 ---
 
-## 무너지는 지점과 무너지는 모습
+## 5. 무너지는 지점과 무너지는 모습
 
 ### 무작위 걸음 MH의 무너짐
 
@@ -317,7 +317,7 @@ def rwm_acceptance_vs_dimension(sigma_fixed=0.1):
 
 ---
 
-## 높은 차원을 위한 전략
+## 6. 높은 차원을 위한 전략
 
 ### 미리 다듬기 / 질량 행렬
 
@@ -384,7 +384,7 @@ $d$이 아주 크면 차원이 낮은 부분 공간에서 다룬다:
 
 ---
 
-## 차원에 따른 맞추기
+## 7. 차원에 따른 맞추기
 
 ### 걸음 크기 규칙
 
@@ -415,7 +415,7 @@ $\epsilon \sim d^{-1/4}$이면 $L \sim d^{3/4}$이다.
 
 ---
 
-## 실전에서의 커짐새: 사례
+## 8. 실전에서의 커짐새: 사례
 
 ### 사례 1: 베이즈 신경망
 
@@ -460,7 +460,7 @@ $\epsilon \sim d^{-1/4}$이면 $L \sim d^{3/4}$이다.
 
 ---
 
-## 간추린 표
+## 9. 간추린 표
 
 ### 커짐새 간추림
 
@@ -490,14 +490,6 @@ $\epsilon \sim d^{-1/4}$이면 $L \sim d^{3/4}$이다.
 
 ---
 
-## 참고 문헌
-
-1. Roberts, G. O., & Rosenthal, J. S. (2001). "Optimal Scaling for Various Metropolis-Hastings Algorithms." *Statistical Science*.
-2. Beskos, A., et al. (2013). "Optimal Tuning of the Hybrid Monte Carlo Algorithm." *Bernoulli*.
-3. Livingstone, S., et al. (2019). "On the Geometric Ergodicity of Hamiltonian Monte Carlo." *Bernoulli*.
-4. Belloni, A., & Chernozhukov, V. (2009). "On the Computational Complexity of MCMC-Based Estimators in Large Samples." *Annals of Statistics*.
-5. Chopin, N., & Ridgway, J. (2017). "Leave Pima Indians Alone: Binary Regression as a Benchmark for Bayesian Computation." *Statistical Science*.
-
 ## 연습문제
 
 1. **커짐새 확인.** 무작위 걸음 MH, MALA, HMC를 구현하여라. $d \in \{10, 20, 50, 100\}$인 $d$차원 표준 가우스에서 이론상 커짐새 지수를 확인하여라.
@@ -511,3 +503,15 @@ $\epsilon \sim d^{-1/4}$이면 $L \sim d^{3/4}$이다.
 5. **무너지는 지점 찾기.** 방법마다 표준 가우스에서 실효 표본 100개를 얻는 데 1분이 넘게 걸리는 차원을 찾아라.
 
 ---
+
+## 정리하며
+
+이 마당은 MCMC에서의 차원의 저주、방법마다의 커짐새 분석、겪어 보고 커짐새 확인하기、실효 표본마다의 값을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Roberts, G. O., & Rosenthal, J. S. (2001). "Optimal Scaling for Various Metropolis-Hastings Algorithms." *Statistical Science*.
+2. Beskos, A., et al. (2013). "Optimal Tuning of the Hybrid Monte Carlo Algorithm." *Bernoulli*.
+3. Livingstone, S., et al. (2019). "On the Geometric Ergodicity of Hamiltonian Monte Carlo." *Bernoulli*.
+4. Belloni, A., & Chernozhukov, V. (2009). "On the Computational Complexity of MCMC-Based Estimators in Large Samples." *Annals of Statistics*.
+5. Chopin, N., & Ridgway, J. (2017). "Leave Pima Indians Alone: Binary Regression as a Benchmark for Bayesian Computation." *Statistical Science*.

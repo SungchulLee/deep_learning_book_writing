@@ -7,7 +7,9 @@
 잃는다. 섞인 갈래 그래프 신경망은 마디와 변 갈래마다 그에 맞는 바꿈을
 맡겨 이를 되살린다.
 
-## 엄밀한 정의
+---
+
+## 1. 엄밀한 정의
 
 **뒤섞인 그래프** $G = (V, E, \tau_V, \tau_E)$은 여느 그래프 뜻매김에
 갈래 옮김 둘을 더해 넓힌다:
@@ -25,7 +27,9 @@ $|\mathcal{T}_V| = 1$이고 $|\mathcal{T}_E| = 1$이면 그래프가 고르며
     변 갈래: $\mathcal{T}_E = \{\text{writes}, \text{cites}, \text{published\_in}\}$.
     메타 길 Author $\to$ Paper $\to$ Author이 함께 쓴 관계를 담는다.
 
-## RGCN(관계 그래프 겹말기 신경망)
+---
+
+## 2. RGCN(관계 그래프 겹말기 신경망)
 
 RGCN은 변(관계) 갈래마다 따로 무게 행렬을 매긴다.
 층 $l$의 마디 $v$의 고침 규칙은 다음과 같다:
@@ -47,7 +51,9 @@ $$
 - **덩이 대각 나눔:** $W_r^{(l)}$을 덩이 대각으로 두어
   관계마다의 담이를 지키면서 매개변수를 줄인다.
 
-## HAN(뒤섞인 눈길 신경망)
+---
+
+## 3. HAN(뒤섞인 눈길 신경망)
 
 HAN은 두 켜 눈길 얼개를 들여온다:
 
@@ -74,7 +80,9 @@ $$
 $\mathbf{z}_v^{\Phi}$은 메타 길 $\Phi$의 마디 켜
 모으기이다.
 
-## HGT(뒤섞인 그래프 변환기)
+---
+
+## 4. HGT(뒤섞인 그래프 변환기)
 
 HGT은 갈래마다 다른 쏘기와 함께 변환기의 눈길 얼개를 쓴다.
 출발 마디 $s$과 도착 마디 $t$에 대해:
@@ -88,7 +96,9 @@ $$
 $W_{\tau_E(e)}^{\text{ATT}}$을
 끼워 넣을 수 있다.
 
-## 메타 길
+---
+
+## 5. 메타 길
 
 **메타 길** $\Phi$은 변 갈래로 이어진 마디 갈래의 차례이다:
 
@@ -110,7 +120,9 @@ $$
     뜻으로 알맞은지는 그 마당의 앎이 알려 준다. 메타 길을 저절로 찾는 것은
     활발한 연구 마당이다.
 
-## 비교
+---
+
+## 6. 비교
 
 | 방법 | 갈래 다루기 | 눈길 | 키울 수 있음 |
 |---|---|---|---|
@@ -118,13 +130,7 @@ $$
 | HAN | 메타 길로 묶기 | 두 켜 | 메타 길을 늘어놓아야 한다 |
 | HGT | 갈래마다 쏘기 | 변환기 방식 | 작은 묶음으로 잘 커진다 |
 
-## 참고 문헌
-
-- Schlichtkrull, M. et al. "Modeling Relational Data with Graph Convolutional
-  Networks." ESWC 2018.
-- Wang, X. et al. "Heterogeneous Graph Attention Network." WWW 2019.
-- Hu, Z. et al. "Heterogeneous Graph Transformer." WWW 2020.
-
+---
 
 ## 연습문제
 
@@ -157,3 +163,14 @@ $$
 
 ??? success "연습문제 4 풀이"
     추천 얼개는 쓰는 이, 물건, 그 주고받음을 뒤섞인 그래프로 나타낸다. 마디 갈래: 쓰는 이, 물건, 갈래, 상표. 변 갈래: 샀다, 훑었다, 에 든다, 가 만들었다. 이 그래프 위의 그래프 신경망은 함께 거르기(쓰는 이와 물건의 주고받음)와 내용 바탕 특징(물건의 속성)을 함께 담는 박아 넣기를 배운다. User-Item-User 같은 메타 길은 '비슷한 물건을 산 쓰는 이'를 담는다. 배운 박아 넣기는 $\text{score}(u, i) = f(h_u, h_i)$으로 점수를 매겨 이음 헤아리기(쓰는 이 $u$이 물건 $i$을 살 것인가?)에 쓰인다.
+
+## 정리하며
+
+이 마당은 엄밀한 정의、RGCN(관계 그래프 겹말기 신경망)、HAN(뒤섞인 눈길 신경망)、HGT(뒤섞인 그래프 변환기)을 차례로 짚었다.
+
+**참고 문헌**
+
+- Schlichtkrull, M. et al. "Modeling Relational Data with Graph Convolutional
+  Networks." ESWC 2018.
+- Wang, X. et al. "Heterogeneous Graph Attention Network." WWW 2019.
+- Hu, Z. et al. "Heterogeneous Graph Transformer." WWW 2020.

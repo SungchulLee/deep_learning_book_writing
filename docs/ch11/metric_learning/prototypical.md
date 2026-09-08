@@ -1,9 +1,10 @@
 # 원형 망
-## 들어가며
 
 Snell 외(2017)가 들여온 원형 망은 소수 예시 학습에서 가장 우아하고 쓸모 있는 접근법에 든다. 핵심 통찰은 놀랍도록 단순하다. 부류는 그 받침 묻힘의 평균(원형)으로 나타낼 수 있고, 가려내기는 가장 가까운 원형을 찾는 것으로 이루어진다.
 
-## 핵심 개념
+---
+
+## 1. 핵심 개념
 
 ### 원형이라는 생각
 
@@ -31,7 +32,9 @@ $$p(y = c | x) = \frac{\exp(-d(f_\theta(x), \mathbf{c}_c))}{\sum_{c'} \exp(-d(f_
 
 **튼튼함**: 여러 보기를 평균 내면 잡음 끼거나 별난 받침 보기의 영향이 줄어든다.
 
-## 수학적 바탕
+---
+
+## 2. 수학적 바탕
 
 ### 브레그만 벌어짐
 
@@ -53,7 +56,9 @@ $$p(x | c) = \mathcal{N}(f_\theta(x); \mu_c, \sigma^2 I)$$
 
 여기서 $\mu_c$은 원형이고 $\sigma^2$은 부류들이 나누어 쓴다. 이 모델 아래에서 부류 위의 뒤확률은 거리 제곱의 음수에 씌운 소프트맥스와 정확히 같다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 온전한 원형 망
 
@@ -241,7 +246,9 @@ class Conv4Encoder(nn.Module):
         return F.adaptive_avg_pool2d(features, 1).view(features.size(0), -1)
 ```
 
-## 학습 절차
+---
+
+## 4. 학습 절차
 
 ### 에피소드 학습 되돌이
 
@@ -301,7 +308,9 @@ def train_prototypical_network(
 
 **학습 요령**: 시험 때보다 큰 N-갈래로 익혀라. 30-갈래로 익히고 5-갈래로 시험하면 성능이 좋아질 때가 많다.
 
-## 변형과 확장
+---
+
+## 5. 변형과 확장
 
 ### 무한 섞음 원형
 
@@ -494,7 +503,9 @@ class SemiSupervisedProtoNet(nn.Module):
         return torch.stack(prototypes)
 ```
 
-## 이론적 분석
+---
+
+## 6. 이론적 분석
 
 ### 표본 복잡도
 
@@ -516,7 +527,9 @@ $$\mathbb{E}\left[\|\hat{\mathbf{c}}_c - \mathbf{c}_c^*\|_2^2\right] = O\left(\f
 | 맞춤 망 | 항등 | 주의로 무게 준 값 | $O(NK \cdot Q)$ |
 | 관계 망 | 평균 | 배운 관계 | $O(N \cdot Q)$ |
 
-## 실전 권고
+---
+
+## 7. 실전 권고
 
 ### 거리 함수 고르기
 
@@ -562,7 +575,9 @@ train_transform = transforms.Compose([
 ])
 ```
 
-## 실험 결과
+---
+
+## 8. 실험 결과
 
 ### 잣대 성능(5-갈래 정확도)
 
@@ -572,28 +587,7 @@ train_transform = transforms.Compose([
 | **원형 망** | **98.8%** | **99.7%** | **49.4%** | **68.2%** |
 | MAML | 98.7% | 99.9% | 48.7% | 63.1% |
 
-## 요약
-
-원형 망은 다음을 준다.
-
-1. **단순함**: 부류의 평균을 셈하고 최근접 이웃으로 가려내면 그만이다
-2. **효율**: 시험 때 되풀이 최적화가 없다
-3. **든든한 성능**: 더 복잡한 방법과 겨룰 만하다
-4. **이론적 바탕**: 브레그만 벌어짐 이론에 뿌리를 둔다
-
-실무자를 위한 핵심 통찰은 다음과 같다.
-
-- 시험 때보다 큰 N-갈래로 익혀라
-- 고른 묻힘에 유클리드 거리의 제곱을 쓰라
-- 복잡한 부류에는 원형을 여럿 두는 것을 생각해 보라
-- 일반화에는 데이터 늘리기가 매우 중요하다
-
-## 참고 문헌
-
-1. Snell, J., et al. "Prototypical Networks for Few-shot Learning." NeurIPS 2017.
-2. Fort, S. "Gaussian Prototypical Networks for Few-Shot Learning on Omniglot." CVPR Workshop 2017.
-3. Allen, K., et al. "Infinite Mixture Prototypes for Few-Shot Learning." ICML 2019.
-4. Ren, M., et al. "Meta-Learning for Semi-Supervised Few-Shot Classification." ICLR 2018.
+---
 
 ## 연습문제
 
@@ -632,3 +626,26 @@ train_transform = transforms.Compose([
 
 ??? success "연습문제 4 풀이"
     원형 망: 부류 무게중심을 셈하고 유클리드 거리와 소프트맥스를 쓴다. 단순하고 쓸모 있다. 맞춤 망: 받침 집합 위에서 주의로 무게 준 kNN을 쓰며 받침 집합 전체를 쓴다. 관계 망: 신경망으로 거리 함수를 배운다. 원형 망은 단순해서 가장 널리 쓰이고, 관계 망이 가장 두루 쓰이며, 맞춤 망은 받침 집합의 크기가 바뀔 때 가장 잘 다룬다.
+
+## 정리하며
+
+원형 망은 다음을 준다.
+
+1. **단순함**: 부류의 평균을 셈하고 최근접 이웃으로 가려내면 그만이다
+2. **효율**: 시험 때 되풀이 최적화가 없다
+3. **든든한 성능**: 더 복잡한 방법과 겨룰 만하다
+4. **이론적 바탕**: 브레그만 벌어짐 이론에 뿌리를 둔다
+
+실무자를 위한 핵심 통찰은 다음과 같다.
+
+- 시험 때보다 큰 N-갈래로 익혀라
+- 고른 묻힘에 유클리드 거리의 제곱을 쓰라
+- 복잡한 부류에는 원형을 여럿 두는 것을 생각해 보라
+- 일반화에는 데이터 늘리기가 매우 중요하다
+
+**참고 문헌**
+
+1. Snell, J., et al. "Prototypical Networks for Few-shot Learning." NeurIPS 2017.
+2. Fort, S. "Gaussian Prototypical Networks for Few-Shot Learning on Omniglot." CVPR Workshop 2017.
+3. Allen, K., et al. "Infinite Mixture Prototypes for Few-Shot Learning." ICML 2019.
+4. Ren, M., et al. "Meta-Learning for Semi-Supervised Few-Shot Classification." ICLR 2018.

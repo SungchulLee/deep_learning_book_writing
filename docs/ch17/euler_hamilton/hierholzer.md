@@ -2,7 +2,9 @@
 
 그래프에 오일러 회로가 있음(꼭짓점마다 차수가 짝수이고 그래프가 이어져 있음)을 알고 나면 그것을 실제로 세우는 효율적인 알고리즘이 필요하다. 히어홀처 알고리즘(1873)은 작은 회로를 거듭 찾아 이어 붙여 이를 $O(E)$ 시간에 해낸다. 핵심 생각은 단순하다. 곧 쓰지 않은 변을 따라 걷다가 처음 꼭짓점으로 돌아오고, 아직 쓰지 않은 변이 남은 꼭짓점을 새 작은 회로로 부풀린다.
 
-## 알고리즘 설명
+---
+
+## 1. 알고리즘 설명
 
 **들임.** 꼭짓점마다 차수가 짝수이거나(오일러 회로) 차수가 홀수인 꼭짓점이 정확히 둘인(오일러 경로) 이어진 그래프 $G = (V, E)$.
 
@@ -16,11 +18,15 @@
 
 **5단계.** 모든 변을 쓸 때까지 3~4단계를 되풀이한다.
 
-## 왜 통하는가
+---
+
+## 2. 왜 통하는가
 
 꼭짓점마다 차수가 짝수이므로 어떤 걸음이든 꼭짓점에 들어가면 늘 나올 수 있다. 그래서 한 꼭짓점에서 떠난 걸음은 끝내 그 꼭짓점으로 돌아와 닫힌 회로를 이룬다. 회로의 변을 없애고 나도 남은 그래프의 차수는 여전히 모두 짝수이다(회로를 없애면 닿은 꼭짓점의 차수가 짝수만큼 줄어든다). 이어 붙이기 단계가 모든 작은 회로를 하나의 오일러 회로로 합쳐 준다.
 
-## 쌓기를 쓴 효율적인 짜기
+---
+
+## 3. 쌓기를 쓴 효율적인 짜기
 
 위의 이어 붙이기 방식은 생각으로는 또렷하지만 이음 목록으로 짜기에는 성가시다. 더 깔끔한 짜기는 쌓기를 써서 회로를 거꾸로 세운다. 꼭짓점마다 쓰지 않은 변을 욕심껏 따라가며 꼭짓점을 쌓기에 올린다. 남은 변이 없는 꼭짓점에 이르면 그것을 꺼내 내놓는다.
 
@@ -84,7 +90,6 @@ def euler_circuit(n: int, edges: list[tuple[int, int]]) -> list[int]:
 
     return circuit
 
-
 def euler_path(n: int, edges: list[tuple[int, int]]) -> list[int]:
     """방향 없는 그래프에서 오일러 경로를 찾는다.
 
@@ -116,7 +121,6 @@ def euler_path(n: int, edges: list[tuple[int, int]]) -> list[int]:
                 return circuit[i+1:] + circuit[1:i+1]
     return circuit
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -144,7 +148,9 @@ Distinct edge traversals: 5
 
 이 알고리즘은 꼭짓점 $0$에서 시작해 $0$에서 끝나며 다섯 변을 모두 정확히 한 번씩 지난다. 속 차례는 이웃 목록의 차례에 달렸지만 올바른 오일러 회로라면 어느 것이든 맞다.
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 | 항목 | 비용 |
 |--------|:----:|
@@ -153,7 +159,9 @@ Distinct edge traversals: 5
 
 변마다 많아야 두 번 살피고(끝점마다의 이웃 목록에서 한 번씩) 정확히 한 번 쓴다. 쌓기는 결코 $O(E)$개를 넘지 않는다. 내놓는 것 자체의 길이가 $E + 1$이므로 이 알고리즘은 가장 좋다.
 
-## 방향 그래프
+---
+
+## 5. 방향 그래프
 
 방향 그래프에서는 히어홀처 알고리즘을 다음과 같이 고쳐 쓴다:
 
@@ -163,10 +171,7 @@ Distinct edge traversals: 5
 
 시간 복잡도는 그대로 $O(V + E)$이다.
 
-## 참고 문헌
-
-- Hierholzer, C. (1873). Ueber die Moglichkeit, einen Linienzug ohne Wiederholung und ohne Unterbrechung zu umfahren. *Mathematische Annalen*, 6, 30--32.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 22장: Elementary Graph Algorithms.
+---
 
 ## 연습문제
 
@@ -214,3 +219,12 @@ Distinct edge traversals: 5
 
 ??? success "연습문제 4 풀이"
     차수가 홀수인 두 꼭짓점 사이에 잠깐 쓸 변을 더한다. 이제 차수가 모두 짝수이므로 오일러 회로가 있다. 히어홀처 알고리즘을 돌려 순환을 찾는다. 결과에서 잠깐 쓴 변을 지우면 순환이 끊어져 한쪽 홀수 꼭짓점에서 비롯해 다른 쪽에서 끝나는 길이 된다. 아니면 홀수 차수 꼭짓점 가운데 하나에서 알고리즘을 비롯해도 되는데, 그러면 저절로 다른 쪽에서 끝난다. $\square$
+
+## 정리하며
+
+이 마당은 알고리즘 설명、왜 통하는가、쌓기를 쓴 효율적인 짜기、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Hierholzer, C. (1873). Ueber die Moglichkeit, einen Linienzug ohne Wiederholung und ohne Unterbrechung zu umfahren. *Mathematische Annalen*, 6, 30--32.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 22장: Elementary Graph Algorithms.

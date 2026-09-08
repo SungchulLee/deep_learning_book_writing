@@ -1,8 +1,6 @@
 # 아호-코라식
 아호-코라식 알고리즘은 길이 $n$인 글월 $T$에서 본 모임 $\{P_1, P_2, \ldots, P_k\}$이 나오는 곳을 한꺼번에 모두 찾는 여러 본 글줄 찾기 알고리즘이다. $m = \sum |P_i|$을 본 전체의 길이, $z$을 맞은 수라 하자. 이 알고리즘은 $O(n + m + z)$ 시간에 돈다.
 
-## 개요
-
 이 알고리즘은 두 마디로 돈다:
 
 1. **미리 다듬기:** 본 전체로 트라이(열쇠말 나무)를 세운 뒤 어긋남 이음과 내놓기 이음(사전 이음)을 더해 유한 자동 기계를 만든다.
@@ -12,7 +10,9 @@ $$
 \text{전체 시간} = \underbrace{O(m)}_{\text{트라이와 이음 세우기}} + \underbrace{O(n)}_{\text{글월 훑기}} + \underbrace{O(z)}_{\text{맞음 알리기}} = O(n + m + z)
 $$
 
-## 구현
+---
+
+## 1. 구현
 
 ```python
 from collections import deque
@@ -83,7 +83,9 @@ for pos, pat in sorted(matches):
 #   본 'hers'을 자리 4에서 찾음
 ```
 
-## 복잡도 분석
+---
+
+## 2. 복잡도 분석
 
 | 마디 | 시간 | 공간 |
 |-------|------|-------|
@@ -97,6 +99,8 @@ for pos, pat in sorted(matches):
 [Aho, Corasick - Efficient String Matching: An Aid to Bibliographic Search (1975)](https://doi.org/10.1145/360825.360855)
 
 [Aho-Corasick Algorithm - CP-Algorithms](https://cp-algorithms.com/string/aho_corasick.html)
+
+---
 
 ## 연습문제
 
@@ -129,3 +133,7 @@ for pos, pat in sorted(matches):
 
 ??? success "연습문제 4 풀이"
     본 $k$개에 KMP를 돌리면 $O(n \cdot k + M)$ 시간이 든다($k$번 지나며 글월을 훑는다). 아호-코라식은 $O(n + M + z)$이라 $k$이라는 인수를 없앤다. 다음일 때 가장 이롭다. (1) 본이 많을 때($k$이 클 때), (2) 글월이 길 때($k$번 지나는 것을 아끼는 것이 중요할 때), (3) 본이 공통 앞가지를 나눠 가질 때(트라이가 따로 둔 어긋남 함수 $k$개보다 촘촘하다). 쓰임새: 그물 오감에서 악성 코드 표지 수천 개를 훑는 침입 알아내기 체계, 본 자료 곳간이 큰 DNA 차례 찾기, 사전이 큰 글월 거르기.
+
+## 정리하며
+
+이 마당은 구현、복잡도 분석을 차례로 짚었다.

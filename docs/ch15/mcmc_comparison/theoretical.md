@@ -3,7 +3,7 @@
 
 ---
 
-## 모임 이론의 얼개
+## 1. 모임 이론의 얼개
 
 ### 모임 재기
 
@@ -57,7 +57,7 @@ $$
 
 ---
 
-## 방법마다의 스펙트럼 분석
+## 2. 방법마다의 스펙트럼 분석
 
 ### 무작위 걸음 메트로폴리스
 
@@ -125,7 +125,7 @@ $\epsilon \sim d^{-1/4}$이고 $L \sim d^{1/4}$일 때.
 
 ---
 
-## 가장 좋은 눈금 잡기 이론
+## 3. 가장 좋은 눈금 잡기 이론
 
 ### 로버츠-로젠탈 얼개
 
@@ -171,7 +171,7 @@ HMC에서는 눈금이 더 복잡하다:
 
 ---
 
-## 모임 속도 견주기
+## 4. 모임 속도 견주기
 
 ### 가우스 과녁에서
 
@@ -217,7 +217,7 @@ $$
 
 ---
 
-## 정보 이론의 관점
+## 5. 정보 이론의 관점
 
 ### 기울기 정보의 값어치
 
@@ -246,7 +246,7 @@ $$
 
 ---
 
-## 기하적 에르고드성
+## 6. 기하적 에르고드성
 
 ### 정의
 
@@ -285,7 +285,7 @@ $$
 
 ---
 
-## 아래 한계
+## 7. 아래 한계
 
 ### 근본 한계
 
@@ -315,7 +315,7 @@ $$
 
 ---
 
-## 점근 효율
+## 8. 점근 효율
 
 ### 페스쿤 차례
 
@@ -348,7 +348,7 @@ $$
 
 ---
 
-## 튼튼함의 성질
+## 9. 튼튼함의 성질
 
 ### 맞추기에 대한 민감함
 
@@ -381,7 +381,7 @@ $$
 
 ---
 
-## 이론 간추림
+## 10. 이론 간추림
 
 ### 모임 속도의 층위
 
@@ -423,14 +423,6 @@ $$
 
 ---
 
-## 참고 문헌
-
-1. Roberts, G. O., Gelman, A., & Gilks, W. R. (1997). "Weak Convergence and Optimal Scaling of Random Walk Metropolis Algorithms." *Annals of Applied Probability*.
-2. Roberts, G. O., & Rosenthal, J. S. (1998). "Optimal Scaling of Discrete Approximations to Langevin Diffusions." *JRSS-B*.
-3. Beskos, A., Pillai, N., Roberts, G., Sanz-Serna, J. M., & Stuart, A. (2013). "Optimal Tuning of the Hybrid Monte Carlo Algorithm." *Bernoulli*.
-4. Dalalyan, A. S. (2017). "Theoretical Guarantees for Approximate Sampling from Smooth and Log-Concave Densities." *JRSS-B*.
-5. Peskun, P. H. (1973). "Optimum Monte-Carlo Sampling Using Markov Chains." *Biometrika*.
-
 ## 연습문제
 
 1. **스펙트럼 틈 셈하기.** 흩어짐이 $\sigma^2$인 1차원 가우스에서 제안 흩어짐이 $\tau^2$인 무작위 걸음 MH의 스펙트럼 틈을 셈하여라. $\tau$에 어떻게 기대는가?
@@ -444,3 +436,15 @@ $$
 5. **페스쿤 차례.** 제안 흩어짐만 다른 MH 사슬 둘을 지어라. 받아들임이 높은 쪽의 점근 흩어짐이 낮은지 확인하여라.
 
 ---
+
+## 정리하며
+
+이 마당은 모임 이론의 얼개、방법마다의 스펙트럼 분석、가장 좋은 눈금 잡기 이론、모임 속도 견주기을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Roberts, G. O., Gelman, A., & Gilks, W. R. (1997). "Weak Convergence and Optimal Scaling of Random Walk Metropolis Algorithms." *Annals of Applied Probability*.
+2. Roberts, G. O., & Rosenthal, J. S. (1998). "Optimal Scaling of Discrete Approximations to Langevin Diffusions." *JRSS-B*.
+3. Beskos, A., Pillai, N., Roberts, G., Sanz-Serna, J. M., & Stuart, A. (2013). "Optimal Tuning of the Hybrid Monte Carlo Algorithm." *Bernoulli*.
+4. Dalalyan, A. S. (2017). "Theoretical Guarantees for Approximate Sampling from Smooth and Log-Concave Densities." *JRSS-B*.
+5. Peskun, P. H. (1973). "Optimum Monte-Carlo Sampling Using Markov Chains." *Biometrika*.

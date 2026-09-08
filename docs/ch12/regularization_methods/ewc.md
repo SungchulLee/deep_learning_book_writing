@@ -1,5 +1,4 @@
 # 탄성 가중치 다지기(EWC)
-## 들어가며
 
 **탄성 가중치 다지기(EWC)**는 Kirkpatrick 외(2017)가 들여온, 이어 배우기의 벌주기 기반 방법 가운데 가장 큰 영향을 끼친 것에 든다. EWC의 핵심 통찰은 앞서 배운 과제에서 신경망의 매개변수가 다 똑같이 중요하지는 않다는 것이다. 어떤 매개변수는 결정적이고 어떤 것은 마음대로 바꾸어도 된다. EWC는 **피셔 정보 행렬**로 중요한 매개변수를 짚어내어 지킨다.
 
@@ -9,7 +8,9 @@
     - **붙박이 기억**: 과제가 늘어도 기억이 커지지 않는다
     - **원칙 있는 바탕**: 베이즈 추론과 정보 이론에 뿌리를 둔다
 
-## 이론적 바탕
+---
+
+## 1. 이론적 바탕
 
 ### 베이즈의 눈
 
@@ -66,7 +67,9 @@ $$
 
 이로써 저장이 $O(d^2)$에서 $O(d)$으로 줄어든다.
 
-## EWC의 손실 함수
+---
+
+## 2. EWC의 손실 함수
 
 과제 $\tau$을 배울 때 온전한 EWC 손실은 다음과 같다.
 
@@ -84,7 +87,9 @@ $$
 !!! info "직관"
     벌 항은 매개변수마다를 앞서의 가장 좋은 값에 이어 주는 용수철 노릇을 한다. 용수철 상수(뻣뻣함)는 피셔 정보가 정한다. 중요한 매개변수는 뻣뻣한 용수철을, 중요하지 않은 매개변수는 느슨한 용수철을 갖는다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 온전한 EWC 학습기 클래스
 
@@ -460,7 +465,9 @@ metrics = ContinualLearningMetrics(results['accuracy_matrix'])
 metrics.print_report()
 ```
 
-## 초매개변수 분석
+---
+
+## 4. 초매개변수 분석
 
 ### λ 매개변수
 
@@ -557,7 +564,9 @@ def plot_lambda_analysis(results):
     plt.show()
 ```
 
-## EWC의 변형
+---
+
+## 5. EWC의 변형
 
 ### 온라인 EWC
 
@@ -653,7 +662,9 @@ class EWCPlusPlus(EWCLearner):
         }
 ```
 
-## 계산에 대한 고려
+---
+
+## 6. 계산에 대한 고려
 
 ### 시간 복잡도
 
@@ -675,7 +686,9 @@ class EWCPlusPlus(EWCLearner):
 !!! warning "규모 확장성"
     과제 차례가 아주 길면 기억을 그대로 유지하도록 온라인 EWC를 생각해 보라.
 
-## 장점과 한계
+---
+
+## 7. 장점과 한계
 
 ### 이점
 
@@ -691,7 +704,9 @@ class EWCPlusPlus(EWCLearner):
 3. **과제마다의 λ**: 가장 좋은 λ이 과제마다 다를 수 있다
 4. **용량의 한계**: 끝내 말랑한 매개변수가 바닥난다
 
-## 기대되는 결과
+---
+
+## 8. 기대되는 결과
 
 기본 초매개변수로 Split MNIST에서는 다음과 같다.
 
@@ -703,25 +718,7 @@ class EWCPlusPlus(EWCLearner):
 
 EWC는 배우는 힘을 잘 지키면서 잊음을 크게 줄인다.
 
-## 요약
-
-탄성 가중치 다지기는 다음으로 원칙 있는 이어 배우기 방법을 준다.
-
-1. 피셔 정보로 **중요한 매개변수를 짚어낸다**
-2. 이차 벌로 **중요한 매개변수를 지킨다**
-3. 중요하지 않은 매개변수에는 **자유를 준다**
-
-이 방법은 데이터를 담아 둘 필요가 없어 사생활이 민감한 응용에 알맞지만, 과제가 많아지면 제약이 쌓일 수 있다.
-
-## 참고 문헌
-
-1. Kirkpatrick, J., et al. (2017). Overcoming catastrophic forgetting in neural networks. *PNAS*, 114(13), 3521-3526.
-
-2. Huszár, F. (2018). Note on the quadratic penalties in elastic weight consolidation. *PNAS*, 115(11), E2496-E2497.
-
-3. Schwarz, J., et al. (2018). Progress & compress: A scalable framework for continual learning. *ICML*.
-
-4. Chaudhry, A., et al. (2018). Riemannian walk for incremental learning: Understanding forgetting and intransigence. *ECCV*.
+---
 
 ## 연습문제
 
@@ -774,3 +771,23 @@ EWC의 한계는 무엇인가?
 ??? success "연습문제 4 풀이"
 
     1. 대각 피셔 어림은 매개변수 사이의 상관을 무시한다. 2. 피셔를 한 점($\theta_A^*$)에서만 셈하므로 뒤확률 전체를 나타내지 못할 수 있다. 3. 규모를 키우기 나쁘다. 과제마다 피셔와 매개변수를 담아 두어야 한다. 4. 과제가 많아지면 '얼어붙은' 매개변수가 늘어 성능이 떨어진다. 5. 과제의 경계를 안다고 놓는다.
+
+## 정리하며
+
+탄성 가중치 다지기는 다음으로 원칙 있는 이어 배우기 방법을 준다.
+
+1. 피셔 정보로 **중요한 매개변수를 짚어낸다**
+2. 이차 벌로 **중요한 매개변수를 지킨다**
+3. 중요하지 않은 매개변수에는 **자유를 준다**
+
+이 방법은 데이터를 담아 둘 필요가 없어 사생활이 민감한 응용에 알맞지만, 과제가 많아지면 제약이 쌓일 수 있다.
+
+**참고 문헌**
+
+1. Kirkpatrick, J., et al. (2017). Overcoming catastrophic forgetting in neural networks. *PNAS*, 114(13), 3521-3526.
+
+2. Huszár, F. (2018). Note on the quadratic penalties in elastic weight consolidation. *PNAS*, 115(11), E2496-E2497.
+
+3. Schwarz, J., et al. (2018). Progress & compress: A scalable framework for continual learning. *ICML*.
+
+4. Chaudhry, A., et al. (2018). Riemannian walk for incremental learning: Understanding forgetting and intransigence. *ECCV*.

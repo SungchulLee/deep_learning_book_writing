@@ -2,7 +2,9 @@
 
 많은 문제에서 서로 겹치지 않는 무리의 모임을 좇으며 두 물음에 효율적으로 답해야 한다. 곧 "원소 $x$과 $y$이 같은 무리에 드는가?"와 "$x$과 $y$을 담은 무리를 합쳐라"이다. 이런 무리는 크러스컬 알고리즘의 이어진 조각, 하나로 맞추기 문제의 동치류, 그림 나누기의 구역으로 자연스럽게 나타난다. **서로 겹치지 않는 모음**(또는 **합치기-찾기**) 추상 자료형이 이 연산들에 깔끔한 창구를 준다.
 
-## 정의
+---
+
+## 1. 정의
 
 **서로 겹치지 않는 모음 자료 짜임**은 서로 겹치지 않고 바뀌는 모음의 모임 $\mathcal{S} = \{S_1, S_2, \ldots, S_k\}$을 지닌다. 모음 $S_i$마다 그 모음에서 뽑은 한 원소인 **대표**로 가려낸다. 이 자료 짜임은 연산 셋을 받쳐 준다:
 
@@ -32,7 +34,9 @@ $x$과 $y$을 담은 두 모음을 하나로 합친다. 합쳐진 모음의 대�
 
 **뒷조건**: $x \in S_i$이고 $y \in S_j$이며 $S_i \ne S_j$이면 $\mathcal{S} \leftarrow (\mathcal{S} \setminus \{S_i, S_j\}) \cup \{S_i \cup S_j\}$이다.
 
-## 파이썬 창구
+---
+
+## 2. 파이썬 창구
 
 다음은 안의 나타냄을 정하지 않은 채 추상 자료형의 창구를 정한다. 이 절의 다음 쪽들에서 점점 더 빠른 구현을 세워 간다.
 
@@ -43,7 +47,6 @@ $x$과 $y$을 담은 두 모음을 하나로 합친다. 합쳐진 모음의 대�
 구현 방식을 정하지 않은 채
 합치기-찾기 연산의 창구를 정한다.
 """
-
 
 # === 추상 자료형 창구 ===
 
@@ -78,7 +81,6 @@ class DisjointSetADT:
         """a과 b이 같은 모음에 있는지 살핀다."""
         return self.find(a) == self.find(b)
 
-
 # === 보기 ===
 
 if __name__ == "__main__":
@@ -102,7 +104,9 @@ After union(0,1) and union(2,3): 0 and 1 connected? True
 After union(1,3): 0 and 3 connected? True
 ```
 
-## 어수룩한 구현의 복잡도
+---
+
+## 3. 어수룩한 구현의 복잡도
 
 위의 어수룩한 구현은(최적화가 없을 때) 값이 다음과 같다:
 
@@ -114,7 +118,9 @@ After union(1,3): 0 and 3 connected? True
 
 최악의 경우는 UNION이 늘 같은 사슬에 이어 붙여 깊이 $n$의 이음 목록을 만들 때이다. 다음 쪽들에서는 **계급으로 합치기**와 **길 줄이기**라는 최적화 둘을 소개한다. 이는 FIND과 UNION의 고르게 친 값을 $O(\alpha(n))$으로 줄이며, 여기서 $\alpha$은 거꿀 애커만 함수이다.
 
-## 나타냄의 고름
+---
+
+## 4. 나타냄의 고름
 
 고전 구현이 둘 있다:
 
@@ -125,10 +131,7 @@ After union(1,3): 0 and 3 connected? True
 
 다음 두 쪽에서 이 방식들을 자세히 살펴보고, 이어서 숲에 바탕을 둔 방식을 거의 최적으로 만드는 최적화를 다룬다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 21장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-- Tarjan, R. E. (1975). Efficiency of a good but not linear set union algorithm. *JACM*, 22(2), 215--225.
+---
 
 ## 연습문제
 
@@ -175,3 +178,12 @@ After union(1,3): 0 and 3 connected? True
     ```
 
     최적화가 없으면 (늘 한쪽에만 붙여) 나무가 이음 목록으로 무너질 수 있다. 최악의 경우 Find은 $O(n)$이 든다. Union과 Find 연산 $n$번의 늘어놓음은 모두 합해 $O(n^2)$이 들 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 정의、파이썬 창구、어수룩한 구현의 복잡도、나타냄의 고름을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 21장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- Tarjan, R. E. (1975). Efficiency of a good but not linear set union algorithm. *JACM*, 22(2), 215--225.

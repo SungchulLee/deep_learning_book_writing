@@ -1,16 +1,23 @@
 # 35.4.1 무릅씀을 맞춘 보상
-## 배움 목표
+
+---
+
+## 1. 배움 목표
 
 - 무릅씀을 힘 북돋우는 배움 목표에 넣는 보상 함수를 설계한다
 - 샤프 비, 소르티노 비, 칼마 비를 보상으로 만든다
 - 한 걸음 가장 좋게 하기를 위한 미분 샤프 비를 이해한다
 - 무릅씀에 무덤덤한 방침과 무릅씀을 맞춘 방침의 거동을 견준다
 
-## 들머리
+---
+
+## 2. 들머리
 
 금융 힘 북돋우는 배움에서 무릅씀을 살피지 않고 날 돌아옴만 가장 크게 하면 끔찍한 끝을 본다. 지렛대가 커지고, 자리가 한곳에 몰리며, 내림폭이 극단으로 간다. 무릅씀을 맞춘 보상은 부림꾼이 돌아옴 내기와 무릅씀 다루기의 저울을 맞추도록 배우게 하여, 실제로 서비스에 올릴 만한 방침을 낳는다.
 
-## 무릅씀을 맞춘 보상 함수
+---
+
+## 3. 무릅씀을 맞춘 보상 함수
 
 ### 1. 무릅씀에 벌준 돌아옴
 
@@ -45,7 +52,9 @@ $$r_t^{\text{칼마}} = r_t - \lambda \cdot \frac{V_{\text{꼭대기}} - V_t}{V_
 
 $$r_t = r_t^{\text{돌아옴}} - \lambda \cdot \sum_i \left(\text{RC}_i - \frac{1}{N}\right)^2$$
 
-## 보상 함수 견주기
+---
+
+## 4. 보상 함수 견주기
 
 | 보상 | 가장 좋게 하는 것 | 거동 |
 |--------|-----------|----------|
@@ -55,7 +64,9 @@ $$r_t = r_t^{\text{돌아옴}} - \lambda \cdot \sum_i \left(\text{RC}_i - \frac{
 | 칼마 바탕 | $\mathbb{E}[R]/\text{MDD}$ | 내림폭을 꺼린다 |
 | CVaR 맞춤 | $\mathbb{E}[R] + \lambda\text{CVaR}$ | 꼬리 무릅씀을 살핀다 |
 
-## 무릅씀 꺼림 매개변수 lambda
+---
+
+## 5. 무릅씀 꺼림 매개변수 lambda
 
 $\lambda$을 어떻게 고르느냐가 방침 거동에 크게 미친다.
 
@@ -65,15 +76,7 @@ $\lambda$을 어떻게 고르느냐가 방침 거동에 크게 미친다.
 
 실제로는 $\lambda$을 살피기 자료로 벼리는 매개변수로 다루거나, 부림꾼을 $\lambda$에 매어 두어 방침의 갈래를 한꺼번에 얻을 수 있다.
 
-## 요약
-
-무릅씀을 맞춘 보상은 금융 힘 북돋우는 배움에 꼭 있어야 한다. 미분 샤프 비는 한 걸음 보상을 산뜻하게 주고, 소르티노와 칼마 갈래는 남다른 무릅씀 결을 겨눈다. 무릅씀 꺼림 매개변수 $\lambda$이 배운 방침의 사나움을 다스린다.
-
-## 참고 문헌
-
-- Moody, J. & Saffell, M. (2001). Learning to Trade via Direct Reinforcement. IEEE Transactions on Neural Networks.
-- Sharpe, W. (1966). Mutual Fund Performance. Journal of Business.
-- Sortino, F. & van der Meer, R. (1991). Downside Risk. Journal of Portfolio Management.
+---
 
 ## 연습문제
 
@@ -106,3 +109,13 @@ $\lambda$을 어떻게 고르느냐가 방침 거동에 크게 미친다.
 
 ??? success "연습문제 4 풀이"
     잣대: 사서 쥐기, 고르게 나누기, 밀기 꾀. 부림꾼은 (익힘 자료에서는 결코 하지 않고) 앞으로 걸어가며 뽑기 밖 구간에서 따져야 한다. 통계 검정: (1) 하루 돌아옴에 대한 짝 지은 t 검정으로 평균 차이를 본다. (2) 샤프 비 차이에 대한 부트스트랩 믿음 구간을 얻는다. (3) 여러 꾀를 견준다면 여러 가설 검정 바로잡기(보기로 본페로니나 홀름)를 매긴다. 흔히 빠지는 함정은 시험 자료에서 매개변수를 벼려 p값을 후려치는 일이다. 따지기는 어떤 모형 고르기에도 쓰이지 않은 남겨 둔 구간을 써야 한다. 통계로 뜻있음과 살림살이로 뜻있음(거래 비용, 담을 수 있는 크기)을 함께 알려야 한다. $\square$
+
+## 정리하며
+
+무릅씀을 맞춘 보상은 금융 힘 북돋우는 배움에 꼭 있어야 한다. 미분 샤프 비는 한 걸음 보상을 산뜻하게 주고, 소르티노와 칼마 갈래는 남다른 무릅씀 결을 겨눈다. 무릅씀 꺼림 매개변수 $\lambda$이 배운 방침의 사나움을 다스린다.
+
+**참고 문헌**
+
+- Moody, J. & Saffell, M. (2001). Learning to Trade via Direct Reinforcement. IEEE Transactions on Neural Networks.
+- Sharpe, W. (1966). Mutual Fund Performance. Journal of Business.
+- Sortino, F. & van der Meer, R. (1991). Downside Risk. Journal of Portfolio Management.

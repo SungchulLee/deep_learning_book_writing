@@ -2,7 +2,9 @@
 
 전위 순회는 **뿌리를 먼저** 처리한 뒤 왼쪽 부분 트리를 재귀적으로 들르고 마지막에 오른쪽 부분 트리를 들러 이진 트리의 모든 노드를 훑는다. 이 "자식보다 뿌리 먼저" 순서 덕분에 부모를 자손보다 먼저 다루어야 할 때, 이를테면 트리를 베끼거나 구조를 직렬화하거나 식 트리에서 전위 식을 만들 때 전위 순회가 자연스러운 선택이 된다.
 
-## 정의
+---
+
+## 1. 정의
 
 뿌리가 $r$인 이진 트리에서 **전위 순회**는 다음 순서로 노드를 들른다.
 
@@ -12,7 +14,9 @@ $$
 
 바탕 경우는 빈 부분 트리(널 포인터)이며 아무것도 내놓지 않는다. 노드가 $n$개인 트리에서 순회는 꼭 $n$번의 들름으로 이루어진 나열을 낸다.
 
-## 재귀 알고리즘
+---
+
+## 2. 재귀 알고리즘
 
 재귀 형태는 정의를 그대로 옮긴 것이다. 호출마다 지금 노드를 처리한 뒤 왼쪽과 오른쪽 자식에게 넘긴다.
 
@@ -20,7 +24,6 @@ $$
 """이진 트리의 전위 순회: 재귀 방법과 반복 방법."""
 
 from __future__ import annotations
-
 
 # === 노드 정의 ===
 
@@ -33,7 +36,6 @@ class TreeNode:
         self.left = left
         self.right = right
 
-
 # === 재귀 전위 순회 ===
 
 def preorder_recursive(root: TreeNode | None) -> list[int]:
@@ -45,7 +47,9 @@ def preorder_recursive(root: TreeNode | None) -> list[int]:
 
 재귀 판본은 간결하지만 트리의 높이를 $h$이라 할 때 호출 스택에 $O(h)$의 공간을 쓴다. 치우친 트리에서는 $h = n - 1$이므로 최악의 공간은 $O(n)$이다.
 
-## 반복 알고리즘
+---
+
+## 3. 반복 알고리즘
 
 명시적인 스택이 호출 스택을 대신한다. 핵심은 왼쪽 자식이 먼저 꺼내져(들러져) 나오도록 오른쪽 자식을 왼쪽 자식보다 **먼저** 밀어 넣어야 한다는 것이다.
 
@@ -91,7 +95,9 @@ def preorder_iterative(root: TreeNode | None) -> list[int]:
 
     결과: **1, 2, 4, 5, 3**
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 | 항목 | 재귀 | 반복 |
 |--------|-----------|-----------|
@@ -103,7 +109,9 @@ def preorder_iterative(root: TreeNode | None) -> list[int]:
 !!! tip "재귀와 반복 중에 고르기"
     재귀 판본이 더 간단하고 대부분의 쓰임에 충분하다. 트리가 아주 깊을 수 있어 스택이 넘칠 위험이 있거나 순회 상태를 세밀하게 다스려야 할 때는 반복 판본을 쓰라.
 
-## 응용
+---
+
+## 5. 응용
 
 전위 순회는 실전에서 여러 곳에 나타난다.
 
@@ -112,7 +120,9 @@ def preorder_iterative(root: TreeNode | None) -> list[int]:
 - **전위 식 계산:** 식 트리를 전위로 훑으면 전위(폴란드) 표기법이 나온다.
 - **디렉터리 목록:** 들여쓰기로 출력하는 파일 시스템 트리는 전위 순서를 쓴다. 디렉터리 이름이 그 내용보다 먼저 나온다.
 
-## 시연
+---
+
+## 6. 시연
 
 ```python
 # === 시연 ===
@@ -131,11 +141,7 @@ if __name__ == "__main__":
     print(f"Iterative preorder: {preorder_iterative(tree)}")  # [1, 2, 4, 5, 3]
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 12. MIT Press.
-- Knuth, D. E. (1997). *The Art of Computer Programming*, Volume 1, Section 2.3.1. Addison-Wesley.
-
+---
 
 ## 연습문제
 
@@ -168,3 +174,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 정의、재귀 알고리즘、반복 알고리즘、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 12. MIT Press.
+- Knuth, D. E. (1997). *The Art of Computer Programming*, Volume 1, Section 2.3.1. Addison-Wesley.

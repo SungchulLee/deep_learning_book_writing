@@ -2,7 +2,9 @@
 
 정렬된 연결 리스트의 탐색은 모든 원소를 차례로 살펴야 하므로 $O(n)$이 걸린다. 스킵 리스트는 연결 리스트를 여러 층으로 두고 위 층이 데이터의 큰 구간을 건너뛰게 하여 이를 빠르게 만든다. 탐색 알고리즘은 이 급행 차선을 활용하여 기대 시간 $O(\log n)$에 원소를 찾아내는데, 이는 이진 탐색이 정렬된 배열을 활용하는 것과 닮았다. 이 페이지는 스킵 리스트의 탐색 알고리즘을 설명하고 구체적인 예를 따라간다.
 
-## 탐색 알고리즘
+---
+
+## 1. 탐색 알고리즘
 
 탐색은 **가장 높은 층**의 **머리글** 노드에서 시작하여 다음과 같이 진행된다.
 
@@ -13,7 +15,9 @@
 
 위에서 아래로, 왼쪽에서 오른쪽으로 훑는 이 방식 덕분에 각 층이 급행 차선 노릇을 하며 탐색 범위를 점점 좁혀 간다.
 
-## 의사코드
+---
+
+## 2. 의사코드
 
 ```
 SEARCH(skip_list, target):
@@ -30,7 +34,9 @@ SEARCH(skip_list, target):
 
 이 알고리즘은 기댓값으로 많아야 $O(\log n)$개의 노드를 살피며, 평균적으로 층마다 상수 개의 노드를 방문한다.
 
-## 풀이 예제
+---
+
+## 3. 풀이 예제
 
 키가 $\{3, 6, 7, 9, 12, 17, 19, 21, 25, 26\}$이고 층이 다음과 같이 배정된 스킵 리스트를 생각하자.
 
@@ -70,7 +76,9 @@ Level 0: header ──> 3 ──> 6 ──> 7 ──> 9 ──> 12 ──> 17 �
 
 이 알고리즘은 15가 없다는 것을 올바르게 판정한다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -82,7 +90,6 @@ Level 0: header ──> 3 ──> 6 ──> 7 ──> 9 ──> 12 ──> 17 �
 
 import random
 
-
 # === 노드 정의 ===
 
 class SkipNode:
@@ -91,7 +98,6 @@ class SkipNode:
     def __init__(self, key, level):
         self.key = key
         self.forward = [None] * (level + 1)
-
 
 # === 건너뛰기 리스트 (탐색만) ===
 
@@ -152,7 +158,6 @@ class SkipList:
             return current, comparisons
         return None, comparisons
 
-
 # === 메인 ===
 
 if __name__ == "__main__":
@@ -187,7 +192,9 @@ Search( 1): not found, comparisons=6
 Search(30): not found, comparisons=7
 ```
 
-## 이진 탐색과의 유비
+---
+
+## 5. 이진 탐색과의 유비
 
 스킵 리스트의 탐색은 정렬된 배열에서의 이진 탐색과 닮았다.
 
@@ -201,11 +208,7 @@ Search(30): not found, comparisons=7
 
 스킵 리스트가 이진 탐색보다 나은 점은 삽입과 삭제도 $O(\log n)$이라는 것이다. 정렬된 배열을 유지하려면 원소를 미는 데 $O(n)$이 든다.
 
-## 참고 문헌
-
-- Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees."
-  *Communications of the ACM*, 33(6), 1990.
-
+---
 
 ## 연습문제
 
@@ -238,3 +241,12 @@ Search(30): not found, comparisons=7
 
 ??? success "연습문제 4 풀이"
     알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$
+
+## 정리하며
+
+이 마당은 탐색 알고리즘、의사코드、풀이 예제、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees."
+  *Communications of the ACM*, 33(6), 1990.

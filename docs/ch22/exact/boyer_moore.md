@@ -1,7 +1,9 @@
 # 보이어-무어
 보이어-무어 알고리즘은 딱 맞는 글줄 찾기에서 실전 효율이 가장 좋은 알고리즘 가운데 하나이다. 본을 글월에 대고 오른쪽에서 왼쪽으로 훑으며, 맞지 않은 뒤 나쁜 글자 규칙과 좋은 뒷가지 규칙이라는 두 어림짐작으로 글월의 큰 몫을 건너뛴다.
 
-## 핵심 생각
+---
+
+## 1. 핵심 생각
 
 본을 왼쪽에서 오른쪽으로 훑는 KMP와 달리 보이어-무어는 맞춰 놓을 때마다 본을 오른쪽에서 왼쪽으로 견준다. 본의 자리 $j$(글월 자리 $i + j$)에서 맞지 않으면 알고리즘이 밀 거리 둘을 셈한다:
 
@@ -14,7 +16,9 @@ $$
 \text{shift} = \max(\text{bad\_character\_shift}, \text{good\_suffix\_shift})
 $$
 
-## 온전한 알고리즘
+---
+
+## 2. 온전한 알고리즘
 
 ```python
 def boyer_moore(text: str, pattern: str) -> list[int]:
@@ -77,7 +81,9 @@ print(boyer_moore(text, pattern))
 # 내놓기: [9]
 ```
 
-## 복잡도 분석
+---
+
+## 3. 복잡도 분석
 
 - **미리 다듬기:** $|\Sigma|$이 글자 모임의 크기일 때 $O(m + |\Sigma|)$.
 - **가장 좋은 경우:** $O(n/m)$. 본의 마지막 글자가 글월에 없으면 걸음마다 자리 $m$개를 건너뛸 수 있으며 이는 선형 아래이다.
@@ -91,6 +97,8 @@ print(boyer_moore(text, pattern))
 [Boyer, Moore - A Fast String Searching Algorithm (1977)](https://doi.org/10.1145/359842.359859)
 
 [Boyer-Moore String Search Algorithm - Wikipedia](https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_string-search_algorithm)
+
+---
 
 ## 연습문제
 
@@ -136,3 +144,7 @@ KMP의 어그러짐 함수란 무엇인가? 무늬 "ABABCAB"에 대해 셈하여
 
 ??? success "연습문제 4 풀이"
     라빈-카프는 본의 흩는 값을 셈하고 글월 위로 흩는 창을 미끄러뜨린다. **구르는 흩는 값**은 $O(1)$에 새로 고친다. 곧 $d$이 밑이고 $q$이 소수일 때 $h(T[i+1..i+m]) = (h(T[i..i+m-1]) - T[i] \cdot d^{m-1}) \cdot d + T[i+m] \pmod{q}$이다. 흩는 값은 맞는데 글줄이 다르면 헛맞음이 난다. 아무 소수 $q$에 대해 헛맞음 한 번의 확률은 $O(1/q)$이고 자리 $n-m+1$개에 대한 헛맞음의 기댓값은 $O(n/q)$이다. $q \approx n^2$을 고르면 헛맞음이 기대상 $O(1)$이다.
+
+## 정리하며
+
+이 마당은 핵심 생각、온전한 알고리즘、복잡도 분석을 차례로 짚었다.

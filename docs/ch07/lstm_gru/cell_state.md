@@ -1,11 +1,10 @@
 # LSTM의 세포 상태와 기울기의 흐름
-## 들어가며
 
 LSTM 구조는 순환 신경망의 기울기 소실 문제를 풀려고 일부러 만든 것이다. 그 한가운데에 **세포 상태**가 있다. 정보와 기울기가 거의 변형되지 않고 여러 시각을 가로질러 흐르는 전용 기억 통로이다. LSTM에서 기울기가 어떻게 흐르는지 이해하면 기본 RNN이 실패하는 곳에서 LSTM이 성공하는 까닭을 알 수 있고, LSTM 자신이 애먹는 때도 짚어 낼 수 있다.
 
 ---
 
-## 근본 문제: 기본 RNN이 실패하는 까닭
+## 1. 근본 문제: 기본 RNN이 실패하는 까닭
 
 ### 기본 RNN의 기울기 분석
 
@@ -37,7 +36,7 @@ $\lambda_{\max}$을 $W_{hh}$의 가장 큰 특잇값이라 하자.
 
 ---
 
-## 기울기의 고속도로: 세포 상태
+## 2. 기울기의 고속도로: 세포 상태
 
 ### 구조의 핵심 혁신
 
@@ -77,7 +76,7 @@ $$\prod_{j=t-k}^{t-1} \text{diag}(f_{j+1}) \approx I$$
 
 ---
 
-## 기본 RNN과의 대비
+## 3. 기본 RNN과의 대비
 
 | 항목 | 기본 RNN | LSTM |
 |--------|-------------|------|
@@ -101,7 +100,7 @@ $$\left\|\frac{\partial c_t}{\partial c_{t-k}}\right\| \approx \bar{f}^k + O(\te
 
 ---
 
-## 온전한 기울기 경로 분석
+## 4. 온전한 기울기 경로 분석
 
 ### 온전한 역전파 식
 
@@ -163,7 +162,7 @@ $$= \left(\frac{\partial f_t}{\partial h_{t-1}} \odot c_{t-1} + \frac{\partial i
 
 ---
 
-## 기울기의 흐름에서 각 문의 구실
+## 5. 기울기의 흐름에서 각 문의 구실
 
 ### 망각 문: 고속도로의 관리자
 
@@ -242,7 +241,7 @@ $o_t \approx 0$이면 세포 상태가 출력에서 "가려져" 그 시각에 �
 
 ---
 
-## 실험적 기울기 분석
+## 6. 실험적 기울기 분석
 
 ```python
 def analyze_gradient_flow(model, seq_length=100, input_size=64, 
@@ -356,7 +355,7 @@ def comprehensive_gradient_comparison():
 
 ---
 
-## LSTM에서도 기울기가 사라질 수 있는 까닭
+## 7. LSTM에서도 기울기가 사라질 수 있는 까닭
 
 기울기의 고속도로가 있어도 LSTM이 기울기 소실에서 완전히 자유롭지는 않다. 언제 왜 그런지 알면 더 나은 학습 절차를 설계할 수 있다.
 
@@ -429,7 +428,7 @@ $$\frac{\partial h_t}{\partial c_t} = o_t \odot \tanh'(c_t) \approx 0$$
 
 ---
 
-## 기울기 흐름 진단
+## 8. 기울기 흐름 진단
 
 ### 종합 진단 도구
 
@@ -583,7 +582,7 @@ def measure_effective_memory_length(model, input_size, max_length=500,
 
 ---
 
-## 요즘 구조와 견주기
+## 9. 요즘 구조와 견주기
 
 ### 트랜스포머: 궁극의 고속도로인 자기 어텐션
 
@@ -613,40 +612,6 @@ $$c_t = f_t \odot \tilde{c}_t + (1 - f_t) \odot c_{t-1}$$
 원리는 똑같다. **덧셈 갱신이 기울기를 지킨다.**
 
 ---
-
-## 요약
-
-LSTM에서 기울기가 흐를 수 있는 것은 **덧셈 세포 상태 갱신** 덕분이다.
-
-$$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$$
-
-핵심 착상은 다음과 같다.
-
-1. **곧바른 기울기 경로**: $\frac{\partial c_t}{\partial c_{t-1}} = f_t$이 1 가까이 머무를 수 있다
-2. **학습되는 문**: 신경망이 정보를 지킬 때와 갱신할 때를 배운다
-3. **망각 문의 초기화**: 기울기가 흐르도록 편향을 1로 둔다
-4. **한계는 남는다**: 아주 긴 순차열(1000 이상)은 여전히 LSTM에 벅차다
-
-진단할 때의 관행은 다음과 같다.
-
-- 학습 중에 기울기의 노름을 살핀다
-- 실효 기억 길이를 잰다
-- 포화된 문이 있는지 확인한다
-- 안전망으로 기울기 자르기를 쓴다
-
-이 분석은 LSTM이 거둔 역사적 성공을 설명하고, 트랜스포머(곧바른 어텐션), 하이웨이 신경망(건너뛰기 연결), 그리고 기울기 흐름 문제를 더 파고든 여러 구조적 개선이 나오게 된 까닭을 밝혀 준다.
-
----
-
-## 참고 문헌
-
-1. Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780.
-
-2. Gers, F. A., Schmidhuber, J., & Cummins, F. (2000). Learning to Forget: Continual Prediction with LSTM. *Neural Computation*, 12(10), 2451-2471.
-
-3. Pascanu, R., Mikolov, T., & Bengio, Y. (2013). On the Difficulty of Training Recurrent Neural Networks. *ICML*.
-
-4. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.
 
 ## 연습문제
 
@@ -679,3 +644,37 @@ LSTM 세포 상태를 지나는 기울기의 흐름을 유도하고 그것이 �
 
 ??? success "연습문제 4 풀이"
     망각 문이 1에 가까우면(흰색) 기억하는 것이고 0에 가까우면(검은색) 잊는 것이다. 흔한 무늬는 이렇다. 문장 경계 부근에서 문이 닫히고, 부정어가 앞선 감성을 잊게 만들며, 접속어('but', 'however')가 뒤 절을 위해 상태를 되돌리게 한다.
+
+## 정리하며
+
+LSTM에서 기울기가 흐를 수 있는 것은 **덧셈 세포 상태 갱신** 덕분이다.
+
+$$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$$
+
+핵심 착상은 다음과 같다.
+
+1. **곧바른 기울기 경로**: $\frac{\partial c_t}{\partial c_{t-1}} = f_t$이 1 가까이 머무를 수 있다
+2. **학습되는 문**: 신경망이 정보를 지킬 때와 갱신할 때를 배운다
+3. **망각 문의 초기화**: 기울기가 흐르도록 편향을 1로 둔다
+4. **한계는 남는다**: 아주 긴 순차열(1000 이상)은 여전히 LSTM에 벅차다
+
+진단할 때의 관행은 다음과 같다.
+
+- 학습 중에 기울기의 노름을 살핀다
+- 실효 기억 길이를 잰다
+- 포화된 문이 있는지 확인한다
+- 안전망으로 기울기 자르기를 쓴다
+
+이 분석은 LSTM이 거둔 역사적 성공을 설명하고, 트랜스포머(곧바른 어텐션), 하이웨이 신경망(건너뛰기 연결), 그리고 기울기 흐름 문제를 더 파고든 여러 구조적 개선이 나오게 된 까닭을 밝혀 준다.
+
+---
+
+**참고 문헌**
+
+1. Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780.
+
+2. Gers, F. A., Schmidhuber, J., & Cummins, F. (2000). Learning to Forget: Continual Prediction with LSTM. *Neural Computation*, 12(10), 2451-2471.
+
+3. Pascanu, R., Mikolov, T., & Bengio, Y. (2013). On the Difficulty of Training Recurrent Neural Networks. *ICML*.
+
+4. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.

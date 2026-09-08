@@ -2,7 +2,9 @@
 
 로무토 나눔 방식은 CLRS을 비롯한 대부분의 입문 교과서가 내보이는 빠른 정렬 나눔 판이다. **마지막 원소**를 축으로 고르고, 축보다 작거나 같다고 이미 밝혀진 원소와 축보다 큰 원소를 가르는 경계 첨자 $i$을 지닌다. 가리개 $j$ 하나가 왼쪽에서 오른쪽으로 훑으며 작은 원소를 경계 뒤로 맞바꾼다. 호어 방식보다 이해하고 구현하기 쉽지만, 무작위 데이터에서 맞바꿈이 대략 세 배 많다.
 
-## 알고리즘
+---
+
+## 1. 알고리즘
 
 축이 $p = A[r]$인 배열 $A[\ell..r]$이 주어지면 다음과 같이 한다.
 
@@ -22,7 +24,9 @@
 
 이 불변식이 옳음을 보장한다. $j$이 $r$에 닿았을 때 $A[i]$과 $A[r]$을 맞바꾸면 축이 첨자 $i$에 놓이고, 더 작은 원소는 모두 왼쪽에, 더 큰 원소는 모두 오른쪽에 놓인다.
 
-## 의사코드
+---
+
+## 2. 의사코드
 
 ```
 LOMUTO-PARTITION(A, left, right):
@@ -36,7 +40,9 @@ LOMUTO-PARTITION(A, left, right):
     return i
 ```
 
-## 한 걸음씩 보는 예
+---
+
+## 3. 한 걸음씩 보는 예
 
 축이 $p = A[7] = 4$인 $A = [7, 2, 1, 6, 8, 5, 3, 4]$을 나누어 보자.
 
@@ -52,7 +58,9 @@ LOMUTO-PARTITION(A, left, right):
 
 마지막 맞바꿈: $A[3] \leftrightarrow A[7]$이며 결과는 $[2, 1, 3, \mathbf{4}, 8, 5, 7, 6]$이다. 축 4가 첨자 3에 있다.
 
-## 복잡도 분석
+---
+
+## 4. 복잡도 분석
 
 **견줌.** `for` 되돌이는 꼭 $r - \ell$번 견준다(축을 뺀 원소마다 한 번).
 
@@ -73,7 +81,9 @@ $$
 !!! warning "같은 값이 많은 배열에서의 성능"
     모든 원소가 같으면 로무토 나눔은 늘 축을 한쪽 끝(이를테면 첨자 $r$)에 놓아 가장 치우친 쪼갬을 낸다. 그래서 $O(n^2)$ 거동이 일어난다. 세 갈래 나눔(네덜란드 국기)은 같은 값을 매끄럽게 다룬다.
 
-## 파이썬 구현
+---
+
+## 5. 파이썬 구현
 
 ```python
 """
@@ -82,7 +92,6 @@ $$
 마지막 원소를 축으로 골라 경계 가리개 하나로 왼쪽에서 오른쪽으로
 한 번 훑으며 배열을 나눈다.
 """
-
 
 # === 로무토 나눔 ==============================================================
 
@@ -105,7 +114,6 @@ def lomuto_partition(arr: list, left: int, right: int) -> int:
     arr[i], arr[right] = arr[right], arr[i]
     return i
 
-
 # === 로무토 나눔을 쓰는 빠른 정렬 =============================================
 
 def quicksort_lomuto(arr: list, left: int = 0, right: int = None) -> None:
@@ -116,7 +124,6 @@ def quicksort_lomuto(arr: list, left: int = 0, right: int = None) -> None:
         pivot_idx = lomuto_partition(arr, left, right)
         quicksort_lomuto(arr, left, pivot_idx - 1)
         quicksort_lomuto(arr, pivot_idx + 1, right)
-
 
 # === 메인 =====================================================================
 
@@ -144,12 +151,7 @@ Before: [10, 80, 30, 90, 40, 50, 70]
 After:  [10, 30, 40, 50, 70, 80, 90]
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 7.1절.
-- Lomuto, N.(로 알려짐). Bentley가 *Programming Pearls*에서 널리 알린 나눔 방식.
-- Bentley, J. L. (2000). *Programming Pearls* (2nd ed.). Addison-Wesley, 11장.
-
+---
 
 ## 연습문제
 
@@ -182,3 +184,13 @@ float32 학습 손실 값 1000만 개를 정렬할 때 로무토 나눔 방식�
 
 ??? success "연습문제 4 풀이"
     $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.
+
+## 정리하며
+
+이 마당은 알고리즘、의사코드、한 걸음씩 보는 예、복잡도 분석을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 7.1절.
+- Lomuto, N.(로 알려짐). Bentley가 *Programming Pearls*에서 널리 알린 나눔 방식.
+- Bentley, J. L. (2000). *Programming Pearls* (2nd ed.). Addison-Wesley, 11장.

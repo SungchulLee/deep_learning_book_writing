@@ -1,5 +1,8 @@
 # 교차 엔트로피 손실
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -15,7 +18,7 @@
 
 ---
 
-## 최대가능도의 틀
+## 2. 최대가능도의 틀
 
 ### 문제 설정
 
@@ -49,7 +52,7 @@ $$\text{NLL}(\boldsymbol{\theta}) = -\ell(\boldsymbol{\theta}) = -\sum_{i=1}^{N}
 
 ---
 
-## 교차 엔트로피: 정보 이론의 관점
+## 3. 교차 엔트로피: 정보 이론의 관점
 
 ### 엔트로피와 정보
 
@@ -77,7 +80,7 @@ $y_c = 1$이고 $k \neq c$에 대해 $y_k = 0$이므로 참 클래스 항만 남
 
 ---
 
-## 동등성: NLL = 교차 엔트로피
+## 4. 동등성: NLL = 교차 엔트로피
 
 ### 수학적 증명
 
@@ -100,7 +103,7 @@ $$\boxed{\text{Cross-Entropy Loss} = \frac{1}{N} \text{NLL} = -\frac{1}{N} \sum_
 
 ---
 
-## KL 발산과의 관계
+## 5. KL 발산과의 관계
 
 ### KL 발산의 정의
 
@@ -124,7 +127,7 @@ $$H(\mathbf{y}, \hat{\boldsymbol{\pi}}) = D_{KL}(\mathbf{y} \| \hat{\boldsymbol{
 
 ---
 
-## 기하학적 해석
+## 6. 기하학적 해석
 
 참 클래스가 $c$인 표본 하나에 대해 교차 엔트로피 손실은 다음과 같다.
 
@@ -161,7 +164,7 @@ Loss ↑
 
 ---
 
-## 경사 유도: 단계별로
+## 7. 경사 유도: 단계별로
 
 ### 소프트맥스 회귀 모델
 
@@ -237,7 +240,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \hat{\boldsymbol{\pi
 
 ---
 
-## 배치 경사 계산
+## 8. 배치 경사 계산
 
 표본 $N$개의 배치 $\{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^{N}$이 주어졌을 때 전체 손실은 다음과 같다.
 
@@ -265,7 +268,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \frac{1}{N} (\hat{\m
 
 ---
 
-## 흔한 변형과 확장
+## 9. 흔한 변형과 확장
 
 ### 이진 교차 엔트로피
 
@@ -298,7 +301,7 @@ $$\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$$
 
 ---
 
-## L2 정칙화를 더하면
+## 10. L2 정칙화를 더하면
 
 ### 정칙화된 손실
 
@@ -310,7 +313,7 @@ $$\frac{\partial \mathcal{L}_{\text{reg}}}{\partial \mathbf{W}} = \frac{\partial
 
 ---
 
-## PyTorch 구현
+## 11. PyTorch 구현
 
 ### nn.CrossEntropyLoss 이해하기
 
@@ -569,7 +572,7 @@ class SoftmaxRegressionNumPy:
 
 ---
 
-## PyTorch 빠른 참조
+## 12. PyTorch 빠른 참조
 
 | 함수 | 입력 | 비고 |
 |----------|-------|-------|
@@ -580,51 +583,6 @@ class SoftmaxRegressionNumPy:
 | `nn.BCEWithLogitsLoss()` | 로짓 | 이진 분류 |
 
 ---
-
-## 요약
-
-### 근본이 되는 식들
-
-**교차 엔트로피 손실:**
-
-$$\boxed{\mathcal{L}_{CE} = -\frac{1}{N} \sum_{i=1}^{N} \log \hat{\pi}_{y^{(i)}}^{(i)} = -\frac{1}{N} \sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \hat{\pi}_k^{(i)}}$$
-
-**동등한 표현들:**
-
-$$\text{Cross-Entropy} = \frac{1}{N} \text{NLL} = H(\mathbf{p}, \mathbf{q}) = H(\mathbf{p}) + D_{KL}(\mathbf{p} \| \mathbf{q})$$
-
-### 경사 요약
-
-| 양 | 표본 하나 | 배치 (표본 $N$개) |
-|----------|--------------|---------------------|
-| 로짓에 대해 | $\hat{\boldsymbol{\pi}} - \mathbf{y}$ | — |
-| 가중치에 대해 | $(\hat{\boldsymbol{\pi}} - \mathbf{y})\mathbf{x}^T$ | $\frac{1}{N}(\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{X}$ |
-| 편향에 대해 | $\hat{\boldsymbol{\pi}} - \mathbf{y}$ | $\frac{1}{N}\mathbf{1}^T(\hat{\mathbf{P}} - \mathbf{Y})$ |
-
-### 핵심 통찰
-
-$$\boxed{\text{Gradient} = \text{Predicted} - \text{True}}$$
-
-이 단순한 공식이 소프트맥스와 교차 엔트로피의 조합이 그토록 널리 쓰이는 이유이다.
-
-### 교차 엔트로피를 보는 세 가지 관점
-
-!!! info "세 가지 관점"
-
-    1. **통계적:** 관측된 이름표의 가능도를 최대화한다
-    2. **정보 이론적:** 부호화의 비효율을 최소화한다
-    3. **기하학적:** (KL 발산을 통해) 분포 사이의 "거리"를 잰다
-
----
-
-## 참고 문헌
-
-1. Cover, T. M., & Thomas, J. A. (2006). *Elements of Information Theory*, Chapter 2.
-2. Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*, Chapter 6.2.2.
-3. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Chapter 4.3.
-4. Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*, Chapter 8.6.
-5. Lin, T.-Y., et al. (2017). Focal Loss for Dense Object Detection. *ICCV*.
-6. PyTorch Documentation: [nn.CrossEntropyLoss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)
 
 ## 연습문제
 
@@ -680,3 +638,48 @@ $-\log(\text{softmax}(z)_k)$을 곧바로 계산할 때 생기는 수치적 안�
     $$
 
     이제 모든 지수가 $\leq 0$이 되어 넘침이 생기지 않는다. 최종 교차 엔트로피는 $-z_k + m + \log\sum_j e^{z_j - m}$이며 수치적 문제 없이 계산된다.
+
+## 정리하며
+
+### 근본이 되는 식들
+
+**교차 엔트로피 손실:**
+
+$$\boxed{\mathcal{L}_{CE} = -\frac{1}{N} \sum_{i=1}^{N} \log \hat{\pi}_{y^{(i)}}^{(i)} = -\frac{1}{N} \sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \hat{\pi}_k^{(i)}}$$
+
+**동등한 표현들:**
+
+$$\text{Cross-Entropy} = \frac{1}{N} \text{NLL} = H(\mathbf{p}, \mathbf{q}) = H(\mathbf{p}) + D_{KL}(\mathbf{p} \| \mathbf{q})$$
+
+### 경사 요약
+
+| 양 | 표본 하나 | 배치 (표본 $N$개) |
+|----------|--------------|---------------------|
+| 로짓에 대해 | $\hat{\boldsymbol{\pi}} - \mathbf{y}$ | — |
+| 가중치에 대해 | $(\hat{\boldsymbol{\pi}} - \mathbf{y})\mathbf{x}^T$ | $\frac{1}{N}(\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{X}$ |
+| 편향에 대해 | $\hat{\boldsymbol{\pi}} - \mathbf{y}$ | $\frac{1}{N}\mathbf{1}^T(\hat{\mathbf{P}} - \mathbf{Y})$ |
+
+### 핵심 통찰
+
+$$\boxed{\text{Gradient} = \text{Predicted} - \text{True}}$$
+
+이 단순한 공식이 소프트맥스와 교차 엔트로피의 조합이 그토록 널리 쓰이는 이유이다.
+
+### 교차 엔트로피를 보는 세 가지 관점
+
+!!! info "세 가지 관점"
+
+    1. **통계적:** 관측된 이름표의 가능도를 최대화한다
+    2. **정보 이론적:** 부호화의 비효율을 최소화한다
+    3. **기하학적:** (KL 발산을 통해) 분포 사이의 "거리"를 잰다
+
+---
+
+**참고 문헌**
+
+1. Cover, T. M., & Thomas, J. A. (2006). *Elements of Information Theory*, Chapter 2.
+2. Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*, Chapter 6.2.2.
+3. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Chapter 4.3.
+4. Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*, Chapter 8.6.
+5. Lin, T.-Y., et al. (2017). Focal Loss for Dense Object Detection. *ICCV*.
+6. PyTorch Documentation: [nn.CrossEntropyLoss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)

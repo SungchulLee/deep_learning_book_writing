@@ -1,5 +1,8 @@
 # 차례 이름표 붙이기의 BIO 방식
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,11 +12,15 @@
 - 모델마다 이름표 방식의 맞바꿈을 살핀다
 - 이름표 붙인 차례에서 것을 정확히 뽑아낸다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 이름표 방식은 차례 이름표 안에 것의 경계를 담는 짜임새 있는 길을 준다. 어떤 이름표 방식을 고르느냐가 이름표 자리의 복잡도와 모델이 것의 경계를 배우는 힘 모두에 영향을 준다. 이 절에서는 가장 흔한 방식인 IOB, IOB2, BIOES를 두루 다룬다.
 
-## BIO 갈래의 이름표 방식
+---
+
+## 3. BIO 갈래의 이름표 방식
 
 ### IOB(안-바깥-시작) — 처음 판
 
@@ -67,7 +74,9 @@ Tokens:  Steve  Jobs   founded  Apple  Inc   in  California
 BIOES:   B-PER  E-PER  O        B-ORG  E-ORG O   S-LOC
 ```
 
-## 이름표 자리의 수학적 살핌
+---
+
+## 4. 이름표 자리의 수학적 살핌
 
 ### 이름표 자리의 복잡도
 
@@ -112,7 +121,9 @@ BIOES의 넘어가기 행렬은 제약이 더 많다:
 
 여기서 $t$과 $t'$은 저마다 같은 것 갈래와 다른 것 갈래를 나타낸다.
 
-## PyTorch 구현
+---
+
+## 5. PyTorch 구현
 
 ### 이름표 방식 클래스
 
@@ -127,7 +138,6 @@ class TagScheme(Enum):
     IOB = "IOB"
     IOB2 = "IOB2"
     BIOES = "BIOES"
-
 
 @dataclass
 class TagInfo:
@@ -151,7 +161,6 @@ class TagInfo:
         if self.entity_type is None:
             return 'O'
         return f"{self.prefix}-{self.entity_type}"
-
 
 class TagValidator:
     """이름표 방식의 규칙에 따라 이름표 차례를 확인한다."""
@@ -466,7 +475,6 @@ def build_transition_mask(
     
     return mask
 
-
 def _is_valid_transition(
     from_tag: str, 
     to_tag: str, 
@@ -514,7 +522,9 @@ def _is_valid_transition(
         return False
 ```
 
-## 방식 고르기 지침
+---
+
+## 6. 방식 고르기 지침
 
 ### IOB2를 쓸 때
 
@@ -558,7 +568,9 @@ def _is_valid_transition(
 
 넘어가기 제약을 드러내어 나타낼 수 있는 CRF 층을 쓸 때 나아짐이 더 두드러진다.
 
-## 아래낱말 토막내개 다루기
+---
+
+## 7. 아래낱말 토막내개 다루기
 
 요즘 변환기는 아래낱말 토막내기를 쓰는데, 이 때문에 이름표 붙이기가 까다로워진다:
 
@@ -602,7 +614,9 @@ def align_labels_to_subwords(
     return subword_labels
 ```
 
-## 그려 보기와 벌레잡기
+---
+
+## 8. 그려 보기와 벌레잡기
 
 ```python
 def visualize_tags(
@@ -638,7 +652,6 @@ def visualize_tags(
     
     return "\n".join(lines)
 
-
 # 사용 예
 tokens = ["Barack", "Obama", "visited", "New", "York", "City"]
 tags_iob2 = ["B-PER", "I-PER", "O", "B-LOC", "I-LOC", "I-LOC"]
@@ -650,23 +663,7 @@ print("\nBIOES Format:")
 print(visualize_tags(tokens, tags_bioes, TagScheme.BIOES))
 ```
 
-## 요약
-
-BIO 이름표 방식은 것의 경계를 담는 원칙 있는 길을 준다:
-
-1. **IOB2**는 B-가 늘 것의 시작을 나타내는 표준 방식이다
-2. **BIOES**는 경계를 더 잘 배우도록 끝 표시와 홑 표시를 드러내어 더한다
-3. **넘어가기 제약**은 CRF 층의 마스크로 강제할 수 있다
-4. **아래낱말 맞추기**는 이름표를 퍼뜨리는 일을 조심스레 다뤄야 한다
-5. **방식 고르기**는 자료 크기, 것의 성질, 모델 얼개에 달렸다
-
-## 참고 문헌
-
-1. Ramshaw, L. A., & Marcus, M. P. (1995). Text Chunking using Transformation-Based Learning. *ACL Workshop on Very Large Corpora*.
-
-2. Ratinov, L., & Roth, D. (2009). Design Challenges and Misconceptions in Named Entity Recognition. *CoNLL*.
-
-3. Sang, E. F. T. K., & Veenstra, J. (1999). Representing Text Chunks. *EACL*.
+---
 
 ## 연습문제
 
@@ -714,3 +711,21 @@ BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City
     $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
 
     자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 낱말이 양쪽에서 걸리는 일이 잦으므로 이것이 종요롭다.
+
+## 정리하며
+
+BIO 이름표 방식은 것의 경계를 담는 원칙 있는 길을 준다:
+
+1. **IOB2**는 B-가 늘 것의 시작을 나타내는 표준 방식이다
+2. **BIOES**는 경계를 더 잘 배우도록 끝 표시와 홑 표시를 드러내어 더한다
+3. **넘어가기 제약**은 CRF 층의 마스크로 강제할 수 있다
+4. **아래낱말 맞추기**는 이름표를 퍼뜨리는 일을 조심스레 다뤄야 한다
+5. **방식 고르기**는 자료 크기, 것의 성질, 모델 얼개에 달렸다
+
+**참고 문헌**
+
+1. Ramshaw, L. A., & Marcus, M. P. (1995). Text Chunking using Transformation-Based Learning. *ACL Workshop on Very Large Corpora*.
+
+2. Ratinov, L., & Roth, D. (2009). Design Challenges and Misconceptions in Named Entity Recognition. *CoNLL*.
+
+3. Sang, E. F. T. K., & Veenstra, J. (1999). Representing Text Chunks. *EACL*.

@@ -1,9 +1,14 @@
 # 앎 옮기기
-## 두루 보기
+
+---
+
+## 1. 두루 보기
 
 앎 옮기기는 크고 많이 담는 "스승" 모형의 앎을 작고 잘 드는 "제자" 모형으로 옮긴다. 제자는 굳은 이름표만이 아니라 스승의 부드러운 낌새 분포에서 배우며, 갈래끼리의 사이와 판단의 금에 대한 더 넉넉한 소식을 담는다. 이로써 밑천이 넉넉지 않은 자리에도 됨됨이 좋은 모형을 내놓을 수 있다.
 
-## 왜 하는가
+---
+
+## 2. 왜 하는가
 
 큰 모형은 맞음이 뛰어나지만 내놓는 값이 비싸다.
 
@@ -43,7 +48,9 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 이론 밑바탕
+---
+
+## 3. 이론 밑바탕
 
 ### 부드러운 과녁과 어둠 속의 앎
 
@@ -92,7 +99,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Tuple, Optional, Dict, List
 
-
 def softmax_with_temperature(logits: torch.Tensor, 
                              temperature: float = 1.0) -> torch.Tensor:
     """
@@ -109,7 +115,6 @@ def softmax_with_temperature(logits: torch.Tensor,
     T = 1: 여느 소프트맥스
     """
     return F.softmax(logits / temperature, dim=-1)
-
 
 # 보기: 온도가 미치는 것
 logits = torch.tensor([5.0, 2.0, 0.5, 0.1, 0.1])
@@ -159,7 +164,9 @@ $$\frac{\partial \mathcal{L}_{\text{soft}}}{\partial z_i^s} = \frac{1}{T}\left(p
 
 온도가 높으면 이 기울기는 제자가 가장 큰 값만이 아니라 스승의 온 날임 분포를 맞추도록 이끈다. 잃음의 $T^2$ 잣대는 온도를 어떻게 고르든 기울기의 크기가 알맞게 남도록 한다.
 
-## PyTorch로 짜기
+---
+
+## 4. PyTorch로 짜기
 
 ### 밑바탕 앎 옮기기
 
@@ -223,7 +230,6 @@ class DistillationLoss(nn.Module):
             'soft_loss': soft_loss.item(),
             'total_loss': total_loss.item()
         }
-
 
 def train_student_with_distillation(student: nn.Module,
                                     teacher: nn.Module,
@@ -355,7 +361,6 @@ class TeacherCNN(nn.Module):
         x = x.view(x.size(0), -1)
         return self.classifier(x)
 
-
 class StudentCNN(nn.Module):
     """작은 제자 모형(매개변수가 6배 적다)."""
     
@@ -380,7 +385,6 @@ class StudentCNN(nn.Module):
         x = x.view(x.size(0), -1)
         return self.classifier(x)
 
-
 # 매개변수 수를 견준다
 def compare_models():
     teacher = TeacherCNN()
@@ -394,7 +398,9 @@ def compare_models():
     print(f"눌러 담은 견줌: {teacher_params/student_params:.1f}배")
 ```
 
-## 한발 더 나간 앎 옮기기 방법
+---
+
+## 5. 한발 더 나간 앎 옮기기 방법
 
 ### 결에 기댄 앎 옮기기(FitNets)
 
@@ -509,7 +515,6 @@ class FeatureDistillationLoss(nn.Module):
         attention = (features ** 2).sum(dim=1)  # (B, H, W)
         attention = attention / (attention.sum(dim=(1, 2), keepdim=True) + 1e-8)
         return attention
-
 
 def attention_transfer_loss(student_attention: torch.Tensor,
                            teacher_attention: torch.Tensor) -> torch.Tensor:
@@ -696,7 +701,6 @@ class SelfDistillation(nn.Module):
             'total_loss': total_loss.item()
         }
 
-
 def self_distillation_training(model: nn.Module,
                                train_loader: torch.utils.data.DataLoader,
                                epochs: int = 100,
@@ -858,7 +862,9 @@ class OnlineDistillation(nn.Module):
         return losses, loss_dict
 ```
 
-## 차근차근 앎 옮기기
+---
+
+## 6. 차근차근 앎 옮기기
 
 아주 크게 눌러 담으려면 가운데 크기의 모형을 거쳐 차근차근 옮긴다.
 
@@ -911,7 +917,9 @@ def progressive_distillation(teachers: List[nn.Module],
     return teachers[-1]
 ```
 
-## 하이퍼파라미터 고르기
+---
+
+## 7. 하이퍼파라미터 고르기
 
 ### 온도 고르기
 
@@ -991,7 +999,9 @@ def find_optimal_temperature(teacher: nn.Module,
     return best_T
 ```
 
-## 따지는 자
+---
+
+## 8. 따지는 자
 
 ```python
 def evaluate_distillation(teacher: nn.Module,
@@ -1033,7 +1043,6 @@ def evaluate_distillation(teacher: nn.Module,
     
     return results
 
-
 def evaluate_distillation_agreement(teacher: nn.Module,
                                    student: nn.Module,
                                    test_loader: torch.utils.data.DataLoader,
@@ -1072,7 +1081,41 @@ def evaluate_distillation_agreement(teacher: nn.Module,
     }
 ```
 
-## 간추림
+---
+
+## 연습문제
+
+**연습문제 1.**
+이 마디에서 다룬 다듬기 재주들을 맞음 잃음, 미루어 봄 빨라짐, 짜기의 번거로움으로 견주어 맞바꿈을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    재주마다 맞바꿈의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 잃음이 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 잃음은 1~3%이다. 앎 옮기기는 얼개 자체의 미루어 봄 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 잃음은 1~5%이다. 신경 얼개 찾기는 가장 좋은 얼개를 찾아 주지만 찾는 데 엄청난 셈이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 잃음이 어긋남의 값에 매인다. $\square$
+
+---
+
+**연습문제 2.**
+단순한 앞먹임 그물에 익힘 뒤 수 줄이기(INT8)을 짜 넣고, 잣대 자료 꾸러미에서 맞음이 얼마나 떨어지고 미루어 봄이 얼마나 빨라지는지 재어라.
+
+??? success "연습문제 2 풀이"
+    PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(묶음 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
+
+---
+
+**연습문제 3.**
+내놓은 모형의 자료 옮겨감, 뜻 옮겨감, 됨됨이 떨어짐을 짚어내는 서비스 지켜보기 얼개를 꾸며라. 자와 알림 문턱을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    세 켜를 지켜본다. (1) 자료 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 들임 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 미루어 봄 분포의 옮겨감과 (얻을 수 있으면) 참 이름표 분포를 좇는다. 미루어 봄의 평균이 밑금 동안에서 잣대 어긋남 2배 넘게 옮겨가면 알린다. (3) 모형 떨어짐: 굴러가는 창으로 살아 있는 맞음과 잃음을 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
+
+---
+
+**연습문제 4.**
+금융 거래 얼개의 늦음 요건이 웹 서비스와 밑바탕부터 다른 까닭을 밝혀라. 이것이 내놓기 다듬기 꾀에 어떻게 걸리는가?
+
+??? success "연습문제 4 풀이"
+    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 묶음 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
+
+## 정리하며
 
 앎 옮기기는 잘 드는 모형을 내놓을 수 있게 한다.
 
@@ -1090,7 +1133,7 @@ def evaluate_distillation_agreement(teacher: nn.Module,
 - 제자가 아주 작으면 차근차근 옮기기를 헤아린다
 - 미리 익힌 스승이 없으면 깊은 서로 배움을 쓴다
 
-## 살펴볼 거리
+**살펴볼 거리**
 
 1. Hinton, G., Vinyals, O., & Dean, J. "Distilling the Knowledge in a Neural Network." arXiv 2015.
 2. Romero, A., et al. "FitNets: Hints for Thin Deep Nets." ICLR 2015.
@@ -1098,35 +1141,3 @@ def evaluate_distillation_agreement(teacher: nn.Module,
 4. Zhang, Y., et al. "Deep Mutual Learning." CVPR 2018.
 5. Furlanello, T., et al. "Born-Again Neural Networks." ICML 2018.
 6. Gou, J., et al. "Knowledge Distillation: A Survey." IJCV 2021.
-
-## 익힘 문제
-
-**익힘 1.**
-이 마디에서 다룬 다듬기 재주들을 맞음 잃음, 미루어 봄 빨라짐, 짜기의 번거로움으로 견주어 맞바꿈을 밝혀라.
-
-??? success "익힘 1 풀이"
-    재주마다 맞바꿈의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 잃음이 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 잃음은 1~3%이다. 앎 옮기기는 얼개 자체의 미루어 봄 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 잃음은 1~5%이다. 신경 얼개 찾기는 가장 좋은 얼개를 찾아 주지만 찾는 데 엄청난 셈이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 잃음이 어긋남의 값에 매인다. $\square$
-
----
-
-**익힘 2.**
-단순한 앞먹임 그물에 익힘 뒤 수 줄이기(INT8)을 짜 넣고, 잣대 자료 꾸러미에서 맞음이 얼마나 떨어지고 미루어 봄이 얼마나 빨라지는지 재어라.
-
-??? success "익힘 2 풀이"
-    PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(묶음 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
-
----
-
-**익힘 3.**
-내놓은 모형의 자료 옮겨감, 뜻 옮겨감, 됨됨이 떨어짐을 짚어내는 서비스 지켜보기 얼개를 꾸며라. 자와 알림 문턱을 밝혀라.
-
-??? success "익힘 3 풀이"
-    세 켜를 지켜본다. (1) 자료 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 들임 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 미루어 봄 분포의 옮겨감과 (얻을 수 있으면) 참 이름표 분포를 좇는다. 미루어 봄의 평균이 밑금 동안에서 잣대 어긋남 2배 넘게 옮겨가면 알린다. (3) 모형 떨어짐: 굴러가는 창으로 살아 있는 맞음과 잃음을 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
-
----
-
-**익힘 4.**
-금융 거래 얼개의 늦음 요건이 웹 서비스와 밑바탕부터 다른 까닭을 밝혀라. 이것이 내놓기 다듬기 꾀에 어떻게 걸리는가?
-
-??? success "익힘 4 풀이"
-    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 묶음 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$

@@ -1,5 +1,4 @@
 # GRU 구조
-## 들어가며
 
 2014년 Cho 등이 내놓은 문 달린 순환 단위(GRU)는 LSTM을 간소화한 판본으로, 매개변수를 덜 쓰면서도 비슷한 성능을 낸다. GRU는 세포 상태와 숨은 상태를 하나의 상태 벡터로 합치고 문의 수를 셋에서 둘로 줄여 LSTM 구조를 간단하게 만든다.
 
@@ -9,7 +8,7 @@
 
 ---
 
-## 수학적 정식화
+## 1. 수학적 정식화
 
 시각 $t$에서 입력 $x_t \in \mathbb{R}^d$과 이전 숨은 상태 $h_{t-1} \in \mathbb{R}^n$이 주어졌을 때 다음과 같다.
 
@@ -55,7 +54,7 @@ $$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$$
 
 ---
 
-## 문 이해하기
+## 2. 문 이해하기
 
 ### 망각과 입력을 합친 갱신 문
 
@@ -88,7 +87,7 @@ $$\tilde{h}_t \approx \tanh(W_h \cdot [\mathbf{0}, x_t] + b_h)$$
 
 ---
 
-## 기울기 흐름 분석
+## 3. 기울기 흐름 분석
 
 ### GRU의 기울기 경로
 
@@ -113,7 +112,7 @@ $$\frac{\partial h_t}{\partial h_{t-1}} \approx I$$
 
 ---
 
-## PyTorch로 밑바닥부터 구현하기
+## 4. PyTorch로 밑바닥부터 구현하기
 
 ### GRU 세포 (배움을 위한 판본)
 
@@ -314,7 +313,7 @@ class GRU(nn.Module):
 
 ---
 
-## PyTorch 내장 GRU 쓰기
+## 5. PyTorch 내장 GRU 쓰기
 
 ```python
 import torch
@@ -346,7 +345,7 @@ print(f"Final hidden: {h_n.shape}")        # (2, 32, 256) — 층마다 하나
 
 ---
 
-## 실전 응용
+## 6. 실전 응용
 
 ### 텍스트 분류
 
@@ -431,7 +430,7 @@ class BiGRUEncoder(nn.Module):
 
 ---
 
-## 초기화의 모범 관행
+## 7. 초기화의 모범 관행
 
 ```python
 def init_gru_weights(gru: nn.GRU):
@@ -458,7 +457,7 @@ def init_gru_weights(gru: nn.GRU):
 
 ---
 
-## GRU의 변형
+## 8. GRU의 변형
 
 ### 최소 GRU
 
@@ -499,7 +498,7 @@ $$r_t = 1 - z_t$$
 
 ---
 
-## 매개변수 효율
+## 9. 매개변수 효율
 
 ```python
 def compare_parameters(input_size: int = 100, hidden_size: int = 256):
@@ -518,46 +517,6 @@ def compare_parameters(input_size: int = 100, hidden_size: int = 256):
 ```
 
 ---
-
-## 요약
-
-GRU는 LSTM을 우아하게 간소화한 것이다.
-
-| 기능 | GRU에서의 구현 |
-|---------|-------------------|
-| 기억 관리 | 숨은 상태 하나 (세포 상태를 따로 두지 않음) |
-| 망각 장치 | 갱신 문의 $(1-z_t)$ 인수 |
-| 입력 장치 | 갱신 문의 $z_t$ 인수 (서로 보완) |
-| 전환을 위한 되돌리기 | 재설정 문 $r_t$이 후보를 조절 |
-| 기울기의 흐름 | $(1-z_t)$이라는 곧바른 경로 |
-
-**핵심 이점:**
-
-- LSTM보다 매개변수가 25% 적다
-- 학습과 추론이 빠르다
-- 대부분의 과제에서 성능이 비슷하다
-- 이해하고 벌레잡기가 더 쉽다
-
-**핵심 맞바꿈:**
-
-- LSTM의 독립적인 문보다 유연하지 않다
-- 망각과 입력이 묶여 있어 어떤 쓰임에는 제약이 될 수 있다
-
-**요컨대** GRU는 순차열 모형의 기본 선택으로 훌륭하다. 효율이 좋아 계산 자원이 넉넉하지 않거나 빠르게 되풀이해 보아야 할 때 낫다. LSTM은 그 복잡함이 분명히 이득이 되는 과제에 아껴 두라.
-
----
-
-## 참고 문헌
-
-1. Cho, K., van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H., & Bengio, Y. (2014). Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation. *EMNLP*.
-
-2. Chung, J., Gulcehre, C., Cho, K., & Bengio, Y. (2014). Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling. *NIPS Workshop*.
-
-3. Jozefowicz, R., Zaremba, W., & Sutskever, I. (2015). An Empirical Exploration of Recurrent Network Architectures. *ICML*.
-
-4. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.
-
-5. Heck, J., & Salem, F. M. (2017). Simplified Minimal Gated Unit Variations for Recurrent Neural Networks. *MWSCAS*.
 
 ## 연습문제
 
@@ -604,3 +563,43 @@ GRU 세포를 PyTorch로 밑바닥부터 구현하라.
             h_tilde = torch.tanh(self.Wh(torch.cat([x, r * h], -1)))
             return (1 - z) * h + z * h_tilde
     ```
+
+## 정리하며
+
+GRU는 LSTM을 우아하게 간소화한 것이다.
+
+| 기능 | GRU에서의 구현 |
+|---------|-------------------|
+| 기억 관리 | 숨은 상태 하나 (세포 상태를 따로 두지 않음) |
+| 망각 장치 | 갱신 문의 $(1-z_t)$ 인수 |
+| 입력 장치 | 갱신 문의 $z_t$ 인수 (서로 보완) |
+| 전환을 위한 되돌리기 | 재설정 문 $r_t$이 후보를 조절 |
+| 기울기의 흐름 | $(1-z_t)$이라는 곧바른 경로 |
+
+**핵심 이점:**
+
+- LSTM보다 매개변수가 25% 적다
+- 학습과 추론이 빠르다
+- 대부분의 과제에서 성능이 비슷하다
+- 이해하고 벌레잡기가 더 쉽다
+
+**핵심 맞바꿈:**
+
+- LSTM의 독립적인 문보다 유연하지 않다
+- 망각과 입력이 묶여 있어 어떤 쓰임에는 제약이 될 수 있다
+
+**요컨대** GRU는 순차열 모형의 기본 선택으로 훌륭하다. 효율이 좋아 계산 자원이 넉넉하지 않거나 빠르게 되풀이해 보아야 할 때 낫다. LSTM은 그 복잡함이 분명히 이득이 되는 과제에 아껴 두라.
+
+---
+
+**참고 문헌**
+
+1. Cho, K., van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H., & Bengio, Y. (2014). Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation. *EMNLP*.
+
+2. Chung, J., Gulcehre, C., Cho, K., & Bengio, Y. (2014). Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling. *NIPS Workshop*.
+
+3. Jozefowicz, R., Zaremba, W., & Sutskever, I. (2015). An Empirical Exploration of Recurrent Network Architectures. *ICML*.
+
+4. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.
+
+5. Heck, J., & Salem, F. M. (2017). Simplified Minimal Gated Unit Variations for Recurrent Neural Networks. *MWSCAS*.

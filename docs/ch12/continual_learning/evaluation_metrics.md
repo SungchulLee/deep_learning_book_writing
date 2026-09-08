@@ -1,11 +1,12 @@
 # 이어 배우기의 평가 지표
-## 들어가며
 
 이어 배우기 연구에서 제대로 된 평가는 매우 중요하다. 정확도 하나로 충분할 때가 많은 보통의 기계 학습과 달리, 이어 배우기는 성능의 여러 결을 담아내려면 지표가 여럿 필요하다. 곧 새 과제를 배우는 힘, 옛 과제를 잊는 성향, 그리고 과제 사이의 앎 옮김이다.
 
 이 절은 이어 배우기에서 쓰는 표준 평가 규약과 지표를, 그 수학적 정의와 파이토치 구현과 함께 내보인다.
 
-## 평가 규약
+---
+
+## 1. 평가 규약
 
 ### 정확도 행렬
 
@@ -83,7 +84,9 @@ def evaluate_single_task(model, test_loader, device):
     return 100.0 * correct / total
 ```
 
-## 으뜸 지표
+---
+
+## 2. 으뜸 지표
 
 ### 평균 정확도(AA)
 
@@ -210,7 +213,9 @@ def learning_accuracy(accuracy_matrix):
     return np.mean(np.diag(accuracy_matrix))
 ```
 
-## 버금 지표
+---
+
+## 3. 버금 지표
 
 ### 잊음 재기(FM)
 
@@ -302,7 +307,9 @@ def memory_stability(accuracy_matrix):
     return stability / (T - 1)
 ```
 
-## 두루 갖춘 평가 클래스
+---
+
+## 4. 두루 갖춘 평가 클래스
 
 ```python
 class ContinualLearningMetrics:
@@ -481,7 +488,9 @@ class ContinualLearningMetrics:
         plt.show()
 ```
 
-## 지표 사이의 관계
+---
+
+## 5. 지표 사이의 관계
 
 지표들은 서로 이어져 있다.
 
@@ -503,7 +512,9 @@ $$
     | 낮음 | 0 근처 | 낮음 | 배우는 힘이 모자람 |
     | 높음 | 양수 | 아주 높음 | 이로운 옮김 |
 
-## 실용적인 고려
+---
+
+## 6. 실용적인 고려
 
 ### 여러 번 돌리기
 
@@ -554,7 +565,9 @@ def evaluate_with_confidence(run_experiment_fn, num_runs=5):
 4. **같은 데이터 쪼갬**: 한결같은 과제 설정을 쓰기
 5. **셈 비용**: 학습 시간과 기억 씀씀이를 알리기
 
-## 함께 익히기와의 견줌
+---
+
+## 7. 함께 익히기와의 견줌
 
 **함께 익히기의 위 한계**는 모든 과제를 한꺼번에 익힌다.
 
@@ -595,28 +608,7 @@ def joint_training_baseline(model, all_loaders, test_loaders,
             for loader in test_loaders]
 ```
 
-## 요약
-
-| 지표 | 식 | 재는 것 | 좋은 값 |
-|--------|---------|----------|------------|
-| AA | $\frac{1}{T}\sum_i A_{i,T}$ | 전체 성능 | 높음(80% 넘음) |
-| LA | $\frac{1}{T}\sum_i A_{i,i}$ | 배우는 힘 | 높음(90% 넘음) |
-| BWT | $\frac{1}{T-1}\sum_i (A_{i,T} - A_{i,i})$ | 잊음 | 0 근처이거나 양수 |
-| FWT | $\frac{1}{T-1}\sum_i (A_{i,i} - A_i^{\text{rand}})$ | 앞으로의 옮김 | 양수 |
-| FM | 과제마다 가장 큰 잊음 | 최악의 경우 잊음 | 낮음 |
-| MS | 때에 따른 흩어짐 | 안정성 | 낮음 |
-
-이 지표들로 제대로 평가하면 이어 배우기 방법을 공정하게 견줄 수 있고, 성능의 여러 결에 걸친 장단점을 짚어낼 수 있다.
-
-## 참고 문헌
-
-1. Lopez-Paz, D., & Ranzato, M. (2017). Gradient episodic memory for continual learning. *NeurIPS*.
-
-2. Chaudhry, A., et al. (2018). Riemannian walk for incremental learning. *ECCV*.
-
-3. Hsu, Y. C., Liu, Y. C., Ramasamy, A., & Kira, Z. (2018). Re-evaluating continual learning scenarios: A categorization and case for strong baselines. *NeurIPS Workshop*.
-
-4. Díaz-Rodríguez, N., et al. (2018). Don't forget, there is more than forgetting: New metrics for continual learning. *NeurIPS Workshop*.
+---
 
 ## 연습문제
 
@@ -650,3 +642,26 @@ def joint_training_baseline(model, all_loaders, test_loaders,
 
 ??? success "연습문제 4 풀이"
     대부분의 잣대는 과제의 경계가 또렷한 단순한 데이터셋(MNIST, CIFAR)을 쓰는데, 이는 현실과 동떨어져 있다. 현실에서는 과제의 경계가 흐릿하고, 데이터 흐름이 멈추어 있지 않으며, 시험 때 과제 이름표도 없다. 지금의 지표는 셈 효율, 기억 씀씀이, 따로 떼어 둔 과제에서의 성능도 담아내지 못한다.
+
+## 정리하며
+
+| 지표 | 식 | 재는 것 | 좋은 값 |
+|--------|---------|----------|------------|
+| AA | $\frac{1}{T}\sum_i A_{i,T}$ | 전체 성능 | 높음(80% 넘음) |
+| LA | $\frac{1}{T}\sum_i A_{i,i}$ | 배우는 힘 | 높음(90% 넘음) |
+| BWT | $\frac{1}{T-1}\sum_i (A_{i,T} - A_{i,i})$ | 잊음 | 0 근처이거나 양수 |
+| FWT | $\frac{1}{T-1}\sum_i (A_{i,i} - A_i^{\text{rand}})$ | 앞으로의 옮김 | 양수 |
+| FM | 과제마다 가장 큰 잊음 | 최악의 경우 잊음 | 낮음 |
+| MS | 때에 따른 흩어짐 | 안정성 | 낮음 |
+
+이 지표들로 제대로 평가하면 이어 배우기 방법을 공정하게 견줄 수 있고, 성능의 여러 결에 걸친 장단점을 짚어낼 수 있다.
+
+**참고 문헌**
+
+1. Lopez-Paz, D., & Ranzato, M. (2017). Gradient episodic memory for continual learning. *NeurIPS*.
+
+2. Chaudhry, A., et al. (2018). Riemannian walk for incremental learning. *ECCV*.
+
+3. Hsu, Y. C., Liu, Y. C., Ramasamy, A., & Kira, Z. (2018). Re-evaluating continual learning scenarios: A categorization and case for strong baselines. *NeurIPS Workshop*.
+
+4. Díaz-Rodríguez, N., et al. (2018). Don't forget, there is more than forgetting: New metrics for continual learning. *NeurIPS Workshop*.

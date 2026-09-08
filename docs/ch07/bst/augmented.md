@@ -2,7 +2,9 @@
 
 보통의 이진 탐색 트리는 열쇠 값에 따른 찾기와 삽입과 삭제를 지원한다. 그런데 "다섯째로 작은 원소는 무엇인가?"나 "구간 $[a, b]$에 드는 원소는 몇 개인가?" 같은, 그냥 이진 탐색 트리로는 효율적으로 답할 수 없는 질의를 필요로 하는 응용이 많다. **증강 이진 탐색 트리**는 노드마다 추가 정보를 두고 삽입과 삭제 중에 이를 유지하여, 트리의 높이를 $h$이라 할 때 이런 풍부한 질의를 $O(h)$ 시간에 답한다.
 
-## 증강하는 방법
+---
+
+## 1. 증강하는 방법
 
 이진 탐색 트리를 증강하는 일반적인 전략은 네 단계이다.
 
@@ -14,7 +16,9 @@
 !!! tip "증강 정리 (CLRS)"
     노드마다 담은 추가 정보를 그 노드 자신의 데이터와 두 자식의 증강 정보로 계산할 수 있다면, 그 정보는 삽입과 삭제와 회전 중에 점근적 부담 없이 $O(h)$ 시간에 유지할 수 있다.
 
-## 순서 통계 트리
+---
+
+## 2. 순서 통계 트리
 
 가장 흔한 증강은 노드마다 **부분 트리의 크기**를 담아 **순서 통계 트리**를 만드는 것이다. 노드 $x$마다 다음을 담는다.
 
@@ -44,7 +48,9 @@ $$
 
 이것도 $O(h)$ 시간에 끝난다.
 
-## 부분 트리 크기 유지하기
+---
+
+## 3. 부분 트리 크기 유지하기
 
 **삽입**할 때는 삽입 경로 위의 모든 조상의 크기를 1씩 늘린다. **삭제**할 때는 지운 노드에서 뿌리까지의 경로 위에서 크기를 1씩 줄인다.
 
@@ -71,7 +77,9 @@ $$
 
 회전에 관여한 두 노드의 크기만 고치면 되므로 회전은 여전히 $O(1)$이다.
 
-## 그 밖의 증강
+---
+
+## 4. 그 밖의 증강
 
 부분 트리 크기 증강이 가장 흔하지만, 쓸모 있는 증강에는 다음도 있다.
 
@@ -82,7 +90,9 @@ $$
 | 부분 트리 합 | $\text{key} + \text{left.sum} + \text{right.sum}$ | 구간 합 질의 |
 | 구간의 최대 끝점 | $\max(\text{high}, \text{left.max}, \text{right.max})$ | 구간 겹침 질의 |
 
-## 예
+---
+
+## 5. 예
 
 ```python
 """
@@ -91,7 +101,6 @@ $$
 선택(k번째로 작은 것 찾기)과 순위(어떤 열쇠 이하인 원소 세기)를
 $O(h)$ 시간에 지원한다.
 """
-
 
 # === 노드 정의 ===
 
@@ -104,13 +113,11 @@ class Node:
         self.right = None
         self.size = 1  # 이 노드와 모든 자손을 센다
 
-
 # === 크기 도우미 ===
 
 def size(node):
     """부분 트리의 크기를 돌려준다 (널이면 0)."""
     return node.size if node else 0
-
 
 # === 크기를 유지하는 삽입 ===
 
@@ -124,7 +131,6 @@ def insert(root, key):
         root.right = insert(root.right, key)
     root.size = 1 + size(root.left) + size(root.right)
     return root
-
 
 # === 선택: k번째로 작은 것 찾기 (1부터 셈) ===
 
@@ -144,7 +150,6 @@ def select(node, k):
     else:
         return select(node.right, k - rank_of_node)
 
-
 # === 순위: 주어진 열쇠 이하인 열쇠의 수 ===
 
 def rank(node, key):
@@ -158,7 +163,6 @@ def rank(node, key):
     else:
         return size(node.left) + 1
 
-
 # === 중위 순회 ===
 
 def inorder(node):
@@ -167,7 +171,6 @@ def inorder(node):
         yield from inorder(node.left)
         yield (node.key, node.size)
         yield from inorder(node.right)
-
 
 # === 메인 ===
 
@@ -208,10 +211,7 @@ Inorder (key, subtree_size):
   Rank(key=25): 11
 ```
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 14장 — 자료 구조 증강하기](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -244,3 +244,11 @@ Inorder (key, subtree_size):
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 증강하는 방법、순서 통계 트리、부분 트리 크기 유지하기、그 밖의 증강을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 14장 — 자료 구조 증강하기](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

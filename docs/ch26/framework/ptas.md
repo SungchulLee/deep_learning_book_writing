@@ -2,7 +2,9 @@
 
 어떤 NP-어려운 가장 좋게 하기 문제에서는 도는 시간이 늘어나는 대가로 가장 좋은 값에 얼마든지 가까이 갈 수 있다. **다항식 시간 어림 얼개(PTAS)**는 바라는 정확도 $\epsilon > 0$을 마음대로 고르게 해 주고, **온전 다항식 시간 어림 얼개(FPTAS)**는 도는 시간이 $1/\epsilon$에 대해서도 다항식으로 커짐을 보장한다. 이 쪽은 이 개념을 뜻매김하고 어림의 층층 짜임과 이어 보며 배낭 FPTAS으로 보인다.
 
-## PTAS 뜻매김
+---
+
+## 1. PTAS 뜻매김
 
 !!! tip "뜻매김: PTAS"
     가장 작게 하기 문제 $\Pi$의 **다항식 시간 어림 얼개**는 모든 $\epsilon > 0$과 모든 보기 $I$에 대해 다음을 채우는 알고리즘 무리 $\{A_\epsilon\}_{\epsilon > 0}$이다.
@@ -17,14 +19,18 @@
 
 도는 시간은 $O(n^{1/\epsilon})$이나 $O(n^{2^{1/\epsilon}})$일 수 있다. 곧 붙박인 $\epsilon$마다 $n$에 대해 다항식이지만 $\epsilon$이 작으면 쓸 수 없을 수 있다.
 
-## FPTAS 뜻매김
+---
+
+## 2. FPTAS 뜻매김
 
 !!! tip "뜻매김: FPTAS"
     **온전 다항식 시간 어림 얼개**는 도는 시간이 $|I|$과 $1/\epsilon$ 모두에 대해 다항식인 PTAS이다.
 
 흔한 FPTAS의 도는 시간은 $O(n^2 / \epsilon)$이나 $O(n^3 / \epsilon^2)$ 같다. FPTAS은 가장 센 갈래의 어림 결과이다. 곧 바라는 어떤 정확도에서도 알고리즘이 쓸 만한 다항식 시간에 돈다.
 
-## 어림의 층층 짜임
+---
+
+## 3. 어림의 층층 짜임
 
 센 것부터 여린 것까지의 담김 짜임:
 
@@ -44,7 +50,9 @@ $$
 | APX(PTAS은 아님) | MAX-3SAT, 꼭짓점 덮개, 거리 떠돌이 장사꾼 |
 | NPO(APX은 아님) | 덩어리, 색칠 수 |
 
-## 배낭을 위한 FPTAS
+---
+
+## 4. 배낭을 위한 FPTAS
 
 0/1 배낭 문제는 NP-어려움이지만, 딱 맞는 갈피 다지기 풀이에 **잣대 잡고 반올림하는** 기법을 걸면 FPTAS을 얻을 수 있다.
 
@@ -90,7 +98,9 @@ $$
 
 마지막 부등식은 $\text{OPT} \geq v_{\max}$을 쓴다. $\square$
 
-## 유클리드 떠돌이 장수 문제의 PTAS
+---
+
+## 5. 유클리드 떠돌이 장수 문제의 PTAS
 
 Arora(1998)와 Mitchell(1999)은 서로 매이지 않게 유클리드 공간의 떠돌이 장수 문제가 PTAS을 받아들임을 보였다. 유클리드 거리를 지닌 $\mathbb{R}^2$의 점 $n$개가 주어지면 아무 $\epsilon > 0$에 대해 길이가 많아야 $(1 + \epsilon) \cdot \text{OPT}$인 나들이를 $n \cdot (\log n)^{O(1/\epsilon)}$ 시간에 내는 알고리즘이 있다.
 
@@ -103,7 +113,9 @@ Arora(1998)와 Mitchell(1999)은 서로 매이지 않게 유클리드 공간의 
 
 이는 PTAS이지만 FPTAS은 아니다. 도는 시간이 $1/\epsilon$에 대해 지수이다.
 
-## FPTAS이 있을 수 없을 때
+---
+
+## 6. FPTAS이 있을 수 없을 때
 
 PTAS이 있는 모든 문제에 FPTAS이 있는 것은 아니다. 여느 복잡도 가정 아래서는:
 
@@ -132,11 +144,7 @@ PTAS이 있는 모든 문제에 FPTAS이 있는 것은 아니다. 여느 복잡�
 
     **비율:** $180 / 180 = 1.0 \geq 1 - \epsilon = 0.8$이다. 보장이 참이다.
 
-## 참고 문헌
-
-- Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
-- Arora, S. (1998). Polynomial time approximation schemes for Euclidean traveling salesman and other geometric problems. *JACM*, 45(5), 753--782.
-- Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.
+---
 
 ## 연습문제
 
@@ -169,3 +177,13 @@ NP-어려운 문제에 FPTAS이 있으면 (P $\neq$ NP를 가정할 때) 그 문
 
 ??? success "연습문제 4 풀이"
     FPTAS에서 $\epsilon = 1/(2 \cdot OPT)$으로 둔다. FPTAS은 $n$과 $1/\epsilon = 2 \cdot OPT$에 대해 다항식 시간에 돈다. (강하게 NP-어려운 자리처럼) $OPT$이 $n$의 다항식으로 가둬져 있으면 이는 다항식 시간의 정확한 알고리즘이 된다(정수 값 최적해의 $(1 + 1/(2 \cdot OPT))$ 갑절 안 어림은 정확하기 때문이다). 그러면 강하게 NP-어려운 문제가 P에 들어 P $\neq$ NP에 어긋난다. $\square$
+
+## 정리하며
+
+이 마당은 PTAS 뜻매김、FPTAS 뜻매김、어림의 층층 짜임、배낭을 위한 FPTAS을 차례로 짚었다.
+
+**참고 문헌**
+
+- Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
+- Arora, S. (1998). Polynomial time approximation schemes for Euclidean traveling salesman and other geometric problems. *JACM*, 45(5), 753--782.
+- Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.

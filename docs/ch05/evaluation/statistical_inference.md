@@ -1,10 +1,15 @@
 # 모델 평가를 위한 통계적 추론
+
+---
+
 ## 1. 들어가며: 신호와 잡음의 차이
 
 퀀트 트레이딩용 딥러닝 모델을 평가할 때, 그럴듯해 보이는 샤프 비율 2% 개선이 진짜 알파일 수도 있고 그저 통계적 잡음일 수도 있다. 통계적 추론은 진짜 개선과 무작위 요동을 가려내는 엄밀한 틀을 준다.
 
 !!! warning "다중성 문제"
     수십 가지 모델 구조를 역사 자료에 시험하면 순전히 우연으로도 개선처럼 보이는 것을 찾게 되어 있다. 이것이 데이터 스누핑이며 퀀트 전략을 조용히 죽이는 주범이다.
+
+---
 
 ## 2. 추정량의 성질
 
@@ -32,6 +37,8 @@ $$\text{MSE}(\hat{\theta}) = \text{Bias}(\hat{\theta})^2 + \text{Var}(\hat{\thet
 
 표본분산 $S^2 = \frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2$은 불편이지만 분산이 더 크다.
 
+---
+
 ## 3. 신뢰구간
 
 모델 지표에 대한 95% 신뢰구간은 참 모수가 95%의 확률로 들어 있는 구간을 준다.
@@ -51,6 +58,8 @@ $$\hat{p} \pm z_{1-\alpha/2} \sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$$
     2. 부트스트랩 표본마다 지표를 계산한다
     3. 경험적 2.5% 분위수와 97.5% 분위수를 신뢰구간의 경계로 삼는다
 
+---
+
 ## 4. 가설 검정
 
 **두 모델 비교 (대응 t 검정):**
@@ -67,6 +76,8 @@ $$t = \frac{\bar{D}}{\frac{S_D}{\sqrt{n}}} \sim t_{n-1}$$
 
 !!! danger "다중 비교 문제"
     모델 100개를 기준선과 견주어 시험하면 유의수준 $\alpha=0.05$에서 거짓 양성이 5개쯤 나오게 마련이다. 보정이 꼭 필요한 까닭이 여기에 있다.
+
+---
 
 ## 5. 다중 검정 보정
 
@@ -87,6 +98,8 @@ $$\alpha_{adjusted} = \frac{\alpha}{m}$$
 3. 가설 $1, ..., i$을 모두 기각한다
 
 FDR은 기각한 것 가운데 거짓 양성의 비율을 제한한다(퀀트에서는 보통 10%).
+
+---
 
 ## 6. 부트스트랩 방법
 
@@ -112,6 +125,8 @@ Estimated variance: Var(θ̂) ≈ Var(θ̂*_1, ..., θ̂*_B)
 - 그때마다 샤프 비율을 계산한다
 - 95% 신뢰구간이 1.0을 포함하지 않으면 $H_0: S \leq 1.0$을 기각한다
 
+---
+
 ## 7. 통계적 절차로서의 교차 검증
 
 K겹 교차 검증은 일반화 오차 $\mathcal{L}$을 추정한다.
@@ -134,6 +149,8 @@ $$\text{Var}(\widehat{\text{CV}}) = \frac{\sigma^2_{CV}}{k} + \text{correlation 
     - 1~5년으로 학습하고 6년으로 시험한다
     - 1~6년으로 학습하고 7년으로 시험한다
     - 미래를 엿보는 편향도, 데이터 유출도 없다
+
+---
 
 ## 8. 퀀트 실무자를 위한 실용 지침
 
@@ -159,12 +176,7 @@ $$\text{Var}(\widehat{\text{CV}}) = \frac{\sigma^2_{CV}}{k} + \text{correlation 
 !!! success "좋은 관행"
     실거래에 앞서 3개월 이상 모의로 전략을 굴려 보라. 모의 결과를 가설 검정을 위한 *새* 데이터로 다루라. 이 새 데이터에서 유의성 검정을 통과할 때에만 실전에 내보내라.
 
-## 참고 문헌
-
-- Efron & Tibshirani (1993): *An Introduction to the Bootstrap*
-- White (2000): "A Reality Check for Data Snooping" (*Econometric Reviews*)
-- Benjamini & Hochberg (1995): "Controlling the False Discovery Rate" (*JASA*)
-- De Prado (2018): *Advances in Financial Machine Learning*, Chapters 4-6
+---
 
 ## 연습문제
 
@@ -207,3 +219,14 @@ $$\text{Var}(\widehat{\text{CV}}) = \frac{\sigma^2_{CV}}{k} + \text{correlation 
 
 ??? success "연습문제 4 풀이"
     맥니마 검정은 같은 시험 집합에서 두 분류기가 일치하고 어긋나는 분할표를 살펴 둘을 견준다. 시험 집합이 하나뿐이어서 되풀이 시행이 없을 때, 정확도 차이의 정규성을 가정하지 않으므로 t 검정보다 알맞다.
+
+## 정리하며
+
+이 마당은 들어가며: 신호와 잡음의 차이、추정량의 성질、신뢰구간、가설 검정을 차례로 짚었다.
+
+**참고 문헌**
+
+- Efron & Tibshirani (1993): *An Introduction to the Bootstrap*
+- White (2000): "A Reality Check for Data Snooping" (*Econometric Reviews*)
+- Benjamini & Hochberg (1995): "Controlling the False Discovery Rate" (*JASA*)
+- De Prado (2018): *Advances in Financial Machine Learning*, Chapters 4-6

@@ -2,7 +2,9 @@
 
 스킵 리스트의 탐색은 구조를 바꾸지 않고 원소를 찾는다. 반면 삽입과 삭제는 여러 층에 걸쳐 노드를 넣거나 빼면서 스킵 리스트의 불변식을 지켜야 한다. 두 연산 모두 탐색 절차 위에 세워진다. 같은 하향식 순회로 먼저 올바른 자리를 찾고, 영향을 받는 각 층에서 국소적으로 포인터를 고친다. 이 페이지는 두 연산을 완전한 구현과 함께 자세히 설명한다.
 
-## 삽입 알고리즘
+---
+
+## 1. 삽입 알고리즘
 
 스킵 리스트에 키 $k$을 삽입하려면 세 단계가 필요하다.
 
@@ -14,7 +16,9 @@
 
 새 노드의 층이 현재 스킵 리스트의 높이를 넘으면, 머리글에 새 층을 늘려 새 노드를 곧바로 가리키게 한다.
 
-## 삭제 알고리즘
+---
+
+## 2. 삭제 알고리즘
 
 키 $k$을 삭제하는 것도 비슷한 형태를 따른다.
 
@@ -26,7 +30,9 @@
 
 4. **높이 줄이기**: 삭제로 인해 위쪽 층들이 비면(머리글이 `None`을 가리키면) 스킵 리스트의 높이를 줄인다.
 
-## 구현
+---
+
+## 3. 구현
 
 ```python
 """
@@ -38,7 +44,6 @@
 
 import random
 
-
 # === 노드 정의 ===
 
 class SkipNode:
@@ -47,7 +52,6 @@ class SkipNode:
     def __init__(self, key, level):
         self.key = key
         self.forward = [None] * (level + 1)  # forward[i] = 층 i에서의 다음 노드
-
 
 # === 건너뛰기 리스트 ===
 
@@ -164,7 +168,6 @@ class SkipList:
                 current = current.forward[i]
             print(f"Level {i}: {' -> '.join(nodes)}")
 
-
 # === 메인 ===
 
 if __name__ == "__main__":
@@ -216,13 +219,17 @@ Search 12: found
 Search 19: not found
 ```
 
-## 갱신 배열
+---
+
+## 4. 갱신 배열
 
 갱신 배열은 삽입과 삭제 모두에서 중심이 되는 장부이다. 각 층 $i$에 대해 `update[i]`은 층 $i$에서 키가 목표 키보다 작은 가장 오른쪽 노드를 담는다. 이 노드가 층 $i$에서 삽입 또는 삭제 지점의 앞 노드이다.
 
 갱신 배열을 만드는 비용은 탐색과 같은 기대 시간 $O(\log n)$이다. 각 층에서 끼워 넣거나 떼어내는 단계는 층당 $O(1)$이고, 한 노드가 걸치는 층의 수는 기댓값으로 $O(\log n)$이다.
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 연산 | 기대 시간 | 최악의 경우 시간 |
 |---|---|---|
@@ -233,13 +240,7 @@ Search 19: not found
 
 최악의 경우인 $O(n)$은 모든 노드가 우연히 층 1에만 있을 때에만 일어나며($n$이 커질수록 그 확률이 지수적으로 줄어든다), 그때 스킵 리스트는 평범한 정렬 연결 리스트로 주저앉는다.
 
-## 참고 문헌
-
-- Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees."
-  *Communications of the ACM*, 33(6), 1990.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C.
-  *Introduction to Algorithms* (4th ed.). MIT Press.
-
+---
 
 ## 연습문제
 
@@ -272,3 +273,14 @@ Search 19: not found
 
 ??? success "연습문제 4 풀이"
     알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$
+
+## 정리하며
+
+이 마당은 삽입 알고리즘、삭제 알고리즘、구현、갱신 배열을 차례로 짚었다.
+
+**참고 문헌**
+
+- Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees."
+  *Communications of the ACM*, 33(6), 1990.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C.
+  *Introduction to Algorithms* (4th ed.). MIT Press.

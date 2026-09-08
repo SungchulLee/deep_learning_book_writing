@@ -1,5 +1,8 @@
 # 보편 근사 정리
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 !!! abstract "배울 내용"
 
@@ -9,7 +12,9 @@
     - 얕은 근사와 깊은 근사의 너비 복잡도, 그리고 차원의 저주 분석하기
     - PyTorch 실험으로 보편 근사를 경험적으로 보이기
 
-## 미리 알아야 할 것
+---
+
+## 2. 미리 알아야 할 것
 
 | 주제 | 왜 중요한가 |
 |-------|---------------|
@@ -19,13 +24,13 @@
 
 ---
 
-## 개요
+## 3. 개요
 
 **보편 근사 정리**는 신경망 이론에서 가장 중요한 이론적 결과 중 하나이다. 은닉층이 하나인 순방향 신경망도 너비가 충분하면 임의의 연속 함수를 원하는 정확도로 근사할 수 있음을 확립한다. 이는 신경망을 유연한 함수 근사기로 쓰는 이론적 토대가 되지만, 알맞은 매개변수를 어떻게 찾을지에 대해서는 아무 말도 하지 않는다.
 
 ---
 
-## 정리의 진술
+## 4. 정리의 진술
 
 ### 고전적 형태 (Cybenko, 1989)
 
@@ -77,7 +82,7 @@ ReLU는 유계도 아니고 매끄럽지도 않지만, ReLU 신경망이 **조�
 
 ---
 
-## 기하학적 직관
+## 5. 기하학적 직관
 
 ### 시그모이드 신경망: 부드러운 계단의 합
 
@@ -113,7 +118,7 @@ $$
 
 ---
 
-## 증명의 얼개
+## 6. 증명의 얼개
 
 ### 스톤-바이어슈트라스 접근 (Cybenko의 증명)
 
@@ -157,7 +162,7 @@ $$
 
 ---
 
-## 너비 복잡도와 차원의 저주
+## 7. 너비 복잡도와 차원의 저주
 
 ### 얕은 신경망
 
@@ -208,7 +213,7 @@ $$
 
 ---
 
-## 실무적 함의
+## 8. 실무적 함의
 
 ### 이 정리가 보장하는 것
 
@@ -233,7 +238,7 @@ $$
 
 ---
 
-## PyTorch로 보이기
+## 9. PyTorch로 보이기
 
 ### 복잡한 1차원 함수 근사하기
 
@@ -358,7 +363,7 @@ print(f"Deep-narrow  final MSE: {deep_losses[-1]:.6f}")
 
 ---
 
-## 핵심 정리
+## 10. 핵심 정리
 
 !!! success "요약"
 
@@ -371,14 +376,6 @@ print(f"Deep-narrow  final MSE: {deep_losses[-1]:.6f}")
     7. 실무에서는 **적당한 깊이와 적당한 너비**가 극단적인 너비나 극단적인 깊이보다 한결같이 낫다
 
 ---
-
-## 참고 문헌
-
-- Cybenko, G. (1989). Approximation by superpositions of a sigmoidal function. *Mathematics of Control, Signals and Systems*, 2(4), 303–314.
-- Hornik, K. (1991). Approximation capabilities of multilayer feedforward networks. *Neural Networks*, 4(2), 251–257.
-- Barron, A. R. (1993). Universal approximation bounds for superpositions of a sigmoidal function. *IEEE Transactions on Information Theory*, 39(3), 930–945.
-- Telgarsky, M. (2016). Benefits of depth in neural networks. *COLT*.
-- Lu, Z., Pu, H., Wang, F., Hu, Z., & Wang, L. (2017). The expressive power of neural networks: A view from the width. *NeurIPS*.
 
 ## 연습문제
 
@@ -411,3 +408,15 @@ ReLU 활성화를 쓰는 신경망에 대해 보편 근사 정리를 정확히 �
 
 ??? success "연습문제 4 풀이"
     각 ReLU 뉴런이 접힘(초평면 경계) 하나를 만든다. 층마다 뉴런이 $d$개이면 각 층은 선형 영역의 수를 많아야 두 배로 만들 수 있다(기존 영역이 저마다 쪼개질 수 있다). $L$개 층을 지나면 최대 $\prod_{l=1}^L 2d = O((2d)^L)$개의 영역이 되며, 이는 깊이에 대해 지수적이다.
+
+## 정리하며
+
+이 마당은 학습 목표、미리 알아야 할 것、개요、정리의 진술을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cybenko, G. (1989). Approximation by superpositions of a sigmoidal function. *Mathematics of Control, Signals and Systems*, 2(4), 303–314.
+- Hornik, K. (1991). Approximation capabilities of multilayer feedforward networks. *Neural Networks*, 4(2), 251–257.
+- Barron, A. R. (1993). Universal approximation bounds for superpositions of a sigmoidal function. *IEEE Transactions on Information Theory*, 39(3), 930–945.
+- Telgarsky, M. (2016). Benefits of depth in neural networks. *COLT*.
+- Lu, Z., Pu, H., Wang, F., Hu, Z., & Wang, L. (2017). The expressive power of neural networks: A view from the width. *NeurIPS*.

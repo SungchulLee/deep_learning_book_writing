@@ -1,9 +1,14 @@
 # 수 줄이기
-## 두루 보기
+
+---
+
+## 1. 두루 보기
 
 수 줄이기는 신경 그물의 짐과 살림을 뜨는 소수점(흔히 32비트)에서 더 적은 비트(8비트, 4비트, 나아가 두 값)으로 촘촘함을 낮춘다. 이로써 기억 자리와 셈 값이 크게 줄고, 이를 받쳐 주는 쇠 붙임새에서는 미루어 봄이 크게 빨라진다.
 
-## 수 줄이기 밑바탕
+---
+
+## 2. 수 줄이기 밑바탕
 
 ### 왜 수를 줄이는가
 
@@ -35,7 +40,9 @@ FP16: ±[6.1e-5, 65504], 열 자리로 약 3자리
 
 *빨라짐은 쇠 붙임새가 받쳐 주는지에 매인다
 
-## 수학 밑바탕
+---
+
+## 3. 수학 밑바탕
 
 ### 수 줄이기 옮김
 
@@ -86,7 +93,9 @@ $$x_q = \text{round}\left(\frac{x}{s}\right), \quad s = \frac{\max(|x_{\min}|, |
 **어긋난 수 줄이기**($z \neq 0$):
 위의 온전한 식을 쓴다. 한쪽으로 쏠린 분포(ReLU 뒤의 살림에서 흔하다)에서 수 줄이기 자리를 더 잘 쓴다.
 
-## PyTorch로 짜기
+---
+
+## 4. PyTorch로 짜기
 
 ### 밑바탕 수 줄이기 셈
 
@@ -96,7 +105,6 @@ import torch.nn as nn
 import torch.quantization
 from typing import Tuple, Dict, List
 import time
-
 
 def compute_quantization_params(tensor: torch.Tensor, 
                                 num_bits: int = 8, 
@@ -129,7 +137,6 @@ def compute_quantization_params(tensor: torch.Tensor,
     
     return scale.item(), zero_point
 
-
 def quantize(tensor: torch.Tensor, scale: float, zero_point: int, 
              num_bits: int = 8) -> torch.Tensor:
     """텐서를 정수로 수 줄인다."""
@@ -140,14 +147,15 @@ def quantize(tensor: torch.Tensor, scale: float, zero_point: int,
     q = torch.clamp(q, qmin, qmax)
     return q.to(torch.int8)
 
-
 def dequantize(q_tensor: torch.Tensor, scale: float, 
                zero_point: int) -> torch.Tensor:
     """정수 텐서를 뜨는 소수로 되돌린다."""
     return scale * (q_tensor.float() - zero_point)
 ```
 
-## 수 줄이기 어긋남 살피기
+---
+
+## 5. 수 줄이기 어긋남 살피기
 
 ### 수 줄이기 잡음
 
@@ -173,7 +181,9 @@ $$\epsilon_{\text{output}} = f(x + \epsilon_x, W + \epsilon_W) - f(x, W)$$
 
 선형 켜에서는 어긋남이 켜의 너비와 깊이에 따라 커지므로 켜마다 다른 수 줄이기 꾀가 있어야 한다.
 
-## 수 줄이기의 갈래
+---
+
+## 6. 수 줄이기의 갈래
 
 ### 1. 움직이는 수 줄이기
 
@@ -196,7 +206,6 @@ class LinearModel(nn.Module):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         return self.fc3(x)
-
 
 def apply_dynamic_quantization(model: nn.Module,
                                dtype: torch.dtype = torch.qint8) -> nn.Module:
@@ -306,7 +315,6 @@ class QuantizableModel(nn.Module):
              ['conv2', 'bn2', 'relu2']],
             inplace=True
         )
-
 
 def apply_static_quantization(model: nn.Module,
                               calibration_loader: torch.utils.data.DataLoader,
@@ -465,7 +473,9 @@ def train_with_qat(model: nn.Module,
     return model_quantized
 ```
 
-## 섞인 촘촘함(FP16)
+---
+
+## 7. 섞인 촘촘함(FP16)
 
 요즘 GPU에서 더 빠르게 셈하려고 반 촘촘함을 쓴다.
 
@@ -486,7 +496,6 @@ def mixed_precision_inference(model: nn.Module,
             output = model(data)
     
     return output
-
 
 def benchmark_precision(model: nn.Module, data: torch.Tensor, 
                         iterations: int = 100) -> Dict[str, float]:
@@ -530,7 +539,9 @@ def benchmark_precision(model: nn.Module, data: torch.Tensor,
     }
 ```
 
-## 눈금 맞추기 꾀
+---
+
+## 8. 눈금 맞추기 꾀
 
 ### 가장 작은 값-가장 큰 값 눈금 맞추기
 
@@ -612,7 +623,9 @@ class PercentileObserver:
         return scale, zero_point
 ```
 
-## 갈래마다 대 텐서마다의 수 줄이기
+---
+
+## 9. 갈래마다 대 텐서마다의 수 줄이기
 
 ### 텐서마다의 수 줄이기
 
@@ -662,7 +675,9 @@ def analyze_weight_distribution(conv: nn.Conv2d) -> Dict:
     }
 ```
 
-## 섞인 촘촘함 수 줄이기
+---
+
+## 10. 섞인 촘촘함 수 줄이기
 
 켜마다 수 줄이기에 예민한 정도가 다르다. 섞인 촘촘함은 켜마다 비트 너비를 달리 준다.
 
@@ -721,7 +736,6 @@ def mixed_precision_sensitivity(model: nn.Module,
     
     return results
 
-
 def evaluate_model(model: nn.Module, 
                    test_loader: torch.utils.data.DataLoader,
                    device: str = 'cpu') -> float:
@@ -742,7 +756,9 @@ def evaluate_model(model: nn.Module,
     return correct / total
 ```
 
-## 쇠 붙임새에서 헤아릴 것
+---
+
+## 11. 쇠 붙임새에서 헤아릴 것
 
 ### 받쳐 주는 셈
 
@@ -779,7 +795,9 @@ def select_quantization_backend(target_device: str) -> str:
     return backends.get(target_device, 'fbgemm')
 ```
 
-## 좋은 버릇
+---
+
+## 12. 좋은 버릇
 
 ### 켜의 예민함
 
@@ -863,7 +881,9 @@ def prepare_calibration_data(dataset, num_samples: int = 1000) -> List[torch.Ten
     return calibration_samples
 ```
 
-## 수 줄이기 어긋남 벌레잡기
+---
+
+## 13. 수 줄이기 어긋남 벌레잡기
 
 ```python
 def debug_quantization_error(original: nn.Module,
@@ -926,7 +946,6 @@ def debug_quantization_error(original: nn.Module,
     
     return errors
 
-
 def validate_quantization(original_model: nn.Module, 
                           quantized_model: nn.Module, 
                           test_loader: torch.utils.data.DataLoader) -> Tuple[float, float]:
@@ -962,7 +981,6 @@ def validate_quantization(original_model: nn.Module,
     print(f"맞음 떨어짐: {(orig_acc - quant_acc)*100:.2f}%")
     
     return orig_acc, quant_acc
-
 
 def measure_quantization_impact(original: nn.Module,
                                 quantized: nn.Module,
@@ -1016,7 +1034,41 @@ def measure_quantization_impact(original: nn.Module,
     }
 ```
 
-## 간추림
+---
+
+## 연습문제
+
+**연습문제 1.**
+이 마디에서 다룬 다듬기 재주들을 맞음 잃음, 미루어 봄 빨라짐, 짜기의 번거로움으로 견주어 맞바꿈을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    재주마다 맞바꿈의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 잃음이 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 잃음은 1~3%이다. 앎 옮기기는 얼개 자체의 미루어 봄 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 잃음은 1~5%이다. 신경 얼개 찾기는 가장 좋은 얼개를 찾아 주지만 찾는 데 엄청난 셈이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 잃음이 어긋남의 값에 매인다. $\square$
+
+---
+
+**연습문제 2.**
+단순한 앞먹임 그물에 익힘 뒤 수 줄이기(INT8)을 짜 넣고, 잣대 자료 꾸러미에서 맞음이 얼마나 떨어지고 미루어 봄이 얼마나 빨라지는지 재어라.
+
+??? success "연습문제 2 풀이"
+    PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(묶음 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
+
+---
+
+**연습문제 3.**
+내놓은 모형의 자료 옮겨감, 뜻 옮겨감, 됨됨이 떨어짐을 짚어내는 서비스 지켜보기 얼개를 꾸며라. 자와 알림 문턱을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    세 켜를 지켜본다. (1) 자료 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 들임 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 미루어 봄 분포의 옮겨감과 (얻을 수 있으면) 참 이름표 분포를 좇는다. 미루어 봄의 평균이 밑금 동안에서 잣대 어긋남 2배 넘게 옮겨가면 알린다. (3) 모형 떨어짐: 굴러가는 창으로 살아 있는 맞음과 잃음을 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
+
+---
+
+**연습문제 4.**
+금융 거래 얼개의 늦음 요건이 웹 서비스와 밑바탕부터 다른 까닭을 밝혀라. 이것이 내놓기 다듬기 꾀에 어떻게 걸리는가?
+
+??? success "연습문제 4 풀이"
+    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 묶음 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
+
+## 정리하며
 
 잘 드는 내놓기에는 수 줄이기가 있어야 한다.
 
@@ -1042,42 +1094,10 @@ def measure_quantization_impact(original: nn.Module,
 - 잘 드러내는 눈금 맞추기 자료를 쓴다
 - 있어야 하면 첫 켜와 마지막 켜를 더 높은 촘촘함으로 둔다
 
-## 살펴볼 거리
+**살펴볼 거리**
 
 1. Jacob, B., et al. "Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference." CVPR 2018.
 2. Banner, R., et al. "Post Training 4-bit Quantization of Convolutional Networks for Rapid-Deployment." NeurIPS 2019.
 3. Nagel, M., et al. "Data-Free Quantization Through Weight Equalization and Bias Correction." ICCV 2019.
 4. Gholami, A., et al. "A Survey of Quantization Methods for Efficient Neural Network Inference." arXiv 2021.
 5. Krishnamoorthi, R. "Quantizing Deep Convolutional Networks for Efficient Inference." arXiv 2018.
-
-## 익힘 문제
-
-**익힘 1.**
-이 마디에서 다룬 다듬기 재주들을 맞음 잃음, 미루어 봄 빨라짐, 짜기의 번거로움으로 견주어 맞바꿈을 밝혀라.
-
-??? success "익힘 1 풀이"
-    재주마다 맞바꿈의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 잃음이 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 잃음은 1~3%이다. 앎 옮기기는 얼개 자체의 미루어 봄 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 잃음은 1~5%이다. 신경 얼개 찾기는 가장 좋은 얼개를 찾아 주지만 찾는 데 엄청난 셈이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 잃음이 어긋남의 값에 매인다. $\square$
-
----
-
-**익힘 2.**
-단순한 앞먹임 그물에 익힘 뒤 수 줄이기(INT8)을 짜 넣고, 잣대 자료 꾸러미에서 맞음이 얼마나 떨어지고 미루어 봄이 얼마나 빨라지는지 재어라.
-
-??? success "익힘 2 풀이"
-    PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(묶음 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
-
----
-
-**익힘 3.**
-내놓은 모형의 자료 옮겨감, 뜻 옮겨감, 됨됨이 떨어짐을 짚어내는 서비스 지켜보기 얼개를 꾸며라. 자와 알림 문턱을 밝혀라.
-
-??? success "익힘 3 풀이"
-    세 켜를 지켜본다. (1) 자료 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 들임 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 미루어 봄 분포의 옮겨감과 (얻을 수 있으면) 참 이름표 분포를 좇는다. 미루어 봄의 평균이 밑금 동안에서 잣대 어긋남 2배 넘게 옮겨가면 알린다. (3) 모형 떨어짐: 굴러가는 창으로 살아 있는 맞음과 잃음을 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
-
----
-
-**익힘 4.**
-금융 거래 얼개의 늦음 요건이 웹 서비스와 밑바탕부터 다른 까닭을 밝혀라. 이것이 내놓기 다듬기 꾀에 어떻게 걸리는가?
-
-??? success "익힘 4 풀이"
-    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 묶음 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$

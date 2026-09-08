@@ -2,11 +2,15 @@
 
 정렬된 리스트 $k$개를 정렬된 하나로 합치는 일은 외부 정렬, 데이터베이스 질의 처리, 데이터가 미리 정렬된 덩어리로 들어오는 분산 시스템에서 근본 되는 연산이다. $k$개 리스트의 머리에서 최솟값을 되풀이해 고르는 순진한 방법은 비교가 $O(nk)$번 든다. 최소 힙은 지금의 후보 $k$개만 지켜 이를 $O(n \log k)$으로 줄인다. 여기서 $n$은 모든 리스트를 통틀어 원소의 총 개수이다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 원소를 모두 합쳐 $n$개인 정렬된 리스트 $k$개가 주어졌을 때, $n$개를 모두 담은 정렬된 리스트 하나를 만들어라.
 
-## 힙을 쓰는 알고리즘
+---
+
+## 2. 힙을 쓰는 알고리즘
 
 리스트마다 원소를 하나씩 담은 크기 $k$의 최소 힙을 지키는 것이 요령이다. 단계마다 힙에서 최솟값(아직 처리하지 않은 것 가운데 전체에서 가장 작은 원소)을 꺼내 출력에 덧붙이고, 그 최솟값을 낸 리스트에서 다음 원소를 넣는다.
 
@@ -26,7 +30,9 @@ $$
 T(n, k) = n \cdot O(\log k) = O(n \log k)
 $$
 
-## 여러 방식 견주기
+---
+
+## 3. 여러 방식 견주기
 
 | 방법 | 시간 | 공간 |
 |----------|------|-------|
@@ -36,7 +42,9 @@ $$
 
 힙 방법과 나누어 정복하는 방법은 점근 시간이 같지만, 힙 방법은 (출력에 드는 $O(n)$ 말고는) 여분 공간이 $O(k)$뿐이고 원소를 흘려보내듯 처리한다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -46,7 +54,6 @@ O(n log k)의 힙 기반 k방향 합치기 알고리즘을 보인다.
 """
 
 import heapq
-
 
 # === 맨바닥부터 구현하기 ===
 
@@ -79,13 +86,11 @@ def merge_k_sorted(lists):
 
     return result
 
-
 # === heapq.merge 쓰기 ===
 
 def merge_k_heapq(lists):
     """파이썬의 heapq.merge로 정렬된 반복 가능 객체 k개를 합친다."""
     return list(heapq.merge(*lists))
-
 
 # === 시연 ===
 
@@ -148,7 +153,9 @@ Merged: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 Correctness verified.
 ```
 
-## 연결 리스트 판
+---
+
+## 5. 연결 리스트 판
 
 정렬된 입력 $k$개가 (면접에서 흔한 문제인) 연결 리스트일 때도 같은 알고리즘을 쓴다. 힙 항목마다 리스트의 지금 노드를 담는다. 최소 노드를 꺼낸 뒤 `node.next`가 있으면 넣는다.
 
@@ -178,7 +185,9 @@ Correctness verified.
         return dummy.next
     ```
 
-## 응용
+---
+
+## 6. 응용
 
 | 응용 | k방향 합치기를 어떻게 쓰는가 |
 |------------|------------------------|
@@ -188,11 +197,7 @@ Correctness verified.
 | 로그 모으기 | 서버 $k$대의 시각이 찍힌 로그를 합친다 |
 | 토너먼트 트리 | 하드웨어의 선택 회로망 |
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 6.5 and Problem 6-2. MIT Press.
-- 파이썬 문서: [heapq.merge](https://docs.python.org/3/library/heapq.html#heapq.merge)
-
+---
 
 ## 연습문제
 
@@ -225,3 +230,12 @@ $k = 5$이고 어휘가 $n = 32{,}000$인 빔 탐색에서 힙으로 뽑기(원�
 
 ??? success "연습문제 4 풀이"
     정렬은 $O(n\log n) = O(32000 \times 15) \approx 48만$번의 연산이 든다. 힙(크기 $k$인 최소 힙)은 $O(n\log k) = O(32000 \times 2.3) \approx 7만 4천$번이다. 힙이 약 $6.5$배 빠르다. 아니면 `torch.topk`가 GPU에 맞추어 다듬은 부분 정렬 알고리즘을 쓴다.
+
+## 정리하며
+
+이 마당은 문제 서술、힙을 쓰는 알고리즘、여러 방식 견주기、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 6.5 and Problem 6-2. MIT Press.
+- 파이썬 문서: [heapq.merge](https://docs.python.org/3/library/heapq.html#heapq.merge)

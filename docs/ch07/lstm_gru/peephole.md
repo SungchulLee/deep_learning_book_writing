@@ -1,11 +1,10 @@
 # 엿보기 연결
-## 들어가며
 
 표준 LSTM의 문은 이전 숨은 상태 $h_{t-1}$과 지금 입력 $x_t$으로 활성값을 계산한다. 그런데 그러면 문이 정작 자기가 다스려야 할 기억인 세포 상태 $c_{t-1}$을 곧바로 볼 수 없다. Gers와 Schmidhuber(2000)가 내놓은 **엿보기 연결**은 문이 세포 상태에 곧바로 닿게 하여 이 한계를 푼다.
 
 ---
 
-## 왜 필요한가
+## 1. 왜 필요한가
 
 표준 LSTM에서 문은 세포 상태를 실제로 보지 않고 그에 대한 결정을 내린다.
 
@@ -19,7 +18,7 @@ $$f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)$$
 
 ---
 
-## 수학적 정식화
+## 2. 수학적 정식화
 
 ### 표준 LSTM (엿보기 없음)
 
@@ -58,7 +57,7 @@ $$h_t = o_t \odot \tanh(c_t)$$
 
 ---
 
-## 매개변수 수에 미치는 영향
+## 3. 매개변수 수에 미치는 영향
 
 | 부품 | 표준 LSTM | 엿보기 LSTM |
 |-----------|---------------|---------------|
@@ -71,7 +70,7 @@ $$h_t = o_t \odot \tanh(c_t)$$
 
 ---
 
-## PyTorch 구현
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -201,7 +200,7 @@ class PeepholeLSTM(nn.Module):
 
 ---
 
-## 언제 엿보기 연결을 쓸까
+## 5. 언제 엿보기 연결을 쓸까
 
 ### 이득을 보는 과제
 
@@ -232,7 +231,7 @@ Greff 등(2017)은 LSTM 변형을 폭넓게 살핀 연구에서 다음을 알아
 
 ---
 
-## 기울기 흐름에 미치는 영향
+## 6. 기울기 흐름에 미치는 영향
 
 엿보기 연결은 세포 상태를 지나는 기울기 경로를 더한다.
 
@@ -241,33 +240,6 @@ $$\frac{\partial f_t}{\partial c_{t-1}} = \sigma'(\cdot) \cdot \text{diag}(w_f)$
 이는 곧바른 되먹임 고리를 만든다. 세포 상태가 망각 문에 영향을 주고, 그것이 다음 세포 상태에 영향을 준다. 타이밍에 민감한 과제에서는 학습이 나아질 수 있지만 최적화가 더 까다로워질 수도 있다.
 
 ---
-
-## 요약
-
-엿보기 연결은 문이 세포 상태를 곧바로 볼 수 있게 하여 표준 LSTM을 넓힌다.
-
-| 문 | 표준 LSTM의 입력 | 엿보기로 더해지는 것 |
-|------|--------------------|--------------------|
-| 망각 $f_t$ | $[h_{t-1}, x_t]$ | $+ w_f \odot c_{t-1}$ |
-| 입력 $i_t$ | $[h_{t-1}, x_t]$ | $+ w_i \odot c_{t-1}$ |
-| 출력 $o_t$ | $[h_{t-1}, x_t]$ | $+ w_o \odot c_t$ |
-
-**핵심 정리:**
-
-- 엿보기가 더하는 매개변수($3n$개)는 LSTM 전체에 견주면 무시할 만하다
-- 정확한 타이밍이나 크기를 아는 문 조절이 필요한 과제에 가장 쓸모가 있다
-- 두루 쓰는 순차열 모형에는 표준 LSTM으로 대체로 충분하다
-- 요즘은 널리 쓰이지 않지만 타이밍이 중요한 응용에서는 해 볼 만하다
-
----
-
-## 참고 문헌
-
-1. Gers, F. A., & Schmidhuber, J. (2000). Recurrent Nets that Time and Count. *IJCNN*.
-
-2. Gers, F. A., Schraudolph, N. N., & Schmidhuber, J. (2003). Learning Precise Timing with LSTM Recurrent Networks. *Journal of Machine Learning Research*, 3, 115-143.
-
-3. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.
 
 ## 연습문제
 
@@ -317,3 +289,30 @@ $$\frac{\partial f_t}{\partial c_{t-1}} = \sigma'(\cdot) \cdot \text{diag}(w_f)$
             h_new = o * torch.tanh(c_new)
             return h_new, c_new
     ```
+
+## 정리하며
+
+엿보기 연결은 문이 세포 상태를 곧바로 볼 수 있게 하여 표준 LSTM을 넓힌다.
+
+| 문 | 표준 LSTM의 입력 | 엿보기로 더해지는 것 |
+|------|--------------------|--------------------|
+| 망각 $f_t$ | $[h_{t-1}, x_t]$ | $+ w_f \odot c_{t-1}$ |
+| 입력 $i_t$ | $[h_{t-1}, x_t]$ | $+ w_i \odot c_{t-1}$ |
+| 출력 $o_t$ | $[h_{t-1}, x_t]$ | $+ w_o \odot c_t$ |
+
+**핵심 정리:**
+
+- 엿보기가 더하는 매개변수($3n$개)는 LSTM 전체에 견주면 무시할 만하다
+- 정확한 타이밍이나 크기를 아는 문 조절이 필요한 과제에 가장 쓸모가 있다
+- 두루 쓰는 순차열 모형에는 표준 LSTM으로 대체로 충분하다
+- 요즘은 널리 쓰이지 않지만 타이밍이 중요한 응용에서는 해 볼 만하다
+
+---
+
+**참고 문헌**
+
+1. Gers, F. A., & Schmidhuber, J. (2000). Recurrent Nets that Time and Count. *IJCNN*.
+
+2. Gers, F. A., Schraudolph, N. N., & Schmidhuber, J. (2003). Learning Precise Timing with LSTM Recurrent Networks. *Journal of Machine Learning Research*, 3, 115-143.
+
+3. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.

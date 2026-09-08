@@ -2,7 +2,9 @@
 
 표준 [레드-블랙 트리](properties.md)는 노드의 양쪽 어디에나 붉은 이음을 허용하므로 [삽입](insert_fixup.md)과 [삭제](delete_fixup.md)에서 다룰 경우가 많아진다. 세지윅의 **왼쪽으로 기운 레드-블랙(LLRB) 트리**는 붉은 이음이 왼쪽으로 기운다는 불변식 하나를 더해 경우의 수를 절반쯤 줄인다. 그러면서도 최악의 경우 $O(\log n)$이라는 보장은 그대로이고 코드는 훨씬 간단해진다.
 
-## 왼쪽으로 기운다는 불변식
+---
+
+## 1. 왼쪽으로 기운다는 불변식
 
 LLRB 트리는 규칙 하나가 더 있는 레드-블랙 트리이다.
 
@@ -10,7 +12,9 @@ LLRB 트리는 규칙 하나가 더 있는 레드-블랙 트리이다.
 
 같은 말로, 어떤 노드에 붉은 자식이 꼭 하나 있다면 그것은 왼쪽 자식이어야 한다. 그러면 표준 레드-블랙 트리의 연산을 복잡하게 만드는 대칭적인 경우가 사라진다.
 
-## 2-3 트리와의 대응
+---
+
+## 2. 2-3 트리와의 대응
 
 LLRB 트리는 **2-3 트리**를 이진으로 나타낸 것이다. 2-3 트리의 노드 종류마다 정해진 LLRB 모양에 대응한다.
 
@@ -24,7 +28,9 @@ LLRB 트리는 **2-3 트리**를 이진으로 나타낸 것이다. 2-3 트리의
 !!! note "왼쪽으로 기울면 코드가 간단해지는 까닭"
     표준 레드-블랙 트리는 2-3-4 트리를 나타내며, 4-노드는 붉은 자식을 둘 가질 수 있다. LLRB 트리는 2-3 트리만 나타내므로 4-노드가 아예 없다. 여기에 왼쪽으로 기운다는 제약이 더해져 연산마다 다룰 경우가 줄어든다.
 
-## 핵심 연산
+---
+
+## 3. 핵심 연산
 
 ### 회전과 색 뒤집기
 
@@ -53,12 +59,10 @@ LLRB 삽입은 간단한 재귀 방식을 따른다.
 
 from __future__ import annotations
 
-
 # === 상수 ===
 
 RED = True
 BLACK = False
-
 
 # === 노드 정의 ===
 
@@ -71,13 +75,11 @@ class Node:
         self.right: Node | None = None
         self.color = color
 
-
 # === 도우미 함수 ===
 
 def is_red(node: Node | None) -> bool:
     """노드가 있고 빨가면 True를 돌려준다."""
     return node is not None and node.color == RED
-
 
 def rotate_left(h: Node) -> Node:
     """오른쪽으로 기운 빨간 이음을 왼쪽으로 기울게 회전한다."""
@@ -88,7 +90,6 @@ def rotate_left(h: Node) -> Node:
     h.color = RED
     return x
 
-
 def rotate_right(h: Node) -> Node:
     """왼쪽으로 기운 빨간 이음을 오른쪽으로 기울게 회전한다(잠깐 동안)."""
     x = h.left
@@ -98,13 +99,11 @@ def rotate_right(h: Node) -> Node:
     h.color = RED
     return x
 
-
 def flip_colors(h: Node) -> None:
     """색을 뒤집어 임시 4-노드를 쪼갠다."""
     h.color = RED
     h.left.color = BLACK
     h.right.color = BLACK
-
 
 # === 삽입 ===
 
@@ -129,7 +128,6 @@ def insert(node: Node | None, key: int) -> Node:
 
     return node
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -148,7 +146,9 @@ if __name__ == "__main__":
     # [3, 7, 8, 10, 11, 18, 22, 26]
 ```
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 | 연산 | 시간 |
 |-----------|------|
@@ -158,7 +158,9 @@ if __name__ == "__main__":
 
 LLRB 트리의 높이는 많아야 $2 \log_2(n + 1)$으로 표준 레드-블랙 트리와 같은 한계이다. 실제 상수 배도 비슷하지만 코드는 훨씬 짧다.
 
-## LLRB와 표준 레드-블랙 트리
+---
+
+## 5. LLRB와 표준 레드-블랙 트리
 
 | 항목 | 표준 레드-블랙 | LLRB |
 |--------|-------------|------|
@@ -168,11 +170,7 @@ LLRB 트리의 높이는 많아야 $2 \log_2(n + 1)$으로 표준 레드-블랙 
 | 삭제의 복잡함 | 4개와 대칭 4개 | 더 적은 경우 |
 | 구현의 크기 | 약 100줄 | 약 40줄 |
 
-## 참고 문헌
-
-- Sedgewick, R. (2008). Left-leaning red-black trees. *Dagstuhl Workshop on Data Structures*.
-- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.), Section 3.3. Addison-Wesley.
-
+---
 
 ## 연습문제
 
@@ -205,3 +203,12 @@ LLRB 트리의 높이는 많아야 $2 \log_2(n + 1)$으로 표준 레드-블랙 
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 왼쪽으로 기운다는 불변식、2-3 트리와의 대응、핵심 연산、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Sedgewick, R. (2008). Left-leaning red-black trees. *Dagstuhl Workshop on Data Structures*.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.), Section 3.3. Addison-Wesley.

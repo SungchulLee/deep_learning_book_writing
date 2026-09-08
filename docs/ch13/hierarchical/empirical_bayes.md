@@ -1,5 +1,4 @@
 # 경험 베이즈
-## 개요
 
 경험적 베이즈 방법은 초매개변수를 데이터 자체에서 어림하여, 온전한 베이즈와 빈도주의 사이의 실전적인 중간 지대를 준다. 이 모듈은 그 방법론을 세우고 고전적인 야구 타율 보기를 보여 주며, 경험적 베이즈를 제임스-스타인 어림과 오그라들기에 잇는다.
 
@@ -296,21 +295,7 @@ $$
 
 ---
 
-## 8. 핵심 요점
-
-1. **경험적 베이즈**는 앞확률의 초매개변수를 데이터에서 어림하여, 주관적으로 앞확률을 정하지 않고도 저절로 오그라들게 한다.
-
-2. **적률법**과 **최대 주변 가능도**가 초매개변수를 어림하는 흔한 길이다.
-
-3. **평균 쪽으로 오그라뜨리기**는 최대 가능도에 견주어 평균제곱오차를 줄이며, 극단적인 관찰과 작은 표본에서 특히 그렇다.
-
-4. **제임스-스타인 어림**은 경험적 베이즈로 이해할 수 있어 오그라들기에 베이즈식 뒷받침을 준다.
-
-5. **실전의 맞바꿈**: 경험적 베이즈는 셈이 단순하지만 어림한 초매개변수를 붙박인 값처럼 다루어 불확실성을 낮잡는다.
-
----
-
-## 9. 연습문제
+## 연습문제
 
 ### 연습문제 1: 표본 크기를 달리하기
 선수마다 타수가 크게 다른(이를테면 10과 500) 타격 데이터를 흉내 내어 만들어라. 오그라들기가 선수마다 어떻게 다르게 작용하는지 보여라.
@@ -328,15 +313,6 @@ $$
 여러 번 검정하는 상황(이를테면 유전자 발현)에 경험적 베이즈를 적용하라. 벤저미니-호흐베르크 FDR 다스리기와 견주어라.
 
 ---
-
-## 참고 문헌
-
-- Efron, B. (2010). *Large-Scale Inference: Empirical Bayes Methods for Estimation, Testing, and Prediction*
-- Efron, B., & Morris, C. (1975). Data analysis using Stein's estimator and its generalizations. *JASA*, 70(350), 311-319.
-- Casella, G. (1985). An introduction to empirical Bayes data analysis. *The American Statistician*, 39(2), 83-87.
-- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), 5장
-
-## 연습문제
 
 **연습문제 1.**
 이 쪽이 다루는 핵심 개념과 그것이 베이즈 통계에서 하는 몫을 설명하라.
@@ -373,3 +349,24 @@ $$
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
     # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
     ```
+
+## 정리하며
+
+1. **경험적 베이즈**는 앞확률의 초매개변수를 데이터에서 어림하여, 주관적으로 앞확률을 정하지 않고도 저절로 오그라들게 한다.
+
+2. **적률법**과 **최대 주변 가능도**가 초매개변수를 어림하는 흔한 길이다.
+
+3. **평균 쪽으로 오그라뜨리기**는 최대 가능도에 견주어 평균제곱오차를 줄이며, 극단적인 관찰과 작은 표본에서 특히 그렇다.
+
+4. **제임스-스타인 어림**은 경험적 베이즈로 이해할 수 있어 오그라들기에 베이즈식 뒷받침을 준다.
+
+5. **실전의 맞바꿈**: 경험적 베이즈는 셈이 단순하지만 어림한 초매개변수를 붙박인 값처럼 다루어 불확실성을 낮잡는다.
+
+---
+
+**참고 문헌**
+
+- Efron, B. (2010). *Large-Scale Inference: Empirical Bayes Methods for Estimation, Testing, and Prediction*
+- Efron, B., & Morris, C. (1975). Data analysis using Stein's estimator and its generalizations. *JASA*, 70(350), 311-319.
+- Casella, G. (1985). An introduction to empirical Bayes data analysis. *The American Statistician*, 39(2), 83-87.
+- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), 5장

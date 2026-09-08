@@ -2,7 +2,9 @@
 
 점 $P$에서 $Q$을 거쳐 $R$으로 걸을 때 왼쪽으로 도는가, 오른쪽으로 도는가, 곧게 가는가? 이 단순한 물음, 곧 *방향 살피기*는 셈 기하에서 가장 자주 불리는 곁 절차이다. 볼록 껍질 세우기, 도막 만남, 다각형 삼각 나누기, 다각형 안 점 살피기가 모두 여기에 기댄다. 이 살피기는 2차원 어긋 곱 하나를 셈하고 그 부호를 보는 것으로 줄어든다.
 
-## 정의
+---
+
+## 1. 정의
 
 차례가 정해진 세 점 $P = (p_x, p_y)$, $Q = (q_x, q_y)$, $R = (r_x, r_y)$이 주어질 때 세 점 $(P, Q, R)$의 **방향**은 벡터 $\overrightarrow{PQ}$과 $\overrightarrow{PR}$의 어긋 곱 부호로 정해진다.
 
@@ -17,7 +19,9 @@ $$
 | $= 0$ | 한 줄에 놓임 | $P$, $Q$, $R$이 한 선 위에 있다 |
 | $< 0$ | 시계 | $Q$에서 오른쪽 돌기 |
 
-## 행렬식 풀이
+---
+
+## 2. 행렬식 풀이
 
 방향 판정은 $3 \times 3$ 행렬식으로 적을 수 있다.
 
@@ -36,7 +40,9 @@ $$
 
 이는 삼각형 $\triangle PQR$의 부호 있는 넓이의 두 배이다. 꼭짓점이 반시계 차례이면 삼각형의 부호 있는 넓이는 양수이다.
 
-## 어긋 곱과의 이음
+---
+
+## 3. 어긋 곱과의 이음
 
 방향 값은 바로 2차원 어긋 곱 $\overrightarrow{PQ} \times \overrightarrow{PR}$이다. 이는 방향 살피기를 넓이 셈하기와 잇는다. 곧 $\triangle PQR$의 부호 있는 넓이는 다음과 같다.
 
@@ -44,7 +50,9 @@ $$
 A_{\triangle} = \frac{1}{2}\,\text{orient}(P, Q, R)
 $$
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 세 점 $P = (0, 0)$, $Q = (4, 0)$, $R = (2, 3)$을 보자.
 
@@ -70,14 +78,18 @@ $$
 
 0은 세 점이 같은 선 위에 있음을 뜻한다.
 
-## 튼튼함에 대한 살핌
+---
+
+## 5. 튼튼함에 대한 살핌
 
 !!! warning "뜬 소수점의 함정"
     뜬 소수점 셈에서는 점이 거의 한 줄에 놓일 때 방향 살피기가 틀린 결과를 낼 수 있다. 0에 가까운 값은 반올림 때문에 부호가 틀릴 수 있다. 튼튼한 짜기는 정확한 셈(예컨대 셰척의 판정처럼 맞추어 가는 정밀도)이나 엡실론 문턱을 둔 너그러움 방식을 쓴다.
 
 정수 자리값에서는 중간 곱이 넘치지 않는 한 이 살피기가 정확하다. 32비트 정수 자리값이면 어긋 곱은 64비트 정수에 들어간다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -87,7 +99,6 @@ $$
 오른쪽으로 도는지(시계), 한 줄에 놓이는지 가린다.
 이는 셈 기하의 바탕 판정이다.
 """
-
 
 # === 방향 판정 ===
 
@@ -99,7 +110,6 @@ def orient(p, q, r):
         한 줄에 놓이면 0이다.
     """
     return (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
-
 
 def orientation(p, q, r):
     """세 점 (p, q, r)의 방향을 가른다.
@@ -114,14 +124,12 @@ def orientation(p, q, r):
         return -1
     return 0
 
-
 # === 도우미: 사람이 읽을 수 있는 이름표 ===
 
 def orient_label(p, q, r):
     """사람이 읽을 수 있는 방향 이름표를 돌려준다."""
     labels = {1: "CCW (left turn)", -1: "CW (right turn)", 0: "Collinear"}
     return labels[orientation(p, q, r)]
-
 
 # === 메인 ===
 
@@ -152,7 +160,9 @@ P=(0, 0), Q=(2, 2), R=(4, 4)
   orient = 0, Collinear
 ```
 
-## 응용
+---
+
+## 7. 응용
 
 | 알고리즘 | 방향 살피기의 몫 |
 |---|---|
@@ -162,10 +172,7 @@ P=(0, 0), Q=(2, 2), R=(4, 4)
 | 다각형 삼각 나누기 | 귀끝을 가려낸다 |
 | 들로네 삼각 나누기 | 동그라미 안 살피기(넓힌 방향) |
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press, Chapter 33.
-- Shewchuk, J. R. "Adaptive Precision Floating-Point Arithmetic and Fast Robust Geometric Predicates." *Discrete & Computational Geometry*, 1997.
+---
 
 ## 연습문제
 
@@ -198,3 +205,12 @@ P=(0, 0), Q=(2, 2), R=(4, 4)
 
 ??? success "연습문제 4 풀이"
     막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 방향 살피기은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$
+
+## 정리하며
+
+이 마당은 정의、행렬식 풀이、어긋 곱과의 이음、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press, Chapter 33.
+- Shewchuk, J. R. "Adaptive Precision Floating-Point Arithmetic and Fast Robust Geometric Predicates." *Discrete & Computational Geometry*, 1997.

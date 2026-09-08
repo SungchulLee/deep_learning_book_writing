@@ -2,7 +2,9 @@
 
 표준 [마스터 정리](master.md)는 $T(n) = aT(n/b) + f(n)$ 형태의 점화식을 세 경우로 풀지만 틈을 남긴다. $f(n)$이 분수령 함수 $n^{\log_b a}$에 "가까워서" 로그 인자만큼만 차이가 날 때는 표준 정리를 적용할 수 없을 수 있다. 확장 마스터 정리는 $\log n$의 거듭제곱을 포함하는 통행료 함수를 다루는 경우를 추가하여 이 틈을 메운다. 그래서 기본판의 틈으로 빠지는 실용적인 점화식들에 대해 즐겨 쓰는 도구가 된다.
 
-## 표준 마스터 정리 복습
+---
+
+## 1. 표준 마스터 정리 복습
 
 참고를 위해, 표준 마스터 정리는 다음을 다룬다.
 
@@ -18,7 +20,9 @@ $a \geq 1$, $b > 1$이며 $f(n)$을 임계 함수 $n^{\log_b a}$와 비교한다
 
 $k \neq 0$에 대해 $f(n) = \Theta(n^{\log_b a} \log^k n)$일 때 틈이 생긴다. 표준 경우 2는 $k = 0$만 다루고, 경우 1과 3은 다항식적 차이를 요구한다. 확장 정리가 이를 해결한다.
 
-## 확장된 경우 2
+---
+
+## 2. 확장된 경우 2
 
 핵심 확장은 표준 경우 2를 통행료 함수의 로그 인자를 수용하는 더 일반적인 판본으로 대체하는 것이다.
 
@@ -35,7 +39,9 @@ $k = 0$이면 이는 표준 경우 2인 $T(n) = \Theta(n^{\log_b a} \log n)$으�
 
 재귀 트리의 각 층에서 전체 일은 (층에 맞게 조정된) $\Theta(n^{\log_b a} \log^k n)$이다. 층이 $\Theta(\log n)$개 있고 로그 인자가 층에 걸쳐 누적되어 결과에 $\log n$의 거듭제곱이 하나 더해진다.
 
-## 완전한 확장 마스터 정리
+---
+
+## 3. 완전한 확장 마스터 정리
 
 완전한 확장판은 로그보다 작은 틈을 포함해 $f(n)$과 $n^{\log_b a}$ 사이의 모든 관계를 덮는다.
 
@@ -72,7 +78,9 @@ $k > 0$에 대해 $f(n) = \Theta(n^{\log_b a} / \log^k n)$(동등하게 $f(n) = 
 
 이 하위 경우들은 실무에서 거의 필요하지 않지만 완결성을 위해 중요하다.
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 ### 예제 1: 로그 통행료
 
@@ -142,7 +150,9 @@ $$
 
 확장 정리의 경우 1은 표준 정리의 경우 1과 같다.
 
-## 어느 정리를 쓸 것인가
+---
+
+## 5. 어느 정리를 쓸 것인가
 
 | $n^{\log_b a}$에 대한 통행료 함수 $f(n)$ | 표준 마스터 정리 | 확장 마스터 정리 |
 |--------------------------------------------------|----------------|-----------------|
@@ -152,7 +162,9 @@ $$
 | 정칙 조건과 함께 $f(n) = \Omega(n^{\log_b a + \epsilon})$ | 경우 3 적용 | 경우 3(동일) |
 | $f(n)$이 로그보다 작은 틈에 있음 | 적용 불가 | 적용될 수 있음(음의 $k$ 경우 참고) |
 
-## 확장된 경우 2의 증명 개요
+---
+
+## 6. 확장된 경우 2의 증명 개요
 
 증명은 재귀 트리 분석을 따른다. 재귀 트리의 $j$층($j = 0, 1, \ldots, \log_b n - 1$)에는 $a^j$개의 노드가 있고 각각 크기 $n/b^j$인 부분문제를 처리한다. $j$층의 일은 다음과 같다.
 
@@ -178,19 +190,16 @@ $$
 T(n) = \Theta(n^{\log_b a} \log^{k+1} n)
 $$
 
-## 다른 주제와의 연결
+---
+
+## 7. 다른 주제와의 연결
 
 - **[마스터 정리](master.md)**: 확장 정리가 일반화하는 표준판
 - **[Akra-Bazzi 방법](akra_bazzi.md)**: 적분 계산을 사용하는 더욱 일반적인 접근
 - **[재귀 트리 방법](recursion_tree.md)**: 증명의 바탕이 되는 기하학적 직관을 제공한다
 - **[분할 정복으로부터의 점화식](divide_conquer.md)**: 이 정리들이 푸는 점화식을 유도하는 방법
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 4. MIT Press.
-- Leighton, T. (1996). Notes on better master theorems for divide-and-conquer recurrences. MIT CSAIL.
-- Roura, S. (2001). An improved master theorem for divide-and-conquer recurrences. *Automata, Languages and Programming*, LNCS 2076, 449-459.
-
+---
 
 ## 연습문제
 
@@ -223,3 +232,13 @@ $$
 
 ??? success "연습문제 4 풀이"
     이 절의 기법으로 닫힌 형태를 추측한다. 모든 $k < n$에 대해 $T(k) \leq ck^p$(또는 적절한 형태)를 가정한다. 이를 점화식에 대입하여 $T(n) \leq cn^p$임을 검증한다. 기저 사례는 따로 처리한다. $\square$
+
+## 정리하며
+
+이 마당은 표준 마스터 정리 복습、확장된 경우 2、완전한 확장 마스터 정리、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 4. MIT Press.
+- Leighton, T. (1996). Notes on better master theorems for divide-and-conquer recurrences. MIT CSAIL.
+- Roura, S. (2001). An improved master theorem for divide-and-conquer recurrences. *Automata, Languages and Programming*, LNCS 2076, 449-459.

@@ -1,5 +1,4 @@
 # 경사 하강법 해
-## 개요
 
 정규 방정식이 정확한 닫힌 형태의 해를 주는 반면, **경사 하강법**은 확장성 있는
 반복적 대안을 제공하며 신경망 학습의 토대가 된다. 이 페이지에서는 MSE 손실의 경사를
@@ -480,48 +479,6 @@ model2.eval()
 
 ---
 
-## 요약
-
-### 정석적인 학습 루프
-
-```
-┌──────────────────────────────────────────────────────┐
-│  1. 모델 정의          model = nn.Linear(p, 1)       │
-│  2. 손실 정의          criterion = nn.MSELoss()      │
-│  3. 최적화기 정의      optim.SGD(model.parameters()) │
-│  4. 학습 루프:                                       │
-│       for batch in loader:                           │
-│           y_pred = model(x)                          │
-│           loss = criterion(y_pred, y)                │
-│           optimizer.zero_grad()                      │
-│           loss.backward()                            │
-│           optimizer.step()                           │
-│  5. 평가               model.eval(); torch.no_grad() │
-│  6. 저장               torch.save(state_dict)        │
-└──────────────────────────────────────────────────────┘
-```
-
-### 핵심 정리
-
-1. 가우스 잡음 아래에서 (상수를 제외하면) **MSE = NLL**이므로, MSE에 대한 경사
-   하강법은 통계적으로 정당화된다.
-2. 대부분의 응용에서 **미니배치 GD**가 실용적인 선택이다.
-3. **학습률**이 가장 중요한 초매개변수이며, $2/\lambda_{\max}$으로 상한을 잡는다.
-4. **Autograd**는 경사를 손으로 유도할 필요를 없앤다. 수학은 이해를 위해 여전히
-   가치 있지만 계산은 PyTorch가 맡는다.
-5. **네 줄짜리 패턴**(순전파 → zero_grad → backward → step)은 모든 PyTorch
-   구조에 공통이다.
-
----
-
-## 참고 문헌
-
-1. Bottou, L. (2010). "Large-Scale Machine Learning with Stochastic Gradient
-   Descent."
-2. Ruder, S. (2016). "An Overview of Gradient Descent Optimization Algorithms."
-3. Goodfellow, I., Bengio, Y. & Courville, A. (2016). *Deep Learning*, Ch. 8.
-4. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Ch. 3.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -580,3 +537,45 @@ PyTorch 추상화의 네 단계로 경사 하강법을 구현하라. (1) 경사 
         optimizer.step()
     ```
     네 단계 모두 같은 경사를 계산하므로 (부동소수점 차이를 제외하면) 같은 해로 수렴한다.
+
+## 정리하며
+
+### 정석적인 학습 루프
+
+```
+┌──────────────────────────────────────────────────────┐
+│  1. 모델 정의          model = nn.Linear(p, 1)       │
+│  2. 손실 정의          criterion = nn.MSELoss()      │
+│  3. 최적화기 정의      optim.SGD(model.parameters()) │
+│  4. 학습 루프:                                       │
+│       for batch in loader:                           │
+│           y_pred = model(x)                          │
+│           loss = criterion(y_pred, y)                │
+│           optimizer.zero_grad()                      │
+│           loss.backward()                            │
+│           optimizer.step()                           │
+│  5. 평가               model.eval(); torch.no_grad() │
+│  6. 저장               torch.save(state_dict)        │
+└──────────────────────────────────────────────────────┘
+```
+
+### 핵심 정리
+
+1. 가우스 잡음 아래에서 (상수를 제외하면) **MSE = NLL**이므로, MSE에 대한 경사
+   하강법은 통계적으로 정당화된다.
+2. 대부분의 응용에서 **미니배치 GD**가 실용적인 선택이다.
+3. **학습률**이 가장 중요한 초매개변수이며, $2/\lambda_{\max}$으로 상한을 잡는다.
+4. **Autograd**는 경사를 손으로 유도할 필요를 없앤다. 수학은 이해를 위해 여전히
+   가치 있지만 계산은 PyTorch가 맡는다.
+5. **네 줄짜리 패턴**(순전파 → zero_grad → backward → step)은 모든 PyTorch
+   구조에 공통이다.
+
+---
+
+**참고 문헌**
+
+1. Bottou, L. (2010). "Large-Scale Machine Learning with Stochastic Gradient
+   Descent."
+2. Ruder, S. (2016). "An Overview of Gradient Descent Optimization Algorithms."
+3. Goodfellow, I., Bengio, Y. & Courville, A. (2016). *Deep Learning*, Ch. 8.
+4. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Ch. 3.

@@ -2,7 +2,9 @@
 
 이진 트리에는 구조에 따라 몇 가지 갈래가 있고, 그 구별은 알고리즘 설계에서 중요하다. 완벽 이진 트리는 로그 높이를 보장하고, 완전 이진 트리는 배열에 효율적으로 담을 수 있으며, 포화 이진 트리는 내부 노드와 잎 사이의 관계를 묶는다. 알고리즘이 어떤 갈래의 트리를 요구하는지(또는 만들어 내는지) 알아보면 시간과 공간 복잡도를 가늠하기 쉽다.
 
-## 포화 이진 트리
+---
+
+## 1. 포화 이진 트리
 
 **포화 이진 트리**(**진 이진 트리**라고도 한다)는 노드마다 자식이 0개이거나 2개인 이진 트리이다. 자식이 하나뿐인 노드는 없다.
 
@@ -28,7 +30,9 @@ $$
 
 여기서 $I$은 내부 노드의 수, $L$은 잎의 수이다.
 
-## 완전 이진 트리
+---
+
+## 2. 완전 이진 트리
 
 **완전 이진 트리**는 마지막 층만 왼쪽부터 차 있고 나머지 층은 모두 꽉 차 있는 이진 트리이다.
 
@@ -49,7 +53,9 @@ $$
 
 완전 이진 트리는 **이진 힙**이 쓰는 모양이다. 완전하다는 성질 덕분에 힙의 높이가 $\Theta(\log n)$으로 유지되어 삽입과 추출이 효율적이다.
 
-## 완벽 이진 트리
+---
+
+## 3. 완벽 이진 트리
 
 **완벽 이진 트리**는 모든 내부 노드의 자식이 꼭 둘이고 모든 잎이 같은 깊이에 있는 이진 트리이다.
 
@@ -82,7 +88,9 @@ $$
 
 곧 완벽 이진 트리에서 전체 노드의 약 절반이 잎이라는 뜻이다.
 
-## 비교
+---
+
+## 4. 비교
 
 | 성질 | 포화 | 완전 | 완벽 |
 |---|---|---|---|
@@ -95,7 +103,9 @@ $$
 !!! warning "교과서마다 용어가 다르다"
     어떤 저자는 우리가 "완벽"이라 부르는 것을 "완전"이라 부른다. 또 어떤 이는 "포화"를 "완전"의 뜻으로 쓴다. 이 책은 CLRS와 대부분의 알고리즘 교과서를 따른다. **포화** = 노드마다 자식이 0개나 2개, **완전** = 마지막 층만 빼고 모두 꽉 참(마지막 층은 왼쪽부터), **완벽** = 모든 층이 꽉 참.
 
-## 갈래 사이의 관계
+---
+
+## 5. 갈래 사이의 관계
 
 세 갈래는 위계를 이룬다.
 
@@ -111,7 +121,6 @@ $$
 갈래마다 예를 든다.
 """
 
-
 # === 노드 정의 ===
 
 class Node:
@@ -121,7 +130,6 @@ class Node:
         self.key = key
         self.left = left
         self.right = right
-
 
 # === 갈래를 가리는 함수 ===
 
@@ -138,13 +146,11 @@ def is_full(node):
         return is_full(node.left) and is_full(node.right)
     return False
 
-
 def _count_nodes(node):
     """전체 노드 수를 돌려준다."""
     if node is None:
         return 0
     return 1 + _count_nodes(node.left) + _count_nodes(node.right)
-
 
 def is_complete(node, index=0, node_count=None):
     """트리가 완전 이진 트리인지 확인한다.
@@ -161,13 +167,11 @@ def is_complete(node, index=0, node_count=None):
     return (is_complete(node.left, 2 * index + 1, node_count) and
             is_complete(node.right, 2 * index + 2, node_count))
 
-
 def _height(node):
     """트리의 높이를 돌려준다."""
     if node is None:
         return -1
     return 1 + max(_height(node.left), _height(node.right))
-
 
 def is_perfect(node, depth=0, target_depth=None):
     """트리가 완벽 이진 트리인지 확인한다.
@@ -185,7 +189,6 @@ def is_perfect(node, depth=0, target_depth=None):
         return False
     return (is_perfect(node.left, depth + 1, target_depth) and
             is_perfect(node.right, depth + 1, target_depth))
-
 
 # === 메인 ===
 
@@ -237,10 +240,7 @@ Complete-only tree:
   Perfect:  False
 ```
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 12장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -273,3 +273,11 @@ Complete-only tree:
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 포화 이진 트리、완전 이진 트리、완벽 이진 트리、비교을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 12장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

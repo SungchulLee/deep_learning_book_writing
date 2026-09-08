@@ -2,7 +2,9 @@
 
 데이크스트라 알고리즘은 잠정 거리가 가장 작은 꼭짓점을 욕심껏 꺼내 그 나가는 변을 늦추며 최단 경로를 셈한다. 이 욕심 전략이 맞다는 것은 뻔하지 않다. 어림값이 가장 작은 꼭짓점이 왜 실제로 올바른 최단 경로 거리를 갖는가? 이 쪽은 변 무게가 음이 아니라는 점과 늦추기의 위 한계 성질에 기댄 엄밀한 증명을 보인다.
 
-## 알고리즘 되짚기
+---
+
+## 1. 알고리즘 되짚기
 
 데이크스트라 알고리즘은 최단 경로 거리가 확정된 꼭짓점의 묶음 $S$을 지킨다. 걸음마다 $d[u]$이 가장 작은 꼭짓점 $u \in V \setminus S$을 꺼내 $S$에 넣고 $u$에서 나가는 변을 모두 늦춘다.
 
@@ -18,12 +20,16 @@ DIJKSTRA(G, w, s):
             RELAX(u, v, w)
 ```
 
-## 맞음 정리
+---
+
+## 2. 맞음 정리
 
 !!! note "정리: 데이크스트라의 맞음"
     변의 무게가 모두 음이 아니면(모든 $(u, v) \in E$에 대해 $w(u, v) \ge 0$이면), 꼭짓점 $u$을 우선순위 줄에서 꺼낼 때마다 $d[u] = \delta(s, u)$이다.
 
-## 어긋냄으로 증명
+---
+
+## 3. 어긋냄으로 증명
 
 **증명.** 어긋냄을 위해 $d[u] \ne \delta(s, u)$인, $S$에 들어간 **첫 꼭짓점**을 $u$이라 하자.
 
@@ -65,14 +71,18 @@ $$
 
 그러면 $d[u] = \delta(s, u)$이 되어 우리 가정과 어긋난다. $\square$
 
-## 음이 아닌 무게가 왜 꼭 필요한가
+---
+
+## 4. 음이 아닌 무게가 왜 꼭 필요한가
 
 증명은 **걸음 5**에서 무너진다. 변이 음의 무게를 가질 수 있으면 부분 길 $y \leadsto u$의 무게 합이 음일 수 있어 $\delta(s, u) < \delta(s, y)$이 될 수 있다. 그러면 $y$보다 $u$을 먼저 꺼낸다고 $d[u] = \delta(s, u)$이 보장되지 않는다.
 
 ??? example "음의 무게를 쓴 어긋냄 보기"
     꼭짓점 $\{s, a, b\}$과 변 $(s, a, 3)$, $(s, b, 5)$, $(b, a, -4)$을 생각하자. 데이크스트라는 $d[a] = 3$으로 $a$을 먼저 꺼내지만, 참된 최단 경로 $s \to b \to a$의 무게는 $5 + (-4) = 1 < 3$이다. 이 알고리즘은 $a$을 너무 일찍 확정해 틀린 답을 낸다.
 
-## 복잡도 분석
+---
+
+## 5. 복잡도 분석
 
 시간 복잡도는 우선순위 줄을 어떻게 짜느냐에 달렸다.
 
@@ -84,7 +94,9 @@ $$
 
 성긴 그래프($E = O(V)$)에서는 이진 힙이 $O(V \log V)$을 준다. 빽빽한 그래프($E = O(V^2)$)에서는 단순 배열이 $O(V^2)$을 주며 이것이 가장 좋다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -96,7 +108,6 @@ $$
 
 import heapq
 from math import inf
-
 
 # === 데이크스트라 알고리즘 ===================================================
 
@@ -135,7 +146,6 @@ def dijkstra(graph: dict, source) -> tuple[dict, dict]:
 
     return dist, pred
 
-
 # === 경로 되짚기 =============================================================
 
 def get_path(pred: dict, source, target) -> list:
@@ -147,7 +157,6 @@ def get_path(pred: dict, source, target) -> list:
         v = pred[v]
     path.reverse()
     return path if path and path[0] == source else []
-
 
 # === 보임 ====================================================================
 
@@ -200,11 +209,7 @@ Step 4: extract vertex 3 with d[3] = 4
 Final: {0: 0, 2: 1, 1: 3, 3: 4}
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
-  Algorithms* (4th ed.), Chapter 24.3: Dijkstra's Algorithm.
-- Dijkstra, E. W. (1959). A note on two problems in connexion with graphs. *Numerische Mathematik*, 1, 269-271.
+---
 
 ## 연습문제
 
@@ -239,3 +244,13 @@ Final: {0: 0, 2: 1, 1: 3, 3: 4}
 
 ??? success "연습문제 4 풀이"
     $u_1, u_2, \ldots, u_n$을 꼭짓점을 꺼낸 차례라 하자. $\delta(s, u_i) \leq \delta(s, u_{i+1})$임을 보인다. $u_{i+1}$을 꺼낼 때 맞음 증명에 따라 $d[u_{i+1}] = \delta(s, u_{i+1})$이다. $u_i$을 꺼낼 때 $u_{i+1}$은 확정되지 않았고 ($u_i$이 $d$ 값이 가장 작았으므로) $d[u_{i+1}] \geq d[u_i]$이었다. $u_i$을 꺼내고 변을 늦춘 뒤 $d[u_{i+1}}]$은 줄기만 한다. 그런데 $d[u_i] = \delta(s, u_i)$이고, 음이 아닌 무게의 늦추기로는 꺼낼 때 $d[u_{i+1}] < d[u_i]$이 될 수 없다($d[u_{i+1}]$이 이미 $\geq d[u_i]$이었고 $u_i$을 거친 늦추기는 음이 아닌 무게를 더하기 때문이다). 그러므로 $\delta(s, u_{i+1}) \geq \delta(s, u_i)$이다. $\square$
+
+## 정리하며
+
+이 마당은 알고리즘 되짚기、맞음 정리、어긋냄으로 증명、음이 아닌 무게가 왜 꼭 필요한가을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
+  Algorithms* (4th ed.), Chapter 24.3: Dijkstra's Algorithm.
+- Dijkstra, E. W. (1959). A note on two problems in connexion with graphs. *Numerische Mathematik*, 1, 269-271.

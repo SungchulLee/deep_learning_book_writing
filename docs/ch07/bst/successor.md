@@ -2,7 +2,9 @@
 
 이진 탐색 트리의 응용에서는 특정 열쇠뿐 아니라 정렬된 순서에서 **다음**이나 **이전** 열쇠를 찾아야 할 때가 많다. 데이터베이스의 범위 질의, 반복자 구현, 순서 통계 연산 모두 어떤 노드의 중위 후속자와 선행자를 효율적으로 찾는 데 기댄다. 이진 탐색 트리의 중위 순회가 열쇠를 정렬된 순서로 내놓으므로, 후속자와 선행자는 전체를 훑지 않고도 트리의 구조에서 곧바로 나온다.
 
-## 중위 후속자
+---
+
+## 1. 중위 후속자
 
 노드 $x$의 **중위 후속자**는 $x.key$보다 큰 열쇠 가운데 가장 작은 열쇠를 가진 노드이다. 알고리즘은 $x$에 오른쪽 부분 트리가 있는지에 따라 두 경우로 나뉜다.
 
@@ -36,7 +38,9 @@ $$
     - **15의 후속자:** 노드 15에는 오른쪽 자식(20)이 있다. 15의 오른쪽 부분 트리에서 가장 왼쪽 노드는 **17**이다.
     - **25의 후속자:** 노드 25에는 오른쪽 자식이 없고, 왼쪽 부분 트리가 25를 품는 조상도 (지금까지 훑은 범위에는) 없다. 후속자는 **없음**이다. 25가 최댓값이다.
 
-## 중위 선행자
+---
+
+## 2. 중위 선행자
 
 노드 $x$의 **중위 선행자**는 $x.key$보다 작은 열쇠 가운데 가장 큰 열쇠를 가진 노드이다. 후속자의 논리를 그대로 뒤집으면 된다.
 
@@ -52,7 +56,9 @@ $$
 \end{cases}
 $$
 
-## 구현
+---
+
+## 3. 구현
 
 구현을 두 가지 싣는다. 하나는 (교과서 알고리즘과 같이) 부모 포인터를 쓰고, 다른 하나는 부모 포인터 없이 위에서 아래로 찾는다.
 
@@ -60,7 +66,6 @@ $$
 
 ```python
 """부모 포인터를 쓰는 이진 탐색 트리의 후속자와 선행자."""
-
 
 # === 노드 정의 ===
 
@@ -73,7 +78,6 @@ class Node:
         self.right: Node | None = None
         self.parent: Node | None = None
 
-
 # === 후속자와 선행자 ===
 
 def tree_minimum(x: Node) -> Node:
@@ -82,13 +86,11 @@ def tree_minimum(x: Node) -> Node:
         x = x.left
     return x
 
-
 def tree_maximum(x: Node) -> Node:
     """x를 뿌리로 하는 부분 트리에서 열쇠가 가장 큰 노드를 돌려준다."""
     while x.right is not None:
         x = x.right
     return x
-
 
 def successor(x: Node) -> Node | None:
     """노드 x의 중위 후속자를 돌려주고, x가 최댓값이면 None을 돌려준다."""
@@ -99,7 +101,6 @@ def successor(x: Node) -> Node | None:
         x = y
         y = y.parent
     return y
-
 
 def predecessor(x: Node) -> Node | None:
     """노드 x의 중위 선행자를 돌려주고, x가 최솟값이면 None을 돌려준다."""
@@ -119,7 +120,6 @@ def predecessor(x: Node) -> Node | None:
 ```python
 """부모 포인터 없이 찾는 이진 탐색 트리의 후속자 (위에서 아래로)."""
 
-
 # === 위에서 아래로 찾는 후속자 ===
 
 def successor_no_parent(root: Node | None, key: int) -> Node | None:
@@ -138,7 +138,6 @@ def successor_no_parent(root: Node | None, key: int) -> Node | None:
                 return tree_minimum(current.right)
             return successor_node
     return None  # 열쇠를 못 찾음
-
 
 # === 시연 ===
 
@@ -162,7 +161,6 @@ def insert(root: Node | None, key: int) -> Node:
         parent.right = new_node
     return root
 
-
 if __name__ == "__main__":
     root = None
     for k in [15, 10, 20, 5, 12, 17, 25, 11]:
@@ -183,7 +181,9 @@ if __name__ == "__main__":
         print(f"key={key:2d}  successor={succ_key}  predecessor={pred_key}")
 ```
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 후속자와 선행자 모두 트리의 높이를 $h$이라 할 때 $O(h)$ 시간에 끝난다. 최악의 경우(치우친 트리)에는 $h = n - 1$이므로 $O(n)$이다. 균형 잡힌 이진 탐색 트리에서는 $h = O(\log n)$이다.
 
@@ -198,10 +198,7 @@ if __name__ == "__main__":
 !!! note "모든 후속자를 훑을 때의 분할 상환 비용"
     `successor`을 $n$번 불러 이진 탐색 트리 전체를 정렬된 순서로 훑는 데 걸리는 시간은 $O(nh)$이 아니라 모두 $O(n)$이다. 트리의 변마다 많아야 두 번(내려갈 때 한 번, 올라올 때 한 번) 지나므로 후속자 호출마다 분할 상환 비용이 $O(1)$이다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 12. MIT Press.
-
+---
 
 ## 연습문제
 
@@ -234,3 +231,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 중위 후속자、중위 선행자、구현、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 12. MIT Press.

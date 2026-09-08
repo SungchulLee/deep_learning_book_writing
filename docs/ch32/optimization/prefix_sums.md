@@ -1,7 +1,9 @@
 # 앞자락 합
 **앞자락 합** 배열은 $O(n)$의 앞손질 뒤에 구간 합 묻기에 $O(1)$로 답하게 해 준다. 가장 근본이 되는 다듬기 재주 가운데 하나다.
 
-## 정의
+---
+
+## 1. 정의
 
 배열 $a[0 \ldots n-1]$이 주어질 때 앞자락 합 배열 $P$은 다음과 같이 뜻매김된다:
 
@@ -11,7 +13,9 @@ $$P[0] = 0, \quad P[i] = \sum_{j=0}^{i-1} a[j] = P[i-1] + a[i-1]$$
 
 $$\sum_{j=l}^{r-1} a[j] = P[r] - P[l]$$
 
-## 1차원 앞자락 합
+---
+
+## 2. 1차원 앞자락 합
 
 ```python
 def build_prefix_sum(arr):
@@ -28,7 +32,9 @@ prefix = build_prefix_sum(arr)
 print(range_sum(prefix, 2, 5))  # 내놓기: 19  (4+1+5+9)
 ```
 
-## 2차원 앞자락 합
+---
+
+## 3. 2차원 앞자락 합
 
 행렬에서 앞자락 합은 부분 행렬 합 묻기를 $O(1)$에 하게 해 준다:
 
@@ -51,7 +57,9 @@ P = build_2d_prefix(matrix)
 print(submatrix_sum(P, 1, 1, 2, 2))  # 내놓기: 28  (5+6+8+9)
 ```
 
-## 쓰임새: 합이 k인 부분 배열 세기
+---
+
+## 4. 쓰임새: 합이 k인 부분 배열 세기
 
 ```python
 from collections import defaultdict
@@ -70,7 +78,9 @@ def count_subarrays_sum_k(arr, k):
 print(count_subarrays_sum_k([1, 1, 1], 2))  # Output: 2
 ```
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 연산 | 시간 | 공간 |
 |---|---|---|
@@ -83,6 +93,8 @@ print(count_subarrays_sum_k([1, 1, 1], 2))  # Output: 2
 
 - Cormen, T. et al. *Introduction to Algorithms*, MIT Press, 2022.
 - [Prefix Sum Array -- GeeksforGeeks](https://www.geeksforgeeks.org/prefix-sum-array-implementation-applications-competitive-programming/)
+
+---
 
 ## 연습문제
 
@@ -115,3 +127,7 @@ print(count_subarrays_sum_k([1, 1, 1], 2))  # Output: 2
 
 ??? success "연습문제 4 풀이"
     표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 정의、1차원 앞자락 합、2차원 앞자락 합、쓰임새: 합이 k인 부분 배열 세기을 차례로 짚었다.

@@ -7,14 +7,18 @@ $O(\log n)$번 건너 찾을 수 있게 하고 한 곳이 무너져도 멈추지
 나눠진 자료 바탕을
 떠받친다.
 
-## 핵심 생각
+---
+
+## 1. 핵심 생각
 
 마디마다 그리고 열쇠마다 흩기 함수(보통 SHA-1)로 둥근 번호 자리
 $\{0, 1, \dots, 2^m - 1\}$에서 번호를 받는다.
 열쇠 $k$은 둥근 자리에서 $k$ 바로 다음에 오는 번호를 가진 마디,
 곧 $k$의 **다음 마디**에 담긴다.
 
-## 한결같은 흩기
+---
+
+## 2. 한결같은 흩기
 
 여느 흩기($h(k) = k \bmod n$)는 $n$이 바뀌면 거의 모든 열쇠를 다시
 옮겨야 한다. 한결같은 흩기는 열쇠와 마디를 모두 크기 $2^m$의 고리에
@@ -29,7 +33,9 @@ $$
 다시 맡기면 된다. 법 흩기의 $O(K)$과 견주어 훨씬
 적다.
 
-## Chord 규약
+---
+
+## 3. Chord 규약
 
 Chord(Stoica et al., 2001)은 본보기가 되는 나눠진 흩기 표로 마디마다
 상태 $O(\log n)$으로 $O(\log n)$ 찾기를 준다.
@@ -73,7 +79,9 @@ $i$번째 손가락은 번호 $p + 2^{i-1} \pmod{2^m}$을 맡은 마디를 가�
 1. $p$의 열쇠를 다음 마디로 옮긴다.
 2. 다른 마디의 손가락 표는 때때로 하는 안정 과정에서 고쳐진다.
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 | 연산 | 건너기 | 쪽지 |
 |---|---|---|
@@ -82,7 +90,9 @@ $i$번째 손가락은 번호 $p + 2^{i-1} \pmod{2^m}$을 맡은 마디를 가�
 | 들어오기 | $O(\log^2 n)$ | $O(\log^2 n)$ |
 | 마디마다 상태 | 칸 $O(\log n)$개 | --- |
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -93,13 +103,11 @@ $i$번째 손가락은 번호 $p + 2^{i-1} \pmod{2^m}$을 맡은 마디를 가�
 
 import hashlib
 
-
 # === 한결같은 흩기 ===
 def hash_id(key: str, m: int = 8) -> int:
     """열쇠를 2^m 고리 위 자리로 흩는다."""
     digest = hashlib.sha1(key.encode()).hexdigest()
     return int(digest, 16) % (2**m)
-
 
 # === Chord 마디 ===
 class ChordNode:
@@ -126,7 +134,6 @@ class ChordNode:
                     break
             self.finger_table.append(succ)
         self.successor = self.finger_table[0]
-
 
 # === 나눠진 흩기 표 ===
 class ChordDHT:
@@ -168,7 +175,6 @@ class ChordDHT:
         key_id, node_id = self.lookup(key)
         return self.nodes[node_id].data.get(key_id)
 
-
 # === 보기 ===
 if __name__ == "__main__":
     dht = ChordDHT(m=8)
@@ -185,7 +191,9 @@ if __name__ == "__main__":
         print(f"Get '{k}' = {val}")
 ```
 
-## 다른 나눠진 흩기 표 설계
+---
+
+## 6. 다른 나눠진 흩기 표 설계
 
 | 나눠진 흩기 표 | 위상 | 찾기 | 해 |
 |---|---|---|---|
@@ -199,13 +207,7 @@ if __name__ == "__main__":
     배타 논리합 바탕 거리 잣대가 자연스럽게 맞섬 찾기를 낳고 길 잡기 표
     건사를 단순하게 한다.
 
-## 참고 문헌
-
-- Stoica, I. et al. "Chord: A Scalable Peer-to-Peer Lookup Protocol for
-  Internet Applications." IEEE/ACM Transactions on Networking, 2003.
-- Peleg, D. *Distributed Computing: A Locality-Sensitive Approach*.
-  SIAM, 2000.
-
+---
 
 ## 연습문제
 
@@ -238,3 +240,14 @@ Chord 규약의 고리 얼개와 손가락 표를 밝혀라.
 
 ??? success "연습문제 4 풀이"
     나눠진 흩기 표는 가운데 없는 모델 서비스를 가능하게 한다. (1) 모델 조각내기 --- 큰 모델의 여러 부분을 서로 다른 마디에 담고 헤아림 묻기를 알맞은 조각으로 길잡는다, (2) 특징 곳간 --- 박아 넣기 표(칸이 수십억 개)를 한결같은 흩기로 마디에 흩어 $O(\log n)$번 건너 찾게 한다, (3) 헤아림 결과의 나눠 두르기 --- 자주 묻는 들임을 묻는 곳 가까운 마디에 둔다. 덕분에 어느 한 기계에도 담기지 않는 모델을 서비스할 수 있다.
+
+## 정리하며
+
+이 마당은 핵심 생각、한결같은 흩기、Chord 규약、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Stoica, I. et al. "Chord: A Scalable Peer-to-Peer Lookup Protocol for
+  Internet Applications." IEEE/ACM Transactions on Networking, 2003.
+- Peleg, D. *Distributed Computing: A Locality-Sensitive Approach*.
+  SIAM, 2000.

@@ -1,9 +1,10 @@
 # 멈춘 분포
-## 들어가며
 
 멈춘 분포는 마르코프 사슬 이론과 MCMC 표집을 잇는 중심 대상이다. 이는 사슬의 긴 눈으로 본 평형, 곧 시작 상태와 상관없이 사슬이 모여 가는 분포를 나타낸다. MCMC 얼개에서 하려는 일은 그 멈춘 분포가 주어진 과녁 $\pi$과 같은 사슬을 짓는 것이며, 그러면 사슬을 넉넉히 오래 돌려 $\pi$의 어림 표본을 얻는다.
 
-## 정의와 성질
+---
+
+## 1. 정의와 성질
 
 ### 수학적 정의
 
@@ -33,7 +34,9 @@ $$P(X_n = j) = \sum_{i \in S} \pi_i P^{(n)}_{ij} = (\pi P^n)_j = \pi_j$$
 
 셋째 풀이가 MCMC에 특히 쓸모 있다. 곧 멈춘 확률이 높은 상태를 더 자주 들르며(기대 돌아옴 때가 짧으며), 이것이 바로 $\pi$에서 표집할 때 우리가 바라는 바이다.
 
-## 있음과 하나뿐임
+---
+
+## 2. 있음과 하나뿐임
 
 ### 있음
 
@@ -56,7 +59,9 @@ $$P(X_n = j) = \sum_{i \in S} \pi_i P^{(n)}_{ij} = (\pi P^n)_j = \pi_j$$
 | **에르고드**(쪼갤 수 없음 + 주기 없음) | **예** | **예** |
 | 쪼갤 수 있음 | 여럿일 수 있음 | 아니오(시작에 따라 다름) |
 
-## $\pi$을 셈하는 네 가지 방법
+---
+
+## 3. $\pi$을 셈하는 네 가지 방법
 
 ### 방법 1: 고유벡터 방법
 
@@ -103,7 +108,9 @@ $\pi P = \pi$이므로 옮겨 놓으면 $P^T \pi^T = \pi^T$이다. 곧 $\pi^T$�
 
 이것이 실전에서 MCMC가 하는 일과 다름없다. 이 방법은 모든 MCMC 어림자를 뒷받침하는 에르고드 정리를 미리 보여 준다.
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -277,11 +284,12 @@ def demonstrate_stationary_distribution():
         print(f"  {state}: {pct:.2f}% of the time "
               f"(mean return time: {mean_return:.2f} days)")
 
-
 demonstrate_stationary_distribution()
 ```
 
-## 멈춘 분포로 모이기
+---
+
+## 5. 멈춘 분포로 모이기
 
 ### 모임 속도
 
@@ -367,7 +375,9 @@ def visualize_convergence_to_stationary(
     return fig
 ```
 
-## 자세한 균형과 뒤집힘
+---
+
+## 6. 자세한 균형과 뒤집힘
 
 마르코프 사슬이 분포 $\pi$에 대해 다음을 만족하면 **자세한 균형**을 만족한다:
 
@@ -385,7 +395,9 @@ $$\sum_i \pi_i P_{ij} = \sum_i \pi_j P_{ji} = \pi_j \sum_i P_{ji} = \pi_j$$
 
 자세한 균형은 멈춤에 *넉넉하지만* *꼭 있어야 하는 것*은 아니다. 그러나 MCMC 알고리즘을 짜는 으뜸 도구이다. 메트로폴리스-헤이스팅스 알고리즘(18.3절)은 과녁 분포에 대해 자세한 균형을 만족하는 옮김 알맹이를 짓는다.
 
-## MCMC 설계와의 이음
+---
+
+## 7. MCMC 설계와의 이음
 
 멈춘 분포 이론이 MCMC의 밑그림을 준다:
 
@@ -397,21 +409,7 @@ $$\sum_i \pi_i P_{ij} = \sum_i \pi_j P_{ji} = \pi_j \sum_i P_{ji} = \pi_j$$
 | 자세한 균형 | 올바른 MCMC 알맹이를 짓는 으뜸 도구 |
 | 스펙트럼 틈 | 사슬을 얼마나 돌릴지(태우기)를 정한다 |
 
-## 요약
-
-| 방법 | 셈하기 | 좋은 점 | 나쁜 점 |
-|--------|-------------|------|------|
-| **고유벡터** | $P^T v = v$ 뒤 고르게 하기 | 정확하고 작은 행렬에 빠름 | $N$이 크면 수치 문제 |
-| **선형 얼개** | $(P^T - I)\pi^T = 0$ + 고르게 하기 | 정확하고 수치로 안정 | 행렬 분해가 필요 |
-| **거듭제곱 되풀이** | $\pi^{(k+1)} = \pi^{(k)}P$ | 단순하고 알아보기 쉬움 | 스펙트럼 틈이 작으면 느림 |
-| **흉내내기** | 상태 들름 횟수 세기 | 큰 상태 공간까지 감당 | 어림이고 오래 돌려야 함 |
-
-## 참고 문헌
-
-1. Levin, D.A., Peres, Y., & Wilmer, E.L. *Markov Chains and Mixing Times*, 1-4장. AMS, 2017.
-2. Norris, J.R. *Markov Chains*, 1장. Cambridge University Press, 1997.
-3. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, 4장. Springer-Verlag, 1976.
-4. Robert, C.P. & Casella, G. *Monte Carlo Statistical Methods*, 6장. Springer, 2004.
+---
 
 ## 연습문제
 
@@ -424,3 +422,19 @@ $$\sum_i \pi_i P_{ij} = \sum_i \pi_j P_{ji} = \pi_j \sum_i P_{ji} = \pi_j$$
 4. **손님의 충실함.** 손님의 굴러감을 상태 $\{$충실, 그저 그럼, 떠남$\}$으로 본떠라. 상태마다 긴 눈으로 본 손님의 몫과, 그저 그런 손님이 충실해지기까지의 기대 시간을 셈하여라.
 
 5. **수치 안정성.** 어떤 옮김 확률이 0에 가까운, 거의 쪼갤 수 있는 사슬에서 네 방법을 견주어라. 어느 방법이 가장 튼튼한가?
+
+## 정리하며
+
+| 방법 | 셈하기 | 좋은 점 | 나쁜 점 |
+|--------|-------------|------|------|
+| **고유벡터** | $P^T v = v$ 뒤 고르게 하기 | 정확하고 작은 행렬에 빠름 | $N$이 크면 수치 문제 |
+| **선형 얼개** | $(P^T - I)\pi^T = 0$ + 고르게 하기 | 정확하고 수치로 안정 | 행렬 분해가 필요 |
+| **거듭제곱 되풀이** | $\pi^{(k+1)} = \pi^{(k)}P$ | 단순하고 알아보기 쉬움 | 스펙트럼 틈이 작으면 느림 |
+| **흉내내기** | 상태 들름 횟수 세기 | 큰 상태 공간까지 감당 | 어림이고 오래 돌려야 함 |
+
+**참고 문헌**
+
+1. Levin, D.A., Peres, Y., & Wilmer, E.L. *Markov Chains and Mixing Times*, 1-4장. AMS, 2017.
+2. Norris, J.R. *Markov Chains*, 1장. Cambridge University Press, 1997.
+3. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, 4장. Springer-Verlag, 1976.
+4. Robert, C.P. & Casella, G. *Monte Carlo Statistical Methods*, 6장. Springer, 2004.

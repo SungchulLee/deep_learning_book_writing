@@ -2,14 +2,18 @@
 
 NP는 풀이를 찾는 어려움을 담지만, 어떤 셈 문제는 **있을 수 있는 모든 앞날**을 따져야 한다. 두 사람 놀이나 한정 기호가 붙은 논리 글월이 그러하다. 갈래 **PSPACE**은 시간과 상관없이 다항 기억으로 풀 수 있는 문제를 담는다. 이는 NP와 여 NP를 모두 담으며, 그 완전 문제는 NP 완전 문제보다 엄격히 어렵다고 믿어진다.
 
-## 정의
+---
+
+## 1. 정의
 
 !!! tip "뜻매김: PSPACE"
     **PSPACE**은 어떤 상수 $k$에 대해 $O(n^k)$ 공간을 쓰는 정해진 튜링 기계로 풀 수 있는 가름 문제의 갈래이다. 여기서 $n$은 들임 크기이다.
 
 같은 말로, 사비치 정리가 둘이 같음을 보이므로 PSPACE은 정해지지 않은 다항 공간 기계로도 뜻매김할 수 있다.
 
-## 사비치 정리
+---
+
+## 2. 사비치 정리
 
 !!! tip "정리(사비치, 1970)"
     $s(n) \geq \log n$인 어떤 $s(n)$에 대해서도 NSPACE$(s(n)) \subseteq$ DSPACE$(s(n)^2)$이다.
@@ -18,7 +22,9 @@ NP는 풀이를 찾는 어려움을 담지만, 어떤 셈 문제는 **있을 수
 
 **따름 정리:** 다항의 제곱도 다항이므로 NPSPACE = PSPACE이다.
 
-## 갈래 담김
+---
+
+## 3. 갈래 담김
 
 다음 담김 사슬이 알려져 있다:
 
@@ -33,7 +39,9 @@ $$
 
 공간 켜 정리에 따라 P $\neq$ PSPACE이다. 그러나 NP $\neq$ PSPACE인지는 열려 있다.
 
-## PSPACE 완전성
+---
+
+## 4. PSPACE 완전성
 
 !!! tip "뜻매김: PSPACE 완전"
     다음이면 문제 $L$은 **PSPACE 완전**이다:
@@ -41,7 +49,9 @@ $$
     1. $L \in \text{PSPACE}$이다
     2. PSPACE의 모든 문제가 $L$으로 다항 시간에 줄여진다
 
-## TQBF: 으뜸 PSPACE 완전 문제
+---
+
+## 5. TQBF: 으뜸 PSPACE 완전 문제
 
 **참인 한정 부울 식(TQBF):** 온전히 한정된 부울 식이 주어질 때:
 
@@ -58,7 +68,9 @@ $$
 
 **PSPACE 어려움.** 어떤 PSPACE 셈도 TQBF으로 적을 수 있다. 한정 기호가 번갈아 나타나 자리 얽이 그래프의 닿음을 나타내며 이는 사비치의 되돌이 얼개를 그대로 따른다.
 
-## 놀이 문제
+---
+
+## 6. 놀이 문제
 
 PSPACE은 다항 크기 판에서 하는 **두 사람 놀이**를 자연스럽게 담는다:
 
@@ -71,7 +83,9 @@ PSPACE은 다항 크기 판에서 하는 **두 사람 놀이**를 자연스럽�
 
 TQBF에서 $\exists$과 $\forall$이 번갈아 나타나는 것은 두 사람이 번갈아 두는 것을 그대로 비춘다. "1번 사람에게 어떤 수가 있어서 2번 사람의 모든 대꾸에 대해..."
 
-## PSPACE과 다항 켜
+---
+
+## 7. PSPACE과 다항 켜
 
 **다항 켜** PH는 다음과 같이 뜻매김된다:
 
@@ -87,7 +101,9 @@ $$
 
 PSPACE = NP이면 PH가 NP로 무너진다(그럴 법하지 않다고 여겨진다). 이는 PSPACE 완전 문제가 NP 완전 문제보다 참으로 어렵다는 증거가 된다.
 
-## IP = PSPACE
+---
+
+## 8. IP = PSPACE
 
 복잡도 이론의 이정표가 되는 결과 가운데 하나이다:
 
@@ -105,10 +121,7 @@ PSPACE = NP이면 PH가 NP로 무너진다(그럴 법하지 않다고 여겨진�
 
     **작은 보기:** 꼭짓점 $\{A, B, C, D\}$과 변 $A \to B$, $A \to C$, $B \to D$, $C \to D$, $D \to A$을 가진 그래프. $A$에서 시작하면 1번 사람은 $A \to B$이나 $A \to C$을 고를 수 있다. 놀이 나무가 누가 이기는지 정한다.
 
-## 참고 문헌
-
-- Sipser, M. (2012). *Introduction to the Theory of Computation* (3rd ed.). Cengage Learning, Chapter 8.
-- Arora, S., & Barak, B. (2009). *Computational Complexity: A Modern Approach*. Cambridge University Press, Chapter 4.
+---
 
 ## 연습문제
 
@@ -172,3 +185,12 @@ $\mathbf{PSPACE} \subseteq \mathbf{EXPTIME}$인 까닭을 밝혀라. 그 거꾸�
     PSPACE 기계는 어떤 다항식 $p$에 대해 많아야 $p(n)$개의 띠 칸을 쓴다. 서로 다른 자리 얽이의 온 개수는 많아야 $|Q| \cdot p(n) \cdot |\Gamma|^{p(n)} = 2^{O(p(n) \log |\Gamma|)} = 2^{O(\text{poly}(n))}$이다. 정해진 흉내 내기는 닿을 수 있는 모든 자리 얽이를 늘어놓으며 많아야 그만큼의 걸음 뒤에 멈춘다(자리 얽이를 다시 들르면 맴돈다는 뜻이다). 이는 도는 시간 $2^{O(\text{poly}(n))}$을 주며 이는 EXPTIME에 든다.
 
     거꾸로인 $\mathbf{EXPTIME} \subseteq \mathbf{PSPACE}$은 알려져 있지 않으며 거짓이라 믿어진다. $\mathbf{PSPACE} \subseteq \mathbf{EXPTIME} \subseteq \mathbf{EXPSPACE}$임을 알고 있고 공간 켜 정리에 따라 $\mathbf{PSPACE} \neq \mathbf{EXPSPACE}$이므로 두 담김 가운데 적어도 하나는 엄격하다. 복잡도 이론가 대부분은 둘 다 엄격하다고 믿는다.
+
+## 정리하며
+
+이 마당은 정의、사비치 정리、갈래 담김、PSPACE 완전성을 차례로 짚었다.
+
+**참고 문헌**
+
+- Sipser, M. (2012). *Introduction to the Theory of Computation* (3rd ed.). Cengage Learning, Chapter 8.
+- Arora, S., & Barak, B. (2009). *Computational Complexity: A Modern Approach*. Cambridge University Press, Chapter 4.

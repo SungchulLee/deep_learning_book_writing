@@ -2,7 +2,9 @@
 
 표준 이진 탐색 트리 연산(찾기, 삽입, 삭제)은 회전으로 트립에서도 되지만, **쪼개기**와 **합치기**라는 기본 연산이 더 깔끔한 길을 준다. 쪼개기는 열쇠 문턱값을 기준으로 트립을 둘로 나누고 합치기는 트립 둘을 하나로 모은다. 둘을 합치면 강력한 연장이 된다. 삽입은 쪼개기 한 번과 합치기 두 번으로, 삭제는 쪼개기 두 번과 합치기 한 번으로 줄어든다. 트립의 [높이](priorities.md)가 기댓값 $O(\log n)$이므로 두 연산 모두 기댓값 $O(\log n)$ 시간에 돈다.
 
-## 합치기
+---
+
+## 1. 합치기
 
 `merge(L, R)`은 **$L$의 모든 열쇠가 $R$의 모든 열쇠보다 작은** 트립 $L$과 $R$을 받아 둘의 모든 원소를 담은 트립 하나를 돌려준다.
 
@@ -23,7 +25,9 @@ $$
 
 재귀 호출마다 $L$이나 $R$에서 한 층 내려가므로 전체 일은 기댓값 $O(h_L + h_R) = O(\log n)$이다.
 
-## 쪼개기
+---
+
+## 2. 쪼개기
 
 `split(T, k)`은 트립 $T$을 $L$이 $k$ 이하의 열쇠를 모두, $R$이 $k$보다 큰 열쇠를 모두 담도록 트립 둘 $(L, R)$으로 나눈다.
 
@@ -33,7 +37,9 @@ $$
 
 재귀 호출마다 한 층 내려가므로 쪼개기는 기댓값 $O(\log n)$ 시간에 돈다.
 
-## 구현
+---
+
+## 3. 구현
 
 ```python
 """트립의 쪼개기와 합치기 연산."""
@@ -41,7 +47,6 @@ $$
 from __future__ import annotations
 
 import random
-
 
 # === 노드 정의 ===
 
@@ -53,7 +58,6 @@ class TreapNode:
         self.priority = random.random()
         self.left: TreapNode | None = None
         self.right: TreapNode | None = None
-
 
 # === 합치기 ===
 
@@ -69,7 +73,6 @@ def merge(left: TreapNode | None, right: TreapNode | None) -> TreapNode | None:
     else:
         right.left = merge(left, right.left)
         return right
-
 
 # === 쪼개기 ===
 
@@ -87,7 +90,6 @@ def split(node: TreapNode | None, key: int
         node.left = right
         return left, node
 
-
 # === 쪼개기와 합치기로 하는 삽입 ===
 
 def insert(root: TreapNode | None, key: int) -> TreapNode:
@@ -95,7 +97,6 @@ def insert(root: TreapNode | None, key: int) -> TreapNode:
     left, right = split(root, key)
     new_node = TreapNode(key)
     return merge(merge(left, new_node), right)
-
 
 # === 쪼개기와 합치기로 하는 삭제 ===
 
@@ -105,7 +106,6 @@ def delete(root: TreapNode | None, key: int) -> TreapNode | None:
     left_without, _ = split(left, key - 1)
     return merge(left_without, right)
 
-
 # === 중위 순회 ===
 
 def inorder(node: TreapNode | None) -> list[int]:
@@ -113,7 +113,6 @@ def inorder(node: TreapNode | None) -> list[int]:
     if node is None:
         return []
     return inorder(node.left) + [node.key] + inorder(node.right)
-
 
 # === 시연 ===
 
@@ -127,7 +126,9 @@ if __name__ == "__main__":
     print(f"After delete 5: {inorder(root)}")  # [1, 3, 4, 7, 8, 9]
 ```
 
-## 쪼개기·합치기로 하는 삽입과 삭제
+---
+
+## 4. 쪼개기·합치기로 하는 삽입과 삭제
 
 쪼개기와 합치기를 쓰면 삽입과 삭제가 간단한 짜맞춤이 된다.
 
@@ -143,7 +144,9 @@ if __name__ == "__main__":
 2. $L$을 $k - 1$에서 $(L', M)$으로 쪼갠다(열쇠가 $k$인 노드가 $M$의 뿌리이다).
 3. $\text{merge}(L', R)$을 돌려준다.
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 연산 | 기대 시간 |
 |-----------|---------------|
@@ -155,11 +158,7 @@ if __name__ == "__main__":
 !!! tip "회전에 견준 쪼개기·합치기의 이점"
     쪼개기·합치기 방식은 드러난 회전 논리를 피하고 (열쇠가 암묵적인 배열 색인인) **암묵 트립**으로 자연스럽게 넓어져, 뒤집기나 범위 질의 같은 수열 연산을 $O(\log n)$ 시간에 효율적으로 하게 해 준다.
 
-## 참고 문헌
-
-- Aragon, C. R., & Seidel, R. (1989). Randomized search trees. *30th IEEE Symposium on Foundations of Computer Science*, 540–545.
-- Blelloch, G. E., & Reid-Miller, M. (1998). Fast set operations using treaps. *10th ACM Symposium on Parallel Algorithms and Architectures*, 16–26.
-
+---
 
 ## 연습문제
 
@@ -192,3 +191,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 합치기、쪼개기、구현、쪼개기·합치기로 하는 삽입과 삭제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Aragon, C. R., & Seidel, R. (1989). Randomized search trees. *30th IEEE Symposium on Foundations of Computer Science*, 540–545.
+- Blelloch, G. E., & Reid-Miller, M. (1998). Fast set operations using treaps. *10th ACM Symposium on Parallel Algorithms and Architectures*, 16–26.

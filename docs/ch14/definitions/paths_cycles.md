@@ -2,7 +2,9 @@
 
 최단 경로 셈하기부터 이어짐 살피기까지 거의 모든 그래프 알고리즘이 길과 고리라는 개념에 기댄다. 길은 변의 늘어놓음을 거쳐 꼭짓점 둘 사이를 오가는 법을 밝히고, 고리는 처음 자리로 돌아오는 길이다. 여러 갈래(걸음, 자취, 길, 고리)를 갈라내는 일이 알고리즘을 엄밀하게 따지는 데 아주 중요하다.
 
-## 걸음, 자취, 길
+---
+
+## 1. 걸음, 자취, 길
 
 이 세 낱말은 가장 넓은 것에서 가장 좁은 것으로 층을 이룬다.
 
@@ -33,7 +35,9 @@ $$
 
 꼭짓점 $u$과 $v$ 사이의 **거리** $d(u, v)$은 $u$에서 $v$까지 최단 경로의 길이이다. 길이 없으면 $d(u, v) = \infty$이다. 무게 없는 그래프에서는 [BFS](../traversals/bfs.md)이 최단 경로 거리를 $O(V + E)$ 시간에 셈한다.
 
-## 고리
+---
+
+## 2. 고리
 
 **고리**(또는 **단순 고리**)는 $k \geq 3$이고 꼭짓점 $v_0, v_1, \ldots, v_{k-1}$이 모두 서로 다른 닫힌 걸음 $v_0, v_1, \ldots, v_k = v_0$이다. 고리의 길이는 $k$이다.
 
@@ -49,7 +53,9 @@ $$
 
 그래프 $G$의 **둘레**는 $G$에서 가장 짧은 고리의 길이이다. $G$에 고리가 없으면(숲이면) 둘레를 $\infty$으로 정한다.
 
-## 길로 본 이어짐
+---
+
+## 3. 길로 본 이어짐
 
 길과 이어짐은 아주 가깝게 얽혀 있다:
 
@@ -60,7 +66,9 @@ $$
 !!! tip "정리: 길의 있음과 이어짐"
     무방향 그래프 $G$이 이어져 있을 때 그리고 그때만 꼭짓점 짝 $u, v \in V$마다 $u$에서 $v$까지 길이 있다.
 
-## 특별한 길과 고리 갈래
+---
+
+## 4. 특별한 길과 고리 갈래
 
 ### 해밀턴 길과 고리
 
@@ -78,7 +86,9 @@ $$
 | 있음 살피기 | NP-완전 | 다항 시간(차수 살피기) |
 | 조건(회로) | 단순한 성격 밝힘 없음 | 차수가 모두 짝수 |
 
-## 길과 고리 알아내기
+---
+
+## 5. 길과 고리 알아내기
 
 ```python
 """
@@ -89,7 +99,6 @@ BFS으로 길이 있는지 살피기와, 무방향 그래프에서 DFS으로
 """
 
 from collections import deque
-
 
 # === 길 찾기(BFS) ===
 
@@ -124,7 +133,6 @@ def find_path(adj, n, start, end):
                 queue.append(v)
     return []
 
-
 # === 고리 알아내기(무방향) ===
 
 def has_cycle_undirected(adj, n):
@@ -151,7 +159,6 @@ def has_cycle_undirected(adj, n):
             if dfs(u, -1):
                 return True
     return False
-
 
 # === 메인 ===
 
@@ -180,10 +187,7 @@ Has cycle: True
 Tree has cycle: False
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
-- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. 1.2절.
+---
 
 ## 연습문제
 
@@ -227,3 +231,12 @@ Tree has cycle: False
     - **$K_5$**: 꼭짓점 셋마다 세모를 이루므로 가장 짧은 고리의 길이가 3이다. 둘레 = 3.
     - **피터슨 그래프**: 피터슨 그래프에는 세모도 4-고리도 없고 5-고리가 있다. 둘레 = 5.
     - **꼭짓점 10개의 나무**: 나무에는 고리가 없다. 둘레 = $\infty$. $\square$
+
+## 정리하며
+
+이 마당은 걸음, 자취, 길、고리、길로 본 이어짐、특별한 길과 고리 갈래을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
+- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. 1.2절.

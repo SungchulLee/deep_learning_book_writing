@@ -1,5 +1,4 @@
 # 몬테카를로 적분
-## 개요
 
 몬테카를로 적분은 해석으로 풀 수 없거나 정해진 방법으로는 셈이 너무 비싼 적분을 무작위 표집으로 어림한다. 이 마당은 몬테카를로 어림의 수학 바탕을 세운다. 큰 수의 법칙이 주는 보장에서 시작해 오차를 재는 중심 극한 정리까지 나아가고, 높은 차원에서 격자 기반 길을 쓸모없게 만드는 차원의 저주를 몬테카를로 방법이 어떻게 넘어서는지 보인다. 어림의 효율을 크게 끌어올리는 흩어짐 줄이기 기법도 다룬다.
 
@@ -114,7 +113,6 @@ $$\hat{I}_n \pm z_{1-\alpha/2} \cdot \frac{\hat{\sigma}_f}{\sqrt{n}}$$
 ```python
 import torch
 import torch.distributions as dist
-
 
 def monte_carlo_estimate(
     f: callable,
@@ -630,15 +628,6 @@ $$\text{Grid} \xrightarrow{\text{dimension}} \text{Rejection/IS} \xrightarrow{\t
 
 ---
 
-## 참고 문헌
-
-1. Robert, C. P. & Casella, G. (2004). *Monte Carlo Statistical Methods* (2nd ed.). Springer. 3-4장.
-2. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2-3장.
-3. Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., & Rubin, D. B. (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press. 10장.
-4. Owen, A. B. (2013). *Monte Carlo Theory, Methods, and Examples*. https://artowen.su.domains/mc/.
-5. Glasserman, P. (2003). *Monte Carlo Methods in Financial Engineering*. Springer.
-6. McElreath, R. (2020). *Statistical Rethinking* (2nd ed.). CRC Press. 9장.
-
 ## 연습문제
 
 ### 연습 1: 모임 속도 확인하기
@@ -662,3 +651,16 @@ $X \sim \mathcal{N}(0, 1)$일 때 $\mathbb{E}[\exp(X)]$을 어림하는 맞선 �
 $X \sim \mathcal{N}(0, 1)$일 때 $P(X > 3)$을 어림하여라(참값 ≈ 0.00135). 95% 믿음 구간이 0을 빼려면 표본이 몇 개 필요한가? 이것이 왜 기본 몬테카를로에 어려운 문제이며 중요도 표집이 어떻게 도울 수 있는가?
 
 ---
+
+## 정리하며
+
+이 마당은 격자 방법이 왜 무너지나: 차원의 저주、몬테카를로 원리、구현、베이즈 뒤확률 기댓값을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Robert, C. P. & Casella, G. (2004). *Monte Carlo Statistical Methods* (2nd ed.). Springer. 3-4장.
+2. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2-3장.
+3. Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., & Rubin, D. B. (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press. 10장.
+4. Owen, A. B. (2013). *Monte Carlo Theory, Methods, and Examples*. https://artowen.su.domains/mc/.
+5. Glasserman, P. (2003). *Monte Carlo Methods in Financial Engineering*. Springer.
+6. McElreath, R. (2020). *Statistical Rethinking* (2nd ed.). CRC Press. 9장.

@@ -1,5 +1,4 @@
 # 인코더-디코더 짜임
-## 개요
 
 트랜스포머 구조(Vaswani 외, 2017)는 크게 세 갈래로 다듬어져 왔다. 갈래마다 주의의 방향과 정보의 흐름을 다르게 골라 저마다 다른 강점을 지닌다.
 
@@ -9,7 +8,9 @@
 | 디코더만 | 인과 | GPT, LLaMA | 생성 |
 | 인코더-디코더 | 둘 다 | T5, BART | 수열 대 수열 |
 
-## 본디의 인코더-디코더 구조
+---
+
+## 1. 본디의 인코더-디코더 구조
 
 본디 트랜스포머는 기계 번역을 위한 인코더-디코더 모형으로 설계되었다. 간추린 변형을 살피기 전에 이 온전한 구조를 이해해 두어야 한다.
 
@@ -99,7 +100,9 @@ $$\text{output} = \mathbf{x} + \text{Sublayer}(\text{LayerNorm}(\mathbf{x}))$$
 
 앞 정규화는 기울기가 정규화를 거치지 않고 잔차 길로 흐르게 하여 훨씬 깊은 신경망을 학습할 수 있게 한다. 요즘 트랜스포머(GPT-2 이후, LLaMA, T5 v1.1) 대부분이 앞 정규화를 쓴다.
 
-## 인코더만 (BERT 방식)
+---
+
+## 2. 인코더만 (BERT 방식)
 
 **주의**: 모든 자리가 모든 자리를 본다(양방향)
 
@@ -121,7 +124,9 @@ class EncoderOnly(nn.Module):
 
 **사전 학습**: 가린 언어 모형화(MLM). 토큰을 무작위로 가리고 양방향 맥락에서 그것을 맞힌다. 생성을 위한 목표가 아니다. 모형은 생성이 아니라 이해를 배운다.
 
-## 디코더만 (GPT 방식)
+---
+
+## 3. 디코더만 (GPT 방식)
 
 **주의**: 인과 (자리마다 지난 것만 본다)
 
@@ -151,7 +156,9 @@ class DecoderOnly(nn.Module):
 
 **이름에 관한 참고**: `nn.TransformerEncoder`를 쓰지만 인과 가림 때문에 기능으로는 디코더이다. 파이토치의 `TransformerEncoderLayer`는 그저 자기 주의와 순전파 블록일 뿐이고, 인과 가림을 더하면 디코더 층이 된다.
 
-## 인코더-디코더 (T5 방식)
+---
+
+## 4. 인코더-디코더 (T5 방식)
 
 **주의**: 인코더는 양방향, 디코더는 인과, 그리고 교차 주의
 
@@ -183,7 +190,9 @@ class EncoderDecoder(nn.Module):
 
 **사전 학습**: 구간 망가뜨리기(T5), 잡음 없애기(BART). 입력을 망가뜨린 뒤 되살린다. 인코더는 망가진 입력을 양방향으로 보고, 디코더는 본디 글이나 망가진 구간을 만들어 낸다.
 
-## 자세히 견주기
+---
+
+## 5. 자세히 견주기
 
 | 측면 | 인코더만 | 디코더만 | 인코더-디코더 |
 |--------|-------------|-------------|---------|
@@ -213,7 +222,9 @@ $$\text{FFN}(\mathbf{x}) = f(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2$$
 
 여기서 $\mathbf{W}_1 \in \mathbb{R}^{d \times d_{ff}}$은 "열쇠"(무늬 탐지기)를 셈하고 $\mathbf{W}_2 \in \mathbb{R}^{d_{ff} \times d}$은 "값"(딸린 정보)을 담아 둔다. 안쪽 차원 $d_{ff}$은 대개 $4d$이어서 순전파 신경망은 층마다 주의 얼개의 네 배의 매개변수를 가진다.
 
-## 역사의 흐름
+---
+
+## 6. 역사의 흐름
 
 이 분야는 인코더만 쓰는 모형이 판치던 때(BERT 시대, 2018~2020)에서 디코더만 쓰는 모형이 판치는 때(GPT-3 이후, 2020~지금)로 옮겨 왔다.
 
@@ -234,23 +245,17 @@ $$\text{FFN}(\mathbf{x}) = f(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2$$
 3. **하나로 모은 접점**: 다음 토큰 맞히기로 이해와 생성을 모두 한다
 4. **키우는 효율**: 모든 매개변수가 모든 예측에 이바지한다(생성 중에 놀고 있는 별도의 인코더가 없다)
 
-## 언제 쓰는가
+---
+
+## 7. 언제 쓰는가
 
 - **인코더만**: 분류, 임베딩, 추출 과제
 - **디코더만**: 생성, 대화, 소수 예시 학습 (요즘 가장 인기 있다)
 - **인코더-디코더**: 번역, 원문과 목표문이 뚜렷이 구분되는 요약
 
-## 참고 문헌
-
-1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
-2. Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers." NAACL.
-3. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." (GPT-2)
-4. Raffel, C., et al. (2020). "Exploring the Limits of Transfer Learning with T5." JMLR.
-5. Brown, T., et al. (2020). "Language Models are Few-Shot Learners." NeurIPS.
-
 ---
 
-## 인코더 블록 깊이 들여다보기
+## 8. 인코더 블록 깊이 들여다보기
 
 ##### 훑어보기
 
@@ -912,7 +917,7 @@ $$
 
 ---
 
-## 디코더 블록 깊이 들여다보기
+## 9. 디코더 블록 깊이 들여다보기
 
 ##### 훑어보기
 
@@ -1453,6 +1458,8 @@ $$
 2. Radford, A., et al. (2018). "Improving Language Understanding by Generative Pre-Training."
 3. Brown, T., et al. (2020). "Language Models are Few-Shot Learners." NeurIPS.
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -1492,3 +1499,17 @@ $$
             # Q는 디코더에서, K와 V는 인코더에서
             return self.mha(decoder_hidden, encoder_output, encoder_output)
     ```
+
+## 정리하며
+
+이 마당은 본디의 인코더-디코더 구조、인코더만 (BERT 방식)、디코더만 (GPT 방식)、인코더-디코더 (T5 방식)을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
+2. Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers." NAACL.
+3. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." (GPT-2)
+4. Raffel, C., et al. (2020). "Exploring the Limits of Transfer Learning with T5." JMLR.
+5. Brown, T., et al. (2020). "Language Models are Few-Shot Learners." NeurIPS.
+
+---

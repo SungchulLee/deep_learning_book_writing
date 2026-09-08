@@ -2,7 +2,9 @@
 
 이음 얼개에서 마디 하나가 바뀌면 그 마디와 조상만 고치면 되고 나머지 얼개는 그대로 함께 쓸 수 있다. **길 베끼기**는 이 눈길을 살려 뿌리에서 고칠 곳까지의 길에 놓인 마디만 겹으로 만들고, 이를 앞 판의 바뀌지 않은 밑나무에 잇는다. 이로써 나무에 바탕을 둔 어떤 자료 얼개든 영속하게 만드는 쉽고 두루 쓰이는 재주를 얻는다.
 
-## 종요로운 눈길
+---
+
+## 1. 종요로운 눈길
 
 뿌리 있는 나무에서 마디마다 뿌리부터 이르는 길이 하나뿐이다. 깊이 $d$의 마디를 고치면 마디 $d + 1$개(그 마디와 조상 $d$개)에만 미친다. 다른 모든 마디는 조상을 거치지 않고서는 고칠 곳에서 다다를 수 없으므로 함께 쓸 수 있다.
 
@@ -12,7 +14,9 @@ $$
 
 마디가 $n$개인 고른 나무에서 $d = O(\log n)$이므로 연산마다 로그 덧듦이 든다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 뿌리가 $r_v$(판 $v$)인 나무와 마디 $x$에서의 고침이 주어졌을 때:
 
@@ -23,7 +27,9 @@ $$
 
 그 열매는 베낀 길 위의 마디를 뺀 모든 마디를 함께 쓰는 두 나무 $r_v$과 $r_{v+1}$이다.
 
-## 복잡도 살피기
+---
+
+## 3. 복잡도 살피기
 
 갈래 수가 $b$이고 높이가 $h$인 나무에서:
 
@@ -49,7 +55,9 @@ $$
 !!! tip "길 베끼기와 살진 마디"
     길 베끼기는 읽기가 더 빠르지만(여느 이진 찾기 나무 찾기인 $O(\log n)$) 고침마다 자리를 더 쓴다(살진 마디의 $O(1)$ 나눠 갚음에 견주어 $O(\log n)$). 읽기 성능이 대수롭고 판 나무에 물음을 자주 던진다면 즐겨 쓰는 재주다.
 
-## 이음 목록
+---
+
+## 4. 이음 목록
 
 길 베끼기는 한 겹 이음 목록에도 듣는다. $k$번째 마디를 고치려면 앞선 마디마다 "다음" 손가락질이 바뀌어야 하므로 머리에서 그 자리까지 마디 $k$개를 모두 베껴야 한다.
 
@@ -59,11 +67,15 @@ $$
 
 머리에서 고치면($k = 1$) 비용이 $O(1)$이며, 이것이 cons 목록(앞에만 붙이는 이음 목록)이 절로 영속인 까닭이다.
 
-## 완전 영속
+---
+
+## 5. 완전 영속
 
 길 베끼기는 **완전 영속**을 곧바로 받쳐 준다. 곧 마지막 판뿐 아니라 아무 판이나 고칠 수 있다. 판 $v$의 마디 $x$을 고치면 판 $v$ 나무에서 뿌리부터 $x$까지의 길을 베껴 $v$에서 갈라지는 새 판을 만든다. 판 내력은 곧은 열이 아니라 나무(또는 유향 비순환 그래프)를 이룬다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -76,7 +88,6 @@ $$
 from __future__ import annotations
 from dataclasses import dataclass
 
-
 # === 영속 이음 목록 ===========================================================
 
 @dataclass(frozen=True)
@@ -84,7 +95,6 @@ class ListNode:
     """바뀌지 않는 이음 목록 마디."""
     value: int
     next: ListNode | None = None
-
 
 def list_set(head: ListNode | None, index: int, value: int) -> ListNode | None:
     """자리 *index*을 *value*으로 바꾼 새 목록을 돌려준다."""
@@ -94,7 +104,6 @@ def list_set(head: ListNode | None, index: int, value: int) -> ListNode | None:
         return ListNode(value, head.next)  # 이 마디를 베끼고 꼬리는 함께 쓴다
     return ListNode(head.value, list_set(head.next, index - 1, value))
 
-
 def to_list(head: ListNode | None) -> list[int]:
     """이음 목록을 파이썬 목록으로 바꾼다."""
     result = []
@@ -102,7 +111,6 @@ def to_list(head: ListNode | None) -> list[int]:
         result.append(head.value)
         head = head.next
     return result
-
 
 # === 영속 이진 찾기 나무 ======================================================
 
@@ -112,7 +120,6 @@ class TreeNode:
     key: int
     left: TreeNode | None = None
     right: TreeNode | None = None
-
 
 def tree_insert(root: TreeNode | None, key: int) -> TreeNode:
     """길 베끼기로 *key*을 넣은 새 나무를 돌려준다."""
@@ -124,13 +131,11 @@ def tree_insert(root: TreeNode | None, key: int) -> TreeNode:
         return TreeNode(root.key, root.left, tree_insert(root.right, key))
     return root  # 겹침
 
-
 def tree_inorder(root: TreeNode | None) -> list[int]:
     """가운데 먼저 훑기."""
     if root is None:
         return []
     return tree_inorder(root.left) + [root.key] + tree_inorder(root.right)
-
 
 # === 메인 =====================================================================
 
@@ -178,10 +183,7 @@ BST path copying:
 
 이음 목록의 꼬리 함께 쓰기 살핌은 번호 2를 고칠 때 번호 0, 1, 2의 마디만 베끼고 번호 3의 꼬리는 함께 씀을 알려 준다. 이진 찾기 나무의 함께 쓰기 살핌은 (오른쪽 밑나무로 들어가는) 6을 넣어도 왼쪽 밑나무가 판 사이에서 참으로 함께 쓰임을 보인다.
 
-## 참고 문헌
-
-- Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
-- Okasaki, C. *Purely Functional Data Structures.* Cambridge University Press, 1998
+---
 
 ## 연습문제
 
@@ -222,3 +224,12 @@ BST path copying:
 
 ??? success "연습문제 5 풀이"
     스택은 꼭대기 손가락질을 둔 한 겹 이음 목록이다. push: 지금 꼭대기를 가리키는 새 마디를 만든다. 새 꼭대기는 그 새 마디이고 옛 판의 꼭대기 손가락질은 그대로다. 베낄 것이 없다. 이는 얼개를 함께 쓰는 것이며 깊이 1인 목록에 길 베끼기를 한 것과 같다. pop: 새 판의 꼭대기가 `top.next`을 가리킨다. 이번에도 베낄 것이 없다. top: `top.value`을 돌려준다. 모든 연산이 $O(1)$ 때와 $O(1)$ 자리다(push는 마디 하나를 만들고 pop과 top은 하나도 만들지 않는다). 한꺼번에 지닐 수 있는 판의 개수에는 매임이 없다. 판마다 그저 함께 쓰는 이음 목록의 어느 마디를 가리키는 손가락질일 뿐이다. 온 판에 걸쳐 push를 $m$번 하면 온 자리는 $O(m)$이다. 이는 영속 자료 얼개의 가장 쉬운 보기다. cons 목록은 되돌아가는 손가락질도 없고 바꿈도 없으므로 본디부터 영속이다. $\square$
+
+## 정리하며
+
+이 마당은 종요로운 눈길、알고리즘、복잡도 살피기、이음 목록을 차례로 짚었다.
+
+**참고 문헌**
+
+- Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
+- Okasaki, C. *Purely Functional Data Structures.* Cambridge University Press, 1998

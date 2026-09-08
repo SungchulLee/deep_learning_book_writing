@@ -2,13 +2,17 @@
 
 그래프 색칠하기는 이웃한 두 꼭짓점이 같은 색을 갖지 않도록 꼭짓점에 색을 매긴다. **$m$-색칠 문제**는 주어진 그래프를 색 $m$개 이하로 칠할 수 있는지 묻는다. NP 완전인 이 문제는 되짚기로 풀 수 있으며, 색 매김을 짜임새 있게 시험하고 이웃 제약을 어기는 갈래를 쳐 낸다.
 
-## 문제의 정의
+---
+
+## 1. 문제의 정의
 
 꼭짓점이 $n = |V|$개인 방향 없는 그래프 $G = (V, E)$과 양의 정수 $m$이 주어질 때, 모든 변 $(u, v) \in E$에 대해 $u$과 $v$의 색이 다르도록 꼭짓점마다 $\{1, 2, \ldots, m\}$에서 색을 매겨라.
 
 옳은 색칠이 있는 가장 작은 $m$을 **색칠 수** $\chi(G)$이라 한다.
 
-## 되짚기 방식
+---
+
+## 2. 되짚기 방식
 
 꼭짓점을 $v_1, v_2, \ldots, v_n$ 차례로 처리한다. 꼭짓점 $v_i$마다 색 $c \in \{1, \ldots, m\}$을 하나씩 시험한다:
 
@@ -18,7 +22,9 @@
 
 찾기 나무의 갈래 수는 $m$, 깊이는 $n$이라 최악의 경우 $O(m^n)$ 시간이 든다. 될 수 있는지 살펴 가지를 치면 실전에서 갈래를 많이 없앤다.
 
-## 가지치기 전략
+---
+
+## 3. 가지치기 전략
 
 찾기 공간을 줄이는 재주가 여럿 있다:
 
@@ -26,7 +32,9 @@
 2. **꼭짓점 차례 매기기**: 차수가 큰 꼭짓점을 먼저 칠한다(큰 것 먼저 어림짐작). 제약이 많은 꼭짓점은 칠하기 어려우므로 일찍 다루면 갈래를 더 많이 쳐 낸다.
 3. **대칭 깨기**: 첫 꼭짓점의 색을 1로 고정한다(옳은 색칠은 이름을 다시 붙일 수 있다).
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 | 갈래 | 값 |
 |---|---|
@@ -39,7 +47,9 @@
     - $m = 2$: 그래프가 두 색으로 칠해질 필요충분조건은 두 쪽 그래프인 것이며, 너비 먼저나 깊이 먼저로 $O(V + E)$에 살필 수 있다.
     - 평면 그래프: 늘 네 색으로 칠할 수 있고(네 색 정리) 세 색으로 칠할 수 있는지는 여전히 NP 완전이다.
 
-## 파이썬 구현
+---
+
+## 5. 파이썬 구현
 
 ```python
 """
@@ -49,7 +59,6 @@
 이웃 목록 나타냄과 단순한 될 수 있는지 살피기를 쓴다.
 """
 
-
 # === 될 수 있는지 살피기 ===
 
 def is_safe(vertex: int, color: int, colors: list[int], adj: list[list[int]]) -> bool:
@@ -58,7 +67,6 @@ def is_safe(vertex: int, color: int, colors: list[int], adj: list[list[int]]) ->
         if colors[neighbor] == color:
             return False
     return True
-
 
 # === 되짚기 풀개 ===
 
@@ -92,7 +100,6 @@ def graph_coloring(adj: list[list[int]], m: int) -> list[int] | None:
         return colors
     return None
 
-
 # === 옳은 색칠을 모두 세기 ===
 
 def count_colorings(adj: list[list[int]], m: int) -> int:
@@ -116,7 +123,6 @@ def count_colorings(adj: list[list[int]], m: int) -> int:
     backtrack(0)
     return count
 
-
 # === 메인 ===
 
 if __name__ == "__main__":
@@ -139,7 +145,9 @@ if __name__ == "__main__":
     # m=4: [1, 2, 1, 2], 옳은 색칠 전체: 84
 ```
 
-## 풀이 예제
+---
+
+## 6. 풀이 예제
 
 색 $m = 3$개로 세모 그래프($K_3$)를 보자:
 
@@ -149,10 +157,7 @@ if __name__ == "__main__":
 
 옳은 색칠: $[1, 2, 3]$. $K_3$의 색칠 수는 $\chi(K_3) = 3$이다.
 
-## 참고 문헌
-
-- Skiena, S. S. (2020). *The Algorithm Design Manual* (3rd ed.), Chapter 9. Springer.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
+---
 
 ## 연습문제
 
@@ -185,3 +190,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$
+
+## 정리하며
+
+이 마당은 문제의 정의、되짚기 방식、가지치기 전략、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Skiena, S. S. (2020). *The Algorithm Design Manual* (3rd ed.), Chapter 9. Springer.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.

@@ -1,9 +1,10 @@
 # 미리 짚어 풀기
-## 들어가며
 
 미리 짚어 풀기는 더 작은 **밑그림 모델**로 토막 여럿을 내놓고 그것을 더 큰 **목표 모델**이 나란히 확인해 자기되돌리기 만들어 내기를 빠르게 하는 재주이다. 나란히 할 수 있어 확인이 만들어 내기보다 값싸다는 점을 써먹는다.
 
-## 자기되돌리기의 병목
+---
+
+## 1. 자기되돌리기의 병목
 
 ### 보통의 만들어 내기
 
@@ -23,7 +24,9 @@ $$
 
 **확인이 만들어 내기보다 빠르다**: 밑그림 토막 $K$개가 주어지면 목표 모델이 앞먹임 한 번으로 모두 (나란히) 확인할 수 있지만, $K$개를 만들려면 차례차례 $K$번 지나야 한다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 ### 훑어보기
 
@@ -91,7 +94,9 @@ while not done:
     Update x₀ with accepted tokens
 ```
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ```python
 import torch
@@ -99,7 +104,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Tuple, Optional
 from dataclasses import dataclass
-
 
 @dataclass
 class SpeculativeOutput:
@@ -111,7 +115,6 @@ class SpeculativeOutput:
     @property
     def acceptance_rate(self) -> float:
         return self.num_accepted / self.num_drafted if self.num_drafted > 0 else 0.0
-
 
 class SpeculativeDecoder:
     """
@@ -263,7 +266,6 @@ class SpeculativeDecoder:
         
         return generated[:, :input_ids.size(1) + max_new_tokens], stats
 
-
 def speculative_sample(
     target_probs: torch.Tensor,
     draft_probs: torch.Tensor,
@@ -294,7 +296,6 @@ def speculative_sample(
     corrected = torch.multinomial(residual, num_samples=1)
     return corrected, False
 
-
 # 가짜 모델로 보이기
 class MockLanguageModel(nn.Module):
     """보이기 위한 단순한 가짜 말 모델."""
@@ -313,7 +314,6 @@ class MockLanguageModel(nn.Module):
         for layer in self.layers:
             h = layer(h)
         return self.head(h), None
-
 
 if __name__ == "__main__":
     print("Speculative Decoding Demo")
@@ -344,7 +344,9 @@ if __name__ == "__main__":
     print(f"Theoretical speedup: {stats['speedup_factor']:.2f}x")
 ```
 
-## 이론적 분석
+---
+
+## 4. 이론적 분석
 
 ### 걸음마다의 기대 토막 수
 
@@ -384,7 +386,9 @@ $$
 S \approx \mathbb{E}[\text{tokens}]
 $$
 
-## 실용적인 고려
+---
+
+## 5. 실용적인 고려
 
 ### 밑그림 모델 고르기
 
@@ -408,7 +412,9 @@ $$
 - 두 모델 모두에 열쇠-값 곳간이 필요하다
 - 맞바꿈: 기억 공간과 빠르기
 
-## 변형
+---
+
+## 6. 변형
 
 ### 메두사
 
@@ -433,7 +439,9 @@ $$
 Tiny → Small → Medium → Target
 ```
 
-## 다른 빠르게 하기 방법과의 견줌
+---
+
+## 7. 다른 빠르게 하기 방법과의 견줌
 
 | 방법 | 빨라짐 | 정확 | 기억 공간 | 복잡도 |
 |--------|---------|-------|--------|------------|
@@ -443,23 +451,7 @@ Tiny → Small → Medium → Target
 | 양자화 | 2~4배 | ✗ | 0.25~0.5배 | 가운데 |
 | 가지치기 | 들쭉날쭉 | ✗ | 1배 미만 | 높음 |
 
-## 요약
-
-미리 짚어 풀기는 다음으로 큰 말 모델 미룸을 빠르게 한다:
-
-1. **나란한 확인**: 앞먹임 한 번으로 밑그림 토막 여럿을 살핀다
-2. **정확한 뽑기**: 목표 분포를 수학으로 보장한다
-3. **서로 채워 줌**: 열쇠-값 곳간, 플래시 눈길, 양자화와 함께 쓴다
-4. **맞바꿈**: 밑그림 모델이 필요하고 얼마나 잘 듣는지는 결이 얼마나 맞느냐에 달렸다
-
-흔한 빨라짐: 잘 맞는 밑그림 모델이면 **2~3배**.
-
-## 참고 문헌
-
-1. Leviathan, Y., et al. (2023). "Fast Inference from Transformers via Speculative Decoding." ICML.
-2. Chen, C., et al. (2023). "Accelerating Large Language Model Decoding with Speculative Sampling."
-3. Cai, T., et al. (2024). "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads."
-4. Miao, X., et al. (2023). "SpecInfer: Accelerating Generative Large Language Model Serving with Speculative Inference."
+---
 
 ## 연습문제
 
@@ -492,3 +484,21 @@ Tiny → Small → Medium → Target
 
 ??? success "연습문제 4 풀이"
     **익힌 뒤 양자화**는 더 익히지 않고 눈금 맞추기 자료로 잣수 인자를 정해 미리 익힌 모델의 무게(그리고 원하면 깨어남)를 양자화한다. 빠르고 단순하지만 특히 8비트 아래에서는 정확도가 떨어질 수 있다. **양자화를 헤아린 익히기**는 기울기에 곧바로 지나가기 어림개를 써서 익히는 동안 양자화를 흉내내어 모델이 낮은 정밀도에 맞춰지게 한다. 낮은 자릿수(4비트, 2비트)에서 정확도가 더 낫지만 온전한 익히기를 한 번 더 돌려야 한다. 빠르기가 중요하고 8비트면 넉넉한 (펼치기) 장면에서는 **익힌 뒤 양자화가 낫다**. 4비트처럼 세게 양자화해야 하고 익힐 자원이 있으면 **양자화를 헤아린 익히기가 낫다**.
+
+## 정리하며
+
+미리 짚어 풀기는 다음으로 큰 말 모델 미룸을 빠르게 한다:
+
+1. **나란한 확인**: 앞먹임 한 번으로 밑그림 토막 여럿을 살핀다
+2. **정확한 뽑기**: 목표 분포를 수학으로 보장한다
+3. **서로 채워 줌**: 열쇠-값 곳간, 플래시 눈길, 양자화와 함께 쓴다
+4. **맞바꿈**: 밑그림 모델이 필요하고 얼마나 잘 듣는지는 결이 얼마나 맞느냐에 달렸다
+
+흔한 빨라짐: 잘 맞는 밑그림 모델이면 **2~3배**.
+
+**참고 문헌**
+
+1. Leviathan, Y., et al. (2023). "Fast Inference from Transformers via Speculative Decoding." ICML.
+2. Chen, C., et al. (2023). "Accelerating Large Language Model Decoding with Speculative Sampling."
+3. Cai, T., et al. (2024). "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads."
+4. Miao, X., et al. (2023). "SpecInfer: Accelerating Generative Large Language Model Serving with Speculative Inference."

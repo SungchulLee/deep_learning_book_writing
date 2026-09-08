@@ -1,5 +1,4 @@
 # 수용 영역
-## 들어가며
 
 합성곱 신경망에서 뉴런의 **수용 영역**은 그 뉴런의 활성값에 영향을 주는 입력 이미지의 영역이다. 수용 영역을 이해하는 일은 CNN 설계의 바탕인데, 다음을 정하기 때문이다.
 
@@ -10,7 +9,9 @@
 
 이 절은 수용 영역의 계산을 엄밀하게 다루고, 실제로 쓸 수 있는 계산 도구와 설계에 주는 함의를 살핀다.
 
-## 정의
+---
+
+## 1. 정의
 
 ### 지역 수용 영역
 
@@ -53,7 +54,9 @@ Layer 1 RF = 3×3     Layer 2 RF = 5×5
 
 실효 수용 영역은 대개 뉴런을 중심으로 하는 가우스 분포를 따르며, 이론적인 최댓값보다 훨씬 작을 때가 많다.
 
-## 수학적 정식화
+---
+
+## 2. 수학적 정식화
 
 ### 한 층의 수용 영역
 
@@ -104,7 +107,9 @@ $$r_L = 1 + L \cdot (k - 1)$$
 
 이는 보폭이 1일 때 수용 영역이 깊이에 따라 선형으로 자람을 보여 준다.
 
-## 수용 영역 계산하기
+---
+
+## 3. 수용 영역 계산하기
 
 ### 핵심 파이썬 구현
 
@@ -226,7 +231,9 @@ Block2 3×3/2         3        2        1        35       8
 Block2 3×3           3        1        1        51       8       
 ```
 
-## 수용 영역을 넓히는 전략
+---
+
+## 4. 수용 영역을 넓히는 전략
 
 ### 전략 1: 핵 크기 키우기
 
@@ -317,7 +324,9 @@ print(f"WaveNet (3 blocks × 10 layers): {total_layers} layers, RF = {rf}")
 # RF = 3 × (2^10 - 1) + 1 = 3069
 ```
 
-## 실효 수용 영역 (ERF)
+---
+
+## 5. 실효 수용 영역 (ERF)
 
 ### 이론과 실제의 간격
 
@@ -441,7 +450,9 @@ def visualize_erf_concept():
 visualize_erf_concept()
 ```
 
-## 구조 분석
+---
+
+## 6. 구조 분석
 
 ### 흔한 구조와 그 수용 영역
 
@@ -570,7 +581,9 @@ def compare_architectures():
 compare_architectures()
 ```
 
-## 완전한 예제: 수용 영역을 고려한 신경망 설계
+---
+
+## 7. 완전한 예제: 수용 영역을 고려한 신경망 설계
 
 ```python
 import torch
@@ -682,7 +695,9 @@ if __name__ == "__main__":
     verify_network_design()
 ```
 
-## PyTorch 도구: 수용 영역 자동 추적기
+---
+
+## 8. PyTorch 도구: 수용 영역 자동 추적기
 
 ```python
 import torch
@@ -769,7 +784,9 @@ tracker = ReceptiveFieldTracker(model)
 tracker.print_receptive_field()
 ```
 
-## 핵심 정리
+---
+
+## 9. 핵심 정리
 
 1. **정의**: 수용 영역은 뉴런의 활성값에 영향을 주는 입력 영역이다
 
@@ -793,17 +810,7 @@ tracker.print_receptive_field()
 
 8. **건너뛰기 연결이 실효 수용 영역을 넓힌다**: 잔차 연결이 기울기가 멀리 있는 입력까지 흐르도록 돕는다
 
-## 참고 문헌
-
-1. Luo, W., Li, Y., Urtasun, R., & Zemel, R. (2016). Understanding the Effective Receptive Field in Deep Convolutional Neural Networks. *NeurIPS*.
-
-2. Yu, F., & Koltun, V. (2016). Multi-Scale Context Aggregation by Dilated Convolutions. *ICLR*.
-
-3. Araujo, A., Norberg, W., Hooker, S., & Weinberger, K. (2019). Computing Receptive Fields of Convolutional Neural Networks. *Distill*.
-
-4. He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep Residual Learning for Image Recognition. *CVPR*.
-
-5. Simonyan, K., & Zisserman, A. (2015). Very Deep Convolutional Networks for Large-Scale Image Recognition. *ICLR*.
+---
 
 ## 연습문제
 
@@ -867,3 +874,19 @@ tracker.print_receptive_field()
     # erf는 실효 수용 영역을 보이는 64x64 지도이다
     # 대체로 가우스 모양이며 이론적 수용 영역보다 훨씬 작다
     ```
+
+## 정리하며
+
+이 마당은 정의、수학적 정식화、수용 영역 계산하기、수용 영역을 넓히는 전략을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Luo, W., Li, Y., Urtasun, R., & Zemel, R. (2016). Understanding the Effective Receptive Field in Deep Convolutional Neural Networks. *NeurIPS*.
+
+2. Yu, F., & Koltun, V. (2016). Multi-Scale Context Aggregation by Dilated Convolutions. *ICLR*.
+
+3. Araujo, A., Norberg, W., Hooker, S., & Weinberger, K. (2019). Computing Receptive Fields of Convolutional Neural Networks. *Distill*.
+
+4. He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep Residual Learning for Image Recognition. *CVPR*.
+
+5. Simonyan, K., & Zisserman, A. (2015). Very Deep Convolutional Networks for Large-Scale Image Recognition. *ICLR*.

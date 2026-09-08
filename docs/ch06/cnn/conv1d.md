@@ -1,5 +1,4 @@
 # 1차원 합성곱
-## 들어가며
 
 2차원 합성곱이 이미지 처리의 일꾼이라면, **1차원 합성곱**은 시계열, 음향 신호, 텍스트 순차열, 금융 데이터 같은 순차 데이터를 다룬다. 학습 가능한 핵을 하나의 공간(시간) 차원을 따라 미끄러뜨리며 자리마다 지역적인 무늬를 뽑아낸다.
 
@@ -7,7 +6,7 @@
 
 ---
 
-## 수학적 정식화
+## 1. 수학적 정식화
 
 ### 단일 채널 1차원 합성곱
 
@@ -41,7 +40,7 @@ $$Y[o, i] = \sum_{c=0}^{C_{in}-1} \sum_{j=0}^{k-1} X[c, i+j] \cdot W[o, c, j] + 
 
 ---
 
-## PyTorch의 `nn.Conv1d`
+## 2. PyTorch의 `nn.Conv1d`
 
 ### 인터페이스
 
@@ -110,7 +109,7 @@ print(f"Parameters: {params:,}")  # 8 × 32 × 5 + 32 = 1,312
 
 ---
 
-## 행렬 곱으로 본 1차원 합성곱
+## 3. 행렬 곱으로 본 1차원 합성곱
 
 1차원 합성곱을 창을 미끄러뜨리는 것으로 보는 관점은 **퇴플리츠 행렬**을 곱하는 것으로도 나타낼 수 있다. 입력 $\mathbf{x} = [x_0, x_1, x_2, x_3, x_4]^\top$과 핵 $\mathbf{k} = [k_0, k_1, k_2]^\top$에 대해 다음과 같다.
 
@@ -162,7 +161,7 @@ print(f"Gradient match: {torch.allclose(x.grad, grad_manual, atol=1e-5)}")
 
 ---
 
-## 1차원 합성곱의 역전파
+## 4. 1차원 합성곱의 역전파
 
 ### 순전파
 
@@ -248,7 +247,7 @@ print("Match:", np.allclose(grad_w, grad_w_numerical))
 
 ---
 
-## 인과 합성곱
+## 5. 인과 합성곱
 
 많은 시계열 응용에서 모델은 미래를 들여다보아서는 안 된다. 시각 $t$의 출력은 시각이 $t$ 이하인 입력에만 기대야 한다. 이를 위해 **인과 합성곱**이 필요하다.
 
@@ -323,7 +322,7 @@ print(f"At 16kHz audio: {1024/16000:.3f}s of context")
 
 ---
 
-## 시간 합성곱 신경망 (TCN)
+## 6. 시간 합성곱 신경망 (TCN)
 
 TCN은 인과 합성곱, 팽창, 잔차 연결을 엮어 널리 쓸 수 있는 순차열 모형을 만든다.
 
@@ -415,7 +414,7 @@ print(f"Receptive field: 511 time steps")
 
 ---
 
-## 금융 시계열을 위한 1차원 합성곱
+## 7. 금융 시계열을 위한 1차원 합성곱
 
 ### 가격 데이터에서 특징 뽑기
 
@@ -476,7 +475,7 @@ print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
 
 ---
 
-## Conv1d와 Conv2d: 언제 무엇을 쓸까
+## 8. Conv1d와 Conv2d: 언제 무엇을 쓸까
 
 | 기준 | Conv1d | Conv2d |
 |-----------|--------|--------|
@@ -489,18 +488,7 @@ print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
 
 ---
 
-## 요약
-
-| 항목 | 설명 |
-|--------|-------------|
-| **연산** | 한 공간 차원을 따라 미끄러지는 내적 |
-| **입력 모양** | $(N, C_{in}, L)$: 배치, 채널, 순차열 길이 |
-| **출력 크기** | $\lfloor (L + 2p - d(k-1) - 1) / s \rfloor + 1$ |
-| **인과성** | 왼쪽에만 덧대어 미래 정보가 새지 않게 한다 |
-| **팽창** | 매개변수는 그대로 두고 수용 영역이 지수적으로 넓어진다 |
-| **행렬 형태** | 퇴플리츠 행렬이며, 전치하면 전치 합성곱이 된다 |
-
-## 핵심 정리
+## 9. 핵심 정리
 
 1. **Conv1d**는 모양이 $(N, C, L)$인 순차열을 다루며 시간 차원을 따라 핵을 미끄러뜨린다
 2. **인과 합성곱**(왼쪽 덧대기 뒤 잘라내기)은 출력이 과거와 현재의 입력에만 기대게 한다
@@ -509,15 +497,7 @@ print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
 5. 핵 크기가 서로 다른 **여러 규모의 합성곱**은 서로 다른 시간 지평의 무늬를 붙잡는다
 6. 1차원 합성곱의 **역전파**는 뒤집은 핵과의 온전한 합성곱(= 전치 합성곱)이 된다
 
-## 참고 문헌
-
-1. van den Oord, A., et al. (2016). "WaveNet: A Generative Model for Raw Audio." *arXiv preprint arXiv:1609.03499*.
-
-2. Bai, S., Kolter, J. Z., & Koltun, V. (2018). "An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling." *arXiv preprint arXiv:1803.01271*.
-
-3. Lea, C., et al. (2017). "Temporal Convolutional Networks for Action Segmentation and Detection." *CVPR*.
-
-4. Dumoulin, V., & Visin, F. (2016). "A guide to convolution arithmetic for deep learning." *arXiv preprint arXiv:1603.07285*.
+---
 
 ## 연습문제
 
@@ -556,3 +536,24 @@ print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
 
 ??? success "연습문제 4 풀이"
     길이가 $L$이고 채널이 $C_{\text{in}}$개인 입력에 대한 완전 연결층은 매개변수가 $L \cdot C_{\text{in}} \cdot C_{\text{out}}$개이다. Conv1d은 $k \cdot C_{\text{in}} \cdot C_{\text{out}}$개이다. 줄어드는 비는 $L/k$이다. $L=1000, k=5$이면 가중치 공유 덕분에 매개변수가 200분의 1이 된다.
+
+## 정리하며
+
+| 항목 | 설명 |
+|--------|-------------|
+| **연산** | 한 공간 차원을 따라 미끄러지는 내적 |
+| **입력 모양** | $(N, C_{in}, L)$: 배치, 채널, 순차열 길이 |
+| **출력 크기** | $\lfloor (L + 2p - d(k-1) - 1) / s \rfloor + 1$ |
+| **인과성** | 왼쪽에만 덧대어 미래 정보가 새지 않게 한다 |
+| **팽창** | 매개변수는 그대로 두고 수용 영역이 지수적으로 넓어진다 |
+| **행렬 형태** | 퇴플리츠 행렬이며, 전치하면 전치 합성곱이 된다 |
+
+**참고 문헌**
+
+1. van den Oord, A., et al. (2016). "WaveNet: A Generative Model for Raw Audio." *arXiv preprint arXiv:1609.03499*.
+
+2. Bai, S., Kolter, J. Z., & Koltun, V. (2018). "An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling." *arXiv preprint arXiv:1803.01271*.
+
+3. Lea, C., et al. (2017). "Temporal Convolutional Networks for Action Segmentation and Detection." *CVPR*.
+
+4. Dumoulin, V., & Visin, F. (2016). "A guide to convolution arithmetic for deep learning." *arXiv preprint arXiv:1603.07285*.

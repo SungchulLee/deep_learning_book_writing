@@ -3,7 +3,7 @@
 
 ---
 
-## 알고리즘
+## 1. 알고리즘
 
 ```
 Algorithm: Unadjusted Langevin Algorithm (ULA)
@@ -24,7 +24,7 @@ $$
 
 ---
 
-## 치우침 분석
+## 2. 치우침 분석
 
 ULA의 멈춘 분포 $\pi_\epsilon$은 참 과녁 $\pi$과 다르다. 걸음 크기 $\epsilon$에서 총 변동 거리로 잰 치우침은 다음과 같다:
 
@@ -42,7 +42,7 @@ $$
 
 ---
 
-## 확률 기울기 랑주뱅 동역학(SGLD)
+## 3. 확률 기울기 랑주뱅 동역학(SGLD)
 
 실전에서의 핵심 넓힘은 온전한 기울기를 작은 묶음에서 얻은 **확률 기울기**로 바꾸는 것이다:
 
@@ -66,7 +66,6 @@ $$
 
 ```python
 import torch
-
 
 class SGLD:
     """
@@ -117,7 +116,6 @@ class SGLD:
             if p.grad is not None:
                 p.grad.zero_()
 
-
 def sgld_sample(model, dataloader, n_samples=100, burnin=1000,
                 thin=10, lr=1e-4):
     """
@@ -147,7 +145,7 @@ def sgld_sample(model, dataloader, n_samples=100, burnin=1000,
 
 ---
 
-## ULA, MALA, HMC 견주기
+## 4. ULA, MALA, HMC 견주기
 
 | 결 | ULA/SGLD | MALA | HMC |
 |--------|----------|------|-----|
@@ -160,7 +158,7 @@ def sgld_sample(model, dataloader, n_samples=100, burnin=1000,
 
 ---
 
-## ULA/SGLD를 언제 쓰나
+## 5. ULA/SGLD를 언제 쓰나
 
 **다음일 때 SGLD를 써라:**
 
@@ -177,15 +175,7 @@ def sgld_sample(model, dataloader, n_samples=100, burnin=1000,
 
 ---
 
-## 참고 문헌
-
-- Welling, M., & Teh, Y. W. (2011). Bayesian learning via stochastic gradient Langevin dynamics. *ICML*.
-- Dalalyan, A. S. (2017). Theoretical guarantees for approximate sampling from a smooth and log-concave density. *JRSS-B*, 79(3), 651-676.
-- Chen, T., Fox, E., & Guestrin, C. (2014). Stochastic gradient Hamiltonian Monte Carlo. *ICML*.
-
----
-
-## 자세한 치우침 보기: 1차원 가우스
+## 6. 자세한 치우침 보기: 1차원 가우스
 
 $\pi(x) = \mathcal{N}(0, 1)$에서 점수는 $s(x) = -x$이다. ULA의 새로 고치기는 다음과 같다:
 
@@ -203,7 +193,7 @@ $\epsilon = 0.1$이면 멈춘 흩어짐이 1이 아니라 $\approx 1.053$이다.
 
 ---
 
-## 기본 ULA 구현
+## 7. 기본 ULA 구현
 
 ```python
 import torch
@@ -229,7 +219,7 @@ def ula(score_fn, x0, n_steps, epsilon):
 
 ---
 
-## ULA을 언제 쓰나
+## 8. ULA을 언제 쓰나
 
 다음일 때 ULA이 알맞다:
 
@@ -245,6 +235,8 @@ def ula(score_fn, x0, n_steps, epsilon):
 - **ESS**은 표본이 얼마나 실효로 독립인지를 잰다
 - **달리는 평균**은 안정되어야 한다. 다만 치우친 과녁으로 안정된다
 - 여러 사슬이 같은 (치우친) 분포로 모여야 한다
+
+---
 
 ## 연습문제
 
@@ -281,3 +273,15 @@ MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴�
 
 ??? success "연습문제 4 풀이"
     태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.
+
+## 정리하며
+
+이 마당은 알고리즘、치우침 분석、확률 기울기 랑주뱅 동역학(SGLD)、ULA, MALA, HMC 견주기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Welling, M., & Teh, Y. W. (2011). Bayesian learning via stochastic gradient Langevin dynamics. *ICML*.
+- Dalalyan, A. S. (2017). Theoretical guarantees for approximate sampling from a smooth and log-concave density. *JRSS-B*, 79(3), 651-676.
+- Chen, T., Fox, E., & Guestrin, C. (2014). Stochastic gradient Hamiltonian Monte Carlo. *ICML*.
+
+---

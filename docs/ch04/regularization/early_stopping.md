@@ -1,12 +1,13 @@
 # 조기 종료
-## 개요
 
 조기 종료는 검증 집합에서의 모델 성능이 더 나아지지 않을 때 학습을 멈추는 정칙화 기법이다. 모델이 일반화되는 양상은 배웠지만 아직 학습 데이터의 잡음을 외우기 시작하지는 않은 지점을 찾아내어 과적합을 막는다.
 
 !!! note "함께 볼 것"
     학습률 스케줄링과의 상호작용을 포함하여 PyTorch 학습 루프에서 조기 종료를 쓰는 간결한 실용 안내는 **5.6절 과적합과 일반화**를 보라.
 
-## 개념적 토대
+---
+
+## 1. 개념적 토대
 
 ### 과적합의 진행 경로
 
@@ -28,7 +29,9 @@
 
 선형 모델에서 경사 하강법과 함께 쓰는 조기 종료는 수학적으로 L2 정칙화와 동등하며, 실효 정칙화 강도는 반복 횟수에 반비례한다.
 
-## 수학적 정식화
+---
+
+## 2. 수학적 정식화
 
 ### 검증에 기반한 종료 기준
 
@@ -60,7 +63,9 @@ $$
 
 여기서 $\eta$은 학습률이다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 기본적인 조기 종료
 
@@ -394,7 +399,9 @@ class EarlyStoppingWithLRScheduler:
         return False
 ```
 
-## 초매개변수에 대한 고려
+---
+
+## 4. 초매개변수에 대한 고려
 
 ### 인내 값 고르기
 
@@ -473,7 +480,9 @@ min_delta = 1e-5
 min_delta = 1e-3  # 더 너그럽게
 ```
 
-## 이론적 분석
+---
+
+## 5. 이론적 분석
 
 ### L2 정칙화와의 관계
 
@@ -504,7 +513,9 @@ $$
 
 최적의 종료 지점은 전체 일반화 오차를 최소화한다.
 
-## 실무 지침
+---
+
+## 6. 실무 지침
 
 ### 조기 종료를 쓸 때
 
@@ -592,7 +603,9 @@ class CheckpointingEarlyStopping(EarlyStopping):
         return should_stop
 ```
 
-## 시각화
+---
+
+## 7. 시각화
 
 ```python
 import matplotlib.pyplot as plt
@@ -632,7 +645,9 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
     return fig
 ```
 
-## 흔히 빠지는 함정
+---
+
+## 8. 흔히 빠지는 함정
 
 1. **검증 집합을 쓰지 않기**: 조기 종료에는 따로 떼어 둔 데이터가 필요하다
 2. **인내가 너무 작음**: 정상적인 요동 중에 멈춘다
@@ -640,11 +655,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 4. **지표를 무시하기**: 과제에 맞지 않는 지표를 쓴다
 5. **데이터 유출**: 검증 집합이 학습 데이터에 오염된다
 
-## 참고 문헌
-
-1. Prechelt, L. (1998). Early Stopping - But When? *Neural Networks: Tricks of the Trade*, 55-69.
-2. Yao, Y., Rosasco, L., & Caponnetto, A. (2007). On Early Stopping in Gradient Descent Learning. *Constructive Approximation*, 26(2), 289-315.
-3. Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapter 7.
+---
 
 ## 연습문제
 
@@ -690,3 +701,13 @@ PyTorch 학습 루프에서 인내 매개변수를 갖는 조기 종료를 구�
 
 ??? success "연습문제 4 풀이"
     이차 손실을 쓰는 선형 모델에서는 동등함이 증명되어 있다(Bishop, 1995). 심층 신경망에서는 근사적으로 비슷하지만 같지는 않다. 조기 종료는 L2와 달리 학습률 스케줄이나 적응형 최적화기와 상호작용한다. 실무에서는 둘을 함께 쓰는 것이 가장 잘 통할 때가 많다.
+
+## 정리하며
+
+이 마당은 개념적 토대、수학적 정식화、PyTorch 구현、초매개변수에 대한 고려을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Prechelt, L. (1998). Early Stopping - But When? *Neural Networks: Tricks of the Trade*, 55-69.
+2. Yao, Y., Rosasco, L., & Caponnetto, A. (2007). On Early Stopping in Gradient Descent Learning. *Constructive Approximation*, 26(2), 289-315.
+3. Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapter 7.

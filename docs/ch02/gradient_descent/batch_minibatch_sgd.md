@@ -1,11 +1,12 @@
 # 배치, 미니배치, 확률적 경사 하강법
-## 들어가며
 
 표본이 수천 개 또는 수백만 개인 데이터셋으로 학습할 때, 매 반복마다 데이터셋 전체에 대한 경사를 계산하는 것은 계산 비용이 크다. 이 절에서는 **각 경사 갱신에 데이터를 얼마나 쓰는가** 에서 차이가 나는 경사 하강법의 세 가지 근본적인 변형을 살펴본다.
 
 미니배치 경사 하강법이 신경망 학습의 사실상 표준이 되었으므로, 이 변형들을 이해하는 것은 실용적인 기계학습에 필수적이다.
 
-## 세 가지 변형
+---
+
+## 1. 세 가지 변형
 
 ### 개요
 
@@ -37,7 +38,9 @@ $$\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{B}\sum_{j \in \mathcal{B}_t} \na
 
 여기서 $\mathcal{B}_t$는 무작위로 추출된 미니배치이다.
 
-## 배치 경사 하강법
+---
+
+## 2. 배치 경사 하강법
 
 ### 알고리즘
 
@@ -90,7 +93,9 @@ def batch_gradient_descent(X, y, model, criterion,
 - 볼록 최적화 문제
 - 메모리가 제약이 되지 않을 때
 
-## 확률적 경사 하강법(SGD)
+---
+
+## 3. 확률적 경사 하강법(SGD)
 
 ### 알고리즘
 
@@ -160,7 +165,9 @@ $$\nabla_\theta \ell(\theta; x_i, y_i) = \nabla_\theta L(\theta) + \epsilon_i$$
 - 손실 지형을 더 넓게 탐색하기
 - 일반화가 더 잘되는 해(더 평평한 최솟값)로 이끌기
 
-## 미니배치 경사 하강법
+---
+
+## 4. 미니배치 경사 하강법
 
 ### 알고리즘
 
@@ -234,7 +241,9 @@ for epoch in range(n_epochs):
 - 경사가 여전히 (정확한 값이 아닌) 추정값이다
 - 배치 통계가 달라질 수 있다(BatchNorm에 영향을 준다)
 
-## 비교
+---
+
+## 5. 비교
 
 ### 수렴 양상
 
@@ -288,7 +297,9 @@ y = torch.randn(n_samples, 1)
 # 시간: 약 0.8초, 최종 손실: 1.0015
 ```
 
-## 배치 크기 선택
+---
+
+## 6. 배치 크기 선택
 
 ### 일반적인 지침
 
@@ -317,7 +328,9 @@ batch_sizes = [16, 32, 64, 128, 256, 512]
 # batch_size = 100  # 덜 효율적이다
 ```
 
-## 경사 분산 분석
+---
+
+## 7. 경사 분산 분석
 
 ### 분산 감소
 
@@ -343,7 +356,9 @@ $$\text{Var}[\nabla_\theta L_B] = \frac{\sigma^2}{B}$$
 
 > "SGD의 잡음은 정칙화 역할을 한다." — Keskar et al., 2017
 
-## 구현 세부 사항
+---
+
+## 8. 구현 세부 사항
 
 ### 섞기
 
@@ -392,7 +407,9 @@ for i, (X_batch, y_batch) in enumerate(train_loader):
         optimizer.zero_grad()
 ```
 
-## 실용적인 학습 루프
+---
+
+## 9. 실용적인 학습 루프
 
 ### 완전한 예제
 
@@ -442,29 +459,16 @@ for epoch in range(n_epochs):
         print(f"Epoch {epoch+1}: Loss = {avg_loss:.4f}")
 ```
 
-## 핵심 요점
+---
 
-1. **배치 경사 하강법**: 정확한 경사, 느림, 안정적인 수렴
-2. **SGD**: 빠른 반복, 잡음이 많음, 좋은 탐색
-3. **미니배치**: 최선의 절충이며 실무의 표준
-4. **배치 크기가 중요하다**: 속도, 메모리, 일반화에 영향을 준다
-5. **DataLoader를 쓴다**: 배치 구성, 섞기, 병렬화를 처리해 준다
-6. **32-64로 시작한다**: 대부분의 문제에 합리적인 기본값
-7. **경사 잡음이 도움이 된다**: 어느 정도의 잡음은 일반화에 이롭다
-
-## 다른 주제와의 연결
+## 10. 다른 주제와의 연결
 
 - **학습률**: 배치 크기와 상호작용한다. [학습률](learning_rate.md) 참고
 - **모멘텀**: 실효 잡음을 줄인다. [고전적 모멘텀](../../ch05/optimizers/momentum.md) 참고
 - **배치 정규화**: 통계가 배치 크기에 의존한다. 배치 정규화 참고
 - **분산 학습**: 배치 크기를 세심하게 조정해야 한다
 
-## 참고 문헌
-
-- Bottou, L. (2010). Large-scale machine learning with stochastic gradient descent. COMPSTAT.
-- Keskar, N. S., et al. (2017). On large-batch training for deep learning: Generalization gap and sharp minima. ICLR.
-- Smith, S. L., et al. (2018). Don't decay the learning rate, increase the batch size. ICLR.
-- Goyal, P., et al. (2017). Accurate, large minibatch SGD: Training ImageNet in 1 hour.
+---
 
 ## 연습문제
 
@@ -522,3 +526,20 @@ for epoch in range(n_epochs):
 
 ??? success "연습문제 4 풀이"
     미니배치 SGD는 경사에 암묵적인 잡음을 더한다. $\hat{g} = \bar{g} + \epsilon$이며 $\epsilon$의 분산은 $\sigma^2/B$이다. 이 잡음이 정칙화 역할을 하여, (곡률이 크고 교란에 민감한) 뾰족한 최솟값에서는 벗어나게 하면서도 (잡음에 강건한) 평평한 최솟값에는 머무르게 한다. 배치 경사 하강법은 정확한 경사를 계산하고 결정적으로 그것을 따르므로, 뾰족한 최솟값의 흡인 영역에 들어가면 갇힌 채로 남는다. SGD 잡음에서 오는 이 암묵적 정칙화가 배치 크기가 작을수록 일반화가 잘되는 경우가 많은 이유 중 하나이다.
+
+## 정리하며
+
+1. **배치 경사 하강법**: 정확한 경사, 느림, 안정적인 수렴
+2. **SGD**: 빠른 반복, 잡음이 많음, 좋은 탐색
+3. **미니배치**: 최선의 절충이며 실무의 표준
+4. **배치 크기가 중요하다**: 속도, 메모리, 일반화에 영향을 준다
+5. **DataLoader를 쓴다**: 배치 구성, 섞기, 병렬화를 처리해 준다
+6. **32-64로 시작한다**: 대부분의 문제에 합리적인 기본값
+7. **경사 잡음이 도움이 된다**: 어느 정도의 잡음은 일반화에 이롭다
+
+**참고 문헌**
+
+- Bottou, L. (2010). Large-scale machine learning with stochastic gradient descent. COMPSTAT.
+- Keskar, N. S., et al. (2017). On large-batch training for deep learning: Generalization gap and sharp minima. ICLR.
+- Smith, S. L., et al. (2018). Don't decay the learning rate, increase the batch size. ICLR.
+- Goyal, P., et al. (2017). Accurate, large minibatch SGD: Training ImageNet in 1 hour.

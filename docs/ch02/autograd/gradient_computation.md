@@ -1,9 +1,10 @@
 # 경사 계산
-## 개요
 
 PyTorch의 autograd 엔진은 딥러닝에서 자동 미분의 토대이다. 텐서에 대한 연산을 기록하고 **후진 모드 자동 미분**(역전파)으로 경사를 계산하는 테이프 기반 체계를 제공한다. 이 절에서는 경사 계산의 수학적 틀, 전진 모드와 후진 모드 자동 미분의 구분, 그리고 PyTorch의 벡터-야코비 곱(VJP) 기법이 연쇄 법칙을 어떻게 효율적으로 구현하는지를 다룬다.
 
-## 학습 목표
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -13,7 +14,9 @@ PyTorch의 autograd 엔진은 딥러닝에서 자동 미분의 토대이다. 텐
 4. 신경망 학습에 후진 모드가 선호되는 이유를 설명한다
 5. 두 모드 모두로 전체 야코비 행렬을 계산한다
 
-## 수학적 기초
+---
+
+## 2. 수학적 기초
 
 ### 연쇄 법칙
 
@@ -41,7 +44,9 @@ $$J = \frac{\partial f}{\partial x} = \begin{bmatrix}
 
 $$J = J_L \cdot J_{L-1} \cdot \ldots \cdot J_1$$
 
-## PyTorch에서 경사 계산하기
+---
+
+## 3. PyTorch에서 경사 계산하기
 
 ### 스칼라 손실: `.backward()` 메서드
 
@@ -133,7 +138,9 @@ print(f"dy/dx = 3x² = {grad_y}")  # tensor([12.])
 
 이는 고계 도함수(고계 경사 참고)를 다룰 때, 그리고 `retain_grad()`를 호출하지 않고 잎이 아닌 텐서의 경사가 필요할 때 특히 유용하다.
 
-## 벡터-야코비 곱의 틀
+---
+
+## 4. 벡터-야코비 곱의 틀
 
 ### 왜 VJP인가?
 
@@ -220,7 +227,9 @@ print(f"A^T @ v: {expected}")
 print(f"Match: {torch.allclose(x.grad, expected)}")
 ```
 
-## 전진 모드와 후진 모드 자동 미분
+---
+
+## 5. 전진 모드와 후진 모드 자동 미분
 
 야코비안의 곱 $J = J_L \cdot J_{L-1} \cdot \ldots \cdot J_1$은 두 가지 순서로 계산할 수 있으며, 각각이 자동 미분의 한 모드를 정의한다.
 
@@ -347,7 +356,9 @@ x = torch.randn(1000, 1000, requires_grad=True)
 y = checkpoint(expensive_layer, x, use_reentrant=False)
 ```
 
-## 전체 야코비안 계산하기
+---
+
+## 6. 전체 야코비안 계산하기
 
 ### `torch.autograd.functional.jacobian` 사용하기
 
@@ -430,7 +441,9 @@ J_forward = torch.stack([J_col0, J_col1], dim=1)
 print(f"Full Jacobian (forward mode):\n{J_forward}")
 ```
 
-## 주요 속성과 메서드
+---
+
+## 7. 주요 속성과 메서드
 
 | 속성 / 메서드 | 설명 |
 |--------------------|-------------|
@@ -443,23 +456,7 @@ print(f"Full Jacobian (forward mode):\n{J_forward}")
 | `x.detach()` | 데이터는 공유하되 그래프에서 분리된 텐서를 반환한다 |
 | `torch.autograd.grad(y, x)` | `.grad`를 채우지 않고 경사를 계산한다 |
 
-## 요약
-
-| 개념 | 핵심 |
-|---------|------------|
-| **경사** | 스칼라 $L$에 대해 후진 모드 자동 미분으로 계산한 $\nabla_x L$ |
-| **VJP** | $J^T \bar{y}$ — PyTorch가 역전파 중에 계산하는 것 |
-| **JVP** | $J \dot{x}$ — 전진 모드. 입력이 적을 때 효율적이다 |
-| **후진 모드** | 스칼라 손실에 대해 역전파 한 번. 비용 $O(T)$ |
-| **전진 모드** | 순전파 $n$번이 필요. 추가 메모리 $O(1)$ |
-| **전체 야코비안** | 역전파 $m$번(후진) 또는 순전파 $n$번 |
-| **경사 저장** | 기본적으로 잎 텐서만 `.grad`를 저장한다 |
-
-## 참고 문헌
-
-- Baydin, A.G., et al. (2018). Automatic Differentiation in Machine Learning: A Survey. *JMLR*.
-- Griewank, A. & Walther, A. (2008). *Evaluating Derivatives: Principles and Techniques of Algorithmic Differentiation*.
-- PyTorch Autograd Documentation: [https://pytorch.org/docs/stable/autograd.html](https://pytorch.org/docs/stable/autograd.html)
+---
 
 ## 연습문제
 
@@ -516,3 +513,20 @@ print(f"Full Jacobian (forward mode):\n{J_forward}")
 ??? success "연습문제 4 풀이"
     경사가 더해지면서 누적된다. 두 번째 `backward()` 호출 후 각 매개변수의 `.grad`는 두 번의 통과에서 나온 경사의 합을 담는다. 이것이 기본값인 이유는 경사 누적이 큰 배치 크기를 흉내 내는 데 유용하기 때문이다. 여러 미니배치에 대해 `backward()`를 호출하고 `optimizer.step()`은 한 번만 호출하면 사실상 더 큰 실효 배치에 대해 평균을 내는 셈이 된다. 다만 표준적인 학습 루프에서는 오래된 경사가 갱신을 망치지 않도록 매 `backward()` 전에 `optimizer.zero_grad()`를 호출해야 한다.
 
+## 정리하며
+
+| 개념 | 핵심 |
+|---------|------------|
+| **경사** | 스칼라 $L$에 대해 후진 모드 자동 미분으로 계산한 $\nabla_x L$ |
+| **VJP** | $J^T \bar{y}$ — PyTorch가 역전파 중에 계산하는 것 |
+| **JVP** | $J \dot{x}$ — 전진 모드. 입력이 적을 때 효율적이다 |
+| **후진 모드** | 스칼라 손실에 대해 역전파 한 번. 비용 $O(T)$ |
+| **전진 모드** | 순전파 $n$번이 필요. 추가 메모리 $O(1)$ |
+| **전체 야코비안** | 역전파 $m$번(후진) 또는 순전파 $n$번 |
+| **경사 저장** | 기본적으로 잎 텐서만 `.grad`를 저장한다 |
+
+**참고 문헌**
+
+- Baydin, A.G., et al. (2018). Automatic Differentiation in Machine Learning: A Survey. *JMLR*.
+- Griewank, A. & Walther, A. (2008). *Evaluating Derivatives: Principles and Techniques of Algorithmic Differentiation*.
+- PyTorch Autograd Documentation: [https://pytorch.org/docs/stable/autograd.html](https://pytorch.org/docs/stable/autograd.html)

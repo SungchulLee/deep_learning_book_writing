@@ -2,11 +2,15 @@
 
 고전 에라토스테네스의 체는 $n$까지의 소수를 모두 찾는 데 기억이 $O(n)$ 든다. $n$이 크면(보기로 $10^{12}$) 이 배열이 기억에 들어가지 않는다. 토막 낸 체는 범위를 붙박이 크기의 덩이로 나누어 다루어 시간 복잡도는 그대로 두고 기억을 $O(\sqrt{n})$으로 줄인다.
 
-## 미리 알아야 할 것
+---
+
+## 1. 미리 알아야 할 것
 
 핵심 살핌은 어떤 합성수 $m \le n$에도 소인수 $p \le \sqrt{n}$이 있다는 것이다. 따라서 어떤 덩이를 체 치든 $\sqrt{n}$까지의 소수만 있으면 된다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 ### 걸음 1 --- 바탕 소수
 
@@ -31,7 +35,9 @@ $O(\sqrt{n} \log \log \sqrt{n})$이 든다.
     - 덩이 안 $p$의 모든 배수를 합성수로 표시한다.
 3. 표시되지 않은 자리를 소수로 모은다.
 
-## 구현
+---
+
+## 3. 구현
 
 ```python
 """
@@ -43,7 +49,6 @@ $O(\sqrt{n} \log \log \sqrt{n})$이 든다.
 
 import math
 
-
 # === 기본 체(바탕 소수용) ===
 def simple_sieve(limit: int) -> list[int]:
     """여느 체로 limit까지의 소수를 모두 돌려준다."""
@@ -54,7 +59,6 @@ def simple_sieve(limit: int) -> list[int]:
             for j in range(i * i, limit + 1, i):
                 is_prime[j] = False
     return [i for i in range(2, limit + 1) if is_prime[i]]
-
 
 # === 토막 낸 체 ===
 def segmented_sieve(n: int) -> list[int]:
@@ -93,7 +97,6 @@ def segmented_sieve(n: int) -> list[int]:
 
     return primes
 
-
 # === 보기 ===
 if __name__ == "__main__":
     n = 100
@@ -107,7 +110,9 @@ if __name__ == "__main__":
     print(f"Number of primes up to {n_large}: {count}")
 ```
 
-## 복잡도 분석
+---
+
+## 4. 복잡도 분석
 
 | 면 | 기본 체 | 토막 낸 체 |
 |---|---|---|
@@ -119,7 +124,9 @@ if __name__ == "__main__":
 기억이 나아지는 것은 덩이 크기의 배열 하나를
 다시 쓰기 때문이다.
 
-## 덩이 크기 고르기
+---
+
+## 5. 덩이 크기 고르기
 
 덩이 크기 $\Delta$이 캐시 성능에 영향을 준다:
 
@@ -133,7 +140,9 @@ if __name__ == "__main__":
     실제로 좋은 고르기이다. 이는 체 치는 동안 부울 배열과 되풀이 변수가
     모두 L1 캐시에 머물게 한다.
 
-## 범위 체 치기
+---
+
+## 6. 범위 체 치기
 
 토막 낸 체는 $2$부터 체 치지 않고도 아무 범위 $[a, b]$의 소수를 찾도록
 자연스럽게 넓혀진다:
@@ -144,11 +153,7 @@ if __name__ == "__main__":
 이는 $2$부터 온전히 체 칠 필요가 없는 "$10^{12}$과 $10^{12} + 10^6$ 사이의
 소수를 세어라" 같은 문제에 쓸모 있다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
-- Crandall, R. & Pomerance, C. *Prime Numbers: A Computational Perspective*. Springer, 2005.
-
+---
 
 ## 연습문제
 
@@ -181,3 +186,12 @@ $[10^{15}, 10^{15} + 10^6]$의 소수 개수를 어떻게 효율 좋게 세겠�
 
 ??? success "연습문제 4 풀이"
     토막 배열은 빠른 아무 데나 닿기를 위해 L1/L2 캐시에 들어가야 한다. L1 캐시는 보통 32~64KB이고 L2은 256KB~1MB이다. $\Delta \approx$ 캐시 크기로 두면 토막을 훑는 체 치기가 캐시 안에 머문다. $\Delta$이 너무 크면 캐시 빗나감이 체를 크게 느리게 한다. 너무 작으면 토막마다 작은 소수를 모두 훑는 웃돈이 커진다. 알맞은 자리는 $\Delta \approx \sqrt{R}$이나 L2 캐시 크기 가운데 작은 쪽이다.
+
+## 정리하며
+
+이 마당은 미리 알아야 할 것、알고리즘、구현、복잡도 분석을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
+- Crandall, R. & Pomerance, C. *Prime Numbers: A Computational Perspective*. Springer, 2005.

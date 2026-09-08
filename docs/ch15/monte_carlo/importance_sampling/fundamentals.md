@@ -1,13 +1,16 @@
 # 중요도 표집의 바탕
-## 개요
 
 중요도 표집은 어떤 분포 아래의 기댓값을 다른 분포에서 표집해 셈하게 해 주는 흩어짐 줄이기 기법이다. 이 방법은 베이즈 추론에 근본이 되는데, 베이즈 추론에서는 곧바로 표집하기 어렵거나 불가능한 복잡한 뒤확률 분포에 대해 적분해야 할 때가 많기 때문이다.
 
-## 지난 이야기
+---
+
+## 1. 지난 이야기
 
 중요도 표집은 1940년대 후반 로스앨러모스의 몬테카를로 연구에서 나왔다. "중요도 표집"이라는 말과 그 현대적인 꼴은 1950년 무렵 중성자 이동 문제를 연구하던 허먼 칸, T. E. 해리스와 동료들의 일에서 나타났다. 이 방법은 해머슬리와 핸즈콤(1964)이 체계로 세웠고, 나중에 클록과 판데이크(1978)의 일을 거쳐 베이즈 통계에 받아들여졌다.
 
-## 근본 문제
+---
+
+## 2. 근본 문제
 
 ### 판 벌이기
 
@@ -25,7 +28,9 @@ $$
 2. **드문 일 어림하기**: $\pi$ 아래에서 확률이 $< 10^{-6}$인 일
 3. **복잡한 밀도**: 표준 표집 알고리즘이 없다
 
-## 측도 바꾸기
+---
+
+## 3. 측도 바꾸기
 
 ### 핵심 항등식
 
@@ -56,7 +61,9 @@ $$
     
     $\pi(\theta) > 0$인 곳에서 $q(\theta) = 0$이면 무게 $w(\theta)$이 정해지지 않아 **끝없는 치우침**이 생긴다.
 
-## 중요도 표집 어림자
+---
+
+## 4. 중요도 표집 어림자
 
 ### 몬테카를로 어림
 
@@ -80,7 +87,9 @@ $$
 \text{Var}_q(\hat{I}_{\text{IS}}) = \frac{1}{n} \text{Var}_q(h(\theta) w(\theta)) = \frac{1}{n}\left(\mathbb{E}_q[h^2(\theta) w^2(\theta)] - I^2\right)
 $$
 
-## 직관: 중요한 곳에서 표집하라
+---
+
+## 5. 직관: 중요한 곳에서 표집하라
 
 ### 핵심 생각
 
@@ -111,7 +120,9 @@ Good proposal q:    [.....|..XXXX|.....]
                     puts extra mass where it matters
 ```
 
-## 흩어짐 분석
+---
+
+## 6. 흩어짐 분석
 
 ### 일반 흩어짐 공식
 
@@ -154,7 +165,9 @@ $q$을 잘못 고르면 중요도 표집이 흩어짐을 *키운다*:
     - 실효 표본 크기가 주저앉는다
     - 흩어짐이 터진다
 
-## 가장 좋은 제안 분포
+---
+
+## 7. 가장 좋은 제안 분포
 
 ### 변분법으로 이끌어 내기
 
@@ -202,7 +215,9 @@ $$
 2. **받침**: $\pi(\theta) > 0$인 곳을 모두 덮는다
 3. **꼬리**: 적어도 $\pi$만큼은 무거워야 한다
 
-## PyTorch 구현
+---
+
+## 8. PyTorch 구현
 
 ```python
 import torch
@@ -277,7 +292,6 @@ def importance_sampling(h_function, target_log_pdf, proposal_dist,
         return estimate, se, diagnostics
     
     return estimate, se
-
 
 # 보기: π = N(3, 1)일 때 E_π[θ²] 셈하기
 # 제안 q = N(0, 2) 사용
@@ -384,7 +398,9 @@ plt.savefig('importance_sampling_fundamentals.png', dpi=150, bbox_inches='tight'
 plt.show()
 ```
 
-## 제안 분포 견주기
+---
+
+## 9. 제안 분포 견주기
 
 ### 제안을 고르는 것의 효과
 
@@ -442,7 +458,9 @@ for r in results:
           f"{r['mean_ess']:12.1f} {r['ess_ratio']:12.2%}")
 ```
 
-## 흩어짐 줄이기 보기: 꼬리 확률
+---
+
+## 10. 흩어짐 줄이기 보기: 꼬리 확률
 
 ### 드문 일 문제
 
@@ -489,7 +507,9 @@ variance_reduction = (naive_se / is_se)**2
 print(f"\nVariance reduction factor: {variance_reduction.item():.1f}x")
 ```
 
-## 계량 금융에서의 쓰임새
+---
+
+## 11. 계량 금융에서의 쓰임새
 
 ### 드문 일 위험 어림하기
 
@@ -578,7 +598,9 @@ print(f"  ES(99.9%):  {results['es']:.4f}")
 print(f"  ESS:        {results['ess']:.1f} ({results['ess_ratio']:.1%})")
 ```
 
-## 베이즈 추론에서의 쓰임새
+---
+
+## 12. 베이즈 추론에서의 쓰임새
 
 ### 뒤확률 기댓값
 
@@ -608,7 +630,9 @@ $$
 
 이것이 조화 평균 어림자이다(다만 흩어짐이 끝없을 수 있다. 나아간 주제를 보아라).
 
-## 핵심 정리
+---
+
+## 13. 핵심 정리
 
 !!! success "중요도 표집을 언제 쓰나"
 
@@ -631,19 +655,7 @@ $$
     3. 과녁의 받침 전체를 덮어라
     4. 복잡한 과녁에는 알아서 맞추는 방법을 생각해 보아라
 
-## 참고 문헌
-
-1. Kahn, H., & Harris, T. E. (1951). "Estimation of particle transmission by random sampling." *National Bureau of Standards Applied Mathematics Series*, 12, 27-30.
-
-2. Hammersley, J. M., & Handscomb, D. C. (1964). *Monte Carlo Methods*. Methuen.
-
-3. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9장: 중요도 표집.
-
-4. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer. 3장.
-
-5. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2장.
-
-6. Glasserman, P. (2003). *Monte Carlo Methods in Financial Engineering*. Springer. 4-5장.
+---
 
 ## 연습문제
 
@@ -658,3 +670,21 @@ $h(\theta) = \theta^2$이고 $\pi = \mathcal{N}(3,1)$일 때 가장 좋은 제�
 
 ### 연습 4: 중요도 표집으로 옵션 값 매기기
 블랙-숄즈 모형 아래에서 깊은 외가격 유럽식 콜 옵션의 값을 중요도 표집으로 매겨라. 소박한 몬테카를로(위험 중립 측도 아래에서 경로를 표집)와 제안을 행사가 쪽으로 옮긴 중요도 표집의 흩어짐을 견주어라. 흩어짐이 줄어든 배수를 셈하여라.
+
+## 정리하며
+
+이 마당은 지난 이야기、근본 문제、측도 바꾸기、중요도 표집 어림자을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Kahn, H., & Harris, T. E. (1951). "Estimation of particle transmission by random sampling." *National Bureau of Standards Applied Mathematics Series*, 12, 27-30.
+
+2. Hammersley, J. M., & Handscomb, D. C. (1964). *Monte Carlo Methods*. Methuen.
+
+3. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9장: 중요도 표집.
+
+4. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer. 3장.
+
+5. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2장.
+
+6. Glasserman, P. (2003). *Monte Carlo Methods in Financial Engineering*. Springer. 4-5장.

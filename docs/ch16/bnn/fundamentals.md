@@ -1,5 +1,4 @@
 # 베이즈 신경망의 바탕
-## 개요
 
 **베이즈 신경망(BNN)**은 점 어림값을 배우는 대신 가중값에 확률 분포를 두어 표준 신경망을 넓힌다. 이로써 원리 있게 불확실함을 잴 수 있고, 모형이 자료에 대해 모르는 것(우연 불확실함)과 모형이 자기 자신에 대해 모르는 것(앎 불확실함)을 가려낼 수 있다.
 
@@ -8,7 +7,7 @@
 
 ---
 
-## 왜 베이즈 신경망인가?
+## 1. 왜 베이즈 신경망인가?
 
 표준 신경망은 점 미리봄을 내놓는다:
 
@@ -42,7 +41,7 @@ $$
 
 ---
 
-## 불확실함의 갈래
+## 2. 불확실함의 갈래
 
 $$
 \boxed{\text{Total Uncertainty} = \text{Aleatoric Uncertainty} + \text{Epistemic Uncertainty}}
@@ -69,7 +68,7 @@ $$
 
 ---
 
-## 추론의 어려움
+## 3. 추론의 어려움
 
 매개변수가 $D$개인 신경망에서 뒤확률은 기하가 몹시 복잡한 $D$차원 공간 위에서 정해진다:
 
@@ -91,7 +90,7 @@ $$
 
 ---
 
-## 벌주기와의 이음
+## 4. 벌주기와의 이음
 
 어떤 앞확률을 쓰는 베이즈 추론은 낯익은 벌주기 기법과 맞대응된다:
 
@@ -106,7 +105,7 @@ $$
 
 ---
 
-## 금융에서 살필 점
+## 5. 금융에서 살필 점
 
 베이즈 신경망은 다음과 같은 계량 금융에서 특히 값지다:
 
@@ -126,25 +125,6 @@ $$
 이러면 모형이 확신하지 못할 때 노출이 저절로 줄어든다. 원리 있는 위험 다루기이다.
 
 ---
-
-## 요약
-
-| 개념 | 핵심 |
-|---------|-----------|
-| **베이즈 신경망의 정의** | 점 어림값 대신 가중값에 둔 분포 |
-| **우연 불확실함** | 줄일 수 없는 자료의 잡음 |
-| **앎 불확실함** | 줄일 수 있는 모형의 불확실함(자료가 늘면 줄어든다) |
-| **미리봄 분포** | 뒤확률에 걸쳐 적분한다. 어림 추론이 필요하다 |
-| **벌주기와의 이음** | 앞확률을 쓴 MAP = 벌준 최대 가능도 어림, 온전한 베이즈는 그보다 더 나아간다 |
-
----
-
-## 참고 문헌
-
-- Blundell, C., Cornebise, J., Kavukcuoglu, K., & Wierstra, D. (2015). Weight Uncertainty in Neural Networks. *ICML*.
-- Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning. *ICML*.
-- MacKay, D. J. C. (1992). A Practical Bayesian Framework for Backpropagation Networks. *Neural Computation*, 4(3), 448-472.
-- Wilson, A. G., & Izmailov, P. (2020). Bayesian Deep Learning and a Probabilistic Perspective of Generalization. *NeurIPS*.
 
 ## 연습문제
 
@@ -181,3 +161,22 @@ ELBO 목표에 대한, 되짚음으로 하는 베이즈의 기울기 어림꼴�
 
 ??? success "연습문제 4 풀이"
     앞확률은 뒤확률에 벌을 주며 익힘의 움직임과 미리봄의 불확실함에 모두 영향을 준다. **표준 가우스** $\mathcal{N}(0, \sigma^2 I)$은 단순하고 L2 벌주기에 맞대응되지만 모든 가중값에 똑같이 벌을 주어 너무 옭아맬 수 있다. **크기 섞음** 앞확률(이를테면 $\pi \mathcal{N}(0, \sigma_1^2) + (1-\pi) \mathcal{N}(0, \sigma_2^2)$)은 어떤 가중값은 크게(신호) 두면서 다른 가중값은 0에 가깝게(잡음) 몰아 맞춰 가는 성김을 준다. 주고받음은 이렇다. 크기 섞음은 표현력이 더 좋지만 최적화가 더 어렵고 웃매개변수가 늘어난다.
+
+## 정리하며
+
+| 개념 | 핵심 |
+|---------|-----------|
+| **베이즈 신경망의 정의** | 점 어림값 대신 가중값에 둔 분포 |
+| **우연 불확실함** | 줄일 수 없는 자료의 잡음 |
+| **앎 불확실함** | 줄일 수 있는 모형의 불확실함(자료가 늘면 줄어든다) |
+| **미리봄 분포** | 뒤확률에 걸쳐 적분한다. 어림 추론이 필요하다 |
+| **벌주기와의 이음** | 앞확률을 쓴 MAP = 벌준 최대 가능도 어림, 온전한 베이즈는 그보다 더 나아간다 |
+
+---
+
+**참고 문헌**
+
+- Blundell, C., Cornebise, J., Kavukcuoglu, K., & Wierstra, D. (2015). Weight Uncertainty in Neural Networks. *ICML*.
+- Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning. *ICML*.
+- MacKay, D. J. C. (1992). A Practical Bayesian Framework for Backpropagation Networks. *Neural Computation*, 4(3), 448-472.
+- Wilson, A. G., & Izmailov, P. (2020). Bayesian Deep Learning and a Probabilistic Perspective of Generalization. *NeurIPS*.

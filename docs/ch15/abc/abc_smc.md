@@ -3,7 +3,7 @@ ABC-SMC는 어림 베이즈 셈하기와 잇단 몬테카를로 방법을 합쳐
 
 ---
 
-## 왜 필요한가
+## 1. 왜 필요한가
 
 ### 앞선 방법의 한계
 
@@ -30,7 +30,7 @@ ABC-SMC는 다음으로 이 문제를 다룬다:
 
 ---
 
-## ABC-SMC 알고리즘
+## 2. ABC-SMC 알고리즘
 
 ### 훑어보기
 
@@ -86,7 +86,7 @@ return {(θᵢ⁽ᵀ⁾, wᵢ⁽ᵀ⁾)}
 
 ---
 
-## 구현
+## 3. 구현
 
 ### 온전한 파이썬 구현
 
@@ -300,7 +300,7 @@ def run_adaptive(self, epsilon_init, epsilon_final, alpha=0.5,
 
 ---
 
-## 이론적 성질
+## 4. 이론적 성질
 
 ### 과녁 분포
 
@@ -344,7 +344,7 @@ ESS이 너무 낮아지면 다시 표집해 무게를 고르게 되돌린다.
 
 ---
 
-## 흔들기 알맹이
+## 5. 흔들기 알맹이
 
 ### 가우스 알맹이(표준)
 
@@ -385,7 +385,7 @@ def local_kernel(theta, particles, weights, k=50):
 
 ---
 
-## 다시 표집하기 전략
+## 6. 다시 표집하기 전략
 
 ### 언제 다시 표집하나
 
@@ -428,7 +428,7 @@ def systematic_resample(weights):
 
 ---
 
-## 실용적인 고려
+## 7. 실용적인 고려
 
 ### 알갱이의 개수 고르기
 
@@ -506,7 +506,7 @@ def sample_population_parallel(prev_particles, prev_weights, epsilon,
 
 ---
 
-## 변형
+## 8. 변형
 
 ### 회귀 조정을 곁들인 ABC-SMC
 
@@ -546,7 +546,7 @@ def multi_distance(s1, s2, weights):
 
 ---
 
-## 보기: 생태 모형
+## 9. 보기: 생태 모형
 
 ```python
 # 로트카-볼테라 잡이-먹이 모형
@@ -605,7 +605,7 @@ particles, weights, history = sampler.run_adaptive(
 
 ---
 
-## 비교
+## 10. 비교
 
 | 방법 | 효율 | 알아서 맞추기 | 병렬성 | 복잡도 |
 |--------|------------|------------|-------------|------------|
@@ -616,28 +616,6 @@ particles, weights, history = sampler.run_adaptive(
 복잡한 문제에서는 대체로 ABC-SMC가 가장 효율적이지만 구현에 품이 더 든다.
 
 ---
-
-## 요약
-
-| 항목 | 설명 |
-|--------|-------------|
-| **알고리즘** | ABC을 쓴 잇단 중요도 표집 |
-| **알아서 맞추기** | 세대를 거치며 너그러움이 줄어든다 |
-| **효율** | 물리치기/MCMC보다 높다 |
-| **병렬로 돌리기** | 세대 안에서 자연스럽다 |
-| **날 것** | 뒤확률을 어림하는 무게 준 알갱이 |
-| **핵심 맞추기** | 알갱이의 개수, 너그러움 일정/알아서 맞추기 |
-
-ABC-SMC는 고전 ABC 방법 가운데 가장 앞선 것으로, 흉내내기 기반 모형에 효율적이고 알아서 맞추는 추론을 준다.
-
----
-
-## 참고 문헌
-
-1. Sisson, S. A., Fan, Y., & Tanaka, M. M. (2007). "Sequential Monte Carlo Without Likelihoods." *PNAS*.
-2. Beaumont, M. A., Cornuet, J.-M., Marin, J.-M., & Robert, C. P. (2009). "Adaptive Approximate Bayesian Computation." *Biometrika*.
-3. Del Moral, P., Doucet, A., & Jasra, A. (2012). "An Adaptive Sequential Monte Carlo Method for Approximate Bayesian Computation." *Statistics and Computing*.
-4. Toni, T., Welch, D., Strelkowa, N., Ipsen, A., & Stumpf, M. P. (2009). "Approximate Bayesian Computation Scheme for Parameter Inference and Model Selection in Dynamical Systems." *JRSS-B*.
 
 ## 연습문제
 
@@ -652,3 +630,25 @@ ABC-SMC는 고전 ABC 방법 가운데 가장 앞선 것으로, 흉내내기 기
 5. **생태 추론.** 로트카-볼테라 모형으로 실제 생태 자료 묶음에 ABC-SMC를 써라.
 
 ---
+
+## 정리하며
+
+| 항목 | 설명 |
+|--------|-------------|
+| **알고리즘** | ABC을 쓴 잇단 중요도 표집 |
+| **알아서 맞추기** | 세대를 거치며 너그러움이 줄어든다 |
+| **효율** | 물리치기/MCMC보다 높다 |
+| **병렬로 돌리기** | 세대 안에서 자연스럽다 |
+| **날 것** | 뒤확률을 어림하는 무게 준 알갱이 |
+| **핵심 맞추기** | 알갱이의 개수, 너그러움 일정/알아서 맞추기 |
+
+ABC-SMC는 고전 ABC 방법 가운데 가장 앞선 것으로, 흉내내기 기반 모형에 효율적이고 알아서 맞추는 추론을 준다.
+
+---
+
+**참고 문헌**
+
+1. Sisson, S. A., Fan, Y., & Tanaka, M. M. (2007). "Sequential Monte Carlo Without Likelihoods." *PNAS*.
+2. Beaumont, M. A., Cornuet, J.-M., Marin, J.-M., & Robert, C. P. (2009). "Adaptive Approximate Bayesian Computation." *Biometrika*.
+3. Del Moral, P., Doucet, A., & Jasra, A. (2012). "An Adaptive Sequential Monte Carlo Method for Approximate Bayesian Computation." *Statistics and Computing*.
+4. Toni, T., Welch, D., Strelkowa, N., Ipsen, A., & Stumpf, M. P. (2009). "Approximate Bayesian Computation Scheme for Parameter Inference and Model Selection in Dynamical Systems." *JRSS-B*.

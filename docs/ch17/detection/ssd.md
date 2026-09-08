@@ -1,5 +1,8 @@
 # SSD: 한 방 여러 상자 알아내개
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,7 +12,9 @@
 - 어려운 음성 캐기 전략과 그 중요함을 설명한다
 - SSD와 YOLO를 견주고 그 맞바꿈을 이해한다
 
-## 개요
+---
+
+## 2. 개요
 
 SSD(한 방 여러 상자 알아내개)는 다음으로 YOLO의 빠르기와 자리 바탕 방법의 정확도 사이 균형을 잡는다:
 
@@ -17,7 +22,9 @@ SSD(한 방 여러 상자 알아내개)는 다음으로 YOLO의 빠르기와 자
 2. 알아내기에 **여러 잣수 특징 지도**를 쓴다.
 3. 자리마다 **붙박이 상자**(닻 앞선 것)를 둔다.
 
-## 여러 잣수 특징 지도
+---
+
+## 3. 여러 잣수 특징 지도
 
 SSD의 핵심 새로움은 점점 작아지는 특징 지도를 써서 여러 잣수에서 물체를 알아내는 것이다:
 
@@ -41,7 +48,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import List, Tuple
-
 
 class SSDExtraLayers(nn.Module):
     """
@@ -88,7 +94,9 @@ class SSDExtraLayers(nn.Module):
         return features
 ```
 
-## 붙박이 상자(닻 앞선 것)
+---
+
+## 4. 붙박이 상자(닻 앞선 것)
 
 특징 지도의 자리마다 SSD는 가로세로비와 잣수가 다른 **붙박이 상자** 한 벌을 놓는다.
 
@@ -157,7 +165,9 @@ class DefaultBoxGenerator:
         return torch.tensor(default_boxes, device=device).clamp(0, 1)
 ```
 
-## 알아내기 머리
+---
+
+## 5. 알아내기 머리
 
 ```python
 class SSDHead(nn.Module):
@@ -179,7 +189,9 @@ class SSDHead(nn.Module):
         return loc, conf
 ```
 
-## SSD 손실 함수
+---
+
+## 6. SSD 손실 함수
 
 SSD는 어려운 음성 캐기를 곁들인 여러 일 손실을 쓴다:
 
@@ -230,7 +242,9 @@ class SSDLoss(nn.Module):
         return loc_loss / N, conf_loss / N
 ```
 
-## 미리 익힌 SSD 쓰기
+---
+
+## 7. 미리 익힌 SSD 쓰기
 
 ```python
 import torchvision
@@ -247,7 +261,9 @@ scores = predictions[0]['scores']
 labels = predictions[0]['labels']
 ```
 
-## SSD와 YOLO 견줌
+---
+
+## 8. SSD와 YOLO 견줌
 
 | 갈래 | SSD | YOLO |
 |--------|-----|------|
@@ -256,21 +272,7 @@ labels = predictions[0]['labels']
 | **작은 물체** | 더 낫다 | 어렵다 |
 | **얼개** | VGG-16 | Darknet |
 
-## 요약
-
-SSD는 한 방 알아내기에 핵심적인 새로움을 들여왔다:
-
-1. **여러 잣수 특징 지도**: 잣수가 다른 물체를 효율적으로 알아낸다
-2. **붙박이 상자**: 자리마다 미리 정해 둔 닻
-3. **어려운 음성 캐기**: 갈래 치우침을 다룬다
-4. **끝에서 끝까지 익히기**: 그물 하나로 모든 어림을 낸다
-
-SSD는 빠르기와 정확도 사이 균형을 잘 잡아 실시간 쓰임새에 알맞다.
-
-## 참고 문헌
-
-1. Liu, W., et al. (2016). SSD: Single Shot MultiBox Detector. *ECCV*.
-2. Fu, C.Y., et al. (2017). DSSD: Deconvolutional Single Shot Detector. *arXiv*.
+---
 
 ## 연습문제
 
@@ -324,3 +326,19 @@ SSD는 빠르기와 정확도 사이 균형을 잘 잡아 실시간 쓰임새에
 
 ??? success "연습문제 4 풀이"
     한 단계 알아내개에서는 닻 상자 대부분이 바탕(쉬운 아님 보기)이고 물체를 담은 것은 몇 안 된다. 여느 엇결 엔트로피 잃음은 쉬운 아님 보기가 워낙 많아 그쪽에 휘둘리므로 어려운 맞음 보기의 기울기 신호가 묻힌다. **초점 잃음**은 조절 값을 더한다. $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$이다. $\gamma > 0$이면 쉬운 보기($p_t$이 높은 것)의 짐이 지수로 줄어 어려운 보기에 익힘이 몰린다. $\gamma = 2$과 $\alpha = 0.25$을 쓰면 RetinaNet은 한 단계의 빠르기를 지키면서 두 단계 알아내개에 맞먹는 맞음을 이룬다.
+
+## 정리하며
+
+SSD는 한 방 알아내기에 핵심적인 새로움을 들여왔다:
+
+1. **여러 잣수 특징 지도**: 잣수가 다른 물체를 효율적으로 알아낸다
+2. **붙박이 상자**: 자리마다 미리 정해 둔 닻
+3. **어려운 음성 캐기**: 갈래 치우침을 다룬다
+4. **끝에서 끝까지 익히기**: 그물 하나로 모든 어림을 낸다
+
+SSD는 빠르기와 정확도 사이 균형을 잘 잡아 실시간 쓰임새에 알맞다.
+
+**참고 문헌**
+
+1. Liu, W., et al. (2016). SSD: Single Shot MultiBox Detector. *ECCV*.
+2. Fu, C.Y., et al. (2017). DSSD: Deconvolutional Single Shot Detector. *arXiv*.

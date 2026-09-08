@@ -1,5 +1,4 @@
 # 글 만들어 내기의 표집 전략
-## 개요
 
 자기되돌리기 말 모델은 앞선 토막이 주어질 때 다음 토막에 대한 확률 분포를 정한다. 미룸 때에는 이 분포에서 **풀어내어** 글을 만들어야 한다. 어떤 풀기 전략을 고르느냐가 내놓음의 좋음, 여러 갈래임, 조리, 셈 값에 깊이 영향을 준다.
 
@@ -1385,35 +1384,6 @@ Start
 
 ---
 
-## 요약
-
-1. **p=0.9인 상위 p(알갱이) 표집**은 대부분의 일에 든든한 붙박이 값이다
-2. **온도**는 마구잡이 정도를 직관적으로 다스리게 해 준다
-3. **전략을 아울러라**: 온도 + 상위 p + 되풀이 벌주기면 대부분의 필요를 덮는다
-4. **알맞게 맞추는 방법**(전형, 에타, 미로스탯)은 한결같음을 낫게 할 수 있다
-5. **일에 맞춘 다듬기**가 내놓음의 좋음에 크게 영향을 준다
-6. **미리 짚어 풀기**는 좋음을 잃지 않고 크게 빨라지게 한다
-
----
-
-## 참고 문헌
-
-1. Fan, A., Lewis, M., & Dauphin, Y. (2018). Hierarchical Neural Story Generation. *ACL*.
-
-2. Holtzman, A., Buys, J., Du, L., Forbes, M., & Choi, Y. (2020). The Curious Case of Neural Text Degeneration. *ICLR*.
-
-3. Meister, C., Pimentel, T., Wiher, G., & Cotterell, R. (2023). Locally Typical Sampling. *TACL*.
-
-4. Su, Y., Lan, T., Wang, Y., Yogatama, D., Kong, L., & Collier, N. (2022). A Contrastive Framework for Neural Text Generation. *NeurIPS*.
-
-5. Basu, S., Ramachandran, G. S., Keskar, N. S., & Varshney, L. R. (2021). Mirostat: A Neural Text Decoding Algorithm that Directly Controls Perplexity. *ICLR*.
-
-6. Leviathan, Y., Kalman, M., & Matias, Y. (2023). Fast Inference from Transformers via Speculative Decoding. *ICML*.
-
-7. Chen, C., Borgeaud, S., Irving, G., Lespiau, J.-B., Sifre, L., & Jumper, J. (2023). Accelerating Large Language Model Decoding with Speculative Sampling. *arXiv*.
-
-8. Vijayakumar, A. K., et al. (2018). Diverse Beam Search: Decoding Diverse Solutions from Neural Sequence Models. *AAAI*.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -1445,3 +1415,32 @@ $n$-그램 말 모델에서 모델의 복잡함과 자료의 성김 사이 맞�
 
 ??? success "연습문제 4 풀이"
     **낱말 수준** 토막내기는 낱말 곳간이 크고(10만 이상) 드문 낱말에 매개변수를 낭비하며 곳간 밖 낱말을 다루지 못한다. **글자 수준** 토막내기는 곳간은 아주 작지만 차례가 무척 길어져 먼 거리 얽힘을 담아내기 어렵고 익히기가 느리다. **아래낱말** 방법(BPE, WordPiece, Unigram)은 둘의 균형을 잡는다. 곧 알맞은 크기의 곳간(3만 2천~6만 4천)을 지니고, 아래낱말을 엮어 어떤 낱말이든 나타낼 수 있으며(곳간 밖 낱말 없음), 꼴이 비슷한 낱말끼리 통계 앎을 나눠 갖고, 알맞게 짧은 차례를 낸다.
+
+## 정리하며
+
+1. **p=0.9인 상위 p(알갱이) 표집**은 대부분의 일에 든든한 붙박이 값이다
+2. **온도**는 마구잡이 정도를 직관적으로 다스리게 해 준다
+3. **전략을 아울러라**: 온도 + 상위 p + 되풀이 벌주기면 대부분의 필요를 덮는다
+4. **알맞게 맞추는 방법**(전형, 에타, 미로스탯)은 한결같음을 낫게 할 수 있다
+5. **일에 맞춘 다듬기**가 내놓음의 좋음에 크게 영향을 준다
+6. **미리 짚어 풀기**는 좋음을 잃지 않고 크게 빨라지게 한다
+
+---
+
+**참고 문헌**
+
+1. Fan, A., Lewis, M., & Dauphin, Y. (2018). Hierarchical Neural Story Generation. *ACL*.
+
+2. Holtzman, A., Buys, J., Du, L., Forbes, M., & Choi, Y. (2020). The Curious Case of Neural Text Degeneration. *ICLR*.
+
+3. Meister, C., Pimentel, T., Wiher, G., & Cotterell, R. (2023). Locally Typical Sampling. *TACL*.
+
+4. Su, Y., Lan, T., Wang, Y., Yogatama, D., Kong, L., & Collier, N. (2022). A Contrastive Framework for Neural Text Generation. *NeurIPS*.
+
+5. Basu, S., Ramachandran, G. S., Keskar, N. S., & Varshney, L. R. (2021). Mirostat: A Neural Text Decoding Algorithm that Directly Controls Perplexity. *ICLR*.
+
+6. Leviathan, Y., Kalman, M., & Matias, Y. (2023). Fast Inference from Transformers via Speculative Decoding. *ICML*.
+
+7. Chen, C., Borgeaud, S., Irving, G., Lespiau, J.-B., Sifre, L., & Jumper, J. (2023). Accelerating Large Language Model Decoding with Speculative Sampling. *arXiv*.
+
+8. Vijayakumar, A. K., et al. (2018). Diverse Beam Search: Decoding Diverse Solutions from Neural Sequence Models. *AAAI*.

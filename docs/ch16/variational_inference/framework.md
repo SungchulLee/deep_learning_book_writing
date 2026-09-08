@@ -1,5 +1,8 @@
 # 변분 추론 얼개
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,7 +12,9 @@
 4. 변분 추론을 다른 어림 추론 방법과 견주기
 5. 단순한 확률 모형에 기본 변분 추론 구현하기
 
-## 베이즈 추론의 어려움
+---
+
+## 2. 베이즈 추론의 어려움
 
 베이즈 추론은 관측한 자료가 주어졌을 때 매개변수에 대한 뒤확률 분포를 셈하려 한다. 매개변수가 $\theta$이고 관측 자료가 $\mathcal{D}$인 모형에서 베이즈 정리는 다음을 준다:
 
@@ -49,7 +54,9 @@ $$
     
     이 모든 양에 대한 뒤확률에는 닫힌 꼴 풀이가 없다.
 
-## 변분 추론: 적분 대신 최적화
+---
+
+## 3. 변분 추론: 적분 대신 최적화
 
 변분 추론(VI)은 다룰 수 없는 적분 문제를 다룰 수 있는 최적화 문제로 다시 세운다. 핵심 통찰은 이렇다:
 
@@ -95,7 +102,9 @@ $$
 
 그런데 이 목표에는 여전히 다룰 수 없는 뒤확률이 들어 있다! 변분 추론의 핵심 수학 재주는 이것을 셈할 수 있는 꼴로 다시 쓰는 것이다.
 
-## 수학적 틀
+---
+
+## 4. 수학적 틀
 
 ### KL 벌어짐에서 ELBO로
 
@@ -150,7 +159,9 @@ $$
     
     그리고 결정적으로 **ELBO는 $p(\mathcal{D})$을 모르고도 셈할 수 있다**!
 
-## 앞 KL 벌어짐과 뒤 KL 벌어짐
+---
+
+## 5. 앞 KL 벌어짐과 뒤 KL 벌어짐
 
 KL 벌어짐의 방향을 어떻게 고르느냐가 어림의 굶에 중요한 영향을 준다.
 
@@ -190,7 +201,9 @@ True Posterior (Bimodal):           Forward KL Result:        Reverse KL Result:
    Mode 1   Mode 2                 Covers both modes           Focuses on one
 ```
 
-## PyTorch 구현
+---
+
+## 6. PyTorch 구현
 
 ### 가우스 평균 어림을 위한 단순 변분 추론
 
@@ -317,7 +330,6 @@ class SimpleVI:
         
         return dist.Normal(mu_n, sigma_n)
 
-
 # 사용 예
 if __name__ == "__main__":
     torch.manual_seed(42)
@@ -418,7 +430,9 @@ def visualize_vi_results(vi, data, history):
     plt.show()
 ```
 
-## 변분 추론과 다른 추론 방법
+---
+
+## 7. 변분 추론과 다른 추론 방법
 
 ### MCMC와 견주기
 
@@ -449,7 +463,9 @@ def visualize_vi_results(vi, data, history):
 - 금과옥조 같은 추론이 필요할 때
 - 봉우리가 여럿인지 알아내야 할 때
 
-## 장점과 한계
+---
+
+## 8. 장점과 한계
 
 ### 변분 추론의 좋은 점
 
@@ -467,35 +483,7 @@ def visualize_vi_results(vi, data, history):
 4. **그 자리 최적점**: 최적화가 전체 최적점을 못 찾을 수 있다
 5. **봉우리 덮기와 봉우리 좇기**: 앞 KL은 봉우리를 놓칠 수 있다
 
-## 요약
-
-변분 추론은 다룰 수 없는 베이즈 추론을 다룰 수 있는 최적화로 바꾼다:
-
-$$
-\text{Intractable: } p(\theta | \mathcal{D}) = \frac{p(\mathcal{D}|\theta)p(\theta)}{\int p(\mathcal{D}|\theta)p(\theta)d\theta}
-$$
-
-$$
-\text{Tractable: } q^*(\theta) = \arg\max_{q \in \mathcal{Q}} \text{ELBO}(q)
-$$
-
-**핵심 관계:**
-
-- $\log p(\mathcal{D}) = \text{ELBO}(q) + \text{KL}(q \| p)$
-- $\max_q \text{ELBO}(q) \Leftrightarrow \min_q \text{KL}(q \| p)$
-- ELBO는 $p(\mathcal{D})$을 모르고도 셈할 수 있다
-
-## 참고 문헌
-
-1. Blei, D. M., Kucukelbir, A., & McAuliffe, J. D. (2017). "Variational Inference: A Review for Statisticians." *Journal of the American Statistical Association*.
-
-2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, 10장.
-
-3. Murphy, K. P. (2022). *Probabilistic Machine Learning: Advanced Topics*, 변분 추론 관련 장들.
-
-4. Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). "An Introduction to Variational Methods for Graphical Models." *Machine Learning*.
-
-5. Hoffman, M. D., Blei, D. M., Wang, C., & Paisley, J. (2013). "Stochastic Variational Inference." *Journal of Machine Learning Research*.
+---
 
 ## 연습문제
 
@@ -513,3 +501,33 @@ $$
 ### 연습 3: 앞 KL과 뒤 KL 견주기
 
 가우스 둘의 섞음을 어림하는 데 앞 KL 최적화와 뒤 KL 최적화를 모두 구현하여라. 서로 다른 굶을 그려 보아라.
+
+## 정리하며
+
+변분 추론은 다룰 수 없는 베이즈 추론을 다룰 수 있는 최적화로 바꾼다:
+
+$$
+\text{Intractable: } p(\theta | \mathcal{D}) = \frac{p(\mathcal{D}|\theta)p(\theta)}{\int p(\mathcal{D}|\theta)p(\theta)d\theta}
+$$
+
+$$
+\text{Tractable: } q^*(\theta) = \arg\max_{q \in \mathcal{Q}} \text{ELBO}(q)
+$$
+
+**핵심 관계:**
+
+- $\log p(\mathcal{D}) = \text{ELBO}(q) + \text{KL}(q \| p)$
+- $\max_q \text{ELBO}(q) \Leftrightarrow \min_q \text{KL}(q \| p)$
+- ELBO는 $p(\mathcal{D})$을 모르고도 셈할 수 있다
+
+**참고 문헌**
+
+1. Blei, D. M., Kucukelbir, A., & McAuliffe, J. D. (2017). "Variational Inference: A Review for Statisticians." *Journal of the American Statistical Association*.
+
+2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, 10장.
+
+3. Murphy, K. P. (2022). *Probabilistic Machine Learning: Advanced Topics*, 변분 추론 관련 장들.
+
+4. Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). "An Introduction to Variational Methods for Graphical Models." *Machine Learning*.
+
+5. Hoffman, M. D., Blei, D. M., Wang, C., & Paisley, J. (2013). "Stochastic Variational Inference." *Journal of Machine Learning Research*.

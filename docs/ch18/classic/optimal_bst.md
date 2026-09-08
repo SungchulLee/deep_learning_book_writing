@@ -2,7 +2,9 @@
 
 이진 찾기 나무에서 열쇠를 찾는 값은 그 깊이에 달렸다. 어떤 열쇠를 다른 것보다 훨씬 자주 찾는다면 자주 찾는 열쇠를 뿌리 가까이 두어 기대 찾기 값을 줄일 수 있다. **가장 좋은 이진 찾기 나무** 문제는 다가감 잦기를 안다고 할 때 이 기대 값을 가장 작게 하는 나무 짜임을 동적 계획으로 찾는다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 찾을 낌새가 $p_1, p_2, \dots, p_n$인 열쇠 $n$개 $k_1 < k_2 < \cdots < k_n$과, 못 찾는 일을 나타내며 낌새가 $q_0, q_1, \dots, q_n$인 허깨비 열쇠 $n + 1$개 $d_0, d_1, \dots, d_n$이 주어졌다고 하자. 여기서
 
@@ -18,7 +20,9 @@ $$
 
 목표는 이 기대 값을 가장 작게 하는 이진 찾기 나무를 찾는 것이다.
 
-## 가장 좋은 밑짜임
+---
+
+## 2. 가장 좋은 밑짜임
 
 가장 좋은 이진 찾기 나무의 뿌리가 $k_r$이면, 왼쪽 잔나무($k_1, \dots, k_{r-1}$을 담는다)도 그 열쇠들에 대해 가장 좋은 이진 찾기 나무여야 하고 오른쪽 잔나무도 마찬가지다. 이 가장 좋은 잔얼개 덕에 갈피 다지기로 풀 수 있다.
 
@@ -28,7 +32,9 @@ $$
 w[i, j] = \sum_{\ell=i}^{j} p_\ell + \sum_{\ell=i-1}^{j} q_\ell
 $$
 
-## 점화식
+---
+
+## 3. 점화식
 
 열쇠 $k_i, \dots, k_j$의 잔나무 뿌리로 $k_r$을 고르면 값이 $w[i, j]$만큼 는다($k_r$의 자식이 되면서 마디마다 깊이가 1씩 늘기 때문이다).
 
@@ -38,7 +44,9 @@ $$
 
 밑 자리: $e[i, i{-}1] = q_{i-1}$(허깨비 열쇠 $d_{i-1}$만 담는 잔나무).
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -91,7 +99,6 @@ def optimal_bst(
 
     return e[1][n], root
 
-
 def print_optimal_bst(root: list[list[int]], i: int, j: int,
                       parent: str = "root") -> None:
     """가장 좋은 이진 찾기 나무의 짜임 찍기."""
@@ -102,7 +109,6 @@ def print_optimal_bst(root: list[list[int]], i: int, j: int,
     print(f"  k_{r} is {parent}")
     print_optimal_bst(root, i, r - 1, f"left child of k_{r}")
     print_optimal_bst(root, r + 1, j, f"right child of k_{r}")
-
 
 # === 시연 ===
 
@@ -137,7 +143,9 @@ Optimal BST structure:
 
 뿌리에 있는 열쇠 $k_2$이 다가감 잦기의 균형을 잡는다. 가장 자주 찾는 열쇠 $k_5$($p_5 = 0.20$)이 깊이 1에 있어 기대 값에 보태는 몫을 가장 작게 한다.
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 항목 | 비용 |
 |--------|:----:|
@@ -146,7 +154,9 @@ Optimal BST structure:
 
 겹친 되돌이 셋(길이, 비롯하는 자리, 뿌리 고르기) 때문에 $O(n^3)$ 때가 든다. 크누스의 다듬기는 $\text{root}[i, j-1] \le \text{root}[i, j] \le \text{root}[i+1, j]$임을 살펴 $r$을 찾을 구간을 좁혀 이를 $O(n^2)$으로 줄인다.
 
-## 균형 이진 탐색 트리와의 비교
+---
+
+## 6. 균형 이진 탐색 트리와의 비교
 
 | 전략 | 기대 값 | 보장 |
 |----------|:------------:|:---------:|
@@ -156,10 +166,7 @@ Optimal BST structure:
 
 가장 좋은 이진 찾기 나무는 붙박이 짜임이다. 다가감 잦기가 때에 따라 바뀌면 스플레이 나무 같은 스스로 고치는 나무가 움직이는 대안이 된다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 15장: Dynamic Programming.
-- Knuth, D. E. (1971). Optimum binary search trees. *Acta Informatica*, 1(1), 14--25.
+---
 
 ## 연습문제
 
@@ -192,3 +199,12 @@ Optimal BST structure:
 
 ??? success "연습문제 4 풀이"
     밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 문제 서술、가장 좋은 밑짜임、점화식、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 15장: Dynamic Programming.
+- Knuth, D. E. (1971). Optimum binary search trees. *Acta Informatica*, 1(1), 14--25.

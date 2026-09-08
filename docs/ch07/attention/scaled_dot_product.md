@@ -1,11 +1,12 @@
 # 배율 조정 내적 어텐션
-## 들어가며
 
 배율 조정 내적 어텐션은 트랜스포머 구조의 근본 구성 블록이다. Vaswani 등(2017)이 "Attention Is All You Need"에서 내놓았으며, 요즘 하드웨어에서 크게 병렬화할 수 있는 행렬 연산으로 어텐션 가중치를 효율적이고 효과적으로 계산한다.
 
 핵심 혁신은 내적 어텐션의 계산 효율에 학습 중 기울기를 안정시키는 배율 인수를 더한 데 있다. 사소해 보이는 이 손질이 어텐션 기반의 깊은 모델을 학습시키는 데 결정적이었다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### 어텐션 함수
 
@@ -79,7 +80,9 @@ $$\mathbf{o}_i = \sum_{j=1}^{m} \alpha_{ij} \mathbf{v}_j$$
 
 여기서 $B$은 배치 크기이고 $H$은 어텐션 머리의 수이다.
 
-## 왜 내적인가
+---
+
+## 2. 왜 내적인가
 
 내적 $\mathbf{q}^T \mathbf{k}$은 관련성을 재기에 알맞은 좋은 성질을 지닌다.
 
@@ -109,7 +112,9 @@ scores = torch.matmul(Q, K.transpose(-2, -1))  # GEMM 연산 한 번
 
 (다중 머리 어텐션처럼) 학습된 사영과 함께 쓰는 배율 조정 내적은 덧셈형 어텐션과 표현력이 비슷하면서도 행렬 곱의 하드웨어 최적화 덕분에 훨씬 빠르다.
 
-## 배율 조정의 결정적인 구실
+---
+
+## 3. 배율 조정의 결정적인 구실
 
 ### 분산 폭발 문제
 
@@ -213,7 +218,9 @@ $$\text{softmax}\left(\frac{\mathbf{s}}{\sqrt{d_k}}\right) = \text{softmax}\left
 
 트랜스포머에서 기울기는 여러 부품을 지나야 한다. 출력 사영 → 값 모으기 → 어텐션 가중치(소프트맥스) → 점수 계산 → Q·K 사영 → 층 정규화 → 잔차 연결 → 앞선 층이다. 어텐션 가중치가 포화하면 기울기가 어텐션 장치를 제대로 지나지 못해 병목이 생기고 신경망 전체의 학습이 멈춘다.
 
-## 내용으로 찾는 부드러운 기억으로 본 어텐션
+---
+
+## 4. 내용으로 찾는 부드러운 기억으로 본 어텐션
 
 어텐션은 미분 가능한 기억 시스템으로 볼 수 있다.
 
@@ -231,7 +238,9 @@ $$\text{softmax}\left(\frac{\mathbf{s}}{\sqrt{d_k}}\right) = \text{softmax}\left
 
 이는 내용으로 찾는 방식이다. 어디에 담겼는지가 아니라 *무엇을* 찾는지로 꺼내 온다. 이산적인 기억 찾기와 달리 연산 전체로 기울기가 흘러 처음부터 끝까지 학습할 수 있다.
 
-## 기울기의 흐름과 부드러운 선택
+---
+
+## 5. 기울기의 흐름과 부드러운 선택
 
 ### 자리들 사이의 경쟁
 
@@ -253,7 +262,9 @@ $$\text{softmax}\left(\frac{\mathbf{s}}{\sqrt{d_k}}\right) = \text{softmax}\left
 
 **규모 확장성.** 배율 조정은 모델의 크기가 달라도 소프트맥스의 거동을 한결같게 하여 다시 맞추지 않고도 구조의 규모를 키울 수 있게 한다.
 
-## PyTorch 구현
+---
+
+## 6. PyTorch 구현
 
 ### 핵심 모듈
 
@@ -414,7 +425,9 @@ Empirical verification of dot-product variance:
 ----------------------------------------------------------------------
 ```
 
-## 가림막 전략
+---
+
+## 7. 가림막 전략
 
 가림막은 어떤 자리가 어떤 자리에 주목할 수 있는지를 다스린다.
 
@@ -453,7 +466,9 @@ Causal Mask (seq=4):          Padding Mask (pad last 2):
 └─────────────┘               └─────────────┘
 ```
 
-## 다른 배율 조정 전략
+---
+
+## 8. 다른 배율 조정 전략
 
 ### 질의와 열쇠에 나누어 배율 조정하기
 
@@ -516,7 +531,9 @@ class CosineAttention(nn.Module):
         return F.softmax(scores, dim=-1) @ V
 ```
 
-## 계산량 분석
+---
+
+## 9. 계산량 분석
 
 질의의 길이가 $n$, 열쇠·값의 길이가 $m$, 차원이 $d$일 때 다음과 같다.
 
@@ -536,7 +553,9 @@ PyTorch의 `F.softmax`은 로그-합-지수 요령을 저절로 적용한다.
 
 $$\text{softmax}(\mathbf{x})_i = \frac{\exp(x_i - \max(\mathbf{x}))}{\sum_j \exp(x_j - \max(\mathbf{x}))}$$
 
-## 메모리를 아끼는 판본
+---
+
+## 10. 메모리를 아끼는 판본
 
 ### 덩이로 나눈 어텐션
 
@@ -571,7 +590,9 @@ with torch.backends.cuda.sdp_kernel(
     output = F.scaled_dot_product_attention(query, key, value)
 ```
 
-## 고차원의 기하
+---
+
+## 11. 고차원의 기하
 
 ### 측도의 집중
 
@@ -587,41 +608,7 @@ $$\mathbb{E}[\mathbf{u}^T \mathbf{v}] = 0, \quad \text{Var}(\mathbf{u}^T \mathbf
 
 배율을 조정하지 않으면 정렬의 작은 차이가 커지는 분산 때문에 부풀려지고, 차원에 따라 소프트맥스가 보는 점수의 범위가 크게 달라진다. 배율을 조정하면 차원과 상관없이 분산이 일정하게 정규화되어 모델의 크기가 달라도 거동이 한결같다.
 
-## 요약
-
-### 핵심 식
-
-$$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}$$
-
-### 핵심 설계 원리
-
-1. **내적 점수 매기기**: 행렬 곱으로 효율적인 병렬 계산을 하며 GPU 최적화를 활용한다
-2. **$\frac{1}{\sqrt{d_k}}$으로 배율 조정**: 분산을 1로 지켜 소프트맥스에서 기울기가 사라지는 것을 막는다
-3. **소프트맥스 정규화**: 올바른 확률 분포를 만들어 부드러운 선택을 가능하게 한다
-4. **값 모으기**: 볼록 결합으로 가중해 모아 정보를 지킨다
-
-### 깊은 통찰
-
-1. **기하적 관점**: 내적은 임베딩 공간에서의 정렬을 잰다. 질의는 비슷한 방향을 가리키는 열쇠를 찾는다
-2. **기억의 관점**: 어텐션은 부드러운 검색을 하는 미분 가능한 내용 주소 기억을 구현한다
-3. **온도의 관점**: 배율 인수가 어텐션의 날카로움을 다스려 탐험과 활용의 균형을 잡는다
-4. **기울기의 관점**: 소프트맥스는 기울기의 흐름을 지키면서 자리들 사이에 경쟁을 만든다
-
-| 항목 | 배율 조정 없음 | $\sqrt{d_k}$ 배율 조정 |
-|--------|-----------------|--------------------------|
-| 점수의 분산 | $d_k$ (차원에 따라 커짐) | $1$ (안정적) |
-| 소프트맥스의 거동 | 포화한다 | 기울기가 매끄럽다 |
-| 어텐션의 분포 | 거의 원-핫 | 고루 퍼짐 |
-| 학습 | 기울기 소실 | 안정된 학습 |
-
-## 참고 문헌
-
-1. Vaswani, A., et al. (2017). "Attention Is All You Need." *NeurIPS*.
-2. Bahdanau, D., Cho, K., & Bengio, Y. (2015). "Neural Machine Translation by Jointly Learning to Align and Translate." *ICLR*.
-3. Dao, T., et al. (2022). "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness." *NeurIPS*.
-4. Rabe, M. N., & Staats, C. (2021). "Self-attention Does Not Need $O(n^2)$ Memory." *arXiv:2112.05682*.
-5. Xiong, R., et al. (2020). "On Layer Normalization in the Transformer Architecture." *ICML*.
-6. Noci, L., et al. (2022). "Signal Propagation in Transformers: Theoretical Perspectives and the Role of Rank Collapse." *NeurIPS*.
+---
 
 ## 연습문제
 
@@ -662,3 +649,39 @@ $d_k = 2$일 때 $Q = [[1,0],[0,1]]$, $K = [[1,0],[0,1]]$, $V = [[1,2],[3,4]]$�
 
 ??? success "연습문제 4 풀이"
     $QK^\top$을 계산하는 데 $O(n^2 d)$, 소프트맥스에 $O(n^2)$, $V$을 곱하는 데 $O(n^2 d)$이 들어 모두 $O(n^2 d)$이다. $n$에 대한 이차 의존이 긴 순차열에서 가장 큰 병목이며, 그 때문에 선형 어텐션이나 성긴 어텐션 같은 효율적인 판본이 나왔다.
+
+## 정리하며
+
+### 핵심 식
+
+$$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}$$
+
+### 핵심 설계 원리
+
+1. **내적 점수 매기기**: 행렬 곱으로 효율적인 병렬 계산을 하며 GPU 최적화를 활용한다
+2. **$\frac{1}{\sqrt{d_k}}$으로 배율 조정**: 분산을 1로 지켜 소프트맥스에서 기울기가 사라지는 것을 막는다
+3. **소프트맥스 정규화**: 올바른 확률 분포를 만들어 부드러운 선택을 가능하게 한다
+4. **값 모으기**: 볼록 결합으로 가중해 모아 정보를 지킨다
+
+### 깊은 통찰
+
+1. **기하적 관점**: 내적은 임베딩 공간에서의 정렬을 잰다. 질의는 비슷한 방향을 가리키는 열쇠를 찾는다
+2. **기억의 관점**: 어텐션은 부드러운 검색을 하는 미분 가능한 내용 주소 기억을 구현한다
+3. **온도의 관점**: 배율 인수가 어텐션의 날카로움을 다스려 탐험과 활용의 균형을 잡는다
+4. **기울기의 관점**: 소프트맥스는 기울기의 흐름을 지키면서 자리들 사이에 경쟁을 만든다
+
+| 항목 | 배율 조정 없음 | $\sqrt{d_k}$ 배율 조정 |
+|--------|-----------------|--------------------------|
+| 점수의 분산 | $d_k$ (차원에 따라 커짐) | $1$ (안정적) |
+| 소프트맥스의 거동 | 포화한다 | 기울기가 매끄럽다 |
+| 어텐션의 분포 | 거의 원-핫 | 고루 퍼짐 |
+| 학습 | 기울기 소실 | 안정된 학습 |
+
+**참고 문헌**
+
+1. Vaswani, A., et al. (2017). "Attention Is All You Need." *NeurIPS*.
+2. Bahdanau, D., Cho, K., & Bengio, Y. (2015). "Neural Machine Translation by Jointly Learning to Align and Translate." *ICLR*.
+3. Dao, T., et al. (2022). "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness." *NeurIPS*.
+4. Rabe, M. N., & Staats, C. (2021). "Self-attention Does Not Need $O(n^2)$ Memory." *arXiv:2112.05682*.
+5. Xiong, R., et al. (2020). "On Layer Normalization in the Transformer Architecture." *ICML*.
+6. Noci, L., et al. (2022). "Signal Propagation in Transformers: Theoretical Perspectives and the Role of Rank Collapse." *NeurIPS*.

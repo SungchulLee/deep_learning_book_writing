@@ -1,11 +1,10 @@
 # GRU와 LSTM 비교
-## 들어가며
 
 LSTM과 GRU는 문 달린 순환 신경망의 두 주역이다. 둘 다 기울기 소실 문제를 풀지만 복잡함과 매개변수 수, 거동이 다르다. 이 절은 이론과 실험 결과, 실무에서의 판단 기준을 두루 견주어 구조를 고르는 데 길잡이가 되어 준다.
 
 ---
 
-## 구조 비교
+## 1. 구조 비교
 
 ### 짜임 개관
 
@@ -62,7 +61,7 @@ $$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t \quad \text{(state updat
 
 ---
 
-## 두 구조의 문 대응시키기
+## 2. 두 구조의 문 대응시키기
 
 ### 구조적 대응
 
@@ -93,7 +92,7 @@ GRU의 이 볼록 결합 제약은 암묵적인 규제가 되지만 유연함을
 
 ---
 
-## 매개변수 수 분석
+## 3. 매개변수 수 분석
 
 ### 이론적인 계산
 
@@ -157,7 +156,7 @@ def memory_footprint_analysis(batch_size, seq_length, hidden_size):
 
 ---
 
-## 기울기 흐름 견주기
+## 4. 기울기 흐름 견주기
 
 ### 이론적 분석
 
@@ -218,7 +217,7 @@ def compare_gradient_flow(seq_lengths=[50, 100, 200, 500, 1000]):
 
 ---
 
-## 기억 용량: 출력 문의 이점
+## 5. 기억 용량: 출력 문의 이점
 
 LSTM의 출력 문은 특별한 능력을 준다. **드러내지 않고 정보를 담아 두는 것**이다.
 
@@ -246,7 +245,7 @@ LSTM의 출력 문은 특별한 능력을 준다. **드러내지 않고 정보�
 
 ---
 
-## 과제별 성능
+## 6. 과제별 성능
 
 ### 과제별 종합 비교
 
@@ -275,7 +274,7 @@ LSTM과 GRU를 견준 주요 논문은 다음과 같다.
 
 ---
 
-## 실무에서의 판단 기준
+## 7. 실무에서의 판단 기준
 
 ### 판단 흐름도
 
@@ -352,7 +351,7 @@ def get_recommended_config(task_type, seq_length, dataset_size,
 
 ---
 
-## 혼합형 접근
+## 8. 혼합형 접근
 
 ### 쌓아 만든 혼합 구조
 
@@ -408,42 +407,6 @@ class BidirectionalHybrid(nn.Module):
 
 ---
 
-## 요약
-
-### 빠른 참고표
-
-| 요인 | LSTM | GRU | 우세 |
-|--------|------|-----|--------|
-| 매개변수 | $4n^2 + 4nm$ | $3n^2 + 3nm$ | **GRU** (25% 적음) |
-| 속도 | 기준 | 15~25% 빠름 | **GRU** |
-| 기억 용량 | 숨은 차원의 2배 | 숨은 차원의 1배 | **LSTM** |
-| 긴 순차열 (500 초과) | 더 낫다 | 좋다 | **LSTM** |
-| 작은 데이터셋 (1만 미만) | 과적합이 더 잦다 | 더 튼튼하다 | **GRU** |
-| 해석 가능성 | 문 3개로 복잡 | 문 2개로 간단 | **GRU** |
-| 연구의 축적 | 1997년 이후로 방대 | 2014년 이후로 늘어남 | **LSTM** |
-| 기본 권장 | 표준 자료용 | 실전용 | **GRU** |
-
-### 마지막 권고
-
-1. 대부분의 응용에서 **GRU로 시작하라**. 시제품을 빨리 만들 수 있고, 성능도 대체로 비슷하며, 맞추기 쉽다
-2. 아주 긴 순차열을 다루거나 GRU의 성능이 정체되거나 과제에 복잡한 기억 방식이 필요하면 **LSTM으로 바꾸라**
-3. 실전에서는 **둘 다 살펴보라**. 통제된 실험을 해 보라. 2~3%의 차이가 규모가 커지면 중요할 수 있다
-4. **너무 고민하지 마라.** 구조의 선택은 데이터의 품질, 규제, 초매개변수 조정보다 덜 중요할 때가 많다
-
----
-
-## 참고 문헌
-
-1. Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780.
-
-2. Cho, K., van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H., & Bengio, Y. (2014). Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation. *EMNLP*.
-
-3. Chung, J., Gulcehre, C., Cho, K., & Bengio, Y. (2014). Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling. *NIPS Workshop*.
-
-4. Jozefowicz, R., Zaremba, W., & Sutskever, I. (2015). An Empirical Exploration of Recurrent Network Architectures. *ICML*.
-
-5. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -481,3 +444,39 @@ class BidirectionalHybrid(nn.Module):
 
 ??? success "연습문제 4 풀이"
     IMDB 감성 분석의 흔한 결과는 GRU 정확도 약 87%, LSTM 정확도 약 88%이며 GRU가 20~30% 빨리 학습한다. 정확도 차이는 신뢰 구간 안일 때가 많다. 결론은 이렇다. 빠르게 되풀이하려면 GRU를 먼저 해 보고, 성능이 중요하면 LSTM으로 바꾸라.
+
+## 정리하며
+
+### 빠른 참고표
+
+| 요인 | LSTM | GRU | 우세 |
+|--------|------|-----|--------|
+| 매개변수 | $4n^2 + 4nm$ | $3n^2 + 3nm$ | **GRU** (25% 적음) |
+| 속도 | 기준 | 15~25% 빠름 | **GRU** |
+| 기억 용량 | 숨은 차원의 2배 | 숨은 차원의 1배 | **LSTM** |
+| 긴 순차열 (500 초과) | 더 낫다 | 좋다 | **LSTM** |
+| 작은 데이터셋 (1만 미만) | 과적합이 더 잦다 | 더 튼튼하다 | **GRU** |
+| 해석 가능성 | 문 3개로 복잡 | 문 2개로 간단 | **GRU** |
+| 연구의 축적 | 1997년 이후로 방대 | 2014년 이후로 늘어남 | **LSTM** |
+| 기본 권장 | 표준 자료용 | 실전용 | **GRU** |
+
+### 마지막 권고
+
+1. 대부분의 응용에서 **GRU로 시작하라**. 시제품을 빨리 만들 수 있고, 성능도 대체로 비슷하며, 맞추기 쉽다
+2. 아주 긴 순차열을 다루거나 GRU의 성능이 정체되거나 과제에 복잡한 기억 방식이 필요하면 **LSTM으로 바꾸라**
+3. 실전에서는 **둘 다 살펴보라**. 통제된 실험을 해 보라. 2~3%의 차이가 규모가 커지면 중요할 수 있다
+4. **너무 고민하지 마라.** 구조의 선택은 데이터의 품질, 규제, 초매개변수 조정보다 덜 중요할 때가 많다
+
+---
+
+**참고 문헌**
+
+1. Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780.
+
+2. Cho, K., van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H., & Bengio, Y. (2014). Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation. *EMNLP*.
+
+3. Chung, J., Gulcehre, C., Cho, K., & Bengio, Y. (2014). Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling. *NIPS Workshop*.
+
+4. Jozefowicz, R., Zaremba, W., & Sutskever, I. (2015). An Empirical Exploration of Recurrent Network Architectures. *ICML*.
+
+5. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.

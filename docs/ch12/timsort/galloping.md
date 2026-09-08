@@ -2,13 +2,17 @@
 
 팀 정렬의 병합 단계에서는 정렬된 런 둘을 원소 하나씩 합친다. 한쪽 런이 한결같이 견줌에서 "이기면"(곧 그 원소가 더 작으면) 보통의 하나씩 병합은 한꺼번에 옮길 수 있는 원소에 견줌을 헛되이 쓴다. **질주 모드**(지수 찾기라고도 한다)는 이렇게 한쪽으로 쏠린 구간을 알아채고 지수 찾기로 끼울 자리를 찾은 다음 그 덩어리를 한 번에 옮긴다. 이 손질은 길이 $m$인 짧은 런을 길이 $n$인 긴 런에 병합할 때 견줌 횟수를 $O(n)$에서 $O(n + m \log(n/m))$으로 줄인다.
 
-## 질주가 켜질 때
+---
+
+## 1. 질주가 켜질 때
 
 팀 정렬은 `min_gallop`이라는 세개를 지닌다(처음에는 7). 보통의 병합 중에 같은 런이 잇달아 $\text{min\_gallop}$번 이기면 알고리즘이 질주 모드로 들어간다. 질주가 이롭다고 드러나면(옮길 큰 덩어리를 찾으면) `min_gallop`을 줄여 다음에 질주가 더 쉽게 켜지게 한다. 질주가 원소를 몇 개밖에 찾지 못하면 `min_gallop`을 늘려 문턱을 높이고 하나씩 병합을 편든다.
 
 이 맞추어 가는 문턱값 덕분에 질주가 이로운, 한쪽으로 길게 쏠린 데이터에서만 질주를 쓰게 된다.
 
-## 질주 찾기 알고리즘
+---
+
+## 2. 질주 찾기 알고리즘
 
 목표 값 $v$과 정렬된 배열 $B[0..n-1]$이 주어지면 질주 찾기는 $v$을 끼워야 할 자리를 찾는다.
 
@@ -17,7 +21,9 @@
 
 지수 단계는 많아야 $\lceil \log_2(m+1) \rceil$번 견주며, $m$은 $B$에서 $v$보다 작은 원소의 개수이다. 이진 찾기가 $O(\log m)$번을 더한다. 모두 합쳐 $O(\log m)$이며, 죽 훑을 때의 $O(m)$과 견주어 보라.
 
-## 질주 병합의 복잡도
+---
+
+## 3. 질주 병합의 복잡도
 
 길이 $m$인 런을 길이 $n$인 런에 병합할 때($m \leq n$) 질주를 쓰면 견줌 횟수는 다음과 같다.
 
@@ -27,7 +33,9 @@ $$
 
 $m \ll n$일 때 보통의 $O(m + n)$ 병합보다 낫고, $m \approx n$일 때도 $O(m + n)$보다 나쁘지 않다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -37,7 +45,6 @@ $m \ll n$일 때 보통의 $O(m + n)$ 병합보다 낫고, $m \approx n$일 때�
 끼울 자리를 찾고, 이긴 원소를
 한꺼번에 옮긴다.
 """
-
 
 # === 질주 찾기 ===
 
@@ -82,7 +89,6 @@ def gallop_right(key, arr: list, lo: int, hi: int) -> int:
 
     return left
 
-
 def gallop_left(key, arr: list, lo: int, hi: int) -> int:
     """arr[lo..hi-1]에서 key를 끼울 수 있는 가장 왼쪽 자리를 찾는다.
 
@@ -116,7 +122,6 @@ def gallop_left(key, arr: list, lo: int, hi: int) -> int:
             left = mid + 1
 
     return left
-
 
 # === 시연 ===
 
@@ -159,11 +164,7 @@ key=84: gallop found index 12, linear scan would check 12 elements
 !!! warning "질주가 해로울 때"
     두 런이 엇갈려 있으면(번갈아 이기면) 질주는 옮길 큰 덩어리를 찾지 못한 채 지수로 넓히는 단계에 견줌을 헛되이 쓴다. 팀 정렬은 질주가 헛돌 때 `min_gallop` 문턱값을 높여, 엇갈린 데이터에서는 질주 모드에 들어가기 어렵게 하여 이를 다룬다.
 
-## 참고 문헌
-
-- Peters, T. (2002). *Timsort description*. [CPython 소스, `Objects/listsort.txt`](https://github.com/python/cpython/blob/main/Objects/listsort.txt).
-- McIlroy, P. (1993). Optimistic sorting and information theoretic complexity. *Proceedings of SODA*, 467-474.
-
+---
 
 ## 연습문제
 
@@ -196,3 +197,12 @@ float32 학습 손실 값 1000만 개를 정렬할 때 질주 모드를 다른 �
 
 ??? success "연습문제 4 풀이"
     $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.
+
+## 정리하며
+
+이 마당은 질주가 켜질 때、질주 찾기 알고리즘、질주 병합의 복잡도、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Peters, T. (2002). *Timsort description*. [CPython 소스, `Objects/listsort.txt`](https://github.com/python/cpython/blob/main/Objects/listsort.txt).
+- McIlroy, P. (1993). Optimistic sorting and information theoretic complexity. *Proceedings of SODA*, 467-474.

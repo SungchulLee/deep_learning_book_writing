@@ -2,7 +2,9 @@
 
 병합 정렬은 최선, 평균, 최악 어느 경우에도 $O(n \log n)$ 시간을 이루어 가장 내다보기 쉬운 정렬 알고리즘에 든다. 이 쪽은 시간과 공간의 한계를 빈틈없이 끌어내고 견줌 횟수를 자세히 뜯어보며, 병합 정렬이 왜 점근적으로 가장 좋은지와 다른 $O(n \log n)$ 정렬에 견주어 상수 인자가 어디쯤인지를 밝힌다.
 
-## 시간 복잡도
+---
+
+## 1. 시간 복잡도
 
 ### 점화식
 
@@ -60,7 +62,9 @@ $$
 !!! tip "양날의 칼"
     $\Theta(n \log n)$ 보장은 강점이면서 약점이다. 병합 정렬은 끼워넣기 정렬(최선의 경우 $O(n)$)이나 팀 정렬(정렬된 데이터에서 $O(n)$)처럼 입력에 이미 있는 차례를 살려 쓰지 못한다.
 
-## 견줌 횟수
+---
+
+## 2. 견줌 횟수
 
 ### 위 한계
 
@@ -88,7 +92,9 @@ $$
 
 크기 $m$인 반쪽 둘을 병합할 때 최악의 경우 꼭 $2m - 1$번 견준다는 점을 보고 모든 층에 걸쳐 더하면 나온다.
 
-## 공간 복잡도
+---
+
+## 3. 공간 복잡도
 
 ### 도움 공간
 
@@ -109,7 +115,9 @@ $$
 ??? note "병합 정렬을 여분 공간 O(1)으로 할 수 있을까?"
     제자리 병합 정렬 변형이 있기는 하지만 복잡하고 상수 인자가 크다. 크론로드-카타야이넨-파사넨 알고리즘은 여분 공간 $O(1)$으로 $O(n \log n)$ 시간을 이루지만 상수 인자 탓에 실제로 쓰기 어렵다. 실전에서는 $O(n)$의 공간 짐을 받아들일 만하다고 본다.
 
-## 다른 알고리즘과의 견줌
+---
+
+## 4. 다른 알고리즘과의 견줌
 
 $$
 \begin{array}{lccc}
@@ -123,7 +131,9 @@ $$
 
 병합 정렬은 표준 $O(n \log n)$ 알고리즘 가운데 가장 적게 견주므로, 견주는 비용이 클 때(이를테면 복잡한 객체나 긴 문자열을 견줄 때) 가장 나은 선택이다.
 
-## 파이썬 시연
+---
+
+## 5. 파이썬 시연
 
 ```python
 """
@@ -134,7 +144,6 @@ $$
 """
 
 import math
-
 
 # === 견줌을 세는 병합 정렬 ====================================================
 
@@ -164,7 +173,6 @@ def merge_counted(arr: list, left: int, mid: int, right: int, count: list) -> No
         j += 1
         k += 1
 
-
 def merge_sort_counted(arr: list, left: int, right: int, count: list) -> None:
     """견줌을 세는 병합 정렬."""
     if left < right:
@@ -172,7 +180,6 @@ def merge_sort_counted(arr: list, left: int, right: int, count: list) -> None:
         merge_sort_counted(arr, left, mid, count)
         merge_sort_counted(arr, mid + 1, right, count)
         merge_counted(arr, left, mid, right, count)
-
 
 # === 메인 =====================================================================
 
@@ -210,12 +217,7 @@ if __name__ == "__main__":
 
 정렬된 입력에서 실제 견줌 횟수는 이론적 최악의 경우보다 훨씬 적어, $n \log_2 n - n + 1$ 한계가 특정한 엇갈림 본새에서만 빈틈없음을 보여 준다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 2.3절과 4.3~4.5절.
-- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and Searching* (2nd ed.). Addison-Wesley, 5.2.4절.
-- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, 2.2절.
-
+---
 
 ## 연습문제
 
@@ -248,3 +250,13 @@ float32 학습 손실 값 1000만 개를 정렬할 때 병합 정렬 분석을 �
 
 ??? success "연습문제 4 풀이"
     $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.
+
+## 정리하며
+
+이 마당은 시간 복잡도、견줌 횟수、공간 복잡도、다른 알고리즘과의 견줌을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 2.3절과 4.3~4.5절.
+- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and Searching* (2nd ed.). Addison-Wesley, 5.2.4절.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, 2.2절.

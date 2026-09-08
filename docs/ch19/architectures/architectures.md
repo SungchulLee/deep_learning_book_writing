@@ -1,16 +1,23 @@
 # 큰 말 모델 얼개의 새로움
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 맨 변환기에서 요즘 큰 말 모델까지의 핵심 얼개 바뀜을 이해한다
 - RMSNorm, SwiGLU, 돌림 묻힘, 묶은 물음 눈길을 짠다
 - 여러 얼개 고름의 맞바꿈을 살핀다
 - GPT, LLaMA, Mistral 갈래의 얼개를 견준다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 요즘 큰 말 모델은 처음 변환기를 넘어 수많은 얼개의 새로움을 담고 있다. 이 고침은 고갱이 눈길 얼개는 그대로 두면서 익히기의 든든함, 셈의 효율, 모델의 능력을 낫게 한다.
 
-## 고르게 맞추기 변종
+---
+
+## 3. 고르게 맞추기 변종
 
 ### 앞 고르게 맞추기와 뒤 고르게 맞추기
 
@@ -55,7 +62,9 @@ class RMSNorm(nn.Module):
 
 **좋은 점**: LayerNorm보다 15% 빠르고 성능은 비슷하다.
 
-## 깨어남 함수
+---
+
+## 4. 깨어남 함수
 
 ### SwiGLU
 
@@ -92,7 +101,9 @@ class SwiGLU(nn.Module):
 | GELU | $2 \cdot d \cdot d_{ff}$ | +1% | GPT-2, BERT |
 | SwiGLU | $3 \cdot d \cdot d_{ff}$ | +2% | LLaMA, 미스트랄 |
 
-## 자리 부호
+---
+
+## 5. 자리 부호
 
 ### 돌림 자리 묻힘(RoPE)
 
@@ -173,7 +184,9 @@ def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float 
     return inv_freq
 ```
 
-## 어텐션의 갈래
+---
+
+## 6. 어텐션의 갈래
 
 ### 다중 질의 어텐션 (MQA)
 
@@ -269,7 +282,9 @@ class GroupedQueryAttention(nn.Module):
 | 묶은 물음 눈길 | H/G | $2 \cdot H/G \cdot d_h$ | 여러 머리 눈길에 가깝다 | LLaMA-2 70B |
 | MQA | 1 | $2 \cdot d_h$ | Good | PaLM |
 
-## 미끄러지는 창 주의
+---
+
+## 7. 미끄러지는 창 주의
 
 ### Mistral의 방식
 
@@ -322,7 +337,9 @@ class SlidingWindowAttention(nn.Module):
 - **기억 공간**: O(n²) 대신 O(n·W)
 - **실효 맥락**: 층을 쌓아 여전히 온 차례에 눈길을 준다
 
-## 온전한 LLaMA 방식 덩이
+---
+
+## 8. 온전한 LLaMA 방식 덩이
 
 ```python
 class LLaMABlock(nn.Module):
@@ -370,7 +387,9 @@ class LLaMABlock(nn.Module):
         return x
 ```
 
-## 구조 견주기
+---
+
+## 9. 구조 견주기
 
 | 조각 | GPT-3 | LLaMA-2 | Mistral |
 |-----------|-------|---------|---------|
@@ -381,26 +400,13 @@ class LLaMABlock(nn.Module):
 | 눈길 | 여러 머리 눈길 | 묶은 물음 눈길 | 미끄러지는 창 + 묶은 물음 눈길 |
 | 맥락 | 2K/4K | 4K | 8K(미끄러지는 창) |
 
-## 요약
+---
 
-요즘 큰 말 모델 얼개는 다음을 담고 있다:
-
-1. **RMSNorm**: 평균 빼기 없는 더 빠른 고르게 맞추기
-2. **SwiGLU**: 나타내는 힘을 키우는 문 달린 깨어남
-3. **RoPE**: 돌림에 바탕한 상대 자리 부호
-4. **묶은 물음 눈길/여러 물음 눈길**: 효율적인 미룸을 위해 줄인 열쇠-값 곳간
-5. **미끄러지는 창**: 한 줄 복잡도의 눈길
-
-## 핵심 통찰
+## 10. 핵심 통찰
 
 $$\boxed{\text{Modern LLMs} = \text{Transformer} + \text{Pre-Norm} + \text{RoPE} + \text{SwiGLU} + \text{GQA}}$$
 
-## 참고 문헌
-
-1. Zhang, B., & Sennrich, R. (2019). Root Mean Square Layer Normalization.
-2. Shazeer, N. (2020). GLU Variants Improve Transformer.
-3. Su, J., et al. (2021). RoFormer: Enhanced Transformer with Rotary Position Embedding.
-4. Ainslie, J., et al. (2023). GQA: Training Generalized Multi-Query Transformer Models.
+---
 
 ## 연습문제
 
@@ -439,3 +445,20 @@ GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 �
 
 ??? success "연습문제 4 풀이"
     맥락 안에서 배우기(ICL)는 큰 말 모델이 기울기를 조금도 고치지 않고 시킴말에 든 보기에 조건을 걸어 일을 해내는 힘이다. "Translate English to French: sea otter => loutre de mer, cheese => " 같은 시킴말을 주면 모델이 "fromage"를 올바로 내놓는다. 모델을 옮김에 대놓고 익힌 적이 없는데도 그렇다는 점이 놀랍다. 갖가지 글로 미리 익히는 동안 보기에서 일의 무늬를 미루는 법을 배운 것이다. **한계**: (1) 여러 걸음 따짐이 필요한 복잡한 일에서는 성능이 떨어진다. (2) 보기의 차례와 꼴에 민감하다. (3) 맥락 창의 길이에 매인다. (4) 특화된 일에서는 곱게 다듬은 성능에 못 미친다. (5) 그 얼개가 이론으로 온전히 밝혀지지 않았다.
+
+## 정리하며
+
+요즘 큰 말 모델 얼개는 다음을 담고 있다:
+
+1. **RMSNorm**: 평균 빼기 없는 더 빠른 고르게 맞추기
+2. **SwiGLU**: 나타내는 힘을 키우는 문 달린 깨어남
+3. **RoPE**: 돌림에 바탕한 상대 자리 부호
+4. **묶은 물음 눈길/여러 물음 눈길**: 효율적인 미룸을 위해 줄인 열쇠-값 곳간
+5. **미끄러지는 창**: 한 줄 복잡도의 눈길
+
+**참고 문헌**
+
+1. Zhang, B., & Sennrich, R. (2019). Root Mean Square Layer Normalization.
+2. Shazeer, N. (2020). GLU Variants Improve Transformer.
+3. Su, J., et al. (2021). RoFormer: Enhanced Transformer with Rotary Position Embedding.
+4. Ainslie, J., et al. (2023). GQA: Training Generalized Multi-Query Transformer Models.

@@ -3,7 +3,7 @@ MCMC 표집기를 돌리면 서로 얽힌 표본의 늘어놓음이 나오지만
 
 ---
 
-## 근본 문제
+## 1. 근본 문제
 
 MCMC는 **점근** 보장을 준다. 곧 표본의 개수가 $T \to \infty$이면 경험 분포가 과녁으로 모인다. 그러나 실전에서는 표본이 끝이 있으므로 다음을 살펴야 한다:
 
@@ -13,7 +13,7 @@ MCMC는 **점근** 보장을 준다. 곧 표본의 개수가 $T \to \infty$이�
 
 ---
 
-## 모임 진단
+## 2. 모임 진단
 
 ### 쪼갠 R-hat(겔먼-루빈)
 
@@ -38,7 +38,6 @@ $$
 
 ```python
 import torch
-
 
 def split_rhat(chains: torch.Tensor) -> torch.Tensor:
     """
@@ -82,7 +81,7 @@ def split_rhat(chains: torch.Tensor) -> torch.Tensor:
 
 ---
 
-## 실효 표본 크기(ESS)
+## 3. 실효 표본 크기(ESS)
 
 ### 정의
 
@@ -143,7 +142,7 @@ def effective_sample_size(samples: torch.Tensor, max_lag: int = None) -> float:
 
 ---
 
-## 눈으로 보는 진단
+## 4. 눈으로 보는 진단
 
 ### 자취 그림
 
@@ -170,7 +169,7 @@ $\hat{\rho}_k$을 뒤짐 $k$에 대해 그린다. 빨리 사그라들면 섞임�
 
 ---
 
-## NUTS에만 있는 진단
+## 5. NUTS에만 있는 진단
 
 ### 갈라져 나가는 옮김
 
@@ -192,7 +191,7 @@ $\hat{\rho}_k$을 뒤짐 $k$에 대해 그린다. 빨리 사그라들면 섞임�
 
 ---
 
-## 실전 일머리
+## 6. 실전 일머리
 
 ```
 1. Run 4+ chains from dispersed starting points
@@ -210,28 +209,7 @@ $\hat{\rho}_k$을 뒤짐 $k$에 대해 그린다. 빨리 사그라들면 섞임�
 
 ---
 
-## 요약
-
-| 진단 | 무엇을 살피나 | 문턱값 |
-|-----------|----------------|-----------|
-| **쪼갠 $\hat{R}$** | 사슬 사이/안의 맞음 | < 1.01 |
-| **몸통 ESS** | 가운데 간추림의 실효 표본 | > 400 |
-| **꼬리 ESS** | 구간 어림의 실효 표본 | > 400 |
-| **갈라져 나감** | 수치 적분의 무너짐 | = 0 |
-| **나무 깊이** | 표집기의 효율 | 최대에 부딪히지 않음 |
-| **자취 그림** | 눈으로 보는 모임과 섞임 | 멈춰 있고 잘 섞임 |
-
----
-
-## 참고 문헌
-
-- Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., & Bürkner, P.-C. (2021). Rank-normalization, folding, and localization: An improved $\hat{R}$ for assessing convergence of MCMC. *Bayesian Analysis*, 16(2), 667-718.
-- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press. 11장.
-- Betancourt, M. (2017). A conceptual introduction to Hamiltonian Monte Carlo. *arXiv:1701.02434*.
-
----
-
-## 덧붙이는 진단
+## 7. 덧붙이는 진단
 
 ### 게웨키 진단
 
@@ -265,7 +243,7 @@ $$
 
 ---
 
-## 필요한 표본 크기
+## 8. 필요한 표본 크기
 
 | 쓰임새 | 최소 ESS |
 |----------|-------------|
@@ -277,7 +255,7 @@ $$
 
 ---
 
-## 솎아내기: 해야 하나?
+## 9. 솎아내기: 해야 하나?
 
 **요즘의 합의**: (대개) **솎아내지 마라**.
 
@@ -289,7 +267,7 @@ $$
 
 ---
 
-## 흔한 말썽 진단하기
+## 10. 흔한 말썽 진단하기
 
 ### 높은 R-hat(> 1.1)
 
@@ -311,7 +289,7 @@ $$
 
 ---
 
-## 태우기 기간
+## 11. 태우기 기간
 
 **깐깐한 길**: 처음 50%의 표본을 버린다.
 
@@ -319,7 +297,7 @@ $$
 
 ---
 
-## 소프트웨어 도구
+## 12. 소프트웨어 도구
 
 **ArviZ**(파이썬):
 ```python
@@ -339,7 +317,7 @@ fit.diagnose()  # 말썽에 대한 경고
 
 ---
 
-## 넓힌 점검표
+## 13. 넓힌 점검표
 
 MCMC 표본을 믿기 전에 다음을 확인하여라:
 
@@ -357,13 +335,6 @@ MCMC 표본을 믿기 전에 다음을 확인하여라:
 **금과옥조**: 망설여지면 더 오래 돌려라. 셈은 싸지만 틀린 추론은 비싸다.
 
 ---
-
-## 더 읽을거리
-
-- Gelman & Rubin (1992): $\hat{R}$ 통계량
-- Geweke (1992): 시계열 진단
-- Vehtari et al. (2021): 차례로 고르게 한 $\hat{R}$, ESS 권고
-- Gelman et al. (2013): Bayesian Data Analysis(11장)
 
 ## 연습문제
 
@@ -400,3 +371,31 @@ MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴�
 
 ??? success "연습문제 4 풀이"
     태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.
+
+## 정리하며
+
+| 진단 | 무엇을 살피나 | 문턱값 |
+|-----------|----------------|-----------|
+| **쪼갠 $\hat{R}$** | 사슬 사이/안의 맞음 | < 1.01 |
+| **몸통 ESS** | 가운데 간추림의 실효 표본 | > 400 |
+| **꼬리 ESS** | 구간 어림의 실효 표본 | > 400 |
+| **갈라져 나감** | 수치 적분의 무너짐 | = 0 |
+| **나무 깊이** | 표집기의 효율 | 최대에 부딪히지 않음 |
+| **자취 그림** | 눈으로 보는 모임과 섞임 | 멈춰 있고 잘 섞임 |
+
+---
+
+**참고 문헌**
+
+- Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., & Bürkner, P.-C. (2021). Rank-normalization, folding, and localization: An improved $\hat{R}$ for assessing convergence of MCMC. *Bayesian Analysis*, 16(2), 667-718.
+- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press. 11장.
+- Betancourt, M. (2017). A conceptual introduction to Hamiltonian Monte Carlo. *arXiv:1701.02434*.
+
+---
+
+**더 읽을거리**
+
+- Gelman & Rubin (1992): $\hat{R}$ 통계량
+- Geweke (1992): 시계열 진단
+- Vehtari et al. (2021): 차례로 고르게 한 $\hat{R}$, ESS 권고
+- Gelman et al. (2013): Bayesian Data Analysis(11장)

@@ -1,11 +1,12 @@
 # 에르고드성
-## 들어가며
 
 에르고드성은 마르코프 사슬이 멈춘 분포로 모임을 보장하는 성질이며, MCMC가 맞기 위한 가장 중요한 조건 하나이다. 이 마당은 사슬이 에르고드인지 가리는 갈래 나누기 장치(통하는 갈래, 쪼갤 수 없음, 주기 없음, 되돌아옴)를 세우고, 이어서 모임이 *얼마나 빠른지*를 재는 모임 정리와 섞임 시간 분석을 다룬다.
 
 에르고드성을 이해하는 일은 MCMC를 쓰는 사람에게 꼭 필요하다. 곧 표집기가 언제 올바른지(맞음), 태우기 기간을 얼마나 돌려야 하는지(모임 속도), 섞임이 나쁜 사슬을 어떻게 진단하는지(짜임의 병목)를 알려 준다.
 
-## 상태 갈래 나누기
+---
+
+## 1. 상태 갈래 나누기
 
 ### 닿음과 통함
 
@@ -37,7 +38,9 @@ $$i \leftrightarrow j \quad \text{for all } i, j \in S$$
 
 **MCMC에서 뜻하는 바.** MCMC 사슬을 쪼갤 수 없으면 표집기가 어느 시작점에서든 언젠가 상태 공간의 모든 구역에 닿을 수 있다. 쪼갤 수 있는 사슬은 어떤 상태를 영영 들르지 않은 채 남긴다.
 
-## 주기성
+---
+
+## 2. 주기성
 
 ### 정의
 
@@ -71,7 +74,9 @@ $$P = \begin{pmatrix} 0.5 & 0.5 \\ 1.0 & 0.0 \end{pmatrix}$$
 
 상태 0은 때 1(제 고리)이나 때 2에 돌아올 수 있다. 주기 $= \gcd\{1, 2, 3, \ldots\} = 1$이다.
 
-## 되돌아옴과 스쳐 지나감
+---
+
+## 3. 되돌아옴과 스쳐 지나감
 
 ### 첫 돌아옴 때
 
@@ -99,7 +104,9 @@ $$T_i = \min\{n \geq 1 : X_n = i \mid X_0 = i\}$$
 
 **끝이 있는** 상태 공간에서는 되돌아옴 상태가 모두 양의 되돌아옴이다. 영의 되돌아옴은 셀 수 있게 끝없는 사슬(이를테면 $\mathbb{Z}$ 위의 대칭 무작위 걸음)에서만 나타난다.
 
-## 에르고드성: 온전한 그림
+---
+
+## 4. 에르고드성: 온전한 그림
 
 ### 정의
 
@@ -137,7 +144,9 @@ $$|P^n_{ij} - \pi_j| \leq C \cdot \rho^n$$
 | 모임 정리 | 태우기를 넉넉히 하면 표본이 $\pi$을 어림한다 |
 | 지수 속도 | $\gamma$이 스펙트럼 틈일 때 $O(1/\gamma)$ 걸음에 모인다 |
 
-## 스펙트럼 틈과 모임 속도
+---
+
+## 5. 스펙트럼 틈과 모임 속도
 
 ### 스펙트럼 틈
 
@@ -163,7 +172,9 @@ $$\gamma = 1 - |\lambda_2|$$
 
 MCMC에서 스펙트럼 틈이 작다는 것은 제안 분포를 잘못 짰다는 신호이다. 곧 사슬이 국소 구역에 "갇혀" 상태 공간 전체를 훑는 데 오래 걸린다.
 
-## 섞임 시간
+---
+
+## 6. 섞임 시간
 
 ### 정의
 
@@ -195,7 +206,9 @@ MCMC 실전에서는:
 - **솎아내기 사이**: 자기상관을 줄이려고 $k \sim \tau_{\text{mix}}$일 때 $k$번째마다 표본을 남긴다
 - **효율**: 섞임이 빠를수록 셈 한 단위마다 실효 독립 표본이 많아진다
 
-## PyTorch 구현
+---
+
+## 7. PyTorch 구현
 
 ### 상태 갈래 나누개
 
@@ -467,11 +480,12 @@ def demonstrate_mixing_analysis():
     print(f"\nSpectral gap ratio: "
           f"{analyzer_fast.spectral_gap() / analyzer_slow.spectral_gap():.1f}x")
 
-
 demonstrate_mixing_analysis()
 ```
 
-## 시각화
+---
+
+## 8. 시각화
 
 ### 사슬 짜임 그래프
 
@@ -530,7 +544,6 @@ def visualize_chain_structure(
     ax.axis('off')
     plt.tight_layout()
     return fig
-
 
 def visualize_convergence(
     P: torch.Tensor,
@@ -622,7 +635,9 @@ def visualize_convergence(
     return fig
 ```
 
-## 보기: 에르고드 사슬, 주기 사슬, 쪼갤 수 있는 사슬
+---
+
+## 9. 보기: 에르고드 사슬, 주기 사슬, 쪼갤 수 있는 사슬
 
 ```python
 # 보기 1: 에르고드 사슬
@@ -642,7 +657,6 @@ print(f"Aperiodic: {result['aperiodic']}")
 print(f"Ergodic: {result['ergodic']}")
 # → 에르고드적: 참. π이 오직 하나 있고 P^n이 모인다.
 
-
 # 보기 2: 주기 사슬(주기 3)
 print("\nExample 2: Periodic Chain")
 print("=" * 50)
@@ -659,7 +673,6 @@ print(f"Period of state 0: {classifier_periodic.compute_period(0)}")
 result = classifier_periodic.is_ergodic()
 print(f"Ergodic: {result['ergodic']} (irreducible but periodic)")
 # → 에르고드적이 아니다. (줄일 수 없어) π이 오직 하나 있지만 P^n이 흔들린다.
-
 
 # 보기 3: 줄일 수 있는 사슬
 print("\nExample 3: Reducible Chain")
@@ -679,7 +692,9 @@ print(f"Irreducible: {classifier_reducible.is_irreducible()}")
 # → 줄일 수 있다. 멈춘 분포가 여럿 있다.
 ```
 
-## 핵심 정리 간추림
+---
+
+## 10. 핵심 정리 간추림
 
 | 정리 | 진술 | MCMC과의 관련 |
 |---------|-----------|----------------|
@@ -689,31 +704,9 @@ print(f"Irreducible: {classifier_reducible.is_irreducible()}")
 | **지수 속도** | $\|P^n(x,\cdot) - \pi\|_{TV} \leq C \cdot |\lambda_2|^n$ | 태우기 길이를 재어 준다 |
 | **섞임 시간 한계** | $\tau_{\text{mix}} \sim 1/\gamma$ | 스펙트럼 틈이 효율을 정한다 |
 
-## 요약
-
-| 성질 | 정의 | 뜻하는 바 |
-|----------|------------|-------------|
-| **닿음** | $i \to j$: $\exists n,\, P^{(n)}_{ij} > 0$ | $i$에서 $j$에 닿을 수 있다 |
-| **통함** | $i \leftrightarrow j$ | 서로 닿을 수 있다 |
-| **쪼갤 수 없음** | 통하는 갈래가 하나 | 상태 공간 전체를 살펴본다 |
-| **주기 없음** | 주기 $= 1$ | 정해진 고리가 없다 |
-| **되돌아옴** | $P(\text{돌아옴}) = 1$ | 반드시 다시 들른다 |
-| **스쳐 지나감** | $P(\text{돌아옴}) < 1$ | 영영 다시 들르지 않을 수 있다 |
-| **에르고드** | 쪼갤 수 없음 + 주기 없음 | 하나뿐인 $\pi$, 모임 보장 |
-| **스펙트럼 틈** | $\gamma = 1 - |\lambda_2|$ | 모임 속도를 다스린다 |
-| **섞임 시간** | 총 변동이 $\leq \epsilon$이 될 때까지의 걸음 | 실전 태우기 잣대 |
-
-## 참고 문헌
-
-1. Levin, D.A., Peres, Y., & Wilmer, E.L. *Markov Chains and Mixing Times* (2nd ed.). AMS, 2017.
-2. Norris, J.R. *Markov Chains*, 1-2장. Cambridge University Press, 1997.
-3. Montenegro, R. & Tetali, P. "Mathematical Aspects of Mixing Times in Markov Chains." *Foundations and Trends in TCS*, 2006.
-4. Diaconis, P. & Stroock, D. "Geometric Bounds for Eigenvalues of Markov Chains." *Annals of Applied Probability*, 1991.
-5. Durrett, R. *Essentials of Stochastic Processes*, 1장. Springer, 2016.
-
 ---
 
-## 섞임 시간
+## 11. 섞임 시간
 
 **정의**: 사슬이 멈춘 분포에 "가까워지는" 데 걸리는 시간.
 
@@ -742,7 +735,7 @@ $$
 
 ---
 
-## 몬테카를로 오차
+## 12. 몬테카를로 오차
 
 완벽히 모여도 몬테카를로에는 **통계 오차**가 있다.
 
@@ -762,7 +755,7 @@ $$
 
 ---
 
-## 실무 지침
+## 13. 실무 지침
 
 ### 사슬 시작하기
 
@@ -786,6 +779,8 @@ $$
 
 MCMC를 잘 쓰려면 과녁 분포를 이해하고, 알맞은 알고리즘을 고르고, 모임을 꼼꼼히 지켜보고, 결과를 알맞게 의심하며 풀이해야 한다. MCMC의 아름다움은 (고르게 하지 않은) $\tilde{\pi}(x)$의 값을 매길 수 있는 힘과 영리한 옮김 알맹이, 그리고 끈기만으로 아무리 복잡한 분포에서도 표집할 수 있다는 데 있다.
 
+---
+
 ## 연습문제
 
 1. **주기 알아내기.** 쪼갤 수 없는 사슬에서 어떤 상태의 제 고리 확률이 양이면($P_{ii} > 0$) 모든 상태의 주기가 없음을 보여라.
@@ -797,3 +792,27 @@ MCMC를 잘 쓰려면 과녁 분포를 이해하고, 알맞은 알고리즘을 �
 4. **스펙트럼 틈 셈하기.** 마음대로 고른 3×3 옮김 행렬에서 스펙트럼 틈을 해석으로 셈하고, 겪어 본 모임 속도가 $|\lambda_2|^n$과 맞는지 확인하여라.
 
 5. **MCMC 맛보기.** 과녁 분포 $\pi = (0.2, 0.3, 0.5)$이 주어졌을 때, $\pi$을 멈춘 분포로 갖고 자세한 균형을 만족하는 옮김 행렬 $P$을 지어라. 에르고드성을 확인하고 섞임 시간을 셈하여라.
+
+## 정리하며
+
+| 성질 | 정의 | 뜻하는 바 |
+|----------|------------|-------------|
+| **닿음** | $i \to j$: $\exists n,\, P^{(n)}_{ij} > 0$ | $i$에서 $j$에 닿을 수 있다 |
+| **통함** | $i \leftrightarrow j$ | 서로 닿을 수 있다 |
+| **쪼갤 수 없음** | 통하는 갈래가 하나 | 상태 공간 전체를 살펴본다 |
+| **주기 없음** | 주기 $= 1$ | 정해진 고리가 없다 |
+| **되돌아옴** | $P(\text{돌아옴}) = 1$ | 반드시 다시 들른다 |
+| **스쳐 지나감** | $P(\text{돌아옴}) < 1$ | 영영 다시 들르지 않을 수 있다 |
+| **에르고드** | 쪼갤 수 없음 + 주기 없음 | 하나뿐인 $\pi$, 모임 보장 |
+| **스펙트럼 틈** | $\gamma = 1 - |\lambda_2|$ | 모임 속도를 다스린다 |
+| **섞임 시간** | 총 변동이 $\leq \epsilon$이 될 때까지의 걸음 | 실전 태우기 잣대 |
+
+**참고 문헌**
+
+1. Levin, D.A., Peres, Y., & Wilmer, E.L. *Markov Chains and Mixing Times* (2nd ed.). AMS, 2017.
+2. Norris, J.R. *Markov Chains*, 1-2장. Cambridge University Press, 1997.
+3. Montenegro, R. & Tetali, P. "Mathematical Aspects of Mixing Times in Markov Chains." *Foundations and Trends in TCS*, 2006.
+4. Diaconis, P. & Stroock, D. "Geometric Bounds for Eigenvalues of Markov Chains." *Annals of Applied Probability*, 1991.
+5. Durrett, R. *Essentials of Stochastic Processes*, 1장. Springer, 2016.
+
+---

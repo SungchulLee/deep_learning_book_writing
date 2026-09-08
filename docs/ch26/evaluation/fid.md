@@ -1,7 +1,9 @@
 # 퍼짐 모델의 프레셰 인셉션 거리(FID)
 FID는 퍼짐 모형 표본의 좋음을 따지는 여느 자다. 온전한 수학 이끌어 내기와 짜보기, 좋은 버릇은 [24.6절의 FID](../../ch25/gan_evaluation/fid.md)을 보아라. 이 쪽은 퍼짐 모형에만 걸리는 대목에 마음을 둔다.
 
-## 뜻매김 다시 보기
+---
+
+## 1. 뜻매김 다시 보기
 
 $$
 \text{FID} = \|\mu_r - \mu_g\|^2 + \text{tr}\!\left(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2}\right)
@@ -9,7 +11,9 @@ $$
 
 FID가 낮을수록 만든 표본이 Inception-v3 특징 공간에서 실제 자료 분포에 가깝다.
 
-## 퍼짐에 딸린 살핌
+---
+
+## 2. 퍼짐에 딸린 살핌
 
 ### 뽑기 걸음과 FID
 
@@ -57,7 +61,9 @@ FID가 낮을수록 만든 표본이 Inception-v3 특징 공간에서 실제 자
 !!! warning "미리 다듬기가 중요하다"
     크기 바꾸기의 사이 메우기나 고르게 맞추기가 조금만 달라도 FID가 몇 점 움직일 수 있다. 견주는 기준과 늘 같은 미리 다듬기 물길을 쓰라. `torch-fidelity`과 `clean-fid` 꾸러미가 한결같음을 지키는 데 도움이 된다.
 
-## 가장 앞선 잣대 재기
+---
+
+## 3. 가장 앞선 잣대 재기
 
 | 모형 | CIFAR-10 FID ↓ | 이미지넷 256×256 FID ↓ |
 |-------|----------------|------------------------|
@@ -69,7 +75,9 @@ FID가 낮을수록 만든 표본이 Inception-v3 특징 공간에서 실제 자
 | DiT-XL/2(피블스 & 셰, 2023) | — | 2.27 |
 | 한결같음 모형(쑹 외, 2023) | 2.93 | 3.55 |
 
-## 퍼짐 모형에서 FID가 모자랄 때
+---
+
+## 4. 퍼짐 모형에서 FID가 모자랄 때
 
 FID는 분포가 얼마나 닮았는지는 담지만 다음은 비추지 못할 수 있다.
 
@@ -79,12 +87,7 @@ FID는 분포가 얼마나 닮았는지는 담지만 다음은 비추지 못할 
 
 퍼짐 모형을 온전히 따지려면 FID와 함께 서로 채워 주는 자도 밝혀야 한다. 짜보기의 속내, 표본 크기 살피기, 부트스트랩 믿음 구간은 [24.6절](../../ch25/gan_evaluation/fid.md)의 두루 갖춘 FID 다룸을 보아라.
 
-## 참고 문헌
-
-1. Ho, J., Jain, A., & Abbeel, P. (2020). "Denoising Diffusion Probabilistic Models." *NeurIPS*.
-2. Dhariwal, P., & Nichol, A. (2021). "Diffusion Models Beat GANs on Image Synthesis." *NeurIPS*.
-3. Peebles, W., & Xie, S. (2023). "Scalable Diffusion Models with Transformers." *ICCV*.
-4. Parmar, G., et al. (2022). "On Aliased Resizing and Surprising Subtleties in GAN Evaluation." *CVPR*.
+---
 
 ## 연습문제
 
@@ -123,3 +126,14 @@ FID가 뛰어난 만들어 내는 모델이 왜 실제 쓰임새에서 실패할
 
 ??? success "연습문제 4 풀이"
     FID는 평균 분포 품질을 재지만 다음을 놓친다. (1) **꼬리 움직임**: 드물지만 중요한 잘못됨(흠, 불쾌한 내용)이 평균에 묻힌다. (2) **조건 충실함**: FID를 흔히 조건 없이 셈하는데 갈래나 글 조건 FID는 다를 수 있다. (3) **외우기**: 익히기 자료를 외운 모델은 FID가 낮지만 만들어 내기에는 쓸모없다. (4) **조건 안의 다양함**: 비슷한 채근에 같은 그림을 내도 FID가 낮을 수 있다. 더 따질 것: 정밀도와 재현율 곡선, 갈래마다 FID, 외우기 알아내기(익히기 묶음까지의 가장 가까운 이웃 거리), 품질과 다양함에 대한 사람 따지기, 쓰임새에 맞춘 잣대(예컨대 글에서 그림으로 모델의 글과 그림 맞음).
+
+## 정리하며
+
+이 마당은 뜻매김 다시 보기、퍼짐에 딸린 살핌、가장 앞선 잣대 재기、퍼짐 모형에서 FID가 모자랄 때을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Ho, J., Jain, A., & Abbeel, P. (2020). "Denoising Diffusion Probabilistic Models." *NeurIPS*.
+2. Dhariwal, P., & Nichol, A. (2021). "Diffusion Models Beat GANs on Image Synthesis." *NeurIPS*.
+3. Peebles, W., & Xie, S. (2023). "Scalable Diffusion Models with Transformers." *ICCV*.
+4. Parmar, G., et al. (2022). "On Aliased Resizing and Surprising Subtleties in GAN Evaluation." *CVPR*.

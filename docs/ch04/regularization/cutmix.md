@@ -1,9 +1,10 @@
 # 컷믹스
-## 개요
 
 컷믹스는 한 이미지에서 직사각형 조각을 잘라 다른 이미지에 붙여 학습 표본을 만들고, 조각의 넓이에 비례하여 레이블을 섞는 데이터 증강 겸 정칙화 기법이다. 컷아웃의 공간적 가림 효과와 믹스업의 레이블 섞기 효과를 결합하여, 섞인 목표로부터 배우면서도 모델이 물체의 전체 범위에 주의를 기울이도록 이끈다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### 핵심 연산
 
@@ -60,7 +61,9 @@ $$
 
 컷믹스는 앞선 두 기법의 한계를 다룬다. 컷아웃은 화소를 정보 없는 0으로 바꿔 낭비한다. 믹스업은 자연스러운 시각 입력과 거리가 먼, 전역적으로 뒤섞인 이미지를 만든다. 컷믹스는 모든 화소가 정보를 지니게 하면서도 국소적으로 그럴듯한 이미지를 만든다.
 
-## 컷믹스가 통하는 이유
+---
+
+## 2. 컷믹스가 통하는 이유
 
 ### 학습 화소의 온전한 활용
 
@@ -74,7 +77,9 @@ $$
 
 원래 내용의 일부만 보이는 이미지를 보여 줌으로써 컷믹스는 모델이 어느 한 공간 영역에 의존하지 못하게 하고 더 전체적인 특징 학습을 이끈다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 기본적인 컷믹스
 
@@ -239,7 +244,9 @@ def train_with_cutmix(
     return history
 ```
 
-## 컷믹스의 변형
+---
+
+## 4. 컷믹스의 변형
 
 ### 클래스를 고려한 컷믹스
 
@@ -394,7 +401,9 @@ def saliency_cutmix(model, x, y, alpha=1.0):
     return x_cutmix, y, y[index], lam_actual
 ```
 
-## 다른 증강과 결합하기
+---
+
+## 5. 다른 증강과 결합하기
 
 ### 컷믹스 + 표준 증강 파이프라인
 
@@ -441,7 +450,9 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
         return mixup_data(x, y, alpha=mixup_alpha)
 ```
 
-## 실무 지침
+---
+
+## 6. 실무 지침
 
 ### 초매개변수 선택
 
@@ -468,12 +479,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 컷믹스는 **평가 시점에 결코 적용하지 않는다**. 검증과 시험에는 손대지 않은 깨끗한 이미지를 쓰라.
 
-## 참고 문헌
-
-1. Yun, S., Han, D., Oh, S. J., Chun, S., Choe, J., & Yoo, Y. (2019). CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features. *ICCV*.
-2. Zhang, H., et al. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
-3. DeVries, T., & Taylor, G. W. (2017). Improved Regularization of CNNs with Cutout. *arXiv*.
-4. Uddin, A. F. M. S., et al. (2020). SaliencyMix: A Saliency Guided Data Augmentation Strategy for Better Regularization. *ICLR Workshop*.
+---
 
 ## 연습문제
 
@@ -521,3 +527,14 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 ??? success "연습문제 4 풀이"
     일부가 다른 클래스로 바뀐 이미지를 분류하게 함으로써 컷믹스는 신경망이 (가장 변별적인 부위만이 아니라) 물체의 모든 부위에 주의를 기울이도록 학습시킨다. 이는 물체의 위치 파악을 개선하고 가림에 대한 견고성을 높인다.
+
+## 정리하며
+
+이 마당은 수학적 정식화、컷믹스가 통하는 이유、PyTorch 구현、컷믹스의 변형을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Yun, S., Han, D., Oh, S. J., Chun, S., Choe, J., & Yoo, Y. (2019). CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features. *ICCV*.
+2. Zhang, H., et al. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
+3. DeVries, T., & Taylor, G. W. (2017). Improved Regularization of CNNs with Cutout. *arXiv*.
+4. Uddin, A. F. M. S., et al. (2020). SaliencyMix: A Saliency Guided Data Augmentation Strategy for Better Regularization. *ICLR Workshop*.

@@ -1,11 +1,10 @@
 # 베이즈 로지스틱 회귀
-## 개요
 
 베이즈 로지스틱 회귀는 보통의 로지스틱 회귀 모형에 가중치 벡터 위의 앞확률 분포를 얹어, 매개변수와 예측 위의 온전한 뒤확률 분포를 낸다. 베이즈 선형 회귀와 달리 뒤확률이 **켤레가 아니어서** 어림 추론 방법이 필요하며, 그래서 16장의 해석적 결과와 18~19장의 어림 추론 기법을 잇는 자연스러운 다리가 된다.
 
 ---
 
-## 모형 명세
+## 1. 모형 명세
 
 ### 가능도
 
@@ -43,7 +42,7 @@ $$
 
 ---
 
-## 라플라스 어림
+## 2. 라플라스 어림
 
 **라플라스 어림**은 최빈값과 굽음을 맞추어 뒤확률에 가우스 분포를 맞춘다.
 
@@ -105,7 +104,7 @@ $$
 
 ---
 
-## PyTorch 구현
+## 3. PyTorch 구현
 
 ```python
 import torch
@@ -174,7 +173,7 @@ class BayesianLogisticRegression:
 
 ---
 
-## 견줌: 최대 뒤확률 예측과 온전한 베이즈 예측
+## 4. 견줌: 최대 뒤확률 예측과 온전한 베이즈 예측
 
 | 갈래 | 최대 뒤확률 예측 | 베이즈 예측 |
 |--------|---------------|---------------------|
@@ -188,7 +187,7 @@ class BayesianLogisticRegression:
 
 ---
 
-## 다른 방법과의 이음
+## 5. 다른 방법과의 이음
 
 | 방법 | 장 | 관계 |
 |--------|---------|-------------|
@@ -198,12 +197,6 @@ class BayesianLogisticRegression:
 | 베이즈 신경망 | 19장(BNN) | 비선형 모형으로의 일반화 |
 
 ---
-
-## 참고 문헌
-
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer. 4.5절.
-- Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. MIT Press. 8장.
-- MacKay, D. J. C. (1992). The evidence framework applied to classification networks. *Neural Computation*, 4(5), 720-736.
 
 ## 연습문제
 
@@ -242,3 +235,13 @@ class BayesianLogisticRegression:
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
     # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
     ```
+
+## 정리하며
+
+이 마당은 모형 명세、라플라스 어림、PyTorch 구현、견줌: 최대 뒤확률 예측과 온전한 베이즈 예측을 차례로 짚었다.
+
+**참고 문헌**
+
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer. 4.5절.
+- Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. MIT Press. 8장.
+- MacKay, D. J. C. (1992). The evidence framework applied to classification networks. *Neural Computation*, 4(5), 720-736.

@@ -3,7 +3,7 @@
 
 ---
 
-## 왜 하는가: 아리송함이 걸리는 까닭
+## 1. 왜 하는가: 아리송함이 걸리는 까닭
 
 ### 지나친 자신함 문제
 
@@ -51,7 +51,7 @@ $$
 
 ---
 
-## 아리송함의 갈래
+## 2. 아리송함의 갈래
 
 ### 갈래 나누기 두루 보기
 
@@ -138,7 +138,7 @@ $$
 
 ---
 
-## 미루어 보는 분포
+## 3. 미루어 보는 분포
 
 ### 뜻매김
 
@@ -199,7 +199,7 @@ $$
 
 ---
 
-## 아리송함 쪼개기
+## 4. 아리송함 쪼개기
 
 ### 온 흩어짐 법칙
 
@@ -271,7 +271,7 @@ $$
 
 ---
 
-## 가름에서의 아리송함
+## 5. 가름에서의 아리송함
 
 ### 미루어 본 엔트로피
 
@@ -330,7 +330,7 @@ $$
 
 ---
 
-## 눈금 맞음과 미더움
+## 6. 눈금 맞음과 미더움
 
 ### 눈금 맞음이란
 
@@ -379,7 +379,7 @@ $$
 
 ---
 
-## 밖 분포 알아내기
+## 7. 밖 분포 알아내기
 
 ### 밖 분포 문제
 
@@ -426,7 +426,7 @@ $$
 
 ---
 
-## 다른 흩어짐 신경 그물
+## 8. 다른 흩어짐 신경 그물
 
 ### 얼개
 
@@ -471,7 +471,7 @@ $$
 
 ---
 
-## 파이썬으로 짜기
+## 9. 파이썬으로 짜기
 
 ```python
 """
@@ -491,7 +491,6 @@ from scipy.special import softmax, logsumexp
 from typing import Tuple, List, Optional, Dict, Callable
 from dataclasses import dataclass
 import warnings
-
 
 # =============================================================================
 # 아리송함 어림
@@ -542,7 +541,6 @@ def predictive_uncertainty_regression(
     
     return mean, total_var, aleatoric, epistemic
 
-
 def predictive_uncertainty_classification(
     logits: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -585,11 +583,9 @@ def predictive_uncertainty_classification(
     
     return mean_probs, total_entropy, aleatoric, epistemic
 
-
 def entropy(probs: np.ndarray, axis: int = -1) -> np.ndarray:
     """낌새 분포의 엔트로피를 셈한다."""
     return -np.sum(probs * np.log(probs + 1e-10), axis=axis)
-
 
 def mutual_information(logits: np.ndarray) -> np.ndarray:
     """
@@ -606,7 +602,6 @@ def mutual_information(logits: np.ndarray) -> np.ndarray:
     """
     _, _, _, mi = predictive_uncertainty_classification(logits)
     return mi
-
 
 # =============================================================================
 # 눈금 맞음 자
@@ -666,7 +661,6 @@ def reliability_diagram_data(
     
     return bin_centers, bin_accs, bin_confs
 
-
 def expected_calibration_error(
     y_true: np.ndarray,
     y_prob: np.ndarray,
@@ -712,7 +706,6 @@ def expected_calibration_error(
     
     return ece
 
-
 def maximum_calibration_error(
     y_true: np.ndarray,
     y_prob: np.ndarray,
@@ -729,7 +722,6 @@ def maximum_calibration_error(
     
     return np.max(np.abs(bin_accs[valid] - bin_confs[valid]))
 
-
 def brier_score(y_true: np.ndarray, y_prob: np.ndarray) -> float:
     """
     낌새 미루어 봄의 브라이어 점수를 셈한다.
@@ -744,7 +736,6 @@ def brier_score(y_true: np.ndarray, y_prob: np.ndarray) -> float:
         n_classes = y_prob.shape[1]
         y_true_onehot = np.eye(n_classes)[y_true]
         return np.mean(np.sum((y_prob - y_true_onehot) ** 2, axis=1))
-
 
 # =============================================================================
 # 밖 분포 알아내기
@@ -794,7 +785,6 @@ def ood_detection_metrics(
         'fpr_at_95': fpr_at_95
     }
 
-
 def max_softmax_probability(logits: np.ndarray) -> np.ndarray:
     """
     밑금 밖 분포 알아내개: 음수 가장 큰 소프트맥스 낌새.
@@ -803,7 +793,6 @@ def max_softmax_probability(logits: np.ndarray) -> np.ndarray:
     """
     probs = softmax(logits, axis=-1)
     return -np.max(probs, axis=-1)
-
 
 def predictive_entropy_score(logits: np.ndarray) -> np.ndarray:
     """
@@ -820,7 +809,6 @@ def predictive_entropy_score(logits: np.ndarray) -> np.ndarray:
         # 모형 하나
         probs = softmax(logits, axis=1)
         return entropy(probs, axis=1)
-
 
 # =============================================================================
 # 다른 흩어짐 그물
@@ -883,7 +871,6 @@ class HeteroscedasticLoss:
         grad_log_var = 0.5 * (1 - residual ** 2 / var)
         
         return grad_mu, grad_log_var
-
 
 class SimpleHeteroscedasticNetwork:
     """
@@ -990,7 +977,6 @@ class SimpleHeteroscedasticNetwork:
             return mu, std
         return mu, None
 
-
 # =============================================================================
 # 그리는 함수
 # =============================================================================
@@ -1056,7 +1042,6 @@ def plot_uncertainty_decomposition(
     plt.tight_layout()
     plt.show()
 
-
 def plot_reliability_diagram(
     y_true: np.ndarray,
     y_prob: np.ndarray,
@@ -1099,7 +1084,6 @@ def plot_reliability_diagram(
     
     plt.tight_layout()
     plt.show()
-
 
 def plot_ood_detection(
     in_scores: np.ndarray,
@@ -1153,7 +1137,6 @@ def plot_ood_detection(
         print(f"  AUROC: {metrics['auroc']:.4f}")
         print(f"  AUPRC: {metrics['auprc']:.4f}")
         print(f"  FPR@95: {metrics['fpr_at_95']:.4f}")
-
 
 # =============================================================================
 # 보여 주는 함수
@@ -1211,7 +1194,6 @@ def demo_uncertainty_decomposition():
     
     return x_test, mean, aleatoric, epistemic
 
-
 def demo_classification_uncertainty():
     """가름에서의 아리송함을 보여 준다."""
     
@@ -1250,7 +1232,6 @@ def demo_classification_uncertainty():
     print("\n*** 자신하는 미루어 봄은 온 아리송함이 작다")
     print("*** 타고난 것이 크다 = 갈래가 타고나게 겹친다")
     print("*** 앎의 것이 크다 = 모형끼리 어긋난다(모둠의 흩어짐)")
-
 
 def demo_calibration():
     """눈금 맞음 자와 미더움 그림을 보여 준다."""
@@ -1291,7 +1272,6 @@ def demo_calibration():
     
     print("\n*** ECE가 작을수록 눈금이 잘 맞는다")
     print("*** 브라이어 점수가 작을수록 낌새 미루어 봄이 좋다")
-
 
 def demo_ood_detection():
     """밖 분포 알아내기를 보여 준다."""
@@ -1340,7 +1320,6 @@ def demo_ood_detection():
     print("\n*** 앎의 아리송함이 클수록 밖 분포 보기임을 뜻한다")
     print("*** 베이즈 방법은 밖 분포 알아내는 힘을 절로 준다")
 
-
 def demo_heteroscedastic_loss():
     """다른 흩어짐 잃음 셈하기를 보여 준다."""
     
@@ -1383,7 +1362,6 @@ def demo_heteroscedastic_loss():
     print("\n*** 잃음은 미루어 봄의 어긋남과 눈금 어긋난 아리송함을 함께 벌한다")
     print("*** 틀린 미루어 봄에서 아리송함을 낮게 보면 크게 벌한다")
 
-
 if __name__ == "__main__":
     demo_uncertainty_decomposition()
     demo_classification_uncertainty()
@@ -1394,7 +1372,39 @@ if __name__ == "__main__":
 
 ---
 
-## 간추림
+## 연습문제
+
+**연습문제 1.**
+ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
+
+??? success "연습문제 1 풀이"
+    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
+
+---
+
+**연습문제 2.**
+이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
+
+---
+
+**연습문제 3.**
+베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+
+??? success "연습문제 3 풀이"
+    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+
+??? success "연습문제 4 풀이"
+    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$
+
+## 정리하며
 
 ### 아리송함의 갈래
 
@@ -1461,35 +1471,3 @@ $$
 - Guo, C., et al. (2017). On calibration of modern neural networks. *ICML*.
 - Lakshminarayanan, B., et al. (2017). Simple and scalable predictive uncertainty estimation using deep ensembles. *NeurIPS*.
 - Houlsby, N., et al. (2011). Bayesian active learning for classification and preference learning. *arXiv*.
-
-## 익힘 문제
-
-**익힘 1.**
-ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
-
-??? success "익힘 1 풀이"
-    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
-
----
-
-**익힘 2.**
-이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
-
-??? success "익힘 2 풀이"
-    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
-
----
-
-**익힘 3.**
-베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
-
-??? success "익힘 3 풀이"
-    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
-
----
-
-**익힘 4.**
-이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
-
-??? success "익힘 4 풀이"
-    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$

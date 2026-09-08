@@ -1,5 +1,4 @@
 # 만들어 내는 모델의 정밀도와 재현율
-## 개요
 
 가르기에서 만들어 내는 모델로 옮겨 온 정밀도와 재현율 잣대는 FID만으로는 담을 수 없는 만들어 내기 품질의 결을 알려 준다. 이 잣대는 **충실함**(만든 표본이 그럴듯한가?)과 **다양함**(모델이 자료 분포의 봉우리를 모두 덮는가?)을 따로 잰다.
 
@@ -12,7 +11,9 @@
     - 나아진 정밀도와 재현율 잣대(IPR)를 쓴다
     - 이 잣대로 봉우리 무너짐과 품질 문제를 짚어낸다
 
-## 까닭: 왜 FID 너머인가?
+---
+
+## 1. 까닭: 왜 FID 너머인가?
 
 ### 숫자 하나짜리 잣대의 한계
 
@@ -46,7 +47,9 @@ $$
 \text{Recall} = \frac{\text{Real data covered by generator}}{\text{All real data}}
 $$
 
-## 수학적 바탕
+---
+
+## 2. 수학적 바탕
 
 ### 다양체에 바탕한 풀이
 
@@ -98,7 +101,9 @@ $$
 
 **간추리면**: 재현율은 실제 자료 봉우리가 만든 표본으로 덮이는지를 잰다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 기본 구현
 
@@ -107,7 +112,6 @@ import torch
 import numpy as np
 from typing import Tuple, Optional
 from scipy.spatial.distance import cdist
-
 
 class PrecisionRecallCalculator:
     """
@@ -247,7 +251,6 @@ class PrecisionRecallCalculator:
         
         return float(precision), float(recall)
 
-
 class ImprovedPrecisionRecall:
     """
     Kynkäänniemi 외(2019)의 나아진 정밀도와 재현율(IPR).
@@ -359,7 +362,6 @@ class ImprovedPrecisionRecall:
         print(f"  Recall: {recall:.4f}")
         
         return float(precision), float(recall)
-
 
 def compute_density_coverage(real_features: np.ndarray,
                             generated_features: np.ndarray,
@@ -502,11 +504,12 @@ def demonstrate_precision_recall():
         'noisy': (p3, r3)
     }
 
-
 demonstrate_precision_recall()
 ```
 
-## 정밀도와 재현율 풀이하기
+---
+
+## 4. 정밀도와 재현율 풀이하기
 
 ### 정밀도와 재현율의 맞바꿈
 
@@ -530,7 +533,6 @@ Precision ↓  ←→  Recall ↑  (Diverse but noisy)
 
 ```python
 import matplotlib.pyplot as plt
-
 
 def plot_precision_recall_tradeoff(models_results: dict):
     """
@@ -570,7 +572,9 @@ def plot_precision_recall_tradeoff(models_results: dict):
     return fig
 ```
 
-## FID과의 관계
+---
+
+## 5. FID과의 관계
 
 ### 정밀도와 재현율이 FID를 어떻게 메우는가
 
@@ -640,7 +644,9 @@ def comprehensive_evaluation(real_features, gen_features):
     return fid, precision, recall
 ```
 
-## 나아가서: F1 점수와 F-베타
+---
+
+## 6. 나아가서: F1 점수와 F-베타
 
 ### 정밀도와 재현율 아우르기
 
@@ -677,7 +683,6 @@ def compute_f_score(precision: float, recall: float, beta: float = 1.0) -> float
     
     return f_score
 
-
 # 사용 예
 precision, recall = 0.8, 0.6
 
@@ -690,7 +695,9 @@ print(f"F0.5 (precision-focused): {f05:.4f}")
 print(f"F2 (recall-focused): {f2:.4f}")
 ```
 
-## 모범 사례
+---
+
+## 7. 모범 사례
 
 ### 1. k을 꼼꼼히 고르라
 
@@ -733,32 +740,7 @@ from torchvision.models import inception_v3
 # - 의료나 위성 그림에는 마당에 맞춘 신경망
 ```
 
-## 요약
-
-!!! success "핵심 간추리기"
-    
-    1. **정밀도는 충실함을 잰다**: 만든 표본이 그럴듯한가?
-    
-    2. **재현율은 다양함을 잰다**: 모델이 자료 봉우리를 모두 덮는가?
-    
-    3. **핵심 짚어내기**:
-       - 정밀도 높고 재현율 낮음 → 봉우리 무너짐
-       - 정밀도 낮고 재현율 높음 → 낮은 품질
-       - 둘 다 높음 → 뛰어난 만들어 내기
-    
-    4. **FID와 함께 쓰라**: 정밀도와 재현율은 FID가 주지 못하는 통찰을 준다
-    
-    5. **권하는 자리매김**: k=3, 표본 10,000개 이상, InceptionV3 특징
-
-## 참고 문헌
-
-1. Sajjadi, M.S.M., et al. (2018). "Assessing Generative Models via Precision and Recall." *NeurIPS*.
-
-2. Kynkäänniemi, T., et al. (2019). "Improved Precision and Recall Metric for Assessing Generative Models." *NeurIPS*.
-
-3. Naeem, M.F., et al. (2020). "Reliable Fidelity and Diversity Metrics for Generative Models." *ICML*.
-
-4. Simon, L., et al. (2019). "Revisiting Precision and Recall Definition for Generative Model Evaluation." *ICML*.
+---
 
 ## 연습문제
 
@@ -795,3 +777,30 @@ from torchvision.models import inception_v3
 
 ??? success "연습문제 4 풀이"
     어느 잣대 하나도 만들어 내기 품질의 모든 면을 담지 못한다. **FID**은 전체 분포의 닮음을 재지만 품질과 다양함을 뒤섞는다. **인셉션 점수**는 품질과 다양함을 담지만 익히기 자료에 대한 충실함은 무시한다. **정밀도/재현율**은 품질과 다양함을 갈라내지만 특징 뽑개와 $k$을 어떻게 고르느냐에 매인다. **느낌 잣대**(LPIPS)는 그림 수준 품질을 재지만 다양함은 재지 않는다. 잣대를 함께 쓰면 온전한 그림이 보인다. 곧 FID가 낮고 정밀도가 높으며 재현율이 낮은 모델은 봉우리가 무너진 것이고, 재현율이 높고 정밀도가 낮은 모델은 다양하지만 품질 낮은 표본을 낸다. 마지막 판단에는 사람이 따지는 것이 여전히 으뜸 기준이다.
+
+## 정리하며
+
+!!! success "핵심 간추리기"
+    
+    1. **정밀도는 충실함을 잰다**: 만든 표본이 그럴듯한가?
+    
+    2. **재현율은 다양함을 잰다**: 모델이 자료 봉우리를 모두 덮는가?
+    
+    3. **핵심 짚어내기**:
+       - 정밀도 높고 재현율 낮음 → 봉우리 무너짐
+       - 정밀도 낮고 재현율 높음 → 낮은 품질
+       - 둘 다 높음 → 뛰어난 만들어 내기
+    
+    4. **FID와 함께 쓰라**: 정밀도와 재현율은 FID가 주지 못하는 통찰을 준다
+    
+    5. **권하는 자리매김**: k=3, 표본 10,000개 이상, InceptionV3 특징
+
+**참고 문헌**
+
+1. Sajjadi, M.S.M., et al. (2018). "Assessing Generative Models via Precision and Recall." *NeurIPS*.
+
+2. Kynkäänniemi, T., et al. (2019). "Improved Precision and Recall Metric for Assessing Generative Models." *NeurIPS*.
+
+3. Naeem, M.F., et al. (2020). "Reliable Fidelity and Diversity Metrics for Generative Models." *ICML*.
+
+4. Simon, L., et al. (2019). "Revisiting Precision and Recall Definition for Generative Model Evaluation." *ICML*.

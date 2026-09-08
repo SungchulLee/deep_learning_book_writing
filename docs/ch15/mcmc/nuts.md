@@ -3,7 +3,7 @@
 
 ---
 
-## 왜 필요한가
+## 1. 왜 필요한가
 
 ### 자취 길이 문제
 
@@ -37,7 +37,7 @@ NUTS은 다음처럼 자취 길이를 저절로 정한다:
 
 ---
 
-## 유턴 잣대
+## 2. 유턴 잣대
 
 ### 기본 정의
 
@@ -74,7 +74,7 @@ $$
 
 ---
 
-## 나무 세우기 알고리즘
+## 3. 나무 세우기 알고리즘
 
 ### 곱절 늘리기 얼개
 
@@ -115,7 +115,7 @@ Depth j: 2ʲ points total
 
 ---
 
-## NUTS 알고리즘
+## 4. NUTS 알고리즘
 
 ### 큰 틀의 가짜 코드
 
@@ -204,7 +204,7 @@ if Random() < n''/(n' + n''):
 
 ---
 
-## 멈춤 잣대
+## 5. 멈춤 잣대
 
 ### 유턴으로 멈추기
 
@@ -252,7 +252,7 @@ def is_divergent(H_new, H_old, delta_max=1000):
 
 ---
 
-## 자세한 균형
+## 6. 자세한 균형
 
 ### NUTS이 왜 옳은가
 
@@ -284,7 +284,7 @@ NUTS에서 실효 "받아들임 비율"은 자취 가운데 쓸 수 있는 몫�
 
 ---
 
-## 구현
+## 7. 구현
 
 ### 온전한 NUTS 구현
 
@@ -466,7 +466,7 @@ print(f"Sample mean: {samples.mean(0)}")
 
 ---
 
-## 진단
+## 8. 진단
 
 ### 나무 깊이
 
@@ -511,7 +511,7 @@ $$
 
 ---
 
-## NUTS과 표준 HMC의 견줌
+## 9. NUTS과 표준 HMC의 견줌
 
 ### NUTS의 좋은 점
 
@@ -540,7 +540,7 @@ $$
 
 ---
 
-## 실전 권고
+## 10. 실전 권고
 
 ### 걸음 크기 맞춰 가기
 
@@ -584,26 +584,6 @@ HMC와 같은 원리이다:
 
 ---
 
-## 요약
-
-| 부품 | 설명 |
-|-----------|-------------|
-| **유턴 잣대** | 자취가 방향을 뒤집으면 멈춘다 |
-| **나무 곱절 늘리기** | 자취를 지수로 키운다 |
-| **다항 표집** | 쓸 수 있는 상태에서 고르게 고른다 |
-| **멈춤** | 유턴, 에너지 오차, 또는 최대 깊이 |
-
-NUTS은 꼼꼼히 맞춰야 하던 HMC를 튼튼하고 거의 저절로 굴러가는 표집기로 바꾸었다. 자취 길이 매개변수를 없앰으로써 NUTS은 Stan이나 PyMC 같은 요즘 확률 프로그래밍 체계의 기본 알고리즘이 되었다.
-
----
-
-## 참고 문헌
-
-1. Hoffman, M. D., & Gelman, A. (2014). "The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo." *JMLR*, 15, 1593-1623.
-2. Betancourt, M. (2017). "A Conceptual Introduction to Hamiltonian Monte Carlo." arXiv:1701.02434.
-3. Stan Development Team. "Stan Reference Manual."
-4. Betancourt, M. (2016). "Diagnosing Biased Inference with Divergences." Stan Case Studies.
-
 ## 연습문제
 
 1. **기본 NUTS 구현하기**. 2차원 가우스에 대해 NUTS을 구현하고 올바른 표본이 나오는지 확인하여라. 과녁의 기하에 따라 나무 깊이를 견주어라.
@@ -617,3 +597,23 @@ NUTS은 꼼꼼히 맞춰야 하던 HMC를 튼튼하고 거의 저절로 굴러�
 5. **NUTS과 HMC 견주기**. 까다로운 과녁에서 NUTS을 여러 붙박이 $L$ 값의 HMC와 견주어라. 방법마다 기울기 값매김당 ESS을 그려라.
 
 ---
+
+## 정리하며
+
+| 부품 | 설명 |
+|-----------|-------------|
+| **유턴 잣대** | 자취가 방향을 뒤집으면 멈춘다 |
+| **나무 곱절 늘리기** | 자취를 지수로 키운다 |
+| **다항 표집** | 쓸 수 있는 상태에서 고르게 고른다 |
+| **멈춤** | 유턴, 에너지 오차, 또는 최대 깊이 |
+
+NUTS은 꼼꼼히 맞춰야 하던 HMC를 튼튼하고 거의 저절로 굴러가는 표집기로 바꾸었다. 자취 길이 매개변수를 없앰으로써 NUTS은 Stan이나 PyMC 같은 요즘 확률 프로그래밍 체계의 기본 알고리즘이 되었다.
+
+---
+
+**참고 문헌**
+
+1. Hoffman, M. D., & Gelman, A. (2014). "The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo." *JMLR*, 15, 1593-1623.
+2. Betancourt, M. (2017). "A Conceptual Introduction to Hamiltonian Monte Carlo." arXiv:1701.02434.
+3. Stan Development Team. "Stan Reference Manual."
+4. Betancourt, M. (2016). "Diagnosing Biased Inference with Divergences." Stan Case Studies.

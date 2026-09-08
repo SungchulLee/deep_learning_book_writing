@@ -2,13 +2,17 @@
 
 레드-블랙 트리의 삽입은 표준 이진 탐색 트리 삽입과 똑같이 시작한다. 뿌리에서 내려가 새 노드를 잎으로 붙인다. 새 노드는 언제나 **붉게** 칠하는데, 붉은 노드를 더해도 어떤 경로의 검은 높이도 바뀌지 않기 때문이다(성질 5가 지켜진다). 그런데 새 노드의 부모도 붉으면 성질 4(붉은 노드가 잇따를 수 없다)가 깨진다. 다음 절에서 다루는 **삽입 뒤 손질** 절차가 색 바꾸기와 많아야 두 번의 회전으로 모든 성질을 되살린다.
 
-## 왜 새 노드를 붉게 칠하는가
+---
+
+## 1. 왜 새 노드를 붉게 칠하는가
 
 새 노드를 검게 칠하면 그것을 지나는 모든 경로의 검은 높이가 1씩 늘어 모든 조상에서 성질 5가 깨진다. 성질 5를 되살리는 일은 경로 전체의 개수에 영향을 주므로 비싸다.
 
 새 노드를 붉게 칠하면 성질 5는 지켜지지만 (부모가 붉으면) 성질 4가 깨질 수 있다. 성질 4를 되살리는 일은 국소적이다. 빨강-빨강 충돌 하나만 고치면 되고, 삽입 경로 위에 머무는 색 바꾸기와 회전으로 풀 수 있다.
 
-## 삽입 절차
+---
+
+## 2. 삽입 절차
 
 삽입 절차는 CLRS의 형식을 따른다.
 
@@ -45,7 +49,9 @@ RB-INSERT(T, z):
     RB-INSERT-FIXUP(T, z)
 ```
 
-## 무엇이 잘못될 수 있는가
+---
+
+## 3. 무엇이 잘못될 수 있는가
 
 붉은 노드 $z$을 넣은 뒤에는 다음과 같다.
 
@@ -57,7 +63,9 @@ RB-INSERT(T, z):
 
 따라서 깨질 수 있는 것은 성질 2(고치기 쉽다)와 성질 4(손질이 처리한다)뿐이다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -67,12 +75,10 @@ RB-INSERT(T, z):
 처음의 빨간 칠하기를 보인다.
 """
 
-
 # === 상수 ===
 
 RED = "R"
 BLACK = "B"
-
 
 # === 적흑 노드 ===
 
@@ -89,14 +95,12 @@ class RBNode:
     def __repr__(self):
         return f"{self.key}({self.color})"
 
-
 # === 파수 ===
 
 NIL = RBNode(key=None, color=BLACK)
 NIL.left = NIL
 NIL.right = NIL
 NIL.parent = NIL
-
 
 # === 이진 탐색 트리 삽입 단계 ===
 
@@ -128,7 +132,6 @@ def bst_insert(tree, z):
     z.right = NIL
     z.color = RED
 
-
 # === 보이기 ===
 
 def print_tree(node, level=0):
@@ -140,7 +143,6 @@ def print_tree(node, level=0):
     print(f"{indent}{node.key}({node.color})")
     print_tree(node.left, level + 1)
 
-
 def check_property_4(node):
     """어디선가 성질 4가 어겨졌는지 살핀다."""
     if node is NIL:
@@ -150,7 +152,6 @@ def check_property_4(node):
             print(f"  Property 4 VIOLATED: {node} has red child")
             return False
     return check_property_4(node.left) and check_property_4(node.right)
-
 
 if __name__ == "__main__":
     # 노드를 넣고 바로잡기 전의 빨강-빨강 위반을 보인다
@@ -200,14 +201,13 @@ After inserting 3 (red, parent red -> VIOLATION):
 
 노드 5의 어긋남(붉은 자식을 가진 붉은 노드)이 바로 `INSERT-FIXUP`이 푸는 상황이며 다음 절에서 자세히 다룬다.
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 이진 탐색 트리 삽입 단계는 (트리를 내려가는 데) $O(\log n)$ 시간이 걸린다. (다음 절의) 손질도 회전 두 번과 함께 $O(\log n)$ 시간이 걸린다. 따라서 전체 삽입 시간은 $O(\log n)$이다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -240,3 +240,11 @@ After inserting 3 (red, parent red -> VIOLATION):
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 왜 새 노드를 붉게 칠하는가、삽입 절차、무엇이 잘못될 수 있는가、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

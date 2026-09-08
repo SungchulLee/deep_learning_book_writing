@@ -1,5 +1,4 @@
 # 확률적 해석
-## 들어가며
 
 이 절은 딥러닝에 대한 **통일된 확률적 관점**을 제시한다. 모든 손실 함수는 음의 로그가능도이고, 모든 정칙화 항은 사전분포이며, 학습은 형태를 바꾼 베이즈 추론이다. 이 틀을 이해하면 손실 함수를 고르고, 정칙화를 설계하고, 모델을 해석하는 데 길잡이가 된다.
 
@@ -13,7 +12,9 @@
     | 드롭아웃 추가 | 근사 베이즈 추론 |
     | 평균과 분산을 함께 예측 | 이분산 가우스 MLE |
 
-## 근본적인 관계
+---
+
+## 1. 근본적인 관계
 
 데이터 $\{(x_i, y_i)\}_{i=1}^n$과 확률 모델 $p(y|x, \theta)$이 주어졌을 때 다음이 성립한다.
 
@@ -40,7 +41,9 @@ $p(y|x, \theta)$을 무엇으로 고르느냐에 따라 다른 손실 함수가 
 | 포아송 손실 | 포아송$(\lambda)$ | 비율 $\lambda$ | 계수 데이터 |
 | 후버 손실 | 가우스–라플라스 혼합 | 이상치에 강한 평균 | 이상치에 강한 회귀 |
 
-## KL 발산과 손실 함수
+---
+
+## 2. KL 발산과 손실 함수
 
 ### 교차 엔트로피와의 관계
 
@@ -74,7 +77,9 @@ $$
 
 이는 MLE에 대한 깊은 정당화를 제공한다. MLE는 KL의 의미에서 참 데이터 분포에 가장 가까운 모델 분포를 찾는다.
 
-## 사전분포로서의 정칙화: MAP 추정
+---
+
+## 3. 사전분포로서의 정칙화: MAP 추정
 
 ### MLE에서 MAP으로
 
@@ -122,7 +127,9 @@ $$
 
 L1 사전분포(마름모 모양의 등고선)는 MAP 추정값을 일부 좌표가 0인 꼭짓점에 놓는 경향이 있다. L2 사전분포(원 모양의 등고선)는 모든 매개변수를 고르게 줄이지만 정확한 0을 만드는 일은 드물다. 이것이 특징 선택에 L1(라쏘)을 선호하는 이유이다.
 
-## 사용자 정의 손실 함수 설계하기
+---
+
+## 4. 사용자 정의 손실 함수 설계하기
 
 ### 방법
 
@@ -149,7 +156,9 @@ $$
 \mathcal{L}_{\text{Poisson}} = \frac{1}{n}\sum_{i=1}^{n}\left[\exp(f_\theta(x_i)) - y_i \cdot f_\theta(x_i)\right]
 $$
 
-## PyTorch 구현
+---
+
+## 5. PyTorch 구현
 
 ### 사전분포로서의 정칙화
 
@@ -281,7 +290,9 @@ def loss_function_comparison():
         print(f"{name:>20}: w={w:.4f}, b={b:.4f}")
 ```
 
-## 핵심 정리
+---
+
+## 6. 핵심 정리
 
 딥러닝의 확률적 해석은 여러 실용적인 이점을 준다.
 
@@ -295,12 +306,7 @@ def loss_function_comparison():
 
 5. **원리에 기반한 모델 비교**: 따로 떼어 둔 데이터에서의 가능도로 서로 다른 모델을 비교할 수 있다.
 
-## 참고 문헌
-
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 4
-- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. Chapter 5
-- Kendall, A. & Gal, Y. (2018). "What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?" *NeurIPS*
-- Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*. Chapter 5
+---
 
 ## 연습문제
 
@@ -380,3 +386,14 @@ def loss_function_comparison():
     # MAP-L1이 희소성 양상을 가장 잘 되찾는다. MAP-L2는 모든 계수를 줄이고,
     # MLE는 p > n에서 과적합한다.
     ```
+
+## 정리하며
+
+이 마당은 근본적인 관계、KL 발산과 손실 함수、사전분포로서의 정칙화: MAP 추정、사용자 정의 손실 함수 설계하기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 4
+- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. Chapter 5
+- Kendall, A. & Gal, Y. (2018). "What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?" *NeurIPS*
+- Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*. Chapter 5

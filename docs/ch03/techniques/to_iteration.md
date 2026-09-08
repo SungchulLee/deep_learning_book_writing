@@ -2,13 +2,14 @@
 
 모든 재귀 알고리즘은 반복 알고리즘으로 바꿀 수 있고 그 반대도 마찬가지이다. 이 변환은 실무에서 중요하다. 반복적 해법은 스택 넘침의 위험을 피하고 함수 호출 부담이 없어져 더 빠르게 실행되는 경우가 많기 때문이다. 세 가지 주요 기법이 이 변환을 처리한다.
 
-## 기법 1: 반복문으로 직접 바꾸기
+---
+
+## 1. 기법 1: 반복문으로 직접 바꾸기
 
 꼬리 재귀 함수는 반복문으로 곧바로 바뀐다. 누적자가 반복 변수가 된다.
 
 ```python
 """꼬리 재귀를 반복으로 변환하기."""
-
 
 # === 재귀적 계승(꼬리 형태) ===
 
@@ -17,7 +18,6 @@ def factorial_recursive(n, acc=1):
     if n <= 1:
         return acc
     return factorial_recursive(n - 1, acc * n)
-
 
 # === 반복적 계승 ===
 
@@ -28,7 +28,6 @@ def factorial_iterative(n):
         acc *= n
         n -= 1
     return acc
-
 
 # === 메인 ===
 
@@ -47,7 +46,9 @@ if __name__ == "__main__":
 10! = 3628800 (recursive) = 3628800 (iterative)
 ```
 
-## 기법 2: 명시적 스택
+---
+
+## 2. 기법 2: 명시적 스택
 
 (트리 순회처럼) 되돌아 나오는 과정이 필요한 꼬리가 아닌 재귀 함수는 명시적 스택 자료구조로 호출 스택을 흉내 낼 수 있다.
 
@@ -68,14 +69,13 @@ def dfs_iterative(root):
             stack.append(child)
 ```
 
-## 기법 3: 트램펄린
+---
+
+## 3. 기법 3: 트램펄린
 
 상호 재귀이거나 복잡한 재귀 함수에서는 논리를 재구성하지 않고도 트램펄린 반복문으로 재귀를 대체할 수 있다(꼬리 호출 최적화 절 참고).
 
-## 참고 문헌
-
-[Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -108,3 +108,11 @@ $n = 8$일 때 반복으로 변환하기의 재귀 트리를 그려라. 각 층�
 
 ??? success "연습문제 4 풀이"
     호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.
+
+## 정리하며
+
+이 마당은 기법 1: 반복문으로 직접 바꾸기、기법 2: 명시적 스택、기법 3: 트램펄린을 차례로 짚었다.
+
+**참고 문헌**
+
+[Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

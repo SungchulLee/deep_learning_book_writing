@@ -1,5 +1,4 @@
 # 전치 합성곱
-## 들어가며
 
 **전치 합성곱**(**분수 보폭 합성곱**, 또는 흔히 **역합성곱**이라고도 한다)은 보통 합성곱을 입력에 대해 미분한 연산이다. 표준 합성곱이 대체로 공간 차원을 줄이는 데 반해 전치 합성곱은 이를 **늘리므로**, 신경망에서 학습 가능한 상향 표본화의 대표적인 방법이 된다.
 
@@ -14,7 +13,7 @@
 
 ---
 
-## 수학적 바탕
+## 1. 수학적 바탕
 
 ### 행렬 곱으로 본 합성곱
 
@@ -70,7 +69,7 @@ print(f"Gradient match: {torch.allclose(x.grad, grad_input_manual, atol=1e-5)}")
 
 ---
 
-## 전치 합성곱이 움직이는 방식
+## 2. 전치 합성곱이 움직이는 방식
 
 ### 상향 표본화 장치
 
@@ -118,7 +117,7 @@ $$H_{out} = (H_{in} - 1) \times 2 - 2 \times 1 + 3 + 1 = 2 \times H_{in}$$
 
 ---
 
-## PyTorch 구현
+## 3. PyTorch 구현
 
 ### 기본 사용법
 
@@ -177,7 +176,7 @@ print(f"ConvTranspose2d params: {sum(p.numel() for p in conv_t.parameters()):,}"
 
 ---
 
-## 바둑판 무늬 흠 문제
+## 4. 바둑판 무늬 흠 문제
 
 ### 무엇이 문제인가
 
@@ -279,7 +278,7 @@ print(f"Sub-pixel: {x.shape} → {out.shape}")  # [1, 64, 16, 16] → [1, 32, 32
 
 ---
 
-## 부호기-복호기 구조
+## 5. 부호기-복호기 구조
 
 ### 단순한 자기부호기
 
@@ -371,7 +370,7 @@ class UNetDecoder(nn.Module):
 
 ---
 
-## 상향 표본화 방법 견주기
+## 6. 상향 표본화 방법 견주기
 
 | 방법 | 학습 가능 | 흠 | 매개변수 | 속도 |
 |--------|-----------|-----------|------------|-------|
@@ -410,7 +409,7 @@ for name, module in methods.items():
 
 ---
 
-## 1차원 전치 합성곱
+## 7. 1차원 전치 합성곱
 
 전치 합성곱은 시간 방향 상향 표본화를 위해 1차원에서도 쓸 수 있다.
 
@@ -431,18 +430,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 ---
 
-## 요약
-
-| 항목 | 설명 |
-|--------|-------------|
-| **연산** | 합성곱 행렬의 전치로, 낮은 해상도를 높은 해상도로 보낸다 |
-| **합성곱과의 관계** | 입력에 대한 conv2d의 기울기 |
-| **출력 크기** | $(H_{in}-1) \times s - 2p + d(K-1) + p_{out} + 1$ |
-| **흔한 쓰임** | 복호기 신경망, GAN, 분할, 초해상도 |
-| **주된 함정** | $K \% s \neq 0$일 때의 바둑판 무늬 흠 |
-| **모범 관행** | $s$으로 나누어떨어지는 $K$을 쓰거나 크기 조정 뒤 합성곱을 쓴다 |
-
-## 핵심 정리
+## 8. 핵심 정리
 
 1. **전치 합성곱은 합성곱 행렬의 역행렬이 아니라 전치**이다. 합성곱을 되돌리지 않는다
 2. 역전파에서 입력에 대한 보통 합성곱의 **기울기로 자연스럽게 나타난다**
@@ -451,17 +439,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 5. **PixelShuffle**(부화소 합성곱)은 채널을 다시 늘어놓아 효율적이고 흠 없는 상향 표본화를 준다
 6. **output_padding**은 보통 합성곱에서 여러 입력 크기가 같은 출력 크기로 갈 때 생기는 모호함을 없앤다
 
-## 참고 문헌
-
-1. Dumoulin, V., & Visin, F. (2016). "A guide to convolution arithmetic for deep learning." *arXiv preprint arXiv:1603.07285*.
-
-2. Long, J., Shelhamer, E., & Darrell, T. (2015). "Fully Convolutional Networks for Semantic Segmentation." *CVPR*.
-
-3. Odena, A., Dumoulin, V., & Olah, C. (2016). "Deconvolution and Checkerboard Artifacts." *Distill*. https://distill.pub/2016/deconv-checkerboard/
-
-4. Shi, W., et al. (2016). "Real-Time Single Image and Video Super-Resolution Using an Efficient Sub-Pixel Convolutional Neural Network." *CVPR*.
-
-5. Ronneberger, O., Fischer, P., & Brox, T. (2015). "U-Net: Convolutional Networks for Biomedical Image Segmentation." *MICCAI*.
+---
 
 ## 연습문제
 
@@ -502,3 +480,26 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 ??? success "연습문제 4 풀이"
     복호기 신경망에서 쓰인다. U-Net(분할), 자기부호기, GAN(생성기의 상향 표본화), 초해상도 신경망이 그 예이다. 고정된 상향 표본화 방법의 학습 가능한 짝으로, 신경망이 알맞은 상향 표본화 필터를 배우게 해 준다.
+
+## 정리하며
+
+| 항목 | 설명 |
+|--------|-------------|
+| **연산** | 합성곱 행렬의 전치로, 낮은 해상도를 높은 해상도로 보낸다 |
+| **합성곱과의 관계** | 입력에 대한 conv2d의 기울기 |
+| **출력 크기** | $(H_{in}-1) \times s - 2p + d(K-1) + p_{out} + 1$ |
+| **흔한 쓰임** | 복호기 신경망, GAN, 분할, 초해상도 |
+| **주된 함정** | $K \% s \neq 0$일 때의 바둑판 무늬 흠 |
+| **모범 관행** | $s$으로 나누어떨어지는 $K$을 쓰거나 크기 조정 뒤 합성곱을 쓴다 |
+
+**참고 문헌**
+
+1. Dumoulin, V., & Visin, F. (2016). "A guide to convolution arithmetic for deep learning." *arXiv preprint arXiv:1603.07285*.
+
+2. Long, J., Shelhamer, E., & Darrell, T. (2015). "Fully Convolutional Networks for Semantic Segmentation." *CVPR*.
+
+3. Odena, A., Dumoulin, V., & Olah, C. (2016). "Deconvolution and Checkerboard Artifacts." *Distill*. https://distill.pub/2016/deconv-checkerboard/
+
+4. Shi, W., et al. (2016). "Real-Time Single Image and Video Super-Resolution Using an Efficient Sub-Pixel Convolutional Neural Network." *CVPR*.
+
+5. Ronneberger, O., Fischer, P., & Brox, T. (2015). "U-Net: Convolutional Networks for Biomedical Image Segmentation." *MICCAI*.

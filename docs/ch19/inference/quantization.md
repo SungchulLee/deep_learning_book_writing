@@ -1,9 +1,10 @@
 # 큰 말 모델의 양자화
-## 들어가며
 
 양자화는 무게와 깨어남을 정밀도가 낮은 자료 갈래로 나타내어 모델 크기를 줄이고 미룸을 빠르게 한다. 큰 말 모델에서는 일반 하드웨어에 펼치고 내놓기 값을 줄이는 데 결정적이다.
 
-## 근본
+---
+
+## 1. 근본
 
 ### 정밀도 꼴
 
@@ -27,7 +28,9 @@
 | INT8 | 7 GB | 약 8 GB |
 | INT4 | 3.5 GB | 약 4 GB |
 
-## 양자화 이론
+---
+
+## 2. 양자화 이론
 
 ### 선형 양자화
 
@@ -75,7 +78,9 @@ $$
 \mathbb{E}[\epsilon^2] = \frac{\Delta^2}{12}
 $$
 
-## 무게 양자화 방법
+---
+
+## 3. 무게 양자화 방법
 
 ### 익힌 뒤 양자화(PTQ)
 
@@ -85,7 +90,6 @@ $$
 import torch
 import torch.nn as nn
 from typing import Tuple, Optional
-
 
 def compute_scale_zero(
     tensor: torch.Tensor,
@@ -106,7 +110,6 @@ def compute_scale_zero(
     
     return scale, zero_point
 
-
 def quantize_tensor(
     tensor: torch.Tensor,
     scale: torch.Tensor,
@@ -124,7 +127,6 @@ def quantize_tensor(
     
     return quantized.to(torch.int8)
 
-
 def dequantize_tensor(
     quantized: torch.Tensor,
     scale: torch.Tensor,
@@ -134,7 +136,6 @@ def dequantize_tensor(
     다시 뜬소수점으로 되돌린다.
     """
     return scale * (quantized.float() - zero_point)
-
 
 class QuantizedLinear(nn.Module):
     """
@@ -251,7 +252,6 @@ $$
 import torch
 import torch.nn as nn
 from typing import List
-
 
 class GPTQ:
     """
@@ -391,7 +391,9 @@ def compute_awq_scales(
     return scales
 ```
 
-## 깨어남 양자화
+---
+
+## 4. 깨어남 양자화
 
 ### 그때그때 하는 양자화
 
@@ -474,7 +476,9 @@ class CalibrationCollector:
         return scale, zero_point
 ```
 
-## 큰 말 모델에 맞춘 재주
+---
+
+## 5. 큰 말 모델에 맞춘 재주
 
 ### 열쇠-값 곳간 양자화
 
@@ -546,7 +550,6 @@ MIXED_PRECISION_CONFIG = {
     'layernorm': 32,     # 온전한 정밀도를 지킨다
 }
 
-
 def quantize_model_mixed(
     model: nn.Module,
     config: dict
@@ -570,7 +573,9 @@ def quantize_model_mixed(
     return model
 ```
 
-## 양자화를 헤아린 익히기(QAT)
+---
+
+## 6. 양자화를 헤아린 익히기(QAT)
 
 ### 곧바로 지나가기 어림개(STE)
 
@@ -605,7 +610,6 @@ class STEQuantize(torch.autograd.Function):
         # 곧바로 지나가기: 기울기를 그대로 넘긴다
         return grad_output, None, None
 
-
 class QATLinear(nn.Module):
     """
     양자화를 헤아린 익히기를 하는 선형 층.
@@ -627,7 +631,9 @@ class QATLinear(nn.Module):
         return nn.functional.linear(x, w_q, self.bias)
 ```
 
-## 값매김과 견줌
+---
+
+## 7. 값매김과 견줌
 
 ### 헷갈림도에 미치는 영향
 
@@ -652,7 +658,9 @@ A100에서의 미룸 빨라짐(LLaMA-7B):
 | INT4(GPTQ) | 180 | 4 GB |
 | INT4(AWQ) | 200 | 4 GB |
 
-## 실무 지침
+---
+
+## 8. 실무 지침
 
 ### 권하는 자리매김
 
@@ -672,24 +680,7 @@ A100에서의 미룸 빨라짐(LLaMA-7B):
 4. **검증**: 늘 헷갈림도와 뒤따르는 일을 값매김한다
 5. **재주 아우르기**: 양자화 + 열쇠-값 곳간 + 플래시 눈길
 
-## 요약
-
-양자화는 큰 말 모델 펼치기에 꼭 필요하다:
-
-1. **4비트 무게**: GPTQ/AWQ로 거의 잃음 없이
-2. **기억 공간 줄이기**: 모델이 4~8배 작아진다
-3. **빠르기 나아짐**: 미룸이 1.5~2배 빠르다
-4. **누구나 쓰기**: 일반 GPU에서 70억 모델을 돌린다
-
-핵심 맞바꿈: **품질과 기억 공간과 빠르기**
-
-## 참고 문헌
-
-1. Frantar, E., et al. (2023). "GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers."
-2. Lin, J., et al. (2023). "AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration."
-3. Dettmers, T., et al. (2022). "LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale."
-4. Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs."
-5. Xiao, G., et al. (2023). "SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models."
+---
 
 ## 연습문제
 
@@ -722,3 +713,22 @@ A100에서의 미룸 빨라짐(LLaMA-7B):
 
 ??? success "연습문제 4 풀이"
     **익힌 뒤 양자화**는 더 익히지 않고 눈금 맞추기 자료로 잣수 인자를 정해 미리 익힌 모델의 무게(그리고 원하면 깨어남)를 양자화한다. 빠르고 단순하지만 특히 8비트 아래에서는 정확도가 떨어질 수 있다. **양자화를 헤아린 익히기**는 기울기에 곧바로 지나가기 어림개를 써서 익히는 동안 양자화를 흉내내어 모델이 낮은 정밀도에 맞춰지게 한다. 낮은 자릿수(4비트, 2비트)에서 정확도가 더 낫지만 온전한 익히기를 한 번 더 돌려야 한다. 빠르기가 중요하고 8비트면 넉넉한 (펼치기) 장면에서는 **익힌 뒤 양자화가 낫다**. 4비트처럼 세게 양자화해야 하고 익힐 자원이 있으면 **양자화를 헤아린 익히기가 낫다**.
+
+## 정리하며
+
+양자화는 큰 말 모델 펼치기에 꼭 필요하다:
+
+1. **4비트 무게**: GPTQ/AWQ로 거의 잃음 없이
+2. **기억 공간 줄이기**: 모델이 4~8배 작아진다
+3. **빠르기 나아짐**: 미룸이 1.5~2배 빠르다
+4. **누구나 쓰기**: 일반 GPU에서 70억 모델을 돌린다
+
+핵심 맞바꿈: **품질과 기억 공간과 빠르기**
+
+**참고 문헌**
+
+1. Frantar, E., et al. (2023). "GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers."
+2. Lin, J., et al. (2023). "AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration."
+3. Dettmers, T., et al. (2022). "LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale."
+4. Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs."
+5. Xiao, G., et al. (2023). "SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models."

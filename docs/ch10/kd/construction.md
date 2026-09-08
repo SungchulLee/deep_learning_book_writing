@@ -2,7 +2,9 @@
 
 **kd 트리**(k차원 트리)는 좌표축을 번갈아 가며 재귀적으로 쪼개어 $k$차원 공간을 나눈다. 내부 노드마다 점 집합을 반으로 가르는 쪼개기 초평면을 정하고, 잎마다 점이 많아야 하나가 될 때까지 재귀가 이어진다. 세우기 알고리즘은 [범위 질의](range.md)와 [최근접 이웃 찾기](nearest.md)를 효율적으로 받쳐 주는 높이 $O(\log n)$의 균형 트리를 낸다.
 
-## 쪼개는 방법
+---
+
+## 1. 쪼개는 방법
 
 트리의 층마다 알고리즘이 **쪼개는 차원**과 **쪼개는 값**을 고른다.
 
@@ -18,13 +20,14 @@ $\mathbb{R}^k$의 점 $n$개에 대해 재귀적으로 세우는 법은 다음�
 5. 좌표가 $p[d]$보다 작은 모든 점으로 왼쪽 부분 트리를 재귀적으로 세운다.
 6. ($p$을 빼고) 좌표가 $p[d]$ 이상인 모든 점으로 오른쪽 부분 트리를 재귀적으로 세운다.
 
-## 세우기 알고리즘
+---
+
+## 2. 세우기 알고리즘
 
 ```python
 """점 집합으로 kd 트리 세우기."""
 
 from __future__ import annotations
-
 
 # === 노드 정의 ===
 
@@ -36,7 +39,6 @@ class KDNode:
         self.axis = axis
         self.left: KDNode | None = None
         self.right: KDNode | None = None
-
 
 # === 세우기 ===
 
@@ -61,7 +63,6 @@ def build_kdtree(points: list[list[float]], depth: int = 0) -> KDNode | None:
     node.right = build_kdtree(points[median_idx + 1:], depth + 1)
     return node
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -79,7 +80,9 @@ if __name__ == "__main__":
     print_tree(root)
 ```
 
-## 높이 분석
+---
+
+## 3. 높이 분석
 
 중앙값을 쪼개는 값으로 쓰면 층마다 점 집합이 반으로 준다. 그렇게 나온 트리의 높이는 다음과 같다.
 
@@ -89,7 +92,9 @@ $$
 
 트리는 완벽히 (또는 한 층 안으로) 균형 잡히고 노드가 꼭 $n$개이다.
 
-## 세우는 비용
+---
+
+## 4. 세우는 비용
 
 | 방법 | 시간 | 공간 |
 |--------|------|-------|
@@ -102,7 +107,9 @@ $O(n \log^2 n)$ 한계는 $O(\log n)$개 층마다 점 $n$개를 정렬하는 �
 !!! tip "실제로 다듬기"
     정렬에 바탕한 $O(n \log^2 n)$ 방법은 간단하고 대부분의 응용에 충분히 빠르다. 아주 큰 점 집합에서는 (차원마다 하나씩) 미리 정렬한 점 목록을 쓰는 $O(n \log n)$ 방법이 되풀이 정렬을 피한다.
 
-## 차원 고르기의 변형
+---
+
+## 5. 차원 고르기의 변형
 
 돌아가며 차원을 고르는 것은 간단하지만 늘 최선은 아니다. 다른 방법은 다음과 같다.
 
@@ -116,7 +123,9 @@ $O(n \log^2 n)$ 한계는 $O(\log n)$개 층마다 점 $n$개를 정렬하는 �
 | 가장 넓게 퍼진 축 | 공간 균형이 낫다 | 노드마다 $O(kn)$의 일이 더 든다 |
 | 분산이 가장 큰 축 | 데이터 분포에 맞추어 간다 | 노드마다 $O(kn)$의 일이 더 든다 |
 
-## 세운 트리의 성질
+---
+
+## 6. 세운 트리의 성질
 
 - **균형 잡힘:** 중앙값으로 쪼개면 높이가 $O(\log n)$이다.
 - **공간 나누기:** 노드마다 축에 나란한 테두리 상자를 은근히 정한다.
@@ -126,11 +135,7 @@ $O(n \log^2 n)$ 한계는 $O(\log n)$개 층마다 점 $n$개를 정렬하는 �
 !!! warning "동적 kd 트리"
     다시 세우지 않고 kd 트리에 점을 넣거나 지우면 크게 기울 수 있다. 그때그때 바뀌는 점 집합에는 **kd-B-트리** 같은 균형 짜임을 쓰거나 트리를 이따금 다시 세우는 것을 생각해 보라.
 
-## 참고 문헌
-
-- Bentley, J. L. (1975). Multidimensional binary search trees used for associative searching. *Communications of the ACM*, 18(9), 509–517.
-- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. (2008). *Computational Geometry: Algorithms and Applications* (3rd ed.), Chapter 5. Springer.
-
+---
 
 ## 연습문제
 
@@ -163,3 +168,12 @@ kd 트리 세우기가 질의마다의 계산을 $O(n)$에서 $O(\log n)$으로 
 
 ??? success "연습문제 4 풀이"
     응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.
+
+## 정리하며
+
+이 마당은 쪼개는 방법、세우기 알고리즘、높이 분석、세우는 비용을 차례로 짚었다.
+
+**참고 문헌**
+
+- Bentley, J. L. (1975). Multidimensional binary search trees used for associative searching. *Communications of the ACM*, 18(9), 509–517.
+- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. (2008). *Computational Geometry: Algorithms and Applications* (3rd ed.), Chapter 5. Springer.

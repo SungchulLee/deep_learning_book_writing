@@ -1,5 +1,8 @@
 # 차례 이름표 붙이기를 위한 조건부 무작위 마당
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -10,11 +13,15 @@
 - 가장 좋은 차례 어림을 위해 비터비 풀기를 한다
 - CRF 층을 두 방향 LSTM 및 변환기 얼개와 아우른다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 조건부 마구잡이 밭(CRF)은 이음에 이름 붙이기를 위한 가려내는 확률 모델로, 조건부 확률 $P(\mathbf{Y}|\mathbf{X})$을 곧바로 모델로 삼는다. 토막마다 따로 가르는 가름개와 달리 CRF은 이웃한 이름표 사이의 매임을 담으므로, 이름표 넘어감이 정해진 무늬를 따르는 개체명 알아내기에 특히 잘 듣는다(보기로 I-PER은 B-PER이나 I-PER 뒤에만 올 수 있다).
 
-## 수학적 바탕
+---
+
+## 3. 수학적 바탕
 
 ### 문제의 얼개
 
@@ -103,7 +110,9 @@ $$
 \text{logsumexp}(a_1, \ldots, a_m) = \log\left(\sum_{j=1}^{m} \exp(a_j)\right)
 $$
 
-## 손실 함수
+---
+
+## 4. 손실 함수
 
 ### 음의 로그 가능도
 
@@ -129,7 +138,9 @@ $$
 \frac{\partial \mathcal{L}}{\partial T_{y', y}} = \sum_{i=2}^{n} P(y_{i-1} = y', y_i = y | \mathbf{X}) - \sum_{i=2}^{n} \mathbb{1}[y_{i-1}^* = y', y_i^* = y]
 $$
 
-## 비터비 풀기
+---
+
+## 5. 비터비 풀기
 
 미룸 때에는 가장 그럴듯한 차례를 찾는다:
 
@@ -171,7 +182,9 @@ $$
 y_i^* = b_{i+1}(y_{i+1}^*) \quad \text{for } i = n-1, \ldots, 1
 $$
 
-## PyTorch 구현
+---
+
+## 6. PyTorch 구현
 
 ### CRF 층 단원
 
@@ -655,7 +668,9 @@ class TransformerCRF(nn.Module):
         return self.crf.decode(emissions, mask=attention_mask.bool())
 ```
 
-## 넘어가기 제약
+---
+
+## 7. 넘어가기 제약
 
 ### IOB2 제약 쓰기
 
@@ -699,7 +714,9 @@ def apply_iob2_constraints(
                 crf.start_transitions.data[i] = penalty
 ```
 
-## 익히기 되풀이
+---
+
+## 8. 익히기 되풀이
 
 ```python
 def train_ner_model(
@@ -781,7 +798,9 @@ def train_ner_model(
     return best_f1
 ```
 
-## 계산에 대한 고려
+---
+
+## 9. 계산에 대한 고려
 
 ### 시간 복잡도
 
@@ -807,26 +826,7 @@ def train_ner_model(
 - 길이가 들쭉날쭉한 차례를 위한 가림 셈하기
 - GPU로 빨라진 행렬 연산
 
-## 요약
-
-조건부 무작위 마당은 다음으로 신경 차례 이름표 붙이개를 낫게 한다:
-
-1. **넘어가기 나타내기**: 배울 수 있는 넘어가기 점수로 이름표 사이의 얽힘을 담아낸다
-2. **전체 고르게 맞추기**: 모든 차례에 걸쳐 제대로 된 확률 분포를 보장한다
-3. **짜임 있는 어림**: 비터비 알고리즘으로 가장 좋은 차례를 찾는다
-4. **제약 강제하기**: 가림으로 올바르지 않은 이름표 넘어가기를 막는다
-
-힘센 신경 부호기(두 방향 LSTM, 변환기)와 CRF 풀개를 아우른 것은, 특히 이름표 사이 얽힘이 중요할 때 이름 알아보기의 센 방식으로 남아 있다.
-
-## 참고 문헌
-
-1. Lafferty, J., McCallum, A., & Pereira, F. (2001). Conditional Random Fields: Probabilistic Models for Segmenting and Labeling Sequence Data. *ICML*.
-
-2. Lample, G., et al. (2016). Neural Architectures for Named Entity Recognition. *NAACL-HLT*.
-
-3. Ma, X., & Hovy, E. (2016). End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF. *ACL*.
-
-4. Huang, Z., Xu, W., & Yu, K. (2015). Bidirectional LSTM-CRF Models for Sequence Tagging. *arXiv*.
+---
 
 ## 연습문제
 
@@ -874,3 +874,24 @@ BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City
     $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
 
     자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 낱말이 양쪽에서 걸리는 일이 잦으므로 이것이 종요롭다.
+
+## 정리하며
+
+조건부 무작위 마당은 다음으로 신경 차례 이름표 붙이개를 낫게 한다:
+
+1. **넘어가기 나타내기**: 배울 수 있는 넘어가기 점수로 이름표 사이의 얽힘을 담아낸다
+2. **전체 고르게 맞추기**: 모든 차례에 걸쳐 제대로 된 확률 분포를 보장한다
+3. **짜임 있는 어림**: 비터비 알고리즘으로 가장 좋은 차례를 찾는다
+4. **제약 강제하기**: 가림으로 올바르지 않은 이름표 넘어가기를 막는다
+
+힘센 신경 부호기(두 방향 LSTM, 변환기)와 CRF 풀개를 아우른 것은, 특히 이름표 사이 얽힘이 중요할 때 이름 알아보기의 센 방식으로 남아 있다.
+
+**참고 문헌**
+
+1. Lafferty, J., McCallum, A., & Pereira, F. (2001). Conditional Random Fields: Probabilistic Models for Segmenting and Labeling Sequence Data. *ICML*.
+
+2. Lample, G., et al. (2016). Neural Architectures for Named Entity Recognition. *NAACL-HLT*.
+
+3. Ma, X., & Hovy, E. (2016). End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF. *ACL*.
+
+4. Huang, Z., Xu, W., & Yu, K. (2015). Bidirectional LSTM-CRF Models for Sequence Tagging. *arXiv*.

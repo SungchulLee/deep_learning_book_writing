@@ -1,5 +1,4 @@
 # 되짚음으로 하는 베이즈
-## 개요
 
 **되짚음으로 하는 베이즈**(블런델 외, 2015)는 변분 추론으로 베이즈 신경망을 익히는 실전 알고리즘이다. **매개변수 바꾸기 재주** 덕분에 표준 되짚음으로 증거 아래 경계(ELBO)를 최적화하여 가중값에 대한 분포를 배운다.
 
@@ -8,7 +7,7 @@
 
 ---
 
-## 변분 목표
+## 1. 변분 목표
 
 다룰 수 없는 뒤확률을 다룰 수 있는 변분 분포로 어림한다:
 
@@ -26,7 +25,7 @@ $$
 
 ---
 
-## 평균장 가우스 변분 집안
+## 2. 평균장 가우스 변분 집안
 
 표준 고름은 가중값마다 따로 가우스로 매개변수화하는 것이다:
 
@@ -38,7 +37,7 @@ $$
 
 ---
 
-## 매개변수 바꾸기 재주
+## 3. 매개변수 바꾸기 재주
 
 확률로 흔들리는 표집을 거쳐 되짚으려면 매개변수를 바꾼다:
 
@@ -54,7 +53,7 @@ $$
 
 ---
 
-## 알고리즘
+## 4. 알고리즘
 
 ```
 Algorithm: Bayes by Backprop
@@ -78,7 +77,7 @@ KL 항이 일찍부터 판쳐 뒤확률이 앞확률로 찌부러지는 것을 �
 
 ---
 
-## 가우스 앞확률과 뒤확률의 KL 벌어짐
+## 5. 가우스 앞확률과 뒤확률의 KL 벌어짐
 
 앞확률과 어림 뒤확률이 모두 가우스이면 KL은 닫힌 꼴이 된다:
 
@@ -94,14 +93,13 @@ $$
 
 ---
 
-## PyTorch 구현
+## 6. PyTorch 구현
 
 ```python
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-
 
 class BayesLinear(nn.Module):
     """
@@ -168,7 +166,6 @@ class BayesLinear(nn.Module):
         
         return kl_w + kl_b
 
-
 class BayesianMLP(nn.Module):
     """회귀나 가르기를 위한 베이즈 다층 퍼셉트론."""
     
@@ -193,7 +190,6 @@ class BayesianMLP(nn.Module):
         self.eval()
         preds = torch.stack([self(x) for _ in range(n_samples)])
         return preds.mean(dim=0), preds.var(dim=0)
-
 
 def train_bnn(model, train_loader, n_epochs=100, lr=1e-3, 
               n_train=None, kl_weight=1.0):
@@ -226,7 +222,7 @@ def train_bnn(model, train_loader, n_epochs=100, lr=1e-3,
 
 ---
 
-## 어림 베이즈 신경망으로 본 몬테카를로 떨구기
+## 7. 어림 베이즈 신경망으로 본 몬테카를로 떨구기
 
 몬테카를로 떨구기(갈과 가라마니, 2016)는 표준 떨구기를 어림 변분 추론으로 다시 풀이하는 더 단순한 길을 준다:
 
@@ -269,25 +265,6 @@ class MCDropoutModel(nn.Module):
 
 ---
 
-## 요약
-
-| 개념 | 핵심 |
-|---------|-----------|
-| **ELBO 목표** | 자료에 맞음 - KL 복잡함 벌 |
-| **매개변수 바꾸기 재주** | 표집을 거쳐 기울기로 최적화할 수 있게 한다 |
-| **평균장 가우스** | 가중값마다 독립인 가우스, 매개변수 $2D$개 |
-| **KL 담금질** | 뒤확률이 찌부러지지 않도록 KL 무게를 서서히 올린다 |
-| **몬테카를로 떨구기** | 더 단순한 길이다. 떨구기를 변분 추론으로 다시 풀이한다 |
-
----
-
-## 참고 문헌
-
-- Blundell, C., Cornebise, J., Kavukcuoglu, K., & Wierstra, D. (2015). Weight Uncertainty in Neural Networks. *ICML*.
-- Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation. *ICML*.
-- Kingma, D. P., & Welling, M. (2014). Auto-Encoding Variational Bayes. *ICLR*.
-- Graves, A. (2011). Practical Variational Inference for Neural Networks. *NeurIPS*.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -323,3 +300,22 @@ ELBO 목표에 대한, 되짚음으로 하는 베이즈의 기울기 어림꼴�
 
 ??? success "연습문제 4 풀이"
     앞확률은 뒤확률에 벌을 주며 익힘의 움직임과 미리봄의 불확실함에 모두 영향을 준다. **표준 가우스** $\mathcal{N}(0, \sigma^2 I)$은 단순하고 L2 벌주기에 맞대응되지만 모든 가중값에 똑같이 벌을 주어 너무 옭아맬 수 있다. **크기 섞음** 앞확률(이를테면 $\pi \mathcal{N}(0, \sigma_1^2) + (1-\pi) \mathcal{N}(0, \sigma_2^2)$)은 어떤 가중값은 크게(신호) 두면서 다른 가중값은 0에 가깝게(잡음) 몰아 맞춰 가는 성김을 준다. 주고받음은 이렇다. 크기 섞음은 표현력이 더 좋지만 최적화가 더 어렵고 웃매개변수가 늘어난다.
+
+## 정리하며
+
+| 개념 | 핵심 |
+|---------|-----------|
+| **ELBO 목표** | 자료에 맞음 - KL 복잡함 벌 |
+| **매개변수 바꾸기 재주** | 표집을 거쳐 기울기로 최적화할 수 있게 한다 |
+| **평균장 가우스** | 가중값마다 독립인 가우스, 매개변수 $2D$개 |
+| **KL 담금질** | 뒤확률이 찌부러지지 않도록 KL 무게를 서서히 올린다 |
+| **몬테카를로 떨구기** | 더 단순한 길이다. 떨구기를 변분 추론으로 다시 풀이한다 |
+
+---
+
+**참고 문헌**
+
+- Blundell, C., Cornebise, J., Kavukcuoglu, K., & Wierstra, D. (2015). Weight Uncertainty in Neural Networks. *ICML*.
+- Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation. *ICML*.
+- Kingma, D. P., & Welling, M. (2014). Auto-Encoding Variational Bayes. *ICLR*.
+- Graves, A. (2011). Practical Variational Inference for Neural Networks. *NeurIPS*.

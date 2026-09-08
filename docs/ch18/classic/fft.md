@@ -2,7 +2,9 @@
 
 차수가 $n$인 두 다항식을 여느 방식으로 계수마다 곱하면 $O(n^2)$이 든다. **빠른 푸리에 옮김**(FFT)은 **1의 거듭제곱근**이 지닌 대수 얼개를 써서 이를 $O(n \log n)$으로 줄인다. 고갱이 깨침은 두 다항식을 남다른 점 $n$개에서 값매김하고, $O(n)$ 때에 점마다 곱한 뒤, 다시 계수 꼴로 되돌리는 것이며, 옮김마다 $O(n \log n)$이 든다.
 
-## 띄엄띄엄 푸리에 변환
+---
+
+## 1. 띄엄띄엄 푸리에 변환
 
 이음 $a = (a_0, a_1, \dots, a_{n-1})$이 주어졌을 때 **따로 떨어진 푸리에 옮김**(DFT)은 다항식 $A(x) = \sum_{k=0}^{n-1} a_k x^k$을 1의 $n$제곱근 $\omega_n^0, \omega_n^1, \dots, \omega_n^{n-1}$에서 값매김한다. 여기서
 
@@ -18,7 +20,9 @@ $$
 
 값 $n$개를 손쉽게 셈하면 $O(n^2)$이 든다. FFT은 같은 결과를 $O(n \log n)$에 셈한다.
 
-## 쿨리-투키 알고리즘
+---
+
+## 2. 쿨리-투키 알고리즘
 
 빠른 푸리에 변환은 다항식을 짝수 번호 계수와 홀수 번호 계수로 나눈다:
 
@@ -42,7 +46,9 @@ $$
 
 그러면 되돌이 식 $T(n) = 2T(n/2) + O(n) = O(n \log n)$을 얻는다.
 
-## 거꿀 빠른 푸리에 변환
+---
+
+## 3. 거꿀 빠른 푸리에 변환
 
 거꿀 띄엄띄엄 푸리에 변환은 점 값에서 계수를 되찾는다:
 
@@ -52,7 +58,9 @@ $$
 
 이는 앞으로 가는 DFT과 얼개가 같되 $\omega_n$ 대신 $\omega_n^{-1}$을 쓰고 $1/n$을 곱한다. 이 두 가지만 고치면 같은 FFT 알고리즘으로 거꾸로 옮김도 셈할 수 있다.
 
-## 빠른 푸리에 변환으로 하는 다항식 곱셈
+---
+
+## 4. 빠른 푸리에 변환으로 하는 다항식 곱셈
 
 차수 $n$인 다항식 $A(x)$과 $B(x)$을 곱하려면:
 
@@ -63,7 +71,9 @@ $$
 
 Total time: $O(n \log n)$.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -109,7 +119,6 @@ def fft(a: list[complex], invert: bool = False) -> list[complex]:
 
     return result
 
-
 # === 다항식 곱셈 ===
 
 def poly_multiply(a: list[float], b: list[float]) -> list[float]:
@@ -138,7 +147,6 @@ def poly_multiply(a: list[float], b: list[float]) -> list[float]:
 
     return [round(c.real) for c in fc[:result_len]]
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -164,7 +172,9 @@ Match: True
 
 FFT 바탕 곱하기는 $(1 + 2x + 3x^2)(4 + 5x) = 4 + 13x + 22x^2 + 15x^3$을 옳게 셈한다.
 
-## 복잡도
+---
+
+## 6. 복잡도
 
 | 항목 | 비용 |
 |--------|:----:|
@@ -173,17 +183,16 @@ FFT 바탕 곱하기는 $(1 + 2x + 3x^2)(4 + 5x) = 4 + 13x + 22x^2 + 15x^3$을 �
 
 되부르는 FFT은 크기 $n/2$인 부름을 둘 하고 켜마다 $O(n)$ 일감을 하므로 모두 $O(n \log n)$이다. 되돌이로(아래에서 위로) 짜면 되부름 덤을 피할 수 있다.
 
-## 응용
+---
+
+## 7. 응용
 
 - **다항식 곱셈.** 으뜸 쓰임새이며 큰 정수 곱셈에도 쓴다.
 - **신호 다루기.** 때 영역과 잦기 영역 나타냄 사이를 오간다.
 - **누비기.** 차례의 누비기는 잦기 영역에서 점별 곱셈으로 줄어든다.
 - **글자열 짝짓기.** 아무거나 자리를 둔 무늬 짝짓기는 다항식 곱셈으로 세울 수 있다.
 
-## 참고 문헌
-
-- Cooley, J. W., & Tukey, J. W. (1965). An algorithm for the machine calculation of complex Fourier series. *Mathematics of Computation*, 19(90), 297--301.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 30장: Polynomials and the FFT.
+---
 
 ## 연습문제
 
@@ -216,3 +225,12 @@ FFT 바탕 곱하기는 $(1 + 2x + 3x^2)(4 + 5x) = 4 + 13x + 22x^2 + 15x^3$을 �
 
 ??? success "연습문제 4 풀이"
     밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 띄엄띄엄 푸리에 변환、쿨리-투키 알고리즘、거꿀 빠른 푸리에 변환、빠른 푸리에 변환으로 하는 다항식 곱셈을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cooley, J. W., & Tukey, J. W. (1965). An algorithm for the machine calculation of complex Fourier series. *Mathematics of Computation*, 19(90), 297--301.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 30장: Polynomials and the FFT.

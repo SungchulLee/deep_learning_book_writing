@@ -1,11 +1,12 @@
 # 정칙화 훑어보기
-## 개요
 
 정칙화는 일반화를 높이기 위해 학습 과정에 제약을 두는 폭넓은 전략의 무리를 아우른다. 모든 지도 학습 모델은 (참된 패턴을 담기에 너무 단순한) **과소적합**과 (일반화되는 구조를 배우는 대신 학습 데이터의 잡음을 외우는) **과적합** 사이를 헤쳐 나가야 한다. 정칙화 기법은 모델의 복잡도에 벌점을 주거나, 잡음을 넣거나, 실효 학습 집합을 넓히거나, 최적화의 궤적을 제한하여 과적합에 체계적으로 대응한다.
 
 이 절은 뒤 절들의 자세한 설명에 앞서 개념적·수학적 토대를 다룬다. 편향-분산 절충, 제약 최적화의 기하, 그리고 기법들의 통일된 분류이다.
 
-## 과적합과 과소적합
+---
+
+## 1. 과적합과 과소적합
 
 ### 모델 복잡도의 스펙트럼
 
@@ -126,7 +127,9 @@ overfit_model = DeepNetwork(hidden_dim=256, n_layers=4)
 overfit_history = compute_learning_curves(overfit_model, train_loader, val_loader, epochs=500)
 ```
 
-## 편향-분산 절충
+---
+
+## 2. 편향-분산 절충
 
 ### 수학적 유도
 
@@ -267,7 +270,9 @@ plt.savefig('bias_variance_tradeoff.png', dpi=150)
 plt.show()
 ```
 
-## 정칙화 기법의 분류
+---
+
+## 3. 정칙화 기법의 분류
 
 정칙화 방법은 학습 파이프라인의 *어디에* 끼어드는지에 따라 정리할 수 있다.
 
@@ -359,7 +364,9 @@ $$
 
 **학습률 일정 조절**과 **경사 자르기**도 정칙화 효과를 내지만, 전통적으로 정칙화 기법으로 분류되지는 않는다.
 
-## 정칙화 기법 결합하기
+---
+
+## 4. 정칙화 기법 결합하기
 
 실무에서는 여러 정칙화 방법을 함께 쓴다.
 
@@ -418,7 +425,9 @@ optimizer = optim.AdamW(
 | L1 + L2 (엘라스틱 넷) | L1은 희소성, L2는 안정성 | 특징이 상관되어 있으면 엘라스틱 넷을 쓴다 |
 | 이름표 평활화 + 믹스업 | 둘 다 목표를 부드럽게 한다 | 믹스업을 쓸 때는 평활화 계수를 줄인다 |
 
-## 정칙화 전략 고르기
+---
+
+## 5. 정칙화 전략 고르기
 
 ### 판단의 틀
 
@@ -440,7 +449,9 @@ optimizer = optim.AdamW(
 | 트랜스포머 | 드롭아웃 (0.1), 이름표 평활화, 가중치 감쇠 |
 | 고전적 기계 학습 (선형/트리) | L1/L2/엘라스틱 넷, 교차 검증 |
 
-## 흔한 원인과 처방
+---
+
+## 6. 흔한 원인과 처방
 
 ### 과소적합의 원인
 
@@ -462,14 +473,7 @@ optimizer = optim.AdamW(
 
 **과적합에는** 정칙화(드롭아웃, 가중치 감쇠, 데이터 증강)를 적용하고, 인내 횟수를 둔 조기 종료를 쓰고, 학습 데이터를 더 모으고, 모델의 용량을 줄인다.
 
-## 참고 문헌
-
-1. Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning* (2nd ed.). Springer. Chapters 3, 7.
-2. Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapters 5, 7.
-3. Geman, S., Bienenstock, E., & Doursat, R. (1992). Neural Networks and the Bias/Variance Dilemma. *Neural Computation*, 4(1), 1-58.
-4. Belkin, M., et al. (2019). Reconciling Modern Machine Learning Practice and the Classical Bias-Variance Trade-off. *PNAS*, 116(32), 15849-15854.
-5. Kukačka, J., Golkov, V., & Cremers, D. (2017). Regularization for Deep Learning: A Taxonomy. arXiv:1710.10686.
-6. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer. Section 1.1.
+---
 
 ## 연습문제
 
@@ -502,3 +506,16 @@ optimizer = optim.AdamW(
 
 ??? success "연습문제 4 풀이"
     대형 언어 모델은 방대한 데이터셋으로 학습하므로 과적합이 덜 걱정된다(데이터 자체가 정칙화 노릇을 한다). 주로 드롭아웃(흔히 0.1뿐)과 가중치 감쇠만 쓴다. 큰 배치 크기의 SGD에서 오는 암묵적 정칙화와 엄청난 데이터 양이 무거운 명시적 벌점 없이도 충분한 일반화를 준다.
+
+## 정리하며
+
+이 마당은 과적합과 과소적합、편향-분산 절충、정칙화 기법의 분류、정칙화 기법 결합하기을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning* (2nd ed.). Springer. Chapters 3, 7.
+2. Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapters 5, 7.
+3. Geman, S., Bienenstock, E., & Doursat, R. (1992). Neural Networks and the Bias/Variance Dilemma. *Neural Computation*, 4(1), 1-58.
+4. Belkin, M., et al. (2019). Reconciling Modern Machine Learning Practice and the Classical Bias-Variance Trade-off. *PNAS*, 116(32), 15849-15854.
+5. Kukačka, J., Golkov, V., & Cremers, D. (2017). Regularization for Deep Learning: A Taxonomy. arXiv:1710.10686.
+6. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer. Section 1.1.

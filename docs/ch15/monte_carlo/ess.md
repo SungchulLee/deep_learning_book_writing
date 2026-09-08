@@ -3,7 +3,7 @@
 
 ---
 
-## 문제: 표본이 다 같지는 않다
+## 1. 문제: 표본이 다 같지는 않다
 
 중요도 표집에서는 제안 $q(x)$에서 표본 $N$개를 뽑고 무게 $w_i = p(x_i)/q(x_i)$을 준다. 무게가 몹시 고르지 않아 몇몇 표본이 좌우하면, 어림자는 사실상 $N$개보다 훨씬 적은 표본을 쓰는 셈이다.
 
@@ -13,7 +13,7 @@ ESS은 이런 비효율을 숫자 하나로 잰다.
 
 ---
 
-## 중요도 표집의 ESS
+## 2. 중요도 표집의 ESS
 
 ### 정의
 
@@ -75,7 +75,6 @@ def importance_sampling_ess(log_weights: torch.Tensor) -> float:
     
     return ess.item()
 
-
 # 예
 N = 1000
 # 경우 1: 좋은 제안(무게가 대체로 고름)
@@ -89,7 +88,7 @@ print(f"Poor proposal ESS: {importance_sampling_ess(log_w_bad):.0f} / {N}")
 
 ---
 
-## MCMC의 ESS
+## 3. MCMC의 ESS
 
 ### 정의
 
@@ -119,7 +118,7 @@ $$
 
 ---
 
-## ESS 지켜보고 낫게 하기
+## 4. ESS 지켜보고 낫게 하기
 
 ### 중요도 표집의 경우
 
@@ -145,22 +144,6 @@ $$
 되풀이마다의 ESS은 낮아도 되풀이가 빠른 방법이 통틀어 더 효율적일 수 있다.
 
 ---
-
-## 요약
-
-| 자리 | ESS 공식 | 범위 |
-|---------|-------------|-------|
-| **중요도 표집** | $1 / \sum \bar{w}_i^2$ | $[1, N]$ |
-| **MCMC** | $N / (1 + 2\sum \rho_k)$ | $[1, N]$ |
-| **받아들일 만한 최솟값** | — | > 100(점 어림값), > 400(구간) |
-
----
-
-## 참고 문헌
-
-1. Kong, A. (1992). A note on importance sampling using standardized weights. *Technical Report*, University of Chicago.
-2. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2장.
-3. Vehtari, A., et al. (2021). Rank-normalization, folding, and localization: An improved $\hat{R}$ for assessing convergence of MCMC. *Bayesian Analysis*, 16(2), 667-718.
 
 ## 연습문제
 
@@ -213,3 +196,19 @@ $X \sim \mathcal{N}(0,1)$일 때 $t$분포를 제안으로 써서 $\mathbb{E}[X^
     print(f"True value: 1.0000")
     ```
     $t$분포는 가우스보다 꼬리가 무거워 중요도 무게의 흩어짐이 끝이 있음을 보장한다.
+
+## 정리하며
+
+| 자리 | ESS 공식 | 범위 |
+|---------|-------------|-------|
+| **중요도 표집** | $1 / \sum \bar{w}_i^2$ | $[1, N]$ |
+| **MCMC** | $N / (1 + 2\sum \rho_k)$ | $[1, N]$ |
+| **받아들일 만한 최솟값** | — | > 100(점 어림값), > 400(구간) |
+
+---
+
+**참고 문헌**
+
+1. Kong, A. (1992). A note on importance sampling using standardized weights. *Technical Report*, University of Chicago.
+2. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2장.
+3. Vehtari, A., et al. (2021). Rank-normalization, folding, and localization: An improved $\hat{R}$ for assessing convergence of MCMC. *Bayesian Analysis*, 16(2), 667-718.

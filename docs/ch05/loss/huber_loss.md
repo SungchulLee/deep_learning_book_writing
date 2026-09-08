@@ -1,7 +1,9 @@
 # 후버 손실
 후버 손실(매끄러운 L1 손실이라고도 한다)은 구간별 정의로 MSE와 MAE의 장점을 결합한다. 작은 오차에서는 이차, 큰 오차에서는 선형이다. 이 혼합 설계는 최적점 근처에서 MSE의 매끄러운 기울기를 주면서 이상점에 대한 MAE의 견고성도 물려받는다. 1964년 피터 후버가 로버스트 통계학의 주춧돌로 제안했으며, 물체 검출의 표준 회귀 손실이자 잡음 섞인 실제 데이터의 실용적인 기본값이 되었다.
 
-## 수학적 정의
+---
+
+## 1. 수학적 정의
 
 $$\mathcal{L}_{\text{Huber}}(r) = \begin{cases} 
 \frac{1}{2}r^2 & \text{if } |r| \leq \delta \\[4pt]
@@ -15,7 +17,9 @@ $$\mathcal{L}_{\text{Huber}}(r) = \begin{cases}
 - **$|r| = \delta$에서:** 이차 쪽은 $\frac{1}{2}\delta^2$을, 선형 쪽은 $\delta \cdot \delta - \frac{1}{2}\delta^2 = \frac{1}{2}\delta^2$을 준다. ✓
 - **$|r| = \delta$에서의 도함수:** 이차 쪽은 $\delta$을, 선형 쪽은 크기가 $\delta$인 $\delta \cdot \text{sign}(r)$을 준다. ✓
 
-## 경사 분석
+---
+
+## 2. 경사 분석
 
 $$\frac{\partial \mathcal{L}_{\text{Huber}}}{\partial \hat{y}} = \begin{cases}
 \hat{y} - y & \text{if } |y - \hat{y}| \leq \delta \\[4pt]
@@ -36,7 +40,9 @@ $$\frac{\partial \mathcal{L}_{\text{Huber}}}{\partial \hat{y}} = \begin{cases}
 | 문턱값에서 ($|r| = \delta$) | $\propto \delta$ | $\pm 1/m$ (상수) | $\pm \delta$ (연속) |
 | 큰 오차 ($|r| \gg \delta$) | $\propto r$ (커짐!) | $\pm 1/m$ (상수) | $\pm \delta$ (유계) |
 
-## delta의 구실
+---
+
+## 3. delta의 구실
 
 문턱값 $\delta$은 이차 구간과 선형 구간 사이의 전환을 조절하므로 손실의 성격을 정한다.
 
@@ -46,7 +52,9 @@ $$\frac{\partial \mathcal{L}_{\text{Huber}}}{\partial \hat{y}} = \begin{cases}
 
 최적의 $\delta$은 예상되는 잡음의 척도에 달렸다. 좋은 어림 규칙은 $\delta$을 "보통" 오차의 예상 크기로 두어 진짜 이상점만 선형 구간에 들어가게 하는 것이다.
 
-## 로버스트 통계학과의 관계
+---
+
+## 4. 로버스트 통계학과의 관계
 
 후버의 본디 동기는 정규 잡음 아래에서 평균만큼 효율적이면서도 오염에 훨씬 잘 견디는 **M 추정량**을 정의하는 것이었다. 후버 손실은 관측 하나가 미치는 영향을 제한하여 이를 이룬다.
 
@@ -54,7 +62,9 @@ $$\frac{\partial \mathcal{L}_{\text{Huber}}}{\partial \hat{y}} = \begin{cases}
 
 수치로 보면 후버 추정량은 정규 잡음 아래에서 평균 효율의 약 95%를 내면서 10% 남짓의 오염까지 견딘다.
 
-## PyTorch: `nn.SmoothL1Loss`과 `nn.HuberLoss`
+---
+
+## 5. PyTorch: `nn.SmoothL1Loss`과 `nn.HuberLoss`
 
 PyTorch는 서로 밀접한 두 가지 구현을 제공한다.
 
@@ -123,7 +133,9 @@ loss_none = nn.SmoothL1Loss(reduction='none')(predicted, actual)
 print(f"Per-element losses: {loss_none}")
 ```
 
-## 구간별 분석
+---
+
+## 6. 구간별 분석
 
 ```python
 # 각 오차가 어느 구간에 들어가는지 보이기 (beta=1.0)
@@ -139,7 +151,9 @@ for i, error in enumerate(errors):
     print(f"Error {i+1}: {error.item():7.1f} → {regime}, loss={loss_val:.2f}")
 ```
 
-## 비교 실험
+---
+
+## 7. 비교 실험
 
 ```python
 # MSE, MAE, 후버로 보는 세 가지 상황
@@ -168,7 +182,9 @@ for name, (actual, pred) in scenarios.items():
     print(f"  Smooth L1: {huber.item():10.2f}")
 ```
 
-## delta 고르기
+---
+
+## 8. delta 고르기
 
 **작은 $\delta$ (예: 0.1~0.5):** 이상점을 더 세게 잘라 낸다. 대부분의 오차에서 MAE처럼 움직인다. 이상점이 잦고 잡음의 바닥이 낮을 때 쓴다.
 
@@ -178,7 +194,9 @@ for name, (actual, pred) in scenarios.items():
 
 **데이터에 기반한 방법:** 먼저 MSE로 적합한 뒤 학습 잔차의 중앙절대편차(MAD)로 $\delta$을 정한다. $\delta = 1.4826 \cdot \text{MAD}$이다(1.4826이라는 인수는 정규 잡음 아래에서 MAD를 표준편차와 맞추어 준다).
 
-## 응용
+---
+
+## 9. 응용
 
 **물체 검출.** SmoothL1은 Faster R-CNN, SSD, YOLO 계열에서 경계 상자 회귀의 표준 손실이다. 경계 상자의 목푯값은 좌표 차이가 클 수 있으므로(어려운 검출에서 오는 이상점) 안정적인 학습에 선형 꼬리가 꼭 필요하다.
 
@@ -186,9 +204,13 @@ for name, (actual, pred) in scenarios.items():
 
 **금융 모형화.** 잡음의 분포가 두꺼운 꼬리를 갖는 수익률 예측은 후버의 유계 영향 함수의 덕을 본다.
 
-## 핵심 정리
+---
+
+## 10. 핵심 정리
 
 후버 손실은 MSE와 MAE를 원칙 있게 결합한 것으로, 최적점 근처(이차 구간)에서는 매끄러운 기울기를, 큰 오차(선형 구간)에서는 유계인 기울기를 준다. 문턱값 매개변수 $\delta$이 전환을 조절하며 "보통" 오차의 예상 척도를 반영해야 한다. PyTorch에서 (물체 검출에서 온) `nn.SmoothL1Loss`과 (로버스트 통계학에서 온) `nn.HuberLoss`은 같은 착상을 배율만 조금 달리하여 구현한다. 이 손실은 정규 잡음 아래에서 최적에 가까운 통계적 효율을 내면서 오염에도 견디는데, 이는 순수한 MSE나 MAE가 저마다 줄 수 없는 절충이다.
+
+---
 
 ## 연습문제
 
@@ -227,3 +249,7 @@ $\delta$의 선택은 편향과 견고성의 절충에 어떤 영향을 주는�
 
 ??? success "연습문제 4 풀이"
     $\delta$이 크면 MSE처럼 움직인다(효율적이지만 이상점에 민감하다). $\delta$이 작으면 MAE처럼 움직인다(견고하지만 정규 잡음에서는 덜 효율적이다). 대표적인 기본값은 $\delta = 1.0$이다. 교차 검증이나 보통 잔차의 척도가 선택을 이끌어야 한다.
+
+## 정리하며
+
+이 마당은 수학적 정의、경사 분석、delta의 구실、로버스트 통계학과의 관계을 차례로 짚었다.

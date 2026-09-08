@@ -1,5 +1,4 @@
 # 프레셰 인셉션 거리(FID)
-## 개요
 
 프레셰 인셉션 거리(FID)는 만들어 내는 모델을, 특히 그림 만들기를 따지는 데 가장 널리 쓰이는 잣대이다. Heusel 외(2017)가 내놓은 FID는 미리 익힌 인셉션 신경망의 특징 공간에서 만든 그림의 분포와 실제 그림의 분포 사이 거리를 잰다.
 
@@ -12,7 +11,9 @@
     - FID가 인셉션 점수보다 나은 점과 남은 한계를 안다
     - 연구와 실제 자리에서 FID를 제대로 쓴다
 
-## 수학적 바탕
+---
+
+## 1. 수학적 바탕
 
 ### 프레셰 거리
 
@@ -62,7 +63,9 @@ $$
 
 곧 FID는 한 분포를 다른 분포로 바꾸는 가장 작은 "비용"을 재며, 비용은 유클리드 거리의 제곱이다.
 
-## 수학으로 이끌어 내기
+---
+
+## 2. 수학으로 이끌어 내기
 
 ### 바서슈타인 거리에서 시작하기
 
@@ -98,7 +101,9 @@ $$
 
 이것이 여느 FID 공식을 준다.
 
-## 왜 인셉션 특징인가?
+---
+
+## 3. 왜 인셉션 특징인가?
 
 ### 화소 공간의 문제
 
@@ -138,7 +143,9 @@ InceptionV3 얼개:
 └─────────────┘
 ```
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ### 온전한 FID 셈개
 
@@ -150,7 +157,6 @@ import numpy as np
 from scipy import linalg
 from typing import Tuple, Optional, Union
 from torchvision.models import inception_v3, Inception_V3_Weights
-
 
 class FIDCalculator:
     """
@@ -417,7 +423,6 @@ class FIDCalculator:
         
         return self.calculate_frechet_distance(mu_real, sigma_real, mu_gen, sigma_gen)
 
-
 def save_reference_statistics(real_images: torch.Tensor,
                              save_path: str,
                              batch_size: int = 64):
@@ -439,7 +444,6 @@ def save_reference_statistics(real_images: torch.Tensor,
     np.savez(save_path, mu=mu, sigma=sigma)
     print(f"Saved statistics to {save_path}")
     print(f"  Shape: μ={mu.shape}, Σ={sigma.shape}")
-
 
 def load_reference_statistics(load_path: str) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -520,11 +524,12 @@ def demonstrate_fid_computation():
     print(f"{'Mode collapse':<30} {fid_collapsed:>10.2f}")
     print("\nLower FID = Better (more similar to real distribution)")
 
-
 demonstrate_fid_computation()
 ```
 
-## FID 값 풀이하기
+---
+
+## 5. FID 값 풀이하기
 
 ### 자연 그림의 흔한 범위
 
@@ -555,7 +560,9 @@ demonstrate_fid_computation()
 3. **빛깔 공간**: RGB이냐 회색이냐가 특징에 영향을 준다
 4. **자르기**: 맞겨루기 만들개의 자르기는 다양함을 품질과 맞바꾼다
 
-## 표본 크기 살피기
+---
+
+## 6. 표본 크기 살피기
 
 ### 가장 낮은 조건
 
@@ -653,7 +660,9 @@ def bootstrap_fid(real_features: np.ndarray,
     return fid_mean, lower, upper
 ```
 
-## FID와 인셉션 점수 견주기
+---
+
+## 7. FID와 인셉션 점수 견주기
 
 | 갈래 | FID | 인셉션 점수 |
 |--------|-----|-----|
@@ -670,7 +679,9 @@ def bootstrap_fid(real_features: np.ndarray,
 - **인셉션 점수**: 빠른 확인용이며 견줄 자료 묶음이 없을 때 쓸모 있다
 - **둘 다**: 두루 따지려면 둘 다 알려라
 
-## 한계와 함정
+---
+
+## 8. 한계와 함정
 
 ### 1. 정규 분포 가정
 
@@ -720,7 +731,9 @@ FID가 놓칠 수 있는 것:
 - 외우기(익히기 자료 베끼기)
 - 통계에 영향을 주지 않는 느낌의 문제
 
-## 모범 사례
+---
+
+## 9. 모범 사례
 
 ### 1. 자리 잡은 꾸러미를 쓰라
 
@@ -770,29 +783,7 @@ def report_fid(fid: float, n_real: int, n_gen: int):
     print(f"  Preprocessing: 299×299, bilinear, ImageNet normalization")
 ```
 
-## 요약
-
-!!! success "핵심 간추리기"
-    
-    1. **FID 공식**: $\text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}(\Sigma_r + \Sigma_g - 2(\Sigma_r\Sigma_g)^{1/2})$
-    
-    2. **풀이**: FID가 낮을수록 실제 자료 분포와 더 비슷하다
-    
-    3. **흔한 값**: 뛰어남(<5), 좋음(5-20), 보통(20-50), 나쁨(>100)
-    
-    4. **필요한 표본**: 적어도 2048개, 권하기로는 10,000개 이상
-    
-    5. **가장 좋은 방식**: 자리 잡은 꾸러미를 쓰고, 통계를 미리 셈하며, 미리 다듬기를 한결같이 하라
-
-## 참고 문헌
-
-1. Heusel, M., et al. (2017). "GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium." *NeurIPS*.
-
-2. Parmar, G., et al. (2021). "On Aliased Resizing and Surprising Subtleties in GAN Evaluation." *CVPR*.
-
-3. Bińkowski, M., et al. (2018). "Demystifying MMD GANs." *ICLR*.
-
-4. Chong, M. J., & Forsyth, D. (2020). "Effectively Unbiased FID and Inception Score and Where to Find Them." *CVPR*.
+---
 
 ## 연습문제
 
@@ -829,3 +820,27 @@ def report_fid(fid: float, n_real: int, n_gen: int):
 
 ??? success "연습문제 4 풀이"
     어느 잣대 하나도 만들어 내기 품질의 모든 면을 담지 못한다. **FID**은 전체 분포의 닮음을 재지만 품질과 다양함을 뒤섞는다. **인셉션 점수**는 품질과 다양함을 담지만 익히기 자료에 대한 충실함은 무시한다. **정밀도/재현율**은 품질과 다양함을 갈라내지만 특징 뽑개와 $k$을 어떻게 고르느냐에 매인다. **느낌 잣대**(LPIPS)는 그림 수준 품질을 재지만 다양함은 재지 않는다. 잣대를 함께 쓰면 온전한 그림이 보인다. 곧 FID가 낮고 정밀도가 높으며 재현율이 낮은 모델은 봉우리가 무너진 것이고, 재현율이 높고 정밀도가 낮은 모델은 다양하지만 품질 낮은 표본을 낸다. 마지막 판단에는 사람이 따지는 것이 여전히 으뜸 기준이다.
+
+## 정리하며
+
+!!! success "핵심 간추리기"
+    
+    1. **FID 공식**: $\text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}(\Sigma_r + \Sigma_g - 2(\Sigma_r\Sigma_g)^{1/2})$
+    
+    2. **풀이**: FID가 낮을수록 실제 자료 분포와 더 비슷하다
+    
+    3. **흔한 값**: 뛰어남(<5), 좋음(5-20), 보통(20-50), 나쁨(>100)
+    
+    4. **필요한 표본**: 적어도 2048개, 권하기로는 10,000개 이상
+    
+    5. **가장 좋은 방식**: 자리 잡은 꾸러미를 쓰고, 통계를 미리 셈하며, 미리 다듬기를 한결같이 하라
+
+**참고 문헌**
+
+1. Heusel, M., et al. (2017). "GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium." *NeurIPS*.
+
+2. Parmar, G., et al. (2021). "On Aliased Resizing and Surprising Subtleties in GAN Evaluation." *CVPR*.
+
+3. Bińkowski, M., et al. (2018). "Demystifying MMD GANs." *ICLR*.
+
+4. Chong, M. J., & Forsyth, D. (2020). "Effectively Unbiased FID and Inception Score and Where to Find Them." *CVPR*.

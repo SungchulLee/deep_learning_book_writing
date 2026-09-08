@@ -1,9 +1,10 @@
 # 드롭아웃
-## 개요
 
 드롭아웃은 학습 중에 뉴런 활성화의 일부를 무작위로 0으로 만드는 정칙화 기법이다. 이는 뉴런의 공적응을 막고, 다른 뉴런들의 여러 무작위 부분집합과 함께 쓸 때에도 쓸모 있는 더 견고한 특징을 배우도록 신경망을 이끈다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### 기본적인 드롭아웃 연산
 
@@ -50,7 +51,9 @@ $$
 
 학습 중에 역 드롭아웃으로 배율을 조정했으므로 추론에서는 드롭아웃을 적용하지 않는다.
 
-## 이론적 해석
+---
+
+## 2. 이론적 해석
 
 ### 앙상블로서의 해석
 
@@ -85,7 +88,9 @@ $$
 
 이 곱셈적 잡음의 분산은 $\text{Var}[\epsilon_i] = \frac{p}{1-p}$이다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 내장 드롭아웃
 
@@ -208,7 +213,9 @@ class MCDropoutModel(nn.Module):
         return mean, std
 ```
 
-## 드롭아웃을 쓰는 학습
+---
+
+## 4. 드롭아웃을 쓰는 학습
 
 ```python
 import torch.optim as optim
@@ -260,7 +267,9 @@ def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
     return history
 ```
 
-## 심화 기법
+---
+
+## 5. 심화 기법
 
 ### 드롭커넥트
 
@@ -326,7 +335,9 @@ class TransformerBlockWithDropout(nn.Module):
         return x
 ```
 
-## 실무 지침
+---
+
+## 6. 실무 지침
 
 ### 권장 드롭아웃 비율
 
@@ -359,7 +370,9 @@ class TransformerBlockWithDropout(nn.Module):
 3. **어디서나 같은 비율**: 층마다 다른 비율이 필요할 수 있다
 4. **비율이 너무 높음**: 0.2~0.3에서 시작하고 필요하면 올린다
 
-## 다른 정칙화와 결합하기
+---
+
+## 7. 다른 정칙화와 결합하기
 
 ```python
 class RegularizedNetwork(nn.Module):
@@ -389,11 +402,7 @@ model = RegularizedNetwork(784, 256, 10)
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 ```
 
-## 참고 문헌
-
-1. Srivastava, N., et al. (2014). Dropout: A Simple Way to Prevent Neural Networks from Overfitting. *JMLR*, 15(1), 1929-1958.
-2. Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation. *ICML*.
-3. Wan, L., et al. (2013). Regularization of Neural Networks using DropConnect. *ICML*.
+---
 
 ## 연습문제
 
@@ -432,3 +441,13 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 ??? success "연습문제 4 풀이"
     대표적으로 은닉층에는 $p=0.5$(Srivastava 등, 2014), 입력층에는 $p=0.2$을 쓴다. 넓은 층일수록 (중복이 많아) 더 높은 드롭아웃을 견딜 수 있다. 최적 비율은 층의 용량과 데이터셋의 크기에 달려 있으므로 교차 검증을 권한다.
+
+## 정리하며
+
+이 마당은 수학적 정식화、이론적 해석、PyTorch 구현、드롭아웃을 쓰는 학습을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Srivastava, N., et al. (2014). Dropout: A Simple Way to Prevent Neural Networks from Overfitting. *JMLR*, 15(1), 1929-1958.
+2. Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation. *ICML*.
+3. Wan, L., et al. (2013). Regularization of Neural Networks using DropConnect. *ICML*.

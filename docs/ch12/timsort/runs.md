@@ -2,7 +2,9 @@
 
 현실의 데이터가 온전히 무작위인 일은 드물다. 배열에는 이미 정렬된 부분 수열이 흔히 들어 있다. 앞선 연산이 남긴 오름 수열, 거꾸로 놓인 입력에서 온 내림 구간, 같은 값이 이어지는 평지 같은 것이다. 팀 정렬은 이미 (오름으로) 정렬되었거나 (내림으로) 거꾸로 정렬된 가장 긴 부분 수열, 곧 **자연 런**을 짚어내어 이 짜임을 살려 쓴다. 런마다 병합 단계의 벽돌이 되므로, 어느 정도 정렬된 데이터는 $O(n \log n)$보다 훨씬 빨리 정렬된다.
 
-## 런 찾기
+---
+
+## 1. 런 찾기
 
 팀 정렬은 배열을 왼쪽에서 오른쪽으로 훑으며 두 종류의 런을 짚어낸다.
 
@@ -11,7 +13,9 @@
 
 내림 런에 엄밀한 부등호를 쓰는 것은 안정성에 꼭 필요하다. 같은 원소를 내림 런에 넣으면 뒤집을 때 그 상대 차례가 바뀌기 때문이다.
 
-## 최소 런 길이
+---
+
+## 2. 최소 런 길이
 
 짧은 런은 병합하기 비효율적이다. 팀 정렬은 32에서 64 사이의 **최소 런 길이**(`minrun`이라 한다)를 지킨다. 자연 런이 `minrun`보다 짧으면 뒤따르는 원소에 이진 끼워넣기 정렬을 써서 `minrun` 길이가 될 때까지 늘린다.
 
@@ -25,11 +29,15 @@ while minrun >= 64:
 
 이 식은 $n / \text{minrun}$이 2의 거듭제곱에 가깝게(또는 조금 작게) 되도록 하여 고른 병합을 낸다.
 
-## minrun이 중요한 까닭
+---
+
+## 3. minrun이 중요한 까닭
 
 `minrun`이 너무 작으면 병합할 런이 너무 많아져 짐이 는다. 너무 크면 짧은 런에 대한 끼워넣기 정렬이 값비싸진다. 32~64 범위가 이 둘의 균형을 잡는다. 이 크기의 배열에서는 하드웨어 캐시 덕분에 끼워넣기 정렬이 빠르고, 그 결과 런의 수가 $O(n / 32) = O(n)$ 안에 머물러 깊이 $O(\log n)$의 병합 트리가 된다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -40,7 +48,6 @@ while minrun >= 64:
 짧은 런을 이진 끼워넣기 정렬로
 늘린다.
 """
-
 
 # === 최소 런 길이 셈하기 ===
 
@@ -55,7 +62,6 @@ def compute_minrun(n: int) -> int:
         r |= n & 1
         n >>= 1
     return n + r
-
 
 # === 이진 끼워넣기 정렬 ===
 
@@ -81,7 +87,6 @@ def binary_insertion_sort(arr: list, lo: int, hi: int,
             arr[j] = arr[j - 1]
         arr[left] = key
 
-
 # === 런 찾아 늘리기 ===
 
 def find_run(arr: list, lo: int, hi: int) -> tuple:
@@ -104,7 +109,6 @@ def find_run(arr: list, lo: int, hi: int) -> tuple:
         while run_end <= hi and arr[run_end] >= arr[run_end - 1]:
             run_end += 1
         return run_end - 1, False
-
 
 def identify_runs(arr: list) -> list:
     """arr의 자연 런을 모두 짚어내고 짧은 것은 늘린다.
@@ -143,7 +147,6 @@ def identify_runs(arr: list) -> list:
         lo = run_end + 1
 
     return runs
-
 
 # === 시연 ===
 
@@ -198,11 +201,7 @@ n=10000 -> minrun=40
 !!! tip "맞추어 가는 성능"
     이미 정렬된 데이터에서 팀 정렬은 길이 $n$인 런 하나를 찾고 $O(n)$에 끝낸다. 병합이 필요 없다. 거꾸로 정렬된 데이터에서는 내림 런 하나를 찾아 $O(n)$에 뒤집고 끝낸다. 이렇게 맞추어 가는 성질 덕분에 팀 정렬이 현실의 데이터에서 뛰어나다.
 
-## 참고 문헌
-
-- Peters, T. (2002). *Timsort description*. [CPython 소스, `Objects/listsort.txt`](https://github.com/python/cpython/blob/main/Objects/listsort.txt).
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
-
+---
 
 ## 연습문제
 
@@ -235,3 +234,12 @@ float32 학습 손실 값 1000만 개를 정렬할 때 자연 런을 다른 두 
 
 ??? success "연습문제 4 풀이"
     $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.
+
+## 정리하며
+
+이 마당은 런 찾기、최소 런 길이、minrun이 중요한 까닭、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Peters, T. (2002). *Timsort description*. [CPython 소스, `Objects/listsort.txt`](https://github.com/python/cpython/blob/main/Objects/listsort.txt).
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.

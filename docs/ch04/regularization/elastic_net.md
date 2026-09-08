@@ -1,9 +1,10 @@
 # 엘라스틱 넷 정칙화
-## 개요
 
 엘라스틱 넷은 L1(라쏘)과 L2(능선) 정칙화를 결합하여 두 방식의 장점을 모두 물려받는다. 라쏘처럼 희소한 모델을 이끌면서도 능선 회귀의 안정성을 유지하므로 상관된 특징을 다룰 때 특히 효과적이다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### 결합된 벌점
 
@@ -46,7 +47,9 @@ $$
 
 L1 항에서 오는 영에서의 미분 불가능성은 그대로 남으므로 부분기울기 방법이나 근접 최적화가 필요하다.
 
-## 왜 엘라스틱 넷인가?
+---
+
+## 2. 왜 엘라스틱 넷인가?
 
 ### 순수한 L1(라쏘)의 한계
 
@@ -68,7 +71,9 @@ L1 항에서 오는 영에서의 미분 불가능성은 그대로 남으므로 �
 2. **포화 없음**: $n$개보다 많은 특징을 고를 수 있다
 3. **안정성**: L2 성분이 상관된 특징 사이의 선택을 안정시킨다
 
-## 기하학적 해석
+---
+
+## 3. 기하학적 해석
 
 ### 제약 영역의 모양
 
@@ -126,7 +131,9 @@ def plot_elastic_net_constraint(alphas=[0.0, 0.3, 0.7, 1.0]):
     return fig
 ```
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ### 엘라스틱 넷 정칙화 직접 구현하기
 
@@ -325,7 +332,9 @@ class ProximalElasticNetOptimizer:
                 param.grad.zero_()
 ```
 
-## scikit-learn 구현
+---
+
+## 5. scikit-learn 구현
 
 ```python
 from sklearn.linear_model import ElasticNet, ElasticNetCV
@@ -413,7 +422,9 @@ def compare_regularization_methods(X, y, alpha_values):
     return results
 ```
 
-## 초매개변수 선택
+---
+
+## 6. 초매개변수 선택
 
 ### 이차원 탐색
 
@@ -488,7 +499,9 @@ def plot_elastic_net_path(X, y, l1_ratio=0.5, eps=1e-3):
     return alphas, coefs
 ```
 
-## 이론적 성질
+---
+
+## 7. 이론적 성질
 
 ### 묶음 효과
 
@@ -508,7 +521,9 @@ $$
 
 어떤 조건 아래에서 엘라스틱 넷은 오라클 성질을 얻는다. 즉 표본 크기가 커질수록 확률이 1에 가까워지도록 올바른 특징을 고른다.
 
-## 실무 지침
+---
+
+## 8. 실무 지침
 
 ### 혼합 매개변수 α 고르기
 
@@ -534,7 +549,9 @@ $$
 | L2 (능선) | 없음 | 높음 | 동등한 가중 | 그렇다 |
 | 엘라스틱 넷 | 보통 | 보통~높음 | 묶음 선택 | 그렇다 |
 
-## 응용
+---
+
+## 9. 응용
 
 ### 묶음을 이용한 특징 선택
 
@@ -578,11 +595,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
     return selected_groups, model
 ```
 
-## 참고 문헌
-
-1. Zou, H., & Hastie, T. (2005). Regularization and Variable Selection via the Elastic Net. *Journal of the Royal Statistical Society: Series B*, 67(2), 301-320.
-2. Hastie, T., Tibshirani, R., & Wainwright, M. (2015). *Statistical Learning with Sparsity*. CRC Press.
-3. Friedman, J., Hastie, T., & Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1), 1-22.
+---
 
 ## 연습문제
 
@@ -622,3 +635,13 @@ PyTorch 학습 루프에서 엘라스틱 넷 정칙화를 구현하라.
 
 ??? success "연습문제 4 풀이"
     근접 연산자는 분해된다. 먼저 L2 배율 조정 $\tilde{v} = v/(1 + \lambda(1-\alpha))$을 적용하고, 이어서 L1 연성 문턱화 $\text{prox}(v) = \text{sign}(\tilde{v})\max(|\tilde{v}| - \lambda\alpha, 0)$을 적용한다.
+
+## 정리하며
+
+이 마당은 수학적 정식화、왜 엘라스틱 넷인가?、기하학적 해석、PyTorch 구현을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Zou, H., & Hastie, T. (2005). Regularization and Variable Selection via the Elastic Net. *Journal of the Royal Statistical Society: Series B*, 67(2), 301-320.
+2. Hastie, T., Tibshirani, R., & Wainwright, M. (2015). *Statistical Learning with Sparsity*. CRC Press.
+3. Friedman, J., Hastie, T., & Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1), 1-22.

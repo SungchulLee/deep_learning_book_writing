@@ -2,7 +2,9 @@
 
 **범위 질의**는 "담긴 집합의 어떤 점이 주어진 영역 안에 있는가"를 묻는다. $k$차원에서 축에 나란한 직사각 영역에 대해 [kd 트리](construction.md)는 테두리 영역이 질의 직사각형과 만나지 않는 부분 트리를 쳐 내어 이 질의에 효율적으로 답한다. 2차원에서 균형 잡힌 kd 트리는 직사각 범위 안의 점 $r$개를 모두 $O(\sqrt{n} + r)$ 시간에 보고하는데, 결과가 적을 때 $O(n)$의 힘으로 밀어붙이는 훑기보다 크게 낫다.
 
-## 질의 영역
+---
+
+## 1. 질의 영역
 
 질의는 차원마다 아래 한계와 위 한계로 정해지는, 축에 나란한 직사각형($k$차원에서는 초직사각형)이다.
 
@@ -12,7 +14,9 @@ $$
 
 모든 차원 $i = 1, \ldots, k$에서 $x_i^{lo} \le p[i] \le x_i^{hi}$이면 점 $p$을 보고한다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 범위 찾기는 kd 트리를 재귀적으로 훑으며 노드마다 세 경우를 쓴다.
 
@@ -37,7 +41,9 @@ RANGE-SEARCH(node, query_range):
         RANGE-SEARCH(node.right, query_range)
 ```
 
-## 쳐 내는 조건
+---
+
+## 3. 쳐 내는 조건
 
 점 $p$과 축 $d$을 가진 노드의 쪼개기 초평면이 공간을 $p[d]$에서 가른다. 왼쪽 부분 트리는 축 $d$을 따라 좌표가 $p[d]$ 이하인 점을, 오른쪽 부분 트리는 좌표가 $p[d]$보다 큰 점을 담는다.
 
@@ -46,13 +52,14 @@ RANGE-SEARCH(node, query_range):
 
 두 조건이 모두 통하지 않으면(쪼개는 값이 질의 범위 안에 들면) 알고리즘이 두 부분 트리를 모두 살펴야 한다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """kd 트리의 범위 찾기."""
 
 from __future__ import annotations
-
 
 # === 노드 정의 ===
 
@@ -64,7 +71,6 @@ class KDNode:
         self.axis = axis
         self.left: KDNode | None = None
         self.right: KDNode | None = None
-
 
 # === 세우기 ===
 
@@ -81,7 +87,6 @@ def build_kdtree(points: list[list[float]], depth: int = 0) -> KDNode | None:
     node.right = build_kdtree(points[mid + 1:], depth + 1)
     return node
 
-
 # === 범위 찾기 ===
 
 def range_search(node: KDNode | None,
@@ -90,7 +95,6 @@ def range_search(node: KDNode | None,
     result: list[list[float]] = []
     _range_helper(node, low, high, result)
     return result
-
 
 def _range_helper(node: KDNode | None,
                   low: list[float], high: list[float],
@@ -111,7 +115,6 @@ def _range_helper(node: KDNode | None,
     if high[axis] >= node.point[axis]:
         _range_helper(node.right, low, high, result)
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -124,7 +127,9 @@ if __name__ == "__main__":
     # 기대값: [5, 4], [7, 2] (범위 안에 다른 것이 더 있을 수 있다)
 ```
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 균형 잡힌 kd 트리에서 범위 찾기의 복잡도는 차원의 수에 매인다.
 
@@ -140,15 +145,13 @@ if __name__ == "__main__":
 !!! note "아래 한계"
     2차원 범위 질의의 $O(\sqrt{n} + r)$ 한계는 kd 트리에서 빡빡하다. 노드를 $\Omega(\sqrt{n})$개 들러야 하는 질의 배치가 있다. 더 빠른 범위 질의가 필요하면 $O(n \log n)$의 공간을 대가로 $O(\log^2 n + r)$(부분 이어 넘기기를 쓰면 $O(\log n + r)$)을 이루는 **범위 트리**를 생각해 보라.
 
-## 원형 범위 질의
+---
+
+## 6. 원형 범위 질의
 
 직사각형이 아닌 영역(이를테면 "질의 점 $q$에서 거리 $d$ 안의 모든 점 찾기")에는 원의 테두리 직사각형을 질의 범위로 쓰고, 후보 점마다 실제 거리를 살피는 뒷거르기 단계를 더한다. kd 트리는 여전히 효율적으로 쳐 내 준다.
 
-## 참고 문헌
-
-- Bentley, J. L. (1975). Multidimensional binary search trees used for associative searching. *Communications of the ACM*, 18(9), 509–517.
-- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. (2008). *Computational Geometry: Algorithms and Applications* (3rd ed.), Chapter 5. Springer.
-
+---
 
 ## 연습문제
 
@@ -181,3 +184,12 @@ kd 트리의 범위 찾기가 질의마다의 계산을 $O(n)$에서 $O(\log n)$
 
 ??? success "연습문제 4 풀이"
     응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.
+
+## 정리하며
+
+이 마당은 질의 영역、알고리즘、쳐 내는 조건、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Bentley, J. L. (1975). Multidimensional binary search trees used for associative searching. *Communications of the ACM*, 18(9), 509–517.
+- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. (2008). *Computational Geometry: Algorithms and Applications* (3rd ed.), Chapter 5. Springer.

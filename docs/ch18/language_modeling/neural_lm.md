@@ -1,5 +1,8 @@
 # 신경 말 모델
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -12,7 +15,7 @@
 
 ---
 
-## n-그램에서 신경 모델로
+## 2. n-그램에서 신경 모델로
 
 n-그램 모델에는 근본 한계가 있다. 곧 붙박이 맥락 창, 자료의 성김, 뜻으로 두루 통하지 못함이다. 신경 말 모델은 낱말을 이어진 벡터 공간에 묻는 **흩뿌린 나타냄**을 배워 이를 다룬다.
 
@@ -28,7 +31,7 @@ n-그램 모델에는 근본 한계가 있다. 곧 붙박이 맥락 창, 자료�
 
 ---
 
-## 앞먹임 신경 말 모델
+## 3. 앞먹임 신경 말 모델
 
 Bengio 외(2003)의 선구적인 연구는 다음 얼개로 신경 말 모델을 들여왔다:
 
@@ -68,7 +71,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from typing import List, Tuple
-
 
 class Vocabulary:
     """신경 말 모델의 낱말 곳간 다스리기."""
@@ -114,7 +116,6 @@ class Vocabulary:
     def __len__(self) -> int:
         return len(self.word2idx)
 
-
 class FeedforwardLMDataset(Dataset):
     """앞먹임 말 모델 익히기용 자료 뭉치."""
     
@@ -141,7 +142,6 @@ class FeedforwardLMDataset(Dataset):
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         context, target = self.examples[idx]
         return torch.tensor(context), torch.tensor(target)
-
 
 class FeedforwardLM(nn.Module):
     """
@@ -207,7 +207,6 @@ class FeedforwardLM(nn.Module):
             probs = F.softmax(logits, dim=-1)
         return probs[0]
 
-
 def train_feedforward_lm(corpus: List[str], context_size: int = 3,
                          embedding_dim: int = 64, hidden_dim: int = 128,
                          epochs: int = 20, batch_size: int = 32,
@@ -266,7 +265,7 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
 
 ---
 
-## 되돌이 그물 말 모델
+## 4. 되돌이 그물 말 모델
 
 되돌이 신경망은 때 걸음을 가로질러 앎을 나르는 **숨은 상태**를 지녀 붙박이 맥락의 한계를 다룬다.
 
@@ -354,7 +353,6 @@ class RNNLanguageModel(nn.Module):
         """숨은 상태를 0으로 첫자리매김."""
         return torch.zeros(self.num_layers, batch_size, self.hidden_dim)
 
-
 class RNNLMDataset(Dataset):
     """되돌이 그물 말 모델용 자료 뭉치(차례에서 차례로)."""
     
@@ -379,7 +377,6 @@ class RNNLMDataset(Dataset):
         seq = self.sequences[idx]
         # 들임: 마지막 토막을 뺀 전부, 목표: 첫 토막을 뺀 전부
         return torch.tensor(seq[:-1]), torch.tensor(seq[1:])
-
 
 def collate_sequences(batch):
     """길이가 들쭉날쭉한 차례를 덧대어 모으기."""
@@ -442,7 +439,7 @@ def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
 
 ---
 
-## LSTM 말 모델
+## 5. LSTM 말 모델
 
 긴 짧은 기억 그물은 앎의 흐름을 다스리는 **문 얼개**로 기울기 사라짐 문제를 다룬다.
 
@@ -538,7 +535,6 @@ class LSTMLanguageModel(nn.Module):
         c = torch.zeros(self.num_layers, batch_size, self.hidden_dim, device=device)
         return (h, c)
 
-
 def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
                   hidden_dim: int = 512, num_layers: int = 2,
                   epochs: int = 30, batch_size: int = 32,
@@ -606,7 +602,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
 
 ---
 
-## 변환기 말 모델
+## 6. 변환기 말 모델
 
 변환기는 되돌이를 **스스로 눈길**로 갈음해 나란히 익히기와 더 나은 먼 거리 나타내기를 가능하게 한다.
 
@@ -635,7 +631,6 @@ $$\text{mask}_{ij} = \begin{cases} 0 & \text{if } j \leq i \\ -\infty & \text{ot
 ```python
 import math
 
-
 class PositionalEncoding(nn.Module):
     """'Attention Is All You Need'의 사인파 위치 인코딩."""
     
@@ -659,7 +654,6 @@ class PositionalEncoding(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """들임에 자리 부호 더하기."""
         return x + self.pe[:, :x.size(1)]
-
 
 class TransformerLM(nn.Module):
     """
@@ -745,7 +739,6 @@ class TransformerLM(nn.Module):
         
         return logits
 
-
 def train_transformer_lm(corpus: List[str], d_model: int = 256,
                          nhead: int = 4, num_layers: int = 4,
                          epochs: int = 30, batch_size: int = 32):
@@ -798,7 +791,7 @@ def train_transformer_lm(corpus: List[str], d_model: int = 256,
 
 ---
 
-## 글 만들어 내기
+## 7. 글 만들어 내기
 
 신경 말 모델은 여러 만들어 내기 전략을 받쳐 준다:
 
@@ -877,7 +870,7 @@ def generate_text(model, vocab, max_length: int = 50,
 
 ---
 
-## 모형 견줌
+## 8. 모형 견줌
 
 | 갈래 | 앞먹임 | 되돌이 그물 | LSTM | 변환기 |
 |--------|-------------|-----|------|-------------|
@@ -899,7 +892,7 @@ def generate_text(model, vocab, max_length: int = 50,
 
 ---
 
-## 미리 익힌 말 모델
+## 9. 미리 익힌 말 모델
 
 요즘은 미리 익힌 모델을 특정 일에 곱게 다듬어 써먹는다:
 
@@ -927,27 +920,6 @@ print(tokenizer.decode(output[0]))
 
 ---
 
-## 요약
-
-신경 말 모델은 단순한 앞먹임 그물에서 정교한 변환기 얼개로 나아왔다:
-
-1. **앞먹임 말 모델**은 이어진 낱말 나타냄을 들여왔지만 맥락이 붙박이이다
-2. **되돌이 그물 말 모델**은 길이가 바뀌는 차례를 다루지만 기울기 탈이 있다
-3. **LSTM 말 모델**은 문 얼개로 기울기 사라짐을 다룬다
-4. **변환기 말 모델**은 나란히 익히기를 가능하게 하고 먼 거리 얽힘을 담아낸다
-
-요즘의 큰 말 모델(GPT-4, Claude, LLaMA)은 매개변수가 수십억 개인, 크게 키운 변환기 말 모델이다.
-
----
-
-## 참고 문헌
-
-1. Bengio, Y., et al. (2003). A neural probabilistic language model. *JMLR*.
-2. Mikolov, T., et al. (2010). Recurrent neural network based language model. *INTERSPEECH*.
-3. Hochreiter, S., & Schmidhuber, J. (1997). Long short-term memory. *Neural Computation*.
-4. Vaswani, A., et al. (2017). Attention is all you need. *NeurIPS*.
-5. Merity, S., et al. (2017). Regularizing and optimizing LSTM language models. *ICLR*.
-
 ## 연습문제
 
 1. **묻힘 그려 보기**: 앞먹임 말 모델을 익히고 t-SNE로 낱말 묻힘을 그려 보라. 비슷한 낱말이 함께 뭉치는가?
@@ -961,3 +933,24 @@ print(tokenizer.decode(output[0]))
 5. **곱게 다듬기**: 분야별 말뭉치(보기로 금융 뉴스)로 GPT-2를 곱게 다듬고 분야 맞추기를 값매김하여라.
 
 ---
+
+## 정리하며
+
+신경 말 모델은 단순한 앞먹임 그물에서 정교한 변환기 얼개로 나아왔다:
+
+1. **앞먹임 말 모델**은 이어진 낱말 나타냄을 들여왔지만 맥락이 붙박이이다
+2. **되돌이 그물 말 모델**은 길이가 바뀌는 차례를 다루지만 기울기 탈이 있다
+3. **LSTM 말 모델**은 문 얼개로 기울기 사라짐을 다룬다
+4. **변환기 말 모델**은 나란히 익히기를 가능하게 하고 먼 거리 얽힘을 담아낸다
+
+요즘의 큰 말 모델(GPT-4, Claude, LLaMA)은 매개변수가 수십억 개인, 크게 키운 변환기 말 모델이다.
+
+---
+
+**참고 문헌**
+
+1. Bengio, Y., et al. (2003). A neural probabilistic language model. *JMLR*.
+2. Mikolov, T., et al. (2010). Recurrent neural network based language model. *INTERSPEECH*.
+3. Hochreiter, S., & Schmidhuber, J. (1997). Long short-term memory. *Neural Computation*.
+4. Vaswani, A., et al. (2017). Attention is all you need. *NeurIPS*.
+5. Merity, S., et al. (2017). Regularizing and optimizing LSTM language models. *ICLR*.

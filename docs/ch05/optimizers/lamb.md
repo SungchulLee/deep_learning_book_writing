@@ -2,7 +2,9 @@
 
 BERT 같은 큰 모델을 아주 큰 배치(예: 32K나 65K 표본)로 학습시키면 실제 걸리는 시간을 크게 줄일 수 있지만, 표준 [Adam](adam.md)은 이런 상황에서 자주 발산한다. 근본 원인은 깊은 신경망의 층마다 기울기의 크기가 크게 다르다는 데 있다. 배치가 커서 기울기의 잡음이 줄면 전역 학습률 하나로 그 모두를 감당할 수 없다. **LAMB**(배치 학습을 위한 층별 적응형 모멘트 최적화기, You 등, 2020)는 Adam의 매개변수별 적응 걸음 위에 층별 **신뢰 비율**을 더하여 이를 다루며, 배치 크기를 65,536까지 키워도 안정적으로 학습하게 하여 BERT 사전 학습을 며칠에서 76분으로 줄였다.
 
-## 알고리즘
+---
+
+## 1. 알고리즘
 
 LAMB는 [Adam](adam.md) 위에 세워진다. 각 시각 $t$에서 기울기를 $g_t = \nabla_\theta L(\theta_t)$이라 하자. 매개변수 텐서가 $\theta_t^{(l)}$인 각 층 $l$에 대해 LAMB는 다음 단계를 수행한다. 원소별 연산은 모두 층 안에서 이루어진다.
 
@@ -44,14 +46,18 @@ $$
 
 여기서 $\eta$은 전역 학습률, $\beta_1$과 $\beta_2$은 모멘트의 감쇠율(보통 $0.9$과 $0.999$), $\epsilon$은 수치 안정성을 위한 작은 상수이다.
 
-## 신뢰 비율의 직관
+---
+
+## 2. 신뢰 비율의 직관
 
 신뢰 비율 $\phi^{(l)} = \|\theta_t^{(l)}\|_2 / \|r_t^{(l)}\|_2$은 층마다 갱신의 배율을 조정하여, 날 기울기의 크기와 무관하게 상대적인 변화 $\|\Delta\theta^{(l)}\|_2 / \|\theta^{(l)}\|_2$이 학습률 $\eta$만으로 정해지게 한다. 매개변수가 작은 층은 그에 비례해 작은 갱신을, 큰 층은 큰 갱신을 받으므로 어느 한 층이 최적화 걸음을 좌지우지하지 못한다.
 
 !!! note "LARS와의 관계"
     LAMB는 Adam과 LARS(층별 적응형 학습률 조정)를 결합한 것으로 볼 수 있다. LARS는 같은 신뢰 비율 착상을 모멘텀을 쓰는 SGD에 적용한다. LAMB는 이를 Adam으로 넓혀 Adam의 매개변수별 적응성을 물려받으면서 LARS의 층별 배율 조정을 더한다.
 
-## PyTorch 예제
+---
+
+## 3. PyTorch 예제
 
 ```python
 """대규모 배치 학습을 위한 LAMB 최적화기 사용 예."""
@@ -93,7 +99,9 @@ if __name__ == "__main__":
         print("Install torch-optimizer: pip install torch-optimizer")
 ```
 
-## LAMB를 쓸 때
+---
+
+## 4. LAMB를 쓸 때
 
 LAMB는 특정한 상황을 위해 설계되었다.
 
@@ -103,10 +111,7 @@ LAMB는 특정한 상황을 위해 설계되었다.
 
 배치 크기가 1024 미만인 보통의 단일 GPU 학습에는 [AdamW](adamw.md)가 더 간단하고 충분하다. 신뢰 비율은 층마다 부담과 복잡함을 더할 뿐 작은 배치에서는 아무 이득이 없다.
 
-## 참고 문헌
-
-- You, Y., Li, J., Reddi, S., Hseu, J., Kumar, S., Bhojanapalli, S., Song, X., Demmel, J., Keutzer, K., & Hsieh, C.-J. (2020). Large Batch Optimization for Deep Learning: Training BERT in 76 Minutes. *ICLR 2020*.
-
+---
 
 ## 연습문제
 
@@ -139,3 +144,11 @@ LAMB이(가) 어떤 학습률 선택에서 발산할 수 있는 이유를 설명
 
 ??? success "연습문제 4 풀이"
     실효 걸음 크기가 곡률의 한계를 넘으면 발산한다. 매개변수가 극소점을 지나쳐 진폭이 커지며 진동한다. 안정 조건은 학습률, 손실의 곡률(헤세 행렬의 고윳값), 최적화기의 적응 배율 사이의 관계에 달렸다. 볼록 이차 함수에서는 매끄러움 상수를 $L$이라 할 때 조건이 $\eta < 2/L$이다.
+
+## 정리하며
+
+이 마당은 알고리즘、신뢰 비율의 직관、PyTorch 예제、LAMB를 쓸 때을 차례로 짚었다.
+
+**참고 문헌**
+
+- You, Y., Li, J., Reddi, S., Hseu, J., Kumar, S., Bhojanapalli, S., Song, X., Demmel, J., Keutzer, K., & Hsieh, C.-J. (2020). Large Batch Optimization for Deep Learning: Training BERT in 76 Minutes. *ICLR 2020*.

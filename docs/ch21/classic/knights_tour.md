@@ -2,7 +2,9 @@
 
 체스의 기사는 "L" 꼴로 움직인다. 곧 한 방향으로 두 칸, 그에 직각으로 한 칸이다. **기사의 여행** 문제는 기사가 $n \times n$ 체스판의 모든 칸을 꼭 한 번씩 들를 수 있는지 묻는다. 이 고전 문제는 되짚기에 바른스도르프 규칙이라는 힘 있는 어림짐작을 곁들여, 실제 판 크기에서 지수 찾기를 거의 선형으로 바꾸는 산뜻한 쓰임새를 보여 준다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 $n \times n$ 판과 출발 자리 $(r_0, c_0)$이 주어질 때 $n^2$개 칸을 꼭 한 번씩 들르는 기사의 움직임 차례를 찾아라. **닫힌 여행**은 출발 칸으로 돌아오고 **열린 여행**은 아무 칸에서나 끝난다.
 
@@ -12,7 +14,9 @@ $$
 (r \pm 1, c \pm 2) \quad \text{and} \quad (r \pm 2, c \pm 1)
 $$
 
-## 되짚기 풀이
+---
+
+## 2. 되짚기 풀이
 
 막무가내 방식은 지금 자리에서 갈 수 있는 모든 곳을 시험한다:
 
@@ -24,7 +28,9 @@ $$
 
 찾기 나무의 갈래 수는 최대 8, 깊이는 $n^2$이라 최악의 경우 $O(8^{n^2})$이며 가지치기 없이는 쓸 수 없다.
 
-## 바른스도르프 규칙
+---
+
+## 3. 바른스도르프 규칙
 
 바른스도르프 규칙은 찾기 공간을 크게 줄이는 욕심쟁이 어림짐작이다:
 
@@ -33,7 +39,9 @@ $$
 
 이 "제약이 많은 것 먼저" 어림짐작이 통하는 까닭은 제약이 많은 칸을 일찍 들러야 나중에 막다른 길을 피하기 때문이다. 대략 $76 \times 76$까지의 판에서는 바른스도르프 규칙이 되짚기 없이 거의 언제나 여행길을 찾는다.
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 | 갈래 | 값 |
 |---|---|
@@ -42,7 +50,9 @@ $$
 | 공간 | 판에 $O(n^2)$ |
 | 있음 | $n \ge 5$이면 늘 여행길이 있다 |
 
-## 파이썬 구현
+---
+
+## 5. 파이썬 구현
 
 ```python
 """
@@ -52,7 +62,6 @@ $$
 바른스도르프 규칙으로 빠르게 할 수도 있다.
 """
 
-
 # === 기사의 움직임 ===
 
 MOVES = [
@@ -60,13 +69,11 @@ MOVES = [
     (1, -2), (1, 2), (2, -1), (2, 1),
 ]
 
-
 # === 도움 함수 ===
 
 def is_valid(r: int, c: int, n: int, board: list[list[int]]) -> bool:
     """자리 (r, c)이 판 안에 있고 아직 들르지 않았는지 살핀다."""
     return 0 <= r < n and 0 <= c < n and board[r][c] == -1
-
 
 def count_onward_moves(r: int, c: int, n: int, board: list[list[int]]) -> int:
     """자리 (r, c)에서 앞으로 갈 수 있는 곳의 수를 센다."""
@@ -75,7 +82,6 @@ def count_onward_moves(r: int, c: int, n: int, board: list[list[int]]) -> int:
         if is_valid(r + dr, c + dc, n, board):
             count += 1
     return count
-
 
 # === 바른스도르프 규칙을 곁들인 되짚기 ===
 
@@ -118,7 +124,6 @@ def knights_tour(n: int, start_r: int = 0, start_c: int = 0) -> list[list[int]] 
         return board
     return None
 
-
 # === 판 보이기 ===
 
 def print_board(board: list[list[int]]) -> None:
@@ -127,7 +132,6 @@ def print_board(board: list[list[int]]) -> None:
     width = len(str(n * n - 1))
     for row in board:
         print(" ".join(str(cell).rjust(width) for cell in row))
-
 
 # === 메인 ===
 
@@ -141,7 +145,9 @@ if __name__ == "__main__":
         print(f"No tour found for {n}x{n} board")
 ```
 
-## 풀이 예제
+---
+
+## 6. 풀이 예제
 
 $(0, 0)$에서 시작하는 $5 \times 5$ 판에서 옳은 여행길 하나(움직임 번호):
 
@@ -155,10 +161,7 @@ $(0, 0)$에서 시작하는 $5 \times 5$ 판에서 옳은 여행길 하나(움�
 
 기사는 왼쪽 위(움직임 0)에서 시작해 25개 칸을 모두 들르고 $(4, 0)$(움직임 24)에서 끝난다. 움직임 24가 움직임 0에서 기사의 한 걸음이 아니므로 열린 여행이다.
 
-## 참고 문헌
-
-- Skiena, S. S. (2020). *The Algorithm Design Manual* (3rd ed.), Chapter 9. Springer.
-- Warnsdorff, H. C. (1823). *Des Rosselsprunges einfachste und allgemeinste Losung*.
+---
 
 ## 연습문제
 
@@ -191,3 +194,12 @@ $(0, 0)$에서 시작하는 $5 \times 5$ 판에서 옳은 여행길 하나(움�
 
 ??? success "연습문제 4 풀이"
     작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$
+
+## 정리하며
+
+이 마당은 문제 서술、되짚기 풀이、바른스도르프 규칙、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Skiena, S. S. (2020). *The Algorithm Design Manual* (3rd ed.), Chapter 9. Springer.
+- Warnsdorff, H. C. (1823). *Des Rosselsprunges einfachste und allgemeinste Losung*.

@@ -2,7 +2,9 @@
 
 보통의 이진 탐색 트리에 새 열쇠를 넣는 일은 간단하다. 뿌리에서 내려가며 열쇠가 작으면 왼쪽으로, 크면 오른쪽으로 가서 새 노드를 잎으로 붙인다. 문제는 그러면 부분 트리의 높이가 늘어 AVL 균형 조건이 깨질 수 있다는 것이다. AVL 삽입은 삽입 경로를 거슬러 올라가며 균형 인수를 살피고 많아야 **회전 한 번**(단일이든 이중이든)으로 불변식을 되살려 이를 푼다.
 
-## 삽입 알고리즘
+---
+
+## 1. 삽입 알고리즘
 
 AVL 삽입은 두 단계로 나아간다.
 
@@ -16,7 +18,9 @@ AVL 삽입은 두 단계로 나아간다.
 3. $|\text{BF}(x)| \leq 1$이면 부모로 옮긴다.
 4. $|\text{BF}(x)| = 2$이면 어느 회전에 해당하는지 가려 적용한다.
 
-## 회전의 경우
+---
+
+## 2. 회전의 경우
 
 어떤 회전을 할지는 $x$과 그 무거운 자식의 균형 인수에 달려 있다.
 
@@ -30,11 +34,15 @@ AVL 삽입은 두 단계로 나아간다.
 !!! info "삽입마다 회전은 많아야 한 번"
     균형이 깨진 가장 낮은 조상에서 회전을 하고 나면 그 부분 트리의 높이가 **삽입 전** 값으로 돌아간다. 곧 회전한 자리보다 위의 어떤 조상도 균형이 깨질 수 없으므로 손질이 바로 끝난다. 회전이 $O(\log n)$번 필요할 수 있는 삭제와의 근본적인 차이이다.
 
-## 회전 한 번으로 충분한 까닭
+---
+
+## 3. 회전 한 번으로 충분한 까닭
 
 삽입 전에 $x$을 뿌리로 하는 부분 트리의 높이가 $h$이라 하자. 삽입이 $x$의 한쪽 부분 트리의 높이를 $h-1$에서 $h$으로 늘려 $\text{BF}(x) = +2$(또는 $-2$)이 된다. 회전 뒤 이 부분 트리의 새 뿌리는 높이가 $h$으로 삽입 전과 같다. $x$의 부모가 보기에 $x$ 자리의 높이가 바뀌지 않았으므로 더 균형을 잡을 필요가 없다.
 
-## 한 걸음씩 보는 예
+---
+
+## 4. 한 걸음씩 보는 예
 
 빈 AVL 트리에 열쇠 10, 20, 30을 넣어 보자.
 
@@ -65,7 +73,9 @@ Before rotation:        After rotation:
 
 이제 트리가 균형 잡혔다. 옛 뿌리(10)의 자리에서 높이가 (회전 전) 2에서 (회전 뒤) 1로 돌아와 삽입 전 높이와 같아졌다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -74,7 +84,6 @@ Before rotation:        After rotation:
 두 단계 방식을 보인다. 표준 이진 탐색 트리 삽입에 이어
 회전이 많아야 한 번인 아래에서 위로의 바로잡기 걸음을 한다.
 """
-
 
 # === AVL 노드 ===
 
@@ -87,23 +96,19 @@ class AVLNode:
         self.right = None
         self.height = 0
 
-
 # === 높이와 균형 도구 ===
 
 def height(node):
     """노드의 높이를 돌려준다. 널이면 -1이다."""
     return node.height if node else -1
 
-
 def update_height(node):
     """자식에서 높이를 다시 셈한다."""
     node.height = 1 + max(height(node.left), height(node.right))
 
-
 def balance_factor(node):
     """균형 인수 = h(왼쪽) - h(오른쪽)을 셈한다."""
     return height(node.left) - height(node.right)
-
 
 # === 회전 ===
 
@@ -116,7 +121,6 @@ def rotate_right(y):
     update_height(x)
     return x
 
-
 def rotate_left(x):
     """x에서 왼쪽으로 회전."""
     y = x.right
@@ -125,7 +129,6 @@ def rotate_left(x):
     update_height(x)
     update_height(y)
     return y
-
 
 # === 균형을 되잡는 삽입 ===
 
@@ -170,7 +173,6 @@ def insert(node, key):
 
     return node
 
-
 # === 보이기 ===
 
 def print_tree(node, level=0):
@@ -182,7 +184,6 @@ def print_tree(node, level=0):
     print(f"{'    ' * level}{node.key} [BF={bf:+d}]")
     print_tree(node.left, level + 1)
 
-
 # === 중위 순회 ===
 
 def inorder(node):
@@ -190,7 +191,6 @@ def inorder(node):
     if node is None:
         return []
     return inorder(node.left) + [node.key] + inorder(node.right)
-
 
 if __name__ == "__main__":
     # 회전의 네 경우를 모두 보인다
@@ -275,7 +275,9 @@ Inorder: [10, 20, 30]
 Inorder: [10, 20, 25, 30, 35, 40, 50, 60, 70, 80]
 ```
 
-## 복잡도
+---
+
+## 6. 복잡도
 
 | 항목 | 비용 |
 |:--|:-:|
@@ -286,10 +288,7 @@ Inorder: [10, 20, 25, 30, 35, 40, 50, 60, 70, 80]
 
 손질하며 거슬러 오를 때 많아야 조상 $O(\log n)$개를 건드리지만 그 가운데 회전이 필요한 것은 하나뿐이다. 그 회전 뒤 부분 트리의 높이가 삽입 전 값으로 돌아가므로 더 균형을 잡을 필요가 없다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 13~14장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -322,3 +321,11 @@ Inorder: [10, 20, 25, 30, 35, 40, 50, 60, 70, 80]
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 삽입 알고리즘、회전의 경우、회전 한 번으로 충분한 까닭、한 걸음씩 보는 예을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 13~14장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

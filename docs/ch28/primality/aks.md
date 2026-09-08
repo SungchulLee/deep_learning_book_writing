@@ -2,13 +2,17 @@
 
 2002년 이전에 알려진 정해진 소수 시험은 모두 지수이거나 밝혀지지 않은 추측에 기댔다. 아그라왈, 카얄, 삭세나의 AKS 시험은 소수 판정의 첫 **정해진 다항 시간** 알고리즘을 내놓아 오랜 열린 물음을 매듭지었다.
 
-## 핵심 결과
+---
+
+## 1. 핵심 결과
 
 AKS 알고리즘은 PRIMES $\in$ P임을 밝힌다. 정수 $n$이 주어지면
 $\log n$(자릿수)에 대해 다항인 시간에 $n$이 소수인지
 가른다.
 
-## 수학적 바탕
+---
+
+## 2. 수학적 바탕
 
 이 시험은 페르마의 작은 정리를 다항식 고리로 넓힌 것 위에
 세워진다.
@@ -30,7 +34,9 @@ $$
 (x + a)^n \equiv x^n + a \pmod{x^r - 1, \, n}
 $$
 
-## 알고리즘
+---
+
+## 3. 알고리즘
 
 **들임:** 정수 $n \ge 2$.
 
@@ -52,7 +58,9 @@ $$
 
 6. 소수를 내놓는다.
 
-## 옳음 얼개
+---
+
+## 4. 옳음 얼개
 
 이 알고리즘은 두 방향에 기댄다:
 
@@ -65,7 +73,9 @@ $$
   $r$의 한계와 $a$ 값의 개수가 $n$을 소수 거듭제곱으로 몰아붙일 만큼
   제약을 주며 그것은 걸음 1에서 이미 걸러 냈다.
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 - **$r$ 찾기:** $r = O((\log n)^5)$이면 넉넉하다(뒤에 어떤 변형에서는
   $O((\log n)^3)$으로 나아졌다).
@@ -84,7 +94,9 @@ $\widetilde{O}((\log n)^6)$으로 줄였다.
 | 밀러-라빈 | 확률 | 바퀴마다 $O(k \log^2 n)$ |
 | AKS | 정해짐 | $\widetilde{O}((\log n)^6)$ |
 
-## 단순하게 짜기
+---
+
+## 6. 단순하게 짜기
 
 ```python
 """
@@ -95,7 +107,6 @@ $\widetilde{O}((\log n)^6)$으로 줄였다.
 """
 
 import math
-
 
 # === 완전 거듭제곱 살피기 ===
 def is_perfect_power(n: int) -> bool:
@@ -109,7 +120,6 @@ def is_perfect_power(n: int) -> bool:
                 return True
     return False
 
-
 # === 곱셈 차수 ===
 def multiplicative_order(n: int, r: int) -> int:
     """n^k = 1 (mod r)을 이루는 가장 작은 k를 돌려준다."""
@@ -121,7 +131,6 @@ def multiplicative_order(n: int, r: int) -> int:
         power = (power * n) % r
         result += 1
     return result
-
 
 # === (x^r - 1, n)을 법으로 하는 다항식 곱셈 ===
 def poly_mult_mod(a: list[int], b: list[int], r: int, n: int) -> list[int]:
@@ -136,7 +145,6 @@ def poly_mult_mod(a: list[int], b: list[int], r: int, n: int) -> list[int]:
             result[(i + j) % r] = (result[(i + j) % r] + ai * bj) % n
     return result
 
-
 # === (x^r - 1, n)을 법으로 하는 다항식 거듭제곱 ===
 def poly_pow_mod(base: list[int], exp: int, r: int, n: int) -> list[int]:
     """x^r - 1과 n을 법으로 base^exp을 셈한다."""
@@ -149,7 +157,6 @@ def poly_pow_mod(base: list[int], exp: int, r: int, n: int) -> list[int]:
         b = poly_mult_mod(b, b, r, n)
         exp //= 2
     return result
-
 
 # === AKS 시험 ===
 def aks(n: int) -> bool:
@@ -206,7 +213,6 @@ def aks(n: int) -> bool:
 
     return True
 
-
 # === 보기 ===
 if __name__ == "__main__":
     test_values = [2, 7, 10, 13, 15, 31, 37, 49, 97]
@@ -218,7 +224,9 @@ if __name__ == "__main__":
 !!! warning "성능 알림"
     AKS은 주로 이론에서 중요하다. 실제로는 넉넉한 바퀴의 밀러-라빈(또는 작은 $n$의 정해진 변형)이 훨씬 빠르다. AKS은 다항 시간의 정해진 시험이 *있음*을 밝히지만 상수 때문에 큰 들임에는 쓸 수 없다.
 
-## 역사에서의 뜻
+---
+
+## 7. 역사에서의 뜻
 
 AKS 결과는 소수 시험의 복잡도를 매듭지었다:
 
@@ -226,11 +234,7 @@ AKS 결과는 소수 시험의 복잡도를 매듭지었다:
   P에 든다고는 알려지지 않았다.
 - **AKS 이후(2002):** 조건 없이 PRIMES $\in$ P이다.
 
-## 참고 문헌
-
-- Agrawal, M., Kayal, N., & Saxena, N. "PRIMES is in P." *Annals of Mathematics*, 160(2), 2004.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
-
+---
 
 ## 연습문제
 
@@ -263,3 +267,12 @@ AKS이 정해진 방식인데도 실제로는(보기로 OpenSSL에서) AKS 대�
 
 ??? success "연습문제 4 풀이"
     $k$바퀴의 밀러-라빈은 어긋날 확률이 $\leq 4^{-k}$이다. $k = 64$이면 어긋남이 $< 2^{-128}$으로 실제로는 무시할 만하다. AKS보다 자릿수가 여러 자리 빠르다. 암호 열쇠 만들기(보기로 RSA 소수)에서는 이 빠르기 차이가 중요하다. 2048비트 소수를 만들려면 후보를 많이 시험해야 한다. 밀러-라빈은 하나를 밀리초에 시험하지만 AKS은 훨씬 오래 걸린다. 밀러-라빈의 확률 보장($< 2^{-128}$ 어긋남)이 하드웨어 오류율보다 강할 때 AKS의 이론 보장(정해짐)은 필요 없다.
+
+## 정리하며
+
+이 마당은 핵심 결과、수학적 바탕、알고리즘、옳음 얼개을 차례로 짚었다.
+
+**참고 문헌**
+
+- Agrawal, M., Kayal, N., & Saxena, N. "PRIMES is in P." *Annals of Mathematics*, 160(2), 2004.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.

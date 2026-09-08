@@ -1,11 +1,12 @@
 # 숨은 마르코프 모형
-## 들어가며
 
 지금까지 살펴본 마르코프 사슬에서는 상태 $X_n$을 곧바로 관측한다. 그러나 실제 세상의 여러 얼개에서는 바탕 상태가 **숨어** 있고 우리는 그것에 기댄 시끄러운 신호만 본다. **숨은 마르코프 모형(HMM)**은 숨은 마르코프 사슬과 관측 모형을 묶어 이를 엄밀하게 담는다.
 
 HMM은 마르코프 사슬 이론과 통계 추론을 잇는다. 곧 숨은 사슬이 시간의 짜임을 주고, 관측 모형은 관측 자료에서 숨은 상태를 되찾는 추론 문제를 만든다. 그래서 HMM은 더 일반적인 숨은 변수 모형의 추론을 다루는 MCMC 방법(18.3절)으로 가는 자연스러운 디딤돌이 된다.
 
-## 수학적 틀
+---
+
+## 1. 수학적 틀
 
 ### 모형의 정의
 
@@ -39,7 +40,9 @@ $$P(\mathbf{z}, \mathbf{x}) = \pi_{z_1} B_{z_1}(x_1) \prod_{t=2}^{T} A_{z_{t-1},
 | **풀어내기** | $\arg\max_{\mathbf{z}} P(\mathbf{z} \mid \mathbf{x}, \theta)$ — 가장 그럴듯한 숨은 차례는? | 비터비 알고리즘 |
 | **배우기** | $\arg\max_\theta P(\mathbf{x} \mid \theta)$ — 가장 좋은 모형 매개변수는? | 바움-웰치(EM) |
 
-## 앞뒤 알고리즘
+---
+
+## 2. 앞뒤 알고리즘
 
 ### 앞 변수
 
@@ -69,7 +72,9 @@ $$\gamma_t(j) = P(Z_t = j \mid \mathbf{x}) = \frac{\alpha_t(j) \beta_t(j)}{P(\ma
 
 $$\xi_t(i, j) = P(Z_t = i, Z_{t+1} = j \mid \mathbf{x}) = \frac{\alpha_t(i) A_{ij} B_j(x_{t+1}) \beta_{t+1}(j)}{P(\mathbf{x})}$$
 
-## 비터비 알고리즘
+---
+
+## 3. 비터비 알고리즘
 
 비터비 알고리즘은 로그 공간에서 동적 계획법으로 가장 그럴듯한 숨은 상태 차례를 찾는다.
 
@@ -81,7 +86,9 @@ $$\delta_1(j) = \pi_j B_j(x_1), \qquad \delta_t(j) = \max_{i} [\delta_{t-1}(i) A
 
 $z_T^* = \arg\max_j \delta_T(j)$에서 **거슬러 가면** 가장 좋은 길이 되살아난다.
 
-## 바움-웰치 알고리즘
+---
+
+## 4. 바움-웰치 알고리즘
 
 바움-웰치는 HMM을 위한 EM이다. 되풀이마다:
 
@@ -91,7 +98,9 @@ $z_T^* = \arg\max_j \delta_T(j)$에서 **거슬러 가면** 가장 좋은 길이
 
 $$\hat{\pi}_j = \gamma_1(j), \qquad \hat{A}_{ij} = \frac{\sum_{t=1}^{T-1} \xi_t(i, j)}{\sum_{t=1}^{T-1} \gamma_t(i)}, \qquad \hat{B}_j(v) = \frac{\sum_{t : x_t = v} \gamma_t(j)}{\sum_{t=1}^{T} \gamma_t(j)}$$
 
-## PyTorch 구현
+---
+
+## 5. PyTorch 구현
 
 ```python
 import torch
@@ -258,7 +267,9 @@ class HiddenMarkovModel:
         return states, observations
 ```
 
-## 쓰임새: 시장 국면 찾기
+---
+
+## 6. 쓰임새: 시장 국면 찾기
 
 ```python
 def demonstrate_hmm_regime_detection():
@@ -305,11 +316,12 @@ def demonstrate_hmm_regime_detection():
     print(f"  Bull: {bull_duration:.1f} periods")
     print(f"  Bear: {bear_duration:.1f} periods")
 
-
 demonstrate_hmm_regime_detection()
 ```
 
-## 흡수 HMM과 신용 위험
+---
+
+## 7. 흡수 HMM과 신용 위험
 
 숨은 마르코프 사슬에 **흡수 상태**가 있으면 그 모형은 언젠가 끝 상태에 자리 잡는 얼개를 담는다. 신용 등급의 옮겨 감이 금융의 대표적인 보기이다. 등급은 시간에 따라 확률적으로 옮겨 가며 부도가 흡수 상태이다.
 
@@ -460,7 +472,6 @@ class CreditRatingModel:
             ].mean().item()
         }
 
-
 def demonstrate_credit_transitions():
     """부도 확률과 VaR을 갖는 신용 등급 모형."""
     print("\nCredit Rating Transition Model")
@@ -509,7 +520,6 @@ def demonstrate_credit_transitions():
     print(f"  VaR (99%):     ${var_results['var_99']:,.0f}")
     print(f"  CVaR (95%):    ${var_results['cvar_95']:,.0f}")
 
-
 demonstrate_credit_transitions()
 ```
 
@@ -545,11 +555,12 @@ def demonstrate_gamblers_ruin():
         for abs_state in chain.absorbing_names:
             print(f"  P(end at {abs_state}): {probs[state][abs_state]:.4f}")
 
-
 demonstrate_gamblers_ruin()
 ```
 
-## 국면 전환 수익률 모형
+---
+
+## 8. 국면 전환 수익률 모형
 
 HMM에 이어진 방출을 합치면 계량 금융에서 널리 쓰는 **국면 전환 모형**이 된다:
 
@@ -621,7 +632,6 @@ class RegimeSwitchingModel:
         return {self.regime_names[k]: 1 / (1 - self.P[k, k].item())
                 for k in range(self.n_regimes)}
 
-
 def demonstrate_regime_switching():
     """날마다의 수익을 다루는 두 국면 강세장/약세장 모형."""
     print("\nRegime-Switching Return Model")
@@ -644,11 +654,12 @@ def demonstrate_regime_switching():
     print(f"Unconditional: E[r]={moments['mean']*252*100:.2f}% ann, "
           f"σ={moments['std']*np.sqrt(252)*100:.1f}% ann")
 
-
 demonstrate_regime_switching()
 ```
 
-## MCMC과의 이음
+---
+
+## 9. MCMC과의 이음
 
 HMM은 정확한 추론에서 MCMC로 넘어가는 까닭을 준다:
 
@@ -661,25 +672,7 @@ HMM은 정확한 추론에서 MCMC로 넘어가는 까닭을 준다:
 
 숨은 공간이 이어져 있거나 차원이 높아지면 HMM의 정확한 동적 계획법 알고리즘을 더는 쓸 수 없고, 18.3절에서 다루는 MCMC 표집으로 돌아서야 한다.
 
-## 요약
-
-| 개념 | 핵심 식 | 복잡도 |
-|---------|-------------|-----------|
-| **앞 알고리즘** | $\alpha_t(j) = [\sum_i \alpha_{t-1}(i) A_{ij}] B_j(x_t)$ | $O(K^2 T)$ |
-| **뒤 알고리즘** | $\beta_t(i) = \sum_j A_{ij} B_j(x_{t+1}) \beta_{t+1}(j)$ | $O(K^2 T)$ |
-| **비터비** | $\delta_t(j) = \max_i [\delta_{t-1}(i) A_{ij}] B_j(x_t)$ | $O(K^2 T)$ |
-| **바움-웰치** | 앞뒤 알고리즘에서 얻은 $\gamma_t, \xi_t$을 쓴 EM | 되풀이마다 $O(K^2 T)$ |
-| **근본 행렬** | $N = (I - Q)^{-1}$ | $O(K^3)$ |
-| **흡수 확률** | $B = NR$ | $O(K^2 r)$ |
-
-## 참고 문헌
-
-1. Rabiner, L.R. "A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition." *Proceedings of the IEEE*, 77(2), 1989.
-2. Bishop, C.M. *Pattern Recognition and Machine Learning*, 13장. Springer, 2006.
-3. Hamilton, J.D. "A New Approach to the Economic Analysis of Nonstationary Time Series." *Econometrica*, 57(2), 1989.
-4. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, 3장. Springer-Verlag, 1976.
-5. Lando, D. *Credit Risk Modeling*. Princeton University Press, 2004.
-6. Jarrow, R.A., Lando, D., & Turnbull, S.M. "A Markov Model for the Term Structure of Credit Risk Spreads." *Review of Financial Studies*, 10(2), 1997.
+---
 
 ## 연습문제
 
@@ -692,3 +685,23 @@ HMM은 정확한 추론에서 MCMC로 넘어가는 까닭을 준다:
 4. **흡수 분석.** 상태가 $\{$건강, 가벼움, 심함, 회복, 사망$\}$인(뒤 둘이 흡수 상태) 질병 진행 모형에서, 스쳐 지나감 상태마다 회복할 확률과 사망할 확률을 셈하여라.
 
 5. **실제 자료에서 국면 찾기.** S&P 500의 날마다 수익률(오름/그대로/내림으로 이산화)에 두 국면 HMM을 맞춰라. 찾아낸 국면을 알려진 시장 사건과 견주어라.
+
+## 정리하며
+
+| 개념 | 핵심 식 | 복잡도 |
+|---------|-------------|-----------|
+| **앞 알고리즘** | $\alpha_t(j) = [\sum_i \alpha_{t-1}(i) A_{ij}] B_j(x_t)$ | $O(K^2 T)$ |
+| **뒤 알고리즘** | $\beta_t(i) = \sum_j A_{ij} B_j(x_{t+1}) \beta_{t+1}(j)$ | $O(K^2 T)$ |
+| **비터비** | $\delta_t(j) = \max_i [\delta_{t-1}(i) A_{ij}] B_j(x_t)$ | $O(K^2 T)$ |
+| **바움-웰치** | 앞뒤 알고리즘에서 얻은 $\gamma_t, \xi_t$을 쓴 EM | 되풀이마다 $O(K^2 T)$ |
+| **근본 행렬** | $N = (I - Q)^{-1}$ | $O(K^3)$ |
+| **흡수 확률** | $B = NR$ | $O(K^2 r)$ |
+
+**참고 문헌**
+
+1. Rabiner, L.R. "A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition." *Proceedings of the IEEE*, 77(2), 1989.
+2. Bishop, C.M. *Pattern Recognition and Machine Learning*, 13장. Springer, 2006.
+3. Hamilton, J.D. "A New Approach to the Economic Analysis of Nonstationary Time Series." *Econometrica*, 57(2), 1989.
+4. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, 3장. Springer-Verlag, 1976.
+5. Lando, D. *Credit Risk Modeling*. Princeton University Press, 2004.
+6. Jarrow, R.A., Lando, D., & Turnbull, S.M. "A Markov Model for the Term Structure of Credit Risk Spreads." *Review of Financial Studies*, 10(2), 1997.

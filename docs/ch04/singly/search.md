@@ -2,7 +2,9 @@
 
 연결 리스트를 탐색한다는 것은 어떤 기준을 만족하는 노드를 찾는 일이며, 보통은 목표 값과 일치하는 노드를 찾거나 주어진 위치의 노드를 찾는 것이다. 정렬된 데이터에서 $O(\log n)$ 이진 탐색이 가능한 배열과 달리, 연결 리스트에는 임의 접근이 없다. $k$번째 원소에 닿으려면 머리에서 포인터를 $k$번 따라가야 한다. 그래서 연결 리스트에서 두루 쓸 수 있는 방법은 **선형 탐색**뿐이고 최악의 경우 비용은 $O(n)$이다. 이 한계를 이해해 두는 것은 실무에서 배열과 연결 리스트 중 무엇을 고를지 정하는 데 중요하다.
 
-## 값으로 탐색하기
+---
+
+## 1. 값으로 탐색하기
 
 가장 흔한 탐색 연산은 머리에서부터 리스트를 순회하며 각 노드의 데이터를 목표 값과 견주는 것이다.
 
@@ -21,7 +23,9 @@ $$
 \frac{1}{n} \sum_{i=1}^{n} i = \frac{n + 1}{2} = \Theta(n)
 $$
 
-## 위치로 탐색하기
+---
+
+## 2. 위치로 탐색하기
 
 0에서 시작하는 인덱스 $k$의 원소에 접근하려면 머리에서 노드를 정확히 $k$개 지나간다.
 
@@ -38,7 +42,9 @@ $$
 
     연결 리스트가 정렬되어 있어도 이진 탐색을 효율적으로 쓸 수 없다. 이진 탐색은 가운데 원소에 $O(1)$ 시간에 접근할 수 있어야 하는데, 연결 리스트의 가운데를 찾으려면 $O(n/2)$의 순회가 든다. 정렬된 연결 리스트에 이진 탐색을 적용하면 총 $O(n \log n)$ 시간이 걸려 단순한 선형 탐색보다도 나쁘다. 정렬된 탐색이 잦다면 배열이나 균형 탐색 트리를 쓰라.
 
-## 가운데 노드 찾기
+---
+
+## 3. 가운데 노드 찾기
 
 유용한 변형으로 **두 포인터 기법**이 있다. 느린 포인터는 한 걸음씩, 빠른 포인터는 두 걸음씩 나아간다. 빠른 포인터가 끝에 닿으면 느린 포인터가 가운데에 있다.
 
@@ -48,17 +54,20 @@ $$
 
 이 기법을 쓰면 (한 번은 세고 한 번은 가운데까지 가는) 두 번의 훑기를 하지 않아도 된다.
 
-## 끝에서 k번째 노드 찾기
+---
+
+## 4. 끝에서 k번째 노드 찾기
 
 또 다른 두 포인터 기법이다. 첫 포인터를 $k$걸음 앞서 보낸 뒤, 첫 포인터가 끝에 닿을 때까지 두 포인터를 함께 나아가게 한다. 그러면 두 번째 포인터가 끝에서 $k$번째 자리에 있다.
 
 **시간 복잡도:** 한 번 훑어 $O(n)$이다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """단일 연결 리스트의 탐색 연산."""
-
 
 # === 노드 클래스 ===
 class Node:
@@ -71,7 +80,6 @@ class Node:
     def __repr__(self):
         return f"Node({self.data})"
 
-
 # === 도우미 함수 ===
 def build_list(values):
     """반복 가능한 객체에서 연결 리스트를 만들고 머리 노드를 돌려준다."""
@@ -79,7 +87,6 @@ def build_list(values):
     for val in reversed(values):
         head = Node(val, head)
     return head
-
 
 def to_list(head):
     """모든 노드의 값을 파이썬 리스트로 모은다."""
@@ -89,7 +96,6 @@ def to_list(head):
         result.append(current.data)
         current = current.next
     return result
-
 
 # === 값으로 탐색 ===
 def search_value(head, target):
@@ -103,7 +109,6 @@ def search_value(head, target):
             return current
         current = current.next
     return None
-
 
 # === 위치로 탐색 ===
 def search_position(head, k):
@@ -120,7 +125,6 @@ def search_position(head, k):
         raise IndexError(f"Index {k} out of range")
     return current
 
-
 # === 가운데 노드 찾기 ===
 def find_middle(head):
     """느린 포인터와 빠른 포인터 기법으로 가운데 노드를 돌려준다.
@@ -136,7 +140,6 @@ def find_middle(head):
         slow = slow.next
         fast = fast.next.next
     return slow
-
 
 # === 끝에서 k번째 찾기 ===
 def kth_from_end(head, k):
@@ -155,7 +158,6 @@ def kth_from_end(head, k):
         first = first.next
         second = second.next
     return second
-
 
 # === 시연 ===
 if __name__ == "__main__":
@@ -191,7 +193,9 @@ Middle: Node(30)
 2nd from end: Node(40)
 ```
 
-## 복잡도 요약
+---
+
+## 6. 복잡도 요약
 
 | 연산             | 시간       | 공간  |
 |-----------------------|------------|--------|
@@ -202,10 +206,7 @@ Middle: Node(30)
 
 모든 탐색 연산은 정해진 개수의 포인터 변수만 유지하므로 보조 공간이 상수이다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -238,3 +239,11 @@ Middle: Node(30)
 
 ??? success "연습문제 4 풀이"
     알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$
+
+## 정리하며
+
+이 마당은 값으로 탐색하기、위치로 탐색하기、가운데 노드 찾기、끝에서 k번째 노드 찾기을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

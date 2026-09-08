@@ -2,7 +2,9 @@
 
 뒷가지를 글줄로 견주며 막무가내로 정렬하면 최악의 경우 $O(n^2 \log n)$ 시간이 든다. 곧 정렬할 뒷가지가 $n$개이고 견줌 바탕 정렬에 $O(n \log n)$번 견줌이 들며 글줄 견줌마다 $O(n)$이 든다. 글자가 수백만인 글월에는 너무 느리다. Karp, Miller, Rosenberg가 내놓고 Manber와 Myers가 다듬은 **앞가지 곱절 늘리기** 재주는 핵심 눈썰미를 써먹어 뒷가지 배열을 $O(n \log n)$ 시간에 세운다. 곧 뒷가지를 앞선 $k$개 글자로 견준 결과를 알면 앞선 $2k$개 글자로 견준 결과를 자릿수 정렬로 $O(n)$ 시간에 정할 수 있다.
 
-## 막무가내 세우기와 그 값
+---
+
+## 1. 막무가내 세우기와 그 값
 
 뒷가지 배열을 세우는 가장 단순한 길은 뒷가지 $n$개를 모두 만들어 여느 견줌 바탕 정렬로 정렬하는 것이다. 길이가 최대 $n$인 뒷가지 둘을 견주는 데 $O(n)$이 들고 원소 $n$개를 정렬하는 데 $O(n \log n)$번 견줌이 들어 다음을 얻는다:
 
@@ -12,7 +14,9 @@ $$
 
 큰 들임에는 쓸 수 없다. 예컨대 사람 유전체는 글자가 대략 $3 \times 10^9$개라 $n^2 \log n$번 연산은 할 수 없다.
 
-## 앞가지 곱절 늘리기 전략
+---
+
+## 2. 앞가지 곱절 늘리기 전략
 
 앞가지 곱절 늘리기 알고리즘은 점점 긴 앞가지를 바탕으로 뒷가지마다 **순위**를 매긴다. 회마다 앞가지 길이가 $k$에서 $2k$으로 곱절이 된다. 핵심 관찰은 suffix($i$)의 앞선 $2k$개 글자 순위를 값 둘, 곧 앞선 $k$개 글자로 매긴 suffix($i$)의 순위와 suffix($i + k$)의 순위만으로 정할 수 있다는 것이다.
 
@@ -30,7 +34,9 @@ $$
 
 $i + k > n$이면 둘째 몫에 (다른 어떤 순위보다 작은) 파수 순위 $-1$을 쓴다.
 
-## 알고리즘
+---
+
+## 3. 알고리즘
 
 앞가지 곱절 늘리기 알고리즘은 다음처럼 나아간다:
 
@@ -55,7 +61,9 @@ PREFIX-DOUBLING(T[0..n]):
     return SA
 ```
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 $n = 3$인 $T = \texttt{aab\$}$을 보자(파수까지 넣어 $T[0..3]$의 길이는 4이다).
 
@@ -83,7 +91,9 @@ $n = 3$인 $T = \texttt{aab\$}$을 보자(파수까지 넣어 $T[0..3]$의 길�
 
 **결과**: $\text{SA} = [3, 0, 1, 2]$이며 정렬된 뒷가지 `$`, `aab$`, `ab$`, `b$`에 맞닿는다.
 
-## 복잡도 분석
+---
+
+## 5. 복잡도 분석
 
 **시간 복잡도**: 회마다 자릿수 정렬을 $O(n)$에 하고 순위를 $O(n)$에 새로 고친다. 되풀이마다 앞가지 길이가 곱절이 되므로 회는 $O(\log n)$번이다. 전체 시간은 다음과 같다:
 
@@ -100,7 +110,9 @@ $$
 !!! tip "실제로 다듬기"
     어느 회 뒤에든 순위가 모두 다르면 뒷가지가 온전히 갈린 것이니 알고리즘이 일찍 끝날 수 있다. 글자 모임이 큰 아무 글줄에서는 실전에서 흔히 $O(\log \log n)$회 뒤에 그렇게 되지만 최악의 경우는 여전히 $O(\log n)$회이다.
 
-## 견줌 정렬을 대신 쓰기
+---
+
+## 6. 견줌 정렬을 대신 쓰기
 
 자릿수 정렬을 견줌 바탕 정렬(예컨대 빠른 정렬)으로 갈음하면 회마다 $O(n)$ 대신 $O(n \log n)$이 들어 전체 시간이 다음이 된다:
 
@@ -115,7 +127,6 @@ $$
 앞가지 곱절 늘리기와 견줌 바탕 정렬로 하는
 O(n log^2 n) 뒷가지 배열 세우기.
 """
-
 
 # === 뒷가지 배열 세우기 ===
 
@@ -167,7 +178,6 @@ def build_suffix_array(text: str) -> list[int]:
 
     return sa
 
-
 # === 메인 ===
 
 if __name__ == "__main__":
@@ -180,10 +190,7 @@ if __name__ == "__main__":
         print(f"  SA[{i}] = {idx}: {text[idx:]}")
 ```
 
-## 참고 문헌
-
-- Karp, R. M., Miller, R. E., and Rosenberg, A. L. (1972). *Rapid identification of repeated patterns in strings, trees and arrays*. ACM Symposium on Theory of Computing.
-- Manber, U. and Myers, G. (1993). *Suffix arrays: A new method for on-line string searches*. SIAM Journal on Computing, 22(5), 935-948.
+---
 
 ## 연습문제
 
@@ -216,3 +223,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 막무가내 세우기와 그 값、앞가지 곱절 늘리기 전략、알고리즘、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Karp, R. M., Miller, R. E., and Rosenberg, A. L. (1972). *Rapid identification of repeated patterns in strings, trees and arrays*. ACM Symposium on Theory of Computing.
+- Manber, U. and Myers, G. (1993). *Suffix arrays: A new method for on-line string searches*. SIAM Journal on Computing, 22(5), 935-948.

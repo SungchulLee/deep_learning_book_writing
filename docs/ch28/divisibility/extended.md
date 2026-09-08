@@ -2,7 +2,9 @@
 
 여느 유클리드 알고리즘은 $\gcd(a, b)$을 셈하지만 가는 길에 앎을 버린다. **넓힌 유클리드 알고리즘**은 걸음마다 $ax + by = \gcd(a, b)$을 만족하는 베주 계수 $x$과 $y$도 함께 좇는다. 그 덕에 법 역원 셈하기, 선형 디오판토스 방정식 풀기, RSA 열쇠 만들기의 핵심 아래 루틴이 된다.
 
-## 유클리드에서 넓힌 유클리드로
+---
+
+## 1. 유클리드에서 넓힌 유클리드로
 
 유클리드 알고리즘([최대 공약수](gcd.md)을 보라)은 나머지가 0이 될 때까지 되돌이 식 $\gcd(a, b) = \gcd(b, a \bmod b)$을 쓴다. 넓힌 판은 걸음마다 지금 나머지를 본디 들임 $a$과 $b$의 선형 결합으로 나타내는 도우미 변수를 지닌다.
 
@@ -36,7 +38,9 @@ $$
 
 $b = 0$이면 $\gcd(a, 0) = a$이고 하찮은 나타냄 $a \cdot 1 + 0 \cdot 0 = a$을 얻는다. 따라서 바탕 경우는 $(g, x, y) = (a, 1, 0)$을 돌려준다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 ```
 EXTENDED-EUCLID(a, b):
@@ -65,7 +69,9 @@ EXTENDED-EUCLID-ITERATIVE(a, b):
     return (old_r, old_x, old_y)
 ```
 
-## 풀이 예제
+---
+
+## 3. 풀이 예제
 
 $a = 48$과 $b = 18$의 넓힌 최대 공약수를 셈한다:
 
@@ -80,7 +86,9 @@ $a = 48$과 $b = 18$의 넓힌 최대 공약수를 셈한다:
 
 확인: $48 \cdot (-1) + 18 \cdot 3 = -48 + 54 = 6$. $\checkmark$
 
-## 올바름
+---
+
+## 4. 올바름
 
 !!! info "넓힌 유클리드 알고리즘의 옳음"
 
@@ -92,7 +100,9 @@ $a = 48$과 $b = 18$의 넓힌 최대 공약수를 셈한다:
 
 *귀납 걸음.* 되돌이 부름이 $b \cdot x_1 + (a \bmod b) \cdot y_1 = g = \gcd(b, a \bmod b) = \gcd(a, b)$인 옳은 $(g, x_1, y_1)$을 돌려준다고 하자. 위의 이끌어 냄이 $x = y_1$과 $y = x_1 - \lfloor a/b \rfloor \cdot y_1$으로 두면 $ax + by = g$임을 보인다. $\square$
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 넓힌 유클리드 알고리즘은 여느 유클리드 알고리즘과 나눗셈 걸음 수가 같고 계수를 지키느라 걸음마다 상수만큼 일을 더 한다. 따라서 시간 복잡도는 다음과 같다:
 
@@ -102,7 +112,9 @@ $$
 
 공간 복잡도는 되돌이 판이 (부름 쌓기 때문에) $O(\log(\min(a, b)))$이고 되풀이 판이 $O(1)$이다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -111,7 +123,6 @@ $$
 다음을 만족하는 베주 계수 x, y과 함께 gcd(a, b)을 셈한다
 a*x + b*y = gcd(a, b). 되돌이꼴과 되풀이꼴을 모두 담는다.
 """
-
 
 # === 되돌이 넓힌 최대 공약수 ===
 
@@ -132,7 +143,6 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
     g, x1, y1 = extended_gcd(b, a % b)
     return g, y1, x1 - (a // b) * y1
 
-
 # === 되풀이 넓힌 최대 공약수 ===
 
 def extended_gcd_iterative(a: int, b: int) -> tuple[int, int, int]:
@@ -149,7 +159,6 @@ def extended_gcd_iterative(a: int, b: int) -> tuple[int, int, int]:
         old_x, x = x, old_x - q * x
         old_y, y = y, old_y - q * y
     return old_r, old_x, old_y
-
 
 # === 메인 ===
 
@@ -186,17 +195,16 @@ Iterative extended GCD:
   gcd(100, 0) = 100,  100*(1) + 0*(0) = 100
 ```
 
-## 응용
+---
+
+## 7. 응용
 
 - **법 역원**: $\gcd(a, m) = 1$일 때 $a^{-1} \pmod{m}$ 셈하기([법 역원](../modular/inverse.md)을 보라)
 - **선형 디오판토스 방정식**: $ax + by = c$의 정수 풀이 찾기
 - **RSA 열쇠 만들기**: 개인 열쇠 $d \equiv e^{-1} \pmod{\lambda(n)}$ 셈하기
 - **이어진 분수**: 넓힌 최대 공약수의 몫이 부분 몫에 해당한다
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
-
+---
 
 ## 연습문제
 
@@ -229,3 +237,11 @@ Iterative extended GCD:
 
 ??? success "연습문제 4 풀이"
     페르마의 작은 정리는 $p$이 소수일 때만 $a^{-1} \equiv a^{p-2} \pmod{p}$을 준다. 합성수 법 $m$에서는 통하지 않는다. 오일러의 넓힘 $a^{-1} \equiv a^{\phi(m)-1} \pmod{m}$은 통하지만 $\phi(m)$을 셈해야 하고 그러려면 $m$을 인수 분해해야 한다. 넓힌 유클리드 알고리즘은 $\gcd(a,m) = 1$이기만 하면 $m$을 인수 분해하지 않고 곧바로 $a^{-1} \pmod{m}$을 셈한다. $O(\log m)$ 시간에 돌며 거듭제곱의 $O(\log m)$번 곱셈과 견주어지지만 인수 분해라는 전제를 피한다.
+
+## 정리하며
+
+이 마당은 유클리드에서 넓힌 유클리드로、알고리즘、풀이 예제、올바름을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.

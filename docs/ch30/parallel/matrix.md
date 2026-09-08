@@ -2,7 +2,9 @@
 
 행렬 곱하기는 과학 셈, 깊은 배움, 그래프 알고리즘에서 가장 중요한 연산 가운데 하나이다. $n \times n$ 행렬 둘을 곱하는 여느 알고리즘은 셈 연산을 $O(n^3)$번 하지만 이 연산들은 크게 나란하다. 내놓기 칸이 서로 독립임을 살리면 나란한 행렬 곱하기는 뻗음 $O(\log n)$을 이루어 가장 잘 나란해지는 근본 알고리즘 가운데 하나가 된다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 $n \times n$ 행렬 $A$과 $B$이 주어질 때 다음과 같은 $C = A \times B$을 셈한다:
 
@@ -12,7 +14,9 @@ $$
 
 칸 $C[i][j]$마다 $A$의 $i$번째 줄과 $B$의 $j$번째 열의 안쪽 곱이다. 칸 $n^2$개가 모두 독립이므로 나란히 셈할 수 있다.
 
-## 나란히 하는 길
+---
+
+## 2. 나란히 하는 길
 
 ### 되돌이 나란히 하기
 
@@ -50,7 +54,9 @@ $$
 
 **나란함**: $P = O(n^3 / \log^2 n)$.
 
-## 구현
+---
+
+## 3. 구현
 
 ```python
 """
@@ -112,11 +118,9 @@ def matmul_recursive(A, B):
 
     return _merge(c11, c12, c21, c22)
 
-
 def _matmul_rec(A, B):
     """안쪽 되돌이 곱하기."""
     return matmul_recursive(A, B)
-
 
 def _split(M, mid):
     """행렬 M을 사분면 넷으로 가른다."""
@@ -127,13 +131,11 @@ def _split(M, mid):
     bot_right = [row[mid:] for row in M[mid:]]
     return top_left, top_right, bot_left, bot_right
 
-
 def _add(A, B):
     """원소마다의 행렬 더하기."""
     n = len(A)
     return [[A[i][j] + B[i][j] for j in range(len(A[0]))]
             for i in range(n)]
-
 
 def _merge(c11, c12, c21, c22):
     """사분면 넷을 행렬 하나로 합친다."""
@@ -204,7 +206,9 @@ Span (loop parallel):      O(log n) = 2
 Span (recursive parallel):  O(log^2 n) = 4
 ```
 
-## 복잡도 요약
+---
+
+## 4. 복잡도 요약
 
 | 길 | 일 $T_1$ | 뻗음 $T_\infty$ | 나란함 |
 |---|---|---|---|
@@ -215,11 +219,7 @@ Span (recursive parallel):  O(log^2 n) = 4
 !!! note "슈트라센 알고리즘"
     슈트라센 알고리즘은 되돌이 곱하기를 8번 대신 7번 써서 일을 $O(n^{\log_2 7}) \approx O(n^{2.807})$으로 줄인다. 부분 문제 7개가 여전히 나란히 돌고 핵심 길에 가지 하나만 있으므로 뻗음은 $O(\log^2 n)$ 그대로다.
 
-## 참고 문헌
-
-- Cormen, T. H. et al. *Introduction to Algorithms*, 27장(여러 실 알고리즘).
-- Grama, A. et al. *Introduction to Parallel Computing*.
-
+---
 
 ## 연습문제
 
@@ -252,3 +252,12 @@ Span (recursive parallel):  O(log^2 n) = 4
 
 ??? success "연습문제 4 풀이"
     저마다 그 자리 기억이 $M = n^2/p$인 셈틀 $p$개에서 $n \times n$ 행렬을 곱할 때 주고받기 아래 가둠(홍-쿵, 아이러니-톨레도-티스킨)은 $\Omega(n^3/(p\sqrt{M})) = \Omega(n^2/\sqrt{p})$낱말이다. 곧 주고받기가 $\sqrt{p}$으로 늘어난다. 셈틀을 두 배로 하면 주고받기가 $\sqrt{2}$배가 된다. 캐넌 알고리즘이 이 가둠에 맞닿는다. 2.5차원 행렬 곱하기는 (기억에 사본을 더 두어) 주고받기 $O(n^2/p^{2/3})$을 이루며 기억과 주고받기를 맞바꾼다.
+
+## 정리하며
+
+이 마당은 문제 서술、나란히 하는 길、구현、복잡도 요약을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H. et al. *Introduction to Algorithms*, 27장(여러 실 알고리즘).
+- Grama, A. et al. *Introduction to Parallel Computing*.

@@ -1,9 +1,10 @@
 # 트랜스포머의 학습 최적화
-## 개요
 
 트랜스포머를 잘 학습시키려면 그 고유한 성질, 곧 깊은 잔차 신경망, 기억이 제곱으로 느는 주의 기반 계산, 초매개변수에 민감함에 맞는 최적화 방법이 필요하다. 이 절에서는 학습률 일정, 규제 기법, 기억과 계산 비용을 다스리는 방법을 다룬다.
 
-## 학습률 일정
+---
+
+## 1. 학습률 일정
 
 ### 예열 문제
 
@@ -114,7 +115,9 @@ class CosineWarmupScheduler:
 | 선형 예열과 선형 감쇠 | 조정 가능 | 선형 | 선형 | BERT |
 | 예열 뒤 일정 | 조정 가능 | 선형 | 없음 | 미세 조정 |
 
-## 규제 기법
+---
+
+## 2. 규제 기법
 
 ### 기울기 자르기
 
@@ -235,7 +238,9 @@ def configure_optimizer(model, lr=1e-4, weight_decay=0.01):
     return optim.AdamW(param_groups, lr=lr, betas=(0.9, 0.98), eps=1e-9)
 ```
 
-## 기억과 계산의 어려움
+---
+
+## 3. 기억과 계산의 어려움
 
 ### 이차인 주의 비용
 
@@ -332,7 +337,9 @@ loss = train_step_mixed_precision(model, optimizer, criterion, src, tgt, scaler,
 | 선형 주의 | $O(n)$ | 핵 어림 |
 | 미끄러지는 창 | $O(n \cdot w)$ | 국소 주의 창 |
 
-## 온전히 다듬은 학습 파이프라인
+---
+
+## 4. 온전히 다듬은 학습 파이프라인
 
 ```python
 import torch
@@ -458,24 +465,7 @@ def train_transformer(
         )
 ```
 
-## 요약
-
-잘 통하는 트랜스포머 학습은 몇 가지 핵심 방법을 아우른다.
-
-1. **학습률 예열**은 무작위 초기화에서 오는 학습의 흔들림을 막는다. 본디의 제곱근 역수 일정과 코사인 예열이 모두 널리 쓰인다.
-2. **기울기 자르기**(대개 노름 1.0 이하)는 기울기가 터지는 것을 막아 준다.
-3. **가중치 감쇠**(AdamW와 함께)는 적응 학습률과 올바로 어울리면서 규제를 준다. 편향과 정규화 매개변수는 뺀다.
-4. **드롭아웃**을 구조의 여러 곳에 적용한다.
-5. **이름표 매끄럽게 하기**는 지나친 자신을 막고 일반화를 낫게 한다.
-6. **기울기 검문점**과 **섞인 정밀도**는 기억의 한계 안에서 큰 모형을 학습시키는 데 꼭 필요하다.
-
-## 참고 문헌
-
-1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
-2. Loshchilov, I., & Hutter, F. (2019). "Decoupled Weight Decay Regularization." ICLR. (AdamW)
-3. Micikevicius, P., et al. (2018). "Mixed Precision Training." ICLR.
-4. Chen, T., et al. (2016). "Training Deep Nets with Sublinear Memory Cost." (Gradient checkpointing)
-5. Xiong, R., et al. (2020). "On Layer Normalization in the Transformer Architecture." ICML.
+---
 
 ## 연습문제
 
@@ -508,3 +498,22 @@ def train_transformer(
 
 ??? success "연습문제 4 풀이"
     기울기 모으기는 갱신하기 전에 여러 작은 배치에 걸쳐 기울기를 모아 큰 배치를 흉내 낸다. 바라는 배치 크기가 GPU 기억을 넘을 때 필요하다. 이를테면 배치 크기 2048에 GPU 8개, 작은 배치 32라면 $2048/(8 \times 32) = 8$단계에 걸쳐 모은다.
+
+## 정리하며
+
+잘 통하는 트랜스포머 학습은 몇 가지 핵심 방법을 아우른다.
+
+1. **학습률 예열**은 무작위 초기화에서 오는 학습의 흔들림을 막는다. 본디의 제곱근 역수 일정과 코사인 예열이 모두 널리 쓰인다.
+2. **기울기 자르기**(대개 노름 1.0 이하)는 기울기가 터지는 것을 막아 준다.
+3. **가중치 감쇠**(AdamW와 함께)는 적응 학습률과 올바로 어울리면서 규제를 준다. 편향과 정규화 매개변수는 뺀다.
+4. **드롭아웃**을 구조의 여러 곳에 적용한다.
+5. **이름표 매끄럽게 하기**는 지나친 자신을 막고 일반화를 낫게 한다.
+6. **기울기 검문점**과 **섞인 정밀도**는 기억의 한계 안에서 큰 모형을 학습시키는 데 꼭 필요하다.
+
+**참고 문헌**
+
+1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
+2. Loshchilov, I., & Hutter, F. (2019). "Decoupled Weight Decay Regularization." ICLR. (AdamW)
+3. Micikevicius, P., et al. (2018). "Mixed Precision Training." ICLR.
+4. Chen, T., et al. (2016). "Training Deep Nets with Sublinear Memory Cost." (Gradient checkpointing)
+5. Xiong, R., et al. (2020). "On Layer Normalization in the Transformer Architecture." ICML.

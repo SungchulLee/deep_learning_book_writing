@@ -1,11 +1,16 @@
 # 사건 뽑기
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 사건 방아쇠 찾기와 딸린 것 뽑기를 이해한다
 - 월 수준 사건 뽑기와 글월 수준 사건 뽑기를 가린다
 - 사건 뽑기를 금융 글에 쓴다
 
-## 일의 정의
+---
+
+## 2. 일의 정의
 
 사건 뽑기는 글에서 **짜임 있는 사건 기록**을 가려낸다. 사건마다 다음으로 이루어진다:
 
@@ -26,7 +31,9 @@
 | 인자 | \$30억 | 값 |
 | 딸린 것 | 2014년 5월 28일 | 날짜 |
 
-## 두 단계 물길
+---
+
+## 3. 두 단계 물길
 
 ### 1단계: 방아쇠 찾기
 
@@ -42,7 +49,9 @@ $$P(\text{type}_i \mid x_i, \mathbf{x}) = \text{softmax}(\mathbf{W}_t \mathbf{h}
 
 $$P(\text{role} \mid x_{i:j}, \text{trigger}, \mathbf{x}) = \text{softmax}(\mathbf{W}_a [\mathbf{h}_{i:j}; \mathbf{h}_{\text{trigger}}] + \mathbf{b}_a)$$
 
-## BERT 바탕 사건 뽑기
+---
+
+## 4. BERT 바탕 사건 뽑기
 
 ```python
 import torch
@@ -77,7 +86,9 @@ class EventExtractor(nn.Module):
         return trigger_logits, None
 ```
 
-## 글월 수준 사건 뽑기
+---
+
+## 5. 글월 수준 사건 뽑기
 
 월 수준 모델은 여러 월에 흩어진 딸린 것을 놓친다:
 
@@ -85,7 +96,9 @@ class EventExtractor(nn.Module):
 
 인수 사건에 딸린 것이 월 셋에 걸쳐 있다. 글월 수준 모델은 월을 넘나드는 눈길이나 같은 것 가리키기로 흩어진 딸린 것을 잇는다.
 
-## 금융 사건 갈래
+---
+
+## 6. 금융 사건 갈래
 
 | 사건 갈래 | 방아쇠 보기 | 핵심 딸린 것 |
 |------------|-----------------|---------------|
@@ -97,7 +110,9 @@ class EventExtractor(nn.Module):
 | 배당 | declared, distributed | 회사, 금액, 배당락일 |
 | 주식 나눔 | split, divided | 회사, 비율, 기준일 |
 
-## 평가
+---
+
+## 7. 평가
 
 - **방아쇠 가려내기**: 방아쇠 구간 찾기의 F1
 - **방아쇠 갈래 매기기**: 방아쇠 구간 + 사건 갈래의 F1
@@ -113,11 +128,7 @@ ACE 2005 잣대 결과(어림값):
 | OneIE(2020) | 74.7 | 56.8 |
 | DEGREE(2022) | 76.3 | 58.2 |
 
-## 참고 문헌
-
-1. Chen, Y., et al. (2015). Event Extraction via Dynamic Multi-Pooling CNNs. *ACL*.
-2. Lin, Y., et al. (2020). A Joint Neural Model for IE with Global Features. *ACL*.
-3. Hsu, I., et al. (2022). DEGREE: A Data-Efficient Generation-Based Event Extraction Model. *NAACL*.
+---
 
 ## 연습문제
 
@@ -150,3 +161,13 @@ ACE 2005 잣대 결과(어림값):
 
 ??? success "연습문제 4 풀이"
     규칙 바탕 열린 앎 뽑기 체계는 달림 나무에서 주어-움직씨-목적어 무늬를 가려내 세 쌍을 뽑는다. (1) 주된 움직씨(뿌리)를 찾고, (2) 이름씨 주어(nsubj)를 주어로 뽑고, (3) 직접 목적어(dobj)를 목적어로 뽑고, (4) (주어, 움직씨, 목적어) 세 쌍을 만든다. **한계**: (1) 이름씨로 바꾼 표현("Obama's visit to China")의 관계를 놓친다. (2) 마디가 여럿인 복잡한 월을 다루지 못한다. (3) 특별한 규칙 없이는 입음꼴에서 어그러진다. (4) 앞가지가 붙은 월에서는 질 낮은 세 쌍을 낸다. (5) 같은 관계의 서로 다른 겉모습을 하나로 다듬지 못한다.
+
+## 정리하며
+
+이 마당은 학습 목표、일의 정의、두 단계 물길、BERT 바탕 사건 뽑기을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Chen, Y., et al. (2015). Event Extraction via Dynamic Multi-Pooling CNNs. *ACL*.
+2. Lin, Y., et al. (2020). A Joint Neural Model for IE with Global Features. *ACL*.
+3. Hsu, I., et al. (2022). DEGREE: A Data-Efficient Generation-Based Event Extraction Model. *NAACL*.

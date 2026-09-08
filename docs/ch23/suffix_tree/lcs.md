@@ -2,7 +2,9 @@
 
 주어진 글줄 둘 이상에 잇닿은 부분 글줄로 나오는 가장 긴 글줄을 찾는 것은 생물정보학(DNA 차례 견주기), 표절 알아내기, 자료 겹침 없애기에 쓰이는 바탕 문제이다. 부분 글줄 짝을 모두 살피는 막무가내 방식은 길이 $n$과 $m$인 글줄 둘에 $O(n^2 m)$이 든다. 뒷가지 나무나 뒷가지 배열을 쓰면 $O(n + m)$ 시간에 풀 수 있다. 이 절은 두 방식을 모두 보인다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 길이 $n$인 글줄 $S_1$과 길이 $m$인 글줄 $S_2$이 주어질 때 $w$이 $S_1$과 $S_2$ 모두의 잇닿은 부분 글줄인 가장 긴 글줄 $w$을 찾아라.
 
@@ -17,7 +19,9 @@ $$
 !!! warning "최장 공통 부분열과 최장 공통 부분문자열"
     (잇닿은) **최장 공통 부분 글줄**과 (꼭 잇닿지 않아도 되는) **최장 공통 부분 차례**를 헷갈리지 마라. 부분 차례 문제는 동적 짜기로 $O(nm)$ 시간에 풀고, 부분 글줄 문제는 뒷가지 짜임으로 $O(n + m)$에 푼다.
 
-## 꼬리말 나무로 푸는 길
+---
+
+## 2. 꼬리말 나무로 푸는 길
 
 ### 넓힌 꼬리말 나무
 
@@ -52,7 +56,9 @@ $$
 T(n, m) = O(n + m)
 $$
 
-## 꼬리말 배열로 푸는 길
+---
+
+## 3. 꼬리말 배열로 푸는 길
 
 ### 이어 붙이기와 세우기
 
@@ -77,7 +83,9 @@ $$
 
     따라서 $\text{LCS} = \texttt{bcde}$이고 길이는 4이다.
 
-## 여러 글자열로 넓히기
+---
+
+## 4. 여러 글자열로 넓히기
 
 최장 공통 부분 글줄 문제는 글줄 $k$개 $S_1, S_2, \ldots, S_k$으로 자연스레 넓어진다. 서로 다른 가르개로 글줄을 모두 이어 붙인다:
 
@@ -89,13 +97,14 @@ $T$의 뒷가지 나무나 뒷가지 배열을 세운다. 뒷가지 나무에서
 
 **시간 복잡도**: 뒷가지 나무 방식은 $O(n_1 + n_2 + \cdots + n_k)$.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
 뒷가지 배열과 최장 공통 앞가지 배열로 찾는 최장 공통 부분 글줄.
 """
-
 
 # === 뒷가지 배열 세우기 ===
 
@@ -122,7 +131,6 @@ def build_suffix_array(text: str) -> list[int]:
         k *= 2
     return sa
 
-
 # === 가사이 알고리즘 ===
 
 def build_lcp(text: str, sa: list[int]) -> list[int]:
@@ -144,7 +152,6 @@ def build_lcp(text: str, sa: list[int]) -> list[int]:
         else:
             h = 0
     return lcp
-
 
 # === 최장 공통 부분 글줄 ===
 
@@ -188,7 +195,6 @@ def longest_common_substring(s1: str, s2: str) -> str:
 
     return text[best_pos:best_pos + best_len]
 
-
 # === 메인 ===
 
 if __name__ == "__main__":
@@ -207,7 +213,9 @@ if __name__ == "__main__":
     print(f"LCS: '{result}' (length {len(result)})")
 ```
 
-## 복잡도 비교
+---
+
+## 6. 복잡도 비교
 
 | 방법 | 시간 | 공간 |
 |--------|------|-------|
@@ -218,10 +226,7 @@ if __name__ == "__main__":
 
 뒷가지 바탕 방식은 가장 좋은 선형 시간을 이루며 큰 들임에 낫다.
 
-## 참고 문헌
-
-- Gusfield, D. (1997). *Algorithms on Strings, Trees, and Sequences*. Cambridge University Press, Chapter 7.
-- Hui, L. C. K. (1992). *Color set size problem with applications to string matching*. CPM 1992, LNCS 644, pp. 230-243.
+---
 
 ## 연습문제
 
@@ -254,3 +259,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 문제 서술、꼬리말 나무로 푸는 길、꼬리말 배열로 푸는 길、여러 글자열로 넓히기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Gusfield, D. (1997). *Algorithms on Strings, Trees, and Sequences*. Cambridge University Press, Chapter 7.
+- Hui, L. C. K. (1992). *Color set size problem with applications to string matching*. CPM 1992, LNCS 644, pp. 230-243.

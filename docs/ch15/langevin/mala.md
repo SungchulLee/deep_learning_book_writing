@@ -3,7 +3,7 @@ MALA은 랑주뱅 동역학의 기울기를 담은 제안과 메트로폴리스-
 
 ---
 
-## 알고리즘
+## 1. 알고리즘
 
 ```
 Algorithm: MALA
@@ -50,7 +50,7 @@ $$
 
 ---
 
-## 편향 보정
+## 2. 편향 보정
 
 MH 걸음이 ULA의 $O(\epsilon)$ 잘게 나눔 치우침을 바로잡는다:
 
@@ -70,11 +70,10 @@ $$
 
 ---
 
-## PyTorch 구현
+## 3. PyTorch 구현
 
 ```python
 import torch
-
 
 class MALA:
     """
@@ -142,7 +141,7 @@ class MALA:
 
 ---
 
-## 미리 다듬은 MALA
+## 4. 미리 다듬은 MALA
 
 (HMC의 질량 행렬에 해당하는) 미리 다듬기 행렬 $\mathbf{M}$을 쓰면:
 
@@ -156,7 +155,7 @@ $\mathbf{M}$을 뒤확률 공분산의 어림값으로 두면 방향마다 걸�
 
 ---
 
-## 표집 층위 속의 MALA
+## 5. 표집 층위 속의 MALA
 
 | 방법 | 제안 | 바로잡기 | 커짐새 | 가장 알맞은 곳 |
 |--------|----------|------------|---------|----------|
@@ -169,27 +168,7 @@ MALA은 알맞은 자리를 차지한다. 곧 HMC보다 단순하고, ULA보다 
 
 ---
 
-## 요약
-
-| 개념 | 핵심 |
-|---------|-----------|
-| **MALA = ULA + MH 바로잡기** | 잘게 나눔 치우침을 없앤다 |
-| **비대칭 제안** | 기울기 때문에 $q(\theta' \mid \theta) \neq q(\theta \mid \theta')$이다 |
-| **가장 좋은 받아들임** | 약 57.4%(견주기: 무작위 걸음 MH 약 23.4%, HMC 약 65%) |
-| **걸음 크기 커짐새** | $\epsilon = O(d^{-1/3})$ — 무작위 걸음 MH의 $O(d^{-1})$보다 낫다 |
-| **미리 다듬기** | 섞임을 낫게 하려고 뒤확률의 기하에 맞춘다 |
-
----
-
-## 참고 문헌
-
-- Roberts, G. O., & Tweedie, R. L. (1996). Exponential convergence of Langevin distributions and their discrete approximations. *Bernoulli*, 2(4), 341-363.
-- Roberts, G. O., & Rosenthal, J. S. (1998). Optimal scaling of discrete approximations to Langevin diffusions. *JRSS-B*, 60(1), 255-268.
-- Girolami, M., & Calderhead, B. (2011). Riemann manifold Langevin and Hamiltonian Monte Carlo methods. *JRSS-B*, 73(2), 123-214.
-
----
-
-## 헤이스팅스 바로잡기가 왜 필요한가
+## 6. 헤이스팅스 바로잡기가 왜 필요한가
 
 제안은 **비대칭**이다. 곧 흐름 $\epsilon s(x)$이 지금 자리에 기대므로 $q(x' | x) \neq q(x | x')$이다. 헤이스팅스 바로잡기가 없으면 자세한 균형이 깨져 사슬의 멈춘 분포가 $\pi$이 되지 않는다.
 
@@ -213,7 +192,7 @@ $$
 
 ---
 
-## 묶음 MALA 구현
+## 7. 묶음 MALA 구현
 
 ```python
 import torch
@@ -262,7 +241,7 @@ def mala_batch(log_prob_fn, score_fn, x0, n_steps, epsilon):
 
 ---
 
-## 가장 좋게 맞추기
+## 8. 가장 좋게 맞추기
 
 ### 걸음 크기의 커짐새
 
@@ -301,6 +280,8 @@ x_mala, acc = mala_batch(log_prob, score, x0.clone(), n_steps=500, epsilon=0.5)
 print(f"MALA variance: {x_mala.var(dim=0).mean():.4f}, acceptance: {acc:.2%}")
 ```
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -336,3 +317,23 @@ MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴�
 
 ??? success "연습문제 4 풀이"
     태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.
+
+## 정리하며
+
+| 개념 | 핵심 |
+|---------|-----------|
+| **MALA = ULA + MH 바로잡기** | 잘게 나눔 치우침을 없앤다 |
+| **비대칭 제안** | 기울기 때문에 $q(\theta' \mid \theta) \neq q(\theta \mid \theta')$이다 |
+| **가장 좋은 받아들임** | 약 57.4%(견주기: 무작위 걸음 MH 약 23.4%, HMC 약 65%) |
+| **걸음 크기 커짐새** | $\epsilon = O(d^{-1/3})$ — 무작위 걸음 MH의 $O(d^{-1})$보다 낫다 |
+| **미리 다듬기** | 섞임을 낫게 하려고 뒤확률의 기하에 맞춘다 |
+
+---
+
+**참고 문헌**
+
+- Roberts, G. O., & Tweedie, R. L. (1996). Exponential convergence of Langevin distributions and their discrete approximations. *Bernoulli*, 2(4), 341-363.
+- Roberts, G. O., & Rosenthal, J. S. (1998). Optimal scaling of discrete approximations to Langevin diffusions. *JRSS-B*, 60(1), 255-268.
+- Girolami, M., & Calderhead, B. (2011). Riemann manifold Langevin and Hamiltonian Monte Carlo methods. *JRSS-B*, 73(2), 123-214.
+
+---

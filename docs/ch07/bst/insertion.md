@@ -2,7 +2,9 @@
 
 삽입은 이진 탐색 트리가 자라는 방식이다. 빈 트리에서 시작하여 열쇠를 하나씩 넣어 전체 구조를 세운다. 삽입할 때마다 뿌리에서 내려가며 노드마다 새 열쇠를 견주어 왼쪽으로 갈지 오른쪽으로 갈지 정하고, 빈 자리를 찾으면 그곳에서 새 노드가 잎이 된다. 새 노드는 언제나 잎 자리에 놓이므로 삽입은 기존 노드의 구조를 바꾸지 않고 트리를 아래로 늘리기만 한다.
 
-## 알고리즘
+---
+
+## 1. 알고리즘
 
 $r$을 뿌리로 하는 이진 탐색 트리에 열쇠 $k$을 넣으려면 다음과 같이 한다.
 
@@ -14,7 +16,9 @@ $r$을 뿌리로 하는 이진 탐색 트리에 열쇠 $k$을 넣으려면 다�
 
 재귀가 널 자리에 닿을 때까지 이어지므로 새 노드는 언제나 잎이 된다.
 
-## 그림으로 따라가기
+---
+
+## 2. 그림으로 따라가기
 
 이 이진 탐색 트리에 열쇠 5를 넣어 보자.
 
@@ -36,12 +40,16 @@ Step 3: 5 > 3, go right to 6.     Step 4: 5 < 6, go left (null).
                                           5   <- new leaf
 ```
 
-## 이진 탐색 트리 성질 지키기
+---
+
+## 3. 이진 탐색 트리 성질 지키기
 
 !!! note "올바름"
     삽입은 [이진 탐색 트리 성질](property.md)을 지킨다. 단계마다 알고리즘은 순서 불변식을 지키는 부분 트리를 고른다. 지금 노드보다 작거나 같은 열쇠는 왼쪽으로, 큰 열쇠는 오른쪽으로 간다. 새 잎이 놓인 자리 덕분에 모든 조상의 이진 탐색 트리 성질이 그대로 남는다.
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 삽입은 뿌리에서 잎까지의 경로 하나를 따라가며 노드마다 $O(1)$의 일을 한다. 트리의 높이를 $h$이라 할 때 시간 복잡도는 $O(h)$이다.
 
@@ -50,7 +58,9 @@ Step 3: 5 > 3, go right to 6.     Step 4: 5 < 6, go left (null).
 
 삽입 순서가 트리의 높이에 어떻게 영향을 주는지는 [복잡도](complexity.md)에서 자세히 다룬다.
 
-## 재귀 구현과 반복 구현
+---
+
+## 5. 재귀 구현과 반복 구현
 
 재귀 방식은 우아하고 알고리즘 설명을 그대로 옮긴 것이다. 반복 방식은 스택 부담을 없애 주며, 트리가 아주 깊을 수 있을 때 (스택 넘침을 막으려고) 즐겨 쓴다.
 
@@ -61,7 +71,6 @@ Step 3: 5 > 3, go right to 6.     Step 4: 5 < 6, go left (null).
 삽입이 이진 탐색 트리의 성질을 지키면서 언제나 새 잎을 만드는 방식을
 보이고, 순차열로 트리를 만드는 과정을 시연한다.
 """
-
 
 # === 노드 정의 ===
 
@@ -75,7 +84,6 @@ class Node:
 
     def __repr__(self):
         return f"Node({self.key})"
-
 
 # === 재귀 삽입 ===
 
@@ -92,7 +100,6 @@ def insert_recursive(root, key):
     else:
         root.right = insert_recursive(root.right, key)
     return root
-
 
 # === 반복 삽입 ===
 
@@ -122,7 +129,6 @@ def insert_iterative(root, key):
 
     return root
 
-
 # === 보이기 도우미 ===
 
 def inorder(node):
@@ -132,7 +138,6 @@ def inorder(node):
         yield node.key
         yield from inorder(node.right)
 
-
 def print_tree(node, level=0, prefix="Root: "):
     """들여쓰기로 트리의 짜임을 출력한다."""
     if node is not None:
@@ -140,7 +145,6 @@ def print_tree(node, level=0, prefix="Root: "):
         if node.left is not None or node.right is not None:
             print_tree(node.left, level + 1, "L--- ")
             print_tree(node.right, level + 1, "R--- ")
-
 
 # === 메인 ===
 
@@ -193,10 +197,7 @@ Iterative inorder: [1, 3, 4, 6, 7, 8, 10, 13, 14]
 Results match: True
 ```
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 12.3절](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -229,3 +230,11 @@ Results match: True
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 알고리즘、그림으로 따라가기、이진 탐색 트리 성질 지키기、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 12.3절](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

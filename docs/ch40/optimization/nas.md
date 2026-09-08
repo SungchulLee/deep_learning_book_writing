@@ -1,13 +1,20 @@
 # 신경 얼개 찾기
-## 두루 보기
+
+---
+
+## 1. 두루 보기
 
 신경 얼개 찾기(NAS)은 신경 그물 얼개를 꾸미는 일을 저절로 하게 하여, 손으로 하던 얼개 다듬기를 알고리즘의 가장 좋게 하기로 갈음한다. NAS은 사람이 꾸민 그물보다 잘 드는 얼개를 찾아내는 일이 잦아, 모형 눌러 담기와 내놓기 다듬기의 든든한 연장이 된다.
 
-## 왜 하는가
+---
+
+## 2. 왜 하는가
 
 손으로 꾸민 얼개에는 켜의 수, 켜의 너비, 알갱이 크기, 건너뛰는 이음, 살림 함수, 잣대 잡기 꾀 같은 헤아릴 수 없이 많은 고름이 든다. NAS은 이 밭을 짜임새 있게 둘러보며 맞음, 늦음, 모형 크기 같은 목표에 맞게 다듬은 얼개를 찾는다.
 
-## 찾을 밭 꾸미기
+---
+
+## 3. 찾을 밭 꾸미기
 
 ### 흔한 찾을 밭
 
@@ -73,7 +80,6 @@ class SearchCell(nn.Module):
         idx = self.alphas.argmax().item()
         return list(self.ops.keys())[idx]
 
-
 class DARTSNetwork(nn.Module):
     """DARTS 결의 미분할 수 있는 NAS."""
     
@@ -115,7 +121,9 @@ class DARTSNetwork(nn.Module):
         return [cell.get_best_op() for cell in self.cells]
 ```
 
-## 쇠 붙임새를 아는 NAS
+---
+
+## 4. 쇠 붙임새를 아는 NAS
 
 쇠 붙임새의 옭아맴(늦음, 기억)을 찾기 목표에 넣는다.
 
@@ -149,7 +157,6 @@ class LatencyPredictor:
         
         return sum(times) / len(times) * 1000  # ms
 
-
 def hardware_aware_loss(logits, targets, architecture_params,
                        latency_predictor, target_latency_ms=10.0,
                        lambda_latency=0.1):
@@ -168,17 +175,23 @@ def hardware_aware_loss(logits, targets, architecture_params,
     return task_loss + lambda_latency * latency_penalty
 ```
 
-## 얼개 다듬기로서의 낮은 자리 쪼개기
+---
+
+## 5. 얼개 다듬기로서의 낮은 자리 쪼개기
 
 낮은 자리 쪼개기는 큰 켜를 같은 일을 하는 작은 켜로 갈음하는 얼개 바꿈으로 볼 수 있다. 이로써 NAS과 행렬 쪼개기가 이어진다.
 
 # 낮은 자리 쪼개기
 
-## 두루 보기
+---
+
+## 6. 두루 보기
 
 낮은 자리 쪼개기는 짐 행렬을 더 작은 행렬들의 곱으로 갈라 신경 그물을 눌러 담는다. 익힌 짐 행렬은 참으로 쓰이는 자리가 낮은 일이 잦다는 살핌을 쓴 것이다. 이로써 모형이 드러내는 힘은 거의 지키면서 담는 자리와 셈 값을 함께 줄인다.
 
-## 수학 밑바탕
+---
+
+## 7. 수학 밑바탕
 
 ### 행렬의 자리와 어림
 
@@ -244,7 +257,9 @@ $$\rho = \frac{mn}{k(m + n)}$$
 - $k = 64$이면: 매개변수 131,136개(8배 눌러 담음)
 - $k = 128$이면: 매개변수 262,272개(4배 눌러 담음)
 
-## 선형 켜 쪼개기
+---
+
+## 8. 선형 켜 쪼개기
 
 ### 밑바탕 SVD 쪼개기
 
@@ -252,7 +267,6 @@ $$\rho = \frac{mn}{k(m + n)}$$
 import torch
 import torch.nn as nn
 from typing import Tuple, Dict, List
-
 
 def svd_decomposition(weight: torch.Tensor, 
                       rank: int) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -280,13 +294,11 @@ def svd_decomposition(weight: torch.Tensor,
     # 되살림: weight ≈ U_scaled @ V_r
     return U_scaled, V_r.T
 
-
 def compute_reconstruction_error(original: torch.Tensor, 
                                  reconstructed: torch.Tensor) -> float:
     """견준 되살림 어긋남을 셈한다."""
     error = torch.norm(original - reconstructed) / torch.norm(original)
     return error.item()
-
 
 # 보기: 눌러 담음과 어긋남의 맞바꿈을 살핀다
 def analyze_rank_tradeoff(W: torch.Tensor):
@@ -372,7 +384,6 @@ class FactorizedLinear(nn.Module):
         
         return factorized
 
-
 def svd_decompose_linear(layer: nn.Linear,
                          rank: int) -> Tuple[nn.Linear, nn.Linear]:
     """
@@ -415,7 +426,9 @@ def svd_decompose_linear(layer: nn.Linear,
     return first, second
 ```
 
-## 엮음 켜 쪼개기
+---
+
+## 9. 엮음 켜 쪼개기
 
 ### 자리로 쪼개기(가를 수 있는 엮음)
 
@@ -500,7 +513,6 @@ class DepthwiseSeparableConv2d(nn.Module):
         x = self.depthwise(x)
         x = self.pointwise(x)
         return x
-
 
 # 매개변수를 견준다
 def compare_conv_variants():
@@ -606,7 +618,6 @@ class TuckerConv2d(nn.Module):
         x = self.expand(x)
         return x
 
-
 def tucker_decompose_conv(conv: nn.Conv2d,
                           ranks: Tuple[int, int]) -> nn.Sequential:
     """
@@ -643,7 +654,9 @@ def tucker_decompose_conv(conv: nn.Conv2d,
     return nn.Sequential(conv_input, conv_spatial, conv_output)
 ```
 
-## 자리 절로 고르기
+---
+
+## 10. 자리 절로 고르기
 
 ### 힘에 기댄 고르기
 
@@ -672,7 +685,6 @@ def select_rank_by_energy(weight: torch.Tensor,
     
     return rank
 
-
 def analyze_singular_values(weight: torch.Tensor) -> Dict:
     """
     특잇값의 분포를 살펴 가장 좋은 자리를 정한다.
@@ -699,7 +711,6 @@ def analyze_singular_values(weight: torch.Tensor) -> Dict:
         'effective_rank': int((S > S[0] * 0.01).sum()),
         'condition_number': S[0] / S[-1] if S[-1] > 0 else float('inf')
     }
-
 
 def analyze_layer_ranks(model: nn.Module) -> List[Dict]:
     """
@@ -732,7 +743,9 @@ def analyze_layer_ranks(model: nn.Module) -> List[Dict]:
     return results
 ```
 
-## 모형 켜에서의 쪼개기
+---
+
+## 11. 모형 켜에서의 쪼개기
 
 ### 모형 통째로 쪼개기
 
@@ -768,7 +781,6 @@ class LowRankModel(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
-
 
 def factorize_model(model: nn.Module, rank_ratio: float = 0.5, 
                     min_rank: int = 8) -> nn.Module:
@@ -857,7 +869,9 @@ def finetune_factorized_model(model: nn.Module,
     return model, best_accuracy
 ```
 
-## LoRA: 낮은 자리로 맞추기
+---
+
+## 12. LoRA: 낮은 자리로 맞추기
 
 LoRA(낮은 자리로 맞추기)은 얼려 둔 미리 익힌 짐에 배울 수 있는 낮은 자리 행렬을 더해 큰 모형을 잘 드는 값으로 곱게 맞추게 한다.
 
@@ -916,7 +930,6 @@ class LoRALinear(nn.Module):
         """배울 수 있는 매개변수의 수를 돌려준다."""
         return self.lora_A.numel() + self.lora_B.numel()
 
-
 def apply_lora(model: nn.Module, rank: int = 8, alpha: float = 16,
                target_modules: List[str] = None) -> nn.Module:
     """
@@ -939,7 +952,6 @@ def apply_lora(model: nn.Module, rank: int = 8, alpha: float = 16,
             apply_lora(module, rank, alpha, target_modules)
     return model
 
-
 def count_lora_params(model: nn.Module) -> Dict[str, int]:
     """LoRA 모형에서 배우는 매개변수와 얼린 매개변수를 센다."""
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -953,7 +965,9 @@ def count_lora_params(model: nn.Module) -> Dict[str, int]:
     }
 ```
 
-## 맞바꿈과 한계
+---
+
+## 13. 맞바꿈과 한계
 
 ### 눌러 담음 대 맞음
 
@@ -987,47 +1001,23 @@ def count_lora_params(model: nn.Module) -> Dict[str, int]:
 - 기억을 짚는 결이 덜 잘 들 수 있다
 - 가운데 자리가 작으면 GPU을 덜 쓰게 될 수 있다
 
-## 간추림
-
-낮은 자리 쪼개기는 모형 크기와 셈을 줄인다.
-
-1. **SVD 쪼개기**: 가장 좋은 어림이며 익힘 뒤 눌러 담기에 좋다
-2. **자리로 가르기**: 엮음을 자리로 쪼갠다(1×k과 k×1)
-3. **깊이별로 가르기**: 잘 드는 얼개의 여느 길이다(MobileNet)
-4. **터커 쪼개기**: 갈래와 자리를 함께 줄인다
-5. **LoRA**: 미리 익힌 큰 모형을 잘 드는 값으로 곱게 맞춘다
-
-고갱이로 즐겨 쓸 길:
-
-- 눌러 담을 견줌을 정하기 앞서 켜의 자리를 살핀다
-- 힘에 기댄 자리 고르기를 쓴다(힘의 95~99%을 지킨다)
-- 쪼갠 뒤 곱게 맞추어 맞음을 되찾는다
-- 가장 크게 눌러 담으려면 다른 재주(수 줄이기, 쳐내기)와 아우른다
-- 큰 모형을 잘 드는 값으로 맞추려면 LoRA을 헤아린다
-
-## 살펴볼 거리
-
-1. Denton, E., et al. "Exploiting Linear Structure Within Convolutional Networks for Efficient Evaluation." NeurIPS 2014.
-2. Jaderberg, M., et al. "Speeding up Convolutional Neural Networks with Low Rank Expansions." BMVC 2014.
-3. Kim, Y., et al. "Compression of Deep Convolutional Neural Networks for Fast and Low Power Mobile Applications." ICLR 2016.
-4. Howard, A., et al. "MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications." arXiv 2017.
-5. Hu, E., et al. "LoRA: Low-Rank Adaptation of Large Language Models." ICLR 2022.
-6. Lebedev, V., et al. "Speeding-up Convolutional Neural Networks Using Fine-tuned CP-Decomposition." ICLR 2015.
-
-
 ---
 
-## 아우른 눌러 담기 흐름
+## 14. 아우른 눌러 담기 흐름
 
 NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가장 잘 듣는다.
 
 # 아우른 눌러 담기 흐름
 
-## 두루 보기
+---
+
+## 15. 두루 보기
 
 모형을 가장 크게 눌러 담으려면 쳐내기, 수 줄이기, 앎 옮기기, 낮은 자리 쪼개기를 아울러야 한다. 이 방법들은 얽혀 서로 주고받으므로 가장 좋은 차례와 차림을 정하는 것이 어려운 대목이다.
 
-## 눌러 담기 흐름 꾸미기
+---
+
+## 16. 눌러 담기 흐름 꾸미기
 
 ### 재주끼리 주고받음
 
@@ -1066,7 +1056,9 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
 - 걸음 사이의 곱게 맞추기: 도막마다 맞음을 되찾는다
 - 수 줄이기를 마지막에: 다듬어진 짐 분포의 덕을 본다
 
-## PyTorch로 짜기
+---
+
+## 17. PyTorch로 짜기
 
 ### 온전한 눌러 담기 흐름
 
@@ -1078,7 +1070,6 @@ import torch.quantization as quant
 import copy
 from typing import Dict, Optional, Tuple
 from dataclasses import dataclass
-
 
 @dataclass
 class CompressionConfig:
@@ -1105,7 +1096,6 @@ class CompressionConfig:
     # 두루
     learning_rate: float = 1e-3
     device: str = 'cpu'
-
 
 class CompressionPipeline:
     """
@@ -1559,7 +1549,9 @@ class CompressionPipeline:
         print("="*70)
 ```
 
-## 쓰는 보기
+---
+
+## 18. 쓰는 보기
 
 ```python
 # 모형을 만든다
@@ -1592,7 +1584,9 @@ compressed_model = pipeline.compress(train_loader, test_loader)
 torch.save(compressed_model.state_dict(), 'compressed_model.pth')
 ```
 
-## 좋은 버릇
+---
+
+## 19. 좋은 버릇
 
 ### 차림 길잡이
 
@@ -1611,40 +1605,71 @@ torch.save(compressed_model.state_dict(), 'compressed_model.pth')
 3. **쳐내도 빨라지지 않음**: 짜임새 있는 쳐내기로 바꾼다
 4. **앎 옮기기가 듣지 않음**: 스승의 맞음을 따지고 온도를 손본다
 
-## 살펴볼 거리
+---
 
-1. Polino, A., et al. "Model Compression via Distillation and Quantization." ICLR 2018.
-2. Han, S., et al. "Deep Compression." ICLR 2016.
-3. Cheng, Y., et al. "A Survey of Model Compression and Acceleration." IEEE Signal Processing 2020.
+## 연습문제
 
-## 익힘 문제
-
-**익힘 1.**
+**연습문제 1.**
 이 마디에서 다룬 다듬기 재주들을 맞음 잃음, 미루어 봄 빨라짐, 짜기의 번거로움으로 견주어 맞바꿈을 밝혀라.
 
-??? success "익힘 1 풀이"
+??? success "연습문제 1 풀이"
     재주마다 맞바꿈의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 잃음이 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 잃음은 1~3%이다. 앎 옮기기는 얼개 자체의 미루어 봄 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 잃음은 1~5%이다. 신경 얼개 찾기는 가장 좋은 얼개를 찾아 주지만 찾는 데 엄청난 셈이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 잃음이 어긋남의 값에 매인다. $\square$
 
 ---
 
-**익힘 2.**
+**연습문제 2.**
 단순한 앞먹임 그물에 익힘 뒤 수 줄이기(INT8)을 짜 넣고, 잣대 자료 꾸러미에서 맞음이 얼마나 떨어지고 미루어 봄이 얼마나 빨라지는지 재어라.
 
-??? success "익힘 2 풀이"
+??? success "연습문제 2 풀이"
     PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(묶음 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
 
 ---
 
-**익힘 3.**
+**연습문제 3.**
 내놓은 모형의 자료 옮겨감, 뜻 옮겨감, 됨됨이 떨어짐을 짚어내는 서비스 지켜보기 얼개를 꾸며라. 자와 알림 문턱을 밝혀라.
 
-??? success "익힘 3 풀이"
+??? success "연습문제 3 풀이"
     세 켜를 지켜본다. (1) 자료 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 들임 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 미루어 봄 분포의 옮겨감과 (얻을 수 있으면) 참 이름표 분포를 좇는다. 미루어 봄의 평균이 밑금 동안에서 잣대 어긋남 2배 넘게 옮겨가면 알린다. (3) 모형 떨어짐: 굴러가는 창으로 살아 있는 맞음과 잃음을 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
 
 ---
 
-**익힘 4.**
+**연습문제 4.**
 금융 거래 얼개의 늦음 요건이 웹 서비스와 밑바탕부터 다른 까닭을 밝혀라. 이것이 내놓기 다듬기 꾀에 어떻게 걸리는가?
 
-??? success "익힘 4 풀이"
+??? success "연습문제 4 풀이"
     웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 묶음 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
+
+## 정리하며
+
+낮은 자리 쪼개기는 모형 크기와 셈을 줄인다.
+
+1. **SVD 쪼개기**: 가장 좋은 어림이며 익힘 뒤 눌러 담기에 좋다
+2. **자리로 가르기**: 엮음을 자리로 쪼갠다(1×k과 k×1)
+3. **깊이별로 가르기**: 잘 드는 얼개의 여느 길이다(MobileNet)
+4. **터커 쪼개기**: 갈래와 자리를 함께 줄인다
+5. **LoRA**: 미리 익힌 큰 모형을 잘 드는 값으로 곱게 맞춘다
+
+고갱이로 즐겨 쓸 길:
+
+- 눌러 담을 견줌을 정하기 앞서 켜의 자리를 살핀다
+- 힘에 기댄 자리 고르기를 쓴다(힘의 95~99%을 지킨다)
+- 쪼갠 뒤 곱게 맞추어 맞음을 되찾는다
+- 가장 크게 눌러 담으려면 다른 재주(수 줄이기, 쳐내기)와 아우른다
+- 큰 모형을 잘 드는 값으로 맞추려면 LoRA을 헤아린다
+
+**살펴볼 거리**
+
+1. Denton, E., et al. "Exploiting Linear Structure Within Convolutional Networks for Efficient Evaluation." NeurIPS 2014.
+2. Jaderberg, M., et al. "Speeding up Convolutional Neural Networks with Low Rank Expansions." BMVC 2014.
+3. Kim, Y., et al. "Compression of Deep Convolutional Neural Networks for Fast and Low Power Mobile Applications." ICLR 2016.
+4. Howard, A., et al. "MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications." arXiv 2017.
+5. Hu, E., et al. "LoRA: Low-Rank Adaptation of Large Language Models." ICLR 2022.
+6. Lebedev, V., et al. "Speeding-up Convolutional Neural Networks Using Fine-tuned CP-Decomposition." ICLR 2015.
+
+---
+
+**살펴볼 거리**
+
+1. Polino, A., et al. "Model Compression via Distillation and Quantization." ICLR 2018.
+2. Han, S., et al. "Deep Compression." ICLR 2016.
+3. Cheng, Y., et al. "A Survey of Model Compression and Acceleration." IEEE Signal Processing 2020.

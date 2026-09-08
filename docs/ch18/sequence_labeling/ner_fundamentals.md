@@ -1,5 +1,8 @@
 # 이름 알아보기의 근본
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,11 +12,15 @@
 - 이름 알아보기와 다른 자연어 일의 관계를 이해한다
 - 것 알아보기에 본디 있는 어려움과 복잡함을 살핀다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 이름 알아보기(NER)는 짜임 없는 글에서 이름 있는 것을 찾아 사람 이름, 조직, 자리, 날짜, 그 밖의 분야별 것 같은 미리 정해 둔 갈래로 나누는, 자연어 다루기의 근본 일이다. 이름 알아보기는 앎 뽑기 물길의 결정적인 조각이며 앎 그래프 세우기, 물음 답하기, 글월 이해 같은 뒤따르는 쓰임새를 가능하게 한다.
 
-## 수학적 정식화
+---
+
+## 3. 수학적 정식화
 
 ### 차례 이름표 붙이기 얼거리
 
@@ -55,7 +62,9 @@ $$
 
 여기서 $Z(\mathbf{X})$은 잣대가 제대로 맞도록 하는 나눔 함수다.
 
-## 것의 갈래와 갈래 체계
+---
+
+## 4. 것의 갈래와 갈래 체계
 
 ### 표준 CoNLL 것 갈래
 
@@ -102,7 +111,9 @@ OntoNotes 5.0은 것 갈래 18개로 더 결이 고운 가르기를 준다:
 - 법령과 규정
 - 날짜와 관할
 
-## 것 나타내기
+---
+
+## 5. 것 나타내기
 
 ### 글자 수준 구간
 
@@ -176,7 +187,9 @@ def align_entities_to_tokens(
     return labels
 ```
 
-## 자연어 물길에서의 이름 알아보기
+---
+
+## 6. 자연어 물길에서의 이름 알아보기
 
 ### 앞손질의 달림
 
@@ -202,7 +215,9 @@ Raw Text → Tokenization → (Optional: POS Tagging) → NER → Downstream Tas
 5. **같은 것 가리키기 풀기**: 대이름씨를 이름 있는 것에 잇기
 6. **관계 뽑기**: 알아낸 것 사이의 관계 찾기
 
-## 이름 알아보기의 어려움
+---
+
+## 7. 이름 알아보기의 어려움
 
 ### 아리송함과 맥락에 달림
 
@@ -244,7 +259,9 @@ Raw Text → Tokenization → (Optional: POS Tagging) → NER → Downstream Tas
 - **분야 바뀜**: 특화된 분야(보기로 생의학)의 것
 - **때에 따른 흘러감**: 모델을 익힌 뒤 새로 나타나는 것
 
-## PyTorch 짜기: 것 자료 짜임새
+---
+
+## 8. PyTorch 짜기: 것 자료 짜임새
 
 ```python
 import torch
@@ -288,7 +305,6 @@ class NERExample:
             result['labels'] = torch.tensor(label_ids, dtype=torch.long)
         
         return result
-
 
 class NERDataset(torch.utils.data.Dataset):
     """이름 알아보기용 PyTorch 자료 뭉치."""
@@ -334,7 +350,9 @@ class NERDataset(torch.utils.data.Dataset):
         return token_to_idx, label_to_idx
 ```
 
-## 값매김 미리보기
+---
+
+## 9. 값매김 미리보기
 
 이름 알아보기 값매김에는 서로 채워 주는 잣대가 여럿 쓰인다:
 
@@ -361,27 +379,7 @@ $$
 \text{F1} = \frac{2 \cdot \text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
 $$
 
-## 요약
-
-이름 알아보기는 다음과 같은 바탕이 되는 자연어 일이다:
-
-1. 것 가려내기를 차례 이름표 붙이기로 **세운다**
-2. 것을 분야별 갈래 체계로 **나눈다**
-3. 것을 글자나 토막 구간으로 **나타낸다**
-4. 뒤따르는 앎 뽑기 일을 **가능하게 한다**
-5. 아리송함, 겹겹이 든 것, 분야 맞추기 같은 어려움을 **마주한다**
-
-이어지는 절에서는 이름표 방식, 모델 얼개, 익히기 절차를 자세히 살펴본다.
-
-## 참고 문헌
-
-1. Tjong Kim Sang, E. F., & De Meulder, F. (2003). Introduction to the CoNLL-2003 Shared Task: Language-Independent Named Entity Recognition. *CoNLL*.
-
-2. Weischedel, R., et al. (2013). OntoNotes Release 5.0. Linguistic Data Consortium.
-
-3. Lample, G., et al. (2016). Neural Architectures for Named Entity Recognition. *NAACL-HLT*.
-
-4. Devlin, J., et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. *NAACL-HLT*.
+---
 
 ## 연습문제
 
@@ -429,3 +427,25 @@ BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City
     $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
 
     자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 낱말이 양쪽에서 걸리는 일이 잦으므로 이것이 종요롭다.
+
+## 정리하며
+
+이름 알아보기는 다음과 같은 바탕이 되는 자연어 일이다:
+
+1. 것 가려내기를 차례 이름표 붙이기로 **세운다**
+2. 것을 분야별 갈래 체계로 **나눈다**
+3. 것을 글자나 토막 구간으로 **나타낸다**
+4. 뒤따르는 앎 뽑기 일을 **가능하게 한다**
+5. 아리송함, 겹겹이 든 것, 분야 맞추기 같은 어려움을 **마주한다**
+
+이어지는 절에서는 이름표 방식, 모델 얼개, 익히기 절차를 자세히 살펴본다.
+
+**참고 문헌**
+
+1. Tjong Kim Sang, E. F., & De Meulder, F. (2003). Introduction to the CoNLL-2003 Shared Task: Language-Independent Named Entity Recognition. *CoNLL*.
+
+2. Weischedel, R., et al. (2013). OntoNotes Release 5.0. Linguistic Data Consortium.
+
+3. Lample, G., et al. (2016). Neural Architectures for Named Entity Recognition. *NAACL-HLT*.
+
+4. Devlin, J., et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. *NAACL-HLT*.

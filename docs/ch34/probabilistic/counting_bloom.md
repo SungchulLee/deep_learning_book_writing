@@ -2,18 +2,24 @@
 
 여느 블룸 필터는 넣기와 소속 묻기만 받쳐 준다. 비트를 끄면 다른 원소의 자취가 지워질 수 있으므로 지우기가 될 수 없다. **세는 블룸 필터**는 비트마다 정수 세개로 갈음하여, 자리를 아끼는 확률 소속 시험을 지키면서 지우기를 이루게 한다.
 
-## 밑뜻
+---
+
+## 1. 밑뜻
 
 길잡이 판단을 갈무리하려고 블룸 필터를 쓰는 그물 길잡이를 여겨 보자. 길이 거두어지면 길잡이가 그 항목을 없애야 한다. 여느 블룸 필터로는 이를 안전하게 할 수 없지만, 세는 블룸 필터는 비트를 끄는 대신 세개를 내릴 수 있어 원소가 오가는 움직이는 모임을 받쳐 준다.
 
-## 얼개
+---
+
+## 2. 얼개
 
 세는 블룸 필터는 다음으로 이루어진다.
 
 - 처음에 모두 0인 세개 $m$개의 배열 $C$.
 - 원소를 $\{0, 1, \ldots, m-1\}$으로 맞대는 해시 함수 $k$개의 갈래 $h_1, \ldots, h_k$.
 
-## 연산
+---
+
+## 3. 연산
 
 **넣기($x$)**: 모든 $i \in \{1, \ldots, k\}$에 대해 $C[h_i(x)]$을 올린다.
 
@@ -21,7 +27,9 @@
 
 **묻기($x$)**: 모든 $i$에 대해 $C[h_i(x)] > 0$이면 `True`을, 아니면 `False`을 돌려준다.
 
-## 거짓 양성 살피기
+---
+
+## 4. 거짓 양성 살피기
 
 거짓 양성 낌새는 여느 블룸 필터와 같다.
 
@@ -31,7 +39,9 @@ $$
 
 여기서 $n$은 지금 들어 있는 원소의 개수다. 지우기가 $n$을 줄이므로 거짓 양성률이 낮아지는데, 이는 반가운 성질이다.
 
-## 세개 넘침
+---
+
+## 5. 세개 넘침
 
 세개마다 넘치지 않을 만큼 넉넉해야 한다. 해시 함수가 $k$개이고 원소가 $n$개이면 아무 자리의 어림 셈이 $kn/m$이다. 세개가 값 $c$에 이를 낌새는 푸아송 꼬리를 따른다.
 
@@ -44,7 +54,9 @@ $$
 !!! warning "세개가 밑으로 넘침"
     세개를 0 아래로 내려서는 안 된다. 넣지 않은 원소를 지우면 세개가 아래로 내려가 거짓 음성이 들어올 수 있다. 만들 때 이를 막아야 한다.
 
-## 자리 견주기
+---
+
+## 6. 자리 견주기
 
 | 얼개 | 칸마다 자리 | 지우기를 받쳐 주는가 |
 |---|---|---|
@@ -54,7 +66,9 @@ $$
 
 4비트 세는 블룸 필터는 여느 블룸 필터의 4배 자리를 쓰지만, 그래도 해시 표보다는 놀랍도록 적다.
 
-## 구현
+---
+
+## 7. 구현
 
 ```python
 """
@@ -66,7 +80,6 @@ $$
 
 import hashlib
 import math
-
 
 # === 세는 블룸 필터 ===========================================================
 
@@ -107,7 +120,6 @@ class CountingBloomFilter:
     def query(self, item: str) -> bool:
         """*item*이 집합에 있을 수 있는지 시험한다."""
         return all(self.counters[pos] > 0 for pos in self._hashes(item))
-
 
 # === 메인 =====================================================================
 
@@ -150,10 +162,7 @@ After deleting banana:
 
 지운 뒤 `banana`은 옳게 `False`을 돌려주고 `apple`과 `cherry`은 흔들리지 않는다. 이것이 여느 블룸 필터에 견준 종요로운 이로움이다. 다른 원소를 흐트러뜨리지 않고 원소를 없앨 수 있다.
 
-## 참고 문헌
-
-- Fan, L., Cao, P., Almeida, J., and Broder, A.Z. "Summary Cache: A Scalable Wide-Area Web Cache Sharing Protocol." *IEEE/ACM Trans. Networking*, 2000
-- Mitzenmacher, M. and Upfal, E. *Probability and Computing*. Cambridge University Press, 2005
+---
 
 ## 연습문제
 
@@ -221,3 +230,12 @@ After deleting banana:
             return True
     ```
     `insert`의 넘침 살피기가 세개를 `MAX_COUNT`(보기로 4비트 세개에서 15)으로 막는다. 지우기의 막음은 먼저 묻는 것이고 `> 0` 살피기가 밑으로 넘침을 막는다. $\square$
+
+## 정리하며
+
+이 마당은 밑뜻、얼개、연산、거짓 양성 살피기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Fan, L., Cao, P., Almeida, J., and Broder, A.Z. "Summary Cache: A Scalable Wide-Area Web Cache Sharing Protocol." *IEEE/ACM Trans. Networking*, 2000
+- Mitzenmacher, M. and Upfal, E. *Probability and Computing*. Cambridge University Press, 2005

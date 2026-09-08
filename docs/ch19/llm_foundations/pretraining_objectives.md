@@ -1,5 +1,8 @@
 # 큰 말 모델의 미리 익히기 목표
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 인과 말 나타내기(CLM)와 가린 말 나타내기(MLM)를 견준다
 - 다음 토막 어림하기의 수학 바탕을 이해한다
@@ -7,11 +10,15 @@
 - 여러 미리 익히기 방식의 맞바꿈을 값매김한다
 - UL2와 FIM을 비롯한 요즘 미리 익히기 전략을 짠다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 미리 익히기 목표는 큰 말 모델이 이름표 없는 글에서 배우는 스스로 살피는 일을 정한다. 어떤 목표를 고르느냐가 모델의 능력을 근본에서 빚어, 만들어 내기에 뛰어난지 이해에 뛰어난지 아니면 둘 다인지를 가른다.
 
-## 인과 말 나타내기(CLM)
+---
+
+## 3. 인과 말 나타내기(CLM)
 
 GPT, LLaMA, Mistral과 모든 풀개만의 모델이 쓴다.
 
@@ -36,7 +43,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 def create_causal_mask(seq_len: int) -> torch.Tensor:
     """
     인과 주의 가림을 만든다.
@@ -48,7 +54,6 @@ def create_causal_mask(seq_len: int) -> torch.Tensor:
     """
     mask = torch.tril(torch.ones(seq_len, seq_len))
     return mask  # 1 = 본다, 0 = 가린다
-
 
 # 차례 길이 4의 보기:
 # [[1, 0, 0, 0],
@@ -93,7 +98,6 @@ class CausalLMHead(nn.Module):
         
         return {'loss': loss, 'logits': logits}
 
-
 def causal_lm_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     """
     홀로 서는 인과 말 나타내기 손실.
@@ -123,7 +127,9 @@ def causal_lm_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
 | 익히기 | 단순하고 토막마다 신호를 준다 |
 | 모델 | GPT 계열, LLaMA, Mistral, Claude |
 
-## 가린 말 나타내기(MLM)
+---
+
+## 4. 가린 말 나타내기(MLM)
 
 BERT, RoBERTa, DeBERTa와 부호기만의 모델이 쓴다.
 
@@ -151,7 +157,6 @@ $$
 import torch
 import random
 from typing import Tuple
-
 
 def bert_masking(
     tokens: list,
@@ -182,7 +187,6 @@ def bert_masking(
             # 그 밖에는 본디 것을 둔다(10%)
     
     return masked_tokens, labels
-
 
 def create_mlm_batch(
     input_ids: torch.Tensor,
@@ -245,7 +249,9 @@ def create_mlm_batch(
 | 익히기 | 토막의 15%만 기울기 신호를 준다 |
 | 모델 | BERT, RoBERTa, DeBERTa, ALBERT |
 
-## 구간 망가뜨리기(T5)
+---
+
+## 5. 구간 망가뜨리기(T5)
 
 T5, BART와 부호기-풀개 모델이 쓴다.
 
@@ -267,7 +273,6 @@ $$
 ```python
 import numpy as np
 from typing import List, Tuple
-
 
 def span_corruption(
     tokens: List[int],
@@ -351,7 +356,6 @@ def span_corruption(
     
     return input_tokens, target_tokens
 
-
 # 사용 예
 if __name__ == "__main__":
     tokens = list(range(20))  # [0, 1, 2, ..., 19]
@@ -361,7 +365,9 @@ if __name__ == "__main__":
     print(f"Target: {target}")
 ```
 
-## 앞가지 말 나타내기
+---
+
+## 6. 앞가지 말 나타내기
 
 ### 섞은 방식
 
@@ -405,7 +411,6 @@ def prefix_lm_mask(seq_len: int, prefix_len: int) -> torch.Tensor:
     
     return mask
 
-
 # 보기: seq_len=6, prefix_len=3
 # [[1, 1, 1, 0, 0, 0],   <- 앞가지 토막 0
 #  [1, 1, 1, 0, 0, 0],   <- 앞가지 토막 1
@@ -415,7 +420,9 @@ def prefix_lm_mask(seq_len: int, prefix_len: int) -> torch.Tensor:
 #  [1, 1, 1, 1, 1, 1]]   <- 만든 토막 2
 ```
 
-## 갈음된 토막 알아채기(ELECTRA)
+---
+
+## 7. 갈음된 토막 알아채기(ELECTRA)
 
 ELECTRA는 작은 만들개가 갈음한 토막을 알아채도록 가름개를 익힌다:
 
@@ -495,7 +502,9 @@ class ELECTRA(nn.Module):
         }
 ```
 
-## 그 밖의 잡음 없애기 목표
+---
+
+## 8. 그 밖의 잡음 없애기 목표
 
 ### 글월 돌리기
 글월을 마구잡이 지점에서 돌리고 돌린 양을 어림한다.
@@ -509,7 +518,9 @@ class ELECTRA(nn.Module):
 ### 토막 메우기
 구간을 마스크 토막 하나로 갈음한다(구간마다 마스크를 하나씩 쓰는 T5와 다르다).
 
-## 잡음 없애개 섞기(UL2)
+---
+
+## 9. 잡음 없애개 섞기(UL2)
 
 구글의 UL2는 미리 익히는 동안 목표 여럿을 아우른다:
 
@@ -517,7 +528,6 @@ class ELECTRA(nn.Module):
 from dataclasses import dataclass
 from typing import Optional
 import random
-
 
 @dataclass
 class UL2Config:
@@ -527,7 +537,6 @@ class UL2Config:
     corruption_rate: Optional[float]
     prefix: str  # 방식 토막을 들임에 더한다
 
-
 UL2_OBJECTIVES = [
     UL2Config('R', mean_span_length=3.0, corruption_rate=0.15, prefix='[R]'),   # 보통
     UL2Config('S', mean_span_length=None, corruption_rate=None, prefix='[S]'),  # 차례차례(앞가지 말 모델)
@@ -536,11 +545,9 @@ UL2_OBJECTIVES = [
 
 UL2_WEIGHTS = [0.5, 0.25, 0.25]  # 표집 무게
 
-
 def sample_ul2_objective() -> UL2Config:
     """UL2 익히기 목표를 뽑는다."""
     return random.choices(UL2_OBJECTIVES, weights=UL2_WEIGHTS)[0]
-
 
 def ul2_transform(
     tokens: List[int],
@@ -576,7 +583,9 @@ def ul2_transform(
     return input_tokens, target_tokens
 ```
 
-## 가운데 채우기(FIM)
+---
+
+## 10. 가운데 채우기(FIM)
 
 코드 모델에서 FIM은 자기되돌리기 익히기를 그대로 두면서 가운데를 메우는 능력을 준다:
 
@@ -622,13 +631,14 @@ def fill_in_middle_transform(
         # PSM 꼴
         return f"<PRE>{prefix}<SUF>{suffix}<MID>{middle}"
 
-
 # 보기:
 # 본디: "def foo():\n    return 42"
 # FIM PSM:  "<PRE>def foo():\n<SUF>\n<MID>    return 42"
 ```
 
-## 익히기 효율 견줌
+---
+
+## 11. 익히기 효율 견줌
 
 ### 실효 익힘 신호
 
@@ -664,7 +674,6 @@ def effective_tokens_per_example(
         # 모든 토막이 가름개 신호를 준다
         return seq_len
 
-
 def training_equivalence(clm_tokens: int, mlm_mask_rate: float = 0.15) -> dict:
     """
     인과 말 모델의 익히기 신호에 맞추려면 가린 말 모델 토막이 얼마나 필요한지 셈한다.
@@ -677,7 +686,9 @@ def training_equivalence(clm_tokens: int, mlm_mask_rate: float = 0.15) -> dict:
     }
 ```
 
-## 두루 살피는 견줌
+---
+
+## 12. 두루 살피는 견줌
 
 | 목표 | 얼개 | 두 방향 | 만들어 내기 | 토막당 신호 | 알맞은 곳 |
 |-----------|--------------|---------------|------------|--------------|----------|
@@ -688,7 +699,9 @@ def training_equivalence(clm_tokens: int, mlm_mask_rate: float = 0.15) -> dict:
 | ELECTRA | 부호기 | ✓ | 제한됨 | 100% | 효율적인 미리 익히기 |
 | UL2 | 부호기-풀개 | 섞임 | ✓ | 섞임 | 두루 쓰기 |
 
-## 핵심 식 간추림
+---
+
+## 13. 핵심 식 간추림
 
 **인과 말 나타내기**:
 
@@ -708,26 +721,7 @@ $$
 \boxed{\mathcal{L}_{\text{disc}} = -\sum_{t=1}^{T} \left[ y_t \log D(x_t) + (1-y_t) \log(1 - D(x_t)) \right]}
 $$
 
-## 요약
-
-| 목표 | 핵심 모델 | 으뜸 쓰임새 |
-|-----------|------------|------------------|
-| **CLM** | GPT, LLaMA, Mistral, Claude | 글 만들어 내기, 채팅, 따짐 |
-| **MLM** | BERT, RoBERTa, DeBERTa | 갈래 매기기, 자연어 이해, 묻힘 |
-| **구간 망가뜨리기** | T5, BART, mT5 | 옮김, 간추리기, 차례에서 차례로 |
-| **앞가지 말 모델** | PaLM(일부), UniLM | 조건을 건 만들어 내기 |
-| **ELECTRA** | ELECTRA, DeBERTa v3 | 효율적인 부호기 미리 익히기 |
-| **UL2** | Flan-UL2, PaLM 2 | 두루 쓰기, 여러 일 |
-| **FIM** | CodeLLaMA, StarCoder | 코드 이어 쓰기, 가운데 메우기 |
-
-## 참고 문헌
-
-1. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." (GPT-2)
-2. Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers."
-3. Raffel, C., et al. (2020). "Exploring the Limits of Transfer Learning with T5."
-4. Clark, K., et al. (2020). "ELECTRA: Pre-training Text Encoders as Discriminators."
-5. Tay, Y., et al. (2022). "UL2: Unifying Language Learning Paradigms."
-6. Bavarian, M., et al. (2022). "Efficient Training of Language Models to Fill in the Middle."
+---
 
 ## 연습문제
 
@@ -760,3 +754,24 @@ $$
 
 ??? success "연습문제 4 풀이"
     흔한 잣대: **MMLU**(57개 과목에 걸친 여러 일 객관식), **HellaSwag**(상식 따지기), **GSM8K**(초등 수학), **HumanEval**(코드 만들기), **TruthfulQA**(사실 정확도). **한계**: (1) 자료 오염 — 잣대 자료가 익힘 말뭉치에 들어 있어 점수가 부풀 수 있다. (2) 좁은 값매김 — 객관식은 만들어 낸 글의 좋음을 시험하지 못한다. (3) 잣대 맞추기 — 모델을 특정 잣대에 맞춰 다듬을 수 있다. (4) 포화 — 으뜸 모델이 어떤 잣대에서 100%에 가까워 가르는 힘이 줄어든다. (5) 빠진 갈래 — 창의, 안전, 실제 쓸모는 표준 잣대로 잘 재지 못한다.
+
+## 정리하며
+
+| 목표 | 핵심 모델 | 으뜸 쓰임새 |
+|-----------|------------|------------------|
+| **CLM** | GPT, LLaMA, Mistral, Claude | 글 만들어 내기, 채팅, 따짐 |
+| **MLM** | BERT, RoBERTa, DeBERTa | 갈래 매기기, 자연어 이해, 묻힘 |
+| **구간 망가뜨리기** | T5, BART, mT5 | 옮김, 간추리기, 차례에서 차례로 |
+| **앞가지 말 모델** | PaLM(일부), UniLM | 조건을 건 만들어 내기 |
+| **ELECTRA** | ELECTRA, DeBERTa v3 | 효율적인 부호기 미리 익히기 |
+| **UL2** | Flan-UL2, PaLM 2 | 두루 쓰기, 여러 일 |
+| **FIM** | CodeLLaMA, StarCoder | 코드 이어 쓰기, 가운데 메우기 |
+
+**참고 문헌**
+
+1. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." (GPT-2)
+2. Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers."
+3. Raffel, C., et al. (2020). "Exploring the Limits of Transfer Learning with T5."
+4. Clark, K., et al. (2020). "ELECTRA: Pre-training Text Encoders as Discriminators."
+5. Tay, Y., et al. (2022). "UL2: Unifying Language Learning Paradigms."
+6. Bavarian, M., et al. (2022). "Efficient Training of Language Models to Fill in the Middle."

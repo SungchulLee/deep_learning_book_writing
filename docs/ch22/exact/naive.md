@@ -1,7 +1,9 @@
 # 막무가내 알고리즘
 막무가내 글줄 찾기 알고리즘은 글월 $T[0..n-1]$에서 본 $P[0..m-1]$이 나오는 곳을 모두 찾는 가장 단순한 길이다. 본을 글월 위로 한 자리씩 밀며 자리마다 맞는지 살핀다.
 
-## 알고리즘
+---
+
+## 1. 알고리즘
 
 가능한 맞춤 $i = 0, 1, \ldots, n - m$마다 $P[0..m-1]$을 $T[i..i+m-1]$과 글자마다 견준다. $m$개 글자가 모두 맞으면 자리 $i$에 나왔다고 알린다. 어느 자리든 맞지 않으면 다음 맞춤 $i+1$으로 옮긴다.
 
@@ -33,7 +35,9 @@ print(naive_search(text, pattern))
 # 내놓기: [0, 9, 12]
 ```
 
-## 복잡도 분석
+---
+
+## 2. 복잡도 분석
 
 - **최악의 경우:** $O((n - m + 1) \cdot m) = O(nm)$. 부분 맞음이 많을 때 생긴다. 예컨대 $T = \texttt{AAAA\ldots A}$이고 $P = \texttt{AAA\ldots AB}$일 때이다.
 - **가장 좋은 경우:** $O(n)$. $P$의 첫 글자가 $T$에 아예 없으면 맞춤마다 곧바로 어긋난다.
@@ -47,6 +51,8 @@ print(naive_search(text, pattern))
 [Introduction to Algorithms (CLRS), Section 32.1 - The naive string-matching algorithm](https://mitpress.mit.edu/books/introduction-to-algorithms-fourth-edition/)
 
 [Naive Pattern Searching Algorithm](https://www.geeksforgeeks.org/naive-algorithm-for-pattern-searching/)
+
+---
 
 ## 연습문제
 
@@ -92,3 +98,7 @@ KMP의 어그러짐 함수란 무엇인가? 무늬 "ABABCAB"에 대해 셈하여
 
 ??? success "연습문제 4 풀이"
     라빈-카프는 본의 흩는 값을 셈하고 글월 위로 흩는 창을 미끄러뜨린다. **구르는 흩는 값**은 $O(1)$에 새로 고친다. 곧 $d$이 밑이고 $q$이 소수일 때 $h(T[i+1..i+m]) = (h(T[i..i+m-1]) - T[i] \cdot d^{m-1}) \cdot d + T[i+m] \pmod{q}$이다. 흩는 값은 맞는데 글줄이 다르면 헛맞음이 난다. 아무 소수 $q$에 대해 헛맞음 한 번의 확률은 $O(1/q)$이고 자리 $n-m+1$개에 대한 헛맞음의 기댓값은 $O(n/q)$이다. $q \approx n^2$을 고르면 헛맞음이 기대상 $O(1)$이다.
+
+## 정리하며
+
+이 마당은 알고리즘、복잡도 분석을 차례로 짚었다.

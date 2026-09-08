@@ -1,5 +1,8 @@
 # 겹침 비(IoU)와 최대가 아닌 것 누르기(NMS)
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,7 +12,9 @@
 - 더 나은 결과를 얻으려 NMS 변종(Soft-NMS, DIoU-NMS)을 쓴다
 - 이 연산의 셈 복잡도와 가장 좋게 하기 전략을 살핀다
 
-## 겹침 비(IoU)
+---
+
+## 2. 겹침 비(IoU)
 
 ### 정의와 직관
 
@@ -85,7 +90,6 @@ $$\text{IoU} = \frac{\text{Area}_I}{\text{Area}_U}$$
 import torch
 from typing import Union
 
-
 def box_iou(
     boxes1: torch.Tensor,
     boxes2: torch.Tensor,
@@ -140,7 +144,6 @@ def box_iou(
     iou = inter_area / (union_area + eps)
     
     return iou
-
 
 def box_iou_single(box1: torch.Tensor, box2: torch.Tensor) -> float:
     """
@@ -198,7 +201,9 @@ def batch_iou(
     return inter_area / (union_area + 1e-7)
 ```
 
-## 손실 함수로서의 겹침 비
+---
+
+## 3. 손실 함수로서의 겹침 비
 
 보통의 겹침 비를 손실 함수로 바로 쓰면 한계가 있다:
 
@@ -377,7 +382,9 @@ def complete_box_iou(
 | **DIoU** | $\text{IoU} - \frac{\rho^2}{c^2}$ | [-1, 1] | 더 빨리 모여든다 |
 | **CIoU** | $\text{DIoU} - \alpha v$ | [-1, 1] | 가로세로 견줌까지 본다 |
 
-## 최대가 아닌 것 누르기(NMS)
+---
+
+## 4. 최대가 아닌 것 누르기(NMS)
 
 ### 거듭 알아냄 문제
 
@@ -471,7 +478,6 @@ def nms(
     
     return torch.tensor(keep, dtype=torch.long, device=boxes.device)
 
-
 def batched_nms(
     boxes: torch.Tensor,
     scores: torch.Tensor,
@@ -519,7 +525,9 @@ final_scores = scores[keep_indices]
 final_labels = labels[keep_indices]
 ```
 
-## NMS 변종
+---
+
+## 5. NMS 변종
 
 ### Soft-NMS
 
@@ -663,7 +671,6 @@ def diou_nms(
     
     return torch.tensor(keep, dtype=torch.long, device=boxes.device)
 
-
 def compute_diou(boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Tensor:
     """짝지어진 상자 사이의 DIoU를 셈한다."""
     # 겹침 비
@@ -707,7 +714,9 @@ def compute_diou(boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Tensor:
 | **Soft-NMS** | 재현율이 더 좋다 | 느리고 다듬어야 한다 | 붐비는 장면 |
 | **DIoU-NMS** | 가운데점을 헤아린다 | 셈이 더 든다 | 물체 크기가 들쭉날쭉 |
 
-## 온전한 알아내기 뒷손질 물길
+---
+
+## 6. 온전한 알아내기 뒷손질 물길
 
 ```python
 def detection_postprocess(
@@ -761,7 +770,9 @@ def detection_postprocess(
     }
 ```
 
-## 성능 가장 좋게 하기
+---
+
+## 7. 성능 가장 좋게 하기
 
 ### CUDA로 다듬은 NMS
 
@@ -800,35 +811,7 @@ def batched_detection_postprocess(
 
 여기서 N은 상자 수, M은 참값 수, K는 남긴 상자 수이다.
 
-## 요약
-
-겹침 비와 NMS는 물체 알아내기의 근본 벽돌이다:
-
-**겹침 비(IoU)**:
-
-- 두름 상자 사이 겹침의 좋음을 잰다
-- 범위는 [0, 1]이고 0.5가 흔한 문턱값이다
-- 변종(GIoU, DIoU, CIoU)은 모서리 경우를 다루어 익히기를 낫게 한다
-
-**최대가 아닌 것 누르기(NMS)**:
-
-- 같은 물체를 거듭 알아낸 것을 없앤다
-- 욕심쟁이 알고리즘: 가장 좋은 것을 남기고 겹치는 것을 없앤다
-- 변종(Soft-NMS, DIoU-NMS)은 붐비는 장면을 더 잘 다룬다
-
-**핵심 짜기 요점**:
-
-- 효율을 위해 겹침 비 셈을 벡터로 한다
-- 실전 코드에는 `torchvision.ops.nms`를 쓴다
-- 갈래끼리 누르지 않도록 갈래마다 NMS를 쓴다
-- 쓰임새에 맞게 문턱값을 다듬는다
-
-## 참고 문헌
-
-1. Rezatofighi, H., et al. (2019). Generalized Intersection over Union: A Metric and a Loss for Bounding Box Regression. *CVPR*.
-2. Zheng, Z., et al. (2020). Distance-IoU Loss: Faster and Better Learning for Bounding Box Regression. *AAAI*.
-3. Bodla, N., et al. (2017). Soft-NMS: Improving Object Detection with One Line of Code. *ICCV*.
-4. Neubeck, A., & Van Gool, L. (2006). Efficient Non-Maximum Suppression. *ICPR*.
+---
 
 ## 연습문제
 
@@ -882,3 +865,33 @@ def batched_detection_postprocess(
 
 ??? success "연습문제 4 풀이"
     한 단계 알아내개에서는 닻 상자 대부분이 바탕(쉬운 아님 보기)이고 물체를 담은 것은 몇 안 된다. 여느 엇결 엔트로피 잃음은 쉬운 아님 보기가 워낙 많아 그쪽에 휘둘리므로 어려운 맞음 보기의 기울기 신호가 묻힌다. **초점 잃음**은 조절 값을 더한다. $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$이다. $\gamma > 0$이면 쉬운 보기($p_t$이 높은 것)의 짐이 지수로 줄어 어려운 보기에 익힘이 몰린다. $\gamma = 2$과 $\alpha = 0.25$을 쓰면 RetinaNet은 한 단계의 빠르기를 지키면서 두 단계 알아내개에 맞먹는 맞음을 이룬다.
+
+## 정리하며
+
+겹침 비와 NMS는 물체 알아내기의 근본 벽돌이다:
+
+**겹침 비(IoU)**:
+
+- 두름 상자 사이 겹침의 좋음을 잰다
+- 범위는 [0, 1]이고 0.5가 흔한 문턱값이다
+- 변종(GIoU, DIoU, CIoU)은 모서리 경우를 다루어 익히기를 낫게 한다
+
+**최대가 아닌 것 누르기(NMS)**:
+
+- 같은 물체를 거듭 알아낸 것을 없앤다
+- 욕심쟁이 알고리즘: 가장 좋은 것을 남기고 겹치는 것을 없앤다
+- 변종(Soft-NMS, DIoU-NMS)은 붐비는 장면을 더 잘 다룬다
+
+**핵심 짜기 요점**:
+
+- 효율을 위해 겹침 비 셈을 벡터로 한다
+- 실전 코드에는 `torchvision.ops.nms`를 쓴다
+- 갈래끼리 누르지 않도록 갈래마다 NMS를 쓴다
+- 쓰임새에 맞게 문턱값을 다듬는다
+
+**참고 문헌**
+
+1. Rezatofighi, H., et al. (2019). Generalized Intersection over Union: A Metric and a Loss for Bounding Box Regression. *CVPR*.
+2. Zheng, Z., et al. (2020). Distance-IoU Loss: Faster and Better Learning for Bounding Box Regression. *AAAI*.
+3. Bodla, N., et al. (2017). Soft-NMS: Improving Object Detection with One Line of Code. *ICCV*.
+4. Neubeck, A., & Van Gool, L. (2006). Efficient Non-Maximum Suppression. *ICPR*.

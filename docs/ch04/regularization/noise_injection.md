@@ -1,9 +1,10 @@
 # 잡음 주입
-## 개요
 
 잡음 주입은 학습 중에 입력, 가중치, 또는 활성화에 무작위 섭동을 더하는 정칙화 기법이다. 잡음이 섞인 데이터를 모델에게 보여 주면 모델은 더 견고한 표현을 배우고, 자연스러운 변이나 섭동이 있을 수 있는 시험 데이터에 더 잘 일반화한다.
 
-## 잡음 주입의 종류
+---
+
+## 1. 잡음 주입의 종류
 
 ### 입력 잡음
 
@@ -37,7 +38,9 @@ $$
 \tilde{h} = h + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2 I)
 $$
 
-## 이론적 바탕
+---
+
+## 2. 이론적 바탕
 
 ### 정칙화 효과
 
@@ -59,7 +62,9 @@ $$
 
 모델은 한 점에서만이 아니라 그 근방 전체에서 손실을 최소화하도록 배우며, 그 결과 더 평평하고 일반화가 잘 되는 극소점에 이른다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 입력 잡음
 
@@ -240,7 +245,9 @@ class NetworkWithActivationNoise(nn.Module):
         return self.network(x)
 ```
 
-## 심화 기법
+---
+
+## 4. 심화 기법
 
 ### 일정에 따른 잡음
 
@@ -309,7 +316,9 @@ class VariationalLayer(nn.Module):
         return kl_w + kl_b
 ```
 
-## 완전한 학습 예제
+---
+
+## 5. 완전한 학습 예제
 
 ```python
 import torch.optim as optim
@@ -374,7 +383,9 @@ def train_with_noise_injection(
     return history
 ```
 
-## 잡음 종류의 비교
+---
+
+## 6. 잡음 종류의 비교
 
 | 종류 | 위치 | 효과 | 쓰임새 |
 |------|----------|--------|----------|
@@ -383,7 +394,9 @@ def train_with_noise_injection(
 | 기울기 잡음 | 최적화 | 국소 극소점 탈출 | 깊은 신경망, 비볼록 손실 |
 | 활성화 잡음 | 은닉층 | 드롭아웃과 비슷 | 일반적인 정칙화 |
 
-## 실무 지침
+---
+
+## 7. 실무 지침
 
 ### 잡음의 종류 고르기
 
@@ -409,12 +422,7 @@ def train_with_noise_injection(
 - **L2 정칙화**: 잡음이 암묵적으로 L2와 비슷한 효과를 준다
 - **데이터 증강**: 잡음은 연속적인 증강의 한 형태이다
 
-## 참고 문헌
-
-1. Bishop, C. M. (1995). Training with Noise is Equivalent to Tikhonov Regularization. *Neural Computation*, 7(1), 108-116.
-2. Neelakantan, A., et al. (2015). Adding Gradient Noise Improves Learning for Very Deep Networks. *arXiv*.
-3. Fortunato, M., et al. (2018). Noisy Networks for Exploration. *ICLR*.
-4. An, G. (1996). The Effects of Adding Noise During Backpropagation Training. *Neural Computation*, 8(3), 643-674.
+---
 
 ## 연습문제
 
@@ -455,3 +463,14 @@ Neelakantan 등(2015)의 일정 $\sigma_t^2 = \eta/(1+t)^\gamma$을 쓰는 기�
 
 ??? success "연습문제 4 풀이"
     손실 지형에 뾰족한 국소 극소점이 많을 때(잡음이 그것을 벗어나도록 돕는다), 학습 데이터에 레이블 잡음이 있을 때(입력 잡음이 그 영향을 누그러뜨린다), 그리고 지속 학습에서(기울기 잡음이 탐색을 유지하여 파국적 망각을 막는다) 잡음 주입이 특히 뛰어나다.
+
+## 정리하며
+
+이 마당은 잡음 주입의 종류、이론적 바탕、PyTorch 구현、심화 기법을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Bishop, C. M. (1995). Training with Noise is Equivalent to Tikhonov Regularization. *Neural Computation*, 7(1), 108-116.
+2. Neelakantan, A., et al. (2015). Adding Gradient Noise Improves Learning for Very Deep Networks. *arXiv*.
+3. Fortunato, M., et al. (2018). Noisy Networks for Exploration. *ICLR*.
+4. An, G. (1996). The Effects of Adding Noise During Backpropagation Training. *Neural Computation*, 8(3), 643-674.

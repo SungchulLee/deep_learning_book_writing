@@ -2,7 +2,9 @@
 
 기본 배열 방식 프림 알고리즘은 $O(V^2)$에 돌아가며, 이는 빽빽한 그래프에는 효율적이지만 성긴 그래프에는 낭비이다. 열쇠값이 가장 작은 꼭짓점을 찾는 선형 훑기를 이진 최소 힙(우선순위 줄)으로 바꾸면 EXTRACT-MIN과 DECREASE-KEY이 모두 $O(\log V)$ 시간이 들어 전체 복잡도가 $O(E \log V)$으로 내려간다. 이 쪽에서는 힙 방식 구현을 자세히 보인다.
 
-## 힙이 왜 도움이 되나
+---
+
+## 1. 힙이 왜 도움이 되나
 
 프림 알고리즘의 되풀이마다 다음이 필요하다:
 
@@ -13,7 +15,9 @@
 
 이진 최소 힙에서는 두 연산 모두 $O(\log V)$이 든다. 꺼내기 $V$번과 줄이기 많아야 $E$번에 걸쳐 이어진 그래프에서는($E \ge V - 1$이므로) 모두 $O((V + E) \log V) = O(E \log V)$이 된다.
 
-## 구현
+---
+
+## 2. 구현
 
 아래 파이썬 구현은 최소 힙을 주는 `heapq`을 쓴다. `heapq`은 DECREASE-KEY을 곧바로 받쳐 주지 않으므로 **게으른 지우기** 전략을 쓴다. 곧 고친 열쇠값으로 새 자리를 밀어 넣고, 그 꼭짓점을 꺼낼 때 예전 자리를 묵은 것으로 여긴다.
 
@@ -28,7 +32,6 @@ DECREASE-KEY 연산이 없는 것을 다룬다.
 import heapq
 from collections import defaultdict
 
-
 # === 그래프 나타내기 ===
 
 def build_adjacency_list(n, edges):
@@ -38,7 +41,6 @@ def build_adjacency_list(n, edges):
         adj[u].append((v, w))
         adj[v].append((u, w))
     return adj
-
 
 # === 힙을 쓴 프림 알고리즘 ===
 
@@ -90,7 +92,6 @@ def prim(n, edges, start=0):
 
     return mst_edges, total_weight
 
-
 # === 보기 ===
 
 if __name__ == "__main__":
@@ -117,13 +118,17 @@ MST edges: [(0, 2, 1), (2, 1, 3), (1, 3, 2)]
 Total weight: 6
 ```
 
-## 게으른 지우기 풀이
+---
+
+## 3. 게으른 지우기 풀이
 
 파이썬의 `heapq` 단원은 DECREASE-KEY 연산을 주지 않는다. 힙에 이미 있는 자리를 고치는 대신 고친 열쇠값으로 새 자리를 밀어 넣는다. 이미 나무에 더해진 꼭짓점(`in_tree[u] == True`)을 꺼내면 그냥 건너뛴다. 이 길을 **게으른 지우기**라 한다.
 
 주고받음은 이렇다. 힙에 자리가 $O(V)$개가 아니라 많아야 $O(E)$개 들어갈 수 있다. 힙 연산마다 ($E \le V^2$이므로) $O(\log E) = O(\log V)$이 들므로 점근 복잡도는 그대로 $O(E \log V)$이다.
 
-## 복잡도 분석
+---
+
+## 4. 복잡도 분석
 
 **시간**: 알고리즘은 `heappush` 연산을 많아야 $E$번, `heappop` 연산을 많아야 $E$번 한다(묵은 자리든 쓸 수 있는 자리든 하나에 한 번씩). 저마다 $O(\log E) = O(\log V)$이 든다. 모두 합하면:
 
@@ -133,7 +138,9 @@ $$
 
 **공간**: 이웃 목록과 힙에 $O(V + E)$.
 
-## 피보나치 힙과 견주기
+---
+
+## 5. 피보나치 힙과 견주기
 
 피보나치 힙은 DECREASE-KEY을 고르게 친 $O(1)$ 시간에, EXTRACT-MIN을 고르게 친 $O(\log V)$ 시간에 받쳐 준다. 이러면 프림의 전체 시간이 다음으로 줄어든다:
 
@@ -149,10 +156,7 @@ $E = O(V)$인 성긴 그래프에서 피보나치 힙은 $O(V \log V)$을 주어
 | 이진 힙 | $O(E \log V)$ | $O(V + E)$ | 두루 쓰기에 가장 좋음 |
 | 피보나치 힙 | $O(E + V \log V)$ | $O(V + E)$ | 실전에서 더 빠른 일이 드묾 |
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 23장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-- [1584. Min Cost to Connect All Points -- LeetCode](https://leetcode.com/problems/min-cost-to-connect-all-points/)
+---
 
 ## 연습문제
 
@@ -205,3 +209,12 @@ $E = O(V)$인 성긴 그래프에서 피보나치 힙은 $O(V \log V)$을 주어
 
 ??? success "연습문제 4 풀이"
     그렇다. 통 줄(무게를 자리 번호로 삼는 통 $W$개의 배열)을 쓴다. 통마다 그 열쇠값을 갖는 꼭짓점을 담는다. 최소 꺼내기는 통을 차례로 훑으므로 꺼내기마다 $O(W)$이 들지만 변마다 통 사이를 한 번만 옮긴다. 모두 합하면 $O(E + VW)$이다. $W$이 작으면(이를테면 $W = O(V)$이면) $O(E + V^2)$이 되어 배열 방식과 같다. $W$이 아주 작으면(상수이면) $O(V + E)$의 선형 시간이 된다. 이것이 실전 구현에서 쓰는 판 엠데 보아스 방식 또는 통 방식이다. $\square$
+
+## 정리하며
+
+이 마당은 힙이 왜 도움이 되나、구현、게으른 지우기 풀이、복잡도 분석을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 23장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [1584. Min Cost to Connect All Points -- LeetCode](https://leetcode.com/problems/min-cost-to-connect-all-points/)

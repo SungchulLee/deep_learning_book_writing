@@ -1,9 +1,10 @@
 # 자기 되돌이 인수 나누기
-## 들어가며
 
 자기 되돌이 모델은 만들어 내는 모델의 가장 바탕이 되는 방식 가운데 하나이다. 핵심 생각은 아름답도록 단순하다. 곧 결합 확률 분포를 조건부 분포의 곱으로 나누어 나타내며, 변수마다 앞선 모든 변수를 바탕으로 미리 헤아린다. 이 장은 옛부터의 시계열 모델에서 요즘의 큰 말 모델까지 모든 자기 되돌이 만들어 내는 모델을 받치는 수학의 바탕을 세운다.
 
-## 확률의 사슬 규칙
+---
+
+## 1. 확률의 사슬 규칙
 
 ### 수학 바탕
 
@@ -37,7 +38,9 @@ $$P(x_1, x_2, x_3) = P(x_3) P(x_2|x_3) P(x_1|x_2, x_3)$$
 
 그림에서는 PixelCNN이 쓰는 가로 훑기(왼쪽에서 오른쪽, 위에서 아래)나 거친 데서 고운 데로 다루는 여러 잣수 방식이 흔한 차례이다.
 
-## 자기 되돌이 성질
+---
+
+## 2. 자기 되돌이 성질
 
 ### 정의
 
@@ -69,7 +72,9 @@ $$\log P_\theta(\mathbf{x}) = \sum_{i=1}^{n} \log P_\theta(x_i | x_{<i})$$
 2. **최대 가능도 익히기**: $\log P_\theta(\mathbf{x})$을 곧바로 가장 좋게 한다
 3. **모델 견주기**: 헷갈림도와 차원마다 비트가 뜻있는 잣대이다
 
-## 조건부 분포를 매개변수로 나타내기
+---
+
+## 3. 조건부 분포를 매개변수로 나타내기
 
 ### 띄엄띄엄한 변수
 
@@ -227,7 +232,9 @@ class ContinuousARModel(nn.Module):
         return nll.mean()
 ```
 
-## 자기 되돌이 모델 익히기
+---
+
+## 4. 자기 되돌이 모델 익히기
 
 ### 최대 가능도 어림
 
@@ -273,7 +280,9 @@ def train_step(model, optimizer, batch):
 2. **빔 찾기**: 만들어 내는 동안 여러 가설을 살핀다
 3. **차례 수준 익히기**: 만들어 낸 차례의 잣대를 가장 좋게 한다
 
-## 자기 되돌이 모델에서 뽑기
+---
+
+## 5. 자기 되돌이 모델에서 뽑기
 
 ### 조상 뽑기
 
@@ -377,7 +386,9 @@ def top_p_sampling(logits, p):
     return sorted_indices.gather(-1, sampled_idx)
 ```
 
-## 계산에 대한 고려
+---
+
+## 6. 계산에 대한 고려
 
 ### 차례대로 만들어 내기의 병목
 
@@ -397,7 +408,9 @@ def top_p_sampling(logits, p):
 2. **나란한 미리 헤아리기**: 토큰 여럿을 한꺼번에 헤아린다(넘겨짚는 풀기)
 3. **자기 되돌이가 아닌 모델**: 가능도의 다룰 수 있음을 나란한 만들어 내기와 맞바꾼다
 
-## 다른 만들어 내는 모델과 견주기
+---
+
+## 7. 다른 만들어 내는 모델과 견주기
 
 | 성질 | 자기 되돌이 | 변분 자기 부호기 | 맞겨루기 만들개 | 흐름 | 퍼짐 |
 |----------|---------------|-----|-----|------|-----------|
@@ -413,7 +426,9 @@ def top_p_sampling(logits, p):
 - 자료에 자연스러운 차례 짜임이 있을 때(글, 소리, 시계열)
 - 만들어 내는 빠르기보다 익히기 효율이 앞설 때
 
-## 계량 금융에서의 쓰임
+---
+
+## 8. 계량 금융에서의 쓰임
 
 ### 시계열 예측
 
@@ -460,24 +475,6 @@ class FinancialARModel(nn.Module):
 
 잦은 거래 쓰임새는 주문의 도착과 성질을 자기 되돌이로 나타내어 저자 미시 짜임의 차례 성질을 담는다.
 
-## 요약
-
-자기 되돌이 모델은 확률의 사슬 규칙에 바탕한 만들어 내는 모델의 원칙 있는 틀을 준다. 핵심 성질은 다음과 같다.
-
-1. **정확한 가능도**: 곧바로 최대 가능도 익히기와 뜻있는 밀도 따지기를 할 수 있다
-2. **너그러움**: 어떤 조건부 분포도 신경망으로 매개변수화할 수 있다
-3. **차례 자료에 잘 맞음**: 글, 소리, 시계열에는 본디 차례가 있다
-4. **차례대로 만들어 내기**: 셈의 으뜸 한계
-
-다음 마디에서는 그림을 위한 PixelCNN, 소리를 위한 WaveNet, 일반 차례를 위한 변환기 같은 구체적인 자기 되돌이 얼개를 살핀다.
-
-## 참고 문헌
-
-1. Bengio, Y., & Bengio, S. (2000). Modeling High-Dimensional Discrete Data with Multi-Layer Neural Networks. *NeurIPS*.
-2. Larochelle, H., & Murray, I. (2011). The Neural Autoregressive Distribution Estimator. *AISTATS*.
-3. Uria, B., Côté, M. A., Gregor, K., Murray, I., & Larochelle, H. (2016). Neural Autoregressive Distribution Estimation. *JMLR*.
-4. Papamakarios, G., Nalisnick, E., Rezende, D. J., Mohamed, S., & Lakshminarayanan, B. (2021). Normalizing Flows for Probabilistic Modeling and Inference. *JMLR*.
-
 ---
 
 ## 연습문제
@@ -489,3 +486,23 @@ class FinancialARModel(nn.Module):
 3. **드러남 치우침**: 드러남 치우침이 만들어 내기 품질에 미치는 영향을 재는 실험을 짜라.
 
 4. **돈살림 쓰임새**: 날마다의 주식 수익률에 대한 자기 되돌이 모델을 세우고 그 밀도 어림 솜씨를 따져 보라.
+
+## 정리하며
+
+자기 되돌이 모델은 확률의 사슬 규칙에 바탕한 만들어 내는 모델의 원칙 있는 틀을 준다. 핵심 성질은 다음과 같다.
+
+1. **정확한 가능도**: 곧바로 최대 가능도 익히기와 뜻있는 밀도 따지기를 할 수 있다
+2. **너그러움**: 어떤 조건부 분포도 신경망으로 매개변수화할 수 있다
+3. **차례 자료에 잘 맞음**: 글, 소리, 시계열에는 본디 차례가 있다
+4. **차례대로 만들어 내기**: 셈의 으뜸 한계
+
+다음 마디에서는 그림을 위한 PixelCNN, 소리를 위한 WaveNet, 일반 차례를 위한 변환기 같은 구체적인 자기 되돌이 얼개를 살핀다.
+
+**참고 문헌**
+
+1. Bengio, Y., & Bengio, S. (2000). Modeling High-Dimensional Discrete Data with Multi-Layer Neural Networks. *NeurIPS*.
+2. Larochelle, H., & Murray, I. (2011). The Neural Autoregressive Distribution Estimator. *AISTATS*.
+3. Uria, B., Côté, M. A., Gregor, K., Murray, I., & Larochelle, H. (2016). Neural Autoregressive Distribution Estimation. *JMLR*.
+4. Papamakarios, G., Nalisnick, E., Rezende, D. J., Mohamed, S., & Lakshminarayanan, B. (2021). Normalizing Flows for Probabilistic Modeling and Inference. *JMLR*.
+
+---

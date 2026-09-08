@@ -2,7 +2,9 @@
 
 [이진 탐색 트리 성질](property.md) 덕분에 이진 탐색 트리에서 가장 작은 열쇠와 가장 큰 열쇠를 찾는 일은 간단하다. 왼쪽 부분 트리의 열쇠는 모두 뿌리보다 작거나 같고 오른쪽 부분 트리의 열쇠는 모두 크므로, 최솟값은 가장 왼쪽 경로의 끝에, 최댓값은 가장 오른쪽 경로의 끝에 있다. 이 연산들은 (오른쪽 부분 트리의 최솟값이 필요한) [삭제](deletion.md)와 [후속자·선행자](successor.md) 질의의 바탕이 되는 구성 블록이다.
 
-## 최솟값 찾기
+---
+
+## 1. 최솟값 찾기
 
 가장 작은 열쇠를 찾으려면 뿌리에서 시작하여 왼쪽 자식 포인터를 따라가다 왼쪽 자식이 없는 노드에 닿으면 된다. 그 노드가 최솟값을 담고 있다.
 
@@ -20,7 +22,9 @@
 
 알고리즘은 층마다 많아야 노드 하나를 들르므로 트리의 높이를 $h$이라 할 때 $O(h)$ 시간에 끝난다.
 
-## 최댓값 찾기
+---
+
+## 2. 최댓값 찾기
 
 대칭적으로, 가장 큰 열쇠는 뿌리에서 시작하여 오른쪽 자식 포인터를 따라가다 오른쪽 자식이 없는 노드에 닿으면 찾을 수 있다.
 
@@ -36,14 +40,18 @@
 
 이것도 $O(h)$ 시간에 끝난다.
 
-## 엄밀한 서술
+---
+
+## 3. 엄밀한 서술
 
 !!! note "정리"
     노드가 $n \geq 1$개이고 높이가 $h$인 이진 탐색 트리에서, 뿌리부터 왼쪽 자식 포인터를 따라가면 가장 작은 열쇠를 $O(h)$ 시간에 찾을 수 있고, 오른쪽 자식 포인터를 따라가면 가장 큰 열쇠를 $O(h)$ 시간에 찾을 수 있다.
 
 **증명**: 최솟값을 보자. $x_0 = \text{root}, x_1 = x_0.\text{left}, x_2 = x_1.\text{left}, \ldots, x_k$이라 하고 $x_k.\text{left} = \text{null}$이라 하자. 이진 탐색 트리 성질에 따라 모든 $i$에 대해 $x_i.\text{key} \geq x_{i+1}.\text{key}$이므로 이 경로 위의 노드 가운데 $x_k$의 열쇠가 가장 작다. 게다가 이 경로 위에 없는 노드 $y$은 어떤 $x_i$의 오른쪽 부분 트리에 있으므로 $y.\text{key} > x_i.\text{key} \geq x_k.\text{key}$이다. 따라서 $x_k.\text{key}$이 전체 최솟값이다. 경로의 변은 많아야 $h$개이므로 알고리즘은 $O(h)$ 시간이 걸린다. 최댓값의 논증은 대칭이다. $\square$
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -52,7 +60,6 @@
 이진 탐색 트리의 성질을 써서 가장 작은 열쇠와 가장 큰 열쇠를 찾는
 재귀 방법과 반복 방법을 모두 보인다.
 """
-
 
 # === 노드 정의 ===
 
@@ -67,7 +74,6 @@ class Node:
     def __repr__(self):
         return f"Node({self.key})"
 
-
 # === 최솟값 ===
 
 def find_min_iterative(node):
@@ -78,7 +84,6 @@ def find_min_iterative(node):
         node = node.left
     return node
 
-
 def find_min_recursive(node):
     """재귀로 가장 작은 열쇠를 찾는다."""
     if node is None:
@@ -86,7 +91,6 @@ def find_min_recursive(node):
     if node.left is None:
         return node
     return find_min_recursive(node.left)
-
 
 # === 최댓값 ===
 
@@ -98,7 +102,6 @@ def find_max_iterative(node):
         node = node.right
     return node
 
-
 def find_max_recursive(node):
     """재귀로 가장 큰 열쇠를 찾는다."""
     if node is None:
@@ -106,7 +109,6 @@ def find_max_recursive(node):
     if node.right is None:
         return node
     return find_max_recursive(node.right)
-
 
 # === 이진 탐색 트리 만들기 ===
 
@@ -120,14 +122,12 @@ def insert(root, key):
         root.right = insert(root.right, key)
     return root
 
-
 def inorder(node):
     """열쇠를 정렬된 순서로 내놓는다."""
     if node is not None:
         yield from inorder(node.left)
         yield node.key
         yield from inorder(node.right)
-
 
 # === 메인 ===
 
@@ -173,10 +173,7 @@ Min of right subtree (rooted at 10): 10
 Max of left subtree (rooted at 3): 7
 ```
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 12.2절](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -209,3 +206,11 @@ Max of left subtree (rooted at 3): 7
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 최솟값 찾기、최댓값 찾기、엄밀한 서술、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 12.2절](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

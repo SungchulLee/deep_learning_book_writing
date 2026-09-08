@@ -2,7 +2,9 @@
 
 점 모임의 삼각 나누기는 점을 서로 가로지르지 않는 모서리로 이어 삼각형을 이룬다. 있을 수 있는 모든 삼각 나누기 가운데 **들로네 삼각 나누기**는 특별하다. 곧 모든 삼각형에 걸쳐 가장 작은 각을 가장 크게 하여, 유한 낱개 방법과 그물 만들기, 땅 모양 나타내기에서 수치 문제를 일으키는 길고 가는 삼각형을 피한다. 들로네 삼각 나누기는 보로노이 그림의 짝 그래프이기도 하다.
 
-## 정의
+---
+
+## 1. 정의
 
 평면 위 점 $n$개 모임 $P$이 주어질 때 **들로네 삼각 나누기** $DT(P)$은 **빈 둘레 동그라미 성질**을 채우는 삼각 나누기이다.
 
@@ -11,7 +13,9 @@
 
 같은 말로 $DT(P)$의 모든 모서리에 대해 그 모서리를 나누어 가진 두 삼각형은(있다면) 들로네 조건을 채운다. 곧 마주 보는 각의 합이 많아야 $\pi$이다.
 
-## 성질
+---
+
+## 2. 성질
 
 들로네 삼각 나누기에는 중요한 성질이 여럿 있다.
 
@@ -22,7 +26,9 @@
 - **가장 가까운 이웃 그래프를 담는다:** 모든 점의 가장 가까운 이웃은 들로네 모서리로 그 점과 이어진다.
 - **유클리드 최소 뻗음 나무를 담는다:** 최소 뻗음 나무는 $DT(P)$의 아래 그래프이다.
 
-## 동그라미 안 살피기
+---
+
+## 3. 동그라미 안 살피기
 
 들로네 삼각 나누기의 바탕 판정은 **동그라미 안 살피기**이다. 곧 네 점 $A, B, C, D$이 주어질 때 $D$은 $\triangle ABC$의 둘레 동그라미 안에 있는가?
 
@@ -41,7 +47,9 @@ $A, B, C$이 반시계 차례이면:
 - $= 0$: $D$은 둘레 동그라미 위에 있다(한 동그라미 위)
 - $< 0$: $D$은 둘레 동그라미 밖에 있다
 
-## 모서리 뒤집기 알고리즘
+---
+
+## 4. 모서리 뒤집기 알고리즘
 
 $DT(P)$을 세우는 단순한 방식이다.
 
@@ -54,7 +62,9 @@ $DT(P)$을 세우는 단순한 방식이다.
 
 **복잡도:** 뒤집기가 잇달아 일어나므로 가장 나쁜 경우 $O(n^2)$이다.
 
-## 조금씩 늘려 세우기
+---
+
+## 5. 조금씩 늘려 세우기
 
 더 쓸모 있는 알고리즘은 점을 하나씩 넣는다.
 
@@ -67,7 +77,9 @@ $DT(P)$을 세우는 단순한 방식이다.
 
 점 자리 찾기 짜임을 쓰면 넣기마다 기댓값으로 $O(\log n)$이 걸려 모두 $O(n \log n)$이 된다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -78,13 +90,11 @@ $DT(P)$을 세우는 단순한 방식이다.
 
 import math
 
-
 # === 기하 판정 ===
 
 def orient(a, b, c):
     """방향 살피기: 반시계이면 양수, 시계이면 음수, 한 줄에 놓이면 0."""
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
-
 
 def in_circle(a, b, c, d):
     """점 d이 삼각형 abc의 둘레 동그라미 안에 있는지 살핀다.
@@ -99,7 +109,6 @@ def in_circle(a, b, c, d):
     return (ax * ax + ay * ay) * (bx * cy - cx * by) \
          - (bx * bx + by * by) * (ax * cy - cx * ay) \
          + (cx * cx + cy * cy) * (ax * by - bx * ay)
-
 
 # === 둘레 동그라미 셈하기 ===
 
@@ -119,14 +128,12 @@ def circumcenter(a, b, c):
         + (cx * cx + cy * cy) * (bx - ax)) / D
     return (ux, uy)
 
-
 def circumradius(a, b, c):
     """삼각형 abc의 둘레 반지름을 셈한다."""
     center = circumcenter(a, b, c)
     if center is None:
         return float("inf")
     return math.hypot(center[0] - a[0], center[1] - a[1])
-
 
 # === 막무가내 들로네 살피기 ===
 
@@ -145,7 +152,6 @@ def is_delaunay(triangles, points):
             if in_circle(a, b, c, p) > 1e-10:
                 return False
     return True
-
 
 # === 메인 ===
 
@@ -186,7 +192,9 @@ Triangulation 1 is Delaunay: True
 Triangulation 2 is Delaunay: True
 ```
 
-## 알고리즘 간추리기
+---
+
+## 7. 알고리즘 간추리기
 
 | 알고리즘 | 시간 | 참고 |
 |---|---|---|
@@ -195,10 +203,7 @@ Triangulation 2 is Delaunay: True
 | 나누어 이기기 | 가장 나쁜 경우 $O(n \log n)$ | 이론으로 가장 좋다 |
 | 포춘 훑기 | $O(n \log n)$ | 보로노이 짝을 거친다 |
 
-## 참고 문헌
-
-- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 9.
-- Guibas, L. & Stolfi, J. "Primitives for the Manipulation of General Subdivisions." *ACM Trans. Graphics*, 1985.
+---
 
 ## 연습문제
 
@@ -231,3 +236,12 @@ Triangulation 2 is Delaunay: True
 
 ??? success "연습문제 4 풀이"
     막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 들로네 삼각 나누기은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$
+
+## 정리하며
+
+이 마당은 정의、성질、동그라미 안 살피기、모서리 뒤집기 알고리즘을 차례로 짚었다.
+
+**참고 문헌**
+
+- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 9.
+- Guibas, L. & Stolfi, J. "Primitives for the Manipulation of General Subdivisions." *ACM Trans. Graphics*, 1985.

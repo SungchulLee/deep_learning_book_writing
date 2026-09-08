@@ -2,11 +2,15 @@
 
 파스칼 삼각형은 칸마다 바로 위 두 칸의 합인 이항 계수의 삼각 배열이다. 보기에 아름다울 뿐 아니라 이항 계수를 효율 좋게 셈하는 길을 주고 알고리즘 살피기, 확률, 수론에 쓰이는 깊은 대수 무늬를 드러낸다.
 
-## 직관
+---
+
+## 1. 직관
 
 삼각형을 줄마다 세운다. 0줄은 $1$뿐이다. 그다음 칸마다 바로 위 두 수를 더해 만든다(없는 칸은 0으로 본다). $n$줄 $k$번째 칸은 $\binom{n}{k}$과 같다.
 
-## 세우기
+---
+
+## 2. 세우기
 
 ```
 0줄:                1
@@ -18,7 +22,9 @@ Row 5:      1   5  10  10   5   1
 Row 6:    1   6  15  20  15   6   1
 ```
 
-## 파스칼 항등식
+---
+
+## 3. 파스칼 항등식
 
 뜻매김하는 되돌이 식은 다음과 같다:
 
@@ -36,7 +42,9 @@ $$
 
     두 경우는 겹치지 않고 빠짐이 없으므로 $\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k}$이다.
 
-## 파스칼 삼각형에 보이는 성질
+---
+
+## 4. 파스칼 삼각형에 보이는 성질
 
 **줄의 합.** $n$줄의 모든 칸을 더하면 $2^n$이다:
 
@@ -77,7 +85,9 @@ $$
 
     마지막 등식은 파스칼 항등식을 쓴다.
 
-## 나누어떨어짐 성질
+---
+
+## 5. 나누어떨어짐 성질
 
 **소수 $p$의 $p$줄.** $p$이 소수이면 $1 \le k \le p-1$에 대해 $\binom{p}{k} \equiv 0 \pmod{p}$이다. 곧 $p$줄의 안쪽 칸이 모두 $p$으로 나누어떨어진다.
 
@@ -87,7 +97,9 @@ $$
 \binom{n}{k} \equiv \prod_{i} \binom{n_i}{k_i} \pmod{p}
 $$
 
-## 파스칼 삼각형 세우기
+---
+
+## 6. 파스칼 삼각형 세우기
 
 ### 온 삼각형
 
@@ -124,7 +136,6 @@ def pascal_row(n: int) -> list[int]:
             row[j] += row[j - 1]
     return row
 
-
 if __name__ == "__main__":
     # === 처음 8줄 찍기 ===
     tri = pascal_triangle(7)
@@ -139,7 +150,9 @@ if __name__ == "__main__":
     print("\nAll row sums verified: sum(row n) = 2^n")
 ```
 
-## 복잡도
+---
+
+## 7. 복잡도
 
 | 연산 | 시간 | 공간 |
 |---|---|---|
@@ -147,10 +160,7 @@ if __name__ == "__main__":
 | 줄 하나 셈하기 | $O(n^2)$ | $O(n)$ |
 | 미리 세운 표에서 $\binom{n}{k}$ 찾기 | $O(1)$ | 미리 셈한 $O(n^2)$ |
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
-- Graham, R. L., Knuth, D. E., & Patashnik, O. (1994). *Concrete Mathematics* (2nd ed.). Addison-Wesley. Chapter 5.
+---
 
 ## 연습문제
 
@@ -183,3 +193,12 @@ $p$이 소수일 때 파스칼 삼각형 $p$줄의 (양 끝을 뺀) 모든 칸�
 
 ??? success "연습문제 4 풀이"
     되돌이 식 $\binom{n}{k} = \binom{n}{k-1} \cdot (n-k+1)/k$을 쓴다. $\binom{n}{0} = 1$에서 시작한다. $k = 1, \ldots, n$에 대해 $(n - k + 1)/k$을 곱한다. 이는 곱셈 한 번과 나눗셈 한 번으로 앞 칸에서 다음 칸을 셈하므로 칸마다 $O(1)$, 온 시간 $O(n)$이다. 줄을 크기 $n + 1$인 배열에 담는다. 온 삼각형을 세울 필요가 없다. 정수 셈에서는 분수를 피하도록 차례를 지킨다. 곱 $\binom{n}{k} \cdot (n - k)$은 늘 $k + 1$으로 나누어떨어진다.
+
+## 정리하며
+
+이 마당은 직관、세우기、파스칼 항등식、파스칼 삼각형에 보이는 성질을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
+- Graham, R. L., Knuth, D. E., & Patashnik, O. (1994). *Concrete Mathematics* (2nd ed.). Addison-Wesley. Chapter 5.

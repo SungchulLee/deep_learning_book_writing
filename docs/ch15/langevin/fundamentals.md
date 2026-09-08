@@ -3,7 +3,7 @@
 
 ---
 
-## 물리에서의 뿌리: 브라운 운동
+## 1. 물리에서의 뿌리: 브라운 운동
 
 1908년 폴 랑주뱅은 **브라운 운동**, 곧 액체에 떠 있는 알갱이가 둘레 분자와 부딪히며 마구 움직이는 것을 그리는 방정식을 내놓았다. 이 방정식은 (퍼텐셜 에너지에서 오는) 정해진 힘과 (열 잡음에서 오는) 무작위 흔들림을 하나로 꿰었다.
 
@@ -52,7 +52,7 @@ $$
 
 ---
 
-## 표집을 위한 랑주뱅 SDE
+## 2. 표집을 위한 랑주뱅 SDE
 
 ### 정식화
 
@@ -86,7 +86,7 @@ $dW_t$ 앞의 상수 $\sqrt{2}$은 아무렇게나 정한 것이 아니다. 멈�
 
 ---
 
-## 점수 함수
+## 3. 점수 함수
 
 **점수 함수** $\mathbf{s}(x) = \nabla_x \log \pi(x)$은 랑주뱅 방법의 중심 양이다:
 
@@ -103,7 +103,7 @@ $$
 
 ---
 
-## 온도를 넣은 일반 꼴
+## 4. 온도를 넣은 일반 꼴
 
 온도 $T$에서 과녁 분포는 $\pi_T(x) \propto \exp(-U(x)/T)$이고 SDE은 다음처럼 된다:
 
@@ -120,7 +120,7 @@ $$
 
 ---
 
-## 포커-플랑크 방정식
+## 5. 포커-플랑크 방정식
 
 ### 밀도의 흐름
 
@@ -154,7 +154,7 @@ $$
 
 ---
 
-## 모임 보장
+## 6. 모임 보장
 
 ### 모임 정리
 
@@ -174,7 +174,7 @@ $d$차원 가우스 과녁에서 섞임 시간은 $\mathcal{O}(d \cdot \kappa)$�
 
 ---
 
-## 잘게 나누기
+## 7. 잘게 나누기
 
 이어진 SDE을 셈하려면 잘게 나눠야 한다. 오일러-마루야마 방식은 다음을 준다:
 
@@ -193,7 +193,7 @@ $$
 
 ---
 
-## 담금질한 랑주뱅 동역학
+## 8. 담금질한 랑주뱅 동역학
 
 표준 랑주뱅은 봉우리가 여럿인 분포에서 애를 먹는다. 온도 담금질은 시간에 따라 줄어드는 일정 $T(t)$을 들여온다:
 
@@ -217,7 +217,7 @@ Return x
 
 ---
 
-## 최적화와의 이음
+## 9. 최적화와의 이음
 
 ### 온도 0 극한으로서의 기울기 내려가기
 
@@ -233,7 +233,7 @@ HMC는 보조 운동량을 두어 퍼져 나가는 대신 탄도처럼 살펴보
 
 ---
 
-## 미리 다듬기
+## 10. 미리 다듬기
 
 과녁이 방향마다 눈금이 다르면 **미리 다듬은 랑주뱅**을 써라:
 
@@ -245,7 +245,7 @@ $$
 
 ---
 
-## PyTorch 구현
+## 11. PyTorch 구현
 
 ```python
 import torch
@@ -276,7 +276,6 @@ class LangevinSDE:
             return torch.stack(trajectory)
         return x
 
-
 # 보기: 2차원 가우스
 mu = torch.tensor([2.0, -1.0])
 cov = torch.tensor([[1.0, 0.6], [0.6, 1.0]])
@@ -296,29 +295,6 @@ print(f"True mean:   [{mu[0]:.3f}, {mu[1]:.3f}]")
 
 ---
 
-## 요약
-
-| 부분 | 식 | 몫 |
-|-----------|------------|------|
-| **SDE** | $dx_t = s(x_t) dt + \sqrt{2} dW_t$ | 동역학의 정의 |
-| **흐름** | $s(x) = \nabla \log \pi(x)$ | 확률이 높은 쪽으로 움직인다 |
-| **퍼짐** | $\sqrt{2} dW_t$ | 살펴보기를 가능하게 한다 |
-| **멈춘 분포** | $\pi(x)$ | 표본이 이것으로 모인다 |
-| **포커-플랑크** | $\partial_t \rho = -\nabla \cdot (\rho s) + \Delta \rho$ | 밀도의 흐름 |
-| **온도** | 잡음의 눈금을 정하고 담금질을 가능하게 한다 | |
-| **잡음 없음** | 기울기 올라가기(MAP)로 되돌아간다 | |
-
----
-
-## 참고 문헌
-
-1. Langevin, P. (1908). Sur la théorie du mouvement brownien. *Comptes Rendus de l'Académie des Sciences*, 146, 530-533.
-2. Gardiner, C. W. (2009). *Stochastic Methods: A Handbook for the Natural and Social Sciences*. Springer.
-3. Pavliotis, G. A. (2014). *Stochastic Processes and Applications*. Springer.
-4. Roberts, G. O., & Tweedie, R. L. (1996). Exponential convergence of Langevin distributions and their discrete approximations. *Bernoulli*, 2(4), 341-363.
-5. Welling, M., & Teh, Y. W. (2011). Bayesian learning via stochastic gradient Langevin dynamics. *ICML*.
-6. Song, Y., & Ermon, S. (2019). Generative modeling by estimating gradients of the data distribution. *NeurIPS*.
-
 ## 연습문제
 
 1. **포커-플랑크 확인.** $\rho = \pi \propto \exp(-U)$에서 시작해 포커-플랑크 오른쪽 변이 사라지는지 확인하여라.
@@ -332,3 +308,26 @@ print(f"True mean:   [{mu[0]:.3f}, {mu[1]:.3f}]")
 5. **모임 속도.** 흩어짐이 $\sigma^2$인 1차원 가우스에서 표본 흩어짐이 참 흩어짐으로 모이는 속도를 시간과 걸음 크기의 함수로 이끌어 내어라.
 
 ---
+
+## 정리하며
+
+| 부분 | 식 | 몫 |
+|-----------|------------|------|
+| **SDE** | $dx_t = s(x_t) dt + \sqrt{2} dW_t$ | 동역학의 정의 |
+| **흐름** | $s(x) = \nabla \log \pi(x)$ | 확률이 높은 쪽으로 움직인다 |
+| **퍼짐** | $\sqrt{2} dW_t$ | 살펴보기를 가능하게 한다 |
+| **멈춘 분포** | $\pi(x)$ | 표본이 이것으로 모인다 |
+| **포커-플랑크** | $\partial_t \rho = -\nabla \cdot (\rho s) + \Delta \rho$ | 밀도의 흐름 |
+| **온도** | 잡음의 눈금을 정하고 담금질을 가능하게 한다 | |
+| **잡음 없음** | 기울기 올라가기(MAP)로 되돌아간다 | |
+
+---
+
+**참고 문헌**
+
+1. Langevin, P. (1908). Sur la théorie du mouvement brownien. *Comptes Rendus de l'Académie des Sciences*, 146, 530-533.
+2. Gardiner, C. W. (2009). *Stochastic Methods: A Handbook for the Natural and Social Sciences*. Springer.
+3. Pavliotis, G. A. (2014). *Stochastic Processes and Applications*. Springer.
+4. Roberts, G. O., & Tweedie, R. L. (1996). Exponential convergence of Langevin distributions and their discrete approximations. *Bernoulli*, 2(4), 341-363.
+5. Welling, M., & Teh, Y. W. (2011). Bayesian learning via stochastic gradient Langevin dynamics. *ICML*.
+6. Song, Y., & Ermon, S. (2019). Generative modeling by estimating gradients of the data distribution. *NeurIPS*.

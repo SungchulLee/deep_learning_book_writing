@@ -2,7 +2,9 @@
 
 삭제는 이진 탐색 트리 연산 가운데 가장 손이 많이 간다. 노드를 없애면서도 트리 전체의 [이진 탐색 트리 성질](property.md)을 지켜야 하기 때문이다. 언제나 잎을 더하는 [삽입](insertion.md)과 달리, 삭제는 대상 노드에 자식이 있으면 구조를 다시 짜야 할 수도 있다. 알고리즘은 지울 노드의 자식 수에 따라 세 경우를 다룬다.
 
-## 세 가지 경우
+---
+
+## 1. 세 가지 경우
 
 지울 노드를 $z$이라 하자.
 
@@ -60,15 +62,21 @@ Delete 5 (has two children):
 !!! note "후속자와 선행자"
     중위 후속자 대신 **중위 선행자**(왼쪽 부분 트리에서 가장 큰 노드)를 써도 된다. 두 방법 모두 이진 탐색 트리의 성질을 지킨다. 어떤 구현은 평균적으로 트리를 더 균형 있게 두려고 둘을 번갈아 쓴다.
 
-## transplant 도우미
+---
+
+## 2. transplant 도우미
 
 CLRS의 방법은 한 부분 트리를 다른 부분 트리로 바꾸는 `transplant` 부프로그램을 쓴다. `transplant(T, u, v)`은 $u$의 부모가 $v$을 가리키도록 고쳐 $u$을 뿌리로 하는 부분 트리를 $v$을 뿌리로 하는 부분 트리로 바꾼다.
 
-## 복잡도
+---
+
+## 3. 복잡도
 
 삭제는 뿌리에서 잎까지의 경로를 많아야 두 번 훑으므로(노드를 찾는 데 한 번, 후속자를 찾는 데 한 번) 트리의 높이를 $h$이라 할 때 $O(h)$ 시간에 끝난다. 균형 잡힌 이진 탐색 트리에서는 $O(\log n)$, 치우친 트리에서는 $O(n)$이다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -78,7 +86,6 @@ CLRS의 방법은 한 부분 트리를 다른 부분 트리로 바꾸는 `transp
 자식 하나인 노드 갈아 끼우기, 그리고 중위 후속자로 자식 둘인 노드
 갈아 끼우기이다.
 """
-
 
 # === 노드 정의 ===
 
@@ -93,7 +100,6 @@ class Node:
     def __repr__(self):
         return f"Node({self.key})"
 
-
 # === 이진 탐색 트리 연산 ===
 
 def insert(root, key):
@@ -106,13 +112,11 @@ def insert(root, key):
         root.right = insert(root.right, key)
     return root
 
-
 def find_min(node):
     """부분 트리에서 열쇠가 가장 작은 노드를 찾는다."""
     while node.left is not None:
         node = node.left
     return node
-
 
 def delete(root, key):
     """주어진 열쇠를 가진 노드를 이진 탐색 트리에서 지운다.
@@ -145,7 +149,6 @@ def delete(root, key):
 
     return root
 
-
 # === 보이기 ===
 
 def inorder(node):
@@ -155,7 +158,6 @@ def inorder(node):
         yield node.key
         yield from inorder(node.right)
 
-
 def print_tree(node, level=0, prefix="Root: "):
     """트리의 짜임을 출력한다."""
     if node is not None:
@@ -163,7 +165,6 @@ def print_tree(node, level=0, prefix="Root: "):
         if node.left is not None or node.right is not None:
             print_tree(node.left, level + 1, "L--- ")
             print_tree(node.right, level + 1, "R--- ")
-
 
 # === 메인 ===
 
@@ -224,10 +225,7 @@ Root: 7
 Inorder: [1, 3, 7, 8, 9]
 ```
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 12.3절](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -260,3 +258,11 @@ Inorder: [1, 3, 7, 8, 9]
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 세 가지 경우、transplant 도우미、복잡도、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 12.3절](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

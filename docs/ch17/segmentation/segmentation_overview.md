@@ -1,5 +1,8 @@
 # 나누기의 근본
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,7 +12,9 @@
 - 기본 값매김 잣대(겹침 비, 다이스 계수, 화소 정확도)를 짠다
 - 뜻 나누기의 흔한 쓰임새와 어려움을 알아본다
 
-## 뜻 나누기 들어가기
+---
+
+## 2. 뜻 나누기 들어가기
 
 뜻 나누기는 셈틀 보기에서 가장 결이 고운 보기 이해 가운데 하나이다. 그림 전체에 이름표 하나를 붙이는 그림 가르기나 두름 상자로 물체 자리를 잡는 물체 알아내기와 달리, 뜻 나누기는 그림의 **화소마다** 미리 정해 둔 갈래를 매긴다.
 
@@ -50,7 +55,9 @@ $$\mathbf{\hat{Y}} \in [0, 1]^{H \times W \times K}$$
 
 $$y_{i,j} = \arg\max_k \hat{y}_{i,j,k}$$
 
-## 화소마다 갈래 매기기
+---
+
+## 3. 화소마다 갈래 매기기
 
 ### 생각의 얼거리
 
@@ -99,7 +106,9 @@ class NaivePixelClassifier(nn.Module):
 3. 받는 자리를 효율적으로 넓히는 **벌린/구멍 뚫린 누비기**
 4. 크기가 다른 물체를 담아내는 **여러 잣수 다루기**
 
-## 부호기-풀개 얼개
+---
+
+## 4. 부호기-풀개 얼개
 
 부호기-풀개 얼개는 뜻 나누기의 바탕이 되는 틀이다. 이는 뜻 이해(무엇)와 자리 잡기(어디) 사이의 근본 맞바꿈을 다룬다.
 
@@ -235,7 +244,9 @@ class EncoderDecoderWithSkips(nn.Module):
 3. **여러 잣수 앎**: 해상도가 다른 특징을 아우른다
 4. **익히기의 든든함**: 깊은 그물을 가장 좋게 하기가 쉬워진다
 
-## 평가 지표
+---
+
+## 5. 평가 지표
 
 ### 겹침 비(IoU / 자카드 지수)
 
@@ -369,7 +380,9 @@ Prediction B (correctly segments lesion):
 IoU penalizes missing small objects that pixel accuracy ignores.
 ```
 
-## 뜻 나누기의 쓰임새
+---
+
+## 6. 뜻 나누기의 쓰임새
 
 ### 스스로 몰기
 
@@ -412,7 +425,9 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 - 뒷바탕 갈아 끼우기
 - 늘린 현실 물체 놓기
 
-## 뜻 나누기의 핵심 어려움
+---
+
+## 7. 뜻 나누기의 핵심 어려움
 
 ### 갈래 치우침
 
@@ -458,18 +473,7 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 - 앎 내리기
 - 신경망 얼개 찾기
 
-## 요약
-
-뜻 나누기는 그림 이해를 화소 수준까지 넓혀 결이 고운 장면 살피기를 가능하게 한다. 건너뛰는 이음을 갖춘 부호기-풀개 얼개는 뜻 이해와 자리 정밀도의 균형을 잡는 바탕 틀이 되었다. 특히 치우친 자료 뭉치에서는 겹침 비와 다이스 잣대로 제대로 값매김하는 일이 꼭 필요하다.
-
-이 분야는 빠르게 나아가고 있으며, 변환기 바탕 얼개와 스스로 살피는 배움이 할 수 있는 것의 한계를 밀어내고 있다. 이어지는 절에서는 요즘 뜻 나누기를 빚어낸 구체적인 얼개, 곧 FCN, U-넷, DeepLab을 깊이 파고든다.
-
-## 더 읽을거리
-
-1. Long, J., Shelhamer, E., & Darrell, T. (2015). Fully Convolutional Networks for Semantic Segmentation. CVPR.
-2. Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. MICCAI.
-3. Chen, L.-C., et al. (2017). Rethinking Atrous Convolution for Semantic Image Segmentation. arXiv.
-4. Minaee, S., et al. (2021). Image Segmentation Using Deep Learning: A Survey. IEEE TPAMI.
+---
 
 ## 연습문제
 
@@ -502,3 +506,16 @@ U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요�
 
 ??? success "연습문제 4 풀이"
     마스크 R-CNN은 이미 있던 갈래 매기기 가지와 두름 상자 되돌리기 가지 곁에, 알아낸 물체마다 두 갈래 마스크를 어림하는 나란한 가지를 더한다. 핵심 새로움은 RoI 모으기를 갈음하는 **RoIAlign**이다. RoI 모으기는 양자화된 자리표(정수 화소 자리로 반올림)를 써서 특징 지도와 본디 그림 사이가 어긋난다. RoIAlign은 정확한 뜬소수점 자리에서 두 줄 사이 끼움을 써서 양자화 찌꺼기를 없앤다. 이 정밀한 맞춤이 화소 수준 마스크 어림에 결정적이며, RoI 모으기에 견주어 마스크 AP를 상대적으로 10~50% 올린다.
+
+## 정리하며
+
+뜻 나누기는 그림 이해를 화소 수준까지 넓혀 결이 고운 장면 살피기를 가능하게 한다. 건너뛰는 이음을 갖춘 부호기-풀개 얼개는 뜻 이해와 자리 정밀도의 균형을 잡는 바탕 틀이 되었다. 특히 치우친 자료 뭉치에서는 겹침 비와 다이스 잣대로 제대로 값매김하는 일이 꼭 필요하다.
+
+이 분야는 빠르게 나아가고 있으며, 변환기 바탕 얼개와 스스로 살피는 배움이 할 수 있는 것의 한계를 밀어내고 있다. 이어지는 절에서는 요즘 뜻 나누기를 빚어낸 구체적인 얼개, 곧 FCN, U-넷, DeepLab을 깊이 파고든다.
+
+**더 읽을거리**
+
+1. Long, J., Shelhamer, E., & Darrell, T. (2015). Fully Convolutional Networks for Semantic Segmentation. CVPR.
+2. Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. MICCAI.
+3. Chen, L.-C., et al. (2017). Rethinking Atrous Convolution for Semantic Image Segmentation. arXiv.
+4. Minaee, S., et al. (2021). Image Segmentation Using Deep Learning: A Survey. IEEE TPAMI.

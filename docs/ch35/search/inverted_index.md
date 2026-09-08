@@ -2,7 +2,9 @@
 
 글월 뭉치가 주어지면 찾기 엔진은 물음 낱말을 담은 글월을 모두 빠르게 찾아야 한다. 막무가내로 하면 물음마다 온 글월을 훑으므로 $O(N \cdot D)$이 든다. 여기서 $N$은 글월 개수이고 $D$은 글월의 평균 길이다. **뒤집은 색인**은 뭉치를 미리 다듬어, 물음이 온 뭉치 크기가 아니라 들어맞는 글월 개수에 견주는 때에 돌게 한다.
 
-## 얼개
+---
+
+## 1. 얼개
 
 뒤집은 색인은 낱말마다 **딸림 목록**, 곧 그 낱말을 담은 글월 번호를 매긴 목록을 맞댄다.
 
@@ -11,7 +13,9 @@
 
 때에 따라 딸림 항목마다 **낱말 잦기** $\text{tf}(t, d)$과 $d$ 안에서 $t$이 나오는 자리를 함께 갈무리한다.
 
-## 세우기
+---
+
+## 2. 세우기
 
 낱말 조각이 모두 $T$개인 글월 $N$개가 주어지면:
 
@@ -23,7 +27,9 @@ $$
 T_{\text{세우기}} = O(T \log T), \quad S = O(T)
 $$
 
-## 물음 다루기
+---
+
+## 3. 물음 다루기
 
 ### 낱말 하나 물음
 
@@ -51,7 +57,9 @@ $$
 T_{\text{OR}} = O(|P_1| + |P_2|)
 $$
 
-## TF-IDF 점수 매기기
+---
+
+## 4. TF-IDF 점수 매기기
 
 걸맞음으로 열매에 등수를 매기려 (낱말, 글월) 짝마다 **TF-IDF** 점수를 매긴다.
 
@@ -66,7 +74,9 @@ IDF 인자 $\log(N / \text{df}(t))$은 ("the" 같은) 흔한 낱말의 무게를
 !!! tip "코사인 닮음"
     물음 $q$과 글월 $d$의 닮음을 셈하려면 둘을 TF-IDF 벡터로 나타내고 코사인 닮음을 셈한다. $\cos(q, d) = \frac{q \cdot d}{\|q\| \cdot \|d\|}$.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -79,7 +89,6 @@ TF-IDF 점수로 열매에 등수를 매긴다.
 from __future__ import annotations
 import math
 from collections import defaultdict
-
 
 # === 뒤집은 색인 ==============================================================
 
@@ -144,7 +153,6 @@ class InvertedIndex:
         ranked = sorted(scores.items(), key=lambda x: -x[1])
         return ranked
 
-
 # === 메인 =====================================================================
 
 if __name__ == "__main__":
@@ -191,10 +199,7 @@ TF-IDF ranking for 'fox rabbit':
 
 글월 1과 3이 "fox"와 "rabbit"을 모두 담아 등수가 가장 높다. 글월 0은 "fox"만 담아 점수가 낮다. TF-IDF 점수는 낱말이 드문 정도를 옳게 비춘다. (글월 넷 가운데 둘에만 나오는) "rabbit"이 흔한 낱말보다 점수에 더 이바지한다.
 
-## 참고 문헌
-
-- Manning, C.D., Raghavan, P., and Schutze, H. *Introduction to Information Retrieval*. Cambridge University Press, 2008
-- Zobel, J. and Moffat, A. "Inverted Files for Text Search Engines." *ACM Computing Surveys*, 2006
+---
 
 ## 연습문제
 
@@ -235,3 +240,12 @@ TF-IDF ranking for 'fox rabbit':
 
 ??? success "연습문제 5 풀이"
     **뒤집은 색인**: 낱말을 글월에 맞댄다. 물음 낱말을 담은 글월을 찾는 데 값싸다(낱말마다 $O(1)$ 찾기 + 딸림 목록 훑기). 물음 다루기에 꼭 있어야 한다. **바로 선 색인**: 글월을 그 낱말(자리, 잦기와 함께)에 맞댄다. 글월 켜의 특징(보기로 글월 길이, 어느 글월의 낱말 잦기)을 셈하는 데 값싸다. 점수 매기기와 미리보기 글 짓기에 꼭 있어야 한다. 찾기 엔진은 둘을 함께 쓴다. (1) 뒤집은 색인이 물음에 들어맞는 후보 글월을 가려낸다(되찾기 마디). (2) 바로 선 색인이 후보마다 자세한 걸맞음 점수를 셈하고(등수 매기기 마디) 찾기 열매에 보이는 미리보기 글을 짓는다. 뒤집은 색인이 더 큰 얼개로(누리 잣대 엔진에서 약 100 TB) 원반이나 SSD에 갈무리된다. 바로 선 색인은 더 작고(돌려주는 글월만 점수를 매기면 된다) 흔히 기억에 맞대어 쓴다. $\square$
+
+## 정리하며
+
+이 마당은 얼개、세우기、물음 다루기、TF-IDF 점수 매기기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Manning, C.D., Raghavan, P., and Schutze, H. *Introduction to Information Retrieval*. Cambridge University Press, 2008
+- Zobel, J. and Moffat, A. "Inverted Files for Text Search Engines." *ACM Computing Surveys*, 2006

@@ -2,11 +2,15 @@
 
 보통의 두 갈래 빠른 정렬은 원소를 "축보다 작다"와 "축보다 크다"로 나눈다. 배열에 같은 열쇠가 많으면 같은 원소가 축의 양쪽에 흩어져 뒤이은 되돌이 부름에서 헛된 견줌이 생긴다. **세 갈래 나눔**(다익스트라의 이름을 딴 네덜란드 국기 알고리즘이라고도 한다)은 배열을 축보다 작은 것, 축과 같은 것, 축보다 큰 것 세 무리로 쪼갠다. 같은 원소는 곧바로 마지막 자리에 놓여 되돌이에서 빠지므로, 같은 값이 많은 입력에서 도는 시간이 $O(n^2)$에서 $O(n \log n)$으로 줄 수 있다.
 
-## 네덜란드 국기 문제
+---
+
+## 1. 네덜란드 국기 문제
 
 다익스트라는 1976년에 이 문제를 내놓았다. 빨강, 하양, 파랑으로 칠해진 원소의 배열이 주어졌을 때 맞바꿈만으로 빨강이 먼저, 그다음 하양, 그다음 파랑이 오도록 다시 늘어놓으라는 것이다. 세 갈래 나눔은 가리개 둘로 갈라지는 세 자리를 지녀 이를 푼다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 축 값 $v$과 배열 $A[lo..hi]$이 주어지면 가리개 셋을 지닌다.
 
@@ -28,7 +32,9 @@ $$
 
 이 알고리즘은 $A[lo..lt-1]$과 $A[gt+1..hi]$에서만 되돌이하며 $v$과 같은 원소는 모두 건너뛴다.
 
-## 복잡도
+---
+
+## 3. 복잡도
 
 | 입력 종류 | 보통의 빠른 정렬 | 세 갈래 빠른 정렬 |
 |------------|-------------------|---------------------|
@@ -41,7 +47,9 @@ $$
 !!! tip "엔트로피에 가장 알맞은 정렬"
     세 갈래 빠른 정렬은 **엔트로피에 가장 알맞다**. 기대 도는 시간이 열쇠 분포의 섀넌 엔트로피 $H = -\sum p_i \log p_i$에 $n$을 곱한 값에 비례한다. 같은 열쇠가 많으면 엔트로피가 낮아 정렬이 더 빠르다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -53,7 +61,6 @@ $$
 """
 
 import random
-
 
 # === 세 갈래 나눔 ===
 
@@ -83,7 +90,6 @@ def three_way_partition(arr: list, lo: int, hi: int) -> tuple:
 
     return lt, gt
 
-
 # === 세 갈래 빠른 정렬 ===
 
 def three_way_quicksort(arr: list, lo: int, hi: int) -> None:
@@ -93,7 +99,6 @@ def three_way_quicksort(arr: list, lo: int, hi: int) -> None:
     lt, gt = three_way_partition(arr, lo, hi)
     three_way_quicksort(arr, lo, lt - 1)
     three_way_quicksort(arr, gt + 1, hi)
-
 
 # === 시연 ===
 
@@ -139,12 +144,7 @@ All equal: [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
 After:     [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
 ```
 
-## 참고 문헌
-
-- Dijkstra, E. W. (1976). *A Discipline of Programming*. Prentice-Hall.
-- Bentley, J. L., & McIlroy, M. D. (1993). Engineering a sort function. *Software: Practice and Experience*, 23(11), 1249-1265.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
-
+---
 
 ## 연습문제
 
@@ -177,3 +177,13 @@ float32 학습 손실 값 1000만 개를 정렬할 때 세 갈래 나눔을 다�
 
 ??? success "연습문제 4 풀이"
     $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.
+
+## 정리하며
+
+이 마당은 네덜란드 국기 문제、알고리즘、복잡도、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Dijkstra, E. W. (1976). *A Discipline of Programming*. Prentice-Hall.
+- Bentley, J. L., & McIlroy, M. D. (1993). Engineering a sort function. *Software: Practice and Experience*, 23(11), 1249-1265.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.

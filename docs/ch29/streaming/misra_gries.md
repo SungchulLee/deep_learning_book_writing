@@ -6,7 +6,9 @@
 이는 엄청날 수 있다. 미스라-그리스 알고리즘은 셈틀 $k - 1$개만으로,
 흐름 길이와 상관없이 공간 $O(k)$으로 이를 푼다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 온 모임 $\mathcal{U}$ 위의 흐름 $a_1, a_2, \dots, a_n$과 잡 $k \ge 2$이 주어질 때
 잦음이 $n/k$을 넘는 원소를 모두 찾아라.
@@ -14,7 +16,9 @@
 그런 원소는 많아야 $k - 1$개다(저마다 $n/k$을 넘는 원소가 $k$개면
 온 나타남이 $n$을 넘어야 하기 때문이다).
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 많아야 $k - 1$개의 후보-셈틀 짝 모임
 $D = \{(e_i, c_i)\}$을 지닌다.
@@ -35,7 +39,9 @@ $D = \{(e_i, c_i)\}$을 지닌다.
     그 나타남을 모두 지울 만큼 다른 원소가 많지 않으므로
     살아남는다.
 
-## 올바름 보장
+---
+
+## 3. 올바름 보장
 
 **정리.** 잦음이 $f_e > n/k$인 원소는 모두 마지막 모임 $D$에
 나타난다.
@@ -50,7 +56,9 @@ $\square$
 알고리즘은 $f_e \le n/k$인 원소도 남길 수 있지만(거짓 양성)
 참 큰손을 놓치는 일은 결코 없다(거짓 음성 없음).
 
-## 어긋남 가둠
+---
+
+## 4. 어긋남 가둠
 
 흐름을 다 다룬 뒤 $D$에 있는 원소 $e$의 어림 셈 $\hat{f}_e$은
 다음을 만족한다:
@@ -62,7 +70,9 @@ $$
 참 셈을 넘치게 세는 일은 없고 모자라는 정도는 많아야
 $n/k$이다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -71,7 +81,6 @@ $n/k$이다.
 Space: O(k)
 때 : 흩기 표로 짜면 고루 나누어 O(n)
 """
-
 
 # === 미스라-그리스 ===
 class MisraGries:
@@ -101,7 +110,6 @@ class MisraGries:
         """큰손 후보와 그 어림 셈을 돌려준다."""
         return dict(self.counters)
 
-
 # === 확인 지나기 ===
 def verify_heavy_hitters(
     stream: list[str], candidates: dict[str, int], k: int
@@ -113,7 +121,6 @@ def verify_heavy_hitters(
         if item in counts:
             counts[item] += 1
     return {item: count for item, count in counts.items() if count > n // k}
-
 
 # === 보기 ===
 if __name__ == "__main__":
@@ -131,7 +138,9 @@ if __name__ == "__main__":
     print(f"Confirmed heavy hitters (freq > {len(stream)//k}): {confirmed}")
 ```
 
-## 복잡도
+---
+
+## 6. 복잡도
 
 | 측면 | 한계 |
 |---|---|
@@ -141,7 +150,9 @@ if __name__ == "__main__":
 | 거짓 음성 | 0(보장됨) |
 | 거짓 양성 | 많아야 $k - 1$ |
 
-## 딸린 알고리즘과 견주기
+---
+
+## 7. 딸린 알고리즘과 견주기
 
 | 알고리즘 | 공간 | 셈 | 정해짐 |
 |---|---|---|---|
@@ -154,13 +165,7 @@ if __name__ == "__main__":
     모든 셈틀을 내리는 대신 셈이 가장 작은 후보를 바꾸어
     실제로 더 빡빡한 어긋남 가둠을 준다.
 
-## 참고 문헌
-
-- Misra, J. & Gries, D. "Finding repeated elements." *Science of Computer
-  Programming*, 2(2), 1982.
-- Muthukrishnan, S. "Data Streams: Algorithms and Applications." Foundations
-  and Trends in Theoretical Computer Science, 2005.
-
+---
 
 ## 연습문제
 
@@ -193,3 +198,14 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     자연어 다루기에서 익히기 말뭉치에는 서로 다른 토막이 수백만 개 있다. 미스라-그리스(또는 공간 아끼기)는 말뭉치를 흐름으로 한 번 지나며 위 $k$개 낱말에 기억 $O(k)$을 써서 가장 잦은 토막을 가려낸다. 쓰임새: (1) 낱말 박아 넣기용 낱말 짓기($> T$번 나타나는 토막만 남김), (2) 하위 낱말 토막 내기(BPE은 글자 잦음에서 시작한다), (3) 흔한 말 찾기, (4) 익히기 전 드문 토막 거르기. 흐름 방식은 기억에 다 담기지 않는 말뭉치도 다룬다.
+
+## 정리하며
+
+이 마당은 문제 서술、알고리즘、올바름 보장、어긋남 가둠을 차례로 짚었다.
+
+**참고 문헌**
+
+- Misra, J. & Gries, D. "Finding repeated elements." *Science of Computer
+  Programming*, 2(2), 1982.
+- Muthukrishnan, S. "Data Streams: Algorithms and Applications." Foundations
+  and Trends in Theoretical Computer Science, 2005.

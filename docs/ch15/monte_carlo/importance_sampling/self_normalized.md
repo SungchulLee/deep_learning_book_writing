@@ -1,9 +1,10 @@
 # 스스로 고르게 하는 중요도 표집
-## 개요
 
 스스로 고르게 하는 중요도 표집(SNIS)은 베이즈 추론의 일꾼 방법이다. 베이즈 추론에서는 뒤확률 분포가 고르게 하는 상수까지만 알려져 있다. 표준 중요도 표집과 달리 SNIS은 같은 중요도 표본으로 분자와 분모를 함께 어림해 고르게 하지 않은 과녁 밀도를 다룬다.
 
-## 고르게 하지 않은 과녁 문제
+---
+
+## 1. 고르게 하지 않은 과녁 문제
 
 ### 베이즈 뒤확률의 짜임
 
@@ -37,7 +38,9 @@ $$
 
 표준 중요도 표집은 $\pi(\theta)$의 값을 정확히 매겨야 하는데, $Z$을 모르면 그럴 수 없다.
 
-## 스스로 고르게 하는 어림자
+---
+
+## 2. 스스로 고르게 하는 어림자
 
 ### 유도
 
@@ -79,7 +82,9 @@ $$
 
 이는 무게의 합이 1인 $h(\theta_i)$의 **무게 준 평균**이다.
 
-## SNIS의 성질
+---
+
+## 3. SNIS의 성질
 
 ### 치우침
 
@@ -127,7 +132,9 @@ $$
 \text{Var}(\hat{I}_{\text{SNIS}}) \approx \frac{1}{n} \text{Var}_\pi\left[(h(\theta) - I) \cdot \frac{\pi(\theta)}{q(\theta)}\right]
 $$
 
-## 견줌: 표준 중요도 표집과 SNIS
+---
+
+## 4. 견줌: 표준 중요도 표집과 SNIS
 
 | 성질 | 표준 중요도 표집 | 스스로 고르게 하는 중요도 표집 |
 |----------|-------------|-------------------|
@@ -141,7 +148,9 @@ $$
 !!! info "SNIS이 흔히 흩어짐이 더 작다"
     놀랍게도 고르게 하는 상수를 알 때조차 SNIS이 표준 중요도 표집보다 흩어짐이 **더 작은** 경우가 많다. 고르게 하기가 어림자를 안정시킨다.
 
-## PyTorch 구현
+---
+
+## 5. PyTorch 구현
 
 ```python
 import torch
@@ -225,7 +234,6 @@ def self_normalized_importance_sampling(h_function, unnormalized_log_target,
     
     return estimate
 
-
 def compute_ess(weights):
     """
     고르게 한 무게로 실효 표본 크기 셈하기.
@@ -238,7 +246,6 @@ def compute_ess(weights):
     """
     return 1.0 / torch.sum(weights**2)
 
-
 def compute_ess_unnormalized(unnorm_weights):
     """
     고르게 하지 않은 무게로 ESS 셈하기.
@@ -248,7 +255,6 @@ def compute_ess_unnormalized(unnorm_weights):
     sum_w = torch.sum(unnorm_weights)
     sum_w_sq = torch.sum(unnorm_weights**2)
     return sum_w**2 / sum_w_sq
-
 
 # 보기: 정규 평균의 베이즈 추론
 # 앞확률: θ ~ N(μ₀, τ₀²)
@@ -443,7 +449,9 @@ plt.savefig('self_normalized_is.png', dpi=150, bbox_inches='tight')
 plt.show()
 ```
 
-## 실효 표본 크기(ESS)
+---
+
+## 6. 실효 표본 크기(ESS)
 
 ### 정의
 
@@ -531,7 +539,9 @@ def diagnose_weights(norm_weights, name=""):
 diagnostics = diagnose_weights(diagnostics['norm_weights'], "(Prior as Proposal)")
 ```
 
-## 제안 분포 견주기
+---
+
+## 7. 제안 분포 견주기
 
 ### 제안 고르기의 영향
 
@@ -565,7 +575,9 @@ for name, proposal in proposals.items():
 
 제안 고르기 전략을 체계로 다룬 것은 [제안 분포 설계](proposal_design.md)를 보아라.
 
-## 여러 기댓값 셈하기
+---
+
+## 8. 여러 기댓값 셈하기
 
 ### 표본 다시 쓰기
 
@@ -606,7 +618,9 @@ for name, value in results.items():
     print(f"  {name}: {value:.6f}")
 ```
 
-## 뒤확률 예측 분포
+---
+
+## 9. 뒤확률 예측 분포
 
 ### 정의
 
@@ -632,7 +646,9 @@ def posterior_predictive_pmf(y_values, samples, weights, likelihood):
     return probs
 ```
 
-## 계량 금융에서의 쓰임새
+---
+
+## 10. 계량 금융에서의 쓰임새
 
 ### 자산 수익률의 베이즈 매개변수 어림
 
@@ -714,7 +730,9 @@ $$
 \log B_{12} = \log \hat{Z}_1 - \log \hat{Z}_2
 $$
 
-## 핵심 정리
+---
+
+## 11. 핵심 정리
 
 !!! success "SNIS을 언제 쓰나"
 
@@ -737,17 +755,7 @@ $$
     - ESS/n < 0.01: 제안을 낫게 할 것을 생각해 보아라
     - 어림값과 함께 늘 ESS을 알려라
 
-## 참고 문헌
-
-1. Geweke, J. (1989). "Bayesian inference in econometric models using Monte Carlo integration." *Econometrica*, 57(6), 1317-1339.
-
-2. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9.4절: 스스로 고르게 하는 중요도 표집.
-
-3. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer. 3.3절.
-
-4. Kong, A. (1992). "A note on importance sampling using standardized weights." University of Chicago Department of Statistics Technical Report 348.
-
-5. Doucet, A., & Johansen, A. M. (2009). "A tutorial on particle filtering and smoothing: Fifteen years later." *Handbook of Nonlinear Filtering*, 12, 656-704.
+---
 
 ## 연습문제
 
@@ -765,3 +773,19 @@ SNIS의 치우침이 $O(1/n)$임을 겪어 보고 확인하여라. 표본 크기
 
 ### 연습 5: 주변 가능도 어림하기
 앞확률을 제안으로 쓴 SNIS으로 베이즈 선형 회귀 모형의 주변 가능도를 어림하여라. 켤레 정규-역감마 모형에서 해석으로 얻는 결과와 중요도 표집 어림값을 견주어라. ESS은 $\hat{Z}$ 어림값의 정확도와 어떻게 이어지는가?
+
+## 정리하며
+
+이 마당은 고르게 하지 않은 과녁 문제、스스로 고르게 하는 어림자、SNIS의 성질、견줌: 표준 중요도 표집과 SNIS을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Geweke, J. (1989). "Bayesian inference in econometric models using Monte Carlo integration." *Econometrica*, 57(6), 1317-1339.
+
+2. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9.4절: 스스로 고르게 하는 중요도 표집.
+
+3. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer. 3.3절.
+
+4. Kong, A. (1992). "A note on importance sampling using standardized weights." University of Chicago Department of Statistics Technical Report 348.
+
+5. Doucet, A., & Johansen, A. M. (2009). "A tutorial on particle filtering and smoothing: Fifteen years later." *Handbook of Nonlinear Filtering*, 12, 656-704.

@@ -2,7 +2,9 @@
 
 큐는 한꺼번에 도는 시스템의 밑돌이다. 쪽지 건네기, 일 짜기, 만드는 이와 쓰는 이 결이 모두 함께 쓰는 큐에 기댄다. 온통 하나뿐인 잠금을 쓰는 여느 큐는 모든 연산을 한 줄로 늘어세워 다툼이 심할 때 목을 죈다. **잠금 없는 큐**는 잠금 대신 원자적인 견주어 바꾸기(CAS)를 써서, 다른 실이 늦춰지거나 밀려나도 적어도 한 실은 늘 앞으로 나아감을 보장한다.
 
-## 마이클-스콧 큐
+---
+
+## 1. 마이클-스콧 큐
 
 가장 널리 쓰이는 잠금 없는 큐는 **마이클-스콧 큐**(1996)로, 원자적인 머리와 꼬리 손가락질을 둔 한 겹 이음 목록을 쓴다.
 
@@ -30,7 +32,9 @@
     - 이루면 옛 `head.next`의 값을 돌려준다.
     - 어그러지면 1번부터 다시 꾀한다.
 
-## 흉내 내기
+---
+
+## 2. 흉내 내기
 
 파이썬에는 기계 CAS가 없으므로 잠금 없는 큐의 논리를 실 잠금으로 흉내 내며 알고리즘 얼개와 옳음에 눈을 둔다.
 
@@ -53,7 +57,6 @@ class Node:
     def __init__(self, value=None):
         self.value = value
         self.next = None
-
 
 class LockFreeQueue:
     """마이클-스콧 잠금 없는 큐(잠금으로 흉내 냄).
@@ -161,7 +164,9 @@ Producer-consumer test:
   All consumed: True
 ```
 
-## 나아감 보장
+---
+
+## 3. 나아감 보장
 
 | 보장 | 뜻 |
 |---|---|
@@ -171,7 +176,9 @@ Producer-consumer test:
 
 마이클-스콧 큐는 **잠금 없는** 것이다. 한 실이 연산 도중에 늦춰져도 다른 실은 앞으로 나아갈 수 있다. 다툼이 심할 때 한 실이 CAS를 끝없이 다시 꾀할 수 있으므로 기다림 없는 것은 아니다.
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 | 연산 | 때(나눠 갚음) |
 |---|---|
@@ -180,7 +187,9 @@ Producer-consumer test:
 
 다툼이 심하면 다시 꾀하는 CAS가 덧듦을 더하지만, 다툼이 매여 있으면 다시 꾀하는 어림 횟수는 상수다.
 
-## ABA 문제
+---
+
+## 5. ABA 문제
 
 CAS에 바탕을 둔 자료 얼개의 미묘한 옳음 문제다.
 
@@ -191,10 +200,7 @@ CAS에 바탕을 둔 자료 얼개의 미묘한 옳음 문제다.
 !!! warning "ABA 막기"
     흔히 쓰는 길로는 표를 단 손가락질(손가락질마다 판 세개를 붙인다)과 위험 손가락질(어떤 실이 가리키고 있는 동안 기억을 거둬들이지 못하게 막는다)이 있다. 자바의 `AtomicStampedReference`은 표를 단 손가락질을 만든 것이다.
 
-## 참고 문헌
-
-- Michael, M. M. and Scott, M. L. (1996). "Simple, fast, and practical non-blocking and blocking concurrent queue algorithms." *PODC*.
-- Herlihy, M. and Shavit, N. *The Art of Multiprocessor Programming*, 10장.
+---
 
 ## 연습문제
 
@@ -235,3 +241,12 @@ CAS에 바탕을 둔 자료 얼개의 미묘한 옳음 문제다.
 
 ??? success "연습문제 5 풀이"
     크기가 2의 거듭제곱인 배열 `buf[N]`과 원자적인 `head`, `tail` 번호를 쓴다. 자리마다 제 번호로 처음 값을 매긴 원자적인 `sequence` 밭을 둔다. **넣기**: `tail`을 읽고 `pos = tail % N`을 셈한 뒤 `seq = buf[pos].sequence`을 읽는다. `seq == tail`이면 `tail`을 `tail + 1`로 CAS 한다. 이루면 자료를 적고 `buf[pos].sequence = tail + 1`으로 둔다. `seq < tail`이면 큐가 꽉 찬 것이다(어그러짐을 돌려준다). `seq > tail`이면 다른 실이 `tail`을 앞당긴 것이니 다시 읽고 다시 꾀한다. **빼기**: `head`으로 똑같이 한다. `head`을 읽고 `buf[pos].sequence == head + 1`인지(자료가 있는지) 살핀다. `head`을 앞으로 CAS 하고 자료를 읽은 뒤 `buf[pos].sequence = head + N`으로 두어(자리를 다시 쓸 수 있다고 표시한다) 마친다. `sequence` 밭이 자리마다의 상태 알림이 되어, (따로 있는 변수 둘에 원자적인 연산을 벌여야 하는) `head`과 `tail` 견주기 없이도 꽉 참과 빔을 알아낼 수 있게 한다. $\square$
+
+## 정리하며
+
+이 마당은 마이클-스콧 큐、흉내 내기、나아감 보장、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Michael, M. M. and Scott, M. L. (1996). "Simple, fast, and practical non-blocking and blocking concurrent queue algorithms." *PODC*.
+- Herlihy, M. and Shavit, N. *The Art of Multiprocessor Programming*, 10장.

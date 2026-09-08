@@ -2,7 +2,9 @@
 
 증명 기법은 알고리즘의 정확성, 최적화 방법의 수렴, 일반화 오차의 상계를 확립하는 논리적 도구를 제공한다. 딥러닝의 모든 이론적 결과는 이 기법들 중 하나 이상에 기대고 있다.
 
-## 정의
+---
+
+## 1. 정의
 
 수학적 증명은 공리와 이미 확립된 결과에서 출발하여 어떤 명제가 참임을 논리적으로 엄밀하게 논증하는 것이다. 주요 증명 전략은 다음과 같다.
 
@@ -16,7 +18,9 @@ $$
 \end{array}
 $$
 
-## 설명
+---
+
+## 2. 설명
 
 각 기법은 서로 다른 상황에 적합하다.
 
@@ -26,7 +30,9 @@ $$
 - **구성적 증명**: 명시적인 예를 만들어 존재성을 증명한다. 예: 임의의 연속 함수를 근사하는 신경망을 구성하는 것(보편 근사 정리의 증명).
 - **대우 증명**: $P \Rightarrow Q$를 증명하는 대신 논리적으로 동치인 $\neg Q \Rightarrow \neg P$를 증명한다. 결론의 부정이 더 강한 출발점을 줄 때 유용하다.
 
-## 예제
+---
+
+## 3. 예제
 
 ```python
 import torch
@@ -53,6 +59,8 @@ x = torch.tensor([3.0])
 y = W @ x + b
 print(f"\nConstructed linear map: f({x.item()}) = {y.item()}")
 ```
+
+---
 
 ## 연습문제
 
@@ -93,3 +101,7 @@ $L$개 층을 통한 역전파가 역방향 계산에서 정확히 $L$번의 행
 
 ??? success "연습문제 5 풀이"
     각 $f_l$이 미분 가능한 층인 신경망 $f = f_L \circ f_{L-1} \circ \cdots \circ f_1$을 생각하자. **기저 단계** ($L = 1$): $\frac{\partial \ell}{\partial \theta_1}$을 계산하려면 야코비안 $\frac{\partial f_1}{\partial \theta_1}$과의 행렬 곱 1회가 필요하다. **귀납 단계**: $(k+1)$층 신경망에서 연쇄 법칙은 $\frac{\partial \ell}{\partial \theta_j} = \frac{\partial \ell}{\partial \mathbf{z}_{k+1}} \cdot \frac{\partial \mathbf{z}_{k+1}}{\partial \mathbf{z}_k} \cdot \frac{\partial \mathbf{z}_k}{\partial \theta_j}$을 준다. $\frac{\partial \ell}{\partial \mathbf{z}_{k+1}}$에서 $\frac{\partial \ell}{\partial \mathbf{z}_k}$를 계산하려면 (층 $k+1$의 야코비안과) 행렬 곱 1회가 필요하다. 나머지 $k$번의 행렬 곱은 귀납 가정에 의해 층 $1$부터 $k$까지를 처리한다. 총합: $k + 1$번의 곱셈. $\square$
+
+## 정리하며
+
+이 마당은 정의、설명、예제을 차례로 짚었다.

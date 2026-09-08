@@ -2,7 +2,9 @@
 
 정수를 인수 분해하는 가장 단순한 방식은 후보 약수를 하나씩 시험하는 것이다. 시험 나눗셈은 어떤 인수 분해 루틴에서도 자연스러운 출발점이다. 짜기 쉽고 나아간 수론이 필요 없으며 작은 소인수를 가진 수를 효율 좋게 다룬다.
 
-## 핵심 생각
+---
+
+## 1. 핵심 생각
 
 모든 합성수 $n > 1$에는 $p \le \sqrt{n}$인 소인수 $p$이 있다.
 
@@ -10,7 +12,9 @@
 
 곧 약수를 $\sqrt{n}$까지만 시험하면 된다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 $n$의 온전한 소인수 분해를 찾으려면:
 
@@ -25,7 +29,6 @@ $n$의 온전한 소인수 분해를 찾으려면:
 Time : O(sqrt(n))
 공간: 인수 목록에 O(log n)
 """
-
 
 # === 시험 나눗셈 ===
 def trial_division(n: int) -> list[int]:
@@ -53,7 +56,6 @@ def trial_division(n: int) -> list[int]:
 
     return factors
 
-
 # === 보기 ===
 if __name__ == "__main__":
     for num in [84, 97, 3600, 1000003]:
@@ -70,7 +72,9 @@ if __name__ == "__main__":
 1000003 = 1000003
 ```
 
-## 복잡도 분석
+---
+
+## 3. 복잡도 분석
 
 - **가장 나쁜 경우.** $n$이 소수이면 되풀이가 $\sqrt{n}$까지 모든 홀수를 훑어 나눗셈이 $O(\sqrt{n})$번이다.
 - **가장 좋은 경우.** $n$이 $2$의 거듭제곱이면 인수 분해에 나눗셈이 $O(\log n)$번 든다.
@@ -78,7 +82,9 @@ if __name__ == "__main__":
 
 나눗셈마다 비트 연산이 $O(\log^2 n)$번 들므로 온 비트 복잡도는 $O(\sqrt{n} \cdot \log^2 n)$이다.
 
-## 최적화
+---
+
+## 4. 최적화
 
 ### 짝수 건너뛰기
 
@@ -102,7 +108,6 @@ $$
 2-3-5 바퀴 인수 분해를 쓴 시험 나눗셈.
 """
 
-
 # === 바퀴 시험 나눗셈 ===
 def trial_division_wheel(n: int) -> list[int]:
     """서로 소가 아닌 후보를 건너뛰려 2-3-5 바퀴로 n을 인수 분해한다."""
@@ -124,7 +129,6 @@ def trial_division_wheel(n: int) -> list[int]:
         factors.append(n)
     return factors
 
-
 # === 보기 ===
 if __name__ == "__main__":
     print(trial_division_wheel(2 * 3 * 5 * 7 * 11 * 13))  # [2, 3, 5, 7, 11, 13]
@@ -136,7 +140,9 @@ if __name__ == "__main__":
 시험한다. 이는 (소수 정리에 따라) 되풀이 횟수를
 $\ln \sqrt{n}$배만큼 줄인다.
 
-## 시험 나눗셈을 언제 쓰는가
+---
+
+## 5. 시험 나눗셈을 언제 쓰는가
 
 | 상황 | 권고 |
 |---|---|
@@ -147,11 +153,7 @@ $\ln \sqrt{n}$배만큼 줄인다.
 !!! tip "방법 합치기"
     실제로 인수 분해 루틴은 작은 한계(보기로 $10^6$)까지 시험 나눗셈으로 시작한 뒤 남은 몫에는 폴러드 로나 이차 체로 바꾼다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
-- Crandall, R. & Pomerance, C. *Prime Numbers: A Computational Perspective*. Springer, 2005.
-
+---
 
 ## 연습문제
 
@@ -184,3 +186,12 @@ $\ln \sqrt{n}$배만큼 줄인다.
 
 ??? success "연습문제 4 풀이"
     시험 나눗셈으로 온전히 인수 분해하면 나눗셈이 많아야 $O(\sqrt{n})$번이고 여러 자리 셈에서 저마다 $O(\log^2 n)$이 든다. 온 시간: $O(\sqrt{n} \cdot \log^2 n)$. 시험 나눗셈이 나은 때는 (1) $n$이 작을 때(약 $10^{12}$까지는 넉넉히 빠르다), (2) $n$에 작은 인수가 있을 때(빨리 찾는다), (3) 폴러드 로나 이차 체를 쓰기 전에 작은 인수를 없애는 첫 걸음으로 쓸 때이다. 작은 인수가 없는 $n > 10^{20}$에는 특화된 알고리즘이 필요하다.
+
+## 정리하며
+
+이 마당은 핵심 생각、알고리즘、복잡도 분석、최적화을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
+- Crandall, R. & Pomerance, C. *Prime Numbers: A Computational Perspective*. Springer, 2005.

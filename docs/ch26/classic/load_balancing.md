@@ -2,7 +2,9 @@
 
 똑같은 기계 $m$대와 다루는 시간이 $p_1, p_2, \dots, p_n$인 일 $n$개가 있다고 하자. 모든 일을 기계 하나씩에 매겨 **마침 때**, 곧 어느 기계든 최대 온 짐을 가장 작게 하려 한다. 이것이 **최소 마침 때 차례 잡기**(또는 짐 고르게 나누기) 문제이며 $m = 2$에서도 NP-어려움이다. 욕심쟁이 알고리즘이 놀랍도록 좋은 어림을 준다.
 
-## 문제의 정의
+---
+
+## 1. 문제의 정의
 
 기계 $m$대와 다루는 시간이 $p_j > 0$인 일 $n$개가 주어질 때 마침 때를 가장 작게 하는 매김 $\sigma: \{1, \dots, n\} \to \{1, \dots, m\}$을 찾아라.
 
@@ -20,7 +22,9 @@ $$
 
 첫째는 평균 짐이 $\sum p_j / m$이고 최댓값이 적어도 평균 이상이므로 따라 나온다. 둘째는 어떤 기계든 가장 큰 일을 다루어야 하므로 참이다.
 
-## 목록 차례 잡기(그레이엄 알고리즘)
+---
+
+## 2. 목록 차례 잡기(그레이엄 알고리즘)
 
 **직관.** 일을 아무 차례로 다룬다. 일마다 지금 짐이 가장 적은 기계에 매긴다. 이 욕심쟁이 규칙은 일이 남아 있는 동안 기계가 놀게 두지 않는다.
 
@@ -60,7 +64,9 @@ C_{\max} \le \frac{1}{m}\sum_{j=1}^{n} p_j + p_{j^*}
 = \left(2 - \frac{1}{m}\right)\text{OPT} \qquad \square
 $$
 
-## 가장 긴 일 먼저(LPT)
+---
+
+## 3. 가장 긴 일 먼저(LPT)
 
 **직관.** 목록 차례 잡기 앞에 일을 내림 차례로 정렬하면 큰 일이 뒤늦게 이미 짐이 많은 기계에 놓이는 것을 막는다.
 
@@ -69,7 +75,9 @@ $$
 
 나아진 비율은 (마지막에 놓은 일) $p_{j^*}$이 $p_{j^*} \le \text{OPT}/3$을 채우면(정렬한 차례에서 남은 가장 작은 일이고 일이 적어도 $m + 1$개 있으므로) 한계가 $4/3$으로 빡빡해진다는 데서 온다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -77,7 +85,6 @@ $$
 """
 
 import heapq
-
 
 # === 목록 차례 잡기 ==========================================================
 
@@ -100,7 +107,6 @@ def list_scheduling(jobs, m):
     makespan = max(load for load, _ in machines)
     return makespan, assignment
 
-
 # === 가장 긴 일 먼저 차례 잡기 ================================================
 
 def lpt_scheduling(jobs, m):
@@ -121,7 +127,6 @@ def lpt_scheduling(jobs, m):
 
     makespan = max(load for load, _ in machines)
     return makespan, assignment
-
 
 # === 보여 주기 ===============================================================
 
@@ -149,20 +154,7 @@ if __name__ == "__main__":
     print(f"Lower bound (max): {max(jobs)}")
 ```
 
-## 요약
-
-| 알고리즘 | 비율 | 시간 |
-|---|---|---|
-| 목록 차례 잡기 | $2 - 1/m$ | $O(n \log m)$ |
-| 가장 긴 일 먼저 | $4/3 - 1/(3m)$ | $O(n \log n)$ |
-| PTAS(호크바움-시모이스) | $1 + \epsilon$ | $O(n \cdot (n/\epsilon)^{O(m)})$ |
-
-$m$이 붙박이면 다항식 시간 어림 얼개가 있지만(Hochbaum과 Shmoys, 1987), $m$이 바뀌면 문제가 강하게 NP-어려움이므로 P = NP가 아니라면 FPTAS은 있을 수 없다.
-
-## 참고 문헌
-
-- Graham, R. L. "Bounds on Multiprocessing Timing Anomalies." *SIAM J. Appl. Math.*, 1969.
-- Hochbaum, D. S. and Shmoys, D. B. "Using Dual Approximation Algorithms for Scheduling Problems." *JACM*, 1987.
+---
 
 ## 연습문제
 
@@ -195,3 +187,18 @@ $m$이 붙박이면 다항식 시간 어림 얼개가 있지만(Hochbaum과 Shmo
 
 ??? success "연습문제 4 풀이"
     작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$
+
+## 정리하며
+
+| 알고리즘 | 비율 | 시간 |
+|---|---|---|
+| 목록 차례 잡기 | $2 - 1/m$ | $O(n \log m)$ |
+| 가장 긴 일 먼저 | $4/3 - 1/(3m)$ | $O(n \log n)$ |
+| PTAS(호크바움-시모이스) | $1 + \epsilon$ | $O(n \cdot (n/\epsilon)^{O(m)})$ |
+
+$m$이 붙박이면 다항식 시간 어림 얼개가 있지만(Hochbaum과 Shmoys, 1987), $m$이 바뀌면 문제가 강하게 NP-어려움이므로 P = NP가 아니라면 FPTAS은 있을 수 없다.
+
+**참고 문헌**
+
+- Graham, R. L. "Bounds on Multiprocessing Timing Anomalies." *SIAM J. Appl. Math.*, 1969.
+- Hochbaum, D. S. and Shmoys, D. B. "Using Dual Approximation Algorithms for Scheduling Problems." *JACM*, 1987.

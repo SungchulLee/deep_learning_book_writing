@@ -1,8 +1,8 @@
 # 제한 볼츠만 기계
 
+---
 
-
-## 학습 목표
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있다:
 
@@ -12,11 +12,15 @@
 4. 실제 자료(MNIST)로 제한 볼츠만 기계를 익힌다
 5. 배운 특징을 그려 보고 되짓기를 한다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 제한 볼츠만 기계(RBM)는 에너지 바탕 배움의 가장 성공한 실제 쓰임새이다. "제한"은 이음이 드러난 층과 숨은 층 사이에만 있고 같은 층 안에는 없다는 제약을 가리킨다. 이 두 쪽 얼개 덕에 덩이 깁스 뽑기로 추론이 다룰 만해지고 맞댐 벌어짐으로 효율 좋게 익힐 수 있다.
 
-## 구조
+---
+
+## 3. 구조
 
 ### 두 쪽 그래프 얼개
 
@@ -49,7 +53,9 @@ $$E(\mathbf{v}, \mathbf{h}) = -\mathbf{a}^T \mathbf{v} - \mathbf{b}^T \mathbf{h}
 - $\mathbf{a} \in \mathbb{R}^{n_v}$: 드러난 단위의 치우침
 - $\mathbf{b} \in \mathbb{R}^{n_h}$: 숨은 단위의 치우침
 
-## 다룰 만한 조건 분포
+---
+
+## 4. 다룰 만한 조건 분포
 
 ### 핵심 통찰
 
@@ -73,7 +79,9 @@ $$P(v_i = 1 | \mathbf{h}) = \sigma(a_i + \sum_j W_{ij} h_j) = \sigma(\mathbf{W}_
 
 **이 인수 나눔 덕에 한 층의 모든 단위를 나란히 뽑을 수 있다!**
 
-## PyTorch 구현
+---
+
+## 5. PyTorch 구현
 
 ```python
 import torch
@@ -193,7 +201,9 @@ class RestrictedBoltzmannMachine(nn.Module):
         return prob_v
 ```
 
-## 맞댐 벌어짐
+---
+
+## 6. 맞댐 벌어짐
 
 ### CD-k 알고리즘
 
@@ -211,7 +221,9 @@ $$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} \approx \langle v_i h_j \r
 - 좋은 결과를 얻는 데 흔히 $k=1$이면 넉넉하다
 - 이 어림은 치우쳐 있지만 흩어짐이 작다
 
-## 핵심 정리
+---
+
+## 7. 핵심 정리
 
 !!! success "핵심 개념"
 
@@ -221,10 +233,7 @@ $$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} \approx \langle v_i h_j \r
     4. 자유 에너지는 드러난 단위에 대한 실제 에너지이다
     5. 제한 볼츠만 기계는 쓸모 있는 특징 나타냄을 배운다
 
-## 참고 문헌
-
-- Hinton, G. E. (2002). Training Products of Experts by Minimizing Contrastive Divergence.
-- Hinton, G. E., Osindero, S., & Teh, Y. W. (2006). A Fast Learning Algorithm for Deep Belief Nets.
+---
 
 ## 연습문제
 
@@ -285,3 +294,12 @@ $F$이 자유 에너지일 때 제한 볼츠만 기계의 나눔 함수가 $Z = 
     $$Z = \sum_{\mathbf{v}} \sum_{\mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h})) = \sum_{\mathbf{v}} \exp(-F(\mathbf{v}))$$
 
     여기서 $F(\mathbf{v}) = -\log \sum_{\mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h}))$은 자유 에너지이다. $F(\mathbf{v})$이 숨은 단위를 닫힌 꼴로 가장자리로 몰아내므로(두 쪽 얼개 덕에 다룰 만하다) 이는 정확하다. 그러나 $Z$을 셈하려면 드러난 단위의 자리 얽이 $2^{n_v}$가지 모두에 대해 $\exp(-F(\mathbf{v}))$을 더해야 한다. $n_v = 784$(MNIST)인 흔한 제한 볼츠만 기계에서 이 합은 항이 $2^{784}$개여서 정확한 셈이 다룰 수 없다. $\square$
+
+## 정리하며
+
+이 마당은 학습 목표、들어가며、구조、다룰 만한 조건 분포을 차례로 짚었다.
+
+**참고 문헌**
+
+- Hinton, G. E. (2002). Training Products of Experts by Minimizing Contrastive Divergence.
+- Hinton, G. E., Osindero, S., & Teh, Y. W. (2006). A Fast Learning Algorithm for Deep Belief Nets.

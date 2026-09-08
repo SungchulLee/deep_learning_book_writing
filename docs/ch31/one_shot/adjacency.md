@@ -1,9 +1,10 @@
 # 한 번에 이웃 행렬 만들기
-## 개요
 
 한 번에 만드는 그래프 만들기는 이웃 행렬 $\mathbf{A} \in \{0,1\}^{n \times n}$과 마디 특징 $\mathbf{X} \in \mathbb{R}^{n \times d}$ 전체를 한 번의 앞으로 가기에 내놓아 자기 되돌이 방법의 차례 병목을 피한다. 핵심 어려움은 한 번에 만들기가 자리바꿈에 안 바뀜, 띄엄띄엄한 얼개, 제각각인 그래프 크기를 한꺼번에 다루어야 한다는 점이다. 자기 되돌이 방법은 차례 쪼개기로 이 문제를 비껴간다.
 
-## 적기
+---
+
+## 1. 적기
 
 최대 그래프 크기 $n_{\max}$이 주어질 때 한 번에 만들기 방법은 숨은 벡터 $\mathbf{z} \in \mathbb{R}^{d_z}$에서 그래프로의 옮김을 배운다:
 
@@ -13,7 +14,9 @@ $$
 
 여기서 $\hat{\mathbf{A}} \in [0,1]^{n_{\max} \times n_{\max}}$은 이웃 행렬을 이어진 값으로 느슨히 한 것이고 $\hat{\mathbf{X}} \in \mathbb{R}^{n_{\max} \times d}$은 헤아린 마디 특징이다. 만들어진 그래프는 문턱을 걸거나 뽑아 얻는다: $A_{ij} \sim \text{Bernoulli}(\hat{A}_{ij})$.
 
-## 자리바꿈에 안 바뀜의 어려움
+---
+
+## 2. 자리바꿈에 안 바뀜의 어려움
 
 한 번에 만들기의 근본 어려움은 그래프 가능도가 자리바꿈을 빼고 뜻매김된다는 것이다:
 
@@ -35,7 +38,9 @@ $$
 
 이는 (일반으로 NP어려움인) 그래프 짝짓기 문제와 같지만 마디 특징에 헝가리 알고리즘을 쓰는 실제 어림이 쓸 만한 풀이를 준다.
 
-## 풀개 얼개
+---
+
+## 3. 풀개 얼개
 
 ### 여러 층 신경망 풀개
 
@@ -71,7 +76,9 @@ $$
 
 여기서 $\hat{\mathbf{A}}^{(\ell)}$은 되풀이마다 $\mathbf{Z}^{(\ell)}$에서 셈한다. 이 되풀이 다듬기 덕에 변 헤아림이 드러나는 그래프 얼개에 매일 수 있다.
 
-## 크기 다루기
+---
+
+## 4. 크기 다루기
 
 한 번에 만들기 방법은 크기가 다른 그래프를 다루어야 한다. 흔한 길:
 
@@ -83,7 +90,9 @@ $$
 
 **크기에 조건 걸기.** 겪어 얻은 크기 분포에서 그래프 크기 $n \sim p(n)$을 뽑고 $n$에 매어 만든다. 풀개에 $n$을 들임으로 더 주어 짤 수 있다.
 
-## 익히기 손실의 조각
+---
+
+## 5. 익히기 손실의 조각
 
 온전한 한 번에 만들기 손실은 보통 다음을 아우른다:
 
@@ -93,11 +102,15 @@ $$
 
 여기서 $\mathcal{L}_{\text{recon}}$은 변 되짓기 손실(두 값 교차 엔트로피), $\mathcal{L}_{\text{KL}}$은 변분 스스로 담개 바탕 방법의 쿨백-라이블러 어긋남, $\mathcal{L}_{\text{match}}$은 자리바꿈 맞추기를 다룬다.
 
-## 금융 쓰임새: 한때의 그물 스냅숏
+---
+
+## 6. 금융 쓰임새: 한때의 그물 스냅숏
 
 한 번에 만들기는 온전한 금융 그물 스냅숏을 내놓는 데 자연스럽게 알맞다. 보기로 규제 보고일의 은행 사이 노출을 온 단면으로 만들어 낸다. 그물이 생기는 과정을 나타내는 자기 되돌이 방법과 달리 한 번에 만들기는 균형 짜임을 곧바로 내며, 때에 따른 생김 과정이 관심 밖일 때 알맞다.
 
-## 짜기: 한 번에 만드는 이웃 행렬 만들개
+---
+
+## 7. 짜기: 한 번에 만드는 이웃 행렬 만들개
 
 ```python
 """
@@ -109,7 +122,6 @@ import torch.nn.functional as F
 from typing import Optional
 from scipy.optimize import linear_sum_assignment
 import numpy as np
-
 
 class MLPDecoder(nn.Module):
     """단순한 다층 퍼셉트론 푸는개: 숨은 값 -> 펼친 위 삼각 이웃 행렬."""
@@ -145,7 +157,6 @@ class MLPDecoder(nn.Module):
         adj = adj + adj.transpose(1, 2)
 
         return adj
-
 
 class FactoredDecoder(nn.Module):
     """
@@ -219,7 +230,6 @@ class FactoredDecoder(nn.Module):
 
         return adj, node_mask
 
-
 def hungarian_matching(
     adj_pred: torch.Tensor,
     adj_target: torch.Tensor,
@@ -242,7 +252,6 @@ def hungarian_matching(
     row_ind, col_ind = linear_sum_assignment(cost_np)
     perm = torch.tensor(col_ind, dtype=torch.long, device=adj_pred.device)
     return perm
-
 
 def permutation_aligned_loss(
     adj_pred: torch.Tensor,
@@ -282,7 +291,6 @@ def permutation_aligned_loss(
         total_loss += loss
 
     return total_loss / B
-
 
 if __name__ == "__main__":
     torch.manual_seed(42)
@@ -350,6 +358,8 @@ if __name__ == "__main__":
     print(f"Matching reduces loss: {loss_match < loss_no_match}")
 ```
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -381,3 +391,7 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
+
+## 정리하며
+
+이 마당은 적기、자리바꿈에 안 바뀜의 어려움、풀개 얼개、크기 다루기을 차례로 짚었다.

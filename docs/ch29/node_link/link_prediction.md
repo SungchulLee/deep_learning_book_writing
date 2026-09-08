@@ -6,7 +6,9 @@
 두 마디 사이에 변이 있을 법함에 점수를 매겨
 이 문제를 다룬다.
 
-## 문제 정식화
+---
+
+## 1. 문제 정식화
 
 마디 특징이 $X$인 그래프 $G = (V, E)$이 주어질 때 목표는 점수 함수
 하나를 배우는 것이다
@@ -19,7 +21,9 @@ $$
 $f$은 변 $(u, v)$이 있을 법할 때 높은 점수를
 내놓는다.
 
-## 점수 함수
+---
+
+## 2. 점수 함수
 
 ### 안쪽 곱
 
@@ -63,7 +67,9 @@ $$
 여기서 $\mathbf{r}$은 관계마다 다른 옮김 벡터이다. 점수가 높을수록
 (0에 가까울수록) 변이 있을 법함을 가리킨다.
 
-## 학습
+---
+
+## 3. 학습
 
 ### 음의 뽑기
 
@@ -87,7 +93,9 @@ $$
 
 여기서 $\gamma > 0$은 여백 웃잡이다.
 
-## 평가 지표
+---
+
+## 4. 평가 지표
 
 | 잣대 | 밝힘 |
 |---|---|
@@ -102,7 +110,9 @@ $$
     가르침용 변(손실에 쓰는 것)은 자료가 새지 않도록
     조심해서 다루어야 한다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -114,7 +124,6 @@ $$
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 # === 단순 그래프 신경망 담개 ===
 class GCNEncoder(nn.Module):
@@ -130,7 +139,6 @@ class GCNEncoder(nn.Module):
         h = F.relu(self.w1(adj @ x))
         h = self.w2(adj @ h)
         return h
-
 
 # === 이음 헤아리개 ===
 class LinkPredictor(nn.Module):
@@ -161,7 +169,6 @@ class LinkPredictor(nn.Module):
         ])
         return F.binary_cross_entropy_with_logits(scores, labels)
 
-
 # === 보기 ===
 if __name__ == "__main__":
     torch.manual_seed(42)
@@ -180,13 +187,7 @@ if __name__ == "__main__":
     print(f"Loss: {loss.item():.4f}")
 ```
 
-## 참고 문헌
-
-- Zhang, M. & Chen, Y. "Link Prediction Based on Graph Neural Networks."
-  NeurIPS 2018.
-- Bordes, A. et al. "Translating Embeddings for Modeling Multi-relational
-  Data." NeurIPS 2013.
-
+---
 
 ## 연습문제
 
@@ -219,3 +220,14 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     여느 그래프 신경망은 마디 박아 넣기를 따로 셈한 뒤 합쳐 변 점수를 매긴다. 이러면 우연히 같은 박아 넣기를 받은, 얼개가 다른 마디 짝을 가려내지 못한다(보기로 그 자리 이웃은 같지만 겹침 무늬가 다른 두 짝). SEAL은 과녁 변 $(u,v)$ 둘레의 그 자리 부분 그래프를 뽑아내고 $u$과 $v$까지의 거리로 마디에 이름표를 매긴 뒤(두 반지름 마디 이름표 매기기) 이 이름표 붙은 부분 그래프에 그래프 신경망을 돌린다. 이는 이음 얼개를 드러나게 담아 모델이 자료에서 어떤 이음 어림짐작이든 배울 수 있게 한다.
+
+## 정리하며
+
+이 마당은 문제 정식화、점수 함수、학습、평가 지표을 차례로 짚었다.
+
+**참고 문헌**
+
+- Zhang, M. & Chen, Y. "Link Prediction Based on Graph Neural Networks."
+  NeurIPS 2018.
+- Bordes, A. et al. "Translating Embeddings for Modeling Multi-relational
+  Data." NeurIPS 2013.

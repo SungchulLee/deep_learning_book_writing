@@ -1,9 +1,10 @@
 # 뜻 묻힘 방법
-## 개요
 
 뜻 묻힘 방법은 손으로 정한 속성을 글 뭉치에서 배운 이어진 벡터 표현으로 갈아 끼운다. 부류 이름은 닮은 개념끼리 가까이 놓이는 뜻 공간에 묻히고, 그래서 말에 담긴 앎을 거쳐 영 예시 옮김이 가능해진다.
 
-## 속성에서 묻힘으로
+---
+
+## 1. 속성에서 묻힘으로
 
 ### 속성의 한계
 
@@ -23,7 +24,9 @@
 - **조합의 뜻**: 개념 사이의 관계가 지켜진다
 - **규모 키우기**: 이름이 있는 부류라면 무엇이든 묻을 수 있다
 
-## 낱말 묻힘 방법
+---
+
+## 2. 낱말 묻힘 방법
 
 ### Word2Vec
 
@@ -70,7 +73,9 @@ $$\mathbf{v}_{word} = \sum_{g \in \text{ngrams}(word)} \mathbf{v}_g$$
 | FastText | 낱말 아래 묻힘 | 있음 | 보통 |
 | BERT | 맥락에 따르고 양방향 | 있음 | 느림 |
 
-## ZSL에 묻힘 쓰기
+---
+
+## 3. ZSL에 묻힘 쓰기
 
 ### 부류 이름 묻기
 
@@ -142,7 +147,9 @@ def visualize_semantic_structure(class_names, word_vectors):
     plt.show()
 ```
 
-## 시각-뜻 어울림 배우기
+---
+
+## 4. 시각-뜻 어울림 배우기
 
 ### 정식화
 
@@ -311,7 +318,9 @@ def train_vse_model(model, dataloader, class_embeddings, seen_classes,
             print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(dataloader):.4f}")
 ```
 
-## ConSE: 뜻 묻힘의 볼록 결합
+---
+
+## 5. ConSE: 뜻 묻힘의 볼록 결합
 
 ### 개념
 
@@ -466,7 +475,9 @@ def train_conse_classifier(model, dataloader, seen_classes, epochs=50, lr=0.001)
                   f"Acc: {100*correct/total:.2f}%")
 ```
 
-## 견줌: 어울림 배우기와 ConSE
+---
+
+## 6. 견줌: 어울림 배우기와 ConSE
 
 ### 방법의 차이
 
@@ -553,7 +564,9 @@ def compare_methods(X_train, y_train, X_test, y_test,
     print(f"Random Baseline: {100/len(unseen_classes):.2f}%")
 ```
 
-## 여러 낱말과 겹낱말 부류 이름 다루기
+---
+
+## 7. 여러 낱말과 겹낱말 부류 이름 다루기
 
 ### 어려움
 
@@ -600,16 +613,7 @@ def get_bert_embedding(class_name, tokenizer, model):
     return embedding.numpy()
 ```
 
-## 요약
-
-뜻 묻힘 방법은 속성 기반 ZSL에 대한 힘 있는 대안을 준다.
-
-1. **미리 학습된 묻힘**(Word2Vec, GloVe, FastText)은 손 표시 없이도 풍부한 뜻의 관계를 담는다
-2. **어울림 배우기**는 시각 공간과 뜻 공간을 맞추도록 끝에서 끝까지 익힌다
-3. **ConSE**은 본 부류의 확률을 써서 풀이할 수 있는 영 예시 예측을 한다
-4. **오늘날의 접근법**은 더 나은 뜻 표현을 위해 BERT·GPT의 맥락 묻힘을 끌어 쓴다
-
-핵심 이점은 규모를 키우기 쉽다는 것이다. 이름이 있는 부류라면 무엇이든 곧바로 묻을 수 있어 표시하는 수고를 더하지 않고도 영 예시 알아보기를 할 수 있다.
+---
 
 ## 연습문제
 
@@ -642,3 +646,14 @@ def get_bert_embedding(class_name, tokenizer, model):
 
 ??? success "연습문제 4 풀이"
     GZSL에서는 시험 때 본 부류와 못 본 부류가 함께 나온다. 모델은 본 부류로 익혔으므로 그쪽으로 치우친다. 해법: 눈금 맞춘 쌓기(본 부류 점수에서 치우침을 빼기), 본 부류와 못 본 부류를 가르는 분포 밖 알아채기, 또는 못 본 부류의 특징을 지어내는 생성 접근법.
+
+## 정리하며
+
+뜻 묻힘 방법은 속성 기반 ZSL에 대한 힘 있는 대안을 준다.
+
+1. **미리 학습된 묻힘**(Word2Vec, GloVe, FastText)은 손 표시 없이도 풍부한 뜻의 관계를 담는다
+2. **어울림 배우기**는 시각 공간과 뜻 공간을 맞추도록 끝에서 끝까지 익힌다
+3. **ConSE**은 본 부류의 확률을 써서 풀이할 수 있는 영 예시 예측을 한다
+4. **오늘날의 접근법**은 더 나은 뜻 표현을 위해 BERT·GPT의 맥락 묻힘을 끌어 쓴다
+
+핵심 이점은 규모를 키우기 쉽다는 것이다. 이름이 있는 부류라면 무엇이든 곧바로 묻을 수 있어 표시하는 수고를 더하지 않고도 영 예시 알아보기를 할 수 있다.

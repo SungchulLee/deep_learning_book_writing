@@ -1,5 +1,8 @@
 # 깊이와 너비
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 !!! abstract "배울 내용"
 
@@ -9,7 +12,9 @@
     - 실무적인 절충 이해하기: 학습 가능성, 최적화 지형, 경사의 흐름
     - 조건을 통제한 PyTorch 실험으로 구조들을 경험적으로 비교하기
 
-## 미리 알아야 할 것
+---
+
+## 2. 미리 알아야 할 것
 
 | 주제 | 왜 중요한가 |
 |-------|---------------|
@@ -19,13 +24,13 @@
 
 ---
 
-## 개요
+## 3. 개요
 
 신경망의 **깊이**(층의 수)와 **너비**(층당 뉴런 수)는 용량을 결정하는 두 개의 기본 축이다. 보편 근사 정리(§4.2.2)는 너비만으로도 충분함을 보장한다. 그런데 그 대가는 무엇인가? 이 절은 깊이가 여러 함수 모임에 대해 지수적으로 더 효율적인 표현을 제공하면서도 너비에는 없는 최적화의 어려움을 들여온다는 수학적·실험적 증거를 살펴본다.
 
 ---
 
-## 정의와 매개변수 예산
+## 4. 정의와 매개변수 예산
 
 ### 깊이와 너비
 
@@ -59,7 +64,7 @@ $$
 
 ---
 
-## 이론적 분석
+## 5. 이론적 분석
 
 ### 표현력: 너비
 
@@ -135,7 +140,7 @@ ReLU 신경망은 입력 공간을 **선형 영역**으로 나눈다. 각 영역
 
 ---
 
-## 실무적인 절충
+## 6. 실무적인 절충
 
 ### 깊이: 이점과 대가
 
@@ -180,7 +185,7 @@ $$
 
 ---
 
-## PyTorch 실험
+## 7. PyTorch 실험
 
 ### 조건을 통제한 구조 비교
 
@@ -378,7 +383,7 @@ print(f"Residual deep accuracy: {resid_acc:.2f}%")
 
 ---
 
-## 최근의 통찰
+## 8. 최근의 통찰
 
 ### 너비와 신경 접선 커널
 
@@ -398,7 +403,7 @@ Frankle과 Carlin(2019)은 조밀한 신경망 안에 희소한 **부분 신경�
 
 ---
 
-## 핵심 정리
+## 9. 핵심 정리
 
 !!! success "요약"
 
@@ -411,15 +416,6 @@ Frankle과 Carlin(2019)은 조밀한 신경망 안에 희소한 **부분 신경�
     7. **오늘날의 실무:** 잔차 연결, 배치 정규화, 신중한 초기화를 갖춘 깊은 신경망
 
 ---
-
-## 참고 문헌
-
-- Telgarsky, M. (2016). Benefits of depth in neural networks. *COLT*.
-- Montufar, G., Pascanu, R., Cho, K., & Bengio, Y. (2014). On the number of linear regions of deep neural networks. *NeurIPS*.
-- Lu, Z., Pu, H., Wang, F., Hu, Z., & Wang, L. (2017). The expressive power of neural networks: A view from the width. *NeurIPS*.
-- He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. *CVPR*.
-- Li, H., Xu, Z., Taylor, G., Studer, C., & Goldstein, T. (2018). Visualizing the loss landscape of neural nets. *NeurIPS*.
-- Frankle, J., & Carlin, M. (2019). The lottery ticket hypothesis: Finding sparse, trainable neural networks. *ICLR*.
 
 ## 연습문제
 
@@ -452,3 +448,16 @@ MNIST에서 넓고 얕은 신경망(1층, 1024개 단위)과 깊고 좁은 신�
 
 ??? success "연습문제 4 풀이"
     복권 가설(Frankle & Carlin, 2019)은 조밀한 신경망 안에 따로 학습시켜도 온전한 정확도에 이르는 희소한 부분 신경망('당첨 복권')이 들어 있다고 말한다. 이는 최적화(알맞은 부분 신경망을 찾는 일)에는 과매개화된 신경망이 필요하지만 실효 용량은 훨씬 작음을 시사한다.
+
+## 정리하며
+
+이 마당은 학습 목표、미리 알아야 할 것、개요、정의와 매개변수 예산을 차례로 짚었다.
+
+**참고 문헌**
+
+- Telgarsky, M. (2016). Benefits of depth in neural networks. *COLT*.
+- Montufar, G., Pascanu, R., Cho, K., & Bengio, Y. (2014). On the number of linear regions of deep neural networks. *NeurIPS*.
+- Lu, Z., Pu, H., Wang, F., Hu, Z., & Wang, L. (2017). The expressive power of neural networks: A view from the width. *NeurIPS*.
+- He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. *CVPR*.
+- Li, H., Xu, Z., Taylor, G., Studer, C., & Goldstein, T. (2018). Visualizing the loss landscape of neural nets. *NeurIPS*.
+- Frankle, J., & Carlin, M. (2019). The lottery ticket hypothesis: Finding sparse, trainable neural networks. *ICLR*.

@@ -1,9 +1,10 @@
 # 그래프 만들기의 따지기 잣대
-## 개요
 
 그래프 만들기 모델을 따지려면 만들어 낸 그래프의 분포 $\{G_i^{\text{gen}}\}$을 잣대 분포 $\{G_i^{\text{ref}}\}$과 견주어야 한다. FID가 표준 잣대를 주는 그림 만들기와 달리, 그래프 따지기는 얼개, 통계, 마당 특유의 성질을 담는 서로 보완하는 잣대 여럿을 요구한다. 잣대 하나로는 모자란다. 만들개가 차수 분포는 맞지만 뭉침 무늬가 틀린 그래프를 낼 수도, 그 반대일 수도 있다.
 
-## 그래프 통계
+---
+
+## 1. 그래프 통계
 
 으뜸 따지기 길은 그래프 켜 성질의 분포 통계를 셈해 만든 모임과 잣대 모임을 견준다.
 
@@ -36,7 +37,9 @@ $$
 - **스펙트럼 틈** $\lambda_2$: 이어짐과 넓힘을 잰다
 - **스펙트럼 분포**: 고윳값의 막대 그림이 그래프 무리의 성질을 나타낸다
 
-## 분포 견주기 잣대
+---
+
+## 2. 분포 견주기 잣대
 
 ### 최대 평균 어긋남(MMD)
 
@@ -74,7 +77,9 @@ $$
 
 여기서 $\boldsymbol{\mu}$과 $\boldsymbol{\Sigma}$은 모임마다 셈한 $f(\mathcal{G})$의 평균과 함께 흩어짐이다.
 
-## 올바름과 하나뿐임
+---
+
+## 3. 올바름과 하나뿐임
 
 ### 올바름 비율
 
@@ -101,7 +106,9 @@ $$
 
 새로움을 재려면 그래프 같은 꼴 시험이 필요한데 이는 셈이 비싸다. 실제로는 흩기 바탕 어림(보기로 바이스파일러-레만 흩기값)을 쓴다.
 
-## 짜기: 따지기 꾸러미
+---
+
+## 4. 짜기: 따지기 꾸러미
 
 ```python
 """
@@ -113,7 +120,6 @@ from typing import Optional
 from scipy.stats import wasserstein_distance
 from collections import Counter
 
-
 def degree_distribution(adj: torch.Tensor) -> np.ndarray:
     """차수 분포를 고르게 맞춘 막대 그림으로 셈한다."""
     degrees = adj.sum(dim=1).long().cpu().numpy()
@@ -122,7 +128,6 @@ def degree_distribution(adj: torch.Tensor) -> np.ndarray:
     for d in degrees:
         hist[d] += 1
     return hist / hist.sum()
-
 
 def clustering_coefficients(adj: torch.Tensor) -> np.ndarray:
     """모든 마디의 그 자리 뭉침 계수를 셈한다."""
@@ -143,7 +148,6 @@ def clustering_coefficients(adj: torch.Tensor) -> np.ndarray:
 
     return coeffs
 
-
 def spectral_distribution(
     adj: torch.Tensor, num_bins: int = 50
 ) -> np.ndarray:
@@ -161,11 +165,9 @@ def spectral_distribution(
     hist, _ = np.histogram(eigenvalues, bins=num_bins, range=(0, 2), density=True)
     return hist / (hist.sum() + 1e-10)
 
-
 def gaussian_rbf_kernel(x: np.ndarray, y: np.ndarray, sigma: float = 1.0) -> float:
     """막대 그림 벡터 둘 사이의 가우스 RBF 알맹이."""
     return np.exp(-np.sum((x - y) ** 2) / (2 * sigma ** 2))
-
 
 def compute_mmd(
     samples_ref: list[np.ndarray],
@@ -206,7 +208,6 @@ def compute_mmd(
     k_rg = sum(kernel_fn(ref[i], gen[j]) for i in range(m) for j in range(mp)) / (m * mp)
 
     return float(k_rr + k_gg - 2 * k_rg)
-
 
 def evaluate_generation(
     adj_ref: list[torch.Tensor],
@@ -264,7 +265,6 @@ def evaluate_generation(
 
     return results
 
-
 if __name__ == "__main__":
     # 잣대 그래프를 만든다(에르되시-레니)
     n, p = 20, 0.15
@@ -302,6 +302,8 @@ if __name__ == "__main__":
         print(f"  {k}: {v:.6f}")
 ```
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -333,3 +335,7 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
+
+## 정리하며
+
+이 마당은 그래프 통계、분포 견주기 잣대、올바름과 하나뿐임、짜기: 따지기 꾸러미을 차례로 짚었다.

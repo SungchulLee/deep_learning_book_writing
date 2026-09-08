@@ -1,7 +1,9 @@
 # 잡음 없애는 점수 맞추기
 잡음 없애는 점수 맞추기(Vincent, 2011)는 드러난 점수 맞추기의 비싼 헤세 대각합을 아는 목표에 대한 단순한 되돌아 기대기 손실로 바꾼다. 잡음으로 흔든 분포의 점수를 배워 셈 비용 문제와 밀도 낮은 자리 어림 문제를 함께 푼다. 이는 요즘 모든 퍼짐 모델의 바탕이 되는 익히기 목표이다.
 
-## 왜 필요한가
+---
+
+## 1. 왜 필요한가
 
 드러난 점수 맞추기에는 실제로 결정적인 한계가 둘 있다.
 
@@ -12,7 +14,9 @@
 
 잡음 없애는 점수 맞추기는 **잡음으로 흔든** 분포의 점수를 배워 둘 다 푼다.
 
-## 흔든 분포
+---
+
+## 2. 흔든 분포
 
 깨끗한 자료 $\mathbf{x} \sim p_{\text{data}}$과 정규 잡음 알맹이가 주어질 때
 
@@ -24,7 +28,9 @@ $$q_\sigma(\tilde{\mathbf{x}}) = \int p_{\text{data}}(\mathbf{x}) \, q(\tilde{\m
 
 이 매끄럽게 한 분포는 받침이 온전해(어디서나 뜻매김된다) 자료 다양체에서 멀어도 점수가 잘 뜻매김된다.
 
-## 아는 목표 점수
+---
+
+## 3. 아는 목표 점수
 
 핵심 통찰은 잡음 알맹이의 점수를 닫힌 꼴로 얻을 수 있다는 것이다.
 
@@ -32,7 +38,9 @@ $$\nabla_{\tilde{\mathbf{x}}} \log q(\tilde{\mathbf{x}} | \mathbf{x}) = -\frac{\
 
 $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$일 때 $\tilde{\mathbf{x}} = \mathbf{x} + \sigma \boldsymbol{\epsilon}$으로 적으면 이는 $-\boldsymbol{\epsilon} / \sigma$이 된다. 잡음 섞인 점마다 목표 점수는 그저 깨끗한 자료 쪽을 가리키며 잡음 수준의 역수로 잣수가 맞춰진다.
 
-## 잡음 없애는 점수 맞추기의 목표
+---
+
+## 4. 잡음 없애는 점수 맞추기의 목표
 
 **정리(Vincent, 2011).** 흔든 분포 $q_\sigma$의 가장 좋은 점수 신경망은 다음을 가장 작게 하여 찾는다.
 
@@ -44,7 +52,9 @@ $$\boxed{\mathcal{L}_{\text{DSM}}(\theta) = \frac{1}{2} \, \mathbb{E}_{\mathbf{x
 
 익히기가 되돌아 기대기 문제가 된다. 곧 잡음 섞인 표본마다 음의 잡음 방향을 헤아린다.
 
-## 드러난 점수 맞추기와 같음
+---
+
+## 5. 드러난 점수 맞추기와 같음
 
 잡음 없애는 점수 맞추기와 드러난 점수 맞추기의 목표는 $\theta$에 매이지 않는 상수만큼만 다르다.
 
@@ -54,7 +64,9 @@ $$\mathcal{L}_{\text{DSM}}(\theta) = \mathcal{L}_{\text{ESM}}(\theta;\, q_\sigma
 
 $\sigma \to 0$이면 흔든 분포가 자료 분포로 모이므로 $\lim_{\sigma \to 0} \mathcal{L}_{\text{DSM}} = \mathcal{L}_{\text{ESM}} + C$이다. 따라서 $\sigma$이 작은 잡음 없애는 점수 맞추기는 야코비를 전혀 셈하지 않고 드러난 점수 맞추기를 어림한다.
 
-## 여러 잣수의 잡음 없애는 점수 맞추기
+---
+
+## 6. 여러 잣수의 잡음 없애는 점수 맞추기
 
 ### 잣수 하나의 한계
 
@@ -76,7 +88,9 @@ $$\sigma_i = \sigma_{\min} \left(\frac{\sigma_{\max}}{\sigma_{\min}}\right)^{(i-
 
 흔한 값: $\sigma_{\max} \approx$ 자료의 짝마다 최대 거리, $\sigma_{\min} \approx 0.01$, $L \in [10, 1000]$.
 
-## 무게 매기기 방책
+---
+
+## 7. 무게 매기기 방책
 
 $\lambda(\sigma)$을 어떻게 고르느냐가 익히기 움직임에 영향을 준다.
 
@@ -94,7 +108,9 @@ $$\sigma^2 \left\|\mathbf{s}_\theta + \frac{\boldsymbol{\epsilon}}{\sigma}\right
 
 이는 잡음 $\boldsymbol{\epsilon}$을 곧바로 헤아리는 것과 같으며 바로 DDPM의 익히기 목표이다.
 
-## 퍼짐 모형과의 이음
+---
+
+## 8. 퍼짐 모형과의 이음
 
 ### 잡음 없애는 점수 맞추기가 곧 DDPM 익히기이다
 
@@ -112,7 +128,9 @@ $$\mathcal{L}_{\text{DDPM}}(t) = \mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}
 
 세 틀, 곧 잡음 없애는 점수 맞추기와 DDPM과 점수 바탕 확률 미분 방정식은 모두 같은 수학의 것을 그린다.
 
-## 다른 잡음 알맹이
+---
+
+## 9. 다른 잡음 알맹이
 
 정규 잡음이 여느 것이지만 다른 알맹이도 쓸모 있을 수 있다.
 
@@ -120,14 +138,15 @@ $$\mathcal{L}_{\text{DDPM}}(t) = \mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}
 
 **스튜던트 $t$ 알맹이** $q(\tilde{\mathbf{x}} | \mathbf{x}) = t_\nu(\tilde{\mathbf{x}} | \mathbf{x}, \sigma^2)$: 목표 점수는 $-(\nu + D)(\tilde{\mathbf{x}} - \mathbf{x}) / (\nu\sigma^2 + \|\tilde{\mathbf{x}} - \mathbf{x}\|^2)$이다. 동떨어진 값에 튼튼하다.
 
-## PyTorch 구현
+---
+
+## 10. PyTorch 구현
 
 ### 기본 잡음 없애는 점수 맞추기 손실
 
 ```python
 import torch
 import torch.nn as nn
-
 
 def dsm_loss(score_net: nn.Module, x: torch.Tensor,
              sigma: float) -> torch.Tensor:
@@ -289,29 +308,15 @@ def train_dsm(data: torch.Tensor, n_epochs: int = 5000,
     return model
 ```
 
-## 잡음 수준 고르기 길잡이
+---
+
+## 11. 잡음 수준 고르기 길잡이
 
 1. 먼저 자료를 평균 0, 흩어짐 1으로 **고르게 맞춘다**.
 2. **잣수 하나의 잡음 없애는 점수 맞추기:** 고르게 맞춘 자료에서 $\sigma \approx 0.5$, 또는 가장 가까운 이웃 거리 가운데값의 $0.5$배.
 3. **여러 잣수의 잡음 없애는 점수 맞추기:** $\sigma_{\min} = 0.01$에서 $\sigma_{\max} \approx \max_{i,j} \|\mathbf{x}_i - \mathbf{x}_j\|$까지의 등비 차례표.
 
-## 요약
-
-| 항목 | 설명 |
-|--------|-------------|
-| **목표** | $\frac{1}{2}\mathbb{E}[\|\mathbf{s}_\theta(\tilde{\mathbf{x}}) + \boldsymbol{\epsilon}/\sigma\|^2]$ |
-| **목표 값** | $-\boldsymbol{\epsilon}/\sigma$(음의 잡음 방향) |
-| **비용** | 앞먹임 + 뒤먹임 한 번(헤세 없음) |
-| **같음** | $\sigma \to 0$이면 $\mathcal{L}_{\text{DSM}} \to \mathcal{L}_{\text{ESM}}$ |
-| **여러 잣수** | NCSN: 여러 $\sigma$ 수준의 점수를 배운다 |
-| **퍼짐과의 이음** | DDPM 익히기 = $\sigma^2$ 무게를 준 잡음 없애는 점수 맞추기 |
-
-## 참고 문헌
-
-1. Vincent, P. (2011). "A Connection Between Score Matching and Denoising Autoencoders." *Neural Computation*.
-2. Song, Y., & Ermon, S. (2019). "Generative Modeling by Estimating Gradients of the Data Distribution." *NeurIPS*.
-3. Song, Y., & Ermon, S. (2020). "Improved Techniques for Training Score-Based Generative Models." *NeurIPS*.
-4. Ho, J., et al. (2020). "Denoising Diffusion Probabilistic Models." *NeurIPS*.
+---
 
 ## 연습문제
 
@@ -322,3 +327,21 @@ def train_dsm(data: torch.Tensor, n_epochs: int = 5000,
 3. **무게 연구.** 여러 잣수의 잡음 없애는 점수 맞추기에서 고른 무게와 $\sigma^2$ 무게를 견주어라. 모인 뒤 잣수마다 손실을 재라.
 
 4. **DDPM과 같음.** $\mathcal{L}_{\text{DDPM}}$에서 시작해 같은 뜻의 잡음 없애는 점수 맞추기 적기를 이끌어 내라. $\bar{\alpha}_t$과 $\sigma_t$의 대응을 보여라.
+
+## 정리하며
+
+| 항목 | 설명 |
+|--------|-------------|
+| **목표** | $\frac{1}{2}\mathbb{E}[\|\mathbf{s}_\theta(\tilde{\mathbf{x}}) + \boldsymbol{\epsilon}/\sigma\|^2]$ |
+| **목표 값** | $-\boldsymbol{\epsilon}/\sigma$(음의 잡음 방향) |
+| **비용** | 앞먹임 + 뒤먹임 한 번(헤세 없음) |
+| **같음** | $\sigma \to 0$이면 $\mathcal{L}_{\text{DSM}} \to \mathcal{L}_{\text{ESM}}$ |
+| **여러 잣수** | NCSN: 여러 $\sigma$ 수준의 점수를 배운다 |
+| **퍼짐과의 이음** | DDPM 익히기 = $\sigma^2$ 무게를 준 잡음 없애는 점수 맞추기 |
+
+**참고 문헌**
+
+1. Vincent, P. (2011). "A Connection Between Score Matching and Denoising Autoencoders." *Neural Computation*.
+2. Song, Y., & Ermon, S. (2019). "Generative Modeling by Estimating Gradients of the Data Distribution." *NeurIPS*.
+3. Song, Y., & Ermon, S. (2020). "Improved Techniques for Training Score-Based Generative Models." *NeurIPS*.
+4. Ho, J., et al. (2020). "Denoising Diffusion Probabilistic Models." *NeurIPS*.

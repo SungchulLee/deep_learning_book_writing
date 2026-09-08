@@ -2,7 +2,9 @@
 
 $a^n \bmod m$을 셈하는 일은 암호(RSA 암호화와 복호), 소수 시험(밀러-라빈), 알고리즘 겨루기에 나타난다. $a$을 $n$번 곱하는 순진한 방식은 곱셈이 $O(n)$번 들어 $n$의 자릿수가 수백이면 쓸 수 없다. **되풀이 제곱**(이진 거듭제곱) 재주는 지수의 이진 나타냄을 써서 이를 곱셈 $O(\log n)$번으로 줄인다.
 
-## 되풀이 제곱의 생각
+---
+
+## 1. 되풀이 제곱의 생각
 
 핵심 살핌은 제곱이 지수를 절반으로 줄인다는 것이다. $n$이 짝수이면:
 
@@ -18,7 +20,9 @@ $$
 
 이는 나누어 다스리기 셈속을 준다. $n$을 이진으로 적고 그 비트를 가장 큰 자리에서 가장 작은 자리로(또는 같은 말로 가장 작은 자리에서 가장 큰 자리로) 다룬다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 ### 오른쪽에서 왼쪽으로 가는 이진 방법
 
@@ -52,7 +56,9 @@ $3^{13} \bmod 7$을 셈한다. $13$의 이진 나타냄은 $1101_2$이다.
 
 확인: $3^6 = 729 = 104 \cdot 7 + 1$이므로 $3^6 \equiv 1 \pmod{7}$이다. 그러면 $3^{13} = 3^{12} \cdot 3 = (3^6)^2 \cdot 3 \equiv 1 \cdot 3 = 3 \pmod{7}$이다. $\checkmark$
 
-## 올바름
+---
+
+## 3. 올바름
 
 !!! info "되풀이 불변량"
 
@@ -73,7 +79,9 @@ $3^{13} \bmod 7$을 셈한다. $13$의 이진 나타냄은 $1101_2$이다.
 
 $n = 0$이면 $\text{result} \cdot a^0 = \text{result} = a_0^{n_0} \bmod m$이다. $\square$
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 되풀이마다 (오른쪽 밀기로) $n$이 절반이 되므로 되풀이가 $\lfloor \log_2 n \rfloor + 1$번 돈다. 되풀이마다 법 곱셈을 많아야 두 번 한다. 따라서:
 
@@ -91,7 +99,9 @@ $$
 
     순진한 방식은 곱셈이 $O(n)$번 든다. $n = 2^{1000}$(흔한 RSA 지수 크기)이면 이는 천문학으로 쓸 수 없다. 되풀이 제곱은 곱셈이 약 1000번만 든다.
 
-## 되돌이 판
+---
+
+## 5. 되돌이 판
 
 ```
 MODULAR-EXPONENTIATION-RECURSIVE(a, n, m):
@@ -103,7 +113,9 @@ MODULAR-EXPONENTIATION-RECURSIVE(a, n, m):
     return (half * half) mod m
 ```
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -112,7 +124,6 @@ MODULAR-EXPONENTIATION-RECURSIVE(a, n, m):
 되풀이 판과 되돌이 판을 모두 써서 곱셈 O(log n)번에
 되풀이 방식과 되돌이 방식.
 """
-
 
 # === 되풀이 법 거듭제곱 ===
 
@@ -136,7 +147,6 @@ def mod_pow(base: int, exp: int, mod: int) -> int:
         base = (base * base) % mod
     return result
 
-
 # === 되돌이 법 거듭제곱 ===
 
 def mod_pow_recursive(base: int, exp: int, mod: int) -> int:
@@ -147,7 +157,6 @@ def mod_pow_recursive(base: int, exp: int, mod: int) -> int:
         return (base * mod_pow_recursive(base, exp - 1, mod)) % mod
     half = mod_pow_recursive(base, exp // 2, mod)
     return (half * half) % mod
-
 
 # === 메인 ===
 
@@ -184,10 +193,7 @@ Verification against pow():
   123^456 mod 789: ours=699, pow=699, match=True
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
-
+---
 
 ## 연습문제
 
@@ -220,3 +226,11 @@ $a^b$을 먼저 셈한 뒤 줄이는 순진한 $a^b \bmod m$ 셈하기가 쓸 �
 
 ??? success "연습문제 4 풀이"
     디피-헬먼: 앨리스와 밥이 소수 $p$과 만들개 $g$을 정한다. 앨리스는 비밀 $a$을 골라 $A = g^a \bmod p$을 셈해 보낸다. 밥은 비밀 $b$을 골라 $B = g^b \bmod p$을 셈해 보낸다. 함께 쓰는 비밀: 앨리스는 $B^a = g^{ab} \bmod p$을, 밥은 $A^b = g^{ab} \bmod p$을 셈한다. 둘 다 $O(\log p)$비트 지수와 법 $p$으로 법 거듭제곱을 쓴다. 안전함은 이산 로그 문제에 기댄다. $g, p, g^a \bmod p$이 주어질 때 $a$을 찾기는 어렵다고 믿어진다.
+
+## 정리하며
+
+이 마당은 되풀이 제곱의 생각、알고리즘、올바름、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.

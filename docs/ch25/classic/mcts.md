@@ -2,7 +2,9 @@
 
 놀이와 차례 있는 결정 문제에서 찾기 나무는 천문학처럼 커질 수 있다. 장기는 놀이 상태가 대략 $10^{120}$가지이다. **몬테카를로 나무 찾기(MCTS)**는 아무 흉내 내기로 마디마다 값을 어림하여 나무에서 가장 그럴듯한 곳에 셈 힘을 모아 이를 다룬다. MCTS은 알파고가 바둑 세계 챔피언을 이긴 역사적 승리를 뒷받침했고 요즘 놀이 인공 지능에서도 여전히 핵심이다.
 
-## 핵심 생각
+---
+
+## 1. 핵심 생각
 
 MCTS은 찾기 나무를 조금씩 늘려 세운다. 되풀이마다 뿌리에서 잎으로 내려간 뒤 앎을 도로 위로 퍼뜨리는 네 단계로 이루어진다.
 
@@ -11,7 +13,9 @@ MCTS은 찾기 나무를 조금씩 늘려 세운다. 되풀이마다 뿌리에�
 3. **흉내 내기**(굴려 보기) — 새 마디에서 기본 방침(흔히 고르게 아무 수)으로 놀이를 끝까지 둔다.
 4. **뒤먹임 퍼뜨리기** — 새 마디에서 뿌리까지의 길에 있는 모든 마디의 들른 수와 이긴 통계를 새로 고친다.
 
-## UCB1: 살펴보기와 써먹기의 균형
+---
+
+## 2. UCB1: 살펴보기와 써먹기의 균형
 
 **나무를 위한 웃 믿음 한계(UCT)**는 다음을 가장 크게 하는 자식을 고른다.
 
@@ -31,7 +35,9 @@ $$
 !!! note "이론상의 보장"
     나무에 쓴 UCB1은 되풀이 수가 늘수록 가장 좋은 움직임으로 모인다. UCB1의 뉘우침은 $O(\ln n / \Delta)$으로만 커지며 $\Delta$은 가장 좋은 팔과 둘째로 좋은 팔의 값 차이이다.
 
-## 알고리즘 자세히
+---
+
+## 3. 알고리즘 자세히
 
 ### 고르기
 
@@ -54,7 +60,9 @@ $$
 
 넉넉히 되풀이한 뒤 들른 수가 가장 많은 뿌리의 자식을 가장 좋은 수로 고른다.
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 X이 둘 수가 A와 B 둘인 오목 판을 보자.
 
@@ -75,7 +83,9 @@ $$
 
 수 B의 UCB1이 더 크므로 다음 되풀이는 B의 아래 나무를 살핀다. A을 더 많이 들렀지만 B의 높은 이긴 비율과 살펴보기 덤이 MCTS을 그쪽으로 이끈다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -88,7 +98,6 @@ MCTS의 네 마디(고르기, 넓히기, 흉내내기,
 import math
 import random
 from collections import defaultdict
-
 
 # === MCTS 마디 ===
 
@@ -111,7 +120,6 @@ class MCTSNode:
         exploit = self.wins / self.visits
         explore = c * math.sqrt(math.log(self.parent.visits) / self.visits)
         return exploit + explore
-
 
 # === 단순한 놀이: 님 ===
 
@@ -144,7 +152,6 @@ class NimGame:
         if self.stones <= 0:
             return 1 - self.current_player  # 마지막에 두는 사람이 이긴다
         return None
-
 
 # === MCTS 알고리즘 ===
 
@@ -208,7 +215,6 @@ def mcts(game, iterations=1000, c=1.414):
     best_child = max(root.children, key=lambda n: n.visits)
     return best_child.action, best_child.visits, best_child.wins
 
-
 # === 메인 ===
 
 if __name__ == "__main__":
@@ -258,7 +264,9 @@ if __name__ == "__main__":
               f"win_rate={wr:.3f}")
 ```
 
-## 변형과 확장
+---
+
+## 6. 변형과 확장
 
 | 변형 | 핵심 고침 |
 |---|---|
@@ -267,7 +275,9 @@ if __name__ == "__main__":
 | PUCT | 미리 헤아리개 + UCT — 신경망 사전 분포를 쓴다(알파고/알파제로에서 쓴다) |
 | 차츰 넓히기 | 움직임 공간이 클 때 가지를 제한한다 |
 
-## 복잡도
+---
+
+## 7. 복잡도
 
 - **되풀이마다 시간:** $O(d)$이며 $d$은 흉내 내기의 깊이이다.
 - **온 시간:** 되풀이 $n$번에 $O(n \cdot d)$이다.
@@ -275,10 +285,7 @@ if __name__ == "__main__":
 
 MCTS은 **언제든 멈출 수 있는 알고리즘**이다. 곧 어느 때 멈추어도 그럴듯한 움직임을 돌려준다. 되풀이가 많을수록 결과가 좋아진다.
 
-## 참고 문헌
-
-- Kocsis, L. & Szepesvari, C. "Bandit Based Monte-Carlo Planning." *ECML*, 2006.
-- Browne, C. et al. "A Survey of Monte Carlo Tree Search Methods." *IEEE Trans. CI and AI in Games*, 2012.
+---
 
 ## 연습문제
 
@@ -311,3 +318,12 @@ MCTS은 **언제든 멈출 수 있는 알고리즘**이다. 곧 어느 때 멈�
 
 ??? success "연습문제 4 풀이"
     방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$
+
+## 정리하며
+
+이 마당은 핵심 생각、UCB1: 살펴보기와 써먹기의 균형、알고리즘 자세히、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Kocsis, L. & Szepesvari, C. "Bandit Based Monte-Carlo Planning." *ECML*, 2006.
+- Browne, C. et al. "A Survey of Monte Carlo Tree Search Methods." *IEEE Trans. CI and AI in Games*, 2012.

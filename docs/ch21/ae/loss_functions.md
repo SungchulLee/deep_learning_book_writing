@@ -3,8 +3,6 @@
 
 ---
 
-## 개요
-
 **배울 것:**
 
 - 다시 세우기 손실 함수: 평균 제곱 어긋남, 두 값 엇갈린 엔트로피, 평균 절대 어긋남
@@ -15,7 +13,7 @@
 
 ---
 
-## 1부: 다시 세우기 손실 함수
+## 1. 1부: 다시 세우기 손실 함수
 
 모든 자기 부호기는 들임 $x$과 다시 세운 $\hat{x}$의 차를 가장 작게 한다는 공통 바탕을 나눠 갖는다. 손실 함수를 고르는 것은 자료 분포에 대한 가정을 담는 일이다.
 
@@ -63,7 +61,6 @@ import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
-
 class AutoencoderWithAnalysis(nn.Module):
     """숨은 공간 살피기 방법을 갖춘 자기 부호기."""
     
@@ -97,7 +94,6 @@ class AutoencoderWithAnalysis(nn.Module):
     def forward(self, x):
         z = self.encode(x)
         return self.decode(z), z
-
 
 def compare_loss_functions(model_class, train_loader, test_loader, device):
     """여러 다시 세우기 손실 함수를 견준다."""
@@ -191,7 +187,7 @@ def find_optimal_latent_dim(train_loader, test_loader, device,
 
 ---
 
-## 2부: 성김 벌주기
+## 2. 2부: 성김 벌주기
 
 성긴 자기 부호기는 숨은 깨어남 대부분이 0이 되도록 벌을 주어 더 풀이하기 쉽고 넘치게 갖춘 나타냄을 얻는다.
 
@@ -271,7 +267,6 @@ class SparseAutoencoder_L1(nn.Module):
         reconstructed = self.decoder(latent)
         return reconstructed, latent
 
-
 def l1_loss(latent: torch.Tensor) -> torch.Tensor:
     """
     숨은 깨어남의 L1 벌주기를 셈한다.
@@ -281,7 +276,6 @@ def l1_loss(latent: torch.Tensor) -> torch.Tensor:
     0이 아닌 깨어남에 벌을 주어 성김을 이끈다.
     """
     return torch.mean(torch.abs(latent))
-
 
 class SparseAutoencoder_KL(nn.Module):
     """
@@ -318,7 +312,6 @@ class SparseAutoencoder_KL(nn.Module):
         reconstructed = self.decoder(latent)
         return reconstructed, latent
 
-
 def kl_divergence_loss(latent: torch.Tensor, rho: float = 0.05) -> torch.Tensor:
     """
     KL 벌어짐 성김 벌주기를 셈한다.
@@ -341,7 +334,6 @@ def kl_divergence_loss(latent: torch.Tensor, rho: float = 0.05) -> torch.Tensor:
          (1 - rho) * torch.log((1 - rho) / (1 - rho_hat))
     
     return torch.sum(kl)
-
 
 def train_sparse_autoencoder(
     model, train_loader, optimizer, device, epoch,
@@ -441,7 +433,7 @@ def analyze_sparsity(model, test_loader, device, num_samples=1000):
 
 ---
 
-## 3부: 오그림 벌주기
+## 3. 3부: 오그림 벌주기
 
 **오그리는 자기 부호기(CAE)**는 부호기 야코비 행렬의 프로베니우스 노름에 벌을 주어 부호기가 들임의 흔들림에 무디도록 이끈다.
 
@@ -483,7 +475,6 @@ $$\mathcal{L}_{DAE} \approx \|x - g(f(x))\|^2 + \sigma^2 \|J_f(x)\|_F^2$$
 ```python
 from torch.autograd import grad
 
-
 class ContractiveAutoencoder(nn.Module):
     """야코비 벌주기를 갖춘 오그리는 자기 부호기."""
     
@@ -524,7 +515,6 @@ class ContractiveAutoencoder(nn.Module):
         x_recon = self.decode(z)
         return x_recon, z
 
-
 def compute_jacobian_penalty(model, x):
     """
     부호기 야코비 행렬의 프로베니우스 노름 제곱을 셈한다.
@@ -555,7 +545,6 @@ def compute_jacobian_penalty(model, x):
         jacobian_norm_sq = jacobian_norm_sq + torch.sum(jacobian_col ** 2)
     
     return jacobian_norm_sq / x.shape[0]  # 묶음에 걸친 평균
-
 
 def train_contractive_autoencoder(
     model, train_loader, device, 
@@ -630,7 +619,7 @@ $$\text{큰 } \lambda \to \text{튼튼함은 더하고 다시 세우기는 못�
 
 ---
 
-## 4부: 잡음 없애기 목표
+## 4. 4부: 잡음 없애기 목표
 
 잡음 없애는 자기 부호기는 근본이 다른 익히기 목표를 쓴다. 곧 **망가뜨린** 들임에서 **깨끗한** 자료를 다시 세운다.
 
@@ -665,7 +654,6 @@ def add_noise(images: torch.Tensor, noise_factor: float = 0.1) -> torch.Tensor:
     noisy_images = images + noise
     return torch.clamp(noisy_images, 0.0, 1.0)
 
-
 def add_salt_pepper_noise(images: torch.Tensor, 
                           noise_prob: float = 0.2) -> torch.Tensor:
     """그림에 소금과 후추 잡음을 더한다."""
@@ -678,7 +666,6 @@ def add_salt_pepper_noise(images: torch.Tensor,
     noisy_images[noise_mask & ~salt_mask] = 0.0  # 후추
     
     return noisy_images
-
 
 def add_masking_noise(images: torch.Tensor, 
                       mask_prob: float = 0.3) -> torch.Tensor:
@@ -700,7 +687,7 @@ $$\nabla_x \log p(x) \approx \frac{1}{\sigma^2}(f(\tilde{x}) - \tilde{x})$$
 
 ---
 
-## 5부: 벌주기를 갖춘 온전한 익히기
+## 5. 5부: 벌주기를 갖춘 온전한 익히기
 
 모든 손실 조각을 아우르면:
 
@@ -771,7 +758,7 @@ def train_regularized_autoencoder(
 
 ---
 
-## 배운 특징 그려 보기
+## 6. 배운 특징 그려 보기
 
 성긴 자기 부호기는 빽빽한 자기 부호기보다 흔히 더 풀이하기 쉬운 특징을 배운다:
 
@@ -815,20 +802,6 @@ def visualize_learned_features(model, num_features=64):
 
 ---
 
-## 요약
-
-| 손실 / 벌주기 | 식 | 효과 | 쓰임새 |
-|----------------|---------|--------|----------|
-| **평균 제곱 어긋남** | $\|x - \hat{x}\|^2$ | 정규 가정, 흐릿함 | 이어진 자료 |
-| **두 값 엇갈린 엔트로피** | $-[x\log\hat{x} + (1-x)\log(1-\hat{x})]$ | 또렷함, 두 값 가정 | 고르게 한 그림 |
-| **평균 절대 어긋남** | $\|x - \hat{x}\|_1$ | 동떨어진 값에 튼튼 | 잡음 낀 자료 |
-| **L1 성김** | $\lambda\sum\|h_j\|$ | 깨어남을 0으로 몬다 | 풀이할 수 있는 특징 |
-| **KL 성김** | $\beta\sum\text{KL}(\rho\|\hat{\rho}_j)$ | 성김을 정밀히 다스림 | 넘치게 갖춘 자기 부호기 |
-| **오그림** | $\lambda\|J_f\|_F^2$ | 들임에 무딘 부호기 | 튼튼한 다양체 배우기 |
-| **잡음 없애기** | 들임을 망가뜨리고 깨끗한 것을 다시 세움 | 넌지시 벌주기 | 튼튼한 특징 |
-
-**핵심 눈썰미:** 손실 함수와 벌주기를 고르는 것이 자기 부호기가 무엇을 배우는지 근본에서 정한다. 다시 세우기 손실은 자료 잡음에 대한 가정을 담고, 벌주기 항은 숨은 공간의 기하와 풀이 가능함을 빚는다.
-
 ## 연습문제
 
 ### 연습 1: 손실 함수 견줌
@@ -869,3 +842,17 @@ noise_factors = [0.1, 0.2, 0.3, 0.4, 0.5]
 잡음 갈래(정규, 소금과 후추, 가리기)마다 따로 모델 셋을 익혀라. 모델마다 모든 잡음 갈래로 시험하라. 한 갈래로 익힌 것이 다른 갈래에도 두루 통하는가?
 
 ---
+
+## 정리하며
+
+| 손실 / 벌주기 | 식 | 효과 | 쓰임새 |
+|----------------|---------|--------|----------|
+| **평균 제곱 어긋남** | $\|x - \hat{x}\|^2$ | 정규 가정, 흐릿함 | 이어진 자료 |
+| **두 값 엇갈린 엔트로피** | $-[x\log\hat{x} + (1-x)\log(1-\hat{x})]$ | 또렷함, 두 값 가정 | 고르게 한 그림 |
+| **평균 절대 어긋남** | $\|x - \hat{x}\|_1$ | 동떨어진 값에 튼튼 | 잡음 낀 자료 |
+| **L1 성김** | $\lambda\sum\|h_j\|$ | 깨어남을 0으로 몬다 | 풀이할 수 있는 특징 |
+| **KL 성김** | $\beta\sum\text{KL}(\rho\|\hat{\rho}_j)$ | 성김을 정밀히 다스림 | 넘치게 갖춘 자기 부호기 |
+| **오그림** | $\lambda\|J_f\|_F^2$ | 들임에 무딘 부호기 | 튼튼한 다양체 배우기 |
+| **잡음 없애기** | 들임을 망가뜨리고 깨끗한 것을 다시 세움 | 넌지시 벌주기 | 튼튼한 특징 |
+
+**핵심 눈썰미:** 손실 함수와 벌주기를 고르는 것이 자기 부호기가 무엇을 배우는지 근본에서 정한다. 다시 세우기 손실은 자료 잡음에 대한 가정을 담고, 벌주기 항은 숨은 공간의 기하와 풀이 가능함을 빚는다.

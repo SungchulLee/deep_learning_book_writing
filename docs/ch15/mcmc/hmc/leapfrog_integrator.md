@@ -3,7 +3,7 @@
 
 ---
 
-## 수치 적분 문제
+## 1. 수치 적분 문제
 
 ### 수치 적분이 왜 필요한가
 
@@ -52,7 +52,7 @@ $$
 
 ---
 
-## 연산자 쪼개기
+## 2. 연산자 쪼개기
 
 ### 쪼개기 생각
 
@@ -108,7 +108,7 @@ $$
 
 ---
 
-## 개구리뜀 알고리즘
+## 3. 개구리뜀 알고리즘
 
 ### 스트랭 쪼개기에서 이끌어 내기
 
@@ -168,7 +168,7 @@ $$
 
 ---
 
-## 여러 개구리뜀 걸음
+## 4. 여러 개구리뜀 걸음
 
 ### 걸음 합성하기
 
@@ -208,7 +208,7 @@ def leapfrog(x, v, epsilon, L, grad_U, M_inv):
 
 ---
 
-## 심플렉틱 성질
+## 5. 심플렉틱 성질
 
 ### 정의
 
@@ -250,7 +250,7 @@ $$
 
 ---
 
-## 시간을 되돌릴 수 있음
+## 6. 시간을 되돌릴 수 있음
 
 ### 정의
 
@@ -286,7 +286,7 @@ $$
 
 ---
 
-## 오차 분석
+## 7. 오차 분석
 
 ### 그 자리에서 끊은 오차
 
@@ -346,7 +346,7 @@ $$
 
 ---
 
-## 걸음 크기 고르기
+## 8. 걸음 크기 고르기
 
 ### 안정 한계
 
@@ -389,7 +389,7 @@ def adapt_step_size(epsilon, accept_rate, target=0.65):
 
 ---
 
-## 수치적 안정성
+## 9. 수치적 안정성
 
 ### 기울기 터짐
 
@@ -418,7 +418,7 @@ $\epsilon$이 아주 작거나 자취가 아주 길면:
 
 ---
 
-## 구현
+## 10. 구현
 
 ### 기본 구현
 
@@ -522,7 +522,7 @@ def leapfrog_vectorized(x, v, epsilon, L, grad_U, M_inv=None):
 
 ---
 
-## 더 높은 차수의 적분기
+## 11. 더 높은 차수의 적분기
 
 ### 사차 방법
 
@@ -546,7 +546,7 @@ $$
 
 ---
 
-## 다른 적분기와 견주기
+## 12. 다른 적분기와 견주기
 
 | 적분기 | 차수 | 심플렉틱 | 되돌릴 수 있음 | 걸음당 기울기 |
 |------------|-------|------------|------------|----------------|
@@ -559,28 +559,6 @@ $$
 개구리뜀 적분기가 딱 알맞은 자리에 있다. 곧 심플렉틱하고 되돌릴 수 있으며 이차이고 걸음마다 기울기가 하나만 든다.
 
 ---
-
-## 요약
-
-| 성질 | 개구리뜀 적분기 |
-|----------|-------------------|
-| **차수** | 이차(전체), 삼차(그 자리) |
-| **심플렉틱** | 예 — 위상 공간 부피를 지킨다 |
-| **되돌릴 수 있음** | 예 — 운동량을 뒤집으면 |
-| **에너지 오차** | $O(\epsilon^2)$, 묶여 있고 쏠리지 않음 |
-| **걸음당 기울기** | 1(반 걸음을 합친 뒤) |
-| **안정 한계** | $\epsilon < 2/\sqrt{\lambda_{\max}}$ |
-
-개구리뜀 적분기는 심플렉틱함, 되돌릴 수 있음, 효율을 함께 갖춘 덕분에 HMC의 표준 선택이 되었다. 에너지 오차가 묶여 있어 자취를 길게 하면서도 받아들임 비율을 높게 지킬 수 있다.
-
----
-
-## 참고 문헌
-
-1. Leimkuhler, B., & Reich, S. (2004). *Simulating Hamiltonian Dynamics*. Cambridge University Press.
-2. Hairer, E., Lubich, C., & Wanner, G. (2006). *Geometric Numerical Integration* (2nd ed.). Springer.
-3. Neal, R. M. (2011). "MCMC Using Hamiltonian Dynamics." In *Handbook of Markov Chain Monte Carlo*.
-4. Blanes, S., Casas, F., & Sanz-Serna, J. M. (2014). "Numerical Integrators for the Hybrid Monte Carlo Method." *SIAM Journal on Scientific Computing*.
 
 ## 연습문제
 
@@ -595,3 +573,25 @@ $$
 5. **더 높은 차수의 적분기**. 사차 요시다 적분기를 구현하고 셈 값이 같을 때 개구리뜀과 에너지 오차를 견주어라.
 
 ---
+
+## 정리하며
+
+| 성질 | 개구리뜀 적분기 |
+|----------|-------------------|
+| **차수** | 이차(전체), 삼차(그 자리) |
+| **심플렉틱** | 예 — 위상 공간 부피를 지킨다 |
+| **되돌릴 수 있음** | 예 — 운동량을 뒤집으면 |
+| **에너지 오차** | $O(\epsilon^2)$, 묶여 있고 쏠리지 않음 |
+| **걸음당 기울기** | 1(반 걸음을 합친 뒤) |
+| **안정 한계** | $\epsilon < 2/\sqrt{\lambda_{\max}}$ |
+
+개구리뜀 적분기는 심플렉틱함, 되돌릴 수 있음, 효율을 함께 갖춘 덕분에 HMC의 표준 선택이 되었다. 에너지 오차가 묶여 있어 자취를 길게 하면서도 받아들임 비율을 높게 지킬 수 있다.
+
+---
+
+**참고 문헌**
+
+1. Leimkuhler, B., & Reich, S. (2004). *Simulating Hamiltonian Dynamics*. Cambridge University Press.
+2. Hairer, E., Lubich, C., & Wanner, G. (2006). *Geometric Numerical Integration* (2nd ed.). Springer.
+3. Neal, R. M. (2011). "MCMC Using Hamiltonian Dynamics." In *Handbook of Markov Chain Monte Carlo*.
+4. Blanes, S., Casas, F., & Sanz-Serna, J. M. (2014). "Numerical Integrators for the Hybrid Monte Carlo Method." *SIAM Journal on Scientific Computing*.

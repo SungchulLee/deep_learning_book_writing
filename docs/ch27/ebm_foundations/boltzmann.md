@@ -1,8 +1,8 @@
 # 볼츠만 분포
 
+---
 
-
-## 학습 목표
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있다:
 
@@ -11,7 +11,9 @@
 3. 점수 함수를 셈하고 나눔 함수가 없는 성질을 이해한다
 4. 볼츠만 분포를 지수 무리와 깁스 잣대에 잇는다
 
-## 수학적 바탕
+---
+
+## 2. 수학적 바탕
 
 ### 으뜸 분포
 
@@ -110,7 +112,9 @@ def demonstrate_maxent_boltzmann():
 p_boltz, p_gauss, x = demonstrate_maxent_boltzmann()
 ```
 
-## 온도 살피기
+---
+
+## 3. 온도 살피기
 
 ### 낮은 온도 끝(T -> 0)
 
@@ -215,7 +219,9 @@ def analyze_temperature_sweep():
 analyze_temperature_sweep()
 ```
 
-## 점수 함수
+---
+
+## 4. 점수 함수
 
 ### 정의
 
@@ -262,7 +268,9 @@ def compute_score(energy_net, x, create_graph=True):
     return -score  # Score is negative gradient of energy
 ```
 
-## 다른 분포와의 이음
+---
+
+## 5. 다른 분포와의 이음
 
 ### 지수 무리
 
@@ -280,7 +288,9 @@ $$\mu(dx) = \frac{1}{Z} \exp(-E(x)) \, \lambda(dx)$$
 
 여기서 $\lambda$은 바탕 잣대이다(이어진 변수에는 르베그 잣대, 띄엄띄엄한 변수에는 셈 잣대). 깁스 잣대 틀은 차원이 끝없는 자리로 자연스럽게 넓어지며 통계 역학과 격자 마당 이론의 수학 바탕에서 한가운데에 있다.
 
-## 핵심 정리
+---
+
+## 6. 핵심 정리
 
 !!! success "핵심 개념"
 
@@ -293,11 +303,7 @@ $$\mu(dx) = \frac{1}{Z} \exp(-E(x)) \, \lambda(dx)$$
 !!! info "역사 알림"
     작은 세계의 역학을 큰 세계의 열역학에 이은 루트비히 볼츠만의 일은 처음에 크게 논란이 되었고, 그것이 그의 우울과 1906년의 죽음에 한몫했다. 엔트로피를 미시 상태의 개수와 잇는 그의 식 $S = k \log W$은 빈에 있는 그의 묘비에 새겨져 있다. 1950년대에 제인스가 내놓은 최대 엔트로피 풀이는 물리 가정을 전혀 필요로 하지 않는 순수한 앎 이론의 정당화를 볼츠만 분포에 주었다.
 
-## 참고 문헌
-
-- Jaynes, E. T. (1957). Information theory and statistical mechanics. *Physical Review*.
-- MacKay, D. J. (2003). *Information Theory, Inference and Learning Algorithms*. Cambridge University Press.
-- Boltzmann, L. (1877). On the Relationship between the Second Fundamental Theorem of the Mechanical Theory of Heat and Probability Calculations.
+---
 
 ## 연습문제
 
@@ -306,3 +312,13 @@ $$\mu(dx) = \frac{1}{Z} \exp(-E(x)) \, \lambda(dx)$$
 2. **온도 넘어감**: 두 우물 분포 $E(x) = \frac{1}{2}(x^2-4)^2$이 봉우리 둘에서 봉우리 하나로 바뀌는 온도를 찾아라. 힌트: $x=0$에서 $\log p(x)$의 이계 미분을 살펴라.
 
 3. **열 담이 봉우리**: 에너지가 $0$과 $\epsilon$인 두 켜 계에서 열 담이 $C = \text{Var}[E]/T^2$이 $T^* = \epsilon / (2\sinh^{-1}(1))$에서 최댓값(쇼트키 이상)을 가짐을 보여라.
+
+## 정리하며
+
+이 마당은 학습 목표、수학적 바탕、온도 살피기、점수 함수을 차례로 짚었다.
+
+**참고 문헌**
+
+- Jaynes, E. T. (1957). Information theory and statistical mechanics. *Physical Review*.
+- MacKay, D. J. (2003). *Information Theory, Inference and Learning Algorithms*. Cambridge University Press.
+- Boltzmann, L. (1877). On the Relationship between the Second Fundamental Theorem of the Mechanical Theory of Heat and Probability Calculations.

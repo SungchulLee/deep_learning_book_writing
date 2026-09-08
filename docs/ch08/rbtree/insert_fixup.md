@@ -2,13 +2,17 @@
 
 레드-블랙 트리에 붉은 노드 $z$을 넣은 뒤 깨질 수 있는 성질은 성질 4뿐이다. $z$과 그 부모 $p$이 둘 다 붉을 수 있는 것이다. 삽입 뒤 손질 절차는 트리를 거슬러 오르며 걸음마다 세 경우 가운데 하나를 적용하여 이 빨강-빨강 충돌을 푼다. 이 절차는 많아야 색 바꾸기 $O(\log n)$번과 **회전 두 번** 뒤에 끝나며 다섯 가지 레드-블랙 성질을 모두 되살린다.
 
-## 설정
+---
+
+## 1. 설정
 
 손질 반복문은 $z$의 부모가 붉은 동안 돈다(부모가 검으면 어긋남이 없다). 되풀이마다 $z$은 고치고 있는 노드, $p = z.\text{parent}$은 붉은 부모, $g = p.\text{parent}$은 $p$의 부모이다($p$이 붉고 삽입 전에 트리가 성질 4를 만족했으므로 $g$은 검어야 한다).
 
 세 경우는 $z$의 **삼촌** $u$($p$의 형제)의 색에 달려 있다.
 
-## 경우 1: 삼촌이 붉다 (색 바꾸기)
+---
+
+## 2. 경우 1: 삼촌이 붉다 (색 바꾸기)
 
 삼촌 $u$이 붉으면 $p$과 $u$ 둘 다 검은 할아버지 $g$의 붉은 자식이다.
 
@@ -25,7 +29,9 @@ z(R)                z(R)
 
 색을 바꾼 뒤 $z \leftarrow g$으로 두고 반복문을 되풀이한다. 어긋남이 두 층 위로 올라가므로 이 경우는 많아야 $O(\log n)$번 되풀이된다.
 
-## 경우 2: 삼촌이 검고 $z$이 안쪽 자식이다 (회전 뒤 이어짐)
+---
+
+## 3. 경우 2: 삼촌이 검고 $z$이 안쪽 자식이다 (회전 뒤 이어짐)
 
 삼촌 $u$이 검고 $z$이 "안쪽" 자식이면(왼쪽 부모의 오른쪽 자식이거나 오른쪽 부모의 왼쪽 자식이면) 단일 회전으로 곧바로 고칠 수 없다.
 
@@ -44,7 +50,9 @@ Before:              After left-rotate at p:
 
 $z \leftarrow p$으로 두고(옛 부모가 이제 바깥쪽 자식이다) 경우 3으로 넘어간다.
 
-## 경우 3: 삼촌이 검고 $z$이 바깥쪽 자식이다 (회전과 색 바꾸기)
+---
+
+## 4. 경우 3: 삼촌이 검고 $z$이 바깥쪽 자식이다 (회전과 색 바꾸기)
 
 삼촌 $u$이 검고 $z$이 "바깥쪽" 자식이면(왼쪽 부모의 왼쪽 자식이거나 오른쪽 부모의 오른쪽 자식이면) $g$에서 회전 한 번과 색 바꾸기로 어긋남이 완전히 풀린다.
 
@@ -63,7 +71,9 @@ z(R)                        u(B)
 
 경우 3을 마치면 어긋남이 풀린다. (이제 이 부분 트리의 뿌리인) $p$이 검고 어느 자식도 빨강-빨강 충돌을 만들지 않는다. 반복문이 끝난다.
 
-## 경우 정리
+---
+
+## 5. 경우 정리
 
 | 경우 | 삼촌 | $z$의 자리 | 하는 일 | 이어지는가 |
 |:-:|:-:|:-:|:--|:-:|
@@ -73,7 +83,9 @@ z(R)                        u(B)
 
 대칭적인 경우($p$이 $g$의 오른쪽 자식일 때)는 위의 것을 좌우로 뒤집은 것이다.
 
-## 끝남과 복잡도
+---
+
+## 6. 끝남과 복잡도
 
 - **경우 1**은 $z$을 두 층 위로 올리므로 많아야 $h/2 = O(\log n)$번 실행된다.
 - **경우 2**는 회전 한 번으로 경우 3이 된다.
@@ -83,7 +95,9 @@ z(R)                        u(B)
 
 반복문이 끝나면 뿌리를 검게 칠한다(경우 1의 색 바꾸기로 붉어졌다면 성질 2를 만족시키기 위해서이다).
 
-## 구현
+---
+
+## 7. 구현
 
 ```python
 """
@@ -93,12 +107,10 @@ CLRS를 따라 INSERT-FIXUP의 세 경우를 모두 구현하며,
 회전이 많아야 두 번임을 보인다.
 """
 
-
 # === 상수 ===
 
 RED = "R"
 BLACK = "B"
-
 
 # === 적흑 노드 ===
 
@@ -115,13 +127,11 @@ class RBNode:
     def __repr__(self):
         return f"{self.key}({self.color})"
 
-
 # === 파수 ===
 
 NIL = RBNode(key=None, color=BLACK)
 NIL.left = NIL
 NIL.right = NIL
-
 
 # === 회전 ===
 
@@ -141,7 +151,6 @@ def left_rotate(tree, x):
     y.left = x
     x.parent = y
 
-
 def right_rotate(tree, y):
     """y에서 오른쪽으로 회전."""
     x = y.left
@@ -157,7 +166,6 @@ def right_rotate(tree, y):
         y.parent.right = x
     x.right = y
     y.parent = x
-
 
 # === 삽입 바로잡기 ===
 
@@ -211,7 +219,6 @@ def insert_fixup(tree, z):
     tree["root"].color = BLACK
     return rotations
 
-
 # === 삽입 ===
 
 def rb_insert(tree, key):
@@ -241,7 +248,6 @@ def rb_insert(tree, key):
     rots = insert_fixup(tree, z)
     return rots
 
-
 # === 보이기 ===
 
 def print_tree(node, level=0):
@@ -251,7 +257,6 @@ def print_tree(node, level=0):
     print_tree(node.right, level + 1)
     print(f"{'    ' * level}{node.key}({node.color})")
     print_tree(node.left, level + 1)
-
 
 if __name__ == "__main__":
     tree = {"root": NIL}
@@ -311,10 +316,7 @@ Insert 1: 2 rotation(s)
 
 삽입마다 회전이 많아야 2번 쓰여 이론적 보장이 확인된다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -347,3 +349,11 @@ Insert 1: 2 rotation(s)
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 설정、경우 1: 삼촌이 붉다 (색 바꾸기)、경우 2: 삼촌이 검고 $z$이 안쪽 자식이다 (회전 뒤 이어짐)、경우 3: 삼촌이 검고 $z$이 바깥쪽 자식이다 (회전과 색 바꾸기)을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

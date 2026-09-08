@@ -2,7 +2,9 @@
 
 보통의 이진 탐색 트리에 열쇠를 정렬된 순서로 넣으면 찾기에 $O(n)$이 걸리는 치우친 사슬이 된다. AVL 트리는 노드마다 얼마나 "한쪽으로 기울었는지"를 좇고 그 기욺이 문턱을 넘으면 다시 균형을 잡아 이런 퇴화를 막는다. **균형 인수**는 이 기욺을 나타내는 정수량이며 AVL 트리의 모든 회전을 일으키는 방아쇠이다.
 
-## 정의
+---
+
+## 1. 정의
 
 이진 트리의 노드 $x$에 대해 $h(x)$을 $x$을 뿌리로 하는 부분 트리의 높이라 하고, 뿌리에서 잎까지 가장 긴 경로의 길이로 정의한다. 빈 부분 트리(널 자식)의 높이는 관례로 $-1$이다.
 
@@ -14,7 +16,9 @@ $$
 
 여기서 $\text{left}(x)$과 $\text{right}(x)$은 각각 $x$의 왼쪽 자식과 오른쪽 자식이다. 균형 인수는 그저 왼쪽 부분 트리의 높이에서 오른쪽 부분 트리의 높이를 뺀 것이다.
 
-## AVL 불변식
+---
+
+## 2. AVL 불변식
 
 AVL 트리는 모든 노드가 **AVL 균형 조건**을 만족하는 이진 탐색 트리이다.
 
@@ -26,7 +30,9 @@ $$
 
 삽입이나 삭제 때문에 어떤 노드의 균형 인수가 $\{-1, 0, 1\}$을 벗어나면, 곧 $|\text{BF}(x)| \geq 2$이 되면, 트리는 그 노드에서 회전을 한두 번 하여 불변식을 되살린다.
 
-## 값의 뜻
+---
+
+## 3. 값의 뜻
 
 허용되는 세 값은 저마다 노드의 다른 모양을 나타낸다.
 
@@ -38,7 +44,9 @@ $$
 
 균형 인수가 $+2$이면 왼쪽 부분 트리가 너무 높다는 뜻이며 오른쪽 회전(또는 왼쪽-오른쪽 이중 회전)이 필요하다. $-2$이면 오른쪽 부분 트리가 너무 높다는 뜻이며 왼쪽 회전(또는 오른쪽-왼쪽 이중 회전)이 필요하다.
 
-## 균형 인수 계산하기
+---
+
+## 4. 균형 인수 계산하기
 
 노드마다 제 높이(또는 같은 뜻으로 균형 인수)를 정수 칸에 담는다. 삽입이나 삭제를 할 때마다 알고리즘은 고친 잎에서 뿌리까지 거슬러 올라가며 높이를 갱신하고 균형 인수를 살핀다.
 
@@ -54,7 +62,9 @@ $$
 
 $|\text{BF}(x)| \leq 1$이면 그 노드는 균형 잡혀 있으므로 계속 위로 올라간다. $|\text{BF}(x)| = 2$이면 $x$에서 알맞은 회전을 한다.
 
-## 예
+---
+
+## 5. 예
 
 노드마다 균형 인수를 적어 둔 다음 AVL 트리를 보자.
 
@@ -113,7 +123,9 @@ $|\text{BF}(x)| \leq 1$이면 그 노드는 균형 잡혀 있으므로 계속 �
 
 이제 노드 10의 $\text{BF} = +2$이 되어 AVL 조건이 깨진다. 노드 10에서 오른쪽 회전을 하면 균형이 되살아난다. 실제로 알고리즘은 균형이 깨진 가장 낮은 조상에서 이를 알아채고 거기서 회전한다. 노드 10에서 고친 결과가 위로 퍼지며 모든 조상에 충분할 수 있다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -122,7 +134,6 @@ $|\text{BF}(x)| \leq 1$이면 그 노드는 균형 잡혀 있으므로 계속 �
 AVL 트리의 균형 되잡기의 바탕이 되는 높이 추적과
 균형 인수 셈하기를 보인다.
 """
-
 
 # === AVL 노드 정의 ===
 
@@ -138,7 +149,6 @@ class AVLNode:
     def __repr__(self):
         return f"AVLNode({self.key})"
 
-
 # === 높이와 균형 인수 도구 ===
 
 def height(node):
@@ -147,16 +157,13 @@ def height(node):
         return -1
     return node.height
 
-
 def update_height(node):
     """자식에서 노드의 높이를 다시 셈한다."""
     node.height = 1 + max(height(node.left), height(node.right))
 
-
 def balance_factor(node):
     """균형 인수 = 왼쪽 높이 - 오른쪽 높이를 셈한다."""
     return height(node.left) - height(node.right)
-
 
 # === 시연 ===
 
@@ -171,7 +178,6 @@ def insert_bst(node, key):
     update_height(node)
     return node
 
-
 def print_balance_factors(node, level=0):
     """균형 인수와 함께 트리를 찍는다."""
     if node is None:
@@ -181,7 +187,6 @@ def print_balance_factors(node, level=0):
     bf = balance_factor(node)
     print(f"{indent}{node.key} [BF={bf:+d}]")
     print_balance_factors(node.left, level + 1)
-
 
 if __name__ == "__main__":
     root = None
@@ -222,7 +227,9 @@ After inserting 5 and 3 (imbalanced):
 
 노드 10의 $\text{BF} = +2$은 오른쪽 회전을 일으킬 AVL 위반을 확인해 준다.
 
-## 회전과의 관계
+---
+
+## 7. 회전과의 관계
 
 균형 인수가 어떤 회전을 할지 정한다.
 
@@ -235,11 +242,7 @@ After inserting 5 and 3 (imbalanced):
 
 자식의 균형 인수가 무거운 부분 트리가 "같은 쪽"(단일 회전)에 있는지 "반대쪽"(이중 회전)에 있는지를 정한다. 단일 회전과 이중 회전은 다음 절에서 다룬다.
 
-## 참고 문헌
-
-- [10.1 AVL Tree - Insertion and Rotations](https://www.youtube.com/watch?v=jDM6_TnYIqE&list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O&index=76)
-- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -272,3 +275,12 @@ After inserting 5 and 3 (imbalanced):
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 정의、AVL 불변식、값의 뜻、균형 인수 계산하기을 차례로 짚었다.
+
+**참고 문헌**
+
+- [10.1 AVL Tree - Insertion and Rotations](https://www.youtube.com/watch?v=jDM6_TnYIqE&list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O&index=76)
+- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

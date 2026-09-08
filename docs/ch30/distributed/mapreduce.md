@@ -6,7 +6,9 @@
 저절로
 해 준다.
 
-## 짜기 모형
+---
+
+## 1. 짜기 모형
 
 맵리듀스 셈은 들임 열쇠-값 짝의 모임을 쓰는 이가 뜻매김한 두 함수로
 내놓기 열쇠-값 짝의 모임으로 바꾼다.
@@ -32,7 +34,9 @@ $$
 맵과 리듀스 사이에서 **섞기** 마당이 중간 짝을 열쇠로 묶어 알맞은
 리듀서에 나누어 준다.
 
-## 돌림 흐름
+---
+
+## 2. 돌림 흐름
 
 1. **가르기.** 들임을 조각 $M$개로 갈라 저마다 매퍼에
    맡긴다.
@@ -51,7 +55,9 @@ $$
     맵과 리듀스가 모두 **정해져 있고** **곁 효과가 없기** 때문에
     이것이 가능하다.
 
-## 고전 보기: 낱말 세기
+---
+
+## 3. 고전 보기: 낱말 세기
 
 ```python
 """
@@ -62,7 +68,6 @@ $$
 
 from collections import defaultdict
 
-
 # === 맵 함수 ===
 def map_fn(doc_id: str, text: str) -> list[tuple[str, int]]:
     """글의 낱말마다 (낱말, 1)을 내놓는다."""
@@ -71,12 +76,10 @@ def map_fn(doc_id: str, text: str) -> list[tuple[str, int]]:
         pairs.append((word, 1))
     return pairs
 
-
 # === 리듀스 함수 ===
 def reduce_fn(word: str, counts: list[int]) -> int:
     """주어진 낱말의 셈을 모두 더한다."""
     return sum(counts)
-
 
 # === 맵리듀스 흉내내기 ===
 def mapreduce(documents: dict[str, str]) -> dict[str, int]:
@@ -93,7 +96,6 @@ def mapreduce(documents: dict[str, str]) -> dict[str, int]:
         result[word] = reduce_fn(word, counts)
     return result
 
-
 # === 보기 ===
 if __name__ == "__main__":
     docs = {
@@ -106,7 +108,9 @@ if __name__ == "__main__":
         print(f"  {word}: {count}")
 ```
 
-## 복잡도 모형
+---
+
+## 4. 복잡도 모형
 
 맵리듀스 복잡도 모형의 핵심 잣대는 다음과 같다:
 
@@ -121,7 +125,9 @@ if __name__ == "__main__":
 그래프 문제는 흔히 $O(\log n)$바퀴 넘게
 든다.
 
-## 맵리듀스 알고리즘
+---
+
+## 5. 맵리듀스 알고리즘
 
 ### 줄 세우기
 
@@ -141,7 +147,9 @@ $A$이 $m \times p$이고 $B$이 $p \times n$일 때 $C = AB$을 셈하려면:
 
 한 바퀴, 주고받기 $O(mpn)$.
 
-## 한계와 넓힘
+---
+
+## 6. 한계와 넓힘
 
 - **되풀이 알고리즘.** 그래프 알고리즘(PageRank, 이어진 조각)은 맵리듀스
   바퀴를 여러 번 돌아야 하고 바퀴마다 섞기 덧짐이
@@ -157,13 +165,7 @@ $A$이 $m \times p$이고 $B$이 $p \times n$일 때 $C = AB$을 셈하려면:
     합처럼 결합과 교환이 되는 연산에서는 이것이 그물 오감을
     크게 줄인다.
 
-## 참고 문헌
-
-- Dean, J. & Ghemawat, S. "MapReduce: Simplified Data Processing on Large
-  Clusters." OSDI 2004.
-- Leskovec, J., Rajaraman, A., & Ullman, J. D. *Mining of Massive Datasets*.
-  Cambridge University Press.
-
+---
 
 ## 연습문제
 
@@ -196,3 +198,14 @@ $A$이 $m \times p$이고 $B$이 $p \times n$일 때 $C = AB$을 셈하려면:
 
 ??? success "연습문제 4 풀이"
     큰 규모 익히기의 자료 앞손질은 맵리듀스 무늬를 쓴다. (1) 맵: 날 자료(그림, 글)를 뜯어 바꿈(크기 바꾸기, 토막 내기)을 쓰고 (조각 번호, 손질한 기록)을 내놓는다. (2) 섞기: 기록을 조각별로 묶는다. (3) 리듀스: 조각마다 TFRecord/Parquet 파일로 적는다. 이로써 고르고 잘 섞인 익히기 자료가 생긴다. 다른 쓰임새: 자료 뭉치 통계 셈하기(고르게 맞추기용 평균/흩어짐), 낱말 짓기(낱말 세기), 겹침 없애기(표본마다 흩어 흩기값으로 묶고 무리마다 하나만 남김), 특징 뽑아내기(표본마다 미리 익힌 모델을 돌림).
+
+## 정리하며
+
+이 마당은 짜기 모형、돌림 흐름、고전 보기: 낱말 세기、복잡도 모형을 차례로 짚었다.
+
+**참고 문헌**
+
+- Dean, J. & Ghemawat, S. "MapReduce: Simplified Data Processing on Large
+  Clusters." OSDI 2004.
+- Leskovec, J., Rajaraman, A., & Ullman, J. D. *Mining of Massive Datasets*.
+  Cambridge University Press.

@@ -2,7 +2,9 @@
 
 플로이드-워셜은 그래프의 빽빽함과 상관없이 $\Theta(V^3)$에 돈다. $E \ll V^2$인 **성긴** 그래프에서는 꼭짓점마다 데이크스트라를 돌리는 편이 빠를 텐데, 데이크스트라는 무게가 음이 아니어야 한다. 존슨의 알고리즘은 변의 무게를 **다시 매겨** 음의 무게를 없앤 뒤 꼭짓점마다 데이크스트라를 돌려 이 틈을 잇는다. 그 결과는 $O(V^2 \log V + VE)$에 도는 모든 짝 최단 경로 알고리즘으로, 성긴 그래프에서 플로이드-워셜보다 빠르다.
 
-## 무게 다시 매기기 기법
+---
+
+## 1. 무게 다시 매기기 기법
 
 핵심 통찰은 변의 무게마다 잘 고른 값을 더하면 어느 길이 최단인지는 그대로 두고 무게를 모두 음이 아니게 만들 수 있다는 것이다.
 
@@ -20,7 +22,9 @@ $$
 
 망원경처럼 접히는 합은 다시 매긴 길 무게가 원래 것과 끝점에만 기대는 상수 $h(v_0) - h(v_k)$만큼 다르다는 뜻이다. 그러므로 $w$ 아래의 최단 경로는 $\hat{w}$ 아래에서도 최단이다.
 
-## 퍼텐셜 함수 고르기
+---
+
+## 2. 퍼텐셜 함수 고르기
 
 다시 매긴 변을 모두 음이 아니게 하려고 존슨의 알고리즘은 $h(v) = \delta(s', v)$으로 놓는다. 여기서 $s'$은 무게 0인 변으로 기존 꼭짓점 모두에 이어진 새 꼭짓점이다:
 
@@ -36,7 +40,9 @@ $$
 
 벨먼-포드가 음수 순환을 알아내면 알고리즘은 이를 알리고 멈춘다.
 
-## 알고리즘의 걸음
+---
+
+## 3. 알고리즘의 걸음
 
 ```
 JOHNSON(G, w):
@@ -53,7 +59,9 @@ JOHNSON(G, w):
     5. Return distance matrix d
 ```
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 | 걸음 | 시간 |
 |---|---|
@@ -65,7 +73,9 @@ JOHNSON(G, w):
 
 성긴 그래프($E = O(V)$)에서는 $O(V^2 \log V)$이 되어 플로이드-워셜의 $\Theta(V^3)$보다 훨씬 낫다. 빽빽한 그래프($E = O(V^2)$)에서는 두 알고리즘 모두 $\Theta(V^3)$이며, 플로이드-워셜이 더 단순하고 상수 인자가 작다.
 
-## 어느 것을 언제 쓰나
+---
+
+## 5. 어느 것을 언제 쓰나
 
 | 잣대 | 플로이드-워셜 | 존슨 |
 |---|---|---|
@@ -74,7 +84,9 @@ JOHNSON(G, w):
 | 시간 | $\Theta(V^3)$ | $O(V^2\log V + VE)$ |
 | 구현 | 더 단순함 | 더 복잡함 |
 
-## 풀이 예제
+---
+
+## 6. 풀이 예제
 
 무게가 음인 변을 아우르는 꼭짓점 4개를 생각하자:
 
@@ -99,7 +111,9 @@ $\hat{w}(2,3) = 2 + (-3) - (-1) = 0$.
 
 **걸음 4:** 다시 매긴 변으로 꼭짓점마다 데이크스트라를 돌린 뒤 되돌린다. 곧 $d(u, v) = \hat{d}(u, v) - h(u) + h(v)$.
 
-## 구현
+---
+
+## 7. 구현
 
 ```python
 """
@@ -111,7 +125,6 @@ O(V^2 log V + VE) 시간이 걸리며, 성긴 그래프에서 플로이드-워�
 
 import heapq
 from math import inf
-
 
 # === 퍼텐셜 셈하기를 위한 벨먼-포드 ==========================================
 
@@ -135,7 +148,6 @@ def bellman_ford(vertices: list, edges: list, source) -> tuple[dict, bool]:
 
     return dist, True
 
-
 # === 데이크스트라 ============================================================
 
 def dijkstra(graph: dict, source) -> dict:
@@ -154,7 +166,6 @@ def dijkstra(graph: dict, source) -> dict:
                 heapq.heappush(pq, (dist[v], v))
 
     return dist
-
 
 # === 존슨 알고리즘 ===========================================================
 
@@ -204,7 +215,6 @@ def johnson(vertices: list, edges: list) -> tuple[dict, bool]:
 
     return dist, True
 
-
 # === 보임 ====================================================================
 
 if __name__ == "__main__":
@@ -235,11 +245,7 @@ All-pairs shortest distances:
   From 3: {0: 'inf', 1: 'inf', 2: 'inf', 3: 0}
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
-  Algorithms* (4th ed.), Chapter 25.3: Johnson's Algorithm for Sparse Graphs.
-- Johnson, D. B. (1977). Efficient algorithms for shortest paths in sparse networks. *Journal of the ACM*, 24(1), 1-13.
+---
 
 ## 연습문제
 
@@ -272,3 +278,13 @@ All-pairs shortest distances:
 
 ??? success "연습문제 4 풀이"
     벨먼-포드 걸음(걸음 2)이 무게가 음인 고리를 알아낸다. $V - 1$바퀴 늦춘 뒤에도 늦출 수 있는 변이 있으면 음의 고리가 있다. 벨먼-포드가 `False`을 되돌리고, 존슨의 알고리즘은 (음의 고리를 지나는 길은 얼마든지 짧게 만들 수 있으므로) 최단 경로가 정해지지 않는다고 알려야 한다. 알고리즘은 데이크스트라 단계로 가지 않고 바로 멈춘다. $\square$
+
+## 정리하며
+
+이 마당은 무게 다시 매기기 기법、퍼텐셜 함수 고르기、알고리즘의 걸음、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
+  Algorithms* (4th ed.), Chapter 25.3: Johnson's Algorithm for Sparse Graphs.
+- Johnson, D. B. (1977). Efficient algorithms for shortest paths in sparse networks. *Journal of the ACM*, 24(1), 1-13.

@@ -2,7 +2,9 @@
 
 조합 가장 좋게 하기 문제의 선형 계획 느슨하게 하기를 풀면 분수 풀이를 정수로 바꾸어야 한다. **마구잡이 반올림**은 분수 값을 확률로 삼아 변수마다 그 선형 계획 값과 같은(또는 그것에서 얻은) 확률로 서로 매이지 않게 1으로 둔다. Raghavan과 Thompson(1987)이 내놓은 이 아름다운 재주는 기댓값으로 가장 좋은 값에 가까운 풀이를 낸다.
 
-## 마구잡이 반올림 틀
+---
+
+## 1. 마구잡이 반올림 틀
 
 가장 좋은 분수 풀이가 $x^*$인, 선형 계획으로 느슨하게 한 정수 계획이 주어질 때:
 
@@ -12,7 +14,9 @@
 
 가장 단순한 고르기는 $p_j = x_j^*$(곧바로 반올림)이다. 더 정교한 얼개는 올바름을 높이려 확률의 잣수를 맞춘다.
 
-## 쓰임새: MAX-SAT
+---
+
+## 2. 쓰임새: MAX-SAT
 
 절 $C_1, \ldots, C_m$ $m$개와 불 변수 $x_1, \ldots, x_n$ $n$개를 지닌 MAX-SAT 보기를 보자. 절 $C_i$의 무게는 $w_i$이다.
 
@@ -67,7 +71,9 @@ $$
 
 둘 가운데 나은 것을 택하면 기댓값 무게가 적어도 $\frac{3}{4} \cdot \text{OPT}$이다.
 
-## 쓰임새: 모임 덮기
+---
+
+## 3. 쓰임새: 모임 덮기
 
 $n = |U|$인 온 모임 $U$과 비용이 $c_j$인 모임 $S_1, \ldots, S_m$에 대해:
 
@@ -80,7 +86,9 @@ $n = |U|$인 온 모임 $U$과 비용이 $c_j$인 모임 $S_1, \ldots, S_m$에 �
 
 낱개 $i$을 덮는 분수 값의 합이 (선형 계획 조건에 따라) 적어도 1이고 서로 매이지 않은 $O(\ln n)$번의 해 보기로 키우면 못 이룰 확률이 $1/n$ 아래로 떨어지므로 낱개마다 높은 확률로 덮인다.
 
-## 모임 한계
+---
+
+## 4. 모임 한계
 
 마구잡이 반올림 살피기는 기댓값 보장을 높은 확률의 말로 바꾸려 **체르노프 한계**를 자주 쓴다.
 
@@ -96,7 +104,9 @@ $$
 
 이 한계는 기댓값 어림 비율을 높은 확률로 참인 보장으로 바꾼다.
 
-## 마구잡이 없애기
+---
+
+## 5. 마구잡이 없애기
 
 마구잡이 반올림은 흔히 조건부 기댓값 방법으로 **마구잡이를 없앨** 수 있다.
 
@@ -117,11 +127,7 @@ $$
 
     **기댓값 채워진 절:** $3 \times 0.75 = 2.25$. 아래 한계: $(1 - 1/e) \times 3 \approx 1.90$. 실제 기댓값이 한계를 넘는다.
 
-## 참고 문헌
-
-- Raghavan, P., & Thompson, C. D. (1987). Randomized rounding: a technique for provably good algorithms. *Combinatorica*, 7(4), 365--374.
-- Vazirani, V. V. (2001). *Approximation Algorithms*. Springer, Chapters 14, 16.
-- Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.
+---
 
 ## 연습문제
 
@@ -154,3 +160,13 @@ $$
 
 ??? success "연습문제 4 풀이"
     작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$
+
+## 정리하며
+
+이 마당은 마구잡이 반올림 틀、쓰임새: MAX-SAT、쓰임새: 모임 덮기、모임 한계을 차례로 짚었다.
+
+**참고 문헌**
+
+- Raghavan, P., & Thompson, C. D. (1987). Randomized rounding: a technique for provably good algorithms. *Combinatorica*, 7(4), 365--374.
+- Vazirani, V. V. (2001). *Approximation Algorithms*. Springer, Chapters 14, 16.
+- Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.

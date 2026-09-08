@@ -1,9 +1,14 @@
 # 베이즈 신경 그물의 MCMC 방법
-## 두루 보기
+
+---
+
+## 1. 두루 보기
 
 마르코프 사슬 몬테카를로(MCMC) 방법은 베이즈 신경 그물에서 뒷분포를 미루어 보는 가장 이치에 닿는 길로, 끝에 가면 참 뒷분포로 모이는 표본을 낳는다. 셈이 비싸긴 하나 아리송함 재기의 으뜸 잣대 노릇을 하며, 어림 방법을 따질 때 견주는 밑금이 된다.
 
-## 해밀턴 몬테카를로(HMC)
+---
+
+## 2. 해밀턴 몬테카를로(HMC)
 
 ### 알고리즘
 
@@ -28,7 +33,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 from typing import List, Callable, Tuple
-
 
 class HamiltonianMonteCarlo:
     """
@@ -147,7 +151,9 @@ class HamiltonianMonteCarlo:
         return samples
 ```
 
-## 확률 기울기 랑주뱅 움직임(SGLD)
+---
+
+## 3. 확률 기울기 랑주뱅 움직임(SGLD)
 
 SGLD는 잔 묶음 기울기에 잡음을 섞어 크게 늘릴 수 있는 베이즈 미루어 봄을 이룬다.
 
@@ -191,7 +197,6 @@ class SGLDOptimizer(torch.optim.Optimizer):
                 noise = torch.randn_like(p.data)
                 noise_std = (2.0 * lr * group['temperature']) ** 0.5
                 p.data.add_(noise, alpha=noise_std * group['noise_scale'])
-
 
 def train_with_sgld(
     model: nn.Module,
@@ -240,7 +245,9 @@ def train_with_sgld(
     return samples
 ```
 
-## SGHMC: 확률 기울기 해밀턴 몬테카를로
+---
+
+## 4. SGHMC: 확률 기울기 해밀턴 몬테카를로
 
 SGHMC은 더 잘 둘러보도록 SGLD에 밀어 나감을 더한다.
 
@@ -286,7 +293,9 @@ class SGHMCOptimizer(torch.optim.Optimizer):
                 p.data.add_(v, alpha=lr)
 ```
 
-## MCMC 표본으로 미루어 보기
+---
+
+## 5. MCMC 표본으로 미루어 보기
 
 ```python
 def predict_with_mcmc_samples(
@@ -334,7 +343,9 @@ def predict_with_mcmc_samples(
         }
 ```
 
-## 참으로 헤아릴 것
+---
+
+## 6. 참으로 헤아릴 것
 
 ### 베이즈 신경 그물에 MCMC를 쓸 때
 
@@ -359,40 +370,46 @@ def predict_with_mcmc_samples(
 | 더 잘 둘러봐야 할 때 | SGHMC | 밀어 나감이 섞임을 돕는다 |
 | 큰 서비스 | 모둠이나 SWAG를 쓴다 | MCMC는 너무 비싸다 |
 
-## 살펴볼 거리
+---
 
-- Welling, M., & Teh, Y. W. (2011). "Bayesian Learning via Stochastic Gradient Langevin Dynamics." ICML.
-- Chen, T., et al. (2014). "Stochastic Gradient Hamiltonian Monte Carlo." ICML.
-- Neal, R. M. (2011). "MCMC Using Hamiltonian Dynamics." Handbook of MCMC.
+## 연습문제
 
-## 익힘 문제
-
-**익힘 1.**
+**연습문제 1.**
 ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
 
-??? success "익힘 1 풀이"
+??? success "연습문제 1 풀이"
     짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
 
 ---
 
-**익힘 2.**
+**연습문제 2.**
 이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
 
-??? success "익힘 2 풀이"
+??? success "연습문제 2 풀이"
     자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
 
 ---
 
-**익힘 3.**
+**연습문제 3.**
 베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
-??? success "익힘 3 풀이"
+??? success "연습문제 3 풀이"
     미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
 
 ---
 
-**익힘 4.**
+**연습문제 4.**
 이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
 
-??? success "익힘 4 풀이"
+??? success "연습문제 4 풀이"
     판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$
+
+## 정리하며
+
+이 마당은 두루 보기、해밀턴 몬테카를로(HMC)、확률 기울기 랑주뱅 움직임(SGLD)、SGHMC: 확률 기울기 해밀턴 몬테카를로을 차례로 짚었다.
+
+**살펴볼 거리**
+
+- Welling, M., & Teh, Y. W. (2011). "Bayesian Learning via Stochastic Gradient Langevin Dynamics." ICML.
+- Chen, T., et al. (2014). "Stochastic Gradient Hamiltonian Monte Carlo." ICML.
+- Neal, R. M. (2011). "MCMC Using Hamiltonian Dynamics." Handbook of MCMC.

@@ -1,5 +1,4 @@
 # LSTM 구조
-## 들어가며
 
 장단기 기억(LSTM) 신경망은 순차 데이터의 먼 거리 의존을 붙잡으려고 만든 특수한 순환 신경망이다. 1997년 Hochreiter와 Schmidhuber가 내놓았으며, 먼 시각에서 배우지 못하게 하는 기울기 소실 문제라는 기본 RNN의 근본적인 한계를 푼다.
 
@@ -18,7 +17,7 @@ LSTM의 핵심 혁신은 **세포 상태**에 있다. 정보가 거의 변형되
 
 ---
 
-## 기울기 소실 문제
+## 1. 기울기 소실 문제
 
 LSTM의 구조를 이해하기에 앞서 그것이 푸는 문제를 알아야 한다.
 
@@ -61,7 +60,7 @@ $$\frac{\partial \mathcal{L}}{\partial c_{t-k}} = \frac{\partial \mathcal{L}}{\p
 
 ---
 
-## LSTM 세포의 구조
+## 2. LSTM 세포의 구조
 
 LSTM 세포에는 주요 부품이 네 가지 있다. 문 세 개(망각, 입력, 출력)와 세포 상태 갱신 장치이다.
 
@@ -119,7 +118,7 @@ $$h_t = o_t \odot \tanh(c_t)$$
 
 ---
 
-## 정보 흐름 그려 보기
+## 3. 정보 흐름 그려 보기
 
 LSTM에는 나란한 통로가 두 개 있다고 볼 수 있다.
 
@@ -150,7 +149,7 @@ c_t ──[tanh]──[×o_t]── h_t ──→ output
 
 ---
 
-## 차원 분석
+## 4. 차원 분석
 
 입력 차원이 $d$이고 숨은 차원이 $n$인 LSTM에 대해 다음과 같다.
 
@@ -190,7 +189,7 @@ $$\text{Parameters} = 4 \times 256 \times (256 + 100 + 1) = 4 \times 256 \times 
 
 ---
 
-## PyTorch로 밑바닥부터 구현하기
+## 5. PyTorch로 밑바닥부터 구현하기
 
 ### LSTM 세포
 
@@ -414,7 +413,7 @@ def verify_implementation():
 
 ---
 
-## PyTorch 내장 LSTM 쓰기
+## 6. PyTorch 내장 LSTM 쓰기
 
 ```python
 import torch
@@ -448,7 +447,7 @@ last_hidden = h_n[-1]             # 마지막 층의 숨은 상태: (32, 256)
 
 ---
 
-## 실전 응용
+## 7. 실전 응용
 
 ### 순차열 분류
 
@@ -721,7 +720,7 @@ predictions = model(x)       # (32, 5, 3)
 
 ---
 
-## 초기화와 학습의 모범 관행
+## 8. 초기화와 학습의 모범 관행
 
 ### 가중치 초기화
 
@@ -789,7 +788,7 @@ scheduler.step(val_loss)
 
 ---
 
-## LSTM의 변형
+## 9. LSTM의 변형
 
 ### 망각 문과 입력 문 묶기
 
@@ -819,7 +818,7 @@ $$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$$
 
 ---
 
-## 언제 LSTM을 쓸까
+## 10. 언제 LSTM을 쓸까
 
 ### LSTM의 강점
 
@@ -849,7 +848,7 @@ $$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$$
 
 ---
 
-## 흔한 문제 잡기
+## 11. 흔한 문제 잡기
 
 ### 증상과 해법
 
@@ -890,45 +889,6 @@ def diagnose_lstm(model, dataloader, device):
 
 ---
 
-## 요약
-
-LSTM 신경망은 다음으로 기울기 소실 문제를 푼다.
-
-1. **세포 상태**: 기울기를 지키는 덧셈 방식 정보 고속도로
-2. **망각 문**: 어떤 정보를 버릴지 배운다
-3. **입력 문**: 어떤 새 정보를 담을지 배운다
-4. **출력 문**: 어떤 정보를 내보낼지 배운다
-
-**핵심 성질:**
-
-- 기울기가 곱셈으로 줄어들지 않고 세포 상태를 타고 흐른다
-- 문이 과제에 맞는 정보 흐름의 방식을 배운다
-- 시각 수백 개에 걸친 의존을 붙잡는다
-- 기본 RNN보다 매개변수가 4배지만 기울기의 흐름이 훨씬 낫다
-
-**모범 관행:**
-
-- 망각 문의 편향을 1로 초기화한다
-- 기울기 자르기를 쓴다
-- 층 사이에 드롭아웃을 적용한다
-- 매개변수에 제약이 있으면 GRU를 생각해 본다
-
-이 구조는 계산 비용을 더하지만 훨씬 긴 순차열에서 배울 수 있게 해 주며, 이는 실제 순차열 모형 과제 대부분에 꼭 필요하다.
-
----
-
-## 참고 문헌
-
-1. Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780.
-
-2. Gers, F. A., Schmidhuber, J., & Cummins, F. (2000). Learning to Forget: Continual Prediction with LSTM. *Neural Computation*, 12(10), 2451-2471.
-
-3. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.
-
-4. Jozefowicz, R., Zaremba, W., & Sutskever, I. (2015). An Empirical Exploration of Recurrent Network Architectures. *ICML*.
-
-5. Cho, K., Van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H., & Bengio, Y. (2014). Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation. *EMNLP*.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -966,3 +926,42 @@ LSTM의 식을 적고 각 문의 구실을 설명하라.
 
 ??? success "연습문제 4 풀이"
     편향이 0이면 망각 문이 $\sigma(0) = 0.5$이어서 세포 상태가 걸음마다 절반으로 준다. 편향을 1로 두면 $\sigma(1) \approx 0.73$이 되어 대체로 '기억하는' 상태에서 출발한다. 그러면 LSTM이 무엇을 잊어야 할지 배우기도 전에 중요한 정보를 잊는 일을 막는다(Jozefowicz 등, 2015).
+
+## 정리하며
+
+LSTM 신경망은 다음으로 기울기 소실 문제를 푼다.
+
+1. **세포 상태**: 기울기를 지키는 덧셈 방식 정보 고속도로
+2. **망각 문**: 어떤 정보를 버릴지 배운다
+3. **입력 문**: 어떤 새 정보를 담을지 배운다
+4. **출력 문**: 어떤 정보를 내보낼지 배운다
+
+**핵심 성질:**
+
+- 기울기가 곱셈으로 줄어들지 않고 세포 상태를 타고 흐른다
+- 문이 과제에 맞는 정보 흐름의 방식을 배운다
+- 시각 수백 개에 걸친 의존을 붙잡는다
+- 기본 RNN보다 매개변수가 4배지만 기울기의 흐름이 훨씬 낫다
+
+**모범 관행:**
+
+- 망각 문의 편향을 1로 초기화한다
+- 기울기 자르기를 쓴다
+- 층 사이에 드롭아웃을 적용한다
+- 매개변수에 제약이 있으면 GRU를 생각해 본다
+
+이 구조는 계산 비용을 더하지만 훨씬 긴 순차열에서 배울 수 있게 해 주며, 이는 실제 순차열 모형 과제 대부분에 꼭 필요하다.
+
+---
+
+**참고 문헌**
+
+1. Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780.
+
+2. Gers, F. A., Schmidhuber, J., & Cummins, F. (2000). Learning to Forget: Continual Prediction with LSTM. *Neural Computation*, 12(10), 2451-2471.
+
+3. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.
+
+4. Jozefowicz, R., Zaremba, W., & Sutskever, I. (2015). An Empirical Exploration of Recurrent Network Architectures. *ICML*.
+
+5. Cho, K., Van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H., & Bengio, Y. (2014). Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation. *EMNLP*.

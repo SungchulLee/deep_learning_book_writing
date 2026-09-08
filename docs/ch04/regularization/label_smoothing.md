@@ -1,9 +1,10 @@
 # 레이블 평활화
-## 개요
 
 레이블 평활화는 분류 모델을 위한 정칙화 기법으로, 딱딱한 원-핫 목표 벡터를 모든 클래스에 작은 확률 질량을 나누어 주는 부드러운 목표로 바꾼다. 모델이 참 클래스에 확률을 전부 몰아주지 못하게 하여 지나치게 확신하는 예측을 억제하고 모델의 보정을 개선하며, 가중치 기반 및 데이터 기반 정칙화를 보완하는 출력 쪽 정칙화로 작동한다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### 딱딱한 목표와 부드러운 목표
 
@@ -69,7 +70,9 @@ $$
 
 이 유한한 간격은 모델이 한없이 확신하게 되는 것을 막고 로짓의 크기를 유계로 유지한다.
 
-## 레이블 평활화가 통하는 이유
+---
+
+## 2. 레이블 평활화가 통하는 이유
 
 ### 지나친 확신 막기
 
@@ -87,7 +90,9 @@ $$
 
 Müller 등(2019)은 레이블 평활화가 같은 클래스의 끝에서 둘째 층 표현이 더 촘촘히 모이고 다른 클래스의 표현으로부터 같은 거리에 놓이도록 이끌어, 더 짜임새 있고 전이하기 좋은 특징 공간을 만든다는 것을 보였다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 내장 교차 엔트로피 쓰기
 
@@ -272,7 +277,9 @@ def train_with_label_smoothing(
     return history
 ```
 
-## 보정 재기
+---
+
+## 4. 보정 재기
 
 ### 기대 보정 오차 (ECE)
 
@@ -334,7 +341,9 @@ def evaluate_calibration(model, data_loader, device='cpu'):
     return ece
 ```
 
-## 특정 구조에서의 레이블 평활화
+---
+
+## 5. 특정 구조에서의 레이블 평활화
 
 ### 트랜스포머
 
@@ -384,7 +393,9 @@ $$
 
 레이블 평활화는 $p^{\text{teacher}}$이 균등한 특수한 경우이다.
 
-## 다른 정칙화와 결합하기
+---
+
+## 6. 다른 정칙화와 결합하기
 
 레이블 평활화는 학습 목표를 바꾸는 다른 기법들과 상호작용한다.
 
@@ -430,7 +441,9 @@ def combined_augmentation_training_step(
     return loss
 ```
 
-## 실무 지침
+---
+
+## 7. 실무 지침
 
 ### epsilon 고르기
 
@@ -457,12 +470,7 @@ def combined_augmentation_training_step(
 3. **정확한 확신도가 필요할 때**: 레이블 평활화는 확신도를 조직적으로 낮춘다
 4. **뒤이은 증류**: 암묵적 지식의 전달을 해칠 수 있다(Müller 등, 2019)
 
-## 참고 문헌
-
-1. Szegedy, C., et al. (2016). Rethinking the Inception Architecture for Computer Vision. *CVPR*. (Introduced label smoothing.)
-2. Müller, R., Kornblith, S., & Hinton, G. (2019). When Does Label Smoothing Help? *NeurIPS*.
-3. Vaswani, A., et al. (2017). Attention Is All You Need. *NeurIPS*. (Uses $\varepsilon = 0.1$ for transformer training.)
-4. Pereyra, G., et al. (2017). Regularizing Neural Networks by Penalizing Confident Output Distributions. *ICLR Workshop*.
+---
 
 ## 연습문제
 
@@ -502,3 +510,14 @@ def combined_augmentation_training_step(
 
 ??? success "연습문제 4 풀이"
     (1) 참 레이블이 이미 부드럽거나 확률적일 때, (2) 뒤따르는 과제가 잘 보정된 확률을 요구할 때(레이블 평활화는 특정 보정 지표에서 오히려 보정을 망칠 수 있다), (3) 지식 증류를 쓸 때(교사의 부드러운 목표가 이미 평활화를 제공한다) 레이블 평활화를 피하라.
+
+## 정리하며
+
+이 마당은 수학적 정식화、레이블 평활화가 통하는 이유、PyTorch 구현、보정 재기을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Szegedy, C., et al. (2016). Rethinking the Inception Architecture for Computer Vision. *CVPR*. (Introduced label smoothing.)
+2. Müller, R., Kornblith, S., & Hinton, G. (2019). When Does Label Smoothing Help? *NeurIPS*.
+3. Vaswani, A., et al. (2017). Attention Is All You Need. *NeurIPS*. (Uses $\varepsilon = 0.1$ for transformer training.)
+4. Pereyra, G., et al. (2017). Regularizing Neural Networks by Penalizing Confident Output Distributions. *ICLR Workshop*.

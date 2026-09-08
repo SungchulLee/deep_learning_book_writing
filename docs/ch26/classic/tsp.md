@@ -2,7 +2,9 @@
 
 떠돌이 장수 문제는 모든 고을을 꼭 한 번씩 들르고 출발점으로 돌아오는 가장 짧은 나들이를 묻는다. 일반 떠돌이 장수 문제는 NP-어려움이고 어림도 할 수 없지만 거리가 삼각 부등식을 채우는 **잣대** 변형은 상수 갑절 어림을 받아들인다. 크리스토피데스-세르듀코프 알고리즘은 잣대 떠돌이 장수 문제에서 알려진 가장 좋은 비율 $3/2$을 이루며, 이 한계는 1976년부터 이어졌다.
 
-## 문제의 정의
+---
+
+## 1. 문제의 정의
 
 **삼각 부등식**을 채우는 모서리 무게 $w : E \to \mathbb{R}_{\geq 0}$을 지닌 온전 그래프 $G = (V, E)$이 주어질 때:
 
@@ -12,7 +14,9 @@ $$
 
 온 무게가 가장 작은 해밀턴 돌기(나들이)를 찾아라. $\text{OPT}$을 가장 좋은 나들이의 비용이라 하자.
 
-## 알고리즘의 걸음
+---
+
+## 2. 알고리즘의 걸음
 
 크리스토피데스 알고리즘은 그래프 이론의 재료 셋, 곧 최소 뻗음 나무, 무게가 가장 작은 온전 짝짓기, 오일러 돌기를 아우른다.
 
@@ -27,7 +31,9 @@ $$
 
 **내놓기:** 비용이 많아야 $\frac{3}{2} \cdot \text{OPT}$인 해밀턴 돌기.
 
-## 어림 보장
+---
+
+## 3. 어림 보장
 
 !!! tip "정리(Christofides 1976, Serdyukov 1978)"
     크리스토피데스 알고리즘은 잣대 떠돌이 장수 문제의 $\frac{3}{2}$ 어림이다.
@@ -60,11 +66,15 @@ $$
 
 $\square$
 
-## 한계가 빈틈없는가
+---
+
+## 4. 한계가 빈틈없는가
 
 $3/2$ 비율은 빡빡하다. 꼭짓점 $n$개와 무게 1인 모서리를 지닌 길 그래프를 최단 거리로 잣대 그래프로 채운 것을 보자. 최소 뻗음 나무 비용은 $n - 1$, 짝짓기 비용은 $(n-1)/2$에 가까워지고 가장 좋은 나들이 비용은 $n$이다. $n$이 커지면 비율이 $3/2$에 가까워진다.
 
-## 도는 시간
+---
+
+## 5. 도는 시간
 
 | 걸음 | 알고리즘 | 시간 |
 |------|-----------|------|
@@ -76,7 +86,9 @@ $3/2$ 비율은 빡빡하다. 꼭짓점 $n$개와 무게 1인 모서리를 지�
 
 병목은 무게가 가장 작은 온전 짝짓기 걸음이며 전체 복잡도는 $O(n^3)$이다.
 
-## 다른 길과 견주기
+---
+
+## 6. 다른 길과 견주기
 
 | 알고리즘 | 비율 | 시간 | 참고 |
 |-----------|-------|------|-------|
@@ -111,11 +123,7 @@ $3/2$ 비율은 빡빡하다. 꼭짓점 $n$개와 무게 1인 모서리를 지�
 
     이 알고리즘은 비용 16인 나들이를 낸다. 한계는 $\frac{3}{2} \cdot \text{OPT}$을 주어 어림 보장을 굳혀 준다.
 
-## 참고 문헌
-
-- Christofides, N. (1976). *Worst-case analysis of a new heuristic for the travelling salesman problem*. Technical Report 388, Graduate School of Industrial Administration, CMU.
-- Serdyukov, A. I. (1978). On some extremal walks in graphs. *Upravlyaemye Sistemy*, 17, 76--79.
-- Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
+---
 
 ## 연습문제
 
@@ -148,3 +156,13 @@ Christofides Algorithm for Metric TSP을 손에 잡히는 사례에 걸어 어�
 
 ??? success "연습문제 4 풀이"
     작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$
+
+## 정리하며
+
+이 마당은 문제의 정의、알고리즘의 걸음、어림 보장、한계가 빈틈없는가을 차례로 짚었다.
+
+**참고 문헌**
+
+- Christofides, N. (1976). *Worst-case analysis of a new heuristic for the travelling salesman problem*. Technical Report 388, Graduate School of Industrial Administration, CMU.
+- Serdyukov, A. I. (1978). On some extremal walks in graphs. *Upravlyaemye Sistemy*, 17, 76--79.
+- Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.

@@ -2,14 +2,18 @@
 
 빠른 정렬은 병렬에 자연스럽게 어울린다. 배열을 축을 기준으로 나누고 나면 왼쪽과 오른쪽 부분 배열이 서로 독립이라 함께 정렬할 수 있다. 그러나 소박한 구현에서는 나누는 걸음 자체가 차례대로 굴러가고, 치우친 나눔은 짐을 고르게 나누지 못하게 한다. **병렬 빠른 정렬**은 두 어려움을 모두 다루어 낮은 병렬 깊이로 전체 일 $O(n \log n)$을 이룬다.
 
-## 병렬성이 나오는 곳
+---
+
+## 1. 병렬성이 나오는 곳
 
 빠른 줄 세우기에서 나란히 할 수 있는 자리는 둘이다.
 
 1. **되돌이 부분 문제.** 나눈 뒤 축 양쪽의 부분 배열은 서로 독립이다. 그것들을 나란히 정렬하기는 쉽다.
 2. **나누는 걸음 자체.** 보통의 로무토나 호어 나눔은 배열을 차례대로 훑는다. 병렬 나눔은 그 훑기를 프로세서들에 나눈다.
 
-## 소박한 병렬 빠른 정렬
+---
+
+## 2. 소박한 병렬 빠른 정렬
 
 가장 단순한 나란한 빠른 줄 세우기는 되부름마다 새 일감을 낳는다.
 
@@ -31,7 +35,9 @@ $$
 
 나누는 걸음이 차례대로 굴러가므로 뻗침이 $O(n)$이다. $n/2$으로 완벽히 쪼개더라도 첫 나눔에 $\Theta(n)$ 시간이 든다.
 
-## 병렬 나눔
+---
+
+## 3. 병렬 나눔
 
 뻗음을 줄이려면 **머리말 합**을 써서 가르는 걸음을 나란히 할 수 있다.
 
@@ -52,7 +58,9 @@ $$
 
 뻗음은 되부름 켜 $O(\log n)$개에서 오며 켜마다 가르기 뻗음이 $O(\log n)$이다.
 
-## 짐 고르게 나누기의 어려움
+---
+
+## 4. 짐 고르게 나누기의 어려움
 
 축의 질이 짐의 균형을 정한다. 축이 나쁘면 한쪽 부분 배열에 원소 대부분이 몰려 프로세서가 놀게 된다.
 
@@ -67,7 +75,9 @@ $$
 
 참으로는 마구잡이 굴대가 높은 확률로 기대 깊이 $O(\log n)$을 준다.
 
-## 표본 정렬(병렬로 일반화하기)
+---
+
+## 5. 표본 정렬(병렬로 일반화하기)
 
 처리기가 $p$개일 때 **표본 줄 세우기**가 빠른 줄 세우기를 넓힌다.
 
@@ -82,7 +92,9 @@ $$
 W(n) = O(n \log n), \qquad S(n) = O\!\left(\frac{n}{p} \log \frac{n}{p}\right)
 $$
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -94,7 +106,6 @@ $$
 """
 
 from concurrent.futures import ThreadPoolExecutor, Future
-
 
 # === 차례대로 나눔 ===
 
@@ -108,7 +119,6 @@ def _partition(arr: list, lo: int, hi: int) -> int:
             i += 1
     arr[i], arr[hi] = arr[hi], arr[i]
     return i
-
 
 # === 병렬 빠른 정렬 ===
 
@@ -144,7 +154,6 @@ def _parallel_quicksort(
         _sequential_quicksort(arr, lo, pivot_idx - 1)
         _sequential_quicksort(arr, pivot_idx + 1, hi)
 
-
 def _sequential_quicksort(arr: list, lo: int, hi: int) -> None:
     """작은 부분 문제를 위한 표준 차례대로 빠른 정렬."""
     if lo >= hi:
@@ -152,7 +161,6 @@ def _sequential_quicksort(arr: list, lo: int, hi: int) -> None:
     pivot_idx = _partition(arr, lo, hi)
     _sequential_quicksort(arr, lo, pivot_idx - 1)
     _sequential_quicksort(arr, pivot_idx + 1, hi)
-
 
 def parallel_quicksort(
     arr: list, max_workers: int = 4, parallel_depth: int = 3
@@ -181,7 +189,6 @@ def parallel_quicksort(
         _parallel_quicksort(result, 0, len(result) - 1, executor, parallel_depth)
 
     return result
-
 
 # === 시연 ===
 
@@ -216,7 +223,9 @@ Input:  [3, 6, 8, 10, 1, 2, 1]
 Sorted: [1, 1, 2, 3, 6, 8, 10]
 ```
 
-## 다른 병렬 정렬과의 견줌
+---
+
+## 7. 다른 병렬 정렬과의 견줌
 
 | 알고리즘 | 일의 양 | 뻗침 | 제자리 | 실전성 |
 |-----------|------|------|----------|----------|
@@ -226,18 +235,15 @@ Sorted: [1, 1, 2, 3, 6, 8, 10]
 | 바이토닉 정렬 | $O(n \log^2 n)$ | $O(\log^2 n)$ | 예 | GPU |
 | 표본 정렬 | $O(n \log n)$ | $O(n/p \cdot \log(n/p))$ | 아니오 | 예 |
 
-## 실용적인 고려
+---
+
+## 8. 실용적인 고려
 
 - **깊이 한계.** 되돌이 부름마다 실을 띄우면 짐이 지나치게 커진다. 병렬로 띄우는 것을 되돌이의 위쪽 몇 층으로(프로세서가 $p$개면 대개 $\log_2 p$층으로) 묶고 그 아래로는 차례대로 정렬로 갈아타라.
 - **파이썬의 GIL.** 파이썬의 전역 인터프리터 잠금이 참된 실 병렬성을 막는다. CPU에 매인 정렬이라면 `multiprocessing`이나 C 확장을 쓰라. 위의 실 기반 구현은 개념을 보여 줄 뿐이다.
 - **캐시 효과.** 빠른 정렬의 차례대로 하는 나눔은 지역성이 좋다. 그것을 프로세서들에 쪼개면 캐시 효율이 떨어질 수 있다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), 26-27장. MIT Press.
-- Blelloch, G. E. (1996). Programming parallel algorithms. *Communications of the ACM*, 39(3), 85-97.
-
+---
 
 ## 연습문제
 
@@ -270,3 +276,13 @@ Sorted: [1, 1, 2, 3, 6, 8, 10]
 
 ??? success "연습문제 4 풀이"
     응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.
+
+## 정리하며
+
+이 마당은 병렬성이 나오는 곳、소박한 병렬 빠른 정렬、병렬 나눔、짐 고르게 나누기의 어려움을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
+  *Introduction to Algorithms* (4th ed.), 26-27장. MIT Press.
+- Blelloch, G. E. (1996). Programming parallel algorithms. *Communications of the ACM*, 39(3), 85-97.

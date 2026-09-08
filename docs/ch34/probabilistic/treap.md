@@ -2,7 +2,9 @@
 
 AVL이나 붉은-검은 나무 같은 고른 이진 찾기 나무는 정해진 불변량과 돌리기로 고름을 지킨다. **트립**(나무 + 더미)은 그 대신 마구잡이로 어림 $O(\log n)$ 고름을 이룬다. 마디마다 아무 우선값을 받고, 나무는 열쇠에 대해 이진 찾기 나무 성질을, 우선값에 대해 더미 성질을 함께 채운다. 이 어우름이 나무 꼴을 하나로 정하며, 원소를 아무 차례로 넣어 만든 마구잡이 이진 찾기 나무와 같은 것을 내놓는다.
 
-## 정의
+---
+
+## 1. 정의
 
 트립은 마디마다 (열쇠, 우선값) 짝을 갈무리하는 이진 나무로 다음을 채운다.
 
@@ -11,7 +13,9 @@ AVL이나 붉은-검은 나무 같은 고른 이진 찾기 나무는 정해진 �
 
 우선값이 모두 다르면 주어진 (열쇠, 우선값) 짝 모임에 대해 트립 얼개가 하나뿐이다.
 
-## 어림 높이
+---
+
+## 2. 어림 높이
 
 우선값을 서로 매이지 않고 고르게 아무렇게나 뽑으면, 그 트립은 열쇠를 고르게 아무 차례로 넣어 지은 **마구잡이 이진 찾기 나무**와 같은 분포를 지닌다. 아무 마디의 어림 깊이는 다음과 같다.
 
@@ -25,14 +29,18 @@ $$
 E[h] = O(\log n)
 $$
 
-## 돌리기
+---
+
+## 3. 돌리기
 
 넣은 뒤 더미 성질이 깨지면 나무 돌리기가 이진 찾기 나무 성질을 깨지 않고 그것을 되살린다.
 
 - 마디 $x$에서 **오른쪽 돌리기**: 왼쪽 자식 $y$이 어버이가 되고 $x$이 $y$의 오른쪽 자식이 된다.
 - 마디 $x$에서 **왼쪽 돌리기**: 오른쪽 자식 $y$이 어버이가 되고 $x$이 $y$의 왼쪽 자식이 된다.
 
-## 넣기
+---
+
+## 4. 넣기
 
 (열쇠 $k$, 우선값 $p$)을 넣으려면:
 
@@ -45,7 +53,9 @@ $$
 E[T_{\text{넣기}}] = O(\log n)
 $$
 
-## 지우기
+---
+
+## 5. 지우기
 
 열쇠 $k$을 지우려면:
 
@@ -57,7 +67,9 @@ $$
 E[T_{\text{지우기}}] = O(\log n)
 $$
 
-## 쪼개기와 아우르기
+---
+
+## 6. 쪼개기와 아우르기
 
 트립은 좋은 쪼개기와 아우르기 연산을 받쳐 준다.
 
@@ -65,7 +77,9 @@ $$
 
 **아우르기($L$, $R$)**: $L$의 온 열쇠가 $R$의 온 열쇠보다 작은 트립 둘을 아우른다. 뿌리 우선값을 견주고 되돌아 들어가며 아우른다. 어림 때 $O(\log n)$.
 
-## 구현
+---
+
+## 7. 구현
 
 ```python
 """
@@ -79,7 +93,6 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass, field
 
-
 # === 트립 마디 ================================================================
 
 @dataclass
@@ -90,7 +103,6 @@ class TreapNode:
     left: TreapNode | None = None
     right: TreapNode | None = None
 
-
 # === 돌리기 ===================================================================
 
 def rotate_right(node: TreapNode) -> TreapNode:
@@ -100,14 +112,12 @@ def rotate_right(node: TreapNode) -> TreapNode:
     new_root.right = node
     return new_root
 
-
 def rotate_left(node: TreapNode) -> TreapNode:
     """왼쪽 돌리기: 오른쪽 자식이 뿌리가 된다."""
     new_root = node.right
     node.right = new_root.left
     new_root.left = node
     return new_root
-
 
 # === 트립 연산 ================================================================
 
@@ -125,7 +135,6 @@ def insert(root: TreapNode | None, key: int) -> TreapNode:
             root = rotate_left(root)
     return root  # 겹치는 열쇠: 바뀌지 않는다
 
-
 def search(root: TreapNode | None, key: int) -> bool:
     """여느 이진 찾기 나무 찾기로 *key*을 찾는다."""
     if root is None:
@@ -136,7 +145,6 @@ def search(root: TreapNode | None, key: int) -> bool:
         return search(root.left, key)
     else:
         return search(root.right, key)
-
 
 def delete(root: TreapNode | None, key: int) -> TreapNode | None:
     """*key*을 잎까지 아래로 돌려 지운다."""
@@ -160,20 +168,17 @@ def delete(root: TreapNode | None, key: int) -> TreapNode | None:
             root.left = delete(root.left, key)
     return root
 
-
 def inorder(root: TreapNode | None) -> list[int]:
     """매긴 열쇠를 돌려주는 가운데 먼저 훑기."""
     if root is None:
         return []
     return inorder(root.left) + [root.key] + inorder(root.right)
 
-
 def height(root: TreapNode | None) -> int:
     """트립의 높이를 셈한다."""
     if root is None:
         return -1
     return 1 + max(height(root.left), height(root.right))
-
 
 # === 메인 =====================================================================
 
@@ -205,10 +210,7 @@ After deleting 5: [1, 2, 3, 4, 6, 7, 8, 9]
 
 가운데 먼저 훑기가 이진 찾기 나무 성질을 알려 주고, 높이는 $\log_2 9 \approx 3.2$에 가까우며(마구잡이가 나무를 고르게 지킨다), 지우기가 차례를 지키면서 열쇠를 옳게 없앤다.
 
-## 참고 문헌
-
-- Seidel, R. and Aragon, C.R. "Randomized Search Trees." *Algorithmica*, 1996
-- [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)
+---
 
 ## 연습문제
 
@@ -249,3 +251,12 @@ After deleting 5: [1, 2, 3, 4, 6, 7, 8, 9]
 
 ??? success "연습문제 5 풀이"
     **트립**이 영속으로 만들기 쉽다. 쪼개기와 아우르기가 절로 위에서 아래로 흐르고 길 하나를 따라 새 마디를 만들므로, 길 베끼기로 연산마다 새 마디 $O(\log n)$개를 낳는다. 넣기와 지우기를 쪼개기와 아우르기의 어우름으로 나타내므로 같은 영속 거동을 물려받는다. 돌리기가 어림할 수 없게 번지지 않고, 얼개가 바뀌지 않는 우선값으로 정해진다. **붉은-검은 나무**는 여러 켜의 여러 마디에 미칠 수 있는 돌리기와 다시 칠하기가 있어야 한다. 이를 영속으로 만들려면 넣기 길뿐 아니라 돌리기에 걸리는 마디(동기, 삼촌)까지 베껴야 한다. 점근 비용은 같지만(새 마디 $O(\log n)$개) 돌리기 경우를 영속으로 다루어야 하므로 만들기가 훨씬 얽힌다. 트립은 쉬움 덕분에(쪼개기와 아우르기라는 한가운데 연산 둘) 겨루기 짜기에서 영속 매긴 그릇으로 즐겨 쓴다. $\square$
+
+## 정리하며
+
+이 마당은 정의、어림 높이、돌리기、넣기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Seidel, R. and Aragon, C.R. "Randomized Search Trees." *Algorithmica*, 1996
+- [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)

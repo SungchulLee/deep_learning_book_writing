@@ -2,7 +2,9 @@
 
 페르마의 작은 정리는 $p$이 소수일 때 $a^{p-1} \equiv 1 \pmod{p}$임을 말한다. 그런데 법이 합성수이면 어떻게 되는가? 오일러 파이 함수 $\varphi(n)$은 $n$보다 작은 정수 가운데 $n$과 서로 소인 것의 개수를 세며, 오일러 정리는 페르마의 결과를 아무 법으로 넓힌다: $a^{\varphi(n)} \equiv 1 \pmod{n}$. 이 넓힘은 법 $n = pq$이 소수 둘의 곱인 RSA 암호의 한가운데에 있다.
 
-## 정의
+---
+
+## 1. 정의
 
 **오일러 파이 함수** $\varphi(n)$은 $\{1, 2, \ldots, n\}$ 가운데 $n$과 서로 소인 정수의 개수를 센다:
 
@@ -19,7 +21,9 @@ $$
     | 8   | $\{1, 3, 5, 7\}$ | 4 |
     | 12  | $\{1, 5, 7, 11\}$ | 4 |
 
-## 파이 함수 셈하기
+---
+
+## 2. 파이 함수 셈하기
 
 ### 소수 거듭제곱
 
@@ -59,7 +63,9 @@ $$
 
     $\varphi(100) = 100 \cdot (1 - 1/2) \cdot (1 - 1/5) = 100 \cdot 1/2 \cdot 4/5 = 40$이다.
 
-## 오일러 정리
+---
+
+## 3. 오일러 정리
 
 !!! info "오일러 정리"
 
@@ -79,7 +85,9 @@ $$
 
 $n = p$이 소수이면 $\varphi(p) = p - 1$이 되어 페르마의 작은 정리를 되찾는다([페르마의 작은 정리](fermat.md)를 보라).
 
-## 가우스 약수 합
+---
+
+## 4. 가우스 약수 합
 
 근본 항등식이 파이 함수를 약수 합과 잇는다.
 
@@ -93,7 +101,9 @@ $n = p$이 소수이면 $\varphi(p) = p - 1$이 되어 페르마의 작은 정�
 
 **증명.** $\{1, 2, \ldots, n\}$을 $\gcd(k, n)$으로 가른다. $n$의 약수 $d$마다 $\gcd(k, n) = d$인 정수 $k \in \{1, \ldots, n\}$의 개수는 $\varphi(n/d)$이다. 모든 약수에 걸쳐 더하면 $\sum_{d \mid n} \varphi(n/d) = n$이고, 합이 같은 약수 모임을 훑으므로 이는 $\sum_{d \mid n} \varphi(d)$과 같다. $\square$
 
-## RSA에서의 쓰임새
+---
+
+## 5. RSA에서의 쓰임새
 
 RSA에서 법은 서로 다른 소수 $p, q$에 대해 $n = pq$이다. 파이 값은 다음과 같다:
 
@@ -103,7 +113,9 @@ $$
 
 공개 열쇠 지수 $e$은 $\varphi(n)$과 서로 소가 되게 고르고 개인 열쇠는 $d = e^{-1} \bmod \varphi(n)$이다. 오일러 정리가 $n$과 서로 소인 글월 $m$에 대해 $m^{ed} \equiv m \pmod{n}$임을 보장하여 복호를 가능하게 한다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -112,7 +124,6 @@ $$
 소인수 분해 공식으로 파이 함수를 셈한다
 그리고 수치 보기로 오일러 정리를 따져 본다.
 """
-
 
 # === 파이 함수 ===
 
@@ -140,14 +151,12 @@ def euler_totient(n: int) -> int:
         result -= result // temp
     return result
 
-
 # === 막무가내 확인 ===
 
 def euler_totient_brute(n: int) -> int:
     """서로 소인 수를 곧바로 세어 phi(n)을 셈한다."""
     from math import gcd
     return sum(1 for k in range(1, n + 1) if gcd(k, n) == 1)
-
 
 # === 메인 ===
 
@@ -198,10 +207,7 @@ Gauss divisor sum:
   sum(phi(d) for d | 20) = 20 = 20
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
-
+---
 
 ## 연습문제
 
@@ -234,3 +240,11 @@ $\phi$이 곱셈 성질을 지님을 밝혀라. $\gcd(m,n) = 1$이면 $\phi(mn) 
 
 ??? success "연습문제 4 풀이"
     중국인 나머지 정리에 따라 $\gcd(m,n) = 1$이면 $\mathbb{Z}_{mn} \cong \mathbb{Z}_m \times \mathbb{Z}_n$이다. 단원(역원을 가진 원소)이 서로 대응한다: $(\mathbb{Z}_{mn})^\times \cong (\mathbb{Z}_m)^\times \times (\mathbb{Z}_n)^\times$. 크기를 잡으면 $\phi(mn) = \phi(m) \cdot \phi(n)$이다.
+
+## 정리하며
+
+이 마당은 정의、파이 함수 셈하기、오일러 정리、가우스 약수 합을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.

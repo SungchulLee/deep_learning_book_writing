@@ -3,7 +3,7 @@ ABC-MCMC는 어림 베이즈 셈하기와 마르코프 사슬 몬테카를로를
 
 ---
 
-## 왜 필요한가
+## 1. 왜 필요한가
 
 ### ABC 물리치기의 한계
 
@@ -23,7 +23,7 @@ ABC 물리치기 표집에는 근본적인 비효율이 있다. 곧 앞확률에
 
 ---
 
-## ABC-MCMC 알고리즘
+## 2. ABC-MCMC 알고리즘
 
 ### 알고리즘 진술
 
@@ -71,7 +71,7 @@ ABC 기준을 못 넘기면 바로 물리친다(α = 0).
 
 ---
 
-## 이론적 바탕
+## 3. 이론적 바탕
 
 ### 과녁 분포
 
@@ -107,7 +107,7 @@ $$
 
 ---
 
-## 구현
+## 4. 구현
 
 ### 기본 구현
 
@@ -237,7 +237,7 @@ class AdaptiveABCMCMC:
 
 ---
 
-## ABC 물리치기와의 견줌
+## 5. ABC 물리치기와의 견줌
 
 ### 효율 견주기
 
@@ -269,7 +269,7 @@ class AdaptiveABCMCMC:
 
 ---
 
-## 실용적인 고려
+## 6. 실용적인 고려
 
 ### 제안 분포
 
@@ -350,7 +350,7 @@ def abc_mcmc_diagnostics(chain):
 
 ---
 
-## 변형
+## 7. 변형
 
 ### 흉내내기를 여러 번 하는 ABC-MCMC
 
@@ -407,7 +407,7 @@ def gibbs_abc(theta, blocks, simulators, summary_fns, s_obs,
 
 ---
 
-## 보기: 확률 변동성 모형의 추론
+## 8. 보기: 확률 변동성 모형의 추론
 
 ```python
 import numpy as np
@@ -468,7 +468,21 @@ s_obs = sv_summaries(y_obs)
 
 ---
 
-## 요약
+## 연습문제
+
+1. **구현.** 정규 모형에 ABC-MCMC를 구현하여라. 흉내내기 한 번마다의 ESS으로 ABC 물리치기와 효율을 견주어라.
+
+2. **알아서 맞추기.** 제안 공분산을 배우는 알아서 맞추는 ABC-MCMC를 구현하여라. 섞임이 나아짐을 보여라.
+
+3. **첫걸음에 대한 민감함.** 첫걸음을 어떻게 잡느냐가 태우기 길이와 마지막 결과에 어떤 영향을 주는지 살펴라.
+
+4. **제안 맞추기.** 문제를 붙박아 두고 가장 좋은 제안 눈금을 겪어 보고 찾아라. 표준 MH 길잡이와 견주면 어떠한가?
+
+5. **봉우리 여럿.** 쌍봉 뒤확률을 만들어 ABC-MCMC가 갇힐 수 있음을 보여라. 풀이를 내놓아라.
+
+---
+
+## 정리하며
 
 | 항목 | 설명 |
 |--------|-------------|
@@ -483,23 +497,9 @@ ABC-MCMC는 단순한 물리치기 표집과 더 정교한 방법 사이의 틈�
 
 ---
 
-## 참고 문헌
+**참고 문헌**
 
 1. Marjoram, P., Molitor, J., Plagnol, V., & Tavaré, S. (2003). "Markov Chain Monte Carlo Without Likelihoods." *PNAS*.
 2. Sisson, S. A., & Fan, Y. (2011). "Likelihood-Free Markov Chain Monte Carlo." In *Handbook of Markov Chain Monte Carlo*.
 3. Wegmann, D., Leuenberger, C., & Excoffier, L. (2009). "Efficient Approximate Bayesian Computation Coupled with Markov Chain Monte Carlo Without Likelihood." *Genetics*.
 4. Bortot, P., Coles, S. G., & Sisson, S. A. (2007). "Inference for Stereological Extremes." *JASA*.
-
-## 연습문제
-
-1. **구현.** 정규 모형에 ABC-MCMC를 구현하여라. 흉내내기 한 번마다의 ESS으로 ABC 물리치기와 효율을 견주어라.
-
-2. **알아서 맞추기.** 제안 공분산을 배우는 알아서 맞추는 ABC-MCMC를 구현하여라. 섞임이 나아짐을 보여라.
-
-3. **첫걸음에 대한 민감함.** 첫걸음을 어떻게 잡느냐가 태우기 길이와 마지막 결과에 어떤 영향을 주는지 살펴라.
-
-4. **제안 맞추기.** 문제를 붙박아 두고 가장 좋은 제안 눈금을 겪어 보고 찾아라. 표준 MH 길잡이와 견주면 어떠한가?
-
-5. **봉우리 여럿.** 쌍봉 뒤확률을 만들어 ABC-MCMC가 갇힐 수 있음을 보여라. 풀이를 내놓아라.
-
----

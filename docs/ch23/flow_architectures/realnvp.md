@@ -1,7 +1,9 @@
 # RealNVP과 짝지음 층
 짝지음 층은 요즘 고르게 하는 흐름의 등뼈이다. 생각은 놀랄 만큼 단순하다. 곧 들임을 둘로 쪼개어 한쪽은 그대로 지나게 하고 다른 쪽은 첫째에서 셈한 매개변수로 바꾼다. 이러면 세우는 방식 자체로 뒤집을 수 있음이 보장되고 행렬식을 $O(d)$에 셈하는 세모 야코비 행렬이 나온다. **RealNVP**(실수 부피 보존 안 하는 흐름, Dinh et al., 2017)는 가림막을 번갈아 쓴 아핀 짝지음 층을 쌓으면 차원 높은 밀도 어림에 쓸 만하고 규모를 키울 수 있는 얼개가 나옴을 보였다.
 
-## 짝지음의 원리
+---
+
+## 1. 짝지음의 원리
 
 ### 쪼개고 바꾸고 합치기
 
@@ -23,7 +25,9 @@ $$J = \begin{pmatrix} I & 0 \\ \partial x_B / \partial z_A & \partial g / \parti
 
 그래서 $\det J = \det(\partial g / \partial z_B)$이며, 이는 (아주 복잡할 수 있는) 조건개 $\theta$이 아니라 $g$이 $z_B$을 어떻게 바꾸는지에만 달렸다.
 
-## 아핀 짝지음
+---
+
+## 2. 아핀 짝지음
 
 가장 널리 쓰는 짝지음 바꿈은 *아핀* 짝지음이다:
 
@@ -51,7 +55,6 @@ $$\log|\det J| = \sum_i s_i(z_A)$$
 import torch
 import torch.nn as nn
 import numpy as np
-
 
 class AffineCouplingLayer(nn.Module):
     """아핀 짝지음 층 하나."""
@@ -107,7 +110,9 @@ s = torch.tanh(s_raw) * scale_bound      # 예컨대 scale_bound = 2
 scale = torch.nn.functional.softplus(s_raw)
 ```
 
-## 쪼개기와 가리기 전략
+---
+
+## 3. 쪼개기와 가리기 전략
 
 짝지음 층 하나는 차원의 절반을 그대로 둔다. 층마다 **가림막을 번갈아** 쓰면 모든 차원이 결국 바뀐다.
 
@@ -129,7 +134,9 @@ def alternating_mask(dim, layer_idx):
     return mask
 ```
 
-## RealNVP 얼개
+---
+
+## 4. RealNVP 얼개
 
 RealNVP는 가림막을 번갈아 쓴 아핀 짝지음 층을 쌓고 익히기 안정을 위해 묶음 고르게 맞추기를 더한다. 그림 자료에는 여러 잣수 얼개를 쓴다.
 
@@ -194,7 +201,9 @@ Input (3, 32, 32)
   → Squeeze → (48, 4, 4)   → Coupling blocks → Base distribution
 ```
 
-## 조건개 그물
+---
+
+## 5. 조건개 그물
 
 조건개 $\theta(z_A)$은 어떤 신경망이든 될 수 있다. 그 얼개가 층마다의 표현력을 다스린다:
 
@@ -204,11 +213,15 @@ Input (3, 32, 32)
 
 **핵심 설계 원칙:** 조건개의 내놓기를 0으로 첫자리매김해 흐름이 항등 바꿈으로(또는 그에 가깝게) 시작하도록 하여 초반 익히기를 안정되게 한다.
 
-## 덧셈 짝지음과 아핀 짝지음
+---
+
+## 6. 덧셈 짝지음과 아핀 짝지음
 
 덧셈 짝지음($x_B = z_B + t(z_A)$)은 $s = 0$인 특별한 경우이다. 야코비 행렬식이 늘 1이라 부피를 지킨다. NICE(Dinh et al., 2015)가 이를 썼다. 배울 수 있는 잣수를 가진 아핀 짝지음이 딱 잘라 더 표현력이 좋아 표준이 되었다.
 
-## 학습
+---
+
+## 7. 학습
 
 ```python
 def train_realnvp(model, data, epochs=100, batch_size=256, lr=1e-3):
@@ -226,15 +239,7 @@ def train_realnvp(model, data, epochs=100, batch_size=256, lr=1e-3):
             optimiser.step()
 ```
 
-## 요약
-
-짝지음 층은 뒤집을 수 있음의 보장, $O(d)$ 야코비 셈하기, 조건개를 아무렇게나 고를 수 있는 융통성을 준다. RealNVP는 아핀 짝지음에 번갈아 쓰는 가림막과 여러 잣수 처리를 아울러 이 설계가 복잡하고 차원 높은 분포로 규모를 키움을 보였다. 이 얼개는 여느 바탕으로 남아 있으며 Glow와 신경 스플라인 흐름의 밑바탕이다.
-
-## 참고 문헌
-
-1. Dinh, L., Krueger, D. & Bengio, Y. (2015). NICE: Non-linear Independent Components Estimation. *ICLR Workshop*.
-2. Dinh, L., Sohl-Dickstein, J. & Bengio, S. (2017). Density Estimation Using Real-NVP. *ICLR*.
-3. Papamakarios, G., et al. (2021). Normalizing Flows for Probabilistic Modeling and Inference. *JMLR*.
+---
 
 ## 연습문제
 
@@ -275,3 +280,13 @@ RealNVP의 짝지음 층 얼개를 적고 그것이 왜 효율 좋은 셈하기�
     | **얼개 제약** | 뒤집을 수 있어야 함 | 자유로움 | 자유로움 |
 
     흐름만의 이점: (1) 정확한 로그 가능도 값매김으로 원칙 있는 모델 견줌이 된다. (2) 정확한 숨은 추론으로 정밀한 사이 끼움이 된다. (3) 뽑기와 밀도 값매김이 모두 효율 좋다. 주된 한계는 뒤집을 수 있어야 한다는 제약이며 이것이 얼개 고름을 옭아맨다.
+
+## 정리하며
+
+짝지음 층은 뒤집을 수 있음의 보장, $O(d)$ 야코비 셈하기, 조건개를 아무렇게나 고를 수 있는 융통성을 준다. RealNVP는 아핀 짝지음에 번갈아 쓰는 가림막과 여러 잣수 처리를 아울러 이 설계가 복잡하고 차원 높은 분포로 규모를 키움을 보였다. 이 얼개는 여느 바탕으로 남아 있으며 Glow와 신경 스플라인 흐름의 밑바탕이다.
+
+**참고 문헌**
+
+1. Dinh, L., Krueger, D. & Bengio, Y. (2015). NICE: Non-linear Independent Components Estimation. *ICLR Workshop*.
+2. Dinh, L., Sohl-Dickstein, J. & Bengio, S. (2017). Density Estimation Using Real-NVP. *ICLR*.
+3. Papamakarios, G., et al. (2021). Normalizing Flows for Probabilistic Modeling and Inference. *JMLR*.

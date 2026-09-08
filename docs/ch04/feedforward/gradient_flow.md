@@ -1,5 +1,8 @@
 # 경사의 흐름
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 !!! abstract "배울 내용"
 
@@ -10,7 +13,9 @@
     - 경사 감시 도구를 구현하고 경사 통계량으로 학습 문제 진단하기
     - 20층 이상에서도 안정적으로 학습되는 잔차 신경망 만들기
 
-## 미리 알아야 할 것
+---
+
+## 2. 미리 알아야 할 것
 
 | 주제 | 왜 중요한가 |
 |-------|---------------|
@@ -20,13 +25,13 @@
 
 ---
 
-## 개요
+## 3. 개요
 
 연쇄 법칙에 따르면 깊은 신경망의 경사는 층마다 하나씩인 **여러 인수의 곱**이다. 이 인수들이 계속 1보다 작으면 경사가 지수적으로 0에 가까워지고(**경사 소실**), 계속 1보다 크면 지수적으로 커진다(**경사 폭발**). 이 곱셈적인 움직임을 이해하고 다스리는 일이 깊은 신경망 학습에 필수적이다.
 
 ---
 
-## 야코비 행렬 곱의 관점
+## 4. 야코비 행렬 곱의 관점
 
 ### 야코비 행렬의 곱으로서의 경사
 
@@ -58,7 +63,7 @@ $$
 
 ---
 
-## 경사 소실 문제
+## 5. 경사 소실 문제
 
 ### 시그모이드: 수치적 분석
 
@@ -94,7 +99,7 @@ $\tanh(z)$의 최대 도함수는 $\tanh'(0) = 1$이지만, 0에서 멀어진 �
 
 ---
 
-## 경사 폭발 문제
+## 6. 경사 폭발 문제
 
 ### 경사가 커질 때
 
@@ -132,7 +137,7 @@ torch.nn.utils.clip_grad_value_(model.parameters(), clip_value=0.5)
 
 ---
 
-## 경사 소실의 해결책
+## 7. 경사 소실의 해결책
 
 ### 1. ReLU 활성화
 
@@ -238,7 +243,7 @@ $$
 
 ---
 
-## PyTorch 구현
+## 8. PyTorch 구현
 
 ### 경사 감시
 
@@ -426,7 +431,7 @@ print_gradient_report(stats)
 
 ---
 
-## 진단 요약
+## 9. 진단 요약
 
 | 징후 | 짐작되는 원인 | 해결책 |
 |---------|-------------|----------|
@@ -438,7 +443,7 @@ print_gradient_report(stats)
 
 ---
 
-## 핵심 정리
+## 10. 핵심 정리
 
 !!! success "요약"
 
@@ -452,14 +457,6 @@ print_gradient_report(stats)
     8. 학습 중에 **경사의 노름을 지켜보라.** 학습의 건강 상태를 가장 직접적으로 알려 주는 지표이다
 
 ---
-
-## 참고 문헌
-
-- Glorot, X., & Bengio, Y. (2010). Understanding the difficulty of training deep feedforward neural networks. *AISTATS*.
-- He, K., Zhang, X., Ren, S., & Sun, J. (2015). Delving deep into rectifiers: Surpassing human-level performance on ImageNet classification. *ICCV*.
-- He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. *CVPR*.
-- Ioffe, S., & Szegedy, C. (2015). Batch normalization: Accelerating deep network training by reducing internal covariate shift. *ICML*.
-- Pascanu, R., Mikolov, T., & Bengio, Y. (2013). On the difficulty of training recurrent neural networks. *ICML*.
 
 ## 연습문제
 
@@ -498,3 +495,15 @@ ReLU가 시그모이드에 견주어 경사 소실 문제를 어떻게 누그러
         norms.append(total_norm.item())
         optimizer.step()
     ```
+
+## 정리하며
+
+이 마당은 학습 목표、미리 알아야 할 것、개요、야코비 행렬 곱의 관점을 차례로 짚었다.
+
+**참고 문헌**
+
+- Glorot, X., & Bengio, Y. (2010). Understanding the difficulty of training deep feedforward neural networks. *AISTATS*.
+- He, K., Zhang, X., Ren, S., & Sun, J. (2015). Delving deep into rectifiers: Surpassing human-level performance on ImageNet classification. *ICCV*.
+- He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. *CVPR*.
+- Ioffe, S., & Szegedy, C. (2015). Batch normalization: Accelerating deep network training by reducing internal covariate shift. *ICML*.
+- Pascanu, R., Mikolov, T., & Bengio, Y. (2013). On the difficulty of training recurrent neural networks. *ICML*.

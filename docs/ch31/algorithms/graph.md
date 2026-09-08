@@ -2,7 +2,9 @@
 
 실제로 나오는 그래프, 곧 웹 이음 얼개, 사회 그물, 길 그물은 흔히 꼭짓점과 변이 수십억 개여서 으뜸 기억을 훨씬 넘는다. **바깥 기억 그래프 알고리즘**은 CPU 때가 아니라 원반 들고남을 가장 적게 하여 그런 그래프를 효율 좋게 다룬다. 이 쪽은 원반에 놓인 자료에서 그래프를 셈할 수 있게 하는 근본 재주를 소개한다.
 
-## 그래프를 위한 들고남 모형
+---
+
+## 1. 그래프를 위한 들고남 모형
 
 바깥 기억 모형의 잡을 되짚어 보자:
 
@@ -14,7 +16,9 @@
 
 그래프 $G = (V, E)$에서 보통 $|V| = n$, $|E| = m$으로 둔다. 그래프 알고리즘은 근본 어려움을 마주한다. 그래프 밟기는 원반의 아무 자리나 가리킬 수 있는 가리개(변)를 따라가므로 아무 들고남이 일어난다.
 
-## 원반 위의 그래프 나타내기
+---
+
+## 2. 원반 위의 그래프 나타내기
 
 원반에 어떻게 놓느냐가 들고남 성능에 크게 영향을 준다.
 
@@ -32,7 +36,9 @@ $$
 
 모든 변 $(u, v)$을 납작하게 줄 세운 목록으로 담는다. 출발 꼭짓점으로 줄 세우는 데 들고남 $O(\text{sort}(m))$번이 들며 효율 좋은 합침 바탕 알고리즘을 할 수 있게 한다.
 
-## 핵심 알고리즘 재주
+---
+
+## 3. 핵심 알고리즘 재주
 
 ### 재주 1: 줄 세우고 훑기
 
@@ -52,7 +58,9 @@ $$
 
 꼭짓점을 오므려 그래프 크기를 줄인다(보기로 차수 1인 꼭짓점 없애기, 차수 2인 길 합치기). 오므린 그래프를 기억에서 다룬 뒤 풀이를 도로 펼친다.
 
-## 보기: 바깥 기억 깊이 우선 찾기
+---
+
+## 4. 보기: 바깥 기억 깊이 우선 찾기
 
 깊이 우선 찾기의 쌓기가 그래프에 아무렇게 닿아야 할 수 있어 바깥 기억 깊이 우선 찾기는 너비 우선 찾기보다 훨씬 어렵다.
 
@@ -96,7 +104,6 @@ def compute_degrees_external(edges, n):
         degrees[vertex] += 1
 
     return degrees
-
 
 def connected_components_external(edges, n, B=4):
     """되풀이 이름표 퍼뜨리기로 이어진 조각을 찾는다.
@@ -181,7 +188,9 @@ Connected components:
 흉내 낸 들고남: 4
 ```
 
-## 들고남 복잡도 간추림
+---
+
+## 5. 들고남 복잡도 간추림
 
 | 문제 | 들고남 복잡도 | 재주 |
 |---|---|---|
@@ -192,11 +201,7 @@ Connected components:
 | 이어진 조각 | $O(\text{sort}(m))$ | 오므리기 + 이름표 퍼뜨리기 |
 | 최소 뻗은 나무 | $O(\text{sort}(m))$ | [바깥 기억 최소 뻗은 나무](mst.md) 참고 |
 
-## 참고 문헌
-
-- Vitter, J. S. (2001). "External memory algorithms and data structures: dealing with massive data." *ACM Computing Surveys*, 33(2), 209--271.
-- Arge, L. (2003). "The buffer tree: a technique for designing batched external data structures." *Algorithmica*.
-
+---
 
 ## 연습문제
 
@@ -229,3 +234,12 @@ Connected components:
 
 ??? success "연습문제 4 풀이"
     GPU 기억을 넘는 그래프에서 그래프 신경망을 익힐 때도 같은 원칙을 쓴다. (1) 그래프를 GPU 기억에 들어가는 부분 그래프로 가른다(바깥 기억 그래프 가르기와 닮았다), (2) 이웃 자리를 뽑아 묶음마다 올린다(버퍼를 쓰는 바깥 기억 너비 우선 찾기와 닮았다), (3) 자주 닿는 마디를 위해 CPU 기억을 가운데 두름으로 쓴다. PyG, DGL, GraphSAINT 같은 시스템이 이 셈속을 짜며 셈(다시 뽑기)을 들고남 효율과 맞바꾼다.
+
+## 정리하며
+
+이 마당은 그래프를 위한 들고남 모형、원반 위의 그래프 나타내기、핵심 알고리즘 재주、보기: 바깥 기억 깊이 우선 찾기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Vitter, J. S. (2001). "External memory algorithms and data structures: dealing with massive data." *ACM Computing Surveys*, 33(2), 209--271.
+- Arge, L. (2003). "The buffer tree: a technique for designing batched external data structures." *Algorithmica*.

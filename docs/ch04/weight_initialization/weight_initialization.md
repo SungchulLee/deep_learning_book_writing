@@ -1,11 +1,12 @@
 # 가중치 초기화
-## 개요
 
 첫 경사 갱신이 있기 전, 신경망의 가중치는 순전파의 활성화와 역전파의 경사를 온전히 결정한다. 처음 가중치의 크기가 너무 크면 활성화와 경사가 깊이에 따라 지수적으로 폭발하고, 너무 작으면 사라진다. 어느 쪽이든 학습이 발산하거나 멈춰 선다. 가중치 초기화 전략은 처음 순전파와 역전파 동안 신호의 크기가 층에 걸쳐 대체로 일정하게 유지되도록 각 층 매개변수의 분산을 정한다.
 
 이 절은 분산 조건을 제일원리에서 유도하고, 널리 쓰이는 두 방식인 Xavier(Glorot)와 He(Kaiming)의 동기를 밝히며, 둘 중 무엇을 고를지에 대한 실무 지침을 제시한다.
 
-## 학습 목표
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 이해하게 된다.
 
@@ -17,7 +18,7 @@
 
 ---
 
-## 초기화 문제
+## 2. 초기화 문제
 
 ### 깊은 신경망에서의 신호 전파
 
@@ -65,7 +66,9 @@ $$n_{\text{out}}\,\sigma^2\,c_{\text{bwd}} \approx 1 \qquad \text{(backward stab
 
 여기서 $c_{\text{fwd}}$과 $c_{\text{bwd}}$은 활성화 함수에 따라 달라진다.
 
-## 소박한 초기화: 무엇이 잘못되는가
+---
+
+## 3. 소박한 초기화: 무엇이 잘못되는가
 
 ### 상수 초기화
 
@@ -114,7 +117,9 @@ def visualize_initialization_problem(n_layers=20, hidden_dim=256, n_samples=512)
 visualize_initialization_problem()
 ```
 
-## 분산 분석의 틀
+---
+
+## 4. 분산 분석의 틀
 
 ### 가정
 
@@ -149,7 +154,9 @@ $$\text{Var}\!\left(\frac{\partial \mathcal{L}}{\partial h_i^{(l-1)}}\right) = n
 
 $n_{\text{in}} = n_{\text{out}}$이 아니라면 순전파와 역전파의 안정성을 동시에 이루기는 대체로 불가능하므로, 실용적인 방식들은 둘 사이에서 절충한다.
 
-## PyTorch의 초기화 도구
+---
+
+## 5. PyTorch의 초기화 도구
 
 PyTorch는 `torch.nn.init`에 초기화 함수를 제공한다.
 
@@ -196,7 +203,9 @@ model = nn.Sequential(
 model.apply(init_weights)
 ```
 
-## 초기화 선택 안내
+---
+
+## 6. 초기화 선택 안내
 
 | 활성화 함수 | 권장 초기화 | 분산 공식 |
 |---------------------|-----------------|-----------------|
@@ -213,7 +222,9 @@ model.apply(init_weights)
 3. **트랜스포머**: 흔히 Xavier나 배율을 조정한 정규분포 $\mathcal{N}(0, 1/\sqrt{d_{\text{model}}})$을 쓰며, 잔차 연결은 따로 다룬다($1/\sqrt{2L}$으로 배율 조정).
 4. **잔차 신경망**: 각 잔차 블록의 마지막 층을 0으로 초기화하여 처음에는 블록이 항등함수를 계산하게 만들기도 한다.
 
-## 정규화와의 상호작용
+---
+
+## 7. 정규화와의 상호작용
 
 정규화 층(배치 정규화, 층 정규화)은 층의 경계마다 정해진 통계량을 강제하여 신호 전파 문제를 크게 누그러뜨린다. 정규화가 있으면 다음과 같다.
 
@@ -223,7 +234,9 @@ model.apply(init_weights)
 
 정규화가 없다면 알맞은 초기화는 **결정적**이다. 그러지 않으면 신경망이 아예 학습되지 않을 수 있다.
 
-## 계량 금융에서의 응용
+---
+
+## 8. 계량 금융에서의 응용
 
 계량 금융에서 초기화는 특히 눈여겨볼 만하다.
 
@@ -260,23 +273,7 @@ class PricingNetwork(nn.Module):
         return torch.softplus(self.output_head(h))  # 양수임을 강제한다
 ```
 
-## 요약
-
-| 항목 | 핵심 통찰 |
-|--------|-------------|
-| **핵심 문제** | 가중치의 분산이 활성화와 경사가 쓸 만한 범위에 머무는지를 정한다 |
-| **순전파 조건** | $n_{\text{in}} \sigma^2 c_{\text{fwd}} \approx 1$이 활성화의 분산을 보존한다 |
-| **역전파 조건** | $n_{\text{out}} \sigma^2 c_{\text{bwd}} \approx 1$이 경사의 분산을 보존한다 |
-| **Xavier** | 대칭적인 활성화에 대해 순전파와 역전파 사이에서 절충한다 |
-| **He** | ReLU가 분포의 절반을 0으로 만드는 것을 반영한다 |
-| **정규화가 있을 때** | 초기화의 중요도는 낮아지지만 여전히 이롭다 |
-
-## 참고 문헌
-
-1. Glorot, X., & Bengio, Y. (2010). "Understanding the difficulty of training deep feedforward neural networks." *AISTATS*.
-2. He, K., Zhang, X., Ren, S., & Sun, J. (2015). "Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification." *ICCV*.
-3. Saxe, A. M., McClelland, J. L., & Ganguli, S. (2014). "Exact solutions to the nonlinear dynamics of learning in deep linear neural networks." *ICLR*.
-4. Mishkin, D., & Matas, J. (2016). "All You Need is a Good Init." *ICLR*.
+---
 
 ## 연습문제
 
@@ -316,3 +313,21 @@ Xavier와 He 초기화를 PyTorch로 구현하고 10층 신경망에서 학습�
             pass
     ```
     He 초기화는 ReLU가 분산을 절반으로 줄이는 것을 반영하므로 ReLU 신경망에서 더 잘 통한다.
+
+## 정리하며
+
+| 항목 | 핵심 통찰 |
+|--------|-------------|
+| **핵심 문제** | 가중치의 분산이 활성화와 경사가 쓸 만한 범위에 머무는지를 정한다 |
+| **순전파 조건** | $n_{\text{in}} \sigma^2 c_{\text{fwd}} \approx 1$이 활성화의 분산을 보존한다 |
+| **역전파 조건** | $n_{\text{out}} \sigma^2 c_{\text{bwd}} \approx 1$이 경사의 분산을 보존한다 |
+| **Xavier** | 대칭적인 활성화에 대해 순전파와 역전파 사이에서 절충한다 |
+| **He** | ReLU가 분포의 절반을 0으로 만드는 것을 반영한다 |
+| **정규화가 있을 때** | 초기화의 중요도는 낮아지지만 여전히 이롭다 |
+
+**참고 문헌**
+
+1. Glorot, X., & Bengio, Y. (2010). "Understanding the difficulty of training deep feedforward neural networks." *AISTATS*.
+2. He, K., Zhang, X., Ren, S., & Sun, J. (2015). "Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification." *ICCV*.
+3. Saxe, A. M., McClelland, J. L., & Ganguli, S. (2014). "Exact solutions to the nonlinear dynamics of learning in deep linear neural networks." *ICLR*.
+4. Mishkin, D., & Matas, J. (2016). "All You Need is a Good Init." *ICLR*.

@@ -2,11 +2,15 @@
 
 이항 계수 $\binom{n}{k}$은 서로 다른 $n$개의 모임에서 차례를 따지지 않고 $k$개를 고르는 가짓수를 센다. 이 양은 알고리즘 살피기(나누어 다스리기 되돌이 식, 확률 따짐)와 얽음학(부분 모임 세기, 격자 길)에 두루 나타난다.
 
-## 직관
+---
+
+## 1. 직관
 
 $n$명 가운데 $k$명의 위원회를 고른다고 그려 보라. 고르기마다 크기 $k$의 차례 없는 부분 모임이다. 그런 위원회의 온 개수가 $\binom{n}{k}$이며 "$n$에서 $k$ 고르기"라 읽는다.
 
-## 정의
+---
+
+## 2. 정의
 
 $0 \le k \le n$인 음이 아닌 정수 $n$과 $k$에 대해:
 
@@ -16,7 +20,9 @@ $$
 
 약속에 따라 $k < 0$이거나 $k > n$이면 $\binom{n}{k} = 0$이다.
 
-## 핵심 성질
+---
+
+## 3. 핵심 성질
 
 **맞섬.** 어느 $k$개를 넣을지 고르는 것은 어느 $n - k$개를 뺄지 고르는 것과 같다:
 
@@ -63,7 +69,9 @@ $$
 
 $x = y = 1$으로 두면 $\sum_{k=0}^{n} \binom{n}{k} = 2^n$을 얻어 원소 $n$개의 모임에 부분 모임이 $2^n$개임을 확인한다.
 
-## 이항 계수 셈하기
+---
+
+## 4. 이항 계수 셈하기
 
 ### 곱셈 공식
 
@@ -89,7 +97,6 @@ def binom(n: int, k: int) -> int:
         result = result * (n - i) // (i + 1)
     return result
 
-
 if __name__ == "__main__":
     # === 쓰기 보기 ===
     print(f"C(10, 3) = {binom(10, 3)}")   # 120
@@ -113,7 +120,6 @@ def pascal_table(n: int) -> list[list[int]]:
             C[i][j] = C[i - 1][j - 1] + C[i - 1][j]
     return C
 
-
 if __name__ == "__main__":
     # === 처음 6줄 찍기 ===
     table = pascal_table(5)
@@ -136,7 +142,9 @@ def pascal_row(n: int) -> list[int]:
     return row
 ```
 
-## 한계와 점근
+---
+
+## 5. 한계와 점근
 
 알고리즘 살피기에 쓸모 있는 한계:
 
@@ -150,7 +158,9 @@ $$
 \binom{2n}{n} \sim \frac{4^n}{\sqrt{\pi n}} \quad \text{(Stirling's approximation)}
 $$
 
-## 알고리즘에서의 쓰임새
+---
+
+## 6. 알고리즘에서의 쓰임새
 
 | 쓰임새 | $\binom{n}{k}$이 나타나는 곳 |
 |---|---|
@@ -160,10 +170,7 @@ $$
 | 해싱 살피기 | 생일 문제 꼴의 부딪힘 한계 |
 | 나누어 다스리기 | $\binom{n}{k}$ 항이 든 되돌이 식의 풀이 |
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
-- Graham, R. L., Knuth, D. E., & Patashnik, O. (1994). *Concrete Mathematics* (2nd ed.). Addison-Wesley. Chapter 5.
+---
 
 ## 연습문제
 
@@ -196,3 +203,12 @@ $$
 
 ??? success "연습문제 4 풀이"
     반데르몽드에서 $m = n$, $r = n$으로 두면 $\binom{2n}{n} = \sum_{k=0}^{n}\binom{n}{k}\binom{n}{n-k}$이다. 맞섬에 따라 $\binom{n}{n-k} = \binom{n}{k}$이다. 따라서 $\binom{2n}{n} = \sum_{k=0}^{n}\binom{n}{k}^2$이다.
+
+## 정리하며
+
+이 마당은 직관、정의、핵심 성질、이항 계수 셈하기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
+- Graham, R. L., Knuth, D. E., & Patashnik, O. (1994). *Concrete Mathematics* (2nd ed.). Addison-Wesley. Chapter 5.

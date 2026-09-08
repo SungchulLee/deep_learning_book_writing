@@ -2,14 +2,18 @@
 
 여러 쓰임새에서 최단 경로 하나만 아는 것으로는 모자라다. 길 안내 얼개는 막힘을 피할 다른 길을 내놓을 수 있다. 망은 고장에 견디려고 예비 길이 필요할 수 있다. **$k$개의 최단 경로 문제**는 샘 $s$에서 과녁 $t$까지 값의 합으로 차례 매긴 $k$개의 최단 경로를 구한다. 판에 따라 길이 변을 함께 쓸 수도 있고(고리 있는 판), 변이 겹치지 않거나 꼭짓점이 되풀이되지 않아야 할 수도 있다.
 
-## 문제의 여러 판
+---
+
+## 1. 문제의 여러 판
 
 - **$k$개의 최단 단순 길**: 길마다 꼭짓점을 두 번 넘게 들르지 않는다. 일반으로 NP-어려움이지만 $k$이 알맞으면 옌의 알고리즘으로 감당할 만하다.
 - **$k$개의 최단 걸음**: 꼭짓점과 변을 되풀이할 수 있다. 엡스타인의 알고리즘으로 다항 시간에 풀린다.
 
 실전 알고리즘 대부분은 단순 길 판에 초점을 맞춘다.
 
-## 옌의 알고리즘
+---
+
+## 2. 옌의 알고리즘
 
 옌의 알고리즘(1971)은 $s$에서 $t$까지 $k$개의 최단 단순(고리 없는) 길을 찾는다:
 
@@ -21,7 +25,9 @@
     - 후보를 모두 최소 힙에 넣는다.
     - 값이 가장 작은 후보를 꺼내 $P_i$으로 삼는다.
 
-## 옌 알고리즘의 복잡도
+---
+
+## 3. 옌 알고리즘의 복잡도
 
 $k$번의 되풀이마다 데이크스트라를 많아야 $|P|$번 돌린다($|P|$은 길의 길이):
 
@@ -31,7 +37,9 @@ $$
 
 여기서 $n = |V|$이고 $m = |E|$이다. 이는 피보나치 힙을 쓴 데이크스트라를 놓고 한 것이다.
 
-## 엡스타인의 알고리즘
+---
+
+## 4. 엡스타인의 알고리즘
 
 엡스타인의 알고리즘(1998)은 (꼭짓점 되풀이를 허락하는) $k$개의 최단 걸음을 다음 시간에 찾는다:
 
@@ -41,7 +49,9 @@ $$
 
 **길 그래프**를 써서 모든 길을 간결한 속뜻 표현으로 쌓은 뒤 차례대로 꺼낸다. 옌의 알고리즘보다 훨씬 빠르지만 단순 길을 보장하지는 않는다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -54,7 +64,6 @@ $$
 
 import heapq
 from collections import defaultdict
-
 
 # === 데이크스트라 알고리즘 ===
 
@@ -98,7 +107,6 @@ def dijkstra(graph: dict, source: int, target: int,
         path.append(node)
         node = prev[node]
     return dist[target], path[::-1]
-
 
 # === 옌 알고리즘 ===
 
@@ -160,7 +168,6 @@ def yen_k_shortest(graph: dict, source: int, target: int,
 
     return a_paths
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -194,7 +201,9 @@ Top 4 shortest paths from 0 to 4:
   #4: 값=9, 경로=[0, 3, 4]
 ```
 
-## 비교
+---
+
+## 6. 비교
 
 | 알고리즘 | 찾는 길 | 시간 | 단순 길인가? |
 |-----------|-------------|------|---------------|
@@ -202,11 +211,7 @@ Top 4 shortest paths from 0 to 4:
 | 엡스타인(1998) | $k$개의 최단 | $O(m + n \log n + k \log k)$ | 아니오(걸음) |
 | 롤러(1972) | $k$개의 최단 | $O(kn(m + n \log n))$ | 예 |
 
-## 참고 문헌
-
-- Yen, J. Y. (1971). Finding the $K$ shortest loopless paths in a network. *Management Science*, 17(11), 712-716.
-- Eppstein, D. (1998). Finding the $k$ shortest paths. *SIAM Journal on Computing*, 28(2), 652-673.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
+---
 
 ## 연습문제
 
@@ -239,3 +244,13 @@ $K$개의 최단 경로를 찾는 데 A*을 쓸 수 있는가? 그 길을 밝혀
 
 ??? success "연습문제 4 풀이"
     쓸 수 있다. A*을 돌리되 목표를 처음 꺼냈을 때 멈추지 말고 목표를 $K$번 꺼낼 때까지 이어 간다. $k$번째로 꺼낸 것이 $k$번째 최단 경로이다. 이렇게 하면 $K$개의 최단 걸음(반드시 단순 길은 아니다)을 찾는다. 맞음을 보장하려면 꼭짓점을 여러 번 넓힐 수 있게 해야 한다. 시간 복잡도는 $O(KE + KV\log(KV))$이다. 단순 길을 원하면 고리를 피하려고 장부를 더 적어야 해서 문제가 어려워진다. $\square$
+
+## 정리하며
+
+이 마당은 문제의 여러 판、옌의 알고리즘、옌 알고리즘의 복잡도、엡스타인의 알고리즘을 차례로 짚었다.
+
+**참고 문헌**
+
+- Yen, J. Y. (1971). Finding the $K$ shortest loopless paths in a network. *Management Science*, 17(11), 712-716.
+- Eppstein, D. (1998). Finding the $k$ shortest paths. *SIAM Journal on Computing*, 28(2), 652-673.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.

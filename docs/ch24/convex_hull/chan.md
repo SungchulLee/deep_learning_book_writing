@@ -2,7 +2,9 @@
 
 챈 알고리즘은 $n$개 점의 볼록 껍질을 $O(n \log h)$ 시간에 셈한다. 여기서 $h$은 껍질 꼭짓점의 수이다. 이는 **내놓기에 민감하다**. 곧 껍질이 작으면 견줌에 바탕한 방법의 $\Theta(n \log n)$ 벽을 넘어선다. 핵심 생각은 빠른 부분 껍질 알고리즘(그레이엄 훑기)과 효율 좋은 감싸기 걸음(자비스 행진)을 아우르고, 껍질 크기 $h$을 거듭 두 배로 늘려 짐작하는 것이다.
 
-## 직관
+---
+
+## 1. 직관
 
 1. 목표 껍질 크기 $m$을 짐작한다.
 2. $n$개 점을 크기 $m$인 무리 $\lceil n/m \rceil$개로 가른다.
@@ -12,13 +14,17 @@
 
 올바른 $m = h$을 $O(\log \log h)$번 돌아서 찾고 한 바퀴가 $O(n \log m)$이 들므로 모두 $O(n \log h)$이다.
 
-## 정의
+---
+
+## 2. 정의
 
 **내놓기에 민감함.** 복잡도가 들임뿐 아니라 내놓기의 크기에 달린 알고리즘이다.
 
 **점에서 볼록 다각형으로 그은 닿는 선.** 바깥 점 $q$과 정렬해 담은 볼록 다각형 $P$이 주어지면 $q$에서 $P$으로 그은 두 닿는 선을 도는 방향에 대한 이분 찾기로 $O(\log |P|)$에 찾을 수 있다.
 
-## 알고리즘 세부
+---
+
+## 3. 알고리즘 세부
 
 ### 단계 1 -- 무리 껍질
 
@@ -41,7 +47,9 @@ $S$을 크기가 많아야 $m$인 무리 $G_1, \dots, G_{\lceil n/m \rceil}$으�
 
 $t = 1, 2, 3, \dots$에 대해 $m = 2^{2^t}$을 시험한다. 처음으로 $m \ge h$이 되는 것이 이룬다. $t$번째 바퀴는 $O(n \log 2^{2^t}) = O(n \cdot 2^t)$이 든다. 못 이룬 바퀴를 등비 급수로 더하면 모두 $O(n \log h)$이다.
 
-## 올바름
+---
+
+## 4. 올바름
 
 !!! note "정리"
     챈 알고리즘은 $\operatorname{CH}(S)$을 $O(n \log h)$ 시간에 내놓는다.
@@ -53,7 +61,9 @@ $t = 1, 2, 3, \dots$에 대해 $m = 2^{2^t}$을 시험한다. 처음으로 $m \g
 - 두 배 차례표는 $m \ge h$에 이름을 보장한다. 그때 행진은 $m$ 걸음 안에 끝나고 온전한 껍질을 돌려준다.
 - 모든 바퀴의 온 일은 마지막으로 이룬 바퀴가 도맡는다. 곧 $O(n \log h)$이다.
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 잣대 | 비용 |
 |---------|------|
@@ -62,7 +72,9 @@ $t = 1, 2, 3, \dots$에 대해 $m = 2^{2^t}$을 시험한다. 처음으로 $m \g
 | 시간($h = O(1)$일 때) | $O(n)$ -- 자비스 행진과 같다 |
 | 공간 | $O(n)$ |
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -74,7 +86,6 @@ $t = 1, 2, 3, \dots$에 대해 $m = 2^{2^t}$을 시험한다. 처음으로 $m \g
 
 from __future__ import annotations
 
-
 # === 방향 도우미 ============================================================
 
 def cross(o: tuple[float, float],
@@ -82,7 +93,6 @@ def cross(o: tuple[float, float],
           b: tuple[float, float]) -> float:
     """평행사변형 OA x OB의 부호 있는 넓이."""
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
-
 
 # === 작은 무리를 위한 그레이엄 훑기 ==========================================
 
@@ -103,7 +113,6 @@ def graham_hull(pts: list[tuple[float, float]]) -> list[tuple[float, float]]:
         upper.append(p)
     return lower[:-1] + upper[:-1]
 
-
 # === 닿는 선 찾기 ==========================================================
 
 def _tangent(hull: list[tuple[float, float]],
@@ -114,7 +123,6 @@ def _tangent(hull: list[tuple[float, float]],
         if cross(point, best, q) < 0:
             best = q
     return best
-
 
 # === 챈 알고리즘 ============================================================
 
@@ -147,7 +155,6 @@ def chan_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
         # m이 너무 작았다 — 더 크게 시험한다
     return hull  # 물러설 자리
 
-
 # === 보임 ====================================================================
 
 if __name__ == "__main__":
@@ -158,7 +165,9 @@ if __name__ == "__main__":
     print(f"|hull| = {len(hull)}")
 ```
 
-## 다른 알고리즘과의 견줌
+---
+
+## 7. 다른 알고리즘과의 견줌
 
 | 알고리즘 | 시간 | 내놓기에 민감한가? |
 |-----------|------|-------------------|
@@ -168,10 +177,7 @@ if __name__ == "__main__":
 
 챈 알고리즘은 늘 그레이엄 훑기만큼 빠르고 $h = o(n)$일 때는 엄격히 더 빠르다.
 
-## 참고 문헌
-
-- T. M. Chan, "Optimal Output-Sensitive Convex Hull Algorithms in Two and Three Dimensions," *Discrete & Computational Geometry*, 16, 1996.
-- de Berg, Cheong, van Kreveld, Overmars, *Computational Geometry*, 3rd ed., Springer, 2008.
+---
 
 ## 연습문제
 
@@ -204,3 +210,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 챈 알고리즘은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$
+
+## 정리하며
+
+이 마당은 직관、정의、알고리즘 세부、올바름을 차례로 짚었다.
+
+**참고 문헌**
+
+- T. M. Chan, "Optimal Output-Sensitive Convex Hull Algorithms in Two and Three Dimensions," *Discrete & Computational Geometry*, 16, 1996.
+- de Berg, Cheong, van Kreveld, Overmars, *Computational Geometry*, 3rd ed., Springer, 2008.

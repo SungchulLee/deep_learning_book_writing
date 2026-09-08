@@ -2,13 +2,17 @@
 
 AVL 트리의 성능 보장은 오로지 그 높이가 $O(\log n)$이라는 주장에 기댄다. 이 한계가 없으면 찾기와 삽입과 삭제의 $O(\log n)$ 복잡도도 따라 나오지 않는다. 이 절은 주어진 높이에서 노드가 가장 적은 **가장 성긴** AVL 트리를 분석하고 그것을 피보나치 수와 이어 높이의 한계를 엄밀히 증명한다.
 
-## 핵심 물음
+---
+
+## 1. 핵심 물음
 
 노드가 $n$개인 AVL 트리의 높이가 $h$이라 하자. 물음은 이것이다. $n$의 함수로서 $h$은 얼마나 커질 수 있는가? $h = O(\log n)$임을 보일 수 있다면 뿌리에서 잎까지의 모든 경로가 로그이고 모든 사전 연산이 로그 시간에 끝난다.
 
 전략은 물음을 뒤집는 것이다. 높이가 $h$인 AVL 트리가 가질 수 있는 노드의 **최솟값** $N(h)$은 얼마인가? $N(h)$을 찾으면 노드가 $n \geq N(h)$개인 AVL 트리의 높이는 많아야 $h$이고, 이 관계를 뒤집으면 $n$으로 나타낸 $h$을 얻는다.
 
-## 최소 AVL 트리
+---
+
+## 2. 최소 AVL 트리
 
 높이가 $h$인 **최소 AVL 트리**는 높이가 $h$이면서 노드가 가장 적은 AVL 트리이다. 높이 $h$을 지키면서 노드를 최소로 하려면 한쪽 부분 트리를 AVL 조건이 허락하는 만큼 낮게 만든다.
 
@@ -30,7 +34,9 @@ $$
 N(h) = N(h-1) + N(h-2) + 1
 $$
 
-## 피보나치 수와의 관계
+---
+
+## 3. 피보나치 수와의 관계
 
 점화식 $N(h) = N(h-1) + N(h-2) + 1$은 피보나치 점화식 $F(h) = F(h-1) + F(h-2)$과 매우 닮았다. $M(h) = N(h) + 1$이라 두면 다음과 같다.
 
@@ -50,7 +56,9 @@ $$
 N(h) = F_{h+3} - 2
 $$
 
-## 높이의 한계
+---
+
+## 4. 높이의 한계
 
 황금비 $\phi = (1 + \sqrt{5})/2 \approx 1.618$에 대한 잘 알려진 근사 $F_k \approx \phi^k / \sqrt{5}$을 쓰면 다음과 같다.
 
@@ -79,7 +87,9 @@ $$
 ??? note "상수 1.44의 유도"
     인수 $1/\log_2 \phi = 1/\log_2((1+\sqrt{5})/2) \approx 1.4404$은 $\log_\phi$과 $\log_2$ 사이의 밑 변환에서 나온다. 곧 AVL 트리는 높이가 $\lfloor \log_2 n \rfloor$인 완벽하게 균형 잡힌 이진 트리보다 많아야 약 44% 높다.
 
-## 주요 정리
+---
+
+## 5. 주요 정리
 
 !!! info "정리: AVL 트리의 높이"
     노드가 $n$개인 AVL 트리의 높이는 $h = \Theta(\log n)$이다. 더 정확히는 다음과 같다.
@@ -92,7 +102,9 @@ $$
 
 **증명 개요.** 위 한계는 $n \geq N(h) = F_{h+3} - 2$과 피보나치 수의 지수적 증가에서 따라 나온다. 아래 한계는 모든 이진 트리에 성립한다. 높이가 $h$인 트리의 노드는 많아야 $2^{h+1} - 1$개이므로 $n \leq 2^{h+1} - 1$에서 $h \geq \log_2(n+1) - 1$이 나온다. $\square$
 
-## 최소 AVL 트리의 크기 계산하기
+---
+
+## 6. 최소 AVL 트리의 크기 계산하기
 
 ```python
 """
@@ -101,7 +113,6 @@ $$
 가장 작은 AVL 트리와 피보나치 수의 이음을 보이며
 1.44 * log2(n)이라는 높이 한계를 확인한다.
 """
-
 
 # === 가장 작은 AVL 트리의 크기 ===
 
@@ -114,7 +125,6 @@ def minimal_avl_sizes(max_height):
         sizes.append(sizes[h - 1] + sizes[h - 2] + 1)
     return sizes[:max_height + 1]
 
-
 # === 피보나치 수 ===
 
 def fibonacci(k):
@@ -125,7 +135,6 @@ def fibonacci(k):
     for _ in range(k):
         a, b = b, a + b
     return a
-
 
 # === 확인 ===
 
@@ -139,7 +148,6 @@ def verify_fibonacci_connection(max_height):
         match = "yes" if n_h == fib_val else "NO"
         print(f"{h:3d} | {n_h:8d} | {fib_val:8d} | {match:>5}")
 
-
 # === 높이 한계 확인 ===
 
 import math
@@ -149,7 +157,6 @@ def height_bound(n):
     if n <= 0:
         return 0
     return 1.44 * math.log2(n + 2) - 0.328
-
 
 if __name__ == "__main__":
     print("=== Minimal AVL Tree Sizes vs Fibonacci ===")
@@ -204,7 +211,9 @@ if __name__ == "__main__":
 
 높이 $h$마다 그에 해당하는 한계값 아래에 있어 정리가 확인된다.
 
-## 실무적 함의
+---
+
+## 7. 실무적 함의
 
 높이의 한계 $h \leq 1.44 \log_2 n$은 다음을 뜻한다.
 
@@ -214,12 +223,7 @@ if __name__ == "__main__":
 
 이 최악의 경우는 빈틈이 없다. 위에서 설명한 최소 AVL 트리(피보나치 트리)는 정확히 $1.44 \log_2 n$의 높이에 이른다. 다만 무작위로 만든 AVL 트리는 높이가 $\log_2 n$에 훨씬 가까운 편이다.
 
-## 참고 문헌
-
-- [6. AVL Trees, AVL Sort](https://www.youtube.com/watch?v=FNeL18KsWPc&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=7)
-- [AVL tree](https://en.wikipedia.org/wiki/AVL_tree)
-- [1382. Balance a Binary Search Tree](https://leetcode.com/problems/balance-a-binary-search-tree/)
-
+---
 
 ## 연습문제
 
@@ -252,3 +256,13 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 핵심 물음、최소 AVL 트리、피보나치 수와의 관계、높이의 한계을 차례로 짚었다.
+
+**참고 문헌**
+
+- [6. AVL Trees, AVL Sort](https://www.youtube.com/watch?v=FNeL18KsWPc&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=7)
+- [AVL tree](https://en.wikipedia.org/wiki/AVL_tree)
+- [1382. Balance a Binary Search Tree](https://leetcode.com/problems/balance-a-binary-search-tree/)

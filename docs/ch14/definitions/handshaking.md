@@ -2,7 +2,9 @@
 
 악수 보조정리는 그래프 이론에서 가장 먼저 만나는 정리일 때가 많고, 지금도 가장 자주 쓰이는 것 가운데 하나이다. 이름은 잔치에 빗댄 데서 왔다. 곧 모임에서 저마다 몇몇과 악수하면 "악수 끝"의 총 개수는 늘 짝수인데, 악수마다 손이 꼭 둘 들기 때문이다. 이 단순한 세기 따짐은 놀랍도록 힘센 결과를 낳는다. 어떤 그래프가 있을 수 없음을 증명하는 데서부터 망의 [차수](degree.md) 분포를 뜯어보는 데까지 쓰인다.
 
-## 진술과 증명
+---
+
+## 1. 진술과 증명
 
 !!! tip "정리: 악수 보조정리"
     아무 무방향 그래프 $G = (V, E)$에 대해 다음이 성립한다,
@@ -16,7 +18,9 @@ $$
 !!! example "보조정리 확인하기"
     $\{a, b, c, d\}$ 위에 변 $\{a,b\}, \{b,c\}, \{c,d\}, \{a,d\}, \{a,c\}$을 갖는 그래프를 생각하자. 차수는 $\deg(a)=3$, $\deg(b)=2$, $\deg(c)=3$, $\deg(d)=2$이다. 합은 $3+2+3+2=10=2 \times 5 = 2|E|$이다.
 
-## 따름정리: 차수가 홀수인 꼭짓점은 짝수 개
+---
+
+## 2. 따름정리: 차수가 홀수인 꼭짓점은 짝수 개
 
 !!! tip "따름정리"
     아무 무방향 그래프에서 차수가 홀수인 꼭짓점의 개수는 짝수이다.
@@ -31,7 +35,9 @@ $$
 
 이 따름정리는 이를테면 꼭짓점 꼭 3개의 차수가 홀수인 그래프는 없음을 곧바로 알려 준다.
 
-## 방향 그래프에서의 대응
+---
+
+## 3. 방향 그래프에서의 대응
 
 방향 그래프에서 방향 변 $(u, v)$마다 $\deg^+(u)$에 1, $\deg^-(v)$에 1을 보탠다. 모든 꼭짓점에 걸쳐 합하면 다음과 같다:
 
@@ -41,7 +47,9 @@ $$
 
 이것이 악수 보조정리의 방향 판이다. 나가는 차수의 합과 들어오는 차수의 합이 같고 둘 다 변의 개수와 같다.
 
-## 응용
+---
+
+## 4. 응용
 
 악수 보조정리는 여러 자리에서 증명 도구로 쓰인다.
 
@@ -70,7 +78,9 @@ $$
 
 이 관계는 무작위 그래프와 망 모형을 뜯어보는 데 근본이 된다.
 
-## 확인 코드
+---
+
+## 5. 확인 코드
 
 ```python
 """
@@ -80,7 +90,6 @@ $$
 (방향에서는) 변 개수와 같은지 확인한다.
 """
 
-
 # === 무방향 확인 ===
 
 def verify_handshaking_undirected(adj, n, num_edges):
@@ -88,7 +97,6 @@ def verify_handshaking_undirected(adj, n, num_edges):
     degree_sum = sum(len(adj[v]) for v in range(n))
     holds = (degree_sum == 2 * num_edges)
     return degree_sum, holds
-
 
 # === 방향 확인 ===
 
@@ -103,14 +111,12 @@ def verify_handshaking_directed(adj, n, num_edges):
     holds = (out_degree_sum == num_edges == in_degree_sum)
     return out_degree_sum, in_degree_sum, holds
 
-
 # === 홀수 차수 세기 ===
 
 def count_odd_degree_vertices(adj, n):
     """차수가 홀수인 꼭짓점을 세고 그 개수가 짝수인지 확인한다."""
     odd_count = sum(1 for v in range(n) if len(adj[v]) % 2 == 1)
     return odd_count, odd_count % 2 == 0
-
 
 # === 메인 ===
 
@@ -137,10 +143,7 @@ Odd-degree vertices: 2, count is even: True
 Directed: sum(out-deg) = 3, sum(in-deg) = 3, |E| = 3, holds: True
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
-- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. 명제 1.3.3.
+---
 
 ## 연습문제
 
@@ -181,3 +184,12 @@ Directed: sum(out-deg) = 3, sum(in-deg) = 3, |E| = 3, holds: True
 
 ??? success "연습 5의 풀이"
     $K_5$에서 꼭짓점마다 나머지 4개 모두에 이웃하므로 꼭짓점 5개 저마다 $\deg(v) = 4$이다. 악수 보조정리에 따라 $2|E| = \sum_{v=1}^{5} 4 = 20$이므로 $|E| = 10$이다. $\square$
+
+## 정리하며
+
+이 마당은 진술과 증명、따름정리: 차수가 홀수인 꼭짓점은 짝수 개、방향 그래프에서의 대응、응용을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
+- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. 명제 1.3.3.

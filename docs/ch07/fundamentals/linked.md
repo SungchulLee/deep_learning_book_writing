@@ -2,7 +2,9 @@
 
 연결 표현은 실제로 이진 트리를 구현하는 가장 흔한 방법이다. 트리가 완전해야 하는 [배열 표현](array.md)과 달리, 연결된 노드는 균형 잡힌 것이든 치우친 것이든 그 사이 어떤 모양이든 나타낼 수 있다. 노드마다 메모리에 따로 있는 객체이며 참조로 자식과(그리고 원한다면 부모와) 이어진다. 이 유연함 덕분에 연결 표현이 이진 탐색 트리와 식 트리, 이 책에서 다루는 대부분의 트리 알고리즘에서 기본 선택이 된다.
 
-## 노드 구조
+---
+
+## 1. 노드 구조
 
 연결 표현에서 이진 트리의 노드는 적어도 다음 세 칸을 담는다.
 
@@ -19,7 +21,9 @@
 !!! note "이진 트리와 일반 트리"
     **이진 트리**에서는 노드마다 자식이 많아야 둘이므로 `left`과 `right` 포인터면 충분하다. 자식의 수에 제한이 없는 **일반 트리**에서는 **왼쪽 자식, 오른쪽 형제** 표현을 흔히 쓴다. `left`은 첫 자식을 가리키고 `right`은 다음 형제를 가리킨다. 이렇게 하면 노드마다 포인터 두 개만으로 뿌리 있는 어떤 트리든 나타낼 수 있다.
 
-## 공간 분석
+---
+
+## 2. 공간 분석
 
 연결 표현에서 노드마다 다음이 필요하다.
 
@@ -34,7 +38,9 @@ $$
 | 완전 ($h = \lfloor \log_2 n \rfloor$) | $\Theta(n)$ | $\Theta(n)$ |
 | 치우침 ($h = n - 1$) | $\Theta(n)$ | $\Theta(2^n)$ |
 
-## 트리 만들기
+---
+
+## 3. 트리 만들기
 
 노드를 하나씩 만들어 `left`과 `right` 칸으로 이으면 트리가 된다. 트리에는 뿌리 노드에 대한 참조로 닿는다.
 
@@ -45,7 +51,6 @@ $$
 노드 만들기, 트리 세우기, 연결(포인터 기반) 표현으로 하는
 기본적인 순회를 보인다.
 """
-
 
 # === 노드 정의 ===
 
@@ -68,7 +73,6 @@ class Node:
     def __repr__(self):
         return f"Node({self.key})"
 
-
 # === 트리 만들기 도우미 ===
 
 def build_tree(key, left=None, right=None):
@@ -80,20 +84,17 @@ def build_tree(key, left=None, right=None):
         right.parent = node
     return node
 
-
 def tree_size(node):
     """node를 뿌리로 하는 부분 트리의 노드 수를 돌려준다."""
     if node is None:
         return 0
     return 1 + tree_size(node.left) + tree_size(node.right)
 
-
 def tree_height(node):
     """부분 트리의 높이를 돌려준다 (변의 수)."""
     if node is None:
         return -1
     return 1 + max(tree_height(node.left), tree_height(node.right))
-
 
 # === 보이기 ===
 
@@ -104,7 +105,6 @@ def print_tree(node, level=0, prefix="Root: "):
         if node.left is not None or node.right is not None:
             print_tree(node.left, level + 1, "L--- ")
             print_tree(node.right, level + 1, "R--- ")
-
 
 # === 메인 ===
 
@@ -152,7 +152,9 @@ Node 7's parent: Node(5)
 Node 5's parent: Node(10)
 ```
 
-## 왼쪽 자식 오른쪽 형제 표현
+---
+
+## 4. 왼쪽 자식 오른쪽 형제 표현
 
 일반(이진이 아닌) 트리에서 **왼쪽 자식 오른쪽 형제** 부호화는 노드마다 포인터 두 개만으로 차수에 제한이 없는 트리를 담는다.
 
@@ -170,10 +172,7 @@ General tree:          Left-child right-sibling:
  E   F                  E --> F
 ```
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 12장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -206,3 +205,11 @@ General tree:          Left-child right-sibling:
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 노드 구조、공간 분석、트리 만들기、왼쪽 자식 오른쪽 형제 표현을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 12장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

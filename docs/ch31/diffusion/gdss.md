@@ -1,9 +1,10 @@
 # GDSS: 확률 미분 방정식으로 하는 점수 바탕 그래프 퍼짐
-## 개요
 
 GDSS(Jo et al., 2022)은 확률 미분 방정식으로 하는 점수 바탕 짓기 나타내기를 그래프 만들기에 쓴다. 퍼짐을 $T$걸음으로 띄엄띄엄하게 하는 대신 앞으로 가는 과정과 거꾸로 가는 과정을 이어진 때의 확률 미분 방정식으로 적어 너그럽게 뽑을 수 있게 한다. 이 모델은 얽힌 확률 미분 방정식으로 마디 특징과 이웃 행렬을 함께 만들며 점수 그물이 함께 점수 함수를 어림한다.
 
-## 이어진 때의 틀
+---
+
+## 1. 이어진 때의 틀
 
 ### 앞으로 가는 확률 미분 방정식
 
@@ -29,7 +30,9 @@ $$
 
 함께 점수 $\nabla_{\mathbf{X}} \log p_t(\mathbf{X}, \mathbf{A})$과 $\nabla_{\mathbf{A}} \log p_t(\mathbf{X}, \mathbf{A})$이 마디와 변을 얽는다. 마디 특징의 잡소리 없애기가 이웃 관계에 매이고 그 반대도 마찬가지다.
 
-## 점수 맞추기 손실
+---
+
+## 2. 점수 맞추기 손실
 
 익히기는 잡소리 없애기 점수 맞추기를 가장 작게 한다:
 
@@ -39,7 +42,9 @@ $$
 
 여기서 $\lambda(t) = g(t)^2$은 중요도 무게이고 과녁 점수는 VP-SDE 아래 닫힌 꼴 풀이를 가진다.
 
-## 헤아리개-바로잡개 뽑기
+---
+
+## 3. 헤아리개-바로잡개 뽑기
 
 GDSS은 헤아리개 걸음과 바로잡개 걸음을 번갈아 쓴다:
 
@@ -57,11 +62,15 @@ $$
 
 걸음마다 $\mathbf{A}_t \leftarrow (\mathbf{A}_t + \mathbf{A}_t^\top)/2$으로 쏘아 맞섬을 지킨다.
 
-## 점수 그물의 얼개
+---
+
+## 4. 점수 그물의 얼개
 
 점수 그물은 마디 특징과 이웃 관계를 함께 다루는 그래프 신경망으로 차원이 맞는 점수 어림을 낸다. 이 얼개는 때 걸음 $t$의 잡소리 섞인 그래프를 다루어 마디 $\mathbf{s}_\theta^X \in \mathbb{R}^{n \times d}$과 변 $\mathbf{s}_\theta^A \in \mathbb{R}^{n \times n}$의 점수 어림을 따로 내놓는다.
 
-## 띄엄띄엄 퍼짐보다 나은 점
+---
+
+## 5. 띄엄띄엄 퍼짐보다 나은 점
 
 GDSS은 이어진 자리에서 돌아 기울기 바탕 뽑기를 할 수 있고 띄엄띄엄한 거꿀 옮김의 얽음 어려움을 피한다. 확률 미분 방정식 틀은 정해진 뽑기와 가능도 셈을 위한 확률 흐름 상미분 방정식도 쓸 수 있게 한다:
 
@@ -69,11 +78,15 @@ $$
 d\mathbf{X} = \left[-\mathbf{f}_X + \frac{1}{2}g_X^2 \nabla_{\mathbf{X}} \log p_t\right] dt
 $$
 
-## 금융 쓰임새: 이어진 그물의 바뀜
+---
+
+## 6. 금융 쓰임새: 이어진 그물의 바뀜
 
 확률 미분 방정식 틀은 금융 그물이 이어져 바뀌는 모습을 자연스럽게 나타낸다. 노출을 나타내는 변 무게가 때에 따라 이어져 바뀌고, 흘러감과 퍼짐으로 쪼개면 그물 위상의 몸에 밴 흐름과 확률 흔들림이 갈라진다.
 
-## 짜기: GDSS
+---
+
+## 7. 짜기: GDSS
 
 ```python
 """
@@ -83,7 +96,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-
 
 class VPSDE:
     """그래프 퍼짐의 흩어짐 지키는 확률 미분 방정식."""
@@ -117,7 +129,6 @@ class VPSDE:
             mean_coeff = mean_coeff.unsqueeze(-1)
             std = std.unsqueeze(-1)
         return mean_coeff * x_0 + std * noise, noise
-
 
 class ScoreNetworkGNN(nn.Module):
     """
@@ -225,7 +236,6 @@ class ScoreNetworkGNN(nn.Module):
         score_a.diagonal(dim1=1, dim2=2).zero_()
 
         return score_x, score_a
-
 
 class GDSS(nn.Module):
     """
@@ -378,7 +388,6 @@ class GDSS(nn.Module):
 
         return graphs
 
-
 if __name__ == "__main__":
     torch.manual_seed(42)
     max_n, feat_dim = 8, 2
@@ -428,6 +437,8 @@ if __name__ == "__main__":
         print(f"Graph {i}: {n} nodes, {e} edges, density={2*e/(n*(n-1)) if n>1 else 0:.3f}")
 ```
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -459,3 +470,7 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
+
+## 정리하며
+
+이 마당은 이어진 때의 틀、점수 맞추기 손실、헤아리개-바로잡개 뽑기、점수 그물의 얼개을 차례로 짚었다.

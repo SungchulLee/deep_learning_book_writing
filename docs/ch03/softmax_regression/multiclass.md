@@ -1,5 +1,8 @@
 # 다중 클래스 분류
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -11,7 +14,7 @@
 
 ---
 
-## 이진 분류에서 다중 클래스 분류로
+## 2. 이진 분류에서 다중 클래스 분류로
 
 ### 베르누이 분포 다시 보기
 
@@ -36,7 +39,7 @@ $$P(Y = k) = \pi_k$$
 
 ---
 
-## 원-핫 부호화: 수학적 토대
+## 3. 원-핫 부호화: 수학적 토대
 
 ### 정의와 동기
 
@@ -74,7 +77,7 @@ $$\mathbf{y}^T \boldsymbol{\pi} = \pi_k \quad \text{when } Y = k$$
 
 ---
 
-## 원-핫 부호화로 나타낸 범주형 분포
+## 4. 원-핫 부호화로 나타낸 범주형 분포
 
 ### 간결한 PMF 표현
 
@@ -102,7 +105,7 @@ $$\mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \lo
 
 ---
 
-## 소프트맥스 회귀와의 관계
+## 5. 소프트맥스 회귀와의 관계
 
 ### 모델의 구조
 
@@ -137,7 +140,7 @@ $$\mathbf{x} \;\xrightarrow{\;\mathbf{W},\, \mathbf{b}\;}\; \mathbf{z} = \mathbf
 
 ---
 
-## PyTorch 구현
+## 6. PyTorch 구현
 
 ### 원-핫 부호 만들기
 
@@ -237,7 +240,7 @@ print(f"True class probabilities: {true_probs}")  # tensor([0.7, 0.6, 0.5])
 
 ---
 
-## PyTorch의 CrossEntropyLoss에서 범주형 대 원-핫
+## 7. PyTorch의 CrossEntropyLoss에서 범주형 대 원-핫
 
 ### 결정적으로 중요한 구현 세부 사항
 
@@ -301,7 +304,7 @@ class LabelSmoothingLoss(nn.Module):
 
 ---
 
-## 완전한 예제: 범주형 분포에서 표본 뽑기
+## 8. 완전한 예제: 범주형 분포에서 표본 뽑기
 
 ```python
 import torch
@@ -337,43 +340,6 @@ print("Class counts:", counts.numpy().astype(int))
 ```
 
 ---
-
-## 요약
-
-### 핵심 개념
-
-| 개념 | 공식 / 설명 |
-|---------|----------------------|
-| 범주형 PMF | $P(Y=k) = \pi_k$ |
-| 원-핫 부호화 | $y_k = \mathbb{1}[Y=k]$ |
-| 곱 형태의 PMF | $P(\mathbf{y}\mid\boldsymbol{\pi}) = \prod_k \pi_k^{y_k}$ |
-| 로그가능도 | $\log P(\mathbf{y}\mid\boldsymbol{\pi}) = \sum_k y_k \log \pi_k$ |
-| 확률 꺼내기 | $\mathbf{y}^T \boldsymbol{\pi} = \pi_{\text{true class}}$ |
-
-### PyTorch 함수
-
-| 할 일 | PyTorch 함수 |
-|------|------------------|
-| 원-핫 만들기 | `F.one_hot(labels, num_classes)` |
-| 확률 꺼내기 | `probs.gather(1, labels.unsqueeze(1))` |
-| 범주형에서 표본 뽑기 | `torch.multinomial(probs, n)` |
-| 교차 엔트로피 손실 | `nn.CrossEntropyLoss()` (인덱스를 받는다!) |
-
-### 흔히 빠지는 함정
-
-!!! warning "반드시 피해야 할 실수"
-
-    1. **`nn.CrossEntropyLoss`에 원-핫 벡터를 넘기지 마라** — 클래스 인덱스를 받는다
-    2. **`nn.CrossEntropyLoss` 앞에서 소프트맥스를 적용하지 마라** — 내부에서 적용된다
-    3. **차원의 순서에 유의하라** — PyTorch는 `(classes, batch)`가 아니라 `(batch, classes)`를 쓴다
-
----
-
-## 참고 문헌
-
-1. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Chapter 4.
-2. Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*, Chapter 3.
-3. PyTorch Documentation: [torch.nn.functional.one_hot](https://pytorch.org/docs/stable/generated/torch.nn.functional.one_hot.html)
 
 ## 연습문제
 
@@ -426,3 +392,40 @@ print("Class counts:", counts.numpy().astype(int))
     # T=5.0: 거의 균등 [0.38, 0.34, 0.28]
     ```
     온도가 낮으면 분포가 날카로워지고(확신), 온도가 높으면 평평해진다(불확실).
+
+## 정리하며
+
+### 핵심 개념
+
+| 개념 | 공식 / 설명 |
+|---------|----------------------|
+| 범주형 PMF | $P(Y=k) = \pi_k$ |
+| 원-핫 부호화 | $y_k = \mathbb{1}[Y=k]$ |
+| 곱 형태의 PMF | $P(\mathbf{y}\mid\boldsymbol{\pi}) = \prod_k \pi_k^{y_k}$ |
+| 로그가능도 | $\log P(\mathbf{y}\mid\boldsymbol{\pi}) = \sum_k y_k \log \pi_k$ |
+| 확률 꺼내기 | $\mathbf{y}^T \boldsymbol{\pi} = \pi_{\text{true class}}$ |
+
+### PyTorch 함수
+
+| 할 일 | PyTorch 함수 |
+|------|------------------|
+| 원-핫 만들기 | `F.one_hot(labels, num_classes)` |
+| 확률 꺼내기 | `probs.gather(1, labels.unsqueeze(1))` |
+| 범주형에서 표본 뽑기 | `torch.multinomial(probs, n)` |
+| 교차 엔트로피 손실 | `nn.CrossEntropyLoss()` (인덱스를 받는다!) |
+
+### 흔히 빠지는 함정
+
+!!! warning "반드시 피해야 할 실수"
+
+    1. **`nn.CrossEntropyLoss`에 원-핫 벡터를 넘기지 마라** — 클래스 인덱스를 받는다
+    2. **`nn.CrossEntropyLoss` 앞에서 소프트맥스를 적용하지 마라** — 내부에서 적용된다
+    3. **차원의 순서에 유의하라** — PyTorch는 `(classes, batch)`가 아니라 `(batch, classes)`를 쓴다
+
+---
+
+**참고 문헌**
+
+1. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Chapter 4.
+2. Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*, Chapter 3.
+3. PyTorch Documentation: [torch.nn.functional.one_hot](https://pytorch.org/docs/stable/generated/torch.nn.functional.one_hot.html)

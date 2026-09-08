@@ -2,14 +2,18 @@
 
 이진 탐색 트리의 최악 높이는 $n - 1$(치우친 사슬)이고 그러면 모든 연산이 $O(n)$이 된다. 그런데 서로 다른 열쇠 $n$개를 고르게 무작위인 순서로 넣으면 만들어지는 트리는 평균적으로 훨씬 균형 잡혀 있다. 무작위로 만든 이진 탐색 트리의 기대 높이를 이해하면 이진 탐색 트리가 왜 실제로 잘 통하는지 알 수 있고, 무작위 퀵 정렬과의 깊은 관계도 드러난다.
 
-## 정의
+---
+
+## 1. 정의
 
 서로 다른 열쇠 $n$개에 대한 **무작위로 만든 이진 탐색 트리**란, 고르게 무작위인 순열 순서로 열쇠를 빈 트리에 표준 [삽입](insertion.md) 알고리즘으로 넣어 만든 트리이다.
 
 !!! note "퀵 정렬과의 관계"
     무작위로 만든 이진 탐색 트리의 구조는 무작위 퀵 정렬의 재귀 트리와 같다. 이진 탐색 트리의 뿌리는 첫 축에 대응하고, 왼쪽 부분 트리는 축보다 작은 원소에, 오른쪽 부분 트리는 축보다 큰 원소에 대응한다. 두 과정은 원소를 똑같은 방식으로 나눈다.
 
-## 기대 높이
+---
+
+## 2. 기대 높이
 
 무작위로 만든 이진 탐색 트리의 핵심 결과는 다음과 같다.
 
@@ -22,7 +26,9 @@ $$
 E[h_n] \leq 3 \ln n = 3 \log_e n \approx 4.33 \log_2 n
 $$
 
-## 증명의 얼개
+---
+
+## 3. 증명의 얼개
 
 증명은 분석을 다루기 쉽게 하려고 **지수 높이**를 쓴다. 지수 높이를 $Y_n = 2^{h_n}$으로 정의한다. 핵심은 $Y_n$이 지시 확률 변수로 분석하기 좋은 점화식을 만족한다는 것이다.
 
@@ -52,7 +58,9 @@ $$
 
 여기서 부등식은 ($\log$이 오목하므로) 옌센 부등식을 쓴 것이다.
 
-## 무작위 노드의 기대 깊이
+---
+
+## 4. 무작위 노드의 기대 깊이
 
 이와 관련된 결과로 무작위로 만든 이진 탐색 트리에서 노드의 기대 깊이가 있다. 순위가 $i$인 노드의 기대 깊이는 다음과 같다.
 
@@ -68,7 +76,9 @@ $$
 
 이는 평균 탐색 시간이 $\Theta(\log n)$임을 확인해 준다.
 
-## 실험으로 보이기
+---
+
+## 5. 실험으로 보이기
 
 ```python
 """
@@ -81,7 +91,6 @@ $$
 import random
 import math
 
-
 # === 노드 정의 ===
 
 class Node:
@@ -91,7 +100,6 @@ class Node:
         self.key = key
         self.left = None
         self.right = None
-
 
 # === 이진 탐색 트리 연산 ===
 
@@ -113,7 +121,6 @@ def insert(root, key):
                 return root
             current = current.right
 
-
 def height(node):
     """너비 우선 탐색으로 높이를 반복적으로 계산한다."""
     if node is None:
@@ -130,7 +137,6 @@ def height(node):
             queue.append((current.right, depth + 1))
     return max_depth
 
-
 # === 실험 ===
 
 def experiment(n, trials=50):
@@ -144,7 +150,6 @@ def experiment(n, trials=50):
             root = insert(root, k)
         heights.append(height(root))
     return sum(heights) / len(heights)
-
 
 # === 메인 ===
 
@@ -183,10 +188,7 @@ if __name__ == "__main__":
 
 실험 결과는 무작위로 만든 이진 탐색 트리의 높이가 $3 \ln n$에 가깝고, 정렬된 순서로 넣었을 때의 최악값 $n - 1$보다 훨씬 낮음을 확인해 준다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 12.4절](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -219,3 +221,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 정의、기대 높이、증명의 얼개、무작위 노드의 기대 깊이을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 12.4절](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

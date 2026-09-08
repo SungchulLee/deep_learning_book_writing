@@ -2,7 +2,9 @@
 
 트립(나무 + 무지개탑)은 열쇠에는 이진 찾기 나무 차례를, 마구잡이로 매긴 우선값에는 무지개탑 차례를 지키는 마구잡이 이진 찾기 나무이다. 우선값을 고르게 아무렇게나 고르면 트립의 짜임은 마구잡이 이진 찾기 나무와 같아져, AVL이나 붉은-검은 나무의 복잡한 다시 고르기 논리 없이도 기댓값 높이 $O(\log n)$과 찾기, 넣기, 지우기의 기댓값 시간 $O(\log n)$을 준다.
 
-## 정의
+---
+
+## 1. 정의
 
 **트립**은 마디마다 열쇠-우선값 짝 $(k, p)$을 담고 두 성질을 함께 채우는 이진 나무이다.
 
@@ -12,13 +14,17 @@
 !!! note "하나뿐인 짜임"
     서로 다른 열쇠 $n$개와 서로 다른 우선값 $n$개가 주어지면 두 성질을 모두 채우는 트립은 꼭 하나뿐이다. 짜임은 우선값의 차례로 하나뿐이게 정해진다.
 
-## 아무 우선값이 통하는 까닭
+---
+
+## 2. 아무 우선값이 통하는 까닭
 
 열쇠마다 고르게 아무 우선값을 매기면 짜임이 (분포로) **마구잡이 이진 찾기 나무**, 곧 열쇠를 아무 차례로 넣어 세운 이진 찾기 나무와 똑같은 트립이 나온다. 마구잡이 이진 찾기 나무의 기댓값 깊이는 $O(\log n)$이고 기댓값 높이는 $\Theta(\log n)$이다.
 
 **핵심 통찰:** 우선값이 가장 작은 마디가 뿌리가 된다. 그 열쇠가 남은 마디를 왼쪽과 오른쪽 아래 나무로 가르고 이 과정이 되돌이된다. 이는 아무 넣기 차례를 고르는 것과 똑같다.
 
-## 기대 높이
+---
+
+## 3. 기대 높이
 
 **정리.** 낱개 $n$개인 트립에서 어느 마디든 기댓값 깊이는 $O(\log n)$이다.
 
@@ -30,7 +36,9 @@ $$
 
 여기서 $H_k = \sum_{j=1}^{k} 1/j$은 $k$번째 조화수이다. $H_k = O(\log k)$이므로 기댓값 깊이는 $O(\log n)$이다.
 
-## 돌리기
+---
+
+## 4. 돌리기
 
 트립 셈은 이진 찾기 나무의 넣기와 지우기 뒤 무지개탑 성질을 되살리려 **돌리기**를 쓴다.
 
@@ -39,7 +47,9 @@ $$
 
 돌리기는 이진 찾기 나무 성질을 지키면서 우선값이 더 높은 마디를 위로 올릴 수 있게 한다.
 
-## 연산
+---
+
+## 5. 연산
 
 ### 찾기
 
@@ -59,7 +69,9 @@ $$
 
 아니면 마디의 우선값을 $\infty$으로 두고 돌리기로 잎 자리까지 가라앉게 한다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -70,7 +82,6 @@ $$
 """
 
 import random
-
 
 # === 트립 마디 ===
 
@@ -83,7 +94,6 @@ class TreapNode:
         self.left = None
         self.right = None
 
-
 # === 회전 ===
 
 def rotate_right(node):
@@ -93,14 +103,12 @@ def rotate_right(node):
     new_root.right = node
     return new_root
 
-
 def rotate_left(node):
     """왼쪽 돌리기: 마디의 오른쪽 자식을 올린다."""
     new_root = node.right
     node.right = new_root.left
     new_root.left = node
     return new_root
-
 
 # === 삽입 ===
 
@@ -122,7 +130,6 @@ def insert(root, key):
             root = rotate_left(root)
 
     return root
-
 
 # === 지우기 ===
 
@@ -155,7 +162,6 @@ def delete(root, key):
 
     return root
 
-
 # === 찾기 ===
 
 def search(root, key):
@@ -169,7 +175,6 @@ def search(root, key):
     else:
         return search(root.right, key)
 
-
 # === 중위 순회 ===
 
 def inorder(root):
@@ -178,7 +183,6 @@ def inorder(root):
         return []
     return inorder(root.left) + [root.key] + inorder(root.right)
 
-
 # === 나무 높이 ===
 
 def height(root):
@@ -186,7 +190,6 @@ def height(root):
     if root is None:
         return -1
     return 1 + max(height(root.left), height(root.right))
-
 
 # === 메인 ===
 
@@ -227,7 +230,9 @@ if __name__ == "__main__":
     print(f"Expected O(log n) = {2 * 13.8:.1f} (2 * ln 1000)")
 ```
 
-## 가르기와 합치기
+---
+
+## 7. 가르기와 합치기
 
 트립은 효율 좋은 **가르기**와 **합치기** 셈을 받쳐 주므로 차례와 구간 셈을 짜는 데 쓸모 있다.
 
@@ -235,7 +240,9 @@ if __name__ == "__main__":
 
 **Merge(T_1, T_2):** $T_1$의 열쇠가 모두 $T_2$의 열쇠보다 작은 두 트립을 기댓값 $O(\log n)$ 시간에 합친다.
 
-## 복잡도 요약
+---
+
+## 8. 복잡도 요약
 
 | 셈 | 기댓값 | 가장 나쁜 경우 |
 |---|---|---|
@@ -246,10 +253,7 @@ if __name__ == "__main__":
 | 합치기 | $O(\log n)$ | $O(n)$ |
 | 자리 | $O(n)$ | $O(n)$ |
 
-## 참고 문헌
-
-- Aragon, C. R. & Seidel, R. "Randomized Search Trees." *Algorithmica*, 1996.
-- Motwani, R. & Raghavan, P. *Randomized Algorithms*. Cambridge University Press.
+---
 
 ## 연습문제
 
@@ -282,3 +286,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$
+
+## 정리하며
+
+이 마당은 정의、아무 우선값이 통하는 까닭、기대 높이、돌리기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Aragon, C. R. & Seidel, R. "Randomized Search Trees." *Algorithmica*, 1996.
+- Motwani, R. & Raghavan, P. *Randomized Algorithms*. Cambridge University Press.

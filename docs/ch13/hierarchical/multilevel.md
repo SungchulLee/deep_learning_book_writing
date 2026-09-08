@@ -3,7 +3,7 @@
 
 ---
 
-## 모형 명세
+## 1. 모형 명세
 
 ### 절편이 달라지는 모형
 
@@ -37,7 +37,7 @@ $$
 
 ---
 
-## 세 가지 모으기 전략
+## 2. 세 가지 모으기 전략
 
 ### 온전히 모으기(모형 하나)
 
@@ -65,7 +65,7 @@ $$
 
 ---
 
-## PyTorch 구현
+## 3. PyTorch 구현
 
 ```python
 import torch
@@ -162,7 +162,7 @@ class MultilevelModel:
 
 ---
 
-## 계량 금융에서의 쓰임
+## 4. 계량 금융에서의 쓰임
 
 ### 횡단면 자산 가격 결정
 
@@ -187,23 +187,6 @@ $$
 - **모집단 매개변수**($\mu_\alpha, \mu_\beta$): 시장 전체의 위험 요인
 
 ---
-
-## 요약
-
-| 개념 | 핵심 |
-|---------|-----------|
-| **반쯤 모으기** | 무리의 짜임을 아랑곳하지 않는 것과 지나치게 맞추는 것 사이의 가장 좋은 절충 |
-| **오그라들기** | 데이터가 적은 무리일수록 모집단의 평균 쪽으로 더 끌린다 |
-| **달라지는 효과** | 절편, 기울기, 또는 둘 다 무리마다 달라질 수 있다 |
-| **공분산 짜임** | 다변량 확률 효과가 무리 매개변수 사이의 상관을 담는다 |
-
----
-
-## 참고 문헌
-
-- Gelman, A., & Hill, J. (2006). *Data Analysis Using Regression and Multilevel/Hierarchical Models*. Cambridge University Press.
-- McElreath, R. (2020). *Statistical Rethinking* (2nd ed.). CRC Press. 13~14장.
-- Raudenbush, S. W., & Bryk, A. S. (2002). *Hierarchical Linear Models* (2nd ed.). Sage.
 
 ## 연습문제
 
@@ -242,3 +225,20 @@ $$
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
     # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
     ```
+
+## 정리하며
+
+| 개념 | 핵심 |
+|---------|-----------|
+| **반쯤 모으기** | 무리의 짜임을 아랑곳하지 않는 것과 지나치게 맞추는 것 사이의 가장 좋은 절충 |
+| **오그라들기** | 데이터가 적은 무리일수록 모집단의 평균 쪽으로 더 끌린다 |
+| **달라지는 효과** | 절편, 기울기, 또는 둘 다 무리마다 달라질 수 있다 |
+| **공분산 짜임** | 다변량 확률 효과가 무리 매개변수 사이의 상관을 담는다 |
+
+---
+
+**참고 문헌**
+
+- Gelman, A., & Hill, J. (2006). *Data Analysis Using Regression and Multilevel/Hierarchical Models*. Cambridge University Press.
+- McElreath, R. (2020). *Statistical Rethinking* (2nd ed.). CRC Press. 13~14장.
+- Raudenbush, S. W., & Bryk, A. S. (2002). *Hierarchical Linear Models* (2nd ed.). Sage.

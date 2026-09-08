@@ -2,7 +2,9 @@
 
 도시 목록과 도시 짝마다의 이동 비용이 주어질 때, 장수가 모든 도시를 꼭 한 번씩 들르고 주어진 예산 안에서 집으로 돌아올 수 있는가? 떠돌이 장수 문제(TSP)는 가장 많이 연구된 NP 완전 문제 가운데 하나이며 물류, 회로 설계, 유전체 차례 읽기에 걸쳐 쓰인다.
 
-## 문제의 정의
+---
+
+## 1. 문제의 정의
 
 **들임.** 꼭짓점 $n$개 위의 완전 그래프 $G = (V, E)$과 무게 함수 $w : E \to \mathbb{Z}_{\ge 0}$, 그리고 예산 $B \in \mathbb{Z}_{\ge 0}$.
 
@@ -20,7 +22,9 @@
 
     돌이 $A \to B \to D \to C \to A$의 비용은 $10 + 25 + 30 + 15 = 80$이다. $B = 80$이면 답은 **예**이다.
 
-## 떠돌이 장수 문제는 NP에 든다
+---
+
+## 2. 떠돌이 장수 문제는 NP에 든다
 
 증서는 꼭짓점의 자리바꿈 $\pi$이다. 살피개는 다음을 셈하고
 
@@ -31,7 +35,9 @@ $$
 그리고 온 합이 많아야 $B$인지 살핀다. 이는 $O(n)$ 시간이 들므로
 TSP $\in$ NP.
 
-## 해밀턴 돌이에서 줄여 얻는 NP 어려움
+---
+
+## 3. 해밀턴 돌이에서 줄여 얻는 NP 어려움
 
 **해밀턴 돌이** 문제(그래프가 주어질 때 모든 꼭짓점을 꼭 한 번씩 들르는 돌이가 있는가?)는 NP 완전이다. 이를 떠돌이 장수 문제로 줄인다.
 
@@ -59,7 +65,9 @@ $$
 !!! note "가름과 가장 좋게 하기"
     가름 판("비용이 $\le B$인 돌이가 있는가?")은 NP 완전이다. 가장 좋게 하기 판("비용이 가장 작은 돌이를 찾아라")은 NP 어려움이다. 가름 판의 다항 시간 알고리즘이 있으면 $B$에 이진 찾기를 하여 가장 좋게 하기 판을 풀 수 있다.
 
-## 정확한 알고리즘
+---
+
+## 4. 정확한 알고리즘
 
 ### 무식한 방법
 
@@ -99,7 +107,6 @@ Space: O(2^n * n)
 
 import math
 
-
 # === 헬드-카프 짜 넣기 ===
 def tsp_held_karp(dist: list[list[int]]) -> int:
     """꼭짓점 0에서 시작하는 최소 해밀턴 돌이 비용을 돌려준다."""
@@ -124,7 +131,6 @@ def tsp_held_karp(dist: list[list[int]]) -> int:
 
     return min(dp[full_mask][u] + dist[u][0] for u in range(1, n))
 
-
 # === 보기 ===
 if __name__ == "__main__":
     dist = [
@@ -136,16 +142,15 @@ if __name__ == "__main__":
     print(f"Minimum tour cost: {tsp_held_karp(dist)}")  # 80
 ```
 
-## 어림
+---
+
+## 5. 어림
 
 (변 무게가 삼각 부등식을 만족하는) **잣대 떠돌이 장수 문제**에서는 크리스토피데스 알고리즘이 $\frac{3}{2}$ 어림을 이룬다. P = NP가 아닌 한 어떤 다항 시간 알고리즘도 잣대 떠돌이 장수 문제에서 $\frac{123}{122}$보다 나은 비율을 이룰 수 없다.
 
 일반(잣대가 아닌) 떠돌이 장수 문제에서는 P = NP가 아닌 한 상수 배 어림이 없다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 34.
-- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
+---
 
 ## 연습문제
 
@@ -202,3 +207,12 @@ $\mathbf{P} = \mathbf{NP}$이 아닌 한 (잣대가 아닌) 아무 거리의 떠
     - 돌이 1-3-2-4-1: $15 + 35 + 25 + 20 = 95$
 
     가장 좋은 돌이는 1-2-4-3-1(같은 말로 1-3-4-2-1)이고 비용은 80이다.
+
+## 정리하며
+
+이 마당은 문제의 정의、떠돌이 장수 문제는 NP에 든다、해밀턴 돌이에서 줄여 얻는 NP 어려움、정확한 알고리즘을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 34.
+- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.

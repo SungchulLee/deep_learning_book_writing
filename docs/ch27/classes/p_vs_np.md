@@ -2,7 +2,9 @@
 
 풀이를 찾는 것이 살피는 것보다 본디 어려운가? **P 대 NP 문제**로 엄밀히 적힌 이 물음은 이론 셈 과학에서 가장 중요한 열린 물음이며, 풀면 \$1,000,000을 주는 클레이 수학 연구소의 밀레니엄 문제 일곱 가운데 하나이다. 그 답은 수학, 암호, 가장 좋게 하기, 인공 지능에 깊은 뜻을 지닌다.
 
-## 한가운데 물음
+---
+
+## 1. 한가운데 물음
 
 P 대 NP 문제는 두 복잡도 갈래 P과 NP가 같은지 묻는다:
 
@@ -15,7 +17,9 @@ $$
 
 모든 다항 시간 알고리즘은 다항 시간 살피개 노릇도 하므로 $\mathbf{P} \subseteq \mathbf{NP}$은 하찮게 참이다. 물음은 거꾸로의 담김이 성립하느냐이다. 효율 좋게 살필 수 있는 풀이를 가진 모든 문제를 효율 좋게 *풀* 수도 있는가?
 
-## 있을 수 있는 두 세상
+---
+
+## 2. 있을 수 있는 두 세상
 
 ### P = NP이라면
 
@@ -34,7 +38,9 @@ $\mathbf{P} \neq \mathbf{NP}$이면(널리 퍼진 믿음이다) NP에는 다항 
 - 어림 알고리즘, 어림짐작, 매개변수 복잡도가 여전히 꼭 필요한 도구로 남는다.
 - NP 안에 어려움의 끝없는 켜가 있게 된다(라드너 정리에 따라).
 
-## 라드너 정리
+---
+
+## 3. 라드너 정리
 
 $\mathbf{P} \neq \mathbf{NP}$이면 NP의 풍경은 "쉬움"(P에 듦)과 "가장 어려움"(NP 완전)만 있는 것보다 풍성하다.
 
@@ -50,7 +56,9 @@ NP 중간 문제의 후보는 다음과 같다:
 - **인수 분해**(가름 판): $\mathbf{NP} \cap \mathbf{co\text{-}NP}$에 들며 NP 완전이 아니라고 널리 믿어진다.
 - **이산 로그**: 인수 분해와 비슷한 자리에 있다.
 
-## 알려진 결과
+---
+
+## 4. 알려진 결과
 
 수십 년의 애씀에도 $\mathbf{P} = \mathbf{NP}$도 $\mathbf{P} \neq \mathbf{NP}$도 밝혀지지 않았다. 몇몇 부분 결과가 가능성을 좁힌다.
 
@@ -74,7 +82,9 @@ NP 중간 문제의 후보는 다음과 같다:
 !!! warning "P 대 NP를 풀기 어려운 까닭"
     가로막 결과는 복잡도 이론에서 통한다고 알려진 밝힘 재주 대부분이 P 대 NP를 푸는 데 모자람을 밝힐 수 있음을 보인다. 풀려면 세 가로막을 한꺼번에 비켜 가는 근본으로 새로운 수학 생각이 필요하다.
 
-## P != NP이라는 증거
+---
+
+## 5. P != NP이라는 증거
 
 밝힘은 없지만 증거는 $\mathbf{P} \neq \mathbf{NP}$ 쪽을 크게 편든다:
 
@@ -83,7 +93,9 @@ NP 중간 문제의 후보는 다음과 같다:
 3. **암호 얼개**: $\mathbf{P} = \mathbf{NP}$이면 잘 시험된 많은 암호가 깨질 텐데 이는 넓은 경험 증거와 어긋난다.
 4. **회로 복잡도**: 제한된 회로 갈래에 선형을 넘는 아래 한계가 알려져 있으며 이는 $\mathbf{P} \neq \mathbf{NP}$과 어긋나지 않는다.
 
-## 복잡도 풍경에 미치는 결과
+---
+
+## 6. 복잡도 풍경에 미치는 결과
 
 P 대 NP가 풀리면 온 복잡도 켜의 얼개가 정해진다:
 
@@ -94,12 +106,7 @@ $$
 - $\mathbf{P} = \mathbf{NP}$이면: 첫 담김이 무너지고 $\mathbf{NP} = \mathbf{co\text{-}NP}$이 따라 나오며 다항 켜가 무너지고 많은 복잡도 이론의 가름이 사라진다.
 - $\mathbf{P} \neq \mathbf{NP}$이면: (여느 추측 아래) 다항 켜가 끝없고 NP 중간 문제가 있으며 복잡도 갈래의 풍성한 얼개가 지켜진다.
 
-## 참고 문헌
-
-- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
-- Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
-- Cook, S. "The P versus NP Problem." *Clay Mathematics Institute*, 2000.
-- Fortnow, L. *The Golden Ticket: P, NP, and the Search for the Impossible*. Princeton University Press, 2013.
+---
 
 ## 연습문제
 
@@ -146,3 +153,14 @@ $\mathbf{P} \neq \mathbf{NP}$이면 라드너 정리가 NP 중간 문제가 있�
     2. **인수 분해(가름 문제로서):** $N$과 $k$이 주어질 때 $N$에 $\leq k$인 인수가 있는가? 인수 분해는 NP $\cap$ 여 NP에 든다(양쪽 방향의 프랫 증서). 인수 분해가 NP 완전이면 NP $=$ 여 NP가 되어 다항 켜가 무너진다. 다항 시간 고전 알고리즘은 알려져 있지 않지만 쇼어의 양자 알고리즘이 효율 좋게 풀며 이는 NP 완전 문제보다 쉬움을 시사한다.
 
     두 문제 모두 P과 NP 완전 사이에 놓이며 어느 한쪽 끝에 있지 않다는 얼개 증거가 있다.
+
+## 정리하며
+
+이 마당은 한가운데 물음、있을 수 있는 두 세상、라드너 정리、알려진 결과을 차례로 짚었다.
+
+**참고 문헌**
+
+- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
+- Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
+- Cook, S. "The P versus NP Problem." *Clay Mathematics Institute*, 2000.
+- Fortnow, L. *The Golden Ticket: P, NP, and the Search for the Impossible*. Princeton University Press, 2013.

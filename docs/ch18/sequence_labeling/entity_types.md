@@ -1,5 +1,8 @@
 # 것의 갈래와 갈래 체계
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 분야를 넘나드는 표준 이름 알아보기 갈래 체계를 이해한다
 - CoNLL, OntoNotes, 분야별 갈래 체계를 견준다
@@ -8,7 +11,7 @@
 
 ---
 
-## 표준 갈래 체계
+## 2. 표준 갈래 체계
 
 ### CoNLL-2003(갈래 4개)
 
@@ -35,7 +38,7 @@
 
 ---
 
-## 분야별 갈래 체계
+## 3. 분야별 갈래 체계
 
 ### 생의학 이름 알아보기
 
@@ -64,7 +67,7 @@
 
 ---
 
-## 층진 것 갈래 매기기
+## 4. 층진 것 갈래 매기기
 
 결이 고운 것 갈래 매기기는 것을 갈래 층위의 마디에 배정한다:
 
@@ -97,7 +100,7 @@ $$P(\mathcal{T}_m | m, c) = \prod_{t \in \mathcal{T}} P(t \in \mathcal{T}_m | m,
 
 ---
 
-## 맞춤 갈래 체계 꾸미기
+## 5. 맞춤 갈래 체계 꾸미기
 
 ### 지침
 
@@ -116,23 +119,6 @@ $$\kappa = \frac{p_o - p_e}{1 - p_e}$$
 여기서 $p_o$은 살펴본 맞음이고 $p_e$은 어쩌다 맞을 바라는 값이다. 믿을 만한 주석을 얻으려면 $\kappa > 0.8$을 노린다.
 
 ---
-
-## 요약
-
-1. **CoNLL-2003**은 이름 알아보기의 표준 4갈래 잣대를 준다
-2. **OntoNotes**는 수와 때로 된 것을 넣어 18갈래로 넓힌다
-3. **분야별 갈래 체계**는 생의학, 금융, 법률 자연어 다루기에 꼭 필요하다
-4. **층진 갈래 매기기**는 결이 고운 것 가르기를 가능하게 한다
-5. **갈래 체계 꾸미기**는 결, 덮음, 표시 가능함의 균형을 잡아야 한다
-
----
-
-## 참고 문헌
-
-1. Tjong Kim Sang, E. F., & De Meulder, F. (2003). CoNLL-2003 Shared Task. *CoNLL*.
-2. Weischedel, R., et al. (2013). OntoNotes Release 5.0. LDC.
-3. Ling, X., & Weld, D. S. (2012). Fine-Grained Entity Recognition. *AAAI*.
-4. Alvarado, J., et al. (2015). Domain-Specific Named Entity Recognition in Financial Texts. *ACL FinNLP Workshop*.
 
 ## 연습문제
 
@@ -180,3 +166,20 @@ BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City
     $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
 
     자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 낱말이 양쪽에서 걸리는 일이 잦으므로 이것이 종요롭다.
+
+## 정리하며
+
+1. **CoNLL-2003**은 이름 알아보기의 표준 4갈래 잣대를 준다
+2. **OntoNotes**는 수와 때로 된 것을 넣어 18갈래로 넓힌다
+3. **분야별 갈래 체계**는 생의학, 금융, 법률 자연어 다루기에 꼭 필요하다
+4. **층진 갈래 매기기**는 결이 고운 것 가르기를 가능하게 한다
+5. **갈래 체계 꾸미기**는 결, 덮음, 표시 가능함의 균형을 잡아야 한다
+
+---
+
+**참고 문헌**
+
+1. Tjong Kim Sang, E. F., & De Meulder, F. (2003). CoNLL-2003 Shared Task. *CoNLL*.
+2. Weischedel, R., et al. (2013). OntoNotes Release 5.0. LDC.
+3. Ling, X., & Weld, D. S. (2012). Fine-Grained Entity Recognition. *AAAI*.
+4. Alvarado, J., et al. (2015). Domain-Specific Named Entity Recognition in Financial Texts. *ACL FinNLP Workshop*.

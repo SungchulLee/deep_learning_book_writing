@@ -1,8 +1,8 @@
 # 에너지 바탕 신용 그물 모델
 
+---
 
-
-## 학습 목표
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있다:
 
@@ -11,11 +11,15 @@
 3. 에너지 모델에서 깁스 뽑기로 신용 위험 어림을 짠다
 4. 체계 위험을 살피는 데 에너지 바탕 이상 찾기를 쓴다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 신용 위험 나타내기는 근본으로 부도 사건 사이의 매임을 이해하는 일이다. 한 회사가 부도 나면 거래 상대, 공급자, 경쟁자에게 영향을 주어 잇달아 무너지는 효과를 낳는데 이는 서로 얽매이지 않는 부도 모델로는 잘 담기지 않는다. 볼츠만 기계의 그물 얼개는 이 문제에 자연스럽게 들어맞는다. 이진 단위가 회사의 부도와 생존 상태를 나타내고 무게 있는 이음이 부도 매임의 세기를 적는다.
 
-## 볼츠만 기계로서의 신용 그물
+---
+
+## 3. 볼츠만 기계로서의 신용 그물
 
 ### 문제의 얼개
 
@@ -208,7 +212,6 @@ class CreditNetworkEBM(nn.Module):
             'max_defaults_99': np.percentile(n_defaults.numpy(), 99)
         }
 
-
 def credit_network_demo():
     """
     에너지 바탕 모델로 신용 그물 나타내기를 보여 준다.
@@ -293,7 +296,9 @@ def credit_network_demo():
 credit_network_demo()
 ```
 
-## 체계 위험 살피기
+---
+
+## 4. 체계 위험 살피기
 
 ### 체계 위험 지표로서의 에너지
 
@@ -370,7 +375,9 @@ def analyze_contagion(model, shocked_firm: int, n_samples: int = 5000):
     }
 ```
 
-## 지난 자료로 익히기
+---
+
+## 5. 지난 자료로 익히기
 
 신용 그물은 맞댐 벌어짐으로 지난 부도 관측에서 익힐 수 있다:
 
@@ -422,7 +429,9 @@ def train_credit_network(model, default_history, n_epochs=100, lr=0.01):
             print(f"Epoch {epoch+1}: loss = {epoch_loss:.4f}")
 ```
 
-## 핵심 정리
+---
+
+## 6. 핵심 정리
 
 !!! success "핵심 개념"
 
@@ -439,11 +448,7 @@ def train_credit_network(model, default_history, n_epochs=100, lr=0.01):
     - 이 모델은 평형을 가정하지만 신용 위기는 평형이 아닌 움직임을 담는다
     - 지난 자료에 맞추려면 회사에 걸쳐 넉넉한 부도 관측이 필요하다
 
-## 참고 문헌
-
-- Dai Pra, P., & Tolotti, M. (2009). Heterogeneous credit portfolios and the dynamics of the aggregate losses. *Stochastic Processes and their Applications*.
-- Giesecke, K., & Kim, B. (2011). Systemic Risk: What Defaults Are Telling Us. *Management Science*.
-- Hinton, G. E., & Sejnowski, T. J. (1986). Learning and relearning in Boltzmann machines. In *Parallel Distributed Processing*.
+---
 
 ## 연습문제
 
@@ -452,3 +457,13 @@ def train_credit_network(model, default_history, n_epochs=100, lr=0.01):
 2. **버팀 시험**: 업종 하나 전체에 충격을 주고(업종 $k$의 모든 회사를 부도로 둔다) 다른 업종으로 잇달아 번지는 정도를 재는 버팀 시험을 짜라.
 
 3. **신용 부도 스와프 값 매기기**: 바구니 신용 부도 스와프의 결합 부도 확률을 신용 그물로 어림하라. 정규 코퓰러 모델과 견주어라.
+
+## 정리하며
+
+이 마당은 학습 목표、들어가며、볼츠만 기계로서의 신용 그물、체계 위험 살피기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Dai Pra, P., & Tolotti, M. (2009). Heterogeneous credit portfolios and the dynamics of the aggregate losses. *Stochastic Processes and their Applications*.
+- Giesecke, K., & Kim, B. (2011). Systemic Risk: What Defaults Are Telling Us. *Management Science*.
+- Hinton, G. E., & Sejnowski, T. J. (1986). Learning and relearning in Boltzmann machines. In *Parallel Distributed Processing*.

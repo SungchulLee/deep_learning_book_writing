@@ -2,7 +2,9 @@
 
 법 셈에서 나눗셈은 곧바로 뜻매김되지 않지만 **법 역원**을 곱해 같은 효과를 얻을 수 있다. $m$을 법으로 하는 $a$의 법 역원은 $a \cdot a^{-1} \equiv 1 \pmod{m}$인 정수 $a^{-1}$이다. 이 연산은 RSA 복호, 법 방정식 풀기, 소수를 법으로 하는 얽음 양 셈하기에 꼭 필요하다.
 
-## 뜻매김과 있음
+---
+
+## 1. 뜻매김과 있음
 
 $m$을 법으로 하는 $a$의 **법 곱셈 역원**은 다음을 만족하는 정수 $x$이다:
 
@@ -22,7 +24,9 @@ $x = a^{-1} \pmod{m}$이라 적는다.
 
     있을 때 법 역원은 $m$을 법으로 하여 하나뿐이다. $x_1$과 $x_2$이 모두 $ax \equiv 1$을 만족하면 $a(x_1 - x_2) \equiv 0 \pmod{m}$이다. $\gcd(a, m) = 1$이므로 $x_1 \equiv x_2 \pmod{m}$을 얻는다.
 
-## 방법 1: 넓힌 유클리드 알고리즘
+---
+
+## 2. 방법 1: 넓힌 유클리드 알고리즘
 
 가장 두루 쓰는 방법은 넓힌 유클리드 알고리즘으로 역원을 셈한다([넓힌 유클리드](../divisibility/extended.md)를 보라). $\gcd(a, m) = 1$이면 넓힌 최대 공약수가 $ax + my = 1$인 $x, y$을 돌려준다. $m$을 법으로 줄이면:
 
@@ -36,7 +40,9 @@ $$
 
 이 방법은 법 $m$이 소수이든 합성수이든 통한다.
 
-## 방법 2: 페르마의 작은 정리(소수 법)
+---
+
+## 3. 방법 2: 페르마의 작은 정리(소수 법)
 
 $m = p$이 소수이면 페르마의 작은 정리([페르마의 작은 정리](fermat.md)를 보라)는 $\gcd(a, p) = 1$에 대해 $a^{p-1} \equiv 1 \pmod{p}$이라 한다. 따라서:
 
@@ -52,7 +58,9 @@ $$
     - **합성수 법**: 넓힌 유클리드 알고리즘을 쓴다
     - **성능**: 둘 다 $O(\log m)$이다. 넓힌 최대 공약수가 법 거듭제곱의 웃돈을 피하므로 보통 상수 배만큼 빠르다
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 $3^{-1} \pmod{7}$ 찾기:
 
@@ -64,7 +72,9 @@ $3^{-1} \pmod{7}$ 찾기:
 
 **확인:** $3 \cdot 5 = 15 = 2 \cdot 7 + 1 \equiv 1 \pmod{7}$. $\checkmark$
 
-## 작은 법의 역원 표
+---
+
+## 5. 작은 법의 역원 표
 
 소수 $p$에서는 0이 아닌 모든 원소가 역원을 가진다. $p = 7$의 온전한 역원 표:
 
@@ -74,7 +84,9 @@ $3^{-1} \pmod{7}$ 찾기:
 
 역원 함수가 $\{1, 2, \ldots, p-1\}$의 자리바꿈임을 눈여겨보라.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -84,7 +96,6 @@ $3^{-1} \pmod{7}$ 찾기:
 서로 소인 법)과 페르마의 작은 정리(소수 법만)를 견준다.
 """
 
-
 # === 넓힌 최대 공약수 방법 ===
 
 def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
@@ -93,7 +104,6 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
         return a, 1, 0
     g, x, y = extended_gcd(b, a % b)
     return g, y, x - (a // b) * y
-
 
 def mod_inverse_egcd(a: int, m: int) -> int:
     """넓힌 유클리드 알고리즘으로 a^{-1} mod m을 셈한다.
@@ -105,7 +115,6 @@ def mod_inverse_egcd(a: int, m: int) -> int:
         raise ValueError(f"Inverse does not exist: gcd({a}, {m}) = {g}")
     return x % m
 
-
 # === 페르마 방법(소수 법) ===
 
 def mod_inverse_fermat(a: int, p: int) -> int:
@@ -114,7 +123,6 @@ def mod_inverse_fermat(a: int, p: int) -> int:
     p가 소수이고 gcd(a, p) = 1이라고 본다.
     """
     return pow(a, p - 2, p)
-
 
 # === 메인 ===
 
@@ -164,10 +172,7 @@ Modular inverses mod 12 (EGCD only):
   11^(-1) = 11, verify: 11*11 mod 12 = 1
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
-
+---
 
 ## 연습문제
 
@@ -201,3 +206,11 @@ Modular inverses mod 12 (EGCD only):
 
 ??? success "연습문제 4 풀이"
     양자화한 신경망 추론에서는 셈에 고정 소수점이나 법 셈을 쓴다. 법 셈에서 상수 $c$으로 나누는 것은 $c^{-1} \bmod m$을 곱하는 것이다. 보기로 묶음 고르게 맞추기는 표준 편차로 나눈다. 법 $m = 2^{32}$의 양자화 꼴에서 $c$이 홀수이면($\gcd(c, 2^{32}) = 1$) $c^{-1} \bmod 2^{32}$을 미리 셈해 나눗셈을 곱셈으로 바꾼다. 이는 하드웨어에서 더 빠르다(곱셈은 명령 하나, 나눗셈은 여럿이다). $c$이 짝수이면 2의 거듭제곱을 빼내고 오른쪽 밀기와 홀수 부분의 법 역원을 쓴다.
+
+## 정리하며
+
+이 마당은 뜻매김과 있음、방법 1: 넓힌 유클리드 알고리즘、방법 2: 페르마의 작은 정리(소수 법)、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.

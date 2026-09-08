@@ -1,7 +1,9 @@
 # 맞겨루기 공격의 바탕
 맞겨루기 공격은 들임 자료에 꼼꼼히 빚은 흔들림을 넣어 기계 배움 모델을 주무른다. 사람은 알아채지 못할 때가 많은 이 흔들림이 모델로 하여금 아주 자신 있게 틀린 헤아림을 하게 만든다.
 
-## 맞겨루기 공격 들어가기
+---
+
+## 1. 맞겨루기 공격 들어가기
 
 ### 맞겨루기 보기란 무엇인가?
 
@@ -27,7 +29,9 @@ $$x_{adv} = x + \delta$$
 
 3. **결정 가장자리의 기하**: 복잡하고 차원 높은 결정 가장자리에는 들임이 조금만 바뀌어도 가장자리를 넘는 자리가 있을 수 있다.
 
-## 위협 모델
+---
+
+## 2. 위협 모델
 
 ### 공격 상황
 
@@ -47,7 +51,9 @@ $$\text{Find } \delta: f(x + \delta) \neq y_{true}$$
 
 $$\text{Find } \delta: f(x + \delta) = y_{target}$$
 
-## 흔들림의 묶음
+---
+
+## 3. 흔들림의 묶음
 
 흔들림은 흔히 $L_p$ 잣대로 묶는다.
 
@@ -72,7 +78,9 @@ $$\|\delta\|_0 = |\{i : \delta_i \neq 0\}| \leq k$$
 - 고친 화소의 수를 가둔다
 - 성긴 맞겨루기 헝겊에 쓴다
 
-## 맞겨루기 만들개 맥락에서의 공격 갈래
+---
+
+## 4. 맞겨루기 만들개 맥락에서의 공격 갈래
 
 ### 맞겨루기 만들개에 대한 공격
 
@@ -128,7 +136,9 @@ class AdversarialGenerator(nn.Module):
         return x_adv, perturbation
 ```
 
-## 공격 성공 잣대
+---
+
+## 5. 공격 성공 잣대
 
 ### 가르기 잣대
 
@@ -207,7 +217,9 @@ def perturbation_metrics(x_clean, x_adv):
     }
 ```
 
-## 시각화
+---
+
+## 6. 시각화
 
 ```python
 import numpy as np
@@ -278,7 +290,9 @@ def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_a
     plt.show()
 ```
 
-## 시험에 쓰는 흔한 신경망
+---
+
+## 7. 시험에 쓰는 흔한 신경망
 
 ```python
 class SimpleCNN(nn.Module):
@@ -306,7 +320,6 @@ class SimpleCNN(nn.Module):
         x = self.relu(x)
         x = self.fc2(x)             # (B, 10)
         return x
-
 
 def train_target_model(model, train_loader, epochs=5, lr=0.001, device='cpu'):
     """맞겨루기 공격 실험을 위해 표적 모델을 익힌다."""
@@ -342,28 +355,9 @@ def train_target_model(model, train_loader, epochs=5, lr=0.001, device='cpu'):
     return model
 ```
 
-## 요약
-
-| 개념 | 설명 |
-|---------|-------------|
-| **맞겨루기 보기** | 작은 흔들림으로 잘못 가르게 하는 들임 |
-| **흰 상자 공격** | 모델 전체에 접근하며 기울기를 셈할 수 있다 |
-| **검은 상자 공격** | 묻기만 가능하다 |
-| **목표 없는 공격** | 아무 잘못 가르기나 일으킨다 |
-| **목표 있는 공격** | 정해진 잘못 가르기를 일으킨다 |
-| **$L_\infty$ 묶음** | 최대 화소 바뀜을 가둔다 |
-| **$L_2$ 묶음** | 온 흔들림 크기를 가둔다 |
-| **속임 비율** | 이룬 공격의 몫 |
-
-이 바탕을 아는 것은 신경망을 공격하고 지키는 데 모두 꼭 필요하며, 가름개가 맞겨루기 보기의 표적이 될 수 있는 맞겨루기 만들개에서도 그렇다.
-
 ---
 
-# 빠른 기울기 부호 방법(FGSM)
-
-Goodfellow 외가 2015년에 내놓은 빠른 기울기 부호 방법(FGSM)은 들임에 대한 손실의 기울기를 쓰는 단순하면서도 잘 듣는 흰 상자 맞겨루기 공격이다.
-
-## 수학적 바탕
+## 8. 수학적 바탕
 
 ### FGSM 공격
 
@@ -396,7 +390,9 @@ $\|\delta\|_\infty \leq \epsilon$ 아래서 손실 늘어남을 가장 크게 �
 
 $$\delta^* = \arg\max_{\|\delta\|_\infty \leq \epsilon} \delta^T \nabla_x \mathcal{L}(x) = \epsilon \cdot \text{sign}(\nabla_x \mathcal{L}(x))$$
 
-## 구현
+---
+
+## 9. 구현
 
 ### 기본 FGSM 공격
 
@@ -446,7 +442,6 @@ def fgsm_attack(model, images, labels, epsilon, criterion=None):
     adversarial_images = torch.clamp(adversarial_images, 0, 1)
     
     return adversarial_images.detach(), perturbation.detach()
-
 
 class FGSMAttack:
     """기능을 더한 FGSM 공격 감싸개 갈래."""
@@ -606,7 +601,6 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     
     return adv_images.detach()
 
-
 def run_targeted_attack(model, dataloader, target_class, epsilon, device='cpu'):
     """
     모든 그림을 target_class으로 잘못 가르게 하는 목표 있는 FGSM 공격을 돌린다.
@@ -655,7 +649,9 @@ def run_targeted_attack(model, dataloader, target_class, epsilon, device='cpu'):
     }
 ```
 
-## 온전한 보기
+---
+
+## 10. 온전한 보기
 
 ```python
 import torch
@@ -664,7 +660,6 @@ import torch.optim as optim
 import torchvision
 from torchvision import transforms
 import matplotlib.pyplot as plt
-
 
 # 단순한 겹말기 신경망을 뜻매김한다
 class SimpleCNN(nn.Module):
@@ -685,7 +680,6 @@ class SimpleCNN(nn.Module):
         x = self.fc2(x)
         return x
 
-
 def train_model(model, train_loader, epochs=5):
     """모델을 익힌다."""
     criterion = nn.CrossEntropyLoss()
@@ -702,7 +696,6 @@ def train_model(model, train_loader, epochs=5):
         print(f"Epoch {epoch+1} complete")
     
     return model
-
 
 def visualize_fgsm_attack(model, image, label, epsilons, class_names):
     """엡실론 값을 달리하여 FGSM 공격을 그려 본다."""
@@ -734,7 +727,6 @@ def visualize_fgsm_attack(model, image, label, epsilons, class_names):
     
     plt.tight_layout()
     plt.show()
-
 
 def main():
     # 준비
@@ -773,12 +765,13 @@ def main():
     epsilons = [0.05, 0.1, 0.15, 0.2, 0.3]
     visualize_fgsm_attack(model, image.squeeze(0), label.item(), epsilons, class_names)
 
-
 if __name__ == "__main__":
     main()
 ```
 
-## 엡실론 고르기
+---
+
+## 11. 엡실론 고르기
 
 $\epsilon$을 어떻게 고르느냐가 공격 성공과 흔들림이 눈에 띄는 정도 사이의 맞바꿈을 다스린다.
 
@@ -794,33 +787,18 @@ $\epsilon$을 어떻게 고르느냐가 공격 성공과 흔들림이 눈에 띄
 - **CIFAR-10**: $\epsilon = 8/255 \approx 0.031$
 - **ImageNet**: $\epsilon = 4/255$ 또는 \$8/255$
 
-## FGSM의 한계
+---
+
+## 12. FGSM의 한계
 
 1. **한 걸음**: FGSM은 기울기 걸음을 한 번만 쓴다. 되풀이 방법(PGD)이 더 세다
 2. **선형 어림**: 손실이 거의 선형이라고 보는데 그렇지 않을 수 있다
 3. **기울기 가리기**: FGSM에 맞서 익힌 모델이 기울기를 숨기는 법을 배울 수 있다
 4. **옮겨감**: FGSM 보기가 다른 모델로 잘 옮겨 가지 않을 수 있다
 
-## 요약
-
-| 갈래 | FGSM |
-|--------|------|
-| **갈래** | 흰 상자, 기울기 바탕 |
-| **묶음** | $L_\infty$ |
-| **걸음** | 한 번 |
-| **복잡도** | 뒤먹임 O(1)번 |
-| **센 곳** | 빠르고 단순하다 |
-| **여린 곳** | 흔들림이 가장 좋지는 않다 |
-
-FGSM은 바탕 공격으로서, 그리고 맞겨루기 튼튼함을 이해하는 데 여전히 중요하다. 단순해서 빠른 따지기와 맞겨루기 익히기에 쓸모 있다.
-
 ---
 
-# 목표 있는 맞겨루기 공격
-
-목표 있는 맞겨루기 공격은 아무 틀린 갈래가 아니라 정해진 목표 갈래로 잘못 가르게 하려 한다. 이런 공격은 더 어렵지만 실제 상황에서는 더 위험하다.
-
-## 목표 있는 공격과 목표 없는 공격
+## 13. 목표 있는 공격과 목표 없는 공격
 
 ### 목표 없는 공격
 
@@ -843,7 +821,9 @@ $$\text{Find } \delta: f(x + \delta) = y_{target}$$
 | 실제 세상의 위험 | 보통 | 높다 |
 | 보기 | 그림을 알아보지 못함 | 얼굴을 허락된 사용자로 알아봄 |
 
-## 목표 있는 FGSM
+---
+
+## 14. 목표 있는 FGSM
 
 가장 단순한 목표 있는 공격은 목표 쪽으로 손실을 가장 작게 하도록 FGSM을 고친 것이다.
 
@@ -889,7 +869,9 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     return adv_images.detach()
 ```
 
-## 되풀이 목표 있는 공격
+---
+
+## 15. 되풀이 목표 있는 공격
 
 ### 기본 되풀이 방법(BIM) - 목표 있음
 
@@ -982,7 +964,6 @@ def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter,
     
     return adv_images
 
-
 class TargetedPGDAttack:
     """목표 있는 PGD 공격 감싸개."""
     
@@ -1062,7 +1043,9 @@ class TargetedPGDAttack:
         }
 ```
 
-## 카를리니-와그너(C&W) 목표 있는 공격
+---
+
+## 16. 카를리니-와그너(C&W) 목표 있는 공격
 
 C&W 공격은 가장 센 목표 있는 공격 가운데 하나로, 가장 좋게 하기로 가장 작은 흔들림을 찾는다.
 
@@ -1145,7 +1128,9 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
     return best_adv.detach()
 ```
 
-## 목표 고르기 방책
+---
+
+## 17. 목표 고르기 방책
 
 ### 아무 목표
 
@@ -1181,7 +1166,9 @@ def most_confusing_target(model, images, true_labels):
         return logits.argmax(dim=1)
 ```
 
-## 온전한 보기
+---
+
+## 18. 온전한 보기
 
 ```python
 import torch
@@ -1208,7 +1195,6 @@ class SimpleCNN(nn.Module):
         x = self.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-
 
 def visualize_targeted_attack(model, image, true_label, target_label, 
                                attack_fn, attack_params, class_names):
@@ -1259,7 +1245,6 @@ def visualize_targeted_attack(model, image, true_label, target_label,
     
     return adv_pred == target_label
 
-
 def main():
     # 자료와 모델을 불러온다
     transform = transforms.Compose([
@@ -1305,21 +1290,11 @@ def main():
     )
     print(f"   Success: {success}")
 
-
 if __name__ == "__main__":
     main()
 ```
 
-## 요약
-
-| 공격 | 걸음 | 가장 좋게 하기 | 알맞은 곳 |
-|--------|-------|--------------|----------|
-| 목표 있는 FGSM | 1 | 없음 | 빠른 공격 |
-| 목표 있는 BIM | 여러 번 | 없음 | 되풀이 다듬기 |
-| 목표 있는 PGD | 여러 번 | 쏜 기울기 내려가기 | 센 공격 |
-| C&W | 많이 | Adam | 가장 작은 흔들림 |
-
-목표 있는 공격은 더 어렵지만 모델의 잘못된 움직임을 꼭 집어 다스릴 수 있게 한다. 얼굴 알아보기나 스스로 움직이는 얼개처럼 보안이 중요한 쓰임새에서 특히 위험하다.
+---
 
 ## 연습문제
 
@@ -1372,3 +1347,50 @@ $X \sim \mathcal{N}(0,1)$일 때 $t$분포를 제안으로 써서 $\mathbb{E}[X^
     print(f"True value: 1.0000")
     ```
     $t$분포는 가우스보다 꼬리가 무거워 중요도 무게의 흩어짐이 끝이 있음을 보장한다.
+
+## 정리하며
+
+| 개념 | 설명 |
+|---------|-------------|
+| **맞겨루기 보기** | 작은 흔들림으로 잘못 가르게 하는 들임 |
+| **흰 상자 공격** | 모델 전체에 접근하며 기울기를 셈할 수 있다 |
+| **검은 상자 공격** | 묻기만 가능하다 |
+| **목표 없는 공격** | 아무 잘못 가르기나 일으킨다 |
+| **목표 있는 공격** | 정해진 잘못 가르기를 일으킨다 |
+| **$L_\infty$ 묶음** | 최대 화소 바뀜을 가둔다 |
+| **$L_2$ 묶음** | 온 흔들림 크기를 가둔다 |
+| **속임 비율** | 이룬 공격의 몫 |
+
+이 바탕을 아는 것은 신경망을 공격하고 지키는 데 모두 꼭 필요하며, 가름개가 맞겨루기 보기의 표적이 될 수 있는 맞겨루기 만들개에서도 그렇다.
+
+---
+
+# 빠른 기울기 부호 방법(FGSM)
+
+Goodfellow 외가 2015년에 내놓은 빠른 기울기 부호 방법(FGSM)은 들임에 대한 손실의 기울기를 쓰는 단순하면서도 잘 듣는 흰 상자 맞겨루기 공격이다.
+
+| 갈래 | FGSM |
+|--------|------|
+| **갈래** | 흰 상자, 기울기 바탕 |
+| **묶음** | $L_\infty$ |
+| **걸음** | 한 번 |
+| **복잡도** | 뒤먹임 O(1)번 |
+| **센 곳** | 빠르고 단순하다 |
+| **여린 곳** | 흔들림이 가장 좋지는 않다 |
+
+FGSM은 바탕 공격으로서, 그리고 맞겨루기 튼튼함을 이해하는 데 여전히 중요하다. 단순해서 빠른 따지기와 맞겨루기 익히기에 쓸모 있다.
+
+---
+
+# 목표 있는 맞겨루기 공격
+
+목표 있는 맞겨루기 공격은 아무 틀린 갈래가 아니라 정해진 목표 갈래로 잘못 가르게 하려 한다. 이런 공격은 더 어렵지만 실제 상황에서는 더 위험하다.
+
+| 공격 | 걸음 | 가장 좋게 하기 | 알맞은 곳 |
+|--------|-------|--------------|----------|
+| 목표 있는 FGSM | 1 | 없음 | 빠른 공격 |
+| 목표 있는 BIM | 여러 번 | 없음 | 되풀이 다듬기 |
+| 목표 있는 PGD | 여러 번 | 쏜 기울기 내려가기 | 센 공격 |
+| C&W | 많이 | Adam | 가장 작은 흔들림 |
+
+목표 있는 공격은 더 어렵지만 모델의 잘못된 움직임을 꼭 집어 다스릴 수 있게 한다. 얼굴 알아보기나 스스로 움직이는 얼개처럼 보안이 중요한 쓰임새에서 특히 위험하다.

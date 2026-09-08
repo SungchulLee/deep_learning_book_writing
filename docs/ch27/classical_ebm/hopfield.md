@@ -1,8 +1,8 @@
 # 홉필드 신경망
 
+---
 
-
-## 학습 목표
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있다:
 
@@ -12,11 +12,15 @@
 4. 신경망 담이와 헛된 상태를 살핀다
 5. 홉필드 신경망을 요즘 에너지 바탕 모델과 잇는다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 1982년 존 홉필드가 내놓은 홉필드 신경망은 가장 이르고 가장 영향력 있는 에너지 바탕 모델 가운데 하나이다. 이는 에너지 가장 작게 하기로 이어 떠올림 기억, 곧 일부만 있거나 망가진 들임에서 온전한 무늬를 되찾는 힘을 어떻게 짜는지 보여 준다. 이 일은 신경망에 대한 관심을 되살렸고 신경 과학, 물리학, 셈 사이의 깊은 이음을 세웠다.
 
-## 얼개와 움직임
+---
+
+## 3. 얼개와 움직임
 
 ### 신경망 얼개
 
@@ -49,7 +53,9 @@ $$h_i = \sum_j w_{ij} s_j + \theta_i$$
 
 **결정적 성질**: 제각기 고침은 결코 에너지를 늘리지 않는다.
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -231,7 +237,6 @@ class HopfieldNetwork(nn.Module):
         """
         return (state * pattern).mean().item()
 
-
 def demonstrate_hopfield_retrieval():
     """
     홉필드 신경망으로 무늬 담기와 되찾기를 보여 준다.
@@ -323,7 +328,9 @@ def demonstrate_hopfield_retrieval():
 network = demonstrate_hopfield_retrieval()
 ```
 
-## 신경망 담이
+---
+
+## 5. 신경망 담이
 
 ### 이론상 담이
 
@@ -419,7 +426,9 @@ def analyze_network_capacity(n_neurons: int = 100,
 analyze_network_capacity(n_neurons=100, max_patterns=30, n_trials=5)
 ```
 
-## 헛된 상태
+---
+
+## 6. 헛된 상태
 
 ### 정의
 
@@ -471,7 +480,9 @@ def find_spurious_states(network: HopfieldNetwork,
     return spurious
 ```
 
-## 에너지 지형 그려 보기
+---
+
+## 7. 에너지 지형 그려 보기
 
 작은 신경망에서는 온전한 에너지 풍경을 그려 볼 수 있다:
 
@@ -570,7 +581,9 @@ def visualize_energy_landscape():
 visualize_energy_landscape()
 ```
 
-## 요즘 에너지 바탕 모델과의 이음
+---
+
+## 8. 요즘 에너지 바탕 모델과의 이음
 
 ### 홉필드에서 요즘 에너지 바탕 모델로
 
@@ -622,7 +635,9 @@ class ModernHopfield(nn.Module):
         return torch.matmul(attention, self.patterns)
 ```
 
-## 핵심 정리
+---
+
+## 9. 핵심 정리
 
 !!! success "핵심 개념"
 
@@ -639,11 +654,7 @@ class ModernHopfield(nn.Module):
     - 이진 상태가 나타냄 힘을 제한한다
     - 큰 신경망에서는 모임이 느리다
 
-## 참고 문헌
-
-- Hopfield, J. J. (1982). Neural networks and physical systems with emergent collective computational abilities. PNAS.
-- Amit, D. J., Gutfreund, H., & Sompolinsky, H. (1985). Storing infinite numbers of patterns in a spin-glass model of neural networks. Physical Review Letters.
-- Ramsauer, H., et al. (2021). Hopfield Networks is All You Need. ICLR.
+---
 
 ## 연습문제
 
@@ -652,3 +663,13 @@ class ModernHopfield(nn.Module):
 2. **서로 얽힌 무늬**: 담긴 무늬가 서로 얽혀 있으면 어떻게 되는가? 짜서 살펴라.
 
 3. **요즘 홉필드**: 이어진 홉필드 신경망을 짜서 고전 판과 되찾기 정확도를 견주어라.
+
+## 정리하며
+
+이 마당은 학습 목표、들어가며、얼개와 움직임、PyTorch 구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Hopfield, J. J. (1982). Neural networks and physical systems with emergent collective computational abilities. PNAS.
+- Amit, D. J., Gutfreund, H., & Sompolinsky, H. (1985). Storing infinite numbers of patterns in a spin-glass model of neural networks. Physical Review Letters.
+- Ramsauer, H., et al. (2021). Hopfield Networks is All You Need. ICLR.

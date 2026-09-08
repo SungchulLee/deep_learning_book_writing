@@ -1,15 +1,21 @@
 # 단원 65: 모델 눌러 담기
-## 개요
+
 이 단원은 받아들일 만한 정확도를 지키면서 기억 공간, 셈 값, 미룸 늦음을 줄이려 깊은 신경망을 눌러 담는 핵심 재주를 다룬다. 이 재주는 자원이 빠듯한 기기(손전화, 가장자리, 사물 인터넷)와 실전 환경에 모델을 펼치는 데 결정적이다.
 
-## 학습 목표
+---
+
+## 1. 학습 목표
+
 - 깊은 신경망의 셈과 기억 공간 병목을 이해한다
 - 양자화 재주(익힌 뒤 양자화와 양자화를 헤아린 익히기)를 익힌다
 - 여러 가지치기 전략(크기 바탕, 짜임 있는, 짜임 없는)을 짠다
 - 앎 내리기로 모델을 눌러 담는다
 - 눌러 담은 모델의 정확도와 효율 맞바꿈을 값매김한다
 
-## 미리 알아야 할 것
+---
+
+## 2. 미리 알아야 할 것
+
 - 단원 20: 앞먹임 그물
 - 단원 23: 누비기 신경망
 - 단원 14: 손실 함수
@@ -18,7 +24,7 @@
 
 ---
 
-## 1부: 이론의 바탕
+## 3. 1부: 이론의 바탕
 
 ### 1.1 왜 모델을 눌러 담는가?
 
@@ -173,7 +179,6 @@ T² 항이 기울기의 크기 잣수를 메워 준다.
 2. **벌주기**: 제자가 딱딱한 이름표에 지나치게 맞춰지는 것을 막는다
 3. **두루 통함**: 부드러운 목표가 이름표 부드럽게 하기 노릇을 한다
 
-
 ### 1.5 깊은 눌러 담기 물길
 
 Han 외(2016)는 가지치기, 양자화, 엔트로피 부호를 세 단계 물길 하나로 아우르면 정확도를 잃지 않고 35~49배 눌러 담을 수 있음을 보였다. 재주를 따로따로 쓰는 대신 이 물길은 서로 채워 주는 센 점을 써먹는다:
@@ -217,7 +222,7 @@ $$
 - **값 줄이기**: 모델이 작아지면 많은 종목을 묶음으로 미룰 때의 클라우드 셈 값이 준다.
 ---
 
-## 2부: 짜기의 짜임
+## 4. 2부: 짜기의 짜임
 
 ### 단원의 짜임
 
@@ -265,7 +270,7 @@ $$
 
 ---
 
-## 3부: 실전에서 헤아릴 점
+## 5. 3부: 실전에서 헤아릴 점
 
 ### 하드웨어 받침
 
@@ -295,7 +300,7 @@ $$
 
 ---
 
-## 4부: 값매김 잣대
+## 6. 4부: 값매김 잣대
 
 ### 모델 크기
 ```python
@@ -322,27 +327,7 @@ efficiency = accuracy / (latency × model_size)
 
 ---
 
-## 참고 문헌
-
-1. **양자화**:
-   - Jacob et al. "Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference" (2018)
-   - Banner et al. "Post training 4-bit quantization of convolutional networks for rapid-deployment" (2019)
-
-2. **가지치기**:
-   - Han et al. "Learning both Weights and Connections for Efficient Neural Networks" (2015)
-   - Frankle & Carbin "The Lottery Ticket Hypothesis" (2019)
-
-3. **앎 내리기**:
-   - Hinton et al. "Distilling the Knowledge in a Neural Network" (2015)
-   - Romero et al. "FitNets: Hints for Thin Deep Nets" (2015)
-
-4. **총설**:
-   - Cheng et al. "Model Compression and Acceleration for Deep Neural Networks" (2020)
-   - Gholami et al. "A Survey of Quantization Methods for Efficient Neural Network Inference" (2021)
-
----
-
-## 쓰는 법
+## 7. 쓰는 법
 
 ### 빠른 시작
 ```bash
@@ -370,7 +355,7 @@ jupyter notebook
 
 ---
 
-## 배움 길
+## 8. 배움 길
 
 **1주**: 양자화 이론 + 익힌 뒤 양자화(01)
 **2주**: 가지치기 이론 + 크기 가지치기(02)
@@ -381,12 +366,14 @@ jupyter notebook
 
 ---
 
-## 더 볼 것
+## 9. 더 볼 것
 
 - PyTorch Quantization Tutorial: https://pytorch.org/docs/stable/quantization.html
 - TensorFlow Model Optimization: https://www.tensorflow.org/model_optimization
 - ONNX Runtime Quantization: https://onnxruntime.ai/docs/performance/quantization.html
 - Papers With Code (Model Compression): https://paperswithcode.com/task/model-compression
+
+---
 
 ## 연습문제
 
@@ -395,5 +382,29 @@ jupyter notebook
 3. **앎 내리기 실험**: 온도 값과 α 무게를 달리해 견주어라
 4. **눌러 담기 물길**: 좋아하는 모델에 끝에서 끝까지의 물길을 세워라
 5. **손전화 펼치기**: 눌러 담은 모델을 손전화 기기(iOS/안드로이드)에 펼쳐라
+
+---
+
+## 정리하며
+
+이 마당은 학습 목표、미리 알아야 할 것、1부: 이론의 바탕、2부: 짜기의 짜임을 차례로 짚었다.
+
+**참고 문헌**
+
+1. **양자화**:
+   - Jacob et al. "Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference" (2018)
+   - Banner et al. "Post training 4-bit quantization of convolutional networks for rapid-deployment" (2019)
+
+2. **가지치기**:
+   - Han et al. "Learning both Weights and Connections for Efficient Neural Networks" (2015)
+   - Frankle & Carbin "The Lottery Ticket Hypothesis" (2019)
+
+3. **앎 내리기**:
+   - Hinton et al. "Distilling the Knowledge in a Neural Network" (2015)
+   - Romero et al. "FitNets: Hints for Thin Deep Nets" (2015)
+
+4. **총설**:
+   - Cheng et al. "Model Compression and Acceleration for Deep Neural Networks" (2020)
+   - Gholami et al. "A Survey of Quantization Methods for Efficient Neural Network Inference" (2021)
 
 ---

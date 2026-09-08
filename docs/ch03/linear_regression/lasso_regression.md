@@ -1,5 +1,4 @@
 # 라쏘 회귀
-## 개요
 
 **라쏘**(Lasso, Least Absolute Shrinkage and Selection Operator)는 릿지의 $\ell_2$
 벌점을 $\ell_1$ 벌점으로 바꾼다. 사소해 보이는 이 변화가 깊은 결과를 낳는다. 라쏘는
@@ -399,31 +398,6 @@ $\lambda$가 줄어들면서 계수들이 하나씩 모델에 "들어온다". �
 
 ---
 
-## 요약
-
-| 개념 | 핵심 결과 |
-|---------|------------|
-| 라쏘의 목적 함수 | $\frac{1}{2n}\|\mathbf{y}-\mathbf{X}\boldsymbol{\theta}\|^2 + \lambda\|\boldsymbol{\theta}\|_1$ |
-| 희소성의 원리 | $\ell_1$ 공의 꼭짓점이 좌표축 위에 있다 |
-| 연성 문턱값 | $\mathcal{S}_\lambda(z) = \mathrm{sign}(z)\max(\|z\|-\lambda, 0)$ |
-| 해법 | 좌표 하강법(scikit-learn) 또는 근위 경사법(ISTA) |
-| 엘라스틱 넷 | $\ell_1 + \ell_2$ 혼합형; 상관된 특징을 묶는다 |
-| 베이즈적 관점 | 라플라스 사전분포 아래의 MAP |
-
----
-
-## 참고 문헌
-
-1. Tibshirani, R. (1996). "Regression Shrinkage and Selection via the Lasso."
-   *Journal of the Royal Statistical Society B*.
-2. Hastie, T., Tibshirani, R. & Friedman, J. (2009). *The Elements of
-   Statistical Learning*, §§3.4.2–3.4.3.
-3. Zou, H. & Hastie, T. (2005). "Regularization and Variable Selection via the
-   Elastic Net." *Journal of the Royal Statistical Society B*.
-4. Friedman, J., Hastie, T. & Tibshirani, R. (2010). "Regularization Paths for
-   Generalized Linear Models via Coordinate Descent." *Journal of Statistical
-   Software*.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -472,3 +446,28 @@ $\lambda$가 줄어들면서 계수들이 하나씩 모델에 "들어온다". �
 
 ??? success "연습문제 4 풀이"
     라쏘는 무관한 특징 대부분을 올바르게 0으로 만들지만(희소성이 높아 0이 약 95개), 상관된 유의미한 특징을 놓칠 수 있다. 릿지는 모든 계수를 줄이지만(0이 없음) 무관한 특징도 남긴다. 엘라스틱 넷은 둘의 균형을 잡는다. (L2에서 오는) 상관된 특징의 묶음 효과와 (L1에서 오는) 무관한 특징의 제거를 함께 얻는다.
+
+## 정리하며
+
+| 개념 | 핵심 결과 |
+|---------|------------|
+| 라쏘의 목적 함수 | $\frac{1}{2n}\|\mathbf{y}-\mathbf{X}\boldsymbol{\theta}\|^2 + \lambda\|\boldsymbol{\theta}\|_1$ |
+| 희소성의 원리 | $\ell_1$ 공의 꼭짓점이 좌표축 위에 있다 |
+| 연성 문턱값 | $\mathcal{S}_\lambda(z) = \mathrm{sign}(z)\max(\|z\|-\lambda, 0)$ |
+| 해법 | 좌표 하강법(scikit-learn) 또는 근위 경사법(ISTA) |
+| 엘라스틱 넷 | $\ell_1 + \ell_2$ 혼합형; 상관된 특징을 묶는다 |
+| 베이즈적 관점 | 라플라스 사전분포 아래의 MAP |
+
+---
+
+**참고 문헌**
+
+1. Tibshirani, R. (1996). "Regression Shrinkage and Selection via the Lasso."
+   *Journal of the Royal Statistical Society B*.
+2. Hastie, T., Tibshirani, R. & Friedman, J. (2009). *The Elements of
+   Statistical Learning*, §§3.4.2–3.4.3.
+3. Zou, H. & Hastie, T. (2005). "Regularization and Variable Selection via the
+   Elastic Net." *Journal of the Royal Statistical Society B*.
+4. Friedman, J., Hastie, T. & Tibshirani, R. (2010). "Regularization Paths for
+   Generalized Linear Models via Coordinate Descent." *Journal of Statistical
+   Software*.

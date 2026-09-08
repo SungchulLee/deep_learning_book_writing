@@ -1,9 +1,10 @@
 # 마르코프 사슬의 바탕
-## 들어가며
 
 마르코프 사슬은 모든 마르코프 사슬 몬테카를로(MCMC) 방법의 이론적 등뼈이다. 과녁 분포로 모이는 표집기를 짓기에 앞서, 마르코프 사슬이 어떻게 흘러가는지, 옮김 확률이 여러 걸음에 걸쳐 어떻게 이어지는지, 그리고 그 동역학이 행렬 하나에 어떻게 온전히 담기는지를 이해해야 한다. 이 마당은 18장의 나머지를 떠받치는 핵심 정의와 셈 도구를 세운다.
 
-## 마르코프 성질
+---
+
+## 1. 마르코프 성질
 
 ### 형식적 정의
 
@@ -39,7 +40,9 @@ $$P_{ij} = P(X_{n+1} = j \mid X_n = i)$$
 
 18.1-18.2절은 주로 끝이 있는 상태 공간에 초점을 맞추고, 18.3절(MCMC)은 이어진 공간으로 넓힌다.
 
-## 옮김 확률과 옮김 행렬
+---
+
+## 2. 옮김 확률과 옮김 행렬
 
 ### 한 걸음 옮김 확률
 
@@ -75,7 +78,9 @@ P_{N-1,0} & P_{N-1,1} & \cdots & P_{N-1,N-1}
 - $P$의 고유값은 모두 $|\lambda| \leq 1$을 만족한다.
 - $\lambda_1 = 1$은 늘 고유값이며 오른쪽 고유벡터가 $\mathbf{1}$이다.
 
-## n 걸음 옮김 확률
+---
+
+## 3. n 걸음 옮김 확률
 
 ### 정의
 
@@ -101,7 +106,9 @@ $$P^{(n)}_{ij} = \sum_{k \in S} P^{(n-1)}_{ik} P_{kj}$$
 
 이 결과는 몹시 쓸모 있다. 곧 여러 걸음 동역학이 모두 $P$의 거듭제곱에 담겨 있다.
 
-## 채프먼-콜모고로프 방정식
+---
+
+## 4. 채프먼-콜모고로프 방정식
 
 ### 진술
 
@@ -121,7 +128,9 @@ $$\underbrace{i \xrightarrow{m \text{ steps}} k}_{\text{probability } P^{(m)}_{i
 
 있을 수 있는 모든 가운데 상태 $k$에 걸쳐 합한다.
 
-## 분포의 흐름
+---
+
+## 5. 분포의 흐름
 
 ### 첫 분포
 
@@ -141,7 +150,9 @@ $$\pi^{(n)}_j = P(X_n = j) = \sum_{i \in S} \pi^{(0)}_i P^{(n)}_{ij}$$
 
 이것이 옮김 행렬과 분포의 흐름을 잇는 근본 방정식이다. MCMC에서 결정적인 물음은 이것이다. *첫 분포 $\pi^{(0)}$이 무엇이든 $n \to \infty$일 때 $\pi^{(n)}$이 과녁 분포 $\pi$으로 모이는가?*
 
-## PyTorch 구현
+---
+
+## 6. PyTorch 구현
 
 ### 마르코프 사슬 클래스
 
@@ -268,7 +279,6 @@ class MarkovChain:
         if isinstance(to_state, str):
             to_state = self.state_names.index(to_state)
         return self.P[from_state, to_state].item()
-
 
 def create_stochastic_matrix(matrix: torch.Tensor) -> torch.Tensor:
     """
@@ -406,7 +416,9 @@ def analyze_convergence(
     return results
 ```
 
-## 보기: 날씨 모형
+---
+
+## 7. 보기: 날씨 모형
 
 상태 셋짜리 날씨 모형이 핵심 개념을 보여 준다:
 
@@ -457,7 +469,9 @@ for m, n in [(2, 3), (5, 5), (10, 10)]:
 
 $n$이 커지면 $P^n$의 모든 행이 같은 벡터로 모인다. 이것이 다음 마당에서 다룰 **멈춘 분포**이다.
 
-## 시각화
+---
+
+## 8. 시각화
 
 ### 옮김 행렬 열지도
 
@@ -498,7 +512,6 @@ def plot_transition_matrix(
     plt.tight_layout()
     return fig
 
-
 def plot_distribution_evolution(
     distributions: torch.Tensor,
     state_names: List[str] = None,
@@ -526,7 +539,9 @@ def plot_distribution_evolution(
     return fig
 ```
 
-## 이것이 MCMC에 왜 중요한가
+---
+
+## 9. 이것이 MCMC에 왜 중요한가
 
 여기서 세운 옮김 행렬 얼개가 MCMC를 곧바로 가능하게 한다:
 
@@ -539,23 +554,7 @@ def plot_distribution_evolution(
 
 남은 핵심 물음, 곧 $\pi^{(n)}$이 *언제* 모이는지, *무엇으로* 모이는지, *얼마나 빨리* 모이는지는 다음 마당의 멈춘 분포 이론과 에르고드성 결과가 답한다.
 
-## 요약
-
-| 개념 | 수학 꼴 | 설명 |
-|---------|------------------|-------------|
-| **마르코프 성질** | $P(X_{n+1}=j \mid X_n=i, \ldots) = P(X_{n+1}=j \mid X_n=i)$ | 앞날은 지금에만 기댄다 |
-| **옮김 행렬** | $P_{ij} \geq 0$, $\sum_j P_{ij} = 1$인 $P$ | 한 걸음 동역학을 모두 담은 행 확률 행렬 |
-| **$n$ 걸음 확률** | $P^{(n)}_{ij} = (P^n)_{ij}$ | 행렬 거듭제곱으로 얻는 여러 걸음 옮김 |
-| **채프먼-콜모고로프** | $P^{m+n} = P^m \cdot P^n$ | 가운데 상태에 걸친 쪼개기 |
-| **분포의 흐름** | $\pi^{(n)} = \pi^{(0)} P^n$ | 상태 확률이 시간에 따라 흘러가는 모습 |
-
-## 참고 문헌
-
-1. Lawler, G.F. *Introduction to Stochastic Processes*, 1장. Chapman & Hall/CRC, 2006.
-2. Norris, J.R. *Markov Chains*, 1장. Cambridge University Press, 1997.
-3. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, 3장. Springer-Verlag, 1976.
-4. Horn, R.A. & Johnson, C.R. *Matrix Analysis*, 8장. Cambridge University Press, 2012.
-5. Durrett, R. *Essentials of Stochastic Processes*, 1장. Springer, 2016.
+---
 
 ## 연습문제
 
@@ -568,3 +567,21 @@ def plot_distribution_evolution(
 4. **채프먼-콜모고로프 확인.** 위 날씨 모형에서 $P^{(3)}_{0,2}$(맑음에서 시작해 사흘 뒤 비 올 확률)을 $P^3$으로 곧바로, 그리고 $m=1, n=2$인 채프먼-콜모고로프 방정식으로 손수 셈하여라. 둘이 맞는지 확인하여라.
 
 5. **금융에서의 쓰임새.** 날마다의 주가 움직임을 상태 $\{$내림, 그대로, 오름$\}$의 마르코프 사슬로 본떠라. 지난 자료에서 옮김 확률을 어림하고 거래일 20일 뒤 그 주식 상태의 분포를 셈하여라.
+
+## 정리하며
+
+| 개념 | 수학 꼴 | 설명 |
+|---------|------------------|-------------|
+| **마르코프 성질** | $P(X_{n+1}=j \mid X_n=i, \ldots) = P(X_{n+1}=j \mid X_n=i)$ | 앞날은 지금에만 기댄다 |
+| **옮김 행렬** | $P_{ij} \geq 0$, $\sum_j P_{ij} = 1$인 $P$ | 한 걸음 동역학을 모두 담은 행 확률 행렬 |
+| **$n$ 걸음 확률** | $P^{(n)}_{ij} = (P^n)_{ij}$ | 행렬 거듭제곱으로 얻는 여러 걸음 옮김 |
+| **채프먼-콜모고로프** | $P^{m+n} = P^m \cdot P^n$ | 가운데 상태에 걸친 쪼개기 |
+| **분포의 흐름** | $\pi^{(n)} = \pi^{(0)} P^n$ | 상태 확률이 시간에 따라 흘러가는 모습 |
+
+**참고 문헌**
+
+1. Lawler, G.F. *Introduction to Stochastic Processes*, 1장. Chapman & Hall/CRC, 2006.
+2. Norris, J.R. *Markov Chains*, 1장. Cambridge University Press, 1997.
+3. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, 3장. Springer-Verlag, 1976.
+4. Horn, R.A. & Johnson, C.R. *Matrix Analysis*, 8장. Cambridge University Press, 2012.
+5. Durrett, R. *Essentials of Stochastic Processes*, 1장. Springer, 2016.

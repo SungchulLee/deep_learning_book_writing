@@ -1,16 +1,23 @@
 # 앞가지 다듬기
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 앞가지 다듬기가 무게를 고치지 않고 모델을 맞추는 법을 이해한다
 - 부호기와 풀개 모델 모두에 앞가지 다듬기를 짠다
 - 앞가지 다듬기를 시킴말 다듬기와 다른 부드러운 시킴말 방법과 견준다
 - 앞가지 길이와 매개변수 다시 매기기 전략을 정한다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 앞가지 다듬기(Li & Liang, 2021)는 변환기 층마다 열쇠와 값 앞에 익힐 수 있는 이어진 벡터("앞가지")를 붙이는, 매개변수를 아끼는 곱게 다듬기 방법이다. 띄엄띄엄한 시킴말과 달리 이 앞가지는 배운 묻힘이어서 일에 맞춘 앎을 더 효율적으로 담을 수 있다.
 
-## 핵심 개념
+---
+
+## 3. 핵심 개념
 
 ### 띄엄띄엄한 시킴말과 이어진 시킴말
 
@@ -36,7 +43,9 @@ $$
 
 여기서 $P_K, P_V$은 열쇠와 값 앞에 붙이는 배울 수 있는 앞가지 묻힘이다.
 
-## 수학적 바탕
+---
+
+## 4. 수학적 바탕
 
 ### 보통의 눈길
 
@@ -74,7 +83,9 @@ $$
 
 - 머리말 매개변수: $2 \times 10 \times 24 \times 1024 = 491,520$개(3억 4500만 개의 0.14%)
 
-## 구현
+---
+
+## 5. 구현
 
 ### 기본 앞가지 단원
 
@@ -82,7 +93,6 @@ $$
 import torch
 import torch.nn as nn
 from typing import Tuple, Optional, List
-
 
 class PrefixEncoder(nn.Module):
     """
@@ -160,7 +170,6 @@ class PrefixEncoder(nn.Module):
         prefix_values = prefix[..., 1].contiguous()
         
         return prefix_keys, prefix_values
-
 
 class PrefixTuningModel(nn.Module):
     """
@@ -329,7 +338,9 @@ class PrefixAttention(nn.Module):
         return attn_output
 ```
 
-## 왜 매개변수를 다시 매기는가?
+---
+
+## 6. 왜 매개변수를 다시 매기는가?
 
 앞가지 묻힘을 곧바로 가장 좋게 하면 흔들릴 수 있다. 다층 퍼셉트론으로 다시 매기면:
 
@@ -375,7 +386,9 @@ class DirectPrefixEncoder(nn.Module):
         return prefix[..., 0].contiguous(), prefix[..., 1].contiguous()
 ```
 
-## 견줌: 앞가지 다듬기와 시킴말 다듬기
+---
+
+## 7. 견줌: 앞가지 다듬기와 시킴말 다듬기
 
 | 갈래 | 앞가지 다듬기 | 시킴말 다듬기 |
 |--------|---------------|---------------|
@@ -455,7 +468,9 @@ class PromptTuning(nn.Module):
         )
 ```
 
-## 웃매개변수 길잡이
+---
+
+## 8. 웃매개변수 길잡이
 
 ### 앞가지 길이
 
@@ -483,7 +498,9 @@ class PromptTuning(nn.Module):
 - 앞가지 다듬기: 1e-3 ~ 5e-3
 - 온전한 곱게 다듬기: 1e-5 ~ 5e-5
 
-## 쓰임새
+---
+
+## 9. 쓰임새
 
 ### 알맞은 곳
 
@@ -498,7 +515,9 @@ class PromptTuning(nn.Module):
 2. **아주 긴 차례** — 앞가지가 차례 길이를 늘린다
 3. **부호기만의 일** — 본디 만들어 내기를 위해 꾸며졌다
 
-## 완전한 학습 예제
+---
+
+## 10. 완전한 학습 예제
 
 ```python
 def train_prefix_tuning(
@@ -559,21 +578,7 @@ def train_prefix_tuning(
     return model
 ```
 
-## 요약
-
-| 갈래 | 자세히 |
-|--------|---------|
-| **얼개** | 층마다 배울 수 있는 K, V를 앞에 붙인다 |
-| **매개변수** | 모델의 약 0.1~1% |
-| **알맞은 곳** | 만들어 내기, 몇 발, 여러 일 |
-| **핵심 웃매개변수** | 앞가지 길이(10~50) |
-| **익히기** | 곱게 다듬기보다 큰 배움 비율 |
-
-## 참고 문헌
-
-1. Li, X. L., & Liang, P. (2021). "Prefix-Tuning: Optimizing Continuous Prompts for Generation." ACL.
-2. Lester, B., Al-Rfou, R., & Constant, N. (2021). "The Power of Scale for Parameter-Efficient Prompt Tuning." EMNLP.
-3. Liu, X., et al. (2022). "P-Tuning v2: Prompt Tuning Can Be Comparable to Fine-tuning Universally Across Scales and Tasks."
+---
 
 ## 연습문제
 
@@ -612,3 +617,19 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 
 ??? success "연습문제 4 풀이"
     QLoRA은 밑 모델을 4비트로 수 줄이고 LoRA 맞춤개는 fp16/bf16으로 두어 둘을 아우른다. 밑 무게 $W_0$은 4비트 NormalFloat 꼴로 담기므로(매개변수마다 $\sim$0.5바이트) 700억 모델의 기억 자리가 140GB에서 $\sim$35GB으로 준다. LoRA 맞춤개는 익힘이 든든하도록 더 촘촘한 꼴로 남는다. 여기에 겹 수 줄이기(수 줄이기 상수를 다시 수 줄이기)와 쪽 넘김 가장 좋게 하개(가장 좋게 하개 상태가 치솟을 때 CPU 기억 자리를 씀)라는 새로움이 더해진다. 그래서 48GB GPU(A6000) 한 장으로 650억 모델을 곱게 다듬을 수 있고, 값비싼 여러 GPU 무리 없이도 연구자와 작은 조직이 큰 말 모델을 맞출 수 있게 된다.
+
+## 정리하며
+
+| 갈래 | 자세히 |
+|--------|---------|
+| **얼개** | 층마다 배울 수 있는 K, V를 앞에 붙인다 |
+| **매개변수** | 모델의 약 0.1~1% |
+| **알맞은 곳** | 만들어 내기, 몇 발, 여러 일 |
+| **핵심 웃매개변수** | 앞가지 길이(10~50) |
+| **익히기** | 곱게 다듬기보다 큰 배움 비율 |
+
+**참고 문헌**
+
+1. Li, X. L., & Liang, P. (2021). "Prefix-Tuning: Optimizing Continuous Prompts for Generation." ACL.
+2. Lester, B., Al-Rfou, R., & Constant, N. (2021). "The Power of Scale for Parameter-Efficient Prompt Tuning." EMNLP.
+3. Liu, X., et al. (2022). "P-Tuning v2: Prompt Tuning Can Be Comparable to Fine-tuning Universally Across Scales and Tasks."

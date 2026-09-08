@@ -2,7 +2,9 @@
 
 질의 점에 가장 가까운 점을 찾는 일은 계산 기하학, 기계 학습(k-최근접 이웃), 공간 데이터베이스에서 가장 흔한 연산 가운데 하나이다. 순진한 찾기는 질의를 점 $n$개 모두와 $O(n)$ 시간에 견준다. [kd 트리](construction.md)는 트리의 짜임으로 찾기 공간의 큰 몫을 쳐 내어 이를 평균 $O(\log n)$으로 줄인다. 핵심 통찰은 지금까지 찾은 가장 가까운 점이 쪼개기 초평면까지의 거리보다 가까우면 그 초평면 너머의 부분 트리를 통째로 건너뛸 수 있다는 것이다.
 
-## 알고리즘
+---
+
+## 1. 알고리즘
 
 kd 트리의 최근접 이웃 찾기는 **지금까지 가장 좋은** 점과 거리를 지키는 재귀 절차이다. 노드마다 다음과 같이 한다.
 
@@ -11,7 +13,9 @@ kd 트리의 최근접 이웃 찾기는 **지금까지 가장 좋은** 점과 �
 3. **가까운 자식으로 재귀한다.**
 4. **먼 자식을 들러야 하는지 살핀다.** $q$에서 쪼개기 초평면까지의 거리를 셈한다. 이 거리가 지금까지 가장 좋은 거리보다 작으면 먼 부분 트리에 더 가까운 점이 있을 수 있으므로 그리로 재귀한다. 그렇지 않으면 먼 부분 트리를 통째로 쳐 낸다.
 
-## 의사코드
+---
+
+## 2. 의사코드
 
 ```
 NN-SEARCH(node, query, best, best_dist):
@@ -39,7 +43,9 @@ NN-SEARCH(node, query, best, best_dist):
     return (best, best_dist)
 ```
 
-## 쳐 내는 조건
+---
+
+## 3. 쳐 내는 조건
 
 쳐 내기 단계가 이 알고리즘의 효율의 알맹이이다. 노드의 쪼개기 초평면이 공간을 반공간 둘로 가른다. 질의 점 $q$에서 먼 반공간의 어떤 점까지의 최소 거리는 다음과 같다.
 
@@ -59,7 +65,9 @@ $d_{\text{hyperplane}} \ge d_{\text{best}}$이면 먼 부분 트리의 모든 �
     3. $(5,4)$(축=1)을 들른다. 거리는 $\sqrt{1+1} = \sqrt{2} \approx 1.41$이다. 비겼으므로 지금 것을 지킨다.
     4. 재귀를 이어 가면… 끝내 알고리즘이 $(7,2)$을 최근접 이웃으로 찾는다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """kd 트리의 최근접 이웃 찾기."""
@@ -67,7 +75,6 @@ $d_{\text{hyperplane}} \ge d_{\text{best}}$이면 먼 부분 트리의 모든 �
 from __future__ import annotations
 
 import math
-
 
 # === 노드 정의 ===
 
@@ -79,7 +86,6 @@ class KDNode:
         self.axis = axis
         self.left: KDNode | None = None
         self.right: KDNode | None = None
-
 
 # === 세우기 (construction.md에서) ===
 
@@ -95,7 +101,6 @@ def build_kdtree(points: list[list[float]], depth: int = 0) -> KDNode | None:
     node.left = build_kdtree(points[:mid], depth + 1)
     node.right = build_kdtree(points[mid + 1:], depth + 1)
     return node
-
 
 # === 최근접 이웃 찾기 ===
 
@@ -123,7 +128,6 @@ def nearest_neighbor(node: KDNode | None, query: list[float],
 
     return best, best_dist
 
-
 # === 시연 ===
 
 if __name__ == "__main__":
@@ -135,7 +139,9 @@ if __name__ == "__main__":
     print(f"Nearest to {query}: {result} (distance={dist:.3f})")
 ```
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 지표 | 평균 | 최악 |
 |--------|-------------|------------|
@@ -147,15 +153,13 @@ if __name__ == "__main__":
 !!! warning "차원의 저주"
     높은 차원($k \gg \log n$)에서는 초평면까지의 거리가 점까지의 거리에 견주어 작아져 쳐 내는 조건이 자주 통하지 않는다. $k \gtrsim 20$이면 kd 트리의 최근접 이웃 찾기가 $O(n)$ 쪽으로 나빠지고 (국소성 민감 해싱 같은) 어림 방법을 더 좋아한다.
 
-## k-최근접 이웃
+---
+
+## 6. k-최근접 이웃
 
 하나가 아니라 $k$개의 최근접 이웃을 찾으려면 가장 좋은 점 하나를 **크기 $k$의 최대 힙**으로 바꾼다. 쳐 내는 조건은 힙에서 가장 먼 점(힙의 뿌리)까지의 거리를 쓴다. 힙에 원소가 $k$개보다 적으면 언제나 두 부분 트리를 모두 살핀다.
 
-## 참고 문헌
-
-- Friedman, J. H., Bentley, J. L., & Finkel, R. A. (1977). An algorithm for finding best matches in logarithmic expected time. *ACM Transactions on Mathematical Software*, 3(3), 209–226.
-- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. (2008). *Computational Geometry: Algorithms and Applications* (3rd ed.), Chapter 5. Springer.
-
+---
 
 ## 연습문제
 
@@ -188,3 +192,12 @@ kd 트리의 최근접 이웃 찾기가 질의마다의 계산을 $O(n)$에서 $
 
 ??? success "연습문제 4 풀이"
     응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.
+
+## 정리하며
+
+이 마당은 알고리즘、의사코드、쳐 내는 조건、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Friedman, J. H., Bentley, J. L., & Finkel, R. A. (1977). An algorithm for finding best matches in logarithmic expected time. *ACM Transactions on Mathematical Software*, 3(3), 209–226.
+- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. (2008). *Computational Geometry: Algorithms and Applications* (3rd ed.), Chapter 5. Springer.

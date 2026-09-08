@@ -1,5 +1,4 @@
 # 다중 머리 어텐션
-## 개요
 
 다중 머리 어텐션은 모델이 서로 다른 자리에서 **서로 다른 표현 부분공간**의 정보에 함께 주목하게 해 준다. 어텐션 함수를 하나만 쓰는 대신, 저마다 학습된 사영을 갖춘 어텐션 연산 $h$개를 나란히 계산한다.
 
@@ -9,7 +8,9 @@ $$\text{MultiHead}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{Concat}(\text{hea
 
 $$\text{head}_i = \text{Attention}(\mathbf{X}\mathbf{W}_Q^{(i)}, \mathbf{X}\mathbf{W}_K^{(i)}, \mathbf{X}\mathbf{W}_V^{(i)})$$
 
-## 동기: 머리 하나의 병목
+---
+
+## 1. 동기: 머리 하나의 병목
 
 머리가 하나인 어텐션에는 근본적인 한계가 있다. $d_{\text{model}}$이 아무리 커도 질의 자리마다 어텐션 분포가 **하나**뿐이다.
 
@@ -48,7 +49,9 @@ $$\mathbf{A}^{(i)} = \text{softmax}\left(\frac{\mathbf{X}\mathbf{W}_Q^{(i)}(\mat
 - $\text{head}_2$: 의미적 서술 (tired)
 - $\text{head}_3$: 지역적인 동사구 (didn't cross)
 
-## 구조
+---
+
+## 2. 구조
 
 ### 차원
 
@@ -80,7 +83,9 @@ $$\underbrace{h \cdot 3 \cdot d_{\text{model}} \cdot d_k}_{\text{QKV projections
 
 차원이 $d_{\text{model}}$인 큰 어텐션 머리 하나와 매개변수 수가 같다.
 
-## $\mathbf{W}_O$의 구실
+---
+
+## 3. $\mathbf{W}_O$의 구실
 
 ### 왜 필요한가
 
@@ -124,7 +129,9 @@ $$[\text{syntax} | \text{semantics} | \text{position}]$$
 
 $$\text{output} = 0.5 \cdot \text{syntax} + 0.3 \cdot \text{semantics} + 0.2 \cdot \text{position}$$
 
-## 정보 이론의 관점
+---
+
+## 4. 정보 이론의 관점
 
 ### 머리 하나: 볼록 껍질 안의 한 점
 
@@ -142,7 +149,9 @@ $$\mathbf{z}_i = \left[\sum_j A_{ij}^{(1)} \mathbf{v}_j^{(1)}; \ldots; \sum_j A_
 
 이어 붙인 것은 **훨씬 풍부한 부분공간**을 펼치며, $\mathbf{W}_O$은 이 $h$개의 서로 다른 문맥 요약의 **어떤 선형 결합**이든 만들어 낼 수 있다.
 
-## PyTorch 구현
+---
+
+## 5. PyTorch 구현
 
 ### 다중 머리 자기 어텐션
 
@@ -303,7 +312,9 @@ class MultiHeadAttention(nn.Module):
         return output, attn_weights
 ```
 
-## 실험으로 본 머리의 분업
+---
+
+## 6. 실험으로 본 머리의 분업
 
 학습된 트랜스포머를 분석한 연구는 기능의 분업을 확인해 준다.
 
@@ -317,7 +328,9 @@ class MultiHeadAttention(nn.Module):
 
 제거 실험을 해 보면 머리를 하나씩 없앨 때 특정 능력만 나빠지고 나머지는 멀쩡하다.
 
-## 단순한 병렬화가 아니다
+---
+
+## 7. 단순한 병렬화가 아니다
 
 흔한 오해가 있다. 다중 머리 어텐션이 같은 것을 나란히 계산할 뿐이라는 생각이다.
 
@@ -327,7 +340,9 @@ class MultiHeadAttention(nn.Module):
 
 표현력의 차이는 상당하다. 차원과 상관없이 다중 머리 어텐션은 머리 하나로는 나타낼 수 없는 함수를 나타낼 수 있다.
 
-## 계산 효율
+---
+
+## 8. 계산 효율
 
 다중 머리 어텐션은 이론적인 복잡도가 머리 하나일 때와 같다.
 
@@ -339,7 +354,9 @@ class MultiHeadAttention(nn.Module):
 
 나란한 짜임이라 GPU에 매우 잘 맞는다. 배치 행렬 곱 한 번으로 모든 머리가 한꺼번에 계산된다.
 
-## 초매개변수: 머리의 수
+---
+
+## 9. 초매개변수: 머리의 수
 
 흔한 설정은 다음과 같다.
 
@@ -353,7 +370,9 @@ class MultiHeadAttention(nn.Module):
 
 **어림 규칙**: $d_k = 64$이나 $d_k = 128$이 흔하다. $d_{\text{model}}$에 맞추어 머리 수를 조정한다.
 
-## 변형
+---
+
+## 10. 변형
 
 ### 묶음 질의 어텐션 (GQA)
 
@@ -384,29 +403,7 @@ class GroupedQueryAttention(nn.Module):
 
 극단적인 경우로, 모든 질의 머리가 열쇠-값 머리 하나를 함께 쓴다($n_{kv} = 1$).
 
-## 요약
-
-다중 머리 어텐션은 다음을 준다.
-
-1. **여러 어텐션 무늬**: 문법적·의미적·위치적으로 근본이 다른 관계를 붙잡는다
-2. **부분공간 분해**: 머리마다 특화된 특징을 뽑는다
-3. **학습된 결합**: $\mathbf{W}_O$이 머리 사이의 섞음으로 여러 관점을 아우른다
-4. **기능의 분업**: 학습하면서 저절로 나타난다
-5. **같은 계산 비용**: 매개변수 수가 큰 머리 하나와 같다
-
-**핵심 착상**: 어텐션 분포 하나로는 문법적·의미적·위치적 관계를 한꺼번에 나타낼 수 없다. 다중 머리 어텐션은 계산 효율을 지키면서 이 근본적인 한계를 푼다.
-
-출력 사영 $\mathbf{W}_O$은 형식뿐인 것이 아니다. 머리마다 주는 서로 다른 "시선"을 하나의 표현으로 엮는 법을 모델이 배우는 곳이 바로 여기이다.
-
-## 참고 문헌
-
-1. Vaswani, A., et al. (2017). Attention Is All You Need. *NeurIPS*.
-
-2. Voita, E., et al. (2019). Analyzing Multi-Head Self-Attention: Specialized Heads Do the Heavy Lifting, the Rest Can Be Pruned. *ACL*.
-
-3. Clark, K., et al. (2019). What Does BERT Look At? An Analysis of BERT's Attention. *BlackboxNLP*.
-
-4. Shazeer, N. (2019). Fast Transformer Decoding: One Write-Head is All You Need. *arXiv*.
+---
 
 ## 연습문제
 
@@ -457,3 +454,27 @@ $d_{\text{model}} = 512$이고 머리가 $h = 8$개인 다중 머리 어텐션�
 
 ??? success "연습문제 4 풀이"
     흔한 무늬는 이렇다. 1번 머리는 앞 낱말에 주목하고(지역적), 2번 머리는 문법적 의존(동사와 주어)에, 3번 머리는 위치의 무늬(같은 상대 자리에 주목)에, 4번 머리는 의미적 유사성에 주목한다. 어떤 머리는 넓고 고른 어텐션을 보이며 전역 문맥을 담는다. 이런 다양함 덕분에 여러 머리가 하나보다 낫다.
+
+## 정리하며
+
+다중 머리 어텐션은 다음을 준다.
+
+1. **여러 어텐션 무늬**: 문법적·의미적·위치적으로 근본이 다른 관계를 붙잡는다
+2. **부분공간 분해**: 머리마다 특화된 특징을 뽑는다
+3. **학습된 결합**: $\mathbf{W}_O$이 머리 사이의 섞음으로 여러 관점을 아우른다
+4. **기능의 분업**: 학습하면서 저절로 나타난다
+5. **같은 계산 비용**: 매개변수 수가 큰 머리 하나와 같다
+
+**핵심 착상**: 어텐션 분포 하나로는 문법적·의미적·위치적 관계를 한꺼번에 나타낼 수 없다. 다중 머리 어텐션은 계산 효율을 지키면서 이 근본적인 한계를 푼다.
+
+출력 사영 $\mathbf{W}_O$은 형식뿐인 것이 아니다. 머리마다 주는 서로 다른 "시선"을 하나의 표현으로 엮는 법을 모델이 배우는 곳이 바로 여기이다.
+
+**참고 문헌**
+
+1. Vaswani, A., et al. (2017). Attention Is All You Need. *NeurIPS*.
+
+2. Voita, E., et al. (2019). Analyzing Multi-Head Self-Attention: Specialized Heads Do the Heavy Lifting, the Rest Can Be Pruned. *ACL*.
+
+3. Clark, K., et al. (2019). What Does BERT Look At? An Analysis of BERT's Attention. *BlackboxNLP*.
+
+4. Shazeer, N. (2019). Fast Transformer Decoding: One Write-Head is All You Need. *arXiv*.

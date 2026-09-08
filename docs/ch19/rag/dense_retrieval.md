@@ -1,11 +1,16 @@
 # 빽빽한 찾기
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 빽빽한 찾기의 두 부호기 얼개를 이해한다
 - 주요 빽빽한 찾기 모델을 견준다
 - 찾기를 위한 맞대어 익히기를 짠다
 
-## 두 부호기 얼개
+---
+
+## 2. 두 부호기 얼개
 
 빽빽한 찾기는 따로 있는 부호기로 물음과 글월을 함께 쓰는 묻힘 공간에 부호화한다:
 
@@ -15,7 +20,9 @@ $$\text{score}(q, d) = \text{sim}(E_q(q), E_d(d))$$
 
 찾을 때에는 글월 묻힘을 미리 셈해 두고 어림 가장 가까운 이웃(ANN)으로 효율적으로 찾도록 색인한다.
 
-## 주요 모델
+---
+
+## 3. 주요 모델
 
 | 모델 | 묻힘 차원 | 익힘 자료 | 핵심 특징 |
 |-------|--------------|---------------|-------------|
@@ -26,7 +33,9 @@ $$\text{score}(q, d) = \text{sim}(E_q(q), E_d(d))$$
 | OpenAI text-embedding-3 | 3072 | 비공개 | 품질 높음, API |
 | Cohere embed-v3 | 1024 | 비공개 | 찾기에 맞춤 |
 
-## 맞대어 익히기
+---
+
+## 4. 맞대어 익히기
 
 빽빽한 찾개는 맞대어 손실(InfoNCE)로 익힌다:
 
@@ -49,7 +58,9 @@ def mine_hard_negatives(query_embedding, document_embeddings, positive_idx, k=10
     return hard_neg_indices
 ```
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 from sentence_transformers import SentenceTransformer
@@ -76,10 +87,7 @@ top_idx = scores[0].argsort()[::-1]
 print(f"Most relevant: {documents[top_idx[0]]}")
 ```
 
-## 참고 문헌
-
-1. Karpukhin, V., et al. (2020). "Dense Passage Retrieval for Open-Domain QA." *EMNLP*.
-2. Wang, L., et al. (2022). "Text Embeddings by Weakly-Supervised Contrastive Pre-training." *arXiv*.
+---
 
 ## 연습문제
 
@@ -112,3 +120,12 @@ print(f"Most relevant: {documents[top_idx[0]]}")
 
 ??? success "연습문제 4 풀이"
     처음 찾기(BM25나 빽빽한 찾기)는 빠르지만 어림이며 글월 $k$개의 후보 모음을 돌려준다. 그다음 **다시 매개**(대개 엇갈린 부호기)가 (물음, 글월) 짝마다 함께 점수를 매겨, 두 부호기 찾기가 놓치는 결이 고운 주고받음을 담아낸다. 엇갈린 부호기는 더 정확하지만 느리므로(벡터 한 번 찾기 대신 앞먹임 $O(k)$번) 상위 $k$개 후보에만 쓴다. 다시 매긴 상위 $n$개 글월($n < k$)을 만들개에 넘긴다. 이 두 단계 방식은 처음 찾기의 빠르기와 엇갈린 눈길 점수 매기기의 정확도를 아우른다.
+
+## 정리하며
+
+이 마당은 학습 목표、두 부호기 얼개、주요 모델、맞대어 익히기을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Karpukhin, V., et al. (2020). "Dense Passage Retrieval for Open-Domain QA." *EMNLP*.
+2. Wang, L., et al. (2022). "Text Embeddings by Weakly-Supervised Contrastive Pre-training." *arXiv*.

@@ -103,7 +103,6 @@ class FCOSHead(nn.Module):
         
         return cls_scores, bbox_preds, centernesses
 
-
 def compute_centerness(
     left: torch.Tensor,
     top: torch.Tensor,
@@ -214,8 +213,9 @@ class FCOSLoss(nn.Module):
         }
 ```
 
+---
 
-## 견줌: 닻 바탕과 닻 없음
+## 1. 견줌: 닻 바탕과 닻 없음
 
 | 갈래 | 닻 바탕 | 닻 없음 |
 |--------|-------------|-------------|
@@ -230,10 +230,7 @@ class FCOSLoss(nn.Module):
 - **닻 바탕**: 물체 크기와 비를 아는, 잘 이해된 문제
 - **닻 없음**: 새로운 갈래, 흔치 않은 가로세로비, 빠른 시제품 만들기
 
-## 참고 문헌
-
-1. Tian, Z., et al. (2019). FCOS: Fully Convolutional One-Stage Object Detection. ICCV.
-2. Lin, T.-Y., et al. (2017). Feature Pyramid Networks for Object Detection. CVPR.
+---
 
 ## 연습문제
 
@@ -287,3 +284,12 @@ class FCOSLoss(nn.Module):
 
 ??? success "연습문제 4 풀이"
     한 단계 알아내개에서는 닻 상자 대부분이 바탕(쉬운 아님 보기)이고 물체를 담은 것은 몇 안 된다. 여느 엇결 엔트로피 잃음은 쉬운 아님 보기가 워낙 많아 그쪽에 휘둘리므로 어려운 맞음 보기의 기울기 신호가 묻힌다. **초점 잃음**은 조절 값을 더한다. $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$이다. $\gamma > 0$이면 쉬운 보기($p_t$이 높은 것)의 짐이 지수로 줄어 어려운 보기에 익힘이 몰린다. $\gamma = 2$과 $\alpha = 0.25$을 쓰면 RetinaNet은 한 단계의 빠르기를 지키면서 두 단계 알아내개에 맞먹는 맞음을 이룬다.
+
+## 정리하며
+
+이 마당은 견줌: 닻 바탕과 닻 없음을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Tian, Z., et al. (2019). FCOS: Fully Convolutional One-Stage Object Detection. ICCV.
+2. Lin, T.-Y., et al. (2017). Feature Pyramid Networks for Object Detection. CVPR.

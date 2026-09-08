@@ -1,11 +1,12 @@
 # 학습률과 이동 폭
-## 들어가며
 
 **학습률**(흔히 $\eta$, $\alpha$, `lr`로 표기)은 경사 기반 최적화에서 아마도 가장 중요한 하이퍼파라미터일 것이다. 매개변수 갱신의 크기를 조절하며, 수렴 속도와 애초에 수렴하는지 여부 모두에 깊이 영향을 준다.
 
 이 절에서는 학습률의 역할, 최적화 동역학에 미치는 영향, 그리고 선택과 조정을 위한 실용적인 전략을 살펴본다.
 
-## 학습률의 역할
+---
+
+## 1. 학습률의 역할
 
 ### 갱신 규칙 다시 보기
 
@@ -26,7 +27,9 @@ $$\theta_{t+1} = \theta_t - \eta \nabla_\theta L(\theta_t)$$
 - **작은 학습률**: 발을 끌며 천천히 가기 — 안전하지만 지루하다(해 지기 전에 베이스캠프에 못 갈 수 있다)
 - **최적의 학습률**: 빠르게 걷기 — 통제를 유지하면서 효율적으로 나아간다
 
-## 학습률에 따른 효과
+---
+
+## 2. 학습률에 따른 효과
 
 ### 너무 작을 때 (eta << 1)
 
@@ -92,7 +95,9 @@ Loss ↑
      └──────────────────────→ Iterations
 ```
 
-## 수학적 분석
+---
+
+## 3. 수학적 분석
 
 ### 수렴 조건
 
@@ -126,7 +131,9 @@ $$\|\nabla f(\mathbf{x}) - \nabla f(\mathbf{y})\| \leq L\|\mathbf{x} - \mathbf{y
 
 $$\eta \leq \frac{1}{L}$$
 
-## 실무에서의 학습률 선택
+---
+
+## 4. 실무에서의 학습률 선택
 
 ### 어림 규칙 값
 
@@ -220,7 +227,9 @@ for lr in learning_rates:
 best_lr = min(results, key=results.get)
 ```
 
-## 시각화: 학습률의 효과
+---
+
+## 5. 시각화: 학습률의 효과
 
 ### 1차원 손실 지형
 
@@ -291,7 +300,9 @@ plt.xlabel('Weight w')
 plt.ylabel('Bias b')
 ```
 
-## 학습률 스케줄
+---
+
+## 6. 학습률 스케줄
 
 ### 왜 학습률을 줄이는가?
 
@@ -354,7 +365,9 @@ scheduler = torch.optim.lr_scheduler.LambdaLR(
 )
 ```
 
-## 학습률과 배치 크기
+---
+
+## 7. 학습률과 배치 크기
 
 ### 선형 비례 규칙
 
@@ -370,7 +383,9 @@ $$\eta_{new} = k \cdot \eta_{original}$$
 - 어떤 배치 크기를 넘어서면 일반화 성능이 나빠질 수 있다
 - 메모리 제약이 배치 크기를 제한하는 경우가 많다
 
-## 적응적 학습률
+---
+
+## 8. 적응적 학습률
 
 ### 매개변수별 학습률
 
@@ -386,7 +401,9 @@ $$\theta_{j,t+1} = \theta_{j,t} - \frac{\eta}{\sqrt{v_{j,t}} + \epsilon} \cdot m
 
 **참고**: [Adam 최적화기](../../ch05/optimizers/adam.md), [RMSprop](../../ch05/optimizers/rmsprop.md)
 
-## 학습률 문제 진단하기
+---
+
+## 9. 학습률 문제 진단하기
 
 ### 학습률이 너무 클 때의 징후
 
@@ -427,28 +444,16 @@ def diagnose_lr(train_losses, val_losses):
     return "LR appears reasonable"
 ```
 
-## 핵심 요점
+---
 
-1. **학습률은 경사 갱신의 크기를 조정한다**: 이동 폭을 조절한다
-2. **너무 크면**: 진동, 발산, 불안정
-3. **너무 작으면**: 느린 수렴, 낭비되는 계산
-4. **학습률 탐색기를 쓴다**: 체계적인 선택 방법
-5. **학습률 스케줄**: 학습이 진행됨에 따라 줄이면 결과가 가장 좋다
-6. **적응적 방법**: Adam 등이 학습률 민감도를 낮춘다
-7. **배치 크기에 맞춰 조정한다**: 배치가 크면 더 큰 학습률을 쓸 수 있다
-
-## 다른 주제와의 연결
+## 10. 다른 주제와의 연결
 
 - **최적화기**: 최적화기의 기초 참고
 - **스케줄러**: 학습률 스케줄러에서 자세히 다룬다
 - **Adam**: [Adam 최적화기](../../ch05/optimizers/adam.md)의 매개변수별 학습률
 - **배치 크기**: [배치, 미니배치, SGD](batch_minibatch_sgd.md)와 관련된다
 
-## 참고 문헌
-
-- Smith, L. N. (2017). Cyclical learning rates for training neural networks. WACV.
-- Goyal, P., et al. (2017). Accurate, large minibatch SGD: Training ImageNet in 1 hour. arXiv:1706.02677.
-- You, Y., et al. (2019). Large batch optimization for deep learning: Training BERT in 76 minutes. arXiv:1904.00962.
+---
 
 ## 연습문제
 
@@ -505,3 +510,19 @@ PyTorch로 코사인 어닐링 스케줄을 구현하고 100 에폭 동안의 �
     학습률 $\eta$, 배치 크기 $B$로 미니배치 단계를 $k$번 밟는다고 하자. 전체 매개변수 변화는 $\Delta \theta = -\eta \sum_{i=1}^{k} g_i$이며 $g_i$는 각 미니배치의 경사이다. 배치 크기 $kB$, 학습률 $k\eta$로 한 단계를 밟으면 $\bar{g} = \frac{1}{k}\sum g_i$일 때 $\Delta \theta' = -k\eta \bar{g}$이다.
 
     이 둘은 같다. $\Delta \theta' = -\eta \sum g_i = \Delta \theta$이다. 다만 이는 결합된 갱신에 걸쳐 손실 지형이 선형이라고 가정한 것이며, (1) 곡률에 비해 학습률이 크거나, (2) 배치 정규화 통계가 배치 크기에 따라 달라지거나, (3) 손실 곡면이 매우 비이차적일 때 무너진다.
+
+## 정리하며
+
+1. **학습률은 경사 갱신의 크기를 조정한다**: 이동 폭을 조절한다
+2. **너무 크면**: 진동, 발산, 불안정
+3. **너무 작으면**: 느린 수렴, 낭비되는 계산
+4. **학습률 탐색기를 쓴다**: 체계적인 선택 방법
+5. **학습률 스케줄**: 학습이 진행됨에 따라 줄이면 결과가 가장 좋다
+6. **적응적 방법**: Adam 등이 학습률 민감도를 낮춘다
+7. **배치 크기에 맞춰 조정한다**: 배치가 크면 더 큰 학습률을 쓸 수 있다
+
+**참고 문헌**
+
+- Smith, L. N. (2017). Cyclical learning rates for training neural networks. WACV.
+- Goyal, P., et al. (2017). Accurate, large minibatch SGD: Training ImageNet in 1 hour. arXiv:1706.02677.
+- You, Y., et al. (2019). Large batch optimization for deep learning: Training BERT in 76 minutes. arXiv:1904.00962.

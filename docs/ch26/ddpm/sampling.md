@@ -1,5 +1,4 @@
 # DDPM 뽑기
-## 개요
 
 익힌 DDPM에서 뽑기는 배운 뒤 과정을 거쳐 순수한 가우스 잡음을 거듭 걷어 내며 자료를 만든다. $x_T \sim \mathcal{N}(0, I)$에서 비롯해 걸음마다 모형의 잡음 예측 $\epsilon_\theta(x_t, t)$을 써서 잡음이 덜한 $x_{t-1}$을 셈하고, $T$ 걸음 뒤 깨끗한 표본 $x_0$이 나올 때까지 짜임을 차츰 되살린다. 이 마디는 사후 분포에서 뒤 뽑기 식을 이끌어 내고, 흔히 쓰는 흩어짐 매개변수화 둘을 짚고, 분류기 이끎과 분류기 없는 이끎을 갖춘 온전한 PyTorch 짜보기를 보이며, [DDIM](../ddim/fundamentals.md)의 빠른 뽑기 방법이 나오게 된 셈 값을 살핀다.
 
@@ -130,7 +129,6 @@ import torch
 import torch.nn as nn
 from typing import Optional, Callable
 from tqdm import tqdm
-
 
 class DDPMSampler:
     """미리 셈한 차례표 계수를 갖춘 DDPM 조상 뽑개."""
@@ -662,14 +660,6 @@ DDPM 뽑기는 돈살림 자료 만들어 내기로 자연스럽게 넓혀진다
 
 ---
 
-## 참고 문헌
-
-1. Ho, J., Jain, A., & Abbeel, P. (2020). Denoising Diffusion Probabilistic Models. *Advances in Neural Information Processing Systems (NeurIPS)*.
-2. Nichol, A. Q. & Dhariwal, P. (2021). Improved Denoising Diffusion Probabilistic Models. *Proceedings of the 38th International Conference on Machine Learning (ICML)*.
-3. Dhariwal, P. & Nichol, A. Q. (2021). Diffusion Models Beat GANs on Image Synthesis. *Advances in Neural Information Processing Systems (NeurIPS)*.
-4. Ho, J. & Salimans, T. (2022). Classifier-Free Diffusion Guidance. *NeurIPS 2021 Workshop on Deep Generative Models and Downstream Applications*.
-5. Song, J., Meng, C., & Ermon, S. (2021). Denoising Diffusion Implicit Models. *Proceedings of the 9th International Conference on Learning Representations (ICLR)*.
-
 ## 연습문제
 
 ### 연습 1: 흩어짐 견주기
@@ -693,3 +683,15 @@ $\hat{x}_0$ 자르기를 하거나 하지 않고 표본을 만들어라. 두 자
 매개변수 1억 개짜리 U-넷으로 256×256 표본 10,000개를 만들어야 한다면 DDPM($T = 1000$)과 DDIM($T = 50$)에 드는 온 GPU 시간을 어림하여라. GPU 시간당 \$2이라면 값 차이는 얼마인가?
 
 ---
+
+## 정리하며
+
+이 마당은 뒤 과정 이끌어 내기、흩어짐 매개변수화、뽑기 알고리즘、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Ho, J., Jain, A., & Abbeel, P. (2020). Denoising Diffusion Probabilistic Models. *Advances in Neural Information Processing Systems (NeurIPS)*.
+2. Nichol, A. Q. & Dhariwal, P. (2021). Improved Denoising Diffusion Probabilistic Models. *Proceedings of the 38th International Conference on Machine Learning (ICML)*.
+3. Dhariwal, P. & Nichol, A. Q. (2021). Diffusion Models Beat GANs on Image Synthesis. *Advances in Neural Information Processing Systems (NeurIPS)*.
+4. Ho, J. & Salimans, T. (2022). Classifier-Free Diffusion Guidance. *NeurIPS 2021 Workshop on Deep Generative Models and Downstream Applications*.
+5. Song, J., Meng, C., & Ermon, S. (2021). Denoising Diffusion Implicit Models. *Proceedings of the 9th International Conference on Learning Representations (ICLR)*.

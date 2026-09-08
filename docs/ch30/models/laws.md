@@ -6,7 +6,9 @@
 빛난다는 것을 보이도록 살피기를 다시
 짠다.
 
-## 암달의 법칙
+---
+
+## 1. 암달의 법칙
 
 $s$을 프로그램 돌림 때 가운데 본디 차례로만 할 수 있는 몫, $p$을 셈틀 수라
 하자. 나란히 하기로 얻는 **빨라짐**은 다음과
@@ -45,7 +47,9 @@ $$
 
     셈틀을 32개나 쓰지만 빨라짐은 12.5배쯤에 그친다.
 
-## 구스타프슨의 법칙
+---
+
+## 2. 구스타프슨의 법칙
 
 암달의 법칙은 **문제 크기가 붙박였다**고 여긴다. 실제로는 셈틀이 늘면 문제 크기도
 키우는 일이 많다.
@@ -78,7 +82,9 @@ $$
 실제 일감은 쓸 수 있는 셈과 함께 커지는 일이 많으므로 이는 암달의 가둠보다
 훨씬 밝다.
 
-## 비교
+---
+
+## 3. 비교
 
 | 갈래 | 암달의 법칙 | 구스타프슨의 법칙 |
 |---|---|---|
@@ -87,7 +93,9 @@ $$
 | 관점 | $p$이 클 때 어둡다 | $p$이 클 때 밝다 |
 | 잘 맞는 일 | 지체에 민감한 일 | 처리량을 앞세우는 일 |
 
-## 시각화
+---
+
+## 4. 시각화
 
 ```python
 """
@@ -98,24 +106,20 @@ $$
 
 import math
 
-
 # === 암달의 법칙 ===
 def amdahl_speedup(s: float, p: int) -> float:
     """차례 몫 s와 셈틀 p개에 대한 암달의 빨라짐을 셈한다."""
     return 1.0 / (s + (1.0 - s) / p)
-
 
 # === 구스타프슨의 법칙 ===
 def gustafson_speedup(s_prime: float, p: int) -> float:
     """구스타프슨의 잣대 맞춘 빨라짐을 셈한다."""
     return p - s_prime * (p - 1)
 
-
 # === 효율 ===
 def efficiency(speedup: float, p: int) -> float:
     """나란히 셈의 효율 = 빨라짐 / p."""
     return speedup / p
-
 
 # === 보기 ===
 if __name__ == "__main__":
@@ -147,7 +151,9 @@ if __name__ == "__main__":
         print()
 ```
 
-## 실무적 함의
+---
+
+## 5. 실무적 함의
 
 - **암달의 법칙**은 차례 병목을 다듬을 까닭을 준다. $s$을 조금만 줄여도
   빨라짐의 천장이 크게 올라간다.
@@ -157,13 +163,7 @@ if __name__ == "__main__":
   암달에 가둬진 일감은 $p$이 커지면 $E \to 0$이고, 구스타프슨처럼 키운
   일감은 $E$을 그대로 지킨다.
 
-## 참고 문헌
-
-- Amdahl, G. M. "Validity of the Single Processor Approach to Achieving
-  Large Scale Computing Capabilities." AFIPS 1967.
-- Gustafson, J. L. "Reevaluating Amdahl's Law." *Communications of the
-  ACM*, 31(5), 1988.
-
+---
 
 ## 연습문제
 
@@ -196,3 +196,14 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     암달의 법칙에서 셈틀마다의 빨라짐은 $\partial S / \partial p = f / ((1-f) + f/p)^2 \cdot 1/p^2$이다. 셈틀을 하나 더 붙이는 한계 비용이 그 한계 빨라짐의 값어치와 같아야 한다. 셈틀마다 비용이 $c$이고 빨라짐의 값어치가 $v$이면 $v \cdot \partial S / \partial p = c$이다. $f = 0.95$일 때 $p = 20$에서 빨라짐은 10.3(최대의 51.5%), $p = 100$에서 16.8(84%), $p = 1000$에서 19.6(98%)이다. 값을 하는 구간은 대개 $p \leq 1/(1-f)^2$이며 그 너머로는 수확이 가파르게 준다.
+
+## 정리하며
+
+이 마당은 암달의 법칙、구스타프슨의 법칙、비교、시각화을 차례로 짚었다.
+
+**참고 문헌**
+
+- Amdahl, G. M. "Validity of the Single Processor Approach to Achieving
+  Large Scale Computing Capabilities." AFIPS 1967.
+- Gustafson, J. L. "Reevaluating Amdahl's Law." *Communications of the
+  ACM*, 31(5), 1988.

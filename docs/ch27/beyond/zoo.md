@@ -2,7 +2,9 @@
 
 복잡도 이론은 수백 개의 복잡도 갈래를 밝혀냈으며 저마다 다른 셈 모델이나 밑천 제약을 담는다. 이 쪽은 P과 NP 너머의 주요 갈래, 그 담김 관계, 그리고 이들을 잇는 핵심 열린 물음을 안내한다. 셈 풍경의 지도라고 여기면 된다.
 
-## 시간 바탕 갈래
+---
+
+## 1. 시간 바탕 갈래
 
 ### 정해진 시간
 
@@ -24,7 +26,9 @@
 
 알려진 것: NP $\subseteq$ EXPTIME. 알려지지 않은 것: NP $\neq$ 여 NP인지.
 
-## 공간 바탕 갈래
+---
+
+## 2. 공간 바탕 갈래
 
 | 갈래 | 뜻매김 | 핵심 문제 |
 |-------|-----------|-------------|
@@ -34,7 +38,9 @@
 
 사비치 정리에 따라 NSPACE($s$) $\subseteq$ DSPACE($s^2$)이므로 NL $\subseteq$ L$^2$ $\subseteq$ P이고 NPSPACE = PSPACE이다.
 
-## 마구잡이 갈래
+---
+
+## 3. 마구잡이 갈래
 
 | 갈래 | 어긋남 갈래 | 뜻매김 |
 |-------|-----------|-----------|
@@ -47,7 +53,9 @@
 
 **추측:** BPP = P(다항 시간 셈에 마구잡이는 꼭 필요하지 않다).
 
-## 회로 갈래
+---
+
+## 4. 회로 갈래
 
 | 갈래 | 뜻매김 |
 |-------|-----------|
@@ -61,7 +69,9 @@
 
 갈래 P/poly은 (도움말을 거쳐) 가릴 수 없는 문제도 담으므로 P/poly $\not\subseteq$ NP일 수 있다. 그러나 NP $\subseteq$ P/poly이면 다항 켜가 무너진다(카프-립튼 정리).
 
-## 세기 갈래와 함수 갈래
+---
+
+## 5. 세기 갈래와 함수 갈래
 
 | 갈래 | 뜻매김 |
 |-------|-----------|
@@ -74,7 +84,9 @@
 
 **PP과 BPP:** BPP $\subseteq$ PP이지만 PP이 훨씬 힘세다(PP은 다항 시간 줄임에서 PP 완전이고 PH $\subseteq$ P$^{\text{PP}}$이다).
 
-## 주고받는 밝힘 갈래
+---
+
+## 6. 주고받는 밝힘 갈래
 
 | 갈래 | 뜻매김 |
 |-------|-----------|
@@ -90,7 +102,9 @@
 - MIP = NEXPTIME(바바이, 포트나우, 룬드, 1991)
 - MIP* = RE(지 외, 2020) --- 얽힌 밝히개를 쓰면 이 갈래는 되돌이로 늘어놓을 수 있는 말과 같아진다
 
-## 큰 담김 그림
+---
+
+## 7. 큰 담김 그림
 
 $$
 \text{L} \subseteq \text{NL} \subseteq \text{P} \subseteq \text{NP} \cap \text{co-NP} \subseteq \text{NP} \cup \text{co-NP} \subseteq \text{PH} \subseteq \text{PSPACE} \subseteq \text{EXPTIME}
@@ -106,7 +120,9 @@ $$
 \text{NP} \subseteq \text{P}^{\text{\#P}} \subseteq \text{PSPACE}
 $$
 
-## 주요 열린 문제
+---
+
+## 8. 주요 열린 문제
 
 | 물음 | 상태 | 뜻 |
 |----------|--------|-------------|
@@ -130,11 +146,7 @@ $$
 
     GI은 P과 NP 완전 사이, 중간 어려움의 문제가 있다고 믿어지는 자리에 놓인다(P $\neq$ NP이면 라드너 정리가 그런 문제가 있음을 보장한다).
 
-## 참고 문헌
-
-- Sipser, M. (2012). *Introduction to the Theory of Computation* (3rd ed.). Cengage Learning.
-- Arora, S., & Barak, B. (2009). *Computational Complexity: A Modern Approach*. Cambridge University Press.
-- Aaronson, S. (2016). P $\stackrel{?}{=}$ NP. In *Open Problems in Mathematics*, Springer.
+---
 
 ## 연습문제
 
@@ -202,3 +214,13 @@ BQP이 무엇이며 복잡도 동물원에서 어디에 놓이는지 밝혀라. 
     샤미르(1992) 정리는 $\mathbf{IP} = \mathbf{PSPACE}$이라 한다. $\mathbf{IP} \subseteq \mathbf{PSPACE}$ 쪽은 밝히개의 모든 셈속을 늘어놓아 살피개의 가장 좋은 셈속을 PSPACE에서 셈할 수 있기에 따라 나온다. 놀라운 쪽은 $\mathbf{PSPACE} \subseteq \mathbf{IP}$이다. 밝힘은 부울 식의 셈 꼴로 바꾸기와 합 살피기 규약을 써서 PSPACE 완전 문제 TQBF에 주고받는 밝힘이 있음을 보인다.
 
     이는 주고받기와 마구잡이가 함께라면 다항 공간만큼 힘세다는 말이므로 직관에 어긋난다. 셈이 제한된 살피개가 밝히개를 믿지 않고도 그와 말을 주고받아 NP를 훨씬 넘어선 문제의 주장을 살필 수 있다는 것이다.
+
+## 정리하며
+
+이 마당은 시간 바탕 갈래、공간 바탕 갈래、마구잡이 갈래、회로 갈래을 차례로 짚었다.
+
+**참고 문헌**
+
+- Sipser, M. (2012). *Introduction to the Theory of Computation* (3rd ed.). Cengage Learning.
+- Arora, S., & Barak, B. (2009). *Computational Complexity: A Modern Approach*. Cambridge University Press.
+- Aaronson, S. (2016). P $\stackrel{?}{=}$ NP. In *Open Problems in Mathematics*, Springer.

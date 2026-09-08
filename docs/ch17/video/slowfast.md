@@ -1,5 +1,8 @@
 # 느림빠름 그물
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,7 +12,9 @@
 - 몸짓 알아보기를 위해 느림빠름 그물을 익힌다
 - 느림빠름을 여러 영상 이해 일에 쓴다
 
-## 꾸밈 철학
+---
+
+## 2. 꾸밈 철학
 
 ### 생물에서 얻은 실마리
 
@@ -41,7 +46,9 @@ $$\text{Fast channels} = \beta \times \text{Slow channels}$$
 
 보통 β = 1/8이며, 이는 빠름 길의 채널이 8배 적다는 뜻이다.
 
-## 구조
+---
+
+## 3. 구조
 
 ```python
 import torch
@@ -141,7 +148,6 @@ class SlowFast(nn.Module):
         
         return self.head(x)
 
-
 class SlowPathway(nn.Module):
     """
     느림 길: 채널을 많이 쓰고 틀은 적게 다룬다.
@@ -174,7 +180,6 @@ class SlowPathway(nn.Module):
         for _ in range(1, blocks):
             layers.append(ResBlock3D(out_ch, out_ch))
         return nn.Sequential(*layers)
-
 
 class FastPathway(nn.Module):
     """
@@ -211,7 +216,6 @@ class FastPathway(nn.Module):
             layers.append(ResBlock3D(out_ch, out_ch))
         return nn.Sequential(*layers)
 
-
 class LateralConnection(nn.Module):
     """
     빠름 길에서 느림 길로 가는 옆 이음.
@@ -246,7 +250,6 @@ class LateralConnection(nn.Module):
         """
         return self.transform(x_fast)
 
-
 class ResBlock3D(nn.Module):
     """3차원 잔차 덩이."""
     
@@ -276,7 +279,9 @@ class ResBlock3D(nn.Module):
         return self.relu(out)
 ```
 
-## 자리매김 변종
+---
+
+## 4. 자리매김 변종
 
 ```python
 def slowfast_4x16_r50():
@@ -292,7 +297,6 @@ def slowfast_4x16_r50():
         slow_channels=64,
         num_frames=32
     )
-
 
 def slowfast_8x8_r101():
     """
@@ -310,7 +314,9 @@ def slowfast_8x8_r101():
     )
 ```
 
-## 학습
+---
+
+## 5. 학습
 
 ```python
 def train_slowfast(model, train_loader, epochs=196):
@@ -356,7 +362,9 @@ def train_slowfast(model, train_loader, epochs=196):
             scheduler.step()
 ```
 
-## 결과
+---
+
+## 6. 결과
 
 ### Kinetics-400에서의 성능
 
@@ -377,20 +385,7 @@ def train_slowfast(model, train_loader, epochs=196):
 
 핵심 발견: 느림빠름은 FLOPs를 덜 쓰고도 더 나은 정확도를 낸다.
 
-## 요약
-
-느림빠름의 핵심 새로움:
-
-1. **두 갈래 길**이 자리의 뜻과 때에 걸친 움직임을 모두 담아낸다
-2. **대칭이 아닌 꾸밈**(α, β 매개변수)이 셈을 효율적으로 나눈다
-3. **옆 이음**이 길 사이로 앎이 흐르게 한다
-4. 알맞은 셈 값으로 **센 성능**을 낸다
-
-가장 알맞은 곳:
-
-- 겉모습과 움직임이 모두 필요한 몸짓 알아보기
-- 때에 걸친 움직임이 중요한 장면
-- 정확도와 효율 사이의 균형
+---
 
 ## 연습문제
 
@@ -429,3 +424,18 @@ def train_slowfast(model, train_loader, epochs=196):
     | **때 눈길** | $O(T^2 CHW)$ | 두루 | $T$에 이차이며 너그럽다 |
 
     3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 스스로 눈길은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 얼개(보기로 Video Swin Transformer)는 흔히 가까운 자리의 눈길과 층진 꾸밈을 아우른다.
+
+## 정리하며
+
+느림빠름의 핵심 새로움:
+
+1. **두 갈래 길**이 자리의 뜻과 때에 걸친 움직임을 모두 담아낸다
+2. **대칭이 아닌 꾸밈**(α, β 매개변수)이 셈을 효율적으로 나눈다
+3. **옆 이음**이 길 사이로 앎이 흐르게 한다
+4. 알맞은 셈 값으로 **센 성능**을 낸다
+
+가장 알맞은 곳:
+
+- 겉모습과 움직임이 모두 필요한 몸짓 알아보기
+- 때에 걸친 움직임이 중요한 장면
+- 정확도와 효율 사이의 균형

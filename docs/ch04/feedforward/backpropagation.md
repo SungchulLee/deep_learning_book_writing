@@ -1,5 +1,8 @@
 # 역전파
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 !!! abstract "배울 내용"
 
@@ -10,7 +13,9 @@
     - 역전파를 파이썬으로 직접 구현하고 PyTorch autograd와 대조하여 확인하기
     - 계산 복잡도 분석하기: 순전파와 역전파의 비용이 같은 차수임을 확인한다
 
-## 미리 알아야 할 것
+---
+
+## 2. 미리 알아야 할 것
 
 | 주제 | 왜 중요한가 |
 |-------|---------------|
@@ -21,7 +26,7 @@
 
 ---
 
-## 개요
+## 3. 개요
 
 **역전파**(오차의 역방향 전파)는 신경망의 모든 매개변수에 대한 손실 함수의 경사를 효율적으로 계산하는 알고리즘이다. Rumelhart, Hinton, Williams(1986)가 널리 알렸으며 지금도 신경망 학습의 일꾼으로 남아 있다.
 
@@ -29,7 +34,7 @@
 
 ---
 
-## 문제 설정
+## 4. 문제 설정
 
 **주어진 것:**
 
@@ -51,7 +56,7 @@ $$
 
 ---
 
-## 연쇄 법칙의 토대
+## 5. 연쇄 법칙의 토대
 
 ### 스칼라 연쇄 법칙
 
@@ -87,7 +92,7 @@ $$
 
 ---
 
-## 완전한 유도: 2층 신경망
+## 6. 완전한 유도: 2층 신경망
 
 일반적인 경우를 진술하기 전에 직관을 쌓기 위해 2층 신경망의 모든 경사를 명시적으로 유도한다.
 
@@ -167,7 +172,7 @@ $$
 
 ---
 
-## 일반적인 역전파 알고리즘
+## 7. 일반적인 역전파 알고리즘
 
 ### 순전파 (계산하고 저장하기)
 
@@ -215,7 +220,7 @@ $$
 
 ---
 
-## 활성화 함수의 도함수
+## 8. 활성화 함수의 도함수
 
 | 활성화 | $\sigma(z)$ | $\sigma'(z)$ | 비고 |
 |---|---|---|---|
@@ -226,7 +231,7 @@ $$
 
 ---
 
-## 배치 역전파
+## 9. 배치 역전파
 
 (행 우선 관례에서) 표본 $B$개의 미니배치에 대해 배치 평균 경사는 다음과 같다.
 
@@ -238,7 +243,7 @@ $$
 
 ---
 
-## PyTorch 구현
+## 10. PyTorch 구현
 
 ### 직접 구현한 역전파
 
@@ -376,7 +381,7 @@ print("\n✓ All gradients verified!")
 
 ---
 
-## 계산 복잡도
+## 11. 계산 복잡도
 
 ### 순전파와 역전파의 비용
 
@@ -404,7 +409,7 @@ $$
 
 ---
 
-## 흔히 빠지는 함정
+## 12. 흔히 빠지는 함정
 
 ### 1. 경사를 0으로 만드는 것을 잊기
 
@@ -451,7 +456,7 @@ output = decoder(hidden)        # 부호기가 역전파로 갱신된다
 
 ---
 
-## 핵심 정리
+## 13. 핵심 정리
 
 !!! success "요약"
 
@@ -466,13 +471,6 @@ output = decoder(hidden)        # 부호기가 역전파로 갱신된다
     6. **PyTorch의 autograd**는 계산 그래프를 통해 역전파를 자동으로 구현한다
 
 ---
-
-## 참고 문헌
-
-- Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). Learning representations by back-propagating errors. *Nature*, 323(6088), 533–536.
-- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapter 6.5.
-- Nielsen, M. A. (2015). *Neural Networks and Deep Learning*. Determination Press. Chapter 2.
-- Griewank, A., & Walther, A. (2008). *Evaluating Derivatives*. SIAM.
 
 ## 연습문제
 
@@ -513,3 +511,14 @@ MSE 손실을 쓰는 단층 신경망 $y = \sigma(Wx + b)$의 역전파 갱신�
             grad.view(-1)[i] = (f(x_plus) - f(x_minus)) / (2 * eps)
         return grad
     ```
+
+## 정리하며
+
+이 마당은 학습 목표、미리 알아야 할 것、개요、문제 설정을 차례로 짚었다.
+
+**참고 문헌**
+
+- Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). Learning representations by back-propagating errors. *Nature*, 323(6088), 533–536.
+- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapter 6.5.
+- Nielsen, M. A. (2015). *Neural Networks and Deep Learning*. Determination Press. Chapter 2.
+- Griewank, A., & Walther, A. (2008). *Evaluating Derivatives*. SIAM.

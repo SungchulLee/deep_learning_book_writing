@@ -2,7 +2,9 @@
 
 최적화가 없으면 `find` 연산은 마디에서 뿌리까지 어버이 가리개의 사슬을 지나간다. 나무가 깊으면 이 지나감이 느리다. **길 줄이기**는 `find`마다 나무를 납작하게 만들어 앞으로의 `find`을 빠르게 한다. 곧 뿌리를 찾은 뒤 그 길 위의 모든 마디가 뿌리를 곧바로 가리키도록 고친다. 그러면 그 마디들에 대한 다음 `find`은 $O(1)$이 든다. 연산 $m$번의 늘어놓음에서 (계급으로 합치기와 어우러진) 길 줄이기는 모두 $O(m \cdot \alpha(n))$ 시간을 이룬다.
 
-## 세 갈래
+---
+
+## 1. 세 갈래
 
 흔한 길 줄이기 전략이 셋 있으며 모두 같은 고르게 친 경계를 이룬다:
 
@@ -31,7 +33,9 @@ Before find(5):     After find(5):
 
 길 위의 한 마디 건너 하나씩 자기 할아비를 가리키도록 고친다. 이는 길 쪼개기의 절반만큼 마디를 건드리지만 같은 고르게 친 경계를 이룬다.
 
-## 갈래 견주기
+---
+
+## 2. 갈래 견주기
 
 | 갈래 | 훑기 횟수 | 고치는 마디 | 구현 |
 |---------|--------|---------------|----------------|
@@ -41,7 +45,9 @@ Before find(5):     After find(5):
 
 셋 모두 계급으로 합치기와 어우러지면 고르게 친 $O(m \cdot \alpha(n))$ 시간을 이룬다. 실전에서의 차이는 무시할 만하다.
 
-## 구현
+---
+
+## 3. 구현
 
 ```python
 """
@@ -51,7 +57,6 @@ Before find(5):     After find(5):
 줄이기를 보인다. 계급으로 합치기와 어우러지면 셋 모두
 연산마다 고르게 친 O(alpha(n))을 이룬다.
 """
-
 
 # === 온전한 길 줄이기(되돌이) ===
 
@@ -83,7 +88,6 @@ class UnionFindFullCompression:
         if self.rank[ra] == self.rank[rb]:
             self.rank[ra] += 1
         return True
-
 
 # === 길 쪼개기 ===
 
@@ -118,7 +122,6 @@ class UnionFindPathSplitting:
             self.rank[ra] += 1
         return True
 
-
 # === 길 반으로 줄이기 ===
 
 class UnionFindPathHalving:
@@ -150,7 +153,6 @@ class UnionFindPathHalving:
         if self.rank[ra] == self.rank[rb]:
             self.rank[ra] += 1
         return True
-
 
 # === 시연 ===
 
@@ -212,10 +214,7 @@ All variants produce correct connectivity results.
 !!! tip "어느 갈래를 쓸까?"
     온전한 길 줄이기는 가장 납작한 나무를 만들고 따져 보기도 가장 단순하다. 길 쪼개기와 반으로 줄이기는 되풀이 꼴이라(되돌이 쌓임이 없고) 메모리에 덜 써서 실전에서 조금 더 빠르다. 대부분의 쓰임새에서 차이는 무시할 만하니 자기 코드에서 가장 또렷한 것을 고르면 된다.
 
-## 참고 문헌
-
-- Tarjan, R. E., & van Leeuwen, J. (1984). Worst-case analysis of set union algorithms. *Journal of the ACM*, 31(2), 245-281.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 19장. MIT Press.
+---
 
 ## 연습문제
 
@@ -248,3 +247,12 @@ All variants produce correct connectivity results.
 
 ??? success "연습문제 4 풀이"
     아니다. 길 줄이기는 어버이 가리개만 바꾸고 계급은 바꾸지 않는다. 줄인 뒤에는 (예전 자식들이 이제 뿌리를 곧바로 가리키므로) 마디의 계급이 실제 부분 나무 높이보다 클 수 있다. 그래서 계급은 정확한 높이가 아니라 높이의 위 경계이다. 줄일 때 계급을 고치지 않는 것은 일부러 그렇게 짠 것이다. 이러면 Union 연산이 단순하게 남고(계급만 견주면 된다) 고르게 친 살피기도 옳게 남는다. 정확한 높이를 좇으려면 줄일 때마다 많은 마디의 높이를 고쳐야 해서 비쌀 것이다. $\square$
+
+## 정리하며
+
+이 마당은 세 갈래、갈래 견주기、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Tarjan, R. E., & van Leeuwen, J. (1984). Worst-case analysis of set union algorithms. *Journal of the ACM*, 31(2), 245-281.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 19장. MIT Press.

@@ -1,16 +1,23 @@
 # 큰 말 모델의 규모 법칙
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 큰 말 모델의 성능을 다스리는 실증 규모 법칙을 이해한다
 - 셈에 가장 알맞은 익히기 자리매김을 이끌어 낸다
 - 친칠라 규모 키우기로 모델과 자료의 크기를 정한다
 - 매개변수, 자료, 셈 사이의 맞바꿈을 살핀다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 규모 법칙은 모델 성능과 세 핵심 요소, 곧 모델 크기(매개변수), 자료 뭉치 크기(토막), 셈 예산(FLOPs) 사이의 어림할 수 있는 관계를 그린다. 이 실증 법칙 덕분에 연구자는 익히기 전에 성능을 어림하고 자원 나눔을 가장 좋게 할 수 있다.
 
-## 캐플런 규모 법칙(OpenAI, 2020)
+---
+
+## 3. 캐플런 규모 법칙(OpenAI, 2020)
 
 ### 거듭제곱 법칙 관계
 
@@ -42,7 +49,9 @@ $$L(N, D) = \left[\left(\frac{N_c}{N}\right)^{\frac{\alpha_N}{\alpha_D}} + \frac
 2. **모델 크기가 좌우한다**: 큰 모델이 표본을 더 아낀다
 3. **셈 예산**: 셈이 정해졌으면 자료를 덜 쓰고 익힌 큰 모델을 낫게 여긴다
 
-## 친칠라 규모 법칙(DeepMind, 2022)
+---
+
+## 4. 친칠라 규모 법칙(DeepMind, 2022)
 
 ### 고쳐진 가장 좋은 나눔
 
@@ -79,7 +88,9 @@ $$D_{opt} \propto C^{0.50}$$
 
 친칠라는 4배 작고 자료를 4배 더 써서 대부분의 잣대에서 Gopher를 앞섰다.
 
-## 실전 쓰임새
+---
+
+## 5. 실전 쓰임새
 
 ### 필요한 셈 어림하기
 
@@ -105,7 +116,6 @@ def estimate_training_flops(
         익히기의 전체 FLOPs
     """
     return flops_per_token_per_param * num_parameters * num_tokens
-
 
 def chinchilla_optimal_config(
     compute_budget_flops: float,
@@ -134,7 +144,6 @@ def chinchilla_optimal_config(
         'tokens_per_parameter': optimal_d / optimal_n
     }
 
-
 # 보기: 10^24 FLOPs 예산
 config = chinchilla_optimal_config(1e24)
 print(f"Optimal parameters: {config['optimal_parameters'] / 1e9:.1f}B")
@@ -162,7 +171,6 @@ def predict_loss_chinchilla(
     """
     return E + A / (num_parameters ** alpha) + B / (num_tokens ** beta)
 
-
 # 여러 자리매김을 견준다
 configs = [
     ("7B, 1T tokens", 7e9, 1e12),
@@ -176,7 +184,9 @@ for name, n, d in configs:
     print(f"{name}: predicted loss = {loss:.3f}")
 ```
 
-## 친칠라를 넘어: 최근의 발견
+---
+
+## 6. 친칠라를 넘어: 최근의 발견
 
 ### LLaMA의 규모 철학
 
@@ -215,7 +225,9 @@ $$L(N, D, Q) = E + \frac{A}{N^\alpha} + \frac{B}{(D \cdot Q)^\beta}$$
 
 여기서 $Q$은 자료의 좋음(거르기, 겹침 없애기)을 나타낸다.
 
-## 규모 법칙의 한계
+---
+
+## 7. 규모 법칙의 한계
 
 ### 규모 법칙이 담아내지 못하는 것
 
@@ -247,25 +259,15 @@ def scaling_uncertainty(
     return lower, upper
 ```
 
-## 요약
+---
 
-| 규모 법칙 | 핵심 눈썰미 | 가장 좋은 비(N:D) |
-|-------------|-------------|---------------------|
-| 캐플런(2020) | 큰 모델이 더 효율적 | 약 10:1(매개변수를 앞세움) |
-| 친칠라(2022) | 자료도 똑같이 중요 | 약 1:1(균형) |
-| LLaMA(2023) | 미룸 값이 중요 | 약 1:20 이상(자료를 앞세움) |
-
-## 핵심 식
+## 8. 핵심 식
 
 $$\boxed{L(N, D) = E + \frac{A}{N^\alpha} + \frac{B}{D^\beta}}$$
 
 $$\boxed{C_{opt} = 6 \cdot N_{opt} \cdot D_{opt}, \quad N_{opt} \approx D_{opt}}$$
 
-## 참고 문헌
-
-1. Kaplan, J., et al. (2020). Scaling Laws for Neural Language Models. *arXiv:2001.08361*.
-2. Hoffmann, J., et al. (2022). Training Compute-Optimal Large Language Models. *arXiv:2203.15556*.
-3. Touvron, H., et al. (2023). LLaMA: Open and Efficient Foundation Language Models. *arXiv:2302.13971*.
+---
 
 ## 연습문제
 
@@ -298,3 +300,17 @@ $$\boxed{C_{opt} = 6 \cdot N_{opt} \cdot D_{opt}, \quad N_{opt} \approx D_{opt}}
 
 ??? success "연습문제 4 풀이"
     $C = 6ND$(변환기 익힘의 어림 뜨는 셈 횟수)을 쓰는 친칠라 크기 법칙을 쓴다. $10^{23} = 6ND$이고 가장 좋은 $D \approx 20N$이다. 넣어 보면 $10^{23} = 6N \cdot 20N = 120N^2$이므로 $N \approx \sqrt{10^{23}/120} \approx 2.9 \times 10^{10}$, 곧 매개변수 약 290억 개다. 익힘 토막은 $D = 10^{23}/(6 \times 29 \times 10^9) \approx 5750$억 개다. 이렇게 나누면 셈을 가장 잘 쓰는 견줌을 따르므로, 같은 셈 예산에서 덜 익힌 더 큰 모델(1750억을 토막 960억 개로)이나 지나치게 익힌 더 작은 모델(70억을 토막 2조 4000억 개로)보다 낫다.
+
+## 정리하며
+
+| 규모 법칙 | 핵심 눈썰미 | 가장 좋은 비(N:D) |
+|-------------|-------------|---------------------|
+| 캐플런(2020) | 큰 모델이 더 효율적 | 약 10:1(매개변수를 앞세움) |
+| 친칠라(2022) | 자료도 똑같이 중요 | 약 1:1(균형) |
+| LLaMA(2023) | 미룸 값이 중요 | 약 1:20 이상(자료를 앞세움) |
+
+**참고 문헌**
+
+1. Kaplan, J., et al. (2020). Scaling Laws for Neural Language Models. *arXiv:2001.08361*.
+2. Hoffmann, J., et al. (2022). Training Compute-Optimal Large Language Models. *arXiv:2203.15556*.
+3. Touvron, H., et al. (2023). LLaMA: Open and Efficient Foundation Language Models. *arXiv:2302.13971*.

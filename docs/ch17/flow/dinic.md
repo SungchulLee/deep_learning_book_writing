@@ -2,7 +2,9 @@
 
 에드먼즈-카프 알고리즘은 늘 최단 늘림 경로를 골라 포드-풀커슨을 낫게 하지만, 여전히 되순환마다 길 하나로만 흐름을 보낸다. 디닉 알고리즘(디니츠라고도 적는다)은 이 깨침을 더 밀고 간다. 근원에서 바닥으로 가는 최단 경로를 모두 담은 **켜 그래프**를 짓고, 그 얼개를 거쳐 한 판에 될 수 있는 대로 많은 흐름을 보낸다. 그래서 가장 나쁠 시간 복잡도가 $O(V^2 E)$이며, 담이가 모두 1인 그물에서는 $O(E\sqrt{V})$ 때에 돌아 특히 잘 듣는다.
 
-## 켜 그래프
+---
+
+## 1. 켜 그래프
 
 **켜 그래프**(또는 **층 그래프**)는 근원에서의 거리에 따라 남은 그래프를 켜로 갈라 놓는다.
 
@@ -14,7 +16,9 @@
 
 너비 우선 돌아보기로 $t$에 닿지 못하면 늘림 경로가 없으므로 알고리즘이 끝난다. 지금 흐름이 최대이다.
 
-## 막는 흐름
+---
+
+## 2. 막는 흐름
 
 켜 그래프 $G_L$의 **막는 흐름**은 $G_L$에서 $s$에서 $t$으로 가는 모든 경로가 꽉 찬 변(흐름이 남은 담이와 같은 변)을 적어도 하나 갖게 하는 흐름 $f'$이다. 다시 말해 막는 흐름을 더하고 나면 $G_L$에 $s$-$t$ 경로가 남지 않는다.
 
@@ -24,7 +28,9 @@
 
 가리개를 잘 다루면(다시 시작하지 않고 가리개를 앞으로 밀면) 막는 흐름을 찾는 전체 품은 $O(VE)$이다.
 
-## 알고리즘
+---
+
+## 3. 알고리즘
 
 디닉 알고리즘은 켜 그래프 세우기와 막는 흐름 찾기, 이 두 단계를 늘림 경로가 없어질 때까지 되풀이한다.
 
@@ -42,7 +48,9 @@ DINIC(G, s, t):
 
 바깥 되풀이의 한 바퀴를 **단계**라 한다. 단계마다 남은 그래프에서 $s$부터 $t$까지의 거리가 적어도 1 늘어난다. 이 거리가 $|V| - 1$ 아래로 묶이므로 단계는 많아야 $|V| - 1$개이다.
 
-## 복잡도 분석
+---
+
+## 4. 복잡도 분석
 
 **보조정리(거리가 늚).** $d_f(s, t)$을 $G_f$에서 $s$부터 $t$까지 최단 경로의 거리라 하자. 켜 그래프에 막는 흐름을 더한 뒤에는 $d_{f'}(s, t) > d_f(s, t)$이다.
 
@@ -57,7 +65,9 @@ DINIC(G, s, t):
 
 전체 시간은 $O(V) \cdot O(VE) = O(V^2 E)$이다. $\square$
 
-## 담이가 1인 그물
+---
+
+## 5. 담이가 1인 그물
 
 변마다 담이가 1인 그물에서 디닉 알고리즘은 $O(E\sqrt{V})$ 때를 이룬다.
 
@@ -67,7 +77,9 @@ Total: $O(\sqrt{V}) \cdot O(E) = O(E\sqrt{V})$.
 
 그래서 두 쪽 짝짓기에는 디닉 알고리즘을 고른다. 바탕 그물의 담이가 모두 1이고 $O(E\sqrt{V})$이 가장 큰 두 쪽 짝짓기에서 알려진 가장 좋은 테두리와 같기 때문이다.
 
-## 풀이 예제
+---
+
+## 6. 풀이 예제
 
 꼭짓점이 $\{s, a, b, c, t\}$이고 변이 다음과 같은 그물을 보자.
 
@@ -93,7 +105,9 @@ Total: $O(\sqrt{V}) \cdot O(E) = O(E\sqrt{V})$.
 
 **2단계.** 고쳐진 남은 그래프 위에 켜 그래프를 다시 세운다. $s$에서 $t$까지의 거리가 늘었다. 너비 우선 돌아보기가 $t$에 닿지 못할 때까지 이어 가며, 그때 흐름이 최대이다.
 
-## 파이썬 구현
+---
+
+## 7. 파이썬 구현
 
 ```python
 """
@@ -117,14 +131,12 @@ class Edge:
         self.cap = cap
         self.rev = rev  # graph[to]에 있는 거꿀 변의 번호
 
-
 # === 그래프 세우기 ===
 
 def add_edge(graph: list, u: int, v: int, cap: int) -> None:
     """담이가 주어진 변 u -> v과 담이 0인 거꿀 변을 더한다."""
     graph[u].append(Edge(v, cap, len(graph[v])))
     graph[v].append(Edge(u, 0, len(graph[u]) - 1))
-
 
 # === 켜 그래프를 위한 너비 우선 돌아보기 ===
 
@@ -141,7 +153,6 @@ def bfs(graph: list, s: int, t: int, level: list) -> bool:
                 level[e.to] = level[u] + 1
                 queue.append(e.to)
     return level[t] >= 0
-
 
 # === 막는 흐름을 위한 깊이 우선 돌아보기 ===
 
@@ -160,7 +171,6 @@ def dfs(graph: list, u: int, t: int, f: int,
                 return d
         iter_[u] += 1
     return 0
-
 
 # === 주된 알고리즘 ===
 
@@ -201,7 +211,6 @@ def dinic(n: int, edges: list, s: int, t: int) -> int:
 
     return flow
 
-
 # === 보기 ===
 
 if __name__ == "__main__":
@@ -219,7 +228,9 @@ if __name__ == "__main__":
     print(f"Maximum flow: {result}")
 ```
 
-## 에드먼즈-카프와의 견줌
+---
+
+## 8. 에드먼즈-카프와의 견줌
 
 | 성질 | 에드먼즈-카프 | 디닉 |
 |----------|-------------|---------|
@@ -230,10 +241,7 @@ if __name__ == "__main__":
 
 $V < E$이면 디닉 알고리즘이 에드먼즈-카프보다 낫고, 빽빽한 그물에서는 흔히 그렇다. $E = O(V)$인 성긴 그래프에서는 둘 다 $O(V^3)$이다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 24, 26장.
-- Dinitz, Y. (1970). Algorithm for solution of a problem of maximum flow in networks with power estimation. *Doklady Akademii Nauk SSSR*, 194(4).
+---
 
 ## 연습문제
 
@@ -272,3 +280,12 @@ $V < E$이면 디닉 알고리즘이 에드먼즈-카프보다 낫고, 빽빽한
     | 디닉 | $O(V^2 E)$ | 켜 그래프 + 막는 흐름. 담이가 1이면 $O(E\sqrt{V})$ |
 
     참으로 쓰는 자리에서는 디닉이 대체로 가장 빠르며, 성긴 그래프와 담이가 1인 그물에서 특히 그렇다. $\square$
+
+## 정리하며
+
+이 마당은 켜 그래프、막는 흐름、알고리즘、복잡도 분석을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 24, 26장.
+- Dinitz, Y. (1970). Algorithm for solution of a problem of maximum flow in networks with power estimation. *Doklady Akademii Nauk SSSR*, 194(4).

@@ -1,16 +1,23 @@
 # LoRA: 낮은 계수 맞추기
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 낮은 계수 맞추기의 수학 바탕을 이해한다
 - LoRA를 맨바닥부터 짜고 변환기 모델에 쓴다
 - LoRA의 웃매개변수(계수, 알파, 목표 단원)를 정한다
 - 덧짐 없는 미룸을 위해 LoRA 무게를 어울린다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 LoRA(낮은 계수 맞추기)는 미리 익힌 모델 무게를 얼리고 층마다 익힐 수 있는 낮은 계수 쪼갬 행렬을 끼워 넣는, 매개변수를 아끼는 곱게 다듬기 방법이다. 익힐 매개변수를 1만분의 1로 줄이면서 온전한 곱게 다듬기에 맞먹는 성능을 낸다.
 
-## 수학적 바탕
+---
+
+## 3. 수학적 바탕
 
 ### 핵심 생각
 
@@ -68,7 +75,9 @@ $$
 - 온전히: 매개변수 16,777,216개
 - LoRA: 매개변수 65,536개(0.39%)
 
-## 구현
+---
+
+## 4. 구현
 
 ### 고갱이 LoRA 층
 
@@ -78,7 +87,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 from typing import Optional, List, Dict, Any
-
 
 class LoRALayer(nn.Module):
     """
@@ -194,7 +202,6 @@ class LoRALayer(nn.Module):
         """익힐 수 있는 LoRA 매개변수의 수."""
         return self.lora_A.numel() + self.lora_B.numel()
 
-
 class LoRALinear(nn.Module):
     """
     홀로 서는 LoRA 선형 층(이미 있는 층을 감싸지 않는다).
@@ -247,7 +254,6 @@ class LoRALinear(nn.Module):
 from dataclasses import dataclass, field
 from typing import Set
 
-
 @dataclass
 class LoRAConfig:
     """LoRA 맞추기의 자리매김."""
@@ -258,7 +264,6 @@ class LoRAConfig:
     target_modules: Set[str] = field(default_factory=lambda: {'q_proj', 'v_proj'})
     # target_modules에 맞더라도 빼는 모듈
     exclude_modules: Set[str] = field(default_factory=set)
-
 
 def apply_lora_to_model(
     model: nn.Module,
@@ -313,7 +318,6 @@ def apply_lora_to_model(
     print(f"\nTotal LoRA layers: {len(replacements)}")
     return model
 
-
 def get_lora_state_dict(model: nn.Module) -> Dict[str, torch.Tensor]:
     """
     모델 상태 사전에서 LoRA 매개변수만 뽑는다.
@@ -324,7 +328,6 @@ def get_lora_state_dict(model: nn.Module) -> Dict[str, torch.Tensor]:
         name: param for name, param in model.state_dict().items()
         if 'lora_' in name
     }
-
 
 def load_lora_state_dict(model: nn.Module, state_dict: Dict[str, torch.Tensor]):
     """LoRA 매개변수를 모델에 불러온다."""
@@ -350,7 +353,6 @@ def get_lora_parameters(model: nn.Module) -> List[nn.Parameter]:
             params.append(param)
     return params
 
-
 def count_parameters(model: nn.Module) -> Dict[str, int]:
     """익힐 수 있는 매개변수와 전체 매개변수를 센다."""
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -365,20 +367,17 @@ def count_parameters(model: nn.Module) -> Dict[str, int]:
         'lora_percent': 100.0 * lora / total
     }
 
-
 def freeze_non_lora(model: nn.Module):
     """LoRA만 빼고 모든 매개변수를 얼린다."""
     for name, param in model.named_parameters():
         if 'lora_' not in name:
             param.requires_grad = False
 
-
 def merge_lora_weights(model: nn.Module):
     """미룸을 위해 모델의 모든 LoRA 무게를 합친다."""
     for module in model.modules():
         if isinstance(module, LoRALayer):
             module.merge_weights()
-
 
 def unmerge_lora_weights(model: nn.Module):
     """모델의 모든 LoRA 무게 합치기를 되돌린다."""
@@ -387,7 +386,9 @@ def unmerge_lora_weights(model: nn.Module):
             module.unmerge_weights()
 ```
 
-## 웃매개변수 길잡이
+---
+
+## 5. 웃매개변수 길잡이
 
 ### 계수 고르기
 
@@ -442,7 +443,9 @@ LoRA는 온전한 곱게 다듬기보다 큰 배움 비율을 쓰는 것이 보�
 | 온전한 곱게 다듬기 | 1e-5 ~ 5e-5 |
 | LoRA | 1e-4 ~ 3e-4 |
 
-## 더 깊은 주제
+---
+
+## 6. 더 깊은 주제
 
 ### 여러 일에 쓰는 LoRA
 
@@ -523,13 +526,14 @@ class rsLoRALayer(LoRALayer):
         self.scaling = self.alpha / math.sqrt(self.rank)
 ```
 
-## 완전한 학습 예제
+---
+
+## 7. 완전한 학습 예제
 
 ```python
 import torch
 from torch.utils.data import DataLoader
 from transformers import AutoModelForCausalLM, AutoTokenizer
-
 
 def train_lora(
     model_name: str,
@@ -596,7 +600,6 @@ def train_lora(
     
     return model
 
-
 # 사용 예
 if __name__ == "__main__":
     config = LoRAConfig(
@@ -609,22 +612,7 @@ if __name__ == "__main__":
     # model = train_lora("meta-llama/Llama-2-7b-hf", train_dl, eval_dl, config)
 ```
 
-## 요약
-
-| 살필 점 | 권하는 바 |
-|--------|----------------|
-| **계수** | 8로 시작해 일의 복잡도에 따라 맞춘다 |
-| **알파** | 붙박이로 계수의 2배를 쓴다 |
-| **목표** | 대부분의 일에 q_proj + v_proj |
-| **배움 비율** | 1e-4 ~ 3e-4(온전한 곱게 다듬기보다 크다) |
-| **떨구기** | 벌주기로 0.05~0.1 |
-
-## 참고 문헌
-
-1. Hu, E., et al. (2021). "LoRA: Low-Rank Adaptation of Large Language Models." ICLR 2022.
-2. Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs."
-3. Hayou, S., et al. (2024). "LoRA+: Efficient Low Rank Adaptation of Large Models."
-4. Kalajdzievski, D. (2023). "Rank-Stabilized LoRA: Unlocking the Potential of LoRA Fine-Tuning."
+---
 
 ## 연습문제
 
@@ -663,3 +651,20 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 
 ??? success "연습문제 4 풀이"
     QLoRA은 밑 모델을 4비트로 수 줄이고 LoRA 맞춤개는 fp16/bf16으로 두어 둘을 아우른다. 밑 무게 $W_0$은 4비트 NormalFloat 꼴로 담기므로(매개변수마다 $\sim$0.5바이트) 700억 모델의 기억 자리가 140GB에서 $\sim$35GB으로 준다. LoRA 맞춤개는 익힘이 든든하도록 더 촘촘한 꼴로 남는다. 여기에 겹 수 줄이기(수 줄이기 상수를 다시 수 줄이기)와 쪽 넘김 가장 좋게 하개(가장 좋게 하개 상태가 치솟을 때 CPU 기억 자리를 씀)라는 새로움이 더해진다. 그래서 48GB GPU(A6000) 한 장으로 650억 모델을 곱게 다듬을 수 있고, 값비싼 여러 GPU 무리 없이도 연구자와 작은 조직이 큰 말 모델을 맞출 수 있게 된다.
+
+## 정리하며
+
+| 살필 점 | 권하는 바 |
+|--------|----------------|
+| **계수** | 8로 시작해 일의 복잡도에 따라 맞춘다 |
+| **알파** | 붙박이로 계수의 2배를 쓴다 |
+| **목표** | 대부분의 일에 q_proj + v_proj |
+| **배움 비율** | 1e-4 ~ 3e-4(온전한 곱게 다듬기보다 크다) |
+| **떨구기** | 벌주기로 0.05~0.1 |
+
+**참고 문헌**
+
+1. Hu, E., et al. (2021). "LoRA: Low-Rank Adaptation of Large Language Models." ICLR 2022.
+2. Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs."
+3. Hayou, S., et al. (2024). "LoRA+: Efficient Low Rank Adaptation of Large Models."
+4. Kalajdzievski, D. (2023). "Rank-Stabilized LoRA: Unlocking the Potential of LoRA Fine-Tuning."

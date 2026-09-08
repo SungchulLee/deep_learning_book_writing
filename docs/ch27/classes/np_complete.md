@@ -2,13 +2,17 @@
 
 NP에 든다고 알려진 수천 개의 문제 가운데 눈에 띄는 무리가 있다. *NP의 다른 모든 문제보다 적어도 어려운* 문제들이다. 이들이 **NP 완전** 문제이다. NP 완전 문제 가운데 어느 하나라도 다항 시간 알고리즘이 나오면 NP의 *모든* 문제를 다항 시간에 풀 수 있게 되어 P 대 NP 물음이 아예 무너진다. 그래서 NP 완전성은 셈 복잡도 이론의 한가운데 개념이다.
 
-## 직관
+---
+
+## 1. 직관
 
 서로 줄여질 수 있는 문제들의 거대한 그물을 그려 보라. NP 완전 문제는 NP의 "가장 어려운" 끝에 놓인다. NP의 모든 문제를 효율 좋게 그것으로 바꿀 수 있다. NP 완전 문제 하나를 효율 좋게 풀면 NP의 모든 문제로 가는 효율 좋은 뒷문이 열린다.
 
 이 개념은 두 기둥에 기댄다. 문제는 (1) 모든 NP 문제가 그것으로 줄여질 만큼 어려워야 하고, (2) NP를 아예 벗어날 만큼 어렵지는 않아야 한다. 즉 그 풀이는 여전히 효율 좋게 살필 수 있어야 한다.
 
-## 엄밀한 정의
+---
+
+## 2. 엄밀한 정의
 
 다음 두 조건을 만족하면 말 $L$은 **NP 완전**이다:
 
@@ -28,7 +32,9 @@ $$
 
     이는 예와 아니오 답을 지키면서 $A$의 사례를 $L$의 사례로 바꾼다.
 
-## 무엇이 중요한가
+---
+
+## 3. 무엇이 중요한가
 
 ### P 대 NP의 쐐기
 
@@ -42,7 +48,9 @@ $$
 
 같은 말로 $\mathbf{P} \neq \mathbf{NP}$이면 *어떤* NP 완전 문제에도 다항 시간 알고리즘이 없다. 이는 다루기 어려움을 세우는 힘센 도구가 된다. 어떤 문제가 NP 완전임을 보이면 $\mathbf{P} \neq \mathbf{NP}$이라는 널리 퍼진 믿음이 효율 좋은 알고리즘이 없다는 강한 증거가 된다.
 
-## NP 완전성 밝히기
+---
+
+## 4. NP 완전성 밝히기
 
 첫 NP 완전 문제(SAT)는 쿡과 레빈이 곧바로 세웠으며 이들은 어떤 NP 셈도 부울 식으로 적을 수 있음을 보였다. 그 뒤의 문제에는 **알려진 NP 완전 문제에서 줄이기**가 여느 재주이다.
 
@@ -57,7 +65,9 @@ $$
 !!! tip "줄임의 방향"
     흔한 잘못은 방향을 거꾸로 줄이는 것이다. $L$이 NP 어려움임을 밝히려면 알려진 어려운 문제*에서* $L$*으로* 줄여야 하며 그 반대가 아니다. 줄임 $L' \leq_p L$은 "$L$을 푸는 것은 $L'$을 푸는 것보다 적어도 어렵다"는 뜻이다.
 
-## 줄임의 그물
+---
+
+## 5. 줄임의 그물
 
 쿡-레빈 정리가 SAT을 NP 완전으로 세우자 줄임이 잇달아 이어지며 많은 다른 문제의 NP 완전성이 밝혀졌다:
 
@@ -78,7 +88,9 @@ SAT
 
 화살표마다 다항 시간 줄임을 나타낸다. 이 나무는 있을 수 있는 사슬 하나를 보이며 다른 줄임 길도 많다.
 
-## 으뜸 NP 완전 문제
+---
+
+## 6. 으뜸 NP 완전 문제
 
 | 문제 | 들임 | 물음 |
 |---------|-------|----------|
@@ -91,7 +103,9 @@ SAT
 | 부분 모임 합 | 모임 $S$, 목표 $t$ | $\sum S' = t$인 $S' \subseteq S$이 있는가? |
 | 3색 칠하기 | 그래프 $G$ | $G$을 3색으로 칠할 수 있는가? |
 
-## 알고리즘 설계에 대한 함의
+---
+
+## 7. 알고리즘 설계에 대한 함의
 
 어떤 문제가 NP 완전으로 밝혀지면 실제로는 정확한 다항 시간 알고리즘 찾기를 접고 대신 다음을 좇는다:
 
@@ -103,11 +117,7 @@ SAT
 !!! warning "NP 완전은 풀 수 없다는 뜻이 아니다"
     NP 완전성은 *가장 나쁜 경우*에 대한 글월이다. 많은 NP 완전 문제가 SAT 풀개, 정수 계획, 제약 계획으로 실제 사례에서 늘 풀린다. 요즘 SAT 풀개는 변수가 수백만 개인 산업 사례를 다룬다.
 
-## 참고 문헌
-
-- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
-- Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
-- Garey, M. R. and Johnson, D. S. *Computers and Intractability: A Guide to the Theory of NP-Completeness*. W. H. Freeman.
+---
 
 ## 연습문제
 
@@ -165,3 +175,13 @@ NP 완전 문제의 여 문제가 여 NP 완전임을 보여라.
     다음으로 $\bar{L}$은 여 NP 어려움이다. $A \in \mathbf{co\text{-}NP}$을 아무거나 잡자. 그러면 $\bar{A} \in \mathbf{NP}$이다. $L$이 NP 어려움이므로 어떤 줄임 $f$으로 $\bar{A} \leq_p L$이다. 이는 $x \in \bar{A} \iff f(x) \in L$을 뜻하고 이는 $x \in A \iff f(x) \in \bar{L}$과 같다. 따라서 $A \leq_p \bar{L}$이다. $A$이 아무 여 NP 말이었으므로 $\bar{L}$은 여 NP 어려움이다.
 
     둘을 합치면 $\bar{L}$은 여 NP 완전이다.
+
+## 정리하며
+
+이 마당은 직관、엄밀한 정의、무엇이 중요한가、NP 완전성 밝히기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
+- Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
+- Garey, M. R. and Johnson, D. S. *Computers and Intractability: A Guide to the Theory of NP-Completeness*. W. H. Freeman.

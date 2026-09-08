@@ -2,7 +2,9 @@
 
 많은 기하 문제는 점과 선(또는 도막)에 대한 두 가지 기본 물음으로 줄어든다. 점이 선의 어느 쪽에 있는가, 점은 선에서 얼마나 먼가? 첫 물음은 방향 살피기(어긋 곱 부호)를, 둘째 물음은 쏘기 공식을 쓴다. 이 밑감들이 함께 가장 가까운 점 묻기, 다각형 단순화, 선 맞추기 알고리즘을 받쳐 준다.
 
-## 선 나타내기
+---
+
+## 1. 선 나타내기
 
 2차원의 선은 여러 방식으로 나타낼 수 있다.
 
@@ -20,7 +22,9 @@ $$
 
 여기서 $a = b_y - a_y$, $b = -(b_x - a_x)$, $c = -a \cdot a_x - b \cdot a_y$이다.
 
-## 선의 어느 쪽인지 살피기
+---
+
+## 2. 선의 어느 쪽인지 살피기
 
 어긋 곱은 점 $P$이 선 $\overleftrightarrow{AB}$의 어느 쪽에 있는지 정한다.
 
@@ -36,7 +40,9 @@ $$
 
 이는 세 점 $(A, B, P)$에 쓴 방향 살피기 바로 그것이다.
 
-## 점과 선 사이 거리
+---
+
+## 3. 점과 선 사이 거리
 
 점 $P$에서 $A$과 $B$을 지나는 선까지의 부호 있는 거리는 다음과 같다.
 
@@ -49,7 +55,9 @@ $$
 !!! note "분자는 어긋 곱이다"
     분자는 선의 어느 쪽인지 살피기에 쓰는 것과 같은 어긋 곱이다. $\overrightarrow{AB}$의 길이로 나누면 참된 유클리드 거리로 고르게 된다.
 
-## 점과 도막 사이 거리
+---
+
+## 4. 점과 도막 사이 거리
 
 (끝없는 선이 아니라) *도막* $\overline{AB}$에서는 가장 가까운 점이 수선의 발이 아니라 $A$이나 $B$일 수 있다. $P$을 선 $\overleftrightarrow{AB}$에 쏜 매개변수 $t$을 쓴다.
 
@@ -61,7 +69,9 @@ $$
 - $t \ge 1$이면 가장 가까운 점은 $B$이다.
 - $0 < t < 1$이면 가장 가까운 점은 $A + t(B - A)$이다.
 
-## 풀이 예제
+---
+
+## 5. 풀이 예제
 
 $A = (1, 1)$, $B = (5, 3)$, $P = (3, 4)$이라 하자.
 
@@ -95,7 +105,9 @@ $$
 
 $0 < t < 1$이므로 수선의 발은 도막 위 $(1 + 0.7 \cdot 4,\, 1 + 0.7 \cdot 2) = (3.8, 2.4)$에 있다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -107,7 +119,6 @@ $0 < t < 1$이므로 수선의 발은 도막 위 $(1 + 0.7 \cdot 4,\, 1 + 0.7 \c
 
 import math
 
-
 # === 선의 어느 쪽인지 살피기 ===
 
 def side_of_line(a, b, p):
@@ -118,7 +129,6 @@ def side_of_line(a, b, p):
     """
     return (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
 
-
 # === 점과 선 사이 거리 ===
 
 def point_line_distance(a, b, p):
@@ -128,7 +138,6 @@ def point_line_distance(a, b, p):
     if length == 0:
         return math.hypot(p[0] - a[0], p[1] - a[1])
     return abs(cross) / length
-
 
 # === 점과 도막 사이 거리 ===
 
@@ -151,7 +160,6 @@ def point_segment_distance(a, b, p):
     proj_y = a[1] + t * dy
     return math.hypot(p[0] - proj_x, p[1] - proj_y)
 
-
 # === 도막 위 가장 가까운 점 ===
 
 def closest_point_on_segment(a, b, p):
@@ -164,7 +172,6 @@ def closest_point_on_segment(a, b, p):
 
     t = max(0, min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len_sq))
     return (a[0] + t * dx, a[1] + t * dy)
-
 
 # === 메인 ===
 
@@ -202,10 +209,7 @@ Distance to segment: 2.8284
 Closest point: (5, 3)
 ```
 
-## 참고 문헌
-
-- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
-- O'Rourke, J. *Computational Geometry in C*. Cambridge University Press.
+---
 
 ## 연습문제
 
@@ -238,3 +242,12 @@ Closest point: (5, 3)
 
 ??? success "연습문제 4 풀이"
     막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 점과 선의 관계은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$
+
+## 정리하며
+
+이 마당은 선 나타내기、선의 어느 쪽인지 살피기、점과 선 사이 거리、점과 도막 사이 거리을 차례로 짚었다.
+
+**참고 문헌**
+
+- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
+- O'Rourke, J. *Computational Geometry in C*. Cambridge University Press.

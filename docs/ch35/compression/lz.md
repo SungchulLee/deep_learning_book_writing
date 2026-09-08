@@ -2,7 +2,9 @@
 
 허프먼 부호 같은 통계 옥죄개는 글자 잦기를 미리 알아야 한다. 자료 샘을 모르거나 그 결이 흐르며 바뀔 때에는 **사전에 바탕을 둔** 방법이 도움이 된다. 앞서 본 무늬의 사전을 쌓아 두었다가 뒤에 다시 나오면 짧은 가리킴으로 갈음하며 그때그때 맞춰 간다. 아브라함 렘펠과 야코브 지브가 1977년과 1978년에 내놓은 두 바탕 길은 gzip에서 zstd에 이르기까지 요즘 잃음 없는 옥죄개의 거의 모두를 떠받친다.
 
-## LZ77 -- 미끄러지는 창
+---
+
+## 1. LZ77 -- 미끄러지는 창
 
 LZ77은 방금 다룬 자료 위에 **미끄러지는 창**을 지닌다. 창은 두 몫으로 나뉜다.
 
@@ -41,7 +43,9 @@ $$
 
 실제로 만들 때(보기로 gzip의 DEFLATE)에는 들어맞는 곳 찾기에 해시 사슬을 써서 $O(W)$ 기억으로 거의 곧게 늘어나는 됨됨이를 이룬다.
 
-## LZ78 -- 드러낸 사전
+---
+
+## 2. LZ78 -- 드러낸 사전
 
 LZ78은 다른 길을 간다. 미끄러지는 창 대신, 엮는 동안 자라나는 **드러낸 사전**을 세운다. 사전은 빈 글자열을 뜻하는 번호 0 하나로 시작한다.
 
@@ -78,7 +82,9 @@ $$
 
 사전을 트라이로 갈무리하므로 들임 글자마다 $O(1)$ 나눠 갚는 때가 든다. LZ77과 달리 사전이 매임 없이 자랄 수 있으므로 실제로 만들 때에는 사전 크기의 위끝을 둔다.
 
-## LZ77과 LZ78 견주기
+---
+
+## 3. LZ77과 LZ78 견주기
 
 | 성질 | LZ77 | LZ78 |
 |----------|------|------|
@@ -90,7 +96,9 @@ $$
 
 LZ77은 가까운 자리끼리 강하게 얽힌 자료에서 더 잘 돌고, LZ78은 아무리 멀리 떨어져 되풀이되는 무늬라도 살릴 수 있다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -129,7 +137,6 @@ def lz77_encode(data: str, window_size: int = 16) -> list[tuple[int, int, str]]:
 
     return tokens
 
-
 # === 푸는 개 =================================================================
 
 def lz77_decode(tokens: list[tuple[int, int, str]]) -> str:
@@ -142,7 +149,6 @@ def lz77_decode(tokens: list[tuple[int, int, str]]) -> str:
         if next_char:
             output.append(next_char)
     return "".join(output)
-
 
 # === 메인 ====================================================================
 
@@ -166,15 +172,13 @@ Decoded : AABCAABCAA
 Match   : True
 ```
 
-## 이치에서의 뜻
+---
+
+## 5. 이치에서의 뜻
 
 렘펠과 지브는 LZ77과 LZ78이 모두 **점근으로 가장 좋음**을 증명했다. 흐름이 바뀌지 않는 에르고드 샘에 대해, 들임 길이가 자람에 따라 옥죄기 비가 그 샘의 엔트로피 비율로 모인다. 샘의 분포를 모르고도 가장 좋은 옥죄기를 이루는 이 두루 쓰임이 종요로운 이치 몫이다.
 
-## 참고 문헌
-
-- [A Universal Algorithm for Sequential Data Compression (Ziv & Lempel, 1977)](https://ieeexplore.ieee.org/document/1055714)
-- [Compression of Individual Sequences via Variable-Rate Coding (Ziv & Lempel, 1978)](https://ieeexplore.ieee.org/document/1055934)
-- [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
+---
 
 ## 연습문제
 
@@ -215,3 +219,13 @@ zstd와 lz4 같은 요즘 옥죄개는 LZ77에 바탕을 두면서도 빠르기�
 
 ??? success "연습문제 5 풀이"
     거래 기록은 짜임이 뚜렷하다. 기록마다 때 도장, 종목 이름, 값, 수량 같은 밭이 어림할 수 있는 꼴로 놓인다. 밭 값도 자주 되풀이된다(같은 종목이 수많은 거래에 나오고 값은 조금씩만 달라진다). LZ77 바탕 옥죄개는 이 되풀이를 살린다. 수천 번 나오는 "AAPL"이 한 번만 엮이고 나머지는 되가리킴이 된다. 짜임 있는 기록 자료의 흔한 옥죄기 비는 5:1에서 10:1이며, 하루 20 GB를 2~4 GB로 줄인다. 실시간 옥죄기: lz4는 요즘 기계에서 초당 400 MB 넘게 옥죈다. 평균 적기 비율이 $200 \times 10^8 / 86400 \approx 231$ KB/s이므로 코어 하나로도 CPU를 $0.1\%$도 쓰지 않고 다룬다. 꼭두머리가 평균의 10배($\approx 2.3$ MB/s)여도 여전히 대수롭지 않다. 1단 zstd는 초당 약 500 MB로 옥죄면서 비가 더 좋다. 실시간 옥죄기는 넉넉히 될 만하며 금융 기록 곳간에서 여느 관행이다. $\square$
+
+## 정리하며
+
+이 마당은 LZ77 -- 미끄러지는 창、LZ78 -- 드러낸 사전、LZ77과 LZ78 견주기、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- [A Universal Algorithm for Sequential Data Compression (Ziv & Lempel, 1977)](https://ieeexplore.ieee.org/document/1055714)
+- [Compression of Individual Sequences via Variable-Rate Coding (Ziv & Lempel, 1978)](https://ieeexplore.ieee.org/document/1055934)
+- [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)

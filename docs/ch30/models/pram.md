@@ -6,7 +6,9 @@
 깔끔한 추상을
 준다.
 
-## 정의
+---
+
+## 1. 정의
 
 PRAM은 다음으로 이루어진다:
 
@@ -22,7 +24,9 @@ PRAM은 다음으로 이루어진다:
 
 모든 셈틀이 같은 프로그램을 돌리되 자기 번호에 따라 갈라진다.
 
-## PRAM의 변형
+---
+
+## 2. PRAM의 변형
 
 여러 셈틀이 같은 기억 칸에 한꺼번에 닿을 때 움직임은 PRAM 변형에
 매인다:
@@ -46,7 +50,9 @@ CRCW에서 여러 셈틀이 같은 칸에 적을 때:
     흉내 낼 수 있다. 그러니 변형끼리는 많아야 로그 인수만큼
     다르다.
 
-## 복잡도 잣대
+---
+
+## 3. 복잡도 잣대
 
 셈틀 $p$개를 쓰는 PRAM 알고리즘에서:
 
@@ -70,7 +76,9 @@ $$
 이 가둠은 일 효율이 좋은 알고리즘($W = T_1$)이 $p \le T_1 / T$일 때 거의
 가장 좋은 빨라짐을 이룸을 보인다.
 
-## 보기: 나란한 합
+---
+
+## 4. 보기: 나란한 합
 
 수 $n$개의 합을 셈하는 일이 PRAM 알고리즘 설계를 잘 보여 준다.
 
@@ -93,7 +101,6 @@ $$
 """
 
 import math
-
 
 # === 나란한 합(흉내) ===
 def parallel_sum(arr: list[int]) -> int:
@@ -119,7 +126,6 @@ def parallel_sum(arr: list[int]) -> int:
 
     return data[0]
 
-
 # === 나란한 최대 ===
 def parallel_max(arr: list[int]) -> int:
     """두 갈래 나무 줄임으로 PRAM 나란한 최대를 흉내 낸다."""
@@ -140,7 +146,6 @@ def parallel_max(arr: list[int]) -> int:
 
     return data[0]
 
-
 # === 보기 ===
 if __name__ == "__main__":
     data = [3, 1, 4, 1, 5, 9, 2, 6]
@@ -150,7 +155,9 @@ if __name__ == "__main__":
     print(f"Steps: {math.ceil(math.log2(len(data)))}")
 ```
 
-## PRAM과 다른 모형
+---
+
+## 5. PRAM과 다른 모형
 
 | 모형 | 공유 기억 | 맞춤 | 주고받기 비용 |
 |---|---|---|---|
@@ -166,7 +173,9 @@ if __name__ == "__main__":
     빨라짐을 크게
     볼 수 있다.
 
-## 핵심 문제와 그 PRAM 복잡도
+---
+
+## 6. 핵심 문제와 그 PRAM 복잡도
 
 | 문제 | 때 | 셈틀 | 일 효율이 좋은가? |
 |---|---|---|---|
@@ -177,12 +186,7 @@ if __name__ == "__main__":
 | 행렬 곱하기 | $O(\log n)$ | $O(n^3)$ | 예 |
 | 이어진 조각 | $O(\log^2 n)$ | $O(n^2)$ | 아니오 |
 
-## 참고 문헌
-
-- JaJa, J. *An Introduction to Parallel Algorithms*. Addison-Wesley, 1992.
-- Karp, R. M. & Ramachandran, V. "Parallel Algorithms for Shared-Memory
-  Machines." *Handbook of Theoretical Computer Science*, Vol. A, 1990.
-
+---
 
 ## 연습문제
 
@@ -215,3 +219,13 @@ PRAM 모형과 요즘 GPU 얼개를 견주어라. PRAM은 무엇을 담고 무�
 
 ??? success "연습문제 4 풀이"
     PRAM이 담는 것: (1) 셈틀 여럿이 한꺼번에 일함, (2) 공유 기억 닿기, (3) 맞춘 돌림(모든 셈틀이 발맞춤). PRAM이 놓치는 것: (1) 기억의 켜(L1/L2/L3 두름, 온 자리 기억, 공유 기억 --- GPU 성능은 기억 닿기 무늬에 크게 매인다), (2) 기억 대역의 한계(PRAM은 낱덩이 비용 닿기를 여긴다), (3) 다발 단위 돌림(GPU의 실은 32개씩 묶여 돌고 갈래가 갈라지면 차례로 돌아간다), (4) 실 덩이 사이의 주고받기 비용. 요즘 GPU 알고리즘은 기억 뭉치기, 채움률, 뱅크 다툼을 다듬어야 한다.
+
+## 정리하며
+
+이 마당은 정의、PRAM의 변형、복잡도 잣대、보기: 나란한 합을 차례로 짚었다.
+
+**참고 문헌**
+
+- JaJa, J. *An Introduction to Parallel Algorithms*. Addison-Wesley, 1992.
+- Karp, R. M. & Ramachandran, V. "Parallel Algorithms for Shared-Memory
+  Machines." *Handbook of Theoretical Computer Science*, Vol. A, 1990.

@@ -2,7 +2,9 @@
 
 최단 경로 알고리즘은 모두 최단 경로가 어떻게 굴러가는지를 다스리는 몇 안 되는 짜임 성질에 기댄다. 이 성질들은 늦추기 기반 알고리즘이 *왜* 모이는지, 그리고 최단 경로가 *언제* 있음이 보장되는지를 알려 준다. 이를 몸에 익히면 데이크스트라, 벨먼-포드, DAG 최단 경로의 맞음 증명이 거의 기계적으로 된다.
 
-## 가장 좋은 밑짜임
+---
+
+## 1. 가장 좋은 밑짜임
 
 최단 경로의 가장 근본적인 성질은 최단 경로의 부분 길마다 그 자체로 최단 경로라는 것이다.
 
@@ -14,7 +16,9 @@ $\square$
 
 이 성질 덕분에 동적 계획법과 욕심 방식으로 최단 경로를 셈할 수 있다. 곧 가장 좋은 풀이가 가장 좋은 부분 풀이로 쪼개진다.
 
-## 최단 경로 무게
+---
+
+## 2. 최단 경로 무게
 
 $\delta(u, v)$을 $u$에서 $v$까지의 **최단 경로 짐**이라 하자.
 
@@ -28,7 +32,9 @@ $$
 
 $v$으로 가는 길 위에서 $u$로부터 무게가 음인 고리에 닿을 수 있으면, 고리를 얼마든지 돌 수 있으므로 최단 경로 무게를 $\delta(u, v) = -\infty$으로 정한다.
 
-## 삼각 부등식
+---
+
+## 3. 삼각 부등식
 
 For any edge $(u, v) \in E$:
 
@@ -38,7 +44,9 @@ $$
 
 $v$까지의 최단 경로는 $u$까지의 최단 경로에 곧바른 변 $(u, v)$을 이은 것보다 길 수 없다. 그렇다면 그 이어 붙인 것이 $v$까지의 더 짧은 길이 되어 $\delta$의 정의와 어긋난다.
 
-## 위 한계 성질
+---
+
+## 4. 위 한계 성질
 
 `INITIALIZE-SINGLE-SOURCE(G, s)`을 부른 뒤 모든 꼭짓점 $v \in V$에 대해
 
@@ -56,17 +64,23 @@ $$
 
 여기서 마지막 걸음은 삼각 부등식에서 따라 나온다. $\square$
 
-## 길 없음 성질
+---
+
+## 5. 길 없음 성질
 
 $s$에서 $v$까지 길이 없으면 $\delta(s, v) = \infty$이다. 위 한계 성질에 따라 $d[v] \ge \delta(s, v) = \infty$이므로 알고리즘 내내 $d[v] = \infty$이다. 곧 알고리즘이 닿을 수 없는 꼭짓점을 따로 다루지 않고도 자연스럽게 처리한다는 뜻이다.
 
-## 모임 성질
+---
+
+## 6. 모임 성질
 
 $s \leadsto u \to v$이 최단 경로이고 변 $(u, v)$을 늦추기 전 어느 때든 $d[u] = \delta(s, u)$이면, 늦춘 뒤 $d[v] = \delta(s, v)$이고 그 뒤로 이 값은 바뀌지 않는다.
 
 이 성질이 데이크스트라 알고리즘을 굴리는 엔진이다. 곧 꼭짓점 $u$을 $d[u] = \delta(s, u)$으로 우선순위 줄에서 꺼내면, (무게가 음이 아니라면) $u$에서 나가는 변을 모두 늦춰 이웃마다 거리가 맞게 정해진다.
 
-## 길 늦추기 성질
+---
+
+## 7. 길 늦추기 성질
 
 !!! note "길 늦추기 성질"
     $p = \langle v_0, v_1, \dots, v_k \rangle$을 다음에서 비롯하는 최단 경로라 하자
@@ -78,7 +92,9 @@ $s \leadsto u \to v$이 최단 경로이고 변 $(u, v)$을 늦추기 전 어느
 - **DAG 최단 경로:** 위상 차례가 $d[u]$이 $\delta(s, u)$에 이른 뒤에 변 $(u, v)$이 늦춰짐을 보장한다.
 - **데이크스트라:** 욕심껏 꺼내는 차례가 $u$을 다룰 때 $d[u] = \delta(s, u)$임을 보장하므로, $u$에서 나가는 변을 늦추면 거리가 맞게 퍼진다.
 
-## 앞선 것 부분 그래프 성질
+---
+
+## 8. 앞선 것 부분 그래프 성질
 
 앞선 것 가리개 $\pi[v]$은 다음을 만족하는 **앞선 것 부분 그래프** $G_\pi = (V_\pi, E_\pi)$을 정한다:
 
@@ -92,7 +108,9 @@ $$
 
 최단 경로 알고리즘이 멈춘 뒤 $G_\pi$은 **최단 경로 나무**이다. 곧 $s$을 뿌리로 하는 나무이며, $G_\pi$에서 $s$부터 닿을 수 있는 꼭짓점 $v$까지의 하나뿐인 길이 $G$에서의 최단 경로이다.
 
-## 성질 간추림
+---
+
+## 9. 성질 간추림
 
 | 성질 | 진술 | 핵심 결과 |
 |---|---|---|
@@ -104,7 +122,9 @@ $$
 | 길 늦추기 | 최단 경로 차례로 변을 늦춤 $\Rightarrow$ 맞음 | 모든 알고리즘을 하나로 꿴다 |
 | 앞선 것 부분 그래프 | $G_\pi$은 최단 경로 나무이다 | 길 되살리기 |
 
-## 구현
+---
+
+## 10. 구현
 
 ```python
 """
@@ -116,7 +136,6 @@ $$
 """
 
 from math import inf
-
 
 # === 그래프 차리기 ===========================================================
 
@@ -135,7 +154,6 @@ def build_graph():
         "c": [],
     }
 
-
 # === 성질을 살피는 늦추기 ===================================================
 
 def initialize(vertices, source):
@@ -145,7 +163,6 @@ def initialize(vertices, source):
     pred = {v: None for v in vertices}
     return dist, pred
 
-
 def relax(u, v, w, dist, pred):
     """변 (u, v)을 늦추고 새로 고쳐졌는지 돌려주기."""
     if dist[u] + w < dist[v]:
@@ -153,7 +170,6 @@ def relax(u, v, w, dist, pred):
         pred[v] = u
         return True
     return False
-
 
 def verify_upper_bound(dist, true_dist):
     """모든 꼭짓점에 대해 d[v] >= delta(s,v)인지 살피기."""
@@ -163,7 +179,6 @@ def verify_upper_bound(dist, true_dist):
         )
     return True
 
-
 def verify_triangle_inequality(true_dist, graph):
     """모든 변에 대해 delta(s,v) <= delta(s,u) + w(u,v)인지 살피기."""
     for u in graph:
@@ -172,7 +187,6 @@ def verify_triangle_inequality(true_dist, graph):
                 f"Triangle inequality violated for edge ({u},{v})"
             )
     return True
-
 
 # === 주 실행 =================================================================
 
@@ -216,10 +230,7 @@ After relaxing (b,c): d = {'s': 0, 'a': 8, 'b': 5, 'c': 9}  Upper-bound: VERIFIE
 Convergence: VERIFIED — final distances match true shortest paths
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
-  Algorithms* (4th ed.), Chapter 24: Single-Source Shortest Paths.
+---
 
 ## 연습문제
 
@@ -252,3 +263,12 @@ Convergence: VERIFIED — final distances match true shortest paths
 
 ??? success "연습문제 4 풀이"
     $(v_0, v_1)$을 늦춘 뒤 $d[v_1] \leq d[v_0] + w(v_0, v_1) = 0 + w(v_0, v_1) = \delta(s, v_1)$이다. 위 한계 성질에 따라 $d[v_1] \geq \delta(s, v_1)$이므로 $d[v_1] = \delta(s, v_1)$이다. 귀납으로, $(v_{i-1}, v_i)$을 늦춘 뒤 $d[v_{i-1}] = \delta(s, v_{i-1})$이라고 놓자. 그러면 (가장 좋은 밑짜임에 따라) $d[v_i] \leq d[v_{i-1}] + w(v_{i-1}, v_i) = \delta(s, v_{i-1}) + w(v_{i-1}, v_i) = \delta(s, v_i)$이다. $d[v_i] \geq \delta(s, v_i)$과 합치면 $d[v_i] = \delta(s, v_i)$을 얻는다. $k$번 모두 늦춘 뒤 $d[v_k] = \delta(s, v_k)$이다. $\square$
+
+## 정리하며
+
+이 마당은 가장 좋은 밑짜임、최단 경로 무게、삼각 부등식、위 한계 성질을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
+  Algorithms* (4th ed.), Chapter 24: Single-Source Shortest Paths.

@@ -1,12 +1,17 @@
 # 이름 알아보기 값매김 잣대
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 토막 수준 값매김과 것 수준 값매김을 가린다
 - 딱 맞음 값매김과 일부 맞음 값매김을 짠다
 - 미시, 거시, 무게를 준 F1 점수를 셈한다
 - 표준 값매김에 seqeval 라이브러리를 쓴다
 
-## 것 수준 값매김(표준)
+---
+
+## 2. 것 수준 값매김(표준)
 
 이름 알아보기 체계는 **것 수준**에서 값매김한다. 곧 경계와 갈래가 모두 딱 맞아야 한다.
 
@@ -20,7 +25,9 @@ $$
 F_1 = \frac{2 \cdot P \cdot R}{P + R}
 $$
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ```python
 from typing import List, Dict, Set
@@ -105,7 +112,9 @@ def compute_ner_metrics(
     return {'f1': sum(f1s) / len(f1s) if f1s else 0}
 ```
 
-## seqeval 라이브러리 쓰기
+---
+
+## 4. seqeval 라이브러리 쓰기
 
 ```python
 from seqeval.metrics import classification_report, f1_score
@@ -118,7 +127,9 @@ print(classification_report(y_true, y_pred))
 print(f"F1: {f1_score(y_true, y_pred):.4f}")
 ```
 
-## 맞음 갈래 간추림
+---
+
+## 5. 맞음 갈래 간추림
 
 | 갈래 | 경계 | 것 갈래 | 쓰임새 |
 |------|------------|-------------|----------|
@@ -126,12 +137,7 @@ print(f"F1: {f1_score(y_true, y_pred):.4f}")
 | 일부 맞음 | 겹쳐야 함 | 맞아야 함 | 너그러운 값매김 |
 | 갈래만 | 아무래도 됨 | 맞아야 함 | 갈래 살피기 |
 
-## 핵심 요점
-
-1. **것 수준 딱 맞음**이 이름 알아보기 값매김의 표준이다
-2. **미시 F1**은 것의 잦기로 무게를 준다(CoNLL의 표준)
-3. **거시 F1**은 모든 것 갈래에 같은 무게를 준다
-4. 한결같은 값매김을 위해 **seqeval** 라이브러리를 쓴다
+---
 
 ## 연습문제
 
@@ -179,3 +185,10 @@ BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City
     $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
 
     자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 낱말이 양쪽에서 걸리는 일이 잦으므로 이것이 종요롭다.
+
+## 정리하며
+
+1. **것 수준 딱 맞음**이 이름 알아보기 값매김의 표준이다
+2. **미시 F1**은 것의 잦기로 무게를 준다(CoNLL의 표준)
+3. **거시 F1**은 모든 것 갈래에 같은 무게를 준다
+4. 한결같은 값매김을 위해 **seqeval** 라이브러리를 쓴다

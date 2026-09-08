@@ -1,5 +1,4 @@
 # 베이즈 신경망에서 가중값의 불확실함
-## 개요
 
 베이즈 신경망의 한가운데 어려움은 가중값에 뜻있는 앞확률을 정하고 그 결과로 나오는 뒤확률을 추론하는 것이다. 이 절에서는 앞확률 정하기, 신경망 가중값 공간의 기하, 주요 추론 방법을 다룬다.
 
@@ -8,7 +7,7 @@
 
 ---
 
-## 가중값에 두는 앞확률 분포
+## 1. 가중값에 두는 앞확률 분포
 
 ### 표준 가우스 앞확률
 
@@ -63,7 +62,7 @@ $$
 
 ---
 
-## 뒤확률 추론 방법
+## 2. 뒤확률 추론 방법
 
 ### 추론의 어려움
 
@@ -128,7 +127,7 @@ $$
 
 ---
 
-## 방법의 견줌
+## 3. 방법의 견줌
 
 | 방법 | 정확도 | 값 | 단순함 | 메모리 |
 |--------|----------|------|------------|--------|
@@ -140,26 +139,6 @@ $$
 | 앙상블 | ★★★★☆ | ★★★☆☆ | ★★★★★ | ★★☆☆☆ |
 
 ---
-
-## 요약
-
-| 개념 | 핵심 |
-|---------|-----------|
-| **앞확률 고르기** | 정보의 많음과 셈으로 다룰 수 있음을 저울질해야 한다 |
-| **흩어짐 크기 맞추기** | 익힘의 안정에 결정적이다. 허나 글로로 첫값 잡기를 쓴다 |
-| **성김 앞확률** | 망을 줄이는 데 편자와 못과 판을 쓴다 |
-| **MCMC** | 정확하지만 비싸다. SGLD가 규모를 키울 수 있는 어림을 준다 |
-| **변분** | 빠르고 규모를 키울 수 있다. 불확실함을 낮춰 잡을 수 있다 |
-| **몬테카를로 떨구기** | 가장 단순한 실전 방법이다. 어림의 질에 한계가 있다 |
-
----
-
-## 참고 문헌
-
-- Blundell, C., et al. (2015). Weight Uncertainty in Neural Networks. *ICML*.
-- Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation. *ICML*.
-- Welling, M., & Teh, Y. W. (2011). Bayesian Learning via Stochastic Gradient Langevin Dynamics. *ICML*.
-- Lakshminarayanan, B., Pritzel, A., & Bluntschli, C. (2017). Simple and Scalable Predictive Uncertainty Estimation using Deep Ensembles. *NeurIPS*.
 
 ## 연습문제
 
@@ -196,3 +175,23 @@ ELBO 목표에 대한, 되짚음으로 하는 베이즈의 기울기 어림꼴�
 
 ??? success "연습문제 4 풀이"
     앞확률은 뒤확률에 벌을 주며 익힘의 움직임과 미리봄의 불확실함에 모두 영향을 준다. **표준 가우스** $\mathcal{N}(0, \sigma^2 I)$은 단순하고 L2 벌주기에 맞대응되지만 모든 가중값에 똑같이 벌을 주어 너무 옭아맬 수 있다. **크기 섞음** 앞확률(이를테면 $\pi \mathcal{N}(0, \sigma_1^2) + (1-\pi) \mathcal{N}(0, \sigma_2^2)$)은 어떤 가중값은 크게(신호) 두면서 다른 가중값은 0에 가깝게(잡음) 몰아 맞춰 가는 성김을 준다. 주고받음은 이렇다. 크기 섞음은 표현력이 더 좋지만 최적화가 더 어렵고 웃매개변수가 늘어난다.
+
+## 정리하며
+
+| 개념 | 핵심 |
+|---------|-----------|
+| **앞확률 고르기** | 정보의 많음과 셈으로 다룰 수 있음을 저울질해야 한다 |
+| **흩어짐 크기 맞추기** | 익힘의 안정에 결정적이다. 허나 글로로 첫값 잡기를 쓴다 |
+| **성김 앞확률** | 망을 줄이는 데 편자와 못과 판을 쓴다 |
+| **MCMC** | 정확하지만 비싸다. SGLD가 규모를 키울 수 있는 어림을 준다 |
+| **변분** | 빠르고 규모를 키울 수 있다. 불확실함을 낮춰 잡을 수 있다 |
+| **몬테카를로 떨구기** | 가장 단순한 실전 방법이다. 어림의 질에 한계가 있다 |
+
+---
+
+**참고 문헌**
+
+- Blundell, C., et al. (2015). Weight Uncertainty in Neural Networks. *ICML*.
+- Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation. *ICML*.
+- Welling, M., & Teh, Y. W. (2011). Bayesian Learning via Stochastic Gradient Langevin Dynamics. *ICML*.
+- Lakshminarayanan, B., Pritzel, A., & Bluntschli, C. (2017). Simple and Scalable Predictive Uncertainty Estimation using Deep Ensembles. *NeurIPS*.

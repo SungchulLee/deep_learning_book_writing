@@ -1,9 +1,10 @@
 # 모형 아리송함을 손에 잡히게 쓰기
-## 들머리
 
 아리송함 재기는 미루어 봄을 점 어림에서 낌새 분포로 바꾸어 여러 손에 잡히는 쓰임을 이룬다. 이 마디는 서비스 얼개에서 아리송함이 가장 크게 힘을 쓰는 자리를 다룬다.
 
-## 아리송함을 쓰는 살아 있는 배움
+---
+
+## 1. 아리송함을 쓰는 살아 있는 배움
 
 ### 문제
 
@@ -32,7 +33,6 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Subset
 import numpy as np
 from typing import List, Tuple, Optional
-
 
 class ActiveLearner:
     """
@@ -150,7 +150,6 @@ class ActiveLearner:
         
         return selected
 
-
 def run_active_learning_experiment(model_class, 
                                     train_dataset,
                                     test_dataset,
@@ -236,7 +235,6 @@ def run_active_learning_experiment(model_class,
     
     return results
 
-
 def compare_acquisition_functions():
     """
     여러 얻기 함수를 견준다.
@@ -284,7 +282,9 @@ def compare_acquisition_functions():
     return results
 ```
 
-## 골라 미루어 보기(물릴 수 있는 길)
+---
+
+## 2. 골라 미루어 보기(물릴 수 있는 길)
 
 ### 깨침
 
@@ -394,7 +394,6 @@ class SelectivePredictor:
             'n_rejected': (~accept).sum().item()
         }
 
-
 def find_optimal_threshold(model: nn.Module,
                             val_loader: DataLoader,
                             target_accuracy: float = 0.95,
@@ -453,7 +452,6 @@ def find_optimal_threshold(model: nn.Module,
         'coverage': best_coverage,
         'target_accuracy': target_accuracy
     }
-
 
 def plot_risk_coverage_curve(model: nn.Module,
                               test_loader: DataLoader,
@@ -533,7 +531,9 @@ def plot_risk_coverage_curve(model: nn.Module,
     return fig
 ```
 
-## 밖 분포 알아내기
+---
+
+## 3. 밖 분포 알아내기
 
 익힘 분포와 다른 들임을 짚어내는 데 아리송함을 쓴다.
 
@@ -581,7 +581,6 @@ def evaluate_ood_detection(in_dist_uncertainty: np.ndarray,
         'in_dist_mean': in_dist_uncertainty.mean(),
         'ood_mean': ood_uncertainty.mean()
     }
-
 
 def ood_detection_example():
     """
@@ -640,7 +639,9 @@ def ood_detection_example():
     return metrics
 ```
 
-## 고갱이로 챙길 것
+---
+
+## 4. 고갱이로 챙길 것
 
 !!! success "간추림"
 
@@ -649,7 +650,9 @@ def ood_detection_example():
     3. **밖 분포 알아내기**: 아리송함이 크면 밖 분포 들임임을 뜻한다
     4. **맞바꿈**: 덮음 대 맞음, 셈 값 대 아리송함 됨됨이
 
-## 좋은 버릇
+---
+
+## 5. 좋은 버릇
 
 | 쓰임 | 즐겨 쓸 길 |
 |-------------|----------------|
@@ -658,16 +661,22 @@ def ood_detection_example():
 | 밖 분포 알아내기 | 아리송함을 다른 신호(되살림 어긋남 따위)와 함께 쓴다 |
 | 서비스 | 아리송함 분포를 적어 두고 옮겨감이 보이면 알린다 |
 
-## 살펴볼 거리
+---
 
-- Gal, Y., et al. (2017). "Deep Bayesian Active Learning with Image Data"
-- Geifman, Y., & El-Yaniv, R. (2017). "Selective Classification for Deep Neural Networks"
-- Hendrycks, D., & Gimpel, K. (2017). "A Baseline for Detecting Misclassified and Out-of-Distribution Examples"
-
-## 익힘 문제
+## 연습문제
 
 1. **살아 있는 배움 견주기**: CIFAR-10에서 아무렇게나, 엔트로피, BALD 얻기 함수를 견주어라. 배움 굽이를 그려라.
 
 2. **골라 미루어 보기**: MNIST에서 맞음 99%을 이루는 문턱을 찾아라. 덮음은 얼마인가?
 
 3. **밖 분포 알아내기**: CIFAR-10으로 익히고 SVHN으로 시험하여라. 아리송함이 둘을 얼마나 잘 갈라내는가?
+
+## 정리하며
+
+이 마당은 아리송함을 쓰는 살아 있는 배움、골라 미루어 보기(물릴 수 있는 길)、밖 분포 알아내기、고갱이로 챙길 것을 차례로 짚었다.
+
+**살펴볼 거리**
+
+- Gal, Y., et al. (2017). "Deep Bayesian Active Learning with Image Data"
+- Geifman, Y., & El-Yaniv, R. (2017). "Selective Classification for Deep Neural Networks"
+- Hendrycks, D., & Gimpel, K. (2017). "A Baseline for Detecting Misclassified and Out-of-Distribution Examples"

@@ -3,13 +3,11 @@
 
 ---
 
-## 개요
-
 주성분 분석은 서로 같은 두 가지 꼴로 세울 수 있다. 곧 **최대 흩어짐**(쏜 자료가 가장 넓게 퍼지는 방향 찾기)과 **최소 다시 세우기 어긋남**(본디 자료를 가장 잘 어림하는 계수 $k$짜리 선형 쏘기 찾기)이다. 이 절은 둘 다 이끌어 내고 서로 같음을 밝히며 선형 자기 부호기와의 이음을 세운다.
 
 ---
 
-## 자리매김과 기호
+## 1. 자리매김과 기호
 
 $\mathbf{X} \in \mathbb{R}^{n \times d}$을 $d$차원 관측 $n$개를 담은 가운데 맞춘 자료 행렬이라 하자. 가로줄 $\mathbf{x}^{(i)}$마다 평균을 뺐다. 곧 $\frac{1}{n}\sum_{i=1}^n \mathbf{x}^{(i)} = \mathbf{0}$이다.
 
@@ -28,7 +26,7 @@ $$\boldsymbol{\Sigma} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}^T = \sum_{i=1}^
 
 ---
 
-## 이끌어 내기 1: 흩어짐 가장 크게 하기
+## 2. 이끌어 내기 1: 흩어짐 가장 크게 하기
 
 ### 성분 하나(k = 1)
 
@@ -94,7 +92,7 @@ $$\max_{\mathbf{W}} \; \operatorname{tr}\!\left(\mathbf{W}^T \boldsymbol{\Sigma}
 
 ---
 
-## 이끌어 내기 2: 다시 세우기 어긋남 가장 작게 하기
+## 3. 이끌어 내기 2: 다시 세우기 어긋남 가장 작게 하기
 
 ### 정식화
 
@@ -130,7 +128,7 @@ $$\mathcal{E}_k = \sum_{j=1}^d \lambda_j - \sum_{j=1}^k \lambda_j = \sum_{j=k+1}
 
 ---
 
-## 같음 간추리기
+## 4. 같음 간추리기
 
 | 꼴 | 목표 | 풀이 |
 |-------------|-----------|----------|
@@ -141,7 +139,7 @@ $$\mathcal{E}_k = \sum_{j=1}^d \lambda_j - \sum_{j=1}^k \lambda_j = \sum_{j=k+1}
 
 ---
 
-## k차원 주성분 분석 알고리즘
+## 5. k차원 주성분 분석 알고리즘
 
 가운데 맞춘 자료 $\mathbf{X} \in \mathbb{R}^{n \times d}$과 목표 차원 $k$이 주어질 때:
 
@@ -189,7 +187,7 @@ def pca(X, k):
 
 ---
 
-## 이끌어 내기 3: 선형 자기 부호기와 같음
+## 6. 이끌어 내기 3: 선형 자기 부호기와 같음
 
 ### 준비
 
@@ -239,7 +237,6 @@ class LinearAutoencoder(nn.Module):
     def forward(self, x):
         return self.decoder(self.encoder(x))
 
-
 def verify_equivalence(X, k, epochs=5000, lr=0.01):
     """주성분 분석과 선형 자기 부호기의 다시 세우기 어긋남을 견준다."""
     X_centered = X - X.mean(axis=0)
@@ -269,7 +266,7 @@ def verify_equivalence(X, k, epochs=5000, lr=0.01):
 
 ---
 
-## 설명하는 흩어짐 살피기
+## 7. 설명하는 흩어짐 살피기
 
 ### 성분마다의 비
 
@@ -294,7 +291,7 @@ def explained_variance_analysis(eigenvalues):
 
 ---
 
-## 주성분 분석 풀이의 성질
+## 8. 주성분 분석 풀이의 성질
 
 ### 상관 없는 점수
 
@@ -315,19 +312,6 @@ $$\operatorname{Cov}(\mathbf{z}) = \frac{1}{n}\mathbf{Z}^T\mathbf{Z} = \frac{1}{
 $$\underbrace{\operatorname{tr}(\boldsymbol{\Sigma})}_{\text{total}} = \underbrace{\sum_{i=1}^k \lambda_i}_{\text{retained}} + \underbrace{\sum_{i=k+1}^d \lambda_i}_{\text{reconstruction error}}$$
 
 ---
-
-## 요약
-
-| 결과 | 말 |
-|--------|-----------|
-| **첫 주성분** | 가장 큰 고윳값에 딸린 $\boldsymbol{\Sigma}$의 고유벡터 |
-| **$k$번째 주성분** | $k$번째로 큰 고윳값에 딸린 고유벡터 |
-| **쏜 흩어짐** | 고윳값과 같다: $\operatorname{Var}(z_k) = \lambda_k$ |
-| **다시 세우기 어긋남** | 버린 고윳값의 합: $\sum_{j > k} \lambda_j$ |
-| **최대 흩어짐 ≡ 최소 어긋남** | 같은 풀이: 으뜸 $k$개 고유벡터 |
-| **선형 자기 부호기 ≡ 주성분 분석** | 평균 제곱 어긋남으로 익힌 선형 자기 부호기는 주성분 분석 풀이로 모인다 |
-| **점수의 상관 없음** | $\operatorname{Cov}(\mathbf{z}) = \boldsymbol{\Lambda}_k$ |
-| **가장 좋음** | 계수 $k$짜리 가장 좋은 어림(에카르트-영-미르스키) |
 
 ## 연습문제
 
@@ -360,3 +344,16 @@ $$\underbrace{\operatorname{tr}(\boldsymbol{\Sigma})}_{\text{total}} = \underbra
 
 ??? success "연습문제 4 풀이"
     앞선 $k$개 성분이 설명하는 흩어짐의 몫은 $\sum_{i=1}^k \lambda_i / \sum_{i=1}^d \lambda_i$이다. **팔꿈치 방법**은 $k$에 대한 쌓아 올린 설명 흩어짐을 그려, 성분을 더 넣어도 얻는 것이 줄어드는 "팔꿈치"에서 $k$을 고른다. 전체 흩어짐의 90~95%를 설명할 만큼 성분을 남기는 것이 흔한 문턱이다. 예컨대 100차원 자료 묶음에서 성분 3개가 흩어짐의 95%를 설명하면 3차원으로 줄여도 앎을 5%만 잃고 차원을 $33\times$ 줄인다.
+
+## 정리하며
+
+| 결과 | 말 |
+|--------|-----------|
+| **첫 주성분** | 가장 큰 고윳값에 딸린 $\boldsymbol{\Sigma}$의 고유벡터 |
+| **$k$번째 주성분** | $k$번째로 큰 고윳값에 딸린 고유벡터 |
+| **쏜 흩어짐** | 고윳값과 같다: $\operatorname{Var}(z_k) = \lambda_k$ |
+| **다시 세우기 어긋남** | 버린 고윳값의 합: $\sum_{j > k} \lambda_j$ |
+| **최대 흩어짐 ≡ 최소 어긋남** | 같은 풀이: 으뜸 $k$개 고유벡터 |
+| **선형 자기 부호기 ≡ 주성분 분석** | 평균 제곱 어긋남으로 익힌 선형 자기 부호기는 주성분 분석 풀이로 모인다 |
+| **점수의 상관 없음** | $\operatorname{Cov}(\mathbf{z}) = \boldsymbol{\Lambda}_k$ |
+| **가장 좋음** | 계수 $k$짜리 가장 좋은 어림(에카르트-영-미르스키) |

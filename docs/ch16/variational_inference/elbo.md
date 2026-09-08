@@ -1,7 +1,9 @@
 # 증거 아래 경계(ELBO)
 증거 아래 경계는 변분 추론, EM 알고리즘, VAE 익힘의 한가운데 있는 양이다. 다룰 수 없는 로그 주변 가능도를 아래에서 받치는, 다룰 수 있는 최적화 목표를 주며, 참 가능도와의 틈은 KL 벌어짐으로 또렷이 특징지어진다. 이 절에서는 서로 보완하는 세 가지 이끌어 내기를 보이고, 틈과 팽팽함의 조건을 살피며, 핵심이 되는 다른 표현들을 펼치고, ELBO를 EM 알고리즘과 변분 자동부호기에 이어 준다.
 
-## 문제: 다룰 수 없는 주변 가능도
+---
+
+## 1. 문제: 다룰 수 없는 주변 가능도
 
 숨은 변수 모형에서 주변 가능도(또는 *증거*)에는 숨은 변수 $z$(상황에 따라서는 매개변수 $\theta$)에 걸친 적분이 들어 있다:
 
@@ -9,7 +11,9 @@ $$p(\mathbf{X} | \theta) = \int p(\mathbf{X}, \mathbf{Z} | \theta) \, d\mathbf{Z
 
 신경망 풀개나 복잡한 가능도 함수에서는 이 적분을 다룰 수 없다. 곧 닫힌 꼴로 값을 매길 수도, 효율적으로 어림할 수도 없다. ELBO는 최적화할 *수 있는* 아래 경계를 준다.
 
-## 이끌어 내기 1: 옌센 부등식
+---
+
+## 2. 이끌어 내기 1: 옌센 부등식
 
 ### 옌센 부등식
 
@@ -42,7 +46,9 @@ $$q(\mathbf{Z}) = \frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{p(\mathbf{X} | \thet
 
 $q$이 참 뒤확률과 같을 때 그리고 오직 그때만 이 경계가 팽팽해진다.
 
-## 이끌어 내기 2: KL 벌어짐 쪼개기
+---
+
+## 3. 이끌어 내기 2: KL 벌어짐 쪼개기
 
 $q(\mathbf{Z})$에서 참 뒤확률 $p(\mathbf{Z} | \mathbf{X}, \theta)$까지의 KL 벌어짐을 쓴다:
 
@@ -58,7 +64,9 @@ $$\boxed{\log p(\mathbf{X} | \theta) = \mathcal{L}(q, \theta) + D_{\text{KL}}\!\
 
 $D_{\text{KL}} \geq 0$이므로 $\log p(\mathbf{X} | \theta) \geq \mathcal{L}(q, \theta)$을 되찾는다. 이 쪼갬은 틈을 정확히 짚어 주므로 옌센의 길보다 알려 주는 것이 많다.
 
-## 이끌어 내기 3: 중요도 표집의 눈
+---
+
+## 4. 이끌어 내기 3: 중요도 표집의 눈
 
 중요도 표집의 눈으로 보면 주변 가능도는 중요도 무게 $p(\mathbf{X}, \mathbf{Z} | \theta) / q(\mathbf{Z})$의 기댓값이다:
 
@@ -66,7 +74,9 @@ $$p(\mathbf{X} | \theta) = \mathbb{E}_{q}\!\left[\frac{p(\mathbf{X}, \mathbf{Z} 
 
 ELBO는 옌센 부등식으로 얻은 이 기댓값의 아래 경계의 로그이다. 이 눈은 표본 여럿으로 경계를 팽팽하게 하는 **중요도 무게 자동부호기(IWAE)** 목표로 이어진다.
 
-## 근본 항등식
+---
+
+## 5. 근본 항등식
 
 세 가지 이끌어 내기가 서로 다른 각도에서 같은 결과에 이른다:
 
@@ -74,7 +84,9 @@ $$\log p(\mathbf{X} | \theta) = \mathcal{L}(q, \theta) + D_{\text{KL}}\!\bigl(q(
 
 이 항등식에서 곧바로 셋이 따라 나온다. 첫째, $D_{\text{KL}} \geq 0$이므로 ELBO는 늘 로그 증거의 아래 경계이다. 둘째, 참 로그 가능도와 ELBO 사이의 틈은 정확히 $q$에서 참 뒤확률까지의 KL 벌어짐이다. 셋째, $q$에 대해 ELBO를 가장 크게 하는 것은 $D_{\text{KL}}(q \| p_{\text{posterior}})$을 가장 작게 하는 것과 같고, 이것이 변분 추론의 목표이다.
 
-## 다른 표현들
+---
+
+## 6. 다른 표현들
 
 ELBO는 여러 같은 뜻의 꼴로 다시 쓸 수 있으며 저마다 다른 통찰을 준다.
 
@@ -102,7 +114,9 @@ $$\mathcal{L}(q, \theta) = \mathbb{E}_{q}[\log p(\mathbf{X} | \mathbf{Z}, \theta
 
 물리 문헌에서 ELBO는 **변분 자유 에너지**의 음수이다. 곧 $\mathcal{F}(q) = -\mathcal{L}(q, \theta)$이다. 자유 에너지를 가장 작게 하는 것은 ELBO를 가장 크게 하는 것과 같다.
 
-## 틈 살피기
+---
+
+## 7. 틈 살피기
 
 ### 틈이 곧 KL 벌어짐이다
 
@@ -118,7 +132,9 @@ $q$ 집안의 표현력이 좋으면 틈이 작아지고, 참 뒤확률이 복�
 
 틈을 줄이는 방법으로는 더 풍성한 변분 집안(고르게 하는 흐름, 자기 회귀 뒤확률), 중요도 무게 주기(IWAE), 확률 층이 여럿인 층 숨은 짜임이 있다.
 
-## EM 알고리즘과의 이음
+---
+
+## 8. EM 알고리즘과의 이음
 
 EM 알고리즘은 $q$을 정확한 뒤확률로 두는, ELBO 최대화의 특별한 경우이다.
 
@@ -147,7 +163,9 @@ $q$을 $\theta^{(t)}$에서의 뒤확률로 두면 ELBO는 $\theta^{(t)}$에서 
 | **추론** | 자료 점마다 | 자료 점마다 | 자료에 걸쳐 나눠 갚음 |
 | **단조로움** | 예 | 예(집안 안에서) | 보장 없음 |
 
-## VAE과의 이음
+---
+
+## 9. VAE과의 이음
 
 VAE에서는 부호기 $q_\phi(\mathbf{Z} | \mathbf{X})$와 풀개 $p_\theta(\mathbf{X} | \mathbf{Z})$을 되살림 + 벌주기 꼴의 ELBO를 가장 크게 하여 함께 익힌다:
 
@@ -165,7 +183,9 @@ $\beta$-VAE의 목표 $\mathcal{L} = \mathbb{E}_q[\log p_\theta(x|z)] - \beta \,
 
 (가우스의 닫힌 꼴을 비롯한) KL 벌어짐 셈하기를 자세히 다룬 것은 [KL 벌어짐](../../ch03/loss/kl_divergence.md)을 보아라. 매개변수 바꾸기 재주는 매개변수 바꾸기 쪽을 보아라. VAE 목표의 온전한 PyTorch 구현은 PyTorch 구현을 보아라.
 
-## 가우스 모형의 ELBO(풀어 본 보기)
+---
+
+## 10. 가우스 모형의 ELBO(풀어 본 보기)
 
 켤레 가우스 모형을 보자. 앞확률은 $\theta \sim \mathcal{N}(\mu_0, \sigma_0^2)$, 가능도는 $i = 1, \ldots, n$에 대해 $x_i | \theta \sim \mathcal{N}(\theta, \sigma^2)$, 변분 집안은 $q(\theta) = \mathcal{N}(m, s^2)$이다.
 
@@ -185,13 +205,14 @@ $$H[q] = \frac{1}{2}\log(2\pi e \, s^2)$$
 
 ELBO는 이 세 항의 합이며 손으로 풀거나 $(m, s)$에 대한 기울기 오르기로 최적화할 수 있다.
 
-## PyTorch 구현
+---
+
+## 11. PyTorch 구현
 
 ```python
 import torch
 import torch.nn as nn
 from typing import Tuple, Dict
-
 
 class GaussianELBO:
     """흩어짐을 아는 가우스 평균 어림의 ELBO 셈하기."""
@@ -226,7 +247,6 @@ class GaussianELBO:
 
         return reconstruction - kl, reconstruction, kl
 
-
 def optimize_elbo(data: torch.Tensor, elbo_computer: GaussianELBO,
                   n_iterations: int = 500,
                   learning_rate: float = 0.05) -> Dict:
@@ -250,30 +270,13 @@ def optimize_elbo(data: torch.Tensor, elbo_computer: GaussianELBO,
     return history, m.detach(), torch.exp(log_s).detach()
 ```
 
-## 모형 고르기 잣대로서의 ELBO
+---
+
+## 12. 모형 고르기 잣대로서의 ELBO
 
 최적화한 ELBO $\mathcal{L}(q^*, \theta^*)$은 로그 모형 증거 $\log p(\mathcal{D} | \mathcal{M})$을 어림하며, 이는 모형을 견주는 표준 베이즈 양이다. BIC이나 AIC와 달리 ELBO는 점 어림값이 아니라 ($q$으로 어림한) 온전한 뒤확률을 쓰므로 모형의 복잡함에 더 풍성한 벌을 준다.
 
-## 요약
-
-| 이끌어 내기 | 핵심 통찰 |
-|------------|-------------|
-| 옌센 부등식 | $\log \mathbb{E}[Y] \geq \mathbb{E}[\log Y]$, $Y$이 상수일 때 등호 |
-| KL 쪼개기 | $\log p(\mathbf{X}) = \mathcal{L} + D_{\text{KL}}(q \| p_{\text{post}})$ |
-| 중요도 표집 | ELBO가 로그 중요도 무게 기댓값을 아래에서 받친다 |
-
-| 표현 | 식 | 통찰 |
-|-------------|------------|---------|
-| 결합 | $\mathbb{E}_q[\log p(\mathbf{X}, \mathbf{Z})] - \mathbb{E}_q[\log q]$ | 기댓값 결합에 엔트로피를 더함 |
-| 되살림 + KL | $\mathbb{E}_q[\log p(\mathbf{X} \| \mathbf{Z})] - D_{\text{KL}}(q \| p(\mathbf{Z}))$ | 자료에 맞음과 앞확률 |
-| 엔트로피 | $\mathbb{E}_q[\log p(\mathbf{X} \| \mathbf{Z})] + \mathbb{E}_q[\log p(\mathbf{Z})] + H[q]$ | 드러난 엔트로피 덤 |
-
-## 참고 문헌
-
-1. Blei, D. M., Kucukelbir, A., & McAuliffe, J. D. (2017). "Variational Inference: A Review for Statisticians."
-2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, 10장.
-3. Hoffman, M. D., & Johnson, M. J. (2016). "ELBO Surgery: Yet Another Way to Carve up the Variational Evidence Lower Bound."
-4. Kingma, D. P., & Welling, M. (2014). "Auto-Encoding Variational Bayes."
+---
 
 ## 연습문제
 
@@ -292,3 +295,24 @@ def optimize_elbo(data: torch.Tensor, elbo_computer: GaussianELBO,
 ### 연습 4: EM과 VAE
 
 EM은 되풀이마다 로그 가능도가 단조롭게 나아짐을 보장하는데 VAE 익힘은 왜 그렇지 않은지 설명하여라.
+
+## 정리하며
+
+| 이끌어 내기 | 핵심 통찰 |
+|------------|-------------|
+| 옌센 부등식 | $\log \mathbb{E}[Y] \geq \mathbb{E}[\log Y]$, $Y$이 상수일 때 등호 |
+| KL 쪼개기 | $\log p(\mathbf{X}) = \mathcal{L} + D_{\text{KL}}(q \| p_{\text{post}})$ |
+| 중요도 표집 | ELBO가 로그 중요도 무게 기댓값을 아래에서 받친다 |
+
+| 표현 | 식 | 통찰 |
+|-------------|------------|---------|
+| 결합 | $\mathbb{E}_q[\log p(\mathbf{X}, \mathbf{Z})] - \mathbb{E}_q[\log q]$ | 기댓값 결합에 엔트로피를 더함 |
+| 되살림 + KL | $\mathbb{E}_q[\log p(\mathbf{X} \| \mathbf{Z})] - D_{\text{KL}}(q \| p(\mathbf{Z}))$ | 자료에 맞음과 앞확률 |
+| 엔트로피 | $\mathbb{E}_q[\log p(\mathbf{X} \| \mathbf{Z})] + \mathbb{E}_q[\log p(\mathbf{Z})] + H[q]$ | 드러난 엔트로피 덤 |
+
+**참고 문헌**
+
+1. Blei, D. M., Kucukelbir, A., & McAuliffe, J. D. (2017). "Variational Inference: A Review for Statisticians."
+2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, 10장.
+3. Hoffman, M. D., & Johnson, M. J. (2016). "ELBO Surgery: Yet Another Way to Carve up the Variational Evidence Lower Bound."
+4. Kingma, D. P., & Welling, M. (2014). "Auto-Encoding Variational Bayes."

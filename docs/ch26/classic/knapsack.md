@@ -2,13 +2,17 @@
 
 0/1 배낭 문제는 NP-어려움이므로 P = NP가 아니라면 다항식 시간의 정확한 알고리즘은 없다. 그러나 **온전 다항식 시간 어림 얼개(FPTAS)**를 쓰면 다항식 시간에 가장 좋은 값에 *얼마든지 가까이* 갈 수 있다. 핵심 생각은 아름답도록 단순하다. 곧 물건 값을 반올림해 동적 짜기 표의 크기를 줄이고, 정확함을 조금 잃는 대신 빠르기를 크게 얻는다.
 
-## 문제 설정
+---
+
+## 1. 문제 설정
 
 무게가 $w_1, \dots, w_n$이고 값이 $v_1, \dots, v_n$인 물건 $n$개와 배낭 담이 $W$이 주어질 때 $\sum_{i \in S} w_i \le W$ 아래서 $\sum_{i \in S} v_i$을 가장 크게 하는 부분 모임 $S \subseteq \{1, \dots, n\}$을 찾아라.
 
 정확한 동적 짜기 풀이는 값의 합을 어깨수로 삼는 표를 쓴다. $v_{\max} = \max_i v_i$이라 하자. 동적 짜기는 잣수를 맞춘 값에 걸쳐 도므로 표의 크기가 물건 값의 크기에 달려 비슷 다항식 시간 $O(n^2 v_{\max})$이 된다.
 
-## FPTAS 알고리즘
+---
+
+## 2. FPTAS 알고리즘
 
 **직관.** 모든 값을 어떤 알갱이 $K$의 배수로 내림하면 동적 짜기 표가 줄어든다. $K$을 꼼꼼히 고르면 반올림 어긋남이 가장 좋은 값의 $(1 - \epsilon)$ 갑절 안에 머문다.
 
@@ -33,7 +37,9 @@ FPTAS은 값이 $\hat{v}_i$인 배낭 문제를 정확한 동적 짜기로 풀�
 3. 값 $\hat{v}_i$과 무게 $w_i$으로 정확한 배낭 동적 짜기를 푼다
 4. 고른 물건을 돌려준다(본디 값을 쓴다)
 
-## 어림 보장
+---
+
+## 3. 어림 보장
 
 !!! tip "정리"
     FPTAS은 값이 적어도 $(1 - \epsilon) \cdot \text{OPT}$인 풀이를 돌려준다.
@@ -66,7 +72,9 @@ $$
 = (1 - \epsilon) \cdot \text{OPT} \qquad \square
 $$
 
-## 도는 시간
+---
+
+## 4. 도는 시간
 
 잣수를 맞춘 값마다 $\hat{v}_i \le v_i / K \le v_{\max} / K = n / \epsilon$이다. 동적 짜기 표는 가로줄이 $n$개이고 세로줄이 많아야 $n \cdot (n / \epsilon) = n^2 / \epsilon$개이므로 온 도는 시간은 다음과 같다.
 
@@ -76,13 +84,14 @@ $$
 
 이는 $n$과 $1/\epsilon$ 모두에 대해 다항식이며 이것이 바로 FPTAS의 뜻매김이다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
 배낭 FPTAS: O(n^3 / epsilon) 시간의 (1-epsilon) 어림.
 """
-
 
 # === 정확한 동적 짜기(값을 어깨수로) ========================================
 
@@ -96,7 +105,6 @@ def knapsack_exact(W, weights, values):
             if weights[i - 1] <= w:
                 dp[i][w] = max(dp[i][w], dp[i - 1][w - weights[i - 1]] + values[i - 1])
     return dp[n][W]
-
 
 # === FPTAS ===================================================================
 
@@ -142,7 +150,6 @@ def knapsack_fptas(W, weights, values, epsilon):
     total = sum(values[i] for i in selected)
     return total, selected
 
-
 # === 보여 주기 ===============================================================
 
 if __name__ == "__main__":
@@ -166,7 +173,9 @@ FPTAS (ε=0.1): value=220, items=[1, 2]
 Guarantee: >= 198.0
 ```
 
-## FPTAS이 중요한 까닭
+---
+
+## 6. FPTAS이 중요한 까닭
 
 | 성질 | 정확한 동적 짜기 | FPTAS |
 |---|---|---|
@@ -176,10 +185,7 @@ Guarantee: >= 198.0
 
 FPTAS은 어림 이론에서 가장 센 긍정 결과 가운데 하나이다. 곧 0/1 배낭이 NP-어려움이지만 어림하기는 어렵지 않음을 보인다. 모든 NP-어려운 문제에 FPTAS이 있는 것은 아니다. 예컨대 일반 떠돌이 장수 문제는 P = NP가 아니라면 없다.
 
-## 참고 문헌
-
-- Vazirani, V. V. *Approximation Algorithms*. Springer, 2001. Chapter 8.
-- Ibarra, O. H. and Kim, C. E. "Fast Approximation Algorithms for the Knapsack and Sum of Subset Problems." *JACM*, 1975.
+---
 
 ## 연습문제
 
@@ -212,3 +218,12 @@ FPTAS은 어림 이론에서 가장 센 긍정 결과 가운데 하나이다. �
 
 ??? success "연습문제 4 풀이"
     작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$
+
+## 정리하며
+
+이 마당은 문제 설정、FPTAS 알고리즘、어림 보장、도는 시간을 차례로 짚었다.
+
+**참고 문헌**
+
+- Vazirani, V. V. *Approximation Algorithms*. Springer, 2001. Chapter 8.
+- Ibarra, O. H. and Kim, C. E. "Fast Approximation Algorithms for the Knapsack and Sum of Subset Problems." *JACM*, 1975.

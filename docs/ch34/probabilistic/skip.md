@@ -2,7 +2,9 @@
 
 고른 이진 찾기 나무(AVL, 붉은-검은)는 $O(\log n)$ 연산을 보장하지만 얽힌 다시 고르기 논리가 있어야 한다. **건너뛰기 목록**은 얼개 불변량 대신 마구잡이를 써서 같은 어림 매임을 이룬다. 원소마다 낌새 $p$(흔히 $1/2$)으로 더 높은 "빠른 길"에 올려, 이음 목록 위에서 두 갈래 찾기 같은 훑기를 이루는 이음 목록의 켜를 만든다.
 
-## 얼개
+---
+
+## 1. 얼개
 
 건너뛰기 목록은 매긴 이음 목록 $L_0, L_1, \ldots, L_h$의 모임이다.
 
@@ -16,7 +18,9 @@ $$
 E[h] = \log_{1/p} n = O(\log n)
 $$
 
-## 찾기
+---
+
+## 2. 찾기
 
 열쇠 $k$을 찾으려면 가장 위 층의 가장 왼쪽 파수에서 시작한다.
 
@@ -31,7 +35,9 @@ $$
 E[T_{\text{찾기}}] = O\!\left(\frac{\log n}{p}\right) = O(\log n) \quad (p \text{이 상수일 때})
 $$
 
-## 넣기
+---
+
+## 3. 넣기
 
 열쇠 $k$을 넣으려면:
 
@@ -43,7 +49,9 @@ $$
 E[T_{\text{넣기}}] = O(\log n), \quad E[S_{\text{넣기}}] = O\!\left(\frac{1}{1-p}\right) = O(1)
 $$
 
-## 지우기
+---
+
+## 4. 지우기
 
 열쇠 $k$을 지우려면:
 
@@ -55,7 +63,9 @@ $$
 E[T_{\text{지우기}}] = O(\log n)
 $$
 
-## 어림 자리
+---
+
+## 5. 어림 자리
 
 원소마다 어림 높이가 $1/(1-p)$이므로 온 어림 자리는 다음과 같다.
 
@@ -65,7 +75,9 @@ $$
 
 $p = 1/2$이면 어림 자리가 손가락질 $2n$개다.
 
-## 복잡도 간추림
+---
+
+## 6. 복잡도 간추림
 
 | 연산 | 어림 때 | 가장 나쁠 때 |
 |---|---|---|
@@ -76,7 +88,9 @@ $p = 1/2$이면 어림 자리가 손가락질 $2n$개다.
 
 가장 나쁜 경우(모든 원소가 가장 높은 층까지 올라감)는 셈에 넣지 않아도 될 만큼 작은 낌새로 생긴다.
 
-## 구현
+---
+
+## 7. 구현
 
 ```python
 """
@@ -90,7 +104,6 @@ from __future__ import annotations
 import random
 import math
 
-
 # === 건너뛰기 목록 마디 =======================================================
 
 class SkipNode:
@@ -99,7 +112,6 @@ class SkipNode:
     def __init__(self, key: float, level: int):
         self.key = key
         self.forward: list[SkipNode | None] = [None] * (level + 1)
-
 
 # === 건너뛰기 목록 ============================================================
 
@@ -163,7 +175,6 @@ class SkipList:
             current = current.forward[0]
         return result
 
-
 # === 메인 =====================================================================
 
 if __name__ == "__main__":
@@ -189,10 +200,7 @@ Search 15: False
 
 여러 층 얼개에 걸쳐 원소가 매긴 차례대로 지켜지고, 찾기가 있는 열쇠와 없는 열쇠를 옳게 가른다.
 
-## 참고 문헌
-
-- Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees." *CACM*, 1990
-- [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)
+---
 
 ## 연습문제
 
@@ -242,3 +250,12 @@ Search 15: False
 
 ??? success "연습문제 5 풀이"
     앞 손가락질마다 그것이 건너뛰는 원소의 개수(다다르는 마디를 넣는다)인 **너비**를 덧붙인다. 층 0에서는 너비가 모두 1이다. 더 높은 층에서 너비는 그것이 건너뛰는 아래 층 손가락질들의 너비 합이다. $k$번째 원소를 찾으려면 왼쪽 위에서 시작한다. 층마다 다음 손가락질의 너비가 $\le k$이면 $k$에서 그 너비를 빼고 오른쪽으로 옮긴다. 아니면 아래로 내려간다. $k = 0$이면(또는 겨눈 자리에 이르면) 지금 마디가 답이다. 이는 어림 $O(\log n)$ 때다(찾기와 같다). 넣기와 지우기는 넣거나 지우는 길을 따라 너비를 고쳐야 한다. 넣는 층 위에서 건너뛰는 손가락질의 너비에서 1을 빼고 새 마디의 손가락질에 1을 더한다. 이 덧붙임은 Redis의 매긴 집합(`ZRANGEBYSCORE`과 `ZRANK` 명령)에 쓰인다. $\square$
+
+## 정리하며
+
+이 마당은 얼개、찾기、넣기、지우기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees." *CACM*, 1990
+- [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)

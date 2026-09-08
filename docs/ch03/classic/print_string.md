@@ -2,14 +2,15 @@
 
 문자열을 한 글자씩 출력하는 것은 수열에 대한 재귀의 가장 단순한 예 중 하나이다. 재귀적 접근은 첫 글자를 처리한 뒤 남은 부분 문자열에 대해 재귀한다. 원소 하나를 처리하고 나머지에 재귀하는 이 패턴이 수열에 대한 선형 재귀의 토대이다.
 
-## 재귀적 구조
+---
+
+## 1. 재귀적 구조
 
 - **기저 사례**: 문자열이 비어 있다 — 출력할 것이 없으므로 반환한다
 - **재귀 사례**: 첫 글자를 출력한 뒤 나머지를 재귀적으로 출력한다
 
 ```python
 """되부름으로 글자열을 한 글자씩 찍는다."""
-
 
 # === 재귀적 출력 ===
 
@@ -20,13 +21,11 @@ def print_string_recursive(string):
     print(string[0], end="")
     print_string_recursive(string[1:])
 
-
 # === 내장 함수와 비교 ===
 
 def print_string_builtin(string):
     """파이썬 붙박이로 글자열을 찍는다."""
     print(string)
-
 
 # === 메인 ===
 
@@ -49,7 +48,9 @@ Print string using built-in:
 Recursion breaks a problem into smaller subproblems
 ```
 
-## 복잡도
+---
+
+## 2. 복잡도
 
 각 재귀 호출은 글자 하나를 처리하고 길이 $n - 1$의 새 부분 문자열을 만든다.
 
@@ -59,10 +60,7 @@ $$
 
 이는 $O(n)$의 시간 복잡도를 준다. 공간 복잡도는 재귀 스택을 위한 $O(n)$에, 부분 문자열 복사를 위한 총 $O(n^2)$이 더해진다(파이썬의 문자열 슬라이싱이 새 문자열을 만들기 때문이다).
 
-## 참고 자료
-
-[Recursion의 개념과 기본 예제들](https://www.youtube.com/watch?v=tuzf1yLPgRI&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=2)
-
+---
 
 ## 연습문제
 
@@ -95,3 +93,11 @@ $n = 8$일 때 문자열 출력하기의 재귀 트리를 그려라. 각 층에�
 
 ??? success "연습문제 4 풀이"
     호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.
+
+## 정리하며
+
+이 마당은 재귀적 구조、복잡도을 차례로 짚었다.
+
+**참고 자료**
+
+[Recursion의 개념과 기본 예제들](https://www.youtube.com/watch?v=tuzf1yLPgRI&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=2)

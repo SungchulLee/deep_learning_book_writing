@@ -3,7 +3,7 @@
 
 ---
 
-## 판단의 틀
+## 1. 판단의 틀
 
 ### 핵심 물음
 
@@ -58,7 +58,7 @@ Start
 
 ---
 
-## 방법마다의 됨됨이
+## 2. 방법마다의 됨됨이
 
 ### 무작위 걸음 메트로폴리스-헤이스팅스
 
@@ -190,7 +190,7 @@ M = np.diag(1.0 / np.var(warmup_samples, axis=0))
 
 ---
 
-## 문제마다의 권함
+## 3. 문제마다의 권함
 
 ### 베이즈 선형 회귀
 
@@ -374,7 +374,7 @@ $$
 
 ---
 
-## 섞음 전략과 알아서 맞추는 전략
+## 4. 섞음 전략과 알아서 맞추는 전략
 
 ### 깁스 안의 메트로폴리스
 
@@ -458,7 +458,7 @@ class AdaptiveMCMC:
 
 ---
 
-## 진단에 기댄 고르기
+## 5. 진단에 기댄 고르기
 
 ### 방법을 언제 바꾸나
 
@@ -519,7 +519,7 @@ def diagnose_chain(samples, target='hmc'):
 
 ---
 
-## 빠른 참고 길잡이
+## 6. 빠른 참고 길잡이
 
 ### 문제 갈래별
 
@@ -556,28 +556,6 @@ def diagnose_chain(samples, target='hmc'):
 
 ---
 
-## 요약
-
-**방법 고르기의 메타 알고리즘**:
-
-1. **문제의 성격 밝히기**: 차원, 미분 가능함, 짜임
-2. **단순하게 시작하기**: 쓸 수 있는 가장 단순한 방법을 해 본다
-3. **진단하기**: ESS, R-hat, 자취 그림을 살핀다
-4. **되풀이하기**: 진단에 기대어 방법을 바꾸거나 맞춘다
-5. **확인하기**: 미덥지 않으면 여러 길을 견준다
-
-**망설여지면**: $d > 20$인 이어지고 미분할 수 있는 과녁에는 **NUTS이 기본 고름**이다. 자취 길이를 스스로 맞추며 요즘의 확률 프로그래밍(Stan, PyMC, NumPyro)에서 표준이 되었다.
-
----
-
-## 참고 문헌
-
-1. Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press.
-2. Carpenter, B., et al. (2017). "Stan: A Probabilistic Programming Language." *Journal of Statistical Software*.
-3. Hoffman, M. D., & Gelman, A. (2014). "The No-U-Turn Sampler." *JMLR*.
-4. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer.
-5. Brooks, S., et al. (2011). *Handbook of Markov Chain Monte Carlo*. CRC Press.
-
 ## 연습문제
 
 1. **결정 나무 써 보기.** 다음 문제마다 결정 나무로 방법을 골라라. (a) 매개변수 5개의 비선형 회귀, (b) 500차원 가우스 과정, (c) 성분 20개의 섞음 모형, (d) 10×10 격자의 이징 모형.
@@ -591,3 +569,25 @@ def diagnose_chain(samples, target='hmc'):
 5. **무너지는 모습 가려내기.** 방법마다 무너지는 상황을 일부러 만들어라. (a) 높은 차원의 무작위 걸음 MH, (b) 강한 상관에서의 깁스, (c) 끊긴 곳이 있는 MALA, (d) 봉우리가 여럿일 때의 HMC.
 
 ---
+
+## 정리하며
+
+**방법 고르기의 메타 알고리즘**:
+
+1. **문제의 성격 밝히기**: 차원, 미분 가능함, 짜임
+2. **단순하게 시작하기**: 쓸 수 있는 가장 단순한 방법을 해 본다
+3. **진단하기**: ESS, R-hat, 자취 그림을 살핀다
+4. **되풀이하기**: 진단에 기대어 방법을 바꾸거나 맞춘다
+5. **확인하기**: 미덥지 않으면 여러 길을 견준다
+
+**망설여지면**: $d > 20$인 이어지고 미분할 수 있는 과녁에는 **NUTS이 기본 고름**이다. 자취 길이를 스스로 맞추며 요즘의 확률 프로그래밍(Stan, PyMC, NumPyro)에서 표준이 되었다.
+
+---
+
+**참고 문헌**
+
+1. Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press.
+2. Carpenter, B., et al. (2017). "Stan: A Probabilistic Programming Language." *Journal of Statistical Software*.
+3. Hoffman, M. D., & Gelman, A. (2014). "The No-U-Turn Sampler." *JMLR*.
+4. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer.
+5. Brooks, S., et al. (2011). *Handbook of Markov Chain Monte Carlo*. CRC Press.

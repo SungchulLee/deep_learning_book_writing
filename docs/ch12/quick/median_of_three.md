@@ -2,11 +2,15 @@
 
 빠른 정렬의 성능은 축의 질에 크게 달렸다. 첫 원소나 마지막 원소를 축으로 고르면 정렬되었거나 거의 정렬된 입력에서 $O(n^2)$ 거동이 나오는데, 하필 실전에서 가장 자주 나타나는 입력이 그렇다. **셋의 중앙값** 축 고르기는 원소 셋(대개 첫째, 가운데, 마지막)을 살펴 그 중앙값을 축으로 쓴다. 이 단순한 어림법은 정렬된 데이터에서 최악의 경우를 피하고 평균으로 더 고른 나눔을 낸다.
 
-## 왜 필요한가
+---
+
+## 1. 왜 필요한가
 
 이미 오름차순으로 정렬된 배열을 생각해 보자. 늘 $A[lo]$을 축으로 고르면 나눌 때마다 빈 부분 배열 하나와 크기 $n - 1$인 부분 배열 하나가 나와 $T(n) = T(n-1) + \Theta(n) = \Theta(n^2)$이 된다. 셋의 중앙값 어림법은 $\{A[lo],\, A[\lfloor(lo+hi)/2\rfloor],\, A[hi]\}$의 중앙값을 고른다. 정렬된 배열에서 이 중앙값은 늘 가운데 원소여서 깊이 $O(\log n)$의 완벽하게 고른 나눔이 나온다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 첨자 $lo$과 $hi$이 주어지면 $mid = \lfloor(lo + hi) / 2\rfloor$이라 하자. 셋의 중앙값 절차는 다음과 같다.
 
@@ -17,7 +21,9 @@
 
 이 세 번의 견줌은 곁다리로 그 세 원소를 어느 정도 정렬해 주기도 하는데, 그러면 부분 배열의 양 끝에 파수병이 놓여 호어 나눔의 안쪽 되돌이에서 범위를 살필 필요가 없어진다.
 
-## 분석
+---
+
+## 3. 분석
 
 고르게 무작위인 순열에서 뽑은 원소 셋의 중앙값은 기대 순위가 $n/2$이라 고른 나눔을 낸다. 더 정확히는 축이 배열의 가운데 3분의 1에 떨어질 확률이 다음과 같다.
 
@@ -30,7 +36,9 @@ $$
 !!! tip "아홉수(셋의 중앙값의 중앙값)"
     아주 큰 배열에서는 **아홉수**를 쓰는 구현도 있다. 원소 셋씩 세 무리를 잡아 무리마다 중앙값을 찾고, 그 세 중앙값의 중앙값을 쓴다. 나눔마다 견줌이 늘어나는 대신 축을 더 잘 어림하며, 벤틀리-매킬로이의 빠른 정렬 다듬기에 쓰인다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -40,7 +48,6 @@ $$
 최악의 거동을 피하고 평균으로 더 고른 나눔이 나옴을
 보여 준다.
 """
-
 
 # === 셋의 중앙값 고르기 ===
 
@@ -58,7 +65,6 @@ def median_of_three(arr: list, lo: int, hi: int) -> int:
     if arr[mid] > arr[hi]:
         arr[mid], arr[hi] = arr[hi], arr[mid]
     return mid
-
 
 # === 셋의 중앙값을 쓰는 빠른 정렬 ===
 
@@ -91,7 +97,6 @@ def quicksort_mot(arr: list, lo: int, hi: int) -> None:
 
     quicksort_mot(arr, lo, i - 1)
     quicksort_mot(arr, i + 1, hi)
-
 
 # === 시연 ===
 
@@ -131,7 +136,9 @@ Median-of-three index: 2, value: 50
 After partial sort: [30, 10, 50, 90, 70]
 ```
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 축 전략 | 평균 견줌 | 최악의 경우 | 정렬된 입력 |
 |----------------|-----------------|------------|--------------|
@@ -141,12 +148,7 @@ After partial sort: [30, 10, 50, 90, 70]
 
 셋의 중앙값이 $O(n^2)$ 최악의 경우를 아예 없애지는 못한다. 적수는 여전히 이를 깨뜨리는 입력을 지어낼 수 있다. 그러나 그런 입력이 저절로 생기지는 않으며, 셋의 중앙값에 인트로 정렬의 깊이 한계를 곁들이면 최악의 경우 $O(n \log n)$이 된다.
 
-## 참고 문헌
-
-- Sedgewick, R. (1978). Implementing Quicksort programs. *Communications of the ACM*, 21(10), 847-857.
-- Bentley, J. L., & McIlroy, M. D. (1993). Engineering a sort function. *Software: Practice and Experience*, 23(11), 1249-1265.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
-
+---
 
 ## 연습문제
 
@@ -179,3 +181,13 @@ float32 학습 손실 값 1000만 개를 정렬할 때 셋의 중앙값 축 고�
 
 ??? success "연습문제 4 풀이"
     $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.
+
+## 정리하며
+
+이 마당은 왜 필요한가、알고리즘、분석、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Sedgewick, R. (1978). Implementing Quicksort programs. *Communications of the ACM*, 21(10), 847-857.
+- Bentley, J. L., & McIlroy, M. D. (1993). Engineering a sort function. *Software: Practice and Experience*, 23(11), 1249-1265.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.

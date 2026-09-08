@@ -2,7 +2,9 @@
 
 두 글줄은 얼마나 비슷한가? **고침 거리**(레벤슈타인 거리)는 한 글줄을 다른 글줄로 바꾸는 데 드는 글자 하나짜리 연산의 가장 적은 수를 센다. 이 잣대는 맞춤법 살피기, DNA 차례 맞추기, 차이 보기 도구, 자연말 처리의 바탕이다. 가장 좋은 아래 짜임과 겹치는 아래 문제를 갖춘 말끔한 동적 짜기 풀이가 있어 2차원 동적 짜기의 교과서 보기가 된다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 길이 $m$인 글줄 $s_1$과 길이 $n$인 글줄 $s_2$이 주어질 때 $s_1$을 $s_2$으로 바꾸는 데 드는 가장 적은 연산 수를 찾아라. 값이 저마다 1인 허락된 연산은 다음과 같다:
 
@@ -12,7 +14,9 @@
 
 예컨대 "kitten"을 "sitting"으로 바꾸려면 연산 3번이 든다. 곧 'k'을 's'로 갈음하고, 'e'을 'i'로 갈음하고, 끝에 'g'을 끼운다.
 
-## 가장 좋은 밑짜임
+---
+
+## 2. 가장 좋은 밑짜임
 
 $d(i, j)$을 $s_1$의 앞선 $i$개 글자와 $s_2$의 앞선 $j$개 글자 사이 고침 거리라 하자. 마지막 글자 $s_1[i]$과 $s_2[j]$을 보자:
 
@@ -22,7 +26,9 @@ $d(i, j)$을 $s_1$의 앞선 $i$개 글자와 $s_2$의 앞선 $j$개 글자 사�
     - $s_1[i]$을 **지운다**: 값은 $1 + d(i-1, j)$.
     - $s_1[i]$ 뒤에 $s_2[j]$을 **끼운다**: 값은 $1 + d(i, j-1)$.
 
-## 점화식
+---
+
+## 3. 점화식
 
 $$
 d(i, j) = \begin{cases} j & \text{if } i = 0 \\ i & \text{if } j = 0 \\ d(i-1, j-1) & \text{if } s_1[i] = s_2[j] \\ 1 + \min\bigl(d(i-1, j),\; d(i, j-1),\; d(i-1, j-1)\bigr) & \text{otherwise} \end{cases}
@@ -30,7 +36,9 @@ $$
 
 **바탕 경우.** 길이 $i$인 글줄을 빈 글줄로 바꾸려면 $i$번 지워야 하므로 $d(i, 0) = i$이다. 빈 글줄을 길이 $j$인 글줄로 바꾸려면 $j$번 끼워야 하므로 $d(0, j) = j$이다.
 
-## 표 채우기
+---
+
+## 4. 표 채우기
 
 동적 짜기 표를 가로줄마다 왼쪽에서 오른쪽으로 채운다. 칸 $d(i, j)$은 $d(i-1, j-1)$, $d(i-1, j)$, $d(i, j-1)$에만 기대며 이들은 모두 $d(i, j)$보다 먼저 셈된다.
 
@@ -48,7 +56,9 @@ $$
 
 답 $d(6, 7) = 3$은 오른쪽 아래 구석에 있다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -93,7 +103,6 @@ def edit_distance(s1: str, s2: str) -> int:
                 )
 
     return dp[m][n]
-
 
 # === 거슬러 좇아 연산 되찾기 ===
 
@@ -147,7 +156,6 @@ def edit_operations(s1: str, s2: str) -> list[str]:
     ops.reverse()
     return ops
 
-
 # === 공간을 줄인 판 ===
 
 def edit_distance_optimized(s1: str, s2: str) -> int:
@@ -174,7 +182,6 @@ def edit_distance_optimized(s1: str, s2: str) -> int:
         prev, curr = curr, prev
 
     return prev[n]
-
 
 # === 시연 ===
 
@@ -212,7 +219,9 @@ Space-optimized result: 3
 edit_distance('intention', 'execution') = 5
 ```
 
-## 복잡도
+---
+
+## 6. 복잡도
 
 | 갈래 | 여느 것 | 공간 줄임 |
 |--------|:--------:|:---------------:|
@@ -221,24 +230,24 @@ edit_distance('intention', 'execution') = 5
 
 여느 풀이는 $(m+1) \times (n+1)$ 표를 채워 시간과 공간이 $O(mn)$이다. 가로줄마다 바로 앞 가로줄에만 기대므로 공간을 줄인 판은 가로줄 둘만 써서 공간을 $O(\min(m, n))$으로 줄인다. 맞바꿈은 거슬러 좇기(실제 연산 되찾기)에 표 전체가 필요하다는 것이다.
 
-## 변형
+---
+
+## 7. 변형
 
 - **무게 붙은 고침 거리.** 연산마다 값이 다르다. 되돌이 관계식에서 상수 1을 연산마다의 값 $c_{\text{ins}}, c_{\text{del}}, c_{\text{rep}}$으로 갈음한다.
 - **최장 공통 부분 차례.** 갈음 값을 무한으로(또는 지우기 + 끼우기를 뜻하는 2로) 두면 고침 거리가 $m + n - 2 \cdot \text{LCS}(s_1, s_2)$과 같아진다.
 - **다메라우-레벤슈타인 거리.** 네 번째 연산인 이웃한 두 글자 자리 바꿈을 더한다.
 
-## 응용
+---
+
+## 8. 응용
 
 - **맞춤법 살피기.** 고침 거리가 작은 사전 낱말을 찾아 고칠 것을 알려 준다.
 - **DNA 차례 맞추기.** 유전 차례 사이 닮음을 잰다.
 - **차이 보기 도구.** 파일 판 사이 가장 작은 바뀜 모임을 셈한다.
 - **자연말 처리.** 찾기와 앎 찾아오기에서 어림잡아 글줄 맞추기.
 
-## 참고 문헌
-
-- Wagner, R. A., & Fischer, M. J. (1974). The string-to-string correction problem. *Journal of the ACM*, 21(1), 168--173.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 14: Dynamic Programming.
-- Levenshtein, V. I. (1966). Binary codes capable of correcting deletions, insertions, and reversals. *Soviet Physics Doklady*, 10(8), 707--710.
+---
 
 ## 연습문제
 
@@ -271,3 +280,13 @@ edit_distance('intention', 'execution') = 5
 
 ??? success "연습문제 4 풀이"
     네 번째 연산을 더한다. 곧 $s_1[i] = s_2[j-1]$이고 $s_1[i-1] = s_2[j]$이면 값 1로 자리를 바꿀 수 있다. 되돌이 관계식은 $dp[i][j] = \min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1] + (s_1[i] \neq s_2[j]), dp[i-2][j-2] + 1)$이 되며 마지막 항은 자리 바꿈 조건이 성립할 때만 쓴다. "teh" $\to$ "the" 같은 흔한 오타를 잡는다. 시간과 공간은 그대로 $O(mn)$이다. $\square$
+
+## 정리하며
+
+이 마당은 문제 서술、가장 좋은 밑짜임、점화식、표 채우기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Wagner, R. A., & Fischer, M. J. (1974). The string-to-string correction problem. *Journal of the ACM*, 21(1), 168--173.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 14: Dynamic Programming.
+- Levenshtein, V. I. (1966). Binary codes capable of correcting deletions, insertions, and reversals. *Soviet Physics Doklady*, 10(8), 707--710.

@@ -1,16 +1,23 @@
 # 큰 말 모델의 떠오르는 능력
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 큰 말 모델에서의 떠오름을 정의하고 매끄러운 규모 키우기와 가른다
 - 핵심 떠오르는 능력과 그것이 나타나는 규모를 가려낸다
 - 떠오름이 재기의 찌꺼기인지 참된 현상인지를 둘러싼 논쟁을 이해한다
 - 능력 어림과 인공지능 안전에 미치는 뜻을 살핀다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 떠오르는 능력이란 크기에 따라 차츰 나아지는 것이 아니라, 큰 말 모델이 어떤 규모 문턱을 넘는 순간 갑자기 나타나는 능력이다. 작은 모델에는 없거나 거의 마구잡이 수준이지만 큰 모델에서는 놀라운 힘으로 나타난다.
 
-## 떠오름 정의하기
+---
+
+## 3. 떠오름 정의하기
 
 ### 형식적 정의
 
@@ -34,7 +41,9 @@ $$\frac{dP}{dS} \gg 0 \text{ for } S \approx S_{threshold}$$
 | 어림할 수 있음 | 높음 | 낮음 |
 | 보기 | 헷갈림도 | 생각의 사슬 |
 
-## 기록된 떠오르는 능력
+---
+
+## 4. 기록된 떠오르는 능력
 
 ### BIG-Bench 살피기
 
@@ -81,7 +90,9 @@ Small models: Ignore constraints
 Large models: Follow complex instructions
 ```
 
-## 상 바뀜 모델
+---
+
+## 5. 상 바뀜 모델
 
 ### 통계 역학과의 비유
 
@@ -121,7 +132,9 @@ plt.legend()
 plt.grid(True, alpha=0.3)
 ```
 
-## 떠오름 논쟁
+---
+
+## 6. 떠오름 논쟁
 
 ### "떠오름은 신기루다"(Schaeffer 외, 2023)
 
@@ -156,7 +169,9 @@ discrete = [discrete_metric(c) for c in smooth]
 2. **두루 통함의 무늬**: 성능만이 아니라 새로운 능력의 갈래이다
 3. **질의 차이**: 그저 "더 나은" 것이 아니라 "다른" 것이다
 
-## 시사하는 것
+---
+
+## 7. 시사하는 것
 
 ### 능력 어림에 대해
 
@@ -202,7 +217,9 @@ def capability_forecast_uncertainty(
 | 능력 시험 | 가운데 규모에서 시험한다 |
 | 셈 나누기 | 본전을 뽑으려면 문턱값에 이르러야 할 수 있다 |
 
-## 떠오름 재기
+---
+
+## 8. 떠오름 재기
 
 ### 떠오름의 세기 수로 나타내기
 
@@ -275,7 +292,9 @@ def evaluate_emergence_robustness(
     }
 ```
 
-## 떠오르는 능력 목록
+---
+
+## 9. 떠오르는 능력 목록
 
 ### 떠오름이 확인됨(여러 연구)
 
@@ -294,25 +313,15 @@ def evaluate_emergence_robustness(
 | 상식 | 정의에 매인다 |
 | 시킴 따르기 | 시킴의 복잡도에 매인다 |
 
-## 요약
+---
 
-1. **떠오름** = 규모에서 갑자기 나타나는 능력
-2. **보기**: 생각의 사슬, 복잡한 셈하기, 시킴 따르기
-3. **논쟁**: 어떤 떠오름은 잣대의 찌꺼기일 수 있다
-4. **뜻하는 바**: 어림의 어려움, 안전의 걱정거리
-5. **좋은 버릇**: 잣대를 여럿 쓰고 가운데 규모에서 시험한다
-
-## 핵심 통찰
+## 10. 핵심 통찰
 
 $$\boxed{\text{Emergence} = \text{Qualitative change, not just quantitative improvement}}$$
 
 떠오름이 "참된" 것이든 찌꺼기이든, 실전에서 뜻하는 바는 그대로다. 곧 **규모가 커지면 능력이 뜻밖에 바뀔 수 있다**.
 
-## 참고 문헌
-
-1. Wei, J., et al. (2022). Emergent Abilities of Large Language Models. *TMLR*.
-2. Schaeffer, R., et al. (2023). Are Emergent Abilities of Large Language Models a Mirage? *NeurIPS*.
-3. Ganguli, D., et al. (2022). Predictability and Surprise in Large Generative Models. *FAccT*.
+---
 
 ## 연습문제
 
@@ -345,3 +354,17 @@ $$\boxed{\text{Emergence} = \text{Qualitative change, not just quantitative impr
 
 ??? success "연습문제 4 풀이"
     $C = 6ND$(변환기 익힘의 어림 뜨는 셈 횟수)을 쓰는 친칠라 크기 법칙을 쓴다. $10^{23} = 6ND$이고 가장 좋은 $D \approx 20N$이다. 넣어 보면 $10^{23} = 6N \cdot 20N = 120N^2$이므로 $N \approx \sqrt{10^{23}/120} \approx 2.9 \times 10^{10}$, 곧 매개변수 약 290억 개다. 익힘 토막은 $D = 10^{23}/(6 \times 29 \times 10^9) \approx 5750$억 개다. 이렇게 나누면 셈을 가장 잘 쓰는 견줌을 따르므로, 같은 셈 예산에서 덜 익힌 더 큰 모델(1750억을 토막 960억 개로)이나 지나치게 익힌 더 작은 모델(70억을 토막 2조 4000억 개로)보다 낫다.
+
+## 정리하며
+
+1. **떠오름** = 규모에서 갑자기 나타나는 능력
+2. **보기**: 생각의 사슬, 복잡한 셈하기, 시킴 따르기
+3. **논쟁**: 어떤 떠오름은 잣대의 찌꺼기일 수 있다
+4. **뜻하는 바**: 어림의 어려움, 안전의 걱정거리
+5. **좋은 버릇**: 잣대를 여럿 쓰고 가운데 규모에서 시험한다
+
+**참고 문헌**
+
+1. Wei, J., et al. (2022). Emergent Abilities of Large Language Models. *TMLR*.
+2. Schaeffer, R., et al. (2023). Are Emergent Abilities of Large Language Models a Mirage? *NeurIPS*.
+3. Ganguli, D., et al. (2022). Predictability and Surprise in Large Generative Models. *FAccT*.

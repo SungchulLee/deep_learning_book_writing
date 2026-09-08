@@ -2,7 +2,9 @@
 
 평면 위 터(점) 모임이 주어질 때 주어진 물음 자리에 가장 가까운 터는 어느 것인가? **보로노이 그림**은 평면을 터마다 하나씩의 자리로 갈라 이 물음에 *모든* 자리에 대해 한꺼번에 답한다. 이때 한 자리 안의 모든 점은 다른 어느 터보다 제 터에 더 가깝다. 보로노이 그림은 시설 자리 잡기, 가장 가까운 이웃 찾기, 그물 만들기, 땅 살피기에 나온다.
 
-## 정의
+---
+
+## 1. 정의
 
 $\mathbb{R}^2$의 터 $n$개 $P = \{p_1, p_2, \ldots, p_n\}$이 주어질 때 터 $p_i$의 **보로노이 자리**(또는 보로노이 칸)는 다음과 같다.
 
@@ -12,7 +14,9 @@ $$
 
 **보로노이 그림** $\text{Vor}(P)$은 $\mathbb{R}^2$을 보로노이 자리 $V(p_1), V(p_2), \ldots, V(p_n)$으로 가른 것이다.
 
-## 구조
+---
+
+## 2. 구조
 
 두 보로노이 자리 $V(p_i)$과 $V(p_j)$ 사이의 가장자리는 도막 $\overline{p_i p_j}$의 **수직 이등분선**, 곧 $p_i$과 $p_j$에서 같은 거리에 있는 점의 모임 위에 있다.
 
@@ -21,7 +25,9 @@ $$
 - **보로노이 모서리:** 정확히 두 자리가 만나는 수직 이등분선의 조각이다.
 - **보로노이 꼭짓점:** 모서리 셋 이상이 만나는 점이다. 보로노이 꼭짓점은 터 셋(또는 그 이상)에서 같은 거리에 있다.
 
-## 조합의 복잡도
+---
+
+## 3. 조합의 복잡도
 
 일반 자리에 있는 터 $n$개에 대해:
 
@@ -33,14 +39,18 @@ $$
 
 이 한계는 평면 그래프에 대한 오일러 공식 $V - E + F = 2$에서 따라 나온다.
 
-## 성질
+---
+
+## 4. 성질
 
 - 보로노이 자리는 저마다 **볼록 다각형**이다(끝이 열려 있을 수도 있다).
 - 보로노이 꼭짓점 $v$은 터 셋(또는 그 이상)을 지나면서 안에 터가 없는 동그라미의 중심이다. 이는 맞물리는 들로네 삼각형의 둘레 동그라미이다.
 - $p_i$의 **가장 가까운 이웃**은 $p_i$과 보로노이 모서리를 나누어 가진다.
 - 보로노이 그림은 들로네 삼각 나누기의 **짝**이다. 곧 두 터를 들로네 모서리로 잇는 것과 그 보로노이 자리가 가장자리를 나누어 가지는 것은 서로 같다.
 
-## 보로노이 자리 세우기
+---
+
+## 5. 보로노이 자리 세우기
 
 보로노이 자리 $V(p_i)$은 저마다 반평면 $n - 1$개의 교집합이다.
 
@@ -52,7 +62,9 @@ $$
 
 이렇게 자리마다 셈하면 모두 $O(n^2 \log n)$이 든다. 포춘의 훑는 선 알고리즘은 $O(n \log n)$을 이룬다.
 
-## 풀이 예제
+---
+
+## 6. 풀이 예제
 
 터 셋을 보자: $p_1 = (0, 0)$, $p_2 = (6, 0)$, $p_3 = (3, 5)$.
 
@@ -64,7 +76,9 @@ $$
 
 이 세 이등분선은 $\triangle p_1 p_2 p_3$의 둘레 중심에서 만나며, 그것이 하나뿐인 보로노이 꼭짓점이다.
 
-## 구현
+---
+
+## 7. 구현
 
 ```python
 """
@@ -76,13 +90,11 @@ $$
 
 import math
 
-
 # === 거리 ===
 
 def dist(a, b):
     """두 점 사이의 유클리드 거리."""
     return math.hypot(a[0] - b[0], a[1] - b[1])
-
 
 # === 가장 가까운 터(보로노이 자리 묻기) ===
 
@@ -101,7 +113,6 @@ def nearest_site(sites, query):
             best_idx = i
     return best_idx, best_dist
 
-
 # === 수직 이등분선 ===
 
 def perpendicular_bisector(p, q):
@@ -115,7 +126,6 @@ def perpendicular_bisector(p, q):
     # 직각 방향: 90도 돌린다
     perp = (-dy, dx)
     return mid, perp
-
 
 # === 둘레 중심(터 셋의 보로노이 꼭짓점) ===
 
@@ -139,7 +149,6 @@ def circumcenter(a, b, c):
         + (cx * cx + cy * cy) * (bx - ax)) / D
     return (ux, uy)
 
-
 # === 보로노이 격자 그려 보기 ===
 
 def voronoi_grid(sites, grid_size=10, resolution=20):
@@ -158,7 +167,6 @@ def voronoi_grid(sites, grid_size=10, resolution=20):
             line.append(str(idx))
         grid.append(" ".join(line))
     return "\n".join(grid)
-
 
 # === 메인 ===
 
@@ -213,7 +221,9 @@ Bisector of p2-p3:
   Direction: (-5.0, -3.0)
 ```
 
-## 응용
+---
+
+## 8. 응용
 
 | 쓰임새 | 보로노이를 쓰는 법 |
 |---|---|
@@ -223,10 +233,7 @@ Bisector of p2-p3:
 | 공간 사이 메우기 | 자연 이웃 사이 메우기가 보로노이 넓이를 쓴다 |
 | 부딪힘 피하기 | 보로노이 모서리가 가장 넉넉히 트인 길을 나타낸다 |
 
-## 참고 문헌
-
-- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 7.
-- Aurenhammer, F. "Voronoi Diagrams: A Survey of a Fundamental Geometric Data Structure." *ACM Computing Surveys*, 1991.
+---
 
 ## 연습문제
 
@@ -259,3 +266,12 @@ Bisector of p2-p3:
 
 ??? success "연습문제 4 풀이"
     막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 보로노이 그림은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$
+
+## 정리하며
+
+이 마당은 정의、구조、조합의 복잡도、성질을 차례로 짚었다.
+
+**참고 문헌**
+
+- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 7.
+- Aurenhammer, F. "Voronoi Diagrams: A Survey of a Fundamental Geometric Data Structure." *ACM Computing Surveys*, 1991.

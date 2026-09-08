@@ -2,7 +2,9 @@
 
 평면 위 $n$개 점이 주어질 때 어느 두 점이 가장 가까운가? 막무가내 방식은 $\binom{n}{2}$개 짝을 모두 $O(n^2)$ 시간에 살핀다. 옛부터의 나누어 이기기 알고리즘은 이를 $O(n \log n)$에 풀고, 훑는 선 변형도 같은 한계를 이룬다. 이 쪽에서는 두 방식을 모두 보인다.
 
-## 문제 서술
+---
+
+## 1. 문제 서술
 
 $\mathbb{R}^2$의 점 $n$개 모임 $P = \{p_1, p_2, \ldots, p_n\}$이 주어질 때 유클리드 거리를 가장 작게 하는 $i \neq j$인 짝 $(p_i, p_j)$을 찾아라.
 
@@ -10,7 +12,9 @@ $$
 d(p_i, p_j) = \sqrt{(p_{i,x} - p_{j,x})^2 + (p_{i,y} - p_{j,y})^2}
 $$
 
-## 나누어 이기기 방식
+---
+
+## 2. 나누어 이기기 방식
 
 ### 알고리즘
 
@@ -32,7 +36,9 @@ $$
 
 마스터 정리에 따라 $T(n) = O(n \log n)$이다.
 
-## 훑는 선 방식
+---
+
+## 3. 훑는 선 방식
 
 훑는 선 변형은 점을 왼쪽에서 오른쪽으로 다루며 $y$자리값으로 정렬한 살아 있는 점 모임을 고른 이진 찾기 나무에 지킨다.
 
@@ -46,7 +52,9 @@ $$
 
 점마다 한 번 넣고 한 번 지운다. 물음마다 $O(1)$개 점을 돌려준다(같은 성김 논증에 따라). 모두 $O(n \log n)$ 시간이다.
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 점: $(2,3)$, $(12,30)$, $(40,50)$, $(5,1)$, $(12,10)$, $(3,4)$.
 
@@ -60,7 +68,9 @@ $\delta = \min(1.414, 20) = 1.414$이다. 가운데값($x \approx 5$) 둘레의 
 
 **결과:** 가장 가까운 짝은 $((2,3), (3,4))$이며 거리는 $\sqrt{2}$이다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -71,13 +81,11 @@ O(n log n) 시간을 이루는 나누어 이기기 알고리즘을 짠다.
 
 import math
 
-
 # === 거리 ===
 
 def dist(p, q):
     """두 점 사이의 유클리드 거리를 셈한다."""
     return math.hypot(p[0] - q[0], p[1] - q[1])
-
 
 # === 막무가내(바탕 경우) ===
 
@@ -96,7 +104,6 @@ def brute_force(points):
                 min_d = d
                 pair = (points[i], points[j])
     return min_d, pair
-
 
 # === 띠 살피기 ===
 
@@ -120,7 +127,6 @@ def closest_in_strip(strip, delta):
             j += 1
 
     return min_d, pair
-
 
 # === 나누어 이기기 ===
 
@@ -148,7 +154,6 @@ def closest_pair_rec(px):
         return ds, pair_s
     return delta, best_pair
 
-
 def closest_pair(points):
     """가장 가까운 점 짝을 O(n log n) 시간에 찾는다.
 
@@ -160,7 +165,6 @@ def closest_pair(points):
     """
     px = sorted(points, key=lambda p: (p[0], p[1]))
     return closest_pair_rec(px)
-
 
 # === 메인 ===
 
@@ -190,7 +194,9 @@ Closest pair: ((0.5, 0.5), (0, 0))
 Distance: 0.7071
 ```
 
-## 복잡도 요약
+---
+
+## 6. 복잡도 요약
 
 | 방법 | 시간 | 공간 |
 |---|---|---|
@@ -199,10 +205,7 @@ Distance: 0.7071
 | 훑는 선 | $O(n \log n)$ | $O(n)$ |
 | 마구잡이 | 기댓값 $O(n)$ | $O(n)$ |
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press, Chapter 33.
-- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
+---
 
 ## 연습문제
 
@@ -235,3 +238,12 @@ Distance: 0.7071
 
 ??? success "연습문제 4 풀이"
     막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 가장 가까운 점 짝은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$
+
+## 정리하며
+
+이 마당은 문제 서술、나누어 이기기 방식、훑는 선 방식、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press, Chapter 33.
+- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.

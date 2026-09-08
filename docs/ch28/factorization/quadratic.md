@@ -2,7 +2,9 @@
 
 폴러드 로가 닿지 못하는 수(대략 30자리 인수)에서는 이차 체(QS)가 약 100자리까지의 정수를 인수 분해하는 데 즐겨 쓰이는 방법이다. 1990년대에 수체 체가 앞지를 때까지 알려진 가장 빠른 두루 쓰는 인수 분해 알고리즘이었다.
 
-## 수학적 바탕
+---
+
+## 1. 수학적 바탕
 
 이차 체는 페르마의 옛 살핌을 쓴다.
 
@@ -12,7 +14,9 @@
 
 어려움은 그런 제곱의 합동을 찾는 것이다.
 
-## 알고리즘 살펴보기
+---
+
+## 2. 알고리즘 살펴보기
 
 이 알고리즘은 세 단계로 나아간다.
 
@@ -54,7 +58,9 @@ $$
 
 $\gcd\!\left(\prod_{x \in S} x - y, \, n\right)$을 셈한다. 적어도 확률 $1/2$으로 이는 하찮지 않은 인수이다. 아니면 다른 선형 종속을 시험한다.
 
-## 복잡도
+---
+
+## 3. 복잡도
 
 이차 체의 도는 시간은 준지수이다:
 
@@ -71,7 +77,9 @@ $$
 | 이차 체 | $L_n[1/2, 1]$ | 약 100자리까지의 수 |
 | 수체 체 | $L_n[1/3, c]$ | 약 100자리를 넘는 수 |
 
-## 단순하게 만든 보기
+---
+
+## 4. 단순하게 만든 보기
 
 ```python
 """
@@ -84,7 +92,6 @@ $$
 import math
 from itertools import combinations
 
-
 # === 인수 바탕 고르기 ===
 def build_factor_base(n: int, bound: int) -> list[int]:
     """n이 이차 잉여인 bound까지의 소수를 돌려준다."""
@@ -94,7 +101,6 @@ def build_factor_base(n: int, bound: int) -> list[int]:
             if p == 2 or pow(n, (p - 1) // 2, p) == 1:
                 primes.append(p)
     return primes
-
 
 # === 매끄러움 살피기 ===
 def try_factor_over_base(value: int, base: list[int]) -> list[int] | None:
@@ -110,7 +116,6 @@ def try_factor_over_base(value: int, base: list[int]) -> list[int] | None:
             e += 1
         exponents.append(e)
     return exponents if v == 1 else None
-
 
 # === 제곱의 합동 ===
 def quadratic_sieve_demo(n: int) -> int | None:
@@ -148,7 +153,6 @@ def quadratic_sieve_demo(n: int) -> int | None:
                         return g
     return None
 
-
 # === 보기 ===
 if __name__ == "__main__":
     n = 15347  # = 103 * 149
@@ -164,17 +168,15 @@ if __name__ == "__main__":
 !!! warning "실제 쓰기와 보여 주기"
     실제 이차 체 짜기는 선형 대수 국면에 다항식 체 치기, 큰 소수 변형, 덩이 란초스나 얼개를 갖춘 $\mathbb{F}_2$ 위 가우스 없애기를 쓴다. 위 코드는 오로지 가르치기 위한 것이다.
 
-## 핵심 개선
+---
+
+## 5. 핵심 개선
 
 - **여러 다항식 이차 체(MPQS).** $Q(x) = x^2 - n$ 하나 대신 다항식 여럿을 써서 체 치기를 더 넓은 범위에 펴고 매끄러운 값을 더 많이 찾는다.
 - **큰 소수 변형.** 인수 바탕 한계보다 조금 큰 인수를 하나 가진 관계를 허락하고, 그런 부분 관계 둘을 합쳐 온전한 관계로 만든다.
 - **덩이 란초스.** 낱말 수준 연산으로 한 번에 64비트를 다루는 덩이 방법으로 $\mathbb{F}_2$ 선형 계를 푼다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
-- Pomerance, C. "The Quadratic Sieve Factoring Algorithm." *Advances in Cryptology*, EUROCRYPT 1984.
-
+---
 
 ## 연습문제
 
@@ -207,3 +209,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     폴러드 로는 $O(N^{1/4})$에 돌며 자릿수에 대해 지수이다. 이차 체는 $L_N[1/2, 1] = \exp(O(\sqrt{\log N \log\log N}))$에 돌며 이는 준지수이다. 약 35자리를 넘는 수에서는 이차 체가 더 빠르다. 일반 수체 체는 $L_N[1/3, c]$에 돌며 점근으로 이차 체보다 빠르다. 갈림목은 약 100자리이다. 약 100자리 아래에서는 이차 체가 겨룰 만하고 위에서는 일반 수체 체가 앞선다. 지금의 RSA 인수 분해 기록(RSA-250, 250자리)은 모두 일반 수체 체를 쓴다.
+
+## 정리하며
+
+이 마당은 수학적 바탕、알고리즘 살펴보기、복잡도、단순하게 만든 보기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
+- Pomerance, C. "The Quadratic Sieve Factoring Algorithm." *Advances in Cryptology*, EUROCRYPT 1984.

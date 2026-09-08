@@ -1,12 +1,17 @@
 # 매개변수를 아끼는 곱게 다듬기(PEFT)
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 큰 말 모델에 매개변수를 아끼는 방법이 왜 꼭 필요한지 이해한다
 - LoRA를 짜고 그 수학 바탕을 이해한다
 - 여러 방법(LoRA, QLoRA, 앞가지 다듬기, 어댑터)을 견준다
 - 제약과 요건에 따라 알맞은 방법을 고른다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 매개변수를 아끼는 곱게 다듬기(PEFT)는 매개변수의 아주 작은 몫만 익혀 큰 말 모델을 맞춘다. 온전한 곱게 다듬기가 엄두를 못 낼 만큼 비싸거나 아예 안 되는 큰 말 모델에 꼭 필요하다.
 
@@ -20,7 +25,9 @@
 
 곱게 다듬기의 일반 이론(차츰 녹이기, 층마다 다른 배움 비율, 큰 잊음)은 9장 옮겨 배우기를 보라.
 
-## LoRA(낮은 계수 맞추기)
+---
+
+## 3. LoRA(낮은 계수 맞추기)
 
 ### 수학 바탕
 
@@ -61,7 +68,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional
 import math
-
 
 class LoRALayer(nn.Module):
     """
@@ -133,7 +139,6 @@ class LoRALayer(nn.Module):
         
         return merged
 
-
 class LoRAConfig:
     """LoRA 맞추기의 자리매김."""
     
@@ -149,7 +154,6 @@ class LoRAConfig:
         self.dropout = dropout
         # 붙박이: 눈길 쏘기에 적용한다
         self.target_modules = target_modules or ['q_proj', 'v_proj']
-
 
 def apply_lora(
     model: nn.Module,
@@ -190,7 +194,6 @@ def apply_lora(
     
     return model
 
-
 def get_lora_params(model: nn.Module) -> list:
     """가장 좋게 하기에 쓸 LoRA 매개변수만 얻는다."""
     lora_params = []
@@ -198,7 +201,6 @@ def get_lora_params(model: nn.Module) -> list:
         if 'lora_' in name:
             lora_params.append(param)
     return lora_params
-
 
 def count_parameters(model: nn.Module) -> dict:
     """익힐 수 있는 매개변수와 전체 매개변수를 센다."""
@@ -234,7 +236,9 @@ def count_parameters(model: nn.Module) -> dict:
 | 64 | 많음 | 온전한 곱게 다듬기에 가까운 좋음 |
 | 256 이상 | 높음 | 온전한 곱게 다듬기에 다가감 |
 
-## QLoRA(양자화한 LoRA)
+---
+
+## 4. QLoRA(양자화한 LoRA)
 
 QLoRA(Dettmers 외, 2023)는 다음을 아울러 일반 하드웨어에서도 아주 큰 모델을 곱게 다듬게 한다:
 
@@ -247,7 +251,6 @@ QLoRA(Dettmers 외, 2023)는 다음을 아울러 일반 하드웨어에서도 �
 import torch
 import torch.nn as nn
 from typing import Tuple
-
 
 class NF4Linear(nn.Module):
     """
@@ -338,7 +341,6 @@ class NF4Linear(nn.Module):
         output = F.linear(x, weight, self.bias)
         return output
 
-
 class QLoRALayer(nn.Module):
     """
     QLoRA: 바탕 무게를 양자화한 LoRA.
@@ -396,7 +398,9 @@ class QLoRALayer(nn.Module):
 | 130억 | 104 GB | 약 28 GB | 약 10 GB |
 | 650억 | 520 GB | 약 130 GB | 약 40 GB |
 
-## 앞가지 다듬기
+---
+
+## 5. 앞가지 다듬기
 
 익힐 수 있는 이어진 시킴말을 들임 앞에 붙여, 모델 무게를 바꾸지 않고 눈길을 고친다:
 
@@ -472,7 +476,6 @@ class PrefixTuning(nn.Module):
         
         return prefix_keys, prefix_values
 
-
 class PrefixAttention(nn.Module):
     """
     앞가지 다듬기를 쓰도록 고친 눈길 층.
@@ -518,7 +521,9 @@ class PrefixAttention(nn.Module):
         pass  # 온전한 짜기는 모델 얼개에 따라 다르다
 ```
 
-## 어댑터 층
+---
+
+## 6. 어댑터 층
 
 얼린 변환기 층 사이에 작은 익힐 수 있는 병목 단원을 끼운다:
 
@@ -555,7 +560,6 @@ class Adapter(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # 남는 이음을 곁들인 병목
         return x + self.up_proj(self.act(self.down_proj(x)))
-
 
 class AdapterTransformerBlock(nn.Module):
     """
@@ -614,7 +618,6 @@ class AdapterTransformerBlock(nn.Module):
         
         return hidden_states
 
-
 def add_adapters(model: nn.Module, bottleneck_size: int = 64) -> nn.Module:
     """모든 변환기 덩이에 맞춤개를 더한다."""
     # 짜기는 모델 얼개에 따라 다르다
@@ -630,7 +633,9 @@ def add_adapters(model: nn.Module, bottleneck_size: int = 64) -> nn.Module:
 | 나란한 어댑터 | 아래층과 나란히 | 어떤 일에는 더 낫다 |
 | AdapterFusion | 어댑터 여럿을 아우름 | 여러 일 배우기 |
 
-## 두루 살피는 견줌
+---
+
+## 7. 두루 살피는 견줌
 
 ### 매개변수 아끼기
 
@@ -680,7 +685,9 @@ Quality
 | 가장 좋은 품질, 넉넉한 자원 | 온전한 곱게 다듬기 |
 | 650억 이상 모델, 하드웨어가 빠듯 | QLoRA |
 
-## 방법 아우르기
+---
+
+## 8. 방법 아우르기
 
 필요에 따라 방법을 아우를 수 있다:
 
@@ -690,22 +697,7 @@ Quality
 # 더 큰 담이를 위한 앞가지 다듬기 + LoRA
 ```
 
-## 요약
-
-| 방법 | 핵심 생각 | 알맞은 곳 |
-|--------|----------|----------|
-| **LoRA** | 낮은 계수 무게 고침 | 두루 쓰기, 실전 |
-| **QLoRA** | 4비트 바탕 + LoRA | 큰 모델, 빠듯한 기억 공간 |
-| **앞가지 다듬기** | 배울 수 있는 부드러운 시킴말 | 만들어 내기 일 |
-| **어댑터** | 병목 단원 | 여러 일, 단원별 |
-
-## 참고 문헌
-
-1. Hu, E., et al. (2021). "LoRA: Low-Rank Adaptation of Large Language Models." ICLR.
-2. Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs." NeurIPS.
-3. Li, X., & Liang, P. (2021). "Prefix-Tuning: Optimizing Continuous Prompts for Generation." ACL.
-4. Houlsby, N., et al. (2019). "Parameter-Efficient Transfer Learning for NLP." ICML.
-5. Pfeiffer, J., et al. (2020). "AdapterHub: A Framework for Adapting Transformers." EMNLP.
+---
 
 ## 연습문제
 
@@ -744,3 +736,20 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 
 ??? success "연습문제 4 풀이"
     QLoRA은 밑 모델을 4비트로 수 줄이고 LoRA 맞춤개는 fp16/bf16으로 두어 둘을 아우른다. 밑 무게 $W_0$은 4비트 NormalFloat 꼴로 담기므로(매개변수마다 $\sim$0.5바이트) 700억 모델의 기억 자리가 140GB에서 $\sim$35GB으로 준다. LoRA 맞춤개는 익힘이 든든하도록 더 촘촘한 꼴로 남는다. 여기에 겹 수 줄이기(수 줄이기 상수를 다시 수 줄이기)와 쪽 넘김 가장 좋게 하개(가장 좋게 하개 상태가 치솟을 때 CPU 기억 자리를 씀)라는 새로움이 더해진다. 그래서 48GB GPU(A6000) 한 장으로 650억 모델을 곱게 다듬을 수 있고, 값비싼 여러 GPU 무리 없이도 연구자와 작은 조직이 큰 말 모델을 맞출 수 있게 된다.
+
+## 정리하며
+
+| 방법 | 핵심 생각 | 알맞은 곳 |
+|--------|----------|----------|
+| **LoRA** | 낮은 계수 무게 고침 | 두루 쓰기, 실전 |
+| **QLoRA** | 4비트 바탕 + LoRA | 큰 모델, 빠듯한 기억 공간 |
+| **앞가지 다듬기** | 배울 수 있는 부드러운 시킴말 | 만들어 내기 일 |
+| **어댑터** | 병목 단원 | 여러 일, 단원별 |
+
+**참고 문헌**
+
+1. Hu, E., et al. (2021). "LoRA: Low-Rank Adaptation of Large Language Models." ICLR.
+2. Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs." NeurIPS.
+3. Li, X., & Liang, P. (2021). "Prefix-Tuning: Optimizing Continuous Prompts for Generation." ACL.
+4. Houlsby, N., et al. (2019). "Parameter-Efficient Transfer Learning for NLP." ICML.
+5. Pfeiffer, J., et al. (2020). "AdapterHub: A Framework for Adapting Transformers." EMNLP.

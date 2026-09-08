@@ -1,5 +1,8 @@
 # MLP 구조
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 !!! abstract "배울 내용"
 
@@ -9,7 +12,9 @@
     - `nn.Module`과 `nn.Sequential` 둘 다로 설정 가능한 MLP를 PyTorch에서 구현하기
     - 분류와 회귀 과제에 구조 설계 원리를 적용하기
 
-## 미리 알아야 할 것
+---
+
+## 2. 미리 알아야 할 것
 
 | 주제 | 왜 중요한가 |
 |-------|---------------|
@@ -19,7 +24,7 @@
 
 ---
 
-## 개요
+## 3. 개요
 
 순방향 신경망이라고도 하는 **다층 퍼셉트론(MLP)**은 딥러닝의 토대가 되는 구조이다. MLP는 입력층 하나, 은닉층 하나 이상, 출력층 하나로 이루어지며 각 층이 다음 층과 **완전히 연결**(밀집)되어 있다. 단순한데도 MLP는 현대의 모든 신경망 구조를 이해하는 구성 요소 노릇을 한다.
 
@@ -27,7 +32,7 @@
 
 ---
 
-## 수학적 정식화
+## 4. 수학적 정식화
 
 ### 뉴런 하나
 
@@ -113,7 +118,7 @@ $$
 
 ---
 
-## 구조의 구성 요소
+## 5. 구조의 구성 요소
 
 ### 입력층
 
@@ -150,7 +155,7 @@ $$
 
 ---
 
-## 신경망의 표기
+## 6. 신경망의 표기
 
 ### 표준 표기
 
@@ -190,7 +195,7 @@ $$
 
 ---
 
-## 매개변수 개수
+## 7. 매개변수 개수
 
 ### 유도
 
@@ -230,7 +235,7 @@ $$
 
 ---
 
-## PyTorch 구현
+## 8. PyTorch 구현
 
 ### `nn.Module`로 만드는 설정 가능한 MLP
 
@@ -423,7 +428,7 @@ for epoch in range(EPOCHS):
 
 ---
 
-## 구조 설계의 원리
+## 9. 구조 설계의 원리
 
 ### 층 크기를 정하는 지침
 
@@ -452,7 +457,7 @@ MLP는 완전 연결이어서 모든 뉴런이 이웃한 층의 모든 뉴런과
 
 ---
 
-## 핵심 정리
+## 10. 핵심 정리
 
 !!! success "요약"
 
@@ -464,12 +469,6 @@ MLP는 완전 연결이어서 모든 뉴런이 이웃한 층의 모든 뉴런과
     6. **PyTorch의 `nn.Linear`**은 행 우선 관례를 쓴다. 입력이 $(B, n_\text{in})$, 출력이 $(B, n_\text{out})$이다
 
 ---
-
-## 참고 문헌
-
-- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapter 6.
-- Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). Learning representations by back-propagating errors. *Nature*, 323(6088), 533–536.
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer. Chapter 5.
 
 ## 연습문제
 
@@ -508,3 +507,13 @@ MLP는 완전 연결이어서 모든 뉴런이 이웃한 층의 모든 뉴런과
 
 ??? success "연습문제 4 풀이"
     층을 넓히면 용량이 커지지만(매개변수가 늘고 표현이 풍부해진다) 과적합의 위험이 있고 계산과 메모리를 더 쓴다. 보편 근사 정리는 충분히 넓은 은닉층 하나로 임의의 연속 함수를 근사할 수 있음을 보장하지만, 실무에서는 깊이가 더 효율적인 경우가 많다.
+
+## 정리하며
+
+이 마당은 학습 목표、미리 알아야 할 것、개요、수학적 정식화을 차례로 짚었다.
+
+**참고 문헌**
+
+- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapter 6.
+- Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). Learning representations by back-propagating errors. *Nature*, 323(6088), 533–536.
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer. Chapter 5.

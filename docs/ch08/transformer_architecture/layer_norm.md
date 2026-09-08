@@ -1,9 +1,10 @@
 # 트랜스포머의 층 정규화
-## 개요
 
 층 정규화는 트랜스포머 구조의 매우 중요한 부품으로, 아래 층(자기 주의와 순전파 신경망)마다 그 뒤에 적용되어 학습을 안정되게 하고 깊게 쌓을 수 있게 한다. 정규화를 아래 층 앞에 두느냐 뒤에 두느냐는 학습의 움직임에 큰 영향을 주며, 요즘 구조는 효율을 위해 RMSNorm 같은 대안으로 모여 왔다.
 
-## 층 정규화
+---
+
+## 1. 층 정규화
 
 ### 수식으로 나타내기
 
@@ -61,7 +62,9 @@ class LayerNorm(nn.Module):
         return self.gamma * (x - mean) / torch.sqrt(var + self.eps) + self.beta
 ```
 
-## 앞 정규화와 뒤 정규화
+---
+
+## 2. 앞 정규화와 뒤 정규화
 
 층 정규화를 아래 층에 견주어 어디에 두느냐가 학습의 안정성과 모형의 질에 큰 영향을 준다.
 
@@ -186,7 +189,9 @@ class PreNormTransformer(nn.Module):
 
 뒤 정규화 구조는 층마다 출력이 이미 정규화되어 있으므로 이 마지막 정규화가 필요 없다.
 
-## RMSNorm
+---
+
+## 3. RMSNorm
 
 제곱평균제곱근 층 정규화(RMSNorm)는 평균 맞추기 단계를 없애 층 정규화를 간단하게 한 것으로 LLaMA, Mistral을 비롯한 요즘 대형 언어 모형에 쓰인다.
 
@@ -246,7 +251,9 @@ class RMSNorm(nn.Module):
 | 쓰이는 곳 | BERT, GPT-2, T5 | LLaMA, Mistral, Gemma |
 | 성능 | 기준 | 같다 |
 
-## 구조마다의 정규화 자리
+---
+
+## 4. 구조마다의 정규화 자리
 
 | 모형 | 정규화 종류 | 자리 |
 |-------|-----------|-----------|
@@ -260,7 +267,9 @@ class RMSNorm(nn.Module):
 
 이 분야는 새로운 큰 규모 모형의 기본으로 RMSNorm을 쓰는 앞 정규화로 모여 왔다.
 
-## 실용적인 고려
+---
+
+## 5. 실용적인 고려
 
 ### 가중치 감쇠와 정규화
 
@@ -298,22 +307,7 @@ class StableLayerNorm(nn.Module):
         return self.norm(x.float()).type_as(x)
 ```
 
-## 요약
-
-트랜스포머의 층 정규화에는 핵심 결정이 셋 있다.
-
-1. **정규화 종류**: 층 정규화(전통)와 RMSNorm(요즘, 더 빠르고 질은 같다)
-2. **자리**: 뒤 정규화(본디 방식, 최고 성능이 조금 낫지만 학습이 어렵다)와 앞 정규화(요즘의 표준, 학습이 안정적이고 깊은 모형을 가능케 한다)
-3. **마지막 정규화**: 앞 정규화 구조에서 출력 사영 앞에 필요하다
-
-요즘의 모범은 LLaMA, Mistral 같은 최고 수준 모형이 쓰는 **앞 정규화 RMSNorm**이다.
-
-## 참고 문헌
-
-1. Ba, J. L., Kiros, J. R., & Hinton, G. E. (2016). "Layer Normalization." arXiv.
-2. Xiong, R., et al. (2020). "On Layer Normalization in the Transformer Architecture." ICML.
-3. Zhang, B., & Sennrich, R. (2019). "Root Mean Square Layer Normalization." NeurIPS.
-4. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
+---
 
 ## 연습문제
 
@@ -351,3 +345,20 @@ class StableLayerNorm(nn.Module):
         sigma = x.std(dim=-1, keepdim=True, unbiased=False)
         return gamma * (x - mu) / (sigma + eps) + beta
     ```
+
+## 정리하며
+
+트랜스포머의 층 정규화에는 핵심 결정이 셋 있다.
+
+1. **정규화 종류**: 층 정규화(전통)와 RMSNorm(요즘, 더 빠르고 질은 같다)
+2. **자리**: 뒤 정규화(본디 방식, 최고 성능이 조금 낫지만 학습이 어렵다)와 앞 정규화(요즘의 표준, 학습이 안정적이고 깊은 모형을 가능케 한다)
+3. **마지막 정규화**: 앞 정규화 구조에서 출력 사영 앞에 필요하다
+
+요즘의 모범은 LLaMA, Mistral 같은 최고 수준 모형이 쓰는 **앞 정규화 RMSNorm**이다.
+
+**참고 문헌**
+
+1. Ba, J. L., Kiros, J. R., & Hinton, G. E. (2016). "Layer Normalization." arXiv.
+2. Xiong, R., et al. (2020). "On Layer Normalization in the Transformer Architecture." ICML.
+3. Zhang, B., & Sennrich, R. (2019). "Root Mean Square Layer Normalization." NeurIPS.
+4. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.

@@ -2,7 +2,9 @@
 
 보로노이 그림과 들로네 삼각 나누기는 같은 기하의 앎을 서로 짝이 되는 꼴로 담는다. 이 짝됨을 알면 하나에서 다른 하나를 $O(n)$ 시간에 셈하고 두 짜임 사이에서 성질을 자유로이 옮길 수 있다. 이 이음은 셈 기하에서 가장 아름다운 관계 가운데 하나이다.
 
-## 짝됨의 대응
+---
+
+## 1. 짝됨의 대응
 
 터 $n$개 $P = \{p_1, \ldots, p_n\}$이 주어질 때 **보로노이 그림** $\text{Vor}(P)$과 **들로네 삼각 나누기** $DT(P)$은 다음 옮김으로 이어진다.
 
@@ -14,13 +16,17 @@
 
 간추리면 면은 꼭짓점이 되고 모서리는 모서리로 남으며 꼭짓점은 면이 된다.
 
-## 엄밀한 서술
+---
+
+## 2. 엄밀한 서술
 
 **정리.** 두 터 $p_i$과 $p_j$이 들로네 모서리로 이어지는 것과 그 보로노이 자리가 가장자리 모서리를 나누어 가지는 것은 서로 같다.
 
 **밝힘 밑그림.** $V(p_i)$과 $V(p_j)$이 모서리 $e$을 나누어 가지면 $e$ 위의 모든 점은 $p_i$과 $p_j$에서 같은 거리에 있고 다른 모든 터보다는 멀다. $e$의 가운데 점(또는 $e$ 위 아무 점)은 $p_i$과 $p_j$을 지나면서 안에 다른 터가 없는 동그라미의 중심이다. 이것이 바로 들로네 모서리 $\overline{p_i p_j}$의 빈 둘레 동그라미 조건이다. $\square$
 
-## 꼭짓점과 삼각형의 대응
+---
+
+## 3. 꼭짓점과 삼각형의 대응
 
 세 자리 $V(p_i)$, $V(p_j)$, $V(p_k)$이 만나는 보로노이 꼭짓점 $v$은 $p_i$, $p_j$, $p_k$에서 같은 거리에 있다. 따라서 $v$은 $\triangle p_i p_j p_k$의 둘레 중심이고 이 삼각형은 $DT(P)$에 나타난다.
 
@@ -30,7 +36,9 @@ $$
 
 여기서 $r$은 둘레 반지름이다. 빈 둘레 동그라미 성질은 $v$을 중심으로 반지름 $r$인 동그라미 안에 다른 터가 없음을 보장한다.
 
-## 하나에서 다른 하나 세우기
+---
+
+## 4. 하나에서 다른 하나 세우기
 
 ### 보로노이에서 들로네로
 
@@ -49,7 +57,9 @@ $DT(P)$이 주어질 때:
 
 이 또한 $O(n)$ 시간이 든다.
 
-## 짝됨으로 옮겨 가는 성질
+---
+
+## 5. 짝됨으로 옮겨 가는 성질
 
 !!! note "무엇이 옮겨 가는가"
     많은 성질이 자연스러운 짝 풀이를 갖는다.
@@ -58,7 +68,9 @@ $DT(P)$이 주어질 때:
     - **유클리드 최소 뻗음 나무**는 $DT(P)$의 아래 그래프이므로 $DT(P)$을 먼저 셈하여 $O(n \log n)$ 시간에 찾을 수 있다.
     - $P$의 **볼록 껍질 모서리**는 끝이 열린 보로노이 모서리에 맞물린다.
 
-## 풀이 예제
+---
+
+## 6. 풀이 예제
 
 터 넷을 보자: $p_1 = (0, 0)$, $p_2 = (4, 0)$, $p_3 = (4, 4)$, $p_4 = (0, 4)$.
 
@@ -71,7 +83,9 @@ $DT(P)$이 주어질 때:
 
 네 점이 한 동그라미 위에 있으므로($(2, 2)$을 중심으로 반지름 $2\sqrt{2}$인 동그라미) 두 둘레 중심이 $(2, 2)$에서 겹치고, 이 하나뿐인 보로노이 꼭짓점에서 네 자리가 모두 만난다.
 
-## 구현
+---
+
+## 7. 구현
 
 ```python
 """
@@ -82,7 +96,6 @@ $DT(P)$이 주어질 때:
 """
 
 import math
-
 
 # === 둘레 중심 ===
 
@@ -105,7 +118,6 @@ def circumcenter(a, b, c):
         + (cx * cx + cy * cy) * (bx - ax)) / D
     return (ux, uy)
 
-
 # === 짝됨 뽑아내기 ===
 
 def delaunay_to_voronoi_vertices(triangles, points):
@@ -121,7 +133,6 @@ def delaunay_to_voronoi_vertices(triangles, points):
         if cc is not None:
             vertices.append(cc)
     return vertices
-
 
 def voronoi_edges_from_delaunay(triangles, points):
     """이웃한 들로네 삼각형에서 보로노이 모서리를 뽑아낸다.
@@ -146,7 +157,6 @@ def voronoi_edges_from_delaunay(triangles, points):
             voronoi_edges.append((v1, v2))
 
     return voronoi_edges
-
 
 # === 메인 ===
 
@@ -180,14 +190,13 @@ if __name__ == "__main__":
               f"  length={length:.3f}")
 ```
 
-## 3차원으로 들어 올리기
+---
+
+## 8. 3차원으로 들어 올리기
 
 이 짝됨에는 **포물면 들어 올리기**를 거친 아름다운 기하 풀이가 있다. 각 점 $(x, y)$을 포물면 $z = x^2 + y^2$ 위의 $(x, y, x^2 + y^2)$으로 옮긴다. 들어 올린 점의 아래 볼록 껍질을 내리쏘면 들로네 삼각 나누기가 되고, 포물면에 닿는 평면은 보로노이 자리에 이어진다.
 
-## 참고 문헌
-
-- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 7 and 9.
-- Edelsbrunner, H. & Seidel, R. "Voronoi Diagrams and Arrangements." *Discrete & Computational Geometry*, 1986.
+---
 
 ## 연습문제
 
@@ -220,3 +229,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 보로노이-들로네 짝됨은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$
+
+## 정리하며
+
+이 마당은 짝됨의 대응、엄밀한 서술、꼭짓점과 삼각형의 대응、하나에서 다른 하나 세우기을 차례로 짚었다.
+
+**참고 문헌**
+
+- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 7 and 9.
+- Edelsbrunner, H. & Seidel, R. "Voronoi Diagrams and Arrangements." *Discrete & Computational Geometry*, 1986.

@@ -2,11 +2,15 @@
 
 모든 볼록 껍질 알고리즘은 들임 점을 모두 살펴야 하지만 $O(n \log n)$보다 더 잘할 수 있을까? 이 쪽에서는 그럴 수 없음을 밝힌다. 곧 견줌에 바탕한 볼록 껍질 알고리즘은 가장 나쁜 경우 $\Omega(n \log n)$ 시간이 든다. 밝힘은 $\Omega(n \log n)$ 아래 한계가 알려진 정렬 문제로 줄이기를 쓴다.
 
-## 아래 한계가 중요한 까닭
+---
+
+## 1. 아래 한계가 중요한 까닭
 
 위 한계는 문제를 주어진 시간에 풀 수 *있음*을 알려 준다. 아래 한계는 *어떤 알고리즘도* 그보다 잘할 수 없음을 알려 준다. 위와 아래 한계가 맞으면 그 알고리즘이 가장 좋음을 안다. 앤드루의 단조 사슬과 그레이엄 훑기가 모두 $O(n \log n)$이므로 $\Omega(n \log n)$ 아래 한계를 밝히면 이 알고리즘들이 점근으로 가장 좋음이 굳어진다.
 
-## 정렬의 아래 한계
+---
+
+## 2. 정렬의 아래 한계
 
 $n$개 낱개에 대한 견줌에 바탕한 정렬 알고리즘은 가장 나쁜 경우 $\Omega(n \log n)$번 견주어야 한다. 이는 결정 나무 논증에서 따라 나온다. 곧 알고리즘은 있을 수 있는 $n!$가지 자리 바꿈을 갈라내야 하고, 깊이 $d$인 이진 결정 나무의 잎은 많아야 $2^d$개이다.
 
@@ -16,7 +20,9 @@ $$
 
 마지막 걸음은 스털링 어림 $\log_2(n!) = n \log_2 n - \Theta(n)$을 쓴다.
 
-## 정렬에서 볼록 껍질로 줄이기
+---
+
+## 3. 정렬에서 볼록 껍질로 줄이기
 
 !!! tip "핵심 생각"
     볼록 껍질을 $o(n \log n)$ 시간에 셈할 수 있다면 $n$개 수를 $o(n \log n)$ 시간에 정렬할 수 있고, 이는 정렬의 아래 한계에 어긋난다.
@@ -39,7 +45,9 @@ $$
 
 $T_{\text{sort}}(n) = \Omega(n \log n)$이므로 $T_{\text{hull}}(n) = \Omega(n \log n)$이라 매듭짓는다. $\square$
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 수 $\{3, 1, 4, 1, 5\}$을 정렬한다고 하자.
 
@@ -57,13 +65,11 @@ $n$개 수의 정렬이 볼록 껍질 셈하기로 줄어듦을 보인다
 곧 포물선 y = x^2 위 점 n개의 볼록 껍질 셈하기로 줄어들어 Omega(n log n) 아래 한계를 굳힌다.
 """
 
-
 # === 포물면 들어 올리기 ===
 
 def lift_to_parabola(numbers):
     """수 x마다 포물선 y = x^2 위의 점 (x, x^2)으로 옮긴다."""
     return [(x, x * x) for x in numbers]
-
 
 # === 볼록 껍질(앤드루의 단조 사슬) ===
 
@@ -74,7 +80,6 @@ def cross(o, a, b):
     음수는 오른쪽 돌기를 뜻한다.
     """
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
-
 
 def convex_hull(points):
     """앤드루의 단조 사슬 알고리즘으로 볼록 껍질을 셈한다.
@@ -99,7 +104,6 @@ def convex_hull(points):
         upper.append(p)
 
     return lower[:-1] + upper[:-1]
-
 
 # === 볼록 껍질로 정렬하기 ===
 
@@ -127,7 +131,6 @@ def sort_via_hull(numbers):
     # 더 단순하게: 껍질 꼭짓점에서 정렬한 x자리값만 돌려준다
     return sorted([p[0] for p in hull])
 
-
 # === 메인 ===
 
 if __name__ == "__main__":
@@ -144,11 +147,15 @@ if __name__ == "__main__":
     print(f"Sorted output: {sorted_numbers}")
 ```
 
-## 내놓기에 민감한 알고리즘
+---
+
+## 5. 내놓기에 민감한 알고리즘
 
 $\Omega(n \log n)$ 한계는 가장 나쁜 경우의 견줌에 바탕한 알고리즘에 들어맞는다. 챈 알고리즘 같은 내놓기에 민감한 알고리즘은 $O(n \log h)$을 이루며 $h$은 껍질 꼭짓점의 수이다. $h = o(n)$이면 $\Theta(n \log n)$보다 빠르다. $h$이 $n$만큼 커질 수 있으므로 아래 한계는 가장 나쁜 경우에 여전히 참이다.
 
-## 핵심 정리
+---
+
+## 6. 핵심 정리
 
 | 항목 | 내용 |
 |---|---|
@@ -158,10 +165,7 @@ $\Omega(n \log n)$ 한계는 가장 나쁜 경우의 견줌에 바탕한 알고�
 | 가장 좋은 알고리즘 | 그레이엄 훑기, 앤드루의 사슬, 합치기 껍질 |
 | 예외 | 내놓기에 민감한 알고리즘은 $O(n \log h)$을 이룬다 |
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press.
-- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
+---
 
 ## 연습문제
 
@@ -194,3 +198,12 @@ $\Omega(n \log n)$ 한계는 가장 나쁜 경우의 견줌에 바탕한 알고�
 
 ??? success "연습문제 4 풀이"
     막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 볼록 껍질의 아래 한계은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$
+
+## 정리하며
+
+이 마당은 아래 한계가 중요한 까닭、정렬의 아래 한계、정렬에서 볼록 껍질로 줄이기、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press.
+- de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.

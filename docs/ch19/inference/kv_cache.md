@@ -1,9 +1,10 @@
 # 열쇠-값 곳간과 미룸 다듬기
-## 들어가며
 
 열쇠-값 곳간은 앞선 토막의 열쇠와 값 텐서를 갈무리해 겹치는 셈을 없애는, 자기되돌리기 글 만들어 내기의 근본 다듬기 재주이다. 만드는 토막마다의 미룸 시간을 O(N²)에서 O(N)으로 줄인다.
 
-## 겹치는 셈 문제
+---
+
+## 1. 겹치는 셈 문제
 
 ### 열쇠-값 곳간이 없을 때
 
@@ -32,7 +33,9 @@ Generate token 3: Load cached K, V; compute only for token2
 
 **전체 눈길 연산**: O(N²)
 
-## 수학적 바탕
+---
+
+## 2. 수학적 바탕
 
 때 걸음 $t$에서 새 토막 $x_t$과 갈무리한 $K_{1:t-1}$, $V_{1:t-1}$이 주어지면
 
@@ -47,7 +50,9 @@ V_{1:t} &= [V_{1:t-1}; v_t] \\
 \end{aligned}
 $$
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ```python
 import torch
@@ -55,7 +60,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Tuple, List
 from dataclasses import dataclass
-
 
 @dataclass
 class KVCache:
@@ -66,7 +70,6 @@ class KVCache:
     @property
     def seq_len(self) -> int:
         return self.key.size(2)
-
 
 class AttentionWithKVCache(nn.Module):
     """열쇠-값 곳간을 곁들인 인과 스스로 눈길."""
@@ -118,7 +121,6 @@ class AttentionWithKVCache(nn.Module):
         
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         return self.o_proj(output), new_cache
-
 
 class GPTWithKVCache(nn.Module):
     """만들어 내기를 위해 열쇠-값 곳간을 갖춘 GPT 모델."""
@@ -190,7 +192,6 @@ class GPTWithKVCache(nn.Module):
         
         return generated
 
-
 # 예
 if __name__ == "__main__":
     model = GPTWithKVCache(vocab_size=1000, d_model=256, num_heads=4, 
@@ -201,7 +202,9 @@ if __name__ == "__main__":
     print(f"Generated: {prompt.shape} -> {generated.shape}")
 ```
 
-## 기억 공간에서 헤아릴 점
+---
+
+## 4. 기억 공간에서 헤아릴 점
 
 ### 층마다의 곳간 크기
 
@@ -219,7 +222,9 @@ $$
 | 8K | 약 4 GB |
 | 32K | 약 16 GB |
 
-## 앞선 다듬기
+---
+
+## 5. 앞선 다듬기
 
 ### 쪽 나눈 눈길(vLLM)
 
@@ -240,18 +245,7 @@ $$
 
 긴 차례에서는 최근 토막만 갈무리한다.
 
-## 요약
-
-열쇠-값 곳간은 효율적인 큰 말 모델 미룸에 꼭 필요하다:
-
-1. **겹치는 셈을 없앤다**: 전체가 O(N³)이 아니라 O(N²)
-2. **기억 공간 맞바꿈**: 미룸은 빨라지지만 기억 공간이 더 든다
-3. **다듬기의 바탕**: 묶음 짓기, 미리 짚어 풀기를 가능하게 한다
-
-## 참고 문헌
-
-1. Pope, R., et al. (2022). "Efficiently Scaling Transformer Inference."
-2. Kwon, W., et al. (2023). "Efficient Memory Management for LLM Serving with PagedAttention."
+---
 
 ## 연습문제
 
@@ -284,3 +278,16 @@ $$
 
 ??? success "연습문제 4 풀이"
     **익힌 뒤 양자화**는 더 익히지 않고 눈금 맞추기 자료로 잣수 인자를 정해 미리 익힌 모델의 무게(그리고 원하면 깨어남)를 양자화한다. 빠르고 단순하지만 특히 8비트 아래에서는 정확도가 떨어질 수 있다. **양자화를 헤아린 익히기**는 기울기에 곧바로 지나가기 어림개를 써서 익히는 동안 양자화를 흉내내어 모델이 낮은 정밀도에 맞춰지게 한다. 낮은 자릿수(4비트, 2비트)에서 정확도가 더 낫지만 온전한 익히기를 한 번 더 돌려야 한다. 빠르기가 중요하고 8비트면 넉넉한 (펼치기) 장면에서는 **익힌 뒤 양자화가 낫다**. 4비트처럼 세게 양자화해야 하고 익힐 자원이 있으면 **양자화를 헤아린 익히기가 낫다**.
+
+## 정리하며
+
+열쇠-값 곳간은 효율적인 큰 말 모델 미룸에 꼭 필요하다:
+
+1. **겹치는 셈을 없앤다**: 전체가 O(N³)이 아니라 O(N²)
+2. **기억 공간 맞바꿈**: 미룸은 빨라지지만 기억 공간이 더 든다
+3. **다듬기의 바탕**: 묶음 짓기, 미리 짚어 풀기를 가능하게 한다
+
+**참고 문헌**
+
+1. Pope, R., et al. (2022). "Efficiently Scaling Transformer Inference."
+2. Kwon, W., et al. (2023). "Efficient Memory Management for LLM Serving with PagedAttention."

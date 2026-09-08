@@ -1,7 +1,9 @@
 # 단순하게 하기
 **단순하게 하기**는 문제의 더 쉬운 판을 먼저 풀고 그 풀이를 넓혀 온 문제를 다루는 재주다. 알고리즘 설계에서 가장 쓸모 있는 셈속 가운데 하나다.
 
-## 단순하게 하는 셈속
+---
+
+## 1. 단순하게 하는 셈속
 
 | 셈속 | 밝힘 | 보기 |
 |---|---|---|
@@ -11,7 +13,9 @@
 | 특별한 얼개 | 줄 세움/나무/방향 있고 돌이 없는 그래프를 여김 | 일반 그래프에서 방향 있고 돌이 없는 그래프로 |
 | 최적성 느슨히 하기 | 아무 풀이나 먼저 찾기 | 그다음 가장 좋게 하기 |
 
-## 보기: 1차원으로 단순하게 해 푸는 2차원 문제
+---
+
+## 2. 보기: 1차원으로 단순하게 해 푸는 2차원 문제
 
 **문제:** 2차원 행렬에서 합이 최대인 직사각형을 찾아라.
 
@@ -50,7 +54,9 @@ print(max_sum_rectangle(matrix))  # Output: 29
 
 **복잡도:** $O(\text{cols}^2 \cdot \text{rows})$. 1차원 알고리즘을 $O(\text{cols}^2)$번 돌려 2차원 문제를 푼다.
 
-## 단순하게 하기의 사다리
+---
+
+## 3. 단순하게 하기의 사다리
 
 $$\text{Trivial case} \rightarrow \text{Small case} \rightarrow \text{Special structure} \rightarrow \text{Full problem}$$
 
@@ -60,6 +66,8 @@ $$\text{Trivial case} \rightarrow \text{Small case} \rightarrow \text{Special st
 
 - Polya, G. *How to Solve It*, Princeton University Press, 1945.
 - Skiena, S. *The Algorithm Design Manual*, 1장, Springer, 2020.
+
+---
 
 ## 연습문제
 
@@ -92,3 +100,7 @@ $$\text{Trivial case} \rightarrow \text{Small case} \rightarrow \text{Special st
 
 ??? success "연습문제 4 풀이"
     표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 단순하게 하는 셈속、보기: 1차원으로 단순하게 해 푸는 2차원 문제、단순하게 하기의 사다리을 차례로 짚었다.

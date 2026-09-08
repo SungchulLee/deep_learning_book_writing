@@ -1,5 +1,4 @@
 # 팽창 합성곱
-## 들어가며
 
 표준 합성곱은 핵 크기가 정하는 좁은 수용 영역을 갖는다. 더 넓은 공간 맥락을 붙잡으려면 더 큰 핵을 쓰거나(매개변수가 $O(K^2)$으로 늘어난다), 층을 더 쌓거나(계산이 늘고 기울기가 깊어진다), **팽창 합성곱**을 쓰면 된다(매개변수는 그대로이고 수용 영역이 넓어진다).
 
@@ -7,7 +6,7 @@
 
 ---
 
-## 수학적 정의
+## 1. 수학적 정의
 
 ### 실효 핵 크기
 
@@ -42,7 +41,7 @@ $K=3$, $d=2$이면 $p = 2$이고, $K=3$, $d=4$이면 $p = 4$이다.
 
 ---
 
-## 그림으로 보기
+## 2. 그림으로 보기
 
 ```
 Standard (d=1)      Dilated (d=2)       Dilated (d=3)
@@ -62,7 +61,7 @@ K=3, K_eff=3        K=3, K_eff=5        K=3, K_eff=7
 
 ---
 
-## 수용 영역의 증가
+## 3. 수용 영역의 증가
 
 ### 방법 견주기
 
@@ -124,7 +123,7 @@ print(f"Ratio: {rf_dilated / rf_standard:.1f}× larger with same parameters!")
 
 ---
 
-## PyTorch 구현
+## 4. PyTorch 구현
 
 ### 기본 팽창 합성곱
 
@@ -200,7 +199,7 @@ Standard 5×5:
 
 ---
 
-## 격자 무늬 문제
+## 5. 격자 무늬 문제
 
 ### 무엇이 문제인가
 
@@ -231,7 +230,7 @@ Problem: The [ ] positions are NEVER sampled!
 
 ---
 
-## 조밀 예측을 위한 팽창
+## 6. 조밀 예측을 위한 팽창
 
 ### 분할의 어려움
 
@@ -345,7 +344,7 @@ print(f"Parameters: {sum(p.numel() for p in aspp.parameters()):,}")
 
 ---
 
-## WaveNet과 시간 방향 팽창
+## 7. WaveNet과 시간 방향 팽창
 
 ### 음향의 어려움
 
@@ -390,7 +389,7 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
 
 ---
 
-## 실무 지침
+## 8. 실무 지침
 
 ### 팽창률 고르기
 
@@ -440,18 +439,7 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
 
 ---
 
-## 요약
-
-| 항목 | 설명 |
-|--------|-------------|
-| **연산** | 핵의 원소 사이에 틈을 둔 표준 합성곱 |
-| **실효 핵** | $K_{eff} = d(K-1) + 1$ |
-| **매개변수** | 표준과 같음 (팽창은 공짜다!) |
-| **핵심 이점** | 매개변수는 그대로 두고 수용 영역이 지수적으로 넓어진다 |
-| **주된 함정** | 같은 팽창률을 되풀이할 때 생기는 격자 무늬 흠 |
-| **주된 쓰임** | 의미 분할, 음향, 온전한 해상도에서 넓은 수용 영역이 필요한 과제 |
-
-## 핵심 정리
+## 9. 핵심 정리
 
 1. **팽창은 핵의 원소 사이에 틈을 넣어 수용 영역을 넓힌다.** 매개변수는 더 들지 않는다
 2. **지수적으로 쌓으면**($d = 1, 2, 4, 8, \dots$) 아주 적은 층으로 거대한 수용 영역을 얻는다
@@ -460,17 +448,7 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
 5. **조밀 예측에서는** 하향 표본화를 팽창으로 갈아 끼우면 넓은 수용 영역을 지키면서 공간 해상도도 지킬 수 있다
 6. **WaveNet 방식의 구조**는 인과적인 팽창 합성곱으로 시간 방향을 효율적으로 다룬다
 
-## 참고 문헌
-
-1. Yu, F., & Koltun, V. (2016). Multi-scale context aggregation by dilated convolutions. *ICLR 2016*.
-
-2. Chen, L.-C., Papandreou, G., Kokkinos, I., Murphy, K., & Yuille, A. L. (2018). DeepLab: Semantic image segmentation with deep convolutional nets, atrous convolution, and fully connected CRFs. *IEEE TPAMI*.
-
-3. van den Oord, A., et al. (2016). WaveNet: A generative model for raw audio. *arXiv preprint arXiv:1609.03499*.
-
-4. Wang, P., et al. (2018). Understanding convolution for semantic segmentation. *WACV 2018*.
-
-5. Dumoulin, V., & Visin, F. (2016). A guide to convolution arithmetic for deep learning. *arXiv preprint arXiv:1603.07285*.
+---
 
 ## 연습문제
 
@@ -507,3 +485,26 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
 
 ??? success "연습문제 4 풀이"
     풀링은 하향 표본화로 수용 영역을 넓히지만 공간 해상도를 잃는다. 팽창은 하향 표본화 없이 수용 영역을 넓혀 온전한 해상도를 지킨다. 출력이 입력 해상도와 같아야 하는 조밀 예측 과제(분할, 깊이 추정)에는 팽창이 꼭 필요하다.
+
+## 정리하며
+
+| 항목 | 설명 |
+|--------|-------------|
+| **연산** | 핵의 원소 사이에 틈을 둔 표준 합성곱 |
+| **실효 핵** | $K_{eff} = d(K-1) + 1$ |
+| **매개변수** | 표준과 같음 (팽창은 공짜다!) |
+| **핵심 이점** | 매개변수는 그대로 두고 수용 영역이 지수적으로 넓어진다 |
+| **주된 함정** | 같은 팽창률을 되풀이할 때 생기는 격자 무늬 흠 |
+| **주된 쓰임** | 의미 분할, 음향, 온전한 해상도에서 넓은 수용 영역이 필요한 과제 |
+
+**참고 문헌**
+
+1. Yu, F., & Koltun, V. (2016). Multi-scale context aggregation by dilated convolutions. *ICLR 2016*.
+
+2. Chen, L.-C., Papandreou, G., Kokkinos, I., Murphy, K., & Yuille, A. L. (2018). DeepLab: Semantic image segmentation with deep convolutional nets, atrous convolution, and fully connected CRFs. *IEEE TPAMI*.
+
+3. van den Oord, A., et al. (2016). WaveNet: A generative model for raw audio. *arXiv preprint arXiv:1609.03499*.
+
+4. Wang, P., et al. (2018). Understanding convolution for semantic segmentation. *WACV 2018*.
+
+5. Dumoulin, V., & Visin, F. (2016). A guide to convolution arithmetic for deep learning. *arXiv preprint arXiv:1603.07285*.

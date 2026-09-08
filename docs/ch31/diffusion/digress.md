@@ -1,9 +1,10 @@
 # DiGress: 그래프 만들기를 위한 띄엄띄엄 잡소리 없애기 퍼짐
-## 개요
 
 DiGress(Vignac et al., 2023)은 갈래로 나뉜 마디와 변의 갈래에서 잡소리를 한꺼번에 없애 그래프를 만드는 띄엄띄엄 퍼짐 모델이다. 이어진 값으로 느슨히 하는 길과 달리 DiGress은 갈래 퍼짐 과정을 써서 띄엄띄엄한 그래프 얼개에서 그대로 돈다. 잡소리 없애는 그물로 그래프 트랜스포머를 쓰고 그래프에 맞게 설계한 잡소리 모형을 내놓아, 만들기 품질을 높이는 빨아들이는 상태와 주변 분포를 담는다. DiGress은 분자와 일반 그래프 만들기 잣대에서 가장 앞선 결과를 낸다.
 
-## 그래프 위의 띄엄띄엄 퍼짐
+---
+
+## 1. 그래프 위의 띄엄띄엄 퍼짐
 
 DiGress에서 그래프는 $\mathcal{G} = (\mathbf{X}, \mathbf{E})$으로 나타내며, $\mathbf{X} \in \{0, \ldots, a\}^n$은 갈래 마디 갈래($a$개 갈래에 "없음" 갈래 하나)이고 $\mathbf{E} \in \{0, \ldots, b\}^{n \times n}$은 갈래 변 갈래($b$개 갈래에 "변 없음")이다.
 
@@ -63,7 +64,9 @@ $$
 p_\theta(\mathcal{G}_{t-1} \mid \mathcal{G}_t) = \sum_{\hat{\mathcal{G}}_0} q(\mathcal{G}_{t-1} \mid \mathcal{G}_t, \hat{\mathcal{G}}_0) \cdot \hat{p}_\theta(\hat{\mathcal{G}}_0 \mid \mathcal{G}_t)
 $$
 
-## 그래프 트랜스포머 잡소리 없애개
+---
+
+## 2. 그래프 트랜스포머 잡소리 없애개
 
 잡소리 없애는 그물은 잡소리 섞인 그래프와 때 걸음을 다루어 깨끗한 그래프를 헤아리는 그래프 트랜스포머다. 층마다 마디와 변의 나타냄을 함께 고친다:
 
@@ -95,7 +98,9 @@ $$
 \hat{p}(E_{ij}^{(0)} \mid \mathcal{G}_t) = \text{softmax}(\text{MLP}_E(\mathbf{e}_{ij}^{(L)}))
 $$
 
-## 익히기 손실
+---
+
+## 3. 익히기 손실
 
 띄엄띄엄 퍼짐의 변분 아래 가둠은 걸음마다의 쿨백-라이블러 어긋남으로 쪼개진다:
 
@@ -109,7 +114,9 @@ $$
 \mathcal{L}_{\text{CE}} = \mathbb{E}_{t, \mathcal{G}_0, \mathcal{G}_t} \left[ -\sum_i \log \hat{p}_\theta(X_i^{(0)} \mid \mathcal{G}_t) - \sum_{i<j} \log \hat{p}_\theta(E_{ij}^{(0)} \mid \mathcal{G}_t) \right]
 $$
 
-## 짜기: DiGress의 핵심 조각
+---
+
+## 4. 짜기: DiGress의 핵심 조각
 
 ```python
 """
@@ -119,7 +126,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-
 
 class CategoricalDiffusion:
     """마디와 변의 갈래 퍼짐 과정."""
@@ -237,7 +243,6 @@ class CategoricalDiffusion:
         posterior_unnorm = prob_xtm1_given_x0 * (Q_t[:, x_t.argmax()] + 1e-8)
         return posterior_unnorm / (posterior_unnorm.sum() + 1e-8)
 
-
 class DiGressTransformerLayer(nn.Module):
     """마디와 변의 나타냄을 함께 고치는 트랜스포머 층."""
 
@@ -303,7 +308,6 @@ class DiGressTransformerLayer(nn.Module):
 
         return h, e
 
-
 class DiGressDenoiser(nn.Module):
     """온전한 DiGress 잡소리 없애기 그물."""
 
@@ -358,7 +362,6 @@ class DiGressDenoiser(nn.Module):
         e_logits = (e_logits + e_logits.transpose(1, 2)) / 2
 
         return x_logits, e_logits
-
 
 if __name__ == "__main__":
     torch.manual_seed(42)
@@ -436,6 +439,8 @@ if __name__ == "__main__":
     print("\nDone. DiGress training framework operational.")
 ```
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -467,3 +472,7 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
+
+## 정리하며
+
+이 마당은 그래프 위의 띄엄띄엄 퍼짐、그래프 트랜스포머 잡소리 없애개、익히기 손실、짜기: DiGress의 핵심 조각을 차례로 짚었다.

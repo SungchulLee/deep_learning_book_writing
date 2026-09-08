@@ -1,9 +1,10 @@
 # 믹스업
-## 개요
 
 믹스업은 학습 예와 그 레이블 쌍의 *볼록 결합*으로 신경망을 학습시키는 데이터 증강 겸 정칙화 기법이다. 기존 데이터 점 사이에 놓이는 가상의 학습 표본을 만들어 모델이 학습 예 사이에서 선형에 가깝게 행동하도록 이끌며, 그 결과 결정 경계가 더 매끄러워지고 일반화가 좋아지며 예측의 보정도 나아진다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### 핵심 연산
 
@@ -68,7 +69,9 @@ $$
 \ell(\tilde{y}, p) = -\sum_{k=1}^{K} \tilde{y}_k \log p_k = -\lambda \log p_{c_i} - (1-\lambda) \log p_{c_j}
 $$
 
-## 믹스업이 통하는 이유
+---
+
+## 2. 믹스업이 통하는 이유
 
 ### 선형 보간이라는 사전 지식
 
@@ -92,7 +95,9 @@ $$
 
 Thulasidasan 등(2019)은 믹스업이 야코비 행렬 $\frac{\partial f(x)}{\partial x}$의 노름을 줄여, 입력의 섭동에 대한 모델의 민감도를 제한하는 야코비 정칙화의 한 형태로 작동함을 보였다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 기본적인 믹스업
 
@@ -222,7 +227,9 @@ def train_with_mixup(
     return history
 ```
 
-## 믹스업의 변형
+---
+
+## 4. 믹스업의 변형
 
 ### 다양체 믹스업
 
@@ -399,7 +406,9 @@ def mixup_regression(x, y, alpha=0.2):
     return mixed_x, mixed_y
 ```
 
-## 믹스업을 다른 기법과 결합하기
+---
+
+## 5. 믹스업을 다른 기법과 결합하기
 
 ### 믹스업 + 레이블 평활화
 
@@ -453,7 +462,9 @@ def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0,
         return mixup_data(x, y, alpha=mixup_alpha)
 ```
 
-## 실무 지침
+---
+
+## 6. 실무 지침
 
 ### 초매개변수 선택
 
@@ -481,12 +492,7 @@ def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0,
 
 평가 시점에는 믹스업을 **결코 적용하지 않는다**. 모델은 손대지 않은 깨끗한 데이터로 평가한다.
 
-## 참고 문헌
-
-1. Zhang, H., Cissé, M., Dauphin, Y. N., & Lopez-Paz, D. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
-2. Verma, V., et al. (2019). Manifold Mixup: Better Representations by Interpolating Hidden States. *ICML*.
-3. Thulasidasan, S., et al. (2019). On Mixup Training: Improved Calibration and Predictive Uncertainty for Deep Neural Networks. *NeurIPS*.
-4. Chapelle, O., Weston, J., Bottou, L., & Vapnik, V. (2001). Vicinal Risk Minimization. *NeurIPS*.
+---
 
 ## 연습문제
 
@@ -528,3 +534,14 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 
 ??? success "연습문제 4 풀이"
     믹스업은 화소 공간에서의 전역 보간으로 단순하고 효과적이다. 컷믹스는 한 이미지의 직사각형 조각을 다른 이미지에 붙여 공간 구조를 보존한다. 다양체 믹스업은 은닉층 공간에서 보간하여 더 추상적인 변이를 포착한다. 물체 검출에는 컷믹스가, 세밀한 인식에는 다양체 믹스업이 가장 잘 통한다.
+
+## 정리하며
+
+이 마당은 수학적 정식화、믹스업이 통하는 이유、PyTorch 구현、믹스업의 변형을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Zhang, H., Cissé, M., Dauphin, Y. N., & Lopez-Paz, D. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
+2. Verma, V., et al. (2019). Manifold Mixup: Better Representations by Interpolating Hidden States. *ICML*.
+3. Thulasidasan, S., et al. (2019). On Mixup Training: Improved Calibration and Predictive Uncertainty for Deep Neural Networks. *NeurIPS*.
+4. Chapelle, O., Weston, J., Bottou, L., & Vapnik, V. (2001). Vicinal Risk Minimization. *NeurIPS*.

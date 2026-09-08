@@ -1,12 +1,13 @@
 # 회귀에서의 MLE
-## 들어가며
 
 회귀의 손실 함수는 특정한 잡음 가정 아래의 음의 로그가능도이다. 이 절은 그 관계를 정확히 밝힌다. **MSE는 가우스 잡음을 가정하고**, **MAE는 라플라스 잡음을 가정하며**, **이분산 모델은 잡음 자체를 학습한다**.
 
 !!! success "핵심 통찰"
     MSE 손실로 신경망을 학습시킬 때 당신은 목표값이 모델의 예측을 중심으로 하는 정규분포를 따른다는 가정 아래에서 MLE를 수행하고 있는 것이다.
 
-## 가우스 음의 로그가능도로서의 MSE
+---
+
+## 1. 가우스 음의 로그가능도로서의 MSE
 
 ### 확률 모델
 
@@ -68,7 +69,9 @@ $$
 
 둘은 상수 배 $2\sigma^2$만큼만 다르므로 최적화는 같은 궤적을 따른다.
 
-## 라플라스 음의 로그가능도로서의 MAE
+---
+
+## 2. 라플라스 음의 로그가능도로서의 MAE
 
 ### 확률 모델
 
@@ -111,7 +114,9 @@ $$
 !!! note "강건성에 대한 직관"
     라플라스 분포는 가우스보다 꼬리가 두꺼워서 극단적인 관측에 더 높은 확률을 준다. 그래서 MAE는 자연스럽게 이상치에 더 너그럽다. 선형 벌점은 제곱처럼 큰 오차를 증폭하지 않는다.
 
-## 이분산 회귀: 분산을 학습하기
+---
+
+## 3. 이분산 회귀: 분산을 학습하기
 
 ### 동기
 
@@ -138,7 +143,9 @@ $$
 !!! tip "실무적 이점"
     이분산 회귀는 다음을 자연스럽게 다룬다. **불확실성 추정**(예측 분산을 출력), **이분산 잡음**(입력마다 다른 분산), **확신을 아는 예측**(모델이 자신이 어디서 불확실한지 안다).
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ### MSE와 가우스 NLL의 동등성
 
@@ -321,11 +328,7 @@ def train_regression_mle_perspective():
                   f"Est. σ = {estimated_sigma:.4f} (true: {sigma:.4f})")
 ```
 
-## 참고 문헌
-
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 3
-- Nix, D. A. & Weigend, A. S. (1994). "Estimating the mean and variance of the target probability distribution." *ICNN*
-- Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*. Chapter 5
+---
 
 ## 연습문제
 
@@ -414,3 +417,13 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함�
             results[(outlier_frac, loss_name)] = (w, b)
     # 이상치가 있으면 MSE는 크게 나빠지고 MAE와 후버는 강건하다
     ```
+
+## 정리하며
+
+이 마당은 가우스 음의 로그가능도로서의 MSE、라플라스 음의 로그가능도로서의 MAE、이분산 회귀: 분산을 학습하기、PyTorch 구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 3
+- Nix, D. A. & Weigend, A. S. (1994). "Estimating the mean and variance of the target probability distribution." *ICNN*
+- Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*. Chapter 5

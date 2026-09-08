@@ -1,9 +1,10 @@
 # 플래시 눈길
-## 들어가며
 
 Dao 외(2022)가 내놓은 플래시 눈길은 들고남을 헤아리는 정확한 눈길 알고리즘으로, 기억 공간 씀씀이를 O(N²)에서 O(N)으로 줄이면서 보통의 눈길보다 2~4배 빠르다. GPU의 기억 공간 다가감 무늬를 조심스레 짜서 이를 이룬다.
 
-## 기억 공간의 병목
+---
+
+## 1. 기억 공간의 병목
 
 ### 보통 눈길의 기억 공간 탈
 
@@ -33,7 +34,9 @@ GPU 연산은 셈이 아니라 기억 공간에 묶이는 일이 흔하다:
 
 플래시 눈길은 FLOPs가 아니라 **기억 공간 들고남**을 다듬는다.
 
-## 핵심 생각
+---
+
+## 2. 핵심 생각
 
 ### 1. 타일 나누기
 
@@ -70,7 +73,9 @@ $$
 - 기억 공간을 아낀다: O(N²) 눈길 행렬을 담지 않는다
 - 셈은 조금 더 들지만 기억 공간 들고남이 줄어 더 빠르다
 
-## 알고리즘
+---
+
+## 3. 알고리즘
 
 ### 순전파
 
@@ -114,7 +119,9 @@ Output: O ∈ ℝ^{N×d}
 5. Return O
 ```
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -122,7 +129,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 from typing import Optional, Tuple
-
 
 def flash_attention_forward_reference(
     Q: torch.Tensor,
@@ -217,7 +223,6 @@ def flash_attention_forward_reference(
     
     return O
 
-
 class FlashAttention(nn.Module):
     """
     PyTorch가 가장 좋게 다듬은 짜기를 쓰는 플래시 눈길 모듈.
@@ -291,7 +296,6 @@ class FlashAttention(nn.Module):
         
         return output
 
-
 class FlashAttentionWithKVCache(nn.Module):
     """
     만들어 내기를 위해 열쇠-값 곳간을 받치는 플래시 눈길.
@@ -361,7 +365,6 @@ class FlashAttentionWithKVCache(nn.Module):
         
         return output, present_key_value
 
-
 def benchmark_attention(seq_lengths: list, d_model: int = 512, num_heads: int = 8):
     """플래시 눈길과 여느 눈길의 잣대를 잰다."""
     import time
@@ -416,7 +419,6 @@ def benchmark_attention(seq_lengths: list, d_model: int = 512, num_heads: int = 
         })
     
     return results
-
 
 # 사용 예
 if __name__ == "__main__":
@@ -480,7 +482,9 @@ if __name__ == "__main__":
         benchmark_attention([512, 1024, 2048, 4096])
 ```
 
-## 기억 공간과 빠르기 견줌
+---
+
+## 5. 기억 공간과 빠르기 견줌
 
 ### 기억 사용
 
@@ -499,7 +503,9 @@ if __name__ == "__main__":
 | 2048 | 2-3x |
 | 8192 | 3-4x |
 
-## 플래시 눈길 2
+---
+
+## 6. 플래시 눈길 2
 
 플래시 눈길 2는 다음을 더 다듬는다:
 
@@ -509,7 +515,9 @@ if __name__ == "__main__":
 
 흔한 빨라짐: **플래시 눈길 1보다 2배**
 
-## PyTorch에 아우르기
+---
+
+## 7. PyTorch에 아우르기
 
 ```python
 # PyTorch 2.0 이상은 가능하면 플래시 눈길을 저절로 쓴다
@@ -527,20 +535,7 @@ with torch.backends.cuda.sdp_kernel(
     output = F.scaled_dot_product_attention(q, k, v)
 ```
 
-## 요약
-
-플래시 눈길은 눈길 셈하기의 판을 뒤집는다:
-
-1. **O(N) 기억 공간**: N×N 눈길 행렬을 담을 필요가 없다
-2. **2~4배 빠름**: 들고남을 헤아리는 알고리즘이 기억 공간 대역폭을 줄인다
-3. **정확한 셈**: 보통의 눈길과 같은 결과
-4. **긴 차례**: 토막 10만 개 넘는 차례로도 익힐 수 있다
-
-## 참고 문헌
-
-1. Dao, T., et al. (2022). "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness." NeurIPS.
-2. Dao, T. (2023). "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning."
-3. PyTorch 설명서: scaled_dot_product_attention
+---
 
 ## 연습문제
 
@@ -573,3 +568,18 @@ with torch.backends.cuda.sdp_kernel(
 
 ??? success "연습문제 4 풀이"
     **익힌 뒤 양자화**는 더 익히지 않고 눈금 맞추기 자료로 잣수 인자를 정해 미리 익힌 모델의 무게(그리고 원하면 깨어남)를 양자화한다. 빠르고 단순하지만 특히 8비트 아래에서는 정확도가 떨어질 수 있다. **양자화를 헤아린 익히기**는 기울기에 곧바로 지나가기 어림개를 써서 익히는 동안 양자화를 흉내내어 모델이 낮은 정밀도에 맞춰지게 한다. 낮은 자릿수(4비트, 2비트)에서 정확도가 더 낫지만 온전한 익히기를 한 번 더 돌려야 한다. 빠르기가 중요하고 8비트면 넉넉한 (펼치기) 장면에서는 **익힌 뒤 양자화가 낫다**. 4비트처럼 세게 양자화해야 하고 익힐 자원이 있으면 **양자화를 헤아린 익히기가 낫다**.
+
+## 정리하며
+
+플래시 눈길은 눈길 셈하기의 판을 뒤집는다:
+
+1. **O(N) 기억 공간**: N×N 눈길 행렬을 담을 필요가 없다
+2. **2~4배 빠름**: 들고남을 헤아리는 알고리즘이 기억 공간 대역폭을 줄인다
+3. **정확한 셈**: 보통의 눈길과 같은 결과
+4. **긴 차례**: 토막 10만 개 넘는 차례로도 익힐 수 있다
+
+**참고 문헌**
+
+1. Dao, T., et al. (2022). "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness." NeurIPS.
+2. Dao, T. (2023). "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning."
+3. PyTorch 설명서: scaled_dot_product_attention

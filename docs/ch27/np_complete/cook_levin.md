@@ -2,7 +2,9 @@
 
 NP 완전 문제가 있기는 한지 우리는 어떻게 아는가? 1971년 이전에는 NP에서 "가장 어려운" 문제가 하나도 없을 수도 있다고 여길 만했다. **쿡-레빈 정리**는 SAT이 NP 완전임을 밝혀 이를 매듭지었다. 이 성질이 밝혀진 첫 문제이다. 이 밝힘은 *어떤* 정해지지 않은 튜링 기계의 셈도 부울 식으로 적어, SAT이 NP 전체에서 오는 다항 시간 줄임의 두루 쓰는 과녁임을 세운다.
 
-## 정리의 진술
+---
+
+## 1. 정리의 진술
 
 **정리(쿡, 1971; 레빈, 1973).** 부울 만족 가능성 문제(SAT)는 NP 완전이다.
 
@@ -13,7 +15,9 @@ NP 완전 문제가 있기는 한지 우리는 어떻게 아는가? 1971년 이�
 
 둘째 주장이 알맹이이다. *어떤* NP 셈도 부울 만족 가능성에 대한 물음으로 적을 수 있다.
 
-## 밝힘 얼개
+---
+
+## 2. 밝힘 얼개
 
 이 밝힘은 아무 NP 말 $L$에서 SAT으로 가는 다항 시간 줄임을 세운다. $L \in$ NP이므로 어떤 다항식 $p$에 대해 $L$을 시간 $p(n)$에 가르는 정해지지 않은 튜링 기계 $N$이 있다. 이 줄임은 들임 $x$에서 $N$의 셈을 다음을 만족하는 부울 식 $\phi_x$으로 적는다:
 
@@ -21,7 +25,9 @@ $$
 x \in L \iff \phi_x \text{ is satisfiable}
 $$
 
-## 증명의 얼개
+---
+
+## 3. 증명의 얼개
 
 ### 걸음 1: 셈 표
 
@@ -68,7 +74,9 @@ $$
 
 $\square$
 
-## 핵심 관찰
+---
+
+## 4. 핵심 관찰
 
 ### 이 밝힘이 통하는 까닭
 
@@ -85,7 +93,9 @@ $\square$
 ??? info "쿡과 레빈"
     스티븐 쿡은 1971년 STOC에서 튜링 줄임을 써서 밝힘을 내놓았다. 이와 따로 레오니트 레빈은 1973년 소련에서 여럿 대 하나 줄임과 "두루 쓰는 찾기 문제"라는 더 넓은 틀로 비슷한 결과를 밝혔다. 정리 이름은 두 사람을 딴 것이다.
 
-## 결과
+---
+
+## 5. 결과
 
 쿡-레빈 정리는 NP 완전성 이론 전체의 문을 열었다:
 
@@ -94,7 +104,9 @@ $\square$
 3. **얼개 복잡도**: 이 정리는 NP에 "가장 어려운 문제"라는 개념이 있음을 보여 그 갈래에 속 얼개를 준다.
 4. **P 대 NP에서의 뜻**: SAT의 다항 시간 알고리즘이 하나라도 나오면 $\mathbf{P} = \mathbf{NP}$이 따라 나온다.
 
-## SAT에서 3-SAT으로
+---
+
+## 6. SAT에서 3-SAT으로
 
 쿡-레빈의 세움은 절이 큰 식을 낼 수 있다. 여느 다음 걸음은 SAT을 3-SAT으로 줄이는 것이다:
 
@@ -104,12 +116,7 @@ $\square$
 
 그다음부터 3-SAT은 NP 완전성 줄임의 여느 출발점 노릇을 한다. 절 너비가 붙박여 있어 장치 세우기가 간단해지기 때문이다.
 
-## 참고 문헌
-
-- Cook, S. "The Complexity of Theorem-Proving Procedures." *STOC*, 1971.
-- Levin, L. "Universal Sequential Search Problems." *Problems of Information Transmission*, 1973.
-- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
-- Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
+---
 
 ## 연습문제
 
@@ -172,3 +179,14 @@ $\square$
     3. **그림 모델의 추론:** 일반 그림 모델(에너지 바탕 모델이 넓힌 것)에서 정확한 가장자리 분포나 최대 사후 어림을 셈하는 것은 NP 어려움이며 이것이 변분 추론과 마르코프 사슬 몬테카를로 같은 어림 추론의 까닭이 된다.
 
     4. **살피기:** 신경망의 성질(튼튼함, 안전함)을 살피는 일은 만족 가능성 문제로 적을 수 있고 일반으로 NP 완전이어서 실제로 쓰이는 모델의 엄밀한 보장을 제한한다.
+
+## 정리하며
+
+이 마당은 정리의 진술、밝힘 얼개、증명의 얼개、핵심 관찰을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cook, S. "The Complexity of Theorem-Proving Procedures." *STOC*, 1971.
+- Levin, L. "Universal Sequential Search Problems." *Problems of Information Transmission*, 1973.
+- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
+- Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.

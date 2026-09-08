@@ -1,11 +1,12 @@
 # 최급상승 방향으로서의 경사
-## 들어가며
 
 경사(gradient)는 "경사 하강법"이라는 이름의 유래가 된 핵심 개념이다. 경사가 왜 최급상승 방향을 가리키는지, 거꾸로 음의 경사가 왜 최급강하 방향을 가리키는지 이해하는 것은 최적화 알고리즘에 대한 직관을 기르는 데 필수적이다.
 
 이 절에서는 이 근본적인 성질에 대한 수학적 유도와 기하학적 직관을 함께 제시한다.
 
-## 경사: 정의와 표기
+---
+
+## 1. 경사: 정의와 표기
 
 ### 정의
 
@@ -35,7 +36,9 @@ $$\nabla f = \begin{bmatrix} \frac{\partial f}{\partial x} \\ \frac{\partial f}{
 
 $$\nabla f(1, 2) = \begin{bmatrix} 2 \\ 12 \end{bmatrix}$$
 
-## 왜 최급상승인가?
+---
+
+## 2. 왜 최급상승인가?
 
 ### 방향도함수
 
@@ -79,7 +82,9 @@ $$D_\mathbf{u} f = \nabla f \cdot \mathbf{u} \leq \|\nabla f\| \cdot \|\mathbf{u
 
 코시-슈바르츠 부등식에 의한 결과이다. 등호는 $\mathbf{u} = \frac{\nabla f}{\|\nabla f\|}$일 때 성립한다.
 
-## 기하학적 해석
+---
+
+## 3. 기하학적 해석
 
 ### 등위집합과 경사
 
@@ -136,7 +141,9 @@ plt.axis('equal')
 plt.show()
 ```
 
-## 최급상승에서 경사 하강법으로
+---
+
+## 4. 최급상승에서 경사 하강법으로
 
 ### 하강 방향
 
@@ -164,7 +171,9 @@ $$f(\mathbf{x}_{t+1}) \leq f(\mathbf{x}_t)$$
 
 경사 하강의 매 단계마다 함숫값이 **감소한다.**
 
-## 경사 계산하기
+---
+
+## 5. 경사 계산하기
 
 ### 직접 유도하기
 
@@ -208,7 +217,9 @@ $$\frac{\partial L}{\partial \theta} = \frac{\partial L}{\partial L_3} \cdot \fr
 
 이것이 **역전파** 의 토대이다.
 
-## 경사의 성질
+---
+
+## 6. 경사의 성질
 
 ### 임계점에서
 
@@ -234,7 +245,9 @@ $\nabla f(\mathbf{x}) = \mathbf{0}$일 때 점 $\mathbf{x}$는 **임계점**(또
 - 중간 반복: 경사의 방향이 바뀔 수 있다
 - 수렴 근처: 경사가 작아지고 진동할 수 있다
 
-## 실무적 함의
+---
+
+## 7. 실무적 함의
 
 ### 왜 경사를 정규화하는가?
 
@@ -263,7 +276,9 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 이는 방향은 유지하면서 경사의 크기만 제한한다.
 
-## 흔한 오해
+---
+
+## 8. 흔한 오해
 
 ### 오해 1: "경사 하강법은 언제나 전역 최솟값을 찾는다"
 
@@ -277,26 +292,15 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 **사실**: 경사는 **국소적으로** 최급강하 방향을 가리킨다. 최솟값까지의 경로는 굽어 있을 수 있다.
 
-## 핵심 요점
+---
 
-1. **경사의 정의**: 편도함수를 모은 벡터
-2. **최급상승**: 경사는 최대 증가 방향을 가리킨다
-3. **최급강하**: 음의 경사가 국소적으로 함수를 최소화한다
-4. **등고선에 수직**: 경사는 등위집합에 직교한다
-5. **크기가 중요하다**: 가파른 정도를 나타내며 임계점에서 0이다
-6. **자동 미분**: PyTorch가 경사를 효율적으로 계산한다
-
-## 다른 주제와의 연결
+## 9. 다른 주제와의 연결
 
 - **계산 그래프**: 계산 그래프 참고
 - **임계점**: 국소 최솟값, 안장점, 고원에서 자세히 다룬다
 - **모멘텀**: [고전적 모멘텀](../../ch05/optimizers/momentum.md)에서 최급강하를 변형한다
 
-## 참고 문헌
-
-- Stewart, J. (2015). *Calculus: Early Transcendentals*, Chapter 14.
-- Boyd, S., & Vandenberghe, L. (2004). *Convex Optimization*, Chapter 9.
-- Ruder, S. (2016). An overview of gradient descent optimization algorithms. arXiv:1609.04747.
+---
 
 ## 연습문제
 
@@ -353,3 +357,18 @@ $w_1 = 0.5, w_2 = -0.3, x_1 = 2, x_2 = 3, y = 1$에서 PyTorch autograd를 사�
     # dL/dw1 = 2r * x1 = 2(-0.9)(2) = -3.6
     # dL/dw2 = 2r * x2 = 2(-0.9)(3) = -5.4
     ```
+
+## 정리하며
+
+1. **경사의 정의**: 편도함수를 모은 벡터
+2. **최급상승**: 경사는 최대 증가 방향을 가리킨다
+3. **최급강하**: 음의 경사가 국소적으로 함수를 최소화한다
+4. **등고선에 수직**: 경사는 등위집합에 직교한다
+5. **크기가 중요하다**: 가파른 정도를 나타내며 임계점에서 0이다
+6. **자동 미분**: PyTorch가 경사를 효율적으로 계산한다
+
+**참고 문헌**
+
+- Stewart, J. (2015). *Calculus: Early Transcendentals*, Chapter 14.
+- Boyd, S., & Vandenberghe, L. (2004). *Convex Optimization*, Chapter 9.
+- Ruder, S. (2016). An overview of gradient descent optimization algorithms. arXiv:1609.04747.

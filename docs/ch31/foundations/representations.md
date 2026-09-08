@@ -1,9 +1,10 @@
 # 만들기를 위한 그래프 나타내기
-## 개요
 
 그래프를 어떻게 나타내느냐가 어떤 만들기 셈속을 쓸 수 있는지를 근본에서 정한다. 나타냄은 나타냄 힘(그래프의 모든 성질을 담음), 간결함(효율 좋은 배움), 신경망 얼개와의 어울림을 저울질해야 한다. 이 마디는 그래프 만들기에 쓰이는 주요 나타냄과 그것이 모델 설계에 주는 뜻을 훑는다.
 
-## 이웃 행렬 나타내기
+---
+
+## 1. 이웃 행렬 나타내기
 
 마디가 $n$개인 그래프 $\mathcal{G}$을 가장 곧바로 나타내는 것은 이웃 행렬 $\mathbf{A} \in \{0,1\}^{n \times n}$이며 변 $(i,j)$이 있으면 $A_{ij} = 1$이다. 속성이 있는 그래프에서는 마디 특징 $\mathbf{X} \in \mathbb{R}^{n \times d_n}$과 변 특징 $\mathbf{E} \in \mathbb{R}^{n \times n \times d_e}$을 더한다.
 
@@ -21,7 +22,9 @@ $$
 
 여기서 $\mathbf{P}_\pi$은 자리바꿈 행렬이다. 이 아리송함이 한 번에 만들기 방법의 한가운데 놓인 어려움이다.
 
-## 위쪽 삼각 나타내기
+---
+
+## 2. 위쪽 삼각 나타내기
 
 스스로 이음이 없는 방향 없는 그래프에서는 $\mathbf{A}$의 위쪽 삼각 칸만 있으면 된다. 이 삼각을 납작하게 펴면 두 값 벡터 $\mathbf{a} \in \{0,1\}^{\binom{n}{2}}$이 나온다:
 
@@ -31,7 +34,9 @@ $$
 
 이는 내놓기 차원을 반으로 줄이고 온 행렬의 겹침을 없앤다. 이 납작한 벡터에 대한 자기 되돌이 모델은 변을 붙박인 차례로 만든다.
 
-## 변 목록 나타내기
+---
+
+## 3. 변 목록 나타내기
 
 변 목록 $\mathcal{E} = \{(i_1, j_1), \ldots, (i_m, j_m)\}$은 있는 변만 담는다. 성긴 그래프($m \ll n^2$)에서 기억을 아끼며 PyTorch Geometric의 `edge_index` 꼴과 자연스럽게 맞물린다:
 
@@ -41,7 +46,9 @@ $$
 
 만들기에서 변 목록 나타냄은 변의 개수와 양 끝 짝을 모두 헤아려야 하므로 자기 되돌이 길이 자연스럽다.
 
-## 표준 차례
+---
+
+## 4. 표준 차례
 
 자리바꿈 맞섬을 깨려고 자기 되돌이 방법은 표준 마디 차례를 둔다. 흔한 고름:
 
@@ -59,7 +66,9 @@ $$
 
 GraphRNN은 이를 살려 변 헤아림을 크기 $B$의 창으로 잘라 복잡도를 $O(n^2)$에서 $O(n \cdot B)$으로 줄인다.
 
-## 차례 나타내기
+---
+
+## 5. 차례 나타내기
 
 어떤 방법은 그래프를 토막의 차례로 나타낸다:
 
@@ -67,7 +76,9 @@ GraphRNN은 이를 살려 변 헤아림을 크기 $B$의 창으로 잘라 복잡
 
 **이웃 차례.** 이웃 행렬을 줄줄이 납작하게 펴 길이 $n^2$(위쪽 삼각이면 $\binom{n}{2}$)의 두 값 차례를 얻는다. 자리마다 앞선 자리에 매인 베르누이 변수다.
 
-## 스펙트럼 나타내기
+---
+
+## 6. 스펙트럼 나타내기
 
 $\mathbf{A}$에서 곧바로 돌기보다 스펙트럼 방법은 그래프 라플라스의 고유 분해로 그래프를 나타낸다:
 
@@ -77,7 +88,9 @@ $$
 
 고윳값 $\boldsymbol{\Lambda} = \text{diag}(\lambda_1, \ldots, \lambda_n)$은 온 자리 얼개 성질(이어짐, 넓힘, 뭉침)을 담고 고유 벡터 $\mathbf{U}$은 스펙트럼 박아 넣기 자리에서 마디의 자리를 담는다. $(\boldsymbol{\Lambda}, \mathbf{U})$을 만들고 $\mathbf{A} = \mathbf{D} - \mathbf{U}\boldsymbol{\Lambda}\mathbf{U}^\top$으로 되지으면 자연스럽게 자리바꿈에 같이 바뀌는 나타냄이 나온다.
 
-## 짜기: 나타냄 바꾸기
+---
+
+## 7. 짜기: 나타냄 바꾸기
 
 ```python
 """
@@ -87,7 +100,6 @@ import torch
 import numpy as np
 from collections import deque
 from typing import Optional
-
 
 def adjacency_to_upper_triangular(adj: torch.Tensor) -> torch.Tensor:
     """
@@ -102,7 +114,6 @@ def adjacency_to_upper_triangular(adj: torch.Tensor) -> torch.Tensor:
     n = adj.size(0)
     indices = torch.triu_indices(n, n, offset=1)
     return adj[indices[0], indices[1]]
-
 
 def upper_triangular_to_adjacency(vec: torch.Tensor, n: int) -> torch.Tensor:
     """
@@ -120,7 +131,6 @@ def upper_triangular_to_adjacency(vec: torch.Tensor, n: int) -> torch.Tensor:
     adj[indices[0], indices[1]] = vec
     adj = adj + adj.t()
     return adj
-
 
 def bfs_ordering(adj: torch.Tensor, start: Optional[int] = None) -> list[int]:
     """
@@ -161,12 +171,10 @@ def bfs_ordering(adj: torch.Tensor, start: Optional[int] = None) -> list[int]:
 
     return order
 
-
 def permute_adjacency(adj: torch.Tensor, perm: list[int]) -> torch.Tensor:
     """자리바꿈에 따라 이웃 행렬을 다시 늘어놓는다."""
     perm_tensor = torch.tensor(perm)
     return adj[perm_tensor][:, perm_tensor]
-
 
 def compute_bfs_bandwidth(adj: torch.Tensor) -> int:
     """
@@ -183,7 +191,6 @@ def compute_bfs_bandwidth(adj: torch.Tensor) -> int:
                 max_bw = max(max_bw, j - i)
     return max_bw
 
-
 def laplacian_eigendecomposition(
     adj: torch.Tensor,
 ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -198,7 +205,6 @@ def laplacian_eigendecomposition(
     laplacian = torch.diag(degree) - adj
     eigenvalues, eigenvectors = torch.linalg.eigh(laplacian)
     return eigenvalues, eigenvectors
-
 
 def reconstruct_from_spectrum(
     eigenvalues: torch.Tensor,
@@ -218,7 +224,6 @@ def reconstruct_from_spectrum(
     # 문턱을 걸어 두 값으로
     adj = (adj > threshold).float()
     return adj
-
 
 if __name__ == "__main__":
     # 보기 그래프를 만든다(에르되시-레니)
@@ -251,6 +256,8 @@ if __name__ == "__main__":
     print(f"Spectral reconstruction accuracy: {match:.1%}")
 ```
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -282,3 +289,7 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
+
+## 정리하며
+
+이 마당은 이웃 행렬 나타내기、위쪽 삼각 나타내기、변 목록 나타내기、표준 차례을 차례로 짚었다.

@@ -1,17 +1,24 @@
 # 생각의 사슬 시킴말
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 생각의 사슬 따지기와 그것이 언제 도움되는지 이해한다
 - 영 발과 몇 발 생각의 사슬 시킴말을 짠다
 - 생각의 사슬이 따짐 일의 성능을 왜 낫게 하는지 살핀다
 
-## 핵심 생각
+---
+
+## 2. 핵심 생각
 
 **생각의 사슬 시킴말**(Wei 외, 2022)은 마지막 답에 앞서 가운데 따짐 걸음을 이끌어 낸다:
 
 $$x \xrightarrow{\text{standard}} y \quad \text{vs.} \quad x \xrightarrow{\text{CoT}} r_1, r_2, \ldots, r_n, y$$
 
-## 영 발 생각의 사슬
+---
+
+## 3. 영 발 생각의 사슬
 
 Kojima 외(2022)는 **"한 걸음씩 생각해 보자"**를 덧붙이면 따짐이 크게 나아짐을 찾아냈다:
 
@@ -26,7 +33,9 @@ A: Let's think step by step.
    Final price: \$150
 ```
 
-## 몇 발 생각의 사슬
+---
+
+## 4. 몇 발 생각의 사슬
 
 따짐 사슬을 드러낸 시범을 준다:
 
@@ -42,7 +51,9 @@ cot_examples = [
 ]
 ```
 
-## 생각의 사슬이 도움될 때
+---
+
+## 5. 생각의 사슬이 도움될 때
 
 생각의 사슬은 다음에서 가장 크게 나아지게 한다:
 
@@ -52,7 +63,9 @@ cot_examples = [
 
 단순한 갈래 매기기나 무늬 짝짓기에는 생각의 사슬이 **거의 도움되지 않는다**.
 
-## 핵심 결과
+---
+
+## 6. 핵심 결과
 
 | 잣대 | 보통 | 생각의 사슬 | 나아짐 |
 |-----------|---------|-----|-------------|
@@ -62,7 +75,9 @@ cot_examples = [
 
 *PaLM 540B 결과(Wei 외, 2022)*
 
-## 수학적 분석
+---
+
+## 7. 수학적 분석
 
 걸음마다 정확도가 $p$이고 연산이 $n$번 필요한 여러 걸음 문제에서:
 
@@ -71,10 +86,7 @@ cot_examples = [
 
 $p = 0.95$, $n = 5$이면 곧바로 미루어 보기는 $\approx 0.77$, 생각 사슬은 걸음마다 $\approx 0.95$이다.
 
-## 참고 문헌
-
-1. Wei, J., et al. (2022). "Chain-of-Thought Prompting Elicits Reasoning in LLMs." *NeurIPS*.
-2. Kojima, T., et al. (2022). "Large Language Models are Zero-Shot Reasoners." *NeurIPS*.
+---
 
 ## 연습문제
 
@@ -122,3 +134,12 @@ $p = 0.95$, $n = 5$이면 곧바로 미루어 보기는 $\approx 0.77$, 생각 �
     A: Let's think step by step.
     ```
     바라는 내놓음: 첫 구간의 거리는 $60 \times 2.5 = 150$마일. 둘째 구간의 거리는 $80 \times 1.5 = 120$마일. 온 거리는 $150 + 120 = 270$마일.
+
+## 정리하며
+
+이 마당은 학습 목표、핵심 생각、영 발 생각의 사슬、몇 발 생각의 사슬을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Wei, J., et al. (2022). "Chain-of-Thought Prompting Elicits Reasoning in LLMs." *NeurIPS*.
+2. Kojima, T., et al. (2022). "Large Language Models are Zero-Shot Reasoners." *NeurIPS*.

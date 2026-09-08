@@ -3,7 +3,7 @@
 
 ---
 
-## 왜 하는가: 앞선 분포가 걸리는 까닭
+## 1. 왜 하는가: 앞선 분포가 걸리는 까닭
 
 ### 베이즈 신경 그물에서 앞선 분포가 하는 몫
 
@@ -61,7 +61,7 @@ $p(f)$이 바라는 결을 지니도록 $p(\theta)$을 정하는 것이 어려�
 
 ---
 
-## 여느 가우스 앞선 분포
+## 2. 여느 가우스 앞선 분포
 
 ### 남남인 가우스 앞선 분포
 
@@ -148,7 +148,7 @@ $$
 
 ---
 
-## 함수 밭의 결을 이끄는 앞선 분포
+## 3. 함수 밭의 결을 이끄는 앞선 분포
 
 ### 닐(1996)의 앞선 분포
 
@@ -208,7 +208,7 @@ $$
 
 ---
 
-## 성김을 이끄는 앞선 분포
+## 4. 성김을 이끄는 앞선 분포
 
 ### 성기게 하는 까닭
 
@@ -287,7 +287,7 @@ $$
 
 ---
 
-## 층진 앞선 분포
+## 5. 층진 앞선 분포
 
 ### 왜 하는가
 
@@ -353,7 +353,7 @@ $$
 
 ---
 
-## 잣대 섞기와 꼬리 두꺼운 앞선 분포
+## 6. 잣대 섞기와 꼬리 두꺼운 앞선 분포
 
 ### 가우스 잣대 섞기
 
@@ -396,7 +396,7 @@ $$
 
 ---
 
-## 얽힌 앞선 분포와 얼개를 지닌 앞선 분포
+## 7. 얽힌 앞선 분포와 얼개를 지닌 앞선 분포
 
 ### 남남임을 넘어
 
@@ -462,7 +462,7 @@ $$
 
 ---
 
-## 겪어 본 앞선 분포와 자료에 매인 앞선 분포
+## 8. 겪어 본 앞선 분포와 자료에 매인 앞선 분포
 
 ### 겪어 본 베이즈
 
@@ -531,7 +531,7 @@ $$
 
 ---
 
-## 참으로 헤아릴 것
+## 9. 참으로 헤아릴 것
 
 ### 앞선 분포의 흩어짐 고르기
 
@@ -607,7 +607,7 @@ f_prior = network(x_test, theta_prior)
 
 ---
 
-## 파이썬으로 짜기
+## 10. 파이썬으로 짜기
 
 ```python
 """
@@ -625,7 +625,6 @@ from scipy.special import gammaln, gamma
 from typing import Tuple, List, Optional, Dict, Union, Callable
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-
 
 # =============================================================================
 # 밑 앞선 분포 갈래
@@ -647,7 +646,6 @@ class Prior(ABC):
     def prob(self, w: np.ndarray) -> float:
         """낌새를 셈한다(밑으로 넘칠 수 있다)."""
         return np.exp(self.log_prob(w))
-
 
 class GaussianPrior(Prior):
     """
@@ -684,7 +682,6 @@ class GaussianPrior(Prior):
     def __repr__(self):
         return f"GaussianPrior(mean={self.mean}, sigma={self.sigma})"
 
-
 class LaplacePrior(Prior):
     """
     라플라스 앞선 분포: p(w) = (lambda/2) * exp(-lambda * |w|)
@@ -716,7 +713,6 @@ class LaplacePrior(Prior):
     def __repr__(self):
         return f"LaplacePrior(scale={self.scale})"
 
-
 class StudentTPrior(Prior):
     """
     자유도를 정해 주는 스튜던트 t 앞선 분포.
@@ -747,7 +743,6 @@ class StudentTPrior(Prior):
     
     def __repr__(self):
         return f"StudentTPrior(df={self.df}, scale={self.scale})"
-
 
 # =============================================================================
 # 성김을 이끄는 앞선 분포
@@ -816,7 +811,6 @@ class SpikeAndSlabPrior(Prior):
     def __repr__(self):
         return f"SpikeAndSlabPrior(pi={self.pi}, sigma_spike={self.sigma_spike}, sigma_slab={self.sigma_slab})"
 
-
 class HorseshoePrior(Prior):
     """
     말굽 앞선 분포: w | lambda ~ N(0, lambda^2), lambda ~ Half-Cauchy(0, tau)
@@ -857,7 +851,6 @@ class HorseshoePrior(Prior):
     
     def __repr__(self):
         return f"HorseshoePrior(tau={self.tau})"
-
 
 # =============================================================================
 # 층진 앞선 분포
@@ -925,7 +918,6 @@ class HierarchicalGaussianPrior(Prior):
     def __repr__(self):
         return f"HierarchicalGaussianPrior(alpha={self.alpha}, beta={self.beta})"
 
-
 class LayerWisePrior:
     """
     켜마다 다른 앞선 분포.
@@ -956,7 +948,6 @@ class LayerWisePrior:
             if name in self.layer_priors
         }
 
-
 # =============================================================================
 # 흩어짐 잣대 잔손질
 # =============================================================================
@@ -969,7 +960,6 @@ def compute_glorot_variance(fan_in: int, fan_out: int) -> float:
     """
     return 2.0 / (fan_in + fan_out)
 
-
 def compute_he_variance(fan_in: int) -> float:
     """
     허 흩어짐 잣대.
@@ -978,7 +968,6 @@ def compute_he_variance(fan_in: int) -> float:
     """
     return 2.0 / fan_in
 
-
 def compute_lecun_variance(fan_in: int) -> float:
     """
     르쿤 흩어짐 잣대.
@@ -986,7 +975,6 @@ def compute_lecun_variance(fan_in: int) -> float:
     SELU 살림에서 흩어짐을 지킨다.
     """
     return 1.0 / fan_in
-
 
 def create_scaled_gaussian_prior(
     layer_shapes: List[Tuple[int, int]],
@@ -1023,7 +1011,6 @@ def create_scaled_gaussian_prior(
         priors[f'b{i}'] = GaussianPrior(sigma=0.1)  # 작은 치우침 앞선 분포
     
     return LayerWisePrior(priors)
-
 
 # =============================================================================
 # 앞선 분포로 미리 뽑아 보기
@@ -1087,7 +1074,6 @@ class SimpleMLP:
             shapes[f'b{i}'] = (self.layer_sizes[i + 1],)
         return shapes
 
-
 def prior_predictive_check(
     model: SimpleMLP,
     prior: Union[Prior, LayerWisePrior],
@@ -1129,7 +1115,6 @@ def prior_predictive_check(
         predictions.append(y)
     
     return np.array(predictions)
-
 
 # =============================================================================
 # 그리는 함수
@@ -1191,7 +1176,6 @@ def plot_prior_comparison(
     plt.tight_layout()
     plt.show()
 
-
 def plot_prior_predictive(
     predictions: np.ndarray,
     x_test: np.ndarray,
@@ -1240,7 +1224,6 @@ def plot_prior_predictive(
     plt.tight_layout()
     plt.show()
 
-
 def plot_sparsity_pattern(
     prior: Prior,
     n_samples: int = 10000,
@@ -1282,7 +1265,6 @@ def plot_sparsity_pattern(
     print(f"  |w| < 0.1의 몫:  {np.mean(np.abs(samples) < 0.1):.3f}")
     print(f"  |w| > 1.0의 몫:  {np.mean(np.abs(samples) > 1.0):.3f}")
 
-
 # =============================================================================
 # 보여 주는 함수
 # =============================================================================
@@ -1311,7 +1293,6 @@ def demo_standard_priors():
     
     return priors
 
-
 def demo_sparsity_priors():
     """성김을 이끄는 앞선 분포를 보여 준다."""
     
@@ -1337,7 +1318,6 @@ def demo_sparsity_priors():
               f"{np.mean(np.abs(samples) > 2):>10.3f}")
     
     return priors
-
 
 def demo_hierarchical_prior():
     """층진 앞선 분포를 보여 준다."""
@@ -1365,7 +1345,6 @@ def demo_hierarchical_prior():
     
     print("\n*** α이 낮을수록 → 꼬리가 두껍다(뾰족함이 크다)")
     print("*** α → ∞이면 가장자리 분포가 가우스에 다가간다")
-
 
 def demo_variance_scaling():
     """얼개마다의 흩어짐 잣대를 보여 준다."""
@@ -1397,7 +1376,6 @@ def demo_variance_scaling():
     print("\n*** 글로로: tanh/시그모이드에")
     print("*** 허: ReLU에")
     print("*** 르쿤: SELU에")
-
 
 def demo_prior_predictive():
     """앞선 분포로 미리 살펴보기를 보여 준다."""
@@ -1440,7 +1418,6 @@ def demo_prior_predictive():
     print("\n*** 잣대를 제대로 맞추면 날임이 이치에 닿는 자리에 머문다")
     print("*** 너른 앞선 분포는 함수 값을 아주 크게 만들 수 있다")
 
-
 def demo_l2_equivalence():
     """가우스 앞선 분포 ↔ L2 정칙화가 같음을 보여 준다."""
     
@@ -1473,7 +1450,6 @@ def demo_l2_equivalence():
         
         print(f"{var:>10.2f} {sigma:>10.3f} {lam:>15.4f} {interp:>25}")
 
-
 if __name__ == "__main__":
     demo_standard_priors()
     demo_sparsity_priors()
@@ -1485,7 +1461,39 @@ if __name__ == "__main__":
 
 ---
 
-## 간추림
+## 연습문제
+
+**연습문제 1.**
+ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
+
+??? success "연습문제 1 풀이"
+    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
+
+---
+
+**연습문제 2.**
+이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
+
+---
+
+**연습문제 3.**
+베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+
+??? success "연습문제 3 풀이"
+    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+
+??? success "연습문제 4 풀이"
+    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$
+
+## 정리하며
 
 ### 여느 앞선 분포
 
@@ -1547,35 +1555,3 @@ $$
 - Louizos, C., et al. (2017). Bayesian compression for deep learning. *NeurIPS*.
 - Fortuin, V. (2022). Priors in Bayesian deep learning: A review. *International Statistical Review*.
 - Wenzel, F., et al. (2020). How good is the Bayes posterior in deep neural networks really? *ICML*.
-
-## 익힘 문제
-
-**익힘 1.**
-ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
-
-??? success "익힘 1 풀이"
-    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
-
----
-
-**익힘 2.**
-이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
-
-??? success "익힘 2 풀이"
-    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
-
----
-
-**익힘 3.**
-베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
-
-??? success "익힘 3 풀이"
-    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
-
----
-
-**익힘 4.**
-이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
-
-??? success "익힘 4 풀이"
-    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$

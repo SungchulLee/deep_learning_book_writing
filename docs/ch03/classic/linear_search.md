@@ -2,7 +2,9 @@
 
 선형 탐색은 가장 단순한 탐색 알고리즘이다. 목표를 찾거나 리스트가 다할 때까지 원소를 하나씩 살펴본다. 반복적인 선형 탐색은 간단하지만, 이를 재귀로 구현해 보면 어떤 반복문도 재귀로 표현할 수 있음을 알 수 있다. 더 복잡한 재귀 알고리즘을 이해하는 데 핵심이 되는 통찰이다.
 
-## 재귀적 접근
+---
+
+## 1. 재귀적 접근
 
 재귀적 정식화는 현재 원소를 확인하고, 일치하지 않으면 리스트의 나머지에 대해 재귀한다.
 
@@ -13,7 +15,6 @@
 ```python
 """자리 번호를 좇는 되부름 선형 찾기."""
 
-
 # === 재귀적 선형 탐색 ===
 
 def linear_search(arr, target, index=0):
@@ -23,7 +24,6 @@ def linear_search(arr, target, index=0):
     if arr[index] == target:
         return index
     return linear_search(arr, target, index + 1)
-
 
 # === 메인 ===
 
@@ -41,7 +41,9 @@ Search for 7: index 2
 Search for 5: index -1
 ```
 
-## 복잡도 분석
+---
+
+## 2. 복잡도 분석
 
 각 재귀 호출은 원소 하나를 처리하고 많아야 한 번 재귀 호출을 하므로 다음을 얻는다.
 
@@ -51,10 +53,7 @@ $$
 
 이는 $T(n) = O(n)$으로 풀리며 반복 버전과 같다. 공간 복잡도는 재귀 스택 때문에 $O(n)$이며, 반복 방식의 $O(1)$과 대비된다.
 
-## 참고 자료
-
-[Best, Worst and Average Case Analysis](https://www.youtube.com/watch?v=lj3E24nnPjI&list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O&index=16)
-
+---
 
 ## 연습문제
 
@@ -87,3 +86,11 @@ $n = 8$일 때 선형 탐색의 재귀 트리를 그려라. 각 층에서의 일
 
 ??? success "연습문제 4 풀이"
     호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.
+
+## 정리하며
+
+이 마당은 재귀적 접근、복잡도 분석을 차례로 짚었다.
+
+**참고 자료**
+
+[Best, Worst and Average Case Analysis](https://www.youtube.com/watch?v=lj3E24nnPjI&list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O&index=16)

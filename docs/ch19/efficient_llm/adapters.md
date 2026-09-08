@@ -1,16 +1,23 @@
 # 어댑터 층
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 어댑터 얼개와 꾸밈 원리를 이해한다
 - 변환기 모델에 어댑터를 짠다
 - 어댑터 변종(이어진, 나란한, AdapterFusion)을 견준다
 - 어댑터의 병목 크기와 놓을 자리를 정한다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 어댑터(Houlsby 외, 2019)는 얼린 미리 익힌 모델의 층 사이에 끼우는 작은 익힐 수 있는 단원이다. 어댑터마다 내리쬐기, 비선형, 올리쬐기와 잔차 이음으로 이루어진다. 이러면 바탕 모델을 얼린 채로 일에 맞출 수 있다.
 
-## 구조
+---
+
+## 3. 구조
 
 ### 기본 어댑터 단원
 
@@ -46,7 +53,9 @@ $$
 - Per adapter: $2 \times 768 \times 64 + 64 + 768 = 99,136$
 - Total: $12 \times 2 \times 99,136 = 2,379,264$ (2.2% of 110M)
 
-## 구현
+---
+
+## 4. 구현
 
 ### 고갱이 어댑터 단원
 
@@ -54,7 +63,6 @@ $$
 import torch
 import torch.nn as nn
 from typing import Optional, List
-
 
 class Adapter(nn.Module):
     """
@@ -120,7 +128,6 @@ class Adapter(nn.Module):
     @property
     def num_parameters(self) -> int:
         return sum(p.numel() for p in self.parameters())
-
 
 class ScaledAdapter(Adapter):
     """배울 수 있는 잣수를 곁들인 맞춤개."""
@@ -253,7 +260,9 @@ class ParallelAdapterTransformerLayer(nn.Module):
         return x
 ```
 
-## AdapterFusion: 여러 일 배우기
+---
+
+## 5. AdapterFusion: 여러 일 배우기
 
 ```python
 class AdapterFusion(nn.Module):
@@ -312,7 +321,9 @@ class AdapterFusion(nn.Module):
         return x + fused
 ```
 
-## 여러 일 어댑터 모델
+---
+
+## 6. 여러 일 어댑터 모델
 
 ```python
 class MultiTaskAdapterModel(nn.Module):
@@ -363,7 +374,9 @@ class MultiTaskAdapterModel(nn.Module):
         return self.adapters[task](hidden)
 ```
 
-## 웃매개변수 길잡이
+---
+
+## 7. 웃매개변수 길잡이
 
 ### 병목 차원
 
@@ -388,7 +401,9 @@ class MultiTaskAdapterModel(nn.Module):
 - 어댑터: 1e-4 ~ 1e-3
 - 온전한 곱게 다듬기: 1e-5 ~ 5e-5
 
-## 비교
+---
+
+## 8. 비교
 
 | 방법 | 매개변수 | 미룸 덧짐 | 여러 일 | 단원별 |
 |--------|--------|-------------------|------------|---------|
@@ -402,7 +417,9 @@ class MultiTaskAdapterModel(nn.Module):
 - 단원별로 펼칠 때
 - 미룸 덧짐을 받아들일 수 있을 때
 
-## 학습 예제
+---
+
+## 9. 학습 예제
 
 ```python
 def train_with_adapters(
@@ -445,33 +462,16 @@ def train_with_adapters(
     
     return adapter
 
-
 def save_adapter(adapter: nn.Module, path: str):
     """맞춤개 무게를 갈무리한다."""
     torch.save(adapter.state_dict(), path)
-
 
 def load_adapter(adapter: nn.Module, path: str):
     """맞춤개 무게를 불러온다."""
     adapter.load_state_dict(torch.load(path))
 ```
 
-## 요약
-
-| 갈래 | 자세히 |
-|--------|---------|
-| **얼개** | 내리쬐기 → 깨어남 → 올리쬐기 + 잔차 |
-| **매개변수** | 모델의 1~5% |
-| **놓을 자리** | 눈길 뒤 그리고/또는 앞먹임 그물 뒤 |
-| **핵심 이점** | 단원별이고 여러 일이 쉽다 |
-| **맞바꿈** | 미룸 덧짐 |
-
-## 참고 문헌
-
-1. Houlsby, N., et al. (2019). "Parameter-Efficient Transfer Learning for NLP." ICML.
-2. Pfeiffer, J., et al. (2020). "AdapterHub: A Framework for Adapting Transformers." EMNLP.
-3. Pfeiffer, J., et al. (2021). "AdapterFusion: Non-Destructive Task Composition." EACL.
-4. He, J., et al. (2022). "Towards a Unified View of Parameter-Efficient Transfer Learning." ICLR.
+---
 
 ## 연습문제
 
@@ -510,3 +510,20 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 
 ??? success "연습문제 4 풀이"
     QLoRA은 밑 모델을 4비트로 수 줄이고 LoRA 맞춤개는 fp16/bf16으로 두어 둘을 아우른다. 밑 무게 $W_0$은 4비트 NormalFloat 꼴로 담기므로(매개변수마다 $\sim$0.5바이트) 700억 모델의 기억 자리가 140GB에서 $\sim$35GB으로 준다. LoRA 맞춤개는 익힘이 든든하도록 더 촘촘한 꼴로 남는다. 여기에 겹 수 줄이기(수 줄이기 상수를 다시 수 줄이기)와 쪽 넘김 가장 좋게 하개(가장 좋게 하개 상태가 치솟을 때 CPU 기억 자리를 씀)라는 새로움이 더해진다. 그래서 48GB GPU(A6000) 한 장으로 650억 모델을 곱게 다듬을 수 있고, 값비싼 여러 GPU 무리 없이도 연구자와 작은 조직이 큰 말 모델을 맞출 수 있게 된다.
+
+## 정리하며
+
+| 갈래 | 자세히 |
+|--------|---------|
+| **얼개** | 내리쬐기 → 깨어남 → 올리쬐기 + 잔차 |
+| **매개변수** | 모델의 1~5% |
+| **놓을 자리** | 눈길 뒤 그리고/또는 앞먹임 그물 뒤 |
+| **핵심 이점** | 단원별이고 여러 일이 쉽다 |
+| **맞바꿈** | 미룸 덧짐 |
+
+**참고 문헌**
+
+1. Houlsby, N., et al. (2019). "Parameter-Efficient Transfer Learning for NLP." ICML.
+2. Pfeiffer, J., et al. (2020). "AdapterHub: A Framework for Adapting Transformers." EMNLP.
+3. Pfeiffer, J., et al. (2021). "AdapterFusion: Non-Destructive Task Composition." EACL.
+4. He, J., et al. (2022). "Towards a Unified View of Parameter-Efficient Transfer Learning." ICLR.

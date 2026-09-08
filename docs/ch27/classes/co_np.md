@@ -2,7 +2,9 @@
 
 NP는 "예" 답에 짧고 효율 좋게 살필 수 있는 밝힘이 있는 문제를 담는다. 그러면 "아니오" 답 쪽에 짧은 밝힘이 있는 문제는 어떤가? 보기로 부울 식이 *만족 불가능*함을 밝히려면 *어떤* 매김도 통하지 않음을 보여야 한다. 자연스러운 증서 얼개가 뒤집힌 것이다. 갈래 **여 NP**은 이 여 관점을 갈라 적어 주며, NP와 여 NP가 같은지의 물음은 복잡도 이론의 근본 열린 문제 가운데 하나이다.
 
-## 직관
+---
+
+## 1. 직관
 
 그래프 $G$에 대한 서로 이어진 두 물음을 살펴보자:
 
@@ -11,7 +13,9 @@ NP는 "예" 답에 짧고 효율 좋게 살필 수 있는 밝힘이 있는 문�
 
 여 NP는 *아니오* 사례(같은 말로 여 문제의 예 사례)에 효율 좋은 증서가 있는 문제를 담는다. NP와 여 NP가 다르다면 어떤 문제에는 있음을 밝히는 것과 없음을 밝히는 것 사이에 본디 맞섬이 깨져 있는 것이다.
 
-## 엄밀한 정의
+---
+
+## 2. 엄밀한 정의
 
 말 $L \subseteq \Sigma^*$의 **여 말**은 $\overline{L} = \Sigma^* \setminus L$이다.
 
@@ -35,7 +39,9 @@ $$
 
 이 모든 한정 기호("모든 것에 대해")가 여 NP를 NP의 있음 한정 기호("어떤 것이 있어")와 갈라 준다.
 
-## P 및 NP과의 관계
+---
+
+## 3. P 및 NP과의 관계
 
 ### P은 둘 다에 담긴다
 
@@ -66,7 +72,9 @@ $$
 
 이 담김 가운데 어느 것이라도 엄격한지는 알려져 있지 않다.
 
-## 대표 보기
+---
+
+## 4. 대표 보기
 
 | NP 문제 | 여 NP 여 문제 | "아니오"의 증서 |
 |-----------|------------------|---------------------|
@@ -86,7 +94,9 @@ $$
 ??? example "소수 판정의 프랫 증서"
     AKS(2002) 이전에 소수 판정은 $\mathbf{NP} \cap \mathbf{co\text{-}NP}$에 든다고 알려져 있었다. **프랫 증서**는 원시근과 $p - 1$의 소인수에 대한 되돌이 소수 밝힘을 보여 어떤 수가 소수임을 밝힌다. 이는 다항 시간에 살필 수 있는 다항 길이 증서를 주어 소수를 NP에(따라서 합성수를 여 NP에) 놓는다.
 
-## 여 NP 완전성
+---
+
+## 5. 여 NP 완전성
 
 다음이면 말 $L$은 **여 NP 완전**이다:
 
@@ -103,7 +113,9 @@ $$
 
 **정리.** 어떤 여 NP 완전 문제가 NP에 들면 $\mathbf{NP} = \mathbf{co\text{-}NP}$이다.
 
-## 시사하는 것
+---
+
+## 6. 시사하는 것
 
 NP 대 여 NP 물음은 여러 마당과 이어진다:
 
@@ -111,11 +123,7 @@ NP 대 여 NP 물음은 여러 마당과 이어진다:
 - **암호**: 많은 암호 가정이 $\mathbf{NP} \neq \mathbf{co\text{-}NP}$이라는 추측에 은근히 기댄다.
 - **프로그램 살피기**: 프로그램이 옳음을 밝히려면 *어떤* 실행 길도 어긋남으로 이어지지 않음을 보여야 하는데 이는 여 NP 꼴의 글월이다.
 
-## 참고 문헌
-
-- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
-- Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
-- Pratt, V. "Every Prime has a Succinct Certificate." *SIAM Journal on Computing*, 1975.
+---
 
 ## 연습문제
 
@@ -154,3 +162,13 @@ $\mathbf{NP} \neq \mathbf{co\text{-}NP}$이면 어떤 NP 완전 문제도 여 NP
 
 ??? success "연습문제 4 풀이"
     $L$이 NP 완전이고 $L \in \mathbf{co\text{-}NP}$이라 하자. 어떤 말 $A \in \mathbf{NP}$에 대해서도 $L$이 NP 완전이므로 $x \in A \iff f(x) \in L$인 다항 시간 줄임 $f$이 있다. 이 줄임은 $\bar{A} \leq_p \bar{L}$도 보인다. $L \in \mathbf{co\text{-}NP}$이므로 $\bar{L} \in \mathbf{NP}$이다. 그러면 $\bar{A}$이 NP 문제로 줄여져 $\bar{A} \in \mathbf{NP}$이고 이는 $A \in \mathbf{co\text{-}NP}$을 뜻한다. $A$이 아무거나였으므로 $\mathbf{NP} \subseteq \mathbf{co\text{-}NP}$이고 맞섬에 따라 $\mathbf{NP} = \mathbf{co\text{-}NP}$이 된다. 이는 가정과 어긋나므로 어떤 NP 완전 문제도 여 NP에 들지 않는다.
+
+## 정리하며
+
+이 마당은 직관、엄밀한 정의、P 및 NP과의 관계、대표 보기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
+- Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
+- Pratt, V. "Every Prime has a Succinct Certificate." *SIAM Journal on Computing*, 1975.

@@ -1,5 +1,4 @@
 # 릿지 회귀
-## 개요
 
 특징들이 서로 상관되어 있거나 모델이 과적합할 때, 보통최소제곱(OLS)은 분산이 큰
 매개변수 추정값을 내놓는다. **릿지 회귀**는 손실에 $\ell_2$ 벌점을 더해 계수를 0
@@ -368,28 +367,6 @@ ax.grid(True, alpha=0.3)
 
 ---
 
-## 요약
-
-| 개념 | 핵심 결과 |
-|---------|------------|
-| 목적 함수 | $\|\mathbf{y} - \mathbf{X}\boldsymbol{\theta}\|^2 + \lambda\|\boldsymbol{\theta}\|_2^2$ |
-| 해 | $(\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$ |
-| 고윳값 축소 | 성분마다 인수 $\sigma_j^2 / (\sigma_j^2 + \lambda)$ |
-| 베이즈적 관점 | $\lambda = \sigma^2/\tau^2$인 가우스 사전분포 $\mathcal{N}(0, \tau^2 I)$ 아래의 MAP |
-| PyTorch | 최적화기의 `weight_decay` 매개변수 |
-| scikit-learn | `Ridge(alpha=λ)` 또는 자동 선택을 위한 `RidgeCV` |
-| 핵심 성질 | 계수를 줄이지만 결코 0으로 만들지 않는다 |
-
----
-
-## 참고 문헌
-
-1. Hastie, T., Tibshirani, R. & Friedman, J. (2009). *The Elements of
-   Statistical Learning*, §3.4.1.
-2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, §3.1.4.
-3. Hoerl, A. E. & Kennard, R. W. (1970). "Ridge Regression: Biased Estimation
-   for Nonorthogonal Problems." *Technometrics*.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -441,3 +418,25 @@ $\lambda$가 편향-분산 절충에 미치는 영향을 설명하라. $\lambda 
     $\lambda \to \infty$이면 $\hat{\mathbf{w}} \to 0$이 되어 편향이 최대가 되지만(평균을 예측한다) 분산은 0이다(학습 데이터와 무관하게 일정한 예측).
 
     최적의 $\lambda$는 편향과 분산의 균형을 잡아 시험 오차를 최소화한다. $\lambda$를 고르는 표준적인 방법은 교차 검증이다.
+
+## 정리하며
+
+| 개념 | 핵심 결과 |
+|---------|------------|
+| 목적 함수 | $\|\mathbf{y} - \mathbf{X}\boldsymbol{\theta}\|^2 + \lambda\|\boldsymbol{\theta}\|_2^2$ |
+| 해 | $(\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$ |
+| 고윳값 축소 | 성분마다 인수 $\sigma_j^2 / (\sigma_j^2 + \lambda)$ |
+| 베이즈적 관점 | $\lambda = \sigma^2/\tau^2$인 가우스 사전분포 $\mathcal{N}(0, \tau^2 I)$ 아래의 MAP |
+| PyTorch | 최적화기의 `weight_decay` 매개변수 |
+| scikit-learn | `Ridge(alpha=λ)` 또는 자동 선택을 위한 `RidgeCV` |
+| 핵심 성질 | 계수를 줄이지만 결코 0으로 만들지 않는다 |
+
+---
+
+**참고 문헌**
+
+1. Hastie, T., Tibshirani, R. & Friedman, J. (2009). *The Elements of
+   Statistical Learning*, §3.4.1.
+2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, §3.1.4.
+3. Hoerl, A. E. & Kennard, R. W. (1970). "Ridge Regression: Biased Estimation
+   for Nonorthogonal Problems." *Technometrics*.

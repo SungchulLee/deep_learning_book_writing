@@ -1,9 +1,10 @@
 # 비전 트랜스포머 (ViT)
-## 들어가며
 
 비전 트랜스포머(ViT)는 컴퓨터 비전의 큰 전환으로, 본디 자연어 처리를 위해 설계된 순수 트랜스포머 구조가 이미지 분류 과제에서 최고 수준의 결과를 낼 수 있음을 보였다. Dosovitskiy 외가 "An Image is Worth 16x16 Words"(2021)에서 내놓은 비전 트랜스포머는 그림을 조각의 수열로 다루어 합성곱 신경망과 트랜스포머 사이의 틈을 잇는다.
 
-## 동기: 왜 트랜스포머를 비전에 쓰는가
+---
+
+## 1. 동기: 왜 트랜스포머를 비전에 쓰는가
 
 전통적인 합성곱 신경망은 국소 수용 영역을 가진 위계적 합성곱으로 그림을 처리한다. 잘 통하지만 이 방식에는 한계가 있다.
 
@@ -21,7 +22,9 @@
 
 비전 트랜스포머의 핵심 통찰은 그림을 조각으로 "토큰화"할 수 있고, 그러면 자연어 처리를 뒤바꾼 트랜스포머 구조에 그대로 맞아 들어간다는 것이다.
 
-## 구조 개관
+---
+
+## 2. 구조 개관
 
 비전 트랜스포머 구조는 주요 부품 넷으로 이루어진다.
 
@@ -85,7 +88,9 @@ $$\mathbf{E}_{pos} \in \mathbb{R}^{(N+1) \times D}$$
 
 (본디 논문에서 살펴본) **2차원을 고려한 대안**으로는 행과 열 자리를 나눈 학습형 2차원 임베딩이 있다. 아주 조금(약 0.5%) 나아질 뿐이며 표준은 아니다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ```python
 import torch
@@ -162,7 +167,9 @@ class VisionTransformer(nn.Module):
         return self.head(x[:, 0])  # CLS 토큰을 쓴다
 ```
 
-## 모형의 변형
+---
+
+## 4. 모형의 변형
 
 비전 트랜스포머에는 표준 설정이 여럿 있다.
 
@@ -192,7 +199,9 @@ def create_vit_large(n_classes: int = 1000) -> VisionTransformer:
     )
 ```
 
-## 핵심 통찰
+---
+
+## 5. 핵심 통찰
 
 ### 1. 전역 수용 영역
 받는 영역이 차츰 넓어지는 합성곱 신경망과 달리 비전 트랜스포머는 자기 주의로 첫 층부터 전역 수용 영역을 가진다. 그래서 합성곱 신경망이라면 층을 많이 쌓아야 얻을 먼 거리의 공간 의존을 앞쪽 층에서 잡아낼 수 있다.
@@ -219,7 +228,9 @@ $$\text{Image} \xrightarrow{\text{CNN}} \text{Feature Map} \xrightarrow{\text{Fl
 
 **DINO**: 이름표 없는 자기 증류로, 학생 신경망이 관성으로 갱신되는 스승 신경망의 출력에 맞추는 법을 배운다. DINO로 학습한 비전 트랜스포머의 특징은 분할을 전혀 가르치지 않았는데도 물체의 분할 경계를 찾아내는 등 놀라운 창발 성질을 보인다.
 
-## 비전 트랜스포머의 후예
+---
+
+## 6. 비전 트랜스포머의 후예
 
 | 모형 | 핵심 혁신 | 나아진 점 |
 |-------|---------------|-------------|
@@ -229,7 +240,9 @@ $$\text{Image} \xrightarrow{\text{CNN}} \text{Feature Map} \xrightarrow{\text{Fl
 | **MAE** | 높은 비율의 가리기와 되살리기 | 표본을 아끼는 사전 학습 |
 | **EVA** | 비전 트랜스포머를 매개변수 10억 개 이상으로 키우기 | 최고 수준의 시각 표현 |
 
-## 학습할 때 살필 점
+---
+
+## 7. 학습할 때 살필 점
 
 **잘 통하는 학습 방법:**
 
@@ -254,7 +267,9 @@ scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
 - Mixup과 CutMix
 - 무작위 지우기
 
-## 계량 금융에서의 쓰임
+---
+
+## 8. 계량 금융에서의 쓰임
 
 비전 트랜스포머 구조는 금융 분석에서도 쓰임을 찾았다.
 
@@ -263,13 +278,7 @@ scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
 3. **위성 영상**: 하늘에서 찍은 그림으로 경제 활동 어림하기
 4. **여러 양식의 금융**: 시각 금융 데이터와 글 금융 데이터 아우르기
 
-## 참고 문헌
-
-1. Dosovitskiy, A., et al. "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale." ICLR 2021.
-2. Touvron, H., et al. "Training data-efficient image transformers & distillation through attention." ICML 2021. (DeiT)
-3. He, K., et al. "Masked Autoencoders Are Scalable Vision Learners." CVPR 2022. (MAE)
-4. Liu, Z., et al. "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows." ICCV 2021.
-5. Caron, M., et al. "Emerging Properties in Self-Supervised Vision Transformers." ICCV 2021. (DINO)
+---
 
 ## 연습문제
 
@@ -309,3 +318,15 @@ scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
         def forward(self, x):
             return self.proj(x).flatten(2).transpose(1, 2)  # (B, N, D)
     ```
+
+## 정리하며
+
+이 마당은 동기: 왜 트랜스포머를 비전에 쓰는가、구조 개관、PyTorch 구현、모형의 변형을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Dosovitskiy, A., et al. "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale." ICLR 2021.
+2. Touvron, H., et al. "Training data-efficient image transformers & distillation through attention." ICML 2021. (DeiT)
+3. He, K., et al. "Masked Autoencoders Are Scalable Vision Learners." CVPR 2022. (MAE)
+4. Liu, Z., et al. "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows." ICCV 2021.
+5. Caron, M., et al. "Emerging Properties in Self-Supervised Vision Transformers." ICCV 2021. (DINO)

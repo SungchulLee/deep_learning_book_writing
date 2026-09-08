@@ -1,9 +1,10 @@
 # 실효 표본 크기
-## 개요
 
 실효 표본 크기(ESS)는 중요도 표집의 질을 재는 근본 진단이다. 우리가 가진 무게 준 표본이 과녁 분포의 독립 표본 몇 개에 맞먹는지를 잰다. ESS은 제안의 질을 객관적으로 재어 주며 중요도 표집 어림자의 흩어짐과 곧바로 이어진다.
 
-## 수학적 정의
+---
+
+## 1. 수학적 정의
 
 ### 고르게 한 무게에 대한 정의
 
@@ -36,7 +37,9 @@ $$
 - **최댓값**: 무게가 모두 같을 때 ESS $= n$이다. 곧 $\bar{w}_i = 1/n$이다
 - **최솟값**: 무게 하나가 1이고 나머지가 0일 때 ESS $= 1$이다
 
-## 해석
+---
+
+## 2. 해석
 
 ### 직관적인 이해
 
@@ -72,7 +75,9 @@ $$
 
 ESS $= n/10$이면 흩어짐이 완벽한 표집에 견주어 10배로 부푼다.
 
-## ESS 이끌어 내기
+---
+
+## 3. ESS 이끌어 내기
 
 ### 무게의 흩어짐에서
 
@@ -117,7 +122,9 @@ ESS과 혼란도는 이어져 있지만 같지는 않다:
 
 둘 다 무게가 몰린 정도를 재지만 강조하는 바가 다르다.
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -142,7 +149,6 @@ def compute_ess_normalized(weights):
     """
     return 1.0 / torch.sum(weights**2)
 
-
 def compute_ess_unnormalized(unnorm_weights):
     """
     고르게 하지 않은 무게로 ESS 셈하기.
@@ -154,7 +160,6 @@ def compute_ess_unnormalized(unnorm_weights):
     sum_w = torch.sum(unnorm_weights)
     sum_w_sq = torch.sum(unnorm_weights**2)
     return sum_w**2 / sum_w_sq
-
 
 def compute_ess_log_weights(log_weights):
     """
@@ -171,7 +176,6 @@ def compute_ess_log_weights(log_weights):
     log_ess = -log_sum_sq
     
     return torch.exp(log_ess)
-
 
 def weight_diagnostics(weights, n_samples=None, name=""):
     """
@@ -281,7 +285,6 @@ def weight_diagnostics(weights, n_samples=None, name=""):
     
     return diagnostics
 
-
 # 보기: 제안의 질에 따른 ESS
 torch.manual_seed(42)
 
@@ -322,7 +325,9 @@ for name, proposal in proposals.items():
           f"{diag['cv']:10.2f} {diag['max_weight_ratio']:12.1f}x")
 ```
 
-## ESS과 표본 크기 늘리기
+---
+
+## 5. ESS과 표본 크기 늘리기
 
 ### ESS은 n에 따라 커지는가?
 
@@ -374,7 +379,9 @@ print(f"\nESS/n converges to approximately "
       f"{sum(ess_ratios[-3:])/3:.3f}")
 ```
 
-## 흩어짐과 ESS의 관계
+---
+
+## 6. 흩어짐과 ESS의 관계
 
 ### 겪어 보고 확인하기
 
@@ -445,7 +452,9 @@ verify_variance_ess_relationship(
 )
 ```
 
-## 실전에서의 ESS
+---
+
+## 7. 실전에서의 ESS
 
 ### 최소 ESS 요구
 
@@ -540,7 +549,9 @@ def track_ess_over_iterations(
     return ess_history, cumulative_ess_history
 ```
 
-## 계량 금융에서의 ESS
+---
+
+## 8. 계량 금융에서의 ESS
 
 ### 위험 잣대 어림을 위한 ESS
 
@@ -611,7 +622,9 @@ def risk_estimation_with_ess_monitoring(
     return losses, combined_w, ess.item()
 ```
 
-## 시각화
+---
+
+## 9. 시각화
 
 ```python
 def plot_ess_diagnostics(weights, samples, name=""):
@@ -717,7 +730,9 @@ def plot_ess_diagnostics(weights, samples, name=""):
     return fig
 ```
 
-## 핵심 정리
+---
+
+## 10. 핵심 정리
 
 !!! success "ESS이 알려 주는 것"
 
@@ -740,17 +755,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
     4. 제안을 객관적으로 견주는 데 ESS을 써라
     5. 알아서 맞추는 방법에서는 되풀이마다 ESS을 지켜보아라
 
-## 참고 문헌
-
-1. Kong, A. (1992). "A note on importance sampling using standardized weights." University of Chicago Department of Statistics Technical Report 348.
-
-2. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2.5절.
-
-3. Doucet, A., & Johansen, A. M. (2009). "A tutorial on particle filtering and smoothing: Fifteen years later." *Handbook of Nonlinear Filtering*, 12, 656-704.
-
-4. Elvira, V., Martino, L., & Robert, C. P. (2019). "Rethinking the effective sample size." *International Statistical Review*, 87(3), 591-616.
-
-5. Vehtari, A., Gelman, A., & Gabry, J. (2017). "Pareto smoothed importance sampling." *arXiv preprint arXiv:1507.02646*.
+---
 
 ## 연습문제
 
@@ -768,3 +773,19 @@ ESS 자체도 표본에서 어림한 값이다. 돌릴 때마다 ESS이 얼마�
 
 ### 연습 5: 위험 모형의 ESS 예산
 어떤 위험 모형이 규제를 지키려면 ESS이 적어도 2000이어야 한다. 지금 제안에서 ESS/n이 대략 0.15로 관측된다. 표본이 모두 몇 개($n$) 필요한가? 제안을 낫게 해 ESS/n이 대략 0.4가 되면 필요한 $n$은 어떻게 바뀌는가? 위험 인자가 500개인 포트폴리오에서 셈 값이 어떻게 되는지 이야기하여라.
+
+## 정리하며
+
+이 마당은 수학적 정의、해석、ESS 이끌어 내기、PyTorch 구현을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Kong, A. (1992). "A note on importance sampling using standardized weights." University of Chicago Department of Statistics Technical Report 348.
+
+2. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2.5절.
+
+3. Doucet, A., & Johansen, A. M. (2009). "A tutorial on particle filtering and smoothing: Fifteen years later." *Handbook of Nonlinear Filtering*, 12, 656-704.
+
+4. Elvira, V., Martino, L., & Robert, C. P. (2019). "Rethinking the effective sample size." *International Statistical Review*, 87(3), 591-616.
+
+5. Vehtari, A., Gelman, A., & Gabry, J. (2017). "Pareto smoothed importance sampling." *arXiv preprint arXiv:1507.02646*.

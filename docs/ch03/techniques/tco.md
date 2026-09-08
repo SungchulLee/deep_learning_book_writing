@@ -2,7 +2,9 @@
 
 꼬리 호출 최적화(TCO)는 꼬리 위치의 함수 호출에 대해 새 프레임을 쌓는 대신 현재 스택 프레임을 재사용하는 컴파일러 기법이다. 꼬리 재귀 함수에 적용하면 TCO는 $O(n)$의 스택 사용을 $O(1)$로 바꾸며, 사실상 기계 수준에서 재귀를 반복으로 바꾼다.
 
-## TCO의 동작 방식
+---
+
+## 1. TCO의 동작 방식
 
 TCO가 없으면 호출마다 새 프레임이 쌓인다.
 
@@ -22,13 +24,14 @@ factorial_tail(3, 20)   → frame (reused)
 ...                      → frame (reused)
 ```
 
-## 예제: 파이썬에서 TCO 흉내 내기
+---
+
+## 2. 예제: 파이썬에서 TCO 흉내 내기
 
 파이썬은 TCO를 자체적으로 지원하지 않는다. 그러나 트램펄린을 써서 흉내 낼 수 있다. 트램펄린은 최종 값이 나올 때까지 반환된 함수를 거듭 호출하는 반복문이다.
 
 ```python
 """트램펄린으로 꼬리 호출 최적화 흉내 내기."""
-
 
 # === 트램펄린 틀 ===
 
@@ -38,13 +41,11 @@ class TailCall:
         self.func = func
         self.args = args
 
-
 def trampoline(result):
     """최종 값에 도달할 때까지 꼬리 호출을 반복적으로 수행한다."""
     while isinstance(result, TailCall):
         result = result.func(*result.args)
     return result
-
 
 # === 트램펄린을 쓰는 계승 ===
 
@@ -53,7 +54,6 @@ def factorial_tco(n, acc=1):
     if n <= 1:
         return acc
     return TailCall(factorial_tco, n - 1, acc * n)
-
 
 # === 메인 ===
 
@@ -70,7 +70,9 @@ if __name__ == "__main__":
 100! = 93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
 ```
 
-## 언어별 지원
+---
+
+## 3. 언어별 지원
 
 | 언어 | TCO 지원 |
 |---|---|
@@ -81,10 +83,7 @@ if __name__ == "__main__":
 | 자바 | 미지원 |
 | C/C++ | 컴파일러에 따라 다름 |
 
-## 참고 문헌
-
-[Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -128,3 +127,11 @@ if __name__ == "__main__":
     result = trampoline(factorial(1000))
     ```
     재귀 "호출"마다 thunk(인수가 없는 람다)를 반환한다. 트램펄린 반복문이 thunk들을 반복적으로 호출하므로 스택 공간을 $O(1)$만 쓴다.
+
+## 정리하며
+
+이 마당은 TCO의 동작 방식、예제: 파이썬에서 TCO 흉내 내기、언어별 지원을 차례로 짚었다.
+
+**참고 문헌**
+
+[Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

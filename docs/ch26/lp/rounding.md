@@ -2,7 +2,9 @@
 
 선형 계획 느슨하게 하기를 푼 뒤 분수 풀이를 정수 풀이로 바꾸어야 한다. **정해진 반올림**은 붙박인 규칙으로 분수 값을 정수로 옮긴다. 마구잡이 반올림과 달리 이 얼개는 정해져 있어 돌릴 때마다 같은 것을 낸다. 이 쪽은 문턱 반올림, 되풀이 반올림과 그 쓰임새를 다룬다.
 
-## 문턱 반올림
+---
+
+## 1. 문턱 반올림
 
 가장 단순한 정해진 반올림 방책은 선형 계획 값이 문턱 $\theta$을 넘으면 변수를 1으로 둔다.
 
@@ -35,7 +37,9 @@ $$
 
 비율은 $f$이 된다. 곧 $\hat{x}_j \leq f \cdot x_j^*$이다.
 
-## 되풀이 반올림
+---
+
+## 2. 되풀이 반올림
 
 Jain(2001)이 슈타이너 그물 문제에 내놓은 **되풀이 반올림**은 선형 계획을 거듭 풀고 변수를 반올림한 뒤 다시 푸는 더 정교한 재주이다.
 
@@ -55,7 +59,9 @@ Jain(2001)이 슈타이너 그물 문제에 내놓은 **되풀이 반올림**은
 
 되풀이 반올림은 최대 차수가 가장 좋은 값보다 많아야 1 큰 뻗음 나무를 이룬다(덧셈 보장). 되풀이마다 바탕 올바른 풀이에는 $x_e^* = 1$인 모서리 변수나 버릴(느슨하게 할) 수 있는 차수 조건이 있다. 이 짜임 성질이 나아감을 보장한다.
 
-## 관 반올림
+---
+
+## 3. 관 반올림
 
 **관 반올림**(Ageev와 Sviridenko, 2004)은 목표 값을 지키거나 높이면서 변수 짝을 거듭 고쳐 분수 풀이를 정수 풀이로 바꾼다.
 
@@ -70,7 +76,9 @@ $x_i^*, x_j^* \in (0, 1)$인 분수 $x^*$이 주어질 때:
 
 걸음마다 분수 변수의 수가 적어도 하나 줄므로 이 절차는 많아야 $n$걸음에 멈춘다.
 
-## 반올림 방법 견주기
+---
+
+## 4. 반올림 방법 견주기
 
 | 방법 | 갈래 | 핵심 성질 | 보기 쓰임새 |
 |--------|------|--------------|-------------------|
@@ -98,11 +106,7 @@ $x_i^*, x_j^* \in (0, 1)$인 분수 $x^*$이 주어질 때:
 
     **비율:** $3/2 = 1.5 \leq 2$. 보장이 참이다.
 
-## 참고 문헌
-
-- Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
-- Jain, K. (2001). A factor 2 approximation algorithm for the generalized Steiner network problem. *Combinatorica*, 21(1), 39--60.
-- Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.
+---
 
 ## 연습문제
 
@@ -135,3 +139,13 @@ $x_i^*, x_j^* \in (0, 1)$인 분수 $x^*$이 주어질 때:
 
 ??? success "연습문제 4 풀이"
     작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$
+
+## 정리하며
+
+이 마당은 문턱 반올림、되풀이 반올림、관 반올림、반올림 방법 견주기을 차례로 짚었다.
+
+**참고 문헌**
+
+- Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
+- Jain, K. (2001). A factor 2 approximation algorithm for the generalized Steiner network problem. *Combinatorica*, 21(1), 39--60.
+- Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.

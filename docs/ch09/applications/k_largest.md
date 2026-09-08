@@ -2,7 +2,9 @@
 
 항목 $n$개의 모음에서 가장 큰(또는 가장 작은) $k$개를 찾는 일은 데이터 처리와 순위 매기기와 분석에서 흔한 문제이다. 배열 전체를 정렬하면 $O(n \log n)$이 들지만, 힙을 쓰는 방법은 $O(k)$의 공간만으로 $O(n \log k)$ 시간에 푼다. $k \ll n$이면 크게 나아지며, 원소가 하나씩 흘러드는 상황에도 자연스레 들어맞는다.
 
-## 최소 힙을 쓰는 방법
+---
+
+## 1. 최소 힙을 쓰는 방법
 
 이 방법은 지금까지 본 가장 큰 $k$개를 담는 "창"으로 **크기 $k$의 최소 힙**을 쓴다. 힙의 최솟값이 문턱값 노릇을 한다. 이 문턱값보다 큰 새 원소는 상위 $k$개에 든다.
 
@@ -18,7 +20,9 @@
 
 (최대 힙이 아니라) 최소 힙을 쓰는 것이 핵심 통찰이다. 최소 힙의 뿌리는 **가장 큰 $k$개 가운데 가장 작은 것**이며, 이것이 바로 새 후보마다 견주고 싶은 원소이다. 새 원소가 이 문턱값을 넘으면 지금의 최솟값을 밀어내고 아래로 내리기가 힙 성질을 되살린다.
 
-## 복잡도 분석
+---
+
+## 2. 복잡도 분석
 
 | 단계 | 비용 |
 |------|------|
@@ -34,7 +38,9 @@ $$
 
 $k$이 상수이면(이를테면 "상위 10개") 시간이 $O(n)$으로 간단해진다.
 
-## 여러 방식 견주기
+---
+
+## 3. 여러 방식 견주기
 
 | 방법 | 시간 | 공간 | 흘려보내기 가능한가 |
 |----------|------|-------|-----------|
@@ -45,7 +51,9 @@ $k$이 상수이면(이를테면 "상위 10개") 시간이 $O(n)$으로 간단�
 
 흘려보내기가 필요하거나 $k \ll n$일 때는 최소 힙 방법이 최적이다. 데이터가 메모리에 들어가고 한 번만 셈하면 될 때는 퀵셀렉트가 빠르다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -56,7 +64,6 @@ $k$이 상수이면(이를테면 "상위 10개") 시간이 $O(n)$으로 간단�
 """
 
 import heapq
-
 
 # === 맨바닥부터 구현하기 ===
 
@@ -89,7 +96,6 @@ def k_largest_manual(arr, k):
             _sift_down(heap, 0, len(heap))
     return result
 
-
 def _sift_down(arr, i, n):
     """최소 힙에서 아래로 내리기."""
     while True:
@@ -105,13 +111,11 @@ def _sift_down(arr, i, n):
         arr[i], arr[smallest] = arr[smallest], arr[i]
         i = smallest
 
-
 # === 파이썬 heapq 쓰기 ===
 
 def k_largest_heapq(arr, k):
     """heapq.nlargest로 가장 큰 k개 원소를 찾는다."""
     return heapq.nlargest(k, arr)
-
 
 def k_largest_heap_manual_heapq(arr, k):
     """힙을 손수 다루며 heapq로 가장 큰 k개를 찾는다."""
@@ -129,7 +133,6 @@ def k_largest_heap_manual_heapq(arr, k):
             heapq.heapreplace(heap, x)  # 한 연산으로 최솟값을 빼고 x를 넣는다
 
     return sorted(heap, reverse=True)
-
 
 # === 시연 ===
 
@@ -182,7 +185,9 @@ heapq manual:  [9, 9, 9, 8, 7]
   After seeing 6: top-3 = [9, 8, 7]
 ```
 
-## 가장 작은 k개 원소
+---
+
+## 5. 가장 작은 k개 원소
 
 쌍대 문제인 가장 작은 $k$개 찾기는 **크기 $k$의 최대 힙**을 쓴다. 뿌리가 가장 작은 $k$개 가운데 가장 큰 것을 지니고, 뿌리보다 작은 새 원소가 그것을 대신한다. (최소 힙만 주는) 파이썬의 `heapq`에서는 값의 부호를 뒤집는다.
 
@@ -201,11 +206,7 @@ def k_smallest(arr, k):
 
 아니면 이를 속에서 처리해 주는 `heapq.nsmallest(k, arr)`를 쓴다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 6 and 9. MIT Press.
-- 파이썬 문서: [heapq.nlargest](https://docs.python.org/3/library/heapq.html#heapq.nlargest)
-
+---
 
 ## 연습문제
 
@@ -238,3 +239,12 @@ $k = 5$이고 어휘가 $n = 32{,}000$인 빔 탐색에서 힙으로 뽑기(원�
 
 ??? success "연습문제 4 풀이"
     정렬은 $O(n\log n) = O(32000 \times 15) \approx 48만$번의 연산이 든다. 힙(크기 $k$인 최소 힙)은 $O(n\log k) = O(32000 \times 2.3) \approx 7만 4천$번이다. 힙이 약 $6.5$배 빠르다. 아니면 `torch.topk`가 GPU에 맞추어 다듬은 부분 정렬 알고리즘을 쓴다.
+
+## 정리하며
+
+이 마당은 최소 힙을 쓰는 방법、복잡도 분석、여러 방식 견주기、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 6 and 9. MIT Press.
+- 파이썬 문서: [heapq.nlargest](https://docs.python.org/3/library/heapq.html#heapq.nlargest)

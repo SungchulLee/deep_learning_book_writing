@@ -2,12 +2,16 @@
 
 레드-블랙 트리의 실용적인 값어치는 높이가 $O(\log n)$이라는 보장에 달려 있다. 다섯 가지 레드-블랙 성질은 높이를 대놓고 말하지 않지만 트리의 모양을 충분히 단단히 묶어 로그 높이를 보장한다. 이 절은 앞 절에서 세운 검은 높이 보조정리로 한계 $h \leq 2\log_2(n+1)$을 증명한다.
 
-## 진술
+---
+
+## 1. 진술
 
 !!! info "정리: 레드-블랙 트리의 높이 한계"
     내부 노드가 $n$개인 레드-블랙 트리의 높이는 많아야 $2\log_2(n+1)$이다.
 
-## 증명
+---
+
+## 2. 증명
 
 증명은 두 사실을 엮는다.
 
@@ -39,7 +43,9 @@ $$
 
 $\square$
 
-## 해석
+---
+
+## 3. 해석
 
 한계 $h \leq 2\log_2(n+1)$은 다음을 뜻한다.
 
@@ -49,13 +55,17 @@ $\square$
 
 레드-블랙 트리는 최악의 경우 완벽한 트리보다 대략 두 배 높지만, 이 2라는 인수는 점근 복잡도에 영향을 주지 않는 작은 상수이다.
 
-## 한계가 빈틈없는가
+---
+
+## 4. 한계가 빈틈없는가
 
 낮은 차수의 항을 빼면 이 한계는 빈틈없다. 뿌리에서 잎까지의 모든 경로가 (뿌리의 검정에서 시작하여) 빨강과 검정을 번갈아 오가는 트리를 생각해 보자. 길이가 $h = 2b$인 그런 경로에는 검은 노드가 $b$개 있고 트리는 $h = 2 \cdot \text{bh}(\text{root})$에 이른다.
 
 다만 $n$이 클 때 무작위 삽입으로 만든 레드-블랙 트리의 실제 높이는 $\log_2 n$에 가까운 편이며 최악값 $2\log_2 n$보다 훨씬 낮다.
 
-## AVL 트리와 견주기
+---
+
+## 5. AVL 트리와 견주기
 
 | 트리의 종류 | 높이의 한계 | 완벽한 트리에 대한 비 |
 |:--|:--|:-:|
@@ -65,7 +75,9 @@ $\square$
 
 AVL 트리는 높이의 한계가 더 빡빡해서 찾기가 빠르다. 레드-블랙 트리는 재균형이 더 간단하여(고칠 때마다 회전이 적다) 그것을 메운다. 찾기가 주를 이루는 응용에는 AVL 트리가 나을 수 있다. 삽입과 삭제가 잦은 응용에서는 대체로 레드-블랙 트리가 실제로 더 낫다.
 
-## 확인
+---
+
+## 6. 확인
 
 ```python
 """
@@ -78,12 +90,10 @@ AVL 트리는 높이의 한계가 더 빡빡해서 찾기가 빠르다. 레드-�
 import math
 import random
 
-
 # === 상수 ===
 
 RED = "R"
 BLACK = "B"
-
 
 # === 적흑 트리 구현 ===
 
@@ -97,10 +107,8 @@ class RBNode:
         self.right = None
         self.parent = None
 
-
 # 파수
 NIL = RBNode(key=None, color=BLACK)
-
 
 def left_rotate(tree, x):
     """x에서 왼쪽으로 회전."""
@@ -118,7 +126,6 @@ def left_rotate(tree, x):
     y.left = x
     x.parent = y
 
-
 def right_rotate(tree, y):
     """y에서 오른쪽으로 회전."""
     x = y.left
@@ -134,7 +141,6 @@ def right_rotate(tree, y):
         y.parent.right = x
     x.right = y
     y.parent = x
-
 
 def rb_insert(tree, key):
     """적흑 트리에 열쇠를 넣고 바로잡는다."""
@@ -161,7 +167,6 @@ def rb_insert(tree, key):
         y_node.right = z
 
     rb_insert_fixup(tree, z)
-
 
 def rb_insert_fixup(tree, z):
     """삽입 뒤의 적흑 위반을 바로잡는다."""
@@ -196,7 +201,6 @@ def rb_insert_fixup(tree, z):
                 left_rotate(tree, z.parent.parent)
     tree["root"].color = BLACK
 
-
 # === 재기 ===
 
 def tree_height(node):
@@ -205,13 +209,11 @@ def tree_height(node):
         return -1
     return 1 + max(tree_height(node.left), tree_height(node.right))
 
-
 def count_nodes(node):
     """내부 노드의 수를 센다."""
     if node is NIL:
         return 0
     return 1 + count_nodes(node.left) + count_nodes(node.right)
-
 
 if __name__ == "__main__":
     print(f"{'n':>8} | {'h':>4} | {'bound':>8} | {'ok':>4}")
@@ -246,10 +248,7 @@ if __name__ == "__main__":
 
 모든 경우에 실제 높이가 이론적 한계보다 훨씬 낮다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -282,3 +281,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 진술、증명、해석、한계가 빈틈없는가을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

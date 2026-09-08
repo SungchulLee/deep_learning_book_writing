@@ -2,7 +2,9 @@
 
 레드-블랙 성질은 뿌리에서 잎까지의 경로를 따라 색이 어떻게 놓이는지를 묶는다. 성질 5는 어떤 노드에서 자손 잎까지 가는 모든 경로에 검은 노드가 똑같이 있어야 한다고 요구한다. 이 개수, 곧 **검은 높이**가 색칠 규칙과 로그 높이 보장을 잇는 핵심 양이다. 레드-블랙 트리의 높이 한계를 증명하기에 앞서 검은 높이를 이해해야 한다.
 
-## 정의
+---
+
+## 1. 정의
 
 노드 $x$의 **검은 높이** $\text{bh}(x)$은 $x$에서 잎(NIL 보초)까지 내려가는 아무 단순 경로에 있는 검은 노드의 수이며, **$x$ 자신은 세지 않는다**.
 
@@ -14,7 +16,9 @@ $$
 \text{bh}(\text{NIL}) = 0
 $$
 
-## 검은 높이 계산하기
+---
+
+## 2. 검은 높이 계산하기
 
 자식이 $l$과 $r$인 내부 노드 $x$에 대해 다음과 같다.
 
@@ -33,7 +37,9 @@ $$
 \text{bh}(x) = \begin{cases} \text{bh}(\text{child}) + 1 & \text{if child is black} \\ \text{bh}(\text{child}) & \text{if child is red} \end{cases}
 $$
 
-## 핵심 보조정리
+---
+
+## 3. 핵심 보조정리
 
 !!! info "보조정리: 부분 트리의 최소 크기"
     노드 $x$을 뿌리로 하는 부분 트리에는 내부 노드가 적어도 $2^{\text{bh}(x)} - 1$개 있다.
@@ -50,7 +56,9 @@ $$
 
 $\square$
 
-## 예
+---
+
+## 4. 예
 
 레드-블랙 트리를 생각해 보자 (B = 검정, R = 빨강).
 
@@ -103,7 +111,9 @@ $\text{bh}(x)$이 $x$ **아래**의 검은 노드를 센다는 규약을 쓰면(
 
 보조정리를 확인해 보자. 노드 10의 부분 트리에는 내부 노드가 7개 있고 $2^{\text{bh}(10)} - 1 = 2^2 - 1 = 3$이다. 과연 $7 \geq 3$이다.
 
-## 구현
+---
+
+## 5. 구현
 
 ```python
 """
@@ -113,12 +123,10 @@ $\text{bh}(x)$이 $x$ **아래**의 검은 노드를 센다는 규약을 쓰면(
 검은 노드의 수가 같음을 확인한다.
 """
 
-
 # === 상수 ===
 
 RED = "R"
 BLACK = "B"
-
 
 # === 적흑 노드 ===
 
@@ -134,12 +142,10 @@ class RBNode:
     def __repr__(self):
         return f"{self.key}({self.color})"
 
-
 # 파수 NIL 노드
 NIL = RBNode(key=None, color=BLACK)
 NIL.left = NIL
 NIL.right = NIL
-
 
 # === 검은 높이 셈하기 ===
 
@@ -170,7 +176,6 @@ def black_height(node):
 
     return left_count
 
-
 # === 트리 세우개 (손수) ===
 
 def build_example_tree():
@@ -193,7 +198,6 @@ def build_example_tree():
 
     return root
 
-
 # === 보이기 ===
 
 def print_tree(node, level=0):
@@ -205,7 +209,6 @@ def print_tree(node, level=0):
     indent = "    " * level
     print(f"{indent}{node.key}({node.color}) bh={bh}")
     print_tree(node.left, level + 1)
-
 
 if __name__ == "__main__":
     root = build_example_tree()
@@ -235,7 +238,9 @@ Internal nodes: 7
 Lemma check: 2^bh - 1 = 3 <= 7: True
 ```
 
-## 무엇이 중요한가
+---
+
+## 6. 무엇이 중요한가
 
 검은 높이는 결정적인 두 구실을 한다.
 
@@ -243,10 +248,7 @@ Lemma check: 2^bh - 1 = 3 <= 7: True
 
 2. **알고리즘의 올바름**: 삽입과 삭제의 손질 과정에서 알고리즘은 검은 높이의 불변식을 지킨다. 손질 절차의 모든 경우 분석이 색을 바꾸고 회전한 뒤에도 검은 높이가 어긋나지 않는지 확인한다.
 
-## 참고 문헌
-
-- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -279,3 +281,11 @@ Lemma check: 2^bh - 1 = 3 <= 7: True
 
 ??? success "연습문제 4 풀이"
     AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.
+
+## 정리하며
+
+이 마당은 정의、검은 높이 계산하기、핵심 보조정리、예을 차례로 짚었다.
+
+**참고 문헌**
+
+- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

@@ -1,9 +1,10 @@
 # 한 예시 학습을 위한 샴 망
-## 들어가며
 
 샴 망은 한 예시 학습을 노리고 설계된 첫 신경망 구조에 든다. Bromley 외(1993)가 서명 검증을 위해 들여왔고 Koch 외(2015)가 한 예시 그림 알아보기로 널리 알렸다. 이 망은 배운 표현을 견주어 두 입력이 같은 부류에 드는지를 가려내는 법을 배운다.
 
-## 구조 개관
+---
+
+## 1. 구조 개관
 
 ### 쌍둥이 망 설계
 
@@ -40,7 +41,9 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
 2. **한결같음**: 닮은 입력은 늘 닮은 자리로 옮겨진다
 3. **효율적**: 망을 하나만 담아 두고 익히면 된다
 
-## 부호기 구조
+---
+
+## 2. 부호기 구조
 
 ### 그림을 위한 합성곱 부호기
 
@@ -173,7 +176,9 @@ class ResNetSiameseEncoder(nn.Module):
         return embeddings
 ```
 
-## 온전한 샴 망
+---
+
+## 3. 온전한 샴 망
 
 ### 표준 구현
 
@@ -265,7 +270,9 @@ class SiameseNetwork(nn.Module):
             return similarities > threshold
 ```
 
-## 손실 함수
+---
+
+## 4. 손실 함수
 
 ### 대조 손실
 
@@ -387,7 +394,9 @@ class SiameseBCELoss(nn.Module):
         return F.binary_cross_entropy(similarity, y.float())
 ```
 
-## 한 예시 분류
+---
+
+## 5. 한 예시 분류
 
 ### 견주어 가려내기
 
@@ -477,7 +486,9 @@ def one_shot_classify_efficient(
     return predictions
 ```
 
-## 학습 전략
+---
+
+## 6. 학습 전략
 
 ### 쌍 뽑기
 
@@ -760,7 +771,9 @@ class SiameseTrainer:
         return mean_acc, std_acc
 ```
 
-## 변형과 확장
+---
+
+## 7. 변형과 확장
 
 ### 세쌍 샴 망
 
@@ -850,27 +863,7 @@ class CrossDomainSiamese(nn.Module):
         return z_a, z_b
 ```
 
-## 요약
-
-샴 망은 다음으로 한 예시 학습의 바탕이 되는 접근법을 준다.
-
-1. **견주어 닮음 배우기**: 가중치를 나누어 쓰는 쌍둥이 망
-2. **최근접 이웃 가려내기**: 가장 닮은 받침 보기를 찾아 물음을 가려낸다
-3. **새 부류로 옮겨 가기**: 닮음 함수가 학습 부류 너머로 일반화된다
-
-구현에서 살펴야 할 핵심은 다음과 같다.
-
-- 학습 중에 양의 쌍과 음의 쌍을 고르게 맞추라
-- 더 야무진 학습을 위해 어려운 음의 보기 캐기를 쓰라
-- 더 나은 표현을 위해 미리 학습된 등뼈를 쓰는 것을 생각해 보라
-- 학습 중에 대조 손실과 한 예시 정확도를 함께 살피라
-
-## 참고 문헌
-
-1. Bromley, J., et al. "Signature Verification using a Siamese Time Delay Neural Network." NeurIPS 1993.
-2. Koch, G., et al. "Siamese Neural Networks for One-shot Image Recognition." ICML Deep Learning Workshop 2015.
-3. Chopra, S., et al. "Learning a Similarity Metric Discriminatively, with Application to Face Verification." CVPR 2005.
-4. Schroff, F., et al. "FaceNet: A Unified Embedding for Face Recognition and Clustering." CVPR 2015.
+---
 
 ## 연습문제
 
@@ -913,3 +906,25 @@ class CrossDomainSiamese(nn.Module):
 
 ??? success "연습문제 4 풀이"
     어려운 음의 보기란 묻힘 공간에서 가까이 놓인 다른 부류의 쌍이다(모델이 헷갈려 한다). 아무렇게나 고른 음의 보기는 너무 쉬워서 기울기 신호를 거의 주지 못할 때가 많다. 어려운 음의 보기 캐기는 알맹이가 가장 많은 음의 보기를 골라 학습 효율을 크게 끌어올린다. 전략으로는 실시간 어려운 캐기(배치 안에서 가장 어려운 것), 반쯤 어려운 캐기(여백 안), 미리 해 두는 캐기가 있다.
+
+## 정리하며
+
+샴 망은 다음으로 한 예시 학습의 바탕이 되는 접근법을 준다.
+
+1. **견주어 닮음 배우기**: 가중치를 나누어 쓰는 쌍둥이 망
+2. **최근접 이웃 가려내기**: 가장 닮은 받침 보기를 찾아 물음을 가려낸다
+3. **새 부류로 옮겨 가기**: 닮음 함수가 학습 부류 너머로 일반화된다
+
+구현에서 살펴야 할 핵심은 다음과 같다.
+
+- 학습 중에 양의 쌍과 음의 쌍을 고르게 맞추라
+- 더 야무진 학습을 위해 어려운 음의 보기 캐기를 쓰라
+- 더 나은 표현을 위해 미리 학습된 등뼈를 쓰는 것을 생각해 보라
+- 학습 중에 대조 손실과 한 예시 정확도를 함께 살피라
+
+**참고 문헌**
+
+1. Bromley, J., et al. "Signature Verification using a Siamese Time Delay Neural Network." NeurIPS 1993.
+2. Koch, G., et al. "Siamese Neural Networks for One-shot Image Recognition." ICML Deep Learning Workshop 2015.
+3. Chopra, S., et al. "Learning a Similarity Metric Discriminatively, with Application to Face Verification." CVPR 2005.
+4. Schroff, F., et al. "FaceNet: A Unified Embedding for Face Recognition and Clustering." CVPR 2015.

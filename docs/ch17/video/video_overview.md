@@ -1,5 +1,8 @@
 # 영상 기초: 읽어 들이고 다루기
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -9,7 +12,9 @@
 - 틀 뽑기와 표집 전략을 짠다
 - 영상 신경망에 알맞은 앞손질을 한다
 
-## 수학적 바탕
+---
+
+## 2. 수학적 바탕
 
 ### 때 차례로서의 영상
 
@@ -43,7 +48,9 @@ $$T = \text{Duration} \times \text{FPS}$$
 
 여기서 초당 틀 수(FPS)가 때의 해상도를 정한다.
 
-## 영상 읽어 들이기 뒷단
+---
+
+## 3. 영상 읽어 들이기 뒷단
 
 ### OpenCV 뒷단
 
@@ -151,7 +158,9 @@ def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
     return video_tensor
 ```
 
-## 틀 표집 전략
+---
+
+## 4. 틀 표집 전략
 
 표집 전략은 어떤 틀을 다룰지 정하며, 셈 값과 때의 덮음 사이 균형을 잡는다.
 
@@ -262,7 +271,9 @@ def random_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
     return video[indices]
 ```
 
-## 영상 앞손질
+---
+
+## 5. 영상 앞손질
 
 ### 고르게 맞추기
 
@@ -370,7 +381,9 @@ def resize_video(video: torch.Tensor,
     return resized
 ```
 
-## 시각화
+---
+
+## 6. 시각화
 
 ### 틀 보여 주기
 
@@ -402,23 +415,17 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
     plt.show()
 ```
 
-## 요약
+---
 
-| 살필 점 | 핵심 |
-|--------|------------|
-| **영상 꼴** | PyTorch에서는 $V \in \mathbb{R}^{T \times C \times H \times W}$ |
-| **읽어 들이기** | 유연함에는 OpenCV, PyTorch에 곧바로 쓰려면 torchvision |
-| **표집** | 고루 덮으려면 고른 표집, 불리기에는 마구잡이 |
-| **앞손질** | 옮겨 배우기에는 ImageNet 방식 고르게 맞추기 |
-| **헤아릴 점** | 모든 틀에서 때의 한결같음을 지킨다 |
-
-## 다음 걸음
+## 7. 다음 걸음
 
 영상 기초를 다졌으니 이제 다음을 살펴볼 수 있다:
 
 1. **3차원 누비기** — 자리와 때에 걸친 특징 뽑기
 2. **때 나타내기** — 움직임과 흐름 이해하기
 3. **두 갈래 그물** — 겉모습과 움직임 아우르기
+
+---
 
 ## 연습문제
 
@@ -457,3 +464,13 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
     | **때 눈길** | $O(T^2 CHW)$ | 두루 | $T$에 이차이며 너그럽다 |
 
     3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 스스로 눈길은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 얼개(보기로 Video Swin Transformer)는 흔히 가까운 자리의 눈길과 층진 꾸밈을 아우른다.
+
+## 정리하며
+
+| 살필 점 | 핵심 |
+|--------|------------|
+| **영상 꼴** | PyTorch에서는 $V \in \mathbb{R}^{T \times C \times H \times W}$ |
+| **읽어 들이기** | 유연함에는 OpenCV, PyTorch에 곧바로 쓰려면 torchvision |
+| **표집** | 고루 덮으려면 고른 표집, 불리기에는 마구잡이 |
+| **앞손질** | 옮겨 배우기에는 ImageNet 방식 고르게 맞추기 |
+| **헤아릴 점** | 모든 틀에서 때의 한결같음을 지킨다 |

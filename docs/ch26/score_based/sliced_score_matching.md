@@ -1,12 +1,13 @@
 # 저민 점수 맞추기
-## 들어가며
 
 **저민 점수 맞추기(SSM)**는 아무 쏘기를 써서 온전한 야코비 셈을 피하는, 드러난 점수 맞추기의 대안이다. 잡음 없애는 점수 맞추기의 잡음 흔들기를 받아들일 수 없을 때 점수 신경망을 익히는, 키울 수 있고 **치우치지 않은** 길을 준다.
 
 !!! info "핵심 생각"
     비싼 온전 야코비 대각합(뒤먹임 $D$번)을 셈하는 대신 모델 점수와 자료 점수를 아무 방향에 쏘고 허친슨 대각합 어림개로 이 1차원 쏘기를 맞춘다.
 
-## 학습 목표
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -16,7 +17,9 @@
 4. 저민 점수 맞추기를 드러난 점수 맞추기, 잡음 없애는 점수 맞추기와 견주어 언제 무엇을 쓸지 안다
 5. 알맞은 쏘기 분포와 쏘기 횟수를 고른다
 
-## 미리 알아야 할 것
+---
+
+## 2. 미리 알아야 할 것
 
 - 드러난 점수 맞추기의 목표
 - 벡터 미적분(야코비, 대각합)
@@ -24,7 +27,7 @@
 
 ---
 
-## 1. 대각합 어림 문제
+## 3. 대각합 어림 문제
 
 ### 1.1 드러난 점수 맞추기는 비싼 야코비 셈이 필요하다
 
@@ -55,7 +58,7 @@ $$
 
 ---
 
-## 2. 허친슨 대각합 어림개
+## 4. 허친슨 대각합 어림개
 
 ### 2.1 정리
 
@@ -85,7 +88,7 @@ $\mathbb{E}[\mathbf{v}\mathbf{v}^\top] = \mathbf{I}$을 채우는 아무 분포:
 
 ---
 
-## 3. 저민 점수 맞추기의 목표
+## 5. 저민 점수 맞추기의 목표
 
 ### 3.1 이끌어 내기
 
@@ -133,7 +136,7 @@ $$
 
 ---
 
-## 4. PyTorch 짜기
+## 6. PyTorch 짜기
 
 ### 4.1 기본 저민 점수 맞추기 손실
 
@@ -145,7 +148,6 @@ from typing import Literal
 def sample_rademacher(shape: tuple, device: torch.device) -> torch.Tensor:
     """라데마허 아무 벡터를 뽑는다(+1이나 -1이 같은 확률)."""
     return torch.randint(0, 2, shape, device=device).float() * 2 - 1
-
 
 def ssm_loss(
     score_model: nn.Module,
@@ -307,7 +309,7 @@ class SlicedScoreMatchingTrainer:
 
 ---
 
-## 5. 다른 방법과 견주기
+## 7. 다른 방법과 견주기
 
 ### 5.1 셈 견주기
 
@@ -342,7 +344,7 @@ class SlicedScoreMatchingTrainer:
 
 ---
 
-## 6. 흩어짐 줄이기 재주
+## 8. 흩어짐 줄이기 재주
 
 ### 6.1 더 많이 쏘기
 
@@ -391,7 +393,7 @@ def ssm_loss_antithetic(score_model, samples, n_projections=1):
 
 ---
 
-## 7. 보기: 2차원 자료로 익히기
+## 9. 보기: 2차원 자료로 익히기
 
 ```python
 import matplotlib.pyplot as plt
@@ -453,7 +455,7 @@ plot_scores(model, data)
 
 ---
 
-## 8. 간추리기
+## 10. 간추리기
 
 | 항목 | 설명 |
 |--------|-------------|
@@ -474,12 +476,6 @@ plot_scores(model, data)
 
 ---
 
-## 참고 문헌
-
-1. Song, Y., et al. (2019). "Sliced Score Matching: A Scalable Approach to Density and Score Estimation." *UAI*.
-2. Hutchinson, M. F. (1989). "A Stochastic Estimator of the Trace of the Influence Matrix for Laplacian Smoothing Splines." *Communications in Statistics*.
-3. Song, Y., & Ermon, S. (2019). "Generative Modeling by Estimating Gradients of the Data Distribution." *NeurIPS*.
-
 ## 연습문제
 
 1. **쏘기 견주기**: 2차원 정규 분포 섞기에서 라데마허 쏘기와 정규 분포 쏘기를 견주어라. 손실 어림의 흩어짐을 재라.
@@ -496,3 +492,13 @@ plot_scores(model, data)
 5. **차원 높은 곳에서 키우기**: $D \in \{10, 50, 100, 500\}$인 자료에서 저민 점수 맞추기를 시험하라. 어느 차원부터 쓸 수 없게 되는가?
 
 ---
+
+## 정리하며
+
+이 마당은 학습 목표、미리 알아야 할 것、대각합 어림 문제、허친슨 대각합 어림개을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Song, Y., et al. (2019). "Sliced Score Matching: A Scalable Approach to Density and Score Estimation." *UAI*.
+2. Hutchinson, M. F. (1989). "A Stochastic Estimator of the Trace of the Influence Matrix for Laplacian Smoothing Splines." *Communications in Statistics*.
+3. Song, Y., & Ermon, S. (2019). "Generative Modeling by Estimating Gradients of the Data Distribution." *NeurIPS*.

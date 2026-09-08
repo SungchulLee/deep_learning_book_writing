@@ -1,5 +1,8 @@
 # U-넷: 생의학 그림 나누기를 위한 누비기 그물
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -10,7 +13,9 @@
 - 들임 크기와 복잡도 요구가 다를 때 U-넷 얼개를 맞춰 고친다
 - 요즘 U-넷 변종과 나아진 점을 이해한다
 
-## U-넷 들어가기
+---
+
+## 2. U-넷 들어가기
 
 U-넷은 2015년 Ronneberger, Fischer, Brox가 생의학 그림 나누기, 특히 전자 현미경 그림에서 신경 세포 짜임을 나누려고 내놓았다. 그려 보면 뚜렷한 U 꼴이 되어서 그 이름을 얻었다.
 
@@ -25,7 +30,9 @@ U-넷은 의료 영상의 결정적인 어려움을 다뤘다:
 
 이어 붙이기 방식의 건너뛰는 이음을 갖춘 대칭 부호기-풀개라는 이 우아한 풀이는 요즘 나누기 그물의 바탕이 되었다.
 
-## 얼개 깊이 파고들기
+---
+
+## 3. 얼개 깊이 파고들기
 
 ### U 꼴 풀이하기
 
@@ -94,7 +101,9 @@ U-넷은 의료 영상의 결정적인 어려움을 다뤘다:
 4. **덧대기 없음(처음 판)**: 누비기마다 내놓는 것이 조금씩 줄어든다
 5. **뒤바꾼 누비기**: 배울 수 있는 키우기
 
-## 온전한 PyTorch 짜기
+---
+
+## 4. 온전한 PyTorch 짜기
 
 ### 겹 누비기 덩이
 
@@ -305,7 +314,9 @@ class UNet(nn.Module):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 ```
 
-## 건너뛰는 이음: 핵심 새로움
+---
+
+## 5. 건너뛰는 이음: 핵심 새로움
 
 ### 왜 더하기가 아니라 이어 붙이기인가?
 
@@ -387,7 +398,9 @@ def visualize_unet_activations(model, image, layer_names=None):
     return fig, activations
 ```
 
-## U-넷 익히기
+---
+
+## 6. U-넷 익히기
 
 ### U-넷의 손실 함수
 
@@ -579,7 +592,6 @@ def train_unet(model, train_loader, val_loader, num_epochs=50,
     
     return best_dice
 
-
 def calculate_dice(pred: torch.Tensor, target: torch.Tensor, 
                    threshold: float = 0.5, smooth: float = 1e-6) -> float:
     """다이스 계수를 셈한다."""
@@ -591,7 +603,9 @@ def calculate_dice(pred: torch.Tensor, target: torch.Tensor,
     return dice.item()
 ```
 
-## U-넷 변종과 넓힘
+---
+
+## 7. U-넷 변종과 넓힘
 
 ### U-Net++: 겹겹이 든 건너뛰는 이음
 
@@ -680,7 +694,9 @@ class ResidualDoubleConv(nn.Module):
         return self.relu(out)
 ```
 
-## 성능에서 헤아릴 점
+---
+
+## 8. 성능에서 헤아릴 점
 
 ### 기억 공간 가장 좋게 하기
 
@@ -741,25 +757,7 @@ class MemoryEfficientUNet(UNet):
         return self.outc(x)
 ```
 
-## 요약
-
-U-넷은 이어 붙이기 방식의 건너뛰는 이음을 갖춘 우아한 대칭 부호기-풀개 꾸밈으로 뜻 나누기, 특히 의료 영상의 판을 뒤집었다. 이 얼개는 높은 해상도의 부호기 특징과 뜻이 담긴 풀개 나타냄을 아울러 자리 잡기와 맥락 사이의 맞바꿈을 잘 다룬다.
-
-핵심 갈무리:
-
-1. **대칭 꾸밈** 덕분에 풀개 켜마다 같은 해상도의 부호기 특징을 쓸 수 있다
-2. **이어 붙이는 건너뛰는 이음**은 더하기보다 앎을 더 많이 지킨다
-3. 자료 불리기를 세게 하고 건너뛰는 이음을 써서 **자료가 적어도 잘 된다**
-4. **요즘 변종의 바탕**: U-Net++, 눈길 U-넷, ResU-넷
-
-U-넷은 여전히 아주 경쟁력이 있으며, 의료 영상이나 자료가 적은 다른 나누기 일에서 흔히 가장 먼저 써 보는 얼개이다.
-
-## 참고 문헌
-
-1. Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. MICCAI.
-2. Zhou, Z., et al. (2018). UNet++: A Nested U-Net Architecture for Medical Image Segmentation. DLMIA.
-3. Oktay, O., et al. (2018). Attention U-Net: Learning Where to Look for the Pancreas. MIDL.
-4. Isensee, F., et al. (2021). nnU-Net: A Self-configuring Method for Deep Learning-based Biomedical Image Segmentation. Nature Methods.
+---
 
 ## 연습문제
 
@@ -792,3 +790,23 @@ U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요�
 
 ??? success "연습문제 4 풀이"
     마스크 R-CNN은 이미 있던 갈래 매기기 가지와 두름 상자 되돌리기 가지 곁에, 알아낸 물체마다 두 갈래 마스크를 어림하는 나란한 가지를 더한다. 핵심 새로움은 RoI 모으기를 갈음하는 **RoIAlign**이다. RoI 모으기는 양자화된 자리표(정수 화소 자리로 반올림)를 써서 특징 지도와 본디 그림 사이가 어긋난다. RoIAlign은 정확한 뜬소수점 자리에서 두 줄 사이 끼움을 써서 양자화 찌꺼기를 없앤다. 이 정밀한 맞춤이 화소 수준 마스크 어림에 결정적이며, RoI 모으기에 견주어 마스크 AP를 상대적으로 10~50% 올린다.
+
+## 정리하며
+
+U-넷은 이어 붙이기 방식의 건너뛰는 이음을 갖춘 우아한 대칭 부호기-풀개 꾸밈으로 뜻 나누기, 특히 의료 영상의 판을 뒤집었다. 이 얼개는 높은 해상도의 부호기 특징과 뜻이 담긴 풀개 나타냄을 아울러 자리 잡기와 맥락 사이의 맞바꿈을 잘 다룬다.
+
+핵심 갈무리:
+
+1. **대칭 꾸밈** 덕분에 풀개 켜마다 같은 해상도의 부호기 특징을 쓸 수 있다
+2. **이어 붙이는 건너뛰는 이음**은 더하기보다 앎을 더 많이 지킨다
+3. 자료 불리기를 세게 하고 건너뛰는 이음을 써서 **자료가 적어도 잘 된다**
+4. **요즘 변종의 바탕**: U-Net++, 눈길 U-넷, ResU-넷
+
+U-넷은 여전히 아주 경쟁력이 있으며, 의료 영상이나 자료가 적은 다른 나누기 일에서 흔히 가장 먼저 써 보는 얼개이다.
+
+**참고 문헌**
+
+1. Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. MICCAI.
+2. Zhou, Z., et al. (2018). UNet++: A Nested U-Net Architecture for Medical Image Segmentation. DLMIA.
+3. Oktay, O., et al. (2018). Attention U-Net: Learning Where to Look for the Pancreas. MIDL.
+4. Isensee, F., et al. (2021). nnU-Net: A Self-configuring Method for Deep Learning-based Biomedical Image Segmentation. Nature Methods.

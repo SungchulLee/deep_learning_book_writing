@@ -2,7 +2,9 @@
 
 표준 트리 순회인 전위·중위·후위 순회는 저마다 모든 노드를 꼭 한 번씩 들른다. **오일러 투어**는 다르게 접근한다. 트리의 윤곽을 따라 그리며 부분 트리에 들어가고 나올 때마다 노드를 여러 번 들른다. 그러면 트리 전체의 구조를 담은 선형 나열이 나오고, 최소 공통 조상이나 부분 트리 합 같은 트리 질의를 배열의 구간 질의로 바꿀 수 있다. 그런 질의는 $O(n)$의 전처리 뒤에 $O(1)$ 시간에 답할 수 있다.
 
-## 정의
+---
+
+## 1. 정의
 
 노드가 $n$개인 뿌리 있는 트리의 오일러 투어는 깊이 우선 탐색을 하면서 노드마다 **들어갈** 때와 (모든 자식에서 돌아와) **나올** 때를 모두 적어 길이가 $2n$인 나열을 만든다.
 
@@ -34,7 +36,9 @@ $$
 
     들어간/나온 시각: $\text{tin}(A)=0, \text{tout}(A)=11$; $\text{tin}(B)=1, \text{tout}(B)=6$; $\text{tin}(D)=2, \text{tout}(D)=3$.
 
-## 핵심 성질
+---
+
+## 2. 핵심 성질
 
 들어간 시각과 나온 시각은 트리의 구조를 쓸모 있게 담고 있다.
 
@@ -50,7 +54,9 @@ $$
 
 **최소 공통 조상으로의 환원.** 노드 $u$과 $v$의 최소 공통 조상은 오일러 투어에서 자리 $\text{tin}(u)$과 $\text{tin}(v)$ 사이에 있는 노드 가운데 깊이가 가장 작은 것이다. 이로써 최소 공통 조상 문제가 구간 최솟값 질의(RMQ)로 바뀌고, 성긴 표로 $O(n)$의 전처리를 하면 질의마다 $O(1)$에 풀 수 있다.
 
-## 변형
+---
+
+## 3. 변형
 
 ### 온전한 오일러 투어 (항목 2n개)
 
@@ -64,11 +70,12 @@ $$
 
 노드를 들어갈 때만 적는다. 그러면 나열이 전위 순회가 된다. 부분 트리의 크기를 함께 쓰면 $v$의 부분 트리를 구간 $[\text{tin}(v), \text{tin}(v) + \text{size}(v) - 1]$에 대응시켜 여전히 부분 트리 질의에 답할 수 있다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """들어간 시각과 나온 시각이 있는 뿌리 있는 트리의 오일러 투어."""
-
 
 # === 트리 노드 ===
 
@@ -78,7 +85,6 @@ class TreeNode:
     def __init__(self, val: int):
         self.val = val
         self.children: list["TreeNode"] = []
-
 
 # === 오일러 투어 ===
 
@@ -109,11 +115,9 @@ def euler_tour(root: TreeNode) -> tuple[list[int], dict[int, int], dict[int, int
     dfs(root)
     return tour, tin, tout
 
-
 def is_ancestor(u: int, v: int, tin: dict[int, int], tout: dict[int, int]) -> bool:
     """들어간 시각과 나온 시각으로 u가 v의 조상인지 O(1)에 확인한다."""
     return tin[u] <= tin[v] and tout[v] <= tout[u]
-
 
 # === 시연 ===
 
@@ -138,7 +142,9 @@ if __name__ == "__main__":
     print(f"Is C ancestor of F? {is_ancestor(2, 5, tin, tout)}")  # True
 ```
 
-## 응용
+---
+
+## 5. 응용
 
 | 응용 | 환원 | 질의 시간 |
 |---|---|---|
@@ -148,18 +154,16 @@ if __name__ == "__main__":
 | 조상 판정 | 들어간/나온 시각 견주기 | $O(1)$ |
 | 부분 트리 크기 | $\text{tout}(v) - \text{tin}(v) + 1)/2$ 또는 직접 세기 | $O(1)$ |
 
-## 복잡도
+---
+
+## 6. 복잡도
 
 오일러 투어를 만들려면 깊이 우선 탐색을 한 번 하면 된다.
 
 - **시간:** $O(n)$
 - **공간:** 투어 배열과 시각 표시에 $O(n)$
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 12. MIT Press.
-- Bender, M. A., & Farach-Colton, M. (2000). The LCA problem revisited. *Proceedings of LATIN 2000*, 88--94.
-
+---
 
 ## 연습문제
 
@@ -192,3 +196,12 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.
+
+## 정리하며
+
+이 마당은 정의、핵심 성질、변형、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 12. MIT Press.
+- Bender, M. A., & Farach-Colton, M. (2000). The LCA problem revisited. *Proceedings of LATIN 2000*, 88--94.

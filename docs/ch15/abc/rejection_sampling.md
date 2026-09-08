@@ -3,7 +3,7 @@ ABC 물리치기 표집은 가장 단순하고 알아보기 쉬운 가능도 없
 
 ---
 
-## 알고리즘
+## 1. 알고리즘
 
 ### 기본 ABC 물리치기 표집
 
@@ -71,7 +71,7 @@ def abc_rejection(prior_sampler, simulator, summary_fn, y_obs,
 
 ---
 
-## 이론적 성질
+## 2. 이론적 성질
 
 ### 과녁 분포
 
@@ -124,7 +124,7 @@ $$
 
 ---
 
-## 받아들임 비율 분석
+## 3. 받아들임 비율 분석
 
 ### 받아들임 비율에 영향을 주는 것
 
@@ -194,7 +194,7 @@ def find_epsilon(prior_sampler, simulator, summary_fn, y_obs,
 
 ---
 
-## 간추린 통계량
+## 4. 간추린 통계량
 
 ### 좋은 간추림의 조건
 
@@ -253,7 +253,7 @@ def ar1_summaries(y):
 
 ---
 
-## 거리 함수
+## 5. 거리 함수
 
 ### 유클리드 거리
 
@@ -308,7 +308,7 @@ def estimate_summary_covariance(prior_sampler, simulator, summary_fn, n_sims=100
 
 ---
 
-## 실전 구현
+## 6. 실전 구현
 
 ### 온전한 보기: 정규 분포의 추론
 
@@ -416,7 +416,7 @@ def abc_rejection_with_progress(prior_sampler, simulator, summary_fn, y_obs,
 
 ---
 
-## 한계
+## 7. 한계
 
 ### 낮은 받아들임 비율
 
@@ -448,7 +448,7 @@ ABC 물리치기는 가능도 어림을 주지 않는다. 모형 견줌에 쓸�
 
 ---
 
-## ABC 물리치기를 언제 쓰나
+## 8. ABC 물리치기를 언제 쓰나
 
 ### 잘 맞는 경우
 
@@ -470,7 +470,21 @@ ABC 물리치기는 가능도 어림을 주지 않는다. 모형 견줌에 쓸�
 
 ---
 
-## 요약
+## 연습문제
+
+1. **구현.** 푸아송 분포의 비율 매개변수 $\lambda$을 추론하는 ABC 물리치기를 구현하여라. 정확한 뒤확률과 견주어라.
+
+2. **너그러움에 대한 민감함.** 정규 모형 보기에서 앞확률 예측 거리의 0.1%, 1%, 10% 분위수를 $\epsilon$으로 두고 ABC을 돌려라. 나온 뒤확률을 그려 견주어라.
+
+3. **간추린 통계량 견주기.** 정규 매개변수를 추론할 때 (a) 평균과 흩어짐, (b) 중앙값과 사분위 범위, (c) 처음 네 적률을 쓴 ABC을 견주어라. 어느 것이 뒤확률을 가장 잘 어림하는가?
+
+4. **커짐새 실험.** $\epsilon$을 붙박아 두고 간추린 통계량의 차원(간추림 1, 2, 5, 10개)에 따라 받아들임 비율이 어떻게 바뀌는지 재어라.
+
+5. **병렬 잣대.** 일꾼 1, 2, 4, 8개로 차례대로 도는 ABC 물리치기와 병렬로 도는 것의 시간을 견주어라.
+
+---
+
+## 정리하며
 
 | 항목 | 설명 |
 |--------|-------------|
@@ -485,23 +499,9 @@ ABC 물리치기 표집은 가능도 없는 추론의 바탕이다. 단순하지
 
 ---
 
-## 참고 문헌
+**참고 문헌**
 
 1. Pritchard, J. K., Seielstad, M. T., Perez-Lezaun, A., & Feldman, M. W. (1999). "Population Growth of Human Y Chromosomes: A Study of Y Chromosome Microsatellites." *Molecular Biology and Evolution*.
 2. Beaumont, M. A., Zhang, W., & Balding, D. J. (2002). "Approximate Bayesian Computation in Population Genetics." *Genetics*.
 3. Sisson, S. A., Fan, Y., & Tanaka, M. M. (2007). "Sequential Monte Carlo Without Likelihoods." *PNAS*.
 4. Marin, J.-M., et al. (2012). "Approximate Bayesian Computational Methods." *Statistics and Computing*.
-
-## 연습문제
-
-1. **구현.** 푸아송 분포의 비율 매개변수 $\lambda$을 추론하는 ABC 물리치기를 구현하여라. 정확한 뒤확률과 견주어라.
-
-2. **너그러움에 대한 민감함.** 정규 모형 보기에서 앞확률 예측 거리의 0.1%, 1%, 10% 분위수를 $\epsilon$으로 두고 ABC을 돌려라. 나온 뒤확률을 그려 견주어라.
-
-3. **간추린 통계량 견주기.** 정규 매개변수를 추론할 때 (a) 평균과 흩어짐, (b) 중앙값과 사분위 범위, (c) 처음 네 적률을 쓴 ABC을 견주어라. 어느 것이 뒤확률을 가장 잘 어림하는가?
-
-4. **커짐새 실험.** $\epsilon$을 붙박아 두고 간추린 통계량의 차원(간추림 1, 2, 5, 10개)에 따라 받아들임 비율이 어떻게 바뀌는지 재어라.
-
-5. **병렬 잣대.** 일꾼 1, 2, 4, 8개로 차례대로 도는 ABC 물리치기와 병렬로 도는 것의 시간을 견주어라.
-
----

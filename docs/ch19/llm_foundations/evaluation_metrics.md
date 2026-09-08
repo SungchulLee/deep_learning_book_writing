@@ -1,5 +1,4 @@
 # 값매김 잣대
-## 개요
 
 큰 말 모델의 값매김은 유난히 어렵다. 사실 물음 답하기부터 창작 글쓰기, 코드 만들기, 여러 차례 대화까지 엄청나게 넓은 일에 쓰이는데 그 모두에 걸쳐 좋음을 담아내는 잣대는 하나도 없기 때문이다. 이 절은 값매김의 세 기둥을 다룬다. 곧 말 나타내기의 좋음을 재는 **내재 잣대**, 특정 능력의 성능을 재는 **일별 잣대**, 자동 잣대가 놓치는 미묘한 좋음의 갈래를 담아내는 **사람의 값매김** 절차이다. 또 갈수록 커지는 **큰 말 모델을 심판으로 쓰기**의 몫과 모델을 견주는 데 쓰는 주요 **잣대**도 다룬다.
 
@@ -328,18 +327,6 @@ RAGAS 얼거리(Shahul 외, 2023)는 큰 말 모델을 심판으로 써서 이 �
 
 ---
 
-## 참고 문헌
-
-1. Papineni, K., Roukos, S., Ward, T., & Zhu, W.-J. (2002). BLEU: A Method for Automatic Evaluation of Machine Translation. *Proceedings of the 40th Annual Meeting of the ACL*.
-2. Lin, C.-Y. (2004). ROUGE: A Package for Automatic Evaluation of Summaries. *Text Summarization Branches Out*.
-3. Zhang, T., Kishore, V., Wu, F., Weinberger, K. Q., & Artzi, Y. (2020). BERTScore: Evaluating Text Generation with BERT. *Proceedings of the 8th International Conference on Learning Representations (ICLR)*.
-4. Hendrycks, D., Burns, C., Basart, S., et al. (2021). Measuring Massive Multitask Language Understanding. *Proceedings of the 9th International Conference on Learning Representations (ICLR)*.
-5. Zheng, L., Chiang, W.-L., Sheng, Y., et al. (2023). Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. *Advances in Neural Information Processing Systems (NeurIPS)*.
-6. Chen, M., Tworek, J., Jun, H., et al. (2021). Evaluating Large Language Models Trained on Code. *arXiv preprint arXiv:2107.03374*.
-7. Askell, A., Bai, Y., Chen, A., et al. (2021). A General Language Assistant as a Laboratory for Alignment. *arXiv preprint arXiv:2112.00861*.
-8. Shahul, E., James, J., Thirunavukarasu, A., & Aman, D. (2023). RAGAS: Automated Evaluation of Retrieval Augmented Generation. *arXiv preprint arXiv:2309.15217*.
-9. Li, X., Zhang, T., Dubois, Y., et al. (2023). AlpacaEval: An Automatic Evaluator of Instruction-Following Models. *GitHub Repository*.
-
 ## 연습문제
 
 ### 익힘 1: 헷갈림도와 바이트당 비트
@@ -363,3 +350,19 @@ RAGAS 얼거리(Shahul 외, 2023)는 큰 말 모델을 심판으로 써서 이 �
 큰 말 모델의 금융 앎을 시험하는 20문항 값매김 꾸러미를 꾸며라. 실적 보고서에서 수 뽑기, 회계 기간에 대한 때 따지기, 규제 앎(보기로 바젤 III 요건), 시장 용어를 다루는 물음을 넣어라. 물음마다 값매김 잣대(딱 맞음, 뜻이 같음, 사실 정확도)를 밝혀라.
 
 ---
+
+## 정리하며
+
+이 마당은 내재 잣대、견줄 글에 바탕한 잣대、일별 값매김、사람의 값매김을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Papineni, K., Roukos, S., Ward, T., & Zhu, W.-J. (2002). BLEU: A Method for Automatic Evaluation of Machine Translation. *Proceedings of the 40th Annual Meeting of the ACL*.
+2. Lin, C.-Y. (2004). ROUGE: A Package for Automatic Evaluation of Summaries. *Text Summarization Branches Out*.
+3. Zhang, T., Kishore, V., Wu, F., Weinberger, K. Q., & Artzi, Y. (2020). BERTScore: Evaluating Text Generation with BERT. *Proceedings of the 8th International Conference on Learning Representations (ICLR)*.
+4. Hendrycks, D., Burns, C., Basart, S., et al. (2021). Measuring Massive Multitask Language Understanding. *Proceedings of the 9th International Conference on Learning Representations (ICLR)*.
+5. Zheng, L., Chiang, W.-L., Sheng, Y., et al. (2023). Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. *Advances in Neural Information Processing Systems (NeurIPS)*.
+6. Chen, M., Tworek, J., Jun, H., et al. (2021). Evaluating Large Language Models Trained on Code. *arXiv preprint arXiv:2107.03374*.
+7. Askell, A., Bai, Y., Chen, A., et al. (2021). A General Language Assistant as a Laboratory for Alignment. *arXiv preprint arXiv:2112.00861*.
+8. Shahul, E., James, J., Thirunavukarasu, A., & Aman, D. (2023). RAGAS: Automated Evaluation of Retrieval Augmented Generation. *arXiv preprint arXiv:2309.15217*.
+9. Li, X., Zhang, T., Dubois, Y., et al. (2023). AlpacaEval: An Automatic Evaluator of Instruction-Following Models. *GitHub Repository*.

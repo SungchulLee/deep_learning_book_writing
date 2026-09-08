@@ -1,5 +1,4 @@
 # 분류에서의 MLE
-## 들어가며
 
 분류의 손실 함수는 이산 확률분포의 음의 로그가능도이다. **이진 교차 엔트로피는 베르누이 모델의 NLL**이고 **범주형 교차 엔트로피는 범주형 모델의 NLL**이다. 이 절은 이 관계를 정확히 밝히고, 소프트맥스와 시그모이드 함수가 MLE의 틀에서 어떻게 자연스럽게 나오는지 보여준다.
 
@@ -9,7 +8,9 @@
     
     교차 엔트로피 손실로 분류기를 학습시킬 때 당신은 범주형 가능도 아래에서 최대가능도 추정을 하고 있는 것이다.
 
-## 이진 분류: 베르누이 MLE에서 나오는 BCE
+---
+
+## 1. 이진 분류: 베르누이 MLE에서 나오는 BCE
 
 ### 확률 모델
 
@@ -61,7 +62,9 @@ $$
 
 여기서 $z = f_\theta(x)$은 로짓이다. 이것이 바로 `nn.BCEWithLogitsLoss`이 구현하는 것이다.
 
-## 다중 클래스 분류: 범주형 MLE에서 나오는 교차 엔트로피
+---
+
+## 2. 다중 클래스 분류: 범주형 MLE에서 나오는 교차 엔트로피
 
 ### 확률 모델
 
@@ -117,7 +120,9 @@ $$
 
 여기서 $m = \max_j z_j$이다. PyTorch의 `nn.CrossEntropyLoss`은 로그 소프트맥스와 NLL 손실을 수치적으로 안정한 하나의 연산으로 합친다.
 
-## 이름표 평활화
+---
+
+## 3. 이름표 평활화
 
 ### 동기
 
@@ -133,7 +138,9 @@ $$
 
 이름표 평활화는 혼합 분포 아래의 MLE와 같다. 확률 $(1 - \epsilon)$으로 이름표가 정확하고, 확률 $\epsilon$으로 이름표가 모든 클래스에서 균등하게 뽑힌다. 이는 모델이 덜 확신하는 예측을 하도록 정칙화한다.
 
-## 다중 이름표 분류
+---
+
+## 4. 다중 이름표 분류
 
 각 표본이 여러 클래스에 독립적으로 속할 수 있으면 모델은 독립인 베르누이 분포들의 곱이 된다.
 
@@ -149,7 +156,9 @@ $$
 
 확률들이 서로 독립이고 합이 1일 필요가 없으므로 각 출력은 (소프트맥스가 아니라) 시그모이드를 쓴다.
 
-## PyTorch 구현
+---
+
+## 5. PyTorch 구현
 
 ### 이진 교차 엔트로피 확인하기
 
@@ -272,12 +281,7 @@ def train_classification_mle_perspective():
                   f"({nll_bits:.4f} bits), Accuracy = {accuracy:.2%}")
 ```
 
-## 참고 문헌
-
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 4
-- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. Chapter 6
-- Lin, T.-Y. et al. (2017). "Focal Loss for Dense Object Detection." *ICCV*
-- Szegedy, C. et al. (2016). "Rethinking the Inception Architecture for Computer Vision." *CVPR*
+---
 
 ## 연습문제
 
@@ -353,3 +357,14 @@ def train_classification_mle_perspective():
         return -torch.log(probs[target] + 1e-8)
     ```
     이웃한 클래스가 문턱값 경계를 공유하므로 순서성이 존중된다.
+
+## 정리하며
+
+이 마당은 이진 분류: 베르누이 MLE에서 나오는 BCE、다중 클래스 분류: 범주형 MLE에서 나오는 교차 엔트로피、이름표 평활화、다중 이름표 분류을 차례로 짚었다.
+
+**참고 문헌**
+
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 4
+- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. Chapter 6
+- Lin, T.-Y. et al. (2017). "Focal Loss for Dense Object Detection." *ICCV*
+- Szegedy, C. et al. (2016). "Rethinking the Inception Architecture for Computer Vision." *CVPR*

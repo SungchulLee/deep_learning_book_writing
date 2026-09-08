@@ -1,5 +1,4 @@
 # 합성곱 연산
-## 들어가며
 
 합성곱 신경망(CNN)이라는 이름은 함수 둘을 엮어 셋째 함수를 만드는 수학 연산인 **합성곱**에서 왔다. 딥러닝에서 합성곱은 신경망이 입력 데이터로부터 특징의 공간적 위계를 스스로 배우게 해 주며, 그 덕분에 이미지 인식과 컴퓨터 비전, 신호 처리 과제에서 아주 강력하다.
 
@@ -9,7 +8,7 @@
 
 ---
 
-## 수학적 바탕
+## 1. 수학적 바탕
 
 ### 연속 합성곱
 
@@ -58,7 +57,7 @@ CNN이 실제로 계산하는 것이 바로 이것이다.
 
 ---
 
-## 이미지를 위한 2차원 합성곱
+## 2. 이미지를 위한 2차원 합성곱
 
 ### 수학적 정의
 
@@ -135,7 +134,7 @@ print(output.squeeze())
 
 ---
 
-## 다채널 합성곱
+## 3. 다채널 합성곱
 
 ### RGB 이미지와 특징 맵
 
@@ -203,7 +202,7 @@ print(f"Parameters: {num_params}")     # 64 × 3 × 3 × 3 + 64 = 1,792
 
 ---
 
-## 합성곱의 성질
+## 4. 합성곱의 성질
 
 ### 평행 이동 동변성
 
@@ -256,7 +255,7 @@ out2 = F.conv2d(img_shifted, kernel, padding=1)
 
 ---
 
-## 흔히 쓰는 핵과 그 효과
+## 5. 흔히 쓰는 핵과 그 효과
 
 ### 모서리 검출 핵
 
@@ -293,7 +292,7 @@ $$K_{identity} = \begin{bmatrix} 0 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 0 \end{bmatri
 
 ---
 
-## 행렬 곱으로 본 합성곱
+## 6. 행렬 곱으로 본 합성곱
 
 창을 미끄러뜨리는 관점은 직관적이지만, 합성곱은 **행렬 곱**으로도 나타낼 수 있고 GPU가 실제로 그렇게 계산한다.
 
@@ -374,7 +373,7 @@ print(f"Max difference: {(out_custom - out_pytorch).abs().max().item():.2e}")
 
 ---
 
-## 구현 예제
+## 7. 구현 예제
 
 ### 손수 만드는 2차원 합성곱
 
@@ -513,7 +512,7 @@ print(f"Difference: {(conv_symmetric - xcorr_symmetric).abs().max().item():.2e}"
 
 ---
 
-## 계산 복잡도
+## 8. 계산 복잡도
 
 ### 직접 계산하는 합성곱
 
@@ -540,7 +539,7 @@ $$O(H \times W \times \log(HW) \times C_{in} \times C_{out})$$
 
 ---
 
-## 합성곱을 지나는 역전파
+## 9. 합성곱을 지나는 역전파
 
 기울기 계산을 이해하는 일은 층을 직접 만들고 학습의 벌레를 잡는 데 꼭 필요하다.
 
@@ -562,19 +561,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 ---
 
-## 요약
-
-| 항목 | 설명 |
-|--------|-------------|
-| **연산** | 지역 영역에서 성분별로 곱한 뒤 더하기 |
-| **CNN의 관행** | 상호상관을 쓴다 (핵을 뒤집지 않는다) |
-| **다채널** | 모든 입력 채널에 대해 더하고, 출력 채널만큼 쌓는다 |
-| **핵심 성질** | 평행 이동 동변성, 지역성, 매개변수 공유 |
-| **매개변수** | $C_{out} \times C_{in} \times K^2 + C_{out}$ |
-| **출력 크기** | 덧대기가 없으면 $(H - K + 1) \times (W - K + 1)$ |
-| **구현** | 효율을 위해 GPU에서 im2col과 GEMM을 쓴다 |
-
-## 핵심 정리
+## 10. 핵심 정리
 
 1. **CNN은 참된 합성곱이 아니라 상호상관을 쓴다.** 다만 두 말을 자주 섞어 쓴다
 2. **핵이 입력 위를 미끄러지며** 자리마다 내적을 계산한다
@@ -584,15 +571,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 6. **앞쪽 층**은 단순한 특징을, **깊은 층**은 복잡한 무늬를 잡는다
 7. **합성곱은 퇴플리츠/im2col을 거친 행렬 곱**이며, 그 덕분에 GPU 가속이 가능하다
 
-## 참고 문헌
-
-1. LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). "Gradient-based learning applied to document recognition." *Proceedings of the IEEE*, 86(11), 2278-2324.
-
-2. Goodfellow, I., Bengio, Y., & Courville, A. (2016). "Deep Learning." MIT Press. Chapter 9: Convolutional Networks.
-
-3. Dumoulin, V., & Visin, F. (2016). "A guide to convolution arithmetic for deep learning." *arXiv preprint arXiv:1603.07285*.
-
-4. Chellapilla, K., Puri, S., & Simard, P. (2006). "High Performance Convolutional Neural Networks for Document Processing." *Tenth International Workshop on Frontiers in Handwriting Recognition*.
+---
 
 ## 연습문제
 
@@ -667,3 +646,25 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
     핵이 대칭일 때, 곧 모든 $\tau$에 대해 $g(\tau) = g(-\tau)$일 때 둘이 같아진다. 가우스 핵과 항등 핵이 그 예이다.
 
     실제로 딥러닝 프레임워크는 상호상관을 쓰면서 그것을 "합성곱"이라 부른다. 핵을 학습하므로 이 구별은 중요하지 않다. 필요하면 신경망이 뒤집힌 것을 배운다.
+
+## 정리하며
+
+| 항목 | 설명 |
+|--------|-------------|
+| **연산** | 지역 영역에서 성분별로 곱한 뒤 더하기 |
+| **CNN의 관행** | 상호상관을 쓴다 (핵을 뒤집지 않는다) |
+| **다채널** | 모든 입력 채널에 대해 더하고, 출력 채널만큼 쌓는다 |
+| **핵심 성질** | 평행 이동 동변성, 지역성, 매개변수 공유 |
+| **매개변수** | $C_{out} \times C_{in} \times K^2 + C_{out}$ |
+| **출력 크기** | 덧대기가 없으면 $(H - K + 1) \times (W - K + 1)$ |
+| **구현** | 효율을 위해 GPU에서 im2col과 GEMM을 쓴다 |
+
+**참고 문헌**
+
+1. LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). "Gradient-based learning applied to document recognition." *Proceedings of the IEEE*, 86(11), 2278-2324.
+
+2. Goodfellow, I., Bengio, Y., & Courville, A. (2016). "Deep Learning." MIT Press. Chapter 9: Convolutional Networks.
+
+3. Dumoulin, V., & Visin, F. (2016). "A guide to convolution arithmetic for deep learning." *arXiv preprint arXiv:1603.07285*.
+
+4. Chellapilla, K., Puri, S., & Simard, P. (2006). "High Performance Convolutional Neural Networks for Document Processing." *Tenth International Workshop on Frontiers in Handwriting Recognition*.

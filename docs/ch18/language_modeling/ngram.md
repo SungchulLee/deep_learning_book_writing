@@ -1,5 +1,8 @@
 # n-그램 말 모델
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -12,7 +15,7 @@
 
 ---
 
-## 말 나타내기 들어가기
+## 2. 말 나타내기 들어가기
 
 말 모델 짓기는 낱말의 이음에 확률을 매기는 일이다. 낱말의 이음 $w_1, w_2, \ldots, w_n$이 주어지면 말 모델은 다음을 셈한다.
 
@@ -22,7 +25,7 @@ $$P(w_1, w_2, \ldots, w_n)$$
 
 ---
 
-## 확률의 사슬 규칙
+## 3. 확률의 사슬 규칙
 
 확률의 사슬 규칙을 쓰면 차례의 결합 확률을 쪼갤 수 있다:
 
@@ -34,7 +37,7 @@ $$= \prod_{i=1}^{n} P(w_i | w_1, \ldots, w_{i-1})$$
 
 ---
 
-## 마르코프 가정
+## 4. 마르코프 가정
 
 n-그램 모델의 핵심 눈썰미는 **마르코프 가정**이다. 곧 낱말의 확률은 지난 이야기 전체가 아니라 앞선 $n-1$개 낱말에만 달렸다:
 
@@ -51,7 +54,7 @@ $$P(w_i | w_1, \ldots, w_{i-1}) \approx P(w_i | w_{i-n+1}, \ldots, w_{i-1})$$
 
 ---
 
-## 유니그램 모델
+## 5. 유니그램 모델
 
 유니그램 모델은 낱말끼리 아예 안 얽힌다고 가정한다:
 
@@ -71,7 +74,6 @@ $$P_{MLE}(w) = \frac{\text{count}(w)}{\sum_{w' \in V} \text{count}(w')} = \frac{
 from collections import Counter
 from typing import List
 import math
-
 
 class UnigramModel:
     """
@@ -113,7 +115,6 @@ class UnigramModel:
         words = sentence.lower().split()
         return sum(self.log_probability(w) for w in words)
 
-
 # 사용 예
 corpus = [
     "the cat sat on the mat",
@@ -142,7 +143,7 @@ P(elephant) = 0.0000
 
 ---
 
-## 바이그램 모델
+## 6. 바이그램 모델
 
 바이그램 모델은 낱말마다 바로 앞 낱말에 조건을 건다:
 
@@ -167,7 +168,6 @@ $$P(w_i | w_{i-1}) = \frac{\text{count}(w_{i-1}, w_i)}{\text{count}(w_{i-1})}$$
 from collections import defaultdict, Counter
 from typing import List, Tuple
 import math
-
 
 class BigramModel:
     """
@@ -252,7 +252,6 @@ class BigramModel:
         
         return log_prob
 
-
 # 예
 model = BigramModel()
 model.train(corpus)
@@ -265,7 +264,7 @@ for context, word in test_bigrams:
 
 ---
 
-## 트라이그램 모델
+## 7. 트라이그램 모델
 
 트라이그램 모델은 맥락을 앞선 낱말 둘로 넓힌다:
 
@@ -320,7 +319,7 @@ class TrigramModel:
 
 ---
 
-## 자료의 성김 문제
+## 8. 자료의 성김 문제
 
 n-그램 모델의 근본 어려움은 **자료의 성김**이다. 곧 올바른 낱말 차례가 익힘에 한 번도 나오지 않는다. 다음을 보자:
 
@@ -338,7 +337,7 @@ n-그램 모델의 근본 어려움은 **자료의 성김**이다. 곧 올바른
 
 ---
 
-## 부드럽게 하기 재주
+## 9. 부드럽게 하기 재주
 
 ### 라플라스(하나 더하기) 부드럽게 하기
 
@@ -485,7 +484,7 @@ class InterpolatedBigramModel:
 
 ---
 
-## n-그램으로 글 만들어 내기
+## 10. n-그램으로 글 만들어 내기
 
 n-그램 모델은 조건부 분포에서 뽑아 자연스레 글을 만들어 낸다.
 
@@ -528,7 +527,6 @@ $$P'(w) \propto P(w)^{1/T}$$
 
 ```python
 import random
-
 
 class TextGenerator:
     """여러 표집 전략을 쓴 글 만들어 내기."""
@@ -628,7 +626,7 @@ class TextGenerator:
 
 ---
 
-## 값매김: 헷갈림도
+## 11. 값매김: 헷갈림도
 
 **헷갈림도**는 말 모델의 표준 내재 값매김 잣대이다:
 
@@ -666,7 +664,6 @@ def compute_perplexity(model, test_corpus: List[str]) -> float:
     
     return perplexity
 
-
 # 부드럽게 하기 재주 견주기
 train_corpus = ["the cat sat on the mat", "the dog sat on the log"] * 10
 test_corpus = ["the cat played", "a dog runs"]
@@ -678,7 +675,7 @@ print(f"Laplace PPL: {compute_perplexity(laplace_model, test_corpus):.2f}")
 
 ---
 
-## 부드럽게 하기 재주 견줌
+## 12. 부드럽게 하기 재주 견줌
 
 | 재주 | 좋은 점 | 나쁜 점 | 알맞은 곳 |
 |-----------|------|------|----------|
@@ -697,7 +694,7 @@ print(f"Laplace PPL: {compute_perplexity(laplace_model, test_corpus):.2f}")
 
 ---
 
-## n-그램 모델의 한계
+## 13. n-그램 모델의 한계
 
 1. **붙박이 맥락**: $n-1$개 낱말 너머의 얽힘을 담아내지 못한다
 2. **자료의 성김**: 가능한 n-그램이 지수로 늘어난다
@@ -708,23 +705,6 @@ print(f"Laplace PPL: {compute_perplexity(laplace_model, test_corpus):.2f}")
 이 한계 때문에 (다음에 다룰) **신경 말 모델**이 나왔는데, 이는 비슷한 낱말과 맥락에 두루 통하는 이어진 나타냄을 배운다.
 
 ---
-
-## 요약
-
-- n-그램 모델은 마르코프 가정으로 차례의 확률을 어림한다
-- 최대 가능도 어림은 셈에서 곧바로 확률을 어림해 준다
-- 본 적 없는 n-그램을 다루려면 부드럽게 하기가 꼭 필요하다
-- 만들어 내기 전략마다 여러 갈래임과 좋음을 맞바꾼다
-- 헷갈림도는 모델이 남겨 둔 자료를 얼마나 잘 어림하는지 잰다
-- n-그램은 바탕 잣대로서, 그리고 자료가 적은 곳에서 여전히 쓸모 있다
-
----
-
-## 참고 문헌
-
-1. Jurafsky, D., & Martin, J. H. (2023). *Speech and Language Processing* (3rd ed.). 3장.
-2. Chen, S. F., & Goodman, J. (1999). An empirical study of smoothing techniques for language modeling. *Computer Speech & Language*, 13(4), 359-394.
-3. Kneser, R., & Ney, H. (1995). Improved backing-off for m-gram language modeling. *ICASSP*.
 
 ## 연습문제
 
@@ -739,3 +719,20 @@ print(f"Laplace PPL: {compute_perplexity(laplace_model, test_corpus):.2f}")
 5. **되풀이 살피기**: 욕심쟁이 풀기가 얼마나 자주 같은 n-그램을 되풀이하는지 좇아라. 되풀이 벌주기를 짜라.
 
 ---
+
+## 정리하며
+
+- n-그램 모델은 마르코프 가정으로 차례의 확률을 어림한다
+- 최대 가능도 어림은 셈에서 곧바로 확률을 어림해 준다
+- 본 적 없는 n-그램을 다루려면 부드럽게 하기가 꼭 필요하다
+- 만들어 내기 전략마다 여러 갈래임과 좋음을 맞바꾼다
+- 헷갈림도는 모델이 남겨 둔 자료를 얼마나 잘 어림하는지 잰다
+- n-그램은 바탕 잣대로서, 그리고 자료가 적은 곳에서 여전히 쓸모 있다
+
+---
+
+**참고 문헌**
+
+1. Jurafsky, D., & Martin, J. H. (2023). *Speech and Language Processing* (3rd ed.). 3장.
+2. Chen, S. F., & Goodman, J. (1999). An empirical study of smoothing techniques for language modeling. *Computer Speech & Language*, 13(4), 359-394.
+3. Kneser, R., & Ney, H. (1995). Improved backing-off for m-gram language modeling. *ICASSP*.

@@ -3,7 +3,7 @@
 
 ---
 
-## 넓힌 EM(GEM)
+## 1. 넓힌 EM(GEM)
 
 ### 동기
 
@@ -62,7 +62,7 @@ $$
 
 ---
 
-## 기댓값 조건부 최대화(ECM)
+## 2. 기댓값 조건부 최대화(ECM)
 
 ### 얽힌 매개변수의 어려움
 
@@ -104,7 +104,7 @@ CM 걸음마다 $\theta_1, \ldots, \theta_{s-1}$에는 새로 고친 값을, $\t
 
 ---
 
-## ECME 알고리즘
+## 3. ECME 알고리즘
 
 ### 동기
 
@@ -155,7 +155,7 @@ $$
 
 ---
 
-## 매개변수를 넓힌 EM(PX-EM)
+## 4. 매개변수를 넓힌 EM(PX-EM)
 
 ### 느리게 모이는 문제
 
@@ -211,7 +211,7 @@ $$
 
 ---
 
-## 몬테카를로 EM(MCEM)
+## 5. 몬테카를로 EM(MCEM)
 
 ### E 걸음을 다룰 수 없을 때
 
@@ -291,7 +291,7 @@ def mcem_iteration(X, theta, n_samples, sampler):
 
 ---
 
-## 확률 EM(SEM)
+## 6. 확률 EM(SEM)
 
 ### 또 다른 확률 방식
 
@@ -343,7 +343,7 @@ $$
 
 ---
 
-## 변분 EM
+## 7. 변분 EM
 
 ### 뒤확률을 다룰 수 없을 때
 
@@ -417,7 +417,7 @@ $$
 
 ---
 
-## 조금씩 하는 EM과 흐름 속 EM
+## 8. 조금씩 하는 EM과 흐름 속 EM
 
 ### 동기
 
@@ -509,7 +509,7 @@ def online_em_step(batch, theta, sufficient_stats, learning_rate):
 
 ---
 
-## EM을 빠르게 하는 방법
+## 9. EM을 빠르게 하는 방법
 
 ### 모이는 빠르기 문제
 
@@ -567,7 +567,7 @@ EM의 붙박이 점에서는 $\nabla_\theta Q(\theta^* | \theta^*) = 0$이므로
 
 ---
 
-## EM 갈래 견주기
+## 10. EM 갈래 견주기
 
 | 갈래 | E 걸음 | M 걸음 | 핵심 강점 |
 |---------|--------|--------|---------------|
@@ -596,7 +596,7 @@ EM의 붙박이 점에서는 $\nabla_\theta Q(\theta^* | \theta^*) = 0$이므로
 
 ---
 
-## PyTorch 구현: 가우스 섞음 모형의 변분 EM
+## 11. PyTorch 구현: 가우스 섞음 모형의 변분 EM
 
 ```python
 import torch
@@ -779,30 +779,6 @@ class VariationalGMM:
 
 ---
 
-## 요약
-
-| 살필 점 | 핵심 |
-|--------|------------|
-| **GEM** | M 걸음을 나아지기만 하면 되게 느슨히 한다. 기울기로 새로 고칠 수 있게 한다 |
-| **ECM/ECME** | 차례차례 조건부 최대화. 복잡한 M 걸음을 풀어 놓는다 |
-| **PX-EM** | 더 빨리 모이도록 매개변수 공간을 넓힌다 |
-| **MCEM** | 다룰 수 없는 E 걸음을 몬테카를로로 어림한다 |
-| **SEM** | 확률 표본 하나. 봉우리가 여럿인 면을 살펴보는 데 도움이 된다 |
-| **변분 EM** | 복잡한 모형에서 뒤확률을 어림한다 |
-| **흐름 속 EM** | 크거나 흐르는 자료를 위한 확률 새로 고침 |
-| **가속** | 에이킨, SQUAREM, 유사 뉴턴 방법이 모임을 빠르게 한다 |
-
-추론(E 걸음)과 최적화(M 걸음)를 갈라 놓는 EM 얼개의 유연함이 이 여러 넓힘을 가능하게 한다. 갈래마다 언제 어떻게 쓸지 아는 것은 실제 세계의 숨은 변수 모형을 다루는 데 꼭 필요하다.
-
-### 주요 참고 문헌
-
-- Dempster, A. P., Laird, N. M., & Rubin, D. B. (1977). Maximum likelihood from incomplete data via the EM algorithm. *JRSS-B*, 39(1), 1-38.
-- Meng, X. L., & Rubin, D. B. (1993). Maximum likelihood estimation via the ECM algorithm. *Biometrika*, 80(2), 267-278.
-- Liu, C., & Rubin, D. B. (1994). The ECME algorithm: A simple extension of EM and ECM with faster monotone convergence. *Biometrika*, 81(4), 633-648.
-- Wei, G. C., & Tanner, M. A. (1990). A Monte Carlo implementation of the EM algorithm. *JASA*, 85(411), 699-704.
-- Celeux, G., & Diebolt, J. (1985). The SEM algorithm: A probabilistic teacher algorithm derived from the EM algorithm. *Computational Statistics Quarterly*, 2, 73-82.
-- Cappé, O., & Moulines, E. (2009). On-line expectation–maximization algorithm for latent data models. *JRSS-B*, 71(3), 593-613.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -838,3 +814,27 @@ EM 도중에 가우스 성분이 자료 점 하나로 찌부러지면 어떤 말
 
 ??? success "연습문제 4 풀이"
     가우스 성분의 평균이 자료 점 하나와 겹치고 그 흩어짐이 0으로 오그라들면 가능도가 묶이지 않는다(그 점에서 밀도가 무한으로 간다). 이것이 가우스 섞음 모형의 **특이점 문제**이다. 막는 방법으로는 (1) 공분산에 작은 벌주기 항 더하기($\Sigma_k + \epsilon I$), (2) $N_k$이 문턱값 아래로 떨어진 성분 되돌리기, (3) 베이즈 앞확률 쓰기(이를테면 $\Sigma_k$에 역위샤트), (4) 공분산 행렬의 고윳값에 최솟값 제약 두기가 있다.
+
+## 정리하며
+
+| 살필 점 | 핵심 |
+|--------|------------|
+| **GEM** | M 걸음을 나아지기만 하면 되게 느슨히 한다. 기울기로 새로 고칠 수 있게 한다 |
+| **ECM/ECME** | 차례차례 조건부 최대화. 복잡한 M 걸음을 풀어 놓는다 |
+| **PX-EM** | 더 빨리 모이도록 매개변수 공간을 넓힌다 |
+| **MCEM** | 다룰 수 없는 E 걸음을 몬테카를로로 어림한다 |
+| **SEM** | 확률 표본 하나. 봉우리가 여럿인 면을 살펴보는 데 도움이 된다 |
+| **변분 EM** | 복잡한 모형에서 뒤확률을 어림한다 |
+| **흐름 속 EM** | 크거나 흐르는 자료를 위한 확률 새로 고침 |
+| **가속** | 에이킨, SQUAREM, 유사 뉴턴 방법이 모임을 빠르게 한다 |
+
+추론(E 걸음)과 최적화(M 걸음)를 갈라 놓는 EM 얼개의 유연함이 이 여러 넓힘을 가능하게 한다. 갈래마다 언제 어떻게 쓸지 아는 것은 실제 세계의 숨은 변수 모형을 다루는 데 꼭 필요하다.
+
+### 주요 참고 문헌
+
+- Dempster, A. P., Laird, N. M., & Rubin, D. B. (1977). Maximum likelihood from incomplete data via the EM algorithm. *JRSS-B*, 39(1), 1-38.
+- Meng, X. L., & Rubin, D. B. (1993). Maximum likelihood estimation via the ECM algorithm. *Biometrika*, 80(2), 267-278.
+- Liu, C., & Rubin, D. B. (1994). The ECME algorithm: A simple extension of EM and ECM with faster monotone convergence. *Biometrika*, 81(4), 633-648.
+- Wei, G. C., & Tanner, M. A. (1990). A Monte Carlo implementation of the EM algorithm. *JASA*, 85(411), 699-704.
+- Celeux, G., & Diebolt, J. (1985). The SEM algorithm: A probabilistic teacher algorithm derived from the EM algorithm. *Computational Statistics Quarterly*, 2, 73-82.
+- Cappé, O., & Moulines, E. (2009). On-line expectation–maximization algorithm for latent data models. *JRSS-B*, 71(3), 593-613.

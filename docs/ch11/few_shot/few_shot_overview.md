@@ -1,9 +1,10 @@
 # 소수 예시 학습의 기초
-## 들어가며
 
 소수 예시 학습은 여느 깊은 학습의 가장 큰 한계 가운데 하나인 엄청난 양의 이름표 붙은 데이터가 있어야 한다는 점을 다룬다. 사람은 보기 한둘만 보고도 새 물체를 알아보지만, 보통의 신경망은 부류마다 이름표 붙은 표본이 수천 개 있어야 한다. 소수 예시 학습은 아주 적은 데이터로도 배울 수 있는 알고리즘을 길러, 적은 경험에서 일반화하는 사람의 힘을 흉내 낸다.
 
-## 문제의 얼개
+---
+
+## 1. 문제의 얼개
 
 ### 형식적 정의
 
@@ -40,7 +41,9 @@ $$\mathcal{Q} = \{(x_1^q, y_1^q), (x_2^q, y_2^q), \ldots, (x_{N \times Q}, y_{N 
 
 여기서 $Q$은 부류마다의 물음 보기 개수이다.
 
-## 수학적 틀
+---
+
+## 2. 수학적 틀
 
 ### 에피소드 학습
 
@@ -73,7 +76,9 @@ $$\mathbb{E}_{\mathcal{T}}[\text{err}(\mathcal{T})] \leq \hat{\text{err}}_{\text
 
 여기서 $d_{\mathcal{H}}$은 가설 부류의 VC 차원이고 $m$은 학습 과제의 개수이다.
 
-## 접근법의 갈래
+---
+
+## 3. 접근법의 갈래
 
 소수 예시 학습 방법은 크게 세 갈래로 나눌 수 있다.
 
@@ -107,7 +112,9 @@ $$h_t = f(x_t, h_{t-1}, \mathcal{M})$$
 
 **주요 방법**: 기억 덧댄 신경망, 소수 예시용 신경 튜링 기계
 
-## 핵심 개념
+---
+
+## 4. 핵심 개념
 
 ### 귀납 치우침
 
@@ -134,7 +141,9 @@ $$f_\theta = g_\psi \circ h_\phi$$
 
 여기서 $h_\phi$은 미리 학습된 부호기(얼리거나 미세 조정한다)이고 $g_\psi$은 과제에 맞춘 적응 층이다.
 
-## 잣대 데이터셋
+---
+
+## 5. 잣대 데이터셋
 
 ### Omniglot
 
@@ -167,7 +176,9 @@ $$f_\theta = g_\psi \circ h_\phi$$
 - ImageNet, Omniglot, Aircraft, Birds, Textures, Quick Draw, Fungi, VGG Flower, Traffic Signs, MSCOCO
 - 영역을 넘나드는 일반화를 시험한다
 
-## 평가 규약
+---
+
+## 6. 평가 규약
 
 ### 표준 절차
 
@@ -189,7 +200,9 @@ $$\bar{a} = \frac{1}{n}\sum_{i=1}^n a_i, \quad s = \sqrt{\frac{1}{n-1}\sum_{i=1}
 
 $$\text{CI} = \bar{a} \pm t_{0.975, n-1} \cdot \frac{s}{\sqrt{n}}$$
 
-## PyTorch 구현
+---
+
+## 7. PyTorch 구현
 
 ### 에피소드 뽑개
 
@@ -510,7 +523,9 @@ def evaluate_few_shot(model, test_dataset, n_episodes=600, device='cuda'):
     return mean_acc, ci
 ```
 
-## 실용적인 고려
+---
+
+## 8. 실용적인 고려
 
 ### 데이터 늘리기
 
@@ -547,23 +562,7 @@ few_shot_transforms = T.Compose([
 3. **학습 부류에 지나친 맞춤**: 검증 과제를 바탕으로 일찍 멈추기를 쓰라
 4. **미리 학습 무시하기**: 오늘날의 방법은 미리 학습된 특징에서 큰 이득을 본다
 
-## 요약
-
-소수 예시 학습은 적은 데이터로 배우는 근본 어려움을 다음과 같이 다룬다.
-
-1. 작은 과제를 많이 두고 모델을 익힌다(에피소드 학습).
-2. 재빨리 맞추어 갈 수 있게 하는 표현을 배운다.
-3. 닮음과 조합성에 대한 귀납 치우침을 끌어 쓴다.
-
-이 분야는 단순한 거리 기반 방법에서 정교한 메타 학습 알고리즘으로 발전해 왔고, 최근에는 큰 규모의 미리 학습과 여러 갈래 학습까지 아우른다.
-
-## 참고 문헌
-
-1. Vinyals, O., et al. "Matching Networks for One Shot Learning." NeurIPS 2016.
-2. Snell, J., et al. "Prototypical Networks for Few-shot Learning." NeurIPS 2017.
-3. Finn, C., et al. "Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks." ICML 2017.
-4. Koch, G., et al. "Siamese Neural Networks for One-shot Image Recognition." ICML Deep Learning Workshop 2015.
-5. Triantafillou, E., et al. "Meta-Dataset: A Dataset of Datasets for Learning to Learn from Few Examples." ICLR 2020.
+---
 
 ## 연습문제
 
@@ -606,3 +605,21 @@ $N$-갈래 $K$-예시 학습을 정의하고 에피소드 학습 틀을 설명�
 
 ??? success "연습문제 4 풀이"
     소수 예시: 이름표 붙은 보기 몇 개로 배운다. 영 예시: 이름표 붙은 보기 없이 곁다리 정보(속성, 글 설명)로 가린다. 메타 학습: 과제 분포에서 '배우는 법을 배우는' 더 넓은 틀이다. 소수 예시 학습은 대개 메타 학습의 응용이고, 영 예시 학습은 딸린 앎의 전이에 기댄다.
+
+## 정리하며
+
+소수 예시 학습은 적은 데이터로 배우는 근본 어려움을 다음과 같이 다룬다.
+
+1. 작은 과제를 많이 두고 모델을 익힌다(에피소드 학습).
+2. 재빨리 맞추어 갈 수 있게 하는 표현을 배운다.
+3. 닮음과 조합성에 대한 귀납 치우침을 끌어 쓴다.
+
+이 분야는 단순한 거리 기반 방법에서 정교한 메타 학습 알고리즘으로 발전해 왔고, 최근에는 큰 규모의 미리 학습과 여러 갈래 학습까지 아우른다.
+
+**참고 문헌**
+
+1. Vinyals, O., et al. "Matching Networks for One Shot Learning." NeurIPS 2016.
+2. Snell, J., et al. "Prototypical Networks for Few-shot Learning." NeurIPS 2017.
+3. Finn, C., et al. "Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks." ICML 2017.
+4. Koch, G., et al. "Siamese Neural Networks for One-shot Image Recognition." ICML Deep Learning Workshop 2015.
+5. Triantafillou, E., et al. "Meta-Dataset: A Dataset of Datasets for Learning to Learn from Few Examples." ICLR 2020.

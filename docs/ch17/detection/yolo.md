@@ -1,5 +1,8 @@
 # YOLO: 한 번만 본다
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -10,7 +13,9 @@
 - 미리 익힌 YOLO 모델을 미룸과 곱게 다듬기에 쓴다
 - 실시간 쓰임새에 맞게 YOLO 모델을 다듬는다
 
-## YOLO의 철학
+---
+
+## 2. YOLO의 철학
 
 YOLO(한 번만 본다)는 물체 알아내기를 되돌리기 문제 하나로 세워, 온 그림에서 두름 상자와 갈래 확률을 한 번의 값매김으로 곧바로 어림하며 판을 뒤집었다.
 
@@ -54,7 +59,9 @@ YOLO(한 번만 본다)는 물체 알아내기를 되돌리기 문제 하나로 
 | **뒷바탕 어긋남** | 헛양성이 적다 | 뒷바탕을 더 헷갈린다 |
 | **작은 물체** | 더 어렵다 | FPN을 쓰면 더 낫다 |
 
-## 격자 바탕 알아내기
+---
+
+## 3. 격자 바탕 알아내기
 
 YOLO는 들임 그림을 S×S 격자로 나눈다. 격자 칸마다 가운데점이 그 칸 안에 떨어지는 물체를 알아낼 몫을 맡는다.
 
@@ -89,7 +96,6 @@ YOLO는 격자 칸을 기준으로 고르게 맞춘 자리표를 쓴다:
 
 ```python
 import torch
-
 
 def decode_yolo_boxes(
     predictions: torch.Tensor,
@@ -149,7 +155,9 @@ def decode_yolo_boxes(
     return torch.cat(boxes, dim=1)
 ```
 
-## YOLO의 흐름
+---
+
+## 4. YOLO의 흐름
 
 ### YOLOv1(2015)
 
@@ -187,7 +195,6 @@ def decode_yolo_boxes(
 ```python
 import torch.nn as nn
 
-
 class DarknetBlock(nn.Module):
     """
     Darknet 잔차 덩이.
@@ -209,7 +216,6 @@ class DarknetBlock(nn.Module):
     
     def forward(self, x):
         return x + self.conv2(self.conv1(x))
-
 
 class YOLOv3Head(nn.Module):
     """
@@ -305,7 +311,9 @@ model.train(data='coco.yaml', epochs=100, imgsz=640)
 model.export(format='onnx')
 ```
 
-## YOLOv8 얼개
+---
+
+## 5. YOLOv8 얼개
 
 ### 등뼈: CSPDarknet
 
@@ -463,7 +471,9 @@ class YOLOv8Head(nn.Module):
         return cls_out, reg_out
 ```
 
-## YOLO 손실 함수
+---
+
+## 6. YOLO 손실 함수
 
 YOLO는 여러 조각으로 된 손실 함수를 쓴다:
 
@@ -488,7 +498,6 @@ $$L_{cls} = \sum_{i=0}^{S^2} \mathbb{1}_{i}^{obj} \sum_{c \in classes} (p_i(c) -
 ```python
 import torch
 import torch.nn.functional as F
-
 
 def yolo_loss(
     predictions: torch.Tensor,
@@ -648,7 +657,9 @@ def modern_yolo_loss(
     }
 ```
 
-## 실전에서 YOLO 쓰기
+---
+
+## 7. 실전에서 YOLO 쓰기
 
 ### 울트라리틱스 YOLOv8
 
@@ -735,7 +746,9 @@ nc: 3  # 갈래 수
 names: ['class1', 'class2', 'class3']
 ```
 
-## 모형 견줌
+---
+
+## 8. 모형 견줌
 
 ### YOLOv8 변종
 
@@ -759,32 +772,7 @@ High accuracy required      YOLOv8l, YOLOv8x
 Research/Benchmarking       YOLOv8x
 ```
 
-## 요약
-
-YOLO는 한 방 방식으로 물체 알아내기의 판을 뒤집었다:
-
-1. **그물 하나**: 앞먹임 한 번으로 모든 알아냄을 낸다
-2. **격자 바탕**: 그림을 칸으로 나누고 칸마다 상자를 어림한다
-3. **끝에서 끝까지**: 화소에서 상자로 곧바로 되돌린다
-4. **실시간**: 모델 크기에 따라 초당 30~155틀 이상
-5. **끊임없이 나아감**: YOLOv8은 요즘 익히기와 닻 없는 알아내기를 쓴다
-
-핵심 짜기 세부 사항:
-
-- 특징 켜마다 여러 잣수로 어림하기
-- 닻 상자(v2~v7) 또는 닻 없는(v8) 어림
-- 정확한 상자 되돌리기를 위한 CIoU 손실
-- 센 자료 불리기(모자이크, MixUp)
-
-YOLO 모델은 실시간 쓰임새에서 빠르기와 정확도의 맞바꿈이 가장 좋다.
-
-## 참고 문헌
-
-1. Redmon, J., et al. (2016). You Only Look Once: Unified, Real-Time Object Detection. *CVPR*.
-2. Redmon, J., & Farhadi, A. (2017). YOLO9000: Better, Faster, Stronger. *CVPR*.
-3. Redmon, J., & Farhadi, A. (2018). YOLOv3: An Incremental Improvement. *arXiv*.
-4. Bochkovskiy, A., et al. (2020). YOLOv4: Optimal Speed and Accuracy of Object Detection. *arXiv*.
-5. Jocher, G. (2020-2023). Ultralytics YOLOv5/YOLOv8. *GitHub*.
+---
 
 ## 연습문제
 
@@ -838,3 +826,30 @@ YOLO 모델은 실시간 쓰임새에서 빠르기와 정확도의 맞바꿈이 
 
 ??? success "연습문제 4 풀이"
     한 단계 알아내개에서는 닻 상자 대부분이 바탕(쉬운 아님 보기)이고 물체를 담은 것은 몇 안 된다. 여느 엇결 엔트로피 잃음은 쉬운 아님 보기가 워낙 많아 그쪽에 휘둘리므로 어려운 맞음 보기의 기울기 신호가 묻힌다. **초점 잃음**은 조절 값을 더한다. $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$이다. $\gamma > 0$이면 쉬운 보기($p_t$이 높은 것)의 짐이 지수로 줄어 어려운 보기에 익힘이 몰린다. $\gamma = 2$과 $\alpha = 0.25$을 쓰면 RetinaNet은 한 단계의 빠르기를 지키면서 두 단계 알아내개에 맞먹는 맞음을 이룬다.
+
+## 정리하며
+
+YOLO는 한 방 방식으로 물체 알아내기의 판을 뒤집었다:
+
+1. **그물 하나**: 앞먹임 한 번으로 모든 알아냄을 낸다
+2. **격자 바탕**: 그림을 칸으로 나누고 칸마다 상자를 어림한다
+3. **끝에서 끝까지**: 화소에서 상자로 곧바로 되돌린다
+4. **실시간**: 모델 크기에 따라 초당 30~155틀 이상
+5. **끊임없이 나아감**: YOLOv8은 요즘 익히기와 닻 없는 알아내기를 쓴다
+
+핵심 짜기 세부 사항:
+
+- 특징 켜마다 여러 잣수로 어림하기
+- 닻 상자(v2~v7) 또는 닻 없는(v8) 어림
+- 정확한 상자 되돌리기를 위한 CIoU 손실
+- 센 자료 불리기(모자이크, MixUp)
+
+YOLO 모델은 실시간 쓰임새에서 빠르기와 정확도의 맞바꿈이 가장 좋다.
+
+**참고 문헌**
+
+1. Redmon, J., et al. (2016). You Only Look Once: Unified, Real-Time Object Detection. *CVPR*.
+2. Redmon, J., & Farhadi, A. (2017). YOLO9000: Better, Faster, Stronger. *CVPR*.
+3. Redmon, J., & Farhadi, A. (2018). YOLOv3: An Incremental Improvement. *arXiv*.
+4. Bochkovskiy, A., et al. (2020). YOLOv4: Optimal Speed and Accuracy of Object Detection. *arXiv*.
+5. Jocher, G. (2020-2023). Ultralytics YOLOv5/YOLOv8. *GitHub*.

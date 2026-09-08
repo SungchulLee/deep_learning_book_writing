@@ -1,11 +1,16 @@
 # 앎 뽑기 개요
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 앎 뽑기 물길과 조각들이 어떻게 어울리는지 이해한다
 - 닫힌 앎 뽑기와 열린 앎 뽑기를 가린다
 - 짜임 있는 앎 뽑기의 금융 쓰임새를 가려낸다
 
-## 앎 뽑기란 무엇인가?
+---
+
+## 2. 앎 뽑기란 무엇인가?
 
 앎 뽑기는 짜임 없는 글을, 기계가 묻고 따질 수 있는 짜임 있는 나타냄, 곧 표·그래프·데이터베이스로 바꾼다. 갈래 매기기 같은 자연어 일이 글월 전체에 이름표를 붙이는 데 견주어, 앎 뽑기는 더 고운 결에서 글 속의 특정한 것, 관계, 사건을 가려낸다.
 
@@ -46,7 +51,9 @@ Raw Text
 
 $$\mathcal{L}_{\text{joint}} = \mathcal{L}_{\text{NER}} + \lambda \mathcal{L}_{\text{RE}}$$
 
-## 금융에서의 쓰임
+---
+
+## 3. 금융에서의 쓰임
 
 앎 뽑기는 계량 금융에서 다음에 결정적이다:
 
@@ -70,7 +77,9 @@ $$\mathcal{L}_{\text{joint}} = \mathcal{L}_{\text{NER}} + \lambda \mathcal{L}_{\
 | 거래 갈래 | 전액 주식 |
 | 날짜 | 목요일 |
 
-## 값매김의 틀
+---
+
+## 4. 값매김의 틀
 
 앎 뽑기 값매김은 아래 일마다 다르지만 대개 다음을 쓴다:
 
@@ -78,11 +87,7 @@ $$\mathcal{L}_{\text{joint}} = \mathcal{L}_{\text{NER}} + \lambda \mathcal{L}_{\
 - **일부 맞음**: 구간이 겹치면 점수를 줌
 - **칸 채우기**: 뽑아낸 속성 값의 정밀도/재현율
 
-## 참고 문헌
-
-1. Jurafsky, D., & Martin, J. H. (2024). *Speech and Language Processing* (3rd ed.). 17, 21장.
-2. Sarawagi, S. (2008). Information Extraction. *Foundations and Trends in Databases*, 1(3).
-3. Li, J., et al. (2020). A Survey on Deep Learning for Named Entity Recognition. *IEEE TKDE*.
+---
 
 ## 연습문제
 
@@ -115,3 +120,13 @@ $$\mathcal{L}_{\text{joint}} = \mathcal{L}_{\text{NER}} + \lambda \mathcal{L}_{\
 
 ??? success "연습문제 4 풀이"
     규칙 바탕 열린 앎 뽑기 체계는 달림 나무에서 주어-움직씨-목적어 무늬를 가려내 세 쌍을 뽑는다. (1) 주된 움직씨(뿌리)를 찾고, (2) 이름씨 주어(nsubj)를 주어로 뽑고, (3) 직접 목적어(dobj)를 목적어로 뽑고, (4) (주어, 움직씨, 목적어) 세 쌍을 만든다. **한계**: (1) 이름씨로 바꾼 표현("Obama's visit to China")의 관계를 놓친다. (2) 마디가 여럿인 복잡한 월을 다루지 못한다. (3) 특별한 규칙 없이는 입음꼴에서 어그러진다. (4) 앞가지가 붙은 월에서는 질 낮은 세 쌍을 낸다. (5) 같은 관계의 서로 다른 겉모습을 하나로 다듬지 못한다.
+
+## 정리하며
+
+이 마당은 학습 목표、앎 뽑기란 무엇인가?、금융에서의 쓰임、값매김의 틀을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Jurafsky, D., & Martin, J. H. (2024). *Speech and Language Processing* (3rd ed.). 17, 21장.
+2. Sarawagi, S. (2008). Information Extraction. *Foundations and Trends in Databases*, 1(3).
+3. Li, J., et al. (2020). A Survey on Deep Learning for Named Entity Recognition. *IEEE TKDE*.

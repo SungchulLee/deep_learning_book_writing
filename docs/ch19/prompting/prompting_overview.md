@@ -1,11 +1,16 @@
 # 시킴말 재주 개요
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 곱게 다듬기에서 시킴말로의 틀 바뀜을 이해한다
 - 잘 듣는 시킴말의 짜임을 가려낸다
 - 시킴말 전략을 복잡도와 쓰임새로 나눈다
 
-## 시킴말이라는 틀
+---
+
+## 2. 시킴말이라는 틀
 
 예로부터의 자연어 다루기는 뒤따르는 일마다 그 일에 맞춘 곱게 다듬기가 필요했다. 큰 말 모델은 근본적으로 다른 틀을 들여왔다. 곧 매개변수를 조금도 고치지 않고 자연어 시킴으로 모델의 몸짓에 조건을 거는 **시킴말**이다.
 
@@ -15,7 +20,9 @@ $$\hat{y} = \text{LLM}(\text{prompt}(x); \theta_{\text{pretrained}})$$
 
 이러면 이름표 붙인 익힘 자료와 일마다의 모델 복사본이 필요 없어진다.
 
-## 시킴말의 짜임
+---
+
+## 3. 시킴말의 짜임
 
 잘 짜인 시킴말은 대개 네 조각을 담는다:
 
@@ -35,7 +42,9 @@ $$\hat{y} = \text{LLM}(\text{prompt}(x); \theta_{\text{pretrained}})$$
 [Query] Provide a brief assessment of NVIDIA's growth trajectory.
 ```
 
-## 시킴말 전략의 갈래
+---
+
+## 4. 시킴말 전략의 갈래
 
 | 전략 | 핵심 생각 | 알맞은 곳 |
 |----------|---------|---------|
@@ -46,10 +55,7 @@ $$\hat{y} = \text{LLM}(\text{prompt}(x); \theta_{\text{pretrained}})$$
 | 스스로 한결같기 | 여러 길에 대한 다수결 | 셈하기, 사실 물음 |
 | ReAct | 따짐과 행동을 번갈아 한다 | 연장 쓰기, 앎 모으기 |
 
-## 참고 문헌
-
-1. Brown, T., et al. (2020). "Language Models are Few-Shot Learners." *NeurIPS*.
-2. Liu, P., et al. (2023). "Pre-train, Prompt, and Predict: A Systematic Survey of Prompting Methods in NLP."
+---
 
 ## 연습문제
 
@@ -97,3 +103,12 @@ $$\hat{y} = \text{LLM}(\text{prompt}(x); \theta_{\text{pretrained}})$$
     A: Let's think step by step.
     ```
     바라는 내놓음: 첫 구간의 거리는 $60 \times 2.5 = 150$마일. 둘째 구간의 거리는 $80 \times 1.5 = 120$마일. 온 거리는 $150 + 120 = 270$마일.
+
+## 정리하며
+
+이 마당은 학습 목표、시킴말이라는 틀、시킴말의 짜임、시킴말 전략의 갈래을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Brown, T., et al. (2020). "Language Models are Few-Shot Learners." *NeurIPS*.
+2. Liu, P., et al. (2023). "Pre-train, Prompt, and Predict: A Systematic Survey of Prompting Methods in NLP."

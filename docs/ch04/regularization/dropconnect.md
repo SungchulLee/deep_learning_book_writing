@@ -1,9 +1,10 @@
 # 드롭커넥트
-## 개요
 
 드롭커넥트는 학습 중에 뉴런의 활성화 전체가 아니라 개별 *가중치*(연결)를 무작위로 0으로 만드는, 드롭아웃의 일반화이다. Wan 등(2013)이 제안했으며 가중치 수준에서 작동하여 더 세밀한 확률적 정칙화를 제공한다. 드롭아웃이 활성화를 가려 사실상 뉴런 전체를 순전파에서 빼는 반면, 드롭커넥트는 가중치 행렬의 개별 원소를 가려 각 뉴런이 매 순전파에 부분적으로 참여하게 한다.
 
-## 수학적 정식화
+---
+
+## 1. 수학적 정식화
 
 ### 표준 완전 연결층
 
@@ -79,7 +80,9 @@ $$
 
 원 논문은 효율적인 추론에 이 정규 근사를 쓴다(다만 실무에서는 역 배율 조정이 더 흔하다).
 
-## 드롭아웃과의 비교
+---
+
+## 2. 드롭아웃과의 비교
 
 ### 마스크를 어디에 적용하는가
 
@@ -114,7 +117,9 @@ $$
 
 지수적으로 더 큰 이 앙상블은 학습 중 분산이 커지는 대가로 더 풍부한 정칙화를 제공한다.
 
-## PyTorch 구현
+---
+
+## 3. PyTorch 구현
 
 ### 기본적인 드롭커넥트 층
 
@@ -287,7 +292,9 @@ class MCDropConnectModel(nn.Module):
         return mean, std
 ```
 
-## 합성곱 층을 위한 드롭커넥트
+---
+
+## 4. 합성곱 층을 위한 드롭커넥트
 
 드롭커넥트는 합성곱 필터에도 적용할 수 있다.
 
@@ -322,7 +329,9 @@ class DropConnectConv2d(nn.Module):
         return self.conv(x)
 ```
 
-## 학습 예제
+---
+
+## 5. 학습 예제
 
 ```python
 import torch.optim as optim
@@ -372,7 +381,9 @@ def train_with_dropconnect(
     return history
 ```
 
-## 계산에 대한 고려
+---
+
+## 6. 계산에 대한 고려
 
 드롭커넥트는 활성화 벡터만이 아니라 가중치 행렬 전체에 대해 마스크를 뽑으므로 표준 드롭아웃보다 계산 비용이 더 든다. 입력이 $d_{\text{in}}$개, 출력이 $d_{\text{out}}$개인 층에 대해 다음과 같다.
 
@@ -385,7 +396,9 @@ def train_with_dropconnect(
 
 실무에서는 마스크 생성이 GPU에서 잘 병렬화되고 가중치 행렬이 이미 메모리에 있으므로 대부분의 구조에서 부담이 크지 않다.
 
-## 실무 지침
+---
+
+## 7. 실무 지침
 
 ### 드롭아웃 대신 드롭커넥트를 쓸 때
 
@@ -408,11 +421,7 @@ def train_with_dropconnect(
 - **편향 항**: 보통 편향 매개변수에는 드롭커넥트를 적용하지 않는다
 - **다른 정칙화와 결합하기**: 드롭커넥트는 가중치 감쇠와 함께 쓸 수 있다. 과적합이 계속되면 한쪽을 줄인다
 
-## 참고 문헌
-
-1. Wan, L., Zeiler, M., Zhang, S., Le Cun, Y., & Fergus, R. (2013). Regularization of Neural Networks using DropConnect. *Proceedings of the 30th International Conference on Machine Learning (ICML)*.
-2. Srivastava, N., et al. (2014). Dropout: A Simple Way to Prevent Neural Networks from Overfitting. *JMLR*, 15(1), 1929-1958.
-3. Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning. *ICML*.
+---
 
 ## 연습문제
 
@@ -456,3 +465,13 @@ def train_with_dropconnect(
 
 ??? success "연습문제 4 풀이"
     드롭아웃은 (뉴런의 수를 $d$이라 할 때) $2^d$개 부분 신경망의 앙상블을 만든다. 드롭커넥트는 $2^{d_{\text{in}} \times d_{\text{out}}}$개를 만들어 지수적으로 더 큰 앙상블이 된다. 이 풍부한 앙상블은 더 강한 정칙화를 주지만 계산 비용이 더 든다.
+
+## 정리하며
+
+이 마당은 수학적 정식화、드롭아웃과의 비교、PyTorch 구현、합성곱 층을 위한 드롭커넥트을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Wan, L., Zeiler, M., Zhang, S., Le Cun, Y., & Fergus, R. (2013). Regularization of Neural Networks using DropConnect. *Proceedings of the 30th International Conference on Machine Learning (ICML)*.
+2. Srivastava, N., et al. (2014). Dropout: A Simple Way to Prevent Neural Networks from Overfitting. *JMLR*, 15(1), 1929-1958.
+3. Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning. *ICML*.

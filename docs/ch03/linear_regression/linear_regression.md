@@ -1,5 +1,4 @@
 # 선형 회귀
-## 개요
 
 선형 회귀는 입력 특징과 연속적인 목표 변수 사이의 관계를 선형 함수로 모형화하는,
 지도 학습의 가장 기본이 되는 알고리즘이다. **닫힌 형태**의 해(정규 방정식)와
@@ -460,15 +459,6 @@ PyTorch를 모두 사용하고 이동 창 베타 추정까지 포함한 전체 �
 
 ---
 
-## 참고 문헌
-
-1. Hastie, T., Tibshirani, R. & Friedman, J. (2009). *The Elements of
-   Statistical Learning*, Ch. 3.
-2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Ch. 3.
-3. Freedman, D., Pisani, R. & Purves, R. *Statistics* (4th ed.), Ch. 10–12.
-4. Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*,
-   Ch. 4.
-
 ## 연습문제
 
 **연습문제 1.**
@@ -516,3 +506,16 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
             w -= lr * w.grad; b -= lr * b.grad
             w.grad.zero_(); b.grad.zero_()
     ```
+
+## 정리하며
+
+이 마당은 선형 모델、확률적 정식화、고전적 가정 (가우스–마르코프)、단순 선형 회귀 (p = 1)을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Hastie, T., Tibshirani, R. & Friedman, J. (2009). *The Elements of
+   Statistical Learning*, Ch. 3.
+2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Ch. 3.
+3. Freedman, D., Pisani, R. & Purves, R. *Statistics* (4th ed.), Ch. 10–12.
+4. Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*,
+   Ch. 4.

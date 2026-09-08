@@ -1,7 +1,9 @@
 # He (Kaiming) 초기화
 He 초기화(He 등, 2015)는 ReLU와 그 변형들이 입력의 일부를 0으로 만들어 다음 층으로 넘어가는 실효 분산을 줄인다는 점을 반영하여 가중치의 분산을 정한다. (표준 ReLU에서) 인수 2로 이를 보정함으로써, He 초기화는 ReLU 계열 비선형성을 쓰는 깊은 신경망에서 활성화와 경사의 크기를 안정적으로 유지한다. 현대의 합성곱 구조와 순방향 구조의 표준 초기화이다.
 
-## 유도
+---
+
+## 1. 유도
 
 ### ReLU의 분산 인수
 
@@ -62,7 +64,9 @@ $$\sigma^2 = \frac{2}{n_{\text{out}}}$$
 
 He 초기화는 Xavier의 팬인 분산의 정확히 2배이며, ReLU가 들여오는 \$1/2$ 인수를 보정한다.
 
-## 분포의 변형
+---
+
+## 2. 분포의 변형
 
 ### He 정규 (Kaiming 정규)
 
@@ -98,7 +102,9 @@ init.kaiming_normal_(linear.weight, mode='fan_out', nonlinearity='relu')
 
 팬인이 기본값이며 대부분의 구조에 알맞다. 신경망이 넓다가 좁아지는 모양일 때(예: 압축 병목) 팬아웃이 나을 수 있다.
 
-## Leaky ReLU와 PReLU로의 확장
+---
+
+## 3. Leaky ReLU와 PReLU로의 확장
 
 음의 기울기가 $a$인 Leaky ReLU에 대해 다음과 같다.
 
@@ -121,7 +127,9 @@ $$\boxed{\sigma^2 = \frac{2}{(1 + a^2)\,n_{\text{in}}}}$$
 init.kaiming_normal_(linear.weight, a=0.2, mode='fan_in', nonlinearity='leaky_relu')
 ```
 
-## 실험적 확인
+---
+
+## 4. 실험적 확인
 
 ```python
 import torch
@@ -213,7 +221,9 @@ def compare_gradient_flow(n_layers=30, hidden=256, n_samples=256):
 compare_gradient_flow()
 ```
 
-## 특수한 경우와 확장
+---
+
+## 5. 특수한 경우와 확장
 
 ### 잔차 신경망
 
@@ -319,7 +329,9 @@ def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
     model.train()
 ```
 
-## 계량 금융에서의 응용
+---
+
+## 6. 계량 금융에서의 응용
 
 He 초기화는 금융에서 쓰이는 대부분의 현대적 구조에서 기본이다.
 
@@ -362,24 +374,7 @@ class DeepHedgingNetwork(nn.Module):
         return self.net(market_state)
 ```
 
-## 요약
-
-| 항목 | 내용 |
-|--------|--------|
-| **분산 공식** | $\sigma^2 = \frac{2}{n_{\text{in}}}$ (팬인) 또는 $\frac{2}{n_{\text{out}}}$ (팬아웃) |
-| **핵심 통찰** | ReLU가 분산을 절반으로 줄인다 → 인수 2로 보정한다 |
-| **알맞은 대상** | ReLU, Leaky ReLU, PReLU, ELU |
-| **Leaky ReLU로의 확장** | $\sigma^2 = \frac{2}{(1+a^2)\,n_{\text{in}}}$ |
-| **PyTorch** | `init.kaiming_normal_`, `init.kaiming_uniform_` |
-| **잔차 신경망** | 0 초기화나 $1/\sqrt{2L}$ 배율 조정과 함께 쓴다 |
-| **다른 이름** | Kaiming 초기화, MSRA 초기화 |
-
-## 참고 문헌
-
-1. He, K., Zhang, X., Ren, S., & Sun, J. (2015). "Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification." *ICCV*.
-2. He, K., Zhang, X., Ren, S., & Sun, J. (2016). "Identity Mappings in Deep Residual Networks." *ECCV*.
-3. Mishkin, D., & Matas, J. (2016). "All You Need is a Good Init." *ICLR*.
-4. Zhang, H., Dauphin, Y. N., & Ma, T. (2019). "Fixup Initialization: Residual Learning Without Normalization." *ICLR*.
+---
 
 ## 연습문제
 
@@ -418,3 +413,22 @@ Xavier 초기화가 깊은 ReLU 신경망에서 실패하는 이유는 무엇인
 
 ??? success "연습문제 4 풀이"
     무작위 균등에서는 몇 층 안에 활성화가 폭발하거나 주저앉는다. Xavier에서는 활성화가 지수적으로 줄어든다(층마다 절반). He에서는 20개 층 전체에 걸쳐 활성화의 크기가 한결같이 유지되어 안정적인 학습이 가능하다.
+
+## 정리하며
+
+| 항목 | 내용 |
+|--------|--------|
+| **분산 공식** | $\sigma^2 = \frac{2}{n_{\text{in}}}$ (팬인) 또는 $\frac{2}{n_{\text{out}}}$ (팬아웃) |
+| **핵심 통찰** | ReLU가 분산을 절반으로 줄인다 → 인수 2로 보정한다 |
+| **알맞은 대상** | ReLU, Leaky ReLU, PReLU, ELU |
+| **Leaky ReLU로의 확장** | $\sigma^2 = \frac{2}{(1+a^2)\,n_{\text{in}}}$ |
+| **PyTorch** | `init.kaiming_normal_`, `init.kaiming_uniform_` |
+| **잔차 신경망** | 0 초기화나 $1/\sqrt{2L}$ 배율 조정과 함께 쓴다 |
+| **다른 이름** | Kaiming 초기화, MSRA 초기화 |
+
+**참고 문헌**
+
+1. He, K., Zhang, X., Ren, S., & Sun, J. (2015). "Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification." *ICCV*.
+2. He, K., Zhang, X., Ren, S., & Sun, J. (2016). "Identity Mappings in Deep Residual Networks." *ECCV*.
+3. Mishkin, D., & Matas, J. (2016). "All You Need is a Good Init." *ICLR*.
+4. Zhang, H., Dauphin, Y. N., & Ma, T. (2019). "Fixup Initialization: Residual Learning Without Normalization." *ICLR*.

@@ -1,11 +1,16 @@
 # ReAct: 따지고 움직이기
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - ReAct라는 틀을 이해한다
 - 생각-행동-살핌 되풀이를 짠다
 - ReAct를 금융 연구 일에 쓴다
 
-## 핵심 생각
+---
+
+## 2. 핵심 생각
 
 **ReAct**(Yao 외, 2023)는 따짐의 자취와 행동을 번갈아 놓는다:
 
@@ -26,7 +31,9 @@ Thought: I now have enough information to provide analysis.
 Answer: AAPL beat Q3 estimates by 1.5%...
 ```
 
-## 구현
+---
+
+## 3. 구현
 
 ```python
 def react_loop(llm, question, tools, max_steps=10):
@@ -63,7 +70,9 @@ def react_loop(llm, question, tools, max_steps=10):
     return {"answer": "Could not determine answer", "steps": max_steps}
 ```
 
-## ReAct와 다른 방식
+---
+
+## 4. ReAct와 다른 방식
 
 | 방법 | 따짐 | 움직임 | 뿌리내림 |
 |--------|----------|--------|-----------|
@@ -73,9 +82,7 @@ def react_loop(llm, question, tools, max_steps=10):
 
 ReAct는 따짐을 찾아온 사실에 뿌리내려 헛것 지어내기를 줄인다.
 
-## 참고 문헌
-
-1. Yao, S., et al. (2023). "ReAct: Synergizing Reasoning and Acting in Language Models." *ICLR*.
+---
 
 ## 연습문제
 
@@ -108,3 +115,11 @@ ReAct 얼거리를 밝혀라. 따짐과 움직임을 번갈아 하면 큰 말 �
 
 ??? success "연습문제 4 풀이"
     걱정거리: (1) **뜻하지 않은 행동**: 잘못 읽어 내어 해로운 명령(파일 지우기, 전자우편 보내기)을 실행할 수 있다. (2) **시킴말 끼워넣기**: 찾아온 글월에 든 맞서는 들임이 몸소 움직이개의 몸짓을 가로챌 수 있다. (3) **끝나지 않는 되풀이**: 같은 행동을 되풀이하며 갇힐 수 있다. (4) **자료 새어 나감**: 연장을 부르며 민감한 앎을 뜻하지 않게 드러낼 수 있다. 덜어 내기: 모래상자 실행 환경, 민감한 행동에 사람의 확인 받기, 허용 목록, 내놓음 거르기, 횟수 제한, 최대 걸음 수, 모든 행동의 지켜보기와 기록 남기기.
+
+## 정리하며
+
+이 마당은 학습 목표、핵심 생각、구현、ReAct와 다른 방식을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Yao, S., et al. (2023). "ReAct: Synergizing Reasoning and Acting in Language Models." *ICLR*.

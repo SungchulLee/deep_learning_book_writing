@@ -2,7 +2,9 @@
 
 유클리드 알고리즘은 두 정수의 최대 공약수를 효율 좋게 셈할 수 있음을 보인다. 자연스러운 다음 물음은 그 최대 공약수를 본디 정수의 결합으로 *적을* 수 있느냐이다. 베주 항등식은 그렇다고 답한다. 어떤 정수 $a$과 $b$에 대해서도 $ax + by = \gcd(a, b)$인 정수 $x$과 $y$이 있다. 이 나타냄은 법 역원 셈하기, 선형 디오판토스 방정식 풀기, 수론의 근본 결과 밝히기의 바탕이다.
 
-## 정리의 진술
+---
+
+## 1. 정리의 진술
 
 !!! info "베주 항등식"
 
@@ -22,7 +24,9 @@ $$
 
 여기서 $k$은 아무 정수이다.
 
-## 증명
+---
+
+## 2. 증명
 
 이 밝힘은 모임 $S = \{ax + by : x, y \in \mathbb{Z}\} \cap \mathbb{Z}^{+}$의 가장 작은 양의 원소가 $\gcd(a, b)$과 같음을 보여 나아간다.
 
@@ -38,7 +42,9 @@ $$
 
 **걸음 3.** $d \mid a$이고 $d \mid b$이므로 $d \le \gcd(a, b)$이다. 그런데 $\gcd(a, b)$은 $a$과 $b$을 모두 나누므로 $S$의 모든 원소를 나누어 $\gcd(a, b) \mid d$이고 따라서 $\gcd(a, b) \le d$이다. 합치면 $d = \gcd(a, b)$이다. $\square$
 
-## 풀이 예제
+---
+
+## 3. 풀이 예제
 
 $a = 48$이고 $b = 18$이면 $\gcd(48, 18) = 6$임을 안다. 베주 항등식은 $48x + 18y = 6$인 정수 $x, y$이 있음을 보장한다.
 
@@ -64,7 +70,9 @@ $$
 
 따라서 $x = -1$과 $y = 3$이 $48(-1) + 18(3) = 6$을 만족한다. 넓힌 유클리드 알고리즘이 이 거꾸로 넣기 과정을 저절로 해 준다([넓힌 유클리드](extended.md)를 보라).
 
-## 서로 소임의 성격 매김
+---
+
+## 4. 서로 소임의 성격 매김
 
 베주 항등식은 서로 소임을 아름답게 성격 짓는다.
 
@@ -78,7 +86,9 @@ $$
 
 **증명.** $\gcd(a, b) = 1$이면 베주 항등식이 바라는 $x, y$을 준다. 거꾸로 $ax + by = 1$이고 $d = \gcd(a, b)$이면 $d \mid (ax + by) = 1$이므로 $d = 1$이다. $\square$
 
-## 선형 디오판토스 방정식
+---
+
+## 5. 선형 디오판토스 방정식
 
 베주 항등식은 $ax + by = c$ 꼴의 방정식을 푸는 데로 넓혀진다.
 
@@ -88,7 +98,9 @@ $$
 
 **증명.** $d = \gcd(a, b) \mid c$이면 $c = d \cdot k$이라 적는다. 베주 항등식에 따라 $d = ax_0 + by_0$이므로 $c = a(kx_0) + b(ky_0)$이다. 거꾸로 $ax + by = c$이면 $d \mid a$과 $d \mid b$에서 $d \mid c$이 따라 나온다. $\square$
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -100,7 +112,6 @@ gcd(a, b)을 늘 선형 결합 ax + by으로 적을 수 있음을 보여 주고
 
 import math
 
-
 # === 베주 계수를 위한 넓힌 최대 공약수 ===
 
 def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
@@ -110,7 +121,6 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
     g, x, y = extended_gcd(b, a % b)
     return g, y, x - (a // b) * y
 
-
 # === 확인 ===
 
 def verify_bezout(a: int, b: int) -> None:
@@ -118,7 +128,6 @@ def verify_bezout(a: int, b: int) -> None:
     g, x, y = extended_gcd(a, b)
     assert a * x + b * y == g, "Bezout identity failed"
     print(f"gcd({a}, {b}) = {g},  {a}*({x}) + {b}*({y}) = {a*x + b*y}")
-
 
 # === 메인 ===
 
@@ -149,9 +158,7 @@ gcd(100, 1) = 1,  100*(0) + 1*(1) = 1
 Certificate: 17*(-3) + 13*(4) = 1
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
+---
 
 ## 연습문제
 
@@ -184,3 +191,11 @@ $12x + 8y = 20$의 모든 정수 풀이를 구하라.
 
 ??? success "연습문제 4 풀이"
     $n$에 대한 귀납으로 밝힌다. 바탕 경우 $n = 2$: 베주 항등식이다. $n > 2$: $d = \gcd(a_1, \ldots, a_{n-1})$이라 하자. 귀납에 따라 어떤 정수 $x_i'$에 대해 $d = \sum_{i=1}^{n-1} a_i x_i'$이다. $g = \gcd(d, a_n) = \gcd(a_1, \ldots, a_n)$이라 하자. 변수 둘의 경우에 따라 정수 $s, t$에 대해 $g = d \cdot s + a_n \cdot t$이다. 그러면 $g = s \sum_{i=1}^{n-1} a_i x_i' + a_n t = \sum_{i=1}^{n-1} a_i (s x_i') + a_n t$이다. $i < n$에 $x_i = s x_i'$, $x_n = t$으로 두면 밝힘이 끝난다.
+
+## 정리하며
+
+이 마당은 정리의 진술、증명、풀이 예제、서로 소임의 성격 매김을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.

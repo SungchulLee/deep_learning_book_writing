@@ -1,11 +1,12 @@
 # 파국적 잊음
-## 들어가며
 
 **파국적 잊음**(파국적 방해라고도 한다)은 모든 이어 배우기 연구를 밀고 가는 근본 현상이다. 신경망을 여러 과제로 잇달아 익히면 새 과제를 배우면서 앞서 배운 정보를 크게 잊어버리기 일쑤다.
 
 이 절은 수학적 정식화, 실험으로 보여 주기, 그리고 보통의 신경망이 왜 이렇게 굴러가는지에 대한 분석까지 이 문제를 빈틈없이 다룬다.
 
-## 지난 이야기
+---
+
+## 1. 지난 이야기
 
 파국적 잊음 문제는 셈 사실을 배우는 연결주의 망을 살핀 McCloskey와 Cohen(1989)이 처음 짚어냈다. 이들은 새 덧셈 문제로 망을 익히면 앞서 배운 덧셈이 심하게 방해받는다는 것을 보았다. 새 앎이 옛 앎을 무너뜨리기보다 북돋우는 사람의 배움과는 사뭇 다른 모습이다.
 
@@ -13,7 +14,9 @@
     "연결주의 망을 새 본새 묶음으로 익히면, 그 새 본새를 배우게 해 주는 이음 가중치의 변화가 대개 앞서 배운 본새를 '잊게' 만든다."
     — 매클로스키 & 코언, 1989
 
-## 수학적 틀
+---
+
+## 2. 수학적 틀
 
 ### 차례 학습의 얼개
 
@@ -51,7 +54,9 @@ $$
 
 **핵심 통찰**: 서로 다른 과제의 손실 지형은 대체로 맞물려 있지 않다. $\mathcal{L}_\tau$의 가장 낮은 곳으로 다가가면 대개 앞선 과제 손실의 가장 낮은 곳에서 멀어진다.
 
-## 기하학적 해석
+---
+
+## 3. 기하학적 해석
 
 ### 매개변수 공간에서 보기
 
@@ -84,7 +89,9 @@ $$
 2. 옛 과제의 **과제마다의 특징**이 덮어써질 수 있다
 3. **용량 배분**이 최근 과제 쪽으로 쏠린다
 
-## 실험으로 보이기
+---
+
+## 4. 실험으로 보이기
 
 ### Split MNIST 잣대
 
@@ -303,7 +310,9 @@ if __name__ == "__main__":
 3. 평균 잊음은 대개 40~50%이다.
 4. 마지막 평균 정확도는 함께 익혔을 때보다 훨씬 낮다.
 
-## 잊음의 심함을 좌우하는 요인
+---
+
+## 5. 잊음의 심함을 좌우하는 요인
 
 ### 망의 구조
 
@@ -332,7 +341,9 @@ if __name__ == "__main__":
 | **배치 크기** | 다다르는 골의 날카로움을 좌우할 수 있다 |
 | **최적화기** | 적응 방법은 다른 골로 모일 수 있다 |
 
-## 이론적 분석
+---
+
+## 6. 이론적 분석
 
 ### 선형 망
 
@@ -366,7 +377,9 @@ $$
 
 이는 한 과제가 나아지면 다른 과제가 나빠진다는 뜻이다. 이 음의 안곱이 클수록 잊음이 심하다.
 
-## 안정성과 말랑함의 딜레마
+---
+
+## 7. 안정성과 말랑함의 딜레마
 
 파국적 잊음은 배우는 체계에 깃든 근본적인 팽팽함을 비춘다.
 
@@ -391,7 +404,9 @@ $$
 
 이런 생물학의 통찰이 여러 이어 배우기 알고리즘에 영감을 주었다.
 
-## 잊음 그려 보기
+---
+
+## 8. 잊음 그려 보기
 
 ```python
 def visualize_forgetting(accuracy_matrix, task_classes):
@@ -441,7 +456,9 @@ def visualize_forgetting(accuracy_matrix, task_classes):
     plt.show()
 ```
 
-## 실전에 주는 뜻
+---
+
+## 9. 실전에 주는 뜻
 
 ### 파국적 잊음이 중요할 때
 
@@ -458,31 +475,7 @@ def visualize_forgetting(accuracy_matrix, task_classes):
 3. **새로 시작하기**: 지난 앎을 일부러 버릴 때
 4. **옮김만 중요할 때**: 앞으로의 옮김만 중요할 때(미세 조정)
 
-## 요약
-
-파국적 잊음은 이어 배우기 방법이 반드시 다루어야 할 한가운데의 어려움이다.
-
-- **정의**: 새 과제를 배울 때 옛 과제의 성능이 크게 떨어지는 일
-- **까닭**: 옥죄지 않은 최적화가 중요한 가중치를 덮어쓴다
-- **심함**: Split MNIST 잣대에서 대개 정확도가 40~60% 떨어진다
-- **근본**: 배우는 체계의 안정성-말랑함 딜레마를 비춘다
-
-뒤이은 절들은 파국적 잊음을 누그러뜨리는 여러 접근법을 내보이는데, 저마다 다음 사이에서 다른 맞바꿈을 준다.
-
-- 기억 효율(지난 보기를 담아 두느냐 마느냐)
-- 셈 비용(앞먹임과 되돌림을 더 하느냐)
-- 사생활 지키기(데이터를 담아 두지 않기)
-- 규모 확장성(잇단 과제를 많이 다루기)
-
-## 참고 문헌
-
-1. McCloskey, M., & Cohen, N. J. (1989). Catastrophic interference in connectionist networks: The sequential learning problem. *Psychology of Learning and Motivation*, 24, 109-165.
-
-2. French, R. M. (1999). Catastrophic forgetting in connectionist networks. *Trends in Cognitive Sciences*, 3(4), 128-135.
-
-3. Goodfellow, I. J., Mirza, M., Xiao, D., Courville, A., & Bengio, Y. (2013). An empirical investigation of catastrophic forgetting in gradient-based neural networks. *arXiv preprint arXiv:1312.6211*.
-
-4. Kemker, R., McClure, M., Abitino, A., Hayes, T., & Kanan, C. (2018). Measuring catastrophic forgetting in neural networks. *AAAI Conference on Artificial Intelligence*.
+---
 
 ## 연습문제
 
@@ -516,3 +509,29 @@ def visualize_forgetting(accuracy_matrix, task_classes):
 
 ??? success "연습문제 4 풀이"
     모델은 새 과제를 배울 만큼 말랑하면서도 옛 과제를 지닐 만큼 안정되어야 한다. 안정성이 지나치면 새 과제를 배우지 못한다(모자란 맞춤). 말랑함이 지나치면 옛 과제를 잊는다(파국적 잊음). 모든 이어 배우기 방법은 이 두 목표를 맞바꾼다.
+
+## 정리하며
+
+파국적 잊음은 이어 배우기 방법이 반드시 다루어야 할 한가운데의 어려움이다.
+
+- **정의**: 새 과제를 배울 때 옛 과제의 성능이 크게 떨어지는 일
+- **까닭**: 옥죄지 않은 최적화가 중요한 가중치를 덮어쓴다
+- **심함**: Split MNIST 잣대에서 대개 정확도가 40~60% 떨어진다
+- **근본**: 배우는 체계의 안정성-말랑함 딜레마를 비춘다
+
+뒤이은 절들은 파국적 잊음을 누그러뜨리는 여러 접근법을 내보이는데, 저마다 다음 사이에서 다른 맞바꿈을 준다.
+
+- 기억 효율(지난 보기를 담아 두느냐 마느냐)
+- 셈 비용(앞먹임과 되돌림을 더 하느냐)
+- 사생활 지키기(데이터를 담아 두지 않기)
+- 규모 확장성(잇단 과제를 많이 다루기)
+
+**참고 문헌**
+
+1. McCloskey, M., & Cohen, N. J. (1989). Catastrophic interference in connectionist networks: The sequential learning problem. *Psychology of Learning and Motivation*, 24, 109-165.
+
+2. French, R. M. (1999). Catastrophic forgetting in connectionist networks. *Trends in Cognitive Sciences*, 3(4), 128-135.
+
+3. Goodfellow, I. J., Mirza, M., Xiao, D., Courville, A., & Bengio, Y. (2013). An empirical investigation of catastrophic forgetting in gradient-based neural networks. *arXiv preprint arXiv:1312.6211*.
+
+4. Kemker, R., McClure, M., Abitino, A., Hayes, T., & Kanan, C. (2018). Measuring catastrophic forgetting in neural networks. *AAAI Conference on Artificial Intelligence*.

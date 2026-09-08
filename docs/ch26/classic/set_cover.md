@@ -2,7 +2,9 @@
 
 **모임 덮기** 문제는 가장 바탕이 되는 NP-어려운 가장 좋게 하기 문제 가운데 하나이다. 어렵지만 단순한 욕심쟁이 알고리즘이 $O(\ln n)$ 어림 비율을 이루며, 이는 사실상 어떤 다항식 시간 알고리즘도 넘지 못하는 수준이다.
 
-## 문제의 정의
+---
+
+## 1. 문제의 정의
 
 온 모임 $U = \{1, 2, \dots, n\}$과 모임 묶음 $\mathcal{S} = \{S_1, S_2, \dots, S_m\}$이 주어지고 $S_j \subseteq U$이며 모임마다 비용 $c_j > 0$이 있을 때 다음을 채우는 아래 묶음 $\mathcal{C} \subseteq \mathcal{S}$을 찾아라.
 
@@ -12,7 +14,9 @@ $$
 
 그리고 온 비용 $\sum_{S_j \in \mathcal{C}} c_j$이 가장 작다.
 
-## 욕심쟁이 알고리즘
+---
+
+## 2. 욕심쟁이 알고리즘
 
 **직관.** 걸음마다 *새로 덮는 낱개마다 비용*이 가장 낮은 모임을 고른다. 이 비용 대비 효과 잣대는 보태는 것에 견주어 헤픈 모임이 골리지 않게 한다.
 
@@ -25,7 +29,9 @@ $$
     - $S_j$을 $\mathcal{C}$에 더하고 $R \leftarrow R \setminus S_j$으로 고친다
 3. $\mathcal{C}$을 돌려준다
 
-## 풀이 예제
+---
+
+## 3. 풀이 예제
 
 비용이 1인 모임 $S_1 = \{1, 2, 3\}$, $S_2 = \{2, 4, 5\}$, $S_3 = \{3, 5, 6\}$, $S_4 = \{1, 4, 6\}$과 함께 $U = \{1, 2, 3, 4, 5, 6\}$을 보자.
 
@@ -37,7 +43,9 @@ $$
 
 욕심쟁이는 온 비용 $3$인 $\{S_1, S_2, S_3\}$을 고른다. 가장 좋은 풀이는 $\{S_1, S_2, S_3\}$이나 $\{S_2, S_4, S_1\}$이며 비용도 $3$이다. 이 경우 욕심쟁이 풀이가 가장 좋다.
 
-## 어림 보장
+---
+
+## 4. 어림 보장
 
 !!! tip "정리"
     욕심쟁이 알고리즘은 어림 비율 $H_n$을 이루며 여기서 $H_n = \sum_{k=1}^n \frac{1}{k} \le \ln n + 1$은 $n$번째 조화수이다.
@@ -55,17 +63,20 @@ $$
 
 이 부등식은 낱개 $n_t - n_{t+1}$개를 저마다 값 $\text{OPT}/n_t$으로 덮는 것이 많아야 $\text{OPT} \cdot \sum_{j=n_{t+1}+1}^{n_t} 1/j$이므로 따라 나온다. 망원경처럼 더하면 $H_n$이 된다. $\square$
 
-## 어림할 수 없음
+---
+
+## 5. 어림할 수 없음
 
 Dinur와 Steurer(2014)는 P = NP가 아니라면 모임 덮기를 어떤 $\epsilon > 0$에 대해서도 $(1 - \epsilon) \ln n$ 안으로 어림할 수 없음을 보였다. 따라서 욕심쟁이 알고리즘은 사실상 가장 좋다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
 모임 덮기: 욕심쟁이 H_n 어림 알고리즘.
 """
-
 
 # === 욕심쟁이 모임 덮기 =======================================================
 
@@ -107,13 +118,11 @@ def greedy_set_cover(universe, sets, costs):
 
     return total_cost, selected
 
-
 # === 조화수 ==================================================================
 
 def harmonic(n):
     """Compute H_n = 1 + 1/2 + ... + 1/n."""
     return sum(1.0 / k for k in range(1, n + 1))
-
 
 # === 보여 주기 ===============================================================
 
@@ -137,19 +146,7 @@ if __name__ == "__main__":
     print(f"Guarantee:     <= {harmonic(n) * 8:.1f} (if OPT=8)")
 ```
 
-## 요약
-
-| 성질 | 값 |
-|---|---|
-| 어림 비율 | $H_n \le \ln n + 1$ |
-| 시간 복잡도 | 되풀이마다 $O(n \cdot m)$, 모두 $O(n^2 m)$ |
-| 빡빡한가? | 그렇다 — $(1 - \epsilon)\ln n$보다 잘할 수 없다 |
-
-## 참고 문헌
-
-- Chvatal, V. "A Greedy Heuristic for the Set-Covering Problem." *Math. of Operations Research*, 1979.
-- Dinur, I. and Steurer, D. "Analytical Approach to Parallel Repetition." *STOC*, 2014.
-- Vazirani, V. V. *Approximation Algorithms*. Springer, 2001. Chapter 2.
+---
 
 ## 연습문제
 
@@ -182,3 +179,17 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$
+
+## 정리하며
+
+| 성질 | 값 |
+|---|---|
+| 어림 비율 | $H_n \le \ln n + 1$ |
+| 시간 복잡도 | 되풀이마다 $O(n \cdot m)$, 모두 $O(n^2 m)$ |
+| 빡빡한가? | 그렇다 — $(1 - \epsilon)\ln n$보다 잘할 수 없다 |
+
+**참고 문헌**
+
+- Chvatal, V. "A Greedy Heuristic for the Set-Covering Problem." *Math. of Operations Research*, 1979.
+- Dinur, I. and Steurer, D. "Analytical Approach to Parallel Repetition." *STOC*, 2014.
+- Vazirani, V. V. *Approximation Algorithms*. Springer, 2001. Chapter 2.

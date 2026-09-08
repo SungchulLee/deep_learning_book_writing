@@ -3,7 +3,7 @@
 
 ---
 
-## 학습 목표
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
@@ -14,7 +14,7 @@
 
 ---
 
-## KL 벌어짐: 정의와 성질
+## 2. KL 벌어짐: 정의와 성질
 
 ### 정의
 
@@ -39,7 +39,7 @@ $$D_{KL}(q \| p) = -\mathbb{E}_q\left[\log \frac{p(x)}{q(x)}\right] \geq -\log \
 
 ---
 
-## 엔트로피와 엇갈린 엔트로피의 관계
+## 3. 엔트로피와 엇갈린 엔트로피의 관계
 
 ### 근본 관계
 
@@ -55,7 +55,7 @@ $D_{KL} \geq 0$이므로 엇갈린 엔트로피는 늘 엔트로피 이상이다
 
 ---
 
-## 순방향 KL과 역방향 KL
+## 4. 순방향 KL과 역방향 KL
 
 ### 앞 KL: D_KL(p || q)|KL(p || q) — 평균을 좇음
 
@@ -77,7 +77,7 @@ $$D_{KL}(q \| p) = \mathbb{E}_q\left[\log \frac{q(x)}{p(x)}\right]$$
 
 ---
 
-## 정규분포의 KL 발산
+## 5. 정규분포의 KL 발산
 
 ### 한 변수 경우
 
@@ -113,7 +113,7 @@ $$D_{KL}(q \| p) = -\frac{1}{2}\sum_{j=1}^{d}(1 + \log\sigma_j^2 - \mu_j^2 - \si
 
 ---
 
-## PyTorch 구현
+## 6. PyTorch 구현
 
 ```python
 import torch
@@ -132,7 +132,6 @@ def kl_divergence_standard_normal(mu, logvar):
         표본마다의 KL 벌어짐 [묶음 크기]
     """
     return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)
-
 
 def kl_divergence_two_gaussians(mu1, logvar1, mu2, logvar2):
     """
@@ -154,7 +153,6 @@ def kl_divergence_two_gaussians(mu1, logvar1, mu2, logvar2):
                  + (mu1 - mu2).pow(2) / var2 - 1)
     return kl.sum(dim=1)
 
-
 def kl_per_dimension(mu, logvar):
     """
     숨은 차원마다의 KL 벌어짐 몫.
@@ -173,7 +171,7 @@ def kl_per_dimension(mu, logvar):
 
 ---
 
-## KL 항 살피기
+## 7. KL 항 살피기
 
 ### KL이 0일 때
 
@@ -213,7 +211,7 @@ def analyze_kl_dimensions(model, data_loader, device):
 
 ---
 
-## 서로 앎과의 이음
+## 8. 서로 앎과의 이음
 
 자료 분포에 걸친 KL의 기댓값은 서로 앎과 맞닿는다:
 
@@ -223,21 +221,11 @@ $$\mathbb{E}_{p_{\text{data}}(x)}[D_{KL}(q_\phi(z|x) \| p(z))] = I_q(X; Z) + D_{
 
 ---
 
-## 요약
-
-| 개념 | 식 | 변분 자기 부호기에서의 노릇 |
-|---------|---------|-------------|
-| **표준 정규 분포로의 KL** | $-\frac{1}{2}\sum(1 + \log\sigma^2 - \mu^2 - \sigma^2)$ | 벌주기 항 |
-| **앞 KL** | $D_{KL}(p \| q)$ | 평균을 좇음(변분 자기 부호기에서는 쓰지 않는다) |
-| **뒤 KL** | $D_{KL}(q \| p)$ | 최빈값 찾기(VAE 익히기) |
-| **KL = 0** | $q(z\|x) = p(z)$ | 사후 분포 무너짐 |
-| **쪼개기** | $\text{서로 앎} + \text{가장자리 KL}$ | 앎 이론의 관점 |
-
----
-
-## 다음은
+## 9. 다음은
 
 다음 절은 증거 하한의 가능도 조각과 여러 풀개 분포 고름을 다루는 다시 세우기 항을 살핀다.
+
+---
 
 ## 연습문제
 
@@ -252,5 +240,17 @@ $$\mathbb{E}_{p_{\text{data}}(x)}[D_{KL}(q_\phi(z|x) \| p(z))] = I_q(X; Z) + D_{
 ### 익힘 3: 앞 KL과 뒤 KL 견주기
 
 봉우리 둘인 목표 $p(x) = 0.5\mathcal{N}(-3, 1) + 0.5\mathcal{N}(3, 1)$과 정규 어림 $q(x) = \mathcal{N}(\mu, \sigma^2)$에 대해 앞 KL과 뒤 KL 아래에서 가장 좋은 $q$을 수치로 찾아라. 차이를 그려 보아라.
+
+---
+
+## 정리하며
+
+| 개념 | 식 | 변분 자기 부호기에서의 노릇 |
+|---------|---------|-------------|
+| **표준 정규 분포로의 KL** | $-\frac{1}{2}\sum(1 + \log\sigma^2 - \mu^2 - \sigma^2)$ | 벌주기 항 |
+| **앞 KL** | $D_{KL}(p \| q)$ | 평균을 좇음(변분 자기 부호기에서는 쓰지 않는다) |
+| **뒤 KL** | $D_{KL}(q \| p)$ | 최빈값 찾기(VAE 익히기) |
+| **KL = 0** | $q(z\|x) = p(z)$ | 사후 분포 무너짐 |
+| **쪼개기** | $\text{서로 앎} + \text{가장자리 KL}$ | 앎 이론의 관점 |
 
 ---

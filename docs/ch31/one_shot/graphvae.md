@@ -1,9 +1,10 @@
 # GraphVAE
-## 개요
 
 GraphVAE(Simonovsky & Komodakis, 2018)은 변분 스스로 담개 틀을 한 번에 만드는 그래프 만들기에 쓴다. 담개는 그래프 신경망으로 그래프를 숨은 분포로 옮기고, 풀개는 뽑은 숨은 벡터에서 이웃 행렬 전체와 마디 특징을 되짓는다. 핵심 새로움은 (1) 표준 차례 없이 자리바꿈에 안 바뀜을 다루는 그래프 짝짓기 손실과 (2) 그래프 위상과 마디·변 속성을 한꺼번에 만드는 확률 풀개다.
 
-## 구조
+---
+
+## 1. 구조
 
 ### 부호기
 
@@ -49,7 +50,9 @@ $$
 \hat{\mathbf{X}} = \text{MLP}_{\text{feat}}(\mathbf{z}) \in \mathbb{R}^{n_{\max} \times d_x}
 $$
 
-## 그래프 짝짓기 손실
+---
+
+## 2. 그래프 짝짓기 손실
 
 GraphVAE의 한가운데 이바지는 드러난 그래프 짝짓기로 자리바꿈에 안 바뀜을 다루는 것이다. 헤아린 그래프 $\hat{\mathcal{G}}$과 과녁 그래프 $\mathcal{G}^*$이 주어지면 최대 무게 두 쪽 짝짓기 문제를 풀어 가장 좋은 자리바꿈 $\pi^*$을 찾는다.
 
@@ -67,7 +70,9 @@ $$
 
 헝가리 알고리즘으로 때 $O(n_{\max}^3)$에 셈한다.
 
-## 증거 아래 가둠 목표
+---
+
+## 3. 증거 아래 가둠 목표
 
 익히기 손실은 그래프 짝짓기 되짓기 항을 가진 증거 아래 가둠이다:
 
@@ -83,7 +88,9 @@ $$
 
 항마다 짝짓기 걸음에서 자리를 맞춘 과녁을 쓴다.
 
-## 한계
+---
+
+## 4. 한계
 
 **커지기.** 이웃 내놓기가 $O(n_{\max}^2)$이고 짝짓기 셈이 $O(n_{\max}^3)$이어서 GraphVAE은 비교적 작은 그래프(보통 $n_{\max} \leq 40$)에 갇힌다.
 
@@ -91,11 +98,15 @@ $$
 
 **사후 분포 무너짐.** 여느 변분 스스로 담개처럼 모델이 숨은 변수를 무시하고 평균처럼 보이는 그래프를 낼 수 있다. 풀개가 너무 세거나 쿨백-라이블러의 $\beta$ 무게가 너무 클 때 특히 그렇다.
 
-## 금융 쓰임새: 금융 그물의 숨은 자리
+---
+
+## 5. 금융 쓰임새: 금융 그물의 숨은 자리
 
 GraphVAE의 숨은 자리는 금융 그물 위상의 이어진 나타냄을 준다. 담긴 금융 그물 둘 $\mathbf{z}_1$과 $\mathbf{z}_2$ 사이의 사이 값을 내면 짜임 사이를 매끄럽게 오가는 중간 위상이 나온다. 그물 얼개를 여느 국면에서 버거운 국면으로 차츰 옮기는 버거움 시험 상황에 쓸모 있다.
 
-## 짜기: GraphVAE
+---
+
+## 6. 짜기: GraphVAE
 
 ```python
 """
@@ -106,7 +117,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from scipy.optimize import linear_sum_assignment
 import numpy as np
-
 
 class GraphEncoder(nn.Module):
     """GraphVAE의 그래프 신경망 바탕 그래프 담개."""
@@ -156,7 +166,6 @@ class GraphEncoder(nn.Module):
         mu = self.mu_head(h_graph)
         logvar = self.logvar_head(h_graph)
         return mu, logvar
-
 
 class GraphDecoder(nn.Module):
     """이웃 행렬, 특징, 마디 가리개를 만드는 풀개."""
@@ -217,7 +226,6 @@ class GraphDecoder(nn.Module):
         node_feat = self.feat_head(h).view(B, n, self.node_feature_dim)
 
         return adj, node_prob, node_feat
-
 
 class GraphVAE(nn.Module):
     """
@@ -417,7 +425,6 @@ class GraphVAE(nn.Module):
 
         return graphs
 
-
 if __name__ == "__main__":
     torch.manual_seed(42)
 
@@ -495,6 +502,8 @@ if __name__ == "__main__":
         print(f"Step {i}: {n} nodes, {e} edges, density={density:.3f}")
 ```
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -526,3 +535,7 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
+
+## 정리하며
+
+이 마당은 구조、그래프 짝짓기 손실、증거 아래 가둠 목표、한계을 차례로 짚었다.

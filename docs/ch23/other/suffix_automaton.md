@@ -2,7 +2,9 @@
 
 **뒷가지 자동 기계**(방향 있는 돌기 없는 낱말 그래프, DAWG라고도 한다)는 주어진 글줄의 뒷가지만을 정확히 받아들이는 가장 작은 결정 유한 자동 기계이다. $O(n)$ 시간과 공간에 세울 수 있고 부분 글줄 묻기, 서로 다른 부분 글줄 세기, 최장 공통 부분 글줄 찾기를 모두 효율 좋게 되게 한다.
 
-## 핵심 성질
+---
+
+## 1. 핵심 성질
 
 길이 $n$인 글줄 $s$에 대해:
 
@@ -10,13 +12,17 @@
 - 글줄 $w$을 받아들일 필요충분조건은 $w$이 $s$의 부분 글줄인 것이다.
 - 상태마다 $s$에서 끝나는 자리의 모임이 같은 부분 글줄의 **동치류**를 뜻한다.
 
-## 끝자리 모임과 동치류
+---
+
+## 2. 끝자리 모임과 동치류
 
 $\text{endpos}(w)$을 $s$에서 부분 글줄 $w$이 끝나는 자리의 모임이라 정하자. $\text{endpos}(u) = \text{endpos}(v)$이면 부분 글줄 $u$과 $v$은 같은 동치류에 든다.
 
 뒷가지 자동 기계의 상태마다 동치류 하나에 맞닿는다. 상태의 **뒷가지 이음**은 다른 동치류에 드는 가장 긴 진뒷가지를 뜻하는 상태를 가리킨다.
 
-## 온라인 세우기
+---
+
+## 3. 온라인 세우기
 
 뒷가지 자동 기계는 한 번에 글자 하나씩 더하며 조금씩 세운다. $s[0 \ldots i-1]$의 자동 기계에 글자 $c$을 더할 때:
 
@@ -24,7 +30,9 @@ $\text{endpos}(w)$을 $s$에서 부분 글줄 $w$이 끝나는 자리의 모임�
 2. 앞선 온전한 글줄을 뜻하는 상태에서 시작해 뒷가지 이음을 따라가며 `cur`으로 가는 글자 $c$ 옮아감을 더한다.
 3. 어떤 조상에서 글자 $c$ 옮아감이 이미 있으면 목표 상태를 베껴 `cur`의 뒷가지 이음을 다룬다.
 
-## 파이썬 구현
+---
+
+## 4. 파이썬 구현
 
 ```python
 """
@@ -34,7 +42,6 @@ $\text{endpos}(w)$을 $s$에서 부분 글줄 $w$이 끝나는 자리의 모임�
 부분 글줄 살피기, 서로 다른 부분 글줄 세기,
 최장 공통 부분 글줄 찾기를 받친다.
 """
-
 
 # === 상태 갈래 ===
 
@@ -46,7 +53,6 @@ class State:
         self.link = -1        # 뒷가지 이음
         self.transitions: dict[str, int] = {}
         self.count = 0        # 끝자리 모임이 바뀌는 횟수
-
 
 # === 뒷가지 자동 기계 ===
 
@@ -120,7 +126,6 @@ class SuffixAutomaton:
             total += state.length - link_len
         return total
 
-
 # === 최장 공통 부분 글줄 ===
 
 def longest_common_substring(s1: str, s2: str) -> str:
@@ -151,7 +156,6 @@ def longest_common_substring(s1: str, s2: str) -> str:
 
     return s2[best_end - best_len + 1:best_end + 1]
 
-
 # === 메인 ===
 
 if __name__ == "__main__":
@@ -180,7 +184,9 @@ if __name__ == "__main__":
     # 'abcdef'과 'zbcdf'의 최장 공통 부분 글줄: 'bcd'
 ```
 
-## 복잡도
+---
+
+## 5. 복잡도
 
 | 연산 | 시간 | 공간 |
 |---|---|---|
@@ -189,9 +195,7 @@ if __name__ == "__main__":
 | 서로 다른 부분 글줄 세기 | $O(n)$ | — |
 | 최장 공통 부분 글줄 | $O(n + m)$ | $O(n)$ |
 
-## 참고 문헌
-
-- Blumer, A., Blumer, J., Haussler, D., McConnell, R., & Ehrenfeucht, A. (1987). Complete inverted files for efficient text retrieval and analysis. *Journal of the ACM*, 34(3), 578-595.
+---
 
 ## 연습문제
 
@@ -224,3 +228,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$
+
+## 정리하며
+
+이 마당은 핵심 성질、끝자리 모임과 동치류、온라인 세우기、파이썬 구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Blumer, A., Blumer, J., Haussler, D., McConnell, R., & Ehrenfeucht, A. (1987). Complete inverted files for efficient text retrieval and analysis. *Journal of the ACM*, 34(3), 578-595.

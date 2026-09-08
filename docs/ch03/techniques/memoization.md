@@ -2,7 +2,9 @@
 
 메모화(memoization)는 비용이 큰 재귀 호출의 결과를 저장해 두었다가 같은 입력이 다시 오면 캐시된 결과를 반환하는 기법이다. 중복 계산을 없앰으로써 지수 시간 재귀 알고리즘을 다항 시간으로 바꾼다. 동적 계획법의 핵심 통찰이 바로 이것이다.
 
-## 문제: 중복 계산
+---
+
+## 1. 문제: 중복 계산
 
 소박한 재귀 피보나치는 같은 값을 거듭 계산한다. 예를 들어 `fib(5)`는 `fib(3)`을 두 번, `fib(2)`를 세 번 호출한다.
 
@@ -10,13 +12,14 @@ $$
 T(n) = T(n-1) + T(n-2) + O(1) \implies T(n) = O(2^n)
 $$
 
-## 해결책: 결과를 캐시하기
+---
+
+## 2. 해결책: 결과를 캐시하기
 
 계산한 결과를 사전에 저장한다. 재귀하기 전에 답이 이미 캐시되어 있는지 확인한다.
 
 ```python
 """피보나치 수로 보여주는 메모화."""
-
 
 # === 메모화 없는 피보나치 ===
 
@@ -25,7 +28,6 @@ def fib_naive(n):
     if n <= 1:
         return n
     return fib_naive(n - 1) + fib_naive(n - 2)
-
 
 # === 메모화를 쓰는 피보나치 ===
 
@@ -39,7 +41,6 @@ def fib_memo(n, cache=None):
         return n
     cache[n] = fib_memo(n - 1, cache) + fib_memo(n - 2, cache)
     return cache[n]
-
 
 # === 메인 ===
 
@@ -58,7 +59,9 @@ With memoization:
   fib(40) = 102334155
 ```
 
-## 복잡도 개선
+---
+
+## 3. 복잡도 개선
 
 | 접근 | 시간 | 공간 |
 |---|---|---|
@@ -67,14 +70,13 @@ With memoization:
 
 각 부분문제가 한 번만 풀리므로 메모화는 시간을 지수에서 선형으로 줄인다. 공간 비용은 항목을 $O(n)$개 저장하는 캐시이다.
 
-## 메모화를 언제 쓰는가
+---
+
+## 4. 메모화를 언제 쓰는가
 
 메모화는 재귀 함수에 **중복되는 부분문제** 가 있을 때, 즉 같은 입력을 여러 번 마주칠 때 효과적이다. 동적 계획법의 하향식 접근법이다.
 
-## 참고 문헌
-
-[Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -107,3 +109,11 @@ With memoization:
 
 ??? success "연습문제 4 풀이"
     서로 다른 부분문제는 $0 \leq j \leq i \leq n$인 모든 쌍 $(i, j)$이며 총 $\binom{n+1}{2} = O(n^2)$개이다. 각각은 $O(1)$의 비용으로 한 번씩 계산된다. 총합은 시간과 공간 모두 $O(n^2)$이다. 메모화가 없으면 재귀는 피보나치와 마찬가지로 지수적인 중복을 가진다.
+
+## 정리하며
+
+이 마당은 문제: 중복 계산、해결책: 결과를 캐시하기、복잡도 개선、메모화를 언제 쓰는가을 차례로 짚었다.
+
+**참고 문헌**
+
+[Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

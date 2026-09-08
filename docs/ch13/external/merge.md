@@ -2,7 +2,9 @@
 
 보통의 정렬 알고리즘은 데이터셋 전체가 주 기억에 들어간다고 놓는다. 데이터가 너무 클 때, 이를테면 램이 4GB인 기계에서 100GB짜리 기록 파일을 다룰 때는 디스크(또는 다른 보조 저장 장치)를 써서 정렬해야 한다. 디스크 입출력은 기억을 훑는 것보다 자릿수 단위로 느리므로, 알고리즘의 목표는 견줌을 줄이는 데서 **디스크 읽기와 쓰기** 횟수를 줄이는 데로 옮겨 간다. **바깥 병합 정렬**이 이런 상황의 고전적인 알고리즘이다.
 
-## 바깥 기억 모형
+---
+
+## 1. 바깥 기억 모형
 
 이 살핌은 매개변수 셋을 지닌 **바깥 기억 자리(입출력) 모형**을 쓴다.
 
@@ -14,7 +16,9 @@
 
 입출력 연산 한 번은 원소 $B$개짜리 블록 하나를 읽거나 쓴다. 목표는 입출력 연산의 총 횟수를 가장 작게 하는 것이다.
 
-## 알고리즘 훑어보기
+---
+
+## 2. 알고리즘 훑어보기
 
 바깥 병합 정렬은 두 단계로 나아간다.
 
@@ -40,7 +44,9 @@
 
 병합 훑기마다 원소 $N$개를 모두 읽고 쓰므로 $2 \lceil N / B \rceil$번의 입출력이 든다. 훑기의 수는 $\lceil \log_2 (N / M) \rceil$이다.
 
-## 입출력 복잡도
+---
+
+## 3. 입출력 복잡도
 
 $$
 \text{I/O}(N, M, B) = O\!\left(\frac{N}{B} \log_2 \frac{N}{M}\right)
@@ -54,7 +60,9 @@ $$
 \text{I/O}(N, M, B) = O\!\left(\frac{N}{B} \log_{M/B} \frac{N}{M}\right)
 $$
 
-## 풀이 예제
+---
+
+## 4. 풀이 예제
 
 $M = 1{,}000$, $B = 100$으로 원소 $N = 10{,}000$개를 정렬해 보자.
 
@@ -68,11 +76,15 @@ $M = 1{,}000$, $B = 100$으로 원소 $N = 10{,}000$개를 정렬해 보자.
 
 모두: $200 + 4 \times 200 = 1{,}000$번의 입출력이다(원소마다 따로 접근했다면 $100{,}000$번이었을 것이다).
 
-## 이중 버퍼 두기
+---
+
+## 5. 이중 버퍼 두기
 
 실전에서 쓰는 손질로 **이중 버퍼 두기**가 있다. 기억 속의 입력 블록 하나를 다루는 동안 다음 블록을 디스크에서 따로 읽어 온다. 이렇게 하면 셈과 입출력이 겹쳐 디스크가 쉼 없이 일한다.
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -87,7 +99,6 @@ $M = 1{,}000$, $B = 100$으로 원소 $N = 10{,}000$개를 정렬해 보자.
 import heapq
 import tempfile
 import os
-
 
 # === 런 만들기 ==============================================================
 
@@ -107,7 +118,6 @@ def _create_sorted_runs(
                 f.write(f"{val}\n")
         runs.append(path)
     return runs
-
 
 # === 두 갈래 병합 =============================================================
 
@@ -131,7 +141,6 @@ def _merge_two_runs(path_a: str, path_b: str, output_path: str) -> str:
             out.write(b)
             b = fb.readline()
     return output_path
-
 
 # === 바깥 병합 정렬 ===========================================================
 
@@ -174,7 +183,6 @@ def external_merge_sort(data: list[int], memory_size: int) -> list[int]:
         with open(runs[0]) as f:
             return [int(line) for line in f]
 
-
 # === 시연 ===================================================================
 
 if __name__ == "__main__":
@@ -201,11 +209,7 @@ Runs created:      5
 Merge passes:      3
 ```
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 8장. MIT Press.
-- Vitter, J. S. (2001). External memory algorithms and data structures: dealing with massive data. *ACM Computing Surveys*, 33(2), 209-271.
-
+---
 
 ## 연습문제
 
@@ -238,3 +242,12 @@ Merge passes:      3
 
 ??? success "연습문제 4 풀이"
     응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.
+
+## 정리하며
+
+이 마당은 바깥 기억 모형、알고리즘 훑어보기、입출력 복잡도、풀이 예제을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 8장. MIT Press.
+- Vitter, J. S. (2001). External memory algorithms and data structures: dealing with massive data. *ACM Computing Surveys*, 33(2), 209-271.

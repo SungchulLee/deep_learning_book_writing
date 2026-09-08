@@ -1,7 +1,9 @@
 # 비결정에서 결정 유한 자동 기계로
 부분 모임 세우기(멱집합 세우기라고도 한다)는 비결정 유한 자동 기계를 그와 같은 결정 유한 자동 기계로 바꾼다. 상태 $n$개인 비결정 유한 자동 기계에서 나온 결정 유한 자동 기계의 상태는 많아야 $2^n$개이지만 실전에서는 대개 훨씬 작다.
 
-## 알고리즘: 부분 모임 세우기
+---
+
+## 1. 알고리즘: 부분 모임 세우기
 
 결정 유한 자동 기계의 상태마다 비결정 유한 자동 기계 상태의 모임에 맞닿는다. 시작 상태는 비결정 유한 자동 기계 시작 상태의 엡실론 닫힘이다. 상태 $S$과 들임 글자 $a$마다 옮아감은 $\bigcup_{s \in S} \delta(s, a)$의 엡실론 닫힘으로 간다.
 
@@ -67,13 +69,17 @@ print(f"DFA start: {sorted(start)}")
 print(f"Number of DFA states: {len({start} | {v for v in trans.values()})}")
 ```
 
-## 복잡도 분석
+---
+
+## 2. 복잡도 분석
 
 - **시간:** $n$이 비결정 유한 자동 기계 상태 수일 때 최악의 경우 $O(2^n \cdot |\Sigma|)$.
 - **공간:** 최악의 경우 결정 유한 자동 기계 상태가 $O(2^n)$개.
 - **실전에서:** 닿을 수 있는 상태의 수는 대개 $2^n$보다 훨씬 작다.
 
-## 최악의 경우 보기
+---
+
+## 3. 최악의 경우 보기
 
 말 $L_k = \{w \in \{a,b\}^* : \text{끝에서 } k\text{번째 기호가 } a\}$은 비결정 유한 자동 기계로는 상태가 $O(k)$개면 되지만 결정 유한 자동 기계로는 $2^k$개가 필요하다. 지수로 부풀어 오르는 것이 빡빡함을 보여 준다.
 
@@ -82,6 +88,8 @@ print(f"Number of DFA states: {len({start} | {v for v in trans.values()})}")
 [Introduction to Automata Theory - Hopcroft, Motwani, Ullman, Chapter 2](https://www.pearson.com/en-us/subject-catalog/p/introduction-to-automata-theory-languages-and-computation/P200000003517)
 
 [Subset Construction - Wikipedia](https://en.wikipedia.org/wiki/Powerset_construction)
+
+---
 
 ## 연습문제
 
@@ -114,3 +122,7 @@ print(f"Number of DFA states: {len({start} | {v for v in trans.values()})}")
 
 ??? success "연습문제 4 풀이"
     결정 유한 자동 기계 줄이기는 같은 상태(앞으로 올 모든 들임에 대해 몸가짐이 똑같은 상태)를 합쳐 같은 말을 알아보는 가장 작은 결정 유한 자동 기계를 낸다. **홉크로프트 알고리즘**: (1) 상태를 받아들이는 무리와 받아들이지 않는 무리로 나눈다. (2) 되풀이해 잘게 다듬는다. 곧 무리와 들임 기호마다 그 무리의 옮아감이 다른 무리로 가면 쪼갠다. (3) 더 쪼갤 무리가 없을 때까지 되풀이한다. 최소 결정 유한 자동 기계는 동치류마다 상태 하나를 갖는다. 시간: 상태 $n$개에 $O(n \log n)$. 줄이기는 어휘 분석기 짜기에서 기억 공간 줄이기, 정규 표현의 표준 견줌, 본 찾기 자동 기계 다듬기에 쓸모 있다.
+
+## 정리하며
+
+이 마당은 알고리즘: 부분 모임 세우기、복잡도 분석、최악의 경우 보기을 차례로 짚었다.

@@ -1,12 +1,17 @@
 # GPT 계열: 자기되돌리기 말 모델의 흐름
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - GPT-1에서 GPT-4까지의 흐름을 좇는다
 - 판마다의 얼개와 익히기 바뀜을 이해한다
 - 규모에서 떠오르는 능력을 가능하게 한 것을 살핀다
 - GPT 변종과 열린 소스 대안을 견준다
 
-## GPT-1: 미리 익히기로 말 이해하기(2018)
+---
+
+## 2. GPT-1: 미리 익히기로 말 이해하기(2018)
 
 ### 핵심 새로움
 
@@ -47,7 +52,9 @@ def gpt1_finetune_objective(lm_logits, task_logits, labels, lm_weight=0.5):
     return task_loss + lm_weight * lm_loss
 ```
 
-## GPT-2: 영 발 일 옮기기(2019)
+---
+
+## 3. GPT-2: 영 발 일 옮기기(2019)
 
 ### 핵심 새로움
 
@@ -96,7 +103,9 @@ def gpt2_zero_shot_translation():
     return generate(prompt)
 ```
 
-## GPT-3: 맥락 안에서 배우기(2020)
+---
+
+## 4. GPT-3: 맥락 안에서 배우기(2020)
 
 ### 핵심 새로움
 
@@ -166,7 +175,9 @@ def in_context_learning_demo():
 | Curie | 67억 | 좋은 균형 |
 | Davinci | 1750억 | 가장 좋은 품질 |
 
-## InstructGPT / GPT-3.5: 결 맞추기(2022)
+---
+
+## 5. InstructGPT / GPT-3.5: 결 맞추기(2022)
 
 ### 핵심 새로움
 
@@ -212,7 +223,9 @@ def instructgpt_training_stages():
 | 갚음 모델 | 견줌 약 3만 3천 |
 | PPO | 시킴말 약 3만 1천 |
 
-## GPT-4: 여러 갈래 능력(2023)
+---
+
+## 6. GPT-4: 여러 갈래 능력(2023)
 
 ### 핵심 새로움
 
@@ -272,7 +285,9 @@ def gpt4_vision_example():
     # - 도표와 그래프 살피기
 ```
 
-## 흐름 간추림
+---
+
+## 7. 흐름 간추림
 
 ```
 GPT-1 (2018)                GPT-2 (2019)
@@ -293,7 +308,9 @@ Multimodal input       →    Native audio/video
 Strongest reasoning         Real-time interaction
 ```
 
-## GPT 얼개 코드
+---
+
+## 8. GPT 얼개 코드
 
 ```python
 import torch
@@ -319,7 +336,6 @@ class GPTBlock(nn.Module):
         x = x + self.attn(self.ln1(x))
         x = x + self.mlp(self.ln2(x))
         return x
-
 
 class GPT(nn.Module):
     """GPT 언어 모형."""
@@ -361,7 +377,9 @@ class GPT(nn.Module):
         return logits, loss
 ```
 
-## 열린 모델과의 견줌
+---
+
+## 9. 열린 모델과의 견줌
 
 | 갈래 | GPT-4 | LLaMA-2 70B | Mistral 7B |
 |--------|-------|-------------|------------|
@@ -371,7 +389,9 @@ class GPT(nn.Module):
 | 물음당 값 | $$$ | 직접 띄우기 | 직접 띄우기 |
 | 곱게 다듬기 | API만 | 온전히 열림 | 온전히 열림 |
 
-## 핵심 정리
+---
+
+## 10. 핵심 정리
 
 1. **규모가 능력을 연다**: GPT 판마다 새 능력이 열렸다
 2. **시킴말이 나아왔다**: 곱게 다듬기 → 영 발 → 몇 발 → 맥락 안에서
@@ -379,13 +399,7 @@ class GPT(nn.Module):
 4. **얼개의 새로움**: 전문가 섞기가 규모를 더 키우게 할 수 있다
 5. **여러 갈래가 넓어진다**: 보기, 소리, 영상 아우르기
 
-## 참고 문헌
-
-1. Radford, A., et al. (2018). Improving Language Understanding by Generative Pre-Training.
-2. Radford, A., et al. (2019). Language Models are Unsupervised Multitask Learners.
-3. Brown, T., et al. (2020). Language Models are Few-Shot Learners.
-4. Ouyang, L., et al. (2022). Training language models to follow instructions with human feedback.
-5. OpenAI. (2023). GPT-4 기술 보고서.
+---
 
 ## 연습문제
 
@@ -424,3 +438,15 @@ GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 �
 
 ??? success "연습문제 4 풀이"
     맥락 안에서 배우기(ICL)는 큰 말 모델이 기울기를 조금도 고치지 않고 시킴말에 든 보기에 조건을 걸어 일을 해내는 힘이다. "Translate English to French: sea otter => loutre de mer, cheese => " 같은 시킴말을 주면 모델이 "fromage"를 올바로 내놓는다. 모델을 옮김에 대놓고 익힌 적이 없는데도 그렇다는 점이 놀랍다. 갖가지 글로 미리 익히는 동안 보기에서 일의 무늬를 미루는 법을 배운 것이다. **한계**: (1) 여러 걸음 따짐이 필요한 복잡한 일에서는 성능이 떨어진다. (2) 보기의 차례와 꼴에 민감하다. (3) 맥락 창의 길이에 매인다. (4) 특화된 일에서는 곱게 다듬은 성능에 못 미친다. (5) 그 얼개가 이론으로 온전히 밝혀지지 않았다.
+
+## 정리하며
+
+이 마당은 학습 목표、GPT-1: 미리 익히기로 말 이해하기(2018)、GPT-2: 영 발 일 옮기기(2019)、GPT-3: 맥락 안에서 배우기(2020)을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Radford, A., et al. (2018). Improving Language Understanding by Generative Pre-Training.
+2. Radford, A., et al. (2019). Language Models are Unsupervised Multitask Learners.
+3. Brown, T., et al. (2020). Language Models are Few-Shot Learners.
+4. Ouyang, L., et al. (2022). Training language models to follow instructions with human feedback.
+5. OpenAI. (2023). GPT-4 기술 보고서.

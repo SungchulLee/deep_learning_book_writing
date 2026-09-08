@@ -2,14 +2,18 @@
 
 트라이의 가장 강력한 특징 가운데 하나는 공통 접두사를 나누어 갖는 모든 문자열을 효율적으로 찾는 능력이다. 해시 표는 소속을 $O(1)$에 살필 수 있지만 항목을 모두 훑지 않고는 접두사로 문자열을 늘어놓을 수 없다. 트라이는 접두사 노드를 (접두사 길이를 $p$이라 할 때) $O(p)$ 시간에 짚고 자손을 모두 모아 접두사 기반 질의를 자연스럽고 효율적으로 만든다.
 
-## 알고리즘
+---
+
+## 1. 알고리즘
 
 접두사 찾기는 두 국면으로 나아간다.
 
 1. **접두사 노드까지 내려간다**: 뿌리에서 시작해 접두사의 글자에 해당하는 경로를 따라간다. 경로가 없으면 트라이에 그 접두사를 가진 문자열이 없다.
 2. **자손을 모두 모은다**: 접두사 노드에서 (깊이 우선 찾기 따위로) 잎 노드까지의 모든 경로를 훑으며 찾은 온전한 낱말을 모두 모은다.
 
-## 구현
+---
+
+## 2. 구현
 
 ```python
 """접두사 찾기를 갖춘 트라이 (자동 완성 방식으로 늘어놓기).
@@ -17,13 +21,11 @@
 주어진 접두사를 나누어 갖는 담긴 낱말을 모두 찾는 법을 보인다.
 """
 
-
 # === 트라이 노드와 트라이 ===
 class TrieNode:
     def __init__(self):
         self.children = {}
         self.end = False
-
 
 class Trie:
     def __init__(self):
@@ -61,7 +63,6 @@ class Trie:
         for c, child in sorted(node.children.items()):
             self._collect(child, path + c, results)
 
-
 # === 메인 ===
 if __name__ == "__main__":
     t = Trie()
@@ -79,7 +80,9 @@ Prefix 'ba': ['ball', 'ban', 'bat']
 Prefix 'xyz': []
 ```
 
-## 복잡도
+---
+
+## 3. 복잡도
 
 | 국면 | 시간 |
 |:---|:---:|
@@ -89,10 +92,7 @@ Prefix 'xyz': []
 
 여기서 $p$은 접두사의 길이이고 $k$은 맞는 낱말 전체의 글자 수이다. 맞는 낱말마다 적어도 한 번은 들러야 하므로 이것이 최적이다.
 
-## 참고 문헌
-
-[Introduction to Algorithms (CLRS), Chapter 14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
+---
 
 ## 연습문제
 
@@ -125,3 +125,11 @@ Prefix 'xyz': []
 
 ??? success "연습문제 4 풀이"
     응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.
+
+## 정리하며
+
+이 마당은 알고리즘、구현、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+[Introduction to Algorithms (CLRS), Chapter 14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

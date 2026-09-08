@@ -1,9 +1,10 @@
 # BERT: 트랜스포머 기반 양방향 인코더 표현
-## 들어가며
 
 BERT(트랜스포머 기반 양방향 인코더 표현)는 깊은 양방향 사전 학습을 들여와 자연어 처리를 뒤바꾸었다. 왼쪽에서 오른쪽으로만 읽거나 왼쪽에서 오른쪽 모형과 오른쪽에서 왼쪽 모형을 얕게 이어 붙이던 앞선 모형과 달리, BERT는 "가린 언어 모형"(MLM) 목표로 참된 양방향 표현 학습을 이룬다.
 
-## 핵심 혁신
+---
+
+## 1. 핵심 혁신
 
 ### 1. 양방향 맥락
 
@@ -22,7 +23,9 @@ BERT는 요즘의 두 단계 방식을 자리 잡게 했다.
 1. **사전 학습**: 이름표 없는 큰 말뭉치에서 일반적인 언어 표현을 배운다
 2. **미세 조정**: 구조를 거의 바꾸지 않고 특정 과제에 맞춘다
 
-## 구조
+---
+
+## 2. 구조
 
 BERT는 여러 층의 트랜스포머 인코더를 쓴다.
 
@@ -60,7 +63,9 @@ $$
 Segment A                Segment B           (Segment B)
 ```
 
-## 사전 학습 목표
+---
+
+## 3. 사전 학습 목표
 
 ### 1. 가린 언어 모형 (MLM)
 
@@ -115,7 +120,9 @@ BERT는 BooksCorpus(8억 낱말)와 영어 위키백과(25억 낱말)로 약 40 
 - **학습 시간**: TPU 칩 16개로 나흘(BERT-Base), TPU 칩 64개로 나흘(BERT-Large)
 - **어휘**: 토큰 30,522개의 WordPiece 토큰 나누개
 
-## PyTorch 구현
+---
+
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -605,7 +612,9 @@ if __name__ == "__main__":
     print(f"Classification loss: {cls_outputs['loss'].item():.4f}")
 ```
 
-## 아래쪽 과제를 위한 미세 조정
+---
+
+## 5. 아래쪽 과제를 위한 미세 조정
 
 ### 텍스트 분류
 
@@ -656,7 +665,9 @@ class BertQA(nn.Module):
         return start_logits.squeeze(-1), end_logits.squeeze(-1)
 ```
 
-## BERT의 변형
+---
+
+## 6. BERT의 변형
 
 | 모형 | 핵심 변화 | 영향 |
 |-------|-------------|--------|
@@ -671,25 +682,9 @@ class BertQA(nn.Module):
 
 BERT는 인코더만 쓰는 사전 학습과 미세 조정 방식을 자리 잡게 했지만 그 영향은 더 멀리 뻗는다. MLM 사전 학습 목표는 이해 과제에서 양방향 맥락이 한 방향(GPT 방식) 모형보다 나은 표현을 낸다는 것을 보였다. 그러나 BERT는 글을 자기 회귀로 지을 수 없어 생성 과제에는 쓰기 어렵다. 그 자리는 디코더만 쓰는(GPT) 구조와 인코더-디코더(T5, BART) 구조가 메운다.
 
-## 요약
-
-BERT는 요즘 자연어 처리를 지배하는 사전 학습과 미세 조정 방식을 자리 잡게 했다.
-
-1. **양방향 맥락**: MLM이 깊은 양방향 표현을 가능케 한다
-2. **전이 학습**: 사전 학습된 모형이 여러 과제로 옮겨 간다
-3. **간단한 미세 조정**: 과제에 맞는 구조가 최소한만 필요하다
-4. **튼튼한 기준선**: BERT의 변형들이 여전히 겨룰 만하다
-
-## 참고 문헌
-
-1. Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers." NAACL.
-2. Liu, Y., et al. (2019). "RoBERTa: A Robustly Optimized BERT Pretraining Approach."
-3. Clark, K., et al. (2020). "ELECTRA: Pre-training Text Encoders as Discriminators."
-4. He, P., et al. (2021). "DeBERTa: Decoding-enhanced BERT with Disentangled Attention."
-
 ---
 
-## BERT로 하는 글 분류
+## 7. BERT로 하는 글 분류
 
 #### 분류를 위한 구조
 
@@ -1024,6 +1019,8 @@ BERT 분류는 다음으로 이루어진다.
 1. Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers."
 2. Sun, C., et al. (2019). "How to Fine-Tune BERT for Text Classification."
 
+---
+
 ## 연습문제
 
 **연습문제 1.**
@@ -1055,3 +1052,21 @@ BERT를 (가) 문장 분류, (나) 토큰 분류(개체명 인식), (다) 질의
 
 ??? success "연습문제 4 풀이"
     (가) 분류는 [CLS] 토큰 표현에 선형 분류기를 얹는다. (나) 개체명 인식은 토큰마다의 표현에 토큰별 분류기를 얹는다. (다) 질의응답은 토큰 표현 위의 선형 머리 둘로 답 구간의 시작과 끝 자리를 맞힌다. 모든 과제에서 과제에 맞는 머리를 붙여 BERT 모형 전체를 미세 조정한다.
+
+## 정리하며
+
+BERT는 요즘 자연어 처리를 지배하는 사전 학습과 미세 조정 방식을 자리 잡게 했다.
+
+1. **양방향 맥락**: MLM이 깊은 양방향 표현을 가능케 한다
+2. **전이 학습**: 사전 학습된 모형이 여러 과제로 옮겨 간다
+3. **간단한 미세 조정**: 과제에 맞는 구조가 최소한만 필요하다
+4. **튼튼한 기준선**: BERT의 변형들이 여전히 겨룰 만하다
+
+**참고 문헌**
+
+1. Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers." NAACL.
+2. Liu, Y., et al. (2019). "RoBERTa: A Robustly Optimized BERT Pretraining Approach."
+3. Clark, K., et al. (2020). "ELECTRA: Pre-training Text Encoders as Discriminators."
+4. He, P., et al. (2021). "DeBERTa: Decoding-enhanced BERT with Disentangled Attention."
+
+---

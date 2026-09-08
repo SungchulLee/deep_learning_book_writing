@@ -2,7 +2,9 @@
 
 여느 B 나무는 가장 좋은 들고남 복잡도를 이루지만 갈래 수를 밑바탕 기계의 덩이 크기 $B$에 맞춰야 한다. $B$이 다른 기계에서 돌리려면 나무를 다시 세워야 한다. **두름을 모르는** 알고리즘은 이 매임을 없앤다. 두 잡을 모른 채 *모든* $B$과 $M$ 값에서 한꺼번에 가장 좋은 들고남 복잡도를 이룬다. 이 옮겨 쓸 수 있음이 두름을 모르는 길의 한가운데 매력이다.
 
-## 이상적인 두름 모형
+---
+
+## 1. 이상적인 두름 모형
 
 두름을 모르는 살피기는 바깥 기억 모형에 여김 둘을 더한 **이상적인 두름 모형**을 쓴다:
 
@@ -11,7 +13,9 @@
 
 이 여김은 실제로는 현실과 다르지만, 핵심 정리가 이상적인 두름 모형에서 살핀 어떤 알고리즘도 $M \ge 2B$(**높은 두름 여김**)이면 LRU 바꿔 넣기를 쓰는 실제 두름에서 (상수배 안에서) 같은 점근 들고남 복잡도를 이룸을 보장한다.
 
-## 판 엠데 보아스 놓기
+---
+
+## 2. 판 엠데 보아스 놓기
 
 두름을 모르는 찾기 나무의 핵심 재주는 **판 엠데 보아스(vEB) 놓기**다. 붙박인 두 갈래 나무를 기억에 담되 어떤 크기의 부분 나무든 이어져 놓이게 한다.
 
@@ -23,7 +27,9 @@
 
 이 되돌이 가르기 덕에 어떤 덩이 크기 $B$에서도 길이 $\log_2 N$의 찾기 길이 덩이 $O(\log_B N)$개만 지난다.
 
-## 찾기 복잡도
+---
+
+## 3. 찾기 복잡도
 
 vEB으로 놓은 나무의 찾기는 마디 $\log_2 N$개의 뿌리-잎 길을 따른다. vEB 놓기는 그 길이 많아야 다음만큼 덩이 경계를 넘음을 보장한다:
 
@@ -33,7 +39,9 @@ $$
 
 높이 $\frac{1}{2}\log_2 B$의 이어진 부분 나무마다 덩이 상수 개 안에 들어가기 때문이다. 이는 $B$을 모르고도 B 나무의 찾기 가둠 $O(\log_B N)$과 맞는다.
 
-## 붙박인 두름을 모르는 B 나무
+---
+
+## 4. 붙박인 두름을 모르는 B 나무
 
 붙박인 두름을 모르는 찾기 나무는 vEB 놓기에 찾기 셈속을 더한다:
 
@@ -48,7 +56,9 @@ $$
 
 찾기 가둠이 가장 좋은 값으로 B 나무와 맞으면서도 알고리즘은 $B$이나 $M$을 결코 가리키지 않는다.
 
-## 바뀌는 두름을 모르는 B 나무
+---
+
+## 5. 바뀌는 두름을 모르는 B 나무
 
 넣기와 지우기를 두름을 모른 채 받쳐 주기는 더 어렵다. **채운 기억 배열** 재주는 다스려진 틈을 둔 줄 세운 배열에 원소를 지녀 vEB 놓기를 지키면서 넣기와 지우기를 할 수 있게 한다:
 
@@ -66,7 +76,9 @@ $$
 
 넣기와 지우기 가둠에 $\log^2 N / B$ 항이 있어 B 나무의 $O(\log_B N)$보다 조금 나쁘지만 $B$이 크면 여전히 효율 좋다.
 
-## 보기: 판 엠데 보아스 놓기
+---
+
+## 6. 보기: 판 엠데 보아스 놓기
 
 ```python
 """
@@ -110,7 +122,6 @@ def veb_layout(keys: list[int]) -> list[int]:
     _veb_recurse(bst, 1, int(math.log2(n + 1)), result)
     return result
 
-
 def _fill_bst(keys, bst, node, lo, hi):
     """줄 세운 열쇠로 1에서 시작하는 두 갈래 찾기 나무 배열을 채운다."""
     if lo > hi or node >= len(bst):
@@ -119,7 +130,6 @@ def _fill_bst(keys, bst, node, lo, hi):
     bst[node] = keys[mid]
     _fill_bst(keys, bst, 2 * node, lo, mid - 1)
     _fill_bst(keys, bst, 2 * node + 1, mid + 1, hi)
-
 
 def _veb_recurse(bst, root, height, result):
     """되돌이로 vEB 놓기 차례를 낸다."""
@@ -142,7 +152,6 @@ def _veb_recurse(bst, root, height, result):
         if br < len(bst):
             _veb_recurse(bst, br, bottom_h, result)
 
-
 def _collect_top(bst, root, height, result):
     """위 부분 나무의 마디를 모은다(너비 우선처럼)."""
     if height <= 0 or root >= len(bst):
@@ -152,7 +161,6 @@ def _collect_top(bst, root, height, result):
         _collect_top(bst, 2 * root, height - 1, result)
         _collect_top(bst, 2 * root + 1, height - 1, result)
 
-
 def _find_bottom_roots(root, top_height, roots):
     """아래 부분 나무의 뿌리 번호를 찾는다."""
     if top_height <= 0:
@@ -160,7 +168,6 @@ def _find_bottom_roots(root, top_height, roots):
         return
     _find_bottom_roots(2 * root, top_height - 1, roots)
     _find_bottom_roots(2 * root + 1, top_height - 1, roots)
-
 
 def count_block_crossings(layout: list[int], block_size: int,
                           search_path: list[int]) -> int:
@@ -171,7 +178,6 @@ def count_block_crossings(layout: list[int], block_size: int,
         if node in positions:
             blocks_visited.add(positions[node] // block_size)
     return len(blocks_visited)
-
 
 # ===================================================================
 # 메인
@@ -211,7 +217,9 @@ if __name__ == "__main__":
 
     vEB 놓기는 덩이 크기가 클수록 옮김마다 찾기 길을 더 많이 담게 하여 어떤 $B$에서도 가둠 $O(\log_B N)$과 맞는다.
 
-## 두름을 모르는 것과 두름을 아는 것
+---
+
+## 7. 두름을 모르는 것과 두름을 아는 것
 
 | 성질 | B 나무(두름을 앎) | 두름을 모르는 B 나무 |
 |---|---|---|
@@ -223,12 +231,7 @@ if __name__ == "__main__":
 
 두름을 모르는 길은 고침 비용에서 작은 상수배를 내주고, 다시 손보지 않아도 어떤 기계에서든 자료 얼개가 잘 돈다는 보장을 얻는다.
 
-## 참고 문헌
-
-- Frigo, M. et al. "Cache-Oblivious Algorithms," *FOCS*, 1999.
-- Bender, M. et al. "Cache-Oblivious B-Trees," *SIAM Journal on Computing*, 35(2), 2005.
-- Prokop, H. "Cache-Oblivious Algorithms," 석사 논문, MIT, 1999.
-
+---
 
 ## 연습문제
 
@@ -261,3 +264,13 @@ if __name__ == "__main__":
 
 ??? success "연습문제 4 풀이"
     깊은 배움은 여러 기계에서 돈다. 두름 크기가 제각각인 CPU, 공유 기억 크기가 다른 GPU, 기억 계층이 다른 TPU, 가장자리 장치가 그것이다. 두름을 모르는 알고리즘은 장치마다 손보지 않고도 그 기계의 기억 계층에 저절로 맞춰 간다. 쓰임새: (1) GPU 세대를 가로질러 도는 타일 행렬 곱하기, (2) 효율 좋은 텐서 닿기를 위한 되돌이 자료 놓기, (3) 기억이 몹시 빠듯한 가장자리 헤아림의 흐름 알고리즘. 기계가 다양해질수록 '알 수 없는 기계 잡을 여기고 설계하라'는 원칙이 더 중요해진다.
+
+## 정리하며
+
+이 마당은 이상적인 두름 모형、판 엠데 보아스 놓기、찾기 복잡도、붙박인 두름을 모르는 B 나무을 차례로 짚었다.
+
+**참고 문헌**
+
+- Frigo, M. et al. "Cache-Oblivious Algorithms," *FOCS*, 1999.
+- Bender, M. et al. "Cache-Oblivious B-Trees," *SIAM Journal on Computing*, 35(2), 2005.
+- Prokop, H. "Cache-Oblivious Algorithms," 석사 논문, MIT, 1999.

@@ -1,17 +1,24 @@
 # 뽑아내는 물음 답하기
-## 학습 목표
+
+---
+
+## 1. 학습 목표
 
 - 구간 뽑기를 물음 답하기의 세우기로 이해한다
 - BERT 바탕 뽑아내는 물음 답하기를 짠다
 - 답할 수 없는 물음을 다룬다
 
-## 일 세우기
+---
+
+## 2. 일 세우기
 
 물음 $q$과 앞뒤 흐름 글월 $c$이 주어졌을 때 답 구간 $a = c_{i:j}$을 뽑아낸다. 여기서 $i$과 $j$은 비롯하는 토막 자리와 끝나는 토막 자리다.
 
 $$\hat{a} = \arg\max_{(i,j): i \leq j \leq i + L_{\max}} P(\text{start}=i \mid q, c) \cdot P(\text{end}=j \mid q, c)$$
 
-## 뽑아내는 물음 답하기를 위한 BERT
+---
+
+## 3. 뽑아내는 물음 답하기를 위한 BERT
 
 BERT(Devlin 외, 2019)는 물음과 맥락을 한 차례로 부호화한다:
 
@@ -78,7 +85,9 @@ class ExtractiveQAModel(nn.Module):
         return start_logits.squeeze(-1), end_logits.squeeze(-1)
 ```
 
-## 답할 수 없는 물음 다루기
+---
+
+## 4. 답할 수 없는 물음 다루기
 
 SQuAD 2.0에는 답할 수 없는 물음이 들어 있다. 맥락에 답이 없으면 모델이 답하지 않는 법을 배워야 한다.
 
@@ -92,7 +101,9 @@ $$s_{\text{null}} = s_{\text{start},[\text{CLS}]} + s_{\text{end},[\text{CLS}]}$
 
 $s_{\text{null}} > s_{\text{span}} + \tau$이면 "답할 수 없음"으로 미루어 본다. 여기서 $\tau$은 개발 묶음에서 잡은 문턱이다.
 
-## 긴 글월 다루기
+---
+
+## 5. 긴 글월 다루기
 
 BERT의 토막 512개 한계 때문에 긴 글월은 미끄러지는 창으로 잘라야 한다:
 
@@ -100,10 +111,7 @@ BERT의 토막 512개 한계 때문에 긴 글월은 미끄러지는 창으로 �
 2. 덩이마다 물음 답하기 모델을 돌린다
 3. 모든 덩이에 걸쳐 믿음도가 가장 높은 답 구간을 고른다
 
-## 참고 문헌
-
-1. Devlin, J., et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers. *NAACL*.
-2. Rajpurkar, P., et al. (2018). Know What You Don't Know: Unanswerable Questions for SQuAD. *ACL*.
+---
 
 ## 연습문제
 
@@ -136,3 +144,12 @@ SQuAD 값매김에 쓰이는 F1 잣대는 무엇인가? 일부만 맞는 경우�
 
 ??? success "연습문제 4 풀이"
     SQuAD 2.0에서는 글월 안에 답이 없는 물음도 있다. 모델은 "답 없음" 점수를 배우는데, 흔히 `[CLS]` 토막을 비롯함이자 끝남으로 미루어 본 점수(빈 구간)다. 빈 구간 점수가 가장 좋은 빈 구간 아닌 점수보다 문턱 $\tau$만큼 크면 모델은 "답할 수 없음"으로 미루어 본다. 문턱 $\tau$은 답 없음 미루어 봄의 정밀도와 재현율을 저울질하도록 개발 묶음에서 잡는다. 아니면 구간을 뽑기 앞에 따로 둘 가름개를 두어 답할 수 있는지 미루어 볼 수도 있다.
+
+## 정리하며
+
+이 마당은 학습 목표、일 세우기、뽑아내는 물음 답하기를 위한 BERT、답할 수 없는 물음 다루기을 차례로 짚었다.
+
+**참고 문헌**
+
+1. Devlin, J., et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers. *NAACL*.
+2. Rajpurkar, P., et al. (2018). Know What You Don't Know: Unanswerable Questions for SQuAD. *ACL*.

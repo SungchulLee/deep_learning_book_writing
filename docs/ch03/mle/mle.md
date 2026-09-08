@@ -1,12 +1,13 @@
 # 최대가능도 추정
-## 들어가며
 
 최대가능도 추정(MLE)은 통계학과 기계 학습에서 매개변수를 추정하는 가장 기본적인 방법 중 하나이다. 통계 모델과 관측 데이터가 주어졌을 때, MLE는 우리가 실제로 관측한 데이터가 나올 확률을 최대로 만드는 매개변수 값을 찾는다.
 
 !!! note "딥러닝에서 MLE가 중요한 이유"
     딥러닝의 거의 모든 손실 함수를 MLE의 원리에서 유도할 수 있으므로 MLE를 이해하는 것이 필수적이다. 교차 엔트로피 손실, 평균제곱오차를 비롯한 여러 목적 함수는 서로 다른 확률적 가정 아래의 음의 로그가능도일 뿐이다.
 
-## 핵심 착상
+---
+
+## 1. 핵심 착상
 
 ### 직관적인 이해
 
@@ -43,7 +44,9 @@ $$
     3. **수학적 편의**: 합의 미분이 곱의 미분보다 간단하다
     4. **단조성**: $\log$은 단조증가하므로 $\ell(\theta)$을 최대화하는 것은 $L(\theta)$을 최대화하는 것과 같다
 
-## 수학적 틀
+---
+
+## 2. 수학적 틀
 
 ### 가능도 함수
 
@@ -78,7 +81,9 @@ $$
 \mathbb{E}[s(\theta_0)] = 0
 $$
 
-## 풀이 예제: 베르누이 분포
+---
+
+## 3. 풀이 예제: 베르누이 분포
 
 가장 단순한 경우, 즉 베르누이 분포의 성공 확률 $p$을 추정하는 문제에서 MLE를 유도해 보자.
 
@@ -114,7 +119,9 @@ MLE는 그저 표본 비율이다. 직관이 말해 주는 바로 그것이다.
 
 **5단계 — 최댓값 확인.** 이계도함수 $\frac{d^2\ell}{dp^2} = -\frac{k}{p^2} - \frac{n-k}{(1-p)^2} < 0$이므로 최댓값임이 확인된다.
 
-## 흔한 분포들의 MLE
+---
+
+## 4. 흔한 분포들의 MLE
 
 ### 이산 분포
 
@@ -210,7 +217,9 @@ $$
 
 MLE 유도에서 되풀이되는 형태에 주목하라. 위치 매개변수에는 표본평균이 자주 나타나고, MLE는 충분통계량을 통해서만 데이터에 의존하며, 확률 벡터의 제약은 라그랑주 승수로 다루고, 비율 매개변수의 MLE는 흔히 $1/\bar{x}$의 꼴을 갖는다.
 
-## 피셔 정보
+---
+
+## 5. 피셔 정보
 
 ### 정의
 
@@ -291,7 +300,9 @@ i.i.d. 표본이 $n$개이면 하한은 $\text{Var}(\hat{\theta}) \geq 1/(nI(\th
 
 **기대** 피셔 정보 $I(\theta) = -\mathbb{E}[\partial^2 \ell / \partial \theta^2]$은 참 매개변수에서 계산하며 이론적 분석에 쓴다. **관측** 피셔 정보 $J(\hat{\theta}) = -\partial^2 \ell / \partial \theta^2 \big|_{\theta = \hat{\theta}}$은 MLE에서 계산하며 실무에서 신뢰구간을 구할 때 쓴다.
 
-## MLE의 점근적 성질
+---
+
+## 6. MLE의 점근적 성질
 
 정칙 조건 아래에서 MLE는 표본 크기가 커질수록 놀라운 성질을 갖는다. 이 성질들이 MLE가 통계적 추정의 일꾼인 이유와, 신경망 학습이 큰 데이터셋에서 잘 작동하는 이유를 설명해 준다.
 
@@ -375,7 +386,9 @@ $$
 
 **프로파일 가능도 구간** (가능도비 통계량으로부터): $\{\theta : 2[\ell(\hat{\theta}) - \ell(\theta)] \leq \chi^2_{1, \alpha}\}$이다. 표본이 작을 때는 프로파일 가능도 구간을 선호하는 경우가 많다.
 
-## 딥러닝과의 관계
+---
+
+## 7. 딥러닝과의 관계
 
 MLE와 딥러닝 손실 함수의 관계는 근본적이다.
 
@@ -400,7 +413,9 @@ $$
 
 교차 엔트로피 손실로 학습한 신경망에서 피셔 정보 행렬은 헤세 행렬을 근사한다($\mathbf{I}(\theta) \approx \mathbf{H}(\theta)$). 이것이 효율적인 이차 최적화를 위한 K-FAC(크로네커 인수분해 근사 곡률) 같은 방법을 정당화한다.
 
-## PyTorch 구현
+---
+
+## 8. PyTorch 구현
 
 ### 해석적 MLE와 경사 기반 MLE
 
@@ -681,14 +696,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
     plt.show()
 ```
 
-## 참고 문헌
-
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 1.2.4
-- Casella, G. & Berger, R. L. (2002). *Statistical Inference*, 2nd Edition. Chapters 7, 10
-- Cover, T. M. & Thomas, J. A. (2006). *Elements of Information Theory*, 2nd Edition
-- Lehmann, E. L. & Casella, G. (1998). *Theory of Point Estimation*, 2nd Edition
-- Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*. Chapter 4.2
-- van der Vaart, A. W. (1998). *Asymptotic Statistics*
+---
 
 ## 연습문제
 
@@ -747,3 +755,16 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
     i.i.d. 관측 $n$개에 대한 크라메르–라오 하한은 $\text{Var}(\hat{p}) \geq \frac{1}{nI(p)} = \frac{p(1-p)}{n}$이다.
 
     MLE $\hat{p} = \bar{x}$의 분산은 $\text{Var}(\hat{p}) = p(1-p)/n$으로 하한을 정확히 달성한다. 따라서 MLE는 효율적이다. $\square$
+
+## 정리하며
+
+이 마당은 핵심 착상、수학적 틀、풀이 예제: 베르누이 분포、흔한 분포들의 MLE을 차례로 짚었다.
+
+**참고 문헌**
+
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 1.2.4
+- Casella, G. & Berger, R. L. (2002). *Statistical Inference*, 2nd Edition. Chapters 7, 10
+- Cover, T. M. & Thomas, J. A. (2006). *Elements of Information Theory*, 2nd Edition
+- Lehmann, E. L. & Casella, G. (1998). *Theory of Point Estimation*, 2nd Edition
+- Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*. Chapter 4.2
+- van der Vaart, A. W. (1998). *Asymptotic Statistics*

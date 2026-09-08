@@ -2,7 +2,9 @@
 
 보통의 빠른 정렬은 축 하나를 골라 배열을 둘로 쪼갠다. 그러면 **축이 둘**이면 어떨까 하는 물음이 자연스레 따라온다. 두 축 빠른 정렬은 축 원소 $p$과 $q$($p \leq q$)을 골라 배열을 세 무리로 나눈다. 곧 $p$보다 작은 원소, $p$과 $q$ 사이의 원소, $q$보다 큰 원소이다. 나누는 걸음마다 견줌이 늘어나지만 기대 되돌이 깊이가 줄고, 실전에서 세 갈래 쪼갬이 캐시 거동을 좋게 한다. 2009년 블라디미르 야로슬랍스키가 들여온 이 변형은 자바 `Arrays.sort`의 기본형 자료에 대한 기본 정렬 알고리즘이다.
 
-## 나눔 방식
+---
+
+## 1. 나눔 방식
 
 배열 $A[lo..hi]$이 주어지면 축 둘 $p = A[lo]$과 $q = A[hi]$을 고르되 $p \leq q$이 되게 한다(필요하면 맞바꾼다). 목표는 $A$을 세 자리로 다시 늘어놓는 것이다.
 
@@ -18,7 +20,9 @@ $$
 
 훑는 가리개 $i$은 원소마다 꼭 한 번 다루며 맞바꿈으로 알맞은 자리에 놓는다.
 
-## 알고리즘
+---
+
+## 2. 알고리즘
 
 1. $A[lo] > A[hi]$이면 맞바꾸어 $p \leq q$이 되게 한다.
 2. $lt = lo + 1$, $gt = hi - 1$, $i = lo + 1$으로 둔다.
@@ -29,7 +33,9 @@ $$
 4. 축을 마지막 자리에 놓는다. $A[lo]$과 $A[lt-1]$을, $A[hi]$과 $A[gt+1]$을 맞바꾼다.
 5. 세 조각 $A[lo..lt-2]$, $A[lt..gt]$, $A[gt+2..hi]$에서 되돌이한다.
 
-## 복잡도
+---
+
+## 3. 복잡도
 
 | 경우 | 견줌 | 맞바꿈 |
 |------|-------------|-------|
@@ -42,7 +48,9 @@ $$
 !!! tip "맞바꿈이 적은 것이 중요한 까닭"
     오늘날 CPU에서는 기억을 어떻게 훑느냐가 도는 시간을 좌우한다. 두 축 방식은 원소를 옮기는 총 횟수를 줄이고 더 작은 되돌이 부분 문제 셋을 내놓아 저마다 더 빨리 캐시에 들어간다. 견줌이 더 많은데도 두 축 빠른 정렬이 실전에서 한 축 빠른 정렬을 앞지르는 까닭이 여기에 있다.
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 """
@@ -52,7 +60,6 @@ $$
 자리마다 되돌이한다. 자바의 Arrays.sort이 기본형 자료에
 쓰는 알고리즘이다.
 """
-
 
 # === 두 축 나눔 ===
 
@@ -90,7 +97,6 @@ def dual_pivot_partition(arr: list, lo: int, hi: int) -> tuple:
 
     return lt, gt
 
-
 # === 두 축 빠른 정렬 ===
 
 def dual_pivot_quicksort(arr: list, lo: int, hi: int) -> None:
@@ -102,7 +108,6 @@ def dual_pivot_quicksort(arr: list, lo: int, hi: int) -> None:
     dual_pivot_quicksort(arr, lo, lt - 1)
     dual_pivot_quicksort(arr, lt + 1, gt - 1)
     dual_pivot_quicksort(arr, gt + 1, hi)
-
 
 # === 시연 ===
 
@@ -135,7 +140,9 @@ Left pivot:  35
 Right pivot: 45
 ```
 
-## 한 축 빠른 정렬과의 견줌
+---
+
+## 5. 한 축 빠른 정렬과의 견줌
 
 | 성질 | 한 축 | 두 축 |
 |----------|-------------|------------|
@@ -147,12 +154,7 @@ Right pivot: 45
 
 두 축 변형이 오늘날 하드웨어에서 앞서는 주된 까닭은 세 갈래 쪼갬이 더 작은 부분 문제를 내놓아 L1과 L2 캐시에 더 빨리 들어가고, 값비싼 캐시 빗나감을 줄이기 때문이다.
 
-## 참고 문헌
-
-- Yaroslavskiy, V. (2009). *Dual-Pivot Quicksort*. [연구 논문].
-- Wild, S., & Nebel, M. E. (2012). Average case analysis of Java 7's dual pivot quicksort. *European Symposium on Algorithms*, 825-836.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
-
+---
 
 ## 연습문제
 
@@ -185,3 +187,13 @@ float32 학습 손실 값 1000만 개를 정렬할 때 두 축 빠른 정렬을 
 
 ??? success "연습문제 4 풀이"
     $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.
+
+## 정리하며
+
+이 마당은 나눔 방식、알고리즘、복잡도、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Yaroslavskiy, V. (2009). *Dual-Pivot Quicksort*. [연구 논문].
+- Wild, S., & Nebel, M. E. (2012). Average case analysis of Java 7's dual pivot quicksort. *European Symposium on Algorithms*, 825-836.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.

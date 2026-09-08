@@ -2,7 +2,9 @@
 
 대부분의 정렬 알고리즘은 본디 차례대로 굴러간다. 견줌마다 앞선 견줌의 결과에 기대기 때문이다. **바이토닉 정렬**은 견줌의 본새가 붙박여 있고 데이터에 기대지 않는 병렬 정렬 알고리즘이어서 하드웨어 구현(FPGA, GPU)과 정렬 망에 딱 맞는다. 처음에는 커지다가 나중에 작아지는(또는 그 반대인) *바이토닉 수열*이라는 개념 위에 서서, 그것들을 되돌이로 병합해 정렬된 차례를 만든다.
 
-## 바이토닉 수열
+---
+
+## 1. 바이토닉 수열
 
 이음 $a_0, a_1, \dots, a_{n-1}$이 **두 갈래**인 것은 다음을 채우는 자리 번호 $k$이 있을 때다
 이때 다음이 성립한다.
@@ -18,7 +20,9 @@ $$
 - 정렬된 수열은 모두 시시하게 바이토닉이다($k = n-1$).
 - 거꾸로 정렬된 수열도 모두 시시하게 바이토닉이다($k = 0$).
 
-## 바이토닉 병합
+---
+
+## 2. 바이토닉 병합
 
 핵심 연산은 **바이토닉 병합**으로, 바이토닉 수열을 받아 정렬된 수열을 낸다. 길이가 $n$(2의 거듭제곱)인 바이토닉 수열이 주어지면 다음과 같이 한다.
 
@@ -29,7 +33,9 @@ $$
 
 되돌이의 깊이는 $\log_2 n$이고, 층마다 서로 독립인 견줌을 $n/2$번 한다.
 
-## 바이토닉 정렬 알고리즘
+---
+
+## 3. 바이토닉 정렬 알고리즘
 
 바이토닉 정렬은 바이토닉 수열을 만들고 병합하기를 번갈아 하며 정렬된 수열을 쌓아 올린다.
 
@@ -39,7 +45,9 @@ $$
     - 한 블록은 오름차순으로, 다른 블록은 내림차순으로 정렬해 크기 $s$의 바이토닉 수열을 만든다.
     - 두 갈래 합치기를 걸어 크기 $s$의 줄 세운 이음을 만든다.
 
-## 복잡도
+---
+
+## 4. 복잡도
 
 $$
 T_{\text{comparisons}} = O(n \log^2 n)
@@ -53,7 +61,9 @@ $$
 
 **공간:** $O(n)$ — 제자리에서 줄 세운다(맞바꿈만 있으면 된다).
 
-## 풀이 예제
+---
+
+## 5. 풀이 예제
 
 두 갈래 줄 세우기로 $A = [3, 7, 4, 8, 6, 2, 1, 5]$을 오름차순으로 줄 세워라.
 
@@ -81,7 +91,9 @@ $$
 
 **마지막 결과:** $[1, 2, 3, 4, 5, 6, 7, 8]$
 
-## 구현
+---
+
+## 6. 구현
 
 ```python
 """
@@ -101,7 +113,6 @@ def _compare_and_swap(arr: list[int], i: int, j: int, ascending: bool) -> None:
     if (arr[i] > arr[j]) == ascending:
         arr[i], arr[j] = arr[j], arr[i]
 
-
 def _bitonic_merge(arr: list[int], lo: int, length: int, ascending: bool) -> None:
     """바이토닉 수열 arr[lo:lo+length]을 정렬된 차례로 병합한다."""
     if length <= 1:
@@ -113,7 +124,6 @@ def _bitonic_merge(arr: list[int], lo: int, length: int, ascending: bool) -> Non
 
     _bitonic_merge(arr, lo, half, ascending)
     _bitonic_merge(arr, lo + half, half, ascending)
-
 
 def _bitonic_sort_rec(arr: list[int], lo: int, length: int, ascending: bool) -> None:
     """바이토닉 정렬로 arr[lo:lo+length]을 되돌이로 정렬한다."""
@@ -127,7 +137,6 @@ def _bitonic_sort_rec(arr: list[int], lo: int, length: int, ascending: bool) -> 
 
     # 그렇게 나온 바이토닉 수열을 병합
     _bitonic_merge(arr, lo, length, ascending)
-
 
 def bitonic_sort(arr: list[int], ascending: bool = True) -> list[int]:
     """바이토닉 정렬로 *arr*을 정렬한다.
@@ -149,7 +158,6 @@ def bitonic_sort(arr: list[int], ascending: bool = True) -> list[int]:
     assert n > 0 and (n & (n - 1)) == 0, "Length must be a power of 2"
     _bitonic_sort_rec(result, 0, n, ascending)
     return result
-
 
 # === 시연 ===================================================================
 
@@ -178,7 +186,9 @@ Input (16): [654, 114, 25, 837, 886, 544, 165, 572, 892, 400, 991, 985, 7, 426, 
 Sorted:     [7, 25, 114, 156, 165, 400, 426, 544, 572, 654, 837, 849, 886, 892, 985, 991]
 ```
 
-## GPU과 하드웨어에서의 쓰임새
+---
+
+## 7. GPU과 하드웨어에서의 쓰임새
 
 바이토닉 정렬이 GPU에 특히 매력적인 까닭은 다음과 같다.
 
@@ -188,11 +198,7 @@ Sorted:     [7, 25, 114, 156, 165, 400, 426, 544, 572, 654, 837, 849, 886, 892, 
 
 이런 까닭에 바이토닉 정렬은 견줌 횟수가 $O(n \log^2 n)$으로 가장 좋은 $O(n \log n)$ 병합 정렬보다 나쁜데도, GPU에서 작거나 중간 크기의 배열을 정렬할 때 첫손에 꼽힌다.
 
-## 참고 문헌
-
-- Batcher, K. E. (1968). Sorting networks and their applications. *Proceedings of the AFIPS Spring Joint Computer Conference*, 307-314.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 27장. MIT Press.
-
+---
 
 ## 연습문제
 
@@ -225,3 +231,12 @@ Sorted:     [7, 25, 114, 156, 165, 400, 426, 544, 572, 654, 837, 849, 886, 892, 
 
 ??? success "연습문제 4 풀이"
     응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.
+
+## 정리하며
+
+이 마당은 바이토닉 수열、바이토닉 병합、바이토닉 정렬 알고리즘、복잡도을 차례로 짚었다.
+
+**참고 문헌**
+
+- Batcher, K. E. (1968). Sorting networks and their applications. *Proceedings of the AFIPS Spring Joint Computer Conference*, 307-314.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 27장. MIT Press.

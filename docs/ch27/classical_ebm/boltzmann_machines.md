@@ -1,6 +1,8 @@
 # 볼츠만 기계
 
-## 학습 목표
+---
+
+## 1. 학습 목표
 
 이 절을 마치면 다음을 할 수 있다:
 
@@ -10,11 +12,15 @@
 4. 평형 분포와 모임을 살핀다
 5. 볼츠만 기계를 요즘 확률 모델과 잇는다
 
-## 들어가며
+---
+
+## 2. 들어가며
 
 1985년 힌턴과 세이노스키가 내놓은 볼츠만 기계(BM)는 확률 움직임을 들여와 홉필드 신경망을 넓힌다. 홉필드 신경망은 정해진 방식으로 에너지 최솟값에 모이지만, 볼츠만 기계는 열 잡음을 써서 볼츠만 분포 전체에서 뽑는다. 이 덕에 자료 위의 확률 분포를 배울 수 있는 만들어 내는 모델 노릇을 한다.
 
-## 홉필드에서 볼츠만으로
+---
+
+## 3. 홉필드에서 볼츠만으로
 
 ### 확률로 넓히기
 
@@ -38,7 +44,9 @@
 
 $$P(\mathbf{s}) = \frac{1}{Z} \exp(-E(\mathbf{s})/T)$$
 
-## 구현
+---
+
+## 4. 구현
 
 ```python
 import torch
@@ -234,7 +242,6 @@ class BoltzmannMachine(nn.Module):
             'state_counts': state_counts
         }
 
-
 def compare_deterministic_vs_stochastic():
     """
     홉필드(정해진)와 볼츠만(확률) 움직임을 견준다.
@@ -362,7 +369,9 @@ def compare_deterministic_vs_stochastic():
 compare_deterministic_vs_stochastic()
 ```
 
-## 깁스 뽑기와 평형
+---
+
+## 5. 깁스 뽑기와 평형
 
 ### 깁스 뽑기 알고리즘
 
@@ -488,7 +497,9 @@ def verify_equilibrium_distribution():
 correlation = verify_equilibrium_distribution()
 ```
 
-## 온도의 영향
+---
+
+## 6. 온도의 영향
 
 ### 온도 살피기
 
@@ -557,7 +568,9 @@ def analyze_temperature_effects():
 analyze_temperature_effects()
 ```
 
-## 드러난 단위와 숨은 단위
+---
+
+## 7. 드러난 단위와 숨은 단위
 
 ### 단위의 두 갈래
 
@@ -582,7 +595,9 @@ $$F(\mathbf{v}) = -\log \sum_{\mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h}))$$
 
 따라서 $P(\mathbf{v}) = \frac{1}{Z} \exp(-F(\mathbf{v}))$이다.
 
-## 볼츠만 기계 익히기
+---
+
+## 8. 볼츠만 기계 익히기
 
 ### 최대 가능도 목표
 
@@ -605,7 +620,9 @@ $\langle s_i s_j \rangle_{\text{model}}$을 셈하려면 모델에서 뽑아야 
 
 이것이 **제한 볼츠만 기계**(다음 마디)의 까닭이 된다.
 
-## 핵심 정리
+---
+
+## 9. 핵심 정리
 
 !!! success "핵심 개념"
 
@@ -623,11 +640,7 @@ $\langle s_i s_j \rangle_{\text{model}}$을 셈하려면 모델에서 뽑아야 
     - 요즘 에너지 바탕 모델
     - 변분 자기 부호기(자유 에너지 개념을 거쳐)
 
-## 참고 문헌
-
-- Hinton, G. E., & Sejnowski, T. J. (1986). Learning and relearning in Boltzmann machines. In Parallel Distributed Processing.
-- Ackley, D. H., Hinton, G. E., & Sejnowski, T. J. (1985). A learning algorithm for Boltzmann machines. Cognitive Science.
-- Salakhutdinov, R. (2015). Learning Deep Generative Models. Annual Review of Statistics.
+---
 
 ## 연습문제
 
@@ -636,3 +649,13 @@ $\langle s_i s_j \rangle_{\text{model}}$을 셈하려면 모델에서 뽑아야 
 2. **식힘**: 높은 $T$에서 시작해 차츰 낮추는 흉내 식힘을 짜라. 온도를 붙박이로 둔 뽑기와 견주어라.
 
 3. **숨은 단위**: 볼츠만 기계에 숨은 단위를 더하고 그것이 드러난 분포의 나타냄 힘에 어떤 영향을 주는지 살펴라.
+
+## 정리하며
+
+이 마당은 학습 목표、들어가며、홉필드에서 볼츠만으로、구현을 차례로 짚었다.
+
+**참고 문헌**
+
+- Hinton, G. E., & Sejnowski, T. J. (1986). Learning and relearning in Boltzmann machines. In Parallel Distributed Processing.
+- Ackley, D. H., Hinton, G. E., & Sejnowski, T. J. (1985). A learning algorithm for Boltzmann machines. Cognitive Science.
+- Salakhutdinov, R. (2015). Learning Deep Generative Models. Annual Review of Statistics.

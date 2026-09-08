@@ -2,7 +2,9 @@
 
 운영체제는 기다리는 프로세스 가운데 어느 것에 CPU를 줄지 정해야 한다. 가장 단순한 정책인 **선착순(FCFS)**은 큐를 쓴다. 프로세스를 도착한 순서대로 처리하며, 각 프로세스가 끝나야 다음 프로세스가 시작된다. 더 대화형에 가까운 정책인 **라운드 로빈(RR)**도 큐를 쓰되, 프로세스마다 정해진 시간 조각(퀀텀)을 준 뒤 큐의 뒤로 보낸다. 두 알고리즘 모두 공평함을 위해 큐의 선입선출 성질에 기댄다. 이 쪽은 선착순과 라운드 로빈 스케줄링을 설명하고, 주요 성능 지표를 정의하며, 두 방식을 견주어 본다.
 
-## 스케줄링 지표
+---
+
+## 1. 스케줄링 지표
 
 스케줄링 알고리즘을 평가하는 데 세 가지 지표를 쓴다.
 
@@ -22,7 +24,9 @@ $$
 
 **평균 반환 시간**과 **평균 대기 시간**은 모든 프로세스에 걸쳐 계산하며 전체적인 성능 척도가 된다.
 
-## 선착순 스케줄링
+---
+
+## 2. 선착순 스케줄링
 
 선착순(선입선출 스케줄링이라고도 한다)에서는 프로세스를 도착 순서대로 처리한다. 각 프로세스가 끝나야 다음 프로세스가 시작된다.
 
@@ -30,7 +34,9 @@ $$
 
 **단점**: **호송 효과**가 있다. 큐 앞의 긴 프로세스가 뒤따르는 모든 프로세스를 늦추어 평균 대기 시간을 부풀린다.
 
-## 라운드 로빈 스케줄링
+---
+
+## 3. 라운드 로빈 스케줄링
 
 라운드 로빈은 프로세스마다 정해진 **시간 퀀텀** $q$을 준다. 퀀텀이 다하면 프로세스를 멈추고 큐의 뒤로 보낸다. 퀀텀 안에 끝나면 큐에서 빠진다.
 
@@ -48,7 +54,6 @@ $$
 """
 from collections import deque
 
-
 # === 프로세스의 표현 ===================================================
 
 class Process:
@@ -63,7 +68,6 @@ class Process:
 
     def __repr__(self):
         return f"{self.name}(arr={self.arrival}, burst={self.burst})"
-
 
 # === 선착순 스케줄링 ==========================================================
 
@@ -90,7 +94,6 @@ def fcfs_schedule(processes):
         results.append((p.name, p.arrival, p.burst, p.completion, turnaround, waiting))
 
     return results
-
 
 # === 라운드 로빈 스케줄링 ===================================================
 
@@ -147,7 +150,6 @@ def round_robin_schedule(processes, quantum):
 
     return [results[name] for name in completed_order]
 
-
 # === 보이기 ==================================================================
 
 def print_schedule(title, results):
@@ -163,7 +165,6 @@ def print_schedule(title, results):
     n = len(results)
     print(f"  {'-'*52}")
     print(f"  {'Average':<10s} {'':>8s} {'':>6s} {'':>7s} {total_ta/n:>11.1f} {total_wt/n:>8.1f}")
-
 
 # === 시연 ============================================================
 
@@ -209,7 +210,9 @@ Round-Robin Scheduling (quantum=3):
 
 선착순 일정은 호송 효과를 보여 준다. P1이 8단위 동안 돌면서 필요 시간이 짧은 P2, P3, P4를 기다리게 만든다. 퀀텀이 3인 라운드 로빈은 프로세스를 번갈아 돌려 평균 반환 시간을 10.8에서 9.8로 줄인다.
 
-## 비교
+---
+
+## 4. 비교
 
 | 성질 | 선착순 | 라운드 로빈 |
 |----------|------|-------------|
@@ -223,11 +226,7 @@ Round-Robin Scheduling (quantum=3):
 !!! warning "문맥 전환의 부담"
     라운드 로빈은 프로세스를 멈출 때마다 문맥 전환 비용을 치른다. 퀀텀이 평균 필요 시간보다 훨씬 작으면 이 부담이 실제 계산을 압도할 수 있다. 요즘 시스템에서 퀀텀은 보통 10~100밀리초이다.
 
-## 참고 문헌
-
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
-- Silberschatz, A., Galvin, P. B., & Gagne, G. (2018). *Operating System Concepts* (10th ed.), Chapter 5. Wiley.
-
+---
 
 ## 연습문제
 
@@ -260,3 +259,12 @@ Round-Robin Scheduling (quantum=3):
 
 ??? success "연습문제 4 풀이"
     원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$
+
+## 정리하며
+
+이 마당은 스케줄링 지표、선착순 스케줄링、라운드 로빈 스케줄링、비교을 차례로 짚었다.
+
+**참고 문헌**
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+- Silberschatz, A., Galvin, P. B., & Gagne, G. (2018). *Operating System Concepts* (10th ed.), Chapter 5. Wiley.
