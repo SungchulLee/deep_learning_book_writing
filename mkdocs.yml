@@ -163,6 +163,11 @@ nav:
         - 합: ch03/classic/sum.md
         - 배열의 합: ch03/classic/sum_of_array.md
         - 이진수로 변환: ch03/classic/to_binary.md
+      - 1.3 인공지능 학습 패러다임:
+        - 가진 자료를 분석하라: ch01/paradigms/analyze_available.md
+        - 지도학습 (레이블을 이용한 예측): ch01/paradigms/supervised.md
+        - 비지도학습 (패턴 발견): ch01/paradigms/unsupervised.md
+        - 강화학습 (순차적 의사결정): ch01/paradigms/reinforcement.md
       - 1.4 고전적 모델:
         - 선형 모델: ch01/models/linear.md
         - 트리 모델: ch01/models/trees.md
