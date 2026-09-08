@@ -257,6 +257,9 @@ class ShallowApproximator(nn.Module):
     """은닉층 하나 — 정리가 보장하는 구조."""
     def __init__(self, width: int, activation: nn.Module = nn.Tanh):
         super().__init__()
+        # 정리가 말하는 최소 구조를 그대로 옮긴 것이다. 은닉층은 딱 하나,
+        # 늘리는 것은 깊이가 아니라 너비뿐이다. tanh를 기본으로 둔 까닭은
+        # 고전적인 정리가 다항식이 아닌 유계 활성화를 요구하기 때문이다
         self.net = nn.Sequential(
             nn.Linear(1, width),
             activation(),
@@ -268,7 +271,13 @@ class ShallowApproximator(nn.Module):
 
 # ── 데이터 생성 ──
 np.random.seed(42)
+# 정리는 유계 폐구간에서만 근사를 보장한다. 여기서는 그 구간이
+# [-3, 3]이며, 아래 그림도 같은 구간만 그린다. 이 밖에서 신경망이
+# 무엇을 하는지는 정리가 아무것도 말해 주지 않는다
 x_train = np.random.uniform(-3, 3, 1000).reshape(-1, 1).astype(np.float32)
+# 목표에 잡음을 섞는다. 그래서 아래 MSE는 0으로 내려갈 수 없고
+# 잡음의 분산인 0.05^2 = 0.0025 언저리가 바닥이다. 이 값에 닿았다면
+# 못 배운 것이 아니라 배울 수 있는 데까지 배운 것이다
 y_train = target_function(x_train) + np.random.normal(0, 0.05, x_train.shape).astype(np.float32)
 
 x_train_t = torch.from_numpy(x_train)
@@ -281,6 +290,8 @@ fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 for idx, width in enumerate(widths):
     ax = axes[idx // 2, idx % 2]
     
+    # 너비를 뺀 나머지 조건을 같게 맞춘다. 이 실험이 보려는 것은
+    # "너비를 키우면 근사가 좋아지는가" 하나뿐이다
     torch.manual_seed(0)
     model = ShallowApproximator(width)
     optimizer = optim.Adam(model.parameters(), lr=0.01)
@@ -301,6 +312,11 @@ for idx, width in enumerate(widths):
     ax.scatter(x_train[:200], y_train[:200], alpha=0.2, s=5, color='gray', label='Train data')
     ax.plot(x_plot.numpy(), target_function(x_plot.numpy()), 'g-', lw=2, label='True $f(x)$')
     ax.plot(x_plot.numpy(), y_pred, 'r--', lw=2, label='NN approx')
+    # 주의: 여기 찍히는 loss는 학습 집합에 대한 값이고, 그것도 마지막
+    # optimizer.step() 앞에서 잰 값이다. 시험 오차가 아니므로 너비를
+    # 키울수록 작아지는 것이 당연하고, 일반화가 나아졌다는 뜻은 아니다.
+    # 정리가 보장하는 것도 "근사할 수 있다"이지 "학습으로 찾아진다"가
+    # 아니라는 점을 함께 새겨 두라
     ax.set_title(f'Width $N = {width}$  |  Final MSE = {loss.item():.4f}')
     ax.legend(fontsize=8)
     ax.set_xlabel('$x$')

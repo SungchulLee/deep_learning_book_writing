@@ -269,7 +269,10 @@ class MLP(nn.Module):
         layers: list[nn.Module] = []
         prev_size = input_size
         
-        # 은닉층
+        # 은닉층.
+        # activation을 인스턴스가 아니라 클래스로 받아 여기서 매번
+        # 새로 만든다. 인스턴스 하나를 여러 자리에 돌려 쓰면 상태를
+        # 지니는 층에서 탈이 나므로, 층마다 따로 만드는 편이 안전하다
         for hidden_size in hidden_sizes:
             layers.append(nn.Linear(prev_size, hidden_size))
             layers.append(activation())
@@ -277,8 +280,14 @@ class MLP(nn.Module):
                 layers.append(nn.Dropout(dropout))
             prev_size = hidden_size
         
-        # 출력층
+        # 출력층.
+        # 반복문 밖에 있는 까닭은 이 층만 활성화와 드롭아웃을 달리
+        # 다루기 때문이다. 출력에 드롭아웃을 걸면 예측 자체가 무작위로
+        # 지워지고, 활성화를 걸면 로짓의 범위가 눌린다
         layers.append(nn.Linear(prev_size, output_size))
+        # None이 기본값인 것이 중요하다. CrossEntropyLoss가 소프트맥스를
+        # 안에 품고 있어, 여기서 또 걸면 두 번 적용된다. 확률이 정말
+        # 필요한 곳은 추론 시점뿐이다
         if output_activation is not None:
             layers.append(output_activation())
         
@@ -289,6 +298,8 @@ class MLP(nn.Module):
     
     def count_parameters(self) -> int:
         """학습 가능한 전체 매개변수의 수를 센다."""
+        # requires_grad로 거르면 동결한 층이 셈에서 빠진다. 전이 학습에서
+        # 앞쪽을 얼려 두었을 때 "지금 실제로 학습되는 수"를 얻는다
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
 # ── 예: MNIST 다중 클래스 분류 ──
@@ -413,7 +424,13 @@ for epoch in range(EPOCHS):
         loss.backward()
         optimizer.step()
         
+        # 배치 크기를 곱해 두었다가 표본 총수로 나눈다. 60000은 64로
+        # 나누어떨어지지 않아 마지막 배치가 짧은데, 이렇게 하면 그
+        # 배치가 과하게 무거워지지 않는다
         total_loss += loss.item() * data.size(0)
+        # 주의: output은 갱신 전 가중치의 출력이고 드롭아웃도 켜져 있다.
+        # 그래서 여기서 나오는 학습 정확도는 실제보다 낮게 잡힌다.
+        # 아래 시험 정확도가 학습 정확도보다 높게 나와도 이상이 아니다
         correct += output.argmax(dim=1).eq(target).sum().item()
         total += data.size(0)
     
