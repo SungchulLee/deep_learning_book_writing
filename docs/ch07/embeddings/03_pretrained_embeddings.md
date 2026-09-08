@@ -20,6 +20,13 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Pre-trained Embeddings - Load GloVe or Word2Vec embeddings
+See: https://nlp.stanford.edu/projects/glove/
+```
+
 ## 2. 논의
 
 PyTorch에서 사전 학습 임베딩을 불러오는 일은 대체로 두 단계이다. 사전 학습 임베딩 파일(낱말 40만 개를 담은 100차원 GloVe 6B 따위)을 내려받고, 그 가중치 행렬로 `nn.Embedding` 층을 초기화한다. 사전 학습 어휘에 있는 낱말은 해당 벡터를 그대로 옮겨 적는다. 어휘 밖(OOV) 낱말은 무작위 벡터로 초기화하거나, 모든 사전 학습 벡터의 평균을 쓰거나, FastText 같은 하위 낱말 분해 방법을 쓰는 것이 흔한 전략이다.

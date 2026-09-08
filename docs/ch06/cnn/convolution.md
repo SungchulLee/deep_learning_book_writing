@@ -132,6 +132,21 @@ print("Output:")
 print(output.squeeze())
 ```
 
+**출력:**
+
+```
+Input:
+tensor([[ 1.,  2.,  3.,  4.],
+        [ 5.,  6.,  7.,  8.],
+        [ 9., 10., 11., 12.],
+        [13., 14., 15., 16.]])
+
+Output shape: torch.Size([1, 1, 2, 2])
+Output:
+tensor([[-8., -8.],
+        [-8., -8.]], grad_fn=<SqueezeBackward0>)
+```
+
 ---
 
 ## 3. 다채널 합성곱
@@ -198,6 +213,14 @@ print(f"Output shape: {output.shape}") # torch.Size([4, 64, 32, 32])
 # 매개변수 개수
 num_params = sum(p.numel() for p in conv.parameters())
 print(f"Parameters: {num_params}")     # 64 × 3 × 3 × 3 + 64 = 1,792
+```
+
+**출력:**
+
+```
+Input shape: torch.Size([4, 3, 32, 32])
+Output shape: torch.Size([4, 64, 32, 32])
+Parameters: 1792
 ```
 
 ---

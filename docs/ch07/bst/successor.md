@@ -181,6 +181,19 @@ if __name__ == "__main__":
         print(f"key={key:2d}  successor={succ_key}  predecessor={pred_key}")
 ```
 
+**출력:**
+
+```
+key= 5  successor=10  predecessor=None
+key=10  successor=11  predecessor=5
+key=11  successor=12  predecessor=10
+key=12  successor=15  predecessor=11
+key=15  successor=17  predecessor=12
+key=17  successor=20  predecessor=15
+key=20  successor=25  predecessor=17
+key=25  successor=None  predecessor=20
+```
+
 ---
 
 ## 4. 복잡도

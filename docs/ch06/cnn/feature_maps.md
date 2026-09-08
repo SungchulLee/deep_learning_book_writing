@@ -40,6 +40,13 @@ print(f"After conv1: N={feat1.shape[0]}, C={feat1.shape[1]}, H={feat1.shape[2]},
 # conv1 뒤: N=8, C=64, H=224, W=224
 ```
 
+**출력:**
+
+```
+Input:  N=8, C=3, H=224, W=224
+After conv1: N=8, C=64, H=224, W=224
+```
+
 ### 공간 차원과 채널 차원
 
 특징 맵은 서로 다른 두 종류의 정보를 담는다.
@@ -190,6 +197,31 @@ for name, layer in zip(names, model):
 analyze_feature_maps(named_model)
 ```
 
+**출력:**
+
+```
+Layer                          Output Shape                    Params  Memory (MB)
+----------------------------------------------------------------------------------
+Input                          [1, 3, 224, 224]                     —         0.60
+conv1_1                        [1, 64, 224, 224]                1,792        12.85
+relu1_1                        [1, 64, 224, 224]                    0        12.85
+conv1_2                        [1, 64, 224, 224]               36,928        12.85
+relu1_2                        [1, 64, 224, 224]                    0        12.85
+pool1                          [1, 64, 112, 112]                    0         3.21
+conv2_1                        [1, 128, 112, 112]              73,856         6.42
+relu2_1                        [1, 128, 112, 112]                   0         6.42
+conv2_2                        [1, 128, 112, 112]             147,584         6.42
+relu2_2                        [1, 128, 112, 112]                   0         6.42
+pool2                          [1, 128, 56, 56]                     0         1.61
+conv3_1                        [1, 256, 56, 56]               295,168         3.21
+relu3_1                        [1, 256, 56, 56]                     0         3.21
+conv3_2                        [1, 256, 56, 56]               590,080         3.21
+relu3_2                        [1, 256, 56, 56]                     0         3.21
+pool3                          [1, 256, 28, 28]                     0         0.80
+----------------------------------------------------------------------------------
+Total                                                       1,145,408        96.14
+```
+
 ---
 
 ## 4. "채널은 두 배, 해상도는 절반" 방식
@@ -223,6 +255,17 @@ for name, c, h, w in stages:
     if base_elements is None:
         base_elements = elements
     print(f"{name:<12} {c:>8} {f'{h}×{w}':>12} {elements:>12,} {elements/base_elements:>10.2f}×")
+```
+
+**출력:**
+
+```
+Stage        Channels   Resolution     Elements   Relative
+------------------------------------------------------------
+Stage 1            64        56×56      200,704       1.00×
+Stage 2           128        28×28      100,352       0.50×
+Stage 3           256        14×14       50,176       0.25×
+Stage 4           512          7×7       25,088       0.12×
 ```
 
 ---
@@ -372,6 +415,13 @@ print(f"Channel reduction: {x.shape} → {out.shape}")
 
 params = sum(p.numel() for p in channel_mixer.parameters())
 print(f"Parameters: {params:,}")  # 256×64 + 64 = 16,448
+```
+
+**출력:**
+
+```
+Channel reduction: torch.Size([1, 256, 14, 14]) → torch.Size([1, 64, 14, 14])
+Parameters: 16,448
 ```
 
 ---

@@ -107,6 +107,14 @@ params = sum(p.numel() for p in conv.parameters())
 print(f"Parameters: {params:,}")  # 8 × 32 × 5 + 32 = 1,312
 ```
 
+**출력:**
+
+```
+Input: torch.Size([32, 8, 100])
+Output: torch.Size([32, 32, 100])
+Parameters: 1,312
+```
+
 ---
 
 ## 3. 행렬 곱으로 본 1차원 합성곱
@@ -157,6 +165,12 @@ y.backward(grad_output)
 # 이는 전치 합성곱과 같다
 grad_manual = torch.nn.functional.conv_transpose1d(grad_output, w)
 print(f"Gradient match: {torch.allclose(x.grad, grad_manual, atol=1e-5)}")
+```
+
+**출력:**
+
+```
+Gradient match: True
 ```
 
 ---
@@ -245,6 +259,14 @@ print("Numerical grad_w: ", grad_w_numerical)
 print("Match:", np.allclose(grad_w, grad_w_numerical))
 ```
 
+**출력:**
+
+```
+Analytical grad_w: [-3.76229763 -3.75680121 -0.74651747]
+Numerical grad_w:  [-3.76229763 -3.75680121 -0.74651747]
+Match: True
+```
+
 ---
 
 ## 5. 인과 합성곱
@@ -285,6 +307,12 @@ print(f"Input length: {x.shape[2]}, Output length: {y.shape[2]}")
 # 둘 다 10: output[t]는 input[t-2], input[t-1], input[t]에 기댄다
 ```
 
+**출력:**
+
+```
+Input length: 10, Output length: 10
+```
+
 ### 팽창 인과 합성곱 (WaveNet 방식)
 
 팽창률을 지수적으로 키우며 인과 합성곱을 쌓으면 인과성을 지키면서도 아주 넓은 수용 영역을 얻는다.
@@ -318,6 +346,13 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
 stack = build_wavenet_stack(64, kernel_size=2, num_layers=10)
 print(f"Total layers: 10, Receptive field: 1024 samples")
 print(f"At 16kHz audio: {1024/16000:.3f}s of context")
+```
+
+**출력:**
+
+```
+Total layers: 10, Receptive field: 1024 samples
+At 16kHz audio: 0.064s of context
 ```
 
 ---
@@ -412,6 +447,13 @@ print(f"Input: {x.shape}, Prediction: {pred.shape}")  # [32, 1]
 print(f"Receptive field: 511 time steps")
 ```
 
+**출력:**
+
+```
+Input: torch.Size([32, 8, 256]), Prediction: torch.Size([32, 1])
+Receptive field: 511 time steps
+```
+
 ---
 
 ## 7. 금융 시계열을 위한 1차원 합성곱
@@ -471,6 +513,12 @@ extractor = FinancialFeatureExtractor(input_features=6, hidden_dim=32)
 x = torch.randn(16, 6, 252)
 features = extractor(x)
 print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
+```
+
+**출력:**
+
+```
+Multi-scale features: torch.Size([16, 96, 252])
 ```
 
 ---

@@ -19,6 +19,12 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Negative Sampling - Advanced optimization technique for large vocabularies
+```
+
 ## 2. 논의
 
 낱말 예측의 표준 소프트맥스 손실은 $p(w_O | w_I) = \frac{\exp(v'_{w_O} \cdot v_{w_I})}{\sum_{w=1}^{V} \exp(v'_w \cdot v_{w_I})}$을 계산해야 하며 여기서 $V$은 어휘 크기이다. 분모가 모든 낱말에 걸쳐 합해지므로 기울기 갱신마다 $O(V)$이 든다. 낱말이 10만 개를 넘는 어휘에서는 감당할 수 없이 비싸다.

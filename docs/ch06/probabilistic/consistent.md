@@ -156,6 +156,18 @@ if __name__ == "__main__":
     print(f"Expected: ~{1000 // 4} keys (n/(m+1) = 1000/4)")
 ```
 
+**출력:**
+
+```
+Distribution with 3 nodes:
+  server-A: 336 keys
+  server-B: 347 keys
+  server-C: 317 keys
+
+After adding server-D: 212/1000 keys moved
+Expected: ~250 keys (n/(m+1) = 1000/4)
+```
+
 ---
 
 ## 6. 복잡도

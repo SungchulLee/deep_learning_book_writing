@@ -189,6 +189,15 @@ if __name__ == "__main__":
           f"({len(hll.registers) * 6 / 8:.0f} bytes)")
 ```
 
+**출력:**
+
+```
+True cardinality: 100000
+Estimated:        100105
+Relative error:   0.10%
+Memory:           6144 bits (768 bytes)
+```
+
 ---
 
 ## 7. 복잡도 요약

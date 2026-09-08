@@ -121,6 +121,14 @@ print(f"Dilated 5 layers (d=1,2,4,8,16): RF = {rf_dilated}")  # 63
 print(f"Ratio: {rf_dilated / rf_standard:.1f}× larger with same parameters!")
 ```
 
+**출력:**
+
+```
+Standard 5 layers (3×3): RF = 11
+Dilated 5 layers (d=1,2,4,8,16): RF = 63
+Ratio: 5.7× larger with same parameters!
+```
+
 ---
 
 ## 4. PyTorch 구현
@@ -152,6 +160,17 @@ for name, conv in [("Standard", conv_standard), ("d=2", conv_d2), ("d=4", conv_d
     params = sum(p.numel() for p in conv.parameters())
     k_eff = conv.dilation[0] * (conv.kernel_size[0] - 1) + 1
     print(f"{name}: params={params:,}, effective RF={k_eff}×{k_eff}")
+```
+
+**출력:**
+
+```
+Standard: torch.Size([1, 128, 56, 56])
+Dilation 2: torch.Size([1, 128, 56, 56])
+Dilation 4: torch.Size([1, 128, 56, 56])
+Standard: params=73,856, effective RF=3×3
+d=2: params=73,856, effective RF=5×5
+d=4: params=73,856, effective RF=9×9
 ```
 
 **핵심 관찰**: 팽창을 준 3×3은 표준 5×5과 같은 5×5 수용 영역을 **매개변수 64%를 덜 쓰고** 이룬다!
@@ -340,6 +359,13 @@ x = torch.randn(2, 256, 28, 28)
 out = aspp(x)
 print(f"ASPP: {x.shape} → {out.shape}")  # 공간 차원이 같다
 print(f"Parameters: {sum(p.numel() for p in aspp.parameters()):,}")
+```
+
+**출력:**
+
+```
+ASPP: torch.Size([2, 256, 28, 28]) → torch.Size([2, 256, 28, 28])
+Parameters: 2,231,296
 ```
 
 ---

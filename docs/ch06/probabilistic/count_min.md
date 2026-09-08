@@ -131,6 +131,19 @@ if __name__ == "__main__":
     print(f"elderberry (absent): estimate={est_absent}")
 ```
 
+**출력:**
+
+```
+Sketch dimensions: 5 rows x 2719 columns
+Total elements: 950
+
+apple: true=500, estimate=500, error=0
+banana: true=300, estimate=300, error=0
+cherry: true=100, estimate=100, error=0
+date: true=50, estimate=50, error=0
+elderberry (absent): estimate=0
+```
+
 ---
 
 ## 5. 다른 스케치와의 비교

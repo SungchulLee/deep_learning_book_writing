@@ -83,6 +83,19 @@ print(f"Grouped (G=2) output: {conv_grouped_2(x).shape}")
 print(f"Grouped (G=4) output: {conv_grouped_4(x).shape}")
 ```
 
+**출력:**
+
+```
+Standard conv params: 73,856
+Grouped conv (G=2) params: 36,992
+Grouped conv (G=4) params: 18,560
+
+Input shape: torch.Size([1, 64, 32, 32])
+Standard output: torch.Size([1, 128, 32, 32])
+Grouped (G=2) output: torch.Size([1, 128, 32, 32])
+Grouped (G=4) output: torch.Size([1, 128, 32, 32])
+```
+
 ### 제약
 
 - $C_{in}$이 $G$으로 나누어떨어져야 한다
@@ -144,6 +157,14 @@ standard_params = sum(p.numel() for p in standard_conv.parameters())
 print(f"Standard conv params: {standard_params:,}")  # 36,928
 
 print(f"Reduction: {standard_params / params:.1f}×")  # 약 58배 줄어듦
+```
+
+**출력:**
+
+```
+Depthwise conv params: 640
+Standard conv params: 36,928
+Reduction: 57.7×
 ```
 
 ---
@@ -250,6 +271,17 @@ print(f"Reduction: {standard_params / ds_params:.1f}×")  # ~8.4×
 x = torch.randn(1, in_ch, 32, 32)
 print(f"\nStandard output: {standard(x).shape}")
 print(f"DS conv output: {ds_conv(x).shape}")
+```
+
+**출력:**
+
+```
+Standard conv params: 73,728
+Depthwise separable params: 8,768
+Reduction: 8.4×
+
+Standard output: torch.Size([1, 128, 32, 32])
+DS conv output: torch.Size([1, 128, 32, 32])
 ```
 
 ---
@@ -376,6 +408,13 @@ print(f"Input: {x.shape}, Output: {out.shape}")
 print(f"Parameters: {sum(p.numel() for p in block.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Input: torch.Size([1, 32, 56, 56]), Output: torch.Size([1, 32, 56, 56])
+Parameters: 14,848
+```
+
 ---
 
 ## 7. 채널 섞기 (ShuffleNet)
@@ -477,6 +516,12 @@ out = block(x)
 print(f"ShuffleNet block: {x.shape} → {out.shape}")
 ```
 
+**출력:**
+
+```
+ShuffleNet block: torch.Size([1, 24, 56, 56]) → torch.Size([1, 24, 56, 56])
+```
+
 ---
 
 ## 8. 효율 견주기
@@ -532,6 +577,16 @@ for name, model in [("Standard", standard),
                     ("Grouped (G=4)", grouped)]:
     params, flops = count_ops_and_params(model, input_shape)
     print(f"{name:15s}: Params={params:>10,}, FLOPs={flops:>15,}")
+```
+
+**출력:**
+
+```
+Comparison of Convolution Types:
+--------------------------------------------------
+Standard       : Params=    73,856, FLOPs=    462,422,016
+Depthwise Sep  : Params=     8,960, FLOPs=     54,992,896
+Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504
 ```
 
 ---

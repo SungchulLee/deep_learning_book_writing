@@ -244,6 +244,38 @@ if __name__ == "__main__":
     demonstrate_encoder_decoder()
 ```
 
+**출력:**
+
+```
+============================================================
+Cross-Attention Demo
+============================================================
+
+Query (decoder) shape: torch.Size([2, 3, 64])
+Key/Value (encoder) shape: torch.Size([2, 5, 64])
+Output shape: torch.Size([2, 3, 64])
+Attention weights shape: torch.Size([2, 3, 5])
+
+============================================================
+Multi-Head Cross-Attention Demo
+============================================================
+
+Query shape: torch.Size([2, 4, 64])
+Key/Value shape: torch.Size([2, 6, 64])
+Output shape: torch.Size([2, 4, 64])
+Attention weights shape: torch.Size([2, 8, 4, 6])
+
+============================================================
+Encoder-Decoder Attention Block Demo
+============================================================
+
+Decoder input shape: torch.Size([2, 4, 64])
+Encoder output shape: torch.Size([2, 6, 64])
+Output shape: torch.Size([2, 4, 64])
+Self-attention weights shape: torch.Size([2, 8, 4, 4])
+Cross-attention weights shape: torch.Size([2, 8, 4, 6])
+```
+
 ## 2. 논의
 
 부호기-복호기 구조가 통하게 만드는 것이 바로 교차 어텐션이다. 표준 트랜스포머 복호기에서는 층마다 부분층 세 개를 차례로 적용한다. 복호기 자신의 숨은 상태에 대한 가림막 자기 어텐션, 부호기 출력에 대한 교차 어텐션, 자리별 순방향 신경망이다. 자기 어텐션은 복호기가 출력 순차열 안의 의존을 다루게 하고, 교차 어텐션은 출력 토큰마다 입력의 쓸모 있는 부분에 조건을 걸게 한다.

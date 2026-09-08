@@ -158,6 +158,13 @@ print(f"Receptive field: {rf}×{rf}")  # 22×22
 print(f"Jump (output stride): {jump}")  # 4
 ```
 
+**출력:**
+
+```
+Receptive field: 16×16
+Jump (output stride): 4
+```
+
 ### 위치까지 좇는 층별 분석
 
 정확한 위치를 잡으려면 다음도 함께 좇는다.
@@ -324,6 +331,12 @@ print(f"WaveNet (3 blocks × 10 layers): {total_layers} layers, RF = {rf}")
 # RF = 3 × (2^10 - 1) + 1 = 3069
 ```
 
+**출력:**
+
+```
+WaveNet (3 blocks × 10 layers): 30 layers, RF = 3070
+```
+
 ---
 
 ## 5. 실효 수용 영역 (ERF)
@@ -448,6 +461,12 @@ def visualize_erf_concept():
     return fig
 
 visualize_erf_concept()
+```
+
+**출력:**
+
+```
+Saved visualization to 'erf_comparison.png'
 ```
 
 ---
@@ -581,6 +600,18 @@ def compare_architectures():
 compare_architectures()
 ```
 
+**출력:**
+
+```
+Architecture Receptive Field Comparison
+==================================================
+Architecture                    RF   Layers     Params
+--------------------------------------------------
+AlexNet-like                   163        7        191
+VGG-like (16 layers)           212       18        137
+Dilated (5 layers)              63        5         45
+```
+
 ---
 
 ## 7. 완전한 예제: 수용 영역을 고려한 신경망 설계
@@ -695,6 +726,33 @@ if __name__ == "__main__":
     verify_network_design()
 ```
 
+**출력:**
+
+```
+RF-Aware Network Design Verification
+============================================================
+Layer                Kernel   Stride   Dilation RF       Jump    
+--------------------------------------------------------------------
+Input                -        -        -        1        1       
+Conv1                3        1        1        3        1       
+Conv2                3        1        1        5        1       
+Pool1                2        2        1        6        2       
+Conv3                3        1        1        10       2       
+Conv4                3        1        1        14       2       
+Pool2                2        2        1        16       4       
+Conv5(d=2)           3        1        2        32       4       
+Conv6(d=4)           3        1        4        64       4       
+Conv7(d=8)           3        1        8        128      4       
+
+Final receptive field: 128×128 (target: ~128×128) ✓
+Output stride: 4
+
+Network test:
+  Input shape: torch.Size([2, 3, 224, 224])
+  Output shape: torch.Size([2, 10])
+  Total parameters: 1,740,362
+```
+
 ---
 
 ## 8. PyTorch 도구: 수용 영역 자동 추적기
@@ -782,6 +840,20 @@ model = nn.Sequential(
 
 tracker = ReceptiveFieldTracker(model)
 tracker.print_receptive_field()
+```
+
+**출력:**
+
+```
+Layer                          Type           K   S   D     RF   Jump
+---------------------------------------------------------------------------
+0                              Conv2d         7   2   1      7      2
+2                              MaxPool2d      3   2   1     11      4
+3                              Conv2d         3   1   1     19      4
+5                              Conv2d         3   1   1     27      4
+7                              Conv2d         3   2   1     35      8
+---------------------------------------------------------------------------
+Final: RF = 35×35, Output stride = 8
 ```
 
 ---

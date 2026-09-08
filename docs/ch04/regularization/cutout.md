@@ -426,18 +426,39 @@ def train_with_cutout(
 컷아웃은 다른 대부분의 정칙화 방법과 서로 보완한다.
 
 ```python
-# 컷아웃 + 표준 증강 + 가중치 감쇠 + 드롭아웃
+# 정칙화를 네 겹으로 겹쳐 건다. 서로 다른 곳을 막으므로 함께 쓸 수 있다.
+#   - 증강(컷아웃 포함): 입력을 흔든다
+#   - 드롭아웃: 신경망 안의 활성을 흔든다
+#   - 가중치 감쇠: 가중치의 크기를 누른다
 train_transform = transforms.Compose([
+    # 4픽셀 덧대고 32x32로 다시 자른다. 물체의 위치를 조금씩 옮겨
+    # 위치에 기대지 않도록 만든다
     transforms.RandomCrop(32, padding=4),
+
+    # 좌우 뒤집기. CIFAR의 물체는 좌우가 바뀌어도 같은 갈래이므로 안전하다
+    # (숫자나 글자였다면 써서는 안 된다)
     transforms.RandomHorizontalFlip(),
+
+    # 밝기와 대비를 흔들어 조명 조건에 덜 민감하게 만든다
     transforms.ColorJitter(brightness=0.2, contrast=0.2),
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), 
+
+    transforms.ToTensor(),   # PIL 이미지를 [0,1] 텐서로
+
+    # CIFAR-10의 채널별 평균과 표준편차. 정규화는 반드시 ToTensor 뒤에 온다
+    transforms.Normalize((0.4914, 0.4822, 0.4465),
                          (0.2470, 0.2435, 0.2616)),
+
+    # 이것이 컷아웃이다. 정규화 뒤에 두는 까닭은 value=0이 "정규화된
+    # 눈금에서의 0", 곧 평균값을 뜻하게 하기 위해서다. 정규화 앞에 두면
+    # 검은색을 칠하는 셈이 되어 데이터 분포를 다른 쪽으로 밀어 버린다
     transforms.RandomErasing(p=0.5, scale=(0.02, 0.33), value=0),
 ])
 
 model = SomeCNN(dropout_rate=0.3)
+
+# AdamW를 쓰는 까닭. 보통의 Adam에서는 weight_decay가 기울기에 더해져
+# 적응적 학습률에 나눠지므로 실제 감쇠 세기가 매개변수마다 달라진다.
+# AdamW는 감쇠를 갱신 단계에서 따로 빼므로 의도한 대로 걸린다
 optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 ```
 

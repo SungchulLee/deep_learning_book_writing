@@ -32,6 +32,15 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Skip-gram tutorial - Implementation template
+Key concept: center_word -> context_words
+
+Refer to 02_cbow_model.py and reverse the architecture!
+```
+
 ## 2. 논의
 
 Skip-gram의 목표는 가운데 낱말이 주어졌을 때 문맥 낱말을 볼 확률 $\sum_{t=1}^{T} \sum_{-c \leq j \leq c, j \neq 0} \log p(w_{t+j} | w_t)$을 최대로 하는 것이며, $c$은 문맥 창의 크기, $T$은 말뭉치의 길이이다. (가운데, 문맥) 쌍마다 모델은 $p(w_O | w_I) = \frac{\exp(v'_{w_O} \cdot v_{w_I})}{\sum_{w=1}^{V} \exp(v'_w \cdot v_{w_I})}$을 계산하며, $v$과 $v'$은 각각 입력 임베딩 행렬과 출력 임베딩 행렬이다.

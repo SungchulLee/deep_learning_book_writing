@@ -105,17 +105,33 @@ class RMSNormOptimized(nn.Module):
 
 ```python
 class LayerNormBaseline(nn.Module):
-    """비교를 위한 표준 LayerNorm."""
-    
+    """비교를 위한 표준 LayerNorm.
+
+    RMSNorm과 견주기 위한 기준이다. 두 가지가 다르다.
+      (1) LayerNorm은 평균을 빼서 중심을 옮기지만 RMSNorm은 옮기지 않는다.
+      (2) LayerNorm은 편향(bias)을 두지만 RMSNorm은 두지 않는다.
+    """
+
     def __init__(self, dim, eps=1e-6):
         super().__init__()
-        self.eps = eps
-        self.weight = nn.Parameter(torch.ones(dim))
-        self.bias = nn.Parameter(torch.zeros(dim))
-    
+        self.eps = eps   # 분산이 0에 가까울 때 0으로 나누는 것을 막는다
+
+        # 정규화로 모든 성분을 같은 자에 맞춘 뒤, 학습된 값으로 다시 늘이고
+        # 옮긴다. 이것이 없으면 정규화가 표현력을 깎아 버린다
+        self.weight = nn.Parameter(torch.ones(dim))    # 늘이기(초기값 1: 항등)
+        self.bias = nn.Parameter(torch.zeros(dim))     # 옮기기(초기값 0: 항등)
+
     def forward(self, x):
+        # dim=-1: 배치나 위치가 아니라 특성 축을 따라 정규화한다.
+        # 표본 하나 안에서 끝나므로 배치 크기에 흔들리지 않는다
+        # keepdim=True: 뒤에서 x와 방송(broadcast)되도록 축을 남겨 둔다
         mean = x.mean(dim=-1, keepdim=True)
+
+        # unbiased=False: n-1이 아니라 n으로 나눈다.
+        # 표본 분산을 추정하려는 것이 아니라 그저 자를 맞추려는 것이므로
+        # 베셀 보정을 쓰지 않는다
         var = x.var(dim=-1, keepdim=True, unbiased=False)
+
         return self.weight * (x - mean) / torch.sqrt(var + self.eps) + self.bias
 ```
 

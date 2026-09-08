@@ -19,6 +19,12 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Word2Vec Full Implementation - Combines CBOW (Tutorial 02_intermediate/02) and Skip-gram
+```
+
 ## 2. 논의
 
 Word2Vec 틀은 비슷한 문맥에 나타나는 낱말은 뜻도 비슷하다는 분포 가설을 이용해 낱말 임베딩을 배운다. CBOW는 문맥 낱말의 임베딩을 평균하여 가운데 낱말을 예측하므로 잦은 낱말에 효율적이고 효과적이다. Skip-gram은 방향을 뒤집어 가운데 낱말에서 문맥 낱말을 하나씩 따로 예측하는데, 학습 예제마다 낱말 하나에 집중하므로 드문 낱말의 표현을 더 잘 잡아낸다.

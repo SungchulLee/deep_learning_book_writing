@@ -588,10 +588,21 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import Ridge
 
-# 옳은 방법: 척도를 맞춘 뒤 정칙화한다
+# 옳은 방법: 척도를 맞춘 뒤 정칙화한다.
+#
+# 왜 순서가 중요한가.
+# L2 벌점은 모든 계수를 같은 세기로 누른다. 그런데 특성의 자가 제각각이면
+# 자가 큰 특성일수록 계수가 작아지므로 벌을 덜 받는다. 곧 정칙화의 세기가
+# 특성의 단위에 따라 달라져 버린다. 표준화를 먼저 해 두면 모든 계수가
+# 같은 자 위에 놓여 alpha 하나가 모두에 똑같이 걸린다.
+#
+# Pipeline으로 묶는 까닭.
+# 교차 검증을 할 때 겹(fold)마다 훈련 자료로만 평균과 표준편차를 다시 잰다.
+# 손으로 먼저 표준화해 두면 검증 겹의 정보가 훈련에 새어 들어
+# 성능이 실제보다 좋게 나온다.
 pipeline = Pipeline([
-    ('scaler', StandardScaler()),
-    ('ridge', Ridge(alpha=1.0))
+    ('scaler', StandardScaler()),   # 1단계: 각 특성을 평균 0, 표준편차 1로
+    ('ridge', Ridge(alpha=1.0))     # 2단계: 그 위에서 L2 벌점을 건다
 ])
 ```
 

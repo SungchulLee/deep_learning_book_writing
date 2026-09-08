@@ -21,6 +21,12 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Embedding Analysis - See visualization tutorial for similar concepts
+```
+
 ## 2. 논의
 
 이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 낱말 임베딩의 핵심 개념을 보인다. 모듈식 짜임 덕분에 부품 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.
