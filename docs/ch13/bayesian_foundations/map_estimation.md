@@ -2,39 +2,51 @@
 
 최대 뒤확률 어림은 뒤확률 분포의 최빈값을 찾아, 앞선 정보를 아우른 점 어림값을 준다. 이 마당은 최대 뒤확률을 최대 가능도, 뒤확률의 평균과 견주고, 최대 뒤확률을 위한 수치 최적화 방법을 세우며, 최대 뒤확률 어림과 벌주기 사이의 근본적인 이음을 밝힌다.
 
----
-
 ## 1. 베이즈 추론의 점 어림값 셋
 
-뒤확률 분포 하나에서 값 하나를 뽑아내는 길은 여럿이다. 널리 쓰이는 세 가지는 가능도만 보는 것, 뒤확률의 최빈값을 보는 것, 뒤확률의 평균을 보는 것이다.
+**정의 1.** [세 가지 점 어림값]
 
-**최대 가능도 어림값(MLE)**은 앞선 정보를 아랑곳하지 않고 가능도 함수를 가장 크게 한다.
-
-$$
-\boxed{\hat{\theta}_{\text{MLE}} = \underset{\theta}{\arg\max} \; p(D|\theta)}
-$$
-
-**최대 뒤확률(MAP)**은 뒤확률 분포를 가장 크게 한다.
+뒤확률 분포 $p(\theta \mid D)$ 하나에서 값 하나를 뽑아내는 길은 여럿이다. 널리 쓰이는 세 가지는 다음과 같다.
 
 $$
-\boxed{\hat{\theta}_{\text{MAP}} = \underset{\theta}{\arg\max} \; p(\theta|D) = \underset{\theta}{\arg\max} \; p(D|\theta) \, p(\theta)}
+\hat{\theta}_{\text{MLE}} = \underset{\theta}{\arg\max} \; p(D \mid \theta), \qquad
+\hat{\theta}_{\text{MAP}} = \underset{\theta}{\arg\max} \; p(\theta \mid D), \qquad
+\hat{\theta}_{\text{Mean}} = \mathbb{E}[\theta \mid D]
 $$
 
-**뒤확률의 평균**은 뒤확률 아래에서의 기댓값이다.
+첫째는 앞확률을 아랑곳하지 않고 가능도만 보고, 둘째는 뒤확률의 **최빈값**을, 셋째는 뒤확률의 **평균**을 본다.
 
-$$
-\boxed{\hat{\theta}_{\text{Mean}} = \mathbb{E}[\theta|D] = \int \theta \, p(\theta|D) \, d\theta}
-$$
+### 정리 1. 세 가지 점 어림값 — 손실 함수가 어림기를 고른다 { .thm }
 
-### 정리 1. 세 가지 점 어림값 — 손실 함수가 어림기를 고른다
+앞확률 $p(\theta)$ 와 가능도 $p(D \mid \theta)$ 가 주어졌다고 하자. 그러면 다음이 성립한다.
 
-앞확률 $p(\theta)$과 가능도 $p(D|\theta)$가 주어졌다고 하자. 그러면 다음이 성립한다.
+1. 앞확률이 고르면 $\hat{\theta}_{\text{MAP}} = \hat{\theta}_{\text{MLE}}$ 이다.
+2. 0-1 손실 아래에서 베이즈 어림기는 $\hat{\theta}_{\text{MAP}}$ 이다.
+3. 제곱 오차 손실 아래에서 베이즈 어림기는 $\hat{\theta}_{\text{Mean}}$ 이다.
 
-1. 앞확률이 고르면 $\hat{\theta}_{\text{MAP}} = \hat{\theta}_{\text{MLE}}$이다.
-2. 0-1 손실 아래에서 베이즈 어림기는 $\hat{\theta}_{\text{MAP}}$이다.
-3. 제곱 오차 손실 아래에서 베이즈 어림기는 $\hat{\theta}_{\text{Mean}}$이다.
+??? proof "증명"
 
-*밝힘.* (1) 고른 앞확률에서는 $\log p(\theta)$가 상수이므로 $\arg\max_\theta [\log p(D|\theta) + \log p(\theta)] = \arg\max_\theta \log p(D|\theta)$이다. (3) 기대 손실 $\mathbb{E}[(\theta - a)^2 | D]$을 $a$에 대해 미분해 0으로 두면 $a = \mathbb{E}[\theta|D]$을 얻는다. (2)는 손실 폭을 0으로 보내는 끝값에서 최빈값이 남는 데서 나온다. $\square$
+    (1) 고른 앞확률에서는 $\log p(\theta)$ 가 상수이므로
+
+    $$
+    \underset{\theta}{\arg\max}\,[\log p(D \mid \theta) + \log p(\theta)]
+    = \underset{\theta}{\arg\max}\,\log p(D \mid \theta)
+    $$
+
+    이다.
+
+    (3) 기대 손실 $\mathbb{E}[(\theta - a)^2 \mid D]$ 를 $a$ 에 대해 미분하여 $0$ 으로 두면
+
+    $$
+    -2\,\mathbb{E}[\theta - a \mid D] = 0 \;\Longrightarrow\; a = \mathbb{E}[\theta \mid D]
+    $$
+
+    를 얻는다.
+
+    (2) 손실 $L_\epsilon(\theta, a) = \mathbf{1}[\,|\theta - a| > \epsilon\,]$ 의 기대값을 가장 작게 하는 $a$ 는 폭 $2\epsilon$ 의 구간이 담는 뒤확률을 가장 크게 하는 자리이다. $\epsilon \to 0^{+}$ 으로 보내면 그 자리는 밀도가 가장 높은 점, 곧 최빈값으로 간다.
+
+!!! note "쓰임새"
+    어느 어림값을 고를지는 취향이 아니라 **어떤 손실을 치를 것인가**로 정해진다. 제곱 오차로 평가받는 예측이면 뒤확률의 평균을, 맞았는지 틀렸는지로만 평가받는 판정이면 최대 뒤확률을 쓴다.
 
 | 어림기 | 정의 | 가장 작게 하는 손실 함수 | 앞확률 씀 |
 |-----------|------------|------------------------|------------|
@@ -42,15 +54,15 @@ $$
 | 최대 뒤확률 | 뒤확률의 최빈값 | 0-1 손실 | 예 |
 | 뒤확률의 평균 | 뒤확률의 평균 | 제곱 오차 | 예 |
 
----
-
 ## 2. 베타-이항 모형의 닫힌 꼴
 
-켤레 앞확률을 쓰면 세 어림값을 모두 손으로 적을 수 있어, 앞확률이 어림값을 어느 쪽으로 끌어당기는지 눈으로 볼 수 있다.
+**정의 2.** [켤레 앞확률]
 
-### 정리 2. 베타-이항의 닫힌 꼴 — 앞확률은 유사 관측으로 더해진다
+가능도 $p(D \mid \theta)$ 에 대해 앞확률 $p(\theta)$ 와 뒤확률 $p(\theta \mid D)$ 가 같은 분포족에 들면 그 앞확률을 **켤레 앞확률**이라 한다. 이항 가능도의 켤레 앞확률은 베타 분포이다.
 
-앞확률이 $\text{Beta}(\alpha, \beta)$이고 데이터가 앞면 $k$번, 뒷면 $n-k$번이면 뒤확률은 $\text{Beta}(\alpha + k,\; \beta + n - k)$이고, $\alpha + k > 1$이며 $\beta + n - k > 1$일 때 다음이 성립한다.
+### 정리 2. 베타-이항의 닫힌 꼴 — 앞확률은 유사 관측으로 더해진다 { .thm }
+
+앞확률이 $\text{Beta}(\alpha, \beta)$ 이고 데이터가 앞면 $k$ 번, 뒷면 $n-k$ 번이면 뒤확률은 $\text{Beta}(\alpha + k,\; \beta + n - k)$ 이고, $\alpha + k > 1$ 이며 $\beta + n - k > 1$ 일 때 다음이 성립한다.
 
 $$
 \hat{\theta}_{\text{MAP}} = \frac{\alpha + k - 1}{\alpha + \beta + n - 2}, \qquad
@@ -58,19 +70,46 @@ $$
 \hat{\theta}_{\text{Mean}} = \frac{\alpha + k}{\alpha + \beta + n}
 $$
 
-*밝힘.* 뒤확률은 $p(\theta|D) \propto \theta^{\alpha+k-1}(1-\theta)^{\beta+n-k-1}$이므로 $\text{Beta}(\alpha+k, \beta+n-k)$이다. $\text{Beta}(a,b)$의 최빈값은 $a,b>1$일 때 $(a-1)/(a+b-2)$이고 평균은 $a/(a+b)$이다. 여기에 $a = \alpha+k$, $b = \beta+n-k$을 넣으면 된다. $\square$
+??? proof "증명"
 
-곧 앞확률 $\text{Beta}(\alpha,\beta)$은 앞면 $\alpha$번, 뒷면 $\beta$번을 미리 본 것과 같은 몫을 한다.
+    뒤확률의 꼴은
 
-**셈 보기.** 데이터가 앞면 7번, 뒷면 3번($k=7$, $n=10$)이고 앞확률이 $\text{Beta}(2, 2)$일 때는 다음과 같다.
+    $$
+    p(\theta \mid D) \propto \theta^{k}(1-\theta)^{n-k} \cdot \theta^{\alpha-1}(1-\theta)^{\beta-1}
+    = \theta^{\alpha+k-1}(1-\theta)^{\beta+n-k-1}
+    $$
 
-| 어림기 | 식 | 값 |
-|-----------|---------|-------|
-| 최대 가능도 | \$7/10$ | 0.700 |
-| 최대 뒤확률 | $(2+7-1)/(2+2+10-2) = 8/12$ | 0.667 |
-| 뒤확률의 평균 | $(2+7)/(2+2+10) = 9/14$ | 0.643 |
+    이므로 $\text{Beta}(\alpha+k,\ \beta+n-k)$ 이다. $\text{Beta}(a,b)$ 의 최빈값은 $a,b>1$ 일 때 $(a-1)/(a+b-2)$ 이고 평균은 $a/(a+b)$ 이다. 여기에 $a = \alpha+k$, $b = \beta+n-k$ 를 넣으면 된다.
 
-앞확률 $\text{Beta}(2, 2)$이 어림값을 0.5 쪽으로 끌어당긴다.
+!!! note "쓰임새"
+    앞확률 $\text{Beta}(\alpha,\beta)$ 는 **앞면 $\alpha$ 번, 뒷면 $\beta$ 번을 미리 본 것**과 같은 몫을 한다. 그래서 $\alpha,\beta$ 를 크게 잡을수록 데이터가 어림값을 덜 움직인다.
+
+**보기 1.** <span class="diff easy" title="쉬움"></span> 데이터가 앞면 $7$ 번, 뒷면 $3$ 번이고 앞확률이 $\text{Beta}(2, 2)$ 일 때 세 어림값을 구하시오.
+
+??? success "풀이"
+
+    정리 2에 $\alpha=\beta=2$, $k=7$, $n=10$ 을 넣으면 다음과 같다.
+
+    | 어림기 | 식 | 값 |
+    |-----------|---------|-------|
+    | 최대 가능도 | $7/10$ | $0.700$ |
+    | 최대 뒤확률 | $(2+7-1)/(2+2+10-2) = 8/12$ | $0.667$ |
+    | 뒤확률의 평균 | $(2+7)/(2+2+10) = 9/14$ | $0.643$ |
+
+    앞확률 $\text{Beta}(2,2)$ 가 어림값을 $0.5$ 쪽으로 끌어당긴다. 앞확률이 더할 유사 관측이 $4$ 번뿐이라 데이터 $10$ 번에 견주어 끌어당기는 힘은 약하다.
+
+**문제 1.** <span class="diff med" title="중간"></span> 위 보기에서 앞확률만 $\text{Beta}(10, 10)$ 으로 바꾸면 세 어림값이 어떻게 달라지는지 구하고, 그 까닭을 설명하시오.
+
+??? success "풀이"
+
+    $\hat{\theta}_{\text{MLE}} = 0.700$ 은 그대로이고,
+
+    $$
+    \hat{\theta}_{\text{MAP}} = \frac{10+7-1}{10+10+10-2} = \frac{16}{28} \approx 0.571,\qquad
+    \hat{\theta}_{\text{Mean}} = \frac{10+7}{10+10+10} = \frac{17}{30} \approx 0.567
+    $$
+
+    이다. 앞확률이 유사 관측 $20$ 번을 더하므로 데이터 $10$ 번을 눌러 이기고, 두 베이즈 어림값이 모두 $0.5$ 에 훨씬 가까워진다.
 
 ```python
 import numpy as np
@@ -104,37 +143,45 @@ def map_vs_mle_beta_binomial(n_heads, n_tails, prior_alpha=1, prior_beta=1):
     }
 ```
 
----
-
 ## 3. 수치 최적화로 하는 최대 뒤확률
 
 켤레가 아닌 모형에서는 닫힌 꼴이 없다. 그래도 최대 뒤확률은 늘 최적화 문제로 적을 수 있어서, 뒤확률 전체를 다루지 않고도 풀 수 있다.
 
-### 정리 3. 최대 뒤확률의 최적화 꼴 — 로그가능도와 로그앞확률의 합
+### 정리 3. 최대 뒤확률의 최적화 꼴 — 로그가능도와 로그앞확률의 합 { .thm }
 
-증거 $p(D)$은 $\theta$에 달리지 않으므로 다음이 성립한다.
+증거 $p(D)$ 는 $\theta$ 에 달리지 않으므로 다음이 성립한다.
 
 $$
 \hat{\theta}_{\text{MAP}}
-= \underset{\theta}{\arg\max} \left[ \log p(D|\theta) + \log p(\theta) \right]
-= \underset{\theta}{\arg\min} \left[ -\log p(D|\theta) - \log p(\theta) \right]
+= \underset{\theta}{\arg\max} \left[ \log p(D \mid \theta) + \log p(\theta) \right]
+= \underset{\theta}{\arg\min} \left[ -\log p(D \mid \theta) - \log p(\theta) \right]
 $$
 
-*밝힘.* $p(\theta|D) = p(D|\theta)p(\theta)/p(D)$이고 $\log$는 단조 증가하므로 $\arg\max_\theta \log p(\theta|D) = \arg\max_\theta [\log p(D|\theta) + \log p(\theta) - \log p(D)]$이다. 마지막 항은 $\theta$과 무관하므로 떨어져 나간다. $\square$
+??? proof "증명"
 
-곧 다루기 어려운 적분 $p(D) = \int p(D|\theta)p(\theta)\,d\theta$을 아예 셈하지 않아도 된다는 것이 최대 뒤확률의 값어치다.
+    베이즈 정리에서 $p(\theta \mid D) = p(D \mid \theta)\,p(\theta) / p(D)$ 이고 $\log$ 는 단조 증가하므로
 
-**보기: 평균과 흩어짐을 모르는 정규.**
+    $$
+    \underset{\theta}{\arg\max}\,\log p(\theta \mid D)
+    = \underset{\theta}{\arg\max}\,[\log p(D \mid \theta) + \log p(\theta) - \log p(D)]
+    $$
 
-- 데이터: $x_1, \ldots, x_n \sim \mathcal{N}(\mu, \sigma^2)$
-- 평균의 앞확률: $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$
-- 정밀도의 앞확률: $\tau = 1/\sigma^2 \sim \text{Gamma}(\alpha, \beta)$
+    이다. 마지막 항 $\log p(D)$ 는 $\theta$ 와 무관한 상수이므로 $\arg\max$ 에서 떨어져 나간다.
 
-음의 로그 뒤확률은 다음과 같다.
+!!! note "쓰임새"
+    다루기 어려운 적분 $p(D) = \int p(D \mid \theta)p(\theta)\,d\theta$ 를 **아예 셈하지 않아도 된다**는 것이 최대 뒤확률의 값어치다. 뒤확률 전체가 필요하면 이 적분을 피할 수 없지만, 최빈값 하나만 필요하면 피할 수 있다.
 
-$$
--\log p(\mu, \tau | D) = -\sum_{i=1}^n \log p(x_i|\mu, \tau) - \log p(\mu) - \log p(\tau) + \text{const}
-$$
+**보기 2.** <span class="diff easy" title="쉬움"></span> 데이터가 $x_1,\dots,x_n \sim \mathcal{N}(\mu, \sigma^2)$ 이고 앞확률이 $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$, $\tau = 1/\sigma^2 \sim \text{Gamma}(\alpha, \beta)$ 일 때 가장 작게 할 목적함수를 적으시오.
+
+??? success "풀이"
+
+    정리 3에 따라 음의 로그 뒤확률을 적으면 다음과 같다.
+
+    $$
+    -\log p(\mu, \tau \mid D) = -\sum_{i=1}^n \log p(x_i \mid \mu, \tau) - \log p(\mu) - \log p(\tau) + \text{const}
+    $$
+
+    $\tau > 0$ 이라는 제약은 $\tau = e^{s}$ 로 바꾸어 $s$ 에 대해 제약 없이 최적화하면 사라진다.
 
 ```python
 from scipy import optimize
@@ -180,31 +227,42 @@ def map_normal_unknown_mean_variance(data, prior_mean_mu=0, prior_std_mu=10,
 | 여러 곳에서 초기화 | 국소 최적을 피함 |
 | 기울기 기반 방법(BFGS, L-BFGS) | 매끄러운 뒤확률에 효율적 |
 
----
-
 ## 4. 최대 뒤확률 어림과 벌주기
 
-정리 3의 최적화 꼴을 다시 보면 $-\log p(\theta)$이 벌 항의 자리에 그대로 앉아 있다. 이것이 벌주기와 베이즈를 잇는 다리다.
+정리 3의 최적화 꼴을 다시 보면 $-\log p(\theta)$ 가 벌 항의 자리에 그대로 앉아 있다. 이것이 벌주기와 베이즈를 잇는 다리다.
 
-### 정리 4. 앞확률과 벌주기의 대응 — 가우스는 능선, 라플라스는 라소
+### 정리 4. 앞확률과 벌주기의 대응 — 가우스는 능선, 라플라스는 라소 { .thm }
 
 선형 회귀에서 계수마다 서로 독립인 앞확률을 두면 다음이 성립한다.
 
-1. $\theta_j \sim \mathcal{N}(0, \sigma_\theta^2)$이면 최대 뒤확률은 능선(L2) 회귀와 같다.
+1. $\theta_j \sim \mathcal{N}(0, \sigma_\theta^2)$ 이면 최대 뒤확률은 능선(L2) 회귀와 같다.
 
 $$
-\boxed{\hat{\beta}_{\text{Ridge}} = \underset{\beta}{\arg\min} \left[ \|y - X\beta\|_2^2 + \lambda \|\beta\|_2^2 \right]}
+\hat{\beta}_{\text{Ridge}} = \underset{\beta}{\arg\min} \left[ \|y - X\beta\|_2^2 + \lambda \|\beta\|_2^2 \right]
 $$
 
-2. $\theta_j \sim \text{Laplace}(0, b)$이면 최대 뒤확률은 라소(L1) 회귀와 같다.
+2. $\theta_j \sim \text{Laplace}(0, b)$ 이면 최대 뒤확률은 라소(L1) 회귀와 같다.
 
 $$
-\boxed{\hat{\beta}_{\text{Lasso}} = \underset{\beta}{\arg\min} \left[ \|y - X\beta\|_2^2 + \lambda \|\beta\|_1 \right]}
+\hat{\beta}_{\text{Lasso}} = \underset{\beta}{\arg\min} \left[ \|y - X\beta\|_2^2 + \lambda \|\beta\|_1 \right]
 $$
 
-*밝힘.* (1) $\log p(\theta) \propto -\frac{1}{2\sigma_\theta^2}\sum_j \theta_j^2$이므로 정리 3에 넣으면 $\lambda = 1/(2\sigma_\theta^2)$인 L2 벌 항이 된다. (2) $\log p(\theta) \propto -\frac{1}{b}\sum_j |\theta_j|$이므로 같은 방식으로 $\lambda = 1/b$인 L1 벌 항이 된다. $\square$
+??? proof "증명"
 
-앞확률의 흩어짐이 벌주기의 세기를 다스린다. 앞확률이 좁을수록 벌이 세다.
+    가능도가 $y \mid X, \beta \sim \mathcal{N}(X\beta, \sigma^2 I)$ 이면
+
+    $$
+    -\log p(D \mid \beta) = \frac{1}{2\sigma^2}\|y - X\beta\|_2^2 + \text{const}
+    $$
+
+    이다.
+
+    (1) 가우스 앞확률에서는 $-\log p(\beta) = \frac{1}{2\sigma_\theta^2}\|\beta\|_2^2 + \text{const}$ 이다. 정리 3의 목적함수에 넣고 $2\sigma^2$ 을 곱하면 $\|y-X\beta\|_2^2 + \lambda\|\beta\|_2^2$ 이며 $\lambda = \sigma^2/\sigma_\theta^2$ 이다.
+
+    (2) 라플라스 앞확률에서는 $-\log p(\beta) = \frac{1}{b}\|\beta\|_1 + \text{const}$ 이므로 같은 방식으로 $\lambda = 2\sigma^2/b$ 인 L1 벌 항이 나온다.
+
+!!! note "쓰임새"
+    **벌주기는 곧 베이즈이다.** 우리가 쓰는 모든 벌 항 뒤에는 매개변수 위의 앞확률 분포가 숨어 있고, 앞확률의 흩어짐이 벌주기의 세기 $\lambda$ 를 정한다. 앞확률이 좁을수록 벌이 세다.
 
 | 앞확률 분포 | 벌주기 | 벌 항 | 효과 |
 |-------------------|----------------|--------------|--------|
@@ -212,6 +270,14 @@ $$
 | 가우스 $\mathcal{N}(0, \sigma^2)$ | 능선(L2) | $\lambda\|\theta\|_2^2$ | 계수를 오그라뜨린다 |
 | 라플라스$(0, b)$ | 라소(L1) | $\lambda\|\theta\|_1$ | 성긴 해 |
 | 편자(horseshoe) | 맞추어 가는 오그라듦 | 복잡함 | 강한 성김 |
+
+**문제 2.** <span class="diff hard" title="어려움"></span> 라소가 계수를 **딱 $0$** 으로 모는 반면 능선은 그러지 못하는 까닭을, 두 앞확률의 밀도가 원점에서 보이는 차이로 설명하시오.
+
+??? success "풀이"
+
+    라플라스 밀도 $\propto e^{-|\theta|/b}$ 는 원점에서 뾰족한 모서리를 가져 미분할 수 없고, 벌 항 $|\theta|$ 의 열미분이 $\pm\lambda$ 로 뛴다. 그래서 데이터가 주는 기울기의 크기가 $\lambda$ 보다 작으면 $\theta = 0$ 이 최적이 되어 **정확히 $0$** 이 해로 남는다.
+
+    가우스 밀도 $\propto e^{-\theta^2/2\sigma^2}$ 는 원점에서 매끄럽고 벌 항 $\theta^2$ 의 미분이 원점에서 $0$ 이다. 따라서 데이터의 기울기가 아무리 작아도 최적점은 $0$ 에 가까워질 뿐 결코 $0$ 에 닿지 않는다.
 
 ```python
 import numpy as np
@@ -245,28 +311,52 @@ def demonstrate_map_regularization(n_samples=50, noise_std=1.0):
     return beta_mle, beta_ridge, beta_lasso
 ```
 
-**핵심 관찰:**
-
-1. **최대 가능도**는 차수가 높은 다항식에서 지나치게 맞춘다(계수가 커진다)
-2. **능선(가우스 앞확률)**은 모든 계수를 0 쪽으로 오그라뜨린다
-3. **라소(라플라스 앞확률)**는 일부 계수를 딱 0으로 몬다(성김)
-
----
-
 ## 5. 최빈값과 평균은 언제 갈리는가
 
 최대 뒤확률과 뒤확률의 평균은 늘 다른 값이 아니다. 언제 같고 언제 갈리는지는 뒤확률의 모양이 정한다.
 
-### 정리 5. 최빈값과 평균의 갈림 — 대칭이면 일치한다
+### 정리 5. 최빈값과 평균의 갈림 — 대칭이면 일치한다 { .thm }
 
-뒤확률 분포가 어떤 점 $c$을 중심으로 대칭이고 그 점에서 봉우리가 하나이면 $\hat{\theta}_{\text{MAP}} = \hat{\theta}_{\text{Mean}} = c$이다. 대칭이 깨지면 둘은 갈린다.
+뒤확률 분포가 어떤 점 $c$ 를 중심으로 대칭이고 그 점에서 봉우리가 하나이면
 
-*밝힘.* $p(c+u|D) = p(c-u|D)$이면 $\mathbb{E}[\theta - c|D] = \int u\,p(c+u|D)\,du = 0$이므로 평균은 $c$이다. 봉우리가 $c$ 하나이므로 최빈값도 $c$이다. $\square$
+$$
+\hat{\theta}_{\text{MAP}} = \hat{\theta}_{\text{Mean}} = c
+$$
+
+이다. 대칭이 깨지면 둘은 갈린다.
+
+??? proof "증명"
+
+    대칭이란 $p(c+u \mid D) = p(c-u \mid D)$ 를 뜻한다. 그러면
+
+    $$
+    \mathbb{E}[\theta - c \mid D] = \int u\,p(c+u \mid D)\,du = 0
+    $$
+
+    이다. 피적분함수가 홀함수이기 때문이다. 따라서 평균은 $c$ 이다. 봉우리가 $c$ 하나뿐이므로 최빈값도 $c$ 이다.
 
 | 분포 | 최빈값 | 평균 | 관계 |
 |--------------|------|------|--------------|
-| Gamma$(\alpha, \beta)$ | $(\alpha-1)/\beta$ | $\alpha/\beta$ | 평균 > 최빈값 |
-| Beta$(\alpha, \beta)$, $\alpha > \beta$ | $(\alpha-1)/(\alpha+\beta-2)$ | $\alpha/(\alpha+\beta)$ | 매개변수에 달렸다 |
+| $\text{Gamma}(\alpha, \beta)$ | $(\alpha-1)/\beta$ | $\alpha/\beta$ | 평균 $>$ 최빈값 |
+| $\text{Beta}(\alpha, \beta)$, $\alpha > \beta$ | $(\alpha-1)/(\alpha+\beta-2)$ | $\alpha/(\alpha+\beta)$ | 매개변수에 달렸다 |
+
+**문제 3.** <span class="diff med" title="중간"></span> $\text{Gamma}(\alpha, \beta)$ 뒤확률에서 평균과 최빈값의 차를 구하고, 어떤 $\alpha$ 에서 상대 갈림이 가장 큰지 밝히시오.
+
+??? success "풀이"
+
+    차는
+
+    $$
+    \frac{\alpha}{\beta} - \frac{\alpha-1}{\beta} = \frac{1}{\beta}
+    $$
+
+    로 $\alpha$ 와 무관하게 붙박여 있다. 그러나 평균으로 나눈 상대 갈림은
+
+    $$
+    \frac{1/\beta}{\alpha/\beta} = \frac{1}{\alpha}
+    $$
+
+    이므로 $\alpha \to 1^{+}$ 에서 가장 커진다. 곧 모양 매개변수가 작아 크게 기운 뒤확률일수록 두 어림값이 크게 갈린다.
 
 | 잣대 | 나은 어림기 |
 |-----------|---------------------|
@@ -275,74 +365,77 @@ def demonstrate_map_regularization(n_samples=50, noise_std=1.0):
 | 셈의 단순함 | 최대 뒤확률(최적화) |
 | 불확실성을 온전히 나타내기 | 뒤확률 전체 |
 
----
+## 연습문제
 
-## 6. 정리하며
+**연습문제 1.** <span class="diff easy" title="쉬움"></span> 베타-이항 모형에서 고른 앞확률($\text{Beta}(1,1)$)일 때 최대 뒤확률이 최대 가능도와 같음을 해석적으로 보이시오.
 
-최대 뒤확률은 뒤확률 분포의 최빈값이다. 정리 1이 보였듯 이는 0-1 손실 아래의 베이즈 어림기이며, 앞확률이 고르면 최대 가능도로 돌아간다. 정리 2는 켤레 앞확률에서 이 값이 닫힌 꼴로 나오고 앞확률이 유사 관측처럼 더해짐을 보였다.
+??? success "풀이"
 
-이 마당의 고갱이는 정리 3과 정리 4다. 최대 뒤확률은 다루기 어려운 증거 적분을 건너뛰고 로그가능도와 로그앞확률의 합을 가장 크게 하는 최적화 문제가 된다. 그리고 그 로그앞확률 항이 바로 벌 항이다. 가우스 앞확률은 능선 회귀를, 라플라스 앞확률은 라소 회귀를 낳는다. 곧 **벌주기는 곧 베이즈이다**. 우리가 쓰는 모든 벌 항 뒤에는 매개변수 위의 앞확률 분포가 숨어 있다.
+    정리 2에 $\alpha = \beta = 1$ 을 넣으면
 
-정리 5는 이 점 어림값의 한계를 짚는다. 뒤확률이 대칭이면 최빈값과 평균이 일치하지만, 기울면 갈린다. 그리고 어느 쪽을 고르든 점 어림값은 불확실성을 버린다. 뒤확률 전체가 필요한 자리에서는 [믿음 구간](credible_intervals.md)과 [MCMC](../../ch15/mcmc/gibbs_sampling.md)로 넘어가야 한다.
+    $$
+    \hat{\theta}_{\text{MAP}} = \frac{1+k-1}{1+1+n-2} = \frac{k}{n} = \hat{\theta}_{\text{MLE}}
+    $$
+
+    이다. 정리 1의 (1)을 닫힌 꼴로 확인한 것이다. 다만 뒤확률의 평균은 $(1+k)/(2+n)$ 으로 여전히 다르며, 이는 고른 앞확률조차 관측 두 번의 몫을 한다는 뜻이다.
+
+**연습문제 2.** <span class="diff med" title="중간"></span> 앞확률의 세기를 대칭으로 키울 때($\alpha = \beta = c$) 최대 뒤확률 어림값이 어디로 가는지 밝히시오.
+
+??? success "풀이"
+
+    정리 2에서
+
+    $$
+    \hat{\theta}_{\text{MAP}} = \frac{c+k-1}{2c+n-2} \;\xrightarrow[c \to \infty]{}\; \frac12
+    $$
+
+    이다. 앞확률이 셀수록 데이터를 눌러 이기고 어림값이 앞확률의 최빈값으로 끌려간다. $c = 1$ 에서는 최대 가능도 $k/n$ 과 같고, $c$ 가 커질수록 그 사이를 매끄럽게 지나간다.
+
+**연습문제 3.** <span class="diff med" title="중간"></span> 계수에 가우스 앞확률을 둔 로지스틱 회귀의 최대 뒤확률 어림을 구현하고, 벌주기 없는 최대 가능도와 견주시오.
+
+??? success "풀이"
+
+    정리 3의 꼴에 따라
+
+    $$
+    -\sum_i \left[ y_i \log \sigma(x_i^\top\beta) + (1-y_i)\log(1-\sigma(x_i^\top\beta)) \right] + \frac{\lambda}{2}\|\beta\|_2^2
+    $$
+
+    를 가장 작게 한다. 기울기는 $X^\top(\sigma(X\beta) - y) + \lambda\beta$ 이다. 데이터가 선형으로 갈리는 경우 최대 가능도는 계수가 무한대로 뻗지만, 가우스 앞확률을 두면 유한한 해가 남는다. 이것이 정리 4가 말하는 능선 벌주기의 효과다.
+
+**연습문제 4.** <span class="diff hard" title="어려움"></span> 능선 회귀가 계수마다 서로 독립인 가우스 앞확률을 둔 최대 뒤확률 어림과 같음을 증명하고, $\lambda$ 와 앞확률의 흩어짐 사이의 관계를 적으시오.
+
+??? success "풀이"
+
+    정리 4의 (1)이 그 증명이다. 결론만 다시 적으면
+
+    $$
+    \lambda = \frac{\sigma^2}{\sigma_\beta^2}
+    $$
+
+    이다. 곧 잡음이 클수록, 그리고 앞확률이 좁을수록 벌이 세진다. $\sigma_\beta \to \infty$ 이면 $\lambda \to 0$ 이 되어 최대 가능도로 돌아간다.
+
+**연습문제 5.** <span class="diff med" title="중간"></span> 최대 뒤확률은 뒤확률 전체에 견주어 어떤 정보를 잃는가? 그럼에도 최대 뒤확률이 나을 때는 언제인지 밝히시오.
+
+??? success "풀이"
+
+    최대 뒤확률은 점 어림값(최빈값)만 주고 뒤확률의 불확실성을 모두 버린다. 곧 우리가 얼마나 자신하는지, 분포가 얼마나 넓은지, 봉우리가 여럿인지를 알 수 없다. 뒤확률 전체는 불확실성 재기, 예측 분포, 주변 가능도를 거친 모형 견줌을 준다.
+
+    그래도 다음일 때는 최대 뒤확률이 낫다. (1) 뒤확률이 거의 가우스일 때(최대 뒤확률에 라플라스 어림을 곁들이면 넉넉하다), (2) 셈 자원이 빠듯할 때(MCMC가 필요 없다), (3) 점 예측만 필요할 때, (4) 모형이 아주 클 때(깊은 망에서는 온전한 베이즈 추론을 다룰 수 없다).
+
+## 정리하며
+
+최대 뒤확률은 뒤확률 분포의 **최빈값**이다.
+
+1. 어느 점 어림값을 쓸지는 치를 손실이 정한다. 0-1 손실이면 최대 뒤확률, 제곱 오차면 뒤확률의 평균이다(정리 1).
+2. 켤레 앞확률에서는 닫힌 꼴이 나오고, 앞확률은 유사 관측처럼 데이터에 더해진다(정리 2).
+3. 최대 뒤확률은 다루기 어려운 증거 적분을 건너뛰고 로그가능도와 로그앞확률의 합을 가장 크게 하는 최적화 문제가 된다(정리 3).
+4. 그 로그앞확률 항이 바로 벌 항이다. 가우스 앞확률은 능선을, 라플라스 앞확률은 라소를 낳는다(정리 4).
+
+곧 **벌주기는 곧 베이즈이다.** 다만 대칭이 깨진 뒤확률에서는 최빈값과 평균이 갈리고(정리 5), 어느 쪽을 고르든 점 어림값은 불확실성을 버린다. 뒤확률 전체가 필요한 자리에서는 「[믿음 구간](credible_intervals.md)」과 「[깁스 표집](../../ch15/mcmc/gibbs_sampling.md)」으로 넘어가야 한다.
 
 **참고 문헌**
 
 - Murphy, K. *Machine Learning: A Probabilistic Perspective*, 7장
 - Bishop, C. *Pattern Recognition and Machine Learning*, 3장
 - Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), 5장
-
----
-
-## 연습문제
-
-**연습문제 1.**
-베타-이항 모형에서 고른 앞확률($\text{Beta}(1,1)$)일 때 최대 뒤확률이 최대 가능도와 같음을 해석적으로 보여라.
-
-??? success "연습문제 1 풀이"
-    정리 2에서 $\alpha = \beta = 1$을 넣으면 $\hat{\theta}_{\text{MAP}} = (1+k-1)/(1+1+n-2) = k/n$이 되어 $\hat{\theta}_{\text{MLE}}$과 같다. 정리 1의 (1)이 말하는 바를 닫힌 꼴로 확인한 것이다. 다만 뒤확률의 평균은 $(1+k)/(2+n)$으로 여전히 다르며, 이는 고른 앞확률조차 관측 두 번의 몫을 한다는 뜻이다.
-
----
-
-**연습문제 2.**
-앞확률의 세기를 키울 때(베타-이항에서 $\alpha, \beta$을 대칭으로 키울 때) 최대 뒤확률 어림값이 어떻게 바뀌는지 보여라. 데이터를 붙박아 두고 앞확률 세기에 따른 최대 뒤확률을 그려라.
-
-??? success "연습문제 2 풀이"
-    $\alpha = \beta = c$으로 두면 정리 2에서 $\hat{\theta}_{\text{MAP}} = (c+k-1)/(2c+n-2)$이다. $c \to \infty$이면 이 값은 $1/2$으로 간다. 곧 앞확률이 셀수록 데이터를 눌러 이기고 어림값이 앞확률의 최빈값으로 끌려간다. $c = 1$에서는 최대 가능도 $k/n$과 같고, $c$가 커질수록 그 사이를 매끄럽게 지나간다.
-
----
-
-**연습문제 3.**
-계수에 가우스 앞확률을 둔 로지스틱 회귀의 최대 뒤확률 어림을 구현하라. 벌주기 없는 최대 가능도와 견주어라.
-
-??? success "연습문제 3 풀이"
-    정리 3의 꼴에 따라 $-\sum_i [y_i \log \sigma(x_i^\top\beta) + (1-y_i)\log(1-\sigma(x_i^\top\beta))] + \frac{\lambda}{2}\|\beta\|_2^2$을 가장 작게 한다. `scipy.optimize.minimize`에 이 목표와 그 기울기 $X^\top(\sigma(X\beta) - y) + \lambda\beta$을 넘기면 된다. 데이터가 선형으로 갈리는 경우 최대 가능도는 계수가 무한대로 뻗지만, 가우스 앞확률을 두면 유한한 해가 남는다. 이것이 정리 4가 말하는 능선 벌주기의 효과다.
-
----
-
-**연습문제 4.**
-능선 회귀가 계수마다 서로 독립인 가우스 앞확률을 둔 최대 뒤확률 어림과 같음을 수학으로 증명하라.
-
-??? success "연습문제 4 풀이"
-    정리 4의 (1)이 그 증명이다. 가능도가 $y|X,\beta \sim \mathcal{N}(X\beta, \sigma^2 I)$이면 $-\log p(D|\beta) = \frac{1}{2\sigma^2}\|y-X\beta\|_2^2 + \text{const}$이고, 앞확률이 $\beta_j \sim \mathcal{N}(0,\sigma_\beta^2)$이면 $-\log p(\beta) = \frac{1}{2\sigma_\beta^2}\|\beta\|_2^2 + \text{const}$이다. 둘을 더해 $2\sigma^2$을 곱하면 $\|y-X\beta\|_2^2 + \lambda\|\beta\|_2^2$이며 $\lambda = \sigma^2/\sigma_\beta^2$이다.
-
----
-
-**연습문제 5.**
-어떤 뒤확률 분포에서 최대 뒤확률과 뒤확률의 평균이 가장 많이 갈리는가? 감마와 베타 분포로 그 갈림을 보여 주는 보기를 만들어라.
-
-??? success "연습문제 5 풀이"
-    정리 5에 따라 대칭이 크게 깨질수록 갈림이 커진다. $\text{Gamma}(\alpha,\beta)$에서 평균과 최빈값의 차는 $\alpha/\beta - (\alpha-1)/\beta = 1/\beta$으로 붙박여 있으나, 값의 자로 나눈 상대 갈림 $1/\alpha$은 $\alpha \to 1^+$에서 커진다. 곧 모양 매개변수가 작아 크게 기운 뒤확률에서 갈림이 가장 두드러진다. $\text{Beta}(1.2, 8)$처럼 한쪽 끝에 몰린 경우도 마찬가지다.
-
----
-
-**연습문제 6.**
-최대 뒤확률은 뒤확률 전체에 견주어 어떤 정보를 잃는가? 온전한 베이즈 추론보다 최대 뒤확률이 나을 때는 언제인가?
-
-??? success "연습문제 6 풀이"
-    최대 뒤확률은 점 어림값(최빈값)만 주고 뒤확률의 불확실성에 대한 정보를 모두 버린다. 곧 우리가 얼마나 자신하는지, 분포가 얼마나 넓은지, 봉우리가 여럿인지 같은 것이다. 뒤확률 전체는 불확실성 재기, 예측 분포, 주변 가능도를 거친 모형 견줌을 준다. 그래도 다음일 때는 최대 뒤확률이 낫다. (1) 뒤확률이 거의 가우스일 때(최대 뒤확률에 라플라스 어림을 곁들이면 넉넉하다), (2) 셈 자원이 빠듯할 때(MCMC가 필요 없다), (3) 점 예측만 필요할 때, (4) 모형이 아주 클 때(깊은 망에서는 온전한 베이즈 추론을 다룰 수 없다).
-
----
-
-## 정리하며
-
-이 마당은 베이즈 추론의 점 어림값 셋、베타-이항 모형의 닫힌 꼴、수치 최적화로 하는 최대 뒤확률、최대 뒤확률 어림과 벌주기을 차례로 짚었다.
