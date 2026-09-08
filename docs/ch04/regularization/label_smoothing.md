@@ -218,7 +218,12 @@ def train_with_label_smoothing(
     반환값:
         학습 이력
     """
+    # PyTorch가 평활화를 인자 하나로 지원한다. 앞 절에서 손으로 만든
+    # 클래스와 하는 일이 같으므로, 실무에서는 이쪽을 쓰면 된다
     criterion = nn.CrossEntropyLoss(label_smoothing=epsilon)
+    # 주의: AdamW의 weight_decay가 또 하나의 정칙화다. 평활화만의 효과를
+    # 보려면 이 값을 0으로 두고 견주어야 한다. 그대로 두면 두 기법이
+    # 섞여 어느 쪽이 일했는지 갈라낼 수 없다
     optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
     
     history = {
@@ -252,8 +257,17 @@ def train_with_label_smoothing(
         with torch.no_grad():
             for X_batch, y_batch in val_loader:
                 outputs = model(X_batch)
+                # 평활화 없는 교차 엔트로피를 쓴다. 평활화된 손실은
+                # 정답을 완벽히 맞혀도 0으로 내려가지 않고 하한이 epsilon에
+                # 따라 달라지므로, epsilon이 다른 실험끼리 견줄 수 없다.
+                # 그래서 학습 손실과 검증 손실도 서로 다른 함수의 값이며
+                # 한 그래프에 겹쳐 그리면 안 된다
                 loss = nn.CrossEntropyLoss()(outputs, y_batch)  # 공정한 비교를 위한 딱딱한 교차 엔트로피
                 
+                # 이 페이지의 핵심 관찰이 여기서 나온다. 소프트맥스의
+                # 최댓값이 모델의 확신도인데, 평활화를 걸면 정확도는
+                # 거의 그대로면서 이 값이 내려간다. 맞히는 능력은
+                # 지키면서 지나친 자신감만 깎는 것이다
                 probs = torch.softmax(outputs, dim=-1)
                 max_probs, predicted = probs.max(1)
                 
@@ -262,6 +276,9 @@ def train_with_label_smoothing(
                 val_correct += predicted.eq(y_batch).sum().item()
                 all_confidences.append(max_probs)
         
+        # 배치마다 모아 둔 확신도를 한 텐서로 이어 붙여 평균 낸다.
+        # 배치별 평균을 다시 평균 내지 않는 덕에, 마지막 배치가 짧아도
+        # 표본 하나하나가 같은 무게를 갖는다
         avg_confidence = torch.cat(all_confidences).mean().item()
         
         history['train_loss'].append(train_loss / train_total)

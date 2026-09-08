@@ -246,13 +246,22 @@ class SparseNN(nn.Module):
     
     def get_l1_norm(self):
         """모든 가중치의 L1 노름을 계산한다."""
+        # 0은 파이썬 정수라 첫 +=에서 텐서로 바뀐다. 그 뒤로는 제자리
+        # 덧셈이지만 덧셈의 역전파는 덮어쓴 값을 필요로 하지 않아 안전하다
         l1_norm = 0
         for param in self.parameters():
+            # 편향까지 함께 센다. 보통 편향에는 벌점을 주지 않는데,
+            # 편향은 과적합의 원인이 아니라 출력의 중심을 옮기는 자유도라서다.
+            # 가중치만 고르려면 named_parameters()로 걸러야 한다
             l1_norm += torch.sum(torch.abs(param))
         return l1_norm
     
     def count_zero_weights(self, threshold=1e-6):
         """사실상 영인 가중치의 수를 센다."""
+        # 이름 그대로 "사실상" 영이다. L1 벌점을 손실에 더해 Adam으로
+        # 미분해 내려가는 방식은 가중치를 0 근처로 밀 뿐 0에 못박지
+        # 못한다. 정확히 0을 얻으려면 아래의 근접 경사 하강법이 필요하다.
+        # 그래서 여기서 나온 희소도는 문턱값을 얼마로 잡느냐에 달려 있다
         total = 0
         zeros = 0
         for param in self.parameters():
@@ -293,11 +302,17 @@ def train_with_l1(model, train_loader, val_loader,
             
             predictions = model(X_batch)
             mse_loss = criterion(predictions, y_batch)
+            # 벌점은 배치와 무관하다. 데이터를 보지 않고 가중치만 보므로
+            # 한 에포크 안에서도 값이 거의 같지만, 배치마다 다시 계산해야
+            # 한다. 갱신 뒤에는 가중치가 달라져 있기 때문이다
             l1_penalty = lambda_l1 * model.get_l1_norm()
             loss = mse_loss + l1_penalty
             
             loss.backward()
             optimizer.step()
+            # 기록하는 것은 loss가 아니라 mse_loss다. 벌점을 빼고 재야
+            # lambda_l1이 다른 실험끼리 손실 곡선을 견줄 수 있다.
+            # 벌점까지 넣으면 강도가 셀수록 손실이 커 보여 뜻이 흐려진다
             train_loss += mse_loss.item()
         
         # 검증
@@ -309,6 +324,10 @@ def train_with_l1(model, train_loader, val_loader,
                 val_loss += criterion(predictions, y_batch).item()
         
         # 지표를 추적한다
+        # len(loader)는 배치의 개수다. 즉 표본이 아니라 배치로 나눈
+        # 평균이라, 마지막 배치가 짧으면 그 배치가 실제보다 큰 무게를
+        # 얻는다. 표본 단위로 재려면 손실에 배치 크기를 곱해 두었다가
+        # 표본 총수로 나누어야 한다
         train_loss /= len(train_loader)
         val_loss /= len(val_loader)
         zeros, total = model.count_zero_weights()

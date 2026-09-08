@@ -232,7 +232,12 @@ def train_with_early_stopping(
             loss.backward()
             optimizer.step()
             
+            # 배치 크기를 곱해 두었다가 아래에서 표본 수로 나눈다.
+            # 배치별 손실을 그냥 평균 내면 마지막 짧은 배치가 앞의
+            # 꽉 찬 배치들과 같은 무게를 얻어 값이 살짝 어긋난다
             train_loss += loss.item() * X_batch.size(0)
+            # max(1)은 (최댓값, 위치)를 돌려주는데 필요한 것은 위치뿐이다.
+            # 이름표가 클래스 번호인 분류 과제를 전제한 코드다
             _, predicted = outputs.max(1)
             train_total += y_batch.size(0)
             train_correct += predicted.eq(y_batch).sum().item()
@@ -240,7 +245,10 @@ def train_with_early_stopping(
         train_loss /= train_total
         train_acc = train_correct / train_total
         
-        # 검증 단계
+        # 검증 단계.
+        # 조기 종료가 보는 것은 학습 손실이 아니라 이 검증 손실이다.
+        # 학습 손실은 과적합이 시작된 뒤에도 계속 내려가므로 멈출 때를
+        # 알려 주지 못한다. 검증 손실이 돌아서는 지점이 신호다
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
         
@@ -267,7 +275,12 @@ def train_with_early_stopping(
             print(f"Epoch {epoch+1}: Train Loss={train_loss:.4f}, "
                   f"Val Loss={val_loss:.4f}, Val Acc={val_acc:.4f}")
         
-        # 조기 종료 여부를 확인한다
+        # 조기 종료 여부를 확인한다.
+        # 이력을 기록한 "뒤"에 부르는 순서가 맞다. 앞에서 부르면 멈추는
+        # 에포크의 손실이 history에 빠진다.
+        # 주의: 이 if가 참이 될 때만 가장 좋았던 가중치가 복원된다.
+        # max_epochs를 다 쓰고 반복문이 끝나면 model은 마지막 에포크의
+        # 가중치를 지닌 채 반환된다
         if early_stopping(val_loss, model, epoch):
             if verbose:
                 print(f"Early stopping at epoch {epoch+1}")
@@ -304,6 +317,10 @@ class MultiMetricEarlyStopping:
         self.patience = patience
         self.restore_best_weights = restore_best_weights
         
+        # 지표마다 최고 기록과 인내 계수를 따로 둔다. 손실은 내려가야
+        # 좋고 정확도는 올라가야 좋으니 한 벌로는 셀 수 없다.
+        # 앞의 EarlyStopping과 달리 min_delta가 없다는 점에 주의하라.
+        # 아주 미세한 개선도 개선으로 세므로 더 늦게 멈춘다
         self.metrics_config = metrics_config
         self.best_scores = {name: None for name in metrics_config}
         self.counters = {name: 0 for name in metrics_config}
@@ -341,12 +358,21 @@ class MultiMetricEarlyStopping:
             else:
                 self.counters[name] += 1
         
+        # 주의: 하나라도 나아지면 저장한다. 그래서 여기 담기는 가중치는
+        # "모든 지표가 가장 좋았던" 순간이 아니다. 검증 손실은 나빠졌는데
+        # 정확도만 소수점 아래로 올라간 에포크도 갱신을 부른다.
+        # 어느 한 지표를 주 지표로 삼고 싶다면 그 지표가 나아졌을 때만
+        # 저장하도록 조건을 좁혀야 한다
         if any_improved:
             self.best_epoch = epoch
             if self.restore_best_weights:
                 self.best_weights = copy.deepcopy(model.state_dict())
         
         # 모든 지표가 인내를 넘겼으면 멈춘다
+        # any가 아니라 all이라는 점이 이 클래스의 성격을 정한다. 지표
+        # 하나만 정체되어도 멈추는 것이 아니라, 감시하는 모든 지표가
+        # 다 같이 정체되어야 멈춘다. 즉 너그러운 쪽이며, 지표를 더할수록
+        # 학습이 길어진다
         all_exceeded = all(c >= self.patience for c in self.counters.values())
         
         if all_exceeded and self.restore_best_weights:

@@ -161,8 +161,9 @@ def elastic_net_penalty(model: nn.Module, lambda_reg: float,
     l2_penalty = torch.tensor(0., device=next(model.parameters()).device)
     
     for param in model.parameters():
-        # += 대신 = a + b로 쓴 것이 중요하다. 제자리 연산은 계산 그래프를
-        # 망가뜨려 역전파에서 오류를 낸다.
+        # += 대신 = a + b로 썼다. 여기서는 +=로 써도 역전파가 되지만,
+        # 제자리 연산은 덮어쓴 값을 역전파가 필요로 할 때 오류를 내므로
+        # 누적에는 이 형태를 습관으로 두는 편이 안전하다.
         # 주의: model.parameters()는 편향도 함께 훑는다. 보통 편향에는
         # 벌점을 주지 않는다. 편향은 과적합의 원인이 아니고, 눌러 두면
         # 모델이 출력의 중심을 옮기지 못하기 때문이다. 가중치만 고르려면
