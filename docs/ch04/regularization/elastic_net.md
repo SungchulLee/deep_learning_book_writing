@@ -270,6 +270,11 @@ def train_elastic_net_model(
             mse_loss = criterion(predictions, y_batch)
             penalty = model.get_elastic_net_penalty()
             total_loss = mse_loss + penalty
+            # 역전파는 total_loss로, 기록은 mse_loss로 한다. 벌점을 뺀
+            # 값이라야 lambda_reg가 다른 실험끼리 손실 곡선을 견줄 수 있다.
+            # 주의: 이 방식은 Adam으로 벌점을 미분해 내려가는 것이라,
+            # 아래 근접 최적화기와 달리 가중치가 정확히 0에 닿지 않는다.
+            # history의 sparsity가 문턱값에 기대는 까닭이 여기 있다
             
             total_loss.backward()
             optimizer.step()
@@ -317,13 +322,22 @@ def proximal_elastic_net(w: torch.Tensor, lambda_reg: float,
     반환값:
         근접 단계를 거친 뒤의 가중치
     """
+    # 두 벌점이 서로 다른 방식으로 작용한다는 점이 여기서 드러난다.
+    # L1은 빼기(문턱화)로 작용해 작은 값을 0에 못박고,
+    # L2는 나누기(수축)로 작용해 모든 값을 고르게 줄인다.
     # L1 문턱값
     l1_threshold = lambda_reg * alpha * lr
     
     # L2 배율 인수
+    # 1보다 작은 수라 곱하면 가중치가 줄어든다. 아무리 줄여도 0이
+    # 되지는 않으므로, 희소성은 오로지 위의 문턱화가 만든다
     l2_scale = 1.0 / (1.0 + lambda_reg * (1 - alpha) * lr)
     
     # 연성 문턱화 뒤 배율 조정
+    # 순서가 정해져 있다. 문턱화를 먼저 하고 수축을 나중에 해야
+    # 엘라스틱 넷의 근접 연산자와 정확히 맞는다.
+    # 확인해 보면, alpha=1이면 l2_scale이 1이 되어 순수 라쏘의 연산자가
+    # 되고, alpha=0이면 문턱값이 0이 되어 순수 능선의 수축만 남는다
     soft_thresh = torch.sign(w) * torch.clamp(torch.abs(w) - l1_threshold, min=0)
     return l2_scale * soft_thresh
 
@@ -397,6 +411,9 @@ def elastic_net_analysis(X, y, l1_ratios=None, alphas=None):
     elastic_cv.fit(X_scaled, y)
     
     # 결과
+    # 정확히 0인지를 그대로 견준다. sklearn은 좌표 하강으로 풀어
+    # 계수를 진짜 0으로 만들기 때문이다. 앞의 PyTorch 판에서는
+    # 이 비교가 통하지 않아 문턱값을 두어야 했다
     n_nonzero = np.sum(elastic_cv.coef_ != 0)
     
     print("Elastic Net CV Results:")
@@ -416,13 +433,21 @@ def compare_regularization_methods(X, y, alpha_values):
     
     results = {}
     
+    # 주의: 셋에 같은 alpha를 넣지만 벌점의 눈금이 서로 달라 곧이곧대로
+    # 견줄 수는 없다. 같은 alpha에서 라쏘가 능선보다 세게 누르는 것이
+    # 보통이다. 여기서 볼 것은 강도별 성능이 아니라, 강도를 올릴 때
+    # 세 방법이 계수를 어떻게 다루는지의 차이다
     for alpha in alpha_values:
         # 라쏘
         lasso = Lasso(alpha=alpha, max_iter=10000)
         lasso.fit(X_scaled, y)
         lasso_nonzero = np.sum(lasso.coef_ != 0)
         
-        # 능선
+        # 능선.
+        # 여기만 문턱값 1e-6을 쓰고 나머지 둘은 != 0을 쓴다는 점이
+        # 이 비교의 핵심이다. 능선은 계수를 0으로 만들지 못하므로
+        # != 0으로 세면 언제나 전부 살아 있다고 나온다. 이 비대칭이
+        # 곧 "L2는 줄이고 L1은 고른다"는 말의 실물이다
         ridge = Ridge(alpha=alpha)
         ridge.fit(X_scaled, y)
         ridge_nonzero = np.sum(np.abs(ridge.coef_) > 1e-6)
@@ -486,6 +511,10 @@ def grid_search_elastic_net(X, y):
         scoring='neg_mean_squared_error',
         n_jobs=-1
     )
+    # 주의: X를 그대로 넣는다. 아래 elastic_net_analysis가 StandardScaler를
+    # 거치는 것과 다르다. 엘라스틱 넷의 벌점은 계수의 크기를 보므로,
+    # 특징의 눈금이 제각각이면 여기서 고른 alpha는 믿을 것이 못 된다.
+    # 부르는 쪽에서 표준화를 마친 X를 넘겨주어야 한다
     grid_search.fit(X, y)
     
     return grid_search.best_estimator_, grid_search.cv_results_
@@ -507,8 +536,12 @@ def plot_elastic_net_path(X, y, l1_ratio=0.5, eps=1e-3):
         l1_ratio: 고정된 혼합 매개변수
         eps: 경로의 길이
     """
-    # 표준화
+    # 주석은 표준화라 하지만 실제로는 중심화만 한다. 표준편차로 나누는
+    # 단계가 빠져 있어 특징들의 눈금이 그대로 남는다. 앞의 라쏘 경로가
+    # X.std(axis=0)로 나누는 것과 다르며, 눈금이 큰 특징일수록 계수가
+    # 작게 나와 경로에서 먼저 0으로 떨어지는 것처럼 보인다
     X_centered = X - X.mean(axis=0)
+    # y의 중심화는 절편을 따로 다루지 않아도 되게 해 준다
     y_centered = y - y.mean()
     
     # 경로 계산
