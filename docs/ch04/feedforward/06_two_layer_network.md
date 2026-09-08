@@ -12,6 +12,10 @@ import matplotlib.pyplot as plt
 
 torch.manual_seed(42)
 
+# XOR 문제. 입력 네 가지와 그 정답이 전부다.
+# 이 문제가 유명한 까닭은 선형으로 갈리지 않기 때문이다. 평면에
+# 직선 하나를 어떻게 그어도 (0,1),(1,0)을 (0,0),(1,1)에서 떼어 낼 수 없다.
+# 곧 은닉층이 없는 신경망은 정확도 75%를 넘지 못한다.
 X = torch.tensor([[0., 0.], [0., 1.], [1., 0.], [1., 1.]])
 y = torch.tensor([[0.], [1.], [1.], [0.]])
 
@@ -19,8 +23,12 @@ class TwoLayerNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(TwoLayerNet, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
+        # 이 ReLU가 이 예제의 전부다. 이것이 없으면 두 선형층의 합성이
+        # 다시 선형이 되어 층을 아무리 쌓아도 XOR을 풀 수 없다.
+        # 비선형이 있어야 은닉층이 입력을 갈릴 수 있는 자리로 옮겨 준다
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(hidden_size, output_size)
+        # 출력을 [0,1]로 눌러 확률로 읽는다. 아래 BCELoss가 확률을 받기 때문이다
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -28,20 +36,29 @@ class TwoLayerNet(nn.Module):
         output = self.sigmoid(self.fc2(hidden))
         return output
 
+# 은닉 유닛 4개. XOR은 2개로도 풀리지만, 초기값을 잘못 만나면
+# 국소 최적에 갇히는 일이 잦아 넉넉히 잡았다
 model = TwoLayerNet(2, 4, 1)
+
+# BCELoss는 시그모이드를 이미 지난 확률을 받는다.
+# 로짓을 그대로 넘기려면 BCEWithLogitsLoss를 써야 하며, 그쪽이
+# 수치적으로 더 안정적이라 실무에서는 보통 그쪽을 쓴다
 criterion = nn.BCELoss()
+
+# 학습률 0.1은 꽤 크지만, 표본이 4개뿐이라 이 정도라야 5000걸음 안에 수렴한다
 optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
 
 for epoch in range(5000):
-    outputs = model(X)
-    loss = criterion(outputs, y)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+    outputs = model(X)              # 순전파
+    loss = criterion(outputs, y)    # 얼마나 틀렸는지
+    optimizer.zero_grad()           # 지난 기울기를 지우고
+    loss.backward()                 # 역전파
+    optimizer.step()                # 한 걸음 옮긴다
 
-model.eval()
-with torch.no_grad():
+model.eval()   # 평가 결로 바꾼다(여기서는 드롭아웃이 없어 차이가 없지만 버릇을 들인다)
+with torch.no_grad():   # 기울기가 필요 없으므로 추적을 끈다
     predictions = model(X)
+    # 확률 0.5를 문턱값으로 0과 1을 정한다
     predicted_labels = (predictions > 0.5).float()
     accuracy = (predicted_labels == y).float().mean() * 100
 print(f"Final Accuracy: {accuracy:.1f}%")

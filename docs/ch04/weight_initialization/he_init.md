@@ -291,7 +291,11 @@ init.orthogonal_(linear.weight, gain=2 ** 0.5)  # ReLU에는 gain=√2
 ```python
 def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
     """층 순차 단위 분산(LSUV) 초기화."""
-    model.eval()
+    # He 초기화는 "이런 분포에서 뽑으면 분산이 유지될 것"이라는 이론값이다.
+    # LSUV는 여기서 한 걸음 더 나아가, 실제 데이터를 흘려 보고 활성의
+    # 표준편차를 재어 1이 될 때까지 가중치를 직접 다시 재는 방식이다.
+    # 이론이 가정한 조건이 어긋나는 구조에서도 통한다는 것이 장점이다.
+    model.eval()   # 드롭아웃과 배치 정규화를 꺼야 잰 값이 흔들리지 않는다
     hooks = []
     activation_stds = {}
 
@@ -302,31 +306,44 @@ def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
             if module.bias is not None:
                 init.zeros_(module.bias)
 
-            # 출력 표준편차를 잡아내려고 훅 등록
+            # 출력 표준편차를 잡아내려고 훅 등록.
+            # name=name 으로 기본 인자를 묶는 것이 중요하다. 이렇게 하지
+            # 않으면 모든 훅이 반복문의 마지막 name을 함께 보게 되어
+            # 통계가 한 자리에만 쌓인다(파이썬 클로저의 늦은 묶기)
             def hook_fn(mod, inp, out, name=name):
                 activation_stds[name] = out.detach().std().item()
             hooks.append(module.register_forward_hook(hook_fn))
 
-    # 배율을 반복적으로 조정
+    # 배율을 반복적으로 조정.
+    # 한 번에 끝나지 않는 까닭은 앞 층의 가중치를 고치면 뒤 층이 받는
+    # 입력이 달라져 다시 재야 하기 때문이다. 그래서 앞에서 뒤로 훑는
+    # 일을 여러 번 되풀이한다
     for iteration in range(max_iter):
-        with torch.no_grad():
-            model(data_batch)
+        with torch.no_grad():   # 초기화 단계이므로 기울기가 필요 없다
+            model(data_batch)   # 훅이 이때 활성 표준편차를 채운다
 
         all_close = True
         for name, module in model.named_modules():
             if name in activation_stds:
                 std = activation_stds[name]
+                # std > 1e-8: 활성이 완전히 죽은 층은 건드리지 않는다.
+                # 0에 가까운 값으로 나누면 가중치가 폭발한다
                 if abs(std - target_std) > tol and std > 1e-8:
+                    # 가중치를 target/현재 배로 늘이면 출력 표준편차도
+                    # 같은 배로 바뀐다. 선형층이라 이 비례가 성립한다.
+                    # .data를 쓰는 것은 autograd를 건너뛰고 값만 고치기 위해서다
                     module.weight.data *= target_std / std
                     all_close = False
 
         if all_close:
-            break
+            break   # 모든 층이 tol 안에 들면 끝난다
 
+    # 훅은 반드시 떼어 낸다. 그대로 두면 학습 내내 순전파마다
+    # 통계를 셈해 느려지고 메모리도 샌다
     for h in hooks:
         h.remove()
 
-    model.train()
+    model.train()   # 학습 결로 되돌린다
 ```
 
 ---
