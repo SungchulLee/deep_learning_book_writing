@@ -145,15 +145,28 @@ class SkipList:
         current = self.header
         comparisons = 0
 
+        # 삽입의 앞부분과 똑같은 순회다. 다른 점은 앞 노드를 적어 둘
+        # update 배열이 필요 없다는 것뿐이다.
+        # 부등호가 < 이지 <= 가 아니라는 점이 중요하다. 찾는 키와 같은
+        # 노드 "앞"에서 멈추어야 하며, 그래야 아래에서 한 칸 나아가
+        # 후보를 집을 수 있다
         for i in range(self.level, -1, -1):
             while current.forward[i] and current.forward[i].key < key:
                 current = current.forward[i]
                 comparisons += 1
             comparisons += 1  # 내려가게 만든 비교
 
+        # 이 시점에서 current는 0층에서 찾는 키 바로 앞에 서 있다.
+        # 한 칸 나아간 것이 유일한 후보다. 더 뒤는 볼 필요가 없는데,
+        # 0층이 정렬된 리스트라 그 뒤는 모두 키보다 크기 때문이다
         current = current.forward[0]
         comparisons += 1
 
+        # 후보가 있고 키까지 맞아야 찾은 것이다. 없는 키를 찾았을 때는
+        # current가 None이거나 키가 더 큰 노드가 된다.
+        # 비교 횟수를 함께 돌려주는 덕에, 층이 실제로 몇 걸음을 아껴
+        # 주는지 세어 볼 수 있다. 0층만 있는 연결 리스트라면 이 값이
+        # n에 비례해 늘지만 건너뛰기 리스트에서는 log n에 비례한다
         if current and current.key == key:
             return current, comparisons
         return None, comparisons

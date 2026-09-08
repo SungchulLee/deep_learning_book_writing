@@ -97,7 +97,9 @@ class SkipList:
 
         current = current.forward[0]
 
-        # 키가 이미 있으면 중복해서 넣지 않는다
+        # 키가 이미 있으면 중복해서 넣지 않는다.
+        # 0층만 보면 되는 까닭은 그 층에 모든 노드가 있기 때문이다.
+        # 위층에만 있고 0층에 없는 노드는 존재할 수 없다
         if current and current.key == key:
             return current
 
@@ -123,7 +125,10 @@ class SkipList:
 
         키를 찾아 지웠으면 True, 아니면 False를 돌려준다.
         """
-        # 1단계: 갱신 배열 찾기
+        # 1단계: 갱신 배열 찾기.
+        # 삽입의 1단계와 글자 하나까지 같다. 두 연산이 "자리를 찾아
+        # 층마다 앞 노드를 적어 둔다"는 같은 뼈대를 쓰기 때문이며,
+        # 삽입은 그 자리에 끼우고 삭제는 그 자리를 건너뛰게 할 뿐이다
         update = [None] * (self.max_level + 1)
         current = self.header
         for i in range(self.level, -1, -1):
@@ -137,13 +142,21 @@ class SkipList:
         if not target or target.key != key:
             return False
 
-        # 3단계: 각 층에서 연결 끊기
+        # 3단계: 각 층에서 연결 끊기.
+        # 지울 노드의 높이를 따로 묻지 않고, 아래에서부터 올라가다가
+        # 그 노드가 없는 층을 만나면 멈춘다. 노드는 0층부터 제 높이까지
+        # 빈틈없이 이어져 있으므로, 처음 어긋나는 층 위로는 볼 것이 없다.
+        # len(target.forward)로 높이를 읽어 그만큼만 도는 것과 결과가 같다
         for i in range(self.level + 1):
             if update[i].forward[i] is not target:
                 break
             update[i].forward[i] = target.forward[i]
 
-        # 4단계: 필요하면 높이 줄이기
+        # 4단계: 필요하면 높이 줄이기.
+        # 가장 높던 노드를 지우면 맨 위 층들이 텅 비는데, 그대로 두면
+        # 탐색이 매번 빈 층에서 헛걸음을 시작한다. 머리의 그 층 포인터가
+        # None이면 아무도 없다는 뜻이므로 높이를 한 칸씩 내린다.
+        # 삽입에서 self.level을 올리던 것과 짝을 이루는 손질이다
         while self.level > 0 and self.header.forward[self.level] is None:
             self.level -= 1
 

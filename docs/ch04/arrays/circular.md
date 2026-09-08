@@ -72,10 +72,17 @@ class CircularBuffer:
     """O(1) 넣기와 빼기를 지원하는 고정 용량 원형 버퍼."""
 
     def __init__(self, capacity: int):
+        # 배열은 한 번 잡아 두고 다시 잡지 않는다. 앞뒤 표시만 옮겨 다니며
+        # 같은 칸을 돌려쓰는 것이 이 자료 구조의 요령이다.
+        # 파이썬 리스트로 큐를 만들면 pop(0)이 뒤의 원소를 모두 한 칸씩
+        # 당겨 O(n)이 드는데, 이쪽은 넣기와 빼기가 모두 O(1)이다
         self._data = [None] * capacity
         self._capacity = capacity
         self._front = 0
         self._rear = 0
+        # 크기를 따로 센다. front와 rear만으로는 가득 찬 상태와 빈 상태를
+        # 가릴 수 없기 때문이다. 둘 다 front == rear가 되어 버린다.
+        # 한 칸을 비워 두어 구별하는 구현도 있지만 이쪽이 알아보기 쉽다
         self._size = 0
 
     def is_empty(self) -> bool:
@@ -88,6 +95,9 @@ class CircularBuffer:
         if self.is_full():
             raise OverflowError("Buffer is full")
         self._data[self._rear] = value
+        # 나머지 연산이 고리를 만든다. 끝에 닿으면 0으로 돌아가므로
+        # 배열의 마지막 칸 다음이 첫 칸이 된다. "원형"이라는 이름이
+        # 여기서 나오며, 실제로 도는 것은 자료가 아니라 이 표시다
         self._rear = (self._rear + 1) % self._capacity
         self._size += 1
 
@@ -95,7 +105,11 @@ class CircularBuffer:
         if self.is_empty():
             raise IndexError("Buffer is empty")
         value = self._data[self._front]
+        # 값을 지우지 않아도 _size 덕에 논리적으로는 빠진 것이지만,
+        # 배열이 참조를 붙들고 있으면 그 객체가 메모리에 남는다.
+        # None으로 덮어써야 실제로 놓아 준다
         self._data[self._front] = None  # 쓰레기 수집을 돕는다
+        # 앞 표시만 옮긴다. 원소를 밀지 않으므로 O(1)이다
         self._front = (self._front + 1) % self._capacity
         self._size -= 1
         return value
@@ -110,6 +124,9 @@ class CircularBuffer:
 
     def __repr__(self) -> str:
         items = []
+        # 배열의 0번 칸이 아니라 _front부터, 그것도 _size개만 훑는다.
+        # 자료가 배열 끝에서 앞으로 감겨 있을 수 있고 빈 칸도 섞여
+        # 있으므로, 저장된 차례가 아니라 논리적 차례로 읽어야 한다
         idx = self._front
         for _ in range(self._size):
             items.append(repr(self._data[idx]))

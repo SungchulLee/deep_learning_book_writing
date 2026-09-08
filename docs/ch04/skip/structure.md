@@ -67,6 +67,12 @@ class SkipNode:
 
     def __init__(self, key, level):
         self.key = key
+        # 노드마다 전진 포인터를 여러 개 갖는다는 것이 연결 리스트와
+        # 다른 전부다. forward[0]은 0층, 곧 모든 노드가 참여하는
+        # 보통의 정렬된 연결 리스트이고, 위층으로 갈수록 참여하는
+        # 노드가 줄어 멀리 건너뛰는 급행 차선이 된다.
+        # +1인 까닭은 level이 0부터 세는 번호이기 때문이다.
+        # level=0이면 포인터 하나, level=2면 0,1,2층으로 셋이다
         self.forward = [None] * (level + 1)
 
     def __repr__(self):
@@ -80,6 +86,13 @@ def random_level(max_level, p=0.5):
     0층 위의 각 층은 확률 p으로 독립적으로 더해진다.
     기대 층수는 1/(1-p)이며, p=0.5이면 2이다.
     """
+    # 동전을 앞면이 나오는 동안 계속 던지는 것과 같다. 균형 이진 트리가
+    # 회전으로 모양을 바로잡는 것과 달리, 건너뛰기 리스트는 이 무작위성
+    # 하나로 균형을 얻는다. 넣는 차례가 어떻든 층의 분포가 같으므로
+    # 정렬된 데이터를 차례로 넣어도 한쪽으로 치우치지 않는다.
+    # p=0.5이면 절반이 0층에만, 4분의 1이 1층까지, 8분의 1이 2층까지
+    # 올라가므로 층마다 노드가 절반씩 줄어 이진 탐색과 같은 모양이 된다.
+    # max_level로 막아 두지 않으면 아주 드물게 층이 끝없이 올라갈 수 있다
     level = 0
     while random.random() < p and level < max_level:
         level += 1
@@ -94,24 +107,43 @@ class SkipList:
         self.max_level = max_level
         self.p = p
         self.level = 0   # 현재 쓰이는 최대 층
+        # 머리 노드는 보초다. 키 -1은 어떤 실제 키보다도 작다고 보는
+        # 표시일 뿐 데이터가 아니며, 아래 탐색이 언제나 여기서 출발한다.
+        # 처음부터 max_level만큼 포인터를 지니므로 층이 몇 개로 자라든
+        # 머리를 다시 만들 필요가 없다
         self.header = SkipNode(-1, max_level)
 
     def insert(self, key):
         """건너뛰기 리스트에 키를 넣는다."""
+        # update[i]는 "i층에서 새 노드의 바로 앞에 올 노드"를 담아 둔다.
+        # 연결 리스트에서 앞 노드를 붙들고 있어야 했던 것과 같은 이유이며,
+        # 층이 여럿이라 층마다 하나씩 필요하다
         update = [None] * (self.max_level + 1)
         current = self.header
+        # 맨 위층에서 시작해 아래로 내려온다. 위층에서 성큼성큼 건너뛰어
+        # 대강의 자리를 잡고, 층을 내려가며 점점 촘촘히 좁혀 가는 것이다.
+        # 한 층에서 더 갈 수 없으면 (다음 노드가 없거나 키가 크면)
+        # 그 자리를 적어 두고 한 층 내려간다.
+        # 층마다 평균 몇 걸음만 걷고 층이 log n개이므로 전체가
+        # 기대 O(log n)이다
         for i in range(self.level, -1, -1):
             while current.forward[i] and current.forward[i].key < key:
                 current = current.forward[i]
             update[i] = current
 
+        # 새 노드의 높이는 키와도 자료와도 무관하게 뽑는다
         new_level = random_level(self.max_level, self.p)
+        # 지금까지 쓰인 적 없는 층까지 올라갔다면, 그 층들에는 아직
+        # 아무도 없으므로 앞 노드가 머리 보초다
         if new_level > self.level:
             for i in range(self.level + 1, new_level + 1):
                 update[i] = self.header
             self.level = new_level
 
         new_node = SkipNode(key, new_level)
+        # 자기 높이만큼의 층에 모두 끼워 넣는다. 각 층에서 하는 일은
+        # 단일 연결 리스트의 삽입과 똑같고, 순서도 같은 이유로 중요하다.
+        # 새 노드가 뒤를 먼저 가리킨 다음 앞 노드를 이어야 한다
         for i in range(new_level + 1):
             new_node.forward[i] = update[i].forward[i]
             update[i].forward[i] = new_node
