@@ -83,7 +83,14 @@ class MultiTaskNet(nn.Module):
     def __init__(self, input_size):
         super().__init__()
         
-        # 공유 층 (일반적인 특징을 배운다)
+        # 공유 층 (일반적인 특징을 배운다).
+        # 두 과제의 기울기가 이 층에서 더해진다. 그래서 한 과제가 배운
+        # 표현이 다른 과제에도 쓰이며, 이것이 다중 과제 학습이
+        # 정칙화처럼 듣는 까닭이다. 다만 두 과제가 서로 무관하면
+        # 오히려 방해가 되기도 한다.
+        # 주의: BatchNorm1d가 들어 있어 배치 크기가 1이면 학습 모드에서
+        # 오류가 난다. 표본 수가 배치 크기로 나누어떨어지지 않아
+        # 마지막 배치가 1이 되는 경우를 조심하라
         self.shared = nn.Sequential(
             nn.Linear(input_size, 128),
             nn.BatchNorm1d(128),
@@ -96,7 +103,11 @@ class MultiTaskNet(nn.Module):
             nn.Dropout(0.2)
         )
         
-        # 과제 1 머리: 회귀 (나이 예측)
+        # 과제 1 머리: 회귀 (나이 예측).
+        # 머리를 따로 두는 까닭은 두 과제가 요구하는 출력이 다르기
+        # 때문이다. 나이는 실수 하나, 성별은 로짓 하나이고 손실 함수도
+        # 다르다. 공유 층이 공통된 표현을 만들고 머리가 그것을
+        # 과제별 답으로 옮긴다
         self.age_head = nn.Sequential(
             nn.Linear(64, 32),
             nn.ReLU(),
@@ -134,7 +145,14 @@ criterion_gender = nn.BCEWithLogitsLoss()  # 이진 분류
 
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# 과제 가중치 (중요도 균형 맞추기)
+# 과제 가중치 (중요도 균형 맞추기).
+# 주의: 1.0과 1.0은 균형이 아니다. 나이가 18~80 그대로라 MSE는 학습
+# 초반에 2500 언저리인 반면 BCE는 0.7 안팎이라, 두 손실의 크기가
+# 3000배 넘게 차이 난다. 그대로 더하면 공유 층이 받는 기울기는
+# 사실상 나이 과제의 것뿐이고 성별 과제는 묻힌다.
+# 고치는 길은 둘이다. 나이를 표준화해 두 손실의 눈금을 맞추거나,
+# weight_age를 1e-3쯤으로 낮추는 것이다. 크기가 다른 손실을 더할 때
+# 늘 따라오는 문제이며, 다중 과제 학습에서 가장 먼저 확인할 자리다
 weight_age = 1.0
 weight_gender = 1.0
 
@@ -172,6 +190,9 @@ for epoch in range(epochs):
         loss_gender = criterion_gender(gender_logits, batch_gender)
         
         # 결합된 손실 (가중합)
+        # 두 손실을 하나로 더해 backward를 한 번만 부른다. 각각 따로
+        # 부르면 공유 층의 그래프를 두 번 거슬러 올라가야 해서
+        # retain_graph가 필요해진다. 더해 두면 기울기가 저절로 합쳐진다
         loss = weight_age * loss_age + weight_gender * loss_gender
         
         # 역전파

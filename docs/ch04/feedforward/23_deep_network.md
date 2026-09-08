@@ -64,6 +64,9 @@ class ResidualBlock(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.1),
             nn.Linear(size, size),
+            # 블록이 정규화로 끝나고 활성화는 밖에서 더한 뒤에 건다.
+            # 그래야 항등 경로가 활성화를 거치지 않고 그대로 흘러,
+            # 미분이 1 + f'(x)가 되어 기울기가 반드시 살아남는다
             nn.BatchNorm1d(size)
         )
         self.relu = nn.ReLU()
@@ -71,7 +74,13 @@ class ResidualBlock(nn.Module):
     def forward(self, x):
         residual = x
         out = self.block(x)
-        out += residual  # 건너뛰기 연결!
+        # 건너뛰기 연결!
+        # 여기서는 제자리 덧셈이 통하지만 아슬아슬하다. block이 배치
+        # 정규화로 끝나고 그 역전파는 자기 출력을 다시 보지 않기
+        # 때문이다. 만약 block이 ReLU로 끝났다면 ReLU의 역전파가
+        # 자기 출력을 필요로 해서 "inplace operation" 오류가 난다.
+        # out = out + residual로 쓰면 어느 경우에도 안전하다
+        out += residual
         out = self.relu(out)
         return out
 
@@ -102,10 +111,19 @@ class DeepNet(nn.Module):
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
+                # mode='fan_out'은 기본값인 fan_in과 다르다. 순전파의
+                # 분산이 아니라 역전파의 분산을 지키는 쪽이며, ResNet
+                # 원 논문이 쓴 설정이다
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
             elif isinstance(m, nn.BatchNorm1d):
+                # gamma=1, beta=0이면 정규화한 값을 그대로 통과시킨다.
+                # 곧 학습 초반에는 정규화 층이 아무것도 바꾸지 않는다.
+                # 참고로 ResNet 계열에서는 블록의 "마지막" 정규화만
+                # gamma=0으로 두는 요령도 쓴다. 그러면 블록의 출력이
+                # 0에서 시작해 신경망 전체가 항등 사상으로 출발하므로
+                # 아주 깊을 때 더 안정적이다
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
     
@@ -168,7 +186,12 @@ def train_epoch(model, loader):
         optimizer.zero_grad()
         loss.backward()
         
-        # 기울기 자르기 (기울기 폭발을 막는다)
+        # 기울기 자르기 (기울기 폭발을 막는다).
+        # 자리가 정해져 있다. backward "뒤", step "앞"이다. 순서를
+        # 어기면 자르기가 갱신에 반영되지 않는다.
+        # 전체 기울기를 하나의 벡터로 보고 그 노름이 1을 넘으면
+        # 방향은 그대로 둔 채 길이만 1로 줄인다. 값 하나하나를 자르는
+        # clip_grad_value_와 달리 방향이 보존된다
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
         
         optimizer.step()
