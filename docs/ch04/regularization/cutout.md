@@ -200,33 +200,46 @@ class FlexibleCutout:
         self.fill_mode = fill_mode
     
     def __call__(self, img: torch.Tensor) -> torch.Tensor:
+        # 확률 p로만 건다. 모든 이미지에 걸면 모델이 "늘 가려진 그림"에
+        # 맞춰져 온전한 그림을 볼 때 오히려 손해가 된다
         if np.random.random() > self.p:
             return img
-        
+
         C, H, W = img.shape
-        result = img.clone()
-        
+        result = img.clone()   # 원본을 건드리지 않는다
+
         for _ in range(self.n_holes):
             length = np.random.randint(self.min_length, self.max_length + 1)
-            
+
+            # 중심을 그림 안 아무 데서나 고른다. 구멍이 가장자리를
+            # 넘어가면 아래 clamp에서 잘려 실제 구멍이 작아지는데,
+            # 이는 의도된 것이다. 물체가 가장자리에 있을 때도 견디게 한다
             cy = np.random.randint(H)
             cx = np.random.randint(W)
-            
+
+            # 그림 밖으로 나가지 않도록 자른다
             y1 = max(0, cy - length // 2)
             y2 = min(H, cy + length // 2)
             x1 = max(0, cx - length // 2)
             x2 = min(W, cx + length // 2)
-            
+
             if self.fill_mode == 'zero':
+                # 정규화 뒤라면 0이 곧 채널 평균이므로 이것이 가장 무난하다.
+                # 정규화 앞이라면 0은 검은색이라 분포를 밀어 버린다
                 result[:, y1:y2, x1:x2] = 0
             elif self.fill_mode == 'mean':
+                # 이 이미지 자신의 채널 평균으로 채운다. 정규화 전후를
+                # 가리지 않고 안전하지만 채널마다 따로 셈해야 한다
                 for c in range(C):
                     result[c, y1:y2, x1:x2] = img[c].mean()
             elif self.fill_mode == 'random':
+                # 잡음으로 채운다. 가장 세게 흔드는 방식이다
                 result[:, y1:y2, x1:x2] = torch.rand(C, y2-y1, x2-x1)
             elif isinstance(self.fill_mode, (int, float)):
                 result[:, y1:y2, x1:x2] = self.fill_mode
-        
+
+        # 주의: 구멍끼리 겹칠 수 있다. n_holes를 크게 잡아도 실제로
+        # 가려지는 넓이는 그만큼 늘지 않는다
         return result
 ```
 

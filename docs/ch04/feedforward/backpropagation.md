@@ -338,21 +338,32 @@ class SimpleNet(nn.Module):
 
 def numerical_gradient(model, X, y, criterion, param, eps=1e-5):
     """검증을 위한 중심차분 수치 기울기."""
+    # 역전파가 맞는지 확인하는 표준 방법이다. 미분의 정의로 되돌아가
+    # 매개변수를 하나씩 아주 조금 흔들어 손실이 얼마나 달라지는지 잰다.
+    # 느리지만(매개변수마다 순전파 2번) 역전파와 완전히 독립이라
+    # 두 값이 맞으면 서로를 검증해 준다.
     grad = torch.zeros_like(param.data)
+    # view(-1)은 사본이 아니라 같은 메모리를 가리킨다. 그래서 flat[i]에
+    # 대입하면 param.data가 실제로 바뀐다. 이 코드는 그 성질에 기대고 있다
     flat = param.data.view(-1)
-    
+
     for i in range(flat.numel()):
-        orig = flat[i].item()
-        
+        orig = flat[i].item()   # 원래 값을 반드시 저장해 둔다
+
         flat[i] = orig + eps
         loss_plus = criterion(model(X), y)
-        
+
         flat[i] = orig - eps
         loss_minus = criterion(model(X), y)
-        
-        flat[i] = orig
+
+        flat[i] = orig   # 되돌린다. 빠뜨리면 모델이 조금씩 망가진다
+
+        # 중심차분. 한쪽만 쓰는 (f(x+h)-f(x))/h 는 오차가 h 차수인데
+        # 이 꼴은 h^2 차수라 훨씬 정확하다.
+        # eps가 너무 작으면 부동소수점 반올림에 묻히고 너무 크면
+        # 근사 오차가 커진다. 1e-5 언저리가 float32에서 무난하다
         grad.view(-1)[i] = (loss_plus.item() - loss_minus.item()) / (2 * eps)
-    
+
     return grad
 
 # ── 확인 ──
@@ -362,7 +373,10 @@ X = torch.randn(20, 2)
 y = torch.randint(0, 2, (20, 1)).float()
 criterion = nn.BCELoss()
 
-# 자동 미분 기울기
+# 자동 미분 기울기.
+# 수치 기울기를 재기 "전에" 한 번만 셈해 둔다. 뒤에서 매개변수를
+# 흔들며 순전파를 여러 번 하므로, 그 뒤에 backward를 부르면
+# 흔들린 상태의 기울기를 재게 된다
 model.zero_grad()
 loss = criterion(model(X), y)
 loss.backward()
@@ -373,9 +387,16 @@ print("-" * 55)
 for name, param in model.named_parameters():
     num_grad = numerical_gradient(model, X, y, criterion, param)
     bp_grad = param.grad
+
+    # 절대 오차가 아니라 상대 오차를 본다. 기울기의 크기가 층마다
+    # 몇 자릿수씩 다르므로 절대값으로는 견줄 수 없다.
+    # 분모의 1e-8은 기울기가 0에 가까울 때 0으로 나누는 것을 막는다.
+    # 보통 1e-5 아래면 맞다고 보고, 1e-2 위면 역전파에 버그가 있다
     rel_error = (num_grad - bp_grad).abs() / (num_grad.abs() + 1e-8)
     print(f"  {name:15s} | max relative error: {rel_error.max():.2e}")
 
+# 주의: 이 줄은 실제로 아무것도 검사하지 않는다. 위의 상대 오차를
+# 눈으로 읽어야 하며, 자동으로 판정하려면 assert를 걸어야 한다
 print("\n✓ All gradients verified!")
 ```
 

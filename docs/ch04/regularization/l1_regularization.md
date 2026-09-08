@@ -392,42 +392,57 @@ def lasso_feature_selection(X, y, alphas=None):
     반환값:
         선택된 특징의 인덱스와 라쏘 모델
     """
-    # 특징 표준화 (L1에서 중요하다)
+    # 특징 표준화 (L1에서 중요하다).
+    # 벌점이 모든 계수에 같은 세기로 걸리므로, 자가 큰 특성일수록
+    # 계수가 작아져 벌을 덜 받는다. 그러면 "어떤 특성이 살아남는가"가
+    # 실제 중요도가 아니라 단위에 따라 정해져 버린다
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    
-    # 교차 검증으로 최적 alpha 찾기
+
+    # 교차 검증으로 최적 alpha 찾기.
+    # logspace를 쓰는 까닭은 alpha가 자릿수 단위로 움직이기 때문이다.
+    # 1e-4에서 10까지를 고르게 나누면 큰 값 쪽만 촘촘해져 쓸모가 없다
     if alphas is None:
         alphas = np.logspace(-4, 1, 50)
-    
+
     lasso_cv = LassoCV(alphas=alphas, cv=5, random_state=42)
     lasso_cv.fit(X_scaled, y)
-    
+
     print(f"Optimal alpha: {lasso_cv.alpha_:.6f}")
     print(f"Non-zero coefficients: {np.sum(lasso_cv.coef_ != 0)}/{len(lasso_cv.coef_)}")
-    
-    # 선택된 특징 얻기
+
+    # 선택된 특징 얻기.
+    # != 0 으로 세는 것이 뜻을 갖는 까닭은 L1이 계수를 정확히 0으로
+    # 몰기 때문이다. 릿지라면 0에 가깝기만 할 뿐 0은 아니라 이렇게 셀 수 없다
     selected_features = np.where(lasso_cv.coef_ != 0)[0]
-    
+
+    # scaler를 함께 돌려주는 것이 중요하다. 새 데이터에 이 모델을
+    # 쓰려면 학습 때와 똑같은 평균과 표준편차로 맞춰야 한다
     return selected_features, lasso_cv, scaler
 
 def compare_regularization_strengths(X, y, alphas):
     """alpha 값에 따른 희소성의 양상을 비교한다."""
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    
+
     results = []
     for alpha in alphas:
         lasso = Lasso(alpha=alpha, random_state=42)
         lasso.fit(X_scaled, y)
-        
+
         n_nonzero = np.sum(lasso.coef_ != 0)
         results.append({
             'alpha': alpha,
             'n_nonzero': n_nonzero,
+            # .copy()가 반드시 필요하다. lasso.coef_는 다음 되돌이에서
+            # 새 Lasso 객체가 만들어지므로 지금은 괜찮아 보이지만,
+            # 같은 객체를 다시 fit하는 꼴로 바꾸면 모든 항목이 마지막
+            # 계수를 함께 가리키게 된다. 사본을 뜨는 버릇이 안전하다
             'coefficients': lasso.coef_.copy()
         })
-    
+
+    # alpha를 키워 가며 n_nonzero가 줄어드는 자취가 곧 정칙화 경로다.
+    # alpha가 충분히 크면 모든 계수가 0이 되고 모델은 절편만 남는다
     return results
 ```
 
