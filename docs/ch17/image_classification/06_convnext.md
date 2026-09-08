@@ -2,7 +2,7 @@
 
 Liu 외의 2022년 논문 "A ConvNet for the 2020s"에서 나온 ConvNeXt는 보기 변환기의 꾸밈 고름을 받아들여 ResNet 얼개를 요즘 것으로 바꾼다. 그 결과는 ImageNet 갈래 매기기에서 Swin 변환기와 맞먹거나 그를 넘어서는 순수 누비기 그물이며, 제대로 꾸미면 누비기가 여전히 경쟁력 있음을 보여 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 ConvNeXt은 트랜스포머의 설계 선택을 합성곱 얼거리에 짜임새 있게 들여온다. $7 \times 7$ 깊이별 합성곱은 자기 눈길의 너른 수용 영역을 본뜬다. 학습을 더 든든하게 하려고 배치 정규화 대신 층 정규화를 쓴다. ReLU 대신 GELU을 쓰고, 뒤집힌 병목(좁게-넓게-좁게)은 트랜스포머의 MLP 블록 무늬를 따른다. 켜 스케일, 곧 작은 값으로 초기화한 채널별 학습 가능 스케일 매개변수가 깊은 그물의 학습을 든든하게 한다.
 
@@ -104,3 +104,11 @@ ConvNeXtBlock이 LayerNorm 대신 BatchNorm을 쓰도록 고쳐라. 무엇을 �
     ```
 
     맞바꿈: BatchNorm은 묶음 통계에 기대므로 묶음 크기에 민감하고 아주 작은 묶음에는 맞지 않는다. LayerNorm은 표본마다 고르게 맞춰 더 든든하지만 조금 느릴 수 있다. BatchNorm은 익히는 동안 벌주기 효과를 볼 수 있다.
+
+## 정리하며
+
+**다룬 것** — ConvNeXt
+
+ConvNeXt은 트랜스포머의 설계 선택을 합성곱 얼거리에 짜임새 있게 들여온다.
+
+고갱이 갈래는 `ConvNeXtBlock`, `ConvNeXt`, `ConvNeXtBlockBN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

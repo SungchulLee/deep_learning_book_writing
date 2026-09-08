@@ -4,7 +4,7 @@
 
 이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 그림 나누기를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 얼개의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -636,7 +636,7 @@ if __name__ == "__main__":
     pass
 ```
 
-## 논의
+## 2. 논의
 
 여기 짠 것은 함께 어울려 온전한 그림 나누기 얼개를 이루는 클래스 3개(`SyntheticShapesDataset`, `DoubleConv`, `UNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
 
@@ -683,3 +683,11 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = SyntheticShapesDataset(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — 보기 1
+
+여기 짠 것은 함께 어울려 온전한 그림 나누기 얼개를 이루는 클래스 3개(`SyntheticShapesDataset`, `DoubleConv`, `UNet`)를 정한다.
+
+고갱이 갈래는 `SyntheticShapesDataset`, `DoubleConv`, `UNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

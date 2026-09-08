@@ -2,7 +2,7 @@
 
 Tan과 Le의 2021년 논문 "EfficientNetV2: Smaller Models and Faster Training"에서 나온 EfficientNetV2는 앞쪽 층의 깊이별 누비기를 Fused-MBConv 덩이로 갈음하고 차츰 배우기 전략을 써서 익히기 빠르기를 낫게 한다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 녹여 붙인 MBConv은 깊이별 다음 점별이라는 무늬를 여느 $3 \times 3$ 합성곱 하나와 그 뒤의 $1 \times 1$ 투영으로 갈음한다. 깊이별 합성곱이 하드웨어를 덜 쓰는 이른 단계에서 이를 쓴다. 뒤 단계는 채널 수가 넉넉해 이득이 있으므로 여전히 깊이별 분리 합성곱을 쓰는 여느 MBConv을 쓴다.
 
@@ -83,3 +83,11 @@ for epoch in range(0, 100, 20):
     print(f"Epoch {epoch}: image size = {size}x{size}")
 # 내놓음: 128, 176, 224, 288, 336
 ```
+
+## 정리하며
+
+**다룬 것** — EfficientNet V2
+
+녹여 붙인 MBConv은 깊이별 다음 점별이라는 무늬를 여느 $3 \times 3$ 합성곱 하나와 그 뒤의 $1 \times 1$ 투영으로 갈음한다.
+
+고갱이 갈래는 `FusedMBConv`, `EfficientNetV2`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -2,7 +2,7 @@
 
 베이즈 망은 가장 흔한 확률 그래프 모형으로, 방향 비순환 그래프(DAG)와 조건부 확률표(CPT)를 합쳐 변수 사이의 인과 관계를 나타낸다. 이 모듈은 베이즈 망을 맨바닥에서 쌓기, CPT 못 박기, 사슬 규칙 쪼개기로 결합 확률 셈하기, 앞먹임 표집으로 표본 만들기를 다룬다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -739,7 +739,7 @@ def main():
 if __name__ == "__main__":
     main()```
 
-## 논의
+## 2. 논의
 
 베이즈 망은 튜플 $(G, P)$이며, 여기서 $G = (V, E)$은 DAG이고 $P = \{P(X_i | \text{Parents}(X_i))\}$은 조건부 확률 분포의 묶음이다. 이 망은 결합 분포를 $P(X_1, \ldots, X_n) = \prod_i P(X_i | \text{Parents}(X_i))$으로 나타낸다. 이 쪼개기가 셈 효율의 열쇠이다.
 
@@ -838,3 +838,10 @@ for c, s, r, w in product([0,1], repeat=4):
 print(f'P(Rain=1|WetGrass=1) exact = {p_rain_wet/p_wet:.4f}')
 ```
 
+## 정리하며
+
+**다룬 것** — 베이즈 망의 기초
+
+베이즈 망은 튜플 $(G, P)$이며, 여기서 $G = (V, E)$은 DAG이고 $P = \{P(X_i | \text{Parents}(X_i))\}$은 조건부 확률 분포의 묶음이다.
+
+고갱이 갈래는 `ConditionalProbabilityTable`, `BayesianNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

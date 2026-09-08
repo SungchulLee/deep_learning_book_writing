@@ -4,7 +4,7 @@
 
 트랜스포머에 바탕을 둔 구조는 자연어 처리를 뒤바꾸어 놓았다. 이 구현은 트랜스포머의 개념을 살피며, 갖가지 과제에서 최고 수준의 성능을 내게 하는 주의 얼개와 구조의 본을 보여 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -63,7 +63,7 @@ class Seq2SeqWithAttention(nn.Module):
 if __name__ == "__main__":
     pass```
 
-## 논의
+## 2. 논의
 
 이 구현은 함께 어울려 온전한 트랜스포머 구조를 이루는 클래스 3개(`Encoder`, `Decoder`, `Seq2SeqWithAttention`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
 
@@ -106,3 +106,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 되풀이하라. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 파이토치가 최적화 대상 매개변수를 모두 등록한다. `for n in [2, 4, 8]: model = Encoder(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험하라.
+
+## 정리하며
+
+**다룬 것** — 주의를 쓰는 SEQ2SEQ
+
+이 구현은 함께 어울려 온전한 트랜스포머 구조를 이루는 클래스 3개(`Encoder`, `Decoder`, `Seq2SeqWithAttention`)를 정한다.
+
+핵심 클래스는 `Encoder`, `Decoder`, `Seq2SeqWithAttention`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

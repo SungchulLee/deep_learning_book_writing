@@ -4,7 +4,7 @@
 
 고르게 하는 흐름은 뒤집을 수 있는 바꿈으로 정확한 가능도 셈하기를 준다. 이 짜기는 깊은 배움 개념을 보이며, 일대일 대응의 차례를 거쳐 단순한 분포가 복잡한 분포로 어떻게 바뀌는지 드러낸다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -1353,7 +1353,7 @@ if __name__ == "__main__":
     pass
 ```
 
-## 논의
+## 2. 논의
 
 이 짜기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 갈래 5개(`BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`, 그리고 하나 더)를 정한다. 갈래마다 뚜렷한 조각을 감싸 부호를 모듈답고 넓히기 쉽게 만든다. `forward` 방법이 PyTorch가 저절로 미분하는 데 쓰는 셈 그래프를 정한다.
 
@@ -1400,3 +1400,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (수수한 파이썬 목록이 아니라) `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 가장 좋게 하기에 올린다. 다음으로 시험하라: `for n in [2, 4, 8]: model = BaseDistribution(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — 고르게 하는 흐름
+
+이 짜기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 갈래 5개(`BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`, 그리고 하나 더)를 정한다.
+
+고갱이 갈래는 `BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

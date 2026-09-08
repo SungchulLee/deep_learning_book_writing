@@ -2,7 +2,7 @@
 
 클래스 불균형은 한 클래스가 다른 클래스보다 훨씬 많은, 기계학습에서 흔한 어려움이다. 균형 잡힌 DataLoader는 `WeightedRandomSampler`를 써서 학습 배치마다 클래스가 대체로 고르게 섞이게 하여 모델이 다수 클래스로 치우치는 것을 막는다. 이 기법은 사기 탐지, 의료 진단을 비롯해 레이블 분포가 치우친 모든 분야에서 꼭 필요하다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -75,7 +75,7 @@ def main():
 if __name__ == "__main__":
     main()```
 
-## 논의
+## 2. 논의
 
 균형 표집의 핵심 착상은 빈도의 역수로 가중치를 주는 것이다. 각 표본은 그 클래스의 빈도에 반비례하는 가중치를 받으므로 표집기가 소수 클래스의 표본을 더 자주 뽑는다. 이 예에서 고양이(표본 100개)는 표본마다 가중치 $1/100 = 0.01$을, 개(표본 1000개)는 $1/1000 = 0.001$을 받는다. 그러면 `WeightedRandomSampler`가 이 가중치에 따라 복원추출로 표본을 뽑는다.
 
@@ -109,3 +109,10 @@ WeightedRandomSampler에서 `replacement=False`으로 두면 어떻게 되는가
 ??? success "연습문제 3 풀이"
     `minority_idx = (labels == 0).nonzero().squeeze()`으로 소수 클래스의 인덱스를 구한다. `oversampled_idx = minority_idx.repeat(len(labels[labels==1]) // len(minority_idx) + 1)[:len(labels[labels==1])]`으로 복제한다. `all_idx = torch.cat([minority_idx, oversampled_idx, (labels==1).nonzero().squeeze()])`으로 합친다. `Subset(dataset, all_idx)`을 만들고 `shuffle=True`인 DataLoader로 감싼다.
 
+## 정리하며
+
+**다룬 것** — 균형 잡힌 데이터로더
+
+균형 표집의 핵심 착상은 빈도의 역수로 가중치를 주는 것이다.
+
+앞의 연습문제 3개로 직접 확인할 수 있다.

@@ -2,7 +2,7 @@
 
 2018년 논문 "Squeeze-and-Excitation Networks"에서 나온 쥐어짜기-북돋우기 그물(SE-Net)은 특징 반응을 알맞게 다시 매기는 채널 눈길 얼개를 들여왔다. SE 덩이마다 먼저 전체 평균 모으기로 자리 앎을 채널 설명자로 쥐어짠 뒤, 온전히 이은 층 둘로 채널마다의 중요함 무게를 배운다. 이 가벼운 단원은 어떤 누비기 신경망 얼개에도 끼워 넣어 성능을 올릴 수 있다.
 
-## 코드
+## 1. 코드
 
 ```python
 #!/usr/bin/env python3
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     model = SEResNet()
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")```
 
-## 논의
+## 2. 논의
 
 여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 3개(`SEBlock`, `SEResNetBlock`, `SEResNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
 
@@ -132,3 +132,11 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = SEBlock(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — SENet
+
+여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 3개(`SEBlock`, `SEResNetBlock`, `SEResNet`)를 정한다.
+
+고갱이 갈래는 `SEBlock`, `SEResNetBlock`, `SEResNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

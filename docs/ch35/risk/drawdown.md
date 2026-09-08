@@ -4,7 +4,7 @@
 
 계량 금융에 깊은 배움을 올리려면 든든한 서비스 바탕이 있어야 한다. 이 꾸러미는 지켜보기, 무릅씀 다스리기, 서비스에 올리는 꾀를 아우르는 무릅씀 다루기 설계 결을 다룬다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -243,7 +243,7 @@ def demo_drawdown_control():
 if __name__ == "__main__":
     demo_drawdown_control()```
 
-## 논의
+## 2. 논의
 
 이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 무릅씀 다루기 얼개를 함께 이룬다. 갈래마다 남다른 조각을 감싸므로 코드가 조각조각 나뉘어 늘리기 쉽다. `forward` 방법이 파이토치가 저절로 미분할 때 쓰는 셈 그래프를 정한다.
 
@@ -286,3 +286,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 방법에서 되돌이한다. `for layer in self.layers: x = layer(x)`. (그냥 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 파이토치가 온 매개변수를 가장 좋게 하기에 등록한다. 시험: `for n in [2, 4, 8]: model = DrawdownConfig(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — 내림폭
+
+이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 무릅씀 다루기 얼개를 함께 이룬다.
+
+고갱이 갈래는 `DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

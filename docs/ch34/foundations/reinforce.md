@@ -2,7 +2,7 @@
 
 REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수로 나타낸 방침을 배우는, 바탕이 되는 몬테카를로 방침 기울기 알고리즘이다. 온전한 에피소드를 모으고 깎은 돌아옴을 셈한 뒤, 보상이 높은 움직임의 낌새를 올리는 쪽으로 방침 매개변수를 고친다. 이 구현은 맹탕 REINFORCE, 앞으로의 보상으로 흩어짐을 줄이는 재주, 돌아옴 고르게 하기, 묶음 고침을 다루며, 다듬을 때마다 따로 떨어진 다스리기와 이어진 다스리기 일감에서 배움이 어떻게 더 든든해지는지 보인다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -428,7 +428,7 @@ if __name__ == "__main__":
     train_cartpole_batch()
     compare_variants()```
 
-## 논의
+## 2. 논의
 
 이 구현은 REINFORCE 알고리즘의 한가운데 논리를 담은 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
@@ -459,3 +459,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 3 풀이"
     절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
+
+## 정리하며
+
+**다룬 것** — REINFORCE 알고리즘
+
+이 구현은 REINFORCE 알고리즘의 한가운데 논리를 담은 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE` 클래스를 축으로 삼는다.
+
+고갱이 갈래는 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE`, `BatchREINFORCE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

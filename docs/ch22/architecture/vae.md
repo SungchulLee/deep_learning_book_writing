@@ -4,7 +4,7 @@
 
 자기 부호기와 변분 자기 부호기는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 고갱이 얼개와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     samples = model.sample(num_samples=10)
     print(f"Generated samples shape: {samples.shape}")```
 
-## 논의
+## 2. 논의
 
 `VAE` 갈래는 PyTorch의 `nn.Module` 겉면으로 모델 얼개를 감싼다. `forward` 방법이 셈 그래프를 정하며, 그래서 PyTorch의 저절로 미분하기가 익히는 동안 기울기 셈하기를 알아서 다룬다. 이 모듈 설계 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 넣기가 쉽다.
 
@@ -228,3 +228,11 @@ if __name__ == '__main__':
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (수수한 파이썬 목록이 아니라) `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 가장 좋게 하기에 올린다. 다음으로 시험하라: `for n in [2, 4, 8]: model = VAE(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — 변분 자기 부호기
+
+`VAE` 갈래는 PyTorch의 `nn.Module` 겉면으로 모델 얼개를 감싼다.
+
+고갱이 갈래는 `VAE`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

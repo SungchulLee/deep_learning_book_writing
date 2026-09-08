@@ -2,7 +2,7 @@
 
 2017년 논문 "ShuffleNet: An Extremely Efficient CNN for Mobile Devices"에서 나온 ShuffleNet은 묶음 누비기의 채널 사이로 앎이 흐르게 하는 채널 섞기 연산을 들여왔다. 덕분에 채널 묶음이 서로 떨어져 생기는 나타냄의 병목 없이 그물 전체에서 묶음 누비기를 쓸 수 있다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 묶음 누비기는 채널을 서로 얽히지 않은 묶음으로 나누어 셈을 줄이지만 묶음끼리 앎을 주고받지 못하게 한다. 채널 섞기 연산은 텐서를 (묶음, 묶음당 채널) 꼴로 바꾸고 뒤바꾼 뒤 다시 펴서 이를 푼다. 이 단순한 자리바꿈으로 뒤따르는 묶음 누비기마다 앞 층의 모든 묶음에서 들임을 받는다.
 
@@ -118,3 +118,11 @@ ShuffleNet은 손전화에 펼치기 알맞은, 정확도와 효율의 좋은 �
     - 무리 합성곱: 매개변수 $(C_{\text{in}}/g) \times (C_{\text{out}}/g) \times K^2 \times g = C_{\text{in}} \times C_{\text{out}} \times K^2 / g$개
 
     묶음 누비기는 매개변수를 $g$분의 1로 줄인다.
+
+## 정리하며
+
+**다룬 것** — ShuffleNet
+
+묶음 누비기는 채널을 서로 얽히지 않은 묶음으로 나누어 셈을 줄이지만 묶음끼리 앎을 주고받지 못하게 한다.
+
+고갱이 갈래는 `ShuffleUnit`, `ShuffleNetV2`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

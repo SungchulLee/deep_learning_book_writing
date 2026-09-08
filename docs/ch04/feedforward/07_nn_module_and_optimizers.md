@@ -2,7 +2,7 @@
 
 `nn.Module` 기반 클래스는 PyTorch의 모든 신경망 모델의 토대이다. 자동 매개변수 관리, 모델 직렬화, 깔끔한 코드 구성을 제공한다. 여기에 `torch.optim`의 내장 최적화기를 결합하면, 손수 하던 경사 초기화와 매개변수 갱신을 `optimizer.zero_grad()`와 `optimizer.step()`으로 대체하는 실무급 학습 루프가 된다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -65,7 +65,7 @@ with torch.no_grad():
 print(f"Final Accuracy: {accuracy:.2f}%")
 ```
 
-## 논의
+## 2. 논의
 
 `nn.Module`을 상속하려면 메서드 두 개가 필요하다. `__init__`은 층들을 인스턴스 속성으로 정의하고, `forward`는 계산을 정의한다. PyTorch가 모든 `nn.Module`과 `nn.Parameter` 속성을 자동으로 찾아내어, 최적화기에 등록할 수 있도록 `model.parameters()`로, 직렬화할 수 있도록 `model.state_dict()`로 노출한다. 층이 단순히 일렬로 이어질 때는 `nn.Sequential` 컨테이너가 더 간결한 대안이 된다.
 
@@ -127,3 +127,11 @@ Adam을 SGD(학습률 0.1, 운동량 0.9)로 바꿔라. 1000 에폭에 걸친 �
     print(f"Total: {total}")
     ```
     1층: 가중치 $(16, 2) = 32$개 + 편향 $(16,) = 16$개 = 48개. 2층: 가중치 $(1, 16) = 16$개 + 편향 $(1,) = 1$개 = 17개. 합계: $48 + 17 = 65$개.
+
+## 정리하며
+
+**다룬 것** — nn.Module과 최적화기
+
+`nn.Module`을 상속하려면 메서드 두 개가 필요하다.
+
+핵심 클래스는 `SimpleNet`이며 앞의 연습문제 3개로 직접 확인할 수 있다.

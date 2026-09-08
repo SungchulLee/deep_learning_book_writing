@@ -2,7 +2,7 @@
 
 가우시안 혼합 모형(GMM)은 K-평균에 대한 확률적 대안으로, 부드러운 군집 배정을 제공한다. 각 데이터 점이 하나의 군집에 딱 배정되는 대신 각 군집에 속할 확률을 가진다. GMM은 성분별 공분산 행렬을 학습하여 모양과 방향이 서로 다른 타원형 군집을 모형화할 수 있고, BIC나 AIC 같은 정보 기준을 통해 원칙 있는 모델 선택을 지원한다. 학습에는 기댓값-최대화(EM) 알고리즘을 사용하며, 이는 책임도를 계산하는 단계(E 단계)와 매개변수를 갱신하는 단계(M 단계)를 번갈아 수행한다.
 
-## 코드
+## 1. 코드
 
 ```python
 """Gmm."""
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     pass
 ```
 
-## 논의
+## 2. 논의
 
 GMM은 데이터 분포를 $K$개 가우시안 성분의 가중합 $p(\mathbf{x}) = \sum_{k=1}^{K} \pi_k \mathcal{N}(\mathbf{x} \mid \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)$으로 모형화한다. 여기서 $\pi_k$는 혼합 가중치, $\boldsymbol{\mu}_k$는 평균, $\boldsymbol{\Sigma}_k$는 공분산 행렬이다. EM 알고리즘은 각 데이터 점에 대한 각 성분의 **책임도(responsibility)** 를 계산하는 단계(E 단계)와 기대 로그가능도를 최대화하도록 매개변수를 갱신하는 단계(M 단계)를 번갈아 수행하여 이 매개변수들을 적합시킨다. 딱 떨어지는 배정을 하는 K-평균과 달리, GMM의 책임도는 각 점에 대해 성분들에 대한 확률 분포를 주므로 군집 경계가 겹치는 미묘한 상황도 표현할 수 있다.
 
@@ -262,3 +262,11 @@ GMM 기반 이상 탐지 시스템을 구현하라. 데이터셋에 GMM을 적�
     detected = (scores_anomaly < threshold).sum()
     print(f"Detected {detected}/{len(anomalies)} uniform points as anomalies")
     ```
+
+## 정리하며
+
+**다룬 것** — 가우시안 혼합 모형
+
+GMM은 데이터 분포를 $K$개 가우시안 성분의 가중합 $p(\mathbf{x}) = \sum_{k=1}^{K} \pi_k \mathcal{N}(\mathbf{x} \mid \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)$으로 모형화한다.
+
+앞의 연습문제 3개로 직접 확인할 수 있다.

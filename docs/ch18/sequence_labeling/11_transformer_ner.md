@@ -4,7 +4,7 @@
 
 자연어 다루기는 깊은 배움 방식으로 크게 달라졌다. 이 단원은 차례 이름표 붙이기 재주를 보여 주며, 신경망이 글을 어떻게 다루고 만들어 내는지 밝히는 실전 짜기를 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     print("Note: Requires transformers library and pre-trained models")
     print("Example: BERT, RoBERTa, DistilBERT for token classification")```
 
-## 논의
+## 2. 논의
 
 `TransformerNER` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
 
@@ -168,3 +168,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = TransformerNER(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — 변환기 이름 알아보기
+
+`TransformerNER` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다.
+
+고갱이 갈래는 `TransformerNER`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

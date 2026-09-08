@@ -2,7 +2,7 @@
 
 2023년 논문 "ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders"에서 나온 ConvNeXt V2는 전체 반응 고르게 맞추기(GRN)와, 가린 자기부호기를 쓰는 더 나은 스스로 살피는 미리 익히기 전략으로 ConvNeXt를 넓힌다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 전역 반응 정규화(GRN)는 자기 지도 학습에서 일어나는 특징 붕괴를 다룬다. 채널마다 공간 차원에 걸쳐 $L^2$ 노름을 셈하고 평균 노름으로 정규화한 뒤 학습 가능한 스케일과 편향 매개변수를 건다. 그래서 모든 채널이 비슷한 표현을 배우는 것을 막고 특징의 다양함을 북돋운다.
 
@@ -110,3 +110,11 @@ class MAEPretraining(nn.Module):
         reconstruction = self.decoder(features)
         return reconstruction
 ```
+
+## 정리하며
+
+**다룬 것** — ConvNeXt V2
+
+전역 반응 정규화(GRN)는 자기 지도 학습에서 일어나는 특징 붕괴를 다룬다.
+
+고갱이 갈래는 `GRN`, `ConvNeXtV2Block`, `ConvNeXtV2`, `MAEPretraining`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -4,7 +4,7 @@ CapsNet은 2017년 논문 "Dynamic Routing Between Capsules"에서 소개되었�
 
 순방향 신경망을 이해하는 것은 깊은 신경망을 효과적으로 만들고 학습시키는 데 필수적이다. 이 구현은 그 핵심 개념을 PyTorch로 보여주며, 현대적인 구조의 구성 요소를 직접 다뤄 볼 기회를 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 #!/usr/bin/env python3
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     model = CapsNet()
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")```
 
-## 논의
+## 2. 논의
 
 이 구현은 3개의 클래스(`PrimaryCaps`, `DigitCaps`, `CapsNet`)를 정의하며, 이들이 함께 작동하여 완전한 순방향 신경망 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.
 
@@ -158,3 +158,11 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 매개변수를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = PrimaryCaps(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — 캡슐 신경망 (CapsNet)
+
+이 구현은 3개의 클래스(`PrimaryCaps`, `DigitCaps`, `CapsNet`)를 정의하며, 이들이 함께 작동하여 완전한 순방향 신경망 구조를 이룬다.
+
+핵심 클래스는 `PrimaryCaps`, `DigitCaps`, `CapsNet`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

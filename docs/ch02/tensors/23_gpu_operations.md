@@ -2,7 +2,7 @@
 
 이 스크립트는 GPU 연산, 즉 CUDA와 장치 관리을 보여준다. 이 개념들을 이해하는 것은 효과적인 PyTorch 프로그래밍과 딥러닝 모델 개발에 필수적이다.
 
-## 코드
+## 1. 코드
 
 ```python
 """튜토리얼 23: GPU 셈 - CUDA과 기기 다루기"""
@@ -112,7 +112,7 @@ def main():
 if __name__ == "__main__":
     main()```
 
-## 논의
+## 2. 논의
 
 PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법을 제공한다. 각 모듈이 자신의 매개변수와 하위 모듈을 관리하므로 모델을 살펴보고, 저장하고, 장치 사이에 옮기기가 간편하다.
 
@@ -206,3 +206,11 @@ $(2, 3)$ 행렬과 $(3, 4)$ 행렬의 곱을 `@`, `torch.mm()`, `torch.matmul()`
     manual = torch.stack([torch.trace(A[i]) for i in range(10)])
     print(torch.allclose(traces, manual))  # True
     ```
+
+## 정리하며
+
+**다룬 것** — GPU 연산 - CUDA와 장치 관리
+
+PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법을 제공한다.
+
+앞의 연습문제 3개로 직접 확인할 수 있다.

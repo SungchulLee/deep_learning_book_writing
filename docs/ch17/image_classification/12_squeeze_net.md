@@ -2,7 +2,7 @@
 
 SqueezeNet은 2016년 논문 "SqueezeNet: 매개변수 50배 적게 AlexNet 수준의 정확도"에서 나왔으며, 파이어 모듈 설계로 매개변수가 아주 적으면서도(~120만 개) 겨룰 만한 정확도를 이룬다. 파이어 모듈은 쥐어짜기 켜($1 \times 1$ 합성곱)로 채널 수를 줄인 뒤 $1 \times 1$과 $3 \times 3$ 합성곱을 나란히 걸어 넓힌다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 파이어 모듈이 SqueezeNet을 SqueezeNet이게 하는 새로움이다. 쥐어짜기 켜가 채널 수를 작은 값(예: 16)으로 줄이고, 넓히기 켜가 $1 \times 1$과 $3 \times 3$ 합성곱을 나란히 걸어 그 날임을 이어 붙인다. 이 쥐어짜고 넓히는 무늬가 표현력을 지키면서 매개변수를 크게 줄인다.
 
@@ -104,3 +104,11 @@ expand1x1=64, expand3x3=64인 파이어 단원이 내놓는 채널 수는 얼마
     ```
 
     에움길 이음은 기울기 흐름을 낫게 하며 매개변수를 늘리지 않고도 정확도를 2~4% 올릴 수 있다.
+
+## 정리하며
+
+**다룬 것** — SqueezeNet
+
+파이어 모듈이 SqueezeNet을 SqueezeNet이게 하는 새로움이다.
+
+고갱이 갈래는 `Fire`, `SqueezeNet`, `FireWithBypass`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

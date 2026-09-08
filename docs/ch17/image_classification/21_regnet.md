@@ -2,7 +2,7 @@
 
 Radosavovic 외의 2020년 논문 "Designing Network Design Spaces"에서 나온 RegNet은 그물 너비와 깊이를 양자화한 선형 매개변수로 나타내어, 효율적이면서도 정확한 단순하고 고른 얼개를 꾸민다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 RegNet의 설계 철학은 좋은 그물을 내놓는 설계 공간의 단순한 매개변수화를 찾는 것이다. 단계마다 너비는 양자화한 선형 함수 $w_j = w_0 + w_a \cdot j$을 따르며 무리 너비의 가장 가까운 배수로 양자화한다. 그러면 반듯하고 미리 헤아릴 수 있는 구조가 나온다.
 
@@ -104,3 +104,11 @@ for i, (w, d) in enumerate(zip(widths, depths)):
 # 단계 2: 너비=72, 깊이=6
 # 단계 3: 너비=96, 깊이=2
 ```
+
+## 정리하며
+
+**다룬 것** — RegNet
+
+RegNet의 설계 철학은 좋은 그물을 내놓는 설계 공간의 단순한 매개변수화를 찾는 것이다.
+
+고갱이 갈래는 `RegNetBlock`, `RegNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

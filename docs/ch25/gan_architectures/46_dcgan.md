@@ -2,7 +2,7 @@
 
 깊은 겹말기 맞겨루기 만들개(DCGAN)는 온전 이음 층을 겹말기 얼개로 바꾸어 본디 맞겨루기 만들개 틀을 넓힌다. 2015년에 나온 DCGAN은 맞겨루기 만들개 익히기의 안정과 표본 품질을 크게 높인 얼개 지침을 세웠다. 핵심 원칙에는 모으기 대신 성큼 겹말기 쓰기, 묶음 고르게 맞추기, 신경망마다 알맞은 깨움 함수가 든다.
 
-## 코드
+## 1. 코드
 
 ```python
 #!/usr/bin/env python3
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     print(f"Generator Parameters: {sum(p.numel() for p in model.generator.parameters()):,}")
     print(f"Discriminator Parameters: {sum(p.numel() for p in model.discriminator.parameters()):,}")```
 
-## 논의
+## 2. 논의
 
 DCGAN 얼개는 본디 논문의 중요한 설계 원칙 여럿을 따른다. 만들개는 자리 바꾼 겹말기(이따금 역겹말기라 부른다)로 옹골찬 숨은 나타냄에서 온전한 그림 해상도로 키운다. 층마다 묶음 고르게 맞추기 뒤 ReLU 깨움을 쓰되 내놓기 층만 Tanh을 쓴다. 가름개는 이를 거울처럼 뒤집어 성큼 겹말기로 줄이며 LeakyReLU 깨움과 묶음 고르게 맞추기를 쓴다(들임 층은 뺀다).
 
@@ -118,3 +118,11 @@ DCGAN을 $64 \times 64$ RGB 그림을 만들도록 고쳐라. 28x28 회색 판�
 
 ??? success "연습문제 3 풀이"
     코드에 있는 DCGAN64Generator이 이 경우를 다룬다. 곧 숨은 벡터를 자리 바꾼 겹말기로 $(512, 4, 4)$으로 다시 꼴 잡은 뒤 ConvTranspose2d 층 넷을 지나 $(3, 64, 64)$에 이르도록 키운다. DCGAN64Discriminator은 이 길을 거꾸로 간다. 매개변수 수가 크게 는다. 곧 28x28 만들개는 약 350만 개인데 64x64 판은 약 360만 개이다. 가름개는 약 25만 개에서 약 280만 개로 는다. 셈 비용은 커진 공간 차원과 늘어난 채널 모두에 따라 커져 앞먹임마다 대략 12배 많은 부동 소수점 셈이 필요하다.
+
+## 정리하며
+
+**다룬 것** — DCGAN
+
+DCGAN 얼개는 본디 논문의 중요한 설계 원칙 여럿을 따른다.
+
+고갱이 갈래는 `DCGenerator`, `DCDiscriminator`, `DCGAN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

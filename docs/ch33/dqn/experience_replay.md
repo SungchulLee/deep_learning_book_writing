@@ -2,7 +2,7 @@
 
 겪음 되돌려 보기는 옮김을 버퍼에 담고 아무 작은 묶음을 뽑아 배워 익히기 자료의 때 얽힘을 끊는, 깊은 Q 그물의 결정적인 조각이다. 이 짜기는 되돌려 보기 버퍼의 여러 변형을 준다. 기본 두 끝 줄 바탕 버퍼, 효율 좋은 NumPy 배열 바탕 둥근 버퍼, 늘 가장 최근 옮김을 담는 아우른 겪음 되돌려 보기 버퍼, 픽셀 관찰을 위한 기억을 아끼는 틀 쌓기 버퍼가 그것이다. 이 여러 짜기가 단순함, 기억 효율, 표본 다양함 사이의 맞바꿈을 보여 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -333,7 +333,7 @@ def demo_experience_replay():
 if __name__ == "__main__":
     demo_experience_replay()```
 
-## 논의
+## 2. 논의
 
 이 짜기는 기본 두 끝 줄 바탕과 효율 좋은 판의 핵심 논리를 감싼 `BasicReplayBuffer`, `EfficientReplayBuffer`, `CombinedReplayBuffer` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
@@ -364,3 +364,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 3 풀이"
     자연스러운 넓힘 하나는 규칙 세우기(떨구기, 무게 줄임)나 더 정교한 얼개(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 자료로 익힌 뒤 앞뒤의 잣대를 견주어라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+
+## 정리하며
+
+**다룬 것** — 경험 되살리기
+
+이 짜기는 기본 두 끝 줄 바탕과 효율 좋은 판의 핵심 논리를 감싼 `BasicReplayBuffer`, `EfficientReplayBuffer`, `CombinedReplayBuffer` 갈래를 한가운데 둔다.
+
+고갱이 갈래는 `BasicReplayBuffer`, `EfficientReplayBuffer`, `CombinedReplayBuffer`, `FrameStackReplayBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

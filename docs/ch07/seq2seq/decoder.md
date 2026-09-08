@@ -4,7 +4,7 @@ Seq2Seq 모델을 위한 복호기 모듈. 어텐션이 있는 것과 없는 것
 
 순차열 모형은 시간적이고 순서가 있는 데이터를 다루는 데 바탕이 된다. 이 구현은 순차열 모델의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -365,7 +365,7 @@ if __name__ == "__main__":
     print(f"Hidden shape: {hidden.shape}")
     print(f"Attention weights shape: {attention_weights.shape}")```
 
-## 논의
+## 2. 논의
 
 이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 순차열 모델 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
@@ -408,3 +408,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 훑는다. (보통의 파이썬 리스트가 아니라) `nn.ModuleList`을 써야 PyTorch가 최적화를 위해 모든 매개변수를 등록한다. `for n in [2, 4, 8]: model = BasicDecoder(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+
+## 정리하며
+
+**다룬 것** — 복호기
+
+이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 순차열 모델 구조를 이룬다.
+
+핵심 클래스는 `BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

@@ -2,7 +2,7 @@
 
 2020년에 나온 ResNeSt(쪼갠 눈길 그물)는 잔차 덩이 안의 여러 특징 지도 묶음에 걸쳐 채널마다 눈길을 주는 쪼갠 눈길 덩이를 들여와 ResNet을 넓힌다. SE-Net과 SK-Net에서 실마리를 얻은 ResNeSt는 채널 사이의 주고받음을 더 고운 결로 담아내어, 셈 값을 크게 늘리지 않고도 그림 가르기, 물체 알아내기, 뜻 나누기 같은 일에서 나타냄 배우기를 낫게 한다.
 
-## 코드
+## 1. 코드
 
 ```python
 #!/usr/bin/env python3
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     model = ResNeSt()
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")```
 
-## 논의
+## 2. 논의
 
 여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 3개(`SplitAttention`, `ResNeStBlock`, `ResNeSt`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
 
@@ -147,3 +147,11 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = SplitAttention(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — ResNeSt
+
+여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 3개(`SplitAttention`, `ResNeStBlock`, `ResNeSt`)를 정한다.
+
+고갱이 갈래는 `SplitAttention`, `ResNeStBlock`, `ResNeSt`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

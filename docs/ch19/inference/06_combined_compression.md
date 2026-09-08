@@ -4,7 +4,7 @@
 
 깊은 배움 모델을 효율적으로 펼치려면 모델 크기, 빠르기, 정확도의 맞바꿈을 조심스레 다듬어야 한다. 여기 짠 것은 실전 환경에서 신경망을 눌러 담고 빠르게 하는 데 쓰는 모델 눌러 담기 재주를 보여 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -339,7 +339,7 @@ def main():
 if __name__ == "__main__":
     main()```
 
-## 논의
+## 2. 논의
 
 여기 짠 것은 함께 어울려 온전한 모델 눌러 담기 얼개를 이루는 클래스 2개(`LargeTeacher`, `TinyStudent`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
 
@@ -384,3 +384,11 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = LargeTeacher(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — 앞선 수준
+
+여기 짠 것은 함께 어울려 온전한 모델 눌러 담기 얼개를 이루는 클래스 2개(`LargeTeacher`, `TinyStudent`)를 정한다.
+
+고갱이 갈래는 `LargeTeacher`, `TinyStudent`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -4,7 +4,7 @@
 
 신경 상미분 방정식은 띄엄띄엄한 층을 이어진 움직임으로 바꾸어 신경망의 깊이를 이어진 양으로 뜻매김한다. 이 짜기는 상미분 방정식 풀개를 깊은 배움 안에서 어떻게 쓸 수 있는지 보이며 맞추어 가는 셈과 기억을 아끼는 익히기를 가능하게 한다.
 
-## 코드
+## 1. 코드
 
 ```python
 #!/usr/bin/env python3
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     x = torch.randn(32, 784)
     print(f"Input: {x.shape}, Output: {model(x).shape}")```
 
-## 논의
+## 2. 논의
 
 이 짜기는 함께 어울려 온전한 깊은 배움 얼개를 이루는 갈래 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 뜻매김한다. 갈래마다 뚜렷한 조각을 감싸 코드를 조각내고 넓히기 쉽게 만든다. `forward` 메서드가 파이토치의 자동 미분에 쓰이는 셈 그래프를 뜻매김한다.
 
@@ -123,3 +123,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (여느 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 파이토치가 모든 매개변수를 가장 좋게 하기에 등록한다. `for n in [2, 4, 8]: model = ODEFunc(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험하라.
+
+## 정리하며
+
+**다룬 것** — 신경 상미분 방정식
+
+이 짜기는 함께 어울려 온전한 깊은 배움 얼개를 이루는 갈래 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 뜻매김한다.
+
+고갱이 갈래는 `ODEFunc`, `ODEBlock`, `NeuralODE`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -2,7 +2,7 @@
 
 Chollet의 2017년 논문에서 나온 Xception(극단 인셉션)은 인셉션 단원을 모두 깊이별로 갈라지는 누비기로 갈음해 인셉션 가설을 끝까지 밀어붙인다. 그 결과 더 단순하고 고른 얼개가 되며 ImageNet에서 인셉션 v3을 앞선다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 Xception의 고갱이 눈썰미는 채널 사이의 상관과 공간 상관을 아주 따로 다룰 수 있다는 것이다. 깊이별 분리 합성곱은 먼저 채널마다 공간 거르개를 걸고(깊이별) 그다음 $1 \times 1$ 점별 합성곱으로 채널을 섞는다. 이는 채널마다 제 무리를 이루는 인셉션의 "끝까지 간" 갈래다.
 
@@ -91,3 +91,11 @@ class SepConvWithResidual(nn.Module):
 ```
 
 들임과 내놓음 사이에 자리 차원(성큼 > 1)이나 채널 수가 바뀔 때마다 내리쬐기가 필요하다.
+
+## 정리하며
+
+**다룬 것** — Xception
+
+Xception의 고갱이 눈썰미는 채널 사이의 상관과 공간 상관을 아주 따로 다룰 수 있다는 것이다.
+
+고갱이 갈래는 `SeparableConv2d`, `Xception`, `SepConvWithResidual`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

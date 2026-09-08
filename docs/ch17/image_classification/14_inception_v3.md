@@ -2,7 +2,7 @@
 
 인셉션 v3은 2015년 논문 "인셉션 구조 다시 보기"에서 나왔으며, 합성곱을 어긋난 짝(예: $n \times 1$과 $1 \times n$)으로 나누고 레이블 스무딩 정칙화를 더하고 보조 분류기를 다듬어 본디 GoogLeNet을 낫게 한다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 나눈 합성곱이 인셉션 v3의 고갱이 나아짐이다. $5 \times 5$ 합성곱을 $3 \times 3$ 합성곱 둘로 갈음하고, 큰 합성곱은 다시 어긋난 $1 \times n$과 $n \times 1$ 짝으로 나눈다. 그러면 매개변수와 셈이 줄면서 그물의 깊이와 비선형은 늘어난다.
 
@@ -74,3 +74,11 @@ class AsymmetricConv(nn.Module):
 ```
 
 매개변수 아낌: 채널 짝마다 $7 \times 7 = 49$ 대 $7 + 7 = 14$이니 $3.5\times$ 줄어든다.
+
+## 정리하며
+
+**다룬 것** — 인셉션 V3
+
+나눈 합성곱이 인셉션 v3의 고갱이 나아짐이다.
+
+고갱이 갈래는 `InceptionV3`, `AsymmetricConv`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

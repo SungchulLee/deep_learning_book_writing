@@ -2,7 +2,7 @@
 
 이 스크립트는 사용자 정의 autograd 함수로 PyTorch의 미분을 확장하는 방법을 보여준다. 이 개념들을 이해하는 것은 효과적인 PyTorch 프로그래밍과 딥러닝 모델 개발에 필수적이다.
 
-## 코드
+## 1. 코드
 
 ```python
 """튜토리얼 20: 맞춤 자동 미분 함수 - PyTorch의 미분 넓히기"""
@@ -78,7 +78,7 @@ def main():
 if __name__ == "__main__":
     main()```
 
-## 논의
+## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.
 
@@ -126,3 +126,11 @@ if __name__ == "__main__":
     # 출력: 4.0, 8.0, 12.0
     # 경사가 누적된다. 매 backward가 기존 경사에 2*w = 4.0을 더한다.
     ```
+
+## 정리하며
+
+**다룬 것** — 사용자 정의 Autograd 함수 - PyTorch 미분 확장하기
+
+이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다.
+
+핵심 클래스는 `SquareFunction`, `ReLUFunction`이며 앞의 연습문제 3개로 직접 확인할 수 있다.

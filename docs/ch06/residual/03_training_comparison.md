@@ -4,7 +4,7 @@
 
 합성곱 구조는 요즘 컴퓨터 비전 시스템의 뼈대를 이룬다. 이 구현은 PyTorch로 잔차 신경망 설계의 핵심 개념을 보이며, 이미지 데이터에서 공간적인 특징의 위계가 어떻게 학습되는지 드러낸다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -376,7 +376,7 @@ if __name__ == "__main__":
     print("3. The skip connections act as 'gradient highways' to deeper layers")
     print("=" * 80 + "\n")```
 
-## 논의
+## 2. 논의
 
 이 구현은 클래스 두 개(`PlainNet`, `ResidualNet`)를 정의하며, 이들이 어우러져 완전한 잔차 신경망 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
@@ -423,3 +423,11 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 훑는다. (보통의 파이썬 리스트가 아니라) `nn.ModuleList`을 써야 PyTorch가 최적화를 위해 모든 매개변수를 등록한다. `for n in [2, 4, 8]: model = PlainNet(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+
+## 정리하며
+
+**다룬 것** — 학습 비교
+
+이 구현은 클래스 두 개(`PlainNet`, `ResidualNet`)를 정의하며, 이들이 어우러져 완전한 잔차 신경망 구조를 이룬다.
+
+핵심 클래스는 `PlainNet`, `ResidualNet`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

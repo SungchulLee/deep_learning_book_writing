@@ -2,7 +2,7 @@
 
 배포 유틸리티는 실전 모델 서비스에 필요한 기반을 제공한다. PyTorch 모델과 ONNX 모델의 검증, 지연 백분위수를 포함한 성능 감시, 판올림을 추적하는 모델 레지스트리, 판본 사이의 출력 비교, 그리고 배포에 필요한 산출물을 모두 만들어 내는 완전한 내보내기 파이프라인이다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -508,7 +508,7 @@ if __name__ == "__main__":
     print("  - export_for_production(): Complete export pipeline")
     print("\nImport this module to use these utilities in your code.")```
 
-## 논의
+## 2. 논의
 
 `ModelValidator` 클래스는 PyTorch 모델과 ONNX 모델 모두에 자동 점검을 수행한다. 순전파가 성공하는지 확인하고, 출력에 NaN이나 Inf가 있는지 살피고, 출력의 모양이 기대와 맞는지 확인한다. 이러한 점검은 실전에서 잘못된 예측을 낼 수 있는 조용한 실패를 잡아낸다.
 
@@ -542,3 +542,10 @@ if __name__ == "__main__":
 ??? success "연습문제 3 풀이"
     알맞은 확장을 하나 고른다(예: 다른 데이터셋, 지표 추가, 새 모델 변형). 필요한 변경을 설명한다. 새 임포트, 클래스 정의 수정, 초매개변수 갱신, 새로운 시각화나 기록 등이다. 핵심 변경을 구현하고 간단한 시험으로 올바름을 확인한다.
 
+## 정리하며
+
+**다룬 것** — 유틸리티
+
+`ModelValidator` 클래스는 PyTorch 모델과 ONNX 모델 모두에 자동 점검을 수행한다.
+
+핵심 클래스는 `DeploymentConfig`, `ModelValidator`, `PerformanceMonitor`, `ModelRegistry`이며 앞의 연습문제 3개로 직접 확인할 수 있다.

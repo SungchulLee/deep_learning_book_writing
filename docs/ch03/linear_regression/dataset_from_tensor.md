@@ -2,7 +2,7 @@
 
 이 스크립트는 선형 회귀에 대한 PyTorch의 정석적인 패턴을 보여준다. `nn.Linear`를 감싼 `nn.Module` 하위 클래스, 배치를 위한 `TensorDataset`과 `DataLoader` 파이프라인, CPU와 GPU 양쪽에서 동작하는 장치 독립적 학습, 그리고 모델을 보존하기 위한 `state_dict` 직렬화이다. 이 패턴은 뒤 장에서 다루는 모든 모델 구조에 그대로 적용되므로 반드시 익혀 두어야 한다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     pass
 ```
 
-## 논의
+## 2. 논의
 
 `LinearRegression` 모델 하위 클래스는 `nn.Linear(in_features, out_features)`로 완전 연결 층 하나를 정의한다. forward 메서드의 `squeeze(-1)`은 마지막 차원을 없애 출력 모양을 1차원 목표 텐서와 맞춘다. 이는 `nn.Linear`의 출력이 `(batch, 1)` 모양인데 목표는 `(batch,)` 모양일 때 흔히 쓰는 방식이다. 모델은 `.to(device)`로 알맞은 장치로 옮기며, 모든 데이터 텐서도 같은 장치에 있어야 한다.
 
@@ -186,18 +186,18 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**익힘 1.**
+**연습문제 1.**
 기본 `'mean'` 축약 대신 `nn.MSELoss(reduction='sum')`을 쓰도록 스크립트를 수정하라. 학습을 안정적으로 유지하려면 학습률을 어떻게 바꿔야 하는가?
 
-??? success "익힘 1 풀이"
+??? success "연습문제 1 풀이"
     `reduction='sum'`을 쓰면 손실이 배치 크기에 비례하므로 경사가 배치 크기만큼 커진다. 이를 보정하려면 학습률을 배치 크기로 나누어야 한다. 예를 들어 `'mean'`에서 `lr=0.01`이 잘 동작했다면, 배치 크기 32인 `'sum'`에서는 `lr=0.01/32`(약 0.0003)가 필요하다. 반대로 `'sum'` 축약에서 원래 학습률을 그대로 쓰면 최적화기가 너무 큰 걸음을 내디뎌 발산한다.
 
 ---
 
-**익힘 2.**
+**연습문제 2.**
 학습 루프에 검증 분할을 추가하라. 80%는 학습에, 20%는 검증에 쓴다. 매 에폭마다 학습 MSE와 검증 MSE를 모두 출력하라.
 
-??? success "익힘 2 풀이"
+??? success "연습문제 2 풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -231,10 +231,10 @@ if __name__ == "__main__":
 
 ---
 
-**익힘 3.**
+**연습문제 3.**
 입력 특징을 10개 쓰도록 모델을 확장하고, 학습된 가중치가 참된 가중치로 수렴하는지 확인하라. 나란히 비교하여 출력하라.
 
-??? success "익힘 3 풀이"
+??? success "연습문제 3 풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -258,3 +258,11 @@ if __name__ == "__main__":
         print(f'  {i:5d} | {w_true[i].item():7.4f} | {w_learned[i]:7.4f}')
     print(f'  bias  | {b_true:7.4f} | {model.bias.item():7.4f}')
     ```
+
+## 정리하며
+
+**다룬 것** — 텐서로 만드는 데이터셋
+
+`LinearRegression` 모델 하위 클래스는 `nn.Linear(in_features, out_features)`로 완전 연결 층 하나를 정의한다.
+
+핵심 클래스는 `LinearRegression`이며 앞의 연습문제 3개로 직접 확인할 수 있다.

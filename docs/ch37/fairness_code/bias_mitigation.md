@@ -4,7 +4,7 @@
 
 기계 배움 얼개에서 고름을 지키는 일은 윤리로도 마땅하고 참으로도 걸린 문제다. 이 꾸러미는 깊은 배움 모형의 치우침을 알아내고, 재고, 눅이는 재주를 보이며, 이론의 고름 잣대를 손에 잡히는 코드로 이어 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -428,7 +428,7 @@ def example_usage():
 if __name__ == "__main__":
     example_usage()```
 
-## 논의
+## 2. 논의
 
 이 짜보기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다. 클래스마다 따로 떨어진 조각을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 저절로 미분하는 데 쓰는 셈 그래프를 세운다.
 
@@ -436,36 +436,36 @@ if __name__ == "__main__":
 
 여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 얼개의 갈래, 여러 자료를 바꿔 가며 해 보면 이해가 깊어지고 기계 배움 일감에 대한 감이 몸에 붙는다.
 
-## 익힘 문제
+## 연습문제
 
-**익힘 1.**
+**연습문제 1.**
 맡긴 첫자리 잡기로 만든 `ReweighingMitigation`에서 배울 수 있는 매개변수의 온 수를 셈하여라. 짐과 치우침을 아울러 켜마다 나누어 세어라.
 
-??? success "익힘 1 풀이"
+??? success "연습문제 1 풀이"
     `nn.Linear(in_features, out_features)`마다 짐 매개변수가 `in_features * out_features`개, 치우침 매개변수가 `out_features`개다(`bias=False`이 아니라면). `nn.Conv2d(in_c, out_c, k)`마다 짐 매개변수가 `in_c * out_c * k * k`개, 치우침 매개변수가 `out_c`개다. `nn.Embedding(num, dim)`이면 매개변수가 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
 
 ---
 
-**익힘 2.**
+**연습문제 2.**
 가장 좋게 하는 개를 Adam(`torch.optim.Adam`에 `lr=0.001`)으로 갈음하고 본디 것과 익힘이 모여 가는 결을 견주어라. 둘의 잃음 곡선을 한 그림에 그려라.
 
-??? success "익힘 2 풀이"
+??? success "연습문제 2 풀이"
     가장 좋게 하는 개를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 갈음한다. Adam은 매개변수마다 맞춰 가는 배움 빠르기와 밀림 어림을 지니므로 앞선 시대에 흔히 더 빨리 모인다. Adam의 잃음 곡선은 첫 몇 시대에 더 가파르게 떨어지지만 가장 좋은 자리 언저리에서 밀림을 곁들인 SGD보다 조금 더 흔들릴 수 있다. 고르게 견주려면 아무렇게나 하는 씨앗과 시대 수를 같게 하고 둘 다 돌려라.
 
 ---
 
-**익힘 3.**
+**연습문제 3.**
 이 짜보기가 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
-??? success "익힘 3 풀이"
+??? success "연습문제 3 풀이"
     흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 얼개 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 살핌 잃음이 오르면 짚어낸다. 정칙화(드롭아웃, 짐 줄이기, 자료 늘리기)나 모형 크기 줄이기로 고친다. 익힘과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
 
-**익힘 4.**
+**연습문제 4.**
 `ReweighingMitigation`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
-??? success "익힘 4 풀이"
+??? success "연습문제 4 풀이"
     못 박아 둔 켜를 이렇게 갈음한다.
     ```python
     self.layers = nn.ModuleList()
@@ -473,3 +473,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 방법에서는 `for layer in self.layers: x = layer(x)`으로 돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 가장 좋게 하기에 올린다. 시험은 이렇게 한다. `for n in [2, 4, 8]: model = ReweighingMitigation(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — 치우침 눅이기
+
+이 짜보기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다.
+
+고갱이 갈래는 `ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -4,7 +4,7 @@
 
 자연어 다루기는 깊은 배움 방식으로 크게 달라졌다. 이 단원은 차례 이름표 붙이기 재주를 보여 주며, 신경망이 글을 어떻게 다루고 만들어 내는지 밝히는 실전 짜기를 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -640,7 +640,7 @@ if __name__ == "__main__":
     print("4. BIOES often performs better in deep learning models")
     print("5. Always validate tag sequences for consistency")```
 
-## 논의
+## 2. 논의
 
 여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 차례 이름표 붙이기의 핵심 개념을 보여 준다. 단원별로 나뉜 짜임 덕분에 낱낱의 조각을 익히고 다른 일이나 자료 뭉치에 맞게 고치기 쉽다.
 
@@ -694,3 +694,11 @@ IOB 이름표 붙이기의 짜기를 확인하는 두루 살피는 시험 함수
             assert p.grad is not None
     ```
     경사의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 학습을 지원하는지 확인하는 데 특히 중요하다.
+
+## 정리하며
+
+**다룬 것** — IOB 이름표 붙이기
+
+여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 차례 이름표 붙이기의 핵심 개념을 보여 준다.
+
+고갱이 갈래는 `TagScheme`, `TagValidator`, `TagConverter`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

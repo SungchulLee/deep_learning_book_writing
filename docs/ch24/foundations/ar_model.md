@@ -4,7 +4,7 @@
 
 자기 되돌이 모델은 앞선 모든 낱개를 조건으로 삼아 낱개마다 미리 헤아려 자료를 만든다. 이 단원은 자기 되돌이 모델 부품의 짜기를 보이며 차례대로 만들어 내는 과정과 그 얼개의 요구를 그려 보인다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     
     print("\n✓ Both models working correctly!")```
 
-## 논의
+## 2. 논의
 
 이 짜기는 갈래 2개(`ARModel`, `NeuralARModel`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 얼개를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 셈 그래프를 뜻매김한다.
 
@@ -302,3 +302,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이하라. (여느 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 PyTorch가 모든 매개변수를 가장 좋게 하기에 등록한다. `for n in [2, 4, 8]: model = ARModel(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험하라.
+
+## 정리하며
+
+**다룬 것** — 자기 되돌이 모델
+
+이 짜기는 갈래 2개(`ARModel`, `NeuralARModel`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 얼개를 이룬다.
+
+고갱이 갈래는 `ARModel`, `NeuralARModel`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

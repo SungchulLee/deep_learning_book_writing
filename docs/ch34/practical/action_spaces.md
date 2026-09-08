@@ -2,7 +2,7 @@
 
 움직임 공간은 실제 힘 북돋우는 배움 재주에서 종요로운 생각이다. 움직임 바꾸기 도구를 다룬다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -137,7 +137,7 @@ def demo_action_spaces():
 if __name__ == "__main__":
     demo_action_spaces()```
 
-## 논의
+## 2. 논의
 
 이 구현은 움직임 공간의 한가운데 논리를 담은 `PortfolioActionHead`, `DiscreteActionWrapper`, `ContinuousActionRescaler` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
@@ -168,3 +168,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 3 풀이"
     절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
+
+## 정리하며
+
+**다룬 것** — 움직임 공간
+
+이 구현은 움직임 공간의 한가운데 논리를 담은 `PortfolioActionHead`, `DiscreteActionWrapper`, `ContinuousActionRescaler` 클래스를 축으로 삼는다.
+
+고갱이 갈래는 `PortfolioActionHead`, `DiscreteActionWrapper`, `ContinuousActionRescaler`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

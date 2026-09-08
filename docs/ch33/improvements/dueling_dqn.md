@@ -2,7 +2,7 @@
 
 맞겨루기 DQN은 특별한 그물 얼개로 Q 값을 상태 값 함수와 움직임 이점 함수로 나눈다. $Q(s, a) = V(s) + A(s, a) - \text{mean}_a A(s, a)$으로 쪼개면 그물이 어떤 움직임이 있든 상관없이 어느 상태가 값진지 배울 수 있어, 특히 많은 움직임의 효과가 비슷한 둘레에서 배움이 효율 좋아진다. 이 짜기는 여러 층 신경망과 겹말기 그물 모두에 맞겨루기 얼개를 보이고 과녁 셈에 두 겹 DQN을 더한다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -269,7 +269,7 @@ def demo_dueling_dqn():
 if __name__ == "__main__":
     demo_dueling_dqn()```
 
-## 논의
+## 2. 논의
 
 이 짜기는 맞겨루기 DQN의 핵심 논리를 감싼 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
@@ -300,3 +300,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 3 풀이"
     자연스러운 넓힘 하나는 규칙 세우기(떨구기, 무게 줄임)나 더 정교한 얼개(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 자료로 익힌 뒤 앞뒤의 잣대를 견주어라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+
+## 정리하며
+
+**다룬 것** — 맞겨루기 DQN
+
+이 짜기는 맞겨루기 DQN의 핵심 논리를 감싼 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer` 갈래를 한가운데 둔다.
+
+고갱이 갈래는 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer`, `DuelingDQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

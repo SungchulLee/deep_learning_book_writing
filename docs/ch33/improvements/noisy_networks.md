@@ -2,7 +2,7 @@
 
 잡소리 그물은 DQN 좋게 하기의 중요한 개념이다. 배우는 살펴보기를 위한 NoisyLinear 층과 NoisyNet Q 그물을 다룬다. 이 짜기는 얽힌 핵심 알고리즘과 자료 얼개를 손으로 만져 보게 하며 이론 바탕과 실제로 펼칠 때 살필 것을 함께 보여 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -284,7 +284,7 @@ def demo_noisy_networks():
 if __name__ == "__main__":
     demo_noisy_networks()```
 
-## 논의
+## 2. 논의
 
 이 짜기는 잡소리 그물의 핵심 논리를 감싼 `NoisyLinear`, `IndependentNoisyLinear`, `NoisyQNetwork` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
@@ -315,3 +315,11 @@ if __name__ == "__main__":
 
 ??? success "연습문제 3 풀이"
     자연스러운 넓힘 하나는 규칙 세우기(떨구기, 무게 줄임)나 더 정교한 얼개(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 자료로 익힌 뒤 앞뒤의 잣대를 견주어라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+
+## 정리하며
+
+**다룬 것** — 잡소리 그물
+
+이 짜기는 잡소리 그물의 핵심 논리를 감싼 `NoisyLinear`, `IndependentNoisyLinear`, `NoisyQNetwork` 갈래를 한가운데 둔다.
+
+고갱이 갈래는 `NoisyLinear`, `IndependentNoisyLinear`, `NoisyQNetwork`, `ReplayBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -2,7 +2,7 @@
 
 scikit-learn은 선형 회귀와 그 정칙화 변형인 릿지, 라쏘, 엘라스틱 넷의 고도로 최적화되고 충분히 검증된 구현을 제공한다. 이 스크립트는 `StandardScaler`를 포함한 파이프라인으로 이 넷을 합성 데이터에서 비교하고, `RidgeCV`, `LassoCV`, `ElasticNetCV`로 교차 검증 기반의 초매개변수 선택을 보여준다. 이런 기준선은 표 형태 데이터에서 어설프게 조율된 딥러닝 모델보다 나은 경우가 많으므로 잘 이해해 두어야 한다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     pass
 ```
 
-## 논의
+## 2. 논의
 
 `Pipeline` 추상화는 (특징 정규화를 위한) `StandardScaler`와 회귀 모델을 하나의 추정 가능한 객체로 엮는다. `pipe.fit(X_train, y_train)`을 호출하면 먼저 특징을 표준화한 뒤 표준화된 데이터로 모델을 적합시킨다. `pipe.predict(X_test)`를 호출하면 예측 전에 시험 데이터에 같은 표준화를 적용한다. 이로써 전처리가 일관되게 유지되고, 시험 데이터로 스케일러를 적합시켜 생기는 데이터 누출을 막는다.
 
@@ -151,10 +151,10 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**익힘 1.**
+**연습문제 1.**
 베이즈 릿지 회귀(`sklearn.linear_model.BayesianRidge`)를 비교에 추가하라. 성능과 계수 양상이 표준 릿지와 어떻게 다른가?
 
-??? success "익힘 1 풀이"
+??? success "연습문제 1 풀이"
     ```python
     from sklearn.linear_model import BayesianRidge
     from sklearn.pipeline import Pipeline
@@ -171,18 +171,18 @@ if __name__ == "__main__":
 
 ---
 
-**익힘 2.**
+**연습문제 2.**
 라쏘로 alpha 값을 직접 훑는 것보다 LassoCV가 선호되는 이유를 계산적 관점과 통계적 관점에서 설명하라.
 
-??? success "익힘 2 풀이"
+??? success "연습문제 2 풀이"
     LassoCV는 효율적인 웜스타트를 쓴다. 가장 큰 alpha(모든 계수가 0인 지점)에서 모델을 적합시킨 뒤 alpha를 점차 줄이면서 직전 해를 다음 시작점으로 삼는다. 이는 alpha마다 독립적인 모델을 바닥부터 적합시키는 것보다 훨씬 빠르다. 통계적으로는 교차 검증으로 alpha를 고르므로 일반화 성능에 대한 편향 없는 추정을 얻는다. 직접 훑는 방식도 같은 교차 검증이 필요하지만 실수하기 쉽고 웜스타트가 없어 더 느리다.
 
 ---
 
-**익힘 3.**
+**연습문제 3.**
 특징 50개 중 5개만 유용하고 나머지는 잡음인 데이터셋을 생성하라. OLS, 릿지, 라쏘, 엘라스틱 넷에 대해 0이 아닌 계수의 개수를 비교하라. 어떤 방법이 유용한 특징을 가장 잘 찾아내는가?
 
-??? success "익힘 3 풀이"
+??? success "연습문제 3 풀이"
     ```python
     from sklearn.datasets import make_regression
     from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
@@ -197,3 +197,11 @@ if __name__ == "__main__":
     # 라쏘는 대체로 0이 아닌 계수를 5개 가까이 찾아낸다.
     # OLS와 릿지는 50개를 모두 0이 아닌 채로 남긴다.
     ```
+
+## 정리하며
+
+**다룬 것** — scikit-learn으로 하는 선형 회귀
+
+`Pipeline` 추상화는 (특징 정규화를 위한) `StandardScaler`와 회귀 모델을 하나의 추정 가능한 객체로 엮는다.
+
+앞의 연습문제 3개로 직접 확인할 수 있다.

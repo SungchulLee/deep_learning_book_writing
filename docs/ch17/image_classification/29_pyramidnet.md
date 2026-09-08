@@ -2,7 +2,7 @@
 
 "Deep Pyramidal Residual Learning for Image Recognition"(2017)에서 나온 PyramidNet은 줄여 뽑는 단계에서 계단처럼 늘리는 흔한 방식 대신, 잔차 덩이를 지나며 특징 지도 차원을 차츰 늘린다. 이 매끄러운 피라미드 넓힘은 나타냄의 짐을 층 사이에 더 고르게 나누어, 넘어가는 지점에서의 앎 잃음을 줄이고 익히는 동안 기울기 흐름을 낫게 한다.
 
-## 코드
+## 1. 코드
 
 ```python
 #!/usr/bin/env python3
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     model = PyramidNet()
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")```
 
-## 논의
+## 2. 논의
 
 여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 2개(`PyramidBasicBlock`, `PyramidNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
 
@@ -123,3 +123,11 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = PyramidBasicBlock(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — PyramidNet
+
+여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 2개(`PyramidBasicBlock`, `PyramidNet`)를 정한다.
+
+고갱이 갈래는 `PyramidBasicBlock`, `PyramidNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

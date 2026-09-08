@@ -2,7 +2,7 @@
 
 EfficientNet은 겹친 잣수 맞추기를 들여왔는데, 붙박이 잣수 계수 한 벌로 그물의 깊이, 너비, 해상도를 고르게 키운다. 2019년 Tan과 Le가 내놓은 이 방식은 신경 얼개 찾기로 가장 좋은 바탕(EfficientNet-B0)을 찾은 뒤 그것을 짜임새 있게 키운다. 이로써 사람이 손수 꾸민 얼개보다 나은 정확도와 효율을 얻는다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     pass
 ```
 
-## 논의
+## 2. 논의
 
 복합 스케일링이 EfficientNet의 고갱이 이바지다. 여느 방법은 그물을 한 차원으로만 키우지만(더 깊게, 더 넓게, 또는 더 높은 해상도로) EfficientNet은 계수 $\alpha$, $\beta$, $\gamma$에 공통 지수 $\phi$을 올려 셋을 한꺼번에 키운다. 깊이 $= \alpha^\phi$, 너비 $= \beta^\phi$, 해상도 $= \gamma^\phi$이다. 격자 탐색으로 $\alpha \cdot \beta^2 \cdot \gamma^2 \approx 2$이라는 제약 아래 가장 좋은 $\alpha$, $\beta$, $\gamma$을 찾고, 그다음 $\phi$이 모델 전체 크기를 다스린다.
 
@@ -201,3 +201,11 @@ $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$, $\phi = 2$인 복합 스케일�
     ```
 
     어림한 매개변수 개수: B3 약 1200만, B4 약 1900만, B5 약 3000만, B6 약 4300만, B7 약 6600만.
+
+## 정리하며
+
+**다룬 것** — 앞선 EfficientNet
+
+복합 스케일링이 EfficientNet의 고갱이 이바지다.
+
+고갱이 갈래는 `SwishActivation`, `SqueezeExcitation`, `MBConvBlock`, `EfficientNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

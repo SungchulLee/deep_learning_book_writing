@@ -2,7 +2,7 @@
 
 Wav2Vec 2.0은 2020년 논문 "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations"에서 나온, 말소리 알아듣기를 위한 스스로 살피는 배움 얼거리이다. 이 모델은 맞대어 배우기에 양자화와 변환기 부호기를 곁들여 말소리 나타냄을 배우며, 이름표 붙인 자료가 적어도 좋은 말소리 알아듣기를 해낸다.
 
-## 코드
+## 1. 코드
 
 ```python
 #!/usr/bin/env python3
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     print(f"Input: {x.shape}")
 ```
 
-## 논의
+## 2. 논의
 
 Wav2Vec 2.0은 크게 두 단계로 돌아간다. 곧 날 소리 물결을 숨은 말소리 나타냄으로 다루는 누비기 특징 부호기와, 그 특징에서 맥락이 담긴 나타냄을 세우는 변환기 부호기이다. 특징 부호기는 묶음 고르게 맞추기와 GELU 깨어남을 곁들인 1차원 누비기를 이어 붙여 16kHz의 날 소리 신호를 다루기 좋은 때 해상도까지 차츰 줄여 뽑는다. 이 꾸밈 덕분에 멜 스펙트로그램 같은 손수 만든 특징 없이 날 소리를 곧바로 다룰 수 있다.
 
@@ -169,3 +169,11 @@ Wav2Vec 2.0이 말소리의 스스로 살피는 미리 익히기에 (자기부�
     decoded = model.decode(logits)
     print(f"Decoded text: {decoded}")
     ```
+
+## 정리하며
+
+**다룬 것** — Wav2Vec 2.0
+
+Wav2Vec 2.0은 크게 두 단계로 돌아간다.
+
+고갱이 갈래는 `FeatureEncoder`, `Wav2Vec2`, `StereoFeatureEncoder`, `Wav2Vec2ForASR`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

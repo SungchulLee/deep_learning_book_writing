@@ -2,7 +2,7 @@
 
 PyTorch의 autograd 체계는 계산 그래프를 따라 자동으로 미분하여 경사를 손으로 계산할 필요를 없앤다. 텐서에 `requires_grad=True`를 설정하면 PyTorch가 그 텐서에 대한 모든 연산을 추적하고, 스칼라 출력에 `.backward()`를 호출하면 그래프를 역방향으로 훑으며 계산된 도함수로 `.grad` 속성을 채운다. 이로써 수십 줄에 이르던 역전파 코드가 함수 호출 한 번으로 줄어든다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -85,7 +85,7 @@ with torch.no_grad():
 print(f"Final Accuracy: {accuracy:.2f}%")
 ```
 
-## 논의
+## 2. 논의
 
 계산 그래프는 순전파 중에 동적으로 만들어진다. `requires_grad=True`인 텐서에 대한 모든 연산은 그 연산과 입력을 기록하는 노드를 그래프에 만든다. 손실에 `.backward()`를 호출하면 PyTorch가 이 그래프를 출력에서 입력 쪽으로 훑으며 각 노드에서 연쇄 법칙을 적용해 경사를 계산한다. 이 경사들은 잎 텐서(매개변수)의 `.grad` 속성에 누적된다.
 
@@ -150,3 +150,11 @@ autograd로 점 $(2, 3)$에서 $f(x, y) = x^2 y + y^3$의 경사를 계산하라
         optimizer.step()
     ```
     `optimizer.zero_grad()`이 손수 하던 `.grad.zero_()` 호출을 대신하고, `optimizer.step()`이 손수 쓰던 `with torch.no_grad(): w -= lr * w.grad` 패턴을 대신한다. 이 편이 깔끔하고, 코드를 고치지 않고도 Adam 같은 고급 최적화기를 쓸 수 있다.
+
+## 정리하며
+
+**다룬 것** — Autograd 소개
+
+계산 그래프는 순전파 중에 동적으로 만들어진다.
+
+앞의 연습문제 3개로 직접 확인할 수 있다.

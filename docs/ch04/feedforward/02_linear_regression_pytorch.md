@@ -2,7 +2,7 @@
 
 PyTorch 텐서는 NumPy 배열의 GPU 가속 대응물이며 딥러닝 계산의 등뼈를 이룬다. 이 튜토리얼은 앞선 예제의 순수 NumPy 선형 회귀를 PyTorch로 옮기면서 장치 관리, 텐서 연산, 그리고 효율적인 학습과 추론에 꼭 필요해지는 `torch.no_grad()` 컨텍스트 관리자를 소개한다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -51,7 +51,7 @@ print(f"True values:    w = {true_w:.4f}, b = {true_b:.4f}")
 print(f"Learned values: w = {w.item():.4f}, b = {b.item():.4f}")
 ```
 
-## 논의
+## 2. 논의
 
 NumPy에서 PyTorch로 넘어가는 일은 거의 문법 차원에 그친다. `np.random.randn`은 `torch.randn`이 되고, `np.sum`은 `torch.sum`이 되며, 배열 인덱싱은 똑같이 동작한다. 새로 더해지는 것은 장치 지정(`device=device`)과, 원소가 하나인 텐서에서 파이썬 스칼라를 꺼내는 `.item()` 메서드이다. 한 연산에 들어가는 모든 텐서는 같은 장치에 있어야 하므로 데이터와 매개변수를 같은 `device` 객체 위에 만든다.
 
@@ -113,3 +113,11 @@ PyTorch 텐서는 `requires_grad` 깃발을 통해 자동 미분을 지원하지
         print(f"{dev}: {elapsed:.3f}s")
     ```
     작은 데이터셋(표본 약 1000개 미만)에서는 GPU 커널을 띄우는 부담 때문에 CPU가 더 빠른 경우가 많다. GPU 가속은 대체로 표본이 10,000개를 넘거나 행렬의 차원이 GPU의 병렬성을 채울 만큼 클 때 값어치를 한다.
+
+## 정리하며
+
+**다룬 것** — PyTorch 텐서로 만드는 선형 회귀
+
+NumPy에서 PyTorch로 넘어가는 일은 거의 문법 차원에 그친다.
+
+앞의 연습문제 3개로 직접 확인할 수 있다.

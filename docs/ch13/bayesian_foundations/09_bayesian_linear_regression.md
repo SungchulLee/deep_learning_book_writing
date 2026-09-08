@@ -2,7 +2,7 @@
 
 베이즈 선형 회귀는 모형 매개변수에 앞확률 분포를 얹고 온전한 뒤확률 분포를 셈하여 고전 선형 회귀를 넓힌다. 점 어림값을 내놓는 빈도주의 회귀와 달리 베이즈 길은 뒤확률로 불확실함을 정확히 재며, 예측 분포가 관측 잡음과 매개변수 불확실함을 모두 저절로 담는다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     print("\nNext: Module 10 - Advanced Applications")
     print("="*70)```
 
-## 논의
+## 2. 논의
 
 베이즈 선형 회귀 모형은 $\varepsilon \sim N(0, \sigma^2 I)$인 $y = X\beta + \varepsilon$을 가정하고 정규 앞확률 $\beta \sim N(m_0, V_0)$을 둔다. 뒤확률은 켤레 정규다. 곧 $\beta | y \sim N(m_n, V_n)$이며 $V_n = (V_0^{-1} + \sigma^{-2} X^T X)^{-1}$이고 $m_n = V_n(V_0^{-1} m_0 + \sigma^{-2} X^T y)$이다.
 
@@ -228,3 +228,10 @@ print(f'Mean Frequentist width: {np.mean(freq_width):.3f}')
 ```
 약하게만 알려 주는 앞확률을 쓰면 두 길은 아주 비슷한 구간을 내놓는다. 앞확률이 불확실함을 조금 더 보태므로 베이즈 구간이 살짝 더 넓다.
 
+## 정리하며
+
+**다룬 것** — 베이즈 선형 회귀
+
+베이즈 선형 회귀 모형은 $\varepsilon \sim N(0, \sigma^2 I)$인 $y = X\beta + \varepsilon$을 가정하고 정규 앞확률 $\beta \sim N(m_0, V_0)$을 둔다.
+
+앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -4,7 +4,7 @@ Seq2Seq는 2014년 논문 "Sequence to Sequence Learning with Neural Networks"�
 
 순차열 모형은 시간적이고 순서가 있는 데이터를 다루는 데 바탕이 된다. 이 구현은 순환 신경망의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
 
-## 코드
+## 1. 코드
 
 ```python
 #!/usr/bin/env python3
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     model = Seq2Seq(input_size=1000, output_size=1000)
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")```
 
-## 논의
+## 2. 논의
 
 이 구현은 클래스 세 개(`Encoder`, `Decoder`, `Seq2Seq`)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
@@ -106,3 +106,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 훑는다. (보통의 파이썬 리스트가 아니라) `nn.ModuleList`을 써야 PyTorch가 최적화를 위해 모든 매개변수를 등록한다. `for n in [2, 4, 8]: model = Encoder(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+
+## 정리하며
+
+**다룬 것** — Seq2Seq
+
+이 구현은 클래스 세 개(`Encoder`, `Decoder`, `Seq2Seq`)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다.
+
+핵심 클래스는 `Encoder`, `Decoder`, `Seq2Seq`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

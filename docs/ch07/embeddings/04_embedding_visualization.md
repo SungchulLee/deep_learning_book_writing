@@ -4,7 +4,7 @@
 
 순차열 모형은 시간적이고 순서가 있는 데이터를 다루는 데 바탕이 된다. 이 구현은 낱말 임베딩의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
 
-## 코드
+## 1. 코드
 
 ```python
 # ========================================================
@@ -381,7 +381,7 @@ if __name__ == "__main__":
     pass
 ```
 
-## 논의
+## 2. 논의
 
 `CBOWModel` 클래스는 PyTorch의 `nn.Module` 인터페이스로 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로 PyTorch의 자동 미분이 학습 중 기울기 계산을 알아서 처리한다. 이런 모듈식 설계 덕분에 부품 하나하나를 고치거나 모델을 더 큰 파이프라인에 넣기 쉽다.
 
@@ -428,3 +428,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 훑는다. (보통의 파이썬 리스트가 아니라) `nn.ModuleList`을 써야 PyTorch가 최적화를 위해 모든 매개변수를 등록한다. `for n in [2, 4, 8]: model = CBOWModel(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+
+## 정리하며
+
+**다룬 것** — 심화 실습
+
+`CBOWModel` 클래스는 PyTorch의 `nn.Module` 인터페이스로 모델 구조를 감싼다.
+
+핵심 클래스는 `CBOWModel`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

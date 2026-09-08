@@ -4,7 +4,7 @@
 
 트랜스포머에 바탕을 둔 구조는 자연어 처리를 뒤바꾸어 놓았다. 이 구현은 트랜스포머의 개념을 살피며, 갖가지 과제에서 최고 수준의 성능을 내게 하는 주의 얼개와 구조의 본을 보여 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -37,7 +37,7 @@ class PatchEmbedding(nn.Module):
 if __name__ == "__main__":
     pass```
 
-## 논의
+## 2. 논의
 
 `PatchEmbedding` 클래스는 파이토치의 `nn.Module` 인터페이스로 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정하여, 학습 중에 파이토치의 자동 미분 체계가 기울기 계산을 알아서 하게 한다. 이 모듈 방식의 설계 덕분에 낱낱의 부품을 고치거나 모델을 더 큰 파이프라인에 끼워 넣기가 쉽다.
 
@@ -80,3 +80,11 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 되풀이하라. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 파이토치가 최적화 대상 매개변수를 모두 등록한다. `for n in [2, 4, 8]: model = PatchEmbedding(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험하라.
+
+## 정리하며
+
+**다룬 것** — 조각 임베딩
+
+`PatchEmbedding` 클래스는 파이토치의 `nn.Module` 인터페이스로 모델 구조를 감싼다.
+
+핵심 클래스는 `PatchEmbedding`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

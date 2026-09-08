@@ -2,7 +2,7 @@
 
 2021년 논문 "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows"에서 나온 스윈 트랜스포머는 비전 과제에서 전역 자기 주의가 비효율적인 문제를 푼다. 국소 창 안에서 주의를 셈하고 층마다 그 창을 어긋나게 하여, 합성곱 신경망처럼 위계를 이루는 특징 지도를 쌓으면서 그림 크기에 대해 일차 계산 복잡도를 이룬다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 `WindowAttention` 모듈은 자기 주의를 크기가 고정된 (대개 $7 \times 7$ 조각의) 국소 창으로 제한한다. 그러면 전역 주의의 이차 복잡도가 $O(N^2)$에서 $O(N \cdot W^2)$으로 줄며 여기서 $W$은 창 크기이다. QKV 사영과 다중 머리 나누기는 표준 트랜스포머 주의와 같은 방식이지만 창마다 그 안에서만 이루어진다.
 
@@ -104,3 +104,11 @@ if __name__ == "__main__":
             return self.reduction(x)
     ```
     조각 합치기는 이웃한 $2 \times 2$ 조각 묶음을 통로 차원을 따라 이어 붙여 ($4C$개의 통로를 만든 뒤) 선형으로 $2C$까지 낮추어 사영한다. 그러면 합성곱 신경망의 걸음 있는 합성곱이나 풀링처럼 공간 해상도가 반으로 줄고 특징 차원이 두 배가 된다.
+
+## 정리하며
+
+**다룬 것** — 스윈 트랜스포머
+
+`WindowAttention` 모듈은 자기 주의를 크기가 고정된 (대개 $7 \times 7$ 조각의) 국소 창으로 제한한다.
+
+핵심 클래스는 `WindowAttention`, `SwinTransformer`, `PatchMerging`이며 앞의 연습문제 3개로 직접 확인할 수 있다.

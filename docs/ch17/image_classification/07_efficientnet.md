@@ -2,7 +2,7 @@
 
 EfficientNet은 겹친 잣수 맞추기와 MBConv 덩이로 매개변수를 아주 적게 쓰면서 높은 정확도를 낸다. 여기 짠 것은 EfficientNet-B0 얼개를 간추린 판으로, 핵심 벽돌인 줄기, MBConv 단계, 갈래 매기기 머리를 보여 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 고갱이 벽돌이다. 뒤집힌 병목 구조를 쓰는데, 채널을 먼저 넓히고 깊이별 합성곱으로 다룬 뒤 더 작은 차원으로 되비춘다. $f(x) = x \cdot \sigma(x)$으로 매긴 SiLU(Swish) 활성 함수는 ReLU보다 매끄러운 기울기를 준다.
 
@@ -113,3 +113,11 @@ MBConv 덩이에 쥐어짜기-북돋우기를 더하고 늘어난 매개변수�
     ```
 
     숨은 차원이 192이면(채널 32개에 넓힘 비율 6) SE은 매개변수 $192 \times 48 + 48 \times 192 = 18{,}432$개를 더하니 블록마다 대략 1~2% 늘어난다.
+
+## 정리하며
+
+**다룬 것** — EfficientNet
+
+MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 고갱이 벽돌이다.
+
+고갱이 갈래는 `MBConv`, `EfficientNet`, `SE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

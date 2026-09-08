@@ -2,7 +2,7 @@
 
 격자 탐색은 지정한 매개변수 격자의 모든 조합을 교차 검증으로 남김없이 평가한다. 격자 안에서 가장 좋은 조합을 찾는 것은 보장되지만 계산 비용이 매개변수의 수에 따라 지수적으로 커진다. 속도보다 철저함이 중요한 작은 매개변수 공간에 알맞다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -249,7 +249,7 @@ if __name__ == "__main__":
     print("- Use nested CV for unbiased performance estimates")
     print("- Start with coarse grid, then refine around best values")```
 
-## 논의
+## 2. 논의
 
 `GridSearchCV`를 쓰는 격자 탐색은 모든 매개변수 조합을 교차 검증으로 평가한다. `n_estimators` 3개, `max_depth` 4개, `min_samples_split` 3개, `min_samples_leaf` 3개, `max_features` 2개로 이루어진 격자라면 조합이 $3 \times 4 \times 3 \times 3 \times 2 = 216$개이고, 각각을 5겹 교차 검증으로 평가하므로 모두 1,080번 모델을 적합시킨다.
 
@@ -283,3 +283,10 @@ if __name__ == "__main__":
 ??? success "연습문제 3 풀이"
     알맞은 확장을 하나 고른다(예: 다른 데이터셋, 지표 추가, 새 모델 변형). 필요한 변경을 설명한다. 새 임포트, 클래스 정의 수정, 초매개변수 갱신, 새로운 시각화나 기록 등이다. 핵심 변경을 구현하고 간단한 시험으로 올바름을 확인한다.
 
+## 정리하며
+
+**다룬 것** — 격자 탐색
+
+`GridSearchCV`를 쓰는 격자 탐색은 모든 매개변수 조합을 교차 검증으로 평가한다.
+
+앞의 연습문제 3개로 직접 확인할 수 있다.

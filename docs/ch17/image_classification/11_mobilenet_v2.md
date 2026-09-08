@@ -2,7 +2,7 @@
 
 MobileNetV2는 Sandler 외의 2018년 논문 "MobileNetV2: Inverted Residuals and Linear Bottlenecks"에서 나왔다. 처음 MobileNet 위에, 깊이별로 갈라지는 누비기를 쓴 뒤집은 잔차 덩이를 들여왔으며 손전화 기기에서 효율적으로 미루도록 꾸몄다.
 
-## 코드
+## 1. 코드
 
 ```python
 import torch
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## 논의
+## 2. 논의
 
 MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정반대다. 가운데에서 채널을 눌러 담는 대신 부풀리고, 깊이별 누비기로 다룬 뒤 다시 내리쬔다. 내리쬐기 단계의 선형 병목(깨어남 없음)이 좁은 나타냄 속의 앎을 지킨다. 깨어남을 6에서 자르는 ReLU6은 고정소수점 미룸과 맞물리게 하려고 쓴다.
 
@@ -96,3 +96,11 @@ MobileNetV3 방식의 하드 스위시 깨어남을 짜고 ReLU6과 견주어라
     ```
 
     하드 스위시는 시그모이드 셈 없이 스위시 함수를 어림한다. 손전화 미룸에 효율적이면서도 ReLU6보다 조금 더 정확하다. MobileNetV3은 뒤쪽 층에 하드 스위시를, 앞쪽 층에 ReLU를 쓴다.
+
+## 정리하며
+
+**다룬 것** — MobileNet V2
+
+MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정반대다.
+
+고갱이 갈래는 `InvertedResidual`, `MobileNetV2`, `HardSwish`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

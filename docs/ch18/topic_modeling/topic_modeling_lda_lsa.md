@@ -4,7 +4,7 @@
 
 자연어 다루기는 깊은 배움 방식으로 크게 달라졌다. 이 단원은 주제 모델 재주를 보여 주며, 신경망이 글을 어떻게 다루고 만들어 내는지 밝히는 실전 짜기를 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """주제 나타내기 LDA LSA."""
@@ -468,7 +468,7 @@ if __name__ == "__main__":
     pass
 ```
 
-## 논의
+## 2. 논의
 
 여기 짠 것은 함께 어울려 온전한 주제 모델 얼개를 이루는 클래스 2개(`LDAGibbs`, `NeuralTopicModel`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
 
@@ -513,3 +513,11 @@ if __name__ == "__main__":
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = LDAGibbs(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
+## 정리하며
+
+**다룬 것** — 주제 나타내기 LDA LSA
+
+여기 짠 것은 함께 어울려 온전한 주제 모델 얼개를 이루는 클래스 2개(`LDAGibbs`, `NeuralTopicModel`)를 정한다.
+
+고갱이 갈래는 `LDAGibbs`, `NeuralTopicModel`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

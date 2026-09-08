@@ -2,7 +2,7 @@
 
 이 스크립트는 `nn.Module`도 autograd도 쓰지 않고 PyTorch 텐서로 경사를 직접 계산하며 미니배치 경사 하강법을 구현한다. 경사 공식 $g = \frac{2}{B} X^T(X w + b - y)$을 텐서 연산으로 곧바로 계산하고 배치에는 `TensorDataset` / `DataLoader`를 씀으로써, 순수 NumPy와 완전한 PyTorch 추상화 사이의 정확한 중간 지점을 보여준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     pass
 ```
 
-## 논의
+## 2. 논의
 
 직접 계산하는 경사는 NumPy 버전과 같은 벡터화된 공식을 쓰되 PyTorch 텐서 연산으로 표현한다. `grad_w = (2.0 / B) * (X_batch.T @ residual)`과 `grad_b = (2.0 / B) * residual.sum()`이다. 이 연산들은 NumPy와 같은 결과를 내면서도 `.to('cuda')` 호출 한 번으로 GPU에서 실행할 수 있다. autograd 그래프를 만들지 않으므로 매개변수 갱신 `w -= lr * grad_w`은 단순한 제자리 뺄셈이다.
 
@@ -143,10 +143,10 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**익힘 1.**
+**연습문제 1.**
 `w`와 `b`에 `requires_grad=True`를 붙여 직접 계산하던 경사를 `loss.backward()`로 대체하라. 결과가 동일한지 확인하라.
 
-??? success "익힘 1 풀이"
+??? success "연습문제 1 풀이"
     ```python
     import torch
     from torch.utils.data import TensorDataset, DataLoader
@@ -178,18 +178,18 @@ if __name__ == "__main__":
 
 ---
 
-**익힘 2.**
+**연습문제 2.**
 경사를 직접 계산하는 학습 루프에서 경사를 0으로 만드는 것을 잊으면 어떻게 되는가? 경사 초기화를 주석 처리하여 흉내 내 보고 학습된 매개변수에 미치는 영향을 관찰하라.
 
-??? success "익힘 2 풀이"
+??? success "연습문제 2 풀이"
     초기화하지 않으면 이전 배치의 경사가 지워지지 않는다. 다만 경사 변수 `grad_w`와 `grad_b`는 반복마다 다시 계산되는 (누적되는 `.grad` 속성이 아니라 지역 변수인) 값이므로, 직접 계산하는 이 루프는 이 문제의 영향을 받지 않는다. 그러나 `.grad` 속성을 쓰는 autograd에서는 0으로 만드는 것을 잊으면 경사가 배치에 걸쳐 누적되어 실효 경사가 배치마다 커지고 매개변수가 빠르게 발산한다.
 
 ---
 
-**익힘 3.**
+**연습문제 3.**
 모든 텐서를 `device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')`로 옮겨 GPU를 지원하게 하고, 큰 데이터셋(표본 100000개, 특징 100개)에서 속도 향상을 측정하라.
 
-??? success "익힘 3 풀이"
+??? success "연습문제 3 풀이"
     ```python
     import torch, time
     from torch.utils.data import TensorDataset, DataLoader
@@ -219,3 +219,11 @@ if __name__ == "__main__":
     print(f'Time: {time.time()-start:.2f}s')
     # n과 p가 크면 GPU가 상당한 속도 향상을 준다.
     ```
+
+## 정리하며
+
+**다룬 것** — PyTorch로 만드는 경사 하강법
+
+직접 계산하는 경사는 NumPy 버전과 같은 벡터화된 공식을 쓰되 PyTorch 텐서 연산으로 표현한다.
+
+앞의 연습문제 3개로 직접 확인할 수 있다.

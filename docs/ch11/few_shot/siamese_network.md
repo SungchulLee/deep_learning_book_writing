@@ -4,7 +4,7 @@
 
 모자란 데이터나 서로 이어진 데이터에서 효율적으로 배우는 것은 오늘날 깊은 학습의 한가운데 놓인 어려움이다. 이 모듈은 모델이 앞선 앎을 살려 새 과제에 재빨리 맞추어 가게 하는 소수 예시 학습 기법을 보여 준다.
 
-## 코드
+## 1. 코드
 
 ```python
 """
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     triplet_loss = triplet_criterion(anchor_emb, positive_emb, negative_emb)
     print(f"Triplet loss: {triplet_loss.item():.4f}")```
 
-## 논의
+## 2. 논의
 
 이 구현은 함께 어울려 온전한 소수 예시 학습 구조를 이루는 클래스 4개(`SiameseEncoder`, `SiameseNetwork`, `ContrastiveLoss`, `TripletLoss`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
 
@@ -307,3 +307,11 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
         self.layers.append(YourBlock(dim, ...))
     ```
     `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 되풀이하라. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 파이토치가 최적화 대상 매개변수를 모두 등록한다. `for n in [2, 4, 8]: model = SiameseEncoder(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험하라.
+
+## 정리하며
+
+**다룬 것** — 샴 망
+
+이 구현은 함께 어울려 온전한 소수 예시 학습 구조를 이루는 클래스 4개(`SiameseEncoder`, `SiameseNetwork`, `ContrastiveLoss`, `TripletLoss`)를 정한다.
+
+핵심 클래스는 `SiameseEncoder`, `SiameseNetwork`, `ContrastiveLoss`, `TripletLoss`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
