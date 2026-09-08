@@ -35,9 +35,16 @@ from torch.utils.data import DataLoader, TensorDataset, random_split
 
 def generate_polynomial_data(n_samples=500, noise_std=0.3, seed=42):
     """다항식을 참값으로 하는 합성 데이터를 만든다."""
+    # 참 함수를 3차 다항식으로 정해 둔다. 정칙화를 다루려면 "무엇이
+    # 신호이고 무엇이 잡음인지"를 우리가 알아야 하는데, 실제 데이터로는
+    # 그것을 알 수 없으므로 이렇게 만들어 쓴다.
     torch.manual_seed(seed)
+    # unsqueeze(1)로 (n,) 을 (n,1) 로 만든다. nn.Linear가
+    # (배치, 특성) 꼴을 받기 때문이다
     x = torch.linspace(-3, 3, n_samples).unsqueeze(1)
     y_true = 0.5 * x**3 - 2 * x**2 + x + 1
+    # 잡음의 표준편차가 곧 "줄일 수 없는 오차"다. 어떤 모델도
+    # 검증 손실을 noise_std^2 = 0.09 아래로는 내릴 수 없다
     y = y_true + noise_std * torch.randn_like(y_true)
     return x, y
 
@@ -55,22 +62,28 @@ def compute_learning_curves(model, train_loader, val_loader, epochs=200, lr=0.01
 
     for epoch in range(epochs):
         # --- 학습 ---
-        model.train()
+        model.train()   # 에폭마다 다시 부른다(아래에서 eval로 바꾸므로)
         train_loss_sum = 0.0
         for X_batch, y_batch in train_loader:
             optimizer.zero_grad()
             loss = criterion(model(X_batch), y_batch)
             loss.backward()
             optimizer.step()
+            # 배치 크기를 곱해 두는 것이 요점이다. criterion이 이미
+            # 배치 안에서 평균을 냈으므로, 다시 곱해 합으로 되돌린 뒤
+            # 아래에서 전체 표본 수로 나눈다. 이래야 마지막 배치가
+            # 작아도 정확한 표본 평균이 된다
             train_loss_sum += loss.item() * X_batch.size(0)
 
         # --- 검증 ---
-        model.eval()
+        model.eval()    # 드롭아웃을 끄고 배치 정규화가 이동 통계를 쓰게 한다
         val_loss_sum = 0.0
-        with torch.no_grad():
+        with torch.no_grad():   # eval과 별개로 기울기 추적을 끈다
             for X_batch, y_batch in val_loader:
                 val_loss_sum += criterion(model(X_batch), y_batch).item() * X_batch.size(0)
 
+        # len(loader)가 아니라 len(loader.dataset)으로 나눈다.
+        # 앞의 것은 배치 수, 뒤의 것이 표본 수다
         history['train_loss'].append(train_loss_sum / len(train_loader.dataset))
         history['val_loss'].append(val_loss_sum / len(val_loader.dataset))
 

@@ -362,20 +362,28 @@ def initialization_experiment():
     
     results = {}
     for init_name, init_fn in inits.items():
+        # 초기화 방식마다 씨앗을 같은 값으로 되돌린다. 그래야 차이가
+        # 초기화 때문이지 뽑기 운 때문이 아니라고 말할 수 있다
         torch.manual_seed(42)
         layers = []
         for _ in range(10):
             lin = nn.Linear(64, 64)
+            # 기본값 항목은 lambda m: None 이라 아무것도 하지 않는다.
+            # 곧 PyTorch가 nn.Linear를 만들 때 넣어 준 값을 그대로 쓴다
             init_fn(lin)
             layers.extend([lin, nn.ReLU()])
         layers.append(nn.Linear(64, 1))
         model = nn.Sequential(*layers)
-        
+
         x = torch.randn(32, 64)
         y = torch.randn(32, 1)
+        # 목표가 무작위라 배울 것이 없다. 학습이 목적이 아니라
+        # 역전파를 한 번 돌려 기울기의 크기만 보려는 것이다
         loss = nn.MSELoss()(model(x), y)
         loss.backward()
-        
+
+        # 앞의 실험이 활성의 기울기를 보았다면 여기서는 가중치의
+        # 기울기를 본다. 실제로 갱신되는 것이 이쪽이다
         norms = []
         for layer in model:
             if isinstance(layer, nn.Linear):
@@ -384,8 +392,11 @@ def initialization_experiment():
     
     fig, ax = plt.subplots(figsize=(10, 6))
     for name, norms in results.items():
+        # semilogy: y축만 로그. 층마다 일정 배수로 줄거나 늘면
+        # 로그 축에서 직선이 되고 그 기울기가 층당 변화율이 된다.
+        # 선형 축이면 "너무 작음"과 "알맞음"이 둘 다 0에 붙어 보인다
         ax.semilogy(range(1, len(norms) + 1), norms, 'o-', label=name, lw=2, ms=6)
-    
+
     ax.set_xlabel('Layer', fontsize=12)
     ax.set_ylabel('Gradient Norm (log scale)', fontsize=12)
     ax.set_title('Effect of Weight Initialization on Gradient Flow', fontsize=14)

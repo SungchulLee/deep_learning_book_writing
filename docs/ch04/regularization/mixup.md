@@ -122,17 +122,27 @@ def mixup_data(x: torch.Tensor, y: torch.Tensor,
         y_b: 순열을 적용한 레이블
         lam: 혼합 계수
     """
+    # Beta(alpha, alpha)에서 섞는 비율을 뽑는다. 대칭이라 평균은 늘 0.5지만
+    # 모양이 alpha에 달렸다. alpha가 작으면(0.2 따위) 0이나 1 가까이 몰려
+    # "거의 원본"인 표본이 많아지고, alpha가 1이면 균등분포가 되어
+    # 절반씩 섞인 표본이 많아진다
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
     else:
-        lam = 1.0
-    
+        lam = 1.0   # 믹스업을 끈 것과 같다
+
     batch_size = x.size(0)
+    # 새 배치를 따로 불러오지 않고 같은 배치를 뒤섞어 제 자신과 짝짓는다.
+    # 데이터 로더를 건드리지 않아도 되므로 어디에나 끼워 넣기 쉽다
     index = torch.randperm(batch_size, device=x.device)
-    
+
+    # 입력은 여기서 바로 섞는다
     mixed_x = lam * x + (1 - lam) * x[index]
+    # 레이블은 섞지 않고 두 벌을 그대로 돌려준다. 분류에서는 y가
+    # 클래스 번호(정수)라 lam*y_a + (1-lam)*y_b 가 뜻이 없기 때문이다.
+    # 대신 아래 mixup_criterion에서 손실을 그 비율로 섞는다
     y_a, y_b = y, y[index]
-    
+
     return mixed_x, y_a, y_b, lam
 
 def mixup_criterion(criterion: nn.Module, pred: torch.Tensor,
@@ -148,6 +158,13 @@ def mixup_criterion(criterion: nn.Module, pred: torch.Tensor,
         y_b: 둘째 레이블 집합
         lam: 혼합 계수
     """
+    # 손실을 섞는 것이 레이블을 섞는 것과 같아지는 까닭.
+    # 교차 엔트로피는 레이블에 대해 선형이므로
+    #   CE(pred, lam*y_a + (1-lam)*y_b) = lam*CE(pred, y_a) + (1-lam)*CE(pred, y_b)
+    # 가 성립한다. 그래서 원-핫을 만들어 섞지 않고도 같은 결과를 얻는다.
+    #
+    # 주의: 이 등식은 교차 엔트로피처럼 레이블에 선형인 손실에서만
+    # 성립한다. 초점 손실이나 다른 비선형 손실에는 그대로 쓸 수 없다
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 ```
 
