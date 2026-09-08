@@ -186,6 +186,16 @@ if __name__ == "__main__":
     print(f"Subtree of node 1: {subtree_nodes}")
 ```
 
+**출력:**
+
+```
+tin:  [0, 1, 7, 2, 4]
+tout: [9, 6, 8, 3, 5]
+tour: [0, 1, 3, 3, 4, 4, 1, 2, 2, 0]
+depth: [0, 1, 1, 2, 2]
+Subtree of node 1: [1, 3, 4]
+```
+
 ---
 
 ## 6. 복잡도 요약

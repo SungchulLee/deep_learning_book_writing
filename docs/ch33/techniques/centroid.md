@@ -184,6 +184,14 @@ if __name__ == "__main__":
     print(f"Depth bound: {n.bit_length() - 1}")
 ```
 
+**출력:**
+
+```
+Centroid tree (parent array): [1, 3, 1, -1, 5, 3, 5]
+Root of centroid tree: 3
+Depth bound: 2
+```
+
 ---
 
 ## 7. 복잡도 요약

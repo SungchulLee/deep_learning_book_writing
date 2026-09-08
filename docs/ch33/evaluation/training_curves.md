@@ -244,6 +244,24 @@ if __name__ == "__main__":
     demo_training_curves()
 ```
 
+**출력:**
+
+```
+============================================================
+Training Curves Demo
+============================================================
+Training curves saved to training_curves.png
+
+--- Smoothing Methods ---
+  Raw: final = 161.2
+  MA(50): final = 205.0
+  EMA(0.99): final = 179.3
+  Median: final = 205.5
+Multi-seed plot saved to multi_seed.png
+
+Training curves demo complete!
+```
+
 ## 2. 논의
 
 이 짜기는 익히기 굽은 줄의 핵심 논리를 감싼 `TrainingLogger` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.

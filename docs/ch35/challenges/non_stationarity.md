@@ -175,6 +175,38 @@ if __name__ == "__main__":
     demo_non_stationarity()
 ```
 
+**출력:**
+
+```
+======================================================================
+Non-Stationarity Detection & Adaptation
+======================================================================
+
+--- CUSUM Change Detection ---
+Changes detected at: []
+True change at: 200
+
+--- Distribution Shift Detection ---
+  Shift at t=211: distance=0.005675
+  Shift at t=232: distance=0.013139
+  Shift at t=253: distance=0.010335
+  Shift at t=274: distance=0.013261
+  Shift at t=295: distance=0.005204
+  Shift at t=316: distance=0.011279
+  Shift at t=337: distance=0.007573
+  Shift at t=358: distance=0.008869
+  Shift at t=379: distance=0.008012
+
+--- Adaptive Policy ---
+ Step                                            Weights
+    0  [0.2 0.2 0.2 0.2 0.2]
+  100  [0.189 0.213 0.193 0.204 0.201]
+  199  [0.211 0.169 0.196 0.209 0.214]
+  200  [0.205 0.183 0.188 0.214 0.21 ]
+  250  [0.219 0.175 0.215 0.211 0.18 ]
+  350  [0.196 0.192 0.217 0.206 0.189]
+```
+
 ## 2. 논의
 
 CUSUM(쌓인 합) 알아내개는 잣대 평균에서 벗어난 만큼을 쌓아 평균이 옮겨 가는지 지켜본다. 쌓인 합이 문턱을 넘으면 바뀜 점이 있다고 알린다. 이 알고리즘은 0보다 큰 쪽과 작은 쪽의 벗어남을 좇는 통계 둘을 지녀 위로 옮겨 감과 아래로 옮겨 감을 모두 알아낸다. 흘러감 매개변수가 예민함을 다스린다. 흘러감이 작으면 더 작은 바뀜도 잡지만 헛된 알림이 는다.

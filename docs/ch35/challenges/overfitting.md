@@ -186,6 +186,32 @@ if __name__ == "__main__":
     demo_overfitting()
 ```
 
+**출력:**
+
+```
+======================================================================
+Overfitting Prevention Demonstration
+======================================================================
+
+--- Walk-Forward Validation ---
+Splits: 11
+Mean IS Sharpe:  0.7068
+Mean OOS Sharpe: 2.0064
+Overfit ratio:   0.3523
+
+--- Deflated Sharpe Ratio ---
+  Trials=   1: DSR stat=-1088982120.645, p=1.0000, significant=False
+  Trials=  10: DSR stat=11.406, p=0.0000, significant=True
+  Trials=  50: DSR stat=12.911, p=0.0000, significant=True
+  Trials= 100: DSR stat=13.264, p=0.0000, significant=True
+  Trials= 500: DSR stat=13.811, p=0.0000, significant=True
+
+--- Probability of Backtest Overfitting ---
+PBO: 1.0
+Best IS Sharpe: 0.7644
+Its OOS Sharpe: -0.0552
+```
+
 ## 2. 논의
 
 때 열을 위한 앞으로 걸어가며 살피기는 온 익힘 자료가 시험 자료보다 앞서게 하여 뽑기 밖 됨됨이를 정직하게 따진다. 지나치게 맞춘 비, 곧 뽑기 안 샤프와 뽑기 밖 샤프의 비는 꾀가 신호가 아니라 잡음을 얼마나 파고들었는지를 곧바로 잰다. 비가 1.0에 가까우면 두루 잘 맞음을 뜻하고, 2~3을 넘으면 심하게 지나치게 맞춘 것이다.

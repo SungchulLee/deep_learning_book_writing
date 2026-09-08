@@ -474,31 +474,41 @@ def comprehensive_comparison():
     batch_size = 8
     seq_len = 128
     
+    # 트랜스포머의 은닉 상태와 같은 모양 (배치, 길이, 차원)
     x = torch.randn(batch_size, seq_len, dim)
-    
+
     # 서로 다른 정규화 방식
     ln = nn.LayerNorm(dim)
     rms = RMSNorm(dim)
-    
+
     ln_out = ln(x)
     rms_out = rms(x)
-    
+
     print("Normalization Comparison for Transformer Hidden States")
     print("=" * 60)
-    
+
     print(f"\nInput: mean={x.mean():.4f}, std={x.std():.4f}")
-    
+
+    # 아래 세 줄 가운데 셋째가 이 비교의 핵심이다.
+    # 전체 평균은 두 방식 모두 0에 가깝게 나오지만(입력이 이미 중심에 있어서),
+    # 토큰마다의 평균이 얼마나 흩어져 있는지를 보면 갈린다.
+    # mean(dim=-1)로 토큰마다 평균을 낸 뒤 그 값들의 표준편차를 잰다.
+    #   LayerNorm은 토큰마다 평균을 0으로 맞추므로 이 값이 거의 0이고,
+    #   RMSNorm은 중심을 맞추지 않으므로 토큰마다 평균이 제각각 남는다.
     print(f"\nLayerNorm:")
     print(f"  Output mean: {ln_out.mean():.6f}")
     print(f"  Output std:  {ln_out.std():.4f}")
     print(f"  Per-token mean std: {ln_out.mean(dim=-1).std():.6f}")
-    
+
     print(f"\nRMSNorm:")
     print(f"  Output mean: {rms_out.mean():.6f}")
     print(f"  Output std:  {rms_out.std():.4f}")
     print(f"  Per-token mean std: {rms_out.mean(dim=-1).std():.6f}")
-    
-    # 매개변수 개수
+
+    # 매개변수 개수. LayerNorm은 감마와 베타 둘이라 2*dim,
+    # RMSNorm은 감마만 있어 dim이다. 값 자체는 크지 않지만,
+    # RMSNorm이 실제로 버는 것은 매개변수가 아니라 평균을 셈하고 빼는
+    # 연산이 사라진 데서 오는 속도다
     print(f"\nParameter count:")
     print(f"  LayerNorm: {sum(p.numel() for p in ln.parameters())}")
     print(f"  RMSNorm:   {sum(p.numel() for p in rms.parameters())}")

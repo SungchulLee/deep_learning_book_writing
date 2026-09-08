@@ -141,6 +141,16 @@ if __name__ == "__main__":
     print("Order-preserving property verified.")
 ```
 
+**출력:**
+
+```
+Original:   [100, 30, 100, 50, 30]
+Compressed: [2, 0, 2, 1, 0]
+Mapping:    [30, 50, 100]
+Recovered:  [100, 30, 100, 50, 30]
+Order-preserving property verified.
+```
+
 ---
 
 ## 7. 흔히 빠지는 함정

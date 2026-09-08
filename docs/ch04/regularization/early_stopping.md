@@ -580,7 +580,15 @@ class CheckpointingEarlyStopping(EarlyStopping):
         os.makedirs(checkpoint_dir, exist_ok=True)
     
     def __call__(self, score, model, epoch):
-        # 주기적인 검사점 저장
+        # 두 가지 저장이 서로 다른 목적을 가진다.
+        #   (1) 주기적 검사점 — 학습이 죽었을 때 이어서 돌리기 위한 것
+        #   (2) 최고 성적 모델 — 배포할 모델을 고르기 위한 것
+        # 둘을 헷갈리면 마지막 검사점을 배포하는 실수를 하게 되는데,
+        # 조기 종료가 걸린 시점의 모델은 이미 나빠지고 있던 모델이다.
+
+        # (1) 주기적인 검사점 저장.
+        # 파일 이름에 에폭을 넣어 덮어쓰지 않는다. 다만 이대로 두면
+        # 파일이 계속 쌓이므로 실제로는 오래된 것을 지우는 손질이 필요하다
         if (epoch + 1) % self.checkpoint_freq == 0:
             path = f"{self.checkpoint_dir}/checkpoint_epoch_{epoch+1}.pt"
             torch.save({
@@ -588,10 +596,15 @@ class CheckpointingEarlyStopping(EarlyStopping):
                 'model_state_dict': model.state_dict(),
                 'score': score
             }, path)
-        
-        # 가장 좋은 모델 저장
+            # 학습을 이어 가려면 옵티마이저 상태도 함께 담아야 한다.
+            # Adam의 모멘텀 통계가 사라지면 이어받은 학습이 흔들린다
+
+        # 부모 클래스가 최고 성적 갱신과 참을성 세기를 맡는다.
+        # 성적이 나아졌으면 self.best_weights를 여기서 새로 채운다
         should_stop = super().__call__(score, model, epoch)
-        
+
+        # (2) 최고 성적 모델 저장. 매번 덮어쓰므로 파일은 늘 하나다.
+        # 이 파일이 곧 배포 후보이며, epoch가 아니라 best_epoch를 담는다
         if self.best_weights is not None:
             path = f"{self.checkpoint_dir}/best_model.pt"
             torch.save({
@@ -599,7 +612,7 @@ class CheckpointingEarlyStopping(EarlyStopping):
                 'model_state_dict': self.best_weights,
                 'score': self.best_score
             }, path)
-        
+
         return should_stop
 ```
 

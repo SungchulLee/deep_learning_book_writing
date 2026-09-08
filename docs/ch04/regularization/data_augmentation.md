@@ -104,23 +104,34 @@ class PhotometricAugmentation:
         saturation: float = 0.2,
         hue: float = 0.1
     ):
+        # 기하 증강(자르기, 뒤집기)이 "어디에 있는가"를 흔든다면,
+        # 광도 증강은 "어떻게 보이는가"를 흔든다. 조명과 카메라가
+        # 제각각인 실제 사진에 견디게 하려는 것이다.
         self.transform = T.Compose([
             T.ColorJitter(
                 brightness=brightness,
                 contrast=contrast,
                 saturation=saturation,
+                # 색상(hue)만 범위를 훨씬 작게 잡는다. 색상을 크게 돌리면
+                # 물체의 정체가 바뀌어 버린다(빨간 사과가 초록이 된다).
+                # 갈래를 가르는 데 색이 중요한 과제라면 아예 0으로 두어야 한다
                 hue=hue
             ),
+            # 확률 0.1로 흑백으로 만든다. 색에만 기대어 판단하는 것을 막고
+            # 모양과 결도 보게 한다
             T.RandomGrayscale(p=0.1),
-            T.RandomAdjustSharpness(sharpness_factor=2, p=0.3),
-            T.RandomAutocontrast(p=0.3),
-            T.RandomEqualize(p=0.3),
+            T.RandomAdjustSharpness(sharpness_factor=2, p=0.3),   # 초점 차이
+            T.RandomAutocontrast(p=0.3),                          # 자동 대비 보정
+            T.RandomEqualize(p=0.3),   # 히스토그램 평활화. uint8 이미지만 받으므로
+                                       # ToTensor 앞에 두어야 한다
         ])
-    
+
     def __call__(self, image):
         return self.transform(image)
 
-# 표준 색 증강
+# 표준 색 증강. 위보다 세기를 두 배로 키운 설정이며,
+# 대조학습(SimCLR 계열)에서 흔히 쓰는 값이다. 자기지도학습에서는
+# 같은 사진의 두 모습을 크게 다르게 만들수록 배우는 표현이 좋아진다
 color_transforms = T.Compose([
     T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
     T.RandomGrayscale(p=0.2),
