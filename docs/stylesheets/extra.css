@@ -15,10 +15,56 @@
 .md-nav__item--nested > .md-nav__toggle:checked ~ .md-nav {
     display: block;
 }
-<<<<<<< HEAD
 
-figcaption {
-  text-align: right;
+/* Custom admonition type: proof (증명) — distinct from success (풀이) */
+:root {
+    --md-admonition-icon--proof: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Cpath d="M6 6h12v12H6z"/%3E%3C/svg%3E');
 }
-=======
->>>>>>> 96f31bd (...)
+
+.md-typeset .admonition.proof,
+.md-typeset details.proof {
+    border-color: #7048c4;
+}
+
+.md-typeset .proof > .admonition-title,
+.md-typeset .proof > summary {
+    background-color: rgba(112, 72, 196, 0.1);
+}
+
+.md-typeset .proof > .admonition-title::before,
+.md-typeset .proof > summary::before {
+    background-color: #7048c4;
+    -webkit-mask-image: var(--md-admonition-icon--proof);
+    mask-image: var(--md-admonition-icon--proof);
+}
+
+/* 난이도 표시 — 색 점 하나로만 나타낸다 (초록 쉬움 · 노랑 중간 · 빨강 어려움) */
+.md-typeset .diff {
+    display: inline-block;
+    width: 0.62em;
+    height: 0.62em;
+    margin: 0 0.15em 0 0.3em;
+    border-radius: 50%;
+    vertical-align: 0.08em;
+}
+
+.md-typeset .diff.easy { background-color: #2e9e4f; }
+.md-typeset .diff.med  { background-color: #e3a008; }
+.md-typeset .diff.hard { background-color: #d93b2b; }
+
+@media (prefers-color-scheme: dark) {
+    .md-typeset .diff.easy { background-color: #4cc26e; }
+    .md-typeset .diff.med  { background-color: #f0b429; }
+    .md-typeset .diff.hard { background-color: #ef6a5c; }
+}
+
+/* 정리는 오른쪽 목차에서 바로 갈 수 있도록 제목(h3)으로 적되,
+   본문에서는 다른 블록과 마찬가지로 굵은 도입어처럼 보이게 한다. */
+.md-typeset h3.thm {
+    font-size: 1em;
+    font-weight: 700;
+    line-height: 1.6;
+    letter-spacing: normal;
+    margin: 1.5em 0 0.6em;
+    color: inherit;
+}
