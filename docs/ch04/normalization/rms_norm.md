@@ -64,11 +64,23 @@ class RMSNorm(nn.Module):
         super().__init__()
         
         self.eps = eps
+        # 층 정규화와 달리 학습되는 매개변수가 weight 하나뿐이다.
+        # 평균을 빼지 않으므로 되돌릴 이동도 없어 bias(beta)가 없다.
+        # 1로 시작해 처음에는 정규화한 값을 그대로 통과시킨다
         self.weight = nn.Parameter(torch.ones(dim))
     
     def _norm(self, x):
         """RMS 정규화를 계산한다."""
         # RMS 계산: sqrt(mean(x^2))
+        # 층 정규화와 갈리는 지점이 여기다. 층 정규화는 평균을 빼고
+        # 표준편차로 나누지만, RMSNorm은 평균을 빼지 않고 제곱평균의
+        # 제곱근으로만 나눈다. 곧 크기만 맞추고 중심은 건드리지 않는다.
+        # 평균을 구하는 한 번의 훑기가 빠지므로 더 빠르고, 실제로
+        # 성능이 떨어지지 않는다는 것이 RMSNorm 논문의 관찰이다.
+        # dim=-1은 마지막 축, 곧 특징 축이다. 표본마다 따로 정규화하므로
+        # 배치 크기와 무관하고 추론에서도 학습과 똑같이 동작한다.
+        # eps가 제곱근 "안"에 있다는 점에 주의하라. 밖에 두는 구현도
+        # 있는데 값이 미세하게 달라진다
         rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
         return x / rms
     
@@ -80,7 +92,12 @@ class RMSNorm(nn.Module):
         반환값:
             같은 모양의 정규화된 텐서
         """
-        # 정규화하고 배율 조정
+        # 정규화하고 배율 조정.
+        # float()으로 올렸다가 type_as로 되돌리는 것이 요령이다. 半정밀도
+        # (fp16, bf16)로 학습할 때 x^2의 합이 넘치거나 정밀도를 잃기
+        # 쉬운데, 정규화만 32비트로 셈하고 결과를 원래 자료형으로
+        # 되돌리면 그 위험을 피하면서 메모리는 그대로 아낀다.
+        # 대규모 언어 모델 구현에서 흔히 보이는 형태다
         output = self._norm(x.float()).type_as(x)
         return output * self.weight
 
@@ -348,12 +365,22 @@ class LLaMABlock(nn.Module):
         self.feed_forward = SwiGLU(dim, ffn_dim)
     
     def forward(self, x, freqs_cis=None, mask=None):
-        # 사전 정규화 구조
+        # 사전 정규화 구조.
+        # 정규화가 잔차 덧셈 "안"에, 곧 어텐션 앞에 들어간다. 원조
+        # 트랜스포머는 x + Attention(x)를 먼저 하고 그 결과를
+        # 정규화했다(사후 정규화). 사전 정규화가 이긴 까닭은 잔차
+        # 경로에 정규화가 끼어들지 않아 x가 그대로 흐르고, 그 덕에
+        # 아주 깊은 모델에서도 기울기가 살아남기 때문이다.
+        # 사후 정규화 모델이 학습 초반에 워밍업 없이는 발산하곤 하는
+        # 문제도 이것으로 크게 줄었다
         h = x + self.attention(
             self.attention_norm(x),
             freqs_cis=freqs_cis,
             mask=mask
         )
+        # 두 부분 층이 같은 꼴을 되풀이한다. 정규화 → 부분 층 → 잔차 덧셈.
+        # ffn_norm이 x가 아니라 h를 받는다는 점에 주의하라. 앞선
+        # 어텐션의 결과 위에서 이어 간다
         out = h + self.feed_forward(self.ffn_norm(h))
         return out
 
@@ -363,11 +390,20 @@ class SwiGLU(nn.Module):
     def __init__(self, dim, hidden_dim):
         super().__init__()
         
+        # 보통의 순방향 신경망은 행렬이 둘인데 여기는 셋이다. w1과 w3가
+        # 같은 입력을 나란히 받아 하나는 활성화를 거치고 하나는 문
+        # 노릇을 한다. 그래서 같은 매개변수 수를 맞추려면 hidden_dim을
+        # 3분의 2쯤으로 잡는다.
+        # bias=False는 LLaMA 계열의 관례다. 바로 앞에 RMSNorm이 있어
+        # 편향이 할 일이 거의 없고, 매개변수와 셈을 아낀다
         self.w1 = nn.Linear(dim, hidden_dim, bias=False)
         self.w2 = nn.Linear(hidden_dim, dim, bias=False)
         self.w3 = nn.Linear(dim, hidden_dim, bias=False)
     
     def forward(self, x):
+        # silu(w1(x))가 문이고 w3(x)가 통과시킬 값이다. 원소별로 곱하므로
+        # 어느 성분을 얼마나 흘려보낼지를 신경망이 스스로 정한다.
+        # ReLU 하나를 쓰는 것보다 표현력이 좋다는 것이 SwiGLU의 요지다
         return self.w2(nn.functional.silu(self.w1(x)) * self.w3(x))
 
 class GroupedQueryAttention(nn.Module):
@@ -376,6 +412,12 @@ class GroupedQueryAttention(nn.Module):
     def __init__(self, dim, n_heads, n_kv_heads):
         super().__init__()
         
+        # 질의 머리는 n_heads개인데 열쇠와 값의 머리는 n_kv_heads개로
+        # 더 적다. 여러 질의 머리가 열쇠/값 한 벌을 나누어 쓰는 것이다.
+        # 추론에서 캐시해 두어야 할 열쇠/값이 그만큼 줄어드는 것이 요점이며,
+        # 긴 문맥에서 메모리를 크게 아낀다.
+        # n_kv_heads=n_heads면 보통의 다중 머리 어텐션이 되고,
+        # n_kv_heads=1이면 다중 질의 어텐션이 된다
         self.n_heads = n_heads
         self.n_kv_heads = n_kv_heads
         self.head_dim = dim // n_heads
