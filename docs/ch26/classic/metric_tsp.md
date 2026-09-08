@@ -173,6 +173,15 @@ if __name__ == "__main__":
     print(f"Ratio:     {cost / opt:.4f}")
 ```
 
+**출력:**
+
+```
+Tour: [0, 1, 2, 3]
+Tour cost: 4.0000
+Optimal:   4.0000
+Ratio:     1.0000
+```
+
 ---
 
 ## 연습문제

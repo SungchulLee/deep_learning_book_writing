@@ -154,6 +154,23 @@ if __name__ == "__main__":
     print(f"Lower bound (max): {max(jobs)}")
 ```
 
+**출력:**
+
+```
+List Scheduling: makespan=15
+  Machine 0: jobs=[0, 4, 5], load=15
+  Machine 1: jobs=[1, 3, 6], load=12
+  Machine 2: jobs=[2, 7], load=9
+
+LPT Scheduling:  makespan=13
+  Machine 0: jobs=[1, 2, 4], load=13
+  Machine 1: jobs=[5, 6, 7], load=12
+  Machine 2: jobs=[0, 3], load=11
+
+Lower bound (avg): 12.0
+Lower bound (max): 8
+```
+
 ---
 
 ## 연습문제

@@ -154,6 +154,14 @@ if __name__ == "__main__":
     print(f"Total weight: {W}, lower bound (W/2): {W / 2}")
 ```
 
+**출력:**
+
+```
+Random:       cut=12, S={1, 2, 3}
+Local search: cut=14, S={1, 2}
+Total weight: 17, lower bound (W/2): 8.5
+```
+
 ---
 
 ## 연습문제

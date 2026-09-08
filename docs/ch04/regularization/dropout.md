@@ -284,25 +284,36 @@ class CNNWithSpatialDropout(nn.Module):
     def __init__(self, dropout_rate=0.3):
         super().__init__()
         self.features = nn.Sequential(
+            # padding=1 이면 3x3 합성곱이 크기를 그대로 유지한다
             nn.Conv2d(1, 32, 3, padding=1),
             nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Dropout2d(p=dropout_rate),  # 공간 드롭아웃
-            
+            nn.MaxPool2d(2),   # 28x28 -> 14x14
+
+            # Dropout2d는 화소 하나가 아니라 채널(특징 맵) 하나를 통째로 끈다.
+            # 합성곱 출력은 이웃 화소끼리 값이 거의 같아서, 보통의 드롭아웃으로
+            # 화소 몇 개를 꺼도 옆 화소가 그 정보를 그대로 들고 있어 효과가 없다.
+            # 채널째 꺼야 비로소 "그 특징을 못 보게 하는" 일이 된다
+            nn.Dropout2d(p=dropout_rate),
+
             nn.Conv2d(32, 64, 3, padding=1),
             nn.ReLU(),
-            nn.MaxPool2d(2),
+            nn.MaxPool2d(2),   # 14x14 -> 7x7
             nn.Dropout2d(p=dropout_rate),
         )
         self.classifier = nn.Sequential(
+            # 64채널 x 7 x 7 을 편 것이 입력 차원이다
             nn.Linear(64 * 7 * 7, 128),
             nn.ReLU(),
-            nn.Dropout(p=dropout_rate),  # 보통의 드롭아웃
+            # 여기서는 보통의 Dropout을 쓴다. 완전연결층의 유닛들은
+            # 서로 이웃해 있지 않아 값이 겹치지 않으므로, 하나씩 꺼도 효과가 있다
+            nn.Dropout(p=dropout_rate),
             nn.Linear(128, 10)
         )
-    
+
     def forward(self, x):
         x = self.features(x)
+        # (배치, 64, 7, 7) -> (배치, 3136). size(0)를 써서 배치 크기는
+        # 건드리지 않고 나머지 축만 편다
         x = x.view(x.size(0), -1)
         return self.classifier(x)
 ```

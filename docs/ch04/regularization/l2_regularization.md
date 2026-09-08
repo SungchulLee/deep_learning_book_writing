@@ -555,17 +555,27 @@ def select_optimal_l2(model_class, X, y, param_grid, cv=5):
         가장 좋은 모델과 탐색 결과
     """
     grid_search = GridSearchCV(
-        model_class(),
+        model_class(),   # 아직 적합하지 않은 빈 모델. 격자의 값마다 새로 만든다
         param_grid,
         cv=cv,
+        # sklearn의 scoring은 "클수록 좋다"는 규약이므로 MSE에 음수를 붙인 이름을 쓴다
         scoring='neg_mean_squared_error',
+        # 훈련 점수도 함께 남긴다. 검증 점수만 보면 과적합인지 과소적합인지
+        # 가릴 수 없다. 훈련은 좋은데 검증이 나쁘면 alpha를 키워야 하고,
+        # 둘 다 나쁘면 alpha를 줄이거나 모델을 바꿔야 한다
         return_train_score=True
     )
+
+    # fit 안에서 격자의 값마다 cv겹 교차검증을 돌린 뒤,
+    # 가장 좋은 값으로 전체 자료에 다시 적합한다(refit이 기본값 True)
     grid_search.fit(X, y)
-    
+
     print(f"Best parameters: {grid_search.best_params_}")
+    # 음수를 씌워 원래의 MSE로 되돌려 찍는다
     print(f"Best CV score: {-grid_search.best_score_:.4f}")
-    
+
+    # 곡선 전체(cv_results_)를 함께 돌려주는 까닭은, 최적값 하나보다
+    # alpha에 따라 점수가 어떻게 움직이는지가 더 많은 것을 말해 주기 때문이다
     return grid_search.best_estimator_, grid_search.cv_results_
 ```
 

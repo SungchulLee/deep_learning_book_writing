@@ -146,6 +146,15 @@ if __name__ == "__main__":
     print(f"Guarantee:     <= {harmonic(n) * 8:.1f} (if OPT=8)")
 ```
 
+**출력:**
+
+```
+Selected sets: [0, 2, 3]
+Total cost:    12.0
+H_10 = 2.929
+Guarantee:     <= 23.4 (if OPT=8)
+```
+
 ---
 
 ## 연습문제
