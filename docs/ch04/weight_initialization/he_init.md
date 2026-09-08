@@ -406,11 +406,19 @@ class DeepHedgingNetwork(nn.Module):
         # Leaky ReLU 층에 He 초기화
         for m in self.net:
             if isinstance(m, nn.Linear):
+                # a는 Leaky ReLU의 음수 쪽 기울기이며, 위에서 준
+                # LeakyReLU(0.01)과 같은 값이어야 한다. He 초기화의
+                # 배율이 sqrt(2 / (1 + a^2))로 이 값에 따라 달라지기
+                # 때문이다. 둘이 어긋나면 층마다 분산이 조금씩 밀린다
                 init.kaiming_normal_(m.weight, a=0.01, nonlinearity='leaky_relu')
                 if m.bias is not None:
                     init.zeros_(m.bias)
 
-        # 출력층: 처음에 보수적으로 시작하도록 작게 초기화
+        # 출력층: 처음에 보수적으로 시작하도록 작게 초기화.
+        # 위 반복문이 이미 이 층까지 He로 초기화했으므로 여기서 덮어쓴다.
+        # 출력층 뒤에는 활성화가 없어 He가 메우려던 ReLU의 손실이
+        # 애초에 없고, 자비에르가 더 좁아 헤지 비율이 0 가까이에서
+        # 출발한다. 곧 학습 초반에 큰 포지션을 잡지 않는다
         init.xavier_normal_(self.net[-1].weight)
         init.zeros_(self.net[-1].bias)
 

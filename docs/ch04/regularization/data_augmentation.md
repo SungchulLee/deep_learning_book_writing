@@ -56,7 +56,13 @@ class GeometricAugmentation:
     ):
         transforms = []
         
-        # 무작위 아핀 변환 (회전, 평행이동, 크기, 전단)
+        # 무작위 아핀 변환 (회전, 평행이동, 크기, 전단).
+        # 넷을 한 변환에 몰아 넣는다. 따로 걸면 보간이 네 번 일어나
+        # 이미지가 그만큼 뭉개지지만, 아핀 행렬을 한 번에 합쳐 쓰면
+        # 보간이 한 번으로 끝난다.
+        # 주의: 기본값에서는 이 any(...)가 언제나 참이다. 네 인자를
+        # 모두 0이나 항등으로 주어야만 거짓이 되는데, scale_range의
+        # 기본값이 (0.9, 1.1)이라 그럴 일이 드물다
         if any([rotation_range, translate_range, scale_range != (1, 1), shear_range]):
             transforms.append(T.RandomAffine(
                 degrees=rotation_range,
@@ -66,6 +72,11 @@ class GeometricAugmentation:
             ))
         
         # 뒤집기
+        # 좌우 뒤집기만 기본으로 켜져 있고 위아래는 꺼져 있다. 자연
+        # 사진에는 중력이라는 방향이 있어 뒤집힌 자동차는 현실에 거의
+        # 없지만, 좌우가 바뀐 자동차는 흔하기 때문이다.
+        # 위성 사진이나 현미경 사진처럼 위아래가 뜻이 없는 데이터라면
+        # flip_vertical을 켜도 된다
         if flip_horizontal:
             transforms.append(T.RandomHorizontalFlip(p=0.5))
         if flip_vertical:
@@ -314,6 +325,11 @@ class TextAugmentation:
         new_words = words.copy()
         
         # 유의어가 있는 낱말 얻기
+        # set으로 중복을 없애므로 같은 낱말이 두 번 뽑히지 않는다.
+        # 다만 아래 치환이 문장 전체에서 그 낱말을 모두 바꾸므로,
+        # 같은 낱말이 여러 번 나오면 한꺼번에 바뀐다.
+        # 또 set은 순서를 보장하지 않아, 섞기 전부터 이미 실행마다
+        # 차례가 달라질 수 있다
         random_word_list = list(set([w for w in words if self._get_synonyms(w)]))
         random.shuffle(random_word_list)
         
@@ -331,6 +347,11 @@ class TextAugmentation:
     
     def _get_synonyms(self, word: str) -> list:
         """WordNet에서 유의어를 얻는다."""
+        # 주의: 품사와 문맥을 보지 않는다. WordNet에서 그 철자에 딸린
+        # 뜻을 모조리 긁어 오므로, "bank"가 강둑인지 은행인지 가리지
+        # 못한다. 이미지의 좌우 뒤집기와 달리 텍스트 증강은 뜻을
+        # 바꿔 놓기 쉬워, 바뀐 문장이 원래 이름표와 맞는지
+        # 눈으로 확인해 보는 편이 좋다
         synonyms = set()
         for syn in wordnet.synsets(word):
             for lemma in syn.lemmas():
@@ -572,6 +593,13 @@ class TabularAugmentation:
     @staticmethod
     def add_gaussian_noise(X: np.ndarray, noise_scale: float = 0.1) -> np.ndarray:
         """특징에 정규 잡음을 더한다."""
+        # axis=0으로 열마다 표준편차를 따로 구한다. 표 데이터는 나이,
+        # 소득처럼 눈금이 제각각이라 고정된 잡음을 쓰면 어떤 열은
+        # 잡음에 묻히고 어떤 열은 꿈쩍도 하지 않는다. 열의 산포에
+        # 비례해 흔들어야 모든 특징이 고르게 증강된다.
+        # 주의: 이 방식은 열을 서로 독립으로 흔들므로 특징 사이의
+        # 상관을 깨뜨린다. 키와 몸무게처럼 얽힌 열이 있으면
+        # 있을 수 없는 표본이 만들어질 수 있다
         std = np.std(X, axis=0) * noise_scale
         noise = np.random.normal(0, std, X.shape)
         return X + noise
@@ -683,7 +711,13 @@ class RandAugment:
         ]
     
     def __call__(self, image):
-        # 무작위 연산 고르기
+        # 무작위 연산 고르기.
+        # RandAugment의 요점은 손잡이를 둘로 줄인 데 있다. 연산마다
+        # 확률과 세기를 따로 맞추던 앞 세대(AutoAugment)와 달리,
+        # n_ops와 magnitude 두 값만 정하면 되므로 탐색이 훨씬 싸다.
+        # sample은 중복 없이 뽑으므로 한 이미지에 같은 연산이 두 번
+        # 걸리지 않는다. 'identity'가 목록에 들어 있는 덕에
+        # 아무것도 하지 않는 선택지도 확률을 갖는다
         ops = random.sample(self.ops, self.n_ops)
         
         for op in ops:

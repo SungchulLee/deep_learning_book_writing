@@ -34,6 +34,13 @@ class PrimaryCaps(nn.Module):
         outputs = torch.cat(outputs, dim=-1)
         return self.squash(outputs)
     
+    # 꼬투리 그물의 활성화 함수다. ReLU가 스칼라 하나를 다루는 것과
+    # 달리, 이쪽은 벡터의 "방향"은 그대로 두고 "길이"만 0과 1 사이로
+    # 누른다. 방향이 무엇을 보았는지를, 길이가 그것이 있을 확률을
+    # 나타내도록 설계했기 때문이다.
+    # scale = |v|^2 / (1 + |v|^2)이라 길이가 짧으면 더 짧아지고 길면
+    # 1에 다가간다. 뒤의 나눗셈이 벡터를 단위 길이로 만들므로 최종
+    # 길이가 정확히 scale이 된다. 1e-8은 0으로 나누기를 막는다
     def squash(self, tensor):
         squared_norm = (tensor ** 2).sum(dim=-1, keepdim=True)
         scale = squared_norm / (1 + squared_norm)
@@ -59,13 +66,29 @@ class DigitCaps(nn.Module):
         if x.is_cuda:
             b_ij = b_ij.cuda()
         
+        # 움직이는 길 잡기(동적 라우팅).
+        # 보통의 신경망에서 층과 층을 잇는 가중치는 학습으로 정해지지만,
+        # 여기 결합 계수 c_ij는 순전파 도중에 정해진다. 아래 세 번의
+        # 되풀이가 곧 그 과정이며, 학습되는 것이 아니라 입력마다
+        # 새로 계산된다는 점이 핵심이다
         num_iterations = 3
         for iteration in range(num_iterations):
+            # dim=2는 상위 꼬투리 축이다. 즉 하위 꼬투리 하나가 자기
+            # 출력을 어느 상위 꼬투리로 보낼지, 그 몫의 합이 1이 되도록
+            # 나눈다. 처음에는 b_ij가 0이라 모두에게 고르게 보낸다
             c_ij = F.softmax(b_ij, dim=2)
+            # 하위 꼬투리들의 예측을 가중합해 상위 꼬투리의 입력을 만든다
             s_j = (c_ij * u_hat).sum(dim=1, keepdim=True)
             v_j = self.squash(s_j)
             
+            # 마지막 회에는 갱신하지 않는다. 어차피 다시 쓰이지 않기
+            # 때문이다
             if iteration < num_iterations - 1:
+                # 하위 꼬투리의 예측 u_hat과 상위 꼬투리의 결과 v_j를
+                # 내적한다. 둘의 방향이 맞을수록 값이 커지고, 그만큼
+                # b_ij가 늘어 다음 회에 그 경로의 몫이 커진다.
+                # 곧 "여럿이 같은 답을 가리키면 그 길을 강화한다"는
+                # 합의의 원리다
                 a_ij = torch.matmul(u_hat.transpose(3, 4), torch.cat([v_j] * self.num_routes, dim=1))
                 b_ij = b_ij + a_ij
         
