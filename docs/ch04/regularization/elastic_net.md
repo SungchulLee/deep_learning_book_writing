@@ -155,13 +155,24 @@ def elastic_net_penalty(model: nn.Module, lambda_reg: float,
     반환값:
         엘라스틱 넷의 벌점 항
     """
+    # next(model.parameters()).device는 모델이 어느 장치에 있는지 묻는
+    # 관용구다. 누적값을 CPU에 두면 GPU 텐서와 더할 때 오류가 난다
     l1_penalty = torch.tensor(0., device=next(model.parameters()).device)
     l2_penalty = torch.tensor(0., device=next(model.parameters()).device)
     
     for param in model.parameters():
+        # += 대신 = a + b로 쓴 것이 중요하다. 제자리 연산은 계산 그래프를
+        # 망가뜨려 역전파에서 오류를 낸다.
+        # 주의: model.parameters()는 편향도 함께 훑는다. 보통 편향에는
+        # 벌점을 주지 않는다. 편향은 과적합의 원인이 아니고, 눌러 두면
+        # 모델이 출력의 중심을 옮기지 못하기 때문이다. 가중치만 고르려면
+        # named_parameters()로 이름에 'bias'가 든 것을 걸러 내야 한다
         l1_penalty = l1_penalty + torch.sum(torch.abs(param))
         l2_penalty = l2_penalty + torch.sum(param ** 2)
     
+    # alpha가 L1과 L2 사이를 오가는 손잡이다. alpha=1이면 라쏘,
+    # alpha=0이면 능선이 된다. L2 쪽의 1/2은 미분하면 나오는 2와
+    # 지워지라고 붙인 것이라, 기울기가 그냥 (1-alpha)*param이 된다
     return lambda_reg * (alpha * l1_penalty + (1 - alpha) / 2 * l2_penalty)
 
 class ElasticNetRegularizedModel(nn.Module):
@@ -175,6 +186,8 @@ class ElasticNetRegularizedModel(nn.Module):
         
         # 신경망 만들기
         layers = []
+        # prev_dim이 층과 층을 잇는 고리다. 한 층의 출력 크기가 다음 층의
+        # 입력 크기가 되므로, 매번 갱신해 주어야 모양이 맞아떨어진다
         prev_dim = input_dim
         for hidden_dim in hidden_dims:
             layers.extend([
@@ -182,6 +195,8 @@ class ElasticNetRegularizedModel(nn.Module):
                 nn.ReLU()
             ])
             prev_dim = hidden_dim
+        # 마지막 층에는 ReLU를 붙이지 않는다. 붙이면 출력이 음수를
+        # 낼 수 없어 회귀에도 분류에도 쓸 수 없게 된다
         layers.append(nn.Linear(prev_dim, output_dim))
         
         self.network = nn.Sequential(*layers)
@@ -198,6 +213,12 @@ class ElasticNetRegularizedModel(nn.Module):
     
     def get_sparsity(self, threshold=1e-6):
         """영에 가까운 가중치의 비율을 계산한다."""
+        # 문턱값이 필요한 까닭은, 경사 하강으로는 가중치가 정확히 0에
+        # 닿는 일이 거의 없기 때문이다. 좌표 하강이나 근접 연산자를 쓰는
+        # 진짜 라쏘와 달리, L1 벌점을 손실에 더해 미분하는 이 방식은
+        # 0 근처로 밀어붙일 뿐 0에 못박지는 못한다.
+        # 그래서 여기서 재는 것은 "정확히 0"이 아니라 "0에 가까운" 비율이며,
+        # 값은 문턱값을 무엇으로 잡느냐에 따라 달라진다
         total = 0
         zeros = 0
         for param in self.parameters():
@@ -439,15 +460,28 @@ def grid_search_elastic_net(X, y):
     """
     엘라스틱 넷의 두 초매개변수에 대한 격자 탐색.
     """
+    # 주의: 이름이 위의 직접 구현과 어긋난다. sklearn에서 alpha는 전체
+    # 강도(위의 lambda_reg)이고, 혼합 비율은 l1_ratio(위의 alpha)다.
+    # 두 코드를 오갈 때 가장 흔히 걸려 넘어지는 지점이다
     param_grid = {
+        # 강도는 눈금 자체가 몇 자릿수에 걸쳐 있으므로 로그 등간격으로
+        # 훑는다. 0.0001과 0.0002의 차이는 없다시피 하지만
+        # 0.0001과 0.001의 차이는 크기 때문이다
         'alpha': np.logspace(-4, 1, 20),  # 전체 정칙화 강도
+        # 반대로 혼합 비율은 0과 1 사이라 직접 나열한다. 1에 가까운
+        # 쪽이 촘촘한 까닭은, 희소성이 그 구간에서 급격히 달라져서다
         'l1_ratio': [0.1, 0.3, 0.5, 0.7, 0.9, 0.95, 0.99]  # 혼합
     }
     
+    # 20 x 7 = 140개 조합에 5겹 교차 검증이니 700번을 적합시킨다
     grid_search = GridSearchCV(
+        # max_iter를 기본값 1000에서 올려 둔 까닭은, 강도가 아주 작을 때
+        # 좌표 하강이 늦게 수렴해 수렴 경고가 쏟아지기 때문이다
         ElasticNet(max_iter=10000),
         param_grid,
         cv=5,
+        # sklearn은 점수가 클수록 좋다고 보므로, 오차에는 음수를 붙인
+        # 이름을 쓴다. 'mean_squared_error'가 아니라 'neg_'가 붙는 이유다
         scoring='neg_mean_squared_error',
         n_jobs=-1
     )

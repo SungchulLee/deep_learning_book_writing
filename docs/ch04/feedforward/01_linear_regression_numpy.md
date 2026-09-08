@@ -93,11 +93,17 @@ Final loss: 0.2601
 ??? success "연습문제 1 풀이"
     ```python
     for lr in [0.001, 0.01, 0.1]:
+        # 학습률마다 가중치를 새로 뽑는다. 이어 쓰면 두 번째 학습률이
+        # 이미 학습된 값에서 출발해 견주는 뜻이 없어진다. 다만 씨앗을
+        # 다시 심지 않아 초기값이 셋 다 다르므로, 엄밀히 견주려면
+        # 이 줄 앞에 np.random.seed(42)를 넣어야 한다
         w_temp = np.random.randn(1, 1)
         b_temp = np.zeros((1, 1))
         losses = []
         for epoch in range(100):
             y_pred = X @ w_temp + b_temp
+            # 갱신 전 손실을 기록하므로, losses[0]은 학습을 시작하기
+            # 전의 손실이다. 곡선의 첫 점이 높은 것이 정상이다
             losses.append(compute_loss(y, y_pred))
             dw, db = compute_gradients(X, y, y_pred)
             w_temp -= lr * dw
@@ -139,16 +145,25 @@ MSE 손실에 대한 경사 $\frac{\partial L}{\partial w}$을 제일원리에�
     ```python
     n_samples = 200
     X = np.random.randn(n_samples, 3)
+    # 정답을 미리 정해 두고 데이터를 만든다. 그래야 학습이 끝난 뒤
+    # 되찾은 값과 견주어 볼 수 있다. 현실의 데이터에는 없는 사치다
     true_w = np.array([[2.0], [3.0], [-1.0]])
     true_b = 5.0
+    # 잡음이 있으므로 되찾은 값이 정확히 2, 3, -1이 되지는 않는다
     y = X @ true_w + true_b + np.random.randn(n_samples, 1) * 0.3
 
+    # 모양만 (1,1)에서 (3,1)로 커졌다. 갱신 규칙은 아래에서 보듯 그대로다
     w = np.random.randn(3, 1)
     b = np.zeros((1, 1))
 
     for epoch in range(500):
         y_pred = X @ w + b
+        # 연습문제 2에서 유도한 (2/n) X^T (y_pred - y)를 그대로 옮긴 것이다.
+        # X.T가 (3, n)이고 오차가 (n, 1)이라 결과가 (3, 1)로 나와,
+        # w와 모양이 저절로 맞는다
         dw = (2 / n_samples) * X.T @ (y_pred - y)
+        # 편향의 기울기에는 X가 곱해지지 않는다. 편향에 대한 y_pred의
+        # 편미분이 1이기 때문이다. 그래서 오차를 그냥 더하면 된다
         db = (2 / n_samples) * np.sum(y_pred - y)
         w -= 0.01 * dw
         b -= 0.01 * db

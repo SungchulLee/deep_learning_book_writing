@@ -207,32 +207,63 @@ def get_train_transforms(image_size: int = 224, augment_level: str = 'standard')
         image_size: 목표 이미지 크기
         augment_level: 'minimal', 'standard', 'aggressive'
     """
+    # 세 수준 모두 순서가 같다. 기하 변환 → 색 변환 → ToTensor →
+    # Normalize다. ToTensor 앞의 변환들은 PIL 이미지를 다루고 뒤의
+    # 변환들은 텐서를 다루므로, 이 경계를 넘나들면 형 오류가 난다.
+    # RandomErasing만 예외로 ToTensor 뒤에 와야 한다
     if augment_level == 'minimal':
         return T.Compose([
             T.Resize((image_size, image_size)),
+            # 좌우 뒤집기는 거의 언제나 안전한 증강이다. 다만 글자나
+            # 숫자를 읽는 과제에서는 뜻을 망가뜨리므로 쓰면 안 된다
             T.RandomHorizontalFlip(p=0.5),
             T.ToTensor(),
+            # ImageNet 전체의 채널별 평균과 표준편차다. 사전 학습 모델을
+            # 쓸 때는 그 모델이 학습된 눈금과 맞추어야 하므로 이 값을
+            # 그대로 써야 한다
             T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
     
     elif augment_level == 'standard':
         return T.Compose([
+            # Resize와 달리 RandomResizedCrop은 매번 다른 조각을 잘라
+            # 크기를 맞춘다. scale=(0.8, 1.0)이니 원본 넓이의 80~100%를
+            # 남긴다. 이것 하나가 이 파이프라인에서 가장 크게 일하는
+            # 증강이다
             T.RandomResizedCrop(image_size, scale=(0.8, 1.0)),
             T.RandomHorizontalFlip(p=0.5),
+            # 조명과 카메라 차이를 흉내 낸다. hue만 값이 작은데, 색조는
+            # 조금만 틀어도 물체의 정체성이 바뀌기 때문이다
+            # (빨간 사과를 초록으로 만들면 다른 것이 된다)
             T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
             T.ToTensor(),
             T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            # RandomErasing은 텐서에만 동작하므로 반드시 ToTensor 뒤에
+            # 온다. 정규화 뒤라 지운 자리가 0으로 채워지는데, 정규화
+            # 공간에서 0은 검정이 아니라 그 채널의 평균값이다
             T.RandomErasing(p=0.25)
         ])
     
     elif augment_level == 'aggressive':
+        # 데이터가 아주 적을 때만 쓴다. 증강이 세면 학습 분포가 시험
+        # 분포에서 멀어져, 정칙화로 얻는 것보다 잃는 것이 커질 수 있다.
+        # 학습 정확도가 시험 정확도보다 낮아지면 지나치다는 신호다
         return T.Compose([
+            # 넓이의 절반까지 잘라 낸다. 물체가 통째로 잘려 나가
+            # 이름표와 맞지 않는 표본이 생길 수도 있다
             T.RandomResizedCrop(image_size, scale=(0.5, 1.0)),
             T.RandomHorizontalFlip(p=0.5),
+            # 위아래 뒤집기는 확률이 낮다. 자연 사진에는 중력이라는
+            # 방향이 있어, 뒤집힌 자동차는 현실에 거의 없기 때문이다.
+            # 위성 사진이나 현미경 사진이라면 0.5로 올려도 된다
             T.RandomVerticalFlip(p=0.2),
             T.RandomRotation(degrees=30),
             T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.2),
+            # 다섯 번에 한 번은 색을 없앤다. 모델이 색에만 기대어
+            # 판단하지 못하게 하고 모양을 보도록 떠민다
             T.RandomGrayscale(p=0.2),
+            # degrees=0인 까닭은 바로 위 RandomRotation이 이미 회전을
+            # 맡고 있어서다. 여기서는 평행 이동과 기울임만 더한다
             T.RandomAffine(degrees=0, translate=(0.2, 0.2), shear=15),
             T.GaussianBlur(kernel_size=5, sigma=(0.1, 2.0)),
             T.ToTensor(),
@@ -244,6 +275,10 @@ def get_train_transforms(image_size: int = 224, augment_level: str = 'standard')
 
 def get_val_transforms(image_size: int = 224):
     """검증/시험용 변환 (증강 없음)."""
+    # 무작위 변환이 하나도 없다는 점이 핵심이다. 평가에 증강을 넣으면
+    # 같은 이미지에 매번 다른 점수가 나와 견줄 수가 없다. 다만 Resize와
+    # Normalize는 남는다. 학습 때와 같은 크기·같은 눈금으로 맞추는
+    # 전처리이지 증강이 아니기 때문이다
     return T.Compose([
         T.Resize((image_size, image_size)),
         T.ToTensor(),
@@ -411,14 +446,24 @@ import torch
 class TimeSeriesAugmentation:
     """시계열 데이터를 위한 증강."""
     
+    # 아래 메서드들은 모두 x의 모양을 (시간, 채널)로 가정한다.
+    # 축 0이 시간이고 축 1이 변수다. 배치 축이 붙은 텐서를 그대로
+    # 넘기면 시간과 배치가 뒤바뀌어 엉뚱한 결과가 나온다.
     @staticmethod
     def jittering(x: np.ndarray, sigma: float = 0.03) -> np.ndarray:
         """정규 잡음을 더한다."""
+        # 시각마다 독립인 잡음이라 계열이 거칠어진다. 센서의 측정
+        # 오차를 흉내 내는 셈이다. sigma가 크면 신호가 잡음에 묻히므로
+        # 데이터의 표준편차에 견주어 작게 잡아야 한다
         return x + np.random.normal(0, sigma, x.shape)
     
     @staticmethod
     def scaling(x: np.ndarray, sigma: float = 0.1) -> np.ndarray:
         """무작위 인수로 배율을 조정한다."""
+        # 모양이 (1, 채널)이라 시간축으로 방송된다. 즉 채널마다 배율
+        # 하나를 뽑아 계열 전체에 똑같이 곱한다. jittering과 달리
+        # 계열의 모양은 그대로 두고 크기만 바꾸는 것이다.
+        # 평균이 1인 정규분포에서 뽑으므로 늘어나기와 줄어들기가 반반이다
         factor = np.random.normal(1, sigma, (1, x.shape[1]))
         return x * factor
     
@@ -428,6 +473,10 @@ class TimeSeriesAugmentation:
         """매끄러운 곡선으로 크기를 뒤튼다."""
         from scipy.interpolate import CubicSpline
         
+        # scaling의 확장이다. 배율 하나를 계열 전체에 곱하는 대신,
+        # knot + 2개의 매듭에서만 배율을 뽑고 그 사이를 삼차 스플라인으로
+        # 이어 시각마다 다른 배율을 만든다. 스플라인이라 배율이 매끄럽게
+        # 변해, 계열의 큰 흐름은 지키면서 굴곡만 달라진다
         orig_steps = np.arange(x.shape[0])
         random_warps = np.random.normal(1.0, sigma, (knot + 2, x.shape[1]))
         warp_steps = np.linspace(0, x.shape[0] - 1, knot + 2)
@@ -448,11 +497,21 @@ class TimeSeriesAugmentation:
         random_warps = np.random.normal(1.0, sigma, knot + 2)
         warp_steps = np.linspace(0, x.shape[0] - 1, knot + 2)
         
+        # magnitude_warping이 세로축(값)을 늘였다면 이쪽은 가로축(시간)을
+        # 늘인다. 어떤 구간은 빠르게, 어떤 구간은 느리게 흐르는 셈이다.
+        # 걸음걸이나 손동작처럼 같은 동작을 사람마다 다른 속도로 하는
+        # 데이터에서 특히 잘 맞는다
         time_warp = CubicSpline(warp_steps, warp_steps * random_warps)(orig_steps)
+        # 뒤튼 시각이 계열 밖으로 나가지 않도록 자른다. 여기서 잘리면
+        # 그 구간은 시간이 멈춘 것처럼 같은 값이 이어진다
         time_warp = np.clip(time_warp, 0, x.shape[0] - 1)
         
         warped = np.zeros_like(x)
         for i in range(x.shape[1]):
+            # 뒤튼 시각 위의 값을 원래 격자 위로 되읽어 온다. 길이가
+            # 그대로 유지되어야 배치로 묶을 수 있기 때문이다.
+            # np.interp는 두 번째 인자가 오름차순이라고 가정하는데,
+            # sigma가 크면 뒤튼 시각이 뒷걸음질 쳐 그 가정이 깨질 수 있다
             warped[:, i] = np.interp(orig_steps, time_warp, x[:, i])
         
         return warped
@@ -464,6 +523,8 @@ class TimeSeriesAugmentation:
         if target_len < 1:
             return x
         
+        # 이어진 한 토막만 남기고 나머지를 버린다. 이미지의 무작위
+        # 자르기에 해당하며, 계열의 일부만 보고도 판단하도록 떠민다
         start = np.random.randint(0, x.shape[0] - target_len + 1)
         sliced = x[start:start + target_len]
         
@@ -484,9 +545,15 @@ class TimeSeriesAugmentation:
         segments = []
         for i in range(n_segments):
             start = i * segment_len
+            # 마지막 토막만 끝까지 가져간다. 나눗셈에서 생긴 나머지를
+            # 여기에 몰아주는 것이라, 마지막 토막이 다른 것보다 길 수 있다
             end = (i + 1) * segment_len if i < n_segments - 1 else x.shape[0]
             segments.append(x[start:end])
         
+        # 앞의 증강들과 성격이 다르다. 이쪽은 시간 순서를 대놓고
+        # 깨뜨린다. 순서가 곧 뜻인 과제(추세 예측 등)에서는 이름표와
+        # 맞지 않는 표본을 만들어 내므로 쓰면 안 된다. 어떤 무늬가
+        # 들어 있는지만 중요한 과제에 맞는 기법이다
         np.random.shuffle(segments)
         return np.concatenate(segments, axis=0)
 ```
