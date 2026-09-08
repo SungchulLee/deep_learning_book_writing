@@ -134,6 +134,13 @@ def find_middle(head):
     """
     if head is None:
         return None
+    # 두 포인터를 서로 다른 속도로 달리게 한다. 빠른 쪽이 두 칸씩 가므로
+    # 끝에 닿았을 때 느린 쪽은 딱 절반을 지나 있다. 길이를 미리 세지
+    # 않고 한 번만 훑어 가운데를 찾는 요령이다.
+    # 두 조건이 모두 필요하다. fast is not None은 길이가 홀수일 때,
+    # fast.next is not None은 짝수일 때 멈춰 준다. 순서도 중요한데,
+    # 파이썬의 and가 앞을 먼저 보므로 fast가 None이면 fast.next를
+    # 건드리지 않고 넘어간다
     slow = head
     fast = head
     while fast is not None and fast.next is not None:
@@ -147,12 +154,18 @@ def kth_from_end(head, k):
 
     시간: O(n), 공간: O(1).
     """
+    # 먼저 한 포인터만 k칸 앞서 보낸다. 두 포인터의 간격을 k로
+    # 벌려 두려는 것이다
     first = head
     for _ in range(k):
         if first is None:
             raise IndexError(f"List has fewer than {k} nodes")
         first = first.next
 
+    # 이제 간격을 유지한 채 둘을 나란히 옮긴다. 앞선 쪽이 끝에 닿으면
+    # 뒤따르던 쪽은 끝에서 정확히 k칸 앞에 서 있다.
+    # 길이를 세고 n-k번째를 다시 찾는 방법도 있지만 그러면 두 번 훑어야
+    # 한다. 이쪽은 한 번만 훑고 공간도 O(1)이다
     second = head
     while first is not None:
         first = first.next

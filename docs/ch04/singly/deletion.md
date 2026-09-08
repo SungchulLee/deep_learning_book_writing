@@ -85,6 +85,8 @@ class Node:
 # === 도우미 함수 ===
 def build_list(values):
     """반복 가능한 객체에서 연결 리스트를 만들고 머리 노드를 돌려준다."""
+    # 뒤에서부터 거슬러 만든다. 새 노드가 늘 앞에 붙으므로 매번 O(1)이고
+    # 전체가 O(n)이다. 앞에서부터 만들면 꼬리를 찾느라 O(n^2)이 된다
     head = None
     for val in reversed(values):
         head = Node(val, head)
@@ -102,35 +104,58 @@ def to_list(head):
 # === 삭제 연산 ===
 def delete_head(head):
     """첫 노드를 지운다. (새 머리, 지운 값)을 돌려준다."""
+    # 머리가 바뀌는 연산이라 새 머리를 돌려주어야 한다. 파이썬에서
+    # 인자로 받은 head에 대입해 봐야 부르는 쪽의 변수는 그대로이기
+    # 때문이다. 이 페이지의 함수들이 하나같이 머리를 돌려주는 까닭이다
     if head is None:
         raise IndexError("Cannot delete from an empty list")
+    # 훑을 것이 없어 O(1)이다. 아래 delete_tail과 견주어 보라
     return head.next, head.data
 
 def delete_tail(head):
     """마지막 노드를 지운다. (새 머리, 지운 값)을 돌려준다."""
     if head is None:
         raise IndexError("Cannot delete from an empty list")
+    # 노드가 하나뿐이면 그것이 곧 머리이자 꼬리라, 지우면 빈 리스트가
+    # 된다. 이 경우만 머리가 바뀐다
     if head.next is None:
         return None, head.data
+    # 조건이 current.next.next다. 꼬리가 아니라 꼬리의 "앞"에서 멈추려는
+    # 것이며, 단일 연결 리스트에서는 뒤로 돌아갈 수 없어 그 앞 노드를
+    # 붙들고 있어야만 이음선을 끊을 수 있다.
+    # 위에서 노드가 둘 이상임을 확인해 두었으므로 current.next.next를
+    # 읽어도 안전하다
     current = head
     while current.next.next is not None:
         current = current.next
     deleted_value = current.next.data
     current.next = None
+    # 맨 앞 지우기가 O(1)인 것과 달리 이쪽은 끝까지 걸어가야 해서 O(n)이다.
+    # 이중 연결 리스트라면 꼬리에서 한 칸 되돌아가면 되므로 O(1)이 된다
     return head, deleted_value
 
 def delete_by_value(head, target):
     """data == target인 첫 노드를 지운다. 새 머리를 돌려준다."""
     if head is None:
         return None
+    # 머리를 따로 다루는 까닭은 머리에는 앞 노드가 없어서다. 아래
+    # 반복문은 언제나 "앞 노드"를 붙들고 도는 구조라 머리를 다룰 수 없다.
+    # 연결 리스트 코드에 머리 검사가 늘 따라붙는 이유가 이것이며,
+    # 보초 노드를 두면 이 특수 경우가 사라진다
     if head.data == target:
         return head.next
+    # 현재 노드가 아니라 "다음" 노드를 들여다본다. 지울 것을 찾았을 때
+    # 이음선을 고칠 수 있는 자리에 이미 서 있으려는 것이다
     current = head
     while current.next is not None:
         if current.next.data == target:
             current.next = current.next.next
+            # 첫 번째 것만 지우고 곧바로 나온다. 같은 값이 여럿이면
+            # 나머지는 남는다
             return head
         current = current.next
+    # 찾지 못해도 오류를 내지 않고 원래 머리를 그대로 돌려준다.
+    # 부르는 쪽에서 지워졌는지 알려면 길이를 견주어 보아야 한다
     return head  # 목표를 찾지 못함
 
 def delete_at_position(head, k):

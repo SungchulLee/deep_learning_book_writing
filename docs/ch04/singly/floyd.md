@@ -108,13 +108,24 @@ def has_cycle(head):
     순환이 있으면 True, 없으면 False를 돌려준다.
     시간: O(n), 공간: O(1).
     """
+    # 순환이 있으면 반복문이 끝나지 않으므로, 끝에 닿는지로는 판별할 수
+    # 없다. 대신 속도가 다른 두 포인터를 달리게 한다. 순환 안에서는
+    # 빠른 쪽이 느린 쪽을 한 바퀴씩 따라잡아 간격이 매번 1씩 줄고,
+    # 언젠가 반드시 0이 되어 두 포인터가 같은 노드에 선다.
+    # 두 칸씩 가는 덕에 간격이 1씩 줄어 건너뛰는 일이 없다는 것이
+    # 이 알고리즘이 통하는 근거다.
+    # 방문한 노드를 집합에 담아도 되지만 그러면 공간이 O(n)이다
     slow = head
     fast = head
     while fast is not None and fast.next is not None:
         slow = slow.next
         fast = fast.next.next
+        # is로 견준다. ==가 아니다. 값이 같은 다른 노드가 아니라
+        # 같은 객체인지를 물어야 하기 때문이다
         if slow is fast:
             return True
+    # 여기까지 왔다면 fast가 끝에 닿았다는 뜻이고, 끝이 있다는 것이
+    # 곧 순환이 없다는 뜻이다
     return False
 
 def find_cycle_entry(head):
@@ -132,9 +143,20 @@ def find_cycle_entry(head):
         if slow is fast:
             break
     else:
+        # while-else다. break로 빠져나오지 "않았을" 때만 실행되므로,
+        # 곧 끝까지 가도록 만나지 못했다는 뜻이다
         return None  # 순환 없음
 
-    # 2단계: 진입점 찾기
+    # 2단계: 진입점 찾기.
+    # 한 포인터를 머리로 되돌리고 이제 둘 다 한 칸씩 옮기면, 두
+    # 포인터가 진입점에서 만난다. 왜 그런지는 거리를 세어 보면 된다.
+    # 머리에서 진입점까지를 a, 진입점에서 만난 곳까지를 b, 순환의
+    # 길이를 c라 하자. 느린 쪽은 a + b를 갔고 빠른 쪽은 그 두 배인
+    # 2(a + b)를 갔는데, 빠른 쪽은 순환을 몇 바퀴 더 돈 것이므로
+    # 2(a + b) - (a + b) = a + b가 순환 길이의 배수다.
+    # 곧 a + b = kc이므로 a = kc - b이다. 만난 곳에서 b만큼 더 가면
+    # 진입점이고, kc - b만큼 가도 (바퀴를 돌아) 같은 자리다.
+    # 그 kc - b가 바로 a, 곧 머리에서 진입점까지의 거리다
     entry = head
     while entry is not slow:
         entry = entry.next
@@ -146,6 +168,10 @@ def cycle_length(head):
     entry = find_cycle_entry(head)
     if entry is None:
         return 0
+    # 진입점을 알고 나면 한 바퀴 돌아 제자리로 오기까지 세면 된다.
+    # entry.next에서 시작해 length를 1로 두는 것은 이미 한 칸 옮긴
+    # 것을 세어 둔 셈이다. entry에서 시작해 0으로 두면 첫 검사에서
+    # 곧바로 멈춰 0이 나온다
     current = entry.next
     length = 1
     while current is not entry:

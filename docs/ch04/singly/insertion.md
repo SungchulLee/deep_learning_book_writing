@@ -17,6 +17,10 @@ class LinkedList:
                 self.insert_at_end(data)
         
     def get_length(self):
+        # 길이를 따로 들고 있지 않아 셀 때마다 처음부터 훑는다. O(n)이다.
+        # 배열이 len을 O(1)에 내놓는 것과 다른 점이며, 아래 insert와
+        # remove가 이 함수를 부르는 탓에 그쪽도 함께 O(n)이 된다.
+        # self.length를 필드로 두고 갱신하면 O(1)로 줄일 수 있다
         count = 0
         itr = self.head
         while itr:
@@ -25,27 +29,44 @@ class LinkedList:
         return count
     
     def insert_at_start(self, data):
+        # 새 노드가 옛 머리를 가리키게 만든 뒤 머리를 옮긴다. 훑을 것이
+        # 없으므로 O(1)이며, 연결 리스트가 배열보다 나은 대표적인 자리다.
+        # 배열의 맨 앞에 넣으려면 뒤의 원소를 모두 한 칸씩 밀어야 한다
         node = Node(data, self.head)
         self.head = node
 
     def insert_at_end(self, data):
+        # 빈 리스트에는 꼬리가 없으므로 맨 앞 넣기로 넘긴다. 이 검사가
+        # 없으면 아래 itr.next에서 None을 건드려 오류가 난다
         if self.head is None:
             self.insert_at_start(data)
             return
+        # 꼬리를 따로 들고 있지 않아 끝까지 걸어가야 한다. O(n)이다.
+        # 조건이 itr.next인 점에 주의하라. itr이었다면 마지막 노드를
+        # 지나쳐 None에 닿아, 이을 자리를 잃는다
         itr = self.head
         while itr.next:
             itr = itr.next
         itr.next = Node(data, None)
         
     def insert(self, index, data):
+        # 넣기에서는 index == length가 허용된다. 맨 뒤에 덧붙이는 뜻이라
+        # 부등호가 >이다. 아래 remove는 지울 노드가 있어야 하므로
+        # >=로 한 칸 더 좁다
         if (index < 0) or (index > self.get_length()):
             raise Exception("Invalid Index")
         if index == 0:
             self.insert_at_start(data)
             return
+        # 넣을 자리의 "앞" 노드까지만 간다. 단일 연결 리스트는 뒤로만
+        # 갈 수 있어, 어떤 노드 앞에 끼우려면 그 앞 노드를 붙들고
+        # 있어야 하기 때문이다. 그래서 range가 1부터 시작한다
         itr = self.head
         for _ in range(1,index):
             itr = itr.next
+        # 순서가 중요하다. 새 노드가 뒤를 먼저 가리키게 한 다음
+        # 앞 노드를 새 노드로 이어야 한다. 거꾸로 하면 itr.next를
+        # 덮어쓴 뒤라 뒤쪽 사슬을 통째로 잃는다
         node = Node(data, itr.next)
         itr.next = node
         
@@ -53,11 +74,17 @@ class LinkedList:
         if (index < 0) or (index >= self.get_length()):
             raise Exception("Invalid Index")
         if index==0:
+            # 머리를 다음 노드로 옮기면 옛 머리는 아무도 가리키지 않게
+            # 되어 파이썬이 알아서 거두어 간다. C였다면 free가 필요하다
             self.head = self.head.next
             return
+        # 넣기와 마찬가지로 지울 노드의 "앞"까지만 간다
         itr = self.head
         for _ in range(1,index):
             itr = itr.next
+        # 앞 노드가 건너뛰어 그다음을 가리키게 하면 사이에 낀 노드가
+        # 사슬에서 떨어져 나간다. 노드를 지우는 것이 아니라
+        # 이음선을 고쳐 끼우는 것이 연결 리스트의 삭제다
         itr.next = itr.next.next
         
     def print_linked_list(self):
