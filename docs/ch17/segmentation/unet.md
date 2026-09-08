@@ -730,6 +730,12 @@ def estimate_memory(batch_size: int, image_size: int, base_features: int = 64):
 print(f"Estimated memory: {estimate_memory(8, 512):.2f} GB")
 ```
 
+**출력:**
+
+```
+Estimated memory: 1.94 GB
+```
+
 ### 기울기 검문점
 
 셈을 더 하고 기억 공간을 아낀다:

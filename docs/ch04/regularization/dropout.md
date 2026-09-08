@@ -380,25 +380,38 @@ class RegularizedNetwork(nn.Module):
     
     def __init__(self, input_dim, hidden_dim, output_dim, dropout_rate=0.3):
         super().__init__()
+        # 층 안의 순서가 Linear -> BatchNorm -> ReLU -> Dropout 인 것이 요점이다.
+        #   BatchNorm이 Linear 바로 뒤: 활성 함수에 들어가기 전에 자를 맞춰야
+        #     ReLU가 한쪽으로 치우쳐 죽는 것을 막는다.
+        #   Dropout이 맨 뒤: BatchNorm 앞에 두면 꺼진 유닛까지 섞여 배치 통계가
+        #     흔들리고, 그러면 추론 때 쓰는 이동 통계가 훈련 때와 어긋난다.
         self.network = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
-            
+
             nn.Linear(hidden_dim, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
-            
+
+            # 마지막 층에는 정규화도 드롭아웃도 두지 않는다.
+            # 출력은 갈래별 로짓이므로 손대면 예측 자체가 망가진다
             nn.Linear(hidden_dim, output_dim)
         )
-    
+
     def forward(self, x):
         return self.network(x)
 
-# 가중치 감쇠(L2)와 함께 쓰기
+# ── 정칙화 세 가지를 함께 건다 ──────────────────────────────────────
+# 드롭아웃은 활성을, 배치 정규화는 층 입력의 분포를, 가중치 감쇠는
+# 가중치의 크기를 다스린다. 막는 곳이 서로 달라 겹쳐 써도 괜찮다.
 model = RegularizedNetwork(784, 256, 10)
+
+# Adam이 아니라 AdamW를 쓴다. Adam에서는 weight_decay가 기울기에 더해져
+# 적응적 학습률에 나눠지므로 실제 감쇠 세기가 매개변수마다 달라진다.
+# AdamW는 갱신 단계에서 따로 빼므로 의도한 세기가 그대로 걸린다
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 ```
 

@@ -9,24 +9,38 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
-torch.manual_seed(42)
+torch.manual_seed(42)   # 초기 가중치와 잡음을 고정해 결과를 재현 가능하게 한다
 
+# ── 1. 답을 아는 데이터를 만든다 ────────────────────────────────────
+# y = 2x + 3 에 표준편차 0.5짜리 잡음을 얹는다. 학습이 끝난 뒤
+# 가중치가 2, 편향이 3에 가까워지는지로 성공 여부를 판정할 수 있다.
+# 모양이 (100, 1)인 까닭은 nn.Linear가 (배치, 특성) 꼴을 받기 때문이다
 X = torch.randn(100, 1) * 10
 y = 2 * X + 3 + torch.randn(100, 1) * 0.5
 
+# ── 2. 가장 단순한 신경망: 뉴런 하나 ────────────────────────────────
+# 입력 1개, 출력 1개. 곧 y = wx + b 이며 배울 매개변수는 w와 b 둘뿐이다
 model = nn.Linear(1, 1)
-loss_fn = nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+loss_fn = nn.MSELoss()                                    # 제곱오차
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)  # 가장 기본적인 경사 하강법
 
+# ── 3. 학습 루프: 네 줄이 전부다 ────────────────────────────────────
+# 이 네 줄(순전파-손실-역전파-갱신)이 아무리 큰 신경망에서도 그대로다.
+# 달라지는 것은 model의 속뿐이다
 loss_history = []
 for epoch in range(100):
-    predictions = model(X)
-    loss = loss_fn(predictions, y)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-    loss_history.append(loss.item())
+    predictions = model(X)              # 순전파: 지금 가중치로 예측한다
+    loss = loss_fn(predictions, y)      # 얼마나 틀렸는지 잰다
 
+    optimizer.zero_grad()               # 지난 걸음의 기울기를 지운다.
+                                        # 빼먹으면 기울기가 누적되어 발산한다
+    loss.backward()                     # 역전파: 손실을 w와 b로 미분한다
+    optimizer.step()                    # 기울기 반대 방향으로 한 걸음 옮긴다
+
+    loss_history.append(loss.item())    # item()으로 그래프에서 떼어 낸 수만 담는다.
+                                        # 텐서째 담으면 계산 그래프가 쌓여 메모리가 샌다
+
+# ── 4. 참값과 견준다 ────────────────────────────────────────────────
 print(f"Learned weight: {model.weight.item():.4f} (target: 2.0)")
 print(f"Learned bias: {model.bias.item():.4f} (target: 3.0)")
 ```

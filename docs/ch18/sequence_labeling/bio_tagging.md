@@ -663,6 +663,26 @@ print("\nBIOES Format:")
 print(visualize_tags(tokens, tags_bioes, TagScheme.BIOES))
 ```
 
+**출력:**
+
+```
+IOB2 Format:
+Tokens: Barack  Obama   visited New     York    City   
+Tags:   B-PER   I-PER   O       B-LOC   I-LOC   I-LOC  
+
+Extracted Entities:
+  [0:2] PER: 'Barack Obama'
+  [3:6] LOC: 'New York City'
+
+BIOES Format:
+Tokens: Barack  Obama   visited New     York    City   
+Tags:   B-PER   E-PER   O       B-LOC   I-LOC   E-LOC  
+
+Extracted Entities:
+  [0:2] PER: 'Barack Obama'
+  [3:6] LOC: 'New York City'
+```
+
 ---
 
 ## 연습문제

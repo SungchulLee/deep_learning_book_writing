@@ -56,6 +56,13 @@ if __name__ == "__main__":
     print("Challenge: vanishing/exploding gradients")
 ```
 
+**출력:**
+
+```
+RNN Language Model: handles variable-length sequences
+Challenge: vanishing/exploding gradients
+```
+
 ## 2. 논의
 
 되도는 신경망 말 모델은 이음을 토막 하나씩 다루며 걸음마다 $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b_h)$에 따라 숨은 상태 벡터를 고친다. 이 숨은 상태는 지나온 이음 전체를 눌러 담은 나타냄이라, 이론상 모델이 아무리 긴 앞뒤 흐름에도 기대어 미루어 볼 수 있게 한다. 붙박인 창만 보는 앞먹임 모델과 달리 되도는 신경망은 원칙상 100번째 자리의 낱말이 1번째 자리의 낱말에 매여 있음을 배울 수 있다.

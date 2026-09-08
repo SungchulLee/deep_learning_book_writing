@@ -157,6 +157,41 @@ if __name__ == "__main__":
         print(f"Is capitalized: {features['is_capitalized']}")
 ```
 
+**출력:**
+
+```
+
+Token: Steve
+Features: 28 features extracted
+Word shape: Xxxxx
+Is capitalized: True
+
+Token: Jobs
+Features: 30 features extracted
+Word shape: Xxxx
+Is capitalized: True
+
+Token: founded
+Features: 32 features extracted
+Word shape: xxxxxxx
+Is capitalized: False
+
+Token: Apple
+Features: 32 features extracted
+Word shape: Xxxxx
+Is capitalized: True
+
+Token: Inc
+Features: 28 features extracted
+Word shape: Xxx
+Is capitalized: True
+
+Token: .
+Features: 22 features extracted
+Word shape: c
+Is capitalized: False
+```
+
 ## 2. 논의
 
 여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 차례 이름표 붙이기의 핵심 개념을 보여 준다. 단원별로 나뉜 짜임 덕분에 낱낱의 조각을 익히고 다른 일이나 자료 뭉치에 맞게 고치기 쉽다.
