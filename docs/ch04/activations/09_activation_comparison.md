@@ -14,6 +14,10 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 import time
 
+# 씨앗은 여기서 한 번만 심는다. 아래 반복문은 모델을 일곱 개 잇달아
+# 만들므로, 활성화마다 초기 가중치가 서로 다르다. 즉 아래 표의 차이에는
+# 활성화의 효과와 초기화 운이 섞여 있다. 엄밀히 견주려면 모델을 만들기
+# 직전마다 torch.manual_seed(42)를 다시 불러야 한다
 torch.manual_seed(42)
 np.random.seed(42)
 
@@ -21,6 +25,8 @@ class ComparisonNetwork(nn.Module):
     """여러 활성화 함수를 비교하기 위한 신경망"""
     def __init__(self, activation_type='relu'):
         super().__init__()
+        # 폭과 깊이는 일곱 경우 모두 같게 고정한다. 바꾸는 것은
+        # 활성화 하나뿐이어야 결과를 활성화 탓으로 돌릴 수 있다
         self.fc1 = nn.Linear(20, 64)
         self.fc2 = nn.Linear(64, 64)
         self.fc3 = nn.Linear(64, 32)
@@ -35,6 +41,10 @@ class ComparisonNetwork(nn.Module):
             'tanh': nn.Tanh(),
             'sigmoid': nn.Sigmoid()
         }
+        # 주의: get은 이름을 잘못 적어도 조용히 ReLU로 넘어간다.
+        # 'gelu'를 'gleu'로 오타 내면 ReLU 결과가 GELU 이름표를 달고
+        # 표에 찍힌다. 실험용 코드라면 activations[activation_type]로
+        # 두어 KeyError가 나게 하는 편이 안전하다
         self.activation = activations.get(activation_type, nn.ReLU())
         self.name = activation_type
 
@@ -42,10 +52,16 @@ class ComparisonNetwork(nn.Module):
         x = self.activation(self.fc1(x))
         x = self.activation(self.fc2(x))
         x = self.activation(self.fc3(x))
+        # 마지막 층에는 활성화를 걸지 않는다. 아래에서 쓰는
+        # BCEWithLogitsLoss가 시그모이드를 안에 품고 있어서,
+        # 여기서 또 걸면 시그모이드가 두 번 적용된다
         x = self.fc4(x)
         return x
 
 def generate_comparison_data():
+    # 특징 20개 가운데 15개만 이름표와 관계가 있고 5개는 그 15개의
+    # 선형 결합이다. 즉 겉보기 차원보다 실제 정보 차원이 낮은,
+    # 적당히 어려운 이진 분류 과제를 만든 것이다
     X, y = make_classification(
         n_samples=1000, n_features=20, n_informative=15,
         n_redundant=5, n_classes=2, random_state=42
@@ -67,6 +83,10 @@ def train_and_evaluate(model, X_train, y_train, X_test, y_test,
     start_time = time.time()
 
     for epoch in range(epochs):
+        # 미니배치를 나누지 않고 학습 집합 800개를 한꺼번에 넣는다.
+        # 그래서 에포크 하나가 곧 경사 하강 한 걸음이다. 150 에포크는
+        # 150 걸음일 뿐이므로, 여기서 재는 "수렴 속도"는 미니배치
+        # 학습에서의 수렴 속도와 다를 수 있다
         model.train()
         optimizer.zero_grad()
         logits = model(X_train)
@@ -75,6 +95,10 @@ def train_and_evaluate(model, X_train, y_train, X_test, y_test,
         optimizer.step()
 
         with torch.no_grad():
+            # 주의: train_acc는 step() 앞에서 계산해 둔 logits를 쓰므로
+            # 갱신 "전" 가중치의 정확도이고, test_acc는 갱신 "후"
+            # 가중치로 새로 계산한다. 같은 에포크에 찍힌 두 값이
+            # 사실은 다른 모델의 값이라는 뜻이다
             train_acc = ((torch.sigmoid(logits) > 0.5) == y_train).float().mean()
             test_logits = model(X_test)
             test_acc = ((torch.sigmoid(test_logits) > 0.5) == y_test).float().mean()
@@ -83,9 +107,15 @@ def train_and_evaluate(model, X_train, y_train, X_test, y_test,
         test_accs.append(test_acc.item())
         losses.append(loss.item())
 
+    # 평가까지 포함된 시간이라 순수 학습 시간은 아니다. 다만 일곱 경우가
+    # 똑같이 평가를 하므로, 활성화끼리 견주는 용도로는 쓸 만하다
     training_time = time.time() - start_time
     return {
         'final_test_acc': test_accs[-1],
+        # best_test_acc는 150 에포크 가운데 시험 정확도가 가장 높았던
+        # 값이다. 시험 집합을 보고 고른 값이므로 일반화 성능을 낙관적으로
+        # 부풀린다. 정직하게 보고하려면 final_test_acc를 쓰거나,
+        # 검증 집합을 따로 떼어 거기서 최고점을 골라야 한다
         'best_test_acc': max(test_accs),
         'training_time': training_time,
         'losses': losses,
@@ -121,6 +151,9 @@ ReLU는 계산이 단순하고 깊은 신경망에서 시그모이드와 tanh를
     class DeeperNetwork(nn.Module):
         def __init__(self, activation_type='relu'):
             super().__init__()
+            # ModuleList로 담으면 층이 파라미터로 등록되면서도
+            # forward에서 순서를 직접 다룰 수 있다. 여기서는
+            # 마지막 층만 활성화를 건너뛰어야 해서 이 형태가 편하다
             self.layers = nn.ModuleList([
                 nn.Linear(20, 64), nn.Linear(64, 64),
                 nn.Linear(64, 64), nn.Linear(64, 32),
@@ -130,6 +163,9 @@ ReLU는 계산이 단순하고 깊은 신경망에서 시그모이드와 tanh를
             self.activation = activations[activation_type]
 
         def forward(self, x):
+            # 마지막 층을 뺀 다섯 층에만 활성화를 건다. 4층에서 6층으로
+            # 늘리면 시그모이드는 0.25 이하인 도함수를 곱하는 횟수가
+            # 늘어나 입력 쪽 기울기가 더 빠르게 사그라든다
             for layer in self.layers[:-1]:
                 x = self.activation(layer(x))
             return self.layers[-1](x)

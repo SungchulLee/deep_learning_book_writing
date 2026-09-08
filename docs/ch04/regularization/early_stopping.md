@@ -104,6 +104,14 @@ class EarlyStopping:
         self.early_stop = False
         self.best_epoch = 0
         
+        # 개선 여부를 판정하는 규칙을 여기서 한 번만 정해 두면,
+        # 아래 __call__에서 mode를 다시 갈라볼 필요가 없다.
+        # min_delta를 빼거나 더하는 것이 핵심이다. 잡음 수준의 미세한
+        # 흔들림을 "개선"으로 세면 인내 계수가 계속 초기화되어
+        # 조기 종료가 영영 걸리지 않는다.
+        # 주의: 람다가 붙잡는 것은 self.min_delta가 아니라 인수
+        # min_delta다. 만든 뒤에 stopper.min_delta를 바꿔도
+        # 판정 기준은 그대로다
         if mode == 'min':
             self.is_better = lambda current, best: current < best - min_delta
         else:
@@ -121,6 +129,8 @@ class EarlyStopping:
         반환값:
             학습을 멈춰야 하면 True
         """
+        # 첫 호출은 견줄 대상이 없으므로 기준점만 세우고 물러난다.
+        # 인내 계수는 두 번째 호출부터 세기 시작한다
         if self.best_score is None:
             self.best_score = score
             self.best_epoch = epoch
@@ -131,13 +141,25 @@ class EarlyStopping:
         if self.is_better(score, self.best_score):
             self.best_score = score
             self.best_epoch = epoch
+            # 나아졌으니 인내 계수를 0으로 되돌린다. 즉 patience는
+            # "학습을 시작한 뒤 몇 에포크"가 아니라 "마지막 개선 뒤
+            # 몇 에포크"를 세는 값이다
             self.counter = 0
             if self.restore_best_weights:
+                # deepcopy가 반드시 필요하다. state_dict()는 살아 있는
+                # 파라미터 텐서를 그대로 가리키므로, 그냥 담아 두면
+                # 다음 optimizer.step()이 그 텐서를 덮어써 "가장 좋았던
+                # 가중치"가 현재 가중치를 따라 계속 바뀌어 버린다
                 self.best_weights = copy.deepcopy(model.state_dict())
         else:
             self.counter += 1
             if self.counter >= self.patience:
                 self.early_stop = True
+                # 되돌리기는 이 지점에서만 일어난다. 인내가 다 차기 전에
+                # 에포크 수를 다 써서 학습 루프가 끝나면 이 줄을 지나가지
+                # 못하므로, 모델은 마지막 에포크의 가중치를 그대로 지닌
+                # 채 남는다. 루프가 끝난 뒤 best_weights를 직접
+                # load_state_dict 해 주어야 안전하다
                 if self.restore_best_weights and self.best_weights is not None:
                     model.load_state_dict(self.best_weights)
                 return True

@@ -35,11 +35,17 @@ class MulticlassClassifier(nn.Module):
         return x
 
 def generate_multiclass_data(n_samples=600, n_classes=3):
+    # 특징이 2개뿐이라 산점도로 그려 볼 수 있고, cluster_std=1.0인
+    # 블롭 세 덩이는 거의 겹치지 않는다. 아래에서 시험 정확도가
+    # 1.0000이 나오는 것은 모델이 뛰어나서가 아니라 과제가 쉬워서다
     X, y = make_blobs(n_samples=n_samples, centers=n_classes,
                       n_features=2, cluster_std=1.0, random_state=42)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
+    # 입력은 실수라 FloatTensor, 이름표는 클래스 번호라 LongTensor다.
+    # CrossEntropyLoss는 원-핫 벡터가 아니라 0, 1, 2 같은 정수 인덱스를
+    # 요구하며, 이름표를 FloatTensor로 넘기면 형 오류가 난다
     X_train = torch.FloatTensor(X_train)
     y_train = torch.LongTensor(y_train)
     X_test = torch.FloatTensor(X_test)
@@ -47,12 +53,16 @@ def generate_multiclass_data(n_samples=600, n_classes=3):
     return X_train, y_train, X_test, y_test
 
 def train_multiclass(model, X_train, y_train, X_test, y_test, epochs=200, lr=0.01):
+    # CrossEntropyLoss는 LogSoftmax와 NLLLoss를 하나로 묶은 것이다.
+    # 그래서 모델이 소프트맥스를 거치지 않은 날것의 로짓을 내야 한다
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     train_losses, test_losses = [], []
     train_accs, test_accs = [], []
 
     for epoch in range(epochs):
+        # 여기서도 미니배치를 나누지 않고 480개를 통째로 넣는다.
+        # 에포크 하나가 경사 하강 한 걸음이다
         model.train()
         optimizer.zero_grad()
         logits = model(X_train)
@@ -61,9 +71,17 @@ def train_multiclass(model, X_train, y_train, X_test, y_test, epochs=200, lr=0.0
         optimizer.step()
 
         with torch.no_grad():
+            # argmax(dim=1)은 클래스 축에서 점수가 가장 큰 자리를 고른다.
+            # 소프트맥스는 순서를 바꾸지 않으므로 예측을 얻는 데는
+            # 로짓의 argmax만으로 충분하다.
+            # 다만 이 logits는 step() 앞에서 계산한 값이라, train_acc는
+            # 갱신 전 가중치의 정확도이고 아래 test_acc는 갱신 후 값이다
             predictions = logits.argmax(dim=1)
             train_acc = (predictions == y_train).float().mean()
 
+        # 이 모델에는 드롭아웃도 배치 정규화도 없어서 train()과 eval()이
+        # 실제로 하는 일은 없다. 그래도 습관으로 남겨 두면, 나중에
+        # 드롭아웃을 넣었을 때 평가가 조용히 틀어지는 일을 막는다
         model.eval()
         with torch.no_grad():
             test_logits = model(X_test)
@@ -80,6 +98,8 @@ def train_multiclass(model, X_train, y_train, X_test, y_test, epochs=200, lr=0.0
 
 if __name__ == "__main__":
     X_train, y_train, X_test, y_test = generate_multiclass_data()
+    # input_size는 특징 수, num_classes는 출력 로짓 수다. 이 둘은
+    # 데이터가 정하는 값이고, hidden_size만 우리가 고르는 값이다
     model = MulticlassClassifier(input_size=2, hidden_size=32, num_classes=3)
     train_losses, test_losses, train_accs, test_accs = train_multiclass(
         model, X_train, y_train, X_test, y_test, epochs=200
