@@ -62,6 +62,16 @@ class InstanceNorm2dNumPy:
         """
         # 사례별, 채널별로 평균과 분산 계산
         # 각 (N, C)에 대해 공간 차원 (H, W)으로 평균
+        # 축 (2, 3)은 높이와 너비다. 곧 배치 축도 채널 축도 건드리지
+        # 않고, 표본 하나의 채널 하나 안에서만 통계를 낸다.
+        # 네 정규화가 갈리는 지점이 바로 이 축의 선택이다.
+        #   배치 정규화: (0, 2, 3) — 배치를 가로질러 채널마다
+        #   층 정규화:   (1, 2, 3) — 표본마다 채널을 통틀어
+        #   인스턴스:    (2, 3)    — 표본마다 채널마다 따로
+        #   그룹 정규화: 채널을 몇 묶음으로 나눈 중간형
+        # 이미지 하나의 한 채널이 지닌 평균과 분산은 대체로 그 그림의
+        # 밝기와 대비, 곧 화풍에 해당한다. 그것을 지워 버리므로
+        # 화풍 옮기기에 알맞다
         mean = np.mean(x, axis=(2, 3), keepdims=True)
         var = np.var(x, axis=(2, 3), keepdims=True)
         
@@ -88,6 +98,12 @@ class StyleTransferNetwork(nn.Module):
         # 부호기
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=9, stride=1, padding=4),
+            # affine=True를 명시해야 gamma와 beta를 배운다.
+            # nn.InstanceNorm2d의 기본값은 False라 그냥 두면 정규화만 하고
+            # 되돌릴 손잡이가 없다. 배치 정규화와 층 정규화는 기본값이
+            # True이므로 이 층만 다르다는 점을 기억해 두어야 한다.
+            # 화풍 옮기기에서는 이 gamma와 beta가 곧 "입힐 화풍"의
+            # 통계 노릇을 하므로 더욱 중요하다
             nn.InstanceNorm2d(32, affine=True),
             nn.ReLU(inplace=True),
             
@@ -147,6 +163,11 @@ class ResidualBlock(nn.Module):
         )
     
     def forward(self, x):
+        # 23_deep_network.md의 잔차 블록과 달리 더한 뒤에 ReLU를 걸지
+        # 않는다. 화풍 옮기기의 생성기는 음수 값도 그대로 흘려보내야
+        # 하는데, 여기서 ReLU를 걸면 신호의 절반이 잘려 나간다.
+        # 제자리 연산(+=)이 아니라 새 텐서를 만드는 형태라 블록이
+        # 무엇으로 끝나든 안전하다
         return x + self.conv_block(x)
 
 

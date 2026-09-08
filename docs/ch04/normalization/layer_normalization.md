@@ -59,7 +59,13 @@ class LayerNormNumPy:
         반환값:
             입력과 같은 모양의 정규화된 출력
         """
-        # 마지막 len(normalized_shape)개 차원에 대해 평균과 분산 계산
+        # 마지막 len(normalized_shape)개 차원에 대해 평균과 분산 계산.
+        # 뒤에서부터 세므로 배치 축은 결코 들어가지 않는다. 이것이
+        # 배치 정규화와 갈리는 핵심이다. 배치 정규화는 배치 축을 따라
+        # 통계를 내어 표본들이 서로 영향을 주지만, 층 정규화는 표본
+        # 하나 안에서만 통계를 내므로 옆에 어떤 표본이 있든 결과가 같다.
+        # 그래서 배치 크기가 1이어도 되고, 학습과 추론의 동작이 같아
+        # 이동 통계를 따로 둘 필요도 없다
         axes = tuple(range(-len(self.normalized_shape), 0))
         
         mean = np.mean(x, axis=axes, keepdims=True)
@@ -68,7 +74,13 @@ class LayerNormNumPy:
         # 정규화
         x_normalized = (x - mean) / np.sqrt(var + self.eps)
         
-        # 배율 조정과 이동
+        # 배율 조정과 이동.
+        # 정규화가 평균 0, 분산 1을 강요하는데 그것이 늘 좋은 것은
+        # 아니므로, 신경망이 그 제약을 되돌릴 수 있게 손잡이를 준다.
+        # gamma=1, beta=0에서 시작해 필요한 만큼만 배우며,
+        # 극단적으로는 원래 분포를 그대로 되살릴 수도 있다.
+        # RMSNorm에 beta가 없는 것은 애초에 평균을 빼지 않아
+        # 되돌릴 이동이 없기 때문이다
         out = self.gamma * x_normalized + self.beta
         
         return out
@@ -89,7 +101,13 @@ class RNNWithLayerNorm(nn.Module):
         self.W_ih = nn.Linear(input_size, hidden_size, bias=False)
         self.W_hh = nn.Linear(hidden_size, hidden_size, bias=False)
         
-        # 층 정규화
+        # 층 정규화.
+        # 순환 신경망이 층 정규화가 태어난 자리다. 배치 정규화를 여기
+        # 쓰려면 시각마다 따로 통계를 두어야 하는데, 길이가 다른 계열이
+        # 섞이면 감당이 되지 않는다. 층 정규화는 시각마다 그 표본
+        # 하나만 보므로 그런 문제가 없다.
+        # 정규화 층 하나를 모든 시각에 돌려 쓴다는 점도 눈여겨보라.
+        # 학습되는 것은 gamma와 beta뿐이고 이동 통계가 없어서 가능하다
         self.ln = nn.LayerNorm(hidden_size)
         
     def forward(self, x, hidden=None):
@@ -112,10 +130,16 @@ class RNNWithLayerNorm(nn.Module):
         for t in range(seq_len):
             x_t = x[:, t, :]
             
-            # 새 은닉 상태 계산
+            # 새 은닉 상태 계산.
+            # 두 Linear 모두 bias=False인데, 바로 뒤 층 정규화가 평균을
+            # 빼 버려 편향이 할 일이 없기 때문이다. beta가 그 몫을 한다
             hidden = self.W_ih(x_t) + self.W_hh(hidden)
             
-            # 층 정규화 적용
+            # 층 정규화 적용.
+            # 활성화 앞이라는 자리가 중요하다. 순환 신경망은 같은
+            # 가중치를 시각마다 되풀이해 곱하므로 은닉 상태의 크기가
+            # 계열이 길어질수록 부풀거나 사그라들기 쉬운데, 매 시각
+            # 크기를 다시 맞추어 주면 그 폭주를 막을 수 있다
             hidden = self.ln(hidden)
             
             # 활성화 적용

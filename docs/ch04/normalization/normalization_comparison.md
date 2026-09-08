@@ -37,7 +37,15 @@ class NormalizationComparison:
             'BatchNorm': nn.BatchNorm2d(3, affine=False),
             'LayerNorm': nn.LayerNorm([3, 4, 4], elementwise_affine=False),
             'InstanceNorm': nn.InstanceNorm2d(3, affine=False),
-            'GroupNorm': nn.GroupNorm(3, 3, affine=False),  # 채널 3개에 대한 그룹 3개
+            # 채널 3개에 대한 그룹 3개.
+            # 그룹 정규화는 채널을 몇 묶음으로 나누어 묶음 안에서만
+            # 통계를 낸다. 그래서 양 끝이 다른 방법과 만난다.
+            # 그룹 수 = 채널 수이면 채널마다 따로이니 인스턴스 정규화와 같고,
+            # 그룹 수 = 1이면 채널을 통틀어 보니 층 정규화와 같다.
+            # 여기는 채널이 3개인데 그룹도 3개이므로 사실상 인스턴스
+            # 정규화와 같은 값이 나온다. 아래 표에서 두 줄이 똑같이
+            # 찍히더라도 이상이 아니다
+            'GroupNorm': nn.GroupNorm(3, 3, affine=False),
         }
         
         # 모두 평가 모드로 두기
@@ -152,7 +160,22 @@ class NormalizationComparison:
             print(f"\n--- Batch size: {batch_size} ---")
             
             for name, norm_layer in self.normalizations.items():
-                # 이동 통계 문제를 피하려고 다시 초기화
+                # 이동 통계 문제를 피하려고 다시 초기화.
+                # 주의: 새로 만든 배치 정규화를 eval()로 두면 이동 통계가
+                # 아직 running_mean=0, running_var=1이라 (x - 0)/sqrt(1 + eps),
+                # 곧 입력이 거의 그대로 지나간다. 그래서 아래 표의
+                # BatchNorm 줄은 정규화 결과가 아니라 입력 x의 표본 평균과
+                # 표준편차를 되비칠 뿐이다.
+                # 배치 통계로 정규화하는 모습을 보려면 train()이어야 한다.
+                #
+                # 다만 train()으로 바꾸어도 이 시험은 아래 "Observations"가
+                # 말하는 바를 보이지 못한다. 어느 배치 크기에서든 출력의
+                # 평균과 표준편차는 0과 1로 나오기 때문이다. 배치 크기에
+                # 민감하다는 말의 뜻은 출력의 평균이 흔들린다는 것이
+                # 아니라, 작은 배치에서 낸 통계가 전체 분포의 참값에서
+                # 크게 벗어나 배치마다 다른 값으로 정규화된다는 것이다.
+                # 그것을 보이려면 같은 표본을 여러 배치에 넣어 보고
+                # 출력이 얼마나 달라지는지를 재야 한다
                 if name == 'BatchNorm':
                     norm_layer = nn.BatchNorm2d(3, affine=False)
                     norm_layer.eval()
