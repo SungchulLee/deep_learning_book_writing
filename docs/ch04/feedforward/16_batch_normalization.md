@@ -139,16 +139,16 @@ def visualize_batch_norm():
     data = torch.randn(1000, 1) * 5 + 10  # 평균=10, 표준편차=5
     
     bn = nn.BatchNorm1d(1)
-    # 주의: 이 그림은 뜻한 대로 나오지 않는다. 갓 만든 BatchNorm1d의
-    # 이동 통계는 running_mean=0, running_var=1이고, eval()은 배치가
-    # 아니라 그 이동 통계를 쓴다. 따라서 (x - 0) / sqrt(1 + eps)가 되어
-    # 데이터가 사실상 그대로 지나간다. 아래 "After" 히스토그램은
-    # "Before"와 거의 같은 평균 10, 표준편차 5로 그려진다.
-    # 정규화의 효과를 보이려면 bn.train()이어야 한다. 그때 이 배치의
-    # 평균과 분산으로 정규화되어 평균 0, 표준편차 1이 된다.
+    # train() 모드여야 이 배치의 평균과 분산으로 정규화되어 평균 0,
+    # 표준편차 1이 된다.
+    # eval()을 쓰면 안 된다. 갓 만든 BatchNorm1d의 이동 통계는
+    # running_mean=0, running_var=1이고 eval()은 배치가 아니라 그
+    # 이동 통계를 쓰므로, (x - 0) / sqrt(1 + eps)가 되어 데이터가
+    # 그대로 지나간다. 그러면 아래 "After" 히스토그램이 "Before"와
+    # 똑같이 그려져 아무것도 보여 주지 못한다.
     # 이동 통계는 학습을 거치며 쌓이는 값이라, 한 번도 학습하지 않은
-    # 층에서는 쓸 만한 값이 들어 있지 않다
-    bn.eval()  # 이동 통계 쓰기
+    # 층에는 쓸 만한 값이 들어 있지 않다
+    bn.train()  # 이 배치의 통계 쓰기
     data_normalized = bn(data)
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))

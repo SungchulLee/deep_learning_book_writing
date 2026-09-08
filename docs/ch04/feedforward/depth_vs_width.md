@@ -265,13 +265,14 @@ test_dataset  = datasets.MNIST('./data', train=False, transform=transform)
 train_loader  = DataLoader(train_dataset, batch_size=128, shuffle=True)
 test_loader   = DataLoader(test_dataset,  batch_size=256)
 
-# ── 구조: 매개변수 예산을 대략 같게 맞춘다 ──
-# 주의: 실제로는 예산이 맞지 않는다. 아래에서 찍히는 매개변수 수는
-# 각각 약 814k, 235k, 63k, 335k로 13배 가까이 벌어진다. 첫 층이
+# ── 구조: 흔히 쓰는 네 가지 모양을 견준다 ──
+# 주의: 매개변수 수는 맞추어져 있지 않다. 아래에서 찍히는 값은 각각
+# 약 814k, 235k, 63k, 335k로 13배 가까이 벌어진다. 첫 층이
 # 784 x 은닉폭이라 전체를 좌우하기 때문이다. 그러므로 이 표에서
 # "깊이가 정확도를 얼마나 올리는가"를 곧바로 읽어 낼 수는 없다.
 # 정확도 차이에는 깊이의 효과와 크기의 효과가 섞여 있다.
-# 예산을 정말로 맞추려면 첫 은닉층의 폭을 조정해야 한다
+# 예산을 맞추어 깊이만 견주는 실험은 바로 다음 절
+# "예산 고정: 깊이와 너비의 증가"에서 다룬다
 architectures = {
     'Wide-Shallow (1 hidden)':   [784, 1024, 10],
     'Medium (2 hidden)':         [784, 256, 128, 10],

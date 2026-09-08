@@ -107,19 +107,15 @@ class InitializedNet(nn.Module):
         self._initialize_weights()
     
     def _initialize_weights(self):
-        """Xavier/He 초기화로 가중치를 초기화한다."""
+        """He 초기화로 가중치를 초기화한다."""
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                # ReLU가 뒤따르는 층에는 Xavier 균등 초기화
-                # 주의: 이 주석과 코드는 이 책의 다른 대목과 어긋난다.
+                # ReLU가 뒤따르는 층에는 He(카이밍) 초기화.
                 # 자비에르는 시그모이드나 tanh처럼 양쪽이 대칭인 활성화를
-                # 전제하고, ReLU에는 He(kaiming) 초기화가 맞다. ReLU가
-                # 입력의 절반을 죽여 분산을 반토막 내는 몫을 자비에르는
-                # 셈에 넣지 않기 때문이다.
-                # 층이 둘뿐이라 실제로 학습이 안 되지는 않지만,
-                # 깊어지면 신호가 층마다 줄어든다.
-                # 견주어 볼 곳: 19_weight_initialization.md
-                init.xavier_uniform_(m.weight)
+                # 전제한다. ReLU는 입력의 절반을 0으로 죽여 분산을
+                # 반토막 내므로, 그 몫까지 셈에 넣는 He 쪽이 맞다.
+                # 같은 규칙을 19_weight_initialization.md에서 다룬다
+                init.kaiming_uniform_(m.weight, nonlinearity='relu')
                 # 편향을 작은 양수로 초기화.
                 # 0이 아니라 0.01로 두면 학습 초반에 ReLU가 양수 쪽에서
                 # 시작하므로, 처음부터 0만 내놓는 뉴런이 줄어든다.
