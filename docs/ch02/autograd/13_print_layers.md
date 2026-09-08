@@ -56,6 +56,34 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+== Sequential index listing ==
+[0] Linear(in_features=5, out_features=3, bias=True)
+[1] ReLU()
+[2] Linear(in_features=3, out_features=1, bias=True)
+
+== Top-level children ==
+0: Linear(in_features=5, out_features=3, bias=True)
+1: ReLU()
+2: Linear(in_features=3, out_features=1, bias=True)
+
+== Full module tree ==
+<root>: Sequential(
+  (0): Linear(in_features=5, out_features=3, bias=True)
+  (1): ReLU()
+  (2): Linear(in_features=3, out_features=1, bias=True)
+)
+0: Linear(in_features=5, out_features=3, bias=True)
+1: ReLU()
+2: Linear(in_features=3, out_features=1, bias=True)
+
+== Linear shapes ==
+0: Linear weight (3, 5), bias (3,)
+2: Linear weight (1, 3), bias (1,)
+```
+
 ## 2. 논의
 
 PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법을 제공한다. 각 모듈이 자신의 매개변수와 하위 모듈을 관리하므로 모델을 살펴보고, 저장하고, 장치 사이에 옮기기가 간편하다.

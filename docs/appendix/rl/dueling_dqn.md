@@ -70,6 +70,12 @@ if __name__ == "__main__":
     print("Q:", q.shape)  # (3, 4)
 ```
 
+**출력:**
+
+```
+Q: torch.Size([3, 4])
+```
+
 ## 2. 논의
 
 `DuelingQNetwork` 갈래는 PyTorch의 `nn.Module` 낯을 써서 모형 얼개를 담는다. `forward` 방법이 셈 그림을 매기므로 익히는 동안 PyTorch의 autograd가 기울기 셈을 절로 다룬다. 이렇게 묶음으로 나눈 꾸밈 덕에 몫 하나하나를 고치거나 더 큰 흐름에 넣기가 쉽다.

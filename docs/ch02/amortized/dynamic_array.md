@@ -185,6 +185,38 @@ if __name__ == "__main__":
     trace_appends(17)
 ```
 
+**출력:**
+
+```
+=== Aggregate Analysis Verification ===
+n=   100: total_cost=     227, ratio=2.2700, resizes=7, <3n: True
+n=  1000: total_cost=    2023, ratio=2.0230, resizes=10, <3n: True
+n= 10000: total_cost=   26383, ratio=2.6383, resizes=14, <3n: True
+n=100000: total_cost=  231071, ratio=2.3107, resizes=17, <3n: True
+
+=== Step-by-Step Trace (first 17 appends) ===
+
+ Op  Size   Cap  Cost  Total   Phi  Amort
+----------------------------------------
+  1     1     1     1      1     1   1.00
+  2     2     2     2      3     2   1.50
+  3     3     4     3      6     2   2.00
+  4     4     4     1      7     4   1.75
+  5     5     8     5     12     2   2.40
+  6     6     8     1     13     4   2.17
+  7     7     8     1     14     6   2.00
+  8     8     8     1     15     8   1.88
+  9     9    16     9     24     2   2.67
+ 10    10    16     1     25     4   2.50
+ 11    11    16     1     26     6   2.36
+ 12    12    16     1     27     8   2.25
+ 13    13    16     1     28    10   2.15
+ 14    14    16     1     29    12   2.07
+ 15    15    16     1     30    14   2.00
+ 16    16    16     1     31    16   1.94
+ 17    17    32    17     48     2   2.82
+```
+
 ---
 
 ## 연습문제

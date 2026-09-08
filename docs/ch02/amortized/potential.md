@@ -266,6 +266,42 @@ if __name__ == "__main__":
           f"{arr.total_amortized / arr.num_ops:.2f}")
 ```
 
+**출력:**
+
+```
+=== Multipop Stack (Potential Method) ===
+After 10 pushes: Phi=10, total_actual=10, total_amortized=20
+Multipop(10): actual=10, amortized=0
+Final: Phi=0, total_actual=20, total_amortized=20
+Amortized >= Actual: True
+
+=== Dynamic Array (Potential Method) ===
+ Op  Actual   Amort   Phi  Size   Cap
+--------------------------------------
+  1       1       3     1     1     1
+  2       2       3     2     2     2
+  3       3       3     2     3     4
+  4       1       3     4     4     4
+  5       5       3     2     5     8
+  6       1       3     4     6     8
+  7       1       3     6     7     8
+  8       1       3     8     8     8
+  9       9       3     2     9    16
+ 10       1       3     4    10    16
+ 11       1       3     6    11    16
+ 12       1       3     8    12    16
+ 13       1       3    10    13    16
+ 14       1       3    12    14    16
+ 15       1       3    14    15    16
+ 16       1       3    16    16    16
+ 17      17       3     2    17    32
+
+Total actual:    48
+Total amortized: 51
+Amortized >= Actual: True
+Avg amortized/op: 3.00
+```
+
 ---
 
 ## 연습문제

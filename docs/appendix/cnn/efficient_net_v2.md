@@ -50,6 +50,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 1,281,648
+```
+
 ## 2. 논의
 
 EfficientNetV2의 고갱이 얼개 새로움은 녹여 붙인 MBConv 덩이다. 이른 도막에서 깊이별로 가른 엮음을 여느 $3 \times 3$ 엮음으로 갈음한다. 깊이별로 가른 엮음은 매개변수가 적지만 셈의 밀도가 낮아 요즘 빠르게 하는 쇠 붙임새(GPU/TPU)를 덜 쓴다. 녹여 붙인 갈래는 여느 $3 \times 3$ 엮음으로 갈래를 넓힌 뒤 $1 \times 1$으로 되비추어, 매개변수가 조금 늘지만 쇠 붙임새를 더 잘 쓴다. EfficientNetV2은 결 그림이 큰 이른 도막에는 녹여 붙인 MBConv을, 늦은 도막에는 여느 MBConv을 쓴다.

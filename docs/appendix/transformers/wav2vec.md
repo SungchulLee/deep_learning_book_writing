@@ -73,6 +73,13 @@ if __name__ == "__main__":
     print(f"Input: {x.shape}")
 ```
 
+**출력:**
+
+```
+Parameters: 87,275,584
+Input: torch.Size([2, 1, 16000])
+```
+
 ## 2. 논의
 
 이 짜보기는 갈래 2개(`FeatureEncoder`, `Wav2Vec2`)를 매기고, 이들이 어울려 온전한 변환기 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.

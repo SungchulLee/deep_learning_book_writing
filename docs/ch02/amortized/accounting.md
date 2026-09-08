@@ -162,6 +162,35 @@ if __name__ == "__main__":
     print(f"Average actual cost:  {avg:.2f}")
 ```
 
+**출력:**
+
+```
+  Op  Actual  Amortized  Credit
+--------------------------------
+   1       1          3       2
+   2       2          3       3
+   3       3          3       3
+   4       1          3       5
+   5       5          3       3
+   6       1          3       5
+   7       1          3       7
+   8       1          3       9
+   9       9          3       3
+  10       1          3       5
+  11       1          3       7
+  12       1          3       9
+  13       1          3      11
+  14       1          3      13
+  15       1          3      15
+  16       1          3      17
+
+Total actual cost:    31
+Total amortized cost: 48
+Remaining credit:     17
+Credit >= 0:          True
+Average actual cost:  1.94
+```
+
 ---
 
 ## 6. 다른 방법과의 비교

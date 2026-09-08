@@ -53,6 +53,14 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+y.requires_grad (expect True): True
+Inside no_grad → y_ng.requires_grad (expect False): False
+After block → z.requires_grad (expect True): True
+```
+
 ## 2. 논의
 
 경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.

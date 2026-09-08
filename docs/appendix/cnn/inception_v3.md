@@ -37,6 +37,12 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Parameters: 2,077,512
+```
+
 ## 2. 논의
 
 Inception v3의 가장 큰 얼개 이바지는 엮음 나누기다. $5 \times 5$ 엮음을 $3 \times 3$ 엮음 둘을 쌓아 갈음하여 매개변수를 $25C^2$에서 $18C^2$으로 줄인다. 더 나아가 $n \times n$ 엮음을 $n \times 1$ 다음에 $1 \times n$ 엮음으로 나누면 $n=7$일 때 매개변수가 $49C^2$에서 $14C^2$으로 준다. 이렇게 나누어도 받는 밭은 그대로면서 셈은 크게 줄어든다.

@@ -226,6 +226,23 @@ if __name__ == "__main__":
     demo_mixed()
 ```
 
+**출력:**
+
+```
+=== Worst-Case Multipop ===
+After 1000 pushes: size=1000, total_cost=1000, ops=1000
+Multipop(1000): popped=1000, total_cost=2000, ops=1001
+Amortized cost/op: 1.9980
+Bound (2.0): True
+
+=== Mixed Operations ===
+
+Mixed operations: 328 PUSH, 83 POP, 89 MULTIPOP
+Total ops: 500, total cost: 650
+Amortized cost/op: 1.3000
+Bound (2.0): True
+```
+
 ---
 
 ## 7. 이 예제가 중요한 이유

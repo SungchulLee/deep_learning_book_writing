@@ -54,33 +54,46 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-# 회귀 데이터 생성
-np.random.seed(42)
-n, d = 200, 5
-X_np = np.random.randn(n, d)
-true_w = np.array([3.0, -1.5, 0.0, 0.0, 2.0])
-y_np = X_np @ true_w + 0.5 * np.random.randn(n)
+# ── 1. 참 모델을 정해 두고 그 모델에서 데이터를 만든다 ────────────────
+# 참값을 알고 있어야 두 방법이 얼마나 잘 복원하는지 견줄 수 있다.
+np.random.seed(42)          # 씨앗을 고정해 실행할 때마다 같은 결과가 나오게 한다
+n, d = 200, 5               # 표본 200개, 특성 5개
 
-# 정규방정식(닫힌 형태)
+X_np = np.random.randn(n, d)                    # 설계 행렬: 표준정규에서 뽑는다
+true_w = np.array([3.0, -1.5, 0.0, 0.0, 2.0])   # 참 계수. 3번째와 4번째는 0이므로
+                                                # 그 두 특성은 y와 아무 관계가 없다
+y_np = X_np @ true_w + 0.5 * np.random.randn(n) # y = Xw + 잡음(표준편차 0.5)
+
+# ── 2. 방법 A: 정규방정식으로 한 번에 푼다 ──────────────────────────
+# 최소제곱해는 닫힌 형태로 존재하므로 반복이 필요 없다.
+# lstsq는 (X^T X)^{-1} X^T y 를 수치적으로 안정하게 푼 것이다.
 beta_hat = np.linalg.lstsq(X_np, y_np, rcond=None)[0]
 print(f"True weights:     {true_w}")
 print(f"Estimated weights:{np.round(beta_hat, 2)}")
 
-# SGD를 이용한 PyTorch 선형 회귀
+# ── 3. 방법 B: 같은 문제를 경사 하강법으로 푼다 ─────────────────────
+# 닫힌 형태가 있는데도 굳이 이렇게 푸는 까닭은, 이 절차가 신경망으로
+# 그대로 이어지기 때문이다. 모델만 바꾸면 나머지 뼈대는 똑같다.
 X_t = torch.tensor(X_np, dtype=torch.float32)
 y_t = torch.tensor(y_np, dtype=torch.float32)
 
+# bias=False: 데이터를 절편 없이 만들었으므로 편향 항을 두지 않는다
 model = nn.Linear(d, 1, bias=False)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)  # L2
+
+# weight_decay가 곧 L2(릿지) 정칙화이다. 손실에 alpha*||w||^2 를 더하는 것과 같다
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
 loss_fn = nn.MSELoss()
 
 for epoch in range(500):
-    pred = model(X_t).squeeze()
-    loss = loss_fn(pred, y_t)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+    pred = model(X_t).squeeze()   # 순전파: 예측을 만든다
+    loss = loss_fn(pred, y_t)     # 예측이 얼마나 틀렸는지 잰다
 
+    optimizer.zero_grad()         # 지난 걸음의 기울기를 지운다(안 지우면 누적된다)
+    loss.backward()               # 역전파: 손실을 가중치로 미분한다
+    optimizer.step()              # 기울기 반대 방향으로 가중치를 한 걸음 옮긴다
+
+# ── 4. 두 방법의 결과를 견준다 ──────────────────────────────────────
+# 정칙화 때문에 경사 하강법 쪽 계수가 0에 아주 조금 더 가깝게 나온다.
 learned = model.weight.detach().numpy().flatten()
 print(f"PyTorch weights:  {np.round(learned, 2)}")
 print(f"Final MSE loss:   {loss.item():.4f}")
