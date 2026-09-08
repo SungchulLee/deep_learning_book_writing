@@ -58,6 +58,14 @@ X_test = scaler.transform(X_test)
 
 # PyTorch 텐서로 바꾸기
 X_train = torch.FloatTensor(X_train)
+# reshape(-1, 1)이 반드시 필요하다. 모델의 출력이 (N, 1)인데 목표가
+# (N,)이면 MSELoss가 오류를 내지 않고 방송을 해 버려, (N, N) 크기의
+# 차이 행렬을 만들고 그 평균을 손실로 내놓는다. 값이 조용히 틀리므로
+# 알아채기 어렵다. 분류에서 쓰는 LongTensor 인덱스와 달리 회귀의
+# 목표는 실수이고 모양까지 맞추어 주어야 한다.
+# 목표를 표준화하지 않은 점도 눈여겨보라. 집값이 10만 달러 단위라
+# 이미 0.15~5 정도의 얌전한 범위이기 때문이며, 그래서 아래에서
+# RMSE에 100000을 곱해 달러로 되돌릴 수 있다
 y_train = torch.FloatTensor(y_train).reshape(-1, 1)
 X_test = torch.FloatTensor(X_test)
 y_test = torch.FloatTensor(y_test).reshape(-1, 1)
@@ -83,9 +91,14 @@ class RegressionNet(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.2),
             
+            # 이 층 뒤에는 드롭아웃이 없다. 폭이 16까지 좁아진 데다
+            # 출력이 바로 뒤라, 여기서 뉴런을 끄면 예측이 크게 흔들린다
             nn.Linear(32, 16),
             nn.ReLU(),
             
+            # 활성화가 붙지 않는다. 회귀의 출력은 어떤 실수든 될 수
+            # 있어야 하는데, ReLU를 걸면 음수를 못 내고 시그모이드를
+            # 걸면 [0, 1]에 갇힌다
             nn.Linear(16, 1)  # 회귀를 위한 단일 출력
         )
     
@@ -94,7 +107,11 @@ class RegressionNet(nn.Module):
 
 model = RegressionNet(X_train.shape[1])
 
-# 회귀를 위한 MSE 손실
+# 회귀를 위한 MSE 손실.
+# 교차 엔트로피는 확률 분포를 견주는 손실이라 여기에 쓸 수 없다.
+# MSE는 오차를 제곱하므로 크게 빗나간 표본에 훨씬 큰 벌점을 준다.
+# 이상치가 많은 데이터라면 그 성질이 독이 되므로, 오차에 비례하는
+# L1Loss나 둘을 섞은 SmoothL1Loss를 쓰기도 한다
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -142,6 +159,9 @@ with torch.no_grad():
     train_mse = criterion(train_pred, y_train).item()
     test_mse = criterion(test_pred, y_test).item()
     
+    # 제곱근을 취하면 단위가 목표와 같아진다. MSE는 "달러의 제곱"이라
+    # 크기를 가늠할 수 없지만, RMSE는 달러라 아래에서 100000을 곱해
+    # 곧바로 "평균 몇 달러쯤 빗나가는가"로 읽을 수 있다
     train_rmse = np.sqrt(train_mse)
     test_rmse = np.sqrt(test_mse)
 

@@ -52,9 +52,17 @@ print("="*80)
 
 # 학습을 위한 데이터 증강 (일반화를 개선한다)
 transform_train = transforms.Compose([
+    # 사방에 4화소를 덧댄 뒤 다시 32x32를 잘라 낸다. 결국 이미지를
+    # 상하좌우로 최대 4화소까지 밀어 보는 셈이라, 물체가 한가운데
+    # 있지 않아도 알아보도록 가르친다.
+    # 이 증강들이 펼치기 "전"에 이미지 위에서 일어난다는 점이 중요하다.
+    # 펼친 뒤에는 공간이라는 것이 없어 이런 변환을 걸 수 없다
     transforms.RandomCrop(32, padding=4),      # 덧대기와 함께 무작위 잘라내기
     transforms.RandomHorizontalFlip(),         # 50% 확률로 뒤집기
     transforms.ToTensor(),
+    # 0.5를 빼고 0.5로 나누므로 [0, 1]이 [-1, 1]로 옮겨진다. 간편한
+    # 어림이며, CIFAR-10의 실제 채널 평균은 (0.4914, 0.4822, 0.4465),
+    # 표준편차는 (0.2470, 0.2435, 0.2616)이다. cutout.md는 그 참값을 쓴다
     transforms.Normalize((0.5, 0.5, 0.5),     # [-1, 1]로 정규화
                         (0.5, 0.5, 0.5))
 ])
@@ -104,7 +112,13 @@ class CIFAR10Net(nn.Module):
         
         self.network = nn.Sequential(
             # 입력: 특징 3072개 (32*32*3)
+            # 첫 층 하나가 3072 x 1024, 곧 300만 개가 넘는 매개변수다.
+            # 아래에서 찍히는 전체 매개변수의 대부분이 이 한 층에 있다
             nn.Linear(3072, 1024),
+            # 선형 → 정규화 → 활성화 → 드롭아웃 차례다. 드롭아웃을
+            # 배치 정규화 "뒤"에 두는 것이 권장되는 순서인데, 반대로
+            # 두면 드롭아웃이 만든 분산 변화가 정규화 통계를 흔들어
+            # 학습과 평가의 눈금이 어긋난다
             nn.BatchNorm1d(1024),
             nn.ReLU(),
             nn.Dropout(0.3),
@@ -114,6 +128,9 @@ class CIFAR10Net(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.3),
             
+            # 뒤로 갈수록 드롭아웃이 0.3에서 0.2로 낮아진다. 층이 좁아질수록
+            # 뉴런 하나가 나르는 몫이 커져, 같은 비율로 꺼도 잃는 것이
+            # 많아지기 때문이다
             nn.Linear(512, 256),
             nn.BatchNorm1d(256),
             nn.ReLU(),
@@ -129,6 +146,12 @@ class CIFAR10Net(nn.Module):
     
     def forward(self, x):
         # 이미지 펼치기: (B, 3, 32, 32) → (B, 3072)
+        # 이 한 줄이 이 페이지의 한계이자 요점이다. 펼치는 순간 어느
+        # 화소가 어느 화소 옆에 있었는지가 사라진다. 화소들을 무작위로
+        # 뒤섞어 놓아도(모든 이미지에 같은 순서라면) 결과가 똑같다.
+        # 순방향 신경망이 CIFAR-10에서 60% 언저리에 머무는 반면 작은
+        # 합성곱 신경망이 80%를 넘기는 까닭이 여기 있다. 합성곱은
+        # 이웃한 화소끼리의 관계를 구조로 지니고 들어가기 때문이다
         x = x.view(x.size(0), -1)
         return self.network(x)
 
@@ -144,6 +167,9 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
 
 # 학습률 스케줄러
+# 20 에포크마다 학습률을 절반으로 줄인다. 코사인 감소와 달리 계단
+# 모양으로 뚝뚝 떨어지며, 아래 학습 루프에서 에포크마다 한 번씩
+# scheduler.step()을 불러야 이 일정이 흐른다
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
 print(f"Loss: CrossEntropyLoss")
