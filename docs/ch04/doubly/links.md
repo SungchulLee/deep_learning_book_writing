@@ -27,6 +27,13 @@ class Node:
 
     def __init__(self, data, prev=None, next_node=None):
         self.data = data
+        # 단일 연결 리스트와 다른 점은 이 prev 하나다. 노드마다 포인터를
+        # 하나씩 더 쓰는 대신, 뒤로 돌아갈 수 있게 된다. 앞 절에서
+        # 삭제할 때마다 "앞 노드"를 붙들고 다녀야 했던 번거로움이
+        # 여기서 사라진다.
+        # 두 포인터가 늘 짝을 이루어야 한다는 부담도 함께 진다.
+        # a.next가 b이면 b.prev도 a여야 하며, 한쪽만 고치면
+        # 앞으로 훑을 때와 뒤로 훑을 때 결과가 달라진다
         self.prev = prev
         self.next = next_node
 
@@ -42,9 +49,15 @@ def build_list(values):
     head = Node(values[0])
     current = head
     for val in values[1:]:
+        # 두 방향을 모두 이어야 한다. 생성자에서 prev를 넘겨 뒤쪽
+        # 이음선을 걸고, 다음 줄에서 앞쪽 이음선을 건다. 둘 중
+        # 하나라도 빠뜨리면 한 방향 순회만 옳게 동작한다
         new_node = Node(val, prev=current)
         current.next = new_node
         current = new_node
+    # 단일 연결 리스트의 build_list가 뒤에서부터 거슬러 만들던 것과
+    # 달리 앞에서부터 만든다. prev를 걸려면 앞 노드를 알아야 하기
+    # 때문이며, current를 들고 다니는 덕에 여기서도 전체가 O(n)이다
     return head
 
 # === 순회 ===
@@ -60,6 +73,9 @@ def traverse_forward(head):
 
 def traverse_backward(tail):
     """꼬리에서 머리까지 순회하며 값을 모은다."""
+    # 머리가 아니라 꼬리를 받는다는 점에 주의하라. 단일 연결 리스트로는
+    # 아예 쓸 수 없는 함수이며, 이중 연결 리스트가 주는 것이 바로 이것이다.
+    # 앞의 traverse_forward와 뼈대가 똑같고 next가 prev로 바뀌었을 뿐이다
     result = []
     current = tail
     while current:

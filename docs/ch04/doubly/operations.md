@@ -12,6 +12,8 @@ class Node:
 ```python
 class DoublyLinkedList:
     def __init__(self, data_list=None):
+        # head_prev는 어디에서도 쓰이지 않는다. 머리의 앞을 가리키는 값은
+        # self.head.prev에 이미 들어 있으므로 따로 둘 까닭이 없다
         self.head_prev = None
         self.head = None
         if data_list is not None:
@@ -28,12 +30,18 @@ class DoublyLinkedList:
     
     def insert_at_start(self, data):
         node = Node(None, data, self.head)
+        # 두 방향을 모두 이어야 한다. 새 노드가 옛 머리를 가리키는 것만으로는
+        # 모자라고, 옛 머리도 새 노드를 되가리켜야 뒤로 훑을 때 이어진다
+        if self.head is not None:
+            self.head.prev = node
         self.head = node
 
     def insert_at_end(self, data):
         if self.head is None:
             self.insert_at_start(data)
             return
+        # 꼬리를 따로 들고 있지 않아 끝까지 걸어간다. O(n)이다.
+        # prev가 있으니 꼬리만 들고 있으면 O(1)로 줄일 수 있다
         itr = self.head
         while itr.next:
             itr = itr.next
@@ -50,6 +58,11 @@ class DoublyLinkedList:
         for _ in range(1,index):
             itr = itr.next
         node = Node(itr, data, itr.next)
+        # 이음선 넷을 모두 고쳐야 한다. 새 노드의 prev와 next는 생성자에서
+        # 걸었고, 남은 둘이 아래 두 줄이다. 뒤에 밀려나는 노드의 prev를
+        # 빠뜨리면 뒤로 훑을 때 새 노드를 건너뛴다
+        if itr.next is not None:
+            itr.next.prev = node
         itr.next = node
         
     def remove(self, index):
@@ -57,12 +70,19 @@ class DoublyLinkedList:
             raise Exception("Invalid Index")
         if index==0:
             self.head = self.head.next
+            # 새 머리 앞에는 아무것도 없으므로 prev를 끊는다. 남겨 두면
+            # 지운 노드를 계속 가리켜 뒤로 훑을 때 되살아난다
+            if self.head is not None:
+                self.head.prev = None
             return
         itr = self.head
         for _ in range(1,index):
             itr = itr.next
         itr.next = itr.next.next
-        itr.next.prev = itr
+        # 마지막 노드를 지우면 itr.next가 None이 되므로 검사가 필요하다.
+        # 이 검사가 없으면 None.prev를 건드려 AttributeError가 난다
+        if itr.next is not None:
+            itr.next.prev = itr
         
     def print_linked_list(self):
         if self.head is None:
