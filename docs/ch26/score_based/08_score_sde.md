@@ -254,7 +254,8 @@ def demo_sde():
 
 
 if __name__ == "__main__":
-    demo_sde()```
+    demo_sde()
+```
 
 ## 2. 논의
 

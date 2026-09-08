@@ -62,7 +62,8 @@ def demo():
     print(f"  Assignment (first 3 nodes): {S[:3].detach().round(decimals=2)}")
 
 if __name__ == "__main__":
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

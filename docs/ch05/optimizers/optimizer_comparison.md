@@ -302,7 +302,8 @@ if __name__ == "__main__":
     print("\n")
     test_rosenbrock()
     print("\n")
-    print_summary()```
+    print_summary()
+```
 
 ## 2. 논의
 

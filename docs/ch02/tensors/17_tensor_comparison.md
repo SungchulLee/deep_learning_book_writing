@@ -80,7 +80,8 @@ def main():
     print(f"Max scores: {max_scores}")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

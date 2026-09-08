@@ -73,7 +73,8 @@ def main():
     # b2 = b2.detach().requires_grad_(True)
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

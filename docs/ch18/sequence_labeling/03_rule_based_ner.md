@@ -596,7 +596,8 @@ if __name__ == "__main__":
     print("1. Try modifying existing rules")
     print("2. Add custom rules for your domain")
     print("3. Combine with dictionary-based NER (next module)")
-    print("4. Experiment with different priority levels")```
+    print("4. Experiment with different priority levels")
+```
 
 ## 2. 논의
 

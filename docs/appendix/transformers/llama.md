@@ -160,7 +160,8 @@ if __name__ == "__main__":
     model = LLaMA(vocab_size=1000, dim=256, nhead=8, num_layers=2, ff_hidden=1024)
     ids = torch.randint(0, 1000, (2, 12))
     logits = model(ids)
-    print("logits:", logits.shape)  # (2, 12, 1000)```
+    print("logits:", logits.shape)  # (2, 12, 1000)
+```
 
 ## 2. 논의
 

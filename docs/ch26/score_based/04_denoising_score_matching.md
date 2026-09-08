@@ -171,7 +171,8 @@ if __name__ == "__main__":
     plt.savefig('/home/claude/demo_dsm_swiss_roll.png', dpi=150, bbox_inches='tight')
     print("\nSaved demo_dsm_swiss_roll.png")
     
-    print("\n✓ Successfully trained and sampled from Swiss roll distribution!")```
+    print("\n✓ Successfully trained and sampled from Swiss roll distribution!")
+```
 
 ## 2. 논의
 

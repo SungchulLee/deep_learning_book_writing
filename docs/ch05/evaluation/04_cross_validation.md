@@ -423,7 +423,8 @@ if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("4. STRATEGY SELECTION GUIDE")
     print("=" * 60)
-    cv_strategy_selection_guide()```
+    cv_strategy_selection_guide()
+```
 
 ## 2. 논의
 

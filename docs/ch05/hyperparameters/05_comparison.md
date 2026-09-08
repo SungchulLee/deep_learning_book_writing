@@ -439,7 +439,8 @@ if __name__ == "__main__":
     print("- No single 'best' method for all situations")
     print("- Consider your constraints: time, resources, accuracy needs")
     print("- Start simple, increase complexity as needed")
-    print("\nVisualization saved to 'comparison_results.png'")```
+    print("\nVisualization saved to 'comparison_results.png'")
+```
 
 ## 2. 논의
 

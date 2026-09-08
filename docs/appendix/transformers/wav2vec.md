@@ -70,7 +70,8 @@ if __name__ == "__main__":
     model = Wav2Vec2()
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
     x = torch.randn(2, 1, 16000)
-    print(f"Input: {x.shape}")```
+    print(f"Input: {x.shape}")
+```
 
 ## 2. 논의
 

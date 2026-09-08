@@ -317,7 +317,8 @@ if __name__ == "__main__":
     print(f"Input shape: {x.shape}")
     print(f"Output shape: {output.shape}")
     
-    print("\n✓ Both models working correctly!")```
+    print("\n✓ Both models working correctly!")
+```
 
 ## 2. 논의
 

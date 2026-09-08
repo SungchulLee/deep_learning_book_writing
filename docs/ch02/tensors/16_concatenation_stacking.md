@@ -91,7 +91,8 @@ def main():
     print(f"combined: {combined.shape}")  # (10, 96)
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

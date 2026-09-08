@@ -196,7 +196,8 @@ if __name__ == "__main__":
     gt_labels = torch.randint(0, 20, (2, 10))
     y_dn = model(x, gt_boxes=gt_boxes, gt_labels=gt_labels)
     print("DN pred_logits:", y_dn["pred_logits"].shape)
-    print("DN pred_boxes :", y_dn["pred_boxes"].shape)```
+    print("DN pred_boxes :", y_dn["pred_boxes"].shape)
+```
 
 ## 2. 논의
 

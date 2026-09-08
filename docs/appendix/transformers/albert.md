@@ -84,7 +84,8 @@ if __name__ == "__main__":
     ids = torch.randint(0, 1000, (2, 9))
     mask = torch.ones(2, 9, dtype=torch.long)
     logits = model(ids, attention_mask=mask)
-    print("logits:", logits.shape)  # (2, 9, 1000)```
+    print("logits:", logits.shape)  # (2, 9, 1000)
+```
 
 ## 2. 논의
 

@@ -170,7 +170,8 @@ if __name__ == "__main__":
     # 검증 전략 비교
     print("\n4. VALIDATION STRATEGIES")
     print("-" * 40)
-    holdout_vs_cross_validation()```
+    holdout_vs_cross_validation()
+```
 
 ## 2. 논의
 

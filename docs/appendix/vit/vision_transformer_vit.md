@@ -127,7 +127,8 @@ if __name__ == "__main__":
     with torch.no_grad():
         out = model(x)
     print(f"Input: {x.shape}, Output: {out.shape}")
-    print("=" * 70)```
+    print("=" * 70)
+```
 
 ## 2. 논의
 

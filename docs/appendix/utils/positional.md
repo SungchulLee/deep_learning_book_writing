@@ -94,7 +94,8 @@ def apply_rope(q, k, cos, sin):
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

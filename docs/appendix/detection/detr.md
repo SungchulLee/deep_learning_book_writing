@@ -174,7 +174,8 @@ if __name__ == "__main__":
     x = torch.randn(2, 3, 224, 224)
     y = model(x)
     print("pred_logits:", y["pred_logits"].shape)  # (2, 100, 21)
-    print("pred_boxes :", y["pred_boxes"].shape)   # (2, 100, 4)```
+    print("pred_boxes :", y["pred_boxes"].shape)   # (2, 100, 4)
+```
 
 ## 2. 논의
 

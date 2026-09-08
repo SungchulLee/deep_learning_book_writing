@@ -52,7 +52,8 @@ def demo():
     print(f"Set2Set output (richer): {out.shape}")
 
 if __name__ == "__main__":
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

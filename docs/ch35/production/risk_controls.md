@@ -263,7 +263,8 @@ def demo_risk_controls():
 
 
 if __name__ == "__main__":
-    demo_risk_controls()```
+    demo_risk_controls()
+```
 
 ## 2. 논의
 

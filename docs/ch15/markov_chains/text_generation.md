@@ -113,7 +113,8 @@ if __name__ == "__main__":
         gen.train(sample_text)
         
         for i in range(3):
-            print(f"  Generated {i+1}: {gen.generate(length=20)}")```
+            print(f"  Generated {i+1}: {gen.generate(length=20)}")
+```
 
 ## 2. 논의
 

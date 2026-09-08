@@ -251,7 +251,8 @@ def demo_offline_fundamentals():
 
 
 if __name__ == "__main__":
-    demo_offline_fundamentals()```
+    demo_offline_fundamentals()
+```
 
 ## 2. 논의
 

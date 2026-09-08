@@ -67,7 +67,8 @@ def demo():
         print(f"  Overall:   {(pred==y).float().mean():.4f}")
 
 if __name__ == "__main__":
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

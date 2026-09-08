@@ -90,7 +90,8 @@ def main():
     print("a.grad (accumulated from two backward passes):", a.grad)
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

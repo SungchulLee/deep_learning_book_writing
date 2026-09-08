@@ -111,7 +111,8 @@ if __name__ == "__main__":
 
     model = GCN(in_dim=Fin, hidden_dim=16, num_classes=C)
     logits = model(X, A)
-    print("logits:", logits.shape)  # (4, 3)```
+    print("logits:", logits.shape)  # (4, 3)
+```
 
 ## 2. 논의
 

@@ -382,7 +382,8 @@ if __name__ == "__main__":
     reference = "good morning world"
     hypothesis = "good morning"
     bleu_score = BLEU.compute_bleu(reference, hypothesis)
-    print(f"\nBLEU score: {bleu_score:.4f}")```
+    print(f"\nBLEU score: {bleu_score:.4f}")
+```
 
 ## 2. 논의
 

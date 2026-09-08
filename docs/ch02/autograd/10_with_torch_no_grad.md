@@ -50,7 +50,8 @@ def main():
     print("After block → z.requires_grad (expect True):", z.requires_grad)
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

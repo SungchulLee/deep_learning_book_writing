@@ -80,7 +80,8 @@ def main():
     print("max |full - right|:", (grad_full - right_grad).abs().max().item())
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

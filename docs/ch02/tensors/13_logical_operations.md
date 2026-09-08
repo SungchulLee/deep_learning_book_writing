@@ -79,7 +79,8 @@ def main():
     print(f"\nOutlier removal: {cleaned}")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

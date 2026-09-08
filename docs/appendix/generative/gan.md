@@ -134,7 +134,8 @@ def train_gan(net_G, net_D, data_iter, num_epochs, latent_dim,
 if __name__ == "__main__":
     model = GAN()
     print(f"Generator Parameters: {sum(p.numel() for p in model.generator.parameters()):,}")
-    print(f"Discriminator Parameters: {sum(p.numel() for p in model.discriminator.parameters()):,}")```
+    print(f"Discriminator Parameters: {sum(p.numel() for p in model.discriminator.parameters()):,}")
+```
 
 ## 2. 논의
 

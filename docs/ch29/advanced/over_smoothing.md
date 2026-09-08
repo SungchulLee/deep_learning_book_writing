@@ -67,7 +67,8 @@ def demo_over_smoothing():
         print(f"{nl:>8} {mad:>10.4f} {energy:>12.4f}")
 
 if __name__ == "__main__":
-    demo_over_smoothing()```
+    demo_over_smoothing()
+```
 
 ## 2. 논의
 

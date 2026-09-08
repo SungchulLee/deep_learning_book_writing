@@ -182,7 +182,8 @@ def main():
     print("  - When tensors might be aliased unexpectedly")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

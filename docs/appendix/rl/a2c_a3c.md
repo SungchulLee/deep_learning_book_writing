@@ -93,7 +93,8 @@ def a2c_loss(logits, values, actions, returns, entropy_coef=0.01, value_coef=0.5
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

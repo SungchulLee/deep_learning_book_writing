@@ -258,7 +258,8 @@ def demo_qt_opt():
 
 
 if __name__ == "__main__":
-    demo_qt_opt()```
+    demo_qt_opt()
+```
 
 ## 2. 논의
 

@@ -50,7 +50,8 @@ def main():
     print("After zero_(), x.grad:", x.grad)
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

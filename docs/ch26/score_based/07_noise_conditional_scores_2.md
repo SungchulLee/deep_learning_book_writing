@@ -236,7 +236,8 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig('/home/claude/demo_ncsn_checkerboard.png', dpi=150, bbox_inches='tight')
     print("\nSaved demo_ncsn_checkerboard.png")
-    print("\n✓ NCSN successfully learned multi-modal distribution!")```
+    print("\n✓ NCSN successfully learned multi-modal distribution!")
+```
 
 ## 2. 논의
 

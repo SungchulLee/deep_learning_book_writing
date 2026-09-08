@@ -293,7 +293,8 @@ if __name__ == "__main__":
     # 지표 선택 안내
     print("\n2. METRIC SELECTION GUIDE")
     print("-" * 40)
-    metric_selection_guide()```
+    metric_selection_guide()
+```
 
 ## 2. 논의
 

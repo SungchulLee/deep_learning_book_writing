@@ -180,7 +180,8 @@ if __name__ == "__main__":
     
     print("\n" + "=" * 60)
     print("Next: See 02_resnet_implementation.py for full ResNet architecture")
-    print("=" * 60 + "\n")```
+    print("=" * 60 + "\n")
+```
 
 ## 2. 논의
 

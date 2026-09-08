@@ -246,7 +246,8 @@ def demo_option_critic():
 
 
 if __name__ == "__main__":
-    demo_option_critic()```
+    demo_option_critic()
+```
 
 ## 2. 논의
 

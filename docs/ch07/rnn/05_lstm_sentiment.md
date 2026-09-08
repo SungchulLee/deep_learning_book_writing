@@ -30,7 +30,8 @@ print("\nThis is a 400+ line fully commented tutorial")
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

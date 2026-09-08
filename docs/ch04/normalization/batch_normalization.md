@@ -273,7 +273,8 @@ if __name__ == "__main__":
     print("- BatchNorm normalizes over the batch dimension")
     print("- For Conv layers, use BatchNorm2d (normalizes per channel)")
     print("- For fully connected layers, use BatchNorm1d")
-    print("- Remember to call model.eval() during inference!")```
+    print("- Remember to call model.eval() during inference!")
+```
 
 ## 2. 논의
 

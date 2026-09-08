@@ -446,7 +446,8 @@ def analyze_gradient_variance():
 if __name__ == "__main__":
     demo_advantage_comparison()
     compare_baselines()
-    analyze_gradient_variance()```
+    analyze_gradient_variance()
+```
 
 ## 2. 논의
 

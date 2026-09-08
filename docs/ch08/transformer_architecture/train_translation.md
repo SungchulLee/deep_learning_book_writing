@@ -36,7 +36,8 @@ def train_simple_example():
     print("\nTo train: Create your own dataset and training loop")
 
 if __name__ == '__main__':
-    train_simple_example()```
+    train_simple_example()
+```
 
 ## 2. 논의
 

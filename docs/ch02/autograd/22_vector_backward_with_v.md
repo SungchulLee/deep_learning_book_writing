@@ -39,7 +39,8 @@ def main():
     print("x.grad (v^T * J):", x.grad)
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

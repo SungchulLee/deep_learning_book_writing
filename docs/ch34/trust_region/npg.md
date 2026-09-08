@@ -364,7 +364,8 @@ def demo_comparison():
 
 if __name__ == "__main__":
     demo_npg()
-    demo_comparison()```
+    demo_comparison()
+```
 
 ## 2. 논의
 

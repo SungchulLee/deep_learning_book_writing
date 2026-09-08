@@ -393,7 +393,8 @@ if __name__ == "__main__":
     demonstrate_log_derivative_trick()
     compare_estimator_variance()
     demonstrate_gradient_computation()
-    demonstrate_surrogate_loss()```
+    demonstrate_surrogate_loss()
+```
 
 ## 2. 논의
 

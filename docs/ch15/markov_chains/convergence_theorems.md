@@ -724,7 +724,8 @@ if __name__ == "__main__":
     
     print("\n" + "=" * 80)
     print("END OF MODULE 04")
-    print("=" * 80)```
+    print("=" * 80)
+```
 
 ## 2. 논의
 

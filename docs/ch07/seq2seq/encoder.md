@@ -209,7 +209,8 @@ if __name__ == "__main__":
     print(f"Output shape: {outputs.shape}")
     print(f"Hidden shape: {hidden.shape}")
     if cell is not None:
-        print(f"Cell shape: {cell.shape}")```
+        print(f"Cell shape: {cell.shape}")
+```
 
 ## 2. 논의
 

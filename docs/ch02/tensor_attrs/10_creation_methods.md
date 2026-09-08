@@ -309,7 +309,8 @@ def main():
     print("  torch.as_tensor(data)        - Share memory if possible")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

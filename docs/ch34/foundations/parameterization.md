@@ -591,7 +591,8 @@ if __name__ == "__main__":
     demo_discrete_policy()
     demo_gaussian_policy()
     demo_squashed_gaussian()
-    demo_actor_critic()```
+    demo_actor_critic()
+```
 
 ## 2. 논의
 

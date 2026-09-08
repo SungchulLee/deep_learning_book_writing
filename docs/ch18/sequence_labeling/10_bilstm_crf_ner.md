@@ -110,7 +110,8 @@ if __name__ == "__main__":
     emissions = model(sentence)
     
     print(f"Emissions shape: {emissions.shape}")
-    print("BiLSTM-CRF model created successfully!")```
+    print("BiLSTM-CRF model created successfully!")
+```
 
 ## 2. 논의
 

@@ -222,7 +222,8 @@ def main():
         print(f"    {str(shape_a):20s} + {str(shape_b):20s} ✗ ({reason})")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

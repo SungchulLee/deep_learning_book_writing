@@ -459,7 +459,8 @@ if __name__ == "__main__":
     
     print("\n" + "=" * 70)
     print("Note: Run with matplotlib backend to see learning/validation curves")
-    print("=" * 70)```
+    print("=" * 70)
+```
 
 ## 2. 논의
 

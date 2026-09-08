@@ -219,7 +219,8 @@ if __name__ == "__main__":
     print("\n")
     demo_sparse_gradients()
     print("\n")
-    show_learning_rate_decay()```
+    show_learning_rate_decay()
+```
 
 ## 2. 논의
 

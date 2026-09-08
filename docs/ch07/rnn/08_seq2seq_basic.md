@@ -39,7 +39,8 @@ print("with detailed comments, examples, and exercises.")
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

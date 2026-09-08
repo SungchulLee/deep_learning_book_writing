@@ -93,7 +93,8 @@ if __name__ == "__main__":
     model = SegFormer(num_classes=19)
     x = torch.randn(1, 3, 224, 224)
     y = model(x)
-    print(y.shape)  # (1, 19, 224, 224)```
+    print(y.shape)  # (1, 19, 224, 224)
+```
 
 ## 2. 논의
 

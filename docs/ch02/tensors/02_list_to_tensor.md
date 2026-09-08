@@ -101,7 +101,8 @@ def main():
     # • 장치 배치를 위해서는 텐서 생성 시 device=...를 넘긴다(예: device='cuda').
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

@@ -273,7 +273,8 @@ def demo_distributional_rl():
 
 
 if __name__ == "__main__":
-    demo_distributional_rl()```
+    demo_distributional_rl()
+```
 
 ## 2. 논의
 

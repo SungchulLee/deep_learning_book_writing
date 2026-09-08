@@ -231,7 +231,8 @@ def demonstrate_dictionary_ner():
 
 
 if __name__ == "__main__":
-    demonstrate_dictionary_ner()```
+    demonstrate_dictionary_ner()
+```
 
 ## 2. 논의
 

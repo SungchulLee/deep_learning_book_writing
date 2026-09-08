@@ -191,7 +191,8 @@ if __name__ == "__main__":
     # 학습 보기
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss, acc = train_step(model, support, support_labels, query, query_labels, optimizer)
-    print(f"Loss: {loss:.4f}, Accuracy: {acc:.4f}")```
+    print(f"Loss: {loss:.4f}, Accuracy: {acc:.4f}")
+```
 
 ## 2. 논의
 

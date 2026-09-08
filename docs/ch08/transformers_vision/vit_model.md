@@ -265,7 +265,8 @@ if __name__ == "__main__":
     output = model(x)
     print(f"Input shape: {x.shape}")
     print(f"Output shape: {output.shape}")
-    print(f"Number of parameters: {sum(p.numel() for p in model.parameters()):,}")```
+    print(f"Number of parameters: {sum(p.numel() for p in model.parameters()):,}")
+```
 
 ## 2. 논의
 

@@ -227,7 +227,8 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_ratio=0.9)
     print(f"\nData split:")
     print(f"Train: {len(X_train)} sequences")
-    print(f"Test: {len(X_test)} sequences")```
+    print(f"Test: {len(X_test)} sequences")
+```
 
 ## 2. 논의
 

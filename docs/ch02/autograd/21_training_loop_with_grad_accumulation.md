@@ -56,7 +56,8 @@ def main():
     print("Final model weights:\n", {n: p.detach() for n, p in model.named_parameters()})
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

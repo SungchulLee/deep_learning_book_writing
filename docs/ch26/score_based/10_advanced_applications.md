@@ -182,7 +182,8 @@ def demo_conditional_generation():
 
 
 if __name__ == "__main__":
-    demo_conditional_generation()```
+    demo_conditional_generation()
+```
 
 ## 2. 논의
 

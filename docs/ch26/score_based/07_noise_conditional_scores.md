@@ -210,7 +210,8 @@ print("\n✓ Module 07 complete!")
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

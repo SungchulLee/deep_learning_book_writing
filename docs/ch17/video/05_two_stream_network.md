@@ -547,7 +547,8 @@ def main():
 
 if __name__ == "__main__":
     import cv2  # 설치 안 됐을 때 탈이 없도록 여기서 들여온다
-    main()```
+    main()
+```
 
 ## 2. 논의
 

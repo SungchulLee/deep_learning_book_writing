@@ -96,7 +96,8 @@ if __name__ == "__main__":
     model = UNet()
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
     x = torch.randn(2, 3, 256, 256)
-    print(f"Input: {x.shape}, Output: {model(x).shape}")```
+    print(f"Input: {x.shape}, Output: {model(x).shape}")
+```
 
 ## 2. 논의
 

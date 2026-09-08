@@ -221,7 +221,8 @@ if __name__ == "__main__":
     demo_gcn_layer()
     demo_gcn_karate()
     demo_gcn_normalization_effect()
-    demo_gcn_financial()```
+    demo_gcn_financial()
+```
 
 ## 2. 논의
 

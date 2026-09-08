@@ -42,7 +42,8 @@ def main():
     print("   after w.grad=None:", w.grad)
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

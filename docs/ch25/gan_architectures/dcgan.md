@@ -302,7 +302,8 @@ def test_dcgan():
 
 
 if __name__ == "__main__":
-    test_dcgan()```
+    test_dcgan()
+```
 
 ## 2. 논의
 

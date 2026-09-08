@@ -124,7 +124,8 @@ print("\n✓ Module 05 complete!")
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

@@ -267,7 +267,8 @@ def demo_dueling_dqn():
 
 
 if __name__ == "__main__":
-    demo_dueling_dqn()```
+    demo_dueling_dqn()
+```
 
 ## 2. 논의
 

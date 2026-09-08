@@ -426,7 +426,8 @@ def compare_variants():
 if __name__ == "__main__":
     train_cartpole()
     train_cartpole_batch()
-    compare_variants()```
+    compare_variants()
+```
 
 ## 2. 논의
 

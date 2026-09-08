@@ -518,7 +518,8 @@ def demo_simulated_a3c():
 
 
 if __name__ == "__main__":
-    demo_simulated_a3c()```
+    demo_simulated_a3c()
+```
 
 ## 2. 논의
 

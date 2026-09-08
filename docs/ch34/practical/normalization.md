@@ -205,7 +205,8 @@ def demo_normalization():
 
 
 if __name__ == "__main__":
-    demo_normalization()```
+    demo_normalization()
+```
 
 ## 2. 논의
 

@@ -352,7 +352,8 @@ if __name__ == "__main__":
     # 해석 안내
     print("\n2. METRIC INTERPRETATION GUIDE")
     print("-" * 40)
-    metric_interpretation_guide()```
+    metric_interpretation_guide()
+```
 
 ## 2. 논의
 

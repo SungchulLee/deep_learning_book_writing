@@ -169,7 +169,8 @@ def demo_paper_trading():
 
 
 if __name__ == "__main__":
-    demo_paper_trading()```
+    demo_paper_trading()
+```
 
 ## 2. 논의
 

@@ -195,7 +195,8 @@ def main():
         print(f"어긋남: {e}")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

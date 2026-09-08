@@ -86,7 +86,8 @@ def demo():
     print(f"  Spectral clustering accuracy: {best_acc2:.4f}")
 
 if __name__ == "__main__":
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

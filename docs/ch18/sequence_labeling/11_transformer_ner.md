@@ -123,7 +123,8 @@ class TransformerNER(nn.Module):
 if __name__ == "__main__":
     print("Transformer NER model template")
     print("Note: Requires transformers library and pre-trained models")
-    print("Example: BERT, RoBERTa, DistilBERT for token classification")```
+    print("Example: BERT, RoBERTa, DistilBERT for token classification")
+```
 
 ## 2. 논의
 

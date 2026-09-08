@@ -170,7 +170,8 @@ def demo_statistical_testing():
 
 
 if __name__ == "__main__":
-    demo_statistical_testing()```
+    demo_statistical_testing()
+```
 
 ## 2. 논의
 

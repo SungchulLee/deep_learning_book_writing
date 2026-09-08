@@ -206,7 +206,8 @@ if __name__ == "__main__":
     """)
     
     # demonstrate_pretrained()
-    print("\nNote: Requires 'transformers' library: pip install transformers")```
+    print("\nNote: Requires 'transformers' library: pip install transformers")
+```
 
 ## 2. 논의
 

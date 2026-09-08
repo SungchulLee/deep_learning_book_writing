@@ -218,7 +218,8 @@ def demo_vtrace():
 
 
 if __name__ == "__main__":
-    demo_vtrace()```
+    demo_vtrace()
+```
 
 ## 2. 논의
 

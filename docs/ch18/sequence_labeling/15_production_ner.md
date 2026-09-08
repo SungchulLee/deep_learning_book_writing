@@ -156,7 +156,8 @@ if __name__ == "__main__":
     result = pipeline.extract_entities(text)
     
     print(f"Extracted {len(result['entities'])} entities")
-    print(f"Processing time: {result['processing_time']:.3f}s")```
+    print(f"Processing time: {result['processing_time']:.3f}s")
+```
 
 ## 2. 논의
 

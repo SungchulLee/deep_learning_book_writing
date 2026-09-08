@@ -441,7 +441,8 @@ def demo_a2c_with_gae():
 
 if __name__ == "__main__":
     demo_a2c()
-    demo_a2c_with_gae()```
+    demo_a2c_with_gae()
+```
 
 ## 2. 논의
 

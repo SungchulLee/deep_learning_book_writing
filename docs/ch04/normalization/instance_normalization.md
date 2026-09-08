@@ -384,7 +384,8 @@ if __name__ == "__main__":
     print("✓ GANs (especially image-to-image translation)")
     print("✓ When each sample should be processed independently")
     print("✓ When batch statistics shouldn't mix")
-    print("✓ Real-time applications (no running statistics needed)")```
+    print("✓ Real-time applications (no running statistics needed)")
+```
 
 ## 2. 논의
 

@@ -119,7 +119,8 @@ if __name__ == "__main__":
     print("3. Direct interpretation: P(B better than A)")
     print("4. Naturally handles sequential testing")
     print("\nCongratulations! You've completed the Bayesian Inference curriculum.")
-    print("="*70)```
+    print("="*70)
+```
 
 ## 2. 논의
 

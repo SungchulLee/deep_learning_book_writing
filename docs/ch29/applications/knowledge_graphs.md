@@ -58,7 +58,8 @@ def demo():
             print(f"  Epoch {epoch+1}: Loss={loss.item():.4f}, MRR={mrr:.4f}, Hits@10={hits10:.4f}")
 
 if __name__ == "__main__":
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

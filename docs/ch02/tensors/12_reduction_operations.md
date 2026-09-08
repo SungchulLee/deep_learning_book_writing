@@ -76,7 +76,8 @@ def main():
     print(f"cumsum(dim=1):\n{torch.cumsum(mat, dim=1)}")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

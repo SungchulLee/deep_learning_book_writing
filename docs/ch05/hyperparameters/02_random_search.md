@@ -381,7 +381,8 @@ if __name__ == "__main__":
     print("- Random Search is more efficient for large parameter spaces")
     print("- Can use continuous distributions (not just discrete grids)")
     print("- Often finds good parameters with fewer iterations")
-    print("- Trade-off between number of iterations and computation time")```
+    print("- Trade-off between number of iterations and computation time")
+```
 
 ## 2. 논의
 

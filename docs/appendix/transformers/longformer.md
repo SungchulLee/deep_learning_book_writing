@@ -120,7 +120,8 @@ if __name__ == "__main__":
     model = Longformer(vocab_size=1000, d_model=128, window=2, num_layers=2)
     ids = torch.randint(0, 1000, (2, 20))
     logits = model(ids)
-    print("logits:", logits.shape)  # (2, 20, 1000)```
+    print("logits:", logits.shape)  # (2, 20, 1000)
+```
 
 ## 2. 논의
 

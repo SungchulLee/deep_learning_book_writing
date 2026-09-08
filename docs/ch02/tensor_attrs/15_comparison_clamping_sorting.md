@@ -382,7 +382,8 @@ def main():
     print("  torch.minimum(a, b)   - Element-wise minimum")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

@@ -79,7 +79,8 @@ def demo():
         if (epoch+1) % 10 == 0: print(f"  Epoch {epoch+1}: BPR Loss = {loss.item():.4f}")
 
 if __name__ == "__main__":
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

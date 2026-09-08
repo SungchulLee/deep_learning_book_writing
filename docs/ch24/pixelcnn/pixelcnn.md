@@ -296,7 +296,8 @@ if __name__ == "__main__":
     
     print("\n✓ PixelCNN working correctly!")
     print("\nNote: For real training, use the train.py script")
-    print("which trains on actual image data (like MNIST)")```
+    print("which trains on actual image data (like MNIST)")
+```
 
 ## 2. 논의
 

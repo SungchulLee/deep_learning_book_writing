@@ -118,7 +118,8 @@ if __name__ == "__main__":
     )
     
     iob_data = builder.to_iob_format()
-    print(f"IOB format: {iob_data}")```
+    print(f"IOB format: {iob_data}")
+```
 
 ## 2. 논의
 

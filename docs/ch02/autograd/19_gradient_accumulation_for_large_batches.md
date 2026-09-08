@@ -62,7 +62,8 @@ def main():
     print("Finished one optimizer step using accumulation with proper scaling.")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

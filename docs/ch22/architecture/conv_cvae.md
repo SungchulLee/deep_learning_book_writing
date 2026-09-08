@@ -257,7 +257,8 @@ if __name__ == '__main__':
     
     # 조건부 뽑기를 시험한다
     samples = model.sample(class_label=7, num_samples=10)
-    print(f"Generated samples (class 7) shape: {samples.shape}")```
+    print(f"Generated samples (class 7) shape: {samples.shape}")
+```
 
 ## 2. 논의
 

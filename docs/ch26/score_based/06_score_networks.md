@@ -181,7 +181,8 @@ def demo_architectures():
 
 
 if __name__ == "__main__":
-    demo_architectures()```
+    demo_architectures()
+```
 
 ## 2. 논의
 

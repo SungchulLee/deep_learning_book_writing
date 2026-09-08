@@ -270,7 +270,8 @@ def demo_order_execution():
 
 
 if __name__ == "__main__":
-    demo_order_execution()```
+    demo_order_execution()
+```
 
 ## 2. 논의
 

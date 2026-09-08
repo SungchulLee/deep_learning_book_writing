@@ -84,7 +84,8 @@ if __name__ == "__main__":
 
     model = GraphSAGE(in_dim=Fin, hidden_dim=16, num_classes=C)
     logits = model(X, A)
-    print("logits:", logits.shape)  # (5, 4)```
+    print("logits:", logits.shape)  # (5, 4)
+```
 
 ## 2. 논의
 

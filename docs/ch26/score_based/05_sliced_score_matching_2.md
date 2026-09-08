@@ -120,7 +120,8 @@ def demo_ssm():
 
 
 if __name__ == "__main__":
-    demo_ssm()```
+    demo_ssm()
+```
 
 ## 2. 논의
 

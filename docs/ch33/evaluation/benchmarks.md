@@ -174,7 +174,8 @@ def demo_benchmarks():
 
 
 if __name__ == "__main__":
-    demo_benchmarks()```
+    demo_benchmarks()
+```
 
 ## 2. 논의
 

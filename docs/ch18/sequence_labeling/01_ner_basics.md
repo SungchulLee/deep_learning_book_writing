@@ -564,7 +564,8 @@ if __name__ == "__main__":
     print(f"{'Token':<20} {'Label':<10}")
     print("-" * 30)
     for token in labeled_tokens:
-        print(f"{token.text:<20} {token.label:<10}")```
+        print(f"{token.text:<20} {token.label:<10}")
+```
 
 ## 2. 논의
 

@@ -412,7 +412,8 @@ if __name__ == "__main__":
     print("  - batch_normalization.py")
     print("  - layer_normalization.py")
     print("  - instance_normalization.py")
-    print("=" * 70)```
+    print("=" * 70)
+```
 
 ## 2. 논의
 

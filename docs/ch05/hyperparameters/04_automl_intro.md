@@ -424,7 +424,8 @@ if __name__ == "__main__":
     print("  - TPOT: pip install tpot")
     print("  - Auto-sklearn: pip install auto-sklearn")
     print("  - PyCaret: pip install pycaret")
-    print("  - H2O AutoML: pip install h2o")```
+    print("  - H2O AutoML: pip install h2o")
+```
 
 ## 2. 논의
 

@@ -506,7 +506,8 @@ if __name__ == "__main__":
     print("  - ModelRegistry: Manage deployed models")
     print("  - compare_models(): Compare model outputs")
     print("  - export_for_production(): Complete export pipeline")
-    print("\nImport this module to use these utilities in your code.")```
+    print("\nImport this module to use these utilities in your code.")
+```
 
 ## 2. 논의
 

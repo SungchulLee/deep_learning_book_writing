@@ -243,7 +243,8 @@ def demo_double_dqn():
 
 
 if __name__ == "__main__":
-    demo_double_dqn()```
+    demo_double_dqn()
+```
 
 ## 2. 논의
 

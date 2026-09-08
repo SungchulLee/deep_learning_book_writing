@@ -286,7 +286,8 @@ def demo_prioritized_replay():
 
 
 if __name__ == "__main__":
-    demo_prioritized_replay()```
+    demo_prioritized_replay()
+```
 
 ## 2. 논의
 

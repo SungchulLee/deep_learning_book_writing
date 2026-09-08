@@ -232,7 +232,8 @@ if __name__ == "__main__":
     test_query_x = torch.randn(n_query, input_dim)
     
     predictions = maml.predict(test_support_x, test_support_y, test_query_x)
-    print(f"Predictions: {predictions}")```
+    print(f"Predictions: {predictions}")
+```
 
 ## 2. 논의
 

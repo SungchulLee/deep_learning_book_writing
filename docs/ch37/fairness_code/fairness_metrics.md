@@ -407,7 +407,8 @@ if __name__ == "__main__":
         {'gender': gender}
     )
 
-    print(report)```
+    print(report)
+```
 
 ## 2. 논의
 

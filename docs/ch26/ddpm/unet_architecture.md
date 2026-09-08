@@ -380,7 +380,8 @@ if __name__ == "__main__":
     
     # 매개변수 개수 세기
     params = sum(p.numel() for p in model.parameters())
-    print(f"Number of parameters: {params:,}")```
+    print(f"Number of parameters: {params:,}")
+```
 
 ## 2. 논의
 

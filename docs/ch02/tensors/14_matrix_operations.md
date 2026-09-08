@@ -94,7 +94,8 @@ def main():
     print(f"Verification: A @ x = {A @ x}")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

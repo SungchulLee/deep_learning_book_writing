@@ -46,7 +46,8 @@ def demo():
     print(f"  Bot recall: {(pred[80:]==1).float().mean():.4f}")
 
 if __name__ == "__main__":
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

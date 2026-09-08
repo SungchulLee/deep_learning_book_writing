@@ -267,7 +267,8 @@ if __name__ == "__main__":
     set_model = SetTransformer(input_dim=input_dim, d_model=128, num_heads=4)
     support_set = support.unsqueeze(0)  # 배치 차원을 더한다
     set_embedding = set_model(support_set)
-    print(f"Set embedding shape: {set_embedding.shape}")  # (1, 128)```
+    print(f"Set embedding shape: {set_embedding.shape}")  # (1, 128)
+```
 
 ## 2. 논의
 

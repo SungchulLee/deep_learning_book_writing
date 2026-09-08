@@ -61,7 +61,8 @@ def double_dqn_td_loss(q_online: nn.Module, q_target: nn.Module, batch, gamma: f
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

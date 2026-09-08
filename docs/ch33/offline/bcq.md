@@ -210,7 +210,8 @@ def demo_bcq():
 
 
 if __name__ == "__main__":
-    demo_bcq()```
+    demo_bcq()
+```
 
 ## 2. 논의
 

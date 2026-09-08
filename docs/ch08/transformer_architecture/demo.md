@@ -37,7 +37,8 @@ def demo():
     print("\n✓ Self-attention demo complete!")
 
 if __name__ == '__main__':
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

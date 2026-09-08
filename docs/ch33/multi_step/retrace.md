@@ -241,7 +241,8 @@ def demo_retrace():
 
 
 if __name__ == "__main__":
-    demo_retrace()```
+    demo_retrace()
+```
 
 ## 2. 논의
 

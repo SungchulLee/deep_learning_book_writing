@@ -241,7 +241,8 @@ def demo_training_curves():
 
 
 if __name__ == "__main__":
-    demo_training_curves()```
+    demo_training_curves()
+```
 
 ## 2. 논의
 

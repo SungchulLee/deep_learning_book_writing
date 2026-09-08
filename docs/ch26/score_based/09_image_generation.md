@@ -157,7 +157,8 @@ def demo_mnist():
 
 
 if __name__ == "__main__":
-    demo_mnist()```
+    demo_mnist()
+```
 
 ## 2. 논의
 

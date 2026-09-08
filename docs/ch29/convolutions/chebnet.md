@@ -178,7 +178,8 @@ def demo_filter_localization():
 if __name__ == "__main__":
     demo_chebyshev_polynomials()
     demo_chebnet_node_classification()
-    demo_filter_localization()```
+    demo_filter_localization()
+```
 
 ## 2. 논의
 

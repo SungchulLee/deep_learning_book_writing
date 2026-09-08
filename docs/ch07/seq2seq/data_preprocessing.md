@@ -381,7 +381,8 @@ if __name__ == "__main__":
     loaded_src_vocab = Vocabulary.load('src_vocab.pkl')
     loaded_trg_vocab = Vocabulary.load('trg_vocab.pkl')
     print(f"Loaded source vocabulary size: {len(loaded_src_vocab)}")
-    print(f"Loaded target vocabulary size: {len(loaded_trg_vocab)}")```
+    print(f"Loaded target vocabulary size: {len(loaded_trg_vocab)}")
+```
 
 ## 2. 논의
 

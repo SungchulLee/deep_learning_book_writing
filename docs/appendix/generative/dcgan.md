@@ -87,7 +87,8 @@ class DCGAN(nn.Module):
 if __name__ == "__main__":
     model = DCGAN()
     print(f"Generator Parameters: {sum(p.numel() for p in model.generator.parameters()):,}")
-    print(f"Discriminator Parameters: {sum(p.numel() for p in model.discriminator.parameters()):,}")```
+    print(f"Discriminator Parameters: {sum(p.numel() for p in model.discriminator.parameters()):,}")
+```
 
 ## 2. 논의
 

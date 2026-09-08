@@ -31,7 +31,8 @@ def train_vit():
     print("\nReady for image classification training!")
 
 if __name__ == '__main__':
-    train_vit()```
+    train_vit()
+```
 
 ## 2. 논의
 

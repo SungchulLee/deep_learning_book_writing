@@ -355,7 +355,8 @@ if __name__ == "__main__":
     print("  - ResNet-34: ~94-95% test accuracy")
     print("  - ResNet-50: ~94-95% test accuracy")
     
-    print("\n" + "=" * 80 + "\n")```
+    print("\n" + "=" * 80 + "\n")
+```
 
 ## 2. 논의
 

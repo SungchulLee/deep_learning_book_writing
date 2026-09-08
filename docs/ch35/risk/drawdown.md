@@ -241,7 +241,8 @@ def demo_drawdown_control():
 
 
 if __name__ == "__main__":
-    demo_drawdown_control()```
+    demo_drawdown_control()
+```
 
 ## 2. 논의
 

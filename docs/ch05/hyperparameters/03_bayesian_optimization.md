@@ -395,7 +395,8 @@ if __name__ == "__main__":
     print("- TPE sampler works well for most problems")
     print("- Pruning can significantly reduce computation time")
     print("- More sophisticated than random/grid search")
-    print("- Great for expensive model evaluations")```
+    print("- Great for expensive model evaluations")
+```
 
 ## 2. 논의
 

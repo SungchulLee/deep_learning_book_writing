@@ -107,7 +107,8 @@ def main():
     #         t = torch.tensor(df.to_numpy(np.float32), device="cuda")  # GPU로 바로 **COPY**
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

@@ -369,7 +369,8 @@ if __name__ == "__main__":
         teacher_forcing_ratio=0.5
     )
     
-    print("\nTraining completed!")```
+    print("\nTraining completed!")
+```
 
 ## 2. 논의
 

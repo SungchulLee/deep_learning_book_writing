@@ -101,7 +101,8 @@ def main():
     print("Gradient tells us to increase prediction!")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

@@ -134,7 +134,8 @@ if __name__ == "__main__":
     print("3. Often outperforms MLE, especially with many parameters")
     print("4. Related to James-Stein estimator")
     print("\nNext: Module 9 - Bayesian Linear Regression")
-    print("="*70)```
+    print("="*70)
+```
 
 ## 2. 논의
 

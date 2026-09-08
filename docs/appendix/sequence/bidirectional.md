@@ -136,7 +136,8 @@ if __name__ == "__main__":
     y, (hF, hB) = model(x)
     print("y :", y.shape)   # expected (2, 5, 32) when concat=True
     print("hF:", hF.shape)  # expected (2, 16)
-    print("hB:", hB.shape)  # expected (2, 16)```
+    print("hB:", hB.shape)  # expected (2, 16)
+```
 
 ## 2. 논의
 

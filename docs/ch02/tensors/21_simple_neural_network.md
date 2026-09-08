@@ -103,7 +103,8 @@ def main():
     print("Model in eval mode - no gradients computed!")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

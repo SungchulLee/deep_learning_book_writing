@@ -283,7 +283,8 @@ print("Next: Apply to real images (Module 09)!")
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

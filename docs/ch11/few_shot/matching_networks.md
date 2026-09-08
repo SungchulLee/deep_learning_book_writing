@@ -211,7 +211,8 @@ if __name__ == "__main__":
     
     # 예측한다
     predicted_classes = model.predict(support, support_labels, query)
-    print(f"Predicted classes: {predicted_classes}")```
+    print(f"Predicted classes: {predicted_classes}")
+```
 
 ## 2. 논의
 

@@ -62,7 +62,8 @@ class SqueezeNet(nn.Module):
 
 if __name__ == "__main__":
     model = SqueezeNet()
-    print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")```
+    print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
+```
 
 ## 2. 논의
 

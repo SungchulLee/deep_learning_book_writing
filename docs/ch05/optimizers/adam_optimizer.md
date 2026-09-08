@@ -143,7 +143,8 @@ def demo_adam():
 
 
 if __name__ == "__main__":
-    demo_adam()```
+    demo_adam()
+```
 
 ## 2. 논의
 

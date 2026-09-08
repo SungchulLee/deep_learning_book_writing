@@ -103,7 +103,8 @@ if __name__ == "__main__":
     y, hT = model(x)
 
     print("y :", y.shape)        # expected (2, 5, 16)
-    print("hT:", hT.shape)       # expected (2, 16)```
+    print("hT:", hT.shape)       # expected (2, 16)
+```
 
 ## 2. 논의
 

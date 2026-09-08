@@ -177,7 +177,8 @@ def demo_reward_shaping():
 
 
 if __name__ == "__main__":
-    demo_reward_shaping()```
+    demo_reward_shaping()
+```
 
 ## 2. 논의
 

@@ -374,7 +374,8 @@ if __name__ == "__main__":
     print("1. Residual networks maintain higher gradient norms throughout training")
     print("2. This enables better optimization and faster convergence")
     print("3. The skip connections act as 'gradient highways' to deeper layers")
-    print("=" * 80 + "\n")```
+    print("=" * 80 + "\n")
+```
 
 ## 2. 논의
 

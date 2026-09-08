@@ -604,7 +604,8 @@ if __name__ == "__main__":
     print("  Linear: Uniform increase, aggressive at end")
     print("  Cosine: Smooth increase, better for images")
     print("  Recommendation: Use cosine for better quality")
-    print("=" * 70)```
+    print("=" * 70)
+```
 
 ## 2. 논의
 

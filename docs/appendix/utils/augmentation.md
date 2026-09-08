@@ -77,7 +77,8 @@ def mixup(x, y, alpha=0.2):
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

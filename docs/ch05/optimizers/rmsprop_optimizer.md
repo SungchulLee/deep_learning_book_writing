@@ -179,7 +179,8 @@ def compare_with_without_rmsprop():
 if __name__ == "__main__":
     demo_rmsprop()
     print("\n")
-    compare_with_without_rmsprop()```
+    compare_with_without_rmsprop()
+```
 
 ## 2. 논의
 

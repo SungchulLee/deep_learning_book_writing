@@ -399,7 +399,8 @@ if __name__ == "__main__":
     
     print("\n" + "=" * 60)
     print("Note: Run with matplotlib backend to see visualizations")
-    print("=" * 60)```
+    print("=" * 60)
+```
 
 ## 2. 논의
 

@@ -37,7 +37,8 @@ class Invertible1x1Conv(nn.Module):
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

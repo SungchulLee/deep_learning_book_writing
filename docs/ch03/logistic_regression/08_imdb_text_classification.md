@@ -109,7 +109,8 @@ def main():
     save_checkpoint(cfg.save_dir / "imdb_avgemb_last.pt", model, vocab, pad_idx, cfg)
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

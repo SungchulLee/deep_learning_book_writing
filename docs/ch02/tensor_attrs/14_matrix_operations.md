@@ -380,7 +380,8 @@ def main():
     print("  - For large matrices, check numerical stability")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

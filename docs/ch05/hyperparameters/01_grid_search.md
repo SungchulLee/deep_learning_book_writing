@@ -247,7 +247,8 @@ if __name__ == "__main__":
     print("  combination within your specified grid")
     print("- Computational cost grows exponentially with parameters")
     print("- Use nested CV for unbiased performance estimates")
-    print("- Start with coarse grid, then refine around best values")```
+    print("- Start with coarse grid, then refine around best values")
+```
 
 ## 2. 논의
 

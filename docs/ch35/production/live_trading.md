@@ -242,7 +242,8 @@ def demo_live_trading():
 
 
 if __name__ == "__main__":
-    demo_live_trading()```
+    demo_live_trading()
+```
 
 ## 2. 논의
 

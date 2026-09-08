@@ -297,7 +297,8 @@ def demo_fundamentals():
 
 
 if __name__ == "__main__":
-    demo_fundamentals()```
+    demo_fundamentals()
+```
 
 ## 2. 논의
 

@@ -229,7 +229,8 @@ def demo_diagnostics():
 
 if __name__ == "__main__":
     verify_loss_sign()
-    demo_diagnostics()```
+    demo_diagnostics()
+```
 
 ## 2. 논의
 

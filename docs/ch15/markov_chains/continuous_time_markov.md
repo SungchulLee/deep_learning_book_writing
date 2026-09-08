@@ -120,7 +120,8 @@ if __name__ == "__main__":
     
     print("\\nSimulation over time [0, 10]:")
     times, states = ctmc.simulate(10, initial_state=1)
-    print(f"Number of transitions: {len(times)-1}")```
+    print(f"Number of transitions: {len(times)-1}")
+```
 
 ## 2. 논의
 

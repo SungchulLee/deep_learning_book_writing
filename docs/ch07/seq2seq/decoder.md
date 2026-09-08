@@ -363,7 +363,8 @@ if __name__ == "__main__":
     print(f"Input token shape: {input_token.shape}")
     print(f"Output shape: {output.shape}")
     print(f"Hidden shape: {hidden.shape}")
-    print(f"Attention weights shape: {attention_weights.shape}")```
+    print(f"Attention weights shape: {attention_weights.shape}")
+```
 
 ## 2. 논의
 

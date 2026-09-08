@@ -84,7 +84,8 @@ def main():
     #   끝점이 중요하다면 보통 linspace가 더 안전한 선택이다.
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

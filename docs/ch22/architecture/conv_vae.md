@@ -206,7 +206,8 @@ if __name__ == '__main__':
     
     # 뽑기를 시험한다
     samples = model.sample(num_samples=10)
-    print(f"Generated samples shape: {samples.shape}")```
+    print(f"Generated samples shape: {samples.shape}")
+```
 
 ## 2. 논의
 

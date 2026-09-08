@@ -108,7 +108,8 @@ def main():
     print("t8.grad (expected 5.0):", t8.grad.item(), "\n")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

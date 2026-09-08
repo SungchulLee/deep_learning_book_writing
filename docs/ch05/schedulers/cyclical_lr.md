@@ -279,7 +279,8 @@ if __name__ == "__main__":
         print()
     
     # 시각화 만들기
-    plot_cyclical_schedules()```
+    plot_cyclical_schedules()
+```
 
 ## 2. 논의
 

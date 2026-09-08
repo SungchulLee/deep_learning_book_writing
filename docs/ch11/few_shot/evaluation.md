@@ -343,7 +343,8 @@ if __name__ == "__main__":
     print("\nEvaluator Summary:")
     print(f"Mean accuracy: {summary['mean_accuracy']*100:.2f}%")
     print(f"95% CI: ±{summary['accuracy_95_ci']*100:.2f}%")
-    print(f"Mean loss: {summary['mean_loss']:.4f}")```
+    print(f"Mean loss: {summary['mean_loss']:.4f}")
+```
 
 ## 2. 논의
 

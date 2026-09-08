@@ -126,7 +126,8 @@ if __name__ == "__main__":
     X_test = [["Bill", "Gates", "started", "Microsoft"]]
     predictions = ner.predict(X_test)
     
-    print("Predictions:", predictions)```
+    print("Predictions:", predictions)
+```
 
 ## 2. 논의
 

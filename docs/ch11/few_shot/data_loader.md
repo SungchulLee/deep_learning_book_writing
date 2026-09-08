@@ -291,7 +291,8 @@ if __name__ == "__main__":
         print(f"\nMini-ImageNet batch:")
         print(f"Support shape: {support.shape}")
         print(f"Query shape: {query.shape}")
-        break```
+        break
+```
 
 ## 2. 논의
 

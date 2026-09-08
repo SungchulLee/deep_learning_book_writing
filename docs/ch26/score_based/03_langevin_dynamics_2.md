@@ -132,7 +132,8 @@ if __name__ == "__main__":
     print(f"\nFinal sample statistics:")
     print(f"Mean: {samples.mean(dim=0).numpy()}")
     print(f"Std: {samples.std(dim=0).numpy()}")
-    print("\nExpected: Mean=[0, 0], Std=[1, 1]")```
+    print("\nExpected: Mean=[0, 0], Std=[1, 1]")
+```
 
 ## 2. 논의
 

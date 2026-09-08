@@ -144,7 +144,8 @@ if __name__ == "__main__":
 
     model = MPNN(node_dim=node_dim, edge_dim=edge_dim, msg_dim=16, T=2)
     H = model(X, A, E)
-    print("H:", H.shape)  # (4, 8)```
+    print("H:", H.shape)  # (4, 8)
+```
 
 ## 2. 논의
 

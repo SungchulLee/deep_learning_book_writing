@@ -129,7 +129,8 @@ if __name__ == "__main__":
     done = torch.randint(0, 2, (B,), dtype=torch.float32)
 
     loss = dqn_td_loss(q, tgt, (s, a, r, s2, done))
-    print("loss:", float(loss))```
+    print("loss:", float(loss))
+```
 
 ## 2. 논의
 

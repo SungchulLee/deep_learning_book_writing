@@ -113,7 +113,8 @@ if __name__ == "__main__":
     y_pred = [["B-PER", "I-PER", "O", "B-ORG"]]
     
     metrics = NERMetrics.compute_metrics(y_true, y_pred)
-    print(f"F1 Score: {metrics['f1']:.3f}")```
+    print(f"F1 Score: {metrics['f1']:.3f}")
+```
 
 ## 2. 논의
 

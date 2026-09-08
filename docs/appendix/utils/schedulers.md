@@ -52,7 +52,8 @@ def warmup_cosine_lr(step, warmup_steps, total_steps, base_lr):
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

@@ -257,7 +257,8 @@ if __name__ == "__main__":
     n_params = sum(p.numel() for p in neural_model.parameters())
     print(f"Number of parameters: {n_params}")
     
-    print("\n✓ Both models working correctly!")```
+    print("\n✓ Both models working correctly!")
+```
 
 ## 2. 논의
 

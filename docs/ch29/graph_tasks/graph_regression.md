@@ -70,7 +70,8 @@ def demo():
             model.train()
 
 if __name__ == "__main__":
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

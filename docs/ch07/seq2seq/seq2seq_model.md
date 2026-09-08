@@ -409,7 +409,8 @@ if __name__ == "__main__":
     print(f"Target shape: {trg.shape}")
     print(f"Output shape: {outputs.shape}")
     print(f"Attention shape: {attentions.shape}")
-    print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")```
+    print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")
+```
 
 ## 2. 논의
 

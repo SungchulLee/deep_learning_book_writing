@@ -344,7 +344,8 @@ def main():
     print("  - unbind() returns tuple (faster than loop + indexing)")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

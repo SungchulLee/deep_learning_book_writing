@@ -30,7 +30,8 @@ def main():
     print("- Any operation that should NOT influence future gradients")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

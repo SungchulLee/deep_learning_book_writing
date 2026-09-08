@@ -139,7 +139,8 @@ if __name__ == "__main__":
     print("3. Naturally regularized through prior")
     print("4. Uncertainty quantification is automatic")
     print("\nNext: Module 10 - Advanced Applications")
-    print("="*70)```
+    print("="*70)
+```
 
 ## 2. 논의
 

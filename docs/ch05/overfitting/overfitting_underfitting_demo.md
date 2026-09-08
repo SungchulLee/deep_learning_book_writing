@@ -172,7 +172,8 @@ if __name__ == "__main__":
     print("\nKey Takeaways:")
     print("- Underfitting: High training and test error (model too simple)")
     print("- Overfitting: Low training error but high test error (model too complex)")
-    print("- Good fit: Similar training and test errors (balanced complexity)")```
+    print("- Good fit: Similar training and test errors (balanced complexity)")
+```
 
 ## 2. 논의
 

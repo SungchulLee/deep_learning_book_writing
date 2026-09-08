@@ -260,7 +260,8 @@ if __name__ == "__main__":
     negative_emb = model.encoder(negative)
     
     triplet_loss = triplet_criterion(anchor_emb, positive_emb, negative_emb)
-    print(f"Triplet loss: {triplet_loss.item():.4f}")```
+    print(f"Triplet loss: {triplet_loss.item():.4f}")
+```
 
 ## 2. 논의
 

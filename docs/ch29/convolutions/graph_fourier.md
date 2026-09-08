@@ -192,7 +192,8 @@ if __name__ == "__main__":
     demo_parseval()
     demo_spectral_convolution()
     demo_learnable_spectral_filter()
-    visualize_gft()```
+    visualize_gft()
+```
 
 ## 2. 논의
 

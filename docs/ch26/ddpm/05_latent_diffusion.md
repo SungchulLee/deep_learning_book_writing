@@ -425,7 +425,8 @@ def main():
     print(f"   - This is the core idea behind Stable Diffusion!")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

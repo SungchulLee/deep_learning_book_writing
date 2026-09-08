@@ -254,7 +254,8 @@ if __name__ == "__main__":
     print("  - Bias decreases (model captures more patterns)")
     print("  - Variance increases (model becomes more sensitive)")
     print("\n• OPTIMAL MODEL: Minimizes (Bias² + Variance)")
-    print("="*70)```
+    print("="*70)
+```
 
 ## 2. 논의
 

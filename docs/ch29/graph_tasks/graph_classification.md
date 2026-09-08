@@ -91,7 +91,8 @@ def demo_graph_classification():
             model.train()
 
 if __name__ == "__main__":
-    demo_graph_classification()```
+    demo_graph_classification()
+```
 
 ## 2. 논의
 

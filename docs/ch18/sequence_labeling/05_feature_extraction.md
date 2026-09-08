@@ -154,7 +154,8 @@ if __name__ == "__main__":
         print(f"\nToken: {token}")
         print(f"Features: {len(features)} features extracted")
         print(f"Word shape: {features['word_shape']}")
-        print(f"Is capitalized: {features['is_capitalized']}")```
+        print(f"Is capitalized: {features['is_capitalized']}")
+```
 
 ## 2. 논의
 

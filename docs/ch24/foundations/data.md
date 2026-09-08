@@ -208,7 +208,8 @@ if __name__ == "__main__":
     
     plt.tight_layout()
     plt.savefig("sample_time_series.png", dpi=150)
-    print("Saved visualization to sample_time_series.png")```
+    print("Saved visualization to sample_time_series.png")
+```
 
 ## 2. 논의
 

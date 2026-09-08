@@ -87,7 +87,8 @@ class AttentionSeq2Seq(nn.Module):
 
 if __name__ == "__main__":
     model = AttentionSeq2Seq(input_size=100, output_size=100)
-    print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")```
+    print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
+```
 
 ## 2. 논의
 

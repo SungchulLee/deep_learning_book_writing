@@ -235,7 +235,8 @@ if __name__ == '__main__':
     import os
     os.makedirs(os.path.dirname(args.checkpoint_path), exist_ok=True)
     
-    main(args)```
+    main(args)
+```
 
 ## 2. 논의
 

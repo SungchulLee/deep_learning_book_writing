@@ -282,7 +282,8 @@ def demo_noisy_networks():
 
 
 if __name__ == "__main__":
-    demo_noisy_networks()```
+    demo_noisy_networks()
+```
 
 ## 2. 논의
 

@@ -403,7 +403,8 @@ def main():
     print(f"   Speedup: ~{T/DDIM_STEPS:.1f}x faster than DDPM!")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

@@ -638,7 +638,8 @@ if __name__ == "__main__":
     print("2. BIOES adds E- and S- for explicit boundaries")
     print("3. Both schemes can represent the same entities")
     print("4. BIOES often performs better in deep learning models")
-    print("5. Always validate tag sequences for consistency")```
+    print("5. Always validate tag sequences for consistency")
+```
 
 ## 2. 논의
 

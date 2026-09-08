@@ -153,7 +153,8 @@ def main():
     print("\nCheckpoint files cleaned up.")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

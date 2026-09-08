@@ -433,7 +433,8 @@ def demo_all_quantization_methods():
 
 
 if __name__ == "__main__":
-    demo_all_quantization_methods()```
+    demo_all_quantization_methods()
+```
 
 ## 2. 논의
 

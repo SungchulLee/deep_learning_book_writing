@@ -61,7 +61,8 @@ def demo():
             print(f"  Epoch {epoch+1}: Loss = {total_loss/160:.4f}")
 
 if __name__ == "__main__":
-    demo()```
+    demo()
+```
 
 ## 2. 논의
 

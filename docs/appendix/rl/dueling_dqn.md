@@ -67,7 +67,8 @@ if __name__ == "__main__":
     net = DuelingQNetwork(obs_dim=8, num_actions=4)
     x = torch.randn(3, 8)
     q = net(x)
-    print("Q:", q.shape)  # (3, 4)```
+    print("Q:", q.shape)  # (3, 4)
+```
 
 ## 2. 논의
 

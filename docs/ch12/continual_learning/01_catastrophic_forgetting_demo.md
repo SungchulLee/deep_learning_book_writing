@@ -583,7 +583,8 @@ if __name__ == "__main__":
     print("  - Script 02: Naive Sequential Learning (baseline)")
     print("  - Script 03: Simple Experience Replay")
     print("  - Intermediate scripts: EWC, LWF, and more!")
-    print("=" * 70)```
+    print("=" * 70)
+```
 
 ## 2. 논의
 

@@ -76,7 +76,8 @@ def main():
     print(f"Reduced data shape: {data_reduced.shape}")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

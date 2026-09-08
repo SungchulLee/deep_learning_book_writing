@@ -337,7 +337,8 @@ if __name__ == "__main__":
     visualize_positional_encoding()
     
     print("\nVisualization utilities ready!")
-    print("Use AttentionVisualizer class to visualize attention maps on actual images.")```
+    print("Use AttentionVisualizer class to visualize attention maps on actual images.")
+```
 
 ## 2. 논의
 

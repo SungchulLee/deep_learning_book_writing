@@ -285,7 +285,8 @@ def main():
     print(f"Samples with feature[0] > 0: {len(filtered_data)}")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

@@ -362,7 +362,8 @@ def demo_sac_alpha_comparison():
 
 
 if __name__ == "__main__":
-    demo_sac()```
+    demo_sac()
+```
 
 ## 2. 논의
 

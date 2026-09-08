@@ -183,7 +183,8 @@ def demo_attention_visualization():
 
 if __name__ == "__main__":
     demo_gat()
-    demo_attention_visualization()```
+    demo_attention_visualization()
+```
 
 ## 2. 논의
 

@@ -359,7 +359,8 @@ if __name__ == "__main__":
     print("✓ Transformers (standard choice)")
     print("✓ Small batch sizes")
     print("✓ Online learning (batch size = 1)")
-    print("✓ When batch statistics are unreliable")```
+    print("✓ When batch statistics are unreliable")
+```
 
 ## 2. 논의
 

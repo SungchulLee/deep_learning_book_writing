@@ -345,7 +345,8 @@ def main():
     print("  - transpose/permute change strides, may need .contiguous()")
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
 
 ## 2. 논의
 

@@ -189,7 +189,8 @@ if __name__ == "__main__":
     demonstrate_clip_behavior()
     ppo_loss_computation_example()
     compare_clip_values()
-    visualize_ppo_clipping()```
+    visualize_ppo_clipping()
+```
 
 ## 2. 논의
 

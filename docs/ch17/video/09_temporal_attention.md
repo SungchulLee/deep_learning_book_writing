@@ -17,7 +17,8 @@ print("Temporal Attention Mechanisms module")
 
 
 if __name__ == "__main__":
-    pass```
+    pass
+```
 
 ## 2. 논의
 

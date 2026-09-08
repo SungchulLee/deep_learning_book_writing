@@ -301,7 +301,8 @@ if __name__ == "__main__":
     print(f"Output range: [{output.min().item():.2f}, {output.max().item():.2f}]")
     
     print("\n✓ ResNet implementation complete!")
-    print("=" * 80 + "\n")```
+    print("=" * 80 + "\n")
+```
 
 ## 2. 논의
 

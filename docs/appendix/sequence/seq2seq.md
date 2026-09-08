@@ -61,7 +61,8 @@ class Seq2Seq(nn.Module):
 
 if __name__ == "__main__":
     model = Seq2Seq(input_size=1000, output_size=1000)
-    print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")```
+    print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
+```
 
 ## 2. 논의
 
