@@ -87,12 +87,15 @@ nav:
         - '코드: 가우시안 혼합 모형': ch01/clustering/03_gmm.md
     - 2 MNIST로 보는 딥러닝:
       - 장 개요: ch02/index.md
-      - 2.1 네 걸음으로 보는 MNIST:
-        - '코드: 1단계 템플릿 학습': ch02/mnist/01_template_learning.md
-        - '코드: 2단계 선형 모델과 소프트맥스': ch02/mnist/02_linear_softmax.md
-        - '코드: 3단계 다층 퍼셉트론': ch02/mnist/03_mlp.md
-        - '코드: 4단계 합성곱 신경망': ch02/mnist/04_cnn.md
-      - 2.2 텐서:
+      - 2.1 템플릿 학습:
+          - '코드: 1단계 템플릿 학습': ch02/mnist/01_template_learning.md
+      - 2.2 선형 모델과 소프트맥스:
+          - '코드: 2단계 선형 모델과 소프트맥스': ch02/mnist/02_linear_softmax.md
+      - 2.3 다층 퍼셉트론:
+          - '코드: 3단계 다층 퍼셉트론': ch02/mnist/03_mlp.md
+      - 2.4 합성곱 신경망:
+          - '코드: 4단계 합성곱 신경망': ch02/mnist/04_cnn.md
+      - 2.5 텐서:
         - '코드: 스칼라를 텐서로': ch02/tensors/01_scalar_to_tensor.md
         - '코드: 리스트를 텐서로': ch02/tensors/02_list_to_tensor.md
         - '코드: 범위를 텐서로': ch02/tensors/03_range_to_tensor.md
@@ -121,7 +124,7 @@ nav:
         - '코드: 데이터 적재': ch02/tensors/26_data_loading.md
         - '코드: 모델 체크포인트': ch02/tensors/27_model_checkpoint.md
         - '코드: 실전 예제': ch02/tensors/28_real_world_example.md
-      - 2.3 텐서 속성:
+      - 2.6 텐서 속성:
         - 메모리 배치와 스트라이드: ch02/tensor_attrs/memory_layout_strides.md
         - '코드: Autograd 관련 속성': ch02/tensor_attrs/01_autograd_related.md
         - '코드: 데이터 관련 속성': ch02/tensor_attrs/02_data_related.md
@@ -138,7 +141,7 @@ nav:
         - '코드: 이어 붙이기와 나누기': ch02/tensor_attrs/13_concatenation_splitting.md
         - '코드: 행렬 연산': ch02/tensor_attrs/14_matrix_operations.md
         - '코드: 비교, 범위 제한, 정렬': ch02/tensor_attrs/15_comparison_clamping_sorting.md
-      - 2.4 자동 미분:
+      - 2.7 자동 미분:
         - 경사 계산: ch02/autograd/gradient_computation.md
         - '코드: v를 이용한 벡터 역전파': ch02/autograd/22_vector_backward_with_v.md
         - '코드: 벡터 역전파 - 선형 사례 1': ch02/autograd/23_vector_backward_linear_case_1.md
@@ -168,7 +171,7 @@ nav:
         - '코드: 경사 크기 조정이 중요한 이유': ch02/autograd/20_why_gradient_scaling_matters.md
         - '코드: 경사 누적을 쓰는 학습 루프': ch02/autograd/21_training_loop_with_grad_accumulation.md
         - '코드: Autograd 바닥부터 만들기': ch02/autograd/autograd_from_scratch.md
-      - 2.5 경사 하강법:
+      - 2.8 경사 하강법:
         - 최급상승 방향으로서의 경사: ch02/gradient_descent/steepest_direction.md
         - 학습률과 이동 폭: ch02/gradient_descent/learning_rate.md
         - 볼록 최적화와 비볼록 최적화: ch02/gradient_descent/convex_nonconvex.md
