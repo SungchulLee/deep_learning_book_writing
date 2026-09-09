@@ -1,94 +1,149 @@
-# MNIST 분류기
+# 4단계: 합성곱 신경망
 
-MNIST로 합성곱 신경망을 학습시키면 데이터 적재, 모델 정의, 손실 계산, 최적화, 평가로 이어지는 딥러닝의 전 과정을 볼 수 있다. 이 처음부터 끝까지의 예제는 합성곱 층 두 개와 완전 연결층 두 개만으로도 손글씨 숫자 인식에서 약 99%의 정확도를 낼 수 있음을 보이며, 학습된 공간 특징 위계의 힘을 드러낸다.
+[3단계](03_mlp.md)의 다층 퍼셉트론은 층을 쌓아 비선형성을 얻었지만, 여전히 첫 줄에서 이미지를 784차원 벡터로 펼친다. 그 순간 어느 화소가 어느 화소 옆에 있었는지가 사라진다. 화소를 무작위로 뒤섞어 놓아도(모든 이미지에 같은 순서라면) 결과가 똑같다는 뜻이다.
+
+합성곱 신경망은 그 잃어버린 이웃 관계를 되찾는다. 작은 필터를 이미지 위로 미끄러뜨리며 국소적인 무늬를 읽고, 그 필터를 모든 위치에서 공유한다. 덕분에 숫자가 조금 옆으로 밀려도 같은 특징이 잡히며, 이것이 [1단계](01_template_learning.md)의 템플릿 학습이 가장 약했던 지점이다.
+
+아래 코드는 합성곱 층 두 개와 완전 연결층 두 개만으로 이 장의 네 걸음을 마무리한다.
 
 ## 1. 코드
 
 ```python
 """
-04_mnist_classifier.py
-======================
-MNIST 데이터셋으로 CNN 학습시키기
+4단계: MNIST 합성곱 신경망
 
-여기서 마법이 일어난다! 합성곱 신경망을 학습시켜
-손으로 쓴 숫자를 약 99%의 정확도로 알아보게 한다.
-
-난이도: 중간
-예상 시간: 1~2시간
-
-지은이: PyTorch CNN 실습
-날짜: 2025년 11월
+합성곱 층 두 개와 완전 연결층 두 개로 손글씨 숫자를 분류한다.
+이 장의 네 걸음 가운데 마지막이며, 앞의 세 걸음과 같은 데이터셋을 쓴다.
 """
 
+import torch
 import torch.nn as nn
 import torch.optim as optim
-import cnn_utils as utils
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+torch.manual_seed(42)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # =============================================================================
-# 준비와 설정
+# 데이터
 # =============================================================================
+# 앞의 세 걸음과 같은 정규화를 쓴다. 0.1307과 0.3081은 MNIST 학습 집합의
+# 화소 평균과 표준편차이며, 이 값으로 맞추어야 네 걸음의 결과를 나란히
+# 견줄 수 있다
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.1307,), (0.3081,)),
+])
 
-cfg = utils.parse_args()
-utils.set_seed(seed=cfg.seed)
+train_dataset = datasets.MNIST('./data', train=True, download=True, transform=transform)
+test_dataset = datasets.MNIST('./data', train=False, download=True, transform=transform)
 
-# =============================================================================
-# 데이터 준비
-# =============================================================================
-
-train_kwargs = {'batch_size': cfg.batch_size, 'shuffle': True}
-test_kwargs = {'batch_size': cfg.test_batch_size, 'shuffle': False}
-trainloader, testloader = utils.load_data(train_kwargs, test_kwargs)
-
-# =============================================================================
-# 모델 구조
-# =============================================================================
-
-model = utils.CNN().to(cfg.device)
-total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-print(f"Total trainable parameters: {total_params:,}")
+train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
 
 # =============================================================================
-# 손실 함수와 최적화기
+# 모델
 # =============================================================================
 
-loss_ftn = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=cfg.lr, momentum=cfg.momentum)
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=cfg.gamma)
+class CNN(nn.Module):
+    """합성곱 층 두 개와 완전 연결층 두 개."""
+
+    def __init__(self):
+        super().__init__()
+        # 앞의 세 걸음과 결정적으로 다른 점이 여기 있다. 이미지를 펼치지
+        # 않고 (1, 28, 28) 모양 그대로 받는다. 그래야 이웃 화소를 함께
+        # 볼 수 있다.
+        # 3x3 필터 32개가 이미지 전체를 훑는다. 필터는 위치마다 다시
+        # 배우는 것이 아니라 모든 위치에서 공유되므로, 왼쪽 위에서 배운
+        # 무늬를 오른쪽 아래에서도 그대로 알아본다. 이 가중치 공유가
+        # 평행 이동에 강해지는 까닭이다
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        # 2x2 최대 풀링이 가로세로를 각각 절반으로 줄인다.
+        # 28 -> 14 -> 7이 되어 완전 연결층에 들어가는 수가 크게 준다
+        self.pool = nn.MaxPool2d(2, 2)
+        self.dropout = nn.Dropout(0.25)
+        # 두 번 풀링한 뒤의 모양이 (64, 7, 7)이므로 64*7*7 = 3136이다
+        self.fc1 = nn.Linear(64 * 7 * 7, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        # 합성곱 -> 활성화 -> 풀링을 두 번 되풀이한다
+        x = self.pool(torch.relu(self.conv1(x)))   # (B, 32, 14, 14)
+        x = self.pool(torch.relu(self.conv2(x)))   # (B, 64,  7,  7)
+        # 공간 구조를 다 쓰고 난 뒤에야 펼친다. 1~3단계가 맨 처음에
+        # 펼쳤던 것과 달리, 여기서는 합성곱이 이웃 관계를 이미 활용한
+        # 뒤이므로 잃을 것이 없다
+        x = x.flatten(1)
+        x = self.dropout(torch.relu(self.fc1(x)))
+        # 마지막에 소프트맥스를 걸지 않는다. CrossEntropyLoss가 안에
+        # 품고 있기 때문이며, 이는 2단계와 같은 규칙이다
+        return self.fc2(x)
+
+
+model = CNN().to(device)
+print(f"Trainable parameters: {sum(p.numel() for p in model.parameters()):,}")
 
 # =============================================================================
 # 학습
 # =============================================================================
+# 손실과 최적화 방식은 2단계에서 세운 사슬 그대로다. 바뀐 것은 모델뿐이다
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-utils.train(
-    model=model, train_loader=trainloader, loss_fn=loss_ftn,
-    optimizer=optimizer, scheduler=scheduler, device=cfg.device,
-    epochs=cfg.epochs, log_interval=cfg.log_interval, dry_run=cfg.dry_run
-)
+EPOCHS = 5
+for epoch in range(1, EPOCHS + 1):
+    model.train()
+    for images, labels in train_loader:
+        images, labels = images.to(device), labels.to(device)
+        optimizer.zero_grad()
+        loss = criterion(model(images), labels)
+        loss.backward()
+        optimizer.step()
 
-# =============================================================================
-# 평가
-# =============================================================================
+    # 에포크마다 시험 정확도를 재어 진행을 살핀다
+    model.eval()
+    correct = total = 0
+    with torch.no_grad():
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            preds = model(images).argmax(dim=1)
+            correct += (preds == labels).sum().item()
+            total += labels.size(0)
+    print(f"Epoch {epoch}/{EPOCHS}  Test Accuracy: {100 * correct / total:.2f}%")
 
-utils.show_batch_or_ten_images_with_label_and_predict(
-    testloader, model, cfg.device, n=10
-)
-test_accuracy = utils.compute_accuracy(model, testloader, cfg.device)
-print(f"Final Test Accuracy: {test_accuracy:.2f}%")
-
-# =============================================================================
-# 모델 저장
-# =============================================================================
-
-if cfg.save_model:
-    utils.save_model(model, cfg.path)
-    loaded_model = utils.load_model(utils.CNN, cfg.device, cfg.path)
-    loaded_accuracy = utils.compute_accuracy(loaded_model, testloader, cfg.device)
-    print(f"Loaded model accuracy: {loaded_accuracy:.2f}%")
-
-
-if __name__ == "__main__":
-    pass
+print(f"\nFinal Test Accuracy: {100 * correct / total:.2f}%")
 ```
+
+
+**출력:**
+
+```
+Trainable parameters: 421,642
+Epoch 1/5  Test Accuracy: 98.37%
+Epoch 2/5  Test Accuracy: 98.35%
+Epoch 3/5  Test Accuracy: 99.02%
+Epoch 4/5  Test Accuracy: 99.05%
+Epoch 5/5  Test Accuracy: 99.22%
+
+Final Test Accuracy: 99.22%
+```
+
+3단계의 97.42%에서 **99.22%**로 올랐다. 남은 오차의 3분의 2가 사라진 셈이다(2.58% → 0.78%).
+
+### 네 걸음을 돌아보며
+
+| 걸음 | 모델 | 매개변수 | 시험 정확도 | 더한 생각 |
+|---|---|---|---|---|
+| 1 | 템플릿 학습 | 7,850 (고정) | 82.03% | — |
+| 2 | 선형 + 소프트맥스 | 7,850 | 92.51% | 가중치를 학습한다 |
+| 3 | 다층 퍼셉트론 | 약 100,000 | 97.42% | 비선형성 |
+| 4 | 합성곱 신경망 | 421,642 | 99.22% | 이웃 관계 |
+
+1단계와 2단계는 매개변수 수가 **똑같다**. 달라진 것은 그 수를 평균으로 못박느냐 데이터에 맞추어 학습하느냐뿐인데 10%포인트가 넘게 벌어진다. 학습이라는 일이 그 자체로 얼마나 큰 몫인지를 보여 준다.
+
+3단계와 4단계 사이에서는 매개변수가 네 배로 늘지만 정확도는 1.8%포인트만 오른다. 하지만 그 1.8%포인트가 남은 오차의 3분의 2라는 점이 중요하다. 정확도가 높아질수록 한 걸음의 값어치는 남은 오차로 재야 한다.
 
 ## 2. 논의
 
