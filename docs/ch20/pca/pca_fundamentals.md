@@ -381,11 +381,15 @@ Reconstructed shape: (200, 2)
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from tensorflow.keras.datasets import mnist
+from torchvision import datasets
 
-(X_train, _), (X_test, _) = mnist.load_data()
-X_train = X_train.reshape(-1, 784).astype(np.float32)
-X_test = X_test.reshape(-1, 784).astype(np.float32)
+# 주성분 분석 자체는 넘파이로 하므로 텐서가 아니라 배열이 필요하다.
+# transform 없이 불러오면 .data가 (N, 28, 28) uint8 텐서이고,
+# numpy()로 옮긴 뒤 (N, 784)로 펴서 쓴다
+train_set = datasets.MNIST(root='./data', train=True, download=True)
+test_set = datasets.MNIST(root='./data', train=False, download=True)
+X_train = train_set.data.numpy().reshape(-1, 784).astype(np.float32)
+X_test = test_set.data.numpy().reshape(-1, 784).astype(np.float32)
 
 # 흩어짐을 95% 남기는 주성분 분석
 pca = PCA(n_components=0.95, svd_solver='full').fit(X_train)
