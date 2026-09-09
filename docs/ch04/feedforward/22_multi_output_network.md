@@ -57,8 +57,25 @@ gender = (gender_logits > 0).float().reshape(-1, 1)
 
 # 데이터 나누기
 split = int(0.8 * n_samples)
+
+# 나이를 표준화한다. 이 페이지에서 가장 중요한 손질이다.
+# 나이를 18~80인 원래 눈금으로 두면 MSE가 학습 초반에 2500 언저리인
+# 반면 BCE는 0.7 안팎이다. 두 손실을 그대로 더하면 크기가 3000배 넘게
+# 차이 나므로, 아래에서 가중치를 1.0과 1.0으로 주어도 공유 층이 받는
+# 기울기는 사실상 나이 과제의 것뿐이고 성별 과제는 묻힌다.
+# 표준화해 두면 두 손실이 모두 1 언저리에서 시작해, 가중치 1.0이
+# 비로소 "두 과제를 똑같이 중요하게 본다"는 뜻이 된다.
+# 평균과 표준편차는 학습 집합에서만 구한다. 시험 집합까지 넣어 구하면
+# 시험 자료의 정보가 학습에 새어 든다
+age_mean = age[:split].mean()
+age_std = age[:split].std()
+age_scaled = (age - age_mean) / age_std
+
 X_train, X_test = X[:split], X[split:]
-age_train, age_test = age[:split], age[split:]
+# 학습과 평가에는 표준화한 나이를 쓴다. 사람이 읽을 지표를 낼 때만
+# 아래에서 원래 눈금(년)으로 되돌린다
+age_train, age_test = age_scaled[:split], age_scaled[split:]
+age_test_years = age[split:]
 gender_train, gender_test = gender[:split], gender[split:]
 
 print(f"Features: {n_features}")
@@ -146,13 +163,13 @@ criterion_gender = nn.BCEWithLogitsLoss()  # 이진 분류
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # 과제 가중치 (중요도 균형 맞추기).
-# 주의: 1.0과 1.0은 균형이 아니다. 나이가 18~80 그대로라 MSE는 학습
-# 초반에 2500 언저리인 반면 BCE는 0.7 안팎이라, 두 손실의 크기가
-# 3000배 넘게 차이 난다. 그대로 더하면 공유 층이 받는 기울기는
-# 사실상 나이 과제의 것뿐이고 성별 과제는 묻힌다.
-# 고치는 길은 둘이다. 나이를 표준화해 두 손실의 눈금을 맞추거나,
-# weight_age를 1e-3쯤으로 낮추는 것이다. 크기가 다른 손실을 더할 때
-# 늘 따라오는 문제이며, 다중 과제 학습에서 가장 먼저 확인할 자리다
+# 위에서 나이를 표준화해 두었으므로 두 손실이 모두 1 언저리에서
+# 출발한다. 그래서 1.0과 1.0이 정말로 "두 과제를 똑같이 중요하게
+# 본다"는 뜻이 된다.
+# 표준화하지 않았다면 이 값들은 균형이 아니다. 크기가 다른 손실을
+# 더할 때 늘 따라오는 문제이며, 다중 과제 학습에서 가장 먼저 확인할
+# 자리다. 한쪽 과제를 일부러 더 중요하게 보고 싶을 때만 이 값을
+# 1이 아닌 수로 바꾼다
 weight_age = 1.0
 weight_gender = 1.0
 
@@ -225,9 +242,13 @@ with torch.no_grad():
     age_pred, gender_logits = model(X_test)
     gender_pred = (torch.sigmoid(gender_logits) > 0.5).float()
     
-    # 나이 지표 (회귀)
+    # 나이 지표 (회귀).
+    # MSE는 표준화된 눈금에서 재고, MAE는 년 단위로 되돌려 잰다.
+    # 표준화 눈금의 오차는 사람이 크기를 가늠하기 어렵지만, 년으로
+    # 되돌리면 "평균 몇 살쯤 빗나가는가"로 곧바로 읽힌다
+    age_pred_years = age_pred * age_std + age_mean
     age_mse = criterion_age(age_pred, age_test).item()
-    age_mae = torch.abs(age_pred - age_test).mean().item()
+    age_mae = torch.abs(age_pred_years - age_test_years).mean().item()
     
     # 성별 지표 (분류)
     gender_acc = (gender_pred == gender_test).float().mean().item() * 100

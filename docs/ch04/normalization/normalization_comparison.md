@@ -142,52 +142,64 @@ class NormalizationComparison:
     def test_batch_size_sensitivity(self):
         """
         배치 크기가 달라질 때 정규화 방법마다 어떻게 대응하는지 시험한다.
+
+        핵심은 "같은 표본"을 서로 다른 크기의 배치에 넣어 보고, 그 표본의
+        출력이 얼마나 달라지는지를 재는 것이다. 배치 정규화가 배치 크기에
+        민감하다는 말의 뜻이 바로 이것이다. 출력의 평균이 0에서 벗어난다는
+        뜻이 아니라(어느 배치 크기에서든 배치 전체의 평균은 0이 된다),
+        곁에 어떤 표본이 놓이느냐에 따라 같은 표본의 출력이 달라진다는
+        뜻이다.
         """
         print("\n" + "=" * 70)
         print("Batch Size Sensitivity Test")
         print("=" * 70)
-        
+
         torch.manual_seed(42)
-        
-        batch_sizes = [1, 2, 8, 32]
-        
-        print("\nTesting with different batch sizes:")
-        print("(Using the same data distribution)")
-        
+
+        # 이 표본 하나를 모든 배치에 똑같이 넣고, 그 출력만 지켜본다
+        # 공간 크기를 4x4로 두어야 위에서 만든
+        # nn.LayerNorm([3, 4, 4])이 그대로 받는다
+        probe = torch.randn(1, 3, 4, 4)
+        batch_sizes = [2, 4, 8, 32, 128]
+        n_trials = 20
+
+        print("\n같은 표본을 서로 다른 배치에 20번씩 넣었을 때,")
+        print("그 표본의 출력이 시행마다 얼마나 달라지는가 (표준편차):\n")
+        print(f"{'batch':>6s} " + "".join(f"{n:>14s}" for n in self.normalizations))
+
         for batch_size in batch_sizes:
-            x = torch.randn(batch_size, 3, 8, 8)
-            
-            print(f"\n--- Batch size: {batch_size} ---")
-            
-            for name, norm_layer in self.normalizations.items():
-                # 이동 통계 문제를 피하려고 다시 초기화.
-                # 주의: 새로 만든 배치 정규화를 eval()로 두면 이동 통계가
-                # 아직 running_mean=0, running_var=1이라 (x - 0)/sqrt(1 + eps),
-                # 곧 입력이 거의 그대로 지나간다. 그래서 아래 표의
-                # BatchNorm 줄은 정규화 결과가 아니라 입력 x의 표본 평균과
-                # 표준편차를 되비칠 뿐이다.
-                # 배치 통계로 정규화하는 모습을 보려면 train()이어야 한다.
-                #
-                # 다만 train()으로 바꾸어도 이 시험은 아래 "Observations"가
-                # 말하는 바를 보이지 못한다. 어느 배치 크기에서든 출력의
-                # 평균과 표준편차는 0과 1로 나오기 때문이다. 배치 크기에
-                # 민감하다는 말의 뜻은 출력의 평균이 흔들린다는 것이
-                # 아니라, 작은 배치에서 낸 통계가 전체 분포의 참값에서
-                # 크게 벗어나 배치마다 다른 값으로 정규화된다는 것이다.
-                # 그것을 보이려면 같은 표본을 여러 배치에 넣어 보고
-                # 출력이 얼마나 달라지는지를 재야 한다
-                if name == 'BatchNorm':
-                    norm_layer = nn.BatchNorm2d(3, affine=False)
-                    norm_layer.eval()
-                
-                with torch.no_grad():
-                    x_norm = norm_layer(x)
-                
-                print(f"{name:15s}: mean={x_norm.mean():7.4f}, std={x_norm.std():7.4f}")
-        
+            spreads = []
+            for name in self.normalizations:
+                outputs = []
+                for _ in range(n_trials):
+                    # 곁에 놓이는 표본만 매번 새로 뽑는다
+                    others = torch.randn(batch_size - 1, 3, 4, 4)
+                    batch = torch.cat([probe, others], dim=0)
+
+                    if name == 'BatchNorm':
+                        # train() 모드여야 이동 통계가 아니라 이 배치의
+                        # 통계로 정규화한다. 갓 만든 층을 eval()로 두면
+                        # running_mean=0, running_var=1이라 입력이 거의
+                        # 그대로 지나가 아무것도 보이지 않는다
+                        layer = nn.BatchNorm2d(3, affine=False)
+                        layer.train()
+                    else:
+                        layer = self.normalizations[name]
+
+                    with torch.no_grad():
+                        # 배치 전체를 넣되 첫 표본의 출력만 꺼내 둔다
+                        outputs.append(layer(batch)[0])
+
+                # 같은 표본인데 시행마다 출력이 얼마나 흩어지는가.
+                # 0이면 곁 표본에 전혀 영향받지 않는다는 뜻이다
+                spreads.append(torch.stack(outputs).std(dim=0).mean().item())
+
+            print(f"{batch_size:6d} " + "".join(f"{s:14.4f}" for s in spreads))
+
         print("\nObservations:")
-        print("- BatchNorm is sensitive to batch size (less stable with small batches)")
-        print("- LayerNorm, InstanceNorm, GroupNorm are independent of batch size")
+        print("- BatchNorm: spread shrinks as batch grows -> depends on batch companions")
+        print("- LayerNorm / InstanceNorm / GroupNorm: spread is exactly 0 at every size")
+        print("  (each sample is normalized on its own, so neighbours cannot matter)")
 
 
 def create_comparison_network():

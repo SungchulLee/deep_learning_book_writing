@@ -199,13 +199,11 @@ def train_epoch(model, train_loader, criterion, optimizer, device):
         optimizer.step()
         
         running_loss += loss.item()
-        # 주의: outputs는 드롭아웃이 켜진 채, 갱신 전 가중치로 계산한
-        # 값이다. 그래서 여기서 나오는 학습 정확도는 드롭아웃을 쓰는
-        # 모델에서만 실제보다 낮게 잡힌다.
-        # 아래 5단계에서 이 값으로 "학습-검증 차이"를 재어 과적합의
-        # 잣대로 삼는데, 그 차이의 일부는 드롭아웃이 만든 착시다.
-        # 두 모델을 공평히 견주려면 에포크 끝에 eval() 상태로
-        # 학습 집합을 다시 훑어 정확도를 재야 한다
+        # 여기서 세는 정확도는 드롭아웃이 켜진 채, 그것도 갱신 전
+        # 가중치로 계산한 outputs에서 나온 값이다. 학습이 도는 동안
+        # 대강의 진행을 보기에는 쓸 만하지만 모델끼리 견주는 데에는
+        # 쓸 수 없다. 드롭아웃을 쓰는 모델에서만 낮게 잡히기 때문이다.
+        # 그래서 아래 4단계는 이 값을 버리고 evaluate()로 다시 잰다
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
@@ -269,7 +267,12 @@ history1 = {
 }
 
 for epoch in range(n_epochs):
-    train_loss, train_acc = train_epoch(model1, train_loader, criterion, optimizer1, device)
+    train_loss, _ = train_epoch(model1, train_loader, criterion, optimizer1, device)
+    # 학습 정확도를 eval 모드에서 다시 잰다. train_epoch가 돌려주는 값은
+    # 드롭아웃이 켜진 채, 그것도 갱신 전 출력으로 계산한 것이라 정칙화를
+    # 쓰는 모델에서만 낮게 잡힌다. 그대로 쓰면 아래 "학습-검증 차이"가
+    # 모델 2에서만 작아 보여, 정칙화의 효과를 실제보다 부풀린다
+    _, train_acc = evaluate(model1, train_loader, criterion, device)
     val_loss, val_acc = evaluate(model1, val_loader, criterion, device)
     
     history1['train_loss'].append(train_loss)
@@ -308,7 +311,12 @@ history2 = {
 }
 
 for epoch in range(n_epochs):
-    train_loss, train_acc = train_epoch(model2, train_loader, criterion, optimizer2, device)
+    train_loss, _ = train_epoch(model2, train_loader, criterion, optimizer2, device)
+    # 학습 정확도를 eval 모드에서 다시 잰다. train_epoch가 돌려주는 값은
+    # 드롭아웃이 켜진 채, 그것도 갱신 전 출력으로 계산한 것이라 정칙화를
+    # 쓰는 모델에서만 낮게 잡힌다. 그대로 쓰면 아래 "학습-검증 차이"가
+    # 모델 2에서만 작아 보여, 정칙화의 효과를 실제보다 부풀린다
+    _, train_acc = evaluate(model2, train_loader, criterion, device)
     val_loss, val_acc = evaluate(model2, val_loader, criterion, device)
     
     history2['train_loss'].append(train_loss)
@@ -344,10 +352,9 @@ print(f"  Test Loss: {test_loss2:.4f}")
 # 과적합 지표 계산 (학습-검증 차이)
 # 과적합을 "학습 정확도 빼기 검증 정확도"로 잰다. 학습 데이터에서만
 # 잘하고 처음 보는 데이터에서 못하는 정도를 뜻하므로 타당한 잣대다.
-# 다만 위에서 적어 두었듯 model2의 학습 정확도는 드롭아웃이 켜진 채
-# 잰 값이라 실제보다 낮다. 곧 overfit2가 작게 나오는 데에는 정칙화의
-# 효과와 측정 방식의 효과가 함께 들어 있다. 결론의 방향은 대체로
-# 맞지만 숫자를 곧이곧대로 받아들이면 안 된다
+# 두 모델의 학습 정확도를 모두 eval() 상태에서 다시 재었으므로, 이
+# 차이는 정칙화의 효과만 담는다. 드롭아웃이 켜진 채로 잰 값을 그대로
+# 썼다면 model2의 차이가 실제보다 작게 나와 정칙화를 과대평가하게 된다
 overfit1 = history1['train_acc'][-1] - history1['val_acc'][-1]
 overfit2 = history2['train_acc'][-1] - history2['val_acc'][-1]
 print(f"\nOverfitting Analysis (Train-Val Accuracy Gap):")
