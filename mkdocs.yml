@@ -115,6 +115,8 @@ nav:
         - '코드: SPY에 대한 WMT 회귀': ch03/linear_regression/wmt_on_spy.md
     - 2 PyTorch 기초:
       - 장 개요: ch02/index.md
+      - 2.1 첫 예제:
+        - '코드: 템플릿 학습': ch02/first_example/template_learning.md
       - 2.2 텐서:
         - '코드: 스칼라를 텐서로': ch02/tensors/01_scalar_to_tensor.md
         - '코드: 리스트를 텐서로': ch02/tensors/02_list_to_tensor.md
@@ -610,7 +612,6 @@ nav:
         - 모델 가리지 않는 메타 학습(MAML): ch11/meta_learning/maml.md
         - 과제 분포: ch11/meta_learning/task_distribution.md
       - 거리 학습:
-        - 본보기 배우기: ch11/metric_learning/template_learning.md
         - 원형 망: ch11/metric_learning/prototypical.md
         - 샴 망: ch11/metric_learning/siamese.md
       - 영 예시 학습:
