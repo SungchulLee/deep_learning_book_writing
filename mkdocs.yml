@@ -39,7 +39,6 @@ exclude_docs: |
   !01_inception_score.md
 
 nav:
-
   - 첫머리: index.md
   - I 밑바탕:
     - 1 들어가기:
@@ -70,49 +69,22 @@ nav:
         - 알고리즘을 위한 파이썬: ch01/languages/python.md
         - 알고리즘을 위한 C++: ch01/languages/cpp.md
         - 언어 선택: ch01/languages/choosing.md
-    - 3 재귀:
-      - 장 개요: ch03/index.md
-      - 1.3 인공지능 학습 패러다임:
+      - 1.5 인공지능 학습 패러다임:
         - 가진 자료를 분석하라: ch01/paradigms/analyze_available.md
         - 지도학습 (레이블을 이용한 예측): ch01/paradigms/supervised.md
         - 비지도학습 (패턴 발견): ch01/paradigms/unsupervised.md
         - 강화학습 (순차적 의사결정): ch01/paradigms/reinforcement.md
-      - 1.4 고전적 모델:
+      - 1.6 고전적 모델:
         - 선형 모델: ch01/models/linear.md
         - 트리 모델: ch01/models/trees.md
         - 서포트 벡터 머신: ch01/models/svm.md
         - 최근접 이웃: ch01/models/neighbors.md
-      - 1.6 평가 지표:
+      - 1.7 평가 지표:
         - 군집화 평가 지표: ch01/metrics/clustering.md
-      - 1.9 군집화:
+      - 1.8 군집화:
         - '코드: K-평균 군집화': ch01/clustering/01_kmeans.md
         - '코드: DBSCAN과 병합 군집화': ch01/clustering/02_dbscan_agglomerative.md
         - '코드: 가우시안 혼합 모형': ch01/clustering/03_gmm.md
-      - 3.2 선형 회귀:
-        - '코드: PyTorch 기초': ch03/linear_regression/01_pytorch_basics.md
-        - '코드: NumPy로 만드는 선형 회귀': ch03/linear_regression/02_linear_regression_numpy.md
-        - '코드: PyTorch로 직접 계산하는 선형 회귀': ch03/linear_regression/03_linear_regression_manual_pytorch.md
-        - '코드: Autograd로 만드는 선형 회귀': ch03/linear_regression/04_linear_regression_autograd.md
-        - '코드: nn 모듈로 만드는 선형 회귀': ch03/linear_regression/05_linear_regression_nn_module.md
-        - '코드: 다변량 회귀': ch03/linear_regression/06_multivariate_regression.md
-        - '코드: 다항 회귀': ch03/linear_regression/07_polynomial_regression.md
-        - '코드: 정칙화': ch03/linear_regression/08_regularization.md
-        - '코드: 미니배치 학습': ch03/linear_regression/09_mini_batch_training.md
-        - '코드: 완전한 파이프라인': ch03/linear_regression/10_complete_pipeline.md
-        - 닫힌 형태의 해: ch03/linear_regression/closed_form.md
-        - '코드: 텐서로 만드는 데이터셋': ch03/linear_regression/dataset_from_tensor.md
-        - 경사 하강법 해: ch03/linear_regression/gd_solution.md
-        - '코드: NumPy로 만드는 경사 하강법': ch03/linear_regression/gradient_descent_numpy.md
-        - '코드: PyTorch로 만드는 경사 하강법': ch03/linear_regression/gradient_descent_torch.md
-        - 라쏘 회귀: ch03/linear_regression/lasso_regression.md
-        - 선형 회귀: ch03/linear_regression/linear_regression.md
-        - '코드: scikit-learn으로 하는 선형 회귀': ch03/linear_regression/lr_sklearn.md
-        - '코드: 최소한의 PyTorch': ch03/linear_regression/minimal_torch.md
-        - '코드: 다중 출력': ch03/linear_regression/multiple_outputs.md
-        - '코드: 정규 방정식': ch03/linear_regression/normal_equation.md
-        - 다항 특징: ch03/linear_regression/polynomial_features.md
-        - 릿지 회귀: ch03/linear_regression/ridge_regression.md
-        - '코드: SPY에 대한 WMT 회귀': ch03/linear_regression/wmt_on_spy.md
     - 2 PyTorch 기초:
       - 장 개요: ch02/index.md
       - 2.1 첫 예제:
@@ -242,9 +214,6 @@ nav:
         - 다항 특징: ch03/linear_regression/polynomial_features.md
         - 릿지 회귀: ch03/linear_regression/ridge_regression.md
         - '코드: SPY에 대한 WMT 회귀': ch03/linear_regression/wmt_on_spy.md
-  - II 기본 자료 구조:
-    - 6 해시 표:
-      - 장 개요: ch06/index.md
       - 3.3 로지스틱 회귀:
         - 이진 분류: ch03/logistic_regression/binary_classification.md
         - 시그모이드 함수: ch03/logistic_regression/sigmoid.md
@@ -273,12 +242,7 @@ nav:
       - 3.5 손실 함수:
         - 교차 엔트로피 손실: ch03/loss/cross_entropy.md
         - 쿨백-라이블러 발산: ch03/loss/kl_divergence.md
-      - 잔차 연결:
-        - '코드: 기본 잔차 블록': ch06/residual/01_basic_residual_block.md
-        - '코드: ResNet 구현': ch06/residual/02_resnet_implementation.md
-        - '코드: 학습 비교': ch06/residual/03_training_comparison.md
-        - '코드: 실전 예제': ch06/residual/06_practical_example.md
-        - 항등 사상: ch06/residual/identity_mapping.md
+  - II 핵심 얼개:
     - 4 신경망의 구성 요소:
       - 장 개요: ch04/index.md
       - 4.1 활성화 함수:
@@ -388,7 +352,7 @@ nav:
       - 5.6 학습률 스케줄러:
         - '코드: 순환 학습률': ch05/schedulers/cyclical_lr.md
         - '코드: 학습률 워밍업': ch05/schedulers/lr_warmup.md
-      - '5.7 과적합과 일반화':
+      - 5.7 과적합과 일반화:
         - '코드: 편향-분산 절충': ch05/overfitting/bias_variance_tradeoff.md
         - '코드: 학습 곡선 시연': ch05/overfitting/learning_curves_demo.md
         - '코드: 과적합과 과소적합 시연': ch05/overfitting/overfitting_underfitting_demo.md
@@ -423,7 +387,6 @@ nav:
         - '코드: 데이터로더 변환': ch05/dataloaders/dataloader_transforms.md
         - '코드: 배치 이미지 그리기': ch05/dataloaders/draw_batch_images.md
         - '코드: 이미지 한 장 그리기': ch05/dataloaders/draw_one_image.md
-  - II - 핵심 얼개:
     - 6 합성곱 신경망:
       - 장 개요: ch06/index.md
       - 6.1 합성곱 신경망:
@@ -444,12 +407,16 @@ nav:
         - '코드: 이진 분류': ch06/cnn/08_binary_classification.md
         - '코드: CNN 유틸리티': ch06/cnn/cnn_utils.md
         - '코드: 밑바닥부터 만드는 합성곱': ch06/cnn/conv_from_scratch.md
-  - III 트리:
-    - 10 고급 트리:
       - 6.3 CNN에서 ViT로:
         - 합성곱 신경망에서 트랜스포머로: ch06/vit/cnn_to_vit_bridge.md
         - 압축-여기: ch06/vit/squeeze_excitation.md
         - 비국소 신경망: ch06/vit/non_local.md
+      - 잔차 연결:
+        - '코드: 기본 잔차 블록': ch06/residual/01_basic_residual_block.md
+        - '코드: ResNet 구현': ch06/residual/02_resnet_implementation.md
+        - '코드: 학습 비교': ch06/residual/03_training_comparison.md
+        - '코드: 실전 예제': ch06/residual/06_practical_example.md
+        - 항등 사상: ch06/residual/identity_mapping.md
     - 7 순차열 모델:
       - 장 개요: ch07/index.md
       - 7.1 낱말 임베딩:
@@ -551,7 +518,7 @@ nav:
         - '코드: 표집 방법': ch08/pretrained_models/sampling_strategies.md
         - '코드: 허깅페이스 빠른 시작': ch08/pretrained_models/huggingface_quickstart.md
         - '코드: 영 예시·소수 예시 텍스트 분류': ch08/pretrained_models/zero_shot_text_classification.md
-      - '8.4 학습과 추론':
+      - 8.4 학습과 추론:
         - '코드: 속도 성능 시험': ch08/training_and_inference/benchmark_speed.md
         - '코드: 합성곱 신경망 기준선': ch08/training_and_inference/cnn_baseline.md
         - '코드: 순환 신경망 기준선': ch08/training_and_inference/rnn_baseline.md
@@ -571,7 +538,7 @@ nav:
         - '코드: ViT 학습': ch08/transformers_vision/train_vit.md
         - '코드: 시각화': ch08/transformers_vision/visualizations.md
         - '코드: ViT 모델': ch08/transformers_vision/vit_model.md
-  - III - 배움의 틀:
+  - III 배움의 틀:
     - 9 자기 지도 학습:
       - 장 개요: ch09/index.md
       - 9.2 대조 학습:
@@ -584,20 +551,25 @@ nav:
         - 지수 이동 평균 교사: ch09/self_distillation/ema_teacher.md
     - 10 전이 학습:
       - 장 개요: ch10/index.md
+      - 10.2 도메인 적응:
+        - 최대 평균 불일치: ch10/domain_adaptation/mmd.md
+      - 10.3 응용:
+        - 시계열을 위한 전이: ch10/applications/transfer_time_series.md
       - 전이 학습:
         - '코드: 고급 기법': ch10/transfer_learning/advanced_techniques.md
         - '코드: 기본 전이 학습': ch10/transfer_learning/basic_transfer_learning.md
         - '코드: 사용자 데이터셋 전이': ch10/transfer_learning/custom_dataset_transfer.md
         - 미세 조정: ch10/transfer_learning/fine_tuning.md
         - '코드: 미세 조정': ch10/transfer_learning/fine_tuning.md
-  - IV 정렬:
-    - 11 기초 정렬:
-      - 10.2 도메인 적응:
-        - 최대 평균 불일치: ch10/domain_adaptation/mmd.md
-      - 10.3 응용:
-        - 시계열을 위한 전이: ch10/applications/transfer_time_series.md
     - 11 소수 예시 학습과 영 예시 학습:
       - 장 개요: ch11/index.md
+      - 거리 학습:
+        - 원형 망: ch11/metric_learning/prototypical.md
+        - 샴 망: ch11/metric_learning/siamese.md
+      - 메타 학습:
+        - 배운 최적화기: ch11/meta_learning/learned_optimizers.md
+        - 모델 가리지 않는 메타 학습(MAML): ch11/meta_learning/maml.md
+        - 과제 분포: ch11/meta_learning/task_distribution.md
       - 소수 예시 학습:
         - '코드: 데이터 로더': ch11/few_shot/data_loader.md
         - '코드: 평가': ch11/few_shot/evaluation.md
@@ -607,33 +579,14 @@ nav:
         - '코드: 맞춤 망': ch11/few_shot/matching_networks.md
         - '코드: 원형 망': ch11/few_shot/prototypical_networks.md
         - '코드: 샴 망': ch11/few_shot/siamese_network.md
-      - 메타 학습:
-        - 배운 최적화기: ch11/meta_learning/learned_optimizers.md
-        - 모델 가리지 않는 메타 학습(MAML): ch11/meta_learning/maml.md
-        - 과제 분포: ch11/meta_learning/task_distribution.md
-      - 거리 학습:
-        - 원형 망: ch11/metric_learning/prototypical.md
-        - 샴 망: ch11/metric_learning/siamese.md
       - 영 예시 학습:
         - 속성 기반: ch11/zero_shot/attribute_based.md
         - 영 예시 분류: ch11/zero_shot/classification.md
         - 묻힘 기반: ch11/zero_shot/embedding_based.md
         - 일반화된 영 예시 학습: ch11/zero_shot/generalized.md
         - 영 예시 학습 훑어보기: ch11/zero_shot/zero_shot_overview.md
-    - 12 효율적인 정렬:
+    - 12 이어 배우기:
       - 장 개요: ch12/index.md
-      - 이어 배우기:
-        - '코드: 파국적 잊음 보여 주기': ch12/continual_learning/01_catastrophic_forgetting_demo.md
-        - '코드: 소박한 차례 학습': ch12/continual_learning/01_naive_sequential_learning.md
-        - '코드: 단순 경험 되살리기': ch12/continual_learning/01_simple_experience_replay.md
-        - '코드: 탄성 가중치 다지기': ch12/continual_learning/02_elastic_weight_consolidation.md
-        - '코드: 잊지 않고 배우기': ch12/continual_learning/02_learning_without_forgetting.md
-        - '코드: 두루 견주기': ch12/continual_learning/03_comprehensive_comparison.md
-        - 파국적 잊음: ch12/continual_learning/catastrophic_forgetting.md
-        - 평가 지표: ch12/continual_learning/evaluation_metrics.md
-  - V 그래프:
-    - 14 그래프의 바탕:
-      - 장 훑어보기: ch14/index.md
       - 12.3 벌주기 방법:
         - 벌주기 훑어보기: ch12/regularization_methods/overview.md
         - 탄성 가중치 다지기: ch12/regularization_methods/ewc.md
@@ -649,7 +602,16 @@ nav:
         - 잊지 않고 배우기: ch12/distillation_methods/lwf.md
         - 특징 증류: ch12/distillation_methods/feature_distillation.md
         - 방법의 견줌: ch12/distillation_methods/comparison.md
-  - IV - 확률 방법:
+      - 이어 배우기:
+        - '코드: 파국적 잊음 보여 주기': ch12/continual_learning/01_catastrophic_forgetting_demo.md
+        - '코드: 소박한 차례 학습': ch12/continual_learning/01_naive_sequential_learning.md
+        - '코드: 단순 경험 되살리기': ch12/continual_learning/01_simple_experience_replay.md
+        - '코드: 탄성 가중치 다지기': ch12/continual_learning/02_elastic_weight_consolidation.md
+        - '코드: 잊지 않고 배우기': ch12/continual_learning/02_learning_without_forgetting.md
+        - '코드: 두루 견주기': ch12/continual_learning/03_comprehensive_comparison.md
+        - 파국적 잊음: ch12/continual_learning/catastrophic_forgetting.md
+        - 평가 지표: ch12/continual_learning/evaluation_metrics.md
+  - IV 확률 방법:
     - 13 베이즈의 바탕:
       - 장 훑어보기: ch13/index.md
       - 13.1 핵심 이론:
@@ -690,7 +652,7 @@ nav:
       - 14.5 배우기:
         - 그래프 모형을 위한 기댓값-최대화: ch14/pgm_learning/em_for_pgms.md
         - '코드: 짜임 배우기': ch14/pgm_learning/02_structure_learning.md
-    - 15 최단 경로:
+    - 15 표집과 추론:
       - 장 둘러보기: ch15/index.md
       - 15.1 마르코프 사슬:
         - 마르코프 사슬의 바탕: ch15/markov_chains/fundamentals.md
@@ -709,10 +671,6 @@ nav:
         - '코드: 날씨 모형': ch15/markov_chains/weather_model.md
       - 15.2 몬테카를로 방법:
         - 몬테카를로 적분: ch15/monte_carlo/integration.md
-        - 중요도 표집:
-          - 중요도 표집의 바탕: ch15/monte_carlo/importance_sampling/fundamentals.md
-          - 스스로 고르게 하는 중요도 표집: ch15/monte_carlo/importance_sampling/self_normalized.md
-          - 제안 짜기: ch15/monte_carlo/importance_sampling/proposal_design.md
         - 실효 표본 크기: ch15/monte_carlo/importance_sampling/ess.md
         - 실효 표본 크기 둘러보기: ch15/monte_carlo/ess.md
         - '코드: 스스로 고르게 하는 중요도 표집': ch15/monte_carlo/02_self_normalized_is.md
@@ -728,22 +686,7 @@ nav:
         - '코드: 연습 문제': ch15/monte_carlo/exercises.md
       - 15.3 마르코프 사슬 몬테카를로:
         - 메트로폴리스-헤이스팅스: ch15/mcmc/metropolis_hastings.md
-        - 흉내낸 담금질:
-          - 흉내낸 담금질의 바탕: ch15/mcmc/simulated_annealing/fundamentals.md
-          - 멈추지 않는 MCMC으로 본 흉내낸 담금질: ch15/mcmc/simulated_annealing/sa_as_mcmc.md
-          - 온도 일정: ch15/mcmc/simulated_annealing/schedules.md
-          - 모임 이론: ch15/mcmc/simulated_annealing/convergence.md
-          - 하나로 꿰는 개념으로서의 온도: ch15/mcmc/simulated_annealing/temperature_unifying.md
-          - EM을 위한 정해진 담금질: ch15/mcmc/simulated_annealing/annealed_em.md
         - 깁스 표집: ch15/mcmc/gibbs_sampling.md
-        - 해밀턴 몬테카를로:
-          - 해밀턴 몬테카를로 둘러보기: ch15/mcmc/hmc/overview.md
-          - 해밀턴 움직임: ch15/mcmc/hmc/hamiltonian_dynamics.md
-          - 위상 공간: ch15/mcmc/hmc/phase_space.md
-          - 개구리뜀 적분기: ch15/mcmc/hmc/leapfrog_integrator.md
-          - 해밀턴 몬테카를로 알고리즘: ch15/mcmc/hmc/algorithm.md
-          - 질량 행렬: ch15/mcmc/hmc/mass_matrix.md
-          - 기하 풀이: ch15/mcmc/hmc/geometric_interpretation.md
         - 유턴 없는 표집기: ch15/mcmc/nuts.md
         - 진단: ch15/mcmc/diagnostics.md
       - 15.4 랑주뱅 움직임:
@@ -761,7 +704,26 @@ nav:
         - 이론으로 견주기: ch15/mcmc_comparison/theoretical.md
         - 차원에 따른 크기 변화: ch15/mcmc_comparison/scaling.md
         - 실전에서 방법 고르기: ch15/mcmc_comparison/method_selection.md
-    - 16 최소 뻗은 나무:
+      - 중요도 표집:
+        - 중요도 표집의 바탕: ch15/monte_carlo/importance_sampling/fundamentals.md
+        - 스스로 고르게 하는 중요도 표집: ch15/monte_carlo/importance_sampling/self_normalized.md
+        - 제안 짜기: ch15/monte_carlo/importance_sampling/proposal_design.md
+      - 해밀턴 몬테카를로:
+        - 해밀턴 몬테카를로 둘러보기: ch15/mcmc/hmc/overview.md
+        - 해밀턴 움직임: ch15/mcmc/hmc/hamiltonian_dynamics.md
+        - 위상 공간: ch15/mcmc/hmc/phase_space.md
+        - 개구리뜀 적분기: ch15/mcmc/hmc/leapfrog_integrator.md
+        - 해밀턴 몬테카를로 알고리즘: ch15/mcmc/hmc/algorithm.md
+        - 질량 행렬: ch15/mcmc/hmc/mass_matrix.md
+        - 기하 풀이: ch15/mcmc/hmc/geometric_interpretation.md
+      - 흉내낸 담금질:
+        - 흉내낸 담금질의 바탕: ch15/mcmc/simulated_annealing/fundamentals.md
+        - 멈추지 않는 MCMC으로 본 흉내낸 담금질: ch15/mcmc/simulated_annealing/sa_as_mcmc.md
+        - 온도 일정: ch15/mcmc/simulated_annealing/schedules.md
+        - 모임 이론: ch15/mcmc/simulated_annealing/convergence.md
+        - 하나로 꿰는 개념으로서의 온도: ch15/mcmc/simulated_annealing/temperature_unifying.md
+        - EM을 위한 정해진 담금질: ch15/mcmc/simulated_annealing/annealed_em.md
+    - 16 어림 추론:
       - 장 둘러보기: ch16/index.md
       - 16.1 변분 추론:
         - 변분 추론 얼개: ch16/variational_inference/framework.md
@@ -780,8 +742,48 @@ nav:
         - 가중값의 불확실함: ch16/bnn/weight_uncertainty.md
         - 되짚음으로 하는 베이즈: ch16/bnn/bayes_by_backprop.md
         - 앞확률 고르기: ch16/bnn/prior_selection.md
-    - 17 앞선 그래프 알고리즘:
+  - V 보기와 말:
+    - 17 컴퓨터 시각:
       - 장 개요: ch17/index.md
+      - 17.2 그림 나누기:
+        - 나누기 개요: ch17/segmentation/segmentation_overview.md
+        - U-넷: ch17/segmentation/unet.md
+        - 마스크 R-CNN: ch17/segmentation/mask_rcnn.md
+        - '코드: U-넷': ch17/segmentation/31_u_net.md
+        - '코드: FCN': ch17/segmentation/32_fcn.md
+        - '코드: DeepLabV3': ch17/segmentation/33_deeplabv3.md
+        - '코드: PSPNet': ch17/segmentation/34_pspnet.md
+        - '코드: 기본 U-넷 나누기': ch17/segmentation/basic_unet_segmentation.md
+        - '코드: 미리 익힌 모델로 나누기': ch17/segmentation/pretrained_segmentation.md
+        - '코드: 의료 나누기': ch17/segmentation/medical_segmentation.md
+        - '코드: 앞선 나누기': ch17/segmentation/advanced_segmentation.md
+      - 17.3 물체 알아내기:
+        - 겹침 비와 최대가 아닌 것 누르기: ch17/detection/iou_nms.md
+        - '코드: 마스크 R-CNN': ch17/detection/35_mask_rcnn.md
+        - '코드: YOLOv3': ch17/detection/36_yolo_v3.md
+        - '코드: 레티나넷': ch17/detection/37_retinanet.md
+        - '코드: 더 빠른 R-CNN': ch17/detection/38_faster_rcnn.md
+        - '코드: SSD': ch17/detection/39_ssd.md
+        - '코드: 기본 물체 알아내기': ch17/detection/basic_object_detection.md
+        - '코드: YOLO 알아내기': ch17/detection/yolo_detection.md
+        - '코드: 맞춤 물체 알아내기': ch17/detection/custom_object_detection.md
+        - '코드: 앞선 알아내기': ch17/detection/advanced_detection.md
+      - 17.4 영상 이해:
+        - 영상 개요: ch17/video/video_overview.md
+        - 두 갈래 그물: ch17/video/two_stream.md
+        - 느림빠름: ch17/video/slowfast.md
+        - '코드: 영상 기초': ch17/video/01_video_basics.md
+        - '코드: 3차원 누비기': ch17/video/02_3d_convolution.md
+        - '코드: 단순 영상 갈래 매개': ch17/video/03_simple_video_classifier.md
+        - '코드: 영상 자료 불리기': ch17/video/04_data_augmentation_video.md
+        - '코드: 두 갈래 그물': ch17/video/05_two_stream_network.md
+        - '코드: 빛 흐름': ch17/video/06_optical_flow.md
+        - '코드: 영상 CNN-LSTM': ch17/video/07_cnn_lstm_video.md
+        - '코드: 몸짓 알아보기': ch17/video/08_action_recognition.md
+        - '코드: 때에 걸친 눈길': ch17/video/09_temporal_attention.md
+        - '코드: 느림빠름 그물': ch17/video/10_slowfast_network.md
+        - '코드: 영상 변환기': ch17/video/11_video_transformer.md
+        - '코드: 영상 이해 기획': ch17/video/12_video_understanding_project.md
       - 그림 가르기:
         - '"코드: GoogLeNet 인셉션"': ch17/image_classification/03_google_net_inception.md
         - '"코드: 앞선 EfficientNet"': ch17/image_classification/04_efficientnet_advanced.md
@@ -810,54 +812,12 @@ nav:
         - '"코드: PyramidNet"': ch17/image_classification/29_pyramidnet.md
         - '"코드: CoordConv"': ch17/image_classification/30_coordconv.md
         - VGGNet: ch17/image_classification/vgg.md
-  - VI 알고리즘 꾸미기:
-    - 18 나누어 이기기:
-      - 장 개요: ch18/index.md
-      - 17.2 그림 나누기:
-        - 나누기 개요: ch17/segmentation/segmentation_overview.md
-        - U-넷: ch17/segmentation/unet.md
-        - 마스크 R-CNN: ch17/segmentation/mask_rcnn.md
-        - '코드: U-넷': ch17/segmentation/31_u_net.md
-        - '코드: FCN': ch17/segmentation/32_fcn.md
-        - '코드: DeepLabV3': ch17/segmentation/33_deeplabv3.md
-        - '코드: PSPNet': ch17/segmentation/34_pspnet.md
-        - '코드: 기본 U-넷 나누기': ch17/segmentation/basic_unet_segmentation.md
-        - '코드: 미리 익힌 모델로 나누기': ch17/segmentation/pretrained_segmentation.md
-        - '코드: 의료 나누기': ch17/segmentation/medical_segmentation.md
-        - '코드: 앞선 나누기': ch17/segmentation/advanced_segmentation.md
-      - 17.3 물체 알아내기:
-        - 겹침 비와 최대가 아닌 것 누르기: ch17/detection/iou_nms.md
-        - 한 단계 알아내개:
-          - YOLO: ch17/detection/yolo.md
-          - 한 방 알아내개: ch17/detection/ssd.md
-          - 초점 손실: ch17/detection/focal_loss.md
-        - 닻 없는 알아내개:
-          - FCOS: ch17/detection/fcos.md
-        - '코드: 마스크 R-CNN': ch17/detection/35_mask_rcnn.md
-        - '코드: YOLOv3': ch17/detection/36_yolo_v3.md
-        - '코드: 레티나넷': ch17/detection/37_retinanet.md
-        - '코드: 더 빠른 R-CNN': ch17/detection/38_faster_rcnn.md
-        - '코드: SSD': ch17/detection/39_ssd.md
-        - '코드: 기본 물체 알아내기': ch17/detection/basic_object_detection.md
-        - '코드: YOLO 알아내기': ch17/detection/yolo_detection.md
-        - '코드: 맞춤 물체 알아내기': ch17/detection/custom_object_detection.md
-        - '코드: 앞선 알아내기': ch17/detection/advanced_detection.md
-      - 17.4 영상 이해:
-        - 영상 개요: ch17/video/video_overview.md
-        - 두 갈래 그물: ch17/video/two_stream.md
-        - 느림빠름: ch17/video/slowfast.md
-        - '코드: 영상 기초': ch17/video/01_video_basics.md
-        - '코드: 3차원 누비기': ch17/video/02_3d_convolution.md
-        - '코드: 단순 영상 갈래 매개': ch17/video/03_simple_video_classifier.md
-        - '코드: 영상 자료 불리기': ch17/video/04_data_augmentation_video.md
-        - '코드: 두 갈래 그물': ch17/video/05_two_stream_network.md
-        - '코드: 빛 흐름': ch17/video/06_optical_flow.md
-        - '코드: 영상 CNN-LSTM': ch17/video/07_cnn_lstm_video.md
-        - '코드: 몸짓 알아보기': ch17/video/08_action_recognition.md
-        - '코드: 때에 걸친 눈길': ch17/video/09_temporal_attention.md
-        - '코드: 느림빠름 그물': ch17/video/10_slowfast_network.md
-        - '코드: 영상 변환기': ch17/video/11_video_transformer.md
-        - '코드: 영상 이해 기획': ch17/video/12_video_understanding_project.md
+      - 닻 없는 알아내개:
+        - FCOS: ch17/detection/fcos.md
+      - 한 단계 알아내개:
+        - YOLO: ch17/detection/yolo.md
+        - 한 방 알아내개: ch17/detection/ssd.md
+        - 초점 손실: ch17/detection/focal_loss.md
     - 18 자연어 다루기:
       - 장 개요: ch18/index.md
       - 18.1 말 나타내기:
@@ -899,8 +859,6 @@ nav:
         - '코드: FinBERT 금융 마음결': ch18/text_classification/finbert_sentiment.md
         - '코드: LIME과 SHAP로 읽어 내기': ch18/text_classification/lime_shap_interpretability.md
         - '코드: 갈래별 마음결': ch18/text_classification/aspect_sentiment.md
-      - 18.x 주제 나타내기:
-        - '코드: 주제 나타내기 LDA와 LSA': ch18/topic_modeling/topic_modeling_lda_lsa.md
       - 18.4 앎 뽑기:
         - 앎 뽑기 개요: ch18/information_extraction/ie_overview.md
         - 사건 뽑기: ch18/information_extraction/event_extraction.md
@@ -910,7 +868,9 @@ nav:
         - 변환기 기계 옮김: ch18/machine_translation/transformer_mt.md
       - 18.6 물음 답하기:
         - 뽑아내는 물음 답하기: ch18/question_answering/extractive_qa.md
-    - 19 욕심쟁이 알고리즘:
+      - 18.x 주제 나타내기:
+        - '코드: 주제 나타내기 LDA와 LSA': ch18/topic_modeling/topic_modeling_lda_lsa.md
+    - 19 큰 말 모델:
       - 장 살펴보기: ch19/index.md
       - 19.1 큰 말 모델의 바탕:
         - 미리 익히기 목표: ch19/llm_foundations/pretraining_objectives.md
@@ -948,6 +908,7 @@ nav:
         - 살펴보기: ch19/inference/model_compression_overview.md
       - 19.9 결 맞추기:
         - 익히기 물길: ch19/alignment/training_pipeline.md
+  - VI 만들어 내는 모델:
     - 20 차원 줄이기:
       - 장 살펴보기: ch20/index.md
       - 20.1 주성분 분석:
@@ -968,17 +929,14 @@ nav:
         - 수익률 곡선 쪼개기: ch20/finance/yield_curve.md
     - 21 자기 부호기:
       - 장 살펴보기: ch21/index.md
+      - 변형:
+        - 오그리는 자기 부호기: ch21/variants/contractive.md
       - 자기 부호기:
         - '"코드: 자기 부호기"': ch21/ae/48_autoencoder.md
         - 손실 함수: ch21/ae/loss_functions.md
         - 다시 세우기 살피기: ch21/ae/reconstruction_analysis.md
-      - 변형:
-        - 오그리는 자기 부호기: ch21/variants/contractive.md
-  - VII 문자열 알고리즘:
-    - 22 변분 자기 부호기:
+    - 22 변분 자기 부호기(VAE):
       - 장 살펴보기: ch22/index.md
-    - 23 고급 글자열 짜임:
-      - 장 살펴보기: ch23/index.md
       - 22.2 이론:
         - 쿨백-라이블러 벌어짐 항: ch22/theory/kl_term.md
       - 22.3 얼개:
@@ -1008,24 +966,13 @@ nav:
         - RealNVP과 짝지음 층: ch23/flow_architectures/realnvp.md
         - '코드: MNIST 흐름 보기': ch23/flow_architectures/example_mnist_flows.md
         - '코드: 흐름 도구': ch23/flow_architectures/flow_utils.md
-  - VIII 셈 기하:
-    - 24 기하 알고리즘:
+    - 24 자기 되돌이 모델:
       - 장 살펴보기: ch24/index.md
-      - 바탕:
-        - '코드: 자기 되돌이 모델': ch24/foundations/ar_model.md
-        - '코드: 자료': ch24/foundations/data.md
-        - '코드: 자료 2': ch24/foundations/data_2.md
-        - '코드: 모델': ch24/foundations/model.md
-        - '코드: 익히기': ch24/foundations/train.md
-        - '코드: 익히기 2': ch24/foundations/train_2.md
-  - IX 나아간 주제:
-    - 25 마구잡이 알고리즘:
-      - 장 살펴보기: ch25/index.md
-      - 24.2 인수 나누기:
-        - 인수 나누기: ch24/factorization/factorization.md
       - 24.2 PixelCNN:
         - '코드: PixelCNN': ch24/pixelcnn/pixelcnn.md
         - '코드: 익히기': ch24/pixelcnn/train.md
+      - 24.2 인수 나누기:
+        - 인수 나누기: ch24/factorization/factorization.md
       - 24.3 WaveNet:
         - '코드: WaveNet 기본 늘린 겹말기': ch24/wavenet/01_wavenet_basic.md
         - '코드: WaveNet 문 달린 남은 덩이': ch24/wavenet/02_wavenet_gated.md
@@ -1034,9 +981,14 @@ nav:
       - 24.5 익히기:
         - 스승 밀어 넣기: ch24/training/teacher_forcing.md
         - 차례 잡은 뽑기: ch24/training/scheduled_sampling.md
-      - 맞겨루기 튼튼함:
-        - 공격: ch25/adversarial_robustness/attacks.md
-    - 25 맞겨루기 만들개:
+      - 바탕:
+        - '코드: 자기 되돌이 모델': ch24/foundations/ar_model.md
+        - '코드: 자료': ch24/foundations/data.md
+        - '코드: 자료 2': ch24/foundations/data_2.md
+        - '코드: 모델': ch24/foundations/model.md
+        - '코드: 익히기': ch24/foundations/train.md
+        - '코드: 익히기 2': ch24/foundations/train_2.md
+    - 25 맞겨루기 만들개(GAN):
       - 장 살펴보기: ch25/index.md
       - 25.1 맞겨루기 만들개의 바탕:
         - 맞겨루기 익히기: ch25/gan_foundations/adversarial.md
@@ -1062,7 +1014,7 @@ nav:
         - '코드: 온전한 따지기 보기': ch25/gan_evaluation/complete_evaluation_example.md
       - 맞겨루기 튼튼함:
         - 공격: ch25/adversarial_robustness/attacks.md
-    - 26 어림 알고리즘:
+    - 26 퍼짐 모델:
       - 장 살펴보기: ch26/index.md
       - 26.1 바탕:
         - 뒤 과정: ch26/foundations/reverse_process.md
@@ -1110,11 +1062,8 @@ nav:
         - 프레셰 인셉션 거리: ch26/evaluation/fid.md
         - 인셉션 점수: ch26/evaluation/inception_score.md
         - 가능도 잣대: ch26/evaluation/likelihood.md
-    - 27 셈 복잡도:
+    - 27 에너지 바탕 모델:
       - 장 살펴보기: ch27/index.md
-  - X 특별한 주제:
-    - 28 수론 알고리즘:
-      - 장 살펴보기: ch28/index.md
       - 27.1 에너지 바탕 모델의 바탕:
         - 볼츠만 분포: ch27/ebm_foundations/boltzmann.md
         - 나눔 함수: ch27/ebm_foundations/partition_function.md
@@ -1134,6 +1083,7 @@ nav:
         - 함께 배우기: ch27/modern_ebm/cooperative.md
       - 27.5 금융 쓰임새:
         - 신용 그물: ch27/finance_applications/credit_networks.md
+  - VII 나아간 얼개:
     - 28 신경 상미분 방정식:
       - 장 살펴보기: ch28/index.md
       - 28.1 바탕:
@@ -1146,7 +1096,7 @@ nav:
         - 풀개 고르기 안내: ch28/evaluation/solver_selection.md
       - 28.5 금융 쓰임새:
         - 기간 얼개 움직임: ch28/finance_applications/term_structure.md
-    - 29 온라인과 흐름 알고리즘:
+    - 29 그래프 신경망:
       - 장 살펴보기: ch29/index.md
       - 29.1 그래프 바탕:
         - 그래프 바탕: ch29/foundations/graph_basics.md
@@ -1156,19 +1106,6 @@ nav:
       - 29.2 쪽지 건네기:
         - 고치기 함수: ch29/message_passing/update.md
         - 쪽지 건네기 신경망: ch29/message_passing/mpnn.md
-      - 29.3 그래프 겹말기:
-        - 스펙트럼 방법:
-          - 스펙트럼 그래프 이론: ch29/convolutions/spectral_theory.md
-          - '코드: 스펙트럼 그래프 이론': ch29/convolutions/spectral_theory.md
-          - '코드: 그래프 푸리에 변환': ch29/convolutions/graph_fourier.md
-          - '코드: ChebNet': ch29/convolutions/chebnet.md
-        - 자리 방법:
-          - '코드: 그래프 겹말기 신경망': ch29/convolutions/gcn.md
-          - GraphSAGE: ch29/convolutions/graphsage.md
-          - '코드: GraphSAGE': ch29/convolutions/graphsage.md
-          - '코드: 그래프 눈길 신경망': ch29/convolutions/gat.md
-          - 그래프 같은 꼴 신경망: ch29/convolutions/gin.md
-          - '코드: 그래프 같은 꼴 신경망': ch29/convolutions/gin.md
       - 29.4 나아간 그래프 신경망 방법:
         - '코드: 깊은 그래프 신경망': ch29/advanced/deep_gnns.md
         - '코드: 지나친 매끄러워짐': ch29/advanced/over_smoothing.md
@@ -1200,7 +1137,19 @@ nav:
         - '코드: 사회 그물 살피기': ch29/applications/social_networks.md
         - '코드: 추천 시스템': ch29/applications/recommendation.md
         - '코드: 앎 그래프': ch29/applications/knowledge_graphs.md
-    - 30 나란한 알고리즘과 나눠 하는 알고리즘:
+      - 스펙트럼 방법:
+        - 스펙트럼 그래프 이론: ch29/convolutions/spectral_theory.md
+        - '코드: 스펙트럼 그래프 이론': ch29/convolutions/spectral_theory.md
+        - '코드: 그래프 푸리에 변환': ch29/convolutions/graph_fourier.md
+        - '코드: ChebNet': ch29/convolutions/chebnet.md
+      - 자리 방법:
+        - '코드: 그래프 겹말기 신경망': ch29/convolutions/gcn.md
+        - GraphSAGE: ch29/convolutions/graphsage.md
+        - '코드: GraphSAGE': ch29/convolutions/graphsage.md
+        - '코드: 그래프 눈길 신경망': ch29/convolutions/gat.md
+        - 그래프 같은 꼴 신경망: ch29/convolutions/gin.md
+        - '코드: 그래프 같은 꼴 신경망': ch29/convolutions/gin.md
+    - 30 추천 시스템:
       - 장 살펴보기: ch30/index.md
       - 30.1 바탕:
         - 행렬 인수 분해: ch30/foundations/matrix_factorization.md
@@ -1212,8 +1161,17 @@ nav:
         - 꾸러미 권하기: ch30/finance/portfolio_suggestion.md
         - 연구 보고서 추천: ch30/finance/research_recommendation.md
         - 위험을 살피는 추천: ch30/finance/risk_aware.md
-    - 31 바깥 기억 알고리즘:
+    - 31 그래프 만들기:
       - 장 살펴보기: ch31/index.md
+      - 금융:
+        - 거래: ch31/finance/transactions.md
+      - 바탕:
+        - 들머리: ch31/foundations/introduction.md
+        - '코드: 들머리': ch31/foundations/introduction.md
+        - 잣대: ch31/foundations/metrics.md
+        - '코드: 잣대': ch31/foundations/metrics.md
+        - 나타내기: ch31/foundations/representations.md
+        - '코드: 나타내기': ch31/foundations/representations.md
       - 자기 되돌이:
         - GRAN: ch31/autoregressive/gran.md
         - '코드: GRAN': ch31/autoregressive/gran.md
@@ -1228,15 +1186,6 @@ nav:
         - '코드: GDSS': ch31/diffusion/gdss.md
         - 그래프 퍼짐: ch31/diffusion/graph_diffusion.md
         - '코드: 그래프 퍼짐': ch31/diffusion/graph_diffusion.md
-      - 금융:
-        - 거래: ch31/finance/transactions.md
-      - 바탕:
-        - 들머리: ch31/foundations/introduction.md
-        - '코드: 들머리': ch31/foundations/introduction.md
-        - 잣대: ch31/foundations/metrics.md
-        - '코드: 잣대': ch31/foundations/metrics.md
-        - 나타내기: ch31/foundations/representations.md
-        - '코드: 나타내기': ch31/foundations/representations.md
       - 한 번에 만들기:
         - 이웃 행렬: ch31/one_shot/adjacency.md
         - '코드: 이웃 행렬': ch31/one_shot/adjacency.md
@@ -1244,7 +1193,7 @@ nav:
         - '코드: GraphGAN': ch31/one_shot/graphgan.md
         - GraphVAE: ch31/one_shot/graphvae.md
         - '코드: GraphVAE': ch31/one_shot/graphvae.md
-  - XI 실전과 응용:
+  - VIII 힘 북돋우는 배움:
     - 32 힘 북돋우는 배움의 바탕:
       - 장 살펴보기: ch32/index.md
       - 32.1 들머리:
@@ -1360,26 +1309,26 @@ nav:
         - 됨됨이 재기: ch35/backtesting/metrics.md
         - 통계로 뜻있음: ch35/backtesting/significance.md
         - 앞으로 걸어가며 살피기: ch35/backtesting/walk_forward.md
-      - 어려움:
-        - 흐름 바뀜: ch35/challenges/non_stationarity.md
-        - 지나치게 맞추기 막기: ch35/challenges/overfitting.md
-        - 판 바뀜: ch35/challenges/regimes.md
-        - 판 바뀜: ch35/challenges/regimes.md
-        - 낮은 신호 대 잡음 비: ch35/challenges/snr.md
       - 둘레:
         - 움직임 공간: ch35/environments/actions.md
         - 보상 만들기: ch35/environments/rewards.md
         - 저자 흉내내기: ch35/environments/simulation.md
         - 상태 나타내기: ch35/environments/state.md
+      - 무릅씀:
+        - 내림폭: ch35/risk/drawdown.md
+        - 무릅씀을 맞춘 보상: ch35/risk/rewards.md
+        - 무릅씀 값 매임: ch35/risk/var_constraints.md
       - 실제 굴리기:
         - 살아 있는 거래: ch35/production/live_trading.md
         - 지켜보기: ch35/production/monitoring.md
         - 종이 거래: ch35/production/paper_trading.md
         - 무릅씀 다스리개: ch35/production/risk_controls.md
-      - 무릅씀:
-        - 내림폭: ch35/risk/drawdown.md
-        - 무릅씀을 맞춘 보상: ch35/risk/rewards.md
-        - 무릅씀 값 매임: ch35/risk/var_constraints.md
+      - 어려움:
+        - 흐름 바뀜: ch35/challenges/non_stationarity.md
+        - 지나치게 맞추기 막기: ch35/challenges/overfitting.md
+        - 판 바뀜: ch35/challenges/regimes.md
+        - 낮은 신호 대 잡음 비: ch35/challenges/snr.md
+  - IX 믿을 수 있는 딥러닝:
     - 36 모형 풀이하기:
       - 장 개요: ch36/index.md
       - 36.1 밑바탕:
@@ -1506,7 +1455,7 @@ nav:
         - 신경 그물의 아리송함 재기: ch39/evaluation/uncertainty_quantification.md
       - 39.8 금융에 쓰기:
         - 모형 아리송함을 손에 잡히게 쓰기: ch39/finance/practical_applications.md
-  - XI - 실전과 마무리:
+  - X 실전과 마무리:
     - 40 모형 내놓기:
       - 장 개요: ch40/index.md
       - 40.2 다듬기:
@@ -1608,7 +1557,3 @@ nav:
       - 잃음 함수: appendix/utils/losses.md
       - 배움 빠르기 짜개: appendix/utils/schedulers.md
       - 자료 불리기: appendix/utils/augmentation.md
-
-plugins:
-    - search
-    - mermaid2
