@@ -610,6 +610,7 @@ nav:
         - 모델 가리지 않는 메타 학습(MAML): ch11/meta_learning/maml.md
         - 과제 분포: ch11/meta_learning/task_distribution.md
       - 거리 학습:
+        - 본보기 배우기: ch11/metric_learning/template_learning.md
         - 원형 망: ch11/metric_learning/prototypical.md
         - 샴 망: ch11/metric_learning/siamese.md
       - 영 예시 학습:
