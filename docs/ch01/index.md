@@ -1,112 +1,48 @@
-# 1장: 사이킷런
+# 1장: 들어가기 — 기계와 연장
 
-사이킷런(scikit-learn)은 고전적 기계학습을 위한 표준적인 파이썬 인터페이스를 제공한다. 이 장에서는 환경 설정, API 설계 철학, 전처리 도구, 모델 계열, 평가 방법론, 그리고 PyTorch와의 통합 패턴을 다룬다. 사이킷런을 먼저 이해하면 딥러닝 작업 흐름에 그대로 이어지는 기본 규율과 파이프라인 사고방식을 갖출 수 있다.
+딥러닝은 결국 컴퓨터에서 도는 계산이다. 그 계산이 어떤 기계 위에서, 어떤 연장으로 이루어지는지를 먼저 보는 것이 이 장의 일이다.
 
----
+신경망을 배우면서 마주치는 물음 가운데 상당수는 수학이 아니라 기계에 관한 것이다.
 
-## 1. 환경 설정
+- 왜 `.to(device)` 같은 줄을 써야 하는가
+- 왜 묶음 크기를 늘리면 메모리가 모자란다고 하는가
+- 왜 GPU가 있는데도 학습이 느린가
+- 왜 텐서를 파이썬 반복문으로 훑으면 안 되는가
 
-파이썬 기반 기계학습과 딥러닝을 위한 개발 환경을 구성한다.
+이 물음들은 뒤에서 코드를 만나는 순간 곧바로 닥친다. 그때마다 멈추어 설명하는 대신, 여기서 한 번에 정리하고 넘어간다.
 
-- 개발 환경 구축 -- 시스템 도구, Miniforge, VS Code, 격리된 파이썬 환경의 설치와 설정
-- 기본 설정 -- 프로젝트 디렉터리 구조, 필수 라이브러리, 주피터 사용자 설정, Git 설정
-- 패키지 관리 -- conda와 pip 비교, 채널, 의존성 충돌, 재현 가능한 환경 명세
-- 가상 환경 -- conda와 venv를 이용한 환경 격리, 환경 내보내기와 재현
-- IDE와 주피터 -- Jupyter Notebook, JupyterLab, Spyder, PyCharm, VS Code, Google Colab
+| 절 | 내용 | 답하는 물음 |
+|---|---|---|
+| 1.1 | 컴퓨터 구조 | 계산은 어디서 일어나고 자료는 어디에 있는가 |
+| 1.2 | NumPy와 벗들 | 숫자 자료를 어떤 연장으로 다루는가 |
+| 1.3 | PyTorch | 그 연장을 GPU로 가져가고 미분을 맡기려면 |
 
----
+## 1.1 컴퓨터 구조
 
-## 2. 기초
+CPU는 적은 수의 똑똑한 일꾼이고 GPU는 아주 많은 수의 단순한 일꾼이다. 신경망의 계산이 "같은 계산을 수백만 번" 하는 일이기 때문에 GPU가 딥러닝의 기계가 되었다.
 
-사이킷런 전체를 관통하는 API 관례, 추정기 인터페이스, 파이프라인 설계.
+기억 장치는 레지스터에서 SSD까지 층으로 쌓여 있고, 한 층 내려갈 때마다 열 배에서 천 배씩 느려진다. 여기서 딥러닝 코드의 첫 번째 규율이 나온다. **계산을 줄이려 애쓰기 전에 자료가 어디에 있는지 보라.**
 
-- API 개요 -- 통일된 `fit`/`predict`/`transform` 인터페이스와 매개변수 관례
-- 추정기 인터페이스 -- `BaseEstimator`, `TransformerMixin`, `ClassifierMixin`, 사용자 정의 추정기 작성
-- 파이프라인 설계 -- `Pipeline`, `ColumnTransformer`, `FeatureUnion`, 캐싱, 데이터 누출 방지
+다만 GPU는 만능이 아니다. 실제로 재어 보면 작은 일감에서는 GPU가 CPU보다 **느리다.** 그 까닭과 문턱을 1.3에서 직접 재어 확인한다.
 
----
+## 1.2 NumPy와 벗들
 
-## 3. 전처리
+- **NumPy** — 숫자 배열을 다루는 표준 연장. 반복문을 배열 연산으로 바꾸는 법을 여기서 익힌다
+- **Pandas** — 표로 된 자료를 읽고 다듬어 숫자 배열로 넘겨준다
+- **Matplotlib** — 결과를 눈으로 확인한다. 학습이 잘못되어도 프로그램은 오류를 내지 않으므로, 그려 보는 일이 곧 검사이다
 
-원시 특징을 모델이 쓸 수 있는 표현으로 변환한다.
+## 1.3 PyTorch
 
-- 스케일러 -- `StandardScaler`, `MinMaxScaler`, `RobustScaler`, 멱변환
-- 인코더 -- `OneHotEncoder`, `OrdinalEncoder`, `LabelEncoder`, 목표 인코딩, 해싱
-- 결측값 대치 -- `SimpleImputer`, `KNNImputer`, `IterativeImputer`, 결측 지시자
-- 특징 선택 -- 차원 축소를 위한 필터, 래퍼, 임베디드 방법
-- 변환기 -- 다항식 확장, 이산화, PCA, t-SNE, 텍스트 특징 공학
+PyTorch의 텐서는 NumPy 배열에 두 가지를 더한 것이다.
 
----
+$$\text{Tensor} = \text{ndarray} + \text{장치} + \text{자동 미분}$$
 
-## 4. 모델
-
-선형 모델부터 앙상블까지의 지도 학습 알고리즘.
-
-- [선형 모델](../ch02/models/linear.md) -- `LinearRegression`, `Ridge`, `Lasso`, `ElasticNet`, `LogisticRegression`
-- [트리 모델](../ch02/models/trees.md) -- `DecisionTreeClassifier`/`Regressor`, 분할 기준, 가지치기, 시각화
-- 앙상블 방법 -- `RandomForest`, `GradientBoosting`, `AdaBoost`, 스태킹, 투표
-- [SVM](../ch02/models/svm.md) -- `SVC`, `SVR`, 커널 기법, 정칙화, 스케일 조정 요구사항
-- [최근접 이웃](../ch02/models/neighbors.md) -- `KNeighborsClassifier`/`Regressor`, 거리 척도, `BallTree`, `KDTree`
-- 나이브 베이즈 -- `GaussianNB`, `MultinomialNB`, `BernoulliNB`, 조건부 독립
+문법이 거의 같으므로 NumPy를 알면 PyTorch의 절반은 이미 아는 셈이다. 나머지 절반인 **장치**와 **자동 미분**이 딥러닝을 실제로 굴러가게 만든 두 장치이며, 이 절에서 다룬다.
 
 ---
 
-## 5. 모델 선택
+## 이 장을 마치면
 
-분할, 검증, 하이퍼파라미터 탐색에 대한 원칙 있는 접근.
+기계와 연장이 준비된다. [2장](../ch02/index.md)은 신경망 이전의 기계학습이 문제를 어떤 틀로 나누어 보았는지를 살피고, [3장](../ch03/index.md)에서 MNIST 하나를 붙들고 템플릿 학습에서 합성곱 신경망까지 네 걸음을 걷는다.
 
-- 교차 검증 -- K-Fold, 층화, LOOCV, `TimeSeriesSplit`, `GroupKFold`, 중첩 CV
-- 격자 탐색 -- `GridSearchCV`, 매개변수 격자, 다중 지표 평가
-- 무작위 탐색 -- `RandomizedSearchCV`, 분포 지정, 격자 대비 효율
-- 베이즈 최적화 -- 대리 모델, 획득 함수, `scikit-optimize`, `Optuna`
-
----
-
-## 6. 평가 지표
-
-분류, 회귀, 군집화의 모델 성능을 정량화한다.
-
-- 분류 지표 -- 정확도, 정밀도, 재현율, F1, ROC-AUC, PR-AUC, 혼동 행렬
-- 회귀 지표 -- MSE, RMSE, MAE, 결정계수, MAPE
-- [군집화 지표](../ch02/metrics/clustering.md) -- 실루엣, 칼린스키-하라바스, 데이비스-볼딘, 조정 랜드 지수
-- 사용자 정의 스코어러 -- `make_scorer`, 업무별 손실 함수, 비대칭 비용
-
----
-
-## 7. PyTorch 통합
-
-사이킷런 작업 흐름과 딥러닝을 잇는다.
-
-- Skorch -- `NeuralNetClassifier`/`NeuralNetRegressor`로 PyTorch 모듈을 sklearn 추정기로 감싸기
-- 사용자 정의 추정기 -- PyTorch 모델에 대해 `fit`/`predict`/`score`를 직접 구현하기
-- 혼합 파이프라인 -- sklearn 전처리, PyTorch 모델, sklearn 평가의 결합
-
----
-
-## 8. 금융 응용
-
-계량 금융을 위한 영역별 패턴.
-
-- 팩터 모델 -- 횡단면 회귀, Fama-MacBeth, 팩터 적재로서의 특징 중요도
-- 신용 평가 -- 불균형 분류, 스코어카드 개발, 규제 제약
-- 시계열 교차 검증 -- 전진 검증, 퍼징, 엠바고, 조합적 퍼지 CV
-
----
-
-## 9. 설치 안내
-
-플랫폼별 파이썬 개발 환경 구축 안내.
-
-- 설치 개요 -- 모든 플랫폼에 대한 개요와 빠른 시작 링크
-- macOS 설치 안내 -- macOS에서의 Homebrew, Miniforge, VS Code 설정
-- Windows 설치 안내 -- Windows에서의 Chocolatey, Miniconda, VS Code 설정
-- Linux 설치 안내 -- Ubuntu, Fedora, Arch에서의 Miniforge와 VS Code 설정
-- macOS 빠른 참조 -- macOS용 한 줄 설치 명령
-- Windows 빠른 참조 -- Windows용 한 줄 설치 명령
-- Linux 빠른 참조 -- Linux용 한 줄 설치 명령
-
----
-
-## 정리하며
-
-이 마당은 환경 설정、기초、전처리、모델을 차례로 짚었다.
+PyTorch의 도구를 체계적으로 파고드는 것은 [4장](../ch04/index.md)이다. 이 장은 그 준비 운동이므로, 여기서 모든 것을 외우려 하지 않아도 된다. 뒤에서 막힐 때 돌아와 찾아보면 된다.

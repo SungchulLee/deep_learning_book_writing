@@ -43,32 +43,17 @@ nav:
   - I 밑바탕:
     - 1 들어가기:
       - 장 개요: ch01/index.md
-      - 1.1 알고리즘이란 무엇인가:
-        - 알고리즘의 정의: ch01/what/definition.md
-        - 알고리즘의 성질: ch01/what/properties.md
-        - 정확성: ch01/what/correctness.md
-        - 효율성: ch01/what/efficiency.md
-        - 기술로서의 알고리즘: ch01/what/technology.md
-        - 의사코드 규약: ch01/what/pseudocode.md
-      - 1.2 문제 해결:
-        - 문제 명세: ch01/problem_solving/specification.md
-        - 입력과 출력: ch01/problem_solving/io.md
-        - 완전 탐색: ch01/problem_solving/brute_force.md
-        - 증분 알고리즘: ch01/problem_solving/incremental.md
-        - 분할 정복 맛보기: ch01/problem_solving/divide_conquer.md
-        - 환원: ch01/problem_solving/reduction.md
-      - 1.3 수학적 배경:
-        - 합 공식: ch01/math/summations.md
-        - 로그: ch01/math/logarithms.md
-        - 조합론: ch01/math/combinatorics.md
-        - 증명 기법: ch01/math/proofs.md
-        - 수학적 귀납법: ch01/math/induction.md
-        - 모순에 의한 증명: ch01/math/contradiction.md
-        - 비둘기집 원리: ch01/math/pigeonhole.md
-      - 1.4 구현 언어:
-        - 알고리즘을 위한 파이썬: ch01/languages/python.md
-        - 알고리즘을 위한 C++: ch01/languages/cpp.md
-        - 언어 선택: ch01/languages/choosing.md
+      - 1.1 컴퓨터 구조:
+        - CPU와 기억 장치: ch01/hardware/01_cpu_and_memory.md
+        - GPU: ch01/hardware/02_gpu.md
+        - 자료가 지나는 길: ch01/hardware/03_data_path.md
+      - 1.2 NumPy와 벗들:
+        - NumPy: ch01/libraries/01_numpy.md
+        - Pandas: ch01/libraries/02_pandas.md
+        - Matplotlib: ch01/libraries/03_matplotlib.md
+      - 1.3 PyTorch:
+        - NumPy에서 PyTorch로: ch01/pytorch/01_numpy_to_tensor.md
+        - CPU와 GPU를 재어 보기: ch01/pytorch/02_cpu_vs_gpu.md
     - 2 인공지능 학습 패러다임과 고전 모델:
       - 장 개요: ch02/index.md
       - 2.1 인공지능 학습 패러다임:
@@ -318,7 +303,10 @@ nav:
         - L1/L2 정칙화: ch06/regularization/l1_l2_regularization.md
     - 7 학습 파이프라인:
       - 장 개요: ch07/index.md
-      - 7.1 데이터셋:
+      - 7.1 바탕:
+        - 정확성: ch07/foundations/correctness.md
+        - 효율성: ch07/foundations/efficiency.md
+      - 7.2 데이터셋:
         - 자연어 데이터 증강: ch07/datasets/nlp_augmentation.md
         - Snorkel을 쓰는 약지도 학습: ch07/datasets/weak_supervision_snorkel.md
         - 반복자 방식 최소 예제: ch07/datasets/11_iterable_style_minimal.md
@@ -328,16 +316,16 @@ nav:
         - Fashion-MNIST: ch07/datasets/fashion_mnist.md
         - Hymenoptera: ch07/datasets/hymenoptera.md
         - MNIST: ch07/datasets/mnist.md
-      - 7.2 데이터로더:
+      - 7.3 데이터로더:
         - 균형 잡힌 데이터로더: ch07/dataloaders/balanced_dataloader.md
         - 데이터로더 변환: ch07/dataloaders/dataloader_transforms.md
         - 배치 이미지 그리기: ch07/dataloaders/draw_batch_images.md
         - 이미지 한 장 그리기: ch07/dataloaders/draw_one_image.md
-      - 7.3 학습 루프:
+      - 7.4 학습 루프:
         - 실전 학습 요령: ch07/training/training_recipes.md
         - TensorBoard MNIST 주석본: ch07/training/tensorboard_mnist_commented.md
         - 완전한 MNIST 학습: ch07/training/01_complete_mnist_training.md
-      - 7.4 고급 손실 함수:
+      - 7.5 고급 손실 함수:
         - 초점 손실: ch07/loss/focal_loss.md
         - 후버 손실: ch07/loss/huber_loss.md
         - 손실 함수의 선택: ch07/loss/loss_selection.md
@@ -346,7 +334,7 @@ nav:
         - 최적화기 소개: ch07/loss/03_intro_to_optimizers.md
         - 분류 손실: ch07/loss/04_classification_losses.md
         - 사용자 정의 손실 함수: ch07/loss/01_custom_loss_functions.md
-      - 7.5 최적화기:
+      - 7.6 최적화기:
         - 모멘텀을 쓰는 확률적 경사 하강법: ch07/optimizers/momentum.md
         - 네스테로프 모멘텀: ch07/optimizers/nesterov.md
         - Adagrad: ch07/optimizers/adagrad.md
@@ -362,14 +350,14 @@ nav:
         - Adam 최적화기: ch07/optimizers/adam_optimizer.md
         - 최적화기 비교 실험: ch07/optimizers/optimizer_comparison.md
         - RMSprop 최적화기: ch07/optimizers/rmsprop_optimizer.md
-      - 7.6 학습률 스케줄러:
+      - 7.7 학습률 스케줄러:
         - 순환 학습률: ch07/schedulers/cyclical_lr.md
         - 학습률 워밍업: ch07/schedulers/lr_warmup.md
-      - 7.7 과적합과 일반화:
+      - 7.8 과적합과 일반화:
         - 편향-분산 절충: ch07/overfitting/bias_variance_tradeoff.md
         - 학습 곡선 시연: ch07/overfitting/learning_curves_demo.md
         - 과적합과 과소적합 시연: ch07/overfitting/overfitting_underfitting_demo.md
-      - 7.8 평가 지표:
+      - 7.9 평가 지표:
         - 통계적 추론: ch07/evaluation/statistical_inference.md
         - 모델 평가 개관: ch07/evaluation/01_model_evaluation_overview.md
         - 분류 지표: ch07/evaluation/02_classification_metrics.md
@@ -378,14 +366,14 @@ nav:
         - 혼동 행렬: ch07/evaluation/05_confusion_matrix.md
         - 모델 비교: ch07/evaluation/06_model_comparison.md
         - 종합 예제: ch07/evaluation/07_comprehensive_examples.md
-      - 7.9 초매개변수 조율:
+      - 7.10 초매개변수 조율:
         - 격자 탐색: ch07/hyperparameters/01_grid_search.md
         - 무작위 탐색: ch07/hyperparameters/02_random_search.md
         - 베이즈 최적화: ch07/hyperparameters/03_bayesian_optimization.md
         - AutoML 소개: ch07/hyperparameters/04_automl_intro.md
         - 조율 방법 비교: ch07/hyperparameters/05_comparison.md
         - 연속 반감법: ch07/hyperparameters/06_successive_halving.md
-      - 7.10 모델 저장:
+      - 7.11 모델 저장:
         - ONNX 기초: ch07/save_load/1_onnx_basics.md
         - 양자화: ch07/save_load/2_quantization.md
         - 배포 파이프라인: ch07/save_load/4_deployment_pipeline.md
