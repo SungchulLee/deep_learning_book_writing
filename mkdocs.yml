@@ -1216,97 +1216,75 @@ nav:
         - 자격 자취: ch33/n_step/eligibility_traces.md
     - 34 값 바탕 깊은 힘 북돋우는 배움:
       - 장 살펴보기: ch34/index.md
-      - 장 살펴보기 코드: ch34/index.md
       - 33.1 깊은 Q 그물:
-        - 깊은 Q 그물의 바탕 코드: ch34/dqn/fundamentals.md
-        - 겪음 되돌려 보기 코드: ch34/dqn/experience_replay.md
-        - 과녁 그물 코드: ch34/dqn/target_networks.md
-        - 깊은 Q 그물 짜기 코드: ch34/dqn/implementation.md
+        - 깊은 Q 그물의 바탕: ch34/dqn/fundamentals.md
+        - 겪음 되돌려 보기: ch34/dqn/experience_replay.md
+        - 과녁 그물: ch34/dqn/target_networks.md
+        - 깊은 Q 그물 짜기: ch34/dqn/implementation.md
         - 조절 값: ch34/dqn/hyperparameters.md
-        - 조절 값 코드: ch34/dqn/hyperparameters.md
       - 33.2 깊은 Q 그물 개선:
-        - 겹 깊은 Q 그물 코드: ch34/improvements/double_dqn.md
-        - 겨루기 깊은 Q 그물 코드: ch34/improvements/dueling_dqn.md
-        - 우선순위 되돌려 보기 코드: ch34/improvements/prioritized_replay.md
-        - 시끄러운 그물 코드: ch34/improvements/noisy_networks.md
-        - 분포 힘 북돋우는 배움 코드: ch34/improvements/distributional.md
+        - 겹 깊은 Q 그물: ch34/improvements/double_dqn.md
+        - 겨루기 깊은 Q 그물: ch34/improvements/dueling_dqn.md
+        - 우선순위 되돌려 보기: ch34/improvements/prioritized_replay.md
+        - 시끄러운 그물: ch34/improvements/noisy_networks.md
+        - 분포 힘 북돋우는 배움: ch34/improvements/distributional.md
         - 무지개: ch34/improvements/rainbow.md
-        - 무지개 코드: ch34/improvements/rainbow.md
       - 33.3 여러 걸음 배움:
         - n걸음 돌아옴: ch34/multi_step/n_step_returns.md
-        - n걸음 돌아옴 코드: ch34/multi_step/n_step_returns.md
-        - 리트레이스 코드: ch34/multi_step/retrace.md
-        - V자취 코드: ch34/multi_step/v_trace.md
+        - 리트레이스: ch34/multi_step/retrace.md
+        - V자취: ch34/multi_step/v_trace.md
       - 33.4 이어진 움직임:
         - 고른 이점 함수: ch34/continuous/naf.md
-        - 고른 이점 함수 코드: ch34/continuous/naf.md
-        - QT-Opt 코드: ch34/continuous/qt_opt.md
+        - QT-Opt: ch34/continuous/qt_opt.md
       - 33.5 묶음 힘 북돋우는 배움:
-        - 묶음 힘 북돋우는 배움의 바탕 코드: ch34/offline/fundamentals.md
+        - 묶음 힘 북돋우는 배움의 바탕: ch34/offline/fundamentals.md
         - 조심스러운 Q 배움: ch34/offline/cql.md
-        - 조심스러운 Q 배움 코드: ch34/offline/cql.md
-        - 묶음 매인 Q 배움 코드: ch34/offline/bcq.md
+        - 묶음 매인 Q 배움: ch34/offline/bcq.md
         - 감춰진 Q 배움: ch34/offline/iql.md
-        - 감춰진 Q 배움 코드: ch34/offline/iql.md
       - 33.6 값 매기기:
-        - 익히기 굽은 금 코드: ch34/evaluation/training_curves.md
-        - 잣대 코드: ch34/evaluation/benchmarks.md
-        - 셈밝힘 시험 코드: ch34/evaluation/statistical.md
+        - 익히기 굽은 금: ch34/evaluation/training_curves.md
+        - 잣대: ch34/evaluation/benchmarks.md
+        - 셈밝힘 시험: ch34/evaluation/statistical.md
       - 33.7 금융 쓰임새:
-        - 주문 처리 코드: ch34/finance/order_execution.md
+        - 주문 처리: ch34/finance/order_execution.md
         - 저자 만들기: ch34/finance/market_making.md
-        - 저자 만들기 코드: ch34/finance/market_making.md
         - 조각난 거래: ch34/finance/discrete_trading.md
-        - 조각난 거래 코드: ch34/finance/discrete_trading.md
     - 35 방침 바탕 깊은 힘 북돋우는 배움:
       - 장 살펴보기: ch35/index.md
       - 34.1 방침 기울기 바탕:
-        - 방침 매개변수 나타내기 코드: ch35/foundations/parameterization.md
-        - 방침 기울기 정리 코드: ch35/foundations/pg_theorem.md
-        - REINFORCE 코드: ch35/foundations/reinforce.md
-        - 밑금 방법 코드: ch35/foundations/baselines.md
+        - 방침 매개변수 나타내기: ch35/foundations/parameterization.md
+        - 방침 기울기 정리: ch35/foundations/pg_theorem.md
+        - REINFORCE: ch35/foundations/reinforce.md
+        - 밑금 방법: ch35/foundations/baselines.md
       - 34.2 행위자-비평가:
         - 행위자-비평가 바탕: ch35/actor_critic/fundamentals.md
-        - 행위자-비평가 바탕 코드: ch35/actor_critic/fundamentals.md
-        - A2C 코드: ch35/actor_critic/a2c.md
-        - A3C 코드: ch35/actor_critic/a3c.md
+        - A2C: ch35/actor_critic/a2c.md
+        - A3C: ch35/actor_critic/a3c.md
         - 넓힌 이점 어림: ch35/actor_critic/gae.md
-        - 넓힌 이점 어림 코드: ch35/actor_critic/gae.md
       - 34.3 믿음 구역 방법:
         - 믿음 구역 방침 가장 좋게 하기: ch35/trust_region/trpo.md
-        - 믿음 구역 방침 가장 좋게 하기 코드: ch35/trust_region/trpo.md
-        - 자연 방침 기울기 코드: ch35/trust_region/npg.md
-        - 가까운 곳 방침 가장 좋게 하기 코드: ch35/trust_region/ppo.md
+        - 자연 방침 기울기: ch35/trust_region/npg.md
+        - 가까운 곳 방침 가장 좋게 하기: ch35/trust_region/ppo.md
         - 가까운 곳 방침 가장 좋게 하기 구현: ch35/trust_region/ppo_implementation.md
-        - 가까운 곳 방침 가장 좋게 하기 구현 코드: ch35/trust_region/ppo_implementation.md
       - 34.4 벗어난 방침 행위자-비평가:
         - 깊은 붙박이 방침 기울기: ch35/off_policy/ddpg.md
-        - 깊은 붙박이 방침 기울기 코드: ch35/off_policy/ddpg.md
         - 쌍둥이 늦춘 DDPG: ch35/off_policy/td3.md
-        - 쌍둥이 늦춘 DDPG 코드: ch35/off_policy/td3.md
         - 부드러운 행위자-비평가: ch35/off_policy/sac.md
-        - 부드러운 행위자-비평가 코드: ch35/off_policy/sac.md
-        - 부드러운 행위자-비평가 구현 코드: ch35/off_policy/sac_implementation.md
+        - 부드러운 행위자-비평가 구현: ch35/off_policy/sac_implementation.md
       - 34.5 높은 주제:
         - 가장 큰 엔트로피 힘 북돋우는 배움: ch35/advanced/max_entropy.md
-        - 가장 큰 엔트로피 힘 북돋우는 배움 코드: ch35/advanced/max_entropy.md
-        - 켜 있는 힘 북돋우는 배움 코드: ch35/advanced/hierarchical.md
+        - 켜 있는 힘 북돋우는 배움: ch35/advanced/hierarchical.md
         - 여러 부림꾼 힘 북돋우는 배움: ch35/advanced/multi_agent.md
-        - 여러 부림꾼 힘 북돋우는 배움 코드: ch35/advanced/multi_agent.md
         - 모형 바탕 힘 북돋우는 배움: ch35/advanced/model_based.md
-        - 모형 바탕 힘 북돋우는 배움 코드: ch35/advanced/model_based.md
       - 34.6 실제로 살필 것:
-        - 보상 다듬기 코드: ch35/practical/reward_shaping.md
-        - 움직임 공간 코드: ch35/practical/action_spaces.md
-        - 봄 고르게 하기 코드: ch35/practical/normalization.md
-        - 힘 북돋우는 배움 벌레잡기 코드: ch35/practical/debugging.md
+        - 보상 다듬기: ch35/practical/reward_shaping.md
+        - 움직임 공간: ch35/practical/action_spaces.md
+        - 봄 고르게 하기: ch35/practical/normalization.md
+        - 힘 북돋우는 배움 벌레잡기: ch35/practical/debugging.md
       - 34.7 금융 쓰임새:
         - 밑천 나누기 가장 좋게 하기: ch35/finance/portfolio.md
-        - 밑천 나누기 가장 좋게 하기 코드: ch35/finance/portfolio.md
         - 이어진 거래: ch35/finance/continuous_trading.md
-        - 이어진 거래 코드: ch35/finance/continuous_trading.md
         - 무릅씀에 예민한 힘 북돋우는 배움: ch35/finance/risk_sensitive.md
-        - 무릅씀에 예민한 힘 북돋우는 배움 코드: ch35/finance/risk_sensitive.md
     - 36 계량 금융을 위한 힘 북돋우는 배움:
       - 장 개요: ch36/index.md
       - 되짚어 시험하기:
