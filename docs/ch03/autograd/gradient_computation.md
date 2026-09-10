@@ -342,12 +342,20 @@ def f(x):
 x = torch.tensor([1.0, 2.0], requires_grad=True)
 
 # 수반 벡터 [1, 0]으로 VJP를 하면 J의 첫 행을 얻는다
+# torch.autograd.functional.vjp는 수반 벡터를 세 번째 인자로 직접 받고
+# (출력, VJP 결과)를 돌려준다. 함수를 돌려주는 torch.func.vjp와 혼동하기 쉽다.
 adjoint = torch.tensor([1.0, 0.0])
-output, vjp_fn = vjp(f, x)
-vjp_result = vjp_fn(adjoint)[0]
+output, vjp_result = vjp(f, x, adjoint)
 
 print(f"f(x) = {output}")
 print(f"[1,0] @ J = {vjp_result}")
+```
+
+**출력:**
+
+```
+f(x) = tensor([0.9093, 3.0000])
+[1,0] @ J = tensor([-0.8323, -0.4161])
 ```
 
 ### 신경망에 후진 모드를 쓰는 이유
