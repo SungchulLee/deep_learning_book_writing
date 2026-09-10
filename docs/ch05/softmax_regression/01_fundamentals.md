@@ -4,67 +4,53 @@
 
 이 튜토리얼은 PyTorch에서 소프트맥스 회귀에 대한 기초적인 이해를 쌓는다. 코드를 따라가 보면 모델을 세우고, 손실 함수를 정의하고, 경사 하강법으로 학습시키고, 분류 과제에서 성능을 평가하는 법을 알 수 있다.
 
-## 1. 가장 단순한 예: MNIST 숫자 분류
+## 1. 모델: 특징 $D$개에서 클래스 $K$개로
 
-소프트맥스 회귀가 무엇인지는 MNIST에서 가장 또렷하게 보인다. 층도 하나뿐이고 매개변수도 셀 수 있을 만큼 적어, 식 전체를 머릿속에 담을 수 있다.
-
-### 입력 펼치기
-
-MNIST 이미지는 $28 \times 28$이다. 이를 한 줄로 펼쳐 길이 $784$인 벡터로 만든다.
-
-$$
-28 \times 28 = 784
-$$
-
-이 순간 화소의 이웃 관계가 사라진다는 점은 기억해 둘 만하다. 그 손실을 되찾는 것이 뒤에 나올 합성곱 신경망이다.
+소프트맥스 회귀는 이름에 '회귀'가 붙어 있지만 분류기이다. 특징 벡터 하나를 받아 클래스마다 점수를 매기고, 그 점수를 확률로 바꾼다.
 
 ### 아핀 변환
 
-펼친 입력에 행렬을 곱하고 치우침을 더해 클래스마다 점수 하나씩, 모두 10개를 만든다.
+입력 $\mathbf{x} \in \mathbb{R}^{1 \times D}$에 행렬을 곱하고 치우침을 더해 클래스마다 점수 하나씩, 모두 $K$개를 만든다.
 
-$$
-y = xA + b
-$$
+$$\mathbf{z} = \mathbf{x}A + \mathbf{b}$$
 
-여기서 모양은 다음과 같다.
+모양은 다음과 같다.
 
-$$
-x \in \mathbb{R}^{1 \times 784},\quad A \in \mathbb{R}^{784 \times 10},\quad b \in \mathbb{R}^{10},\quad y \in \mathbb{R}^{1 \times 10}
-$$
+$$\mathbf{x} \in \mathbb{R}^{1 \times D},\quad A \in \mathbb{R}^{D \times K},\quad \mathbf{b} \in \mathbb{R}^{K},\quad \mathbf{z} \in \mathbb{R}^{1 \times K}$$
 
-**표기 관례에 주의하라.** 수학 교과서와 텐서플로는 입력을 열벡터로 보아 $Ax + b$로 쓰지만, PyTorch는 입력을 행벡터로 보아 $xA + b$로 쓴다. 그래서 같은 층이라도 가중치 행렬의 모양이 서로 전치 관계에 있다. `nn.Linear(784, 10)`의 `weight`가 $(10, 784)$인 것도 이 때문이며, 실제 계산은 내부에서 $xA^{\top}$으로 이루어진다. 두 관례를 오가며 식을 옮겨 적을 때 가장 자주 어긋나는 지점이다.
+여기에는 은닉층도 활성화 함수도 없다. 이 한 겹이 모델의 전부이며, 그래서 앞 절에서 본 대로 결정 경계가 초평면으로 묶인다.
+
+**표기 관례에 주의하라.** 수학 교과서와 텐서플로는 입력을 열벡터로 보아 $A\mathbf{x} + \mathbf{b}$로 쓰지만, PyTorch는 입력을 행벡터로 보아 $\mathbf{x}A + \mathbf{b}$로 쓴다. 그래서 같은 층이라도 가중치 행렬의 모양이 서로 전치 관계에 있다. `nn.Linear(D, K)`의 `weight`가 $(K, D)$인 것도 이 때문이며, 실제 계산은 내부에서 $\mathbf{x}A^{\top}$으로 이루어진다. 두 관례를 오가며 식을 옮겨 적을 때 가장 자주 어긋나는 지점이다.
 
 ### 매개변수 세어 보기
 
-$$
-\underbrace{784 \times 10}_{A} + \underbrace{10}_{b} = 7850
-$$
+$$\underbrace{D \times K}_{A} + \underbrace{K}_{\mathbf{b}} = K(D + 1)$$
 
-딥러닝에서 "모델을 학습한다"는 말은 결국 이 7850개의 수를 찾는다는 뜻이다. 오늘날의 큰 모델이 다루는 수가 수십억 개일 뿐, 하는 일은 같다.
+"모델을 학습한다"는 말은 결국 이 $K(D+1)$개의 수를 찾는다는 뜻이다. 오늘날의 큰 모델이 다루는 수가 수십억 개일 뿐, 하는 일은 같다.
+
+!!! note "MNIST에서는 어떤 값이 되는가"
+    784차원 입력에 클래스가 10개이면 $10 \times (784 + 1) = 7850$개이다.
+    이 값으로 실제 학습을 돌려 92.51%를 얻는 과정은 [3.2 선형 모델과 소프트맥스](../../ch03/mnist/02_linear_softmax.md)에 있다. 이 절은 그 특수한 경우가 아니라 모델 자체의 정의를 다룬다.
 
 ### 점수를 확률로 바꾸기
 
-$y$의 열 성분은 아직 확률이 아니다. 음수일 수도 있고 합이 1도 아니다. 이 날것의 점수를 **로짓**이라 부른다. 소프트맥스가 이를 확률로 바꾼다.
+$\mathbf{z}$의 성분은 아직 확률이 아니다. 음수일 수도 있고 합이 1도 아니다. 이 날것의 점수를 **로짓**이라 부른다. 소프트맥스가 이를 확률로 바꾼다.
 
-$$
-p_k = \frac{e^{y_k}}{Z}, \qquad Z = \sum_{j=0}^{9} e^{y_j}
-$$
+$$p_k = \frac{e^{z_k}}{Z}, \qquad Z = \sum_{j=1}^{K} e^{z_j}$$
 
-지수함수가 모든 값을 양수로 만들고, $Z$로 나누어 합을 1로 맞춘다. 예를 들어 로짓이 $(3, -1, 5, \ldots)$이면 확률은 $(e^3, e^{-1}, e^5, \ldots)/Z$에 비례한다. 지수를 쓰므로 점수의 작은 차이가 확률에서는 크게 벌어진다.
+지수함수가 모든 값을 양수로 만들고, $Z$로 나누어 합을 1로 맞춘다. 지수를 쓰므로 점수의 작은 차이가 확률에서는 크게 벌어진다.
 
 ### 예측 고르기
 
-$$
-\widehat{y} = \operatorname*{arg\,max}_{k \in \{0,\ldots,9\}} p_k
-$$
+$$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
 
 소프트맥스는 순서를 바꾸지 않으므로, 예측만 얻을 목적이라면 로짓에 바로 `argmax`를 취해도 결과가 같다. 소프트맥스가 정말로 필요한 곳은 확률값 자체를 읽거나 손실을 계산할 때이다.
 
-### 그러면 $(A, b)$는 어떻게 찾는가
+### 그러면 $(A, \mathbf{b})$는 어떻게 찾는가
 
-여기까지가 모델이고, 남은 물음은 7850개의 수를 어떻게 정하느냐이다. 답은 최대가능도 추정이며, 거기서 교차 엔트로피 손실과 경사 하강법이 따라 나온다.
+여기까지가 모델이고, 남은 물음은 $K(D+1)$개의 수를 어떻게 정하느냐이다. 답은 최대가능도 추정이며, 거기서 교차 엔트로피 손실과 경사 하강법이 따라 나온다.
 
-그 사슬은 [3.2 선형 모델과 소프트맥스](../../ch03/mnist/02_linear_softmax.md)가 MNIST를 예로 처음부터 끝까지 다루고, 가능도라는 개념 자체는 [표지-재포획 MLE](../mle/capture_recapture_mle.md)가 매개변수 하나짜리 예제로 보인다. 이 절은 모델의 정의에 집중한다.
+그 사슬을 처음부터 끝까지 따라가는 것은 [5.1 최대가능도 추정](../mle/mle.md)이고, 가능도라는 개념 자체는 [표지-재포획 MLE](../mle/capture_recapture_mle.md)가 매개변수 하나짜리 예제로 보인다. 이 절은 모델의 정의와 소프트맥스의 셈에 집중한다.
 
 ---
 
@@ -497,7 +483,143 @@ if __name__ == "__main__":
     pass
 ```
 
-## 3. 논의
+**출력:**
+
+```
+================================================================================
+LEVEL 1: SOFTMAX REGRESSION FUNDAMENTALS
+================================================================================
+
+================================================================================
+PART 1: Understanding Softmax
+================================================================================
+
+Example 1: Converting logits to probabilities
+--------------------------------------------------------------------------------
+Input logits:         [2.  1.  0.1]
+  (These are raw, unnormalized scores from a model)
+
+Output probabilities: [0.65900114 0.24243297 0.09856589]
+  (These are interpretable as class probabilities)
+Sum of probabilities: 1.000000
+  (Should always equal 1.0)
+
+
+Example 2: How logits affect probabilities
+--------------------------------------------------------------------------------
+Scenario 1: logits = [1. 1. 1.]
+            probs  = [0.33333333 0.33333333 0.33333333]
+
+Scenario 2: logits = [3. 1. 1.]
+            probs  = [0.78698604 0.10650698 0.10650698]
+
+Scenario 3: logits = [10.  1.  1.]
+            probs  = [9.99753241e-01 1.23379352e-04 1.23379352e-04]
+
+💡 Key Insight: Larger differences in logits lead to more confident predictions!
+
+================================================================================
+
+... (165 lines omitted)
+
+   - 과녁으로 클래스 번호를 받는다(원핫이 아니다)
+   - 안에서 소프트맥스 + 로그 + NLL을 아우른다
+
+다음 걸음:
+-----------
+→ 2단계: 분류을 위한 단순한 신경망 짓기
+→ 3단계: 참 데이터셋으로 익히기(MNIST)
+→ 4단계: 앞선 기법와 다듬기
+
+🎉 잘했다! 기초를 익혔다!
+```
+
+## 3. 같은 모델, 더 어려운 자료
+
+앞의 코드는 소프트맥스와 교차 엔트로피의 셈을 손으로 따라가려고 작은 자료를 썼다. 이제 같은 모델을 실제 자료 두 벌에 그대로 걸어 본다. 바뀌는 것은 오직 **자료**뿐이다. 모델도, 매개변수 수도, 학습 설정도 모두 같다.
+
+- **MNIST** — 손으로 쓴 숫자. 획이 굵고 가운데 놓여 있다
+- **Fashion-MNIST** — 옷과 신발 사진. 크기와 모양이 같은 $28 \times 28$ 회색조 10클래스이지만, 무늬와 질감이 훨씬 복잡하다
+
+두 자료의 모양이 같으므로 $D = 784$, $K = 10$으로 매개변수 수가 7850개로 똑같다. 따라서 결과의 차이는 **자료의 어려움에서만** 온다.
+
+```python
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+
+def run(name, dataset_cls, mean, std, epochs=10):
+    """소프트맥스 회귀 하나를 주어진 자료에 학습시키고 시험 정확도를 돌려준다."""
+    torch.manual_seed(42)
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((mean,), (std,)),
+    ])
+    train_set = dataset_cls('./data', train=True, download=True, transform=transform)
+    test_set = dataset_cls('./data', train=False, download=True, transform=transform)
+    train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
+    test_loader = DataLoader(test_set, batch_size=1000, shuffle=False)
+
+    # 은닉층 없는 아핀 변환 하나. D=784, K=10 이므로 10*(784+1)=7850개.
+    model = nn.Sequential(nn.Flatten(), nn.Linear(28 * 28, 10))
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+
+    for _ in range(epochs):
+        model.train()
+        for images, labels in train_loader:
+            optimizer.zero_grad()
+            criterion(model(images), labels).backward()
+            optimizer.step()
+
+    model.eval()
+    correct = total = 0
+    with torch.no_grad():
+        for images, labels in test_loader:
+            correct += (model(images).argmax(1) == labels).sum().item()
+            total += labels.size(0)
+    n_params = sum(p.numel() for p in model.parameters())
+    return 100 * correct / total, n_params
+
+
+# 두 자료 각각의 화소 평균과 표준편차로 고르게 한다
+acc_mnist, n1 = run("MNIST", datasets.MNIST, 0.1307, 0.3081)
+acc_fashion, n2 = run("Fashion-MNIST", datasets.FashionMNIST, 0.2860, 0.3530)
+
+print(f"{'자료':<16} {'매개변수':>10} {'시험 정확도':>12}")
+print("-" * 42)
+print(f"{'MNIST':<16} {n1:>10,} {acc_mnist:>11.2f}%")
+print(f"{'Fashion-MNIST':<16} {n2:>10,} {acc_fashion:>11.2f}%")
+print(f"\n같은 모델, 같은 매개변수 수인데 {acc_mnist - acc_fashion:.2f}%포인트 차이가 난다.")
+```
+
+**출력:**
+
+```
+자료                     매개변수       시험 정확도
+------------------------------------------
+MNIST                 7,850       92.11%
+Fashion-MNIST         7,850       84.31%
+
+같은 모델, 같은 매개변수 수인데 7.80%포인트 차이가 난다.
+```
+
+### 무엇을 뜻하는가
+
+매개변수 수가 한 개도 다르지 않은데 정확도가 8%포인트 가까이 벌어진다. 모델이 나빠진 것이 아니라 **문제가 어려워진 것**이다.
+
+까닭은 두 자료의 성격에 있다. 손으로 쓴 숫자는 획이 놓이는 자리가 클래스마다 꽤 일정해서, 화소마다 가중치 하나씩만 두어도 상당히 가려낸다. 반면 셔츠와 외투는 윤곽이 비슷하고 차이가 무늬와 질감에 있는데, 이는 화소 하나하나의 밝기를 따로 저울질하는 방식으로는 잡아내기 어렵다. 이웃한 화소들이 이루는 무늬를 보아야 하며, 그것이 [8장 합성곱 신경망](../../ch08/index.md)이 하는 일이다.
+
+!!! note "3장의 값과 조금 다른 까닭"
+    [3.2절](../../ch03/mnist/02_linear_softmax.md)은 같은 모델로 MNIST에서 92.51%를 보고한다. 위에서 잰 값과 0.4%포인트쯤 차이가 나는데, 이는 실행할 때마다 생기는 흔들림이다. 자료를 섞는 차례와 부동소수점 셈의 순서가 실행마다 달라지기 때문이며, 씨앗을 고정해도 기계와 스레드 수가 다르면 완전히 같아지지는 않는다.
+    이런 크기의 차이는 결론을 바꾸지 않는다. 다만 **두 자료의 8%포인트 차이는 이 흔들림보다 훨씬 크므로** 실재하는 차이라고 말할 수 있다.
+
+---
+
+
+## 4. 논의
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.
 
