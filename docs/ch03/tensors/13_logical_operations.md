@@ -82,6 +82,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+1. Comparison Operations
+======================================================================
+a = tensor([1, 2, 3, 4, 5])
+b = tensor([5, 4, 3, 2, 1])
+
+a > b: tensor([False, False, False,  True,  True])
+a == b: tensor([False, False,  True, False, False])
+torch.eq(a, b): tensor([False, False,  True, False, False])
+torch.gt(a, b): tensor([False, False, False,  True,  True])
+
+======================================================================
+2. Logical Operations - AND, OR, NOT
+======================================================================
+x = tensor([ True,  True, False, False])
+y = tensor([ True, False,  True, False])
+
+x & y (AND): tensor([ True, False, False, False])
+x | y (OR): tensor([ True,  True,  True, False])
+~x (NOT): tensor([False, False,  True,  True])
+x ^ y (XOR): tensor([False,  True,  True, False])
+torch.logical_and(x, y): tensor([ True, False, False, False])
+
+======================================================================
+3. Boolean Masking
+======================================================================
+Data: tensor([10, 20,  5, 30, 15])
+Mask (data > 15): tensor([False,  True, False,  True, False])
+Filtered data: tensor([20, 30])
+Complex mask: tensor([False,  True, False, False,  True])
+Filtered: tensor([20, 15])
+
+======================================================================
+
+... (22 lines omitted)
+
+Close values? True
+
+======================================================================
+6. Practical Example: Data Cleaning
+======================================================================
+Raw data: tensor([1., 2., nan, 4., inf])
+is_finite: tensor([ True,  True, False,  True, False])
+Clean data: tensor([1., 2., 4.])
+
+Outlier removal: tensor([1, 2, 3, 4])
+```
+
 ## 2. 논의
 
 PyTorch는 (저장소를 공유하는 뷰를 반환하는) 기본 슬라이싱과 (복사본을 반환하는) 불리언 마스크나 정수 배열을 이용한 고급 인덱싱을 모두 지원한다. 이 구분을 이해하는 것은 메모리 효율을 위해서도, 인덱싱한 결과를 수정할 때 의도치 않은 부작용을 피하기 위해서도 중요하다.

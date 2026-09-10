@@ -65,6 +65,15 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+step 0 | loss=4.378094 | w=tensor([ 1.3805, -0.2067,  0.9239], requires_grad=True)
+step 1 | loss=2.801980 | w=tensor([ 1.1044, -0.1653,  0.7391], requires_grad=True)
+step 2 | loss=1.793267 | w=tensor([ 0.8835, -0.1323,  0.5913], requires_grad=True)
+Final w.requires_grad (still True, updates not tracked): True
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

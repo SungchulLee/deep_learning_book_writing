@@ -76,6 +76,22 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+a.requires_grad: True | a.grad_fn: None
+b.requires_grad: True | b.grad_fn: <AddBackward0 object at 0x103751a50>
+
+--- Detach example ---
+b_det.requires_grad (expect False): False
+b_det.grad_fn (expect None): None
+b_det is b? (expect False): False
+
+--- In-place detach_ example ---
+Before detach_(): b2.requires_grad: True | b2.grad_fn: <SinBackward0 object at 0x1176fab30>
+After  detach_(): b2.requires_grad: False | b2.grad_fn: None
+```
+
 ## 2. 논의
 
 경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.

@@ -104,6 +104,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+1. requires_grad - Tracking Computations
+======================================================================
+x = tensor([2., 3.], requires_grad=True)
+x.requires_grad: True
+y = tensor([5., 6.])
+y.requires_grad: False
+
+z = x + y = tensor([7., 9.], grad_fn=<AddBackward0>)
+z.requires_grad: True
+
+======================================================================
+2. Backward Pass - Computing Gradients
+======================================================================
+x = 3.0
+y = x^2 = 9.0
+x.grad (dy/dx = 2x = 6): 6.0
+
+======================================================================
+3. Gradient Accumulation
+======================================================================
+Iteration 1: x.grad = 10.0
+Iteration 2: x.grad = 20.0
+Iteration 3: x.grad = 30.0
+
+Note: Gradients ACCUMULATE! Use zero_grad() to reset.
+
+======================================================================
+4. Zeroing Gradients
+======================================================================
+First backward: x.grad = 12.0
+After zero_grad(): x.grad = 0.0
+Second backward: x.grad = 4.0
+
+... (28 lines omitted)
+
+Use no_grad() during inference to save memory!
+
+======================================================================
+9. Practical: Simple Loss Function
+======================================================================
+Prediction: 2.5
+Target: 3.0
+Loss (MSE): 0.25
+Gradient: -1.0
+Gradient tells us to increase prediction!
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

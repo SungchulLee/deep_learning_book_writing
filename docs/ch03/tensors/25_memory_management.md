@@ -136,6 +136,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+1. Understanding Memory Usage
+======================================================================
+Tensor shape: torch.Size([1000, 1000])
+Element size: 4 bytes
+Number of elements: 1000000
+Total memory: 3.81 MB
+
+======================================================================
+2. In-place Operations Save Memory
+======================================================================
+Initial memory ID: 4698835536
+After x + 1 (new tensor): 4698835776
+After x.add_(1) (same tensor): 4698835536
+In-place operations modify tensor without creating a copy!
+
+======================================================================
+3. Detaching from Computation Graph
+======================================================================
+y requires_grad: True
+y has grad_fn: True
+
+After detach:
+z requires_grad: False
+z has grad_fn: False
+Detach removes from computation graph, saves memory!
+
+======================================================================
+4. Using torch.no_grad()
+======================================================================
+During inference, use no_grad to save memory:
+Output requires_grad: False
+No gradients computed or stored!
+
+... (68 lines omitted)
+
+    2. 기울기가 필요 없으면 .detach()을 불러라
+    3. 안전할 때는 제자리 셈(_)을 써라
+    4. 실제 배치 크기를 키우려면 기울기를 쌓아라
+    5. 섞인 촘촘함 익히기를 써라(튜토리얼 24을 보아라)
+    6. 다 쓴 큰 텐서는 지워라: del x
+    7. GPU 저장를 비워라: torch.cuda.empty_cache()
+    8. 깊은 망에는 기울기 되짚음 저장을 써라
+    9. 기억 자리 씀씀이를 살펴 목을 찾아라
+    10. 배치 크기나 모델 크기를 줄이는 것도 생각해 보아라
+    
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

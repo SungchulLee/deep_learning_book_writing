@@ -369,6 +369,7 @@ def check_convexity_numerical(f, x, epsilon=1e-3):
 ### 코드: 두 경우의 최적화 비교
 
 ```python
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -414,6 +415,13 @@ nonconvex_results = [train_nonconvex() for _ in range(10)]
 
 print(f"Convex: mean={np.mean(convex_results):.4f}, std={np.std(convex_results):.4f}")
 print(f"Non-convex: mean={np.mean(nonconvex_results):.4f}, std={np.std(nonconvex_results):.4f}")
+```
+
+**출력:**
+
+```
+Convex: mean=0.2736, std=0.1007
+Non-convex: mean=0.4647, std=0.0284
 ```
 
 ---

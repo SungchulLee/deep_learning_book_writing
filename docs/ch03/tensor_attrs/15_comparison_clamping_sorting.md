@@ -385,6 +385,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+Basic comparison operators
+================================================================================
+a: tensor([1, 2, 3, 4, 5])
+b: tensor([1, 1, 3, 5, 5])
+a == b: tensor([ True, False,  True, False,  True])
+a != b: tensor([False,  True, False,  True, False])
+a < b: tensor([False, False, False,  True, False])
+a <= b: tensor([ True, False,  True,  True,  True])
+a > b: tensor([False,  True, False, False, False])
+a >= b: tensor([ True,  True,  True, False,  True])
+
+================================================================================
+Comparison with scalars
+================================================================================
+x: tensor([ 0.3367,  0.1288,  0.2345,  0.2303, -1.1229])
+x > 0: tensor([ True,  True,  True,  True, False])
+x <= 0.5: tensor([True, True, True, True, True])
+x == 0: tensor([False, False, False, False, False])
+
+================================================================================
+Element-wise comparison functions
+================================================================================
+torch.eq(a, b): tensor([False,  True, False])
+torch.ne(a, b): tensor([ True, False,  True])
+torch.lt(a, b): tensor([ True, False, False])
+torch.le(a, b): tensor([ True,  True, False])
+torch.gt(a, b): tensor([False, False,  True])
+torch.ge(a, b): tensor([False,  True,  True])
+
+================================================================================
+Logical operators: &, |, ~ (and, or, not)
+================================================================================
+
+... (215 lines omitted)
+
+  torch.isfinite(x)     - Check for finite values
+
+Equality checks:
+  torch.equal(a, b)     - Exact equality
+  torch.allclose(a, b)  - Approximate equality
+  torch.isclose(a, b)   - Element-wise approximate equality
+
+Element-wise max/min:
+  torch.maximum(a, b)   - Element-wise maximum
+  torch.minimum(a, b)   - Element-wise minimum
+```
+
 ## 2. 논의
 
 브로드캐스팅은 작은 텐서를 가상으로 확장하여 모양이 다른 텐서 사이의 원소별 연산을 가능하게 한다. PyTorch는 차원을 오른쪽부터 맞추며, 각 차원 쌍이 서로 같거나, 둘 중 하나가 1이거나, 아예 없을 것을 요구한다. 이로써 데이터를 명시적으로 복제하지 않아도 되어 메모리 효율이 좋고 빠르다.

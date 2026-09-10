@@ -100,6 +100,13 @@ print(f"x.grad: {x.grad}")  # tensor([ 8., 16., 24.]) — stored
 print(f"y.grad: {y.grad}")  # None — not stored by default
 ```
 
+**출력:**
+
+```
+x.grad: tensor([ 8., 16., 24.])
+y.grad: None
+```
+
 잎이 아닌 텐서의 경사를 저장하려면 역전파 전에 `.retain_grad()`를 쓴다.
 
 ```python
@@ -210,6 +217,14 @@ expected = v * torch.cos(x.detach())
 print(f"x.grad:   {x.grad}")
 print(f"Expected: {expected}")
 print(f"Match: {torch.allclose(x.grad, expected)}")
+```
+
+**출력:**
+
+```
+x.grad:   tensor([0.0878, 0.5403, 0.0088])
+Expected: tensor([0.0878, 0.5403, 0.0088])
+Match: True
 ```
 
 `v` 없이 스칼라가 아닌 텐서에 `.backward()`를 호출하면 `RuntimeError`가 발생한다.

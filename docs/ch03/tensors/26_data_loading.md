@@ -171,6 +171,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+1. Basic Dataset and DataLoader
+======================================================================
+Dataset size: 100
+First sample: (tensor([ 1.2441, -0.0942, -0.9447, -0.8294,  1.2059, -0.6530,  0.6002,  0.9770,
+        -2.9084,  0.2132]), tensor(0))
+
+DataLoader created with batch_size=10
+Number of batches: 10
+Batch 0: data shape=torch.Size([10, 10]), labels shape=torch.Size([10])
+Batch 1: data shape=torch.Size([10, 10]), labels shape=torch.Size([10])
+Batch 2: data shape=torch.Size([10, 10]), labels shape=torch.Size([10])
+
+======================================================================
+2. DataLoader Parameters
+======================================================================
+Key DataLoader parameters:
+  batch_size: 32
+  shuffle: True
+  num_workers: 0
+  drop_last: False
+
+======================================================================
+3. TensorDataset - Quick Dataset
+======================================================================
+TensorDataset: Simple way to create dataset from tensors
+Dataset size: 100
+Batch: torch.Size([20, 5]), torch.Size([20])
+
+======================================================================
+4. Training Loop with DataLoader
+======================================================================
+Training for 2 epochs:
+
+... (31 lines omitted)
+
+    2. GPU을 쓸 때는 pin_memory=True를 켜라
+    3. 학습 데이터를 섞어라(shuffle=True)
+    4. 검증/시험 데이터는 섞지 마라
+    5. 알맞은 배치 크기를 써라(2의 거듭제곱이 잘 듣는 일이 잦다)
+    6. persistent_workers=True로 데이터를 미리 가져와라
+    7. 배치 크기가 종요로우면 drop_last=True를 써라
+    8. 맞춤 데이터셋에서는 __getitem__을 잘 들게 짜라
+    9. 될 수 있으면 미리 다듬은 데이터를 저장해 두어라
+    10. 데이터 불러오는 때와 익히는 때를 견주어 살펴라
+    
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사 초기화, 역전파, 매개변수 갱신이다. 각 구성 요소가 결정적인 역할을 한다. 최적화기는 갱신 규칙(SGD, Adam 등)을 캡슐화하고 학습률과 모멘텀 상태를 내부에서 관리한다.

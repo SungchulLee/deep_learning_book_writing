@@ -347,6 +347,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+torch.cat: concatenate along existing dimension
+================================================================================
+a:
+ tensor([[1, 2],
+        [3, 4]])
+b:
+ tensor([[5, 6],
+        [7, 8]])
+cat([a, b], dim=0):
+ tensor([[1, 2],
+        [3, 4],
+        [5, 6],
+        [7, 8]])
+  Shape: torch.Size([4, 2])
+cat([a, b], dim=1):
+ tensor([[1, 2, 5, 6],
+        [3, 4, 7, 8]])
+  Shape: torch.Size([2, 4])
+
+================================================================================
+torch.cat with multiple tensors
+================================================================================
+cat([t1, t2, t3], dim=1):
+ tensor([[1, 3, 5],
+        [2, 4, 6]])
+
+================================================================================
+torch.cat requires matching dimensions (except cat dim)
+================================================================================
+a.shape: torch.Size([2, 3, 4])
+b.shape: torch.Size([2, 5, 4])
+cat(dim=1).shape: torch.Size([2, 8, 4])
+
+... (179 lines omitted)
+
+Key differences:
+  cat:   Concatenate along existing dim (dims must match)
+  stack: Stack along new dim (ALL shapes must match)
+  split: Specify chunk sizes
+  chunk: Specify number of chunks
+
+Performance tips:
+  - Use stack() instead of iterative cat()
+  - Pre-allocate when possible
+  - unbind() returns tuple (faster than loop + indexing)
+```
+
 ## 2. 논의
 
 재구성 연산은 데이터를 반드시 복사하지 않으면서 텐서의 논리적 배치를 바꾼다. `view()` 메서드는 연속된 메모리를 요구하며 항상 뷰를 반환하고, `reshape()`는 (필요하면 복사하여) 어떤 텐서에서도 동작한다. `transpose()`나 `permute()` 같은 연산은 데이터 배치가 아니라 스트라이드를 바꾸므로 결과가 연속적이지 않을 수 있다.

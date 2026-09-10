@@ -93,6 +93,45 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+Leaf / non-leaf, requires_grad, grad_fn, is_leaf
+================================================================================
+w: tensor([ 1.5410, -0.2934, -2.1788], requires_grad=True)
+w.requires_grad: True | w.grad_fn: None | w.is_leaf: True
+y.requires_grad: True | y.grad_fn: <SumBackward0 object at 0x116c0bac0> | y.is_leaf: False
+
+================================================================================
+Backward on scalar output → fills w.grad (accumulates)
+================================================================================
+Before backward, w.grad: None
+After  1st backward, w.grad: tensor([2., 2., 2.])
+After  2nd backward, w.grad (fresh): tensor([ 3.0820, -0.5869, -4.3576])
+
+================================================================================
+Non-scalar output requires gradient arg (VJP)
+================================================================================
+x.grad shape (expect (4,3)): torch.Size([4, 3])
+
+================================================================================
+Optimizer-style clearing: zero_grad(set_to_none=True)
+================================================================================
+Param grad is None? -> [False, False]
+After zero_grad(set_to_none=True): [True, True]
+
+================================================================================
+torch.no_grad() for parameter updates (avoid graph pollution)
+================================================================================
+p.requires_grad stays True: True
+
+================================================================================
+retain_graph=True for repeated backward on the SAME graph
+================================================================================
+a.grad (accumulated from two backward passes): tensor([ 4.,  8., 12.])
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

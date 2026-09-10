@@ -342,6 +342,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+Basic reductions: sum, mean, prod
+================================================================================
+x:
+ tensor([[ 0.3367,  0.1288,  0.2345,  0.2303],
+        [-1.1229, -0.1863,  2.2082, -0.6380],
+        [ 0.4617,  0.2674,  0.5349,  0.8094]])
+sum: 3.264584541320801
+mean: 0.2720487117767334
+prod (product): -3.6888061003992334e-05
+
+================================================================================
+Dimension-wise reductions
+================================================================================
+x:
+ tensor([[1., 2., 3.],
+        [4., 5., 6.],
+        [7., 8., 9.]])
+sum(dim=0): tensor([12., 15., 18.])
+  Result shape: torch.Size([3])
+sum(dim=1): tensor([ 6., 15., 24.])
+  Result shape: torch.Size([3])
+
+================================================================================
+keepdim: preserve reduced dimensions as size 1
+================================================================================
+x.shape: torch.Size([3, 4, 5])
+mean(dim=1).shape: torch.Size([3, 5])
+mean(dim=1, keepdim=True).shape: torch.Size([3, 1, 5])
+Normalized shape: torch.Size([3, 4, 5])
+
+================================================================================
+Multiple dimension reductions
+
+... (180 lines omitted)
+
+Logical:
+  .all()     - True if all elements True
+  .any()     - True if any element True
+  torch.count_nonzero() - Count non-zero elements
+
+Cumulative:
+  .cumsum(dim) - Cumulative sum
+  .cumprod(dim) - Cumulative product
+
+Note: Most operations support dim and keepdim parameters
+```
+
 ## 2. 논의
 
 브로드캐스팅은 작은 텐서를 가상으로 확장하여 모양이 다른 텐서 사이의 원소별 연산을 가능하게 한다. PyTorch는 차원을 오른쪽부터 맞추며, 각 차원 쌍이 서로 같거나, 둘 중 하나가 1이거나, 아예 없을 것을 요구한다. 이로써 데이터를 명시적으로 복제하지 않아도 되어 메모리 효율이 좋고 빠르다.

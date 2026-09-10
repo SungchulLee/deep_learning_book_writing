@@ -6,27 +6,121 @@
 
 ```python
 #!/usr/bin/env python3
-"""이어 붙이기 그림."""
+"""이어 붙이기 그림: torch.cat이 어느 축을 늘리는지 눈으로 확인한다."""
 # ========================================================
-# 03_tensor_attributes_and_methods_6_cat_visualization.py
+# torch.cat 시각화
 # ========================================================
-import tensor_features as tfs
+import torch
 
-tfs.download_cat_images()
-    
-batch = tfs.load_cat_images()
-print(f"\nBatch tensor info:")
-print(f"  Data Type: {type(batch)}")
-print(f"  Shape    : {batch.shape}")
-print(f"  Type     : {batch.dtype}")
-print(f"  Range    : [{batch.min():.3f}, {batch.max():.3f}]")
-        
-tfs.display_images(batch)
+# 값만 보고도 어느 텐서에서 왔는지 알 수 있도록
+# A는 10번대, B는 20번대 숫자로 채운다.
+A = torch.tensor([[11, 12, 13],
+                  [14, 15, 16]])
+B = torch.tensor([[21, 22, 23],
+                  [24, 25, 26]])
+
+print("A =")
+print(A)
+print(f"A.shape = {tuple(A.shape)}")
+print("B =")
+print(B)
+print(f"B.shape = {tuple(B.shape)}\n")
+
+# ========================================================
+# dim=0: 행 방향으로 쌓는다 — 세로로 길어진다
+# ========================================================
+# (2,3)과 (2,3)을 dim=0으로 이으면 (2+2, 3) = (4,3)이 된다.
+# 이어 붙이는 축(0)만 더해지고 나머지 축(1)은 그대로여야 한다.
+cat0 = torch.cat([A, B], dim=0)
+print("torch.cat([A, B], dim=0) — 행 방향")
+print(cat0)
+print(f"shape: {tuple(A.shape)} + {tuple(B.shape)} -> {tuple(cat0.shape)}\n")
+
+# ========================================================
+# dim=1: 열 방향으로 붙인다 — 가로로 길어진다
+# ========================================================
+# 같은 두 텐서를 dim=1로 이으면 (2, 3+3) = (2,6)이 된다.
+# 원소 개수는 12개로 같고 배열되는 모양만 달라진다.
+cat1 = torch.cat([A, B], dim=1)
+print("torch.cat([A, B], dim=1) — 열 방향")
+print(cat1)
+print(f"shape: {tuple(A.shape)} + {tuple(B.shape)} -> {tuple(cat1.shape)}\n")
+
+# ========================================================
+# cat과 stack의 차이
+# ========================================================
+# cat은 "있는 축을 늘리고", stack은 "없던 축을 새로 만든다".
+# 아래 stack은 차원이 2에서 3으로 늘어난다.
+stacked = torch.stack([A, B], dim=0)
+print(f"cat  (dim=0): {tuple(cat0.shape)}  <- 축이 2개 그대로")
+print(f"stack(dim=0): {tuple(stacked.shape)}  <- 축이 3개로 늘어남\n")
+
+# ========================================================
+# cat은 언제나 새 메모리에 복사한다
+# ========================================================
+# 뷰(view)와 달리 cat은 결과를 담을 새 저장 공간을 잡는다.
+# 따라서 원본과 저장소 주소가 다르고, 결과를 고쳐도 원본은 그대로다.
+print(f"A와 cat0가 저장소를 공유하는가? "
+      f"{A.untyped_storage().data_ptr() == cat0.untyped_storage().data_ptr()}")
+cat0[0, 0] = 999
+print(f"cat0[0,0]을 999로 바꾼 뒤 A[0,0] = {A[0, 0].item()}  (원본은 그대로)\n")
+
+# ========================================================
+# 이어 붙일 수 없는 경우
+# ========================================================
+# 이어 붙이는 축 말고 나머지 축의 크기가 다르면 실패한다.
+# (2,3)과 (2,4)를 dim=0으로 이으려면 열 개수가 3과 4로 어긋난다.
+C = torch.zeros(2, 4, dtype=torch.long)
+try:
+    torch.cat([A, C], dim=0)
+except RuntimeError as e:
+    print("torch.cat([A(2,3), C(2,4)], dim=0) 실패")
+    print(f"  RuntimeError: {str(e).splitlines()[0]}")
+
+# 같은 두 텐서라도 dim=1로는 이어 붙을 수 있다.
+# 이때는 행 개수(2)가 서로 같고, 열 개수만 3+4=7로 더해지면 되기 때문이다.
+print(f"torch.cat([A, C], dim=1) 성공 -> {tuple(torch.cat([A, C], dim=1).shape)}")
 
 
 if __name__ == "__main__":
     pass
 ```
+
+**출력:**
+
+```
+A =
+tensor([[11, 12, 13],
+        [14, 15, 16]])
+A.shape = (2, 3)
+B =
+tensor([[21, 22, 23],
+        [24, 25, 26]])
+B.shape = (2, 3)
+
+torch.cat([A, B], dim=0) — 행 방향
+tensor([[11, 12, 13],
+        [14, 15, 16],
+        [21, 22, 23],
+        [24, 25, 26]])
+shape: (2, 3) + (2, 3) -> (4, 3)
+
+torch.cat([A, B], dim=1) — 열 방향
+tensor([[11, 12, 13, 21, 22, 23],
+        [14, 15, 16, 24, 25, 26]])
+shape: (2, 3) + (2, 3) -> (2, 6)
+
+cat  (dim=0): (4, 3)  <- 축이 2개 그대로
+stack(dim=0): (2, 2, 3)  <- 축이 3개로 늘어남
+
+A와 cat0가 저장소를 공유하는가? False
+cat0[0,0]을 999로 바꾼 뒤 A[0,0] = 11  (원본은 그대로)
+
+torch.cat([A(2,3), C(2,4)], dim=0) 실패
+  RuntimeError: Sizes of tensors must match except in dimension 0. Expected size 3 but got size 4 for tensor number 1 in the list.
+torch.cat([A, C], dim=1) 성공 -> (2, 7)
+```
+
 
 ## 2. 논의
 

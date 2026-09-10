@@ -185,6 +185,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+Basic in-place operations
+================================================================================
+Original x: tensor([1., 2., 3., 4., 5.])
+After x.add_(10): tensor([11., 12., 13., 14., 15.])
+After x.mul_(2): tensor([22., 24., 26., 28., 30.])
+After x.clamp_(0, 30): tensor([22., 24., 26., 28., 30.])
+
+================================================================================
+Memory sharing with in-place ops
+================================================================================
+a and b share memory: True
+b also changed: tensor([ 2.5410,  0.7066, -1.1788])
+
+================================================================================
+Out-of-place vs in-place comparison
+================================================================================
+Out-of-place: 0.0124s
+In-place:     0.0039s
+Speedup:      3.19x
+
+================================================================================
+Autograd restriction: in-place on leaf tensors with requires_grad
+================================================================================
+ERROR (expected): a leaf Variable that requires grad is being used in an in-place operation....
+Out-of-place works: tensor([2., 3., 4.], grad_fn=<AddBackward0>)
+In-place with no_grad: tensor([2., 3., 4.], requires_grad=True)
+
+================================================================================
+In-place ops on non-leaf tensors (intermediate results)
+================================================================================
+In-place on non-leaf can break autograd graph
+
+
+... (49 lines omitted)
+
+  - Parameter updates inside torch.no_grad()
+  - Memory-critical situations
+  - Explicit tensor initialization (fill_, zero_, normal_)
+  - When you KNOW autograd won't be needed
+
+✗ Avoid in-place ops for:
+  - Leaf tensors with requires_grad=True
+  - Intermediate computation results in autograd
+  - When code clarity is more important than speed
+  - When tensors might be aliased unexpectedly
+```
+
 ## 2. 논의
 
 경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.

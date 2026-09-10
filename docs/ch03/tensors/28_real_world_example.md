@@ -185,6 +185,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+Complete MNIST Classifier Pipeline
+======================================================================
+Using device: cpu
+
+1. Preparing Data...
+Train samples: 800
+Val samples: 200
+
+2. Creating Model...
+ConvNet(
+  (conv1): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1))
+  (conv2): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1))
+  (fc1): Linear(in_features=1600, out_features=128, bias=True)
+  (fc2): Linear(in_features=128, out_features=10, bias=True)
+  (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (dropout): Dropout(p=0.5, inplace=False)
+)
+
+Total parameters: 225,034
+
+3. Setting up Training...
+
+4. Training...
+Epoch [1/5]
+  Train Loss: 2.3190, Train Acc: 9.12%
+  Val Loss: 2.3063, Val Acc: 8.50%
+  → New best model! Acc: 8.50%
+Epoch [2/5]
+  Train Loss: 2.3013, Train Acc: 13.25%
+  Val Loss: 2.3075, Val Acc: 8.50%
+Epoch [3/5]
+  Train Loss: 2.3014, Train Acc: 9.50%
+
+... (20 lines omitted)
+
+
+    다음 걸음:
+    1. 참 MNIST 데이터셋으로 해 보아라(torchvision.datasets.MNIST)
+    2. 여러 구조를 이리저리 바꾸어 보아라
+    3. 데이터 불리기를 더하여라
+    4. 여러 최적화기와 학습률를 써 보아라
+    5. 조기 종료를 짜라
+    6. 텐서보드로 적바림을 더하여라
+    7. 모델을 참으로 굴릴 수 있게 내놓아라
+    
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사 초기화, 역전파, 매개변수 갱신이다. 각 구성 요소가 결정적인 역할을 한다. 최적화기는 갱신 규칙(SGD, Adam 등)을 캡슐화하고 학습률과 모멘텀 상태를 내부에서 관리한다.

@@ -113,6 +113,55 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+t = tensor(42)
+t.shape = torch.Size([])
+t.dtype = torch.int64
+t.requires_grad = False
+
+t = tensor(42.)
+t.shape = torch.Size([])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor([42])
+t.shape = torch.Size([1])
+t.dtype = torch.int64
+t.requires_grad = False
+
+t = tensor(42.)
+t.shape = torch.Size([])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor(3.1400)
+t.shape = torch.Size([])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor(10)
+t.shape = torch.Size([])
+t.dtype = torch.int64
+t.requires_grad = False
+
+item() on multi-element tensor → a Tensor with 2 elements cannot be converted to Scalar 
+
+t = tensor(7.7000)
+t.shape = torch.Size([])
+t.dtype = torch.float32
+t.requires_grad = False
+
+t = tensor(5., requires_grad=True)
+t.shape = torch.Size([])
+t.dtype = torch.float32
+t.requires_grad = True
+
+t8: 5.0 requires_grad: True
+t8.grad (expected 5.0): 5.0 
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

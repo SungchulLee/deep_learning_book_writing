@@ -213,6 +213,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+Base tensor
+================================================================================
+base:
+ tensor([[1., 2., 3.],
+        [4., 5., 6.]], requires_grad=True)
+base.requires_grad: True
+ptr(base): 4923011712
+
+================================================================================
+1) Plain assignment: alias reference (NO COPY)
+================================================================================
+alias is base?        True
+ptr(alias) == ptr(base)? True
+
+After base.add_(100):
+base:
+ tensor([[101., 102., 103.],
+        [104., 105., 106.]], requires_grad=True)
+alias (same object):
+ tensor([[101., 102., 103.],
+        [104., 105., 106.]], requires_grad=True)
+
+================================================================================
+2) Views that SHARE storage (slicing / view / reshape)
+================================================================================
+ptr(view_slice): 4923011712
+ptr(view_view) : 4923011712
+ptr(view_resh) : 4923011712
+All share storage with base? -> True
+
+After view_slice.mul_(10):
+base:
+
+... (66 lines omitted)
+
+
+================================================================================
+8) Summary
+================================================================================
+• alias = base           : NO COPY, same Python object & storage
+• view/slice/reshape     : SHARE storage (when possible)
+• clone()                : COPY, independent storage; keeps autograd link
+• detach()               : SHARE storage; breaks autograd link
+• detach().clone()       : COPY + no grad (safe snapshot)
+• In-place ops affect ALL tensors sharing the storage; use with care.
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

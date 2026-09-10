@@ -363,6 +363,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+================================================================================
+LINEAR REGRESSION WITH PYTORCH
+================================================================================
+
+================================================================================
+PART 1: DATASET CREATION
+================================================================================
+Dataset size: 100 samples
+X shape: torch.Size([100, 1])  (n_samples, n_features)
+y shape: torch.Size([100, 1])  (n_samples, 1)
+
+True relationship: y = 3*x + 2
+Goal: Learn this relationship from noisy data
+
+================================================================================
+PART 2: MODEL DEFINITION
+================================================================================
+Created linear layer: 1 inputs → 1 outputs
+
+Model architecture:
+LinearRegressionModel(
+  (linear): Linear(in_features=1, out_features=1, bias=True)
+)
+
+Initial parameters:
+  linear.weight: [0.7645385]
+  linear.bias: [0.8300079]
+
+================================================================================
+PART 3: LOSS FUNCTION & OPTIMIZER
+================================================================================
+Loss function: MSE (Mean Squared Error)
+  L = (1/N) * Σ(y_pred - y_true)²
+
+... (102 lines omitted)
+
+
+4. 여러 최적화기:
+   - SGD을 Adam으로 갈음한다: torch.optim.Adam(...)
+   - 모여드는 모습을 견준다
+
+5. 모델 저장하고 불러오기:
+   - torch.save(model.state_dict(), 'model.pth')
+   - model.load_state_dict(torch.load('model.pth'))
+
+================================================================================
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

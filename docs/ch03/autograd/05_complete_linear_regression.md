@@ -290,6 +290,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+LINEAR REGRESSION TRAINING FROM SCRATCH
+======================================================================
+
+STEP 1: Generating Synthetic Data
+----------------------------------------
+Generated 100 samples
+True model: y = 2.0*x + 1.0 + noise
+x shape: torch.Size([100, 1]), y shape: torch.Size([100, 1])
+x range: [-2.21, 2.22]
+y range: [-3.32, 5.21]
+
+STEP 2: Initializing Model Parameters
+----------------------------------------
+Initial w: 0.3932 (target: 2.0)
+Initial b: 0.0000 (target: 1.0)
+
+STEP 3: Setting Hyperparameters
+----------------------------------------
+Learning rate: 0.1
+Number of epochs: 200
+
+STEP 4: Training Loop
+----------------------------------------
+Starting training...
+
+Epoch   0/200: Loss = 3.742756 | w = 0.7163 | b = 0.2207
+Epoch  20/200: Loss = 0.031612 | w = 1.9871 | b = 1.0025
+Epoch  40/200: Loss = 0.031214 | w = 2.0022 | b = 1.0071
+Epoch  60/200: Loss = 0.031214 | w = 2.0024 | b = 1.0071
+Epoch  80/200: Loss = 0.031214 | w = 2.0024 | b = 1.0071
+Epoch 100/200: Loss = 0.031214 | w = 2.0024 | b = 1.0071
+Epoch 120/200: Loss = 0.031214 | w = 2.0024 | b = 1.0071
+
+... (52 lines omitted)
+
+KEY TAKEAWAYS
+======================================================================
+
+    ✓ 학습 루프의 짜임: 앞으로 → 손실 → 뒤로 → 고치기
+    ✓ 역전파 앞에는 늘 기울기를 0으로 만들어라
+    ✓ 매개변수를 고칠 때는 torch.no_grad()을 써라
+    ✓ 손실을 좇아 모여드는지 지켜보아라
+    ✓ 그림으로 보면 모델이 얼마나 좋은지 알기 쉽다
+    ✓ 이 무늬는 모든 신경망 학습으로 넓혀진다!
+    
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

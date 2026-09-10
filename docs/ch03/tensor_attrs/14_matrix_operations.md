@@ -383,6 +383,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+Element-wise multiplication: * or mul()
+================================================================================
+a:
+ tensor([[1., 2.],
+        [3., 4.]])
+b:
+ tensor([[5., 6.],
+        [7., 8.]])
+a * b (element-wise):
+ tensor([[ 5., 12.],
+        [21., 32.]])
+
+================================================================================
+Matrix multiplication: @ or matmul()
+================================================================================
+a @ b (matrix multiplication):
+ tensor([[19., 22.],
+        [43., 50.]])
+torch.matmul(a, b):
+ tensor([[19., 22.],
+        [43., 50.]])
+Equal: True
+
+================================================================================
+Matrix-vector multiplication
+================================================================================
+A.shape: torch.Size([3, 4])
+x.shape: torch.Size([4])
+(A @ x).shape: torch.Size([3])
+torch.mv(A, x).shape: torch.Size([3])
+
+================================================================================
+
+... (220 lines omitted)
+
+Decompositions:
+  linalg.svd()   - Singular value decomposition
+  linalg.qr()    - QR decomposition
+  linalg.cholesky() - Cholesky decomposition
+
+Tips:
+  - Use @ for clean matrix multiplication
+  - matmul broadcasts, mm/bmm don't
+  - einsum is powerful but can be slower
+  - For large matrices, check numerical stability
+```
+
 ## 2. 논의
 
 브로드캐스팅은 작은 텐서를 가상으로 확장하여 모양이 다른 텐서 사이의 원소별 연산을 가능하게 한다. PyTorch는 차원을 오른쪽부터 맞추며, 각 차원 쌍이 서로 같거나, 둘 중 하나가 1이거나, 아예 없을 것을 요구한다. 이로써 데이터를 명시적으로 복제하지 않아도 되어 메모리 효율이 좋고 빠르다.

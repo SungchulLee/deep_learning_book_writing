@@ -257,6 +257,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+1) torch.from_numpy(np_array) → SHARE (no copy)
+================================================================================
+arr (before): [1. 2. 3.]
+t_shared (before): tensor([1., 2., 3.])
+ptr(arr)    = 105553174397968
+ptr(tensor) = 105553174397968 (same → shared)
+arr (after arr[0]=99):       [99.  2.  3.]
+t_shared (after arr change): tensor([99.,  2.,  3.])
+arr (after t_shared[1]=-7):  [99. -7.  3.]
+t_shared (after):            tensor([99., -7.,  3.])
+
+================================================================================
+2) torch.as_tensor(np_array) → TRY TO SHARE (fallback COPY)
+================================================================================
+arr3 (before): [1.1 2.2 3.3]
+t_as (before):  tensor([1.1000, 2.2000, 3.3000], dtype=torch.float64)
+arr3 (after arr3[1]=222): [  1.1 222.    3.3]
+t_as (after):             tensor([  1.1000, 222.0000,   3.3000], dtype=torch.float64)
+ptr(arr3)  = 105553172818688
+ptr(t_as)  = 105553172818688 (same → shared; different → copied)
+
+================================================================================
+3) torch.tensor(np_array) → COPY (independent)
+================================================================================
+arr2 (before): [10 20 30]
+t_copy (before): tensor([10, 20, 30])
+arr2 (after arr2[0]=123): [123  20  30]
+t_copy (unchanged):        tensor([10, 20, 30])
+ptr(arr2)   = 105553172818592
+ptr(t_copy) = 5242231040 (different → copy)
+
+================================================================================
+
+... (28 lines omitted)
+
+7) Complex dtype example: may need explicit conversion
+================================================================================
+from_numpy(complex128) succeeded on this setup
+
+================================================================================
+8) Summary: SHARE → TRY-TO-SHARE → COPY
+================================================================================
+from_numpy(np_array)   → **SHARE** (no copy; requires numeric, writable, compatible strides)
+as_tensor(np_array)    → **TRY TO SHARE** (shares if possible; else **COPY**)
+tensor(np_array)       → **COPY** (always independent)
+```
+
 ## 2. 논의
 
 CPU 텐서에서 PyTorch와 NumPy의 상호 운용은 매끄럽다. `torch.from_numpy()`는 배열과 메모리를 공유하는 텐서를 만들고, `torch.tensor()`는 항상 복사한다. 어떤 연산이 저장소를 공유하고 어떤 연산이 독립적인 복사본을 만드는지 이해하는 것이 미묘한 버그를 피하는 데 결정적이다.

@@ -39,6 +39,21 @@ print(type(x.storage()))  # torch.storage.TypedStorage
 print(x.storage().data_ptr())  # Memory address
 ```
 
+**출력:**
+
+```
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+[torch.storage.TypedStorage(dtype=torch.int64, device=cpu) of size 6]
+6
+<class 'torch.storage.TypedStorage'>
+4723814848
+```
+
 여러 텐서가 같은 저장소를 공유할 수 있다.
 
 ```python
@@ -47,6 +62,12 @@ t_view = t[0]  # First row
 
 # 둘 다 같은 바탕 데이터를 가리킨다
 print(t.storage().data_ptr() == t_view.storage().data_ptr())  # True
+```
+
+**출력:**
+
+```
+True
 ```
 
 ### 스트라이드: 접근 패턴
@@ -60,6 +81,12 @@ x = torch.tensor([[1, 2, 3],
 print(x.stride())  # (3, 1)
 # stride[0] = 3: 다음 행으로 가려면 원소 3개를 건너뛴다
 # stride[1] = 1: 다음 열로 가려면 원소 1개를 건너뛴다
+```
+
+**출력:**
+
+```
+(3, 1)
 ```
 
 위치 $(i, j)$의 원소는 다음 위치에 있다.
@@ -93,6 +120,16 @@ print(f"Stride: {t.stride()}")  # (4, 1)
 print(f"t[1, 2] = {t[1, 2]}")  # tensor(6)
 ```
 
+**출력:**
+
+```
+6
+tensor(6)
+Shape: torch.Size([3, 4])
+Stride: (4, 1)
+t[1, 2] = 6
+```
+
 ---
 
 ## 4. 행 우선 순서와 열 우선 순서
@@ -108,6 +145,12 @@ x = torch.tensor([[1, 2, 3],
 #          |줄 0 | 줄 1 |
 
 print(x.stride())  # (3, 1) - row stride > column stride
+```
+
+**출력:**
+
+```
+(3, 1)
 ```
 
 그림으로 나타내면 다음과 같다.
@@ -141,6 +184,12 @@ x_f = torch.from_numpy(arr_f)
 print(x_f.stride())  # (1, 2) - column stride > row stride
 ```
 
+**출력:**
+
+```
+(1, 2)
+```
+
 ### 연속성
 
 텐서의 메모리 배치가 기대되는 행 우선 패턴과 일치하면 그 텐서는 **연속(contiguous)** 이다.
@@ -153,6 +202,14 @@ print(x.is_contiguous())  # True
 x_t = x.t()
 print(x_t.stride())         # (1, 4) instead of (4, 1)
 print(x_t.is_contiguous())  # False
+```
+
+**출력:**
+
+```
+True
+(1, 4)
+False
 ```
 
 ---
@@ -177,6 +234,13 @@ original[0, 0] = 99
 print(reshaped[0, 0])  # tensor(99)
 ```
 
+**출력:**
+
+```
+True
+tensor(99)
+```
+
 ### 전치는 비연속 뷰를 만든다
 
 ```python
@@ -190,6 +254,23 @@ mat_T = mat.T
 print(f"\nTransposed:\n{mat_T}")
 print(f"Transposed stride: {mat_T.stride()}")       # (1, 3)
 print(f"Transposed contiguous: {mat_T.is_contiguous()}")  # False
+```
+
+**출력:**
+
+```
+Original:
+tensor([[0, 1, 2],
+        [3, 4, 5]])
+Original stride: (3, 1)
+Original contiguous: True
+
+Transposed:
+tensor([[0, 3],
+        [1, 4],
+        [2, 5]])
+Transposed stride: (1, 3)
+Transposed contiguous: False
 ```
 
 전치된 텐서는 그 모양에 대해 기대되는 패턴을 스트라이드가 따르지 않으므로 **연속이 아니다.** 원소들은 여전히 같은 메모리에서 읽히지만 순서만 다를 뿐이다.
@@ -249,6 +330,14 @@ z = x.reshape(2, 12)
 print(z.storage().data_ptr() == x.storage().data_ptr())  # True
 ```
 
+**출력:**
+
+```
+(6, 1)
+True
+True
+```
+
 ### 스트라이드를 바꾸는 연산
 
 ```python
@@ -268,6 +357,14 @@ print(f"Permuted: stride {y.stride()} -> {y_p.stride()}")
 # permute 후: 스트라이드 (12, 4, 1) -> (1, 12, 4)
 ```
 
+**출력:**
+
+```
+Original: shape=torch.Size([3, 4]), stride=(4, 1)
+Transposed: shape=torch.Size([4, 3]), stride=(1, 4)
+Permuted: stride (12, 4, 1) -> (1, 12, 4)
+```
+
 ### 슬라이싱과 저장소 오프셋
 
 슬라이싱은 스트라이드를 보존하고 저장소 오프셋을 조정한다.
@@ -279,6 +376,13 @@ x = torch.arange(20).reshape(4, 5)
 y = x[1:3, 2:4]  # 2x2 slice
 print(f"Offset: {y.storage_offset()}")  # 7 (position of x[1,2])
 print(f"Stride: {y.stride()}")          # (5, 1) - unchanged
+```
+
+**출력:**
+
+```
+Offset: 7
+Stride: (5, 1)
 ```
 
 ### 차원 추가
@@ -298,6 +402,16 @@ print(y.shape)     # (3, 1, 4)
 print(y.stride())  # (4, 4, 1) - note repeated stride
 ```
 
+**출력:**
+
+```
+(4, 1)
+torch.Size([1, 3, 4])
+(12, 4, 1)
+torch.Size([3, 1, 4])
+(4, 4, 1)
+```
+
 ### 브로드캐스팅과 expand
 
 `expand`는 스트라이드 0을 사용하여 데이터를 복사하지 않고 반복한다.
@@ -312,6 +426,15 @@ print(y.stride())  # (0, 1) - stride 0 means "don't move in storage"
 
 # 모든 행이 같은 데이터를 가리킨다
 print(y[0].data_ptr() == y[1].data_ptr())  # True
+```
+
+**출력:**
+
+```
+(1,)
+torch.Size([4, 3])
+(0, 1)
+True
 ```
 
 ---
@@ -331,6 +454,12 @@ except RuntimeError as e:
     print(f"Error: view() requires contiguous tensor")
 ```
 
+**출력:**
+
+```
+Error: view() requires contiguous tensor
+```
+
 ### `reshape()` - 언제나 동작한다
 
 ```python
@@ -342,6 +471,13 @@ print(f"Reshaped: {flat}")
 print(t.storage().data_ptr() == flat.storage().data_ptr())  # False - a copy was made
 ```
 
+**출력:**
+
+```
+Reshaped: tensor([0, 3, 1, 4, 2, 5])
+False
+```
+
 ### 텐서를 연속으로 만들기
 
 ```python
@@ -350,6 +486,12 @@ print(f"Now contiguous: {t_T_contiguous.is_contiguous()}")  # True
 
 # 이제 view()가 동작한다
 flat_view = t_T_contiguous.view(-1)
+```
+
+**출력:**
+
+```
+Now contiguous: True
 ```
 
 !!! tip "무엇을 언제 쓸 것인가"
@@ -376,6 +518,13 @@ print(f"Same storage: {original.storage().data_ptr() == cloned.storage().data_pt
 print(f"Clone requires_grad: {cloned.requires_grad}")  # True
 ```
 
+**출력:**
+
+```
+Same storage: False
+Clone requires_grad: True
+```
+
 ### `detach()` - 그래프에서 떼어내기
 
 ```python
@@ -387,6 +536,13 @@ detached = original.detach()
 print(f"Detached requires_grad: {detached.requires_grad}")  # False
 print(f"Same storage: {original.storage().data_ptr() == detached.storage().data_ptr()}")
 # True - 같은 메모리이다!
+```
+
+**출력:**
+
+```
+Detached requires_grad: False
+Same storage: True
 ```
 
 ### 흔한 패턴: `detach().clone()`
@@ -418,6 +574,15 @@ t2 = t.add(10)
 print(f"After add: original {t}, new {t2}")  # Original unchanged
 ```
 
+**출력:**
+
+```
+Original id: 5798725504
+After add_: tensor([11., 12., 13.])
+Same id: 5798725504
+After add: original tensor([11., 12., 13.]), new tensor([21., 22., 23.])
+```
+
 !!! warning "제자리 연산과 Autograd"
     제자리 연산이 역전파에 필요한 텐서를 수정하면 경사 계산을 망가뜨릴 수 있다.
     학습 중에는 조심해서 사용해야 한다.
@@ -447,6 +612,13 @@ t_noncontig = benchmark(x_t)
 
 print(f"Contiguous: {t_contig:.4f}s")
 print(f"Non-contiguous: {t_noncontig:.4f}s")
+```
+
+**출력:**
+
+```
+Contiguous: 0.0328s
+Non-contiguous: 0.0352s
 ```
 
 ### `.contiguous()`를 언제 호출할 것인가
@@ -515,6 +687,42 @@ inspect_tensor(x, "Original")
 inspect_tensor(x.T, "Transposed")
 inspect_tensor(x[1:], "Sliced")
 inspect_tensor(x[:, ::2], "Strided slice")
+```
+
+**출력:**
+
+```
+=== Original ===
+  Shape: torch.Size([3, 4])
+  Stride: (4, 1)
+  Contiguous: True
+  Storage offset: 0
+  Storage size: 12
+  Data pointer: 4796301632
+
+=== Transposed ===
+  Shape: torch.Size([4, 3])
+  Stride: (1, 4)
+  Contiguous: False
+  Storage offset: 0
+  Storage size: 12
+  Data pointer: 4796301632
+
+=== Sliced ===
+  Shape: torch.Size([2, 4])
+  Stride: (4, 1)
+  Contiguous: True
+  Storage offset: 4
+  Storage size: 12
+  Data pointer: 4796301632
+
+=== Strided slice ===
+  Shape: torch.Size([3, 2])
+  Stride: (4, 2)
+  Contiguous: False
+  Storage offset: 0
+  Storage size: 12
+  Data pointer: 4796301632
 ```
 
 ---

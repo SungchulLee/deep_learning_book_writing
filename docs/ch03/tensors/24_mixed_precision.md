@@ -107,6 +107,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+1. What is Mixed Precision?
+======================================================================
+
+    섞인 촘촘함 익히기:
+    - 앞으로/역전파에는 float16(반 촘촘함)을 쓴다
+    - 매개변수를 고칠 때는 float32(온 촘촘함)을 쓴다
+    - 좋은 점: 2~3배 빨라지고 기억 자리가 50% 준다
+    - 필요한 것: 텐서 코어를 지닌 GPU(V100, A100, RTX 20/30 계열)
+    
+
+======================================================================
+2. Float16 vs Float32
+======================================================================
+Float32: torch.float32, size: 4 bytes
+Float16: torch.float16, size: 2 bytes
+Memory savings: 50%
+
+======================================================================
+3. Automatic Mixed Precision (AMP)
+======================================================================
+Using autocast for mixed precision:
+Loss computed in mixed precision: 2.3538
+
+======================================================================
+4. Manual Mixed Precision
+======================================================================
+Model converted to float16:
+  0.weight: torch.float16
+  0.bias: torch.float16
+  2.weight: torch.float16
+  2.bias: torch.float16
+
+
+... (31 lines omitted)
+
+    for epoch in range(epochs):
+        for x, y in dataloader:
+            optimizer.zero_grad()
+            with torch.cuda.amp.autocast():
+                output = model(x)
+                loss = criterion(output, y)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+    
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사 초기화, 역전파, 매개변수 갱신이다. 각 구성 요소가 결정적인 역할을 한다. 최적화기는 갱신 규칙(SGD, Adam 등)을 캡슐화하고 학습률과 모멘텀 상태를 내부에서 관리한다.

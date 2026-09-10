@@ -106,6 +106,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+1. Simple Linear Layer
+======================================================================
+Layer: Linear(in_features=3, out_features=2, bias=True)
+Weight shape: torch.Size([2, 3])
+Bias shape: torch.Size([2])
+
+Input: torch.Size([1, 3])
+Output: torch.Size([1, 2])
+
+======================================================================
+2. Multi-Layer Network
+======================================================================
+SimpleNet(
+  (fc1): Linear(in_features=10, out_features=20, bias=True)
+  (fc2): Linear(in_features=20, out_features=10, bias=True)
+  (fc3): Linear(in_features=10, out_features=1, bias=True)
+)
+
+Input: torch.Size([5, 10])
+Output: torch.Size([5, 1])
+
+======================================================================
+3. Model Parameters
+======================================================================
+Total parameters: 441
+Trainable parameters: 441
+fc1.weight: torch.Size([20, 10])
+fc1.bias: torch.Size([20])
+fc2.weight: torch.Size([10, 20])
+fc2.bias: torch.Size([10])
+fc3.weight: torch.Size([1, 10])
+fc3.bias: torch.Size([1])
+
+... (34 lines omitted)
+
+======================================================================
+Epoch 1, Loss: 0.9624
+Epoch 2, Loss: 0.9622
+Epoch 3, Loss: 0.9620
+
+======================================================================
+8. Model Evaluation
+======================================================================
+Test output shape: torch.Size([5, 1])
+Model in eval mode - no gradients computed!
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

@@ -459,6 +459,21 @@ for epoch in range(n_epochs):
         print(f"Epoch {epoch+1}: Loss = {avg_loss:.4f}")
 ```
 
+**출력:**
+
+```
+Epoch 10: Loss = 0.9586
+Epoch 20: Loss = 0.9700
+Epoch 30: Loss = 0.9207
+Epoch 40: Loss = 0.9245
+Epoch 50: Loss = 0.8965
+Epoch 60: Loss = 0.8759
+Epoch 70: Loss = 0.8802
+Epoch 80: Loss = 0.8812
+Epoch 90: Loss = 0.8559
+Epoch 100: Loss = 0.8418
+```
+
 ---
 
 ## 10. 다른 주제와의 연결

@@ -83,6 +83,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+1. Element-wise Comparison
+======================================================================
+a = tensor([1, 2, 3, 4, 5])
+b = tensor([5, 4, 3, 2, 1])
+
+a > b: tensor([False, False, False,  True,  True])
+a >= b: tensor([False, False,  True,  True,  True])
+a < b: tensor([ True,  True, False, False, False])
+a == b: tensor([False, False,  True, False, False])
+a != b: tensor([ True,  True, False,  True,  True])
+
+======================================================================
+2. Tensor Equality - torch.equal()
+======================================================================
+x = tensor([1, 2, 3])
+y = tensor([1, 2, 3])
+z = tensor([1, 2, 4])
+
+torch.equal(x, y): True
+torch.equal(x, z): False
+
+Note: equal() requires EXACT match
+
+======================================================================
+3. Approximate Equality - torch.allclose()
+======================================================================
+a = tensor([1., 2., 3.])
+b = tensor([1.0001, 2.0001, 3.0001])
+
+equal(): False
+allclose() default: False
+allclose(atol=1e-5): False
+
+... (32 lines omitted)
+
+
+Element-wise max: tensor([2, 5, 6])
+Element-wise min: tensor([1, 4, 3])
+
+======================================================================
+7. Practical: Finding Best Predictions
+======================================================================
+Logits shape: torch.Size([5, 10])
+Predicted classes: tensor([1, 5, 4, 3, 2])
+Max scores: tensor([3.2715, 2.7902, 2.1874, 1.2415, 1.3903])
+```
+
 ## 2. 논의
 
 텐서 생성 함수는 데이터를 초기화하는 유연한 방법을 제공한다. `torch.zeros`, `torch.randn`, `torch.arange` 같은 팩토리 함수는 `dtype`, `device`, `requires_grad` 매개변수를 받으므로 불필요한 복사 없이 목표 장치에 곧바로 할당할 수 있다.

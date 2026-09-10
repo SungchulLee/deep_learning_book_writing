@@ -187,6 +187,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+Using device: cpu
+
+================================================================================
+1) Basic fills: zeros / ones / full / empty / eye
+================================================================================
+zeros:
+ tensor([[0., 0., 0.],
+        [0., 0., 0.]])
+ones:
+ tensor([[1., 1., 1.],
+        [1., 1., 1.]])
+full(7.7):
+ tensor([[7.7000, 7.7000, 7.7000],
+        [7.7000, 7.7000, 7.7000]])
+empty (uninitialized):
+ tensor([[0., 0., 0.],
+        [0., 0., 0.]])
+eye(4):
+ tensor([[1., 0., 0., 0.],
+        [0., 1., 0., 0.],
+        [0., 0., 1., 0.],
+        [0., 0., 0., 1.]])
+
+================================================================================
+2) Ranges: arange / linspace / logspace / randint / randperm
+================================================================================
+arange int: tensor([0, 2, 4, 6, 8])
+arange float: tensor([0.0000, 0.2000, 0.4000, 0.6000, 0.8000])
+linspace(0,1,5): tensor([0.0000, 0.2500, 0.5000, 0.7500, 1.0000])
+logspace(0,3,4): tensor([   1.,   10.,  100., 1000.])
+randint[0,10):
+ tensor([[2, 9, 2, 0],
+        [0, 2, 6, 7],
+
+... (86 lines omitted)
+
+
+================================================================================
+8) Summary
+================================================================================
+• Use zeros/ones/full/empty/eye for basic shapes
+• Use arange/linspace/logspace/randint/randperm for sequences
+• Use rand/randn/normal for random continuous values
+• Use *_like to mirror another tensor's shape/dtype/device
+• Use triu/tril/diag/diagonal for structured matrices
+• Always set dtype/device/requires_grad explicitly when it matters
+```
+
 ## 2. 논의
 
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.

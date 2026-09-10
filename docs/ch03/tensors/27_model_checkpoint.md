@@ -156,6 +156,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+1. Saving Model State Dict
+======================================================================
+Model created:
+SimpleModel(
+  (fc1): Linear(in_features=10, out_features=20, bias=True)
+  (fc2): Linear(in_features=20, out_features=1, bias=True)
+)
+
+Model weights saved to 'model_weights.pth'
+This saves only the parameters, not the architecture!
+
+======================================================================
+2. Loading Model State Dict
+======================================================================
+Weights loaded into new model
+Weights match: True
+
+======================================================================
+3. Saving Entire Model
+======================================================================
+Full model saved (architecture + weights)
+Full model loaded
+Note: This requires the model class definition to be available!
+
+======================================================================
+4. Saving Training Checkpoint
+======================================================================
+Training checkpoint saved with:
+  - Epoch: 10
+  - Model weights
+  - Optimizer state
+  - Loss: 0.123
+
+... (52 lines omitted)
+
+    6. 저장한 뒤 제대로 불러와지는지 따져라
+    7. 다른 기기에서 불러올 때는 map_location='cpu'을 써라
+    8. 곁들인 정보(초매개변수 따위)도 저장하라
+    9. 불러오는 코드를 자주 시험하라
+    10. 추론 전용 저장를 따로 두어라
+    
+    이름 보기: model_epoch50_loss0.123_acc0.95.pth
+    
+
+Checkpoint files cleaned up.
+```
+
 ## 2. 논의
 
 PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법을 제공한다. 각 모듈이 자신의 매개변수와 하위 모듈을 관리하므로 모델을 살펴보고, 저장하고, 장치 사이에 옮기기가 간편하다.

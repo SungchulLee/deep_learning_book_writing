@@ -312,6 +312,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+torch.tensor: creates copy from data
+================================================================================
+torch.tensor(data):
+ tensor([[1, 2],
+        [3, 4]])
+dtype: torch.int64 | device: cpu
+With dtype=float64: torch.float64
+
+================================================================================
+torch.as_tensor: may share memory with input
+================================================================================
+torch.as_tensor(numpy):
+ tensor([[1, 2],
+        [3, 4]])
+After modifying numpy, torch tensor: 999
+
+================================================================================
+torch.from_numpy: shares memory with numpy
+================================================================================
+torch.from_numpy: tensor([1., 2., 3.], dtype=torch.float64)
+Shares memory: True
+
+================================================================================
+torch.zeros: all zeros
+================================================================================
+zeros(3, 4):
+ tensor([[0., 0., 0., 0.],
+        [0., 0., 0., 0.],
+        [0., 0., 0., 0.]])
+zeros with dtype=int64:
+ tensor([[0, 0, 0],
+        [0, 0, 0]])
+
+... (188 lines omitted)
+
+  torch.logspace(start, end, n)  - n log-spaced
+
+Structured tensors:
+  torch.eye(n)                 - Identity matrix
+  torch.diag(vector)           - Diagonal matrix
+
+From data:
+  torch.tensor(data)           - Copy from list/array
+  torch.from_numpy(array)      - Share memory with numpy
+  torch.as_tensor(data)        - Share memory if possible
+```
+
 ## 2. 논의
 
 경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.

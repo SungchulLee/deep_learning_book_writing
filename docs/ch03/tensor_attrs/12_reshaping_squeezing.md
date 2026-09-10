@@ -348,6 +348,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+reshape: change shape (may copy if needed)
+================================================================================
+x: tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])
+x.shape: torch.Size([12])
+reshape(3, 4):
+ tensor([[ 0,  1,  2,  3],
+        [ 4,  5,  6,  7],
+        [ 8,  9, 10, 11]])
+reshape(2, 2, 3).shape: torch.Size([2, 2, 3])
+reshape(3, -1).shape: torch.Size([3, 4])
+
+================================================================================
+view vs reshape: view requires contiguous memory
+================================================================================
+view(4, 3) works: torch.Size([4, 3])
+After transpose, is_contiguous: False
+reshape() works even when non-contiguous
+After .contiguous(), view works
+
+================================================================================
+flatten: collapse to 1D
+================================================================================
+x.shape: torch.Size([2, 3, 4])
+flatten(): torch.Size([24])
+flatten(start_dim=1): torch.Size([2, 12])
+flatten(1, 1): torch.Size([2, 3, 4])
+
+================================================================================
+squeeze: remove dimensions of size 1
+================================================================================
+Original shape: torch.Size([1, 3, 1, 4, 1])
+squeeze(): torch.Size([3, 4])
+
+... (156 lines omitted)
+
+
+Memory layout:
+  .contiguous()     - Create contiguous copy if needed
+  .is_contiguous()  - Check if contiguous
+
+Tips:
+  - Use -1 in reshape to infer dimension
+  - view requires contiguous, reshape doesn't
+  - Most reshaping ops return views (no copy)
+  - transpose/permute change strides, may need .contiguous()
+```
+
 ## 2. 논의
 
 재구성 연산은 데이터를 반드시 복사하지 않으면서 텐서의 논리적 배치를 바꾼다. `view()` 메서드는 연속된 메모리를 요구하며 항상 뷰를 반환하고, `reshape()`는 (필요하면 복사하여) 어떤 텐서에서도 동작한다. `transpose()`나 `permute()` 같은 연산은 데이터 배치가 아니라 스트라이드를 바꾸므로 결과가 연속적이지 않을 수 있다.
