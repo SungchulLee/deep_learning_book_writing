@@ -366,7 +366,7 @@ if __name__ == "__main__":
     history = compare_training(num_epochs=20, batch_size=32)
     
     # 결과 그리기
-    plot_comparison(history, save_path='/home/claude/residual_connections/training_comparison.png')
+    plot_comparison(history, save_path='training_comparison.png')
     
     print("\n" + "=" * 80)
     print("Key Observations:")

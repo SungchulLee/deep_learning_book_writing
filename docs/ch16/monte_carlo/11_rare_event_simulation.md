@@ -481,7 +481,7 @@ ax.legend(fontsize=10)
 ax.grid(True, alpha=0.3, which='both')
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/rare_event_analysis.png',
+plt.savefig('rare_event_analysis.png',
             dpi=300, bbox_inches='tight')
 
 plt.show()

@@ -60,7 +60,7 @@ def visualize_ppo_clipping():
         ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig("/home/claude/ppo_clipping.png", dpi=150, bbox_inches="tight")
+    plt.savefig("ppo_clipping.png", dpi=150, bbox_inches="tight")
     plt.close()
     print("Saved PPO clipping visualization to ppo_clipping.png")
 

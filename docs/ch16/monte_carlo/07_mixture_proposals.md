@@ -309,7 +309,7 @@ for bar, ess in zip(bars, ess_values):
             ha='center', va='bottom', fontsize=10, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/mixture_bimodal.png',
+plt.savefig('mixture_bimodal.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -411,7 +411,7 @@ for ax, k, proposal, ess in [(axes[0,0], 1, proposal_k1, ess_k1),
     ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/mixture_components.png',
+plt.savefig('mixture_components.png',
             dpi=300, bbox_inches='tight')
 
 

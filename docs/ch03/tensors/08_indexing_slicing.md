@@ -107,8 +107,10 @@ def main():
     every_other = vec[::2]  # Every 2nd element
     print(f"vec[::2] = {every_other}")  # tensor([10, 30, 50, 70, 90])
     
-    # 텐서 뒤집기
-    reversed_vec = vec[::-1]
+    # 텐서 뒤집기.
+    # 넘파이와 달리 PyTorch는 음수 보폭 자르기(vec[::-1])를 받지 않는다.
+    # "step must be greater than zero" 오류가 나므로 torch.flip을 쓴다
+    reversed_vec = torch.flip(vec, dims=[0])
     print(f"vec[::-1] = {reversed_vec}")  # tensor([100, 90, 80, ..., 10])
     
     # -------------------------------------------------------------------------

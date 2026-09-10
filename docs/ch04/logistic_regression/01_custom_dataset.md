@@ -144,7 +144,7 @@ sample_data = pd.DataFrame({
     'target': np.random.randint(0, 2, 1000)
 })
 
-csv_path = "/home/claude/pytorch_logistic_regression_tutorial/03_advanced/sample_data.csv"
+csv_path = "sample_data.csv"
 sample_data.to_csv(csv_path, index=False)
 
 # 사용자 정의 CSV 데이터셋을 쓴다

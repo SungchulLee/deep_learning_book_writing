@@ -160,7 +160,7 @@ for i in range(12):
     axes[i].axis('off')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_feedforward_tutorial/06_mnist_samples.png', dpi=100)
+plt.savefig('06_mnist_samples.png', dpi=100)
 print("Sample images saved as '06_mnist_samples.png'")
 
 # ==============================================================================
@@ -358,7 +358,7 @@ for i in range(12):
     axes[i].axis('off')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_feedforward_tutorial/06_predictions.png', dpi=100)
+plt.savefig('06_predictions.png', dpi=100)
 print("Predictions saved as '06_predictions.png'")
 
 # ==============================================================================
@@ -385,7 +385,7 @@ ax2.set_title('Training Accuracy')
 ax2.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_feedforward_tutorial/06_training_progress.png', dpi=100)
+plt.savefig('06_training_progress.png', dpi=100)
 print("Training progress saved as '06_training_progress.png'")
 
 # ==============================================================================
@@ -395,7 +395,7 @@ print("\n" + "=" * 70)
 print("STEP 10: Saving the Model")
 print("=" * 70)
 
-model_path = '/home/claude/pytorch_feedforward_tutorial/mnist_model.pth'
+model_path = 'mnist_model.pth'
 torch.save(model.state_dict(), model_path)
 print(f"Model saved to: {model_path}")
 

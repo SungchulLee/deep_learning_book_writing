@@ -126,7 +126,7 @@ if __name__ == "__main__":
         trajectory,
         true_pdf=lambda x: np.exp(-0.5 * np.sum(x**2, axis=1)) / (2*np.pi)
     )
-    plt.savefig('/home/claude/demo_langevin.png', dpi=150, bbox_inches='tight')
+    plt.savefig('demo_langevin.png', dpi=150, bbox_inches='tight')
     print("Saved demo_langevin.png")
     
     print(f"\nFinal sample statistics:")

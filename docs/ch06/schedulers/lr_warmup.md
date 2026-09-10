@@ -166,7 +166,7 @@ def plot_warmup_schedules(warmup_steps: int = 1000, total_steps: int = 10000):
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig('/home/claude/warmup_schedules.png', dpi=150)
+    plt.savefig('warmup_schedules.png', dpi=150)
     print("Plot saved to warmup_schedules.png")
 
 

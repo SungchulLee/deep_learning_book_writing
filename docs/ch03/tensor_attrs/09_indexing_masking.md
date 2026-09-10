@@ -163,7 +163,10 @@ def main():
     mask = torch.tensor([[True, False, True, False],
                          [False, True, False, True],
                          [True, True, False, False]])
-    source = torch.arange(1, 7)  # Values to scatter
+    # dtype을 맞추어야 한다. a는 torch.zeros라 float32인데
+    # torch.arange(1, 7)은 int64라, 그대로 넣으면
+    # "expected self and source to have same dtypes" 오류가 난다
+    source = torch.arange(1, 7, dtype=torch.float32)  # Values to scatter
     
     result = a.masked_scatter(mask, source)
     print("mask:\n", mask)

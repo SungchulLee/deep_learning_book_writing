@@ -234,7 +234,7 @@ if __name__ == "__main__":
     axes[2].grid(True)
     
     plt.tight_layout()
-    plt.savefig('/home/claude/demo_ncsn_checkerboard.png', dpi=150, bbox_inches='tight')
+    plt.savefig('demo_ncsn_checkerboard.png', dpi=150, bbox_inches='tight')
     print("\nSaved demo_ncsn_checkerboard.png")
     print("\n✓ NCSN successfully learned multi-modal distribution!")
 ```

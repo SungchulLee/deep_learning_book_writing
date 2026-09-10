@@ -504,7 +504,7 @@ print("PART 9: Saving and Loading the Model")
 print("=" * 80)
 
 # 모델을 저장한다
-model_path = '/home/claude/softmax_regression_tutorial/level_02_model.pth'
+model_path = 'level_02_model.pth'
 torch.save(model.state_dict(), model_path)
 print(f"✅ Model saved to: {model_path}")
 

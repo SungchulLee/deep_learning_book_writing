@@ -53,13 +53,17 @@ def main():
     print("ptr(alias) == ptr(base)?", ptr(alias) == ptr(base))
 
     # 한쪽 이름으로 제자리 변경을 하면 다른 쪽에서도 보인다(같은 객체이다).
-    base.add_(100)
+    # base가 requires_grad=True인 잎이라 제자리 변경은 no_grad 안에서만
+    # 할 수 있다. 이 페이지의 제자리 연산이 모두 no_grad로 감싸인 까닭이다
+    with torch.no_grad():
+        base.add_(100)
     print("\nAfter base.add_(100):")
     print("base:\n", base)
     print("alias (same object):\n", alias)
 
     # 다음 시연을 위해 되돌린다(제자리 뺄셈).
-    base.sub_(100)
+    with torch.no_grad():
+        base.sub_(100)
 
     # ----------------------------------------------------------------------------
     # 2) 뷰(저장소 공유): 슬라이싱 / view / reshape
@@ -77,13 +81,15 @@ def main():
           ptr(view_slice) == ptr(base) and ptr(view_view) == ptr(base))
 
     # 뷰를 통한 제자리 변경이 원본을 갱신한다(저장소를 공유한다).
-    view_slice.mul_(10)
+    with torch.no_grad():
+        view_slice.mul_(10)
     print("\nAfter view_slice.mul_(10):")
     print("base:\n", base)
     print("view_slice:\n", view_slice)
 
     # 다음 부분을 위해 되돌린다.
-    view_slice.div_(10)
+    with torch.no_grad():
+        view_slice.div_(10)
 
     # ----------------------------------------------------------------------------
     # 3) clone(): 바탕 데이터의 깊은 복사(저장소 공유 없음)
@@ -95,13 +101,15 @@ def main():
     print("Shares storage? ->", ptr(c) == ptr(base))
 
     # 원본에 대한 제자리 변경은 복제본에 영향을 주지 않는다(버퍼가 독립적이다).
-    base.add_(1000)
+    with torch.no_grad():
+        base.add_(1000)
     print("\nAfter base.add_(1000):")
     print("base:\n", base)
     print("clone (unchanged):\n", c)
 
     # 되돌리기
-    base.sub_(1000)
+    with torch.no_grad():
+        base.sub_(1000)
 
     # ----------------------------------------------------------------------------
     # 4) detach(): 저장소는 공유하지만 경사 추적을 끊는다
@@ -114,13 +122,15 @@ def main():
     print("ptr(detach) == ptr(base)?", ptr(d) == ptr(base))
 
     # 원본에 대한 제자리 변경이 d에서도 보인다(저장소를 공유한다).
-    base.add_(5)
+    with torch.no_grad():
+        base.add_(5)
     print("\nAfter base.add_(5):")
     print("base:\n", base)
     print("detach (reflects change):\n", d)
 
     # 되돌리기
-    base.sub_(5)
+    with torch.no_grad():
+        base.sub_(5)
 
     # ----------------------------------------------------------------------------
     # 5) detach().clone(): 경사를 끊고 저장소 공유도 없다
@@ -132,13 +142,15 @@ def main():
     print("ptr(detach().clone) == ptr(base)?", ptr(dc) == ptr(base))
 
     # 원본에 대한 제자리 변경은 dc에 영향을 주지 않는다(독립적이다).
-    base.mul_(2)
+    with torch.no_grad():
+        base.mul_(2)
     print("\nAfter base.mul_(2):")
     print("base:\n", base)
     print("detach().clone (unchanged):\n", dc)
 
     # 되돌리기(2로 나누기)
-    base.div_(2)
+    with torch.no_grad():
+        base.div_(2)
 
     # ----------------------------------------------------------------------------
     # 6) Autograd 참고: clone은 경사 흐름을 유지하고 detach는 그렇지 않다
@@ -176,7 +188,8 @@ def main():
     print("v:", v, " ptr:", ptr(v))
     print("c:", c, " ptr:", ptr(c))
 
-    v.add_(100)  # in-place on the view → updates shared positions in `a`
+    with torch.no_grad():
+        v.add_(100)  # in-place on the view → updates shared positions in `a`
     print("\nAfter v.add_(100):")
     print("a (affected):", a)  # a[1], a[2] changed
     print("v (view):    ", v)

@@ -561,7 +561,7 @@ def visualize_3d_kernels(model: nn.Module):
                 ax.set_title(f't={t}')
     
     plt.tight_layout()
-    plt.savefig('/home/claude/34_video_understanding/02_3d_kernels.png',
+    plt.savefig('02_3d_kernels.png',
                 dpi=150, bbox_inches='tight')
     print(f"Kernel visualization saved to 02_3d_kernels.png")
     plt.close()

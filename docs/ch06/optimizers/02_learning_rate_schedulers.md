@@ -275,7 +275,7 @@ plt.grid(True, alpha=0.3)
 plt.yscale('log')
 
 plt.tight_layout()
-plot_path = '/home/claude/scheduler_comparison.png'
+plot_path = 'scheduler_comparison.png'
 plt.savefig(plot_path, dpi=150, bbox_inches='tight')
 print(f"Plot saved to: {plot_path}")
 

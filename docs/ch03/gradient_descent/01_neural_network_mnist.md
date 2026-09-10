@@ -138,7 +138,7 @@ for i in range(10):
     axes[i].axis('off')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_4_projects/mnist_samples.png', dpi=150)
+plt.savefig('mnist_samples.png', dpi=150)
 print("\n✓ Sample images saved as 'mnist_samples.png'")
 
 # ============================================================================
@@ -434,7 +434,7 @@ axes[1, 1].text(0.5, 0.5,
 axes[1, 1].axis('off')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_4_projects/mnist_results.png', dpi=150)
+plt.savefig('mnist_results.png', dpi=150)
 print("\n✓ Results saved as 'mnist_results.png'")
 print("\nClose the plot window to continue...")
 plt.show()
@@ -447,7 +447,7 @@ print("SAVING MODEL")
 print("="*80)
 
 # 모델 가중치 저장
-torch.save(model.state_dict(), '/home/claude/pytorch_gradient_descent_tutorial/level_4_projects/mnist_model.pth')
+torch.save(model.state_dict(), 'mnist_model.pth')
 print("\n✓ Model saved as 'mnist_model.pth'")
 
 print("\nTo load the model later:")

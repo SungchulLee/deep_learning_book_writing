@@ -481,7 +481,7 @@ def visualize_frames(video: torch.Tensor,
         ax.set_title(f'Frame {indices[i].item() if T > num_frames else i}')
     
     plt.tight_layout()
-    plt.savefig('/home/claude/34_video_understanding/01_video_frames.png', 
+    plt.savefig('01_video_frames.png', 
                 dpi=150, bbox_inches='tight')
     print(f"Visualization saved to 01_video_frames.png")
     plt.close()
@@ -516,7 +516,7 @@ def visualize_optical_flow(flow: np.ndarray,
     plt.imshow(rgb)
     plt.title('Optical Flow Visualization')
     plt.axis('off')
-    plt.savefig('/home/claude/34_video_understanding/01_optical_flow.png',
+    plt.savefig('01_optical_flow.png',
                 dpi=150, bbox_inches='tight')
     print(f"Flow visualization saved to 01_optical_flow.png")
     plt.close()

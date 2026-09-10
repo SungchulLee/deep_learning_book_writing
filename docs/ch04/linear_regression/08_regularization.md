@@ -221,7 +221,7 @@ for idx, lambda_val in enumerate([0.01, 0.1]):
     ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_linear_regression_tutorial/08_regularization_weights.png', dpi=100)
+plt.savefig('08_regularization_weights.png', dpi=100)
 print("Saved weight visualization")
 
 # ============================================================================
@@ -257,7 +257,7 @@ ax.grid(True, alpha=0.3)
 ax.set_yscale('log')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_linear_regression_tutorial/08_regularization_comparison.png', dpi=100)
+plt.savefig('08_regularization_comparison.png', dpi=100)
 print("Saved comparison visualization")
 plt.show()
 

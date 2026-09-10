@@ -59,7 +59,7 @@ plt.ylabel('Loss', fontsize=12)
 plt.title('Loss Landscape: L(w) = (w - 3)²', fontsize=14, fontweight='bold')
 plt.legend()
 plt.grid(True, alpha=0.3)
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_1_basics/loss_landscape_1d.png', dpi=150)
+plt.savefig('loss_landscape_1d.png', dpi=150)
 print("\n✓ Loss landscape visualization saved")
 plt.show()
 
@@ -129,7 +129,7 @@ for idx, lr in enumerate(learning_rates):
             verticalalignment='top')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_1_basics/learning_rate_effect.png', dpi=150)
+plt.savefig('learning_rate_effect.png', dpi=150)
 print("\n✓ Learning rate comparison saved")
 plt.show()
 
@@ -226,7 +226,7 @@ ax2.set_zlabel('Loss')
 ax2.set_title('3D Loss Surface', fontsize=14, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_1_basics/loss_surface_2d.png', dpi=150)
+plt.savefig('loss_surface_2d.png', dpi=150)
 print("\n✓ 2D loss surface visualization saved")
 plt.show()
 
@@ -260,7 +260,7 @@ ax2.grid(True, alpha=0.3)
 ax2.set_yscale('log')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_1_basics/convergence_analysis.png', dpi=150)
+plt.savefig('convergence_analysis.png', dpi=150)
 print("\n✓ Convergence analysis saved")
 plt.show()
 

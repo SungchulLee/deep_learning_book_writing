@@ -435,7 +435,7 @@ def demonstrate_sample_visualization():
     SampleGridVisualizer.plot_sample_grid(
         images,
         title="Generated Samples (8×8 Grid)",
-        save_path="/home/claude/sample_grid.png"
+        save_path="sample_grid.png"
     )
     
     # 다양함을 살핀다

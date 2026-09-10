@@ -286,7 +286,7 @@ ax.text(0.1, 0.95, summary_text, transform=ax.transAxes,
 ax.axis('off')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_linear_regression_tutorial/09_batch_size_comparison.png', dpi=100)
+plt.savefig('09_batch_size_comparison.png', dpi=100)
 print("Saved visualization")
 plt.show()
 

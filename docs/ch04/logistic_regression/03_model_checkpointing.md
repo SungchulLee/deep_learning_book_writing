@@ -43,7 +43,7 @@ print("="*80)
 # =============================================================================
 
 # 체크포인트 디렉터리를 만든다
-checkpoint_dir = Path("/home/claude/pytorch_logistic_regression_tutorial/02_intermediate/checkpoints")
+checkpoint_dir = Path("checkpoints")
 checkpoint_dir.mkdir(exist_ok=True)
 
 # 데이터를 준비한다

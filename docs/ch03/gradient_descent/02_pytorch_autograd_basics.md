@@ -290,7 +290,7 @@ axes[1].legend()
 axes[1].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_1_basics/pytorch_autograd.png', dpi=150)
+plt.savefig('pytorch_autograd.png', dpi=150)
 print("\n✓ Plot saved as 'pytorch_autograd.png'")
 print("\nClose the plot window to continue...")
 plt.show()

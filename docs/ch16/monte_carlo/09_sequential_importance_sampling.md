@@ -370,7 +370,7 @@ ax.legend(fontsize=9)
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/sis_weight_degeneracy.png',
+plt.savefig('sis_weight_degeneracy.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -441,7 +441,7 @@ ax.legend(fontsize=10)
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/sis_with_resampling.png',
+plt.savefig('sis_with_resampling.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -488,7 +488,7 @@ ax.legend(fontsize=11)
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/sis_credible_intervals.png',
+plt.savefig('sis_credible_intervals.png',
             dpi=300, bbox_inches='tight')
 
 plt.show()

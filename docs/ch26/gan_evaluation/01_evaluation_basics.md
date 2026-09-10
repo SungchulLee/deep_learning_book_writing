@@ -489,7 +489,7 @@ def visualize_evaluation_concepts():
     ax.set_title('Evaluation Comparison', fontsize=14, fontweight='bold', pad=20)
     
     plt.tight_layout()
-    plt.savefig('/home/claude/evaluation_concepts.png', dpi=300, bbox_inches='tight')
+    plt.savefig('evaluation_concepts.png', dpi=300, bbox_inches='tight')
     print("\n✓ Visualization saved as 'evaluation_concepts.png'")
     
     return fig

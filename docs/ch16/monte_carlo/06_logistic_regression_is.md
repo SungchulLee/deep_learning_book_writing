@@ -331,7 +331,7 @@ ax.grid(True, alpha=0.3)
 ax.set_xlim([0, 5])
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/logistic_regression_1d.png',
+plt.savefig('logistic_regression_1d.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -461,7 +461,7 @@ ax.set_title('Posterior Predictive Distribution', fontsize=13, fontweight='bold'
 ax.legend(fontsize=11)
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/logistic_predictive.png',
+plt.savefig('logistic_predictive.png',
             dpi=300, bbox_inches='tight')
 
 plt.show()

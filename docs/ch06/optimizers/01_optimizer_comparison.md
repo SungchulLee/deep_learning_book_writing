@@ -262,7 +262,7 @@ plt.legend()
 plt.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plot_path = '/home/claude/optimizer_comparison.png'
+plot_path = 'optimizer_comparison.png'
 plt.savefig(plot_path, dpi=150, bbox_inches='tight')
 print(f"Plot saved to: {plot_path}")
 

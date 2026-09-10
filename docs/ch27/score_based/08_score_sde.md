@@ -248,7 +248,7 @@ def demo_sde():
     axes[1].set_aspect('equal')
     
     plt.tight_layout()
-    plt.savefig('/home/claude/demo_score_sde.png', dpi=150, bbox_inches='tight')
+    plt.savefig('demo_score_sde.png', dpi=150, bbox_inches='tight')
     print("\nSaved demo_score_sde.png")
     print("\n✓ Score SDE successfully implemented!")
 

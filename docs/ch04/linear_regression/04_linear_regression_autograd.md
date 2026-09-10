@@ -311,7 +311,7 @@ axes[1, 1].text(0.1, 0.95, comparison_text,
 axes[1, 1].axis('off')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_linear_regression_tutorial/04_autograd_results.png', dpi=100)
+plt.savefig('04_autograd_results.png', dpi=100)
 print("Saved visualization to: 04_autograd_results.png")
 plt.show()
 

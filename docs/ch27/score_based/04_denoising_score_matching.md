@@ -168,7 +168,7 @@ if __name__ == "__main__":
     axes[2].grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/home/claude/demo_dsm_swiss_roll.png', dpi=150, bbox_inches='tight')
+    plt.savefig('demo_dsm_swiss_roll.png', dpi=150, bbox_inches='tight')
     print("\nSaved demo_dsm_swiss_roll.png")
     
     print("\n✓ Successfully trained and sampled from Swiss roll distribution!")

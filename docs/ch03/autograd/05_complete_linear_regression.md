@@ -233,7 +233,7 @@ def main():
     ax2.set_yscale('log')  # Log scale shows convergence better
     
     plt.tight_layout()
-    plt.savefig('/home/claude/linear_regression_training.png', dpi=150, bbox_inches='tight')
+    plt.savefig('linear_regression_training.png', dpi=150, bbox_inches='tight')
     print("Plot saved as 'linear_regression_training.png'")
     
     # ==========================

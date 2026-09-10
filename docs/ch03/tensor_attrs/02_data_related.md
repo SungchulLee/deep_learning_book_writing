@@ -46,7 +46,10 @@ def main():
     a = torch.randn(4, requires_grad=True)
     b = a.detach()             # shares storage, no grad
     c = a.detach().clone()     # copy to new storage, no grad
-    a.add_(10)
+    # no_grad로 감싼다. a는 requires_grad=True인 잎이라 제자리 변경이
+    # 그대로는 허용되지 않는다
+    with torch.no_grad():
+        a.add_(10)
     print("a:", a)
     print("b (shares storage, updated with a):", b)
     print("c (snapshot, unchanged):", c)

@@ -88,13 +88,13 @@ nav:
     - 2 MNIST로 보는 딥러닝:
       - 장 개요: ch02/index.md
       - 2.1 템플릿 학습:
-        - '코드: 1단계 템플릿 학습': ch02/mnist/01_template_learning.md
+        - MNIST 템플릿 학습: ch02/mnist/01_template_learning.md
       - 2.2 선형 모델과 소프트맥스:
-        - '코드: 2단계 선형 모델과 소프트맥스': ch02/mnist/02_linear_softmax.md
+        - MNIST 선형 모델과 소프트맥스: ch02/mnist/02_linear_softmax.md
       - 2.3 다층 퍼셉트론:
-        - '코드: 3단계 다층 퍼셉트론': ch02/mnist/03_mlp.md
+        - MNIST 다층 퍼셉트론: ch02/mnist/03_mlp.md
       - 2.4 합성곱 신경망:
-        - '코드: 4단계 합성곱 신경망': ch02/mnist/04_cnn.md
+        - MNIST 합성곱 신경망: ch02/mnist/04_cnn.md
     - 3 PyTorch 기초:
       - 장 개요: ch03/index.md
       - 3.1 텐서:

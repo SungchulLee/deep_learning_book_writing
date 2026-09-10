@@ -317,7 +317,7 @@ axes[1, 1].legend()
 axes[1, 1].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_2_intermediate/batch_comparison.png', dpi=150)
+plt.savefig('batch_comparison.png', dpi=150)
 print("\n✓ Plot saved as 'batch_comparison.png'")
 print("\nClose the plot window to continue...")
 plt.show()

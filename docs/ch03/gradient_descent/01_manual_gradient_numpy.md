@@ -248,7 +248,7 @@ axes[2].legend()
 axes[2].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_1_basics/manual_gradient_descent.png', dpi=150)
+plt.savefig('manual_gradient_descent.png', dpi=150)
 print("\n✓ Plot saved as 'manual_gradient_descent.png'")
 print("\nClose the plot window to continue...")
 plt.show()

@@ -62,7 +62,7 @@ config = {
     'momentum': 0.9,
     'log_interval': 100,  # N 배치마다 출력
     'save_model': True,
-    'model_path': '/home/claude/mnist_model.pt'
+    'model_path': 'mnist_model.pt'
 }
 
 print("\nHyperparameters:")

@@ -247,7 +247,7 @@ axes[1, 1].set_title('Feature Importance')
 axes[1, 1].grid(True, alpha=0.3, axis='x')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_linear_regression_tutorial/06_multivariate_results.png', dpi=100)
+plt.savefig('06_multivariate_results.png', dpi=100)
 print("\nSaved visualization")
 plt.show()
 

@@ -81,8 +81,8 @@ class Config:
     scheduler_factor = 0.5
     
     # 경로
-    checkpoint_dir = '/home/claude/pytorch_linear_regression_tutorial/checkpoints'
-    log_dir = '/home/claude/pytorch_linear_regression_tutorial/logs'
+    checkpoint_dir = 'checkpoints'
+    log_dir = 'logs'
     
     # 재현성
     random_seed = 42
@@ -534,7 +534,7 @@ ax7.text(0.1, 0.9, summary, transform=ax7.transAxes,
          bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 ax7.axis('off')
 
-plt.savefig('/home/claude/pytorch_linear_regression_tutorial/10_complete_pipeline_results.png', dpi=100, bbox_inches='tight')
+plt.savefig('10_complete_pipeline_results.png', dpi=100, bbox_inches='tight')
 print("Visualization saved")
 plt.show()
 

@@ -506,7 +506,7 @@ def plot_training_history(history: Dict):
     ax2.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/home/claude/34_video_understanding/03_training_curves.png',
+    plt.savefig('03_training_curves.png',
                 dpi=150, bbox_inches='tight')
     print(f"Training curves saved to 03_training_curves.png")
     plt.close()

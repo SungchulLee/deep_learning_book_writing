@@ -339,7 +339,7 @@ for idx, iter_num in enumerate(iterations_to_plot):
         ax.legend(fontsize=9)
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/adaptive_1d_evolution.png',
+plt.savefig('adaptive_1d_evolution.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -420,7 +420,7 @@ for idx, iter_num in enumerate(iterations_2d):
     ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/adaptive_2d_banana.png',
+plt.savefig('adaptive_2d_banana.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -483,7 +483,7 @@ ax.set_ylabel('θ₂', fontsize=11)
 plt.colorbar(scatter, ax=ax, label='Weight × n')
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/fixed_vs_adaptive.png',
+plt.savefig('fixed_vs_adaptive.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -524,7 +524,7 @@ ax.grid(True, alpha=0.3)
 ax.legend(fontsize=11)
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/ess_evolution.png',
+plt.savefig('ess_evolution.png',
             dpi=300, bbox_inches='tight')
 
 plt.show()

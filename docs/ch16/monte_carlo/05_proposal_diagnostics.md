@@ -382,7 +382,7 @@ for name in selected_proposals:
     diagnostics_obj = ProposalDiagnostics(target.pdf, prop, name)
     diagnostics_obj.plot_diagnostics(
         diag,
-        save_path=f'/home/claude/03_Importance_Sampling/diagnostics_{name.lower()}.png'
+        save_path=f'diagnostics_{name.lower()}.png'
     )
     print(f"\nSaved diagnostics plot for {name} proposal")
 
@@ -431,7 +431,7 @@ ax.axhline(2000, color='red', linestyle='--', linewidth=2,
 ax.grid(True, alpha=0.3)
 ax.legend(fontsize=11)
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/ess_degradation.png',
+plt.savefig('ess_degradation.png',
             dpi=300, bbox_inches='tight')
 
 

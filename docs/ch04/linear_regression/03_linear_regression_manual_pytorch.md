@@ -341,7 +341,7 @@ axes[1, 1].set_ylim(0, 1)
 axes[1, 1].axis('off')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_linear_regression_tutorial/03_pytorch_manual.png', dpi=100)
+plt.savefig('03_pytorch_manual.png', dpi=100)
 print("Saved visualization to: 03_pytorch_manual.png")
 plt.show()
 

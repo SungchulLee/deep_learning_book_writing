@@ -641,7 +641,7 @@ def visualize_likelihood_metrics():
     ax.set_title('Likelihood Metrics Summary', fontsize=14, fontweight='bold', pad=20)
     
     plt.tight_layout()
-    plt.savefig('/home/claude/likelihood_metrics.png', dpi=300, bbox_inches='tight')
+    plt.savefig('likelihood_metrics.png', dpi=300, bbox_inches='tight')
     print("\n✓ Visualization saved as 'likelihood_metrics.png'")
     
     return fig

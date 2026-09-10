@@ -83,8 +83,10 @@ def main():
     _ = ok1.item()                 # OK
     _ = ok2.item()                 # OK (still one element)
     try:
-        _ = bad.item()             # ValueError: only one element tensors can be converted
-    except ValueError as e:
+        _ = bad.item()             # 원소가 2개라 스칼라로 바꿀 수 없다
+    except RuntimeError as e:
+        # PyTorch는 ValueError가 아니라 RuntimeError를 낸다.
+        # ValueError만 잡으면 예외가 그대로 빠져나가 코드가 멈춘다
         print("item() on multi-element tensor →", e, "\n")
 
     # --------------------------------------------

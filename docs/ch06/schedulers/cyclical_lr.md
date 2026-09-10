@@ -253,7 +253,7 @@ def plot_cyclical_schedules(total_steps: int = 10000):
         axes[idx].grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/home/claude/cyclical_schedules.png', dpi=150)
+    plt.savefig('cyclical_schedules.png', dpi=150)
     print("Plot saved to cyclical_schedules.png")
 
 

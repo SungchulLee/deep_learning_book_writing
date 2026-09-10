@@ -475,7 +475,7 @@ plt.axis('off')
 plt.title('Summary', fontsize=14, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_logistic_regression_tutorial/01_basics/simple_classification_results.png',
+plt.savefig('simple_classification_results.png',
             dpi=150, bbox_inches='tight')
 print("Visualization saved as: simple_classification_results.png")
 

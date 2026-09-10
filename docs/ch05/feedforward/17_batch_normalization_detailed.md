@@ -421,7 +421,7 @@ axes[1, 1].legend()
 axes[1, 1].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_feedforward_tutorial/08_batchnorm_comparison.png', dpi=100)
+plt.savefig('08_batchnorm_comparison.png', dpi=100)
 print("Comparison saved as '08_batchnorm_comparison.png'")
 
 # ==============================================================================

@@ -296,7 +296,7 @@ ax6.legend()
 ax6.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_3_advanced/adam_comparison.png', dpi=150)
+plt.savefig('adam_comparison.png', dpi=150)
 print("\n✓ Plot saved as 'adam_comparison.png'")
 print("\nClose the plot window to continue...")
 plt.show()

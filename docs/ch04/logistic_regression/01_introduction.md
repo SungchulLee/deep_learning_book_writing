@@ -221,7 +221,7 @@ plt.grid(True, alpha=0.3)
 plt.yscale('log')  # Log scale to see convergence better
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_logistic_regression_tutorial/01_basics/optimization_demo.png', 
+plt.savefig('optimization_demo.png', 
             dpi=150, bbox_inches='tight')
 print("Plot saved as: optimization_demo.png")
 

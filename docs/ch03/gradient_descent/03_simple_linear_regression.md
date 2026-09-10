@@ -259,7 +259,7 @@ axes[2].set_title('Residual Plot', fontsize=14, fontweight='bold')
 axes[2].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_gradient_descent_tutorial/level_1_basics/linear_regression.png', dpi=150)
+plt.savefig('linear_regression.png', dpi=150)
 print("\n✓ Plot saved as 'linear_regression.png'")
 print("\nClose the plot window to continue...")
 plt.show()

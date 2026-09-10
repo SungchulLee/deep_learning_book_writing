@@ -243,6 +243,25 @@ def ensure_tensor(t):
     return TensorWithGrad(np.asarray(t, dtype=np.float64))
 
 
+def unbroadcast(grad, shape):
+    """방송으로 늘어난 축을 되접어 grad를 shape에 맞춘다.
+
+    numpy는 (4, 4) + (1, 4)처럼 모양이 다른 배열을 자동으로 늘려 더한다.
+    순전파에서 늘어난 만큼, 역전파에서는 그 축을 따라 기울기를 더해
+    원래 모양으로 되돌려야 한다. 이것을 빠뜨리면 치우침 b가 (1, 4)인데
+    기울기는 (4, 4)로 나와 b -= lr * b.grad에서 오류가 난다.
+    실제 자동 미분 엔진이 모두 이 되접기를 안에 품고 있다.
+    """
+    # 순전파에서 앞쪽에 축이 새로 생긴 경우: 그 축을 모두 더해 없앤다
+    while grad.ndim > len(shape):
+        grad = grad.sum(axis=0)
+    # 길이 1이던 축이 늘어난 경우: 그 축을 더하되 자리는 남겨 둔다
+    for i, s in enumerate(shape):
+        if s == 1 and grad.shape[i] != 1:
+            grad = grad.sum(axis=i, keepdims=True)
+    return grad
+
+
 class TensorWithGrad:
     """행렬 곱, 원소별 셈, 합을 받치는 텐서 수준 자동 미분."""
 
@@ -317,12 +336,16 @@ class TensorWithGrad:
             self.grad = self.grad + grad
 
         if self.creation_op == "add":
-            self.depends_on[0].backward(self.grad)
-            self.depends_on[1].backward(self.grad)
+            # 두 피연산자의 모양이 다를 수 있으므로 각자의 모양으로 되접는다.
+            # 치우침을 더할 때가 바로 이 경우다
+            a, b = self.depends_on
+            a.backward(unbroadcast(self.grad, a.data.shape))
+            b.backward(unbroadcast(self.grad, b.data.shape))
 
         elif self.creation_op == "mul":
-            self.depends_on[0].backward(self.grad * self.depends_on[1].data)
-            self.depends_on[1].backward(self.grad * self.depends_on[0].data)
+            a, b = self.depends_on
+            a.backward(unbroadcast(self.grad * b.data, a.data.shape))
+            b.backward(unbroadcast(self.grad * a.data, b.data.shape))
 
         elif self.creation_op == "matmul":
             # d(A @ B)/dA = grad @ B^T

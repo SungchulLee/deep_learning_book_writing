@@ -227,7 +227,7 @@ for idx, (name, proposal) in enumerate(proposals.items()):
         ax.legend()
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/ess_proposal_comparison.png',
+plt.savefig('ess_proposal_comparison.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -326,7 +326,7 @@ ax.legend()
 ax.set_yscale('log')
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/ess_variance_relationship.png',
+plt.savefig('ess_variance_relationship.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -390,7 +390,7 @@ ax.grid(True, alpha=0.3)
 ax.legend()
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/ess_vs_sample_size.png',
+plt.savefig('ess_vs_sample_size.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -454,7 +454,7 @@ for idx, (name, proposal) in enumerate(test_proposals.items()):
     ax.set_xscale('log')
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/weight_concentration.png',
+plt.savefig('weight_concentration.png',
             dpi=300, bbox_inches='tight')
 
 plt.show()

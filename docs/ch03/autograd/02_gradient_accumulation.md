@@ -111,7 +111,13 @@ def main():
     print(f"After .zero_(): x3.grad = {x3.grad}")
     print(f"  Type: {type(x3.grad)}")
     
-    # 다시 누적
+    # 다시 누적.
+    # 손실을 다시 계산해야 한다. backward()는 계산 그래프를 쓰고 나면
+    # 풀어 버리므로, 같은 loss로 두 번 부르면 "Trying to backward through
+    # the graph a second time" 오류가 난다.
+    # retain_graph=True로 그래프를 붙들어 둘 수도 있지만, 실제 학습에서는
+    # 미니배치마다 손실을 새로 계산하므로 이쪽이 실전에 가깝다
+    loss = (x3 ** 2).sum()
     loss.backward()
     print(f"After another backward: x3.grad = {x3.grad}")
     
@@ -120,6 +126,7 @@ def main():
     print(f"After setting to None: x3.grad = {x3.grad}")
     
     # 다음 역전파가 새 경사 텐서를 만든다
+    loss = (x3 ** 2).sum()
     loss.backward()
     print(f"After backward: x3.grad = {x3.grad}")
     print()
@@ -224,6 +231,31 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+======================================================================
+PART 1: Default Behavior - Gradients Accumulate!
+======================================================================
+Initial x: tensor([2.], requires_grad=True)
+Initial x.grad: None
+
+First backward pass: loss1 = x^2
+After 1st backward: x.grad = tensor([4.])
+  (Expected: 2*x = 2*2.0 = 4.0)
+
+Second backward pass: loss2 = 3*x
+After 2nd backward: x.grad = tensor([7.])
+  (NOT what we want! 4.0 + 3.0 = 7.0)
+  (Gradients accumulated: 1st gradient + 2nd gradient)
+
+======================================================================
+PART 2: Correct Behavior - Zero Gradients Between Steps
+======================================================================
+After 1st backward: x2.grad = tensor([4.])
+...
 ```
 
 ## 2. 논의

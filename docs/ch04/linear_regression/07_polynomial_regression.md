@@ -178,7 +178,7 @@ ax.grid(True, alpha=0.3)
 ax.set_yscale('log')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_linear_regression_tutorial/07_polynomial_comparison.png', dpi=100)
+plt.savefig('07_polynomial_comparison.png', dpi=100)
 print("Saved visualization")
 plt.show()
 

@@ -158,7 +158,7 @@ print(f"  Posterior variance: {posterior_var_is:.6f} (error: {abs(posterior_var_
 # 시각화한다
 fig = plot_bayesian_update(prior_dist, posterior_dist, data, 'θ', 
                            'Beta-Binomial: Prior vs Posterior')
-plt.savefig('/home/claude/03_Importance_Sampling/example1_beta_binomial.png', 
+plt.savefig('example1_beta_binomial.png', 
             dpi=300, bbox_inches='tight')
 
 
@@ -248,7 +248,7 @@ print(f"  True: [{credible_95_true[0]:.3f}, {credible_95_true[1]:.3f}]")
 # 시각화한다
 fig = plot_bayesian_update(prior_normal, posterior_normal, data_normal, 'θ',
                            'Normal-Normal: Prior vs Posterior')
-plt.savefig('/home/claude/03_Importance_Sampling/example2_normal_normal.png',
+plt.savefig('example2_normal_normal.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -354,7 +354,7 @@ for y, p_true, p_is in zip(y_new_values[:8], post_pred_true_probs[:8], post_pred
 # 시각화한다
 fig = plot_bayesian_update(prior_gamma, posterior_gamma, data_poisson, 'λ',
                            'Gamma-Poisson: Prior vs Posterior')
-plt.savefig('/home/claude/03_Importance_Sampling/example3_gamma_poisson.png',
+plt.savefig('example3_gamma_poisson.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -404,7 +404,7 @@ for bar, eff in zip(bars, efficiencies):
             ha='center', va='bottom', fontsize=12, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/comparative_ess.png',
+plt.savefig('comparative_ess.png',
             dpi=300, bbox_inches='tight')
 
 plt.show()

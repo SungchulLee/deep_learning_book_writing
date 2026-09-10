@@ -316,7 +316,7 @@ def visualize_comparison(results):
                 f'{height:.4f}', ha='center', va='bottom', fontsize=9)
     
     plt.tight_layout()
-    plt.savefig('/home/claude/hyperparameter_tuning/comparison_results.png', 
+    plt.savefig('comparison_results.png', 
                 dpi=300, bbox_inches='tight')
     print("Saved visualization to 'comparison_results.png'")
     plt.show()

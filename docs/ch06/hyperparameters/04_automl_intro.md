@@ -312,7 +312,7 @@ def tpot_automl_example():
     
     # 가장 좋은 파이프라인 내보내기
     print("\nExporting best pipeline to 'best_pipeline.py'...")
-    tpot.export('/home/claude/hyperparameter_tuning/tpot_best_pipeline.py')
+    tpot.export('tpot_best_pipeline.py')
     
     # 가장 좋은 파이프라인 보이기
     print("\nBest Pipeline:")

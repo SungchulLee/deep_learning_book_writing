@@ -342,7 +342,7 @@ ax.legend(fontsize=10)
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/defensive_alpha_tradeoff.png',
+plt.savefig('defensive_alpha_tradeoff.png',
             dpi=300, bbox_inches='tight')
 
 
@@ -504,7 +504,7 @@ ax.set_xticklabels([name.replace(' ', '\n') for name in proposal_names],
 ax.grid(True, alpha=0.3, axis='y')
 
 plt.tight_layout()
-plt.savefig('/home/claude/03_Importance_Sampling/defensive_summary.png',
+plt.savefig('defensive_summary.png',
             dpi=300, bbox_inches='tight')
 
 plt.show()

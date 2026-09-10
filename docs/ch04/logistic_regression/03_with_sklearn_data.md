@@ -349,7 +349,7 @@ plt.text(0.1, 0.5, summary, fontsize=9, family='monospace',
 plt.axis('off')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_logistic_regression_tutorial/01_basics/breast_cancer_results.png',
+plt.savefig('breast_cancer_results.png',
             dpi=150, bbox_inches='tight')
 print("Visualization saved!")
 

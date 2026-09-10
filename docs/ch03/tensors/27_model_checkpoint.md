@@ -28,20 +28,20 @@ class SimpleModel(nn.Module):
 
 def main():
     # 체크포인트용 임시 디렉터리 만들기
-    os.makedirs('/home/claude/checkpoints', exist_ok=True)
+    os.makedirs('checkpoints', exist_ok=True)
     
     header("1. Saving Model State Dict")
     model = SimpleModel()
     print("Model created:")
     print(model)
     
-    torch.save(model.state_dict(), '/home/claude/checkpoints/model_weights.pth')
+    torch.save(model.state_dict(), 'model_weights.pth')
     print("\nModel weights saved to 'model_weights.pth'")
     print("This saves only the parameters, not the architecture!")
     
     header("2. Loading Model State Dict")
     new_model = SimpleModel()  # Must create architecture first
-    new_model.load_state_dict(torch.load('/home/claude/checkpoints/model_weights.pth'))
+    new_model.load_state_dict(torch.load('model_weights.pth'))
     print("Weights loaded into new model")
     
     # 가중치가 일치하는지 확인
@@ -50,10 +50,10 @@ def main():
     print(f"Weights match: {torch.equal(param1, param2)}")
     
     header("3. Saving Entire Model")
-    torch.save(model, '/home/claude/checkpoints/full_model.pth')
+    torch.save(model, 'full_model.pth')
     print("Full model saved (architecture + weights)")
     
-    loaded_model = torch.load('/home/claude/checkpoints/full_model.pth')
+    loaded_model = torch.load('full_model.pth')
     print("Full model loaded")
     print("Note: This requires the model class definition to be available!")
     
@@ -69,7 +69,7 @@ def main():
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': loss,
     }
-    torch.save(checkpoint, '/home/claude/checkpoints/training_checkpoint.pth')
+    torch.save(checkpoint, 'training_checkpoint.pth')
     print("Training checkpoint saved with:")
     print(f"  - Epoch: {epoch}")
     print(f"  - Model weights")
@@ -80,7 +80,7 @@ def main():
     model = SimpleModel()
     optimizer = optim.Adam(model.parameters())
     
-    checkpoint = torch.load('/home/claude/checkpoints/training_checkpoint.pth')
+    checkpoint = torch.load('training_checkpoint.pth')
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     start_epoch = checkpoint['epoch']
@@ -96,7 +96,7 @@ def main():
     
     if current_loss < best_loss:
         best_loss = current_loss
-        torch.save(model.state_dict(), '/home/claude/checkpoints/best_model.pth')
+        torch.save(model.state_dict(), 'best_model.pth')
         print(f"New best model saved! Loss: {best_loss:.4f}")
     
     header("7. Model Versioning")
@@ -104,13 +104,13 @@ def main():
     torch.save({
         'model_state_dict': model.state_dict(),
         'epoch': epoch,
-    }, f'/home/claude/checkpoints/model_epoch_{epoch}.pth')
+    }, f'model_epoch_{epoch}.pth')
     print(f"Checkpoint saved: model_epoch_{epoch}.pth")
     print("Useful for comparing different training stages!")
     
     header("8. Saving for Inference Only")
     model.eval()  # Set to evaluation mode
-    torch.save(model.state_dict(), '/home/claude/checkpoints/inference_model.pth')
+    torch.save(model.state_dict(), 'inference_model.pth')
     print("Inference-only model saved")
     print("Remember to call model.eval() before inference!")
     
@@ -148,8 +148,8 @@ def main():
     
     # 정리
     import shutil
-    if os.path.exists('/home/claude/checkpoints'):
-        shutil.rmtree('/home/claude/checkpoints')
+    if os.path.exists('checkpoints'):
+        shutil.rmtree('checkpoints')
     print("\nCheckpoint files cleaned up.")
 
 if __name__ == "__main__":

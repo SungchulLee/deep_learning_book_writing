@@ -237,7 +237,7 @@ def demonstrate_gru_gates():
     plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/home/claude/lstm_gru_module/gru_gates.png', dpi=150, bbox_inches='tight')
+    plt.savefig('gru_gates.png', dpi=150, bbox_inches='tight')
     print("\n✓ Gate activation plot saved as 'gru_gates.png'")
     plt.close()
 

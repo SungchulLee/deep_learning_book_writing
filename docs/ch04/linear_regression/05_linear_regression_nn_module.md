@@ -227,7 +227,7 @@ print("PART 6: SAVING AND LOADING MODELS")
 print("=" * 70)
 
 # 모델을 저장한다
-model_path = '/home/claude/pytorch_linear_regression_tutorial/linear_model.pth'
+model_path = 'linear_model.pth'
 torch.save(model.state_dict(), model_path)
 print(f"Model saved to: {model_path}")
 
@@ -314,7 +314,7 @@ axes[1, 1].text(0.05, 0.95, comparison, transform=axes[1, 1].transAxes,
 axes[1, 1].axis('off')
 
 plt.tight_layout()
-plt.savefig('/home/claude/pytorch_linear_regression_tutorial/05_nn_module_results.png', dpi=100)
+plt.savefig('05_nn_module_results.png', dpi=100)
 print("\nSaved visualization to: 05_nn_module_results.png")
 plt.show()
 
