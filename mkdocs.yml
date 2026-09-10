@@ -249,6 +249,7 @@ nav:
       - 3.5 손실 함수:
         - 교차 엔트로피 손실: ch04/loss/cross_entropy.md
         - 쿨백-라이블러 발산: ch04/loss/kl_divergence.md
+        - L2 손실 (평균 제곱 오차): ch04/loss/l2_loss.md
   - II 핵심 얼개:
     - 5 신경망의 구성 요소:
       - 장 개요: ch05/index.md
