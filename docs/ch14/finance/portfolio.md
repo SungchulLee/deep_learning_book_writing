@@ -78,7 +78,7 @@ $$
 \hat{\boldsymbol{\mu}}_{\text{BL}} = \left[(\tau \boldsymbol{\Sigma})^{-1} + \mathbf{P}^\top \boldsymbol{\Omega}^{-1} \mathbf{P}\right]^{-1} \left[(\tau \boldsymbol{\Sigma})^{-1} \boldsymbol{\pi} + \mathbf{P}^\top \boldsymbol{\Omega}^{-1} \mathbf{q}\right]
 $$
 
-이는 균형 앞확률과 투자자 견해를 정밀도로 무게 준 평균이며, 16.1절의 켤레 정규-정규 갱신과 꼭 같다.
+이는 균형 앞확률과 투자자 견해를 정밀도로 무게 준 평균이며, 14.1절의 켤레 정규-정규 갱신과 꼭 같다.
 
 ### PyTorch 구현
 

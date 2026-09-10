@@ -326,11 +326,11 @@ nav:
         - 'Fashion-MNIST': ch06/datasets/fashion_mnist.md
         - 'Hymenoptera': ch06/datasets/hymenoptera.md
         - 'MNIST': ch06/datasets/mnist.md
-      - 6.3 학습 루프:
+      - 6.2 학습 루프:
         - 실전 학습 요령: ch06/training/training_recipes.md
         - 'TensorBoard MNIST 주석본': ch06/training/tensorboard_mnist_commented.md
         - '완전한 MNIST 학습': ch06/training/01_complete_mnist_training.md
-      - 6.4 고급 손실 함수:
+      - 6.3 고급 손실 함수:
         - 초점 손실: ch06/loss/focal_loss.md
         - 후버 손실: ch06/loss/huber_loss.md
         - 손실 함수의 선택: ch06/loss/loss_selection.md
@@ -339,7 +339,7 @@ nav:
         - '최적화기 소개': ch06/loss/03_intro_to_optimizers.md
         - '분류 손실': ch06/loss/04_classification_losses.md
         - '사용자 정의 손실 함수': ch06/loss/01_custom_loss_functions.md
-      - 6.5 최적화기:
+      - 6.4 최적화기:
         - 모멘텀을 쓰는 확률적 경사 하강법: ch06/optimizers/momentum.md
         - 네스테로프 모멘텀: ch06/optimizers/nesterov.md
         - Adagrad: ch06/optimizers/adagrad.md
@@ -355,14 +355,14 @@ nav:
         - 'Adam 최적화기': ch06/optimizers/adam_optimizer.md
         - '최적화기 비교 실험': ch06/optimizers/optimizer_comparison.md
         - 'RMSprop 최적화기': ch06/optimizers/rmsprop_optimizer.md
-      - 6.6 학습률 스케줄러:
+      - 6.5 학습률 스케줄러:
         - '순환 학습률': ch06/schedulers/cyclical_lr.md
         - '학습률 워밍업': ch06/schedulers/lr_warmup.md
-      - 6.7 과적합과 일반화:
+      - 6.6 과적합과 일반화:
         - '편향-분산 절충': ch06/overfitting/bias_variance_tradeoff.md
         - '학습 곡선 시연': ch06/overfitting/learning_curves_demo.md
         - '과적합과 과소적합 시연': ch06/overfitting/overfitting_underfitting_demo.md
-      - 6.8 평가 지표:
+      - 6.7 평가 지표:
         - 통계적 추론: ch06/evaluation/statistical_inference.md
         - '모델 평가 개관': ch06/evaluation/01_model_evaluation_overview.md
         - '분류 지표': ch06/evaluation/02_classification_metrics.md
@@ -371,14 +371,14 @@ nav:
         - '혼동 행렬': ch06/evaluation/05_confusion_matrix.md
         - '모델 비교': ch06/evaluation/06_model_comparison.md
         - '종합 예제': ch06/evaluation/07_comprehensive_examples.md
-      - 6.9 초매개변수 조율:
+      - 6.8 초매개변수 조율:
         - '격자 탐색': ch06/hyperparameters/01_grid_search.md
         - '무작위 탐색': ch06/hyperparameters/02_random_search.md
         - '베이즈 최적화': ch06/hyperparameters/03_bayesian_optimization.md
         - 'AutoML 소개': ch06/hyperparameters/04_automl_intro.md
         - '조율 방법 비교': ch06/hyperparameters/05_comparison.md
         - '연속 반감법': ch06/hyperparameters/06_successive_halving.md
-      - 6.10 모델 저장:
+      - 6.9 모델 저장:
         - 'ONNX 기초': ch06/save_load/1_onnx_basics.md
         - '양자화': ch06/save_load/2_quantization.md
         - '배포 파이프라인': ch06/save_load/4_deployment_pipeline.md
@@ -412,7 +412,7 @@ nav:
         - '이진 분류': ch07/cnn/08_binary_classification.md
         - 'CNN 유틸리티': ch07/cnn/cnn_utils.md
         - '밑바닥부터 만드는 합성곱': ch07/cnn/conv_from_scratch.md
-      - 7.3 CNN에서 ViT로:
+      - 7.2 CNN에서 ViT로:
         - 합성곱 신경망에서 트랜스포머로: ch07/vit/cnn_to_vit_bridge.md
         - 압축-여기: ch07/vit/squeeze_excitation.md
         - 비국소 신경망: ch07/vit/non_local.md
@@ -522,14 +522,14 @@ nav:
         - '표집 방법': ch09/pretrained_models/sampling_strategies.md
         - '허깅페이스 빠른 시작': ch09/pretrained_models/huggingface_quickstart.md
         - '영 예시·소수 예시 텍스트 분류': ch09/pretrained_models/zero_shot_text_classification.md
-      - 9.4 학습과 추론:
+      - 9.3 학습과 추론:
         - '속도 성능 시험': ch09/training_and_inference/benchmark_speed.md
         - '합성곱 신경망 기준선': ch09/training_and_inference/cnn_baseline.md
         - '순환 신경망 기준선': ch09/training_and_inference/rnn_baseline.md
         - '트랜스포머 모델': ch09/training_and_inference/transformer_model.md
         - 학습과 추론: ch09/training_and_inference/training_inference.md
         - 학습 최적화: ch09/training_and_inference/training_optimization.md
-      - 9.5 비전 트랜스포머:
+      - 9.4 비전 트랜스포머:
         - ViT 훑어보기: ch09/transformers_vision/vit.md
         - 이미지를 위한 위치 임베딩: ch09/transformers_vision/position_embeddings.md
         - 스윈 트랜스포머: ch09/transformers_vision/swin.md
@@ -545,19 +545,19 @@ nav:
   - III 배움의 틀:
     - 10 자기 지도 학습:
       - 장 개요: ch10/index.md
-      - 10.2 대조 학습:
+      - 10.1 대조 학습:
         - '대조 학습 MoCo': ch10/contrastive_learning/contrastive_moco.md
         - '대조 학습 SimCLR': ch10/contrastive_learning/contrastive_simclr.md
         - '데이터 증강': ch10/contrastive_learning/data_augmentation.md
         - 'MAE 비전 트랜스포머': ch10/contrastive_learning/mae_vision_transformer.md
-      - 10.4 자기 증류:
+      - 10.2 자기 증류:
         - 지식 증류의 기초: ch10/self_distillation/distillation_basics.md
         - 지수 이동 평균 교사: ch10/self_distillation/ema_teacher.md
     - 11 전이 학습:
       - 장 개요: ch11/index.md
-      - 11.2 도메인 적응:
+      - 11.1 도메인 적응:
         - 최대 평균 불일치: ch11/domain_adaptation/mmd.md
-      - 11.3 응용:
+      - 11.2 응용:
         - 시계열을 위한 전이: ch11/applications/transfer_time_series.md
       - 전이 학습:
         - '고급 기법': ch11/transfer_learning/advanced_techniques.md
@@ -590,18 +590,18 @@ nav:
         - 영 예시 학습 훑어보기: ch12/zero_shot/zero_shot_overview.md
     - 13 이어 배우기:
       - 장 개요: ch13/index.md
-      - 13.3 벌주기 방법:
+      - 13.1 벌주기 방법:
         - 벌주기 훑어보기: ch13/regularization_methods/overview.md
         - 탄성 가중치 다지기: ch13/regularization_methods/ewc.md
         - 온라인 탄성 가중치 다지기: ch13/regularization_methods/online_ewc.md
         - 방법의 견줌: ch13/regularization_methods/comparison.md
-      - 13.4 되살리기 방법:
+      - 13.2 되살리기 방법:
         - 경험 되살리기: ch13/replay_methods/experience_replay.md
         - 평균 기울기 에피소드 기억: ch13/replay_methods/agem.md
-      - 13.5 구조 방법:
+      - 13.3 구조 방법:
         - 전문가 문: ch13/architecture_methods/expert_gate.md
         - 초가리개: ch13/architecture_methods/supermask.md
-      - 13.6 증류 방법:
+      - 13.4 증류 방법:
         - 잊지 않고 배우기: ch13/distillation_methods/lwf.md
         - 특징 증류: ch13/distillation_methods/feature_distillation.md
         - 방법의 견줌: ch13/distillation_methods/comparison.md
@@ -650,9 +650,9 @@ nav:
         - 'PGM의 바탕': ch15/pgm_foundations/01_pgm_fundamentals.md
         - '베이즈 망의 기초': ch15/pgm_foundations/02_bayesian_networks_basics.md
         - '단순한 추론': ch15/pgm_foundations/04_simple_inference.md
-      - 15.4 추론:
+      - 15.2 추론:
         - '변수 없애기': ch15/pgm_inference/01_variable_elimination.md
-      - 15.5 배우기:
+      - 15.3 배우기:
         - 그래프 모형을 위한 기댓값-최대화: ch15/pgm_learning/em_for_pgms.md
         - '짜임 배우기': ch15/pgm_learning/02_structure_learning.md
     - 16 표집과 추론:
@@ -748,7 +748,7 @@ nav:
   - V 보기와 말:
     - 18 컴퓨터 시각:
       - 장 개요: ch18/index.md
-      - 18.2 그림 나누기:
+      - 18.1 그림 나누기:
         - 나누기 개요: ch18/segmentation/segmentation_overview.md
         - U-넷: ch18/segmentation/unet.md
         - 마스크 R-CNN: ch18/segmentation/mask_rcnn.md
@@ -760,7 +760,7 @@ nav:
         - '미리 익힌 모델로 나누기': ch18/segmentation/pretrained_segmentation.md
         - '의료 나누기': ch18/segmentation/medical_segmentation.md
         - '앞선 나누기': ch18/segmentation/advanced_segmentation.md
-      - 18.3 물체 알아내기:
+      - 18.2 물체 알아내기:
         - 겹침 비와 최대가 아닌 것 누르기: ch18/detection/iou_nms.md
         - '마스크 R-CNN': ch18/detection/35_mask_rcnn.md
         - 'YOLOv3': ch18/detection/36_yolo_v3.md
@@ -771,7 +771,7 @@ nav:
         - 'YOLO 알아내기': ch18/detection/yolo_detection.md
         - '맞춤 물체 알아내기': ch18/detection/custom_object_detection.md
         - '앞선 알아내기': ch18/detection/advanced_detection.md
-      - 18.4 영상 이해:
+      - 18.3 영상 이해:
         - 영상 개요: ch18/video/video_overview.md
         - 두 갈래 그물: ch18/video/two_stream.md
         - 느림빠름: ch18/video/slowfast.md
@@ -940,9 +940,9 @@ nav:
         - 다시 세우기 살피기: ch22/ae/reconstruction_analysis.md
     - 23 변분 자기 부호기(VAE):
       - 장 살펴보기: ch23/index.md
-      - 23.2 이론:
+      - 23.1 이론:
         - 쿨백-라이블러 벌어짐 항: ch23/theory/kl_term.md
-      - 23.3 얼개:
+      - 23.2 얼개:
         - 부호기: ch23/architecture/encoder.md
         - 사전 분포: ch23/architecture/prior.md
         - '변분 자기 부호기': ch23/architecture/47_vae.md
@@ -956,7 +956,7 @@ nav:
         - '누비기 조건부 변분 자기 부호기': ch23/architecture/conv_cvae.md
         - '누비기 변분 자기 부호기': ch23/architecture/conv_vae.md
         - '변분 자기 부호기 모듈': ch23/architecture/vae.md
-      - 23.5 익히기:
+      - 23.3 익히기:
         - 공짜 비트: ch23/training/free_bits.md
         - '표본 만들기': ch23/training/generate_samples.md
         - '자기 부호기 익히기': ch23/training/train_autoencoder.md
@@ -965,13 +965,13 @@ nav:
         - '변분 자기 부호기 익히기': ch23/training/train_vae.md
     - 24 고르게 하는 흐름:
       - 장 살펴보기: ch24/index.md
-      - 24.2 흐름 얼개:
+      - 24.1 흐름 얼개:
         - RealNVP과 짝지음 층: ch24/flow_architectures/realnvp.md
         - 'MNIST 흐름 보기': ch24/flow_architectures/example_mnist_flows.md
         - '흐름 도구': ch24/flow_architectures/flow_utils.md
     - 25 자기 되돌이 모델:
       - 장 살펴보기: ch25/index.md
-      - 25.2 PixelCNN:
+      - 25.1 PixelCNN:
         - 'PixelCNN': ch25/pixelcnn/pixelcnn.md
         - '익히기': ch25/pixelcnn/train.md
       - 25.2 인수 나누기:
@@ -1003,9 +1003,9 @@ nav:
         - '2차원 맞겨루기 만들개 보기': ch26/gan_architectures/example_2d_gan.md
         - 'MNIST DCGAN 보기': ch26/gan_architectures/example_mnist_dcgan.md
         - '맞겨루기 만들개 도구': ch26/gan_architectures/gan_utils.md
-      - 26.4 맞겨루기 만들개 손실:
+      - 26.3 맞겨루기 만들개 손실:
         - 본디 맞겨루기 만들개 손실: ch26/gan_losses/original.md
-      - 26.6 맞겨루기 만들개 따지기:
+      - 26.4 맞겨루기 만들개 따지기:
         - 인셉션 점수: ch26/gan_evaluation/inception_score.md
         - 프레셰 인셉션 거리: ch26/gan_evaluation/fid.md
         - 정밀도와 재현율: ch26/gan_evaluation/precision_recall.md
@@ -1059,9 +1059,9 @@ nav:
         - 'U-Net 얼개': ch27/ddpm/unet_architecture.md
       - 27.4 잡음 없애는 퍼짐 암시 모델:
         - 잡음 없애는 퍼짐 암시 모델 바탕: ch27/ddim/fundamentals.md
-      - 27.6 조건 만들어 내기:
+      - 27.5 조건 만들어 내기:
         - 가름개 없는 이끌기: ch27/conditional/classifier_free.md
-      - 27.8 따지기:
+      - 27.6 따지기:
         - 프레셰 인셉션 거리: ch27/evaluation/fid.md
         - 인셉션 점수: ch27/evaluation/inception_score.md
         - 가능도 잣대: ch27/evaluation/likelihood.md
@@ -1081,10 +1081,10 @@ nav:
         - 홉필드 신경망: ch28/classical_ebm/hopfield.md
         - 볼츠만 기계: ch28/classical_ebm/boltzmann_machines.md
         - 제한 볼츠만 기계: ch28/classical_ebm/rbm.md
-      - 28.4 요즘 에너지 바탕 모델:
+      - 28.3 요즘 에너지 바탕 모델:
         - 만들어 내기를 위한 에너지 바탕 모델: ch28/modern_ebm/generation.md
         - 함께 배우기: ch28/modern_ebm/cooperative.md
-      - 28.5 금융 쓰임새:
+      - 28.4 금융 쓰임새:
         - 신용 그물: ch28/finance_applications/credit_networks.md
   - VII 나아간 얼개:
     - 29 신경 상미분 방정식:
@@ -1093,11 +1093,11 @@ nav:
         - 상미분 방정식 바탕: ch29/neural_ode_foundations/fundamentals.md
         - 수치 풀개: ch29/neural_ode_foundations/numerical_solvers.md
         - '신경 상미분 방정식': ch29/neural_ode_foundations/50_neural_ode.md
-      - 29.3 나아간 주제:
+      - 29.2 나아간 주제:
         - 때 차례를 위한 숨은 상미분 방정식: ch29/advanced/latent_odes.md
-      - 29.4 따지기:
+      - 29.3 따지기:
         - 풀개 고르기 안내: ch29/evaluation/solver_selection.md
-      - 29.5 금융 쓰임새:
+      - 29.4 금융 쓰임새:
         - 기간 얼개 움직임: ch29/finance_applications/term_structure.md
     - 30 그래프 신경망:
       - 장 살펴보기: ch30/index.md
@@ -1109,7 +1109,7 @@ nav:
       - 30.2 쪽지 건네기:
         - 고치기 함수: ch30/message_passing/update.md
         - 쪽지 건네기 신경망: ch30/message_passing/mpnn.md
-      - 30.4 나아간 그래프 신경망 방법:
+      - 30.3 나아간 그래프 신경망 방법:
         - '깊은 그래프 신경망': ch30/advanced/deep_gnns.md
         - '지나친 매끄러워짐': ch30/advanced/over_smoothing.md
         - '뛰어넘는 앎': ch30/advanced/jumping_knowledge.md
@@ -1117,18 +1117,18 @@ nav:
         - 섞인 갈래 그래프: ch30/advanced/heterogeneous.md
         - 때 따라 바뀌는 그래프: ch30/advanced/temporal.md
         - 넘 그래프: ch30/advanced/hypergraphs.md
-      - 30.5 그래프 켜의 일:
+      - 30.4 그래프 켜의 일:
         - '그래프 가름': ch30/graph_tasks/graph_classification.md
         - '그래프 되돌이 맞춤': ch30/graph_tasks/graph_regression.md
         - 그래프 모으기: ch30/graph_tasks/pooling.md
         - '켜진 모으기': ch30/graph_tasks/hierarchical_pooling.md
         - 'Set2Set': ch30/graph_tasks/set2set.md
-      - 30.6 마디와 이음의 일:
+      - 30.5 마디와 이음의 일:
         - '마디 가름': ch30/node_link/node_classification.md
         - 이음 헤아리기: ch30/node_link/link_prediction.md
         - '마디 박아 넣기': ch30/node_link/node_embedding.md
         - '무리 찾기': ch30/node_link/community_detection.md
-      - 30.7 그래프 신경망의 쓰임새:
+      - 30.6 그래프 신경망의 쓰임새:
         - '분자 성질 헤아리기': ch30/applications/molecular.md
         - '약 찾기': ch30/applications/drug_discovery.md
         - '사회 그물 살피기': ch30/applications/social_networks.md
@@ -1151,7 +1151,7 @@ nav:
       - 31.2 신경망 방법:
         - 추천 시스템을 위한 스스로 담개: ch31/neural_methods/autoencoder_recsys.md
         - 눈길 바탕 추천 시스템: ch31/neural_methods/attention_recsys.md
-      - 31.5 금융 쓰임새:
+      - 31.3 금융 쓰임새:
         - 꾸러미 권하기: ch31/finance/portfolio_suggestion.md
         - 연구 보고서 추천: ch31/finance/research_recommendation.md
         - 위험을 살피는 추천: ch31/finance/risk_aware.md
@@ -1188,7 +1188,7 @@ nav:
         - 벨먼 방정식: ch33/value_functions/bellman.md
       - 33.4 동적 짜기:
         - 방침 되풀이: ch33/dynamic_programming/policy_iteration.md
-      - 33.7 n걸음 방법:
+      - 33.5 n걸음 방법:
         - TD(λ): ch33/n_step/td_lambda.md
         - 자격 자취: ch33/n_step/eligibility_traces.md
     - 34 값 바탕 깊은 힘 북돋우는 배움:
@@ -1398,11 +1398,11 @@ nav:
         - 금융 얼개의 모형 지킴: ch39/finance/security.md
     - 40 모형 아리송함:
       - 장 개요: ch40/index.md
-      - 40.2 몬테카를로 드롭아웃:
+      - 40.1 몬테카를로 드롭아웃:
         - 몬테카를로 드롭아웃의 이론 밑바탕: ch40/mc_dropout/theory.md
         - 몬테카를로 드롭아웃의 표본 모임: ch40/mc_dropout/convergence.md
         - MC 드롭아웃의 드롭아웃 비율 고르기: ch40/mc_dropout/dropout_rate.md
-      - 40.4 베이즈 방법:
+      - 40.2 베이즈 방법:
         - 신경 그물 짐의 앞선 분포: ch40/bayesian_methods/priors.md
         - 베이즈 신경 그물의 뒷분포 미루어 봄: ch40/bayesian_methods/posterior.md
         - 변이 베이즈 신경 그물: ch40/bayesian_methods/variational_bnn.md
@@ -1410,14 +1410,14 @@ nav:
         - 신경 그물의 라플라스 어림: ch40/bayesian_methods/laplace.md
         - 'SWAG: 확률 짐 고르기 가우스': ch40/bayesian_methods/swag.md
         - 'MC 드롭아웃: 어림 베이즈 미루어 봄으로서의 드롭아웃': ch40/bayesian_methods/mc_dropout_connection.md
-      - 40.6 따지기:
+      - 40.3 따지기:
         - 신경 그물의 아리송함 재기: ch40/evaluation/uncertainty_quantification.md
-      - 40.8 금융에 쓰기:
+      - 40.4 금융에 쓰기:
         - 모형 아리송함을 손에 잡히게 쓰기: ch40/finance/practical_applications.md
   - X 실전과 마무리:
     - 41 모형 내놓기:
       - 장 개요: ch41/index.md
-      - 41.2 다듬기:
+      - 41.1 다듬기:
         - 수 줄이기: ch41/optimization/quantization.md
         - 앎 옮기기: ch41/optimization/distillation.md
         - 신경 얼개 찾기: ch41/optimization/nas.md

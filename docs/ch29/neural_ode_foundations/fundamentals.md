@@ -1020,7 +1020,7 @@ class RegularizedNeuralODE(nn.Module):
 
 $$\mathcal{L}_{\text{jacobian}} = \int_0^T \left\| \frac{\partial f}{\partial h} \right\|_F^2 \, dt$$
 
-이는 더 매끄러운 바꿈을 이끌며 이어진 고르게 맞추는 흐름(27.2절)에 쓰이는 대각합 셈하기와 가깝게 이어진다.
+이는 더 매끄러운 바꿈을 이끌며 이어진 고르게 맞추는 흐름(24.1절)에 쓰이는 대각합 셈하기와 가깝게 이어진다.
 
 ### 8.3 무게 첫자리매김
 
