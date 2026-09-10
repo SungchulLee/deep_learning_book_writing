@@ -42,11 +42,11 @@
 
 선형 모델부터 앙상블까지의 지도 학습 알고리즘.
 
-- [선형 모델](models/linear.md) -- `LinearRegression`, `Ridge`, `Lasso`, `ElasticNet`, `LogisticRegression`
-- [트리 모델](models/trees.md) -- `DecisionTreeClassifier`/`Regressor`, 분할 기준, 가지치기, 시각화
+- [선형 모델](../ch02/models/linear.md) -- `LinearRegression`, `Ridge`, `Lasso`, `ElasticNet`, `LogisticRegression`
+- [트리 모델](../ch02/models/trees.md) -- `DecisionTreeClassifier`/`Regressor`, 분할 기준, 가지치기, 시각화
 - 앙상블 방법 -- `RandomForest`, `GradientBoosting`, `AdaBoost`, 스태킹, 투표
-- [SVM](models/svm.md) -- `SVC`, `SVR`, 커널 기법, 정칙화, 스케일 조정 요구사항
-- [최근접 이웃](models/neighbors.md) -- `KNeighborsClassifier`/`Regressor`, 거리 척도, `BallTree`, `KDTree`
+- [SVM](../ch02/models/svm.md) -- `SVC`, `SVR`, 커널 기법, 정칙화, 스케일 조정 요구사항
+- [최근접 이웃](../ch02/models/neighbors.md) -- `KNeighborsClassifier`/`Regressor`, 거리 척도, `BallTree`, `KDTree`
 - 나이브 베이즈 -- `GaussianNB`, `MultinomialNB`, `BernoulliNB`, 조건부 독립
 
 ---
@@ -68,7 +68,7 @@
 
 - 분류 지표 -- 정확도, 정밀도, 재현율, F1, ROC-AUC, PR-AUC, 혼동 행렬
 - 회귀 지표 -- MSE, RMSE, MAE, 결정계수, MAPE
-- [군집화 지표](metrics/clustering.md) -- 실루엣, 칼린스키-하라바스, 데이비스-볼딘, 조정 랜드 지수
+- [군집화 지표](../ch02/metrics/clustering.md) -- 실루엣, 칼린스키-하라바스, 데이비스-볼딘, 조정 랜드 지수
 - 사용자 정의 스코어러 -- `make_scorer`, 업무별 손실 함수, 비대칭 비용
 
 ---
