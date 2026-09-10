@@ -229,7 +229,7 @@ nav:
       - 5.4 소프트맥스 회귀:
         - 다중 클래스 분류: ch05/softmax_regression/multiclass.md
         - 기초: ch05/softmax_regression/01_fundamentals.md
-        - 간단한 분류기: ch05/softmax_regression/02_simple_classifier.md
+        - 소프트맥스 회귀의 한계: ch05/softmax_regression/02_limits.md
         - 심화: ch05/softmax_regression/04_advanced.md
         - 종합 프로젝트: ch05/softmax_regression/05_comprehensive.md
       - 5.5 손실 함수:
