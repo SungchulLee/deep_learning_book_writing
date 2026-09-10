@@ -78,7 +78,7 @@ $$\phi \leftarrow \phi - \alpha_\phi \nabla_\phi (V_\phi(s_t) - G_t)^2$$
 - **TD(0)**: $y_t = r_t + \gamma V_\phi(s_{t+1})$ -- 흩어짐이 작고 치우침이 큼
 - **N걸음**: $y_t = \sum_{k=0}^{n-1} \gamma^k r_{t+k} + \gamma^n V_\phi(s_{t+n})$ -- 그 사이
 - **몬테카를로**: $y_t = G_t = \sum_{k=t}^{T} \gamma^{k-t} r_k$ -- 치우침이 없고 흩어짐이 큼
-- **GAE**: n걸음 돌아옴을 지수로 무게 주어 섞은 것(34.2.4절)
+- **GAE**: n걸음 돌아옴을 지수로 무게 주어 섞은 것(35.2.4절)
 
 ---
 
