@@ -230,8 +230,8 @@ $$\Delta \theta_t = \alpha_{\text{learned}}(\mathbf{g}_t) \cdot \mathbf{g}_t + \
 
 ## 11. 관련 주제
 
-- [메타 학습 훑어보기](../index.md)
-- [과제 분포 설계](task_distribution.md)
+- 메타 학습 훑어보기(12.2절)
+- 과제 분포 설계(12.2.3절)
 - 최적화 이론
 - 신경 구조 찾기(배운 최적화를 쓴다)
 
