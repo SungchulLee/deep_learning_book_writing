@@ -58,9 +58,9 @@ nav:
       - 장 개요: ch02/index.md
       - 2.1 인공지능 학습 패러다임:
         - 가진 자료를 분석하라: ch02/paradigms/analyze_available.md
-        - 지도학습 (레이블을 이용한 예측): ch02/paradigms/supervised.md
-        - 비지도학습 (패턴 발견): ch02/paradigms/unsupervised.md
-        - 강화학습 (순차적 의사결정): ch02/paradigms/reinforcement.md
+        - 지도학습: ch02/paradigms/supervised.md
+        - 비지도학습: ch02/paradigms/unsupervised.md
+        - 강화학습: ch02/paradigms/reinforcement.md
       - 2.2 지도학습:
         - 선형 모델: ch02/models/linear.md
         - 결정 트리: ch02/models/trees.md
