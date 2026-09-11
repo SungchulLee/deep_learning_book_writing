@@ -176,7 +176,9 @@ class ContinuousGraphDiffusion(nn.Module):
         for _ in range(num_layers):
             self.layers.append(nn.ModuleDict({
                 "msg": nn.Linear(hidden_dim, hidden_dim),
-                "update": nn.Linear(hidden_dim * 2, hidden_dim),
+                # nn.ModuleDict에는 update()라는 메서드가 이미 있어서
+                # "update"를 열쇠로 쓰면 KeyError가 난다.
+                "update_proj": nn.Linear(hidden_dim * 2, hidden_dim),
                 "norm": nn.LayerNorm(hidden_dim),
                 "time_proj": nn.Linear(hidden_dim, hidden_dim),
             }))
@@ -226,7 +228,7 @@ class ContinuousGraphDiffusion(nn.Module):
 
             # 때 조건과 함께 고치기
             t_bias = layer["time_proj"](t_emb).unsqueeze(1)
-            h_new = layer["update"](torch.cat([h, msg], dim=-1)) + t_bias
+            h_new = layer["update_proj"](torch.cat([h, msg], dim=-1)) + t_bias
             h = layer["norm"](h_new + h)
 
         # 위쪽 삼각 변의 잡소리를 헤아린다
@@ -364,6 +366,27 @@ if __name__ == "__main__":
     for i, g in enumerate(generated):
         n, e = g.size(0), int(g.sum().item()) // 2
         print(f"Graph {i}: {n} nodes, {e} edges, density={2*e/(n*(n-1)) if n>1 else 0:.3f}")
+```
+
+**출력:**
+
+```
+=== Graph Diffusion Demo ===
+
+Parameters: 62,189
+Epoch 20: loss=1.0021
+Epoch 40: loss=0.9799
+Epoch 60: loss=1.0280
+
+=== Generation ===
+Graph 0: 10 nodes, 20 edges, density=0.444
+Graph 1: 10 nodes, 20 edges, density=0.444
+Graph 2: 10 nodes, 20 edges, density=0.444
+Graph 3: 10 nodes, 18 edges, density=0.400
+Graph 4: 10 nodes, 24 edges, density=0.533
+Graph 5: 10 nodes, 14 edges, density=0.311
+Graph 6: 10 nodes, 21 edges, density=0.467
+Graph 7: 10 nodes, 25 edges, density=0.556
 ```
 
 ---

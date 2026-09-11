@@ -395,10 +395,10 @@ class MultiScaleDataset(Dataset):
     def __getitem__(self, idx):
         img, mask = self.samples[idx]
         
-        # 여러 잣수 익히기를 위한 마구잡이 잣수 고르기
-        scale = np.random.choice(self.scales)
-        
-        # 고른 잣수로 크기 바꾸기
+        # 잣수는 보기마다가 아니라 묶음마다 골라야 한다. 보기마다 고르면
+        # 한 묶음에 크기가 다른 텐서가 섞여 stack이 되지 않는다.
+        # 여기서는 가장 큰 잣수로 내놓고, 줄이는 일은 collate가 맡는다.
+        scale = max(self.scales)
         img = img.resize((scale, scale), Image.BILINEAR)
         mask = mask.resize((scale, scale), Image.NEAREST)
         
@@ -418,7 +418,18 @@ val_dataset = MultiScaleDataset(num_samples=100, scales=[256])  # 검증용 붙�
 test_dataset = MultiScaleDataset(num_samples=100, scales=[256])
 
 BATCH_SIZE = 4  # 여러 잣수와 눈길 때문에 더 작다
-train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+def multiscale_collate(batch):
+    """묶음마다 잣수 하나를 골라 그 묶음 전체를 같은 크기로 맞춘다."""
+    scale = int(np.random.choice(train_dataset.scales))
+    imgs, masks = zip(*batch)
+    imgs = F.interpolate(torch.stack(imgs), size=(scale, scale),
+                         mode='bilinear', align_corners=False)
+    masks = F.interpolate(torch.stack(masks), size=(scale, scale), mode='nearest')
+    return imgs, masks
+
+
+train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True,
+                          collate_fn=multiscale_collate)
 val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
