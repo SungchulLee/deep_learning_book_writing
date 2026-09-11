@@ -66,6 +66,10 @@ class LSTMModel(nn.Module):
 ### 성질
 
 ```python
+import torch
+import torch.nn as nn
+
+
 class CNNModel(nn.Module):
     def __init__(self, vocab_size, embed_dim, num_filters, kernel_sizes):
         super().__init__()
@@ -637,7 +641,13 @@ class LongformerAttention(nn.Module):
         
         # 전역 자리는 모든 자리에 대한 주의를 셈한다
         # 다른 자리는 전역 자리에 대한 주의를 더한다
-        global_indices = global_attention_mask.nonzero(as_tuple=True)
+        # global_attention_mask는 선택 인수라 None일 수 있다. 그대로 두면
+        # NoneType에 nonzero를 부르게 되므로, 없으면 전역 자리가 없는 것으로 본다.
+        if global_attention_mask is None:
+            global_indices = (torch.empty(0, dtype=torch.long, device=x.device),
+                              torch.empty(0, dtype=torch.long, device=x.device))
+        else:
+            global_indices = global_attention_mask.nonzero(as_tuple=True)
         
         if len(global_indices[0]) > 0:
             # 전역 자리는 모든 것에 주의할 수 있다
@@ -808,7 +818,9 @@ def visualize_sparse_patterns(seq_len: int = 64):
     for idx, (name, mask) in enumerate(patterns):
         ax = axes[idx // 3, idx % 3]
         # 그림으로 보려고 가림을 뒤집는다 (흰색은 주의, 검은색은 가림)
-        ax.imshow(~mask.float().numpy(), cmap='gray', aspect='auto')
+        # ~는 .float().numpy() 보다 늦게 묶이므로 괄호가 있어야 한다.
+        # 괄호가 없으면 실수 배열에 ~를 걸어 TypeError가 난다.
+        ax.imshow((~mask).float().numpy(), cmap='gray', aspect='auto')
         ax.set_title(name)
         ax.set_xlabel('Key Position')
         ax.set_ylabel('Query Position')
@@ -855,6 +867,21 @@ if __name__ == "__main__":
     # 무늬를 그려 본다
     visualize_sparse_patterns(64)
     print("\nVisualization saved to 'sparse_attention_patterns.png'")
+```
+
+**출력:**
+
+```
+--- Local Attention ---
+Input: torch.Size([2, 256, 256]), Output: torch.Size([2, 256, 256])
+
+--- Longformer Attention ---
+Input: torch.Size([2, 256, 256]), Output: torch.Size([2, 256, 256])
+
+--- BigBird Attention ---
+Input: torch.Size([2, 256, 256]), Output: torch.Size([2, 256, 256])
+
+Visualization saved to 'sparse_attention_patterns.png'
 ```
 
 ##### 복잡도 견주기

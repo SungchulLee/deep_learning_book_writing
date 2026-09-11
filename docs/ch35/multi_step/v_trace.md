@@ -68,10 +68,15 @@ def compute_vtrace(
     
     vs = vs_minus_v[:T] + values[:T]
     
-    # 방침 기울기를 위한 이점(필요하면)
-    advantages = rho * (rewards + not_done * gamma * vs[1:].detach() 
-                        if T > 1 else rewards - values[:T])
-    # 값 바탕 방법을 위한 간단한 이점
+    # 방침 기울기를 위한 이점
+    # A_t = rho_t (r_t + gamma * v_{t+1} - V(s_t)) 이다.
+    # vs의 길이는 T이므로 vs[1:]는 T-1개뿐이다. 마지막 걸음의 v_{t+1}은
+    # 부트스트랩 값 values[T]를 쓴다.
+    vs_next = torch.cat([vs[1:], values[T:T + 1]])
+    pg_advantages = rho * (rewards + not_done * gamma * vs_next.detach()
+                           - values[:T])
+
+    # 값 바탕 방법을 위한 간단한 이점. 이 함수가 돌려주는 것은 이쪽이다.
     advantages = vs - values[:T]
     
     return vs, advantages
@@ -219,6 +224,56 @@ def demo_vtrace():
 
 if __name__ == "__main__":
     demo_vtrace()
+```
+
+**출력:**
+
+```
+============================================================
+V-Trace Demo
+============================================================
+
+--- V-Trace Target Computation ---
+  Values: [ 2.252  5.942  8.579  6.541 10.289]...
+  V-trace targets: [16.085 15.238 14.381 13.517 12.643]...
+  Advantages: [13.833  9.296  5.802  6.976  2.354]...
+
+--- Effect of Truncation Thresholds ---
+  ρ̄=  0.5, c̄=0.5: target mean=6.893, std=1.349
+  ρ̄=  0.5, c̄=1.0: target mean=8.979, std=1.872
+  ρ̄=  0.5, c̄=5.0: target mean=18.376, std=11.259
+  ρ̄=  1.0, c̄=0.5: target mean=7.995, std=1.244
+  ρ̄=  1.0, c̄=1.0: target mean=12.166, std=2.672
+  ρ̄=  1.0, c̄=5.0: target mean=30.961, std=22.628
+  ρ̄=  5.0, c̄=0.5: target mean=8.766, std=1.867
+  ρ̄=  5.0, c̄=1.0: target mean=14.396, std=3.624
+  ρ̄=  5.0, c̄=5.0: target mean=39.766, std=30.638
+  ρ̄=  inf, c̄=0.5: target mean=8.766, std=1.867
+  ρ̄=  inf, c̄=1.0: target mean=14.396, std=3.624
+  ρ̄=  inf, c̄=5.0: target mean=39.766, std=30.638
+
+--- IS Ratio Analysis ---
+  Small lag:
+    Raw ratio: 1.105 ± 0.000
+    Fraction clipped (ρ): 100.0%
+  Medium lag:
+    Raw ratio: 1.649 ± 0.000
+    Fraction clipped (ρ): 100.0%
+  Large lag:
+    Raw ratio: 2.718 ± 0.000
+    Fraction clipped (ρ): 100.0%
+
+--- Batch V-Trace ---
+  Input shapes: values=torch.Size([8, 21]), rewards=torch.Size([8, 20])
+  Output shapes: targets=torch.Size([8, 20]), advantages=torch.Size([8, 20])
+  Target mean: -1.064
+
+--- V-trace vs Uncorrected N-step ---
+  On-policy targets:  [18.294 17.469 16.636 15.793 14.943]
+  Off-policy targets: [18.294 17.469 16.636 15.793 14.943]
+  Correction effect: 0.0000
+
+V-trace demo complete!
 ```
 
 ## 2. 논의
