@@ -12,3 +12,6 @@ docs/**/*.v[0-9]*.md
 docs/**/*_review.md
 !docs/ch15/definition_and_setup/markov_processes_review.md
 reviews/
+
+# Datasets downloaded by example code — never commit
+data/
