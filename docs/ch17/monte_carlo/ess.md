@@ -86,6 +86,13 @@ log_w_bad = torch.randn(N) * 5.0
 print(f"Poor proposal ESS: {importance_sampling_ess(log_w_bad):.0f} / {N}")
 ```
 
+**출력:**
+
+```
+Good proposal ESS: 804 / 1000
+Poor proposal ESS: 8 / 1000
+```
+
 ---
 
 ## 3. MCMC의 ESS

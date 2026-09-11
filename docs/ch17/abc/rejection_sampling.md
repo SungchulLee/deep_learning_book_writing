@@ -362,6 +362,15 @@ print(f"Posterior mean: mu={samples[:, 0].mean():.2f}, sigma={samples[:, 1].mean
 print(f"True values: mu={mu_true}, sigma={sigma_true}")
 ```
 
+**출력:**
+
+```
+Epsilon: 0.7549
+Acceptance rate: 0.0096
+Posterior mean: mu=4.76, sigma=1.84
+True values: mu=5.0, sigma=2.0
+```
+
 ### 병렬로 돌리기
 
 ABC 물리치기는 민망할 만큼 병렬로 잘 돌아간다:

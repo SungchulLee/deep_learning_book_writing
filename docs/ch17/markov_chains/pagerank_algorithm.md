@@ -396,7 +396,7 @@ def visualize_pagerank():
                ha='left', va='center', fontsize=10, fontweight='bold')
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/pagerank.png', dpi=150, bbox_inches='tight')
+    plt.savefig('pagerank.png', dpi=150, bbox_inches='tight')
     plt.close()
     print("PageRank visualization saved")
 
@@ -424,6 +424,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+PAGERANK ALGORITHM
+==================
+
+======================================================================
+Example 1: Simple Web Graph (4 Pages)
+======================================================================
+
+Adjacency Matrix:
+      A   B   C   D  
+A       0   1   1   0
+B       0   0   1   0
+C       1   0   0   0
+D       1   1   1   0
+
+Link structure:
+  A → B, C
+  B → C
+  C → A
+  D → A, B, C
+
+----------------------------------------------------------------------
+Computing PageRank...
+
+Power iteration (converged in 35 iterations):
+  A: 0.373248
+  B: 0.206755
+  C: 0.382497
+  D: 0.037500
+
+Eigenvector method:
+  A: 0.250000
+  B: 0.250000
+  C: 0.250000
+
+... (45 lines omitted)
+
+======================================================================
+PageRank visualization saved
+
+======================================================================
+Key Insights:
+======================================================================
+1. PageRank = stationary distribution of random surfer
+2. Damping factor (typically 0.85) balances link-following and teleportation
+3. Pages with many incoming links from important pages rank higher
+4. Power iteration typically converges in ~50-100 iterations
 ```
 
 ## 2. 논의

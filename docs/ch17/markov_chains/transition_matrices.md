@@ -32,7 +32,7 @@ Location: 06_markov_chain/01_fundamentals/
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.linalg import matrix_power
+from numpy.linalg import matrix_power   # scipy.linalg에는 이 함수가 없다
 
 # ========================================================================
 # 메인
@@ -254,7 +254,7 @@ class TransitionMatrixAnalyzer:
         plt.grid(True, alpha=0.3)
         plt.ylim(-0.05, 1.05)
         plt.tight_layout()
-        plt.savefig('/mnt/user-data/outputs/transition_probabilities.png', 
+        plt.savefig('transition_probabilities.png', 
                    dpi=150, bbox_inches='tight')
         plt.close()
 
@@ -402,7 +402,7 @@ def example_convergence_analysis():
     plt.title('Convergence of Transition Matrix Powers', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/convergence_plot.png', dpi=150, bbox_inches='tight')
+    plt.savefig('convergence_plot.png', dpi=150, bbox_inches='tight')
     plt.close()
     print("\nConvergence plot saved to convergence_plot.png")
 
@@ -487,6 +487,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+TRANSITION MATRIX ANALYSIS
+==========================
+
+======================================================================
+Example 1: Two-Step Transition Probability Computation
+======================================================================
+
+Transition Matrix P:
+[[0.7 0.3]
+ [0.4 0.6]]
+
+Computing P^2 manually using Chapman-Kolmogorov:
+P^2[0][0] = P[0][0]*P[0][0] + P[0][1]*P[1][0]
+P^2[0][0] = 0.6100
+P^2[0][1] = 0.3900
+P^2[1][0] = 0.5200
+P^2[1][1] = 0.4800
+
+P^2 via matrix multiplication:
+[[0.61 0.39]
+ [0.52 0.48]]
+
+Verification (difference should be ~0):
+[[1.11022302e-16 5.55111512e-17]
+ [0.00000000e+00 0.00000000e+00]]
+
+Interpretation:
+Starting from state 0, probability of being in state 0 after 2 steps: 0.6100
+Starting from state 0, probability of being in state 1 after 2 steps: 0.3900
+
+======================================================================
+Example 2: State Distribution Evolution
+======================================================================
+
+... (67 lines omitted)
+
+Visualization saved to transition_probabilities.png
+
+======================================================================
+Key Takeaways:
+======================================================================
+1. P^n[i][j] gives the probability of transitioning from i to j in n steps
+2. Chapman-Kolmogorov: P^(m+n) = P^m × P^n
+3. Distribution evolution: π_n = π_0 × P^n
+4. For regular chains, P^n converges to a limit matrix
+5. The limit matrix has all rows equal to the stationary distribution
 ```
 
 ## 2. 논의

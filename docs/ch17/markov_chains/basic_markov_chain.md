@@ -349,6 +349,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+BASIC MARKOV CHAIN SIMULATIONS
+================================
+
+============================================================
+Example 1: Two-State Markov Chain (Off/On)
+============================================================
+
+Transition Matrix:
+[[0.7, 0.3], [0.4, 0.6]]
+
+Simulating 20 steps...
+
+State sequence: ['Off', 'Off', 'On', 'Off', 'Off', 'Off', 'On', 'On', 'On', 'On', 'On', 'Off', 'Off', 'Off', 'On', 'On', 'Off', 'Off', 'Off', 'On', 'Off']
+
+Estimating state distribution after 100 steps...
+Estimated probabilities:
+  P(Off) = 0.5724
+  P(On) = 0.4276
+
+============================================================
+Example 2: Three-State Weather Model
+============================================================
+
+Transition Matrix:
+        Sunny  Cloudy  Rainy
+Sunny   [0.7, 0.25, 0.05]
+Cloudy  [0.3, 0.4, 0.3]
+Rainy   [0.1, 0.4, 0.5]
+
+Simulating 30 days starting from Sunny...
+Days  0- 9: ['Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny']
+Days 10-19: ['Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Cloudy', 'Rainy', 'Cloudy', 'Sunny']
+Days 20-29: ['Cloudy', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny']
+
+... (10 lines omitted)
+
+
+Visualization saved to markov_sequence.png
+
+============================================================
+Exercises for Students:
+============================================================
+1. Modify the two-state chain to model a light bulb (Working/Broken)
+2. Create a four-state chain for traffic lights
+3. Experiment with different initial states - does it affect long-term behavior?
+4. Try to create a chain that always returns to the starting state
+```
+
 ## 2. 논의
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.

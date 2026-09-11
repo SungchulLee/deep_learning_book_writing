@@ -156,7 +156,10 @@ class AdaptiveImportanceSampler:
             selected_samples = samples[indices]
             
             # 모든 표본의 경험 공분산 셈하기
-            weighted_cov = np.cov(samples.T, aweights=normalized_weights)
+            # 변수가 하나뿐이면 np.cov가 0차원 배열을 돌려주므로
+            # 아래의 += np.eye(dim) 가 방송되지 못한다. 2차원으로 맞춰 둔다.
+            weighted_cov = np.atleast_2d(
+                np.cov(samples.T, aweights=normalized_weights))
             
             # 수치 안정을 위해 작은 벌주기 더하기
             weighted_cov += np.eye(self.dim) * 1e-4
@@ -178,7 +181,10 @@ class AdaptiveImportanceSampler:
             self.mixture_means = [samples[i] for i in top_indices]
             
             # 맞춰 가는 공분산 셈하기
-            weighted_cov = np.cov(samples.T, aweights=normalized_weights)
+            # 변수가 하나뿐이면 np.cov가 0차원 배열을 돌려주므로
+            # 아래의 += np.eye(dim) 가 방송되지 못한다. 2차원으로 맞춰 둔다.
+            weighted_cov = np.atleast_2d(
+                np.cov(samples.T, aweights=normalized_weights))
             weighted_cov += np.eye(self.dim) * 1e-4
             weighted_cov *= 0.5  # 안정을 위해 오그라뜨림
             
@@ -587,6 +593,57 @@ print("""
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+======================================================================
+EXAMPLE 1: Adaptive IS for 1D Bimodal Distribution
+======================================================================
+
+Running Adaptive IS: 10 iterations, 200 samples each
+============================================================
+Iteration   1: ESS =    90.1 (45.0%)
+Iteration   2: ESS =    55.6 (27.8%)
+Iteration   3: ESS =    78.2 (39.1%)
+Iteration   4: ESS =   116.8 (58.4%)
+Iteration   5: ESS =    26.5 (13.2%)
+Iteration   6: ESS =    52.2 (26.1%)
+Iteration   7: ESS =   125.4 (62.7%)
+Iteration   8: ESS =   114.4 (57.2%)
+Iteration   9: ESS =    86.0 (43.0%)
+Iteration  10: ESS =   107.3 (53.7%)
+
+Final ESS: 658.5 out of 2000 samples
+Efficiency: 32.9%
+
+======================================================================
+EXAMPLE 2: Adaptive IS for 2D Banana Distribution
+======================================================================
+
+Running Adaptive IS: 15 iterations, 300 samples each
+============================================================
+Iteration   1: ESS =     9.6 ( 3.2%)
+Iteration   2: ESS =    60.2 (20.1%)
+Iteration   3: ESS =    66.3 (22.1%)
+Iteration   4: ESS =     4.3 ( 1.4%)
+Iteration   5: ESS =    64.2 (21.4%)
+Iteration   6: ESS =   103.9 (34.6%)
+Iteration   7: ESS =   109.9 (36.6%)
+
+... (72 lines omitted)
+
+   - 섞음 성분 5개에서 10개 쓰기
+   - ESS의 모임 지켜보기
+   - 지나친 자신을 피하려고 공분산 오그라뜨리기
+   - 보통 ESS > 0.3n이면 아주 좋다
+
+9. MCMC와 견주기:
+   - AIS: 독립 표본, 태우기 없음
+   - MCMC: 표본이 서로 얽혀 있고 태우기가 필요하다
+   - 좋은 제안을 배울 수 있으면 AIS이 낫다
+   - 차원이 아주 높으면 MCMC가 낫다
 ```
 
 ## 2. 논의

@@ -496,7 +496,7 @@ def visualize_weather_model():
                ha='center', va='bottom', fontsize=10, fontweight='bold')
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/weather_model.png', dpi=150, bbox_inches='tight')
+    plt.savefig('weather_model.png', dpi=150, bbox_inches='tight')
     plt.close()
     print("Weather model visualizations saved to weather_model.png")
 
@@ -528,6 +528,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+WEATHER MODELING WITH MARKOV CHAINS
+====================================
+
+======================================================================
+Example 1: Three-State Weather Model
+======================================================================
+
+Observed weather sequence (30 days):
+['Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Rainy', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Rainy', 'Cloudy', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Cloudy', 'Rainy', 'Rainy', 'Rainy', 'Cloudy', 'Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Cloudy', 'Sunny', 'Sunny']
+
+Observed frequencies:
+  Cloudy: 10/30 = 0.333
+  Rainy: 8/30 = 0.267
+  Sunny: 12/30 = 0.400
+
+Estimated Transition Matrix:
+                Sunny     Cloudy      Rainy
+Sunny          0.6364     0.3636     0.0000
+Cloudy         0.4000     0.2000     0.4000
+Rainy          0.0000     0.5000     0.5000
+
+----------------------------------------------------------------------
+Predictions if today is Sunny:
+  P(Tomorrow = Cloudy | Today = Sunny) = 0.3636
+  P(Tomorrow = Rainy | Today = Sunny) = 0.0000
+  P(Tomorrow = Sunny | Today = Sunny) = 0.6364
+
+Predictions 7 days ahead if today is Sunny:
+  P(Day 7 = Cloudy | Today = Sunny) = 0.3432
+  P(Day 7 = Rainy | Today = Sunny) = 0.2672
+  P(Day 7 = Sunny | Today = Sunny) = 0.3895
+
+======================================================================
+
+... (54 lines omitted)
+
+Weather model visualizations saved to weather_model.png
+
+======================================================================
+Practical Applications:
+======================================================================
+1. Short-term weather prediction (1-7 days)
+2. Long-term climate pattern analysis
+3. Agricultural planning
+4. Event planning based on weather probabilities
+5. Understanding stationary behavior of weather systems
 ```
 
 ## 2. 논의

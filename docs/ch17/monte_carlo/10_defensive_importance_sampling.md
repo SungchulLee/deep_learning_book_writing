@@ -372,9 +372,14 @@ prior_ex4 = stats.norm(0, 5)
 
 # 고르게 하지 않은 뒤확률
 def log_posterior_ex4(theta):
-    log_lik = -0.5 * np.sum((data_ex4 - theta)**2) / sigma_ex4**2
-    log_prior = prior_ex4.logpdf(theta)
-    return log_lik + log_prior
+    # compare_proposals는 theta를 표본 배열로 한꺼번에 넘긴다.
+    # 관측 30개와 theta 3000개를 그냥 빼면 모양이 어긋나므로,
+    # theta를 열로 세워 (theta 개수, 관측 개수)로 방송한 뒤 관측 축으로 더한다.
+    theta_col = np.atleast_1d(theta)[:, None]          # (m, 1)
+    log_lik = -0.5 * np.sum((data_ex4[None, :] - theta_col)**2, axis=1) / sigma_ex4**2
+    log_prior = prior_ex4.logpdf(np.atleast_1d(theta))
+    out = log_lik + log_prior
+    return out[0] if np.isscalar(theta) or np.ndim(theta) == 0 else out
 
 def posterior_ex4(theta):
     return np.exp(log_posterior_ex4(theta))
@@ -586,6 +591,57 @@ print("""
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+======================================================================
+EXAMPLE 1: Heavy-Tailed Target Distribution
+======================================================================
+
+과녁: 스튜던트 t(자유도=3) - 두꺼운 꼬리
+제안:
+1. 가우스(위험함 - 꼬리가 얇다)
+2. 스튜던트 t(겨냥하지만 여전히 위험하다)
+3. 지킴 섞음: α × t(3) + (1-α) × t(1)(코시)
+
+
+True E[θ²] = 2.364403
+
+Comparing proposals (100 replications, 3000 samples each):
+
+Proposal                 Mean ESS    Min ESS    Std Est Robust?
+----------------------------------------------------------------------
+Gaussian (risky)           2455.3      311.7     0.4340 ✓
+Student-t(3) (risky)       2910.7     2904.6     0.5696 ✓
+Defensive α=0.8            2723.7     2691.7     0.1039 ✓
+Defensive α=0.9            2822.6     2809.7     0.1250 ✓
+
+Key insight: Defensive proposals have higher minimum ESS!
+
+======================================================================
+EXAMPLE 2: Robustness to Proposal Misspecification
+======================================================================
+
+상황: 과녁이 N(0,1)인 줄 알았는데 사실은 N(3,1)이다
+          (제안을 잘못 잡음 - 자리가 틀림)
+
+지킴 섞기가 우리를 완전한 무너짐에서 구해 준다.
+
+
+... (111 lines omitted)
+
+    - 잘 맞춘 순수 제안보다 평균 ESS이 낮다
+    - 셈 값이 더 든다(섞음의 값 매기기)
+    - 그래도 그럴듯한 지킴 성분이 필요하다
+
+12. 쓰임새:
+    - 실제 운영하는 베이즈 추론 체계
+    - 저절로 하는 매개변수 어림
+    - 안전이 결정적인 쓰임새
+    - 제안 맞추기가 어려울 때
+    - 자료를 살펴보는 분석
 ```
 
 ## 2. 논의

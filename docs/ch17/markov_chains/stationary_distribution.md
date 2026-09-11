@@ -463,7 +463,7 @@ def visualize_convergence():
     ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/stationary_convergence.png', 
+    plt.savefig('stationary_convergence.png', 
                 dpi=150, bbox_inches='tight')
     plt.close()
     print("Convergence visualization saved")
@@ -493,6 +493,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+STATIONARY DISTRIBUTION ANALYSIS
+=================================
+
+======================================================================
+Example 1: Computing Stationary Distribution - Method Comparison
+======================================================================
+
+Transition Matrix P:
+[[0.5 0.3 0.2]
+ [0.2 0.6 0.2]
+ [0.3 0.3 0.4]]
+
+----------------------------------------------------------------------
+Method 1: Eigenvector Approach
+Stationary distribution:
+  π(A) = 0.32142857
+  π(B) = 0.42857143
+  π(C) = 0.25000000
+
+Verification (π × P should equal π):
+  Max difference: 5.55e-17
+
+----------------------------------------------------------------------
+Method 2: Matrix Power Iteration
+Converged in 19 iterations
+Stationary distribution:
+  π(A) = 0.32142857
+  π(B) = 0.42857143
+  π(C) = 0.25000000
+
+----------------------------------------------------------------------
+Method 3: Linear System Solution
+Stationary distribution:
+
+... (65 lines omitted)
+
+Convergence visualization saved
+
+======================================================================
+Key Theoretical Results:
+======================================================================
+1. Stationary distribution satisfies: π = π × P
+2. For ergodic chains: unique stationary distribution exists
+3. Ergodic = irreducible + aperiodic
+4. P^n converges to π for ergodic chains
+5. Long-run proportion in state j equals π_j
 ```
 
 ## 2. 논의

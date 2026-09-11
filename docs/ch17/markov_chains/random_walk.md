@@ -516,7 +516,7 @@ def visualize_random_walks():
     ax.legend()
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/random_walks.png', dpi=150, bbox_inches='tight')
+    plt.savefig('random_walks.png', dpi=150, bbox_inches='tight')
     plt.close()
     print("Random walk visualizations saved to random_walks.png")
 
@@ -550,6 +550,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+RANDOM WALK SIMULATIONS
+=======================
+
+======================================================================
+Example 1: Symmetric Random Walk (p = 0.5)
+======================================================================
+
+Single path of 100 steps:
+  Final position: -8
+  Maximum position: 3
+  Minimum position: -9
+
+Theoretical properties after 100 steps:
+  Expected position: 0.00
+  Variance: 100.00
+  Standard deviation: 10.00
+
+Empirical statistics (10000 simulations):
+  Mean final position: 0.04
+  Variance: 99.00
+  Standard deviation: 9.95
+
+======================================================================
+Example 2: Biased Random Walk (p = 0.6)
+======================================================================
+
+Simulation of 1000 steps with p = 0.6:
+  Final position: 164
+
+Theoretical properties:
+  Expected drift per step: 0.20
+  Expected position after 1000 steps: 200.00
+  Variance: 960.00
+
+... (40 lines omitted)
+
+
+======================================================================
+Key Properties of Random Walks:
+======================================================================
+1. Symmetric walk (p=0.5): E[X_n] = X_0, Var[X_n] = n
+2. Biased walk: E[X_n] = X_0 + n(2p-1)
+3. Standard deviation grows as √n
+4. In 1D: symmetric walk is recurrent (returns to origin infinitely often)
+5. In 2D: symmetric walk is recurrent
+6. In 3D: symmetric walk is transient (may never return)
 ```
 
 ## 2. 논의

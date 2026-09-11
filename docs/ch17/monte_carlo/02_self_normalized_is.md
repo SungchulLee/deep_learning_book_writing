@@ -100,8 +100,18 @@ def self_normalized_importance_sampling(unnormalized_target, proposal_dist,
     
     # 걸음 5: 무게 고르게 하기
     # wᵢ = w̃ᵢ / Σⱼw̃ⱼ
+    # 무게를 그대로 더하면, 과녁 값이 모두 0에 가깝게 가라앉았을 때
+    # 합이 0이 되어 0/0 = NaN 이 된다. 가장 큰 무게로 먼저 나누면
+    # 비율이 그대로 유지되면서 이 문제가 사라진다.
+    max_weight = np.max(unnormalized_weights)
+    if max_weight > 0:
+        scaled = unnormalized_weights / max_weight
+        normalized_weights = scaled / np.sum(scaled)
+    else:
+        # 쓸 만한 무게가 하나도 없다. 고르게 나누고 진단에서 걸러지게 둔다.
+        normalized_weights = np.full_like(
+            unnormalized_weights, 1.0 / len(unnormalized_weights))
     weight_sum = np.sum(unnormalized_weights)
-    normalized_weights = unnormalized_weights / weight_sum
     
     # 걸음 6: 표본 점에서 함수 h 값 매기기
     h_values = h_function(samples)
@@ -502,6 +512,57 @@ print("""
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+======================================================================
+EXAMPLE 1: Self-Normalized IS for π(θ) = γ(θ)/Z
+======================================================================
+
+True E[θ²]: 10.000000
+
+Self-Normalized IS Results (n=1000):
+  Estimate: 10.335240
+  Error: 0.335240
+  ESS: 177.3
+  Efficiency: 17.7%
+
+Visualization saved to: example1_self_normalized.png
+
+======================================================================
+EXAMPLE 2: Bayesian Inference for Normal Mean
+======================================================================
+
+Data: n=20, sample mean=5.434
+
+Posterior (analytical): N(5.367, 0.222)
+
+Posterior Mean E[θ|y]:
+  True value: 5.366742
+  SNIS estimate: -0.018585
+  Error: 5.385328
+  ESS: 5000.0 (100.0%)
+
+Posterior Variance Var[θ|y]:
+  True value: 0.049383
+  SNIS estimate: 4.020022
+  Error: 3.970639
+
+
+... (51 lines omitted)
+
+
+6. 좋은 제안이 결정적이다:
+   - 뒤확률과 잘 겹쳐야 한다
+   - 뒤확률보다 꼬리가 두꺼워야 한다
+   - 주고받음: 셈 값과 ESS 나아짐
+
+7. 무게 진단이 꼭 필요하다:
+   - ESS 살피기
+   - 무게 분포 살펴보기
+   - 판치는 표본 살펴보기(무게 몰림)
 ```
 
 ## 2. 논의

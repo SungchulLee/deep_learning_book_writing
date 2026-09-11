@@ -464,6 +464,14 @@ print(f"Divergence rate: {div_rate:.2%}")
 print(f"Sample mean: {samples.mean(0)}")
 ```
 
+**출력:**
+
+```
+Average tree depth: 4.4
+Divergence rate: 0.00%
+Sample mean: [ 0.01095822 -0.00612379]
+```
+
 ---
 
 ## 8. 진단

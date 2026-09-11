@@ -287,6 +287,26 @@ def demonstrate_stationary_distribution():
 demonstrate_stationary_distribution()
 ```
 
+**출력:**
+
+```
+Stationary Distribution: Method Comparison
+======================================================================
+State       Eigenvector    Linear Sys     Power Iter     Simulation     
+Sunny       0.41860464     0.41860464     0.41860765     0.41903999     
+Cloudy      0.33720931     0.33720931     0.33721173     0.33811000     
+Rainy       0.24418606     0.24418604     0.24418780     0.24285001     
+
+Power iteration converged in 1000 iterations
+
+Verification: ||πP - π|| = 6.84e-09
+
+Long-run interpretation:
+  Sunny: 41.86% of the time (mean return time: 2.39 days)
+  Cloudy: 33.72% of the time (mean return time: 2.97 days)
+  Rainy: 24.42% of the time (mean return time: 4.10 days)
+```
+
 ---
 
 ## 5. 멈춘 분포로 모이기

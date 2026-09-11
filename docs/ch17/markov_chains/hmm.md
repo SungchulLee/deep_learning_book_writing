@@ -319,6 +319,19 @@ def demonstrate_hmm_regime_detection():
 demonstrate_hmm_regime_detection()
 ```
 
+**출력:**
+
+```
+HMM: Market Regime Detection
+======================================================================
+Viterbi decoding accuracy: 85.5%
+Log-likelihood: -230.49
+
+Expected regime durations:
+  Bull: 20.0 periods
+  Bear: 10.0 periods
+```
+
 ---
 
 ## 7. 흡수 HMM과 신용 위험
@@ -523,6 +536,36 @@ def demonstrate_credit_transitions():
 demonstrate_credit_transitions()
 ```
 
+**출력:**
+
+```
+Credit Rating Transition Model
+======================================================================
+
+Cumulative Default Probabilities:
+--------------------------------------------------
+Rating  Year 1  Year 2  Year 3  Year 4  Year 5
+AAA      0.00%   0.00%   0.00%   0.00%   0.01%
+BBB      0.00%   0.37%   1.03%   1.92%   2.99%
+B        4.00%   9.58%  15.73%  21.90%  27.79%
+CCC     28.00%  46.45%  58.79%  67.21%  73.08%
+
+Expected Years to Default (from transient states):
+  AAA: 80.2 years
+  AA: 70.3 years
+  A: 59.3 years
+  BBB: 48.1 years
+  BB: 33.0 years
+  B: 19.8 years
+  CCC: 7.2 years
+
+Portfolio Credit VaR (1-year, LGD=60%):
+  Expected Loss: $91,200
+  VaR (95%):     $0
+  VaR (99%):     $1,200,000
+  CVaR (95%):    $91,200
+```
+
 ### 노름꾼의 파산 보기
 
 고전적인 노름꾼의 파산 문제가 흡수 사슬 분석을 보여 준다:
@@ -556,6 +599,31 @@ def demonstrate_gamblers_ruin():
             print(f"  P(end at {abs_state}): {probs[state][abs_state]:.4f}")
 
 demonstrate_gamblers_ruin()
+```
+
+**출력:**
+
+```
+Gambler's Ruin (Target = \$4)
+======================================================================
+
+Starting from \$1:
+  E[steps to end]: 3.00
+  Std[steps]:      2.83
+  P(end at $0 (Broke)): 0.7500
+  P(end at \$4 (Win)): 0.2500
+
+Starting from \$2:
+  E[steps to end]: 4.00
+  Std[steps]:      2.83
+  P(end at $0 (Broke)): 0.5000
+  P(end at \$4 (Win)): 0.5000
+
+Starting from \$3:
+  E[steps to end]: 3.00
+  Std[steps]:      2.83
+  P(end at $0 (Broke)): 0.2500
+  P(end at \$4 (Win)): 0.7500
 ```
 
 ---
@@ -655,6 +723,17 @@ def demonstrate_regime_switching():
           f"σ={moments['std']*np.sqrt(252)*100:.1f}% ann")
 
 demonstrate_regime_switching()
+```
+
+**출력:**
+
+```
+Regime-Switching Return Model
+======================================================================
+Stationary: P(Bull)=0.667, P(Bear)=0.333
+E[Bull duration]: 20.0 days
+E[Bear duration]: 10.0 days
+Unconditional: E[r]=5.88% ann, σ=26.3% ann
 ```
 
 ---

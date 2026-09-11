@@ -398,6 +398,23 @@ plt.savefig('importance_sampling_fundamentals.png', dpi=150, bbox_inches='tight'
 plt.show()
 ```
 
+**출력:**
+
+```
+Importance Sampling: E_π[θ²] where π = N(3,1), q = N(0,2)
+============================================================
+True value: 10.000000
+IS estimate: 9.982215
+Standard error: 0.299109
+Error: 0.017785
+
+Weight Statistics:
+  Mean: 0.9874
+  Std: 2.1072
+  Max: 8.9634
+  Min: 0.0000
+```
+
 ---
 
 ## 9. 제안 분포 견주기
@@ -458,6 +475,19 @@ for r in results:
           f"{r['mean_ess']:12.1f} {r['ess_ratio']:12.2%}")
 ```
 
+**출력:**
+
+```
+Proposal Comparison:
+----------------------------------------------------------------------
+Proposal                 Mean Est      Std Dev          ESS        ESS/n
+----------------------------------------------------------------------
+Good: N(3, 1.2)            9.9992       0.0833       4761.7       95.23%
+Okay: N(2, 1.5)           10.0069       0.1702       3126.1       62.52%
+Poor: N(0, 2)              9.8984       0.4012        914.3       18.29%
+Bad: N(3, 0.5)            10.2465       4.9791        691.2       13.82%
+```
+
 ---
 
 ## 10. 흩어짐 줄이기 보기: 꼬리 확률
@@ -505,6 +535,22 @@ print(f"  SE: {is_se.item():.6f}")
 # 흩어짐 줄임 배수
 variance_reduction = (naive_se / is_se)**2
 print(f"\nVariance reduction factor: {variance_reduction.item():.1f}x")
+```
+
+**출력:**
+
+```
+True P(X > 4): 3.17e-05
+
+Naive MC (n=100000):
+  Estimate: 0.000030
+  SE: 0.000017
+
+Importance Sampling (n=10000):
+  Estimate: 0.000030
+  SE: 0.000001
+
+Variance reduction factor: 444.8x
 ```
 
 ---
@@ -596,6 +642,16 @@ print("=" * 50)
 print(f"  VaR(99.9%): {results['var']:.4f}")
 print(f"  ES(99.9%):  {results['es']:.4f}")
 print(f"  ESS:        {results['ess']:.1f} ({results['ess_ratio']:.1%})")
+```
+
+**출력:**
+
+```
+Tail Risk Estimation via Importance Sampling
+==================================================
+  VaR(99.9%): 3.6712
+  ES(99.9%):  4.4195
+  ESS:        3213.9 (6.4%)
 ```
 
 ---

@@ -473,7 +473,7 @@ def visualize_absorption():
     plt.colorbar(im, ax=ax)
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/absorbing_chains.png', dpi=150, bbox_inches='tight')
+    plt.savefig('absorbing_chains.png', dpi=150, bbox_inches='tight')
     plt.close()
     print("Absorption visualization saved")
 
@@ -501,6 +501,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+ABSORBING MARKOV CHAINS
+=======================
+
+======================================================================
+Example 1: Gambler's Ruin
+======================================================================
+
+Transition Matrix:
+[[1.  0.  0.  0.  0. ]
+ [0.5 0.  0.5 0.  0. ]
+ [0.  0.5 0.  0.5 0. ]
+ [0.  0.  0.5 0.  0.5]
+ [0.  0.  0.  0.  1. ]]
+
+Absorbing states: ['$0 (Broke)', '$4 (Win)']
+Transient states: ['$1', '$2', '$3']
+
+----------------------------------------------------------------------
+Fundamental Matrix N (expected visits):
+         $1       $2       $3      
+$1         1.5000   1.0000   0.5000
+$2         1.0000   2.0000   1.0000
+$3         0.5000   1.0000   1.5000
+
+----------------------------------------------------------------------
+Expected Steps to Absorption:
+  Starting from $1: 3.0000 steps
+  Starting from $2: 4.0000 steps
+  Starting from $3: 3.0000 steps
+
+----------------------------------------------------------------------
+Absorption Probabilities:
+
+
+... (49 lines omitted)
+
+Absorption visualization saved
+
+======================================================================
+Key Concepts:
+======================================================================
+1. Absorbing state: P[i][i] = 1
+2. Fundamental matrix: N = (I - Q)^{-1}
+3. Expected steps to absorption: t = N × 1
+4. Absorption probabilities: B = N × R
+5. N[i][j] = expected visits to state j from state i
 ```
 
 ## 2. 논의

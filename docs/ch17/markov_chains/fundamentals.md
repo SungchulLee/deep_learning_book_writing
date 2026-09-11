@@ -467,6 +467,57 @@ for m, n in [(2, 3), (5, 5), (10, 10)]:
     print(f"Chapman-Kolmogorov P^{m+n} = P^{m} · P^{n}: {holds}")
 ```
 
+**출력:**
+
+```
+Weather Model: Multi-Step Transition Probabilities
+============================================================
+
+1-Step Transition Matrix P^1:
+----------------------------------------
+            Sunny    Cloudy     Rainy
+Sunny    0.700000  0.250000  0.050000
+Cloudy   0.300000  0.400000  0.300000
+Rainy    0.100000  0.400000  0.500000
+
+2-Step Transition Matrix P^2:
+----------------------------------------
+            Sunny    Cloudy     Rainy
+Sunny    0.570000  0.295000  0.135000
+Cloudy   0.360000  0.355000  0.285000
+Rainy    0.240000  0.385000  0.375000
+
+5-Step Transition Matrix P^5:
+----------------------------------------
+            Sunny    Cloudy     Rainy
+Sunny    0.443070  0.330475  0.226455
+Cloudy   0.409230  0.339790  0.250980
+Rainy    0.389610  0.345190  0.265200
+
+10-Step Transition Matrix P^10:
+----------------------------------------
+            Sunny    Cloudy     Rainy
+Sunny    0.419780  0.336886  0.243334
+Cloudy   0.418154  0.337333  0.244513
+Rainy    0.417211  0.337593  0.245196
+
+50-Step Transition Matrix P^50:
+----------------------------------------
+
+... (5 lines omitted)
+
+Distribution evolution starting from Sunny:
+  n= 0: π = [1.000000, 0.000000, 0.000000]
+  n= 1: π = [0.700000, 0.250000, 0.050000]
+  n= 2: π = [0.570000, 0.295000, 0.135000]
+  n= 5: π = [0.443070, 0.330475, 0.226455]
+  n=10: π = [0.419780, 0.336886, 0.243334]
+  n=50: π = [0.418605, 0.337210, 0.244186]
+Chapman-Kolmogorov P^5 = P^2 · P^3: True
+Chapman-Kolmogorov P^10 = P^5 · P^5: True
+Chapman-Kolmogorov P^20 = P^10 · P^10: True
+```
+
 $n$이 커지면 $P^n$의 모든 행이 같은 벡터로 모인다. 이것이 다음 마당에서 다룰 **멈춘 분포**이다.
 
 ---

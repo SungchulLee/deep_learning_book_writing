@@ -561,6 +561,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+EXAMPLE 1: Bimodal Target Distribution
+======================================================================
+
+Target: 0.3 N(-2, 0.8) + 0.7 N(3, 1.2)
+True mean: 1.499911
+
+Single Gaussian Proposal N(0, 3):
+  Estimate: 1.495669
+  Error: 0.004242
+  ESS: 1639.3 (54.6%)
+
+Mixture Proposal (matched to target):
+  Components: 0.3 N(-2,1) + 0.7 N(3,1.5)
+  Estimate: 1.449600
+  Error: 0.050311
+  ESS: 2795.4 (93.2%)
+
+Mixture Proposal (equal weights):
+  Components: 0.5 N(-2,1) + 0.5 N(3,1.5)
+  Estimate: 1.490874
+  Error: 0.009038
+  ESS: 2423.4 (80.8%)
+
+Improvement over single Gaussian:
+  Matched mixture: 1.71x better ESS
+  Equal mixture: 1.48x better ESS
+
+======================================================================
+EXAMPLE 2: Trimodal Target Distribution
+======================================================================
+
+Target: 0.2 N(-4,0.6) + 0.5 N(0,0.8) + 0.3 N(5,0.7)
+
+... (89 lines omitted)
+
+   - 봉우리가 여럿인 과녁(꼭 필요하다)
+   - 복잡하고 표준이 아닌 꼴
+   - 성분 하나로는 ESS이 나쁠 때
+   - 봉우리가 여럿인 베이즈 추론
+
+10. 셈 값:
+    - 표집: O(K)의 덧짐
+    - 밀도 값 매기기: O(K) 값
+    - ESS이 나아지므로 대개 값어치가 있다
+    - 성분 표집을 나란히 할 수 있다
+```
+
 ## 2. 논의
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.

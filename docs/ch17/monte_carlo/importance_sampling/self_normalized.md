@@ -334,7 +334,8 @@ var_estimate, _ = self_normalized_importance_sampling(
     h_function=lambda x: (x - estimate.item())**2,
     unnormalized_log_target=unnormalized_log_posterior,
     proposal_dist=proposal,
-    n_samples=n_samples
+    n_samples=n_samples,
+    return_diagnostics=True
 )
 
 print(f"\nPosterior variance Var[θ|y]:")
@@ -425,6 +426,7 @@ for n in sample_sizes:
             h_function=lambda x: x,
             unnormalized_log_target=unnormalized_log_posterior,
             proposal_dist=proposal,
+            return_diagnostics=True,
             n_samples=n
         )
         estimates.append(est.item())
@@ -447,6 +449,33 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.savefig('self_normalized_is.png', dpi=150, bbox_inches='tight')
 plt.show()
+```
+
+**출력:**
+
+```
+Data: n=20, sample mean=5.216
+
+Prior: N(0.0, 2.0²)
+Posterior (analytical): N(5.1518, 0.2222²)
+
+============================================================
+Self-Normalized IS Results
+============================================================
+Posterior mean E[θ|y]:
+  True: 5.151762
+  SNIS: 5.234283
+  Error: 0.082521
+
+Effective Sample Size:
+  ESS: 22.4
+  Efficiency: 0.4%
+
+Posterior variance Var[θ|y]:
+  True: 0.049383
+  SNIS: 0.048890
+
+Marginal likelihood estimate: 1.4309e-06
 ```
 
 ---
@@ -536,7 +565,23 @@ def diagnose_weights(norm_weights, name=""):
     }
 
 # 진단 돌리기
-diagnostics = diagnose_weights(diagnostics['norm_weights'], "(Prior as Proposal)")
+# 표집기가 돌려준 diagnostics를 덮어쓰면 뒤에서 쓸 'samples' 같은 열쇠가
+# 사라진다. 진단 결과는 따로 받는다.
+weight_report = diagnose_weights(diagnostics['norm_weights'], "(Prior as Proposal)")
+```
+
+**출력:**
+
+```
+Weight Diagnostics (Prior as Proposal)
+--------------------------------------------------
+  n samples: 5000
+  ESS: 22.4 (0.4% efficiency)
+  CV of weights: 14.894
+  Max weight: 0.064764 (uniform = 0.000200)
+  9 samples (0.2%) account for 50% of weight
+  22 samples (0.4%) account for 90% of weight
+  Normalized entropy: 0.386
 ```
 
 ---
@@ -571,6 +616,20 @@ for name, proposal in proposals.items():
     
     print(f"{name:<25} {estimate.item():12.4f} {abs(estimate.item()-mu_n):10.4f} "
           f"{diag['ess'].item():10.1f} {diag['ess_ratio'].item():10.1%}")
+```
+
+**출력:**
+
+```
+Proposal Comparison
+======================================================================
+Proposal                      Estimate      Error        ESS Efficiency
+----------------------------------------------------------------------
+Prior N(0, 2)                   5.1653     0.0136       20.0       0.4%
+Close N(μₙ, 1)                  5.1554     0.0037     1564.7      31.3%
+Posterior (oracle)              5.1481     0.0036     5000.0     100.0%
+Too narrow N(μₙ, 0.3)           5.1495     0.0022     4443.6      88.9%
+Too wide N(0, 5)                5.1661     0.0144      196.5       3.9%
 ```
 
 제안 고르기 전략을 체계로 다룬 것은 [제안 분포 설계](proposal_design.md)를 보아라.
@@ -616,6 +675,18 @@ print("\nMultiple Expectations from Same Samples")
 print("-" * 40)
 for name, value in results.items():
     print(f"  {name}: {value:.6f}")
+```
+
+**출력:**
+
+```
+Multiple Expectations from Same Samples
+----------------------------------------
+  E[θ]: 5.234283
+  E[θ²]: 27.457577
+  E[θ³]: 144.345505
+  Var[θ]: 0.064493
+  P(θ > 3): 1.000000
 ```
 
 ---

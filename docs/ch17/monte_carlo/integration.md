@@ -177,6 +177,15 @@ print(f"95% CI: [{estimate.item() - 1.96*se.item():.6f}, "
       f"{estimate.item() + 1.96*se.item():.6f}]")
 ```
 
+**출력:**
+
+```
+MC estimate of E[X²]: 1.008879
+Standard error:       0.014036
+True value:           1.000000
+95% CI: [0.981368, 1.036390]
+```
+
 ```
 MC estimate of E[X²]: 0.993754
 Standard error:       0.014068
@@ -203,6 +212,20 @@ for n in sample_sizes:
     # n * SE²은 거의 상수여야 한다(= σ²)
     print(f"{n:>10} {est.item():>12.6f} {se.item():>10.6f} "
           f"{error:>10.6f} {n * se.item()**2:>10.4f}")
+```
+
+**출력:**
+
+```
+         n     Estimate         SE    |Error|      n*SE²
+--------------------------------------------------------
+       100     0.966770   0.115516   0.033230     1.3344
+       500     0.900160   0.059029   0.099840     1.7422
+      1000     1.010788   0.043040   0.010788     1.8524
+      5000     1.014046   0.019779   0.014046     1.9560
+     10000     0.990151   0.014165   0.009849     2.0065
+     50000     1.003258   0.006366   0.003258     2.0266
+    100000     0.997795   0.004472   0.002205     2.0003
 ```
 
 ```
@@ -294,6 +317,15 @@ print(f"Analytical Posterior Mean: {analytical_mean:.6f}")
 print(f"MC Posterior Std:         {mc_std.item():.6f}")
 print(f"95% Credible Interval:   [{torch.quantile(theta_samples, 0.025).item():.4f}, "
       f"{torch.quantile(theta_samples, 0.975).item():.4f}]")
+```
+
+**출력:**
+
+```
+MC Posterior Mean:        0.668122
+Analytical Posterior Mean: 0.666667
+MC Posterior Std:         0.130086
+95% Credible Interval:   [0.3936, 0.8881]
 ```
 
 ```
@@ -388,6 +420,15 @@ print(f"True value:    {np.exp(0.5):.6f}")
 print(f"Standard MC:   {est_mc.item():.6f} (SE = {se_mc.item():.6f})")
 print(f"Control Var:   {est_cv.item():.6f} (SE = {se_cv.item():.6f})")
 print(f"Variance reduction: {(1 - (se_cv/se_mc)**2).item():.1%}")
+```
+
+**출력:**
+
+```
+True value:    1.648721
+Standard MC:   1.661973 (SE = 0.021584)
+Control Var:   1.635681 (SE = 0.012891)
+Variance reduction: 64.3%
 ```
 
 ```
@@ -541,6 +582,16 @@ def estimate_pi(n_samples: int) -> tuple:
 for n in [100, 1_000, 10_000, 100_000, 1_000_000]:
     pi_est, se = estimate_pi(n)
     print(f"n={n:>10}: π ≈ {pi_est:.6f}  (SE={se:.6f}, error={abs(pi_est - np.pi):.6f})")
+```
+
+**출력:**
+
+```
+n=       100: π ≈ 3.120000  (SE=0.166533, error=0.021593)
+n=      1000: π ≈ 3.120000  (SE=0.052425, error=0.021593)
+n=     10000: π ≈ 3.137600  (SE=0.016450, error=0.003993)
+n=    100000: π ≈ 3.136960  (SE=0.005203, error=0.004633)
+n=   1000000: π ≈ 3.144672  (SE=0.001640, error=0.003079)
 ```
 
 ```

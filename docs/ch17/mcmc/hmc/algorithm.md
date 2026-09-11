@@ -335,6 +335,8 @@ class HMC:
 ### 쓰는 보기
 
 ```python
+import numpy as np
+
 # 과녁: 상관이 있는 2차원 가우스
 mu = np.array([0, 0])
 Sigma = np.array([[1, 0.8], [0.8, 1]])

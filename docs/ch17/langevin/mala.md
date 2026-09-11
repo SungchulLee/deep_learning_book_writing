@@ -280,6 +280,12 @@ x_mala, acc = mala_batch(log_prob, score, x0.clone(), n_steps=500, epsilon=0.5)
 print(f"MALA variance: {x_mala.var(dim=0).mean():.4f}, acceptance: {acc:.2%}")
 ```
 
+**출력:**
+
+```
+MALA variance: 0.9998, acceptance: 89.18%
+```
+
 ---
 
 ## 연습문제

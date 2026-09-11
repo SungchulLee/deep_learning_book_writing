@@ -293,6 +293,13 @@ print(f"Sample mean: [{x[:, 0].mean():.3f}, {x[:, 1].mean():.3f}]")
 print(f"True mean:   [{mu[0]:.3f}, {mu[1]:.3f}]")
 ```
 
+**출력:**
+
+```
+Sample mean: [1.943, -1.010]
+True mean:   [2.000, -1.000]
+```
+
 ---
 
 ## 연습문제
