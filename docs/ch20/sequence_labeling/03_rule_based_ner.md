@@ -599,6 +599,57 @@ if __name__ == "__main__":
     print("4. Experiment with different priority levels")
 ```
 
+**출력:**
+
+```
+======================================================================
+Rule-Based Named Entity Recognition Demonstration
+======================================================================
+
+1. Basic Entity Extraction
+----------------------------------------------------------------------
+Text: Apple Inc. was founded by Steve Jobs in Cupertino, California on January 1, 1976. The company is valued at $2.5 trillion.
+
+Found 8 entities:
+Entity                    Type       Position     Rule
+----------------------------------------------------------------------
+Apple Inc                 PER        (0:9)        person_full_name
+was founded               PER        (11:22)      person_full_name
+by Steve                  PER        (23:31)      person_full_name
+Jobs in                   PER        (32:39)      person_full_name
+California on             PER        (51:64)      person_full_name
+January 1, 1976           DATE       (65:80)      date_full
+The company               ORG        (82:93)      organization_suffix
+is valued                 PER        (94:103)     person_full_name
+
+Visualized:
+[Apple Inc]_PER. [was founded]_PER [by Steve]_PER [Jobs in]_PER Cupertino, [California on]_PER [January 1, 1976]_DATE. [The company]_ORG [is valued]_PER at $2.5 trillion.
+
+
+2. Various Entity Types
+----------------------------------------------------------------------
+Text: The meeting is scheduled for January 15, 2025 at 2:30 PM. Please contact us at support@company.com or visit www.company.com. The discount is 25% off the $199.99 price.
+
+Entities grouped by type:
+
+PER:
+  - The meeting
+  - is scheduled
+
+... (103 lines omitted)
+
+
+======================================================================
+Demonstration complete!
+======================================================================
+
+Next steps:
+1. Try modifying existing rules
+2. Add custom rules for your domain
+3. Combine with dictionary-based NER (next module)
+4. Experiment with different priority levels
+```
+
 ## 2. 논의
 
 여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 차례 이름표 붙이기의 핵심 개념을 보여 준다. 단원별로 나뉜 짜임 덕분에 낱낱의 조각을 익히고 다른 일이나 자료 뭉치에 맞게 고치기 쉽다.

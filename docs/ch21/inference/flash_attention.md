@@ -482,6 +482,27 @@ if __name__ == "__main__":
         benchmark_attention([512, 1024, 2048, 4096])
 ```
 
+**출력:**
+
+```
+Flash Attention Demo
+==================================================
+Input shape: torch.Size([2, 1024, 512])
+Output shape: torch.Size([2, 1024, 512])
+
+--- Testing with KV Cache ---
+Prompt processed, cache size: torch.Size([1, 8, 100, 64])
+Generated token 1, cache size: torch.Size([1, 8, 101, 64])
+Generated token 2, cache size: torch.Size([1, 8, 102, 64])
+Generated token 3, cache size: torch.Size([1, 8, 103, 64])
+Generated token 4, cache size: torch.Size([1, 8, 104, 64])
+Generated token 5, cache size: torch.Size([1, 8, 105, 64])
+
+--- Reference Implementation Test ---
+Max difference between standard and flash: 2.38e-07
+✓ Outputs match!
+```
+
 ---
 
 ## 5. 기억 공간과 빠르기 견줌

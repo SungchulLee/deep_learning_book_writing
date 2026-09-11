@@ -406,6 +406,33 @@ if __name__ == "__main__":
         print(f"Graph {i}: {n} nodes, {e} edges, density={density:.3f}")
 ```
 
+**출력:**
+
+```
+=== Preparing Training Data ===
+Training graphs: 100
+Avg nodes: 9.6
+
+=== Training GRAN ===
+Parameters: 100,486
+Epoch 10: loss=0.5752
+Epoch 20: loss=0.5722
+Epoch 30: loss=0.5650
+Epoch 40: loss=0.5578
+
+=== Generation ===
+Graph 0: 10 nodes, 8 edges, density=0.178
+Graph 1: 10 nodes, 14 edges, density=0.311
+Graph 2: 10 nodes, 8 edges, density=0.178
+Graph 3: 10 nodes, 13 edges, density=0.289
+Graph 4: 10 nodes, 11 edges, density=0.244
+Graph 5: 10 nodes, 9 edges, density=0.200
+Graph 6: 10 nodes, 13 edges, density=0.289
+Graph 7: 10 nodes, 12 edges, density=0.267
+Graph 8: 10 nodes, 15 edges, density=0.333
+Graph 9: 10 nodes, 13 edges, density=0.289
+```
+
 ---
 
 ## 연습문제

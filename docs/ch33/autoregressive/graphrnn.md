@@ -514,6 +514,41 @@ if __name__ == "__main__":
         print(f"  Avg density: {sum(densities)/len(densities):.3f}")
 ```
 
+**출력:**
+
+```
+=== Preparing Training Data ===
+Data shape: torch.Size([200, 20, 8]), avg nodes: 13.4
+
+=== Training GraphRNN (full) ===
+Parameters: 76,353
+Epoch 10: loss=0.6773
+Epoch 20: loss=0.5673
+Epoch 30: loss=0.5488
+Epoch 40: loss=0.5427
+Epoch 50: loss=0.5398
+
+=== Training GraphRNN-S (simplified) ===
+Parameters: 70,664
+Epoch 10: loss=0.6473
+Epoch 20: loss=0.5659
+Epoch 30: loss=0.5451
+Epoch 40: loss=0.5395
+Epoch 50: loss=0.5352
+
+=== Generation Results ===
+
+GraphRNN:
+  Avg nodes: 5.5 (ref: 13.4)
+  Avg edges: 7.1
+  Avg density: 0.606
+
+GraphRNN-S:
+  Avg nodes: 8.8 (ref: 13.4)
+  Avg edges: 13.9
+  Avg density: 0.389
+```
+
 ---
 
 ## 연습문제

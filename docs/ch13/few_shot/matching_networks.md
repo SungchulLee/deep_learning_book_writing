@@ -214,6 +214,14 @@ if __name__ == "__main__":
     print(f"Predicted classes: {predicted_classes}")
 ```
 
+**출력:**
+
+```
+Predictions shape: torch.Size([15, 5])
+Loss: 0.5001, Accuracy: 0.3333
+Predicted classes: tensor([4, 2, 2, 3, 2, 4, 1, 4, 2, 2, 4, 2, 2, 2, 1])
+```
+
 ## 2. 논의
 
 이 구현은 함께 어울려 온전한 소수 예시 학습 구조를 이루는 클래스 3개(`AttentionEncoder`, `SimpleEncoder`, `MatchingNetwork`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.

@@ -76,6 +76,21 @@ for k in range(2, 8):
     print(f"  k={k}: silhouette={silhouette_score(X_scaled, lab):.4f}")
 ```
 
+**출력:**
+
+```
+Silhouette:        0.8386
+Calinski-Harabasz: 5132.4
+Davies-Bouldin:    0.2244
+Adjusted Rand:     1.0000
+  k=2: silhouette=0.5700
+  k=3: silhouette=0.7642
+  k=4: silhouette=0.8386
+  k=5: silhouette=0.7082
+  k=6: silhouette=0.5767
+  k=7: silhouette=0.4564
+```
+
 ---
 
 ## 연습문제

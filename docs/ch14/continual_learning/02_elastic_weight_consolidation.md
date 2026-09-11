@@ -696,6 +696,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+ELASTIC WEIGHT CONSOLIDATION (EWC)
+======================================================================
+
+EWC prevents forgetting by:
+  1. Identifying important parameters using Fisher information
+  2. Adding quadratic penalty to prevent their modification
+  3. Balancing learning new tasks with preserving old knowledge
+======================================================================
+
+Using device: cpu
+
+Task Configuration:
+  Task 0: Classes [0, 1]
+  Task 1: Classes [2, 3]
+  Task 2: Classes [4, 5]
+  Task 3: Classes [6, 7]
+  Task 4: Classes [8, 9]
+
+Model: 267,266 parameters
+
+======================================================================
+CONTINUAL LEARNING WITH ELASTIC WEIGHT CONSOLIDATION (EWC)
+======================================================================
+EWC Lambda (λ): 5000
+
+============================================================
+Training Task 0 with EWC (λ=5000)
+============================================================
+  Epoch 1/5 - Total Loss: 0.0264, Current: 0.0264, EWC: 0.0000, Train Acc: 99.19%
+  Epoch 2/5 - Total Loss: 0.0022, Current: 0.0022, EWC: 0.0000, Train Acc: 99.92%
+  Epoch 3/5 - Total Loss: 0.0016, Current: 0.0016, EWC: 0.0000, Train Acc: 99.95%
+  Epoch 4/5 - Total Loss: 0.0038, Current: 0.0038, EWC: 0.0000, Train Acc: 99.89%
+
+... (154 lines omitted)
+
+
+✓ EWC reduces forgetting by protecting important parameters
+✓ No need to store previous examples (privacy-preserving)
+✓ Computationally efficient during training
+
+⚠️  Considerations:
+  - λ hyperparameter is task-dependent
+  - Fisher computation adds overhead after each task
+  - Diagonal Fisher approximation may be too restrictive
+======================================================================
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.

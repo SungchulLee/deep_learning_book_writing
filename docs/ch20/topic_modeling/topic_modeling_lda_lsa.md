@@ -468,6 +468,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+============================================================
+Part 1: Latent Semantic Analysis (LSA)
+============================================================
+  Term-document matrix: (78, 12) (vocab × docs)
+
+  Top words per topic (LSA, 3 topics):
+    Topic 0: buyback(-0.397), program(-0.397), split(-0.397), stock(-0.397), amazon(-0.397)
+    Topic 1: quarter(-0.372), expectations(-0.368), tesla(-0.368), deliveries(-0.368), exceeded(-0.368)
+    Topic 2: year(-0.579), revenue(-0.307), microsoft(-0.289), grew(-0.289), cloud(-0.289)
+
+  Document-topic matrix shape: (12, 3)
+    Doc 0 → Topic 0: The Federal Reserve raised interest rates by 25 ba...
+    Doc 1 → Topic 1: GDP growth slowed to 2.1 percent in the third quar...
+    Doc 2 → Topic 2: Inflation remains above the central bank target of...
+    Doc 3 → Topic 0: Treasury yields rose sharply after the employment ...
+
+============================================================
+Part 2: LDA with Gensim
+============================================================
+
+  from gensim.models import LdaModel
+  from gensim.corpora import Dictionary
+  from nltk.tokenize import word_tokenize
+  from nltk.corpus import stopwords
+  import nltk
+
+  nltk.download('stopwords')
+  stops = set(stopwords.words('english'))
+
+  # 앞손질: 토막내기, 소문자로, 불용어 없애기
+  def preprocess(text):
+      tokens = word_tokenize(text.lower())
+      return [t for t in tokens if t.isalpha() and t not in stops]
+
+... (83 lines omitted)
+
+    3. 신호 = Σ_k θ_dk × s_k  (무게를 준 마음결)
+
+  금융 말뭉치에서 흔히 떠오르는 주제:
+    - 거시/금리:     "fed", "rates", "inflation", "gdp"
+    - 실적:        "revenue", "eps", "guidance", "beat"
+    - 인수·합병:             "acquisition", "merger", "deal", "bid"
+    - 위험/규제: "compliance", "fine", "investigation"
+    - 기술:      "cloud", "ai", "platform", "growth"
+
+Done.
+```
+
 ## 2. 논의
 
 여기 짠 것은 함께 어울려 온전한 주제 모델 얼개를 이루는 클래스 2개(`LDAGibbs`, `NeuralTopicModel`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.

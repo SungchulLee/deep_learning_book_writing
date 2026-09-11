@@ -395,6 +395,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+============================================================
+Part 1: Loading FinBERT
+============================================================
+
+  # 마음결 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
+  from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+  model_name = "ProsusAI/finbert"
+  tokenizer = AutoTokenizer.from_pretrained(model_name)
+  model = AutoModelForSequenceClassification.from_pretrained(model_name)
+  model.eval()
+
+  # 빠른 미룸
+  text = "Tesla reported record deliveries, beating analyst expectations."
+  inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=128)
+  with torch.no_grad():
+      logits = model(**inputs).logits
+      probs = F.softmax(logits, dim=-1)
+      labels = ["positive", "negative", "neutral"]
+      pred = labels[probs.argmax()]
+      print(f"Sentiment: {pred} ({probs.max():.3f})")
+  # → 마음결: 양성 (0.92)
+
+============================================================
+Part 2: Zero-Shot Inference via HuggingFace Pipeline
+============================================================
+
+  from transformers import pipeline
+
+  finbert = pipeline(
+      "sentiment-analysis",
+      model="ProsusAI/finbert",
+      tokenizer="ProsusAI/finbert",
+
+... (120 lines omitted)
+
+     어림을 웃도는 것이 양성임을 안다.
+
+  금융 자연어 다루기의 쓰임새:
+  - 실적 발표 마음결 좇기
+  - 초과 수익을 위한 뉴스 마음결
+  - 사회 그물(StockTwits/Reddit) 마음결 점수 매기기
+  - SEC 보고서의 어조 살피기
+  - 분석 보고서 갈래 매기기
+
+Done.
+```
+
 ## 2. 논의
 
 `SimpleFinancialClassifier` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.

@@ -244,6 +244,28 @@ def demonstrate_nll():
 demonstrate_nll()
 ```
 
+**출력:**
+
+```
+======================================================================
+Negative Log-Likelihood Demonstration
+======================================================================
+
+Test data: 1000 samples from N(0, I)
+--------------------------------------------------
+
+Correct N(0,1):
+  NLL: 14.1577 [14.0163, 14.2991]
+
+Wrong mean N(2,1):
+  NLL: 34.1680 [33.7560, 34.5800]
+
+Wrong var N(0,e²):
+  NLL: 19.8618 [19.8426, 19.8809]
+
+Note: Lower NLL = Better fit to data
+```
+
 ---
 
 ## 3. 차원마다 비트(BPD)
@@ -444,6 +466,32 @@ def demonstrate_bpd():
     print("\nKey insight: BPD enables fair comparison across different image sizes!")
 
 demonstrate_bpd()
+```
+
+**출력:**
+
+```
+======================================================================
+Bits Per Dimension Demonstration
+======================================================================
+
+Comparison of dimensionalities:
+--------------------------------------------------
+MNIST: 784 dimensions
+CIFAR-10: 3,072 dimensions
+ImageNet-256: 196,608 dimensions
+
+What different BPD values mean:
+--------------------------------------------------
+   BPD |    MNIST NLL |   CIFAR-10 NLL | Interpretation
+----------------------------------------------------------------------
+   8.0 |       4347.4 |        17034.8 | Poor - basic compression only
+   5.0 |       2717.1 |        10646.7 | Moderate - captures some structure
+   3.5 |       1902.0 |         7452.7 | Good - captures significant structure
+   3.0 |       1630.3 |         6388.0 | Good - captures significant structure
+   2.5 |       1358.6 |         5323.4 | Excellent - approaching optimal compression
+
+Key insight: BPD enables fair comparison across different image sizes!
 ```
 
 ---
@@ -655,6 +703,36 @@ def demonstrate_perplexity():
 demonstrate_perplexity()
 ```
 
+**출력:**
+
+```
+======================================================================
+Perplexity Demonstration
+======================================================================
+
+Language model with vocabulary size: 10000
+--------------------------------------------------
+
+Scenario 1: Random Baseline (uniform predictions)
+  Log prob per token: -9.2103
+  Perplexity: 10000.0
+  Interpretation: Effectively choosing from all 10000 words
+
+Scenario 2: Moderate Model (~1% probability per token)
+  Log prob per token: -4.6052
+  Perplexity: 100.0
+  Interpretation: Effectively choosing from ~99 words
+
+Scenario 3: Good Model (~20% probability per token)
+  Log prob per token: -1.6094
+  Perplexity: 5.0
+  Interpretation: Effectively choosing from ~4 words
+
+--------------------------------------------------
+Key insight: Lower perplexity = More confident predictions
+Perplexity = 'Effective vocabulary size' at each position
+```
+
 ---
 
 ## 5. 가능도와 표본 품질의 맞바꿈
@@ -764,6 +842,50 @@ def demonstrate_likelihood_sample_tradeoff():
     print("\n→ Always combine likelihood metrics with sample-based metrics (FID, IS)")
 
 demonstrate_likelihood_sample_tradeoff()
+```
+
+**출력:**
+
+```
+======================================================================
+Likelihood vs. Sample Quality Tradeoff
+======================================================================
+
+True distribution: Mixture of two Gaussians
+  Mode 1: N(-3, 1) with 50% weight
+  Mode 2: N(+3, 1) with 50% weight
+
+--------------------------------------------------
+Model A: Single Gaussian N(-3, 1)
+  - High quality samples (realistic)
+  - LOW diversity (missing one mode)
+  NLL: 10.1232
+
+--------------------------------------------------
+Model B: Wide Gaussian N(0, 5)
+  - LOW quality samples (blurry)
+  - High coverage (includes both modes)
+  NLL: 2.7191
+
+--------------------------------------------------
+Model C: True Mixture (ideal)
+  - High quality samples
+  - Full coverage
+  NLL: 2.1012
+
+======================================================================
+Summary:
+======================================================================
+Model                       NLL       Sample Quality        Coverage
+----------------------------------------------------------------------
+A (Mode Collapse)       10.1232                 High             Low
+B (Wide/Blurry)          2.7191                  Low            High
+C (True Mixture)         2.1012                 High            High
+
+⚠️ Key Insight: Model B has BETTER likelihood than Model A,
+   but Model A produces BETTER samples for mode -3!
+
+→ Always combine likelihood metrics with sample-based metrics (FID, IS)
 ```
 
 ---

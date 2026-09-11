@@ -740,6 +740,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+BAYESIAN NETWORKS - BASICS
+======================================================================
+
+Topics covered:
+1. Building Bayesian Networks
+2. Conditional Probability Tables (CPTs)
+3. Computing joint probabilities
+4. Forward sampling
+
+======================================================================
+Example 1: Weather Network
+======================================================================
+
+Building Weather Network...
+----------------------------------------------------------------------
+Network built successfully!
+Variables: ['Cloudy', 'Sprinkler', 'Rain', 'WetGrass']
+Edges: [('Cloudy', 'Sprinkler'), ('Cloudy', 'Rain'), ('Sprinkler', 'WetGrass'), ('Rain', 'WetGrass')]
+
+======================================================================
+CONDITIONAL PROBABILITY TABLES
+======================================================================
+
+P(Cloudy)
+ Cloudy  Probability
+      0          0.5
+      1          0.5
+----------------------------------------------------------------------
+
+P(Sprinkler | Cloudy)
+ Cloudy  Sprinkler  Probability
+      0          0          0.5
+
+... (161 lines omitted)
+
+
+1. Bayesian Networks = DAG + CPTs
+2. CPTs specify P(Variable | Parents)
+3. Joint distribution: P(X1,...,Xn) = ∏ P(Xi | Parents(Xi))
+4. Forward sampling follows topological order
+5. Network structure encodes conditional independence
+
+======================================================================
+Next: Learn about inference in Bayesian Networks!
+======================================================================
+```
+
 ## 2. 논의
 
 베이즈 망은 튜플 $(G, P)$이며, 여기서 $G = (V, E)$은 DAG이고 $P = \{P(X_i | \text{Parents}(X_i))\}$은 조건부 확률 분포의 묶음이다. 이 망은 결합 분포를 $P(X_1, \ldots, X_n) = \prod_i P(X_i | \text{Parents}(X_i))$으로 나타낸다. 이 쪼개기가 셈 효율의 열쇠이다.

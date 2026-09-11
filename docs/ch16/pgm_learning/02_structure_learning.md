@@ -546,6 +546,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+STRUCTURE LEARNING FOR BAYESIAN NETWORKS
+======================================================================
+
+Structure learning is the problem of discovering
+the graph structure from observational data.
+
+======================================================================
+DEMONSTRATION: Structure Learning
+======================================================================
+
+Generating synthetic data from known structure...
+Generated 1000 samples
+True structure: A -> B -> C, A -> C
+
+======================================================================
+Score-Based Learning (Hill Climbing)
+======================================================================
+
+Hill Climbing Structure Learning
+Max parents: 2, Max iterations: 20
+----------------------------------------------------------------------
+Initial BIC score: -2085.70
+
+Iteration 1
+Best operation: Add B -> C
+BIC score: -2085.70 -> -1946.20 (Δ = 139.50)
+
+Iteration 2
+Best operation: Add C -> A
+BIC score: -1946.20 -> -1827.99 (Δ = 118.21)
+
+Iteration 3
+
+... (26 lines omitted)
+
+   - Limited data (statistical power)
+   - Computational complexity
+
+4. Practical considerations:
+   - Incorporate domain knowledge
+   - Limit search space (max parents)
+   - Use appropriate scoring functions
+   - Validate learned structures
+
+======================================================================
+```
+
 ## 2. 논의
 
 PC 알고리즘 같은 제약 기반 방법은 완전 무방향 그래프에서 시작해 조건부 독립을 검정하며 변을 차근차근 지운다. 변수 짝마다 다른 변수의 여러 부분집합을 조건으로 두었을 때 조건부 독립인지 검정한다. 독립이 드러나면 변을 지우고 나중에 변의 방향을 정하려고 가름 집합을 적어 둔다.

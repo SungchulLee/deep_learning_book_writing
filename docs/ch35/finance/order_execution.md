@@ -273,6 +273,34 @@ if __name__ == "__main__":
     demo_order_execution()
 ```
 
+**출력:**
+
+```
+============================================================
+Order Execution Demo
+============================================================
+
+Problem: Liquidate 10000 shares over 20 periods
+State dim: 5, Actions: 11
+
+--- TWAP Baseline (10 trials) ---
+  TWAP reward: -1114.21 ± 472.44
+
+--- DQN Training ---
+  Episode 100: avg100=-582.75
+  Episode 200: avg100=-527.30
+  Episode 300: avg100=-763.37
+  Episode 400: avg100=-843.98
+  Episode 500: avg100=-909.86
+
+--- DQN Evaluation (50 trials) ---
+  DQN reward: -1065.51 ± 268.03
+  TWAP reward: -1114.21 ± 472.44
+  Improvement over TWAP: +48.70
+
+Order execution demo complete!
+```
+
 ## 2. 논의
 
 이 짜기는 주문 실행의 핵심 논리를 감싼 `OrderExecutionEnv`, `QNet`, `OrderExecDQN` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.

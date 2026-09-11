@@ -374,6 +374,15 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Logits shape: torch.Size([2, 64, 50257])
+Loss: 10.9469
+Generated shape: torch.Size([2, 40])
+Parameters: 124,439,808
+```
+
 ---
 
 ## 5. 맥락 안 학습

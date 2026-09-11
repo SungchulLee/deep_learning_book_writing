@@ -82,6 +82,55 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+ADVANCED EBM TOPICS
+======================================================================
+
+EBMs and Diffusion Models
+--------------------------------------------------
+Score-based generative models are EBMs where:
+  E(x,t) defines the score at noise level t
+  ∇ₓ log p(x,t) = -∇ₓ E(x,t)
+
+Diffusion process:
+  Forward: Add noise gradually x → x_T
+  Reverse: Denoise using learned score
+
+✓ EBMs provide theoretical foundation for diffusion
+
+
+Flow-Based Energy Models
+--------------------------------------------------
+Combine flows with EBMs:
+  - Flows provide tractable Z
+  - EBM refines the distribution
+✓ Best of both worlds
+
+
+Latent Variable EBMs
+--------------------------------------------------
+E(x,z) with latent z:
+  - More expressive models
+  - Hierarchical representations
+✓ Combines EBMs with VAE-like structure
+
+
+Modern Research Directions
+--------------------------------------------------
+1. Improved sampling (HMC, ULA, MALA)
+2. Better architectures (transformers, diffusion UNets)
+3. Theoretical understanding (convergence, capacity)
+4. Applications (video, 3D, multimodal)
+5. Connections to physics and causality
+
+======================================================================
+CURRICULUM COMPLETE
+======================================================================
+```
+
 ## 2. 논의
 
 에너지 바탕 모델과 퍼짐 모델의 이음은 요즘 만들어 내기에서 가장 중요한 통찰 가운데 하나이다. 점수 바탕 만들어 내는 모델은 잡음 수준 $t$마다 점수 함수 $\nabla_x \log p_t(x)$을 배우는데 이는 잡음 수준으로 이름표를 단 에너지 함수 무리를 배우는 것과 같다. 앞 퍼짐 과정은 자료를 잡음으로 차츰 망가뜨리고 뒤 과정은 배운 점수로 잡음을 없앤다. 이는 바로 에너지 바탕 모델이 뽑기에 쓰는 랑주뱅 움직임이다. 이 관점은 퍼짐 모델이 서로 다른 잡음 잣수에서 익힌 에너지 바탕 모델들을 조심스레 짠 배움 차례임을 드러낸다.

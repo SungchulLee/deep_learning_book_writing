@@ -370,6 +370,14 @@ print(f"Reconstruction: {reconstruction.shape}")
 print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Input: torch.Size([2, 3, 224, 224])
+Reconstruction: torch.Size([2, 3, 224, 224])
+Parameters: 1,030,723
+```
+
 ### U-Net 방식 (건너뛰기 연결이 있는)
 
 ```python

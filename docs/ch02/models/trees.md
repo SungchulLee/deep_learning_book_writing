@@ -98,6 +98,18 @@ with torch.no_grad():
 print(f"Neural net accuracy: {nn_acc:.4f}")
 ```
 
+**출력:**
+
+```
+Best depth=5, CV accuracy=0.8650
+Test accuracy: 0.8800
+Nodes: 45, Leaves: 23
+  Feature 0: importance=0.3268
+  Feature 5: importance=0.2612
+  Feature 1: importance=0.1654
+Neural net accuracy: 0.8900
+```
+
 ---
 
 ## 연습문제

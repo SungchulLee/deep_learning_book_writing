@@ -183,6 +183,50 @@ if __name__ == "__main__":
     print("=" * 60 + "\n")
 ```
 
+**출력:**
+
+```
+============================================================
+RESIDUAL CONNECTIONS - BASIC CONCEPTS
+============================================================
+
+Key Benefits of Residual Connections:
+1. Easier gradient flow (addresses vanishing gradient)
+2. Enables training of very deep networks (100+ layers)
+3. Learning identity function is easy (F(x) = 0)
+4. Better optimization landscape
+
+============================================================
+Testing Residual Blocks
+============================================================
+
+1. Same dimensions (64 -> 64)
+   Input shape:  torch.Size([2, 64, 32, 32])
+   Output shape: torch.Size([2, 64, 32, 32])
+
+2. Different dimensions (64 -> 128, stride=2)
+   Input shape:  torch.Size([2, 64, 32, 32])
+   Output shape: torch.Size([2, 128, 16, 16])
+   Notice: Spatial dimensions halved, channels doubled
+
+3. Parameter count
+   Total parameters in BasicBlock(64, 64): 73,984
+============================================================
+============================================================
+Gradient Flow Demonstration
+============================================================
+
+Gradient norm for Residual Block: 220.2348
+Gradient norm for Plain Block: 94.7495
+
+Residual connections help maintain gradient magnitude!
+============================================================
+
+============================================================
+Next: See 02_resnet_implementation.py for full ResNet architecture
+============================================================
+```
+
 ## 2. 논의
 
 이 구현은 클래스 두 개(`BasicBlock`, `PlainBlock`)를 정의하며, 이들이 어우러져 완전한 잔차 신경망 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.

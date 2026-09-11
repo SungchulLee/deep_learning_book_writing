@@ -270,6 +270,14 @@ if __name__ == "__main__":
     print(f"Set embedding shape: {set_embedding.shape}")  # (1, 128)
 ```
 
+**출력:**
+
+```
+Logits shape: torch.Size([15, 5])
+Loss: 1.6069, Accuracy: 0.2667
+Set embedding shape: torch.Size([1, 128])
+```
+
 ## 2. 논의
 
 이 구현은 함께 어울려 온전한 소수 예시 학습 구조를 이루는 클래스 4개(`PositionalEncoding`, `TransformerFewShotClassifier`, `SetTransformer`, `MultiheadAttentionBlock`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.

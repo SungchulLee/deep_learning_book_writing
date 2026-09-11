@@ -401,6 +401,14 @@ print(f"Reduced dim:     {X_reduced.shape[1]}")     # ~150
 print(f"Compression:     {784 / X_reduced.shape[1]:.1f}x")
 ```
 
+**출력:**
+
+```
+Original dim:    784
+Reduced dim:     154
+Compression:     5.1x
+```
+
 ### 쓰임새 3: 잡음 거르기
 
 주성분 분석은 흩어짐이 큰 아래 공간에 쏘고 거의 잡음만 잡는 흩어짐 작은 성분을 버려 자료의 잡음을 없앤다:
@@ -414,6 +422,12 @@ pca = PCA(n_components=0.9, svd_solver='full').fit(X_noisy)
 X_filtered = pca.inverse_transform(pca.transform(X_noisy))
 
 print(f"Components used for denoising: {pca.n_components_}")
+```
+
+**출력:**
+
+```
+Components used for denoising: 104
 ```
 
 핵심 눈썰미는 신호의 흩어짐은 으뜸 성분에 몰리고 잡음의 흩어짐은 모든 성분에 고루 퍼진다는 것이다. 잘라 내면 신호보다 잡음이 훨씬 많이 걷힌다.
@@ -488,6 +502,16 @@ for epoch in range(100):
         epoch_loss += loss.item()
     if epoch % 20 == 0:
         print(f"Epoch {epoch}: loss={epoch_loss / len(train_loader):.4f}")
+```
+
+**출력:**
+
+```
+Epoch 0: loss=0.0312
+Epoch 20: loss=0.0256
+Epoch 40: loss=0.0256
+Epoch 60: loss=0.0256
+Epoch 80: loss=0.0256
 ```
 
 ---

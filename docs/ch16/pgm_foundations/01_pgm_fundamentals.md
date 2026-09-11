@@ -776,6 +776,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+PROBABILISTIC GRAPHICAL MODELS - FUNDAMENTALS
+======================================================================
+
+This module introduces the core concepts of PGMs:
+1. Probability distributions and their operations
+2. Independence and conditional independence
+3. Graphical representations (directed graphs)
+4. D-separation
+5. Factorization of joint distributions
+======================================================================
+DEMONSTRATION: Independence vs Conditional Independence
+======================================================================
+
+Example 1: Two Independent Coin Flips
+----------------------------------------------------------------------
+Joint distribution P(Coin1, Coin2):
+[[0.25 0.25]
+ [0.25 0.25]]
+
+Are Coin1 and Coin2 independent? True
+
+
+Example 2: Dependent Variables (Weather and Umbrella)
+----------------------------------------------------------------------
+Joint distribution P(Rain, Umbrella):
+[[0.5  0.05]
+ [0.05 0.4 ]]
+
+Are Rain and Umbrella independent? False
+
+
+Example 3: Conditional Independence (Chain Structure)
+
+... (108 lines omitted)
+
+
+5. These concepts are fundamental to all graphical models:
+   - Bayesian networks (next module)
+   - Markov random fields
+   - Factor graphs
+   - And many more...
+
+======================================================================
+Next: Learn how to build and use Bayesian networks!
+======================================================================
+```
+
 ## 2. 논의
 
 PGM은 그래프 이론과 확률 이론을 합쳐 높은 차원의 분포를 간결하게 나타낸다. 핵심 통찰은 실제 세상의 변수 대부분이 서로 곧바로 기대고 있지는 않다는 것이다. 이 독립 관계를 알아내어 그래프 짜임에 담으면 결합 분포를 더 작고 다루기 쉬운 성분으로 쪼갤 수 있다.

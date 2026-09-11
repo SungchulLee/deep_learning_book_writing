@@ -1679,6 +1679,57 @@ if __name__ == "__main__":
     demo_criteria_consistency()
 ```
 
+**출력:**
+
+```
+======================================================================
+BASIC INFORMATION CRITERIA: POLYNOMIAL REGRESSION
+======================================================================
+
+True model: y = 1 + 0.5x - 0.3x² + ε, ε ~ N(0, 0.25)
+Sample size: n = 100
+
+--- Fitting Polynomial Models ---
+Degree 1: k=3, log-lik=-132.71
+Degree 2: k=4, log-lik=-62.15
+Degree 3: k=5, log-lik=-59.66
+Degree 4: k=6, log-lik=-59.06
+Degree 5: k=7, log-lik=-59.05
+Degree 6: k=8, log-lik=-59.02
+
+Model Comparison Summary
+======================================================================
+Model                    k           LL        AIC       AICc        BIC
+----------------------------------------------------------------------
+Degree 3                 5       -59.66     129.33     129.97     142.35
+Degree 4                 6       -59.06     130.12     131.02     145.75
+Degree 5                 7       -59.05     132.10     133.31     150.33
+Degree 2                 4       -62.15     132.31     132.73     142.73
+Degree 6                 8       -59.02     134.04     135.62     154.88
+Degree 1                 3      -132.71     271.42     271.67     279.24
+----------------------------------------------------------------------
+
+Differences from best model (AIC):
+  Degree 3             ΔAIC =    0.00, ΔBIC =    0.00
+  Degree 4             ΔAIC =    0.79, ΔBIC =    3.40
+  Degree 5             ΔAIC =    2.77, ΔBIC =    7.98
+  Degree 2             ΔAIC =    2.98, ΔBIC =    0.38
+  Degree 6             ΔAIC =    4.71, ΔBIC =   12.53
+
+... (83 lines omitted)
+
+----------------------------------------
+   20      72.0%         87.0%
+   50      82.0%         95.0%
+  100      82.0%         98.0%
+  200      73.0%         94.0%
+  500      68.0%         96.0%
+ 1000      76.0%        100.0%
+
+*** BIC is consistent: converges to true model as n → ∞
+    AIC is efficient: minimizes prediction error but may overfit
+```
+
 ---
 
 ## 연습문제

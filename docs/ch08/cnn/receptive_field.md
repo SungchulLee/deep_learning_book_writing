@@ -303,6 +303,14 @@ def compare_receptive_fields():
 compare_receptive_fields()
 ```
 
+**출력:**
+
+```
+Standard 5 layers (3×3): RF = 11
+Dilated 5 layers (d=1,2,4,8,16): RF = 63
+Ratio: 5.7x larger with same parameters!
+```
+
 ### WaveNet 방식의 지수 팽창
 
 ```python
@@ -549,6 +557,14 @@ def analyze_resnet50():
     return rf
 
 analyze_resnet50()
+```
+
+**출력:**
+
+```
+ResNet-50 final receptive field: 427×427 pixels
+Final jump (output stride): 32
+Note: RF (427) > typical input size (224)!
 ```
 
 ### 구조 견주기

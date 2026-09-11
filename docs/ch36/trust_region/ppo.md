@@ -192,6 +192,55 @@ if __name__ == "__main__":
     visualize_ppo_clipping()
 ```
 
+**출력:**
+
+```
+============================================================
+PPO Clipping Behavior Analysis
+============================================================
+
+ε = 0.2
+Scenario                                       Ratio     A   Unclip     Clip      PPO Clipped?
+-----------------------------------------------------------------------------------------------
+Large ratio, positive advantage                 1.50   1.0    1.500    1.200    1.200      Yes
+Small ratio, positive advantage                 0.70   1.0    0.700    0.800    0.700       No
+Large ratio, negative advantage                 1.50  -1.0   -1.500   -1.200   -1.500       No
+Small ratio, negative advantage                 0.70  -1.0   -0.700   -0.800   -0.800      Yes
+Moderate ratio, positive advantage              1.10   1.0    1.100    1.100    1.100       No
+Moderate ratio, negative advantage              0.90  -1.0   -0.900   -0.900   -0.900       No
+
+============================================================
+PPO Loss Computation Example
+============================================================
+
+Batch size: 8
+Clip epsilon: 0.2
+
+Ratios: [1.047 1.027 1.055 1.084 1.117 0.845 0.906 1.101]
+Advantages: [ 1.062  0.486 -1.319 -1.302  1.096  0.337 -0.82   0.461]
+
+Clipped count: 0/8
+Policy loss: -0.0101
+Value loss: 0.1183
+Entropy bonus: 0.5000
+Total loss: 0.0440
+
+============================================================
+Effect of Clipping Parameter ε
+============================================================
+
+Ratio stats: mean=1.037, std=0.331, min=0.420, max=2.602
+
+     ε       Loss    % Clipped   Effective KL
+--------------------------------------------
+  0.05     0.0742        44.6%        0.04880
+  0.10     0.0576        38.3%        0.04880
+  0.20     0.0319        26.9%        0.04880
+  0.30     0.0148        17.1%        0.04880
+  0.50    -0.0002         5.6%        0.04880
+Saved PPO clipping visualization to ppo_clipping.png
+```
+
 ## 2. 논의
 
 이 구현은 PPO의 종요로운 연산을 만든 도구 함수 여럿을 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.

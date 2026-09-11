@@ -48,6 +48,14 @@ if __name__ == '__main__':
     print(f"Loss: {loss.item():.4f}")
 ```
 
+**출력:**
+
+```
+Input shape: torch.Size([32, 784])
+Reconstruction shape: torch.Size([32, 784])
+Loss: 31782.0742
+```
+
 ## 2. 논의
 
 `SimpleAutoencoder`은 부호기와 풀개의 층 너비가 맞는 대칭 설계를 따른다(input_dim에서 hidden_dim, hidden_dim, latent_dim으로, 그리고 그 반대). 이 대칭이 꼭 필요하지는 않고 대칭이 아닌 얼개도 잘 되지만, 모델의 담이를 따져 보기 쉬워지고 풀개가 적어도 부호기만큼의 표현력을 갖추게 한다.

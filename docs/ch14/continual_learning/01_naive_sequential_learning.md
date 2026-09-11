@@ -650,6 +650,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+NAIVE SEQUENTIAL LEARNING BASELINE
+======================================================================
+
+This script implements the naive baseline for continual learning:
+  - Train on tasks sequentially
+  - No special techniques to prevent forgetting
+  - Comprehensive evaluation metrics
+
+This serves as the baseline to beat with continual learning methods.
+======================================================================
+
+Using device: cpu
+
+Task Configuration:
+  Task 0: Classes [0, 1]
+  Task 1: Classes [2, 3]
+  Task 2: Classes [4, 5]
+  Task 3: Classes [6, 7]
+  Task 4: Classes [8, 9]
+
+Model: 267,266 parameters
+
+======================================================================
+INITIAL EVALUATION (Before Any Training)
+======================================================================
+Task 0: 46.67% (random guess ~ 50.0%)
+Task 1: 51.08% (random guess ~ 50.0%)
+Task 2: 43.12% (random guess ~ 50.0%)
+Task 3: 59.16% (random guess ~ 50.0%)
+Task 4: 59.76% (random guess ~ 50.0%)
+
+============================================================
+
+... (117 lines omitted)
+
+======================================================================
+BASELINE ESTABLISHED
+======================================================================
+
+This naive approach shows significant catastrophic forgetting.
+In the next scripts, we'll implement continual learning methods
+that preserve knowledge of previous tasks while learning new ones:
+  - Script 03: Experience Replay
+  - Intermediate: EWC, LWF, Synaptic Intelligence, etc.
+======================================================================
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.

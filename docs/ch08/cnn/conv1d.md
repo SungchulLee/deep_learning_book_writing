@@ -89,6 +89,14 @@ print(f"Output shape: {output.shape}") # torch.Size([1, 1, 3])
 print(f"Output: {output}")             # tensor([[[-2., -2., -2.]]])
 ```
 
+**출력:**
+
+```
+Input shape: torch.Size([1, 1, 5])
+Output shape: torch.Size([1, 1, 3])
+Output: tensor([[[-2., -2., -2.]]], grad_fn=<ConvolutionBackward0>)
+```
+
 ### 다채널 예제
 
 ```python

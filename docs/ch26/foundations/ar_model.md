@@ -260,6 +260,30 @@ if __name__ == "__main__":
     print("\n✓ Both models working correctly!")
 ```
 
+**출력:**
+
+```
+============================================================
+Testing Linear AR Model
+============================================================
+Input shape: torch.Size([32, 5])
+Output shape: torch.Size([32, 1])
+
+Learned coefficients: [ 0.25879315  0.06611959 -0.3492072  -0.33453605  0.16079101]
+Learned constant: 0.2576
+
+Generated 10 future predictions
+
+============================================================
+Testing Neural AR Model
+============================================================
+Input shape: torch.Size([32, 5])
+Output shape: torch.Size([32, 1])
+Number of parameters: 1281
+
+✓ Both models working correctly!
+```
+
 ## 2. 논의
 
 이 짜기는 갈래 2개(`ARModel`, `NeuralARModel`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 얼개를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 셈 그래프를 뜻매김한다.

@@ -526,6 +526,37 @@ if __name__ == "__main__":
     print(f"Gap: {gap:.4f}")
 ```
 
+**출력:**
+
+```
+============================================================
+Variational Autoencoder Training
+============================================================
+
+Data shape: torch.Size([2000, 20])
+True latent dim: 3
+
+VAE architecture:
+  Input dim: 20
+  Hidden dims: [64, 32]
+  Latent dim: 5
+Epoch  10: Loss = 9.7852, Recon = 3.2732, KL = 6.5120
+Epoch  20: Loss = 7.6809, Recon = 2.2110, KL = 5.4699
+Epoch  30: Loss = 7.4358, Recon = 1.9500, KL = 5.4857
+Epoch  40: Loss = 7.3350, Recon = 1.8965, KL = 5.4385
+Epoch  50: Loss = 7.3403, Recon = 1.9382, KL = 5.4021
+Epoch  60: Loss = 7.3298, Recon = 1.8380, KL = 5.4918
+Epoch  70: Loss = 7.2790, Recon = 1.8411, KL = 5.4380
+Epoch  80: Loss = 7.2825, Recon = 1.8445, KL = 5.4380
+Epoch  90: Loss = 7.3502, Recon = 1.8260, KL = 5.5242
+Epoch 100: Loss = 7.3394, Recon = 1.8611, KL = 5.4783
+
+--- Amortization Gap Analysis ---
+Amortized ELBO: -7.6733
+Optimal ELBO: -8.2068
+Gap: -0.5335
+```
+
 ---
 
 ## 5. 조건부 VAE(CVAE)

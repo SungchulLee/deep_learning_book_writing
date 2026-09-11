@@ -1112,6 +1112,57 @@ if __name__ == "__main__":
     demo_predictive_distribution()
 ```
 
+**출력:**
+
+```
+============================================================
+BASIC BETA-BERNOULLI INFERENCE
+============================================================
+
+True θ: 0.7
+Data: 14 successes in 20 trials
+MLE: 0.7000
+
+Posterior summaries under different priors:
+------------------------------------------------------------
+
+Uniform prior: Beta(1, 1)
+  Posterior: Beta(15.0, 7.0)
+  Mean: 0.6818
+  Mode: 0.7000
+  Std:  0.0971
+  95% CI: [0.4782, 0.8541]
+  P(next success): 0.6818
+
+Jeffreys prior: Beta(0.5, 0.5)
+  Posterior: Beta(14.5, 6.5)
+  Mean: 0.6905
+  Mode: 0.7105
+  Std:  0.0986
+  95% CI: [0.4828, 0.8639]
+  P(next success): 0.6905
+
+Informative (pessimistic) prior: Beta(2, 8)
+  Posterior: Beta(16.0, 14.0)
+  Mean: 0.5333
+  Mode: 0.5357
+  Std:  0.0896
+  95% CI: [0.3569, 0.7055]
+
+... (40 lines omitted)
+
+
+Observed: 7 successes in 10 trials
+Posterior: Beta(8, 4)
+
+Predictive distribution for next 10 trials:
+----------------------------------------
+Expected successes in next 10: 6.67
+Most likely outcome: 7 successes
+
+See: predictive_distribution.png
+```
+
 ```python
 """
 흩어짐을 아는 가우스 추론: 온전한 구현
@@ -1667,6 +1718,57 @@ if __name__ == "__main__":
     demo_basic_inference()
     demo_sequential_updating()
     demo_predictive()
+```
+
+**출력:**
+
+```
+============================================================
+GAUSSIAN INFERENCE WITH KNOWN VARIANCE
+============================================================
+
+True μ: 5.0
+Known σ²: 4.0
+Sample: n = 10, x̄ = 5.8961
+MLE: 5.8961
+
+Posterior summaries under different priors:
+------------------------------------------------------------
+
+Weak prior (σ₀² = 100)
+  Prior: N(0.0, 100.0)
+  Posterior: N(5.8726, 0.3984)
+  Prior weight: 0.4%
+  Data weight: 99.6%
+  95% CI: [4.636, 7.110]
+
+Moderate prior
+  Prior: N(3.0, 4.0)
+  Posterior: N(5.6328, 0.3636)
+  Prior weight: 9.1%
+  Data weight: 90.9%
+  95% CI: [4.451, 6.815]
+
+Strong prior (wrong)
+  Prior: N(10.0, 1.0)
+  Posterior: N(7.0687, 0.2857)
+  Prior weight: 28.6%
+  Data weight: 71.4%
+  95% CI: [6.021, 8.116]
+
+
+... (36 lines omitted)
+
+Observed: 15 observations
+Posterior for μ: N(49.47, 1.0230)
+
+Predictive for x_16:
+  Mean: 49.47
+  Variance: 17.0230
+    = Aleatoric (16.0000) + Epistemic (1.0230)
+  95% Prediction Interval: [41.39, 57.56]
+
+See: gaussian_predictive.png
 ```
 
 ```python

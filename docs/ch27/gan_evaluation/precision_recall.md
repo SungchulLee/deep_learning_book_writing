@@ -507,6 +507,43 @@ def demonstrate_precision_recall():
 demonstrate_precision_recall()
 ```
 
+**출력:**
+
+```
+======================================================================
+Precision and Recall Demonstration
+======================================================================
+
+📊 Scenario 1: Ideal Generation
+--------------------------------------------------
+Computing Improved Precision/Recall (k=3)
+  Precision: 0.9790
+  Recall: 0.9778
+
+📊 Scenario 2: Mode Collapse (only 1 cluster)
+--------------------------------------------------
+Computing Improved Precision/Recall (k=3)
+  Precision: 0.9772
+  Recall: 0.2466
+Note: High precision (realistic), low recall (missing modes)
+
+📊 Scenario 3: Low Quality (noisy but diverse)
+--------------------------------------------------
+Computing Improved Precision/Recall (k=3)
+  Precision: 0.5018
+  Recall: 0.9870
+Note: Low precision (unrealistic), high recall (covers modes)
+
+======================================================================
+Summary
+======================================================================
+Scenario                     Precision       Recall
+--------------------------------------------------
+Ideal                           0.9790       0.9778
+Mode Collapse                   0.9772       0.2466
+Low Quality                     0.5018       0.9870
+```
+
 ---
 
 ## 4. 정밀도와 재현율 풀이하기

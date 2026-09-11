@@ -291,6 +291,39 @@ if __name__ == "__main__":
     print(f"Final Average Accuracy: {avg_accuracy:.1f}%")
 ```
 
+**출력:**
+
+```
+Training on Task 0 (classes [0, 1])
+  Task 0: 99.9%
+
+Training on Task 1 (classes [2, 3])
+  Task 0: 75.0% (was 99.9%, forgot 24.9%)
+  Task 1: 99.5%
+
+Training on Task 2 (classes [4, 5])
+  Task 0: 13.2% (was 99.9%, forgot 86.7%)
+  Task 1: 88.6% (was 99.5%, forgot 10.9%)
+  Task 2: 99.9%
+
+Training on Task 3 (classes [6, 7])
+  Task 0: 76.4% (was 99.9%, forgot 23.5%)
+  Task 1: 81.4% (was 99.5%, forgot 18.0%)
+  Task 2: 49.3% (was 99.9%, forgot 50.6%)
+  Task 3: 99.8%
+
+Training on Task 4 (classes [8, 9])
+  Task 0: 23.0% (was 99.9%, forgot 76.9%)
+  Task 1: 74.0% (was 99.5%, forgot 25.4%)
+  Task 2: 15.5% (was 99.9%, forgot 84.4%)
+  Task 3: 82.4% (was 99.8%, forgot 17.4%)
+  Task 4: 99.4%
+
+==================================================
+Average Forgetting: 51.0%
+Final Average Accuracy: 58.9%
+```
+
 ### 기대되는 결과
 
 이 보기를 돌리면 대개 다음과 같은 정확도 행렬이 나온다.

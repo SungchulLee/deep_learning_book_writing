@@ -256,6 +256,28 @@ if __name__ == "__main__":
     print(f"Spectral reconstruction accuracy: {match:.1%}")
 ```
 
+**출력:**
+
+```
+=== Adjacency Matrix ===
+tensor([[0, 0, 1, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 1, 0, 1, 1],
+        [1, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 1, 0, 1, 0, 1, 1],
+        [0, 1, 0, 1, 0, 0, 1, 1],
+        [1, 0, 0, 0, 0, 0, 0, 1],
+        [0, 1, 0, 1, 1, 0, 0, 0],
+        [0, 1, 0, 1, 1, 1, 0, 0]], dtype=torch.int32)
+
+Upper-tri vector (28 entries): [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0]
+
+BFS order: [3, 4, 7, 6, 2, 1, 5, 0]
+BFS bandwidth: 4
+
+Laplacian eigenvalues: [-0.     0.764  1.657  3.     3.529  4.     5.236  5.814]
+Spectral reconstruction accuracy: 100.0%
+```
+
 ---
 
 ## 연습문제

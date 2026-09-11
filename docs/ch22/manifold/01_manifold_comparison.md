@@ -102,6 +102,22 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Loading MNIST (subset of 2 000 samples for speed)...
+PCA reduced 784 -> 233 dimensions (95% var).
+
+PCA + MDS: 54.2s
+PCA + Isomap: 3.2s
+PCA + LLE: 1.1s
+PCA + t-SNE: 4.6s
+
+t-SNE close-up on digits {2, 3, 5}...
+
+Done. Three PNG files saved.
+```
+
 ## 2. 논의
 
 다양체 배움 방법마다 다른 기하 직관을 담고 있다. MDS는 둘씩의 거리를 전역으로 지켜, 유클리드가 아닌 잣대로 주성분 분석을 자연스럽게 넓힌 것이 된다. Isomap은 유클리드 거리를 가장 가까운 이웃 그래프에서 셈한 측지 거리로 갈음해 이 생각을 넓히며, 그래서 스위스 롤 같은 굽은 다양체를 "펼" 수 있다. LLE는 국소 선형 이웃에 힘을 쏟아 점마다 이웃의 무게 붙은 아우름으로 다시 세운 뒤 그 무게를 지키는 낮은 차원 배치를 찾는다.

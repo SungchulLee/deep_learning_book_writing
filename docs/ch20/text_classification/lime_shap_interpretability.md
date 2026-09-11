@@ -384,6 +384,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+============================================================
+Part 1: LIME (Local Interpretable Model-Agnostic Explanations)
+============================================================
+  Classifier accuracy: 1.000
+
+  # 글 풀이에 LIME 쓰기:
+  from lime.lime_text import LimeTextExplainer
+  from sklearn.pipeline import make_pipeline
+
+  # 물길 만들기(벡터로 만들개 + 갈래 매개)
+  pipe = make_pipeline(vectorizer, clf)
+
+  # LIME 풀이개 첫자리매김
+  class_names = ["negative", "positive"]
+  explainer = LimeTextExplainer(class_names=class_names)
+
+  # 어림 하나 풀이하기
+  text = "Revenue declined sharply missing consensus estimates"
+  exp = explainer.explain_instance(
+      text,
+      pipe.predict_proba,
+      num_features=6,       # 가장 중요한 낱말 6개
+      num_samples=1000,     # 흔든 횟수
+  )
+
+  # 풀이 보기
+  print(exp.as_list())
+  # → [('declined', -0.42),    # 부정 쪽으로 민다
+  #    ('missing', -0.31),     # 음성 쪽으로 민다
+  #    ('revenue', 0.08),      # 살짝 양성(아리송함)
+  #    ('consensus', -0.12),   # 음성 쪽으로 민다
+  #    ('sharply', -0.19),     # 음성 쪽으로 민다
+  #    ('estimates', 0.05)]    # 가운데
+
+... (147 lines omitted)
+
+    text = "Tesla missed delivery targets amid supply chain disruptions"
+    # FinBERT의 어림: 음성 (0.89)
+    # LIME 풀이:
+    #   "missed"       → -0.35 (센 음성 신호)
+    #   "disruptions"  → -0.22 (음성 맥락)
+    #   "delivery"     → -0.08 (이 맥락에서는 살짝 음성)
+    #   "targets"      → -0.05 ("missing"과 얽힘)
+    #   "Tesla"        →  0.02 (가운데 — 좋다! 상표 치우침 없음)
+
+Done.
+```
+
 ## 2. 논의
 
 `TextLSTM` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.

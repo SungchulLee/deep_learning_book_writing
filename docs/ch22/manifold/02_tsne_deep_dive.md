@@ -92,6 +92,19 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Generating blobs to show perplexity effect...
+Showing convergence with increasing iterations...
+
+MNIST: comparing raw t-SNE vs PCA+t-SNE speed...
+  Direct t-SNE:    8.3s
+  PCA + t-SNE:     10.8s  (speed-up: 0.8x)
+
+Done.
+```
+
 ## 2. 논의
 
 t-SNE의 헷갈림도 매개변수는 점마다 헤아리는 실효 이웃 수를 부드럽게 재는 잣대 노릇을 한다. 헷갈림도가 낮으면(5~10) 알고리즘이 아주 국소한 짜임에 매달려 작고 빽빽한 무리를 여럿 만든다. 헷갈림도가 높으면(50~100) 이웃이 넓어져 가까운 무리가 합쳐지고 더 전역적인 짜임이 드러난다. 5와 50 사이 값 여럿을 시험해 여러 자리매김에서 한결같이 남는 짜임을 찾기를 권한다. 그런 짜임이 어떤 매개변수 고름이 만든 헛것이 아니라 참된 결일 가능성이 크다.

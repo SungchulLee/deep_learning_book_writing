@@ -208,6 +208,33 @@ if __name__ == "__main__":
     demo_normalization()
 ```
 
+**출력:**
+
+```
+============================================================
+Observation and Reward Normalization Demo
+============================================================
+
+Before normalization (raw observations):
+  Mean:  [ 4.99019e+02 -5.00000e-02  2.61250e+01  0.00000e+00]
+  Std:   [8.6371e+01 9.0000e-03 5.1939e+01 1.0000e-03]
+
+After normalization:
+  Mean:  [ 0.013  0.016  0.03  -0.003]
+  Std:   [1.018 0.978 0.997 0.751]
+  Range: [-3.06, 3.83]
+
+----------------------------------------
+Reward Normalization:
+  Raw:  mean=45.1, std=106.0
+  Norm: mean=0.336, std=1.839
+
+----------------------------------------
+Advantage Normalization:
+  Raw:  mean=2.378, std=4.814
+  Norm: mean=0.000000, std=1.000
+```
+
 ## 2. 논의
 
 이 구현은 봄 고르게 하기의 한가운데 논리를 담은 `RunningMeanStd`, `ObservationNormalizer`, `RewardNormalizer` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.

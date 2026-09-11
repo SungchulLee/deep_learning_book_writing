@@ -486,6 +486,31 @@ if __name__ == "__main__":
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}")
 ```
 
+**출력:**
+
+```
+Epoch 1/20, Loss: 8.5710
+Epoch 2/20, Loss: 8.4871
+Epoch 3/20, Loss: 8.4326
+Epoch 4/20, Loss: 8.3878
+Epoch 5/20, Loss: 8.3326
+Epoch 6/20, Loss: 8.2584
+Epoch 7/20, Loss: 8.1662
+Epoch 8/20, Loss: 8.0654
+Epoch 9/20, Loss: 7.9797
+Epoch 10/20, Loss: 7.8929
+Epoch 11/20, Loss: 7.8092
+Epoch 12/20, Loss: 7.7274
+Epoch 13/20, Loss: 7.6537
+Epoch 14/20, Loss: 7.5746
+Epoch 15/20, Loss: 7.4908
+Epoch 16/20, Loss: 7.4138
+Epoch 17/20, Loss: 7.3334
+Epoch 18/20, Loss: 7.2542
+Epoch 19/20, Loss: 7.1734
+Epoch 20/20, Loss: 7.0938
+```
+
 ---
 
 ## 6. 이름표 평활화

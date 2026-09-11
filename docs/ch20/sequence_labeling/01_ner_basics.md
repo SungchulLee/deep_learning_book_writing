@@ -567,6 +567,57 @@ if __name__ == "__main__":
         print(f"{token.text:<20} {token.label:<10}")
 ```
 
+**출력:**
+
+```
+======================================================================
+Named Entity Recognition - Basic Concepts Demonstration
+======================================================================
+
+1. Creating Named Entities
+----------------------------------------------------------------------
+Text: Apple Inc. was founded by Steve Jobs in Cupertino, California.
+
+Entities:
+  - Entity(text='Apple Inc.', type='ORG', span=(0, 10))
+  - Entity(text='Steve Jobs', type='PER', span=(26, 37))
+  - Entity(text='Cupertino', type='LOC', span=(41, 50))
+  - Entity(text='California', type='LOC', span=(52, 62))
+
+
+2. Tokenization for NER
+----------------------------------------------------------------------
+Tokens extracted: 13
+  1. 'Apple' at (0:5)
+     Features: capitalized=True, all_caps=False
+  2. 'Inc' at (6:9)
+     Features: capitalized=True, all_caps=False
+  3. '.' at (9:10)
+     Features: capitalized=False, all_caps=False
+  4. 'was' at (11:14)
+     Features: capitalized=False, all_caps=False
+  5. 'founded' at (15:22)
+     Features: capitalized=False, all_caps=False
+  6. 'by' at (23:25)
+     Features: capitalized=False, all_caps=False
+  7. 'Steve' at (26:31)
+     Features: capitalized=True, all_caps=False
+  8. 'Jobs' at (32:36)
+
+... (99 lines omitted)
+
+CEO                  O         
+Satya                B-PER     
+Nadella              I-PER     
+announced            O         
+new                  O         
+AI                   O         
+products             O         
+in                   O         
+Seattle              O         
+.                    I-LOC     
+```
+
 ## 2. 논의
 
 여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 차례 이름표 붙이기의 핵심 개념을 보여 준다. 단원별로 나뉜 짜임 덕분에 낱낱의 조각을 익히고 다른 일이나 자료 뭉치에 맞게 고치기 쉽다.

@@ -392,6 +392,12 @@ out_pytorch = F.conv2d(x, w, b, padding=1)
 print(f"Max difference: {(out_custom - out_pytorch).abs().max().item():.2e}")
 ```
 
+**출력:**
+
+```
+Max difference: 3.38e+01
+```
+
 이 행렬 곱 관점은 입력에 대한 합성곱의 **역전파**가 왜 전치 합성곱인지도 밝혀 준다. 그것은 $\mathbf{T}^\top$을 곱하는 것에 해당한다.
 
 ---
@@ -456,6 +462,12 @@ output_pytorch = conv(x)
 
 print(f"Max difference: {(output_manual - output_pytorch).abs().max().item():.2e}")
 # 아주 작아야 한다 (수치 정밀도)
+```
+
+**출력:**
+
+```
+Max difference: 3.81e-06
 ```
 
 ### 모서리 검출 시각화
@@ -531,6 +543,16 @@ xcorr_symmetric = cross_correlation(x, symmetric_kernel)
 
 print("\nFor symmetric kernels, convolution = cross-correlation")
 print(f"Difference: {(conv_symmetric - xcorr_symmetric).abs().max().item():.2e}")
+```
+
+**출력:**
+
+```
+For asymmetric kernels, convolution ≠ cross-correlation
+Difference: 30.2844
+
+For symmetric kernels, convolution = cross-correlation
+Difference: 0.00e+00
 ```
 
 ---

@@ -159,6 +159,22 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+X_train shape: torch.Size([7000, 1, 50])  Y_train shape: torch.Size([7000, 1, 50])
+
+Model parameters: 6,010
+Device: cpu
+
+Epoch   1  train_loss=0.1601  val_loss=0.1527
+Epoch   5  train_loss=0.0189  val_loss=0.0188
+Epoch  10  train_loss=0.0177  val_loss=0.0177
+Epoch  15  train_loss=0.0172  val_loss=0.0175
+Epoch  20  train_loss=0.0171  val_loss=0.0171
+Done.
+```
+
 ## 2. 논의
 
 이 짜기는 갈래 2개(`CausalConv1d`, `SimpleDilatedStack`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 얼개를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 셈 그래프를 뜻매김한다.

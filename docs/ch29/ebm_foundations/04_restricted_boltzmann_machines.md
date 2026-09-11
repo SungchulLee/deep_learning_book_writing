@@ -210,6 +210,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+RESTRICTED BOLTZMANN MACHINES
+======================================================================
+
+======================================================================
+TRAINING RBM ON MNIST
+======================================================================
+Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
+Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
+Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw/t10k-images-idx3-ubyte.gz
+Extracting ./data/MNIST/raw/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
+Failed to download (trying next):
+
+... (24 lines omitted)
+
+======================================================================
+MODULE COMPLETE
+======================================================================
+
+Key Takeaways:
+  ✓ RBMs use bipartite architecture for tractable inference
+  ✓ Contrastive Divergence enables practical training
+  ✓ RBMs learn useful feature representations
+
+Next: 05_contrastive_divergence.py
+```
+
 ## 2. 논의
 
 제한 볼츠만 기계는 두 쪽 에너지 함수 $E(v,h) = -a^\top v - b^\top h - v^\top W h$ 위에 세운 바탕이 되는 만들어 내는 모델이다. 여기서 $v$과 $h$은 드러난 이진 단위와 숨은 이진 단위를 나타내고 $W$, $a$, $b$은 배울 수 있는 매개변수이다. 두 쪽 제한, 곧 드러난 층 안이나 숨은 층 안에 이음이 없다는 것이 제한 볼츠만 기계를 다룰 만하게 만든다. 조건 분포 $P(h|v)$과 $P(v|h)$이 서로 얽매이지 않은 베르누이 분포로 나뉘어 효율 좋은 덩이 깁스 뽑기가 가능해진다.

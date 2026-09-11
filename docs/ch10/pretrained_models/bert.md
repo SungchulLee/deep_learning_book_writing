@@ -612,6 +612,20 @@ if __name__ == "__main__":
     print(f"Classification loss: {cls_outputs['loss'].item():.4f}")
 ```
 
+**출력:**
+
+```
+Input shape: torch.Size([4, 128])
+Last hidden state shape: torch.Size([4, 128, 768])
+Pooler output shape: torch.Size([4, 768])
+
+Total parameters: 109,482,240
+
+--- Testing Classification Model ---
+Classification logits shape: torch.Size([4, 2])
+Classification loss: 0.5852
+```
+
 ---
 
 ## 5. 아래쪽 과제를 위한 미세 조정

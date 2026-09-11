@@ -321,6 +321,47 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+============================================================
+LSTM: Long Short-Term Memory Networks
+============================================================
+
+Key Advantages of LSTM:
+1. Solves vanishing gradient problem
+2. Can learn long-term dependencies
+3. Gates control information flow
+4. Cell state acts as 'memory highway'
+
+LSTM vs Traditional RNN:
+- RNN: Simple recurrent connection
+- LSTM: Gated architecture with cell state
+- LSTM has 4x more parameters than RNN
+============================================================
+LSTM Gate Mechanics Demonstration
+============================================================
+
+✓ Gate activation plot saved as 'lstm_gates.png'
+
+============================================================
+LSTM Sequence Prediction Example: Sine Wave
+============================================================
+
+Input sequence length: 10
+Hidden state dimension: (20, 1)
+Number of LSTM parameters:
+  - Forget gate: 440
+  - Input gate: 440
+  - Cell candidate: 440
+  - Output gate: 440
+  - Total: 1781
+
+============================================================
+LSTM demonstrations complete!
+============================================================
+```
+
 ## 2. 논의
 
 이 구현은 클래스 두 개(`LSTMCell`, `LSTM`)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.

@@ -527,6 +527,40 @@ def demonstrate_fid_computation():
 demonstrate_fid_computation()
 ```
 
+**출력:**
+
+```
+======================================================================
+Fréchet Inception Distance Demonstration
+======================================================================
+
+📊 Scenario 1: Identical Distributions
+--------------------------------------------------
+FID: 420.0447
+Note: Small non-zero FID due to finite sample estimation
+
+📊 Scenario 2: Shifted Mean
+--------------------------------------------------
+FID: 933.4830
+Note: Mean shift increases FID significantly
+
+📊 Scenario 3: Reduced Variance (Mode Collapse)
+--------------------------------------------------
+FID: 722.7101
+Note: Reduced variance indicates mode collapse
+
+======================================================================
+Summary
+======================================================================
+Scenario                              FID
+----------------------------------------
+Identical (baseline)               420.04
+Shifted mean                       933.48
+Mode collapse                      722.71
+
+Lower FID = Better (more similar to real distribution)
+```
+
 ---
 
 ## 5. FID 값 풀이하기

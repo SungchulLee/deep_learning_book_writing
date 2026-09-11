@@ -150,6 +150,13 @@ print(f"Optimal parameters: {config['optimal_parameters'] / 1e9:.1f}B")
 print(f"Optimal tokens: {config['optimal_tokens'] / 1e12:.2f}T")
 ```
 
+**출력:**
+
+```
+Optimal parameters: 408.2B
+Optimal tokens: 0.41T
+```
+
 ### 손실 어림하기
 
 ```python

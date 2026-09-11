@@ -395,6 +395,24 @@ if __name__ == "__main__":
     print(f"Number of masked patches: {mask.sum(dim=1).mean().item():.0f} / {model.patch_embed.num_patches}")
 ```
 
+**출력:**
+
+```
+MAE Model initialized successfully!
+Image size: 224x224
+Patch size: 16x16
+Number of patches: 196
+Mask ratio: 0.75
+Encoder depth: 12 blocks
+Decoder depth: 8 blocks
+
+Test forward pass successful!
+Loss: 1.3435
+Prediction shape: torch.Size([4, 196, 768])
+Mask shape: torch.Size([4, 196])
+Number of masked patches: 147 / 196
+```
+
 ## 2. 논의
 
 MAE의 구조는 비대칭 부호기-복호기 설계이다. **부호기**는 보이는(가리지 않은) 조각에서만 도는 표준 비전 트랜스포머로, 가림 비율이 75%이면 조각이 $16 \times 16$인 $224 \times 224$ 그림에서 196개 가운데 49개만 처리한다는 뜻이다. 이것이 핵심 계산 통찰이다. 가린 조각을 무거운 부호기에 넣지 않아 MAE는 모든 조각을 처리할 때보다 학습이 약 $3$배 빨라지고 기억도 크게 아낀다. 보이는 조각은 부호기에 들어가기 전에 위치 임베딩을 받으므로 공간 정보가 지켜진다.

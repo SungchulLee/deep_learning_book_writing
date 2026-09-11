@@ -247,6 +247,18 @@ if __name__ == "__main__":
     demonstrate_multi_head()
 ```
 
+**출력:**
+
+```
+Multi-Head Attention Demonstration
+----------------------------------------
+Input:    torch.Size([2, 10, 64])
+Output:   torch.Size([2, 10, 64])
+Weights:  torch.Size([2, 8, 10, 10])
+Heads:    8
+Head dim: 8
+```
+
 ### 일반적인 다중 머리 어텐션 (교차 어텐션용)
 
 ```python

@@ -641,6 +641,57 @@ if __name__ == "__main__":
     print("5. Always validate tag sequences for consistency")
 ```
 
+**출력:**
+
+```
+======================================================================
+IOB and BIOES Tagging Schemes Demonstration
+======================================================================
+
+1. IOB2 Tagging Scheme
+----------------------------------------------------------------------
+Text: Steve Jobs founded Apple Inc. in Cupertino
+
+Tokens and IOB2 tags:
+Token           IOB2 Tag  
+------------------------------
+Steve           B-PER     
+Jobs            I-PER     
+founded         O         
+Apple           B-ORG     
+Inc             I-ORG     
+.               O         
+in              O         
+Cupertino       B-LOC     
+
+Validation: Valid IOB2 sequence
+
+
+2. BIOES Tagging Scheme
+----------------------------------------------------------------------
+Token           IOB2       BIOES     
+----------------------------------------
+Steve           B-PER      B-PER     
+Jobs            I-PER      E-PER     
+founded         O          O         
+Apple           B-ORG      B-ORG     
+Inc             I-ORG      E-ORG     
+.               O          O         
+
+... (139 lines omitted)
+
+======================================================================
+Demonstration complete!
+======================================================================
+
+Key takeaways:
+1. IOB2 uses B- and I- prefixes, simpler but less explicit
+2. BIOES adds E- and S- for explicit boundaries
+3. Both schemes can represent the same entities
+4. BIOES often performs better in deep learning models
+5. Always validate tag sequences for consistency
+```
+
 ## 2. 논의
 
 여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 차례 이름표 붙이기의 핵심 개념을 보여 준다. 단원별로 나뉜 짜임 덕분에 낱낱의 조각을 익히고 다른 일이나 자료 뭉치에 맞게 고치기 쉽다.

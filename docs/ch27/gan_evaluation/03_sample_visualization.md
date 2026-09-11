@@ -623,6 +623,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+MODULE 52.03: SAMPLE VISUALIZATION AND QUALITY ASSESSMENT
+======================================================================
+======================================================================
+Sample Visualization Demonstration
+======================================================================
+
+Generated 64 synthetic images
+Image shape: torch.Size([64, 1, 28, 28])
+
+Creating grid visualization...
+✓ Saved: sample_grid.png
+
+----------------------------------------------------------------------
+Diversity Analysis:
+----------------------------------------------------------------------
+Average pairwise L2 distance: 12.4770
+Min pairwise distance: 11.5609
+Max pairwise distance: 13.2881
+
+Interpretation:
+  - Low average distance → Low diversity (mode collapse)
+  - High average distance → High diversity
+
+======================================================================
+Latent Space Interpolation Demonstration
+======================================================================
+
+Interpolating between two random latent codes
+Latent dimension: 10
+z1 norm: 2.9090
+z2 norm: 3.5240
+
+
+... (61 lines omitted)
+
+       - 격자를 눈으로 살펴보기
+       - 다양함이 낮으면 봉우리 무너짐을 뜻한다
+    
+    5. 모범 관행:
+       - 늘 표본을 그려 본다
+       - 사이 메우기가 매끄러운지 살핀다
+       - 품질 잣대를 여럿 쓴다
+       - 수로 따지기와 결로 따지기를 아우른다
+    
+======================================================================
+```
+
 ## 2. 논의
 
 이 짜기는 단원 52.03: 표본 그려 보기와 품질 따지기에 대해 자리 잡은 가장 좋은 방식을 따른다. 코드는 모델 뜻매김, 익히기 논리, 도구 함수를 또렷이 갈라 짜였다. 핵심 설계 결정에는 깨움 함수 고르기, 고르게 맞추기 방책, 가장 좋게 하기 웃매개변수가 들며 모두 익히기의 안정과 내놓기 품질에 크게 영향을 준다.

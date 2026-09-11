@@ -195,6 +195,47 @@ if __name__ == "__main__":
     visualize_gft()
 ```
 
+**출력:**
+
+```
+============================================================
+Graph Fourier Transform
+============================================================
+  Low-freq (sin 1 cycle)        : low=0.999, high=0.000
+  High-freq (sin 10 cycles)     : low=0.023, high=0.001
+  Step function                 : low=0.968, high=0.006
+  Random                        : low=0.087, high=0.288
+
+============================================================
+Parseval's Theorem
+============================================================
+  Trial 1: spatial=29.4642, spectral=29.4642, match=True
+  Trial 2: spatial=27.1009, spectral=27.1009, match=True
+  Trial 3: spatial=28.3457, spectral=28.3457, match=True
+  Trial 4: spatial=36.8336, spectral=36.8336, match=True
+  Trial 5: spatial=28.0226, spectral=28.0226, match=True
+
+============================================================
+Spectral Convolution
+============================================================
+Spectral filtering match: True
+Original signal range: [-1.91, 3.85]
+Filtered signal range: [-1.25, 3.33]
+
+============================================================
+Learnable Spectral Filter
+============================================================
+  Epoch 50: Loss=0.3909
+  Epoch 100: Loss=0.3009
+  Epoch 150: Loss=0.2354
+  Epoch 200: Loss=0.1875
+
+Learned filter (first 5): [ 0.644  0.431  0.076 -0.189 -0.129]
+Ideal low-pass (first 5): [1.    0.305 0.091 0.053 0.051]
+
+Visualization saved to graph_fourier.png
+```
+
 ## 2. 논의
 
 이 짜기는 그래프 푸리에 변환의 핵심 연산을 짜는 여러 도구 함수를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.

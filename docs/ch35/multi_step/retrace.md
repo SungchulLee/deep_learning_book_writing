@@ -244,6 +244,47 @@ if __name__ == "__main__":
     demo_retrace()
 ```
 
+**출력:**
+
+```
+============================================================
+Retrace(λ) Demo
+============================================================
+
+--- Retrace Target Computation ---
+  λ=0.00: targets = [5.246 5.754 8.631 5.439]...
+  λ=0.50: targets = [7.093 9.117 8.273 5.662]...
+  λ=0.95: targets = [10.145 10.594  6.625  4.252]...
+  λ=1.00: targets = [10.127 10.315  6.087  3.814]...
+
+--- Trace Coefficients ---
+  For greedy target policy with ε-greedy behavior (ε=0.1, |A|=4):
+    Greedy action: μ=0.925, π=1.0, c=λ·min(1,π/μ)=0.950
+    Non-greedy:    μ=0.025, π=0.0, c=λ·min(1,π/μ)=0.000
+    → Trace is cut when behavior took non-greedy action
+
+--- Effective Trace Length ---
+    λ=0.5, P(greedy)=0.5: expected trace = 1.3 steps
+    λ=0.5, P(greedy)=0.8: expected trace = 1.7 steps
+    λ=0.5, P(greedy)=0.95: expected trace = 1.9 steps
+    λ=0.8, P(greedy)=0.5: expected trace = 1.7 steps
+    λ=0.8, P(greedy)=0.8: expected trace = 2.8 steps
+    λ=0.8, P(greedy)=0.95: expected trace = 4.2 steps
+    λ=0.95, P(greedy)=0.5: expected trace = 1.9 steps
+    λ=0.95, P(greedy)=0.8: expected trace = 4.2 steps
+    λ=0.95, P(greedy)=0.95: expected trace = 10.3 steps
+    λ=1.0, P(greedy)=0.5: expected trace = 2.0 steps
+    λ=1.0, P(greedy)=0.8: expected trace = 5.0 steps
+    λ=1.0, P(greedy)=0.95: expected trace = 20.0 steps
+
+--- Retrace vs N-step (with off-policy data) ---
+  Retrace targets: [6.843 5.95  7.684 6.843 5.95 ]
+  N-step targets:  [12.321 11.774 11.192 10.574  9.916]
+  Difference: 2.5774
+
+Retrace demo complete!
+```
+
 ## 2. 논의
 
 이 짜기는 Retrace의 핵심 논리를 감싼 `TrajectoryBuffer` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.

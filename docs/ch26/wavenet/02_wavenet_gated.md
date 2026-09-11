@@ -240,6 +240,22 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+WaveNet parameters: 20,001
+Receptive field:    8 time steps
+Device:             cpu
+
+Epoch   1  train=0.06757  val=0.02158
+Epoch   5  train=0.02100  val=0.02083
+Epoch  10  train=0.02070  val=0.02067
+Epoch  15  train=0.02050  val=0.02037
+Epoch  20  train=0.02020  val=0.02016
+Epoch  25  train=0.02004  val=0.02010
+Done.
+```
+
 ## 2. 논의
 
 이 짜기는 갈래 4개(`CausalConv1d`, `GatedActivationUnit`, `WaveNetResidualBlock`, `WaveNet`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 얼개를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 셈 그래프를 뜻매김한다.

@@ -202,6 +202,45 @@ if __name__ == "__main__":
     demonstrate_scaled_dot_product()
 ```
 
+**출력:**
+
+```
+============================================================
+Basic Attention Mechanism Demo
+============================================================
+
+Input shapes:
+  Query: torch.Size([2, 8])
+  Keys: torch.Size([2, 5, 8])
+  Values: torch.Size([2, 5, 8])
+
+Output shapes:
+  Context: torch.Size([2, 8])
+  Attention weights: torch.Size([2, 5])
+
+Attention weights (first sample):
+  [0.21115758 0.21580535 0.18983641 0.20311143 0.18008928]
+  Sum: 1.0000
+
+============================================================
+Scaled Dot-Product Attention Demo
+============================================================
+
+Input shapes:
+  Query: torch.Size([2, 4, 3, 16])
+  Key: torch.Size([2, 4, 5, 16])
+  Value: torch.Size([2, 4, 5, 16])
+
+Output shapes:
+  Output: torch.Size([2, 4, 3, 16])
+  Attention weights: torch.Size([2, 4, 3, 5])
+
+Attention weights (first sample, first head):
+[[0.37980852 0.32531953 0.14795619 0.         0.03210117]
+ [0.         0.16130738 0.16560592 0.33075723 0.2743502 ]
+ [0.38786015 0.17309718 0.15934652 0.35342112 0.03738624]]
+```
+
 ## 2. 논의
 
 여기서 구현한 두 어텐션 장치는 순차열 대 순차열 모델이 걸어온 길의 중요한 이정표이다. **덧셈(바다나우) 어텐션**은 질의와 열쇠를 $\tanh$ 비선형이 있는 학습된 두 층 신경망에 넣어 정렬 점수를 계산한다. 열쇠 자리마다의 점수는 $\text{score}(q, k) = v^\top \tanh(W_q q + W_k k)$이며 $W_q$, $W_k$, $v$이 학습 가능한 매개변수이다. 질의와 열쇠의 차원이 같지 않아도 되어 유연하지만, 매개변수가 더 들고 자리마다의 계산이 더 비싸다.

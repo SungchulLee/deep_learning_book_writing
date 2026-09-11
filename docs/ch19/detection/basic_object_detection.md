@@ -578,6 +578,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+BASIC OBJECT DETECTION CONCEPTS
+======================================================================
+
+This example teaches fundamental detection concepts:
+1. Bounding boxes and coordinate systems
+2. Intersection over Union (IoU)
+3. Non-Maximum Suppression (NMS)
+4. Confidence scores and thresholding
+
+Step 1: Bounding Box Formats
+----------------------------------------------------------------------
+Original format (xyxy): [100, 150, 300, 450]
+  → Top-left: (100, 150)
+  → Bottom-right: (300, 450)
+
+Converted to xywh: [100, 150, 200, 300]
+  → Position: (100, 150)
+  → Size: 200 × 300
+
+Converted to cxcywh (YOLO): [200.0, 300.0, 200, 300]
+  → Center: (200.0, 300.0)
+  → Size: 200 × 300
+
+
+Step 2: Intersection over Union (IoU)
+----------------------------------------------------------------------
+Box A: [100, 100, 200, 200]
+Box B: [150, 150, 250, 250]
+IoU: 0.1429
+
+Perfect match IoU: 1.0000 (boxes are identical)
+No overlap IoU: 0.0000 (boxes don't overlap)
+
+... (67 lines omitted)
+
+5. Pipeline: Confidence filter → NMS → Final detections
+
+Core Metrics:
+  - Typical confidence threshold: 0.5
+  - Typical NMS IoU threshold: 0.5
+  - IoU > 0.5 considered 'good' detection
+
+You now understand the foundations of object detection!
+Next: Example 2 - Learn YOLO architecture
+======================================================================
+```
+
 ## 2. 논의
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.

@@ -169,6 +169,24 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Sample responsibilities (first 5 points):
+  Shape: (750, 3)
+  Point 0: [1. 0. 0.]
+  Point 1: [1. 0. 0.]
+  Point 2: [0.999 0.    0.001]
+  Point 3: [1. 0. 0.]
+  Point 4: [0.998 0.    0.002]
+
+Best k by BIC: 3
+
+Bayesian GMM: 3 active components out of 10
+  Weights: [0.001 0.001 0.267 0.323 0.407 0.    0.    0.    0.    0.   ]
+Done.
+```
+
 ## 2. 논의
 
 GMM은 데이터 분포를 $K$개 가우시안 성분의 가중합 $p(\mathbf{x}) = \sum_{k=1}^{K} \pi_k \mathcal{N}(\mathbf{x} \mid \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)$으로 모형화한다. 여기서 $\pi_k$는 혼합 가중치, $\boldsymbol{\mu}_k$는 평균, $\boldsymbol{\Sigma}_k$는 공분산 행렬이다. EM 알고리즘은 각 데이터 점에 대한 각 성분의 **책임도(responsibility)** 를 계산하는 단계(E 단계)와 기대 로그가능도를 최대화하도록 매개변수를 갱신하는 단계(M 단계)를 번갈아 수행하여 이 매개변수들을 적합시킨다. 딱 떨어지는 배정을 하는 K-평균과 달리, GMM의 책임도는 각 점에 대해 성분들에 대한 확률 분포를 주므로 군집 경계가 겹치는 미묘한 상황도 표현할 수 있다.

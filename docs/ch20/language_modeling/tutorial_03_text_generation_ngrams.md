@@ -132,6 +132,15 @@ if __name__ == "__main__":
         print(f"Temp {temp}:", gen.generate_temperature(temp))
 ```
 
+**출력:**
+
+```
+Greedy: the cat sat on the cat sat on the cat sat on the cat sat on the cat sat on
+Temp 0.5: the dog are friends
+Temp 1.0: the cat sat on the cat sat on the cat sat on the cat sat on the cat and the
+Temp 1.5: the cat sat on the cat and the cat sat on the cat sat on the log
+```
+
 ## 2. 논의
 
 욕심쟁이 풀기는 늘 가장 그럴듯한 다음 낱말을 골라 늘 같은 내놓음을 낸다. 단순하고 빠르지만 모델이 확률 높은 고리에 갇혀 되풀이되는 글을 내기 쉽다. 보기로 여러 맥락 뒤에서 "the"가 늘 가장 그럴듯하다면 욕심쟁이 풀기는 "the"로 뒤덮인 차례를 낸다. 또 늘 같다는 성질 때문에, 한 걸음에서 덜 그럴듯한 낱말을 골라야 뒤에 더 좋은 낱말이 나오는 전체적으로 가장 좋은 차례를 놓칠 수 있다.

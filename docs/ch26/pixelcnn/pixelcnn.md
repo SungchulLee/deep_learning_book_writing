@@ -299,6 +299,32 @@ if __name__ == "__main__":
     print("which trains on actual image data (like MNIST)")
 ```
 
+**출력:**
+
+```
+======================================================================
+Testing Simplified PixelCNN
+======================================================================
+
+Model has 13,921 parameters
+
+Forward pass:
+  Input shape: torch.Size([4, 1, 28, 28])
+  Output shape: torch.Size([4, 1, 28, 28])
+
+Generating images...
+  This will take a while (generating pixel by pixel)...
+  Generated shape: torch.Size([2, 1, 8, 8])
+  Sample pixel values: tensor([[0., 0., 1.],
+        [1., 1., 0.],
+        [0., 1., 1.]])
+
+✓ PixelCNN working correctly!
+
+Note: For real training, use the train.py script
+which trains on actual image data (like MNIST)
+```
+
 ## 2. 논의
 
 이 짜기는 갈래 3개(`MaskedConv2d`, `ResidualBlock`, `PixelCNN`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 얼개를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 셈 그래프를 뜻매김한다.

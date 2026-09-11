@@ -232,6 +232,57 @@ if __name__ == "__main__":
     demo_diagnostics()
 ```
 
+**출력:**
+
+```
+============================================================
+Loss Sign Verification
+============================================================
+Positive advantage (A=2.0):
+  Loss = 3.0000
+  Gradient = -2.0000
+  Direction: Increase log_prob ✓
+
+Negative advantage (A=-1.0):
+  Loss = -1.5000
+  Gradient = 1.0000
+  Direction: Decrease log_prob ✓
+
+============================================================
+Training Diagnostics Simulation
+============================================================
+==================================================
+RL Training Diagnostics Report
+==================================================
+episode_rewards     : mean=249.6145  std= 28.8581  last=297.5122
+policy_loss         : mean=  0.2767  std=  0.1034  last=  0.0903
+value_loss          : mean=  0.6495  std=  0.1855  last=  0.7207
+entropy             : mean=  0.3275  std=  0.0722  last=  0.2050
+kl_divergence       : mean=  0.0140  std=  0.0054  last=  0.0096
+clip_fraction       : mean=  0.1373  std=  0.0522  last= -0.0043
+grad_norm           : mean=  0.2990  std=  0.0978  last=  0.2821
+explained_variance  : 0.8805
+
+✅ All diagnostics healthy
+
+
+==================================================
+Simulating Problematic Training...
+
+... (8 lines omitted)
+
+grad_norm           : mean=595.0000  std= 57.6628  last=690.0000
+explained_variance  : 0.0000
+
+--------------------------------------------------
+ALERTS:
+  ⚠️ ENTROPY COLLAPSE: Policy may be stuck (entropy near 0)
+  ⚠️ LARGE GRADIENTS: Consider reducing learning rate
+  ⚠️ HIGH KL: Policy changing too fast
+  ⚠️ HIGH CLIP FRACTION: Consider reducing learning rate or clip range
+  ⚠️ PERFORMANCE DEGRADATION: Reward declining
+```
+
 ## 2. 논의
 
 이 구현은 힘 북돋우는 배움 벌레잡기의 한가운데 논리를 담은 `RLDiagnostics` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.

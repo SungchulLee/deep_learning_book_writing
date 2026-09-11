@@ -123,6 +123,27 @@ if __name__ == "__main__":
     demo_ssm()
 ```
 
+**출력:**
+
+```
+Sliced Score Matching Demo
+================================================================================
+
+Training with SSM...
+Epoch    0 | Loss: -0.020015
+Epoch  200 | Loss: -1.292030
+Epoch  400 | Loss: -1.061390
+Epoch  600 | Loss: -1.039186
+Epoch  800 | Loss: -0.922932
+
+✓ SSM training complete!
+
+Key observation: SSM avoids full Jacobian computation
+  - Only needs JVPs (cheap!)
+  - Scales well to high dimensions
+  - Unbiased estimator of ESM objective
+```
+
 ## 2. 논의
 
 저민 점수 맞추기 2의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.

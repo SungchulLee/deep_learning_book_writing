@@ -1447,6 +1447,57 @@ if __name__ == "__main__":
     demo_sequential_evidence()
 ```
 
+**출력:**
+
+```
+======================================================================
+BAYES FACTORS: BASIC DEMONSTRATION
+======================================================================
+
+Data: 68 successes in 100 trials (true θ = 0.65)
+
+--- Comparing Prior Beliefs ---
+
+Log evidences:
+  Uniform prior (α=β=1):     -64.8401
+  Fair coin (α=β=50):        -66.3883
+  Biased prior (α=7, β=3):   -63.9391
+
+Bayes factors:
+  Uniform vs Biased:  Weak evidence for M2 (log10 BF = -0.39)
+  Fair vs Biased:     Strong evidence for M2 (log10 BF = -1.06)
+  Uniform vs Fair:    Substantial evidence for M1 (log10 BF = 0.67)
+
+Posterior model probabilities (equal priors):
+  Uniform: 0.2721
+  Fair:    0.0579
+  Biased:  0.6700
+
+======================================================================
+SAVAGE-DICKEY DENSITY RATIO
+======================================================================
+
+Data: n=50, mean=0.313, std=1.190
+True μ = 0.3
+
+Testing H0: μ = 0 vs H1: μ ~ N(0, 1)
+Log B_01 = -0.4395
+Interpretation: Weak evidence for M2 (log10 BF = -0.19)
+
+... (53 lines omitted)
+
+  n      Successes   log₁₀ B₁₂   Interpretation
+-------------------------------------------------------
+  10       6         -0.322        Inconclusive
+  25      19         +0.392        Inconclusive
+  50      37         +0.549        Substantial for uniform
+ 100      68         +0.169        Inconclusive
+ 150     103         +0.310        Inconclusive
+ 200     134         +0.173        Inconclusive
+
+*** Evidence accumulates as more data arrives
+```
+
 ---
 
 ## 연습문제

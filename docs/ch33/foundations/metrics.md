@@ -302,6 +302,30 @@ if __name__ == "__main__":
         print(f"  {k}: {v:.6f}")
 ```
 
+**출력:**
+
+```
+=== Good Generator (same distribution) ===
+  mmd_degree: 0.000971
+  mmd_clustering: 0.045264
+  mmd_spectral: 0.001205
+  ref_avg_nodes: 20.000000
+  gen_avg_nodes: 20.000000
+  ref_avg_density: 0.151053
+  gen_avg_density: 0.150421
+  wasserstein_degree: 0.060000
+
+=== Bad Generator (different distribution) ===
+  mmd_degree: 0.264620
+  mmd_clustering: 0.053341
+  mmd_spectral: 0.025859
+  ref_avg_nodes: 20.000000
+  gen_avg_nodes: 20.000000
+  ref_avg_density: 0.151053
+  gen_avg_density: 0.500316
+  wasserstein_degree: 6.636000
+```
+
 ---
 
 ## 연습문제

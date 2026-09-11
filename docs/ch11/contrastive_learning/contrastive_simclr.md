@@ -202,6 +202,17 @@ if __name__ == "__main__":
     print(f"Loss value: {loss.item():.4f}")
 ```
 
+**출력:**
+
+```
+SimCLR Model initialized successfully!
+Encoder: ResNet
+Projection head output dim: 128
+
+Test forward pass successful!
+Loss value: 4.1416
+```
+
 ## 2. 논의
 
 SimCLR의 구조에는 핵심 단계가 둘 있다. (대개 ResNet인) **부호기**가 불린 시야마다 표현 $\mathbf{h} = f(\mathbf{x})$을 뽑는다. 그다음 **사영 머리**가 이를 대조 손실을 적용하는 더 낮은 차원의 공간 $\mathbf{z} = g(\mathbf{h})$으로 잇댄다. 본디 논문의 매우 중요한 발견은 사영 머리가 좋은 성능에 꼭 필요하다는 것이다. 사영 머리 앞의 표현 $\mathbf{h}$이 사영된 표현 $\mathbf{z}$보다 아래쪽 과제에 훨씬 낫다. 사영 머리가 대조 학습에는 상관없지만 아래쪽 과제에는 쓸모 있는 불리기에 관한 정보를 버리기 때문이다.

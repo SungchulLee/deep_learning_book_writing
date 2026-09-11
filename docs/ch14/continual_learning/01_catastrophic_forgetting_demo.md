@@ -586,6 +586,57 @@ if __name__ == "__main__":
     print("=" * 70)
 ```
 
+**출력:**
+
+```
+======================================================================
+CATASTROPHIC FORGETTING DEMONSTRATION
+======================================================================
+
+This script demonstrates how neural networks forget previous
+tasks when learning new tasks sequentially.
+
+We'll train on Split MNIST (5 tasks, 2 classes each) and watch
+how performance on earlier tasks degrades dramatically.
+======================================================================
+Using device: cpu
+
+Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
+Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
+Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz
+
+... (141 lines omitted)
+
+
+Catastrophic forgetting is a fundamental problem in neural networks!
+As we train on new tasks, the model's weights are updated to minimize
+the new task's loss, which destroys information needed for old tasks.
+
+In the following scripts, we'll explore methods to prevent this:
+  - Script 02: Naive Sequential Learning (baseline)
+  - Script 03: Simple Experience Replay
+  - Intermediate scripts: EWC, LWF, and more!
+======================================================================
+```
+
 ## 2. 논의
 
 `SimpleNetwork` 클래스는 파이토치의 `nn.Module` 인터페이스로 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정하여, 학습 중에 파이토치의 자동 미분 체계가 기울기 계산을 알아서 하게 한다. 이 모듈 방식의 설계 덕분에 낱낱의 부품을 고치거나 모델을 더 큰 파이프라인에 끼워 넣기가 쉽다.

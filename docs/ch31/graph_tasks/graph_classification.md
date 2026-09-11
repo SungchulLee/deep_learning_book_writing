@@ -94,6 +94,19 @@ if __name__ == "__main__":
     demo_graph_classification()
 ```
 
+**출력:**
+
+```
+============================================================
+Graph Classification
+============================================================
+  Epoch 10: Train=1.000, Test=0.667
+  Epoch 20: Train=1.000, Test=0.667
+  Epoch 30: Train=1.000, Test=0.667
+  Epoch 40: Train=1.000, Test=0.667
+  Epoch 50: Train=1.000, Test=0.667
+```
+
 ## 2. 논의
 
 이 짜기는 그래프 가름의 핵심 논리를 감싼 `GCNLayer`, `GraphClassifier` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.

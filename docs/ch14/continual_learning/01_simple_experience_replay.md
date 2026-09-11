@@ -761,6 +761,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+EXPERIENCE REPLAY FOR CONTINUAL LEARNING
+======================================================================
+
+This script implements a simple but effective continual learning
+technique: storing and replaying past examples during training.
+
+Key idea: Mix current task data with replayed past examples
+to maintain gradients for old tasks and prevent forgetting.
+======================================================================
+
+Using device: cpu
+
+Task Configuration:
+  Task 0: Classes [0, 1]
+  Task 1: Classes [2, 3]
+  Task 2: Classes [4, 5]
+  Task 3: Classes [6, 7]
+  Task 4: Classes [8, 9]
+
+Model: 267,266 parameters
+
+======================================================================
+CONTINUAL LEARNING WITH EXPERIENCE REPLAY
+======================================================================
+Memory Buffer Size: 1000
+Examples per Task: 200
+
+============================================================
+Training Task 0 with Experience Replay
+============================================================
+  Epoch 1/5 - Total Loss: 0.0264, Current: 0.0264, Replay: 0.0000, Train Acc: 99.19%
+  Epoch 2/5 - Total Loss: 0.0022, Current: 0.0022, Replay: 0.0000, Train Acc: 99.92%
+
+... (118 lines omitted)
+
+
+✓ Simple to implement and computationally efficient
+
+⚠️  Limitations:
+  - Requires storing raw examples (privacy concerns)
+  - Random sampling may not be optimal
+  - Performance depends on buffer size
+
+Next steps: Explore advanced methods (EWC, LWF, etc.)
+======================================================================
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.

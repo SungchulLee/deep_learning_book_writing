@@ -369,6 +369,30 @@ def compare_deterministic_vs_stochastic():
 compare_deterministic_vs_stochastic()
 ```
 
+**출력:**
+
+```
+======================================================================
+DETERMINISTIC VS STOCHASTIC DYNAMICS
+======================================================================
+Target pattern: [1 1 1 0 0 0]
+Noisy input:    [1 1 0 0 1 0]
+
+--------------------------------------------------
+DETERMINISTIC (Hopfield-style)
+Converged to: [1 1 1 0 0 0]
+Iterations: 2
+
+--------------------------------------------------
+STOCHASTIC (Boltzmann)
+Outcomes over 100 runs:
+  (1, 1, 1, 0, 0, 0): 74.0%
+  (0, 0, 0, 1, 1, 1): 22.0%
+  (1, 1, 1, 0, 1, 0): 2.0%
+  (0, 1, 1, 0, 0, 0): 1.0%
+  (1, 1, 1, 1, 0, 0): 1.0%
+```
+
 ---
 
 ## 5. 깁스 뽑기와 평형
@@ -497,6 +521,37 @@ def verify_equilibrium_distribution():
 correlation = verify_equilibrium_distribution()
 ```
 
+**출력:**
+
+```
+======================================================================
+VERIFYING EQUILIBRIUM DISTRIBUTION
+======================================================================
+
+Comparison of theoretical vs empirical probabilities:
+----------------------------------------------------------------------
+State                    Theoretical       Empirical     Energy
+----------------------------------------------------------------------
+(0, 0, 1, 1)                  0.5771          0.2932      -4.50
+(1, 1, 0, 0)                  0.2123          0.1830      -3.50
+(1, 1, 1, 1)                  0.0781          0.1042      -2.50
+(0, 0, 0, 0)                  0.0287          0.0694      -1.50
+(1, 0, 0, 1)                  0.0287          0.0634      -1.50
+(1, 0, 1, 1)                  0.0287          0.0674      -1.50
+(0, 0, 0, 1)                  0.0106          0.0380      -0.50
+(1, 0, 0, 0)                  0.0106          0.0410      -0.50
+(1, 1, 0, 1)                  0.0106          0.0398      -0.50
+(0, 0, 1, 0)                  0.0039          0.0218       0.50
+(0, 1, 1, 1)                  0.0039          0.0218       0.50
+(1, 1, 1, 0)                  0.0039          0.0242       0.50
+(0, 1, 0, 0)                  0.0014          0.0152       1.50
+(0, 1, 1, 0)                  0.0014          0.0148       1.50
+(1, 0, 1, 0)                  0.0000          0.0016       5.50
+(0, 1, 0, 1)                  0.0000          0.0012       6.50
+
+Correlation: 0.9533
+```
+
 ---
 
 ## 6. 온도의 영향
@@ -566,6 +621,15 @@ def analyze_temperature_effects():
     print("• T controls the trade-off between exploitation and exploration")
 
 analyze_temperature_effects()
+```
+
+**출력:**
+
+```
+Observations:
+• Low T → Concentrated at low energies (exploitation)
+• High T → Spread across energy levels (exploration)
+• T controls the trade-off between exploitation and exploration
 ```
 
 ---

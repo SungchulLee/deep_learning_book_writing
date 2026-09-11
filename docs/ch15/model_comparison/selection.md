@@ -1261,6 +1261,57 @@ if __name__ == "__main__":
     demo_occam_razor()
 ```
 
+**출력:**
+
+```
+======================================================================
+MODEL EVIDENCE: CONJUGATE MODELS
+======================================================================
+
+--- Beta-Bernoulli Model ---
+Data: 39 successes in 50 trials (true θ = 0.7)
+
+Uniform prior (α=β=1):
+  Log evidence: -28.2755
+  Sequential check: -28.2755
+
+Informative correct (α=7, β=3):
+  Log evidence: -27.3283
+  Sequential check: -27.3283
+
+Informative wrong (α=3, β=7):
+  Log evidence: -31.4651
+  Sequential check: -31.4651
+
+
+--- Gaussian Models ---
+Data: n=30, mean=5.09, std=2.33
+True: μ=5.0, σ=2.0
+
+Known variance (σ²=4.0):
+  Log evidence: -72.2430
+
+Unknown variance (NIG prior):
+  Log evidence: -73.4229
+
+======================================================================
+LAPLACE APPROXIMATION
+======================================================================
+
+... (32 lines omitted)
+
+  vs Slight bias allowed (α=5, β=5): Not worth more than a bare mention evidence for Model 1 (log₁₀ BF = 0.21)
+  vs Uniform (α=1, β=1): Not worth more than a bare mention evidence for Model 1 (log₁₀ BF = 0.37)
+
+======================================================================
+OCCAM'S RAZOR DEMONSTRATION
+======================================================================
+
+Saved: occam_razor_demo.png
+
+As sample size increases, evidence concentrates on true model (degree 2)
+```
+
 ---
 
 ## 연습문제

@@ -420,6 +420,33 @@ def demonstrate_inception_score():
 results = demonstrate_inception_score()
 ```
 
+**출력:**
+
+```
+======================================================================
+Inception Score Demonstration
+======================================================================
+
+📊 Scenario 1: High Quality + High Diversity
+--------------------------------------------------
+  IS: 6.06
+  Effective classes: 10.00
+  Average confidence: 0.6064
+
+📊 Scenario 2: Low Quality (Uncertain Predictions)
+--------------------------------------------------
+  IS: 1.00
+  Effective classes: 10.00
+  Average confidence: 0.1000
+  Note: Minimum IS = 1.0 when all predictions are uniform
+
+📊 Scenario 3: Mode Collapse (Single Class)
+--------------------------------------------------
+  IS: 1.00
+  Effective classes: 1.36
+  Note: Confident but not diverse!
+```
+
 ## 인셉션 점숫값 읽기
 
 ### 흔한 범위

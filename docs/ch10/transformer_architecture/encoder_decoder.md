@@ -1362,6 +1362,15 @@ if __name__ == "__main__":
     print(f"Total parameters: {total_params:,}")
 ```
 
+**출력:**
+
+```
+Logits shape: torch.Size([4, 128, 50257])
+Loss: 10.9665
+Generated shape: torch.Size([1, 30])
+Total parameters: 124,439,808
+```
+
 ##### 효율적인 추론을 위한 KV 캐시
 
 생성 중에 앞선 토큰의 주의를 다시 셈하는 것은 아깝다. KV 캐싱은 앞 단계의 열쇠와 값 텐서를 담아 둔다.

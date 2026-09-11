@@ -720,6 +720,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+COMPREHENSIVE CONTINUAL LEARNING METHOD COMPARISON
+======================================================================
+
+Comparing:
+  1. Naive Sequential Learning (baseline)
+  2. Experience Replay (memory-based)
+  3. Elastic Weight Consolidation (regularization-based)
+  4. Learning Without Forgetting (knowledge distillation)
+======================================================================
+
+Using device: cpu
+
+Task Configuration:
+  Task 0: Classes [0, 1]
+  Task 1: Classes [2, 3]
+  Task 2: Classes [4, 5]
+  Task 3: Classes [6, 7]
+  Task 4: Classes [8, 9]
+
+======================================================================
+Running Experiments...
+======================================================================
+
+[1/4] Naive Sequential Learning...
+  Avg Acc: 54.24%, BWT: -56.75%
+
+[2/4] Experience Replay...
+  Avg Acc: 94.80%, BWT: -5.88%
+
+[3/4] Elastic Weight Consolidation...
+  Avg Acc: 56.63%, BWT: -53.54%
+
+
+... (33 lines omitted)
+
+  - Naive & ER: Single forward/backward per batch
+  - EWC: Extra Fisher computation per task
+  - LWF: Double forward pass per batch
+
+🎯 When to Use Each Method:
+  - Experience Replay: When memory is available, best performance
+  - EWC: Privacy concerns, memory constraints
+  - LWF: Task domains similar, good knowledge transfer
+  - Hybrid approaches: Combine strengths of multiple methods
+======================================================================
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.

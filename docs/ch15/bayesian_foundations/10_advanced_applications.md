@@ -122,6 +122,40 @@ if __name__ == "__main__":
     print("="*70)
 ```
 
+**출력:**
+
+```
+======================================================================
+BAYESIAN INFERENCE - MODULE 10: ADVANCED APPLICATIONS
+======================================================================
+======================================================================
+BAYESIAN A/B TESTING
+======================================================================
+
+Variant A: 120/1000 = 0.120
+Variant B: 145/1000 = 0.145
+
+P(B > A) = 0.9508
+P(A > B) = 0.0492
+
+Expected lift (B vs A):
+  Mean: 21.54%
+  95% Credible Interval: [-3.51%, 51.41%]
+
+======================================================================
+MODULE 10 COMPLETE
+======================================================================
+
+Key takeaways:
+1. Bayesian A/B testing provides probability statements
+2. Can make early stopping decisions based on evidence
+3. Direct interpretation: P(B better than A)
+4. Naturally handles sequential testing
+
+Congratulations! You've completed the Bayesian Inference curriculum.
+======================================================================
+```
+
 ## 2. 논의
 
 베이즈 A/B 시험은 베타 뒤확률로 전환율을 모형으로 삼는다. 고른 앞확률 $\text{Beta}(1,1)$에서 비롯해, 갈래 $k$에서 $n_k$ 번 가운데 $s_k$ 번 성공을 살펴본 뒤의 뒤확률은 $\text{Beta}(1 + s_k, 1 + n_k - s_k)$이다. B이 A보다 나을 확률은 몬테카를로로 셈한다. 곧 두 뒤확률에서 표본을 뽑아 $P(\theta_B > \theta_A)$을 어림한다.

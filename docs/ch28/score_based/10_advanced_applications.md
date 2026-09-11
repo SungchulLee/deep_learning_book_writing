@@ -185,6 +185,28 @@ if __name__ == "__main__":
     demo_conditional_generation()
 ```
 
+**출력:**
+
+```
+Conditional Score-Based Generation
+================================================================================
+
+Dataset: 900 samples, 3 classes
+
+Training conditional score model...
+Epoch    0 | Loss: 7.838658
+Epoch  500 | Loss: 4.003914
+Epoch 1000 | Loss: 3.961377
+Epoch 1500 | Loss: 3.786815
+
+Generating conditional samples...
+✓ Conditional generation successful!
+
+Generated samples - Class 0: torch.Size([100, 2])
+Generated samples - Class 1: torch.Size([100, 2])
+Generated samples - Class 2: torch.Size([100, 2])
+```
+
 ## 2. 논의
 
 앞선 쓰임새의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.

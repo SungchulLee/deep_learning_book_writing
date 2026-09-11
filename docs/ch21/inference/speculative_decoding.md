@@ -344,6 +344,18 @@ if __name__ == "__main__":
     print(f"Theoretical speedup: {stats['speedup_factor']:.2f}x")
 ```
 
+**출력:**
+
+```
+Speculative Decoding Demo
+==================================================
+Prompt length: 10
+Output length: 60
+Acceptance rate: 62.50%
+Tokens per step: 2.50
+Theoretical speedup: 2.50x
+```
+
 ---
 
 ## 4. 이론적 분석

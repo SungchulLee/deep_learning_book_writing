@@ -174,6 +174,31 @@ if __name__ == "__main__":
     print("\n✓ Successfully trained and sampled from Swiss roll distribution!")
 ```
 
+**출력:**
+
+```
+Denoising Score Matching on 2D Datasets
+================================================================================
+
+Dataset: Swiss Roll
+Number of samples: 2000
+Data range: [-1.23, 1.49]
+
+Training score model...
+Epoch     0 | Loss: 8.178442
+Epoch   500 | Loss: 5.123600
+Epoch  1000 | Loss: 5.013676
+Epoch  1500 | Loss: 4.852315
+Epoch  2000 | Loss: 4.981414
+Epoch  2500 | Loss: 4.870563
+
+Generating samples via Langevin dynamics...
+
+Saved demo_dsm_swiss_roll.png
+
+✓ Successfully trained and sampled from Swiss roll distribution!
+```
+
 ## 2. 논의
 
 잡음 없애는 점수 맞추기의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.

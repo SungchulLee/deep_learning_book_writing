@@ -290,6 +290,30 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+============================================================
+2D GAN Visualization Demo
+============================================================
+
+Dataset: moons
+Samples: 2000
+Epochs: 1000
+
+Using device: cpu
+
+Training 2D GAN...
+Saved loss curves
+
+============================================================
+Demo complete! Generated files:
+  - 2d_gan_original_data.png: Original dataset
+  - 2d_gan_epoch_*.png: Training progress
+  - 2d_gan_losses.png: Loss curves
+============================================================
+```
+
 ## 2. 논의
 
 SimpleGenerator과 SimpleDiscriminator은 2차원 자료를 위해 만든 작은 여러 층 신경망이다. 만들개는 2차원 숨은 벡터를 ReLU 깨움을 갖춘 숨은 층으로 옮겨 2차원 내놓기 점을 만든다. 가름개는 2차원 점을 받아 LeakyReLU 깨움과 마지막 시그모이드로 확률을 내놓는다. 2차원 숨은 공간은 자료 차원과 맞아 옮김을 더 풀이하기 쉽게 한다.

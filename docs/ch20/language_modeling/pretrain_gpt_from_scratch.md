@@ -270,6 +270,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+============================================================
+Part 1: Training a BPE Tokenizer from Scratch
+============================================================
+  tokenizers library not available — showing concept only
+
+  HuggingFace approach (recommended for production):
+
+    from transformers import AutoTokenizer
+    old_tokenizer = AutoTokenizer.from_pretrained("gpt2")
+
+    def batch_iterator(dataset, batch_size=1000):
+        for i in range(0, len(dataset), batch_size):
+            yield dataset[i : i + batch_size]["text"]
+
+    new_tokenizer = old_tokenizer.train_new_from_iterator(
+        batch_iterator(dataset),
+        vocab_size=32768,
+    )
+    new_tokenizer.save_pretrained("my-custom-tokenizer")
+
+============================================================
+Part 2: Model Initialization from Config
+============================================================
+  transformers library not available
+
+============================================================
+Part 3: ConstantLengthDataset
+============================================================
+  ConstantLengthDataset concatenates documents and chunks:
+
+  Doc1: 'Hello world'  →  [101, 7592, 2088, 102]
+  Doc2: 'Deep learning' →  [101, 2784, 4083, 102]
+  Concatenated: [101, 7592, 2088, 102, 0, 101, 2784, 4083, 102, 0]
+
+... (24 lines omitted)
+
+    헷갈림도가 낮다 = 모델이 남겨 둔 글에 더 높은 확률을 준다
+
+============================================================
+Part 6: Scaling — Distributed Training with Accelerate
+============================================================
+
+  실제로 미리 익힐 때는 여러 GPU를 쓰려 HuggingFace Accelerate를 쓴다.
+  이렇게 띄운다: accelerate launch --num_processes 4 train.py
+
+Done.
+```
+
 ## 2. 논의
 
 GPT 모델의 미리 익히기 물길은 서로 얽힌 조각 여럿으로 이루어지며, 저마다 익히기의 성공에 결정적이다. 첫 단계는 분야에 맞춘 BPE 토막내개를 익히는 것인데, 이는 낱말 곳간 크기와 차례 길이의 균형을 잡는 아래낱말 단위로 글을 나누는 법을 배운다. GPT-2가 쓰는 바이트 수준 BPE는 바이트 수준 글자 256개에서 시작해 가장 잦은 짝을 거듭 어울려, 모르는 토막 없이 어떤 글이든 온전히 덮는다. 낱말 곳간 크기는 핵심 웃매개변수이다. 곧 곳간이 클수록 차례는 짧아지지만 묻힘 행렬이 커진다.

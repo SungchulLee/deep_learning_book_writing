@@ -437,6 +437,57 @@ def analyze_network_capacity(n_neurons: int = 100,
 analyze_network_capacity(n_neurons=100, max_patterns=30, n_trials=5)
 ```
 
+**출력:**
+
+```
+Stored 1 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 1 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 1 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 1 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 1 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Patterns:  1, Success rate: 1.00, Avg overlap: 1.000
+Stored 3 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 3 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 3 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 3 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 3 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Patterns:  3, Success rate: 1.00, Avg overlap: 1.000
+Stored 5 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 5 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 5 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 5 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 5 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Patterns:  5, Success rate: 1.00, Avg overlap: 1.000
+
+... (122 lines omitted)
+
+  Network capacity: ~15 patterns
+Stored 29 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 29 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 29 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Stored 29 patterns via Hebbian learning
+  Network capacity: ~15 patterns
+Patterns: 29, Success rate: 0.03, Avg overlap: 0.520
+```
+
 ---
 
 ## 6. 헛된 상태
@@ -590,6 +641,19 @@ def visualize_energy_landscape():
     plt.show()
 
 visualize_energy_landscape()
+```
+
+**출력:**
+
+```
+Stored 2 patterns via Hebbian learning
+  Network capacity: ~0 patterns
+
+Found 4 local minima:
+  State 7: E = -7.000, Type: Pattern 1 (inverted)
+  State 14: E = -7.000, Type: Pattern 2
+  State 49: E = -7.000, Type: Pattern 2 (inverted)
+  State 56: E = -7.000, Type: Pattern 1
 ```
 
 ---

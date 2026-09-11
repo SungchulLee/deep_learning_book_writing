@@ -253,6 +253,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+COMPREHENSIVE NER DEMONSTRATION
+Module 38: Named Entity Recognition
+======================================================================
+======================================================================
+1. RULE-BASED NER DEMONSTRATION
+======================================================================
+
+Note: Rule-based demo requires beginner modules. Error: No module named 'beginner'
+
+
+======================================================================
+2. DICTIONARY-BASED NER DEMONSTRATION
+======================================================================
+
+Note: Dictionary-based demo requires beginner modules. Error: No module named 'beginner'
+
+
+======================================================================
+3. FEATURE EXTRACTION FOR TRADITIONAL ML
+======================================================================
+
+Note: Feature extraction demo requires intermediate modules. Error: No module named 'intermediate'
+
+
+======================================================================
+4. NER EVALUATION METRICS
+======================================================================
+
+Note: Evaluation demo requires intermediate modules. Error: No module named 'intermediate'
+
+
+======================================================================
+
+... (61 lines omitted)
+
+======================================================================
+DEMONSTRATION COMPLETE
+======================================================================
+
+Explore individual module files for detailed implementations:
+  - beginner/     : Basic NER concepts and simple approaches
+  - intermediate/ : Traditional ML and feature engineering
+  - advanced/     : Deep learning architectures
+  - utils/        : Helper utilities
+  - data/         : Sample datasets
+```
+
 ## 2. 논의
 
 여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 차례 이름표 붙이기의 핵심 개념을 보여 준다. 단원별로 나뉜 짜임 덕분에 낱낱의 조각을 익히고 다른 일이나 자료 뭉치에 맞게 고치기 쉽다.

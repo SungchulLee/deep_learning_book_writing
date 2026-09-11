@@ -184,6 +184,25 @@ if __name__ == "__main__":
     demo_architectures()
 ```
 
+**출력:**
+
+```
+Score Network Architectures Demo
+================================================================================
+
+Architecture comparison:
+Basic network parameters: 4,482
+Conditional network parameters: 38,530
+Deep network parameters: 26,050
+
+Output shapes:
+Basic: torch.Size([32, 2])
+Conditional: torch.Size([32, 2])
+Deep: torch.Size([32, 2])
+
+✓ All architectures tested successfully!
+```
+
 ## 2. 논의
 
 점수 신경망의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.

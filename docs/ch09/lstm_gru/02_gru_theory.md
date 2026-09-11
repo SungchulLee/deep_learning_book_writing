@@ -331,6 +331,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+============================================================
+GRU: Gated Recurrent Unit Networks
+============================================================
+
+Key Features of GRU:
+1. Simpler than LSTM (2 gates vs 3)
+2. No separate cell state
+3. Fewer parameters → faster training
+4. Often performs similarly to LSTM
+
+GRU Gates:
+- Reset gate (r): Controls how much past info to forget
+- Update gate (z): Controls how much to update
+  * Acts as both forget and input gate
+============================================================
+GRU Gate Mechanics Demonstration
+============================================================
+
+✓ Gate activation plot saved as 'gru_gates.png'
+
+============================================================
+Understanding the Update Gate
+============================================================
+
+The update gate z_t controls:
+h_t = (1 - z_t) ⊙ h_{t-1} + z_t ⊙ h̃_t
+
+When z_t ≈ 0: Keep old hidden state (h_t ≈ h_{t-1})
+When z_t ≈ 1: Use new candidate (h_t ≈ h̃_t)
+When z_t ≈ 0.5: Mix equally
+
+Example with h_{t-1} = [1, 2, 3] and h̃_t = [5, 6, 7]:
+
+
+... (17 lines omitted)
+
+
+GRU has ~25% fewer parameters than LSTM
+This means:
+  ✓ Faster training
+  ✓ Less memory usage
+  ✓ Less prone to overfitting on small datasets
+
+============================================================
+GRU demonstrations complete!
+============================================================
+```
+
 ## 2. 논의
 
 이 구현은 클래스 두 개(`GRUCell`, `GRU`)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.

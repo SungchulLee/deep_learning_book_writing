@@ -203,6 +203,42 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+======================================================================
+SCORE MATCHING FOR ENERGY-BASED MODELS
+======================================================================
+
+======================================================================
+SCORE MATCHING TRAINING (2D Example)
+======================================================================
+Generated 5000 samples from 3-component mixture
+Epoch 100/1000, Loss: 6.2046
+Epoch 200/1000, Loss: 6.0045
+Epoch 300/1000, Loss: 5.9700
+Epoch 400/1000, Loss: 5.9069
+Epoch 500/1000, Loss: 6.1397
+Epoch 600/1000, Loss: 5.8569
+Epoch 700/1000, Loss: 6.1200
+Epoch 800/1000, Loss: 5.8966
+Epoch 900/1000, Loss: 5.9559
+Epoch 1000/1000, Loss: 6.1142
+
+✓ Score matching training complete
+
+======================================================================
+MODULE COMPLETE
+======================================================================
+
+Key Takeaways:
+  ✓ Score matching avoids partition function
+  ✓ Denoising score matching is practical
+  ✓ Connection to diffusion models
+
+Next: 07_neural_ebms.py
+```
+
 ## 2. 논의
 
 점수 함수 $s(x) = \nabla_x \log p(x)$은 로그 확률이 가장 빠르게 커지는 방향을 담는다. $p(x) = \exp(-E(x))/Z$인 에너지 바탕 모델에서 점수는 그저 $-\nabla_x E(x)$이며 나눔 함수 $Z$이 들어 있지 않다. 점수 맞추기는 이를 써서 자료 점수와 모델 점수 사이의 피셔 벌어짐을 가장 작게 하여 다룰 수 없는 고르게 맞추기를 비켜 가는 익히기 목표를 얻는다.

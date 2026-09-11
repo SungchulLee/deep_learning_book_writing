@@ -183,6 +183,14 @@ if __name__ == "__main__":
     print(f"Edge index shape: {adjacency_to_edge_index(adj).shape}")
 ```
 
+**출력:**
+
+```
+Nodes: 10, Edges: 19
+Density: 0.422
+Edge index shape: torch.Size([2, 38])
+```
+
 ---
 
 ## 연습문제

@@ -310,6 +310,21 @@ if __name__ == "__main__":
     print(f"Loss: {loss_v3.item():.4f}")
 ```
 
+**출력:**
+
+```
+Testing MoCo v2...
+MoCo v2 initialized successfully!
+Queue size: 4096
+Momentum coefficient: 0.999
+Logits shape: torch.Size([32, 4097])
+Loss: 0.0082
+
+Testing MoCo v3...
+MoCo v3 initialized successfully!
+Loss: 3.5362
+```
+
 ## 2. 논의
 
 MoCo v2는 부호기 둘을 지킨다. 표준 역전파로 갱신되는 **질의 부호기**와, 관성 계수 $m$으로 질의 부호기의 지수 이동 평균으로 갱신되는 **열쇠 부호기**이다: $\theta_k \leftarrow m \cdot \theta_k + (1 - m) \cdot \theta_q$. 이 관성 갱신 덕분에 큐 안의 열쇠들이 조금씩 다른 부호기 상태에서 나왔는데도 얼추 한결같이 남는다. 큐는 어떤 작은 배치보다도 훨씬 클 수 있는 음성 예의 사전 노릇을 하며 대개 열쇠 65,536개를 담는다.

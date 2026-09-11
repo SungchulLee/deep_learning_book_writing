@@ -335,6 +335,21 @@ if __name__ == "__main__":
     print("\nVisualization saved to 'causal_attention_pattern.png'")
 ```
 
+**출력:**
+
+```
+Input shape: torch.Size([4, 20, 512])
+Output shape: torch.Size([4, 20, 512])
+Attention weights shape: torch.Size([4, 8, 20, 20])
+
+✓ Causality verified: No attention to future positions
+
+Attention pattern (first batch, first head):
+Sum of each row (should be 1.0): [1.1111111640930176, 1.1111111640930176, 1.1111111640930176, 0.8720628023147583, 0.9415875673294067]
+
+Visualization saved to 'causal_attention_pattern.png'
+```
+
 ---
 
 ## 5. 인과 가림과 채움 가림 섞기
