@@ -574,6 +574,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+COMPLETE PRODUCTION-READY TRAINING PIPELINE
+======================================================================
+
+======================================================================
+PART 1: CONFIGURATION
+======================================================================
+Random seed set to: 42
+Configuration loaded
+Directories created
+
+======================================================================
+PART 2: DATA PREPARATION
+======================================================================
+Dataset: California Housing
+  Total samples: 20640
+  Features: 8
+
+Data split:
+  Train: 13209 samples (64.0%)
+  Val:   3303 samples (16.0%)
+  Test:  4128 samples (20.0%)
+
+DataLoaders created with batch_size=128
+
+======================================================================
+PART 3: MODEL DEFINITION
+======================================================================
+Model created:
+RegressionModel(
+  (model): Sequential(
+    (0): Linear(in_features=8, out_features=1, bias=True)
+  )
+
+... (78 lines omitted)
+
+다음 걸음:
+1. 다른 모델으로 해 보아라(은닉층을 더한다)
+2. 초매개변수를 이리저리 바꾸어 보아라
+3. 제 데이터셋에 써 보아라
+4. GPU 받침을 더하여라(.to('cuda'))
+5. 엇갈아 검증하기를 짜라
+6. 데이터 불리기를 더하여라(그림 일에)
+7. 모델을 내놓아라
+
+이제 PyTorch 기계 학습 과제의 든든한 바탕을 갖췄다!
+```
+
 ## 2. 논의
 
 재현성을 얻으려면 무작위성의 모든 원천에 씨앗을 설정해야 한다. PyTorch 연산에는 `torch.manual_seed()`, NumPy에는 `np.random.seed()`, GPU 연산에는 선택적으로 `torch.backends.cudnn.deterministic = True`를 쓴다. 설정 객체나 데이터클래스는 모든 초매개변수를 한곳에 모아 실험을 기록하고 재현하기 쉽게 해 준다. 시작할 때 체크포인트와 로그를 위한 출력 디렉터리를 만들어 두면 결과가 체계적으로 저장된다.

@@ -613,6 +613,54 @@ plt.show()
 print("\n✓ Visualization saved!")
 ```
 
+**출력:**
+
+```
+======================================================================
+BERNOULLI DISTRIBUTION AND GLM FOUNDATIONS
+======================================================================
+p = 0.10: Mean = 0.100, Variance = 0.090, Skewness = +2.667
+p = 0.25: Mean = 0.250, Variance = 0.188, Skewness = +1.155
+p = 0.50: Mean = 0.500, Variance = 0.250, Skewness = +0.000
+p = 0.75: Mean = 0.750, Variance = 0.188, Skewness = -1.155
+p = 0.90: Mean = 0.900, Variance = 0.090, Skewness = -2.667
+
+======================================================================
+GLM STRUCTURE: LINEAR PREDICTOR → SIGMOID → PROBABILITY
+======================================================================
+
+GLM Model Summary
+  Coefficient (β₁): 2.000
+  Intercept (β₀): -1.000
+  Decision boundary (where p=0.5): x = 0.500
+
+======================================================================
+LOG-LIKELIHOOD COMPUTATION
+======================================================================
+
+Dataset: 100 samples, 2 features
+Class distribution: 63 positive, 37 negative
+
+Log-likelihood comparison (β = [0.30000001192092896, 0.800000011920929, -0.30000001192092896]):
+  Simplified form (y·z - log(1+eᶻ)): -58.191872
+  Direct form (y·log p + (1-y)·log(1-p)): -58.191875
+  Difference: 3.81e-06
+
+======================================================================
+MAXIMUM LIKELIHOOD ESTIMATION VIA GRADIENT DESCENT
+======================================================================
+
+Training for 200 epochs...
+------------------------------------------------------------
+Epoch  40: Log-Likelihood =  -47.354, NLL Loss = 0.5919, Accuracy = 0.6375
+Epoch  80: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
+Epoch 120: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
+Epoch 160: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
+Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
+
+✓ Visualization saved!
+```
+
 ---
 
 ## 10. GLM의 틀이 중요한 이유

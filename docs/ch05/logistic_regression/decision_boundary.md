@@ -439,6 +439,57 @@ print("\n✓ Both loss functions converge to the same optimum.")
 print("  BCEWithLogitsLoss is preferred for numerical stability.")
 ```
 
+**출력:**
+
+```
+======================================================================
+DECISION BOUNDARY AND BCE LOSS ANALYSIS
+======================================================================
+
+1. Comparing BCE implementations
+--------------------------------------------------
+Manual BCE:              0.314705
+Manual BCEWithLogits:    0.314705
+PyTorch BCE:             0.314705
+PyTorch BCEWithLogits:   0.314705
+
+======================================================================
+NUMERICAL STABILITY COMPARISON
+======================================================================
+
+Extreme logits (y=1):
+-------------------------------------------------------
+     Logit   BCEWithLogits     BCE+Sigmoid
+-------------------------------------------------------
+    -100.0      100.000000       16.118095
+     -50.0       50.000000       16.118095
+     -10.0       10.000046       10.000046
+       0.0        0.693147        0.693147
+      10.0        0.000045        0.000045
+      50.0        0.000000        0.000000
+     100.0        0.000000        0.000000
+
+======================================================================
+DECISION BOUNDARY VISUALIZATION
+======================================================================
+
+Learned coefficients:
+  β₀ (intercept): -0.324
+
+... (5 lines omitted)
+
+
+======================================================================
+TRAINING: BCELoss vs BCEWithLogitsLoss
+======================================================================
+
+Final loss (BCELoss):           0.344025
+Final loss (BCEWithLogitsLoss): 0.344025
+
+✓ Both loss functions converge to the same optimum.
+  BCEWithLogitsLoss is preferred for numerical stability.
+```
+
 ---
 
 ## 연습문제

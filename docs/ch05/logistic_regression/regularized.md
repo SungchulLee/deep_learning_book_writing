@@ -644,6 +644,57 @@ plt.show()
 print("\n✓ Results visualization saved!")
 ```
 
+**출력:**
+
+```
+======================================================================
+REGULARIZED LOGISTIC REGRESSION — COMPLETE PIPELINE
+======================================================================
+
+======================================================================
+REGULARIZATION COMPARISON ON BREAST CANCER DATASET
+======================================================================
+
+Data prepared:
+  Training:   341 samples
+  Validation: 114 samples
+  Test:       114 samples
+  Features:   30
+
+--- No Regularization ---
+
+  Accuracy:  0.9561
+  Precision: 0.9855
+  Recall:    0.9444
+  F1-Score:  0.9645
+  AUC-ROC:   0.9934
+
+  Confusion Matrix:
+             Predicted
+               0     1
+  Actual 0     41     1
+         1      4    68
+
+--- L2 (Ridge, λ=0.01) ---
+
+  Accuracy:  0.9825
+  Precision: 0.9861
+  Recall:    0.9861
+
+... (48 lines omitted)
+
+L2 REGULARIZATION STRENGTH TUNING
+======================================================================
+λ=0.0000  : Val Loss=0.0562, Test AUC=0.9934, ||β||=4.1285
+λ=0.0001  : Val Loss=0.0563, Test AUC=0.9937, ||β||=4.0792
+λ=0.0010  : Val Loss=0.0574, Test AUC=0.9940, ||β||=3.8835
+λ=0.0100  : Val Loss=0.0783, Test AUC=0.9960, ||β||=2.2926
+λ=0.1000  : Val Loss=0.1494, Test AUC=0.9954, ||β||=1.1335
+λ=1.0000  : Val Loss=0.3146, Test AUC=0.9934, ||β||=0.4598
+
+✓ Results visualization saved!
+```
+
 ---
 
 ## 7. 모범 사례

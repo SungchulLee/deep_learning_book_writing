@@ -172,6 +172,25 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Number of Positive Cases in 569 Patients of Original Data :  357
+Number of Positive Cases in 455 Patients of Train Data :  288
+Number of Positive Cases in 114 Patients of Test Data :  69
+epoch: 10, loss = 0.2590
+epoch: 20, loss = 0.0510
+epoch: 30, loss = 0.0431
+epoch: 40, loss = 0.0389
+epoch: 50, loss = 0.0357
+epoch: 60, loss = 0.0330
+epoch: 70, loss = 0.0308
+epoch: 80, loss = 0.0289
+epoch: 90, loss = 0.0274
+epoch: 100, loss = 0.0260
+accuracy: 0.9561
+```
+
 ## 2. 논의
 
 `Model` 클래스는 PyTorch의 `nn.Module` 인터페이스를 사용하여 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로, 학습 중에 PyTorch의 autograd 체계가 경사 계산을 자동으로 처리한다. 이런 모듈식 설계 덕분에 개별 구성 요소를 고치거나 모델을 더 큰 파이프라인에 넣기가 쉬워진다.

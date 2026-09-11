@@ -340,6 +340,12 @@ loss = criterion(logits, targets)
 print(f"CrossEntropyLoss: {loss.item():.4f}")
 ```
 
+**출력:**
+
+```
+CrossEntropyLoss: 0.3854
+```
+
 ### 직접 계산하기
 
 ```python
@@ -363,6 +369,14 @@ print(f"PyTorch: {loss_pytorch.item():.6f}")
 print(f"Match:   {torch.allclose(loss_manual, loss_pytorch)}")
 ```
 
+**출력:**
+
+```
+Manual:  0.385362
+PyTorch: 0.385362
+Match:   True
+```
+
 ### CrossEntropyLoss 분해하기
 
 ```python
@@ -377,6 +391,13 @@ loss_decomposed = nll_loss(log_probs, targets)
 
 print(f"Decomposed: {loss_decomposed.item():.6f}")
 print(f"Direct CE:  {criterion(logits, targets).item():.6f}")
+```
+
+**출력:**
+
+```
+Decomposed: 0.385362
+Direct CE:  0.385362
 ```
 
 ### PyTorch의 손실 변형들
@@ -454,6 +475,16 @@ def verify_gradient_derivation():
 verify_gradient_derivation()
 ```
 
+**출력:**
+
+```
+Gradient Verification
+==================================================
+dW max error: 1.49e-08
+db max error: 1.49e-08
+Gradients match: True
+```
+
 ### 경사의 흐름 시각화하기
 
 ```python
@@ -492,6 +523,22 @@ def visualize_gradient_flow():
     print("Note: ∂L/∂z = π - y (predicted minus true)")
 
 visualize_gradient_flow()
+```
+
+**출력:**
+
+```
+Gradient Flow Visualization
+==================================================
+Logits z:        [2.  1.  0.5]
+Probabilities π: [0.6285 0.2312 0.1402]
+True class:      0
+Loss:            0.4644
+
+∂L/∂z (autograd):   [-0.3715  0.2312  0.1402]
+∂L/∂z (analytical): [-0.3715  0.2312  0.1402]
+
+Note: ∂L/∂z = π - y (predicted minus true)
 ```
 
 ### NumPy로 바닥부터 구현하기

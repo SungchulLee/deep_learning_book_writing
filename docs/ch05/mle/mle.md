@@ -484,6 +484,15 @@ p_gradient, history = gradient_based_mle(data)
 print(f"Gradient-based MLE: {p_gradient:.4f}")
 ```
 
+**출력:**
+
+```
+Data: 67 heads out of 100 flips
+True p: 0.7
+Analytical MLE: 0.6700
+Gradient-based MLE: 0.6700
+```
+
 ### 흔한 분포들의 MLE
 
 ```python

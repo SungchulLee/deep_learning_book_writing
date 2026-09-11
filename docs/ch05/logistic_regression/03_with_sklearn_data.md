@@ -414,6 +414,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+================================================================================
+BREAST CANCER CLASSIFICATION - A REAL-WORLD EXAMPLE
+================================================================================
+
+================================================================================
+PART 1: LOADING AND EXPLORING THE DATASET
+================================================================================
+
+1.1: About the Wisconsin Breast Cancer Dataset
+----------------------------------------
+
+데이터셋: 위스콘신 유방암 진단 데이터셋
+밑동: UCI 기계 학습 저장소
+표본: 환자 569명
+특징: 디지털 그림에서 셈한 수치 특징 30개
+과녁: 악성(1)인가 양성(0)인가
+
+특징에는 다음이 있다.
+  - 반지름(가운데에서 둘레 위 점까지 거리의 평균)
+  - 결(잿빛 값의 표준편차)
+  - 둘레, 넓이, 매끄러움, 옹골참 따위
+  
+목표: 이 특징으로 종양이 악성인지 양성인지 예측한다
+
+
+Dataset loaded successfully!
+Number of samples: 569
+Number of features: 30
+Feature names (first 5): ['mean radius' 'mean texture' 'mean perimeter' 'mean area'
+ 'mean smoothness']
+Target names: ['malignant' 'benign']
+
+Class distribution:
+
+... (129 lines omitted)
+
+
+5. 어려움: 특징의 종요로움 살피기
+   어떤 특징이 가장 종요로운가?
+   model.linear.weight 값을 보아라
+
+
+================================================================================
+NEXT: 04_bce_vs_bcewithlogits.py
+Learn about numerical stability and better loss functions!
+================================================================================
+```
+
 ## 2. 논의
 
 `LogisticRegressionModel` 클래스는 PyTorch의 `nn.Module` 인터페이스를 사용하여 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로, 학습 중에 PyTorch의 autograd 체계가 경사 계산을 자동으로 처리한다. 이런 모듈식 설계 덕분에 개별 구성 요소를 고치거나 모델을 더 큰 파이프라인에 넣기가 쉬워진다.

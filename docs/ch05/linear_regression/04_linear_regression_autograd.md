@@ -183,19 +183,19 @@ PyTorch는 기본으로 기울기를 쌓는다. 큰 배치을 흉내내는 기�
 x_demo = torch.tensor([2.0], requires_grad=True)
 
 # 첫 번째 역전파
-y = x_demo ** 2
-y.backward()
+y_demo = x_demo ** 2
+y_demo.backward()
 print(f"After first backward: x_demo.grad = {x_demo.grad.item()}")  # Should be 4
 
 # 경사를 초기화하지 않은 두 번째 역전파
-y = x_demo ** 2
-y.backward()
+y_demo = x_demo ** 2
+y_demo.backward()
 print(f"After second backward (accumulated): x_demo.grad = {x_demo.grad.item()}")  # 4 + 4 = 8
 
 # 이제 0으로 만들고 다시 해 보자
 x_demo.grad.zero_()
-y = x_demo ** 2
-y.backward()
+y_demo = x_demo ** 2
+y_demo.backward()
 print(f"After zeroing and third backward: x_demo.grad = {x_demo.grad.item()}")  # Back to 4
 
 print("\nThis is why we call w.grad.zero_() in the training loop!")
@@ -222,15 +222,15 @@ Benefits:
 Example:
 """)
 
-x = torch.tensor([1.0], requires_grad=True)
+x_demo2 = torch.tensor([1.0], requires_grad=True)
 
 # 경사 추적을 켠 경우
-y = x ** 2
-print(f"With gradients: y.requires_grad = {y.requires_grad}")
+y_grad = x_demo2 ** 2
+print(f"With gradients: y_grad.requires_grad = {y_grad.requires_grad}")
 
 # 경사 추적을 끈 경우
 with torch.no_grad():
-    y_no_grad = x ** 2
+    y_no_grad = x_demo2 ** 2
     print(f"Inside no_grad: y_no_grad.requires_grad = {y_no_grad.requires_grad}")
 
 print("\nThis is essential for efficient inference and parameter updates!")
@@ -268,10 +268,10 @@ with torch.no_grad():  # No gradients needed for visualization
     X_sorted, _ = torch.sort(X)
     y_pred_sorted = model(X_sorted, w, b)
 
-axes[1, 0].scatter(X.numpy(), y.numpy(), alpha=0.5, s=20, label='Data')
-axes[1, 0].plot(X_sorted.numpy(), (TRUE_W * X_sorted + TRUE_B).numpy(), 
+axes[1, 0].scatter(X.detach().numpy(), y.detach().numpy(), alpha=0.5, s=20, label='Data')
+axes[1, 0].plot(X_sorted.detach().numpy(), (TRUE_W * X_sorted + TRUE_B).detach().numpy(), 
                 'r--', linewidth=2, label=f'True: y={TRUE_W}x+{TRUE_B}')
-axes[1, 0].plot(X_sorted.numpy(), y_pred_sorted.numpy(), 
+axes[1, 0].plot(X_sorted.detach().numpy(), y_pred_sorted.detach().numpy(), 
                 'g-', linewidth=2, label=f'Learned: y={w.item():.2f}x+{b.item():.2f}')
 axes[1, 0].set_xlabel('X')
 axes[1, 0].set_ylabel('y')
@@ -365,6 +365,57 @@ print("""
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+======================================================================
+LINEAR REGRESSION WITH AUTOGRAD
+======================================================================
+
+======================================================================
+PART 1: GENERATE DATA
+======================================================================
+Generated 100 samples
+True parameters: w=2.0, b=1.0
+
+======================================================================
+PART 2: INITIALIZE PARAMETERS WITH AUTOGRAD
+======================================================================
+Parameters initialized:
+  w: 0.0000, requires_grad=True
+  b: 0.0000, requires_grad=True
+
+======================================================================
+PART 3: DEFINE MODEL AND LOSS
+======================================================================
+Model and loss functions defined
+Note: Same as before, but now PyTorch tracks operations
+
+======================================================================
+PART 4: TRAINING LOOP WITH AUTOGRAD
+======================================================================
+Training Configuration:
+  Learning rate: 0.01
+  Epochs: 100
+
+Epoch    Loss         w            b            grad_w       grad_b      
+---------------------------------------------------------------------------
+1        136.4287     1.3528       0.0324       0.0000       0.0000      
+
+... (100 lines omitted)
+
+4. ADVANTAGES:
+   ✓ 직접 쓰는 기울기 식이 없다
+   ✓ 실수가 적다
+   ✓ 미분할 수 있는 어떤 함수에도 통한다
+   ✓ 복잡한 모델에도 잘 늘어난다
+
+다음 걸음:
+- 튜토리얼 05: 코드를 깔끔하게 하는 nn.Module 쓰기
+- 튜토리얼 06: 여러 입력 특징
+- 튜토리얼 07: 다항 회귀
 ```
 
 ## 2. 논의

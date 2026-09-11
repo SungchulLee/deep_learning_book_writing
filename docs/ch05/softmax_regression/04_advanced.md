@@ -799,6 +799,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+================================================================================
+LEVEL 4: ADVANCED SOFTMAX REGRESSION TECHNIQUES
+================================================================================
+
+================================================================================
+PART 1: Implementing Softmax Regression from Scratch
+================================================================================
+Generating synthetic dataset...
+Training samples: 800
+Test samples: 200
+Features: 20
+Classes: 3
+
+Training NumPy implementation...
+Epoch 50: Loss = 0.7205, Train Acc = 0.7125, Test Acc = 0.6650
+Epoch 100: Loss = 0.7185, Train Acc = 0.7113, Test Acc = 0.6550
+Epoch 150: Loss = 0.7181, Train Acc = 0.7087, Test Acc = 0.6550
+Epoch 200: Loss = 0.7179, Train Acc = 0.7087, Test Acc = 0.6600
+
+✅ NumPy implementation final test accuracy: 66.00%
+
+================================================================================
+PART 2: Batch Normalization
+================================================================================
+
+Comparing models with/without batch normalization...
+
+Training: Without BatchNorm
+----------------------------------------
+Final test accuracy: 0.8650
+
+Training: With BatchNorm
+----------------------------------------
+
+... (199 lines omitted)
+
+• 되도는 신경망이나 흔들리는 학습에서는 기울기를 자른다
+• 일반화을 높이려면 레이블 스무딩을 살펴본다
+
+다음 걸음:
+-----------
+→ 5단계: 여러 데이터셋과 구조를 견주기
+→ 여러 기법를 뒤섞어 실험해 보기
+→ 제 데이터셋에 써 보기
+
+🎉 잘했다! 앞선 기법를 익혔다!
+```
+
 ## 2. 논의
 
 이 구현은 5개의 클래스(`SoftmaxRegressionNumPy`, `AdvancedClassifier`, `LRSchedulerDemo`, `EarlyStopping`, 그리고 하나 더)를 정의하며, 이들이 함께 작동하여 완전한 소프트맥스 회귀 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.

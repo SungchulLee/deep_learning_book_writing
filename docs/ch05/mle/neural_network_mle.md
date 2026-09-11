@@ -209,7 +209,7 @@ def train_heteroscedastic_nn(x_train, y_train, epochs=1000, lr=0.01):
     return model, history
 
 
-def visualize_results(x, y, x_test, true_sigma, model_standard, model_hetero):
+def visualize_results(x, y, x_test, model_standard, model_hetero):
     """종합적인 시각화를 만든다"""
     
     fig = plt.figure(figsize=(18, 12))
@@ -223,9 +223,9 @@ def visualize_results(x, y, x_test, true_sigma, model_standard, model_hetero):
         y_pred_mean, y_pred_logvar = model_hetero(x_test)
         y_pred_std = torch.sqrt(torch.exp(y_pred_logvar))
     
-    x_np = x.numpy().flatten()
-    y_np = y.numpy().flatten()
-    x_test_np = x_test.numpy().flatten()
+    x_np = x.detach().numpy().flatten()
+    y_np = y.detach().numpy().flatten()
+    x_test_np = x_test.detach().numpy().flatten()
     
     # ================================================================
     # 그림 1: 표준 신경망의 예측
@@ -235,7 +235,7 @@ def visualize_results(x, y, x_test, true_sigma, model_standard, model_hetero):
     # 그림을 그리기 위해 정렬한다
     sort_idx = torch.argsort(x_test.flatten())
     x_sorted = x_test_np[sort_idx]
-    y_pred_sorted = y_pred_standard.numpy().flatten()[sort_idx]
+    y_pred_sorted = y_pred_standard.detach().numpy().flatten()[sort_idx]
     
     ax1.scatter(x_np, y_np, alpha=0.5, s=20, label='Data', color='blue')
     ax1.plot(x_sorted, y_pred_sorted, 'r-', linewidth=2, label='Standard NN')
@@ -252,8 +252,8 @@ def visualize_results(x, y, x_test, true_sigma, model_standard, model_hetero):
     # ================================================================
     ax2 = plt.subplot(2, 3, 2)
     
-    y_mean_sorted = y_pred_mean.numpy().flatten()[sort_idx]
-    y_std_sorted = y_pred_std.numpy().flatten()[sort_idx]
+    y_mean_sorted = y_pred_mean.detach().numpy().flatten()[sort_idx]
+    y_std_sorted = y_pred_std.detach().numpy().flatten()[sort_idx]
     
     ax2.scatter(x_np, y_np, alpha=0.5, s=20, label='Data', color='blue')
     ax2.plot(x_sorted, y_mean_sorted, 'r-', linewidth=2, label='Predicted mean')
@@ -280,7 +280,11 @@ def visualize_results(x, y, x_test, true_sigma, model_standard, model_hetero):
     # ================================================================
     ax3 = plt.subplot(2, 3, 3)
     
-    true_sigma_sorted = true_sigma.numpy().flatten()[sort_idx]
+    # sigma(x) = 0.1 + 0.1|x| 는 자료를 만들 때 쓴 참 함수이다.
+    # true_sigma는 학습점 300개에서의 값이므로, 시험 격자 200개에
+    # 맞추어 여기서 다시 계산한다.
+    true_sigma_test = (0.1 + 0.1 * x_test.abs()).detach().numpy().flatten()
+    true_sigma_sorted = true_sigma_test[sort_idx]
     
     ax3.plot(x_sorted, true_sigma_sorted, 'g-', linewidth=3, label='True σ(x)')
     ax3.plot(x_sorted, y_std_sorted, 'r-', linewidth=3, label='Predicted σ(x)')
@@ -297,8 +301,13 @@ def visualize_results(x, y, x_test, true_sigma, model_standard, model_hetero):
     # ================================================================
     ax4 = plt.subplot(2, 3, 4)
     
-    residuals_standard = (y - model_standard(x)).numpy().flatten()
-    residuals_hetero = (y - y_pred_mean).numpy().flatten()
+    residuals_standard = (y - model_standard(x)).detach().numpy().flatten()
+    # 잔차와 보정은 학습점에서 재야 하므로 x_test가 아니라 x로 예측한다.
+    # 아래 그림 5도 이 값을 쓴다.
+    with torch.no_grad():
+        mu_train, logvar_train = model_hetero(x)
+        std_train = torch.sqrt(torch.exp(logvar_train))
+    residuals_hetero = (y - mu_train).detach().numpy().flatten()
     
     ax4.scatter(x_np, residuals_standard, alpha=0.5, s=20, label='Standard NN', color='blue')
     ax4.scatter(x_np, residuals_hetero, alpha=0.5, s=20, label='Heteroscedastic NN', color='red')
@@ -316,8 +325,8 @@ def visualize_results(x, y, x_test, true_sigma, model_standard, model_hetero):
     ax5 = plt.subplot(2, 3, 5)
     
     # 이분산 모델의 정규화된 잔차를 계산한다
-    residuals = (y - y_pred_mean).numpy().flatten()
-    predicted_stds = y_pred_std.numpy().flatten()
+    residuals = residuals_hetero
+    predicted_stds = std_train.detach().numpy().flatten()
     normalized_residuals = residuals / predicted_stds
     
     # 정규화된 잔차의 히스토그램 (잘 보정되었다면 N(0,1)이어야 한다)
@@ -429,7 +438,7 @@ def main():
     
     # 시각화한다
     print("\n📊 Creating visualizations...")
-    visualize_results(x_train, y_train, x_test, true_sigma, model_standard, model_hetero)
+    visualize_results(x_train, y_train, x_test, model_standard, model_hetero)
     
     print("\n" + "=" * 80)
     print("✅ COMPLETE!")
@@ -482,6 +491,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+================================================================================
+NEURAL NETWORK MLE - Deep Learning with Uncertainty
+================================================================================
+
+🎲 Generating heteroscedastic data...
+   • Training samples: 300
+   • Noise varies with x (heteroscedastic)
+
+🔵 Training Standard NN (MSE Loss)...
+--------------------------------------------------------------------------------
+   Epoch 200/1000, Loss: 0.1387
+   Epoch 400/1000, Loss: 0.1328
+   Epoch 600/1000, Loss: 0.1311
+   Epoch 800/1000, Loss: 0.1302
+   Epoch 1000/1000, Loss: 0.1307
+
+🔴 Training Heteroscedastic NN (MLE Loss)...
+--------------------------------------------------------------------------------
+   Epoch 200/1000, NLL Loss: -0.6561
+   Epoch 400/1000, NLL Loss: -0.6560
+   Epoch 600/1000, NLL Loss: -0.6850
+   Epoch 800/1000, NLL Loss: -0.6934
+   Epoch 1000/1000, NLL Loss: -0.7022
+
+📊 Evaluation:
+--------------------------------------------------------------------------------
+   Standard NN:
+      MSE: 0.1301
+
+   Heteroscedastic NN:
+      MSE: 0.1308
+      NLL: -0.7024
+
+
+... (12 lines omitted)
+
+   4. Custom loss functions = Custom probabilistic assumptions
+   5. This enables uncertainty-aware deep learning
+
+   🎯 Applications:
+      • Medical diagnosis (quantify confidence)
+      • Autonomous vehicles (safety-critical decisions)
+      • Financial modeling (risk assessment)
+      • Active learning (query uncertain points)
+
+================================================================================
 ```
 
 ## 2. 논의

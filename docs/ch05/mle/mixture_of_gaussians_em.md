@@ -492,6 +492,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+MIXTURE OF GAUSSIANS - EM Algorithm
+================================================================================
+
+🎲 Generating data from Gaussian Mixture...
+   • Generated 300 data points
+   • Number of true components: 3
+   • True mixture weights: [0.3 0.4 0.3]
+
+🔄 Fitting Gaussian Mixture Model...
+--------------------------------------------------------------------------------
+   Running EM algorithm for 50 iterations...
+   Iteration 10/50, Log-Likelihood: -1134.90
+   Iteration 20/50, Log-Likelihood: -1134.21
+   Iteration 30/50, Log-Likelihood: -1134.17
+   Iteration 40/50, Log-Likelihood: -1134.17
+   Iteration 50/50, Log-Likelihood: -1134.17
+
+📊 Results:
+--------------------------------------------------------------------------------
+   Final log-likelihood: -1134.17
+   Estimated mixture weights: [0.3090367  0.39096326 0.29999995]
+
+   Estimated means:
+      Component 0: [-0.05871385  4.791123  ]
+      Component 1: [3.0191047 3.1185782]
+      Component 2: [-2.938697 -2.875988]
+
+   Clustering quality (ARI): 0.881
+
+📊 Creating visualizations...
+
+📊 Figure saved as 'mixture_gaussians_em_results.png'
+
+... (3 lines omitted)
+
+================================================================================
+
+💡 KEY TAKEAWAYS:
+   1. EM algorithm handles latent (hidden) variables
+   2. E-step: compute responsibilities (soft assignments)
+   3. M-step: update parameters using weighted MLE
+   4. Converges to local maximum (not necessarily global)
+   5. Foundation for many ML algorithms (k-means, HMM, etc.)
+
+================================================================================
+```
+
 ## 2. 논의
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.

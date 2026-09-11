@@ -170,6 +170,17 @@ print("One-hot encoding:")
 print(one_hot)
 ```
 
+**출력:**
+
+```
+Labels: tensor([0, 2, 1, 0])
+One-hot encoding:
+tensor([[1., 0., 0.],
+        [0., 0., 1.],
+        [0., 1., 0.],
+        [1., 0., 0.]])
+```
+
 출력:
 ```
 Labels: tensor([0, 2, 1, 0])
@@ -204,6 +215,12 @@ def one_hot_manual(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
 labels = torch.tensor([0, 2, 1])
 assert torch.allclose(one_hot_manual(labels, 3), F.one_hot(labels, 3).float())
 print("Manual implementation matches F.one_hot!")
+```
+
+**출력:**
+
+```
+Manual implementation matches F.one_hot!
 ```
 
 ### 참 클래스의 확률 꺼내기
@@ -349,6 +366,14 @@ empirical_probs = counts / counts.sum()
 print("True probabilities:", class_probs.numpy())
 print("Empirical probabilities:", empirical_probs.numpy())
 print("Class counts:", counts.numpy().astype(int))
+```
+
+**출력:**
+
+```
+True probabilities: [0.5 0.3 0.2]
+Empirical probabilities: [0.5037 0.2996 0.1967]
+Class counts: [5037 2996 1967]
 ```
 
 ---

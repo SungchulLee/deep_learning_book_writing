@@ -290,6 +290,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+PART 1: CREATING TENSORS
+======================================================================
+
+1.1 Creating tensors from Python lists:
+1D tensor: tensor([1, 2, 3, 4, 5])
+Shape: torch.Size([5])
+Data type: torch.int64
+
+2D tensor:
+tensor([[1, 2, 3],
+        [4, 5, 6]])
+Shape: torch.Size([2, 3])
+Data type: torch.int64
+
+1.2 Creating tensors with specific data types:
+Float tensor: tensor([1., 2., 3.]), dtype: torch.float32
+Float32 tensor: tensor([1., 2., 3.]), dtype: torch.float32
+
+1.3 Creating tensors from NumPy arrays:
+Tensor from NumPy: tensor([1, 2, 3, 4, 5])
+Back to NumPy: [1 2 3 4 5]
+
+1.4 Creating special tensors:
+Zeros:
+tensor([[0., 0., 0.],
+        [0., 0., 0.]])
+
+Ones:
+tensor([[1., 1., 1.],
+        [1., 1., 1.]])
+
+Random:
+
+... (109 lines omitted)
+
+14     2.8681     0.0174     -0.2639   
+15     2.8944     0.0111     -0.2111   
+16     2.9156     0.0071     -0.1689   
+17     2.9324     0.0046     -0.1351   
+18     2.9460     0.0029     -0.1081   
+19     2.9568     0.0019     -0.0865   
+
+Final x: 2.965412
+Expected minimum at x=3
+Final f(x): 0.001196
+```
+
 ## 2. 논의
 
 PyTorch의 텐서는 NumPy의 배열과 같은 역할을 하지만 두 가지 결정적인 능력을 더 가진다. 계산을 가속하기 위해 GPU로 옮길 수 있고, autograd 엔진을 통해 자동 미분을 지원한다. 텐서를 만드는 일은 간단하다. 파이썬 리스트, NumPy 배열, 또는 `torch.zeros`, `torch.randn`, `torch.linspace` 같은 팩토리 함수 어느 쪽에서든 만들 수 있다. 덧셈, 곱셈, 행렬 곱, 재구성 같은 표준 연산은 NumPy의 대응물을 거의 그대로 따르므로, 수치 계산에 익숙한 사람이라면 자연스럽게 넘어올 수 있다.

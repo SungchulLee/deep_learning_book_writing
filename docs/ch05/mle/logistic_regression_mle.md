@@ -401,6 +401,55 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+================================================================================
+LOGISTIC REGRESSION MLE - Binary Classification
+================================================================================
+
+🎲 Generating classification data...
+   • Dataset size: 200 samples
+   • Features: 2 dimensions
+   • Class 0: 100 samples
+   • Class 1: 100 samples
+
+🔥 Training Logistic Regression via MLE...
+--------------------------------------------------------------------------------
+   Epoch 200/1000, Loss: 0.0025, Acc: 100.00%
+   Epoch 400/1000, Loss: 0.0013, Acc: 100.00%
+   Epoch 600/1000, Loss: 0.0008, Acc: 100.00%
+   Epoch 800/1000, Loss: 0.0006, Acc: 100.00%
+   Epoch 1000/1000, Loss: 0.0004, Acc: 100.00%
+
+📊 Final Evaluation:
+--------------------------------------------------------------------------------
+   • Final Accuracy: 100.00%
+   • Final Log-Likelihood: -0.09
+   • Final Loss (BCE): 0.0004
+
+   Model Parameters:
+   • Weight w: [2.645255  3.4574885]
+   • Bias b: -0.1702
+
+📊 Creating visualizations...
+
+📊 Figure saved as 'logistic_regression_mle_results.png'
+
+================================================================================
+✅ COMPLETE!
+================================================================================
+
+💡 KEY TAKEAWAYS:
+   1. Logistic regression IS maximum likelihood estimation
+   2. Binary cross-entropy = Negative log-likelihood
+   3. Sigmoid maps real numbers to probabilities [0, 1]
+   4. Gradient descent optimizes the MLE
+   5. This is the foundation of neural networks!
+
+================================================================================
+```
+
 ## 2. 논의
 
 `LogisticRegressionModel` 클래스는 PyTorch의 `nn.Module` 인터페이스를 사용하여 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로, 학습 중에 PyTorch의 autograd 체계가 경사 계산을 자동으로 처리한다. 이런 모듈식 설계 덕분에 개별 구성 요소를 고치거나 모델을 더 큰 파이프라인에 넣기가 쉬워진다.

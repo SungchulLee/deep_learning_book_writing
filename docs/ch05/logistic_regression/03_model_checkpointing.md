@@ -398,6 +398,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+================================================================================
+MODEL CHECKPOINTING AND PERSISTENCE
+================================================================================
+
+================================================================================
+TRAINING WITH AUTOMATIC CHECKPOINTING
+================================================================================
+Training for 50 epochs
+Saving checkpoints every 10 epochs
+------------------------------------------------------------
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.3525
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.3675
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.4175
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.4775
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.5150
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.5575
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.6250
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.6600
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.7025
+Epoch [10/50] Loss: 0.5961 Train Acc: 0.7431 Test Acc: 0.7300
+✓ Checkpoint saved to checkpoints/checkpoint_epoch_10.pt
+✓ Best model saved to checkpoints/best_model.pt
+  → New best accuracy: 0.7300
+✓ Best model saved to checkpoints/best_model.pt
+
+... (134 lines omitted)
+
+
+4. 어려움: 되짚음 저장에 판 번호를 매겨라.
+   - 모델의 여러 판을 남긴다
+   - 에폭마다 성능을 견준다
+   - 필요하면 앞선 판으로 되돌린다
+
+5. 어려움: 내놓기 꾸러미를 만들어라.
+   - 모델과 미리 다듬기(스케일러)를 저장한다
+   - 추론 함수를 더한다
+   - 단순한 낯을 만든다
+```
+
 ## 2. 논의
 
 `LogisticRegression` 클래스는 PyTorch의 `nn.Module` 인터페이스를 사용하여 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로, 학습 중에 PyTorch의 autograd 체계가 경사 계산을 자동으로 처리한다. 이런 모듈식 설계 덕분에 개별 구성 요소를 고치거나 모델을 더 큰 파이프라인에 넣기가 쉬워진다.

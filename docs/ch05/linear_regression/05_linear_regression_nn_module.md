@@ -359,6 +359,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+LINEAR REGRESSION WITH NN.MODULE
+======================================================================
+
+======================================================================
+PART 1: GENERATE DATA
+======================================================================
+Data shapes: X=torch.Size([100, 1]), y=torch.Size([100, 1])
+True parameters: w=2.5, b=3.0
+
+======================================================================
+PART 2: DEFINE MODEL CLASS
+======================================================================
+Model created:
+LinearRegressionModel(
+  (linear): Linear(in_features=1, out_features=1, bias=True)
+)
+
+Model parameters:
+  linear.weight: shape=torch.Size([1, 1]), requires_grad=True
+  linear.bias: shape=torch.Size([1]), requires_grad=True
+
+======================================================================
+PART 3: DEFINE LOSS AND OPTIMIZER
+======================================================================
+Loss function: MSELoss()
+Optimizer: SGD (
+Parameter Group 0
+    dampening: 0
+    differentiable: False
+    foreach: None
+    fused: None
+    lr: 0.01
+
+... (96 lines omitted)
+
+4. criterion: 손실 함수
+
+Advantages:
+✓ 깔끔하고 읽기 좋은 코드
+✓ 복잡한 모델으로 넓히기 쉽다
+✓ 매개변수를 절로 다룬다
+✓ 모델을 저장하고 불러오기 쉽다
+✓ GPU을 받친다(.to('cuda')만 더하면 된다)
+
+다음: 튜토리얼 06 - 여러 입력 특징!
+```
+
 ## 2. 논의
 
 모델을 `nn.Module`의 하위 클래스로 정의하면 코드 정리를 넘어서는 여러 이점이 생긴다. `parameters()` 메서드는 등록된 모든 층에서 학습 가능한 가중치를 자동으로 모아 주므로, 최적화기가 따로 장부를 관리하지 않고도 갱신할 수 있다. `train()`과 `eval()` 메서드는 드롭아웃이나 배치 정규화 같은 동작을 전환한다. 그리고 `state_dict()` / `load_state_dict()`로 함수 호출 한 번에 모델 가중치를 저장하고 불러올 수 있다.
