@@ -50,10 +50,17 @@ class BetaVAE(nn.Module):
 
 if __name__ == '__main__':
     model = BetaVAE(input_dim=784, latent_dim=10, beta=4.0)
-    x = torch.randn(32, 784)
+    # BCE 손실은 목표가 [0,1]이어야 한다. randn은 음수를 내므로 rand를 쓴다
+    x = torch.rand(32, 784)
     reconstruction, mu, logvar = model(x)
     loss, bce, kld = model.loss_function(reconstruction, x, mu, logvar)
     print(f"Loss: {loss.item():.4f}, Recon: {bce.item():.4f}, KL: {kld.item():.4f}")
+```
+
+**출력:**
+
+```
+Loss: 17434.7734, Recon: 17430.4121, KL: 1.0901
 ```
 
 ## 2. 논의

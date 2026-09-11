@@ -75,7 +75,7 @@ class ConvConditionalVAE(nn.Module):
         self.decoder = nn.Sequential(
             nn.Unflatten(1, (128, 4, 4)),
             
-            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             
@@ -242,7 +242,8 @@ class ConvConditionalVAE(nn.Module):
 if __name__ == '__main__':
     # 모델을 시험한다
     model = ConvConditionalVAE(latent_dim=128, num_classes=10, img_channels=1, img_size=28)
-    x = torch.randn(32, 1, 28, 28)
+    # BCE 손실은 목표가 [0,1]이어야 한다
+    x = torch.rand(32, 1, 28, 28)
     labels = torch.randint(0, 10, (32,))
     
     reconstruction, mu, logvar = model(x, labels)
@@ -258,6 +259,18 @@ if __name__ == '__main__':
     # 조건부 뽑기를 시험한다
     samples = model.sample(class_label=7, num_samples=10)
     print(f"Generated samples (class 7) shape: {samples.shape}")
+```
+
+**출력:**
+
+```
+Input shape: torch.Size([32, 1, 28, 28])
+Labels shape: torch.Size([32])
+Reconstruction shape: torch.Size([32, 1, 28, 28])
+Total Loss: 21192.6875
+Reconstruction Loss: 20655.6250
+KL Divergence: 537.0617
+Generated samples (class 7) shape: torch.Size([10, 1, 28, 28])
 ```
 
 ## 2. 논의

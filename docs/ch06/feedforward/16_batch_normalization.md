@@ -153,7 +153,7 @@ def visualize_batch_norm():
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
     
-    ax1.hist(data.numpy(), bins=50, alpha=0.7, color='blue')
+    ax1.hist(data.detach().numpy(), bins=50, alpha=0.7, color='blue')
     ax1.set_title('Before Batch Norm', fontweight='bold')
     ax1.set_xlabel('Value')
     ax1.set_ylabel('Frequency')
@@ -164,8 +164,11 @@ def visualize_batch_norm():
     ax2.set_title('After Batch Norm', fontweight='bold')
     ax2.set_xlabel('Value')
     ax2.set_ylabel('Frequency')
-    ax2.axvline(data_normalized.mean(), color='r', linestyle='--', 
-                label=f'Mean={data_normalized.mean():.2f}')
+    # bn의 출력은 아직 그래프에 붙어 있다. matplotlib이 내부에서 numpy()를
+    # 부르므로 item()으로 파이썬 실수를 넘긴다.
+    normalized_mean = data_normalized.detach().mean().item()
+    ax2.axvline(normalized_mean, color='r', linestyle='--', 
+                label=f'Mean={normalized_mean:.2f}')
     ax2.legend()
     
     plt.tight_layout()
@@ -184,6 +187,57 @@ print("4. Experiment with different network depths")
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+======================================================================
+Batch Normalization
+======================================================================
+Models created!
+Without BN: 235146 params
+With BN: 235914 params
+
+======================================================================
+HOW BATCH NORMALIZATION WORKS
+======================================================================
+
+미니배치마다:
+1. 층 입력의 평균과 분산을 계산한다
+2. 정규화: x_norm = (x - 평균) / sqrt(분산 + ε)
+3. 크기 조절과 이동: y = γ * x_norm + β
+   여기서 γ와 β는 학습되는 매개변수이다
+
+좋은 점:
+✓ 내부 공변량 이동을 줄인다
+✓ 더 큰 학습률을 쓸 수 있다(학습이 10배 빨라진다)
+✓ 초기화에 덜 민감하다
+✓ 정칙화 노릇을 한다(배치 통계에서 오는 작은 잡음)
+✓ 때로는 드롭아웃을 대신할 수 있다
+
+USAGE:
+- 학습할 때: 배치 통계를 쓴다
+- 평가할 때: 이동 평균을 쓴다
+
+PLACEMENT:
+- 보통: 선형 → 배치 정규화 → 활성화
+- 대안: 선형 → 활성화 → 배치 정규화
+  (둘 다 되지만 앞의 것이 더 흔하다)
+
+
+... (20 lines omitted)
+
+InstanceNorm: 표본마다 따로 정규화한다
+GroupNorm: 층 정규화와 인스턴스 정규화의 중간형
+
+Visualization saved!
+
+EXERCISES:
+1. Compare training speed with/without BatchNorm
+2. Try different placement: before vs after activation
+3. Visualize internal activations with/without BN
+4. Experiment with different network depths
 ```
 
 ## 2. 논의

@@ -73,7 +73,7 @@ class ConvVAE(nn.Module):
             nn.Unflatten(1, (128, 4, 4)),
             
             # 4x4 -> 7x7
-            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             
@@ -192,7 +192,8 @@ class ConvVAE(nn.Module):
 if __name__ == '__main__':
     # 모델을 시험한다
     model = ConvVAE(latent_dim=128, img_channels=1, img_size=28)
-    x = torch.randn(32, 1, 28, 28)  # 회색조 28x28 그림 32개 묶음
+    # BCE 손실은 목표가 [0,1]이어야 한다
+    x = torch.rand(32, 1, 28, 28)  # 회색조 28x28 그림 32개 묶음
     
     reconstruction, mu, logvar = model(x)
     loss, bce, kld = model.loss_function(reconstruction, x, mu, logvar)
@@ -207,6 +208,18 @@ if __name__ == '__main__':
     # 뽑기를 시험한다
     samples = model.sample(num_samples=10)
     print(f"Generated samples shape: {samples.shape}")
+```
+
+**출력:**
+
+```
+Input shape: torch.Size([32, 1, 28, 28])
+Reconstruction shape: torch.Size([32, 1, 28, 28])
+Latent mu shape: torch.Size([32, 128])
+Total Loss: 21310.0566
+Reconstruction Loss: 20787.1797
+KL Divergence: 522.8765
+Generated samples shape: torch.Size([10, 1, 28, 28])
 ```
 
 ## 2. 논의

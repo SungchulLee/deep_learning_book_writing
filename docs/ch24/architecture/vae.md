@@ -166,7 +166,8 @@ class VAE(nn.Module):
 if __name__ == '__main__':
     # 모델을 시험한다
     model = VAE(input_dim=784, latent_dim=32)
-    x = torch.randn(32, 784)
+    # BCE 손실은 목표가 [0,1]이어야 한다. randn은 음수를 내므로 rand를 쓴다
+    x = torch.rand(32, 784)
     
     reconstruction, mu, logvar = model(x)
     loss, bce, kld = model.loss_function(reconstruction, x, mu, logvar)
@@ -182,6 +183,19 @@ if __name__ == '__main__':
     # 뽑기를 시험한다
     samples = model.sample(num_samples=10)
     print(f"Generated samples shape: {samples.shape}")
+```
+
+**출력:**
+
+```
+Input shape: torch.Size([32, 784])
+Reconstruction shape: torch.Size([32, 784])
+Latent mu shape: torch.Size([32, 32])
+Latent logvar shape: torch.Size([32, 32])
+Total Loss: 17424.4863
+Reconstruction Loss: 17419.7031
+KL Divergence: 4.7822
+Generated samples shape: torch.Size([10, 784])
 ```
 
 ## 2. 논의

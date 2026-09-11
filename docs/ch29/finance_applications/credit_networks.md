@@ -204,12 +204,12 @@ class CreditNetworkEBM(nn.Module):
         n_defaults = samples.sum(dim=1)
         
         return {
-            'marginal_pd': pd.numpy(),
-            'correlation': corr.numpy(),
+            'marginal_pd': pd.detach().numpy(),
+            'correlation': corr.detach().numpy(),
             'joint_pd': joint_pd,
             'expected_defaults': n_defaults.mean().item(),
             'default_std': n_defaults.std().item(),
-            'max_defaults_99': np.percentile(n_defaults.numpy(), 99)
+            'max_defaults_99': np.percentile(n_defaults.detach().numpy(), 99)
         }
 
 def credit_network_demo():
@@ -279,7 +279,7 @@ def credit_network_demo():
     
     # 부도 개수 분포
     samples = model.gibbs_sample(n_samples=10000, n_steps=500)
-    n_defaults = samples.sum(dim=1).numpy()
+    n_defaults = samples.sum(dim=1).detach().numpy()
     axes[2].hist(n_defaults, bins=range(int(n_defaults.max())+2), 
                 density=True, alpha=0.7, edgecolor='black')
     axes[2].axvline(np.percentile(n_defaults, 99), color='red', 
@@ -294,6 +294,39 @@ def credit_network_demo():
     plt.show()
 
 credit_network_demo()
+```
+
+**출력:**
+
+```
+Estimating default probabilities...
+
+Portfolio Risk Metrics:
+  Expected defaults: 3.62
+  Default volatility: 1.71
+  99th percentile: 8
+
+Marginal default probabilities:
+  Firm  0 (Low   ): 0.069
+  Firm  1 (Low   ): 0.062
+  Firm  2 (Low   ): 0.061
+  Firm  3 (Low   ): 0.072
+  Firm  4 (Low   ): 0.060
+  Firm  5 (Medium): 0.156
+  Firm  6 (Medium): 0.152
+  Firm  7 (Medium): 0.157
+  Firm  8 (Medium): 0.155
+  Firm  9 (Medium): 0.160
+  Firm 10 (Medium): 0.152
+  Firm 11 (Medium): 0.155
+  Firm 12 (Medium): 0.156
+  Firm 13 (Medium): 0.152
+  Firm 14 (Medium): 0.162
+  Firm 15 (High  ): 0.353
+  Firm 16 (High  ): 0.342
+  Firm 17 (High  ): 0.344
+  Firm 18 (High  ): 0.349
+  Firm 19 (High  ): 0.348
 ```
 
 ---
@@ -324,7 +357,7 @@ def systemic_risk_monitor(model, current_state, historical_states):
     """
     with torch.no_grad():
         current_fe = model.free_energy(current_state).item()
-        historical_fe = model.free_energy(historical_states).numpy()
+        historical_fe = model.free_energy(historical_states).detach().numpy()
     
     # 지난 분포에 견준 Z 점수
     z_score = (current_fe - historical_fe.mean()) / historical_fe.std()
@@ -369,9 +402,9 @@ def analyze_contagion(model, shocked_firm: int, n_samples: int = 5000):
     contagion = shocked_pd - baseline_pd
     
     return {
-        'baseline_pd': baseline_pd.numpy(),
-        'shocked_pd': shocked_pd.numpy(),
-        'contagion_effect': contagion.numpy()
+        'baseline_pd': baseline_pd.detach().numpy(),
+        'shocked_pd': shocked_pd.detach().numpy(),
+        'contagion_effect': contagion.detach().numpy()
     }
 ```
 
