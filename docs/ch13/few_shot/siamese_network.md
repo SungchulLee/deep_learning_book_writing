@@ -53,6 +53,9 @@ class SiameseEncoder(nn.Module):
         )
         
         self.fc = nn.Sequential(
+            # 마지막 엮음 켜의 자리 크기는 들임 크기에 따라 달라진다.
+            # 1x1로 모아 두면 아래 선형 켜의 들임 수가 언제나 맞는다.
+            nn.AdaptiveAvgPool2d(1),
             nn.Flatten(),
             nn.Linear(hidden_dim * 4, embedding_dim),
             nn.Sigmoid()  # 묻힘을 [0, 1]로 묶는다
@@ -232,8 +235,9 @@ if __name__ == "__main__":
     
     # 학습 배치 보기
     batch_size = 32
-    x1 = torch.randn(batch_size, 1, 28, 28)
-    x2 = torch.randn(batch_size, 1, 28, 28)
+    # Koch의 샴 그물은 105x105 Omniglot 그림을 바탕으로 한다
+    x1 = torch.randn(batch_size, 1, 105, 105)
+    x2 = torch.randn(batch_size, 1, 105, 105)
     labels = torch.randint(0, 2, (batch_size,)).float()  # 0=닮음, 1=닮지 않음
     
     loss = train_siamese(model, x1, x2, labels, optimizer, criterion)
@@ -242,18 +246,18 @@ if __name__ == "__main__":
     # 한 예시 분류 보기
     n_classes = 5
     n_query = 10
-    support_set = torch.randn(n_classes, 1, 28, 28)
+    support_set = torch.randn(n_classes, 1, 105, 105)
     support_labels = torch.arange(n_classes)
-    query = torch.randn(n_query, 1, 28, 28)
+    query = torch.randn(n_query, 1, 105, 105)
     
     predictions = one_shot_classification(model, support_set, support_labels, query)
     print(f"Predictions: {predictions}")
     
     # 대안: 세쌍 손실로 익히기
     triplet_criterion = TripletLoss(margin=1.0)
-    anchor = torch.randn(batch_size, 1, 28, 28)
-    positive = torch.randn(batch_size, 1, 28, 28)
-    negative = torch.randn(batch_size, 1, 28, 28)
+    anchor = torch.randn(batch_size, 1, 105, 105)
+    positive = torch.randn(batch_size, 1, 105, 105)
+    negative = torch.randn(batch_size, 1, 105, 105)
     
     anchor_emb = model.encoder(anchor)
     positive_emb = model.encoder(positive)
@@ -261,6 +265,14 @@ if __name__ == "__main__":
     
     triplet_loss = triplet_criterion(anchor_emb, positive_emb, negative_emb)
     print(f"Triplet loss: {triplet_loss.item():.4f}")
+```
+
+**출력:**
+
+```
+Training loss: 0.4928
+Predictions: tensor([1, 2, 0, 1, 1, 2, 0, 0, 0, 3])
+Triplet loss: 1.0038
 ```
 
 ## 2. 논의

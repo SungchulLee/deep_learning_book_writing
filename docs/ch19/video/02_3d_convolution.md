@@ -235,7 +235,8 @@ class Conv3DBlock(nn.Module):
                  kernel_size: Tuple[int, int, int] = (3, 3, 3),
                  stride: Tuple[int, int, int] = (1, 1, 1),
                  padding: Tuple[int, int, int] = (1, 1, 1),
-                 use_pooling: bool = True):
+                 use_pooling: bool = True,
+                 pool_temporal: bool = True):
         """
         3차원 누비기 덩이를 첫자리매김한다.
         
@@ -272,9 +273,13 @@ class Conv3DBlock(nn.Module):
         # 자리와 때 차원을 줄인다
         self.use_pooling = use_pooling
         if use_pooling:
+            # 마지막 켜에서는 때 차원이 이미 1이라 또 반으로 줄이면 0이 되어
+            # 터진다. 그때는 자리만 모은다(참 C3D도 이렇게 한다).
+            pool_k = (2, 2, 2) if pool_temporal else (1, 2, 2)
             self.pool = nn.MaxPool3d(
-                kernel_size=(2, 2, 2),  # 때와 자리에 걸쳐 모으기
-                stride=(2, 2, 2)
+                kernel_size=pool_k,
+                stride=pool_k,
+                ceil_mode=True
             )
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -361,7 +366,8 @@ class C3D(nn.Module):
         
         # 5a, 5b층: Conv3d (512→512)
         self.conv5a = Conv3DBlock(512, 512, use_pooling=False)
-        self.conv5b = Conv3DBlock(512, 512, use_pooling=True)
+        # 때 차원이 이미 1이므로 자리만 모은다
+        self.conv5b = Conv3DBlock(512, 512, use_pooling=True, pool_temporal=False)
         # 내놓음: (B, 512, 1, 4, 4) — 때 차원이 1로 줄었음에 유의
         
         # 완전 연결층
@@ -712,6 +718,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+None
+
+================================================================================
+2D vs 3D CONVOLUTION COMPARISON
+================================================================================
+
+Input video shape: torch.Size([2, 16, 3, 64, 64])
+  B=2 (batch), T=16 (time), C=3 (channels)
+  H=64 (height), W=64 (width)
+
+1. Applying 2D Convolution (frame-by-frame)...
+   Parameters: 1792
+   Kernel size: (3, 3) - spatial only
+   Output shape: torch.Size([2, 16, 64, 64, 64])
+   ✗ Frames processed independently - no temporal modeling
+
+2. Applying 3D Convolution (spatiotemporal)...
+   Parameters: 5248
+   Kernel size: (3, 3, 3) - spatiotemporal
+   Output shape: torch.Size([2, 64, 16, 64, 64])
+   ✓ Temporal dimension processed - learns motion!
+
+3. Parameter Comparison:
+   2D Conv: 1,792 parameters
+   3D Conv: 5,248 parameters
+   Ratio: 3D has 2.9x more parameters
+   Reason: 3D kernel has additional temporal dimension
+
+================================================================================
+C3D ARCHITECTURE DEMONSTRATION
+================================================================================
+
+1. Creating C3D model...
+
+... (55 lines omitted)
+
+       - 요즘 얼개(R3D, I3D)에 쓰인다
+    
+    5. 실전에서 헤아릴 점:
+       - 3차원 누비기 신경망은 셈 값이 비싸다
+       - 익히려면 힘센 GPU가 필요하다
+       - 기억 공간 때문에 묶음 크기가 제한된다(자리·때 덩어리가 크다)
+       - 이점: 날 영상에서 끝에서 끝까지 배운다
+    
+    다음: 3차원 누비기 신경망으로 단순 영상 갈래 매개를 세운다!
+    
 ```
 
 ## 2. 논의
