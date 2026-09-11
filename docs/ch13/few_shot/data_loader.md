@@ -130,18 +130,21 @@ class MiniImageNetLoader:
         """
         # 데이터를 불러온다(보기용 흉내 데이터)
         if split == 'train':
-            n_samples = 1000
             n_classes = 64
         elif split == 'val':
-            n_samples = 300
             n_classes = 16
         else:  # 시험
-            n_samples = 300
             n_classes = 20
-        
+
+        # 갈래마다 k_shot + n_query 보다 넉넉히 두어야 에피소드를 뽑을 수 있다.
+        # 표본 수를 먼저 못박고 이름표를 randint로 뿌리면, 어떤 갈래는 모자라서
+        # "Cannot take a larger sample than population" 이 난다.
+        per_class = k_shot + n_query + 5
+        n_samples = n_classes * per_class
+
         # 임시 데이터 만들기
         data = torch.randn(n_samples, 3, 84, 84)  # 표준 mini-ImageNet 크기
-        labels = torch.randint(0, n_classes, (n_samples,))
+        labels = torch.arange(n_classes).repeat_interleave(per_class)
         
         # 에피소드 데이터셋을 만든다
         dataset = EpisodicDataset(data, labels, n_way, k_shot, n_query, n_episodes)
@@ -170,16 +173,19 @@ class OmniglotLoader:
         Omniglot용 에피소드 데이터 로더를 만든다.
         """
         # 데이터를 불러온다(보기용 흉내)
+        # 참 Omniglot은 갈래가 1200개이지만, 흉내 자료로 그만큼 만들면
+        # 쓸데없이 커진다. 갈래 수를 줄이고 갈래마다 넉넉히 둔다.
         if split == 'train':
-            n_samples = 1000
-            n_classes = 1200  # 바탕 집합
+            n_classes = 60   # 참 바탕 집합은 1200개이다
         else:
-            n_samples = 500
-            n_classes = 423  # 평가 집합
-        
+            n_classes = 20   # 참 평가 집합은 423개이다
+
+        per_class = k_shot + n_query + 5
+        n_samples = n_classes * per_class
+
         # 흉내 데이터를 만든다(28x28 흑백 그림)
         data = torch.randn(n_samples, 1, 28, 28)
-        labels = torch.randint(0, n_classes, (n_samples,))
+        labels = torch.arange(n_classes).repeat_interleave(per_class)
         
         # 에피소드 데이터셋을 만든다
         dataset = EpisodicDataset(data, labels, n_way, k_shot, n_query, n_episodes)
@@ -244,7 +250,9 @@ if __name__ == "__main__":
     
     # 흉내 데이터(28x28 흑백 그림)
     data = torch.randn(n_samples, 1, 28, 28)
-    labels = torch.randint(0, n_classes, (n_samples,))
+    # randint로 이름표를 뿌리면 갈래마다 개수가 들쭉날쭉해져서, 어떤 갈래는
+    # k_shot + n_query 보다 적어진다. 갈래마다 똑같이 나누어 준다.
+    labels = torch.arange(n_classes).repeat_interleave(n_samples // n_classes)
     
     # 에피소드 데이터셋을 만든다(5-갈래 1-예시)
     dataset = EpisodicDataset(
@@ -292,6 +300,26 @@ if __name__ == "__main__":
         print(f"Support shape: {support.shape}")
         print(f"Query shape: {query.shape}")
         break
+```
+
+**출력:**
+
+```
+Support set shape: torch.Size([5, 1, 28, 28])
+Support labels: tensor([0, 1, 2, 3, 4])
+Query set shape: torch.Size([75, 1, 28, 28])
+Query labels: tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+        4, 4, 4])
+
+Batch 0:
+Support sets shape: torch.Size([4, 5, 1, 28, 28])
+Query sets shape: torch.Size([4, 75, 1, 28, 28])
+
+Mini-ImageNet batch:
+Support shape: torch.Size([4, 25, 3, 84, 84])
+Query shape: torch.Size([4, 75, 3, 84, 84])
 ```
 
 ## 2. 논의

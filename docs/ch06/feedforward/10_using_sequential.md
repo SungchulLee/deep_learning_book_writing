@@ -7,6 +7,7 @@
 ## 1. 코드
 
 ```python
+from collections import OrderedDict
 """
 ================================================================================
 04_using_sequential.py - nn.Sequential로 모델 빠르게 만들기
@@ -71,8 +72,9 @@ print("=" * 80)
 
 # 층에 이름을 붙이면 디버깅과 이해에 도움이 된다
 # 나중에 특정 층에 접근하고 싶을 때 편리하다
-named_model = nn.Sequential(
-    # OrderedDict를 쓰거나 키-값 쌍으로 직접 이름을 준다
+# nn.Sequential은 모듈을 죽 늘어놓거나 OrderedDict 하나를 받는다.
+# ('이름', 모듈) 짝을 그냥 나열하면 TypeError가 난다.
+named_model = nn.Sequential(OrderedDict([
     ('flatten', nn.Flatten()),              # 입력 펼치기
     ('fc1', nn.Linear(784, 256)),           # 첫 완전 연결층
     ('relu1', nn.ReLU()),                   # 첫 활성화
@@ -81,7 +83,7 @@ named_model = nn.Sequential(
     ('relu2', nn.ReLU()),                   # 둘째 활성화
     ('dropout2', nn.Dropout(0.2)),          # 드롭아웃 한 번 더
     ('fc3', nn.Linear(128, 10))             # 출력층
-)
+]))
 
 print("Named Sequential Model:")
 for name, module in named_model.named_children():
@@ -380,6 +382,57 @@ print("""
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+================================================================================
+PART 1: Building a Simple Sequential Model
+================================================================================
+Simple Sequential Model:
+Sequential(
+  (0): Linear(in_features=784, out_features=256, bias=True)
+  (1): ReLU()
+  (2): Linear(in_features=256, out_features=128, bias=True)
+  (3): ReLU()
+  (4): Linear(in_features=128, out_features=10, bias=True)
+)
+
+Total parameters: 235,146
+
+================================================================================
+PART 2: Sequential with Named Layers
+================================================================================
+Named Sequential Model:
+  flatten: Flatten(start_dim=1, end_dim=-1)
+  fc1: Linear(in_features=784, out_features=256, bias=True)
+  relu1: ReLU()
+  dropout1: Dropout(p=0.2, inplace=False)
+  fc2: Linear(in_features=256, out_features=128, bias=True)
+  relu2: ReLU()
+  dropout2: Dropout(p=0.2, inplace=False)
+  fc3: Linear(in_features=128, out_features=10, bias=True)
+
+================================================================================
+PART 3: Composing Sequential Blocks
+================================================================================
+Modular Sequential Model:
+Sequential(
+  (0): Flatten(start_dim=1, end_dim=-1)
+
+... (148 lines omitted)
+
+1. Sequential로 5~6층짜리 더 깊은 모델을 만들어 보라
+2. 층 사이에 배치 정규화를 넣어 보라
+3. 드롭아웃 비율을 달리하여 실험해 보라
+4. "넓은" 신경망(층마다 뉴런이 많다)과 "깊은" 신경망(층이 많다)을 만들어 견주어 보라
+5. 설정 목록으로 Sequential 모델을 만들어 내는 함수를 짜 보라
+6. 자르기로 중간 특징을 뽑아 보라
+7. 여러 활성화 함수(LeakyReLU, ELU 등)를 써 보라
+8. Sequential 모델의 앙상블을 만들어 보라
+9. 첫 층의 가중치를 시각화해 보라
+10. 층을 없애는 방식으로 모델 가지치기를 구현해 보라
 ```
 
 ## 2. 논의

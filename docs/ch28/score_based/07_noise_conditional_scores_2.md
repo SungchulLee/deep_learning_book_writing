@@ -106,7 +106,10 @@ def ncsn_loss(model, x, sigmas):
     # 자료 점마다 아무 잡음 수준을 뽑는다
     N = len(x)
     sigma_idx = torch.randint(0, len(sigmas), (N,))
-    sigma = torch.tensor([sigmas[i] for i in sigma_idx], device=x.device)
+    # sigmas는 numpy에서 왔으므로 float64이다. dtype을 지정하지 않으면
+    # Double 텐서가 만들어져 Float인 모델 가중치와 곱해지지 못한다.
+    sigma = torch.tensor([sigmas[i] for i in sigma_idx],
+                         dtype=torch.float32, device=x.device)
     
     # 잡음 더하기
     noise = torch.randn_like(x)
@@ -237,6 +240,31 @@ if __name__ == "__main__":
     plt.savefig('demo_ncsn_checkerboard.png', dpi=150, bbox_inches='tight')
     print("\nSaved demo_ncsn_checkerboard.png")
     print("\n✓ NCSN successfully learned multi-modal distribution!")
+```
+
+**출력:**
+
+```
+Noise Conditional Score Networks Demo
+================================================================================
+
+Noise schedule: [2.00000000e+01 8.59505945e+00 3.69375235e+00 1.58740105e+00
+ 6.82190321e-01 2.93173318e-01 1.25992105e-01 5.41454816e-02
+ 2.32691817e-02 1.00000000e-02]
+
+Training NCSN...
+Epoch     0 | Loss: 967414656.000000
+Epoch   500 | Loss: 1014138368.000000
+Epoch  1000 | Loss: 1145161472.000000
+Epoch  1500 | Loss: 1030166976.000000
+Epoch  2000 | Loss: 994114368.000000
+Epoch  2500 | Loss: 1175464320.000000
+
+Generating samples via annealed Langevin dynamics...
+
+Saved demo_ncsn_checkerboard.png
+
+✓ NCSN successfully learned multi-modal distribution!
 ```
 
 ## 2. 논의
