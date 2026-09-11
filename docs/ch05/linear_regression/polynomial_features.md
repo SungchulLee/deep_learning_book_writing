@@ -65,7 +65,38 @@ $$
 
 ---
 
-## 2. NumPy 구현
+## 2. 예제가 함께 쓰는 자료
+
+아래 구현들은 모두 같은 자료를 쓴다. 특징이 2개인 작은 표본이며, 다항식 확장이 열을 얼마나 불리는지 보기에 알맞다.
+
+```python
+import numpy as np
+
+rng = np.random.default_rng(0)
+
+n, p = 50, 2
+X_raw = rng.normal(size=(n, p))
+# 참 함수는 이차식이므로 선형 기저로는 담아내지 못한다
+y_raw = 1.0 + 2.0 * X_raw[:, 0] - 1.5 * X_raw[:, 1] ** 2 + 0.3 * rng.normal(size=n)
+
+# 뒤의 예제들은 학습/시험으로 나눈 판도 쓴다
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_raw, y_raw, test_size=0.3, random_state=0)
+
+print(f"X_raw  : {X_raw.shape}   y_raw : {y_raw.shape}")
+print(f"X_train: {X_train.shape}   X_test: {X_test.shape}")
+```
+
+**출력:**
+
+```
+X_raw  : (50, 2)   y_raw : (50,)
+X_train: (35, 2)   X_test: (15, 2)
+```
+
+## 3. NumPy 구현
 
 ### 2.1 직접 만들기 (단변량)
 
@@ -99,6 +130,12 @@ X_poly = poly.fit_transform(X_raw)  # (n, C(p+3, 3))
 print(poly.get_feature_names_out())  # ['1', 'x0', 'x1', 'x0^2', ...]
 ```
 
+**출력:**
+
+```
+['1' 'x0' 'x1' 'x0^2' 'x0 x1' 'x1^2' 'x0^3' 'x0^2 x1' 'x0 x1^2' 'x1^3']
+```
+
 ### 2.3 전 과정 적합
 
 ```python
@@ -121,7 +158,7 @@ y_pred = pipe.predict(X_test)
 
 ---
 
-## 3. PyTorch 구현
+## 4. PyTorch 구현
 
 ```python
 import torch
@@ -176,7 +213,7 @@ Weights: [0.9922938346862793, -2.0556046962738037, 0.49783164262771606, 0.008654
 
 ---
 
-## 4. 편향–분산 절충
+## 5. 편향–분산 절충
 
 ### 4.1 개념적 틀
 
@@ -244,7 +281,7 @@ ax.grid(True, alpha=0.3)
 
 ---
 
-## 5. 차수 선택을 위한 교차 검증
+## 6. 차수 선택을 위한 교차 검증
 
 ### 5.1 k-겹 교차 검증
 
@@ -290,7 +327,7 @@ def select_degree(X, y, max_degree=10, cv=5):
 
 ---
 
-## 6. 정칙화와의 관계
+## 7. 정칙화와의 관계
 
 고차 다항식이 과적합하는 것은 데이터에 비해 자유 매개변수가 너무 많기 때문이다.
 해결책은 두 가지이다.
@@ -315,7 +352,7 @@ pipe_regularised.fit(X_train, y_train)
 
 ---
 
-## 7. 다항식을 넘어서
+## 8. 다항식을 넘어서
 
 다항 특징은 기저 확장의 한 가지 선택일 뿐이다. 흔히 쓰이는 다른 선택은 다음과 같다.
 
@@ -332,7 +369,7 @@ pipe_regularised.fit(X_train, y_train)
 
 ---
 
-## 8. 완전한 예제
+## 9. 완전한 예제
 
 ```python
 import numpy as np

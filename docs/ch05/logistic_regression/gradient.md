@@ -437,8 +437,10 @@ print("\n" + "=" * 70)
 print("HESSIAN AND CONVEXITY")
 print("=" * 70)
 
+# n_informative + n_redundant + n_repeated 는 n_features 이하여야 한다.
+# n_redundant의 기본값이 2라 따로 지정하지 않으면 4 + 2 > 5 로 어긋난다.
 X_raw, y_raw = make_classification(
-    n_samples=200, n_features=5, n_informative=4, random_state=42
+    n_samples=200, n_features=5, n_informative=4, n_redundant=1, random_state=42
 )
 X_train, X_test, y_train, y_test = train_test_split(
     X_raw, y_raw, test_size=0.2, random_state=42
@@ -568,6 +570,57 @@ plt.savefig("gradient_hessian_irls.png", dpi=150, bbox_inches="tight")
 plt.show()
 
 print("\n✓ Visualization saved!")
+```
+
+**출력:**
+
+```
+======================================================================
+GRADIENT, HESSIAN, AND IRLS FOR LOGISTIC REGRESSION
+======================================================================
+
+1. Verifying Gradient Computation
+--------------------------------------------------
+Manual gradient (first 3):    [-0.1961383819580078, -0.18451640009880066, 0.08944062143564224]
+Autograd gradient (first 3):  [-0.196138396859169, -0.18451640009880066, 0.08944057673215866]
+Max difference: 4.47e-08
+Gradients match: True
+
+======================================================================
+GRADIENT COMPONENTS BREAKDOWN
+======================================================================
+
+Step-by-step gradient calculation:
+--------------------------------------------------
+Linear predictor z = Xβ:  [[-0.10000002384185791, 0.2999999523162842, 0.6999999284744263]]
+Predictions p = σ(z):     ['0.475', '0.574', '0.668']
+True labels y:            [[1.0, 0.0, 1.0]]
+Errors (p - y):           ['-0.525', '0.574', '-0.332']
+
+Per-sample gradient contributions:
+  Sample 1: error=-0.525 × features=[1.0, 2.0] = ['-0.525', '-1.050']
+  Sample 2: error=0.574 × features=[3.0, 4.0] = ['1.723', '2.298']
+  Sample 3: error=-0.332 × features=[5.0, 6.0] = ['-1.659', '-1.991']
+
+Total gradient (averaged): ['-0.154', '-0.248']
+
+======================================================================
+HESSIAN AND CONVEXITY
+======================================================================
+Training data: n=160, d=6
+
+... (6 lines omitted)
+
+CONVERGENCE COMPARISON
+======================================================================
+GD final loss (50 iters):     0.492159
+Newton final loss (10 iters): 0.488636
+IRLS final loss (10 iters):   0.488636
+
+Newton ≈ IRLS: False
+Max difference: 1.27e+01
+
+✓ Visualization saved!
 ```
 
 ---

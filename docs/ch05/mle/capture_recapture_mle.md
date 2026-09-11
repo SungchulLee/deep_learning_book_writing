@@ -231,7 +231,9 @@ def visualize_results(C: int, R: int, T: int, N_true: int,
     
     # 그림을 그리기 위해 보통의 가능도로 바꾼다
     # 최댓값을 빼서 정규화한다 (수치적 안정성을 위해)
-    log_lik_plot = log_likelihoods[:len(N_values) - min_N]
+    # N_values는 min_N에서 시작하는 arange이므로 그 길이만큼 자르면 된다.
+    # 길이에서 min_N을 빼면 색인과 길이를 뒤섞는 셈이 되어 짝이 어긋난다.
+    log_lik_plot = log_likelihoods[:len(N_values)]
     max_log_lik = np.max(log_lik_plot[np.isfinite(log_lik_plot)])
     likelihood = np.exp(log_lik_plot - max_log_lik)
     
@@ -476,6 +478,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+================================================================================
+CAPTURE-RECAPTURE MLE - Wildlife Population Estimation
+================================================================================
+
+🦌 SCENARIO: Estimating Deer Population
+--------------------------------------------------------------------------------
+   • Step 1: Captured and marked C = 30 deer
+   • Step 2: Recaptured R = 40 deer
+   • Observed: T = 8 of them were marked
+   • True population: N = 150 (unknown in practice)
+
+📐 Method 1: Lincoln-Petersen Estimator
+--------------------------------------------------------------------------------
+   N̂ = (C × R) / T = (30 × 40) / 8 = 150.0
+   Error: 0.0 animals (0.0%)
+
+🎯 Method 2: Exact MLE (Hypergeometric)
+--------------------------------------------------------------------------------
+   Computing likelihood for all possible population sizes...
+   MLE estimate: N̂ = 149
+   Error: 1 animals (0.7%)
+
+📊 COMPARISON
+--------------------------------------------------------------------------------
+   True population:     N = 150
+   Lincoln-Petersen:    N̂ = 150.0
+   Exact MLE:           N̂ = 149
+   Difference (L-P vs MLE): 1.0
+
+📊 Creating visualizations...
+
+📊 Figure saved as 'capture_recapture_mle_results.png'
+
+
+... (7 lines omitted)
+
+================================================================================
+
+💡 KEY INSIGHTS:
+   1. MLE provides population estimates from limited samples
+   2. Lincoln-Petersen ≈ Exact MLE for large populations
+   3. More captures → better estimates
+   4. Assumes: closed population, equal catchability, marks don't fade
+   5. Widely used in ecology, epidemiology, and software testing!
+
+================================================================================
 ```
 
 ## 3. 논의

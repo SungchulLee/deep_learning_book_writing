@@ -398,7 +398,10 @@ ax5.grid(True, alpha=0.3)
 # 그림 6: 모델 가중치 시각화
 ax6 = plt.subplot(2, 3, 6)
 weights = model.linear.weight.data.cpu().numpy()  # Shape: (n_classes, input_dim)
-im = ax6.imshow(weights, aspect='auto', cmap='RdBu_r', center=0)
+# imshow에는 center 인자가 없다(그것은 seaborn.heatmap의 것이다).
+# 발산형 색지도를 0에 맞추려면 범위를 0 둘레로 대칭이 되게 준다.
+vmax = float(abs(weights).max())
+im = ax6.imshow(weights, aspect='auto', cmap='RdBu_r', vmin=-vmax, vmax=vmax)
 ax6.set_xlabel('Feature Index')
 ax6.set_ylabel('Class')
 ax6.set_title('Model Weights', fontweight='bold')
@@ -476,6 +479,57 @@ print("="*80)
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+================================================================================
+MULTI-CLASS CLASSIFICATION
+================================================================================
+
+================================================================================
+PART 1: UNDERSTANDING MULTI-CLASS CLASSIFICATION
+================================================================================
+
+둘 분류:
+  2 classes: 0 or 1
+  출력: 확률 하나
+  살림: 시그모이드
+  손실: 둘 교차 엔트로피(BCE)
+
+여러 클래스 분류:
+  K classes: 0, 1, 2, ..., K-1
+  출력: 확률 K개(합이 1이다)
+  살림: 소프트맥스
+  손실: 교차 엔트로피
+
+소프트맥스 함수:
+  클래스가 K개일 때 소프트맥스는 로짓을 확률로 바꾼다.
+  
+  P(class=k) = exp(logit_k) / sum(exp(logit_j) for all j)
+  
+  Properties:
+  ✓ 확률이 모두 양수다
+  ✓ 확률의 합이 1이다
+  ✓ Differentiable
+
+
+================================================================================
+PART 2: PREPARING MULTI-CLASS DATA
+
+... (127 lines omitted)
+
+   - 곧바로 하는 여러 클래스 분류과 견준다
+
+5. 어려움: 레이블 스무딩을 더하여라.
+   - 딱딱한 0/1 대신 부드러운 과녁
+   - 일반화이 나아진다
+
+
+================================================================================
+NEXT: 03_regularization.py - Preventing overfitting
+================================================================================
 ```
 
 ## 2. 논의

@@ -226,6 +226,33 @@ def lasso_ista(
 
 ## 5. 구현
 
+### 5.0 예제가 함께 쓰는 자료
+
+아래 구현들은 모두 같은 자료를 쓴다. 특징 20개 가운데 **5개만 실제로 쓰이는** 문제이므로, 라소가 나머지를 0으로 눌러 주기를 기대할 수 있다.
+
+```python
+import numpy as np
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+X, y = make_regression(n_samples=200, n_features=20, n_informative=5,
+                       noise=10.0, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=0)
+
+# 라소는 특징의 크기에 민감하므로 고르게 맞춘 판도 준비해 둔다
+X_train_scaled = StandardScaler().fit_transform(X_train)
+
+print(f"X_train: {X_train.shape}   참으로 쓰인 특징: 5개 / 20개")
+```
+
+**출력:**
+
+```
+X_train: (140, 20)   참으로 쓰인 특징: 5개 / 20개
+```
+
 ### 5.1 scikit-learn
 
 ```python
@@ -252,13 +279,27 @@ pipe_cv.fit(X_train, y_train)
 print(f"Best α: {pipe_cv.named_steps['lasso'].alpha_:.4f}")
 ```
 
+**출력:**
+
+```
+Non-zero coefficients: 18 / 20
+Best α: 0.7615
+```
+
 ### 5.2 PyTorch (L1 벌점을 직접 더하기)
 
 PyTorch에 내장된 `weight_decay`는 $\ell_2$만 구현한다. $\ell_1$을 쓰려면 벌점을
 직접 더해야 한다.
 
 ```python
+import torch
 import torch.nn as nn
+
+# 앞에서 만든 자료를 텐서로 바꾼다. 라소는 특징의 크기에 민감하므로
+# 고르게 맞춘 판을 쓴다.
+X_train_t = torch.tensor(X_train_scaled, dtype=torch.float32)
+y_train_t = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1)
+p = X_train_t.shape[1]
 
 model = nn.Linear(p, 1)
 criterion = nn.MSELoss()
@@ -266,8 +307,8 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 lam = 0.01
 
 for epoch in range(100):
-    y_pred = model(X_train)
-    mse_loss = criterion(y_pred, y_train)
+    y_pred = model(X_train_t)
+    mse_loss = criterion(y_pred, y_train_t)
 
     # 가중치에만 L1 벌점 (편향에는 주지 않는다)
     l1_penalty = sum(param.abs().sum() for name, param in model.named_parameters()
@@ -334,6 +375,13 @@ elastic_cv = ElasticNetCV(
 elastic_cv.fit(X_train_scaled, y_train)
 print(f"Best α: {elastic_cv.alpha_:.4f}")
 print(f"Best l1_ratio: {elastic_cv.l1_ratio_:.2f}")
+```
+
+**출력:**
+
+```
+Best α: 0.1306
+Best l1_ratio: 0.95
 ```
 
 ---

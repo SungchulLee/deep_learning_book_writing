@@ -50,22 +50,36 @@ torch.manual_seed(ARGS.seed)
 # 데이터
 # ============================================================================
 
+import pandas as pd
+
+
+def synthetic_returns(n=1000, beta=0.5, seed=0):
+    """내려받기가 안 될 때 쓸 흉내 낸 수익률. 참 베타는 0.5이다."""
+    rng = np.random.default_rng(seed)
+    spy = rng.normal(0.0004, 0.012, n)
+    wmt = 0.0001 + beta * spy + rng.normal(0, 0.008, n)
+    return pd.DataFrame({"SPY": spy, "WMT": wmt})
+
+
+returns = None
 try:
     import yfinance as yf
 
     tickers = ["WMT", "SPY"]
     data = yf.download(tickers, start=ARGS.start, end=ARGS.end)["Adj Close"]
     data = data.dropna()
-    returns = data.pct_change().dropna()
-    returns.columns = ["SPY", "WMT"]
+    if len(data) > 1:
+        returns = data.pct_change().dropna()
+        returns.columns = ["SPY", "WMT"]
 except ImportError:
-    print("yfinance not installed — generating synthetic data.")
-    n = 1000
-    spy = np.random.normal(0.0004, 0.012, n)
-    wmt = 0.0001 + 0.5 * spy + np.random.normal(0, 0.008, n)
-    import pandas as pd
+    print("yfinance가 없다 — 흉내 낸 자료를 쓴다.")
 
-    returns = pd.DataFrame({"SPY": spy, "WMT": wmt})
+# yfinance가 있어도 망 연결이 없으면 빈 표가 돌아온다. 그대로 두면
+# X^T X 가 특이 행렬이 되어 알아보기 어려운 LinAlgError로 터지므로,
+# 자료가 비었는지 여기서 확인하고 흉내 낸 자료로 갈아탄다.
+if returns is None or len(returns) < 30:
+    print("시장 자료를 받지 못했다 — 흉내 낸 자료를 쓴다(참 베타 = 0.5).")
+    returns = synthetic_returns()
 
 x = returns["SPY"].values
 y = returns["WMT"].values
@@ -202,6 +216,36 @@ print("\nSaved: wmt_on_spy.png")
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+YF.download() has changed argument auto_adjust default to True
+시장 자료를 받지 못했다 — 흉내 낸 자료를 쓴다(참 베타 = 0.5).
+Observations: 1000
+SPY  mean=-0.000176 std=0.0117
+WMT  mean=-0.000052 std=0.0103
+Correlation: 0.6133
+
+--- NumPy Normal Equation ---
+α = 0.000043
+β = 0.5410
+R² = 0.3761
+
+--- Sklearn ---
+α = 0.000043
+β = 0.5410
+
+--- PyTorch ---
+α = 0.830067
+β = 0.7358
+
+--- Rolling Beta (window=60) ---
+Rolling β — mean: 0.5447, std: 0.0975
+Rolling β — min: 0.2645, max: 0.7536
+
+Saved: wmt_on_spy.png
 ```
 
 ## 2. 논의

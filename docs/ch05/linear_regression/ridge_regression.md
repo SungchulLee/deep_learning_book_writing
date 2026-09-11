@@ -221,7 +221,30 @@ def ridge_closed_form(
     return torch.linalg.solve(A, X.T @ y)
 ```
 
-### 5.3 PyTorch (가중치 감쇠를 쓰는 경사 하강법)
+### 5.3 예제가 함께 쓰는 자료
+
+아래 구현들은 모두 같은 자료를 쓴다. 특징이 $p$개, 표본이 $n$개인 회귀 문제이다.
+
+```python
+import torch
+
+torch.manual_seed(0)
+
+n, p = 200, 20                                   # 표본 수, 특징 수
+X_train = torch.randn(n, p)
+true_theta = torch.randn(p, 1)
+y_train = X_train @ true_theta + 0.5 * torch.randn(n, 1)
+
+print(f"X_train: {tuple(X_train.shape)}  y_train: {tuple(y_train.shape)}  p = {p}")
+```
+
+**출력:**
+
+```
+X_train: (200, 20)  y_train: (200, 1)  p = 20
+```
+
+### 5.4 PyTorch (가중치 감쇠를 쓰는 경사 하강법)
 
 PyTorch에서 $\ell_2$ 정칙화는 최적화기의 **가중치 감쇠**(weight decay)로 구현된다.
 벌점의 경사 $\lambda\boldsymbol{\theta}$이 매개변수 갱신에 자동으로 더해진다.
@@ -275,6 +298,12 @@ best_alpha = pipe_cv.named_steps["ridge"].alpha_
 print(f"Best α: {best_alpha}")
 ```
 
+**출력:**
+
+```
+Best α: 0.1
+```
+
 !!! warning "반드시 표준화하라"
     릿지는 계수의 **크기**에 벌점을 준다. 특징들의 규모가 다르면 분산이 큰 특징의
     계수가 불균형하게 많이 줄어든다. 릿지 앞에서는 언제나 `StandardScaler`를 써라.
@@ -306,6 +335,12 @@ for a in alphas:
 
 best_idx = np.argmin(cv_scores)
 print(f"Best α = {alphas[best_idx]:.4f}, CV MSE = {cv_scores[best_idx]:.4f}")
+```
+
+**출력:**
+
+```
+Best α = 0.3728, CV MSE = 0.2753
 ```
 
 ### 6.2 정칙화 경로
