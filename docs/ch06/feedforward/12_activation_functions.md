@@ -128,6 +128,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+Activation Functions Comparison
+======================================================================
+Activation functions plotted and saved!
+
+======================================================================
+ACTIVATION FUNCTION GUIDE
+======================================================================
+
+ReLU(정류 선형 유닛)
+  Formula: f(x) = max(0, x)
+  장점: 단순하고 빠르며 잘 작동한다
+  단점: 죽은 뉴런(모든 입력에 0을 내놓는 뉴런)
+  쓰임: 은닉층의 기본 선택
+
+Sigmoid
+  Formula: f(x) = 1 / (1 + e^(-x))
+  장점: 매끄럽고 [0,1]로 유계이다
+  단점: 기울기 소실, 느린 수렴
+  쓰임: 이진 분류 출력, LSTM의 게이트
+
+Tanh
+  Formula: f(x) = (e^x - e^(-x)) / (e^x + e^(-x))
+  장점: 0을 중심으로 하며 [-1,1]로 유계이다
+  단점: 기울기 소실
+  쓰임: 때때로 RNN에서, 은닉층에서는 시그모이드보다 낫다
+
+LeakyReLU
+  Formula: f(x) = max(0.1x, x)
+  장점: 죽은 ReLU 문제를 고치며 x < 0에서도 작은 기울기가 있다
+  단점: 이득이 한결같지 않다
+  쓰임: 죽은 ReLU 문제를 만났을 때
+
+
+... (13 lines omitted)
+
+  - 은닉층: ReLU(기본), 필요하면 LeakyReLU
+  - 이진 출력: 시그모이드
+  - 다중 클래스 출력: 소프트맥스(CrossEntropyLoss로)
+  - 회귀 출력: 없음(선형)
+
+
+EXERCISES:
+1. Train MNIST with each activation - compare results
+2. Visualize gradient flow for each activation
+3. Implement custom activation function
+```
+
 ## 2. 논의
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.

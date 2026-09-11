@@ -277,6 +277,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+============================================================
+Scikit-learn Regularization Demo
+============================================================
+
+No Regularization:
+  Train R²: 0.9991
+  Test R²: 0.9897
+  Non-zero coefficients: 50/50
+
+L2 (Ridge):
+  Train R²: 0.9990
+  Test R²: 0.9897
+  Non-zero coefficients: 50/50
+
+L1 (Lasso):
+  Train R²: 0.9991
+  Test R²: 0.9901
+  Non-zero coefficients: 48/50
+
+Coefficients plot saved as 'l1_l2_coefficients.png'
+
+============================================================
+Neural Network Regularization Demo
+============================================================
+
+Training No Regularization...
+  Train MAE: 5.5543
+  Test MAE: 15.3884
+
+Training L1 Regularization...
+  Train MAE: 5.5836
+  Test MAE: 15.3670
+
+
+... (7 lines omitted)
+
+
+Neural network plot saved as 'nn_regularization_comparison.png'
+
+============================================================
+Key Takeaways:
+============================================================
+• L1 (Lasso): Pushes coefficients to zero → Feature selection
+• L2 (Ridge): Shrinks coefficients smoothly → Prevents large weights
+• L1+L2 (Elastic Net): Combines benefits of both approaches
+• Regularization helps prevent overfitting and improves generalization
+```
+
 ## 2. 논의
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.

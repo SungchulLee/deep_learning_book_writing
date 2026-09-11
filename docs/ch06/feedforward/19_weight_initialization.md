@@ -158,6 +158,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+Weight Initialization Strategies
+======================================================================
+INITIALIZATION METHODS:
+----------------------------------------------------------------------
+
+XAVIER:
+  Mean: 0.000187
+  Std: 0.043858
+  Min: -0.075955, Max: 0.075955
+
+HE:
+  Mean: 0.000077
+  Std: 0.050549
+  Min: -0.087479, Max: 0.087482
+
+NORMAL:
+  Mean: 0.000013
+  Std: 0.010013
+  Min: -0.041641, Max: 0.044718
+
+ZEROS:
+  Mean: 0.000000
+  Std: 0.000000
+  Min: 0.000000, Max: 0.000000
+
+======================================================================
+INITIALIZATION GUIDE
+======================================================================
+
+자비에르(글로로) 초기화:
+  Formula: U(-√(6/(n_in + n_out)), √(6/(n_in + n_out)))
+  쓰는 곳: 시그모이드, tanh 활성화
+
+... (20 lines omitted)
+
+PyTorch 기본값: 선형층에 카이밍 균등 초기화
+
+
+Weight distribution plots saved!
+
+EXERCISES:
+1. Train models with different initializations
+2. Visualize gradient flow with different inits
+3. Compare Xavier vs He for ReLU networks
+4. Implement custom initialization schemes
+```
+
 ## 2. 논의
 
 `DemoNet` 클래스는 PyTorch의 `nn.Module` 인터페이스를 사용하여 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로, 학습 중에 PyTorch의 autograd 체계가 경사 계산을 자동으로 처리한다. 이런 모듈식 설계 덕분에 개별 구성 요소를 고치거나 모델을 더 큰 파이프라인에 넣기가 쉬워진다.

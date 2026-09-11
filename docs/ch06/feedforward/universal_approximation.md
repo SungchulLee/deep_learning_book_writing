@@ -390,6 +390,15 @@ print(f"Wide-shallow final MSE: {wide_losses[-1]:.6f}")
 print(f"Deep-narrow  final MSE: {deep_losses[-1]:.6f}")
 ```
 
+**출력:**
+
+```
+Wide-shallow params: 1,501
+Deep-narrow  params: 4,321
+Wide-shallow final MSE: 0.031728
+Deep-narrow  final MSE: 0.000256
+```
+
 ---
 
 ## 10. 핵심 정리

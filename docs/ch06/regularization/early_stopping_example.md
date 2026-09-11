@@ -371,6 +371,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+Generating dataset...
+Training set: (1400, 20)
+Validation set: (300, 20)
+Test set: (300, 20)
+
+Training WITHOUT early stopping...
+Training WITH early stopping (patience=10)...
+  Stopped early at epoch 20
+Training WITH early stopping (patience=20)...
+  Stopped early at epoch 30
+Training with ADVANCED early stopping (multiple callbacks)...
+  Stopped early at epoch 25
+
+============================================================
+Test Set Performance
+============================================================
+No Early Stopping:
+  Test Loss: 0.5368
+  Test Accuracy: 0.9700
+  Test AUC: 0.9900
+
+Early Stop (patience=10):
+  Test Loss: 0.1034
+  Test Accuracy: 0.9767
+  Test AUC: 0.9904
+
+Early Stop (patience=20):
+  Test Loss: 0.1034
+  Test Accuracy: 0.9767
+  Test AUC: 0.9904
+
+Advanced Early Stop:
+  Test Loss: 0.1034
+
+... (9 lines omitted)
+
+• Without early stopping: Trained for 200 epochs
+• With early stopping (p=10): Stopped at epoch 20
+• With early stopping (p=20): Stopped at epoch 30
+• Advanced callbacks: Stopped at epoch 25
+
+Benefits of Early Stopping:
+  1. Prevents overfitting by stopping before validation loss increases
+  2. Saves computational time by not training unnecessary epochs
+  3. Automatically finds optimal number of training epochs
+  4. Can be combined with other techniques (learning rate reduction, etc.)
+```
+
 ## 2. 논의
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.

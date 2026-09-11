@@ -450,6 +450,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+Welcome to MNIST Classification!
+======================================================================
+
+MNIST Dataset:
+  - 70,000 handwritten digit images (0-9)
+  - 28x28 grayscale images
+  - Classic machine learning benchmark
+  - Real-world computer vision task!
+
+======================================================================
+STEP 1: Loading MNIST Dataset
+======================================================================
+Using device: cpu
+
+Downloading MNIST dataset (if not already present)...
+Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
+Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
+Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+
+... (214 lines omitted)
+
+   - CNN(뒤에서 다룬다): 99% 이상
+   - 우리 모델: 약 {test_accuracy:.1f}%
+
+다음 단계:
+- 튜토리얼 07: 검증 집합과 정칙화 더하기
+- 튜토리얼 08: 배치 정규화
+- 튜토리얼 09: 더 깊은 신경망
+- 튜토리얼 10: 고급 기법
+
+Training completed successfully! ✓
+```
+
 ## 2. 논의
 
 `MNISTNet` 클래스는 PyTorch의 `nn.Module` 인터페이스를 사용하여 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로, 학습 중에 PyTorch의 autograd 체계가 경사 계산을 자동으로 처리한다. 이런 모듈식 설계 덕분에 개별 구성 요소를 고치거나 모델을 더 큰 파이프라인에 넣기가 쉬워진다.

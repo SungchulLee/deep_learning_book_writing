@@ -212,6 +212,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+Dropout and Regularization
+======================================================================
+
+Training WITHOUT Dropout:
+No Dropout - Epoch 1: Train=91.8%, Test=96.1%
+No Dropout - Epoch 2: Train=96.8%, Test=97.2%
+No Dropout - Epoch 3: Train=97.9%, Test=97.6%
+No Dropout - Epoch 4: Train=98.4%, Test=97.5%
+No Dropout - Epoch 5: Train=98.7%, Test=98.0%
+No Dropout - Epoch 6: Train=99.0%, Test=97.8%
+No Dropout - Epoch 7: Train=99.0%, Test=98.0%
+No Dropout - Epoch 8: Train=99.3%, Test=98.1%
+No Dropout - Epoch 9: Train=99.2%, Test=98.0%
+No Dropout - Epoch 10: Train=99.3%, Test=97.4%
+
+Training WITH Dropout:
+Dropout 0.5 - Epoch 1: Train=88.3%, Test=95.9%
+Dropout 0.5 - Epoch 2: Train=94.9%, Test=96.9%
+Dropout 0.5 - Epoch 3: Train=96.0%, Test=97.4%
+Dropout 0.5 - Epoch 4: Train=96.5%, Test=97.7%
+Dropout 0.5 - Epoch 5: Train=96.8%, Test=97.8%
+Dropout 0.5 - Epoch 6: Train=97.0%, Test=98.0%
+Dropout 0.5 - Epoch 7: Train=97.3%, Test=97.7%
+Dropout 0.5 - Epoch 8: Train=97.4%, Test=98.1%
+Dropout 0.5 - Epoch 9: Train=97.5%, Test=98.1%
+Dropout 0.5 - Epoch 10: Train=97.6%, Test=98.0%
+
+Plot saved as '08_dropout_comparison.png'
+
+======================================================================
+KEY TAKEAWAYS
+======================================================================
+
+... (23 lines omitted)
+
+  - 입력층: 0.1~0.2(낮게)
+  - 은닉층: 0.3~0.5(높게)
+  - 출력층: 절대 쓰지 마라!
+
+
+EXERCISES:
+1. Try different dropout rates (0.1, 0.3, 0.7)
+2. Compare L1 vs L2 regularization
+3. Implement early stopping
+4. Add dropout to different positions in network
+```
+
 ## 2. 논의
 
 이 구현은 2개의 클래스(`NoDropoutNet`, `DropoutNet`)를 정의하며, 이들이 함께 작동하여 완전한 순방향 신경망 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.

@@ -297,6 +297,20 @@ for name, arch in architectures.items():
 print("=" * 75)
 ```
 
+**출력:**
+
+```
+Architecture Comparison on MNIST
+===========================================================================
+Name                             Params   Accuracy   Time (s)
+---------------------------------------------------------------------------
+Wide-Shallow (1 hidden)         814,090     97.99%       30.8
+Medium (2 hidden)               235,146     97.71%       21.1
+Deep-Narrow (4 hidden)           63,370     96.34%       14.4
+Deep-Wide (3 hidden)            335,114     98.03%       15.5
+===========================================================================
+```
+
 ### 예산 고정: 깊이와 너비의 증가
 
 ```python
@@ -358,6 +372,21 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.savefig('depth_vs_width_fixed_budget.png', dpi=150, bbox_inches='tight')
 plt.show()
+```
+
+**출력:**
+
+```
+Fixed budget ≈ 100,000 parameters
+Depth    Width    Params       Accuracy  
+----------------------------------------
+2        125      99,385       97.60     %
+3        110      99,670       97.57     %
+4        100      99,710       97.70     %
+5        92       98,818       97.24     %
+6        87       99,799       96.86     %
+8        78       98,992       96.80     %
+10       72       99,298       96.54     %
 ```
 
 ### 잔차 연결을 갖춘 깊은 신경망
@@ -426,6 +455,16 @@ resid_acc, _  = train_and_evaluate(residual,   train_loader, test_loader, epochs
 # 그 차이는 표현력이 아니라 "학습이 되느냐"에서 온 것이다
 print(f"\nPlain deep accuracy:    {plain_acc:.2f}%")
 print(f"Residual deep accuracy: {resid_acc:.2f}%")
+```
+
+**출력:**
+
+```
+Plain deep:       415,498 params
+Residual deep:    437,130 params
+
+Plain deep accuracy:    11.35%
+Residual deep accuracy: 97.49%
 ```
 
 ---

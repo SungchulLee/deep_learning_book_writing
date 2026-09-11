@@ -212,6 +212,18 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+Training model WITHOUT dropout...
+Training model WITH dropout...
+
+Test Accuracy without Dropout: 0.9550
+Test Accuracy with Dropout: 0.9550
+
+Plot saved as 'dropout_comparison.png'
+```
+
 ## 2. 논의
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.

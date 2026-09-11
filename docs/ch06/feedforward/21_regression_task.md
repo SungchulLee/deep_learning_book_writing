@@ -243,6 +243,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+================================================================================
+Regression Task: California Housing Prices
+================================================================================
+Features: ['MedInc', 'HouseAge', 'AveRooms', 'AveBedrms', 'Population', 'AveOccup', 'Latitude', 'Longitude']
+Samples: 20640
+Features per sample: 8
+Target: Median house value (in $100,000s)
+
+Train samples: 16512
+Test samples: 4128
+
+================================================================================
+Regression Model
+================================================================================
+Model created!
+Loss: MSE (Mean Squared Error)
+
+================================================================================
+Training...
+================================================================================
+Epoch [ 20/200] Loss: 0.3543
+Epoch [ 40/200] Loss: 0.3119
+Epoch [ 60/200] Loss: 0.2975
+Epoch [ 80/200] Loss: 0.2888
+Epoch [100/200] Loss: 0.2816
+Epoch [120/200] Loss: 0.2835
+Epoch [140/200] Loss: 0.2759
+Epoch [160/200] Loss: 0.2766
+Epoch [180/200] Loss: 0.2726
+Epoch [200/200] Loss: 0.2724
+
+Final Results:
+Train RMSE: $48679.15
+
+... (20 lines omitted)
+
+- MSE: 평균 제곱 오차
+- RMSE: MSE의 제곱근(목표와 단위가 같다)
+- MAE: 평균 절대 오차
+- R²: Coefficient of determination (0-1)
+
+TIPS:
+- 회귀에서는 늘 특징을 정규화하라
+- 데이터에 이상치가 있는지 확인하라
+- 예측과 실제를 견주어 시각화하라
+- 잔차의 분포를 분석하라
+```
+
 ## 2. 논의
 
 `RegressionNet` 클래스는 PyTorch의 `nn.Module` 인터페이스를 사용하여 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로, 학습 중에 PyTorch의 autograd 체계가 경사 계산을 자동으로 처리한다. 이런 모듈식 설계 덕분에 개별 구성 요소를 고치거나 모델을 더 큰 파이프라인에 넣기가 쉬워진다.

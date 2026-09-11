@@ -276,6 +276,18 @@ for d in degrees:
     print(f"Degree {d:2d}:  Bias²={bias_sq:.4f}  Var={var:.4f}  MSE={mse:.4f}")
 ```
 
+**출력:**
+
+```
+Degree  1:  Bias²=1.8694  Var=0.0102  MSE=1.8794
+Degree  2:  Bias²=0.3884  Var=0.0157  MSE=0.4040
+Degree  3:  Bias²=0.0001  Var=0.0197  MSE=0.0196
+Degree  5:  Bias²=0.0016  Var=0.0280  MSE=0.0293
+Degree  8:  Bias²=0.0205  Var=0.0404  MSE=0.0606
+Degree 12:  Bias²=0.1294  Var=1.0479  MSE=1.1668
+Degree 18:  Bias²=8.2446  Var=2037.0941  MSE=2024.9680
+```
+
 ### 절충을 눈으로 보기
 
 ```python

@@ -276,6 +276,52 @@ if __name__ == "__main__":
     print("- Remember to call model.eval() during inference!")
 ```
 
+**출력:**
+
+```
+============================================================
+Batch Normalization Demonstration
+============================================================
+
+Original data statistics:
+Mean per feature: [-1.37307353e-02 -2.45400640e+01  4.79469433e-01  7.23479191e-02
+ -7.55956637e-02]
+Std per feature:  [ 0.09310947 84.37433366  9.58398634  0.99662077  0.89315136]
+
+After Batch Normalization:
+Mean per feature: [ 0.00000000e+00  2.77555756e-17  4.16333634e-17  1.73472348e-17
+ -1.73472348e-17]
+Std per feature:  [0.99942376 1.         0.99999995 0.99999497 0.99999373]
+
+Key observations:
+- All features now have mean ≈ 0 and std ≈ 1
+- Features are on the same scale
+- Gradients can flow more easily
+
+============================================================
+Comparison: With vs Without BatchNorm
+============================================================
+
+Output statistics:
+Without BatchNorm - Mean: -0.0016, Std: 0.1332
+With BatchNorm    - Mean: -0.0190, Std: 0.3812
+
+Benefits of Batch Normalization:
+1. Faster convergence during training
+2. Allows higher learning rates
+3. Reduces sensitivity to initialization
+4. Acts as a form of regularization
+5. Reduces internal covariate shift
+
+============================================================
+Additional Notes:
+============================================================
+- BatchNorm normalizes over the batch dimension
+- For Conv layers, use BatchNorm2d (normalizes per channel)
+- For fully connected layers, use BatchNorm1d
+- Remember to call model.eval() during inference!
+```
+
 ## 2. 논의
 
 이 구현은 3개의 클래스(`BatchNorm1dNumPy`, `SimpleNetworkWithBatchNorm`, `ConvNetWithBatchNorm`)를 정의하며, 이들이 함께 작동하여 완전한 정규화 기법 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.

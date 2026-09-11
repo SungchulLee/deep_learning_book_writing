@@ -132,6 +132,18 @@ if __name__ == "__main__":
               f"Time: {result['training_time']:.2f}s")
 ```
 
+**출력:**
+
+```
+relu         | Acc: 0.9550 | Best: 0.9550 | Time: 0.12s
+leaky_relu   | Acc: 0.9450 | Best: 0.9450 | Time: 0.10s
+elu          | Acc: 0.9450 | Best: 0.9450 | Time: 0.17s
+gelu         | Acc: 0.9450 | Best: 0.9550 | Time: 0.27s
+silu         | Acc: 0.9500 | Best: 0.9500 | Time: 0.13s
+tanh         | Acc: 0.9150 | Best: 0.9150 | Time: 0.16s
+sigmoid      | Acc: 0.8700 | Best: 0.8700 | Time: 0.11s
+```
+
 ## 2. 논의
 
 복잡한 과제에서는 GELU와 SiLU(Swish) 같은 현대적인 활성화 함수가 고전적인 ReLU보다 나은 경우가 많다. BERT와 GPT 같은 트랜스포머 구조에서 널리 쓰이는 GELU는 매끄러운 근사를 제공하여 경사의 흐름을 더 좋게 만들 수 있다. SiLU(Swish라고도 한다)는 $x \cdot \sigma(x)$으로, 매끄럽고 단조롭지 않으며 스스로 문을 여닫는다. 두 함수 모두 작은 음수 값을 통과시켜, 뉴런이 영영 0만 내놓는 "죽은 ReLU" 문제를 피한다.

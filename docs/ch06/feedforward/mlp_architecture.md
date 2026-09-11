@@ -452,6 +452,21 @@ for epoch in range(EPOCHS):
     )
 ```
 
+**출력:**
+
+```
+Epoch  1/10 | Train Loss: 0.2335 | Train Acc: 92.84% | Test Acc: 96.37%
+Epoch  2/10 | Train Loss: 0.1114 | Train Acc: 96.53% | Test Acc: 97.50%
+Epoch  3/10 | Train Loss: 0.0863 | Train Acc: 97.30% | Test Acc: 97.67%
+Epoch  4/10 | Train Loss: 0.0704 | Train Acc: 97.76% | Test Acc: 97.60%
+Epoch  5/10 | Train Loss: 0.0622 | Train Acc: 98.00% | Test Acc: 97.87%
+Epoch  6/10 | Train Loss: 0.0563 | Train Acc: 98.16% | Test Acc: 97.74%
+Epoch  7/10 | Train Loss: 0.0522 | Train Acc: 98.32% | Test Acc: 98.14%
+Epoch  8/10 | Train Loss: 0.0457 | Train Acc: 98.55% | Test Acc: 98.20%
+Epoch  9/10 | Train Loss: 0.0451 | Train Acc: 98.62% | Test Acc: 98.09%
+Epoch 10/10 | Train Loss: 0.0423 | Train Acc: 98.67% | Test Acc: 98.13%
+```
+
 ---
 
 ## 9. 구조 설계의 원리

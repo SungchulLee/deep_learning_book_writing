@@ -146,6 +146,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+Loss Functions Guide
+======================================================================
+
+REGRESSION LOSSES
+----------------------------------------------------------------------
+MSE Loss: 0.0700
+  Formula: mean((pred - true)^2)
+  Use: Regression, penalizes large errors heavily
+
+MAE Loss: 0.2200
+  Formula: mean(|pred - true|)
+  Use: Regression with outliers, more robust than MSE
+
+Smooth L1 Loss: 0.0350
+  Formula: Combines L1 and L2
+  Use: Robust to outliers, used in object detection
+
+======================================================================
+CLASSIFICATION LOSSES
+----------------------------------------------------------------------
+BCE with Logits: 0.3088
+  Use: Binary classification (includes sigmoid)
+  More numerically stable than BCE alone
+
+Cross Entropy: 0.8693
+  Use: Multi-class classification (includes log_softmax)
+  Most common for classification tasks
+
+======================================================================
+LOSS FUNCTION SELECTION GUIDE
+======================================================================
+
+
+... (19 lines omitted)
+
+✗ 회귀에 교차 엔트로피 쓰기
+
+
+Loss visualizations saved!
+
+EXERCISES:
+1. Implement custom loss function for imbalanced data
+2. Compare MSE vs MAE on dataset with outliers
+3. Create weighted cross entropy for class imbalance
+4. Visualize gradient magnitude for different losses
+```
+
 ## 2. 논의
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.

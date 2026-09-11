@@ -386,6 +386,57 @@ if __name__ == "__main__":
     print("✓ When batch statistics are unreliable")
 ```
 
+**출력:**
+
+```
+============================================================
+Layer Normalization Demonstration
+============================================================
+
+Original data:
+[[ 1.   2.   3.   4.   5. ]
+ [10.  20.  30.  40.  50. ]
+ [ 0.1  0.2  0.3  0.4  0.5]
+ [ 5.   5.   5.   5.   5. ]]
+
+Mean per sample: [ 3.  30.   0.3  5. ]
+Std per sample:  [ 1.41421356 14.14213562  0.14142136  0.        ]
+
+After Layer Normalization:
+[[-1.41421003 -0.70710501  0.          0.70710501  1.41421003]
+ [-1.41421353 -0.70710676  0.          0.70710676  1.41421353]
+ [-1.41386014 -0.70693007  0.          0.70693007  1.41386014]
+ [ 0.          0.          0.          0.          0.        ]]
+
+Mean per sample: [-4.44089210e-17  4.44089210e-17  1.33226763e-16  0.00000000e+00]
+Std per sample:  [0.9999975  0.99999998 0.99975009 0.        ]
+
+Key observations:
+- Each SAMPLE is normalized independently
+- Mean ≈ 0 and Std ≈ 1 for EACH sample
+- Works well for variable batch sizes
+- No dependence on other samples in the batch
+
+============================================================
+Batch Norm vs Layer Norm Comparison
+============================================================
+
+Original data shape: torch.Size([8, 10])
+
+... (46 lines omitted)
+
+- Use LayerNorm when batch size is small or variable
+
+============================================================
+When to use Layer Normalization:
+============================================================
+✓ RNNs and LSTMs
+✓ Transformers (standard choice)
+✓ Small batch sizes
+✓ Online learning (batch size = 1)
+✓ When batch statistics are unreliable
+```
+
 ## 2. 논의
 
 이 구현은 4개의 클래스(`LayerNormNumPy`, `RNNWithLayerNorm`, `TransformerBlockWithLayerNorm`, `SimpleNetworkWithLayerNorm`)를 정의하며, 이들이 함께 작동하여 완전한 정규화 기법 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.

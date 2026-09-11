@@ -467,6 +467,57 @@ if __name__ == "__main__":
     print("=" * 70)
 ```
 
+**출력:**
+
+```
+======================================================================
+Normalization Axes Visualization
+======================================================================
+
+Input tensor shape: (N, C, H, W) = (Batch, Channels, Height, Width)
+
+Normalization axes (what dimensions are averaged over):
+----------------------------------------------------------------------
+BatchNorm      : Axes: [0, 2, 3] → (N, H, W) | Per channel across batch
+LayerNorm      : Axes: [1, 2, 3] → (C, H, W) | Per sample across features
+InstanceNorm   : Axes: [2, 3]    → (H, W)   | Per sample per channel
+GroupNorm      : Axes: [2, 3]    → (H, W)   | Per sample per group
+
+======================================================================
+
+======================================================================
+Comparing Normalizations on Sample Data
+======================================================================
+
+Input shape: torch.Size([2, 3, 4, 4])
+Input mean: 0.0335, std: 5.7866
+
+Original data statistics:
+  Sample 0, Channel 0: mean= -1.367, std= 12.344
+  Sample 0, Channel 1: mean=  2.864, std=  3.968
+  Sample 0, Channel 2: mean= -1.329, std=  5.472
+  Sample 1, Channel 0: mean= -0.039, std=  0.950
+  Sample 1, Channel 1: mean=  0.101, std=  0.531
+  Sample 1, Channel 2: mean= -0.029, std=  0.447
+
+----------------------------------------------------------------------
+After normalization:
+----------------------------------------------------------------------
+
+... (176 lines omitted)
+
+    - 층 정규화/사례 정규화: 학습과 평가에서 거동이 같다
+    - 모드를 바꾸려면 .train()과 .eval()을 쓰라
+    
+
+======================================================================
+For more details, see individual files:
+  - batch_normalization.py
+  - layer_normalization.py
+  - instance_normalization.py
+======================================================================
+```
+
 ## 2. 논의
 
 `NormalizationComparison` 클래스는 PyTorch의 `nn.Module` 인터페이스를 사용하여 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로, 학습 중에 PyTorch의 autograd 체계가 경사 계산을 자동으로 처리한다. 이런 모듈식 설계 덕분에 개별 구성 요소를 고치거나 모델을 더 큰 파이프라인에 넣기가 쉬워진다.

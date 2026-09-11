@@ -408,6 +408,57 @@ if __name__ == "__main__":
     print("✓ Real-time applications (no running statistics needed)")
 ```
 
+**출력:**
+
+```
+============================================================
+Instance Normalization Demonstration
+============================================================
+
+Original data statistics:
+
+Image 0:
+  Channel 0: mean= -0.25, std=  9.40
+  Channel 1: mean= -0.25, std=  0.91
+  Channel 2: mean= -0.03, std=  0.09
+
+Image 1:
+  Channel 0: mean= -0.75, std=  4.08
+  Channel 1: mean=  2.19, std= 16.88
+  Channel 2: mean= -0.10, std=  1.49
+
+After Instance Normalization:
+
+Image 0:
+  Channel 0: mean=  0.00, std=  1.00
+  Channel 1: mean=  0.00, std=  1.00
+  Channel 2: mean= -0.00, std=  1.00
+
+Image 1:
+  Channel 0: mean= -0.00, std=  1.00
+  Channel 1: mean= -0.00, std=  1.00
+  Channel 2: mean=  0.00, std=  1.00
+
+Key observations:
+- Each (image, channel) pair is normalized independently
+- Mean ≈ 0 and Std ≈ 1 for EACH channel of EACH image
+- No mixing of statistics across samples or channels
+
+
+... (65 lines omitted)
+
+without being influenced by the original image's brightness/contrast.
+
+============================================================
+When to use Instance Normalization:
+============================================================
+✓ Style transfer networks
+✓ GANs (especially image-to-image translation)
+✓ When each sample should be processed independently
+✓ When batch statistics shouldn't mix
+✓ Real-time applications (no running statistics needed)
+```
+
 ## 2. 논의
 
 이 구현은 4개의 클래스(`InstanceNorm2dNumPy`, `StyleTransferNetwork`, `ResidualBlock`, `GeneratorWithInstanceNorm`)를 정의하며, 이들이 함께 작동하여 완전한 정규화 기법 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.

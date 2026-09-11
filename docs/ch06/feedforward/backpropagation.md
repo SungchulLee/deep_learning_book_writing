@@ -321,6 +321,15 @@ for epoch in range(1000):
         print(f"Epoch {epoch+1:4d}: loss = {loss:.4f}, accuracy = {acc:.1f}%")
 ```
 
+**출력:**
+
+```
+Epoch  250: loss = 0.1072, accuracy = 99.0%
+Epoch  500: loss = 0.0726, accuracy = 99.5%
+Epoch  750: loss = 0.0571, accuracy = 99.5%
+Epoch 1000: loss = 0.0481, accuracy = 99.5%
+```
+
 ### Autograd로 경사 확인하기
 
 ```python

@@ -337,6 +337,34 @@ for key in sorted(cache.keys()):
 print(f"\nPredictions: {output.detach().squeeze()}")
 ```
 
+**출력:**
+
+```
+=== Forward Pass Trace ===
+  a0: shape torch.Size([3, 2])
+        tensor([[0.5000, 0.8000],
+        [0.1000, 0.2000],
+        [0.9000, 0.4000]])
+  a1: shape torch.Size([3, 3])
+        tensor([[0.1357, 0.1507, 0.0000],
+        [0.0297, 0.0348, 0.0000],
+        [0.1773, 0.1516, 0.0000]])
+  a2: shape torch.Size([3, 1])
+        tensor([[0.5254],
+        [0.5054],
+        [0.5368]])
+  z1: shape torch.Size([3, 3])
+        tensor([[ 0.1357,  0.1507, -0.3552],
+        [ 0.0297,  0.0348, -0.0748],
+        [ 0.1773,  0.1516, -0.5426]])
+  z2: shape torch.Size([3, 1])
+        tensor([[0.1017],
+        [0.0217],
+        [0.1474]])
+
+Predictions: tensor([0.5254, 0.5054, 0.5368])
+```
+
 ### 중간값을 추적하는 순전파 (`nn.Module`)
 
 ```python
@@ -395,6 +423,21 @@ logits, cache = model(x, return_intermediates=True)
 print("\nIntermediate shapes:")
 for k, v in cache.items():
     print(f"  {k}: {v.shape}")
+```
+
+**출력:**
+
+```
+Output shape: torch.Size([32, 10])
+
+Intermediate shapes:
+  a0: torch.Size([32, 784])
+  z1: torch.Size([32, 256])
+  a1: torch.Size([32, 256])
+  z2: torch.Size([32, 128])
+  a2: torch.Size([32, 128])
+  z3: torch.Size([32, 10])
+  a3: torch.Size([32, 10])
 ```
 
 ### `torch.no_grad()`으로 효율적인 추론하기
