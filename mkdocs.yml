@@ -54,7 +54,7 @@ nav:
       - 1.3 PyTorch:
         - NumPy에서 PyTorch로: ch01/pytorch/01_numpy_to_tensor.md
         - CPU와 GPU를 재어 보기: ch01/pytorch/02_cpu_vs_gpu.md
-    - 2 인공지능 학습 패러다임과 고전 모델:
+    - 2 학습 패러다임과 고전 모델:
       - 장 개요: ch02/index.md
       - 2.1 인공지능 학습 패러다임:
         - 가진 자료를 분석하라: ch02/paradigms/analyze_available.md
