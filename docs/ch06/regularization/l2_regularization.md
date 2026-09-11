@@ -155,12 +155,14 @@ $$
 L2 정칙화를 쓰는 표준 Adam은 적응형 학습률과 가중치 감쇠를 완전히 분리하지 못한다. AdamW가 이를 바로잡는다.
 
 ```python
+# lambda는 파이썬의 예약어라 변수 이름으로 쓸 수 없다. lam으로 적는다.
+
 # L2를 쓰는 표준 Adam (이상적이지 않다)
-gradient = grad + 2 * lambda * w
+gradient = grad + 2 * lam * w
 # 정칙화 항이 적응형 학습률로 배율 조정된다
 
 # AdamW (제대로 된 가중치 감쇠)
-w = w - lr * adam_step(grad) - lr * lambda * w
+w = w - lr * adam_step(grad) - lr * lam * w
 # 기울기를 거치지 않고 가중치 감쇠를 직접 적용한다
 ```
 

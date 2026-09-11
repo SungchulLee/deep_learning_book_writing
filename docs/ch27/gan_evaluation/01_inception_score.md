@@ -401,7 +401,59 @@ def main():
 
 
 if __name__ == "__main__":
-    main()```
+    main()
+```
+
+**출력:**
+
+```
+======================================================================
+MODULE 52: INCEPTION SCORE (IS)
+======================================================================
+======================================================================
+Inception Score Intuition
+======================================================================
+
+Scenario 1: High Quality + High Diversity (IDEAL)
+----------------------------------------------------------------------
+IS: 6.0636 ± 0.0000
+Quality: Good
+Explanation: Confident predictions + diverse classes = High IS
+
+Scenario 2: Low Quality (Uncertain Predictions)
+----------------------------------------------------------------------
+IS: 1.0000 ± 0.0000
+Quality: Very Poor
+Explanation: p(y|x) = p(y) → KL = 0 → IS = exp(0) = 1.0
+Minimum possible IS = 1.0
+
+Scenario 3: Mode Collapse (Single Class)
+----------------------------------------------------------------------
+IS: 1.0000 ± 0.0000
+Quality: Very Poor
+Explanation: Confident predictions but no diversity
+p(y) peaked at one class → Low KL → Low IS
+
+Scenario 4: Good Quality but Limited Diversity
+----------------------------------------------------------------------
+IS: 2.6876 ± 0.0000
+Quality: Poor to Moderate
+Explanation: Confident but not covering all classes
+
+
+... (91 lines omitted)
+
+       - 맞겨루기 꾀에 속을 수 있다
+    
+    6. 모범 사례:
+       - 표준편차를 셈할 때는 splits=10을 쓴다
+       - 인셉션 점수 ± 표준편차를 함께 알린다
+       - 늘 다른 자와 함께 쓴다(FID, 정밀도와 재현율)
+       - 눈으로 살펴보는 일을 곁들인다
+       - 일에 맞춘 따지기도 함께 생각한다
+    
+======================================================================
+```
 
 ## 논의
 

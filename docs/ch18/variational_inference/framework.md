@@ -208,6 +208,7 @@ True Posterior (Bimodal):           Forward KL Result:        Reverse KL Result:
 ### 가우스 평균 어림을 위한 단순 변분 추론
 
 ```python
+import math
 import torch
 import torch.nn as nn
 import torch.distributions as dist
@@ -258,7 +259,7 @@ class SimpleVI:
         #                 = -n/2 log(2πσ²) - 1/(2σ²) [Σᵢ(xᵢ - m)² + n·s²]
         
         expected_log_likelihood = (
-            -0.5 * n * torch.log(2 * torch.pi * self.sigma**2)
+            -0.5 * n * math.log(2 * math.pi * self.sigma**2)   # 파이썬 실수라 math를 쓴다
             - 0.5 / self.sigma**2 * (
                 torch.sum((data - self.m)**2) + n * self.s**2
             )
@@ -358,6 +359,29 @@ if __name__ == "__main__":
     print(f"VI approximation: N({approx.mean.item():.4f}, {approx.stddev.item():.4f}²)")
     print(f"\nDifference in mean: {abs(exact.mean.item() - approx.mean.item()):.6f}")
     print(f"Difference in std:  {abs(exact.stddev.item() - approx.stddev.item()):.6f}")
+```
+
+**출력:**
+
+```
+============================================================
+Variational Inference for Gaussian Mean
+============================================================
+
+True mean: 2.5
+Sample mean: 2.5957
+Sample size: 50
+Iter  200: ELBO = -101.0287, m = 1.6287, s = 0.3366
+Iter  400: ELBO = -77.9031, m = 2.3675, s = 0.2283
+Iter  600: ELBO = -76.4975, m = 2.5552, s = 0.1853
+Iter  800: ELBO = -76.4128, m = 2.5808, s = 0.1641
+Iter 1000: ELBO = -76.3939, m = 2.5827, s = 0.1527
+
+Exact posterior:  N(2.5827, 0.1411²)
+VI approximation: N(2.5827, 0.1527²)
+
+Difference in mean: 0.000071
+Difference in std:  0.011653
 ```
 
 ### 눈으로 보기

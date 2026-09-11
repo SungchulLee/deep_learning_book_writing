@@ -123,6 +123,8 @@ $$
 
 ```python
 # 전역 기울기 노름을 max_norm으로 자르기
+import torch
+
 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 ```
 

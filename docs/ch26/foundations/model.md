@@ -19,7 +19,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from typing import Optional
+from typing import Optional, Tuple
 
 # ========================================================================
 # 메인
@@ -318,6 +318,29 @@ if __name__ == "__main__":
     print(f"Output shape: {output.shape}")
     
     print("\n✓ Both models working correctly!")
+```
+
+**출력:**
+
+```
+============================================================
+Testing CharRNN
+============================================================
+Number of parameters: 63,218
+Input shape: torch.Size([16, 20])
+Output shape: torch.Size([16, 50])
+Output represents scores for 50 possible next characters
+
+Generated sequence length: 30
+
+============================================================
+Testing SimpleCharTransformer
+============================================================
+Number of parameters: 112,818
+Input shape: torch.Size([16, 20])
+Output shape: torch.Size([16, 50])
+
+✓ Both models working correctly!
 ```
 
 ## 2. 논의

@@ -289,6 +289,10 @@ $$g(\mathbf{x}) = P(\text{영역} = \text{못 본 부류} | \mathbf{x})$$
 ### 구현
 
 ```python
+import torch
+import torch.nn as nn
+
+
 class GatedGZSL(nn.Module):
     """
     배운 문 장치를 갖춘 GZSL 모델.

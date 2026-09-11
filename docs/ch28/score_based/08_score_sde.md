@@ -124,7 +124,8 @@ class VPSDE(ScoreSDE):
         return -0.5 * self.beta(t) * x
     
     def g(self, t):
-        return torch.sqrt(self.beta(t))
+        # t가 파이썬 실수로 들어오면 beta(t)도 실수가 되어 torch.sqrt가 거부한다
+        return torch.sqrt(torch.as_tensor(self.beta(t), dtype=torch.float32))
     
     def marginal_prob(self, x0, t):
         log_alpha_t = -0.25 * t ** 2 * (self.beta_max - self.beta_min) - 0.5 * t * self.beta_min
@@ -255,6 +256,27 @@ def demo_sde():
 
 if __name__ == "__main__":
     demo_sde()
+```
+
+**출력:**
+
+```
+Score-based SDE Demo
+================================================================================
+
+Training score model...
+Epoch    0 | Loss: 1246.737671
+Epoch  500 | Loss: 19.561932
+Epoch 1000 | Loss: 165.794067
+Epoch 1500 | Loss: nan
+Epoch 2000 | Loss: nan
+Epoch 2500 | Loss: nan
+
+Generating samples via reverse SDE...
+
+Saved demo_score_sde.png
+
+✓ Score SDE successfully implemented!
 ```
 
 ## 2. 논의
