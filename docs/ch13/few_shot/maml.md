@@ -128,19 +128,21 @@ class MAML:
             task_loss = self.inner_loop(support_x, support_y, query_x, query_y)
             meta_loss += task_loss
             
-            # 이 과제의 정확도를 셈한다
+            # 이 과제의 정확도를 셈한다.
+            # 맞추는 일 자체에는 기울기가 있어야 하므로 no_grad 안에서 돌 수
+            # 없다. 대신 걸음마다 결과를 떼어 내어 메타 그래프가 자라지 않게 한다.
+            params = OrderedDict(self.model.named_parameters())
+            for step in range(self.num_inner_steps):
+                support_logits = self.model(support_x, params)
+                support_loss = F.cross_entropy(support_logits, support_y)
+                grads = torch.autograd.grad(support_loss, params.values())
+                params = OrderedDict(
+                    (name, (param - self.inner_lr * grad).detach().requires_grad_(True))
+                    for ((name, param), grad) in zip(params.items(), grads)
+                )
+
+            # 재는 일에는 기울기가 필요 없다
             with torch.no_grad():
-                # 맞춘 매개변수를 얻는다(그래프 없이 안쪽 되돌이를 다시 돈다)
-                params = OrderedDict(self.model.named_parameters())
-                for step in range(self.num_inner_steps):
-                    support_logits = self.model(support_x, params)
-                    support_loss = F.cross_entropy(support_logits, support_y)
-                    grads = torch.autograd.grad(support_loss, params.values())
-                    params = OrderedDict(
-                        (name, param - self.inner_lr * grad)
-                        for ((name, param), grad) in zip(params.items(), grads)
-                    )
-                
                 query_logits = self.model(query_x, params)
                 predictions = torch.argmax(query_logits, dim=1)
                 accuracy = (predictions == query_y).float().mean()
@@ -173,8 +175,9 @@ class MAML:
             support_loss = F.cross_entropy(support_logits, support_y)
             
             grads = torch.autograd.grad(support_loss, params.values())
+            # 다음 걸음에서 또 기울기를 구해야 하므로 requires_grad를 살려 둔다
             params = OrderedDict(
-                (name, param - self.inner_lr * grad)
+                (name, (param - self.inner_lr * grad).detach().requires_grad_(True))
                 for ((name, param), grad) in zip(params.items(), grads)
             )
         
@@ -185,8 +188,10 @@ class MAML:
         받침 집합에 맞춘 뒤 물음 집합에서 맞힌다.
         """
         self.model.eval()
+        # 맞추는 일은 기울기를 쓰므로 no_grad 밖에서 한다
+        adapted_params = self.adapt(support_x, support_y)
+        # 맞힌 뒤의 앞먹임에는 기울기가 필요 없다
         with torch.no_grad():
-            adapted_params = self.adapt(support_x, support_y)
             query_logits = self.model(query_x, adapted_params)
             predictions = torch.argmax(query_logits, dim=1)
         return predictions
@@ -233,6 +238,13 @@ if __name__ == "__main__":
     
     predictions = maml.predict(test_support_x, test_support_y, test_query_x)
     print(f"Predictions: {predictions}")
+```
+
+**출력:**
+
+```
+Meta-Loss: 1.6146, Meta-Accuracy: 0.2000
+Predictions: tensor([1, 4, 2, 0, 2, 1, 0, 0, 4, 4, 0, 2, 4, 0, 4])
 ```
 
 ## 2. 논의
