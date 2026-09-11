@@ -72,6 +72,12 @@ if __name__ == "__main__":
     print(f"Final loss: {loss.item():.4f}")
 ```
 
+**출력:**
+
+```
+Final loss: 0.6877
+```
+
 ---
 
 ## 5. Adagrad를 쓸 때

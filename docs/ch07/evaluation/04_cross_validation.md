@@ -426,6 +426,57 @@ if __name__ == "__main__":
     cv_strategy_selection_guide()
 ```
 
+**출력:**
+
+```
+============================================================
+CROSS-VALIDATION TECHNIQUES DEMONSTRATION
+============================================================
+
+============================================================
+1. K-FOLD CROSS-VALIDATION (Classification)
+============================================================
+
+K-Fold Cross-Validation (K=5)
+Scores for each fold: [0.89 0.89 0.81 0.87 0.86]
+Mean score: 0.8640
+Std deviation: 0.0294
+95% Confidence Interval: [0.8064, 0.9216]
+
+============================================================
+2. STRATIFIED K-FOLD CROSS-VALIDATION
+============================================================
+
+Stratified K-Fold Cross-Validation (K=5)
+Scores for each fold: [0.88 0.87 0.92 0.95 0.75]
+Mean score: 0.8740
+Std deviation: 0.0683
+
+Class distribution in original data:
+  Class 0: 246 (49.2%)
+  Class 1: 254 (50.8%)
+
+============================================================
+3. TIME SERIES SPLIT (Regression)
+============================================================
+
+Time Series Split Cross-Validation (n_splits=5)
+Scores for each split: [-8.19282661e-27 -2.33407784e-26 -2.03585725e-25 -1.02190087e-26
+
+... (60 lines omitted)
+
+    언제나:
+        → 재현성을 위해 random_state를 지정한다
+        → shuffle=True를 쓴다 (시계열은 예외!)
+        → 점수의 평균과 표준편차를 함께 보고한다
+    
+    절대 하지 말 것:
+        → 불균형 분류에 보통의 K겹을 쓰기
+        → 시계열 데이터를 섞기
+        → 시험 집합을 어느 겹에든 넣기
+    
+```
+
 ## 2. 논의
 
 표준 K겹은 클래스 분포를 고려하지 않고 데이터를 크기가 같은 K개 겹으로 나눈다. 층화 K겹은 겹마다 클래스의 비율을 유지하는데, 소수 클래스가 아예 없거나 지나치게 많은 겹이 생기지 않도록 하려면 불균형 분류에서 꼭 필요하다.

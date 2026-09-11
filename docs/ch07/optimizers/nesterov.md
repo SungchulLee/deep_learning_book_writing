@@ -96,6 +96,12 @@ if __name__ == "__main__":
     print(f"Final loss: {loss.item():.4f}")
 ```
 
+**출력:**
+
+```
+Final loss: 0.8982
+```
+
 ---
 
 ## 5. 언제 쓰는가

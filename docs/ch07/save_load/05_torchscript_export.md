@@ -174,6 +174,52 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+TORCHSCRIPT EXPORT TUTORIAL
+======================================================================
+
+======================================================================
+METHOD 1: TRACING
+======================================================================
+
+Model successfully traced
+Traced model saved to 'traced_model.pt'
+Max difference: 0.000000
+Traced model produces identical results
+
+======================================================================
+METHOD 2: SCRIPTING
+======================================================================
+
+Simple model successfully scripted
+Scripted model saved to 'scripted_simple.pt'
+
+Scripting model with control flow...
+Control flow model successfully scripted
+Control flow preserved correctly
+
+======================================================================
+TORCHSCRIPT OPTIMIZATIONS
+======================================================================
+
+Applying optimizations...
+Model frozen
+Optimized for inference
+
+Optimizations applied:
+- Constant propagation
+- Dead code elimination
+- Operator fusion
+- Memory layout optimization
+
+======================================================================
+TUTORIAL COMPLETE
+======================================================================
+```
+
 ## 2. 논의
 
 추적과 스크립팅은 TorchScript로 변환하는 서로 보완적인 두 방법이다. 추적은 실행 경로 하나만 기록하므로 간단하지만 데이터에 따라 달라지는 제어 흐름(텐서 값에 따른 if 문)을 담지 못한다. 스크립팅은 파이썬 소스 코드를 분석하여 제어 흐름을 다룰 수 있지만, 코드가 파이썬의 제한된 부분집합만 써야 한다.

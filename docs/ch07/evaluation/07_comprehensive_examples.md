@@ -364,6 +364,57 @@ if __name__ == "__main__":
     run_all_examples()
 ```
 
+**출력:**
+
+```
+################################################################################
+#                                                                              #
+#                    COMPREHENSIVE EXAMPLES                                     #
+#               End-to-End Model Evaluation Workflows                            #
+#                                                                              #
+################################################################################
+================================================================================
+EXAMPLE 1: BINARY CLASSIFICATION - CREDIT CARD FRAUD DETECTION
+================================================================================
+
+1. GENERATING DATA
+--------------------------------------------------------------------------------
+Total samples: 10000
+Fraudulent transactions: 539 (5.39%)
+Legitimate transactions: 9461 (94.61%)
+⚠ HIGHLY IMBALANCED DATASET
+
+2. SPLITTING DATA
+--------------------------------------------------------------------------------
+Training set: 8000 samples
+Test set: 2000 samples
+
+3. TRAINING MODELS
+--------------------------------------------------------------------------------
+✓ Logistic Regression trained
+✓ Random Forest trained
+
+4. CROSS-VALIDATION
+--------------------------------------------------------------------------------
+Logistic Regression F1 Score: 0.5607 (+/- 0.0952)
+Random Forest F1 Score: 0.5026 (+/- 0.1425)
+
+5. TEST SET EVALUATION
+
+... (149 lines omitted)
+
+📚 KEY TAKEAWAYS:
+================================================================================
+1. Always use appropriate metrics for your problem type and business context
+2. Use stratified splitting for classification, especially with imbalanced data
+3. Cross-validation provides more reliable performance estimates than single split
+4. Consider both model performance AND business implications
+5. Confusion matrices reveal which errors your model makes
+6. Compare multiple models before settling on one
+7. Document your evaluation methodology for reproducibility
+================================================================================
+```
+
 ## 2. 논의
 
 이진 분류 예제(사기 탐지)는 불균형한 데이터에서 지표 선택이 왜 중요한지 보여 준다. 정확도 95%를 내는 모델이 모든 거래를 "정상"이라 예측하여 사기를 하나도 못 잡는 것일 수도 있다. 사기를 잡는 것(거짓 음성을 줄이는 것)이 주된 목표이므로 F1 점수와 재현율이 훨씬 많은 것을 알려 준다.

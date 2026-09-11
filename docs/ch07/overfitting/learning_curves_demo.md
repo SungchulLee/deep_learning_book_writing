@@ -321,6 +321,57 @@ if __name__ == "__main__":
     print("="*70)
 ```
 
+**출력:**
+
+```
+======================================================================
+Learning Curves Analysis
+======================================================================
+
+1. UNDERFITTING EXAMPLE - Linear Regression
+----------------------------------------------------------------------
+Final Training Error: 0.5126
+Final Validation Error: 0.9155
+
+Diagnosis:
+Training Error: 0.5126
+Validation Error: 0.9155
+Gap: 0.4029
+
+→ GOOD FIT
+  • Both errors are reasonably low
+  • Small gap between curves
+  • Model generalizes well
+
+2. OVERFITTING EXAMPLE - Deep Decision Tree
+----------------------------------------------------------------------
+Final Training Error: 0.0006
+Final Validation Error: 0.5762
+
+Diagnosis:
+Training Error: 0.0006
+Validation Error: 0.5762
+Gap: 0.5756
+
+→ HIGH VARIANCE (Overfitting)
+  Symptoms:
+    • Large gap between training and validation errors
+    • Low training error but high validation error
+
+... (64 lines omitted)
+
+   • 데이터를 더 모으면 도움이 된다
+   → 해법: 데이터를 더 모으거나 복잡도를 낮춘다
+
+3. 알맞은 적합:
+   • 두 오차가 모두 낮다
+   • 두 곡선 사이의 간격이 작다
+   • 곡선이 한곳으로 모인다
+   → 모델이 잘 돌고 있다!
+    
+======================================================================
+```
+
 ## 2. 논의
 
 학습 곡선은 곧바로 손쓸 수 있는 진단을 준다. 학습 오차와 검증 오차가 모두 높은 값에서 간격이 좁은 채 평평해지면 모델이 과소적합하는 것이다. 이때는 모델의 복잡도를 높이거나 특징을 더하거나 정칙화를 줄인다. 학습 오차는 낮은데 검증 오차가 높아 간격이 크면 과적합하는 것이다. 이때는 데이터를 더 모으거나 모델을 단순하게 하거나 정칙화를 세게 한다.

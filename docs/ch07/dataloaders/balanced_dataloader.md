@@ -76,6 +76,22 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+Batch 1: Cats=54, Dogs=46
+Batch 2: Cats=51, Dogs=49
+Batch 3: Cats=42, Dogs=58
+Batch 4: Cats=51, Dogs=49
+Batch 5: Cats=44, Dogs=56
+Batch 6: Cats=52, Dogs=48
+Batch 7: Cats=49, Dogs=51
+Batch 8: Cats=50, Dogs=50
+Batch 9: Cats=56, Dogs=44
+Batch 10: Cats=49, Dogs=51
+Batch 11: Cats=43, Dogs=57
+```
+
 ## 2. 논의
 
 균형 표집의 핵심 착상은 빈도의 역수로 가중치를 주는 것이다. 각 표본은 그 클래스의 빈도에 반비례하는 가중치를 받으므로 표집기가 소수 클래스의 표본을 더 자주 뽑는다. 이 예에서 고양이(표본 100개)는 표본마다 가중치 $1/100 = 0.01$을, 개(표본 1000개)는 $1/1000 = 0.001$을 받는다. 그러면 `WeightedRandomSampler`가 이 가중치에 따라 복원추출로 표본을 뽑는다.

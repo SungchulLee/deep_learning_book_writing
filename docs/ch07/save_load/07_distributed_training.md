@@ -282,6 +282,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+DISTRIBUTED TRAINING CHECKPOINTS
+======================================================================
+
+======================================================================
+SCENARIO 1: DataParallel
+======================================================================
+
+Single GPU or CPU mode
+
+Simulating training...
+
+--- SAVING ---
+Saving model.state_dict()
+Checkpoint saved to 'dataparallel_checkpoint.pth'
+
+First few state dict keys:
+  fc1.weight
+  fc1.bias
+  fc2.weight
+
+--- LOADING ---
+State dict loaded into fresh model
+
+======================================================================
+SCENARIO 2: Handling 'module.' Prefix
+======================================================================
+
+Original state dict keys:
+  fc1.weight
+  fc1.bias
+  fc2.weight
+
+
+... (77 lines omitted)
+
+======================================================================
+TUTORIAL COMPLETE
+======================================================================
+
+Key Takeaways:
+1. Save model.module.state_dict() for DataParallel
+2. Remove 'module.' prefix when saving
+3. Load into base model, then wrap
+4. Use helper functions for prefix handling
+5. Save metadata about model wrapping
+```
+
 ## 2. 논의
 
 DataParallel은 모델을 감싸 배치를 여러 GPU에 나누어 주지만, 상태 사전의 모든 키에 `module.` 접두사를 붙인다. DataParallel 모델에서 `model.state_dict()`을 저장한 뒤 감싸지 않은 모델에 불러오면 키가 맞지 않는다는 오류가 난다. 해결책은 언제나 `model.module.state_dict()`을 저장하는 것이다.

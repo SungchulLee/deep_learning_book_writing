@@ -296,6 +296,57 @@ if __name__ == "__main__":
     metric_selection_guide()
 ```
 
+**출력:**
+
+```
+============================================================
+CLASSIFICATION METRICS DEMONSTRATION
+============================================================
+
+1. BINARY CLASSIFICATION EXAMPLE
+----------------------------------------
+Accuracy: 0.8
+Precision: 0.8
+Recall: 0.8
+F1 Score: 0.8
+MCC: 0.6
+Cohen Kappa: 0.6
+ROC-AUC: 0.9600000000000001
+Average Precision: 0.9666666666666666
+Log Loss: 0.3527977344565397
+
+Confusion Matrix Details:
+  true_negatives: 4
+  false_positives: 1
+  false_negatives: 1
+  true_positives: 4
+  specificity: 0.8
+  sensitivity: 0.8
+  false_positive_rate: 0.2
+  false_negative_rate: 0.2
+
+2. METRIC SELECTION GUIDE
+----------------------------------------
+
+    지표 선택 안내
+    ======================
+    
+    균형 잡힌 데이터셋:
+
+... (15 lines omitted)
+
+    모델을 견줄 때:
+        → ROC-AUC, 교차 검증 점수
+    
+    확률의 보정이 중요할 때:
+        → 로그 손실, 브라이어 점수
+    
+    다중 클래스 문제:
+        → 매크로 평균 지표 (모든 클래스를 똑같이 다룬다)
+        → 가중 평균 지표 (클래스의 빈도로 가중한다)
+    
+```
+
 ## 2. 논의
 
 전체 평가 보고서는 문턱값에 따라 달라지는 지표(정확도, 정밀도, 재현율, F1), 문턱값과 무관한 지표(ROC-AUC, 평균 정밀도), 상관에 기반한 지표(MCC, 코헨의 카파)를 함께 담는다. 각각이 모델의 품질을 다른 각도에서 보여 준다.

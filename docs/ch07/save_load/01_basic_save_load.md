@@ -525,6 +525,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+============================================================
+METHOD 1: Saving and Loading Entire Model
+============================================================
+
+📊 Initial Model Parameters:
+linear.weight: shape torch.Size([1, 6])
+  Values: tensor([ 0.0914, -0.0960,  0.0104,  0.1679, -0.2224])...
+linear.bias: shape torch.Size([1])
+  Values: tensor([0.0733])...
+
+🔧 (In production: Train your model here)
+
+💾 Saving entire model to 'model_complete.pth'...
+✅ Model saved successfully!
+   File size: 2.31 KB
+
+📂 Loading model from 'model_complete.pth'...
+✅ Model loaded successfully!
+
+🔍 Verifying Loaded Model Parameters:
+linear.weight: shape torch.Size([1, 6])
+  Values: tensor([ 0.0914, -0.0960,  0.0104,  0.1679, -0.2224])...
+linear.bias: shape torch.Size([1])
+  Values: tensor([0.0733])...
+
+✓ Parameters match: True
+🗑️  Cleaned up 'model_complete.pth'
+
+============================================================
+METHOD 2: Saving and Loading State Dict (RECOMMENDED)
+============================================================
+
+💾 Saving model state dict to 'model_state_dict.pth'...
+
+... (189 lines omitted)
+
+   2. Save checkpoints for training recovery
+   3. Always use model.eval() for inference
+   4. Be mindful of device placement (CPU/GPU)
+   5. Include training state in checkpoints
+
+📖 Next Steps:
+   - Check out advanced checkpoint management
+   - Learn about model versioning
+   - Explore ONNX export for deployment
+   - Study distributed training checkpoints
+```
+
 ## 2. 논의
 
 `torch.save(model, path)`으로 모델 전체를 저장하면 파이썬의 pickle로 모델의 구조와 매개변수를 함께 직렬화한다. 편리하지만 깨지기 쉽다. 불러올 때 모델 클래스를 임포트할 수 있어야 하고, 코드를 정리하다 보면(클래스 이름 바꾸기, 파일 옮기기) 저장한 모델을 못 쓰게 될 수 있다.

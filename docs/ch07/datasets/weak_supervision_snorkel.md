@@ -592,6 +592,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+============================================================
+Part 1: Labeling Functions — The Core Abstraction
+============================================================
+
+  # Snorkel API:
+  from snorkel.labeling import labeling_function
+
+  @labeling_function()
+  def lf_contains_link(x):
+      return SPAM if "http" in x.text.lower() else ABSTAIN
+
+  @labeling_function()
+  def lf_subscribe(x):
+      return SPAM if "subscribe" in x.text.lower() else ABSTAIN
+
+  @labeling_function()
+  def lf_short_comment(x):
+      return HAM if len(x.text.split()) < 5 else ABSTAIN
+
+  Labeling function outputs (ABSTAIN=-1, NEG=0, POS=1):
+  Comment                                                 contains_link subscribe check_outmy_channel    pleaseshort_commentsong_mentionsentiment_positive
+  ---------------------------------------------------------------------------------------------------------------------------------------
+  Check out my channel for more videos http://youtube.c..          1         ·         1         1         ·         ·         ·         ·
+  This song is amazing! Love it!                                   ·         ·         ·         ·         ·         ·         0         ·
+  Please subscribe to my channel plz                               ·         1         ·         1         1         ·         ·         ·
+  lol                                                              ·         ·         ·         ·         ·         0         ·         ·
+  Great performance, one of the best live shows                    ·         ·         ·         ·         ·         ·         ·         0
+  Subscribe for daily content http://bit.ly/xyz                    1         1         ·         ·         ·         ·         ·         ·
+
+============================================================
+Part 2: Types of Labeling Functions
+============================================================
+
+
+... (238 lines omitted)
+
+  ├──────────────────────┼─────────────┼───────────────────┤
+  │ 레이블링 시간        │ 며칠~몇 주  │ 몇 시간           │
+  │ 레이블 하나당 비용   │ \$0.50~\$5.00│ 거의 \$0(코드뿐)  │
+  │ 확장성               │ 선형        │ 한 번 짜면 O(1)   │
+  │ 적응성               │ 재레이블링  │ 함수 갱신         │
+  │ 일관성               │ 들쭉날쭉    │ 결정적            │
+  │ 분야 지식            │ 사라짐      │ 코드에 담김       │
+  └──────────────────────┴─────────────┴───────────────────┘
+
+Done.
+```
+
 ## 2. 논의
 
 레이블링 함수라는 추상은 약지도 학습의 바탕이다. 각 함수는 링크, 핵심어, 패턴을 확인하는 어림 규칙 하나를 담고, 레이블을 돌려주거나 확신이 없으면 ABSTAIN을 돌려준다. 핵심은 어느 한 레이블링 함수도 정확하거나 빠짐없을 필요가 없다는 것이다. 이들의 집단 지혜를 제대로 모으면 품질 좋은 학습 레이블이 나온다.

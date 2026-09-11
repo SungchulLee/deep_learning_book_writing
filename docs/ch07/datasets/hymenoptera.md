@@ -275,6 +275,57 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+Hymenoptera dataset downloaded and extracted.
+Epoch 0/24
+----------
+  train Loss: 0.5599 Acc: 0.9139
+  val Loss: 12.7522 Acc: 0.5425
+
+Epoch 1/24
+----------
+  train Loss: 9.4083 Acc: 0.6189
+  val Loss: 20.5794 Acc: 0.5425
+
+Epoch 2/24
+----------
+  train Loss: 14.6956 Acc: 0.5369
+  val Loss: 20.6320 Acc: 0.5425
+
+Epoch 3/24
+----------
+  train Loss: 14.8269 Acc: 0.5369
+  val Loss: 20.5971 Acc: 0.5425
+
+Epoch 4/24
+----------
+  train Loss: 14.8024 Acc: 0.5369
+  val Loss: 20.6695 Acc: 0.5425
+
+Epoch 5/24
+----------
+  train Loss: 14.7878 Acc: 0.5369
+  val Loss: 20.1131 Acc: 0.5425
+
+Epoch 6/24
+----------
+
+... (88 lines omitted)
+
+Epoch 24/24
+----------
+  train Loss: 0.7524 Acc: 0.5205
+  val Loss: 0.5186 Acc: 0.7647
+
+Training complete in 2m 1s
+Best val Acc: 0.7778
+Accuracy: 79 %
+  class  ants: 78.6 %
+  class  bees: 79.5 %
+```
+
 ## 2. 논의
 
 ResNet-18을 쓰는 전이 학습은 미리 학습된 특징의 힘을 보여 준다. ImageNet의 120만 장으로 학습된 합성곱 뼈대는 모서리, 결, 모양 같은 일반적인 시각 특징을 뽑아낸다. 새 이진 분류 과제를 위해서는 마지막 완전 연결층만 바꾸어 학습시킨다.

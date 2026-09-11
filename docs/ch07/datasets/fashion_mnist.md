@@ -231,6 +231,22 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+Accuracy on 10 000 test images: 69 %
+  class     0: 72.7 %
+  class     1: 88.3 %
+  class     2: 66.8 %
+  class     3: 78.5 %
+  class     4: 18.0 %
+  class     5: 87.6 %
+  class     6: 17.4 %
+  class     7: 84.2 %
+  class     8: 91.1 %
+  class     9: 86.4 %
+```
+
 ## 2. 논의
 
 FashionMNIST는 입력 형식(28x28 회색조 이미지, 10개 클래스)은 그대로 두면서 MNIST보다 어려운 기준을 제공한다. 여기 쓰인 CNN 구조는 CIFAR-10 파이프라인과 같되 입력 채널이 하나이고 완전 연결층의 차원을 그에 맞게 조정했다.

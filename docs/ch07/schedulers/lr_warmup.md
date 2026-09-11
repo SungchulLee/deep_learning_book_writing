@@ -197,6 +197,38 @@ if __name__ == "__main__":
     plot_warmup_schedules()
 ```
 
+**출력:**
+
+```
+Learning Rate Warmup Examples
+
+Linear Warmup:
+  Step    0: lr = 0.000001
+  Step  250: lr = 0.000251
+  Step  500: lr = 0.000501
+  Step  750: lr = 0.000751
+  Step 1000: lr = 0.001000
+  Step 1500: lr = 0.001000
+
+Exponential Warmup:
+  Step    0: lr = 0.000000
+  Step  250: lr = 0.000001
+  Step  500: lr = 0.000010
+  Step  750: lr = 0.000101
+  Step 1000: lr = 0.001000
+  Step 1500: lr = 0.001000
+
+Cosine Warmup:
+  Step    0: lr = 0.000000
+  Step  250: lr = 0.000148
+  Step  500: lr = 0.000502
+  Step  750: lr = 0.000855
+  Step 1000: lr = 0.001000
+  Step 1500: lr = 0.001000
+
+Plot saved to warmup_schedules.png
+```
+
 ## 2. 논의
 
 선형 워밍업은 정해진 단계 수 동안 학습률을 0에서 목표 값까지 올린다. 가장 간단하고 널리 쓰이는 워밍업 전략으로 BERT, GPT를 비롯한 대부분의 트랜스포머 학습 요령이 채택하고 있다. 서서히 올리면 가중치가 아직 무작위일 때 큰 기울기 갱신이 일어나지 않는다.

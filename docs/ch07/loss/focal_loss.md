@@ -223,6 +223,17 @@ for i in range(len(targets)):
           f"Ratio={focal_per_sample[i]/bce_per_sample[i]:.4f}")
 ```
 
+**출력:**
+
+```
+Per-sample comparison:
+  Sample 1: p_t=0.881, BCE=0.1269, Focal=0.0005, Ratio=0.0036
+  Sample 2: p_t=0.818, BCE=0.2014, Focal=0.0050, Ratio=0.0250
+  Sample 3: p_t=0.881, BCE=0.1269, Focal=0.0014, Ratio=0.0107
+  Sample 4: p_t=0.953, BCE=0.0486, Focal=0.0000, Ratio=0.0006
+  Sample 5: p_t=0.731, BCE=0.3133, Focal=0.0170, Ratio=0.0542
+```
+
 ```python
 # gamma가 손실 곡선에 미치는 영향
 import matplotlib.pyplot as plt

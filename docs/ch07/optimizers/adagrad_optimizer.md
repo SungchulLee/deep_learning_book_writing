@@ -193,7 +193,8 @@ def show_learning_rate_decay():
         
         # 갱신 전에 실효 학습률 계산
         if i == 0:
-            effective_lr = optimizer.learning_rate
+            # 아직 cache가 차지 않았다. 아래 갈래와 모양을 맞추어 배열로 둔다.
+            effective_lr = np.full_like(param, optimizer.learning_rate)
         else:
             effective_lr = optimizer.learning_rate / np.sqrt(optimizer.cache['param'] + optimizer.epsilon)
         
@@ -220,6 +221,57 @@ if __name__ == "__main__":
     demo_sparse_gradients()
     print("\n")
     show_learning_rate_decay()
+```
+
+**출력:**
+
+```
+============================================================
+AdaGrad Optimizer Demo
+============================================================
+Minimizing f(x, y) = x^2 + y^2
+
+Iteration    x            y            f(x,y)      
+------------------------------------------------------------
+0            9.000000     9.000000     162.000000  
+10           5.311021     5.311021     56.413889   
+20           3.632809     3.632809     26.394607   
+30           2.568478     2.568478     13.194154   
+40           1.840387     1.840387     6.774052    
+
+Final values: x = 1.37083081, y = 1.37083081
+Function value: f(x,y) = 3.75835423
+
+
+
+============================================================
+AdaGrad with Sparse Gradients
+============================================================
+Parameters x, y, z where z is rarely updated (sparse)
+
+Iteration    x            y            z           
+------------------------------------------------------------
+0            4.000000     4.000000     4.000000    
+10           1.090040     1.090040     3.375305    
+20           0.354721     0.354721     2.908992    
+30           0.116876     0.116876     2.536090    
+40           0.038559     0.038559     2.226918    
+
+Notice: z converges slower because it's updated less frequently,
+but AdaGrad gives it a relatively larger effective learning rate!
+
+... (8 lines omitted)
+
+Iteration    Param           Effective LR   
+------------------------------------------------------------
+0            9.000000        1.000000       
+10           5.311021        0.020977       
+20           3.632809        0.017811       
+30           2.568478        0.016728       
+40           1.840387        0.016251       
+
+Notice: The effective learning rate monotonically decreases.
+This can cause AdaGrad to stop learning prematurely in some cases.
 ```
 
 ## 2. 논의

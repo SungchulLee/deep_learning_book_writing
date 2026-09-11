@@ -333,7 +333,7 @@ def main():
     learning_rates = [1e-4, 1e-3, 1e-2, 1e-1]
     batch_sizes = [16, 32, 64, 128]
     configs = [
-        SimpleMLPConfig(lr=lr, batch_size=bs)
+        SimpleMLPConfig(learning_rate=lr, batch_size=bs)
         for lr in learning_rates
         for bs in batch_sizes
     ]
@@ -366,6 +366,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**출력:**
+
+```
+Deep Learning Hyperparameter Optimization: Successive Halving & Hyperband
+======================================================================
+
+Generating synthetic data...
+Training set: torch.Size([1400, 20]), Validation set: torch.Size([600, 20])
+
+Searching over 16 configurations
+
+======================================================================
+SUCCESSIVE HALVING
+======================================================================
+
+Stage 0: 16 configs, budget=1 epochs
+  Config(lr=1.00e-04, bs=16, id=670487) -> accuracy=0.5450
+  Config(lr=1.00e-04, bs=32, id=116739) -> accuracy=0.4733
+  Config(lr=1.00e-04, bs=64, id=26225) -> accuracy=0.4983
+  Config(lr=1.00e-04, bs=128, id=777572) -> accuracy=0.4800
+  Config(lr=1.00e-03, bs=16, id=288389) -> accuracy=0.5200
+  Config(lr=1.00e-03, bs=32, id=256787) -> accuracy=0.5333
+  Config(lr=1.00e-03, bs=64, id=234053) -> accuracy=0.5000
+  Config(lr=1.00e-03, bs=128, id=146316) -> accuracy=0.4917
+  Config(lr=1.00e-02, bs=16, id=772246) -> accuracy=0.5283
+  Config(lr=1.00e-02, bs=32, id=107473) -> accuracy=0.5283
+  Config(lr=1.00e-02, bs=64, id=709570) -> accuracy=0.5267
+  Config(lr=1.00e-02, bs=128, id=776646) -> accuracy=0.5467
+  Config(lr=1.00e-01, bs=16, id=935518) -> accuracy=0.5217
+  Config(lr=1.00e-01, bs=32, id=571858) -> accuracy=0.5283
+  Config(lr=1.00e-01, bs=64, id=91161) -> accuracy=0.5383
+  Config(lr=1.00e-01, bs=128, id=619176) -> accuracy=0.5167
+  Keeping top 8 config(s)
+
+Stage 1: 8 configs, budget=2 epochs
+  Config(lr=1.00e-02, bs=128, id=776646) -> accuracy=0.5317
+
+... (23 lines omitted)
+
+
+======================================================================
+HYPERBAND
+======================================================================
+
+======================================================================
+SUMMARY
+======================================================================
+Successive Halving best: Config(lr=1.00e-02, bs=32, id=107473) with accuracy 0.5367
+Hyperband best: Config(lr=1.00e-04, bs=32, id=116739) with accuracy 0.5417
 ```
 
 ## 2. 논의

@@ -66,6 +66,16 @@ params = L * (4 * d * d + 4 * d)  # 근사값
 print(f"\nBERT-base-like: ~{params:,} params = {model_memory_mb(params):.1f} MB")
 ```
 
+**출력:**
+
+```
+n=  128: attention time=0.38ms
+n=  512: attention time=1.05ms
+n= 2048: attention time=21.44ms
+
+BERT-base-like: ~28,348,416 params = 108.1 MB
+```
+
 ---
 
 ## 연습문제

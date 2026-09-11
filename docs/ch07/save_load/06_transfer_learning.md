@@ -140,18 +140,24 @@ model.fc = nn.Linear(num_features, num_classes)
 model.load_state_dict(checkpoint['model_state_dict'])
 print("\nModel state loaded")
 
-# 최적화기 다시 만들기
-optimizer = torch.optim.Adam(model.parameters())
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-print("Optimizer state loaded")
-
-# 필요하면 얼리기 적용
+# 얼리기를 먼저 되살린다.
+# 저장할 때의 최적화기는 '학습할 매개변수'만 들고 있었으므로, 같은 묶음으로
+# 다시 만들어야 상태를 받을 수 있다. 얼리기를 나중에 하면 묶음 크기가 어긋나
+# ValueError: loaded state dict contains a parameter group that doesn't match
+# 가 난다.
 if checkpoint.get('frozen_layers', False):
     for param in model.parameters():
         param.requires_grad = False
     for param in model.fc.parameters():
         param.requires_grad = True
     print("Layer freezing applied")
+
+# 최적화기 다시 만들기 — 저장할 때와 똑같이 학습할 매개변수만 준다
+optimizer = torch.optim.Adam(
+    filter(lambda p: p.requires_grad, model.parameters())
+)
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+print("Optimizer state loaded")
 
 # ============================================================
 # 상태 사전 부분적으로 불러오기
@@ -198,9 +204,19 @@ saved_state = model.state_dict()
 # 모델 고치기
 model.fc = nn.Linear(512, 20)  # 클래스 수가 다르다
 
-# 어긋남을 허용하려고 strict=False으로 불러오기
+# strict=False가 봐주는 것은 '없는 열쇠'와 '남는 열쇠'뿐이다.
+# 두 쪽에 다 있으면서 모양만 다른 열쇠(여기서는 fc.weight, fc.bias)는
+# strict와 무관하게 오류를 낸다. 그러므로 모양이 맞는 것만 골라 넘긴다.
+model_state = model.state_dict()
+compatible = {
+    k: v for k, v in saved_state.items()
+    if k in model_state and v.shape == model_state[k].shape
+}
+dropped = [k for k in saved_state if k not in compatible]
+print(f"\nShape-mismatched keys skipped: {dropped}")
+
 missing_keys, unexpected_keys = model.load_state_dict(
-    saved_state,
+    compatible,
     strict=False
 )
 
@@ -233,6 +249,57 @@ print("5. Filter optimizer parameters for frozen layers")
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+======================================================================
+TRANSFER LEARNING SAVE/LOAD TUTORIAL
+======================================================================
+
+======================================================================
+LOADING PRE-TRAINED MODELS
+======================================================================
+
+Loading ResNet18 with pre-trained weights...
+Model loaded
+Total parameters: 11,689,512
+
+======================================================================
+MODIFYING MODEL FOR TRANSFER LEARNING
+======================================================================
+
+Original classifier input features: 512
+Original classifier output classes: 1000
+
+New classifier output classes: 10
+
+======================================================================
+FREEZING LAYERS
+======================================================================
+
+Freezing all layers except final classifier...
+Trainable parameters: 5,130
+Frozen parameters: 11,684,382
+
+======================================================================
+SAVING FINE-TUNED MODEL
+======================================================================
+
+
+... (32 lines omitted)
+
+======================================================================
+TUTORIAL COMPLETE
+======================================================================
+
+Key Takeaways:
+1. Use pre-trained models as feature extractors
+2. Freeze early layers, train final layers
+3. Save full model state including modifications
+4. Use strict=False for partial loading
+5. Filter optimizer parameters for frozen layers
 ```
 
 ## 2. 논의

@@ -282,6 +282,38 @@ if __name__ == "__main__":
     plot_cyclical_schedules()
 ```
 
+**출력:**
+
+```
+Cyclical Learning Rate Examples
+
+Triangular CLR:
+  Step     0: lr = 1.000000e-04
+  Step  1000: lr = 1.000000e-03
+  Step  2000: lr = 1.000000e-04
+  Step  5000: lr = 1.000000e-03
+  Step  7500: lr = 5.500000e-04
+  Step 10000: lr = 1.000000e-04
+
+1cycle:
+  Step     0: lr = 4.000000e-05
+  Step  1000: lr = 3.600000e-04
+  Step  2000: lr = 6.800000e-04
+  Step  5000: lr = 8.117637e-04
+  Step  7500: lr = 2.831298e-04
+  Step 10000: lr = 1.000000e-07
+
+SGDR:
+  Step     0: lr = 1.000000e-03
+  Step  1000: lr = 5.050000e-04
+  Step  2000: lr = 1.000000e-03
+  Step  5000: lr = 1.549821e-04
+  Step  7500: lr = 9.165775e-04
+  Step 10000: lr = 5.050000e-04
+
+Plot saved to cyclical_schedules.png
+```
+
 ## 2. 논의
 
 삼각형 정책은 학습 단계 `2 * step_size` 동안 학습률을 `base_lr`과 `max_lr` 사이에서 선형으로 순환시킨다. triangular2는 주기마다 진폭을 절반으로 줄이고, exp_range는 진폭에 $\gamma^{\text{step}}$을 곱해 지수적으로 줄인다. 세 정책 모두 최적화기가 안장점과 국소 극소점을 벗어나도록 돕는다.

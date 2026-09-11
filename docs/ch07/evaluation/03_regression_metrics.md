@@ -355,6 +355,57 @@ if __name__ == "__main__":
     metric_interpretation_guide()
 ```
 
+**출력:**
+
+```
+============================================================
+REGRESSION METRICS DEMONSTRATION
+============================================================
+
+1. HOUSE PRICE PREDICTION EXAMPLE
+----------------------------------------
+Target: House prices (in $)
+
+True values:      [300000 450000 200000 550000 380000 420000 290000 510000]
+Predicted values: [290000 470000 195000 530000 400000 410000 305000 495000]
+
+Metrics:
+  MAE: $14,375.00
+  MSE: $234,375,000.00
+  RMSE: $15,309.31
+  R² Score: 0.9810
+  Explained Variance: 0.9810
+  MAPE (%): 3.71%
+  SMAPE (%): 3.69%
+  Median Absolute Error: $15,000.00
+  Max Error: 20000
+  Adjusted R²: 0.9335
+
+  Residual Analysis:
+    mean: $625.00
+    std: $15,296.55
+    min: $-20,000.00
+    max: $20,000.00
+    median: $7,500.00
+    q25: $-16,250.00
+    q75: $11,250.00
+
+2. METRIC INTERPRETATION GUIDE
+
+... (41 lines omitted)
+
+    
+    사업적 맥락:
+        → MAE (설명하기 쉽다)
+    
+    이상점이 있을 때:
+        → 중앙절대오차
+    
+    중요한 응용:
+        → 최대 오차 (최악의 경우)
+    
+```
+
 ## 2. 논의
 
 MAE와 RMSE는 모두 목표 변수와 같은 단위로 재지만, RMSE는 제곱하므로 큰 오차에 더 무거운 벌점을 준다. 이상점이 있을 때에는 MAE와 중앙절대오차가 더 튼튼한 추정을 준다. 설명된 분산의 비율을 나타내는 $R^2$은 목표의 척도가 달라도 비교할 수 있게 해 준다.

@@ -257,6 +257,57 @@ if __name__ == "__main__":
     print("="*70)
 ```
 
+**출력:**
+
+```
+======================================================================
+Bias-Variance Tradeoff Analysis
+======================================================================
+Analyzing bias-variance tradeoff...
+Processing max_depth=1...
+Processing max_depth=2...
+Processing max_depth=3...
+Processing max_depth=4...
+Processing max_depth=5...
+Processing max_depth=6...
+Processing max_depth=7...
+Processing max_depth=8...
+Processing max_depth=9...
+Processing max_depth=10...
+Processing max_depth=11...
+Processing max_depth=12...
+Processing max_depth=13...
+Processing max_depth=14...
+Processing max_depth=15...
+
+======================================================================
+Bias-Variance Analysis Summary
+======================================================================
+Max Depth    Bias²           Variance        Total Error    
+----------------------------------------------------------------------
+1            0.3250          0.0241          0.3491         
+2            0.0741          0.0750          0.1491         
+3            0.0195          0.0791          0.0987         
+4            0.0185          0.0395          0.0579         
+5            0.0227          0.0388          0.0614         
+6            0.0279          0.0431          0.0710         
+7            0.0337          0.0473          0.0810         
+8            0.0380          0.0438          0.0818         
+
+... (22 lines omitted)
+
+• VARIANCE: Error from sensitivity to training data (overfitting)
+  - High variance → model too complex → unstable predictions
+  - High complexity models have high variance
+
+• TRADEOFF: As complexity increases:
+  - Bias decreases (model captures more patterns)
+  - Variance increases (model becomes more sensitive)
+
+• OPTIMAL MODEL: Minimizes (Bias² + Variance)
+======================================================================
+```
+
 ## 2. 논의
 
 이 실험은 `max_depth`를 달리한 결정 트리를 부트스트랩 표본으로 학습시키고, 따로 떼어 둔 시험 집합에서 편향(평균 예측과 참 함수의 차이의 제곱)과 분산(부트스트랩 표본에 걸친 예측의 변동)을 잰다.

@@ -225,6 +225,21 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+  class plane: 37.5 %
+  class   car: 58.4 %
+  class  bird: 26.0 %
+  class   cat: 27.2 %
+  class  deer: 35.1 %
+  class   dog: 36.2 %
+  class  frog: 61.5 %
+  class horse: 61.2 %
+  class  ship: 61.7 %
+  class truck: 62.3 %
+```
+
 ## 2. 논의
 
 이 파이프라인은 PyTorch의 표준 학습 양식을 따른다. 데이터 변환을 정의하고, 데이터셋과 데이터 로더를 만들고, 모델을 정의하고, 손실 함수와 최적화기를 준비하고, 몇 에포크 동안 학습시킨 뒤 평가한다. LeNet 방식 CNN은 합성곱 층 두 개 뒤에 완전 연결층 세 개를 두며, 배치 정규화와 드롭아웃은 명령행 인수로 켜고 끈다.

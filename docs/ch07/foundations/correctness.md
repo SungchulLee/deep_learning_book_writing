@@ -85,6 +85,15 @@ for _ in range(200):   # 같은 배치를 200번 되풀이해 본다
 print(f"Single-batch loss: {loss.item():.6f} (should be ~0)")
 ```
 
+**출력:**
+
+```
+Autograd:   [2.0560269355773926, 0.025793585926294327, 0.10281188786029816]
+Numerical:  [2.059340476989746, 0.02682209014892578, 0.1043081283569336]
+Match: False
+Single-batch loss: 0.013418 (should be ~0)
+```
+
 ---
 
 ## 연습문제
