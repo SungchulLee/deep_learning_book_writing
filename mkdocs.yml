@@ -1165,7 +1165,7 @@ nav:
       - 33.5 금융:
         - 거래: ch33/finance/transactions.md
   - VIII 힘 북돋우는 배움:
-    - 34 힘 북돋우는 배움의 바탕:
+    - 34 바탕과 값 함수:
       - 장 살펴보기: ch34/index.md
       - 34.1 들머리:
         - 보상 가설: ch34/introduction/reward_hypothesis.md
@@ -1180,7 +1180,7 @@ nav:
       - 34.5 n걸음 방법:
         - TD(λ): ch34/n_step/td_lambda.md
         - 자격 자취: ch34/n_step/eligibility_traces.md
-    - 35 값 바탕 깊은 힘 북돋우는 배움:
+    - 35 값 바탕 방법:
       - 장 살펴보기: ch35/index.md
       - 35.1 깊은 Q 그물:
         - 깊은 Q 그물의 바탕: ch35/dqn/fundamentals.md
@@ -1215,7 +1215,7 @@ nav:
         - 주문 처리: ch35/finance/order_execution.md
         - 저자 만들기: ch35/finance/market_making.md
         - 조각난 거래: ch35/finance/discrete_trading.md
-    - 36 방침 바탕 깊은 힘 북돋우는 배움:
+    - 36 방침 바탕 방법:
       - 장 살펴보기: ch36/index.md
       - 36.1 방침 기울기 바탕:
         - 방침 매개변수 나타내기: ch36/foundations/parameterization.md
@@ -1251,7 +1251,7 @@ nav:
         - 밑천 나누기 가장 좋게 하기: ch36/finance/portfolio.md
         - 이어진 거래: ch36/finance/continuous_trading.md
         - 무릅씀에 예민한 힘 북돋우는 배움: ch36/finance/risk_sensitive.md
-    - 37 계량 금융을 위한 힘 북돋우는 배움:
+    - 37 계량 금융 쓰임새:
       - 장 개요: ch37/index.md
       - 37.1 둘레:
         - 움직임 공간: ch37/environments/actions.md
