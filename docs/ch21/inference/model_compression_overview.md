@@ -303,25 +303,25 @@ $$
 ## 6. 4부: 값매김 잣대
 
 ### 모델 크기
-```python
+```
 size_mb = (num_parameters × bytes_per_parameter) / (1024²)
 compression_ratio = size_original / size_compressed
 ```
 
 ### 미룸 시간
-```python
+```
 latency = forward_pass_time (averaged over multiple runs)
 speedup = latency_original / latency_compressed
 ```
 
 ### 정확도
-```python
+```
 accuracy_drop = accuracy_original - accuracy_compressed
 acceptable_drop < 1-2% for most applications
 ```
 
 ### 효율 점수
-```python
+```
 efficiency = accuracy / (latency × model_size)
 ```
 

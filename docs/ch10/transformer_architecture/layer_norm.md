@@ -170,7 +170,7 @@ class PreNormTransformerBlock(nn.Module):
 
 앞 정규화 구조에서는 마지막 트랜스포머 블록 뒤, 출력 사영 앞에 마지막 층 정규화를 둔다. 잔차 흐름이 정규화되지 않은 몫을 쌓아 가므로 이것이 필요하다.
 
-```python
+```
 class PreNormTransformer(nn.Module):
     def __init__(self, d_model, num_layers, ...):
         super().__init__()

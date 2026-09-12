@@ -257,6 +257,7 @@ temperatures = [100, 80, 60, 40, 20, 10, 5, 2, 1, 0.5, 0.1]
 for T in temperatures:
     for _ in range(steps_per_temp):
         # 온도 T에서의 메트로폴리스 걸음
+        pass
 ```
 
 **이어진 일정**:

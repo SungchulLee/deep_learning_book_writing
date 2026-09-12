@@ -268,7 +268,6 @@ NLLLoss를 쓸 때:
 ---------------
 
 CrossEntropyLoss를 쓸 때:
-```python
 def forward(self, x):
     logits = self.layers(x)
     return logits  # 활성화 없음
@@ -276,10 +275,8 @@ def forward(self, x):
 loss = nn.CrossEntropyLoss()
 output = model(input)
 loss_value = loss(output, target)  # PyTorch가 속에서 소프트맥스를 건다
-```
 
 With NLLLoss:
-```python
 def forward(self, x):
     logits = self.layers(x)
     return F.log_softmax(logits, dim=1)  # log_softmax을 건다
@@ -287,7 +284,6 @@ def forward(self, x):
 loss = nn.NLLLoss()
 output = model(input)  # 이미 로그 확률이다
 loss_value = loss(output, target)  # 음의 로그 가능도를 곧바로 셈한다
-```
 
 Key Insight:
 -----------
@@ -399,6 +395,57 @@ print("=" * 70)
 
 if __name__ == "__main__":
     pass
+```
+
+**출력:**
+
+```
+======================================================================
+TUTORIAL 4: N-gram Model with NLLLoss
+======================================================================
+
+======================================================================
+PART 1: CrossEntropyLoss vs NLLLoss
+======================================================================
+
+수학적인 관계:
+------------------------------
+
+CrossEntropyLoss는 연산 두 가지를 합친 것이다.
+1. LogSoftmax: 로짓을 로그 확률로 바꾼다
+2. NLLLoss: 음의 로그 가능도를 계산한다
+
+식:
+  CrossEntropyLoss(x, y) = NLLLoss(LogSoftmax(x), y)
+
+왜 중요한가:
+- CrossEntropyLoss: 입력은 로짓(날 점수)이다
+- NLLLoss: 입력은 로그 확률이다
+
+수학적으로 확인해 보자!
+
+
+--- Demonstration ---
+Logits (raw scores): tensor([2., 5., 1.])
+Target: 1
+
+Method 1 - CrossEntropyLoss directly:
+  Loss: 0.065884
+
+Method 2 - LogSoftmax + NLLLoss:
+
+... (186 lines omitted)
+
+✓ Word embeddings
+✓ N-gram language models
+✓ Three different loss function approaches
+✓ The relationship between them
+
+Ready for intermediate tutorials? Go to 02_intermediate/!
+
+======================================================================
+END OF TUTORIAL 4
+======================================================================
 ```
 
 ## 2. 논의

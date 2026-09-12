@@ -11,8 +11,20 @@ __all__ = ["visualize_reconstruction", "visualize_samples"]
 
 
 def _to_image(t):
-    """(C,H,W) 텐서를 matplotlib이 받는 모양으로 바꾼다."""
+    """텐서를 matplotlib이 받는 모양으로 바꾼다.
+
+    온전히 이어진 자기 부호기는 펼친 벡터를 내놓으므로, 1차원으로 들어오면
+    정사각형 그림으로 되접어 준다. 그러지 않으면 imshow가
+    "Invalid shape (784,) for image data" 로 거부한다.
+    """
+    import math
+
     t = t.detach().cpu()
+    if t.dim() == 1:                          # 펼친 벡터 -> 정사각형
+        side = int(math.isqrt(t.numel()))
+        if side * side == t.numel():
+            t = t.view(side, side)
+        return t, "gray"
     if t.dim() == 3 and t.shape[0] == 1:      # 회색조
         return t.squeeze(0), "gray"
     if t.dim() == 3:                          # 색깔: (C,H,W) -> (H,W,C)
