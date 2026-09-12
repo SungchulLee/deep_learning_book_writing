@@ -118,6 +118,55 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+Fashion-MNIST Dataset Exploration
+======================================================================
+
+Fashion-MNIST Classes:
+----------------------------------------
+  Class 0: T-shirt/top
+  Class 1: Trouser
+  Class 2: Pullover
+  Class 3: Dress
+  Class 4: Coat
+  Class 5: Sandal
+  Class 6: Shirt
+  Class 7: Sneaker
+  Class 8: Bag
+  Class 9: Ankle boot
+Downloading http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-images-idx3-ubyte.gz
+Downloading http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-images-idx3-ubyte.gz to ./data/FashionMNIST/raw/train-images-idx3-ubyte.gz
+Extracting ./data/FashionMNIST/raw/train-images-idx3-ubyte.gz to ./data/FashionMNIST/raw
+
+Downloading http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-labels-idx1-ubyte.gz
+Downloading http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-labels-idx1-ubyte.gz to ./data/FashionMNIST/raw/train-labels-idx1-ubyte.gz
+Extracting ./data/FashionMNIST/raw/train-labels-idx1-ubyte.gz to ./data/FashionMNIST/raw
+
+Downloading http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-images-idx3-ubyte.gz
+Downloading http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-images-idx3-ubyte.gz to ./data/FashionMNIST/raw/t10k-images-idx3-ubyte.gz
+Extracting ./data/FashionMNIST/raw/t10k-images-idx3-ubyte.gz to ./data/FashionMNIST/raw
+
+Downloading http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-labels-idx1-ubyte.gz
+Downloading http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-labels-idx1-ubyte.gz to ./data/FashionMNIST/raw/t10k-labels-idx1-ubyte.gz
+Extracting ./data/FashionMNIST/raw/t10k-labels-idx1-ubyte.gz to ./data/FashionMNIST/raw
+
+
+Class distribution:
+  T-shirt/top     (Class 0): 6000 (10.00%)
+  Trouser         (Class 1): 6000 (10.00%)
+  Pullover        (Class 2): 6000 (10.00%)
+  Dress           (Class 3): 6000 (10.00%)
+  Coat            (Class 4): 6000 (10.00%)
+  Sandal          (Class 5): 6000 (10.00%)
+  Shirt           (Class 6): 6000 (10.00%)
+  Sneaker         (Class 7): 6000 (10.00%)
+  Bag             (Class 8): 6000 (10.00%)
+  Ankle boot      (Class 9): 6000 (10.00%)
+```
+
 ## 2. 논의
 
 Fashion-MNIST는 MNIST와 텐서의 짜임이 같아 이미지마다 단일 채널 $28 \times 28$ 회색조이지만, 시각적으로는 훨씬 복잡하다. 손으로 쓴 숫자는 획의 모양이 뚜렷한 반면 옷가지는 같은 부류 안의 변화가 크다. 티셔츠 하나만 해도 방향과 질감과 맵시가 여러 가지이다. 그래서 Fashion-MNIST가 실제 분류의 어려움을 더 잘 흉내 낸다.

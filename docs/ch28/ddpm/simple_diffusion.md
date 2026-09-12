@@ -696,6 +696,45 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+==================================================
+Simple 2D Diffusion Model Demo
+==================================================
+
+1. Generating Swiss roll data...
+   ✓ Generated 2000 points
+
+2. Visualizing forward diffusion...
+✓ Saved forward diffusion visualization
+
+3. Training diffusion model...
+Training on cpu
+✓ Saved training loss plot
+   ✓ Training complete
+
+4. Generating samples...
+   ✓ Generated 2000 samples
+
+5. Comparing results...
+✓ Saved comparison plot
+
+==================================================
+✓ Demo complete! Check generated images:
+  • 2d_forward_diffusion.png - Data dissolving into noise
+  • 2d_training_loss.png - Training progress
+  • 2d_comparison.png - Original vs Generated
+==================================================
+
+KEY TAKEAWAYS:
+  ✓ Forward: Add noise progressively (no learning)
+  ✓ Reverse: Remove noise progressively (learned)
+  ✓ Model predicts noise at any timestep
+  ✓ Generation: Noise → iterative denoising → data
+==================================================
+```
+
 ## 2. 논의
 
 단순한 퍼짐의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.

@@ -33,6 +33,19 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+LSTM Sentiment Analysis Tutorial
+Full implementation includes:
+  • LSTM architecture explanation
+  • Movie review dataset
+  • Training with gradient clipping
+  • Sentiment prediction
+
+This is a 400+ line fully commented tutorial
+```
+
 ## 2. 논의
 
 이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 순환 신경망의 핵심 개념을 보인다. 모듈식 짜임 덕분에 부품 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.

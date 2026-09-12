@@ -136,6 +136,14 @@ if __name__ == "__main__":
     main()
 ```
 
+**출력:**
+
+```
+Error: No checkpoint found!
+Please train a model first using example_train.py
+Looking for one of: ['mnist_diffusion_model.pt', 'mnist_diffusion_final.pt', 'checkpoint_epoch_100.pt']
+```
+
 ## 2. 논의
 
 뽑기 대본 보기의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.

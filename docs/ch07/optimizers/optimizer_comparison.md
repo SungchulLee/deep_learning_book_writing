@@ -305,6 +305,57 @@ if __name__ == "__main__":
     print_summary()
 ```
 
+**출력:**
+
+```
+================================================================================
+TEST 1: Simple Quadratic Function
+================================================================================
+Minimizing f(x, y) = x^2 + y^2
+Starting point: x=10, y=10
+
+Iteration    Adam f(x,y)     RMSprop f(x,y)  AdaGrad f(x,y) 
+--------------------------------------------------------------------------------
+0            196.02000000    187.55088938    162.00000002   
+10           158.58456702    134.72215130    56.41388894    
+20           125.79381676    103.25381613    26.39460664    
+30           97.87188501     78.28367763     13.19415351    
+40           74.70788831     57.63329665     6.77405221     
+
+Conclusion: All three converge well on this simple problem.
+
+
+
+================================================================================
+TEST 2: Ill-Conditioned Problem
+================================================================================
+Minimizing f(x, y) = 100*x^2 + y^2
+Starting point: x=10, y=10
+(x direction has much larger gradients than y direction)
+
+Iteration    Adam f(x,y)     RMSprop f(x,y)  AdaGrad f(x,y) 
+--------------------------------------------------------------------------------
+0            9899.010000     9471.319913     8181.000000    
+20           6352.587745     5214.317711     1332.927634    
+40           3772.748357     2910.481477     342.089636     
+60           2074.497165     1363.257978     93.027793      
+80           1051.791278     452.221025      25.659421      
+
+
+... (64 lines omitted)
+
+  ✓ Combines RMSprop + Momentum
+  ✓ Includes bias correction
+  ✓ Usually works well with default hyperparameters
+  ✓ Most popular optimizer in deep learning
+  • Best for: General purpose, default choice
+
+Hyperparameter Recommendations:
+  Adam:    lr=0.001, beta1=0.9, beta2=0.999
+  RMSprop: lr=0.001, rho=0.9
+  AdaGrad: lr=0.01
+```
+
 ## 2. 논의
 
 이차 함수 시험($f(x,y) = x^2 + y^2$)은 가장 단순한 기준이며 세 최적화기 모두 쉽게 수렴한다. 조건이 나쁜 시험($f(x,y) = 100x^2 + y^2$)은 적응형 방법의 이점을 드러낸다. 학습률이 하나뿐인 SGD는 가파른 $x$ 방향과 완만한 $y$ 방향에서 동시에 잘 나아갈 수 없지만, 적응형 방법은 저절로 서로 다른 학습률을 쓴다.

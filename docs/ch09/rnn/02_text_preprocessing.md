@@ -193,6 +193,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+Text Preprocessing for RNNs
+======================================================================
+
+======================================================================
+SECTION 1: Tokenization
+======================================================================
+
+Original texts:
+  1. 'I love machine learning'
+  2. 'Deep learning is amazing'
+  3. 'PyTorch makes deep learning easy'
+  4. 'I love PyTorch'
+  5. 'Machine learning is the future'
+
+Tokenized (split into words):
+  1. ['i', 'love', 'machine', 'learning']
+  2. ['deep', 'learning', 'is', 'amazing']
+  3. ['pytorch', 'makes', 'deep', 'learning', 'easy']
+  4. ['i', 'love', 'pytorch']
+  5. ['machine', 'learning', 'is', 'the', 'future']
+
+======================================================================
+SECTION 2: Building Vocabulary
+======================================================================
+
+Vocabulary size: 16 words
+
+Special tokens:
+  <PAD>: 0 (for padding)
+  <UNK>: 1 (unknown words)
+  <SOS>: 2 (start of sequence)
+  <EOS>: 3 (end of sequence)
+
+... (111 lines omitted)
+
+   그다음: 04_simple_rnn.py (첫 RNN 만들기!)
+
+흔한 어휘 크기:
+  • 작은 데이터셋: 낱말 5,000~10,000개
+  • 중간: 낱말 20,000~50,000개
+  • 큰 것: 낱말 100,000개 이상 (GPT는 50,257개를 쓴다)
+
+======================================================================
+Tutorial Complete! ✓
+======================================================================
+```
+
 ## 2. 논의
 
 이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 순환 신경망의 핵심 개념을 보인다. 모듈식 짜임 덕분에 부품 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.

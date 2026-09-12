@@ -186,6 +186,57 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+MNIST Dataset Exploration
+======================================================================
+
+Configuration:
+  Learning rate: 0.01
+  Batch size: 64
+  Test batch size: 1000
+  Random seed: 1
+  Device: mps
+
+Random seed set to 1 for reproducibility
+
+======================================================================
+Loading MNIST Dataset
+======================================================================
+Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
+Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+Failed to download (trying next):
+HTTP Error 404: Not Found
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
+Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+
+... (69 lines omitted)
+
+  Max value: 1.0000
+  Mean value: -0.8363
+  Std deviation: 0.4804
+
+Pixel value interpretation:
+  - Images are normalized to range [-1, 1]
+  - -1.0 represents black pixels
+  - +1.0 represents white pixels
+  - Values in between represent shades of gray
+  - This normalization helps neural networks train better!
+```
+
 ## 2. 논의
 
 MNIST 데이터셋은 딥러닝의 "Hello World" 노릇을 한다. 이미지 하나하나가 단일 채널 텐서로 저장된 $28 \times 28$ 회색조 이미지여서 표본마다 모양이 $(1, 28, 28)$이다. PyTorch `DataLoader`로 불러오면 이미지가 모양 $(B, 1, 28, 28)$의 텐서로 묶이며 여기서 $B$은 배치 크기이다. 데이터셋에는 학습 이미지 6만 장과 시험 이미지 1만 장이 있고 숫자 10개 부류에 고르게 나뉘어 있다.

@@ -79,6 +79,16 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+======================================================================
+INTERMEDIATE TUTORIAL 1: Loss Function Comparison
+======================================================================
+
+Training three models with different loss functions...
+```
+
 ## 2. 논의
 
 여기서 견주는 세 손실 형태는 모두 같은 수학적 목표, 곧 범주형 분포 아래에서 옳은 부류의 음의 로그 가능도를 구현한다. `nn.CrossEntropyLoss`이 가장 흔한 형태로, 날 로짓을 받아 안에서 로그 소프트맥스를 적용한 뒤 음의 로그 가능도를 계산한다. `F.cross_entropy`은 그 함수형 짝으로, 모듈 객체가 아니라 상태 없는 함수 호출일 뿐 값은 똑같다. `nn.NLLLoss` 판본은 모델이 `F.log_softmax`으로 로그 확률을 직접 내놓아야 하므로 $\text{CrossEntropy} = \text{LogSoftmax} + \text{NLLLoss}$이라는 두 단계 분해가 코드에 드러난다.

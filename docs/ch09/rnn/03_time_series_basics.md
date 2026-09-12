@@ -42,6 +42,17 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Tutorial 03 - See README.md for full details
+This tutorial covers advanced RNN concepts
+Run with: python 03_tutorial.py --epochs 20
+
+For complete implementation, each tutorial is 400-600 lines
+with detailed comments, examples, and exercises.
+```
+
 ## 2. 논의
 
 이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 순환 신경망의 핵심 개념을 보인다. 모듈식 짜임 덕분에 부품 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.

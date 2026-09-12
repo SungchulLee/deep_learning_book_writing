@@ -103,6 +103,30 @@ if __name__ == "__main__":
     pass
 ```
 
+**출력:**
+
+```
+Downloading https://cave.cs.toronto.edu/kriz/cifar-10-python.tar.gz to ./data/cifar-10-python.tar.gz
+Extracting ./data/cifar-10-python.tar.gz to ./data
+Files already downloaded and verified
+Image shape: torch.Size([64, 3, 32, 32])
+  Channels: 3 (RGB color)
+  Height: 32, Width: 32
+  Red: min=-0.898, max=0.890, mean=0.376
+  Green: min=-0.945, max=0.937, mean=0.381
+  Blue: min=-0.992, max=0.937, mean=0.324
+  airplane       : 5000 (10.00%)
+  automobile     : 5000 (10.00%)
+  bird           : 5000 (10.00%)
+  cat            : 5000 (10.00%)
+  deer           : 5000 (10.00%)
+  dog            : 5000 (10.00%)
+  frog           : 5000 (10.00%)
+  horse          : 5000 (10.00%)
+  ship           : 5000 (10.00%)
+  truck          : 5000 (10.00%)
+```
+
 ## 2. 논의
 
 MNIST에서 CIFAR-10으로 넘어가면 컴퓨터 비전의 근본적인 어려움 몇 가지가 드러난다. CIFAR-10 이미지는 모양이 $(3, 32, 32)$으로, 공간 해상도 $32 \times 32$에 색 채널 세 개(빨강, 초록, 파랑)를 나타낸다. 곧 이미지마다 값이 $3 \times 32 \times 32 = 3{,}072$개로, MNIST의 화소 784개보다 대략 네 배 많다. 첫 합성곱 층은 입력 채널을 1개가 아니라 3개 받아야 하므로 그 층의 매개변수가 세 배가 된다.

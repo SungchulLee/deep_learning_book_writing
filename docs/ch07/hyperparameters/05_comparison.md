@@ -442,6 +442,57 @@ if __name__ == "__main__":
     print("\nVisualization saved to 'comparison_results.png'")
 ```
 
+**출력:**
+
+```
+Optuna not available. Install with: pip install optuna
+
+======================================================================
+STARTING COMPREHENSIVE COMPARISON
+======================================================================
+
+This will run all hyperparameter tuning methods and compare them.
+This may take a few minutes...
+
+======================================================================
+COMPREHENSIVE HYPERPARAMETER TUNING COMPARISON
+======================================================================
+
+Loading dataset...
+
+--- Running Grid Search ---
+Grid Search - CV: 0.9753, Test: 1.0000, Time: 3.79s
+
+--- Running Random Search ---
+Random Search - CV: 0.9753, Test: 1.0000, Time: 4.22s
+
+--- Running Simple AutoML ---
+Simple AutoML - CV: 0.9920, Test: 0.9815, Time: 0.25s
+
+
+Creating comparison visualizations...
+Saved visualization to 'comparison_results.png'
+
+======================================================================
+SUMMARY TABLE
+======================================================================
+       Method  CV Score  Test Score  Time (s)  Iterations
+  Grid Search  0.975333    1.000000  3.787852          27
+
+... (68 lines omitted)
+
+COMPARISON COMPLETE!
+======================================================================
+
+Key Insights:
+- Different methods have different trade-offs
+- No single 'best' method for all situations
+- Consider your constraints: time, resources, accuracy needs
+- Start simple, increase complexity as needed
+
+Visualization saved to 'comparison_results.png'
+```
+
 ## 2. 논의
 
 비교해 보면 모든 기준에서 앞서는 조율 방법은 없다. 격자 탐색은 격자 안에서 가장 좋은 조합을 찾는 것은 보장하지만 규모를 키우기 어렵다. 무작위 탐색은 빠르고 뜻밖에 효과적이다. 베이즈 최적화는 알맞은 계산량으로 가장 좋은 점수를 낸다. 간단한 AutoML은 준비가 거의 필요 없으면서도 쓸 만한 결과를 준다.

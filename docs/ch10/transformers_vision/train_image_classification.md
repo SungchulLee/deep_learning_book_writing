@@ -34,6 +34,17 @@ if __name__ == '__main__':
     train_vit()
 ```
 
+**출력:**
+
+```
+ViT Model created!
+Input shape: torch.Size([4, 3, 224, 224])
+Output shape: torch.Size([4, 10])
+Parameters: 85,804,810
+
+Ready for image classification training!
+```
+
 ## 2. 논의
 
 이 구현은 깔끔하고 읽기 쉬운 파이토치 코드로 트랜스포머의 핵심 개념을 보여 준다. 모듈 방식의 짜임 덕분에 낱낱의 부품을 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.

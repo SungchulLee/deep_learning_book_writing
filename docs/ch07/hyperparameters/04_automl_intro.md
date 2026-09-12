@@ -427,6 +427,57 @@ if __name__ == "__main__":
     print("  - H2O AutoML: pip install h2o")
 ```
 
+**출력:**
+
+```
+TPOT not installed. Will demonstrate manual AutoML approach.
+
+============================================================
+AUTOMATED MACHINE LEARNING (AutoML)
+============================================================
+
+AutoML automates the machine learning pipeline including
+feature engineering, model selection, and hyperparameter tuning.
+It makes ML accessible and efficient by automating repetitive tasks.
+
+
+### Example 1: Simple Model Selection ###
+
+============================================================
+SIMPLE AUTOML - MODEL SELECTION
+============================================================
+
+This example automatically tries multiple models and
+selects the best one based on cross-validation scores.
+
+Evaluating 6 different models...
+
+Trying Random Forest...
+  CV Score: 0.9673 (+/- 0.0310)
+
+Trying Gradient Boosting...
+  CV Score: 0.8863 (+/- 0.0613)
+
+Trying SVM (RBF)...
+  CV Score: 0.9920 (+/- 0.0160)
+
+Trying SVM (Linear)...
+  CV Score: 0.9757 (+/- 0.0199)
+
+... (133 lines omitted)
+
+- Can save significant time in model development
+- TPOT and Auto-sklearn are powerful AutoML tools
+- Ensembles often improve over individual models
+- Great for baseline models and non-experts
+
+AutoML libraries to explore:
+  - TPOT: pip install tpot
+  - Auto-sklearn: pip install auto-sklearn
+  - PyCaret: pip install pycaret
+  - H2O AutoML: pip install h2o
+```
+
 ## 2. 논의
 
 간단한 AutoML은 여러 모델 계열(랜덤 포리스트, 그래디언트 부스팅, SVM, KNN, 로지스틱 회귀)을 교차 검증으로 평가하여 가장 좋은 것을 고른다. 전문 지식이 거의 없어도 몇 분 만에 튼튼한 기준선을 얻을 수 있다. 다만 초매개변수를 조율하지 않으면 고른 모델이 최적이 아닐 수 있다.
