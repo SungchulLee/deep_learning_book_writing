@@ -119,8 +119,12 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 $3 \times 32 \times 32$ 입력에서 시작하여 SimpleCNN 구조를 따라 공간 차원을 추적하라. 층마다 출력 모양을 보이고 펼친 크기가 정말 $16 \times 5 \times 5 = 400$인지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
 
@@ -135,8 +139,12 @@ $3 \times 32 \times 32$ 입력에서 시작하여 SimpleCNN 구조를 따라 공
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 (관성 없는) SGD를 Adam으로 바꾸고 세대 수를 5에서 10으로 늘려라. 정확도가 얼마나 오를지 보고하고 이 문제에서 Adam이 더 빨리 수렴하는 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `optim.SGD(model.parameters(), lr=0.001)`을 `optim.Adam(model.parameters(), lr=0.001)`으로 바꾸고 10세대를 학습시키면 대개 정확도가 약 63%에서 68~72%로 오른다.
@@ -145,8 +153,12 @@ $3 \times 32 \times 32$ 입력에서 시작하여 SimpleCNN 구조를 따라 공
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 합성곱 층마다 (ReLU 활성화 앞에) 배치 정규화를 더하라. 고친 구조를 구현하고 배치 정규화가 학습을 어떻게 돕는지 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

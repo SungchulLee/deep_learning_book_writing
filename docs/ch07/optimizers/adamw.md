@@ -69,24 +69,36 @@ AdamW는 다음에 권장되는 기본 최적화기이다.
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 L2 정칙화와 분리된 가중치 감쇠의 차이, 그리고 AdamW가 둘을 나누는 이유를 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     SGD에서는 L2 정칙화($\nabla L + \lambda w$)와 가중치 감쇠($w \leftarrow (1-\lambda)w$)가 같다. Adam에서는 L2 정칙화가 적응형 학습률로 나뉘어 기울기가 큰 매개변수에 대한 효과가 약해진다. AdamW는 가중치 감쇠를 곧바로 적용하여($w \leftarrow (1-\lambda)w - \eta\hat{m}/\sqrt{\hat{v}}$) 정칙화가 한결같게 한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 Adam 대신 AdamW를 써야 할 때는 언제인가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     적응형 최적화기와 가중치 감쇠를 함께 쓸 때에는 언제나 AdamW를 쓰라. AdamW는 제대로 된 정칙화를 주므로 트랜스포머 기반 모델(BERT, GPT, ViT)의 기본 최적화기이다. `weight_decay`을 쓰는 Adam은 참된 가중치 감쇠가 아니라 L2 정칙화를 구현하므로 최적이 아니다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 AdamW의 갱신 규칙을 구현하고 Adam과 어디가 다른지 보여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -99,8 +111,12 @@ AdamW의 갱신 규칙을 구현하고 Adam과 어디가 다른지 보여라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 기울기의 분산이 크거나 작은 매개변수에 대해 Adam과 AdamW의 실효 정칙화 강도를 유도하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     L2를 쓰는 Adam에서 실효 감쇠는 $\lambda / \sqrt{\hat{v}_t}$이며, 분산이 큰(자주 갱신되는) 매개변수에서 작아진다. AdamW에서는 감쇠가 고르게 $\lambda$이다. 즉 Adam은 자주 갱신되는 매개변수를 덜 정칙화하고 드문 매개변수를 지나치게 정칙화하는 반면, AdamW는 모두에 같은 정칙화를 건다.

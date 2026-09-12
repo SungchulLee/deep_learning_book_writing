@@ -607,8 +607,12 @@ BIC를 쓴 언덕 오르기 같은 점수 기반 방법은 점수 함수를 정�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 알려진 짜임 $A \to B \to C$에서 뽑은 표본 500개의 자료가 있을 때, 카이제곱 검정으로 $A \perp C | B$이지만 $A \not\perp C$임을 확인하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -646,8 +650,12 @@ print(f'Conditionally independent? {min(p0, p1) > 0.05}')
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 마르코프 같음의 개념을 설명하여라. 마르코프로 같은 서로 다른 DAG 둘의 보기와, 같지 않은 것 하나의 보기를 들어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     DAG 둘이 같은 조건부 독립 관계 묶음을 담고 있으면 마르코프로 같다. 마르코프로 같은 DAG은 뼈대(무방향 변)가 같고 v-짜임($X$과 $Y$이 이웃하지 않는 충돌자 $X \to Z \leftarrow Y$)도 같다.
@@ -661,8 +669,12 @@ print(f'Conditionally independent? {min(p0, p1) > 0.05}')
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 변수 3개의 단순한 망에 대해 BIC 점수를 구현하고, $A \to B, A \to C$에서 만든 자료에 가장 좋은 짜임을 찾도록 마디 3개의 모든 DAG의 점수를 견주어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

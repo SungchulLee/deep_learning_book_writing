@@ -140,8 +140,12 @@ Fashion-MNIST의 혼동 행렬에는 특유의 오류 무늬가 드러난다. �
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 모델을 학습시킨 뒤 Fashion-MNIST의 10개 부류마다 정확도를 계산하라. 정확도가 가장 낮은 세 부류를 찾고 왜 가장 분류하기 어려운지 가설을 세워라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -166,8 +170,12 @@ Fashion-MNIST의 혼동 행렬에는 특유의 오류 무늬가 드러난다. �
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 난이도가 다른데도 이 모델은 MNIST와 Fashion-MNIST에 같은 구조를 쓴다. MNIST 쪽 구조는 그대로 두면서 Fashion-MNIST의 정확도를 높일 만한 구조 변경 두 가지를 제안하고 그 까닭을 밝혀라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     근거 있는 변경 두 가지는 다음과 같다.
@@ -178,8 +186,12 @@ Fashion-MNIST의 혼동 행렬에는 특유의 오류 무늬가 드러난다. �
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 세대마다 검증 정확도를 좇아 조기 종료를 구현하라. 검증 정확도가 세 세대 잇달아 나아지지 않으면 학습을 멈춘다. 이 기법이 일반화에 도움이 되는 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

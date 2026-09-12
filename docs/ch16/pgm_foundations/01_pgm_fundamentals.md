@@ -837,8 +837,12 @@ d-가름은 망의 짜임에서 조건부 독립을 읽어 내는 그래프 기�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 질병이 증상1과 증상2을 함께 일으키는 의료 진단 얼개를 나타내는 이진 변수 셋의 분포를 만들어라. 두 증상이 질병을 조건으로 두면 독립이지만 주변으로는 기대고 있음을 확인하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -877,8 +881,12 @@ print('Cond. independent given D=0?', np.allclose(p_given_d0, np.outer(p_s1_d0, 
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 충돌자 짜임에서의 '설명해 치우기' 효과를 설명하여라. 실제 세상의 구체적인 보기를 들어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     충돌자 짜임 $X \to Z \leftarrow Y$에서 변수 $X$과 $Y$은 주변으로는 독립이다. 그러나 함께 낳은 결과 $Z$을 보고 나면(조건을 걸면) $X$과 $Y$이 서로 기대게 된다. 이를 '설명해 치우기'라고 한다.
@@ -890,8 +898,12 @@ print('Cond. independent given D=0?', np.allclose(p_given_d0, np.outer(p_s1_d0, 
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 짜임이 없는 이진 변수 10개의 결합 분포와, 변수마다 어버이가 많아야 2개인 베이즈 망을 나타내는 데 필요한 매개변수의 개수를 셈하여라. 줄인 비율은 얼마인가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     짜임이 없으면 매개변수 $2^{10} - 1 = 1023$개이다(온전한 결합 분포 표).

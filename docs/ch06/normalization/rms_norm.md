@@ -603,24 +603,36 @@ Parameter count:
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 RMSNorm 공식 $\text{RMSNorm}(x) = \frac{x}{\text{RMS}(x)} \cdot \gamma$을 유도하라. 여기서 $\text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2}$이다.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     RMSNorm은 중심을 맞추지 않고(평균을 빼지 않고) 입력의 제곱평균제곱근으로 정규화한다. 이로써 LayerNorm의 재중심화 단계가 사라져 계산이 약 7~10% 줄어든다. 학습 가능한 이득 $\gamma$이 정규화된 출력의 배율을 다시 조정한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 RMSNorm과 LayerNorm의 계산 비용을 비교하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     LayerNorm은 평균 계산($O(d)$), 분산 계산($O(d)$), 정규화, 배율 조정, 이동으로 원소 $d$개에 걸쳐 5개의 연산을 한다. RMSNorm은 RMS 계산($O(d)$), 정규화, 배율 조정으로 3개의 연산을 한다. RMSNorm은 평균 계산과 편향 매개변수를 건너뛰어 계산을 약 30% 아낀다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 RMSNorm을 PyTorch로 구현하고 공식과 일치하는지 확인하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -636,8 +648,12 @@ RMSNorm을 PyTorch로 구현하고 공식과 일치하는지 확인하라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 현대의 대형 언어 모델(예: LLaMA)에서 LayerNorm 대신 RMSNorm이 기본이 된 이유는 무엇인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     경험적으로 LayerNorm의 평균 중심화는 큰 트랜스포머에서 이득이 미미한 반면 계산은 늘린다. RMSNorm은 같은 수준의 학습 안정성과 최종 성능을 더 낮은 지연으로 이루는데, 규모가 커질수록(매개변수 수십억 개, 토큰 수조 개) 이것이 크게 중요해진다.

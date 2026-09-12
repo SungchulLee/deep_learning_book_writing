@@ -749,8 +749,12 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 행 우선(C 연속) 순서로 된 모양 `(2, 3, 4)`의 3차원 텐서가 주어졌을 때 스트라이드를 예측하고 PyTorch로 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     모양 $(d_0, d_1, d_2) = (2, 3, 4)$에 대해 행 우선 순서의 스트라이드는 다음과 같다.
@@ -769,8 +773,12 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `view()`는 실패하지만 `reshape()`는 성공하는 상황을 만들어라. 메모리 연속성의 관점에서 그 이유를 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -784,8 +792,12 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 겉보기에는 다르지만 같은 바탕 저장소를 공유하는 두 텐서를 만들어라. 한쪽을 수정하고 다른 쪽에 미치는 영향을 관찰하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -802,8 +814,12 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 모양 `(1000, 1000)`인 연속 텐서와 비연속 텐서에서 원소별 곱셈의 성능을 측정하라. 시간 차이를 재고 그 이유를 설명하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

@@ -166,8 +166,12 @@ Laplace perplexity: 9.43
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 낱말 곳간 크기가 $V = 100$이고 맥락 낱말이 50번 나오며 그 뒤에 오는 서로 다른 낱말이 10개일 때, (가) 맥락 뒤에 10번 나온 낱말과 (나) 본 적 없는 낱말의 라플라스 부드럽게 한 확률을 셈하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     Using $P(w \mid c) = (\text{count}(c, w) + 1) / (\text{count}(c) + V)$:
@@ -182,8 +186,12 @@ Laplace perplexity: 9.43
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 $\lambda_2 + \lambda_1 = 1$인 선형 사이 메우기에서, 낱말 사전의 모든 낱말에 대해 $P_{\text{unigram}}(w) > 0$이면 $P_{\text{bigram}}(w \mid c) = 0$이더라도 메운 확률이 늘 양수임을 밝혀라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\lambda_1 > 0$이고 $\lambda_2 > 0$일 때 $P_{\text{interp}}(w \mid c) = \lambda_2 P_{\text{bigram}}(w \mid c) + \lambda_1 P_{\text{unigram}}(w)$이 주어졌다고 하자.
@@ -200,8 +208,12 @@ $\lambda_2 + \lambda_1 = 1$인 선형 사이 메우기에서, 낱말 사전의 �
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 다짐 묶음에서 헷갈림도를 가장 작게 하여 Add-k 매끄럽게 하기의 가장 좋은 $k$을 찾는 격자 찾기 함수를 짜라. $k \in \{0.01, 0.05, 0.1, 0.25, 0.5, 1.0\}$을 시험하여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

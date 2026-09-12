@@ -679,8 +679,12 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 베르누이 분산 $p(1-p)$이 $p=0.5$에서 최대가 됨을 증명하고, 이것이 분류의 확신도에 대해 갖는 의미를 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     $v(p) = p(1-p) = p - p^2$이라 하자. $v'(p) = 1 - 2p = 0$에서 $p = 0.5$이고, $v''(p) = -2 < 0$이므로 최댓값임이 확인된다. 최대 분산은 $v(0.5) = 0.25$이다.
@@ -689,8 +693,12 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 참 데이터 분포 아래에서 기대 로그가능도를 유도하고, 그것이 음의 교차 엔트로피와 같음을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $q(y|x)$을 참 조건부 분포, $p_\theta(y|x)$을 모델이라 하자. 기대 로그가능도는 다음과 같다.
@@ -703,8 +711,12 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 로짓 함수 $\log\frac{p}{1-p}$이 베르누이 분포의 "정준" 연결 함수라 불리는 이유를 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     지수족 형태로 쓴 베르누이 확률질량함수는 $p(y|\eta) = \exp(\eta y - \log(1+e^\eta))$이며, 여기서 $\eta = \log\frac{p}{1-p}$이 자연 매개변수이다. 정준 연결은 평균 $\mu = p$을 자연 매개변수 $\eta$으로 보낸다. 베르누이의 경우 이는 로짓 함수 $g(\mu) = \log\frac{\mu}{1-\mu}$이다.
@@ -713,8 +725,12 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 정규분포의 누적분포함수를 역연결 함수로 쓰는 프로빗 회귀 모델을 구현하고, 합성 데이터에서 로지스틱 회귀와 비교하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

@@ -183,8 +183,12 @@ Next: Module 9 - Bayesian Linear Regression
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 정규-정규 모형에 대한 경험 베이즈 절차를 짜라. $\theta_i \sim N(\mu, \tau^2)$이고 관측값이 $y_i \sim N(\theta_i, 1)$인 10개가 주어졌을 때 주변 분포에서 $\mu$과 $\tau^2$을 어림하고 오그림 어림값을 셈하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -210,8 +214,12 @@ print(f'MSE (EB):  {np.mean((eb_est - thetas)**2):.4f}')
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 제임스-스타인 어림값이 차원 $p \geq 3$에서만 최대가능도 어림값을 앞서는 까닭을 밝혀라. 차원 1과 2에서는 어떻게 되는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     제임스-스타인 어림값은 최대가능도 어림값을 어떤 과녁 점 쪽으로 오그리며 $\hat{\theta}_{JS} = \bar{y} + (1 - (p-2)/\|y - \bar{y}\|^2)(y - \bar{y})$ 꼴이다. 여기서 $p$은 차원이다. 오그림 값 $(p-2)/\|y-\bar{y}\|^2$은 $p \geq 3$일 때만 양수이며, 그래서 이 결과에는 차원이 적어도 셋이어야 한다.
@@ -221,8 +229,12 @@ print(f'MSE (EB):  {np.mean((eb_est - thetas)**2):.4f}')
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 야구 보기를 넓혀 경험 베이즈의 앞확률 갈래 셋을 견주어라. 베타, 로짓-정규, 그리고 비모수 알맹이 밀도 어림이다. 어느 것이 MSE을 가장 잘 줄이는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

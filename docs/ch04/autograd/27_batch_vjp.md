@@ -65,8 +65,12 @@ Expected v_b @ A:
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 $A$가 $3 \times 2$ 행렬인 선형 사상 $y = Ax$에 대해, 명시적인 경사 벡터 $v$와 함께 PyTorch의 `.backward()`를 사용하여 VJP $v^\top J$를 계산하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -83,8 +87,12 @@ $A$가 $3 \times 2$ 행렬인 선형 사상 $y = Ax$에 대해, 명시적인 경
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 출력이 스칼라가 아닐 때 PyTorch가 `.backward()`에 경사 인수를 요구하는 이유를 설명하라. 이 인수는 어떤 수학적 대상을 나타내는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     스칼라 손실 $L$에 대해서는 `.backward()`가 $\partial L / \partial x$를 직접 계산한다. 벡터 출력 $y \in \mathbb{R}^m$에 대해서는 하나의 경사가 아니라 야코비 행렬 $J \in \mathbb{R}^{m \times n}$이 있다. 경사 인수 $v$는 벡터-야코비 곱 $v^\top J$를 지정하며, 이는 야코비안을 하나의 경사 벡터로 사영한다. 이는 $\partial (v^\top y) / \partial x$를 계산하는 것과 동등하다.
@@ -92,8 +100,12 @@ $A$가 $3 \times 2$ 행렬인 선형 사상 $y = Ax$에 대해, 명시적인 경
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `torch.autograd.functional.jacobian`을 사용하여 $x = [1, 2]$에서 $f(x) = [\sin(x_1), x_1 x_2, x_2^2]$의 전체 야코비안을 계산하라. 각 편도함수를 직접 계산하여 검증하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

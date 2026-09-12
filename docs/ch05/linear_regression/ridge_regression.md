@@ -404,8 +404,12 @@ ax.grid(True, alpha=0.3)
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 릿지 회귀의 닫힌 형태 해 $\hat{\mathbf{w}} = (\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$을 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     릿지의 목적 함수는 $L = \|\mathbf{Xw}-\mathbf{y}\|^2 + \lambda\|\mathbf{w}\|^2$이다. $\nabla_\mathbf{w} L = 2\mathbf{X}^\top(\mathbf{Xw}-\mathbf{y}) + 2\lambda\mathbf{w} = 0$으로 두면 $(\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I})\mathbf{w} = \mathbf{X}^\top\mathbf{y}$을 얻는다.
@@ -414,8 +418,12 @@ ax.grid(True, alpha=0.3)
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 릿지 회귀가 가우스 사전분포 $\mathbf{w} \sim \mathcal{N}(0, \frac{\sigma^2}{\lambda}\mathbf{I})$ 아래의 MAP 추정이라는 베이즈적 해석을 가짐을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     MAP: $\hat{\mathbf{w}} = \arg\max_\mathbf{w} p(\mathbf{w}|\mathbf{y}) \propto p(\mathbf{y}|\mathbf{w})p(\mathbf{w})$.
@@ -426,8 +434,12 @@ ax.grid(True, alpha=0.3)
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 특징이 5개인 회귀 문제에 대해 릿지 계수를 $\lambda$의 함수로 그려라(릿지 자취).
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -444,8 +456,12 @@ ax.grid(True, alpha=0.3)
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 $\lambda$가 편향-분산 절충에 미치는 영향을 설명하라. $\lambda \to 0$일 때와 $\lambda \to \infty$일 때 어떤 일이 일어나는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     $\lambda \to 0$이면 릿지는 OLS로 환원되며, 편향은 0이지만 분산이 크다(과적합 위험).

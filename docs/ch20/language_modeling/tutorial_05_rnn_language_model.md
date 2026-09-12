@@ -73,8 +73,12 @@ Challenge: vanishing/exploding gradients
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 숨은 차원 $h = 256$, 묻힘 차원 $d = 128$인 되돌이 그물에서 되돌이 층의 매개변수 개수를 셈하여라(묻힘과 내놓는 내리쬐기는 빼고 무게와 치우침만).
+
+</div>
 
 ??? success "연습문제 1 풀이"
     되돌이 그물의 되돌이 층에는 다음이 있다:
@@ -87,8 +91,12 @@ Challenge: vanishing/exploding gradients
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 사슬 규칙으로 되돌이 그물의 기울기 사라짐 문제를 밝혀라. 때 $T$의 손실을 때 $t$의 숨은 상태로 미분한 기울기는 왜 $T - t$이 커질수록 작아지는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     연쇄 법칙에 의해 다음과 같다.
@@ -101,8 +109,12 @@ Challenge: vanishing/exploding gradients
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `k` 걸음마다 숨은 상태를 떼어 내어 기울기가 `k` 걸음보다 더 뒤로 흐르지 못하게 함으로써 잘라 낸 때 거슬러 퍼뜨리기를 짜라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

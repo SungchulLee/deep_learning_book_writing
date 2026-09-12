@@ -197,8 +197,12 @@ Output shape: torch.Size([2, 1000])
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 자리매김이 `(in=192, ch1x1=64, ch3x3_reduce=96, ch3x3=128, ch5x5_reduce=16, ch5x5=32, pool_proj=32)`인 인셉션 단원 하나의 매개변수 전체 개수를 셈하고 PyTorch 모델과 견주어 확인하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     가지마다 매개변수를 세어라(무게 + 치우침):
@@ -219,8 +223,12 @@ Output shape: torch.Size([2, 1000])
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 곁딸린 갈래 매개가 왜 익힐 때만 살아 있고 미룸 때에는 그렇지 않은지 설명하여라. 시험 때에도 살려 두면 어떻게 되겠는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     곁딸린 갈래 매개는 가운데 층에 기울기 신호를 더 넣어 주는 벌주기 노릇을 하며 더 깊은 그물을 익히는 데 도움을 준다. 미룸 때에는 다음 까닭으로 필요 없다:
@@ -233,8 +241,12 @@ Output shape: torch.Size([2, 1000])
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `InceptionModule`에서 $5 \times 5$ 합성곱을 $3 \times 3$ 합성곱 둘을 쌓은 것으로 갈음하도록 고쳐라(인셉션 v2가 그렇게 한다). 두 갈래의 매개변수 수를 견주어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     인셉션 단원의 3번 가지를 갈음하여라:

@@ -572,16 +572,24 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 컷믹스 알고리즘과 혼합 비율 $\lambda$이 잘라 낼 넓이를 정하는 방식을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     컷믹스는 이미지 B에서 직사각형 영역을 잘라 이미지 A에 붙인다. $\lambda \sim \text{Beta}(\alpha, \alpha)$일 때 넓이 비율은 $1 - \lambda$이다. 상자의 좌표는 $r_x, r_y \sim \text{Uniform}(0, W), (0, H)$이고 너비는 $r_w = W\sqrt{1-\lambda}$, 높이는 $r_h = H\sqrt{1-\lambda}$이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 컷믹스를 PyTorch로 구현하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -603,16 +611,24 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 학습에서 대체로 컷아웃보다 컷믹스를 선호하는 이유는 무엇인가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     컷아웃은 영역을 지우고 0으로 채워 화소를 낭비하고 정보량을 줄인다. 컷믹스는 그 영역을 다른 이미지의 내용으로 바꾸므로 모든 화소가 정보를 지닌다. 또한 컷믹스는 각 이미지에서 보이는 넓이에 비례하는 부드러운 레이블을 제공한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 컷믹스가 분류 신경망의 위치 파악 능력을 높이는 방식을 설명하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     일부가 다른 클래스로 바뀐 이미지를 분류하게 함으로써 컷믹스는 신경망이 (가장 변별적인 부위만이 아니라) 물체의 모든 부위에 주의를 기울이도록 학습시킨다. 이는 물체의 위치 파악을 개선하고 가림에 대한 견고성을 높인다.

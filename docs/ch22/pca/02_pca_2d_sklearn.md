@@ -69,8 +69,12 @@ sklearn의 핵심 설계 고름 하나는 `pca.components_`이 주방향을 세�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 같은 자료 묶음에 `PCA(n_components=0.95)`을 써라. sklearn은 성분을 몇 개 고르며 저마다 설명하는 흩어짐 비는 얼마인가?
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -83,8 +87,12 @@ sklearn의 핵심 설계 고름 하나는 `pca.components_`이 주방향을 세�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 sklearn 주성분 분석의 다시 세우기 평균 제곱 어긋남을 이론 하한(주성분2 방향의 흩어짐)과 견주어라. 둘은 같은가? 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -97,8 +105,12 @@ sklearn 주성분 분석의 다시 세우기 평균 제곱 어긋남을 이론 �
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `PCA(whiten=True)`을 써서 바꾼 점수의 공분산 행렬을 살펴라. 그것이 항등 행렬임을 확인하고 하얗게 하기가 언제 이로운지 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

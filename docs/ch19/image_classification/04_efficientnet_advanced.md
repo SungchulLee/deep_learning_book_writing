@@ -155,8 +155,12 @@ EfficientNet은 원칙 있는 잣수 맞추기가 임시변통 꾸밈보다 정�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$, $\phi = 2$인 복합 스케일링 규칙이 주어졌을 때 EfficientNet-B2 꼴 모델의 깊이 곱값, 너비 곱값, 들임 해상도 곱값을 셈하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
 
@@ -168,8 +172,12 @@ $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$, $\phi = 2$인 복합 스케일�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 들임 채널 128개, 날임 채널 128개, $3 \times 3$ 커널인 켜에서 깊이별 분리 합성곱과 여느 합성곱의 매개변수 줄임을 견주어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
 
@@ -181,8 +189,12 @@ $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$, $\phi = 2$인 복합 스케일�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 알맞은 너비 곱셈수와 깊이 곱셈수를 정해 EfficientNet-B3부터 B7까지 만드는 함수를 짜고, 변종마다 매개변수 개수를 찍어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

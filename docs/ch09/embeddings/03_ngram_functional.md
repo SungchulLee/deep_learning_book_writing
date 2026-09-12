@@ -73,8 +73,12 @@ PyTorch의 모듈 API와 함수형 API는 같은 것의 두 얼굴이다. `nn.Cr
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 부류 가중치가 $w = [1.0, 2.0, 0.5]$일 때 `nn.CrossEntropyLoss(weight=w)(logits, targets)`과 `F.cross_entropy(logits, targets, weight=w)`이 같은 결과를 내놓는지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -93,8 +97,12 @@ PyTorch의 모듈 API와 함수형 API는 같은 것의 두 얼굴이다. `nn.Cr
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 언제나 (함수형 API가 아니라) 모듈 API를 써야 하는 PyTorch 연산 세 가지를 열거하고 그 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
 
@@ -106,8 +114,12 @@ PyTorch의 모듈 API와 함수형 API는 같은 것의 두 얼굴이다. `nn.Cr
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 (도우미 함수 `ngr.train` 없이) `F.cross_entropy`을 바로 쓰는 학습 반복문을 작성하라. 기울기 0으로 만들기, 순전파, 손실 계산, 역전파, 최적화기 걸음을 빠짐없이 넣어라. 10세대마다 손실을 출력하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

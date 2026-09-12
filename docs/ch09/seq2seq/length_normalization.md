@@ -363,24 +363,36 @@ def analyze_length_effects(
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 길이 정규화가 없는 빔 탐색이 짧은 순차열 쪽으로 치우치는 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     로그 확률이 음수이므로 긴 순차열일수록 음수 항이 더 많이 쌓인다. $\log P(y_1, \ldots, y_T) = \sum_t \log P(y_t|y_{<t})$이다. 짧은 순차열은 음수 항이 적어 점수가 (덜 음수여서) 높다. 이 치우침 때문에 모델이 EOS 토큰을 일찍 내는 쪽을 좋아하게 된다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 길이로 정규화한 점수 함수 $\frac{1}{T^\alpha}\sum_t \log P(y_t)$을 유도하고 $\alpha$의 구실을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $T^\alpha$으로 나누면 토큰당 점수에 순차열의 길이만큼 벌점이 매겨진다. $\alpha = 0$이면 정규화가 없어 짧은 쪽으로 치우친다. $\alpha = 1$이면 토큰당 평균이 되어 길고 장황한 순차열이 유리할 수 있다. $\alpha \in [0.6, 0.8]$이 짧은 것과 긴 것의 균형을 잡는 흔한 값이다(Wu 등, 2016).
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 빔 탐색 복호기에 길이 정규화를 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -391,8 +403,12 @@ def analyze_length_effects(
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 여러 길이 정규화 전략을 견주어라. $T$으로 나누기, $T^\alpha$으로 나누기, 구글의 식.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     $T$으로 나누는 것은 짧은 순차열에 너무 가혹하다. $\alpha < 1$인 $T^\alpha$은 유연하고 표준적인 선택이다. 구글의 식 $\frac{(5+T)^\alpha}{6^\alpha}$은 짧은 순차열에 벌점이 과하지 않도록 5를 더하며 실험적으로 잘 통한다. 모두 짧은 출력 쪽으로의 체계적인 치우침을 없앤다는 같은 목표를 이룬다.

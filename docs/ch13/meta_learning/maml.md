@@ -762,24 +762,36 @@ def inner_loop_checkpointed(self, support_x, support_y, params):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 MAML 갱신 규칙을 끌어내고 안쪽 되돌이와 바깥 되돌이의 몫을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     안쪽 되돌이: 과제 $i$에 맞춘다. 곧 $\theta'_i = \theta - \alpha \nabla_\theta L_i^{\text{support}}(\theta)$이다. 바깥 되돌이: 초기화를 최적화한다. 곧 $\theta \leftarrow \theta - \beta \nabla_\theta \sum_i L_i^{\text{query}}(\theta'_i)$이다. 바깥 기울기는 안쪽 기울기 걸음을 꿰뚫어 미분해야 하므로 이차 도함수가 필요하다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 MAML은 왜 이차 기울기가 필요한가? 일차 MAML(FOMAML)은 언제 좋은 어림이 되는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     바깥 기울기 $\nabla_\theta L(\theta'_i)$은 헤세-벡터 곱인 $\frac{\partial \theta'_i}{\partial \theta} = I - \alpha \nabla^2 L$을 쓴다. FOMAML은 이 항을 버리고 $\nabla_{\theta'} L$을 그대로 쓴다. 안쪽 학습률이 작아 $\theta' \approx \theta$일 때 FOMAML이 잘 굴러가며 셈은 훨씬 싸다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `torch.autograd.grad`를 써서 파이토치로 MAML 안쪽 되돌이를 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -794,8 +806,12 @@ MAML은 왜 이차 기울기가 필요한가? 일차 MAML(FOMAML)은 언제 좋�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 MAML의 한계는 무엇인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     한계: (1) 값비싸다. 이차 기울기와 안쪽 되돌이 걸음이 여럿 필요하다. (2) 기억을 많이 쓴다. 과제마다 계산 그래프를 담아 두어야 한다. (3) 안쪽 학습률과 걸음 수에 민감하다. (4) 모든 과제가 같은 구조를 나누어 쓴다고 놓는다. (5) 깊은 망에서는 흔들릴 수 있다. Reptile이나 ProtoNet 같은 대안이 이 가운데 일부를 다룬다.

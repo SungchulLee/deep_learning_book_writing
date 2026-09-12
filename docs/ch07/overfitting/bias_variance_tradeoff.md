@@ -318,8 +318,12 @@ Max Depth    Bias²           Variance        Total Error
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 코드를 따라가며 쓰인 주요 자료 구조를 찾아라. 각각에 대해 자료형, (해당한다면) 모양, 파이프라인에서의 구실을 적어라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     코드를 꼼꼼히 읽으며 변수 대입마다 살펴본다. 텐서는 `.shape`과 `.dtype`을 확인하고, 클래스는 `__init__`의 매개변수와 `forward`/`__call__`의 서명을 확인한다. 이름, 자료형, 모양, 구실을 열로 하는 표에 정리한다.
@@ -327,8 +331,12 @@ Max Depth    Bias²           Variance        Total Error
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 오류 처리와 입력 검증을 넣도록 코드를 고쳐라. 이 코드를 실전에 쓸 수 있게 하려면 어떤 검사를 더하겠는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     입력에 자료형 검사(`isinstance`), 모양 검증(`assert tensor.dim() == expected`), 값 범위 검사(예: 확률이 [0,1] 안인지)를 넣고, 입출력 연산은 try-except로 감싼다. 빈 배치나 NaN 같은 경계 상황에는 경고를 남긴다. 매개변수와 반환값의 자료형을 적은 독스트링을 붙인다.
@@ -336,8 +344,12 @@ Max Depth    Bias²           Variance        Total Error
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 직접 고른 새로운 쓰임새를 지원하도록 코드를 확장하라. 무엇을 왜 바꿀지 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     알맞은 확장을 하나 고른다(예: 다른 데이터셋, 지표 추가, 새 모델 변형). 필요한 변경을 설명한다. 새 임포트, 클래스 정의 수정, 초매개변수 갱신, 새로운 시각화나 기록 등이다. 핵심 변경을 구현하고 간단한 시험으로 올바름을 확인한다.

@@ -141,24 +141,36 @@ $$\text{Cost} = HW \times HW \times \frac{C}{r} \ll HW \times HW \times C$$
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 비국소 연산의 식 $y_i = \frac{1}{C(x)}\sum_j f(x_i, x_j)g(x_j)$을 유도하고 각 부분을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     $f(x_i, x_j)$은 쌍의 유사도(내적, 가우스 등)를 잰다. $g(x_j)$은 입력을 변환한다. $C(x)$은 정규화한다. 출력 $y_i$은 모든 위치의 가중합이며 가중치는 쌍의 유사도에 달려 있다. $f$이 배율 조정 내적일 때 이는 자기 어텐션과 같다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 공간 차원이 $H \times W$일 때 비국소 블록과 표준 합성곱의 계산 비용을 견주어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     비국소는 $O((HW)^2 \cdot C)$으로 공간 크기에 대해 이차이다. 표준 합성곱($k \times k$)은 $O(HW \cdot k^2 \cdot C^2)$으로 공간 크기에 대해 선형이다. 특징 맵이 크면 비국소가 훨씬 비싸므로 대체로 해상도가 낮은 곳에만 넣는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 비국소 블록을 PyTorch로 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -181,8 +193,12 @@ $$\text{Cost} = HW \times HW \times \frac{C}{r} \ll HW \times HW \times C$$
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 비국소 블록을 신경망의 맨 앞이 아니라 합성곱 층 여러 개 뒤에 두는 까닭은 무엇인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     앞쪽 층은 공간 차원이 커서($224 \times 224$) $O(N^2)$의 비용을 감당할 수 없다. $14 \times 14$ 이하로 하향 표본화한 뒤라야 비용을 감당할 만하다. 게다가 앞쪽 특징은 모서리 같은 저수준이라 지역 합성곱이 더 알맞고, 전역 맥락은 고수준 특징에 더 쓸모가 있다.

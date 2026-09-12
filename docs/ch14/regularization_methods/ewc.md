@@ -722,24 +722,36 @@ EWC는 배우는 힘을 잘 지키면서 잊음을 크게 줄인다.
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 베이즈의 눈으로 EWC 손실 함수를 끌어내라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     과제 A 뒤의 뒤확률은 $p(\theta|D_A) \propto p(D_A|\theta)p(\theta)$이다. 과제 B에서는 $p(\theta|D_A, D_B) \propto p(D_B|\theta)p(\theta|D_A)$을 바란다. $\theta_A^*$ 언저리에서 라플라스 어림으로 $\log p(\theta|D_A)$을 어림하면 $\log p(\theta|D_A) \approx \text{const} - \frac{1}{2}(\theta - \theta_A^*)^\top F (\theta - \theta_A^*)$이며 $F$은 피셔 정보 행렬이다. 여기서 EWC 벌 $\frac{\lambda}{2}\sum_i F_i(\theta_i - \theta_{A,i}^*)^2$이 나온다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 피셔 정보 행렬이 중요한 가중치를 어떻게 짚어내는지 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     피셔 행렬의 대각 성분 $F_i = \mathbb{E}[(\frac{\partial \log p(y|x,\theta)}{\partial \theta_i})^2]$은 가중치 $\theta_i$이 바뀔 때 로그 가능도가 얼마나 달라지는지를 잰다. $F_i$이 크면 그 가중치가 지금 과제의 예측에 중요하다는 뜻이다. EWC는 $F_i$이 큰 가중치가 바뀌면 더 세게 벌을 주어 중요한 앎을 지킨다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 파이토치로 EWC를 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -765,8 +777,12 @@ EWC는 배우는 힘을 잘 지키면서 잊음을 크게 줄인다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 EWC의 한계는 무엇인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
 

@@ -303,32 +303,48 @@ Value: -0.6127
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 기본 첫 값으로 만든 `DrawdownConfig`에서 배우는 매개변수의 온 개수를 셈하여라. 무게와 치우침을 모두 넣어 켜마다 나누어 적어라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     `nn.Linear(in_features, out_features)`마다 무게 매개변수가 `in_features * out_features`개, 치우침 매개변수가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 무게가 `in_c * out_c * k * k`개, 치우침이 `out_c`개다. `nn.Embedding(num, dim)`은 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 으뜸 함수나 갈래에 들임이 바라는 꼴과 자료형인지 살피는 검사를 더하라. 옳지 않은 들임에는 알기 쉬운 잘못 알림을 내어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `forward` 방법(또는 걸맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살피기를 더한다. 꼴을 살필 때에는 종요로운 차원을 짚는다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알기 쉬운 잘못 알림은 벌레잡기를 크게 빠르게 하고 코드를 되쓰기 좋게 만든다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 이 짜기가 어그러질 수 있는 결 둘을 밝히고, 저마다 어떻게 짚어 내고 고칠지 풀어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     흔한 어그러짐은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 노름을 지켜보아(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기) 짚어 낸다. 기울기 자르기, 더 나은 첫 값 매기기(자비에/카이밍), 얼개 바꾸기(남는 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 손실은 줄어드는데 살피기 손실이 늘면 짚어 낸다. 정칙화(드롭아웃, 무게 삭임, 자료 늘리기)나 모형 그릇 줄이기로 고친다. 익힘 재기와 살피기 재기를 늘 함께 지켜보아 이런 걸림돌을 일찍 잡아야 한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 `DrawdownConfig`을 켜나 덩이의 개수를 마음대로 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 들쭉날쭉한 얼개를 만들어라. 켜 2, 4, 8개로 시험해 보라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     못 박은 켜를 다음으로 갈음한다.

@@ -33,8 +33,12 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `input_dim=64`, `hidden_dim=256`, `num_layers=2`인 이 `RNNBaseline`의 매개변수 수를 비슷한 차원의 트랜스포머 인코더와 견주어라. 어느 쪽이 매개변수가 더 많고 그 까닭은 무엇인가?
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -46,8 +50,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 양방향 LSTM을 쓰고 앞뒤 방향의 숨은 상태를 이어 붙이도록 모형을 고쳐라. 이 바꿈이 분류기의 입력 차원과 맥락을 잡아내는 능력에 어떤 영향을 주는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -72,8 +80,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 마지막 숨은 상태를 쓰는 방식을 LSTM의 모든 출력에 대한 주의 기반 풀링으로 바꾸어라. 어느 시간 단계가 분류에 가장 중요한지 배우는 간단한 주의 얼개를 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

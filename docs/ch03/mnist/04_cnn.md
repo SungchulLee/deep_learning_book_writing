@@ -155,8 +155,12 @@ Final Test Accuracy: 99.22%
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 모양이 $(1, 28, 28)$인 입력에서 시작하여 Conv2d(kernel=3, padding=1)과 MaxPool2d(2) 블록 두 개를 지나는 CNN 구조에서, 층마다 특징 맵의 공간 차원을 계산하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     입력 모양 $(1, 28, 28)$에서 시작하면 다음과 같다.
@@ -171,8 +175,12 @@ Final Test Accuracy: 99.22%
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 분류 과제에서 평균 제곱 오차(MSE)보다 `CrossEntropyLoss`을 즐겨 쓰는 까닭을 설명하라. 모델의 예측이 크게 틀렸을 때의 기울기 거동을 살펴보라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `CrossEntropyLoss`은 `LogSoftmax`과 음의 로그 가능도를 합친 것이다. 모델이 옳은 부류에 아주 낮은 확률을 매기면 손실 $-\log(p)$이 매우 커지고 기울기도 강해, 잘못을 바로잡는 강력한 학습 신호를 준다. 반면 분류에 MSE를 쓰면 옳은 부류에 대해 $(1 - p)^2$을 계산하는데, 예측이 아무리 틀려도 기울기의 최댓값이 2이다.
@@ -181,8 +189,12 @@ Final Test Accuracy: 99.22%
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 관성을 쓰는 SGD 대신 Adam 최적화기를 쓰도록 학습 스크립트를 고쳐라. 같은 세대 수만큼 돌리고 마지막 시험 정확도를 견주어라. Adam과 관성 SGD의 핵심 차이를 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     최적화기 줄을 다음으로 바꾼다.

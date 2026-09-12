@@ -899,8 +899,12 @@ def diagnose_lstm(model, dataloader, device):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 LSTM의 식을 적고 각 문의 구실을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     망각 문: $f_t = \sigma(W_f[h_{t-1}, x_t] + b_f)$ — 세포 상태에서 무엇을 버릴지.
@@ -912,16 +916,24 @@ LSTM의 식을 적고 각 문의 구실을 설명하라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 세포 상태 $c_t$이 기울기 소실을 덜어 주는 '컨베이어 벨트' 노릇을 하는 방식을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     세포 상태 갱신 $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$은 (잔차 연결처럼) 덧셈이다. 기울기는 $\frac{\partial c_T}{\partial c_t} = \prod_{k=t+1}^T f_k$으로 흐른다. 망각 문이 1에 가까우면 기울기가 그대로 지나가므로 시각 수백 개에 걸쳐 배울 수 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 입력 차원이 300이고 숨은 차원이 512인 LSTM의 매개변수 수를 계산하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     LSTM에는 문이 넷이고 저마다 입력용과 숨은 상태용 가중치 행렬이 있다.
@@ -929,8 +941,12 @@ LSTM의 식을 적고 각 문의 구실을 설명하라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 망각 문의 편향을 0이 아니라 1로 초기화하는 일이 잦은 까닭은 무엇인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     편향이 0이면 망각 문이 $\sigma(0) = 0.5$이어서 세포 상태가 걸음마다 절반으로 준다. 편향을 1로 두면 $\sigma(1) \approx 0.73$이 되어 대체로 '기억하는' 상태에서 출발한다. 그러면 LSTM이 무엇을 잊어야 할지 배우기도 전에 중요한 정보를 잊는 일을 막는다(Jozefowicz 등, 2015).

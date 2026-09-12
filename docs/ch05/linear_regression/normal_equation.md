@@ -176,8 +176,12 @@ Saved: normal_equation.png
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `np.linalg.solve` 대신 `np.linalg.inv`로 정규 방정식을 구현하고 결과가 일치하는지 확인하라. 그다음 서로 강하게 상관된 특징을 가진 데이터셋을 만들어 두 방식의 수치적 안정성을 비교하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -200,8 +204,12 @@ Saved: normal_equation.png
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 경사를 0으로 두고 $\theta$에 대해 풀어 MSE 손실로부터 정규 방정식을 유도하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     MSE 손실은 $L(\theta) = \frac{1}{n}\|y - X\theta\|^2 = \frac{1}{n}(y - X\theta)^T(y - X\theta)$이다.
@@ -220,8 +228,12 @@ Saved: normal_equation.png
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 $n = 1000$이고 $p \in \{10, 100, 500\}$인 데이터셋에 대해 정규 방정식과 경사 하강법(500 에폭)의 실제 소요 시간을 비교하라. 특징 차원이 얼마부터 경사 하강법이 더 빨라지는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

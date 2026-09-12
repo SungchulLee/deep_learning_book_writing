@@ -510,8 +510,12 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 날씨 망의 CPT을 써서 $P(\text{Cloudy}=1 | \text{WetGrass}=1)$을 손으로 셈하여라. 낱낱 세기의 모든 걸음을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     $P(C=1|W=1) = P(C=1,W=1)/P(W=1)$이 필요하다.
@@ -537,8 +541,12 @@ $P(C=1|W=1) = 0.3726/0.5451 \approx 0.6836$
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 증거의 확률이 낮을 때 물리치기 표집이 왜 실전에서 못 쓰게 되는지 설명하여라. $P(\text{evidence})$으로 나타낸 받아들임 비율은 얼마인가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     물리치기 표집에서는 앞확률 분포에서 온전한 표본을 만들고 증거와 맞을 때만 남긴다. 무작위 표본이 증거와 맞을 확률은 꼭 $P(\text{evidence})$이다. 그러므로 다음과 같다:
@@ -553,8 +561,12 @@ $P(\text{evidence}) = 0.001$(드문 증거)이면 받아들인 표본 하나를 
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 날씨 망에 대해 가능도 무게 주기를 구현하고, 물음 $P(\text{Rain}|\text{WetGrass}=1)$에서 물리치기 표집과 효율을 견주어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

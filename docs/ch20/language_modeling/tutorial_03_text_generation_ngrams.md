@@ -151,8 +151,12 @@ Temp 1.5: the cat sat on the cat and the cat sat on the cat sat on the log
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 낱말 $\{A, B, C, D\}$에 대한 분포 $P = \{0.5, 0.3, 0.1, 0.1\}$이 주어졌을 때 $T = 0.5$과 $T = 2.0$의 온도로 고친 분포를 셈하여라. 합이 1이 되는지 따져 보아라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     For $T = 0.5$: $P'(w) \propto P(w)^{1/0.5} = P(w)^2$
@@ -169,8 +173,12 @@ Temp 1.5: the cat sat on the cat and the cat sat on the cat sat on the log
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 확률 분포가 아주 뾰족할 때와 아주 평평할 때, 붙박이 $k$을 쓰는 상위 k 표집이 왜 탈이 날 수 있는지 밝혀라. 알갱이(상위 p) 표집은 이 한계를 어떻게 다루는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     붙박이 $k$을 쓸 때, 분포가 아주 뾰족하면(보기로 한 낱말의 확률이 0.95) $k = 50$개를 넣는 것은 뽑힐 수도 있는 확률 낮고 상관없는 후보를 잔뜩 더해 좋음을 떨어뜨린다. 거꾸로 분포가 평평하면(여러 낱말의 확률이 비슷하면) $k = 5$은 그럴듯한 후보를 빼 버려 여러 갈래임을 줄인다.
@@ -179,8 +187,12 @@ Temp 1.5: the cat sat on the cat and the cat sat on the cat sat on the log
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 걸음마다 `beam_width`개의 가설을 지니고 점수가 가장 높은 온전한 차례를 돌려주는 `generate_beam_search` 메서드를 `TextGeneratorBigram` 클래스에 짜라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

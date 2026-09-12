@@ -458,32 +458,48 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 맡긴 첫자리 잡기로 만든 `ReweighingMitigation`에서 배울 수 있는 매개변수의 온 수를 셈하여라. 짐과 치우침을 아울러 켜마다 나누어 세어라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     `nn.Linear(in_features, out_features)`마다 짐 매개변수가 `in_features * out_features`개, 치우침 매개변수가 `out_features`개다(`bias=False`이 아니라면). `nn.Conv2d(in_c, out_c, k)`마다 짐 매개변수가 `in_c * out_c * k * k`개, 치우침 매개변수가 `out_c`개다. `nn.Embedding(num, dim)`이면 매개변수가 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 가장 좋게 하는 개를 Adam(`torch.optim.Adam`에 `lr=0.001`)으로 갈음하고 본디 것과 익힘이 모여 가는 결을 견주어라. 둘의 잃음 곡선을 한 그림에 그려라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     가장 좋게 하는 개를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 갈음한다. Adam은 매개변수마다 맞춰 가는 배움 빠르기와 밀림 어림을 지니므로 앞선 시대에 흔히 더 빨리 모인다. Adam의 잃음 곡선은 첫 몇 시대에 더 가파르게 떨어지지만 가장 좋은 자리 언저리에서 밀림을 곁들인 SGD보다 조금 더 흔들릴 수 있다. 고르게 견주려면 아무렇게나 하는 씨앗과 시대 수를 같게 하고 둘 다 돌려라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 이 짜보기가 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 얼개 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 살핌 잃음이 오르면 짚어낸다. 정칙화(드롭아웃, 짐 줄이기, 자료 늘리기)나 모형 크기 줄이기로 고친다. 익힘과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 `ReweighingMitigation`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     못 박아 둔 켜를 이렇게 갈음한다.

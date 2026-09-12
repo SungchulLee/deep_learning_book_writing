@@ -51,8 +51,12 @@ Module complete - see 04_restricted_boltzmann_machines.py for RBM+CD
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 드러난 단위 2개와 숨은 단위 1개를 가진 단순한 제한 볼츠만 기계에서 처음 드러난 상태 $v_0 = (1, 0)$, 무게 $W = (0.5, -0.3)$, 드러난 치우침 $a = (0, 0)$, 숨은 치우침 $b = 0$이 주어질 때 CD-1 한 걸음을 손으로 좇아라. 양의 국면과 음의 국면 통계를 셈하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     **양의 국면:** $P(h=1|v_0) = \sigma(Wv_0 + b) = \sigma(0.5 \cdot 1 + (-0.3) \cdot 0 + 0) = \sigma(0.5) \approx 0.622$을 셈한다.
@@ -73,8 +77,12 @@ Module complete - see 04_restricted_boltzmann_machines.py for RBM+CD
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 CD-k과 이어지는 맞댐 벌어짐(PCD)의 차이를 밝혀라. 어떤 상황에서 PCD이 CD-1보다 크게 나은가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     CD-k에서는 매개변수를 고칠 때마다 깁스 사슬을 익힘 보기에서 첫자리매김하고 $k$걸음 돌린다. PCD에서는 사슬을 다시 첫자리매김하지 않고 앞 고침이 끝난 자리에서 이어 간다. 곧 PCD은 모델과 함께 바뀌는 "환상 알갱이"를 지닌다.
@@ -89,8 +97,12 @@ CD-k과 이어지는 맞댐 벌어짐(PCD)의 차이를 밝혀라. 어떤 상황
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 식힘 중요도 뽑기(AIS)나 더 간단한 대리 값을 써서 맞댐 벌어짐 익히기 동안 로그 가능도 어림을 좇는 살핌 함수를 짜라. 되짓기 어긋남만으로는 제한 볼츠만 기계 익히기 품질을 재는 잣대로 믿을 수 없는 까닭을 적어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     살피기에 쓸 간단한 대리 값은 익힘 자료와 아무 표본 사이의 자유 에너지 틈이다:

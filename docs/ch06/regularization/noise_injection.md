@@ -532,24 +532,36 @@ def train_with_noise_injection(
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 잡음 주입의 세 가지 종류인 입력 잡음, 가중치 잡음, 기울기 잡음을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     입력 잡음은 입력에 $\epsilon \sim \mathcal{N}(0, \sigma^2)$을 더해 손실 곡면을 매끄럽게 한다. 가중치 잡음은 순전파마다 매개변수에 잡음을 더해 L2 정칙화처럼 작동한다. 기울기 잡음은 기울기에 잡음을 더해 뾰족한 극소점을 벗어나게 돕고 일반화를 개선한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 가중치에 정규 잡음을 더하는 것이 L2 정칙화와 근사적으로 동등함을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 잡음 섞인 가중치 $\tilde{w} = w + \epsilon$에 대해 테일러 전개로 $\mathbb{E}[L(\tilde{w})] \approx L(w) + \frac{\sigma^2}{2}\text{tr}(H)$을 얻는다. 헤세 행렬의 대각합은 곡률이 큰 방향에 벌점을 주며, 이는 선형화한 모델에서의 L2 정칙화와 비슷하다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 Neelakantan 등(2015)의 일정 $\sigma_t^2 = \eta/(1+t)^\gamma$을 쓰는 기울기 잡음 주입을 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -564,8 +576,12 @@ Neelakantan 등(2015)의 일정 $\sigma_t^2 = \eta/(1+t)^\gamma$을 쓰는 기�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 드롭아웃이나 가중치 감쇠에 견주어 잡음 주입이 가장 이로운 때는 언제인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     손실 지형에 뾰족한 국소 극소점이 많을 때(잡음이 그것을 벗어나도록 돕는다), 학습 데이터에 레이블 잡음이 있을 때(입력 잡음이 그 영향을 누그러뜨린다), 그리고 지속 학습에서(기울기 잡음이 탐색을 유지하여 파국적 망각을 막는다) 잡음 주입이 특히 뛰어나다.

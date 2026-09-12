@@ -550,8 +550,12 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 날씨 망에서 물음 $P(\text{Rain} | \text{WetGrass}=1)$에 대해 변수 없애기 알고리즘을 걸음마다 따라가라. 걸음마다 중간 인자를 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     1. CPT에서 나온 첫 인자: $f_1(C)$, $f_2(C,S)$, $f_3(C,R)$, $f_4(S,R,W)$
@@ -565,8 +569,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 없애는 차례가 효율에 왜 중요한지 설명하여라. 한 차례가 다른 차례보다 지수만큼 나쁜 보기를 들어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     없애는 차례가 중간 인자의 최대 크기를 정한다. $P(E)$을 구하려는 사슬 $A \to B \to C \to D \to E$을 생각해 보자.
@@ -580,8 +588,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 이진 변수를 갖는 사슬 망 $A \to B \to C \to D$에 대해 간추린 변수 없애기를 구현하고 $P(D | A = 1)$을 셈하여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

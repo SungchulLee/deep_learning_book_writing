@@ -367,7 +367,11 @@ $$
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.** <span class="diff easy" title="쉬움"></span> 베타-이항 모형에서 고른 앞확률($\text{Beta}(1,1)$)일 때 최대 뒤확률이 최대 가능도와 같음을 해석적으로 보이시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -379,7 +383,11 @@ $$
 
     이다. 정리 1의 (1)을 닫힌 꼴로 확인한 것이다. 다만 뒤확률의 평균은 $(1+k)/(2+n)$ 으로 여전히 다르며, 이는 고른 앞확률조차 관측 두 번의 몫을 한다는 뜻이다.
 
+<div class="drillbox" markdown>
+
 **연습문제 2.** <span class="diff med" title="중간"></span> 앞확률의 세기를 대칭으로 키울 때($\alpha = \beta = c$) 최대 뒤확률 어림값이 어디로 가는지 밝히시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -391,7 +399,11 @@ $$
 
     이다. 앞확률이 셀수록 데이터를 눌러 이기고 어림값이 앞확률의 최빈값으로 끌려간다. $c = 1$ 에서는 최대 가능도 $k/n$ 과 같고, $c$ 가 커질수록 그 사이를 매끄럽게 지나간다.
 
+<div class="drillbox" markdown>
+
 **연습문제 3.** <span class="diff med" title="중간"></span> 계수에 가우스 앞확률을 둔 로지스틱 회귀의 최대 뒤확률 어림을 구현하고, 벌주기 없는 최대 가능도와 견주시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -403,7 +415,11 @@ $$
 
     를 가장 작게 한다. 기울기는 $X^\top(\sigma(X\beta) - y) + \lambda\beta$ 이다. 데이터가 선형으로 갈리는 경우 최대 가능도는 계수가 무한대로 뻗지만, 가우스 앞확률을 두면 유한한 해가 남는다. 이것이 정리 4가 말하는 능선 벌주기의 효과다.
 
+<div class="drillbox" markdown>
+
 **연습문제 4.** <span class="diff hard" title="어려움"></span> 능선 회귀가 계수마다 서로 독립인 가우스 앞확률을 둔 최대 뒤확률 어림과 같음을 증명하고, $\lambda$ 와 앞확률의 흩어짐 사이의 관계를 적으시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -415,7 +431,11 @@ $$
 
     이다. 곧 잡음이 클수록, 그리고 앞확률이 좁을수록 벌이 세진다. $\sigma_\beta \to \infty$ 이면 $\lambda \to 0$ 이 되어 최대 가능도로 돌아간다.
 
+<div class="drillbox" markdown>
+
 **연습문제 5.** <span class="diff med" title="중간"></span> 최대 뒤확률은 뒤확률 전체에 견주어 어떤 정보를 잃는가? 그럼에도 최대 뒤확률이 나을 때는 언제인지 밝히시오.
+
+</div>
 
 ??? success "풀이"
 

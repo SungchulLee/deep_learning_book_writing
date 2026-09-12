@@ -507,32 +507,48 @@ print_gradient_report(stats)
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 ReLU가 시그모이드에 견주어 경사 소실 문제를 어떻게 누그러뜨리는지 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     시그모이드는 $\sigma'(z) \leq 1/4$이므로 경사가 층마다 최소 $4\times$ 줄어든다. $L$개 층을 지나면 $\leq (1/4)^L$이다. ReLU는 $z > 0$에서 $\text{ReLU}'(z) = 1$이므로 경사가 그대로 지나간다. 다만 ReLU에는 $z < 0$인 뉴런의 경사가 늘 0인 "죽어 가는 ReLU" 문제가 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 잔차 연결 $y = x + F(x)$을 지나는 경사의 흐름을 유도하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\frac{\partial y}{\partial x} = I + \frac{\partial F}{\partial x}$이다. $\frac{\partial F}{\partial x}$이 작더라도 항등 항 $I$이 경사의 크기를 $\geq 1$으로 보장한다. ResNet이 경사 소실 없이 수백 층을 학습할 수 있는 이유가 여기 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 경사 폭발 문제란 무엇이며 경사 자르기가 이를 어떻게 다루는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     (RNN 등에서) 경사의 크기가 층을 지나며 지수적으로 커지면 갱신이 너무 커져 학습이 발산한다. 경사 자르기는 경사의 노름을 제한한다. $g \leftarrow g \cdot \min(1, \text{max\_norm}/\|g\|)$이다. 이는 방향을 보존하면서 크기만 묶어 둔다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 학습 중에 경사의 노름을 감시하도록 구현하고 에폭에 걸쳐 그려라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

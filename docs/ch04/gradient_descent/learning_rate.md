@@ -457,8 +457,12 @@ def diagnose_lr(train_losses, val_losses):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 $L(w) = (w-5)^2$에 대해 $w_0 = 0$에서 시작하여 $\eta = 0.1$일 때와 $\eta = 1.0$일 때 처음 5회 반복을 계산하라. 어느 쪽이 수렴하는가?
+
+</div>
 
 ??? success "연습문제 1 풀이"
     경사는 $\nabla L = 2(w - 5)$이므로 갱신 규칙은 $w_{t+1} = w_t - 2\eta(w_t - 5)$이다.
@@ -469,8 +473,12 @@ $L(w) = (w-5)^2$에 대해 $w_0 = 0$에서 시작하여 $\eta = 0.1$일 때와 $
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 이차 함수 $f(x) = \frac{1}{2}x^\top A x - b^\top x$에 대한 경사 하강법이 수렴할 필요충분조건이 $\eta < \frac{2}{\lambda_{\max}(A)}$임을 증명하라. 여기서 $\lambda_{\max}$는 가장 큰 고윳값이다.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     경사는 $\nabla f = Ax - b$이다. 갱신은 $x_{t+1} = x_t - \eta(Ax_t - b) = (I - \eta A)x_t + \eta b$가 된다. $x^* = A^{-1}b$일 때 $e_t = x_t - x^*$라 두면 $e_{t+1} = (I - \eta A)e_t$이다.
@@ -479,8 +487,12 @@ $L(w) = (w-5)^2$에 대해 $w_0 = 0$에서 시작하여 $\eta = 0.1$일 때와 $
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 PyTorch로 코사인 어닐링 스케줄을 구현하고 100 에폭 동안의 학습률을 그려라. 2층 MLP로 MNIST를 학습하며 상수 학습률과 손실 곡선을 비교하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -503,8 +515,12 @@ PyTorch로 코사인 어닐링 스케줄을 구현하고 100 에폭 동안의 �
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 (학습률을 배치 크기에 비례하여 조정하는) 선형 비례 규칙이 미니배치 간 경사가 비슷할 때 성립하는 근사임을 보여라. 이 근사는 언제 무너지는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     학습률 $\eta$, 배치 크기 $B$로 미니배치 단계를 $k$번 밟는다고 하자. 전체 매개변수 변화는 $\Delta \theta = -\eta \sum_{i=1}^{k} g_i$이며 $g_i$는 각 미니배치의 경사이다. 배치 크기 $kB$, 학습률 $k\eta$로 한 단계를 밟으면 $\bar{g} = \frac{1}{k}\sum g_i$일 때 $\Delta \theta' = -k\eta \bar{g}$이다.

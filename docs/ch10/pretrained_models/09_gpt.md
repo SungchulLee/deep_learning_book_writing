@@ -81,8 +81,12 @@ GPT 블록마다 위 삼각 가림으로 인과 주의를 지켜, 토큰이 앞�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 기본 매개변수로 GPT 모형을 만들고 무작위 토큰 번호의 배치를 넣어 보아라. 출력의 꼴이 `(batch_size, sequence_length, vocab_size)`인지, 그리고 인과 가림이 앞으로의 토큰에서 정보가 새는 것을 막는지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -95,16 +99,24 @@ GPT 블록마다 위 삼각 가림으로 인과 주의를 지켜, 토큰이 앞�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `d_model=768`, `n_layers=12`로 같게 두고 GPT와 BERT의 매개변수 수를 견주어라. 차이가 어디서 오는지 짚고 어떤 구조 선택 때문인지 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     BERT는 어휘가 토큰 3만 개인데 GPT는 5만 257개이므로 GPT에서 토큰 임베딩의 매개변수가 훨씬 많다. BERT에는 구간 임베딩(3종류)과 다음 문장 맞히기 머리도 있는데 GPT에는 없다. GPT의 언어 모형 머리는 `(768, 50257)`짜리 큰 선형 층이다. 이런 차이에도 트랜스포머 블록 자체는 둘 다 $4 \times d_{\text{model}}$으로 넓히는 같은 주의·순전파 짜임을 쓰므로 매개변수 수가 비슷하다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 프롬프트 텐서를 받아 탐욕 디코딩(단계마다 argmax)으로 토큰 `max_new_tokens`개를 자기 회귀로 더 만들어 내는 간단한 `generate` 메서드를 `GPT` 클래스에 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

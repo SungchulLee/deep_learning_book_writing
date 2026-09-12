@@ -223,8 +223,12 @@ n-그램 모델의 근본 맞바꿈은 나타내는 힘과 자료의 성김 사�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 뭉치 `["the cat sat", "the dog sat", "a cat ran"]`이 주어졌을 때 두낱말 확률 $P(\text{sat} \mid \text{cat})$과, 두낱말 모델에서 월 "the cat sat"의 로그 확률(밑 2)을 손으로 셈하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     먼저 경계 토막을 더한 뒤 바이그램을 센다:
@@ -241,8 +245,12 @@ n-그램 모델의 근본 맞바꿈은 나타내는 힘과 자료의 성김 사�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 낱말이 저마다 낱말 곳간에 있을 수 있는데도 트라이그램 모델이 "the elephant danced"에 확률 0을 주는 까닭을 밝혀라. 자료의 성김 문제는 $n$에 따라 어떻게 커지는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     세낱말 모델은 $P(w_i \mid w_{i-2}, w_{i-1})$을 셈한다. "elephant"과 "danced"이 낱말 사전에 따로 있더라도 (`<s>`, `<s>`, the), (the, elephant, ...) 같은 그 세낱말은 한 번도 안 나왔을 수 있다. 최대가능도 어림은 세는 수에 바탕을 두므로 나오지 않은 세낱말은 확률이 0이 된다.
@@ -251,8 +259,12 @@ n-그램 모델의 근본 맞바꿈은 나타내는 힘과 자료의 성김 사�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 맥락 낱말이 주어질 때 가장 그럴듯한 다음 낱말과 그 확률을 돌려주는 `most_likely_next(self, context: str) -> str` 메서드를 `BigramModel` 클래스에 짜라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

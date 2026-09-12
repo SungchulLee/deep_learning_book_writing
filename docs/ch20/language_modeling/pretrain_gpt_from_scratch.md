@@ -331,8 +331,12 @@ ConstantLengthDataset은 인과 말 모델 익히기에 꼭 필요한 다듬기�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `ConstantLengthDataset` 클래스를 쓸 때, 글자 100만 개의 말뭉치에서 차례 길이 1024와 토막마다 평균 글자 3.6개를 쓰면 익힘 차례가 대략 몇 개 나오는지 셈하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     온 토막 수는 $\approx 1{,}000{,}000 / 3.6 \approx 277{,}778$개다.
@@ -343,8 +347,12 @@ ConstantLengthDataset은 인과 말 모델 익히기에 꼭 필요한 다듬기�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 GPT-2를 익힐 때 치우침 매개변수와 LayerNorm 무게에서 무게 줄이기를 빼야 하는 까닭을 밝혀라. 모든 매개변수에 무게 줄이기를 한결같이 쓰면 어떻게 되겠는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     짐 줄이기(L2 다독임)는 잃음에 $\lambda \|w\|^2$을 더해 큰 매개변수 값에 벌을 준다. 치우침 마디와 켜 잣대 잡기 매개변수에는 이 다독임이 도리어 해롭다.
@@ -356,8 +364,12 @@ GPT-2를 익힐 때 치우침 매개변수와 LayerNorm 무게에서 무게 줄�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 처음 `warmup_steps` 걸음 동안 한 줄로 몸풀기를 하고 그 뒤 `total_steps`에 걸쳐 코사인으로 0까지 줄이는 단순한 배움 비율 일정 함수를 짜라. 걸음 `t`에서의 배움 비율 곱셈수를 돌려주어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

@@ -168,8 +168,12 @@ Saved: sklearn_comparison.png
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 베이즈 릿지 회귀(`sklearn.linear_model.BayesianRidge`)를 비교에 추가하라. 성능과 계수 양상이 표준 릿지와 어떻게 다른가?
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -188,16 +192,24 @@ Saved: sklearn_comparison.png
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 라쏘로 alpha 값을 직접 훑는 것보다 LassoCV가 선호되는 이유를 계산적 관점과 통계적 관점에서 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     LassoCV는 효율적인 웜스타트를 쓴다. 가장 큰 alpha(모든 계수가 0인 지점)에서 모델을 적합시킨 뒤 alpha를 점차 줄이면서 직전 해를 다음 시작점으로 삼는다. 이는 alpha마다 독립적인 모델을 바닥부터 적합시키는 것보다 훨씬 빠르다. 통계적으로는 교차 검증으로 alpha를 고르므로 일반화 성능에 대한 편향 없는 추정을 얻는다. 직접 훑는 방식도 같은 교차 검증이 필요하지만 실수하기 쉽고 웜스타트가 없어 더 느리다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 특징 50개 중 5개만 유용하고 나머지는 잡음인 데이터셋을 생성하라. OLS, 릿지, 라쏘, 엘라스틱 넷에 대해 0이 아닌 계수의 개수를 비교하라. 어떤 방법이 유용한 특징을 가장 잘 찾아내는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

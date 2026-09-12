@@ -76,8 +76,12 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `vocab_size=5000`, `d_model=512`, `num_heads=8`, `num_layers=6`, `d_ff=2048`으로 `TransformerEncoder`를 세워라. 채움이 있는 배치와 그에 맞는 채움 가림을 넣어라. 출력의 꼴이 올바른지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -97,16 +101,24 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 파이토치 `nn.MultiheadAttention`의 `key_padding_mask`와 `attn_mask`의 차이를 설명하라. 각각 언제 쓰며 함께 쓸 수 있는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `key_padding_mask`은 꼴이 `(batch_size, seq_len)`이고 어느 열쇠 자리가 채움인지(True면 무시) 알려 준다. 배치 안의 수열 길이가 다를 때 쓴다. `attn_mask`은 꼴이 `(seq_len, seq_len)`이거나 `(batch_size * num_heads, seq_len, seq_len)`이고 주의 점수를 곧바로 고치며 대개 인과 가림에 쓴다. 함께 쓸 수 있다. 둘 다 주면 어느 한쪽에라도 가려진 자리는 주의 점수가 $-\infty$이 된다. 인코더-디코더 모형에서 인코더는 `key_padding_mask`을 쓰고 디코더는 `attn_mask`(인과)와 `key_padding_mask`(채움)을 모두 쓴다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 학습되는 위치 인코딩을 사인파 위치 인코딩으로 바꾸고 움직임을 견주어라. 사인파 판을 구현하고 각 방식이 언제 더 나은지 논하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

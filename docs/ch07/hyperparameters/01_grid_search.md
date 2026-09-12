@@ -250,6 +250,57 @@ if __name__ == "__main__":
     print("- Start with coarse grid, then refine around best values")
 ```
 
+**출력:**
+
+```
+============================================================
+HYPERPARAMETER TUNING: GRID SEARCH
+============================================================
+
+Grid Search systematically works through multiple combinations
+of parameter values, cross-validating as it goes to determine
+which combination gives the best performance.
+
+
+### Example 1: Random Forest ###
+
+============================================================
+GRID SEARCH - RANDOM FOREST CLASSIFIER
+============================================================
+
+격자 살펴보기
+  n_estimators             3가지  [50, 100, 200]
+  max_depth                4가지  [None, 10, 20, 30]
+  min_samples_split        3가지  [2, 5, 10]
+  min_samples_leaf         3가지  [1, 2, 4]
+  max_features             2가지  ['sqrt', 'log2']
+  합쳐서 216가지 짝
+
+Searching through 216 combinations...
+Fitting 5 folds for each of 216 candidates, totalling 1080 fits
+
+============================================================
+Grid Search (Random Forest)
+============================================================
+  가장 좋은 조절 값:
+    max_depth                None
+    max_features             sqrt
+    min_samples_leaf         2
+
+... (72 lines omitted)
+
+
+
+Grid Search completed! Check the results above.
+
+Key Takeaways:
+- Grid Search is exhaustive and guaranteed to find the best
+  combination within your specified grid
+- Computational cost grows exponentially with parameters
+- Use nested CV for unbiased performance estimates
+- Start with coarse grid, then refine around best values
+```
+
 ## 2. 논의
 
 `GridSearchCV`를 쓰는 격자 탐색은 모든 매개변수 조합을 교차 검증으로 평가한다. `n_estimators` 3개, `max_depth` 4개, `min_samples_split` 3개, `min_samples_leaf` 3개, `max_features` 2개로 이루어진 격자라면 조합이 $3 \times 4 \times 3 \times 3 \times 2 = 216$개이고, 각각을 5겹 교차 검증으로 평가하므로 모두 1,080번 모델을 적합시킨다.

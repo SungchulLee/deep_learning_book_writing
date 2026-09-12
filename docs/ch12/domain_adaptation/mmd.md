@@ -207,24 +207,36 @@ $$\mathcal{E}_t(\mathbf{f}) \leq \mathcal{E}_s(\mathbf{f}) + \text{MMD}^2(P_s, P
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 최대 평균 불일치(MMD)를 정의하고 도메인 적응에서의 몫을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     MMD는 재생 커널 힐베르트 공간에서 두 분포 $P$과 $Q$의 평균 임베딩을 견주어 그 사이의 거리를 잰다: $\text{MMD}^2(P,Q) = \|\mu_P - \mu_Q\|_H^2$. 도메인 적응에서 원천과 목표의 특징 분포 사이의 MMD를 가장 작게 하면 두 도메인이 맞물려, 원천에서 학습한 분류기가 목표에서도 통하게 된다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 두 분포에서 뽑은 표본이 주어졌을 때 MMD의 불편 추정량을 이끌어 내라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\widehat{\text{MMD}}^2 = \frac{1}{n(n-1)}\sum_{i\neq j} k(x_i, x_j) + \frac{1}{m(m-1)}\sum_{i\neq j} k(y_i, y_j) - \frac{2}{nm}\sum_{i,j} k(x_i, y_j)$이며 여기서 $k$은 (대개 가우스 RBF인) 커널 함수이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 도메인 적응 학습을 위한 MMD 손실을 파이토치에서 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -239,8 +251,12 @@ $$\mathcal{E}_t(\mathbf{f}) \leq \mathcal{E}_s(\mathbf{f}) + \text{MMD}^2(P_s, P
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 MMD와 적대적 도메인 적응(DANN)을 견주어라. 각각의 이점은 무엇인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     MMD는 거리 척도가 드러나 있고 적대적 학습의 불안정이 없으며 커널 선택이 초매개변수이다. DANN은 도메인 판별기를 써서 더 자유롭고 복잡한 분포 차이를 잡아낼 수 있다. MMD가 더 간단하고 안정적이며 DANN이 더 힘 있지만 학습이 어렵다. 도메인 이동이 어지간하면 MMD가 잘 통한다.

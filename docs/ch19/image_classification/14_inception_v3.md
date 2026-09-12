@@ -43,24 +43,36 @@ Parameters: 2,077,512
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 들임 채널 256개, 날임 채널 256개인 $5 \times 5$ 합성곱을 $3 \times 3$ 합성곱 둘로 나눌 때 아끼는 매개변수를 셈하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     본디 $5 \times 5$: 매개변수 $256 \times 256 \times 25 = 1{,}638{,}400$개. $3 \times 3$ 둘: $256 \times 256 \times 9 \times 2 = 1{,}179{,}648$개. 약 28% 아낀다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 계수 $\epsilon = 0.1$인 레이블 스무딩이 1000갈래 문제의 목표 분포를 어떻게 바꾸는지 밝혀라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     참 갈래의 목표가 1.0이 아니라 $1 - \epsilon = 0.9$이 되고 나머지 갈래마다 $\epsilon / (K-1) = 0.1/999 \approx 0.0001$을 받는다. 그래서 모델이 지나치게 자신하지 않게 되고 눈금이 잘 맞는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 어긋난 합성곱 나누기를 짜라. $7 \times 7$ 합성곱을 $1 \times 7$ 다음 $7 \times 1$ 합성곱으로 갈음하여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

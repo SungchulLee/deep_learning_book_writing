@@ -286,24 +286,36 @@ plt.show()
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 초점 손실의 기울기를 유도하고 그것이 쉬운 예의 비중을 어떻게 낮추는지 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     초점 손실은 $FL(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$이다. 기울기는 $\frac{\partial FL}{\partial p_t} = -\alpha_t[(1-p_t)^\gamma / p_t + \gamma(1-p_t)^{\gamma-1}\log(p_t)]$이다. 잘 분류된 예($p_t \approx 1$)에서는 $(1-p_t)^\gamma \approx 0$이므로 기울기가 0에 가깝다. 어려운 예($p_t \approx 0$)에서는 기울기가 크다. 이렇게 하여 어렵고 잘못 분류된 예에 학습이 집중된다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 초점 손실을 쓰는 물체 검출에서 $\gamma$과 $\alpha$은 보통 어떤 값을 쓰는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     RetinaNet 논문(Lin 등, 2017)의 기본값은 $\gamma = 2$과 $\alpha = 0.25$이다. $\gamma = 2$이 좋은 균형을 준다. 쉬운 예($p_t > 0.5$)의 비중이 $4$배 넘게 낮아진다. $\alpha$은 양성 클래스와 음성 클래스의 균형을 맞춘다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 초점 손실을 PyTorch로 구현하고, 불균형한 데이터셋에서 표준 BCE와 학습 곡선을 견주어 보라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -316,8 +328,12 @@ plt.show()
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 초점 손실이 알맞지 않아 표준 교차 엔트로피를 써야 하는 때를 설명하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     초점 손실은 극심한 클래스 불균형(예: 물체 검출의 1:1000)을 위해 설계되었다. 균형 잡힌 데이터셋에서는 대부분의 예의 비중을 쓸데없이 낮추어 학습을 늦춘다. 본디 어려워서 같은 비중을 받아야 하는 예가 많은 문제(예: 세밀한 분류)에서는 표준 교차 엔트로피가 낫다.

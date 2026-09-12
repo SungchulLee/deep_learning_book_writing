@@ -445,8 +445,12 @@ PyTorch의 `DataLoader`는 `Dataset`을 감싸 배치 구성, 섞기, 병렬 데
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 SGD 대신 Adam 최적화기를 쓰도록 코드를 수정하라. 100 에폭에 걸친 수렴 속도를 비교하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -459,8 +463,12 @@ SGD 대신 Adam 최적화기를 쓰도록 코드를 수정하라. 100 에폭에 
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 학습 루프에서 `optimizer.zero_grad()`를 없애면 어떤 일이 생기는가? 실험해 보고 학습 손실에 미치는 영향을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `optimizer.zero_grad()`가 없으면 경사가 반복에 걸쳐 누적된다. 실효 경사가 매 단계 커져서 매개변수 갱신이 점점 커진다. 학습이 불안정해지고 손실은 대개 발산한다. PyTorch가 경사 누적 패턴을 지원하기 위해 기본적으로 경사를 누적하기 때문이다.
@@ -468,8 +476,12 @@ SGD 대신 Adam 최적화기를 쓰도록 코드를 수정하라. 100 에폭에 
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 최적화기에 L2 정칙화(가중치 감쇠)를 추가하고 그것이 최종 매개변수 값에 어떤 영향을 주는지 관찰하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

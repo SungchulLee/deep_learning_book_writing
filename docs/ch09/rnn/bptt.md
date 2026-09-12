@@ -262,32 +262,48 @@ def visualize_gradient_flow(model, x):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 온전한 BPTT와 잘라 낸 BPTT의 차이를 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     온전한 BPTT는 순차열 전체를 펼쳐 모든 시각을 거슬러 역전파한다. 잘라 낸 BPTT는 순차열을 길이 $k$의 덩이로 나누어 덩이 안에서만 역전파한다. 잘라 낸 BPTT는 먼 거리 기울기의 정확도를 메모리 효율($O(T)$ 대신 $O(k)$)과 맞바꾼다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 기본 RNN에서 $W_h$에 대한 BPTT 기울기를 유도하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\frac{\partial L}{\partial W_h} = \sum_{t=1}^T \frac{\partial L}{\partial h_t} \frac{\partial h_t}{\partial W_h} = \sum_{t=1}^T \delta_t h_{t-1}^\top$이며, 여기서 $\delta_t = \frac{\partial L}{\partial h_t} \odot \tanh'(z_t)$이고 연쇄 법칙이 $\delta_T$을 시간을 거슬러 전파한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 순차열 길이가 $T$일 때 BPTT의 메모리 복잡도는 얼마인가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     역전파를 위해 숨은 상태를 모두 저장하는 데 $O(T \cdot d_h)$이 든다. 긴 순차열에서는 감당하기 어렵다. 해법으로는 잘라 낸 BPTT($T$을 줄인다), 기울기 검사점 두기(저장 대신 다시 계산한다), 되돌릴 수 있는 RNN이 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 `torch.autograd`으로 간단한 RNN의 BPTT를 구현하고 기울기를 수치적으로 확인하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

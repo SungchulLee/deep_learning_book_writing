@@ -616,16 +616,24 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 깊이별 분리 합성곱과 표준 합성곱의 매개변수 수와 부동소수점 연산 수를 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     표준 합성곱은 매개변수가 $K^2 \cdot C_{\text{in}} \cdot C_{\text{out}}$개, 연산이 $K^2 \cdot C_{\text{in}} \cdot C_{\text{out}} \cdot H \cdot W$번이다. 깊이별 분리 합성곱은 매개변수가 $K^2 \cdot C_{\text{in}} + C_{\text{in}} \cdot C_{\text{out}}$개이다. 비는 $1/C_{\text{out}} + 1/K^2$이다. $C_{\text{out}}=256, K=3$이면 매개변수가 약 $8{\sim}9\times$ 적다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `groups` 매개변수를 써서 깊이별 분리 합성곱을 PyTorch로 구현하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -640,16 +648,24 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 MobileNet과 EfficientNet의 설계에서 묶음 합성곱이 하는 구실을 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     MobileNet은 깊이별 분리 합성곱(groups = $C_{\text{in}}$)으로 계산을 약 9분의 1로 줄인다. EfficientNet은 깊이와 너비와 해상도의 균형을 잡는 복합 규모 조정을 쓰며 깊이별 분리 합성곱을 구성 블록으로 삼는다. 묶음 합성곱은 연산량을 줄이면서도 점별로 섞는 단계 덕분에 표현력을 지킨다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 깊이별 분리 합성곱을 쓸 때의 맞바꿈은 무엇인가? 표준 합성곱이 나을 때는 언제인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     깊이별 분리 합성곱은 매개변수와 계산에서 효율적이지만, 깊이별 단계가 채널을 섞지 않으므로 모델의 용량이 줄어들 수 있다. (1) 모델의 용량이 중요하고 계산이 병목이 아닐 때, (2) 채널 수가 적어 아끼는 양이 얼마 안 될 때, (3) 하드웨어가 조밀한 행렬 곱에 맞추어져 있을 때는 표준 합성곱이 낫다.

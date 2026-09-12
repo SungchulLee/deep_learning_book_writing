@@ -591,24 +591,36 @@ train_transform = transforms.Compose([
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 원형 망의 가려내기 규칙을 끌어내라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     부류 원형을 셈한다. 곧 $c_k = \frac{1}{|S_k|}\sum_{(x,y)\in S_k} f_\phi(x)$이다. 물음 $x$을 원형까지의 거리로 가려낸다. 곧 $p(y=k|x) = \frac{\exp(-d(f_\phi(x), c_k))}{\sum_j \exp(-d(f_\phi(x), c_j))}$이며 $d$은 대개 유클리드 거리의 제곱이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 유클리드 거리의 제곱을 쓰는 원형 망이 묻힘 공간의 선형 가려내기와 같음을 증명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     로그 확률은 $\log p(y=k|x) = -\|f(x) - c_k\|^2 + \text{const} = 2c_k^\top f(x) - \|c_k\|^2 + \text{const}$이다. 이는 가중치가 $w_k = 2c_k$이고 편향이 $b_k = -\|c_k\|^2$인 $f(x)$의 선형 함수이다. 그러므로 원형 망은 선형 가려내기만으로 충분한 표현을 배운다. $\square$
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 파이토치로 원형 망을 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -621,8 +633,12 @@ train_transform = transforms.Compose([
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 원형 망을 맞춤 망, 관계 망과 견주어라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     원형 망: 부류 무게중심을 셈하고 유클리드 거리와 소프트맥스를 쓴다. 단순하고 쓸모 있다. 맞춤 망: 받침 집합 위에서 주의로 무게 준 kNN을 쓰며 받침 집합 전체를 쓴다. 관계 망: 신경망으로 거리 함수를 배운다. 원형 망은 단순해서 가장 널리 쓰이고, 관계 망이 가장 두루 쓰이며, 맞춤 망은 받침 집합의 크기가 바뀔 때 가장 잘 다룬다.

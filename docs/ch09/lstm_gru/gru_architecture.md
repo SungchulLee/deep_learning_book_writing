@@ -527,8 +527,12 @@ def compare_parameters(input_size: int = 100, hidden_size: int = 256):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 GRU의 식을 적고 LSTM과 견주어라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     재설정: $r_t = \sigma(W_r[h_{t-1}, x_t])$. 갱신: $z_t = \sigma(W_z[h_{t-1}, x_t])$. 후보: $\tilde{h}_t = \tanh(W[r_t \odot h_{t-1}, x_t])$. 출력: $h_t = (1-z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$.
@@ -536,24 +540,36 @@ GRU의 식을 적고 LSTM과 견주어라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 숨은 차원이 같을 때 GRU의 매개변수가 LSTM보다 적은 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     GRU에는 문 행렬이 3개, LSTM에는 4개 있고 GRU에는 세포 상태가 따로 없다. 매개변수는 GRU가 $3(d_x + d_h)d_h + 3d_h$, LSTM이 $4(d_x + d_h)d_h + 4d_h$이다. GRU는 LSTM의 75%를 쓴다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 언제 LSTM 대신 GRU를 고르고, 반대로는 언제 그러한가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     GRU는 데이터셋이 작을 때(과적합할 매개변수가 적다), 학습을 빨리 해야 할 때, 먼 거리 기억이 덜 중요한 과제에 알맞다. LSTM은 먼 거리 기억이 정확해야 하는 과제(언어 모형 따위)와 계산이 병목이 아닐 때 알맞다. 실험적으로 성능 차이는 작을 때가 많다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 GRU 세포를 PyTorch로 밑바닥부터 구현하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

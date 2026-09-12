@@ -493,16 +493,24 @@ def train_with_dropconnect(
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 드롭아웃과 드롭커넥트의 차이를 수학적으로 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     드롭아웃은 뉴런의 출력 전체를 0으로 만든다. $m \sim \text{Bernoulli}(1-p)^d$일 때 $\tilde{h} = m \odot h$이다. 드롭커넥트는 개별 가중치를 0으로 만든다. $M \sim \text{Bernoulli}(1-p)^{d_{\text{in}} \times d_{\text{out}}}$일 때 $\tilde{W} = M \odot W$이다. 드롭커넥트가 더 세밀하며, 확률변수가 드롭아웃의 $d_{\text{out}}$개에 비해 $d_{\text{in}} \times d_{\text{out}}$개이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 드롭커넥트를 PyTorch로 구현하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -520,16 +528,24 @@ def train_with_dropconnect(
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 학습 중에 드롭커넥트가 드롭아웃보다 대체로 비싼 이유는 무엇인가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     드롭커넥트는 표본마다, 가중치 행렬마다 크기가 $d_{\text{in}} \times d_{\text{out}}$인 마스크를 만들고 저장해야 한다. 드롭아웃은 크기가 $d_{\text{out}}$인 마스크만 있으면 된다. 계산 부담이 뉴런의 수가 아니라 가중치의 수에 비례한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 드롭아웃과 드롭커넥트가 만드는 암묵적 앙상블의 이론적 표현력을 비교하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     드롭아웃은 (뉴런의 수를 $d$이라 할 때) $2^d$개 부분 신경망의 앙상블을 만든다. 드롭커넥트는 $2^{d_{\text{in}} \times d_{\text{out}}}$개를 만들어 지수적으로 더 큰 앙상블이 된다. 이 풍부한 앙상블은 더 강한 정칙화를 주지만 계산 비용이 더 든다.

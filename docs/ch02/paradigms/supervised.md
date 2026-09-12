@@ -235,7 +235,11 @@ print(f"계수:             {beta_hat.round(4)}")
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.** <span class="diff easy" title="쉬움"></span> 다음을 세 패러다임으로 가르고, 지도학습이면 회귀인지 분류인지 밝히시오. (가) 과거 가격으로 내일 종가 맞히기 (나) 미리 정한 범주 없이 고객 묶기 (다) 미로를 빠져나가면 상을 주어 로봇 가르치기 (라) 레이블 붙은 메일함으로 스팸 거르기 (마) 부정 사례 레이블이 전혀 없을 때 이상 거래 찾기 (바) 앞으로 1년간 재입원 횟수 어림하기
+
+</div>
 
 ??? success "풀이"
 
@@ -246,7 +250,11 @@ print(f"계수:             {beta_hat.round(4)}")
     (마) 비지도학습, 레이블 없는 이상치 탐지(레이블이 일부 있으면 준지도학습).
     (바) 지도학습, 계수형 회귀(포아송 회귀가 자연스럽다).
 
+<div class="drillbox" markdown>
+
 **연습문제 2.** <span class="diff med" title="중간"></span> 절대오차 손실 $L(y,\hat y)=|y-\hat y|$ 의 최적 예측기가 조건부 중앙값임을 보이시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -260,7 +268,11 @@ print(f"계수:             {beta_hat.round(4)}")
 
     제곱오차가 평균을, 절대오차가 중앙값을 겨냥한다는 이 대비가 **손실을 고르는 일이 곧 무엇을 어림할지 정하는 일**임을 보여 준다.
 
+<div class="drillbox" markdown>
+
 **연습문제 3.** <span class="diff med" title="중간"></span> 어떤 은행이 2015–2019년 자료로 학습해 시험 정확도 $92\%$ 를 얻었는데 2024년에 배포하니 $71\%$ 로 떨어졌다. 서로 다른 기제 셋과 각각의 진단법을 들으시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -270,7 +282,11 @@ print(f"계수:             {beta_hat.round(4)}")
 
     정리 4가 보장하는 것은 시험 자료가 **훈련과 같은 분포**일 때뿐이다. 셋 모두 그 가정이 깨진 경우다.
 
+<div class="drillbox" markdown>
+
 **연습문제 4.** <span class="diff med" title="중간"></span> 정리 3에서 훈련 표본 크기 $n$ 이 커지면 편향과 분산이 각각 어떻게 되는지 논하시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -280,7 +296,11 @@ print(f"계수:             {beta_hat.round(4)}")
 
     그래서 $n$ 이 작을 때는 단순한 모형이, $n$ 이 커지면 유연한 모형이 유리해진다. 딥러닝이 큰 자료에서 빛나는 까닭이 이것이다.
 
+<div class="drillbox" markdown>
+
 **연습문제 5.** <span class="diff hard" title="어려움"></span> 교차검증으로 초매개변수를 고른 뒤 같은 교차검증 점수를 최종 성능으로 알리면 무엇이 잘못되는지, 「[가진 자료를 분석하라](analyze_available.md)」의 정리 3과 이 마당의 정리 4를 함께 써서 밝히시오.
+
+</div>
 
 ??? success "풀이"
 

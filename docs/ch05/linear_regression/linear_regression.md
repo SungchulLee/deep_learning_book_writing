@@ -461,8 +461,12 @@ PyTorch를 모두 사용하고 이동 창 베타 추정까지 포함한 전체 �
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 MSE 손실 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mathbf{w}$에 대한 경사를 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     $$
@@ -473,24 +477,36 @@ MSE 손실 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mat
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \mathbf{w}^\top\mathbf{x} + \epsilon$에서 선형 회귀의 확률적 해석을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     가우스 잡음 아래에서 $p(y|\mathbf{x}, \mathbf{w}) = \mathcal{N}(\mathbf{w}^\top\mathbf{x}, \sigma^2)$이다. 음의 로그가능도(NLL)는 $-\log p(\mathbf{y}|\mathbf{X},\mathbf{w}) = \frac{N}{2}\log(2\pi\sigma^2) + \frac{1}{2\sigma^2}\|\mathbf{Xw}-\mathbf{y}\|^2$이다. NLL을 최소화하는 것은 MSE를 최소화하는 것과 같으므로, MSE 손실은 가우스 잡음 아래의 MLE에 대응한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 특징들이 완전히 상관되어 있을 때(다중공선성) 선형 회귀에는 무슨 일이 일어나는가? 이것이 정규 방정식에 어떤 영향을 주는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     특징들이 완전히 상관되어 있으면 $\mathbf{X}^\top\mathbf{X}$이 특이(계수 부족)해지고, 정규 방정식 $\mathbf{X}^\top\mathbf{X}\mathbf{w} = \mathbf{X}^\top\mathbf{y}$은 무한히 많은 해를 갖는다. $\mathbf{X}^\top\mathbf{X}$의 조건수가 무한대가 되어 수치적 해가 불안정해진다. 정칙화(릿지/라쏘)가 이를 해결한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 단변량 선형 회귀를 PyTorch로 바닥부터 구현하고 `sklearn.linear_model.LinearRegression`과 비교하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

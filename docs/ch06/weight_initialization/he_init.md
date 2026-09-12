@@ -431,24 +431,36 @@ class DeepHedgingNetwork(nn.Module):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 ReLU 신경망을 위한 He 초기화 $W \sim \mathcal{N}(0, 2/n_{\text{in}})$을 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ReLU는 평균적으로 입력의 절반을 0으로 만든다. $\text{Var}(\text{ReLU}(x)) = \frac{1}{2}\text{Var}(x)$이다. 분산을 보존하려면 $\text{Var}(y) = \frac{n_{\text{in}}}{2} \cdot \text{Var}(w) \cdot \text{Var}(x) = \text{Var}(x)$이어야 하고, 따라서 $\text{Var}(w) = 2/n_{\text{in}}$이 필요하다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 Xavier 초기화가 깊은 ReLU 신경망에서 실패하는 이유는 무엇인가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     Xavier는 활성화가 선형이라고 가정한다($\text{Var}(\text{act}(x)) = \text{Var}(x)$). ReLU는 분산을 절반으로 줄이므로 $L$개 층을 지나면 $\text{Var}(y) = (1/2)^L \text{Var}(x) \to 0$이 된다. He 초기화는 인수 2로 이를 보정한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `fan_in`과 `fan_out` 두 방식으로 He 초기화를 구현하고 각각을 언제 쓸지 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -461,8 +473,12 @@ Xavier 초기화가 깊은 ReLU 신경망에서 실패하는 이유는 무엇인
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 20층 ReLU 신경망을 무작위 균등, Xavier, He 초기화로 각각 학습시켜 비교하라. 층별 활성화 통계량을 그려라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     무작위 균등에서는 몇 층 안에 활성화가 폭발하거나 주저앉는다. Xavier에서는 활성화가 지수적으로 줄어든다(층마다 절반). He에서는 20개 층 전체에 걸쳐 활성화의 크기가 한결같이 유지되어 안정적인 학습이 가능하다.

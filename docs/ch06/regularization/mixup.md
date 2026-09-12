@@ -545,16 +545,24 @@ def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0,
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 믹스업의 학습 목적 함수를 유도하고 왜 $\lambda \sim \text{Beta}(\alpha, \alpha)$인지 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     믹스업은 가상의 학습 예를 만든다. $\lambda \sim \text{Beta}(\alpha, \alpha)$일 때 $\tilde{x} = \lambda x_i + (1-\lambda)x_j$, $\tilde{y} = \lambda y_i + (1-\lambda)y_j$이다. 베타분포는 대칭이며 $\alpha$으로 조절된다. $\alpha \to 0$이면 섞이지 않고, $\alpha = 1$이면 균등하며, $\alpha \to \infty$이면 언제나 반반으로 섞인다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 PyTorch 학습 루프에서 믹스업을 구현하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -570,16 +578,24 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 근방 위험 최소화의 관점에서 믹스업이 정칙화 장치로 작동하는 방식을 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     표준적인 ERM은 경험적 분포(학습 점에 놓인 점질량)에 대한 위험을 최소화한다. 믹스업은 점질량을 '근방'(쌍의 볼록 결합)으로 바꾸어 경험적 분포를 매끄럽게 한다. 이는 학습 점 사이에서 선형적인 행동을 이끌어 학습된 함수의 복잡도를 줄인다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 믹스업, 컷믹스, 다양체 믹스업을 비교하라. 각각은 언제 가장 알맞은가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     믹스업은 화소 공간에서의 전역 보간으로 단순하고 효과적이다. 컷믹스는 한 이미지의 직사각형 조각을 다른 이미지에 붙여 공간 구조를 보존한다. 다양체 믹스업은 은닉층 공간에서 보간하여 더 추상적인 변이를 포착한다. 물체 검출에는 컷믹스가, 세밀한 인식에는 다양체 믹스업이 가장 잘 통한다.

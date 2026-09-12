@@ -285,8 +285,12 @@ def train_classification_mle_perspective():
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 초점 손실 $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고, $\gamma = 0$일 때 표준 교차 엔트로피로 환원됨을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     정답 클래스 확률 $p_t$에 대한 표준 교차 엔트로피는 $\text{CE}(p_t) = -\log(p_t)$이다. 초점 손실은 여기에 조절 인수를 더한다.
@@ -301,8 +305,12 @@ def train_classification_mle_perspective():
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 10개 클래스 문제에서 매개변수 $\epsilon = 0.1$인 이름표 평활화를 구현하고, 신뢰도 그림으로 딱딱한 이름표와 보정 정도를 비교하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     이름표 평활화를 쓰면 목표 분포가 $y_k' = (1-\epsilon)y_k + \epsilon/K$이 된다. 여기서 $K$은 클래스의 개수이다.
@@ -323,8 +331,12 @@ def train_classification_mle_perspective():
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 교차 엔트로피를 최소화하는 것이 경험적 분포와 모델 분포 사이의 KL 발산을 최소화하는 것과 같음을 보여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     경험적 분포 $q$에서 모델 $p_\theta$으로의 KL 발산은 다음과 같다.
@@ -337,8 +349,12 @@ def train_classification_mle_perspective():
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 누적 연결 확률을 사용하여 순서를 존중하는 순서형 분류(평점 1--5)의 손실 함수를 설계하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     누적 확률을 모형화한다. 문턱값 $\theta_1 < \theta_2 < \cdots < \theta_{K-1}$에 대해 $P(Y \leq k | x) = \sigma(\theta_k - f(x))$이다.

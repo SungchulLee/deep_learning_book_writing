@@ -689,24 +689,36 @@ class SparseInputNetwork(nn.Module):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 영에서의 부분기울기를 써서 L1 정칙화가 희소한 가중치를 만드는 이유를 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     L1 벌점 $\lambda|w|$은 $w \neq 0$에서 부분기울기 $\lambda\text{sign}(w)$을, $w = 0$에서 부분미분 $[-\lambda, \lambda]$을 갖는다. 데이터 기울기의 크기가 $\lambda$보다 작으면 가중치는 영에 머무르며, 이 죽은 구간이 정확한 영을 만든다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 고차원 회귀 문제에서 L1과 L2가 만드는 희소성의 양상을 비교하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     L1은 관련 없는 특징을 0으로 만들어(강한 희소성) 일부만 남긴다. L2는 모든 특징을 영 쪽으로 수축시키되(약한 희소성) 전부 남긴다. 특징 선택에는 L1이, 상관된 특징에서 안정적인 예측에는 L2가 낫다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 L1 정칙화 학습을 위한 근접 경사 하강법을 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -718,8 +730,12 @@ L1 정칙화 학습을 위한 근접 경사 하강법을 구현하라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 L1 정칙화를 라플라스 사전분포로 보는 베이즈적 해석을 유도하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     라플라스 사전분포는 $p(w) \propto e^{-\lambda|w|}$이다. MAP는 $\log p(w|D) \propto \log p(D|w) - \lambda\sum|w_i| = -L(w) - \lambda\|w\|_1$이다. 그 음수를 최소화하는 것이 L1 정칙화된 손실이다.

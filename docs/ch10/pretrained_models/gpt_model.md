@@ -47,8 +47,12 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `vocab_size=100`에서 `start_tokens = torch.tensor([[1, 2, 3]])`으로 시작해 토큰 20개짜리 수열을 만들어라. `temperature=0.5`, `1.0`, `2.0`으로 세 번 돌려 출력이 어떻게 다른지 살펴라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -64,8 +68,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 지금의 `generate` 메서드는 위치 인코딩이 정한 최대 수열 길이 제약을 다루지 않는다. `start_tokens`과 만들어진 토큰의 합이 디코더의 `max_len`을 넘으면 어떻게 되는지 설명하고 고칠 방법을 내놓아라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     수열 전체 길이가 (디코더에서 기본값 5000인) `max_len`을 넘으면 위치 인코딩의 색인 `self.pos_encoding[:, :seq_len, :]`이 잡아 둔 버퍼 바깥의 자리에 닿으려 하여 색인 오류가 난다. 고치는 방법은 미끄러지는 창을 쓰는 것이다. 생성 단계마다 마지막 `max_len`개의 토큰만 앞먹임 메서드에 넘긴다.
@@ -86,8 +94,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `generate` 메서드에서 순수 다항 표집 대신 쓸 수 있는 상위 $k$ 표집을 구현하라. 확률이 가장 높은 $k$개의 토큰만 뽑기 후보가 되어야 한다.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

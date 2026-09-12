@@ -481,8 +481,12 @@ model2.eval()
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 선형 회귀에 대한 경사 하강법을 구현하고 500회 반복 동안의 손실 곡선을 그려라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -500,16 +504,24 @@ model2.eval()
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 같은 회귀 문제에서 배치 GD, 미니배치 GD(배치 크기 32), SGD의 수렴을 비교하라. 세 손실 곡선을 모두 그려라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     배치 GD는 가장 매끄러운 곡선을 내지만 에폭당 가장 느리다. SGD는 잡음이 가장 많지만 에폭당 갱신 횟수가 가장 많다. 미니배치 GD(B=32)는 잡음과 수렴 속도의 균형을 잡는다. 실제 소요 시간 기준으로는 큰 데이터셋에서 미니배치 GD가 대체로 가장 빠르게 수렴한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 이차 손실 $L(\mathbf{w}) = \frac{1}{2}\mathbf{w}^\top\mathbf{A}\mathbf{w} - \mathbf{b}^\top\mathbf{w}$에 대한 경사 하강법의 닫힌 형태 최적 학습률을 유도하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     단계 $t$에서 경사는 $\mathbf{g}_t = \mathbf{A}\mathbf{w}_t - \mathbf{b}$이다. 최적 이동 폭은 $\eta$에 대해 $L(\mathbf{w}_t - \eta\mathbf{g}_t)$를 최소화한다.
@@ -522,8 +534,12 @@ model2.eval()
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 PyTorch 추상화의 네 단계로 경사 하강법을 구현하라. (1) 경사 직접 계산, (2) autograd, (3) `nn.Linear`, (4) 완전한 `nn.Module`. 넷이 모두 같은 결과를 내는지 확인하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     4단계(가장 높은 추상화):

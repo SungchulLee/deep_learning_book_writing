@@ -52,8 +52,12 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `vocab_size=5000`으로 `GPTGenerator`를 만들고 길이 64인 수열을 넣어 보아라. 출력의 꼴이 `(batch_size, 64, 5000)`인지, 인과 가림이 올바른 삼각 짜임을 갖추었는지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -71,16 +75,24 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 GPT 방식의 모형을 세울 때 (이 코드처럼) `nn.TransformerDecoder`를 쓰는 것과 인과 가림을 곁들인 `nn.TransformerEncoder`를 쓰는 것의 차이를 설명하라. 구조와 실제 면에서 어떤 뜻이 있는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `nn.TransformerDecoder`는 자기 주의와 순전파 신경망 사이에 교차 주의 아래 층을 두는데, 수열 대 수열 과제에서 인코더 출력에 주의하도록 설계된 것이다. 디코더만 쓰는 모형에 (같은 입력을 목표와 기억으로 함께 넣어) 쓰면 교차 주의가 군더더기 자기 주의가 되어 쓸데없는 매개변수와 계산이 는다. 인과 가림을 곁들인 `nn.TransformerEncoder`는 자기 주의와 순전파 아래 층만 담으므로 GPT 방식 모형에 더 효율적이다. 인코더 방식이 더 간단하고 빨라서 실제 GPT 구현 대부분이 인과 가림을 쓰는 인코더 방식 블록을 쓴다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 온도로 다스리는 표집을 받치는 `generate` 메서드를 구현하라. 프롬프트 텐서가 주어지면 로짓에 온도 크기 조정을 적용한 뒤 표집하여 토큰을 자기 회귀로 만들어야 한다.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

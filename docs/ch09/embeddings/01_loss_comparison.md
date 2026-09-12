@@ -99,8 +99,12 @@ Training three models with different loss functions...
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 로짓 텐서 `[[2.0, 1.0, 0.1]]`과 표적 `[0]`에 대해 `nn.CrossEntropyLoss`, `F.cross_entropy`, `nn.NLLLoss(F.log_softmax(...))`을 계산하여 수학적으로 같음을 확인하라. 셋 모두 같은 스칼라 손실 값을 내놓음을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -119,8 +123,12 @@ Training three models with different loss functions...
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `F.softmax` 뒤에 `torch.log`을 쓰는 것이 `F.log_softmax`을 바로 쓰는 것보다 수치적으로 나쁜 까닭을 설명하라. 로짓이 클 때 순진한 방법이 실패하는 예를 만들어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     순진한 계산 `torch.log(F.softmax(x, dim=1))`은 먼저 로짓에 지수를 취하고(값이 크면 넘칠 수 있다) 정규화한 뒤 로그를 취하는데(확률이 아주 작으면 $-\infty$이 나올 수 있다), 예를 들면 다음과 같다.
@@ -137,8 +145,12 @@ Training three models with different loss functions...
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 이름표 매끄럽게 하기(`nn.CrossEntropyLoss(label_smoothing=0.1)`)로 학습시킨 넷째 모델을 넣어 비교를 넓혀라. 그 손실 곡선을 나머지 셋과 함께 그리고, 이름표 매끄럽게 하기가 수렴과 마지막 손실에 어떤 영향을 주는지 논하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

@@ -141,8 +141,12 @@ PyTorch는 (저장소를 공유하는 뷰를 반환하는) 기본 슬라이싱�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `torch.eye`로 $4 \times 4$ 단위 행렬을 만들고, `torch.diag`로 대각 성분이 $[1, 2, 3, 4]$인 대각 행렬을 만들어라. 둘이 다름을 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -154,8 +158,12 @@ PyTorch는 (저장소를 공유하는 뷰를 반환하는) 기본 슬라이싱�
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `torch.empty()`와 `torch.zeros()`의 차이를 설명하라. `empty()`는 언제 쓰는 것이 적절한가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `torch.zeros()`는 모든 원소를 0으로 초기화하지만 `torch.empty()`는 초기화 없이 메모리만 할당한다(값은 그 메모리에 이전에 있던 것이 무엇이든 그대로이다). 초기화되지 않은 내용은 예측할 수 없으므로 `empty()`는 모든 값을 곧바로 덮어쓸 계획일 때만 써야 한다. 0으로 채우는 단계를 건너뛰므로 조금 더 빠르다.
@@ -163,8 +171,12 @@ PyTorch는 (저장소를 공유하는 뷰를 반환하는) 기본 슬라이싱�
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `torch.linspace`로 $-\pi$와 $\pi$ 사이에 균등 간격의 점 100개를 만들어라. 각 점에서 $\sin(x)$를 계산하고 절댓값의 최댓값이 대략 1임을 확인하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

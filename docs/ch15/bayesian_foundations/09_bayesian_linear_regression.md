@@ -181,8 +181,12 @@ Next: Module 10 - Advanced Applications
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 $y = \sin(x) + \varepsilon$에서 만든 자료에 대해 차수 3의 베이즈 다항 회귀를 짜라. 예측 평균과 95% 믿음 구간을 그려라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -214,8 +218,12 @@ plt.show()
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 앞확률이 $\beta \sim N(0, \lambda^{-1}I)$일 때 베이즈 뒤확률 평균이 능선 회귀 어림값과 같음을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     뒤확률 평균은 $m_n = V_n(\sigma^{-2}X^Ty) = (\lambda I + \sigma^{-2}X^TX)^{-1}\sigma^{-2}X^Ty$이다. 분자와 분모에 $\sigma^2$을 곱하면 $m_n = (\lambda\sigma^2 I + X^TX)^{-1}X^Ty$이다. 이는 능선 회귀 풀이 $\hat{\beta}_{\text{ridge}} = (X^TX + \lambda\sigma^2 I)^{-1}X^Ty$과 꼭 같으므로 둘이 같음이 세워진다. $\square$
@@ -223,8 +231,12 @@ plt.show()
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 단순 선형 회귀에서 베이즈 예측 구간의 너비를 빈도주의 예측 구간과 견주어라. 자료점 30개를 만들고 시험 자리 100곳에서 둘 다 셈하여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

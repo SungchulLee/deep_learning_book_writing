@@ -72,32 +72,48 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001,
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 Adam의 갱신 규칙을 유도하고 편향 보정이 하는 구실을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     Adam은 $m_t = \beta_1 m_{t-1} + (1-\beta_1)g_t$, $v_t = \beta_2 v_{t-1} + (1-\beta_2)g_t^2$이다. 편향 보정은 $\hat{m}_t = m_t/(1-\beta_1^t)$, $\hat{v}_t = v_t/(1-\beta_2^t)$이다. 갱신은 $\theta_{t+1} = \theta_t - \eta\hat{m}_t/(\sqrt{\hat{v}_t}+\epsilon)$이다. 보정이 없으면 (0으로 초기화하므로) 초반 추정값이 0 쪽으로 치우쳐 처음 갱신이 너무 작아진다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 Adam이 모멘텀을 쓰는 SGD와 다른 해로 수렴할 수 있는 이유와, 어느 쪽이 대체로 더 잘 일반화하는지 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     Adam은 매개변수마다 학습률을 맞추므로 일반화가 나쁜 뾰족한 극소점으로 수렴할 수 있다. 모멘텀을 쓰는 SGD는 전역 학습률을 쓰며 암묵적인 잡음 정칙화 덕분에 더 평평한 극소점을 찾는 경향이 있다. 경험적으로 이미지 분류에서는 SGD가 더 잘 일반화하고, 자연어 처리나 학습 시간이 제한될 때에는 Adam을 선호한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 Adam의 기본 초매개변수는 무엇이며 왜 그렇게 정해졌는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     $\beta_1 = 0.9$(일차 모멘트의 감쇠), $\beta_2 = 0.999$(이차 모멘트의 감쇠), $\epsilon = 10^{-8}$(수치 안정성)이다. $\beta_1$은 기울기의 이력이 방향에 얼마나 영향을 줄지, $\beta_2$은 기울기 제곱의 이력이 매개변수별 배율에 얼마나 영향을 줄지 조절한다. 이 기본값은 여러 과제에서 잘 통한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 Adam을 PyTorch로 바닥부터 구현하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

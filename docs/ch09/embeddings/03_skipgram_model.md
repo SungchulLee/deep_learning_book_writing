@@ -51,8 +51,12 @@ Skip-gram의 목표는 가운데 낱말이 주어졌을 때 문맥 낱말을 볼
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 입력 임베딩 층과 출력 선형층을 갖춘 기본 Skip-gram 모델 클래스를 PyTorch로 구현하라. 가운데 낱말의 색인을 받아 어휘에 대한 로짓을 돌려주는 forward 메서드를 작성하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -84,8 +88,12 @@ Skip-gram의 목표는 가운데 낱말이 주어졌을 때 문맥 낱말을 볼
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 창 크기 2로 문장 "I love deep learning very much"에 대해 Skip-gram 모델 학습에 쓰일 (가운데, 문맥) 쌍을 모두 열거하라. 쌍의 수를 CBOW가 만들 쌍의 수와 견주어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     Skip-gram 쌍 (가운데 -> 문맥):
@@ -105,8 +113,12 @@ Skip-gram의 목표는 가운데 낱말이 주어졌을 때 문맥 낱말을 볼
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 원래 Word2Vec 논문처럼 (가운데 낱말용과 문맥 낱말용으로) 임베딩 행렬 두 개를 쓰도록 Skip-gram 모델을 고쳐라. 학습이 끝난 뒤 가장 가까운 이웃 질의로 두 행렬에서 나온 임베딩의 품질을 견주어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

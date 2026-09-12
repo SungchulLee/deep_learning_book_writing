@@ -139,16 +139,24 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 랑주뱅 움직임 고침 규칙 $x_{t+1} = x_t - \epsilon \nabla_x E(x_t) + \sqrt{2\epsilon}\,\xi_t$이 주어질 때 $\epsilon \to 0$이고 $T\epsilon \to \infty$이면서 걸음 수 $T \to \infty$이면 $x_T$의 분포가 $p(x) \propto \exp(-E(x))$으로 모임을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     랑주뱅 움직임은 이어진 때의 랑주뱅 확률 미분 방정식 $dx = -\nabla_x E(x)\,dt + \sqrt{2}\,dW_t$을 띄엄띄엄하게 만든 것이다. 이 방정식의 포커-플랑크 식은 정상 분포가 $\nabla \cdot (p \nabla E + \nabla p) = 0$을 만족함을 보이며 이는 $p(x) \propto \exp(-E(x))$으로 풀린다. $\epsilon \to 0$이면 띄엄띄엄한 사슬이 이어진 확률 미분 방정식으로 모이고 $T\epsilon \to \infty$이면 사슬이 정상 분포로 섞일 시간을 얻는다. 잡음 항 $\sqrt{2\epsilon}\,\xi$이 결정적이다. 그것이 없으면 움직임이 온 분포에서 뽑는 대신 $E(x)$의 봉우리 하나로 모인다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 신경망 에너지 바탕 모델 익히기에서 되돌림 곳간의 몫을 밝혀라. 음의 표본 가운데 일부를 아무 잡음이 아니라 앞의 마르코프 사슬 몬테카를로 사슬에서 첫자리매김하는 것이 왜 이로운가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     되돌림 곳간은 앞 익히기 되풀이의 음의 표본을 담아 둔다. 새 음의 표본을 만들 때 일부를 아무 잡음 대신 곳간에서 첫자리매김한다. 이는 두 가지 이로움을 준다:
@@ -161,8 +169,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `ConvEnergyNetwork`을 모든 층에 스펙트럼 고르게 맞추기를 넣도록 고치고 익히기 손실에 에너지 규칙 세우기 항 $\lambda \cdot (E(x_+)^2 + E(x_-)^2)$을 더하라. 각 고침이 익히기 안정을 어떻게 낫게 하는지 밝혀라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

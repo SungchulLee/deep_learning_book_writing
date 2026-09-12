@@ -91,8 +91,12 @@ ResNet이 깊은 배움에 미친 영향은 아무리 말해도 지나치지 않
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `in_channels=256`, `out_channels=64`, 공간 크기 $56 \times 56$인 병목 블록 하나의 곱셈-덧셈 연산 수(FLOPs)를 셈하여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     합성곱마다 FLOPs $\approx 2 \times C_{\text{in}} \times C_{\text{out}} \times K^2 \times H \times W$이다.
@@ -105,8 +109,12 @@ ResNet이 깊은 배움에 미친 영향은 아무리 말해도 지나치지 않
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `downsample` 길이 왜 단계마다 첫 덩이에만 필요한지 설명하여라. 그것을 없애면 어떻게 되는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     내림 표본 경로(보폭 2인 $1 \times 1$ 합성곱)는 블록의 들임과 날임 사이에서 공간 차원이나 채널 수가 바뀔 때 필요하다. 이는 단계마다 첫 블록에서만 일어나며 그때 보폭이 1에서 2로 바뀌고 날임 채널이 늘어난다. 같은 단계의 뒤 블록은 들임과 날임 차원이 같으므로 항등 지름길이 그대로 동작한다.
@@ -115,8 +123,12 @@ ResNet이 깊은 배움에 미친 영향은 아무리 말해도 지나치지 않
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 병목 없이 $3 \times 3$ 합성곱 둘로 된 기본 블록을 써서 켜 구성이 $[2, 2, 2, 2]$인 ResNet-18 갈래를 짜라. 매개변수 수를 ResNet-50과 견주어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

@@ -243,32 +243,48 @@ $$\frac{\partial f_t}{\partial c_{t-1}} = \sigma'(\cdot) \cdot \text{diag}(w_f)$
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 엿보기 연결이 무엇이며 표준 LSTM의 식을 어떻게 바꾸는지 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     엿보기 연결은 문이 세포 상태를 '엿보게' 해 준다. $f_t = \sigma(W_f[h_{t-1}, x_t] + V_f c_{t-1})$, $i_t = \sigma(W_i[h_{t-1}, x_t] + V_i c_{t-1})$, $o_t = \sigma(W_o[h_{t-1}, x_t] + V_o c_t)$이다. 대각 행렬 $V_f, V_i, V_o$이 매개변수 $3d_h$개를 더한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 엿보기 연결이 가장 큰 이득을 주는 때는 언제인가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     음악의 리듬 검출, 정확한 간격 세기, 타이밍이 중요한 제어 과제처럼 정확한 타이밍이 필요할 때이다. 세포 상태는 (tanh와 출력 문에 눌린) 숨은 상태보다 더 정확한 수치 정보를 지니므로, 곧바로 닿을 수 있으면 타이밍에 도움이 된다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 엿보기 연결을 더하면 매개변수가 얼마나 늘어나는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     크기가 $d_h$인 대각 행렬 세 개, 곧 매개변수 $3d_h$개가 는다. $d_h = 512$이면 기본 LSTM의 약 160만 개에 견주어 1536개만 늘어난다. 부담은 무시할 만하다(0.1% 미만).
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 엿보기 연결이 있는 LSTM 세포를 PyTorch로 구현하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

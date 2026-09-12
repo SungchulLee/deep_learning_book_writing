@@ -380,16 +380,24 @@ Class counts: [5037 2996 1967]
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 클래스 확률이 로그 선형인 범주형 분포라는 가정에서 소프트맥스 함수를 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     어떤 정규화 상수에 대해 $\log p(y=k|\mathbf{x}) = \mathbf{w}_k^\top\mathbf{x} + c$이라 가정하자. 그러면 $p(y=k|\mathbf{x}) = \frac{e^{\mathbf{w}_k^\top\mathbf{x}}}{\sum_{j=1}^K e^{\mathbf{w}_j^\top\mathbf{x}}}$이며, 이것이 소프트맥스 함수이다. 이는 자연 매개변수가 $\eta_k = \mathbf{w}_k^\top\mathbf{x}$인 범주형 분포의 지수족 형태에서 따라 나온다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 소프트맥스가 상수를 더해도 변하지 않음을 보여라. 즉 $\text{softmax}(\mathbf{z} + c\mathbf{1}) = \text{softmax}(\mathbf{z})$임을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $$
@@ -400,8 +408,12 @@ Class counts: [5037 2996 1967]
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 소프트맥스 함수의 야코비 행렬 $\frac{\partial p_i}{\partial z_j}$을 계산하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     $$
@@ -414,8 +426,12 @@ Class counts: [5037 2996 1967]
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 온도로 배율을 조절한 소프트맥스 $\text{softmax}(\mathbf{z}/T)$을 구현하고, $T \in \{0.1, 1.0, 5.0\}$에 대해 출력 분포에 미치는 효과를 보여라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

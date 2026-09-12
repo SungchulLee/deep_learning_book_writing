@@ -494,8 +494,12 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 원점에서 결정 경계 $\mathbf{x}^\top\boldsymbol{\beta} = 0$까지의 수직 거리가 $\frac{|\beta_0|}{\|\boldsymbol{\beta}_{1:d}\|}$임을 증명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     결정 경계는 초평면 $\beta_0 + \beta_1 x_1 + \cdots + \beta_d x_d = 0$, 즉 $\boldsymbol{\beta}_{1:d}^\top \mathbf{x} = -\beta_0$이다. 원점에서 초평면 $\mathbf{w}^\top\mathbf{x} = b$까지의 거리는 $|b|/\|\mathbf{w}\|$이다.
@@ -506,8 +510,12 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 안정한 BCE 공식 $\max(z, 0) - zy + \log(1+e^{-|z|})$이 $-[y\log\sigma(z) + (1-y)\log(1-\sigma(z))]$과 같음을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\text{BCE} = -y\log\sigma(z) - (1-y)\log(1-\sigma(z))$에서 출발한다.
@@ -522,8 +530,12 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 개별 계수 $\beta_0, \beta_1, \beta_2$이 변할 때 결정 경계가 어떻게 회전하고 이동하는지 보여주는 시각화를 만들어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -556,8 +568,12 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 `pos_weight`을 쓰는 `BCEWithLogitsLoss`을 구현하고, 불균형 데이터(음성 90%, 양성 10%)에서 결정 경계에 미치는 효과를 보여라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

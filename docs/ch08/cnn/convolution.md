@@ -620,8 +620,12 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 단일 채널 입력과 핵에 대해 2차원 상호상관을 (라이브러리 함수 없이) 밑바닥부터 구현하라. `F.conv2d`과 견주어 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -648,8 +652,12 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 입력 채널이 3개, 출력 채널이 64개이고 핵이 $3 \times 3$인 (편향이 있는) 신경망의 첫 합성곱 층에서 매개변수의 수를 계산하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     출력 채널마다 입력 채널당 $3 \times 3$ 핵 하나와 편향 하나가 있다.
@@ -662,8 +670,12 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 합성곱이 평행 이동에 동변임을 보여라. 곧 $T_a$이 입력을 화소 $a$개만큼 옮길 때 $\text{conv}(T_a(x)) = T_a(\text{conv}(x))$임을 보여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     $(f * g)(t) = \sum_\tau f(\tau)g(t - \tau)$이라 하자. 이동 연산자를 $(T_a f)(t) = f(t - a)$으로 정의한다.
@@ -682,8 +694,12 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 합성곱과 상호상관의 차이를 설명하라. 핵이 어떤 조건을 만족할 때 둘이 같아지는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     참된 합성곱은 미끄러뜨리기 전에 핵을 뒤집는다: $(f * g)(t) = \sum_\tau f(\tau)g(t - \tau)$. 상호상관은 뒤집지 않는다: $(f \star g)(t) = \sum_\tau f(\tau)g(t + \tau)$.

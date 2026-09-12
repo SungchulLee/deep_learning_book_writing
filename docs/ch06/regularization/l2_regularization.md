@@ -695,32 +695,48 @@ def l2_regularization_weights_only(model, lambda_l2):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 L2 정칙화가 SGD에서는 가중치 감쇠와 동등하지만 Adam에서는 그렇지 않음을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     SGD에서는 $w \leftarrow w - \eta(\nabla L + \lambda w) = (1-\eta\lambda)w - \eta\nabla L$이며, 인수 $(1-\eta\lambda)$이 가중치 감쇠이다. Adam에서는 적응형 학습률 때문에 $\lambda w$도 이차 모멘트 추정값으로 나뉘므로 L2 정칙화와 가중치 감쇠가 동등하지 않게 된다. AdamW가 이를 바로잡는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 L2 정칙화를 가중치에 대한 정규 사전분포로 보는 베이즈적 해석을 유도하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     사전분포 $w \sim \mathcal{N}(0, \sigma_w^2)$을 쓰는 MAP는 $\log p(w|D) \propto \log p(D|w) + \log p(w) = -L(w) - \frac{\|w\|^2}{2\sigma_w^2}$이다. $\lambda = 1/(2\sigma_w^2)$으로 두면 L2 정칙화를 얻는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 L2 정칙화가 가중치를 영 쪽으로 수축시키되 결코 정확히 영으로 만들지 않는 이유를 기하적으로 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     L2의 제약 영역은 구이다. $\|w\|^2$의 기울기는 $2w$으로 언제나 반지름 방향 바깥을 가리킨다. 벌점은 $w$에 비례하여 영 쪽으로 향하는 연속적인 힘을 만들지만, 이 힘은 $w \to 0$일 때 사라지므로 가중치는 영에 점근적으로 다가갈 뿐 결코 닿지 않는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 PyTorch에서 `weight_decay` 매개변수를 쓰는 방법과 벌점을 직접 더하는 방법 모두로 L2 정칙화를 구현하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

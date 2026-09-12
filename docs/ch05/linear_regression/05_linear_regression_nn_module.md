@@ -420,8 +420,12 @@ Advantages:
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `model.named_parameters()`로 모델의 이름 붙은 매개변수를 모두 출력하고, 가중치와 편향의 모양이 입력 1개·출력 1개인 선형 층에서 기대하는 것과 일치하는지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -437,8 +441,12 @@ Advantages:
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `nn.MSELoss()`를 평균절대오차(MAE)를 계산하는 사용자 정의 손실 함수로 대체하라. 모델을 학습시키고 MSE 버전과 수렴을 비교하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -469,8 +477,12 @@ Advantages:
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `torch.save(model.state_dict(), path)`로 학습된 모델을 저장한 뒤 새 `nn.Linear` 인스턴스에 불러오고, 시험 데이터에서 예측이 원래 모델과 일치하는지 확인하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

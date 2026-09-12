@@ -305,32 +305,48 @@ class PricingNetwork(nn.Module):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 모든 가중치를 0으로 초기화하면 신경망이 학습하지 못하는 이유를 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     가중치가 0이면 모든 뉴런이 같은 출력(0)을 계산하고 같은 경사를 받아 똑같이 갱신된다. 이 대칭이 결코 깨지지 않으므로 너비와 무관하게 신경망이 뉴런 하나처럼 행동한다. 무작위 초기화가 이 대칭을 깨뜨린다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 Xavier(Glorot) 초기화 $W \sim \mathcal{U}(-\sqrt{6/(n_{\text{in}}+n_{\text{out}})}, \sqrt{6/(n_{\text{in}}+n_{\text{out}})})$을 유도하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     분산을 보존하려면 $\text{Var}(y) = n_{\text{in}} \cdot \text{Var}(w) \cdot \text{Var}(x)$이다. $\text{Var}(y) = \text{Var}(x)$으로 두면 $\text{Var}(w) = 1/n_{\text{in}}$이다. 순전파와 역전파를 평균하면 $\text{Var}(w) = 2/(n_{\text{in}}+n_{\text{out}})$이다. 균등분포 $[-a, a]$에서는 $\text{Var} = a^2/3$이므로 $a = \sqrt{6/(n_{\text{in}}+n_{\text{out}})}$을 얻는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 가중치를 너무 크게 초기화하면 어떻게 되는가? 너무 작게 하면?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     너무 크면 활성화가 (시그모이드/tanh에서) 포화하거나 (ReLU에서) 폭발하고, 경사가 사라지거나 폭발하며, 학습이 발산한다. 너무 작으면 활성화가 0으로 주저앉고 경사가 사라져 학습이 아주 느리거나 아예 되지 않는다. 알맞은 초기화는 층에 걸쳐 활성화와 경사의 크기를 유지한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 Xavier와 He 초기화를 PyTorch로 구현하고 10층 신경망에서 학습의 움직임을 비교하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

@@ -681,24 +681,36 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 엘라스틱 넷의 벌점을 쓰고, 혼합 매개변수 $\alpha$이 L1과 L2의 균형을 어떻게 조절하는지 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     엘라스틱 넷은 $\alpha \in [0,1]$에 대해 $\Omega(w) = \alpha\|w\|_1 + \frac{1-\alpha}{2}\|w\|_2^2$이다. $\alpha = 1$이면 순수한 라쏘(L1), $\alpha = 0$이면 순수한 능선(L2)이다. 중간 값은 희소성(L1)과 묶음 선택(L2)을 결합한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 엘라스틱 넷이 순수한 라쏘보다 상관된 특징을 더 잘 다루는 이유를 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     상관된 특징이 있으면 라쏘는 하나를 임의로 고르고 나머지를 0으로 만든다(불안정한 선택). 엘라스틱 넷의 L2 항은 상관된 특징이 비슷한 계수를 갖도록 이끈다(묶음 효과). $x_i \approx x_j$이면 $|w_i - w_j|$이 벌점을 받아 둘 다 남는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 PyTorch 학습 루프에서 엘라스틱 넷 정칙화를 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -712,8 +724,12 @@ PyTorch 학습 루프에서 엘라스틱 넷 정칙화를 구현하라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 엘라스틱 넷 벌점에 대한 근접 연산자를 유도하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     근접 연산자는 분해된다. 먼저 L2 배율 조정 $\tilde{v} = v/(1 + \lambda(1-\alpha))$을 적용하고, 이어서 L1 연성 문턱화 $\text{prox}(v) = \text{sign}(\tilde{v})\max(|\tilde{v}| - \lambda\alpha, 0)$을 적용한다.

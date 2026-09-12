@@ -240,8 +240,12 @@ print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 모양")
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `torch.from_numpy(arr)`로 만든 텐서를 GPU로 옮긴 뒤 `arr`를 고치면 GPU의 텐서도 바뀌겠는가?
+
+</div>
 
 ??? success "연습문제 1 풀이"
     바뀌지 않는다. `.to(device)`는 GPU 메모리에 **새로 복사**하는 일이므로 그 순간 둘의 연결이 끊긴다.
@@ -250,8 +254,12 @@ print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 모양")
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `loss.backward()`를 두 번 부르면 어떻게 되는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     오류가 난다. PyTorch는 역전파를 마치면 계산 기록을 지워 메모리를 돌려주기 때문이다. 굳이 두 번 하려면 `backward(retain_graph=True)`를 준다.
@@ -260,8 +268,12 @@ print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 모양")
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 NumPy만으로 신경망을 학습시킬 수 있는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     할 수 있다. 실제로 이 책의 여러 곳에서 NumPy로 순전파와 역전파를 손수 짜 본다.

@@ -902,8 +902,12 @@ Final: RF = 35×35, Output stride = 8
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 보폭이 1인 $3 \times 3$ 합성곱을 다섯 층 쌓았을 때의 이론적인 수용 영역을 계산하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     핵 크기가 $k$이고 보폭이 1인 합성곱에서는 층마다 수용 영역에 $k-1$이 더해진다. 수용 영역 1에서 시작하면 다음과 같다.
@@ -914,8 +918,12 @@ Final: RF = 35×35, Output stride = 8
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 보폭이 1인 $3 \times 3$ 합성곱만 써서 수용 영역이 정확히 $101 \times 101$인 신경망을 설계하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\text{RF} = 1 + L \times 2 = 101$에서 $3 \times 3$ 합성곱 $L = 50$층이 필요하다.
@@ -926,8 +934,12 @@ Final: RF = 35×35, Output stride = 8
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 수용 영역이 자라는 정도를 견주어라. (가) 표준 $3 \times 3$ 층 10개, (나) 팽창률이 1, 2, 4, 8, 16인 팽창 층 5개.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     (가) 표준: $\text{RF} = 1 + 10 \times 2 = 21$.
@@ -940,8 +952,12 @@ Final: RF = 35×35, Output stride = 8
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 가운데 화소에 대해 $\frac{\partial \text{output}_{c,h,w}}{\partial \text{input}}$을 계산하고 기울기의 크기를 그려서 실효 수용 영역(ERF) 시각화를 구현하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

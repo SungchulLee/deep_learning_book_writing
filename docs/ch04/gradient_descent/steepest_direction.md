@@ -310,8 +310,12 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 다음 각각에 대해 $\nabla f$를 계산하라. (a) $f(x, y) = x^2y + y^3$, (b) $f(x, y, z) = e^{xy} + \sin(z)$, (c) $f(\mathbf{w}) = \|\mathbf{Xw} - \mathbf{y}\|^2$.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     (a) $\nabla f = (2xy,\; x^2 + 3y^2)^\top$.
@@ -322,8 +326,12 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 $f(x,y) = x^2 + 4y^2$에 대해 점 $(2, 1)$에서 $\nabla f$가 등위곡선 $f(x,y) = c$에 수직임을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $(2,1)$에서 $f = 4 + 4 = 8$이다. 등위곡선은 $x^2 + 4y^2 = 8$이다. 곡선 위를 $\mathbf{r}(t) = (x(t), y(t))$로 매개화하면 $2x x' + 8y y' = 0$이다. $(2,1)$에서의 접벡터는 $4x' + 8y' = 0$, 즉 $x' = -2y'$을 만족한다. 접벡터 하나는 $(-2, 1)$이다.
@@ -332,8 +340,12 @@ $f(x,y) = x^2 + 4y^2$에 대해 점 $(2, 1)$에서 $\nabla f$가 등위곡선 $f
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 $(1, 1)$에서 $f(x,y) = x^2 - xy + y^2$에 대해 경사를 계산하고, 방향 $(1, 0)$의 방향도함수를 구하고, 최급상승 방향을 구하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     $\nabla f = (2x - y,\; -x + 2y)$이다. $(1,1)$에서 $\nabla f = (1, 1)$이다.
@@ -344,8 +356,12 @@ $(1, 1)$에서 $f(x,y) = x^2 - xy + y^2$에 대해 경사를 계산하고, 방�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 $w_1 = 0.5, w_2 = -0.3, x_1 = 2, x_2 = 3, y = 1$에서 PyTorch autograd를 사용하여 $L = (w_1 x_1 + w_2 x_2 - y)^2$의 $w_1$과 $w_2$에 대한 경사를 계산하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

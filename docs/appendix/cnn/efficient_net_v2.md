@@ -66,24 +66,36 @@ EfficientNetV2은 어디에나 SiLU(Swish) 살림을 쓰는데, 여러 자리에
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 들임 꼴이 $(1, 32, 56, 56)$, 넓힘 견줌 4, 날임 갈래 32일 때 여느 MBConv 덩이와 녹여 붙인 MBConv 덩이의 셈 값(뜨는 셈 횟수)을 견주어라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     MBConv에서는 (1) $1 \times 1$ 넓힘: $32 \times 128 \times 56 \times 56 \approx 12.8M$번. (2) $3 \times 3$ 깊이별: $128 \times 9 \times 56 \times 56 \approx 3.6M$번. (3) $1 \times 1$ 되비춤: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 29.2M$번이다. 녹여 붙인 MBConv에서는 (1) $3 \times 3$ 여느 엮음: $32 \times 128 \times 9 \times 56 \times 56 \approx 115.6M$번. (2) $1 \times 1$ 되비춤: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 128.4M$번이다. 녹여 붙인 MBConv은 셈이 약 4.4배 많지만 쇠 붙임새를 더 잘 써서 GPU에서는 벽시계 때가 더 빠른 일이 잦다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 차근차근 배우기(익히는 동안 결을 올리기)가 ResNet처럼 결이 붙박인 모형보다 EfficientNet 결의 모형에 더 이로운 까닭을 밝혀라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     EfficientNet 모형은 깊이, 너비, 결을 함께 손보는 겹 잣대를 쓴다. 그 얼개는 여러 결에서 두루 듣도록 꾸며졌다. 차근차근 배우기는 이를 써서 낮은 결(다룰 낱그림점이 적어 되돌이가 빠름)에서 비롯해 차츰 온 결로 올린다. 그물 얼개가 결을 가리지 않으므로 낮은 결에서 배운 결이 자연스레 옮아간다. ResNet은 얼개의 가정이 붙박여 결이 바뀌면 됨됨이가 더 흔들린다. 게다가 차근차근 배우기의 다독임 짜임(낮은 결에는 여린 불리기, 높은 결에는 센 불리기)은 모형이 불린 작은 그림에 지나치게 맞춰지는 것을 막는데, 결을 붙박고 익히는 ResNet에는 덜 걸리는 탈이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 쥐어짜 북돋우기(SE) 눈길과 건너뛰는 이음을 갖춘 온전한 `FusedMBConv` 덩이를 짜라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

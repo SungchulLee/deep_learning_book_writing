@@ -286,8 +286,12 @@ Cross-attention weights shape: torch.Size([2, 8, 4, 6])
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 부호기 출력의 모양이 $(B, 10, 256)$이고 복호기 질의의 모양이 $(B, 1, 256)$이며 머리가 8개인 교차 어텐션 층을 생각해 보자. `MultiHeadCrossAttention` 모듈의 학습 가능한 매개변수 총수를 (편향을 넣어) 계산하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     이 모듈에는 선형층이 네 개 있다.
@@ -301,16 +305,24 @@ Cross-attention weights shape: torch.Size([2, 8, 4, 6])
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `EncoderDecoderAttention`의 복호기 자기 어텐션이 `decoder_input`을 질의와 key_value에 모두 넘겨 같은 `MultiHeadCrossAttention` 클래스를 쓰는 까닭을 설명하라. 교차 어텐션은 어떤 조건에서 자기 어텐션이 되는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     질의의 출처와 열쇠·값의 출처가 같은 순차열이면 교차 어텐션이 자기 어텐션이 된다. 코드에서 `self.self_attention(decoder_input, decoder_input, self_attn_mask)`은 복호기의 숨은 상태를 질의와 key_value 인자에 모두 넘긴다. 곧 질의와 열쇠와 값이 모두 같은 텐서에서 저마다의 사영 행렬을 거쳐 나온다. 수식은 표준 다중 머리 자기 어텐션과 똑같다. 복호기의 자리마다 (가림막이 허락하는 한) 다른 모든 자리에 주목한다. 전용 자기 어텐션 모듈과의 차이는 개념뿐이다. 이 클래스는 질의와 key_value가 서로 다른 곳에서 오는 일반적인 경우를 위해 설계되었지만 자기 어텐션도 그 특수한 경우로 자연스럽게 다룬다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 모든 머리에 걸쳐 평균한 교차 어텐션 가중치를 돌려주고 그것으로 복호기 자리와 부호기 자리 사이의 "정렬 점수"를 계산하도록 `EncoderDecoderAttention`을 고쳐라. 예제 입력에 대해 이 정렬 행렬을 matplotlib으로 그려 보라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

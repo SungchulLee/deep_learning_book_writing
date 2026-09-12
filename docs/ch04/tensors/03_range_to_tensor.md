@@ -129,8 +129,12 @@ t.requires_grad = False
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 경사 누적을 사용하여 크기 16인 마이크로배치 4개로 실효 배치 크기 64를 흉내 내라. 완전한 학습 단계를 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -147,8 +151,12 @@ t.requires_grad = False
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 올바른 경사 누적을 위해 `.backward()`를 호출하기 전에 손실을 `accumulation_steps`로 나누어야 하는 이유를 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     마이크로배치마다의 `.backward()` 호출이 경사를 누적한다. 크기를 조정하지 않으면 $K$개의 마이크로배치 후 누적된 경사가 배치당 경사의 $K$배가 되는데, 이는 손실을 평균 내는 것이 아니라 더하는 것과 같다. $K$로 나누면 누적된 경사가 전체 배치에 대해 `reduction='mean'`으로 순전파를 한 번 했을 때의 결과와 일치한다.
@@ -156,8 +164,12 @@ t.requires_grad = False
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 표본 8개를 한 배치로 한꺼번에 처리했을 때의 경사와, (적절히 크기를 조정하여) 표본 2개짜리 마이크로배치 4개로 경사를 누적했을 때의 경사를 비교하라. 둘이 일치함을 확인하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

@@ -554,24 +554,36 @@ def combined_augmentation_training_step(
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 레이블 평활화의 목표 분포와 그것이 교차 엔트로피 손실에 미치는 영향을 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     평활화된 목표는 $y'_k = (1-\epsilon)y_k + \epsilon/K$이다. 참 클래스 $c$에 대해서는 $y'_c = 1 - \epsilon + \epsilon/K = 1 - \epsilon(K-1)/K$이고, 다른 클래스에 대해서는 $y'_k = \epsilon/K$이다. 손실은 표준 교차 엔트로피와 균등 교차 엔트로피의 혼합이 된다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 레이블 평활화가 모델의 보정을 개선하는 방식을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     딱딱한 레이블은 로짓을 $\pm\infty$ 쪽으로 밀어 모델을 지나치게 확신하게 만든다. 레이블 평활화는 틀린 클래스에도 약간의 확률 질량을 두도록 보상하여 지나친 확신에 벌점을 주며, 그 결과 더 잘 보정된 확률 추정(예측 확신도가 실제 정확도와 맞는)을 얻는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 내장 `label_smoothing` 매개변수를 쓰지 않고 PyTorch에서 레이블 평활화를 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -585,8 +597,12 @@ def combined_augmentation_training_step(
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 레이블 평활화를 쓰지 말아야 할 때는 언제인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     (1) 참 레이블이 이미 부드럽거나 확률적일 때, (2) 뒤따르는 과제가 잘 보정된 확률을 요구할 때(레이블 평활화는 특정 보정 지표에서 오히려 보정을 망칠 수 있다), (3) 지식 증류를 쓸 때(교사의 부드러운 목표가 이미 평활화를 제공한다) 레이블 평활화를 피하라.

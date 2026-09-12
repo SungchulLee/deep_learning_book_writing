@@ -59,32 +59,48 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 모멘텀의 갱신 규칙을 유도하고 그것이 좁은 골짜기에서 수렴을 어떻게 빠르게 하는지 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     모멘텀은 $v_t = \beta v_{t-1} + \nabla L(\theta_t)$, $\theta_{t+1} = \theta_t - \eta v_t$이다. 좁은 골짜기에서는 기울기가 좁은 방향으로는 진동하지만 골짜기를 따라서는 한결같다. 모멘텀은 (서로 반대인 기울기가 상쇄되어) 진동을 누그러뜨리고 (한결같은 기울기가 쌓여) 골짜기를 따라 가속하여, 조건수를 $\kappa$이라 할 때 수렴을 $\sqrt{\kappa}$배 빠르게 한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 모멘텀 SGD의 실효 걸음 크기는 기본 SGD에 견주어 얼마인가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     극한에서 속도는 $v = \nabla L / (1 - \beta)$으로 쌓이므로 실효 걸음은 $\eta / (1 - \beta)$이다. $\beta = 0.9$이면 실효 학습률이 명목 학습률의 $10$배가 된다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 고전적인 모멘텀과 네스테로프 모멘텀을 비교하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     고전적인 모멘텀은 현재 위치에서 기울기를 계산한 뒤 움직인다. 네스테로프는 먼저 모멘텀 방향으로 잠정적인 걸음을 옮긴 뒤 그 미리 본 위치에서 기울기를 계산한다. 기울기를 더 많은 정보를 지닌 위치에서 재므로 네스테로프가 더 나은 수렴 보장(볼록 문제에서 $O(1/t)$ 대신 $O(1/t^2)$)을 준다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 모멘텀 SGD를 바닥부터 구현하고 `torch.optim.SGD(momentum=0.9)`과 맞는지 확인하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

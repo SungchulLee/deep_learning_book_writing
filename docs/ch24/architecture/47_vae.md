@@ -62,8 +62,12 @@ Parameters: 1,082,680
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 $d$차원 정규 분포에서 $\mathcal{N}(\mu, \sigma^2 I)$과 $\mathcal{N}(0, I)$ 사이 KL 벌어짐의 닫힌 꼴을 이끌어 내어라. 이끌어 낸 것이 부호에 쓰인 식과 맞는지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     대각 정규 분포에서는 KL 벌어짐이 차원에 걸친 합으로 쪼개진다:
@@ -76,8 +80,12 @@ $d$차원 정규 분포에서 $\mathcal{N}(\mu, \sigma^2 I)$과 $\mathcal{N}(0, 
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 MNIST에 변분 자기 부호기를 익히고 $z \sim \mathcal{N}(0, I)$을 풀어 아무 표본 100개를 만들어라. 10x10 격자로 보여라. 만든 숫자를 알아볼 수 있는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -95,8 +103,12 @@ MNIST에 변분 자기 부호기를 익히고 $z \sim \mathcal{N}(0, I)$을 풀�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 다시 매개변수화 재주가 왜 필요한지 설명하라. 그 재주 없이 $\mathcal{N}(\mu, \sigma^2)$에서 $z$을 곧바로 뽑으면 어떻게 되는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     곧바로 뽑으면 셈 그래프에 미분할 수 없는 연산이 생긴다. 곧 분포에서 뽑는 `sample` 연산은 분포 매개변수에 대한 기울기가 없다. 기울기가 $z$을 지나 $\mu$과 $\log\sigma^2$으로 흐르지 않으면 부호기 매개변수를 뒤먹임 퍼뜨리기로 새로 고칠 수 없다. 다시 매개변수화 재주는 뽑기를 $\mu$, $\sigma$, 바깥 잡음 $\epsilon$의 정해진 함수로 다시 세워 물길 전체를 미분할 수 있게 한다.

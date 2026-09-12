@@ -391,8 +391,12 @@ $$R_i = \alpha_i + \beta_i F + \epsilon_i, \qquad \epsilon_i \perp\!\!\!\perp \e
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 변수 셋의 베이즈 망 $A \to B \to C$이 주어졌을 때, 확률의 사슬 규칙과 그래프가 뜻하는 조건부 독립을 써서 결합 분포 $p(A, B, C)$을 적어라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     그래프는 $A \perp\!\!\perp C \mid B$을 담는다. 베이즈 망 쪼개기를 쓰면 다음과 같다:
@@ -403,16 +407,24 @@ $$R_i = \alpha_i + \beta_i F + \epsilon_i, \qquad \epsilon_i \perp\!\!\!\perp \e
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 베이즈 망과 마르코프 무작위 마당의 차이를 설명하여라. 어느 때 어느 쪽을 고르겠는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     **베이즈 망**(방향 그래프 모형)은 방향 변으로 조건부 기댐을 나타내고 결합 분포를 조건부 분포 $p(x_i \mid \text{parents}(x_i))$의 곱으로 쪼갠다. **마르코프 무작위 마당**(방향 없는 그래프 모형)은 무방향 변을 쓰고 결합 분포를 파벌 위 퍼텐셜 함수의 곱으로 쪼갠 뒤 나눔 함수 $Z$으로 고르게 한다. 인과나 낳음 짜임이 자연스러울 때(이를테면 의료 진단) 베이즈 망이 낫다. 관계가 대칭일 때(이를테면 그림 나누기, 공간 통계) 마르코프 무작위 마당이 낫다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 "설명해 치우기" 짜임 $A \to C \leftarrow B$을 생각하여라. $A$과 $B$이 주변으로는 독립이지만 $C$을 조건으로 두면 기대고 있음을 보여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     쪼개기 $p(A, B, C) = p(A)p(B)p(C \mid A, B)$에서 $C$에 걸쳐 주변화하면 다음과 같다:
@@ -423,8 +435,12 @@ $$R_i = \alpha_i + \beta_i F + \epsilon_i, \qquad \epsilon_i \perp\!\!\!\perp \e
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 베이즈 망에서 마디 $X$의 **마르코프 이불**은 그 어버이, 자식, 그리고 자식의 다른 어버이로 이루어진다. 마르코프 이불을 조건으로 두면 $X$이 다른 모든 마디와 조건부 독립임을 증명하여라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     베이즈 망 쪼개기에 따라 $p(X \mid \text{all others}) \propto p(X \mid \text{parents}(X)) \prod_{Y \in \text{children}(X)} p(Y \mid \text{parents}(Y))$이다. 첫 인자에는 $X$과 그 어버이만 들어간다. 곱 안의 인자마다 $X$, 자식 $Y$, 그리고 $Y$의 다른 어버이($X$의 짝 어버이)가 들어간다. 다른 변수는 나타나지 않으므로 마르코프 이불을 조건으로 두면 $X$은 다른 모든 변수와 조건부 독립이다. $\square$

@@ -332,8 +332,12 @@ def train_regression_mle_perspective():
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 후버 손실이 0 근처에서는 가우스, 꼬리에서는 라플라스인 분포 아래의 MLE에 대응함을 보여라. 밀도를 명시적으로 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     후버 손실은 $L_\delta(r) = \begin{cases} \frac{1}{2}r^2 & |r| \leq \delta \\ \delta|r| - \frac{1}{2}\delta^2 & |r| > \delta \end{cases}$이다.
@@ -348,8 +352,12 @@ def train_regression_mle_perspective():
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함수를 유도하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     포아송 확률질량함수는 $\lambda = \exp(f_\theta(x))$일 때 $P(y|\lambda) = \frac{\lambda^y e^{-\lambda}}{y!}$이다.
@@ -369,8 +377,12 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 다변량 출력에 대해 완전한 공분산 행렬을 예측하도록 이분산 회귀를 확장하라. 예측된 공분산이 양의 정부호임을 어떤 매개화로 보장할 수 있는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     $d$차원 출력에 대해 $\Sigma = LL^\top$으로 매개화한다. 여기서 $L$은 대각 성분이 양수인 하삼각행렬(촐레스키 인자)이다. 신경망은 다음을 예측한다.
@@ -388,8 +400,12 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 이상치가 0%, 5%, 10%, 20%인 데이터에서 MSE, MAE, 후버 손실을 비교하는 모의실험을 구현하라. 각각에 대해 매개변수 복원 정확도를 보고하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

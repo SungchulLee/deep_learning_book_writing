@@ -925,16 +925,24 @@ return θ⁽ᵗ⁾
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 EM 알고리즘의 되풀이마다 로그 가능도 $\log p(X \mid \theta)$이 단조롭게 커짐을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     근본 항등식에서 $\log p(X \mid \theta) = \mathcal{L}(q, \theta) + D_{\text{KL}}(q \| p(Z|X,\theta))$이다. E 걸음에서 $q = p(Z|X,\theta^{(t)})$으로 두면 $D_{\text{KL}} = 0$이 되어 $\mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \log p(X|\theta^{(t)})$이다. M 걸음에서는 $\theta^{(t+1)} = \arg\max_\theta \mathcal{L}(q^{(t+1)}, \theta) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)})$이다. 그러므로 $\log p(X|\theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \log p(X|\theta^{(t)})$이다. $\square$
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 성분이 $K$개인 가우스 섞음 모형의 온전한 E 걸음과 M 걸음 새로 고침을 이끌어 내어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     **E 걸음:** 맡음 몫 $r_{nk} = \frac{\pi_k \mathcal{N}(x_n | \mu_k, \Sigma_k)}{\sum_{j=1}^K \pi_j \mathcal{N}(x_n | \mu_j, \Sigma_j)}$을 셈한다.
@@ -945,16 +953,24 @@ EM 알고리즘의 되풀이마다 로그 가능도 $\log p(X \mid \theta)$이 �
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 딱 잘라 하는 EM과 부드러운 EM의 차이를 설명하여라. 딱 잘라 하는 EM은 언제 나을 수 있는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     **부드러운 EM**에서는 E 걸음이 몫으로 나뉜 맡음 몫(뒤확률) $r_{nk} \in [0, 1]$을 셈한다. **딱 잘라 하는 EM**에서는 자료 점마다 무리 하나에 배정된다. 곧 $k^* = \arg\max_k r_{nk}$이면 $r_{nk} = 1$, 아니면 $r_{nk} = 0$이다. 딱 잘라 하는 EM은 공분산이 같은 구면 가우스에서 k 평균 알고리즘과 같다. 딱 잘라 하는 EM은 (1) 띄엄띄엄한 무리짓기가 필요할 때, (2) 셈 자원이 빠듯할 때(새로 고침이 더 단순하다), (3) 무리가 잘 떨어져 있어 부드러운 배정이 별 값어치가 없을 때 낫다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 EM 도중에 가우스 성분이 자료 점 하나로 찌부러지면 어떤 말썽이 생길 수 있는가? 어떻게 막을 수 있는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     가우스 성분의 평균이 자료 점 하나와 겹치고 그 흩어짐이 0으로 오그라들면 가능도가 묶이지 않는다(그 점에서 밀도가 무한으로 간다). 이것이 가우스 섞음 모형의 **특이점 문제**이다. 막는 방법으로는 (1) 공분산에 작은 벌주기 항 더하기($\Sigma_k + \epsilon I$), (2) $N_k$이 문턱값 아래로 떨어진 성분 되돌리기, (3) 베이즈 앞확률 쓰기(이를테면 $\Sigma_k$에 역위샤트), (4) 공분산 행렬의 고윳값에 최솟값 제약 두기가 있다.

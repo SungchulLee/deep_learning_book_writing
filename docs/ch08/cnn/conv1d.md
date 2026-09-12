@@ -557,24 +557,36 @@ Multi-scale features: torch.Size([16, 96, 252])
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 2차원 합성곱보다 1차원 합성곱이 나은 때를 설명하고 응용 예 세 가지를 들어라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     공간 구조가 1차원인 순차 데이터에는 1차원 합성곱이 낫다. (1) 시계열 예측, (2) 음향·음성 처리, (3) 자연어 텍스트 분류(글자 단위 또는 낱말 단위)가 그 예이다. 핵을 한 방향으로만 미끄러뜨리므로 2차원보다 계산이 싸다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 입력 길이가 100, 핵 크기가 5, 보폭이 2, 덧대기가 1인 1차원 합성곱의 출력 길이를 계산하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     출력 길이 $= \lfloor(L_{\text{in}} + 2P - K) / S\rfloor + 1 = \lfloor(100 + 2 - 5)/2\rfloor + 1 = \lfloor 97/2 \rfloor + 1 = 48 + 1 = 49$.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 시계열 분류를 위한 1차원 CNN을 PyTorch로 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -587,8 +599,12 @@ Multi-scale features: torch.Size([16, 96, 252])
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 핵 크기가 $k$인 `nn.Conv1d`을 같은 입력에 적용한 완전 연결층과 견주어라. 매개변수는 얼마나 줄어드는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     길이가 $L$이고 채널이 $C_{\text{in}}$개인 입력에 대한 완전 연결층은 매개변수가 $L \cdot C_{\text{in}} \cdot C_{\text{out}}$개이다. Conv1d은 $k \cdot C_{\text{in}} \cdot C_{\text{out}}$개이다. 줄어드는 비는 $L/k$이다. $L=1000, k=5$이면 가중치 공유 덕분에 매개변수가 200분의 1이 된다.

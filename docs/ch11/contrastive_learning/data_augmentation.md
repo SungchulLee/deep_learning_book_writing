@@ -352,8 +352,12 @@ SwAV와 DINO가 쓰는 **여러 조각 자르기** 방법은 (그림의 40~100%�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 SimCLR와 MAE의 불리기 파이프라인을 견주어라. 저마다 쓰는 불리기를 모두 들고, MAE가 훨씬 약한 불리기로도 좋은 성능을 내는 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     **SimCLR의 불리기**: RandomResizedCrop(scale 0.2~1.0), RandomHorizontalFlip(p=0.5), ColorJitter(밝기, 대비, 채도, 색상, p=0.8), RandomGrayscale(p=0.2), GaussianBlur, ImageNet 정규화.
@@ -364,8 +368,12 @@ SimCLR와 MAE의 불리기 파이프라인을 견주어라. 저마다 쓰는 불
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 여러 방법에서 `RandomResizedCrop`의 `scale` 매개변수가 하는 몫을 설명하라. SimCLR는 왜 `scale=(0.2, 1.0)`을 쓰고 BYOL은 `scale=(0.08, 1.0)`을, SwAV의 국소 조각은 `scale=(0.05, 0.4)`을 쓰는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `scale` 매개변수는 자른 조각이 본디 그림 넓이의 얼마를 지니는지를 다스린다. $(0.2, 1.0)$이면 조각이 그림 넓이의 20%에서 100%까지이다.
@@ -378,8 +386,12 @@ SimCLR와 MAE의 불리기 파이프라인을 견주어라. 저마다 쓰는 불
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 배치에서 그림 둘을 받아 직사각 영역을 무작위로 골라 그 영역을 둘 사이에 맞바꾸는 `CutMixAugmentation`이라는 불리기 클래스를 직접 구현하라. 이 클래스는 고친 두 그림과 섞음 비율(본디 그림에서 온 화소의 비율)을 함께 돌려주어야 한다. 반지도 대조 학습에 쓸모 있다.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

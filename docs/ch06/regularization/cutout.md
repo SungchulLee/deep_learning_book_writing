@@ -535,16 +535,24 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 컷아웃 알고리즘과 그 초매개변수를 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     컷아웃은 입력 이미지에서 크기가 $L \times L$인 정사각형 영역을 무작위로 골라 0(또는 평균 화소값)으로 채운다. 그 영역은 이미지 경계 바깥까지 뻗을 수 있다. 핵심 초매개변수는 조각의 크기 $L$이며, CIFAR-10에서는 보통 16(이미지 크기의 절반)이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 컷아웃을 `torchvision.transforms`의 사용자 정의 변환으로 구현하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -564,16 +572,24 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 정칙화 기법으로서 컷아웃과 드롭아웃의 관계를 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     둘 다 표현의 일부를 무작위로 가린다. 드롭아웃은 개별 뉴런을, 컷아웃은 공간 영역을 가린다. 컷아웃은 공간 상관 때문에 개별 화소에 대한 드롭아웃이 너무 잘게 쪼개지는 이미지를 위해 설계되었다. 컷아웃은 신경망이 부분적인 관측에서 배우도록 강제하여 가림에 대한 견고성을 높인다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 이미지 해상도가 다를 때 컷아웃의 조각 크기는 얼마로 해야 하는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     어림 규칙으로 조각의 크기는 이미지 한 변의 25~50%로 한다. CIFAR-10(32x32)은 $L=16$, ImageNet(224x224)은 $L=112$이다. 너무 작으면 정칙화 효과가 미미하고, 너무 크면 정보를 너무 많이 없애 학습 신호를 해친다.

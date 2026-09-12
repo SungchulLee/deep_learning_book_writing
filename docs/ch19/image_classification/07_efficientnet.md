@@ -83,24 +83,36 @@ MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 고갱이
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 SiLU/Swish 활성 $f(x) = x \cdot \sigma(x)$을 ReLU와 견주어라. $x \in [-5, 5]$에서 두 함수와 그 도함수를 그려라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     SiLU은 매끄럽고 단조롭지 않으며 $x \approx -1.28$ 언저리에 작은 음수 구간이 있다. ReLU과 달리 음수 들임에서도 기울기가 0이 아니어서 죽은 뉴런을 막는 데 도움이 된다. 도함수는 $f'(x) = \sigma(x) + x \cdot \sigma(x)(1 - \sigma(x)) = \sigma(x)(1 + x(1 - \sigma(x)))$이다. $x = 0$에서 SiLU은 0을 내놓고 기울기가 0.5이지만 ReLU은 0을 내놓고 기울기가 정해지지 않는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 첫 MBConv 덩이의 부풀림 비는 1이고 뒤따르는 덩이는 6인 까닭을 설명하여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     첫 덩이는 채널이 적은 곳(줄기에서 온 32개)에서 돌아가므로 부풀릴 까닭이 없고 셈만 버리게 된다. 뒤따르는 덩이는 병목 꾸밈 탓에 들임 채널이 좁으므로, 깊이별 누비기가 뜻있는 자리 특징을 배울 만한 힘을 주려면 부풀려야 한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 MBConv 덩이에 쥐어짜기-북돋우기를 더하고 늘어난 매개변수를 재어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

@@ -459,8 +459,12 @@ def recommended_generator_loss(discriminator, fake_data):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 본디 맞겨루기 만들개 손실과 젠슨-섀넌 벌어짐의 관계를 이끌어 내라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     가장 좋은 가름개 $D^*(x) = \frac{p_d(x)}{p_d(x) + p_g(x)}$을 값 함수에 넣으면:
@@ -475,8 +479,12 @@ def recommended_generator_loss(discriminator, fake_data):
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 본디 맞겨루기 만들개 손실, 포화하지 않는 손실, 바서슈타인 손실을 기울기의 움직임과 익히기의 안정 면에서 견주어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     | 손실 | 만들개 목표 | 기울기 문제 | 안정 |
@@ -489,16 +497,24 @@ def recommended_generator_loss(discriminator, fake_data):
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 맞겨루기 만들개 놀이의 내시 균형에서 $p_g = p_{\text{data}}$이고 모든 $x$에 대해 $D(x) = 1/2$임을 보여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     균형에서 $G$은 $G$에 대해 $V(G, D^*)$을 가장 작게 했다. 젠슨-섀넌 벌어짐 나누기에서 $V(G, D^*) = 2\text{JSD}(p_d \| p_g) - 2\log 2 \geq -2\log 2$이며, 등호는 $\text{JSD} = 0$일 때만, 곧 $p_g = p_d$일 때만 성립한다. $p_g = p_d$을 $D^*$에 넣으면 $D^*(x) = \frac{p_d(x)}{p_d(x) + p_d(x)} = \frac{1}{2}$이다. $\square$
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 WGAN-GP의 립시츠 묶음을 설명하고 무게 자르기보다 기울기 벌점을 더 낫게 여기는 까닭을 밝혀라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     WGAN은 평가개(가름개)가 1-립시츠이기를 요구한다. 곧 모든 $x, y$에 대해 $|D(x) - D(y)| \leq \|x - y\|$이다. **무게 자르기**는 무게를 $[-c, c]$으로 묶어 이를 지키게 하지만 다음을 낳는다. (1) 담이를 덜 쓴다(무게 공간의 대부분을 쓰지 않는다). (2) $c$에 따라 기울기가 터지거나 사라진다. (3) 평가개가 단순한 함수만 배운다. **기울기 벌점**(WGAN-GP)은 $\hat{x}$이 실제 표본과 가짜 표본 사이를 메울 때 $\lambda \mathbb{E}_{\hat{x}}[(\|\nabla_x D(\hat{x})\| - 1)^2]$을 더한다. 이는 알맞은 점에서 립시츠 묶음을 부드럽게 지키게 하여 평가개가 담이를 온전히 쓰게 하고 익히기를 더 안정시킨다.

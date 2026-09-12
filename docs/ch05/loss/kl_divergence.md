@@ -306,8 +306,12 @@ KL 발산은 두 분포 사이의 기대 로그가능도비로, $p$을 $q$으로
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 KL 발산이 음이 아님을 증명하라. 즉 $D_{\text{KL}}(p\|q) \geq 0$이며 등호는 $p = q$일 때에만 성립함을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     볼록함수 $-\log$에 옌센 부등식을 적용하면 다음을 얻는다.
@@ -320,8 +324,12 @@ KL 발산이 음이 아님을 증명하라. 즉 $D_{\text{KL}}(p\|q) \geq 0$이�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 $p = \text{Bernoulli}(0.3)$과 $q = \text{Bernoulli}(0.7)$에 대해 $D_{\text{KL}}(p\|q)$과 $D_{\text{KL}}(q\|p)$을 계산하여 KL 발산이 대칭이 아님을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $D_{\text{KL}}(p\|q) = 0.3\log\frac{0.3}{0.7} + 0.7\log\frac{0.7}{0.3} = 0.3(-0.847) + 0.7(0.847) = 0.339$ nats.
@@ -332,8 +340,12 @@ $p = \text{Bernoulli}(0.3)$과 $q = \text{Bernoulli}(0.7)$에 대해 $D_{\text{K
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 두 단변량 정규분포 $p = \mathcal{N}(\mu_1, \sigma_1^2)$과 $q = \mathcal{N}(\mu_2, \sigma_2^2)$ 사이의 KL 발산을 유도하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     $$
@@ -344,8 +356,12 @@ $p = \text{Bernoulli}(0.3)$과 $q = \text{Bernoulli}(0.7)$에 대해 $D_{\text{K
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 변분 추론에서 순방향 KL($D_{\text{KL}}(p\|q)$)과 역방향 KL($D_{\text{KL}}(q\|p)$)의 차이를 설명하라. 어느 쪽이 최빈값을 좇고 어느 쪽이 평균을 좇는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     순방향 KL $D_{\text{KL}}(p\|q)$은 **평균을 좇는다**(0을 피한다). $q \approx 0$일 때 $\log(p/q)$에서 오는 무한한 벌점을 피하려면 $q$이 $p > 0$인 모든 영역을 덮어야 한다. 그래서 $q$이 퍼져서 $p$의 모든 최빈값을 덮게 된다.

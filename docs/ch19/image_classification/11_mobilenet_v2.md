@@ -70,8 +70,12 @@ MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정�
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 들임과 내놓음 차원이 같을 때 뒤집은 잔차 덩이와 보통 잔차 덩이의 FLOPs를 견주어라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     들임 채널 $C$개, 날임 채널 $C$개, 넓힘 비율 6, 공간 크기 $H \times W$일 때
@@ -83,16 +87,24 @@ MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 MobileNetV2는 왜 보통의 ReLU 대신 ReLU6을 쓰는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ReLU6은 내놓음을 6에서 자르는데, 이는 손전화에 펼칠 때의 고정소수점 양자화에 도움이 된다. 깨어남이 $[0, 6]$에 갇히면 자릿수가 적은 정수로도 정밀도를 크게 잃지 않고 나타낼 수 있어 손전화 하드웨어에서 더 빨리 미룰 수 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 MobileNetV3 방식의 하드 스위시 깨어남을 짜고 ReLU6과 견주어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

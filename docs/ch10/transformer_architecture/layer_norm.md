@@ -311,32 +311,48 @@ class StableLayerNorm(nn.Module):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 통계를 특징 차원에서 셈하는 층 정규화 $\text{LN}(x) = \gamma \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta$을 이끌어 내라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     입력 $x \in \mathbb{R}^d$에 대해 $\mu = \frac{1}{d}\sum_i x_i$, $\sigma^2 = \frac{1}{d}\sum_i(x_i-\mu)^2$이다. 층 정규화는 배치에 걸쳐 정규화하는 배치 정규화와 달리 토큰마다 따로 특징에 걸쳐 정규화한다. 그래서 길이가 제각각인 수열과 작은 배치 크기에 알맞다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 앞 정규화 트랜스포머 구조와 뒤 정규화 트랜스포머 구조를 견주어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     뒤 정규화(본디 방식)는 $x + \text{LN}(\text{SubLayer}(x))$이고 앞 정규화는 $x + \text{SubLayer}(\text{LN}(x))$이다. 앞 정규화는 잔차 길이 깔끔하게 남으므로(건너뛰기에 정규화가 없다) 깊은 모형에 더 안정적이다. 뒤 정규화는 학습률 예열을 조심스레 하면 마지막 성능이 더 나을 수 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 트랜스포머에서 배치 정규화보다 층 정규화를 더 좋아하는 까닭은 무엇인가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     배치 정규화는 배치 차원에 걸쳐 통계를 셈하는데 이는 (1) 배치 크기에 따라 달라지고, (2) 길이가 제각각인 수열에 알맞지 않으며(채움이 통계를 흔든다), (3) 추론을 위해 누적 통계가 필요하다. 층 정규화는 토큰마다 통계를 셈하여 이 문제를 모두 피한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 층 정규화를 맨바닥부터 구현하고 `nn.LayerNorm`과 맞는지 확인하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

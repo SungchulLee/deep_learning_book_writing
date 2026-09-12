@@ -310,8 +310,12 @@ def loss_function_comparison():
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 음이항분포를 사용하여 과대산포가 있는 계수를 예측하는 모델의 손실 함수를 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     음이항분포의 확률질량함수는 $P(y|r,p) = \binom{y+r-1}{y} p^r (1-p)^y$이다.
@@ -326,8 +330,12 @@ def loss_function_comparison():
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 드롭아웃 학습이 변분 추론을 근사함을 보이고, 그것이 어떤 사후분포를 근사하는지 밝혀라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     Gal과 Ghahramani(2016)는 각 가중치 층 앞에 드롭아웃을 적용한 신경망이 참 사후분포에 대한 KL 발산을 최소화함을 보였다. 구체적으로 근사 사후분포는 다음과 같다.
@@ -340,8 +348,12 @@ def loss_function_comparison():
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 폰 미제스 분포를 사용하여 원형 데이터(예: 바람의 방향)를 예측하는 사용자 정의 손실을 설계하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     폰 미제스 밀도는 각 $\theta \in [-\pi, \pi]$에 대해 $p(\theta|\mu,\kappa) = \frac{e^{\kappa\cos(\theta-\mu)}}{2\pi I_0(\kappa)}$이다.
@@ -362,8 +374,12 @@ def loss_function_comparison():
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 특징이 $p = 100$개, 관측이 $n = 50$개이고 참으로 0이 아닌 계수가 5개인 희소 회귀 문제에서 MLE, L2를 쓴 MAP, L1을 쓴 MAP을 비교하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

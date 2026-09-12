@@ -384,6 +384,57 @@ if __name__ == "__main__":
     print("- Trade-off between number of iterations and computation time")
 ```
 
+**출력:**
+
+```
+============================================================
+HYPERPARAMETER TUNING: RANDOM SEARCH
+============================================================
+
+Random Search samples parameter settings from specified
+distributions for a fixed number of iterations. It's often
+more efficient than Grid Search, especially for large parameter
+spaces.
+
+
+### Example 1: Random Forest with Random Search ###
+
+============================================================
+RANDOM SEARCH - RANDOM FOREST CLASSIFIER
+============================================================
+
+Parameter Distributions:
+----------------------------------------
+n_estimators: <scipy.stats._distn_infrastructure.rv_discrete_frozen object at 0x10600cc80>
+max_depth: [None, 10, 20, 30, 40, 50]
+min_samples_split: <scipy.stats._distn_infrastructure.rv_discrete_frozen object at 0x13742c650>
+min_samples_leaf: <scipy.stats._distn_infrastructure.rv_discrete_frozen object at 0x136ba6300>
+max_features: ['sqrt', 'log2', None]
+bootstrap: [True, False]
+----------------------------------------
+
+Will try 100 random combinations...
+Fitting 5 folds for each of 100 candidates, totalling 500 fits
+
+============================================================
+Random Search (Random Forest)
+============================================================
+  가장 좋은 조절 값:
+
+... (165 lines omitted)
+
+Score Difference: 0.0000
+
+
+Random Search completed! Check the results above.
+
+Key Takeaways:
+- Random Search is more efficient for large parameter spaces
+- Can use continuous distributions (not just discrete grids)
+- Often finds good parameters with fewer iterations
+- Trade-off between number of iterations and computation time
+```
+
 ## 2. 논의
 
 `RandomizedSearchCV`를 쓰는 무작위 탐색은 격자를 모두 열거하는 대신 매개변수 분포에서 값을 뽑는다. Bergstra와 Bengio(2012)는 어떤 초매개변수가 다른 것보다 훨씬 중요할 때, 무작위 탐색이 중요한 매개변수의 서로 다른 값을 더 많이 살펴보므로 좋은 설정을 더 빨리 찾는다는 것을 보였다.

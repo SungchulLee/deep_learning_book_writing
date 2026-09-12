@@ -71,32 +71,48 @@ RMSprop은 Adam 이전의 기본 적응형 최적화기였다. Adam이 이따금
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 RMSprop의 갱신 규칙을 유도하고 학습률을 어떻게 맞추는지 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     RMSprop은 $v_t = \beta v_{t-1} + (1-\beta)g_t^2$, $\theta_{t+1} = \theta_t - \eta g_t / \sqrt{v_t + \epsilon}$이다. 기울기가 큰 매개변수는 실효 학습률이 작아지고($v$이 크면 $\eta/\sqrt{v}$이 작다) 그 반대도 마찬가지이다. 이렇게 손실 곡면의 국소적인 기하에 맞춘다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 RMSprop이 기울기 제곱의 지수 가중 이동 평균임을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     펼치면 $v_t = (1-\beta)\sum_{i=0}^{t-1} \beta^i g_{t-i}^2$이다. 최근 기울기는 가중치 $(1-\beta)$을 갖고 오래된 것은 $\beta^i$으로 줄어든다. 실효 창의 크기는 $1/(1-\beta)$이며, $\beta=0.99$이면 최근 100개의 기울기가 지배한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 RMSprop이 Adagrad를 개선하려고 나온 이유를 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     Adagrad는 지난 기울기 제곱을 모두 누적하여 $v_t = \sum_{i=1}^t g_i^2$을 쓰는데, 이 값이 단조 증가하여 결국 학습률이 사라질 만큼 작아진다. RMSprop은 지수 감쇠를 써서 $v_t$을 유계로 유지하므로 학습 내내 계속 배울 수 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 RMSprop과 Adam을 비교하라. Adam은 RMSprop에 무엇을 더하는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     Adam = RMSprop + 모멘텀 + 편향 보정이다. RMSprop은 학습률을 맞추지만 방향에는 날 기울기를 쓴다. Adam은 갱신을 더 매끄럽게 하려고 모멘텀 항(기울기의 지수 평균)을, 초반 추정을 정확히 하려고 편향 보정을 더한다.

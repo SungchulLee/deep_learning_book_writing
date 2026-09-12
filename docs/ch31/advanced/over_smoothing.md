@@ -95,24 +95,36 @@ Over-Smoothing Analysis
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 층이 1, 2, 4, 8, 16, 32개인 SimpleGCN의 평균 거리와 디리클레 에너지를 셈하라. 두 잣대를 깊이의 함수로 그려라. 디리클레 에너지가 처음 값의 1% 아래로 떨어지는 깊이는 얼마인가?
+
+</div>
 
 ??? success "연습문제 1 풀이"
     보여 주기를 돌리면 두 잣대를 담은 표가 나온다. 보통 디리클레 에너지는 층 8~16개 언저리에서 1층 값의 1% 아래로 떨어진다. 정확한 갈림목은 아무 첫자리매김에 매이지만 지수로 사그라지는 무늬는 한결같다. 사그라지는 빠르기는 고르게 맞춘 라플라스의 스펙트럼 틈이 다스린다. $\lambda_2$이 고르게 맞춘 이웃 행렬의 둘째로 큰 고윳값일 때 $E_L \approx E_1 \cdot \lambda_2^{2L}$이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 고윳값이 $1 = \lambda_1 > \lambda_2 \geq \cdots \geq \lambda_n$을 만족하는 고르게 맞춘 이웃 행렬 $\hat{A}$을 가진 그래프에서 (비선형이 없는) 선형 그래프 겹말기 신경망 $L$층 뒤의 디리클레 에너지가 $E(H^{(L)}) \leq \lambda_2^{2L} \cdot E(H^{(0)})$을 만족함을 밝혀라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $H^{(L)} = \hat{A}^L H^{(0)} W_1 \cdots W_L$이라 하자. 디리클레 에너지는 $L = I - \hat{A}$일 때 $E(H) = \text{tr}(H^T L H)$이다. $\hat{A}$과 $L$이 고유 벡터를 함께 가지고 $L$의 고윳값이 $1 - \lambda_i$이므로 $E(\hat{A}^L H) = \sum_i (1 - \lambda_i) \lambda_i^{2L} \|u_i^T H\|^2$을 얻는다. $i \geq 2$에서 $\lambda_i^{2L} \leq \lambda_2^{2L}$이고 $1 - \lambda_1 = 0$이므로 $i=1$ 항은 사라진다. 따라서 무게 행렬의 영향을 빼면 $E(H^{(L)}) \leq \lambda_2^{2L} \sum_{i \geq 2} (1 - \lambda_i) \|u_i^T H\|^2 \leq \lambda_2^{2L} E(H^{(0)})$이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 짝별 온 거리를 상수로 지키도록 마디 특징을 고르게 맞추는 짝 고르게 맞추기(자오와 아코글루, 2020)를 짜라. 이를 `SimpleGCN`에 더하고 16층에서 짝 고르게 맞추기가 있을 때와 없을 때의 지나친 매끄러워짐 잣대를 견주어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

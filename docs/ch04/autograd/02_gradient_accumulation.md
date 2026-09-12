@@ -266,8 +266,12 @@ After 1st backward: x2.grad = tensor([4.])
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -282,8 +286,12 @@ After 1st backward: x2.grad = tensor([4.])
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 `retain_graph=True` 없이 같은 계산 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     기본적으로 PyTorch는 메모리를 아끼기 위해 `.backward()` 후에 계산 그래프를 해제한다. `.backward()`를 두 번째로 호출하면 더 이상 존재하지 않는 그래프를 훑으려 하므로 `RuntimeError`가 발생한다. `retain_graph=True`로 두면 그래프가 메모리에 남아 재사용할 수 있지만, 모든 중간 텐서가 할당된 채로 남으므로 메모리 소비가 늘어난다.
@@ -291,8 +299,12 @@ After 1st backward: x2.grad = tensor([4.])
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 잎 텐서 `w`를 만들고 손실을 계산한 뒤, 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하는 코드를 작성하라. 관찰된 값을 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

@@ -1108,7 +1108,11 @@ See: data_overwhelming_prior.png
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.** <span class="diff easy" title="쉬움"></span> 센 앞확률과 약한 앞확률이 같은 데이터에서 어떻게 다른 뒤확률을 주는지 정리 5로 설명하시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -1116,7 +1120,11 @@ See: data_overwhelming_prior.png
 
     $n$ 을 붙박아 두고 $\alpha+\beta$ 를 키우면 뒤확률 평균이 앞확률 평균 쪽으로 매끄럽게 움직인다. 보기 4의 표가 그 흐름을 수로 보여 준다.
 
+<div class="drillbox" markdown>
+
 **연습문제 2.** <span class="diff med" title="중간"></span> 앞확률 민감도 분석이란 무엇이며 왜 해야 하는지 밝히시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -1124,7 +1132,11 @@ See: data_overwhelming_prior.png
 
     문제 3처럼 앞확률과 데이터가 부딪치는 경우에는 반드시 해야 한다. 알릴 때도 하나의 뒤확률이 아니라 앞확률 몇 가지에서 나온 결과를 나란히 보이는 것이 정직하다.
 
+<div class="drillbox" markdown>
+
 **연습문제 3.** <span class="diff med" title="중간"></span> 차례 갱신에서 뒤확률이 참값으로 모여드는 모습을 흉내 내어 확인하시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -1132,7 +1144,11 @@ See: data_overwhelming_prior.png
 
     평균은 $\theta^\star$ 로 다가가고 표준편차는 대략 $1/\sqrt t$ 로 줄어든다. 문제 4에서 정규 모형으로 본 것과 같은 거동이다.
 
+<div class="drillbox" markdown>
+
 **연습문제 4.** <span class="diff hard" title="어려움"></span> 정규 모형에서 평균과 흩어짐을 **둘 다** 모를 때의 켤레 앞확률인 정규-역감마를 적고, 뒤확률의 매개변수를 이끌어 내시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -1150,7 +1166,11 @@ See: data_overwhelming_prior.png
 
     $\mu_n$ 이 정리 6과 같은 무게 준 평균 꼴임에 주목하라. $b_n$ 의 마지막 항은 앞확률 평균과 표본 평균이 얼마나 어긋났는지에 대한 벌이며, 둘이 멀수록 흩어짐을 크게 잡는다.
 
+<div class="drillbox" markdown>
+
 **연습문제 5.** <span class="diff hard" title="어려움"></span> 실제 데이터를 하나 골라 앞확률을 세우고, 뒤확률을 셈한 뒤, 앞확률 예측 분포로 모형을 시험하시오.
+
+</div>
 
 ??? success "풀이"
 

@@ -519,8 +519,12 @@ Probability → Odds → Log-Odds conversion:
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 시그모이드의 도함수가 $z=0$에서 최댓값을 가짐을 증명하고 그 최댓값을 계산하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     $\sigma'(z) = \sigma(z)(1-\sigma(z))$이다. 이는 $p = \sigma(z) \in (0,1)$일 때의 곱 $p(1-p)$이다.
@@ -531,8 +535,12 @@ Probability → Odds → Log-Odds conversion:
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 대칭성 $\sigma(-z) = 1 - \sigma(z)$을 증명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $$
@@ -543,8 +551,12 @@ Probability → Odds → Log-Odds conversion:
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 어떤 로지스틱 회귀 모델에서 연 단위로 측정된 특징의 계수가 $\beta_1 = 0.7$이다. 승산비를 계산하고 해석하라. 5년이 늘어나면 승산은 어떻게 달라지는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     한 단위 증가에 대한 승산비는 $\text{OR} = e^{\beta_1} = e^{0.7} \approx 2.014$이다. 한 해가 더해질 때마다 양성 결과의 승산이 대략 두 배가 된다.
@@ -553,8 +565,12 @@ Probability → Odds → Log-Odds conversion:
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 수치적으로 안정한 시그모이드 $\sigma(z) = \begin{cases} \frac{1}{1+e^{-z}} & z \geq 0 \\ \frac{e^z}{1+e^z} & z < 0 \end{cases}$을 구현하고, 극단적인 값에서 `torch.sigmoid`와 일치하는지 확인하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

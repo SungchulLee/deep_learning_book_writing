@@ -409,8 +409,12 @@ class BidirectionalHybrid(nn.Module):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 다섯 가지 항목으로 GRU와 LSTM의 비교표를 만들어라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     | 항목 | GRU | LSTM |
@@ -423,24 +427,36 @@ class BidirectionalHybrid(nn.Module):
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 어떤 과제에서 GRU가 대체로 LSTM과 맞먹거나 앞서는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     음성 인식, 음악 모형화, 짧은 텍스트 분류, 그리고 많은 순차열 대 순차열 과제에서 GRU가 LSTM과 맞먹는다. 작은 데이터셋에서는 (과적합이 덜하여) GRU가 앞설 수 있다. 아주 긴 순차열, 언어 모형, 문 조절이 정밀해야 하는 과제에서는 LSTM이 나은 편이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 '최소 문 달린 단위'가 무엇이며 GRU를 어떻게 더 간소화하는지 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     최소 문 달린 단위(Zhou 등, 2016)는 문 하나만 쓴다. $z_t = \sigma(W_z x_t + U_z h_{t-1})$일 때 $h_t = (1-z_t)h_{t-1} + z_t \tanh(Wx_t + U(h_{t-1}))$이다. 매개변수가 GRU의 3분의 2이면서 많은 과제에서 비슷한 성능을 내는데, GRU조차 매개변수가 지나칠 수 있음을 시사한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 감성 분석 과제에서 GRU와 LSTM을 실제로 견주어 정확도와 학습 시간을 보고하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     IMDB 감성 분석의 흔한 결과는 GRU 정확도 약 87%, LSTM 정확도 약 88%이며 GRU가 20~30% 빨리 학습한다. 정확도 차이는 신뢰 구간 안일 때가 많다. 결론은 이렇다. 빠르게 되풀이하려면 GRU를 먼저 해 보고, 성능이 중요하면 LSTM으로 바꾸라.

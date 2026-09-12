@@ -75,8 +75,12 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 `vocab_size=1000`, `d_model=256`, `num_heads=8`, `num_layers=4`, `d_ff=1024`으로 `TransformerDecoder`를 세워라. 토큰 번호의 배치를 넣어 출력의 꼴이 `(batch_size, seq_len, vocab_size)`과 맞는지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -91,8 +95,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 이 디코더 블록에는 인코더에 대한 교차 주의가 없다. 교차 주의가 언제 필요한지, 그리고 `TransformerDecoderBlock`을 어떻게 고쳐 더할지 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     교차 주의는 디코더가 원문 수열을 조건으로 삼으려고 인코더의 출력에 주의해야 하는 인코더-디코더 모형(이를테면 기계 번역)에서 필요하다. 더하려면 자기 주의와 순전파 아래 층 사이에 둘째 `nn.MultiheadAttention` 층을 끼운다. 질의는 디코더에서 오고 열쇠와 값은 인코더의 출력에서 온다. 이 아래 층의 잔차 연결을 위해 셋째 `nn.LayerNorm`도 필요하다.
@@ -103,8 +111,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 여기서 쓴 뒤 정규화 방식(`norm(x + sublayer(x))`)과 앞 정규화 방식(`x + sublayer(norm(x))`)을 견주어라. 앞 정규화를 구현하고 그것이 깊은 모형에서 학습 안정성을 자주 높이는 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

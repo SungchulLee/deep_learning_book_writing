@@ -154,24 +154,36 @@ $$\mathbf{y} = \mathbf{x} + F_3(\text{SE}(F_2(F_1(\mathbf{x}))))$$
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 SE 블록을 유도하라: 전역 평균 풀링, 축소 비율이 $r$인 완전 연결층 두 개, 시그모이드 문.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     입력은 특징 맵 $X \in \mathbb{R}^{C \times H \times W}$이다. (1) 압축: $z_c = \frac{1}{HW}\sum_{i,j} X_{c,i,j}$ (채널마다 전역 평균 풀링). (2) 여기: $s = \sigma(W_2 \cdot \text{ReLU}(W_1 z))$이며 $W_1 \in \mathbb{R}^{C/r \times C}$, $W_2 \in \mathbb{R}^{C \times C/r}$이다. (3) 배율 적용: $\tilde{X}_c = s_c \cdot X_c$. 비율이 $r$(보통 16)인 병목이 매개변수의 부담을 억누른다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 채널이 $C = 256$개이고 축소 비율이 $r = 16$인 SE 블록의 매개변수 부담을 계산하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     매개변수는 $W_1$이 $C/r \times C = 16 \times 256 = 4096$개, $W_2$이 $C \times C/r = 256 \times 16 = 4096$개로 모두 8192개이다. 매개변수가 $256 \times 256 \times 3 \times 3 = 589{,}824$개인 합성곱 층에 견주면 SE의 부담은 1.4%에 지나지 않는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 SE 블록을 PyTorch로 구현하고 ResNet 병목에 넣어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -189,8 +201,12 @@ SE 블록을 PyTorch로 구현하고 ResNet 병목에 넣어라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 SE 블록은 어텐션 장치와 어떤 관계인가? 어떤 종류의 어텐션을 구현하는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     SE는 채널 어텐션을 구현한다. 전역 맥락에 따라 특징 맵의 채널마다 중요도를 매기는 법을 배운다. 공간 어텐션(어디를 볼지)이나 자기 어텐션(쌍의 관계)과 달리 채널 어텐션은 '이 입력에는 어떤 특징이 중요한가'에 답한다. 트랜스포머의 온전한 어텐션에 앞선 가벼운 선구자이다.

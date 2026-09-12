@@ -627,8 +627,12 @@ Max difference: 1.27e+01
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 데이터가 선형 분리 가능하면 $\|\boldsymbol{\beta}\| \to \infty$이 되어 MLE가 존재하지 않음을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     데이터가 선형 분리 가능하면 모든 $i$에 대해 $y_i \mathbf{x}_i^\top\boldsymbol{\beta} > 0$인 $\boldsymbol{\beta}$이 존재한다. 로그가능도는 다음과 같다.
@@ -641,8 +645,12 @@ Max difference: 1.27e+01
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 정준 로그 연결을 쓰는 포아송 회귀에 대한 IRLS 갱신을 유도하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\mu_i = e^{\mathbf{x}_i^\top\boldsymbol{\beta}}$(로그 연결)인 포아송의 경우, $\text{Var}(y_i) = \mu_i$이고 $\frac{d\mu}{d\eta} = \mu$이므로 가중치 행렬은 $\mathbf{B} = \text{diag}(\mu_1, \ldots, \mu_n)$이다.
@@ -659,8 +667,12 @@ Max difference: 1.27e+01
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 예측이 확신에 차감에 따라 경사의 크기 $\|(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}\|$이 어떻게 변하는지 분석하고, 이를 경사 소실과 연결하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     예측이 맞고 확신에 차 있으면 $\sigma(z) \approx y$이므로 잔차 $\sigma(z) - y \approx 0$이 되고 경사가 사라진다. 잘 분류된 점에서는 이것이 바람직하다.
@@ -669,8 +681,12 @@ Max difference: 1.27e+01
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 로지스틱 회귀에 대해 되돌림 직선 탐색을 쓰는 뉴턴 방법을 구현하고, 경사 하강법과 수렴 속도를 비교하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

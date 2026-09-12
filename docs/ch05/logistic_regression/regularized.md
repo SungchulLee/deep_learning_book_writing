@@ -737,8 +737,12 @@ L2 REGULARIZATION STRENGTH TUNING
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 L1 정칙화의 근위 연산자(연성 문턱값 처리)를 유도하고 그것이 왜 희소성을 만드는지 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     $\lambda\|w\|_1$에 대한 근위 연산자는 다음과 같다.
@@ -753,8 +757,12 @@ L1 정칙화의 근위 연산자(연성 문턱값 처리)를 유도하고 그것
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 $\lambda > 0$일 때 정칙화된 헤세 행렬 $\mathbf{H}_{\text{ridge}} = \mathbf{X}^\top\mathbf{B}\mathbf{X} + n\lambda\mathbf{I}$이 언제나 양의 정부호임을 보여라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\mathbf{B} = \text{diag}(p_i(1-p_i))$의 대각 성분이 음이 아니므로 $\mathbf{X}^\top\mathbf{B}\mathbf{X}$은 양의 준정부호이다. $\mathbf{v}^\top\mathbf{X}^\top\mathbf{B}\mathbf{X}\mathbf{v} = \|\mathbf{B}^{1/2}\mathbf{X}\mathbf{v}\|^2 \geq 0$이다.
@@ -769,8 +777,12 @@ $\lambda > 0$일 때 정칙화된 헤세 행렬 $\mathbf{H}_{\text{ridge}} = \ma
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 완전히 분리 가능한 데이터에서도 L2 정칙화된 로지스틱 회귀에는 언제나 유한한 MLE가 존재함을 증명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     정칙화된 목적 함수는 $\mathcal{L}(\boldsymbol{\beta}) = -\ell(\boldsymbol{\beta}) + \frac{\lambda}{2}\|\boldsymbol{\beta}\|^2$이다.
@@ -781,8 +793,12 @@ $\lambda > 0$일 때 정칙화된 헤세 행렬 $\mathbf{H}_{\text{ridge}} = \ma
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 최적의 정칙화 강도 $\lambda$을 고르기 위한 k-겹 교차 검증을 구현하고 검증 곡선을 그려라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

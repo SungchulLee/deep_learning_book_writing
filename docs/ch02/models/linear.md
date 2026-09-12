@@ -112,40 +112,60 @@ Final MSE loss:   0.2655
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 MSE 손실 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2$의 경사를 0으로 두어 정규방정식 $\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{y}$을 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     전개하면 $\ell = (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})^\top(\mathbf{y} - \mathbf{X}\boldsymbol{\beta}) = \mathbf{y}^\top\mathbf{y} - 2\boldsymbol{\beta}^\top\mathbf{X}^\top\mathbf{y} + \boldsymbol{\beta}^\top\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta}$이다. 경사를 구하면 $\nabla_{\boldsymbol{\beta}}\ell = -2\mathbf{X}^\top\mathbf{y} + 2\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta}$이다. 0으로 두면 $\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta} = \mathbf{X}^\top\mathbf{y}$이다. $\mathbf{X}^\top\mathbf{X}$가 가역이면 $\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$이다. $\square$
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 릿지 회귀의 기하학적 해석을 설명하라. $\alpha \to 0$일 때와 $\alpha \to \infty$일 때 해는 어떻게 되는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     릿지 회귀는 $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha\|\boldsymbol{\beta}\|^2$을 최소화한다. 닫힌 형태 해는 $\hat{\boldsymbol{\beta}}_{\text{ridge}} = (\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$이다. 기하학적으로 릿지는 $\boldsymbol{\beta}$가 $\ell_2$ 공 안에 있도록 제약한다. $\alpha \to 0$이면 릿지는 OLS(정칙화 없음)로 수렴한다. $\alpha \to \infty$이면 벌점이 지배하여 $\hat{\boldsymbol{\beta}} \to \mathbf{0}$이 되고 모델은 $\mathbf{y}$의 평균을 예측한다. $\alpha\mathbf{I}$를 더하면 $\mathbf{X}^\top\mathbf{X}$가 특이행렬이어도 가역성이 보장된다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 선형 회귀에서 L2 정칙화가 SGD의 `weight_decay`와 동등함을 보여라. 구체적으로 감쇠 계수 $\lambda$인 가중치 감쇠의 경사 갱신이 $\alpha = \lambda$인 L2 정칙화 손실의 경사와 일치함을 보여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     L2 정칙화 손실은 $\ell_{\text{reg}} = \ell(\boldsymbol{\beta}) + \frac{\alpha}{2}\|\boldsymbol{\beta}\|^2$이다. 그 경사는 $\nabla \ell_{\text{reg}} = \nabla \ell + \alpha \boldsymbol{\beta}$이다. SGD 갱신은 $\boldsymbol{\beta} \leftarrow \boldsymbol{\beta} - \eta(\nabla \ell + \alpha \boldsymbol{\beta}) = (1 - \eta\alpha)\boldsymbol{\beta} - \eta \nabla \ell$이다. 계수 $\lambda$인 가중치 감쇠는 $\boldsymbol{\beta} \leftarrow (1 - \eta\lambda)\boldsymbol{\beta} - \eta \nabla \ell$을 준다. $\alpha = \lambda$일 때 둘은 동일하다. 참고: 이 동등성은 SGD에서는 정확히 성립하지만 Adam에서는 그렇지 않다. Adam에서는 분리된 가중치 감쇠(AdamW)가 L2 정칙화와 다르다. $\square$
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 어떤 데이터셋에 표본이 $n = 50$개, 특징이 $d = 100$개 있다. 정규방정식이 실패하는 이유를 설명하고 해결책 두 가지를 제안하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     정규방정식은 $(100 \times 100)$ 행렬인 $\mathbf{X}^\top\mathbf{X}$의 역행렬을 필요로 한다. 표본이 $n = 50$개뿐이므로 $\text{rank}(\mathbf{X}) \leq 50 < 100$이고 따라서 $\mathbf{X}^\top\mathbf{X}$는 특이행렬(비가역)이다. 해결책: (1) **릿지 회귀**: $\alpha\mathbf{I}$를 더하면 임의의 $\alpha > 0$에 대해 $(\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})$가 가역이 된다. (2) **라쏘(L1 정칙화)**: 많은 계수를 0으로 만들어 사실상 $\leq 50$개의 특징을 선택한다. (3) **PCA/특징 선택**: 적합 전에 $d$를 $n$보다 작게 줄인다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 5.**
 편향을 포함한 `nn.Linear(784, 10)`의 매개변수 개수를 계산하라. 이를 `nn.Linear(784, 128)` 다음에 `nn.Linear(128, 10)`이 오는 2층 신경망과 비교하라.
+
+</div>
 
 ??? success "연습문제 5 풀이"
     단일 층: 가중치 $784 \times 10 = 7{,}840$개, 편향 $10$개. 총 $7{,}850$개. 2층: 첫 층 $784 \times 128 + 128 = 100{,}480$개, 둘째 층 $128 \times 10 + 10 = 1{,}290$개. 총 $101{,}770$개. 2층 신경망은 매개변수가 $\approx 13\times$ 많지만 (층 사이에 ReLU를 두면) 비선형 결정 경계를 학습할 수 있는 반면, 단일 층은 선형 경계로 제한된다. 대부분의 실제 문제에서는 이 추가 용량이 매개변수 비용을 치를 만한 가치가 있다.

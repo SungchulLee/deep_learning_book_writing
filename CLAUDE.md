@@ -128,6 +128,54 @@ Full MathJax/admonition rules are in `agents/SKILL.md`. Key points:
 - Every content page ends with `## Exercises` (interleaved solutions, collapsible)
 - Python: module docstring · `# ===` dividers · `if __name__ == "__main__":` guard
 
+## Block Scheme (정의 · 정리 · 증명 · 보기 · 문제 · 연습문제 · 풀이)
+
+Ported from `~/Desktop/book/high_school_math`. The required extensions
+(`admonition`, `pymdownx.details`, `attr_list`, `md_in_html`) are already enabled;
+the box styles live in `docs/stylesheets/extra.css`.
+
+**모든 블록은 상자에 담는다** — 저마다 클래스를 가진 `<div>` 로 감싼다.
+
+| 블록 | 클래스 | 색 |
+|---|---|---|
+| 정의 | `<div class="defn" markdown>` | 회색 |
+| 정리 (제목 + 주장) | `<div class="thmbox" markdown>` | 보라 — 증명과 같은 색 |
+| 보기 | `<div class="exbox" markdown>` | 초록 — 풀이와 같은 색 |
+| 문제 | `<div class="probox" markdown>` | 초록 |
+| 연습문제 | `<div class="drillbox" markdown>` | 초록 |
+
+색이 곧 갈래다 — **보라는 책이 증명하는 것, 초록은 독자가 손을 대는 것**이다.
+
+**증명과 풀이는 상자 밖**에 둔다 (`??? proof "증명"`, `??? success "풀이"`) — 이미
+테두리를 가진 블록이라 안에 넣으면 상자가 겹친다. 반대로 **문항을 설명하는 그림은
+상자 안**에 넣는다. 여는 태그와 본문 사이, 본문과 `</div>` 사이에는 빈 줄을 둔다
+(`md_in_html` 이 안쪽을 마크다운으로 읽게 하는 조건이다).
+
+정리는 오른쪽 목차에 뜨도록 `### 정리 N. 제목 { .thm }` 으로 적는다.
+
+```text
+<div class="thmbox" markdown>          <div class="drillbox" markdown>
+
+### 정리 1. ... { .thm }               **연습문제 1.** <span class="diff easy" …></span> …
+
+주장 ...                                </div>
+
+</div>                                  ??? success "풀이"   ← 풀이는 상자 밖
+
+??? proof "증명"   ← 증명은 상자 밖
+```
+
+**난이도 점** — 보기·문제·연습문제의 굵은 도입어 바로 뒤에 색 점 하나를 붙인다.
+글자는 넣지 않고 **초록(쉬움) → 노랑(중간) → 빨강(어려움)** 색만으로 나타내며,
+마우스를 올리면 뜨도록 `title` 을 적는다. 쪽마다 범례를 달지 않는다.
+
+```html
+**보기 2.** <span class="diff easy" title="쉬움"></span> ...
+**연습문제 4.** <span class="diff hard" title="어려움"></span> ...
+```
+
+보기는 언제나 쉬움, 문제는 중간·어려움, 연습문제는 쉬움 → 중간 → 어려움 순서로 둔다.
+
 ## Common Tasks
 
 ### Add a new section

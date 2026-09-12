@@ -709,8 +709,12 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 관측 $n$개 중 성공이 $k$번일 때 베르누이 분포의 매개변수 $p$에 대한 MLE를 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     가능도는 $L(p) = \prod_{i=1}^n p^{x_i}(1-p)^{1-x_i} = p^k(1-p)^{n-k}$이다.
@@ -723,8 +727,12 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 정규분포의 분산에 대한 MLE $\hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^n(x_i - \bar{x})^2$이 편향되어 있음을 증명하고, 편향을 명시적으로 계산하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $$
@@ -741,8 +749,12 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 라플라스 분포 $p(x|\mu, b) = \frac{1}{2b}e^{-|x-\mu|/b}$에서 $\mu$의 MLE가 표본 중앙값임을 보여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     로그가능도는 $\ell(\mu) = -n\log(2b) - \frac{1}{b}\sum_{i=1}^n |x_i - \mu|$이다.
@@ -753,8 +765,12 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 베르누이 분포의 피셔 정보를 유도하고, MLE가 크라메르–라오 하한을 달성함을 확인하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     점수 함수: $s(p) = \frac{x}{p} - \frac{1-x}{1-p}$.

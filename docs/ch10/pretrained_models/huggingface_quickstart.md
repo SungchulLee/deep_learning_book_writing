@@ -130,8 +130,12 @@ for i, r in enumerate(results):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 허깅페이스 파이프라인으로 "The new electric car has impressive range and acceleration"이라는 글을 후보 이름표 `["automotive", "finance", "sports", "technology"]`에 대해 영 예시 분류하라. 어느 이름표가 가장 높은 점수를 받으며 그 까닭은 무엇인가?
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -148,16 +152,24 @@ for i, r in enumerate(results):
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 토큰 나누개의 `padding=True`와 `padding="max_length"`의 차이를 설명하라. 각각 언제 더 좋으며 기억 면에서는 어떤 뜻이 있는가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `padding=True`는 모든 수열을 배치에서 가장 긴 수열의 길이에 맞추어 채우므로 길이가 비슷한 입력의 배치에서 기억을 아낀다. `padding="max_length"`는 실제 길이와 무관하게 모두 `max_length`까지 채우므로 수열이 짧으면 기억을 버리지만 배치마다 텐서 꼴이 한결같게 된다. 학습 중에는 효율을 위해 `padding=True`를 쓴다. ONNX로 내보내거나 컴파일된 모형을 쓸 때처럼 크기가 고정된 텐서가 필요하면 `padding="max_length"`를 쓴다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 학습 단계의 처음 10% 동안 선형으로 예열한 뒤 선형으로 잦아드는 학습률 조정기를 넣도록 미세 조정 고리를 고쳐라. 허깅페이스의 `get_scheduler`를 쓰라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python

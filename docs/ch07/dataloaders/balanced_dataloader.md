@@ -102,8 +102,12 @@ Batch 11: Cats=43, Dogs=57
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 표본이 각각 50개, 200개, 1000개인 세 클래스로 된 데이터셋을 만들도록 코드를 고쳐라. 클래스 가중치를 계산하고, WeightedRandomSampler가 배치마다 클래스를 대체로 고르게 뽑는지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     `class_counts = torch.tensor([50, 200, 1000], dtype=torch.float32)`, `class_weights = 1.0 / class_counts`으로 둔다. 레이블은 `torch.cat((torch.zeros(50), torch.ones(200), 2*torch.ones(1000)))`으로 만든다. 레이블마다 `class_weights[int(label)]`으로 표본 가중치를 준다. 배치 크기가 60이면 배치마다 각 클래스에서 대략 20개씩 뽑힌다.
@@ -111,8 +115,12 @@ Batch 11: Cats=43, Dogs=57
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 WeightedRandomSampler에서 `replacement=False`으로 두면 어떻게 되는가? 동작의 차이와 각 설정이 알맞은 상황을 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `replacement=False`이면 각 표본을 에포크마다 많아야 한 번 뽑으므로 전체 표본 수가 데이터셋의 크기와 같아지지만, 뽑힐 확률은 여전히 소수 클래스에 유리하다. (여기서 쓴) `replacement=True`이면 같은 표본을 여러 번 뽑을 수 있으므로 지정한 분포로 정확히 `num_samples`번 뽑을 수 있다. 클래스 균형을 엄격히 맞추려면 `replacement=True`을, 에포크마다 모든 표본을 대략 한 번씩 보려면 `replacement=False`을 쓴다.
@@ -120,8 +128,12 @@ WeightedRandomSampler에서 `replacement=False`으로 두면 어떻게 되는가
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 `WeightedRandomSampler` 대신 `torch.utils.data.Subset`과 과표집을 쓰는 균형 잡힌 DataLoader를 구현하라. 소수 클래스를 복제하여 다수 클래스의 크기에 맞춘 새 데이터셋을 만들어라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     `minority_idx = (labels == 0).nonzero().squeeze()`으로 소수 클래스의 인덱스를 구한다. `oversampled_idx = minority_idx.repeat(len(labels[labels==1]) // len(minority_idx) + 1)[:len(labels[labels==1])]`으로 복제한다. `all_idx = torch.cat([minority_idx, oversampled_idx, (labels==1).nonzero().squeeze()])`으로 합친다. `Subset(dataset, all_idx)`을 만들고 `shuffle=True`인 DataLoader로 감싼다.

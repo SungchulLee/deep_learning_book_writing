@@ -633,8 +633,12 @@ class SoftmaxRegressionNumPy:
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 교차 엔트로피가 $H(p, q) \geq H(p)$이며 등호는 $p = q$일 때에만 성립함을 증명하라(깁스 부등식).
+
+</div>
 
 ??? success "연습문제 1 풀이"
     $H(p,q) - H(p) = -\sum p_i \log q_i + \sum p_i \log p_i = \sum p_i \log\frac{p_i}{q_i} = D_{\text{KL}}(p\|q) \geq 0$이다.
@@ -643,8 +647,12 @@ class SoftmaxRegressionNumPy:
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 $K$개 클래스 분류 문제에서 로짓(소프트맥스 이전의 값)에 대한 교차 엔트로피 손실의 경사를 유도하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $z_k$을 로짓, $p_k = \text{softmax}(z)_k$이라 하자. 교차 엔트로피는 $L = -\sum_k y_k \log p_k$이다.
@@ -657,8 +665,12 @@ $K$개 클래스 분류 문제에서 로짓(소프트맥스 이전의 값)에 �
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 PyTorch에서 `nn.CrossEntropyLoss`과 `nn.LogSoftmax` + `nn.NLLLoss`이 동등함을 보여라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -674,8 +686,12 @@ PyTorch에서 `nn.CrossEntropyLoss`과 `nn.LogSoftmax` + `nn.NLLLoss`이 동등�
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 $-\log(\text{softmax}(z)_k)$을 곧바로 계산할 때 생기는 수치적 안정성 문제와, log-sum-exp 기법이 그것을 어떻게 해결하는지 설명하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     곧바로 계산하면 $\text{softmax}(z)_k = \frac{e^{z_k}}{\sum_j e^{z_j}}$은 $z_j$이 클 때 넘칠 수 있다. log-sum-exp 기법은 $m = \max_j z_j$을 빼 준다.

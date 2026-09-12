@@ -257,24 +257,36 @@ rnn_relu = nn.RNN(
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 긴 순차열에서 기본 RNN의 병목을 설명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     숨은 상태 $h_t$이 이력 전체를 크기가 고정된 벡터로 눌러 담아야 한다. 긴 순차열에서는 행렬 곱과 비선형이 거듭되며 앞쪽 정보가 '씻겨 나간다'. 기울기도 지수적으로 사라진다. $\frac{\partial h_T}{\partial h_t} = \prod_{k=t}^{T-1} W_h \text{diag}(\tanh'(\cdot))$이고 스펙트럼 반지름이 1보다 작으면 지수적으로 줄어든다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 tanh 활성화가 기울기 소실 문제에 한몫하는 까닭은 무엇인가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     $\tanh'(z) \in (0, 1]$이고 $z=0$에서 최댓값 1을 갖는다. $T$단계를 지나면 기울기에 $\tanh'$ 값이 $T$번 곱해져 작아진다. 여기에 ($\|W_h\| < 1$인) $W_h$이 겹치면 기울기가 지수적으로 사라진다. 그래서 기본 RNN은 10~20단계쯤의 짧은 의존만 배울 수 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 순차열 분류를 위한 기본 RNN을 PyTorch로 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -286,8 +298,12 @@ tanh 활성화가 기울기 소실 문제에 한몫하는 까닭은 무엇인가
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 기본 RNN과 그에 맞먹는 LSTM의 매개변수 수를 견주어라. LSTM에는 매개변수가 얼마나 더 많은가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     기본 RNN은 매개변수가 $(d_x + d_h + 1) \cdot d_h$개이다. LSTM은 (문이 넷이므로) $4 \times (d_x + d_h + 1) \cdot d_h$개이다. 숨은 차원이 같을 때 LSTM의 매개변수는 기본 RNN의 정확히 4배이다.

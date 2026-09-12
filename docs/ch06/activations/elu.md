@@ -240,24 +240,36 @@ class ConvNetELU(nn.Module):
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 ELU 함수와 그 도함수를 수학적으로 쓰라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ELU: $f(x) = \begin{cases} x & x > 0 \\ \alpha(e^x - 1) & x \leq 0 \end{cases}$. 도함수: $f'(x) = \begin{cases} 1 & x > 0 \\ \alpha e^x & x \leq 0 \end{cases} = \begin{cases} 1 & x > 0 \\ f(x) + \alpha & x \leq 0 \end{cases}$.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 경사 소실과 죽은 뉴런의 관점에서 ELU, ReLU, Leaky ReLU를 비교하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ReLU는 $x < 0$에서 경사가 0이다(죽은 뉴런). Leaky ReLU는 $x < 0$에서 작은 상수 경사를 준다(죽은 뉴런은 없지만 0에서 경사가 불연속이다). ELU는 매끄럽게 넘어가며 $x < 0$에서 경사가 $\alpha e^x$으로 매끄럽게 0에 다가간다(죽은 뉴런이 없고 경사가 매끄럽지만 exp 때문에 계산이 느리다).
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 ELU를 바닥부터 구현하고 `torch.nn.ELU`와 일치하는지 확인하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -269,8 +281,12 @@ ELU를 바닥부터 구현하고 `torch.nn.ELU`와 일치하는지 확인하라.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 ELU의 음수 쪽 포화가 평균 활성화를 0에 더 가깝게 당길 수 있는 이유와, 그것이 학습에 왜 중요한지 설명하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     (평균이 0보다 큰) ReLU나 Leaky ReLU와 달리 ELU는 음수 값을 내어 활성화를 0 주위에 모은다. 0을 중심으로 한 활성화는 뒤따르는 층의 편향 이동을 줄여 수렴을 앞당긴다. 이는 배치 정규화의 효과와 비슷하지만 그만한 계산 부담이 없다.

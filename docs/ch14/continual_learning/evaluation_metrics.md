@@ -612,24 +612,36 @@ def joint_training_baseline(model, all_loaders, test_loaders,
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 이어 배우기의 평균 정확도, 뒤로의 옮김, 앞으로의 옮김을 정의하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     평균 정확도: $\bar{A} = \frac{1}{T}\sum_{i=1}^T a_{T,i}$(과제 $T$까지 익힌 뒤 모든 과제의 정확도). 뒤로의 옮김: $\text{BWT} = \frac{1}{T-1}\sum_{i=1}^{T-1}(a_{T,i} - a_{i,i})$(옛 과제 정확도의 변화). 앞으로의 옮김: $\text{FWT} = \frac{1}{T-1}\sum_{i=2}^T(a_{i-1,i} - b_i)$(앞선 배움 덕분에 얻는 앞으로의 과제에 대한 영 예시 성능).
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 정확도 행렬 $R_{ij}$과 그것에서 지표를 어떻게 끌어내는지 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     성분 $R_{ij}$은 과제 $1, \ldots, i$까지 익힌 뒤 과제 $j$에서의 정확도이다. 대각선은 과제를 막 배운 직후의 정확도이다. 마지막 행은 모든 과제의 마지막 정확도이다. BWT는 마지막 행과 대각선의 차이를 쓴다. BWT가 음수이면 잊음이 있다는 뜻이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 이어 배우기 방법을 공정하게 견줄 평가 규약을 설계하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
 
@@ -637,8 +649,12 @@ def joint_training_baseline(model, all_loaders, test_loaders,
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 오늘날 이어 배우기 평가 잣대의 한계는 무엇인가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     대부분의 잣대는 과제의 경계가 또렷한 단순한 데이터셋(MNIST, CIFAR)을 쓰는데, 이는 현실과 동떨어져 있다. 현실에서는 과제의 경계가 흐릿하고, 데이터 흐름이 멈추어 있지 않으며, 시험 때 과제 이름표도 없다. 지금의 지표는 셈 효율, 기억 씀씀이, 따로 떼어 둔 과제에서의 성능도 담아내지 못한다.

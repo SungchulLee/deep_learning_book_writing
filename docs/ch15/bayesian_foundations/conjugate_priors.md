@@ -2382,7 +2382,11 @@ Difference: 0.093895
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.** <span class="diff easy" title="쉬움"></span> 디리클레-다항이 켤레 짝임을 정리 1로 설명하고 갱신 규칙을 적으시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -2396,7 +2400,11 @@ Difference: 0.093895
 
     $K=2$ 이면 베타-이항으로 돌아간다.
 
+<div class="drillbox" markdown>
+
 **연습문제 2.** <span class="diff med" title="중간"></span> 지수 가능도의 켤레 앞확률이 감마임을 보이고 갱신 규칙을 이끌어 내시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -2408,7 +2416,11 @@ Difference: 0.093895
 
     으로 $\text{Gamma}(a+n,\ b+\sum_i x_i)$ 이다. 충분 통계량이 $(n, \sum x_i)$ 이고 이 둘이 각각 더해지는 것이 정리 1의 결론과 맞는다.
 
+<div class="drillbox" markdown>
+
 **연습문제 3.** <span class="diff med" title="중간"></span> 정리 3의 이어짐 규칙을 언어 모형의 가산 매끄럽게 하기와 이어 설명하시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -2422,7 +2434,11 @@ Difference: 0.093895
 
     한 번도 안 나온 낱말에 $0$ 이 아닌 확률을 주는 것이 핵심이며, 이는 연습문제 1의 디리클레 갱신에 정리 3의 논증을 그대로 얹은 것이다.
 
+<div class="drillbox" markdown>
+
 **연습문제 4.** <span class="diff hard" title="어려움"></span> 정리 7의 t 뒤확률에서 $n\to\infty$ 일 때 정규로 다가감을 보이시오.
+
+</div>
 
 ??? success "풀이"
 
@@ -2438,7 +2454,11 @@ Difference: 0.093895
 
     자 매개변수도 $b_n/(a_n\kappa_n) \approx s^2/n$ 으로 가므로, 뒤확률은 $\mathcal{N}(\bar x,\ s^2/n)$ 에 다가간다. 흩어짐을 모른다는 사실의 값이 $n$ 이 커지면 사라지는 것이다.
 
+<div class="drillbox" markdown>
+
 **연습문제 5.** <span class="diff hard" title="어려움"></span> 앞확률 민감도 분석을 켤레 모형에서 어떻게 하면 값싸게 할 수 있는지 밝히시오.
+
+</div>
 
 ??? success "풀이"
 

@@ -486,24 +486,36 @@ $$x_{l+2} = x_{l+1} + \text{FFN}(\text{LN}(x_{l+1}))$$
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 잔차 연결 $y = x + F(x)$을 지나는 기울기의 크기가 적어도 1임을 증명하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     $\frac{\partial y}{\partial x} = I + \frac{\partial F}{\partial x}$이다. 기울기는 $I$에 그 함수의 야코비 행렬을 더한 것이다. $\frac{\partial F}{\partial x} \approx 0$이더라도 항등항이 기울기가 사라지지 않게 해 준다. 잔차 블록 $L$개의 사슬에서는 $\frac{\partial y_L}{\partial x_0} = \prod_{l=1}^L (I + \frac{\partial F_l}{\partial x_{l-1}})$이며, 펼치면 언제나 항 $I$을 품는다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 사전 활성화 ResNet(BN-ReLU-Conv)과 사후 활성화(Conv-BN-ReLU)를 비교하라. 아주 깊은 신경망에는 어느 쪽이 나은가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     아주 깊은 신경망(100층 초과)에는 사전 활성화(He 등, 2016)가 낫다. 사후 활성화에서는 건너뛰기 경로에서도 신호가 배치 정규화와 ReLU를 지나 깨끗한 항등 사상이 깨진다. 사전 활성화는 건너뛰기 경로를 순수한 항등으로 두어 기울기의 흐름을 최적으로 지킨다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 차원이 바뀔 때 쓰는 사영 지름길을 갖춘 잔차 블록을 PyTorch로 구현하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
@@ -523,8 +535,12 @@ $$x_{l+2} = x_{l+1} + \text{FFN}(\text{LN}(x_{l+1}))$$
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 잔차 신경망과 앙상블 학습의 관계를 설명하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     Veit 등(2016)은 ResNet이 얕은 신경망의 앙상블처럼 움직임을 보였다. 잔차 연결을 풀어 보면 블록이 $L$개인 ResNet에 길이가 서로 다른 경로가 $2^L$개 있다. 기울기는 대부분 짧은 경로(블록 3~5개)로 흐르는데, 이는 ResNet이 얕은 부분 신경망의 앙상블을 암묵적으로 학습시킴을 시사한다.

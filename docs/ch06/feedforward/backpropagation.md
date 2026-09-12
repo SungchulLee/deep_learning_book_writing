@@ -517,32 +517,48 @@ output = decoder(hidden)        # 부호기가 역전파로 갱신된다
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 MSE 손실을 쓰는 단층 신경망 $y = \sigma(Wx + b)$의 역전파 갱신을 유도하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     손실: $L = \frac{1}{2}(y - t)^2$이다. $\frac{\partial L}{\partial y} = y - t$이다. $z = Wx+b$일 때 $\frac{\partial y}{\partial z} = \sigma'(z)$이다. $\frac{\partial L}{\partial W} = \frac{\partial L}{\partial y}\sigma'(z)x^\top = (y-t)\sigma'(z)x^\top$이고 $\frac{\partial L}{\partial b} = (y-t)\sigma'(z)$이다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 수치 미분, 기호 미분, 자동 미분의 차이를 설명하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     수치 미분은 유한차분 $(f(x+h)-f(x))/h$을 쓰며 근사적이고 매개변수마다 $O(n)$번의 계산이 든다. 기호 미분은 식을 대수적으로 조작하여 정확하지만 식의 크기가 폭발할 수 있다. 자동 미분은 기본 연산에 연쇄 법칙을 적용하여 정확하고 효율적이다. PyTorch는 역방향 자동 미분을 쓴다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 신경망에서 순방향 자동 미분보다 역방향 자동 미분(역전파)을 선호하는 이유는 무엇인가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     역방향은 한 번의 역전파로 모든 $i$에 대해 $\partial L/\partial w_i$을 계산한다(스칼라 손실에서 통과 횟수가 $O(1)$이다). 순방향은 한 번에 모든 출력에 대해 $\partial y_j/\partial w$을 계산하지만 매개변수가 $n$개면 $n$번을 지나야 한다. 신경망은 매개변수가 많고 손실은 스칼라 하나이므로 역방향이 유리하다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 역전파 구현을 검증하기 위해 수치적 경사 검사를 구현하라.
+
+</div>
 
 ??? success "연습문제 4 풀이"
     ```python

@@ -263,16 +263,24 @@ With outlier:
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 후버 손실을 유도하고 $\delta$에서 이차에서 선형으로 넘어감을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     후버 손실은 $L_\delta(r) = \begin{cases} \frac{1}{2}r^2 & |r| \leq \delta \\ \delta|r| - \frac{1}{2}\delta^2 & |r| > \delta \end{cases}$이다. 잔차가 작으면($|r| \leq \delta$) MSE처럼 이차이고, 잔차가 크면 MAE처럼 선형이다. 전환은 매끄럽다($|r| = \delta$에서 일계도함수가 연속이다).
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 후버 손실을 바닥부터 구현하고 `torch.nn.HuberLoss`과 맞는지 확인하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -285,16 +293,24 @@ With outlier:
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 후버 손실의 확률적 해석을 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     후버 손실은 0 근처에서는 정규분포이고 꼬리에서는 라플라스분포인 분포 아래에서의 최대가능도 추정에 해당한다. 그래서 (잔차가 큰) 이상점에 견디면서도 (잔차가 작은) 얌전한 데이터에서는 효율을 유지한다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 $\delta$의 선택은 편향과 견고성의 절충에 어떤 영향을 주는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     $\delta$이 크면 MSE처럼 움직인다(효율적이지만 이상점에 민감하다). $\delta$이 작으면 MAE처럼 움직인다(견고하지만 정규 잡음에서는 덜 효율적이다). 대표적인 기본값은 $\delta = 1.0$이다. 교차 검증이나 보통 잔차의 척도가 선택을 이끌어야 한다.

@@ -232,32 +232,48 @@ gru = nn.GRU(input_size, hidden_size, batch_first=True)
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 시각 $T$개를 지나는 기울기의 흐름을 유도하고 $\|W_h\| < 1$일 때 지수적으로 줄어듦을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     $\frac{\partial L}{\partial h_t} = \frac{\partial L}{\partial h_T} \prod_{k=t+1}^T \text{diag}(\tanh'(z_k)) W_h$이다. $\sigma_{\max}(W_h) < 1$이고 $|\tanh'| \leq 1$이면 $\|\frac{\partial L}{\partial h_t}\| \leq \sigma_{\max}(W_h)^{T-t} \|\frac{\partial L}{\partial h_T}\|$이고, $T - t$이 커질수록 지수적으로 0에 간다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 RNN의 기울기 소실을 누그러뜨리는 기법 네 가지를 열거하라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     (1) 문 장치를 갖춘 LSTM과 GRU. (2) 기울기 자르기(폭발하는 기울기용). (3) 건너뛰기 연결과 잔차 연결. (4) 알맞은 초기화($W_h$의 직교 초기화). 그 밖에 더 짧은 순차열, 어텐션 장치, 잘라 낸 BPTT도 있다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 $W_h$의 직교 초기화가 기울기 소실에 도움이 되는 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     직교 행렬은 모든 특잇값이 1이므로 모든 $T$에 대해 $\|W_h^T\| = 1$이다. 곧 기울기가 시간을 거슬러 흐르는 동안 커지지도 작아지지도 않는다. 실제로는 비선형 때문에 얼마간 줄어들지만, 직교 초기화가 무작위 가우스 초기화보다 훨씬 나은 출발점을 준다.
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 4.**
 경사 폭발 문제란 무엇이며 경사 자르기가 이를 어떻게 다루는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     $\sigma_{\max}(W_h) > 1$이면 기울기가 지수적으로 커진다. $\|g\| \propto \sigma_{\max}^T$이다. 그러면 매개변수가 엄청나게 갱신되어 학습이 불안정해진다. 기울기 자르기는 $g \leftarrow g \cdot \min(1, \theta/\|g\|)$으로 크기를 다시 맞추어 방향은 지키면서 노름을 $\theta$으로 묶는다.

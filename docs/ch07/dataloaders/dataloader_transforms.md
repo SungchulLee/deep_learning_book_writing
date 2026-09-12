@@ -124,8 +124,12 @@ PyTorch 데이터셋의 `target_transform` 매개변수는 레이블이 학습 �
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 FashionMNIST 이미지의 평균이 0, 표준편차가 1이 되도록 정규화하는 변환을 이미지 파이프라인에 넣어라. mean=0.2860, std=0.3530을 쓰라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     `transform=ToTensor()`을 `transform=transforms.Compose([ToTensor(), transforms.Normalize((0.2860,), (0.3530,))])`으로 바꾼다. `Normalize` 변환은 채널마다 평균을 빼고 표준편차로 나눈다.
@@ -133,8 +137,12 @@ FashionMNIST 이미지의 평균이 0, 표준편차가 1이 되도록 정규화�
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 딱딱한 원-핫 벡터 대신 평활화 계수가 $\alpha = 0.1$인 부드러운 레이블을 만들도록 목표 변환을 고쳐라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     `Lambda(lambda y: torch.full((10,), 0.1/9).scatter_(0, torch.tensor(y), 1.0 - 0.1))`을 쓴다. 참 클래스에 $1 - \alpha = 0.9$을 놓고 나머지 9개 클래스에 $\alpha/(K-1) \approx 0.011$씩 나누어 준다.
@@ -142,8 +150,12 @@ FashionMNIST 이미지의 평균이 0, 표준편차가 1이 되도록 정규화�
 ---
 
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 이미지의 직사각형 영역을 무작위로 지우는(컷아웃 증강) 사용자 정의 변환 클래스를 작성하라. 지운 영역은 0으로 채우고 크기는 4x4에서 8x8 화소 사이에서 무작위로 정하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     `__call__(self, img)`을 갖는 클래스를 만들어 왼쪽 위 좌표 `(r, c)`와 크기 `(h, w)`을 `h, w = random.randint(4, 8)`으로 무작위로 정한다. `img[:, r:r+h, c:c+w] = 0`으로 두고 `img`을 돌려준다. 이 변환을 Compose 파이프라인의 `ToTensor()` 뒤에 넣는다.

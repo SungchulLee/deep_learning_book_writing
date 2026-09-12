@@ -78,8 +78,12 @@ if __name__ == "__main__":
 
 ## 연습문제
 
+<div class="drillbox" markdown>
+
 **연습문제 1.**
 가운데 맞춘 자료의 공분산 행렬을 $\frac{1}{n-1} X_c^\top X_c$으로 손수 셈하고 그 고윳값이 특잇값 쪼개기의 `explained_variance`와 맞는지 확인하라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -94,8 +98,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 2.**
 가운데 맞추기를 건너뛰고 $X$에 곧바로 특잇값 쪼개기를 하면 어떻게 되는가? 실험을 돌려 가운데를 맞췄을 때와 아닐 때의 첫 주방향을 견주어라.
+
+</div>
 
 ??? success "연습문제 2 풀이"
     ```python
@@ -110,8 +118,12 @@ if __name__ == "__main__":
 
 ---
 
+<div class="drillbox" markdown>
+
 **연습문제 3.**
 주성분 둘을 다 남기도록(곧 2차원으로 쏘고 다시 세우도록) 부호를 넓혀라. 이때 다시 세우기 어긋남이 정확히 0임을 확인하고 까닭을 설명하라.
+
+</div>
 
 ??? success "연습문제 3 풀이"
     ```python
