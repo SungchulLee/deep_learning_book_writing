@@ -373,8 +373,12 @@ MSE는 2000.8배로 뛰고, MAE는 20.8배에 그친다
 
 ## 연습문제
 
-**연습문제 1.**
+<div class="drillbox" markdown>
+
+**연습문제 1.** <span class="diff med" title="중간"></span>
 잡음의 분산 $\sigma^2$을 모른다고 하자. 로그가능도를 $\sigma^2$으로 미분하여 최대가능도 추정값 $\hat{\sigma}^2$을 구하고, 그것이 최적점에서의 평균 제곱 오차와 같음을 보여라.
+
+</div>
 
 ??? success "연습문제 1 풀이"
     로그가능도는 다음과 같다.
@@ -393,8 +397,12 @@ MSE는 2000.8배로 뛰고, MAE는 20.8배에 그친다
 
 ---
 
-**연습문제 2.**
+<div class="drillbox" markdown>
+
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 `reduction='mean'`과 `reduction='sum'`은 최솟값의 위치를 바꾸지 않는다. 그런데도 학습 결과가 달라질 수 있다. 왜 그런가?
+
+</div>
 
 ??? success "연습문제 2 풀이"
     두 손실은 $N$배만큼만 차이 나므로 최솟값의 **위치**는 같다. 그러나 경사의 **크기**도 $N$배 차이가 난다.
@@ -405,8 +413,12 @@ MSE는 2000.8배로 뛰고, MAE는 20.8배에 그친다
 
 ---
 
-**연습문제 3.**
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 $\mathbf{X}^\top\mathbf{X}$이 가역이 아니면 정규 방정식을 쓸 수 없다. 어떤 때 그런 일이 생기며, 어떻게 다룰 수 있는가?
+
+</div>
 
 ??? success "연습문제 3 풀이"
     특징이 표본보다 많거나($d > N$) 특징들 사이에 완전한 선형 종속이 있으면 $\mathbf{X}^\top\mathbf{X}$이 특이해진다. 이때는 손실을 최소로 만드는 $\boldsymbol{\theta}$이 하나로 정해지지 않는다.
@@ -419,8 +431,12 @@ $\mathbf{X}^\top\mathbf{X}$이 가역이 아니면 정규 방정식을 쓸 수 �
 
 ---
 
-**연습문제 4.**
+<div class="drillbox" markdown>
+
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 목표값의 단위를 미터에서 밀리미터로 바꾸면 MSE 값은 어떻게 달라지는가? RMSE는 어떠한가? 학습된 매개변수는 달라지는가?
+
+</div>
 
 ??? success "연습문제 4 풀이"
     $y$을 1000배 하면 잔차도 1000배가 되므로 MSE는 $1000^2 = 10^6$배가 되고, RMSE는 1000배가 된다. RMSE가 보고용으로 선호되는 까닭이 이것이다. 목표값과 단위가 같아 값의 크기를 그대로 읽을 수 있다.
