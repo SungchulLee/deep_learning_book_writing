@@ -28,12 +28,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score
 import time
-from utils import (load_sample_dataset, print_results, 
+from utils import (load_sample_dataset, print_results,
+                   create_param_grid_summary, plot_parameter_importance)
 
 # ========================================================================
 # 메인
 # ========================================================================
-                   create_param_grid_summary, plot_parameter_importance)
 
 
 def grid_search_random_forest():

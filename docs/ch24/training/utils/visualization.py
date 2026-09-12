@@ -38,7 +38,14 @@ def visualize_reconstruction(model, data_loader, num_images=10, device="cpu",
     labels = labels[:num_images].to(device)
 
     with torch.no_grad():
-        out = model(images, labels) if conditional else model(images)
+        # 온전히 이어진 자기 부호기는 펼친 입력을 받고, 누비기 쪽은 그림
+        # 모양 그대로를 받는다. 어느 쪽인지 모르므로 그림 모양으로 먼저
+        # 넣어 보고, 거부하면 펼쳐서 다시 넣는다.
+        try:
+            out = model(images, labels) if conditional else model(images)
+        except RuntimeError:
+            flat = images.view(images.size(0), -1)
+            out = model(flat, labels) if conditional else model(flat)
     # forward가 (recon, mu, logvar)를 돌려주기도 하고 recon만 돌려주기도 한다
     recon = out[0] if isinstance(out, (tuple, list)) else out
     recon = recon.view_as(images)

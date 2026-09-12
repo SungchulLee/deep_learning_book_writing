@@ -29,12 +29,12 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import classification_report, accuracy_score
 from scipy.stats import randint, uniform
 import time
-from utils import (load_sample_dataset, print_results, 
+from utils import (load_sample_dataset, print_results,
+                   plot_parameter_importance)
 
 # ========================================================================
 # 메인
 # ========================================================================
-                   plot_parameter_importance)
 
 
 def random_search_random_forest():
