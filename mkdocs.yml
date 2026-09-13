@@ -560,10 +560,20 @@ nav:
       - 장 살펴보기: ch23/index.md
       - 23.1 자기 부호기:
         - 자기 부호기: ch23/ae/48_autoencoder.md
+        - 자기 부호기 모듈: ch23/architecture/autoencoder.md
         - 손실 함수: ch23/ae/loss_functions.md
         - 다시 세우기 살피기: ch23/ae/reconstruction_analysis.md
-      - 23.2 변형:
+      - 23.2 얼개:
+        - 온전히 이어진 자기 부호기: ch23/architecture/01_ae_fully_connected.md
+        - 누비기 자기 부호기: ch23/architecture/02_ae_cnn.md
+        - 잡음 없애는 자기 부호기: ch23/architecture/03_ae_denoising.md
         - 오그리는 자기 부호기: ch23/variants/contractive.md
+      - 23.3 주성분 분석에서 자기 부호기로:
+        - 자기 부호기의 주다양체: ch23/architecture/04_ae_principal_manifold.md
+      - 23.4 익히기:
+        - 자기 부호기 익히기: ch23/training/train_autoencoder.md
+      - 23.5 한계:
+        - 숨은 공간에서 뽑을 수 있는가: ch23/limits/latent_sampling.md
     - 24 변분 자기 부호기(VAE):
       - 장 살펴보기: ch24/index.md
       - 24.1 이론:
@@ -571,12 +581,7 @@ nav:
       - 24.2 얼개:
         - 부호기: ch24/architecture/encoder.md
         - 사전 분포: ch24/architecture/prior.md
-        - 온전히 이어진 자기 부호기: ch24/architecture/01_ae_fully_connected.md
-        - 누비기 자기 부호기: ch24/architecture/02_ae_cnn.md
-        - 잡음 없애는 자기 부호기: ch24/architecture/03_ae_denoising.md
-        - 자기 부호기의 주다양체: ch24/architecture/04_ae_principal_manifold.md
         - 변분 자기 부호기: ch24/architecture/47_vae.md
-        - 자기 부호기: ch24/architecture/autoencoder.md
         - 베타 변분 자기 부호기: ch24/architecture/beta_vae.md
         - 조건부 변분 자기 부호기: ch24/architecture/conditional_vae.md
         - 누비기 조건부 변분 자기 부호기: ch24/architecture/conv_cvae.md
@@ -585,7 +590,6 @@ nav:
       - 24.3 익히기:
         - 공짜 비트: ch24/training/free_bits.md
         - 표본 만들기: ch24/training/generate_samples.md
-        - 자기 부호기 익히기: ch24/training/train_autoencoder.md
         - 베타 변분 자기 부호기 익히기: ch24/training/train_beta_vae.md
         - 조건부 변분 자기 부호기 익히기: ch24/training/train_cvae.md
         - 변분 자기 부호기 익히기: ch24/training/train_vae.md

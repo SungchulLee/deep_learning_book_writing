@@ -4,7 +4,6 @@
 스크립트가 `from models.vae import VAE`처럼 들여올 수 있게 모듈로 묶어 둔다.
 """
 
-from .autoencoder import SimpleAutoencoder
 from .beta_vae import BetaVAE, ConvBetaVAE
 from .conditional_vae import ConditionalVAE
 from .conv_cvae import ConvConditionalVAE
@@ -12,6 +11,6 @@ from .conv_vae import ConvVAE
 from .vae import VAE
 
 __all__ = [
-    "SimpleAutoencoder", "VAE", "BetaVAE", "ConvBetaVAE",
+    "VAE", "BetaVAE", "ConvBetaVAE",
     "ConditionalVAE", "ConvVAE", "ConvConditionalVAE",
 ]
