@@ -122,11 +122,39 @@ Full MathJax/admonition rules are in `agents/SKILL.md`. Key points:
 
 - `$...$` inline math, `$$...$$` display — always blank lines above and below display math
 - No blank lines *inside* `$$...$$` blocks
+- **Blank line between consecutive `$$` blocks too** — without it Markdown merges them and
+  the delimiters leak through as literal `$$`. For a chain of equalities prefer one
+  `$$\begin{aligned} … \end{aligned}$$` block over several `$$` blocks in a row.
+- MathJax loads only `ams` and `boldsymbol` (see `docs/javascripts/mathjax.js`). Environments
+  from other packages — `psmallmatrix`, anything from `mathtools` — silently fail to render.
 - No LaTeX in `#` headings (breaks TOC)
 - `\$` for currency, never bare `$`
 - QED: `$\square$`
 - Every content page ends with `## Exercises` (interleaved solutions, collapsible)
 - Python: module docstring · `# ===` dividers · `if __name__ == "__main__":` guard
+- Korean headings get positional anchors (`#_6`), not slugs, so intra-page `](#…)` links
+  are fragile. Name the section in the link text instead of linking to it.
+
+## Figures
+
+Figures live in `docs/<chapter>/<section>/figures/` and are embedded with plain
+`![alt](figures/name.svg)`.
+
+- **SVG, not PNG** — text-based, diffs and compresses, stays sharp at any zoom.
+- `svg.fonttype='path'` so glyphs become outlines. With the default `'none'` the file
+  depends on fonts the browser may not have, and since matplotlib positions each glyph
+  absolutely, a fallback font shifts the labels.
+- `transparent=True` — the theme configures no palette, so Material renders light-only and
+  a transparent background sits cleanly on the page. Adding a dark-mode toggle later would
+  require dark variants of every figure.
+- **All figure text must be ASCII.** matplotlib's default font has no Hangul, so Korean
+  labels render as tofu boxes. `fonttype='path'` hides this from a text search — the string
+  survives only in an XML comment while the glyphs are already baked to outlines — so check
+  the rendered image, or grep the SVG for `[가-힣]`.
+- Alt text is plain prose. `$...$` inside alt gets converted to `\(...\)` by arithmatex and
+  is then read aloud as markup.
+- Generate figures with the page's own code where possible, and make sure the numbers in
+  the figure match the numbers in the prose.
 
 ## Block Scheme (정의 · 정리 · 증명 · 보기 · 문제 · 연습문제 · 풀이)
 
