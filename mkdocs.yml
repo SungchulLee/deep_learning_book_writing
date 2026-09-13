@@ -233,8 +233,8 @@ nav:
         - scikit-learn과의 비교: ch05/logistic_regression/07_sklearn_comparison.md
         - IMDB 텍스트 분류: ch05/logistic_regression/08_imdb_text_classification.md
       - 5.4 소프트맥스 회귀:
-        - 다중 클래스 분류: ch05/softmax_regression/multiclass.md
         - 기초: ch05/softmax_regression/01_fundamentals.md
+        - 다중 클래스 분류: ch05/softmax_regression/multiclass.md
         - 소프트맥스 회귀의 한계: ch05/softmax_regression/02_limits.md
         - 심화: ch05/softmax_regression/04_advanced.md
         - 종합 프로젝트: ch05/softmax_regression/05_comprehensive.md
@@ -348,13 +348,13 @@ nav:
         - Adam: ch07/optimizers/adam.md
         - AdamW: ch07/optimizers/adamw.md
         - LAMB: ch07/optimizers/lamb.md
-        - 최적화기 비교: ch07/optimizers/01_optimizer_comparison.md
+        - 신경망 학습에서 최적화기 비교: ch07/optimizers/01_optimizer_comparison.md
         - 학습률 스케줄러: ch07/optimizers/02_learning_rate_schedulers.md
         - 기울기 관리: ch07/optimizers/03_gradient_management.md
-        - Adagrad 최적화기: ch07/optimizers/adagrad_optimizer.md
-        - Adam 최적화기: ch07/optimizers/adam_optimizer.md
-        - 최적화기 비교 실험: ch07/optimizers/optimizer_comparison.md
-        - RMSprop 최적화기: ch07/optimizers/rmsprop_optimizer.md
+        - Adagrad 실습: ch07/optimizers/adagrad_optimizer.md
+        - Adam 실습: ch07/optimizers/adam_optimizer.md
+        - 기준 함수에서 최적화기 비교: ch07/optimizers/optimizer_comparison.md
+        - RMSprop 실습: ch07/optimizers/rmsprop_optimizer.md
       - 7.7 학습률 스케줄러:
         - 순환 학습률: ch07/schedulers/cyclical_lr.md
         - 학습률 워밍업: ch07/schedulers/lr_warmup.md
@@ -1017,9 +1017,9 @@ nav:
       - 28.1 바탕:
         - 뒤 과정: ch28/foundations/reverse_process.md
       - 28.2 점수 바탕 모델:
+        - 점수 함수 바탕: ch28/score_based/01_score_functions_basics.md
         - 잡음 없애는 점수 맞추기: ch28/score_based/denoising_score_matching.md
         - 저민 점수 맞추기: ch28/score_based/sliced_score_matching.md
-        - 점수 함수 바탕: ch28/score_based/01_score_functions_basics.md
         - 점수 맞추기 이론: ch28/score_based/02_score_matching_theory.md
         - 랑주뱅 움직임: ch28/score_based/03_langevin_dynamics.md
         - 랑주뱅 움직임 2: ch28/score_based/03_langevin_dynamics_2.md
@@ -1348,12 +1348,12 @@ nav:
         - 흔듦의 갈래: ch40/foundations/perturbations.md
         - 든든함 뜻매김: ch40/foundations/definitions.md
       - 40.2 흰 상자 치기:
+        - FGSM 밑바탕: ch40/adversarial/01_fgsm_basic.md
         - 빠른 기울기 부호 방법(FGSM): ch40/white_box/fgsm.md
         - 되비춘 기울기 내림(PGD) 치기: ch40/white_box/pgd.md
         - '칼리니-와그너(C&W) 치기': ch40/white_box/cw_attack.md
         - 딥풀: ch40/white_box/deepfool.md
         - 오토어택: ch40/white_box/autoattack.md
-        - FGSM 밑바탕: ch40/adversarial/01_fgsm_basic.md
         - PGD 치기: ch40/adversarial/02_pgd_attack.md
         - 'C&W 치기': ch40/adversarial/03_cw_attack.md
         - 맞서며 익히기: ch40/adversarial/04_adversarial_training.md
