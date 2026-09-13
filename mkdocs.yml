@@ -76,7 +76,13 @@ nav:
       - 3.1 템플릿 학습:
         - MNIST 템플릿 학습: ch03/mnist/01_template_learning.md
       - 3.2 선형 모델과 소프트맥스:
-        - MNIST 선형 모델과 소프트맥스: ch03/mnist/02_linear_softmax.md
+        - 사슬 전체: ch03/linear_softmax/index.md
+        - 선형 모델: ch03/linear_softmax/01_linear_model.md
+        - 소프트맥스: ch03/linear_softmax/02_softmax.md
+        - 최대가능도 추정: ch03/linear_softmax/03_mle.md
+        - 교차 엔트로피 손실: ch03/linear_softmax/04_cross_entropy.md
+        - 경사 하강법: ch03/linear_softmax/05_gradient_descent.md
+        - 구현과 결과: ch03/linear_softmax/06_implementation.md
       - 3.3 다층 퍼셉트론:
         - MNIST 다층 퍼셉트론: ch03/mnist/03_mlp.md
       - 3.4 합성곱 신경망:
