@@ -331,14 +331,14 @@ nav:
         - TensorBoard MNIST 주석본: ch07/training/tensorboard_mnist_commented.md
         - 완전한 MNIST 학습: ch07/training/01_complete_mnist_training.md
       - 7.5 고급 손실 함수:
-        - 초점 손실: ch07/loss/focal_loss.md
-        - 후버 손실: ch07/loss/huber_loss.md
-        - 손실 함수의 선택: ch07/loss/loss_selection.md
         - 손실 함수 소개: ch07/loss/01_intro_to_loss_functions.md
         - 회귀 손실의 비교: ch07/loss/02_regression_losses_comparison.md
         - 최적화기 소개: ch07/loss/03_intro_to_optimizers.md
         - 분류 손실: ch07/loss/04_classification_losses.md
+        - 후버 손실: ch07/loss/huber_loss.md
+        - 초점 손실: ch07/loss/focal_loss.md
         - 사용자 정의 손실 함수: ch07/loss/01_custom_loss_functions.md
+        - 손실 함수의 선택: ch07/loss/loss_selection.md
       - 7.6 최적화기:
         - 모멘텀을 쓰는 확률적 경사 하강법: ch07/optimizers/momentum.md
         - 네스테로프 모멘텀: ch07/optimizers/nesterov.md
