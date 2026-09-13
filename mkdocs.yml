@@ -137,12 +137,6 @@ nav:
         - 비교, 범위 제한, 정렬: ch04/tensor_attrs/15_comparison_clamping_sorting.md
       - 4.3 자동 미분:
         - 경사 계산: ch04/autograd/gradient_computation.md
-        - v를 이용한 벡터 역전파: ch04/autograd/22_vector_backward_with_v.md
-        - 벡터 역전파 - 선형 사례 1: ch04/autograd/23_vector_backward_linear_case_1.md
-        - 벡터 역전파 - 선형 사례 2: ch04/autograd/24_vector_backward_linear_case_2.md
-        - 벡터 역전파 - 비선형 전체 야코비안: ch04/autograd/25_vector_backward_nonlinear_full_jacobian.md
-        - 벡터 역전파의 함정: ch04/autograd/26_pitfalls_of_vector_backward.md
-        - 배치 VJP: ch04/autograd/27_batch_vjp.md
         - 스칼라에 대한 기본 역전파: ch04/autograd/01_basic_scalar_backward.md
         - 경사 누적: ch04/autograd/02_gradient_accumulation.md
         - retain_graph: ch04/autograd/03_retain_graph.md
@@ -164,6 +158,12 @@ nav:
         - 큰 배치를 위한 경사 누적: ch04/autograd/19_gradient_accumulation_for_large_batches.md
         - 경사 크기 조정이 중요한 이유: ch04/autograd/20_why_gradient_scaling_matters.md
         - 경사 누적을 쓰는 학습 루프: ch04/autograd/21_training_loop_with_grad_accumulation.md
+        - v를 이용한 벡터 역전파: ch04/autograd/22_vector_backward_with_v.md
+        - 벡터 역전파 - 선형 사례 1: ch04/autograd/23_vector_backward_linear_case_1.md
+        - 벡터 역전파 - 선형 사례 2: ch04/autograd/24_vector_backward_linear_case_2.md
+        - 벡터 역전파 - 비선형 전체 야코비안: ch04/autograd/25_vector_backward_nonlinear_full_jacobian.md
+        - 벡터 역전파의 함정: ch04/autograd/26_pitfalls_of_vector_backward.md
+        - 배치 VJP: ch04/autograd/27_batch_vjp.md
         - Autograd 바닥부터 만들기: ch04/autograd/autograd_from_scratch.md
       - 4.4 경사 하강법:
         - 최급상승 방향으로서의 경사: ch04/gradient_descent/steepest_direction.md
@@ -171,12 +171,12 @@ nav:
         - 볼록 최적화와 비볼록 최적화: ch04/gradient_descent/convex_nonconvex.md
         - 배치, 미니배치, 확률적 경사 하강법: ch04/gradient_descent/batch_minibatch_sgd.md
         - NumPy로 직접 구현하는 경사 하강법: ch04/gradient_descent/01_manual_gradient_numpy.md
-        - PyTorch Autograd 기초: ch04/gradient_descent/02_pytorch_autograd_basics.md
-        - 간단한 선형 회귀: ch04/gradient_descent/03_simple_linear_regression.md
-        - 경사 하강법 시각화: ch04/gradient_descent/04_visualizing_gradient_descent.md
         - 배치와 미니배치 SGD: ch04/gradient_descent/01_batch_vs_minibatch_sgd.md
         - Adam 최적화기: ch04/gradient_descent/01_adam_optimizer.md
         - MNIST 신경망: ch04/gradient_descent/01_neural_network_mnist.md
+        - PyTorch Autograd 기초: ch04/gradient_descent/02_pytorch_autograd_basics.md
+        - 간단한 선형 회귀: ch04/gradient_descent/03_simple_linear_regression.md
+        - 경사 하강법 시각화: ch04/gradient_descent/04_visualizing_gradient_descent.md
     - 5 통계적 학습:
       - 장 개요: ch05/index.md
       - 5.1 최대가능도 추정:
@@ -221,17 +221,17 @@ nav:
         - 경사 계산: ch05/logistic_regression/gradient.md
         - 정칙화된 로지스틱 회귀: ch05/logistic_regression/regularized.md
         - 소개: ch05/logistic_regression/01_introduction.md
+        - 사용자 정의 데이터셋: ch05/logistic_regression/01_custom_dataset.md
         - 간단한 이진 분류: ch05/logistic_regression/02_simple_binary_classification.md
+        - DataLoader로 배치 처리하기: ch05/logistic_regression/02_dataloader_batching.md
+        - 다중 클래스 분류: ch05/logistic_regression/02_multiclass_classification.md
         - scikit-learn 데이터로 실습하기: ch05/logistic_regression/03_with_sklearn_data.md
+        - 모델 체크포인트: ch05/logistic_regression/03_model_checkpointing.md
         - BCE를 쓰는 경사 하강법: ch05/logistic_regression/04_gradient_descent_with_bce.md
         - BCEWithLogitsLoss를 쓰는 경사 하강법: ch05/logistic_regression/05_gradient_descent_with_bcewithlogitsloss.md
         - 경사 하강법 심화: ch05/logistic_regression/06_gradient_descent_advanced.md
         - scikit-learn과의 비교: ch05/logistic_regression/07_sklearn_comparison.md
         - IMDB 텍스트 분류: ch05/logistic_regression/08_imdb_text_classification.md
-        - DataLoader로 배치 처리하기: ch05/logistic_regression/02_dataloader_batching.md
-        - 모델 체크포인트: ch05/logistic_regression/03_model_checkpointing.md
-        - 사용자 정의 데이터셋: ch05/logistic_regression/01_custom_dataset.md
-        - 다중 클래스 분류: ch05/logistic_regression/02_multiclass_classification.md
       - 5.4 소프트맥스 회귀:
         - 다중 클래스 분류: ch05/softmax_regression/multiclass.md
         - 기초: ch05/softmax_regression/01_fundamentals.md
@@ -257,7 +257,6 @@ nav:
         - 순전파: ch06/feedforward/forward_pass.md
         - 역전파: ch06/feedforward/backpropagation.md
         - 기울기 흐름: ch06/feedforward/gradient_flow.md
-        - 캡슐넷: ch06/feedforward/49_capsule_net.md
         - NumPy로 만드는 선형 회귀: ch06/feedforward/01_linear_regression_numpy.md
         - PyTorch로 만드는 선형 회귀: ch06/feedforward/02_linear_regression_pytorch.md
         - 직접 계산하는 간단한 신경망: ch06/feedforward/03_simple_nn_manual.md
@@ -280,6 +279,7 @@ nav:
         - 회귀 과제: ch06/feedforward/21_regression_task.md
         - 다중 출력 신경망: ch06/feedforward/22_multi_output_network.md
         - 깊은 신경망: ch06/feedforward/23_deep_network.md
+        - 캡슐넷: ch06/feedforward/49_capsule_net.md
       - 6.3 가중치 초기화:
         - 가중치 초기화: ch06/weight_initialization/weight_initialization.md
         - He 초기화: ch06/weight_initialization/he_init.md
@@ -380,11 +380,11 @@ nav:
         - 연속 반감법: ch07/hyperparameters/06_successive_halving.md
       - 7.11 모델 저장:
         - ONNX 기초: ch07/save_load/1_onnx_basics.md
+        - 기본적인 저장과 불러오기: ch07/save_load/01_basic_save_load.md
         - 양자화: ch07/save_load/2_quantization.md
         - 배포 파이프라인: ch07/save_load/4_deployment_pipeline.md
-        - 유틸리티: ch07/save_load/5_utilities.md
-        - 기본적인 저장과 불러오기: ch07/save_load/01_basic_save_load.md
         - ONNX 내보내기: ch07/save_load/04_onnx_export.md
+        - 유틸리티: ch07/save_load/5_utilities.md
         - TorchScript 내보내기: ch07/save_load/05_torchscript_export.md
         - 전이 학습: ch07/save_load/06_transfer_learning.md
         - 분산 학습: ch07/save_load/07_distributed_training.md
@@ -422,16 +422,16 @@ nav:
       - 9.1 낱말 임베딩:
         - GloVe 임베딩: ch09/embeddings/glove_embedding.md
         - 간단한 임베딩: ch09/embeddings/01_simple_embeddings.md
-        - N-그램 교차 엔트로피: ch09/embeddings/02_ngram_cross_entropy.md
-        - N-그램 함수형 API: ch09/embeddings/03_ngram_functional.md
-        - N-그램 NLL 손실: ch09/embeddings/04_ngram_nll_loss.md
         - 손실 함수 비교: ch09/embeddings/01_loss_comparison.md
-        - CBOW 모델: ch09/embeddings/02_cbow_model.md
-        - Skip-gram 모델: ch09/embeddings/03_skipgram_model.md
-        - 임베딩 분석: ch09/embeddings/04_embedding_analysis.md
         - Word2Vec 전체: ch09/embeddings/01_word2vec_full.md
+        - N-그램 교차 엔트로피: ch09/embeddings/02_ngram_cross_entropy.md
+        - CBOW 모델: ch09/embeddings/02_cbow_model.md
         - 음성 표본 추출: ch09/embeddings/02_negative_sampling.md
+        - N-그램 함수형 API: ch09/embeddings/03_ngram_functional.md
+        - Skip-gram 모델: ch09/embeddings/03_skipgram_model.md
         - 사전 학습 임베딩: ch09/embeddings/03_pretrained_embeddings.md
+        - N-그램 NLL 손실: ch09/embeddings/04_ngram_nll_loss.md
+        - 임베딩 분석: ch09/embeddings/04_embedding_analysis.md
         - 임베딩 시각화: ch09/embeddings/04_embedding_visualization.md
       - 9.2 순환 신경망:
         - 순환 신경망의 기초: ch09/rnn/rnn_fundamentals.md
@@ -456,12 +456,12 @@ nav:
         - GRU 구조: ch09/lstm_gru/gru_architecture.md
         - GRU와 LSTM의 비교: ch09/lstm_gru/gru_vs_lstm.md
         - 엿보기 연결: ch09/lstm_gru/peephole.md
+        - LSTM 이론: ch09/lstm_gru/01_lstm_theory.md
+        - GRU 이론: ch09/lstm_gru/02_gru_theory.md
         - LSTM: ch09/lstm_gru/40_lstm.md
         - GRU: ch09/lstm_gru/41_gru.md
         - Seq2Seq: ch09/lstm_gru/42_seq2seq.md
         - 어텐션 Seq2Seq: ch09/lstm_gru/43_attention_seq2seq.md
-        - LSTM 이론: ch09/lstm_gru/01_lstm_theory.md
-        - GRU 이론: ch09/lstm_gru/02_gru_theory.md
       - 9.4 순차열 대 순차열:
         - 길이 정규화: ch09/seq2seq/length_normalization.md
         - 프랑스어→영어 번역: ch09/seq2seq/seq2seq_code.md
@@ -841,18 +841,18 @@ nav:
         - 조건부 무작위 마당: ch20/sequence_labeling/crf.md
         - 이름 알아보기를 위한 두 방향 LSTM: ch20/sequence_labeling/bilstm_ner.md
         - 이름 알아보기 값매김: ch20/sequence_labeling/ner_evaluation.md
-        - 두 방향 LSTM-CRF 이름 알아보기: ch20/sequence_labeling/10_bilstm_crf_ner.md
-        - 변환기 이름 알아보기: ch20/sequence_labeling/11_transformer_ner.md
-        - 실전 이름 알아보기: ch20/sequence_labeling/15_production_ner.md
         - 이름 알아보기 기초: ch20/sequence_labeling/01_ner_basics.md
         - IOB 이름표 붙이기: ch20/sequence_labeling/02_iob_tagging.md
         - 규칙 바탕 이름 알아보기: ch20/sequence_labeling/03_rule_based_ner.md
         - 사전 바탕 이름 알아보기: ch20/sequence_labeling/04_dictionary_ner.md
-        - 온전한 이름 알아보기 보임: ch20/sequence_labeling/demo_complete_ner.md
         - 특징 뽑기: ch20/sequence_labeling/05_feature_extraction.md
         - CRF 이름 알아보기: ch20/sequence_labeling/06_crf_ner.md
         - 값매김 잣대: ch20/sequence_labeling/07_evaluation_metrics.md
+        - 온전한 이름 알아보기 보임: ch20/sequence_labeling/demo_complete_ner.md
         - 자료 뭉치 만들기: ch20/sequence_labeling/08_dataset_creation.md
+        - 두 방향 LSTM-CRF 이름 알아보기: ch20/sequence_labeling/10_bilstm_crf_ner.md
+        - 변환기 이름 알아보기: ch20/sequence_labeling/11_transformer_ner.md
+        - 실전 이름 알아보기: ch20/sequence_labeling/15_production_ner.md
       - 20.3 글 가르기:
         - FinBERT 금융 마음결: ch20/text_classification/finbert_sentiment.md
         - LIME과 SHAP로 읽어 내기: ch20/text_classification/lime_shap_interpretability.md
@@ -940,11 +940,11 @@ nav:
       - 24.2 얼개:
         - 부호기: ch24/architecture/encoder.md
         - 사전 분포: ch24/architecture/prior.md
-        - 변분 자기 부호기: ch24/architecture/47_vae.md
         - 온전히 이어진 자기 부호기: ch24/architecture/01_ae_fully_connected.md
         - 누비기 자기 부호기: ch24/architecture/02_ae_cnn.md
         - 잡음 없애는 자기 부호기: ch24/architecture/03_ae_denoising.md
         - 자기 부호기의 주다양체: ch24/architecture/04_ae_principal_manifold.md
+        - 변분 자기 부호기: ch24/architecture/47_vae.md
         - 자기 부호기: ch24/architecture/autoencoder.md
         - 베타 변분 자기 부호기: ch24/architecture/beta_vae.md
         - 조건부 변분 자기 부호기: ch24/architecture/conditional_vae.md
@@ -1005,10 +1005,10 @@ nav:
         - 프레셰 인셉션 거리: ch27/gan_evaluation/fid.md
         - 정밀도와 재현율: ch27/gan_evaluation/precision_recall.md
         - 따지기 바탕: ch27/gan_evaluation/01_evaluation_basics.md
-        - 가능도 잣대: ch27/gan_evaluation/02_likelihood_metrics.md
-        - 표본 그려 보기: ch27/gan_evaluation/03_sample_visualization.md
         - 인셉션 점수: ch27/gan_evaluation/01_inception_score.md
+        - 가능도 잣대: ch27/gan_evaluation/02_likelihood_metrics.md
         - 프레셰 인셉션 거리: ch27/gan_evaluation/02_frechet_inception_distance.md
+        - 표본 그려 보기: ch27/gan_evaluation/03_sample_visualization.md
         - 온전한 따지기 보기: ch27/gan_evaluation/complete_evaluation_example.md
       - 27.5 맞겨루기 튼튼함:
         - 공격: ch27/adversarial_robustness/attacks.md
@@ -1022,20 +1022,20 @@ nav:
         - 점수 함수 바탕: ch28/score_based/01_score_functions_basics.md
         - 점수 맞추기 이론: ch28/score_based/02_score_matching_theory.md
         - 랑주뱅 움직임: ch28/score_based/03_langevin_dynamics.md
-        - 잡음 없애는 점수 맞추기 실전: ch28/score_based/04_implementing_dsm_practical.md
-        - 저민 점수 맞추기: ch28/score_based/05_sliced_score_matching.md
-        - 점수 신경망 얼개: ch28/score_based/06_score_network_architectures.md
-        - 잡음 조건 점수: ch28/score_based/07_noise_conditional_scores.md
-        - 점수 확률 미분 방정식 틀: ch28/score_based/08_score_sde_framework.md
-        - U-Net으로 그림 만들어 내기: ch28/score_based/09_image_generation_unet.md
-        - 퍼짐과의 온전한 이음: ch28/score_based/10_complete_diffusion_connection.md
         - 랑주뱅 움직임 2: ch28/score_based/03_langevin_dynamics_2.md
+        - 잡음 없애는 점수 맞추기 실전: ch28/score_based/04_implementing_dsm_practical.md
         - 잡음 없애는 점수 맞추기: ch28/score_based/04_denoising_score_matching.md
+        - 저민 점수 맞추기: ch28/score_based/05_sliced_score_matching.md
         - 저민 점수 맞추기 2: ch28/score_based/05_sliced_score_matching_2.md
+        - 점수 신경망 얼개: ch28/score_based/06_score_network_architectures.md
         - 점수 신경망: ch28/score_based/06_score_networks.md
+        - 잡음 조건 점수: ch28/score_based/07_noise_conditional_scores.md
         - 잡음 조건 점수 2: ch28/score_based/07_noise_conditional_scores_2.md
+        - 점수 확률 미분 방정식 틀: ch28/score_based/08_score_sde_framework.md
         - 점수 확률 미분 방정식: ch28/score_based/08_score_sde.md
+        - U-Net으로 그림 만들어 내기: ch28/score_based/09_image_generation_unet.md
         - 그림 만들어 내기: ch28/score_based/09_image_generation.md
+        - 퍼짐과의 온전한 이음: ch28/score_based/10_complete_diffusion_connection.md
         - 나아간 쓰임새: ch28/score_based/10_advanced_applications.md
       - 28.3 잡음 없애는 퍼짐 확률 모델:
         - 잡음 차례표: ch28/ddpm/noise_schedule.md
