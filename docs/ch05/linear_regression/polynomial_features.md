@@ -235,7 +235,6 @@ Weights: [0.9922938346862793, -2.0556046962738037, 0.49783164262771606, 0.008654
 $$
 E_{\mathcal{D}}\!\bigl[(y - \hat{f}(x))^2\bigr]
 = \underbrace{\bigl(f(x) - E[\hat{f}(x)]\bigr)^2}_{\text{편향}^2}
-
   + \underbrace{E\!\bigl[(\hat{f}(x) - E[\hat{f}(x)])^2\bigr]}_{\text{분산}}
   + \sigma^2
 $$

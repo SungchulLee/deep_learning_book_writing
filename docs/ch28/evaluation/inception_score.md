@@ -4,9 +4,7 @@
 ## 뜻매김 되짚기
 
 $$
-
 \text{IS} = \exp\!\left(\mathbb{E}_{x \sim p_g}\!\left[D_{\text{KL}}\bigl(p(y|x) \,\|\, p(y)\bigr)\right]\right)
-
 $$
 
 인셉션 점수가 높을수록 갈래 헤아림이 자신 있고(품질) 갈래를 두루 덮는다(다양함). 값은 1(가장 나쁨)부터 이론상 1000(ImageNet 갈래 수)까지다.

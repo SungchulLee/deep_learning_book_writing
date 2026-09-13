@@ -90,7 +90,6 @@ $n$개 관측에 대한 로그가능도는 다음과 같다.
 $$
 \ell(\mathbf{w}, b, \sigma^2)
 = -\frac{n}{2}\ln(2\pi\sigma^2)
-
   - \frac{1}{2\sigma^2}\sum_{i=1}^{n}(y_i - \mathbf{w}^\top\mathbf{x}_i - b)^2
 $$
 

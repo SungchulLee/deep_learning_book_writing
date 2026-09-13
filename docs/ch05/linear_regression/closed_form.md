@@ -50,7 +50,6 @@ $$
 \frac{\partial}{\partial \theta_i}
 = \sum_k A_{ik}\theta_k + \sum_j A_{ji}\theta_j
 = (\mathbf{A}\boldsymbol{\theta})_i
-
   + (\mathbf{A}^\top\boldsymbol{\theta})_i
 = 2(\mathbf{A}\boldsymbol{\theta})_i
 $$
@@ -99,7 +98,6 @@ $$
 = \frac{1}{n}\|\mathbf{y} - \mathbf{X}\boldsymbol{\theta}\|^2
 = \frac{1}{n}\bigl(
   \mathbf{y}^\top\mathbf{y}
-
   - 2\boldsymbol{\theta}^\top\mathbf{X}^\top\mathbf{y}
   + \boldsymbol{\theta}^\top\mathbf{X}^\top\mathbf{X}\boldsymbol{\theta}
 \bigr)
@@ -113,7 +111,6 @@ $$
 \nabla_{\boldsymbol{\theta}}\mathcal{L}
 = \frac{1}{n}\bigl(
   -2\mathbf{X}^\top\mathbf{y}
-
   + 2\mathbf{X}^\top\mathbf{X}\boldsymbol{\theta}
 \bigr)
 = \frac{2}{n}\,\mathbf{X}^\top\!
@@ -215,7 +212,6 @@ $$
 
 $$
 \mathbf{y} = \underbrace{\hat{\mathbf{y}}}_{\in\,\mathrm{Col}(\mathbf{X})}
-
            + \underbrace{\mathbf{r}}_{\perp\,\mathrm{Col}(\mathbf{X})},
 \qquad
 \|\mathbf{y}\|^2 = \|\hat{\mathbf{y}}\|^2 + \|\mathbf{r}\|^2
@@ -226,7 +222,6 @@ $$
 $$
 \underbrace{\|\mathbf{y} - \bar{y}\mathbf{1}\|^2}_{\text{SS}_{\text{tot}}}
 = \underbrace{\|\hat{\mathbf{y}} - \bar{y}\mathbf{1}\|^2}_{\text{SS}_{\text{reg}}}
-
 + \underbrace{\|\mathbf{r}\|^2}_{\text{SS}_{\text{res}}}
 $$
 

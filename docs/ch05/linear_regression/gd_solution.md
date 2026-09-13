@@ -19,7 +19,6 @@ $y_i \mid \mathbf{x}_i \sim \mathcal{N}(\mathbf{w}^\top\mathbf{x}_i + b,\,\sigma
 $$
 \ell(\mathbf{w}, b, \sigma^2)
 = -\frac{n}{2}\ln(2\pi\sigma^2)
-
   - \frac{1}{2\sigma^2}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
 $$
 
@@ -127,7 +126,6 @@ def compute_max_learning_rate(X: torch.Tensor) -> float:
 $$
 \boldsymbol{\theta}^{(t+1)}
 = \boldsymbol{\theta}^{(t)}
-
   - \eta\,\nabla_{\boldsymbol{\theta}} J(\boldsymbol{\theta}^{(t)})
 $$
 

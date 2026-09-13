@@ -15,10 +15,8 @@
 $$
 \mathcal{L}_{\text{lasso}}(\boldsymbol{\theta})
 = \frac{1}{2n}\|\mathbf{y} - \mathbf{X}\boldsymbol{\theta}\|^2
-
   + \lambda\|\boldsymbol{\theta}\|_1
 = \frac{1}{2n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
-
   + \lambda\sum_{j=1}^{p}|\theta_j|
 $$
 
@@ -106,7 +104,6 @@ $$
 $$
 \min_{\theta_j}
 \frac{1}{2n}\|r_j - \mathbf{x}_j\theta_j\|^2
-
 + \lambda|\theta_j|
 $$
 
@@ -184,7 +181,6 @@ $$
 \boldsymbol{\theta}^{(t+1)}
 = \mathcal{S}_{\eta\lambda}\!\Bigl(
     \boldsymbol{\theta}^{(t)}
-
     - \eta\,\nabla_{\boldsymbol{\theta}}
       \frac{1}{2n}\|\mathbf{y} - \mathbf{X}\boldsymbol{\theta}^{(t)}\|^2
   \Bigr)
@@ -343,10 +339,8 @@ for epoch in range(100):
 $$
 \mathcal{L}_{\text{elastic}}(\boldsymbol{\theta})
 = \frac{1}{2n}\|\mathbf{y} - \mathbf{X}\boldsymbol{\theta}\|^2
-
   + \lambda\Bigl[
     \rho\|\boldsymbol{\theta}\|_1
-
     + \frac{1-\rho}{2}\|\boldsymbol{\theta}\|_2^2
   \Bigr]
 $$

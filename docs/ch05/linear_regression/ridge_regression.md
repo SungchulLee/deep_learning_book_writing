@@ -16,10 +16,8 @@
 $$
 \mathcal{L}_{\text{ridge}}(\boldsymbol{\theta})
 = \|\mathbf{y} - \mathbf{X}\boldsymbol{\theta}\|^2
-
   + \lambda\|\boldsymbol{\theta}\|_2^2
 = \sum_{i=1}^{n}(y_i - \hat{y}_i)^2
-
   + \lambda\sum_{j=1}^{p}\theta_j^2
 $$
 
@@ -38,7 +36,6 @@ $$
 $$
 \nabla_{\boldsymbol{\theta}}\mathcal{L}
 = -2\mathbf{X}^\top\mathbf{y}
-
   + 2(\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I})\boldsymbol{\theta}
 = \mathbf{0}
 $$
@@ -140,7 +137,6 @@ $$
 = \arg\min_{\boldsymbol{\theta}}
 \left[
   \|\mathbf{y} - \mathbf{X}\boldsymbol{\theta}\|^2
-
   + \frac{\sigma^2}{\tau^2}\|\boldsymbol{\theta}\|^2
 \right]
 $$
@@ -163,7 +159,6 @@ $$
 $$
 \text{MSE}(\hat{\boldsymbol{\theta}}_{\text{ridge}})
 = \underbrace{\text{Bias}^2(\lambda)}_{\lambda\text{에 따라}\nearrow}
-
   + \underbrace{\text{Variance}(\lambda)}_{\lambda\text{에 따라}\searrow}
 $$
 
