@@ -537,376 +537,7 @@ nav:
         - ViT 학습: ch10/transformers_vision/train_vit.md
         - 시각화: ch10/transformers_vision/visualizations.md
         - ViT 모델: ch10/transformers_vision/vit_model.md
-  - III 배움의 틀:
-    - 11 자기 지도 학습:
-      - 장 개요: ch11/index.md
-      - 11.1 대조 학습:
-        - 대조 학습 MoCo: ch11/contrastive_learning/contrastive_moco.md
-        - 대조 학습 SimCLR: ch11/contrastive_learning/contrastive_simclr.md
-        - 데이터 증강: ch11/contrastive_learning/data_augmentation.md
-        - MAE 비전 트랜스포머: ch11/contrastive_learning/mae_vision_transformer.md
-      - 11.2 자기 증류:
-        - 지식 증류의 기초: ch11/self_distillation/distillation_basics.md
-        - 지수 이동 평균 교사: ch11/self_distillation/ema_teacher.md
-    - 12 전이 학습:
-      - 장 개요: ch12/index.md
-      - 12.1 전이 학습:
-        - 고급 기법: ch12/transfer_learning/advanced_techniques.md
-        - 기본 전이 학습: ch12/transfer_learning/basic_transfer_learning.md
-        - 사용자 데이터셋 전이: ch12/transfer_learning/custom_dataset_transfer.md
-        - 미세 조정: ch12/transfer_learning/fine_tuning.md
-      - 12.2 도메인 적응:
-        - 최대 평균 불일치: ch12/domain_adaptation/mmd.md
-      - 12.3 응용:
-        - 시계열을 위한 전이: ch12/applications/transfer_time_series.md
-    - 13 소수 예시 학습과 영 예시 학습:
-      - 장 개요: ch13/index.md
-      - 13.1 거리 학습:
-        - 원형 망: ch13/metric_learning/prototypical.md
-        - 샴 망: ch13/metric_learning/siamese.md
-      - 13.2 메타 학습:
-        - 배운 최적화기: ch13/meta_learning/learned_optimizers.md
-        - 모델 가리지 않는 메타 학습(MAML): ch13/meta_learning/maml.md
-        - 과제 분포: ch13/meta_learning/task_distribution.md
-      - 13.3 소수 예시 학습:
-        - 데이터 로더: ch13/few_shot/data_loader.md
-        - 평가: ch13/few_shot/evaluation.md
-        - 소수 예시 학습 훑어보기: ch13/few_shot/few_shot_overview.md
-        - 소수 예시 트랜스포머: ch13/few_shot/few_shot_transformer.md
-        - MAML: ch13/few_shot/maml.md
-        - 맞춤 망: ch13/few_shot/matching_networks.md
-        - 원형 망: ch13/few_shot/prototypical_networks.md
-        - 샴 망: ch13/few_shot/siamese_network.md
-      - 13.4 영 예시 학습:
-        - 속성 기반: ch13/zero_shot/attribute_based.md
-        - 영 예시 분류: ch13/zero_shot/classification.md
-        - 묻힘 기반: ch13/zero_shot/embedding_based.md
-        - 일반화된 영 예시 학습: ch13/zero_shot/generalized.md
-        - 영 예시 학습 훑어보기: ch13/zero_shot/zero_shot_overview.md
-    - 14 이어 배우기:
-      - 장 개요: ch14/index.md
-      - 14.1 이어 배우기:
-        - 파국적 잊음 보여 주기: ch14/continual_learning/01_catastrophic_forgetting_demo.md
-        - 소박한 차례 학습: ch14/continual_learning/01_naive_sequential_learning.md
-        - 단순 경험 되살리기: ch14/continual_learning/01_simple_experience_replay.md
-        - 탄성 가중치 다지기: ch14/continual_learning/02_elastic_weight_consolidation.md
-        - 잊지 않고 배우기: ch14/continual_learning/02_learning_without_forgetting.md
-        - 두루 견주기: ch14/continual_learning/03_comprehensive_comparison.md
-        - 파국적 잊음: ch14/continual_learning/catastrophic_forgetting.md
-        - 평가 지표: ch14/continual_learning/evaluation_metrics.md
-      - 14.2 벌주기 방법:
-        - 벌주기 훑어보기: ch14/regularization_methods/overview.md
-        - 탄성 가중치 다지기: ch14/regularization_methods/ewc.md
-        - 온라인 탄성 가중치 다지기: ch14/regularization_methods/online_ewc.md
-        - 방법의 견줌: ch14/regularization_methods/comparison.md
-      - 14.3 되살리기 방법:
-        - 경험 되살리기: ch14/replay_methods/experience_replay.md
-        - 평균 기울기 에피소드 기억: ch14/replay_methods/agem.md
-      - 14.4 구조 방법:
-        - 전문가 문: ch14/architecture_methods/expert_gate.md
-        - 초가리개: ch14/architecture_methods/supermask.md
-      - 14.5 증류 방법:
-        - 잊지 않고 배우기: ch14/distillation_methods/lwf.md
-        - 특징 증류: ch14/distillation_methods/feature_distillation.md
-        - 방법의 견줌: ch14/distillation_methods/comparison.md
-  - IV 확률 방법:
-    - 15 베이즈의 바탕:
-      - 장 훑어보기: ch15/index.md
-      - 15.1 핵심 이론:
-        - 앞확률, 가능도, 뒤확률: ch15/bayesian_foundations/prior_likelihood_posterior.md
-        - 켤레 앞확률: ch15/bayesian_foundations/conjugate_priors.md
-        - 최대 뒤확률 어림: ch15/bayesian_foundations/map_estimation.md
-        - 믿음 구간: ch15/bayesian_foundations/credible_intervals.md
-        - 층 모형: ch15/bayesian_foundations/07_hierarchical_models.md
-        - 경험 베이즈: ch15/bayesian_foundations/08_empirical_bayes.md
-        - 베이즈 선형 회귀: ch15/bayesian_foundations/09_bayesian_linear_regression.md
-        - 나아간 쓰임새: ch15/bayesian_foundations/10_advanced_applications.md
-      - 15.2 베이즈 모형:
-        - 베이즈 선형 회귀: ch15/bayesian_distributions/bayesian_linear_regression.md
-        - 베이즈 로지스틱 회귀: ch15/bayesian_distributions/bayesian_logistic_regression.md
-        - 가우스 과정: ch15/bayesian_distributions/gaussian_processes.md
-      - 15.3 층 모형:
-        - 층 베이즈: ch15/hierarchical/hierarchical_bayes.md
-        - 여러 층 모형: ch15/hierarchical/multilevel.md
-        - 경험 베이즈: ch15/hierarchical/empirical_bayes.md
-      - 15.4 모형 견줌:
-        - 베이즈 모형 고르기: ch15/model_comparison/selection.md
-        - 베이즈 인자: ch15/model_comparison/bayes_factors.md
-        - 정보 기준: ch15/model_comparison/information_criteria.md
-        - 가설 검정: ch15/model_comparison/hypothesis_testing.md
-      - 15.5 금융 쓰임새:
-        - 베이즈 포트폴리오: ch15/finance/portfolio.md
-        - 매개변수 불확실함: ch15/finance/parameter_uncertainty.md
-        - 국면 찾기: ch15/finance/regime.md
-    - 16 확률 그래프 모형:
-      - 장 훑어보기: ch16/index.md
-      - 16.1 바탕:
-        - 확률 그래프 모형의 바탕: ch16/pgm_foundations/fundamentals.md
-        - PGM의 바탕: ch16/pgm_foundations/01_pgm_fundamentals.md
-        - 베이즈 망의 기초: ch16/pgm_foundations/02_bayesian_networks_basics.md
-        - 단순한 추론: ch16/pgm_foundations/04_simple_inference.md
-      - 16.2 추론:
-        - 변수 없애기: ch16/pgm_inference/01_variable_elimination.md
-      - 16.3 배우기:
-        - 그래프 모형을 위한 기댓값-최대화: ch16/pgm_learning/em_for_pgms.md
-        - 짜임 배우기: ch16/pgm_learning/02_structure_learning.md
-    - 17 표집과 추론:
-      - 장 둘러보기: ch17/index.md
-      - 17.1 마르코프 사슬:
-        - 마르코프 사슬의 바탕: ch17/markov_chains/fundamentals.md
-        - 멈춘 분포: ch17/markov_chains/stationary.md
-        - 에르고드성: ch17/markov_chains/ergodicity.md
-        - 숨은 마르코프 모형: ch17/markov_chains/hmm.md
-        - 기본 마르코프 사슬: ch17/markov_chains/basic_markov_chain.md
-        - 무작위 걸음: ch17/markov_chains/random_walk.md
-        - 옮김 행렬: ch17/markov_chains/transition_matrices.md
-        - 흡수 사슬: ch17/markov_chains/absorbing_chains.md
-        - 모임 정리: ch17/markov_chains/convergence_theorems.md
-        - 멈춘 분포: ch17/markov_chains/stationary_distribution.md
-        - 이어진 시간 마르코프: ch17/markov_chains/continuous_time_markov.md
-        - 페이지랭크 알고리즘: ch17/markov_chains/pagerank_algorithm.md
-        - 글 만들기: ch17/markov_chains/text_generation.md
-        - 날씨 모형: ch17/markov_chains/weather_model.md
-      - 17.2 몬테카를로 방법:
-        - 몬테카를로 적분: ch17/monte_carlo/integration.md
-        - 실효 표본 크기: ch17/monte_carlo/importance_sampling/ess.md
-        - 실효 표본 크기 둘러보기: ch17/monte_carlo/ess.md
-        - 스스로 고르게 하는 중요도 표집: ch17/monte_carlo/02_self_normalized_is.md
-        - 단순한 베이즈 보기: ch17/monte_carlo/03_bayesian_simple_examples.md
-        - 실효 표본 크기: ch17/monte_carlo/04_effective_sample_size.md
-        - 제안 진단: ch17/monte_carlo/05_proposal_diagnostics.md
-        - 로지스틱 회귀의 중요도 표집: ch17/monte_carlo/06_logistic_regression_is.md
-        - 섞음 제안: ch17/monte_carlo/07_mixture_proposals.md
-        - 맞춰 가는 중요도 표집: ch17/monte_carlo/08_adaptive_importance_sampling.md
-        - 차례차례 중요도 표집: ch17/monte_carlo/09_sequential_importance_sampling.md
-        - 지킴 중요도 표집: ch17/monte_carlo/10_defensive_importance_sampling.md
-        - 드문 일 흉내내기: ch17/monte_carlo/11_rare_event_simulation.md
-        - 연습 문제: ch17/monte_carlo/exercises.md
-      - 17.3 중요도 표집:
-        - 중요도 표집의 바탕: ch17/monte_carlo/importance_sampling/fundamentals.md
-        - 스스로 고르게 하는 중요도 표집: ch17/monte_carlo/importance_sampling/self_normalized.md
-        - 제안 짜기: ch17/monte_carlo/importance_sampling/proposal_design.md
-      - 17.4 마르코프 사슬 몬테카를로:
-        - 메트로폴리스-헤이스팅스: ch17/mcmc/metropolis_hastings.md
-        - 깁스 표집: ch17/mcmc/gibbs_sampling.md
-        - 유턴 없는 표집기: ch17/mcmc/nuts.md
-        - 진단: ch17/mcmc/diagnostics.md
-      - 17.5 해밀턴 몬테카를로:
-        - 해밀턴 몬테카를로 둘러보기: ch17/mcmc/hmc/overview.md
-        - 해밀턴 움직임: ch17/mcmc/hmc/hamiltonian_dynamics.md
-        - 위상 공간: ch17/mcmc/hmc/phase_space.md
-        - 개구리뜀 적분기: ch17/mcmc/hmc/leapfrog_integrator.md
-        - 해밀턴 몬테카를로 알고리즘: ch17/mcmc/hmc/algorithm.md
-        - 질량 행렬: ch17/mcmc/hmc/mass_matrix.md
-        - 기하 풀이: ch17/mcmc/hmc/geometric_interpretation.md
-      - 17.6 흉내낸 담금질:
-        - 흉내낸 담금질의 바탕: ch17/mcmc/simulated_annealing/fundamentals.md
-        - 멈추지 않는 MCMC으로 본 흉내낸 담금질: ch17/mcmc/simulated_annealing/sa_as_mcmc.md
-        - 온도 일정: ch17/mcmc/simulated_annealing/schedules.md
-        - 모임 이론: ch17/mcmc/simulated_annealing/convergence.md
-        - 하나로 꿰는 개념으로서의 온도: ch17/mcmc/simulated_annealing/temperature_unifying.md
-        - EM을 위한 정해진 담금질: ch17/mcmc/simulated_annealing/annealed_em.md
-      - 17.7 랑주뱅 움직임:
-        - 랑주뱅의 바탕: ch17/langevin/fundamentals.md
-        - 다듬지 않은 랑주뱅: ch17/langevin/ula.md
-        - 메트로폴리스로 다듬은 랑주뱅 알고리즘: ch17/langevin/mala.md
-        - 점수 맞추기와 퍼짐 모형: ch17/langevin/score_and_diffusion.md
-      - 17.8 어림 베이즈 셈하기:
-        - 가능도 없는 추론: ch17/abc/likelihood_free.md
-        - ABC 물리치기 표집: ch17/abc/rejection_sampling.md
-        - ABC-MCMC: ch17/abc/abc_mcmc.md
-        - ABC-SMC(잇단 몬테카를로 ABC): ch17/abc/abc_smc.md
-      - 17.9 마르코프 사슬 몬테카를로 방법 견주기:
-        - 방법 둘러보기: ch17/mcmc_comparison/overview.md
-        - 이론으로 견주기: ch17/mcmc_comparison/theoretical.md
-        - 차원에 따른 크기 변화: ch17/mcmc_comparison/scaling.md
-        - 실전에서 방법 고르기: ch17/mcmc_comparison/method_selection.md
-    - 18 어림 추론:
-      - 장 둘러보기: ch18/index.md
-      - 18.1 변분 추론:
-        - 변분 추론 얼개: ch18/variational_inference/framework.md
-        - 증거 아래 경계: ch18/variational_inference/elbo.md
-        - 평균장: ch18/variational_inference/mean_field.md
-        - 나눠 갚는 변분 추론: ch18/variational_inference/amortized.md
-        - 매개변수 바꾸기: ch18/variational_inference/reparameterization.md
-        - 연습 01 기본 변분 추론: ch18/variational_inference/exercise_01_basic_vi.md
-      - 18.2 EM 알고리즘:
-        - 기댓값-최대화의 바탕: ch18/em/foundations.md
-        - E 걸음과 M 걸음: ch18/em/e_step_m_step.md
-        - 기댓값-최대화를 쓴 가우스 섞음 모형: ch18/em/gmm.md
-        - 기댓값-최대화의 갈래: ch18/em/variants.md
-      - 18.3 베이즈 신경망:
-        - 베이즈 신경망의 바탕: ch18/bnn/fundamentals.md
-        - 가중값의 불확실함: ch18/bnn/weight_uncertainty.md
-        - 되짚음으로 하는 베이즈: ch18/bnn/bayes_by_backprop.md
-        - 앞확률 고르기: ch18/bnn/prior_selection.md
-  - V 보기와 말:
-    - 19 컴퓨터 시각:
-      - 장 개요: ch19/index.md
-      - 19.1 그림 가르기:
-        - GoogLeNet 인셉션: ch19/image_classification/03_google_net_inception.md
-        - 앞선 EfficientNet: ch19/image_classification/04_efficientnet_advanced.md
-        - ResNet: ch19/image_classification/04_resnet.md
-        - DenseNet: ch19/image_classification/05_densenet.md
-        - 앞선 MobileNet: ch19/image_classification/05_mobilenet_advanced.md
-        - ConvNeXt: ch19/image_classification/06_convnext.md
-        - 앞선 DenseNet: ch19/image_classification/06_densenet_advanced.md
-        - EfficientNet: ch19/image_classification/07_efficientnet.md
-        - MobileNet V2: ch19/image_classification/11_mobilenet_v2.md
-        - SqueezeNet: ch19/image_classification/12_squeeze_net.md
-        - ShuffleNet: ch19/image_classification/13_shuffle_net.md
-        - 인셉션 V3: ch19/image_classification/14_inception_v3.md
-        - Xception: ch19/image_classification/15_xception.md
-        - NASNet: ch19/image_classification/16_nas_net.md
-        - EfficientNet V2: ch19/image_classification/17_efficient_net_v2.md
-        - ConvNeXt V2: ch19/image_classification/20_convnext_v2.md
-        - RegNet: ch19/image_classification/21_regnet.md
-        - ResNeXt: ch19/image_classification/22_res_next.md
-        - SENet: ch19/image_classification/23_se_net.md
-        - CBAM: ch19/image_classification/24_cbam.md
-        - ResNeSt: ch19/image_classification/25_res_nest.md
-        - GhostNet: ch19/image_classification/26_ghost_net.md
-        - MixNet: ch19/image_classification/27_mixnet.md
-        - HRNet: ch19/image_classification/28_hrnet.md
-        - PyramidNet: ch19/image_classification/29_pyramidnet.md
-        - CoordConv: ch19/image_classification/30_coordconv.md
-        - VGGNet: ch19/image_classification/vgg.md
-      - 19.2 그림 나누기:
-        - 나누기 개요: ch19/segmentation/segmentation_overview.md
-        - U-넷: ch19/segmentation/unet.md
-        - 마스크 R-CNN: ch19/segmentation/mask_rcnn.md
-        - U-넷: ch19/segmentation/31_u_net.md
-        - FCN: ch19/segmentation/32_fcn.md
-        - DeepLabV3: ch19/segmentation/33_deeplabv3.md
-        - PSPNet: ch19/segmentation/34_pspnet.md
-        - 기본 U-넷 나누기: ch19/segmentation/basic_unet_segmentation.md
-        - 미리 익힌 모델로 나누기: ch19/segmentation/pretrained_segmentation.md
-        - 의료 나누기: ch19/segmentation/medical_segmentation.md
-        - 앞선 나누기: ch19/segmentation/advanced_segmentation.md
-      - 19.3 물체 알아내기:
-        - 겹침 비와 최대가 아닌 것 누르기: ch19/detection/iou_nms.md
-        - 마스크 R-CNN: ch19/detection/35_mask_rcnn.md
-        - YOLOv3: ch19/detection/36_yolo_v3.md
-        - 레티나넷: ch19/detection/37_retinanet.md
-        - 더 빠른 R-CNN: ch19/detection/38_faster_rcnn.md
-        - SSD: ch19/detection/39_ssd.md
-        - 기본 물체 알아내기: ch19/detection/basic_object_detection.md
-        - YOLO 알아내기: ch19/detection/yolo_detection.md
-        - 맞춤 물체 알아내기: ch19/detection/custom_object_detection.md
-        - 앞선 알아내기: ch19/detection/advanced_detection.md
-      - 19.4 한 단계 알아내개:
-        - YOLO: ch19/detection/yolo.md
-        - 한 방 알아내개: ch19/detection/ssd.md
-        - 초점 손실: ch19/detection/focal_loss.md
-      - 19.5 닻 없는 알아내개:
-        - FCOS: ch19/detection/fcos.md
-      - 19.6 영상 이해:
-        - 영상 개요: ch19/video/video_overview.md
-        - 두 갈래 그물: ch19/video/two_stream.md
-        - 느림빠름: ch19/video/slowfast.md
-        - 영상 기초: ch19/video/01_video_basics.md
-        - 3차원 누비기: ch19/video/02_3d_convolution.md
-        - 단순 영상 갈래 매개: ch19/video/03_simple_video_classifier.md
-        - 영상 자료 불리기: ch19/video/04_data_augmentation_video.md
-        - 두 갈래 그물: ch19/video/05_two_stream_network.md
-        - 빛 흐름: ch19/video/06_optical_flow.md
-        - 영상 CNN-LSTM: ch19/video/07_cnn_lstm_video.md
-        - 몸짓 알아보기: ch19/video/08_action_recognition.md
-        - 때에 걸친 눈길: ch19/video/09_temporal_attention.md
-        - 느림빠름 그물: ch19/video/10_slowfast_network.md
-        - 영상 변환기: ch19/video/11_video_transformer.md
-        - 영상 이해 기획: ch19/video/12_video_understanding_project.md
-    - 20 자연어 다루기:
-      - 장 개요: ch20/index.md
-      - 20.1 말 나타내기:
-        - n-그램 모델: ch20/language_modeling/ngram.md
-        - 신경 말 모델: ch20/language_modeling/neural_lm.md
-        - 표집 전략: ch20/language_modeling/sampling_strategies.md
-        - Wav2Vec: ch20/language_modeling/10_wav2vec.md
-        - 길잡이 01 n-그램 기초: ch20/language_modeling/tutorial_01_ngram_basics.md
-        - 길잡이 02 n-그램 부드럽게 하기: ch20/language_modeling/tutorial_02_ngram_smoothing.md
-        - 길잡이 03 n-그램으로 글 만들기: ch20/language_modeling/tutorial_03_text_generation_ngrams.md
-        - 길잡이 04 앞먹임 말 모델: ch20/language_modeling/tutorial_04_feedforward_lm.md
-        - 길잡이 05 되돌이 그물 말 모델: ch20/language_modeling/tutorial_05_rnn_language_model.md
-        - 길잡이 06 LSTM 말 모델: ch20/language_modeling/tutorial_06_lstm_language_model.md
-        - 길잡이 07 변환기 말 모델: ch20/language_modeling/tutorial_07_transformer_lm.md
-        - 길잡이 08 미리 익힌 말 모델: ch20/language_modeling/tutorial_08_pretrained_lm.md
-        - 길잡이 09 조건을 건 만들어 내기: ch20/language_modeling/tutorial_09_conditional_generation.md
-        - 길잡이 10 말 모델 값매김: ch20/language_modeling/tutorial_10_lm_evaluation.md
-        - GPT 맨바닥부터 미리 익히기: ch20/language_modeling/pretrain_gpt_from_scratch.md
-      - 20.2 차례 이름표 붙이기:
-        - 이름 알아보기의 근본: ch20/sequence_labeling/ner_fundamentals.md
-        - 것의 갈래와 갈래 체계: ch20/sequence_labeling/entity_types.md
-        - 시작-안-바깥 이름표 붙이기: ch20/sequence_labeling/bio_tagging.md
-        - 조건부 무작위 마당: ch20/sequence_labeling/crf.md
-        - 이름 알아보기를 위한 두 방향 LSTM: ch20/sequence_labeling/bilstm_ner.md
-        - 이름 알아보기 값매김: ch20/sequence_labeling/ner_evaluation.md
-        - 이름 알아보기 기초: ch20/sequence_labeling/01_ner_basics.md
-        - IOB 이름표 붙이기: ch20/sequence_labeling/02_iob_tagging.md
-        - 규칙 바탕 이름 알아보기: ch20/sequence_labeling/03_rule_based_ner.md
-        - 사전 바탕 이름 알아보기: ch20/sequence_labeling/04_dictionary_ner.md
-        - 특징 뽑기: ch20/sequence_labeling/05_feature_extraction.md
-        - CRF 이름 알아보기: ch20/sequence_labeling/06_crf_ner.md
-        - 값매김 잣대: ch20/sequence_labeling/07_evaluation_metrics.md
-        - 온전한 이름 알아보기 보임: ch20/sequence_labeling/demo_complete_ner.md
-        - 자료 뭉치 만들기: ch20/sequence_labeling/08_dataset_creation.md
-        - 두 방향 LSTM-CRF 이름 알아보기: ch20/sequence_labeling/10_bilstm_crf_ner.md
-        - 변환기 이름 알아보기: ch20/sequence_labeling/11_transformer_ner.md
-        - 실전 이름 알아보기: ch20/sequence_labeling/15_production_ner.md
-      - 20.3 글 가르기:
-        - FinBERT 금융 마음결: ch20/text_classification/finbert_sentiment.md
-        - LIME과 SHAP로 읽어 내기: ch20/text_classification/lime_shap_interpretability.md
-        - 갈래별 마음결: ch20/text_classification/aspect_sentiment.md
-      - 20.4 앎 뽑기:
-        - 앎 뽑기 개요: ch20/information_extraction/ie_overview.md
-        - 사건 뽑기: ch20/information_extraction/event_extraction.md
-        - 같은 것 가리키기 풀기: ch20/information_extraction/coreference.md
-        - 열린 앎 뽑기: ch20/information_extraction/open_ie.md
-      - 20.5 기계 옮김:
-        - 변환기 기계 옮김: ch20/machine_translation/transformer_mt.md
-      - 20.6 물음 답하기:
-        - 뽑아내는 물음 답하기: ch20/question_answering/extractive_qa.md
-      - 20.7 주제 나타내기:
-        - 주제 나타내기 LDA와 LSA: ch20/topic_modeling/topic_modeling_lda_lsa.md
-    - 21 큰 말 모델:
-      - 장 살펴보기: ch21/index.md
-      - 21.1 큰 말 모델의 바탕:
-        - 미리 익히기 목표: ch21/llm_foundations/pretraining_objectives.md
-        - 값매김 잣대: ch21/llm_foundations/evaluation_metrics.md
-        - 어려움: ch21/llm_foundations/challenges.md
-      - 21.2 큰 말 모델의 얼개:
-        - 얼개 견줌: ch21/architectures/architectures.md
-        - GPT 갈래: ch21/architectures/gpt_series.md
-      - 21.3 잣수 맞추기 법칙:
-        - 살펴보기: ch21/scaling/scaling_overview.md
-        - 모델과 자료의 잣수 맞추기: ch21/scaling/model_vs_data.md
-        - 떠오르는 능력: ch21/scaling/emergent_abilities.md
-      - 21.4 시킴말 재주:
-        - 살펴보기: ch21/prompting/prompting_overview.md
-        - 생각의 사슬: ch21/prompting/chain_of_thought.md
-      - 21.5 찾아 붙여 만들어 내기:
-        - 빽빽한 찾기: ch21/rag/dense_retrieval.md
-      - 21.6 큰 말 모델 몸소 움직이개:
-        - ReAct 얼거리: ch21/agents/react.md
-        - 사례 살피기: ch21/agents/case_studies.md
-      - 21.7 효율 좋은 곱게 다듬기:
-        - 매개변수를 아끼는 곱게 다듬기 견줌: ch21/efficient_llm/peft_comparison.md
-        - LoRA: ch21/efficient_llm/lora.md
-        - 맞춤개: ch21/efficient_llm/adapters.md
-        - 앞가지 다듬기: ch21/efficient_llm/prefix_tuning.md
-      - 21.8 미룸 가장 좋게 하기:
-        - 열쇠-값 곳간: ch21/inference/kv_cache.md
-        - 플래시 눈길: ch21/inference/flash_attention.md
-        - 양자화: ch21/inference/quantization.md
-        - 미리 짚어 풀기: ch21/inference/speculative_decoding.md
-        - 양자화를 헤아린 익히기: ch21/inference/04_quantization_aware_training.md
-        - 짜임 있는 가지치기: ch21/inference/05_structured_pruning.md
-        - 아우른 눌러 담기: ch21/inference/06_combined_compression.md
-        - 허깅페이스 앎 내리기와 잣대 재기: ch21/inference/07_hf_distillation_benchmark.md
-        - 살펴보기: ch21/inference/model_compression_overview.md
-      - 21.9 결 맞추기:
-        - 익히기 물길: ch21/alignment/training_pipeline.md
-  - VI 만들어 내는 모델:
+  - III 만들어 내는 모델:
     - 22 차원 줄이기:
       - 장 살펴보기: ch22/index.md
       - 22.1 주성분 분석:
@@ -1081,6 +712,375 @@ nav:
         - 함께 배우기: ch29/modern_ebm/cooperative.md
       - 29.4 금융 쓰임새:
         - 신용 그물: ch29/finance_applications/credit_networks.md
+  - IV 배움의 틀:
+    - 11 자기 지도 학습:
+      - 장 개요: ch11/index.md
+      - 11.1 대조 학습:
+        - 대조 학습 MoCo: ch11/contrastive_learning/contrastive_moco.md
+        - 대조 학습 SimCLR: ch11/contrastive_learning/contrastive_simclr.md
+        - 데이터 증강: ch11/contrastive_learning/data_augmentation.md
+        - MAE 비전 트랜스포머: ch11/contrastive_learning/mae_vision_transformer.md
+      - 11.2 자기 증류:
+        - 지식 증류의 기초: ch11/self_distillation/distillation_basics.md
+        - 지수 이동 평균 교사: ch11/self_distillation/ema_teacher.md
+    - 12 전이 학습:
+      - 장 개요: ch12/index.md
+      - 12.1 전이 학습:
+        - 고급 기법: ch12/transfer_learning/advanced_techniques.md
+        - 기본 전이 학습: ch12/transfer_learning/basic_transfer_learning.md
+        - 사용자 데이터셋 전이: ch12/transfer_learning/custom_dataset_transfer.md
+        - 미세 조정: ch12/transfer_learning/fine_tuning.md
+      - 12.2 도메인 적응:
+        - 최대 평균 불일치: ch12/domain_adaptation/mmd.md
+      - 12.3 응용:
+        - 시계열을 위한 전이: ch12/applications/transfer_time_series.md
+    - 13 소수 예시 학습과 영 예시 학습:
+      - 장 개요: ch13/index.md
+      - 13.1 거리 학습:
+        - 원형 망: ch13/metric_learning/prototypical.md
+        - 샴 망: ch13/metric_learning/siamese.md
+      - 13.2 메타 학습:
+        - 배운 최적화기: ch13/meta_learning/learned_optimizers.md
+        - 모델 가리지 않는 메타 학습(MAML): ch13/meta_learning/maml.md
+        - 과제 분포: ch13/meta_learning/task_distribution.md
+      - 13.3 소수 예시 학습:
+        - 데이터 로더: ch13/few_shot/data_loader.md
+        - 평가: ch13/few_shot/evaluation.md
+        - 소수 예시 학습 훑어보기: ch13/few_shot/few_shot_overview.md
+        - 소수 예시 트랜스포머: ch13/few_shot/few_shot_transformer.md
+        - MAML: ch13/few_shot/maml.md
+        - 맞춤 망: ch13/few_shot/matching_networks.md
+        - 원형 망: ch13/few_shot/prototypical_networks.md
+        - 샴 망: ch13/few_shot/siamese_network.md
+      - 13.4 영 예시 학습:
+        - 속성 기반: ch13/zero_shot/attribute_based.md
+        - 영 예시 분류: ch13/zero_shot/classification.md
+        - 묻힘 기반: ch13/zero_shot/embedding_based.md
+        - 일반화된 영 예시 학습: ch13/zero_shot/generalized.md
+        - 영 예시 학습 훑어보기: ch13/zero_shot/zero_shot_overview.md
+    - 14 이어 배우기:
+      - 장 개요: ch14/index.md
+      - 14.1 이어 배우기:
+        - 파국적 잊음 보여 주기: ch14/continual_learning/01_catastrophic_forgetting_demo.md
+        - 소박한 차례 학습: ch14/continual_learning/01_naive_sequential_learning.md
+        - 단순 경험 되살리기: ch14/continual_learning/01_simple_experience_replay.md
+        - 탄성 가중치 다지기: ch14/continual_learning/02_elastic_weight_consolidation.md
+        - 잊지 않고 배우기: ch14/continual_learning/02_learning_without_forgetting.md
+        - 두루 견주기: ch14/continual_learning/03_comprehensive_comparison.md
+        - 파국적 잊음: ch14/continual_learning/catastrophic_forgetting.md
+        - 평가 지표: ch14/continual_learning/evaluation_metrics.md
+      - 14.2 벌주기 방법:
+        - 벌주기 훑어보기: ch14/regularization_methods/overview.md
+        - 탄성 가중치 다지기: ch14/regularization_methods/ewc.md
+        - 온라인 탄성 가중치 다지기: ch14/regularization_methods/online_ewc.md
+        - 방법의 견줌: ch14/regularization_methods/comparison.md
+      - 14.3 되살리기 방법:
+        - 경험 되살리기: ch14/replay_methods/experience_replay.md
+        - 평균 기울기 에피소드 기억: ch14/replay_methods/agem.md
+      - 14.4 구조 방법:
+        - 전문가 문: ch14/architecture_methods/expert_gate.md
+        - 초가리개: ch14/architecture_methods/supermask.md
+      - 14.5 증류 방법:
+        - 잊지 않고 배우기: ch14/distillation_methods/lwf.md
+        - 특징 증류: ch14/distillation_methods/feature_distillation.md
+        - 방법의 견줌: ch14/distillation_methods/comparison.md
+  - V 확률 방법:
+    - 15 베이즈의 바탕:
+      - 장 훑어보기: ch15/index.md
+      - 15.1 핵심 이론:
+        - 앞확률, 가능도, 뒤확률: ch15/bayesian_foundations/prior_likelihood_posterior.md
+        - 켤레 앞확률: ch15/bayesian_foundations/conjugate_priors.md
+        - 최대 뒤확률 어림: ch15/bayesian_foundations/map_estimation.md
+        - 믿음 구간: ch15/bayesian_foundations/credible_intervals.md
+        - 층 모형: ch15/bayesian_foundations/07_hierarchical_models.md
+        - 경험 베이즈: ch15/bayesian_foundations/08_empirical_bayes.md
+        - 베이즈 선형 회귀: ch15/bayesian_foundations/09_bayesian_linear_regression.md
+        - 나아간 쓰임새: ch15/bayesian_foundations/10_advanced_applications.md
+      - 15.2 베이즈 모형:
+        - 베이즈 선형 회귀: ch15/bayesian_distributions/bayesian_linear_regression.md
+        - 베이즈 로지스틱 회귀: ch15/bayesian_distributions/bayesian_logistic_regression.md
+        - 가우스 과정: ch15/bayesian_distributions/gaussian_processes.md
+      - 15.3 층 모형:
+        - 층 베이즈: ch15/hierarchical/hierarchical_bayes.md
+        - 여러 층 모형: ch15/hierarchical/multilevel.md
+        - 경험 베이즈: ch15/hierarchical/empirical_bayes.md
+      - 15.4 모형 견줌:
+        - 베이즈 모형 고르기: ch15/model_comparison/selection.md
+        - 베이즈 인자: ch15/model_comparison/bayes_factors.md
+        - 정보 기준: ch15/model_comparison/information_criteria.md
+        - 가설 검정: ch15/model_comparison/hypothesis_testing.md
+      - 15.5 금융 쓰임새:
+        - 베이즈 포트폴리오: ch15/finance/portfolio.md
+        - 매개변수 불확실함: ch15/finance/parameter_uncertainty.md
+        - 국면 찾기: ch15/finance/regime.md
+    - 16 확률 그래프 모형:
+      - 장 훑어보기: ch16/index.md
+      - 16.1 바탕:
+        - 확률 그래프 모형의 바탕: ch16/pgm_foundations/fundamentals.md
+        - PGM의 바탕: ch16/pgm_foundations/01_pgm_fundamentals.md
+        - 베이즈 망의 기초: ch16/pgm_foundations/02_bayesian_networks_basics.md
+        - 단순한 추론: ch16/pgm_foundations/04_simple_inference.md
+      - 16.2 추론:
+        - 변수 없애기: ch16/pgm_inference/01_variable_elimination.md
+      - 16.3 배우기:
+        - 그래프 모형을 위한 기댓값-최대화: ch16/pgm_learning/em_for_pgms.md
+        - 짜임 배우기: ch16/pgm_learning/02_structure_learning.md
+    - 17 표집과 추론:
+      - 장 둘러보기: ch17/index.md
+      - 17.1 마르코프 사슬:
+        - 마르코프 사슬의 바탕: ch17/markov_chains/fundamentals.md
+        - 멈춘 분포: ch17/markov_chains/stationary.md
+        - 에르고드성: ch17/markov_chains/ergodicity.md
+        - 숨은 마르코프 모형: ch17/markov_chains/hmm.md
+        - 기본 마르코프 사슬: ch17/markov_chains/basic_markov_chain.md
+        - 무작위 걸음: ch17/markov_chains/random_walk.md
+        - 옮김 행렬: ch17/markov_chains/transition_matrices.md
+        - 흡수 사슬: ch17/markov_chains/absorbing_chains.md
+        - 모임 정리: ch17/markov_chains/convergence_theorems.md
+        - 멈춘 분포: ch17/markov_chains/stationary_distribution.md
+        - 이어진 시간 마르코프: ch17/markov_chains/continuous_time_markov.md
+        - 페이지랭크 알고리즘: ch17/markov_chains/pagerank_algorithm.md
+        - 글 만들기: ch17/markov_chains/text_generation.md
+        - 날씨 모형: ch17/markov_chains/weather_model.md
+      - 17.2 몬테카를로 방법:
+        - 몬테카를로 적분: ch17/monte_carlo/integration.md
+        - 실효 표본 크기: ch17/monte_carlo/importance_sampling/ess.md
+        - 실효 표본 크기 둘러보기: ch17/monte_carlo/ess.md
+        - 스스로 고르게 하는 중요도 표집: ch17/monte_carlo/02_self_normalized_is.md
+        - 단순한 베이즈 보기: ch17/monte_carlo/03_bayesian_simple_examples.md
+        - 실효 표본 크기: ch17/monte_carlo/04_effective_sample_size.md
+        - 제안 진단: ch17/monte_carlo/05_proposal_diagnostics.md
+        - 로지스틱 회귀의 중요도 표집: ch17/monte_carlo/06_logistic_regression_is.md
+        - 섞음 제안: ch17/monte_carlo/07_mixture_proposals.md
+        - 맞춰 가는 중요도 표집: ch17/monte_carlo/08_adaptive_importance_sampling.md
+        - 차례차례 중요도 표집: ch17/monte_carlo/09_sequential_importance_sampling.md
+        - 지킴 중요도 표집: ch17/monte_carlo/10_defensive_importance_sampling.md
+        - 드문 일 흉내내기: ch17/monte_carlo/11_rare_event_simulation.md
+        - 연습 문제: ch17/monte_carlo/exercises.md
+      - 17.3 중요도 표집:
+        - 중요도 표집의 바탕: ch17/monte_carlo/importance_sampling/fundamentals.md
+        - 스스로 고르게 하는 중요도 표집: ch17/monte_carlo/importance_sampling/self_normalized.md
+        - 제안 짜기: ch17/monte_carlo/importance_sampling/proposal_design.md
+      - 17.4 마르코프 사슬 몬테카를로:
+        - 메트로폴리스-헤이스팅스: ch17/mcmc/metropolis_hastings.md
+        - 깁스 표집: ch17/mcmc/gibbs_sampling.md
+        - 유턴 없는 표집기: ch17/mcmc/nuts.md
+        - 진단: ch17/mcmc/diagnostics.md
+      - 17.5 해밀턴 몬테카를로:
+        - 해밀턴 몬테카를로 둘러보기: ch17/mcmc/hmc/overview.md
+        - 해밀턴 움직임: ch17/mcmc/hmc/hamiltonian_dynamics.md
+        - 위상 공간: ch17/mcmc/hmc/phase_space.md
+        - 개구리뜀 적분기: ch17/mcmc/hmc/leapfrog_integrator.md
+        - 해밀턴 몬테카를로 알고리즘: ch17/mcmc/hmc/algorithm.md
+        - 질량 행렬: ch17/mcmc/hmc/mass_matrix.md
+        - 기하 풀이: ch17/mcmc/hmc/geometric_interpretation.md
+      - 17.6 흉내낸 담금질:
+        - 흉내낸 담금질의 바탕: ch17/mcmc/simulated_annealing/fundamentals.md
+        - 멈추지 않는 MCMC으로 본 흉내낸 담금질: ch17/mcmc/simulated_annealing/sa_as_mcmc.md
+        - 온도 일정: ch17/mcmc/simulated_annealing/schedules.md
+        - 모임 이론: ch17/mcmc/simulated_annealing/convergence.md
+        - 하나로 꿰는 개념으로서의 온도: ch17/mcmc/simulated_annealing/temperature_unifying.md
+        - EM을 위한 정해진 담금질: ch17/mcmc/simulated_annealing/annealed_em.md
+      - 17.7 랑주뱅 움직임:
+        - 랑주뱅의 바탕: ch17/langevin/fundamentals.md
+        - 다듬지 않은 랑주뱅: ch17/langevin/ula.md
+        - 메트로폴리스로 다듬은 랑주뱅 알고리즘: ch17/langevin/mala.md
+        - 점수 맞추기와 퍼짐 모형: ch17/langevin/score_and_diffusion.md
+      - 17.8 어림 베이즈 셈하기:
+        - 가능도 없는 추론: ch17/abc/likelihood_free.md
+        - ABC 물리치기 표집: ch17/abc/rejection_sampling.md
+        - ABC-MCMC: ch17/abc/abc_mcmc.md
+        - ABC-SMC(잇단 몬테카를로 ABC): ch17/abc/abc_smc.md
+      - 17.9 마르코프 사슬 몬테카를로 방법 견주기:
+        - 방법 둘러보기: ch17/mcmc_comparison/overview.md
+        - 이론으로 견주기: ch17/mcmc_comparison/theoretical.md
+        - 차원에 따른 크기 변화: ch17/mcmc_comparison/scaling.md
+        - 실전에서 방법 고르기: ch17/mcmc_comparison/method_selection.md
+    - 18 어림 추론:
+      - 장 둘러보기: ch18/index.md
+      - 18.1 변분 추론:
+        - 변분 추론 얼개: ch18/variational_inference/framework.md
+        - 증거 아래 경계: ch18/variational_inference/elbo.md
+        - 평균장: ch18/variational_inference/mean_field.md
+        - 나눠 갚는 변분 추론: ch18/variational_inference/amortized.md
+        - 매개변수 바꾸기: ch18/variational_inference/reparameterization.md
+        - 연습 01 기본 변분 추론: ch18/variational_inference/exercise_01_basic_vi.md
+      - 18.2 EM 알고리즘:
+        - 기댓값-최대화의 바탕: ch18/em/foundations.md
+        - E 걸음과 M 걸음: ch18/em/e_step_m_step.md
+        - 기댓값-최대화를 쓴 가우스 섞음 모형: ch18/em/gmm.md
+        - 기댓값-최대화의 갈래: ch18/em/variants.md
+      - 18.3 베이즈 신경망:
+        - 베이즈 신경망의 바탕: ch18/bnn/fundamentals.md
+        - 가중값의 불확실함: ch18/bnn/weight_uncertainty.md
+        - 되짚음으로 하는 베이즈: ch18/bnn/bayes_by_backprop.md
+        - 앞확률 고르기: ch18/bnn/prior_selection.md
+  - VI 보기와 말:
+    - 19 컴퓨터 시각:
+      - 장 개요: ch19/index.md
+      - 19.1 그림 가르기:
+        - GoogLeNet 인셉션: ch19/image_classification/03_google_net_inception.md
+        - 앞선 EfficientNet: ch19/image_classification/04_efficientnet_advanced.md
+        - ResNet: ch19/image_classification/04_resnet.md
+        - DenseNet: ch19/image_classification/05_densenet.md
+        - 앞선 MobileNet: ch19/image_classification/05_mobilenet_advanced.md
+        - ConvNeXt: ch19/image_classification/06_convnext.md
+        - 앞선 DenseNet: ch19/image_classification/06_densenet_advanced.md
+        - EfficientNet: ch19/image_classification/07_efficientnet.md
+        - MobileNet V2: ch19/image_classification/11_mobilenet_v2.md
+        - SqueezeNet: ch19/image_classification/12_squeeze_net.md
+        - ShuffleNet: ch19/image_classification/13_shuffle_net.md
+        - 인셉션 V3: ch19/image_classification/14_inception_v3.md
+        - Xception: ch19/image_classification/15_xception.md
+        - NASNet: ch19/image_classification/16_nas_net.md
+        - EfficientNet V2: ch19/image_classification/17_efficient_net_v2.md
+        - ConvNeXt V2: ch19/image_classification/20_convnext_v2.md
+        - RegNet: ch19/image_classification/21_regnet.md
+        - ResNeXt: ch19/image_classification/22_res_next.md
+        - SENet: ch19/image_classification/23_se_net.md
+        - CBAM: ch19/image_classification/24_cbam.md
+        - ResNeSt: ch19/image_classification/25_res_nest.md
+        - GhostNet: ch19/image_classification/26_ghost_net.md
+        - MixNet: ch19/image_classification/27_mixnet.md
+        - HRNet: ch19/image_classification/28_hrnet.md
+        - PyramidNet: ch19/image_classification/29_pyramidnet.md
+        - CoordConv: ch19/image_classification/30_coordconv.md
+        - VGGNet: ch19/image_classification/vgg.md
+      - 19.2 그림 나누기:
+        - 나누기 개요: ch19/segmentation/segmentation_overview.md
+        - U-넷: ch19/segmentation/unet.md
+        - 마스크 R-CNN: ch19/segmentation/mask_rcnn.md
+        - U-넷: ch19/segmentation/31_u_net.md
+        - FCN: ch19/segmentation/32_fcn.md
+        - DeepLabV3: ch19/segmentation/33_deeplabv3.md
+        - PSPNet: ch19/segmentation/34_pspnet.md
+        - 기본 U-넷 나누기: ch19/segmentation/basic_unet_segmentation.md
+        - 미리 익힌 모델로 나누기: ch19/segmentation/pretrained_segmentation.md
+        - 의료 나누기: ch19/segmentation/medical_segmentation.md
+        - 앞선 나누기: ch19/segmentation/advanced_segmentation.md
+      - 19.3 물체 알아내기:
+        - 겹침 비와 최대가 아닌 것 누르기: ch19/detection/iou_nms.md
+        - 마스크 R-CNN: ch19/detection/35_mask_rcnn.md
+        - YOLOv3: ch19/detection/36_yolo_v3.md
+        - 레티나넷: ch19/detection/37_retinanet.md
+        - 더 빠른 R-CNN: ch19/detection/38_faster_rcnn.md
+        - SSD: ch19/detection/39_ssd.md
+        - 기본 물체 알아내기: ch19/detection/basic_object_detection.md
+        - YOLO 알아내기: ch19/detection/yolo_detection.md
+        - 맞춤 물체 알아내기: ch19/detection/custom_object_detection.md
+        - 앞선 알아내기: ch19/detection/advanced_detection.md
+      - 19.4 한 단계 알아내개:
+        - YOLO: ch19/detection/yolo.md
+        - 한 방 알아내개: ch19/detection/ssd.md
+        - 초점 손실: ch19/detection/focal_loss.md
+      - 19.5 닻 없는 알아내개:
+        - FCOS: ch19/detection/fcos.md
+      - 19.6 영상 이해:
+        - 영상 개요: ch19/video/video_overview.md
+        - 두 갈래 그물: ch19/video/two_stream.md
+        - 느림빠름: ch19/video/slowfast.md
+        - 영상 기초: ch19/video/01_video_basics.md
+        - 3차원 누비기: ch19/video/02_3d_convolution.md
+        - 단순 영상 갈래 매개: ch19/video/03_simple_video_classifier.md
+        - 영상 자료 불리기: ch19/video/04_data_augmentation_video.md
+        - 두 갈래 그물: ch19/video/05_two_stream_network.md
+        - 빛 흐름: ch19/video/06_optical_flow.md
+        - 영상 CNN-LSTM: ch19/video/07_cnn_lstm_video.md
+        - 몸짓 알아보기: ch19/video/08_action_recognition.md
+        - 때에 걸친 눈길: ch19/video/09_temporal_attention.md
+        - 느림빠름 그물: ch19/video/10_slowfast_network.md
+        - 영상 변환기: ch19/video/11_video_transformer.md
+        - 영상 이해 기획: ch19/video/12_video_understanding_project.md
+    - 20 자연어 다루기:
+      - 장 개요: ch20/index.md
+      - 20.1 말 나타내기:
+        - n-그램 모델: ch20/language_modeling/ngram.md
+        - 신경 말 모델: ch20/language_modeling/neural_lm.md
+        - 표집 전략: ch20/language_modeling/sampling_strategies.md
+        - Wav2Vec: ch20/language_modeling/10_wav2vec.md
+        - 길잡이 01 n-그램 기초: ch20/language_modeling/tutorial_01_ngram_basics.md
+        - 길잡이 02 n-그램 부드럽게 하기: ch20/language_modeling/tutorial_02_ngram_smoothing.md
+        - 길잡이 03 n-그램으로 글 만들기: ch20/language_modeling/tutorial_03_text_generation_ngrams.md
+        - 길잡이 04 앞먹임 말 모델: ch20/language_modeling/tutorial_04_feedforward_lm.md
+        - 길잡이 05 되돌이 그물 말 모델: ch20/language_modeling/tutorial_05_rnn_language_model.md
+        - 길잡이 06 LSTM 말 모델: ch20/language_modeling/tutorial_06_lstm_language_model.md
+        - 길잡이 07 변환기 말 모델: ch20/language_modeling/tutorial_07_transformer_lm.md
+        - 길잡이 08 미리 익힌 말 모델: ch20/language_modeling/tutorial_08_pretrained_lm.md
+        - 길잡이 09 조건을 건 만들어 내기: ch20/language_modeling/tutorial_09_conditional_generation.md
+        - 길잡이 10 말 모델 값매김: ch20/language_modeling/tutorial_10_lm_evaluation.md
+        - GPT 맨바닥부터 미리 익히기: ch20/language_modeling/pretrain_gpt_from_scratch.md
+      - 20.2 차례 이름표 붙이기:
+        - 이름 알아보기의 근본: ch20/sequence_labeling/ner_fundamentals.md
+        - 것의 갈래와 갈래 체계: ch20/sequence_labeling/entity_types.md
+        - 시작-안-바깥 이름표 붙이기: ch20/sequence_labeling/bio_tagging.md
+        - 조건부 무작위 마당: ch20/sequence_labeling/crf.md
+        - 이름 알아보기를 위한 두 방향 LSTM: ch20/sequence_labeling/bilstm_ner.md
+        - 이름 알아보기 값매김: ch20/sequence_labeling/ner_evaluation.md
+        - 이름 알아보기 기초: ch20/sequence_labeling/01_ner_basics.md
+        - IOB 이름표 붙이기: ch20/sequence_labeling/02_iob_tagging.md
+        - 규칙 바탕 이름 알아보기: ch20/sequence_labeling/03_rule_based_ner.md
+        - 사전 바탕 이름 알아보기: ch20/sequence_labeling/04_dictionary_ner.md
+        - 특징 뽑기: ch20/sequence_labeling/05_feature_extraction.md
+        - CRF 이름 알아보기: ch20/sequence_labeling/06_crf_ner.md
+        - 값매김 잣대: ch20/sequence_labeling/07_evaluation_metrics.md
+        - 온전한 이름 알아보기 보임: ch20/sequence_labeling/demo_complete_ner.md
+        - 자료 뭉치 만들기: ch20/sequence_labeling/08_dataset_creation.md
+        - 두 방향 LSTM-CRF 이름 알아보기: ch20/sequence_labeling/10_bilstm_crf_ner.md
+        - 변환기 이름 알아보기: ch20/sequence_labeling/11_transformer_ner.md
+        - 실전 이름 알아보기: ch20/sequence_labeling/15_production_ner.md
+      - 20.3 글 가르기:
+        - FinBERT 금융 마음결: ch20/text_classification/finbert_sentiment.md
+        - LIME과 SHAP로 읽어 내기: ch20/text_classification/lime_shap_interpretability.md
+        - 갈래별 마음결: ch20/text_classification/aspect_sentiment.md
+      - 20.4 앎 뽑기:
+        - 앎 뽑기 개요: ch20/information_extraction/ie_overview.md
+        - 사건 뽑기: ch20/information_extraction/event_extraction.md
+        - 같은 것 가리키기 풀기: ch20/information_extraction/coreference.md
+        - 열린 앎 뽑기: ch20/information_extraction/open_ie.md
+      - 20.5 기계 옮김:
+        - 변환기 기계 옮김: ch20/machine_translation/transformer_mt.md
+      - 20.6 물음 답하기:
+        - 뽑아내는 물음 답하기: ch20/question_answering/extractive_qa.md
+      - 20.7 주제 나타내기:
+        - 주제 나타내기 LDA와 LSA: ch20/topic_modeling/topic_modeling_lda_lsa.md
+    - 21 큰 말 모델:
+      - 장 살펴보기: ch21/index.md
+      - 21.1 큰 말 모델의 바탕:
+        - 미리 익히기 목표: ch21/llm_foundations/pretraining_objectives.md
+        - 값매김 잣대: ch21/llm_foundations/evaluation_metrics.md
+        - 어려움: ch21/llm_foundations/challenges.md
+      - 21.2 큰 말 모델의 얼개:
+        - 얼개 견줌: ch21/architectures/architectures.md
+        - GPT 갈래: ch21/architectures/gpt_series.md
+      - 21.3 잣수 맞추기 법칙:
+        - 살펴보기: ch21/scaling/scaling_overview.md
+        - 모델과 자료의 잣수 맞추기: ch21/scaling/model_vs_data.md
+        - 떠오르는 능력: ch21/scaling/emergent_abilities.md
+      - 21.4 시킴말 재주:
+        - 살펴보기: ch21/prompting/prompting_overview.md
+        - 생각의 사슬: ch21/prompting/chain_of_thought.md
+      - 21.5 찾아 붙여 만들어 내기:
+        - 빽빽한 찾기: ch21/rag/dense_retrieval.md
+      - 21.6 큰 말 모델 몸소 움직이개:
+        - ReAct 얼거리: ch21/agents/react.md
+        - 사례 살피기: ch21/agents/case_studies.md
+      - 21.7 효율 좋은 곱게 다듬기:
+        - 매개변수를 아끼는 곱게 다듬기 견줌: ch21/efficient_llm/peft_comparison.md
+        - LoRA: ch21/efficient_llm/lora.md
+        - 맞춤개: ch21/efficient_llm/adapters.md
+        - 앞가지 다듬기: ch21/efficient_llm/prefix_tuning.md
+      - 21.8 미룸 가장 좋게 하기:
+        - 열쇠-값 곳간: ch21/inference/kv_cache.md
+        - 플래시 눈길: ch21/inference/flash_attention.md
+        - 양자화: ch21/inference/quantization.md
+        - 미리 짚어 풀기: ch21/inference/speculative_decoding.md
+        - 양자화를 헤아린 익히기: ch21/inference/04_quantization_aware_training.md
+        - 짜임 있는 가지치기: ch21/inference/05_structured_pruning.md
+        - 아우른 눌러 담기: ch21/inference/06_combined_compression.md
+        - 허깅페이스 앎 내리기와 잣대 재기: ch21/inference/07_hf_distillation_benchmark.md
+        - 살펴보기: ch21/inference/model_compression_overview.md
+      - 21.9 결 맞추기:
+        - 익히기 물길: ch21/alignment/training_pipeline.md
   - VII 나아간 얼개:
     - 30 신경 상미분 방정식:
       - 장 살펴보기: ch30/index.md
