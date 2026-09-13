@@ -479,7 +479,7 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 뜻 나누기, 낱 물체 나누기, 온통 나누기의 차이를 설명하여라.
 
 </div>
@@ -491,7 +491,7 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요한지 밝혀라.
 
 </div>
@@ -503,7 +503,7 @@ U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 그림 나누기에는 어떤 손실 함수가 흔히 쓰이는가? 엇갈린 엔트로피 손실과 다이스 손실을 견주어라.
 
 </div>
@@ -515,7 +515,7 @@ U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 마스크 R-CNN이 낱 물체 나누기를 위해 더 빠른 R-CNN을 어떻게 넓히는지 밝히고 RoIAlign이 하는 몫을 설명하여라.
 
 </div>

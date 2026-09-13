@@ -622,7 +622,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 단일 채널 입력과 핵에 대해 2차원 상호상관을 (라이브러리 함수 없이) 밑바닥부터 구현하라. `F.conv2d`과 견주어 확인하라.
 
 </div>
@@ -654,7 +654,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 입력 채널이 3개, 출력 채널이 64개이고 핵이 $3 \times 3$인 (편향이 있는) 신경망의 첫 합성곱 층에서 매개변수의 수를 계산하라.
 
 </div>
@@ -672,7 +672,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 합성곱이 평행 이동에 동변임을 보여라. 곧 $T_a$이 입력을 화소 $a$개만큼 옮길 때 $\text{conv}(T_a(x)) = T_a(\text{conv}(x))$임을 보여라.
 
 </div>
@@ -696,7 +696,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 합성곱과 상호상관의 차이를 설명하라. 핵이 어떤 조건을 만족할 때 둘이 같아지는가?
 
 </div>

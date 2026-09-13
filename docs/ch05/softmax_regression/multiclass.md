@@ -382,7 +382,7 @@ Class counts: [5037 2996 1967]
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 클래스 확률이 로그 선형인 범주형 분포라는 가정에서 소프트맥스 함수를 유도하라.
 
 </div>
@@ -394,7 +394,7 @@ Class counts: [5037 2996 1967]
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 소프트맥스가 상수를 더해도 변하지 않음을 보여라. 즉 $\text{softmax}(\mathbf{z} + c\mathbf{1}) = \text{softmax}(\mathbf{z})$임을 보여라.
 
 </div>
@@ -410,7 +410,7 @@ Class counts: [5037 2996 1967]
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 소프트맥스 함수의 야코비 행렬 $\frac{\partial p_i}{\partial z_j}$을 계산하라.
 
 </div>
@@ -428,7 +428,7 @@ Class counts: [5037 2996 1967]
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 온도로 배율을 조절한 소프트맥스 $\text{softmax}(\mathbf{z}/T)$을 구현하고, $T \in \{0.1, 1.0, 5.0\}$에 대해 출력 분포에 미치는 효과를 보여라.
 
 </div>

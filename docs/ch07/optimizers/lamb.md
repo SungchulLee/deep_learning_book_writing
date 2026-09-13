@@ -123,7 +123,7 @@ LAMB는 특정한 상황을 위해 설계되었다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 LAMB의 갱신 규칙 전체를 쓰라. 각 항(기울기, 모멘텀, 적응형 학습률, 편향 보정)이 하는 구실을 밝히라.
 
 </div>
@@ -135,7 +135,7 @@ LAMB의 갱신 규칙 전체를 쓰라. 각 항(기울기, 모멘텀, 적응형 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 LAMB을(를) 기본 SGD와 비교하라. 어떤 손실 지형에서 LAMB이(가) 가장 유리한가?
 
 </div>
@@ -147,7 +147,7 @@ LAMB을(를) 기본 SGD와 비교하라. 어떤 손실 지형에서 LAMB이(가)
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 LAMB으로 4단계 동안 기울기 $[0.1, 0.2, 0.1, 0.3]$을 받은 매개변수의 실효 학습률을 유도하라. 명목 학습률과 어떻게 다른가?
 
 </div>
@@ -159,7 +159,7 @@ LAMB으로 4단계 동안 기울기 $[0.1, 0.2, 0.1, 0.3]$을 받은 매개변�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 LAMB이(가) 어떤 학습률 선택에서 발산할 수 있는 이유를 설명하라. 안정 조건을 유도하라.
 
 </div>

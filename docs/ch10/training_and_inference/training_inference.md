@@ -562,7 +562,7 @@ class LabelSmoothingLoss(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 표준 트랜스포머 학습 파이프라인을 데이터 마련, 토큰 나누기, 배치 묶기, 학습 고리로 나누어 설명하라.
 
 </div>
@@ -575,7 +575,7 @@ class LabelSmoothingLoss(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 효율적인 자기 회귀 추론을 위한 KV 캐싱을 설명하라.
 
 </div>
@@ -587,7 +587,7 @@ class LabelSmoothingLoss(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 스승 강제와 자기 회귀 디코딩의 차이는 무엇인가?
 
 </div>
@@ -599,7 +599,7 @@ class LabelSmoothingLoss(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 파이토치에서 트랜스포머 언어 모형의 간단한 학습 단계를 구현하라.
 
 </div>

@@ -82,7 +82,7 @@ BERT-base-like: ~28,348,416 params = 108.1 MB
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 표준 셀프 어텐션의 복잡도는 $O(n^2 d)$이다. $n = 4096$, $d = 512$일 때 총 연산 횟수를 계산하라. 선형 어텐션 변형은 $O(nd^2)$를 달성한다. $n/d$ 비율이 얼마일 때 선형 어텐션이 더 빨라지는가?
 
 </div>
@@ -94,7 +94,7 @@ BERT-base-like: ~28,348,416 params = 108.1 MB
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 경사 체크포인팅은 계산을 늘리는 대신 메모리를 아낀다. $L$개 층의 활성값을 모두 저장하는 대신 $\sqrt{L}$개 층마다 활성값을 저장하고 나머지는 역전파 중에 다시 계산한다. $L = 100$일 때 메모리 절감량과 추가 계산량을 구하라.
 
 </div>
@@ -106,7 +106,7 @@ BERT-base-like: ~28,348,416 params = 108.1 MB
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 혼합 정밀도 학습은 순전파/역전파에는 FP16을, 매개변수 갱신에는 FP32를 사용한다. 매개변수가 $P = 10^8$개인 모델에 대한 메모리 절감 효과를 설명하고, 손실 스케일러가 필요한 이유를 설명하라.
 
 </div>
@@ -118,7 +118,7 @@ BERT-base-like: ~28,348,416 params = 108.1 MB
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 은닉 차원 $d = 768$, 층 수 $L = 12$인 트랜스포머 모델은 어텐션과 FFN 가중치를 위해 대략 $12 \times 4d^2 \approx 28.3\text{M}$개의 매개변수를 필요로 한다. 길이 $n = 512$인 시퀀스에 대한 단일 순전파의 FLOPs를 계산하라.
 
 </div>
@@ -130,7 +130,7 @@ BERT-base-like: ~28,348,416 params = 108.1 MB
 
 <div class="drillbox" markdown>
 
-**연습문제 5.**
+**연습문제 5.** <span class="diff hard" title="어려움"></span>
 배치 정규화가 없다고 가정할 때, 크기 $B/k$인 마이크로배치 $k$개에 대한 경사 누적이 배치 크기 $B$인 단일 경사 단계와 수학적으로 동등함을 증명하라.
 
 </div>

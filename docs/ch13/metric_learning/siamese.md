@@ -869,7 +869,7 @@ class CrossDomainSiamese(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 샴 망 구조와 대조 손실을 설명하라.
 
 </div>
@@ -881,7 +881,7 @@ class CrossDomainSiamese(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 거리 학습에서 대조 손실과 세쌍 손실을 견주어라.
 
 </div>
@@ -893,7 +893,7 @@ class CrossDomainSiamese(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 파이토치로 한 예시 검증을 위한 샴 망을 구현하라.
 
 </div>
@@ -915,7 +915,7 @@ class CrossDomainSiamese(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 어려운 음의 보기 캐기란 무엇이며 샴 망을 익히는 데 왜 중요한가?
 
 </div>

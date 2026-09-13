@@ -151,7 +151,7 @@ $$r_t = \underbrace{w_t^\top R_t}_{\text{날 돌아옴}} - \underbrace{c \cdot \
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 이 절에서 밝힌 금융 문제를 위해 Gymnasium과 어울리는 둘레를 설계하여라. 봄 공간, 움직임 공간, 보상 함수, 에피소드 끝내기 조건을 밝혀라.
 
 </div>
@@ -163,7 +163,7 @@ $$r_t = \underbrace{w_t^\top R_t}_{\text{날 돌아옴}} - \underbrace{c \cdot \
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 이 금융 힘 북돋우는 배움 문제에서 보상 다듬기의 맞바꿈을 살펴라. 후보 보상 함수를 적어도 셋 견주고, 저마다 가장 좋은 방침의 어떤 성질을 지키는지 따져라.
 
 </div>
@@ -175,7 +175,7 @@ $$r_t = \underbrace{w_t^\top R_t}_{\text{날 돌아옴}} - \underbrace{c \cdot \
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이 금융 쓰임새에 딸린 흐름 바뀜 어려움을 따져라. 부림꾼을 판 바뀜에 맞춰 가게 하는 또렷한 꾀를 내놓아라.
 
 </div>
@@ -187,7 +187,7 @@ $$r_t = \underbrace{w_t^\top R_t}_{\text{날 돌아옴}} - \underbrace{c \cdot \
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 이 힘 북돋우는 배움 길과 쉬운 어림 잣대에서 나올 되짚어 시험 열매를 견주어라. 부림꾼이 참으로 앞서는지 가리려면 어떤 통계 검정을 써야 하는가?
 
 </div>

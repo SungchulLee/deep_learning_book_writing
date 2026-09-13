@@ -153,7 +153,7 @@ PyTorch는 (저장소를 공유하는 뷰를 반환하는) 기본 슬라이싱�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 $5 \times 5$ 행렬을 만들고 불리언 마스킹으로 0.5보다 큰 모든 원소를 뽑아내라. 결과는 뷰인가 복사본인가?
 
 </div>
@@ -172,7 +172,7 @@ $5 \times 5$ 행렬을 만들고 불리언 마스킹으로 0.5보다 큰 모든 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 기본 슬라이싱(예: `a[1:3]`)과 정수 배열 인덱싱(예: `a[torch.tensor([1,2])]`)의 차이를 뷰와 복사본의 관점에서 설명하라.
 
 </div>
@@ -185,7 +185,7 @@ $5 \times 5$ 행렬을 만들고 불리언 마스킹으로 0.5보다 큰 모든 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `torch.where`를 사용하여 조각별 함수를 구현하라. $x > 0$일 때 $f(x) = x^2$이고 그 밖에는 $f(x) = 0$이다.
 
 </div>

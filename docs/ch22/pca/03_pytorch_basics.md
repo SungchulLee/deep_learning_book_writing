@@ -77,7 +77,7 @@ PyTorch의 텐서는 NumPy 배열처럼 움직이되 결정적인 것 둘이 더
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 3x3 아무 텐서를 만들고 `torch.det`과 `torch.linalg.eig`으로 행렬식과 고윳값을 셈해, 행렬식이 고윳값의 곱과 같은지 확인하라.
 
 </div>
@@ -98,7 +98,7 @@ PyTorch의 텐서는 NumPy 배열처럼 움직이되 결정적인 것 둘이 더
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 손으로 매개변수를 고치는 대신 `torch.optim.SGD`을 쓰도록 선형 회귀를 고쳐라. 50번 돈 뒤의 마지막 손실을 견주어 같음을 확인하라.
 
 </div>
@@ -122,7 +122,7 @@ PyTorch의 텐서는 NumPy 배열처럼 움직이되 결정적인 것 둘이 더
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 저절로 미분하기로 점 $(x, y) = (1, 2)$에서 $f(x, y) = x^2 y + y^3$의 기울기를 셈하라. 편미분을 손으로 셈해 결과를 확인하라.
 
 </div>

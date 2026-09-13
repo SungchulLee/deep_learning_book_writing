@@ -569,7 +569,7 @@ END OF EXERCISES
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 코드를 끝까지 읽고 핵심 설계 판단을 가려내어라. 구체적인 구현의 고름 셋을 들고, 그것이 변분 추론에 왜 알맞은지 저마다 설명하여라.
 
 </div>
@@ -581,7 +581,7 @@ END OF EXERCISES
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 입력이 기대하는 모양과 자료형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
 
 </div>
@@ -593,7 +593,7 @@ END OF EXERCISES
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이 구현에서 생길 수 있는 실패 양상 두 가지를 서술하고, 각각을 어떻게 진단하고 고칠지 설명하라.
 
 </div>
@@ -605,7 +605,7 @@ END OF EXERCISES
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 변분 추론 구현이 옳은지 확인하는 두루 갖춘 시험 함수를 짜라. 빈 들임, 원소 하나짜리 들임, 아주 큰 들임, 극단 값(0, 아주 큰 수)이 든 들임 같은 모서리 경우를 시험하여라.
 
 </div>

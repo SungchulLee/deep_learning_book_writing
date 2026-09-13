@@ -510,7 +510,7 @@ class SwinUNet(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 스윈 트랜스포머의 어긋난 창 얼개를 설명하고 그것이 왜 일차 복잡도를 이루게 하는지 밝혀라.
 
 </div>
@@ -522,7 +522,7 @@ class SwinUNet(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 계산 효율과 여러 크기의 특징 면에서 스윈 트랜스포머와 비전 트랜스포머를 견주어라.
 
 </div>
@@ -534,7 +534,7 @@ class SwinUNet(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 스윈 트랜스포머의 창 나누기 연산을 구현하라.
 
 </div>
@@ -551,7 +551,7 @@ class SwinUNet(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 스윈의 조각 합치기란 무엇이며 어떻게 위계를 이루는 표현을 만드는가?
 
 </div>

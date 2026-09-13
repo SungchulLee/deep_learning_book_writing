@@ -447,7 +447,7 @@ Best degree: 3  (CV MSE: 7.87)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 원 특징이 $p$개일 때 차수 $d$의 다항 특징은 몇 개가 만들어지는가? 공식을 유도하라.
 
 </div>
@@ -459,7 +459,7 @@ Best degree: 3  (CV MSE: 7.87)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 2차원 데이터셋에 대해 차수 2의 다항 특징을 만들고 선형 모델을 적합시켜라. 그 결과로 나오는 비선형 결정 경계를 시각화하라.
 
 </div>
@@ -476,7 +476,7 @@ Best degree: 3  (CV MSE: 7.87)
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 과적합을 보여라. 데이터 점 20개에 차수 1, 5, 15의 다항식을 적합시키고 학습 오차와 시험 오차를 그려라.
 
 </div>
@@ -488,7 +488,7 @@ Best degree: 3  (CV MSE: 7.87)
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 다항 특징에 릿지나 라쏘 정칙화를 결합하는 것이 왜 중요한지 설명하고, 고차 예제에서 보여라.
 
 </div>

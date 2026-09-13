@@ -37,7 +37,7 @@ Word2Vec 임베딩의 품질은 낱말 유추 과제("왕 - 남자 + 여자 = �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 임베딩 층과 선형 출력층을 갖춘 최소한의 Skip-gram 모델을 PyTorch로 구현하라. 가운데 낱말의 색인을 받아 문맥 낱말을 예측하는 어휘 전체에 대한 로짓을 내놓아라. 창 크기 2로 문장 "the cat sat on the mat"에 대해 학습시켜라.
 
 </div>
@@ -90,7 +90,7 @@ Word2Vec 임베딩의 품질은 낱말 유추 과제("왕 - 남자 + 여자 = �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 CBOW와 Skip-gram의 학습 목표가 어떻게 다른지 설명하라. 드문 낱말에는 어느 쪽이 더 나을 것으로 보이며 그 까닭은 무엇인가?
 
 </div>
@@ -102,7 +102,7 @@ CBOW와 Skip-gram의 학습 목표가 어떻게 다른지 설명하라. 드문 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 위 Skip-gram 모델에 음성 표본 추출을 구현하라. 전체 소프트맥스 대신 양성 쌍마다 음성 낱말 5개를 뽑고 이진 교차 엔트로피 손실을 써라. 학습 속도와 마지막 임베딩 품질을 소프트맥스 판본과 견주어라.
 
 </div>

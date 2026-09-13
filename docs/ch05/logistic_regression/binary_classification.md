@@ -681,7 +681,7 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 베르누이 분산 $p(1-p)$이 $p=0.5$에서 최대가 됨을 증명하고, 이것이 분류의 확신도에 대해 갖는 의미를 설명하라.
 
 </div>
@@ -695,7 +695,7 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 참 데이터 분포 아래에서 기대 로그가능도를 유도하고, 그것이 음의 교차 엔트로피와 같음을 보여라.
 
 </div>
@@ -713,7 +713,7 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 로짓 함수 $\log\frac{p}{1-p}$이 베르누이 분포의 "정준" 연결 함수라 불리는 이유를 설명하라.
 
 </div>
@@ -727,7 +727,7 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 정규분포의 누적분포함수를 역연결 함수로 쓰는 프로빗 회귀 모델을 구현하고, 합성 데이터에서 로지스틱 회귀와 비교하라.
 
 </div>

@@ -79,7 +79,7 @@ ConvNeXt V2는 예전에는 변환기만의 것으로 여겨지던 가린 자기
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 GRN이 무엇을 셈하는지 수학으로 밝히고, 왜 특징이 무너지는 것을 막는지 설명하여라.
 
 </div>
@@ -91,7 +91,7 @@ GRN이 무엇을 셈하는지 수학으로 밝히고, 왜 특징이 무너지는
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 가린 자기부호기 미리 익히기는 변환기를 위해 꾸며졌는데도 왜 ConvNeXt에 이로운가?
 
 </div>
@@ -103,7 +103,7 @@ GRN이 무엇을 셈하는지 수학으로 밝히고, 왜 특징이 무너지는
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 ConvNeXt V2를 위한 단순한 가린 자기부호기 미리 익히기 목표를 짜라.
 
 </div>

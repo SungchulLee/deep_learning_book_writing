@@ -93,7 +93,7 @@ ResNet이 깊은 배움에 미친 영향은 아무리 말해도 지나치지 않
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `in_channels=256`, `out_channels=64`, 공간 크기 $56 \times 56$인 병목 블록 하나의 곱셈-덧셈 연산 수(FLOPs)를 셈하여라.
 
 </div>
@@ -111,7 +111,7 @@ ResNet이 깊은 배움에 미친 영향은 아무리 말해도 지나치지 않
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `downsample` 길이 왜 단계마다 첫 덩이에만 필요한지 설명하여라. 그것을 없애면 어떻게 되는가?
 
 </div>
@@ -125,7 +125,7 @@ ResNet이 깊은 배움에 미친 영향은 아무리 말해도 지나치지 않
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 병목 없이 $3 \times 3$ 합성곱 둘로 된 기본 블록을 써서 켜 구성이 $[2, 2, 2, 2]$인 ResNet-18 갈래를 짜라. 매개변수 수를 ResNet-50과 견주어라.
 
 </div>

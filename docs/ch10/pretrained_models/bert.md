@@ -1039,7 +1039,7 @@ BERT 분류는 다음으로 이루어진다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 BERT의 두 사전 학습 목표인 가린 언어 모형화(MLM)와 다음 문장 맞히기(NSP)를 설명하라.
 
 </div>
@@ -1051,7 +1051,7 @@ BERT의 두 사전 학습 목표인 가린 언어 모형화(MLM)와 다음 문�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 BERT는 양방향이고 GPT는 한 방향인 까닭은 무엇인가? 맞바꿈은 무엇인가?
 
 </div>
@@ -1063,7 +1063,7 @@ BERT는 양방향이고 GPT는 한 방향인 까닭은 무엇인가? 맞바꿈�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 BERT-Base($L=12, H=768, A=12$)의 매개변수 수를 셈하라.
 
 </div>
@@ -1075,7 +1075,7 @@ BERT-Base($L=12, H=768, A=12$)의 매개변수 수를 셈하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 BERT를 (가) 문장 분류, (나) 토큰 분류(개체명 인식), (다) 질의응답에 각각 어떻게 미세 조정하는지 설명하라.
 
 </div>

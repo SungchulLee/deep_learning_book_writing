@@ -500,7 +500,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 배치 크기 32, 기울기 모으기 4단계, 기억이 8GB인 GPU에서 실효 배치 크기를 어림하고, (배치 128이 기억에 들어가지 않는다고 할 때) 왜 이것이 배치 크기를 그냥 128로 두는 것보다 나을 수 있는지 설명하라.
 
 </div>
@@ -516,7 +516,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `CosineAnnealingWarmRestarts`와 `ReduceLROnPlateau` 일정 조정기의 차이를 설명하라. 언제 어느 쪽이 더 나은가? 코사인 담금질에서 `T_0`과 `T_mult` 매개변수는 어떤 몫을 하는가?
 
 </div>
@@ -532,7 +532,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 모델 둘(ResNet18과 ResNet50)을 따로 학습해 시험 때 소프트맥스 예측을 평균 내는 간단한 모델 앙상블을 구현하라. 앙상블의 정확도를 낱낱 모델의 정확도와 견주고 앙상블이 언제 가장 도움이 되는지 설명하라.
 
 </div>

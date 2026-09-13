@@ -253,7 +253,7 @@ Attention weights (first sample, first head):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 질의 벡터 $q \in \mathbb{R}^4$과 행이 $k_1 = [1, 0, 0, 0]$, $k_2 = [0, 1, 0, 0]$, $k_3 = [0, 0, 1, 0]$인 열쇠 행렬 $K \in \mathbb{R}^{3 \times 4}$, 그리고 $q = [1, 1, 0, 0]$이 주어졌을 때 (가림막 없이) 배율 조정 내적 어텐션 가중치를 계산하라. 어느 열쇠가 가장 큰 주목을 받으며 그 까닭은 무엇인가?
 
 </div>
@@ -271,7 +271,7 @@ Attention weights (first sample, first head):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 내적 어텐션에 배율 인수 $1/\sqrt{d_k}$이 필요한 까닭을 설명하라. $d_k$이 클 때 그것을 빼면 어떻게 되는가?
 
 </div>
@@ -283,7 +283,7 @@ Attention weights (first sample, first head):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `BasicAttention` 클래스가 다중 머리 덧셈 어텐션을 지원하도록 고쳐라. 질의와 열쇠의 사영을 머리 $h$개로 나누고, 머리마다 따로 어텐션을 계산한 뒤 결과를 이어 붙여라. 머리 $h = 4$개와 숨은 차원 64로 구현을 시험하라.
 
 </div>

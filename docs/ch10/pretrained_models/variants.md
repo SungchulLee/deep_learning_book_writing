@@ -1322,7 +1322,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 구조, 사전 학습, 잘 맞는 쓰임새의 면에서 BERT, GPT, T5, XLNet을 견주어라.
 
 </div>
@@ -1334,7 +1334,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 BERT에 견준 RoBERTa의 핵심 혁신을 설명하라.
 
 </div>
@@ -1346,7 +1346,7 @@ BERT에 견준 RoBERTa의 핵심 혁신을 설명하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 ALBERT와 BERT의 차이는 무엇인가? ALBERT는 어떻게 매개변수를 줄이는가?
 
 </div>
@@ -1358,7 +1358,7 @@ ALBERT와 BERT의 차이는 무엇인가? ALBERT는 어떻게 매개변수를 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 '사전 학습한 뒤 미세 조정하기'라는 개념과 그것이 어떻게 흘러왔는지 설명하라.
 
 </div>

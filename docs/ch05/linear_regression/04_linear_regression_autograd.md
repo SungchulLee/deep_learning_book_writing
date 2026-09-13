@@ -430,7 +430,7 @@ Epoch    Loss         w            b            grad_w       grad_b
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 autograd가 앞 튜토리얼의 직접 계산 공식과 같은 경사를 내는지 확인하라. 동일한 데이터와 매개변수를 만들고 autograd로 순전파와 역전파를 한 번 수행한 뒤, 직접 계산한 경사와 비교하라.
 
 </div>
@@ -464,7 +464,7 @@ autograd가 앞 튜토리얼의 직접 계산 공식과 같은 경사를 내는�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 초기화하지 않고 `.backward()`를 두 번 호출하여 경사 누적을 보여라. 경사가 개별 경사 두 개의 합임을 보여라.
 
 </div>
@@ -493,7 +493,7 @@ autograd가 앞 튜토리얼의 직접 계산 공식과 같은 경사를 내는�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 매개변수를 직접 갱신하는 대신 `torch.optim.SGD`를 쓰도록 학습 루프를 수정하라. 최종 학습된 매개변수를 비교하여 일치함을 확인하라.
 
 </div>

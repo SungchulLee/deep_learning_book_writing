@@ -72,7 +72,7 @@ MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 들임과 내놓음 차원이 같을 때 뒤집은 잔차 덩이와 보통 잔차 덩이의 FLOPs를 견주어라.
 
 </div>
@@ -89,7 +89,7 @@ MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 MobileNetV2는 왜 보통의 ReLU 대신 ReLU6을 쓰는가?
 
 </div>
@@ -101,7 +101,7 @@ MobileNetV2는 왜 보통의 ReLU 대신 ReLU6을 쓰는가?
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 MobileNetV3 방식의 하드 스위시 깨어남을 짜고 ReLU6과 견주어라.
 
 </div>

@@ -683,7 +683,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 엘라스틱 넷의 벌점을 쓰고, 혼합 매개변수 $\alpha$이 L1과 L2의 균형을 어떻게 조절하는지 설명하라.
 
 </div>
@@ -695,7 +695,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 엘라스틱 넷이 순수한 라쏘보다 상관된 특징을 더 잘 다루는 이유를 설명하라.
 
 </div>
@@ -707,7 +707,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 PyTorch 학습 루프에서 엘라스틱 넷 정칙화를 구현하라.
 
 </div>
@@ -726,7 +726,7 @@ PyTorch 학습 루프에서 엘라스틱 넷 정칙화를 구현하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 엘라스틱 넷 벌점에 대한 근접 연산자를 유도하라.
 
 </div>

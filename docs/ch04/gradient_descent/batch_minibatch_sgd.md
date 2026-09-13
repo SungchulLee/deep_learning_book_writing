@@ -489,7 +489,7 @@ Epoch 100: Loss = 0.8418
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 표본이 $N = 1000$개인 데이터셋에 대해 배치 경사 하강법($B = N$), 미니배치 경사 하강법($B = 32$), SGD($B = 1$)의 에폭당 경사 계산 횟수를 비교하라. 어느 쪽이 에폭당 매개변수 갱신을 더 많이 하는가?
 
 </div>
@@ -507,7 +507,7 @@ Epoch 100: Loss = 0.8418
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 미니배치 경사의 기댓값이 전체 배치 경사와 같음을 증명하라. 그런 다음 배치 크기를 $B$라 할 때 분산이 $O(1/B)$로 감소함을 보여라.
 
 </div>
@@ -523,7 +523,7 @@ Epoch 100: Loss = 0.8418
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 물리적 배치 크기 32로 실효 배치 크기 256을 흉내 내는 경사 누적을 구현하라. 매개변수 갱신이 일치함을 확인하라.
 
 </div>
@@ -550,7 +550,7 @@ Epoch 100: Loss = 0.8418
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 배치 경사 하강법이 갇히는 뾰족한 국소 최솟값을 미니배치 SGD가 벗어날 수 있는 이유를 설명하라. 답을 경사 추정의 잡음과 연결하라.
 
 </div>

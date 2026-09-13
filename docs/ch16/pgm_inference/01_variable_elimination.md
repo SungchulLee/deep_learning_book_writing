@@ -552,7 +552,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 날씨 망에서 물음 $P(\text{Rain} | \text{WetGrass}=1)$에 대해 변수 없애기 알고리즘을 걸음마다 따라가라. 걸음마다 중간 인자를 보여라.
 
 </div>
@@ -571,7 +571,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 없애는 차례가 효율에 왜 중요한지 설명하여라. 한 차례가 다른 차례보다 지수만큼 나쁜 보기를 들어라.
 
 </div>
@@ -590,7 +590,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 이진 변수를 갖는 사슬 망 $A \to B \to C \to D$에 대해 간추린 변수 없애기를 구현하고 $P(D | A = 1)$을 셈하여라.
 
 </div>

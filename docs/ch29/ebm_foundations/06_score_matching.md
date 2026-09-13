@@ -251,7 +251,7 @@ Next: 07_neural_ebms.py
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 1차원 에너지 함수 $E(x) = \frac{1}{2}(x - \mu)^2 / \sigma^2$에서 점수 함수를 이끌어 내고, 모델이 자료 분포 $\mathcal{N}(\mu, \sigma^2)$과 맞을 때 점수 맞추기 손실이 0임을 확인하라.
 
 </div>
@@ -275,7 +275,7 @@ Next: 07_neural_ebms.py
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 잡음 수준 $\sigma$의 잡음 없애는 점수 맞추기가 왜 참 자료 분포가 아니라 매끄럽게 한 분포 $p_\sigma(x) = \int p(y) \mathcal{N}(x; y, \sigma^2 I)\, dy$의 점수를 배우는지 밝혀라. $\sigma \to 0$이면 어떻게 되는가?
 
 </div>
@@ -289,7 +289,7 @@ Next: 07_neural_ebms.py
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 헤세의 대각합을 아무 쏘기를 쓴 확률 어림 $\mathbb{E}_v[v^\top \nabla_x^2 E(x) v + \|v^\top \nabla_x E(x)\|^2]$($v$은 아무 방향)으로 바꾸는 저민 점수 맞추기를 짜라. 그 셈 비용을 드러난 점수 맞추기 및 잡음 없애는 점수 맞추기와 견주어라.
 
 </div>

@@ -97,7 +97,7 @@ Over-Smoothing Analysis
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 층이 1, 2, 4, 8, 16, 32개인 SimpleGCN의 평균 거리와 디리클레 에너지를 셈하라. 두 잣대를 깊이의 함수로 그려라. 디리클레 에너지가 처음 값의 1% 아래로 떨어지는 깊이는 얼마인가?
 
 </div>
@@ -109,7 +109,7 @@ Over-Smoothing Analysis
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 고윳값이 $1 = \lambda_1 > \lambda_2 \geq \cdots \geq \lambda_n$을 만족하는 고르게 맞춘 이웃 행렬 $\hat{A}$을 가진 그래프에서 (비선형이 없는) 선형 그래프 겹말기 신경망 $L$층 뒤의 디리클레 에너지가 $E(H^{(L)}) \leq \lambda_2^{2L} \cdot E(H^{(0)})$을 만족함을 밝혀라.
 
 </div>
@@ -121,7 +121,7 @@ Over-Smoothing Analysis
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 짝별 온 거리를 상수로 지키도록 마디 특징을 고르게 맞추는 짝 고르게 맞추기(자오와 아코글루, 2020)를 짜라. 이를 `SimpleGCN`에 더하고 16층에서 짝 고르게 맞추기가 있을 때와 없을 때의 지나친 매끄러워짐 잣대를 견주어라.
 
 </div>

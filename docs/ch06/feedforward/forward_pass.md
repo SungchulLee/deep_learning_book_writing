@@ -557,7 +557,7 @@ plt.show()
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 입력 $\mathbf{x} = [1, -1]$, $W_1 = [[1, 0], [0, 1]]$, $b_1 = [0, 0]$, $W_2 = [1, 1]$, $b_2 = 0$일 때 ReLU 활성화를 쓰는 2층 MLP의 순전파를 따라가라.
 
 </div>
@@ -569,7 +569,7 @@ plt.show()
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 층이 $L$개이고 최대 너비가 $d$인 MLP를 지나는 순전파의 계산 복잡도는 얼마인가?
 
 </div>
@@ -581,7 +581,7 @@ plt.show()
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 텐서 연산만 써서 (`nn.Module` 없이) 순전파를 직접 구현하라.
 
 </div>
@@ -599,7 +599,7 @@ plt.show()
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 추론 시점에는 순전파가 결정적이어야 하지만 학습 중에는 (드롭아웃 같은) 확률적 요소가 들어갈 수 있는 이유를 설명하라.
 
 </div>

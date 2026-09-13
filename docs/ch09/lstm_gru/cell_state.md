@@ -617,7 +617,7 @@ $$c_t = f_t \odot \tilde{c}_t + (1 - f_t) \odot c_{t-1}$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 LSTM 세포 상태를 지나는 기울기의 흐름을 유도하고 그것이 기울기 소실 문제를 피함을 보여라.
 
 </div>
@@ -629,7 +629,7 @@ LSTM 세포 상태를 지나는 기울기의 흐름을 유도하고 그것이 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 세포 상태와 잔차 연결 사이의 비유를 설명하라.
 
 </div>
@@ -641,7 +641,7 @@ LSTM 세포 상태를 지나는 기울기의 흐름을 유도하고 그것이 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 실제로 세포 상태는 대체로 어떤 정보를 담는 법을 배우는가?
 
 </div>
@@ -653,7 +653,7 @@ LSTM 세포 상태를 지나는 기울기의 흐름을 유도하고 그것이 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 감성 분석 LSTM의 망각 문 활성값을 시간에 따라 그려 보고 그 무늬를 해석하라.
 
 </div>

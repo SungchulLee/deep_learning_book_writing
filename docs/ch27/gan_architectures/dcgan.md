@@ -335,7 +335,7 @@ DCGANDiscriminator은 성큼 겹말기로 들임 그림을 차츰 줄이면서 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 DCGANGenerator은 겹말기 층에 `bias=False`을 쓴다. 겹말기 뒤에 묶음 고르게 맞추기가 올 때 이것이 알맞은 까닭을 설명하라. 치우침을 켜면 무엇이 달라지는가?
 
 </div>
@@ -347,7 +347,7 @@ DCGANGenerator은 겹말기 층에 `bias=False`을 쓴다. 겹말기 뒤에 묶�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 익힌 DCGAN의 숨은 공간에서 선형 사이 메우기와 공 모양 사이 메우기를 견주어라. 공 모양 사이 메우기가 만든 그림 사이에 더 자연스러운 옮아감을 내는 까닭은 무엇인가?
 
 </div>
@@ -359,7 +359,7 @@ DCGANGenerator은 겹말기 층에 `bias=False`을 쓴다. 겹말기 뒤에 묶�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 DCGAN 무게 첫자리매김 방식(겹말기 층은 평균 0, 표준 편차 0.02인 정규 분포, 묶음 고르게 맞추기는 평균 1, 표준 편차 0.02)을 쓰는 함수를 짜라. 만들개와 가름개 모두에서 시험하고 무게 통계를 확인하라.
 
 </div>

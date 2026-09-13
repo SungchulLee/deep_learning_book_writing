@@ -313,7 +313,7 @@ class StableLayerNorm(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 통계를 특징 차원에서 셈하는 층 정규화 $\text{LN}(x) = \gamma \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta$을 이끌어 내라.
 
 </div>
@@ -325,7 +325,7 @@ class StableLayerNorm(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 앞 정규화 트랜스포머 구조와 뒤 정규화 트랜스포머 구조를 견주어라.
 
 </div>
@@ -337,7 +337,7 @@ class StableLayerNorm(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 트랜스포머에서 배치 정규화보다 층 정규화를 더 좋아하는 까닭은 무엇인가?
 
 </div>
@@ -349,7 +349,7 @@ class StableLayerNorm(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 층 정규화를 맨바닥부터 구현하고 `nn.LayerNorm`과 맞는지 확인하라.
 
 </div>

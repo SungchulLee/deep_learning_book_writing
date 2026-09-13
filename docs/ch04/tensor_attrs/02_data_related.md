@@ -130,7 +130,7 @@ GPU 가속은 텐서 연산, 특히 신경망 계산을 지배하는 행렬 곱�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 텐서를 하나 만들고 `clone()` 복사본과 `detach()` 복사본을 각각 만들어라. 원본을 제자리에서 수정한 뒤 어느 복사본이 영향을 받는지 보여라.
 
 </div>
@@ -150,7 +150,7 @@ GPU 가속은 텐서 연산, 특히 신경망 계산을 지배하는 행렬 곱�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `clone()`만 쓰거나 `detach()`만 쓰는 경우와 비교하여 `detach().clone()`을 언제 쓰는지 설명하라.
 
 </div>
@@ -163,7 +163,7 @@ GPU 가속은 텐서 연산, 특히 신경망 계산을 지배하는 행렬 곱�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 슬라이스를 수정한 뒤 원본을 확인하여, 텐서를 슬라이싱하면 뷰(저장소 공유)가 만들어짐을 보여라.
 
 </div>

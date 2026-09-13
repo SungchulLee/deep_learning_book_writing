@@ -1040,7 +1040,7 @@ def measure_quantization_impact(original: nn.Module,
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 이 마디에서 다룬 다듬기 재주들을 맞음 잃음, 미루어 봄 빨라짐, 짜기의 번거로움으로 견주어 맞바꿈을 밝혀라.
 
 </div>
@@ -1052,7 +1052,7 @@ def measure_quantization_impact(original: nn.Module,
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 단순한 앞먹임 그물에 익힘 뒤 수 줄이기(INT8)을 짜 넣고, 잣대 자료 꾸러미에서 맞음이 얼마나 떨어지고 미루어 봄이 얼마나 빨라지는지 재어라.
 
 </div>
@@ -1064,7 +1064,7 @@ def measure_quantization_impact(original: nn.Module,
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 내놓은 모형의 자료 옮겨감, 뜻 옮겨감, 됨됨이 떨어짐을 짚어내는 서비스 지켜보기 얼개를 꾸며라. 자와 알림 문턱을 밝혀라.
 
 </div>
@@ -1076,7 +1076,7 @@ def measure_quantization_impact(original: nn.Module,
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 금융 거래 얼개의 늦음 요건이 웹 서비스와 밑바탕부터 다른 까닭을 밝혀라. 이것이 내놓기 다듬기 꾀에 어떻게 걸리는가?
 
 </div>

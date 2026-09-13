@@ -593,7 +593,7 @@ train_transform = transforms.Compose([
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 원형 망의 가려내기 규칙을 끌어내라.
 
 </div>
@@ -605,7 +605,7 @@ train_transform = transforms.Compose([
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 유클리드 거리의 제곱을 쓰는 원형 망이 묻힘 공간의 선형 가려내기와 같음을 증명하라.
 
 </div>
@@ -617,7 +617,7 @@ train_transform = transforms.Compose([
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 파이토치로 원형 망을 구현하라.
 
 </div>
@@ -635,7 +635,7 @@ train_transform = transforms.Compose([
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 원형 망을 맞춤 망, 관계 망과 견주어라.
 
 </div>

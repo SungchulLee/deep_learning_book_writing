@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `d_model=768`에서 배치 크기 8, 수열 길이 128인 입력을 넣어 모형을 따라가며 꼴을 좇아라. `encoded`와 `pooled`의 꼴은 무엇인가?
 
 </div>
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 BERT가 풀러에 ReLU 같은 다른 활성이나 활성 없음 대신 `tanh`을 쓰는 까닭은 무엇인가? 이 선택이 아래쪽 미세 조정에 어떤 영향을 주는가?
 
 </div>
@@ -71,7 +71,7 @@ BERT가 풀러에 ReLU 같은 다른 활성이나 활성 없음 대신 `tanh`을
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 가린 자리의 본디 토큰을 맞히는 가린 언어 모형화 머리로 `BERTModel`을 넓혀라. 그 머리에는 층 정규화와 어휘 토큰마다의 편향이 들어가야 한다.
 
 </div>

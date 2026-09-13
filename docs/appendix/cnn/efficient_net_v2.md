@@ -68,7 +68,7 @@ EfficientNetV2은 어디에나 SiLU(Swish) 살림을 쓰는데, 여러 자리에
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 들임 꼴이 $(1, 32, 56, 56)$, 넓힘 견줌 4, 날임 갈래 32일 때 여느 MBConv 덩이와 녹여 붙인 MBConv 덩이의 셈 값(뜨는 셈 횟수)을 견주어라.
 
 </div>
@@ -80,7 +80,7 @@ EfficientNetV2은 어디에나 SiLU(Swish) 살림을 쓰는데, 여러 자리에
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 차근차근 배우기(익히는 동안 결을 올리기)가 ResNet처럼 결이 붙박인 모형보다 EfficientNet 결의 모형에 더 이로운 까닭을 밝혀라.
 
 </div>
@@ -92,7 +92,7 @@ EfficientNetV2은 어디에나 SiLU(Swish) 살림을 쓰는데, 여러 자리에
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 쥐어짜 북돋우기(SE) 눈길과 건너뛰는 이음을 갖춘 온전한 `FusedMBConv` 덩이를 짜라.
 
 </div>

@@ -193,7 +193,7 @@ NumPy는 GPU를 쓰지 못한다. 이것이 NumPy의 한계이자, PyTorch가 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `np.arange(12).reshape(3, 4)`의 모양과 원소를 예상하고 확인하라. 이어서 `.T`를 취하면 모양이 어떻게 되는가?
 
 </div>
@@ -205,7 +205,7 @@ NumPy는 GPU를 쓰지 못한다. 이것이 NumPy의 한계이자, PyTorch가 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 `X`가 `(N, D)`일 때 각 특징을 평균 0, 표준편차 1로 만드는 한 줄을 쓰라.
 
 </div>
@@ -222,7 +222,7 @@ NumPy는 GPU를 쓰지 못한다. 이것이 NumPy의 한계이자, PyTorch가 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 `(3, 1)`과 `(1, 4)`를 더하면 결과의 모양은 무엇인가?
 
 </div>

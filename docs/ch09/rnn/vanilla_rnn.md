@@ -259,7 +259,7 @@ rnn_relu = nn.RNN(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 긴 순차열에서 기본 RNN의 병목을 설명하라.
 
 </div>
@@ -271,7 +271,7 @@ rnn_relu = nn.RNN(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 tanh 활성화가 기울기 소실 문제에 한몫하는 까닭은 무엇인가?
 
 </div>
@@ -283,7 +283,7 @@ tanh 활성화가 기울기 소실 문제에 한몫하는 까닭은 무엇인가
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 순차열 분류를 위한 기본 RNN을 PyTorch로 구현하라.
 
 </div>
@@ -300,7 +300,7 @@ tanh 활성화가 기울기 소실 문제에 한몫하는 까닭은 무엇인가
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 기본 RNN과 그에 맞먹는 LSTM의 매개변수 수를 견주어라. LSTM에는 매개변수가 얼마나 더 많은가?
 
 </div>

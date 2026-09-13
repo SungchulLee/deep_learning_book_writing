@@ -529,7 +529,7 @@ def compare_parameters(input_size: int = 100, hidden_size: int = 256):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 GRU의 식을 적고 LSTM과 견주어라.
 
 </div>
@@ -542,7 +542,7 @@ GRU의 식을 적고 LSTM과 견주어라.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 숨은 차원이 같을 때 GRU의 매개변수가 LSTM보다 적은 까닭을 설명하라.
 
 </div>
@@ -554,7 +554,7 @@ GRU의 식을 적고 LSTM과 견주어라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 언제 LSTM 대신 GRU를 고르고, 반대로는 언제 그러한가?
 
 </div>
@@ -566,7 +566,7 @@ GRU의 식을 적고 LSTM과 견주어라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 GRU 세포를 PyTorch로 밑바닥부터 구현하라.
 
 </div>

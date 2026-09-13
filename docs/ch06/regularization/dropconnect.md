@@ -495,7 +495,7 @@ def train_with_dropconnect(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 드롭아웃과 드롭커넥트의 차이를 수학적으로 설명하라.
 
 </div>
@@ -507,7 +507,7 @@ def train_with_dropconnect(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 드롭커넥트를 PyTorch로 구현하라.
 
 </div>
@@ -530,7 +530,7 @@ def train_with_dropconnect(
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 학습 중에 드롭커넥트가 드롭아웃보다 대체로 비싼 이유는 무엇인가?
 
 </div>
@@ -542,7 +542,7 @@ def train_with_dropconnect(
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 드롭아웃과 드롭커넥트가 만드는 암묵적 앙상블의 이론적 표현력을 비교하라.
 
 </div>

@@ -47,7 +47,7 @@ NASNet은 북돋움 배움으로 익힌 다스림 되돌이 그물로 가장 좋
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 NASNet의 보통 칸과 줄임 칸의 차이를 설명하여라.
 
 </div>
@@ -59,7 +59,7 @@ NASNet의 보통 칸과 줄임 칸의 차이를 설명하여라.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 사람이 손수 꾸미는 것과 견주어 신경 얼개 찾기의 좋은 점과 나쁜 점은 무엇인가?
 
 </div>
@@ -71,7 +71,7 @@ NASNet의 보통 칸과 줄임 칸의 차이를 설명하여라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 연산 5가지를 갖는 간추린 얼개 찾기 공간을 꾸미고, 다스림개가 거기서 얼개를 어떻게 뽑는지 설명하여라.
 
 </div>

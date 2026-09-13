@@ -57,7 +57,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 초그래프를 뜻매김하고 여느 그래프와 어떻게 다른지 밝혀라.
 
 </div>
@@ -69,7 +69,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 닿음 행렬을 쓴 초그래프 신경망의 쪽지 건네기 얼거리를 적어라.
 
 </div>
@@ -81,7 +81,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 화학 반응이나 사회 무리를 나타낼 때 초그래프 나타냄의 이점은 무엇인가?
 
 </div>
@@ -93,7 +93,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 여느 그래프 신경망에 견준 초그래프 신경망의 셈 복잡도를 밝혀라.
 
 </div>

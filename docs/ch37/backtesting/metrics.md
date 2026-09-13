@@ -191,7 +191,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 날마다 고르게 0.05% 돌아오고 날마다 잣대 벗어남이 1.5%이며, 스무 날 동안 날마다 고르게 -0.8% 돌아온 때가 있는 돌아옴 열에 대해 샤프 비, 소르티노 비, 가장 큰 내림폭을 셈하여라.
 
 </div>
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 거래 잦기가 크게 다른 꾀들 사이에서 벌이 인자(벌이의 합을 잃음의 합으로 나눈 것)가 왜 잘못 읽힐 수 있는지 밝혀라. 고르게 맞춘 다른 자를 내놓아라.
 
 </div>
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 꼬리 비(95번째 백분위 벌이를 5번째 백분위 잃음의 절댓값으로 나눈 것)를 셈하는 함수를 짜고, 꾀를 따질 때 이를 어떻게 읽는지 밝혀라.
 
 </div>

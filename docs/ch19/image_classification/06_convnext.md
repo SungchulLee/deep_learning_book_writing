@@ -72,7 +72,7 @@ ConvNeXt은 트랜스포머의 설계 선택을 합성곱 얼거리에 짜임새
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 $7 \times 7$ 깊이별 합성곱의 수용 영역을 $3 \times 3$ 여느 합성곱의 수용 영역과 견주어라. 같은 수용 영역을 얻으려면 $3 \times 3$ 켜가 몇 개 필요한가?
 
 </div>
@@ -84,7 +84,7 @@ $7 \times 7$ 깊이별 합성곱의 수용 영역을 $3 \times 3$ 여느 합성�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 켜 스케일을 작은 값(예: $10^{-6}$)으로 초기화하면 학습이 든든해지는 까닭을 밝혀라.
 
 </div>
@@ -96,7 +96,7 @@ $7 \times 7$ 깊이별 합성곱의 수용 영역을 $3 \times 3$ 여느 합성�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 ConvNeXtBlock이 LayerNorm 대신 BatchNorm을 쓰도록 고쳐라. 무엇을 바꿔야 하는지 밝히고 있을 수 있는 맞바꿈을 논하여라.
 
 </div>

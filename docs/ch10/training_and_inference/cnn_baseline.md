@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 (풀링을 빼고) 합성곱 층 셋을 모두 지난 뒤 이 합성곱 신경망이 받는 영역을 셈하라. 그 영역은 트랜스포머의 전역 주의와 견주어 어떠한가?
 
 </div>
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 합성곱마다 그 뒤(ReLU 앞)에 배치 정규화를 더하고 있을 때와 없을 때의 학습 수렴을 견주어라. 배치 정규화가 합성곱 신경망 학습에 왜 도움이 되는지 설명하라.
 
 </div>
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 최대 풀링 층을 걸음이 있는 합성곱(`stride=2, kernel_size=3, padding=1`)으로 바꾸고 매개변수 수와 성능을 견주어라. 학습되는 줄이기와 고정된 줄이기의 개념 차이는 무엇인가?
 
 </div>

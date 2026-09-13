@@ -62,7 +62,7 @@ EM은 로그 가능도(변분 EM에서는 ELBO)가 한결같이 커짐을 보장
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 숨은 변수를 가진 그래프 모형의 EM 알고리즘에서 E-걸음이 왜 숨은 변수의 뒤확률 분포에 대해 기댓값을 셈하는지 설명하여라.
 
 </div>
@@ -74,7 +74,7 @@ EM은 로그 가능도(변분 EM에서는 ELBO)가 한결같이 커짐을 보장
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 섞음 무게가 같은 가우스 둘의 섞음을 생각하여라. 책임 $r_{nk}$의 E-걸음 새로 고치기와 평균 $\mu_k$의 M-걸음 새로 고치기를 적어라.
 
 </div>
@@ -96,7 +96,7 @@ EM은 로그 가능도(변분 EM에서는 ELBO)가 한결같이 커짐을 보장
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 EM 알고리즘이 왜 온 세상 최댓값이 아니라 국소 최댓값으로 모일 수 있는가? 구체적인 보기를 들어라.
 
 </div>
@@ -108,7 +108,7 @@ EM 알고리즘이 왜 온 세상 최댓값이 아니라 국소 최댓값으로 
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 가우스 섞음 모형에서 공분산 행렬 $\Sigma_k$의 M-걸음 새로 고치기를 이끌어 내어라.
 
 </div>

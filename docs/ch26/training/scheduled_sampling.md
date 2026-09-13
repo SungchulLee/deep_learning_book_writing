@@ -60,7 +60,7 @@ def scheduled_sampling_step(model, x, epsilon):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 자기 되돌이 차례 만들어 내기에서의 드러남 치우침 문제를 설명하라.
 
 </div>
@@ -72,7 +72,7 @@ def scheduled_sampling_step(model, x, epsilon):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 차례 잡은 뽑기 알고리즘을 설명하라. 익히는 동안 차례표는 어떻게 바뀌는가?
 
 </div>
@@ -84,7 +84,7 @@ def scheduled_sampling_step(model, x, epsilon):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 차례 잡은 뽑기의 이론상 한계는 무엇인가? 왜 치우친 어림개로 여기는가?
 
 </div>
@@ -96,7 +96,7 @@ def scheduled_sampling_step(model, x, epsilon):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 차례 잡은 뽑기를 드러남 치우침을 다루는 다른 방식(빔 찾기, 강화 배움, 교수 밀어 넣기)과 견주어라.
 
 </div>

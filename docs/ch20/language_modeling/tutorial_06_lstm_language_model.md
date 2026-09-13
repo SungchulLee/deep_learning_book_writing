@@ -72,7 +72,7 @@ LSTM은 말 나타내기 잣대에서 맨 되돌이 그물보다 헷갈림도가
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 들임 차원 $d = 256$, 숨은 차원 $h = 512$인 LSTM 층 하나의 매개변수 개수를 셈하여라. 차원이 같은 맨 되돌이 그물 층과 견주어라.
 
 </div>
@@ -94,7 +94,7 @@ LSTM은 말 나타내기 잣대에서 맨 되돌이 그물보다 헷갈림도가
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 잊음 문 $f_t$이 늘 0이고 들임 문 $i_t$이 늘 1일 때 어떤 일이 일어나는지 설명하여라. 이는 맨 되돌이 그물과 어떻게 다른가?
 
 </div>
@@ -106,7 +106,7 @@ LSTM은 말 나타내기 잣대에서 맨 되돌이 그물보다 헷갈림도가
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 묻힘 행렬과 내놓는 내리쬐기 행렬이 무게를 나눠 쓰도록 LSTM 말 모델에 무게 묶기를 짜라. 왜 `embedding_dim == hidden_dim`이어야 하는지 밝혀라.
 
 </div>

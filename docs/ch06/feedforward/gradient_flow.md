@@ -509,7 +509,7 @@ print_gradient_report(stats)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 ReLU가 시그모이드에 견주어 경사 소실 문제를 어떻게 누그러뜨리는지 설명하라.
 
 </div>
@@ -521,7 +521,7 @@ ReLU가 시그모이드에 견주어 경사 소실 문제를 어떻게 누그러
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 잔차 연결 $y = x + F(x)$을 지나는 경사의 흐름을 유도하라.
 
 </div>
@@ -533,7 +533,7 @@ ReLU가 시그모이드에 견주어 경사 소실 문제를 어떻게 누그러
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 경사 폭발 문제란 무엇이며 경사 자르기가 이를 어떻게 다루는가?
 
 </div>
@@ -545,7 +545,7 @@ ReLU가 시그모이드에 견주어 경사 소실 문제를 어떻게 누그러
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 학습 중에 경사의 노름을 감시하도록 구현하고 에폭에 걸쳐 그려라.
 
 </div>

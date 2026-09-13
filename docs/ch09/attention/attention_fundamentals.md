@@ -424,7 +424,7 @@ RNN 어텐션에서 트랜스포머로 나아가며 핵심적인 통찰이 드�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 어텐션의 질의-열쇠-값 틀과 정보 검색과의 비유를 설명하라.
 
 </div>
@@ -436,7 +436,7 @@ RNN 어텐션에서 트랜스포머로 나아가며 핵심적인 통찰이 드�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 $e_{ij} = \text{score}(q_i, k_j)$일 때 어텐션 가중치 $\alpha_{ij} = \text{softmax}(e_{ij})$을 유도하라.
 
 </div>
@@ -448,7 +448,7 @@ $e_{ij} = \text{score}(q_i, k_j)$일 때 어텐션 가중치 $\alpha_{ij} = \tex
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 어텐션을 왜 '부드러운' 정렬 장치라 부르는가?
 
 </div>
@@ -460,7 +460,7 @@ $e_{ij} = \text{score}(q_i, k_j)$일 때 어텐션 가중치 $\alpha_{ij} = \tex
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 기본적인 어텐션 장치(바다나우 방식 덧셈 어텐션)를 PyTorch로 구현하라.
 
 </div>

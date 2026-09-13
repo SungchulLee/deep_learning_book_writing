@@ -431,7 +431,7 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 영상 이해를 위한 두 갈래 그물의 핵심 눈썰미를 밝히고, 날 틀 위의 한 갈래만으로는 왜 모자란지 설명하여라.
 
 </div>
@@ -443,7 +443,7 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 느림빠름 얼개를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
 
 </div>
@@ -455,7 +455,7 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 그림 가르기 얼개(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
 
 </div>
@@ -467,7 +467,7 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 영상을 나타내는 데 쓰는 3차원 누비기, (2+1)차원으로 쪼갠 누비기, 때에 걸친 스스로 눈길을 견주어라.
 
 </div>

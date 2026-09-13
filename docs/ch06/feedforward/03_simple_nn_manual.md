@@ -147,7 +147,7 @@ Final Accuracy: 100.00%
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 ReLU 활성화를 없애고(`a1 = relu(z1)`를 `a1 = z1`로 바꾼다) 다시 학습시켜라. 정확도에 무슨 일이 일어나는가? 그 이유를 수학적으로 설명하라.
 
 </div>
@@ -159,7 +159,7 @@ ReLU 활성화를 없애고(`a1 = relu(z1)`를 `a1 = z1`로 바꾼다) 다시 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 은닉층 크기를 8에서 32로, 그리고 8에서 2로 바꾸어 보라. 정확도와 수렴 속도를 비교하라. 90%를 넘는 정확도를 얻는 최소 은닉층 크기는 얼마인가?
 
 </div>
@@ -171,7 +171,7 @@ ReLU 활성화를 없애고(`a1 = relu(z1)`를 `a1 = z1`로 바꾼다) 다시 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 3층 신경망(은닉층 두 개)의 역전파를 구현하라. 기존 은닉층과 출력 사이에 뉴런 4개짜리 두 번째 은닉층을 추가하라. 경사 계산을 유도하고 구현하라.
 
 </div>

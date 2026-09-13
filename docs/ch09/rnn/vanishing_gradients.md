@@ -234,7 +234,7 @@ gru = nn.GRU(input_size, hidden_size, batch_first=True)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 시각 $T$개를 지나는 기울기의 흐름을 유도하고 $\|W_h\| < 1$일 때 지수적으로 줄어듦을 보여라.
 
 </div>
@@ -246,7 +246,7 @@ gru = nn.GRU(input_size, hidden_size, batch_first=True)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 RNN의 기울기 소실을 누그러뜨리는 기법 네 가지를 열거하라.
 
 </div>
@@ -258,7 +258,7 @@ RNN의 기울기 소실을 누그러뜨리는 기법 네 가지를 열거하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 $W_h$의 직교 초기화가 기울기 소실에 도움이 되는 까닭을 설명하라.
 
 </div>
@@ -270,7 +270,7 @@ $W_h$의 직교 초기화가 기울기 소실에 도움이 되는 까닭을 설�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 경사 폭발 문제란 무엇이며 경사 자르기가 이를 어떻게 다루는가?
 
 </div>

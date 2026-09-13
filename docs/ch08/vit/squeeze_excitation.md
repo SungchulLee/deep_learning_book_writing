@@ -156,7 +156,7 @@ $$\mathbf{y} = \mathbf{x} + F_3(\text{SE}(F_2(F_1(\mathbf{x}))))$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 SE 블록을 유도하라: 전역 평균 풀링, 축소 비율이 $r$인 완전 연결층 두 개, 시그모이드 문.
 
 </div>
@@ -168,7 +168,7 @@ SE 블록을 유도하라: 전역 평균 풀링, 축소 비율이 $r$인 완전 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 채널이 $C = 256$개이고 축소 비율이 $r = 16$인 SE 블록의 매개변수 부담을 계산하라.
 
 </div>
@@ -180,7 +180,7 @@ SE 블록을 유도하라: 전역 평균 풀링, 축소 비율이 $r$인 완전 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 SE 블록을 PyTorch로 구현하고 ResNet 병목에 넣어라.
 
 </div>
@@ -203,7 +203,7 @@ SE 블록을 PyTorch로 구현하고 ResNet 병목에 넣어라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 SE 블록은 어텐션 장치와 어떤 관계인가? 어떤 종류의 어텐션을 구현하는가?
 
 </div>

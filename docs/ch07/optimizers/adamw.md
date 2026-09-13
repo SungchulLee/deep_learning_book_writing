@@ -71,7 +71,7 @@ AdamW는 다음에 권장되는 기본 최적화기이다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 L2 정칙화와 분리된 가중치 감쇠의 차이, 그리고 AdamW가 둘을 나누는 이유를 설명하라.
 
 </div>
@@ -83,7 +83,7 @@ L2 정칙화와 분리된 가중치 감쇠의 차이, 그리고 AdamW가 둘을 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 Adam 대신 AdamW를 써야 할 때는 언제인가?
 
 </div>
@@ -95,7 +95,7 @@ Adam 대신 AdamW를 써야 할 때는 언제인가?
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 AdamW의 갱신 규칙을 구현하고 Adam과 어디가 다른지 보여라.
 
 </div>
@@ -113,7 +113,7 @@ AdamW의 갱신 규칙을 구현하고 Adam과 어디가 다른지 보여라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 기울기의 분산이 크거나 작은 매개변수에 대해 Adam과 AdamW의 실효 정칙화 강도를 유도하라.
 
 </div>

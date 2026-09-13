@@ -488,7 +488,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 학습 중 드롭아웃 확률이 $p$인 뉴런의 기대 출력을 유도하고, 시험 시점의 배율 인수를 설명하라.
 
 </div>
@@ -500,7 +500,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 역 드롭아웃을 PyTorch로 바닥부터 구현하라.
 
 </div>
@@ -518,7 +518,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 앙상블 평균의 관점에서 드롭아웃의 정칙화 효과를 설명하라.
 
 </div>
@@ -530,7 +530,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 드롭아웃 비율의 선택은 층의 너비에 어떻게 달려 있는가? 대표적인 출발점은 무엇인가?
 
 </div>

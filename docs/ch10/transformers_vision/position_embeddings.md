@@ -356,7 +356,7 @@ class PositionEmbedding(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 비전 트랜스포머의 절대, 상대, 회전 자리 임베딩을 견주어라.
 
 </div>
@@ -368,7 +368,7 @@ class PositionEmbedding(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 그림 조각에 2차원 자리 정보를 어떻게 담는지 설명하라.
 
 </div>
@@ -380,7 +380,7 @@ class PositionEmbedding(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 자리 임베딩이 비전 트랜스포머가 서로 다른 그림 해상도를 다루는 능력을 제한할 수 있는 까닭은 무엇인가?
 
 </div>
@@ -392,7 +392,7 @@ class PositionEmbedding(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 사전 학습된 비전 트랜스포머를 새 해상도에 맞추도록 2차원 위치 임베딩 사이 채우기를 구현하라.
 
 </div>

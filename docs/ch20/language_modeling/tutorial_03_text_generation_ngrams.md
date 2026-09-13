@@ -153,7 +153,7 @@ Temp 1.5: the cat sat on the cat and the cat sat on the cat sat on the log
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 낱말 $\{A, B, C, D\}$에 대한 분포 $P = \{0.5, 0.3, 0.1, 0.1\}$이 주어졌을 때 $T = 0.5$과 $T = 2.0$의 온도로 고친 분포를 셈하여라. 합이 1이 되는지 따져 보아라.
 
 </div>
@@ -175,7 +175,7 @@ Temp 1.5: the cat sat on the cat and the cat sat on the cat sat on the log
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 확률 분포가 아주 뾰족할 때와 아주 평평할 때, 붙박이 $k$을 쓰는 상위 k 표집이 왜 탈이 날 수 있는지 밝혀라. 알갱이(상위 p) 표집은 이 한계를 어떻게 다루는가?
 
 </div>
@@ -189,7 +189,7 @@ Temp 1.5: the cat sat on the cat and the cat sat on the cat sat on the log
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 걸음마다 `beam_width`개의 가설을 지니고 점수가 가장 높은 온전한 차례를 돌려주는 `generate_beam_search` 메서드를 `TextGeneratorBigram` 클래스에 짜라.
 
 </div>

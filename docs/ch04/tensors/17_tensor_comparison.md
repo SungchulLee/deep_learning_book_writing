@@ -144,7 +144,7 @@ Max scores: tensor([3.2715, 2.7902, 2.1874, 1.2415, 1.3903])
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `torch.topk`를 사용하여 텐서 `[3, 1, 4, 1, 5, 9, 2, 6, 5]`에서 상위 3개의 값과 그 인덱스를 찾아라.
 
 </div>
@@ -162,7 +162,7 @@ Max scores: tensor([3.2715, 2.7902, 2.1874, 1.2415, 1.3903])
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 $(3, 4)$ 행렬을 각 행을 따라(dim=1) 정렬하고 반환된 인덱스가 무엇을 나타내는지 설명하라.
 
 </div>
@@ -181,7 +181,7 @@ $(3, 4)$ 행렬을 각 행을 따라(dim=1) 정렬하고 반환된 인덱스가 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 상위 k 정확도를 구현하라. 모양 $(N, C)$인 로짓과 모양 $(N,)$인 레이블이 주어졌을 때, 참 레이블이 상위 3개 예측에 들어 있는 비율을 계산하라.
 
 </div>

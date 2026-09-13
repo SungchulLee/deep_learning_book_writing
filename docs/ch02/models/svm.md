@@ -93,7 +93,7 @@ PyTorch SVM accuracy: 0.8700
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 $\|\mathbf{w}\| = 2$인 선형 SVM의 마진 폭을 계산하라. $\mathbf{w}$를 3배로 늘리면 마진과 결정 경계는 어떻게 되는가?
 
 </div>
@@ -105,7 +105,7 @@ $\|\mathbf{w}\| = 2$인 선형 SVM의 마진 폭을 계산하라. $\mathbf{w}$�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 힌지 손실 $\max(0, 1 - y \cdot f(x))$가 $f$에 대해 볼록임을 보여라. $yf(x)$가 어떤 값일 때 손실이 0에서 양수로 바뀌는가?
 
 </div>
@@ -117,7 +117,7 @@ $\|\mathbf{w}\| = 2$인 선형 SVM의 마진 폭을 계산하라. $\mathbf{w}$�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 커널 기법을 설명하라. 왜 $\phi$를 명시적으로 계산하지 않고도 $K(\mathbf{x}, \mathbf{x}') = \langle\phi(\mathbf{x}), \phi(\mathbf{x}')\rangle$를 계산할 수 있는가? $\mathbf{x} \in \mathbb{R}^2$에 대해 다항 커널 $K(\mathbf{x}, \mathbf{x}') = (\mathbf{x}^\top\mathbf{x}' + 1)^2$이 특정한 특징 사상에 대응함을 보여라.
 
 </div>
@@ -129,7 +129,7 @@ $\|\mathbf{w}\| = 2$인 선형 SVM의 마진 폭을 계산하라. $\mathbf{w}$�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 어떤 데이터셋에 표본이 $n = 10{,}000$개 있다. SVM의 학습 시간 복잡도($O(n^2)$에서 $O(n^3)$)와 SGD로 $E$ 에폭 학습하는 2층 신경망의 복잡도($O(E \cdot n \cdot P)$, $P$는 매개변수 개수)를 비교하라. $n$이 어느 정도일 때 신경망이 더 효율적이 되는가?
 
 </div>
@@ -141,7 +141,7 @@ $\|\mathbf{w}\| = 2$인 선형 SVM의 마진 폭을 계산하라. $\mathbf{w}$�
 
 <div class="drillbox" markdown>
 
-**연습문제 5.**
+**연습문제 5.** <span class="diff med" title="중간"></span>
 이진 분류에서 힌지 손실(SVM)과 교차 엔트로피 손실(로지스틱 회귀/신경망)을 비교하라. 둘 다 0-1 손실의 볼록 상계임을 보이고, 딥러닝이 대개 힌지 손실 대신 교차 엔트로피를 쓰는 이유를 설명하라.
 
 </div>

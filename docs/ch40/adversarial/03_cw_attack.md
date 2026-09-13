@@ -729,7 +729,7 @@ C&W 치기를 보여 준다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 익힘 돌기에서 `optimizer.zero_grad()` 부름을 없애면 어떻게 되는지 밝혀라. 고친 코드를 돌려 익힘 잃음이 모이는 데 어떤 일이 생기는지 적어라.
 
 </div>
@@ -741,7 +741,7 @@ C&W 치기를 보여 준다.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 가장 좋게 하는 개를 Adam(`torch.optim.Adam`, `lr=0.001`)으로 갈음하고 본디 것과 익힘이 모이는 결을 견주어라. 두 잃음 굽이를 한 그림에 그려라.
 
 </div>
@@ -753,7 +753,7 @@ C&W 치기를 보여 준다.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이 짜보기가 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
 </div>
@@ -765,7 +765,7 @@ C&W 치기를 보여 준다.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 일찍 멈추기를 짜 넣어라. 판마다 따짐 잃음을 좇다가 열 판 잇달아 나아지지 않으면 익힘을 멈춘다. 가장 좋은 모형 짐을 담아 두었다가 되돌려라.
 
 </div>

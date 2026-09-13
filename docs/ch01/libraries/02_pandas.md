@@ -232,7 +232,7 @@ tensor([[ 54.0000, 165.7000,   0.0000,   1.0000,   0.0000],
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `df.describe()`의 `count`가 열마다 다르게 나왔다. 무엇을 뜻하는가?
 
 </div>
@@ -244,7 +244,7 @@ tensor([[ 54.0000, 165.7000,   0.0000,   1.0000,   0.0000],
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 범주가 10,000가지인 열을 원-핫으로 바꾸면 어떤 문제가 생기는가?
 
 </div>
@@ -258,7 +258,7 @@ tensor([[ 54.0000, 165.7000,   0.0000,   1.0000,   0.0000],
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `torch.from_numpy(X_np)`로 만든 텐서의 값을 바꾸면 `X_np`도 바뀌겠는가?
 
 </div>

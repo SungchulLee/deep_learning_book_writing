@@ -199,7 +199,7 @@ Loss: 0.4241
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 이음 헤아리기 일을 뜻매김하고 여느 따지기 짜임을 밝혀라.
 
 </div>
@@ -211,7 +211,7 @@ Loss: 0.4241
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 이음 헤아리기의 단순한 어림짐작 밑그림 셋을 밝혀라: 공통 이웃, 자카드, 애더믹-애더.
 
 </div>
@@ -223,7 +223,7 @@ Loss: 0.4241
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 그래프 신경망 바탕 이음 헤아리기는 어떻게 도는가? 담개-풀개 틀을 밝혀라.
 
 </div>
@@ -235,7 +235,7 @@ Loss: 0.4241
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 이음 헤아리기에서 쪽지 건네기의 한계와 SEAL 같은 방법이 이를 어떻게 다루는지 밝혀라.
 
 </div>

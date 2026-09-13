@@ -131,7 +131,7 @@ Test Accuracy: 54.82%
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 CIFAR-10 기본 모델과 심화 모델의 매개변수 수를 견주어라. 비를 계산하고 정확도 향상이 매개변수 증가에 비례하는지 논하라.
 
 </div>
@@ -143,7 +143,7 @@ CIFAR-10 기본 모델과 심화 모델의 매개변수 수를 견주어라. 비
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 심화 모델은 (합성곱 블록 뒤에) 0.25, (완전 연결층 뒤에) 0.5의 드롭아웃 비율을 쓴다. 깊이에 따라 다른 비율을 쓰는 까닭과 둘 다 0.5로 두면 어떻게 될지 설명하라.
 
 </div>
@@ -157,7 +157,7 @@ CIFAR-10 기본 모델과 심화 모델의 매개변수 수를 견주어라. 비
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 CIFAR-10 학습 변환에 데이터 증강(무작위 좌우 뒤집기와 padding=4인 무작위 잘라내기)을 더하라. 좌우 뒤집기가 CIFAR-10의 모든 부류에 안전한 까닭을 설명하고 정확도가 얼마나 오를지 어림하라.
 
 </div>

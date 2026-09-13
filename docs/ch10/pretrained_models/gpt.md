@@ -811,7 +811,7 @@ GPT의 생성은 다음으로 이루어진다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 GPT의 자기 회귀 사전 학습 목표를 설명하고 BERT의 MLM과 어떻게 다른지 밝혀라.
 
 </div>
@@ -823,7 +823,7 @@ GPT의 자기 회귀 사전 학습 목표를 설명하고 BERT의 MLM과 어떻�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 규모와 능력의 면에서 GPT-1에서 GPT-4까지의 흐름을 설명하라.
 
 </div>
@@ -835,7 +835,7 @@ GPT의 자기 회귀 사전 학습 목표를 설명하고 BERT의 MLM과 어떻�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 파이토치에서 간단한 GPT 방식 디코더 블록을 구현하라.
 
 </div>
@@ -859,7 +859,7 @@ GPT의 자기 회귀 사전 학습 목표를 설명하고 BERT의 MLM과 어떻�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 대형 언어 모형의 '창발 능력' 개념을 설명하라.
 
 </div>

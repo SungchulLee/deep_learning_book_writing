@@ -68,7 +68,7 @@ Loss: 31782.0742
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 갈래에 `get_latent_dim` 속성과 `count_parameters` 방법을 더하라. 그것으로 숨은 차원 8, 32, 128인 모델을 견주어라.
 
 </div>
@@ -92,7 +92,7 @@ Loss: 31782.0742
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 평균 제곱 어긋남 손실을 두 값 엇갈린 엔트로피 손실로 갈음하라. 두 값 엇갈린 엔트로피가 옳으려면 들임 자료가 어떤 제약을 채워야 하며, 에스자 내놓기 깨어남이 왜 그것을 보장하는가?
 
 </div>
@@ -104,7 +104,7 @@ Loss: 31782.0742
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 들임 벡터 둘을 받아 부호화하고 그 숨은 부호를 고르게 벌어진 10개 점에서 선형으로 사이 끼움한 뒤 푸는 `interpolate` 방법을 짜라. MNIST 숫자 둘로 시험하라.
 
 </div>

@@ -624,7 +624,7 @@ $O(n^2)$의 복잡도 때문에 효율적인 대안이 많이 나왔다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 자기 어텐션과 교차 어텐션의 차이를 설명하라.
 
 </div>
@@ -636,7 +636,7 @@ $O(n^2)$의 복잡도 때문에 효율적인 대안이 많이 나왔다.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 자기 어텐션이 순열 동변임을 보여라. 곧 입력의 순서를 바꾸면 출력의 순서도 똑같이 바뀜을 보여라.
 
 </div>
@@ -648,7 +648,7 @@ $O(n^2)$의 복잡도 때문에 효율적인 대안이 많이 나왔다.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 순차열의 길이가 $n$일 때 자기 어텐션의 메모리 복잡도는 얼마인가? 그것이 실제 쓰임을 어떻게 제한하는가?
 
 </div>
@@ -660,7 +660,7 @@ $O(n^2)$의 복잡도 때문에 효율적인 대안이 많이 나왔다.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 미래 자리에 주목하지 못하게 가림막을 씌워 인과(자기회귀) 자기 어텐션을 구현하라.
 
 </div>

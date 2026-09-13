@@ -452,7 +452,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 같은 자료 묶음에서 여느 맞겨루기 만들개 손실, 포화하지 않는 손실, 바서슈타인 손실을 견주는 익히기 되풀이를 짜라. 익히기 되풀이에 따라 손실 값을 좇아 그려라. 어느 손실이 가장 안정된 익히기 신호를 주는가?
 
 </div>
@@ -464,7 +464,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 WGAN-GP의 기울기 벌점은 실제 자료와 가짜 자료 사이를 메운다. 이 벌점이 왜 1-립시츠 묶음을 지키게 하는지 수학으로 이끌어 내고 사이 메우기 계수 $\alpha$의 몫을 설명하라.
 
 </div>
@@ -476,7 +476,7 @@ WGAN-GP의 기울기 벌점은 실제 자료와 가짜 자료 사이를 메운�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `interpolate_latent` 함수를 선형 사이 메우기에 더해 공 모양 선형 사이 메우기(slerp)도 받쳐 주도록 넓혀라. 두 방법으로 사이 메우기 격자를 만들고 중간 표본의 보기 품질을 견주어라.
 
 </div>

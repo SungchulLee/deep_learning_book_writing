@@ -102,7 +102,7 @@ PCA vs Classical MDS  max |difference| = 5.33e-15
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 고전 MDS를 짜서 5차원 10점 자료 묶음에 써라. 그람 행렬의 으뜸 고윳값 둘이 양의 고윳값 전체의 적어도 90%를 차지하는지 확인하고 2차원 묻힘을 그려라.
 
 </div>
@@ -128,7 +128,7 @@ PCA vs Classical MDS  max |difference| = 5.33e-15
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 들임 거리 행렬이 유클리드가 아닐 때 고전 MDS가 음의 고윳값을 낼 수 있는 까닭을 설명하라. 이것이 실전에서 어떤 문제를 부르며, 스트레스를 가장 작게 하는 계량 MDS는 이를 어떻게 피하는가?
 
 </div>
@@ -140,7 +140,7 @@ PCA vs Classical MDS  max |difference| = 5.33e-15
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 같은 MNIST 부분 묶음(표본 2000개)에서 고전 MDS와 t-SNE를 견주는 셰퍼드 그림을 만들어라. 본디 거리와 묻힌 둘씩의 거리 사이 피어슨 상관이 어느 쪽이 더 높으며 왜 그런가?
 
 </div>

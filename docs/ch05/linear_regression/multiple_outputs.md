@@ -208,7 +208,7 @@ Saved: multiple_outputs.png
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 출력을 2개 대신 5개 예측하도록 모델을 수정하라. 가중치 행렬의 모양이 $(5, 3)$이고 출력별 $R^2$ 점수가 모두 1.0에 가까운지 확인하라.
 
 </div>
@@ -245,7 +245,7 @@ Saved: multiple_outputs.png
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `nn.Linear`가 가중치를 $(q, p)$로 저장하는 것과 $W$가 $(p, q)$인 수학적 관례 $Y = XW + b$의 차이를 설명하라. PyTorch는 이를 어떻게 해결하는가?
 
 </div>
@@ -257,7 +257,7 @@ Saved: multiple_outputs.png
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 L2 정칙화(`weight_decay=0.01`)로 다중 출력 모델을 학습시키고 학습된 가중치의 크기를 정칙화하지 않은 버전과 비교하라. 정칙화가 모든 출력에 똑같이 영향을 주는가?
 
 </div>

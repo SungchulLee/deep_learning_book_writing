@@ -199,7 +199,7 @@ Output shape: torch.Size([2, 1000])
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 자리매김이 `(in=192, ch1x1=64, ch3x3_reduce=96, ch3x3=128, ch5x5_reduce=16, ch5x5=32, pool_proj=32)`인 인셉션 단원 하나의 매개변수 전체 개수를 셈하고 PyTorch 모델과 견주어 확인하여라.
 
 </div>
@@ -225,7 +225,7 @@ Output shape: torch.Size([2, 1000])
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 곁딸린 갈래 매개가 왜 익힐 때만 살아 있고 미룸 때에는 그렇지 않은지 설명하여라. 시험 때에도 살려 두면 어떻게 되겠는가?
 
 </div>
@@ -243,7 +243,7 @@ Output shape: torch.Size([2, 1000])
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `InceptionModule`에서 $5 \times 5$ 합성곱을 $3 \times 3$ 합성곱 둘을 쌓은 것으로 갈음하도록 고쳐라(인셉션 v2가 그렇게 한다). 두 갈래의 매개변수 수를 견주어라.
 
 </div>

@@ -92,7 +92,7 @@ $p = 0.95$, $n = 5$이면 곧바로 미루어 보기는 $\approx 0.77$, 생각 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 영 발, 몇 발, 생각의 사슬 시킴말을 밝혀라. 저마다 보기를 들어라.
 
 </div>
@@ -104,7 +104,7 @@ $p = 0.95$, $n = 5$이면 곧바로 미루어 보기는 $\approx 0.77$, 생각 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 생각의 사슬 시킴말은 왜 따져 보는 일의 성능을 높이는가? 한계는 무엇인가?
 
 </div>
@@ -116,7 +116,7 @@ $p = 0.95$, $n = 5$이면 곧바로 미루어 보기는 $\approx 0.77$, 생각 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 앞선 시킴말 전략으로서 스스로 한결같음, 생각의 나무, 쉬운 것부터 시킴말을 견주어라.
 
 </div>
@@ -128,7 +128,7 @@ $p = 0.95$, $n = 5$이면 곧바로 미루어 보기는 $\approx 0.77$, 생각 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 생각의 사슬 따지기를 쓰는 수학 말 문제 시킴말을 꾸며라. "기차가 시속 60마일로 2.5시간, 그다음 시속 80마일로 1.5시간 달린다. 전체 거리는 얼마인가?"로 시험하여라.
 
 </div>

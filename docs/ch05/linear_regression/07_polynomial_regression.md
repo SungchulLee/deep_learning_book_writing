@@ -354,7 +354,7 @@ Training polynomial degree 3...
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 $[-\pi, \pi]$ 위에서 $y = \sin(x) + \epsilon$으로부터 데이터를 생성하고 차수 3, 5, 9의 다항식을 적합시켜라. 과적합하지 않으면서 사인 함수를 가장 잘 근사하는 차수는 무엇인가?
 
 </div>
@@ -385,7 +385,7 @@ $[-\pi, \pi]$ 위에서 $y = \sin(x) + \epsilon$으로부터 데이터를 생성
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 10차 다항식이 학습 데이터는 거의 완벽하게 적합하면서도 보지 않은 시험 점에서는 성능이 나쁠 수 있는 이유를 설명하라.
 
 </div>
@@ -397,7 +397,7 @@ $[-\pi, \pi]$ 위에서 $y = \sin(x) + \epsilon$으로부터 데이터를 생성
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 학습/시험 분할(80/20)을 구현하고 1부터 15까지의 다항식 차수에 대한 학습 손실과 시험 손실을 함께 그려라. 시험 손실이 최소가 되는 차수를 찾아라.
 
 </div>

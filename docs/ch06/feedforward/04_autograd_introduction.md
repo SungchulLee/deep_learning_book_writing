@@ -125,7 +125,7 @@ Final Accuracy: 100.00%
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 autograd로 점 $(2, 3)$에서 $f(x, y) = x^2 y + y^3$의 경사를 계산하라. 편도함수를 손으로 계산하여 답을 확인하라.
 
 </div>
@@ -145,7 +145,7 @@ autograd로 점 $(2, 3)$에서 $f(x, y) = x^2 y + y^3$의 경사를 계산하라
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 경사를 0으로 만들지 않고 `.backward()`를 두 번 호출하여 경사 누적을 보여라. 경사가 두 배가 됨을 보여라. 그다음 `.zero_()`로 바로잡아라.
 
 </div>
@@ -172,7 +172,7 @@ autograd로 점 $(2, 3)$에서 $f(x, y) = x^2 y + y^3$의 경사를 계산하라
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 직접 하던 매개변수 갱신을 `torch.optim.SGD`로 대체하라. 최적화기를 만들고, 경사를 손수 0으로 만들고 빼던 것을 `optimizer.zero_grad()`와 `optimizer.step()`으로 바꿔라.
 
 </div>

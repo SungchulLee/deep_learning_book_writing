@@ -450,7 +450,7 @@ $\lambda$가 줄어들면서 계수들이 하나씩 모델에 "들어온다". �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 제약 영역의 기하를 사용하여, L1 정칙화는 희소한 해를 만들지만 L2는 그렇지 않은 이유를 설명하라.
 
 </div>
@@ -464,7 +464,7 @@ $\lambda$가 줄어들면서 계수들이 하나씩 모델에 "들어온다". �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 라쏘를 위한 좌표 하강법을 구현하고 희소한 해가 나오는지 확인하라.
 
 </div>
@@ -489,7 +489,7 @@ $\lambda$가 줄어들면서 계수들이 하나씩 모델에 "들어온다". �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 연성 문턱값 연산자를 L1 노름의 근위 연산자로 유도하라.
 
 </div>
@@ -503,7 +503,7 @@ $\lambda$가 줄어들면서 계수들이 하나씩 모델에 "들어온다". �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 특징이 100개인데 그중 5개만 유의미한 문제에서 라쏘, 릿지, 엘라스틱 넷을 비교하라. 각각에 대해 0인 계수의 개수와 예측 오차를 보고하라.
 
 </div>

@@ -459,7 +459,7 @@ def diagnose_lr(train_losses, val_losses):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 $L(w) = (w-5)^2$에 대해 $w_0 = 0$에서 시작하여 $\eta = 0.1$일 때와 $\eta = 1.0$일 때 처음 5회 반복을 계산하라. 어느 쪽이 수렴하는가?
 
 </div>
@@ -475,7 +475,7 @@ $L(w) = (w-5)^2$에 대해 $w_0 = 0$에서 시작하여 $\eta = 0.1$일 때와 $
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 이차 함수 $f(x) = \frac{1}{2}x^\top A x - b^\top x$에 대한 경사 하강법이 수렴할 필요충분조건이 $\eta < \frac{2}{\lambda_{\max}(A)}$임을 증명하라. 여기서 $\lambda_{\max}$는 가장 큰 고윳값이다.
 
 </div>
@@ -489,7 +489,7 @@ $L(w) = (w-5)^2$에 대해 $w_0 = 0$에서 시작하여 $\eta = 0.1$일 때와 $
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 PyTorch로 코사인 어닐링 스케줄을 구현하고 100 에폭 동안의 학습률을 그려라. 2층 MLP로 MNIST를 학습하며 상수 학습률과 손실 곡선을 비교하라.
 
 </div>
@@ -517,7 +517,7 @@ PyTorch로 코사인 어닐링 스케줄을 구현하고 100 에폭 동안의 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 (학습률을 배치 크기에 비례하여 조정하는) 선형 비례 규칙이 미니배치 간 경사가 비슷할 때 성립하는 근사임을 보여라. 이 근사는 언제 무너지는가?
 
 </div>

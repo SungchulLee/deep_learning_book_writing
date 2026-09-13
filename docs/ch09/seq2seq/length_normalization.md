@@ -365,7 +365,7 @@ def analyze_length_effects(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 길이 정규화가 없는 빔 탐색이 짧은 순차열 쪽으로 치우치는 까닭을 설명하라.
 
 </div>
@@ -377,7 +377,7 @@ def analyze_length_effects(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 길이로 정규화한 점수 함수 $\frac{1}{T^\alpha}\sum_t \log P(y_t)$을 유도하고 $\alpha$의 구실을 설명하라.
 
 </div>
@@ -389,7 +389,7 @@ def analyze_length_effects(
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 빔 탐색 복호기에 길이 정규화를 구현하라.
 
 </div>
@@ -405,7 +405,7 @@ def analyze_length_effects(
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 여러 길이 정규화 전략을 견주어라. $T$으로 나누기, $T^\alpha$으로 나누기, 구글의 식.
 
 </div>

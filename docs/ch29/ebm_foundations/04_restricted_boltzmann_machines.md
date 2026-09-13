@@ -273,7 +273,7 @@ Next: 05_contrastive_divergence.py
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 드러난 단위 4개와 숨은 단위 2개를 가지고 무게가 $W = \begin{pmatrix} 1 & -1 & 0 & 1 \\ 0 & 1 & 1 & -1 \end{pmatrix}$, 드러난 치우침이 $a = (0, 0, 0, 0)$, 숨은 치우침이 $b = (0, 0)$인 제한 볼츠만 기계에서 $v = (1, 0, 1, 0)$의 자유 에너지 $F(v)$을 셈하라.
 
 </div>
@@ -295,7 +295,7 @@ Next: 05_contrastive_divergence.py
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 제한 볼츠만 기계의 두 쪽 얼개가 왜 조건 분포 $P(h|v)$과 $P(v|h)$을 인수로 나뉘게 하는지, 그리고 이것이 온전히 이어진 볼츠만 기계에 견주어 어떤 셈의 이점을 주는지 밝혀라.
 
 </div>
@@ -321,7 +321,7 @@ Next: 05_contrastive_divergence.py
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 제한 볼츠만 기계 짜기를 CD-1 대신 CD-5을 쓰도록 고치고, 고칠 때마다 깁스 사슬을 자료에서 다시 시작하지 않고 앞의 음의 표본에서 이어 가는 이어지는 맞댐 벌어짐(PCD)을 더하라. 익히기 움직임에서 예상되는 차이를 적어라.
 
 </div>

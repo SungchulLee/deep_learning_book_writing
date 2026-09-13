@@ -116,7 +116,7 @@ Neural net accuracy: 0.8900
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 클래스 A 표본 60개와 클래스 B 표본 40개를 가진 노드의 지니 불순도를 계산하라. 이 노드는 순수한가?
 
 </div>
@@ -128,7 +128,7 @@ Neural net accuracy: 0.8900
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 클래스가 $K$개일 때 지니 불순도 $G(p) = 1 - \sum_k p_k^2$이 분포가 균등할 때 최댓값 $1 - 1/K$를 가짐을 증명하라.
 
 </div>
@@ -140,7 +140,7 @@ Neural net accuracy: 0.8900
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 깊이 $d$인 결정 트리는 $O(d)$ 시간에 예측한다. $n$개 표본으로 학습된 균형 트리에서 $d$를 $n$으로 표현하면? 매개변수가 $P$개인 신경망의 추론 비용과 비교하라.
 
 </div>
@@ -152,7 +152,7 @@ Neural net accuracy: 0.8900
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 단일 결정 트리의 분산이 큰 이유를 설명하라. 랜덤 포레스트와 그래디언트 부스팅 트리는 각각 이 문제를 어떻게 다루는가?
 
 </div>
@@ -164,7 +164,7 @@ Neural net accuracy: 0.8900
 
 <div class="drillbox" markdown>
 
-**연습문제 5.**
+**연습문제 5.** <span class="diff med" title="중간"></span>
 ReLU 신경망과 결정 트리의 관계를 설명하라. 뉴런이 $n$개인 은닉층 하나를 가진 ReLU 신경망이 깊이 $\log n$인 결정 트리보다 더 일반적인 함수 부류를 표현할 수 있는 이유는 무엇인가?
 
 </div>

@@ -245,7 +245,7 @@ def train_realnvp(model, data, epochs=100, batch_size=256, lr=1e-3):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 변수 바꿈 식을 설명하고 그것이 고르게 하는 흐름 모델의 고갱이인 까닭을 밝혀라.
 
 </div>
@@ -257,7 +257,7 @@ def train_realnvp(model, data, epochs=100, batch_size=256, lr=1e-3):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 RealNVP의 짝지음 층 얼개를 적고 그것이 왜 효율 좋은 셈하기를 되게 하는지 설명하라.
 
 </div>
@@ -269,7 +269,7 @@ RealNVP의 짝지음 층 얼개를 적고 그것이 왜 효율 좋은 셈하기�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 고르게 하는 흐름은 이어지는 짝지음 층에서 왜 고정할 차원을 번갈아 바꾸는가?
 
 </div>
@@ -281,7 +281,7 @@ RealNVP의 짝지음 층 얼개를 적고 그것이 왜 효율 좋은 셈하기�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 만들어 내는 모델에서 고르게 하는 흐름을 변분 자기 부호기, 맞겨루는 그물과 견주어라. 흐름만의 이점은 무엇인가?
 
 </div>

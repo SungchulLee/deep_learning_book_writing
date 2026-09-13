@@ -72,7 +72,7 @@ Parameters: 773,704
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 조각 크기가 4이고 창 크기가 7인 $224 \times 224$ 그림에서 창 주의와 전역 주의의 계산 복잡도를 셈하라. 답을 주의 점수를 셈하는 횟수로 나타내어라.
 
 </div>
@@ -84,7 +84,7 @@ Parameters: 773,704
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 어긋난 창 얼개의 목적을 설명하라. 스윈 트랜스포머가 전역 수용 영역을 이루는 데 그것이 왜 필요하며, 같은 목적으로 합성곱 신경망이 쓰는 팽창 합성곱과는 어떻게 다른가?
 
 </div>
@@ -96,7 +96,7 @@ Parameters: 773,704
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 단계 사이에 조각 합치기를 둔 간단한 두 단계 구조를 구현하도록 `SwinTransformer` 클래스를 고쳐라. 첫 단계는 해상도 $56 \times 56$에서, 둘째 단계는 $28 \times 28$에서 처리해야 한다.
 
 </div>

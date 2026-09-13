@@ -149,7 +149,7 @@ X, y = create_sequences(data, window_size=3)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 RNN의 순환식 $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$을 적고 각 항을 설명하라.
 
 </div>
@@ -161,7 +161,7 @@ RNN의 순환식 $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$을 적고 각 항을 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 입력 차원이 100이고 숨은 차원이 256인 RNN의 매개변수 수를 계산하라.
 
 </div>
@@ -173,7 +173,7 @@ RNN의 순환식 $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$을 적고 각 항을 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이론적으로 RNN은 길이가 다양한 순차열을 다룰 수 있는데 MLP는 왜 그러지 못하는가?
 
 </div>
@@ -185,7 +185,7 @@ RNN의 순환식 $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$을 적고 각 항을 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 간단한 RNN 세포를 PyTorch로 밑바닥부터 구현하고 `nn.RNNCell`과 맞는지 확인하라.
 
 </div>

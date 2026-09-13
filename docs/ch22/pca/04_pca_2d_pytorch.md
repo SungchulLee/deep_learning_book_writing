@@ -62,7 +62,7 @@ PyTorch에서 여러 변수 정규 표본을 만들려면 촐레스키 쪼개기
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 CPU에서 NumPy(`np.linalg.svd`)와 PyTorch(`torch.linalg.svd`)로 10000 x 784 아무 행렬의 특잇값 쪼개기 시간을 재어라. GPU가 있으면 PyTorch 판을 GPU에서도 재어라. 얼마나 빨라졌는지 알려라.
 
 </div>
@@ -90,7 +90,7 @@ CPU에서 NumPy(`np.linalg.svd`)와 PyTorch(`torch.linalg.svd`)로 10000 x 784 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 들임 자료에 `requires_grad=True`을 두어 주성분 쏘기를 미분할 수 있게 하라. 첫 자료 점에 대한 다시 세우기 어긋남의 기울기를 셈하라. 이 기울기는 기하로 무엇을 뜻하는가?
 
 </div>
@@ -114,7 +114,7 @@ CPU에서 NumPy(`np.linalg.svd`)와 PyTorch(`torch.linalg.svd`)로 10000 x 784 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 묶음 주성분 분석을 짜라. 곧 서로 얽히지 않은 자료 묶음 $B$개를 뜻하는 꼴 `(B, N, D)`의 텐서가 주어질 때 묶음 특잇값 쪼개기를 써서 되풀이 없이 자료 묶음마다 주성분 분석을 나란히 셈하라.
 
 </div>

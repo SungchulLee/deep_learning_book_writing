@@ -170,7 +170,7 @@ Saved: sklearn_comparison.png
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 베이즈 릿지 회귀(`sklearn.linear_model.BayesianRidge`)를 비교에 추가하라. 성능과 계수 양상이 표준 릿지와 어떻게 다른가?
 
 </div>
@@ -194,7 +194,7 @@ Saved: sklearn_comparison.png
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 라쏘로 alpha 값을 직접 훑는 것보다 LassoCV가 선호되는 이유를 계산적 관점과 통계적 관점에서 설명하라.
 
 </div>
@@ -206,7 +206,7 @@ Saved: sklearn_comparison.png
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 특징 50개 중 5개만 유용하고 나머지는 잡음인 데이터셋을 생성하라. OLS, 릿지, 라쏘, 엘라스틱 넷에 대해 0이 아닌 계수의 개수를 비교하라. 어떤 방법이 유용한 특징을 가장 잘 찾아내는가?
 
 </div>

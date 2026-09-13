@@ -100,7 +100,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `latent_dim=100`과 `img_size=28`에서 만들개와 가름개의 매개변수 총수를 셈하라. 어느 신경망이 매개변수가 더 많은가? 그것이 익히기의 안정에 왜 중요할 수 있는가?
 
 </div>
@@ -116,7 +116,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 만들개는 왜 마지막 깨움으로 `nn.Tanh()`을 쓰고 가름개는 `nn.Sigmoid()`을 쓰는지 설명하라. 둘을 바꾸면 어떻게 되는가?
 
 </div>
@@ -128,7 +128,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 맞겨루기 만들개를 크기 $64 \times 64$인 RGB 그림에 맞게 고쳐라. 만들개와 가름개 얼개에 어떤 바꿈이 필요한가? 고친 판을 짜고 새 매개변수 총수를 세어라.
 
 </div>

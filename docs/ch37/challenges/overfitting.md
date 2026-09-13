@@ -224,7 +224,7 @@ Its OOS Sharpe: -0.0552
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 살피는 이가 꾀 50벌을 시험해 252 거래일에 걸쳐 샤프 비 2.0인 것을 골랐다. 바람 뺀 샤프 비 틀로 이 열매가 통계로 뜻있는지 따져라.
 
 </div>
@@ -245,7 +245,7 @@ Its OOS Sharpe: -0.0552
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 뽑기 안에서 지나치게 맞추기와 뽑기 밖에서 나빠짐의 다름을 풀어라. 나빠짐이 적으면서도 지나치게 맞은 꾀가 있을 수 있는가?
 
 </div>
@@ -260,7 +260,7 @@ Its OOS Sharpe: -0.0552
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 지난 돌아옴을 아무렇게나 10번 익힘-시험으로 쪼개어, 뽑기 안 으뜸 꾀가 뽑기 밖 가운뎃값에 못 미칠 낌새를 알려 주는 쉬운 PBO 어림개를 만들어라.
 
 </div>

@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 날마다의 돌아옴 1000개짜리 자료에서 익힘=252, 시험=63, 틈=5인 굴러가는 창으로 앞으로 걸어가며 살필 때 쪼갬이 몇 개 나오는지 셈하여라. 익힌 밖 자료 점은 몇 개 생기는가?
 
 </div>
@@ -205,7 +205,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 금융 자료를 앞으로 걸어가며 살필 때 익힘 창과 시험 창 사이에 틈을 두는 일이 왜 중요한지 밝혀라. 이 틈이 막아 주는 앞을 미리 보는 치우침의 보기를 들어라.
 
 </div>
@@ -220,7 +220,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 넓혀 가는 창을 쓰고, 쪼갬마다의 익힌 밖 샤프 비의 변이 계수(잣대 벗어남을 평균으로 나눈 것)로 한결같음 자를 셈하는 앞으로 걸어가며 살피기를 꾸며라.
 
 </div>

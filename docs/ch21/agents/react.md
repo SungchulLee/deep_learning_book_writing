@@ -88,7 +88,7 @@ ReAct는 따짐을 찾아온 사실에 뿌리내려 헛것 지어내기를 줄�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 ReAct 얼거리를 밝혀라. 따짐과 움직임을 번갈아 하면 큰 말 모델 몸소 움직이개의 성능이 왜 나아지는가?
 
 </div>
@@ -100,7 +100,7 @@ ReAct 얼거리를 밝혀라. 따짐과 움직임을 번갈아 하면 큰 말 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 큰 말 모델 바탕 몸소 움직이개 체계의 핵심 조각은 무엇인가? 저마다의 몫을 설명하여라.
 
 </div>
@@ -112,7 +112,7 @@ ReAct 얼거리를 밝혀라. 따짐과 움직임을 번갈아 하면 큰 말 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 복잡한 일에서 하나가 움직이는 얼개와 여럿이 움직이는 얼개를 견주어라. 맞바꿈은 무엇인가?
 
 </div>
@@ -124,7 +124,7 @@ ReAct 얼거리를 밝혀라. 따짐과 움직임을 번갈아 하면 큰 말 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 연장을 쓸 수 있는 큰 말 모델 몸소 움직이개를 펼칠 때 어떤 안전 걱정거리가 생기는가? 어떻게 덜 수 있는가?
 
 </div>

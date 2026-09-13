@@ -556,7 +556,7 @@ def combined_augmentation_training_step(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 레이블 평활화의 목표 분포와 그것이 교차 엔트로피 손실에 미치는 영향을 유도하라.
 
 </div>
@@ -568,7 +568,7 @@ def combined_augmentation_training_step(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 레이블 평활화가 모델의 보정을 개선하는 방식을 설명하라.
 
 </div>
@@ -580,7 +580,7 @@ def combined_augmentation_training_step(
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 내장 `label_smoothing` 매개변수를 쓰지 않고 PyTorch에서 레이블 평활화를 구현하라.
 
 </div>
@@ -599,7 +599,7 @@ def combined_augmentation_training_step(
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 레이블 평활화를 쓰지 말아야 할 때는 언제인가?
 
 </div>

@@ -338,7 +338,7 @@ $$\text{Condition Number (Adjoint)} = \text{Cond}(J_f)^2$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 $y(0) = 0$인 뻣뻣한 상미분 방정식 $dy/dt = -1000y + 3000 - 2000e^{-t}$에서 오일러, RK4, 도맨드-프린스 풀개를 견주어라. 풀개마다 안정에 필요한 걸음 크기를 구하라.
 
 </div>
@@ -350,7 +350,7 @@ $y(0) = 0$인 뻣뻣한 상미분 방정식 $dy/dt = -1000y + 3000 - 2000e^{-t}$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 2차 룽게-쿠타 방법의 차수 조건을 이끌어 내고 중점 방법과 호인 방법이 그 특별한 경우임을 짚어라.
 
 </div>
@@ -362,7 +362,7 @@ $y(0) = 0$인 뻣뻣한 상미분 방정식 $dy/dt = -1000y + 3000 - 2000e^{-t}$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 맞추어 가는 걸음 크기 다스리기가 신경 상미분 방정식에 꼭 필요한 까닭과 익히는 동안 붙박이 걸음 크기를 쓰면 어떻게 되는지 밝혀라.
 
 </div>
@@ -374,7 +374,7 @@ $y(0) = 0$인 뻣뻣한 상미분 방정식 $dy/dt = -1000y + 3000 - 2000e^{-t}$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 때 차례 내다보기에 쓰는 신경 상미분 방정식의 가장 좋은 풀개를 고르는 견줌 시험을 짜라. 잣대, 풀개, 절차를 밝혀라.
 
 </div>

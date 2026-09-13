@@ -104,7 +104,7 @@ Batch 11: Cats=43, Dogs=57
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 표본이 각각 50개, 200개, 1000개인 세 클래스로 된 데이터셋을 만들도록 코드를 고쳐라. 클래스 가중치를 계산하고, WeightedRandomSampler가 배치마다 클래스를 대체로 고르게 뽑는지 확인하라.
 
 </div>
@@ -117,7 +117,7 @@ Batch 11: Cats=43, Dogs=57
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 WeightedRandomSampler에서 `replacement=False`으로 두면 어떻게 되는가? 동작의 차이와 각 설정이 알맞은 상황을 설명하라.
 
 </div>
@@ -130,7 +130,7 @@ WeightedRandomSampler에서 `replacement=False`으로 두면 어떻게 되는가
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `WeightedRandomSampler` 대신 `torch.utils.data.Subset`과 과표집을 쓰는 균형 잡힌 DataLoader를 구현하라. 소수 클래스를 복제하여 다수 클래스의 크기에 맞춘 새 데이터셋을 만들어라.
 
 </div>

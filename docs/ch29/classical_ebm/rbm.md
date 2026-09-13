@@ -239,7 +239,7 @@ $$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} \approx \langle v_i h_j \r
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 결합 에너지 $E(\mathbf{v}, \mathbf{h})$에서 숨은 단위를 닫힌 꼴로 가장자리로 몰아내어 이진 제한 볼츠만 기계의 자유 에너지 $F(\mathbf{v})$을 이끌어 내라. $\mathbf{h}$에 대한 합의 걸음마다 보여라.
 
 </div>
@@ -267,7 +267,7 @@ $$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} \approx \langle v_i h_j \r
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 CD-1 고침 규칙이 로그 가능도 기울기의 치우친 어림개임을 보여라. 자세히는 음의 국면 표본 $\langle v_i h_j \rangle_1$이 왜 모델 기댓값 $\langle v_i h_j \rangle_{\text{model}}$과 같지 않은지 밝히고, 치우침이 줄어드는 조건을 적어라.
 
 </div>
@@ -279,7 +279,7 @@ CD-1 고침 규칙이 로그 가능도 기울기의 치우친 어림개임을 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 드러난 단위가 조건 분포 $P(v_i | \mathbf{h}) = \mathcal{N}(\mu_i, \sigma_i^2)$을 가진 실수인 정규-베르누이 제한 볼츠만 기계를 짜라. 고친 에너지 함수와 $\mu_i$, $\sigma_i$의 고침 규칙을 이끌어 내라.
 
 </div>
@@ -299,7 +299,7 @@ CD-1 고침 규칙이 로그 가능도 기울기의 치우친 어림개임을 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 $F$이 자유 에너지일 때 제한 볼츠만 기계의 나눔 함수가 $Z = \sum_{\mathbf{v}} \exp(-F(\mathbf{v}))$을 만족함을 밝혀라. 그다음 흔한 제한 볼츠만 기계 크기에서 $Z$을 정확히 셈하는 것이 왜 다룰 수 없는지 밝혀라.
 
 </div>

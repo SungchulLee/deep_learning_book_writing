@@ -326,7 +326,7 @@ SimpleGenerator과 SimpleDiscriminator은 2차원 자료를 위해 만든 작은
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 세 자료 묶음(달 모양, 동그라미, 정규 분포)마다 2차원 맞겨루기 만들개를 1000바퀴 돌려라. 마지막 만들개 분포와 가름개 결정 가장자리를 견주어라. 어느 자료 묶음이 배우기 가장 어려운가? 왜인가?
 
 </div>
@@ -338,7 +338,7 @@ SimpleGenerator과 SimpleDiscriminator은 2차원 자료를 위해 만든 작은
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 만들개를 한 번 고칠 때마다 가름개를 $k$번 고치도록 익히기 되풀이를 고쳐라($k = 1, 3, 5$을 시험하라). 이 비율이 만든 표본의 품질과 가름개 결정 가장자리의 매끄러움에 어떤 영향을 주는가?
 
 </div>
@@ -350,7 +350,7 @@ SimpleGenerator과 SimpleDiscriminator은 2차원 자료를 위해 만든 작은
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 짝마다 평균 거리로 만든 표본의 다양함을 재는 봉우리 무너짐 알아내개를 짜라. 이 잣대를 익히기 되풀이에 더하고 만들개와 가름개 손실과 함께 그려라.
 
 </div>

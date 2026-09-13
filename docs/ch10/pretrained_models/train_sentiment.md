@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 이름표(0 또는 1)를 붙인 무작위 토큰 수열로 인공 학습 데이터를 만든 뒤, `BERTClassifier`를 5 세대 학습시키는 온전한 학습 고리를 작성하라. 세대마다 학습 손실을 알려라.
 
 </div>
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 사전 학습된 트랜스포머 모형을 미세 조정할 때 작은 학습률(이를테면 $2 \times 10^{-5}$)을 쓰고 맨바닥부터 학습할 때는 대체로 더 큰 학습률(이를테면 $10^{-3}$)을 쓰는 까닭을 설명하라.
 
 </div>
@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 세 부류 감성(부정, 중립, 긍정)을 받치도록 모형을 넓히고 검증 집합에서 정확도, 정밀도, 재현율, F1 점수를 셈하는 평가 함수를 구현하라.
 
 </div>

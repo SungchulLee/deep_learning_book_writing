@@ -431,7 +431,7 @@ Hyperband best: Config(lr=1.00e-04, bs=32, id=116739) with accuracy 0.5417
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 코드를 따라가며 쓰인 주요 자료 구조를 찾아라. 각각에 대해 자료형, (해당한다면) 모양, 파이프라인에서의 구실을 적어라.
 
 </div>
@@ -444,7 +444,7 @@ Hyperband best: Config(lr=1.00e-04, bs=32, id=116739) with accuracy 0.5417
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 오류 처리와 입력 검증을 넣도록 코드를 고쳐라. 이 코드를 실전에 쓸 수 있게 하려면 어떤 검사를 더하겠는가?
 
 </div>
@@ -457,7 +457,7 @@ Hyperband best: Config(lr=1.00e-04, bs=32, id=116739) with accuracy 0.5417
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 직접 고른 새로운 쓰임새를 지원하도록 코드를 확장하라. 무엇을 왜 바꿀지 설명하라.
 
 </div>

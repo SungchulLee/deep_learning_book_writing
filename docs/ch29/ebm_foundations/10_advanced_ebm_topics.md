@@ -143,7 +143,7 @@ CURRICULUM COMPLETE
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 잡음 수준 $\sigma$에서 퍼짐 모델의 점수 함수가 잡음 없애기 함수와 $\nabla_x \log p_\sigma(x) = (D_\theta(x, \sigma) - x) / \sigma^2$으로 이어짐을 보여라. 여기서 $D_\theta(x, \sigma)$은 잡음 낀 들임에서 깨끗한 자료를 어림하는 잡음 없애개이다.
 
 </div>
@@ -167,7 +167,7 @@ CURRICULUM COMPLETE
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 흐름 바탕 에너지 바탕 모델이 다룰 수 없는 나눔 함수를 담고도 정확한 가능도를 셈하는 데 쓰일 수 있는 까닭을 적어라. 여기서 중요도 뽑기의 몫은 무엇인가?
 
 </div>
@@ -191,7 +191,7 @@ CURRICULUM COMPLETE
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 에너지 함수가 $E(x, z) = E_{\text{recon}}(x, z) + E_{\text{prior}}(z)$으로 나뉘고 $E_{\text{recon}}$이 되짓기 품질을 재며 $E_{\text{prior}}$이 숨은 공간에 규칙을 세우는 숨은 변수 에너지 바탕 모델을 짜라. 이를 여느 변분 자기 부호기와 견주고 핵심 차이를 짚어라.
 
 </div>

@@ -290,7 +290,7 @@ $$\text{NDCG@5} = \frac{\text{DCG@5}}{\text{IDCG@5}}$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 이 길에서 차가운 출발 문제가 새 쓰는 이와 새 물건에 어떻게 다르게 나타나는지 밝혀라. 경우마다 누그러뜨릴 셈속을 하나씩 내놓아라.
 
 </div>
@@ -302,7 +302,7 @@ $$\text{NDCG@5} = \frac{\text{DCG@5}}{\text{IDCG@5}}$$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 이 마디에서 밝힌 잡의 기울기 고침을 이끌어 내어라. 어느 항이 셈하기에 가장 비싼지 가려내고 어림을 내놓아라.
 
 </div>
@@ -314,7 +314,7 @@ $$\text{NDCG@5} = \frac{\text{DCG@5}}{\text{IDCG@5}}$$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 이 추천 방식이 인기 바탕 밑그림보다 쓰는 이의 눈여겨봄을 높이는지 따질 A/B 시험을 설계하여라. 아무 나누기 단위, 으뜸 잣대, 최소 표본 크기 셈을 밝혀라.
 
 </div>
@@ -326,7 +326,7 @@ $$\text{NDCG@5} = \frac{\text{DCG@5}}{\text{IDCG@5}}$$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 이 추천 방법의 따지기가 오프라인(지난 자료)과 온라인(실제 오감) 자리에서 어떻게 다른지 밝혀라. 오프라인 따지기에서 어떤 치우침이 생길 수 있는가?
 
 </div>

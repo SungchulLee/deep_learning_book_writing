@@ -515,7 +515,7 @@ MLP는 완전 연결이어서 모든 뉴런이 이웃한 층의 모든 뉴런과
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 입력 차원이 784, 은닉층이 256과 128, 출력 차원이 10인 3층 MLP의 (편향을 포함한) 전체 매개변수 개수를 계산하라.
 
 </div>
@@ -527,7 +527,7 @@ MLP는 완전 연결이어서 모든 뉴런이 이웃한 층의 모든 뉴런과
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 활성화 함수가 없는 MLP가 깊이와 무관하게 선형 변환 하나와 동등한 이유를 설명하라.
 
 </div>
@@ -539,7 +539,7 @@ MLP는 완전 연결이어서 모든 뉴런이 이웃한 층의 모든 뉴런과
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `nn.Sequential`을 써서 2층 MLP를 PyTorch로 구현하고 간단한 분류 과제로 학습시켜라.
 
 </div>
@@ -557,7 +557,7 @@ MLP는 완전 연결이어서 모든 뉴런이 이웃한 층의 모든 뉴런과
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 은닉층의 너비 선택이 모델의 용량에 어떤 영향을 주는가? 층을 넓힐 때 무엇을 주고 무엇을 얻는가?
 
 </div>

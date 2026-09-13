@@ -182,7 +182,7 @@ $$\text{Var}(\widehat{\text{CV}}) = \frac{\sigma^2_{CV}}{k} + \text{correlation 
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 모델 성능에 대한 점추정과 신뢰구간의 차이를 설명하라.
 
 </div>
@@ -194,7 +194,7 @@ $$\text{Var}(\widehat{\text{CV}}) = \frac{\sigma^2_{CV}}{k} + \text{correlation 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 두 모델을 견주는 대응 부트스트랩 검정을 구현하라.
 
 </div>
@@ -216,7 +216,7 @@ $$\text{Var}(\widehat{\text{CV}}) = \frac{\sigma^2_{CV}}{k} + \text{correlation 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 교차 검증이 한 번의 학습/시험 분할보다 일반화를 더 잘 추정하는 이유를 설명하라.
 
 </div>
@@ -228,7 +228,7 @@ $$\text{Var}(\widehat{\text{CV}}) = \frac{\sigma^2_{CV}}{k} + \text{correlation 
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 분류기를 견줄 때 대응 t 검정보다 맥니마 검정이 더 알맞은 때는 언제인가?
 
 </div>

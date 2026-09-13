@@ -724,7 +724,7 @@ EWC는 배우는 힘을 잘 지키면서 잊음을 크게 줄인다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 베이즈의 눈으로 EWC 손실 함수를 끌어내라.
 
 </div>
@@ -736,7 +736,7 @@ EWC는 배우는 힘을 잘 지키면서 잊음을 크게 줄인다.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 피셔 정보 행렬이 중요한 가중치를 어떻게 짚어내는지 설명하라.
 
 </div>
@@ -748,7 +748,7 @@ EWC는 배우는 힘을 잘 지키면서 잊음을 크게 줄인다.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 파이토치로 EWC를 구현하라.
 
 </div>
@@ -779,7 +779,7 @@ EWC는 배우는 힘을 잘 지키면서 잊음을 크게 줄인다.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 EWC의 한계는 무엇인가?
 
 </div>

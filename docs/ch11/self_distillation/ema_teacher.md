@@ -228,7 +228,7 @@ EMA에 바탕한 자기 증류는 다음에 특히 값지다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 지수 이동 평균(EMA) 교사 얼개를 설명하라.
 
 </div>
@@ -240,7 +240,7 @@ EMA에 바탕한 자기 증류는 다음에 특히 값지다.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 목표를 만드는 데 EMA 교사가 실시간 학생보다 안정적인 까닭은 무엇인가?
 
 </div>
@@ -252,7 +252,7 @@ EMA에 바탕한 자기 증류는 다음에 특히 값지다.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 파이토치에서 EMA 갱신 단계를 구현하라.
 
 </div>
@@ -269,7 +269,7 @@ EMA에 바탕한 자기 증류는 다음에 특히 값지다.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 EMA 감쇠율 $\alpha$이 학습에 어떤 영향을 주는가? $\alpha$이 너무 높거나 낮으면 어떻게 되는가?
 
 </div>

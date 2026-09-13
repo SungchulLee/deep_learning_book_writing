@@ -284,7 +284,7 @@ scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 비전 트랜스포머가 그림을 조각으로 토큰화하고 트랜스포머로 처리하는 방식을 설명하라.
 
 </div>
@@ -296,7 +296,7 @@ scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 그림 크기가 224이고 조각 크기가 16인 비전 트랜스포머의 수열 길이를 셈하라.
 
 </div>
@@ -308,7 +308,7 @@ scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 비전 트랜스포머가 비슷한 성능을 내는 데 합성곱 신경망보다 데이터가 더 드는 까닭은 무엇인가?
 
 </div>
@@ -320,7 +320,7 @@ scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 파이토치에서 비전 트랜스포머의 조각 임베딩 층을 구현하라.
 
 </div>

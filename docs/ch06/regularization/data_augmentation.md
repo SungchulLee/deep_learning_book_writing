@@ -801,7 +801,7 @@ class RandAugment:
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 이미지 분류를 위한 표준 데이터 증강 기법을 열거하고 각각이 북돋우는 불변성을 설명하라.
 
 </div>
@@ -813,7 +813,7 @@ class RandAugment:
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 `torchvision.transforms`를 써서 PyTorch에서 사용자 정의 증강 파이프라인을 구현하라.
 
 </div>
@@ -834,7 +834,7 @@ class RandAugment:
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 데이터 증강이 손실 함수에 정칙화 항을 더하는 것과 동등한 이유를 설명하라.
 
 </div>
@@ -846,7 +846,7 @@ class RandAugment:
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 (a) 의료 영상, (b) 위성 영상, (c) 텍스트 데이터에 알맞은 증강을 설계하라.
 
 </div>

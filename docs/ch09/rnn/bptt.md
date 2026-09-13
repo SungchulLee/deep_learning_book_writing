@@ -264,7 +264,7 @@ def visualize_gradient_flow(model, x):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 온전한 BPTT와 잘라 낸 BPTT의 차이를 설명하라.
 
 </div>
@@ -276,7 +276,7 @@ def visualize_gradient_flow(model, x):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 기본 RNN에서 $W_h$에 대한 BPTT 기울기를 유도하라.
 
 </div>
@@ -288,7 +288,7 @@ def visualize_gradient_flow(model, x):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 순차열 길이가 $T$일 때 BPTT의 메모리 복잡도는 얼마인가?
 
 </div>
@@ -300,7 +300,7 @@ def visualize_gradient_flow(model, x):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 `torch.autograd`으로 간단한 RNN의 BPTT를 구현하고 기울기를 수치적으로 확인하라.
 
 </div>

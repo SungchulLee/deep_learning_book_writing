@@ -419,7 +419,7 @@ Deep-narrow  final MSE: 0.000256
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 ReLU 활성화를 쓰는 신경망에 대해 보편 근사 정리를 정확히 진술하라.
 
 </div>
@@ -431,7 +431,7 @@ ReLU 활성화를 쓰는 신경망에 대해 보편 근사 정리를 정확히 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 보편 근사 정리가 경사 하강법이 좋은 근사를 찾아낼 것임을 보장하지 못하는 이유는 무엇인가?
 
 </div>
@@ -443,7 +443,7 @@ ReLU 활성화를 쓰는 신경망에 대해 보편 근사 정리를 정확히 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 은닉 뉴런 두 개로 함수 $f(x) = |x|$을 정확히 표현하는 ReLU 신경망을 구성하라.
 
 </div>
@@ -455,7 +455,7 @@ ReLU 활성화를 쓰는 신경망에 대해 보편 근사 정리를 정확히 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 층이 $L$개이고 너비가 $d$로 일정한 ReLU 신경망이 최대 $O(d^L)$개의 선형 영역을 갖는 조각별 선형 함수를 표현할 수 있음을 보여라.
 
 </div>

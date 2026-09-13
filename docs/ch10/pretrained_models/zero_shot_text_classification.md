@@ -139,7 +139,7 @@ def random_swap(text, n=1):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 자연어 추론 영 예시 파이프라인으로 "The quantum computer solved the problem in 3 minutes"라는 문장을 후보 이름표 `["physics", "computer science", "mathematics", "engineering"]`에 대해 분류하라. 코드를 돌리기 전에 어느 이름표가 가장 높은 점수를 받을지 맞혀 보아라.
 
 </div>
@@ -161,7 +161,7 @@ def random_swap(text, n=1):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 $k = 3$에 다수결을 쓰는 K-최근접 이웃 소수 예시 분류기를 구현하라. 주어진 소수 예시로 시험하고 $k$이 편향-분산 맞바꿈에 어떤 영향을 주는지 설명하라.
 
 </div>
@@ -183,7 +183,7 @@ $k = 3$에 다수결을 쓰는 K-최근접 이웃 소수 예시 분류기를 구
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 세 가지 불리기 기법(비슷한말 바꾸기, 무작위 지우기, 무작위 자리바꿈)을 모두 적용하여 "The big company reported good quarterly results." 문장의 불린 판 다섯 개를 만들어라. 어느 불리기가 본디 뜻을 가장 잘 지키는지 논하라.
 
 </div>

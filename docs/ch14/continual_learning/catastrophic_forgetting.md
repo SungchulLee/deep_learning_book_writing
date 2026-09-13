@@ -514,7 +514,7 @@ def visualize_forgetting(accuracy_matrix, task_classes):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 파국적 잊음을 정의하고 신경망에서 그것이 왜 일어나는지 설명하라.
 
 </div>
@@ -526,7 +526,7 @@ def visualize_forgetting(accuracy_matrix, task_classes):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 간단한 실험으로 파국적 잊음을 보여라. 과제 A로 익히고 이어서 과제 B로 익힌 뒤 과제 A의 성능을 재라.
 
 </div>
@@ -538,7 +538,7 @@ def visualize_forgetting(accuracy_matrix, task_classes):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 잊음을 누그러뜨리는 접근법의 큰 세 갈래를 들어라.
 
 </div>
@@ -551,7 +551,7 @@ def visualize_forgetting(accuracy_matrix, task_classes):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 이어 배우기에서 안정성과 말랑함의 딜레마란 무엇인가?
 
 </div>

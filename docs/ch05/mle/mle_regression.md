@@ -334,7 +334,7 @@ def train_regression_mle_perspective():
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 후버 손실이 0 근처에서는 가우스, 꼬리에서는 라플라스인 분포 아래의 MLE에 대응함을 보여라. 밀도를 명시적으로 유도하라.
 
 </div>
@@ -354,7 +354,7 @@ def train_regression_mle_perspective():
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함수를 유도하라.
 
 </div>
@@ -379,7 +379,7 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 다변량 출력에 대해 완전한 공분산 행렬을 예측하도록 이분산 회귀를 확장하라. 예측된 공분산이 양의 정부호임을 어떤 매개화로 보장할 수 있는가?
 
 </div>
@@ -402,7 +402,7 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 이상치가 0%, 5%, 10%, 20%인 데이터에서 MSE, MAE, 후버 손실을 비교하는 모의실험을 구현하라. 각각에 대해 매개변수 복원 정확도를 보고하라.
 
 </div>

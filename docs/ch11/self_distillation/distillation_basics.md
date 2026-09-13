@@ -185,7 +185,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 지식 증류 손실 $L = \alpha L_{\text{CE}}(y, \sigma(z_s)) + (1-\alpha) T^2 D_{\text{KL}}(\sigma(z_t/T) \| \sigma(z_s/T))$을 설명하라.
 
 </div>
@@ -197,7 +197,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 교사의 부드러운 출력이 딱딱한 이름표보다 정보를 더 많이 지니는 까닭은 무엇인가?
 
 </div>
@@ -209,7 +209,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 파이토치에서 지식 증류를 구현하라.
 
 </div>
@@ -229,7 +229,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 어떤 조건에서 증류가 학생에게 도움이 되지 않는가?
 
 </div>

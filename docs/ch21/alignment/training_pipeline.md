@@ -124,7 +124,7 @@ RLHF 동안의 **모델 수준의 손질**은 치우치거나 고정관념에 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 큰 말 모델 결 맞추기 물길의 세 단계(미리 익히기, 이끌린 곱게 다듬기, RLHF)를 적어라. 각 단계는 무엇을 보태는가?
 
 </div>
@@ -136,7 +136,7 @@ RLHF 동안의 **모델 수준의 손질**은 치우치거나 고정관념에 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 RLHF의 갚음 모델을 설명하라. 어떻게 익히며 한계는 무엇인가?
 
 </div>
@@ -148,7 +148,7 @@ RLHF의 갚음 모델을 설명하라. 어떻게 익히며 한계는 무엇인�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 곧바른 선호 가장 좋게 하기(DPO)란 무엇이며 PPO 바탕 RLHF와 어떻게 다른가?
 
 </div>
@@ -160,7 +160,7 @@ RLHF의 갚음 모델을 설명하라. 어떻게 익히며 한계는 무엇인�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 헌법 인공지능이란 무엇이며 결 맞추기와 어떤 관계인가?
 
 </div>

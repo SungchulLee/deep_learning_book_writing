@@ -179,7 +179,7 @@ Fashion-MNIST는 MNIST와 텐서의 짜임이 같아 이미지마다 단일 채�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 Fashion-MNIST의 10개 부류마다 평균 화소 밝기를 계산하라. 평균 밝기가 가장 높은 부류와 가장 낮은 부류는 무엇인가? 그것이 물리적으로 말이 되는 까닭을 설명하라.
 
 </div>
@@ -202,7 +202,7 @@ Fashion-MNIST의 10개 부류마다 평균 화소 밝기를 계산하라. 평균
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 Fashion-MNIST 분류기의 혼동 행렬에서 티셔츠/윗옷(0)과 셔츠(6) 사이의 비대각 성분이 큰 까닭을 개념적으로 설명하라. CNN이 둘을 가르려면 어떤 시각적 특징을 배울 수 있겠는가?
 
 </div>
@@ -214,7 +214,7 @@ Fashion-MNIST 분류기의 혼동 행렬에서 티셔츠/윗옷(0)과 셔츠(6) 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 데이터 증강(무작위 좌우 뒤집기와 작은 회전)이 Fashion-MNIST의 정확도를 높이는지 시험할 실험을 설계하라. 고친 변환 파이프라인을 적고 어떤 부류가 증강에서 가장 이득을 볼지 설명하라.
 
 </div>

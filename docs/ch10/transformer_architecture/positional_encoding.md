@@ -1812,7 +1812,7 @@ ALiBi는 간단하면서도 잘 통하는 위치 인코딩을 준다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 사인파 위치 인코딩을 이끌어 내고 그것이 왜 모형에 상대 자리를 배우게 하는지 설명하라.
 
 </div>
@@ -1824,7 +1824,7 @@ ALiBi는 간단하면서도 잘 통하는 위치 인코딩을 준다.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 사인파 위치 인코딩과 학습된 자리 임베딩을 견주어라.
 
 </div>
@@ -1836,7 +1836,7 @@ ALiBi는 간단하면서도 잘 통하는 위치 인코딩을 준다.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 위치 인코딩이 트랜스포머에는 필요하고 순환 신경망에는 필요 없는 까닭은 무엇인가?
 
 </div>
@@ -1848,7 +1848,7 @@ ALiBi는 간단하면서도 잘 통하는 위치 인코딩을 준다.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 파이토치에서 사인파 위치 인코딩을 구현하라.
 
 </div>

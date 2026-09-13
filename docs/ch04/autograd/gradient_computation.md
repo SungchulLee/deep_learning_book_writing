@@ -562,7 +562,7 @@ tensor([[-0.8323, -0.4161],
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 점 $(1, 2)$에서 함수 $f(x_1, x_2) = (x_1^2 + x_2, x_1 x_2^3)$의 야코비 행렬을 계산하라. 그런 다음 $\bar{y} = (1, 1)$에 대한 VJP를 계산하라.
 
 </div>
@@ -582,7 +582,7 @@ tensor([[-0.8323, -0.4161],
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 신경망 학습에서 전진 모드보다 후진 모드 자동 미분이 선호되는 이유를 설명하라. 어떤 상황에서 전진 모드가 더 효율적인가?
 
 </div>
@@ -596,7 +596,7 @@ tensor([[-0.8323, -0.4161],
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `torch.autograd.functional.jacobian`을 사용하여 $f(x_1, x_2) = (x_1^2, x_1 x_2, x_2^2)$의 전체 $3 \times 2$ 야코비안을 계산하는 PyTorch 코드를 작성하라.
 
 </div>
@@ -621,7 +621,7 @@ tensor([[-0.8323, -0.4161],
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 어떤 학생이 사이에 `optimizer.zero_grad()`를 호출하지 않고 `loss.backward()`를 연달아 두 번 썼다. `.grad` 속성에는 어떤 일이 생기며, PyTorch에서 이 동작이 기본값인 이유는 무엇인가?
 
 </div>

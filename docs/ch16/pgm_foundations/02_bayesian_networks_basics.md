@@ -803,7 +803,7 @@ Next: Learn about inference in Bayesian Networks!
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 단순한 의료 진단의 베이즈 망을 쌓아라. 독감과 알레르기가 함께 재채기와 기침을 일으킨다. 낱낱 세기로 $P(\text{Flu}=1 | \text{Sneezing}=1, \text{Cough}=1)$을 셈하여라.
 
 </div>
@@ -839,7 +839,7 @@ print(f'P(Flu=1 | Sneeze=1, Cough=1) = {numerator/denominator:.4f}')
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 베이즈 망에 변을 더하면 왜 나타내는 힘이 결코 줄지 않으면서 매개변수의 개수는 늘 수 있는지 설명하여라. 무엇을 주고 무엇을 얻는가?
 
 </div>
@@ -856,7 +856,7 @@ print(f'P(Flu=1 | Sneeze=1, Cough=1) = {numerator/denominator:.4f}')
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 날씨 망에서 앞먹임 표본 10,000개를 만들고 물리치기 표집으로 $P(\text{Rain}=1 | \text{WetGrass}=1)$을 어림하여라. 낱낱 세기로 셈한 정확한 답과 견주어라.
 
 </div>

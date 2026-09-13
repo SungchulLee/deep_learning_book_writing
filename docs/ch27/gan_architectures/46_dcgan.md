@@ -107,7 +107,7 @@ DCGAN은 그림 만들어 내기에서 겹말기 얼개가 여러 층 신경망�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 차원 100인 들임 숨은 벡터에 대해 DCGenerator의 층마다 공간 차원을 셈하라. 내놓기 꼴이 $(1, 28, 28)$임을 확인하라.
 
 </div>
@@ -119,7 +119,7 @@ DCGAN은 그림 만들어 내기에서 겹말기 얼개가 여러 층 신경망�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 DCGAN 논문이 가름개의 들임 층과 만들개의 내놓기 층에 묶음 고르게 맞추기를 쓰지 말라고 권하는 까닭을 설명하라. 이 지침을 어기면 어떤 문제가 생길 수 있는가?
 
 </div>
@@ -131,7 +131,7 @@ DCGAN 논문이 가름개의 들임 층과 만들개의 내놓기 층에 묶음 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 DCGAN을 $64 \times 64$ RGB 그림을 만들도록 고쳐라. 28x28 회색 판과 64x64 RGB 판의 매개변수 수를 견주고 셈에 미치는 뜻을 논하라.
 
 </div>

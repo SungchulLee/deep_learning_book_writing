@@ -312,7 +312,7 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 다음 각각에 대해 $\nabla f$를 계산하라. (a) $f(x, y) = x^2y + y^3$, (b) $f(x, y, z) = e^{xy} + \sin(z)$, (c) $f(\mathbf{w}) = \|\mathbf{Xw} - \mathbf{y}\|^2$.
 
 </div>
@@ -328,7 +328,7 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 $f(x,y) = x^2 + 4y^2$에 대해 점 $(2, 1)$에서 $\nabla f$가 등위곡선 $f(x,y) = c$에 수직임을 보여라.
 
 </div>
@@ -342,7 +342,7 @@ $f(x,y) = x^2 + 4y^2$에 대해 점 $(2, 1)$에서 $\nabla f$가 등위곡선 $f
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 $(1, 1)$에서 $f(x,y) = x^2 - xy + y^2$에 대해 경사를 계산하고, 방향 $(1, 0)$의 방향도함수를 구하고, 최급상승 방향을 구하라.
 
 </div>
@@ -358,7 +358,7 @@ $(1, 1)$에서 $f(x,y) = x^2 - xy + y^2$에 대해 경사를 계산하고, 방�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 $w_1 = 0.5, w_2 = -0.3, x_1 = 2, x_2 = 3, y = 1$에서 PyTorch autograd를 사용하여 $L = (w_1 x_1 + w_2 x_2 - y)^2$의 $w_1$과 $w_2$에 대한 경사를 계산하라.
 
 </div>

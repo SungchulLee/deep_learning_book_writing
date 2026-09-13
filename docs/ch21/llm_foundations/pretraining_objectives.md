@@ -735,7 +735,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 큰 규모로 큰 말 모델을 익힐 때의 핵심 어려움을 밝혀라.
 
 </div>
@@ -747,7 +747,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 미리 익히기 목표로서 인과 말 나타내기, 가린 말 나타내기, 앞가지 말 나타내기를 견주어라.
 
 </div>
@@ -759,7 +759,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 큰 말 모델의 떠오르는 능력이란 무엇인가? 보기를 들고 그것이 참으로 떠오르는 것인지 논하여라.
 
 </div>
@@ -771,7 +771,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 큰 말 모델을 값매김하는 흔한 잣대와 그 한계를 설명하여라.
 
 </div>

@@ -105,7 +105,7 @@ Deep GCN with Residual Connections
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 보여 주기를 돌려 층 2개, 4개, 8개, 16개의 시험 정확도를 적어라. 그다음 `ResGCN`에서 남은 이음을 없애고(`x = x + res`을 그냥 `x = x`으로) 16층의 정확도를 견주어라. 어떤 일이 왜 일어나는가?
 
 </div>
@@ -117,7 +117,7 @@ Deep GCN with Residual Connections
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 맞섬 고르게 맞추기 $\hat{A} = D^{-1/2}(A + I)D^{-1/2}$의 스펙트럼 반지름이 많아야 1인 까닭과 이것이 깊은 신경망의 지나친 매끄러워짐과 어떻게 이어지는지 수학으로 밝혀라.
 
 </div>
@@ -129,7 +129,7 @@ Deep GCN with Residual Connections
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 익히기 걸음마다 확률 $p = 0.3$으로 변을 아무렇게나 떨구는 `DropEdge` 변형 익히기 되풀이를 짜라. 변 떨구기가 있을 때와 없을 때 16층 `ResGCN`의 성능을 견주어라. 도움이 되는가? 어떤 조건에서 해로울 수 있는가?
 
 </div>

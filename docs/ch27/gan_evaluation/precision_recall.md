@@ -791,7 +791,7 @@ from torchvision.models import inception_v3
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 프레셰 인셉션 거리(FID)를 뜻매김하고 맞겨루기 만들개를 따질 때 인셉션 점수보다 이를 더 낫게 여기는 까닭을 설명하라.
 
 </div>
@@ -807,7 +807,7 @@ from torchvision.models import inception_v3
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 인셉션 점수의 한계는 무엇인가? 표본이 나쁜데도 인셉션 점수가 높을 수 있는가?
 
 </div>
@@ -819,7 +819,7 @@ from torchvision.models import inception_v3
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 만들어 내는 모델의 정밀도와 재현율 잣대가 가르기에서의 그것과 어떻게 다른지 설명하라.
 
 </div>
@@ -831,7 +831,7 @@ from torchvision.models import inception_v3
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 만들어 내는 모델을 따질 때 여러 잣대를 함께 써야 하는 까닭은 무엇인가?
 
 </div>

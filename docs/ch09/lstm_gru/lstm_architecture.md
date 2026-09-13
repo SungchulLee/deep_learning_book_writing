@@ -901,7 +901,7 @@ def diagnose_lstm(model, dataloader, device):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 LSTM의 식을 적고 각 문의 구실을 설명하라.
 
 </div>
@@ -918,7 +918,7 @@ LSTM의 식을 적고 각 문의 구실을 설명하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 세포 상태 $c_t$이 기울기 소실을 덜어 주는 '컨베이어 벨트' 노릇을 하는 방식을 설명하라.
 
 </div>
@@ -930,7 +930,7 @@ LSTM의 식을 적고 각 문의 구실을 설명하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 입력 차원이 300이고 숨은 차원이 512인 LSTM의 매개변수 수를 계산하라.
 
 </div>
@@ -943,7 +943,7 @@ LSTM의 식을 적고 각 문의 구실을 설명하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 망각 문의 편향을 0이 아니라 1로 초기화하는 일이 잦은 까닭은 무엇인가?
 
 </div>

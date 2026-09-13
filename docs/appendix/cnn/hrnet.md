@@ -136,7 +136,7 @@ HRNet의 꾸밈은 촘촘한 미루어 봄 일에 몹시 세다. 사람 자세 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 결이 $H \times W$, $H/2 \times W/2$, $H/4 \times W/4$인 가지 셋을 지닌 `HRModule`에는 녹이는 길이 몇 개 있는가? 드는 촘촘하게 하기와 성기게 하기 셈을 늘어놓아라.
 
 </div>
@@ -148,7 +148,7 @@ HRNet의 꾸밈은 촘촘한 미루어 봄 일에 몹시 세다. 사람 자세 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 자리 결을 지키는 HRNet의 길과 건너뛰는 이음을 쓰는 U-Net의 부호기-풀개 길을 견주어라. 저마다의 좋은 점과 나쁜 점은 무엇인가?
 
 </div>
@@ -160,7 +160,7 @@ HRNet의 꾸밈은 촘촘한 미루어 봄 일에 몹시 세다. 사람 자세 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 가지에는 깊이별로 가른 엮음을, 모든 녹이기 셈에는 $1 \times 1$ 엮음을 쓰는 가벼운 `HRModule`을 꾸며라(걸음 있는 $3 \times 3$ 엮음은 모으기 + $1 \times 1$ 엮음으로 갈음한다).
 
 </div>

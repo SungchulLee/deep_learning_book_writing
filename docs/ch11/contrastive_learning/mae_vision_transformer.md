@@ -425,7 +425,7 @@ MAE의 구조는 비대칭 부호기-복호기 설계이다. **부호기**는 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `img_size=224`, `patch_size=16`, `embed_dim=768`, `depth=12`, `mask_ratio=0.75`인 MAE 모형에서 (가) 전체 조각 수, (나) 부호기가 처리하는 보이는 조각 수, (다) (자기 어텐션이 지배하며 $O(N^2)$으로 는다고 할 때) 모든 조각을 처리할 때에 견준 FLOP 절약을 셈하라.
 
 </div>
@@ -445,7 +445,7 @@ MAE의 구조는 비대칭 부호기-복호기 설계이다. **부호기**는 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 MAE가 되살릴 목표를 조각마다 정규화하는(조각의 평균을 빼고 표준편차로 나누는) 까닭을 설명하라. 모형이 대신 날화소 값을 맞히면 어떻게 되는가?
 
 </div>
@@ -459,7 +459,7 @@ MAE가 되살릴 목표를 조각마다 정규화하는(조각의 평균을 빼�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 가리지 않고 모든 조각을 처리하는 `encode_full` 메서드를 더하여 추론 때 가림 비율을 바꿀 수 있도록 `MAE` 클래스를 고쳐라. 같은 입력 그림에 대해 (가림을 쓰는) `forward_encoder`와 (가림을 쓰지 않는) `encode_full`에서 얻은 표현을 견주어라.
 
 </div>

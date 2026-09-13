@@ -117,7 +117,7 @@ BERT의 토막 512개 한계 때문에 긴 글월은 미끄러지는 창으로 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 뽑아내는 물음 답하기와 지어내는 물음 답하기의 차이를 밝혀라. 저마다 언제 쓰는 것이 좋은가?
 
 </div>
@@ -129,7 +129,7 @@ BERT의 토막 512개 한계 때문에 긴 글월은 미끄러지는 창으로 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 BERT 바탕 뽑아내는 물음 답하기 모델이 답 구간을 어떻게 어림하는지 설명하여라.
 
 </div>
@@ -141,7 +141,7 @@ BERT 바탕 뽑아내는 물음 답하기 모델이 답 구간을 어떻게 어�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 SQuAD 값매김에 쓰이는 F1 잣대는 무엇인가? 일부만 맞는 경우를 어떻게 다루는가?
 
 </div>
@@ -153,7 +153,7 @@ SQuAD 값매김에 쓰이는 F1 잣대는 무엇인가? 일부만 맞는 경우�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 물음 답하기 체계는 주어진 맥락으로 답할 수 없는 물음임을 어떻게 정할 수 있는가?
 
 </div>

@@ -764,7 +764,7 @@ def inner_loop_checkpointed(self, support_x, support_y, params):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 MAML 갱신 규칙을 끌어내고 안쪽 되돌이와 바깥 되돌이의 몫을 설명하라.
 
 </div>
@@ -776,7 +776,7 @@ MAML 갱신 규칙을 끌어내고 안쪽 되돌이와 바깥 되돌이의 몫�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 MAML은 왜 이차 기울기가 필요한가? 일차 MAML(FOMAML)은 언제 좋은 어림이 되는가?
 
 </div>
@@ -788,7 +788,7 @@ MAML은 왜 이차 기울기가 필요한가? 일차 MAML(FOMAML)은 언제 좋�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `torch.autograd.grad`를 써서 파이토치로 MAML 안쪽 되돌이를 구현하라.
 
 </div>
@@ -808,7 +808,7 @@ MAML은 왜 이차 기울기가 필요한가? 일차 MAML(FOMAML)은 언제 좋�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 MAML의 한계는 무엇인가?
 
 </div>

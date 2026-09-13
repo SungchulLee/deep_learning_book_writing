@@ -525,7 +525,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 트랜스포머 블록의 핵심 부품을 들고 각각의 몫을 설명하라.
 
 </div>
@@ -537,7 +537,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 층이 $N=6$개, $d=512$, 머리가 $h=8$개, $d_{ff}=2048$인 트랜스포머 인코더의 전체 매개변수 수를 셈하라.
 
 </div>
@@ -549,7 +549,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 트랜스포머가 아래 층마다 그 둘레에 잔차 연결을 쓰는 까닭은 무엇인가?
 
 </div>
@@ -561,7 +561,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 병렬성, 먼 거리 의존, 기억의 면에서 트랜스포머와 순환 신경망을 견주어라.
 
 </div>

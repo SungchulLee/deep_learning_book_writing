@@ -74,7 +74,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001,
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 Adam의 갱신 규칙을 유도하고 편향 보정이 하는 구실을 설명하라.
 
 </div>
@@ -86,7 +86,7 @@ Adam의 갱신 규칙을 유도하고 편향 보정이 하는 구실을 설명�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 Adam이 모멘텀을 쓰는 SGD와 다른 해로 수렴할 수 있는 이유와, 어느 쪽이 대체로 더 잘 일반화하는지 설명하라.
 
 </div>
@@ -98,7 +98,7 @@ Adam이 모멘텀을 쓰는 SGD와 다른 해로 수렴할 수 있는 이유와,
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 Adam의 기본 초매개변수는 무엇이며 왜 그렇게 정해졌는가?
 
 </div>
@@ -110,7 +110,7 @@ Adam의 기본 초매개변수는 무엇이며 왜 그렇게 정해졌는가?
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 Adam을 PyTorch로 바닥부터 구현하라.
 
 </div>

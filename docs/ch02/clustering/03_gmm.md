@@ -199,7 +199,7 @@ GMM은 데이터 분포를 $K$개 가우시안 성분의 가중합 $p(\mathbf{x}
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 코드의 길게 늘어진 군집 데이터셋을 사용하여 `n_components=3`인 GMM을 적합시키고 `predict_proba`로 각 데이터 점의 책임도를 추출하라. 처음 10개 데이터 점 각각에 대해 책임도가 가장 높은 성분과 그 값이 두 번째로 높은 값보다 얼마나 큰지를 보고하라. 그 차이가 작다는 것은 그 점에 대해 무엇을 시사하는가?
 
 </div>
@@ -233,7 +233,7 @@ GMM은 데이터 분포를 $K$개 가우시안 성분의 가중합 $p(\mathbf{x}
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 GMM 모델 선택에서 BIC와 AIC의 차이를 설명하라. BIC가 AIC보다 적은 성분을 선택하는 경향이 있는 이유는 무엇인가? 어떤 상황에서 BIC보다 AIC를 선호할 수 있는가?
 
 </div>
@@ -247,7 +247,7 @@ GMM 모델 선택에서 BIC와 AIC의 차이를 설명하라. BIC가 AIC보다 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 GMM 기반 이상 탐지 시스템을 구현하라. 데이터셋에 GMM을 적합시킨 뒤, 데이터 범위에서 균등 분포로 새로운 점 50개를 생성하라. `score_samples`로 원래 데이터와 균등 분포 점들의 로그가능도를 계산하라. 두 그룹의 로그가능도 히스토그램을 그리고 이들을 분리하는 임계값을 선택하라.
 
 </div>

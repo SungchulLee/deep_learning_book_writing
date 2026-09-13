@@ -143,7 +143,7 @@ $$\text{Cost} = HW \times HW \times \frac{C}{r} \ll HW \times HW \times C$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 비국소 연산의 식 $y_i = \frac{1}{C(x)}\sum_j f(x_i, x_j)g(x_j)$을 유도하고 각 부분을 설명하라.
 
 </div>
@@ -155,7 +155,7 @@ $$\text{Cost} = HW \times HW \times \frac{C}{r} \ll HW \times HW \times C$$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 공간 차원이 $H \times W$일 때 비국소 블록과 표준 합성곱의 계산 비용을 견주어라.
 
 </div>
@@ -167,7 +167,7 @@ $$\text{Cost} = HW \times HW \times \frac{C}{r} \ll HW \times HW \times C$$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 비국소 블록을 PyTorch로 구현하라.
 
 </div>
@@ -195,7 +195,7 @@ $$\text{Cost} = HW \times HW \times \frac{C}{r} \ll HW \times HW \times C$$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 비국소 블록을 신경망의 맨 앞이 아니라 합성곱 층 여러 개 뒤에 두는 까닭은 무엇인가?
 
 </div>

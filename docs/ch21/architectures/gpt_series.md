@@ -405,7 +405,7 @@ class GPT(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 GPT, BERT, T5의 얼개 차이를 견주어라. 미리 익히기 목표는 어떻게 다른가?
 
 </div>
@@ -423,7 +423,7 @@ GPT, BERT, T5의 얼개 차이를 견주어라. 미리 익히기 목표는 어�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 눈썰미는 무엇인가?
 
 </div>
@@ -435,7 +435,7 @@ GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 자기되돌리기 말 나타내기와 가린 말 나타내기의 차이는 무엇인가? 요즘 큰 말 모델은 왜 대부분 자기되돌리기인가?
 
 </div>
@@ -447,7 +447,7 @@ GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 맥락 안에서 배우기라는 생각을 밝혀라. 왜 놀라우며 한계는 무엇인가?
 
 </div>

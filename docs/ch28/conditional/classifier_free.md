@@ -295,7 +295,7 @@ ImageNet 모델은 $w \approx 2-4$으로 CFG를 쓴다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 조건 퍼짐 모델에서 가름개 이끌기와 가름개 없는 이끌기의 차이를 설명하라.
 
 </div>
@@ -307,7 +307,7 @@ ImageNet 모델은 $w \approx 2-4$으로 CFG를 쓴다.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 점수 함수에 베이즈 규칙을 써서 가름개 없는 이끌기 공식을 이끌어 내라.
 
 </div>
@@ -327,7 +327,7 @@ ImageNet 모델은 $w \approx 2-4$으로 CFG를 쓴다.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 이끌기 잣수 $w$이 표본 품질과 다양함에 미치는 영향은 무엇인가?
 
 </div>
@@ -339,7 +339,7 @@ ImageNet 모델은 $w \approx 2-4$으로 CFG를 쓴다.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 익히는 동안 가름개 없는 이끌기를 어떻게 짜는가? 조건을 마구잡이로 떨구는 것이 왜 꼭 필요한가?
 
 </div>

@@ -258,7 +258,7 @@ RNN 언어 모형은 성공을 거두었지만 근본적인 한계가 있다.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 언어 모형을 수학적으로 정의하고 RNN이 그것을 어떻게 구현하는지 설명하라.
 
 </div>
@@ -270,7 +270,7 @@ RNN 언어 모형은 성공을 거두었지만 근본적인 한계가 있다.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 언어 모형의 평가 지표로서 혼란도를 설명하라.
 
 </div>
@@ -282,7 +282,7 @@ RNN 언어 모형은 성공을 거두었지만 근본적인 한계가 있다.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 먼 거리 의존을 붙잡는 능력 면에서 RNN, LSTM, 트랜스포머 언어 모형을 견주어라.
 
 </div>
@@ -294,7 +294,7 @@ RNN 언어 모형은 성공을 거두었지만 근본적인 한계가 있다.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 글자 단위의 간단한 RNN 언어 모형을 PyTorch로 구현하라.
 
 </div>

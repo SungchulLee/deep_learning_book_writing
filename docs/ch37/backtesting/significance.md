@@ -234,7 +234,7 @@ p 값: 0.3452
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 어떤 꾀가 날마다의 자료 2해에서 샤프 비 1.2을 이루었다. 가장 짧은 되짚어 시험 길이 꼴로 이 열매가 95% 믿음에서 통계로 뜻있는지 가려라.
 
 </div>
@@ -253,7 +253,7 @@ p 값: 0.3452
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 서로 얽힌 꾀 갈래를 따질 때 본페로니 바로잡기가 왜 지나치게 빡빡한지 밝혀라. 어떤 다른 길이 더 알맞은가?
 
 </div>
@@ -268,7 +268,7 @@ p 값: 0.3452
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 밀림 신호가 다음 날 돌아옴을 미리 알리는 힘이 통계로 뜻있는지 가리는 뒤섞기 검정을 짜라.
 
 </div>

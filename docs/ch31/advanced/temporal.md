@@ -63,7 +63,7 @@ TGN은 주고받음마다 고쳐지는 마디마다의 **기억 조각**을 지�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 때 그래프란 무엇이며 고정 그래프와 어떻게 다른가?
 
 </div>
@@ -75,7 +75,7 @@ TGN은 주고받음마다 고쳐지는 마디마다의 **기억 조각**을 지�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 때 그래프 신경망의 두 방식, 곧 띄엄띄엄한 때와 이어진 때를 적어라.
 
 </div>
@@ -87,7 +87,7 @@ TGN은 주고받음마다 고쳐지는 마디마다의 **기억 조각**을 지�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 때 이웃 자리 개념과 그것이 고정 이웃 자리와 어떻게 다른지 밝혀라.
 
 </div>
@@ -99,7 +99,7 @@ TGN은 주고받음마다 고쳐지는 마디마다의 **기억 조각**을 지�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 때 그래프 신경망은 금융 거래 그물의 속임수 찾기에 어떻게 쓰이는가?
 
 </div>

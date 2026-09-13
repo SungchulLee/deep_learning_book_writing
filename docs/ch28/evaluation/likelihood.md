@@ -916,7 +916,7 @@ C (True Mixture)         2.1012                 High            High
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 로그 가능도가 퍼짐 모형을 따지는 데 쓸모 있는 자인 까닭을 밝혀라. 그 한계는 무엇인가?
 
 </div>
@@ -928,7 +928,7 @@ C (True Mixture)         2.1012                 High            High
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 만들개 모형을 따지는 자로서 FID, 인셉션 점수, 로그 가능도를 견주어라.
 
 </div>
@@ -946,7 +946,7 @@ C (True Mixture)         2.1012                 High            High
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 차원마다 비트(BPD) 잣대란 무엇인가? 퍼짐 모델에서 어떻게 셈하는가?
 
 </div>
@@ -958,7 +958,7 @@ C (True Mixture)         2.1012                 High            High
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 FID가 뛰어난 만들어 내는 모델이 왜 실제 쓰임새에서 실패할 수 있는가? 어떤 따지기를 더 해야 하는가?
 
 </div>

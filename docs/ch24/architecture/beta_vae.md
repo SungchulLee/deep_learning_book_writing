@@ -75,7 +75,7 @@ Loss: 17434.7734, Recon: 17430.4121, KL: 1.0901
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 MNIST에서 $\beta \in \{0.1, 1, 4, 10, 50\}$으로 베타 변분 자기 부호기를 익혀라. 저마다 앞선 5개 차원의 숨은 훑기를 만들고 어느 $\beta$이 가장 얽힘이 풀린 나타냄을 내는지 눈으로 가늠하라.
 
 </div>
@@ -87,7 +87,7 @@ MNIST에서 $\beta \in \{0.1, 1, 4, 10, 50\}$으로 베타 변분 자기 부호�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 $\beta = 1$일 때 베타 변분 자기 부호기의 손실이 자료의 로그 가능도에 대한 하한(증거 하한)과 같음을 밝혀라.
 
 </div>
@@ -99,7 +99,7 @@ $\beta = 1$일 때 베타 변분 자기 부호기의 손실이 자료의 로그 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 얽힘 풀기를 값으로 재는 잣대를 짜라. $\beta = 1$과 $\beta = 4$으로 익힌 모델에 그것을 셈해 $\beta$이 클수록 점수가 좋은지 확인하라.
 
 </div>

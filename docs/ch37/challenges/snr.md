@@ -168,7 +168,7 @@ Reversed mean: 0.000590
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 해마다 어림 돌아옴이 8%이고 해마다 흔들림이 25%인 꾀에 대해 하루 신호 대 잡음과, 99% 믿음에서 통계로 뜻있으려면 있어야 하는 가장 적은 거래 날수를 셈하여라.
 
 </div>
@@ -189,7 +189,7 @@ Reversed mean: 0.000590
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 무리의 엇갈림(무리 미리 보기 사이의 표준편차)이 신호 대 잡음이 낮은 자리에서 자리 크기를 잡는 데 쓸모 있는 신호인 까닭을 풀어라.
 
 </div>
@@ -204,7 +204,7 @@ Reversed mean: 0.000590
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 처음 자료의 가장자리 분포와 스스로 얽힘 짜임을 함께 지키는 가짜 돌아옴 열을 지어내는 덩이 부트스트랩 자료 늘리기 함수를 만들어라.
 
 </div>

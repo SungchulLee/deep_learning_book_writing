@@ -197,7 +197,7 @@ Saved: gradient_descent_numpy.png
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 운동량 기반 경사 하강법을 구현하라. $\beta = 0.9$로 두고 $v \leftarrow \beta v + g$, $\theta \leftarrow \theta - \alpha v$이다. 보통의 경사 하강법과 수렴 속도를 비교하라.
 
 </div>
@@ -228,7 +228,7 @@ Saved: gradient_descent_numpy.png
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 수학적으로는 같은 결과를 내는데도 정규 방정식을 풀 때 `np.linalg.inv(A) @ b`보다 `np.linalg.solve(A, b)`를 선호하는 이유를 설명하라.
 
 </div>
@@ -240,7 +240,7 @@ Saved: gradient_descent_numpy.png
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 배치 크기 1, 16, 64, 300(전체 배치)으로 미니배치 경사 하강법을 실행하라. 네 손실 곡선을 같은 축에 그리고 잡음과 수렴 사이의 절충을 논하라.
 
 </div>

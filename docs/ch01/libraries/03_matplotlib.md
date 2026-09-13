@@ -197,7 +197,7 @@ os.remove(path)                       # 예시이므로 지운다
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 학습 손실과 검증 손실이 둘 다 높은 채로 평평하다면 무엇을 의심해야 하는가?
 
 </div>
@@ -211,7 +211,7 @@ os.remove(path)                       # 예시이므로 지운다
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `imshow`로 그린 그림이 온통 검거나 하얗게 나온다. 무엇을 확인하겠는가?
 
 </div>
@@ -225,7 +225,7 @@ os.remove(path)                       # 예시이므로 지운다
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 그림을 100개 그리는 반복문에서 메모리가 계속 늘어난다. 까닭은?
 
 </div>

@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 랑주뱅 움직임 고침 규칙 $x_{t+1} = x_t - \epsilon \nabla_x E(x_t) + \sqrt{2\epsilon}\,\xi_t$이 주어질 때 $\epsilon \to 0$이고 $T\epsilon \to \infty$이면서 걸음 수 $T \to \infty$이면 $x_T$의 분포가 $p(x) \propto \exp(-E(x))$으로 모임을 보여라.
 
 </div>
@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 신경망 에너지 바탕 모델 익히기에서 되돌림 곳간의 몫을 밝혀라. 음의 표본 가운데 일부를 아무 잡음이 아니라 앞의 마르코프 사슬 몬테카를로 사슬에서 첫자리매김하는 것이 왜 이로운가?
 
 </div>
@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `ConvEnergyNetwork`을 모든 층에 스펙트럼 고르게 맞추기를 넣도록 고치고 익히기 손실에 에너지 규칙 세우기 항 $\lambda \cdot (E(x_+)^2 + E(x_-)^2)$을 더하라. 각 고침이 익히기 안정을 어떻게 낫게 하는지 밝혀라.
 
 </div>

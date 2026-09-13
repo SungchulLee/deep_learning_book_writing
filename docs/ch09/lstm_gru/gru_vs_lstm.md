@@ -411,7 +411,7 @@ class BidirectionalHybrid(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 다섯 가지 항목으로 GRU와 LSTM의 비교표를 만들어라.
 
 </div>
@@ -429,7 +429,7 @@ class BidirectionalHybrid(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 어떤 과제에서 GRU가 대체로 LSTM과 맞먹거나 앞서는가?
 
 </div>
@@ -441,7 +441,7 @@ class BidirectionalHybrid(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 '최소 문 달린 단위'가 무엇이며 GRU를 어떻게 더 간소화하는지 설명하라.
 
 </div>
@@ -453,7 +453,7 @@ class BidirectionalHybrid(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 감성 분석 과제에서 GRU와 LSTM을 실제로 견주어 정확도와 학습 시간을 보고하라.
 
 </div>

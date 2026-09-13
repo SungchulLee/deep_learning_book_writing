@@ -471,7 +471,7 @@ def train_transformer(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 트랜스포머 학습의 핵심 초매개변수와 흔한 값을 들어라.
 
 </div>
@@ -483,7 +483,7 @@ def train_transformer(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 트랜스포머 학습에서 학습률 예열이 왜 중요한지 설명하라.
 
 </div>
@@ -495,7 +495,7 @@ def train_transformer(
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 섞인 정밀도 학습과 그것이 트랜스포머에 주는 이점을 설명하라.
 
 </div>
@@ -507,7 +507,7 @@ def train_transformer(
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 기울기 모으기란 무엇이며 트랜스포머 학습에서 언제 필요한가?
 
 </div>

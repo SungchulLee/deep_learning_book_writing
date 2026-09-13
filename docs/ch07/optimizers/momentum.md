@@ -61,7 +61,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 모멘텀의 갱신 규칙을 유도하고 그것이 좁은 골짜기에서 수렴을 어떻게 빠르게 하는지 설명하라.
 
 </div>
@@ -73,7 +73,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 모멘텀 SGD의 실효 걸음 크기는 기본 SGD에 견주어 얼마인가?
 
 </div>
@@ -85,7 +85,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 고전적인 모멘텀과 네스테로프 모멘텀을 비교하라.
 
 </div>
@@ -97,7 +97,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 모멘텀 SGD를 바닥부터 구현하고 `torch.optim.SGD(momentum=0.9)`과 맞는지 확인하라.
 
 </div>

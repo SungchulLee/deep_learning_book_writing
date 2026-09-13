@@ -130,7 +130,7 @@ Parameters: 8,215,568
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 들임 텐서의 꼴이 `(batch=4, channels=256, height=20, width=20)`이고 `num_capsules=8`, `out_channels=32`일 때 `PrimaryCaps` 켜의 날임 꼴을 셈하여라.
 
 </div>
@@ -142,7 +142,7 @@ Parameters: 8,215,568
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 캡슐의 날임에 단순한 시그모이드나 소프트맥스 대신 쥐어짜기 함수를 쓰는 까닭을 밝혀라. 다른 것들이 지키지 못하는 어떤 결을 지키는가?
 
 </div>
@@ -154,7 +154,7 @@ Parameters: 8,215,568
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `CapsNet` 얼개를 잿빛 $28 \times 28$ 대신 크기 $32 \times 32$의 RGB 그림(CIFAR-10 따위)을 받도록 고쳐라. 켜의 차수와 풀개 날임 크기를 어떻게 바꿔야 하는지 밝혀라.
 
 </div>

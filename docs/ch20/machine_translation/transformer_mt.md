@@ -102,7 +102,7 @@ $$q(k) = (1 - \epsilon) \cdot \mathbf{1}[k = y] + \frac{\epsilon}{|\mathcal{V}|}
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 신경 기계 옮김의 부호기-풀개 얼개와 눈길의 몫을 밝혀라.
 
 </div>
@@ -114,7 +114,7 @@ $$q(k) = (1 - \epsilon) \cdot \mathbf{1}[k = y] + \frac{\epsilon}{|\mathcal{V}|}
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 변환기 얼개는 기계 옮김에서 되돌이 그물 바탕 차례에서 차례로 모델을 어떻게 낫게 하는가?
 
 </div>
@@ -126,7 +126,7 @@ $$q(k) = (1 - \epsilon) \cdot \mathbf{1}[k = y] + \frac{\epsilon}{|\mathcal{V}|}
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 BLEU 점수를 정의하여라. 기계 옮김 잣대로서 알려진 한계는 무엇인가?
 
 </div>
@@ -138,7 +138,7 @@ BLEU 점수를 정의하여라. 기계 옮김 잣대로서 알려진 한계는 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 자기되돌리기 기계 옮김의 드러남 치우침 문제란 무엇인가? 빔 찾기는 이를 어떻게 얼마간 다루는가?
 
 </div>

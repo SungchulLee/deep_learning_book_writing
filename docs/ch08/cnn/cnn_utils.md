@@ -261,7 +261,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `load_data` 함수는 모든 데이터셋을 평균 0.5, 표준편차 0.5로 정규화한다. 사용자가 정한 정규화 통계량을 받도록 고치고, 참된 데이터셋 통계량(예를 들어 MNIST의 평균 0.1307, 표준편차 0.3081)이 더 나은 결과를 주는 까닭을 설명하라.
 
 </div>
@@ -288,7 +288,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `train` 함수는 매개변수를 통해 최적화기를 암묵적으로 새로 만든다. 스케줄러를 최적화기와 함께 넘겨주어야 하는 까닭과, 함수 안에서 스케줄러를 새로 만들면 어떻게 될지 설명하라.
 
 </div>
@@ -302,7 +302,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 부류 이름을 저마다의 정확도로 잇는 사전을 돌려주는 `compute_per_class_accuracy` 함수를 유틸리티 모듈에 더하라. 혼동 행렬 방식으로 구현하라.
 
 </div>

@@ -608,7 +608,7 @@ def transductive_gzsl(model, train_loader, test_loader,
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 영 예시 학습을 정의하고 소수 예시 학습과 어떻게 다른지 설명하라.
 
 </div>
@@ -620,7 +620,7 @@ def transductive_gzsl(model, train_loader, test_loader,
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 영 예시 학습의 중심 쏠림 문제와 그 다루는 법을 설명하라.
 
 </div>
@@ -632,7 +632,7 @@ def transductive_gzsl(model, train_loader, test_loader,
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 영 예시 학습의 속성 기반 접근법과 묻힘 기반 접근법을 견주어라.
 
 </div>
@@ -644,7 +644,7 @@ def transductive_gzsl(model, train_loader, test_loader,
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 일반화된 영 예시 학습(GZSL)의 치우침 문제란 무엇인가?
 
 </div>

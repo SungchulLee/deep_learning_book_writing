@@ -308,7 +308,7 @@ KL 발산은 두 분포 사이의 기대 로그가능도비로, $p$을 $q$으로
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 KL 발산이 음이 아님을 증명하라. 즉 $D_{\text{KL}}(p\|q) \geq 0$이며 등호는 $p = q$일 때에만 성립함을 보여라.
 
 </div>
@@ -326,7 +326,7 @@ KL 발산이 음이 아님을 증명하라. 즉 $D_{\text{KL}}(p\|q) \geq 0$이�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 $p = \text{Bernoulli}(0.3)$과 $q = \text{Bernoulli}(0.7)$에 대해 $D_{\text{KL}}(p\|q)$과 $D_{\text{KL}}(q\|p)$을 계산하여 KL 발산이 대칭이 아님을 보여라.
 
 </div>
@@ -342,7 +342,7 @@ $p = \text{Bernoulli}(0.3)$과 $q = \text{Bernoulli}(0.7)$에 대해 $D_{\text{K
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 두 단변량 정규분포 $p = \mathcal{N}(\mu_1, \sigma_1^2)$과 $q = \mathcal{N}(\mu_2, \sigma_2^2)$ 사이의 KL 발산을 유도하라.
 
 </div>
@@ -358,7 +358,7 @@ $p = \text{Bernoulli}(0.3)$과 $q = \text{Bernoulli}(0.7)$에 대해 $D_{\text{K
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 변분 추론에서 순방향 KL($D_{\text{KL}}(p\|q)$)과 역방향 KL($D_{\text{KL}}(q\|p)$)의 차이를 설명하라. 어느 쪽이 최빈값을 좇고 어느 쪽이 평균을 좇는가?
 
 </div>

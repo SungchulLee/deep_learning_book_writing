@@ -257,7 +257,7 @@ $$\text{PCA Alignment} = \text{Corr}(\text{PC}_{\text{original}}, \text{PC}_{\te
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 자기 부호기의 숨은 공간이 만드는 앎 병목을 설명하고 그것이 나타냄 배우기에 왜 쓸모 있는지 밝혀라.
 
 </div>
@@ -269,7 +269,7 @@ $$\text{PCA Alignment} = \text{Corr}(\text{PC}_{\text{original}}, \text{PC}_{\te
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 자기 부호기 익히기에서 평균 제곱 어긋남 손실과 두 값 엇갈린 엔트로피 손실을 견주어라. 저마다 언제 알맞은가?
 
 </div>
@@ -281,7 +281,7 @@ $$\text{PCA Alignment} = \text{Corr}(\text{PC}_{\text{original}}, \text{PC}_{\te
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 주성분 분석과 선형 자기 부호기의 관계는 무엇인가? 가장 좋은 선형 자기 부호기가 주성분 아래 공간을 되찾음을 밝혀라.
 
 </div>
@@ -293,7 +293,7 @@ $$\text{PCA Alignment} = \text{Corr}(\text{PC}_{\text{original}}, \text{PC}_{\te
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 잡음 없애는 자기 부호기가 여느 자기 부호기에 견주어 배운 나타냄의 품질을 어떻게 높이는지 설명하라.
 
 </div>

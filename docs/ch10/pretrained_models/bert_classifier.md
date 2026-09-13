@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `vocab_size=10000`, `num_classes=5`로 `BERTClassifier`를 만들고 무작위 토큰 번호의 배치를 넣어 보아라. 출력의 꼴을 확인하고 전체 매개변수를 세어라.
 
 </div>
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 이를테면 모든 토큰 표현의 평균이 아니라 `[CLS]` 토큰을 분류기의 입력으로 고르는 까닭을 설명하라. 어떤 상황에서 평균 풀링이 더 나을 수 있는가?
 
 </div>
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 분류 머리를 더 표현력 있는 짜임으로 고쳐라. 셋째 선형 층을 더하고 ReLU 대신 GELU를 쓰며 마지막 사영 앞에 층 정규화를 넣어라. 본디 것과 매개변수 수를 견주어라.
 
 </div>

@@ -110,7 +110,7 @@ Jumping Knowledge Networks
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 보여 주기를 돌려 가라테 클럽 그래프에서 건너뛰는 앎의 세 방식(cat, max, lstm)을 견주어라. 어느 방식이 시험 정확도가 가장 높은가? `hidden_ch=16`이고 `num_layers=4`일 때 방식마다 매개변수 개수를 셈하라.
 
 </div>
@@ -122,7 +122,7 @@ Jumping Knowledge Networks
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 최대 모으기를 쓴 건너뛰는 앎 신경망이 층의 차례에 대해 불변인 까닭을 밝혀라. 최대 함수의 어떤 성질이 이를 가능하게 하며 이것이 늘 바람직한가?
 
 </div>
@@ -134,7 +134,7 @@ Jumping Knowledge Networks
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 층마다 내놓기에 배울 수 있는 낱값 무게 $\alpha_l$(소프트맥스로 고르게 맞춘다)을 곱하고 마지막 나타냄을 $h = \sum_l \alpha_l h^{(l)}$으로 하는 "무게 있는 합" 건너뛰는 앎 방식을 짜라. 이를 기존 방식과 견주어라.
 
 </div>

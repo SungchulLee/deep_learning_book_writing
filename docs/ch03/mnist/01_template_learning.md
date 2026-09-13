@@ -228,7 +228,7 @@ Test accuracy: 82.03%
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 2절에서 제곱 거리 규칙이 가중치 $\overline{x}_k$, 편향 $-\tfrac{1}{2}\lVert \overline{x}_k \rVert^2$인 선형 분류기와 같음을 보였다. 이 가중치와 편향을 `nn.Linear(784, 10)`에 직접 넣고, 그 층의 출력에 `argmax`를 취한 결과가 `predict`와 똑같은지 확인하라.
 
 </div>
@@ -256,7 +256,7 @@ Test accuracy: 82.03%
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 클래스별 정확도를 재어 어느 숫자가 가장 자주 틀리는지 찾아라. 그 숫자가 무엇과 혼동되는지 혼동 행렬로 확인하고, 템플릿 이미지를 보며 까닭을 설명하라.
 
 </div>
@@ -294,7 +294,7 @@ Test accuracy: 82.03%
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 평균 대신 클래스별 **중앙값** 이미지를 템플릿으로 삼아 보라. 정확도가 오르는가 내리는가? 왜 그런지 설명하라.
 
 </div>
@@ -318,7 +318,7 @@ Test accuracy: 82.03%
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 템플릿을 만들 때 클래스마다 학습 이미지를 $n$장만 쓰도록 바꾸고, $n = 1, 5, 10, 100, 1000$에 대해 정확도를 그려라. 이 곡선에서 무엇을 읽을 수 있는가?
 
 </div>

@@ -477,7 +477,7 @@ def load_adapter(adapter: nn.Module, path: str):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 LoRA의 고갱이 생각을 밝혀라. 모델의 좋음을 지키면서 익힐 매개변수를 어떻게 줄이는가?
 
 </div>
@@ -489,7 +489,7 @@ LoRA의 고갱이 생각을 밝혀라. 모델의 좋음을 지키면서 익힐 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 빠르기, 일의 성능에서 맞바꿈은 무엇인가?
 
 </div>
@@ -507,7 +507,7 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 매개변수 700억 모델을 온전히 곱게 다듬는 것이 대부분의 조직에 왜 실전에 맞지 않는가? 기억 공간 요구량을 수로 나타내어라.
 
 </div>
@@ -519,7 +519,7 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 양자화를 헤아린 LoRA(QLoRA)란 무엇이며 큰 말 모델 곱게 다듬기를 누구나 하게 만드는 데 왜 뜻깊은가?
 
 </div>

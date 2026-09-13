@@ -155,7 +155,7 @@ Saved: minimal_torch.png
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 매개변수 갱신 단계에 `torch.optim.SGD`를 쓰도록 최소 루프를 다시 작성하라. 어떤 줄이 바뀌고 어떤 줄이 그대로인가?
 
 </div>
@@ -186,7 +186,7 @@ Saved: minimal_torch.png
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 `w`의 초기화를 전부 0, 전부 1, 무작위 값으로 바꾸어 실험하라. 초기화가 최종 수렴된 매개변수에 영향을 주는가? 그 이유는 무엇인가?
 
 </div>
@@ -198,7 +198,7 @@ Saved: minimal_torch.png
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 학습률 예열을 추가하라. 처음 20 에폭 동안 `lr=0.001`로 시작한 뒤 `lr=0.01`로 바꾼다. 처음부터 끝까지 `lr=0.01`을 쓴 경우와 손실 곡선을 비교하라.
 
 </div>

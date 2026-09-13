@@ -433,7 +433,7 @@ class DeepHedgingNetwork(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 ReLU 신경망을 위한 He 초기화 $W \sim \mathcal{N}(0, 2/n_{\text{in}})$을 유도하라.
 
 </div>
@@ -445,7 +445,7 @@ ReLU 신경망을 위한 He 초기화 $W \sim \mathcal{N}(0, 2/n_{\text{in}})$�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 Xavier 초기화가 깊은 ReLU 신경망에서 실패하는 이유는 무엇인가?
 
 </div>
@@ -457,7 +457,7 @@ Xavier 초기화가 깊은 ReLU 신경망에서 실패하는 이유는 무엇인
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `fan_in`과 `fan_out` 두 방식으로 He 초기화를 구현하고 각각을 언제 쓸지 설명하라.
 
 </div>
@@ -475,7 +475,7 @@ Xavier 초기화가 깊은 ReLU 신경망에서 실패하는 이유는 무엇인
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 20층 ReLU 신경망을 무작위 균등, Xavier, He 초기화로 각각 학습시켜 비교하라. 층별 활성화 통계량을 그려라.
 
 </div>

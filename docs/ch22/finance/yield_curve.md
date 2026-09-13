@@ -229,7 +229,7 @@ $$\text{Ratio} = \frac{\lambda_1}{\lambda_1 + \lambda_2 + \lambda_3}$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 주성분 분석으로 수익률 곡선의 움직임을 어떻게 쪼개는지 설명하라. 앞선 주성분 셋은 흔히 무엇을 나타내는가?
 
 </div>
@@ -241,7 +241,7 @@ $$\text{Ratio} = \frac{\lambda_1}{\lambda_1 + \lambda_2 + \lambda_3}$$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 계량 금융에서 차원 줄이기가 왜 쓸모 있는가? 수익률 곡선 살피기 말고 다른 보기를 들어라.
 
 </div>
@@ -253,7 +253,7 @@ $$\text{Ratio} = \frac{\lambda_1}{\lambda_1 + \lambda_2 + \lambda_3}$$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 만기별 지난 수익률 행렬이 주어질 때 간단한 수익률 곡선 주성분 쪼개기를 짜라.
 
 </div>
@@ -283,7 +283,7 @@ $$\text{Ratio} = \frac{\lambda_1}{\lambda_1 + \lambda_2 + \lambda_3}$$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 수익률 곡선의 주성분 쪼개기를 써서 채권 자산 꾸러미의 울타리 치기 전략을 어떻게 세우겠는가?
 
 </div>

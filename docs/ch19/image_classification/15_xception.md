@@ -63,7 +63,7 @@ Xception은 얼개를 들머리 흐름, 가운데 흐름, 날머리 흐름으로
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 들임 채널 256개, 날임 채널 256개일 때 여느 $3 \times 3$ 합성곱과 깊이별 분리 합성곱의 매개변수 수를 견주어라.
 
 </div>
@@ -75,7 +75,7 @@ Xception은 얼개를 들머리 흐름, 가운데 흐름, 날머리 흐름으로
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 인셉션 방식의 갈라지는 누비기와 보통의 깊이별로 갈라지는 누비기의 차이를 설명하여라.
 
 </div>
@@ -87,7 +87,7 @@ Xception은 얼개를 들머리 흐름, 가운데 흐름, 날머리 흐름으로
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 SeparableConv2d 덩이에 잔차 이음을 더하고, 지름길에 내리쬐기가 필요한 때를 논하여라.
 
 </div>

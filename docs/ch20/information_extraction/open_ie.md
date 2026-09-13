@@ -90,7 +90,7 @@ prompt = (
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 닫힌 앎 뽑기와 열린 앎 뽑기의 차이를 밝혀라.
 
 </div>
@@ -102,7 +102,7 @@ prompt = (
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 같은 것 가리키기 풀기란 무엇이며 뒤따르는 자연어 일에 왜 중요한가?
 
 </div>
@@ -114,7 +114,7 @@ prompt = (
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 사건 뽑기 체계의 핵심 조각을 설명하여라. 사건 뽑기가 관계 뽑기보다 어려운 까닭은 무엇인가?
 
 </div>
@@ -126,7 +126,7 @@ prompt = (
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 달림 뜯어 읽기를 써서 단순한 규칙 바탕 열린 앎 뽑기 체계를 꾸며라. 그 한계는 무엇인가?
 
 </div>

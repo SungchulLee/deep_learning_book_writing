@@ -74,7 +74,7 @@ Reconstruction shape: torch.Size([32, 784])
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 MNIST에 조건부 변분 자기 부호기를 익히고 숫자마다(0~9) 표본 10개를 만들어라. 가로줄마다 한 숫자 갈래가 되도록 10x10 격자로 보여라. 만든 표본이 목표 갈래와 맞는가?
 
 </div>
@@ -96,7 +96,7 @@ MNIST에 조건부 변분 자기 부호기를 익히고 숫자마다(0~9) 표본
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `interpolate` 방법으로 갈래 이름표 "3"과 "8" 사이를 사이 끼움하라. 옮아가는 동안 어떤 중간 숫자 모양이 나타나는가?
 
 </div>
@@ -108,7 +108,7 @@ MNIST에 조건부 변분 자기 부호기를 익히고 숫자마다(0~9) 표본
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 풀개만 조건 짓도록 조건부 변분 자기 부호기를 고쳐라(부호기에서 이름표 잇기를 없앤다). 숨은 공간의 배치와 표본 품질을 여느 조건부 변분 자기 부호기와 견주어라.
 
 </div>

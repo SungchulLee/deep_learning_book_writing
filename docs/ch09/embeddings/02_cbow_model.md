@@ -137,7 +137,7 @@ CBOW 구조는 우아하리만치 간단하다. 문맥 낱말을 저마다 임�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 문장 "the quick brown fox jumps over the lazy dog"과 창 크기 2가 주어졌을 때 CBOW의 (문맥, 표적) 학습 쌍을 모두 열거하라. 쌍이 몇 개 나오는가?
 
 </div>
@@ -163,7 +163,7 @@ CBOW 구조는 우아하리만치 간단하다. 문맥 낱말을 저마다 임�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 CBOW가 문맥 임베딩을 이어 붙이지 않고 평균 풀링을 쓰는 까닭을 설명하라. 대신 이어 붙이면 구조가 어떻게 달라지는가?
 
 </div>
@@ -175,7 +175,7 @@ CBOW가 문맥 임베딩을 이어 붙이지 않고 평균 풀링을 쓰는 까�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 CBOW 모델이 단순 평균 대신 가중 평균을 쓰도록 고쳐, 표적에 가까운 낱말에 더 큰 가중치를 주어라. 가운데에서 거리가 $d$인 문맥 낱말의 가중치를 $1/d$으로 하는 거리 기반 가중 방식을 구현하라. 모델을 학습시키고 손실 곡선을 표준 CBOW와 견주어라.
 
 </div>

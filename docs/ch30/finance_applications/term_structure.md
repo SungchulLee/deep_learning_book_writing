@@ -62,7 +62,7 @@ $$\mathcal{L} = \sum_{t} \sum_{\tau} (y(\tau, t) - \hat{y}(\tau, t))^2$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 넬슨-시겔 기간 얼개 모델을 신경 상미분 방정식으로 적고 그 매개변수를 수준, 기울기, 굽음 요인으로 옮겨라.
 
 </div>
@@ -74,7 +74,7 @@ $$\mathcal{L} = \sum_{t} \sum_{\tau} (y(\tau, t) - \hat{y}(\tau, t))^2$$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 히스-재로-모턴 틀 아래에서 신경 상미분 방정식 기간 얼개 모델의 차익 없음 떠돎 제약을 이끌어 내라.
 
 </div>
@@ -86,7 +86,7 @@ $$\mathcal{L} = \sum_{t} \sum_{\tau} (y(\tau, t) - \hat{y}(\tau, t))^2$$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이자율 움직임의 국면 바뀜을 담는 데에서 신경 상미분 방정식, 바시체크, CIR 기간 얼개 모델을 견주어라.
 
 </div>
@@ -98,7 +98,7 @@ $$\mathcal{L} = \sum_{t} \sum_{\tau} (y(\tau, t) - \hat{y}(\tau, t))^2$$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 신경 상미분 방정식 기간 얼개 모델에서 이자율을 양수로 지키는 법을 적고 방식마다의 맞바꿈을 따져라.
 
 </div>

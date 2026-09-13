@@ -119,7 +119,7 @@ Parameters: 989,680
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `in_channels=64`, `out_channels=128`, `ratio=2`, `dw_size=3`일 때 `GhostModule`이 여느 엮음에 견주어 매개변수를 얼마나 줄이는지 셈하여라.
 
 </div>
@@ -131,7 +131,7 @@ Parameters: 989,680
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 값싼 셈을 갈래마다의 단순한 선형 바꿈(잣대 곱하기 따위)이 아니라 깊이별 엮음으로 짜는 까닭은 무엇인가?
 
 </div>
@@ -143,7 +143,7 @@ Parameters: 989,680
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `GhostModule`을 값싼 셈의 도막 수를 마음대로 둘 수 있게 고쳐(그림자 결에서 또 그림자 결을 만드는 따위) 여러 켜의 그림자 층을 이루어라.
 
 </div>

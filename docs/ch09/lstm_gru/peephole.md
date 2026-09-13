@@ -245,7 +245,7 @@ $$\frac{\partial f_t}{\partial c_{t-1}} = \sigma'(\cdot) \cdot \text{diag}(w_f)$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 엿보기 연결이 무엇이며 표준 LSTM의 식을 어떻게 바꾸는지 설명하라.
 
 </div>
@@ -257,7 +257,7 @@ $$\frac{\partial f_t}{\partial c_{t-1}} = \sigma'(\cdot) \cdot \text{diag}(w_f)$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 엿보기 연결이 가장 큰 이득을 주는 때는 언제인가?
 
 </div>
@@ -269,7 +269,7 @@ $$\frac{\partial f_t}{\partial c_{t-1}} = \sigma'(\cdot) \cdot \text{diag}(w_f)$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 엿보기 연결을 더하면 매개변수가 얼마나 늘어나는가?
 
 </div>
@@ -281,7 +281,7 @@ $$\frac{\partial f_t}{\partial c_{t-1}} = \sigma'(\cdot) \cdot \text{diag}(w_f)$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 엿보기 연결이 있는 LSTM 세포를 PyTorch로 구현하라.
 
 </div>

@@ -59,7 +59,7 @@ Parameters: 1,281,648
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 Fused-MBConv이 매개변수가 더 많은데도 앞쪽 층에서 MBConv보다 빠른 까닭을 설명하여라.
 
 </div>
@@ -71,7 +71,7 @@ Fused-MBConv이 매개변수가 더 많은데도 앞쪽 층에서 MBConv보다 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 차츰 배우기 일정과 그것이 벌주기에 미치는 영향을 설명하여라.
 
 </div>
@@ -83,7 +83,7 @@ Fused-MBConv이 매개변수가 더 많은데도 앞쪽 층에서 MBConv보다 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 세대가 지날수록 그림 크기를 키우는 단순한 차츰 배우기 일정 짜개를 짜라.
 
 </div>

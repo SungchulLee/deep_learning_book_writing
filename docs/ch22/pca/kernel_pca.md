@@ -387,7 +387,7 @@ vol_factors = kpca.fit_transform(vol_surfaces)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 쏜 자료의 흩어짐을 가장 크게 해서 첫 주성분을 이끌어 내어라.
 
 </div>
@@ -399,7 +399,7 @@ vol_factors = kpca.fit_transform(vol_surfaces)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 주성분 분석과 특잇값 쪼개기의 관계를 설명하라. 특잇값 쪼개기로 주성분 분석을 어떻게 효율 좋게 셈하는가?
 
 </div>
@@ -411,7 +411,7 @@ vol_factors = kpca.fit_transform(vol_surfaces)
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 알맹이 주성분 분석은 언제 선형 주성분 분석보다 나은가? 보기를 들어라.
 
 </div>
@@ -423,7 +423,7 @@ vol_factors = kpca.fit_transform(vol_surfaces)
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 남길 주성분의 수를 어떻게 고르는가? 설명하는 흩어짐을 쓰는 방식을 적어라.
 
 </div>

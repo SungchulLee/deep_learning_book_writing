@@ -132,7 +132,7 @@ Parameters: 7,275
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 낱말 곳간 크기 $V = 10{,}000$, 묻힘 차원 $d = 128$, 맥락 크기 $n = 4$, 숨은 차원 $h = 256$인 앞먹임 말 모델의 매개변수 전체 개수를 셈하여라.
 
 </div>
@@ -153,7 +153,7 @@ Parameters: 7,275
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 앞먹임 말 모델이 예로부터의 n-그램 모델과 달리 본 적 없는 n-그램에 드러난 부드럽게 하기를 하지 않아도 되는 까닭을 밝혀라. 이어진 묻힘 공간의 어떤 성질이 이를 가능하게 하는가?
 
 </div>
@@ -171,7 +171,7 @@ Parameters: 7,275
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `FeedforwardLanguageModel` 클래스에 떨구기 벌주기를 더하여라. 묻힘을 이어 붙인 뒤와 숨은 층 뒤에 떨구기를 쓴다. 떨구기 비율 0.1, 0.3, 0.5로 시험하고 말 모델에 떨구기가 왜 중요한지 밝혀라.
 
 </div>

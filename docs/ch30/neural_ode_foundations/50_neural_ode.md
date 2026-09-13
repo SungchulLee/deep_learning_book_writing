@@ -98,7 +98,7 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 기본 첫자리매김으로 `ODEFunc`의 배울 수 있는 매개변수의 온 개수를 셈하라. 무게와 치우침을 모두 담아 층마다 나누어 적어라.
 
 </div>
@@ -110,7 +110,7 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 입력이 기대하는 모양과 자료형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
 
 </div>
@@ -122,7 +122,7 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이 구현에서 생길 수 있는 실패 양상 두 가지를 서술하고, 각각을 어떻게 진단하고 고칠지 설명하라.
 
 </div>
@@ -134,7 +134,7 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 층이나 덩이의 개수를 정할 수 있도록 `ODEFunc`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 달라지는 얼개를 만들어라. 층 2개, 4개, 8개로 시험하라.
 
 </div>

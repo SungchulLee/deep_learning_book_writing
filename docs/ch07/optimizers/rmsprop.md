@@ -73,7 +73,7 @@ RMSprop은 Adam 이전의 기본 적응형 최적화기였다. Adam이 이따금
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 RMSprop의 갱신 규칙을 유도하고 학습률을 어떻게 맞추는지 설명하라.
 
 </div>
@@ -85,7 +85,7 @@ RMSprop의 갱신 규칙을 유도하고 학습률을 어떻게 맞추는지 설
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 RMSprop이 기울기 제곱의 지수 가중 이동 평균임을 보여라.
 
 </div>
@@ -97,7 +97,7 @@ RMSprop이 기울기 제곱의 지수 가중 이동 평균임을 보여라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 RMSprop이 Adagrad를 개선하려고 나온 이유를 설명하라.
 
 </div>
@@ -109,7 +109,7 @@ RMSprop이 Adagrad를 개선하려고 나온 이유를 설명하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 RMSprop과 Adam을 비교하라. Adam은 RMSprop에 무엇을 더하는가?
 
 </div>

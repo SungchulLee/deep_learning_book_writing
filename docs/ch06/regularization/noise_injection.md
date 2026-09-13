@@ -534,7 +534,7 @@ def train_with_noise_injection(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 잡음 주입의 세 가지 종류인 입력 잡음, 가중치 잡음, 기울기 잡음을 설명하라.
 
 </div>
@@ -546,7 +546,7 @@ def train_with_noise_injection(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 가중치에 정규 잡음을 더하는 것이 L2 정칙화와 근사적으로 동등함을 보여라.
 
 </div>
@@ -558,7 +558,7 @@ def train_with_noise_injection(
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 Neelakantan 등(2015)의 일정 $\sigma_t^2 = \eta/(1+t)^\gamma$을 쓰는 기울기 잡음 주입을 구현하라.
 
 </div>
@@ -578,7 +578,7 @@ Neelakantan 등(2015)의 일정 $\sigma_t^2 = \eta/(1+t)^\gamma$을 쓰는 기�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 드롭아웃이나 가중치 감쇠에 견주어 잡음 주입이 가장 이로운 때는 언제인가?
 
 </div>

@@ -37,7 +37,7 @@ Negative Sampling - Advanced optimization technique for large vocabularies
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 어휘 크기가 $V = 50{,}000$일 때 전체 소프트맥스와 음성 표본 $k = 10$개를 쓰는 음성 표본 추출의 학습 단계당 연산 수를 견주어라. 몇 배 빨라지는지 나타내어라.
 
 </div>
@@ -49,7 +49,7 @@ Negative Sampling - Advanced optimization technique for large vocabularies
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 잡음 분포가 날 빈도가 아니라 유니그램 빈도의 3/4 거듭제곱을 쓰는 까닭을 설명하라. 균등 분포, 유니그램, 3/4 거듭제곱일 때 각각 어떻게 되는지 살펴보라.
 
 </div>
@@ -61,7 +61,7 @@ Negative Sampling - Advanced optimization technique for large vocabularies
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 음성 표본 추출 손실 함수를 PyTorch로 구현하라. 가운데 임베딩과 양성 문맥 임베딩, 음성 문맥 임베딩이 주어졌을 때 이진 교차 엔트로피 손실을 계산하고, 그것이 임베딩을 갱신하는 기울기를 내놓는지 확인하라.
 
 </div>

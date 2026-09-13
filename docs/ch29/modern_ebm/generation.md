@@ -266,7 +266,7 @@ $$\text{Likelihood} = \frac{1}{N_{\text{gen}}}\sum_n \log p(x_n^{\text{gen}})$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 $\xi_t \sim \mathcal{N}(0, I)$인 랑주뱅 움직임 $x^{(t+1)} = x^{(t)} - \frac{\eta}{2}\nabla_x E(x^{(t)}) + \sqrt{\eta}\,\xi_t$이 $\eta \to 0$의 끝에서 $p(x) \propto \exp(-E(x))$에 대해 자세한 균형을 만족함을 보여라.
 
 </div>
@@ -282,7 +282,7 @@ $\xi_t \sim \mathcal{N}(0, I)$인 랑주뱅 움직임 $x^{(t+1)} = x^{(t)} - \fr
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 (가) 하루 수익률의 크기가 20%을 넘지 않고 (나) 만든 수익률 꾸러미의 연 환산 변동성이 목표인 15%이 되도록 하는 제약 에너지 함수를 짜라. 온전한 에너지를 적어라.
 
 </div>
@@ -298,7 +298,7 @@ $\xi_t \sim \mathcal{N}(0, I)$인 랑주뱅 움직임 $x^{(t+1)} = x^{(t)} - \fr
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 봉우리 둘인 에너지 풍경 $E(x) = \frac{1}{4}(x^2 - 4)^2$에서 랑주뱅 움직임과 해밀턴 몬테카를로의 섞임 시간을 견주어라. 해밀턴 몬테카를로가 에너지 담을 넘는 데 왜 더 효율 좋은지 밝혀라.
 
 </div>
@@ -310,7 +310,7 @@ $\xi_t \sim \mathcal{N}(0, I)$인 랑주뱅 움직임 $x^{(t+1)} = x^{(t)} - \fr
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 2차원 에너지 함수에 온도 $T \in \{0.5, 1.0, 2.0, 5.0\}$의 나란한 온도 바꾸기를 짜라. 바꿈을 받아들이는 잣대를 적고 바꿈 비율이 온도 간격에 어떻게 매이는지 살펴라.
 
 </div>

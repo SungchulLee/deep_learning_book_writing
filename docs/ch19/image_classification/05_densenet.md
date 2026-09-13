@@ -116,7 +116,7 @@ DenseNet은 층마다 손실 함수의 기울기와 앞선 모든 층의 특징�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 층이 6개, 자람 비율이 $k = 32$, 처음 채널이 64인 촘촘 덩이에서 내놓는 채널 수와 촘촘 층의 매개변수 전체 개수를 셈하여라(치우침은 헤아리지 않는다).
 
 </div>
@@ -136,7 +136,7 @@ DenseNet은 층마다 손실 함수의 기울기와 앞선 모든 층의 특징�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 DenseLayer마다 있는 병목($1 \times 1$ 합성곱)이 무엇을 하는지 밝혀라. 그것이 없으면 메모리 씀씀이는 어떻게 되겠는가?
 
 </div>
@@ -150,7 +150,7 @@ DenseLayer마다 있는 병목($1 \times 1$ 합성곱)이 무엇을 하는지 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 성장률 $k = 12$, 블록 구성 $[6, 12, 24, 16]$, 압축 $\theta = 0.5$인 CIFAR-10용 DenseNet 갈래를 짜라. 매개변수 수를 밝혀라.
 
 </div>

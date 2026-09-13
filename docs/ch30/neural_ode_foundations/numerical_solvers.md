@@ -66,7 +66,7 @@ $f_\theta$의 때 잣수가 크게 다르면(뻣뻣한 상미분 방정식) 드�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 $dy/dt = -y$, $y(0) = 1$에 오일러, 호인, RK4 풀개를 짜라. 걸음 크기 $h \in \{0.5, 0.1, 0.01\}$에서 $t = 1$의 모임 차수를 확인하라.
 
 </div>
@@ -78,7 +78,7 @@ $dy/dt = -y$, $y(0) = 1$에 오일러, 호인, RK4 풀개를 짜라. 걸음 크�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 $dy/dt = \lambda y$에서 앞으로 오일러의 안정 자리를 이끌어 내고 신경 상미분 방정식에 지니는 뜻을 밝혀라.
 
 </div>
@@ -90,7 +90,7 @@ $dy/dt = \lambda y$에서 앞으로 오일러의 안정 자리를 이끌어 내�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 어떤 방법의 그 자리 자름 어긋남이 $O(h^{p+1})$이면 온 어긋남이 $O(h^p)$임을 밝혀라.
 
 </div>
@@ -102,7 +102,7 @@ $dy/dt = \lambda y$에서 앞으로 오일러의 안정 자리를 이끌어 내�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 신경 상미분 방정식 익히기에서 붙박이 걸음 풀개와 맞추어 가는 걸음 풀개의 맞바꿈을 따져라.
 
 </div>

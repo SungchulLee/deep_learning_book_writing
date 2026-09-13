@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `vocab_size=5000`, `d_model=512`, `num_heads=8`, `num_layers=6`, `d_ff=2048`으로 `TransformerEncoder`를 세워라. 채움이 있는 배치와 그에 맞는 채움 가림을 넣어라. 출력의 꼴이 올바른지 확인하라.
 
 </div>
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 파이토치 `nn.MultiheadAttention`의 `key_padding_mask`와 `attn_mask`의 차이를 설명하라. 각각 언제 쓰며 함께 쓸 수 있는가?
 
 </div>
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 학습되는 위치 인코딩을 사인파 위치 인코딩으로 바꾸고 움직임을 견주어라. 사인파 판을 구현하고 각 방식이 언제 더 나은지 논하라.
 
 </div>

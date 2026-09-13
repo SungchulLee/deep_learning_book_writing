@@ -85,7 +85,7 @@ Final Loss: 0.070942
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `MSELoss`를 `L1Loss`로 바꾸고 같은 데이터로 모델을 다시 학습시켜라. 최종 손실값을 비교하고 예측을 그려라. 어느 손실 함수가 더 매끄러운 곡선을 내는가?
 
 </div>
@@ -107,7 +107,7 @@ Final Loss: 0.070942
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 출력층에 시그모이드 활성화를 추가하고 같은 사인 데이터로 학습시켜라. 모델이 데이터를 제대로 적합하지 못하는 이유를 설명하라.
 
 </div>
@@ -119,7 +119,7 @@ Final Loss: 0.070942
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 구간 $[-5, 5]$에서 $y = x^2$을 예측하도록 신경망을 수정하라. 데이터 점 200개를 쓰고 표준편차 2인 가우스 잡음을 더하라. 500 에폭 동안 학습시키고 따로 떼어 둔 시험 집합에서 $R^2$ 점수를 평가하라.
 
 </div>

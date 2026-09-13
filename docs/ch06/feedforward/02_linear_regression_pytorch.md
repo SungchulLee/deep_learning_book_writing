@@ -90,7 +90,7 @@ PyTorch 텐서는 `requires_grad` 깃발을 통해 자동 미분을 지원하지
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 결과를 다시 NumPy로 바꾸어 정확성을 확인하라. 학습 후 `w`와 `b`를 CPU로 옮기고 NumPy 배열로 바꾼 뒤 이미 아는 참값과 비교하라. 각 매개변수의 백분율 오차를 계산하라.
 
 </div>
@@ -110,7 +110,7 @@ PyTorch 텐서는 `requires_grad` 깃발을 통해 자동 미분을 지원하지
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 한 연산에 들어가는 모든 텐서가 같은 장치에 있어야 하는 이유를 설명하라. CPU 텐서와 GPU 텐서를 더하려 하면 PyTorch는 어떤 오류 메시지를 내는가?
 
 </div>
@@ -122,7 +122,7 @@ PyTorch 텐서는 `requires_grad` 깃발을 통해 자동 미분을 지원하지
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `n_samples=10000`으로 1000 에폭의 시간을 재어 CPU와 (가능하다면) GPU에서 학습 루프를 견주어 보라. 실제 소요 시간은 `time.time()`으로 측정하라. 데이터 크기가 얼마부터 GPU 가속이 값어치를 하는가?
 
 </div>

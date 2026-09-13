@@ -104,7 +104,7 @@ Final Accuracy: 100.00%
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `torch.save(model.state_dict(), 'model.pth')`로 학습된 모델을 저장한 뒤 새 `SimpleNet` 인스턴스에 불러오라. 불러온 모델이 동일한 예측을 내는지 확인하라.
 
 </div>
@@ -125,7 +125,7 @@ Final Accuracy: 100.00%
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 Adam을 SGD(학습률 0.1, 운동량 0.9)로 바꿔라. 1000 에폭에 걸친 두 최적화기의 손실 곡선을 그려 수렴 속도를 비교하라.
 
 </div>
@@ -160,7 +160,7 @@ Adam을 SGD(학습률 0.1, 운동량 0.9)로 바꿔라. 1000 에폭에 걸친 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 모델의 전체 매개변수 개수와 각 매개변수 텐서의 모양을 출력하라. 입력 2, 은닉 16, 출력 1인 신경망의 매개변수 개수가 왜 그 값이 되는지 손으로 계산하라.
 
 </div>

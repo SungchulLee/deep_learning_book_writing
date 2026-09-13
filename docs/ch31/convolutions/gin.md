@@ -64,7 +64,7 @@ $$\mathbf{h}_G = \text{CONCAT}\left(\text{READOUT}(\{\mathbf{h}_v^{(l)}\}_{v \in
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
 
 </div>
@@ -76,7 +76,7 @@ $$\mathbf{h}_G = \text{CONCAT}\left(\text{READOUT}(\{\mathbf{h}_v^{(l)}\}_{v \in
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
 
 </div>
@@ -88,7 +88,7 @@ $$\mathbf{h}_G = \text{CONCAT}\left(\text{READOUT}(\{\mathbf{h}_v^{(l)}\}_{v \in
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
 
 </div>
@@ -100,7 +100,7 @@ $$\mathbf{h}_G = \text{CONCAT}\left(\text{READOUT}(\{\mathbf{h}_v^{(l)}\}_{v \in
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
 
 </div>

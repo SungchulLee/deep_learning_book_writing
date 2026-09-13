@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 첫 누비기 층에서 배운 거르개 32개를 그려 보아라. 어떤 갈래의 특징(모서리, 방울, 결)을 알아내는가?
 
 </div>
@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 누비기 자기 부호기와 앞 절의 온전히 이어진 자기 부호기의 매개변수 수와 시험 다시 세우기 평균 제곱 어긋남을 견주어라. 어느 쪽이 매개변수를 더 아끼는가?
 
 </div>
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `nn.Upsample` 층을 `nn.ConvTranspose2d`(배울 수 있는 올림 표집)으로 갈음하라. 다시 세우기 품질을 견주고 온전한 해상도에서 다시 세운 것을 살펴 바둑판 무늬 헛것이 있는지 확인하라.
 
 </div>

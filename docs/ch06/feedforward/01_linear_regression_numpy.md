@@ -89,7 +89,7 @@ Final loss: 0.2601
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 학습률 0.001, 0.01, 0.1로 실험하라. 각각 100 에폭 동안 학습시키고 손실 곡선을 같은 그래프에 그려라. 어느 학습률에서 손실이 발산하는가?
 
 </div>
@@ -124,7 +124,7 @@ Final loss: 0.2601
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 MSE 손실에 대한 경사 $\frac{\partial L}{\partial w}$을 제일원리에서 유도하라. 유도의 각 단계를 보여라.
 
 </div>
@@ -148,7 +148,7 @@ MSE 손실에 대한 경사 $\frac{\partial L}{\partial w}$을 제일원리에�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 입력 특징이 3개인 다변량 선형 회귀를 수행하도록 코드를 확장하라. $y = 2x_1 + 3x_2 - x_3 + 5 + \text{noise}$으로 데이터를 생성하고 경사 하강법이 참 계수를 되찾는지 확인하라.
 
 </div>

@@ -153,7 +153,7 @@ GPU 가속은 텐서 연산, 특히 신경망 계산을 지배하는 행렬 곱�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 뒤, 원래 배열을 수정하여 텐서도 함께 바뀌는지 확인하라.
 
 </div>
@@ -172,7 +172,7 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `torch.as_tensor()`가 언제 데이터를 복사하고 언제 메모리를 공유하는지 설명하라. 어떤 조건에서 복사가 일어나는가?
 
 </div>
@@ -185,7 +185,7 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `requires_grad=True`인 텐서에 `.numpy()`를 호출하면 오류가 나는 이유는 무엇인가? 올바른 변환 방법을 보여라.
 
 </div>

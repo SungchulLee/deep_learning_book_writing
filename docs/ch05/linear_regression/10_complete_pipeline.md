@@ -637,7 +637,7 @@ RegressionModel(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 선형 모델을 2층 MLP로 바꾸도록 `Config` 클래스에 `hidden_sizes=[64, 32]` 설정을 추가하라. California Housing 데이터셋에서 선형 모델과 MLP의 시험 $R^2$을 비교하라.
 
 </div>
@@ -656,7 +656,7 @@ RegressionModel(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `ReduceLROnPlateau`의 목적을 설명하고, 고정된 학습률보다 크게 이득이 되는 상황을 서술하라.
 
 </div>
@@ -668,7 +668,7 @@ RegressionModel(
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 4개의 겹으로 학습하고 남은 겹으로 검증하는 과정을 5개 겹 전체에 대해 돌리도록 파이프라인을 수정하여 5겹 교차 검증을 구현하라. 겹들에 걸친 시험 $R^2$의 평균과 표준편차를 보고하라.
 
 </div>

@@ -61,7 +61,7 @@ $$z_t = \text{RNNCell}(z_{t^-}, x_t)$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 사전 움직임이 $dz/dt = f_\theta(z, t)$이고 어림 사후 분포를 때를 거꾸로 도는 상미분 방정식 부호기로 매개변수화한 숨은 상미분 방정식 모델의 증거 아래 한계(ELBO)를 이끌어 내라.
 
 </div>
@@ -73,7 +73,7 @@ $$z_t = \text{RNNCell}(z_{t^-}, x_t)$$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 숨은 상미분 방정식이 값이 빠진 고르지 않은 때 차례를 어떻게 자연스럽게 다루는지 밝혀라. 되돌이 신경망 방식과 견주어라.
 
 </div>
@@ -85,7 +85,7 @@ $$z_t = \text{RNNCell}(z_{t^-}, x_t)$$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 고르게 놓인 관측 $T$개의 때 차례에서 숨은 상미분 방정식과 여느 변분 자기 부호기를 익히는 셈 비용을 견주어라.
 
 </div>
@@ -97,7 +97,7 @@ $$z_t = \text{RNNCell}(z_{t^-}, x_t)$$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 상미분 방정식으로 적는 것이 물리 계를 나타내는 데 주는 귀납 치우침을 따져라. 이것이 어떤 위상 한계를 지우는가?
 
 </div>

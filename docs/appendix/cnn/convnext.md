@@ -81,7 +81,7 @@ ConvNeXt이 주는 더 큰 가르침은, 보기 변환기가 낫다고 여겨진
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `dim=96`인 `ConvNeXtBlock` 하나의 매개변수 수를 셈하여라.
 
 </div>
@@ -93,7 +93,7 @@ ConvNeXt이 주는 더 큰 가르침은, 보기 변환기가 낫다고 여겨진
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `ConvNeXtBlock`의 앞으로 걸음에 있는 `permute` 셈이 무엇을 하는지 밝혀라. NCHW 텐서에 `nn.LayerNorm`을 곧바로 걸지 않는 까닭은 무엇인가?
 
 </div>
@@ -105,7 +105,7 @@ ConvNeXt이 주는 더 큰 가르침은, 보기 변환기가 낫다고 여겨진
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `ConvNeXt` 모형을 도막 사이에 성기게 하기를 두는 여러 도막 얼개로 고쳐라. `dim=192`인 둘째 도막과 두 도막 사이의 성기게 하는 켜를 더하여라.
 
 </div>

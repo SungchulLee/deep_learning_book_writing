@@ -114,7 +114,7 @@ Parameters: 31,724,304
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 $d_{\text{model}} = 512$, $d_{ff} = 2048$인 `EncoderLayer` 하나의 매개변수 수를 셈하라. 아래 부품별(주의 사영, 순전파 층, 층 정규화)로 나누어 보여라.
 
 </div>
@@ -126,7 +126,7 @@ $d_{\text{model}} = 512$, $d_{ff} = 2048$인 `EncoderLayer` 하나의 매개변�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 주의 점수를 왜 $\sqrt{d_k}$으로 나누는지 설명하라. 이 배수를 빼면 어떻게 되며 학습 안정성에 어떤 영향을 주겠는가?
 
 </div>
@@ -138,7 +138,7 @@ $d_{\text{model}} = 512$, $d_{ff} = 2048$인 `EncoderLayer` 하나의 매개변�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 가린 자기 주의와 인코더 출력에 대한 교차 주의를 갖춘 디코더 더미를 `Transformer` 클래스에 더하여 수열 대 수열 과제를 위한 온전한 인코더-디코더 트랜스포머를 만들어라.
 
 </div>

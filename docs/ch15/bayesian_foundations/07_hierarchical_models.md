@@ -213,7 +213,7 @@ Next: Module 8 - Empirical Bayes
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 $p = 0.4$인 불공평한 놀이(노름꾼에게 불리하게 치우친)를 쓰도록 흉내내기를 고쳐라. 똑같이 무리 8개와 표본 크기로 얼마쯤 어울림 어림값을 셈하고, 세 전략의 평균 제곱 오차(MSE)를 참된 효과에 견주어 보아라.
 
 </div>
@@ -252,7 +252,7 @@ $p = 0.4$인 불공평한 놀이(노름꾼에게 불리하게 치우친)를 쓰�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 오그림 무게 $w_i = n_i / (n_i + \sigma^2 / \tau^2)$이 $n_i \to \infty$이면 1에, $n_i \to 0$이면 0에 다가가는 까닭을 밝혀라. 어림에서 이것이 실제로 뜻하는 바는 무엇인가?
 
 </div>
@@ -268,7 +268,7 @@ $p = 0.4$인 불공평한 놀이(노름꾼에게 불리하게 치우친)를 쓰�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 부분 모으기에서 학교마다의 효과에 대한 95% 믿음 구간을 셈하도록 코드를 넓혀라. $\theta_i$의 뒤확률이 평균은 부분 모으기 어림과 같고 흩어짐은 $(1/n_i + 1/\tau^2)^{-1} \cdot \sigma^2 / n_i$인 정규 분포에 가깝다고 보아라. 학교마다 구간 너비를 견주어라.
 
 </div>

@@ -64,7 +64,7 @@ SGD(확률적 경사 하강법)는 갱신 규칙 $\theta \leftarrow \theta - \al
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 학습률을 0.001과 0.1로 바꿔 보라. 세 학습률의 손실 곡선을 같은 그래프에 그려라. 발산하지 않으면서 가장 빠르게 수렴하는 것은 어느 쪽인가?
 
 </div>
@@ -92,7 +92,7 @@ SGD(확률적 경사 하강법)는 갱신 규칙 $\theta \leftarrow \theta - \al
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `optimizer.zero_grad()` 호출을 없애면 어떻게 되는가? 20 에폭 동안 학습을 돌리며 매 단계 가중치의 경사를 출력하라. 관찰된 거동을 설명하라.
 
 </div>
@@ -104,7 +104,7 @@ SGD(확률적 경사 하강법)는 갱신 규칙 $\theta \leftarrow \theta - \al
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 참 관계를 $y = 5x - 2$로 바꾸고 다시 학습시켜라. 모델이 올바른 가중치와 편향을 배우는지 확인하라. 그다음 $y = x^2$을 시도해 보라. 퍼셉트론이 이것을 배울 수 있는가?
 
 </div>

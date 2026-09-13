@@ -432,7 +432,7 @@ DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 두 텐서에서 데이터를 읽어 `(features, target)` 튜플을 반환하는 사용자 정의 `Dataset` 클래스를 구현하라. 한 에폭을 순회하며 배치 모양을 출력하여 `DataLoader`와 잘 동작하는지 확인하라.
 
 </div>
@@ -464,7 +464,7 @@ DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 학습 데이터는 매 에폭마다 뒤섞어야 하지만 시험 데이터는 그럴 필요가 없는 이유를 설명하라.
 
 </div>
@@ -476,7 +476,7 @@ DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 같은 모델 구조를 배치 크기 1, 32, 128, 그리고 전체 데이터셋(10000)으로 학습시켜라. 손실 곡선을 그리고 각각의 에폭당 실제 소요 시간을 측정하라. 관찰한 절충을 논하라.
 
 </div>

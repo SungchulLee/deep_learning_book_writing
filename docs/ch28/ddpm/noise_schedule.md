@@ -247,7 +247,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 DDPM의 앞 퍼짐 과정을 설명하라. 왜 정규 분포 옮아감을 지닌 마르코프 사슬로 짰는가?
 
 </div>
@@ -259,7 +259,7 @@ DDPM의 앞 퍼짐 과정을 설명하라. 왜 정규 분포 옮아감을 지닌
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 단순하게 만든 DDPM 익히기 목표를 이끌어 내고 그것이 잡음 헤아리기와 같음을 보여라.
 
 </div>
@@ -275,7 +275,7 @@ DDPM의 앞 퍼짐 과정을 설명하라. 왜 정규 분포 옮아감을 지닌
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 DDIM이 어떻게 DDPM보다 빠르게 뽑는지 설명하라. 무엇을 맞바꾸는가?
 
 </div>
@@ -287,7 +287,7 @@ DDIM이 어떻게 DDPM보다 빠르게 뽑는지 설명하라. 무엇을 맞바�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 가름개 없는 이끌기란 무엇인가? 그것이 조건 만들어 내기 품질을 어떻게 높이는가?
 
 </div>

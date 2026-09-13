@@ -134,7 +134,7 @@ GPU는 자기만의 기억 장치를 가진다. NVIDIA 카드에서는 이를 **
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 위 표에서 배수가 1을 넘는 지점이 있다. 그 지점보다 작은 행렬만 다루는 프로그램이라면 GPU를 사는 것이 이득이겠는가?
 
 </div>
@@ -148,7 +148,7 @@ GPU는 자기만의 기억 장치를 가진다. NVIDIA 카드에서는 이를 **
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 묶음 크기를 32에서 128로 늘렸더니 `out of memory`가 났다. 모델을 줄이지 않고 할 수 있는 일은 무엇인가?
 
 </div>
@@ -166,7 +166,7 @@ GPU는 자기만의 기억 장치를 가진다. NVIDIA 카드에서는 이를 **
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 GPU 사용률을 재어 보니 10%였다. 계산이 느린 것이 아니라면 무엇을 의심해야 하는가?
 
 </div>

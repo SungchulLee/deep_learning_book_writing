@@ -393,7 +393,7 @@ $$R_i = \alpha_i + \beta_i F + \epsilon_i, \qquad \epsilon_i \perp\!\!\!\perp \e
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 변수 셋의 베이즈 망 $A \to B \to C$이 주어졌을 때, 확률의 사슬 규칙과 그래프가 뜻하는 조건부 독립을 써서 결합 분포 $p(A, B, C)$을 적어라.
 
 </div>
@@ -409,7 +409,7 @@ $$R_i = \alpha_i + \beta_i F + \epsilon_i, \qquad \epsilon_i \perp\!\!\!\perp \e
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 베이즈 망과 마르코프 무작위 마당의 차이를 설명하여라. 어느 때 어느 쪽을 고르겠는가?
 
 </div>
@@ -421,7 +421,7 @@ $$R_i = \alpha_i + \beta_i F + \epsilon_i, \qquad \epsilon_i \perp\!\!\!\perp \e
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 "설명해 치우기" 짜임 $A \to C \leftarrow B$을 생각하여라. $A$과 $B$이 주변으로는 독립이지만 $C$을 조건으로 두면 기대고 있음을 보여라.
 
 </div>
@@ -437,7 +437,7 @@ $$R_i = \alpha_i + \beta_i F + \epsilon_i, \qquad \epsilon_i \perp\!\!\!\perp \e
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 베이즈 망에서 마디 $X$의 **마르코프 이불**은 그 어버이, 자식, 그리고 자식의 다른 어버이로 이루어진다. 마르코프 이불을 조건으로 두면 $X$이 다른 모든 마디와 조건부 독립임을 증명하여라.
 
 </div>

@@ -1489,7 +1489,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 기계 번역을 위한 인코더-디코더 트랜스포머의 정보 흐름을 설명하라.
 
 </div>
@@ -1501,7 +1501,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 디코더에 가린 자기 주의와 교차 주의가 둘 다 필요한 까닭은 무엇인가?
 
 </div>
@@ -1513,7 +1513,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 원문 길이가 $m$이고 목표문 길이가 $n$일 때 인코더-디코더 모형의 기억 복잡도를 셈하라.
 
 </div>
@@ -1525,7 +1525,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 질의는 디코더에서, 열쇠와 값은 인코더에서 오는 교차 주의 얼개를 구현하라.
 
 </div>

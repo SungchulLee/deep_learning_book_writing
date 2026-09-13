@@ -93,7 +93,7 @@ print(f"Most relevant: {documents[top_idx[0]]}")
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 찾아 붙여 만들어 내기(RAG) 물길을 밝혀라. 큰 말 모델만 쓸 때와 견주어 어떤 문제를 푸는가?
 
 </div>
@@ -105,7 +105,7 @@ print(f"Most relevant: {documents[top_idx[0]]}")
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 성긴 찾기(BM25)와 빽빽한 찾기(묻힘 바탕)를 견주어라. 저마다 언제 뛰어난가?
 
 </div>
@@ -117,7 +117,7 @@ print(f"Most relevant: {documents[top_idx[0]]}")
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 실전 찾아 붙여 만들어 내기 체계를 세울 때의 핵심 어려움은 무엇인가?
 
 </div>
@@ -129,7 +129,7 @@ print(f"Most relevant: {documents[top_idx[0]]}")
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 찾아 붙여 만들어 내기 물길에서 다시 매기기가 찾기의 좋음을 어떻게 낫게 하는지 밝혀라.
 
 </div>

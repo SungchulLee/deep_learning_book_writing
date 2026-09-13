@@ -142,7 +142,7 @@ $$p(w_j|\alpha_j) = \mathcal{N}(0, \alpha_j^{-1})$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 베이즈 신경망이 앎 불확실함을 어떻게 재는지 설명하여라. 이는 우연 불확실함과 어떻게 다른가?
 
 </div>
@@ -154,7 +154,7 @@ $$p(w_j|\alpha_j) = \mathcal{N}(0, \alpha_j^{-1})$$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 ELBO 목표에 대한, 되짚음으로 하는 베이즈의 기울기 어림꼴을 이끌어 내어라.
 
 </div>
@@ -170,7 +170,7 @@ ELBO 목표에 대한, 되짚음으로 하는 베이즈의 기울기 어림꼴�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 베이즈 신경망에서 몬테카를로 떨구기와 드러난 변분 추론을 구현의 복잡함과 눈금 맞추기의 질로 견주어라.
 
 </div>
@@ -182,7 +182,7 @@ ELBO 목표에 대한, 되짚음으로 하는 베이즈의 기울기 어림꼴�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 베이즈 신경망에서 앞확률 $p(w)$을 고르는 일이 왜 중요하며, 표준 가우스 앞확률과 크기 섞음 앞확률 사이의 주고받음은 무엇인가?
 
 </div>

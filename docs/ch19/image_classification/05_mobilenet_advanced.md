@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 들임 채널 256개, 날임 채널 256개인 $3 \times 3$ 켜에서 여느 합성곱 대신 깊이별 분리 합성곱을 쓸 때 매개변수가 얼마나 줄어드는지 셈하여라.
 
 </div>
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 뒤집은 잔차에서 선형 병목(내리쬐기 뒤에 ReLU를 안 두는 것)이 왜 중요한지 설명하여라.
 
 </div>
@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 너비 곱셈수를 0.5, 0.75, 1.0으로 두고 MobileNetV2를 익힌 뒤 매개변수 개수와 정확도 맞바꿈을 견주어라.
 
 </div>

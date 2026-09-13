@@ -312,7 +312,7 @@ def loss_function_comparison():
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 음이항분포를 사용하여 과대산포가 있는 계수를 예측하는 모델의 손실 함수를 유도하라.
 
 </div>
@@ -332,7 +332,7 @@ def loss_function_comparison():
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 드롭아웃 학습이 변분 추론을 근사함을 보이고, 그것이 어떤 사후분포를 근사하는지 밝혀라.
 
 </div>
@@ -350,7 +350,7 @@ def loss_function_comparison():
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 폰 미제스 분포를 사용하여 원형 데이터(예: 바람의 방향)를 예측하는 사용자 정의 손실을 설계하라.
 
 </div>
@@ -376,7 +376,7 @@ def loss_function_comparison():
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 특징이 $p = 100$개, 관측이 $n = 50$개이고 참으로 0이 아닌 계수가 5개인 희소 회귀 문제에서 MLE, L2를 쓴 MAP, L1을 쓴 MAP을 비교하라.
 
 </div>

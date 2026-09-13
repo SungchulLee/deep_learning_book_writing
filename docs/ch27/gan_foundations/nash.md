@@ -397,7 +397,7 @@ def plot_convergence(d_real_history, d_fake_history):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 맞겨루기 만들개 익히기 목표를 최소최대 놀이로 설명하라. 각 사람은 무엇을 가장 좋게 하는가?
 
 </div>
@@ -413,7 +413,7 @@ def plot_convergence(d_real_history, d_fake_history):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 만들개가 붙박였을 때 가장 좋은 가름개가 $D^*(x) = \frac{p_{\text{data}}(x)}{p_{\text{data}}(x) + p_g(x)}$임을 밝혀라.
 
 </div>
@@ -433,7 +433,7 @@ def plot_convergence(d_real_history, d_fake_history):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 맞겨루기 만들개 익히기에서 봉우리 무너짐이란 무엇인가? 이를 누그러뜨리는 방식 둘을 설명하라.
 
 </div>
@@ -445,7 +445,7 @@ def plot_convergence(d_real_history, d_fake_history):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 가름개가 너무 셀 때 본디 맞겨루기 만들개 손실의 기울기가 사라질 수 있는 까닭을 설명하라.
 
 </div>

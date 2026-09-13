@@ -293,7 +293,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 이 코드는 학습과 시험에 모두 `CenterCrop(224)`을 쓴다. 학습 변환을 `RandomCrop(224, padding=4)`과 `RandomHorizontalFlip()`으로 바꾸고 10 세대 뒤의 시험 정확도를 견주어라. 맨바닥부터 학습할 때에 견주어 특징 뽑기에서 데이터 불리기의 영향이 작을 법한 까닭은 무엇인가?
 
 </div>
@@ -315,7 +315,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 ResNet18을 특징 뽑개로 쓸 때(마지막 선형 층만 학습할 때) 학습하는 매개변수가 전체의 몇 퍼센트인지 셈하라. ResNet50에 대해서도 되풀이하라. 모델이 클수록 그 비율이 줄어드는 까닭은 무엇이며 전이 학습의 효율에 대해 무엇을 뜻하는가?
 
 </div>
@@ -331,7 +331,7 @@ ResNet18을 특징 뽑개로 쓸 때(마지막 선형 층만 학습할 때) 학�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 시험 그림 500장에 대해 얼린 ResNet18 부호기에서 512차원 특징을 뽑고 t-SNE로 2차원으로 줄인 뒤 부류 이름표로 색을 칠한 산점도를 그려 특징 공간을 보여 주는 함수를 구현하라. 선형 머리를 학습하기 전과 후에 돌려 보아라. 특징 공간이 바뀌는가?
 
 </div>

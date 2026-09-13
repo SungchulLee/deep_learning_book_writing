@@ -209,7 +209,7 @@ $$\mathcal{E}_t(\mathbf{f}) \leq \mathcal{E}_s(\mathbf{f}) + \text{MMD}^2(P_s, P
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 최대 평균 불일치(MMD)를 정의하고 도메인 적응에서의 몫을 설명하라.
 
 </div>
@@ -221,7 +221,7 @@ $$\mathcal{E}_t(\mathbf{f}) \leq \mathcal{E}_s(\mathbf{f}) + \text{MMD}^2(P_s, P
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 두 분포에서 뽑은 표본이 주어졌을 때 MMD의 불편 추정량을 이끌어 내라.
 
 </div>
@@ -233,7 +233,7 @@ $$\mathcal{E}_t(\mathbf{f}) \leq \mathcal{E}_s(\mathbf{f}) + \text{MMD}^2(P_s, P
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 도메인 적응 학습을 위한 MMD 손실을 파이토치에서 구현하라.
 
 </div>
@@ -253,7 +253,7 @@ $$\mathcal{E}_t(\mathbf{f}) \leq \mathcal{E}_s(\mathbf{f}) + \text{MMD}^2(P_s, P
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 MMD와 적대적 도메인 적응(DANN)을 견주어라. 각각의 이점은 무엇인가?
 
 </div>

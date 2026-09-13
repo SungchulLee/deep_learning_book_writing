@@ -421,7 +421,7 @@ class GroupedQueryAttention(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 전체 차원이 같을 때 어텐션 머리를 여러 개 두는 편이 하나만 두는 것보다 나은 까닭을 설명하라.
 
 </div>
@@ -433,7 +433,7 @@ class GroupedQueryAttention(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 $d_{\text{model}} = 512$이고 머리가 $h = 8$개인 다중 머리 어텐션의 매개변수 수를 계산하라.
 
 </div>
@@ -445,7 +445,7 @@ $d_{\text{model}} = 512$이고 머리가 $h = 8$개인 다중 머리 어텐션�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 (`nn.MultiheadAttention`을 쓰지 않고) 다중 머리 어텐션을 PyTorch로 밑바닥부터 구현하라.
 
 </div>
@@ -475,7 +475,7 @@ $d_{\text{model}} = 512$이고 머리가 $h = 8$개인 다중 머리 어텐션�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 번역으로 학습한 트랜스포머의 머리마다 어텐션 무늬를 그려 보라. 어떤 무늬가 나타나는가?
 
 </div>

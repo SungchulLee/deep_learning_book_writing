@@ -259,7 +259,7 @@ $$\tau_{\text{lookback}} = f(\text{autocorrelation decay time})$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 이미지에 견주어 시계열 데이터에 전이 학습을 쓸 때 어떤 어려움이 생기는가?
 
 </div>
@@ -271,7 +271,7 @@ $$\tau_{\text{lookback}} = f(\text{autocorrelation decay time})$$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 시계열 전이 학습을 위한 사전 학습 방법 셋을 설명하라.
 
 </div>
@@ -283,7 +283,7 @@ $$\tau_{\text{lookback}} = f(\text{autocorrelation decay time})$$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 사전 학습하고 미세 조정할 수 있는 간단한 시계열 특징 뽑개를 구현하라.
 
 </div>
@@ -306,7 +306,7 @@ $$\tau_{\text{lookback}} = f(\text{autocorrelation decay time})$$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 시계열의 전이 학습은 언제 실패하는가? 구체적인 보기를 들어라.
 
 </div>

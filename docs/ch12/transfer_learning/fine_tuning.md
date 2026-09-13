@@ -532,7 +532,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 전이 학습에서 전면 미세 조정과 선형 탐침과 특징 뽑기를 견주어라.
 
 </div>
@@ -544,7 +544,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 미세 조정의 학습률 방법을 설명하라. 사전 학습 층에 왜 더 작은 학습률을 쓰는가?
 
 </div>
@@ -556,7 +556,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 파이토치에서 차츰 녹이기를 구현하라 (세대마다 층 묶음 하나씩 녹인다).
 
 </div>
@@ -575,7 +575,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 언제 전이 학습을 쓰지 **말아야** 하는가?
 
 </div>

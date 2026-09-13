@@ -214,7 +214,7 @@ Saved: dataset_from_tensor.png
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 기본 `'mean'` 축약 대신 `nn.MSELoss(reduction='sum')`을 쓰도록 스크립트를 수정하라. 학습을 안정적으로 유지하려면 학습률을 어떻게 바꿔야 하는가?
 
 </div>
@@ -226,7 +226,7 @@ Saved: dataset_from_tensor.png
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 학습 루프에 검증 분할을 추가하라. 80%는 학습에, 20%는 검증에 쓴다. 매 에폭마다 학습 MSE와 검증 MSE를 모두 출력하라.
 
 </div>
@@ -267,7 +267,7 @@ Saved: dataset_from_tensor.png
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 입력 특징을 10개 쓰도록 모델을 확장하고, 학습된 가중치가 참된 가중치로 수렴하는지 확인하라. 나란히 비교하여 출력하라.
 
 </div>

@@ -288,7 +288,7 @@ Cross-attention weights shape: torch.Size([2, 8, 4, 6])
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 부호기 출력의 모양이 $(B, 10, 256)$이고 복호기 질의의 모양이 $(B, 1, 256)$이며 머리가 8개인 교차 어텐션 층을 생각해 보자. `MultiHeadCrossAttention` 모듈의 학습 가능한 매개변수 총수를 (편향을 넣어) 계산하라.
 
 </div>
@@ -307,7 +307,7 @@ Cross-attention weights shape: torch.Size([2, 8, 4, 6])
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `EncoderDecoderAttention`의 복호기 자기 어텐션이 `decoder_input`을 질의와 key_value에 모두 넘겨 같은 `MultiHeadCrossAttention` 클래스를 쓰는 까닭을 설명하라. 교차 어텐션은 어떤 조건에서 자기 어텐션이 되는가?
 
 </div>
@@ -319,7 +319,7 @@ Cross-attention weights shape: torch.Size([2, 8, 4, 6])
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 모든 머리에 걸쳐 평균한 교차 어텐션 가중치를 돌려주고 그것으로 복호기 자리와 부호기 자리 사이의 "정렬 점수"를 계산하도록 `EncoderDecoderAttention`을 고쳐라. 예제 입력에 대해 이 정렬 행렬을 matplotlib으로 그려 보라.
 
 </div>

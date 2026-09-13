@@ -614,7 +614,7 @@ $$\mathbb{E}[\mathbf{u}^T \mathbf{v}] = 0, \quad \text{Var}(\mathbf{u}^T \mathbf
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 내적을 $1/\sqrt{d_k}$으로 배율 조정하는 까닭과 그러지 않으면 어떻게 되는지 설명하라.
 
 </div>
@@ -626,7 +626,7 @@ $$\mathbb{E}[\mathbf{u}^T \mathbf{v}] = 0, \quad \text{Var}(\mathbf{u}^T \mathbf
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 $d_k = 2$일 때 $Q = [[1,0],[0,1]]$, $K = [[1,0],[0,1]]$, $V = [[1,2],[3,4]]$에 대한 어텐션 출력을 계산하라.
 
 </div>
@@ -638,7 +638,7 @@ $d_k = 2$일 때 $Q = [[1,0],[0,1]]$, $K = [[1,0],[0,1]]$, $V = [[1,2],[3,4]]$�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 행렬 연산으로 배율 조정 내적 어텐션을 PyTorch로 구현하라.
 
 </div>
@@ -658,7 +658,7 @@ $d_k = 2$일 때 $Q = [[1,0],[0,1]]$, $K = [[1,0],[0,1]]$, $V = [[1,2],[3,4]]$�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 순차열의 길이가 $n$이고 차원이 $d$일 때 배율 조정 내적 어텐션의 계산 복잡도는 얼마인가?
 
 </div>

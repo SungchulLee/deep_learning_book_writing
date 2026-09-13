@@ -78,7 +78,7 @@ LeNet-5은 요즘 CNN이 거의 다 따르는 본을 세웠다. 갈래 수가 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 꼴이 $(32, 1, 28, 28)$인 들임에 대해 LeNet의 앞으로 걸음 내내 텐서 꼴이 어떻게 바뀌는지 좇아라.
 
 </div>
@@ -90,7 +90,7 @@ LeNet-5은 요즘 CNN이 거의 다 따르는 본을 세웠다. 갈래 수가 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 LeNet-5에서 배울 수 있는 매개변수의 모든 수를 셈하여라(치우침도 넣는다).
 
 </div>
@@ -102,7 +102,7 @@ LeNet-5에서 배울 수 있는 매개변수의 모든 수를 셈하여라(치�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 LeNet을 $32 \times 32$ RGB 그림(CIFAR-10 따위)을 받고 고르게 모으기 대신 가장 크게 모으기를 쓰도록 고쳐라. 차수 셈도 모두 손보아라.
 
 </div>

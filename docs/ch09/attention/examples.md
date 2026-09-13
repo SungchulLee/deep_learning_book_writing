@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `src_vocab_size=10000`, `tgt_vocab_size=10000`, `embed_dim=256`, `num_heads=8`, `num_layers=6`인 `SimpleSeq2Seq` 모델의 매개변수 총수를 계산하라. 부호기, 복호기, 출력 사영으로 나누어 세어라.
 
 </div>
@@ -186,7 +186,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 복호기의 인과 가림막이 왜 필요한지 설명하라. 그것을 없애면 학습 중에 어떤 일이 일어나는가? 추론할 때도 모델이 올바른 출력을 낼 수 있는가?
 
 </div>
@@ -198,7 +198,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `SimpleEncoder`이 학습 가능한 위치 매개변수 대신 사인·코사인 위치 부호화를 쓰도록 고쳐라. 표준 식 $PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d})$과 $PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d})$을 구현하라. 길이 20의 무작위 입력 순차열에서 두 방법의 어텐션 가중치 무늬를 견주어라.
 
 </div>

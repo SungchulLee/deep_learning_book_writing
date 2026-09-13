@@ -242,7 +242,7 @@ print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 모양")
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `torch.from_numpy(arr)`로 만든 텐서를 GPU로 옮긴 뒤 `arr`를 고치면 GPU의 텐서도 바뀌겠는가?
 
 </div>
@@ -256,7 +256,7 @@ print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 모양")
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `loss.backward()`를 두 번 부르면 어떻게 되는가?
 
 </div>
@@ -270,7 +270,7 @@ print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 모양")
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 NumPy만으로 신경망을 학습시킬 수 있는가?
 
 </div>

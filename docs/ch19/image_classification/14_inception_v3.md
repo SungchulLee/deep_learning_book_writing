@@ -45,7 +45,7 @@ Parameters: 2,077,512
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 들임 채널 256개, 날임 채널 256개인 $5 \times 5$ 합성곱을 $3 \times 3$ 합성곱 둘로 나눌 때 아끼는 매개변수를 셈하여라.
 
 </div>
@@ -57,7 +57,7 @@ Parameters: 2,077,512
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 계수 $\epsilon = 0.1$인 레이블 스무딩이 1000갈래 문제의 목표 분포를 어떻게 바꾸는지 밝혀라.
 
 </div>
@@ -69,7 +69,7 @@ Parameters: 2,077,512
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 어긋난 합성곱 나누기를 짜라. $7 \times 7$ 합성곱을 $1 \times 7$ 다음 $7 \times 1$ 합성곱으로 갈음하여라.
 
 </div>

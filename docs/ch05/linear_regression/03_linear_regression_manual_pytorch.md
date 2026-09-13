@@ -441,7 +441,7 @@ NumPy로 만든 선형 회귀 구현을 PyTorch 텐서로 옮기는 데는 놀�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 `w`와 `b`를 하나의 매개변수 벡터 $\theta = [w, b]^T$로 저장하고 입력에 1로 채운 열을 덧붙이도록 학습 루프를 다시 작성하라. 결과가 원래의 두 매개변수 버전과 일치함을 확인하라.
 
 </div>
@@ -478,7 +478,7 @@ NumPy로 만든 선형 회귀 구현을 PyTorch 텐서로 옮기는 데는 놀�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 autograd를 쓸 때 매개변수 갱신 중에 `torch.no_grad()`를 쓰는 핵심 이점은 무엇이며, 경사를 직접 계산하는 이 튜토리얼에서는 왜 필요하지 않은가?
 
 </div>
@@ -490,7 +490,7 @@ autograd를 쓸 때 매개변수 갱신 중에 `torch.no_grad()`를 쓰는 핵�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 학습 루프에 검증 분할(80/20)을 추가하라. 매 에폭 후에 학습 손실과 검증 손실을 모두 계산하여 출력하라. 검증 손실이 학습 손실을 가깝게 따라가는가, 아니면 과적합의 징후가 보이는가?
 
 </div>

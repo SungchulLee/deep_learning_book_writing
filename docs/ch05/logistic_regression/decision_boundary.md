@@ -496,7 +496,7 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 원점에서 결정 경계 $\mathbf{x}^\top\boldsymbol{\beta} = 0$까지의 수직 거리가 $\frac{|\beta_0|}{\|\boldsymbol{\beta}_{1:d}\|}$임을 증명하라.
 
 </div>
@@ -512,7 +512,7 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 안정한 BCE 공식 $\max(z, 0) - zy + \log(1+e^{-|z|})$이 $-[y\log\sigma(z) + (1-y)\log(1-\sigma(z))]$과 같음을 보여라.
 
 </div>
@@ -532,7 +532,7 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 개별 계수 $\beta_0, \beta_1, \beta_2$이 변할 때 결정 경계가 어떻게 회전하고 이동하는지 보여주는 시각화를 만들어라.
 
 </div>
@@ -570,7 +570,7 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 `pos_weight`을 쓰는 `BCEWithLogitsLoss`을 구현하고, 불균형 데이터(음성 90%, 양성 10%)에서 결정 경계에 미치는 효과를 보여라.
 
 </div>

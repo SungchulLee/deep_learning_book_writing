@@ -64,7 +64,7 @@ Parameters: 1,082,680
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 $d$차원 정규 분포에서 $\mathcal{N}(\mu, \sigma^2 I)$과 $\mathcal{N}(0, I)$ 사이 KL 벌어짐의 닫힌 꼴을 이끌어 내어라. 이끌어 낸 것이 부호에 쓰인 식과 맞는지 확인하라.
 
 </div>
@@ -82,7 +82,7 @@ $d$차원 정규 분포에서 $\mathcal{N}(\mu, \sigma^2 I)$과 $\mathcal{N}(0, 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 MNIST에 변분 자기 부호기를 익히고 $z \sim \mathcal{N}(0, I)$을 풀어 아무 표본 100개를 만들어라. 10x10 격자로 보여라. 만든 숫자를 알아볼 수 있는가?
 
 </div>
@@ -105,7 +105,7 @@ MNIST에 변분 자기 부호기를 익히고 $z \sim \mathcal{N}(0, I)$을 풀�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 다시 매개변수화 재주가 왜 필요한지 설명하라. 그 재주 없이 $\mathcal{N}(\mu, \sigma^2)$에서 $z$을 곧바로 뽑으면 어떻게 되는가?
 
 </div>

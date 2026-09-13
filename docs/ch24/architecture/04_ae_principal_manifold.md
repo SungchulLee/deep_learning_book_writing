@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 S자 곡선을 (2차원으로 쏜 `sklearn.datasets.make_swiss_roll`의) 나선 자료 묶음으로 갈음하고 자기 부호기를 다시 익혀라. 배운 다양체가 나선을 충실히 그려 내는가?
 
 </div>
@@ -91,7 +91,7 @@ S자 곡선을 (2차원으로 쏜 `sklearn.datasets.make_swiss_roll`의) 나선 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 병목을 2차원으로 늘려 같은 S자 곡선에 익혀라. 배운 나타냄에 무슨 일이 생기며, 여기서 1차원 병목이 왜 더 뜻이 있는가?
 
 </div>
@@ -103,7 +103,7 @@ S자 곡선을 (2차원으로 쏜 `sklearn.datasets.make_swiss_roll`의) 나선 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 배운 다양체를 (R이나 파이썬 감개로 쓸 수 있는) `princurve` 알고리즘으로 맞춘 주곡선과 견주어라. 두 곡선을 자료 위에 겹쳐 그리고 차이를 논하라.
 
 </div>

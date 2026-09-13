@@ -257,7 +257,7 @@ loss = nn.CrossEntropyLoss()(logits, targets)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 과제의 종류에 따라 알맞은 손실 함수를 고르는 판단 나무를 만들라.
 
 </div>
@@ -269,7 +269,7 @@ loss = nn.CrossEntropyLoss()(logits, targets)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 최대가능도 추정을 통해 손실 함수마다 어떤 잡음 가정에 대응하는지 설명하라.
 
 </div>
@@ -281,7 +281,7 @@ loss = nn.CrossEntropyLoss()(logits, targets)
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 사용자 정의 손실 함수는 언제 설계해야 하는가? 예를 들라.
 
 </div>
@@ -293,7 +293,7 @@ loss = nn.CrossEntropyLoss()(logits, targets)
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 잔차가 클 때 MSE, MAE, 후버 손실의 기울기 거동을 견주고 학습 안정성에 어떤 뜻을 갖는지 설명하라.
 
 </div>

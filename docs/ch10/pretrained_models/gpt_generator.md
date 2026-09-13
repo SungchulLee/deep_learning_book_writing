@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `vocab_size=5000`으로 `GPTGenerator`를 만들고 길이 64인 수열을 넣어 보아라. 출력의 꼴이 `(batch_size, 64, 5000)`인지, 인과 가림이 올바른 삼각 짜임을 갖추었는지 확인하라.
 
 </div>
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 GPT 방식의 모형을 세울 때 (이 코드처럼) `nn.TransformerDecoder`를 쓰는 것과 인과 가림을 곁들인 `nn.TransformerEncoder`를 쓰는 것의 차이를 설명하라. 구조와 실제 면에서 어떤 뜻이 있는가?
 
 </div>
@@ -89,7 +89,7 @@ GPT 방식의 모형을 세울 때 (이 코드처럼) `nn.TransformerDecoder`를
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 온도로 다스리는 표집을 받치는 `generate` 메서드를 구현하라. 프롬프트 텐서가 주어지면 로짓에 온도 크기 조정을 적용한 뒤 표집하여 토큰을 자기 회귀로 만들어야 한다.
 
 </div>

@@ -461,7 +461,7 @@ def recommended_generator_loss(discriminator, fake_data):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 본디 맞겨루기 만들개 손실과 젠슨-섀넌 벌어짐의 관계를 이끌어 내라.
 
 </div>
@@ -481,7 +481,7 @@ def recommended_generator_loss(discriminator, fake_data):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 본디 맞겨루기 만들개 손실, 포화하지 않는 손실, 바서슈타인 손실을 기울기의 움직임과 익히기의 안정 면에서 견주어라.
 
 </div>
@@ -499,7 +499,7 @@ def recommended_generator_loss(discriminator, fake_data):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 맞겨루기 만들개 놀이의 내시 균형에서 $p_g = p_{\text{data}}$이고 모든 $x$에 대해 $D(x) = 1/2$임을 보여라.
 
 </div>
@@ -511,7 +511,7 @@ def recommended_generator_loss(discriminator, fake_data):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 WGAN-GP의 립시츠 묶음을 설명하고 무게 자르기보다 기울기 벌점을 더 낫게 여기는 까닭을 밝혀라.
 
 </div>

@@ -241,7 +241,7 @@ $$\Delta \theta_t = \alpha_{\text{learned}}(\mathbf{g}_t) \cdot \mathbf{g}_t + \
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 배운 최적화기가 손으로 설계한 갱신 규칙을 어떻게 갈아 끼우는지 설명하라.
 
 </div>
@@ -253,7 +253,7 @@ $$\Delta \theta_t = \alpha_{\text{learned}}(\mathbf{g}_t) \cdot \mathbf{g}_t + \
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 배운 최적화기의 이점과 어려움은 무엇인가?
 
 </div>
@@ -265,7 +265,7 @@ $$\Delta \theta_t = \alpha_{\text{learned}}(\mathbf{g}_t) \cdot \mathbf{g}_t + \
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 Andrychowicz 외(2016)의 LSTM 기반 최적화기를 서술하라.
 
 </div>
@@ -277,7 +277,7 @@ Andrychowicz 외(2016)의 LSTM 기반 최적화기를 서술하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 배운 최적화기와 Adam을 견주어라. 각각은 언제 더 나은가?
 
 </div>

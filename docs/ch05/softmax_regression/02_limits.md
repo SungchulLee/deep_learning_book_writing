@@ -164,7 +164,7 @@ circles        2 |           52.17% |           99.00%
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 동심원 자료에 특징 $x_1^2 + x_2^2$을 하나 더해 입력을 3차원으로 만든 뒤 소프트맥스 회귀를 학습시켜라. 정확도가 얼마나 오르는가?
 
 </div>
@@ -182,7 +182,7 @@ circles        2 |           52.17% |           99.00%
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 흩어진 덩이에서 MLP가 소프트맥스 회귀보다 조금 나빴다. 어떻게 설명하겠는가?
 
 </div>
@@ -196,7 +196,7 @@ circles        2 |           52.17% |           99.00%
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 클래스가 셋인 자료에서 소프트맥스 회귀의 결정 영역은 어떤 모양이 되는가?
 
 </div>

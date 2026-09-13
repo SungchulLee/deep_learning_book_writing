@@ -333,7 +333,7 @@ $\mu$과 $\tau$에 제대로 된 앞확률을 두고 PyMC이나 Stan으로 여�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 이 쪽이 다루는 핵심 개념과 그것이 베이즈 통계에서 하는 몫을 설명하라.
 
 </div>
@@ -345,7 +345,7 @@ $\mu$과 $\tau$에 제대로 된 앞확률을 두고 PyMC이나 Stan으로 여�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 주된 수학적 결과를 끌어내거나 밝히고 그 뜻을 설명하라.
 
 </div>
@@ -357,7 +357,7 @@ $\mu$과 $\tau$에 제대로 된 앞확률을 두고 PyMC이나 Stan으로 여�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이 주제에서 베이즈 방법과 빈도주의 대안을 견주어라.
 
 </div>
@@ -369,7 +369,7 @@ $\mu$과 $\tau$에 제대로 된 앞확률을 두고 PyMC이나 Stan으로 여�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 이 개념의 간단한 보기를 파이토치나 넘파이로 파이썬에 구현하라.
 
 </div>

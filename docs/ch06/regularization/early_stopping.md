@@ -760,7 +760,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 조기 종료가 정칙화의 한 형태로 작동하는 이유를 설명하라.
 
 </div>
@@ -772,7 +772,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 PyTorch 학습 루프에서 인내 매개변수를 갖는 조기 종료를 구현하라.
 
 </div>
@@ -797,7 +797,7 @@ PyTorch 학습 루프에서 인내 매개변수를 갖는 조기 종료를 구�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 조기 종료와 편향-분산 절충의 관계는 무엇인가?
 
 </div>
@@ -809,7 +809,7 @@ PyTorch 학습 루프에서 인내 매개변수를 갖는 조기 종료를 구�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 회귀 과제에서 조기 종료와 L2 정칙화를 비교하라. 둘은 비슷한 시험 성능을 내는가?
 
 </div>

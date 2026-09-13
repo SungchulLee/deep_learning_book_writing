@@ -82,7 +82,7 @@ XOR은 고전적인 비선형 문제이다. 입력이 서로 다르면 출력이
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `hidden_size`를 2로 줄여라. 신경망이 여전히 XOR을 배울 수 있는가? 여러 난수 씨앗으로 시도하고 10회 중 성공률을 보고하라.
 
 </div>
@@ -111,7 +111,7 @@ XOR은 고전적인 비선형 문제이다. 입력이 서로 다르면 출력이
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `nn.ReLU()`를 `nn.Identity()`(활성화 없음)로 바꿔라. 신경망을 학습시키고 XOR을 배우지 못하는 이유를 설명하라.
 
 </div>
@@ -123,7 +123,7 @@ XOR은 고전적인 비선형 문제이다. 입력이 서로 다르면 출력이
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 $[{-0.5}, 1.5] \times [{-0.5}, 1.5]$의 격자 점들에서 모델을 계산하여 결정 경계를 시각화하라. 예측 곡면을 그리는 데 `plt.contourf`를 쓰라.
 
 </div>

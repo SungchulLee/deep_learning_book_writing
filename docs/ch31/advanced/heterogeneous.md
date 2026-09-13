@@ -136,7 +136,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 그래프 신경망을 짤 때 뒤섞인 그래프가 고른 그래프에 견주어 지니는 핵심 어려움을 밝혀라.
 
 </div>
@@ -148,7 +148,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 관계 그래프 겹말기 신경망(R-GCN)과 그 쪽지 건네기 얼거리를 적어라.
 
 </div>
@@ -160,7 +160,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 뒤섞인 그래프에서 메타 길이란 무엇인가? 서지 그물의 보기를 들어라.
 
 </div>
@@ -172,7 +172,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 뒤섞인 그래프 나타냄은 추천 얼개에 어떻게 쓰이는가?
 
 </div>

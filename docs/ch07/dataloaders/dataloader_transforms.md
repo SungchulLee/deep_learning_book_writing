@@ -126,7 +126,7 @@ PyTorch 데이터셋의 `target_transform` 매개변수는 레이블이 학습 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 FashionMNIST 이미지의 평균이 0, 표준편차가 1이 되도록 정규화하는 변환을 이미지 파이프라인에 넣어라. mean=0.2860, std=0.3530을 쓰라.
 
 </div>
@@ -139,7 +139,7 @@ FashionMNIST 이미지의 평균이 0, 표준편차가 1이 되도록 정규화�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 딱딱한 원-핫 벡터 대신 평활화 계수가 $\alpha = 0.1$인 부드러운 레이블을 만들도록 목표 변환을 고쳐라.
 
 </div>
@@ -152,7 +152,7 @@ FashionMNIST 이미지의 평균이 0, 표준편차가 1이 되도록 정규화�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 이미지의 직사각형 영역을 무작위로 지우는(컷아웃 증강) 사용자 정의 변환 클래스를 작성하라. 지운 영역은 0으로 채우고 크기는 4x4에서 8x8 화소 사이에서 무작위로 정하라.
 
 </div>

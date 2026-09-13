@@ -460,7 +460,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 맡긴 첫자리 잡기로 만든 `ReweighingMitigation`에서 배울 수 있는 매개변수의 온 수를 셈하여라. 짐과 치우침을 아울러 켜마다 나누어 세어라.
 
 </div>
@@ -472,7 +472,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 가장 좋게 하는 개를 Adam(`torch.optim.Adam`에 `lr=0.001`)으로 갈음하고 본디 것과 익힘이 모여 가는 결을 견주어라. 둘의 잃음 곡선을 한 그림에 그려라.
 
 </div>
@@ -484,7 +484,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이 짜보기가 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
 </div>
@@ -496,7 +496,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 `ReweighingMitigation`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>

@@ -75,7 +75,7 @@ SqueezeNet은 얼개를 잘 꾸미면 매개변수를 50분의 1만 쓰고도 Al
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 squeeze=16, expand1x1=64, expand3x3=64, 들임 채널=128인 파이어 단원의 매개변수 개수를 셈하여라.
 
 </div>
@@ -92,7 +92,7 @@ squeeze=16, expand1x1=64, expand3x3=64, 들임 채널=128인 파이어 단원의
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 expand1x1=64, expand3x3=64인 파이어 단원이 내놓는 채널 수는 얼마인가?
 
 </div>
@@ -104,7 +104,7 @@ expand1x1=64, expand3x3=64인 파이어 단원이 내놓는 채널 수는 얼마
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 파이어 단원에 잔차 이음을 더하여라(에움길을 갖춘 SqueezeNet). 어떤 조건에서 건너뛰는 이음을 더할 수 있는가?
 
 </div>

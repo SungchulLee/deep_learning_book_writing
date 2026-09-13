@@ -225,7 +225,7 @@ n-그램 모델의 근본 맞바꿈은 나타내는 힘과 자료의 성김 사�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 뭉치 `["the cat sat", "the dog sat", "a cat ran"]`이 주어졌을 때 두낱말 확률 $P(\text{sat} \mid \text{cat})$과, 두낱말 모델에서 월 "the cat sat"의 로그 확률(밑 2)을 손으로 셈하여라.
 
 </div>
@@ -247,7 +247,7 @@ n-그램 모델의 근본 맞바꿈은 나타내는 힘과 자료의 성김 사�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 낱말이 저마다 낱말 곳간에 있을 수 있는데도 트라이그램 모델이 "the elephant danced"에 확률 0을 주는 까닭을 밝혀라. 자료의 성김 문제는 $n$에 따라 어떻게 커지는가?
 
 </div>
@@ -261,7 +261,7 @@ n-그램 모델의 근본 맞바꿈은 나타내는 힘과 자료의 성김 사�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 맥락 낱말이 주어질 때 가장 그럴듯한 다음 낱말과 그 확률을 돌려주는 `most_likely_next(self, context: str) -> str` 메서드를 `BigramModel` 클래스에 짜라.
 
 </div>

@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `vocab_size=1000`, `d_model=256`, `num_heads=8`, `num_layers=4`, `d_ff=1024`으로 `TransformerDecoder`를 세워라. 토큰 번호의 배치를 넣어 출력의 꼴이 `(batch_size, seq_len, vocab_size)`과 맞는지 확인하라.
 
 </div>
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 이 디코더 블록에는 인코더에 대한 교차 주의가 없다. 교차 주의가 언제 필요한지, 그리고 `TransformerDecoderBlock`을 어떻게 고쳐 더할지 설명하라.
 
 </div>
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 여기서 쓴 뒤 정규화 방식(`norm(x + sublayer(x))`)과 앞 정규화 방식(`x + sublayer(norm(x))`)을 견주어라. 앞 정규화를 구현하고 그것이 깊은 모형에서 학습 안정성을 자주 높이는 까닭을 설명하라.
 
 </div>

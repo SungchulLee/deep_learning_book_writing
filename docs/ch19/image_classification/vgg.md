@@ -55,7 +55,7 @@ VGG의 한결같은 꾸밈 덕분에 여러 뒤이은 일(FCN, 더 빠른 R-CNN)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 VGGNet의 고갱이 구조 이바지를 밝혀라. 내내 $3 \times 3$ 합성곱만 쓴 것이 왜 큰 나아감이었는가?
 
 </div>
@@ -67,7 +67,7 @@ VGGNet의 고갱이 구조 이바지를 밝혀라. 내내 $3 \times 3$ 합성곱
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 VGG-16의 온전히 이은 층의 매개변수 개수를 셈하고, 이 층이 왜 매개변수 수를 좌우하는지 설명하여라.
 
 </div>
@@ -79,7 +79,7 @@ VGG-16의 온전히 이은 층의 매개변수 개수를 셈하고, 이 층이 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 VGG-16은 VGG-19과 어떻게 다른가? 깊이를 더하면 늘 성능이 나아지는가?
 
 </div>
@@ -91,7 +91,7 @@ VGG-16은 VGG-19과 어떻게 다른가? 깊이를 더하면 늘 성능이 나�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 VGGNet은 흔히 결 옮기기나 느낌 손실 같은 일에서 특징 뽑개로 쓰인다. 가운데 층의 특징이 이런 쓰임새에 왜 쓸모 있는지 설명하여라.
 
 </div>

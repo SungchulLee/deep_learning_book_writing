@@ -618,7 +618,7 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 깊이별 분리 합성곱과 표준 합성곱의 매개변수 수와 부동소수점 연산 수를 유도하라.
 
 </div>
@@ -630,7 +630,7 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 `groups` 매개변수를 써서 깊이별 분리 합성곱을 PyTorch로 구현하라.
 
 </div>
@@ -650,7 +650,7 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 MobileNet과 EfficientNet의 설계에서 묶음 합성곱이 하는 구실을 설명하라.
 
 </div>
@@ -662,7 +662,7 @@ MobileNet과 EfficientNet의 설계에서 묶음 합성곱이 하는 구실을 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 깊이별 분리 합성곱을 쓸 때의 맞바꿈은 무엇인가? 표준 합성곱이 나을 때는 언제인가?
 
 </div>

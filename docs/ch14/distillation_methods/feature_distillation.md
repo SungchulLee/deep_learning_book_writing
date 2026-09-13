@@ -281,7 +281,7 @@ Task Output
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
 
 </div>
@@ -293,7 +293,7 @@ Task Output
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 이 접근법의 셈과 기억 요구는 무엇인가?
 
 </div>
@@ -305,7 +305,7 @@ Task Output
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
 
 </div>
@@ -317,7 +317,7 @@ Task Output
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 이 방법을 간추린 판으로 파이토치에 구현하라.
 
 </div>

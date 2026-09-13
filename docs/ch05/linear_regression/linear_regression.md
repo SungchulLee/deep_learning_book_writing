@@ -463,7 +463,7 @@ PyTorch를 모두 사용하고 이동 창 베타 추정까지 포함한 전체 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 MSE 손실 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mathbf{w}$에 대한 경사를 유도하라.
 
 </div>
@@ -479,7 +479,7 @@ MSE 손실 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mat
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \mathbf{w}^\top\mathbf{x} + \epsilon$에서 선형 회귀의 확률적 해석을 설명하라.
 
 </div>
@@ -491,7 +491,7 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 특징들이 완전히 상관되어 있을 때(다중공선성) 선형 회귀에는 무슨 일이 일어나는가? 이것이 정규 방정식에 어떤 영향을 주는가?
 
 </div>
@@ -503,7 +503,7 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 단변량 선형 회귀를 PyTorch로 바닥부터 구현하고 `sklearn.linear_model.LinearRegression`과 비교하라.
 
 </div>

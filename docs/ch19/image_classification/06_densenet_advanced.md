@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 층이 $L$개이고 자람 비율이 $k$인 촘촘 덩이에서 들임부터 내놓음까지의 이음(곧은 길) 전체 개수 식을 이끌어 내어라.
 
 </div>
@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 DenseNet-121과 ResNet-50을 익힐 때의 기억 공간 씀씀이를 견주고, 매개변수가 더 적은데도 DenseNet이 기억 공간을 더 쓸 수 있는 까닭을 설명하여라.
 
 </div>
@@ -128,7 +128,7 @@ DenseNet-121과 ResNet-50을 익힐 때의 기억 공간 씀씀이를 견주고,
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 성장률을 $k \in \{8, 12, 24, 32\}$으로 바꾸어 가며 없애기 실험을 짜고 구성마다 매개변수 수를 밝혀라.
 
 </div>

@@ -83,7 +83,7 @@ Parameters: 86,567,656
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 조각 크기가 16일 때 $384 \times 384$ 그림에서 나오는 조각의 수를 셈하라. 그다음 이 입력 크기를 받도록 `VisionTransformer`를 고치고 출력의 꼴을 확인하라.
 
 </div>
@@ -102,7 +102,7 @@ Parameters: 86,567,656
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 비전 트랜스포머가 모든 조각 토큰의 전역 평균 풀링 대신 `[CLS]` 토큰으로 분류하는 까닭을 설명하라. 두 방식의 맞바꿈은 무엇인가?
 
 </div>
@@ -114,7 +114,7 @@ Parameters: 86,567,656
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 걸음을 조각 크기보다 작게 두어 겹치는 조각을 받치도록 `PatchEmbedding` 클래스를 고쳐라. 그러면 토큰의 수와 자기 주의의 계산 비용이 어떻게 달라지는지 따져 보아라.
 
 </div>

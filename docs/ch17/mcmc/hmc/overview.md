@@ -256,7 +256,7 @@ HMC는 복잡한 금융 모형에 대한 요즘 베이즈 추론의 등뼈이다
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
 
 </div>
@@ -268,7 +268,7 @@ HMC는 복잡한 금융 모형에 대한 요즘 베이즈 추론의 등뼈이다
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
 
 </div>
@@ -280,7 +280,7 @@ HMC는 복잡한 금융 모형에 대한 요즘 베이즈 추론의 등뼈이다
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
 
 </div>
@@ -296,7 +296,7 @@ HMC는 복잡한 금융 모형에 대한 요즘 베이즈 추론의 등뼈이다
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
 
 </div>

@@ -521,7 +521,7 @@ Probability → Odds → Log-Odds conversion:
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 시그모이드의 도함수가 $z=0$에서 최댓값을 가짐을 증명하고 그 최댓값을 계산하라.
 
 </div>
@@ -537,7 +537,7 @@ Probability → Odds → Log-Odds conversion:
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 대칭성 $\sigma(-z) = 1 - \sigma(z)$을 증명하라.
 
 </div>
@@ -553,7 +553,7 @@ Probability → Odds → Log-Odds conversion:
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 어떤 로지스틱 회귀 모델에서 연 단위로 측정된 특징의 계수가 $\beta_1 = 0.7$이다. 승산비를 계산하고 해석하라. 5년이 늘어나면 승산은 어떻게 달라지는가?
 
 </div>
@@ -567,7 +567,7 @@ Probability → Odds → Log-Odds conversion:
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 수치적으로 안정한 시그모이드 $\sigma(z) = \begin{cases} \frac{1}{1+e^{-z}} & z \geq 0 \\ \frac{e^z}{1+e^z} & z < 0 \end{cases}$을 구현하고, 극단적인 값에서 `torch.sigmoid`와 일치하는지 확인하라.
 
 </div>

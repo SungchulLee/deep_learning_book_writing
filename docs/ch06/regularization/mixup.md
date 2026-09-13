@@ -547,7 +547,7 @@ def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0,
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 믹스업의 학습 목적 함수를 유도하고 왜 $\lambda \sim \text{Beta}(\alpha, \alpha)$인지 설명하라.
 
 </div>
@@ -559,7 +559,7 @@ def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0,
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 PyTorch 학습 루프에서 믹스업을 구현하라.
 
 </div>
@@ -580,7 +580,7 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 근방 위험 최소화의 관점에서 믹스업이 정칙화 장치로 작동하는 방식을 설명하라.
 
 </div>
@@ -592,7 +592,7 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 믹스업, 컷믹스, 다양체 믹스업을 비교하라. 각각은 언제 가장 알맞은가?
 
 </div>

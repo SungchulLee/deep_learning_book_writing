@@ -130,7 +130,7 @@ t-SNE는 둘씩의 거리를 조건부 확률로 바꾸고 높은 차원과 낮�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 Isomap과 LLE에 대해 `n_samples=5000`, `n_neighbors=20`으로 스위스 롤 견줌을 돌려라. 방법마다 걸린 시간을 재고 표본 수가 늘 때 어느 알고리즘이 가장 무난하게 버티는지 알려라.
 
 </div>
@@ -152,7 +152,7 @@ Isomap과 LLE에 대해 `n_samples=5000`, `n_neighbors=20`으로 스위스 롤 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 t-SNE의 무리 크기를 갈래마다의 참 흩어짐으로 읽으면 안 되는 까닭을 설명하라. t-SNE 값 함수의 어떤 성질이 이를 부르는가?
 
 </div>
@@ -164,7 +164,7 @@ t-SNE의 무리 크기를 갈래마다의 참 흩어짐으로 읽으면 안 되�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 MNIST 물길을 t-SNE 대신 UMAP(`umap-learn`을 깔아라)을 쓰도록 고쳐라. 2차원 흩뿌림 그림을 눈으로 견주고 빠르기 차이를 재어라. 실전에서 UMAP이 t-SNE보다 나은 점은 무엇인가?
 
 </div>

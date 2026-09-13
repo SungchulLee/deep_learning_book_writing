@@ -574,7 +574,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 컷믹스 알고리즘과 혼합 비율 $\lambda$이 잘라 낼 넓이를 정하는 방식을 설명하라.
 
 </div>
@@ -586,7 +586,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 컷믹스를 PyTorch로 구현하라.
 
 </div>
@@ -613,7 +613,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 학습에서 대체로 컷아웃보다 컷믹스를 선호하는 이유는 무엇인가?
 
 </div>
@@ -625,7 +625,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 컷믹스가 분류 신경망의 위치 파악 능력을 높이는 방식을 설명하라.
 
 </div>

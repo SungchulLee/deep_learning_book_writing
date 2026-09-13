@@ -562,7 +562,7 @@ with torch.backends.cuda.sdp_kernel(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 열쇠-값 곳간이 자기되돌리기 풀기를 어떻게 빠르게 하는지 밝혀라. 기억 공간의 맞바꿈은 무엇인가?
 
 </div>
@@ -574,7 +574,7 @@ with torch.backends.cuda.sdp_kernel(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 플래시 눈길의 고갱이 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
 
 </div>
@@ -586,7 +586,7 @@ with torch.backends.cuda.sdp_kernel(
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 미리 짚어 풀기란 무엇이며 내놓는 분포를 바꾸지 않고 어떻게 미룸을 빠르게 하는가?
 
 </div>
@@ -598,7 +598,7 @@ with torch.backends.cuda.sdp_kernel(
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 익힌 뒤 양자화(PTQ)와 양자화를 헤아린 익히기(QAT)를 견주어라. 저마다 언제 쓰는 것이 좋은가?
 
 </div>

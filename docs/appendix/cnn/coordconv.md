@@ -104,7 +104,7 @@ CoordConv의 덤은 아주 적다. 엮음 켜마다 들임 갈래 2개(또는 3�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 꼴이 $(2, 3, 8, 8)$인 들임에서 `with_r=True`인 `AddCoords`의 날임 꼴은 무엇인가? x 자리 값 갈래의 $(0, 0)$과 $(7, 7)$ 자리의 값은 얼마인가?
 
 </div>
@@ -116,7 +116,7 @@ CoordConv의 덤은 아주 적다. 엮음 켜마다 들임 갈래 2개(또는 3�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 CoordConv이 만들개 모형(맞겨루기 만들개 따위)에 더욱 이로운 까닭을 밝혀라. 어떤 어그러짐을 콕 집어 다루는가?
 
 </div>
@@ -128,7 +128,7 @@ CoordConv이 만들개 모형(맞겨루기 만들개 따위)에 더욱 이로운
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 붙박인 자리 값 대신 주어진 기준 점 $(r_x, r_y)$에 견준 자리 값을 자리마다 주는 `RelativeCoordConv` 갈래를 꾸며라. 고갱이 점 알아내기 같은 일에 쓸모 있을 것이다.
 
 </div>

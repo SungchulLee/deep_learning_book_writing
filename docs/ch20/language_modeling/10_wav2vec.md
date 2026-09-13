@@ -90,7 +90,7 @@ Wav2Vec 2.0은 크게 두 단계로 돌아간다. 곧 날 소리 물결을 숨�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `FeatureEncoder`가 스테레오 소리 들임(채널 1개가 아니라 2개)을 받도록 고치고, 고친 모델의 매개변수 전체 개수를 본디 것과 견주어 셈하여라.
 
 </div>
@@ -124,7 +124,7 @@ Wav2Vec 2.0은 크게 두 단계로 돌아간다. 곧 날 소리 물결을 숨�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 Wav2Vec 2.0이 말소리의 스스로 살피는 미리 익히기에 (자기부호기 같은) 되살림 바탕 목표 대신 맞대어 배우기를 쓰는 까닭을 밝혀라. 좋은 점과 있을 수 있는 나쁜 점은 무엇인가?
 
 </div>
@@ -144,7 +144,7 @@ Wav2Vec 2.0이 말소리의 스스로 살피는 미리 익히기에 (자기부�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 맥락이 담긴 나타냄을 글자 30개(글자 26개 + 사이 + 홑따옴표 + 빈칸 + 모름)의 낱말 곳간으로 내리쬐어 말소리를 알아듣는 단순한 곱게 다듬기 머리를 `Wav2Vec2` 모델에 더하고, 욕심쟁이 CTC 풀기로 모델의 내놓음을 글로 바꾸는 `decode` 메서드를 짜라.
 
 </div>

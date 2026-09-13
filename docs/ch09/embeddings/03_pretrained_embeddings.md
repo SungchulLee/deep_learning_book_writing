@@ -39,7 +39,7 @@ GloVe(전역 벡터) 알고리즘은 낱말 동시 출현 행렬을 분해하여
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 텍스트 파일에서 GloVe 임베딩을 불러와 `nn.Embedding` 층을 초기화하는 코드를 작성하라. 어휘 밖 낱말에는 알려진 모든 임베딩의 평균을 주어 처리하라.
 
 </div>
@@ -81,7 +81,7 @@ GloVe(전역 벡터) 알고리즘은 낱말 동시 출현 행렬을 분해하여
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 사전 학습 임베딩을 얼리는 것과 미세 조정하는 것의 맞바꿈을 설명하라. 어떤 상황에서 각각이 나은가?
 
 </div>
@@ -97,7 +97,7 @@ GloVe(전역 벡터) 알고리즘은 낱말 동시 출현 행렬을 분해하여
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 무작위로 초기화한 임베딩과 GloVe 임베딩으로 낱말 쌍의 코사인 유사도를 견주어라. 낱말 쌍 다섯 개(king-queen, cat-dog, happy-sad, car-bicycle, hot-cold 따위)를 골라 GloVe는 뜻있는 관계를 담지만 무작위 임베딩은 그렇지 않음을 보여라.
 
 </div>

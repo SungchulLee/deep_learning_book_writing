@@ -158,7 +158,7 @@ print(f"더한 원소 개수는 같다 : {A.sum(axis=1).size * 4000 == A.sum(axi
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 위의 첫 번째 코드에서 `N`을 100배 줄이면 파이썬 반복문과 NumPy의 값 차이는 어떻게 되겠는가? 실제로 재어 보고 까닭을 말하라.
 
 </div>
@@ -172,7 +172,7 @@ print(f"더한 원소 개수는 같다 : {A.sum(axis=1).size * 4000 == A.sum(axi
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 RAM이 SSD보다 1000배쯤 빠르다면, 학습 자료를 매 에포크마다 SSD에서 새로 읽는 것과 한 번 읽어 RAM에 올려 두는 것의 차이는 얼마나 되겠는가?
 
 </div>
@@ -186,7 +186,7 @@ RAM이 SSD보다 1000배쯤 빠르다면, 학습 자료를 매 에포크마다 S
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 두 번째 코드에서 `A`를 전치한 `A.T`에 대해 같은 실험을 하면 행과 열의 값이 뒤바뀌겠는가?
 
 </div>

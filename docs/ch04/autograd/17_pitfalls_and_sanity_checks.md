@@ -53,7 +53,7 @@ PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 다른 입력 값을 쓰도록 코드를 수정하고 출력이 어떻게 달라지는지 관찰하라.
 
 </div>
@@ -66,7 +66,7 @@ PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 코드의 어떤 연산이 뷰를 만들고 어떤 연산이 복사본을 만드는지 찾아라. `storage().data_ptr()`을 확인하여 답을 검증하라.
 
 </div>
@@ -79,7 +79,7 @@ PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 위에서 보여준 개념 두 가지 이상을 결합한 예제를 추가하여 코드를 확장하라.
 
 </div>

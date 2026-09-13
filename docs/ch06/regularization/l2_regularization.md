@@ -697,7 +697,7 @@ def l2_regularization_weights_only(model, lambda_l2):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 L2 정칙화가 SGD에서는 가중치 감쇠와 동등하지만 Adam에서는 그렇지 않음을 보여라.
 
 </div>
@@ -709,7 +709,7 @@ L2 정칙화가 SGD에서는 가중치 감쇠와 동등하지만 Adam에서는 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 L2 정칙화를 가중치에 대한 정규 사전분포로 보는 베이즈적 해석을 유도하라.
 
 </div>
@@ -721,7 +721,7 @@ L2 정칙화를 가중치에 대한 정규 사전분포로 보는 베이즈적 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 L2 정칙화가 가중치를 영 쪽으로 수축시키되 결코 정확히 영으로 만들지 않는 이유를 기하적으로 설명하라.
 
 </div>
@@ -733,7 +733,7 @@ L2 정칙화가 가중치를 영 쪽으로 수축시키되 결코 정확히 영�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 PyTorch에서 `weight_decay` 매개변수를 쓰는 방법과 벌점을 직접 더하는 방법 모두로 L2 정칙화를 구현하라.
 
 </div>

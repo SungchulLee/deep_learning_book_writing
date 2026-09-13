@@ -115,7 +115,7 @@ $$\mathbf{z}^{(l)} = \text{MLP}(\text{LN}(\mathbf{z}^{(l)})) + \mathbf{z}^{(l)}$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 CNN과 비전 트랜스포머의 구조적 차이 가운데 핵심은 무엇인가?
 
 </div>
@@ -127,7 +127,7 @@ CNN과 비전 트랜스포머의 구조적 차이 가운데 핵심은 무엇인�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 압축-여기 신경망과 비국소 신경망의 어텐션 장치가 어떻게 ViT를 앞서 보여 주었는지 설명하라.
 
 </div>
@@ -139,7 +139,7 @@ CNN과 비전 트랜스포머의 구조적 차이 가운데 핵심은 무엇인�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 ViT가 비슷한 성능을 내는 데 CNN보다 학습 데이터가 더 많이 드는 까닭은 무엇인가?
 
 </div>
@@ -151,7 +151,7 @@ ViT가 비슷한 성능을 내는 데 CNN보다 학습 데이터가 더 많이 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 CNN의 특징 추출과 트랜스포머의 처리를 결합한 혼합 구조를 설계하라.
 
 </div>

@@ -1395,7 +1395,7 @@ MNIST에서 신경 상미분 방정식(맞추어 가는 깊이)을 깊이 2, 4, 
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 딸림 민감도 방법을 이끌어 내라. 딸림 $a(t) = \partial L / \partial z(t)$이 $da/dt = -a^T (\partial f / \partial z)$을 만족함을 보이고 매개변수 기울기를 이끌어 내라.
 
 </div>
@@ -1407,7 +1407,7 @@ MNIST에서 신경 상미분 방정식(맞추어 가는 깊이)을 깊이 2, 4, 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 기억 비용을 견주어라. 딸림 방법이 깊이 $L$인 여느 남은 이음 신경망의 $O(L)$에 견주어 $O(1)$ 기억을 이룸을 보여라.
 
 </div>
@@ -1419,7 +1419,7 @@ MNIST에서 신경 상미분 방정식(맞추어 가는 깊이)을 깊이 2, 4, 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 립시츠 이어진 $f_\theta$을 가진 신경 상미분 방정식이 위상 동형을 뜻매김함을 밝혀라. 이는 나타냄 힘에 어떤 뜻을 지니는가?
 
 </div>
@@ -1431,7 +1431,7 @@ MNIST에서 신경 상미분 방정식(맞추어 가는 깊이)을 깊이 2, 4, 
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 신경 상미분 방정식에서 앞 방향 미분이 딸림 방법보다 나은 때는 언제인가?
 
 </div>

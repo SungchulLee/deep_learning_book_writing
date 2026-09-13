@@ -156,7 +156,7 @@ ReLU는 계산이 단순하고 깊은 신경망에서 시그모이드와 tanh를
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 더 깊은 신경망(4층 대신 6층)으로 비교를 실행하라. 활성화 함수의 상대적인 순위가 바뀌는가? 깊이가 늘어날 때 가장 크게 손해를 보는 활성화는 무엇인가?
 
 </div>
@@ -192,7 +192,7 @@ ReLU는 계산이 단순하고 깊은 신경망에서 시그모이드와 tanh를
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 입력이 클 때 시그모이드의 경사가 사라지는 이유를 수학적으로 설명하라. $\frac{d}{dx}\sigma(x)$을 계산하고 $x = 10$과 $x = -10$에서 값을 구하라.
 
 </div>
@@ -214,7 +214,7 @@ ReLU는 계산이 단순하고 깊은 신경망에서 시그모이드와 tanh를
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 사용자 정의 활성화 함수 $f(x) = x \cdot \tanh(\text{softplus}(x))$(Mish라 부른다)을 구현하라. 비교에 추가하여 다른 활성화들과 견주어 성능을 평가하라.
 
 </div>

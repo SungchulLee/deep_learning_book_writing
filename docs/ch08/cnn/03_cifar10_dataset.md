@@ -139,7 +139,7 @@ MNIST에서 CIFAR-10으로 넘어가면 컴퓨터 비전의 근본적인 어려�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 크기가 $3 \times 3$인 출력 필터 32개를 쓰는 CNN의 첫 합성곱 층에서, 입력 채널이 3개일 때(CIFAR-10)와 1개일 때(MNIST) 매개변수의 총수를 계산하라. 편향 항도 넣어라.
 
 </div>
@@ -156,7 +156,7 @@ MNIST에서 CIFAR-10으로 넘어가면 컴퓨터 비전의 근본적인 어려�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 모든 채널에 하나의 전역 평균을 쓰기보다 채널별 정규화 통계량(R, G, B마다 따로 평균과 표준편차)을 계산하는 편이 나은 까닭을 설명하라. 전역 정규화 하나만 쓰면 무엇이 잘못되는가?
 
 </div>
@@ -170,7 +170,7 @@ MNIST에서 CIFAR-10으로 넘어가면 컴퓨터 비전의 근본적인 어려�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 CIFAR-10 학습 집합에는 이미지가 5만 장(부류마다 5000장) 있고 MNIST에는 6만 장(부류마다 약 6000장) 있다. CIFAR-10을 증강하여 실질적으로 20만 장의 학습 집합을 만들고 싶다면, 자연 이미지에 알맞은 증강 기법 네 가지를 서술하고 각각이 의미 이름표를 지키는 까닭을 설명하라.
 
 </div>

@@ -83,7 +83,7 @@ GPT 블록마다 위 삼각 가림으로 인과 주의를 지켜, 토큰이 앞�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 기본 매개변수로 GPT 모형을 만들고 무작위 토큰 번호의 배치를 넣어 보아라. 출력의 꼴이 `(batch_size, sequence_length, vocab_size)`인지, 그리고 인과 가림이 앞으로의 토큰에서 정보가 새는 것을 막는지 확인하라.
 
 </div>
@@ -101,7 +101,7 @@ GPT 블록마다 위 삼각 가림으로 인과 주의를 지켜, 토큰이 앞�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `d_model=768`, `n_layers=12`로 같게 두고 GPT와 BERT의 매개변수 수를 견주어라. 차이가 어디서 오는지 짚고 어떤 구조 선택 때문인지 설명하라.
 
 </div>
@@ -113,7 +113,7 @@ GPT 블록마다 위 삼각 가림으로 인과 주의를 지켜, 토큰이 앞�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 프롬프트 텐서를 받아 탐욕 디코딩(단계마다 argmax)으로 토큰 `max_new_tokens`개를 자기 회귀로 더 만들어 내는 간단한 `generate` 메서드를 `GPT` 클래스에 구현하라.
 
 </div>

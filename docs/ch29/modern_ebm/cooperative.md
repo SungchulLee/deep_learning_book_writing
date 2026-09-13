@@ -261,7 +261,7 @@ $$\Delta_{\text{performance}} = \text{Performance}_{\text{full}} - \text{Perform
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 함께 쓰는 부호기 매개변수 $\phi$에 대한 합친 손실 $\mathcal{L}_{\text{joint}} = \mathcal{L}_{\text{EBM}} + \mathcal{L}_{\text{AE}} + \lambda \mathcal{L}_{\text{interaction}}$의 기울기를 이끌어 내라. 각 항이 부호기 고침에 어떻게 보태는지 밝혀라.
 
 </div>
@@ -277,7 +277,7 @@ $$\Delta_{\text{performance}} = \text{Performance}_{\text{full}} - \text{Perform
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 만든 자료 묶음에서 차례대로 익히기(자기 부호기를 먼저 익히고 얼린 숨은 공간에서 에너지 바탕 모델을 익히기)와 함께 익히기를 견주어라. 어떤 조건에서 함께 익히기가 크게 이로운가?
 
 </div>
@@ -289,7 +289,7 @@ $$\Delta_{\text{performance}} = \text{Performance}_{\text{full}} - \text{Perform
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 금융 때 차례에서 이상을 찾는 함께 하는 에너지 바탕 모델 + 장단기 기억망 계를 짜라. 얼개, 익히기 절차, 두 모델이 마지막 이상 점수에 어떻게 보태는지 밝혀라.
 
 </div>
@@ -301,7 +301,7 @@ $$\Delta_{\text{performance}} = \text{Performance}_{\text{full}} - \text{Perform
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 정규 분포에서 주고받음 손실 $\text{KL}(p_{\text{EBM}} \| p_{\text{aux}})$이 닫힌 꼴로 적힘을 밝혀라. 평균과 함께 흩어짐이 다른 다변량 정규 분포 둘일 때 이를 셈하라.
 
 </div>

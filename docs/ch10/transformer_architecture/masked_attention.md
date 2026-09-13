@@ -533,7 +533,7 @@ KV 캐싱을 쓰면 앞선 자리의 주의를 다시 셈하지 않아도 된다
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 자기 회귀 언어 모형에 인과 가림이 왜 필요한지 설명하라.
 
 </div>
@@ -545,7 +545,7 @@ KV 캐싱을 쓰면 앞선 자리의 주의를 다시 셈하지 않아도 된다
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 파이토치에서 효율적인 인과 주의 가림을 구현하라.
 
 </div>
@@ -562,7 +562,7 @@ KV 캐싱을 쓰면 앞선 자리의 주의를 다시 셈하지 않아도 된다
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 인과 가림과 채움 가림을 견주어라. 각각 언제 쓰는가?
 
 </div>
@@ -574,7 +574,7 @@ KV 캐싱을 쓰면 앞선 자리의 주의를 다시 셈하지 않아도 된다
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 KV 캐싱이 인과 가림을 어떻게 이용해 자기 회귀 추론을 빠르게 하는지 설명하라.
 
 </div>

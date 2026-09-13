@@ -265,7 +265,7 @@ With outlier:
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 후버 손실을 유도하고 $\delta$에서 이차에서 선형으로 넘어감을 보여라.
 
 </div>
@@ -277,7 +277,7 @@ With outlier:
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 후버 손실을 바닥부터 구현하고 `torch.nn.HuberLoss`과 맞는지 확인하라.
 
 </div>
@@ -295,7 +295,7 @@ With outlier:
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 후버 손실의 확률적 해석을 설명하라.
 
 </div>
@@ -307,7 +307,7 @@ With outlier:
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 $\delta$의 선택은 편향과 견고성의 절충에 어떤 영향을 주는가?
 
 </div>

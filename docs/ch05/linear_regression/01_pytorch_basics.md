@@ -353,7 +353,7 @@ PyTorch를 단순한 GPU 가속 배열 라이브러리가 아니라 딥러닝 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `float32`로 텐서 $x = [1, 2, 3, 4, 5]$를 만들어라. 원소별로 $y = x^3 + 2x$를 계산한 뒤 autograd로 각 원소에서의 경사 $\frac{dy}{dx}$를 계산하라. 결과를 해석적 도함수 $3x^2 + 2$와 대조하여 확인하라.
 
 </div>
@@ -372,7 +372,7 @@ PyTorch를 단순한 GPU 가속 배열 라이브러리가 아니라 딥러닝 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 경사 하강법의 매개변수 갱신 단계에서 `torch.no_grad()`를 쓰는 이유와, 그것을 빠뜨리면 어떤 문제가 생기는지 설명하라.
 
 </div>
@@ -384,7 +384,7 @@ PyTorch를 단순한 GPU 가속 배열 라이브러리가 아니라 딥러닝 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 원점에서 시작하여 경사 하강법으로 $f(x_1, x_2) = (x_1 - 2)^2 + (x_2 + 1)^2$의 최솟값을 찾아라. 궤적을 출력하고 $(2, -1)$로 수렴함을 확인하라.
 
 </div>

@@ -203,7 +203,7 @@ Attn pool shape: torch.Size([2, 8])
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 그래프 켜 일에서 그래프 모으기가 왜 필요한지 밝히고 겹말기 신경망의 모으기와 견주어라.
 
 </div>
@@ -215,7 +215,7 @@ Attn pool shape: torch.Size([2, 8])
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 DiffPool 켜진 모으기 방법과 그 배정 얼개를 밝혀라.
 
 </div>
@@ -227,7 +227,7 @@ DiffPool 켜진 모으기 방법과 그 배정 얼개를 밝혀라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 납작한 모으기(읽어내기)와 켜진 모으기의 차이는 무엇인가?
 
 </div>
@@ -239,7 +239,7 @@ DiffPool 켜진 모으기 방법과 그 배정 얼개를 밝혀라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 Set2Set 모으기를 밝히고 왜 단순한 평균/합 모으기보다 나타냄 힘이 셀 수 있는지 말하여라.
 
 </div>

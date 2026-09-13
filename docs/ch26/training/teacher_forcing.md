@@ -75,7 +75,7 @@ def teacher_forced_loss(model, x, vocab_size):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 스승 밀어 넣기와 그것이 차례에서 차례로 가는 모델을 익힐 때 만드는 드러남 치우침 문제를 설명하라.
 
 </div>
@@ -87,7 +87,7 @@ def teacher_forced_loss(model, x, vocab_size):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 드러남 치우침을 누그러뜨리는 방법으로서 차례 잡은 뽑기를 설명하라. 익히는 동안 뽑기 확률은 어떻게 바뀌는가?
 
 </div>
@@ -99,7 +99,7 @@ def teacher_forced_loss(model, x, vocab_size):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 스승 밀어 넣기, 스스로 도는 익히기, 차례 잡은 뽑기를 익히기의 안정과 만들어 내기 품질 면에서 견주어라.
 
 </div>
@@ -111,7 +111,7 @@ def teacher_forced_loss(model, x, vocab_size):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 왜 추론할 때는 자기 되돌이 말 모델에 스승 밀어 넣기를 쓸 수 없는가? 요즘 큰 말 모델은 이를 어떻게 다루는가?
 
 </div>

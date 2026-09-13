@@ -132,7 +132,7 @@ for i, r in enumerate(results):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 허깅페이스 파이프라인으로 "The new electric car has impressive range and acceleration"이라는 글을 후보 이름표 `["automotive", "finance", "sports", "technology"]`에 대해 영 예시 분류하라. 어느 이름표가 가장 높은 점수를 받으며 그 까닭은 무엇인가?
 
 </div>
@@ -154,7 +154,7 @@ for i, r in enumerate(results):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 토큰 나누개의 `padding=True`와 `padding="max_length"`의 차이를 설명하라. 각각 언제 더 좋으며 기억 면에서는 어떤 뜻이 있는가?
 
 </div>
@@ -166,7 +166,7 @@ for i, r in enumerate(results):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 학습 단계의 처음 10% 동안 선형으로 예열한 뒤 선형으로 잦아드는 학습률 조정기를 넣도록 미세 조정 고리를 고쳐라. 허깅페이스의 `get_scheduler`를 쓰라.
 
 </div>

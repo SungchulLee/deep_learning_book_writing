@@ -125,7 +125,7 @@ Final Test Accuracy: 1.0000
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 클래스를 3개 대신 5개 다루도록 코드를 수정하라. 표본 수를 1000개로 늘리고 모델을 학습시켜라. 최종 시험 정확도와 5개 클래스 각각의 클래스별 정확도를 보고하라.
 
 </div>
@@ -155,7 +155,7 @@ Final Test Accuracy: 1.0000
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `CrossEntropyLoss`이 원-핫 목표가 아니라 `LongTensor` 형태의 클래스 인덱스를 받는 이유를 설명하라. 실수로 원-핫 벡터를 넘기면 어떻게 되는가?
 
 </div>
@@ -171,7 +171,7 @@ Final Test Accuracy: 1.0000
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 모델의 순전파에 (출력 앞에) 소프트맥스 층을 추가하고 `CrossEntropyLoss`으로 학습시켜라. 최종 시험 정확도를 원래 모델과 비교하고 관찰된 차이를 설명하라.
 
 </div>

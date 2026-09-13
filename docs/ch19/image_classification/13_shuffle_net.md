@@ -93,7 +93,7 @@ ShuffleNet은 손전화에 펼치기 알맞은, 정확도와 효율의 좋은 �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 채널 섞기 연산을 한 단계씩 짜고, 서로 다른 묶음의 채널이 올바로 엇갈리는지 확인하여라.
 
 </div>
@@ -112,7 +112,7 @@ ShuffleNet은 손전화에 펼치기 알맞은, 정확도와 효율의 좋은 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 성큼이 2일 때 ShuffleNet은 왜 지름길을 더하지 않고 이어 붙이는가?
 
 </div>
@@ -124,7 +124,7 @@ ShuffleNet은 손전화에 펼치기 알맞은, 정확도와 효율의 좋은 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 들임과 내놓음 채널이 같을 때 묶음이 $g$개인 묶음 누비기와 보통 누비기의 셈 값을 견주어라.
 
 </div>

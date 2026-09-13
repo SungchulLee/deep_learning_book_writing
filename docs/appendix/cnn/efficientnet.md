@@ -100,7 +100,7 @@ MBConv(손전화 뒤집힌 목 엮음) 덩이가 EfficientNet의 밑바탕 벽�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 겹 잣대 매개변수 $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$과 $\phi = 2$이 주어졌을 때 키운 깊이, 너비, 결의 곱값을 셈하여라.
 
 </div>
@@ -112,7 +112,7 @@ MBConv(손전화 뒤집힌 목 엮음) 덩이가 EfficientNet의 밑바탕 벽�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 MBConv 덩이가 마지막 되비춤에 또 다른 깊이별 엮음이 아니라 $1 \times 1$ 엮음을 쓰는 까닭은 무엇인가? 선형 목이 하는 몫을 밝혀라.
 
 </div>
@@ -124,7 +124,7 @@ MBConv 덩이가 마지막 되비춤에 또 다른 깊이별 엮음이 아니라
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `MBConv` 덩이의 깊이별 엮음과 마지막 $1 \times 1$ 되비춤 사이에 쥐어짜 북돋우기(SE) 묶음을 더하여라.
 
 </div>

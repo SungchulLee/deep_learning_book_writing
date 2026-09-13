@@ -204,7 +204,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 되짚어 시험하기 틀 안에 평균-분산 가장 좋게 하기 꾀를 짜 넣어라. 다시 맞추는 걸음마다 60일치 돌아옴을 굴러가는 창으로 삼고 무릅씀 꺼림 값 $\gamma = 1$으로 가장 좋은 몫을 셈하여라.
 
 </div>
@@ -229,7 +229,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 잦게 다시 맞추는 꾀에서 미끄러짐을 본뜨는 일이 왜 중요한지 밝혀라. 미끄러짐 모형에 든 갈아치움의 제곱근은 저자의 잔 얼개와 어떻게 이어지는가?
 
 </div>
@@ -242,7 +242,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 밑천 꾸러미의 내림폭이 5%을 넘으면 자리 크기를 저절로 반으로 줄이고 10%을 넘으면 모든 자리를 접는, 가장 큰 내림폭 매임을 되짚어 시험하기 엔진에 더하여라.
 
 </div>

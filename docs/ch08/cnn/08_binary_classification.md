@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 학습 곡선에서 가장 쉬운 숫자 쌍 셋과 가장 어려운 쌍 셋을 찾아라. 어려운 쌍마다 어떤 시각적 특징 때문에 구별이 어려운지 서술하라.
 
 </div>
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 모델 45개를 따로 학습시키는 대신 하나의 모델로 쌍별 혼동 분석을 하는 방법을 설명하라. 두 방식에는 각각 어떤 장단점이 있는가?
 
 </div>
@@ -168,7 +168,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 45개 이진 분류기마다 마지막 시험 정확도를 계산하고, 성분 $(i, j)$이 숫자 $i$과 $j$을 가르는 시험 정확도를 나타내는 $10 \times 10$ 열지도를 만들어 분석을 넓혀라. 이 열지도에서 기대되는 무늬를 서술하라.
 
 </div>

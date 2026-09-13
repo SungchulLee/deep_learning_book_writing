@@ -162,7 +162,7 @@ $$\epsilon(t) = \max\left(\epsilon_\text{end},\; \epsilon_\text{start} - \frac{\
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 Q 값 어림에 신경망을 쓰는 어려움을 이 방법이 어떻게 다루는지 밝혀라. 이 길이 없으면 어떤 불안정이 생기는가?
 
 </div>
@@ -174,7 +174,7 @@ Q 값 어림에 신경망을 쓰는 어려움을 이 방법이 어떻게 다루�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평균 보상 > 475) 필요한 판수를 알리고 배움 굽은 줄을 그려라.
 
 </div>
@@ -186,7 +186,7 @@ CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 맨 DQN에 견주어 이 방법이 더하는 셈과 기억 덧짐을 살펴라. 금융 쓰임새에서 그 맞바꿈이 값을 하는가?
 
 </div>
@@ -198,7 +198,7 @@ CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 보상 신호가 성기고(거래를 마칠 때만 실현되고) 늦는 금융 거래 쓰임새에 이 방법을 어떻게 맞출지 다루어라.
 
 </div>

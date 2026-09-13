@@ -395,7 +395,7 @@ Example pair: ['je suis pret .', 'i m ready .']
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 순차열 대 순차열 모델의 부호기-복호기 구조를 설명하라.
 
 </div>
@@ -407,7 +407,7 @@ Example pair: ['je suis pret .', 'i m ready .']
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 기본 seq2seq 모델의 정보 병목 문제란 무엇인가? 어텐션은 그것을 어떻게 푸는가?
 
 </div>
@@ -419,7 +419,7 @@ Example pair: ['je suis pret .', 'i m ready .']
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 seq2seq 모델에 대해 빔 너비가 $k$인 빔 탐색 복호를 구현하라.
 
 </div>
@@ -443,7 +443,7 @@ seq2seq 모델에 대해 빔 너비가 $k$인 빔 탐색 복호를 구현하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 텍스트 생성에서 탐욕적 복호와 빔 탐색과 표본 추출 전략을 견주어라.
 
 </div>

@@ -185,7 +185,7 @@ Next: Module 9 - Bayesian Linear Regression
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 정규-정규 모형에 대한 경험 베이즈 절차를 짜라. $\theta_i \sim N(\mu, \tau^2)$이고 관측값이 $y_i \sim N(\theta_i, 1)$인 10개가 주어졌을 때 주변 분포에서 $\mu$과 $\tau^2$을 어림하고 오그림 어림값을 셈하여라.
 
 </div>
@@ -216,7 +216,7 @@ print(f'MSE (EB):  {np.mean((eb_est - thetas)**2):.4f}')
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 제임스-스타인 어림값이 차원 $p \geq 3$에서만 최대가능도 어림값을 앞서는 까닭을 밝혀라. 차원 1과 2에서는 어떻게 되는가?
 
 </div>
@@ -231,7 +231,7 @@ print(f'MSE (EB):  {np.mean((eb_est - thetas)**2):.4f}')
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 야구 보기를 넓혀 경험 베이즈의 앞확률 갈래 셋을 견주어라. 베타, 로짓-정규, 그리고 비모수 알맹이 밀도 어림이다. 어느 것이 MSE을 가장 잘 줄이는가?
 
 </div>

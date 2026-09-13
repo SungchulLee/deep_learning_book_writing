@@ -483,7 +483,7 @@ model2.eval()
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 선형 회귀에 대한 경사 하강법을 구현하고 500회 반복 동안의 손실 곡선을 그려라.
 
 </div>
@@ -506,7 +506,7 @@ model2.eval()
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 같은 회귀 문제에서 배치 GD, 미니배치 GD(배치 크기 32), SGD의 수렴을 비교하라. 세 손실 곡선을 모두 그려라.
 
 </div>
@@ -518,7 +518,7 @@ model2.eval()
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 이차 손실 $L(\mathbf{w}) = \frac{1}{2}\mathbf{w}^\top\mathbf{A}\mathbf{w} - \mathbf{b}^\top\mathbf{w}$에 대한 경사 하강법의 닫힌 형태 최적 학습률을 유도하라.
 
 </div>
@@ -536,7 +536,7 @@ model2.eval()
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 PyTorch 추상화의 네 단계로 경사 하강법을 구현하라. (1) 경사 직접 계산, (2) autograd, (3) `nn.Linear`, (4) 완전한 `nn.Module`. 넷이 모두 같은 결과를 내는지 확인하라.
 
 </div>

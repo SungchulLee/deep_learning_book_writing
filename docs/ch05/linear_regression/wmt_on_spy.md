@@ -260,7 +260,7 @@ NumPy 정규 방정식, scikit-learn, PyTorch 경사 하강법이라는 세 추�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 WMT를 기술주(예: AAPL이나 NVDA)로 바꾸어 추정된 베타를 월마트의 것과 비교하라. 어느 주식의 베타가 더 높으며 그 이유는 무엇인가?
 
 </div>
@@ -272,7 +272,7 @@ WMT를 기술주(예: AAPL이나 NVDA)로 바꾸어 추정된 베타를 월마�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 OLS 회귀 이론의 표준오차 공식을 사용하여 베타 추정치에 대한 95% 신뢰구간을 계산하라.
 
 </div>
@@ -306,7 +306,7 @@ OLS 회귀 이론의 표준오차 공식을 사용하여 베타 추정치에 대
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이동 알파를 이동 베타와 나란히 그려라. 알파가 계속 양수인가, 음수인가, 아니면 0 주위에서 오르내리는가? 이는 WMT의 위험 조정 성과에 대해 무엇을 뜻하는가?
 
 </div>

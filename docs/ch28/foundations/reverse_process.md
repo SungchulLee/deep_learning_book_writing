@@ -200,7 +200,7 @@ def reverse_mean_from_noise(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 과녁 적분이 끝이 있는데도 중요도 표집의 흩어짐이 왜 끝없을 수 있는지 설명하여라.
 
 </div>
@@ -212,7 +212,7 @@ def reverse_mean_from_noise(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 중요도 무게 $w_1, \ldots, w_N$으로 나타낸 실효 표본 크기(ESS)의 공식을 이끌어 내어라.
 
 </div>
@@ -228,7 +228,7 @@ def reverse_mean_from_noise(
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 중요도 표집으로 $\mathbb{E}_p[f(X)]$을 어림할 때 가장 좋은 제안 분포가 $q^*(x) \propto |f(x)| p(x)$임을 보여라.
 
 </div>
@@ -240,7 +240,7 @@ def reverse_mean_from_noise(
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 $X \sim \mathcal{N}(0,1)$일 때 $t$분포를 제안으로 써서 $\mathbb{E}[X^2]$의 단순한 중요도 표집 어림자를 구현하여라.
 
 </div>

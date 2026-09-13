@@ -242,7 +242,7 @@ class ConvNetELU(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 ELU 함수와 그 도함수를 수학적으로 쓰라.
 
 </div>
@@ -254,7 +254,7 @@ ELU 함수와 그 도함수를 수학적으로 쓰라.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 경사 소실과 죽은 뉴런의 관점에서 ELU, ReLU, Leaky ReLU를 비교하라.
 
 </div>
@@ -266,7 +266,7 @@ ELU 함수와 그 도함수를 수학적으로 쓰라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 ELU를 바닥부터 구현하고 `torch.nn.ELU`와 일치하는지 확인하라.
 
 </div>
@@ -283,7 +283,7 @@ ELU를 바닥부터 구현하고 `torch.nn.ELU`와 일치하는지 확인하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 ELU의 음수 쪽 포화가 평균 활성화를 0에 더 가깝게 당길 수 있는 이유와, 그것이 학습에 왜 중요한지 설명하라.
 
 </div>

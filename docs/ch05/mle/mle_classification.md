@@ -287,7 +287,7 @@ def train_classification_mle_perspective():
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 초점 손실 $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고, $\gamma = 0$일 때 표준 교차 엔트로피로 환원됨을 보여라.
 
 </div>
@@ -307,7 +307,7 @@ def train_classification_mle_perspective():
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 10개 클래스 문제에서 매개변수 $\epsilon = 0.1$인 이름표 평활화를 구현하고, 신뢰도 그림으로 딱딱한 이름표와 보정 정도를 비교하라.
 
 </div>
@@ -333,7 +333,7 @@ def train_classification_mle_perspective():
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 교차 엔트로피를 최소화하는 것이 경험적 분포와 모델 분포 사이의 KL 발산을 최소화하는 것과 같음을 보여라.
 
 </div>
@@ -351,7 +351,7 @@ def train_classification_mle_perspective():
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 누적 연결 확률을 사용하여 순서를 존중하는 순서형 분류(평점 1--5)의 손실 함수를 설계하라.
 
 </div>

@@ -439,7 +439,7 @@ Non-convex: mean=0.4647, std=0.0284
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 모든 $x$에 대해 2차 조건 $f''(x) \geq 0$을 확인하여 $f(x) = e^x$가 볼록임을 보여라.
 
 </div>
@@ -451,7 +451,7 @@ Non-convex: mean=0.4647, std=0.0284
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 $f(x, y) = x^2 - y^2$에 대해 헤세 행렬을 계산하고 그 고윳값을 구한 뒤 원점의 임계점을 분류하라.
 
 </div>
@@ -469,7 +469,7 @@ $f(x, y) = x^2 - y^2$에 대해 헤세 행렬을 계산하고 그 고윳값을 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 볼록 함수의 모든 국소 최솟값이 전역 최솟값임을 증명하라.
 
 </div>
@@ -485,7 +485,7 @@ $f(x, y) = x^2 - y^2$에 대해 헤세 행렬을 계산하고 그 고윳값을 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 합성 2차원 분류 과제에 대해 작은 신경망(은닉층 2개, 각 32개 단위)을 서로 다른 무작위 초기화 20개로 학습시켜라. 최종 손실 값의 히스토그램을 그리고 서로 다른 국소 최솟값이 몇 개나 발견되는지 세어라.
 
 </div>

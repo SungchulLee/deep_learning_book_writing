@@ -691,7 +691,7 @@ class SparseInputNetwork(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 영에서의 부분기울기를 써서 L1 정칙화가 희소한 가중치를 만드는 이유를 설명하라.
 
 </div>
@@ -703,7 +703,7 @@ class SparseInputNetwork(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 고차원 회귀 문제에서 L1과 L2가 만드는 희소성의 양상을 비교하라.
 
 </div>
@@ -715,7 +715,7 @@ class SparseInputNetwork(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 L1 정칙화 학습을 위한 근접 경사 하강법을 구현하라.
 
 </div>
@@ -732,7 +732,7 @@ L1 정칙화 학습을 위한 근접 경사 하강법을 구현하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 L1 정칙화를 라플라스 사전분포로 보는 베이즈적 해석을 유도하라.
 
 </div>

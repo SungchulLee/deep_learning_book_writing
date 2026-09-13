@@ -488,7 +488,7 @@ $$x_{l+2} = x_{l+1} + \text{FFN}(\text{LN}(x_{l+1}))$$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 잔차 연결 $y = x + F(x)$을 지나는 기울기의 크기가 적어도 1임을 증명하라.
 
 </div>
@@ -500,7 +500,7 @@ $$x_{l+2} = x_{l+1} + \text{FFN}(\text{LN}(x_{l+1}))$$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 사전 활성화 ResNet(BN-ReLU-Conv)과 사후 활성화(Conv-BN-ReLU)를 비교하라. 아주 깊은 신경망에는 어느 쪽이 나은가?
 
 </div>
@@ -512,7 +512,7 @@ $$x_{l+2} = x_{l+1} + \text{FFN}(\text{LN}(x_{l+1}))$$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 차원이 바뀔 때 쓰는 사영 지름길을 갖춘 잔차 블록을 PyTorch로 구현하라.
 
 </div>
@@ -537,7 +537,7 @@ $$x_{l+2} = x_{l+1} + \text{FFN}(\text{LN}(x_{l+1}))$$
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 잔차 신경망과 앙상블 학습의 관계를 설명하라.
 
 </div>

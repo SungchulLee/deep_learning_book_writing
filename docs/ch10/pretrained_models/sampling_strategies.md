@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 색인 42에 뚜렷한 꼭대기가 있는 꼴 `(1, 100)`의 로짓 텐서를 만들고 세 표집 방법을 모두 적용하라. 탐욕은 언제나 42를 돌려주고, 상위 $k$은 대체로 42를 돌려주며, $p = 0.5$일 때 핵 표집이 높은 확률로 42를 돌려주는지 확인하라.
 
 </div>
@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 핵 표집이 `sorted_indices_to_remove` 가림을 오른쪽으로 한 자리 미는 까닭(`sorted_indices_to_remove[..., 1:] = ...` 줄)을 설명하라. 이 밀기가 없으면 어떻게 되는가?
 
 </div>
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 먼저 상위 $k$개 토큰으로 좁힌 뒤 그 안에서 핵 표집을 하는 "상위 $k$ + 핵"이라는 섞은 표집 방법을 구현하라. 각 방법을 따로 쓸 때와 견주어라.
 
 </div>

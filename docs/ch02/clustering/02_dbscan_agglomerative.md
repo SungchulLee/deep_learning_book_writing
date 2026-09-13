@@ -159,7 +159,7 @@ DBSCAN은 군집을 더 성긴 영역으로 둘러싸인 조밀한 점들의 영
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `make_moons(n_samples=1000, noise=0.1)`로 데이터셋을 생성하고 `eps` 값을 0.1, 0.2, 0.3, 0.5로 하여 DBSCAN을 적용하라. 각 설정에서 찾아진 군집 개수와 잡음 점 개수를 보고하라. 어떤 `eps`가 가장 좋은 결과를 주는가?
 
 </div>
@@ -189,7 +189,7 @@ DBSCAN은 군집을 더 성긴 영역으로 둘러싸인 조밀한 점들의 영
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 병합 군집화에서 Ward, 완전, 평균, 단일 연결의 차이를 설명하라. 각 연결 방식이 가장 적절한 상황을 기술하라.
 
 </div>
@@ -207,7 +207,7 @@ DBSCAN은 군집을 더 성긴 영역으로 둘러싸인 조밀한 점들의 영
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 위 코드의 중심 4개짜리 `make_blobs` 데이터셋에 Ward 연결로 병합 군집화를 적용하되 군집 개수를 2부터 8까지 바꿔 가며 실행하라. 각각의 실루엣 점수를 계산하여 최적 군집 개수를 찾고, 덴드로그램 기반 접근과 비교하라.
 
 </div>

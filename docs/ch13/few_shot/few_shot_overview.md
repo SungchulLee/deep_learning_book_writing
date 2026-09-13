@@ -568,7 +568,7 @@ few_shot_transforms = T.Compose([
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 $N$-갈래 $K$-예시 학습을 정의하고 에피소드 학습 틀을 설명하라.
 
 </div>
@@ -580,7 +580,7 @@ $N$-갈래 $K$-예시 학습을 정의하고 에피소드 학습 틀을 설명�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 소수 예시 학습의 거리 기반, 최적화 기반, 지어내기 기반 접근법을 견주어라.
 
 </div>
@@ -592,7 +592,7 @@ $N$-갈래 $K$-예시 학습을 정의하고 에피소드 학습 틀을 설명�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 파이토치로 간단한 $N$-갈래 $K$-예시 에피소드 뽑개를 구현하라.
 
 </div>
@@ -614,7 +614,7 @@ $N$-갈래 $K$-예시 학습을 정의하고 에피소드 학습 틀을 설명�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 소수 예시 학습, 영 예시 학습, 메타 학습의 차이는 무엇인가?
 
 </div>

@@ -59,7 +59,7 @@ GPU에서는 트랜스포머의 연산이 병렬로 하기 좋은 행렬 곱이�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `seq_len`을 `[50, 100, 200, 500, 1000]`으로 바꾸어 가며 성능 시험을 넓히고 모형마다 실행 시간을 수열 길이의 함수로 그려라. 어느 지점에서 트랜스포머가 순환 신경망보다 느려지는가?
 
 </div>
@@ -99,7 +99,7 @@ GPU에서는 트랜스포머의 연산이 병렬로 하기 좋은 행렬 곱이�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 (쓸 수 있다면) 모형과 데이터를 CUDA로 옮겨 GPU 성능 시험을 더하라. 시간을 재기 전에 `torch.cuda.synchronize()`로 제대로 맞추어라. GPU에서 상대적인 속도는 어떻게 달라지는가?
 
 </div>
@@ -132,7 +132,7 @@ GPU에서는 트랜스포머의 연산이 병렬로 하기 좋은 행렬 곱이�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 모형마다 앞먹임 앞뒤로 `torch.cuda.max_memory_allocated()`를 살펴 속도와 함께 기억 사용량도 재어라. 어느 구조가 기억을 가장 아끼는가?
 
 </div>

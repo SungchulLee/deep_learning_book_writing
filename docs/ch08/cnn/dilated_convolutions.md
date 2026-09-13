@@ -480,7 +480,7 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 핵 크기가 3이고 팽창률이 1, 2, 4인 팽창 합성곱 세 층의 수용 영역을 계산하라.
 
 </div>
@@ -492,7 +492,7 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 팽창 합성곱의 '격자 무늬 흠' 문제와 그것을 누그러뜨리는 방법을 설명하라.
 
 </div>
@@ -504,7 +504,7 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 팽창 합성곱을 PyTorch로 구현하고 출력마다 어느 입력 자리가 이바지하는지 그려 보라.
 
 </div>
@@ -520,7 +520,7 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 수용 영역을 넓히는 방법으로 팽창 합성곱과 풀링을 견주어라. 팽창의 이점은 무엇인가?
 
 </div>

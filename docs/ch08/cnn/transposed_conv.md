@@ -508,7 +508,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 전치 합성곱의 출력 크기 공식 $o = (i-1) \times s - 2p + k + \text{output\_padding}$을 유도하라.
 
 </div>
@@ -520,7 +520,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 전치 합성곱이 바둑판 무늬 흠을 만들 수 있는 까닭과 그것을 피하는 방법을 설명하라.
 
 </div>
@@ -532,7 +532,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 (가) 전치 합성곱과 (나) 쌍선형 보간 뒤 합성곱으로 상향 표본화 모듈을 각각 구현하고 결과를 견주어라.
 
 </div>
@@ -552,7 +552,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 전치 합성곱은 어떤 구조에서 흔히 쓰이는가?
 
 </div>

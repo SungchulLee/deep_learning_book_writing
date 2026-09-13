@@ -138,7 +138,7 @@ GPU 사용률이 낮다면 계산이 아니라 **자료 공급**이 병목이다
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 위 코드의 비율이 0.06으로 나왔다고 하자. 이는 무엇을 뜻하며, 이 기계에서 자료 옮기기를 걱정해야 하는가?
 
 </div>
@@ -152,7 +152,7 @@ GPU 사용률이 낮다면 계산이 아니라 **자료 공급**이 병목이다
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 학습 루프 안에서 매 묶음마다 `loss.item()`을 불러 손실을 쌓아 목록에 담고 있다. 이것이 왜 느려질 수 있는가?
 
 </div>
@@ -166,7 +166,7 @@ GPU 사용률이 낮다면 계산이 아니라 **자료 공급**이 병목이다
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `num_workers`를 CPU 코어 수보다 훨씬 크게 잡으면 어떻게 되겠는가?
 
 </div>

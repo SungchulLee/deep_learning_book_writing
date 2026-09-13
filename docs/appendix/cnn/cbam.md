@@ -99,7 +99,7 @@ CBAM은 잇따른 두 작은 묶음으로 이루어진다. 갈래 눈길 묶음�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 꼴이 $(B, 64, H, W)$인 들임 결 그림과 줄임 견줌 16이 주어졌을 때 `ChannelAttention` 묶음의 매개변수 수를 셈하여라.
 
 </div>
@@ -111,7 +111,7 @@ CBAM은 잇따른 두 작은 묶음으로 이루어진다. 갈래 눈길 묶음�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 CBAM이 자리 눈길보다 갈래 눈길을 먼저 거는 까닭은 무엇인가? 거꾸로 하거나 나란히 하지 않는 이치를 느낌으로 밝혀라.
 
 </div>
@@ -123,7 +123,7 @@ CBAM이 자리 눈길보다 갈래 눈길을 먼저 거는 까닭은 무엇인�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `SpatialAttention` 묶음을 모으기 셈의 수를 골라 잡을 수 있게 넓혀라(고르게 모으기와 가장 크게 모으기에 더해 $L^2$ 노름 모으기를 넣는 따위). 고친 갈래를 써라.
 
 </div>

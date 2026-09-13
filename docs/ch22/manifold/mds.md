@@ -461,7 +461,7 @@ MDS는 전역 거리 짜임을 지키지만 비선형 다양체를 "펴지는" �
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 고전 MDS와 계량 MDS의 차이를 설명하라. 둘은 언제 같아지는가?
 
 </div>
@@ -473,7 +473,7 @@ MDS는 전역 거리 짜임을 지키지만 비선형 다양체를 "펴지는" �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 차원 높은 자료를 그려 보는 데 t-SNE와 MDS를 견주어라. 저마다 센 점과 약한 점은 무엇인가?
 
 </div>
@@ -485,7 +485,7 @@ MDS는 전역 거리 짜임을 지키지만 비선형 다양체를 "펴지는" �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 제곱 거리 행렬의 두 번 가운데 맞춤에서 고전 MDS 알고리즘을 이끌어 내어라.
 
 </div>
@@ -497,7 +497,7 @@ MDS는 전역 거리 짜임을 지키지만 비선형 다양체를 "펴지는" �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 t-SNE는 낮은 차원 공간에서 왜 정규 분포가 아니라 스튜던트 $t$ 분포를 쓰는가?
 
 </div>

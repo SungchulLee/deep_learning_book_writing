@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 `vocab_size=100`에서 `start_tokens = torch.tensor([[1, 2, 3]])`으로 시작해 토큰 20개짜리 수열을 만들어라. `temperature=0.5`, `1.0`, `2.0`으로 세 번 돌려 출력이 어떻게 다른지 살펴라.
 
 </div>
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 지금의 `generate` 메서드는 위치 인코딩이 정한 최대 수열 길이 제약을 다루지 않는다. `start_tokens`과 만들어진 토큰의 합이 디코더의 `max_len`을 넘으면 어떻게 되는지 설명하고 고칠 방법을 내놓아라.
 
 </div>
@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 `generate` 메서드에서 순수 다항 표집 대신 쓸 수 있는 상위 $k$ 표집을 구현하라. 확률이 가장 높은 $k$개의 토큰만 뽑기 후보가 되어야 한다.
 
 </div>

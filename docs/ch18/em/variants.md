@@ -783,7 +783,7 @@ class VariationalGMM:
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 EM 알고리즘의 되풀이마다 로그 가능도 $\log p(X \mid \theta)$이 단조롭게 커짐을 보여라.
 
 </div>
@@ -795,7 +795,7 @@ EM 알고리즘의 되풀이마다 로그 가능도 $\log p(X \mid \theta)$이 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 성분이 $K$개인 가우스 섞음 모형의 온전한 E 걸음과 M 걸음 새로 고침을 이끌어 내어라.
 
 </div>
@@ -811,7 +811,7 @@ EM 알고리즘의 되풀이마다 로그 가능도 $\log p(X \mid \theta)$이 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 딱 잘라 하는 EM과 부드러운 EM의 차이를 설명하여라. 딱 잘라 하는 EM은 언제 나을 수 있는가?
 
 </div>
@@ -823,7 +823,7 @@ EM 알고리즘의 되풀이마다 로그 가능도 $\log p(X \mid \theta)$이 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 EM 도중에 가우스 성분이 자료 점 하나로 찌부러지면 어떤 말썽이 생길 수 있는가? 어떻게 막을 수 있는가?
 
 </div>

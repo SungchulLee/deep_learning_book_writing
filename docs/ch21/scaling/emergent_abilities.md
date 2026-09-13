@@ -327,7 +327,7 @@ $$\boxed{\text{Emergence} = \text{Qualitative change, not just quantitative impr
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 친칠라 규모 법칙을 말하여라. 이는 모델 크기와 익힘 토막 사이의 가장 좋은 셈 나눔을 어떻게 바꾸는가?
 
 </div>
@@ -339,7 +339,7 @@ $$\boxed{\text{Emergence} = \text{Qualitative change, not just quantitative impr
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 큰 말 모델의 떠오르는 능력이란 무엇인가? 이 생각은 왜 논쟁거리인가?
 
 </div>
@@ -351,7 +351,7 @@ $$\boxed{\text{Emergence} = \text{Qualitative change, not just quantitative impr
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 큰 모델을 익힐 때의 모델 나란히 하기, 자료 나란히 하기, 물길 나란히 하기의 차이를 밝혀라.
 
 </div>
@@ -363,7 +363,7 @@ $$\boxed{\text{Emergence} = \text{Qualitative change, not just quantitative impr
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 셈 예산이 $10^{23}$ 뜨는 셈 횟수로 붙박여 있다면 모델 크기와 익힘 자료에 어떻게 나누어 쓰겠는가? 크기 법칙으로 답을 뒷받침하여라.
 
 </div>

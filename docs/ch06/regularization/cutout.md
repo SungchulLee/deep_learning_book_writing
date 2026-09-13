@@ -537,7 +537,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 컷아웃 알고리즘과 그 초매개변수를 설명하라.
 
 </div>
@@ -549,7 +549,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 컷아웃을 `torchvision.transforms`의 사용자 정의 변환으로 구현하라.
 
 </div>
@@ -574,7 +574,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 정칙화 기법으로서 컷아웃과 드롭아웃의 관계를 설명하라.
 
 </div>
@@ -586,7 +586,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 이미지 해상도가 다를 때 컷아웃의 조각 크기는 얼마로 해야 하는가?
 
 </div>

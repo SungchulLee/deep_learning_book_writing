@@ -100,7 +100,7 @@ Single-batch loss: 0.013418 (should be ~0)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 $x = [1, 2, 3]^\top$에서 함수 $f(x) = \sin(x^\top x)$에 대해 $\epsilon = 10^{-5}$인 중심 유한 차분으로 수치적 경사 확인을 작성하라. 해석적 경사를 구하고, 이 확인이 실패할 수 있는 경우를 설명하라.
 
 </div>
@@ -112,7 +112,7 @@ $x = [1, 2, 3]^\top$에서 함수 $f(x) = \sin(x^\top x)$에 대해 $\epsilon = 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 "단일 배치 과적합" 정확성 검사를 설명하라. 모델이 단일 배치에서 학습 손실을 거의 0으로 만들어야 하는 이유는 무엇이며, 실패는 무엇을 시사하는가?
 
 </div>
@@ -124,7 +124,7 @@ $x = [1, 2, 3]^\top$에서 함수 $f(x) = \sin(x^\top x)$에 대해 $\epsilon = 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 SGD 학습 루프의 루프 불변식을 정의하라: $L$-평활 손실에 대해 "$t$ 단계 후 손실 $\ell(\theta_t)$는 $\ell(\theta_t) \leq \ell(\theta_0) - \sum_{i=0}^{t-1}\eta(1 - \eta L/2)\|\nabla\ell(\theta_i)\|^2$를 만족한다." 초기화 조건과 유지 조건을 검증하라.
 
 </div>
@@ -136,7 +136,7 @@ SGD 학습 루프의 루프 불변식을 정의하라: $L$-평활 손실에 대�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 어떤 모델이 경사 확인은 통과하지만 테스트 집합에 일반화되지 않는다. 구현 정확성이 통계적 정확성을 보장하지 않는 이유를 설명하고, 흔한 원인 세 가지를 나열하라.
 
 </div>
@@ -148,7 +148,7 @@ SGD 학습 루프의 루프 불변식을 정의하라: $L$-평활 손실에 대�
 
 <div class="drillbox" markdown>
 
-**연습문제 5.**
+**연습문제 5.** <span class="diff hard" title="어려움"></span>
 $(B, T, D)$ 모양의 입력을 받아 같은 모양의 출력을 내는 트랜스포머 인코더 블록에 대한 모양 단언 검사를 작성하라. 검증해야 할 중간 모양들을 나열하라.
 
 </div>

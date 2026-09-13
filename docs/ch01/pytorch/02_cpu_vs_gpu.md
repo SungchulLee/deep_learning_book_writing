@@ -209,7 +209,7 @@ GPU에서 행렬 곱 한 번 :   48.02 ms
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 위 표에서 GPU가 CPU를 앞서기 시작하는 크기를 자기 기계에서 찾아라. 그 크기가 뜻하는 바는 무엇인가?
 
 </div>
@@ -223,7 +223,7 @@ GPU에서 행렬 곱 한 번 :   48.02 ms
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `timed`에서 `sync()` 호출을 빼면 GPU 시간이 어떻게 나오겠는가?
 
 </div>
@@ -237,7 +237,7 @@ GPU에서 행렬 곱 한 번 :   48.02 ms
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 예열(`warmup`)을 하지 않으면 어떤 일이 생기는가?
 
 </div>

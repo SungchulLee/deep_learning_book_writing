@@ -381,7 +381,7 @@ DCGAN_MNIST 갈래는 온 익히기 흐름을 감싼다. DCGAN이 권하는 무�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 MNIST에서 DCGAN을 50바퀴 익히고 익히기 손실 곡선을 살펴라. 가름개 손실이 $\log 4 \approx 1.386$에 가까워지면 무슨 뜻인가?
 
 </div>
@@ -393,7 +393,7 @@ MNIST에서 DCGAN을 50바퀴 익히고 익히기 손실 곡선을 살펴라. �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 만들개 무게의 지수 이동 평균(EMA)을 짜고 익힌 뒤 EMA 모델과 여느 모델의 표본을 견주어라. EMA이 표본 품질을 높이는가?
 
 </div>
@@ -411,7 +411,7 @@ MNIST에서 DCGAN을 50바퀴 익히고 익히기 손실 곡선을 살펴라. �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 숫자 이름표를 넣어 DCGAN에 갈래 조건 만들어 내기를 더하라. 숫자 갈래를 조건으로 삼도록 만들개(원핫 이름표를 숨은 벡터에 잇기)와 가름개(원핫 이름표를 그림 특징에 잇기)를 모두 고쳐라.
 
 </div>

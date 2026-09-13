@@ -217,7 +217,7 @@ PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 SGD 대신 Adam 최적화기를 쓰도록 코드를 수정하라. 100 에폭에 걸친 수렴 속도를 비교하라.
 
 </div>
@@ -235,7 +235,7 @@ SGD 대신 Adam 최적화기를 쓰도록 코드를 수정하라. 100 에폭에 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 학습 루프에서 `optimizer.zero_grad()`를 없애면 어떤 일이 생기는가? 실험해 보고 학습 손실에 미치는 영향을 설명하라.
 
 </div>
@@ -248,7 +248,7 @@ SGD 대신 Adam 최적화기를 쓰도록 코드를 수정하라. 100 에폭에 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 최적화기에 L2 정칙화(가중치 감쇠)를 추가하고 그것이 최종 매개변수 값에 어떤 영향을 주는지 관찰하라.
 
 </div>

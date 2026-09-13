@@ -307,7 +307,7 @@ class PricingNetwork(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 모든 가중치를 0으로 초기화하면 신경망이 학습하지 못하는 이유를 설명하라.
 
 </div>
@@ -319,7 +319,7 @@ class PricingNetwork(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 Xavier(Glorot) 초기화 $W \sim \mathcal{U}(-\sqrt{6/(n_{\text{in}}+n_{\text{out}})}, \sqrt{6/(n_{\text{in}}+n_{\text{out}})})$을 유도하라.
 
 </div>
@@ -331,7 +331,7 @@ Xavier(Glorot) 초기화 $W \sim \mathcal{U}(-\sqrt{6/(n_{\text{in}}+n_{\text{ou
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 가중치를 너무 크게 초기화하면 어떻게 되는가? 너무 작게 하면?
 
 </div>
@@ -343,7 +343,7 @@ Xavier(Glorot) 초기화 $W \sim \mathcal{U}(-\sqrt{6/(n_{\text{in}}+n_{\text{ou
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 Xavier와 He 초기화를 PyTorch로 구현하고 10층 신경망에서 학습의 움직임을 비교하라.
 
 </div>

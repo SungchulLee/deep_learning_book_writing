@@ -512,7 +512,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 날씨 망의 CPT을 써서 $P(\text{Cloudy}=1 | \text{WetGrass}=1)$을 손으로 셈하여라. 낱낱 세기의 모든 걸음을 보여라.
 
 </div>
@@ -543,7 +543,7 @@ $P(C=1|W=1) = 0.3726/0.5451 \approx 0.6836$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 증거의 확률이 낮을 때 물리치기 표집이 왜 실전에서 못 쓰게 되는지 설명하여라. $P(\text{evidence})$으로 나타낸 받아들임 비율은 얼마인가?
 
 </div>
@@ -563,7 +563,7 @@ $P(\text{evidence}) = 0.001$(드문 증거)이면 받아들인 표본 하나를 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 날씨 망에 대해 가능도 무게 주기를 구현하고, 물음 $P(\text{Rain}|\text{WetGrass}=1)$에서 물리치기 표집과 효율을 견주어라.
 
 </div>

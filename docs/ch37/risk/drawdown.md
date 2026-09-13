@@ -305,7 +305,7 @@ Value: -0.6127
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 기본 첫 값으로 만든 `DrawdownConfig`에서 배우는 매개변수의 온 개수를 셈하여라. 무게와 치우침을 모두 넣어 켜마다 나누어 적어라.
 
 </div>
@@ -317,7 +317,7 @@ Value: -0.6127
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 으뜸 함수나 갈래에 들임이 바라는 꼴과 자료형인지 살피는 검사를 더하라. 옳지 않은 들임에는 알기 쉬운 잘못 알림을 내어라.
 
 </div>
@@ -329,7 +329,7 @@ Value: -0.6127
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 이 짜기가 어그러질 수 있는 결 둘을 밝히고, 저마다 어떻게 짚어 내고 고칠지 풀어라.
 
 </div>
@@ -341,7 +341,7 @@ Value: -0.6127
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 `DrawdownConfig`을 켜나 덩이의 개수를 마음대로 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 들쭉날쭉한 얼개를 만들어라. 켜 2, 4, 8개로 시험해 보라.
 
 </div>

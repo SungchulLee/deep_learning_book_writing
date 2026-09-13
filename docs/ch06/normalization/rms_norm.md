@@ -605,7 +605,7 @@ Parameter count:
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 RMSNorm 공식 $\text{RMSNorm}(x) = \frac{x}{\text{RMS}(x)} \cdot \gamma$을 유도하라. 여기서 $\text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2}$이다.
 
 </div>
@@ -617,7 +617,7 @@ RMSNorm 공식 $\text{RMSNorm}(x) = \frac{x}{\text{RMS}(x)} \cdot \gamma$을 유
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 RMSNorm과 LayerNorm의 계산 비용을 비교하라.
 
 </div>
@@ -629,7 +629,7 @@ RMSNorm과 LayerNorm의 계산 비용을 비교하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 RMSNorm을 PyTorch로 구현하고 공식과 일치하는지 확인하라.
 
 </div>
@@ -650,7 +650,7 @@ RMSNorm을 PyTorch로 구현하고 공식과 일치하는지 확인하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 현대의 대형 언어 모델(예: LLaMA)에서 LayerNorm 대신 RMSNorm이 기본이 된 이유는 무엇인가?
 
 </div>

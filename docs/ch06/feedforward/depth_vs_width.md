@@ -507,7 +507,7 @@ Frankle과 Carlin(2019)은 조밀한 신경망 안에 희소한 **부분 신경�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 특정 함수를 표현할 때 깊은 신경망이 얕은 신경망보다 지수적으로 효율적인 이유를 설명하라.
 
 </div>
@@ -519,7 +519,7 @@ Frankle과 Carlin(2019)은 조밀한 신경망 안에 희소한 **부분 신경�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 보편 근사 정리란 무엇이며 실무적인 한계는 무엇인가?
 
 </div>
@@ -531,7 +531,7 @@ Frankle과 Carlin(2019)은 조밀한 신경망 안에 희소한 **부분 신경�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 MNIST에서 넓고 얕은 신경망(1층, 1024개 단위)과 깊고 좁은 신경망(4층, 층마다 64개 단위)의 학습을 비교하라.
 
 </div>
@@ -543,7 +543,7 @@ MNIST에서 넓고 얕은 신경망(1층, 1024개 단위)과 깊고 좁은 신�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 '복권 가설'의 개념과 그것이 신경망 설계에 갖는 함의를 설명하라.
 
 </div>

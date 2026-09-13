@@ -233,7 +233,7 @@ Attention:   y = sum(w_dynamic(q,k) * x_global)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 여섯 가지 측면에서 합성곱 신경망과 비전 트랜스포머를 견주는 표를 만들어라.
 
 </div>
@@ -252,7 +252,7 @@ Attention:   y = sum(w_dynamic(q,k) * x_global)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 언제 비전 트랜스포머 대신 합성곱 신경망을 골라야 하고 언제 그 반대인지 설명하라.
 
 </div>
@@ -264,7 +264,7 @@ Attention:   y = sum(w_dynamic(q,k) * x_global)
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 DeiT는 무엇이며 어떻게 비전 트랜스포머의 데이터 효율을 높이는가?
 
 </div>
@@ -276,7 +276,7 @@ DeiT는 무엇이며 어떻게 비전 트랜스포머의 데이터 효율을 높
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 섞은 구조(합성곱 신경망과 트랜스포머)가 순수 비전 트랜스포머를 앞서는가? 근거를 들어 논하라.
 
 </div>

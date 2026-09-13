@@ -78,7 +78,7 @@ RegNet의 설계 철학은 좋은 그물을 내놓는 설계 공간의 단순한
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 RegNet 너비의 양자화된 선형 매개변수 나타내기를 설명하여라.
 
 </div>
@@ -90,7 +90,7 @@ RegNet 너비의 양자화된 선형 매개변수 나타내기를 설명하여�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 RegNet의 꾸밈 방법론과 신경 얼개 찾기를 견주어라. 맞바꿈은 무엇인가?
 
 </div>
@@ -102,7 +102,7 @@ RegNet의 꾸밈 방법론과 신경 얼개 찾기를 견주어라. 맞바꿈은
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 선형 너비 규칙 $w_j = 24 + 24j$과 깊이 $[2, 4, 6, 2]$을 따르는 4단계 RegNet 자리매김을 만들어라.
 
 </div>

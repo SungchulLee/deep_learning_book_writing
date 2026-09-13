@@ -166,7 +166,7 @@ Saved: gradient_descent_torch.png
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 `w`와 `b`에 `requires_grad=True`를 붙여 직접 계산하던 경사를 `loss.backward()`로 대체하라. 결과가 동일한지 확인하라.
 
 </div>
@@ -205,7 +205,7 @@ Saved: gradient_descent_torch.png
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 경사를 직접 계산하는 학습 루프에서 경사를 0으로 만드는 것을 잊으면 어떻게 되는가? 경사 초기화를 주석 처리하여 흉내 내 보고 학습된 매개변수에 미치는 영향을 관찰하라.
 
 </div>
@@ -217,7 +217,7 @@ Saved: gradient_descent_torch.png
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 모든 텐서를 `device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')`로 옮겨 GPU를 지원하게 하고, 큰 데이터셋(표본 100000개, 특징 100개)에서 속도 향상을 측정하라.
 
 </div>

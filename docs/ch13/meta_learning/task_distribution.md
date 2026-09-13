@@ -291,7 +291,7 @@ Tasks = {
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 과제 분포가 메타 학습 성능에 왜 결정적인지 설명하라.
 
 </div>
@@ -303,7 +303,7 @@ Tasks = {
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 소수 예시 그림 분류를 위한 과제 분포는 어떻게 설계하는가?
 
 </div>
@@ -315,7 +315,7 @@ Tasks = {
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 과제 수준 일반화와 사례 수준 일반화의 차이는 무엇인가?
 
 </div>
@@ -327,7 +327,7 @@ Tasks = {
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 Omniglot 소수 예시 분류를 위한 과제 뽑개를 구현하라.
 
 </div>

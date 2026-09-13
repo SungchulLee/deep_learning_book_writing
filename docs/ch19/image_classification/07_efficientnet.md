@@ -85,7 +85,7 @@ MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 고갱이
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 SiLU/Swish 활성 $f(x) = x \cdot \sigma(x)$을 ReLU와 견주어라. $x \in [-5, 5]$에서 두 함수와 그 도함수를 그려라.
 
 </div>
@@ -97,7 +97,7 @@ SiLU/Swish 활성 $f(x) = x \cdot \sigma(x)$을 ReLU와 견주어라. $x \in [-5
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 첫 MBConv 덩이의 부풀림 비는 1이고 뒤따르는 덩이는 6인 까닭을 설명하여라.
 
 </div>
@@ -109,7 +109,7 @@ SiLU/Swish 활성 $f(x) = x \cdot \sigma(x)$을 ReLU와 견주어라. $x \in [-5
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 MBConv 덩이에 쥐어짜기-북돋우기를 더하고 늘어난 매개변수를 재어라.
 
 </div>

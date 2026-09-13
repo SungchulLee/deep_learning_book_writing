@@ -87,7 +87,7 @@ GRN은 보기 변환기에는 잘 듣는 가린 제 부호기 미리 익히기�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 GRN 켜에 꼴이 $(B, H, W, D)$인 들임 텐서가 들어올 때 걸음마다 $G_x$과 $N_x$의 꼴을 밝혀라.
 
 </div>
@@ -99,7 +99,7 @@ GRN 켜에 꼴이 $(B, H, W, D)$인 들임 텐서가 들어올 때 걸음마다 
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 GRN과 쥐어짜 북돋우기(SE) 덩이를 견주어라. 갈래 되받음을 다스리는 방식에서 무엇이 닮고 무엇이 다른가?
 
 </div>
@@ -111,7 +111,7 @@ GRN과 쥐어짜 북돋우기(SE) 덩이를 견주어라. 갈래 되받음을 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 NHWC으로 옮기지 않고 NCHW 꼴에서 움직여 여느 엮음 켜와 맞물리는 GRN 갈래를 짜라.
 
 </div>

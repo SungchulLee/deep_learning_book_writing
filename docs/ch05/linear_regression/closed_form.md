@@ -531,7 +531,7 @@ def verify_against_nn_linear():
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 MSE의 경사를 0으로 두어 정규 방정식 $\mathbf{X}^\top\mathbf{X}\mathbf{w} = \mathbf{X}^\top\mathbf{y}$을 유도하라.
 
 </div>
@@ -543,7 +543,7 @@ MSE의 경사를 0으로 두어 정규 방정식 $\mathbf{X}^\top\mathbf{X}\math
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 닫힌 형태의 해가 $\mathbf{y}$를 $\mathbf{X}$의 열공간 위로 직교 사영한 것임을 보여라.
 
 </div>
@@ -555,7 +555,7 @@ MSE의 경사를 0으로 두어 정규 방정식 $\mathbf{X}^\top\mathbf{X}\math
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 $\mathbf{X}^\top\mathbf{X}$의 역행렬을 직접 구하는 것보다 유사역행렬 $\mathbf{X}^+$을 쓰는 편이 수치적으로 더 안정적인 이유를 설명하라.
 
 </div>
@@ -567,7 +567,7 @@ $\mathbf{X}^\top\mathbf{X}$의 역행렬을 직접 구하는 것보다 유사역
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 `torch.linalg.solve`와 유사역행렬 두 가지로 닫힌 형태의 해를 구현하라. 조건이 나쁜 문제에서 수치적 정확도를 비교하라.
 
 </div>

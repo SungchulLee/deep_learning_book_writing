@@ -103,7 +103,7 @@ Final loss: 1.2525
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 Adadelta의 갱신 규칙 전체를 쓰라. 각 항(기울기, 모멘텀, 적응형 학습률, 편향 보정)이 하는 구실을 밝히라.
 
 </div>
@@ -115,7 +115,7 @@ Adadelta의 갱신 규칙 전체를 쓰라. 각 항(기울기, 모멘텀, 적응
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 Adadelta을(를) 기본 SGD와 비교하라. 어떤 손실 지형에서 Adadelta이(가) 가장 유리한가?
 
 </div>
@@ -127,7 +127,7 @@ Adadelta을(를) 기본 SGD와 비교하라. 어떤 손실 지형에서 Adadelta
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 Adadelta으로 4단계 동안 기울기 $[0.1, 0.2, 0.1, 0.3]$을 받은 매개변수의 실효 학습률을 유도하라. 명목 학습률과 어떻게 다른가?
 
 </div>
@@ -139,7 +139,7 @@ Adadelta으로 4단계 동안 기울기 $[0.1, 0.2, 0.1, 0.3]$을 받은 매개�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 Adadelta이(가) 어떤 학습률 선택에서 발산할 수 있는 이유를 설명하라. 안정 조건을 유도하라.
 
 </div>

@@ -288,7 +288,7 @@ plt.show()
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 초점 손실의 기울기를 유도하고 그것이 쉬운 예의 비중을 어떻게 낮추는지 보여라.
 
 </div>
@@ -300,7 +300,7 @@ plt.show()
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 초점 손실을 쓰는 물체 검출에서 $\gamma$과 $\alpha$은 보통 어떤 값을 쓰는가?
 
 </div>
@@ -312,7 +312,7 @@ plt.show()
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 초점 손실을 PyTorch로 구현하고, 불균형한 데이터셋에서 표준 BCE와 학습 곡선을 견주어 보라.
 
 </div>
@@ -330,7 +330,7 @@ plt.show()
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 초점 손실이 알맞지 않아 표준 교차 엔트로피를 써야 하는 때를 설명하라.
 
 </div>

@@ -87,7 +87,7 @@ Drug-Target Interaction Prediction
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 만든 자료 묶음으로 `DrugTargetPredictor`을 익히고 30바퀴 뒤의 마지막 익히기 손실을 적어라. 그다음 남겨 둔 주고받음(번호 160~200)에서 문턱 0.5으로 이진 정확도를 셈해 따져라.
 
 </div>
@@ -108,7 +108,7 @@ Drug-Target Interaction Prediction
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 원자 켜 특징에서 약 박아 넣기를 얻을 때 합 모으기가 아니라 평균 모으기를 쓰는 까닭을 밝혀라. 어떤 상황에서 합 모으기가 나은가?
 
 </div>
@@ -120,7 +120,7 @@ Drug-Target Interaction Prediction
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 쪽지 건네기 걸음에 변 특징(결합 갈래)을 담도록 모델을 넓혀라. 변마다 결합 갈래 특징 벡터를 더하고 모으는 동안 그 특징을 담도록 약 부호기를 고쳐라.
 
 </div>

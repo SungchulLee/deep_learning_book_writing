@@ -209,7 +209,7 @@ training_config = {
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 ImageNet 분류에 쓰이는 표준 학습 요령을 설명하라.
 
 </div>
@@ -221,7 +221,7 @@ ImageNet 분류에 쓰이는 표준 학습 요령을 설명하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 학습률 워밍업 기법을 설명하고 언제 꼭 필요한지 말하라.
 
 </div>
@@ -233,7 +233,7 @@ ImageNet 분류에 쓰이는 표준 학습 요령을 설명하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 혼합 정밀도, 기울기 자르기, 학습률 스케줄링을 갖춘 완전한 학습 루프를 구현하라.
 
 </div>
@@ -259,7 +259,7 @@ ImageNet 분류에 쓰이는 표준 학습 요령을 설명하라.
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 여러 학습 기법을 함께 쓸 때 연산의 일반적인 순서는 무엇인가?
 
 </div>

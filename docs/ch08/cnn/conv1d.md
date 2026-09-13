@@ -559,7 +559,7 @@ Multi-scale features: torch.Size([16, 96, 252])
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 2차원 합성곱보다 1차원 합성곱이 나은 때를 설명하고 응용 예 세 가지를 들어라.
 
 </div>
@@ -571,7 +571,7 @@ Multi-scale features: torch.Size([16, 96, 252])
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 입력 길이가 100, 핵 크기가 5, 보폭이 2, 덧대기가 1인 1차원 합성곱의 출력 길이를 계산하라.
 
 </div>
@@ -583,7 +583,7 @@ Multi-scale features: torch.Size([16, 96, 252])
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 시계열 분류를 위한 1차원 CNN을 PyTorch로 구현하라.
 
 </div>
@@ -601,7 +601,7 @@ Multi-scale features: torch.Size([16, 96, 252])
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 핵 크기가 $k$인 `nn.Conv1d`을 같은 입력에 적용한 완전 연결층과 견주어라. 매개변수는 얼마나 줄어드는가?
 
 </div>

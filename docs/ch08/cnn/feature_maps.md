@@ -498,7 +498,7 @@ class DenseBlock(nn.Module):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 CNN의 앞쪽 층과 깊은 층의 특징 맵이 나타내는 바가 어떻게 다른지 설명하라.
 
 </div>
@@ -510,7 +510,7 @@ CNN의 앞쪽 층과 깊은 층의 특징 맵이 나타내는 바가 어떻게 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff easy" title="쉬움"></span>
 모양이 $(3, 224, 224)$인 입력이 필터 64개, 핵 $7\times7$, 보폭 2, 덧대기 3인 합성곱 층을 지난 뒤의 출력 특징 맵 차원을 계산하라.
 
 </div>
@@ -522,7 +522,7 @@ CNN의 앞쪽 층과 깊은 층의 특징 맵이 나타내는 바가 어떻게 �
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 순전파 훅을 써서 미리 학습된 CNN의 특징 맵 시각화를 구현하라.
 
 </div>
@@ -543,7 +543,7 @@ CNN의 앞쪽 층과 깊은 층의 특징 맵이 나타내는 바가 어떻게 �
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 $1 \times 1$ 합성곱(점별 합성곱)은 특징 맵을 어떻게 바꾸는가? 그 쓰임새는 무엇인가?
 
 </div>

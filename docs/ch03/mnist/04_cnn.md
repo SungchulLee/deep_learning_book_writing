@@ -157,7 +157,7 @@ Final Test Accuracy: 99.22%
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 모양이 $(1, 28, 28)$인 입력에서 시작하여 Conv2d(kernel=3, padding=1)과 MaxPool2d(2) 블록 두 개를 지나는 CNN 구조에서, 층마다 특징 맵의 공간 차원을 계산하라.
 
 </div>
@@ -177,7 +177,7 @@ Final Test Accuracy: 99.22%
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 분류 과제에서 평균 제곱 오차(MSE)보다 `CrossEntropyLoss`을 즐겨 쓰는 까닭을 설명하라. 모델의 예측이 크게 틀렸을 때의 기울기 거동을 살펴보라.
 
 </div>
@@ -191,7 +191,7 @@ Final Test Accuracy: 99.22%
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 관성을 쓰는 SGD 대신 Adam 최적화기를 쓰도록 학습 스크립트를 고쳐라. 같은 세대 수만큼 돌리고 마지막 시험 정확도를 견주어라. Adam과 관성 SGD의 핵심 차이를 설명하라.
 
 </div>

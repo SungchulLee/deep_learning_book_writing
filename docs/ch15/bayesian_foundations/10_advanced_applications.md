@@ -168,7 +168,7 @@ Congratulations! You've completed the Bayesian Inference curriculum.
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 쪽 A이 85/500, 쪽 B이 110/500의 전환을 낸 베이즈 A/B 시험을 돌려라. $P(B > A)$, 기대 들어올림, 그리고 들어올림의 95% 믿음 구간을 셈하여라.
 
 </div>
@@ -195,7 +195,7 @@ print(f'95% CI: [{np.percentile(lift,2.5)*100:.2f}%, {np.percentile(lift,97.5)*1
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 빈도주의 방법과 달리 베이즈 A/B 시험은 실험 도중 결과를 엿보아도 여러 번 견줌을 바로잡을 필요가 없는 까닭을 설명하여라.
 
 </div>
@@ -210,7 +210,7 @@ print(f'95% CI: [{np.percentile(lift,2.5)*100:.2f}%, {np.percentile(lift,97.5)*1
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 베이즈 뒤확률로 살펴보기와 써먹기의 균형을 잡는 톰프슨 표집을 써서 여러 팔 슬롯머신을 구현하여라. 참된 전환율이 0.10, 0.12, 0.15인 판 셋을 다룬다.
 
 </div>

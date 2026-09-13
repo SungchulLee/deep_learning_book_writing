@@ -55,7 +55,7 @@ Inception v3의 가장 큰 얼개 이바지는 엮음 나누기다. $5 \times 5$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 들임 갈래 256, 날임 갈래 256인 $7 \times 7$ 엮음을 $7 \times 1$ 다음 $1 \times 7$ 엮음으로 나눌 때 아끼는 매개변수를 셈하여라.
 
 </div>
@@ -67,7 +67,7 @@ Inception v3의 가장 큰 얼개 이바지는 엮음 나누기다. $5 \times 5$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 이름표 매끄럽게 하기가 지나치게 맞춰짐을 막는 데 도움이 되는 까닭을 밝혀라. 엇결 엔트로피 잃음 함수와는 어떻게 맞물리는가?
 
 </div>
@@ -79,7 +79,7 @@ Inception v3의 가장 큰 얼개 이바지는 엮음 나누기다. $5 \times 5$
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 나란한 가지 셋을 지닌 Inception 묶음을 짜라. $1 \times 1$ 엮음, 나눈 $3 \times 3$ 엮음($3 \times 1$과 $1 \times 3$을 씀), 가장 크게 모으기 가지다.
 
 </div>

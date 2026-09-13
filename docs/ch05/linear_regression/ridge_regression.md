@@ -406,7 +406,7 @@ ax.grid(True, alpha=0.3)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 릿지 회귀의 닫힌 형태 해 $\hat{\mathbf{w}} = (\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$을 유도하라.
 
 </div>
@@ -420,7 +420,7 @@ ax.grid(True, alpha=0.3)
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 릿지 회귀가 가우스 사전분포 $\mathbf{w} \sim \mathcal{N}(0, \frac{\sigma^2}{\lambda}\mathbf{I})$ 아래의 MAP 추정이라는 베이즈적 해석을 가짐을 보여라.
 
 </div>
@@ -436,7 +436,7 @@ ax.grid(True, alpha=0.3)
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 특징이 5개인 회귀 문제에 대해 릿지 계수를 $\lambda$의 함수로 그려라(릿지 자취).
 
 </div>
@@ -458,7 +458,7 @@ ax.grid(True, alpha=0.3)
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 $\lambda$가 편향-분산 절충에 미치는 영향을 설명하라. $\lambda \to 0$일 때와 $\lambda \to \infty$일 때 어떤 일이 일어나는가?
 
 </div>

@@ -544,7 +544,7 @@ optimizer = optim.AdamW(
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 정칙화 기법을 명시적인 것(벌점 기반)과 암묵적인 것(학습 절차 기반)으로 분류하라.
 
 </div>
@@ -556,7 +556,7 @@ optimizer = optim.AdamW(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 정칙화의 맥락에서 편향-분산 절충을 설명하라.
 
 </div>
@@ -568,7 +568,7 @@ optimizer = optim.AdamW(
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 구체적인 문제에 대한 정칙화 전략을 설계하라. 학습 이미지 1000장과 ResNet-50으로 하는 이미지 분류이다.
 
 </div>
@@ -580,7 +580,7 @@ optimizer = optim.AdamW(
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 현대의 대형 언어 모델이 고전적인 딥러닝에 비해 명시적 정칙화를 비교적 적게 쓰는 이유를 설명하라.
 
 </div>

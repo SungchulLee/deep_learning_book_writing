@@ -163,7 +163,7 @@ PyTorch는 (저장소를 공유하는 뷰를 반환하는) 기본 슬라이싱�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
 
 </div>
@@ -183,7 +183,7 @@ PyTorch는 (저장소를 공유하는 뷰를 반환하는) 기본 슬라이싱�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 `retain_graph=True` 없이 같은 계산 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
 
 </div>
@@ -196,7 +196,7 @@ PyTorch는 (저장소를 공유하는 뷰를 반환하는) 기본 슬라이싱�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 잎 텐서 `w`를 만들고 손실을 계산한 뒤, 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하는 코드를 작성하라. 관찰된 값을 설명하라.
 
 </div>

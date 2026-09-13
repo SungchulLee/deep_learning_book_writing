@@ -519,7 +519,7 @@ output = decoder(hidden)        # 부호기가 역전파로 갱신된다
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff hard" title="어려움"></span>
 MSE 손실을 쓰는 단층 신경망 $y = \sigma(Wx + b)$의 역전파 갱신을 유도하라.
 
 </div>
@@ -531,7 +531,7 @@ MSE 손실을 쓰는 단층 신경망 $y = \sigma(Wx + b)$의 역전파 갱신�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 수치 미분, 기호 미분, 자동 미분의 차이를 설명하라.
 
 </div>
@@ -543,7 +543,7 @@ MSE 손실을 쓰는 단층 신경망 $y = \sigma(Wx + b)$의 역전파 갱신�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff easy" title="쉬움"></span>
 신경망에서 순방향 자동 미분보다 역방향 자동 미분(역전파)을 선호하는 이유는 무엇인가?
 
 </div>
@@ -555,7 +555,7 @@ MSE 손실을 쓰는 단층 신경망 $y = \sigma(Wx + b)$의 역전파 갱신�
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
 역전파 구현을 검증하기 위해 수치적 경사 검사를 구현하라.
 
 </div>

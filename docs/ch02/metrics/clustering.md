@@ -97,7 +97,7 @@ Adjusted Rand:     1.0000
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 군집 내 거리가 $a(i) = 0.5$이고 가장 가까운 다른 군집까지의 거리가 $b(i) = 2.0$인 점 $i$의 실루엣 점수를 계산하고 결과를 해석하라.
 
 </div>
@@ -109,7 +109,7 @@ Adjusted Rand:     1.0000
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
 모든 점 $i$에 대해 실루엣 점수 $s(i) \in [-1, 1]$임을 증명하고, $s(i) = -1$, $s(i) = 0$, $s(i) = 1$이 되는 경우를 특징지어라.
 
 </div>
@@ -121,7 +121,7 @@ Adjusted Rand:     1.0000
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff med" title="중간"></span>
 조정 랜드 지수(ARI)는 우연 일치를 보정하지만 원래의 랜드 지수는 그렇지 않은 이유를 설명하라. 무작위 군집화에 ARI는 어떤 값을 주는가?
 
 </div>
@@ -133,7 +133,7 @@ Adjusted Rand:     1.0000
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff med" title="중간"></span>
 $k = 2, 3, \ldots, 10$으로 K-평균을 실행했더니 실루엣 점수가 $0.45, 0.62, 0.58, 0.40, 0.35, 0.30, 0.28, 0.25, 0.22$로 관찰되었다. 어떤 $k$를 골라야 하며 그 이유는 무엇인가?
 
 </div>
@@ -145,7 +145,7 @@ $k = 2, 3, \ldots, 10$으로 K-평균을 실행했더니 실루엣 점수가 $0.
 
 <div class="drillbox" markdown>
 
-**연습문제 5.**
+**연습문제 5.** <span class="diff med" title="중간"></span>
 데이비스-볼딘 지수는 $\text{DB} = \frac{1}{k}\sum_{i=1}^{k}\max_{j \neq i} \frac{\sigma_i + \sigma_j}{d(c_i, c_j)}$로 정의되며, $\sigma_i$는 군집 $i$의 점들이 중심 $c_i$까지 갖는 평균 거리이다. 값이 낮을수록 좋은 이유와, 두 군집이 매우 가까울 때 이 지수가 어떻게 되는지 설명하라.
 
 </div>

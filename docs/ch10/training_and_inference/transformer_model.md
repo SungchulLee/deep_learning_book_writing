@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff med" title="중간"></span>
 꼴이 `(32, 100, 64)`인 배치를 `TransformerForComparison` 모형에 넣고 출력의 꼴이 `(32, 10)`인지 확인하라. 전체 매개변수를 세어 순환 신경망·합성곱 신경망과 견주어라.
 
 </div>
@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 위치 인코딩의 최대 길이가 100으로 고정되어 있다. 100보다 긴 수열을 모형에 넣으면 어떻게 되는지 설명하고 서로 다른 해결책을 둘 내놓아라.
 
 </div>
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 전역 평균 풀링을 학습되는 `[CLS]` 토큰 방식으로 바꾸어라. 학습되는 토큰을 수열 앞에 붙여 트랜스포머에 넣고 첫 출력 자리를 분류에 써라. 평균 풀링과 성능을 견주어라.
 
 </div>

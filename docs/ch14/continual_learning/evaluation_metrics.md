@@ -614,7 +614,7 @@ def joint_training_baseline(model, all_loaders, test_loaders,
 
 <div class="drillbox" markdown>
 
-**연습문제 1.**
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 이어 배우기의 평균 정확도, 뒤로의 옮김, 앞으로의 옮김을 정의하라.
 
 </div>
@@ -626,7 +626,7 @@ def joint_training_baseline(model, all_loaders, test_loaders,
 
 <div class="drillbox" markdown>
 
-**연습문제 2.**
+**연습문제 2.** <span class="diff med" title="중간"></span>
 정확도 행렬 $R_{ij}$과 그것에서 지표를 어떻게 끌어내는지 설명하라.
 
 </div>
@@ -638,7 +638,7 @@ def joint_training_baseline(model, all_loaders, test_loaders,
 
 <div class="drillbox" markdown>
 
-**연습문제 3.**
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
 이어 배우기 방법을 공정하게 견줄 평가 규약을 설계하라.
 
 </div>
@@ -651,7 +651,7 @@ def joint_training_baseline(model, all_loaders, test_loaders,
 
 <div class="drillbox" markdown>
 
-**연습문제 4.**
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
 오늘날 이어 배우기 평가 잣대의 한계는 무엇인가?
 
 </div>
