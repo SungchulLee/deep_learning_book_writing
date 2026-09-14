@@ -260,6 +260,199 @@ Generated samples shape: torch.Size([10, 784])
     ```
     `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (수수한 파이썬 목록이 아니라) `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 가장 좋게 하기에 올린다. 다음으로 시험하라: `for n in [2, 4, 8]: model = VAE(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 5.** <span class="diff easy" title="쉬움"></span>
+이 모듈의 `forward`가 셋을 돌려주는 까닭은 무엇인가?
+
+</div>
+
+??? success "연습문제 5 풀이"
+    손실이 출력만으로는 셈해지지 않기 때문이다.
+
+    ```python
+    def forward(self, x):
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        return self.decode(z), mu, logvar     # 셋
+    ```
+
+    KL 항이 $\mu$와 $\log\sigma^2$을 필요로 하므로 밖으로 내보내야 한다. 자기 부호기라면
+    출력 하나로 충분했다([23장 모듈 연습문제 3](../../ch23/architecture/autoencoder.md)).
+
+    그래서 익히기 반복문의 모양도 달라진다.
+
+    ```python
+    out, mu, logvar = model(x)                # 셋을 받는다
+    loss = model.loss_function(out, x, mu, logvar)
+    ```
+
+    $z$도 함께 돌려주면 편리한 경우가 있다. 코드를 살펴보거나 기록하려면 필요한데,
+    다시 뽑은 값이라 매번 달라진다는 점을 잊지 말아야 한다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 6.** <span class="diff med" title="중간"></span>
+`reparameterize`를 따로 메서드로 두는 것이 왜 좋은가?
+
+</div>
+
+??? success "연습문제 6 풀이"
+    익히기와 평가에서 다르게 쓰고 싶기 때문이다.
+
+    ```python
+    def reparameterize(self, mu, logvar):
+        if not self.training:
+            return mu                    # 평가할 때는 뽑지 않는다
+        std = (0.5 * logvar).exp()
+        return mu + torch.randn_like(std) * std
+    ```
+
+    이렇게 두면 `model.eval()`이 알아서 처리해 준다. 다시 세우기 그림을 보일 때 매번
+    다른 결과가 나오는 일을 막아 준다.
+
+    다만 이 선택에는 한 가지 위험이 있다. **익힐 때 뽑지 않으면 모델이 자기 부호기가
+    된다.** `model.train()`을 빠뜨리면 조용히 그렇게 되고 오류가 나지 않는다. KL이
+    비정상적으로 작으면 이것을 의심할 만하다.
+
+    그래서 뽑는지 여부를 `self.training`에 맡기지 않고 인자로 받는 설계도 쓴다. 뜻이
+    더 또렷해지는 대신 부르는 곳마다 적어야 한다. 어느 쪽이든 **이 선택이 있다는 것을
+    알고 고르는 것**이 중요하다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 7.** <span class="diff med" title="중간"></span>
+이 모듈을 자기 부호기 모듈과 견주면 무엇이 늘었는가?
+
+</div>
+
+??? success "연습문제 7 풀이"
+    매개변수는 거의 안 늘고 코드가 조금 는다.
+
+    | | 자기 부호기 | 변분 자기 부호기 |
+    |---|---|---|
+    | 부호기 마지막 층 | $256 \times 16$ | $256 \times 32$ |
+    | 매개변수 합 | 1,075,488 | 1,079,600 |
+    | 늘어난 몫 | | +4,112 (0.4%) |
+
+    **0.4% 늘려서 만들어 내는 모델이 된다.** 표본이 숫자로 보이는 비율이 0.2%에서
+    57.4%로 가는 값이 이것이다.
+
+    코드로는 다시 뽑기 한 줄, KL 항 두 줄, `forward`가 셋을 돌려주기가 늘었다.
+
+    이 값싼 변화가 두 장을 나누어 다루는 까닭이기도 하다. 구현의 차이는 사소한데 모델의
+    성격이 달라진다. 한쪽은 압축기이고 한쪽은 만들어 내는 모델이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 8.** <span class="diff med" title="중간"></span>
+이 모듈로 $\beta$-VAE를 만들려면 어디를 고치는가?
+
+</div>
+
+??? success "연습문제 8 풀이"
+    손실 함수 한 곳이다.
+
+    ```python
+    def loss_function(self, out, x, mu, logvar, beta=1.0):
+        rec = F.binary_cross_entropy(out, x, reduction='sum') / x.size(0)
+        kl = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp()).sum() / x.size(0)
+        return rec + beta * kl                        # 여기
+    ```
+
+    얼개는 손대지 않는다. 그래서 익힌 모델을 서로 갈아 끼울 수 있고, $\beta$만 바꾸어
+    쓸어 보기가 쉽다([베타 VAE](beta_vae.md)).
+
+    같은 자리에 자유 비트도 얹힌다.
+
+    ```python
+    kl_dim = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())   # (B, k)
+    kl = torch.clamp(kl_dim.mean(0), min=lam).sum()
+    ```
+
+    두 방법이 모두 손실에서 끝난다는 점이 편리하다. 반면 조건부로 만들려면 얼개를
+    손봐야 한다. 부호기와 풀개의 입력 차원이 달라지기 때문이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 9.** <span class="diff hard" title="어려움"></span>
+이 모듈에 증거 하한을 좀 더 정확히 어림하는 메서드를 붙여라.
+
+</div>
+
+??? success "연습문제 9 풀이"
+    익히기에서는 표본 하나로 어림하지만, 값매김에서는 여러 번 뽑아 평균 내는 것이 낫다.
+    더 나아가 **중요도 무게를 준 하한**이 훨씬 빡빡하다.
+
+    ```python
+    @torch.no_grad()
+    def iwae_bound(self, x, K=64):
+        # K개 표본으로 중요도 무게를 준 하한. K=1이면 보통 ELBO.
+        mu, logvar = self.encode(x)
+        mu = mu.unsqueeze(0).expand(K, -1, -1)          # (K, B, k)
+        logvar = logvar.unsqueeze(0).expand(K, -1, -1)
+        std = (0.5 * logvar).exp()
+        eps = torch.randn_like(std)
+        z = mu + std * eps
+        out = self.decode(z.flatten(0, 1)).view(K, x.size(0), -1)
+        log_pxz = -F.binary_cross_entropy(out, x.expand(K, -1, -1),
+                                          reduction='none').sum(-1)
+        log_pz = -0.5 * (z.pow(2) + math.log(2 * math.pi)).sum(-1)
+        log_qz = -0.5 * (eps.pow(2) + math.log(2 * math.pi) + logvar).sum(-1)
+        w = log_pxz + log_pz - log_qz                   # (K, B)
+        return torch.logsumexp(w, 0) - math.log(K)      # 표본마다
+    ```
+
+    핵심이 마지막 줄의 `logsumexp`다. 로그를 **평균 뒤에** 취하므로
+    $\log \mathbb{E}[w] \ge \mathbb{E}[\log w]$에 따라 보통 ELBO보다 크고, $K \to \infty$에서
+    $\log p(x)$로 간다.
+
+    이 메서드가 값진 까닭이 하나 더 있다. [부호기 연습문제 5](encoder.md)에서 본
+    고르게 나누기의 벌어짐(3.537)처럼, 부호기가 얼마나 손실을 보고 있는지 재는 잣대가
+    된다. $K$를 키웠을 때 값이 크게 좋아지면 $q$가 참된 사후 분포와 많이 다르다는 뜻이다.
+
+    `math`를 들여와야 하고 `@torch.no_grad()`를 붙여 두는 것을 잊지 말 것이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 10.** <span class="diff easy" title="쉬움"></span>
+이 모듈을 저장하고 되불러 올 때 무엇을 함께 적어야 하는가?
+
+</div>
+
+??? success "연습문제 10 풀이"
+    자기 부호기에서 챙긴 것에 두 가지가 더 붙는다.
+
+    ```python
+    torch.save({'state_dict': model.state_dict(),
+                'config': {'input_dim': 784, 'hidden_dim': 256, 'latent_dim': 16},
+                'preprocess': 'x / 255.0',
+                'beta': 1.0,                   # 어떤 무게로 익혔는가
+                'free_bits': 0.0}, path)       # 자유 비트를 썼는가
+    ```
+
+    $\beta$와 자유 비트를 적어 두어야 하는 까닭은 **손실 값을 견줄 수 있어야** 하기
+    때문이다. $\beta \ne 1$이거나 자유 비트를 썼다면 그 손실은 증거 하한이 아니므로
+    다른 모델의 ELBO와 나란히 놓으면 안 된다([베타 VAE 연습문제 3](beta_vae.md)).
+
+    전처리를 적는 것은 자기 부호기와 같은 이유다
+    ([23장 모듈 연습문제 6](../../ch23/architecture/autoencoder.md)).
+
+    되불러 올 때 `weights_only=True`를 쓰는 편이 안전하다.
+
 ## 정리하며
 
 **다룬 것** — 변분 자기 부호기
