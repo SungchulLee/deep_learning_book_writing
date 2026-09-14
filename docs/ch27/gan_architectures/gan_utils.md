@@ -492,6 +492,262 @@ WGAN-GP의 기울기 벌점은 실제 자료와 가짜 자료 사이를 메운�
     ```
     slerp은 메우는 내내 잣대를 한결같이 지켜 정규 분포의 확률 높은 껍질 위에 머문다. 선형 사이 메우기는 가운데 점에서 원점 쪽으로 내려가는데 차원이 높으면 그곳은 밀도가 낮다. 숨은 차원이 클수록 보기의 차이가 뚜렷하다. 곧 slerp은 한결같이 또렷한 중간 그림을 내지만 선형 사이 메우기는 가운데가 더 흐릴 수 있다.
 
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
+표본 격자를 만드는 함수에서 무엇을 챙겨야 하는가?
+
+</div>
+
+??? success "연습문제 4 풀이"
+    범위와 눈금과 보간이다.
+
+    ```python
+    def make_grid(imgs, nrow=8):
+        imgs = imgs.detach().cpu().clamp(0, 1)         # 범위를 자른다
+        ...
+        plt.imshow(grid, cmap='gray', vmin=0, vmax=1,  # 눈금을 못 박는다
+                   interpolation='nearest')            # 보간을 끈다
+    ```
+
+    셋 다 빠뜨리기 쉽고 셋 다 그림을 실제와 다르게 보이게 한다.
+
+    **눈금을 못 박지 않으면** 칸마다 다른 눈금이 쓰여 견줄 수 없다. 아주 밝은 화소 하나가
+    있으면 그 칸 전체가 어두워 보인다.
+
+    **보간을 끄지 않으면** 28×28을 키울 때 뭉개져 실제보다 매끄럽게 보인다. 표본의 품질을
+    부풀리는 셈이다.
+
+    `tanh` 출력이면 `clamp` 전에 $[0,1]$로 옮겨야 한다
+    ([DCGAN 연습문제 2](46_dcgan.md)).
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 5.** <span class="diff med" title="중간"></span>
+고정된 잡음을 다루는 도구 함수를 어떻게 짜겠는가?
+
+</div>
+
+??? success "연습문제 5 풀이"
+    익히기 밖에서 한 번 뽑아 들고 다니게 한다.
+
+    ```python
+    class FixedNoise:
+        def __init__(self, n, dim, device, seed=0):
+            g = torch.Generator().manual_seed(seed)
+            self.z = torch.randn(n, dim, generator=g).to(device)
+        def grid(self, generator):
+            was_training = generator.training
+            generator.eval()
+            with torch.no_grad():
+                imgs = generator(self.z)
+            generator.train(was_training)
+            return imgs
+    ```
+
+    챙긴 것이 셋이다.
+
+    - `Generator`에 씨앗을 주어 **전역 상태를 건드리지 않는다.** `torch.manual_seed`를
+      부르면 익히기의 무작위성까지 바뀐다
+    - `eval()`과 원래 모드 되돌리기. 배치 정규화가 있으면 필요하다
+    - `no_grad()`
+
+    첫째가 놓치기 쉽고 고약하다. 값매김 함수가 전역 씨앗을 건드리면 익히기의 재현성이
+    깨지는데, 그 관계가 눈에 안 보인다.
+
+    원래 모드로 되돌리는 것도 중요하다. `generator.train()`을 무조건 부르면 값매김 중에
+    불렀을 때 모드가 바뀐다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 6.** <span class="diff med" title="중간"></span>
+익히기 기록을 어떤 구조로 남기겠는가?
+
+</div>
+
+??? success "연습문제 6 풀이"
+    에포크마다 사전 하나씩 모아 두는 것이 간단하고 충분하다.
+
+    ```python
+    history = []
+    history.append(dict(epoch=ep, d_loss=dl, g_loss=gl,
+                        d_real=d_real_mean, d_fake=d_fake_mean,
+                        fid=fid_value, is_=is_value, class_entropy=ent))
+    ```
+
+    손실 말고 **$D(x)$와 $D(G(z))$의 평균**을 남기는 것이 특히 쓸모 있다. 균형이 어떤지
+    직접 보여 준다.
+
+    | 보이는 것 | 뜻 |
+    |---|---|
+    | $D(x) \approx D(G(z)) \approx 0.5$ | 균형. 바라는 모습 |
+    | $D(x) \to 1$, $D(G(z)) \to 0$ | 판별기가 이긴다. 기울기가 사라진다 |
+    | 둘 다 0.5 근처에서 요동 | 대개 정상 |
+
+    손실보다 이 두 값이 읽기 쉽다. 손실은 두 항이 섞여 있어 어느 쪽이 움직였는지 안
+    보인다.
+
+    FID와 부류 엔트로피를 함께 남기면 나중에 곡선을 그릴 수 있다. 익히기를 다시 돌리지
+    않고 분석할 수 있으므로 값이 크다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 7.** <span class="diff med" title="중간"></span>
+가중치를 저장하고 되불러 오는 함수를 어떻게 짜겠는가?
+
+</div>
+
+??? success "연습문제 7 풀이"
+    이어서 익힐 수 있도록 최적화기 상태까지 담는다.
+
+    ```python
+    def save_ckpt(path, g, d, og, od, ep, config):
+        torch.save(dict(g=g.state_dict(), d=d.state_dict(),
+                        og=og.state_dict(), od=od.state_dict(),
+                        epoch=ep, config=config), path)
+
+    def load_ckpt(path, g, d, og=None, od=None):
+        ck = torch.load(path, weights_only=True)
+        g.load_state_dict(ck['g']); d.load_state_dict(ck['d'])
+        if og: og.load_state_dict(ck['og'])
+        if od: od.load_state_dict(ck['od'])
+        return ck['epoch'], ck['config']
+    ```
+
+    최적화기 상태를 담는 까닭은 Adam이 모멘텀을 들고 있기 때문이다. 빼고 이어 익히면
+    그 상태가 초기화되어 흔들린다.
+
+    **판별기도 저장해야** 한다. 표본을 만드는 데는 필요 없지만
+    ([GAN 기초 연습문제 7](45_gan.md)) 이어 익히려면 있어야 한다.
+
+    `config`를 함께 담으면 같은 얼개를 다시 만들 수 있다. 이것이 없으면 가중치의 모양만
+    보고 얼개를 짐작해야 한다.
+
+    `weights_only=True`를 쓰는 편이 안전한데, `config`에 파이썬 객체가 들어 있으면 못
+    쓴다. 그래서 `config`를 사전과 기본 자료형만으로 두는 것이 좋다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 8.** <span class="diff hard" title="어려움"></span>
+값매김 도구를 익히기 코드와 어떻게 떼어 놓겠는가?
+
+</div>
+
+??? success "연습문제 8 풀이"
+    값매김이 **모델을 건드리지 않게** 하는 것이 핵심이다. 건드릴 수 있는 것이 셋이다.
+
+    | 무엇 | 어떻게 막는가 |
+    |---|---|
+    | 전역 난수 상태 | `torch.Generator`를 따로 쓴다 |
+    | 모델의 모드 | 원래 모드를 기억해 되돌린다 |
+    | 기울기 | `torch.no_grad()` |
+
+    ```python
+    @torch.no_grad()
+    def evaluate(g, ref, net, n=2000, seed=0, device='cpu'):
+        was = g.training
+        g.eval()
+        try:
+            gen = torch.Generator().manual_seed(seed)       # 전역을 안 건드린다
+            z = torch.randn(n, g.k, generator=gen).to(device)
+            imgs = g(z)
+            return dict(fid=..., is_=..., entropy=...)
+        finally:
+            g.train(was)                                    # 반드시 되돌린다
+    ```
+
+    `finally`를 쓰는 까닭은 값매김이 오류를 내도 모드가 되돌아가게 하는 것이다. 그러지
+    않으면 오류 한 번 뒤로 익히기가 평가 모드로 돌아가는데, 배치 정규화가 있으면 결과가
+    달라지고 알아채기 어렵다.
+
+    참 자료 통계량은 **밖에서 받는다.** 값매김 함수가 스스로 셈하면 부를 때마다 비싸고,
+    설정이 어긋날 여지가 생긴다.
+
+    이렇게 떼어 두면 익히기 코드가 값매김을 몰라도 되고, 값매김을 따로 시험할 수 있다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 9.** <span class="diff med" title="중간"></span>
+이 도구들을 시험하는 방법을 적어라.
+
+</div>
+
+??? success "연습문제 9 풀이"
+    값을 아는 입력으로 시험한다. 값매김 함수는 특히 시험해 두는 값이 크다. 틀려도 그럴듯한
+    수가 나오기 때문이다.
+
+    | 무엇을 시험하는가 | 어떻게 |
+    |---|---|
+    | FID | 같은 묶음 두 번 → 0 |
+    | 인셉션 점수 | 완벽한 원-핫 고른 묶음 → 부류 수 |
+    | 격자 | 모양과 값 범위 |
+    | 고정 잡음 | 두 번 불러 같은 결과 |
+    | 저장·되불러 오기 | 되불러 온 모델의 출력이 같은지 |
+
+    마지막 것이 특히 값지다.
+
+    ```python
+    z = torch.randn(4, k)
+    before = g(z)
+    save_ckpt('t.pt', g, d, og, od, 0, {})
+    g2 = G(k); load_ckpt('t.pt', g2, D())
+    assert torch.allclose(before, g2(z)), "되불러 오기가 어긋난다"
+    ```
+
+    그리고 참 자료를 값매김 함수에 넣어 기준점을 얻는 것이 사실상 통합 시험이 된다.
+    참 자료의 FID가 2.52 근처, 인셉션 점수가 9.467 근처로 나오면 물길 전체가 맞게
+    돌아가고 있다는 뜻이다. 엉뚱한 수가 나오면 범위나 전처리를 의심한다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 10.** <span class="diff easy" title="쉬움"></span>
+난수 씨앗을 다루는 도구를 어떻게 두겠는가?
+
+</div>
+
+??? success "연습문제 10 풀이"
+    한곳에서 모두 고정하는 함수를 두고, **모델을 만들기 직전에** 부른다.
+
+    ```python
+    def set_seed(seed=42):
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+    ```
+
+    부르는 자리가 중요하다. 모델을 만든 **뒤에** 부르면 가중치 초기화가 씨앗에 딸리지
+    않아 재현되지 않는다. 이 책에서 실제로 겪은 사고이며, 같은 모델에 세 가지 정확도가
+    나왔다([3.4절](../../ch03/mnist/04_cnn.md)).
+
+    ```python
+    set_seed(42)
+    g, d = G(k), D()                       # 이 순서
+    loader = DataLoader(..., generator=torch.Generator().manual_seed(42))
+    ```
+
+    자료 부르개의 생성기도 따로 고정해야 한다. `torch.manual_seed`만으로는 섞는 순서가
+    고정되지 않는 경우가 있다.
+
+    값매김 쪽은 전역 씨앗을 건드리지 않는 것이 좋다(연습문제 2). 두 곳의 무작위성을
+    떼어 두면 값매김을 넣거나 빼도 익히기가 같게 돌아간다.
+
 ## 정리하며
 
 **다룬 것** — 맞겨루기 만들개 도구
