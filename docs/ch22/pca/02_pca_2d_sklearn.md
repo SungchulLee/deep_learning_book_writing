@@ -122,6 +122,226 @@ sklearn 주성분 분석의 다시 세우기 평균 제곱 어긋남을 이론 �
     ```
     공분산 행렬이 (거의) 항등이며, 이는 하얗게 하기가 특징의 상관을 없애고 흩어짐을 1로 고른다는 것을 확인해 준다. 뒤따르는 알고리즘(예컨대 독립 성분 분석, k-평균, 신경망)이 들임 분포가 방향에 무관하다고 여기거나 특징 잣수에 민감할 때 하얗게 하기가 이롭다.
 
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 4.** <span class="diff easy" title="쉬움"></span>
+`fit`, `transform`, `fit_transform`을 언제 각각 쓰는가?
+
+</div>
+
+??? success "연습문제 4 풀이"
+    | 메서드 | 하는 일 | 쓰는 자료 |
+    |---|---|---|
+    | `fit` | 평균과 성분을 배운다 | 학습 자료만 |
+    | `transform` | 배운 것으로 옮긴다 | 아무 자료나 |
+    | `fit_transform` | 둘을 한 번에 | 학습 자료만 |
+
+    규칙은 하나다. **`fit`이 들어간 것은 학습 자료에만 쓴다.**
+
+    ```python
+    pca = PCA(n_components=1)
+    Z_train = pca.fit_transform(X_train)   # 배우고 옮긴다
+    Z_test  = pca.transform(X_test)        # 배운 것을 쓴다
+    ```
+
+    시험 자료에 `fit_transform`을 쓰면 시험 자료의 평균과 성분을 쓰게 되어 **정보가
+    샌다.** 그리고 두 자료가 다른 좌표계에 놓이므로 견줄 수 없게 된다.
+
+    직접 짤 때 평균을 저장해 두어야 했던 것과 같은 이야기다
+    ([NumPy 연습문제 7](01_pca_2d_numpy.md)). `sklearn`은 그것을 `fit`이 강제해 준다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 5.** <span class="diff easy" title="쉬움"></span>
+`explained_variance_`와 `explained_variance_ratio_`가 어떻게 다른가?
+
+</div>
+
+??? success "연습문제 5 풀이"
+    앞은 고윳값 그 자체이고 뒤는 전체에 대한 비율이다.
+
+    ```python
+    pca.explained_variance_        # 고윳값. 단위가 자료의 단위^2
+    pca.explained_variance_ratio_  # 합이 1이 되도록 나눈 것
+    ```
+
+    관계는 이렇다.
+
+    $$\text{ratio}_j = \frac{\lambda_j}{\sum_{i} \lambda_i}$$
+
+    한 가지 조심할 점이 있다. `n_components`를 작게 두면 분모가 **남은 성분까지 포함한
+    전체**다. 곧 `n_components=2`로 두어도 `explained_variance_ratio_`의 합이 1이 아니라
+    0.168 같은 값이 된다(MNIST의 경우).
+
+    그러므로 `ratio_.sum()`이 1이 아니라고 놀랄 일이 아니다. 그 값이 곧 **남긴 흩어짐의
+    비율**이며 우리가 보고 싶어 하던 수다.
+
+    누적 곡선을 그리려면 `n_components`를 비워 두고 모두 구한 뒤 `np.cumsum`을 쓴다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 6.** <span class="diff med" title="중간"></span>
+`inverse_transform`은 무엇을 되돌리는가? 완전히 되돌아오는가?
+
+</div>
+
+??? success "연습문제 6 풀이"
+    점수를 원래 공간으로 되돌린다.
+
+    $$\hat x = \bar x + V_k z$$
+
+    곧 성분을 곱하고 평균을 더한다. `transform`의 역이지만 **정보를 되돌리지는
+    못한다.** 버린 $d - k$개 방향의 성분은 사라진 것이므로 복구할 수 없다.
+
+    돌아오는 것은 원래 점이 아니라 **주부분 공간에 수직으로 사영한 점**이다. 그래서
+
+    ```python
+    X2 = pca.inverse_transform(pca.transform(X))
+    ((X - X2)**2).mean()          # 0이 아니다. 버린 고윳값의 합/d
+    ```
+
+    이 값이 버린 고윳값으로 예측된다는 것을 [기본 연습문제 3](pca_fundamentals.md)에서
+    확인했다.
+
+    $k = d$이면 아무것도 버리지 않으므로 정확히 되돌아온다. 수치 오차만 남는다. 그것을
+    확인해 보는 것이 짜기가 맞는지 보는 좋은 검사다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 7.** <span class="diff med" title="중간"></span>
+직접 짠 것과 `sklearn`의 결과가 부호만 다르게 나왔다. 무엇을 확인하겠는가?
+
+</div>
+
+??? success "연습문제 7 풀이"
+    **정상이다.** 고유 벡터의 부호는 정해지지 않는다
+    ([유도 연습문제 4](pca_derivation.md)).
+
+    확인할 것은 부호에 딸리지 않는 값들이 일치하는지다.
+
+    | 확인할 것 | 같아야 하는가 |
+    |---|---|
+    | `explained_variance_` | 그렇다 |
+    | 다시 세우기 어긋남 | 그렇다 |
+    | 점수의 절댓값 | 그렇다 |
+    | 점수의 부호 | 아니다 |
+
+    ```python
+    assert np.allclose(np.abs(Z_mine), np.abs(Z_sklearn))
+    assert np.allclose(ev_mine, pca.explained_variance_)
+    ```
+
+    `sklearn`은 부호를 고정하는 관례를 쓴다. 각 성분에서 절댓값이 가장 큰 원소가 양수가
+    되게 맞추므로(`svd_flip`), 같은 자료에 대해서는 재현된다. 직접 짠 코드에 같은 관례를
+    넣으면 부호까지 맞출 수 있다.
+
+    부호가 아니라 **성분의 순서나 크기**가 다르면 그때는 진짜 버그다. 가운데 맞추기를
+    빠뜨렸거나 축을 잘못 잡은 것이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 8.** <span class="diff med" title="중간"></span>
+`svd_solver` 옵션은 무엇을 고르는 것인가? 언제 신경 써야 하는가?
+
+</div>
+
+??? success "연습문제 8 풀이"
+    쪼개기를 어떤 알고리즘으로 할지 고른다. 기본값 `'auto'`가 자료 크기를 보고 정한다.
+
+    | 값 | 쓰는 때 |
+    |---|---|
+    | `'full'` | 전체 특잇값 쪼개기. 작은 자료 |
+    | `'randomized'` | $k$가 $d$보다 훨씬 작은 큰 자료 |
+    | `'arpack'` | 성분 몇 개만, 희소 자료 |
+
+    신경 쓸 때는 **자료가 커서 느리거나 메모리가 모자랄 때**다. MNIST에서 성분 50개만
+    필요하다면 `'randomized'`가 훨씬 빠르다. 784개를 모두 구할 이유가 없다.
+
+    무작위 방식은 **어림**이라는 점을 알아 두어야 한다. 근사이므로 `random_state`에 따라
+    결과가 조금 달라지고, 앞쪽 성분은 매우 정확하지만 뒤쪽은 덜하다. 누적 흩어짐 곡선을
+    끝까지 그리려면 `'full'`이 맞다.
+
+    2차원 장난감 자료에서는 무엇을 고르든 차이가 없다. 이런 옵션이 있다는 것만 알아
+    두면 큰 자료로 옮길 때 막히지 않는다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 9.** <span class="diff med" title="중간"></span>
+`n_components`에 소수를 넣을 수 있다. 무슨 뜻인가?
+
+</div>
+
+??? success "연습문제 9 풀이"
+    남길 흩어짐의 **비율**을 뜻한다.
+
+    ```python
+    PCA(n_components=0.95)    # 흩어짐 95%를 남기는 가장 작은 k
+    ```
+
+    `fit` 뒤에 `pca.n_components_`를 보면 실제로 고른 개수가 나온다. MNIST라면 154가
+    된다([기본 연습문제 1](pca_fundamentals.md)).
+
+    편리하지만 조심할 점이 있다. **$k$가 자료에 따라 달라진다.** 학습 자료를 바꾸거나
+    전처리를 바꾸면 고른 $k$가 달라지므로, 뒤따르는 모델의 입력 차원이 바뀐다. 저장하고
+    되불러 올 때 차원이 안 맞는 사고가 이렇게 난다.
+
+    그래서 실험 단계에서는 소수로 두어 적당한 $k$를 찾고, 정해지면 **정수로 못 박아 두는**
+    편이 안전하다. 무엇을 골랐는지 기록에 남기기도 좋다.
+
+    정수 대신 `'mle'`를 넣는 선택도 있는데, 차원을 추정하는 방법을 쓴다. 가정이 들어가는
+    방법이므로 결과를 그대로 믿기보다 참고로 보는 것이 좋다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 10.** <span class="diff hard" title="어려움"></span>
+`sklearn`의 주성분 분석을 물길(pipeline) 안에서 쓸 때 무엇을 조심해야 하는가?
+
+</div>
+
+??? success "연습문제 10 풀이"
+    가장 큰 것은 **교차 검증 안에서 `fit`이 되게 하는 것**이다.
+
+    흔한 잘못은 이렇다.
+
+    ```python
+    Z = PCA(n_components=50).fit_transform(X)      # 전체 자료로 fit
+    scores = cross_val_score(clf, Z, y, cv=5)      # 그 뒤에 교차 검증
+    ```
+
+    이러면 각 접기의 검증 몫이 주성분 분석을 맞추는 데 이미 쓰였으므로 **정보가 샌다.**
+    점수가 낙관적으로 나온다.
+
+    옳은 방식은 물길로 묶는 것이다.
+
+    ```python
+    pipe = make_pipeline(StandardScaler(), PCA(n_components=50), LogisticRegression())
+    scores = cross_val_score(pipe, X, y, cv=5)     # 접기마다 fit 이 다시 된다
+    ```
+
+    이러면 접기마다 훈련 몫으로만 평균과 성분을 배운다.
+
+    새는 정도는 자료 수에 달린다. 표본이 많으면 작지만, 표본이 적고 차원이 높으면
+    크게 낙관적이 된다. 주성분 분석은 표지를 보지 않으므로 새는 정도가 지도 학습
+    전처리보다 덜하다고 여겨지기도 하는데, **그래도 새는 것은 새는 것이다.**
+
+    순서도 중요하다. 표준화가 주성분 분석보다 **앞**에 와야 한다. 뒤에 두면 이미 상관을
+    없앤 점수를 다시 눈금 맞추는 셈이라 뜻이 달라진다.
+
 ## 정리하며
 
 **다룬 것** — 2차원 주성분 분석 Sklearn
