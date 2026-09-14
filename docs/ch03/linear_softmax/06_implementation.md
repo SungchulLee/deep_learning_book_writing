@@ -49,21 +49,27 @@ from torchvision import datasets, transforms
 torch.manual_seed(42)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# 아래 주석에서 오른쪽 끝의 괄호가 그 줄을 지난 뒤의 텐서 모양이다.
+# B는 묶음 크기이며 학습에서는 128, 시험에서는 1000이다.
+
 # =============================================================================
 # 데이터
 # =============================================================================
 # 네 걸음 모두 같은 정규화를 쓴다. 0.1307과 0.3081은 MNIST 학습 집합의
 # 화소 평균과 표준편차이며, 이래야 결과를 나란히 견줄 수 있다
 transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,)),
+    transforms.ToTensor(),                    # PIL 28x28 -> (1, 28, 28), [0,1]
+    transforms.Normalize((0.1307,), (0.3081,)),   # 모양 그대로  (1, 28, 28)
 ])
 
 train_dataset = datasets.MNIST('./data', train=True, download=True, transform=transform)
 test_dataset = datasets.MNIST('./data', train=False, download=True, transform=transform)
+# 표본 하나는 ((1, 28, 28) 텐서, 정수 레이블) 짝이다
 
 train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
+# 부르개가 묶음 축을 앞에 붙인다
+#   images: (B, 1, 28, 28)      labels: (B,)  0~9 정수
 
 # =============================================================================
 # 모델: y = xA + b
@@ -75,10 +81,14 @@ test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
 # 소프트맥스를 붙이지 않는 까닭은 아래 CrossEntropyLoss가 안에 품고
 # 있기 때문이다. 여기서 또 걸면 두 번 적용된다
 model = nn.Sequential(
-    nn.Flatten(),
-    nn.Linear(28 * 28, 10),
+    nn.Flatten(),               # (B, 1, 28, 28) -> (B, 784)
+    nn.Linear(28 * 28, 10),     # (B, 784)       -> (B, 10)   로짓
 ).to(device)
 
+# 매개변수는 두 개뿐이다
+#   weight: (10, 784)   클래스마다 784개 화소에 매기는 무게 한 줄
+#   bias:   (10,)       클래스마다 상수 하나
+# 784*10 + 10 = 7850
 n_params = sum(p.numel() for p in model.parameters())
 print(f"Trainable parameters: {n_params:,}")   # 7,850
 
@@ -86,7 +96,9 @@ print(f"Trainable parameters: {n_params:,}")   # 7,850
 # 손실과 최적화: 사슬 그대로
 # =============================================================================
 # CrossEntropyLoss가 곧 손실 -l이다. 안에서 log_softmax와 NLLLoss를
-# 합쳐 계산하므로, 소프트맥스를 따로 적용하는 것보다 수치적으로 안정하다
+# 합쳐 계산하므로, 소프트맥스를 따로 적용하는 것보다 수치적으로 안정하다.
+# 로짓 (B, 10)과 정수 레이블 (B,)을 받아 스칼라 하나를 돌려준다.
+# 레이블이 원-핫 (B, 10)이 아니라 정수 (B,)라는 점을 눈여겨볼 것
 criterion = nn.CrossEntropyLoss()
 # Adam이 theta <- theta - lambda * g 갱신을 매개변수마다 조절해 수행한다
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
@@ -99,8 +111,12 @@ def evaluate(loader):
     with torch.no_grad():
         for images, labels in loader:
             images, labels = images.to(device), labels.to(device)
+            #                        images: (B, 1, 28, 28)   labels: (B,)
             preds = model(images).argmax(dim=1)
-            correct += (preds == labels).sum().item()
+            # model(images): (B, 10) 로짓 -> argmax로 축 1을 접어  (B,)
+            # 로짓의 순서가 소프트맥스를 지나도 그대로이므로, 예측만
+            # 할 것이면 확률로 옮길 까닭이 없다
+            correct += (preds == labels).sum().item()   # (B,) -> 스칼라
             total += labels.size(0)
     return 100 * correct / total
 
@@ -114,11 +130,17 @@ for epoch in range(1, EPOCHS + 1):
     running = 0.0
     for images, labels in train_loader:
         images, labels = images.to(device), labels.to(device)
+        #                    images: (B, 1, 28, 28)     labels: (B,)
         optimizer.zero_grad()          # 기울기는 누적되므로 매번 지운다
         loss = criterion(model(images), labels)
+        #                (B, 10)        (B,)   ->  loss: () 스칼라
         loss.backward()                # dl/dtheta 를 채운다
+        #   weight.grad: (10, 784)     bias.grad: (10,)   매개변수와 같은 모양
         optimizer.step()               # theta - lambda * g
         running += loss.item() * images.size(0)
+        # loss는 묶음 안에서 이미 평균이므로, 묶음 크기를 곱해 되돌려
+        # 더해야 에포크 평균이 맞는다. 60000 = 128*468 + 96이라 마지막
+        # 묶음이 96개뿐이며, 그래서 images.size(0)을 쓰고 128을 쓰지 않는다
 
     print(f"Epoch {epoch:2d}/{EPOCHS}  "
           f"Loss: {running / len(train_dataset):.4f}  "
