@@ -26,6 +26,8 @@
 | [교차 엔트로피 손실](04_cross_entropy.md) | `criterion = nn.CrossEntropyLoss()` |
 | [경사 하강법](05_gradient_descent.md) | `loss.backward()`와 `optimizer.step()` |
 
+사슬이 **정해 주지 않는** 값이 둘 남는다. **학습률**과 **에포크 수**다. 앞의 다섯 쪽이 모델과 손실과 갱신 규칙을 모두 정했지만, 한 걸음을 얼마나 크게 디딜지와 자료를 몇 번 훑을지는 사람이 고른다. 아래 코드는 $\lambda = 10^{-3}$과 10 에포크를 쓰며, 그 둘이 무엇을 바꾸는지는 [경사 하강법](05_gradient_descent.md)의 학습률 실험과 이 쪽의 「에포크에 따른 손실」에서 본다.
+
 ---
 
 ## 3. 코드
@@ -48,6 +50,18 @@ from torchvision import datasets, transforms
 
 torch.manual_seed(42)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# 장치를 정했으면 한 셈에 함께 들어가는 것이 모두 같은 장치에 있어야 한다.
+# 이 코드가 옮기는 것은 셋이다.
+#
+#     매개변수 A, b    model.to(device)      모델을 만들 때 한 번
+#     그림     image   images.to(device)     묶음마다
+#     이름표   label   labels.to(device)     묶음마다
+#
+# 하나라도 빠지면 곱셈에서 막힌다.
+#     RuntimeError: Expected all tensors to be on the same device
+# 모델은 제자리에서 옮겨지지만 텐서는 옮긴 것을 새로 돌려준다. 그래서
+# images.to(device)라고만 적고 되받지 않으면 아무 일도 일어나지 않는다.
 
 # 아래 주석에서 오른쪽 끝의 괄호가 그 줄을 지난 뒤의 텐서 모양이다.
 # B는 묶음 크기이며 학습에서는 128, 시험에서는 1000이다.
