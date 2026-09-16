@@ -1,13 +1,14 @@
 """
 ================================================================================
-make_figures.py - 3.3 다층 퍼셉트론의 개념도 두 장을 만든다
+make_figures.py - 3.3 다층 퍼셉트론의 그림 세 장을 만든다
 ================================================================================
 
 만드는 그림:
-    mlp_architecture.svg   784 -> 128 -> 10 사슬. 띠의 색은 실제로 잰 활성값이다
+    activations.svg        ReLU, 시그모이드, tanh와 그 도함수. 요점은 점선의 높이다
     backprop_flow.svg      순전파가 도함수를 붙들고, 역전파가 그것을 곱해 내려온다
+    mlp_architecture.svg   784 -> 128 -> 10 사슬. 띠의 색은 실제로 잰 활성값이다
 
-첫 그림은 03_mlp.md의 모델을 그대로 학습시킨 뒤(ToTensor만, 묶음 100,
+마지막 그림은 03_mlp.md의 모델을 그대로 학습시킨 뒤(ToTensor만, 묶음 100,
 Adam 1e-3, 5 에포크, 씨앗 42) 시험 집합의 첫 이미지를 통과시켜 단계마다의
 값을 그대로 칠한 것이다. 그래서 이 스크립트를 다시 돌리면 그림의 숫자도
 다시 계산된다.
@@ -21,7 +22,7 @@ Adam 1e-3, 5 에포크, 씨앗 42) 시험 집합의 첫 이미지를 통과시�
     python make_figures.py
     MNIST_ROOT=~/data python make_figures.py      # 내려받아 둔 자료를 쓸 때
 
-소요 시간: CPU에서 4~5분 (대부분 학습)
+소요 시간: CPU에서 4~5분 (대부분 학습. 앞의 두 장은 즉시 나온다)
 ================================================================================
 """
 
@@ -48,6 +49,7 @@ TEXT, MUTE, ACCENT, HILITE = "#333333", "#696969", "#dc143c", "#fff3c4"
 
 plt.rcParams["svg.fonttype"] = "path"
 plt.rcParams["font.family"] = "DejaVu Sans"
+plt.rcParams["axes.unicode_minus"] = False   # ASCII hyphen, not U+2212
 
 
 def arrow(ax, x0, y0, x1, y1, color=EDGE, lw=1.3, ls="-", zorder=4):
@@ -302,12 +304,89 @@ def draw_backprop_flow():
 
 
 # ================================================================================
+# 4부: 활성화 함수 세 개와 그 도함수
+# ================================================================================
+def draw_activations():
+    """1절의 논증을 그림으로. 요점은 함수가 아니라 도함수의 크기다."""
+    x = np.linspace(-5, 5, 1001)
+    sigmoid = 1 / (1 + np.exp(-x))
+
+    # shade: 양끝이 모두 평평해지는 함수에만. ReLU의 꺼진 반쪽은 포화가
+    # 아니라 설계이므로 같은 표시를 하면 뜻이 뒤집힌다
+    panels = [
+        ("ReLU", np.maximum(0, x), (x > 0).astype(float), None, False),
+        ("sigmoid", sigmoid, sigmoid * (1 - sigmoid), 0.25, True),
+        ("tanh", np.tanh(x), 1 - np.tanh(x) ** 2, 1.0, True),
+    ]
+
+    fig, axes = plt.subplots(1, 3, figsize=(11.4, 3.5), sharex=True)
+
+    for ax, (name, f, df, dmax, shade) in zip(axes, panels):
+        ax.axhline(0, color=EDGE, lw=0.8, zorder=1)
+        ax.axvline(0, color=EDGE, lw=0.8, zorder=1)
+
+        # 도함수가 거의 0인 구간 - 여기서 학습 신호가 죽는다
+        flat = df < 0.01
+        if shade and flat.any():
+            for lo, hi in _runs(x, flat):
+                ax.axvspan(lo, hi, color=ACCENT, alpha=0.06, lw=0, zorder=0)
+
+        ax.plot(x, f, color=TEXT, lw=2.0, zorder=3, label=name)
+        ax.plot(x, df, color=ACCENT, lw=1.6, ls=(0, (4, 2)), zorder=3,
+                label="derivative")
+
+        if dmax is not None:
+            ax.axhline(dmax, color=ACCENT, lw=0.8, ls=":", zorder=2)
+            txt = "max 1/4" if dmax == 0.25 else "max 1"
+            ax.text(4.8, dmax + 0.06, txt, ha="right", va="bottom",
+                    fontsize=8.5, color=ACCENT)
+
+        ax.set_title(name, fontsize=12, color=TEXT, pad=8)
+        ax.set_xlim(-5, 5)
+        ax.set_ylim(-1.25, 1.65)
+        ax.set_xticks([-4, -2, 0, 2, 4])
+        ax.tick_params(labelsize=8.5, colors=MUTE, length=3)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+        for side in ("left", "bottom"):
+            ax.spines[side].set_color(EDGE)
+
+    axes[0].legend(loc="upper left", fontsize=8.5, frameon=False,
+                   labelcolor=[TEXT, ACCENT])
+    axes[0].text(-4.8, -1.12, "derivative is exactly 1\nwhere it is on",
+                 ha="left", va="bottom", fontsize=8, color=ACCENT, linespacing=1.3)
+    for ax in axes[1:]:
+        ax.text(-4.8, -1.12, "shaded: derivative under 0.01", ha="left",
+                va="bottom", fontsize=8, color=ACCENT)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "activations.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _runs(x, mask):
+    """mask가 참인 구간들의 (시작, 끝)."""
+    out, start = [], None
+    for i, m in enumerate(mask):
+        if m and start is None:
+            start = x[i]
+        elif not m and start is not None:
+            out.append((start, x[i])); start = None
+    if start is not None:
+        out.append((start, x[-1]))
+    return out
+
+
+# ================================================================================
 if __name__ == "__main__":
+    draw_activations()
+    print("wrote activations.svg")
+
+    draw_backprop_flow()
+    print("wrote backprop_flow.svg")
+
     print("training the page's model (this is most of the runtime)...")
     activations = train_and_capture(index=0)
 
     draw_architecture(activations)
     print("wrote mlp_architecture.svg")
-
-    draw_backprop_flow()
-    print("wrote backprop_flow.svg")
