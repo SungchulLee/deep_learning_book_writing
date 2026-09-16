@@ -27,6 +27,7 @@ Adam 1e-3, 5 에포크, 씨앗 42) 시험 집합의 첫 이미지를 통과시�
 """
 
 import os
+import re
 from pathlib import Path
 
 import numpy as np
@@ -50,6 +51,30 @@ TEXT, MUTE, ACCENT, HILITE = "#333333", "#696969", "#dc143c", "#fff3c4"
 plt.rcParams["svg.fonttype"] = "path"
 plt.rcParams["font.family"] = "DejaVu Sans"
 plt.rcParams["axes.unicode_minus"] = False   # ASCII hyphen, not U+2212
+
+
+def save(fig, name):
+    """저장한 뒤 data: URI에 공백이 섞였는지 확인한다.
+
+    matplotlib은 내장 래스터의 base64를 여러 줄로 나누어 쓴다. XML은 속성값
+    안의 줄바꿈을 공백으로 바꾸므로, 그 결과 base64 앞에 공백이 붙는다.
+    엄격하게 해석하는 브라우저(Chrome)는 그런 data: URI를 거부해 그림이
+    통째로 뜨지 않는다. WebKit은 받아 주기 때문에 미리보기로는 드러나지 않는다.
+    그래서 벡터로만 그리고, 혹시 래스터가 섞이면 여기서 걸러 낸다.
+    """
+    path = HERE / name
+    fig.savefig(path, transparent=True, bbox_inches="tight")
+    plt.close(fig)
+
+    svg = path.read_text()
+    fixed = re.sub(r'(data:image/[a-z]+;base64,)([A-Za-z0-9+/=\s]+?)(?=")',
+                   lambda m: m.group(1) + re.sub(r'\s+', '', m.group(2)), svg)
+    if fixed != svg:
+        path.write_text(fixed)
+        print(f"  {name}: stripped whitespace from an embedded data: URI")
+    n = fixed.count("<image")
+    print(f"  wrote {name} ({len(fixed):,} bytes, {n} embedded raster"
+          f"{'' if n == 1 else 's'})")
 
 
 def arrow(ax, x0, y0, x1, y1, color=EDGE, lw=1.3, ls="-", zorder=4):
@@ -147,11 +172,28 @@ def draw_architecture(act):
     bar_w = 0.30
 
     def strip(x, height, values, cmap, vmin, vmax, label, top=None):
-        """값 하나하나를 칸으로 칠한 기둥."""
-        ax.imshow(np.asarray(values).reshape(-1, 1),
-                  extent=[x - bar_w / 2, x + bar_w / 2, -height / 2, height / 2],
-                  aspect="auto", cmap=cmap, vmin=vmin, vmax=vmax,
-                  interpolation="nearest", zorder=2)
+        """값 하나하나를 칸으로 칠한 기둥.
+
+        imshow를 쓰지 않는다. imshow는 SVG 안에 PNG를 base64로 심는데, 그
+        data: URI가 브라우저에서 거부될 수 있다(save 함수의 설명을 보라).
+        칸을 사각형으로 직접 그리면 순수 벡터로 남는다.
+        """
+        v = np.asarray(values, dtype=float)
+        n = len(v)
+        cell = height / n
+        norm = np.clip((v - vmin) / (vmax - vmin), 0, 1)
+
+        # 바탕을 깔고, 흰색에 가까운 칸은 건너뛴다. 대부분이 0이라
+        # 이것만으로 사각형 수가 크게 준다
+        ax.add_patch(Rectangle((x - bar_w / 2, -height / 2), bar_w, height,
+                               facecolor=WHITE, edgecolor="none", zorder=1.5))
+        for i, t in enumerate(norm):
+            rgba = cmap(float(t))
+            if rgba[0] > 0.985 and rgba[1] > 0.985 and rgba[2] > 0.985:
+                continue
+            y = height / 2 - (i + 1) * cell
+            ax.add_patch(Rectangle((x - bar_w / 2, y), bar_w, cell,
+                                   facecolor=rgba, edgecolor="none", zorder=2))
         ax.add_patch(Rectangle((x - bar_w / 2, -height / 2), bar_w, height,
                                facecolor="none", edgecolor=EDGE, lw=1.2, zorder=3))
         ax.text(x, -height / 2 - 0.20, label, ha="center", va="top",
@@ -160,9 +202,20 @@ def draw_architecture(act):
             ax.text(x, height / 2 + 0.14, top, ha="center", va="bottom",
                     fontsize=10, color=TEXT)
 
-    # 실제 입력 이미지
-    ax.imshow(image, extent=[0.28, 1.12, -0.42, 0.42], aspect="auto",
-              cmap="gray_r", vmin=0, vmax=1, interpolation="nearest", zorder=2)
+    # 실제 입력 이미지. 여기도 화소마다 사각형이다
+    ax.add_patch(Rectangle((0.28, -0.42), 0.84, 0.84, facecolor=WHITE,
+                           edgecolor="none", zorder=1.5))
+    rows, cols = image.shape
+    px, py = 0.84 / cols, 0.84 / rows
+    for r in range(rows):
+        for c in range(cols):
+            val = float(image[r, c])
+            if val < 0.015:                      # 배경은 그리지 않는다
+                continue
+            shade = 1.0 - val
+            ax.add_patch(Rectangle((0.28 + c * px, 0.42 - (r + 1) * py), px, py,
+                                   facecolor=(shade, shade, shade),
+                                   edgecolor="none", zorder=2))
     ax.add_patch(Rectangle((0.28, -0.42), 0.84, 0.84, facecolor="none",
                            edgecolor=EDGE, lw=1.2, zorder=3))
     ax.text(0.70, -0.62, "28 x 28", ha="center", va="top", fontsize=10.5, color=TEXT)
@@ -230,8 +283,7 @@ def draw_architecture(act):
             ha="center", va="center", fontsize=10.5, color=TEXT)
 
     fig.tight_layout()
-    fig.savefig(HERE / "mlp_architecture.svg", transparent=True, bbox_inches="tight")
-    plt.close(fig)
+    save(fig, "mlp_architecture.svg")
 
 
 # ================================================================================
@@ -299,8 +351,7 @@ def draw_backprop_flow():
             fontsize=10.5, color=TEXT, zorder=4)
 
     fig.tight_layout()
-    fig.savefig(HERE / "backprop_flow.svg", transparent=True, bbox_inches="tight")
-    plt.close(fig)
+    save(fig, "backprop_flow.svg")
 
 
 # ================================================================================
@@ -360,8 +411,7 @@ def draw_activations():
                 va="bottom", fontsize=8, color=ACCENT)
 
     fig.tight_layout()
-    fig.savefig(HERE / "activations.svg", transparent=True, bbox_inches="tight")
-    plt.close(fig)
+    save(fig, "activations.svg")
 
 
 def _runs(x, mask):
