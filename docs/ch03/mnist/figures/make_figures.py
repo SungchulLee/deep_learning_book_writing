@@ -315,14 +315,15 @@ def draw_backprop_flow():
             fontsize=12.5, color=TEXT)
     arrow(ax, 1.15, y_f + 1.05, 8.95, y_f + 1.05, lw=1.1)
 
-    # 지나가면서 마디마다 붙들어 두는 것
+    # 지나가면서 마디마다 붙들어 두는 것. 도함수 자체가 아니라 그것을
+    # 나중에 만들 재료다 (시그모이드는 출력 y, 선형은 입력과 가중치)
     for x, expr in [(3.10, "$f'(x_0)$"), (7.00, "$g'(x_1)$")]:
         arrow(ax, x, y_f - 0.36, x, y_f - 0.80, color=ACCENT, lw=1.0, ls=(0, (3, 2)))
-        ax.add_patch(FancyBboxPatch((x - 0.70, y_f - 1.34), 1.40, 0.48,
+        ax.add_patch(FancyBboxPatch((x - 0.85, y_f - 1.34), 1.70, 0.48,
                                     boxstyle="round,pad=0.02,rounding_size=0.08",
                                     facecolor=HILITE, edgecolor=ACCENT, lw=1.0, zorder=3))
-        ax.text(x, y_f - 1.10, "keeps " + expr, ha="center", va="center",
-                fontsize=10, color=ACCENT, zorder=4)
+        ax.text(x, y_f - 1.10, "saves what " + expr + " needs", ha="center",
+                va="center", fontsize=9, color=ACCENT, zorder=4)
 
     ax.text(0.10, y_b - 1.00, "backward", ha="left", va="center",
             fontsize=12.5, color=ACCENT)
