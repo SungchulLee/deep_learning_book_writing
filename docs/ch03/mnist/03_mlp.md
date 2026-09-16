@@ -89,6 +89,7 @@ ReLU 말고도 시그모이드, tanh, GELU 등 여러 활성화 함수가 있고
     4. 모델 성능 평가하기
     5. GPU 가속 쓰기
     6. 예측 시각화하기
+    7. 모델 체크포인트 저장하고 다시 불러오기
 
 난이도: ⭐⭐⭐☆☆ (초급~중급)
 소요 시간: 30~45분
@@ -102,6 +103,7 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 # ================================================================================
 # 1부: 설정과 장치 준비
@@ -114,6 +116,12 @@ print("=" * 80)
 # 이렇게 하면 실행할 때마다 같은 결과가 나온다
 torch.manual_seed(42)
 np.random.seed(42)
+
+# 체크포인트를 저장할 디렉터리 만들기
+# exist_ok=True는 이미 있으면 그냥 넘어가라는 뜻이다
+checkpoint_dir = './checkpoints'
+os.makedirs(checkpoint_dir, exist_ok=True)
+print(f"Checkpoint directory: {checkpoint_dir}")
 
 # 장치 설정
 # PyTorch는 CPU에서도 GPU(CUDA)에서도 돌 수 있다
@@ -243,7 +251,7 @@ class MNISTClassifier(nn.Module):
     """
     
     def __init__(self, input_size, hidden_size, num_classes):
-        super(MNISTClassifier, self).__init__()
+        super().__init__()
         
         # 1층: 입력 → 은닉
         # 784 → 128 변환
@@ -291,11 +299,9 @@ class MNISTClassifier(nn.Module):
         반환값:
             모양이 (batch_size,)인 예측 클래스 레이블
         """
-        logits = self.forward(x)
-        # torch.max는 (값, 인덱스)를 돌려준다
-        # 우리는 인덱스(확률이 가장 높은 클래스)가 필요하다
-        _, predicted = torch.max(logits, dim=1)
-        return predicted
+        logits = self(x)
+        # argmax는 로짓이 가장 큰 자리, 곧 확률이 가장 높은 클래스를 돌려준다
+        return torch.argmax(logits, dim=1)
 
 # 모델을 만들어 장치로 옮기기
 model = MNISTClassifier(
@@ -338,15 +344,62 @@ print(f"Optimizer: Adam")
 print(f"Learning rate: {config['learning_rate']}")
 
 # ================================================================================
-# 6부: 학습 루프
+# 체크포인트 저장·적재 함수
+# ================================================================================
+def save_checkpoint(model, epoch, accuracy, loss):
+    """
+    모델 체크포인트를 저장한다.
+
+    저장 항목:
+        - 모델 가중치 (state_dict)
+        - 에포크 번호
+        - 정확도
+        - 손실값
+
+    모델 객체 자체가 아니라 state_dict를 저장한다.
+    클래스 정의에 묶이지 않아 나중에 불러오기가 수월하다.
+    """
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'accuracy': accuracy,
+        'loss': loss,
+    }
+
+    checkpoint_path = os.path.join(checkpoint_dir, f'model_epoch_{epoch+1}.pt')
+    torch.save(checkpoint, checkpoint_path)
+    print(f"  ✓ Saved checkpoint: {checkpoint_path}")
+
+
+def load_checkpoint(model, checkpoint_path):
+    """
+    저장해 둔 체크포인트를 불러온다.
+
+    map_location=device는 GPU에서 저장한 가중치를
+    CPU만 있는 기계에서도 읽을 수 있게 한다.
+    """
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    print(f"✓ Loaded model from: {checkpoint_path}")
+    print(f"  Epoch: {checkpoint['epoch'] + 1}")
+    print(f"  Accuracy: {checkpoint['accuracy']:.2f}%")
+    print(f"  Loss: {checkpoint['loss']:.4f}")
+    return model, checkpoint
+
+# ================================================================================
+# 6부: 학습 루프 (에포크마다 체크포인트를 남긴다)
 # ================================================================================
 print("\n" + "=" * 80)
-print("STEP 6: Training the Model")
+print("STEP 6: Training the Model (with Checkpoint Saving)")
 print("=" * 80)
 
 # 학습 기록
 train_losses = []
 train_accuracies = []
+
+# 가장 좋았던 에포크 추적
+best_accuracy = 0
+best_checkpoint_path = None
 
 # 전체 단계 수
 total_steps = len(train_loader)
@@ -388,7 +441,7 @@ for epoch in range(config['num_epochs']):
         epoch_loss += loss.item()
         
         # 예측을 얻는다
-        _, predicted = torch.max(outputs.data, 1)
+        predicted = torch.argmax(outputs, dim=1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
         
@@ -409,15 +462,40 @@ for epoch in range(config['num_epochs']):
     print(f"\nEpoch [{epoch+1}/{config['num_epochs']}] Summary:")
     print(f"  Average Loss: {avg_loss:.4f}")
     print(f"  Training Accuracy: {epoch_accuracy:.2f}%")
+
+    # 에포크마다 체크포인트를 남긴다
+    save_checkpoint(model, epoch, epoch_accuracy, avg_loss)
+
+    # 가장 좋았던 에포크의 경로를 기억해 둔다
+    if epoch_accuracy > best_accuracy:
+        best_accuracy = epoch_accuracy
+        best_checkpoint_path = os.path.join(checkpoint_dir, f'model_epoch_{epoch+1}.pt')
+        print(f"  🌟 New best accuracy! Saving as best model...")
+
     print("-" * 80)
 
 print("\nTraining completed!")
+print(f"Best training accuracy: {best_accuracy:.2f}%")
+
+# ================================================================================
+# 6.5부: 가장 좋았던 모델 되살리기
+# ================================================================================
+print("\n" + "=" * 80)
+print("STEP 6.5: Loading Best Model")
+print("=" * 80)
+
+# 학습이 끝난 시점의 가중치가 늘 가장 좋은 것은 아니다
+# 저장해 둔 체크포인트 가운데 가장 좋았던 것을 다시 올린다
+if best_checkpoint_path:
+    model, best_checkpoint = load_checkpoint(model, best_checkpoint_path)
+else:
+    print("Warning: No checkpoint found!")
 
 # ================================================================================
 # 7부: 시험 집합에서의 평가
 # ================================================================================
 print("\n" + "=" * 80)
-print("STEP 7: Evaluating on Test Set")
+print("STEP 7: Evaluating on Test Set (Using Best Model)")
 print("=" * 80)
 
 # 모델을 평가 모드로 바꾼다
@@ -439,7 +517,7 @@ with torch.no_grad():
         labels = labels.to(device)
         
         outputs = model(images)
-        _, predicted = torch.max(outputs.data, 1)
+        predicted = torch.argmax(outputs, dim=1)
         
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
@@ -480,7 +558,7 @@ example_labels = example_labels.to(device)
 
 with torch.no_grad():
     outputs = model(example_data)
-    _, predictions = torch.max(outputs, 1)
+    predictions = torch.argmax(outputs, dim=1)
     
     # 확률 얻기 (로짓의 소프트맥스)
     probabilities = torch.nn.functional.softmax(outputs, dim=1)
@@ -556,19 +634,25 @@ print(f"""
    ✓ 따로 떼어 둔 시험 집합에서의 평가
    ✓ 결과 시각화
 
-2. 단순한 2층 신경망으로 약 {overall_accuracy:.1f}%의 정확도를 얻었다!
+2. 모델 체크포인트 저장과 적재
+   ✓ 에포크마다 가중치를 파일로 남긴다
+   ✓ 가장 좋았던 에포크를 따로 추적한다
+   ✓ 평가 전에 그 가중치를 다시 올린다
+   ✓ 체크포인트 디렉터리: {checkpoint_dir}
+
+3. 단순한 2층 신경망으로 약 {overall_accuracy:.1f}%의 정확도를 얻었다!
    - 최고 수준의 CNN은 약 99.7%에 이른다
    - 이 기준선도 꽤 훌륭하다
 
-3. 다중 클래스 분류에 쓰는 CrossEntropyLoss
+4. 다중 클래스 분류에 쓰는 CrossEntropyLoss
    - LogSoftmax와 NLLLoss를 합친다
    - 따로 계산하는 것보다 수치적으로 안정적이다
 
-4. GPU 가속은 학습을 훨씬 빠르게 한다
+5. GPU 가속은 학습을 훨씬 빠르게 한다
    - 모델과 데이터를 모두 장치로 옮겨야 한다
    - 텐서와 모델에는 .to(device)를 쓴다
 
-5. 학습 모드와 평가 모드:
+6. 학습 모드와 평가 모드:
    - model.train(): 드롭아웃과 배치 정규화의 학습 동작을 켠다
    - model.eval(): 추론을 위해 그것들을 끈다
 
@@ -588,10 +672,18 @@ print("""
 4. 학습률 0.0001, 0.01, 0.1로 실험해 보라
 5. 더 많은 에폭(10~20)으로 학습해 보라. 과적합을 살피라
 6. 검증 손실을 기준으로 조기 종료를 구현해 보라
-7. 학습한 모델을 저장하라: torch.save(model.state_dict(), 'model.pth')
+7. 최적화기의 state_dict도 체크포인트에 함께 담아, 멈춘 자리에서
+   학습을 이어 갈 수 있게 해 보라
 8. 무작위 회전과 이동 같은 데이터 증강을 더해 보라
 9. 첫 층의 가중치를 그려 신경망이 배운 것을 살펴보라
 10. 혼동 행렬을 만들어 어떤 숫자가 헷갈리는지 보라
+
+체크포인트 쓰는 법:
+    # 특정 체크포인트 불러오기
+    model, checkpoint = load_checkpoint(model, './checkpoints/model_epoch_3.pt')
+
+    # 저장된 체크포인트 모두 보기
+    print(sorted(os.listdir('./checkpoints')))
 """)
 
 
@@ -644,6 +736,10 @@ Overall Test Accuracy: 97.42%
 `MNISTClassifier` 클래스는 PyTorch의 `nn.Module` 인터페이스를 사용하여 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정의하므로, 학습 중에 PyTorch의 autograd 체계가 경사 계산을 자동으로 처리한다. 이런 모듈식 설계 덕분에 개별 구성 요소를 고치거나 모델을 더 큰 파이프라인에 넣기가 쉬워진다.
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.
+
+체크포인트를 남기는 대목은 결과를 바꾸지 않지만 습관으로 익혀 둘 값어치가 있다. 저장하는 것은 모델 객체가 아니라 `state_dict`, 곧 층 이름에서 가중치 텐서로 가는 사전이다. 클래스 정의에 묶이지 않으므로 나중에 같은 구조를 다시 만들어 `load_state_dict`로 부어 넣기만 하면 된다. 불러올 때 `map_location=device`를 주는 까닭도 같다. GPU에서 저장한 텐서를 CPU만 있는 기계에서 읽으려면 어디로 올릴지 일러 주어야 한다.
+
+다만 여기서 "가장 좋은" 모델을 고르는 기준이 **학습** 정확도라는 점은 짚어 두어야 한다. 학습 정확도는 에포크마다 거의 어김없이 오르므로, 이 코드가 되살리는 것은 사실상 마지막 에포크다. 체크포인트가 제값을 하는 것은 기준이 **검증** 정확도일 때다. 그때는 곡선이 한 번 꺾여 내려가고, 꺾이기 전의 가중치를 붙들어 두는 일이 곧 조기 종료가 된다. 여기서는 그 장치를 미리 갖추어 둔 셈이다. 검증 집합을 기준으로 삼는 체크포인트는 [5장의 모델 체크포인트](../../ch05/logistic_regression/03_model_checkpointing.md)에서 자세히 다룬다.
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.
 
