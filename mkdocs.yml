@@ -1121,12 +1121,12 @@ nav:
       - 장 살펴보기: ch32/index.md
       - 32.1 바탕:
         - 상미분 방정식 바탕: ch32/neural_ode_foundations/fundamentals.md
-        - 수치 풀개: ch32/neural_ode_foundations/numerical_solvers.md
+        - 수치 솔버: ch32/neural_ode_foundations/numerical_solvers.md
         - 신경 상미분 방정식: ch32/neural_ode_foundations/50_neural_ode.md
       - 32.2 나아간 주제:
         - 때 차례를 위한 숨은 상미분 방정식: ch32/advanced/latent_odes.md
       - 32.3 따지기:
-        - 풀개 고르기 안내: ch32/evaluation/solver_selection.md
+        - 솔버 고르기 안내: ch32/evaluation/solver_selection.md
       - 32.4 금융 쓰임새:
         - 기간 얼개 움직임: ch32/finance_applications/term_structure.md
     - 33 그래프 신경망:

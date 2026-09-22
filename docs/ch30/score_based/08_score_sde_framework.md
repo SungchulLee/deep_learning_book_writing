@@ -250,7 +250,7 @@ print("""
 -------------------
 
 1. EULER-MARUYAMA (EM):
-   단순한 일차 확률 미분 방정식 풀개
+   단순한 일차 확률 미분 방정식 솔버
    x_{i-1} = x_i + drift*dt + diffusion*√dt*z
 
 2. PREDICTOR-CORRECTOR:

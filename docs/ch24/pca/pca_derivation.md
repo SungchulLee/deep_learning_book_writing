@@ -199,7 +199,7 @@ $$\text{Encode:} \quad \mathbf{z} = \mathbf{W}_e^T \mathbf{x}, \qquad \text{Deco
 
 $$\mathcal{L}(\mathbf{W}_e, \mathbf{W}_d) = \frac{1}{n}\sum_{i=1}^n \left\|\mathbf{x}^{(i)} - \mathbf{W}_d \mathbf{W}_e^T \mathbf{x}^{(i)}\right\|^2$$
 
-### 인코더가 주어졌을 때 가장 좋은 풀개
+### 인코더가 주어졌을 때 가장 좋은 디코더
 
 $\mathbf{W}_e$을 고정하면 손실이 $\mathbf{W}_d$에 대해 이차이다. 미분해 0으로 두면:
 
