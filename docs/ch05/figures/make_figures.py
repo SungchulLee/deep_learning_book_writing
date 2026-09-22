@@ -303,3 +303,71 @@ if __name__ == "__main__":
     fig_latent_2d()
     fig_ae_vs_vae_2d()
     fig_class_share()
+
+
+# === 그림 6: 네 모델이 만들어 낸 표본 =======================================
+@torch.no_grad()
+def fig_samples():
+    """AE, VAE, GAN, DCGAN이 뽑아 낸 그림을 나란히 둔다.
+
+    표로는 전할 수 없는 것이 있다. 흐릿함과 선명함은 보아야 안다.
+    """
+    import torch.nn.functional as F
+
+    class GMLP(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.net = nn.Sequential(
+                nn.Linear(64, 256), nn.LeakyReLU(0.2),
+                nn.Linear(256, 512), nn.LeakyReLU(0.2),
+                nn.Linear(512, 784), nn.Tanh())
+        def forward(self, z): return self.net(z).reshape(-1, 1, 28, 28)
+
+    class GConv(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.fc = nn.Sequential(nn.Linear(64, 128 * 7 * 7),
+                                    nn.BatchNorm1d(128 * 7 * 7), nn.ReLU())
+            self.net = nn.Sequential(
+                nn.ConvTranspose2d(128, 64, 4, 2, 1), nn.BatchNorm2d(64), nn.ReLU(),
+                nn.ConvTranspose2d(64, 1, 4, 2, 1), nn.Tanh())
+        def forward(self, z): return self.net(self.fc(z).reshape(-1, 128, 7, 7))
+
+    n = 10
+    g = torch.Generator().manual_seed(7)
+    rows = []
+
+    # 자기 부호기 / VAE 는 심판 정규화 공간에서 내놓는다
+    ae = load(MLPAE, 64, "ae_mlp64")
+    (Xtr, _), (Xte, _) = load_flat()
+    zr = ae.enc(Xte)
+    z = torch.randn(n, 64, generator=g) * zr.std(0) + zr.mean(0)
+    rows.append(("AE_MLP-64", (ae.dec(z) * STD + MEAN).clamp(0, 1)))
+
+    vae = VAEModel(64)
+    vae.load_state_dict(torch.load(f"{MODELS}/mnist_vae64_beta1.0.pt",
+                                   map_location="cpu", weights_only=True)); vae.eval()
+    z = torch.randn(n, 64, generator=g)
+    rows.append(("VAE-64", (vae.dec(z) * STD + MEAN).clamp(0, 1)))
+
+    # GAN 들은 [-1, 1] 로 내놓는다
+    for tag, cls, label in [("gan_mlp", GMLP, "GAN (MLP)"), ("dcgan", GConv, "DCGAN")]:
+        G = cls()
+        G.load_state_dict(torch.load(f"{MODELS}/mnist_{tag}_G.pt",
+                                     map_location="cpu", weights_only=True))
+        G.eval()
+        z = torch.randn(n, 64, generator=g)
+        rows.append((label, ((G(z).flatten(1) + 1) / 2).clamp(0, 1)))
+
+    fig, axes = plt.subplots(len(rows), n, figsize=(11, 4.8))
+    for r, (label, imgs) in enumerate(rows):
+        for c in range(n):
+            axes[r, c].imshow(imgs[c].reshape(28, 28), cmap="gray", vmin=0, vmax=1)
+            axes[r, c].axis("off")
+        axes[r, 0].text(-0.18, 0.5, label, transform=axes[r, 0].transAxes,
+                        ha="right", va="center", fontsize=9)
+    fig.subplots_adjust(left=0.13, right=0.995, top=0.995, bottom=0.005,
+                        wspace=0.06, hspace=0.10)
+    fig.savefig("samples.svg", transparent=True)
+    plt.close(fig)
+    print("wrote samples.svg")

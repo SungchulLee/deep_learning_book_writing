@@ -107,6 +107,8 @@ nav:
         - 되살리는 사다리: ch05/01_autoencoder_ladder.md
       - 5.2 변분 자기 부호기:
         - 변분 자기 부호기: ch05/02_vae.md
+      - 5.3 GAN과 DCGAN:
+        - GAN과 DCGAN: ch05/03_gan.md
     - 6 PyTorch 기초:
       - 장 개요: ch06/index.md
       - 6.1 텐서:
