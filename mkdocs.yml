@@ -102,6 +102,8 @@ nav:
         - 차원 줄이기: cifar10/04_dimensionality_reduction.md
       - 4.5 앙상블:
         - 앙상블: cifar10/05_ensemble.md
+      - 4.6 증류:
+        - 증류: cifar10/06_distillation.md
     - 4 PyTorch 기초:
       - 장 개요: ch04/index.md
       - 4.1 텐서:
