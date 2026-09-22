@@ -98,6 +98,8 @@ nav:
         - VGG16 전이: cifar10/02_vgg16_transfer.md
       - 4.3 데이터 증강:
         - 데이터 증강: cifar10/03_augmentation.md
+      - 4.4 차원 줄이기:
+        - 차원 줄이기: cifar10/04_dimensionality_reduction.md
     - 4 PyTorch 기초:
       - 장 개요: ch04/index.md
       - 4.1 텐서:

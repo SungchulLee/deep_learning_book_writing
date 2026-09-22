@@ -111,6 +111,54 @@ def fig_vgg16_conv1():
     print("wrote vgg16_conv1_filters.svg")
 
 
+# === 그림 3: PCA로 줄였다 되살린 그림 ======================================
+def fig_pca_reconstructions():
+    """주성분을 몇 개 쓰느냐에 따라 복원이 어떻게 달라지는지 보인다.
+
+    PCA는 닫힌 꼴이라 돌릴 때마다 똑같은 그림이 나온다. 씨앗이 없다.
+    """
+    import numpy as np
+
+    ds = torchvision.datasets.CIFAR10(root=DATA, train=True, download=True,
+                                      transform=transforms.ToTensor())
+    loader = torch.utils.data.DataLoader(ds, batch_size=2000, shuffle=False)
+    xs = [x for x, _ in loader]
+    X = torch.cat(xs).flatten(1)                    # (50000, 3072), [0,1]
+
+    mu = X.mean(0, keepdim=True)
+    Xc = X - mu
+    cov = (Xc.T @ Xc) / (Xc.shape[0] - 1)
+    # torch.linalg.eigh는 이 macOS 빌드에서 3072x3072에 실패한다
+    ev, evec = np.linalg.eigh(cov.double().numpy())
+    evec = torch.from_numpy(np.ascontiguousarray(evec[:, ::-1])).float()
+    ev = torch.from_numpy(np.ascontiguousarray(ev[::-1])).float()
+
+    idx = [4, 7, 12, 19, 25, 31, 33, 40]            # 보여 줄 여덟 장
+    ks = [16, 64, 256]
+    rows = [("original", X[idx])]
+    for k in ks:
+        V = evec[:, :k]
+        rec = ((X[idx] - mu) @ V) @ V.T + mu
+        share = (ev[:k].sum() / ev.sum()).item()
+        rows.append((f"PCA-{k}  ({100*share:.0f}% var)", rec))
+
+    fig, axes = plt.subplots(len(rows), len(idx), figsize=(10, 5.4))
+    for r, (label, imgs) in enumerate(rows):
+        for c in range(len(idx)):
+            ax = axes[r, c]
+            ax.imshow(imgs[c].reshape(3, 32, 32).permute(1, 2, 0).clamp(0, 1))
+            ax.axis("off")
+        axes[r, 0].text(-0.15, 0.5, label, transform=axes[r, 0].transAxes,
+                        ha="right", va="center", fontsize=9)
+
+    fig.subplots_adjust(left=0.17, right=0.99, top=0.98, bottom=0.01,
+                        wspace=0.08, hspace=0.12)
+    fig.savefig("pca_reconstructions.svg", transparent=True)
+    plt.close(fig)
+    print("wrote pca_reconstructions.svg")
+
+
 if __name__ == "__main__":
     fig_class_mean_templates()
     fig_vgg16_conv1()
+    fig_pca_reconstructions()
