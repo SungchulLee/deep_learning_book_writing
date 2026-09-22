@@ -87,6 +87,13 @@ nav:
         - MNIST 다층 퍼셉트론: ch03/mnist/03_mlp.md
       - 3.4 합성곱 신경망:
         - MNIST 합성곱 신경망: ch03/mnist/04_cnn.md
+    # TODO 번호 겹침: 아래 "4 CIFAR-10"과 "4 PyTorch 기초"가 둘 다 4번이다.
+    # 4~42장을 5~43장으로 미루는 손질이 아직 남아 있다. 그 손질은 nav 제목
+    # 42개뿐 아니라 본문의 "N장" 표현 약 400군데도 함께 고쳐야 한다.
+    - 4 CIFAR-10으로 다시 보는 딥러닝:
+      - 장 개요: cifar10/index.md
+      - 4.1 같은 사다리, 다른 데이터:
+        - 같은 사다리, 다른 데이터: cifar10/01_two_ladders.md
     - 4 PyTorch 기초:
       - 장 개요: ch04/index.md
       - 4.1 텐서:
