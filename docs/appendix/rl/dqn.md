@@ -71,7 +71,7 @@ class ReplayBuffer:
 
     def sample(self, batch_size: int):
         batch = random.sample(self.buf, batch_size)
-        # 밭을 쌓아 묶음 텐서로 만든다
+        # 밭을 쌓아 배치 텐서로 만든다
         s = torch.stack([b.s for b in batch], dim=0)
         a = torch.stack([b.a for b in batch], dim=0)
         r = torch.stack([b.r for b in batch], dim=0)
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     q = QNetwork(obs_dim, num_actions)
     tgt = QNetwork(obs_dim, num_actions)
 
-    # 거짓 묶음
+    # 거짓 배치
     B = 5
     s = torch.randn(B, obs_dim)
     a = torch.randint(0, num_actions, (B,))

@@ -121,7 +121,7 @@ ConvNeXtBlock이 LayerNorm 대신 BatchNorm을 쓰도록 고쳐라. 무엇을 �
             return input + x
     ```
 
-    맞바꿈: BatchNorm은 묶음 통계에 기대므로 묶음 크기에 민감하고 아주 작은 묶음에는 맞지 않는다. LayerNorm은 표본마다 고르게 맞춰 더 든든하지만 조금 느릴 수 있다. BatchNorm은 익히는 동안 벌주기 효과를 볼 수 있다.
+    맞바꿈: BatchNorm은 배치 통계에 기대므로 배치 크기에 민감하고 아주 작은 배치에는 맞지 않는다. LayerNorm은 표본마다 고르게 맞춰 더 든든하지만 조금 느릴 수 있다. BatchNorm은 익히는 동안 벌주기 효과를 볼 수 있다.
 
 ## 정리하며
 

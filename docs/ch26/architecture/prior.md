@@ -91,8 +91,8 @@ class GaussianMixturePrior(nn.Module):
     
     def log_prob(self, z):
         """섞기 아래에서 log p(z)을 셈한다."""
-        # z: [묶음, 숨은 차원]
-        # 퍼뜨리려 넓힌다: [묶음, K, 숨은 차원]
+        # z: [배치, 숨은 차원]
+        # 퍼뜨리려 넓힌다: [배치, K, 숨은 차원]
         z_exp = z.unsqueeze(1)
         
         # 성분마다의 로그 확률
@@ -100,7 +100,7 @@ class GaussianMixturePrior(nn.Module):
         means = self.means.unsqueeze(0)
         
         log_p_per_component = -0.5 * (log_var + (z_exp - means).pow(2) / log_var.exp())
-        log_p_per_component = log_p_per_component.sum(dim=2)  # [묶음, K]
+        log_p_per_component = log_p_per_component.sum(dim=2)  # [배치, K]
         
         # 무게로 섞는다
         log_weights = torch.log_softmax(self.logits, dim=0)

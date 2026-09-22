@@ -66,7 +66,7 @@ $$
 
 ### 얽힌 매개변수의 어려움
 
-많은 모형에서 매개변수 묶음을 따로따로 최적화하기는 쉬운데도 M 걸음에서 모두를 한꺼번에 최적화하는 일은 다룰 수 없다.
+많은 모형에서 매개변수 배치를 따로따로 최적화하기는 쉬운데도 M 걸음에서 모두를 한꺼번에 최적화하는 일은 다룰 수 없다.
 
 ### ECM 알고리즘
 
@@ -425,7 +425,7 @@ $$
 
 ### 조금씩 하는 EM
 
-자료를 작은 묶음으로 다루며 충분 통계량을 조금씩 새로 고친다:
+자료를 작은 배치로 다루며 충분 통계량을 조금씩 새로 고친다:
 
 **표준 EM의 충분 통계량**:
 
@@ -433,7 +433,7 @@ $$
 S_k = \sum_{i=1}^{N} \gamma_{ik}, \quad T_k = \sum_{i=1}^{N} \gamma_{ik} \mathbf{x}_i
 $$
 
-묶음 $\mathcal{B}$으로 하는 **조금씩 새로 고치기**:
+배치 $\mathcal{B}$으로 하는 **조금씩 새로 고치기**:
 
 $$
 S_k \leftarrow S_k + \sum_{i \in \mathcal{B}} \gamma_{ik}, \quad T_k \leftarrow T_k + \sum_{i \in \mathcal{B}} \gamma_{ik} \mathbf{x}_i
@@ -478,18 +478,18 @@ $$
 - $\alpha \in (0.5, 1]$에 대해 $\eta_t = t^{-\alpha}$
 - 늦춤 $\tau$을 둔 $\eta_t = (t + \tau)^{-\alpha}$
 
-### 작은 묶음 흐름 속 EM
+### 작은 배치 흐름 속 EM
 
-흩어짐을 줄이려고 작은 묶음 다루기와 흐름 속 새로 고침을 어우른다:
+흩어짐을 줄이려고 작은 배치 다루기와 흐름 속 새로 고침을 어우른다:
 
 ```python
 def online_em_step(batch, theta, sufficient_stats, learning_rate):
-    """흐름 속 EM에서 작은 묶음 하나 다루기."""
+    """흐름 속 EM에서 작은 배치 하나 다루기."""
     
-    # 묶음에 대한 E 걸음
+    # 배치에 대한 E 걸음
     gamma = compute_responsibilities(batch, theta)
     
-    # 묶음의 충분 통계량 셈하기
+    # 배치의 충분 통계량 셈하기
     batch_S = gamma.sum(dim=0)
     batch_T = gamma.T @ batch
     batch_V = compute_weighted_outer_products(batch, gamma, theta['mu'])

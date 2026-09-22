@@ -952,7 +952,7 @@ OpenAI가 만든 GPT-3은 디코더 전용 트랜스포머를 키우면 강한 �
 
 **학습 데이터**: 웹 문서, 책, 코드, 대화 데이터에 걸친 토큰 7800억 개의 여러 언어 말뭉치이다.
 
-**학습 기반**: PaLM은 여러 TPU 묶음에 걸친 계산을 효율적으로 지휘하는 Pathways 체계로 TPU v4 칩 6,144개에 걸쳐 학습했다.
+**학습 기반**: PaLM은 여러 TPU 배치에 걸친 계산을 효율적으로 지휘하는 Pathways 체계로 TPU v4 칩 6,144개에 걸쳐 학습했다.
 
 **핵심 통찰**: PaLM은 모형 규모가 커지며 뚝 끊긴 듯 나타나는 추론 과제(이를테면 생각의 사슬 프롬프트)의 "돌파" 능력을 보였다.
 
@@ -1042,7 +1042,7 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 def setup_data_parallel(rank: int, world_size: int):
-    """데이터 병렬을 위해 분산 프로세스 묶음을 시작한다."""
+    """데이터 병렬을 위해 분산 프로세스 배치를 시작한다."""
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
     torch.cuda.set_device(rank)
 
@@ -1132,9 +1132,9 @@ $$
 
 큰 규모 학습은 세 방법을 모두 아우른다.
 
-- 장치 묶음에 걸친 **데이터 병렬**
-- 묶음 안(대개 노드 하나 안)의 **텐서 병렬**
-- 묶음에 걸친 **파이프라인 병렬**
+- 장치 배치에 걸친 **데이터 병렬**
+- 배치 안(대개 노드 하나 안)의 **텐서 병렬**
+- 배치에 걸친 **파이프라인 병렬**
 
 이를테면 Megatron-Turing NLG(5300억)는 노드마다 8갈래 텐서 병렬, 노드에 걸쳐 35갈래 파이프라인 병렬, 파이프라인 복제본에 걸쳐 데이터 병렬을 쓴다.
 

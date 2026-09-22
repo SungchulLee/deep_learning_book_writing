@@ -87,7 +87,7 @@ class AttentionVisualizer:
         정한 머리의 눈길 짐을 그린다.
 
         Args:
-            attention_weights: (묶음, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
             tokens: 이름표로 쓸 낱말 목록
             head_idx: 그릴 눈길 머리의 번호
             figsize: 그림 크기
@@ -130,7 +130,7 @@ class AttentionVisualizer:
         눈길 머리 여럿을 격자로 그린다.
 
         Args:
-            attention_weights: (묶음, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
             tokens: 낱말 목록
             max_heads: 보일 머리의 가장 큰 수
             figsize: 그림 크기
@@ -235,7 +235,7 @@ class AttentionVisualizer:
             Matplotlib 그림
         """
         if attention_weights.dim() == 4:
-            # 묶음과 머리를 가로질러 고르게 한다
+            # 배치와 머리를 가로질러 고르게 한다
             attn = attention_weights[0].mean(dim=0)[query_idx].cpu().numpy()
         elif attention_weights.dim() == 3:
             attn = attention_weights.mean(dim=0)[query_idx].cpu().numpy()
@@ -287,7 +287,7 @@ def visualize_token_attention(attention_weights: torch.Tensor,
     낱말에 대한 눈길을 빠르게 그리는 도움 함수.
 
     Args:
-        attention_weights: 눈길 텐서 (켜, 묶음, 머리, 열, 열)
+        attention_weights: 눈길 텐서 (켜, 배치, 머리, 열, 열)
         tokens: 낱말 목록
         layer_idx: 그릴 켜 번호(-1이면 마지막 켜)
         save_path: 그림을 갈무리할 길
@@ -301,7 +301,7 @@ def visualize_token_attention(attention_weights: torch.Tensor,
     else:
         attn = attention_weights
 
-    # 묶음과 머리를 가로질러 고르게 한다
+    # 배치와 머리를 가로질러 고르게 한다
     if attn.dim() == 4:
         attn = attn[0].mean(dim=0)
     elif attn.dim() == 3:

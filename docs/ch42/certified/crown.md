@@ -49,7 +49,7 @@ $$
 **Auto-LiRPA**(쉬 등, 2020)은 어떤 셈 그림에도 선형 눅임에 기댄 흔듦 살피기를 저절로 해 주는 두루 쓰는 틀로, CROWN을 단순한 앞먹임 그물 너머로 넓힌다.
 
 ```python
-# auto_LiRPA 묶음을 쓴다
+# auto_LiRPA 배치를 쓴다
 # pip install auto_LiRPA
 from auto_LiRPA import BoundedModule, BoundedTensor, PerturbationLpNorm
 

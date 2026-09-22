@@ -141,8 +141,8 @@ model.load_state_dict(checkpoint['model_state_dict'])
 print("\nModel state loaded")
 
 # 얼리기를 먼저 되살린다.
-# 저장할 때의 최적화기는 '학습할 매개변수'만 들고 있었으므로, 같은 묶음으로
-# 다시 만들어야 상태를 받을 수 있다. 얼리기를 나중에 하면 묶음 크기가 어긋나
+# 저장할 때의 최적화기는 '학습할 매개변수'만 들고 있었으므로, 같은 배치로
+# 다시 만들어야 상태를 받을 수 있다. 얼리기를 나중에 하면 배치 크기가 어긋나
 # ValueError: loaded state dict contains a parameter group that doesn't match
 # 가 난다.
 if checkpoint.get('frozen_layers', False):

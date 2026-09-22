@@ -198,7 +198,7 @@ class CRF(nn.Module):
     차례 이름표 붙이기를 위한 조건부 무작위 마당 층.
     
     여기 짠 것이 받치는 것:
-    - 덧대기를 곁들인 묶음 셈하기
+    - 덧대기를 곁들인 배치 셈하기
     - 수치를 든든하게 하는 로그 자리 앞먹임 알고리즘
     - 미룸을 위한 비터비 풀기
     - 가리기로 거는 넘어가기 제약
@@ -301,7 +301,7 @@ class CRF(nn.Module):
             mask: (batch, seq_len)
             
         반환값:
-            묶음 안 차례마다의 점수 (batch,)
+            배치 안 차례마다의 점수 (batch,)
         """
         batch_size, seq_len, _ = emissions.shape
         
@@ -388,7 +388,7 @@ class CRF(nn.Module):
             mask: (batch, seq_len)
             
         반환값:
-            묶음 항목마다의 이름표 차례 목록
+            배치 항목마다의 이름표 차례 목록
         """
         if not self.batch_first:
             emissions = emissions.transpose(0, 1)
@@ -818,11 +818,11 @@ def train_ner_model(
 - 앞으로 가는 변수: 이음마다 $O(n \cdot k)$
 - 비터비를 위한 되짚는 가리개: $O(n \cdot k)$
 
-### 묶음 셈하기
+### 배치 셈하기
 
-위에 짠 것은 효율을 위해 묶음 셈하기를 받쳐 준다:
+위에 짠 것은 효율을 위해 배치 셈하기를 받쳐 준다:
 
-- 묶음 차원에 걸친 벡터 연산
+- 배치 차원에 걸친 벡터 연산
 - 길이가 들쭉날쭉한 차례를 위한 가림 셈하기
 - GPU로 빨라진 행렬 연산
 

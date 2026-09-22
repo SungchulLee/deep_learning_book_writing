@@ -67,7 +67,7 @@ $$\nabla_\theta J_\text{평균흩어짐} = \nabla_\theta \mathbb{E}[R] - \lambda
 ## 3. 실제로 만들기
 
 ### 매겨서 하는 CVaR 가장 좋게 하기
-1. 에피소드 돌아옴의 묶음을 모은다
+1. 에피소드 돌아옴의 배치를 모은다
 2. 돌아옴을 오름차순으로 매긴다
 3. 아래 $\alpha$%을 CVaR 뽑기로 삼는다
 4. 이 가장 나쁜 돌아옴을 낫게 하도록 방침을 가장 좋게 한다
@@ -91,7 +91,7 @@ $$\nabla_\theta J_\text{평균흩어짐} = \nabla_\theta \mathbb{E}[R] - \lambda
 </div>
 
 ??? success "연습문제 1 풀이"
-    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 배치에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 

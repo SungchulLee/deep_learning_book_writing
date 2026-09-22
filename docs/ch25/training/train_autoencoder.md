@@ -56,7 +56,7 @@ def train_epoch(model, train_loader, optimizer, device):
 
 
 def test_epoch(model, test_loader, device):
-    """시험 묶음으로 값매김한다"""
+    """시험 배치로 값매김한다"""
     model.eval()
     test_loss = 0
     
@@ -316,16 +316,16 @@ if __name__ == '__main__':
 <div class="drillbox" markdown>
 
 **연습문제 8.** <span class="diff med" title="중간"></span>
-묶음 크기를 바꾸면 무엇이 달라지는가? 자기 부호기에서도 [3.2절](../../ch03/linear_softmax/05_gradient_descent.md)과 같은 이야기인가?
+배치 크기를 바꾸면 무엇이 달라지는가? 자기 부호기에서도 [3.2절](../../ch03/linear_softmax/05_gradient_descent.md)과 같은 이야기인가?
 
 </div>
 
 ??? success "연습문제 8 풀이"
-    같다. 묶음이 작으면 갱신이 잦아 빨리 내려가지만 잡음이 많고, 크면 반대다.
-    묶음 크기를 바꾸면 실효 학습률이 함께 바뀌므로 학습률도 손봐야 한다.
+    같다. 배치가 작으면 갱신이 잦아 빨리 내려가지만 잡음이 많고, 크면 반대다.
+    배치 크기를 바꾸면 실효 학습률이 함께 바뀌므로 학습률도 손봐야 한다.
 
     자기 부호기에 특별한 점이 하나 있다. 손실을 화소에 대해 `sum`으로 더하고 표본에
-    대해서만 나누는 관례를 쓰면, **묶음 크기를 바꿔도 기울기의 크기가 유지된다.**
+    대해서만 나누는 관례를 쓰면, **배치 크기를 바꿔도 기울기의 크기가 유지된다.**
     화소 축을 평균 내면 손실이 784배 작아져 학습률을 그만큼 키워야 한다
     ([손실 함수 연습문제 2](../ae/loss_functions.md)).
 

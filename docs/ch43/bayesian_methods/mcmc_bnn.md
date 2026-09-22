@@ -155,7 +155,7 @@ class HamiltonianMonteCarlo:
 
 ## 3. 확률 기울기 랑주뱅 움직임(SGLD)
 
-SGLD는 잔 묶음 기울기에 잡음을 섞어 크게 늘릴 수 있는 베이즈 미루어 봄을 이룬다.
+SGLD는 잔 배치 기울기에 잡음을 섞어 크게 늘릴 수 있는 베이즈 미루어 봄을 이룬다.
 
 $$\theta_{t+1} = \theta_t + \frac{\epsilon_t}{2}\left(\nabla \log p(\theta_t) + \frac{N}{n}\sum_{i \in S_t} \nabla \log p(y_i | x_i, \theta_t)\right) + \eta_t$$
 
@@ -226,7 +226,7 @@ def train_with_sgld(
             optimizer.zero_grad()
             loss = criterion(model(x), y)
             
-            # 잔 묶음에 맞게 기울기 잣대를 맞춘다
+            # 잔 배치에 맞게 기울기 잣대를 맞춘다
             if dataset_size is not None:
                 loss = loss * dataset_size / len(y)
             
@@ -366,7 +366,7 @@ def predict_with_mcmc_samples(
 | 형편 | 방법 | 붙임말 |
 |---------|--------|-------|
 | 작은 모형, 으뜸 잣대 | HMC | 가장 맞으나 값이 비쌈 |
-| 가운데 모형, 크게 늘리기 | SGLD | 잔 묶음과 어울림 |
+| 가운데 모형, 크게 늘리기 | SGLD | 잔 배치와 어울림 |
 | 더 잘 둘러봐야 할 때 | SGHMC | 밀어 나감이 섞임을 돕는다 |
 | 큰 서비스 | 모둠이나 SWAG를 쓴다 | MCMC는 너무 비싸다 |
 

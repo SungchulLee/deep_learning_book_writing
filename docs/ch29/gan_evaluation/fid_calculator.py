@@ -107,7 +107,7 @@ class FIDCalculator:
         
         인수:
             images: [0, 1] 범위의 그림 [N, C, H, W]
-            batch_size: 다룰 묶음 크기
+            batch_size: 다룰 배치 크기
             
         반환값:
             Features [N, 2048]
@@ -229,7 +229,7 @@ class FIDCalculator:
         인수:
             real_images: 참 그림 [N_r, C, H, W]
             generated_images: 만들어 낸 그림 [N_g, C, H, W]
-            batch_size: 특징 뽑기의 묶음 크기
+            batch_size: 특징 뽑기의 배치 크기
             
         반환값:
             FID 점수(낮을수록 좋다)
@@ -265,7 +265,7 @@ class FIDCalculator:
             mu_real: 미리 셈한 참 특징의 평균 [D]
             sigma_real: 미리 셈한 참 특징의 공분산 [D, D]
             generated_images: 만들어 낸 그림 [N, C, H, W]
-            batch_size: 특징 뽑기의 묶음 크기
+            batch_size: 특징 뽑기의 배치 크기
             
         반환값:
             FID 점수
@@ -287,7 +287,7 @@ def save_reference_statistics(real_images: torch.Tensor,
     인수:
         real_images: 참 그림 [N, C, H, W]
         save_path: 통계를 갈무리할 길(.npz 파일)
-        batch_size: 특징 뽑기의 묶음 크기
+        batch_size: 특징 뽑기의 배치 크기
     """
     calculator = FIDCalculator()
     features = calculator.extract_features(real_images, batch_size)

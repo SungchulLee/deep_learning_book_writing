@@ -80,7 +80,7 @@ Inception v3의 가장 큰 얼개 이바지는 엮음 나누기다. $5 \times 5$
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-나란한 가지 셋을 지닌 Inception 묶음을 짜라. $1 \times 1$ 엮음, 나눈 $3 \times 3$ 엮음($3 \times 1$과 $1 \times 3$을 씀), 가장 크게 모으기 가지다.
+나란한 가지 셋을 지닌 Inception 배치를 짜라. $1 \times 1$ 엮음, 나눈 $3 \times 3$ 엮음($3 \times 1$과 $1 \times 3$을 씀), 가장 크게 모으기 가지다.
 
 </div>
 

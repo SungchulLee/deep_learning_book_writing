@@ -303,7 +303,7 @@ class AdapterFusion(nn.Module):
             adapter_out = adapter(x) - x  # 남는 이음 없는 몫
             adapter_outputs.append(adapter_out)
         
-        # 쌓기: [묶음, 차례, 맞춤개 수, 숨은]
+        # 쌓기: [배치, 차례, 맞춤개 수, 숨은]
         adapter_stack = torch.stack(adapter_outputs, dim=2)
         
         # 맞춤개에 대한 눈길

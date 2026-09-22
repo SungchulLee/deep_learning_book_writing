@@ -144,14 +144,14 @@ def flash_attention_forward_reference(
     실제 플래시 눈길은 효율을 위해 CUDA로 짠다.
     
     인수:
-        Q: 물음 [묶음, 머리, 차례 길이, 머리 차원]
-        K: 열쇠 [묶음, 머리, 차례 길이, 머리 차원]
-        V: 값 [묶음, 머리, 차례 길이, 머리 차원]
+        Q: 물음 [배치, 머리, 차례 길이, 머리 차원]
+        K: 열쇠 [배치, 머리, 차례 길이, 머리 차원]
+        V: 값 [배치, 머리, 차례 길이, 머리 차원]
         block_size: 덩이로 나눌 때의 타일 크기
         causal: 인과 가림막을 쓸지 여부
         
     반환값:
-        내놓기 [묶음, 머리, 차례 길이, 머리 차원]
+        내놓기 [배치, 머리, 차례 길이, 머리 차원]
     """
     batch_size, num_heads, seq_len, head_dim = Q.shape
     scale = head_dim ** -0.5
@@ -267,7 +267,7 @@ class FlashAttention(nn.Module):
             attention_mask: 선택으로 주는 가림
             
         반환값:
-            내놓기 [묶음, 차례 길이, d_model]
+            내놓기 [배치, 차례 길이, d_model]
         """
         batch_size, seq_len, _ = x.shape
         
@@ -530,7 +530,7 @@ Max difference between standard and flash: 2.38e-07
 
 플래시 눈길 2는 다음을 더 다듬는다:
 
-1. **더 나은 나란히 하기**: 묶음이 아니라 차례 길이로 쪼갠다
+1. **더 나은 나란히 하기**: 배치가 아니라 차례 길이로 쪼갠다
 2. **행렬곱이 아닌 FLOPs 줄이기**: 소프트맥스 연산을 가장 적게 한다
 3. **더 나은 일 나누기**: GPU 점유율에 맞춰 다듬는다
 

@@ -48,6 +48,6 @@ class PositionalEncoding(nn.Module):
         self.register_buffer("pe", pe.unsqueeze(0))
 
     def forward(self, x):
-        """x: (묶음, 차례 길이, d_model)"""
+        """x: (배치, 차례 길이, d_model)"""
         x = x + self.pe[:, : x.size(1)]
         return self.dropout(x)

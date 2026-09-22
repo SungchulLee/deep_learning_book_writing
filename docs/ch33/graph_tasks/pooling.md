@@ -126,14 +126,14 @@ import torch.nn.functional as F
 
 # === 납작한 모으기 ===
 def global_sum_pool(x: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
-    """묶음 번호로 묶어 마디에 대해 합 모으기."""
+    """배치 번호로 묶어 마디에 대해 합 모으기."""
     num_graphs = batch.max().item() + 1
     out = torch.zeros(num_graphs, x.size(1), device=x.device)
     out.scatter_add_(0, batch.unsqueeze(1).expand_as(x), x)
     return out
 
 def global_mean_pool(x: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
-    """묶음 번호로 묶어 마디에 대해 평균 모으기."""
+    """배치 번호로 묶어 마디에 대해 평균 모으기."""
     sums = global_sum_pool(x, batch)
     counts = torch.zeros(sums.size(0), device=x.device)
     counts.scatter_add_(0, batch, torch.ones_like(batch, dtype=torch.float))
@@ -167,7 +167,7 @@ class AttentionPool(nn.Module):
 # === 보기 ===
 if __name__ == "__main__":
     torch.manual_seed(42)
-    # 그래프 둘을 묶음: 0번 그래프는 마디 3개, 1번 그래프는 마디 2개
+    # 그래프 둘을 배치: 0번 그래프는 마디 3개, 1번 그래프는 마디 2개
     x = torch.randn(5, 8)
     batch = torch.tensor([0, 0, 0, 1, 1])
 

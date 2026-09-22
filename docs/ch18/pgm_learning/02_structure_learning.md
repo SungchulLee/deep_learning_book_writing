@@ -189,7 +189,7 @@ class PCAlgorithm:
         print(f"\nStep 1: Started with complete graph ({graph.number_of_edges()} edges)")
         
         # 걸음 2: 조건부 독립에 따라 변 지우기
-        # 조건 묶음의 크기를 늘려 가며 검정하기
+        # 조건 배치의 크기를 늘려 가며 검정하기
         separating_sets = {}  # 나중을 위해 가름 집합을 담아 둔다
         
         for order in range(n):
@@ -200,11 +200,11 @@ class PCAlgorithm:
             for edge in list(graph.edges()):
                 var1, var2 = edge
                 
-                # 조건 묶음 후보 얻기(var1이나 var2의 이웃)
+                # 조건 배치 후보 얻기(var1이나 var2의 이웃)
                 neighbors = set(graph.neighbors(var1)) | set(graph.neighbors(var2))
                 neighbors -= {var1, var2}
                 
-                # 크기가 `order`인 조건 묶음 모두 검정하기
+                # 크기가 `order`인 조건 배치 모두 검정하기
                 if len(neighbors) >= order:
                     for cond_set in combinations(neighbors, order):
                         cond_list = list(cond_set)
@@ -603,7 +603,7 @@ PC 알고리즘 같은 제약 기반 방법은 완전 무방향 그래프에서 
 
 BIC를 쓴 언덕 오르기 같은 점수 기반 방법은 점수 함수를 정하고 DAG의 공간을 뒤진다. BIC 점수는 모형의 맞음새(로그 가능도)와 복잡함(매개변수 개수)의 균형을 잡는다. 곧 $\text{BIC}(G, D) = \log P(D|G, \hat{\theta}) - \frac{d}{2}\log n$이다. 언덕 오르기는 빈 그래프에서 시작해 변을 더하거나 지우거나 뒤집기를 되풀이하며, 늘 점수를 가장 많이 올리는 손질을 고른다.
 
-두 길 모두 근본적인 어려움을 만난다. DAG의 공간이 지수보다 빠르게 커져 남김없이 뒤지기는 할 수 없다. 여러 DAG이 관측으로는 같을(마르코프 같음) 수 있는데, 이는 같은 조건부 독립 묶음을 담고 있어 자료만으로는 갈라낼 수 없다는 뜻이다. 실전에서는 분야 지식을 넣어 뒤지는 공간을 좁히고 배운 짜임을 확인하는 일이 꼭 필요하다.
+두 길 모두 근본적인 어려움을 만난다. DAG의 공간이 지수보다 빠르게 커져 남김없이 뒤지기는 할 수 없다. 여러 DAG이 관측으로는 같을(마르코프 같음) 수 있는데, 이는 같은 조건부 독립 배치를 담고 있어 자료만으로는 갈라낼 수 없다는 뜻이다. 실전에서는 분야 지식을 넣어 뒤지는 공간을 좁히고 배운 짜임을 확인하는 일이 꼭 필요하다.
 
 ## 연습문제
 
@@ -658,7 +658,7 @@ print(f'Conditionally independent? {min(p0, p1) > 0.05}')
 </div>
 
 ??? success "연습문제 2 풀이"
-    DAG 둘이 같은 조건부 독립 관계 묶음을 담고 있으면 마르코프로 같다. 마르코프로 같은 DAG은 뼈대(무방향 변)가 같고 v-짜임($X$과 $Y$이 이웃하지 않는 충돌자 $X \to Z \leftarrow Y$)도 같다.
+    DAG 둘이 같은 조건부 독립 관계 배치를 담고 있으면 마르코프로 같다. 마르코프로 같은 DAG은 뼈대(무방향 변)가 같고 v-짜임($X$과 $Y$이 이웃하지 않는 충돌자 $X \to Z \leftarrow Y$)도 같다.
 
 같은 DAG의 보기: $A \to B \to C$, $A \leftarrow B \leftarrow C$, $A \leftarrow B \to C$. 셋 다 뼈대($A - B - C$)가 같고 v-짜임이 없다. 셋 다 조건부 독립을 꼭 하나 담는다. 곧 $A \perp C | B$이다.
 

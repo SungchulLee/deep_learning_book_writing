@@ -92,7 +92,7 @@ Entity
 
 ### 수식으로 나타내기
 
-앞뒤 흐름 $c$과 함께 개체 언급 $m$이 주어졌을 때 갈래 묶음 $\mathcal{T}_m \subseteq \mathcal{T}$을 미루어 본다.
+앞뒤 흐름 $c$과 함께 개체 언급 $m$이 주어졌을 때 갈래 배치 $\mathcal{T}_m \subseteq \mathcal{T}$을 미루어 본다.
 
 $$P(\mathcal{T}_m | m, c) = \prod_{t \in \mathcal{T}} P(t \in \mathcal{T}_m | m, c)$$
 

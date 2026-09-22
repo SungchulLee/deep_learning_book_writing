@@ -51,7 +51,7 @@ class MLPQNetwork(nn.Module):
         self.net = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """상태 묶음이 주어지면 모든 움직임의 Q 값을 돌려준다."""
+        """상태 배치가 주어지면 모든 움직임의 Q 값을 돌려준다."""
         return self.net(x)
 
 
@@ -181,7 +181,7 @@ def compute_td_error(q_network: nn.Module, target_network: nn.Module,
                      states: torch.Tensor, actions: torch.Tensor,
                      rewards: torch.Tensor, next_states: torch.Tensor,
                      dones: torch.Tensor, gamma: float = 0.99) -> torch.Tensor:
-    """옮김 묶음의 때 차이 어긋남을 셈한다.
+    """옮김 배치의 때 차이 어긋남을 셈한다.
     
     인수:
         q_network: 온라인 Q 그물
@@ -306,7 +306,7 @@ if __name__ == "__main__":
 
 보여 주기 함수는 이 조각들을 여느 힘 북돋우는 배움 잣대에 실제로 쓰는 모습을 보인다. 내놓기를 살피면 웃잡 고름과 문제 짜임에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 얼개는 보통 묶음 셈, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 얼개는 보통 배치 셈, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ### 그림점을 상태로 삼을 때: 켜 쌓기와 차원
 

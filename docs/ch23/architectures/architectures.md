@@ -138,7 +138,7 @@ class RotaryEmbedding(nn.Module):
         물음과 열쇠에 돌림 묻힘을 적용한다.
         
         인수:
-            q, k: (묶음, 머리, 차례 길이, 머리 차원)
+            q, k: (배치, 머리, 차례 길이, 머리 차원)
             positions: (차례 길이,) 자리 번호
         """
         cos = self.cos_cached[positions]  # (차례 길이, 머리 차원/2)
@@ -225,9 +225,9 @@ class MultiQueryAttention(nn.Module):
         return self.o_proj(out.reshape(B, L, -1))
 ```
 
-### 묶음 질의 어텐션 (GQA)
+### 배치 질의 어텐션 (GQA)
 
-여러 머리 눈길과 여러 물음 눈길의 사이. 곧 물음 머리 묶음이 열쇠-값 머리를 나눠 쓴다:
+여러 머리 눈길과 여러 물음 눈길의 사이. 곧 물음 머리 배치가 열쇠-값 머리를 나눠 쓴다:
 
 ```python
 class GroupedQueryAttention(nn.Module):
@@ -262,7 +262,7 @@ class GroupedQueryAttention(nn.Module):
         v = v.repeat_interleave(self.num_groups, dim=2)
         
         # 여느 눈길 셈하기
-        q = q.transpose(1, 2)  # (묶음, 머리, 길이, 차원)
+        q = q.transpose(1, 2)  # (배치, 머리, 길이, 차원)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
         

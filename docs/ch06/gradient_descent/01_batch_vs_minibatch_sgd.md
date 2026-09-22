@@ -71,7 +71,7 @@ print("""
            parameters -= lr * gradient
 
 3. 작은 배치 경사 하강법(작은 배치 GD)
-   - 데이터를 작은 배치으로 나누어 쓴다
+   - 데이터를 작은 배치로 나누어 쓴다
    - 배치 GD과 SGD 사이의 고른 자리
    - 참으로 가장 흔하다(보기: batch_size=32, 64, 128)
    
@@ -180,7 +180,7 @@ def train_sgd(X, y, n_epochs, lr):
 
 
 def train_minibatch_gd(X, y, n_epochs, lr, batch_size):
-    """작은 배치 경사 하강법 - 작은 배치을 쓴다"""
+    """작은 배치 경사 하강법 - 작은 배치를 쓴다"""
     model = SimpleLinearModel()
     criterion = nn.MSELoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)

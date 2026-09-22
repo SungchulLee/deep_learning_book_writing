@@ -1,4 +1,4 @@
-"""짝 짓는 흐름(coupling flow)과 그 사이에 끼우는 묶음 고르개.
+"""짝 짓는 흐름(coupling flow)과 그 사이에 끼우는 배치 고르개.
 
 25.2 흐름 얼개 절의 MNIST 예제가 쓰는 두 층이다. 둘 다 flow_utils.Flow를
 물려받으므로 FlowSequence에 그대로 끼워 넣을 수 있고, 앞뒤 바꿈과 함께
@@ -84,7 +84,7 @@ class CouplingLayer(Flow):
 
 
 class BatchNorm(Flow):
-    """흐름 사이에 끼우는 묶음 고르개.
+    """흐름 사이에 끼우는 배치 고르개.
 
     보통의 BatchNorm과 하는 일은 같지만, 흐름에 쓰려면 야코비 행렬식의
     로그값을 함께 돌려주어야 한다. 늘이는 값이 1/sqrt(var + eps)이므로

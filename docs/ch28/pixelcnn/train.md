@@ -96,7 +96,7 @@ def evaluate(model: nn.Module,
             dataloader: torch.utils.data.DataLoader,
             device: str) -> float:
     """
-    시험 묶음에서 모델을 따진다.
+    시험 배치에서 모델을 따진다.
     
     인수:
         model: PixelCNN 모델
@@ -104,7 +104,7 @@ def evaluate(model: nn.Module,
         device: 평가할 장치
         
     반환값:
-        시험 묶음의 평균 손실
+        시험 배치의 평균 손실
     """
     model.eval()
     total_loss = 0

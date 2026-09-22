@@ -187,7 +187,7 @@ class BoundaryAttack:
     def generate(
         self, x: torch.Tensor, y: torch.Tensor, **kwargs
     ) -> torch.Tensor:
-        """묶음 하나에 대해 맞서는 보기를 만든다."""
+        """배치 하나에 대해 맞서는 보기를 만든다."""
         x_adv = x.clone()
         self.queries = 0
         

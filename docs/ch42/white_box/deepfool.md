@@ -213,7 +213,7 @@ class DeepFool:
         **kwargs
     ) -> torch.Tensor:
         """
-        묶음 하나에 대해 맞서는 보기를 만든다.
+        배치 하나에 대해 맞서는 보기를 만든다.
         
         Parameters
         ----------

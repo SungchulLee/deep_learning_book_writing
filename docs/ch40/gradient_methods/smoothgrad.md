@@ -128,7 +128,7 @@ def compute_smoothgrad(
     return saliency
 ```
 
-### 묶음으로 하는 짜보기(잘 든다)
+### 배치로 하는 짜보기(잘 든다)
 
 ```python
 def compute_smoothgrad_batched(
@@ -141,7 +141,7 @@ def compute_smoothgrad_batched(
     batch_size: int = 10
 ) -> torch.Tensor:
     """
-    묶음으로 다듬은 SmoothGrad 셈.
+    배치로 다듬은 SmoothGrad 셈.
 
     잡음 표본 여럿을 함께 다루어 잘 들게 한다.
     """
@@ -154,8 +154,8 @@ def compute_smoothgrad_batched(
     for i in range(0, n_samples, batch_size):
         current_batch_size = min(batch_size, n_samples - i)
 
-        # 잡음 섞은 들임의 묶음을 만든다
-        # 그림을 묶음으로 넓힌다: [batch_size, C, H, W]
+        # 잡음 섞은 들임의 배치를 만든다
+        # 그림을 배치로 넓힌다: [batch_size, C, H, W]
         batch = image_tensor.expand(current_batch_size, -1, -1, -1).clone()
         noise = torch.randn_like(batch) * stdev
         noisy_batch = batch + noise
@@ -164,14 +164,14 @@ def compute_smoothgrad_batched(
         # 앞으로 걸음
         outputs = model(noisy_batch)  # [batch_size, num_classes]
 
-        # 묶음 기울기를 얻으려고 겨눈 점수를 더한다
+        # 배치 기울기를 얻으려고 겨눈 점수를 더한다
         target_scores = outputs[:, target_class].sum()
 
         # 되짚기 걸음
         model.zero_grad()
         target_scores.backward()
 
-        # 쌓는다(묶음 축으로 더한다)
+        # 쌓는다(배치 축으로 더한다)
         accumulated_gradients += noisy_batch.grad.sum(dim=0, keepdim=True)
 
     # 고르게 한다
@@ -505,7 +505,7 @@ def visualize_hyperparameter_effects(
 
 1. **짜기 쉽다**: 뽑아서 고르게 하기만 하면 된다
 2. **어떤 기울기 방법에도 듣는다**: 맨 기울기, 기울기×들임 등을 모두 매끄럽게 할 수 있다
-3. **함께 셈하기 좋다**: 묶음으로 짜면 잘 든다
+3. **함께 셈하기 좋다**: 배치로 짜면 잘 든다
 4. **눈에 더 깨끗하다**: 풀이하기 좋은 그림이 나온다
 5. **모형을 가리지 않는다**: 얼개를 고칠 일이 없다
 
@@ -540,7 +540,7 @@ def visualize_hyperparameter_effects(
 
 1. **잡음 크기**: 0.15에서 시작해 열매를 보고 고친다
 2. **표본 수**: 여느 살핌에는 50, 마지막 열매에는 100 넘게
-3. **묶음으로 다루기**: 잘 들게 하려면 묶음 짜보기를 쓴다
+3. **배치로 다루기**: 잘 들게 하려면 배치 짜보기를 쓴다
 4. **눈으로 살피기**: 맨 기울기와 견주어 매끄러워졌는지 본다
 
 ### 이미 있는 흐름에 끼워 넣기

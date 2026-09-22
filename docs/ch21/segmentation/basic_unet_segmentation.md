@@ -380,12 +380,12 @@ def calculate_iou(pred, target, threshold=0.5):
         threshold: 확률을 두 갈래 어림으로 바꾸는 문턱값
     
     반환값:
-        iou: 묶음에 걸친 평균 겹침 비
+        iou: 배치에 걸친 평균 겹침 비
     """
     with torch.no_grad():
         # 어림한 갈래 얻기(0 또는 1)
-        pred_class = torch.argmax(pred, dim=1)  # 꼴: (묶음, H, W)
-        target_class = target.squeeze(1).long()  # 꼴: (묶음, H, W)
+        pred_class = torch.argmax(pred, dim=1)  # 꼴: (배치, H, W)
+        target_class = target.squeeze(1).long()  # 꼴: (배치, H, W)
         
         # 앞바탕 갈래(갈래 1)의 교집합과 합집합 셈하기
         pred_fg = (pred_class == 1)
@@ -429,7 +429,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
         outputs = model(images)
         
         # 손실 계산
-        # CrossEntropyLoss는 갈래 번호를 담은 (묶음, H, W) 꼴의 목표를 바란다
+        # CrossEntropyLoss는 갈래 번호를 담은 (배치, H, W) 꼴의 목표를 바란다
         masks_class = masks.squeeze(1).long()
         loss = criterion(outputs, masks_class)
         
@@ -651,7 +651,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`SyntheticShapesDataset`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 묶음에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+`SyntheticShapesDataset`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 배치에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
 
 </div>
 

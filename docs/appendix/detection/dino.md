@@ -128,7 +128,7 @@ class DINO(nn.Module):
         B, M, _ = gt_boxes.shape
         device = gt_boxes.device
 
-        # 묶음마다 참값 상자를 dn_num_queries개까지 고른다(단순히 잘라 낸다)
+        # 배치마다 참값 상자를 dn_num_queries개까지 고른다(단순히 잘라 낸다)
         M_use = min(M, self.dn_num_queries)
         boxes = gt_boxes[:, :M_use, :]  # (B, M_use, 4)
 
@@ -224,7 +224,7 @@ DN pred_boxes : torch.Size([2, 310, 4])
 </div>
 
 ??? success "연습문제 1 풀이"
-    들임의 꼴에서 비롯해 켜를 차례로 건다. `Conv2d(in_c, out_c, k)`마다 자리 차수는 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(덧대기 없이) `padding=k//2`이면 그대로다. 알갱이 2로 모으면 자리 차수가 반이 된다. 선형 켜는 마지막 차수를 바꾼다. 묶음 차수는 내내 그대로임을 좇아라. 엮음 켜에서는 $(B, C, H, W)$, 편 뒤에는 $(B, F)$으로 가운데 꼴을 적어라.
+    들임의 꼴에서 비롯해 켜를 차례로 건다. `Conv2d(in_c, out_c, k)`마다 자리 차수는 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(덧대기 없이) `padding=k//2`이면 그대로다. 알갱이 2로 모으면 자리 차수가 반이 된다. 선형 켜는 마지막 차수를 바꾼다. 배치 차수는 내내 그대로임을 좇아라. 엮음 켜에서는 $(B, C, H, W)$, 편 뒤에는 $(B, F)$으로 가운데 꼴을 적어라.
 
 ---
 

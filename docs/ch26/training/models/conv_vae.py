@@ -87,7 +87,7 @@ class ConvVAE(nn.Module):
         들임 그림을 숨은 분포 매개변수로 부호화한다.
         
         인수:
-            x: 들임 그림 텐서 [묶음 크기, 채널, 높이, 너비]
+            x: 들임 그림 텐서 [배치 크기, 채널, 높이, 너비]
             
         반환값:
             mu: 숨은 분포의 평균
@@ -188,7 +188,7 @@ if __name__ == '__main__':
     # 모델을 시험한다
     model = ConvVAE(latent_dim=128, img_channels=1, img_size=28)
     # BCE 손실은 목표가 [0,1]이어야 한다
-    x = torch.rand(32, 1, 28, 28)  # 회색조 28x28 그림 32개 묶음
+    x = torch.rand(32, 1, 28, 28)  # 회색조 28x28 그림 32개 배치
     
     reconstruction, mu, logvar = model(x)
     loss, bce, kld = model.loss_function(reconstruction, x, mu, logvar)

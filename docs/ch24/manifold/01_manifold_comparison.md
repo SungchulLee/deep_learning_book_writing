@@ -86,7 +86,7 @@ plt.tight_layout()
 plt.savefig("manifold_mnist_comparison.png", dpi=150, bbox_inches="tight")
 plt.show()
 
-# === t-SNE 깊이 보기: 숫자 부분 묶음 ==========================================
+# === t-SNE 깊이 보기: 숫자 부분 배치 ==========================================
 print("\nt-SNE close-up on digits {2, 3, 5}...")
 mask_subset = np.isin(y_mnist, [2, 3, 5])
 X_sub, y_sub = X_mnist[mask_subset], y_mnist[mask_subset]

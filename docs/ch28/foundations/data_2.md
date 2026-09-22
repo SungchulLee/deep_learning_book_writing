@@ -161,7 +161,7 @@ def train_test_split(X: torch.Tensor,
                      y: torch.Tensor, 
                      train_ratio: float = 0.9) -> Tuple[torch.Tensor, ...]:
     """
-    자료를 익히기 묶음과 시험 묶음으로 가른다.
+    자료를 익히기 배치와 시험 배치로 가른다.
     
     글에서는 흔히 익히기 비율을 더 높게 쓴다(예컨대 90/10)
     익히기 자료를 되도록 많이 얻으려 하기 때문이다.

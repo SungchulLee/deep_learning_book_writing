@@ -115,7 +115,7 @@ CPU에서 NumPy(`np.linalg.svd`)와 PyTorch(`torch.linalg.svd`)로 10000 x 784 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-묶음 주성분 분석을 짜라. 곧 서로 얽히지 않은 자료 묶음 $B$개를 뜻하는 꼴 `(B, N, D)`의 텐서가 주어질 때 묶음 특잇값 쪼개기를 써서 되풀이 없이 자료 묶음마다 주성분 분석을 나란히 셈하라.
+배치 주성분 분석을 짜라. 곧 서로 얽히지 않은 자료 묶음 $B$개를 뜻하는 꼴 `(B, N, D)`의 텐서가 주어질 때 배치 특잇값 쪼개기를 써서 되풀이 없이 자료 묶음마다 주성분 분석을 나란히 셈하라.
 
 </div>
 
@@ -126,11 +126,11 @@ CPU에서 NumPy(`np.linalg.svd`)와 PyTorch(`torch.linalg.svd`)로 10000 x 784 �
     mu_batch = X_batch.mean(dim=1, keepdim=True)
     Xc_batch = X_batch - mu_batch
     U_b, S_b, Vh_b = torch.linalg.svd(Xc_batch, full_matrices=False)
-    # Vh_b 꼴: (묶음, D, D), 자료 묶음마다의 첫 주성분:
-    pc1_batch = Vh_b[:, 0, :]  # (묶음, D)
+    # Vh_b 꼴: (배치, D, D), 자료 묶음마다의 첫 주성분:
+    pc1_batch = Vh_b[:, 0, :]  # (배치, D)
     print(f"Batch PCs shape: {pc1_batch.shape}")
     ```
-    `torch.linalg.svd`은 묶음 들임을 본디 받쳐 서로 얽히지 않은 특잇값 쪼개기를 나란히 셈한다. 특히 GPU에서 효율이 좋고 파이썬 되풀이의 군더더기를 피한다.
+    `torch.linalg.svd`은 배치 들임을 본디 받쳐 서로 얽히지 않은 특잇값 쪼개기를 나란히 셈한다. 특히 GPU에서 효율이 좋고 파이썬 되풀이의 군더더기를 피한다.
 
 
 ---

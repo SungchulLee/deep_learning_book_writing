@@ -39,7 +39,7 @@ def example_simple_attention():
     print("=" * 60)
 
     # 지어낸 눈길 짐을 만든다
-    # 꼴: (묶음=1, 머리=8, 열 길이=10, 열 길이=10)
+    # 꼴: (배치=1, 머리=8, 열 길이=10, 열 길이=10)
     seq_len = 10
     num_heads = 8
 
@@ -112,7 +112,7 @@ def example_bert_attention():
 
     # 눈길 짐을 뽑아낸다
     # outputs.attentions은 켜 수만큼의 텐서 튜플이다
-    # 텐서마다 꼴이 (묶음, 머리, 열 길이, 열 길이)다
+    # 텐서마다 꼴이 (배치, 머리, 열 길이, 열 길이)다
     attentions = outputs.attentions
 
     print(f"\n켜의 수: {len(attentions)}")
@@ -295,7 +295,7 @@ def example_attention_statistics():
     # 엔트로피(눈길이 얼마나 모여 있는가?)
     entropies = []
     for layer_attn in attentions:
-        # 묶음과 머리를 가로질러 고르게 한다
+        # 배치와 머리를 가로질러 고르게 한다
         attn = layer_attn[0].mean(dim=0)
         # 물음 자리마다 엔트로피를 셈한다
         entropy = -(attn * torch.log(attn + 1e-10)).sum(dim=-1).mean()
@@ -425,7 +425,7 @@ transformers 곳집이 없다. 이렇게 깐다: pip install transformers
 </div>
 
 ??? success "연습문제 1 풀이"
-    설계 판단은 짜보기마다 다르나 흔히 이런 것이 있다. (1) 살림 함수 고르기 -- ReLU 갈래는 기울기가 잦아들지 않아 익히기가 빠르다. (2) 고르게 하는 꾀 -- 묶음 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 익힘을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 그물에서 기울기가 흐르게 한다. 고른 것마다 나타내는 힘, 셈 값, 익힘의 든든함 사이의 맞바꿈을 드러낸다.
+    설계 판단은 짜보기마다 다르나 흔히 이런 것이 있다. (1) 살림 함수 고르기 -- ReLU 갈래는 기울기가 잦아들지 않아 익히기가 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 익힘을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 그물에서 기울기가 흐르게 한다. 고른 것마다 나타내는 힘, 셈 값, 익힘의 든든함 사이의 맞바꿈을 드러낸다.
 
 ---
 
@@ -466,7 +466,7 @@ transformers 곳집이 없다. 이렇게 깐다: pip install transformers
         model = 쓰는 보기(...)
         # 여느 들임
         assert model(normal_input).shape == expected_shape
-        # 원소 하나짜리 묶음
+        # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
         # 큰 값(넘침을 살핀다)
         out = model(torch.ones(...) * 1000)

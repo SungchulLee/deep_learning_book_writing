@@ -27,7 +27,7 @@ def weights_init(m):
     DCGAN 논문의 권고를 따라 신경망 무게를 첫자리매김한다.
     
     Conv와 ConvTranspose 층: 평균=0, 표준편차=0.02
-    묶음 정규화 층: 무게=1, 치우침=0
+    배치 정규화 층: 무게=1, 치우침=0
     """
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:

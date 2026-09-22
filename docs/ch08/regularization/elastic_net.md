@@ -67,7 +67,7 @@ L1 항에서 오는 영에서의 미분 불가능성은 그대로 남으므로 �
 
 엘라스틱 넷은 다음으로 이 문제들을 다룬다.
 
-1. **묶음 선택**: 상관된 특징의 무리를 함께 고르거나 함께 버리는 경향이 있다
+1. **배치 선택**: 상관된 특징의 무리를 함께 고르거나 함께 버리는 경향이 있다
 2. **포화 없음**: $n$개보다 많은 특징을 고를 수 있다
 3. **안정성**: L2 성분이 상관된 특징 사이의 선택을 안정시킨다
 
@@ -604,7 +604,7 @@ $$
 
 ### 엘라스틱 넷을 쓸 때
 
-1. **상관된 특징**: 특징의 무리가 서로 상관되어 있고 묶음 선택을 원할 때
+1. **상관된 특징**: 특징의 무리가 서로 상관되어 있고 배치 선택을 원할 때
 2. **높은 차원**: $p >> n$이어서 라쏘가 포화할 때
 3. **안정성이 필요할 때**: 순수한 희소성보다 일관된 특징 선택이 더 중요할 때
 4. **L1과 L2 중 무엇이 나을지 모를 때**: 어느 정칙화가 더 좋은지 확신이 없을 때
@@ -615,27 +615,27 @@ $$
 |--------|----------|-----------|---------------------|-----------------|
 | L1 (라쏘) | 높음 | 낮음 | 임의 선택 | 언제나 그렇지는 않음 |
 | L2 (능선) | 없음 | 높음 | 동등한 가중 | 그렇다 |
-| 엘라스틱 넷 | 보통 | 보통~높음 | 묶음 선택 | 그렇다 |
+| 엘라스틱 넷 | 보통 | 보통~높음 | 배치 선택 | 그렇다 |
 
 ---
 
 ## 9. 응용
 
-### 묶음을 이용한 특징 선택
+### 배치를 이용한 특징 선택
 
 ```python
 def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
     """
-    특징의 묶음을 존중하는 특징 선택.
+    특징의 배치를 존중하는 특징 선택.
     
     인수:
         X: 특징 행렬
         y: 목푯값
-        feature_groups: 묶음 이름을 특징 인덱스에 대응시키는 사전
+        feature_groups: 배치 이름을 특징 인덱스에 대응시키는 사전
         alpha: 엘라스틱 넷의 l1_ratio
         
     반환값:
-        선택된 특징 묶음과 모델
+        선택된 특징 배치와 모델
     """
     from sklearn.linear_model import ElasticNetCV
     from sklearn.preprocessing import StandardScaler
@@ -653,11 +653,11 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
     model = ElasticNetCV(l1_ratio=alpha, cv=5)
     model.fit(X_scaled, y)
 
-    # ── 묶음 선택 분석 ──────────────────────────────────────────────
-    # 엘라스틱 넷 자체는 묶음을 모른다. 계수를 하나씩 따로 볼 뿐이다.
-    # 여기서는 적합이 끝난 뒤 계수를 묶음별로 갈라 "이 묶음이 통째로
+    # ── 배치 선택 분석 ──────────────────────────────────────────────
+    # 엘라스틱 넷 자체는 배치를 모른다. 계수를 하나씩 따로 볼 뿐이다.
+    # 여기서는 적합이 끝난 뒤 계수를 배치별로 갈라 "이 배치가 통째로
     # 살아남았는지, 흩어져 몇 개만 남았는지"를 사람이 읽는다.
-    # 묶음을 통째로 넣거나 빼려면 group lasso 같은 다른 벌점이 필요하다
+    # 배치를 통째로 넣거나 빼려면 group lasso 같은 다른 벌점이 필요하다
     selected_groups = {}
     for group_name, indices in feature_groups.items():
         group_coefs = model.coef_[indices]
@@ -668,9 +668,9 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
         selected_groups[group_name] = {
             'selected': n_selected,
             'total': n_total,
-            'ratio': n_selected / n_total,   # 묶음이 얼마나 살아남았나
+            'ratio': n_selected / n_total,   # 배치가 얼마나 살아남았나
             # 살아남은 계수의 크기. ratio가 낮아도 이 값이 크면
-            # 그 묶음에 소수의 강한 특성이 있다는 뜻이다
+            # 그 배치에 소수의 강한 특성이 있다는 뜻이다
             'mean_coef': np.mean(np.abs(group_coefs))
         }
 
@@ -689,7 +689,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 </div>
 
 ??? success "연습문제 1 풀이"
-    엘라스틱 넷은 $\alpha \in [0,1]$에 대해 $\Omega(w) = \alpha\|w\|_1 + \frac{1-\alpha}{2}\|w\|_2^2$이다. $\alpha = 1$이면 순수한 라쏘(L1), $\alpha = 0$이면 순수한 능선(L2)이다. 중간 값은 희소성(L1)과 묶음 선택(L2)을 결합한다.
+    엘라스틱 넷은 $\alpha \in [0,1]$에 대해 $\Omega(w) = \alpha\|w\|_1 + \frac{1-\alpha}{2}\|w\|_2^2$이다. $\alpha = 1$이면 순수한 라쏘(L1), $\alpha = 0$이면 순수한 능선(L2)이다. 중간 값은 희소성(L1)과 배치 선택(L2)을 결합한다.
 
 ---
 

@@ -168,7 +168,7 @@ def train_gan_2d(data, latent_dim=2, n_epochs=1000, batch_size=256,
     pbar = tqdm(range(n_epochs))
     
     for epoch in pbar:
-        # 묶음을 뽑는다
+        # 배치를 뽑는다
         indices = torch.randint(0, len(data), (batch_size,))
         real_batch = data[indices].to(device)
         

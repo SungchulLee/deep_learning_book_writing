@@ -93,7 +93,7 @@ Drug-Target Interaction Prediction
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌리면 10, 20, 30바퀴의 익히기 손실이 찍힌다. 따지려면 시험 묶음에서 헤아림을 셈한다:
+    보여 주기를 돌리면 10, 20, 30바퀴의 익히기 손실이 찍힌다. 따지려면 시험 배치에서 헤아림을 셈한다:
     ```python
     model.eval()
     correct = 0

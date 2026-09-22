@@ -193,7 +193,7 @@ def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     }
 
 # ============================================================================
-# 도구: 퍼뜨리기를 곁들인 묶음 어깨수 찾기
+# 도구: 퍼뜨리기를 곁들인 배치 어깨수 찾기
 # ============================================================================
 
 def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tensor:
@@ -202,13 +202,13 @@ def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tens
     
     문제:
     ------------
-    묶음마다 때 걸음이 다르다: t = [15, 73, 42, ...]
+    배치마다 때 걸음이 다르다: t = [15, 73, 42, ...]
     표본마다 다른 상수가 필요하다: √ᾱ_15, √ᾱ_73, √ᾱ_42, ...
     
     풀이:
     ---------
     1. 자리 잡기: tensor[t] → 표본마다 값을 얻는다
-    2. 꼴 바꾸기: 퍼뜨리기를 위해 (묶음,) → (묶음, 1, 1, ...)
+    2. 꼴 바꾸기: 퍼뜨리기를 위해 (배치,) → (배치, 1, 1, ...)
     
     펴 맞추기 보기:
     ---------------------
@@ -230,7 +230,7 @@ def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tens
     batch_size = t.shape[0]
     out = tensor.gather(-1, t)  # 어깨수에서 뽑는다
     
-    # 퍼뜨리기에 맞게 꼴을 바꾼다: (묶음,) → (묶음, 1, 1, ...)
+    # 퍼뜨리기에 맞게 꼴을 바꾼다: (배치,) → (배치, 1, 1, ...)
     num_extra_dims = len(x_shape) - 1
     trailing_dims = (1,) * num_extra_dims
     return out.reshape(batch_size, *trailing_dims)
@@ -409,13 +409,13 @@ def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
     
     마구잡이 때 걸음 뽑기:
     -------------------------
-    고갱이 솜씨: 묶음마다 [0,T-1]에서 t을 고르게 뽑는다
+    고갱이 솜씨: 배치마다 [0,T-1]에서 t을 고르게 뽑는다
     → 모델이 모든 잡음 수준에서 잡음 없애는 법을 배운다
     → 특정 때 걸음에 지나치게 맞춰지는 것을 막는다
     
     인수:
         model: 익힐 잡음 없애기 모델
-        x_0: 깨끗한 자료의 묶음, 꼴 (batch_size, *data_dims)
+        x_0: 깨끗한 자료의 배치, 꼴 (batch_size, *data_dims)
         t: 마구잡이 때 걸음, 꼴 (batch_size,)
         diffusion_params: 미리 셈한 상수
         noise: 미리 만든 잡음(골라 쓴다. None이면 여기서 만든다)

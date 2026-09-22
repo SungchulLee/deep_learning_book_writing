@@ -167,7 +167,7 @@ class Seq2SeqInference:
     
     def translate_batch(self, src_texts, method='greedy', **kwargs):
         """
-        텍스트 묶음을 번역한다
+        텍스트 배치를 번역한다
         
         인수:
             src_texts: 원본 텍스트의 목록

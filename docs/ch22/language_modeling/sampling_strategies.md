@@ -196,7 +196,7 @@ def top_k_sample(
 
 ### 정의
 
-문턱 $p \in (0, 1]$이 주어질 때 **알맹이** $V_p$은 쌓은 확률이 $p$을 넘는 가장 작은 토막 묶음이다.
+문턱 $p \in (0, 1]$이 주어질 때 **알맹이** $V_p$은 쌓은 확률이 $p$을 넘는 가장 작은 토막 배치다.
 
 $$
 V_p = \arg\min_{V' \subseteq V} |V'| \quad \text{s.t.} \quad \sum_{v \in V'} p_\theta(v \mid x_{<t}) \geq p
@@ -419,7 +419,7 @@ $$
 
 ### 정의
 
-**흔한 묶음** $A_\epsilon$은 소식 양이 엔트로피에서 $\epsilon$ 안쪽인 토막을 담는다.
+**흔한 배치** $A_\epsilon$은 소식 양이 엔트로피에서 $\epsilon$ 안쪽인 토막을 담는다.
 
 $$
 A_\epsilon = \{v \in V : |I(v) - H| < \epsilon\}
@@ -904,24 +904,24 @@ def diverse_beam_search(
     max_length: int = 50
 ) -> list[list[tuple[float, list[int]]]]:
     """
-    여러 갈래 빔 찾기: 묶음 찾기로 여러 갈래의 가설 만들기.
+    여러 갈래 빔 찾기: 배치 찾기로 여러 갈래의 가설 만들기.
     
     인수:
         model: 말 모델
         input_ids: 처음 토막 번호
-        num_beams: 묶음마다의 빔 수
-        num_groups: 빔 묶음의 개수
-        diversity_penalty: 앞 묶음이 고른 토막에 주는 벌
+        num_beams: 배치마다의 빔 수
+        num_groups: 빔 배치의 개수
+        diversity_penalty: 앞 배치가 고른 토막에 주는 벌
         max_length: 만들어 낼 최대 길이
         
     반환값:
-        (score, sequence) 튜플을 담은 묶음의 목록
+        (score, sequence) 튜플을 담은 배치의 목록
     """
     device = input_ids.device
     all_groups = []
     
     for group_idx in range(num_groups):
-        # 자리마다 앞 묶음이 고른 토막 좇기
+        # 자리마다 앞 배치가 고른 토막 좇기
         previous_group_tokens = []
         for prev_group in all_groups:
             for _, seq in prev_group:
@@ -1418,7 +1418,7 @@ $n$-그램 말 모델에서 모델의 복잡함과 자료의 성김 사이 맞�
 </div>
 
 ??? success "연습문제 3 풀이"
-    **위 $k$**: 확률이 가장 높은 토막 $k$개에서 뽑는다. 단순하지만 붙박인 $k$은 (뾰족한 분포에서는) 너무 좁고 (평평한 분포에서는) 너무 헐거울 수 있다. **알맹이/위 $p$**: 쌓은 확률이 $p$을 넘는 가장 작은 토막 묶음에서 뽑아 분포의 꼴에 맞춘다. **온도 $\tau$**: 소프트맥스 앞에서 로짓에 $1/\tau$을 곱한다. $\tau < 1$이면 뾰족해지고 $\tau > 1$이면 평평해진다. 열린 글 만들기에는 흔히 위 $p$을 쓰고(맞추어 잘라 낸다), 온도는 새로움을 다스리는 데 쓸모 있으며, 위 $k$은 옭아맨 글 만들기에 단순하고 잘 듣는다.
+    **위 $k$**: 확률이 가장 높은 토막 $k$개에서 뽑는다. 단순하지만 붙박인 $k$은 (뾰족한 분포에서는) 너무 좁고 (평평한 분포에서는) 너무 헐거울 수 있다. **알맹이/위 $p$**: 쌓은 확률이 $p$을 넘는 가장 작은 토막 배치에서 뽑아 분포의 꼴에 맞춘다. **온도 $\tau$**: 소프트맥스 앞에서 로짓에 $1/\tau$을 곱한다. $\tau < 1$이면 뾰족해지고 $\tau > 1$이면 평평해진다. 열린 글 만들기에는 흔히 위 $p$을 쓰고(맞추어 잘라 낸다), 온도는 새로움을 다스리는 데 쓸모 있으며, 위 $k$은 옭아맨 글 만들기에 단순하고 잘 듣는다.
 
 ---
 

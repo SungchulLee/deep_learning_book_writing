@@ -10,9 +10,9 @@
 둘레 벌 $N$개를 나란히 돌려 여러 갈래 자료를 값싸게 모은다. 에피소드가 끝나면 둘레마다 절로 되돌아간다.
 
 ### 2. 이점 고르게 하기
-기울기 크기를 든든하게 하려고 (온 묶음이 아니라) 작은 묶음 켜에서 이점을 고르게 한다.
+기울기 크기를 든든하게 하려고 (온 배치가 아니라) 작은 배치 켜에서 이점을 고르게 한다.
 
-$$\hat{A}_t = \frac{A_t - \mu_\text{작은묶음}}{\sigma_\text{작은묶음} + \epsilon}$$
+$$\hat{A}_t = \frac{A_t - \mu_\text{작은배치}}{\sigma_\text{작은배치} + \epsilon}$$
 
 ### 3. 값 함수 자르기(고를 수 있음)
 값이 크게 고쳐지는 것을 막으려 값 미리 보기를 자른다.
@@ -60,13 +60,13 @@ $$L_V = \max\left[(V_\theta - V_\text{과녁})^2, (V_\text{자름} - V_\text{과
     # GAE 셈하기
     advantages, returns = compute_gae(rewards, values, dones, last_value)
 
-    # 묶음 납작하게 펴기
+    # 배치 납작하게 펴기
     batch = flatten(rollout)  # 꼴: (n_envs × n_steps, ...)
 
     # 가장 좋게 하기 마디
     for epoch = 1, ..., n_epochs:
         indices = random_permutation(batch_size)
-        각 작은 묶음 번호에 대해:
+        각 작은 배치 번호에 대해:
             ratio = exp(new_logprob - old_logprob)
             clipped_loss = min(ratio × adv, clip(ratio) × adv)
             value_loss = MSE(value, returns)
@@ -91,7 +91,7 @@ $$L_V = \max\left[(V_\theta - V_\text{과녁})^2, (V_\text{자름} - V_\text{과
 
 ## 4. 흔히 빠지는 구현 함정
 
-1. **작은 묶음마다 이점을 고르게 하지 않기**: 익힘이 들쭉날쭉해진다
+1. **작은 배치마다 이점을 고르게 하지 않기**: 익힘이 들쭉날쭉해진다
 2. **로그 낌새를 잘못 셈하기**: 이어진 움직임에서는 움직임 차원에 걸쳐 로그 낌새를 더해야 한다
 3. **옛 로그 낌새를 떼어 놓기를 잊기**: 옛 로그 낌새에 기울기가 붙으면 안 된다
 4. **절로 되돌아가기를 빠뜨리기**: 둘레는 끝날 때 절로 되돌아가야 한다
@@ -110,7 +110,7 @@ $$L_V = \max\left[(V_\theta - V_\text{과녁})^2, (V_\text{자름} - V_\text{과
 </div>
 
 ??? success "연습문제 1 풀이"
-    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 배치에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 

@@ -139,7 +139,7 @@ for ax, img, lab in zip(axes, images, labels):
     ax.axis("off")                    # 눈금은 그림 볼 때 방해가 된다
 plt.tight_layout()
 
-print(f"그림 묶음 모양: {images.shape}   <- (장수, 높이, 너비)")
+print(f"그림 배치 모양: {images.shape}   <- (장수, 높이, 너비)")
 print(f"값의 범위: [{images.min():.3f}, {images.max():.3f}]")
 print(f"이름표: {labels}")
 ```
@@ -147,13 +147,13 @@ print(f"이름표: {labels}")
 **출력:**
 
 ```
-그림 묶음 모양: (6, 8, 8)   <- (장수, 높이, 너비)
+그림 배치 모양: (6, 8, 8)   <- (장수, 높이, 너비)
 값의 범위: [0.000, 0.997]
 이름표: [4 8 0 8 7 3]
 ```
 
 !!! tip "모양을 늘 확인하라"
-    PyTorch는 이미지를 `(묶음, 채널, 높이, 너비)`로 담지만 Matplotlib의 `imshow`는 `(높이, 너비)` 또는 `(높이, 너비, 채널)`을 받는다.
+    PyTorch는 이미지를 `(배치, 채널, 높이, 너비)`로 담지만 Matplotlib의 `imshow`는 `(높이, 너비)` 또는 `(높이, 너비, 채널)`을 받는다.
     그래서 텐서를 그리려면 `img.permute(1, 2, 0)`처럼 축 순서를 바꾸어야 할 때가 많다. 그림이 이상하게 나온다면 먼저 모양부터 찍어 본다.
 
 ---

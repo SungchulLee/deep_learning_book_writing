@@ -125,11 +125,11 @@ def kl_divergence_standard_normal(mu, logvar):
     D_KL = -0.5 * sum(1 + log(σ²) - μ² - σ²)
     
     인수:
-        mu: 평균 [묶음 크기, 숨은 차원]
-        logvar: 로그 흩어짐 [묶음 크기, 숨은 차원]
+        mu: 평균 [배치 크기, 숨은 차원]
+        logvar: 로그 흩어짐 [배치 크기, 숨은 차원]
     
     반환값:
-        표본마다의 KL 벌어짐 [묶음 크기]
+        표본마다의 KL 벌어짐 [배치 크기]
     """
     return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)
 
@@ -144,7 +144,7 @@ def kl_divergence_two_gaussians(mu1, logvar1, mu2, logvar2):
         mu2, logvar2: p의 매개변수
     
     반환값:
-        표본마다의 KL 벌어짐 [묶음 크기]
+        표본마다의 KL 벌어짐 [배치 크기]
     """
     var1 = logvar1.exp()
     var2 = logvar2.exp()
@@ -159,8 +159,8 @@ def kl_per_dimension(mu, logvar):
     사후 분포 무너짐을 진단하는 데 쓸모 있다.
     
     인수:
-        mu: 평균 [묶음 크기, 숨은 차원]
-        logvar: 로그 흩어짐 [묶음 크기, 숨은 차원]
+        mu: 평균 [배치 크기, 숨은 차원]
+        logvar: 로그 흩어짐 [배치 크기, 숨은 차원]
     
     반환값:
         차원마다의 평균 KL [숨은 차원]

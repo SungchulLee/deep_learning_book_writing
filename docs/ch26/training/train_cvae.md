@@ -81,7 +81,7 @@ def train_epoch(model, train_loader, optimizer, device, beta=1.0):
 
 
 def test_epoch(model, test_loader, device, beta=1.0):
-    """시험 묶음으로 값매김한다"""
+    """시험 배치로 값매김한다"""
     model.eval()
     test_loss = 0
     test_recon = 0

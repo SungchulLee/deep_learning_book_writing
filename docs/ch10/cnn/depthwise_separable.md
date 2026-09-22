@@ -1,6 +1,6 @@
-# 묶음 합성곱과 깊이별 분리 합성곱
+# 배치 합성곱과 깊이별 분리 합성곱
 
-표준 합성곱은 입력 채널과 출력 채널이 조밀하게 이어져 있어 계산 비용이 크다. **묶음 합성곱**과 **깊이별 분리 합성곱**은 합성곱 연산을 쪼개는 구조적 혁신으로, 성능은 지키거나 오히려 높이면서 매개변수와 계산량을 크게 줄인다.
+표준 합성곱은 입력 채널과 출력 채널이 조밀하게 이어져 있어 계산 비용이 크다. **배치 합성곱**과 **깊이별 분리 합성곱**은 합성곱 연산을 쪼개는 구조적 혁신으로, 성능은 지키거나 오히려 높이면서 매개변수와 계산량을 크게 줄인다.
 
 이 기법들은 MobileNet, EfficientNet, ShuffleNet, ResNeXt 같은 효율적인 CNN 구조의 바탕이며, 휴대 기기와 말단 장치에 모델을 올릴 수 있게 해 준다.
 
@@ -17,11 +17,11 @@
 
 ---
 
-## 2. 묶음 합성곱
+## 2. 배치 합성곱
 
 ### 개념
 
-**묶음 합성곱**은 입력 채널과 출력 채널을 각각 $G$개의 묶음으로 나누고 묶음마다 따로 처리한다.
+**배치 합성곱**은 입력 채널과 출력 채널을 각각 $G$개의 묶음으로 나누고 배치마다 따로 처리한다.
 
 ```
 Standard Convolution:           Grouped Convolution (G=2):
@@ -32,12 +32,12 @@ connected)         outputs)      C_in/2 ──→ C_out/2  (Group 2)
 ```
 
 - 입력을 채널 $C_{in}/G$개씩 $G$개의 묶음으로 나눈다
-- 묶음마다 제 필터로 채널 $C_{out}/G$개를 낸다
+- 배치마다 제 필터로 채널 $C_{out}/G$개를 낸다
 - 출력을 채널 차원으로 이어 붙인다
 
 ### 수식으로 나타내기
 
-묶음 $g$($g = 0, 1, \dots, G-1$)에 대해 다음과 같다.
+배치 $g$($g = 0, 1, \dots, G-1$)에 대해 다음과 같다.
 
 $$Y_{g}[o, i, j] = \sum_{c=0}^{C_{in}/G - 1} \sum_{m,n} X_g[c, i+m, j+n] \cdot K_g[o, c, m, n]$$
 
@@ -45,11 +45,11 @@ $$Y_{g}[o, i, j] = \sum_{c=0}^{C_{in}/G - 1} \sum_{m,n} X_g[c, i+m, j+n] \cdot K
 
 - $X_g$: 입력 채널 $[g \cdot C_{in}/G, (g+1) \cdot C_{in}/G)$
 - $Y_g$: 출력 채널 $[g \cdot C_{out}/G, (g+1) \cdot C_{out}/G)$
-- $K_g$: 묶음 $g$의 핵
+- $K_g$: 배치 $g$의 핵
 
 ### 계산량 절약
 
-| 지표 | 표준 | 묶음 (묶음 G개) | 줄어드는 비 |
+| 지표 | 표준 | 배치 (배치 G개) | 줄어드는 비 |
 |--------|----------|-------------------|-----------|
 | 매개변수 | $C_{out} \times C_{in} \times K^2$ | $C_{out} \times \frac{C_{in}}{G} \times K^2$ | $G\times$ |
 | 부동소수점 연산 수 | $C_{out} \times C_{in} \times K^2 \times H \times W$ | 표준의 $\frac{1}{G}$ | $G\times$ |
@@ -65,12 +65,12 @@ conv_standard = nn.Conv2d(64, 128, kernel_size=3, padding=1)
 params_standard = sum(p.numel() for p in conv_standard.parameters())
 print(f"Standard conv params: {params_standard:,}")  # 73,856
 
-# 묶음 합성곱 (G=2)
+# 배치 합성곱 (G=2)
 conv_grouped_2 = nn.Conv2d(64, 128, kernel_size=3, padding=1, groups=2)
 params_grouped_2 = sum(p.numel() for p in conv_grouped_2.parameters())
 print(f"Grouped conv (G=2) params: {params_grouped_2:,}")  # 36,992 (2배 줄어듦)
 
-# 묶음 합성곱 (G=4)
+# 배치 합성곱 (G=4)
 conv_grouped_4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, groups=4)
 params_grouped_4 = sum(p.numel() for p in conv_grouped_4.parameters())
 print(f"Grouped conv (G=4) params: {params_grouped_4:,}")  # 18,560 (4배 줄어듦)
@@ -108,7 +108,7 @@ Grouped (G=4) output: torch.Size([1, 128, 32, 32])
 
 ### 개념
 
-**깊이별 합성곱**은 $G = C_{in}$인 묶음 합성곱의 극단이다. 입력 채널마다 제 필터를 따로 갖는다.
+**깊이별 합성곱**은 $G = C_{in}$인 배치 합성곱의 극단이다. 입력 채널마다 제 필터를 따로 갖는다.
 
 ```
 Depthwise Convolution:
@@ -419,7 +419,7 @@ Parameters: 14,848
 
 ## 7. 채널 섞기 (ShuffleNet)
 
-묶음 합성곱은 묶음 사이에 정보가 흐르지 못하게 한다. **채널 섞기**가 이 한계를 푼다.
+배치 합성곱은 배치 사이에 정보가 흐르지 못하게 한다. **채널 섞기**가 이 한계를 푼다.
 
 ```
 Before Shuffle:                After Shuffle:
@@ -439,7 +439,7 @@ def channel_shuffle(x, groups):
     채널 섞기 연산.
     
     텐서를 (N, C, H, W)에서 (N, G, C//G, H, W)로 바꾸고
-    묶음과 채널을 전치한 뒤 다시 펼친다.
+    배치와 채널을 전치한 뒤 다시 펼친다.
     """
     N, C, H, W = x.shape
     
@@ -455,7 +455,7 @@ def channel_shuffle(x, groups):
     return x
 
 class ShuffleNetBlock(nn.Module):
-    """묶음 합성곱과 채널 섞기를 쓰는 ShuffleNet V1 단위."""
+    """배치 합성곱과 채널 섞기를 쓰는 ShuffleNet V1 단위."""
     
     def __init__(self, in_channels, out_channels, groups=3, stride=1):
         super().__init__()
@@ -468,7 +468,7 @@ class ShuffleNetBlock(nn.Module):
         if stride == 2:
             out_channels = out_channels - in_channels
         
-        # 묶음 합성곱 1×1
+        # 배치 합성곱 1×1
         self.gconv1 = nn.Sequential(
             nn.Conv2d(in_channels, mid_channels, 1, groups=groups, bias=False),
             nn.BatchNorm2d(mid_channels),
@@ -482,7 +482,7 @@ class ShuffleNetBlock(nn.Module):
             nn.BatchNorm2d(mid_channels)
         )
         
-        # 묶음 합성곱 1×1
+        # 배치 합성곱 1×1
         self.gconv2 = nn.Sequential(
             nn.Conv2d(mid_channels, out_channels, 1, groups=groups, bias=False),
             nn.BatchNorm2d(out_channels)
@@ -597,18 +597,18 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504
 |--------------|----------------|------------------|
 | **MobileNetV1** | 깊이별 분리 합성곱 | 휴대 기기 배포 |
 | **MobileNetV2** | 뒤집은 잔차와 선형 병목 | 휴대 기기·말단 장치 |
-| **ShuffleNet** | 채널 섞기와 묶음 합성곱 | 매우 효율적 |
+| **ShuffleNet** | 채널 섞기와 배치 합성곱 | 매우 효율적 |
 | **EfficientNet** | 복합 규모 조정과 MBConv | 최상급 효율 |
-| **ResNeXt** | 잔차 블록 속 묶음 합성곱 | 높은 정확도 |
+| **ResNeXt** | 잔차 블록 속 배치 합성곱 | 높은 정확도 |
 
 ---
 
 ## 10. 핵심 정리
 
-1. **묶음 합성곱**은 채널을 서로 독립인 묶음으로 나누어 매개변수를 $G$배 줄인다
-2. **깊이별 합성곱**은 $G = C_{in}$인 묶음 합성곱으로, 채널마다 필터 하나를 쓴다
+1. **배치 합성곱**은 채널을 서로 독립인 묶음으로 나누어 매개변수를 $G$배 줄인다
+2. **깊이별 합성곱**은 $G = C_{in}$인 배치 합성곱으로, 채널마다 필터 하나를 쓴다
 3. **깊이별 분리** = 깊이별 + 점별이며, 매개변수를 약 8~9배 줄인다
-4. **채널 섞기**는 ShuffleNet에서 묶음 사이에 정보가 흐르게 해 준다
+4. **채널 섞기**는 ShuffleNet에서 배치 사이에 정보가 흐르게 해 준다
 5. **뒤집은 잔차**(MobileNetV2)는 선형 병목과 함께 좁음 → 넓음 → 좁음의 짜임을 쓴다
 6. 이 기법들 덕분에 정확도를 크게 잃지 않고도 휴대 기기와 말단 장치에 올릴 효율적인 모델을 만들 수 있다
 
@@ -651,12 +651,12 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-MobileNet과 EfficientNet의 설계에서 묶음 합성곱이 하는 구실을 설명하라.
+MobileNet과 EfficientNet의 설계에서 배치 합성곱이 하는 구실을 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    MobileNet은 깊이별 분리 합성곱(groups = $C_{\text{in}}$)으로 계산을 약 9분의 1로 줄인다. EfficientNet은 깊이와 너비와 해상도의 균형을 잡는 복합 규모 조정을 쓰며 깊이별 분리 합성곱을 구성 블록으로 삼는다. 묶음 합성곱은 연산량을 줄이면서도 점별로 섞는 단계 덕분에 표현력을 지킨다.
+    MobileNet은 깊이별 분리 합성곱(groups = $C_{\text{in}}$)으로 계산을 약 9분의 1로 줄인다. EfficientNet은 깊이와 너비와 해상도의 균형을 잡는 복합 규모 조정을 쓰며 깊이별 분리 합성곱을 구성 블록으로 삼는다. 배치 합성곱은 연산량을 줄이면서도 점별로 섞는 단계 덕분에 표현력을 지킨다.
 
 ---
 
@@ -675,7 +675,7 @@ MobileNet과 EfficientNet의 설계에서 묶음 합성곱이 하는 구실을 �
 | 종류 | 매개변수 | 줄어드는 비 | 쓰임새 |
 |------|------------|-----------|----------|
 | 표준 | $C_{out} \times C_{in} \times K^2$ | — | 기준선 |
-| 묶음 (G) | $\div G$ | $G\times$ | ResNeXt |
+| 배치 (G) | $\div G$ | $G\times$ | ResNeXt |
 | 깊이별 | $C \times K^2$ | $C\times$ | 공간적 거르기 |
 | 깊이별 분리 | $C_{in}(K^2 + C_{out})$ | 약 8~9배 | MobileNet, EfficientNet |
 | 뒤집은 잔차 | 확장과 깊이별 | 효율적 | MobileNetV2 이후 |

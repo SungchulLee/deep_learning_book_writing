@@ -135,7 +135,7 @@ class DDIMSampler:
         DDIM 뽑기.
         
         인수:
-            shape: 내놓기 꼴(묶음, 채널, 높이, 너비)
+            shape: 내놓기 꼴(배치, 채널, 높이, 너비)
             device: 토치 장치
             num_steps: 뽑기 걸음 수
             eta: 마구잡이 정도(0이면 정해진 대로, 1이면 DDPM처럼)

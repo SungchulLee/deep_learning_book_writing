@@ -63,7 +63,7 @@ try:
 except Exception as e:
     print(f"Export failed: {e}")
 
-# 재주 3: 묶음 단위 다루기
+# 재주 3: 배치 단위 다루기
 print("\n3. Batch Processing")
 print("-"*70)
 

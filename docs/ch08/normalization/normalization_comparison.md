@@ -38,7 +38,7 @@ class NormalizationComparison:
             'LayerNorm': nn.LayerNorm([3, 4, 4], elementwise_affine=False),
             'InstanceNorm': nn.InstanceNorm2d(3, affine=False),
             # 채널 3개에 대한 그룹 3개.
-            # 그룹 정규화는 채널을 몇 묶음으로 나누어 묶음 안에서만
+            # 그룹 정규화는 채널을 몇 묶음으로 나누어 배치 안에서만
             # 통계를 낸다. 그래서 양 끝이 다른 방법과 만난다.
             # 그룹 수 = 채널 수이면 채널마다 따로이니 인스턴스 정규화와 같고,
             # 그룹 수 = 1이면 채널을 통틀어 보니 층 정규화와 같다.

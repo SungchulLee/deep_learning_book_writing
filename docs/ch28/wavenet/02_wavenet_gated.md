@@ -55,7 +55,7 @@ class GatedActivationUnit(nn.Module):
     """
 
     def forward(self, x):
-        # x: (묶음, 2*n_filters, 차례 길이)
+        # x: (배치, 2*n_filters, 차례 길이)
         n_filters = x.size(1) // 2
         return torch.tanh(x[:, :n_filters]) * torch.sigmoid(x[:, n_filters:])
 
@@ -271,7 +271,7 @@ Done.
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`CausalConv1d` 앞먹임을 지나는 텐서 꼴을 좇아라. 기본 매개변수로 들임 표본 4개 묶음에 대해 큰 셈(겹말기, 모으기, 선형 층)마다 뒤의 꼴을 적어라.
+`CausalConv1d` 앞먹임을 지나는 텐서 꼴을 좇아라. 기본 매개변수로 들임 표본 4개 배치에 대해 큰 셈(겹말기, 모으기, 선형 층)마다 뒤의 꼴을 적어라.
 
 </div>
 

@@ -142,7 +142,7 @@ def certify_ibp(
     model : nn.Sequential
         선형/Conv2d 켜와 ReLU 켜가 번갈아 오는 그물
     x : torch.Tensor
-        들임 묶음
+        들임 배치
     y : torch.Tensor
         참 이름표
     epsilon : float

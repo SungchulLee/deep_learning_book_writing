@@ -54,7 +54,7 @@ import time
 
 class Factor:
     """
-    변수 묶음에 걸친 인자(퍼텐셜 함수)를 나타낸다.
+    변수 배치에 걸친 인자(퍼텐셜 함수)를 나타낸다.
     
     인자 φ(X1, ..., Xk)은 (X1, ..., Xk)의 대입마다
     음이 아닌 수에 잇는 함수이다.
@@ -304,7 +304,7 @@ class VariableElimination:
             remaining = set(variables_to_eliminate)
             
             while remaining:
-                # 남은 묶음에서 이웃이 가장 적은 변수 찾기
+                # 남은 배치에서 이웃이 가장 적은 변수 찾기
                 min_var = min(remaining, 
                              key=lambda v: len(set(graph.neighbors(v)) & remaining))
                 order.append(min_var)

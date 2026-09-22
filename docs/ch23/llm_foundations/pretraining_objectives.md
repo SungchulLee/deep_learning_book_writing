@@ -79,8 +79,8 @@ class CausalLMHead(nn.Module):
     ):
         """
         인수:
-            hidden_states: (묶음, 차례 길이, 숨은 크기)
-            labels: (묶음, 차례 길이) - 다음 토막 어림을 위해 1만큼 밀림
+            hidden_states: (배치, 차례 길이, 숨은 크기)
+            labels: (배치, 차례 길이) - 다음 토막 어림을 위해 1만큼 밀림
         """
         logits = self.lm_head(hidden_states)  # (배치, seq_len, vocab_size)
         
@@ -103,8 +103,8 @@ def causal_lm_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     홀로 서는 인과 말 나타내기 손실.
     
     인수:
-        logits: [묶음, 차례 길이, 낱말 곳간 크기]
-        labels: [묶음, 차례 길이]
+        logits: [배치, 차례 길이, 낱말 곳간 크기]
+        labels: [배치, 차례 길이]
     """
     # 다음 토큰 맞히기를 위해 민다
     shift_logits = logits[..., :-1, :].contiguous()
@@ -196,10 +196,10 @@ def create_mlm_batch(
     special_token_ids: set = None
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    알맞은 텐서 연산으로 가린 말 모델 익히기 묶음을 만든다.
+    알맞은 텐서 연산으로 가린 말 모델 익히기 배치를 만든다.
     
     인수:
-        input_ids: [묶음, 차례 길이] 들임 토막 번호
+        input_ids: [배치, 차례 길이] 들임 토막 번호
         vocab_size: 낱말 곳간의 크기
         mask_token_id: [MASK] 토막의 번호
         mask_prob: 토막마다 가릴 확률

@@ -32,11 +32,11 @@ PyTorch에서 영상은 4차원이나 5차원 텐서로 나타낸다:
 
 $$V \in \mathbb{R}^{T \times C \times H \times W}$$
 
-**영상 묶음(5차원):**
+**영상 배치(5차원):**
 
 $$V \in \mathbb{R}^{B \times T \times C \times H \times W}$$
 
-여기서 $B$은 묶음 크기이다.
+여기서 $B$은 배치 크기이다.
 
 ### 틀 비율과 길이
 
@@ -367,7 +367,7 @@ def resize_video(video: torch.Tensor,
     T, C, H, W = video.shape
     target_h, target_w = target_size
     
-    # 묶음 처리를 위해 꼴 바꾸기
+    # 배치 처리를 위해 꼴 바꾸기
     video_flat = video.view(T, C, H, W)
     
     # 두 줄 사이 끼움 쓰기

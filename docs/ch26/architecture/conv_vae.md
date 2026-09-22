@@ -92,7 +92,7 @@ class ConvVAE(nn.Module):
         들임 그림을 숨은 분포 매개변수로 부호화한다.
         
         인수:
-            x: 들임 그림 텐서 [묶음 크기, 채널, 높이, 너비]
+            x: 들임 그림 텐서 [배치 크기, 채널, 높이, 너비]
             
         반환값:
             mu: 숨은 분포의 평균
@@ -193,7 +193,7 @@ if __name__ == '__main__':
     # 모델을 시험한다
     model = ConvVAE(latent_dim=128, img_channels=1, img_size=28)
     # BCE 손실은 목표가 [0,1]이어야 한다
-    x = torch.rand(32, 1, 28, 28)  # 회색조 28x28 그림 32개 묶음
+    x = torch.rand(32, 1, 28, 28)  # 회색조 28x28 그림 32개 배치
     
     reconstruction, mu, logvar = model(x)
     loss, bce, kld = model.loss_function(reconstruction, x, mu, logvar)
@@ -235,7 +235,7 @@ Generated samples shape: torch.Size([10, 1, 28, 28])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`ConvVAE`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 묶음에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+`ConvVAE`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 배치에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
 
 </div>
 

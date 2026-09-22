@@ -90,7 +90,7 @@ class AttentionVisualizer:
         정한 머리의 눈길 짐을 그린다.
 
         Args:
-            attention_weights: (묶음, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
             tokens: 이름표로 쓸 낱말 목록
             head_idx: 그릴 눈길 머리의 번호
             figsize: 그림 크기
@@ -133,7 +133,7 @@ class AttentionVisualizer:
         눈길 머리 여럿을 격자로 그린다.
 
         Args:
-            attention_weights: (묶음, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
             tokens: 낱말 목록
             max_heads: 보일 머리의 가장 큰 수
             figsize: 그림 크기
@@ -238,7 +238,7 @@ class AttentionVisualizer:
             Matplotlib 그림
         """
         if attention_weights.dim() == 4:
-            # 묶음과 머리를 가로질러 고르게 한다
+            # 배치와 머리를 가로질러 고르게 한다
             attn = attention_weights[0].mean(dim=0)[query_idx].cpu().numpy()
         elif attention_weights.dim() == 3:
             attn = attention_weights.mean(dim=0)[query_idx].cpu().numpy()
@@ -290,7 +290,7 @@ def visualize_token_attention(attention_weights: torch.Tensor,
     낱말에 대한 눈길을 빠르게 그리는 도움 함수.
 
     Args:
-        attention_weights: 눈길 텐서 (켜, 묶음, 머리, 열, 열)
+        attention_weights: 눈길 텐서 (켜, 배치, 머리, 열, 열)
         tokens: 낱말 목록
         layer_idx: 그릴 켜 번호(-1이면 마지막 켜)
         save_path: 그림을 갈무리할 길
@@ -304,7 +304,7 @@ def visualize_token_attention(attention_weights: torch.Tensor,
     else:
         attn = attention_weights
 
-    # 묶음과 머리를 가로질러 고르게 한다
+    # 배치와 머리를 가로질러 고르게 한다
     if attn.dim() == 4:
         attn = attn[0].mean(dim=0)
     elif attn.dim() == 3:
@@ -351,7 +351,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "연습문제 1 풀이"
-    설계 판단은 짜보기마다 다르나 흔히 이런 것이 있다. (1) 살림 함수 고르기 -- ReLU 갈래는 기울기가 잦아들지 않아 익히기가 빠르다. (2) 고르게 하는 꾀 -- 묶음 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 익힘을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 그물에서 기울기가 흐르게 한다. 고른 것마다 나타내는 힘, 셈 값, 익힘의 든든함 사이의 맞바꿈을 드러낸다.
+    설계 판단은 짜보기마다 다르나 흔히 이런 것이 있다. (1) 살림 함수 고르기 -- ReLU 갈래는 기울기가 잦아들지 않아 익히기가 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 익힘을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 그물에서 기울기가 흐르게 한다. 고른 것마다 나타내는 힘, 셈 값, 익힘의 든든함 사이의 맞바꿈을 드러낸다.
 
 ---
 
@@ -392,7 +392,7 @@ if __name__ == "__main__":
         model = 눈길 그림 그리기(...)
         # 여느 들임
         assert model(normal_input).shape == expected_shape
-        # 원소 하나짜리 묶음
+        # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
         # 큰 값(넘침을 살핀다)
         out = model(torch.ones(...) * 1000)

@@ -157,7 +157,7 @@ def compute_jacobian_penalty(model, x):
         
         jacobian_norm_sq = jacobian_norm_sq + torch.sum(jacobian_col ** 2)
     
-    return jacobian_norm_sq / x.shape[0]  # 묶음에 걸친 평균
+    return jacobian_norm_sq / x.shape[0]  # 배치에 걸친 평균
 ```
 
 ---

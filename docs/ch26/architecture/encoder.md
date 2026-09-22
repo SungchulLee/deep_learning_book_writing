@@ -68,10 +68,10 @@ class MLPEncoder(nn.Module):
     def forward(self, x):
         """
         인수:
-            x: 들임 텐서 [묶음 크기, 들임 차원]
+            x: 들임 텐서 [배치 크기, 들임 차원]
         반환값:
-            mu: 평균 [묶음 크기, 숨은 차원]
-            logvar: 로그 흩어짐 [묶음 크기, 숨은 차원]
+            mu: 평균 [배치 크기, 숨은 차원]
+            logvar: 로그 흩어짐 [배치 크기, 숨은 차원]
         """
         h = self.shared(x)
         mu = self.fc_mu(h)
@@ -126,7 +126,7 @@ class ConvEncoder(nn.Module):
     def forward(self, x):
         """
         인수:
-            x: 들임 그림 [묶음 크기, 채널, 높이, 너비]
+            x: 들임 그림 [배치 크기, 채널, 높이, 너비]
         """
         h = self.conv_layers(x)
         h = h.view(h.size(0), -1)  # 펼친다
@@ -197,9 +197,9 @@ $$\text{고르게 나누기의 벌어짐} = \mathcal{L}^*(\theta; x) - \mathcal{
 nn.init.constant_(encoder.fc_logvar.bias, -1.0)
 ```
 
-### 묶음 고르게 맞추기
+### 배치 고르게 맞추기
 
-부호기의 묶음 고르게 맞추기는 익히기 안정에 도움이 되지만 $\mu$과 $\log\sigma^2$ 머리 뒤에는 쓰면 **안 된다**. 분포 매개변수화를 흔들기 때문이다.
+부호기의 배치 고르게 맞추기는 익히기 안정에 도움이 되지만 $\mu$과 $\log\sigma^2$ 머리 뒤에는 쓰면 **안 된다**. 분포 매개변수화를 흔들기 때문이다.
 
 ---
 

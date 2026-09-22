@@ -139,7 +139,7 @@ Challenge: vanishing/exploding gradients
             print(f"Epoch {epoch+1}: loss = {total_loss/num_batches:.4f}")
     ```
     
-    핵심 줄은 `hidden = hidden.detach()`이다. 이는 값은 같지만 기울기 발자취가 없는 새 텐서를 만들어 때 거슬러 퍼뜨리기를 묶음 하나 길이로 제한한다.
+    핵심 줄은 `hidden = hidden.detach()`이다. 이는 값은 같지만 기울기 발자취가 없는 새 텐서를 만들어 때 거슬러 퍼뜨리기를 배치 하나 길이로 제한한다.
 
 ## 정리하며
 

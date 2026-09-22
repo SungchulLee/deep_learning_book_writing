@@ -97,7 +97,7 @@ class SpatialStream(nn.Module):
         자리 갈래를 지나는 앞먹임.
         
         인수:
-            x: RGB 틀 (B, 3, H, W) — 틀 하나 또는 (B, T, 3, H, W) 묶음
+            x: RGB 틀 (B, 3, H, W) — 틀 하나 또는 (B, T, 3, H, W) 배치
             
         반환값:
             갈래 점수 (B, num_classes)
@@ -387,7 +387,7 @@ def extract_flow_stack(video: torch.Tensor,
         flow_stack: 쌓아 올린 흐름 (B, 2*L, H, W)
     """
     if video.dim() == 4:
-        video = video.unsqueeze(0)  # 묶음 차원 더하기
+        video = video.unsqueeze(0)  # 배치 차원 더하기
     
     B, T, C, H, W = video.shape
     
@@ -563,7 +563,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`SpatialStream`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 묶음에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+`SpatialStream`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 배치에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
 
 </div>
 

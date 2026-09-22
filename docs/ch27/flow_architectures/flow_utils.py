@@ -162,7 +162,7 @@ class BaseDistribution:
         log_prob = -0.5 * (z ** 2 + np.log(2 * np.pi))
         
         # 표본마다 전체 로그 확률을 얻으려 차원에 걸쳐 더한다
-        # 꼴: (묶음 크기, 차원) → (묶음 크기,)
+        # 꼴: (배치 크기, 차원) → (배치 크기,)
         return log_prob.sum(dim=-1)
 
 
@@ -331,7 +331,7 @@ class FlowSequence(nn.Module):
     설계 원칙
     ============================================================================
     1. 번갈아 쓰는 결: 흔히 여러 갈래의 흐름을 번갈아 쓴다
-       보기: [짝지음, 묶음 고르게 맞추기, 짝지음, 묶음 고르게 맞추기, ...]
+       보기: [짝지음, 배치 고르게 맞추기, 짝지음, 배치 고르게 맞추기, ...]
     
     2. 점점 복잡하게: 앞선 흐름은 단순하게, 뒤 흐름은 복잡하게 할 수 있다
     
@@ -403,7 +403,7 @@ class FlowSequence(nn.Module):
             >>> # 이제 x에 만든 표본 100개가 들어 있다
         """
         # 로그 행렬식 쌓개를 첫자리매김한다
-        # 묶음의 표본마다 0으로 시작한다
+        # 배치의 표본마다 0으로 시작한다
         log_det_sum = torch.zeros(z.shape[0], device=z.device)
         
         # z에서 시작해 차츰 바꾼다
@@ -805,7 +805,7 @@ class PlanarFlow(Flow):
         """
         # 걸음 1: 선형 쏘기 w^T z + b을 셈한다
         # 표본마다: 무게 벡터와의 점곱에 치우침을 더한다
-        # 꼴: (묶음 크기, 차원) × (차원,) → (묶음 크기, 1)
+        # 꼴: (배치 크기, 차원) × (차원,) → (배치 크기, 1)
         linear = torch.sum(self.weight * z, dim=-1, keepdim=True) + self.bias
         
         # 걸음 2: 바꿈을 쓴다
@@ -922,7 +922,7 @@ def visualize_2d_transformation(flow_model: nn.Module, n_points: int = 1000,
         >>> visualize_2d_transformation(model, n_points=2000)
         >>> # 결과를 보려면 transformation.png을 열어라!
     """
-    # 모델을 값매김 방식으로 둔다(떨구기와 묶음 고르게 맞추기 새로 고침을 끈다)
+    # 모델을 값매김 방식으로 둔다(떨구기와 배치 고르게 맞추기 새로 고침을 끈다)
     flow_model.eval()
     
     # 효율을 위해 기울기 계산 끄기
@@ -1096,13 +1096,13 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
     ============================================================================
     바퀴마다:
         자료 묶음마다:
-            1. 묶음의 log p(x)을 셈한다
+            1. 배치의 log p(x)을 셈한다
                - 역으로 x → z을 옮긴다
                - log p(z) + log|det|을 따진다
             
             2. 손실 = -mean(log p(x))을 셈한다
                - 가장 작게 하므로 음수이다
-               - 기울기가 안정되도록 묶음에 걸쳐 평균 낸다
+               - 기울기가 안정되도록 배치에 걸쳐 평균 낸다
             
             3. 뒤먹임 퍼뜨리고 매개변수를 새로 고친다
                - 기울기를 셈한다: ∂Loss/∂θ
@@ -1118,7 +1118,7 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
     
     살펴야 할 문제:
         - 손실이 는다 → 배움 빠르기가 너무 크다
-        - 손실이 흔들린다 → 배움 빠르기나 묶음 크기를 줄여라
+        - 손실이 흔들린다 → 배움 빠르기나 배치 크기를 줄여라
         - 손실이 멈춘다 → 모델이 너무 단순하거나 자료가 너무 복잡하다
         - 손실 → NaN → 수치가 불안정하다(기울기 터짐)
     
@@ -1130,7 +1130,7 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
         - 익히기가 불안정하면 낮춘다
         - 배움 빠르기 차례표를 쓸 수 있다
     
-    묶음 크기:
+    배치 크기:
         - 클수록 안정되지만 느리다
         - 작을수록 빠르지만 잡음이 많다
         - 흔히: 작은 자료 묶음에 64~256
@@ -1171,7 +1171,7 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
         >>> plot_training_loss(losses)
     """
     # 모델을 학습 모드로
-    # 그러면 떨구기와 묶음 고르게 맞추기 새로 고침 같은 것이 켜진다
+    # 그러면 떨구기와 배치 고르게 맞추기 새로 고침 같은 것이 켜진다
     flow_model.train()
     
     # 그리려 손실 값을 담는 목록
@@ -1180,7 +1180,7 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
     # 학습 루프
     for epoch in range(n_epochs):
         epoch_loss = 0.0  # 이 바퀴의 쌓개
-        n_batches = 0     # 묶음을 센다
+        n_batches = 0     # 배치를 센다
         
         # 배치들을 순회한다
         for batch in dataloader:
@@ -1188,16 +1188,16 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
             if isinstance(batch, (tuple, list)):
                 batch = batch[0]  # 자료를 뽑는다(이름표가 있으면 무시한다)
             
-            # 묶음을 기기(CPU나 GPU)로 옮긴다
+            # 배치를 기기(CPU나 GPU)로 옮긴다
             batch = batch.to(device)
             
             # 자료의 차원이 2보다 많으면 펼친다
-            # 예컨대 MNIST는 (묶음 크기, 28, 28) → (묶음 크기, 784)
+            # 예컨대 MNIST는 (배치 크기, 28, 28) → (배치 크기, 784)
             if batch.dim() > 2:
                 batch = batch.view(batch.shape[0], -1)
             
             # ==================== 앞먹임 ====================
-            # 지금 모델에서 묶음의 로그 확률을 셈한다
+            # 지금 모델에서 배치의 로그 확률을 셈한다
             # 여기에는 다음이 든다:
             #   1. 역 바꿈: x → z
             #   2. 바탕 로그 확률 따지기: log p(z)
@@ -1258,7 +1258,7 @@ def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
     문제:
         - 평평한 선 → 모델이 배우지 않는다(배움 빠르기와 모델 담이를 살펴라)
         - 늘어남 → 벌어진다(배움 빠르기를 줄여라)
-        - 흔들림 → 불안정하다(배움 빠르기나 묶음 크기를 줄여라)
+        - 흔들림 → 불안정하다(배움 빠르기나 배치 크기를 줄여라)
         - 뚝 떨어진 뒤 평평 → 바퀴를 더 돌거나 더 나은 첫자리매김이 필요하다
     
     ============================================================================
@@ -1317,7 +1317,7 @@ def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
 다음 걸음:
 1. 더 힘 있는 바꿈을 보려면 coupling_flows.py을 익혀라
    - 짝지음 층(RealNVP)
-   - 묶음 고르게 맞추기 흐름
+   - 배치 고르게 맞추기 흐름
    - 그림을 위한 바둑판 결
 
 2. 모두 도는 것을 보려면 example_2d_flows.py을 돌려라

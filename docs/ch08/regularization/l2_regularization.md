@@ -377,7 +377,7 @@ def train_with_l2_regularization(
 def create_param_groups_with_l2(model, base_lr=0.001, 
                                  layer_decay_rates=None):
     """
-    층마다 다른 L2 정칙화를 갖는 매개변수 묶음을 만든다.
+    층마다 다른 L2 정칙화를 갖는 매개변수 배치를 만든다.
     
     인수:
         model: 신경망
@@ -385,7 +385,7 @@ def create_param_groups_with_l2(model, base_lr=0.001,
         layer_decay_rates: 층 이름을 가중치 감쇠 값에 대응시키는 사전
         
     반환값:
-        최적화기를 위한 매개변수 묶음의 목록
+        최적화기를 위한 매개변수 배치의 목록
     """
     if layer_decay_rates is None:
         layer_decay_rates = {}
@@ -417,9 +417,9 @@ def create_param_groups_with_l2(model, base_lr=0.001,
         if 'bias' in name:
             weight_decay = 0.0
         
-        # 파라미터 하나에 묶음 하나를 만든다. 최적화기는 묶음마다 다른
+        # 파라미터 하나에 배치 하나를 만든다. 최적화기는 배치마다 다른
         # 설정을 지닐 수 있으므로, 이렇게 잘게 나누면 층은 물론 가중치와
-        # 편향까지 따로 다룰 수 있다. 묶음 수가 늘어도 셈이 느려지지는
+        # 편향까지 따로 다룰 수 있다. 배치 수가 늘어도 셈이 느려지지는
         # 않는다. 어차피 파라미터마다 갱신하기 때문이다.
         # 이 목록을 optim.AdamW(param_groups)처럼 넘겨 쓴다
         param_groups.append({

@@ -386,7 +386,7 @@ class MultiHeadAttention(nn.Module):
 
 ## 10. 변형
 
-### 묶음 질의 어텐션 (GQA)
+### 배치 질의 어텐션 (GQA)
 
 LLaMA-2를 비롯한 효율적인 모델이 쓴다. 질의 머리 여러 개가 열쇠-값 머리를 나누어 쓴다.
 

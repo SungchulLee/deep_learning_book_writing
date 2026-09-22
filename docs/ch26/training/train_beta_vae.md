@@ -84,7 +84,7 @@ def train_epoch(model, train_loader, optimizer, device):
 
 
 def test_epoch(model, test_loader, device):
-    """시험 묶음으로 값매김한다"""
+    """시험 배치로 값매김한다"""
     model.eval()
     test_loss = 0
     test_recon = 0
@@ -362,7 +362,7 @@ $\beta$를 쓸어 볼 때 무엇을 기록해 두어야 하는가?
 
     - 씨앗 42, 모델을 만들기 **직전에** 고정
     - DataLoader의 생성기도 같은 씨앗
-    - 숨은 차원 16, 묶음 256, 학습률 1e-3, 20 에포크
+    - 숨은 차원 16, 배치 256, 학습률 1e-3, 20 에포크
     - 같은 판정 분류기, 표본 뽑기의 씨앗도 고정
 
     씨앗을 모델 만들기 직전에 두는 것이 특히 중요하다. 순서가 어긋나면 같은 설정에서도

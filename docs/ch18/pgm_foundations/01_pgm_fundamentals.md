@@ -45,7 +45,7 @@ from itertools import product
 
 class ProbabilityDistribution:
     """
-    확률 변수 묶음에 걸친 이산 확률 분포를 나타낸다.
+    확률 변수 배치에 걸친 이산 확률 분포를 나타낸다.
     
     이 클래스는 주변화, 조건 걸기, 독립 검정을 비롯해 확률 분포를 다루는
     기본 연산을 준다.
@@ -381,7 +381,7 @@ class DirectedGraph:
             node: 마디의 이름
         
         반환값:
-            조상 마디 이름의 묶음
+            조상 마디 이름의 배치
         """
         return nx.ancestors(self.graph, node)
     
@@ -396,7 +396,7 @@ class DirectedGraph:
             node: 마디의 이름
         
         반환값:
-            자손 마디 이름의 묶음
+            자손 마디 이름의 배치
         """
         return nx.descendants(self.graph, node)
     
@@ -437,9 +437,9 @@ class DirectedGraph:
                      그러나 Z을 관측하지 않으면 d-갈린다
         
         인수:
-            X: 첫 무리의 마디 묶음
-            Y: 둘째 무리의 마디 묶음
-            Z: 조건 마디의 묶음
+            X: 첫 무리의 마디 배치
+            Y: 둘째 무리의 마디 배치
+            Z: 조건 마디의 배치
         
         반환값:
             Z이 주어졌을 때 X과 Y이 d-갈리면 True

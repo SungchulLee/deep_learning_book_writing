@@ -96,7 +96,7 @@ def evaluate(model: nn.Module,
         device: 평가할 장치
         
     반환값:
-        시험 묶음의 평균 손실
+        시험 배치의 평균 손실
     """
     model.eval()
     total_loss = 0
@@ -186,7 +186,7 @@ def main():
     
     # 초매개변수
     SEQUENCE_LENGTH = 50  # 들임 차례의 길이
-    BATCH_SIZE = 64       # 묶음 크기
+    BATCH_SIZE = 64       # 배치 크기
     EMBEDDING_DIM = 128   # 박아 넣기 차원
     HIDDEN_DIM = 256      # 숨은 차원(되돌이 신경망용)
     N_LAYERS = 2          # 층의 수

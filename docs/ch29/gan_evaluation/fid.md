@@ -255,7 +255,7 @@ class FIDCalculator:
         
         인수:
             images: [0, 1] 범위의 그림 [N, C, H, W]
-            batch_size: 다룰 묶음 크기
+            batch_size: 다룰 배치 크기
             
         반환값:
             Features [N, 2048]
@@ -377,7 +377,7 @@ class FIDCalculator:
         인수:
             real_images: 참 그림 [N_r, C, H, W]
             generated_images: 만들어 낸 그림 [N_g, C, H, W]
-            batch_size: 특징 뽑기의 묶음 크기
+            batch_size: 특징 뽑기의 배치 크기
             
         반환값:
             FID 점수(낮을수록 좋다)
@@ -413,7 +413,7 @@ class FIDCalculator:
             mu_real: 미리 셈한 참 특징의 평균 [D]
             sigma_real: 미리 셈한 참 특징의 공분산 [D, D]
             generated_images: 만들어 낸 그림 [N, C, H, W]
-            batch_size: 특징 뽑기의 묶음 크기
+            batch_size: 특징 뽑기의 배치 크기
             
         반환값:
             FID 점수
@@ -435,7 +435,7 @@ def save_reference_statistics(real_images: torch.Tensor,
     인수:
         real_images: 참 그림 [N, C, H, W]
         save_path: 통계를 갈무리할 길(.npz 파일)
-        batch_size: 특징 뽑기의 묶음 크기
+        batch_size: 특징 뽑기의 배치 크기
     """
     calculator = FIDCalculator()
     features = calculator.extract_features(real_images, batch_size)
@@ -911,7 +911,7 @@ FID는 표본 수에 따라 얼마나 달라지는가? 참 자료끼리 재어 �
 </div>
 
 ??? success "연습문제 6 풀이"
-    같은 분포에서 뽑은 두 묶음이므로 참값이 0이어야 한다. 그런데 이렇다. MNIST 시험
+    같은 분포에서 뽑은 두 배치가므로 참값이 0이어야 한다. 그런데 이렇다. MNIST 시험
     자료를 무작위로 절반씩 갈라 쟀다.
 
     | 표본 수 | 100 | 250 | 500 | 1,000 | 2,500 | 5,000 |

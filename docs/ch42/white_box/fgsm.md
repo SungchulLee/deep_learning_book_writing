@@ -470,7 +470,7 @@ model.load_state_dict(torch.load('cifar10_resnet18.pth'))
 # FGSM 치기를 만든다
 attack = FGSM(model, epsilon=8/255)
 
-# 묶음 하나를 얻는다
+# 배치 하나를 얻는다
 images, labels = next(iter(testloader))
 
 # 맞서는 보기를 만든다

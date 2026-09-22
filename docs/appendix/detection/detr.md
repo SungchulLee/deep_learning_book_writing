@@ -1,6 +1,6 @@
 # DETR
 
-DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔다. CNN 등뼈 + 변환기 부호기/풀개 + 붙박인 물체 물음 묶음. 상자와 갈래를 곧바로 한 벌로 미루어 본다(본디 꼴에는 닻도 NMS도 없다).
+DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔다. CNN 등뼈 + 변환기 부호기/풀개 + 붙박인 물체 물음 배치. 상자와 갈래를 곧바로 한 벌로 미루어 본다(본디 꼴에는 닻도 NMS도 없다).
 
 여기 짜보기는 DETR을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -12,7 +12,7 @@ DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔
 DETR - 변환기로 끝에서 끝까지 물체 알아내기
 글: "변환기로 끝에서 끝까지 물체 알아내기" (2020)
 지은이: 니콜라 카리옹 외
-고갱이: CNN 등뼈 + 변환기 부호기/풀개 + 붙박인 물체 물음 묶음.
+고갱이: CNN 등뼈 + 변환기 부호기/풀개 + 붙박인 물체 물음 배치.
      상자와 갈래를 곧바로 한 벌로 미루어 본다(본디 꼴에는 닻도 NMS도 없다).
 
 두루마리: appendix/detection/detr.py
@@ -160,7 +160,7 @@ class DETR(nn.Module):
         # 변환기: 부호기가 src을 다루고, 풀개가 src에 눈길을 주며 물음을 다룬다
         hs = self.transformer(src=src, tgt=query)  # (T, B, C)
 
-        # 묶음을 앞에 두도록 바꾼다: (B, T, C)
+        # 배치를 앞에 두도록 바꾼다: (B, T, C)
         hs = hs.permute(1, 0, 2)
 
         pred_logits = self.class_head(hs)           # (B, T, num_classes+1)
@@ -200,7 +200,7 @@ pred_boxes : torch.Size([2, 100, 4])
 </div>
 
 ??? success "연습문제 1 풀이"
-    들임의 꼴에서 비롯해 켜를 차례로 건다. `Conv2d(in_c, out_c, k)`마다 자리 차수는 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(덧대기 없이) `padding=k//2`이면 그대로다. 알갱이 2로 모으면 자리 차수가 반이 된다. 선형 켜는 마지막 차수를 바꾼다. 묶음 차수는 내내 그대로임을 좇아라. 엮음 켜에서는 $(B, C, H, W)$, 편 뒤에는 $(B, F)$으로 가운데 꼴을 적어라.
+    들임의 꼴에서 비롯해 켜를 차례로 건다. `Conv2d(in_c, out_c, k)`마다 자리 차수는 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(덧대기 없이) `padding=k//2`이면 그대로다. 알갱이 2로 모으면 자리 차수가 반이 된다. 선형 켜는 마지막 차수를 바꾼다. 배치 차수는 내내 그대로임을 좇아라. 엮음 켜에서는 $(B, C, H, W)$, 편 뒤에는 $(B, F)$으로 가운데 꼴을 적어라.
 
 ---
 

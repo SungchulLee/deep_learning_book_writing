@@ -18,7 +18,7 @@
 | 손실 | `CrossEntropyLoss` |
 | 최적화기 | Adam, 학습률 $10^{-3}$ |
 | 에포크 | 5 |
-| 묶음 크기 | 100 |
+| 배치 크기 | 100 |
 | 씨앗 | 42 |
 | 기계 | Apple Silicon GPU (MPS) |
 

@@ -141,7 +141,7 @@ x_adv = adversary.run_standard_evaluation(x, y, bs=100)
 # 더 빠른 따짐(치기 4개 대신 2개)
 adversary_fast = AutoAttack(model, norm='Linf', eps=8/255, version='plus')
 
-# 골라 쓰는 치기 묶음
+# 골라 쓰는 치기 배치
 adversary_custom = AutoAttack(model, norm='Linf', eps=8/255)
 adversary_custom.attacks_to_run = ['apgd-ce', 'apgd-t']  # APGD 치기만
 ```

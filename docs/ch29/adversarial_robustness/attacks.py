@@ -90,8 +90,8 @@ def perturbation_metrics(x_clean, x_adv):
     흔들림 통계를 셈한다.
     
     인수:
-        x_clean: 깨끗한 그림(묶음)
-        x_adv: 맞겨루기 그림(묶음)
+        x_clean: 깨끗한 그림(배치)
+        x_adv: 맞겨루기 그림(배치)
     
     반환값:
         흔들림 잣대 사전
@@ -243,7 +243,7 @@ import torch.nn as nn
 
 def fgsm_attack(model, images, labels, epsilon, criterion=None):
     """
-    그림 묶음에 FGSM 공격을 한다.
+    그림 배치에 FGSM 공격을 한다.
     
     인수:
         model: 겨눌 가름개
@@ -340,7 +340,7 @@ class FGSMAttack:
         
         인수:
             dataloader: 시험 자료 불러개
-            max_batches: 따질 최대 묶음 수
+            max_batches: 따질 최대 배치 수
         
         반환값:
             공격 잣대를 담은 사전

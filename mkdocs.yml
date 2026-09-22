@@ -1243,10 +1243,10 @@ nav:
       - 37.4 이어진 움직임:
         - 고른 이점 함수: ch37/continuous/naf.md
         - QT-Opt: ch37/continuous/qt_opt.md
-      - 37.5 묶음 힘 북돋우는 배움:
-        - 묶음 힘 북돋우는 배움의 바탕: ch37/offline/fundamentals.md
+      - 37.5 배치 힘 북돋우는 배움:
+        - 배치 힘 북돋우는 배움의 바탕: ch37/offline/fundamentals.md
         - 조심스러운 Q 배움: ch37/offline/cql.md
-        - 묶음 매인 Q 배움: ch37/offline/bcq.md
+        - 배치 매인 Q 배움: ch37/offline/bcq.md
         - 감춰진 Q 배움: ch37/offline/iql.md
       - 37.6 값 매기기:
         - 익히기 굽은 금: ch37/evaluation/training_curves.md

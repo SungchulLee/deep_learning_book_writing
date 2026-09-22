@@ -106,7 +106,7 @@ if __name__ == "__main__":
     model = BiLSTM_CRF(vocab_size, tag_size)
     
     # 예제 입력
-    sentence = torch.randint(0, vocab_size, (1, 5))  # 묶음 크기 1, 길이 5
+    sentence = torch.randint(0, vocab_size, (1, 5))  # 배치 크기 1, 길이 5
     emissions = model(sentence)
     
     print(f"Emissions shape: {emissions.shape}")

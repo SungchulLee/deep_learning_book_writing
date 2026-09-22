@@ -146,7 +146,7 @@ def train_test_split_temporal(X: torch.Tensor,
                               y: torch.Tensor, 
                               train_ratio: float = 0.8) -> Tuple[torch.Tensor, ...]:
     """
-    시계열 자료를 익히기 묶음과 시험 묶음으로 가른다.
+    시계열 자료를 익히기 배치와 시험 배치로 가른다.
     
     중요: 시계열에서는 자료를 섞으면 안 된다!
     때 차례대로 가른다. 곧 앞선 자료로 익히고 뒤 자료로 시험한다.

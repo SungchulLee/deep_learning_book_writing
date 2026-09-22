@@ -88,7 +88,7 @@ $$
 ```python
 def score_matching_loss(score_network, x):
     """
-    x: 자료 표본 묶음, 꼴 (batch, dim)
+    x: 자료 표본 배치, 꼴 (batch, dim)
     score_network: 점수 s_θ(x)을 내놓는 신경망
     """
     # 점수 셈하기
@@ -398,9 +398,9 @@ $$
 \theta_{t+1} = \theta_t + \frac{\epsilon}{2}\nabla \log p(\theta | \mathcal{D}) + \sqrt{\epsilon}\,\eta_t
 $$
 
-작은 묶음 기울기를 쓴다(확률적으로).
+작은 배치 기울기를 쓴다(확률적으로).
 
-**이음**: 점수 기반 표집 + 작은 묶음 = SGLD.
+**이음**: 점수 기반 표집 + 작은 배치 = SGLD.
 
 ### 점수 기반 SDE
 

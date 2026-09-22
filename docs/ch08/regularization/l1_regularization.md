@@ -328,7 +328,7 @@ def train_with_l1(model, train_loader, val_loader,
                 val_loss += criterion(predictions, y_batch).item()
         
         # 지표를 추적한다
-        # len(loader)는 배치의 개수다. 즉 표본이 아니라 배치로 나눈
+        # len(loader)는 배치의 개수다. 즉 표본이 아니라 묶음으로 나눈
         # 평균이라, 마지막 배치가 짧으면 그 배치가 실제보다 큰 무게를
         # 얻는다. 표본 단위로 재려면 손실에 배치 크기를 곱해 두었다가
         # 표본 총수로 나누어야 한다
@@ -656,7 +656,7 @@ class SparseInputNetwork(nn.Module):
         # 고르는 일과 관계가 없다.
         # 다만 원소마다 벌점을 주는 이 형태는 열을 통째로 밀어내지는
         # 못한다. 한 특징을 확실히 끄려면 열의 노름에 벌점을 주는
-        # 묶음 라쏘가 필요하다
+        # 배치 라쏘가 필요하다
         return self.input_l1 * torch.sum(torch.abs(self.input_layer.weight))
 ```
 

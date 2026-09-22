@@ -92,7 +92,7 @@ def compute_vtrace_batch(
     rho_bar: float = 1.0,
     c_bar: float = 1.0,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    """묶음 V자취 셈."""
+    """배치 V자취 셈."""
     B, T = rewards_batch.shape
     
     log_ratios = target_log_probs_batch - behavior_log_probs_batch
@@ -184,7 +184,7 @@ def demo_vtrace():
         print(f"    Raw ratio: {stats['raw_ratio_mean']:.3f} ± {stats['raw_ratio_std']:.3f}")
         print(f"    Fraction clipped (ρ): {stats['fraction_clipped_rho']:.1%}")
 
-    # --- 묶음 셈 ---
+    # --- 배치 셈 ---
     print("\n--- Batch V-Trace ---")
     B, T = 8, 20
     values_b = torch.randn(B, T + 1)
@@ -282,7 +282,7 @@ V-trace demo complete!
 
 보여 주기 함수는 핵심 움직임을 도드라지게 하는 만든 자료에서 이 조각들의 실제 쓰임을 보인다. 내놓기를 살펴보면 윗매개변수를 어떻게 고르고 문제를 어떻게 차리느냐에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 얼개는 보통 묶음 셈, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 얼개는 보통 배치 셈, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ## 연습문제
 

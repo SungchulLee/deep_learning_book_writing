@@ -155,7 +155,7 @@ class QuantizedLinear(nn.Module):
         self.bits = bits
         self.group_size = group_size or in_features
         
-        # 묶음별 양자화의 묶음 수
+        # 배치별 양자화의 배치 수
         self.num_groups = in_features // self.group_size
         
         # 양자화한 무게(int8로 담음)
@@ -164,13 +164,13 @@ class QuantizedLinear(nn.Module):
             torch.zeros(out_features, in_features, dtype=torch.int8)
         )
         
-        # 묶음마다의 잣수
+        # 배치마다의 잣수
         self.register_buffer(
             'scale',
             torch.ones(out_features, self.num_groups)
         )
         
-        # 묶음마다의 영점
+        # 배치마다의 영점
         self.register_buffer(
             'zero_point',
             torch.zeros(out_features, self.num_groups)
@@ -199,7 +199,7 @@ class QuantizedLinear(nn.Module):
         weight = linear.weight.data
         group_size = quant_linear.group_size
         
-        # 묶음마다 양자화한다
+        # 배치마다 양자화한다
         for i in range(quant_linear.num_groups):
             start = i * group_size
             end = (i + 1) * group_size
@@ -282,7 +282,7 @@ class GPTQ:
     
     def add_batch(self, inp: torch.Tensor):
         """
-        들임 묶음에서 헤세를 쌓는다.
+        들임 배치에서 헤세를 쌓는다.
         
         H = X^T X(들임의 바깥 곱)
         """
@@ -325,15 +325,15 @@ class GPTQ:
                 w = W_block[:, i]
                 d = H_inv_block[i, i]
                 
-                # 이 세로줄의 묶음을 정한다
+                # 이 세로줄의 배치를 정한다
                 group_idx = (i1 + i) // self.group_size
                 
-                # 묶음의 잣수를 셈한다
+                # 배치의 잣수를 셈한다
                 group_start = (group_idx * self.group_size) - i1
                 group_end = min(group_start + self.group_size, i2 - i1)
                 
                 if i == max(0, group_start):
-                    # 묶음이 시작할 때 잣수를 셈한다
+                    # 배치가 시작할 때 잣수를 셈한다
                     group_weights = W_block[:, max(0, group_start):group_end]
                     scale, zp = compute_scale_zero(group_weights, self.bits)
                 
@@ -524,7 +524,7 @@ class QuantizedKVCache:
     def get_keys_values(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """양자화를 되돌린 열쇠와 값을 가져온다."""
         # 간단히 하려고 가장 최근 잣수를 쓴다
-        # 실전에서는 토막마다나 묶음마다의 잣수를 쓴다
+        # 실전에서는 토막마다나 배치마다의 잣수를 쓴다
         k_scale, k_zp = self.key_scales[-1]
         v_scale, v_zp = self.value_scales[-1]
         
@@ -669,13 +669,13 @@ A100에서의 미룸 빨라짐(LLaMA-7B):
 | 서버(품질) | FP16/BF16 | 16 | 가장 좋은 품질 |
 | 서버(균형) | GPTQ/AWQ | 4 | 좋은 맞바꿈 |
 | 일반 GPU | GPTQ | 4 | 70억을 8GB에 담는다 |
-| 가장자리 기기 | AWQ | 4 | 묶음 크기 128 |
+| 가장자리 기기 | AWQ | 4 | 배치 크기 128 |
 | 극단적 눌러 담기 | GPTQ | 3 | 품질 떨어짐이 눈에 띈다 |
 
 ### 좋은 관행
 
 1. **눈금 맞추기 자료**: 목표 분야를 대표하는 표본 128~512개를 쓴다
-2. **묶음 크기**: 128이 좋은 균형을 준다(텐서마다나 채널마다와 견주어)
+2. **배치 크기**: 128이 좋은 균형을 준다(텐서마다나 채널마다와 견주어)
 3. **민감한 층**: 묻힘과 내놓는 머리는 정밀도를 높게 둔다
 4. **검증**: 늘 헷갈림도와 뒤따르는 일을 값매김한다
 5. **재주 아우르기**: 양자화 + 열쇠-값 곳간 + 플래시 눈길

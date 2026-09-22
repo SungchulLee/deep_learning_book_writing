@@ -135,7 +135,7 @@ class RandomizedSmoothing:
         num_samples : int
             잡음 섞인 표본의 수
         batch_size : int
-            다룰 묶음 크기
+            다룰 배치 크기
             
         Returns
         -------
@@ -226,7 +226,7 @@ class RandomizedSmoothing:
         alpha : float
             믿음 켜(기본값: 99.9%)
         batch_size : int
-            몬테카를로의 묶음 크기
+            몬테카를로의 배치 크기
             
         Returns
         -------
@@ -271,7 +271,7 @@ class RandomizedSmoothing:
         radii_to_check: list = [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5]
     ) -> Dict[str, float]:
         """
-        그림 묶음을 밝힌다.
+        그림 배치를 밝힌다.
         
         Returns
         -------
@@ -371,7 +371,7 @@ transform = transforms.ToTensor()
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, transform=transform)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
 
-# 묶음 하나를 얻는다
+# 배치 하나를 얻는다
 images, labels = next(iter(test_loader))
 
 # 밝힌다

@@ -553,9 +553,9 @@ def distillation_loss(
     또렷하게 보이려고 홀로 서는 함수로 두었다.
 
     인수:
-        student_logits: 제자가 낸 날 값 [묶음, 갈래]
-        teacher_logits: 스승이 낸 날 값 [묶음, 갈래]
-        labels:         참 갈래 번호 [묶음]
+        student_logits: 제자가 낸 날 값 [배치, 갈래]
+        teacher_logits: 스승이 낸 날 값 [배치, 갈래]
+        labels:         참 갈래 번호 [배치]
         temperature:    부드러운 최댓값 온도(높을수록 부드럽다)
         alpha:          딱딱한 손실의 무게
 

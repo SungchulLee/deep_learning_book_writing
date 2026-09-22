@@ -192,13 +192,13 @@ $$
 
 ---
 
-## 7. 묶음 MALA 구현
+## 7. 배치 MALA 구현
 
 ```python
 import torch
 
 def mala_batch(log_prob_fn, score_fn, x0, n_steps, epsilon):
-    """나란한 사슬 여럿을 위한 묶음 MALA.
+    """나란한 사슬 여럿을 위한 배치 MALA.
 
     인수:
         log_prob_fn: x [batch, dim] → log π(x) [batch]으로 잇는다.

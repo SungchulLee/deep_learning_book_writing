@@ -63,14 +63,14 @@ class NGramLanguageModeler(nn.Module):
         self.linear2 = nn.Linear(ARGS.hidden_dim, vocab_size)
 
     def forward(self, inputs):
-        # (묶음, 문맥) -> (묶음, 문맥 * 묻힘) 으로 편다
+        # (배치, 문맥) -> (배치, 문맥 * 묻힘) 으로 편다
         embeds = self.embeddings(inputs).view((inputs.shape[0], -1))
         out = F.relu(self.linear1(embeds))
         return self.linear2(out)
 
 
 def make_batch(device="cpu"):
-    """모든 n-그램을 텐서 한 쌍으로 만든다. 자료가 작아 묶음을 나누지 않는다."""
+    """모든 n-그램을 텐서 한 쌍으로 만든다. 자료가 작아 배치를 나누지 않는다."""
     contexts = torch.tensor(
         [[word_to_ix[w] for w in ctx] for ctx, _ in ngrams], dtype=torch.long, device=device
     )

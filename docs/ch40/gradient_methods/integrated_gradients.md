@@ -80,7 +80,7 @@ $$
 \text{IG}_i(\mathbf{x}) \approx (x_i - x'_i) \times \frac{1}{m} \sum_{k=1}^{m} \frac{\partial f\left(\mathbf{x}' + \frac{k}{m}(\mathbf{x} - \mathbf{x}')\right)}{\partial x_i}
 $$
 
-그물을 앞으로-되짚기로 $m$번 지나야 한다(다만 묶음으로 묶어 잘 들게 할 수 있다).
+그물을 앞으로-되짚기로 $m$번 지나야 한다(다만 배치로 묶어 잘 들게 할 수 있다).
 
 ---
 
@@ -311,11 +311,11 @@ class IntegratedGradients:
             for i in range(1, n_steps + 1)
         ]
 
-        # 묶음으로 셈하려고 사이 들임을 모두 쌓는다
+        # 배치로 셈하려고 사이 들임을 모두 쌓는다
         scaled_inputs = torch.cat(scaled_inputs, dim=0)
         scaled_inputs.requires_grad_(True)
 
-        # 모든 걸음을 한꺼번에 앞으로 보낸다(묶음)
+        # 모든 걸음을 한꺼번에 앞으로 보낸다(배치)
         outputs = self.model(scaled_inputs)
 
         # 겨눈 갈래 점수를 뽑는다
@@ -383,9 +383,9 @@ class IntegratedGradients:
         return attributions / n_samples
 ```
 
-### 묶음으로 다듬은 짜보기
+### 배치로 다듬은 짜보기
 
-잘 들게 하려고 사이 걸음 여럿을 한 묶음으로 다룬다.
+잘 들게 하려고 사이 걸음 여럿을 한 배치로 다룬다.
 
 ```python
 def compute_integrated_gradients_batched(
@@ -398,9 +398,9 @@ def compute_integrated_gradients_batched(
     batch_size: int = 10
 ) -> torch.Tensor:
     """
-    묶음으로 다듬은 쌓은 기울기 셈.
+    배치로 다듬은 쌓은 기울기 셈.
 
-    묶음마다 사이 걸음 여럿을 다루어 잘 들게 한다.
+    배치마다 사이 걸음 여럿을 다루어 잘 들게 한다.
     모든 걸음을 한꺼번에 다루는 것보다 GPU 기억을 덜 쓴다.
     """
     model.eval()
@@ -413,18 +413,18 @@ def compute_integrated_gradients_batched(
     # 알파 값을 만든다: [1/m, 2/m, ..., 1]
     alphas = torch.linspace(1/steps, 1, steps, device=device)
 
-    # 묶음으로 다룬다
+    # 배치로 다룬다
     for i in range(0, steps, batch_size):
         batch_alphas = alphas[i:i+batch_size]
         current_batch_size = len(batch_alphas)
 
-        # 사이 들임의 묶음을 만든다
+        # 사이 들임의 배치를 만든다
         # 꼴: [batch_size, C, H, W]
         batch_alphas = batch_alphas.view(-1, 1, 1, 1)
         interpolated_batch = baseline + batch_alphas * delta
         interpolated_batch.requires_grad_(True)
 
-        # 묶음을 앞으로 보낸다
+        # 배치를 앞으로 보낸다
         outputs = model(interpolated_batch)  # [batch_size, num_classes]
 
         # 기울기를 셈하려고 겨눈 점수를 더한다
@@ -434,7 +434,7 @@ def compute_integrated_gradients_batched(
         model.zero_grad()
         target_scores.backward()
 
-        # 기울기를 쌓는다(묶음 축으로 더한다)
+        # 기울기를 쌓는다(배치 축으로 더한다)
         accumulated_gradients += interpolated_batch.grad.sum(dim=0, keepdim=True)
 
     # 고르게 하고 잣대를 잡는다
@@ -760,7 +760,7 @@ def ig_for_time_series(
 
     Args:
         model: 열 모형(LSTM, 변환기 등)
-        sequence: 들임 열 (묶음, 열 길이, 결)이나 (묶음, 열 길이)
+        sequence: 들임 열 (배치, 열 길이, 결)이나 (배치, 열 길이)
         baseline: 밑금 열(맡긴 값: 0)
         target_class: 가름 모형의 겨눈 갈래
 
@@ -855,7 +855,7 @@ smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 
 **눅이는 길:**
 
-- 묶음으로 셈한다
+- 배치로 셈한다
 - 둘러볼 때는 걸음을 적게 잡는다
 - 모여 가는 결을 보고 일찍 멈춘다
 
@@ -885,7 +885,7 @@ IG는 모형이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 
 4. 서로 채워 주는 눈으로 **Grad-CAM과 견준다**(IG는 그림점 낱, Grad-CAM은 자리 낱)
 
-5. 그림이 크거나 풀이를 많이 해야 하면 **묶음 셈을 헤아린다**
+5. 그림이 크거나 풀이를 많이 해야 하면 **배치 셈을 헤아린다**
 
 6. 밑금이 아리송하면 **밑금에 걸쳐 고르게 한다**(기댓값 기울기)
 

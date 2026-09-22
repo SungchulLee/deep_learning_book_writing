@@ -395,8 +395,8 @@ class MultiScaleDataset(Dataset):
     def __getitem__(self, idx):
         img, mask = self.samples[idx]
         
-        # 잣수는 보기마다가 아니라 묶음마다 골라야 한다. 보기마다 고르면
-        # 한 묶음에 크기가 다른 텐서가 섞여 stack이 되지 않는다.
+        # 잣수는 보기마다가 아니라 배치마다 골라야 한다. 보기마다 고르면
+        # 한 배치에 크기가 다른 텐서가 섞여 stack이 되지 않는다.
         # 여기서는 가장 큰 잣수로 내놓고, 줄이는 일은 collate가 맡는다.
         scale = max(self.scales)
         img = img.resize((scale, scale), Image.BILINEAR)
@@ -419,7 +419,7 @@ test_dataset = MultiScaleDataset(num_samples=100, scales=[256])
 
 BATCH_SIZE = 4  # 여러 잣수와 눈길 때문에 더 작다
 def multiscale_collate(batch):
-    """묶음마다 잣수 하나를 골라 그 묶음 전체를 같은 크기로 맞춘다."""
+    """배치마다 잣수 하나를 골라 그 배치 전체를 같은 크기로 맞춘다."""
     scale = int(np.random.choice(train_dataset.scales))
     imgs, masks = zip(*batch)
     imgs = F.interpolate(torch.stack(imgs), size=(scale, scale),
@@ -711,7 +711,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`ChannelAttention`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 묶음에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+`ChannelAttention`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 배치에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
 
 </div>
 

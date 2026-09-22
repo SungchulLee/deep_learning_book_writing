@@ -105,7 +105,7 @@ class AttentionBlock(nn.Module):
         
         # 다중 머리 주의에 맞게 꼴을 바꾼다
         qkv = qkv.reshape(batch, 3, self.num_heads, channels // self.num_heads, height * width)
-        qkv = qkv.permute(1, 0, 2, 4, 3)  # (3, 묶음, 머리, hw, 차원)
+        qkv = qkv.permute(1, 0, 2, 4, 3)  # (3, 배치, 머리, hw, 차원)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
         # 어텐션

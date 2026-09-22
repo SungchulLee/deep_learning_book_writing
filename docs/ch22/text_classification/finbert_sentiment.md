@@ -87,7 +87,7 @@ print("""
   result = finbert("AAPL missed revenue estimates by 2%.")
   # → [{'label': 'negative', 'score': 0.87}]
 
-  # 묶음 어림
+  # 배치 어림
   texts = [
       "Revenue grew 15% year-over-year, exceeding guidance.",
       "The company announced layoffs affecting 10% of staff.",

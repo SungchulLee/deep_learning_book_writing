@@ -46,7 +46,7 @@ class MNISTDiffusion:
         """
         인수:
             timesteps: 퍼짐 때 걸음 수
-            batch_size: 익히기 묶음 크기
+            batch_size: 익히기 배치 크기
             learning_rate: 최적화기의 학습률
             device: 익힐 장치('cuda' 또는 'cpu')
         """
@@ -107,7 +107,7 @@ class MNISTDiffusion:
         MNIST 자료 불러오개를 만든다.
         
         인수:
-            train: 익히기 묶음을 불러올지 시험 묶음을 불러올지
+            train: 익히기 배치를 불러올지 시험 배치를 불러올지
         
         반환값:
             MNIST용 DataLoader

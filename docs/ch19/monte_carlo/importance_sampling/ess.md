@@ -640,7 +640,7 @@ def risk_estimation_with_ess_monitoring(
     all_log_weights = []
     
     for batch in range(max_batches):
-        # 표본 묶음 뽑기
+        # 표본 배치 뽑기
         samples = proposal_dist.sample((batch_size,))
         log_w = (target_dist.log_prob(samples)
                  - proposal_dist.log_prob(samples))

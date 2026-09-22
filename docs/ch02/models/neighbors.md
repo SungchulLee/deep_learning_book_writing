@@ -79,7 +79,7 @@ X_tr = torch.tensor(X_train_s, dtype=torch.float32)
 X_te = torch.tensor(X_test_s, dtype=torch.float32)
 y_tr = torch.tensor(y_train)
 
-# cdist는 두 묶음 사이의 모든 쌍별 거리를 한 번에 셈한다.
+# cdist는 두 배치 사이의 모든 쌍별 거리를 한 번에 셈한다.
 # 결과 모양은 (질의 5개) x (훈련 표본 400개)
 dists = torch.cdist(X_te[:5], X_tr)
 

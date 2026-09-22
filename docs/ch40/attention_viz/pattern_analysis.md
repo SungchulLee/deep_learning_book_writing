@@ -54,7 +54,7 @@ def visualize_all_heads(
     한 켜의 모든 머리의 눈길 결을 그린다.
 
     Args:
-        attention_weights: [묶음, 머리 수, 열 길이, 열 길이]
+        attention_weights: [배치, 머리 수, 열 길이, 열 길이]
         tokens: 낱말 목록
         layer: 그릴 켜 번호
         figsize: 그림 크기
@@ -105,7 +105,7 @@ def compute_head_diversity(
     눈길 머리 사이의 다름을 살핀다.
 
     Args:
-        attention_weights: [묶음, 머리 수, 열 길이, 열 길이]
+        attention_weights: [배치, 머리 수, 열 길이, 열 길이]
 
     Returns:
         다름 자를 담은 사전
@@ -210,7 +210,7 @@ def compare_layers(
     변환기 켜를 가로질러 눈길 결을 견준다.
 
     Args:
-        attention_weights_by_layer: 켜마다의 [묶음, 머리, 열, 열] 목록
+        attention_weights_by_layer: 켜마다의 [배치, 머리, 열, 열] 목록
         tokens: 낱말 목록
         layers_to_compare: 보일 켜
     """
@@ -295,7 +295,7 @@ def visualize_cross_attention(
     부호기-푸는 개의 엇갈린 눈길을 그린다.
 
     Args:
-        cross_attention: [묶음, 머리, 받는 열 길이, 보내는 열 길이]
+        cross_attention: [배치, 머리, 받는 열 길이, 보내는 열 길이]
         source_tokens: 부호기 들임 낱말
         target_tokens: 푸는 개 내놓기 낱말
         head: 정한 머리(None이면 모든 머리를 고르게 한다)

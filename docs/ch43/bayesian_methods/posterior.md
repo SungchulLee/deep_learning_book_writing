@@ -177,13 +177,13 @@ $$
 
 ### 왜 하는가
 
-온 묶음 기울기는 비싸다. 확률 기울기 MCMC는 잔 묶음 기울기를 쓴다.
+온 배치 기울기는 비싸다. 확률 기울기 MCMC는 잔 배치 기울기를 쓴다.
 
 $$
 \nabla_\theta \log p(\theta \mid \mathcal{D}) \approx \nabla_\theta \log p(\theta) + \frac{N}{|B|} \sum_{i \in B} \nabla_\theta \log p(y_i \mid x_i, \theta)
 $$
 
-여기서 $B$은 크기가 $|B|$인 잔 묶음이다.
+여기서 $B$은 크기가 $|B|$인 잔 배치다.
 
 ### 확률 기울기 랑주뱅 움직임(SGLD)
 
@@ -422,7 +422,7 @@ $$
 3. 잃음을 셈한다: $\mathcal{L} = \log q_\phi(\theta) - \log p(\theta) - \log p(\mathcal{D} \mid \theta)$
 4. 되돌아가며 $\phi = \{\mu, \rho\}$을 고친다
 
-**잔 묶음 ELBO**:
+**잔 배치 ELBO**:
 
 $$
 \mathcal{L} \approx \frac{N}{|B|} \sum_{i \in B} \log p(y_i \mid x_i, \theta) - \text{KL}(q_\phi \| p)
@@ -609,7 +609,7 @@ $$
 """
 베이즈 신경 그물의 뒷분포 미루어 봄
 
-이 묶음은 여러 뒷분포 미루어 봄 방법을 짜 놓았다:
+이 배치는 여러 뒷분포 미루어 봄 방법을 짜 놓았다:
 - 확률 기울기 랑주뱅 움직임(SGLD)
 - 라플라스 어림
 - 평균 마당 변이 미루어 봄
@@ -776,7 +776,7 @@ class SGLD(BayesianInference):
         thinning : int
             thinning번째 표본마다 남긴다
         batch_size : int
-            잔 묶음 크기
+            잔 배치 크기
         """
         self.network = network
         self.prior_std = prior_std
@@ -806,7 +806,7 @@ class SGLD(BayesianInference):
         N: int
     ) -> np.ndarray:
         """
-        로그 그럴듯함의 기울기(잔 묶음에 맞게 잣대를 맞춤).
+        로그 그럴듯함의 기울기(잔 배치에 맞게 잣대를 맞춤).
         단순하게 수로 미분해 셈한다.
         """
         weights = self.network.unflatten_weights(theta)
@@ -833,7 +833,7 @@ class SGLD(BayesianInference):
             
             grad[i] = (ll_plus - ll_minus) / (2 * eps)
         
-        # 잔 묶음에 맞게 잣대를 맞춘다
+        # 잔 배치에 맞게 잣대를 맞춘다
         return grad * (N / len(X))
     
     def fit(self, X: np.ndarray, y: np.ndarray):
@@ -848,7 +848,7 @@ class SGLD(BayesianInference):
         self.losses = []
         
         for t in range(self.n_iterations):
-            # 잔 묶음을 얻는다
+            # 잔 배치를 얻는다
             idx = np.random.choice(N, min(self.batch_size, N), replace=False)
             X_batch = X[idx]
             y_batch = y[idx]
@@ -1540,7 +1540,7 @@ def demo_sgld():
         n_iterations=3000,
         burn_in=1500,
         thinning=5,
-        batch_size=N  # 든든하도록 온 묶음
+        batch_size=N  # 든든하도록 온 배치
     )
     
     sgld.fit(X_train, y_train)

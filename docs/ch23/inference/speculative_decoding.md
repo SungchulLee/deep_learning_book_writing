@@ -166,8 +166,8 @@ class SpeculativeDecoder:
             
             current_ids = token
         
-        draft_tokens = torch.cat(draft_tokens, dim=1)  # [묶음, K]
-        draft_probs = torch.cat(draft_probs, dim=1)    # [묶음, K]
+        draft_tokens = torch.cat(draft_tokens, dim=1)  # [배치, K]
+        draft_probs = torch.cat(draft_probs, dim=1)    # [배치, K]
         
         # 2걸음: 목표 모델로 K개 토막을 모두 나란히 확인한다
         verify_ids = torch.cat([input_ids, draft_tokens], dim=1)

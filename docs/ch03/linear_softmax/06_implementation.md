@@ -55,8 +55,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # 이 코드가 옮기는 것은 셋이다.
 #
 #     매개변수 A, b    model.to(device)      모델을 만들 때 한 번
-#     그림     image   images.to(device)     묶음마다
-#     이름표   label   labels.to(device)     묶음마다
+#     그림     image   images.to(device)     배치마다
+#     이름표   label   labels.to(device)     배치마다
 #
 # 하나라도 빠지면 곱셈에서 막힌다.
 #     RuntimeError: Expected all tensors to be on the same device
@@ -64,7 +64,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # images.to(device)라고만 적고 되받지 않으면 아무 일도 일어나지 않는다.
 
 # 아래 주석에서 오른쪽 끝의 괄호가 그 줄을 지난 뒤의 텐서 모양이다.
-# B는 묶음 크기이며 학습에서는 128, 시험에서는 1000이다.
+# B는 배치 크기이며 학습에서는 128, 시험에서는 1000이다.
 
 # =============================================================================
 # 데이터
@@ -106,7 +106,7 @@ test_dataset = datasets.MNIST('./data', train=False, download=True, transform=tr
 
 train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
-# 부르개가 묶음 축을 앞에 붙인다
+# 부르개가 배치 축을 앞에 붙인다
 #   images: (B, 1, 28, 28)      labels: (B,)  0~9 정수
 
 # =============================================================================
@@ -176,9 +176,9 @@ for epoch in range(1, EPOCHS + 1):
         #   weight.grad: (10, 784)     bias.grad: (10,)   매개변수와 같은 모양
         optimizer.step()               # theta - lambda * g
         running += loss.item() * images.size(0)
-        # loss는 묶음 안에서 이미 평균이므로, 묶음 크기를 곱해 되돌려
+        # loss는 배치 안에서 이미 평균이므로, 배치 크기를 곱해 되돌려
         # 더해야 에포크 평균이 맞는다. 60000 = 128*468 + 96이라 마지막
-        # 묶음이 96개뿐이며, 그래서 images.size(0)을 쓰고 128을 쓰지 않는다
+        # 배치가 96개뿐이며, 그래서 images.size(0)을 쓰고 128을 쓰지 않는다
 
     print(f"Epoch {epoch:2d}/{EPOCHS}  "
           f"Loss: {running / len(train_dataset):.4f}  "
@@ -287,7 +287,7 @@ Final Test Accuracy: 92.51%
 ## 연습문제
 
 !!! note "아래 풀이의 수치에 대하여"
-    풀이에 적힌 정확도는 모두 이 절의 설정(정규화 적용, 묶음 128, Adam $10^{-3}$, 10 에포크, 씨앗 42)으로 실제로 재어 얻은 것이다. 초기 가중치와 자료를 섞는 차례가 실행마다 달라 마지막 자리가 0.1~0.4%포인트쯤 흔들리므로, 본문이 보고하는 92.51%와 조금 다를 수 있다. 한 표 안의 값들은 같은 조건에서 잰 것이므로 서로 견주는 데에는 문제가 없다.
+    풀이에 적힌 정확도는 모두 이 절의 설정(정규화 적용, 배치 128, Adam $10^{-3}$, 10 에포크, 씨앗 42)으로 실제로 재어 얻은 것이다. 초기 가중치와 자료를 섞는 차례가 실행마다 달라 마지막 자리가 0.1~0.4%포인트쯤 흔들리므로, 본문이 보고하는 92.51%와 조금 다를 수 있다. 한 표 안의 값들은 같은 조건에서 잰 것이므로 서로 견주는 데에는 문제가 없다.
 
 <div class="drillbox" markdown>
 
@@ -364,7 +364,7 @@ Final Test Accuracy: 92.51%
     천장이므로, 아홉 에포크는 그 천장에 바짝 붙는 데 쓰인다.
 
     이 모양을 알아 두면 실험 설계에 도움이 된다. **볼록하고 쉬운 문제라면 몇 에포크로
-    거의 답이 나온다.** 그러니 이 모델의 학습률이나 묶음 크기를 고를 때 10 에포크를
+    거의 답이 나온다.** 그러니 이 모델의 학습률이나 배치 크기를 고를 때 10 에포크를
     매번 돌릴 필요가 없고, 2~3 에포크로 견주어도 순서가 거의 같다.
 
     깊은 모델에서는 이야기가 다르다. 초반에 천천히 오르다가 어느 순간 빠르게 좋아지거나,
@@ -542,9 +542,9 @@ Final Test Accuracy: 92.51%
     2. **빠뜨렸을 때 오류가 나지 않는다.** 정확도가 조금 낮게 나올 뿐이므로
        알아채기 어렵다. `zero_grad()`를 빠뜨리는 것과 같은 종류의 버그다
        ([05 연습문제 2](05_gradient_descent.md)).
-    3. **배치 정규화는 더 고약하다.** 학습 모드에서는 묶음의 통계를 쓰고 평가
-       모드에서는 누적된 통계를 쓰므로, 모드를 잘못 두면 묶음 크기에 따라 예측이
-       달라진다. 묶음 하나로 평가하면 결과가 엉망이 된다.
+    3. **배치 정규화는 더 고약하다.** 학습 모드에서는 배치의 통계를 쓰고 평가
+       모드에서는 누적된 통계를 쓰므로, 모드를 잘못 두면 배치 크기에 따라 예측이
+       달라진다. 배치 하나로 평가하면 결과가 엉망이 된다.
 
     그래서 "지금은 필요 없지만 적어 둔다"가 옳은 습관이다. 덧붙여 `eval()`은
     기울기 셈을 끄지 **않는다.** 그것은 `torch.no_grad()`가 하는 다른 일이며,
@@ -607,7 +607,7 @@ Final Test Accuracy: 92.51%
     | 더 오래 돌리기 | 50 에포크에 92.16% (더 낮다) | [01 연습 11](01_linear_model.md) |
     | 학습률 바꾸기 | $10^{-3}$이 이미 가장 좋다 | [05 연습 4](05_gradient_descent.md) |
     | 최적화기 바꾸기 | Adam = 관성 SGD (볼록하다) | [05 연습 6](05_gradient_descent.md) |
-    | 묶음 크기 바꾸기 | 128 근처가 최선 | [05 연습 5](05_gradient_descent.md) |
+    | 배치 크기 바꾸기 | 128 근처가 최선 | [05 연습 5](05_gradient_descent.md) |
     | 가중치 감쇠 | 92.48% → 90.15% (나빠진다) | [01 연습 8](01_linear_model.md) |
     | 이름표 평탄화 | 92.42% → 90.71% (나빠진다) | [04 연습 7](04_cross_entropy.md) |
     | 손실 함수 바꾸기 | MSE로 +0.57%p뿐 | [04 연습 6](04_cross_entropy.md) |

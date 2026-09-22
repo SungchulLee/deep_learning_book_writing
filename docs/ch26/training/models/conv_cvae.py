@@ -87,8 +87,8 @@ class ConvConditionalVAE(nn.Module):
         갈래 이름표에 조건 지어 들임 그림을 부호화한다.
         
         인수:
-            x: 들임 그림 텐서 [묶음 크기, 채널, 높이, 너비]
-            labels: 갈래 이름표 [묶음 크기]
+            x: 들임 그림 텐서 [배치 크기, 채널, 높이, 너비]
+            labels: 갈래 이름표 [배치 크기]
             
         반환값:
             mu: 숨은 분포의 평균
@@ -129,8 +129,8 @@ class ConvConditionalVAE(nn.Module):
         갈래 이름표에 조건 지어 숨은 나타냄을 푼다.
         
         인수:
-            z: 숨은 벡터 [묶음 크기, 숨은 차원]
-            labels: 갈래 이름표 [묶음 크기]
+            z: 숨은 벡터 [배치 크기, 숨은 차원]
+            labels: 갈래 이름표 [배치 크기]
             
         반환값:
             reconstruction: 다시 세운 그림

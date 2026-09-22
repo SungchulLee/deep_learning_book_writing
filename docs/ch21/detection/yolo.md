@@ -178,7 +178,7 @@ def decode_yolo_boxes(
 
 핵심 나아진 점:
 
-- 모든 누비기 층에 **묶음 고르게 맞추기**
+- 모든 누비기 층에 **배치 고르게 맞추기**
 - **높은 해상도 갈래 매개**: 448×448에서 곱게 다듬기
 - **닻 상자**: k-평균으로 자료에서 상자의 앞선 것을 배운다
 - **지나침 층**: 앞선 층에서 온 결이 고운 특징
@@ -600,7 +600,7 @@ def yolo_loss(
     else:
         cls_loss = 0
     
-    # 묶음 크기로 고르게 맞춘 전체 손실
+    # 배치 크기로 고르게 맞춘 전체 손실
     total_loss = (coord_loss + conf_loss + cls_loss) / batch_size
     
     return total_loss
@@ -686,7 +686,7 @@ for result in results:
     for box, score, cls in zip(boxes, scores, classes):
         print(f"Class {int(cls)}: {score:.2f} at {box}")
 
-# 묶음 미룸
+# 배치 미룸
 results = model_nano(['img1.jpg', 'img2.jpg', 'img3.jpg'])
 
 # 고름을 준 미룸

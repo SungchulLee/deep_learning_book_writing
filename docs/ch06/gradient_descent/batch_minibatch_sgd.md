@@ -36,7 +36,7 @@ $$\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta \ell(\theta_t; x_{i_t}, y_{
 
 $$\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{B}\sum_{j \in \mathcal{B}_t} \nabla_\theta \ell(\theta_t; x_j, y_j)$$
 
-여기서 $\mathcal{B}_t$는 무작위로 추출된 미니배치이다.
+여기서 $\mathcal{B}_t$는 무작위로 추출된 미니배치다.
 
 ---
 

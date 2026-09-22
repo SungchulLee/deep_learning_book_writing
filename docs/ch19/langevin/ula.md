@@ -44,13 +44,13 @@ $$
 
 ## 3. 확률 기울기 랑주뱅 동역학(SGLD)
 
-실전에서의 핵심 넓힘은 온전한 기울기를 작은 묶음에서 얻은 **확률 기울기**로 바꾸는 것이다:
+실전에서의 핵심 넓힘은 온전한 기울기를 작은 배치에서 얻은 **확률 기울기**로 바꾸는 것이다:
 
 $$
 \theta_{t+1} = \theta_t + \frac{\epsilon_t}{2}\left(\nabla \log p(\theta_t) + \frac{N}{n}\sum_{i \in \text{batch}} \nabla \log p(x_i \mid \theta_t)\right) + \sqrt{\epsilon_t} \, \boldsymbol{\eta}_t
 $$
 
-여기서 $N$은 자료 묶음의 크기, $n$은 작은 묶음의 크기이다.
+여기서 $N$은 자료 묶음의 크기, $n$은 작은 배치의 크기이다.
 
 ### 걸음 크기를 줄이는 일정
 
@@ -71,7 +71,7 @@ class SGLD:
     """
     확률 기울기 랑주뱅 움직임.
     
-    작은 묶음 기울기와 랑주뱅 잡음을 어우러지게 하여
+    작은 배치 기울기와 랑주뱅 잡음을 어우러지게 하여
     규모를 키울 수 있는 어림 뒤확률 표집을 이룬다.
     """
     
@@ -132,7 +132,7 @@ def sgld_sample(model, dataloader, n_samples=100, burnin=1000,
             loss = torch.nn.functional.mse_loss(model(x_batch), y_batch)
             loss.backward()
             optimizer.step()
-            break  # 걸음마다 묶음 하나
+            break  # 걸음마다 배치 하나
         
         if step >= burnin and (step - burnin) % thin == 0:
             samples.append({

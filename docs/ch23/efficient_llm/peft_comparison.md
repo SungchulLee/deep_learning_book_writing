@@ -448,17 +448,17 @@ class PrefixTuning(nn.Module):
         
         반환값:
             (앞가지 열쇠, 앞가지 값)의 짝. 저마다 꼴은
-            [묶음, 층 수, 머리 수, 앞가지 길이, 머리 차원]
+            [배치, 층 수, 머리 수, 앞가지 길이, 머리 차원]
         """
         # 앞가지 번호를 얻는다
         prefix_ids = torch.arange(self.prefix_length, device=self.prefix_embedding.weight.device)
         prefix_ids = prefix_ids.unsqueeze(0).expand(batch_size, -1)
         
         # 묻고 쏜다
-        prefix = self.prefix_embedding(prefix_ids)  # [묶음, 앞가지 길이, 숨은]
-        prefix = self.prefix_mlp(prefix)  # [묶음, 앞가지 길이, 앞가지 크기]
+        prefix = self.prefix_embedding(prefix_ids)  # [배치, 앞가지 길이, 숨은]
+        prefix = self.prefix_mlp(prefix)  # [배치, 앞가지 길이, 앞가지 크기]
         
-        # [묶음, 앞가지 길이, 층 수, 2, 머리 수, 머리 차원] 꼴로 바꾼다
+        # [배치, 앞가지 길이, 층 수, 2, 머리 수, 머리 차원] 꼴로 바꾼다
         prefix = prefix.view(
             batch_size,
             self.prefix_length,
@@ -468,11 +468,11 @@ class PrefixTuning(nn.Module):
             self.head_dim
         )
         
-        # [묶음, 층 수, 머리 수, 앞가지 길이, 머리 차원] 꼴로 다시 늘어놓는다
+        # [배치, 층 수, 머리 수, 앞가지 길이, 머리 차원] 꼴로 다시 늘어놓는다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)  # 층과 머리 차원을 옮긴다
         
-        prefix_keys = prefix[..., 0]    # [묶음, 층, 머리, 앞가지 길이, 머리 차원]
-        prefix_values = prefix[..., 1]  # [묶음, 층, 머리, 앞가지 길이, 머리 차원]
+        prefix_keys = prefix[..., 0]    # [배치, 층, 머리, 앞가지 길이, 머리 차원]
+        prefix_values = prefix[..., 1]  # [배치, 층, 머리, 앞가지 길이, 머리 차원]
         
         return prefix_keys, prefix_values
 

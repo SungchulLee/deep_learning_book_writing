@@ -117,7 +117,7 @@ def main():
     # 사이 메우기를 만든다
     generate_interpolation(diffusion, n_steps=10)
     
-    # 다양함을 살피려 큰 묶음을 만든다
+    # 다양함을 살피려 큰 배치를 만든다
     print("\nGenerating large batch for visualization...")
     samples = diffusion.sample_images(n_samples=256)
     visualize_samples(samples, nrow=16, filename='samples_large.png')
@@ -162,7 +162,7 @@ Looking for one of: ['mnist_diffusion_model.pt', 'mnist_diffusion_final.pt', 'ch
 </div>
 
 ??? success "연습문제 1 풀이"
-    모델에 알맞은 꼴의 들임 묶음에서 시작한다. 층이나 함수 부르기마다 셈을 따라가며 바뀜 뒤 텐서 꼴을 적는다. 겹말기 층에서는 내놓기 차원 공식을 쓴다. 눈길 얼개에서는 물음, 열쇠, 값의 차원이 맞는지 확인한다. 마지막 내놓기 꼴이 바라던 목표 차원과 맞는지 굳힌다. 이 익힘은 자료가 얼개를 어떻게 흐르는지에 대한 직관을 쌓아 준다.
+    모델에 알맞은 꼴의 들임 배치에서 시작한다. 층이나 함수 부르기마다 셈을 따라가며 바뀜 뒤 텐서 꼴을 적는다. 겹말기 층에서는 내놓기 차원 공식을 쓴다. 눈길 얼개에서는 물음, 열쇠, 값의 차원이 맞는지 확인한다. 마지막 내놓기 꼴이 바라던 목표 차원과 맞는지 굳힌다. 이 익힘은 자료가 얼개를 어떻게 흐르는지에 대한 직관을 쌓아 준다.
 
 ---
 

@@ -122,19 +122,19 @@ class DiscreteARModel(nn.Module):
         자리마다 다음 토큰 헤아리기의 로짓을 셈한다.
         
         인수:
-            x: 들임 차례 [묶음 크기, 차례 길이]
+            x: 들임 차례 [배치 크기, 차례 길이]
             
         반환값:
-            로짓 [묶음 크기, 차례 길이, 낱말 수]
+            로짓 [배치 크기, 차례 길이, 낱말 수]
         """
         # 들임 토큰을 박아 넣는다
-        embedded = self.embedding(x)  # [묶음, 차례 길이, 박아 넣기 차원]
+        embedded = self.embedding(x)  # [배치, 차례 길이, 박아 넣기 차원]
         
         # 맥락 부호화
-        hidden_states, _ = self.encoder(embedded)  # [묶음, 차례 길이, 숨은 차원]
+        hidden_states, _ = self.encoder(embedded)  # [배치, 차례 길이, 숨은 차원]
         
         # 어휘로 사영한다
-        logits = self.output_proj(hidden_states)  # [묶음, 차례 길이, 낱말 수]
+        logits = self.output_proj(hidden_states)  # [배치, 차례 길이, 낱말 수]
         
         return logits
     
@@ -200,11 +200,11 @@ class ContinuousARModel(nn.Module):
         자리마다 정규 분포 매개변수를 셈한다.
         
         인수:
-            x: 들임 차례 [묶음 크기, 차례 길이, 들임 차원]
+            x: 들임 차례 [배치 크기, 차례 길이, 들임 차원]
             
         반환값:
-            mean: [묶음 크기, 차례 길이, 들임 차원]
-            logvar: [묶음 크기, 차례 길이, 들임 차원]
+            mean: [배치 크기, 차례 길이, 들임 차원]
+            logvar: [배치 크기, 차례 길이, 들임 차원]
         """
         hidden_states, _ = self.encoder(x)
         
@@ -242,7 +242,7 @@ class ContinuousARModel(nn.Module):
 
 $$\mathcal{L}(\theta) = -\mathbb{E}_{\mathbf{x} \sim p_{\text{data}}} \left[ \log P_\theta(\mathbf{x}) \right] = -\mathbb{E}_{\mathbf{x}} \left[ \sum_{i=1}^{n} \log P_\theta(x_i | x_{<i}) \right]$$
 
-이는 서로 매이지 않은 항으로 나뉘어 효율 좋은 작은 묶음 익히기를 할 수 있다.
+이는 서로 매이지 않은 항으로 나뉘어 효율 좋은 작은 배치 익히기를 할 수 있다.
 
 ### 스승 강제
 

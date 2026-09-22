@@ -152,7 +152,7 @@ def visualize_results(data: np.ndarray,
     axes[0].grid(True, alpha=0.3)
     
     # ==================== 그림 2: 앞날 내다보기 ====================
-    # 시험 묶음의 마지막 차례를 출발점으로 삼는다
+    # 시험 배치의 마지막 차례를 출발점으로 삼는다
     initial_sequence = X_test[-1]
     
     # 앞날 헤아림을 만든다

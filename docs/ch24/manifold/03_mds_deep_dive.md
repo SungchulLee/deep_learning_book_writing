@@ -141,7 +141,7 @@ PCA vs Classical MDS  max |difference| = 5.33e-15
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 MNIST 부분 묶음(표본 2000개)에서 고전 MDS와 t-SNE를 견주는 셰퍼드 그림을 만들어라. 본디 거리와 묻힌 둘씩의 거리 사이 피어슨 상관이 어느 쪽이 더 높으며 왜 그런가?
+같은 MNIST 부분 배치(표본 2000개)에서 고전 MDS와 t-SNE를 견주는 셰퍼드 그림을 만들어라. 본디 거리와 묻힌 둘씩의 거리 사이 피어슨 상관이 어느 쪽이 더 높으며 왜 그런가?
 
 </div>
 

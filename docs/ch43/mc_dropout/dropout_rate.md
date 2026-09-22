@@ -113,7 +113,7 @@ def get_recommended_dropout_rates(architecture: str) -> dict:
             'fc': 0.5,
         },
         'resnet': {
-            'after_conv': 0.0,  # 묶음 잣대 잡기가 정칙화를 맡는다
+            'after_conv': 0.0,  # 배치 잣대 잡기가 정칙화를 맡는다
             'after_block': 0.2,
             'fc': 0.5,
         },

@@ -80,7 +80,7 @@ def train_epoch(model, train_loader, optimizer, device, beta=1.0):
 
 
 def test_epoch(model, test_loader, device, beta=1.0):
-    """시험 묶음으로 값매김한다"""
+    """시험 배치로 값매김한다"""
     model.eval()
     test_loss = 0
     test_recon = 0
@@ -422,20 +422,20 @@ KL 달구기를 이 반복문에 넣으려면 어떻게 하는가?
 <div class="drillbox" markdown>
 
 **연습문제 9.** <span class="diff med" title="중간"></span>
-묶음 크기와 학습률을 어떻게 정했는가? 왜 그 값인가?
+배치 크기와 학습률을 어떻게 정했는가? 왜 그 값인가?
 
 </div>
 
 ??? success "연습문제 9 풀이"
-    이 장의 측정은 묶음 256, 학습률 1e-3, Adam으로 했다. 23장과 같은 값이며, 그렇게
+    이 장의 측정은 배치 256, 학습률 1e-3, Adam으로 했다. 23장과 같은 값이며, 그렇게
     맞춘 것이 의도다. **두 장의 수치를 견줄 수 있어야** 하기 때문이다.
 
-    값 자체는 특별하지 않다. Adam에 1e-3은 흔한 출발점이고, 묶음 256은 MNIST에서 빠르고
+    값 자체는 특별하지 않다. Adam에 1e-3은 흔한 출발점이고, 배치 256은 MNIST에서 빠르고
     안정된 범위다.
 
     변분 자기 부호기에 관련된 점이 하나 있다. 다시 뽑기 때문에 기울기에 잡음이 하나 더
-    실리므로([부호기 연습문제 6](../architecture/encoder.md)), 묶음이 아주 작으면
-    자기 부호기보다 더 흔들린다. 묶음을 32 아래로 내릴 때는 확인이 필요하다.
+    실리므로([부호기 연습문제 6](../architecture/encoder.md)), 배치가 아주 작으면
+    자기 부호기보다 더 흔들린다. 배치를 32 아래로 내릴 때는 확인이 필요하다.
 
     Adam을 쓰는 것이 $\beta$ 쓸기에서 특히 편했다. 손실의 눈금이 32배 달라지는데도
     학습률 하나로 다룰 수 있었다([train_beta_vae 연습문제 4](train_beta_vae.md)).

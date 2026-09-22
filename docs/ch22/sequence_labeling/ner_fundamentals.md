@@ -36,7 +36,7 @@ $$
 \mathbf{Y} = (y_1, y_2, \ldots, y_n)
 $$
 
-여기서 $y_i \in \mathcal{L}$은 저마다 미리 정한 이름표 묶음 $\mathcal{L}$에 든다.
+여기서 $y_i \in \mathcal{L}$은 저마다 미리 정한 이름표 배치 $\mathcal{L}$에 든다.
 
 ### 가장 좋은 차례 어림
 
@@ -81,7 +81,7 @@ CoNLL-2003 공동 과제가 바탕이 되는 것 갈래 체계를 세웠다:
 
 OntoNotes 5.0은 것 갈래 18개로 더 결이 고운 가르기를 준다:
 
-| 갈래 묶음 | 것 갈래 |
+| 갈래 배치 | 것 갈래 |
 |----------|--------------|
 | 이름 있는 것 | PERSON, NORP, FAC, ORG, GPE, LOC, PRODUCT, EVENT, WORK_OF_ART, LAW, LANGUAGE |
 | 수로 된 것 | DATE, TIME, PERCENT, MONEY, QUANTITY, ORDINAL, CARDINAL |

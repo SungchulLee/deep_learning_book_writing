@@ -322,7 +322,7 @@ def kl_divergence_loss(latent: torch.Tensor, rho: float = 0.05) -> torch.Tensor:
     
     ρ̂ⱼ = ρ일 때 가장 작다.
     """
-    # 묶음에 걸친 신경 세포마다의 평균 깨어남
+    # 배치에 걸친 신경 세포마다의 평균 깨어남
     rho_hat = torch.mean(latent, dim=0)
     
     # log(0)을 피한다
@@ -544,7 +544,7 @@ def compute_jacobian_penalty(model, x):
         # 이 세로줄의 제곱합
         jacobian_norm_sq = jacobian_norm_sq + torch.sum(jacobian_col ** 2)
     
-    return jacobian_norm_sq / x.shape[0]  # 묶음에 걸친 평균
+    return jacobian_norm_sq / x.shape[0]  # 배치에 걸친 평균
 
 def train_contractive_autoencoder(
     model, train_loader, device, 
@@ -873,7 +873,7 @@ MNIST 화소가 $[0,1]$ 사이 값일 때 평균 제곱 어긋남과 두 값 엇
     어느 쪽을 써도 되지만 **바꿀 때 학습률을 함께 손봐야 한다.** `mean`으로 바꾸고
     학습률을 그대로 두면 손실이 거의 내려가지 않아 "모델이 안 배운다"고 오해하기 쉽다.
 
-    표본 축은 사정이 다르다. 묶음 안에서는 **반드시 평균**을 내야 묶음 크기를 바꿔도
+    표본 축은 사정이 다르다. 배치 안에서는 **반드시 평균**을 내야 배치 크기를 바꿔도
     실효 학습률이 유지된다. 이 장의 코드가 `reduction='sum'`으로 더한 뒤
     `/ xb.size(0)`으로 표본 수만 나누는 까닭이 이것이다. 화소는 더하고 표본은 평균 낸다.
 

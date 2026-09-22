@@ -69,7 +69,7 @@ $$P(a_j \mid m_i) = \frac{\exp(s(m_i, m_j))}{\sum_{k \leq i} \exp(s(m_i, m_k)) +
 
 $$\mathcal{L} = -\sum_{i=1}^{N} \log \frac{\sum_{j \in \mathcal{Y}(i)} \exp(s(i, j))}{\sum_{j' \in \mathcal{C}(i)} \exp(s(i, j'))}$$
 
-여기서 $\mathcal{Y}(i)$은 옳은 앞선 말의 묶음이고 $\mathcal{C}(i)$은 모든 후보에 허깨비 "새 개체" 앞선 말을 더한 것이다.
+여기서 $\mathcal{Y}(i)$은 옳은 앞선 말의 배치가고 $\mathcal{C}(i)$은 모든 후보에 허깨비 "새 개체" 앞선 말을 더한 것이다.
 
 ```python
 import torch

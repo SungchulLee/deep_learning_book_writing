@@ -149,7 +149,7 @@ def train_with_qat(model, train_loader, test_loader, epochs=20, lr=0.01, device=
         correct = 0
         total = 0
         
-        # 몸풀기 뒤 묶음 고르게 맞추기를 얼린다
+        # 몸풀기 뒤 배치 고르게 맞추기를 얼린다
         if epoch > epochs // 2:
             model.apply(torch.quantization.disable_observer)
         if epoch > epochs * 3 // 4:
@@ -226,7 +226,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`SimpleResNet`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 묶음에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+`SimpleResNet`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 배치에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
 
 </div>
 

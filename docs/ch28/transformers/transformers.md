@@ -101,7 +101,7 @@ class CausalSelfAttention(nn.Module):
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
-            attention_mask: 덧붙일 수 있는 가림막 [묶음 크기, 차례 길이]
+            attention_mask: 덧붙일 수 있는 가림막 [배치 크기, 차례 길이]
             
         반환값:
             출력 텐서 [batch_size, seq_len, d_model]
@@ -109,18 +109,18 @@ class CausalSelfAttention(nn.Module):
         batch_size, seq_len, _ = x.shape
         
         # Q, K, V를 셈한다
-        Q = self.W_q(x)  # [묶음, 차례 길이, d_model]
+        Q = self.W_q(x)  # [배치, 차례 길이, d_model]
         K = self.W_k(x)
         V = self.W_v(x)
         
         # 다중 머리 주의에 맞게 꼴을 바꾼다
-        # [묶음, 차례 길이, 머리 수, d_k] -> [묶음, 머리 수, 차례 길이, d_k]
+        # [배치, 차례 길이, 머리 수, d_k] -> [배치, 머리 수, 차례 길이, d_k]
         Q = Q.view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         K = K.view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         V = V.view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         
         # 주의 점수를 셈한다
-        # [묶음, 머리 수, 차례 길이, 차례 길이]
+        # [배치, 머리 수, 차례 길이, 차례 길이]
         scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         
         # 인과 가림을 적용한다
@@ -129,7 +129,7 @@ class CausalSelfAttention(nn.Module):
         
         # 있으면 눈길 가림막을 쓴다(예컨대 채우기)
         if attention_mask is not None:
-            # attention_mask: [묶음, 차례 길이] -> [묶음, 1, 1, 차례 길이]
+            # attention_mask: [배치, 차례 길이] -> [배치, 1, 1, 차례 길이]
             attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
             scores = scores.masked_fill(attention_mask == 0, float('-inf'))
         
@@ -138,11 +138,11 @@ class CausalSelfAttention(nn.Module):
         attention_weights = self.dropout(attention_weights)
         
         # 값에 어텐션 적용
-        # [묶음, 머리 수, 차례 길이, d_k]
+        # [배치, 머리 수, 차례 길이, d_k]
         context = torch.matmul(attention_weights, V)
         
         # 다시 꼴 되돌리기
-        # [묶음, 차례 길이, d_model]
+        # [배치, 차례 길이, d_model]
         context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         
         # 출력 사영
@@ -211,11 +211,11 @@ class TransformerBlock(nn.Module):
         변환기 덩이를 지나는 앞먹임.
         
         인수:
-            x: 들임 [묶음 크기, 차례 길이, d_model]
-            attention_mask: 쓸 수도 있는 가림막 [묶음 크기, 차례 길이]
+            x: 들임 [배치 크기, 차례 길이, d_model]
+            attention_mask: 쓸 수도 있는 가림막 [배치 크기, 차례 길이]
             
         반환값:
-            내놓기 [묶음 크기, 차례 길이, d_model]
+            내놓기 [배치 크기, 차례 길이, d_model]
         """
         # 잔차를 곁들인 자기 주의
         x = x + self.attention(self.ln1(x), attention_mask)
@@ -317,11 +317,11 @@ class GPT(nn.Module):
         앞먹임.
         
         인수:
-            input_ids: 토큰 어깨수 [묶음 크기, 차례 길이]
-            attention_mask: 쓸 수도 있는 가림막 [묶음 크기, 차례 길이]
+            input_ids: 토큰 어깨수 [배치 크기, 차례 길이]
+            attention_mask: 쓸 수도 있는 가림막 [배치 크기, 차례 길이]
             
         반환값:
-            로짓 [묶음 크기, 차례 길이, 낱말 수]
+            로짓 [배치 크기, 차례 길이, 낱말 수]
         """
         batch_size, seq_len = input_ids.shape
         
@@ -513,8 +513,8 @@ class RotaryPositionalEmbedding(nn.Module):
         물음과 열쇠에 돌림 박아 넣기를 쓴다.
         
         인수:
-            q: 물음 텐서 [묶음, 머리 수, 차례 길이, d_k]
-            k: 열쇠 텐서 [묶음, 머리 수, 차례 길이, d_k]
+            q: 물음 텐서 [배치, 머리 수, 차례 길이, d_k]
+            k: 열쇠 텐서 [배치, 머리 수, 차례 길이, d_k]
             seq_len: 수열 길이
             
         반환값:
@@ -760,7 +760,7 @@ class MultiQueryAttention(nn.Module):
         self.W_o = nn.Linear(d_model, d_model, bias=False)
 ```
 
-### 묶음 질의 어텐션 (GQA)
+### 배치 질의 어텐션 (GQA)
 
 여러 머리 눈길과 여러 물음 눈길 사이의 절충으로 머리 무리가 K, V을 나누어 쓴다.
 
@@ -942,7 +942,7 @@ class TimeSeriesTransformer(nn.Module):
     def forward(self, x: torch.Tensor) -> tuple:
         """
         인수:
-            x: 지난 값 [묶음, 차례 길이, 들임 차원]
+            x: 지난 값 [배치, 차례 길이, 들임 차원]
             
         반환값:
             내다보기 분포의 (평균, 표준 편차)

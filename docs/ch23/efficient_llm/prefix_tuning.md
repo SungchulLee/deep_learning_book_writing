@@ -138,8 +138,8 @@ class PrefixEncoder(nn.Module):
         모든 층의 앞가지 열쇠-값 짝을 만든다.
         
         반환값:
-            prefix_keys: [묶음, 층 수, 머리 수, 앞가지 길이, 머리 차원]
-            prefix_values: [묶음, 층 수, 머리 수, 앞가지 길이, 머리 차원]
+            prefix_keys: [배치, 층 수, 머리 수, 앞가지 길이, 머리 차원]
+            prefix_values: [배치, 층 수, 머리 수, 앞가지 길이, 머리 차원]
         """
         device = self.prefix_tokens.weight.device
         
@@ -148,11 +148,11 @@ class PrefixEncoder(nn.Module):
         prefix_ids = prefix_ids.unsqueeze(0).expand(batch_size, -1)
         
         # 묻고 바꾼다
-        prefix_emb = self.prefix_tokens(prefix_ids)  # [묶음, 앞가지 길이, 숨은]
-        prefix = self.mlp(prefix_emb)  # [묶음, 앞가지 길이, 전체 차원]
+        prefix_emb = self.prefix_tokens(prefix_ids)  # [배치, 앞가지 길이, 숨은]
+        prefix = self.mlp(prefix_emb)  # [배치, 앞가지 길이, 전체 차원]
         prefix = self.dropout(prefix)
         
-        # 꼴 바꾸기: [묶음, 앞가지 길이, 층, 2, 머리, 머리 차원]
+        # 꼴 바꾸기: [배치, 앞가지 길이, 층, 2, 머리, 머리 차원]
         prefix = prefix.view(
             batch_size,
             self.prefix_length,
@@ -162,7 +162,7 @@ class PrefixEncoder(nn.Module):
             self.head_dim
         )
         
-        # [묶음, 층, 머리, 앞가지 길이, 머리 차원, 2]로 자리를 바꾼다
+        # [배치, 층, 머리, 앞가지 길이, 머리 차원, 2]로 자리를 바꾼다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)
         
         # 열쇠와 값으로 쪼갠다
@@ -239,7 +239,7 @@ class PrefixTuningModel(nn.Module):
         # 층마다 하나씩 (열쇠, 값) 짝의 목록을 돌려준다
         past_key_values = []
         for layer_idx in range(prefix_keys.size(1)):
-            layer_key = prefix_keys[:, layer_idx]  # [묶음, 머리, 앞가지 길이, 머리 차원]
+            layer_key = prefix_keys[:, layer_idx]  # [배치, 머리, 앞가지 길이, 머리 차원]
             layer_value = prefix_values[:, layer_idx]
             past_key_values.append((layer_key, layer_value))
         return tuple(past_key_values)
@@ -286,10 +286,10 @@ class PrefixAttention(nn.Module):
         앞가지를 곁들일 수도 있는 앞먹임.
         
         인수:
-            hidden_states: [묶음, 차례 길이, d_model]
-            attention_mask: [묶음, 차례 길이] 또는 [묶음, 1, 차례 길이, 전체 길이]
-            prefix_key: [묶음, 머리 수, 앞가지 길이, 머리 차원]
-            prefix_value: [묶음, 머리 수, 앞가지 길이, 머리 차원]
+            hidden_states: [배치, 차례 길이, d_model]
+            attention_mask: [배치, 차례 길이] 또는 [배치, 1, 차례 길이, 전체 길이]
+            prefix_key: [배치, 머리 수, 앞가지 길이, 머리 차원]
+            prefix_value: [배치, 머리 수, 앞가지 길이, 머리 차원]
         """
         batch_size, seq_len, _ = hidden_states.shape
         
@@ -298,14 +298,14 @@ class PrefixAttention(nn.Module):
         k = self.k_proj(hidden_states)
         v = self.v_proj(hidden_states)
         
-        # [묶음, 머리, 차례 길이, 머리 차원] 꼴로 바꾼다
+        # [배치, 머리, 차례 길이, 머리 차원] 꼴로 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
         # K와 V 앞에 앞가지를 붙인다
         if prefix_key is not None and prefix_value is not None:
-            k = torch.cat([prefix_key, k], dim=2)  # [묶음, 머리, 앞가지+차례, 머리 차원]
+            k = torch.cat([prefix_key, k], dim=2)  # [배치, 머리, 앞가지+차례, 머리 차원]
             v = torch.cat([prefix_value, v], dim=2)
         
         # 어텐션 계산
@@ -317,7 +317,7 @@ class PrefixAttention(nn.Module):
             if prefix_key is not None:
                 prefix_len = prefix_key.size(2)
                 if attention_mask.dim() == 2:
-                    # [묶음, 차례] -> [묶음, 1, 1, 앞가지+차례]
+                    # [배치, 차례] -> [배치, 1, 1, 앞가지+차례]
                     prefix_mask = torch.ones(batch_size, prefix_len, device=attention_mask.device)
                     attention_mask = torch.cat([prefix_mask, attention_mask], dim=1)
                     attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
@@ -377,10 +377,10 @@ class DirectPrefixEncoder(nn.Module):
         )
     
     def forward(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        # 묶음에 맞춰 넓힌다
+        # 배치에 맞춰 넓힌다
         prefix = self.prefix.unsqueeze(0).expand(batch_size, -1, -1, -1, -1, -1)
         
-        # [묶음, 층, 머리, 앞가지 길이, 머리 차원, 2]로 자리를 바꾼다
+        # [배치, 층, 머리, 앞가지 길이, 머리 차원, 2]로 자리를 바꾼다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)
         
         return prefix[..., 0].contiguous(), prefix[..., 1].contiguous()

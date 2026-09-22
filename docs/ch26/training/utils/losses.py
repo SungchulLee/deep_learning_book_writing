@@ -23,7 +23,7 @@ def vae_loss(reconstruction, target, mu, logvar, beta=1.0, reduction="sum"):
         target: 원래 입력. 마찬가지로 [0,1]이어야 한다
         mu, logvar: 부호기가 내놓은 숨은 분포의 평균과 로그 분산
         beta: KL 항의 무게. 1이면 보통의 VAE
-        reduction: 'sum'이면 묶음 전체의 합, 'mean'이면 표본마다의 평균
+        reduction: 'sum'이면 배치 전체의 합, 'mean'이면 표본마다의 평균
 
     반환값:
         (전체 손실, 다시 세우기 손실, KL 손실)

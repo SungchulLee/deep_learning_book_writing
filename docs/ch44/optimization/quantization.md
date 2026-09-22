@@ -261,7 +261,7 @@ class QuantizableModel(nn.Module):
     
     고갱이 고침:
     1. 들임/날임에 QuantStub/DeQuantStub을 더한다
-    2. 함수 셈을 같은 일을 하는 묶음으로 바꾼다
+    2. 함수 셈을 같은 일을 하는 배치로 바꾼다
     3. 될 수 있으면 켜를 녹여 붙인다
     """
     
@@ -275,7 +275,7 @@ class QuantizableModel(nn.Module):
         # 모형의 켜
         self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
-        self.relu1 = nn.ReLU()  # F.relu이 아니라 묶음을 쓴다
+        self.relu1 = nn.ReLU()  # F.relu이 아니라 배치를 쓴다
         
         self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
         self.bn2 = nn.BatchNorm2d(64)
@@ -353,7 +353,7 @@ def apply_static_quantization(model: nn.Module,
     with torch.no_grad():
         for batch_idx, (data, _) in enumerate(calibration_loader):
             model(data)
-            if batch_idx >= 100:  # 눈금 맞추기에 묶음 100개를 쓴다
+            if batch_idx >= 100:  # 눈금 맞추기에 배치 100개를 쓴다
                 break
     
     # 수 줄인 모형으로 바꾼다
@@ -416,7 +416,7 @@ def train_with_qat(model: nn.Module,
     # QAT 차림을 잡는다
     model.qconfig = torch.quantization.get_default_qat_qconfig(backend)
     
-    # QAT을 마련한다(거짓 수 줄이기 묶음을 끼운다)
+    # QAT을 마련한다(거짓 수 줄이기 배치를 끼운다)
     torch.quantization.prepare_qat(model, inplace=True)
     
     # 익힘 차림
@@ -430,7 +430,7 @@ def train_with_qat(model: nn.Module,
         model.train()
         train_loss = 0.0
         
-        # 몸풀기 뒤 묶음 잣대 잡기의 자를 얼린다
+        # 몸풀기 뒤 배치 잣대 잡기의 자를 얼린다
         if epoch >= epochs // 2:
             model.apply(torch.quantization.disable_observer)
         if epoch >= epochs * 3 // 4:
@@ -766,7 +766,7 @@ def evaluate_model(model: nn.Module,
 |-----------|----------|----------|----------|
 | Conv2d | ✓ | ✓ | ✓ |
 | 선형 | ✓ | ✓ | ✓ |
-| 묶음 잣대 잡기 | 녹여 붙임 | 녹여 붙임 | ✓ |
+| 배치 잣대 잡기 | 녹여 붙임 | 녹여 붙임 | ✓ |
 | ReLU | 녹여 붙임 | 녹여 붙임 | ✓ |
 | 더하기 | ✓ | ✓ | ✓ |
 | 이어 붙이기 | ✓ | ✓ | ✓ |
@@ -830,14 +830,14 @@ def apply_mixed_precision_strategy(model: nn.Module,
     return model
 ```
 
-### 묶음 잣대 잡기 접어 넣기
+### 배치 잣대 잡기 접어 넣기
 
-잘 들도록 묶음 잣대 잡기를 앞의 엮음/선형 켜에 접어 넣는다.
+잘 들도록 배치 잣대 잡기를 앞의 엮음/선형 켜에 접어 넣는다.
 
 ```python
 def fold_batchnorm(model: nn.Module) -> nn.Module:
     """
-    묶음 잣대 잡기 켜를 앞의 엮음 켜에 접어 넣는다.
+    배치 잣대 잡기 켜를 앞의 엮음 켜에 접어 넣는다.
     
     Conv-BN 이음에서:
     y = γ * (Wx + b - μ) / σ + β
@@ -1058,7 +1058,7 @@ def measure_quantization_impact(original: nn.Module,
 </div>
 
 ??? success "연습문제 2 풀이"
-    PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(묶음 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
+    PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(배치 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
 
 ---
 
@@ -1082,7 +1082,7 @@ def measure_quantization_impact(original: nn.Module,
 </div>
 
 ??? success "연습문제 4 풀이"
-    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 묶음 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
+    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 배치 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
 
 ## 정리하며
 

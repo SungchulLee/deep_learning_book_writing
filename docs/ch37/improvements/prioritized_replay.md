@@ -139,7 +139,7 @@ class PrioritizedReplayBuffer:
         self.dones[data_idx] = float(done)
 
     def sample(self, batch_size: int) -> Tuple[torch.Tensor, ...]:
-        """우선순위로 묶음을 뽑는다. (s, a, r, ns, d, weights, tree_indices)를 돌려준다."""
+        """우선순위로 배치를 뽑는다. (s, a, r, ns, d, weights, tree_indices)를 돌려준다."""
         self.step_count += 1
         tree_indices = []
         data_indices = []
@@ -295,7 +295,7 @@ if __name__ == "__main__":
 
 보여 주기 함수는 이 조각들을 여느 힘 북돋우는 배움 잣대에 실제로 쓰는 모습을 보인다. 내놓기를 살피면 웃잡 고름과 문제 짜임에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 얼개는 보통 묶음 셈, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 얼개는 보통 배치 셈, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ## 연습문제
 

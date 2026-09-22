@@ -64,7 +64,7 @@ class CharRNN(nn.Module):
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         
         # 긴 짧은 기억: 박아 넣기의 차례를 다룬다
-        # batch_first=True는 들임 꼴이 [묶음, 차례, 특징]이라는 뜻이다
+        # batch_first=True는 들임 꼴이 [배치, 차례, 특징]이라는 뜻이다
         self.lstm = nn.LSTM(
             embedding_dim, 
             hidden_dim, 
@@ -84,37 +84,37 @@ class CharRNN(nn.Module):
         모델을 지나는 앞먹임.
         
         인수:
-            x: 꼴 [묶음 크기, 차례 길이]인 들임 텐서
+            x: 꼴 [배치 크기, 차례 길이]인 들임 텐서
                글자 어깨수를 담는다
             hidden: 앞선 앞먹임에서 온 숨은 상태(있으면)
                     긴 짧은 기억을 위한 (h_0, c_0) 짝
                     
         반환값:
-            output: 꼴 [묶음 크기, 낱말 수]인 로짓
+            output: 꼴 [배치 크기, 낱말 수]인 로짓
                    낱말 속 글자마다의 점수
             hidden: 갱신된 숨은 상태
         """
-        # 묶음 크기(차례의 수)를 얻는다
+        # 배치 크기(차례의 수)를 얻는다
         batch_size = x.size(0)
         
         # 1. 글자를 박아 넣는다
-        # 들임: [묶음, 차례 길이]
-        # 내놓기: [묶음, 차례 길이, 박아 넣기 차원]
+        # 들임: [배치, 차례 길이]
+        # 내놓기: [배치, 차례 길이, 박아 넣기 차원]
         embedded = self.embedding(x)
         
         # 2. 긴 짧은 기억으로 다룬다
         # 숨은 상태를 주지 않으면 긴 짧은 기억이 0으로 첫자리매김한다
-        # lstm_out: [묶음, 차례 길이, 숨은 차원]
+        # lstm_out: [배치, 차례 길이, 숨은 차원]
         # hidden: (h_n, c_n) - 마지막 숨은 상태와 칸 상태
         lstm_out, hidden = self.lstm(embedded, hidden)
         
         # 3. 헤아리기에 마지막 때 걸음만 쓴다
         # 차례 다음에 오는 글자를 헤아리려 한다
-        # 꼴: [묶음, 숨은 차원]
+        # 꼴: [배치, 숨은 차원]
         last_output = lstm_out[:, -1, :]
         
         # 4. 낱말 점수로 옮긴다
-        # 꼴: [묶음, 낱말 수]
+        # 꼴: [배치, 낱말 수]
         output = self.fc(last_output)
         
         return output, hidden
@@ -169,7 +169,7 @@ class CharRNN(nn.Module):
                 # 만들어진 수열에 덧붙인다
                 generated = torch.cat([generated, next_char], dim=1)
         
-        # 묶음 차원을 없애고 돌려준다
+        # 배치 차원을 없애고 돌려준다
         return generated.squeeze(0)
 
 
@@ -228,10 +228,10 @@ class SimpleCharTransformer(nn.Module):
         변환기를 지나는 앞먹임.
         
         인수:
-            x: 들임 텐서 [묶음 크기, 차례 길이]
+            x: 들임 텐서 [배치 크기, 차례 길이]
             
         반환값:
-            내놓기 로짓 [묶음 크기, 낱말 수]
+            내놓기 로짓 [배치 크기, 낱말 수]
         """
         batch_size, seq_length = x.shape
         

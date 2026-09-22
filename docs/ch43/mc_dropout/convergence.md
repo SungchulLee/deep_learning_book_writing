@@ -430,7 +430,7 @@ def adaptive_mc_sampling(
     return mean, std, len(samples)
 ```
 
-### 묶음의 잘 듦 헤아리기
+### 배치의 잘 듦 헤아리기
 
 ```python
 def estimate_optimal_batch_samples(

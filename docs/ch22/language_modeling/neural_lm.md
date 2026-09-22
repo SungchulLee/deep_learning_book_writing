@@ -382,7 +382,7 @@ def collate_sequences(batch):
     """길이가 들쭉날쭉한 차례를 덧대어 모으기."""
     inputs, targets = zip(*batch)
     
-    # 묶음 안 최대 길이까지 덧대기
+    # 배치 안 최대 길이까지 덧대기
     max_len = max(len(x) for x in inputs)
     
     padded_inputs = []
@@ -417,7 +417,7 @@ def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
     model.train()
     
     for i in range(0, data.size(1) - 1, seq_len):
-        # 묶음 얻기
+        # 배치 얻기
         seqlen = min(seq_len, data.size(1) - 1 - i)
         inputs = data[:, i:i+seqlen]
         targets = data[:, i+1:i+1+seqlen]

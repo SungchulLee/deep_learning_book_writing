@@ -41,8 +41,8 @@ def vae_loss_free_bits(recon_x, x, mu, logvar, free_bits=0.5):
     인수:
         recon_x: 다시 세운 내놓기
         x: 본디 들임
-        mu: 부호기의 평균 [묶음 크기, 숨은 차원]
-        logvar: 부호기의 로그 흩어짐 [묶음 크기, 숨은 차원]
+        mu: 부호기의 평균 [배치 크기, 숨은 차원]
+        logvar: 부호기의 로그 흩어짐 [배치 크기, 숨은 차원]
         free_bits: 차원마다의 최소 KL(냇 단위)
     
     반환값:
@@ -51,13 +51,13 @@ def vae_loss_free_bits(recon_x, x, mu, logvar, free_bits=0.5):
     # 되살림 손실
     recon_loss = F.binary_cross_entropy(recon_x, x, reduction='sum')
     
-    # 차원마다의 KL: [묶음 크기, 숨은 차원]
+    # 차원마다의 KL: [배치 크기, 숨은 차원]
     kl_per_dim = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
     
-    # 묶음에 걸쳐 먼저 평균 낸 뒤 공짜 비트를 적용한다
+    # 배치에 걸쳐 먼저 평균 낸 뒤 공짜 비트를 적용한다
     kl_mean_per_dim = kl_per_dim.mean(dim=0)  # [숨은 차원]
     kl_free = torch.clamp(kl_mean_per_dim, min=free_bits)
-    kl_loss = kl_free.sum() * x.size(0)  # 묶음 잣수로 되돌린다
+    kl_loss = kl_free.sum() * x.size(0)  # 배치 잣수로 되돌린다
     
     total_loss = recon_loss + kl_loss
     return total_loss, recon_loss, kl_loss
@@ -93,7 +93,7 @@ def vae_loss_free_bits(recon_x, x, mu, logvar, free_bits=0.5):
 
 ## 5. 다음은
 
-다음 절은 묶음 크기가 변분 자기 부호기 익히기의 움직임에 미치는 영향을 살핀다.
+다음 절은 배치 크기가 변분 자기 부호기 익히기의 움직임에 미치는 영향을 살핀다.
 
 ---
 

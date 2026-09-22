@@ -98,7 +98,7 @@ def box_iou(
     """
     두 상자 모음 사이의 짝짓기 겹침 비를 셈한다.
     
-    여기 짠 것은 효율을 위해 묶음 셈을 받쳐 준다.
+    여기 짠 것은 효율을 위해 배치 셈을 받쳐 준다.
     
     인수:
         boxes1: xyxy 꼴의, 꼴이 (N, 4)인 텐서
@@ -516,7 +516,7 @@ import torchvision.ops as ops
 # 보통의 NMS
 keep_indices = ops.nms(boxes, scores, iou_threshold=0.5)
 
-# 묶음 NMS(갈래마다)
+# 배치 NMS(갈래마다)
 keep_indices = ops.batched_nms(boxes, scores, labels, iou_threshold=0.5)
 
 # 결과 거르기
@@ -787,7 +787,7 @@ scores = scores.cuda()
 keep = ops.nms(boxes, scores, iou_threshold=0.5)
 ```
 
-### 묶음 단위 다루기
+### 배치 단위 다루기
 
 그림 여럿을 효율적으로 다룬다:
 
@@ -796,7 +796,7 @@ def batched_detection_postprocess(
     batch_predictions: list[dict],
     **kwargs
 ) -> list[dict]:
-    """어림 묶음을 다룬다."""
+    """어림 배치를 다룬다."""
     return [detection_postprocess(pred, **kwargs) for pred in batch_predictions]
 ```
 

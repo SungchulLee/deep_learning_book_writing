@@ -120,7 +120,7 @@ adversary_fast = AutoAttack(
     version='plus'
 )
 
-# 골라 쓰는 치기 묶음
+# 골라 쓰는 치기 배치
 adversary_custom = AutoAttack(model, norm='Linf', eps=8/255)
 adversary_custom.attacks_to_run = ['apgd-ce', 'apgd-t']
 ```

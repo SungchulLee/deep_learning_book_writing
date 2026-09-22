@@ -81,7 +81,7 @@ def make_data(name, n=2000, seed=0):
 
 
 def train(model, Xtr, ytr, Xte, yte, epochs=400):
-    """전체 묶음 경사 하강법으로 학습시키고 시험 정확도를 돌려준다."""
+    """전체 배치 경사 하강법으로 학습시키고 시험 정확도를 돌려준다."""
     opt = torch.optim.Adam(model.parameters(), lr=0.05)
     criterion = nn.CrossEntropyLoss()
     Xtr, ytr = torch.from_numpy(Xtr), torch.from_numpy(ytr)

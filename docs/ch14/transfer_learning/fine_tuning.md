@@ -248,7 +248,7 @@ def get_discriminative_lr_params(
     weight_decay: float = 0.01
 ) -> List[Dict[str, Any]]:
     """
-    층별 학습률을 가진 매개변수 묶음을 만든다.
+    층별 학습률을 가진 매개변수 배치를 만든다.
     
     학습률 일정:
     - 임베딩: base_lr * decay^num_layers (가장 낮다)
@@ -557,14 +557,14 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-파이토치에서 차츰 녹이기를 구현하라 (세대마다 층 묶음 하나씩 녹인다).
+파이토치에서 차츰 녹이기를 구현하라 (세대마다 층 배치 하나씩 녹인다).
 
 </div>
 
 ??? success "연습문제 3 풀이"
     ```python
     for epoch in range(num_epochs):
-        # 다음 층 묶음을 녹인다
+        # 다음 층 배치를 녹인다
         for param in model.layer_groups[min(epoch, len(model.layer_groups)-1)].parameters():
             param.requires_grad = True
         # 지금까지 녹인 층을 모두 써서 학습한다

@@ -132,8 +132,8 @@ class PrecisionRecallCalculator:
         
         인수:
             k: k번째 가장 가까운 이웃의 이웃 수
-            row_batch_size: 거리 셈에 쓰는 묶음 크기(줄)
-            col_batch_size: 거리 셈에 쓰는 묶음 크기(열)
+            row_batch_size: 거리 셈에 쓰는 배치 크기(줄)
+            col_batch_size: 거리 셈에 쓰는 배치 크기(열)
         """
         self.k = k
         self.row_batch_size = row_batch_size
@@ -143,7 +143,7 @@ class PrecisionRecallCalculator:
                                   X: np.ndarray,
                                   Y: np.ndarray) -> np.ndarray:
         """
-        묶음 단위로 짝마다 유클리드 거리를 셈한다.
+        배치 단위로 짝마다 유클리드 거리를 셈한다.
         
         인수:
             X: 첫째 점 모임 [N, D]
@@ -270,8 +270,8 @@ class ImprovedPrecisionRecall:
         
         인수:
             k: 다양체 어림의 이웃 수
-            row_batch_size: 거리 셈하기의 묶음 크기
-            col_batch_size: 거리 셈하기의 묶음 크기
+            row_batch_size: 거리 셈하기의 배치 크기
+            col_batch_size: 거리 셈하기의 배치 크기
         """
         self.k = k
         self.row_batch_size = row_batch_size
@@ -280,7 +280,7 @@ class ImprovedPrecisionRecall:
     def _batch_pairwise_distances(self,
                                   X: np.ndarray,
                                   Y: np.ndarray) -> np.ndarray:
-        """묶음 단위로 짝마다 거리를 셈한다."""
+        """배치 단위로 짝마다 거리를 셈한다."""
         n = len(X)
         m = len(Y)
         distances = np.zeros((n, m), dtype=np.float32)

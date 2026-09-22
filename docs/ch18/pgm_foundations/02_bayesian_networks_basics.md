@@ -24,7 +24,7 @@
 ------------------------
 베이즈 망은 다음을 만족하는 튜플 (G, P)이다:
 - G = (V, E)은 방향 비순환 그래프(DAG)이다
-- P = {P(Xi | Parents(Xi))}은 조건부 확률 분포의 묶음이다
+- P = {P(Xi | Parents(Xi))}은 조건부 확률 분포의 배치다
 
 이 망은 결합 분포를 다음과 같이 나타낸다:
     P(X1, ..., Xn) = ∏ P(Xi | Parents(Xi))
@@ -793,7 +793,7 @@ Next: Learn about inference in Bayesian Networks!
 
 ## 2. 논의
 
-베이즈 망은 튜플 $(G, P)$이며, 여기서 $G = (V, E)$은 DAG이고 $P = \{P(X_i | \text{Parents}(X_i))\}$은 조건부 확률 분포의 묶음이다. 이 망은 결합 분포를 $P(X_1, \ldots, X_n) = \prod_i P(X_i | \text{Parents}(X_i))$으로 나타낸다. 이 쪼개기가 셈 효율의 열쇠이다.
+베이즈 망은 튜플 $(G, P)$이며, 여기서 $G = (V, E)$은 DAG이고 $P = \{P(X_i | \text{Parents}(X_i))\}$은 조건부 확률 분포의 배치다. 이 망은 결합 분포를 $P(X_1, \ldots, X_n) = \prod_i P(X_i | \text{Parents}(X_i))$으로 나타낸다. 이 쪼개기가 셈 효율의 열쇠이다.
 
 코드는 고전적인 보기 둘을 구현한다. 날씨 망(흐림이 물뿌리개와 비에 함께 영향을 주고, 그 둘이 젖은 잔디에 영향을 준다)과 학생 망(어려움과 머리 좋음이 성적에 영향을 주고, 성적이 추천서의 질에 영향을 준다)이다. 이 망들은 함께 낳은 원인 짜임, 여러 원인, 그리고 쪼개기로 얻는 큰 매개변수 줄임을 보여 준다.
 
@@ -906,6 +906,6 @@ print(f'P(Rain=1|WetGrass=1) exact = {p_rain_wet/p_wet:.4f}')
 
 **다룬 것** — 베이즈 망의 기초
 
-베이즈 망은 튜플 $(G, P)$이며, 여기서 $G = (V, E)$은 DAG이고 $P = \{P(X_i | \text{Parents}(X_i))\}$은 조건부 확률 분포의 묶음이다.
+베이즈 망은 튜플 $(G, P)$이며, 여기서 $G = (V, E)$은 DAG이고 $P = \{P(X_i | \text{Parents}(X_i))\}$은 조건부 확률 분포의 배치다.
 
 고갱이 갈래는 `ConditionalProbabilityTable`, `BayesianNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

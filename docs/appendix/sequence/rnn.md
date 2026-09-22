@@ -16,7 +16,7 @@
 고갱이: h_t = tanh(W_x x_t + W_h h_{t-1} + b)
 
 두루마리: appendix/sequence/rnn.py
-눈여겨볼 것: 주석을 빠짐없이 단, 배우기 위한 짜보기다(한 켜, 묶음을 앞에 둔다).
+눈여겨볼 것: 주석을 빠짐없이 단, 배우기 위한 짜보기다(한 켜, 배치를 앞에 둔다).
 """
 
 import torch
@@ -59,7 +59,7 @@ class RNN(nn.Module):
     맨 RNN(때를 따라 손으로 풀어 놓음).
 
     들임:
-      x : (B, T, input_size)  묶음을 앞에 둔 이음
+      x : (B, T, input_size)  배치를 앞에 둔 이음
     날임:
       y : (B, T, hidden_size) 때에 걸친 모든 숨은 상태
       h_T : (B, hidden_size) 마지막 숨은 상태
@@ -70,7 +70,7 @@ class RNN(nn.Module):
         self.hidden_size = hidden_size
 
     def forward(self, x: torch.Tensor, h0: torch.Tensor | None = None):
-        # 묶음 크기와 때 길이를 뽑는다
+        # 배치 크기와 때 길이를 뽑는다
         B, T, _ = x.shape
         device = x.device
 
