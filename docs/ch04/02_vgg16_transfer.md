@@ -117,8 +117,6 @@ print(f"학습한 매개변수 {sum(p.numel() for p in head.parameters()):,}")
 **출력:**
 
 ```
-Files already downloaded and verified
-Files already downloaded and verified
 5걸음 정확도 84.93%
 학습한 매개변수 40,970
 ```

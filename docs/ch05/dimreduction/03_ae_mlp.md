@@ -104,6 +104,8 @@ for k in (64, 2):
     enc_p = sum(p.numel() for p in m.enc.parameters())
     print(f"  ae_mlp{k:<2d}  복원 MSE {((rec - Xte) ** 2).mean():.5f}  "
           f"부호기 {enc_p:,}  같은 숫자로 {identity(rec):.2f}%")
+    if k == 64:
+        torch.save(m.state_dict(), "mnist_ae_mlp64.pt")   # 5.3절이 읽어 쓴다
     if k == 2:                                  # 잠재 공간 그림에 쓸 좌표
         with torch.no_grad():
             z = torch.cat([m.enc(Xte[i:i + 1000].to(device)).cpu()

@@ -162,8 +162,12 @@ for k in (2, 64):
     pred = judge_probs(rec).argmax(1)
     ident = 100.0 * (pred == yte).float().mean()
     conf, bal, _ = sample_stats(s)
-    print(f"  vae{k}_beta1.0  복원 {((rec - Xte) ** 2).mean():.5f}  "
+    tag = f"vae{k}_beta1.0"
+    print(f"  {tag:14s} 복원 {((rec - Xte) ** 2).mean():.5f}  "
           f"정체 {ident:.2f}%  확신도 {conf:.3f}  고름 {bal:.3f}")
+
+    # 5.3절이 이 모델을 읽어, 자기 부호기·GAN과 같은 자로 다시 잰다
+    torch.save(m.state_dict(), f"mnist_vae{k}_beta1.0.pt")
 ```
 
 **출력:**

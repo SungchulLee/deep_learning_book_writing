@@ -154,7 +154,8 @@ for k in (2, 64):
 
     got = judge_probs(s).argmax(1)
     cond_acc = 100.0 * (got == want).float().mean()
-    print(f"  cvae{k}  복원 {((rec - Xte) ** 2).mean():.5f}  "
+    tag = f"cvae{k}"
+    print(f"  {tag:7s} 복원 {((rec - Xte) ** 2).mean():.5f}  "
           f"조건 정확도 {cond_acc:.2f}%")
 ```
 

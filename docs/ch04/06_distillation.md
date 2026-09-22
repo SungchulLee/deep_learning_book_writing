@@ -156,8 +156,11 @@ for seed in range(5):
     teachers.append(m)
     print(f"  씨앗 {seed}: 시험 {accuracy(m, Xte, yte):.2f}%", flush=True)
 
-probs = torch.stack([torch.softmax(logits_of(m, Xte), 1) for m in teachers])
-print(f"\n앙상블 (확률 평균) {100.0 * (probs.mean(0).argmax(1) == yte).float().mean():.2f}%")
+# 두 가지로 모을 수 있다. 증류가 쓰는 것은 로짓 평균이다 — 온도가 로짓에 걸리므로
+L = torch.stack([logits_of(m, Xte) for m in teachers])
+print(f"\n앙상블 (로짓 평균) {100.0 * (L.mean(0).argmax(1) == yte).float().mean():.2f}%")
+print(f"앙상블 (확률 평균) {100.0 * (torch.softmax(L, 2).mean(0).argmax(1) == yte).float().mean():.2f}%"
+      "   <- 4.5절")
 
 # 교사의 로짓은 학습 집합에 대해 미리 한 번 계산해 둔다.
 # 교사는 얼려 두므로 다시 계산할 까닭이 없다
@@ -197,7 +200,8 @@ measure("홑모델 T=3, 하드 절반", 30, teacher_logits=TL1, T=3, alpha=0.5)
   씨앗 3: 시험 71.79%
   씨앗 4: 시험 70.68%
 
-앙상블 (확률 평균) 74.73%
+앙상블 (로짓 평균) 74.77%
+앙상블 (확률 평균) 74.73%   <- 4.5절
 
 === 학생 5 에포크 ===
   하드 라벨만 (기준선)            시험 71.75%  퍼짐 0.82  틈  9.28
