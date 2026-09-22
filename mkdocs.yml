@@ -109,8 +109,11 @@ nav:
         - AE_Linear: ch05/dimreduction/02_ae_linear.md
         - AE_MLP: ch05/dimreduction/03_ae_mlp.md
         - AE_CNN: ch05/dimreduction/04_ae_cnn.md
-      - 5.2 VAE와 cVAE:
-        - 뽑을 수 있는 잠재 공간: ch05/02_vae.md
+      - 5.2 은닉공간을 활용한 생성모델:
+        - 전체 그림: ch05/latent_generative/index.md
+        - VAE: ch05/latent_generative/01_vae.md
+        - β-VAE: ch05/latent_generative/02_beta_vae.md
+        - cVAE: ch05/latent_generative/03_cvae.md
       - 5.3 GAN과 DCGAN:
         - 평균 내지 않는 손실: ch05/03_gan.md
     - 6 PyTorch 기초:
