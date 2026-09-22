@@ -90,25 +90,25 @@ nav:
     - 4 CIFAR-10으로 다시 보는 딥러닝:
       - 장 개요: ch04/index.md
       - 4.1 같은 사다리, 다른 데이터:
-        - 같은 사다리, 다른 데이터: ch04/01_two_ladders.md
+        - MNIST와 CIFAR-10을 나란히: ch04/01_two_ladders.md
       - 4.2 VGG16 전이:
-        - VGG16 전이: ch04/02_vgg16_transfer.md
+        - 다섯째 걸음: ch04/02_vgg16_transfer.md
       - 4.3 데이터 증강:
-        - 데이터 증강: ch04/03_augmentation.md
+        - 여섯째 걸음: ch04/03_augmentation.md
       - 4.4 차원 줄이기:
-        - 차원 줄이기: ch04/04_dimensionality_reduction.md
+        - 라벨 없이 표현을 배울 수 있는가: ch04/04_dimensionality_reduction.md
       - 4.5 앙상블:
-        - 앙상블: ch04/05_ensemble.md
+        - 새 생각 없이 남은 정확도: ch04/05_ensemble.md
       - 4.6 증류:
-        - 증류: ch04/06_distillation.md
+        - 앙상블을 한 모델에 옮기기: ch04/06_distillation.md
     - 5 MNIST로 만들어 내는 딥러닝:
       - 장 개요: ch05/index.md
-      - 5.1 되살리는 사다리:
+      - 5.1 PCA와 AE:
         - 되살리는 사다리: ch05/01_autoencoder_ladder.md
-      - 5.2 변분 자기 부호기:
-        - 변분 자기 부호기: ch05/02_vae.md
+      - 5.2 VAE와 cVAE:
+        - 뽑을 수 있는 잠재 공간: ch05/02_vae.md
       - 5.3 GAN과 DCGAN:
-        - GAN과 DCGAN: ch05/03_gan.md
+        - 평균 내지 않는 손실: ch05/03_gan.md
     - 6 PyTorch 기초:
       - 장 개요: ch06/index.md
       - 6.1 텐서:
