@@ -96,6 +96,8 @@ nav:
         - 같은 사다리, 다른 데이터: cifar10/01_two_ladders.md
       - 4.2 VGG16 전이:
         - VGG16 전이: cifar10/02_vgg16_transfer.md
+      - 4.3 데이터 증강:
+        - 데이터 증강: cifar10/03_augmentation.md
     - 4 PyTorch 기초:
       - 장 개요: ch04/index.md
       - 4.1 텐서:
