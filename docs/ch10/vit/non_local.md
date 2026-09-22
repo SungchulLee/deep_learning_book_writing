@@ -135,7 +135,7 @@ $$\text{Cost} = HW \times HW \times \frac{C}{r} \ll HW \times HW \times C$$
 
 - CNN의 어텐션 장치 (8.1.1절)
 - 비전 트랜스포머 구조 (8.3절)
-- 영상의 시간 모형화 (16장)
+- 영상의 시간 모형화 (21장)
 
 ---
 

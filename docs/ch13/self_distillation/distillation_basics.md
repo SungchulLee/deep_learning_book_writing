@@ -177,7 +177,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 - 지수 이동 평균 교사 (11.2.2절)
 - 자기 증류 훑어보기 (11.2절)
 - 모형 압축 기법
-- 전이 학습 (10장)
+- 전이 학습 (14장)
 
 ---
 
