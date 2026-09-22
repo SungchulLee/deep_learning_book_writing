@@ -9,7 +9,7 @@
 35.1.2 겪음 되돌려 보기
 ========================
 
-여러 되돌려 보기 담개 짜기: 기본 두 끝 줄 바탕, 빠른
+여러 되돌려 보기 버퍼 짜기: 기본 두 끝 줄 바탕, 빠른
 NumPy 바탕, 그리고 섞은 겪음 되돌려 보기.
 """
 
@@ -28,14 +28,14 @@ Transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'
 
 
 # ---------------------------------------------------------------------------
-# 1. 기본 두 끝 줄 바탕 되돌려 보기 담개
+# 1. 기본 두 끝 줄 바탕 되돌려 보기 버퍼
 # ---------------------------------------------------------------------------
 
 class BasicReplayBuffer:
-    """간단한 두 끝 줄 바탕 되돌려 보기 담개.
+    """간단한 두 끝 줄 바탕 되돌려 보기 버퍼.
     
     좋은 점: 짜기 쉽고 길이가 바뀌는 마당을 다룬다.
-    나쁜 점: 파이썬 물체 덧짐이 있고 큰 담개에서는 느리다.
+    나쁜 점: 파이썬 물체 덧짐이 있고 큰 버퍼에서는 느리다.
     """
 
     def __init__(self, capacity: int):
@@ -61,11 +61,11 @@ class BasicReplayBuffer:
 
 
 # ---------------------------------------------------------------------------
-# 2. 빠른 NumPy 바탕 되돌려 보기 담개
+# 2. 빠른 NumPy 바탕 되돌려 보기 버퍼
 # ---------------------------------------------------------------------------
 
 class EfficientReplayBuffer:
-    """NumPy 배열 바탕 고리 꼴 되돌려 보기 담개.
+    """NumPy 배열 바탕 고리 꼴 되돌려 보기 버퍼.
     
     빠르기를 위해 이어진 NumPy 배열로 기억을 미리 잡는다.
     파이썬 물체 덧짐을 피하고 빠른 배치 번호 매기기를 할 수 있다.
@@ -150,11 +150,11 @@ class CombinedReplayBuffer:
 
 
 # ---------------------------------------------------------------------------
-# 4. 틀 쌓기 되돌려 보기 담개(아타리용)
+# 4. 틀 쌓기 되돌려 보기 버퍼(아타리용)
 # ---------------------------------------------------------------------------
 
 class FrameStackReplayBuffer:
-    """틀을 쌓은 살핌을 위한 기억 아끼는 되돌려 보기 담개.
+    """틀을 쌓은 살핌을 위한 기억 아끼는 되돌려 보기 버퍼.
     
     옮김마다 쌓은 그림 4장을 갈무리하는 대신(겹치는 자료),
     틀을 낱낱이 갈무리하고 뽑을 때 쌓음을 다시 짓는다.
@@ -189,7 +189,7 @@ class FrameStackReplayBuffer:
         for i in range(self.n_stack):
             frame_idx = (idx - i) % self.capacity
             indices.append(frame_idx)
-            # 끝맺음에 닿거나 담개 시작 앞으로 가면 0으로 채움
+            # 끝맺음에 닿거나 버퍼 시작 앞으로 가면 0으로 채움
             if self.dones[frame_idx] and i > 0:
                 # 남은 틀은 쓸 수 있는 첫 틀로 채움
                 indices.extend([frame_idx] * (self.n_stack - len(indices)))
@@ -198,7 +198,7 @@ class FrameStackReplayBuffer:
         return self.frames[indices]  # (n_stack, H, W)
 
     def sample(self, batch_size: int) -> Tuple[torch.Tensor, ...]:
-        # 담개 경계에 너무 가까운 자리에서는 뽑지 않음
+        # 버퍼 경계에 너무 가까운 자리에서는 뽑지 않음
         valid = np.arange(self.n_stack, self.size)
         indices = np.random.choice(valid, size=batch_size, replace=False)
 
@@ -218,7 +218,7 @@ class FrameStackReplayBuffer:
 
 
 # ---------------------------------------------------------------------------
-# 되돌려 보기 담개 셈밝힘
+# 되돌려 보기 버퍼 셈밝힘
 # ---------------------------------------------------------------------------
 
 def buffer_statistics(buffer, n_samples: int = 1000) -> Dict[str, float]:
@@ -242,7 +242,7 @@ def buffer_statistics(buffer, n_samples: int = 1000) -> Dict[str, float]:
 # ---------------------------------------------------------------------------
 
 def demo_experience_replay():
-    """되돌려 보기 담개 짜기를 견준다."""
+    """되돌려 보기 버퍼 짜기를 견준다."""
     import gymnasium as gym
 
     print("=" * 60)
@@ -252,7 +252,7 @@ def demo_experience_replay():
     env = gym.make('CartPole-v1')
     state_dim = env.observation_space.shape[0]
 
-    # --- 담개 채우기 ---
+    # --- 버퍼 채우기 ---
     buffers = {
         'Basic (deque)': BasicReplayBuffer(10000),
         'Efficient (numpy)': EfficientReplayBuffer(10000, state_dim),
@@ -285,7 +285,7 @@ def demo_experience_replay():
         print(f"  {name:>20s}: {n_samples} samples in {elapsed:.3f}s "
               f"({n_samples/elapsed:.0f} batches/sec)")
 
-    # --- 담개 셈밝힘 ---
+    # --- 버퍼 셈밝힘 ---
     print("\n--- Buffer Statistics ---")
     for name, buf in buffers.items():
         stats = buffer_statistics(buf)

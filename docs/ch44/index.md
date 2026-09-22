@@ -47,7 +47,7 @@
 - gRPC 서비스 -- Protocol Buffers과 HTTP/2으로 하는 빠르고 늦음이 적은 모형 서비스
 - TorchServe -- 움직이는 묶기와 여러 모형 다루기를 갖춘 PyTorch의 정식 서비스 틀
 - NVIDIA Triton 미루어 봄 서비스개 -- GPU 차례 잡기와 모형 모둠을 갖춘 기업 품질의 여러 틀 서비스
-- BentoML -- 담개 받침을 갖추고 서비스 품질의 AI 서비스를 짓는 파이썬 앞세운 틀
+- BentoML -- 컨테이너 받침을 갖추고 서비스 품질의 AI 서비스를 짓는 파이썬 앞세운 틀
 
 ---
 

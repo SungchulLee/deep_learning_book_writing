@@ -69,7 +69,7 @@ $$
 
 ### 프레셰 그래프 거리(FGD)
 
-그림의 FID와 비슷하게 FGD은 미리 익힌 그래프 신경망 담개 $f$으로 그래프를 특징 자리에 박아 넣은 뒤 가우스 어림 사이의 프레셰 거리를 셈한다:
+그림의 FID와 비슷하게 FGD은 미리 익힌 그래프 신경망 인코더 $f$으로 그래프를 특징 자리에 박아 넣은 뒤 가우스 어림 사이의 프레셰 거리를 셈한다:
 
 $$
 \text{FGD} = \|\boldsymbol{\mu}_{\text{ref}} - \boldsymbol{\mu}_{\text{gen}}\|^2 + \text{Tr}\left(\boldsymbol{\Sigma}_{\text{ref}} + \boldsymbol{\Sigma}_{\text{gen}} - 2(\boldsymbol{\Sigma}_{\text{ref}}\boldsymbol{\Sigma}_{\text{gen}})^{1/2}\right)

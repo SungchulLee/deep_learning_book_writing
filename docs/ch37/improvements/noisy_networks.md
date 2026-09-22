@@ -48,7 +48,7 @@ class NoisyLinear(nn.Module):
         self.mu_bias = nn.Parameter(torch.empty(out_features))
         self.sigma_bias = nn.Parameter(torch.empty(out_features))
 
-        # 인수분해 시끄러움 담개(값이 아님)
+        # 인수분해 시끄러움 버퍼(값이 아님)
         self.register_buffer('eps_in', torch.zeros(in_features))
         self.register_buffer('eps_out', torch.zeros(out_features))
 
@@ -166,7 +166,7 @@ class NoisyQNetwork(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# 되돌려 보기 담개
+# 되돌려 보기 버퍼
 # ---------------------------------------------------------------------------
 
 class ReplayBuffer:

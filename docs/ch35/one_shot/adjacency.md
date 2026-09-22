@@ -100,7 +100,7 @@ $$
 \mathcal{L} = \mathcal{L}_{\text{recon}} + \beta \mathcal{L}_{\text{KL}} + \lambda_{\text{match}} \mathcal{L}_{\text{match}}
 $$
 
-여기서 $\mathcal{L}_{\text{recon}}$은 변 되짓기 손실(두 값 교차 엔트로피), $\mathcal{L}_{\text{KL}}$은 변분 스스로 담개 바탕 방법의 쿨백-라이블러 어긋남, $\mathcal{L}_{\text{match}}$은 자리바꿈 맞추기를 다룬다.
+여기서 $\mathcal{L}_{\text{recon}}$은 변 되짓기 손실(두 값 교차 엔트로피), $\mathcal{L}_{\text{KL}}$은 변분 오토인코더 바탕 방법의 쿨백-라이블러 어긋남, $\mathcal{L}_{\text{match}}$은 자리바꿈 맞추기를 다룬다.
 
 ---
 

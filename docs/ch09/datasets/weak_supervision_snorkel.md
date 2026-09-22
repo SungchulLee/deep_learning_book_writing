@@ -77,7 +77,7 @@ print("""
 
 # 순수 파이썬 구현 (Snorkel에 기대지 않는다)
 class DataPoint:
-    """판다스의 행을 흉내 낸 간단한 데이터 담개."""
+    """판다스의 행을 흉내 낸 간단한 데이터 컨테이너."""
     def __init__(self, text: str, **kwargs):
         self.text = text
         for k, v in kwargs.items():

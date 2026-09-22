@@ -33,7 +33,7 @@ Transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'
 
 
 # ---------------------------------------------------------------------------
-# 되돌려 보기 담개
+# 되돌려 보기 버퍼
 # ---------------------------------------------------------------------------
 
 class ReplayBuffer:
@@ -110,7 +110,7 @@ class DQNAgent:
                  lr: float = 1e-3,
                  gamma: float = 0.99,
                  batch_size: int = 64,
-                 # 되돌려 보기 담개
+                 # 되돌려 보기 버퍼
                  buffer_capacity: int = 50000,
                  min_buffer_size: int = 1000,
                  # 과녁 그물
@@ -151,7 +151,7 @@ class DQNAgent:
         else:
             self.loss_fn = nn.MSELoss()
 
-        # 되돌려 보기 담개
+        # 되돌려 보기 버퍼
         self.buffer = ReplayBuffer(buffer_capacity, state_dim)
 
         # 셈틀
@@ -183,7 +183,7 @@ class DQNAgent:
         self.total_steps += 1
 
     def train_step(self) -> Optional[float]:
-        """익히기 한 걸음을 한다. 손실을 돌려주되 담개가 너무 작으면 None을 돌려준다."""
+        """익히기 한 걸음을 한다. 손실을 돌려주되 버퍼가 너무 작으면 None을 돌려준다."""
         if len(self.buffer) < self.min_buffer_size:
             return None
 

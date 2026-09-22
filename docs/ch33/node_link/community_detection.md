@@ -15,7 +15,7 @@ from sklearn.cluster import KMeans
 # ========================================================================
 
 class GNNCommunity(nn.Module):
-    """무리 찾기를 위한 그래프 신경망 담개."""
+    """무리 찾기를 위한 그래프 신경망 인코더."""
     def __init__(self, in_ch, hidden_ch, embed_ch):
         super().__init__()
         self.lin1 = nn.Linear(in_ch, hidden_ch)
