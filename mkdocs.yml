@@ -71,7 +71,7 @@ nav:
         - DBSCAN과 병합 군집화: ch02/clustering/02_dbscan_agglomerative.md
         - 가우시안 혼합 모형: ch02/clustering/03_gmm.md
         - 군집화 평가 지표: ch02/metrics/clustering.md
-    - 3 MNIST로 보는 딥러닝:
+    - 3 MNIST로 보는 분류:
       - 장 개요: ch03/index.md
       - 3.1 템플릿 학습:
         - MNIST 템플릿 학습: ch03/mnist/01_template_learning.md
@@ -87,7 +87,7 @@ nav:
         - MNIST 다층 퍼셉트론: ch03/mnist/03_mlp.md
       - 3.4 합성곱 신경망:
         - MNIST 합성곱 신경망: ch03/mnist/04_cnn.md
-    - 4 CIFAR-10으로 다시 보는 딥러닝:
+    - 4 CIFAR-10으로 보는 분류:
       - 장 개요: ch04/index.md
       - 4.1 같은 사다리, 다른 데이터:
         - MNIST와 CIFAR-10을 나란히: ch04/01_two_ladders.md
@@ -101,7 +101,7 @@ nav:
         - 새 생각 없이 남은 정확도: ch04/05_ensemble.md
       - 4.6 증류:
         - 앙상블을 한 모델에 옮기기: ch04/06_distillation.md
-    - 5 MNIST로 만들어 내는 딥러닝:
+    - 5 MNIST로 보는 생성:
       - 장 개요: ch05/index.md
       - 5.1 차원축소:
         - 네 걸음 전체: ch05/dimreduction/index.md
