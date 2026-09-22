@@ -30,7 +30,7 @@
 |---|---|---|---|
 | 되살리기 | [5.1](dimreduction/index.md) | PCA → 선형 AE → AE_MLP → AE_CNN | 줄였다 되살린다 |
 | 만들기 | [5.2](latent_generative/index.md) | VAE → cVAE | **표본을 만든다**, 원하는 숫자를 만든다 |
-| 만들기 | [5.3](03_gan.md) | GAN → DCGAN | **선명한 표본을 만든다** |
+| 만들기 | [5.3](generative/index.md) | GAN → DCGAN | **선명한 표본을 만든다** |
 
 앞 사다리의 네 걸음은 [3장](../ch03/index.md)·[4장](../ch04/index.md)의 네 걸음과 생각이 하나씩 짝을 이룬다. 닫힌 꼴, 선형 학습, 비선형성, 이웃 관계. 목표만 가르기에서 되살리기로 바뀐다.
 

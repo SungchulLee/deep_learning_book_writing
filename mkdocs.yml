@@ -114,8 +114,10 @@ nav:
         - VAE: ch05/latent_generative/01_vae.md
         - β-VAE: ch05/latent_generative/02_beta_vae.md
         - cVAE: ch05/latent_generative/03_cvae.md
-      - 5.3 GAN과 DCGAN:
-        - 평균 내지 않는 손실: ch05/03_gan.md
+      - 5.3 생성모델:
+        - 전체 그림: ch05/generative/index.md
+        - GAN: ch05/generative/01_gan.md
+        - DCGAN: ch05/generative/02_dcgan.md
     - 6 PyTorch 기초:
       - 장 개요: ch06/index.md
       - 6.1 텐서:
