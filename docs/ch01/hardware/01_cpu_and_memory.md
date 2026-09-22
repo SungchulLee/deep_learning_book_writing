@@ -150,7 +150,7 @@ print(f"더한 원소 개수는 같다 : {A.sum(axis=1).size * 4000 == A.sum(axi
 
 다만 위에서 잰 차이는 10%대로 그리 크지 않다. NumPy가 이런 뻔한 훑기를 미리 알아채고 덩이 단위로 나누어 처리하기 때문이다. 훑는 차례가 더 불규칙해서 미리 알아채기 어려울수록 차이가 벌어진다. 요점은 배수의 크기가 아니라, **같은 개수의 덧셈인데도 값이 달라진다**는 사실 자체이다.
 
-이 성질은 뒤에서 PyTorch의 `view`, `reshape`, `contiguous`를 이해할 때 다시 나온다. 자세한 것은 [5장의 메모리 배치와 스트라이드](../../ch05/tensor_attrs/memory_layout_strides.md)에 있다.
+이 성질은 뒤에서 PyTorch의 `view`, `reshape`, `contiguous`를 이해할 때 다시 나온다. 자세한 것은 [6장의 메모리 배치와 스트라이드](../../ch06/tensor_attrs/memory_layout_strides.md)에 있다.
 
 ---
 
