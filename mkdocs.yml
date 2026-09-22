@@ -105,6 +105,8 @@ nav:
       - 장 개요: ch05/index.md
       - 5.1 되살리는 사다리:
         - 되살리는 사다리: ch05/01_autoencoder_ladder.md
+      - 5.2 변분 자기 부호기:
+        - 변분 자기 부호기: ch05/02_vae.md
     - 6 PyTorch 기초:
       - 장 개요: ch06/index.md
       - 6.1 텐서:
