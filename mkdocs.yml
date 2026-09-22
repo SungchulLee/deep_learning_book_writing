@@ -87,7 +87,7 @@ nav:
         - MNIST 다층 퍼셉트론: ch03/mnist/03_mlp.md
       - 3.4 합성곱 신경망:
         - MNIST 합성곱 신경망: ch03/mnist/04_cnn.md
-    - 4 CIFAR-10으로 보는 분류:
+    - 4 CIFAR-10으로 다시 보는 분류:
       - 장 개요: ch04/index.md
       - 4.1 같은 사다리, 다른 데이터:
         - MNIST와 CIFAR-10을 나란히: ch04/01_two_ladders.md
