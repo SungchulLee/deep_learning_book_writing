@@ -28,7 +28,7 @@
 
 | 사다리 | 절 | 모델 | 새로 할 수 있게 되는 일 |
 |---|---|---|---|
-| 되살리기 | [5.1](01_autoencoder_ladder.md) | PCA → 선형 AE → AE_MLP → AE_CNN | 줄였다 되살린다 |
+| 되살리기 | [5.1](dimreduction/index.md) | PCA → 선형 AE → AE_MLP → AE_CNN | 줄였다 되살린다 |
 | 만들기 | [5.2](02_vae.md) | VAE → cVAE | **표본을 만든다**, 원하는 숫자를 만든다 |
 | 만들기 | [5.3](03_gan.md) | GAN → DCGAN | **선명한 표본을 만든다** |
 

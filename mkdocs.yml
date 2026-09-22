@@ -103,11 +103,15 @@ nav:
         - 앙상블을 한 모델에 옮기기: ch04/06_distillation.md
     - 5 MNIST로 만들어 내는 딥러닝:
       - 장 개요: ch05/index.md
-      - "5.1 PCA → AE_Linear → AE_MLP → AE_CNN":
-        - 되살리는 사다리: ch05/01_autoencoder_ladder.md
-      - "5.2 VAE → cVAE":
+      - 5.1 차원축소:
+        - 네 걸음 전체: ch05/dimreduction/index.md
+        - PCA: ch05/dimreduction/01_pca.md
+        - AE_Linear: ch05/dimreduction/02_ae_linear.md
+        - AE_MLP: ch05/dimreduction/03_ae_mlp.md
+        - AE_CNN: ch05/dimreduction/04_ae_cnn.md
+      - 5.2 VAE와 cVAE:
         - 뽑을 수 있는 잠재 공간: ch05/02_vae.md
-      - "5.3 GAN → DCGAN":
+      - 5.3 GAN과 DCGAN:
         - 평균 내지 않는 손실: ch05/03_gan.md
     - 6 PyTorch 기초:
       - 장 개요: ch06/index.md
