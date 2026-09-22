@@ -83,5 +83,34 @@ def fig_class_mean_templates():
     print("wrote class_mean_templates_both.svg")
 
 
+# === 그림 2: VGG16이 ImageNet에서 배운 첫 층 필터 64장 ======================
+def fig_vgg16_conv1():
+    """3장 4절이 MNIST CNN에 들이댄 잣대를 그대로 VGG16에 들이댄다.
+
+    필터는 3x3x3, 곧 장당 27개 가중치뿐이다. 3장이 경고했듯 이 정도로
+    좁은 공간에서는 무작위 가중치도 모서리 검출기와 어느 정도 닮는다.
+    그래서 그림 옆에 무작위 기준선과의 비교를 함께 둔다.
+    """
+    from torchvision.models import vgg16, VGG16_Weights
+
+    W = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).features[0].weight.detach()
+
+    fig, axes = plt.subplots(4, 16, figsize=(13, 3.6))
+    for i, ax in enumerate(axes.flat):
+        f = W[i]                                    # (3, 3, 3)
+        f = (f - f.min()) / (f.max() - f.min())     # 보이게 [0,1]로 늘린다
+        ax.imshow(f.permute(1, 2, 0))
+        ax.axis("off")
+
+    fig.suptitle("VGG16 conv1: 64 filters, 3x3x3 (27 weights each)",
+                 fontsize=11, y=0.99)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.88, bottom=0.02,
+                        wspace=0.15, hspace=0.15)
+    fig.savefig("vgg16_conv1_filters.svg", transparent=True)
+    plt.close(fig)
+    print("wrote vgg16_conv1_filters.svg")
+
+
 if __name__ == "__main__":
     fig_class_mean_templates()
+    fig_vgg16_conv1()
