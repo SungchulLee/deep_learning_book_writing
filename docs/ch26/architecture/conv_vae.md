@@ -1,14 +1,14 @@
-# 누비기 변분 자기 부호기
+# 누비기 변분 오토인코더
 
-누비기 변분 자기 부호기(ConvVAE) 공간 특징을 더 잘 뽑으려 누비기 층을 쓴다
+누비기 변분 오토인코더(ConvVAE) 공간 특징을 더 잘 뽑으려 누비기 층을 쓴다
 
-자기 부호기와 변분 자기 부호기는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 고갱이 얼개와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
+오토인코더와 변분 오토인코더는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 고갱이 얼개와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
 
 ## 1. 코드
 
 ```python
 """
-누비기 변분 자기 부호기(ConvVAE)
+누비기 변분 오토인코더(ConvVAE)
 공간 특징을 더 잘 뽑으려 누비기 층을 쓴다
 """
 
@@ -23,7 +23,7 @@ import torch.nn.functional as F
 
 class ConvVAE(nn.Module):
     """
-    그림 자료를 위한 누비기 변분 자기 부호기.
+    그림 자료를 위한 누비기 변분 오토인코더.
     
     인수:
         latent_dim (int): 숨은 공간 차원
@@ -38,7 +38,7 @@ class ConvVAE(nn.Module):
         self.img_channels = img_channels
         self.img_size = img_size
         
-        # 부호기
+        # 인코더
         self.encoder = nn.Sequential(
             # 28x28 -> 14x14
             nn.Conv2d(img_channels, 32, kernel_size=4, stride=2, padding=1),
@@ -65,10 +65,10 @@ class ConvVAE(nn.Module):
         self.fc_mu = nn.Linear(self.flatten_size, latent_dim)
         self.fc_logvar = nn.Linear(self.flatten_size, latent_dim)
         
-        # 풀개 들임
+        # 디코더 들임
         self.decoder_input = nn.Linear(latent_dim, self.flatten_size)
         
-        # 복호기
+        # 디코더
         self.decoder = nn.Sequential(
             nn.Unflatten(1, (128, 4, 4)),
             
@@ -151,7 +151,7 @@ class ConvVAE(nn.Module):
     
     def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
         """
-        변분 자기 부호기 손실 함수.
+        변분 오토인코더 손실 함수.
         
         인수:
             reconstruction: 다시 세운 내놓기
@@ -161,7 +161,7 @@ class ConvVAE(nn.Module):
             beta: KL 벌어짐 항의 무게
             
         반환값:
-            loss: 전체 변분 자기 부호기 손실
+            loss: 전체 변분 오토인코더 손실
             bce: 다시 세우기 손실
             kld: KL 벌어짐
         """
@@ -305,9 +305,9 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
     5분의 1로 줄어든다. 까닭은 [3.4절](../../ch03/mnist/04_cnn.md)에서 본 것과 같다.
     누비기는 필터를 온 자리에서 나누어 쓰므로 매개변수가 그림 크기에 안 딸린다.
 
-    자기 부호기에서 잰 값과 견줄 만하다. 거기서는 61,329개였다
+    오토인코더에서 잰 값과 견줄 만하다. 거기서는 61,329개였다
     ([25장](../../ch25/architecture/02_ae_cnn.md)). 여기가 더 큰 것은 $2k$차원을
-    내놓는 부호기 머리와 $7 \times 7 \times 64$로 가는 풀개 머리가 큰 선형층이기 때문이다.
+    내놓는 인코더 머리와 $7 \times 7 \times 64$로 가는 디코더 머리가 큰 선형층이기 때문이다.
     누비기 몸통은 작고 그 두 머리가 대부분을 차지한다.
 
     머리를 줄이려면 마지막 특징 지도를 더 작게 만들거나(누비기를 한 층 더) 전역 평균
@@ -318,7 +318,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 <div class="drillbox" markdown>
 
 **연습문제 6.** <span class="diff med" title="중간"></span>
-누비기 변분 자기 부호기가 다시 세우기와 표본 가운데 어느 쪽에서 이기는가?
+누비기 변분 오토인코더가 다시 세우기와 표본 가운데 어느 쪽에서 이기는가?
 
 </div>
 
@@ -339,7 +339,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
     맞는다.**
 
     되돌리기를 잘하는 쪽이 뽑기를 잘하지 못하는 이 모습이 이 사다리의 되풀이되는 주제다.
-    [25장에서](../../ch25/limits/latent_sampling.md) 자기 부호기가 변분 자기 부호기보다
+    [25장에서](../../ch25/limits/latent_sampling.md) 오토인코더가 변분 오토인코더보다
     되돌리기를 잘하면서 뽑기에서 완패한 것과 같은 구조다.
 
     **되돌리기 오차는 만들어 내기 품질의 잣대가 아니다.** 얼개를 고를 때도 마찬가지다.
@@ -349,7 +349,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 <div class="drillbox" markdown>
 
 **연습문제 7.** <span class="diff med" title="중간"></span>
-풀개에서 `ConvTranspose2d`를 쓰는데, 대신 무엇을 쓸 수 있는가?
+디코더에서 `ConvTranspose2d`를 쓰는데, 대신 무엇을 쓸 수 있는가?
 
 </div>
 
@@ -383,7 +383,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 <div class="drillbox" markdown>
 
 **연습문제 8.** <span class="diff med" title="중간"></span>
-부호기에서 모으기(pooling) 대신 보폭 2를 쓴 까닭은 무엇인가?
+인코더에서 모으기(pooling) 대신 보폭 2를 쓴 까닭은 무엇인가?
 
 </div>
 
@@ -395,15 +395,15 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
     | 배울 것 | 없다 | 있다 |
     | 되돌리기 | 어디가 최대였는지 잃는다 | 정보가 가중치에 남는다 |
 
-    자기 부호기 계열에서 두 번째 줄이 중요하다. 풀개가 크기를 되돌려야 하는데, 최대
+    오토인코더 계열에서 두 번째 줄이 중요하다. 디코더가 크기를 되돌려야 하는데, 최대
     모으기는 **어느 자리가 최대였는지**를 버리므로 그 정보를 복구할 수 없다.
 
     보폭 누비기는 줄이는 방식을 배우므로 되돌리기에 필요한 것을 남길 수 있다. 그래서
-    자기 부호기와 변분 자기 부호기에서는 보폭이 관례다.
+    오토인코더와 변분 오토인코더에서는 보폭이 관례다.
 
     최대 모으기를 쓰면서 자리를 기억해 두는 방법도 있다(`MaxUnpool2d`에 인덱스를
     넘긴다). 다만 그 인덱스가 곧 정보이므로 코드 밖으로 정보가 새는 셈이라, 병목의
-    뜻이 흐려진다. 그 점이 자기 부호기에서 꺼리는 까닭이다.
+    뜻이 흐려진다. 그 점이 오토인코더에서 꺼리는 까닭이다.
 
 ---
 
@@ -448,7 +448,7 @@ MNIST가 아닌 큰 그림에서는 이 견줌이 어떻게 달라지겠는가?
 ??? success "연습문제 10 풀이"
     누비기 쪽이 훨씬 유리해진다.
 
-    까닭은 매개변수 셈에 있다. 완전 연결 부호기의 첫 층은 화소 수에 비례해 커지는데
+    까닭은 매개변수 셈에 있다. 완전 연결 인코더의 첫 층은 화소 수에 비례해 커지는데
     누비기는 그렇지 않다.
 
     | | 28×28 | 128×128 |
@@ -469,7 +469,7 @@ MNIST가 아닌 큰 그림에서는 이 견줌이 어떻게 달라지겠는가?
 
 ## 정리하며
 
-**다룬 것** — 누비기 변분 자기 부호기
+**다룬 것** — 누비기 변분 오토인코더
 
 `ConvVAE` 갈래는 PyTorch의 `nn.Module` 겉면으로 모델 얼개를 감싼다.
 

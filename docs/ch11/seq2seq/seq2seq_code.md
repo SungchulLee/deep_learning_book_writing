@@ -1,6 +1,6 @@
 # 코드: 프랑스어→영어 번역
 
-이 구현은 바다나우(덧셈) 어텐션을 갖춘 부호기-복호기 구조로 프랑스어 문장을 영어로 옮기는 완전한 순차열 대 순차열 번역 시스템을 세운다. 데이터 확보, 텍스트 전처리, 어휘 만들기, 모델 정의, 교사 강요를 쓰는 학습, 탐욕적 복호, 어텐션 시각화까지 아우른다.
+이 구현은 바다나우(덧셈) 어텐션을 갖춘 인코더-디코더 구조로 프랑스어 문장을 영어로 옮기는 완전한 순차열 대 순차열 번역 시스템을 세운다. 데이터 확보, 텍스트 전처리, 어휘 만들기, 모델 정의, 교사 강요를 쓰는 학습, 탐욕적 복호, 어텐션 시각화까지 아우른다.
 
 **출처.** [PyTorch seq2seq 번역 실습](https://github.com/pytorch/tutorials/blob/main/intermediate_source/seq2seq_translation_tutorial.py)을 고쳐 쓴 것으로, 자세한 주석을 붙여 하나의 독립된 스크립트로 다시 짰다.
 
@@ -43,13 +43,13 @@ Target: "i am a student"
 
 ### 수식으로 나타내기
 
-**부호기.** 원본 토큰 $(x_1, \ldots, x_T)$에 대해 다음과 같다.
+**인코더.** 원본 토큰 $(x_1, \ldots, x_T)$에 대해 다음과 같다.
 
 $$\mathbf{e}_t = \text{Embed}(x_t) \in \mathbb{R}^H$$
 
 $$\mathbf{h}_t^{enc} = \text{GRU}(\mathbf{e}_t, \mathbf{h}_{t-1}^{enc}) \in \mathbb{R}^H$$
 
-**어텐션.** 복호기의 $t$번째 걸음에서 바다나우 덧셈 어텐션은 복호기 상태 $\mathbf{s}_t$과 부호기 상태 $\mathbf{h}_j^{enc}$ 사이의 정렬 점수를 계산한다.
+**어텐션.** 디코더의 $t$번째 걸음에서 바다나우 덧셈 어텐션은 디코더 상태 $\mathbf{s}_t$과 인코더 상태 $\mathbf{h}_j^{enc}$ 사이의 정렬 점수를 계산한다.
 
 $$\text{score}(\mathbf{s}_t, \mathbf{h}_j) = \mathbf{v}_a^T \tanh(\mathbf{W}_a \mathbf{s}_t + \mathbf{U}_a \mathbf{h}_j)$$
 
@@ -57,7 +57,7 @@ $$\alpha_{t,j} = \frac{\exp(\text{score}(\mathbf{s}_t, \mathbf{h}_j))}{\sum_{k=1
 
 $$\mathbf{c}_t = \sum_{j=1}^{T} \alpha_{t,j} \, \mathbf{h}_j^{enc}$$
 
-**복호기.** 걸음마다 복호기는 임베딩한 이전 토큰과 어텐션 문맥을 이어 붙여 GRU에 넣는다.
+**디코더.** 걸음마다 디코더는 임베딩한 이전 토큰과 어텐션 문맥을 이어 붙여 GRU에 넣는다.
 
 $$\mathbf{s}_t = \text{GRU}([\text{Embed}(y_{t-1}); \mathbf{c}_t], \mathbf{s}_{t-1})$$
 
@@ -126,9 +126,9 @@ class Lang:
 
 ## 3. 모델 구현
 
-### 부호기
+### 인코더
 
-부호기는 원본 토큰을 저마다 임베딩하고 한 층짜리 GRU로 순차열을 처리하며 자리마다 숨은 상태를 모은다.
+인코더는 원본 토큰을 저마다 임베딩하고 한 층짜리 GRU로 순차열을 처리하며 자리마다 숨은 상태를 모은다.
 
 ```python
 class EncoderRNN(nn.Module):
@@ -164,7 +164,7 @@ class EncoderRNN(nn.Module):
 
 ### 바다나우 어텐션
 
-어텐션 모듈은 복호기의 질의와 부호기의 모든 열쇠 사이의 덧셈 정렬 점수를 계산한다.
+어텐션 모듈은 디코더의 질의와 인코더의 모든 열쇠 사이의 덧셈 정렬 점수를 계산한다.
 
 ```python
 class BahdanauAttention(nn.Module):
@@ -176,8 +176,8 @@ class BahdanauAttention(nn.Module):
 
     def forward(self, query: torch.Tensor, keys: torch.Tensor):
         """
-        query : (B, 1, H) — 복호기의 숨은 상태
-        keys  : (B, T, H) — 부호기의 모든 숨은 상태
+        query : (B, 1, H) — 디코더의 숨은 상태
+        keys  : (B, T, H) — 인코더의 모든 숨은 상태
 
         문맥 (B, 1, H)과 가중치 (B, 1, T)를 돌려준다
         """
@@ -188,11 +188,11 @@ class BahdanauAttention(nn.Module):
         return context, weights
 ```
 
-`self.Wa(query) + self.Ua(keys)`에서 방송이 통하는 까닭은 `query`의 모양이 $(B, 1, H)$이고 `self.Ua(keys)`의 모양이 $(B, T, H)$이기 때문이다. PyTorch가 질의를 부호기의 $T$개 자리에 걸쳐 퍼뜨린다.
+`self.Wa(query) + self.Ua(keys)`에서 방송이 통하는 까닭은 `query`의 모양이 $(B, 1, H)$이고 `self.Ua(keys)`의 모양이 $(B, T, H)$이기 때문이다. PyTorch가 질의를 인코더의 $T$개 자리에 걸쳐 퍼뜨린다.
 
-### 어텐션 복호기
+### 어텐션 디코더
 
-복호기는 임베딩과 어텐션과 GRU를 엮어 자기회귀 생성 반복문을 이룬다.
+디코더는 임베딩과 어텐션과 GRU를 엮어 자기회귀 생성 반복문을 이룬다.
 
 ```python
 class AttnDecoderRNN(nn.Module):
@@ -241,7 +241,7 @@ class AttnDecoderRNN(nn.Module):
 
 ## 4. 학습
 
-학습은 학습률 $10^{-3}$의 Adam 최적화와, 복호기의 로그 소프트맥스 출력에 대한 음의 로그 가능도 손실을 쓴다.
+학습은 학습률 $10^{-3}$의 Adam 최적화와, 디코더의 로그 소프트맥스 출력에 대한 음의 로그 가능도 손실을 쓴다.
 
 ```python
 def train_epoch(dataloader, encoder, decoder, enc_opt, dec_opt, criterion):
@@ -265,7 +265,7 @@ def train_epoch(dataloader, encoder, decoder, enc_opt, dec_opt, criterion):
     return total_loss / len(dataloader)
 ```
 
-출력을 $(B \cdot T, V)$으로, 표적을 $(B \cdot T)$으로 모양을 바꾸어 복호기의 모든 자리에 대해 손실을 한꺼번에 계산한다. 덧댄 토큰(색인 0)도 손실에 이바지하는데, 실전 시스템이라면 `nn.NLLLoss`에 `ignore_index=0`을 넘겨 가릴 것이다.
+출력을 $(B \cdot T, V)$으로, 표적을 $(B \cdot T)$으로 모양을 바꾸어 디코더의 모든 자리에 대해 손실을 한꺼번에 계산한다. 덧댄 토큰(색인 0)도 손실에 이바지하는데, 실전 시스템이라면 `nn.NLLLoss`에 `ignore_index=0`을 넘겨 가릴 것이다.
 
 걸러 낸 데이터셋(약 1만 쌍)으로 80세대를 학습하며, 요즘 GPU에서는 5~10분, CPU에서는 20~30분쯤 걸린다.
 
@@ -275,7 +275,7 @@ def train_epoch(dataloader, encoder, decoder, enc_opt, dec_opt, criterion):
 
 ### 탐욕적 복호
 
-추론할 때 복호기는 교사 강요 없이 돌며 걸음마다 확률이 가장 높은 토큰을 고른다.
+추론할 때 디코더는 교사 강요 없이 돌며 걸음마다 확률이 가장 높은 토큰을 고른다.
 
 ```python
 def evaluate_sentence(encoder, decoder, sentence, input_lang, output_lang):
@@ -302,7 +302,7 @@ def evaluate_sentence(encoder, decoder, sentence, input_lang, output_lang):
 
 ### 어텐션 시각화
 
-어텐션 가중치 행렬 $\boldsymbol{\alpha} \in \mathbb{R}^{T' \times T}$은 복호기가 생성 걸음마다 어떤 원본 토큰에 주목하는지 드러낸다. 이 행렬을 열지도로 그리면 모델의 정렬 거동을 해석할 수 있는 증거가 된다.
+어텐션 가중치 행렬 $\boldsymbol{\alpha} \in \mathbb{R}^{T' \times T}$은 디코더가 생성 걸음마다 어떤 원본 토큰에 주목하는지 드러낸다. 이 행렬을 열지도로 그리면 모델의 정렬 거동을 해석할 수 있는 증거가 된다.
 
 ```python
 def show_attention(input_sentence, output_words, attentions):
@@ -328,7 +328,7 @@ def show_attention(input_sentence, output_words, attentions):
 python seq2seq_attention.py
 ```
 
-이 스크립트는 Tatoeba 데이터셋을 저절로 내려받고 80세대를 학습한 뒤 부호기와 복호기의 가중치를 `model/`에 저장하고, 무작위 쌍과 따로 떼어 둔 시험 문장 네 개로 평가하며 어텐션을 그려 보인다.
+이 스크립트는 Tatoeba 데이터셋을 저절로 내려받고 80세대를 학습한 뒤 인코더와 디코더의 가중치를 `model/`에 저장하고, 무작위 쌍과 따로 떼어 둔 시험 문장 네 개로 평가하며 어텐션을 그려 보인다.
 
 ### 기대 출력
 
@@ -355,9 +355,9 @@ Example pair: ['je suis pret .', 'i m ready .']
 
 | 매개변수 | 값 | 참고 |
 |-----------|-------|-------|
-| `HIDDEN_SIZE` | 128 | 부호기와 복호기 모두의 GRU 숨은 차원 |
+| `HIDDEN_SIZE` | 128 | 인코더와 디코더 모두의 GRU 숨은 차원 |
 | `BATCH_SIZE` | 32 | 학습 미니배치 크기 |
-| `TEACHER_FORCING_RATIO` | 0.5 | 복호기 걸음마다 정답을 쓸 확률 |
+| `TEACHER_FORCING_RATIO` | 0.5 | 디코더 걸음마다 정답을 쓸 확률 |
 | `MAX_LENGTH` | 10 | 문장의 최대 길이(토큰). 더 긴 쌍은 걸러 낸다 |
 | `lr` | 0.001 | Adam 학습률 |
 | `n_epochs` | 80 | 학습 세대 수 |
@@ -369,18 +369,18 @@ Example pair: ['je suis pret .', 'i m ready .']
 
 이 구현은 11장 곳곳의 개념을 아우른다.
 
-- **낱말 임베딩 (9.1절)**: 부호기와 복호기 모두 토큰 색인을 조밀한 벡터로 보내는 학습된 `nn.Embedding` 층을 쓴다. 이 임베딩은 사전 학습 벡터를 쓰지 않고 나머지 모델과 함께 학습한다.
-- **RNN과 숨은 상태 (9.2절)**: 부호기와 복호기의 GRU 세포가 순차 정보를 쌓는 숨은 상태를 지니며, RNN 절의 순환식을 그대로 구현한다.
+- **낱말 임베딩 (9.1절)**: 인코더와 디코더 모두 토큰 색인을 조밀한 벡터로 보내는 학습된 `nn.Embedding` 층을 쓴다. 이 임베딩은 사전 학습 벡터를 쓰지 않고 나머지 모델과 함께 학습한다.
+- **RNN과 숨은 상태 (9.2절)**: 인코더와 디코더의 GRU 세포가 순차 정보를 쌓는 숨은 상태를 지니며, RNN 절의 순환식을 그대로 구현한다.
 - **LSTM과 GRU의 문 (9.3절)**: GRU의 갱신 문과 재설정 문이 순차열에 걸쳐 기억을 골라 지키게 해 주어, 이런 번역 순차열에서 기본 RNN을 괴롭혔을 기울기 소실을 누그러뜨린다.
-- **바다나우 어텐션 (9.5절)**: 덧셈 어텐션 장치가 고정된 문맥 벡터의 정보 병목을 없애, 복호기가 생성 걸음마다 쓸모 있는 부호기 상태에 물어볼 수 있게 한다.
-- **부호기-복호기 틀 (9.4절)**: 전체 구조가 어텐션으로 보강한 문맥 벡터와 함께 부호기-복호기 틀을 실현한다.
+- **바다나우 어텐션 (9.5절)**: 덧셈 어텐션 장치가 고정된 문맥 벡터의 정보 병목을 없애, 디코더가 생성 걸음마다 쓸모 있는 인코더 상태에 물어볼 수 있게 한다.
+- **인코더-디코더 틀 (9.4절)**: 전체 구조가 어텐션으로 보강한 문맥 벡터와 함께 인코더-디코더 틀을 실현한다.
 - **교사 강요 (9.4절)**: 학습은 수렴 속도와 노출 편향의 균형을 잡으려고 확률적인 교사 강요를 쓴다.
 
 ---
 
 ## 9. 퀀트 금융으로의 확장
 
-같은 부호기-복호기-어텐션 구조를 여러 금융 순차열 변환 과제에 쓸 수 있다.
+같은 인코더-디코더-어텐션 구조를 여러 금융 순차열 변환 과제에 쓸 수 있다.
 
 - **텍스트에서 신호 만들기**: 애널리스트 보고서 문장을 부호화하고, 부호화된 금융 서술에 조건을 두어 정형화된 매매 신호(방향, 크기, 확신)를 복호한다.
 - **주문 집행**: 상위 주문의 명세(수량, 급함, 제약)를 부호화하고, 집행 품질을 최적으로 하는 하위 주문 행동(지정가, 수량, 시점)의 순차열을 복호한다.
@@ -396,12 +396,12 @@ Example pair: ['je suis pret .', 'i m ready .']
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-순차열 대 순차열 모델의 부호기-복호기 구조를 설명하라.
+순차열 대 순차열 모델의 인코더-디코더 구조를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    부호기는 입력 순차열을 처리하여 문맥 벡터(마지막 숨은 상태)로 눌러 담는다. 복호기는 문맥과 앞서 만든 토큰에 조건을 두고 출력 순차열을 한 토큰씩 만든다. 교사 강요는 학습 중에 정답 토큰을 쓰고, 자기회귀 복호는 모델의 예측을 쓴다.
+    인코더는 입력 순차열을 처리하여 문맥 벡터(마지막 숨은 상태)로 눌러 담는다. 디코더는 문맥과 앞서 만든 토큰에 조건을 두고 출력 순차열을 한 토큰씩 만든다. 교사 강요는 학습 중에 정답 토큰을 쓰고, 자기회귀 복호는 모델의 예측을 쓴다.
 
 ---
 
@@ -413,7 +413,7 @@ Example pair: ['je suis pret .', 'i m ready .']
 </div>
 
 ??? success "연습문제 2 풀이"
-    입력 순차열 전체를 크기가 고정된 문맥 벡터 하나로 눌러 담아야 하므로 긴 순차열에서는 정보를 잃는다. 어텐션은 복호기가 부호기의 모든 숨은 상태를 '돌아보며' 복호 걸음마다 쓸모 있는 정보를 고를 수 있게 한다. 그러면 병목이 사라진다.
+    입력 순차열 전체를 크기가 고정된 문맥 벡터 하나로 눌러 담아야 하므로 긴 순차열에서는 정보를 잃는다. 어텐션은 디코더가 인코더의 모든 숨은 상태를 '돌아보며' 복호 걸음마다 쓸모 있는 정보를 고를 수 있게 한다. 그러면 병목이 사라진다.
 
 ---
 

@@ -270,17 +270,17 @@ def compute_locality_score(attention_weights: torch.Tensor, window: int = 3) -> 
 
 ## 3. 엇갈린 눈길 풀이하기
 
-엇갈린 눈길은 서로 다른 두 열을 이어 부호기와 푸는 개 사이에 소식이 흐르게 한다. 옮김, 간추리기, 물음 답하기 얼개를 풀이하려면 엇갈린 눈길을 알아야 한다.
+엇갈린 눈길은 서로 다른 두 열을 이어 인코더와 푸는 개 사이에 소식이 흐르게 한다. 옮김, 간추리기, 물음 답하기 얼개를 풀이하려면 엇갈린 눈길을 알아야 한다.
 
 ### 수학 밑바탕
 
-부호기의 나타냄 $K^e, V^e$과 푸는 개의 물음 $Q^d$이 주어지면
+인코더의 나타냄 $K^e, V^e$과 푸는 개의 물음 $Q^d$이 주어지면
 
 $$
 \text{CrossAttn}(Q^d, K^e, V^e) = \text{softmax}\left(\frac{Q^d (K^e)^\top}{\sqrt{d_k}}\right) V^e
 $$
 
-눈길 짐이 맞춤 행렬 $A \in \mathbb{R}^{T_d \times T_e}$을 이루며, $A_{ij}$은 푸는 개의 자리 $i$이 부호기의 자리 $j$을 얼마나 보는지 알린다.
+눈길 짐이 맞춤 행렬 $A \in \mathbb{R}^{T_d \times T_e}$을 이루며, $A_{ij}$은 푸는 개의 자리 $i$이 인코더의 자리 $j$을 얼마나 보는지 알린다.
 
 ### 짜보기
 
@@ -292,11 +292,11 @@ def visualize_cross_attention(
     head: int = None
 ) -> plt.Figure:
     """
-    부호기-푸는 개의 엇갈린 눈길을 그린다.
+    인코더-푸는 개의 엇갈린 눈길을 그린다.
 
     Args:
         cross_attention: [배치, 머리, 받는 열 길이, 보내는 열 길이]
-        source_tokens: 부호기 들임 낱말
+        source_tokens: 인코더 들임 낱말
         target_tokens: 푸는 개 내놓기 낱말
         head: 정한 머리(None이면 모든 머리를 고르게 한다)
     """
@@ -317,7 +317,7 @@ def visualize_cross_attention(
         cmap='Blues',
         vmin=0, vmax=1
     )
-    ax.set_xlabel('보내는 쪽 (부호기)')
+    ax.set_xlabel('보내는 쪽 (인코더)')
     ax.set_ylabel('받는 쪽 (푸는 개)')
     ax.set_title(title)
 
@@ -674,7 +674,7 @@ def comprehensive_attention_analysis(
 
 1. **여러 머리의 다름**이 맡음새를 드러낸다. 너무 비슷한 머리는 쳐낼 수 있다
 2. **켜를 따라가는 흐름**이 그 자리에서 온 세상으로 가는 켜 있는 결 쌓기를 보인다
-3. **엇갈린 눈길의 맞춤**은 부호기-푸는 개 모형에서 알려 주는 바가 많다
+3. **엇갈린 눈길의 맞춤**은 인코더-푸는 개 모형에서 알려 주는 바가 많다
 4. **눈길 ≠ 몫 매기기**: 눈길로 얻은 깨침은 늘 기울기 바탕 방법으로 따져 보라
 5. BertViz 같은 **주고받는 연장**은 둘러보기에 값지지만 수로 재는 자를 곁들여야 한다
 

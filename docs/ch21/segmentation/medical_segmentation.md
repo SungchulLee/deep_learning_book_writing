@@ -214,7 +214,7 @@ class MedicalUNet(nn.Module):
     def __init__(self, in_channels=3, num_classes=1):
         super().__init__()
         
-        # 부호기
+        # 인코더
         self.enc1 = DoubleConv(in_channels, 64)
         self.pool1 = nn.MaxPool2d(2)
         
@@ -230,7 +230,7 @@ class MedicalUNet(nn.Module):
         # 병목
         self.bottleneck = DoubleConv(512, 1024)
         
-        # 복호기
+        # 디코더
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
         self.dec4 = DoubleConv(1024, 512)
         
@@ -247,7 +247,7 @@ class MedicalUNet(nn.Module):
         self.out = nn.Conv2d(64, num_classes, kernel_size=1)
     
     def forward(self, x):
-        # 부호기
+        # 인코더
         enc1 = self.enc1(x)
         x = self.pool1(enc1)
         
@@ -263,7 +263,7 @@ class MedicalUNet(nn.Module):
         # 병목
         x = self.bottleneck(x)
         
-        # 건너뛰는 이음을 갖춘 풀개
+        # 건너뛰는 이음을 갖춘 디코더
         x = self.upconv4(x)
         x = torch.cat([x, enc4], dim=1)
         x = self.dec4(x)

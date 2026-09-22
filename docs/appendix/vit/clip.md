@@ -1,6 +1,6 @@
 # CLIP
 
-CLIP은 2021년 글 "Learning Transferable Visual Models From Natural Language Supervision"에서 나왔다. - 그림 부호기와 글월 부호기를 함께 익힌다 - 나누어 쓰는 담음 밭에서 맞대어 잃음으로 둘을 맞춘다.
+CLIP은 2021년 글 "Learning Transferable Visual Models From Natural Language Supervision"에서 나왔다. - 그림 인코더와 글월 인코더를 함께 익힌다 - 나누어 쓰는 담음 밭에서 맞대어 잃음으로 둘을 맞춘다.
 
 여기 짜보기는 CLIP을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -13,7 +13,7 @@ CLIP - 맞대어 배우는 말-그림 미리 익히기
 글: "흔한 말의 이끎에서 옮길 수 있는 보기 모형 배우기" (2021)
 지은이: 알렉 래드퍼드 외
 고갱이 깨침:
-  - 그림 부호기와 글월 부호기를 함께 익힌다
+  - 그림 인코더와 글월 인코더를 함께 익힌다
   - 나누어 쓰는 담음 밭에서 맞대어 잃음으로 둘을 맞춘다
 
 두루마리: appendix/vit/clip.py
@@ -30,7 +30,7 @@ import torch.nn.functional as F
 
 
 class ImageEncoder(nn.Module):
-    """단순한 ViT 결의 그림 부호기."""
+    """단순한 ViT 결의 그림 인코더."""
     def __init__(self, embed_dim=512):
         super().__init__()
         self.encoder = nn.Linear(768, embed_dim)  # assume patch pooled features
@@ -40,7 +40,7 @@ class ImageEncoder(nn.Module):
 
 
 class TextEncoder(nn.Module):
-    """단순한 변환기 바탕 글월 부호기."""
+    """단순한 변환기 바탕 글월 인코더."""
     def __init__(self, vocab_size=50000, embed_dim=512):
         super().__init__()
         self.emb = nn.Embedding(vocab_size, embed_dim)
@@ -57,7 +57,7 @@ class TextEncoder(nn.Module):
 
 class CLIP(nn.Module):
     """
-    CLIP 모형: 맞대어 배우는 목표를 지닌 그림 부호기 + 글월 부호기.
+    CLIP 모형: 맞대어 배우는 목표를 지닌 그림 인코더 + 글월 인코더.
     """
     def __init__(self, embed_dim=512):
         super().__init__()

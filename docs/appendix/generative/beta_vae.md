@@ -9,7 +9,7 @@ Beta-VAE은 2017년 글 "β-VAE: Learning Basic Visual Concepts with a Constrain
 ```python
 #!/usr/bin/env python3
 """
-Beta-VAE - 풀어 헤치기를 다스리는 변이 제 부호기
+Beta-VAE - 풀어 헤치기를 다스리는 변이 제 인코더
 글: "β-VAE: 옭아맨 변이 틀로 밑바탕 보기 깨침 배우기" (2017)
 고갱이 깨침:
   - KL 마디에 β 값을 더한다

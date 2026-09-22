@@ -97,7 +97,7 @@ class DINO(nn.Module):
         self.query_embed = nn.Embedding(num_queries, d_model)
 
         # 기준 점(잣대 맞춘 자리 값에서 닻처럼 첫자리를 잡는다)
-        # 참 DINO에서는 풀개 켜마다 이를 미루어 보거나 고칠 수 있다.
+        # 참 DINO에서는 디코더 켜마다 이를 미루어 보거나 고칠 수 있다.
         self.refpoint_embed = nn.Embedding(num_queries, 4)
 
         # 머리
@@ -152,7 +152,7 @@ class DINO(nn.Module):
         feat = self.backbone(x)
         B, C, H, W = feat.shape
 
-        # 부호기 들임: 자리 결 그림을 펼친다
+        # 인코더 들임: 자리 결 그림을 펼친다
         src = feat.flatten(2).permute(2, 0, 1)  # (S=H*W, B, C)
 
         # 여느 배운 물음
@@ -165,7 +165,7 @@ class DINO(nn.Module):
             q_content = torch.cat([dn_content, q_content], dim=0)  # (Tdn+T, B, C)
             q_ref = torch.cat([dn_ref, q_ref], dim=0)              # (Tdn+T, B, 4)
 
-        # 풀개 날임 낱말
+        # 디코더 날임 낱말
         hs = self.transformer(src=src, tgt=q_content)  # (Ttotal, B, C)
         hs = hs.permute(1, 0, 2)                       # (B, Ttotal, C)
 

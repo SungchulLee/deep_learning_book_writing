@@ -3,7 +3,7 @@
 """
 
 """
-누비기 변분 자기 부호기(ConvVAE)
+누비기 변분 오토인코더(ConvVAE)
 공간 특징을 더 잘 뽑으려 누비기 층을 쓴다
 """
 
@@ -18,7 +18,7 @@ import torch.nn.functional as F
 
 class ConvVAE(nn.Module):
     """
-    그림 자료를 위한 누비기 변분 자기 부호기.
+    그림 자료를 위한 누비기 변분 오토인코더.
     
     인수:
         latent_dim (int): 숨은 공간 차원
@@ -33,7 +33,7 @@ class ConvVAE(nn.Module):
         self.img_channels = img_channels
         self.img_size = img_size
         
-        # 부호기
+        # 인코더
         self.encoder = nn.Sequential(
             # 28x28 -> 14x14
             nn.Conv2d(img_channels, 32, kernel_size=4, stride=2, padding=1),
@@ -60,10 +60,10 @@ class ConvVAE(nn.Module):
         self.fc_mu = nn.Linear(self.flatten_size, latent_dim)
         self.fc_logvar = nn.Linear(self.flatten_size, latent_dim)
         
-        # 풀개 들임
+        # 디코더 들임
         self.decoder_input = nn.Linear(latent_dim, self.flatten_size)
         
-        # 복호기
+        # 디코더
         self.decoder = nn.Sequential(
             nn.Unflatten(1, (128, 4, 4)),
             
@@ -146,7 +146,7 @@ class ConvVAE(nn.Module):
     
     def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
         """
-        변분 자기 부호기 손실 함수.
+        변분 오토인코더 손실 함수.
         
         인수:
             reconstruction: 다시 세운 내놓기
@@ -156,7 +156,7 @@ class ConvVAE(nn.Module):
             beta: KL 벌어짐 항의 무게
             
         반환값:
-            loss: 전체 변분 자기 부호기 손실
+            loss: 전체 변분 오토인코더 손실
             bce: 다시 세우기 손실
             kld: KL 벌어짐
         """

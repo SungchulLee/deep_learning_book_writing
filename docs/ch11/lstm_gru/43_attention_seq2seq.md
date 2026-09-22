@@ -33,7 +33,7 @@ class Attention(nn.Module):
         batch_size = encoder_outputs.shape[0]
         seq_len = encoder_outputs.shape[1]
         
-        # 복호기의 숨은 상태를 seq_len번 되풀이
+        # 디코더의 숨은 상태를 seq_len번 되풀이
         hidden = hidden.permute(1, 0, 2)  # [배치, 1, hidden_size]
         hidden = hidden.repeat(1, seq_len, 1)  # [배치, seq_len, hidden_size]
         

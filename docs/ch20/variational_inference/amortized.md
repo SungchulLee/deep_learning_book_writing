@@ -8,7 +8,7 @@
 
 1. 변분 추론에서 나눠 갚기의 개념 이해하기
 2. 뒤확률 어림을 위한 추론 망 구현하기
-3. 변분 자동부호기(VAE) 세우고 익히기
+3. 변분 자동인코더(VAE) 세우고 익히기
 4. 나눠 갚기 틈과 그것이 뜻하는 바 살피기
 5. 큰 문제에 나눠 갚는 변분 추론 쓰기
 
@@ -51,13 +51,13 @@ $$
 
 ---
 
-## 3. 변분 자동부호기(VAE)
+## 3. 변분 자동인코더(VAE)
 
-**변분 자동부호기**는 나눠 갚는 변분 추론의 대표 보기로 다음을 어우른다:
+**변분 자동인코더**는 나눠 갚는 변분 추론의 대표 보기로 다음을 어우른다:
 
-1. **부호기**(추론 망): 관측을 변분 매개변수로 잇는다
-2. **풀개**(낳는 모형): 숨은 변수를 관측으로 잇는다
-3. **ELBO 목표**: 부호기와 풀개를 함께 익힌다
+1. **인코더**(추론 망): 관측을 변분 매개변수로 잇는다
+2. **디코더**(낳는 모형): 숨은 변수를 관측으로 잇는다
+3. **ELBO 목표**: 인코더와 디코더를 함께 익힌다
 
 ### VAE의 낳는 모형
 
@@ -68,17 +68,17 @@ $$
 \end{aligned}
 $$
 
-풀개 신경망 $p_\theta(x|z)$은 숨은 부호를 자료 분포로 잇는다.
+디코더 신경망 $p_\theta(x|z)$은 숨은 부호를 자료 분포로 잇는다.
 
 ### VAE의 추론 모형
 
-부호기는 다룰 수 없는 뒤확률 $p(z|x)$을 어림한다:
+인코더는 다룰 수 없는 뒤확률 $p(z|x)$을 어림한다:
 
 $$
 q_\phi(z|x) = \mathcal{N}(\mu_\phi(x), \text{diag}(\sigma_\phi^2(x)))
 $$
 
-여기서 $\mu_\phi(x)$과 $\sigma_\phi(x)$은 부호기 망의 내임이다.
+여기서 $\mu_\phi(x)$과 $\sigma_\phi(x)$은 인코더 망의 내임이다.
 
 ### VAE의 ELBO
 
@@ -88,7 +88,7 @@ $$
 \mathcal{L}(\theta, \phi) = \frac{1}{N} \sum_{n=1}^N \left[\mathbb{E}_{q_\phi(z|x_n)}[\log p_\theta(x_n|z)] - \text{KL}(q_\phi(z|x_n) \| p(z))\right]
 $$
 
-**되살림 항**: 풀개가 표집한 $z$으로 $x$을 얼마나 잘 되살릴 수 있나?
+**되살림 항**: 디코더가 표집한 $z$으로 $x$을 얼마나 잘 되살릴 수 있나?
 
 **KL 항**: 어림 뒤확률이 앞확률에 얼마나 가까운가?
 
@@ -120,7 +120,7 @@ import numpy as np
 
 class Encoder(nn.Module):
     """
-    VAE 부호기: 들임 x을 변분 매개변수 (μ, log σ²)로 잇는다.
+    VAE 인코더: 들임 x을 변분 매개변수 (μ, log σ²)로 잇는다.
     
     얼개: x -> [숨은 층] -> (μ, log σ²)
     """
@@ -128,7 +128,7 @@ class Encoder(nn.Module):
     def __init__(self, input_dim: int, hidden_dims: list, latent_dim: int):
         super().__init__()
         
-        # 부호기 층 세우기
+        # 인코더 층 세우기
         layers = []
         prev_dim = input_dim
         for h_dim in hidden_dims:
@@ -159,7 +159,7 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     """
-    VAE 풀개: 숨은 z을 되살림 매개변수로 잇는다.
+    VAE 디코더: 숨은 z을 되살림 매개변수로 잇는다.
     
     얼개: z -> [숨은 층] -> x_recon
     """
@@ -167,7 +167,7 @@ class Decoder(nn.Module):
     def __init__(self, latent_dim: int, hidden_dims: list, output_dim: int):
         super().__init__()
         
-        # 풀개 층 세우기
+        # 디코더 층 세우기
         layers = []
         prev_dim = latent_dim
         for h_dim in reversed(hidden_dims):
@@ -190,9 +190,9 @@ class Decoder(nn.Module):
 
 class VAE(nn.Module):
     """
-    변분 자동부호기.
+    변분 자동인코더.
     
-    부호기(추론 망)와 풀개(낳는 모형)를 어우르며
+    인코더(추론 망)와 디코더(낳는 모형)를 어우르며
     ELBO를 가장 크게 하여 함께 익힌다.
     """
     
@@ -276,7 +276,7 @@ class VAE(nn.Module):
         return samples
     
     def reconstruct(self, x: torch.Tensor) -> torch.Tensor:
-        """부호기와 풀개를 거쳐 들임 되살리기."""
+        """인코더와 디코더를 거쳐 들임 되살리기."""
         mu, _ = self.encode(x)  # 평균 쓰기(표집 없음)
         return self.decode(mu)
 
@@ -618,7 +618,7 @@ def semi_amortized_inference(model, x, n_refine_steps=10):
 
 ### 2. 되풀이하며 나눠 갚는 추론
 
-부호기를 여러 번 되풀이해 쓴다:
+인코더를 여러 번 되풀이해 쓴다:
 
 $$
 (\mu^{(t+1)}, \sigma^{(t+1)}) = f_\psi(x, \mu^{(t)}, \sigma^{(t)})
@@ -634,7 +634,7 @@ $$
 
 ### 연습 1: 합성곱 VAE
 
-그림 자료를 위한 합성곱 부호기와 풀개를 갖춘 VAE을 구현하여라.
+그림 자료를 위한 합성곱 인코더와 디코더를 갖춘 VAE을 구현하여라.
 
 ### 연습 2: β-VAE
 
@@ -654,8 +654,8 @@ $$
 
 **VAE의 핵심 부품:**
 
-- **부호기**: $q_\phi(z|x)$ - 어림 뒤확률
-- **풀개**: $p_\theta(x|z)$ - 낳는 모형
+- **인코더**: $q_\phi(z|x)$ - 어림 뒤확률
+- **디코더**: $p_\theta(x|z)$ - 낳는 모형
 - **ELBO**: $\mathbb{E}_q[\log p(x|z)] - \text{KL}(q(z|x) \| p(z))$
 - **매개변수 바꾸기**: $z = \mu + \sigma \odot \epsilon$
 

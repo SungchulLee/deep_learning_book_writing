@@ -18,7 +18,7 @@ $$M \cdot \mathbf{v}(\text{그림}) \approx \mathbf{s}(\text{부류 이름})$$
 
 ### 부품
 
-**시각 부호기**: 미리 학습된 CNN(대개 VGG, ResNet)
+**시각 인코더**: 미리 학습된 CNN(대개 VGG, ResNet)
 
 - 끝에서 두 번째 층에서 특징을 뽑는다
 - 학습 중에 얼리거나 미세 조정한다
@@ -299,7 +299,7 @@ class CrossModalAttention(nn.Module):
 
 ```python
 class TwoBranchNetwork(nn.Module):
-    """부호기를 따로 두는 두 가지 망."""
+    """인코더를 따로 두는 두 가지 망."""
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
                  embedding_dim: int = 512):

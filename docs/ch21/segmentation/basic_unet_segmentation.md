@@ -15,7 +15,7 @@
 두 갈래 뜻 나누기를 한다. 단순한 꼴로 된 인공 자료 뭉치를 쓴다.
 
 핵심 개념:
-- U-넷 얼개(건너뛰는 이음을 갖춘 부호기-풀개)
+- U-넷 얼개(건너뛰는 이음을 갖춘 인코더-디코더)
 - 두 갈래 나누기(갈래 2개)
 - 화소마다의 엇갈린 엔트로피 손실
 - 겹침 비(IoU) 잣대
@@ -194,10 +194,10 @@ print(f"Dataset sizes: Train={len(train_dataset)}, Val={len(val_dataset)}, Test=
 # ============================================================================
 """
 U-넷은 다음으로 이루어진다:
-1. 부호기(오그라드는 길): 맥락을 담아낸다
+1. 인코더(오그라드는 길): 맥락을 담아낸다
 2. 병목: 가장 깊은 특징
-3. 풀개(부풀어 오르는 길): 정밀한 자리 잡기를 가능하게 한다
-4. 건너뛰는 이음: 부호기 특징을 풀개에 이어 붙인다
+3. 디코더(부풀어 오르는 길): 정밀한 자리 잡기를 가능하게 한다
+4. 건너뛰는 이음: 인코더 특징을 디코더에 이어 붙인다
 """
 
 class DoubleConv(nn.Module):
@@ -225,8 +225,8 @@ class UNet(nn.Module):
     뜻 나누기를 위한 U-넷 얼개.
     
     구조:
-        들임(3채널) -> 부호기(건너뛰는 이음 포함) -> 병목 ->
-        풀개(건너뛰는 이음 포함) -> 내놓음(num_classes 채널)
+        들임(3채널) -> 인코더(건너뛰는 이음 포함) -> 병목 ->
+        디코더(건너뛰는 이음 포함) -> 내놓음(num_classes 채널)
     
     인수:
         in_channels: 들임 채널의 개수(RGB는 3)
@@ -236,7 +236,7 @@ class UNet(nn.Module):
     def __init__(self, in_channels=3, num_classes=2):
         super(UNet, self).__init__()
         
-        # 부호기(줄여 뽑는 길)
+        # 인코더(줄여 뽑는 길)
         self.enc1 = DoubleConv(in_channels, 64)      # 256x256 -> 256x256
         self.pool1 = nn.MaxPool2d(2)                  # 256x256 -> 128x128
         
@@ -252,7 +252,7 @@ class UNet(nn.Module):
         # 병목
         self.bottleneck = DoubleConv(512, 1024)       # 16x16 -> 16x16
         
-        # 풀개(키우는 길)
+        # 디코더(키우는 길)
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)  # 16x16 -> 32x32
         self.dec4 = DoubleConv(1024, 512)             # 32x32 -> 32x32(이어 붙여서 1024)
         
@@ -278,7 +278,7 @@ class UNet(nn.Module):
         반환값:
             꼴이 (batch_size, num_classes, H, W)인 내놓는 텐서
         """
-        # 건너뛰는 이음을 갈무리한 부호기
+        # 건너뛰는 이음을 갈무리한 인코더
         enc1 = self.enc1(x)           # 64채널
         x = self.pool1(enc1)
         
@@ -294,7 +294,7 @@ class UNet(nn.Module):
         # 병목
         x = self.bottleneck(x)        # 1024채널
         
-        # 건너뛰는 이음을 갖춘 풀개
+        # 건너뛰는 이음을 갖춘 디코더
         x = self.upconv4(x)           # 키우기
         x = torch.cat([x, enc4], dim=1)  # 건너뛰는 이음 이어 붙이기
         x = self.dec4(x)

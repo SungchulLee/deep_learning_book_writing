@@ -81,7 +81,7 @@ class CapsNet(nn.Module):
         self.primary_capsules = PrimaryCaps()
         self.digit_capsules = DigitCaps(num_capsules=num_classes)
         
-        # 풀개
+        # 디코더
         self.decoder = nn.Sequential(
             nn.Linear(16 * num_classes, 512),
             nn.ReLU(inplace=True),
@@ -124,7 +124,7 @@ Parameters: 8,215,568
 
 쥐어짜기 함수는 캡슐의 날임에 거는 곧지 않은 함수다. 짧은 벡터는 거의 0으로, 긴 벡터는 길이 1에 조금 못 미치게 줄여, 벡터의 길이를 낌새로 볼 수 있게 한다. 식 $v = \frac{\|s\|^2}{1 + \|s\|^2} \cdot \frac{s}{\|s\|}$은 들임의 방향은 지키면서 크기만 맞춘다.
 
-움직이는 길잡이는 아래 켜 캡슐이 제 날임을 어느 위 켜 캡슐에 보낼지 정하는 얼개다. 여러 번 되돌며 이음 값 $c_{ij}$을 다듬어, 아래 켜 캡슐이 제 미루어 봄과 가장 잘 맞물리는 날임을 지닌 위 켜 캡슐로 날임을 보낸다. 풀개 그물은 숫자 캡슐의 날임에서 들임 그림을 되살려 다독임 노릇을 하며, 캡슐이 뜻있는 놓임 매개변수를 담도록 이끈다.
+움직이는 길잡이는 아래 켜 캡슐이 제 날임을 어느 위 켜 캡슐에 보낼지 정하는 얼개다. 여러 번 되돌며 이음 값 $c_{ij}$을 다듬어, 아래 켜 캡슐이 제 미루어 봄과 가장 잘 맞물리는 날임을 지닌 위 켜 캡슐로 날임을 보낸다. 디코더 그물은 숫자 캡슐의 날임에서 들임 그림을 되살려 다독임 노릇을 하며, 캡슐이 뜻있는 놓임 매개변수를 담도록 이끈다.
 
 ## 연습문제
 
@@ -155,12 +155,12 @@ Parameters: 8,215,568
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-`CapsNet` 얼개를 잿빛 $28 \times 28$ 대신 크기 $32 \times 32$의 RGB 그림(CIFAR-10 따위)을 받도록 고쳐라. 켜의 차수와 풀개 날임 크기를 어떻게 바꿔야 하는지 밝혀라.
+`CapsNet` 얼개를 잿빛 $28 \times 28$ 대신 크기 $32 \times 32$의 RGB 그림(CIFAR-10 따위)을 받도록 고쳐라. 켜의 차수와 디코더 날임 크기를 어떻게 바꿔야 하는지 밝혀라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    고쳐야 할 것은 이렇다. (1) `self.conv1`의 들임 갈래를 1에서 3으로 바꾼다: `nn.Conv2d(3, 256, kernel_size=9, stride=1)`. conv1 뒤의 자리 크기는 $(32 - 9 + 1) = 24$이 된다. (2) $9 \times 9$ 걸음 2 엮음을 쓰는 `PrimaryCaps` 뒤에는 자리 크기가 $\lfloor (24 - 9) / 2 \rfloor + 1 = 8$이 된다. `DigitCaps`도 그에 맞춘다: `num_routes = 32 * 8 * 8 = 2048`. (3) 풀개의 날임을 784에서 $3 \times 32 \times 32 = 3072$으로 바꾼다. `nn.Linear(1024, 784)`을 `nn.Linear(1024, 3072)`으로 갈음한다.
+    고쳐야 할 것은 이렇다. (1) `self.conv1`의 들임 갈래를 1에서 3으로 바꾼다: `nn.Conv2d(3, 256, kernel_size=9, stride=1)`. conv1 뒤의 자리 크기는 $(32 - 9 + 1) = 24$이 된다. (2) $9 \times 9$ 걸음 2 엮음을 쓰는 `PrimaryCaps` 뒤에는 자리 크기가 $\lfloor (24 - 9) / 2 \rfloor + 1 = 8$이 된다. `DigitCaps`도 그에 맞춘다: `num_routes = 32 * 8 * 8 = 2048`. (3) 디코더의 날임을 784에서 $3 \times 32 \times 32 = 3072$으로 바꾼다. `nn.Linear(1024, 784)`을 `nn.Linear(1024, 3072)`으로 갈음한다.
 
 ## 정리하며
 

@@ -1,4 +1,4 @@
-"""자기 부호기의 결과를 눈으로 확인하는 도움 함수.
+"""오토인코더의 결과를 눈으로 확인하는 도움 함수.
 
 VAE는 손실만 보아서는 잘 되고 있는지 알기 어렵다. 다시 세운 그림이 흐릿한지,
 숨은 공간에서 뽑은 표본이 그럴듯한지는 그려 보아야 드러난다.
@@ -13,7 +13,7 @@ __all__ = ["visualize_reconstruction", "visualize_samples"]
 def _to_image(t):
     """텐서를 matplotlib이 받는 모양으로 바꾼다.
 
-    온전히 이어진 자기 부호기는 펼친 벡터를 내놓으므로, 1차원으로 들어오면
+    온전히 이어진 오토인코더는 펼친 벡터를 내놓으므로, 1차원으로 들어오면
     정사각형 그림으로 되접어 준다. 그러지 않으면 imshow가
     "Invalid shape (784,) for image data" 로 거부한다.
     """
@@ -37,7 +37,7 @@ def visualize_reconstruction(model, data_loader, num_images=10, device="cpu",
     """원래 그림과 다시 세운 그림을 위아래로 나란히 놓는다.
 
     인수:
-        model: forward가 (다시 세운 값, mu, logvar)를 돌려주는 자기 부호기
+        model: forward가 (다시 세운 값, mu, logvar)를 돌려주는 오토인코더
         data_loader: 볼 자료를 주는 로더
         num_images: 보여 줄 그림 수
         device: 모델이 올라가 있는 장치
@@ -50,7 +50,7 @@ def visualize_reconstruction(model, data_loader, num_images=10, device="cpu",
     labels = labels[:num_images].to(device)
 
     with torch.no_grad():
-        # 온전히 이어진 자기 부호기는 펼친 입력을 받고, 누비기 쪽은 그림
+        # 온전히 이어진 오토인코더는 펼친 입력을 받고, 누비기 쪽은 그림
         # 모양 그대로를 받는다. 어느 쪽인지 모르므로 그림 모양으로 먼저
         # 넣어 보고, 거부하면 펼쳐서 다시 넣는다.
         try:
@@ -81,7 +81,7 @@ def visualize_reconstruction(model, data_loader, num_images=10, device="cpu",
 
 def visualize_samples(model, latent_dim, num_samples=10, device="cpu",
                       class_label=None, save_path=None):
-    """숨은 공간에서 마구잡이로 뽑아 복호기에 넣어 본다.
+    """숨은 공간에서 마구잡이로 뽑아 디코더에 넣어 본다.
 
     다시 세우기와 달리 이쪽은 모델이 정말로 만들어 낼 줄 아는지를 본다.
     앞확률 N(0, I)에서 뽑으므로, 학습이 잘되었다면 그럴듯한 그림이 나와야 한다.

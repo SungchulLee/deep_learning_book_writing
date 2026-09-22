@@ -1,6 +1,6 @@
 # DETR
 
-DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔다. CNN 등뼈 + 변환기 부호기/풀개 + 붙박인 물체 물음 배치. 상자와 갈래를 곧바로 한 벌로 미루어 본다(본디 꼴에는 닻도 NMS도 없다).
+DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔다. CNN 등뼈 + 변환기 인코더/디코더 + 붙박인 물체 물음 배치. 상자와 갈래를 곧바로 한 벌로 미루어 본다(본디 꼴에는 닻도 NMS도 없다).
 
 여기 짜보기는 DETR을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -12,7 +12,7 @@ DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔
 DETR - 변환기로 끝에서 끝까지 물체 알아내기
 글: "변환기로 끝에서 끝까지 물체 알아내기" (2020)
 지은이: 니콜라 카리옹 외
-고갱이: CNN 등뼈 + 변환기 부호기/풀개 + 붙박인 물체 물음 배치.
+고갱이: CNN 등뼈 + 변환기 인코더/디코더 + 붙박인 물체 물음 배치.
      상자와 갈래를 곧바로 한 벌로 미루어 본다(본디 꼴에는 닻도 NMS도 없다).
 
 두루마리: appendix/detection/detr.py
@@ -94,8 +94,8 @@ class DETR(nn.Module):
     단순하게 만든 DETR:
     - 등뼈 -> 결 그림
     - 자리 담기를 더한다
-    - 변환기 부호기/풀개
-    - 물체 물음 -> 풀개 날임
+    - 변환기 인코더/디코더
+    - 물체 물음 -> 디코더 날임
     - 머리: 갈래 로짓 + 상자 자리 값
 
     날임:
@@ -157,7 +157,7 @@ class DETR(nn.Module):
         # 물체 물음을 첫 과녁 낱말로 쓴다 (T, B, C)
         query = self.query_embed.weight.unsqueeze(1).repeat(1, B, 1)
 
-        # 변환기: 부호기가 src을 다루고, 풀개가 src에 눈길을 주며 물음을 다룬다
+        # 변환기: 인코더가 src을 다루고, 디코더가 src에 눈길을 주며 물음을 다룬다
         hs = self.transformer(src=src, tgt=query)  # (T, B, C)
 
         # 배치를 앞에 두도록 바꾼다: (B, T, C)

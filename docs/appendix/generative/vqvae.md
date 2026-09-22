@@ -9,7 +9,7 @@ VQ-VAE은 2017년 글 "Neural Discrete Representation Learning"에서 나왔다.
 ```python
 #!/usr/bin/env python3
 """
-VQ-VAE - 벡터를 수로 줄인 변이 제 부호기
+VQ-VAE - 벡터를 수로 줄인 변이 제 인코더
 글: "신경 그물로 따로 떨어진 드러냄 배우기" (2017)
 고갱이 깨침:
   - 이어진 숨은 밭을 따로 떨어진 부호책 항목으로 갈음한다

@@ -1,6 +1,6 @@
 # GAN — 목표 그림을 버린다
 
-지금까지의 모든 모델은 **정답 그림과 얼마나 가까운가**를 손실로 삼았다. [자기 부호기](../dimreduction/03_ae_mlp.md)도 [VAE](../latent_generative/01_vae.md)도 $\lVert \hat{x} - x \rVert^2$을 줄인다.
+지금까지의 모든 모델은 **정답 그림과 얼마나 가까운가**를 손실로 삼았다. [오토인코더](../dimreduction/03_ae_mlp.md)도 [VAE](../latent_generative/01_vae.md)도 $\lVert \hat{x} - x \rVert^2$을 줄인다.
 
 GAN에는 그런 항이 없다. 대신 **판별기**를 하나 더 두고 둘을 겨루게 한다.
 

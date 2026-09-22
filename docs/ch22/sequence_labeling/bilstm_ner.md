@@ -157,7 +157,7 @@ class BiLSTMNER(nn.Module):
 
 ```python
 class CharLSTM(nn.Module):
-    """글자 수준 LSTM 부호기."""
+    """글자 수준 LSTM 인코더."""
     
     def __init__(
         self,

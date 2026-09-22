@@ -266,7 +266,7 @@ class MultiHeadAttention(nn.Module):
     """
     일반적인 다중 머리 어텐션
     
-    자기 어텐션(Q=K=V=X)이나 교차 어텐션(Q는 복호기, K와 V는 부호기)에 모두 쓸 수 있다.
+    자기 어텐션(Q=K=V=X)이나 교차 어텐션(Q는 디코더, K와 V는 인코더)에 모두 쓸 수 있다.
     """
     
     def __init__(self, d_model: int, n_heads: int, dropout: float = 0.0):

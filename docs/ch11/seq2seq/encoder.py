@@ -5,8 +5,8 @@
 """
 
 """
-Seq2Seq 모델을 위한 부호기 모듈
-LSTM과 GRU를 비롯한 여러 부호기 구조를 구현한다
+Seq2Seq 모델을 위한 인코더 모듈
+LSTM과 GRU를 비롯한 여러 인코더 구조를 구현한다
 """
 
 import torch
@@ -19,7 +19,7 @@ import torch.nn as nn
 
 class BasicEncoder(nn.Module):
     """
-    Seq2Seq 모델을 위한 기본 RNN 부호기
+    Seq2Seq 모델을 위한 기본 RNN 인코더
     
     인수:
         input_size: 입력 어휘의 크기
@@ -72,7 +72,7 @@ class BasicEncoder(nn.Module):
         
     def forward(self, input_seq, input_lengths=None):
         """
-        부호기를 지나는 순전파
+        인코더를 지나는 순전파
         
         인수:
             input_seq: 입력 순차열 텐서 (배치 크기, seq_len)
@@ -129,7 +129,7 @@ class BasicEncoder(nn.Module):
 
 class ConvEncoder(nn.Module):
     """
-    Seq2Seq 모델을 위한 합성곱 부호기
+    Seq2Seq 모델을 위한 합성곱 인코더
     순차열 부호화에 1차원 합성곱을 쓴다
     """
     
@@ -156,7 +156,7 @@ class ConvEncoder(nn.Module):
         
     def forward(self, input_seq):
         """
-        합성곱 부호기를 지나는 순전파
+        합성곱 인코더를 지나는 순전파
         
         인수:
             input_seq: 입력 순차열 (배치 크기, seq_len)
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     embedding_dim = 256
     hidden_size = 512
     
-    # 부호기 만들기
+    # 인코더 만들기
     encoder = BasicEncoder(
         input_size=vocab_size,
         embedding_dim=embedding_dim,

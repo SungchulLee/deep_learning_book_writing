@@ -72,7 +72,7 @@ class TransformerLanguageModel(nn.Module):
         self.embedding = nn.Embedding(vocab_size, d_model)
         self.pos_encoder = PositionalEncoding(d_model)
         
-        # 변환기 풀개 층(인과)
+        # 변환기 디코더 층(인과)
         decoder_layer = nn.TransformerDecoderLayer(
             d_model=d_model,
             nhead=nhead,
@@ -115,7 +115,7 @@ class TransformerLanguageModel(nn.Module):
         # 인과 가림
         mask = self.generate_square_subsequent_mask(seq_len).to(src.device)
         
-        # 변환기(스스로 눈길을 쓰는 풀개로 사용)
+        # 변환기(스스로 눈길을 쓰는 디코더로 사용)
         # 유의: nn.TransformerDecoder에 허수아비 기억을 쓴다
         output = self.transformer(src, src, tgt_mask=mask)
         

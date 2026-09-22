@@ -489,7 +489,7 @@ Saved visualization to 'erf_comparison.png'
 | VGG-16 | 작은 핵 (3×3), 깊음 | 212×212 |
 | ResNet-50 | 건너뛰기 연결, 병목 | 483×483 |
 | Inception | 여러 규모의 병렬 가지 | 가지마다 다름 |
-| U-Net | 건너뛰기가 있는 부호기-복호기 | 전체 해상도 |
+| U-Net | 건너뛰기가 있는 인코더-디코더 | 전체 해상도 |
 | DeepLab | 팽창 합성곱 (ASPP) | 매우 큼 |
 | EfficientNet | 복합 규모 조정 | 모델에 따라 커짐 |
 

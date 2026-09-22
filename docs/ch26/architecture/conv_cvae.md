@@ -1,14 +1,14 @@
-# 누비기 조건부 변분 자기 부호기
+# 누비기 조건부 변분 오토인코더
 
-누비기 조건부 변분 자기 부호기(ConvCVAE) 누비기 얼개와 조건부 만들어 내기를 아우른다
+누비기 조건부 변분 오토인코더(ConvCVAE) 누비기 얼개와 조건부 만들어 내기를 아우른다
 
-자기 부호기와 변분 자기 부호기는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 고갱이 얼개와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
+오토인코더와 변분 오토인코더는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 고갱이 얼개와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
 
 ## 1. 코드
 
 ```python
 """
-누비기 조건부 변분 자기 부호기(ConvCVAE)
+누비기 조건부 변분 오토인코더(ConvCVAE)
 누비기 얼개와 조건부 만들어 내기를 아우른다
 """
 
@@ -23,7 +23,7 @@ import torch.nn.functional as F
 
 class ConvConditionalVAE(nn.Module):
     """
-    조건부 그림 만들어 내기를 위한 누비기 조건부 변분 자기 부호기.
+    조건부 그림 만들어 내기를 위한 누비기 조건부 변분 오토인코더.
     
     인수:
         latent_dim (int): 숨은 공간 차원
@@ -43,7 +43,7 @@ class ConvConditionalVAE(nn.Module):
         # 공간 조건 짓기를 위한 이름표 묻힘
         self.label_embedding = nn.Embedding(num_classes, img_size * img_size)
         
-        # 부호기 - 그림 + 묻은 이름표를 채널 하나로 더 받는다
+        # 인코더 - 그림 + 묻은 이름표를 채널 하나로 더 받는다
         self.encoder = nn.Sequential(
             # 들임: img_channels + 1(묻은 이름표용)
             nn.Conv2d(img_channels + 1, 32, kernel_size=4, stride=2, padding=1),
@@ -68,10 +68,10 @@ class ConvConditionalVAE(nn.Module):
         self.fc_mu = nn.Linear(self.flatten_size, latent_dim)
         self.fc_logvar = nn.Linear(self.flatten_size, latent_dim)
         
-        # 풀개 들임: 숨은 것 + 하나만 뜨거운 갈래
+        # 디코더 들임: 숨은 것 + 하나만 뜨거운 갈래
         self.decoder_input = nn.Linear(latent_dim + num_classes, self.flatten_size)
         
-        # 복호기
+        # 디코더
         self.decoder = nn.Sequential(
             nn.Unflatten(1, (128, 4, 4)),
             
@@ -171,7 +171,7 @@ class ConvConditionalVAE(nn.Module):
     
     def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
         """
-        변분 자기 부호기 손실 함수.
+        변분 오토인코더 손실 함수.
         
         인수:
             reconstruction: 다시 세운 내놓기
@@ -181,7 +181,7 @@ class ConvConditionalVAE(nn.Module):
             beta: KL 벌어짐 항의 무게
             
         반환값:
-            loss: 전체 변분 자기 부호기 손실
+            loss: 전체 변분 오토인코더 손실
             bce: 다시 세우기 손실
             kld: KL 벌어짐
         """
@@ -360,13 +360,13 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
     첫 누비기 층의 입력 채널이 1에서 11로 는다. 자리마다 같은 값이 들어가므로 낭비처럼
     보이지만, 누비기가 자리마다 조건을 볼 수 있게 해 준다.
 
-    풀개는 더 쉽다. 코드가 벡터이므로 완전 연결과 같이 이어 붙인 뒤 특징 지도로 펴면 된다.
+    디코더는 더 쉽다. 코드가 벡터이므로 완전 연결과 같이 이어 붙인 뒤 특징 지도로 펴면 된다.
 
     ```python
     h = self.fc(torch.cat([z, y], dim=1)).view(-1, 64, 7, 7)
     ```
 
-    부호기의 머리에서 붙이는 방법도 있다. 누비기 몸통을 지난 뒤 펴진 벡터에 이어 붙이면
+    인코더의 머리에서 붙이는 방법도 있다. 누비기 몸통을 지난 뒤 펴진 벡터에 이어 붙이면
     채널을 늘리지 않아 싸다. 대신 누비기 층이 조건을 못 본다.
 
 ---
@@ -518,21 +518,21 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
     imgs = model.decode(z, y)                         # (10, 1, 28, 28)
     ```
 
-    이것이 조건부로 만든 값어치를 가장 잘 보이는 그림이다. 부호기와 풀개 양쪽에 $y$를
+    이것이 조건부로 만든 값어치를 가장 잘 보이는 그림이다. 인코더와 디코더 양쪽에 $y$를
     넣었으므로 코드에 부류가 담기지 않고, 그래서 코드는 "부류를 뺀 나머지"를 나른다
     ([조건부 VAE 연습문제 1](conditional_vae.md)).
 
     잘되면 열 숫자의 굵기와 기울기가 비슷하게 나온다. 안 되면 두 가지 모습을 보게 된다.
 
     - 글씨체가 제멋대로다 → 코드가 부류와 얽혀 있다. 분리가 덜 되었다
-    - 부류가 지정한 대로 안 나온다 → 조건이 풀개에 제대로 안 들어간다
+    - 부류가 지정한 대로 안 나온다 → 조건이 디코더에 제대로 안 들어간다
 
     $z$를 여러 개 뽑아 여러 줄로 그리면 더 낫다. 줄마다 글씨체가 다르고 열마다 숫자가
     다른 격자가 되므로, 두 축이 정말 나뉘었는지 한눈에 보인다.
 
 ## 정리하며
 
-**다룬 것** — 누비기 조건부 변분 자기 부호기
+**다룬 것** — 누비기 조건부 변분 오토인코더
 
 `ConvConditionalVAE` 갈래는 PyTorch의 `nn.Module` 겉면으로 모델 얼개를 감싼다.
 

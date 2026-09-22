@@ -1,6 +1,6 @@
 # Seq2Seq
 
-Seq2Seq는 2014년 논문 "Sequence to Sequence Learning with Neural Networks"에서 나왔다. 순차열 변환을 위한 부호기-복호기 구조이다.
+Seq2Seq는 2014년 논문 "Sequence to Sequence Learning with Neural Networks"에서 나왔다. 순차열 변환을 위한 인코더-디코더 구조이다.
 
 순차열 모형은 시간적이고 순서가 있는 데이터를 다루는 데 바탕이 된다. 이 구현은 순환 신경망의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
 
@@ -11,7 +11,7 @@ Seq2Seq는 2014년 논문 "Sequence to Sequence Learning with Neural Networks"�
 '''
 Seq2Seq — 신경망으로 하는 순차열 대 순차열 학습
 논문: "Sequence to Sequence Learning with Neural Networks" (2014)
-핵심: 순차열 변환을 위한 부호기-복호기 구조
+핵심: 순차열 변환을 위한 인코더-디코더 구조
 '''
 import torch
 import torch.nn as nn

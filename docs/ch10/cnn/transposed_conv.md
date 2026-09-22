@@ -4,7 +4,7 @@
 
 전치 합성곱은 다음에서 꼭 필요한 부품이다.
 
-- 의미 분할을 위한 **부호기-복호기 구조** (U-Net, SegNet)
+- 의미 분할을 위한 **인코더-디코더 구조** (U-Net, SegNet)
 - 이미지 합성을 위한 **생성 모델** (GAN, VAE)
 - 이미지를 키우는 **초해상도 신경망**
 - 여러 규모의 물체 탐지를 위한 **특징 피라미드 신경망**
@@ -318,9 +318,9 @@ Sub-pixel: torch.Size([1, 64, 16, 16]) → torch.Size([1, 32, 32, 32])
 
 ---
 
-## 5. 부호기-복호기 구조
+## 5. 인코더-디코더 구조
 
-### 단순한 자기부호기
+### 단순한 오토인코더
 
 ```python
 import torch
@@ -328,12 +328,12 @@ import torch.nn as nn
 
 class ConvAutoencoder(nn.Module):
     """
-    복호에 전치 합성곱을 쓰는 합성곱 자기부호기.
+    복호에 전치 합성곱을 쓰는 합성곱 오토인코더.
     """
     def __init__(self):
         super().__init__()
         
-        # 부호기: 차츰 하향 표본화
+        # 인코더: 차츰 하향 표본화
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, 3, stride=2, padding=1),    # 224 → 112
             nn.BatchNorm2d(64),
@@ -346,7 +346,7 @@ class ConvAutoencoder(nn.Module):
             nn.ReLU(inplace=True),
         )
         
-        # 복호기: 차츰 상향 표본화
+        # 디코더: 차츰 상향 표본화
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1),  # 28 → 56
             nn.BatchNorm2d(128),
@@ -383,9 +383,9 @@ Parameters: 1,030,723
 ```python
 class UNetDecoder(nn.Module):
     """
-    부호기에서 오는 건너뛰기 연결이 있는 U-Net 복호기 블록.
+    인코더에서 오는 건너뛰기 연결이 있는 U-Net 디코더 블록.
     
-    특징 맵을 상향 표본화하여 짝이 되는 부호기 특징과 이어 붙인 뒤
+    특징 맵을 상향 표본화하여 짝이 되는 인코더 특징과 이어 붙인 뒤
     합성곱을 적용한다.
     """
     def __init__(self, in_channels, skip_channels, out_channels):
@@ -558,7 +558,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 </div>
 
 ??? success "연습문제 4 풀이"
-    복호기 신경망에서 쓰인다. U-Net(분할), 자기부호기, GAN(생성기의 상향 표본화), 초해상도 신경망이 그 예이다. 고정된 상향 표본화 방법의 학습 가능한 짝으로, 신경망이 알맞은 상향 표본화 필터를 배우게 해 준다.
+    디코더 신경망에서 쓰인다. U-Net(분할), 오토인코더, GAN(생성기의 상향 표본화), 초해상도 신경망이 그 예이다. 고정된 상향 표본화 방법의 학습 가능한 짝으로, 신경망이 알맞은 상향 표본화 필터를 배우게 해 준다.
 
 ## 정리하며
 
@@ -567,7 +567,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 | **연산** | 합성곱 행렬의 전치로, 낮은 해상도를 높은 해상도로 보낸다 |
 | **합성곱과의 관계** | 입력에 대한 conv2d의 기울기 |
 | **출력 크기** | $(H_{in}-1) \times s - 2p + d(K-1) + p_{out} + 1$ |
-| **흔한 쓰임** | 복호기 신경망, GAN, 분할, 초해상도 |
+| **흔한 쓰임** | 디코더 신경망, GAN, 분할, 초해상도 |
 | **주된 함정** | $K \% s \neq 0$일 때의 바둑판 무늬 흠 |
 | **모범 관행** | $s$으로 나누어떨어지는 $K$을 쓰거나 크기 조정 뒤 합성곱을 쓴다 |
 

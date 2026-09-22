@@ -3,7 +3,7 @@
 
 ---
 
-주성분 분석은 서로 같은 두 가지 꼴로 세울 수 있다. 곧 **최대 흩어짐**(쏜 자료가 가장 넓게 퍼지는 방향 찾기)과 **최소 다시 세우기 어긋남**(본디 자료를 가장 잘 어림하는 계수 $k$짜리 선형 쏘기 찾기)이다. 이 절은 둘 다 이끌어 내고 서로 같음을 밝히며 선형 자기 부호기와의 이음을 세운다.
+주성분 분석은 서로 같은 두 가지 꼴로 세울 수 있다. 곧 **최대 흩어짐**(쏜 자료가 가장 넓게 퍼지는 방향 찾기)과 **최소 다시 세우기 어긋남**(본디 자료를 가장 잘 어림하는 계수 $k$짜리 선형 쏘기 찾기)이다. 이 절은 둘 다 이끌어 내고 서로 같음을 밝히며 선형 오토인코더와의 이음을 세운다.
 
 ---
 
@@ -187,11 +187,11 @@ def pca(X, k):
 
 ---
 
-## 6. 이끌어 내기 3: 선형 자기 부호기와 같음
+## 6. 이끌어 내기 3: 선형 오토인코더와 같음
 
 ### 준비
 
-부호기 $\mathbf{W}_e \in \mathbb{R}^{d \times k}$과 풀개 $\mathbf{W}_d \in \mathbb{R}^{d \times k}$을 가진 선형 자기 부호기를 보자:
+인코더 $\mathbf{W}_e \in \mathbb{R}^{d \times k}$과 디코더 $\mathbf{W}_d \in \mathbb{R}^{d \times k}$을 가진 선형 오토인코더를 보자:
 
 $$\text{Encode:} \quad \mathbf{z} = \mathbf{W}_e^T \mathbf{x}, \qquad \text{Decode:} \quad \hat{\mathbf{x}} = \mathbf{W}_d \mathbf{z}$$
 
@@ -199,7 +199,7 @@ $$\text{Encode:} \quad \mathbf{z} = \mathbf{W}_e^T \mathbf{x}, \qquad \text{Deco
 
 $$\mathcal{L}(\mathbf{W}_e, \mathbf{W}_d) = \frac{1}{n}\sum_{i=1}^n \left\|\mathbf{x}^{(i)} - \mathbf{W}_d \mathbf{W}_e^T \mathbf{x}^{(i)}\right\|^2$$
 
-### 부호기가 주어졌을 때 가장 좋은 풀개
+### 인코더가 주어졌을 때 가장 좋은 풀개
 
 $\mathbf{W}_e$을 고정하면 손실이 $\mathbf{W}_d$에 대해 이차이다. 미분해 0으로 두면:
 
@@ -221,7 +221,7 @@ $$\mathbf{W}_d \mathbf{W}_e^T = \mathbf{W}\mathbf{W}^T$$
 
 ### 실전에서 뜻하는 바
 
-(깨어남 함수도 치우침도 없는) 선형 자기 부호기를 평균 제곱 어긋남 손실로 기울기 내려가기로 익히면 주성분 분석 풀이로 모인다. 모였을 때의 손실은 주성분 분석의 다시 세우기 어긋남 $\sum_{j=k+1}^d \lambda_j$과 같다.
+(깨어남 함수도 치우침도 없는) 선형 오토인코더를 평균 제곱 어긋남 손실로 기울기 내려가기로 익히면 주성분 분석 풀이로 모인다. 모였을 때의 손실은 주성분 분석의 다시 세우기 어긋남 $\sum_{j=k+1}^d \lambda_j$과 같다.
 
 ```python
 import torch
@@ -238,7 +238,7 @@ class LinearAutoencoder(nn.Module):
         return self.decoder(self.encoder(x))
 
 def verify_equivalence(X, k, epochs=5000, lr=0.01):
-    """주성분 분석과 선형 자기 부호기의 다시 세우기 어긋남을 견준다."""
+    """주성분 분석과 선형 오토인코더의 다시 세우기 어긋남을 견준다."""
     X_centered = X - X.mean(axis=0)
 
     # 닫힌 꼴 주성분 분석
@@ -247,7 +247,7 @@ def verify_equivalence(X, k, epochs=5000, lr=0.01):
     eigvals = np.sort(eigvals)[::-1]
     pca_error = eigvals[k:].sum()
 
-    # 선형 자기 부호기
+    # 선형 오토인코더
     X_t = torch.tensor(X_centered, dtype=torch.float32)
     model = LinearAutoencoder(X.shape[1], k)
     opt = torch.optim.Adam(model.parameters(), lr=lr)
@@ -392,7 +392,7 @@ $$\underbrace{\operatorname{tr}(\boldsymbol{\Sigma})}_{\text{total}} = \underbra
     버린 고윳값의 합이 어긋남과 일치했던 것이 바로 이 분해다.
 
     두 유도를 모두 적어 두는 까닭은 **일반화되는 방향이 다르기** 때문이다. 흩어짐
-    쪽은 여러 변수의 관계를 보는 방법들로, 어긋남 쪽은 자기 부호기와 행렬 채우기로
+    쪽은 여러 변수의 관계를 보는 방법들로, 어긋남 쪽은 오토인코더와 행렬 채우기로
     이어진다.
 
 ---
@@ -577,6 +577,6 @@ $$\underbrace{\operatorname{tr}(\boldsymbol{\Sigma})}_{\text{total}} = \underbra
 | **쏜 흩어짐** | 고윳값과 같다: $\operatorname{Var}(z_k) = \lambda_k$ |
 | **다시 세우기 어긋남** | 버린 고윳값의 합: $\sum_{j > k} \lambda_j$ |
 | **최대 흩어짐 ≡ 최소 어긋남** | 같은 풀이: 으뜸 $k$개 고유벡터 |
-| **선형 자기 부호기 ≡ 주성분 분석** | 평균 제곱 어긋남으로 익힌 선형 자기 부호기는 주성분 분석 풀이로 모인다 |
+| **선형 오토인코더 ≡ 주성분 분석** | 평균 제곱 어긋남으로 익힌 선형 오토인코더는 주성분 분석 풀이로 모인다 |
 | **점수의 상관 없음** | $\operatorname{Cov}(\mathbf{z}) = \boldsymbol{\Lambda}_k$ |
 | **가장 좋음** | 계수 $k$짜리 가장 좋은 어림(에카르트-영-미르스키) |

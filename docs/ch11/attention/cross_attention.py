@@ -7,7 +7,7 @@
 """
 교차 어텐션 장치 구현
 =========================================
-이 모듈은 부호기-복호기 구조에서 쓰는 교차 어텐션 장치를 구현한다.
+이 모듈은 인코더-디코더 구조에서 쓰는 교차 어텐션 장치를 구현한다.
 """
 
 import torch
@@ -24,9 +24,9 @@ class CrossAttention(nn.Module):
     """
     교차 어텐션 층
     
-    질의는 한 순차열(복호기 따위)에서, 열쇠와 값은 다른 순차열(부호기 따위)에서
+    질의는 한 순차열(디코더 따위)에서, 열쇠와 값은 다른 순차열(인코더 따위)에서
     오는 어텐션을 계산한다.
-    트랜스포머 복호기 층에서 부호기의 출력에 주목할 때 쓴다.
+    트랜스포머 디코더 층에서 인코더의 출력에 주목할 때 쓴다.
     """
     
     def __init__(self, query_dim, key_dim, embed_dim, dropout=0.1):
@@ -113,10 +113,10 @@ class MultiHeadCrossAttention(nn.Module):
 
 class EncoderDecoderAttention(nn.Module):
     """
-    완전한 부호기-복호기 어텐션 블록
+    완전한 인코더-디코더 어텐션 블록
     
-    (복호기의) 자기 어텐션과 (부호기-복호기의) 교차 어텐션을 모두 담고 있다.
-    트랜스포머 복호기의 전형적인 블록이다.
+    (디코더의) 자기 어텐션과 (인코더-디코더의) 교차 어텐션을 모두 담고 있다.
+    트랜스포머 디코더의 전형적인 블록이다.
     """
     
     def __init__(self, decoder_dim, encoder_dim, num_heads, dropout=0.1):
@@ -212,7 +212,7 @@ def demonstrate_multi_head_cross_attention():
 
 
 def demonstrate_encoder_decoder():
-    """완전한 부호기-복호기 어텐션 블록 시연"""
+    """완전한 인코더-디코더 어텐션 블록 시연"""
     print("\n" + "=" * 60)
     print("Encoder-Decoder Attention Block Demo")
     print("=" * 60)

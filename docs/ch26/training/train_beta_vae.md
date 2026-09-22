@@ -1,14 +1,14 @@
 # 베타 VAE 익히기
 
-β-변분 자기 부호기(베타 VAE) 익히기 각본. β 매개변수로 얽힘 풀린 나타냄을 배운다
+β-변분 오토인코더(베타 VAE) 익히기 각본. β 매개변수로 얽힘 풀린 나타냄을 배운다
 
-자기 부호기와 변분 자기 부호기는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 고갱이 얼개와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
+오토인코더와 변분 오토인코더는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 고갱이 얼개와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
 
 ## 1. 코드
 
 ```python
 """
-β-변분 자기 부호기(베타 VAE) 익히기 각본
+β-변분 오토인코더(베타 VAE) 익히기 각본
 β 매개변수로 얽힘 풀린 나타냄을 배운다
 """
 
@@ -45,7 +45,7 @@ def train_epoch(model, train_loader, optimizer, device):
     for data, _ in pbar:
         data = data.to(device)
         
-        # 온전히 이어진 β-변분 자기 부호기를 위해 자료를 펼친다
+        # 온전히 이어진 β-변분 오토인코더를 위해 자료를 펼친다
         if isinstance(model, BetaVAE):
             data_input = data.view(data.size(0), -1)
         else:
@@ -94,7 +94,7 @@ def test_epoch(model, test_loader, device):
         for data, _ in test_loader:
             data = data.to(device)
             
-            # 온전히 이어진 β-변분 자기 부호기를 위해 자료를 펼친다
+            # 온전히 이어진 β-변분 오토인코더를 위해 자료를 펼친다
             if isinstance(model, BetaVAE):
                 data_input = data.view(data.size(0), -1)
             else:
@@ -198,7 +198,7 @@ def main(args):
     visualize_reconstruction(model, test_loader, num_images=10, device=device, conditional=False)
     visualize_samples(model, args.latent_dim, num_samples=10, device=device)
     
-    # β-변분 자기 부호기 전용: 얽힘 풀림을 보이는 숨은 훑기
+    # β-변분 오토인코더 전용: 얽힘 풀림을 보이는 숨은 훑기
     print("\nGenerating latent dimension traversals (disentanglement visualization)...")
     num_dims_to_traverse = min(10, args.latent_dim)
     for dim_idx in range(num_dims_to_traverse):
@@ -250,7 +250,7 @@ if __name__ == '__main__':
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.
 
-여기서 보인 결은 더 복잡한 경우로 자연스레 넓어진다. 웃매개변수, 얼개 변형, 여러 자료 묶음을 시험해 보면 이해가 깊어지고 변분 자기 부호기 일에 대한 실전 직관이 선다.
+여기서 보인 결은 더 복잡한 경우로 자연스레 넓어진다. 웃매개변수, 얼개 변형, 여러 자료 묶음을 시험해 보면 이해가 깊어지고 변분 오토인코더 일에 대한 실전 직관이 선다.
 
 ## 연습문제
 
@@ -469,12 +469,12 @@ $\beta$를 아주 작게, 예컨대 0.01로 두면 어떻게 되는가?
 </div>
 
 ??? success "연습문제 10 풀이"
-    사실상 [자기 부호기](../../ch25/index.md)가 된다.
+    사실상 [오토인코더](../../ch25/index.md)가 된다.
 
     쓸기의 방향이 그것을 가리킨다. $\beta$를 0.25까지 내렸을 때 다시 세우기는 70.60까지
     좋아졌고 표본 품질은 40.3%까지 떨어졌다. 더 내리면 이 추세가 이어진다.
 
-    극한에서는 KL이 $\sigma \to 0$을 막지 못하므로 부호기가 결정적이 되고, 뽑기가
+    극한에서는 KL이 $\sigma \to 0$을 막지 못하므로 인코더가 결정적이 되고, 뽑기가
     [0.2%](../../ch25/limits/latent_sampling.md)로 무너진다.
 
     그런데 다시 세우기만 보면 $\beta$가 작은 쪽이 **언제나 이긴다.** 이 점이 함정이다.

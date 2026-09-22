@@ -19,8 +19,8 @@ FILE: 09_image_generation.py
 
 수학 바탕:
     그림에서는 점수 그물이 흔히 U-Net 얼개를 쓴다.
-    - 부호기: 줄이기 + 특징 뽑기
-    - 풀개: 키우기 + 되짓기
+    - 인코더: 줄이기 + 특징 뽑기
+    - 디코더: 키우기 + 되짓기
     - 건너뛰기 이음: 공간의 앎을 지킨다
     
     점수 s_θ(x, t)은 그림 공간 위의 벡터 마당이다.
@@ -54,7 +54,7 @@ class SimpleUNet(nn.Module):
             nn.Linear(time_emb_dim, time_emb_dim)
         )
         
-        # 부호기
+        # 인코더
         self.enc1 = nn.Sequential(
             nn.Conv2d(in_channels, base_channels, 3, padding=1),
             nn.GroupNorm(8, base_channels),
@@ -73,7 +73,7 @@ class SimpleUNet(nn.Module):
             nn.SiLU()
         )
         
-        # 복호기
+        # 디코더
         self.dec2 = nn.Sequential(
             nn.ConvTranspose2d(base_channels*2, base_channels, 2, stride=2),
             nn.GroupNorm(8, base_channels),

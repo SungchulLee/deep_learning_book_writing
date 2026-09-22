@@ -100,7 +100,7 @@ def fig_pca_reconstructions():
     print("wrote pca_reconstructions.svg")
 
 
-# === 학습해 둔 자기 부호기를 읽어 오기 위한 구조 정의 =======================
+# === 학습해 둔 오토인코더를 읽어 오기 위한 구조 정의 =======================
 # mnist_ladder.py가 저장한 state_dict와 짝이 맞아야 한다
 import torch.nn as nn
 
@@ -175,7 +175,7 @@ def fig_recon_ladder():
 def fig_latent_2d():
     """왼쪽은 흩어진 점, 오른쪽은 그 공간을 격자로 훑어 복호한 것.
 
-    자기 부호기의 잠재 공간에는 **빈 곳**이 있다는 점이 요점이다. 빈 곳을
+    오토인코더의 잠재 공간에는 **빈 곳**이 있다는 점이 요점이다. 빈 곳을
     복호하면 숫자가 아닌 것이 나온다. VAE가 고치려는 것이 바로 이것이다.
     """
     (Xtr, _), (Xte, yte) = load_flat()
@@ -224,7 +224,7 @@ class VAEModel(nn.Module):
         self.dec = nn.Sequential(nn.Linear(k + n_cond, 256), nn.ReLU(), nn.Linear(256, 784))
 
 
-# === 그림 4: 2차원에서는 자기 부호기도 멀쩡하다 =============================
+# === 그림 4: 2차원에서는 오토인코더도 멀쩡하다 =============================
 @torch.no_grad()
 def fig_ae_vs_vae_2d():
     """AE-2와 VAE-2의 잠재 공간을 나란히 둔다.
@@ -274,7 +274,7 @@ def fig_ae_vs_vae_2d():
 def fig_class_share():
     """심판이 표본 5,000장을 어느 클래스로 읽었는지의 몫.
 
-    고르면 0.1씩이다. 자기 부호기는 한 클래스가 66%를 가져간다.
+    고르면 0.1씩이다. 오토인코더는 한 클래스가 66%를 가져간다.
     2차원 그림으로는 보이지 않는 실패이며, 그래서 수로 재야 한다.
     """
     import json
@@ -337,7 +337,7 @@ def fig_samples():
     g = torch.Generator().manual_seed(7)
     rows = []
 
-    # 자기 부호기 / VAE 는 심판 정규화 공간에서 내놓는다
+    # 오토인코더 / VAE 는 심판 정규화 공간에서 내놓는다
     ae = load(MLPAE, 64, "ae_mlp64")
     (Xtr, _), (Xte, _) = load_flat()
     zr = ae.enc(Xte)

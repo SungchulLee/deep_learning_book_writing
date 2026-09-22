@@ -1,6 +1,6 @@
 # MAE
 
-MAE은 2021년 글 "Masked Autoencoders Are Scalable Vision Learners"에서 나왔다. - 그림 조각 대부분을 가린다(예: 75%) - 보이는 조각만 부호로 바꾼다 - 가벼운 풀개가 가린 조각을 되살린다.
+MAE은 2021년 글 "Masked Autoencoders Are Scalable Vision Learners"에서 나왔다. - 그림 조각 대부분을 가린다(예: 75%) - 보이는 조각만 부호로 바꾼다 - 가벼운 디코더가 가린 조각을 되살린다.
 
 여기 짜보기는 MAE을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -9,16 +9,16 @@ MAE은 2021년 글 "Masked Autoencoders Are Scalable Vision Learners"에서 나�
 ```python
 #!/usr/bin/env python3
 """
-MAE - 가린 제 부호기
-글: "가린 제 부호기는 크게 키울 수 있는 보기 배움꾼이다" (2021)
+MAE - 가린 제 인코더
+글: "가린 제 인코더는 크게 키울 수 있는 보기 배움꾼이다" (2021)
 지은이: 카이밍 허 외
 고갱이 깨침:
   - 그림 조각 대부분을 가린다(예: 75%)
   - 보이는 조각만 부호로 바꾼다
-  - 가벼운 풀개가 가린 조각을 되살린다
+  - 가벼운 디코더가 가린 조각을 되살린다
 
 두루마리: appendix/vit/mae.py
-눈여겨볼 것: 배우기 위한 짜보기다(부호기-풀개 얼개).
+눈여겨볼 것: 배우기 위한 짜보기다(인코더-디코더 얼개).
 """
 
 import torch
@@ -31,18 +31,18 @@ import torch.nn as nn
 
 class MAE(nn.Module):
     """
-    ViT 결의 부호기와 풀개를 지닌 가린 제 부호기.
+    ViT 결의 인코더와 디코더를 지닌 가린 제 인코더.
     """
     def __init__(self, embed_dim=768, decoder_dim=512, num_patches=196):
         super().__init__()
 
-        # 부호기는 보이는 조각만 다룬다
+        # 인코더는 보이는 조각만 다룬다
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embed_dim, nhead=12, batch_first=True
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=12)
 
-        # 풀개가 가린 조각을 되살린다
+        # 디코더가 가린 조각을 되살린다
         decoder_layer = nn.TransformerEncoderLayer(
             d_model=decoder_dim, nhead=8, batch_first=True
         )
@@ -64,7 +64,7 @@ class MAE(nn.Module):
         # 보이는 조각을 부호로 바꾼다
         enc = self.encoder(visible)
 
-        # 풀개 차수로 되비춘다
+        # 디코더 차수로 되비춘다
         dec_input = self.enc_to_dec(enc)
 
         # 되살리기를 위해 가림 낱말을 덧붙인다

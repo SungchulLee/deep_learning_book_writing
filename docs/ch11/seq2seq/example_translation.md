@@ -200,7 +200,7 @@ def main():
     ENC_DROPOUT = 0.3
     DEC_DROPOUT = 0.3
     
-    # 부호기 만들기
+    # 인코더 만들기
     encoder = BasicEncoder(
         input_size=len(en_vocab),
         embedding_dim=ENC_EMB_DIM,
@@ -211,11 +211,11 @@ def main():
         rnn_type='LSTM'
     )
     
-    # 복호기 만들기
+    # 디코더 만들기
     decoder = AttentionDecoder(
         output_size=len(fr_vocab),
         embedding_dim=DEC_EMB_DIM,
-        hidden_size=HID_DIM * 2,  # 부호기가 양방향이라 2를 곱한다
+        hidden_size=HID_DIM * 2,  # 인코더가 양방향이라 2를 곱한다
         encoder_hidden_size=HID_DIM * 2,
         num_layers=N_LAYERS,
         dropout=DEC_DROPOUT,

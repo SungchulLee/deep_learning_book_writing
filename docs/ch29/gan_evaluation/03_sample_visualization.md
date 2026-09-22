@@ -269,7 +269,7 @@ class LatentSpaceInterpolation:
         숨은 부호 둘 사이의 사이 메우기를 그려 본다.
         
         인수:
-            decoder: 풀개 신경망
+            decoder: 디코더 신경망
             z1: 시작 숨은 부호
             z2: 끝 숨은 부호
             num_steps: 사이 끼움 걸음 수
@@ -322,7 +322,7 @@ class ReconstructionQuality:
     
     쓰임새:
     ---------
-    - 변분 자기 부호기의 되짓기 품질
+    - 변분 오토인코더의 되짓기 품질
     - 그림에서 그림으로 옮기기
     - 누르기 따지기
     """
@@ -470,7 +470,7 @@ def demonstrate_latent_interpolation():
     print("Latent Space Interpolation Demonstration")
     print("=" * 70)
     
-    # 단순한 풀개 신경망(보여 주기용)
+    # 단순한 디코더 신경망(보여 주기용)
     class SimpleDecoder(nn.Module):
         def __init__(self, latent_dim=10):
             super().__init__()
@@ -799,8 +799,8 @@ z2 norm: 3.5240
     그저 외운 것이 아니라는 약한 증거가 된다.
 
     다만 이 그림으로 모델을 견주는 데는 한계가 있다.
-    [26장에서 재어 본](../../ch26/training/generate_samples.md) 대로 자기 부호기와 변분
-    자기 부호기의 사이 끼움이 거의 같았다(가운데에서 확신도가 0.132 대 0.140 떨어진다).
+    [26장에서 재어 본](../../ch26/training/generate_samples.md) 대로 오토인코더와 변분
+    오토인코더의 사이 끼움이 거의 같았다(가운데에서 확신도가 0.132 대 0.140 떨어진다).
     두 모델의 뽑기 능력은 0.2% 대 57.4%로 크게 다른데 이 그림은 그 차이를 보이지 못한다.
 
     까닭은 양 끝이 **자료에서 온 코드**라 그 사이도 대개 아는 영역을 지나기 때문이다.

@@ -207,7 +207,7 @@ class SimpleCharTransformer(nn.Module):
         # 변환기에는 본디 차례가 없으므로 자리 앎을 더한다
         self.position_embedding = nn.Embedding(max_seq_length, embedding_dim)
         
-        # 변환기 부호기 층
+        # 변환기 인코더 층
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embedding_dim,
             nhead=n_heads,

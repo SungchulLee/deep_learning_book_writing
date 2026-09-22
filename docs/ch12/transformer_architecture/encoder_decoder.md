@@ -792,7 +792,7 @@ if __name__ == "__main__":
     d_ff = 3072
     max_len = 512
     
-    # 부호기 만들기
+    # 인코더 만들기
     encoder = TransformerEncoder(
         vocab_size=vocab_size,
         d_model=d_model,

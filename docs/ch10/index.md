@@ -18,7 +18,7 @@
 - [1차원 합성곱](cnn/conv1d.md) — 시계열, 음향, 텍스트 같은 순차 데이터에 합성곱 적용하기
 - [팽창 합성곱](cnn/dilated_convolutions.md) — 매개변수를 늘리지 않고 수용 영역을 넓히는 아트루스 합성곱
 - [배치 합성곱과 깊이별 분리 합성곱](cnn/depthwise_separable.md) — MobileNet, EfficientNet, ShuffleNet이 쓰는 효율적인 합성곱 분해
-- [전치 합성곱](cnn/transposed_conv.md) — 부호기-복호기 구조, GAN, 초해상도를 위한 학습 가능한 상향 표본화
+- [전치 합성곱](cnn/transposed_conv.md) — 인코더-디코더 구조, GAN, 초해상도를 위한 학습 가능한 상향 표본화
 
 ---
 

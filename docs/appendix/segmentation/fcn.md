@@ -23,7 +23,7 @@ import torch.nn as nn
 class FCN8s(nn.Module):
     def __init__(self, num_classes=21):
         super().__init__()
-        # VGG 결의 부호기
+        # VGG 결의 인코더
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 64, 3, padding=1),
             nn.ReLU(inplace=True),

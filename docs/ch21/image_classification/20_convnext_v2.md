@@ -1,6 +1,6 @@
 # ConvNeXt V2
 
-2023년 논문 "ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders"에서 나온 ConvNeXt V2는 전체 반응 고르게 맞추기(GRN)와, 가린 자기부호기를 쓰는 더 나은 스스로 살피는 미리 익히기 전략으로 ConvNeXt를 넓힌다.
+2023년 논문 "ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders"에서 나온 ConvNeXt V2는 전체 반응 고르게 맞추기(GRN)와, 가린 오토인코더를 쓰는 더 나은 스스로 살피는 미리 익히기 전략으로 ConvNeXt를 넓힌다.
 
 ## 1. 코드
 
@@ -73,7 +73,7 @@ Parameters: 341,608
 
 전역 반응 정규화(GRN)는 자기 지도 학습에서 일어나는 특징 붕괴를 다룬다. 채널마다 공간 차원에 걸쳐 $L^2$ 노름을 셈하고 평균 노름으로 정규화한 뒤 학습 가능한 스케일과 편향 매개변수를 건다. 그래서 모든 채널이 비슷한 표현을 배우는 것을 막고 특징의 다양함을 북돋운다.
 
-ConvNeXt V2는 예전에는 변환기만의 것으로 여겨지던 가린 자기부호기 미리 익히기를 누비기 그물도 누릴 수 있음을 보여 준다. GRN과 가린 그림 나타내기 미리 익히기가 어우러져 ConvNeXt V2는 모든 모델 크기에서 앞선 판을 앞선다.
+ConvNeXt V2는 예전에는 변환기만의 것으로 여겨지던 가린 오토인코더 미리 익히기를 누비기 그물도 누릴 수 있음을 보여 준다. GRN과 가린 그림 나타내기 미리 익히기가 어우러져 ConvNeXt V2는 모든 모델 크기에서 앞선 판을 앞선다.
 
 ## 연습문제
 
@@ -92,19 +92,19 @@ GRN이 무엇을 셈하는지 수학으로 밝히고, 왜 특징이 무너지는
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-가린 자기부호기 미리 익히기는 변환기를 위해 꾸며졌는데도 왜 ConvNeXt에 이로운가?
+가린 오토인코더 미리 익히기는 변환기를 위해 꾸며졌는데도 왜 ConvNeXt에 이로운가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    가린 자기부호기는 들임 조각을 마구잡이로 가리고 모델이 그것을 되살리도록 익혀 돌아간다. ConvNeXt는 조각으로 나눈 줄기의 내놓음을 ViT의 조각 묻힘처럼 다루어 여기에 맞출 수 있다. GRN이 결정적인데, 그것이 없으면 성기게 가린 들임 탓에 누비기 그물에서 특징이 무너지기 때문이다. GRN이 있으면 ConvNeXt는 가린 미리 익히기에서 센 나타냄을 배운다.
+    가린 오토인코더는 들임 조각을 마구잡이로 가리고 모델이 그것을 되살리도록 익혀 돌아간다. ConvNeXt는 조각으로 나눈 줄기의 내놓음을 ViT의 조각 묻힘처럼 다루어 여기에 맞출 수 있다. GRN이 결정적인데, 그것이 없으면 성기게 가린 들임 탓에 누비기 그물에서 특징이 무너지기 때문이다. GRN이 있으면 ConvNeXt는 가린 미리 익히기에서 센 나타냄을 배운다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-ConvNeXt V2를 위한 단순한 가린 자기부호기 미리 익히기 목표를 짜라.
+ConvNeXt V2를 위한 단순한 가린 오토인코더 미리 익히기 목표를 짜라.
 
 </div>
 

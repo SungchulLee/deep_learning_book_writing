@@ -301,7 +301,7 @@ def adaptive_annealed_em(X, K, beta_init=0.01, max_beta_steps=50):
 
 **숨은 디리클레 배분**: 주제 배정을 담금질하며 $q(z_{dn} = k)^\beta$을 고르게 한다.
 
-**변분 자동부호기**: KL 벌어짐 항을 담금질한다(β-VAE와의 이음):
+**변분 자동인코더**: KL 벌어짐 항을 담금질한다(β-VAE와의 이음):
 
 $$
 \mathcal{L} = \mathbb{E}[\log p(\mathbf{x}|\mathbf{z})] - \beta \cdot D_{KL}[q(\mathbf{z}|\mathbf{x}) \| p(\mathbf{z})]

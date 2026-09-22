@@ -96,7 +96,7 @@ class AdversarialDebiasing(nn.Module):
     ):
         super(AdversarialDebiasing, self).__init__()
 
-        # 결 부호기
+        # 결 인코더
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
@@ -211,7 +211,7 @@ class FairRepresentationLearning(nn.Module):
     """
     예민한 소식을 걷어내어 고른 나타냄을 배운다.
 
-    변이 자동 부호기 결의 길로 예민한 됨됨이에 흔들리지 않는
+    변이 자동 인코더 결의 길로 예민한 됨됨이에 흔들리지 않는
     나타냄을 배운다.
     """
 
@@ -223,7 +223,7 @@ class FairRepresentationLearning(nn.Module):
     ):
         super(FairRepresentationLearning, self).__init__()
 
-        # 부호기
+        # 인코더
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),

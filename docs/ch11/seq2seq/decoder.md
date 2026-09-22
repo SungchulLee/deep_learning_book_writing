@@ -1,6 +1,6 @@
-# 복호기
+# 디코더
 
-Seq2Seq 모델을 위한 복호기 모듈. 어텐션이 있는 것과 없는 것 등 여러 복호기 구조를 구현한다.
+Seq2Seq 모델을 위한 디코더 모듈. 어텐션이 있는 것과 없는 것 등 여러 디코더 구조를 구현한다.
 
 순차열 모형은 시간적이고 순서가 있는 데이터를 다루는 데 바탕이 된다. 이 구현은 순차열 모델의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
 
@@ -8,8 +8,8 @@ Seq2Seq 모델을 위한 복호기 모듈. 어텐션이 있는 것과 없는 것
 
 ```python
 """
-Seq2Seq 모델을 위한 복호기 모듈
-어텐션이 있는 것과 없는 것 등 여러 복호기 구조를 구현한다
+Seq2Seq 모델을 위한 디코더 모듈
+어텐션이 있는 것과 없는 것 등 여러 디코더 구조를 구현한다
 """
 
 import torch
@@ -23,7 +23,7 @@ import torch.nn.functional as F
 
 class BasicDecoder(nn.Module):
     """
-    Seq2Seq 모델을 위한 기본 RNN 복호기
+    Seq2Seq 모델을 위한 기본 RNN 디코더
     
     인수:
         output_size: 출력 어휘의 크기
@@ -106,13 +106,13 @@ class BasicDecoder(nn.Module):
 
 class AttentionDecoder(nn.Module):
     """
-    바다나우(덧셈) 어텐션 장치가 있는 복호기
+    바다나우(덧셈) 어텐션 장치가 있는 디코더
     
     인수:
         output_size: 출력 어휘의 크기
         embedding_dim: 낱말 임베딩의 차원
-        hidden_size: 복호기 숨은 상태의 크기
-        encoder_hidden_size: 부호기 숨은 상태의 크기
+        hidden_size: 디코더 숨은 상태의 크기
+        encoder_hidden_size: 인코더 숨은 상태의 크기
         num_layers: 순환 층의 수
         dropout: 드롭아웃 확률
         rnn_type: RNN의 종류 ('LSTM' 또는 'GRU')
@@ -170,7 +170,7 @@ class AttentionDecoder(nn.Module):
         인수:
             input_token: 입력 토큰 (배치 크기, 1)
             hidden: 앞 시각의 숨은 상태
-            encoder_outputs: 부호기의 모든 출력 (배치 크기, src_len, encoder_hidden_size)
+            encoder_outputs: 인코더의 모든 출력 (배치 크기, src_len, encoder_hidden_size)
             cell: 앞 시각의 세포 상태 (LSTM에만 있다)
             mask: 덧댐을 가리는 가림막 (배치 크기, src_len)
             
@@ -217,8 +217,8 @@ class BahdanauAttention(nn.Module):
     바다나우(덧셈) 어텐션 장치
     
     인수:
-        decoder_hidden_size: 복호기 숨은 상태의 크기
-        encoder_hidden_size: 부호기 숨은 상태의 크기
+        decoder_hidden_size: 디코더 숨은 상태의 크기
+        encoder_hidden_size: 인코더 숨은 상태의 크기
     """
     
     def __init__(self, decoder_hidden_size, encoder_hidden_size):
@@ -233,8 +233,8 @@ class BahdanauAttention(nn.Module):
         어텐션 가중치와 문맥 벡터를 계산한다
         
         인수:
-            query: 복호기의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
-            keys: 부호기의 출력 (배치 크기, src_len, encoder_hidden_size)
+            query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
+            keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
             mask: 덧댐 가림막 (배치 크기, src_len)
             
         반환값:
@@ -270,8 +270,8 @@ class LuongAttention(nn.Module):
     루옹(곱셈) 어텐션 장치
     
     인수:
-        decoder_hidden_size: 복호기 숨은 상태의 크기
-        encoder_hidden_size: 부호기 숨은 상태의 크기
+        decoder_hidden_size: 디코더 숨은 상태의 크기
+        encoder_hidden_size: 인코더 숨은 상태의 크기
         attention_type: 점수 함수의 종류 ('dot', 'general', 'concat')
     """
     
@@ -291,8 +291,8 @@ class LuongAttention(nn.Module):
         어텐션 가중치와 문맥 벡터를 계산한다
         
         인수:
-            query: 복호기의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
-            keys: 부호기의 출력 (배치 크기, src_len, encoder_hidden_size)
+            query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
+            keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
             mask: 덧댐 가림막 (배치 크기, src_len)
             
         반환값:
@@ -338,7 +338,7 @@ if __name__ == "__main__":
     hidden_size = 512
     encoder_hidden_size = 512
     
-    # 어텐션 복호기 만들기
+    # 어텐션 디코더 만들기
     decoder = AttentionDecoder(
         output_size=vocab_size,
         embedding_dim=embedding_dim,
@@ -437,7 +437,7 @@ Attention weights shape: torch.Size([32, 20])
 
 ## 정리하며
 
-**다룬 것** — 복호기
+**다룬 것** — 디코더
 
 이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 순차열 모델 구조를 이룬다.
 

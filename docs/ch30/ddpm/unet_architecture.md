@@ -150,7 +150,7 @@ class UNet(nn.Module):
     퍼짐 모델을 위한 U-Net 얼개.
     
     그물은 다음을 지닌다.
-    - 줄이기를 갖춘 부호기 길
+    - 줄이기를 갖춘 인코더 길
     - 눈길을 갖춘 병목
     - 키우기와 건너뛰기 이음을 갖춘 풀개 길
     - 때 걸음을 조건으로 삼는 때 박아 넣기
@@ -192,7 +192,7 @@ class UNet(nn.Module):
         # 첫 합성곱
         self.conv_in = nn.Conv2d(in_channels, base_channels, kernel_size=3, padding=1)
         
-        # 부호기
+        # 인코더
         self.encoder_blocks = nn.ModuleList()
         self.downsamples = nn.ModuleList()
         
@@ -220,7 +220,7 @@ class UNet(nn.Module):
             ResidualBlock(now_channels, now_channels, time_emb_dim),
         ])
         
-        # 복호기
+        # 디코더
         self.decoder_blocks = nn.ModuleList()
         self.upsamples = nn.ModuleList()
         
@@ -228,7 +228,7 @@ class UNet(nn.Module):
             out_ch = base_channels * mult
             
             for j in range(num_res_blocks + 1):
-                # 부호기에서 오는 건너뛰기 이음
+                # 인코더에서 오는 건너뛰기 이음
                 skip_ch = channels.pop()
                 block = ResidualBlock(now_channels + skip_ch, out_ch, time_emb_dim)
                 self.decoder_blocks.append(block)
@@ -262,7 +262,7 @@ class UNet(nn.Module):
         # 첫 합성곱
         x = self.conv_in(x)
         
-        # 부호기
+        # 인코더
         encoder_outputs = [x]
         
         down_idx = 0
@@ -281,7 +281,7 @@ class UNet(nn.Module):
             else:
                 x = block(x, time_emb)
         
-        # 복호기
+        # 디코더
         up_idx = 0
         for block in self.decoder_blocks:
             skip = encoder_outputs.pop()
@@ -315,7 +315,7 @@ class SimpleUNet(nn.Module):
             nn.Linear(time_emb_dim, time_emb_dim),
         )
         
-        # 부호기
+        # 인코더
         self.conv1 = nn.Conv2d(in_channels, base_channels, 3, padding=1)
         self.res1 = ResidualBlock(base_channels, base_channels * 2, time_emb_dim)
         self.down1 = Downsample(base_channels * 2)
@@ -326,7 +326,7 @@ class SimpleUNet(nn.Module):
         # 병목
         self.res3 = ResidualBlock(base_channels * 4, base_channels * 4, time_emb_dim)
         
-        # 복호기
+        # 디코더
         self.up1 = Upsample(base_channels * 4)
         self.res4 = ResidualBlock(base_channels * 8, base_channels * 2, time_emb_dim)
         
@@ -339,7 +339,7 @@ class SimpleUNet(nn.Module):
     def forward(self, x: torch.Tensor, time: torch.Tensor) -> torch.Tensor:
         time_emb = self.time_embedding(time)
         
-        # 부호기
+        # 인코더
         x1 = self.conv1(x)
         x2 = self.res1(x1, time_emb)
         x2_down = self.down1(x2)
@@ -350,7 +350,7 @@ class SimpleUNet(nn.Module):
         # 병목
         x4 = self.res3(x3_down, time_emb)
         
-        # 건너뛰는 이음을 갖춘 풀개
+        # 건너뛰는 이음을 갖춘 디코더
         x5 = self.up1(x4)
         x5 = torch.cat([x5, x3], dim=1)
         x5 = self.res4(x5, time_emb)

@@ -100,7 +100,7 @@ class LongformerBlock(nn.Module):
 
 class Longformer(nn.Module):
     """
-    창 눈길 덩이를 쓰는 Longformer 꼴 부호기.
+    창 눈길 덩이를 쓰는 Longformer 꼴 인코더.
     """
     def __init__(self, vocab_size=30522, d_model=256, window=4, num_layers=4):
         super().__init__()

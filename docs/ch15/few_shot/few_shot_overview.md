@@ -139,7 +139,7 @@ $$h_t = f(x_t, h_{t-1}, \mathcal{M})$$
 
 $$f_\theta = g_\psi \circ h_\phi$$
 
-여기서 $h_\phi$은 미리 학습된 부호기(얼리거나 미세 조정한다)이고 $g_\psi$은 과제에 맞춘 적응 층이다.
+여기서 $h_\phi$은 미리 학습된 인코더(얼리거나 미세 조정한다)이고 $g_\psi$은 과제에 맞춘 적응 층이다.
 
 ---
 
@@ -343,7 +343,7 @@ class FewShotDataset(torch.utils.data.Dataset):
         return self.sampler.n_episodes
 ```
 
-### 바탕 부호기 구조
+### 바탕 인코더 구조
 
 ```python
 import torch.nn as nn
@@ -371,7 +371,7 @@ class ConvBlock(nn.Module):
 
 class Conv4Encoder(nn.Module):
     """
-    소수 예시 학습에서 흔히 쓰는 4층 합성곱 부호기.
+    소수 예시 학습에서 흔히 쓰는 4층 합성곱 인코더.
     
     이 구조는 원형 망, 맞춤 망, MAML 같은
     논문에서 표준 등뼈로 쓰인다.
@@ -409,7 +409,7 @@ class Conv4Encoder(nn.Module):
 
 class ResNetEncoder(nn.Module):
     """
-    소수 예시 학습을 위한 ResNet 기반 부호기.
+    소수 예시 학습을 위한 ResNet 기반 인코더.
     
     미리 학습했거나 아무렇게나 초기화한 ResNet 등뼈를 쓰되
     마지막 가려내기 층은 없앤다.

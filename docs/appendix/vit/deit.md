@@ -61,7 +61,7 @@ class DeiT(nn.Module):
         # 자리 담기에 두 낱말이 모두 들어간다
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 2, embed_dim))
 
-        # 변환기 부호기(단순하게 만듦)
+        # 변환기 인코더(단순하게 만듦)
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embed_dim, nhead=12, batch_first=True
         )

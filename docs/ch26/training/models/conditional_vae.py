@@ -2,7 +2,7 @@
 옮겨 놓은 것이다. 고칠 일이 있으면 그 페이지를 고치는 편이 낫다.
 """
 
-"""조건부 변분 자기 부호기(cVAE)."""
+"""조건부 변분 오토인코더(cVAE)."""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

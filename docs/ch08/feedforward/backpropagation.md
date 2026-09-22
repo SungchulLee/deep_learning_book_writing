@@ -489,12 +489,12 @@ x = x + 1       # 새 텐서, 그래프는 유지된다
 
 ```python
 # ✗ .detach()는 기울기 흐름을 끊는다
-hidden = encoder(x).detach()   # 부호기가 기울기를 전혀 받지 못한다!
+hidden = encoder(x).detach()   # 인코더가 기울기를 전혀 받지 못한다!
 output = decoder(hidden)
 
 # ✓ 기울기가 흐르게 둔다
 hidden = encoder(x)
-output = decoder(hidden)        # 부호기가 역전파로 갱신된다
+output = decoder(hidden)        # 인코더가 역전파로 갱신된다
 ```
 
 ---

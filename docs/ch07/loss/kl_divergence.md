@@ -147,7 +147,7 @@ $$D_{\text{KL}}(p \| q) = \frac{1}{2}\!\left[\log\frac{|\Sigma_q|}{|\Sigma_p|} -
 
 ### VAE의 특수한 경우
 
-부호기 $q_\phi(z|x) = \mathcal{N}(\mu, \text{diag}(\sigma_1^2, \ldots, \sigma_d^2))$과 사전분포 $p(z) = \mathcal{N}(0, I)$에 대해 다음과 같다.
+인코더 $q_\phi(z|x) = \mathcal{N}(\mu, \text{diag}(\sigma_1^2, \ldots, \sigma_d^2))$과 사전분포 $p(z) = \mathcal{N}(0, I)$에 대해 다음과 같다.
 
 $$D_{\text{KL}}(q \| p) = -\frac{1}{2}\sum_{j=1}^{d}\!\left(1 + \log\sigma_j^2 - \mu_j^2 - \sigma_j^2\right)$$
 
@@ -171,8 +171,8 @@ $\beta$-VAE는 KL 항에 가중치를 도입한다. $\mathcal{L} = \mathcal{L}_{
 
 | KL 값 | 의미 | 효과 |
 |----------|---------|--------|
-| **큼** | 부호기의 출력이 $\mathcal{N}(0, I)$에서 멀다 | 더 많은 정보가 부호화되고 복원이 좋아진다 |
-| **작음** | 부호기의 출력이 $\mathcal{N}(0, I)$에 가깝다 | 정보가 덜 부호화되고 잠재 공간이 매끄러워진다 |
+| **큼** | 인코더의 출력이 $\mathcal{N}(0, I)$에서 멀다 | 더 많은 정보가 부호화되고 복원이 좋아진다 |
+| **작음** | 인코더의 출력이 $\mathcal{N}(0, I)$에 가깝다 | 정보가 덜 부호화되고 잠재 공간이 매끄러워진다 |
 | **0** | 모든 입력이 사전분포로 간다 | 정보가 부호화되지 않고 출력이 무작위가 된다 |
 
 ---
@@ -181,7 +181,7 @@ $\beta$-VAE는 KL 항에 가중치를 도입한다. $\mathcal{L} = \mathcal{L}_{
 
 ### VAE를 위한 정규분포 KL
 
-부호기는 각 잠재 차원에 대해 $\mu$과 $\log\sigma^2$을 낸다.
+인코더는 각 잠재 차원에 대해 $\mu$과 $\log\sigma^2$을 낸다.
 
 ```python
 import torch
@@ -210,7 +210,7 @@ def kl_divergence(mu: torch.Tensor, logvar: torch.Tensor,
 ```
 
 !!! tip "왜 로그 분산인가?"
-    부호기가 $\sigma^2$ 대신 $\log\sigma^2$을 내는 것은 수치적 안정성 때문이다. `logvar`는 어떤 실수든 될 수 있고(신경망의 출력으로 알맞다), `exp(logvar)`는 언제나 양수이며(분산으로 알맞다), `log(sigma^2) = logvar`는 작은 수의 로그를 취하는 일을 피하게 해 준다.
+    인코더가 $\sigma^2$ 대신 $\log\sigma^2$을 내는 것은 수치적 안정성 때문이다. `logvar`는 어떤 실수든 될 수 있고(신경망의 출력으로 알맞다), `exp(logvar)`는 언제나 양수이며(분산으로 알맞다), `log(sigma^2) = logvar`는 작은 수의 로그를 취하는 일을 피하게 해 준다.
 
 ### 전체 VAE 손실
 
@@ -285,7 +285,7 @@ loss = kl_criterion(log_probs, target_probs)
 
 ### 해석적 KL과 몬테카를로 KL
 
-부호기와 사전분포가 모두 정규분포이면 해석적 공식이 정확하고 분산도 없다. 사후분포가 정규분포가 아니거나 사전분포가 복잡하면 KL을 몬테카를로로 추정해야 한다.
+인코더와 사전분포가 모두 정규분포이면 해석적 공식이 정확하고 분산도 없다. 사후분포가 정규분포가 아니거나 사전분포가 복잡하면 KL을 몬테카를로로 추정해야 한다.
 
 ```python
 def kl_monte_carlo(log_q: torch.Tensor, log_p: torch.Tensor) -> torch.Tensor:

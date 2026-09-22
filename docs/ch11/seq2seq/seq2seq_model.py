@@ -6,7 +6,7 @@
 
 """
 완전한 순차열 대 순차열 모델
-부호기와 복호기를 엮어 온전한 구조를 만든다
+인코더와 디코더를 엮어 온전한 구조를 만든다
 """
 
 import torch
@@ -25,8 +25,8 @@ class Seq2Seq(nn.Module):
     어텐션이 없는 기본 순차열 대 순차열 모델
     
     인수:
-        encoder: 부호기 모듈
-        decoder: 복호기 모듈
+        encoder: 인코더 모듈
+        decoder: 디코더 모듈
         device: 돌릴 장치
     """
     
@@ -54,18 +54,18 @@ class Seq2Seq(nn.Module):
         trg_len = trg.shape[1]
         trg_vocab_size = self.decoder.output_size
         
-        # 복호기의 출력을 담을 텐서
+        # 디코더의 출력을 담을 텐서
         outputs = torch.zeros(batch_size, trg_len, trg_vocab_size).to(self.device)
         
         # 원본 순차열 부호화
         encoder_outputs, hidden, cell = self.encoder(src, src_lengths)
         
-        # 복호기의 첫 입력은 <sos> 토큰이다
+        # 디코더의 첫 입력은 <sos> 토큰이다
         decoder_input = trg[:, 0].unsqueeze(1)
         
         # 한 번에 토큰 하나씩 복호
         for t in range(1, trg_len):
-            # 복호기를 지나는 순전파
+            # 디코더를 지나는 순전파
             output, hidden, cell = self.decoder(decoder_input, hidden, cell)
             
             # 예측 담기
@@ -141,8 +141,8 @@ class Seq2SeqAttention(nn.Module):
     어텐션 장치가 있는 순차열 대 순차열 모델
     
     인수:
-        encoder: 부호기 모듈
-        decoder: 어텐션이 있는 복호기 모듈
+        encoder: 인코더 모듈
+        decoder: 어텐션이 있는 디코더 모듈
         device: 돌릴 장치
         pad_idx: 덧댐 토큰의 색인
     """
@@ -188,12 +188,12 @@ class Seq2SeqAttention(nn.Module):
         # 원본 순차열 부호화
         encoder_outputs, hidden, cell = self.encoder(src, src_lengths)
         
-        # 복호기의 첫 입력은 <sos> 토큰이다
+        # 디코더의 첫 입력은 <sos> 토큰이다
         decoder_input = trg[:, 0].unsqueeze(1)
         
         # 한 번에 토큰 하나씩 복호
         for t in range(1, trg_len):
-            # 어텐션이 있는 복호기를 지나는 순전파
+            # 어텐션이 있는 디코더를 지나는 순전파
             output, hidden, cell, attention_weights = self.decoder(
                 decoder_input, hidden, encoder_outputs, cell, mask
             )
@@ -366,7 +366,7 @@ if __name__ == "__main__":
     num_layers = 2
     dropout = 0.1
     
-    # 부호기와 복호기 만들기
+    # 인코더와 디코더 만들기
     encoder = BasicEncoder(
         input_size=input_vocab_size,
         embedding_dim=embedding_dim,
@@ -380,7 +380,7 @@ if __name__ == "__main__":
     decoder = AttentionDecoder(
         output_size=output_vocab_size,
         embedding_dim=embedding_dim,
-        hidden_size=hidden_size * 2,  # 부호기가 양방향이라 2를 곱한다
+        hidden_size=hidden_size * 2,  # 인코더가 양방향이라 2를 곱한다
         encoder_hidden_size=hidden_size * 2,
         num_layers=num_layers,
         dropout=dropout,

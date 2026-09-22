@@ -497,8 +497,8 @@ nav:
         - 길이 정규화: ch11/seq2seq/length_normalization.md
         - 프랑스어→영어 번역: ch11/seq2seq/seq2seq_code.md
         - 데이터 전처리: ch11/seq2seq/data_preprocessing.md
-        - 복호기: ch11/seq2seq/decoder.md
-        - 부호기: ch11/seq2seq/encoder.md
+        - 디코더: ch11/seq2seq/decoder.md
+        - 인코더: ch11/seq2seq/encoder.md
         - 번역 예제: ch11/seq2seq/example_translation.md
         - 추론: ch11/seq2seq/inference.md
         - Seq2Seq 모델: ch11/seq2seq/seq2seq_model.md
@@ -539,9 +539,9 @@ nav:
         - 스윈 트랜스포머: ch12/pretrained_models/19_swin_transformer.md
         - 트랜스포머: ch12/pretrained_models/44_transformer.md
         - BERT 모델: ch12/pretrained_models/bert_model.md
-        - 트랜스포머 부호기: ch12/pretrained_models/transformer_encoder.md
+        - 트랜스포머 인코더: ch12/pretrained_models/transformer_encoder.md
         - GPT 모델: ch12/pretrained_models/gpt_model.md
-        - 트랜스포머 복호기: ch12/pretrained_models/transformer_decoder.md
+        - 트랜스포머 디코더: ch12/pretrained_models/transformer_decoder.md
         - BERT 분류기: ch12/pretrained_models/bert_classifier.md
         - 감성 분석 학습: ch12/pretrained_models/train_sentiment.md
         - GPT 생성기: ch12/pretrained_models/gpt_generator.md
@@ -587,43 +587,43 @@ nav:
         - MDS 깊이 들여다보기: ch24/manifold/03_mds_deep_dive.md
       - 24.3 금융 쓰임새:
         - 수익률 곡선 쪼개기: ch24/finance/yield_curve.md
-    - 25 자기 부호기:
+    - 25 오토인코더:
       - 장 살펴보기: ch25/index.md
-      - 25.1 자기 부호기:
-        - 자기 부호기: ch25/ae/48_autoencoder.md
-        - 자기 부호기 모듈: ch25/architecture/autoencoder.md
+      - 25.1 오토인코더:
+        - 오토인코더: ch25/ae/48_autoencoder.md
+        - 오토인코더 모듈: ch25/architecture/autoencoder.md
         - 손실 함수: ch25/ae/loss_functions.md
         - 다시 세우기 살피기: ch25/ae/reconstruction_analysis.md
       - 25.2 얼개:
-        - 온전히 이어진 자기 부호기: ch25/architecture/01_ae_fully_connected.md
-        - 누비기 자기 부호기: ch25/architecture/02_ae_cnn.md
-        - 잡음 없애는 자기 부호기: ch25/architecture/03_ae_denoising.md
-        - 오그리는 자기 부호기: ch25/variants/contractive.md
-      - 25.3 주성분 분석에서 자기 부호기로:
-        - 자기 부호기의 주다양체: ch25/architecture/04_ae_principal_manifold.md
+        - 온전히 이어진 오토인코더: ch25/architecture/01_ae_fully_connected.md
+        - 누비기 오토인코더: ch25/architecture/02_ae_cnn.md
+        - 잡음 없애는 오토인코더: ch25/architecture/03_ae_denoising.md
+        - 오그리는 오토인코더: ch25/variants/contractive.md
+      - 25.3 주성분 분석에서 오토인코더로:
+        - 오토인코더의 주다양체: ch25/architecture/04_ae_principal_manifold.md
       - 25.4 익히기:
-        - 자기 부호기 익히기: ch25/training/train_autoencoder.md
+        - 오토인코더 익히기: ch25/training/train_autoencoder.md
       - 25.5 한계:
         - 숨은 공간에서 뽑을 수 있는가: ch25/limits/latent_sampling.md
-    - 26 변분 자기 부호기(VAE):
+    - 26 변분 오토인코더(VAE):
       - 장 살펴보기: ch26/index.md
       - 26.1 이론:
         - 쿨백-라이블러 벌어짐 항: ch26/theory/kl_term.md
       - 26.2 얼개:
-        - 부호기: ch26/architecture/encoder.md
+        - 인코더: ch26/architecture/encoder.md
         - 사전 분포: ch26/architecture/prior.md
-        - 변분 자기 부호기: ch26/architecture/47_vae.md
-        - 베타 변분 자기 부호기: ch26/architecture/beta_vae.md
-        - 조건부 변분 자기 부호기: ch26/architecture/conditional_vae.md
-        - 누비기 조건부 변분 자기 부호기: ch26/architecture/conv_cvae.md
-        - 누비기 변분 자기 부호기: ch26/architecture/conv_vae.md
-        - 변분 자기 부호기 모듈: ch26/architecture/vae.md
+        - 변분 오토인코더: ch26/architecture/47_vae.md
+        - 베타 변분 오토인코더: ch26/architecture/beta_vae.md
+        - 조건부 변분 오토인코더: ch26/architecture/conditional_vae.md
+        - 누비기 조건부 변분 오토인코더: ch26/architecture/conv_cvae.md
+        - 누비기 변분 오토인코더: ch26/architecture/conv_vae.md
+        - 변분 오토인코더 모듈: ch26/architecture/vae.md
       - 26.3 익히기:
         - 공짜 비트: ch26/training/free_bits.md
         - 표본 만들기: ch26/training/generate_samples.md
-        - 베타 변분 자기 부호기 익히기: ch26/training/train_beta_vae.md
-        - 조건부 변분 자기 부호기 익히기: ch26/training/train_cvae.md
-        - 변분 자기 부호기 익히기: ch26/training/train_vae.md
+        - 베타 변분 오토인코더 익히기: ch26/training/train_beta_vae.md
+        - 조건부 변분 오토인코더 익히기: ch26/training/train_cvae.md
+        - 변분 오토인코더 익히기: ch26/training/train_vae.md
     - 27 고르게 하는 흐름:
       - 장 살펴보기: ch27/index.md
       - 27.1 흐름 얼개:
@@ -1511,7 +1511,7 @@ nav:
       - LLaMA: appendix/transformers/llama.md
       - Wav2Vec: appendix/transformers/wav2vec.md
     - A7 만들개 모형:
-      - 제 부호기: appendix/generative/autoencoder.md
+      - 제 인코더: appendix/generative/autoencoder.md
       - Beta-VAE: appendix/generative/beta_vae.md
       - VQ-VAE: appendix/generative/vqvae.md
       - 맞겨루기 만들개 그물(GAN): appendix/generative/gan.md

@@ -387,8 +387,8 @@ class BidirectionalHybrid(nn.Module):
     """
     문맥에는 양방향 GRU, 생성에는 단방향 LSTM.
     
-    쓰임새: 부호기는 양방향 문맥이 필요하고 복호기는 인과적이어야 하는
-    부호기-복호기 구조.
+    쓰임새: 인코더는 양방향 문맥이 필요하고 디코더는 인과적이어야 하는
+    인코더-디코더 구조.
     """
     
     def __init__(self, input_size, hidden_size):

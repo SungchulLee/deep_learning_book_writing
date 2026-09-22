@@ -1,14 +1,14 @@
-# 변분 자기 부호기
+# 변분 오토인코더
 
-변분 자기 부호기(VAE) 다시 매개변수화 재주로 확률 숨은 공간을 짠다
+변분 오토인코더(VAE) 다시 매개변수화 재주로 확률 숨은 공간을 짠다
 
-자기 부호기와 변분 자기 부호기는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 고갱이 얼개와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
+오토인코더와 변분 오토인코더는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 고갱이 얼개와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
 
 ## 1. 코드
 
 ```python
 """
-변분 자기 부호기(VAE)
+변분 오토인코더(VAE)
 다시 매개변수화 재주로 확률 숨은 공간을 짠다
 """
 
@@ -23,7 +23,7 @@ import torch.nn.functional as F
 
 class VAE(nn.Module):
     """
-    정규 숨은 공간을 가진 여느 변분 자기 부호기.
+    정규 숨은 공간을 가진 여느 변분 오토인코더.
     
     인수:
         input_dim (int): 들임 차원(예컨대 MNIST는 784)
@@ -37,7 +37,7 @@ class VAE(nn.Module):
         self.input_dim = input_dim
         self.latent_dim = latent_dim
         
-        # 부호기: 숨은 분포의 매개변수를 내놓는다
+        # 인코더: 숨은 분포의 매개변수를 내놓는다
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
@@ -49,7 +49,7 @@ class VAE(nn.Module):
         self.fc_mu = nn.Linear(hidden_dim, latent_dim)
         self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
         
-        # 복호기
+        # 디코더
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
@@ -125,7 +125,7 @@ class VAE(nn.Module):
     
     def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
         """
-        변분 자기 부호기 손실 = 다시 세우기 손실 + β * KL 벌어짐
+        변분 오토인코더 손실 = 다시 세우기 손실 + β * KL 벌어짐
         
         인수:
             reconstruction: 다시 세운 내놓기
@@ -135,7 +135,7 @@ class VAE(nn.Module):
             beta: KL 벌어짐 항의 무게
             
         반환값:
-            loss: 전체 변분 자기 부호기 손실
+            loss: 전체 변분 오토인코더 손실
             bce: 다시 세우기 손실
             kld: KL 벌어짐
         """
@@ -280,7 +280,7 @@ Generated samples shape: torch.Size([10, 784])
         return self.decode(z), mu, logvar     # 셋
     ```
 
-    KL 항이 $\mu$와 $\log\sigma^2$을 필요로 하므로 밖으로 내보내야 한다. 자기 부호기라면
+    KL 항이 $\mu$와 $\log\sigma^2$을 필요로 하므로 밖으로 내보내야 한다. 오토인코더라면
     출력 하나로 충분했다([25장 모듈 연습문제 3](../../ch25/architecture/autoencoder.md)).
 
     그래서 익히기 반복문의 모양도 달라진다.
@@ -316,7 +316,7 @@ Generated samples shape: torch.Size([10, 784])
     이렇게 두면 `model.eval()`이 알아서 처리해 준다. 다시 세우기 그림을 보일 때 매번
     다른 결과가 나오는 일을 막아 준다.
 
-    다만 이 선택에는 한 가지 위험이 있다. **익힐 때 뽑지 않으면 모델이 자기 부호기가
+    다만 이 선택에는 한 가지 위험이 있다. **익힐 때 뽑지 않으면 모델이 오토인코더가
     된다.** `model.train()`을 빠뜨리면 조용히 그렇게 되고 오류가 나지 않는다. KL이
     비정상적으로 작으면 이것을 의심할 만하다.
 
@@ -329,16 +329,16 @@ Generated samples shape: torch.Size([10, 784])
 <div class="drillbox" markdown>
 
 **연습문제 7.** <span class="diff med" title="중간"></span>
-이 모듈을 자기 부호기 모듈과 견주면 무엇이 늘었는가?
+이 모듈을 오토인코더 모듈과 견주면 무엇이 늘었는가?
 
 </div>
 
 ??? success "연습문제 7 풀이"
     매개변수는 거의 안 늘고 코드가 조금 는다.
 
-    | | 자기 부호기 | 변분 자기 부호기 |
+    | | 오토인코더 | 변분 오토인코더 |
     |---|---|---|
-    | 부호기 마지막 층 | $256 \times 16$ | $256 \times 32$ |
+    | 인코더 마지막 층 | $256 \times 16$ | $256 \times 32$ |
     | 매개변수 합 | 1,075,488 | 1,079,600 |
     | 늘어난 몫 | | +4,112 (0.4%) |
 
@@ -380,7 +380,7 @@ Generated samples shape: torch.Size([10, 784])
     ```
 
     두 방법이 모두 손실에서 끝난다는 점이 편리하다. 반면 조건부로 만들려면 얼개를
-    손봐야 한다. 부호기와 풀개의 입력 차원이 달라지기 때문이다.
+    손봐야 한다. 인코더와 디코더의 입력 차원이 달라지기 때문이다.
 
 ---
 
@@ -418,8 +418,8 @@ Generated samples shape: torch.Size([10, 784])
     $\log \mathbb{E}[w] \ge \mathbb{E}[\log w]$에 따라 보통 ELBO보다 크고, $K \to \infty$에서
     $\log p(x)$로 간다.
 
-    이 메서드가 값진 까닭이 하나 더 있다. [부호기 연습문제 5](encoder.md)에서 본
-    고르게 나누기의 벌어짐(3.537)처럼, 부호기가 얼마나 손실을 보고 있는지 재는 잣대가
+    이 메서드가 값진 까닭이 하나 더 있다. [인코더 연습문제 5](encoder.md)에서 본
+    고르게 나누기의 벌어짐(3.537)처럼, 인코더가 얼마나 손실을 보고 있는지 재는 잣대가
     된다. $K$를 키웠을 때 값이 크게 좋아지면 $q$가 참된 사후 분포와 많이 다르다는 뜻이다.
 
     `math`를 들여와야 하고 `@torch.no_grad()`를 붙여 두는 것을 잊지 말 것이다.
@@ -434,7 +434,7 @@ Generated samples shape: torch.Size([10, 784])
 </div>
 
 ??? success "연습문제 10 풀이"
-    자기 부호기에서 챙긴 것에 두 가지가 더 붙는다.
+    오토인코더에서 챙긴 것에 두 가지가 더 붙는다.
 
     ```python
     torch.save({'state_dict': model.state_dict(),
@@ -448,14 +448,14 @@ Generated samples shape: torch.Size([10, 784])
     때문이다. $\beta \ne 1$이거나 자유 비트를 썼다면 그 손실은 증거 하한이 아니므로
     다른 모델의 ELBO와 나란히 놓으면 안 된다([베타 VAE 연습문제 3](beta_vae.md)).
 
-    전처리를 적는 것은 자기 부호기와 같은 이유다
+    전처리를 적는 것은 오토인코더와 같은 이유다
     ([25장 모듈 연습문제 6](../../ch25/architecture/autoencoder.md)).
 
     되불러 올 때 `weights_only=True`를 쓰는 편이 안전하다.
 
 ## 정리하며
 
-**다룬 것** — 변분 자기 부호기
+**다룬 것** — 변분 오토인코더
 
 `VAE` 갈래는 PyTorch의 `nn.Module` 겉면으로 모델 얼개를 감싼다.
 

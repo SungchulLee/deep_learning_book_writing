@@ -214,12 +214,12 @@ class PrototypicalNetwork(nn.Module):
         return loss, accuracy
 ```
 
-### 표준 부호기 구조
+### 표준 인코더 구조
 
 ```python
 class Conv4Encoder(nn.Module):
     """
-    소수 예시 학습에서 흔히 쓰는 4층 합성곱 부호기.
+    소수 예시 학습에서 흔히 쓰는 4층 합성곱 인코더.
     """
     
     def __init__(self, in_channels: int = 1, hidden_dim: int = 64):

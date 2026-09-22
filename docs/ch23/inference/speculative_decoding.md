@@ -325,7 +325,7 @@ if __name__ == "__main__":
     target = MockLanguageModel(vocab_size, hidden_size=256, num_layers=6)
     draft = MockLanguageModel(vocab_size, hidden_size=128, num_layers=2)
     
-    # 복호기 만들기
+    # 디코더 만들기
     decoder = SpeculativeDecoder(
         target_model=target,
         draft_model=draft,

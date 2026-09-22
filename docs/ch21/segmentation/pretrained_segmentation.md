@@ -1,6 +1,6 @@
 # 보기 2
 
-보기 2: 미리 익힌 부호기로 나누기에 옮겨 배우기. 이 각본은 미리 익힌 부호기(ResNet, VGG 등)를 쓰는 법을 보여 준다.
+보기 2: 미리 익힌 인코더로 나누기에 옮겨 배우기. 이 각본은 미리 익힌 인코더(ResNet, VGG 등)를 쓰는 법을 보여 준다.
 
 이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 그림 나누기를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 얼개의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
 
@@ -8,16 +8,16 @@
 
 ```python
 """
-보기 2: 미리 익힌 부호기로 나누기에 옮겨 배우기
+보기 2: 미리 익힌 인코더로 나누기에 옮겨 배우기
 ========================================================================
 
-이 각본은 미리 익힌 부호기(ResNet, VGG 등)를 쓰는 법을 보여 준다
+이 각본은 미리 익힌 인코더(ResNet, VGG 등)를 쓰는 법을 보여 준다
 뜻 나누기에 쓰는 법을 보여 준다. segmentation_models_pytorch 라이브러리를 쓰는데
 이는 ImageNet에서 미리 익힌 등뼈를 갖춘 여러 얼개를 준다.
 
 핵심 개념:
 - 나누기를 위한 옮겨 배우기
-- 미리 익힌 부호기(ResNet, EfficientNet)
+- 미리 익힌 인코더(ResNet, EfficientNet)
 - DeepLabV3+ 얼개
 - 여러 갈래 나누기(갈래 21개)
 - 실제 자료 뭉치 다루기
@@ -177,11 +177,11 @@ print(f"  Image size: {IMG_SIZE}×{IMG_SIZE}")
 print(f"  Batch size: {BATCH_SIZE}\n")
 
 # ============================================================================
-# 3단계: 미리 익힌 부호기로 모델 고르기
+# 3단계: 미리 익힌 인코더로 모델 고르기
 # ============================================================================
 """
-segmentation_models_pytorch(smp)는 미리 익힌 부호기를 갖춘 여러 얼개를 준다
-부호기를 쓴다. 여기서는 ResNet-50 부호기를 쓴 DeepLabV3+를 쓴다.
+segmentation_models_pytorch(smp)는 미리 익힌 인코더를 갖춘 여러 얼개를 준다
+인코더를 쓴다. 여기서는 ResNet-50 인코더를 쓴 DeepLabV3+를 쓴다.
 
 얼개 고름:
 - Unet: 건너뛰는 이음을 갖춘 고전 U-넷
@@ -190,7 +190,7 @@ segmentation_models_pytorch(smp)는 미리 익힌 부호기를 갖춘 여러 얼
 - FPN: 특징 피라미드 그물
 - PSPNet: 피라미드 장면 뜯어 읽기 그물
 
-부호기 고름:
+인코더 고름:
 - resnet18, resnet34, resnet50, resnet101
 - efficientnet-b0 to b7
 - mobilenet_v2
@@ -199,9 +199,9 @@ segmentation_models_pytorch(smp)는 미리 익힌 부호기를 갖춘 여러 얼
 
 print("Creating DeepLabV3+ model with pre-trained ResNet-50 encoder...")
 
-# 미리 익힌 부호기로 모델 만들기
+# 미리 익힌 인코더로 모델 만들기
 model = smp.DeepLabV3Plus(
-    encoder_name="resnet50",           # 부호기 고르기(resnet50, efficientnet-b0 등)
+    encoder_name="resnet50",           # 인코더 고르기(resnet50, efficientnet-b0 등)
     encoder_weights="imagenet",         # ImageNet에서 미리 익힌 무게 쓰기
     in_channels=3,                      # 들임 채널(RGB)
     classes=21,                         # 내놓는 갈래(VOC는 21개)
@@ -252,14 +252,14 @@ print("\nLoss function: CrossEntropyLoss (ignore boundary pixels)")
 # ============================================================================
 """
 옮겨 배우기에는 배움 비율을 달리 쓴다:
-- 부호기(미리 익힘): 작은 배움 비율(0.0001) — 조심스레 곱게 다듬는다
-- 풀개(마구잡이 첫자리매김): 큰 배움 비율(0.001) — 더 많이 배워야 한다
+- 인코더(미리 익힘): 작은 배움 비율(0.0001) — 조심스레 곱게 다듬는다
+- 디코더(마구잡이 첫자리매김): 큰 배움 비율(0.001) — 더 많이 배워야 한다
 
 이를 "층마다 다른 배움 비율"이라 하며
 나누기에서 옮겨 배우기를 잘하는 데 결정적이다.
 """
 
-# 부호기와 풀개의 매개변수 나누기
+# 인코더와 디코더의 매개변수 나누기
 encoder_params = []
 decoder_params = []
 
@@ -271,8 +271,8 @@ for name, param in model.named_parameters():
 
 # 배움 비율이 다른 가장 좋게 하개 만들기
 optimizer = optim.Adam([
-    {'params': encoder_params, 'lr': 0.0001},   # 미리 익힌 부호기에는 작은 배움 비율
-    {'params': decoder_params, 'lr': 0.001},    # 풀개에는 더 큰 배움 비율
+    {'params': encoder_params, 'lr': 0.0001},   # 미리 익힌 인코더에는 작은 배움 비율
+    {'params': decoder_params, 'lr': 0.001},    # 디코더에는 더 큰 배움 비율
 ])
 
 # 학습률 스케줄러

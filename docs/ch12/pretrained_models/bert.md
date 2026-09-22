@@ -449,7 +449,7 @@ class BertModel(nn.Module):
             position_ids=position_ids
         )
         
-        # 부호기
+        # 인코더
         encoder_outputs = self.encoder(
             hidden_states=embedding_output,
             attention_mask=extended_attention_mask,

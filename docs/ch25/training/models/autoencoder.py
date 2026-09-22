@@ -2,7 +2,7 @@
 옮겨 놓은 것이다. 고칠 일이 있으면 그 페이지를 고치는 편이 낫다.
 """
 
-"""단순한 자기 부호기 - 정해진 부호기-풀개 기본 얼개."""
+"""단순한 오토인코더 - 정해진 인코더-디코더 기본 얼개."""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

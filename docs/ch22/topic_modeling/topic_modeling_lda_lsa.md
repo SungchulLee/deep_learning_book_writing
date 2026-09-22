@@ -23,7 +23,7 @@
 #   1부 – 잘라 낸 특잇값 쪼개기로 하는 LSA(numpy/sklearn)
 #   2부 – gensim으로 하는 LDA
 #   3부 – 맨바닥부터 짠 LDA(접힌 기브스 표집)
-#   4부 – 신경 주제 모델(PyTorch 변분 자기부호기 바탕)
+#   4부 – 신경 주제 모델(PyTorch 변분 오토인코더 바탕)
 #   5부 – 금융 글월의 주제 나타내기
 #
 # 바탕: O'Reilly "Practical NLP" 7장
@@ -309,15 +309,15 @@ print()
 
 
 # =====================================================================
-# 4부 – 신경 주제 모델(PyTorch 변분 자기부호기 바탕)
+# 4부 – 신경 주제 모델(PyTorch 변분 오토인코더 바탕)
 # =====================================================================
 print("=" * 60)
 print("Part 4: Neural Topic Model (ProdLDA / ETM)")
 print("=" * 60)
 
-# 신경 주제 모델은 다음과 같은 변분 자기부호기를 쓴다:
-#   - 부호기: 낱말 자루 → 주제 분포로 대응시킨다(매개변수 바꾸기 재주로)
-#   - 풀개: 주제 분포에서 낱말 자루를 되살린다
+# 신경 주제 모델은 다음과 같은 변분 오토인코더를 쓴다:
+#   - 인코더: 낱말 자루 → 주제 분포로 대응시킨다(매개변수 바꾸기 재주로)
+#   - 디코더: 주제 분포에서 낱말 자루를 되살린다
 #   - 손실 = 되살림 + KL 벌어짐
 #
 # ProdLDA는 디리클레 대신 로지스틱 정규 분포를 쓴다
@@ -327,13 +327,13 @@ print("=" * 60)
 class NeuralTopicModel(nn.Module):
     """ProdLDA 방식 신경 주제 모델.
 
-    로지스틱 정규 앞확률을 쓴 변분 자기부호기로 주제를 배운다.
-    풀개 무게 행렬의 줄이 바로 주제이다.
+    로지스틱 정규 앞확률을 쓴 변분 오토인코더로 주제를 배운다.
+    디코더 무게 행렬의 줄이 바로 주제이다.
     """
 
     def __init__(self, vocab_size: int, n_topics: int, hidden_dim: int = 64):
         super().__init__()
-        # 부호기: 낱말 자루 → 숨은 층 → (mu, logvar)
+        # 인코더: 낱말 자루 → 숨은 층 → (mu, logvar)
         self.encoder = nn.Sequential(
             nn.Linear(vocab_size, hidden_dim),
             nn.ReLU(),
@@ -342,7 +342,7 @@ class NeuralTopicModel(nn.Module):
         self.mu_layer = nn.Linear(hidden_dim, n_topics)
         self.logvar_layer = nn.Linear(hidden_dim, n_topics)
 
-        # 풀개: 주제 비율 → 낱말 자루 되살림
+        # 디코더: 주제 비율 → 낱말 자루 되살림
         self.decoder = nn.Linear(n_topics, vocab_size, bias=False)
         # decoder.weight: (vocab_size × n_topics)
         # 칸마다 = 한 주제의 낱말 분포
@@ -405,7 +405,7 @@ ntm = NeuralTopicModel(len(vocab_list), n_topics, hidden_dim=32)
 print("  Training Neural Topic Model:")
 ntm = train_ntm(ntm, bow_matrix, n_epochs=100, lr=2e-3)
 
-# 풀개 무게에서 주제 뽑기
+# 디코더 무게에서 주제 뽑기
 ntm.eval()
 topic_weights = ntm.decoder.weight.data.numpy()  # (V × K)
 print(f"\n  Neural topics:")

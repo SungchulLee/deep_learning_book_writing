@@ -261,9 +261,9 @@ class UNet(nn.Module):
     잡음 헤아리기를 위한 U-Net 등뼈.
     
     구조:
-    - 부호기: 남은 덩이와 눈길을 갖춘 줄이는 길
+    - 인코더: 남은 덩이와 눈길을 갖춘 줄이는 길
     - 병목: 눈길을 갖춘 가운데 덩이
-    - 풀개: 건너뛰기 이음을 갖춘 키우는 길
+    - 디코더: 건너뛰기 이음을 갖춘 키우는 길
     
     특징:
     - 남은 덩이마다 때 박아 넣기로 조건 주기
@@ -292,7 +292,7 @@ class UNet(nn.Module):
             nn.Linear(time_emb_dim * 4, time_emb_dim),
         )
 
-        # ========== 부호기(줄이는 길) ==========
+        # ========== 인코더(줄이는 길) ==========
         self.downs = nn.ModuleList()
         ch = base_ch
         res = img_size
@@ -331,7 +331,7 @@ class UNet(nn.Module):
             "block2": ResidualBlock(ch, ch, time_emb_dim, dropout),
         })
 
-        # ========== 풀개(키우는 길) ==========
+        # ========== 디코더(키우는 길) ==========
         self.ups = nn.ModuleList()
         
         for i, mult in reversed(list(enumerate(ch_mults))):
@@ -372,7 +372,7 @@ class UNet(nn.Module):
         # 때 박아 넣기
         t_emb = self.time_emb(t)
 
-        # ========== 부호기 ==========
+        # ========== 인코더 ==========
         h = self.in_conv(x)
         skips = []
         
@@ -388,7 +388,7 @@ class UNet(nn.Module):
         h = self.mid["attn"](h)
         h = self.mid["block2"](h, t_emb)
 
-        # ========== 풀개 ==========
+        # ========== 디코더 ==========
         for level in self.ups:
             skip = skips.pop()
             

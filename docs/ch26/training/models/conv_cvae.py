@@ -3,7 +3,7 @@
 """
 
 """
-누비기 조건부 변분 자기 부호기(ConvCVAE)
+누비기 조건부 변분 오토인코더(ConvCVAE)
 누비기 얼개와 조건부 만들어 내기를 아우른다
 """
 
@@ -18,7 +18,7 @@ import torch.nn.functional as F
 
 class ConvConditionalVAE(nn.Module):
     """
-    조건부 그림 만들어 내기를 위한 누비기 조건부 변분 자기 부호기.
+    조건부 그림 만들어 내기를 위한 누비기 조건부 변분 오토인코더.
     
     인수:
         latent_dim (int): 숨은 공간 차원
@@ -38,7 +38,7 @@ class ConvConditionalVAE(nn.Module):
         # 공간 조건 짓기를 위한 이름표 묻힘
         self.label_embedding = nn.Embedding(num_classes, img_size * img_size)
         
-        # 부호기 - 그림 + 묻은 이름표를 채널 하나로 더 받는다
+        # 인코더 - 그림 + 묻은 이름표를 채널 하나로 더 받는다
         self.encoder = nn.Sequential(
             # 들임: img_channels + 1(묻은 이름표용)
             nn.Conv2d(img_channels + 1, 32, kernel_size=4, stride=2, padding=1),
@@ -63,10 +63,10 @@ class ConvConditionalVAE(nn.Module):
         self.fc_mu = nn.Linear(self.flatten_size, latent_dim)
         self.fc_logvar = nn.Linear(self.flatten_size, latent_dim)
         
-        # 풀개 들임: 숨은 것 + 하나만 뜨거운 갈래
+        # 디코더 들임: 숨은 것 + 하나만 뜨거운 갈래
         self.decoder_input = nn.Linear(latent_dim + num_classes, self.flatten_size)
         
-        # 복호기
+        # 디코더
         self.decoder = nn.Sequential(
             nn.Unflatten(1, (128, 4, 4)),
             
@@ -166,7 +166,7 @@ class ConvConditionalVAE(nn.Module):
     
     def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
         """
-        변분 자기 부호기 손실 함수.
+        변분 오토인코더 손실 함수.
         
         인수:
             reconstruction: 다시 세운 내놓기
@@ -176,7 +176,7 @@ class ConvConditionalVAE(nn.Module):
             beta: KL 벌어짐 항의 무게
             
         반환값:
-            loss: 전체 변분 자기 부호기 손실
+            loss: 전체 변분 오토인코더 손실
             bce: 다시 세우기 손실
             kld: KL 벌어짐
         """

@@ -1,6 +1,6 @@
 # SegFormer
 
-SegFormer은 2021년 글 "SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers"에서 나왔다. 변환기 바탕 부호기에 가벼운 MLP 풀개를 붙였고 자리 담기는 없다.
+SegFormer은 2021년 글 "SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers"에서 나왔다. 변환기 바탕 인코더에 가벼운 MLP 디코더를 붙였고 자리 담기는 없다.
 
 여기 짜보기는 SegFormer을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -12,8 +12,8 @@ SegFormer은 2021년 글 "SegFormer: Simple and Efficient Design for Semantic Se
 SegFormer - 뜻 나누기를 위한 단순하고 잘 드는 꾸밈
 글: "SegFormer: 변환기로 뜻 나누기를 하는 단순하고 잘 드는 꾸밈" (2021)
 지은이: 언쩌 셰 외
-고갱이: 변환기 바탕 부호기에 가벼운 MLP 풀개를 붙였고,
-풀개에는 자리 담기도 엮음도 없다.
+고갱이: 변환기 바탕 인코더에 가벼운 MLP 디코더를 붙였고,
+디코더에는 자리 담기도 엮음도 없다.
 """
 
 import torch
@@ -26,7 +26,7 @@ import torch.nn.functional as F
 
 
 class MLP(nn.Module):
-    """SegFormer 풀개에서 쓰는 단순한 MLP"""
+    """SegFormer 디코더에서 쓰는 단순한 MLP"""
     def __init__(self, in_dim, out_dim):
         super().__init__()
         self.proj = nn.Linear(in_dim, out_dim)
@@ -39,21 +39,21 @@ class SegFormer(nn.Module):
     """
     단순하게 만든 SegFormer 결의 모형(배우기 위한 갈래)
 
-    - 변환기 꼴 부호기를 엮음 켜로 흉내 낸다
-    - 가벼운 MLP 풀개
+    - 변환기 꼴 인코더를 엮음 켜로 흉내 낸다
+    - 가벼운 MLP 디코더
     - 부록이나 깨침을 잡는 데 알맞다
     """
 
     def __init__(self, num_classes=21):
         super().__init__()
 
-        # 부호기(알아보기 쉽도록 CNN 바탕으로 단순하게 만듦)
+        # 인코더(알아보기 쉽도록 CNN 바탕으로 단순하게 만듦)
         self.enc1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
         self.enc2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.enc3 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         self.enc4 = nn.Conv2d(256, 512, kernel_size=3, padding=1)
 
-        # 풀개(MLP 머리)
+        # 디코더(MLP 머리)
         self.mlp1 = MLP(64, 256)
         self.mlp2 = MLP(128, 256)
         self.mlp3 = MLP(256, 256)
@@ -62,7 +62,7 @@ class SegFormer(nn.Module):
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
     def forward(self, x):
-        # 부호기
+        # 인코더
         f1 = F.relu(self.enc1(x))              # (B, 64, H, W)
         f2 = F.relu(self.enc2(f1))             # (B, 128, H, W)
         f3 = F.relu(self.enc3(f2))             # (B, 256, H, W)

@@ -1,6 +1,6 @@
 # 가운데 켜
 
-가운데 켜: Seq2Seq 모형의 엇갈린 눈길 그리기. 이 꾸러미는 부호기-푸는 개 얼개의 엇갈린 눈길을 그리는 데 눈길을 둔다,
+가운데 켜: Seq2Seq 모형의 엇갈린 눈길 그리기. 이 꾸러미는 인코더-푸는 개 얼개의 엇갈린 눈길을 그리는 데 눈길을 둔다,
 
 신경 그물이 무엇을 배우는지 아는 일은 믿음을 쌓고 모형의 벌레를 잡는 데 종요롭다. 이 꾸러미는 모형이 들임을 어떻게 다루고 어떻게 판단하는지 드러내는 눈길 그림 그리기 재주를 보이며, 그물의 움직임을 눈으로 보고 수로 재게 해 준다.
 
@@ -10,7 +10,7 @@
 """
 가운데 켜: Seq2Seq 모형의 엇갈린 눈길 그리기
 
-이 꾸러미는 부호기-푸는 개 얼개의 엇갈린 눈길을 그리는 데 눈길을 두며,
+이 꾸러미는 인코더-푸는 개 얼개의 엇갈린 눈길을 그리는 데 눈길을 두며,
 기계 옮김, 간추리기, seq2seq 일감에 특히 쓸모 있다.
 """
 
@@ -25,7 +25,7 @@ from typing import List, Optional, Tuple
 # ========================================================================
 
 class CrossAttentionVisualizer:
-    """부호기-푸는 개의 엇갈린 눈길을 그리는 개."""
+    """인코더-푸는 개의 엇갈린 눈길을 그리는 개."""
 
     def __init__(self, figsize=(12, 8)):
         self.figsize = figsize
@@ -65,7 +65,7 @@ class CrossAttentionVisualizer:
             vmax=1
         )
 
-        ax.set_xlabel('보내는 쪽 (부호기)', fontsize=12, fontweight='bold')
+        ax.set_xlabel('보내는 쪽 (인코더)', fontsize=12, fontweight='bold')
         ax.set_ylabel('받는 쪽 (푸는 개)', fontsize=12, fontweight='bold')
         ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
 

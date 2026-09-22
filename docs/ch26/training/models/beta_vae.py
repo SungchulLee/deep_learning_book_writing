@@ -4,7 +4,7 @@
 
 from .conv_vae import ConvVAE
 
-"""얽힘 풀린 나타냄을 배우는 베타 변분 자기 부호기."""
+"""얽힘 풀린 나타냄을 배우는 베타 변분 오토인코더."""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

@@ -5,7 +5,7 @@
 ## 1. 학습 목표
 
 - 앞가지 다듬기가 무게를 고치지 않고 모델을 맞추는 법을 이해한다
-- 부호기와 풀개 모델 모두에 앞가지 다듬기를 짠다
+- 인코더와 디코더 모델 모두에 앞가지 다듬기를 짠다
 - 앞가지 다듬기를 시킴말 다듬기와 다른 부드러운 시킴말 방법과 견준다
 - 앞가지 길이와 매개변수 다시 매기기 전략을 정한다
 
@@ -196,7 +196,7 @@ class PrefixTuningModel(nn.Module):
         for param in base_model.parameters():
             param.requires_grad = False
         
-        # 앞가지 부호기를 만든다
+        # 앞가지 인코더를 만든다
         self.prefix_encoder = PrefixEncoder(
             num_layers=num_layers,
             num_heads=num_heads,
@@ -513,7 +513,7 @@ class PromptTuning(nn.Module):
 
 1. **이름표가 많은 갈래 매기기** — 흔히 LoRA가 낫다
 2. **아주 긴 차례** — 앞가지가 차례 길이를 늘린다
-3. **부호기만의 일** — 본디 만들어 내기를 위해 꾸며졌다
+3. **인코더만의 일** — 본디 만들어 내기를 위해 꾸며졌다
 
 ---
 

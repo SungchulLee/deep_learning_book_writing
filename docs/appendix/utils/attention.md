@@ -122,8 +122,8 @@ class AdditiveAttention(nn.Module):
       e_{t,s} = v^T tanh(W_h h_s + W_q q_t)
 
     여기서:
-      - h_s = 밑 자리 s에서의 부호기 숨은 상태
-      - q_t = 과녁 자리 t에서의 풀개 숨은 상태
+      - h_s = 밑 자리 s에서의 인코더 숨은 상태
+      - q_t = 과녁 자리 t에서의 디코더 숨은 상태
     """
     def __init__(self, hidden_size: int):
         super().__init__()
@@ -134,13 +134,13 @@ class AdditiveAttention(nn.Module):
     def forward(self, encoder_outputs, query):
         """
         encoder_outputs: (B, S, H)
-        query: (B, H)  (때 t에서의 풀개 숨은 상태 따위)
+        query: (B, H)  (때 t에서의 디코더 숨은 상태 따위)
 
         돌려주는 것:
           context: (B, H)
           alpha:   (B, S) 밑 자리에 대한 눈길 짐
         """
-        # 부호기와 물음을 같은 밭으로 되비춘다
+        # 인코더와 물음을 같은 밭으로 되비춘다
         h_proj = self.W_h(encoder_outputs)              # (B, S, H)
         q_proj = self.W_q(query).unsqueeze(1)           # (B, 1, H)
 
@@ -150,7 +150,7 @@ class AdditiveAttention(nn.Module):
         # 밑 낱말에 대한 눈길 짐
         alpha = F.softmax(scores, dim=1)                # (B, S)
 
-        # 부호기 날임의 짐 실은 합
+        # 인코더 날임의 짐 실은 합
         context = torch.bmm(alpha.unsqueeze(1), encoder_outputs).squeeze(1)  # (B, H)
         return context, alpha
 

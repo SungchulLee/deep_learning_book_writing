@@ -664,7 +664,7 @@ class TaskAdaptiveMAML(MAML):
     def __init__(self, model: nn.Module, embed_dim: int = 64, **kwargs):
         super().__init__(model, **kwargs)
         
-        # 과제 부호기
+        # 과제 인코더
         self.task_encoder = nn.Sequential(
             nn.Linear(embed_dim, 64),
             nn.ReLU(),

@@ -186,7 +186,7 @@ class UNetCond(nn.Module):
         label_vocab = num_classes + (1 if use_cfg else 0)
         self.label_emb = nn.Embedding(label_vocab, time_emb_dim)
 
-        # 부호기
+        # 인코더
         enc = []
         ch = base_ch
         hs = [ch]
@@ -214,7 +214,7 @@ class UNetCond(nn.Module):
             ResidualBlock(ch, ch, time_emb_dim)
         ])
 
-        # 복호기
+        # 디코더
         dec = []
         for i, mult in reversed(list(enumerate(ch_mults))):
             out_ch = base_ch * mult
@@ -245,7 +245,7 @@ class UNetCond(nn.Module):
         y_emb = self.label_emb(y)                  # [B, D]
         t_emb = t_emb + y_emb                      # 단순하고 잘 듣는 조건 주기
 
-        # 부호기
+        # 인코더
         h = self.in_conv(x)
         skips = []
         for m in self.encoder:
@@ -262,7 +262,7 @@ class UNetCond(nn.Module):
             else:
                 h = m(h)
 
-        # 건너뛰는 이음을 갖춘 풀개
+        # 건너뛰는 이음을 갖춘 디코더
         for m in self.decoder:
             if isinstance(m, ResidualBlock):
                 skip = skips.pop()

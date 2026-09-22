@@ -1,6 +1,6 @@
 # Seq2Seq
 
-Seq2Seq은 2014년 글 "Sequence to Sequence Learning with Neural Networks"에서 나왔다. 이음을 옮기는 부호기-풀개 얼개다.
+Seq2Seq은 2014년 글 "Sequence to Sequence Learning with Neural Networks"에서 나왔다. 이음을 옮기는 인코더-디코더 얼개다.
 
 여기 짜보기는 Seq2Seq을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -11,7 +11,7 @@ Seq2Seq은 2014년 글 "Sequence to Sequence Learning with Neural Networks"에�
 '''
 Seq2Seq - 신경 그물로 하는 이음에서 이음으로 배우기
 논문: "Sequence to Sequence Learning with Neural Networks" (2014)
-고갱이: 이음을 옮기기 위한 부호기-풀개 얼개
+고갱이: 이음을 옮기기 위한 인코더-디코더 얼개
 '''
 import torch
 import torch.nn as nn

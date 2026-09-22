@@ -42,9 +42,9 @@ def random_resize_pad(x, target_size=32, resize_range=(28, 36)):
     return F.pad(x_resized, (pad_left, pad_right, pad_top, pad_bottom))
 ```
 
-### 잡음 지우는 제 부호기
+### 잡음 지우는 제 인코더
 
-맞서는 들임에서 맑은 들임을 되살리도록 잡음 지우는 제 부호기를 익힌다.
+맞서는 들임에서 맑은 들임을 되살리도록 잡음 지우는 제 인코더를 익힌다.
 
 $$
 \hat{\mathbf{x}} = D_\phi(\mathbf{x}_{\text{adv}}) \approx \mathbf{x}

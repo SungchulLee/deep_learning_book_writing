@@ -31,7 +31,7 @@ $$z_1 = f_\theta(x_1), \quad z_2 = f_\theta(x_2)$$
 
 $$s(x_1, x_2) = g(|z_1 - z_2|)$$
 
-여기서 $f_\theta$은 부호기 망이고, $|z_1 - z_2|$은 성분마다의 절대 차이를 셈하며, $g$은 대개 그 차이를 닮음 점수로 옮기는 배운 함수이다.
+여기서 $f_\theta$은 인코더 망이고, $|z_1 - z_2|$은 성분마다의 절대 차이를 셈하며, $g$은 대개 그 차이를 닮음 점수로 옮기는 배운 함수이다.
 
 ### 가중치 나누어 쓰기가 중요한 까닭
 
@@ -43,9 +43,9 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
 
 ---
 
-## 2. 부호기 구조
+## 2. 인코더 구조
 
-### 그림을 위한 합성곱 부호기
+### 그림을 위한 합성곱 인코더
 
 Omniglot을 위한 Koch 외의 본디 구조는 다음과 같다.
 
@@ -56,7 +56,7 @@ import torch.nn.functional as F
 
 class SiameseConvEncoder(nn.Module):
     """
-    샴 망을 위한 합성곱 부호기.
+    샴 망을 위한 합성곱 인코더.
     
     구조는 Koch 외(2015)를 따르되
     입력 크기에 맞추어 손질했다.
@@ -131,14 +131,14 @@ class SiameseConvEncoder(nn.Module):
         return x
 ```
 
-### ResNet 등뼈를 쓴 오늘날의 부호기
+### ResNet 등뼈를 쓴 오늘날의 인코더
 
 ```python
 import torchvision.models as models
 
 class ResNetSiameseEncoder(nn.Module):
     """
-    미리 학습된 ResNet 등뼈를 쓰는 샴 부호기.
+    미리 학습된 ResNet 등뼈를 쓰는 샴 인코더.
     """
     
     def __init__(
@@ -194,7 +194,7 @@ class SiameseNetwork(nn.Module):
     def __init__(self, encoder: nn.Module, use_distance: bool = True):
         """
         인수:
-            encoder: 나누어 쓰는 부호기 망
+            encoder: 나누어 쓰는 인코더 망
             use_distance: True이면 거리를 내고, 아니면 닮음을 낸다
         """
         super().__init__()
@@ -829,7 +829,7 @@ class TripletSiameseNetwork(nn.Module):
 ```python
 class CrossDomainSiamese(nn.Module):
     """
-    영역마다 따로 부호기를 두는 샴 망.
+    영역마다 따로 인코더를 두는 샴 망.
     
     서로 다른 영역의 보기를 견줄 때 쓸모 있다
     (이를테면 스케치와 사진 맞추기).

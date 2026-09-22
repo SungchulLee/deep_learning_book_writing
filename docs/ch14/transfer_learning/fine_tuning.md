@@ -82,14 +82,14 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)
 
 ---
 
-## 5. 특징 뽑기 (부호기 얼리기)
+## 5. 특징 뽑기 (인코더 얼리기)
 
 사전 학습된 가중치를 얼리고 과제에 맞는 머리만 학습한다.
 
 ```python
 class FeatureExtraction(nn.Module):
     """
-    특징 뽑기: 부호기를 얼리고 분류기만 학습한다.
+    특징 뽑기: 인코더를 얼리고 분류기만 학습한다.
     
     다음일 때 가장 좋다.
     - 데이터셋이 아주 작을 때
@@ -102,7 +102,7 @@ class FeatureExtraction(nn.Module):
         super().__init__()
         self.encoder = AutoModel.from_pretrained(model_name)
         
-        # 부호기의 매개변수를 모두 얼린다
+        # 인코더의 매개변수를 모두 얼린다
         for param in self.encoder.parameters():
             param.requires_grad = False
         
@@ -116,7 +116,7 @@ class FeatureExtraction(nn.Module):
         )
     
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
-        # 부호기의 기울기는 셈하지 않는다
+        # 인코더의 기울기는 셈하지 않는다
         with torch.no_grad():
             outputs = self.encoder(input_ids, attention_mask=attention_mask)
         
@@ -157,7 +157,7 @@ class GradualUnfreezeScheduler:
         self.model = model
         self.encoder = getattr(model, encoder_attr)
         
-        # 부호기 층을 얻는다 (BERT 같은 모델에서 통한다)
+        # 인코더 층을 얻는다 (BERT 같은 모델에서 통한다)
         if hasattr(self.encoder, 'layer'):
             self.layers = list(self.encoder.layer)
         elif hasattr(self.encoder, 'layers'):
@@ -168,11 +168,11 @@ class GradualUnfreezeScheduler:
         self.num_layers = len(self.layers)
         self.unfrozen_count = 0
         
-        # 처음에는 부호기 층을 모두 얼린다
+        # 처음에는 인코더 층을 모두 얼린다
         self._freeze_all()
     
     def _freeze_all(self):
-        """부호기의 매개변수를 모두 얼린다."""
+        """인코더의 매개변수를 모두 얼린다."""
         for param in self.encoder.parameters():
             param.requires_grad = False
     
@@ -259,14 +259,14 @@ def get_discriminative_lr_params(
     - 분류기: base_lr (가장 높다)
     
     인수:
-        model: 부호기와 분류기를 가진 모델
+        model: 인코더와 분류기를 가진 모델
         base_lr: 맨 위 층과 분류기의 학습률
         lr_decay: 층마다 곱하는 감쇠 (0 < decay < 1)
         weight_decay: 규제를 위한 가중치 감쇠
     """
     param_groups = []
     
-    # 부호기 층의 수를 얻는다
+    # 인코더 층의 수를 얻는다
     if hasattr(model.encoder, 'layer'):
         encoder_layers = model.encoder.layer
     elif hasattr(model.encoder, 'layers'):
@@ -286,7 +286,7 @@ def get_discriminative_lr_params(
             'name': 'embeddings'
         })
     
-    # 부호기 층 — 차츰 높아지는 학습률
+    # 인코더 층 — 차츰 높아지는 학습률
     for i, layer in enumerate(encoder_layers):
         layer_lr = base_lr * (lr_decay ** (num_layers - i))
         param_groups.append({

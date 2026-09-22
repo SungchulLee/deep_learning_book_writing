@@ -164,7 +164,7 @@ class AdvancedUNet(nn.Module):
     def __init__(self, in_channels=3, num_classes=1, use_attention=True):
         super().__init__()
         
-        # 부호기
+        # 인코더
         self.enc1 = AttentionDoubleConv(in_channels, 64, use_attention)
         self.pool1 = nn.MaxPool2d(2)
         
@@ -180,7 +180,7 @@ class AdvancedUNet(nn.Module):
         # 눈길을 갖춘 병목
         self.bottleneck = AttentionDoubleConv(512, 1024, use_attention=True)
         
-        # 복호기
+        # 디코더
         self.upconv4 = nn.ConvTranspose2d(1024, 512, 2, stride=2)
         self.dec4 = AttentionDoubleConv(1024, 512, use_attention)
         
@@ -197,7 +197,7 @@ class AdvancedUNet(nn.Module):
         self.out = nn.Conv2d(64, num_classes, 1)
     
     def forward(self, x):
-        # 부호기
+        # 인코더
         enc1 = self.enc1(x)
         x = self.pool1(enc1)
         
@@ -213,7 +213,7 @@ class AdvancedUNet(nn.Module):
         # 병목
         x = self.bottleneck(x)
         
-        # 복호기
+        # 디코더
         x = self.upconv4(x)
         x = torch.cat([x, enc4], dim=1)
         x = self.dec4(x)

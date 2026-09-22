@@ -286,7 +286,7 @@ class Transformer(nn.Module):
         # 위치 인코딩
         self.positional_encoding = PositionalEncoding(d_model, max_len, dropout)
         
-        # 부호기
+        # 인코더
         self.encoder_layers = nn.ModuleList([
             TransformerBlock(d_model, num_heads, d_ff, dropout)
             for _ in range(num_encoder_layers)

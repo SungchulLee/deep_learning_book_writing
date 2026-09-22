@@ -32,7 +32,7 @@ LATENT_DIM = 4          # 채널 4개로 누른다
 LATENT_SCALE = 4        # 공간 줄이기 갑절
 BATCH_SIZE = 128
 LR = 2e-4
-EPOCHS_VAE = 10         # 먼저 자기 부호기를 익힌다
+EPOCHS_VAE = 10         # 먼저 오토인코더를 익힌다
 EPOCHS_DIFF = 5         # 그런 다음 퍼짐을 익힌다
 T = 1000
 BASE_CH = 64
@@ -41,13 +41,13 @@ SAVE_PATH = "latent_diffusion_samples.png"
 SEED = 42
 
 # ==========================================
-# 1) 자기 부호기(그림을 숨은 값으로 누른다)
+# 1) 오토인코더(그림을 숨은 값으로 누른다)
 # ==========================================
 class Encoder(nn.Module):
     """그림을 숨은 공간으로 누른다"""
     def __init__(self, in_ch=IN_CHANNELS, latent_dim=LATENT_DIM):
         super().__init__()
-        # 단순한 부호기: 32x32 -> 8x8
+        # 단순한 인코더: 32x32 -> 8x8
         self.conv1 = nn.Conv2d(in_ch, 64, 3, stride=2, padding=1)      # /2
         self.conv2 = nn.Conv2d(64, 128, 3, stride=2, padding=1)        # /2
         self.conv3 = nn.Conv2d(128, latent_dim * 2, 3, padding=1)      # mu과 logvar
@@ -64,7 +64,7 @@ class Decoder(nn.Module):
     """숨은 공간에서 그림을 되짓는다"""
     def __init__(self, latent_dim=LATENT_DIM, out_ch=IN_CHANNELS):
         super().__init__()
-        # 단순한 풀개: 8x8 -> 32x32
+        # 단순한 디코더: 8x8 -> 32x32
         self.conv1 = nn.Conv2d(latent_dim, 128, 3, padding=1)
         self.up1 = nn.Upsample(scale_factor=2, mode='nearest')
         self.conv2 = nn.Conv2d(128, 64, 3, padding=1)
@@ -80,7 +80,7 @@ class Decoder(nn.Module):
         return torch.tanh(self.conv3(h))  # [-1, 1]
 
 class VAE(nn.Module):
-    """누른 나타냄을 배우는 변분 자기 부호기"""
+    """누른 나타냄을 배우는 변분 오토인코더"""
     def __init__(self):
         super().__init__()
         self.encoder = Encoder()
@@ -171,7 +171,7 @@ class LatentUNet(nn.Module):
             nn.Linear(time_dim * 2, time_dim)
         )
         
-        # 부호기
+        # 인코더
         self.in_conv = nn.Conv2d(latent_dim, base_ch, 3, padding=1)
         self.down1 = ResBlock(base_ch, base_ch * 2, time_dim)
         self.down2 = ResBlock(base_ch * 2, base_ch * 4, time_dim)
@@ -180,7 +180,7 @@ class LatentUNet(nn.Module):
         self.mid1 = ResBlock(base_ch * 4, base_ch * 4, time_dim)
         self.mid2 = ResBlock(base_ch * 4, base_ch * 4, time_dim)
         
-        # 복호기
+        # 디코더
         self.up1 = ResBlock(base_ch * 8, base_ch * 2, time_dim)  # down2에서 이어 붙인다
         self.up2 = ResBlock(base_ch * 4, base_ch, time_dim)      # down1에서 이어 붙인다
         
@@ -190,7 +190,7 @@ class LatentUNet(nn.Module):
     def forward(self, z, t):
         t_emb = self.time_emb(t)
         
-        # 부호기
+        # 인코더
         h = self.in_conv(z)
         h1 = self.down1(h, t_emb)
         h2 = self.down2(h1, t_emb)
@@ -199,7 +199,7 @@ class LatentUNet(nn.Module):
         h = self.mid1(h2, t_emb)
         h = self.mid2(h, t_emb)
         
-        # 건너뛰는 이음을 갖춘 풀개
+        # 건너뛰는 이음을 갖춘 디코더
         h = self.up1(torch.cat([h, h2], dim=1), t_emb)
         h = self.up2(torch.cat([h, h1], dim=1), t_emb)
         
@@ -228,7 +228,7 @@ class LatentDiffusion(nn.Module):
         self.unet = unet
         self.timesteps = timesteps
         
-        # 퍼짐 익히기 동안 변분 자기 부호기를 얼린다
+        # 퍼짐 익히기 동안 변분 오토인코더를 얼린다
         for param in self.vae.parameters():
             param.requires_grad = False
         
@@ -324,7 +324,7 @@ def build_dataloader():
 # 5) 익히기
 # ==========================================
 def train_vae(vae, loader, epochs):
-    """먼저 자기 부호기를 익힌다"""
+    """먼저 오토인코더를 익힌다"""
     print("\n" + "="*60)
     print("STAGE 1: Training VAE (Autoencoder)")
     print("="*60)
@@ -400,7 +400,7 @@ def main():
     vae = VAE().to(DEVICE)
     unet = LatentUNet(latent_dim=LATENT_DIM, base_ch=BASE_CH).to(DEVICE)
     
-    # 먼저 자기 부호기를 익힌다
+    # 먼저 오토인코더를 익힌다
     train_vae(vae, loader, EPOCHS_VAE)
     
     # 숨은 퍼짐 모델을 만든다

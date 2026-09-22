@@ -684,7 +684,7 @@ class TransformerLM(nn.Module):
         # 위치 인코딩
         self.pos_encoder = PositionalEncoding(d_model, max_len)
         
-        # 변환기 풀개 층
+        # 변환기 디코더 층
         decoder_layer = nn.TransformerDecoderLayer(
             d_model=d_model,
             nhead=nhead,

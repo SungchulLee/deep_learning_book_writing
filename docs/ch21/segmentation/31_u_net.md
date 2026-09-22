@@ -1,6 +1,6 @@
 # U-넷
 
-U-넷은 2015년 논문 "U-Net: Convolutional Networks for Biomedical Image Segmentation"에서 나왔다. 부호기와 풀개 사이에 건너뛰는 이음을 두며 나누기에 널리 쓰인다.
+U-넷은 2015년 논문 "U-Net: Convolutional Networks for Biomedical Image Segmentation"에서 나왔다. 인코더와 디코더 사이에 건너뛰는 이음을 두며 나누기에 널리 쓰인다.
 
 이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 그림 나누기를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 얼개의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
 
@@ -11,7 +11,7 @@ U-넷은 2015년 논문 "U-Net: Convolutional Networks for Biomedical Image Segm
 '''
 U-넷 — 생의학 그림 나누기를 위한 누비기 그물
 논문: "U-Net: Convolutional Networks for Biomedical Image Segmentation" (2015)
-핵심: 부호기와 풀개 사이의 건너뛰는 이음, 나누기에 널리 쓰인다
+핵심: 인코더와 디코더 사이의 건너뛰는 이음, 나누기에 널리 쓰인다
 '''
 import torch
 import torch.nn as nn
@@ -38,7 +38,7 @@ class DoubleConv(nn.Module):
 class UNet(nn.Module):
     def __init__(self, in_channels=3, out_channels=1):
         super().__init__()
-        # 부호기
+        # 인코더
         self.enc1 = DoubleConv(in_channels, 64)
         self.pool1 = nn.MaxPool2d(2)
         self.enc2 = DoubleConv(64, 128)
@@ -51,7 +51,7 @@ class UNet(nn.Module):
         # 병목
         self.bottleneck = DoubleConv(512, 1024)
         
-        # 복호기
+        # 디코더
         self.upconv4 = nn.ConvTranspose2d(1024, 512, 2, stride=2)
         self.dec4 = DoubleConv(1024, 512)
         self.upconv3 = nn.ConvTranspose2d(512, 256, 2, stride=2)
@@ -64,7 +64,7 @@ class UNet(nn.Module):
         self.out = nn.Conv2d(64, out_channels, 1)
     
     def forward(self, x):
-        # 부호기
+        # 인코더
         enc1 = self.enc1(x)
         enc2 = self.enc2(self.pool1(enc1))
         enc3 = self.enc3(self.pool2(enc2))
@@ -73,7 +73,7 @@ class UNet(nn.Module):
         # 병목
         bottleneck = self.bottleneck(self.pool4(enc4))
         
-        # 건너뛰는 이음을 갖춘 풀개
+        # 건너뛰는 이음을 갖춘 디코더
         dec4 = self.upconv4(bottleneck)
         dec4 = torch.cat([dec4, enc4], dim=1)
         dec4 = self.dec4(dec4)

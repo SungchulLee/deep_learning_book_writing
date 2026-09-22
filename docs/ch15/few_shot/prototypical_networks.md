@@ -28,7 +28,7 @@ import torch.nn.functional as F
 
 class ConvEncoder(nn.Module):
     """
-    그림을 묻는 단순한 4층 합성곱 부호기.
+    그림을 묻는 단순한 4층 합성곱 인코더.
     소수 예시 학습 논문에서 흔히 쓴다.
     """
     def __init__(self, input_channels=1, hidden_dim=64, output_dim=64):

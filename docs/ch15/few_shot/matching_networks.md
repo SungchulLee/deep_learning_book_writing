@@ -27,7 +27,7 @@ import torch.nn.functional as F
 
 class AttentionEncoder(nn.Module):
     """
-    맞춤 망을 위한 주의 장치를 갖춘 부호기.
+    맞춤 망을 위한 주의 장치를 갖춘 인코더.
     """
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(AttentionEncoder, self).__init__()
@@ -43,7 +43,7 @@ class AttentionEncoder(nn.Module):
 
 class SimpleEncoder(nn.Module):
     """
-    그림을 위한 단순한 CNN 부호기.
+    그림을 위한 단순한 CNN 인코더.
     """
     def __init__(self, input_channels=1, hidden_dim=64, output_dim=64):
         super(SimpleEncoder, self).__init__()

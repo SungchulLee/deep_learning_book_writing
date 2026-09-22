@@ -3,7 +3,7 @@
 """
 
 """
-변분 자기 부호기(VAE)
+변분 오토인코더(VAE)
 다시 매개변수화 재주로 확률 숨은 공간을 짠다
 """
 
@@ -18,7 +18,7 @@ import torch.nn.functional as F
 
 class VAE(nn.Module):
     """
-    정규 숨은 공간을 가진 여느 변분 자기 부호기.
+    정규 숨은 공간을 가진 여느 변분 오토인코더.
     
     인수:
         input_dim (int): 들임 차원(예컨대 MNIST는 784)
@@ -32,7 +32,7 @@ class VAE(nn.Module):
         self.input_dim = input_dim
         self.latent_dim = latent_dim
         
-        # 부호기: 숨은 분포의 매개변수를 내놓는다
+        # 인코더: 숨은 분포의 매개변수를 내놓는다
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
@@ -44,7 +44,7 @@ class VAE(nn.Module):
         self.fc_mu = nn.Linear(hidden_dim, latent_dim)
         self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
         
-        # 복호기
+        # 디코더
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
@@ -120,7 +120,7 @@ class VAE(nn.Module):
     
     def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
         """
-        변분 자기 부호기 손실 = 다시 세우기 손실 + β * KL 벌어짐
+        변분 오토인코더 손실 = 다시 세우기 손실 + β * KL 벌어짐
         
         인수:
             reconstruction: 다시 세운 내놓기
@@ -130,7 +130,7 @@ class VAE(nn.Module):
             beta: KL 벌어짐 항의 무게
             
         반환값:
-            loss: 전체 변분 자기 부호기 손실
+            loss: 전체 변분 오토인코더 손실
             bce: 다시 세우기 손실
             kld: KL 벌어짐
         """

@@ -1,6 +1,6 @@
 # Autoencoder
 
-제 부호기 - 차수 줄이기와 결 배우기
+제 인코더 - 차수 줄이기와 결 배우기
 
 여기 짜보기는 Autoencoder을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -9,8 +9,8 @@
 ```python
 #!/usr/bin/env python3
 '''
-제 부호기 - 차수 줄이기와 결 배우기
-고갱이: 이끎 없는 배움을 위한 부호기-풀개 짜임
+제 인코더 - 차수 줄이기와 결 배우기
+고갱이: 이끎 없는 배움을 위한 인코더-디코더 짜임
 '''
 import torch
 import torch.nn as nn
@@ -23,7 +23,7 @@ class Autoencoder(nn.Module):
     def __init__(self, input_dim=784, encoding_dim=32):
         super().__init__()
         
-        # 부호기
+        # 인코더
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 512),
             nn.ReLU(),
@@ -34,7 +34,7 @@ class Autoencoder(nn.Module):
             nn.Linear(128, encoding_dim)
         )
         
-        # 풀개
+        # 디코더
         self.decoder = nn.Sequential(
             nn.Linear(encoding_dim, 128),
             nn.ReLU(),

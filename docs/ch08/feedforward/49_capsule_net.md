@@ -106,7 +106,7 @@ class CapsNet(nn.Module):
         self.primary_capsules = PrimaryCaps()
         self.digit_capsules = DigitCaps(num_capsules=num_classes)
         
-        # 복호기
+        # 디코더
         self.decoder = nn.Sequential(
             nn.Linear(16 * num_classes, 512),
             nn.ReLU(inplace=True),

@@ -26,7 +26,7 @@ import torch.nn.functional as F
 
 class SiameseEncoder(nn.Module):
     """
-    샴 망을 위한 CNN 부호기.
+    샴 망을 위한 CNN 인코더.
     """
     def __init__(self, input_channels=1, hidden_dim=64, embedding_dim=128):
         super(SiameseEncoder, self).__init__()

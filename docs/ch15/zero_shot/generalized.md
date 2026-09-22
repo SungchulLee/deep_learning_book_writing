@@ -444,7 +444,7 @@ class FeatureVAE(nn.Module):
     def __init__(self, visual_dim: int, semantic_dim: int, latent_dim: int = 64):
         super().__init__()
         
-        # 부호기: 시각 + 뜻 -> 숨은 값
+        # 인코더: 시각 + 뜻 -> 숨은 값
         self.encoder = nn.Sequential(
             nn.Linear(visual_dim + semantic_dim, 512),
             nn.ReLU(),
@@ -454,7 +454,7 @@ class FeatureVAE(nn.Module):
         self.fc_mu = nn.Linear(256, latent_dim)
         self.fc_var = nn.Linear(256, latent_dim)
         
-        # 복호기: 숨은 값 + 뜻 -> 시각
+        # 디코더: 숨은 값 + 뜻 -> 시각
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim + semantic_dim, 256),
             nn.ReLU(),

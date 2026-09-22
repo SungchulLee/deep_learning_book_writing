@@ -165,7 +165,7 @@ print("=" * 60)
 print("""
   import shap
 
-  # 선형 모델에는 SHAP에 정확한 풀개가 있다
+  # 선형 모델에는 SHAP에 정확한 디코더가 있다
   explainer = shap.LinearExplainer(
       clf,
       X_train_tfidf,

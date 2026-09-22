@@ -167,7 +167,7 @@ NUM_CLASSES = 2
 
 
 class SimpleFinancialClassifier(nn.Module):
-    """글 가르기를 위한 작은 변환기 부호기.
+    """글 가르기를 위한 작은 변환기 인코더.
 
     실전에서는 이를 다음으로 갈음한다:
         BertForSequenceClassification.from_pretrained("ProsusAI/finbert", num_labels=2)

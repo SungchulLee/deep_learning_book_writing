@@ -46,8 +46,8 @@ print("""
 - 내놓음: [B, C, H, W](화소와 통로마다의 점수)
 
 U-Net 얼개:
-1. 부호기: 줄이기 + 특징 뽑기
-2. 풀개: 키우기 + 내놓기 만들기
+1. 인코더: 줄이기 + 특징 뽑기
+2. 디코더: 키우기 + 내놓기 만들기
 3. 건너뛰기 이음: 공간의 앎을 지킨다
 4. 때 조건 주기: 잡음 수준마다 다른 점수
 
@@ -75,8 +75,8 @@ class SimpleUNet(nn.Module):
     28x28 MNIST 그림을 위한 단순한 U-Net
     
     구조:
-    - 부호기: 28 → 14 → 7
-    - 풀개: 7 → 14 → 28
+    - 인코더: 28 → 14 → 7
+    - 디코더: 7 → 14 → 28
     - 층마다 때 조건 주기
     """
     def __init__(self, channels=[1, 32, 64, 128], time_dim=128):
@@ -89,7 +89,7 @@ class SimpleUNet(nn.Module):
             nn.SiLU()
         )
         
-        # 부호기(줄이기)
+        # 인코더(줄이기)
         self.enc1 = nn.Conv2d(channels[0], channels[1], 3, padding=1)
         self.enc2 = nn.Conv2d(channels[1], channels[2], 3, padding=1, stride=2)  # 28→14
         self.enc3 = nn.Conv2d(channels[2], channels[3], 3, padding=1, stride=2)  # 14→7
@@ -97,7 +97,7 @@ class SimpleUNet(nn.Module):
         # 가운데
         self.mid = nn.Conv2d(channels[3], channels[3], 3, padding=1)
         
-        # 풀개(키우기)
+        # 디코더(키우기)
         self.dec3 = nn.ConvTranspose2d(channels[3], channels[2], 4, stride=2, padding=1)  # 7→14
         self.dec2 = nn.ConvTranspose2d(channels[2]*2, channels[1], 4, stride=2, padding=1)  # 14→28
         self.dec1 = nn.Conv2d(channels[1]*2, channels[0], 3, padding=1)
@@ -118,7 +118,7 @@ class SimpleUNet(nn.Module):
         # 때 박아 넣기
         t_emb = self.time_mlp(t)
         
-        # 부호기
+        # 인코더
         h1 = F.silu(self.enc1(x) + self.time_proj1(t_emb)[:, :, None, None])
         h2 = F.silu(self.enc2(h1) + self.time_proj2(t_emb)[:, :, None, None])
         h3 = F.silu(self.enc3(h2) + self.time_proj3(t_emb)[:, :, None, None])
@@ -126,7 +126,7 @@ class SimpleUNet(nn.Module):
         # 가운데
         h = F.silu(self.mid(h3))
         
-        # 건너뛰는 이음을 갖춘 풀개
+        # 건너뛰는 이음을 갖춘 디코더
         h = F.silu(self.dec3(h))
         h = torch.cat([h, h2], dim=1)  # 건너뛰는 이음
         
@@ -293,8 +293,8 @@ MODULE 09: Image Generation with U-Net
 - 내놓음: [B, C, H, W](화소와 통로마다의 점수)
 
 U-Net 얼개:
-1. 부호기: 줄이기 + 특징 뽑기
-2. 풀개: 키우기 + 내놓기 만들기
+1. 인코더: 줄이기 + 특징 뽑기
+2. 디코더: 키우기 + 내놓기 만들기
 3. 건너뛰기 이음: 공간의 앎을 지킨다
 4. 때 조건 주기: 잡음 수준마다 다른 점수
 

@@ -33,7 +33,7 @@ import torch.nn as nn
 
 
 class SharedTransformerBlock(nn.Module):
-    """여러 번 되쓰려고 만든 변환기 부호기 켜 하나."""
+    """여러 번 되쓰려고 만든 변환기 인코더 켜 하나."""
     def __init__(self, d_model=768, nhead=12):
         super().__init__()
         self.layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
@@ -44,7 +44,7 @@ class SharedTransformerBlock(nn.Module):
 
 class ALBERT(nn.Module):
     """
-    다음을 갖춘 부호기만 있는 ALBERT 모형:
+    다음을 갖춘 인코더만 있는 ALBERT 모형:
       - 나눈 담음
       - 나누어 쓰는 변환기 덩이를 num_layers 번 되풀이
     """

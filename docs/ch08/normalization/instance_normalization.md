@@ -95,7 +95,7 @@ class StyleTransferNetwork(nn.Module):
     def __init__(self):
         super(StyleTransferNetwork, self).__init__()
         
-        # 부호기
+        # 인코더
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=9, stride=1, padding=4),
             # affine=True를 명시해야 gamma와 beta를 배운다.
@@ -125,7 +125,7 @@ class StyleTransferNetwork(nn.Module):
             ResidualBlock(128),
         )
         
-        # 복호기
+        # 디코더
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.InstanceNorm2d(64, affine=True),

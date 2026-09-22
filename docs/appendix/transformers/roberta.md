@@ -18,7 +18,7 @@ BERT과의 고갱이 다름(크게 보아):
   - 움직이는 가림을 쓴다
 
 두루마리: appendix/transformers/roberta.py
-눈여겨볼 것: 부호기만 있는 BERT 꼴 변환기를 배우기 위해 짜 본 것이다.
+눈여겨볼 것: 인코더만 있는 BERT 꼴 변환기를 배우기 위해 짜 본 것이다.
 """
 
 import torch
@@ -31,7 +31,7 @@ import torch.nn as nn
 
 class RoBERTa(nn.Module):
     """
-    가린 말 모형 짓기(MLM)를 위한, 부호기만 있는 변환기.
+    가린 말 모형 짓기(MLM)를 위한, 인코더만 있는 변환기.
 
     들임:
       input_ids: (B, S)
@@ -46,7 +46,7 @@ class RoBERTa(nn.Module):
         # 낱말 담기(RoBERTa은 배운 자리 담기도 쓰지만 짧게 하려고 뺐다)
         self.embed = nn.Embedding(vocab_size, d_model)
 
-        # 부호기 더미
+        # 인코더 더미
         enc_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
         self.encoder = nn.TransformerEncoder(enc_layer, num_layers=num_layers)
 

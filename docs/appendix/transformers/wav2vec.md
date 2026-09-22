@@ -1,6 +1,6 @@
 # WAV2VEC
 
-WAV2VEC은 2020년 글 "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations"에서 나왔다. 말소리를 위한 맞대어 배우기, 수 줄이기, 변환기 부호기를 쓴다.
+WAV2VEC은 2020년 글 "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations"에서 나왔다. 말소리를 위한 맞대어 배우기, 수 줄이기, 변환기 인코더를 쓴다.
 
 여기 짜보기는 WAV2VEC을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -11,7 +11,7 @@ WAV2VEC은 2020년 글 "wav2vec 2.0: A Framework for Self-Supervised Learning of
 '''
 Wav2Vec 2.0 - 말 알아듣기를 위한 스스로 이끄는 배움
 논문: "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations" (2020)
-고갱이: 말을 위한 견줌 배움, 수 줄이기, 변환기 부호기
+고갱이: 말을 위한 견줌 배움, 수 줄이기, 변환기 인코더
 '''
 import torch
 import torch.nn as nn
