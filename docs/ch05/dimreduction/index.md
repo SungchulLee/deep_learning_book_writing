@@ -36,6 +36,99 @@
 
     심판으로 쓰기에는 넉넉하다. 이 절이 견주는 것은 심판의 절대 성능이 아니라 복원본 사이의 차이이며, 모든 줄이 같은 심판을 쓴다.
 
+### 심판을 만들어 두는 코드
+
+이 절의 모든 쪽이 이 심판을 쓴다. 한 번 학습해 파일로 남겨 두고 뒤에서는 읽어 쓴다.
+
+```python
+"""심판 CNN을 학습해 mnist_judge.pt로 남긴다.
+
+3장 4걸음과 같은 구조·같은 규약이다. 이 장의 모든 절이 이 파일을 읽어,
+되살린 그림과 만들어 낸 그림이 아직 숫자로 읽히는지를 잰다.
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, LR, EPOCHS = 42, 100, 1e-3, 5
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+# === 자료 ===================================================================
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.1307,), (0.3081,))])
+tr_ds = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    """DataLoader를 한 번 돌려 텐서로 펼쳐 둔다. 뒤에서 되풀이해 쓰기 편하다."""
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr_img, ytr = materialize(tr_ds)          # (60000, 1, 28, 28)
+Xte_img, yte = materialize(te_ds)
+print(f"자료 {tuple(Xtr_img.flatten(1).shape)}")
+
+
+# === 심판 ===================================================================
+class JudgeCNN(nn.Module):
+    """3장 4걸음의 구조 그대로."""
+
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+if __name__ == "__main__":
+    torch.manual_seed(SEED)
+    judge = JudgeCNN().to(device)
+    opt = optim.Adam(judge.parameters(), lr=LR)
+    # 섞는 차례를 전역 난수와 떼어 놓는다 (4.1절 6절 참고)
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(TensorDataset(Xtr_img, ytr), batch_size=BATCH,
+                        shuffle=True, generator=g)
+
+    for _ in range(EPOCHS):
+        judge.train()
+        for xb, yb in loader:
+            opt.zero_grad()
+            F.cross_entropy(judge(xb.to(device)), yb.to(device)).backward()
+            opt.step()
+
+    judge.eval()
+    with torch.no_grad():
+        pred = torch.cat([judge(Xte_img[i:i + 1000].to(device)).argmax(1).cpu()
+                          for i in range(0, len(Xte_img), 1000)])
+    acc = 100.0 * (pred == yte).float().mean()
+    torch.save(judge.state_dict(), "mnist_judge.pt")
+    print(f"심판 CNN {acc:.2f}%  -> mnist_judge.pt")
+```
+
+**출력:**
+
+```
+자료 (60000, 784)
+심판 CNN 98.83%  (35s)  -> mnist_judge.pt
+```
+
 ---
 
 ## 3. 사다리는 3장·4장과 같은 네 걸음이다

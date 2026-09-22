@@ -22,6 +22,151 @@ $$
 
 ### 앞 절 모델들을 새 자로 다시 재면
 
+```python
+"""5.3절의 새 자: 클래스 안 다양함. 그리고 앞 절 모델을 그 자로 다시 잰다.
+
+mnist_judge.pt는 5.1절에서 학습해 둔 것을 읽어 쓴다.
+GAN은 [-1, 1]로 두고 tanh로 내놓으므로, 심판에 넣기 전에 정규화를 되돌린다.
+"""
+
+import time
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, ZDIM, EPOCHS = 42, 100, 64, 30
+N_SAMPLE = 5000
+JM, JS = 0.1307, 0.3081                 # 심판이 기대하는 정규화
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+# 이 절만 [-1, 1]을 쓴다 — 만들개가 tanh로 내놓기 때문이다
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.5,), (0.5,))])
+tr = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+Xtr = torch.cat([x for x, _ in DataLoader(tr, batch_size=2000, shuffle=False)])
+Xte = torch.cat([x for x, _ in DataLoader(te, batch_size=2000, shuffle=False)])
+yte = torch.cat([y for _, y in DataLoader(te, batch_size=2000, shuffle=False)])
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+judge = JudgeCNN().to(device)
+judge.load_state_dict(torch.load("mnist_judge.pt", weights_only=True))
+judge.eval()
+
+
+@torch.no_grad()
+def predict(x_pm1):
+    """[-1,1] -> [0,1] -> 심판 정규화 -> 심판."""
+    xj = (((x_pm1 + 1) / 2) - JM) / JS
+    p = torch.cat([torch.softmax(judge(xj[i:i + 1000].to(device)), 1).cpu()
+                   for i in range(0, len(xj), 1000)])
+    conf, pred = p.max(1)
+    return conf, pred
+
+
+def within_class_var(imgs01, group, min_n=20):
+    """같은 클래스로 묶인 것들의 화소 분산을, 무리 크기로 가중해 평균낸다."""
+    vs, ws = [], []
+    for d in range(10):
+        g = imgs01[group == d]
+        if len(g) < min_n:
+            continue
+        vs.append(g.flatten(1).var(0).mean().item()); ws.append(len(g))
+    return sum(v * w for v, w in zip(vs, ws)) / sum(ws) if vs else 0.0
+
+
+# 진짜 자료의 기준선 — 여기서는 심판이 아니라 진짜 라벨로 묶는다
+REAL_VAR = within_class_var((Xte + 1) / 2, yte)
+
+
+def evaluate(samples_pm1, tag):
+    conf, pred = predict(samples_pm1)
+    share = torch.bincount(pred, minlength=10).float()
+    share = share / share.sum()
+    nz = share[share > 0]
+    bal = (-(nz * nz.log()).sum() / torch.tensor(10.0).log()).item()
+    wv = within_class_var((samples_pm1 + 1) / 2, pred)
+    print(f"  {tag:14s} 확신도 {conf.mean():.3f}  고름 {bal:.3f}  "
+          f"최대몫 {share.max():.3f}  클래스안 다양함 {wv / REAL_VAR:.3f}", flush=True)
+
+
+# === 앞 절 모델을 새 자로 다시 잰다 =========================================
+class MLPAE(nn.Module):
+    def __init__(self, k):
+        super().__init__()
+        self.enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU(), nn.Linear(256, k))
+        self.dec = nn.Sequential(nn.Linear(k, 256), nn.ReLU(), nn.Linear(256, 784))
+
+
+class VAEModel(nn.Module):
+    def __init__(self, k):
+        super().__init__()
+        self.enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU())
+        self.mu = nn.Linear(256, k); self.logvar = nn.Linear(256, k)
+        self.dec = nn.Sequential(nn.Linear(k, 256), nn.ReLU(), nn.Linear(256, 784))
+
+
+def judge_space_to_pm1(x):
+    """앞 절 모델은 심판 정규화 공간에서 내놓는다. [0,1]로 자른 뒤 [-1,1]로."""
+    return ((x * JS + JM).clamp(0, 1) * 2) - 1
+
+
+print(f"진짜 자료의 클래스 안 화소 분산 {REAL_VAR:.5f}  (기준선 = 1.00)")
+print("\n=== 앞 절 모델을 새 자로 ===")
+
+Xte_j = ((Xte + 1) / 2 - JM) / JS               # 앞 절 모델이 기대하는 공간
+
+# 자기 부호기 — 뽑을 앞분포가 없으므로 부호의 평균과 표준편차를 재어 쓴다
+ae = MLPAE(64).to(device)
+ae.load_state_dict(torch.load("mnist_ae_mlp64.pt", weights_only=True)); ae.eval()
+with torch.no_grad():
+    zr = torch.cat([ae.enc(Xte_j.flatten(1)[i:i + 1000].to(device)).cpu()
+                    for i in range(0, len(Xte), 1000)])
+    g = torch.Generator().manual_seed(SEED)
+    z = torch.randn(N_SAMPLE, 64, generator=g) * zr.std(0) + zr.mean(0)
+    s = torch.cat([ae.dec(z[i:i + 1000].to(device)).cpu()
+                   for i in range(0, N_SAMPLE, 1000)])
+evaluate(judge_space_to_pm1(s).reshape(-1, 1, 28, 28), "AE_MLP-64")
+
+# VAE — 앞분포 N(0, I)에서 그냥 뽑는다
+v = VAEModel(64).to(device)
+v.load_state_dict(torch.load("mnist_vae64_beta1.0.pt", weights_only=True)); v.eval()
+with torch.no_grad():
+    g = torch.Generator().manual_seed(SEED)
+    z = torch.randn(N_SAMPLE, 64, generator=g)
+    s = torch.cat([v.dec(z[i:i + 1000].to(device)).cpu()
+                   for i in range(0, N_SAMPLE, 1000)])
+evaluate(judge_space_to_pm1(s).reshape(-1, 1, 28, 28), "VAE-64")
+```
+
+**출력:**
+
+```
+진짜 자료의 클래스 안 화소 분산 0.05272  (기준선 = 1.00)
+
+=== 앞 절 모델을 새 자로 ===
+  AE_MLP-64      확신도 0.737  고름 0.580  최대몫 0.619  클래스안 다양함 0.640
+  VAE-64         확신도 0.758  고름 0.887  최대몫 0.343  클래스안 다양함 0.628
+```
+
 | 부호 64 | 확신도 | 고름 | 클래스 안 다양함 |
 |---|---|---|---|
 | 진짜 자료 | — | — | **1.00** |

@@ -33,6 +33,17 @@
 바뀌는 것은 `transform` 하나뿐이다. 모델도 손실도 최적화기도 앞 절 그대로다.
 
 ```python
+"""6걸음: 데이터 증강. 4.1절 4걸음의 CNN을 그대로 두고 transform만 바꾼다."""
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, Subset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, LR = 42, 100, 1e-3
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 MEAN, STD = (0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)
 
 # 시험용 — 언제나 이것을 쓴다
@@ -50,13 +61,107 @@ aug = transforms.Compose([
     transforms.Normalize(MEAN, STD),
 ])
 
-train_ds = torchvision.datasets.CIFAR10("./data", train=True,
-                                        download=True, transform=aug)
-test_ds = torchvision.datasets.CIFAR10("./data", train=False,
-                                       download=True, transform=plain)
+
+def datasets(use_aug):
+    tr = torchvision.datasets.CIFAR10("./data", train=True, download=True,
+                                      transform=aug if use_aug else plain)
+    # 학습 정확도를 잴 때에도 plain을 쓴다. 증강된 그림으로 재면
+    # "얼마나 외웠는가"를 알 수 없다
+    tr_eval = torchvision.datasets.CIFAR10("./data", train=True, download=True,
+                                           transform=plain)
+    te = torchvision.datasets.CIFAR10("./data", train=False, download=True,
+                                      transform=plain)
+    return tr, tr_eval, te
+
+
+class CNN(nn.Module):
+    """4.1절 4걸음 그대로. 바뀌는 것은 들어오는 그림뿐이다."""
+
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 8 * 8, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+@torch.no_grad()
+def accuracy(model, ds, idx=None):
+    model.eval()
+    if idx is not None:
+        ds = Subset(ds, idx)
+    correct = n = 0
+    for x, y in DataLoader(ds, batch_size=1000, shuffle=False):
+        correct += (model(x.to(device)).argmax(1).cpu() == y).sum().item()
+        n += y.numel()
+    return 100.0 * correct / n
+
+
+def run(use_aug, epochs, n_label=None):
+    """n_label이 주어지면 학습 집합에서 그만큼만 쓴다."""
+    tr, tr_eval, te = datasets(use_aug)
+    idx = None
+    if n_label is not None:
+        # 어느 부분집합을 고르는지도 고정해 둔다
+        g = torch.Generator().manual_seed(SEED)
+        idx = torch.randperm(len(tr), generator=g)[:n_label].tolist()
+        tr = Subset(tr, idx)
+
+    torch.manual_seed(SEED)
+    model = CNN().to(device)
+    opt = optim.Adam(model.parameters(), lr=LR)
+    crit = nn.CrossEntropyLoss()
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(tr, batch_size=BATCH, shuffle=True, generator=g)
+
+    for _ in range(epochs):
+        model.train()
+        for x, y in loader:
+            x, y = x.to(device), y.to(device)
+            opt.zero_grad()
+            crit(model(x), y).backward()
+            opt.step()
+
+    tr_acc = accuracy(model, tr_eval, idx)
+    te_acc = accuracy(model, te)
+    tag = "증강 있음" if use_aug else "증강 없음"
+    print(f"  {tag}  {epochs:3d}에포크   학습 {tr_acc:6.2f}  "
+          f"시험 {te_acc:5.2f}  틈 {tr_acc - te_acc:5.2f}", flush=True)
+
+
+print("=== 전체 5만 장 ===")
+for epochs in (5, 30):
+    for use_aug in (False, True):
+        run(use_aug, epochs)
+
+print("\n=== 라벨 1,000장 ===")
+for epochs in (30, 100):
+    for use_aug in (False, True):
+        run(use_aug, epochs, n_label=1000)
 ```
 
-학습 정확도를 잴 때에도 `plain`을 쓴 학습 집합을 따로 둔다. 증강된 그림으로 학습 정확도를 재면 "얼마나 외웠는가"를 알 수 없기 때문이다.
+**출력:**
+
+```
+=== 전체 5만 장 ===
+  증강 없음    5에포크   학습  81.40  시험 71.86  틈  9.54
+  증강 있음    5에포크   학습  70.16  시험 69.34  틈  0.82
+  증강 없음   30에포크   학습  99.05  시험 71.75  틈 27.30
+  증강 있음   30에포크   학습  80.77  시험 77.71  틈  3.06
+
+=== 라벨 1,000장 ===
+  증강 없음   30에포크   학습  99.90  시험 43.79  틈 56.11
+  증강 있음   30에포크   학습  65.70  시험 45.13  틈 20.57
+  증강 없음  100에포크   학습 100.00  시험 43.04  틈 56.96
+  증강 있음  100에포크   학습  92.60  시험 49.77  틈 42.83
+```
 
 ---
 

@@ -41,6 +41,232 @@
 !!! note "차이를 읽을 때 쓰는 자"
     [4.1절](01_two_ladders.md)에서 씨앗 다섯 개로 잰 퍼짐은 선형 2.49, MLP 2.74, CNN 1.11이었다. 아래 표에서 이보다 작은 차이는 **차이가 아니다.** 이 절에는 그런 칸이 많으니 눈여겨보아야 한다.
 
+### 코드
+
+네 걸음과 두 탐침을 한 스크립트에 담았다. 아래 절들은 여기서 나온 수를 하나씩 읽는다.
+
+```python
+"""4.4절: 라벨 없이 표현을 배우는 네 걸음과, 그 위에 올리는 두 탐침."""
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, LR = 42, 100, 1e-3
+AE_EPOCHS, PROBE_EPOCHS = 100, 5
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+tf = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))])
+tr_ds = torchvision.datasets.CIFAR10("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.CIFAR10("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr_img, ytr = materialize(tr_ds)              # (50000, 3, 32, 32)
+Xte_img, yte = materialize(te_ds)
+Xtr, Xte = Xtr_img.flatten(1), Xte_img.flatten(1)          # (N, 3072)
+print(f"자료 준비 완료 {tuple(Xtr.shape)}")
+
+
+# === 탐침 ===================================================================
+def probe(Ztr, Zte, kind):
+    """부호를 얼려 두고 그 위에 분류기 하나만 학습한다."""
+    d = Ztr.shape[1]
+    torch.manual_seed(SEED)
+    if kind == "linear":
+        head = nn.Linear(d, 10)
+    elif kind == "mlp":
+        head = nn.Sequential(nn.Linear(d, 128), nn.ReLU(), nn.Linear(128, 10))
+    else:                                       # 공간 구조를 살린 부호에만 쓴다
+        head = nn.Sequential(
+            nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+            nn.Flatten(), nn.Linear(64 * 4 * 4, 128), nn.ReLU(), nn.Linear(128, 10))
+    head = head.to(device)
+    opt = optim.Adam(head.parameters(), lr=LR)
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(TensorDataset(Ztr, ytr), batch_size=BATCH,
+                        shuffle=True, generator=g)
+    for _ in range(PROBE_EPOCHS):
+        head.train()
+        for zb, yb in loader:
+            zb, yb = zb.to(device), yb.to(device)
+            opt.zero_grad()
+            F.cross_entropy(head(zb), yb).backward()
+            opt.step()
+    head.eval()
+    with torch.no_grad():
+        pred = torch.cat([head(Zte[i:i + 1000].to(device)).argmax(1).cpu()
+                          for i in range(0, len(Zte), 1000)])
+    n = sum(q.numel() for q in head.parameters())
+    return 100.0 * (pred == yte).float().mean().item(), n
+
+
+def report(tag, Ztr, Zte, kinds=("linear", "mlp")):
+    for kind in kinds:
+        acc, n = probe(Ztr, Zte, kind)
+        print(f"    {tag:16s} {kind:6s} {acc:.2f}%  머리 매개변수 {n:,}", flush=True)
+
+
+# === 1걸음: PCA — 학습이 없다 ===============================================
+print("\n=== PCA ===")
+mu = Xtr.mean(0, keepdim=True)
+Xc = Xtr - mu
+cov = (Xc.T @ Xc) / (Xc.shape[0] - 1)          # (3072, 3072)
+
+# torch.linalg.eigh는 이 크기에서 실패하는 빌드가 있다(LAPACK 작업공간 문제).
+# numpy의 경로를 float64로 쓰면 안정적이며, 어차피 한 번만 계산한다
+ev, evec = np.linalg.eigh(cov.double().numpy())
+evals = torch.from_numpy(np.ascontiguousarray(ev[::-1])).float()
+evecs = torch.from_numpy(np.ascontiguousarray(evec[:, ::-1])).float()
+
+for k in (16, 64, 256):
+    V = evecs[:, :k]
+    Ztr, Zte = (Xtr - mu) @ V, (Xte - mu) @ V
+    mse = ((Xte - (Zte @ V.T + mu)) ** 2).mean().item()
+    var = (evals[:k].sum() / evals.sum()).item()
+    print(f"  PCA-{k}: 설명 분산 {100 * var:.1f}%  복원 MSE {mse:.5f}")
+    report(f"PCA-{k}", Ztr, Zte)
+
+
+# === 자기 부호기 공통 =======================================================
+def train_ae(model, X):
+    """되살리기만 배운다. 라벨은 한 번도 쓰지 않는다."""
+    torch.manual_seed(SEED)
+    model = model.to(device)
+    opt = optim.Adam(model.parameters(), lr=LR)
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(TensorDataset(X), batch_size=BATCH,
+                        shuffle=True, generator=g)
+    for ep in range(AE_EPOCHS):
+        model.train(); tot = n = 0.0
+        for (xb,) in loader:
+            xb = xb.to(device)
+            opt.zero_grad()
+            loss = F.mse_loss(model.dec(model.enc(xb)), xb)
+            loss.backward(); opt.step()
+            tot += loss.item(); n += 1
+        if ep == 0 or (ep + 1) % 20 == 0:
+            print(f"    에포크 {ep+1:3d}/{AE_EPOCHS}  학습 MSE {tot/n:.5f}", flush=True)
+    return model.eval()
+
+
+@torch.no_grad()
+def encode(model, X):
+    return torch.cat([model.enc(X[i:i + 1000].to(device)).cpu()
+                      for i in range(0, len(X), 1000)])
+
+
+@torch.no_grad()
+def test_mse(model, X):
+    s = 0.0
+    for i in range(0, len(X), 1000):
+        xb = X[i:i + 1000].to(device)
+        s += F.mse_loss(model.dec(model.enc(xb)), xb).item() * len(xb)
+    return s / len(X)
+
+
+class AE(nn.Module):
+    def __init__(self, enc, dec):
+        super().__init__()
+        self.enc, self.dec = enc, dec
+
+
+# === 2걸음: 선형 AE — 활성화가 없다 =========================================
+print("\n=== 선형 AE (부호 64) ===")
+m = train_ae(AE(nn.Linear(3072, 64), nn.Linear(64, 3072)), Xtr)
+print(f"  시험 MSE {test_mse(m, Xte):.5f}  "
+      f"부호기 매개변수 {sum(q.numel() for q in m.enc.parameters()):,}")
+report("선형 AE-64", encode(m, Xtr), encode(m, Xte))
+
+
+# === 3걸음: 깊은 AE — 은닉층과 ReLU를 넣는다 ================================
+print("\n=== 깊은 AE (부호 64) ===")
+m = train_ae(AE(nn.Sequential(nn.Linear(3072, 512), nn.ReLU(), nn.Linear(512, 64)),
+                nn.Sequential(nn.Linear(64, 512), nn.ReLU(), nn.Linear(512, 3072))), Xtr)
+print(f"  시험 MSE {test_mse(m, Xte):.5f}  "
+      f"부호기 매개변수 {sum(q.numel() for q in m.enc.parameters()):,}")
+report("깊은 AE-64", encode(m, Xtr), encode(m, Xte))
+
+
+# === 4걸음: conv AE — 납작하게 펴지 않는다 ==================================
+print("\n=== conv AE (병목 32x8x8 = 2048) ===")
+m = train_ae(AE(nn.Sequential(
+                    nn.Conv2d(3, 16, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+                    nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2)),
+                nn.Sequential(
+                    nn.ConvTranspose2d(32, 16, 2, stride=2), nn.ReLU(),
+                    nn.ConvTranspose2d(16, 3, 2, stride=2))), Xtr_img)
+print(f"  시험 MSE {test_mse(m, Xte_img):.5f}  "
+      f"부호기 매개변수 {sum(q.numel() for q in m.enc.parameters()):,}")
+
+Ztr, Zte = encode(m, Xtr_img), encode(m, Xte_img)          # (N, 32, 8, 8)
+report("conv AE 납작하게", Ztr.flatten(1), Zte.flatten(1), kinds=("mlp",))
+report("conv AE 공간으로", Ztr, Zte, kinds=("cnn",))
+```
+
+**출력:**
+
+```
+자료 준비 완료 (50000, 3072)
+
+=== PCA ===
+  PCA-16: 설명 분산 71.6%  복원 MSE 0.28079
+    PCA-16           linear 32.99%  머리 매개변수 170
+    PCA-16           mlp    41.79%  머리 매개변수 3,466
+  PCA-64: 설명 분산 86.5%  복원 MSE 0.13373
+    PCA-64           linear 38.36%  머리 매개변수 650
+    PCA-64           mlp    50.22%  머리 매개변수 9,610
+  PCA-256: 설명 분산 95.8%  복원 MSE 0.04163
+    PCA-256          linear 40.42%  머리 매개변수 2,570
+    PCA-256          mlp    52.37%  머리 매개변수 34,186
+
+=== 선형 AE (부호 64) ===
+    에포크   1/100  학습 MSE 0.33068
+    에포크  20/100  학습 MSE 0.13750
+    에포크  40/100  학습 MSE 0.13677
+    에포크  60/100  학습 MSE 0.13719
+    에포크  80/100  학습 MSE 0.13690
+    에포크 100/100  학습 MSE 0.13697
+  시험 MSE 0.13694  부호기 매개변수 196,672
+    선형 AE-64       linear 38.93%  머리 매개변수 650
+    선형 AE-64       mlp    51.62%  머리 매개변수 9,610
+
+=== 깊은 AE (부호 64) ===
+    에포크   1/100  학습 MSE 0.22346
+    에포크  20/100  학습 MSE 0.13752
+    에포크  40/100  학습 MSE 0.13449
+    에포크  60/100  학습 MSE 0.13245
+    에포크  80/100  학습 MSE 0.13096
+    에포크 100/100  학습 MSE 0.12983
+  시험 MSE 0.13412  부호기 매개변수 1,606,208
+    깊은 AE-64       linear 39.09%  머리 매개변수 650
+    깊은 AE-64       mlp    51.17%  머리 매개변수 9,610
+
+=== conv AE (병목 32x8x8 = 2048) ===
+    에포크   1/100  학습 MSE 0.20254
+    에포크  20/100  학습 MSE 0.04185
+    에포크  40/100  학습 MSE 0.03868
+    에포크  60/100  학습 MSE 0.03753
+    에포크  80/100  학습 MSE 0.03678
+    에포크 100/100  학습 MSE 0.03628
+  시험 MSE 0.03610  부호기 매개변수 5,088
+    conv AE 납작하게    mlp    48.08%  머리 매개변수 263,562
+    conv AE 공간으로    cnn    58.61%  머리 매개변수 150,986
+```
+
 ---
 
 ## 3. PCA — 닫힌 꼴이라 씨앗이 없다

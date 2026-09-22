@@ -6,23 +6,98 @@
 
 ---
 
-## 1. 계산
+## 1. 코드
 
 ```python
-import numpy as np
+"""1걸음: PCA. 학습이 없으므로 씨앗도 없고 에포크도 없다.
 
-mu = X.mean(0, keepdim=True)
-Xc = X - mu
+앞서 만들어 둔 mnist_judge.pt를 읽어, 되살린 그림이 아직 같은 숫자로
+읽히는지를 함께 잰다.
+"""
+
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+import torchvision
+import torchvision.transforms as transforms
+
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.1307,), (0.3081,))])
+tr_ds = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x.flatten(1)); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr, ytr = materialize(tr_ds)                  # (60000, 784)
+Xte, yte = materialize(te_ds)
+
+
+# === 심판 (앞 쪽에서 학습해 둔 것을 읽는다) =================================
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+judge = JudgeCNN().to(device)
+judge.load_state_dict(torch.load("mnist_judge.pt", weights_only=True))
+judge.eval()
+
+
+@torch.no_grad()
+def identity(flat):
+    """되살린 (N, 784)를 심판에 넣어 원래 라벨과 같게 읽는 비율."""
+    pred = torch.cat([judge(flat[i:i + 1000].reshape(-1, 1, 28, 28).to(device))
+                      .argmax(1).cpu() for i in range(0, len(flat), 1000)])
+    return 100.0 * (pred == yte).float().mean().item()
+
+
+# === PCA ====================================================================
+mu = Xtr.mean(0, keepdim=True)
+Xc = Xtr - mu
 cov = (Xc.T @ Xc) / (Xc.shape[0] - 1)          # (784, 784)
 
 # torch.linalg.eigh는 이 크기에서 실패하는 빌드가 있다(LAPACK 작업공간 문제).
-# numpy의 경로를 float64로 쓰면 안정적이다
+# numpy의 경로를 float64로 쓰면 안정적이며, 어차피 한 번만 계산한다
 ev, evec = np.linalg.eigh(cov.double().numpy())
-evec = torch.from_numpy(np.ascontiguousarray(evec[:, ::-1])).float()
+evals = torch.from_numpy(np.ascontiguousarray(ev[::-1])).float()
+evecs = torch.from_numpy(np.ascontiguousarray(evec[:, ::-1])).float()
+torch.save((mu, evecs, evals), "mnist_pca.pt")
 
-V = evec[:, :k]                                 # 위에서 k개
-Z = (X - mu) @ V                                # 부호로 줄이기
-X_hat = Z @ V.T + mu                            # 되살리기
+for k in (2, 16, 32, 64):
+    V = evecs[:, :k]                            # 위에서 k개
+    Z = (Xte - mu) @ V                          # 부호로 줄이기
+    rec = Z @ V.T + mu                          # 되살리기
+    mse = ((Xte - rec) ** 2).mean().item()
+    var = (evals[:k].sum() / evals.sum()).item()
+    print(f"  PCA-{k:3d}  설명분산 {100 * var:5.1f}%  "
+          f"복원 MSE {mse:.5f}  같은 숫자로 {identity(rec):.2f}%")
+```
+
+**출력:**
+
+```
+  PCA-  2  설명분산  16.8%  복원 MSE 0.58645  같은 숫자로 35.66%
+  PCA- 16  설명분산  59.4%  복원 MSE 0.28296  같은 숫자로 83.69%
+  PCA- 32  설명분산  74.4%  복원 MSE 0.17728  같은 숫자로 94.39%
+  PCA- 64  설명분산  86.2%  복원 MSE 0.09530  같은 숫자로 97.81%
 ```
 
 ---

@@ -3,8 +3,166 @@
 [VAE](01_vae.md)는 뽑으면 **무엇이 나올지 모르는** 모델이었다. 라벨을 함께 넣으면 고를 수 있게 된다. 부호기와 복호기 모두에 원-핫 라벨을 이어 붙인다.
 
 ```python
-enc_in = torch.cat([x, onehot(y)], dim=1)     # 부호기도 라벨을 본다
-dec_in = torch.cat([z, onehot(y)], dim=1)     # 복호기도 라벨을 본다
+"""cVAE. 라벨을 함께 넣어 원하는 숫자를 만든다.
+
+mnist_judge.pt는 5.1절에서 학습해 둔 것을 읽어 쓴다.
+구조와 규약은 5.1절 AE_MLP와 같다. 달라지는 것은 손실뿐이다.
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, LR, EPOCHS = 42, 100, 1e-3, 100
+N_SAMPLE = 5000
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.1307,), (0.3081,))])
+tr_ds = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x.flatten(1)); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr, ytr = materialize(tr_ds)
+Xte, yte = materialize(te_ds)
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+judge = JudgeCNN().to(device)
+judge.load_state_dict(torch.load("mnist_judge.pt", weights_only=True))
+judge.eval()
+
+
+@torch.no_grad()
+def judge_probs(flat):
+    return torch.cat([torch.softmax(
+        judge(flat[i:i + 1000].reshape(-1, 1, 28, 28).to(device)), 1).cpu()
+        for i in range(0, len(flat), 1000)])
+
+
+def sample_stats(flat):
+    """표본을 심판에 넣어 확신도와 클래스 고름을 잰다.
+
+    고름은 심판이 읽은 클래스 분포의 엔트로피를 균등분포로 나눈 값이다.
+    1이면 열 가지가 고르게 나왔고, 0에 가까우면 한 가지로 쏠렸다.
+    """
+    p = judge_probs(flat)
+    conf, pred = p.max(1)
+    share = torch.bincount(pred, minlength=10).float()
+    share = share / share.sum()
+    nz = share[share > 0]
+    bal = (-(nz * nz.log()).sum() / torch.tensor(10.0).log()).item()
+    return conf.mean().item(), bal, share.max().item()
+
+
+class VAE(nn.Module):
+    """부호를 점이 아니라 분포로 내놓는다. n_cond>0이면 조건부(cVAE)."""
+
+    def __init__(self, k, n_cond=0):
+        super().__init__()
+        self.k, self.n_cond = k, n_cond
+        self.enc = nn.Sequential(nn.Linear(784 + n_cond, 256), nn.ReLU())
+        self.mu = nn.Linear(256, k)
+        self.logvar = nn.Linear(256, k)
+        self.dec = nn.Sequential(nn.Linear(k + n_cond, 256), nn.ReLU(),
+                                 nn.Linear(256, 784))
+
+    def encode(self, x, c=None):
+        h = self.enc(x if c is None else torch.cat([x, c], 1))
+        return self.mu(h), self.logvar(h)
+
+    def decode(self, z, c=None):
+        return self.dec(z if c is None else torch.cat([z, c], 1))
+
+    def forward(self, x, c=None):
+        mu, logvar = self.encode(x, c)
+        # 재매개변수화: 무작위성을 eps로 밀어내어 mu, logvar로 기울기가 흐르게 한다
+        z = mu + torch.exp(0.5 * logvar) * torch.randn_like(mu)
+        return self.decode(z, c), mu, logvar
+
+
+def onehot(y):
+    return F.one_hot(y, 10).float()
+
+
+def train_vae(k, beta, cond):
+    torch.manual_seed(SEED)
+    m = VAE(k, 10 if cond else 0).to(device)
+    opt = optim.Adam(m.parameters(), lr=LR)
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(TensorDataset(Xtr, ytr), batch_size=BATCH,
+                        shuffle=True, generator=g)
+    for _ in range(EPOCHS):
+        m.train()
+        for xb, yb in loader:
+            xb = xb.to(device)
+            c = onehot(yb).to(device) if cond else None
+            opt.zero_grad()
+            xh, mu, lv = m(xb, c)
+            # 화소에 대해 합, 표본에 대해 평균 — 가우스 가능도의 꼴
+            rec = F.mse_loss(xh, xb, reduction="sum") / xb.size(0)
+            kl = -0.5 * torch.sum(1 + lv - mu.pow(2) - lv.exp()) / xb.size(0)
+            (rec + beta * kl).backward()
+            opt.step()
+    return m.eval()
+
+
+# === 라벨을 부호기와 복호기 양쪽에 넣는다 ===================================
+for k in (2, 64):
+    m = train_vae(k, beta=1.0, cond=True)
+
+    with torch.no_grad():
+        # 복원: 진짜 라벨을 함께 준다 (그래서 정체가 부풀려진다)
+        rec = torch.cat([
+            m.decode(m.encode(Xte[i:i + 1000].to(device),
+                              onehot(yte[i:i + 1000]).to(device))[0],
+                     onehot(yte[i:i + 1000]).to(device)).cpu()
+            for i in range(0, len(Xte), 1000)])
+
+        # 만들기: 열 가지를 고루 요청하고, 그대로 나왔는지 심판에게 묻는다
+        g = torch.Generator().manual_seed(SEED)
+        z = torch.randn(N_SAMPLE, k, generator=g)
+        want = torch.arange(N_SAMPLE) % 10
+        c = onehot(want)
+        s = torch.cat([m.decode(z[i:i + 1000].to(device),
+                                c[i:i + 1000].to(device)).cpu()
+                       for i in range(0, N_SAMPLE, 1000)])
+
+    got = judge_probs(s).argmax(1)
+    cond_acc = 100.0 * (got == want).float().mean()
+    print(f"  cvae{k}  복원 {((rec - Xte) ** 2).mean():.5f}  "
+          f"조건 정확도 {cond_acc:.2f}%")
+```
+
+**출력:**
+
+```
+  cvae2   복원 0.34787  조건 정확도 99.66%
+  cvae64  복원 0.07618  조건 정확도 73.64%
 ```
 
 만들 때는 원하는 숫자의 원-핫과 $z \sim N(0, I)$을 함께 넣는다. 그리고 **정말 그 숫자가 나왔는지 심판에게 물으면** 조건이 먹혔는지를 수로 알 수 있다. 만들어 내는 모델에 정확도를 매길 수 있는 드문 자리이며, 책이 [3장](../../ch03/mnist/04_cnn.md)에서 분류기를 만들어 두었기에 가능하다.

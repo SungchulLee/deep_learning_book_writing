@@ -114,6 +114,17 @@ print(f"5걸음 정확도 {100.0 * (pred == y_test).float().mean():.2f}%")
 print(f"학습한 매개변수 {sum(p.numel() for p in head.parameters()):,}")
 ```
 
+**출력:**
+
+```
+Files already downloaded and verified
+Files already downloaded and verified
+5걸음 정확도 84.93%
+학습한 매개변수 40,970
+```
+
+특징을 뽑는 데 5만 장에 750초, 1만 장에 150초가 든다. 머리를 학습하는 5 에포크는 그에 견주면 순식간이다.
+
 ---
 
 ## 3. 결과

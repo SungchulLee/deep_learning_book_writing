@@ -10,32 +10,137 @@
 
 ## 1. 코드
 
-`seeds.py`가 하던 것과 딱 한 군데가 다르다. 정확도만 적고 모델을 버리는 대신, **시험 집합의 확률을 남겨 둔다.**
-
 ```python
+"""4.5절: 같은 모델을 씨앗만 바꾸어 다섯 번 학습하고 확률을 평균한다.
+
+seeds.py가 하던 것과 딱 한 군데가 다르다. 정확도만 적고 모델을 버리는
+대신, 시험 집합의 확률을 남겨 둔다.
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+BATCH, LR, EPOCHS = 100, 1e-3, 5
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+tf = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))])
+tr_ds = torchvision.datasets.CIFAR10("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.CIFAR10("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr, ytr = materialize(tr_ds)                  # (50000, 3, 32, 32)
+Xte, yte = materialize(te_ds)
+
+
+class CNN(nn.Module):
+    """4.1절 4걸음 그대로."""
+
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 8 * 8, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+def train(seed, epochs=EPOCHS):
+    torch.manual_seed(seed)                     # 달라지는 것은 이것뿐이다
+    model = CNN().to(device)
+    opt = optim.Adam(model.parameters(), lr=LR)
+    crit = nn.CrossEntropyLoss()
+    g = torch.Generator().manual_seed(seed)
+    loader = DataLoader(TensorDataset(Xtr, ytr), batch_size=BATCH,
+                        shuffle=True, generator=g)
+    for _ in range(epochs):
+        model.train()
+        for x, y in loader:
+            x, y = x.to(device), y.to(device)
+            opt.zero_grad()
+            crit(model(x), y).backward()
+            opt.step()
+    return model.eval()
+
+
 @torch.no_grad()
 def test_probs(model):
-    """시험 집합의 클래스 확률 (10000, 10)."""
-    model.eval()
-    ps, ys = [], []
-    for x, y in DataLoader(test_ds, batch_size=1000):
-        # 로짓이 아니라 softmax를 평균한다.
-        # 모델마다 로짓의 크기가 제멋대로라, 로짓을 평균하면 확신이 센
-        # 모델이 과도한 발언권을 갖는다
-        ps.append(torch.softmax(model(x.to(device)), dim=1).cpu())
-        ys.append(y)
-    return torch.cat(ps), torch.cat(ys)
+    """시험 집합의 클래스 확률 (10000, 10).
+
+    로짓이 아니라 softmax를 평균한다. 모델마다 로짓의 크기가 제멋대로라,
+    로짓을 평균하면 확신이 센 모델이 과도한 발언권을 갖는다.
+    """
+    return torch.cat([torch.softmax(model(Xte[i:i + 1000].to(device)), 1).cpu()
+                      for i in range(0, len(Xte), 1000)])
+
+
+def acc(pred):
+    return 100.0 * (pred == yte).float().mean().item()
 
 
 probs = []
-for seed in [0, 1, 2, 3, 4]:
-    torch.manual_seed(seed)                 # 달라지는 것은 이것뿐이다
-    model = CNN().to(device)
-    train(model, epochs=5)                  # 4.1절 4걸음과 같은 규약
-    probs.append(test_probs(model)[0])
+for seed in range(5):
+    m = train(seed)
+    probs.append(test_probs(m))
+    print(f"  씨앗 {seed}  {acc(probs[-1].argmax(1)):.2f}%", flush=True)
 
-ensemble = torch.stack(probs).mean(0)       # (10000, 10)
-pred = ensemble.argmax(1)
+singles = [acc(p.argmax(1)) for p in probs]
+print(f"\n홑모델 평균 {sum(singles) / 5:.2f}%  가장 좋은 것 {max(singles):.2f}%")
+
+# 몇 개를 모을 때까지 이득이 이어지는가
+print()
+for k in range(1, 6):
+    ens = torch.stack(probs[:k]).mean(0)
+    print(f"앙상블 {k}개  {acc(ens.argmax(1)):.2f}%")
+
+# 다양성 — 두 모델이 서로 다르게 답한 비율의 평균
+preds = torch.stack([p.argmax(1) for p in probs])
+dis = [100.0 * (preds[i] != preds[j]).float().mean().item()
+       for i in range(5) for j in range(i + 1, 5)]
+print(f"\n서로 다르게 답한 비율 {sum(dis) / len(dis):.2f}%")
+
+# 천장 — 다섯 가운데 하나라도 맞힌 비율
+print(f"신탁 (하나라도 맞힌 비율) {100.0 * (preds == yte).any(0).float().mean():.2f}%")
+```
+
+**출력:**
+
+```
+  씨앗 0  71.49%
+  씨앗 1  71.42%
+  씨앗 2  71.29%
+  씨앗 3  71.79%
+  씨앗 4  70.68%
+
+홑모델 평균 71.33%  가장 좋은 것 71.79%
+
+앙상블 1개  71.49%
+앙상블 2개  73.32%
+앙상블 3개  74.06%
+앙상블 4개  74.41%
+앙상블 5개  74.73%
+
+서로 다르게 답한 비율 22.78%
+신탁 (하나라도 맞힌 비율) 86.79%
 ```
 
 ---

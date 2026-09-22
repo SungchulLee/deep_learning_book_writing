@@ -3,10 +3,176 @@
 [GAN](01_gan.md)은 손실을 바꾸어 선명함을 얻었다. 구조는 여전히 촘촘한 층이었다. DCGAN은 그 구조를 **전치 합성곱**으로 바꾼다.
 
 ```python
-self.fc  = nn.Linear(ZDIM, 128 * 7 * 7)                    # z -> 7x7 맵 128장
-self.net = nn.Sequential(
-    nn.ConvTranspose2d(128, 64, 4, 2, 1), nn.BatchNorm2d(64), nn.ReLU(),  # 14x14
-    nn.ConvTranspose2d(64, 1, 4, 2, 1), nn.Tanh())                        # 28x28
+"""DCGAN. 손실은 그대로 두고 구조만 합성곱으로 바꾼다.
+
+mnist_judge.pt는 5.1절에서 학습해 둔 것을 읽어 쓴다.
+GAN은 [-1, 1]로 두고 tanh로 내놓으므로, 심판에 넣기 전에 정규화를 되돌린다.
+"""
+
+import time
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, ZDIM, EPOCHS = 42, 100, 64, 30
+N_SAMPLE = 5000
+JM, JS = 0.1307, 0.3081                 # 심판이 기대하는 정규화
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+# 이 절만 [-1, 1]을 쓴다 — 만들개가 tanh로 내놓기 때문이다
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.5,), (0.5,))])
+tr = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+Xtr = torch.cat([x for x, _ in DataLoader(tr, batch_size=2000, shuffle=False)])
+Xte = torch.cat([x for x, _ in DataLoader(te, batch_size=2000, shuffle=False)])
+yte = torch.cat([y for _, y in DataLoader(te, batch_size=2000, shuffle=False)])
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+judge = JudgeCNN().to(device)
+judge.load_state_dict(torch.load("mnist_judge.pt", weights_only=True))
+judge.eval()
+
+
+@torch.no_grad()
+def predict(x_pm1):
+    """[-1,1] -> [0,1] -> 심판 정규화 -> 심판."""
+    xj = (((x_pm1 + 1) / 2) - JM) / JS
+    p = torch.cat([torch.softmax(judge(xj[i:i + 1000].to(device)), 1).cpu()
+                   for i in range(0, len(xj), 1000)])
+    conf, pred = p.max(1)
+    return conf, pred
+
+
+def within_class_var(imgs01, group, min_n=20):
+    """같은 클래스로 묶인 것들의 화소 분산을, 무리 크기로 가중해 평균낸다."""
+    vs, ws = [], []
+    for d in range(10):
+        g = imgs01[group == d]
+        if len(g) < min_n:
+            continue
+        vs.append(g.flatten(1).var(0).mean().item()); ws.append(len(g))
+    return sum(v * w for v, w in zip(vs, ws)) / sum(ws) if vs else 0.0
+
+
+# 진짜 자료의 기준선 — 여기서는 심판이 아니라 진짜 라벨로 묶는다
+REAL_VAR = within_class_var((Xte + 1) / 2, yte)
+
+
+def evaluate(samples_pm1, tag):
+    conf, pred = predict(samples_pm1)
+    share = torch.bincount(pred, minlength=10).float()
+    share = share / share.sum()
+    nz = share[share > 0]
+    bal = (-(nz * nz.log()).sum() / torch.tensor(10.0).log()).item()
+    wv = within_class_var((samples_pm1 + 1) / 2, pred)
+    print(f"  {tag:14s} 확신도 {conf.mean():.3f}  고름 {bal:.3f}  "
+          f"최대몫 {share.max():.3f}  클래스안 다양함 {wv / REAL_VAR:.3f}", flush=True)
+
+
+def train_gan(Gc, Dc, tag):
+    torch.manual_seed(SEED)
+    G, D = Gc().to(device), Dc().to(device)
+    # GAN 표준값. 이 장의 Adam 1e-3으로는 학습되지 않는다
+    oG = optim.Adam(G.parameters(), lr=2e-4, betas=(0.5, 0.999))
+    oD = optim.Adam(D.parameters(), lr=2e-4, betas=(0.5, 0.999))
+    gg = torch.Generator().manual_seed(SEED)
+    ld = DataLoader(TensorDataset(Xtr), batch_size=BATCH, shuffle=True, generator=gg)
+    bce = nn.BCEWithLogitsLoss()
+    t0 = time.time()
+    for ep in range(EPOCHS):
+        G.train(); D.train(); dl = gl = nb = 0.0
+        for (xb,) in ld:
+            xb = xb.to(device); n = xb.size(0)
+            ones = torch.ones(n, 1, device=device)
+            zeros = torch.zeros(n, 1, device=device)
+
+            # 판별기: 진짜는 1, 가짜는 0
+            fake = G(torch.randn(n, ZDIM, device=device))
+            lossD = bce(D(xb), ones) + bce(D(fake.detach()), zeros)
+            oD.zero_grad(); lossD.backward(); oD.step()
+
+            # 만들개: 판별기가 진짜라고 하게 만든다
+            lossG = bce(D(fake), ones)
+            oG.zero_grad(); lossG.backward(); oG.step()
+
+            dl += lossD.item(); gl += lossG.item(); nb += 1
+        if ep == 0 or (ep + 1) % 10 == 0:
+            print(f"    [{tag}] {ep+1:2d}/{EPOCHS}  D {dl/nb:.4f}  G {gl/nb:.4f}", flush=True)
+    print(f"  {tag} 완료 ({time.time()-t0:.0f}s)", flush=True)
+    return G.eval()
+
+
+def sample(G, n=N_SAMPLE):
+    with torch.no_grad():
+        gg = torch.Generator().manual_seed(SEED)
+        z = torch.randn(n, ZDIM, generator=gg)
+        return torch.cat([G(z[i:i + 1000].to(device)).cpu()
+                          for i in range(0, n, 1000)])
+
+
+# === 촘촘한 층을 합성곱으로 바꾼다 ==========================================
+class GConv(nn.Module):
+    """작은 특징 맵에서 시작해 전치 합성곱으로 두 번 키운다."""
+
+    def __init__(self):
+        super().__init__()
+        self.fc = nn.Sequential(nn.Linear(ZDIM, 128 * 7 * 7),
+                                nn.BatchNorm1d(128 * 7 * 7), nn.ReLU())
+        self.net = nn.Sequential(
+            nn.ConvTranspose2d(128, 64, 4, 2, 1),
+            nn.BatchNorm2d(64), nn.ReLU(),                      # 7 -> 14
+            nn.ConvTranspose2d(64, 1, 4, 2, 1), nn.Tanh())      # 14 -> 28
+
+    def forward(self, z):
+        return self.net(self.fc(z).reshape(-1, 128, 7, 7))
+
+
+class DConv(nn.Module):
+    """3장의 CNN과 하는 일이 거의 같다. 그림을 받아 수 하나를 내놓는다."""
+
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Conv2d(1, 64, 4, 2, 1), nn.LeakyReLU(0.2),                        # 28 -> 14
+            nn.Conv2d(64, 128, 4, 2, 1), nn.BatchNorm2d(128), nn.LeakyReLU(0.2), # 14 -> 7
+            nn.Flatten(), nn.Linear(128 * 7 * 7, 1))
+
+    def forward(self, x):
+        return self.net(x)
+
+
+G = train_gan(GConv, DConv, "dcgan")
+evaluate(sample(G), "dcgan")
+```
+
+**출력:**
+
+```
+    [dcgan]  1/30  D 0.3718  G 2.5620
+    [dcgan] 10/30  D 0.3873  G 2.7085
+    [dcgan] 20/30  D 0.2937  G 3.1807
+    [dcgan] 30/30  D 0.3053  G 3.3621
+  dcgan 완료 (948s)
+  dcgan          확신도 0.909  고름 0.970  최대몫 0.162  클래스안 다양함 1.085
 ```
 
 작은 특징 맵에서 시작해 두 번 키워 $28 \times 28$로 만든다. [3장의 3걸음 → 4걸음](../../ch03/mnist/04_cnn.md)과 같은 수법이며, 다만 이번에는 **읽는 쪽이 아니라 그리는 쪽**이다.

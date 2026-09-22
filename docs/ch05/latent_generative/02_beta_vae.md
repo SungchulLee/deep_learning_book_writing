@@ -14,6 +14,162 @@ $$
 
 부호 64에서 잰 결과다. 맨 윗줄은 KL 항이 아예 없는 것, 곧 [5.1절의 자기 부호기](../dimreduction/03_ae_mlp.md)다.
 
+```python
+"""beta-VAE. KL 항의 무게를 돌려 가며 되살리기와 덮기를 맞바꾼다.
+
+mnist_judge.pt는 5.1절에서 학습해 둔 것을 읽어 쓴다.
+구조와 규약은 5.1절 AE_MLP와 같다. 달라지는 것은 손실뿐이다.
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, LR, EPOCHS = 42, 100, 1e-3, 100
+N_SAMPLE = 5000
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.1307,), (0.3081,))])
+tr_ds = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x.flatten(1)); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr, ytr = materialize(tr_ds)
+Xte, yte = materialize(te_ds)
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+judge = JudgeCNN().to(device)
+judge.load_state_dict(torch.load("mnist_judge.pt", weights_only=True))
+judge.eval()
+
+
+@torch.no_grad()
+def judge_probs(flat):
+    return torch.cat([torch.softmax(
+        judge(flat[i:i + 1000].reshape(-1, 1, 28, 28).to(device)), 1).cpu()
+        for i in range(0, len(flat), 1000)])
+
+
+def sample_stats(flat):
+    """표본을 심판에 넣어 확신도와 클래스 고름을 잰다.
+
+    고름은 심판이 읽은 클래스 분포의 엔트로피를 균등분포로 나눈 값이다.
+    1이면 열 가지가 고르게 나왔고, 0에 가까우면 한 가지로 쏠렸다.
+    """
+    p = judge_probs(flat)
+    conf, pred = p.max(1)
+    share = torch.bincount(pred, minlength=10).float()
+    share = share / share.sum()
+    nz = share[share > 0]
+    bal = (-(nz * nz.log()).sum() / torch.tensor(10.0).log()).item()
+    return conf.mean().item(), bal, share.max().item()
+
+
+class VAE(nn.Module):
+    """부호를 점이 아니라 분포로 내놓는다. n_cond>0이면 조건부(cVAE)."""
+
+    def __init__(self, k, n_cond=0):
+        super().__init__()
+        self.k, self.n_cond = k, n_cond
+        self.enc = nn.Sequential(nn.Linear(784 + n_cond, 256), nn.ReLU())
+        self.mu = nn.Linear(256, k)
+        self.logvar = nn.Linear(256, k)
+        self.dec = nn.Sequential(nn.Linear(k + n_cond, 256), nn.ReLU(),
+                                 nn.Linear(256, 784))
+
+    def encode(self, x, c=None):
+        h = self.enc(x if c is None else torch.cat([x, c], 1))
+        return self.mu(h), self.logvar(h)
+
+    def decode(self, z, c=None):
+        return self.dec(z if c is None else torch.cat([z, c], 1))
+
+    def forward(self, x, c=None):
+        mu, logvar = self.encode(x, c)
+        # 재매개변수화: 무작위성을 eps로 밀어내어 mu, logvar로 기울기가 흐르게 한다
+        z = mu + torch.exp(0.5 * logvar) * torch.randn_like(mu)
+        return self.decode(z, c), mu, logvar
+
+
+def onehot(y):
+    return F.one_hot(y, 10).float()
+
+
+def train_vae(k, beta, cond):
+    torch.manual_seed(SEED)
+    m = VAE(k, 10 if cond else 0).to(device)
+    opt = optim.Adam(m.parameters(), lr=LR)
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(TensorDataset(Xtr, ytr), batch_size=BATCH,
+                        shuffle=True, generator=g)
+    for _ in range(EPOCHS):
+        m.train()
+        for xb, yb in loader:
+            xb = xb.to(device)
+            c = onehot(yb).to(device) if cond else None
+            opt.zero_grad()
+            xh, mu, lv = m(xb, c)
+            # 화소에 대해 합, 표본에 대해 평균 — 가우스 가능도의 꼴
+            rec = F.mse_loss(xh, xb, reduction="sum") / xb.size(0)
+            kl = -0.5 * torch.sum(1 + lv - mu.pow(2) - lv.exp()) / xb.size(0)
+            (rec + beta * kl).backward()
+            opt.step()
+    return m.eval()
+
+
+# === 부호 64에서 beta 만 바꾸어 가며 ========================================
+for beta in (0.5, 1.0, 4.0):
+    m = train_vae(64, beta=beta, cond=False)
+
+    with torch.no_grad():
+        rec = torch.cat([m.decode(m.encode(Xte[i:i + 1000].to(device))[0]).cpu()
+                         for i in range(0, len(Xte), 1000)])
+        g = torch.Generator().manual_seed(SEED)
+        z = torch.randn(N_SAMPLE, 64, generator=g)
+        s = torch.cat([m.decode(z[i:i + 1000].to(device)).cpu()
+                       for i in range(0, N_SAMPLE, 1000)])
+
+    pred = judge_probs(rec).argmax(1)
+    ident = 100.0 * (pred == yte).float().mean()
+    conf, bal, _ = sample_stats(s)
+    print(f"  vae64_beta{beta}  복원 {((rec - Xte) ** 2).mean():.5f}  "
+          f"정체 {ident:.2f}%  확신도 {conf:.3f}  고름 {bal:.3f}")
+```
+
+**출력:**
+
+```
+  vae64_beta0.5  복원 0.05773  정체 98.25%  확신도 0.774  고름 0.784
+  vae64_beta1.0  복원 0.07499  정체 98.06%  확신도 0.769  고름 0.877
+  vae64_beta4.0  복원 0.13512  정체 95.52%  확신도 0.794  고름 0.950
+```
+
 | 부호 64 | 복원 MSE | 정체 | 확신도 | 고름 |
 |---|---|---|---|---|
 | KL 없음 ($\beta = 0$) | **0.0546** | 98.51% | 0.777 | 0.541 |

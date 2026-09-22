@@ -56,24 +56,162 @@ $$
 ## 3. 코드
 
 ```python
-def distill_step(student, x, y, teacher_logits, T, alpha):
-    sl = student(x)
+"""4.6절: 앙상블 다섯을 교사로 삼아 학생 한 모델에 옮긴다."""
 
-    # 부드러운 항: 두 분포를 T로 펴서 KL을 잰다. T^2은 위의 경고 참조
-    soft = F.kl_div(F.log_softmax(sl / T, dim=1),
-                    F.softmax(teacher_logits / T, dim=1),
-                    reduction="batchmean") * (T * T)
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
 
-    # 딱딱한 항: 평소의 교차 엔트로피
-    hard = F.cross_entropy(sl, y)
+BATCH, LR, EPOCHS = 100, 1e-3, 5
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
-    return alpha * soft + (1 - alpha) * hard
+tf = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))])
+tr_ds = torchvision.datasets.CIFAR10("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.CIFAR10("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr, ytr = materialize(tr_ds)                  # (50000, 3, 32, 32)
+Xte, yte = materialize(te_ds)
+
+
+class CNN(nn.Module):
+    """4.1절 4걸음 그대로."""
+
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 8 * 8, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+def train(seed, epochs, teacher_logits=None, T=1.0, alpha=1.0):
+    """teacher_logits가 없으면 평소의 하드 라벨 학습이다."""
+    torch.manual_seed(seed)
+    model = CNN().to(device)
+    opt = optim.Adam(model.parameters(), lr=LR)
+    g = torch.Generator().manual_seed(seed)
+    idx = torch.arange(len(Xtr))
+    loader = DataLoader(TensorDataset(Xtr, ytr, idx), batch_size=BATCH,
+                        shuffle=True, generator=g)
+    for _ in range(epochs):
+        model.train()
+        for x, y, i in loader:
+            x, y = x.to(device), y.to(device)
+            opt.zero_grad()
+            sl = model(x)
+            if teacher_logits is None:
+                loss = F.cross_entropy(sl, y)
+            else:
+                tl = teacher_logits[i].to(device)
+                # 부드러운 항: 두 분포를 T로 펴서 KL을 잰다.
+                # T^2을 곱하는 까닭은 1/T로 펴면 기울기가 1/T^2로 줄기 때문이다.
+                # 곱하지 않으면 T를 올릴 때마다 학습률을 내린 것과 같아진다
+                soft = F.kl_div(F.log_softmax(sl / T, 1),
+                                F.softmax(tl / T, 1),
+                                reduction="batchmean") * (T * T)
+                # 딱딱한 항: 평소의 교차 엔트로피
+                hard = F.cross_entropy(sl, y)
+                loss = alpha * soft + (1 - alpha) * hard
+            loss.backward()
+            opt.step()
+    return model.eval()
+
+
+@torch.no_grad()
+def logits_of(model, X):
+    return torch.cat([model(X[i:i + 1000].to(device)).cpu()
+                      for i in range(0, len(X), 1000)])
+
+
+def accuracy(model, X, y):
+    return 100.0 * (logits_of(model, X).argmax(1) == y).float().mean().item()
+
+
+# === 교사: 4.5절의 앙상블 그대로 ============================================
+print("=== 교사 학습 ===")
+teachers = []
+for seed in range(5):
+    m = train(seed, EPOCHS)
+    teachers.append(m)
+    print(f"  씨앗 {seed}: 시험 {accuracy(m, Xte, yte):.2f}%", flush=True)
+
+probs = torch.stack([torch.softmax(logits_of(m, Xte), 1) for m in teachers])
+print(f"\n앙상블 (확률 평균) {100.0 * (probs.mean(0).argmax(1) == yte).float().mean():.2f}%")
+
+# 교사의 로짓은 학습 집합에 대해 미리 한 번 계산해 둔다.
+# 교사는 얼려 두므로 다시 계산할 까닭이 없다
+TL = torch.stack([logits_of(m, Xtr) for m in teachers]).mean(0)
+TL1 = logits_of(teachers[0], Xtr)               # 대조군: 홑모델 교사
+
+
+# === 학생: 씨앗 셋으로 재고 퍼짐도 적는다 ===================================
+def measure(tag, epochs, **kw):
+    accs = [accuracy(train(s, epochs, **kw), Xte, yte) for s in (10, 11, 12)]
+    gap = accuracy(train(10, epochs, **kw), Xtr, ytr) - accs[0]
+    print(f"  {tag:26s} 시험 {sum(accs) / 3:.2f}%  "
+          f"퍼짐 {max(accs) - min(accs):.2f}  틈 {gap:5.2f}", flush=True)
+
+
+print("\n=== 학생 5 에포크 ===")
+measure("하드 라벨만 (기준선)", 5)
+for T in (1, 3, 5):
+    measure(f"앙상블 교사, T={T}", 5, teacher_logits=TL, T=T, alpha=1.0)
+measure("앙상블 교사, T=3, 하드 절반", 5, teacher_logits=TL, T=3, alpha=0.5)
+measure("홑모델 교사, T=3 (대조군)", 5, teacher_logits=TL1, T=3, alpha=1.0)
+
+print("\n=== 학생 30 에포크 ===")
+measure("하드 라벨만", 30)
+measure("앙상블 T=3, 하드 절반", 30, teacher_logits=TL, T=3, alpha=0.5)
+measure("앙상블 T=3, 순수 증류", 30, teacher_logits=TL, T=3, alpha=1.0)
+measure("홑모델 T=3, 하드 절반", 30, teacher_logits=TL1, T=3, alpha=0.5)
 ```
 
-교사의 로짓은 **학습 집합**에 대해 미리 한 번 계산해 둔다. 교사는 얼려 두므로 다시 계산할 까닭이 없다.
+**출력:**
 
-```python
-teacher_logits = torch.stack([logits_of(m, X_train) for m in teachers]).mean(0)
+```
+=== 교사 학습 ===
+  씨앗 0: 시험 71.49%
+  씨앗 1: 시험 71.42%
+  씨앗 2: 시험 71.29%
+  씨앗 3: 시험 71.79%
+  씨앗 4: 시험 70.68%
+
+앙상블 (확률 평균) 74.73%
+
+=== 학생 5 에포크 ===
+  하드 라벨만 (기준선)            시험 71.75%  퍼짐 0.82  틈  9.28
+  앙상블 교사, T=1               시험 71.16%  퍼짐 1.03  틈  5.47
+  앙상블 교사, T=3               시험 70.75%  퍼짐 0.65  틈  3.62
+  앙상블 교사, T=5               시험 70.09%  퍼짐 0.69  틈  3.20
+  앙상블 교사, T=3, 하드 절반       시험 72.02%  퍼짐 0.42  틈  6.34
+  홑모델 교사, T=3 (대조군)        시험 69.11%  퍼짐 1.91  틈  3.47
+
+=== 학생 30 에포크 ===
+  하드 라벨만                   시험 72.05%  퍼짐 1.00  틈 27.24
+  앙상블 T=3, 하드 절반           시험 74.73%  퍼짐 0.21  틈 18.16
+  앙상블 T=3, 순수 증류           시험 72.88%  퍼짐 0.50  틈  6.28
+  홑모델 T=3, 하드 절반           시험 73.75%  퍼짐 0.32  틈 17.90
 ```
 
 ---

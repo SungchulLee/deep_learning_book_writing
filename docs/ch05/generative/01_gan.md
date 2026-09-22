@@ -12,12 +12,169 @@ GAN에는 그런 항이 없다. 대신 **판별기**를 하나 더 두고 둘을
 $D$는 잘 맞히려 하고, $G$는 $D$가 틀리게 하려 한다. **$G$의 손실에는 어떤 그림을 그려야 한다는 목표가 없다.** 판별기를 속이기만 하면 된다.
 
 ```python
-# 판별기: 진짜는 1, 가짜는 0
-fake = G(torch.randn(n, ZDIM, device=device))
-lossD = bce(D(real), ones) + bce(D(fake.detach()), zeros)
+"""GAN. 목표 그림 없이, 판별기를 속이는 것만으로 배운다.
 
-# 만들개: 판별기가 진짜라고 하게 만든다
-lossG = bce(D(fake), ones)
+mnist_judge.pt는 5.1절에서 학습해 둔 것을 읽어 쓴다.
+GAN은 [-1, 1]로 두고 tanh로 내놓으므로, 심판에 넣기 전에 정규화를 되돌린다.
+"""
+
+import time
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, ZDIM, EPOCHS = 42, 100, 64, 30
+N_SAMPLE = 5000
+JM, JS = 0.1307, 0.3081                 # 심판이 기대하는 정규화
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+# 이 절만 [-1, 1]을 쓴다 — 만들개가 tanh로 내놓기 때문이다
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.5,), (0.5,))])
+tr = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+Xtr = torch.cat([x for x, _ in DataLoader(tr, batch_size=2000, shuffle=False)])
+Xte = torch.cat([x for x, _ in DataLoader(te, batch_size=2000, shuffle=False)])
+yte = torch.cat([y for _, y in DataLoader(te, batch_size=2000, shuffle=False)])
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+judge = JudgeCNN().to(device)
+judge.load_state_dict(torch.load("mnist_judge.pt", weights_only=True))
+judge.eval()
+
+
+@torch.no_grad()
+def predict(x_pm1):
+    """[-1,1] -> [0,1] -> 심판 정규화 -> 심판."""
+    xj = (((x_pm1 + 1) / 2) - JM) / JS
+    p = torch.cat([torch.softmax(judge(xj[i:i + 1000].to(device)), 1).cpu()
+                   for i in range(0, len(xj), 1000)])
+    conf, pred = p.max(1)
+    return conf, pred
+
+
+def within_class_var(imgs01, group, min_n=20):
+    """같은 클래스로 묶인 것들의 화소 분산을, 무리 크기로 가중해 평균낸다."""
+    vs, ws = [], []
+    for d in range(10):
+        g = imgs01[group == d]
+        if len(g) < min_n:
+            continue
+        vs.append(g.flatten(1).var(0).mean().item()); ws.append(len(g))
+    return sum(v * w for v, w in zip(vs, ws)) / sum(ws) if vs else 0.0
+
+
+# 진짜 자료의 기준선 — 여기서는 심판이 아니라 진짜 라벨로 묶는다
+REAL_VAR = within_class_var((Xte + 1) / 2, yte)
+
+
+def evaluate(samples_pm1, tag):
+    conf, pred = predict(samples_pm1)
+    share = torch.bincount(pred, minlength=10).float()
+    share = share / share.sum()
+    nz = share[share > 0]
+    bal = (-(nz * nz.log()).sum() / torch.tensor(10.0).log()).item()
+    wv = within_class_var((samples_pm1 + 1) / 2, pred)
+    print(f"  {tag:14s} 확신도 {conf.mean():.3f}  고름 {bal:.3f}  "
+          f"최대몫 {share.max():.3f}  클래스안 다양함 {wv / REAL_VAR:.3f}", flush=True)
+
+
+def train_gan(Gc, Dc, tag):
+    torch.manual_seed(SEED)
+    G, D = Gc().to(device), Dc().to(device)
+    # GAN 표준값. 이 장의 Adam 1e-3으로는 학습되지 않는다
+    oG = optim.Adam(G.parameters(), lr=2e-4, betas=(0.5, 0.999))
+    oD = optim.Adam(D.parameters(), lr=2e-4, betas=(0.5, 0.999))
+    gg = torch.Generator().manual_seed(SEED)
+    ld = DataLoader(TensorDataset(Xtr), batch_size=BATCH, shuffle=True, generator=gg)
+    bce = nn.BCEWithLogitsLoss()
+    t0 = time.time()
+    for ep in range(EPOCHS):
+        G.train(); D.train(); dl = gl = nb = 0.0
+        for (xb,) in ld:
+            xb = xb.to(device); n = xb.size(0)
+            ones = torch.ones(n, 1, device=device)
+            zeros = torch.zeros(n, 1, device=device)
+
+            # 판별기: 진짜는 1, 가짜는 0
+            fake = G(torch.randn(n, ZDIM, device=device))
+            lossD = bce(D(xb), ones) + bce(D(fake.detach()), zeros)
+            oD.zero_grad(); lossD.backward(); oD.step()
+
+            # 만들개: 판별기가 진짜라고 하게 만든다
+            lossG = bce(D(fake), ones)
+            oG.zero_grad(); lossG.backward(); oG.step()
+
+            dl += lossD.item(); gl += lossG.item(); nb += 1
+        if ep == 0 or (ep + 1) % 10 == 0:
+            print(f"    [{tag}] {ep+1:2d}/{EPOCHS}  D {dl/nb:.4f}  G {gl/nb:.4f}", flush=True)
+    print(f"  {tag} 완료 ({time.time()-t0:.0f}s)", flush=True)
+    return G.eval()
+
+
+def sample(G, n=N_SAMPLE):
+    with torch.no_grad():
+        gg = torch.Generator().manual_seed(SEED)
+        z = torch.randn(n, ZDIM, generator=gg)
+        return torch.cat([G(z[i:i + 1000].to(device)).cpu()
+                          for i in range(0, n, 1000)])
+
+
+# === 만들개도 판별기도 촘촘한 층이다 — VAE와 같은 구조 ======================
+class GMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(ZDIM, 256), nn.LeakyReLU(0.2),
+            nn.Linear(256, 512), nn.LeakyReLU(0.2),
+            nn.Linear(512, 784), nn.Tanh())
+
+    def forward(self, z):
+        return self.net(z).reshape(-1, 1, 28, 28)
+
+
+class DMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Flatten(), nn.Linear(784, 512), nn.LeakyReLU(0.2),
+            nn.Linear(512, 256), nn.LeakyReLU(0.2), nn.Linear(256, 1))
+
+    def forward(self, x):
+        return self.net(x)
+
+
+G = train_gan(GMLP, DMLP, "gan_mlp")
+evaluate(sample(G), "gan_mlp")
+```
+
+**출력:**
+
+```
+    [gan_mlp]  1/30  D 0.8111  G 1.6870
+    [gan_mlp] 10/30  D 0.5891  G 2.6065
+    [gan_mlp] 20/30  D 1.0257  G 1.3596
+    [gan_mlp] 30/30  D 1.0369  G 1.3102
+  gan_mlp 완료 (202s)
+  gan_mlp        확신도 0.908  고름 0.945  최대몫 0.214  클래스안 다양함 0.953
 ```
 
 `fake.detach()`가 중요하다. 판별기를 학습할 때는 만들개로 기울기가 흘러가면 안 된다. 떼어 놓지 않으면 판별기의 손실을 줄이려고 만들개가 **더 나쁜 그림을 그리도록** 학습된다.

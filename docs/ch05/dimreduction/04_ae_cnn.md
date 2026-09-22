@@ -3,14 +3,123 @@
 4걸음은 부호기를 합성곱으로 바꾼다. [3장 3걸음 → 4걸음](../../ch03/mnist/04_cnn.md)과 같은 생각이며, 다만 가르기가 아니라 되살리기에 건다.
 
 ```python
-enc = nn.Sequential(
-    nn.Conv2d(1, 16, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),   # 14
-    nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),  # 7
-    nn.Flatten(), nn.Linear(32 * 7 * 7, k))
-dec = nn.Sequential(
-    nn.Linear(k, 32 * 7 * 7), nn.ReLU(), nn.Unflatten(1, (32, 7, 7)),
-    nn.ConvTranspose2d(32, 16, 2, stride=2), nn.ReLU(),
-    nn.ConvTranspose2d(16, 1, 2, stride=2))
+"""4걸음: 합성곱 자기 부호기.
+
+mnist_judge.pt는 5.1절 첫 쪽에서 학습해 둔 것을 읽어 쓴다.
+규약은 이 장 전체와 같다. Adam 1e-3, 묶음 100, 씨앗 42, 부호기 100 에포크.
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, LR, AE_EPOCHS = 42, 100, 1e-3, 100
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.1307,), (0.3081,))])
+tr_ds = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr_img, _ = materialize(tr_ds)
+Xte_img, yte = materialize(te_ds)
+Xtr, Xte = Xtr_img.flatten(1), Xte_img.flatten(1)
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+judge = JudgeCNN().to(device)
+judge.load_state_dict(torch.load("mnist_judge.pt", weights_only=True))
+judge.eval()
+
+
+@torch.no_grad()
+def identity(flat):
+    pred = torch.cat([judge(flat[i:i + 1000].reshape(-1, 1, 28, 28).to(device))
+                      .argmax(1).cpu() for i in range(0, len(flat), 1000)])
+    return 100.0 * (pred == yte).float().mean().item()
+
+
+def train_ae(model, X):
+    """되살리기만 배운다. 라벨은 한 번도 쓰지 않는다."""
+    torch.manual_seed(SEED)
+    model = model.to(device)
+    opt = optim.Adam(model.parameters(), lr=LR)
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(TensorDataset(X), batch_size=BATCH, shuffle=True, generator=g)
+    for _ in range(AE_EPOCHS):
+        model.train()
+        for (xb,) in loader:
+            xb = xb.to(device)
+            opt.zero_grad()
+            F.mse_loss(model(xb), xb).backward()
+            opt.step()
+    return model.eval()
+
+
+@torch.no_grad()
+def reconstruct(model, X):
+    return torch.cat([model(X[i:i + 1000].to(device)).cpu()
+                      for i in range(0, len(X), 1000)])
+
+
+# === 4걸음: 부호기를 합성곱으로 =============================================
+class ConvAE(nn.Module):
+    """합성곱으로 줄이고 마지막에만 k차원으로 좁힌다."""
+
+    def __init__(self, k):
+        super().__init__()
+        self.enc = nn.Sequential(
+            nn.Conv2d(1, 16, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),   # 14
+            nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),  # 7
+            nn.Flatten(), nn.Linear(32 * 7 * 7, k))
+        self.dec = nn.Sequential(
+            nn.Linear(k, 32 * 7 * 7), nn.ReLU(), nn.Unflatten(1, (32, 7, 7)),
+            nn.ConvTranspose2d(32, 16, 2, stride=2), nn.ReLU(),
+            nn.ConvTranspose2d(16, 1, 2, stride=2))
+
+    def forward(self, x):
+        return self.dec(self.enc(x))
+
+
+for k in (64, 2):
+    # 합성곱은 펼치지 않은 (N, 1, 28, 28)을 받는다
+    m = train_ae(ConvAE(k), Xtr_img)
+    rec = reconstruct(m, Xte_img)
+    enc_p = sum(p.numel() for p in m.enc.parameters())
+    print(f"  ae_conv{k:<2d}  복원 MSE {((rec - Xte_img) ** 2).mean():.5f}  "
+          f"부호기 {enc_p:,}  같은 숫자로 {identity(rec.flatten(1)):.2f}%")
+```
+
+**출력:**
+
+```
+  ae_conv64  복원 MSE 0.02427  부호기 105,216  같은 숫자로 98.52%
+  ae_conv2   복원 MSE 0.47423  부호기 7,938  같은 숫자로 61.78%
 ```
 
 | 부호 64 | 복원 MSE | 부호기 매개변수 | 같은 숫자로 |

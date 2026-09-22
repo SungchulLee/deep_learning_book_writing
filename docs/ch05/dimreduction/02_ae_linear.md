@@ -3,9 +3,114 @@
 2걸음은 [1걸음](01_pca.md)과 **같은 일을 경사 하강법으로** 한다. 활성화 함수 없이 층 두 개면 된다.
 
 ```python
-enc = nn.Linear(784, k)      # 활성화가 없다 = 선형
-dec = nn.Linear(k, 784)
-# 손실은 F.mse_loss(dec(enc(x)), x)
+"""2걸음: 선형 자기 부호기. PCA와 같은 곳에 닿는지 확인한다.
+
+mnist_judge.pt는 5.1절 첫 쪽에서 학습해 둔 것을 읽어 쓴다.
+규약은 이 장 전체와 같다. Adam 1e-3, 묶음 100, 씨앗 42, 부호기 100 에포크.
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, LR, AE_EPOCHS = 42, 100, 1e-3, 100
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.1307,), (0.3081,))])
+tr_ds = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr_img, _ = materialize(tr_ds)
+Xte_img, yte = materialize(te_ds)
+Xtr, Xte = Xtr_img.flatten(1), Xte_img.flatten(1)
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+judge = JudgeCNN().to(device)
+judge.load_state_dict(torch.load("mnist_judge.pt", weights_only=True))
+judge.eval()
+
+
+@torch.no_grad()
+def identity(flat):
+    pred = torch.cat([judge(flat[i:i + 1000].reshape(-1, 1, 28, 28).to(device))
+                      .argmax(1).cpu() for i in range(0, len(flat), 1000)])
+    return 100.0 * (pred == yte).float().mean().item()
+
+
+def train_ae(model, X):
+    """되살리기만 배운다. 라벨은 한 번도 쓰지 않는다."""
+    torch.manual_seed(SEED)
+    model = model.to(device)
+    opt = optim.Adam(model.parameters(), lr=LR)
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(TensorDataset(X), batch_size=BATCH, shuffle=True, generator=g)
+    for _ in range(AE_EPOCHS):
+        model.train()
+        for (xb,) in loader:
+            xb = xb.to(device)
+            opt.zero_grad()
+            F.mse_loss(model(xb), xb).backward()
+            opt.step()
+    return model.eval()
+
+
+@torch.no_grad()
+def reconstruct(model, X):
+    return torch.cat([model(X[i:i + 1000].to(device)).cpu()
+                      for i in range(0, len(X), 1000)])
+
+
+# === 2걸음: 활성화가 없는 자기 부호기 =======================================
+class LinearAE(nn.Module):
+    def __init__(self, k):
+        super().__init__()
+        self.enc = nn.Linear(784, k)            # 활성화가 없다 = 선형
+        self.dec = nn.Linear(k, 784)
+
+    def forward(self, x):
+        return self.dec(self.enc(x))
+
+
+for k in (64, 2):
+    m = train_ae(LinearAE(k), Xtr)
+    rec = reconstruct(m, Xte)
+    enc_p = sum(p.numel() for p in m.enc.parameters())
+    print(f"  ae_linear{k:<2d}  복원 MSE {((rec - Xte) ** 2).mean():.5f}  "
+          f"부호기 {enc_p:,}  같은 숫자로 {identity(rec):.2f}%")
+```
+
+**출력:**
+
+```
+  ae_linear64  복원 MSE 0.09587  부호기 50,240  같은 숫자로 97.80%
+  ae_linear2   복원 MSE 0.58666  부호기 1,570  같은 숫자로 35.54%
 ```
 
 100 에포크를 돌린 결과가 이렇다.

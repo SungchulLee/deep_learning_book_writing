@@ -3,8 +3,119 @@
 3걸음은 부호기와 복호기에 은닉층과 ReLU를 넣는다. [2걸음](02_ae_linear.md)이 막혀 있던 선형이라는 벽을 넘는다.
 
 ```python
-enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU(), nn.Linear(256, k))
-dec = nn.Sequential(nn.Linear(k, 256), nn.ReLU(), nn.Linear(256, 784))
+"""3걸음: 비선형 자기 부호기.
+
+mnist_judge.pt는 5.1절 첫 쪽에서 학습해 둔 것을 읽어 쓴다.
+규약은 이 장 전체와 같다. Adam 1e-3, 묶음 100, 씨앗 42, 부호기 100 에포크.
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import torchvision
+import torchvision.transforms as transforms
+
+SEED, BATCH, LR, AE_EPOCHS = 42, 100, 1e-3, 100
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.1307,), (0.3081,))])
+tr_ds = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)
+te_ds = torchvision.datasets.MNIST("./data", train=False, download=True, transform=tf)
+
+
+def materialize(ds):
+    xs, ys = [], []
+    for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
+        xs.append(x); ys.append(y)
+    return torch.cat(xs), torch.cat(ys)
+
+
+Xtr_img, _ = materialize(tr_ds)
+Xte_img, yte = materialize(te_ds)
+Xtr, Xte = Xtr_img.flatten(1), Xte_img.flatten(1)
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+judge = JudgeCNN().to(device)
+judge.load_state_dict(torch.load("mnist_judge.pt", weights_only=True))
+judge.eval()
+
+
+@torch.no_grad()
+def identity(flat):
+    pred = torch.cat([judge(flat[i:i + 1000].reshape(-1, 1, 28, 28).to(device))
+                      .argmax(1).cpu() for i in range(0, len(flat), 1000)])
+    return 100.0 * (pred == yte).float().mean().item()
+
+
+def train_ae(model, X):
+    """되살리기만 배운다. 라벨은 한 번도 쓰지 않는다."""
+    torch.manual_seed(SEED)
+    model = model.to(device)
+    opt = optim.Adam(model.parameters(), lr=LR)
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(TensorDataset(X), batch_size=BATCH, shuffle=True, generator=g)
+    for _ in range(AE_EPOCHS):
+        model.train()
+        for (xb,) in loader:
+            xb = xb.to(device)
+            opt.zero_grad()
+            F.mse_loss(model(xb), xb).backward()
+            opt.step()
+    return model.eval()
+
+
+@torch.no_grad()
+def reconstruct(model, X):
+    return torch.cat([model(X[i:i + 1000].to(device)).cpu()
+                      for i in range(0, len(X), 1000)])
+
+
+# === 3걸음: 은닉층과 ReLU를 넣는다 ==========================================
+class MLPAE(nn.Module):
+    def __init__(self, k):
+        super().__init__()
+        self.enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU(), nn.Linear(256, k))
+        self.dec = nn.Sequential(nn.Linear(k, 256), nn.ReLU(), nn.Linear(256, 784))
+
+    def forward(self, x):
+        return self.dec(self.enc(x))
+
+
+for k in (64, 2):
+    m = train_ae(MLPAE(k), Xtr)
+    rec = reconstruct(m, Xte)
+    enc_p = sum(p.numel() for p in m.enc.parameters())
+    print(f"  ae_mlp{k:<2d}  복원 MSE {((rec - Xte) ** 2).mean():.5f}  "
+          f"부호기 {enc_p:,}  같은 숫자로 {identity(rec):.2f}%")
+    if k == 2:                                  # 잠재 공간 그림에 쓸 좌표
+        with torch.no_grad():
+            z = torch.cat([m.enc(Xte[i:i + 1000].to(device)).cpu()
+                           for i in range(0, len(Xte), 1000)])
+        torch.save((z, yte), "mnist_ae_mlp2_latent.pt")
+```
+
+**출력:**
+
+```
+  ae_mlp64  복원 MSE 0.05462  부호기 217,408  같은 숫자로 98.51%
+  ae_mlp2   복원 MSE 0.42230  부호기 201,474  같은 숫자로 70.13%
 ```
 
 | 부호 64 | 복원 MSE | 같은 숫자로 |
