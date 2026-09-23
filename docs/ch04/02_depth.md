@@ -83,9 +83,15 @@ def dataset_to_tensors(dataset):
     """데이터셋 전체를 한 번 훑어 (이미지 텐서, 정답 텐서)로 묶는다.
 
     여기서 DataLoader는 학습용이 아니다. 변환을 2000장씩 나눠 돌리는 도구로만 쓴다.
-    이미지와 정답을 한 번에 모으므로 변환은 데이터셋당 딱 한 번 일어난다.
+    섞지 않으므로 순서가 그대로이고, 변환은 데이터셋당 딱 한 번 일어난다.
     """
-    image_batches, label_batches = zip(*DataLoader(dataset, batch_size=2000))
+    image_batches = []
+    label_batches = []
+    for images, labels in DataLoader(dataset, batch_size=2000):
+        image_batches.append(images)                # (2000, 3, 32, 32) 한 뭉치
+        label_batches.append(labels)                # (2000,)
+
+    # 뭉치 25개를 첫 축으로 이어 붙인다: 2000 x 25 = 50000
     return torch.cat(image_batches), torch.cat(label_batches)
 
 
