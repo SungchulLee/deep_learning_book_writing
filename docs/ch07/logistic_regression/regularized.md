@@ -184,7 +184,7 @@ print("=" * 70)
 
 class BinaryClassificationDataset(Dataset):
     """
-    둘 분류을 위한 맞춤 Dataset.
+    둘 분류를 위한 맞춤 Dataset.
 
     표준화를 비롯한 데이터 미리 다듬기를 다룬다.
 

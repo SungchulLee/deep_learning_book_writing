@@ -354,7 +354,7 @@ def plot_gmm_results(X, labels, gmm, true_means):
     bars = ax5.bar(components, gmm.weights.numpy(), color=colors[:gmm.n_components], 
                    alpha=0.7, edgecolor='black', linewidth=2)
     
-    # 값 레이블를 추가한다
+    # 값 레이블을 추가한다
     for bar in bars:
         height = bar.get_height()
         ax5.text(bar.get_x() + bar.get_width()/2., height,

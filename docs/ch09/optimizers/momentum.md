@@ -112,4 +112,4 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 ## 정리하며
 
-이 마당은 갱신 규칙, 직관, PyTorch 구현, 모멘텀 계수의 효과을 차례로 짚었다.
+이 마당은 갱신 규칙, 직관, PyTorch 구현, 모멘텀 계수의 효과를 차례로 짚었다.

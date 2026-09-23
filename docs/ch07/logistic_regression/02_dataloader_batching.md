@@ -377,7 +377,7 @@ ax4.set_title('Final Accuracy vs Batch Size', fontweight='bold')
 ax4.set_ylim([min(accuracies)-0.01, max(accuracies)+0.01])
 ax4.grid(True, alpha=0.3, axis='y')
 
-# 막대에 값 레이블를 추가한다
+# 막대에 값 레이블을 추가한다
 for bar, acc in zip(bars, accuracies):
     height = bar.get_height()
     ax4.text(bar.get_x() + bar.get_width()/2., height,

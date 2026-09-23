@@ -317,7 +317,7 @@ Estimates:
     
     bars = ax.barh(methods, values, color=colors, alpha=0.7, edgecolor='black', linewidth=2)
     
-    # 값 레이블를 추가한다
+    # 값 레이블을 추가한다
     for i, (bar, val) in enumerate(zip(bars, values)):
         ax.text(val, i, f'  {val:.1f}', va='center', fontsize=11, fontweight='bold')
     

@@ -410,7 +410,7 @@ weighted_ce = nn.CrossEntropyLoss(weight=class_weights)
 # 레이블 평활화를 쓰는 경우
 smooth_ce = nn.CrossEntropyLoss(label_smoothing=0.1)
 
-# 특정 레이블를 무시하는 경우 (예: 채움값)
+# 특정 레이블을 무시하는 경우 (예: 채움값)
 ignore_ce = nn.CrossEntropyLoss(ignore_index=-100)
 
 # 초점 손실 (직접 구현)
@@ -607,7 +607,7 @@ class SoftmaxRegressionNumPy:
         return loss
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """클래스 레이블를 예측한다."""
+        """클래스 레이블을 예측한다."""
         probs = self.forward(X)
         return np.argmax(probs, axis=1)
 
