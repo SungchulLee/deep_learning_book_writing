@@ -118,6 +118,10 @@ nav:
         - 전체 그림: ch05/generative/index.md
         - GAN: ch05/generative/01_gan.md
         - DCGAN: ch05/generative/02_dcgan.md
+      - 5.4 확산 모델:
+        - 전체 그림: ch05/diffusion/index.md
+        - DDPM: ch05/diffusion/01_ddpm.md
+        - DDIM: ch05/diffusion/02_ddim.md
     - 6 PyTorch 기초:
       - 장 개요: ch06/index.md
       - 6.1 텐서:

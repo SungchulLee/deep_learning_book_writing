@@ -308,7 +308,7 @@ if __name__ == "__main__":
 # === 그림 6: 네 모델이 만들어 낸 표본 =======================================
 @torch.no_grad()
 def fig_samples():
-    """AE, VAE, GAN, DCGAN이 뽑아 낸 그림을 나란히 둔다.
+    """AE, VAE, GAN, DCGAN, DDPM이 뽑아 낸 그림을 나란히 둔다.
 
     표로는 전할 수 없는 것이 있다. 흐릿함과 선명함은 보아야 안다.
     """
@@ -359,7 +359,12 @@ def fig_samples():
         z = torch.randn(n, 64, generator=g)
         rows.append((label, ((G(z).flatten(1) + 1) / 2).clamp(0, 1)))
 
-    fig, axes = plt.subplots(len(rows), n, figsize=(11, 4.8))
+    # DDPM 은 뽑는 데 그물을 1,000번 지나므로 여기서 다시 뽑지 않는다.
+    # 5.4절이 재어 둔 5,000장 가운데 앞의 것을 그대로 읽어 쓴다
+    ddpm = torch.load(f"{MODELS}/ddpm_samples.pt", map_location="cpu", weights_only=True)
+    rows.append(("DDPM", ((ddpm.flatten(1) + 1) / 2).clamp(0, 1)))
+
+    fig, axes = plt.subplots(len(rows), n, figsize=(11, 6.0))
     for r, (label, imgs) in enumerate(rows):
         for c in range(n):
             axes[r, c].imshow(imgs[c].reshape(28, 28), cmap="gray", vmin=0, vmax=1)

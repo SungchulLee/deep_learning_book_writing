@@ -29,8 +29,9 @@
 | 사다리 | 절 | 모델 | 새로 할 수 있게 되는 일 |
 |---|---|---|---|
 | 되살리기 | [5.1](dimreduction/index.md) | PCA → 선형 AE → AE_MLP → AE_CNN | 줄였다 되살린다 |
-| 만들기 | [5.2 잠재공간](latent_generative/index.md) | VAE → cVAE → β-VAE | **표본을 만든다**, 원하는 숫자를 만든다 |
+| 만들기 | [5.2 잠재공간](latent_generative/index.md) | VAE → β-VAE → cVAE | **표본을 만든다**, 원하는 숫자를 만든다 |
 | 만들기 | [5.3 적대적](generative/index.md) | GAN → DCGAN | **선명한 표본을 만든다** |
+| 만들기 | [5.4 확산](diffusion/index.md) | DDPM → DDIM | **가장 좋은 표본을 만든다**, 값은 시간으로 낸다 |
 
 앞 사다리의 네 걸음은 [3장](../ch03/index.md)·[4장](../ch04/index.md)의 네 걸음과 생각이 하나씩 짝을 이룬다. 닫힌 꼴, 선형 학습, 비선형성, 이웃 관계. 목표만 가르기에서 되살리기로 바뀐다.
 
