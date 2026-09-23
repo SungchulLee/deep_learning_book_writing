@@ -31,6 +31,7 @@ import torchvision.transforms as transforms
 matplotlib.rcParams["svg.fonttype"] = "path"
 
 DATA = os.environ.get("DATA_ROOT", "./data")
+CURVES = os.environ.get("CURVE_ROOT", ".")
 CIFAR_CLASSES = ["plane", "car", "bird", "cat", "deer",
                  "dog", "frog", "horse", "ship", "truck"]
 
@@ -158,7 +159,60 @@ def fig_pca_reconstructions():
     print("wrote pca_reconstructions.svg")
 
 
+def fig_depth_curves():
+    """깊이별 학습 곡선. 씨 다섯 개의 최소~최대를 띠로 두른다.
+
+    띠를 표준편차가 아니라 최소~최대로 그리는 까닭은 4.1절부터 이 책이
+    써 온 '퍼짐'이 바로 그 정의이기 때문이다. 그림과 표가 같은 자를 쓴다.
+    """
+    import json
+
+    runs = []
+    for w in ("w1", "w2", "w3"):
+        with open(f"{CURVES}/curve_{w}.json") as f:
+            runs += json.load(f)
+
+    # n_per -> {epoch: [씨마다의 값]}
+    by_depth = {}
+    for r in runs:
+        d = by_depth.setdefault(r["n_per"], {"test": {}, "gap": {}})
+        for pt in r["curve"]:
+            d["test"].setdefault(pt["epoch"], []).append(pt["test"])
+            d["gap"].setdefault(pt["epoch"], []).append(pt["train"] - pt["test"])
+
+    LABEL = {1: "2 conv layers", 2: "4 conv layers", 3: "6 conv layers"}
+    COLOR = {1: "#888888", 2: "#1f77b4", 3: "#d62728"}
+
+    fig, axes = plt.subplots(1, 2, figsize=(10, 3.9))
+    for key, ax, ylab in [("test", axes[0], "test accuracy (%)"),
+                          ("gap", axes[1], "train - test (%p)")]:
+        for n_per in sorted(by_depth):
+            pts = by_depth[n_per][key]
+            eps = sorted(pts)
+            lo = [min(pts[e]) for e in eps]
+            hi = [max(pts[e]) for e in eps]
+            mid = [sum(pts[e]) / len(pts[e]) for e in eps]
+            ax.fill_between(eps, lo, hi, color=COLOR[n_per], alpha=0.18, linewidth=0)
+            ax.plot(eps, mid, color=COLOR[n_per], linewidth=1.6, label=LABEL[n_per])
+        ax.set_xlabel("epoch", fontsize=9)
+        ax.set_ylabel(ylab, fontsize=9)
+        ax.tick_params(labelsize=8)
+        ax.grid(alpha=0.25, linewidth=0.5)
+        ax.set_xlim(0, 100)
+    axes[0].legend(fontsize=8, loc="lower right", frameon=False)
+    # 표가 값을 적는 세 지점을 그림에도 표시한다
+    for ax in axes:
+        for e in (5, 30, 100):
+            ax.axvline(e, color="#000000", alpha=0.15, linewidth=0.7, linestyle=":")
+
+    fig.tight_layout()
+    fig.savefig("depth_curves.svg", transparent=True)
+    plt.close(fig)
+    print("wrote depth_curves.svg")
+
+
 if __name__ == "__main__":
     fig_class_mean_templates()
     fig_vgg16_conv1()
     fig_pca_reconstructions()
+    fig_depth_curves()
