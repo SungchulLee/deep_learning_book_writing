@@ -91,16 +91,18 @@ nav:
       - 장 개요: ch04/index.md
       - 4.1 같은 사다리, 다른 데이터:
         - MNIST와 CIFAR-10을 나란히: ch04/01_two_ladders.md
-      - 4.2 VGG16 전이:
-        - 다섯째 걸음: ch04/02_vgg16_transfer.md
-      - 4.3 데이터 증강:
-        - 여섯째 걸음: ch04/03_augmentation.md
-      - 4.4 차원축소:
-        - 라벨 없이 표현을 배울 수 있는가: ch04/04_dimensionality_reduction.md
-      - 4.5 앙상블:
-        - 새 생각 없이 남은 정확도: ch04/05_ensemble.md
-      - 4.6 증류:
-        - 앙상블을 한 모델에 옮기기: ch04/06_distillation.md
+      - 4.2 깊이:
+        - 3x3을 쌓는다: ch04/02_depth.md
+      - 4.3 VGG16 전이:
+        - 다섯째 걸음: ch04/03_vgg16_transfer.md
+      - 4.4 데이터 증강:
+        - 여섯째 걸음: ch04/04_augmentation.md
+      - 4.5 차원축소:
+        - 라벨 없이 표현을 배울 수 있는가: ch04/05_dimensionality_reduction.md
+      - 4.6 앙상블:
+        - 새 생각 없이 남은 정확도: ch04/06_ensemble.md
+      - 4.7 증류:
+        - 앙상블을 한 모델에 옮기기: ch04/07_distillation.md
     - 5 MNIST로 보는 생성:
       - 장 개요: ch05/index.md
       - 5.1 차원축소:
