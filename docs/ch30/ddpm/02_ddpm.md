@@ -194,7 +194,7 @@ class ResidualBlock(nn.Module):
 
 class SelfAttention2d(nn.Module):
     """
-    2차원 특징 지도의 여러 머리 스스로 어텐션.
+    2차원 특징 지도의 여러 머리 셀프 어텐션.
     멀리 떨어진 공간의 매임을 담는다.
     """
     def __init__(self, channels, num_heads=4):
@@ -267,7 +267,7 @@ class UNet(nn.Module):
     
     특징:
     - 남은 덩이마다 때 박아 넣기로 조건 주기
-    - 정한 해상도에서의 스스로 어텐션
+    - 정한 해상도에서의 셀프 어텐션
     - 해상도 층마다 남은 덩이 여럿
     """
     def __init__(

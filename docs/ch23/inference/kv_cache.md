@@ -72,7 +72,7 @@ class KVCache:
         return self.key.size(2)
 
 class AttentionWithKVCache(nn.Module):
-    """열쇠-값 곳간을 곁들인 인과 스스로 어텐션."""
+    """열쇠-값 곳간을 곁들인 인과 셀프 어텐션."""
     
     def __init__(self, d_model: int, num_heads: int, dropout: float = 0.0):
         super().__init__()

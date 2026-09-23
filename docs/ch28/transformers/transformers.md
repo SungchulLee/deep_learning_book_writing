@@ -1,6 +1,6 @@
 # 자기 되돌이 변환기
 
-Vaswani 외(2017)가 내놓은 변환기 얼개는 자기 되돌이 차례 나타내기의 으뜸 틀이 되었다. 차례를 한 걸음씩 다루는 되돌이 신경망과 달리 변환기는 **스스로 어텐션**로 익히는 동안 나타냄을 나란히 셈하면서 **인과 가림막**으로 자기 되돌이 성질을 지킨다. 이 아우름, 곧 나란한 익히기와 차례대로 만들어 내기가 GPT, LLaMA와 그 뒤를 잇는 요즘 큰 말 모델의 바탕이다.
+Vaswani 외(2017)가 내놓은 변환기 얼개는 자기 되돌이 차례 나타내기의 으뜸 틀이 되었다. 차례를 한 걸음씩 다루는 되돌이 신경망과 달리 변환기는 **셀프 어텐션**로 익히는 동안 나타냄을 나란히 셈하면서 **인과 가림막**으로 자기 되돌이 성질을 지킨다. 이 아우름, 곧 나란한 익히기와 차례대로 만들어 내기가 GPT, LLaMA와 그 뒤를 잇는 요즘 큰 말 모델의 바탕이다.
 
 ---
 
@@ -26,11 +26,11 @@ Vaswani 외(2017)가 내놓은 변환기 얼개는 자기 되돌이 차례 나�
 
 ---
 
-## 2. 인과(가린) 스스로 어텐션
+## 2. 인과(가린) 셀프 어텐션
 
 ### 표준 자기 주의
 
-들임 차례 $\mathbf{X} \in \mathbb{R}^{T \times d}$이 주어질 때 스스로 어텐션은 다음을 셈한다.
+들임 차례 $\mathbf{X} \in \mathbb{R}^{T \times d}$이 주어질 때 셀프 어텐션은 다음을 셈한다.
 
 $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)\mathbf{V}$$
 
@@ -56,7 +56,7 @@ import math
 
 class CausalSelfAttention(nn.Module):
     """
-    자기 되돌이 모델을 위한 인과(가린) 스스로 어텐션.
+    자기 되돌이 모델을 위한 인과(가린) 셀프 어텐션.
     
     자리마다 제 자신과 앞선 자리에만 주의할 수 있다.
     """
@@ -159,7 +159,7 @@ class CausalSelfAttention(nn.Module):
 
 여느 변환기 디코더 덩이는 다음으로 이루어진다.
 
-1. 남은 이음과 층 고르게 맞추기를 갖춘 인과 스스로 어텐션
+1. 남은 이음과 층 고르게 맞추기를 갖춘 인과 셀프 어텐션
 2. 남은 이음과 층 고르게 맞추기를 갖춘 앞먹임 신경망
 
 ```python
@@ -188,7 +188,7 @@ class TransformerBlock(nn.Module):
         self.ln1 = nn.LayerNorm(d_model)
         self.ln2 = nn.LayerNorm(d_model)
         
-        # 인과 스스로 어텐션
+        # 인과 셀프 어텐션
         self.attention = CausalSelfAttention(
             d_model, n_heads, max_seq_len, dropout
         )
@@ -627,7 +627,7 @@ def generate(
 
 ```python
 class CausalSelfAttentionWithCache(nn.Module):
-    """효율 좋은 만들어 내기를 위한 열쇠-값 저장턱을 갖춘 스스로 어텐션."""
+    """효율 좋은 만들어 내기를 위한 열쇠-값 저장턱을 갖춘 셀프 어텐션."""
     
     def __init__(self, d_model: int, n_heads: int, max_seq_len: int = 2048):
         super().__init__()
@@ -977,7 +977,7 @@ class TimeSeriesTransformer(nn.Module):
 자기 되돌이 변환기는 차례 나타내기의 으뜸 얼개가 되었다.
 
 1. **인과 가림막**은 나란한 익히기와 함께 자기 되돌이로 나타내기를 가능하게 한다
-2. **스스로 어텐션**은 어느 자리 사이든 곧바로 이음을 준다
+2. **셀프 어텐션**은 어느 자리 사이든 곧바로 이음을 준다
 3. **자리 부호화**(배운 것, 사인 꼴, 돌림)는 차례의 순서를 담는다
 4. **열쇠-값 저장턱**은 효율 좋은 만들어 내기를 가능하게 한다
 5. **요즘의 개선**(무리 물음 어텐션, SwiGLU, 제곱평균제곱근 고르게 맞추기)은 효율과 솜씨를 높인다

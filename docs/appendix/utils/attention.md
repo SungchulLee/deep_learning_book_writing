@@ -86,7 +86,7 @@ class MultiHeadAttention(nn.Module):
     def forward(self, x, context=None, mask=None):
         """
         x: (B, Tq, D) 물음은 x에서 온다
-        context: (B, Tk, D) 열쇠와 값은 context에서 온다(None이면 스스로 어텐션)
+        context: (B, Tk, D) 열쇠와 값은 context에서 온다(None이면 셀프 어텐션)
         mask: (B, H, Tq, Tk)으로 펴 맞출 수 있는, 골라 쓰는 가림
         """
         if context is None:
@@ -194,12 +194,12 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-스스로 어텐션의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
+셀프 어텐션의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    여느 스스로 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때는 $O(n^2 d)$, 어텐션 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 두루 어텐션을 아울러 쓴다. Linformer는 열쇠와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 들임에서 잘 들게 한다.
+    여느 셀프 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때는 $O(n^2 d)$, 어텐션 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 두루 어텐션을 아울러 쓴다. Linformer는 열쇠와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 들임에서 잘 들게 한다.
 
 ---
 

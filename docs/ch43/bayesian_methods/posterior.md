@@ -651,7 +651,7 @@ class BayesianInference(ABC):
         mean : ndarray
             미루어 본 평균
         std : ndarray
-            미루어 본 잣대 어긋남
+            미루어 본 표준편차
         """
         pass
 
@@ -762,9 +762,9 @@ class SGLD(BayesianInference):
         network : SimpleNN
             신경 그물 얼개
         prior_std : float
-            짐의 앞선 분포 잣대 어긋남
+            짐의 앞선 분포 표준편차
         noise_std : float
-            살핌 잡음의 잣대 어긋남
+            살핌 잡음의 표준편차
         lr_init : float
             처음 배움 비율
         lr_decay : float
@@ -931,9 +931,9 @@ class LaplaceApproximation(BayesianInference):
         network : SimpleNN
             신경 그물 얼개
         prior_std : float
-            앞선 분포의 잣대 어긋남
+            앞선 분포의 표준편차
         noise_std : float
-            살핌 잡음의 잣대 어긋남
+            살핌 잡음의 표준편차
         n_iterations : int
             MAP을 찾는 가장 좋게 하기 되돌이 횟수
         lr : float
@@ -1097,9 +1097,9 @@ class MeanFieldVI(BayesianInference):
         network : SimpleNN
             신경 그물 얼개
         prior_std : float
-            앞선 분포의 잣대 어긋남
+            앞선 분포의 표준편차
         noise_std : float
-            살핌 잡음의 잣대 어긋남
+            살핌 잡음의 표준편차
         n_iterations : int
             가장 좋게 하기 되돌이 횟수
         lr : float
@@ -1287,7 +1287,7 @@ class DeepEnsemble(BayesianInference):
         n_members : int
             모둠 갈래의 수
         noise_std : float
-            살핌 잡음의 잣대 어긋남
+            살핌 잡음의 표준편차
         n_iterations : int
             갈래마다의 익힘 되돌이 횟수
         lr : float
@@ -1550,7 +1550,7 @@ def demo_sgld():
     mean, std = sgld.predict(X_test)
     
     print(f"\n모은 표본: {len(sgld.samples)}")
-    print(f"미루어 봄의 평균 잣대 어긋남: {np.mean(std):.3f}")
+    print(f"미루어 봄의 평균 표준편차: {np.mean(std):.3f}")
     
     return sgld
 
@@ -1631,7 +1631,7 @@ Ensemble           5.349    0.710   58.50%
 SGLD: 표본 300개를 모았다
 
 모은 표본: 300
-미루어 봄의 평균 잣대 어긋남: 0.207
+미루어 봄의 평균 표준편차: 0.207
 
 ======================================================================
 평균 마당 변이 미루어 봄
@@ -1671,7 +1671,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 </div>
 
 ??? success "연습문제 2 풀이"
-    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 표준편차를 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
 
 ---
 

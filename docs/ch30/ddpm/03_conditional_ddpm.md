@@ -123,7 +123,7 @@ class ResidualBlock(nn.Module):
         return h + self.skip(x)
 
 class SelfAttention2d(nn.Module):
-    """주어진 해상도에서의 가벼운 스스로 어텐션."""
+    """주어진 해상도에서의 가벼운 셀프 어텐션."""
     def __init__(self, ch, heads=1):
         super().__init__()
         self.norm = nn.GroupNorm(8, ch)

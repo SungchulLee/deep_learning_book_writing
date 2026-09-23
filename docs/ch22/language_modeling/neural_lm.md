@@ -10,7 +10,7 @@
 - PyTorch로 앞먹임 신경 말 모델을 짠다
 - 맥락 길이가 바뀌는 되돌이 그물 바탕 말 모델을 세운다
 - 멀리 떨어진 얽힘을 다루는 LSTM 말 모델을 짠다
-- 스스로 어텐션을 쓰는 변환기 바탕 말 모델을 꾸민다
+- 셀프 어텐션을 쓰는 변환기 바탕 말 모델을 꾸민다
 - 일에 따라 알맞은 얼개를 견주고 고른다
 
 ---
@@ -604,9 +604,9 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
 
 ## 6. 변환기 말 모델
 
-변환기는 되돌이를 **스스로 어텐션**로 갈음해 나란히 익히기와 더 나은 먼 거리 나타내기를 가능하게 한다.
+변환기는 되돌이를 **셀프 어텐션**로 갈음해 나란히 익히기와 더 나은 먼 거리 나타내기를 가능하게 한다.
 
-### 스스로 어텐션 얼개
+### 셀프 어텐션 얼개
 
 나타냄의 이음 $\mathbf{X} = [\mathbf{x}_1, \ldots, \mathbf{x}_n]$이 주어지면
 
@@ -731,7 +731,7 @@ class TransformerLM(nn.Module):
         # 인과 가림
         mask = self.generate_causal_mask(seq_len).to(x.device)
         
-        # 변환기 앞먹임(스스로 어텐션만)
+        # 변환기 앞먹임(셀프 어텐션만)
         output = self.transformer(x, x, tgt_mask=mask)
         
         # 어휘로 사영한다

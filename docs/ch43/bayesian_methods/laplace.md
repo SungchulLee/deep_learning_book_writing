@@ -519,14 +519,14 @@ class LaplaceMLP:
         n_samples : int
             0보다 크면 MC 표본 뽑기를, 아니면 곧게 펴기를 쓴다
         return_std : bool
-            잣대 어긋남을 돌려줄지
+            표준편차를 돌려줄지
         
         Returns
         -------
         mean : ndarray
             미루어 본 평균
         std : ndarray (골라 씀)
-            미루어 본 잣대 어긋남
+            미루어 본 표준편차
         """
         mean = self.forward(X)
         
@@ -732,15 +732,15 @@ def demo_laplace():
     mean, std = model.predict(X_test, n_samples=0)
     
     print(f"\n아리송함 자:")
-    print(f"  익힘 자리 [-4,4] 안의 평균 잣대 어긋남: {np.mean(std[np.abs(X_test) < 4]):.4f}")
-    print(f"  익힘 자리 밖의 평균 잣대 어긋남: {np.mean(std[np.abs(X_test) > 4]):.4f}")
+    print(f"  익힘 자리 [-4,4] 안의 평균 표준편차: {np.mean(std[np.abs(X_test) < 4]):.4f}")
+    print(f"  익힘 자리 밖의 평균 표준편차: {np.mean(std[np.abs(X_test) > 4]):.4f}")
     
     # MC 표본 뽑기와 견준다
     print("\n곧게 펴기와 MC 표본 뽑기를 견주는 중...")
     mean_mc, std_mc = model.predict(X_test, n_samples=100)
     
     print(f"  평균끼리의 얽힘: {np.corrcoef(mean.flatten(), mean_mc.flatten())[0,1]:.4f}")
-    print(f"  잣대 어긋남끼리의 얽힘: {np.corrcoef(std.flatten(), std_mc.flatten())[0,1]:.4f}")
+    print(f"  표준편차끼리의 얽힘: {np.corrcoef(std.flatten(), std_mc.flatten())[0,1]:.4f}")
     
     print("\n*** 아리송함은 익힘 자리 밖에서 더 커야 한다")
     
@@ -784,8 +784,8 @@ def demo_last_layer_laplace():
     mean, std = model.predict(X_test)
     
     print(f"\n마지막 켜 라플라스(매개변수 {model.n_params}개뿐)")
-    print(f"  익힘 자리 안의 평균 잣대 어긋남: {np.mean(std[np.abs(X_test) < 4]):.4f}")
-    print(f"  밖의 평균 잣대 어긋남: {np.mean(std[np.abs(X_test) > 4]):.4f}")
+    print(f"  익힘 자리 안의 평균 표준편차: {np.mean(std[np.abs(X_test) < 4]):.4f}")
+    print(f"  밖의 평균 표준편차: {np.mean(std[np.abs(X_test) > 4]):.4f}")
     
     return model
 
@@ -808,12 +808,12 @@ if __name__ == "__main__":
 라플라스 어림을 맞추는 중(대각)...
 
 아리송함 자:
-  익힘 자리 [-4,4] 안의 평균 잣대 어긋남: 15.3002
-  익힘 자리 밖의 평균 잣대 어긋남: 24.1480
+  익힘 자리 [-4,4] 안의 평균 표준편차: 15.3002
+  익힘 자리 밖의 평균 표준편차: 24.1480
 
 곧게 펴기와 MC 표본 뽑기를 견주는 중...
   평균끼리의 얽힘: 0.0312
-  잣대 어긋남끼리의 얽힘: 0.0359
+  표준편차끼리의 얽힘: 0.0359
 
 *** 아리송함은 익힘 자리 밖에서 더 커야 한다
 
@@ -822,8 +822,8 @@ if __name__ == "__main__":
 ============================================================
 
 마지막 켜 라플라스(매개변수 51개뿐)
-  익힘 자리 안의 평균 잣대 어긋남: 0.5707
-  밖의 평균 잣대 어긋남: 1.1842
+  익힘 자리 안의 평균 표준편차: 0.5707
+  밖의 평균 표준편차: 1.1842
 ```
 
 ---
@@ -887,7 +887,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 </div>
 
 ??? success "연습문제 2 풀이"
-    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 표준편차를 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
 
 ---
 

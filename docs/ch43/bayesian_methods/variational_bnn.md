@@ -627,9 +627,9 @@ class VariationalLinear(VariationalLayer):
         out_features : int
             날임 차수
         prior_sigma : float
-            앞선 분포의 잣대 어긋남
+            앞선 분포의 표준편차
         init_sigma : float
-            뒷분포의 첫 잣대 어긋남
+            뒷분포의 첫 표준편차
         use_local_reparam : bool
             그 자리 매개변수 다시 잡기 재주를 쓴다
         """
@@ -774,9 +774,9 @@ class VariationalMLP:
         layer_sizes : list
             [들임 차수, 숨은 켜1, ..., 날임 차수]
         prior_sigma : float
-            앞선 분포의 잣대 어긋남
+            앞선 분포의 표준편차
         init_sigma : float
-            뒷분포의 첫 잣대 어긋남
+            뒷분포의 첫 표준편차
         activation : str
             'relu' 또는 'tanh'
         use_local_reparam : bool
@@ -833,7 +833,7 @@ class VariationalMLP:
         mean : ndarray
             미루어 본 평균
         std : ndarray
-            미루어 본 잣대 어긋남
+            미루어 본 표준편차
         """
         predictions = []
         for _ in range(n_samples):
@@ -873,7 +873,7 @@ class BayesByBackprop:
         model : VariationalMLP
             변이 신경 그물
         likelihood_sigma : float
-            살핌 잡음의 잣대 어긋남
+            살핌 잡음의 표준편차
         kl_weight : float
             KL 항의 짐(천천히 올리기용)
         lr : float
@@ -1106,9 +1106,9 @@ class ScaleMixturePrior:
         pi : float
             섞는 짐
         sigma1 : float
-            첫째 몫의 잣대 어긋남
+            첫째 몫의 표준편차
         sigma2 : float
-            둘째 몫의 잣대 어긋남
+            둘째 몫의 표준편차
         """
         self.pi = pi
         self.sigma1 = sigma1
@@ -1386,8 +1386,8 @@ def demo_variational_bnn():
     mean, std = model.predict(X_test, n_samples=100)
     
     print(f"\n미루어 봄의 자:")
-    print(f"  평균 잣대 어긋남(앎의): {np.mean(std):.4f}")
-    print(f"  가장 큰 잣대 어긋남: {np.max(std):.4f}")
+    print(f"  평균 표준편차(앎의): {np.mean(std):.4f}")
+    print(f"  가장 큰 표준편차: {np.max(std):.4f}")
     
     return model, history
 
@@ -1452,8 +1452,8 @@ def demo_local_reparameterization():
     print("\n날임의 자(비슷해야 한다):")
     print(f"  여느 것 - 평균: {np.mean(outputs_standard, axis=0)[:3]}")
     print(f"  그 자리   - 평균: {np.mean(outputs_local, axis=0)[:3]}")
-    print(f"  여느 것 - 잣대 어긋남:  {np.std(outputs_standard, axis=0)[:3]}")
-    print(f"  그 자리   - 잣대 어긋남:  {np.std(outputs_local, axis=0)[:3]}")
+    print(f"  여느 것 - 표준편차:  {np.std(outputs_standard, axis=0)[:3]}")
+    print(f"  그 자리   - 표준편차:  {np.std(outputs_local, axis=0)[:3]}")
     
     print("\n*** 그 자리 다시 잡기도 같은 분포를 준다")
     print("*** 다만 기울기 흩어짐이 더 작다")
@@ -1497,7 +1497,7 @@ def demo_uncertainty_quality():
     near_data = ~in_gap & (np.abs(X_test.flatten()) < 4)
     extrapolation = np.abs(X_test.flatten()) > 4
     
-    print(f"\n평균 아리송함(잣대 어긋남):")
+    print(f"\n평균 아리송함(표준편차):")
     print(f"  틈 자리:      {np.mean(std[in_gap]):.4f}")
     print(f"  익힘 자료 가까이: {np.mean(std[near_data]):.4f}")
     print(f"  밖으로 늘림:      {np.mean(std[extrapolation]):.4f}")
@@ -1531,8 +1531,8 @@ if __name__ == "__main__":
 40판: 잃음=nan, NLL=nan, KL=nan
 
 미루어 봄의 자:
-  평균 잣대 어긋남(앎의): nan
-  가장 큰 잣대 어긋남: nan
+  평균 표준편차(앎의): nan
+  가장 큰 표준편차: nan
 
 ======================================================================
 KL 천천히 올리는 짜임
@@ -1554,7 +1554,7 @@ KL을 천천히 올리면 익힘 초에 뒷분포가 주저앉는 것을 막는�
 ======================================================================
 자료에 [-1, 1] 자리의 틈이 있다
 
-평균 아리송함(잣대 어긋남):
+평균 아리송함(표준편차):
   틈 자리:      nan
   익힘 자료 가까이: nan
   밖으로 늘림:      nan
@@ -1586,7 +1586,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 </div>
 
 ??? success "연습문제 2 풀이"
-    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 표준편차를 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
 
 ---
 

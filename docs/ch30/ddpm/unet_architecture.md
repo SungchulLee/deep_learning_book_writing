@@ -76,7 +76,7 @@ class ResidualBlock(nn.Module):
 
 class AttentionBlock(nn.Module):
     """
-    멀리 떨어진 매임을 담는 스스로 어텐션 덩이.
+    멀리 떨어진 매임을 담는 셀프 어텐션 덩이.
     """
     
     def __init__(self, channels: int, num_heads: int = 4):
