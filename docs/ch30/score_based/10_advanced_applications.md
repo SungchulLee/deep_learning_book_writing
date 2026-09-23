@@ -21,7 +21,7 @@ FILE: 10_advanced_applications.py
     조건 있는 만들어 내기:
     y가 조건(보기: 갈래 이름표)일 때 s_θ(x, y) = ∇log p(x|y)을 배운다.
     
-    가름개 이끎:
+    분류기 이끎:
     s(x|y) = s(x) + ∇log p(y|x)
     
     여기서 둘째 항이 바라는 갈래 쪽으로 이끈다.

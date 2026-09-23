@@ -1,6 +1,6 @@
 # DCGAN
 
-DCGAN은 2015년 글 "Unsupervised Representation Learning with Deep Convolutional GANs"에서 나왔다. MLP을 엮음 켜로 갈음하고 맞겨루기 만들개의 얼개 길잡이를 내놓았다.
+DCGAN은 2015년 글 "Unsupervised Representation Learning with Deep Convolutional GANs"에서 나왔다. MLP을 엮음 켜로 갈음하고 맞겨루기 생성기의 얼개 길잡이를 내놓았다.
 
 여기 짜보기는 DCGAN을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -99,7 +99,7 @@ Discriminator Parameters: 97,729
 
 ## 2. 논의
 
-이 짜보기는 갈래 3개(`DCGenerator`, `DCDiscriminator`, `DCGAN`)를 매기고, 이들이 어울려 온전한 만들개 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
+이 짜보기는 갈래 3개(`DCGenerator`, `DCDiscriminator`, `DCGAN`)를 매기고, 이들이 어울려 온전한 생성기 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
 여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 고갱이 깨침은 크기와 상관없이 그대로다.
 
@@ -161,6 +161,6 @@ Discriminator Parameters: 97,729
 
 **다룬 것** — DCGAN
 
-이 짜보기는 갈래 3개(`DCGenerator`, `DCDiscriminator`, `DCGAN`)를 매기고, 이들이 어울려 온전한 만들개 모형 얼개를 이룬다.
+이 짜보기는 갈래 3개(`DCGenerator`, `DCDiscriminator`, `DCGAN`)를 매기고, 이들이 어울려 온전한 생성기 모형 얼개를 이룬다.
 
 고갱이 갈래는 `DCGenerator`, `DCDiscriminator`, `DCGAN`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

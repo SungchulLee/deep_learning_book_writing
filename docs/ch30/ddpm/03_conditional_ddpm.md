@@ -11,7 +11,7 @@
 # - 남은 덩이와 (쓸 수 있는) 어텐션을 갖춘 U-Net
 # - 사인 꼴 때 걸음 박아 넣기
 # - 이름표 조건 주기(때 박아 넣기에 박아 넣기를 더함)
-# - 이름표 떨구기로 가름개 없는 이끌기를 쓸 수 있음
+# - 이름표 떨구기로 분류기 없는 이끌기를 쓸 수 있음
 # ============================================================
 import math
 import torch
@@ -38,7 +38,7 @@ ATTN_RES = {16}          # 이 공간 크기에서 어텐션을 쓴다. 끄려�
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 SAVE_PATH = "ddpm_conditional_samples.png"
 
-# ------- 가름개 없는 이끌기(CFG) -------
+# ------- 분류기 없는 이끌기(CFG) -------
 USE_CFG = True           # 끄려면 False으로 둔다
 CFG_DROPOUT_P = 0.1      # 익힐 때 이 확률로 이름표를 떨군다
 CFG_SCALE = 3.0          # 뽑을 때의 이끌기 세기(1.0 = 끔)
@@ -166,7 +166,7 @@ class UNetCond(nn.Module):
     """
     조건 U-Net.
     조건 주기: 갈래 이름표 -> 박아 넣기 -> 때 박아 넣기에 더함.
-    가름개 없는 이끌기에서는 "빈" 이름표를 위해 박아 넣기 자리를 하나 더 둔다.
+    분류기 없는 이끌기에서는 "빈" 이름표를 위해 박아 넣기 자리를 하나 더 둔다.
     """
     def __init__(self, in_ch=IN_CHANNELS, base_ch=BASE_CH, ch_mults=(1,2,4,4),
                  attn_res=ATTN_RES, img_size=IMG_SIZE, time_emb_dim=256,
@@ -309,7 +309,7 @@ class DDPMCond(nn.Module):
     def loss(self, x0, y):
         """
         이름표 y을 조건으로 삼아 아무 때 걸음 t에서 잡음을 헤아린다.
-        가름개 없는 이끌기를 켜면 배치의 일부에서 y을 NULL_CLASS_ID로 아무렇게나 바꾼다.
+        분류기 없는 이끌기를 켜면 배치의 일부에서 y을 NULL_CLASS_ID로 아무렇게나 바꾼다.
         """
         b = x0.shape[0]
         t = torch.randint(0, self.timesteps, (b,), device=DEVICE).long()
@@ -338,7 +338,7 @@ class DDPMCond(nn.Module):
         if cfg_scale == 1.0 or not USE_CFG:
             eps = self.model(x_t, t, y)
         else:
-            # 가름개 없는 이끌기: eps = eps_null + s * (eps_cond - eps_null)
+            # 분류기 없는 이끌기: eps = eps_null + s * (eps_cond - eps_null)
             eps_null = self.model(x_t, t, y_null)
             eps_cond = self.model(x_t, t, y)
             eps = eps_null + cfg_scale * (eps_cond - eps_null)
@@ -351,7 +351,7 @@ class DDPMCond(nn.Module):
     def sample(self, n, y=None, cfg_scale=1.0, img_channels=IN_CHANNELS, img_size=IMG_SIZE):
         """
         이름표 y(꼴 [n])를 조건으로 표본 'n'개를 만든다.
-        y이 None이면 아무 이름표를 뽑는다. 가름개 없는 이끌기를 쓰면 빈 이름표도 만든다.
+        y이 None이면 아무 이름표를 뽑는다. 분류기 없는 이끌기를 쓰면 빈 이름표도 만든다.
         """
         self.model.eval()
         x_t = torch.randn(n, img_channels, img_size, img_size, device=DEVICE)

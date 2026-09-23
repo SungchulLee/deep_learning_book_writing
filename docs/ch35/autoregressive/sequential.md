@@ -132,7 +132,7 @@ $$
 
 ---
 
-## 9. 짜기: 차례로 만드는 그래프 만들개
+## 9. 짜기: 차례로 만드는 그래프 생성기
 
 ```python
 """
@@ -146,7 +146,7 @@ from collections import deque
 
 class SequentialGraphGenerator(nn.Module):
     """
-    마디 하나씩 만드는 자기 되돌이 그래프 만들개.
+    마디 하나씩 만드는 자기 되돌이 그래프 생성기.
     
     At each step t:
     1. 그래프 층 되도는 그물의 상태가 G_{<t}를 간추린다

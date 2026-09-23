@@ -32,19 +32,19 @@
 
 아무렇게나 매끄럽게 하기:
 ====================
-아무렇게나 매끄럽게 하기는 본디 가름개를 가우스 잡음으로 매끄럽게 하여
-증명할 수 있게 든든한 가름개를 만든다.
+아무렇게나 매끄럽게 하기는 본디 분류기를 가우스 잡음으로 매끄럽게 하여
+증명할 수 있게 든든한 분류기를 만든다.
 
 짓기:
 -------------
-밑 가름개 f: R^d → {1,...,k}으로 매끄럽게 한 가름개 g을 짓는다:
+밑 분류기 f: R^d → {1,...,k}으로 매끄럽게 한 분류기 g을 짓는다:
 
     g(x) = argmax_c P(f(x + ε) = c)  where ε ~ N(0, σ²I)
 
 느낌으로 말하면:
 - 들임에 가우스 잡음을 더한다
 - 잡음 섞인 미루어 봄에서 많은 쪽을 고른다
-- 이것이 가름개를 "매끄럽게" 한다
+- 이것이 분류기를 "매끄럽게" 한다
 
 밝히기 정리:
 =====================
@@ -152,12 +152,12 @@ class RandomizedSmoothing:
     """
     밝혀 낸 든든함을 위한 아무렇게나 매끄럽게 하기
     
-    이 갈래는 어떤 가름개에도 증명할 수 있는 L2 든든함 다짐을 주는
+    이 갈래는 어떤 분류기에도 증명할 수 있는 L2 든든함 다짐을 주는
     아무렇게나 매끄럽게 하기를 짜 놓았다.
     
     수학 꼴:
     -------------------------
-    밑 가름개 f으로 매끄럽게 한 가름개를 짓는다:
+    밑 분류기 f으로 매끄럽게 한 분류기를 짓는다:
     
         g(x) = argmax_c E_{ε~N(0,σ²I)}[1{f(x + ε) = c}]
     
@@ -171,7 +171,7 @@ class RandomizedSmoothing:
     속성:
     -----------
     base_classifier : nn.Module
-        매끄럽게 할 밑 가름개
+        매끄럽게 할 밑 분류기
     sigma : float
         가우스 잡음의 잣대 어긋남
     device : torch.device
@@ -190,7 +190,7 @@ class RandomizedSmoothing:
         매개변수:
         -----------
         base_classifier : nn.Module
-            매끄럽게 할 밑 가름개
+            매끄럽게 할 밑 분류기
             로짓(소프트맥스 앞의 날임)을 내야 한다
         sigma : float, 기본값=0.25
             가우스 잡음의 잣대 어긋남
@@ -204,7 +204,7 @@ class RandomizedSmoothing:
         self.sigma = sigma
         self.device = device if device is not None else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
-        # 밑 가름개를 따짐 모드로 둔다
+        # 밑 분류기를 따짐 모드로 둔다
         self.base_classifier.eval()
         self.base_classifier = self.base_classifier.to(self.device)
         

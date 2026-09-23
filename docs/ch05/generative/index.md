@@ -43,7 +43,7 @@ N_SAMPLE = 5000
 JM, JS = 0.1307, 0.3081                 # 심판이 기대하는 정규화
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
-# 이 절만 [-1, 1]을 쓴다 — 만들개가 tanh로 내놓기 때문이다
+# 이 절만 [-1, 1]을 쓴다 — 생성기가 tanh로 내놓기 때문이다
 tf = transforms.Compose([transforms.ToTensor(),
                          transforms.Normalize((0.5,), (0.5,))])
 tr = torchvision.datasets.MNIST("./data", train=True, download=True, transform=tf)

@@ -652,21 +652,21 @@ nav:
       - 28.6 익히기:
         - 스승 밀어 넣기: ch28/training/teacher_forcing.md
         - 차례 잡은 뽑기: ch28/training/scheduled_sampling.md
-    - 29 맞겨루기 만들개(GAN):
+    - 29 맞겨루기 생성기(GAN):
       - 장 살펴보기: ch29/index.md
-      - 29.1 맞겨루기 만들개의 바탕:
+      - 29.1 맞겨루기 생성기의 바탕:
         - 맞겨루기 익히기: ch29/gan_foundations/adversarial.md
         - 내시 균형: ch29/gan_foundations/nash.md
-      - 29.2 맞겨루기 만들개 얼개:
-        - 맞겨루기 만들개: ch29/gan_architectures/45_gan.md
+      - 29.2 맞겨루기 생성기 얼개:
+        - 맞겨루기 생성기: ch29/gan_architectures/45_gan.md
         - DCGAN: ch29/gan_architectures/46_dcgan.md
         - DCGAN 2: ch29/gan_architectures/dcgan.md
-        - 2차원 맞겨루기 만들개 보기: ch29/gan_architectures/example_2d_gan.md
+        - 2차원 맞겨루기 생성기 보기: ch29/gan_architectures/example_2d_gan.md
         - MNIST DCGAN 보기: ch29/gan_architectures/example_mnist_dcgan.md
-        - 맞겨루기 만들개 도구: ch29/gan_architectures/gan_utils.md
-      - 29.3 맞겨루기 만들개 손실:
-        - 본디 맞겨루기 만들개 손실: ch29/gan_losses/original.md
-      - 29.4 맞겨루기 만들개 따지기:
+        - 맞겨루기 생성기 도구: ch29/gan_architectures/gan_utils.md
+      - 29.3 맞겨루기 생성기 손실:
+        - 본디 맞겨루기 생성기 손실: ch29/gan_losses/original.md
+      - 29.4 맞겨루기 생성기 따지기:
         - 인셉션 점수: ch29/gan_evaluation/inception_score.md
         - 프레셰 인셉션 거리: ch29/gan_evaluation/fid.md
         - 정밀도와 재현율: ch29/gan_evaluation/precision_recall.md
@@ -721,7 +721,7 @@ nav:
       - 30.4 잡음 없애는 퍼짐 암시 모델:
         - 잡음 없애는 퍼짐 암시 모델 바탕: ch30/ddim/fundamentals.md
       - 30.5 조건 만들어 내기:
-        - 가름개 없는 이끌기: ch30/conditional/classifier_free.md
+        - 판별기 없는 이끌기: ch30/conditional/classifier_free.md
       - 30.6 따지기:
         - 프레셰 인셉션 거리: ch30/evaluation/fid.md
         - 인셉션 점수: ch30/evaluation/inception_score.md
@@ -1510,11 +1510,11 @@ nav:
       - Longformer: appendix/transformers/longformer.md
       - LLaMA: appendix/transformers/llama.md
       - Wav2Vec: appendix/transformers/wav2vec.md
-    - A7 만들개 모형:
+    - A7 생성기 모형:
       - 제 인코더: appendix/generative/autoencoder.md
       - Beta-VAE: appendix/generative/beta_vae.md
       - VQ-VAE: appendix/generative/vqvae.md
-      - 맞겨루기 만들개 그물(GAN): appendix/generative/gan.md
+      - 맞겨루기 생성기 그물(GAN): appendix/generative/gan.md
       - DCGAN: appendix/generative/dcgan.md
       - StyleGAN: appendix/generative/stylegan.md
       - Pix2Pix: appendix/generative/pix2pix.md

@@ -16,7 +16,7 @@
 
 1. 개념 $k$을 드러내는 **양의 보기** $P_k$을 모은다
 2. **음의 보기** $N_k$(아무거나 또는 그 개념이 없는 것)을 모은다
-3. 켜 $l$의 살아남 $h_l(x)$에 선형 가름개를 익힌다
+3. 켜 $l$의 살아남 $h_l(x)$에 선형 분류기를 익힌다
 
 $$
 v_l^k = \arg\min_v \sum_{x \in P_k} \ell(\sigma(v^\top h_l(x)), 1) + \sum_{x \in N_k} \ell(\sigma(v^\top h_l(x)), 0)
@@ -74,7 +74,7 @@ class ConceptActivationVector:
         random_examples: torch.Tensor
     ) -> np.ndarray:
         """
-        선형 가름개를 맞추어 CAV를 익힌다.
+        선형 분류기를 맞추어 CAV를 익힌다.
 
         Returns:
             cav_vector: 판단 금의 법선
@@ -92,7 +92,7 @@ class ConceptActivationVector:
         cav = cav / np.linalg.norm(cav)
 
         accuracy = clf.score(X, y)
-        print(f"CAV 가름개 맞음률: {accuracy:.3f}")
+        print(f"CAV 분류기 맞음률: {accuracy:.3f}")
 
         return cav
 

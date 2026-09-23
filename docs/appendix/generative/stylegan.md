@@ -9,8 +9,8 @@ StyleGAN은 2019년 글 "A Style-Based Generator Architecture for GANs"에서 �
 ```python
 #!/usr/bin/env python3
 """
-StyleGAN - 결 바탕 만들개 얼개
-글: "맞겨루기 만들개를 위한 결 바탕 만들개 얼개" (2019)
+StyleGAN - 결 바탕 생성기 얼개
+글: "맞겨루기 생성기를 위한 결 바탕 생성기 얼개" (2019)
 고갱이 깨침:
   - 따로 둔 숨은 옮김 그물
   - 켜마다 결을 다스린다
@@ -41,7 +41,7 @@ class MappingNetwork(nn.Module):
 
 
 class StyleGenerator(nn.Module):
-    """단순하게 만든 StyleGAN 만들개."""
+    """단순하게 만든 StyleGAN 생성기."""
     def __init__(self, w_dim=512):
         super().__init__()
         self.mapping = MappingNetwork()
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜보기는 갈래 2개(`MappingNetwork`, `StyleGenerator`)를 매기고, 이들이 어울려 온전한 만들개 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
+이 짜보기는 갈래 2개(`MappingNetwork`, `StyleGenerator`)를 매기고, 이들이 어울려 온전한 생성기 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
 여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 고갱이 깨침은 크기와 상관없이 그대로다.
 
@@ -121,6 +121,6 @@ if __name__ == "__main__":
 
 **다룬 것** — StyleGAN
 
-이 짜보기는 갈래 2개(`MappingNetwork`, `StyleGenerator`)를 매기고, 이들이 어울려 온전한 만들개 모형 얼개를 이룬다.
+이 짜보기는 갈래 2개(`MappingNetwork`, `StyleGenerator`)를 매기고, 이들이 어울려 온전한 생성기 모형 얼개를 이룬다.
 
 고갱이 갈래는 `MappingNetwork`, `StyleGenerator`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

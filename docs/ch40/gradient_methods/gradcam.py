@@ -177,7 +177,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
         return model.layer4[-1]
 
     elif 'vgg' in architecture:
-        # VGG: 가름개 앞의 마지막 겹치는 켜
+        # VGG: 분류기 앞의 마지막 겹치는 켜
         return model.features[-1]
 
     elif 'densenet' in architecture:

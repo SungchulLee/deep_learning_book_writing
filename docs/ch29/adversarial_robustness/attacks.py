@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 
 class AdversarialGenerator(nn.Module):
-    """맞겨루기 만들개 같은 얼개로 맞겨루기 흔들림을 만든다."""
+    """맞겨루기 생성기 같은 얼개로 맞겨루기 흔들림을 만든다."""
     
     def __init__(self, input_channels=3, epsilon=0.1):
         super().__init__()
@@ -48,7 +48,7 @@ def evaluate_attack(model, x_clean, x_adv, y_true, y_target=None):
     맞겨루기 공격의 성공을 따진다.
     
     인수:
-        model: 겨눌 가름개
+        model: 겨눌 분류기
         x_clean: 깨끗한 그림
         x_adv: 맞겨루기 그림
         y_true: 참 레이블
@@ -246,7 +246,7 @@ def fgsm_attack(model, images, labels, epsilon, criterion=None):
     그림 배치에 FGSM 공격을 한다.
     
     인수:
-        model: 겨눌 가름개
+        model: 겨눌 분류기
         images: 들임 그림(requires_grad가 True여야 한다)
         labels: 참 이름표
         epsilon: 흔들림의 크기
@@ -435,7 +435,7 @@ def run_targeted_attack(model, dataloader, target_class, epsilon, device='cpu'):
     모든 그림을 target_class으로 잘못 가르게 하는 목표 있는 FGSM 공격을 돌린다.
     
     인수:
-        model: 겨눌 가름개
+        model: 겨눌 분류기
         dataloader: 시험 자료
         target_class: 그림을 잘못 가를 갈래
         epsilon: 흔들림의 크기
@@ -602,7 +602,7 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     잃음을 가장 작게 한다(과녁 갈래로 끌어당긴다).
     
     인수:
-        model: 겨눌 가름개
+        model: 겨눌 분류기
         images: 들임 그림
         target_labels: 바라는 목표 갈래
         epsilon: 흔들림의 크기
@@ -638,7 +638,7 @@ def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
     목표 갈래 쪽으로 작은 걸음을 여러 번 내딛는다.
     
     인수:
-        model: 겨눌 가름개
+        model: 겨눌 분류기
         images: 들임 그림
         target_labels: 바라는 목표 갈래
         epsilon: 가장 큰 온 흔들림(L_inf 한계)
@@ -677,7 +677,7 @@ def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter,
     아무 첫자리매김을 갖춘 목표 있는 PGD 공격.
     
     인수:
-        model: 겨눌 가름개
+        model: 겨눌 분류기
         images: 들임 그림
         target_labels: 바라는 목표 갈래
         epsilon: 가장 큰 흔들림(L_inf)
@@ -803,7 +803,7 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
     여기서 Z은 로짓, t은 목표 갈래, κ은 자신도 여유이다.
     
     인수:
-        model: 겨눌 가름개
+        model: 겨눌 분류기
         images: 들임 그림
         target_labels: 목표 갈래
         c: 자신도 매개변수

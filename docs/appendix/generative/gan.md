@@ -1,6 +1,6 @@
 # GAN
 
-GAN은 2014년 글 "Generative Adversarial Networks"에서 나왔다. 그물 둘(만들개와 가름개)이 맞서며 익힌다.
+GAN은 2014년 글 "Generative Adversarial Networks"에서 나왔다. 그물 둘(생성기와 판별기)이 맞서며 익힌다.
 
 여기 짜보기는 GAN을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -9,9 +9,9 @@ GAN은 2014년 글 "Generative Adversarial Networks"에서 나왔다. 그물 둘
 ```python
 #!/usr/bin/env python3
 '''
-GAN - 맞겨루기 만들개 그물
+GAN - 맞겨루기 생성기 그물
 논문: "Generative Adversarial Networks" (2014)
-고갱이: 맞겨루며 익히는 두 그물(만들개와 가름개)
+고갱이: 맞겨루며 익히는 두 그물(생성기와 판별기)
 '''
 import torch
 import torch.nn as nn
@@ -83,7 +83,7 @@ class GAN(nn.Module):
 # 익힘 이른 판에 기울기가 더 세기 때문이다.
 
 def update_D(X, Z, net_D, net_G, loss, trainer_D):
-    """가름개 고치기: log D(x) + log(1 - D(G(z)))을 가장 크게."""
+    """판별기 고치기: log D(x) + log(1 - D(G(z)))을 가장 크게."""
     batch_size = X.shape[0]
     ones = torch.ones(batch_size, 1, device=X.device)
     zeros = torch.zeros(batch_size, 1, device=X.device)
@@ -98,7 +98,7 @@ def update_D(X, Z, net_D, net_G, loss, trainer_D):
 
 
 def update_G(Z, net_D, net_G, loss, trainer_G):
-    """만들개 고치기: log D(G(z))을 가장 크게(잦아들지 않는 잃음)."""
+    """생성기 고치기: log D(G(z))을 가장 크게(잦아들지 않는 잃음)."""
     batch_size = Z.shape[0]
     ones = torch.ones(batch_size, 1, device=Z.device)
     trainer_G.zero_grad()
@@ -146,7 +146,7 @@ Discriminator Parameters: 533,505
 
 ## 2. 논의
 
-이 짜보기는 갈래 3개(`Generator`, `Discriminator`, `GAN`)를 매기고, 이들이 어울려 온전한 만들개 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
+이 짜보기는 갈래 3개(`Generator`, `Discriminator`, `GAN`)를 매기고, 이들이 어울려 온전한 생성기 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
 익힘 되돌이는 여느 PyTorch 무늬를 따른다. 앞으로 걸음으로 미루어 봄을 셈하고, 잃음을 셈하고, 뒤로 걸음으로 기울기를 셈하고, 다듬개로 매개변수를 고친다. 판마다 자를 좇으면 모여드는 결이 드러나고 덜 맞추기나 지나치게 맞추기 같은 탈을 짚어내는 데 도움이 된다.
 
@@ -210,6 +210,6 @@ Discriminator Parameters: 533,505
 
 **다룬 것** — GAN
 
-이 짜보기는 갈래 3개(`Generator`, `Discriminator`, `GAN`)를 매기고, 이들이 어울려 온전한 만들개 모형 얼개를 이룬다.
+이 짜보기는 갈래 3개(`Generator`, `Discriminator`, `GAN`)를 매기고, 이들이 어울려 온전한 생성기 모형 얼개를 이룬다.
 
 고갱이 갈래는 `Generator`, `Discriminator`, `GAN`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

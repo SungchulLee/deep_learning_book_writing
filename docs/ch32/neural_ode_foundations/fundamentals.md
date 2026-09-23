@@ -800,7 +800,7 @@ class HypernetODEFunc(nn.Module):
 
 ---
 
-## 9. 온전한 신경 상미분 방정식 가름개
+## 9. 온전한 신경 상미분 방정식 분류기
 
 ### 7.1 그림 가름을 위한 얼개
 
@@ -864,7 +864,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 def train_neural_ode_classifier():
-    """신경 상미분 방정식 가름개의 온전한 익히기 흐름."""
+    """신경 상미분 방정식 분류기의 온전한 익히기 흐름."""
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     batch_size = 128

@@ -9,8 +9,8 @@ Glow은 2018년 글 "Glow: Generative Flow with Invertible 1x1 Convolutions"에�
 ```python
 #!/usr/bin/env python3
 """
-Glow - 되돌릴 수 있는 1x1 엮음을 쓰는 흐름 바탕 만들개 모형
-글: "Glow: 되돌릴 수 있는 1x1 엮음을 쓰는 만들개 흐름" (2018)
+Glow - 되돌릴 수 있는 1x1 엮음을 쓰는 흐름 바탕 생성기 모형
+글: "Glow: 되돌릴 수 있는 1x1 엮음을 쓰는 생성기 흐름" (2018)
 고갱이 깨침:
   - 배운 되돌릴 수 있는 1x1 엮음으로 RealNVP을 낫게 한다
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 만들개 모형에 알맞은지 밝혀라.
+코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 생성기 모형에 알맞은지 밝혀라.
 
 </div>
 

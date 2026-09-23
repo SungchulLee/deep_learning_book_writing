@@ -45,7 +45,7 @@ import torch.nn.functional as F
 
 class PrototypeNetwork(nn.Module):
     """
-    풀이되는 본보기 바탕 가름개.
+    풀이되는 본보기 바탕 분류기.
     """
 
     def __init__(

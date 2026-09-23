@@ -15,7 +15,7 @@ Grad-CAM은 밑바탕이 되는 물음에 답한다. **들임 그림의 어느 �
 
 ### 문제 세우기
 
-다음을 지닌 CNN 가름개를 생각하자.
+다음을 지닌 CNN 분류기를 생각하자.
 
 - 들임 그림 $I \in \mathbb{R}^{H \times W \times 3}$
 - 겨눈 켜(흔히 마지막 겹치는 켜)의 겹침 결 그림 $A^k \in \mathbb{R}^{u \times v}$
@@ -317,7 +317,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
         return model.layer4[-1]
 
     elif 'vgg' in architecture:
-        # VGG: 가름개 앞의 마지막 겹치는 켜
+        # VGG: 분류기 앞의 마지막 겹치는 켜
         return model.features[-1]
 
     elif 'densenet' in architecture:
@@ -716,7 +716,7 @@ cam = grad_cam(image_tensor, target_class=predicted_class)
 금융 문서(그림표, 표, 글)의 어느 자리가 가름을 이끄는지 짚는다.
 
 ```python
-# 문서 그림 가름개에 쓴다
+# 문서 그림 분류기에 쓴다
 cam = grad_cam(document_image, target_class=class_map["quarterly_report"])
 # 모형이 어느 마디(표, 그림표, 서명)에 어텐션을 두는지 그린다
 ```

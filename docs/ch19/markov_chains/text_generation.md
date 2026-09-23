@@ -44,7 +44,7 @@ class MarkovTextGenerator:
     
     def __init__(self, order=1):
         """
-        글 만들개 첫값 잡기.
+        글 생성기 첫값 잡기.
         
         매개변수:
             order (int): 마르코프 사슬의 차수(살필 앞선 낱말의 수)

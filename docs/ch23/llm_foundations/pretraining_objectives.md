@@ -432,20 +432,20 @@ def prefix_lm_mask(seq_len: int, prefix_len: int) -> torch.Tensor:
 
 ## 7. 갈음된 토막 알아채기(ELECTRA)
 
-ELECTRA는 작은 만들개가 갈음한 토막을 알아채도록 가름개를 익힌다:
+ELECTRA는 작은 생성기가 갈음한 토막을 알아채도록 판별기를 익힌다:
 
 $$
 \mathcal{L} = -\sum_{t=1}^{T} \left[ y_t \log D(x_t) + (1-y_t) \log(1 - D(x_t)) \right]
 $$
 
-여기서 토막 $t$이 만들개에 갈음됐으면 $y_t = 1$이다.
+여기서 토막 $t$이 생성기에 갈음됐으면 $y_t = 1$이다.
 
 ```python
 class ELECTRA(nn.Module):
     """
-    ELECTRA: 글 인코더를 가름개로 미리 익히기.
+    ELECTRA: 글 인코더를 판별기로 미리 익히기.
     
-    작은 만들개로 글을 망가뜨리고, 으뜸 모델이 망가진 곳을 알아내는 법을 배운다.
+    작은 생성기로 글을 망가뜨리고, 으뜸 모델이 망가진 곳을 알아내는 법을 배운다.
     모든 토막이 신호를 주므로 가린 말 모델보다 표본을 아낀다.
     """
     
@@ -474,14 +474,14 @@ class ELECTRA(nn.Module):
             masked_indices: 망가뜨린 자리의 참거짓 가림막
             labels: 가린 자리의 본디 토막 번호
         """
-        # 만들개가 가린 토막을 어림한다(가린 말 모델)
+        # 생성기가 가린 토막을 어림한다(가린 말 모델)
         gen_logits = self.generator(input_ids).logits
         gen_loss = F.cross_entropy(
             gen_logits[masked_indices],
             labels[masked_indices]
         )
         
-        # 만들개에서 바꿔 넣을 것을 뽑는다
+        # 생성기에서 바꿔 넣을 것을 뽑는다
         with torch.no_grad():
             gen_probs = F.softmax(gen_logits, dim=-1)
             sampled = torch.multinomial(
@@ -492,7 +492,7 @@ class ELECTRA(nn.Module):
         corrupted = input_ids.clone()
         corrupted[masked_indices] = sampled[masked_indices]
         
-        # 가름개가 어느 토막이 바뀌었는지 어림한다
+        # 판별기가 어느 토막이 바뀌었는지 어림한다
         disc_logits = self.discriminator(corrupted).logits
         disc_labels = (corrupted != input_ids).float()
         
@@ -679,7 +679,7 @@ def effective_tokens_per_example(
         return seq_len * 0.5
     
     elif objective == 'ELECTRA':
-        # 모든 토막이 가름개 신호를 준다
+        # 모든 토막이 판별기 신호를 준다
         return seq_len
 
 def training_equivalence(clm_tokens: int, mlm_mask_rate: float = 0.15) -> dict:
@@ -723,7 +723,7 @@ $$
 \boxed{\mathcal{L}_{\text{MLM}} = -\sum_{i \in \mathcal{M}} \log P(x_i | x_{\backslash \mathcal{M}})}
 $$
 
-**ELECTRA 가름개**:
+**ELECTRA 판별기**:
 
 $$
 \boxed{\mathcal{L}_{\text{disc}} = -\sum_{t=1}^{T} \left[ y_t \log D(x_t) + (1-y_t) \log(1 - D(x_t)) \right]}

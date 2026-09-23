@@ -1,5 +1,5 @@
-# 본디 맞겨루기 만들개 손실
-Goodfellow 외가 2014년에 내놓은 본디 맞겨루기 만들개 손실은 만들어 내는 모델을 두값 어긋 엔트로피 가르기를 쓴 최소최대 놀이로 적는다.
+# 본디 맞겨루기 생성기 손실
+Goodfellow 외가 2014년에 내놓은 본디 맞겨루기 생성기 손실은 만들어 내는 모델을 두값 어긋 엔트로피 가르기를 쓴 최소최대 놀이로 적는다.
 
 ---
 
@@ -7,13 +7,13 @@ Goodfellow 외가 2014년에 내놓은 본디 맞겨루기 만들개 손실은 �
 
 ### 값 함수
 
-본디 맞겨루기 만들개의 목표는 다음과 같다.
+본디 맞겨루기 생성기의 목표는 다음과 같다.
 
 $$\min_G \max_D V(D, G) = \mathbb{E}_{x \sim p_{\text{data}}}[\log D(x)] + \mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$$
 
-### 가름개 손실
+### 판별기 손실
 
-가름개는 $V(D, G)$을 가장 크게 하며 이는 다음을 가장 작게 하는 것과 같다.
+판별기는 $V(D, G)$을 가장 크게 하며 이는 다음을 가장 작게 하는 것과 같다.
 
 $$\mathcal{L}_D = -\mathbb{E}_{x \sim p_{\text{data}}}[\log D(x)] - \mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$$
 
@@ -22,13 +22,13 @@ $$\mathcal{L}_D = -\mathbb{E}_{x \sim p_{\text{data}}}[\log D(x)] - \mathbb{E}_{
 - 실제 표본은 1로 이름표를 붙인다
 - 가짜 표본은 0으로 이름표를 붙인다
 
-### 만들개 손실
+### 생성기 손실
 
-만들개는 $V(D, G)$을 가장 작게 한다.
+생성기는 $V(D, G)$을 가장 작게 한다.
 
 $$\mathcal{L}_G = \mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$$
 
-만들개는 $D(G(z)) \to 1$을 바라므로 $\log(1 - D(G(z))) \to -\infty$이다.
+생성기는 $D(G(z)) \to 1$을 바라므로 $\log(1 - D(G(z))) \to -\infty$이다.
 
 ---
 
@@ -46,7 +46,7 @@ class OriginalGANLoss:
     
     def discriminator_loss(self, d_real, d_fake):
         """
-        가름개 잃음: -E[log D(x)] - E[log(1 - D(G(z)))]
+        판별기 잃음: -E[log D(x)] - E[log(1 - D(G(z)))]
         """
         batch_size_real = d_real.size(0)
         batch_size_fake = d_fake.size(0)
@@ -64,7 +64,7 @@ class OriginalGANLoss:
     
     def generator_loss(self, d_fake):
         """
-        본디 만들개 잃음: E[log(1 - D(G(z)))]
+        본디 생성기 잃음: E[log(1 - D(G(z)))]
         """
         batch_size = d_fake.size(0)
         fake_labels = torch.zeros(batch_size, 1, device=d_fake.device)
@@ -87,13 +87,13 @@ $$\nabla_{\theta_G} \mathcal{L}_G = -\mathbb{E}_z\left[\frac{\nabla_{\theta_G} D
 
 ## 4. 이론적 성질
 
-### 가장 좋은 가름개
+### 가장 좋은 판별기
 
 $$D^*_G(x) = \frac{p_{\text{data}}(x)}{p_{\text{data}}(x) + p_g(x)}$$
 
 ### 젠슨-섀넌 벌어짐
 
-가장 좋은 D에서 만들개는 다음을 가장 작게 한다.
+가장 좋은 D에서 생성기는 다음을 가장 작게 한다.
 
 $$C(G) = -\log 4 + 2 \cdot \text{JSD}(p_{\text{data}} \| p_g)$$
 
@@ -111,7 +111,7 @@ $$C(G) = -\log 4 + 2 \cdot \text{JSD}(p_{\text{data}} \| p_g)$$
 
 ### 포화 문제
 
-본디 맞겨루기 만들개에서 만들개는 다음을 가장 작게 한다.
+본디 맞겨루기 생성기에서 생성기는 다음을 가장 작게 한다.
 
 $$\mathcal{L}_G^{\text{original}} = \mathbb{E}_z[\log(1 - D(G(z)))]$$
 
@@ -224,9 +224,9 @@ import torch.nn as nn
 
 class NonSaturatingGANLoss:
     """
-    포화하지 않는 맞겨루기 만들개 손실.
+    포화하지 않는 맞겨루기 생성기 손실.
     
-    만들개는 log(1 - D(G(z)))을 가장 작게 하는 대신 log(D(G(z)))을 가장 크게 한다.
+    생성기는 log(1 - D(G(z)))을 가장 작게 하는 대신 log(D(G(z)))을 가장 크게 한다.
     G이 서툴 때 더 센 기울기를 준다.
     """
     
@@ -235,7 +235,7 @@ class NonSaturatingGANLoss:
     
     def discriminator_loss(self, d_real, d_fake):
         """
-        여느 가름개 잃음(본디 GAN과 같다).
+        여느 판별기 잃음(본디 GAN과 같다).
         
         L_D = -E[log D(x)] - E[log(1 - D(G(z)))]
         """
@@ -259,7 +259,7 @@ class NonSaturatingGANLoss:
     
     def generator_loss(self, d_fake):
         """
-        포화하지 않는 만들개 손실.
+        포화하지 않는 생성기 손실.
         
         L_G = -E[log D(G(z))]
         
@@ -268,7 +268,7 @@ class NonSaturatingGANLoss:
         """
         batch_size = d_fake.size(0)
         
-        # 만들개 익히기에서는 가짜 표본을 실제로 다룬다
+        # 생성기 익히기에서는 가짜 표본을 실제로 다룬다
         real_labels = torch.ones(batch_size, 1, device=d_fake.device)
         
         # BCE(D(G(z)), 1) = -log(D(G(z)))
@@ -284,7 +284,7 @@ class NonSaturatingGANLossManual:
     """로그를 드러내어 셈하는 포화하지 않는 손실."""
     
     def discriminator_loss(self, d_real, d_fake):
-        """가름개 잃음: -E[log D(x)] - E[log(1 - D(G(z)))]"""
+        """판별기 잃음: -E[log D(x)] - E[log(1 - D(G(z)))]"""
         eps = 1e-8  # 수치의 안정을 위해
         
         real_loss = -torch.log(d_real + eps).mean()
@@ -314,7 +314,7 @@ def train_step_nonsaturating(G, D, real_data, latent_dim,
     batch_size = real_data.size(0)
     
     # ==================
-    # 가름개를 익힌다
+    # 판별기를 익힌다
     # ==================
     d_optimizer.zero_grad()
     
@@ -331,7 +331,7 @@ def train_step_nonsaturating(G, D, real_data, latent_dim,
     d_optimizer.step()
     
     # ===============
-    # 만들개를 익힌다(포화하지 않음)
+    # 생성기를 익힌다(포화하지 않음)
     # ===============
     g_optimizer.zero_grad()
     
@@ -352,7 +352,7 @@ def train_step_nonsaturating(G, D, real_data, latent_dim,
 
 ### 같은 붙박이점
 
-두 손실의 가장 좋은 만들개는 같다.
+두 손실의 가장 좋은 생성기는 같다.
 
 **본디**: $\min_G \mathbb{E}_z[\log(1 - D^*(G(z)))]$
 
@@ -380,7 +380,7 @@ def train_step_nonsaturating(G, D, real_data, latent_dim,
 
 $$\mathcal{L}_G^{\text{NS}} = -\mathbb{E}_{x \sim p_g}[\log D^*(x)]$$
 
-가장 좋은 가름개에서:
+가장 좋은 판별기에서:
 
 $$= -\mathbb{E}_{x \sim p_g}\left[\log \frac{p_{\text{data}}(x)}{p_{\text{data}}(x) + p_g(x)}\right]$$
 
@@ -427,7 +427,7 @@ G이 서툴러 $D(G(z)) \approx 0$일 때:
 거꾸로 된 쿨백-라이블러를 가장 작게 하며 이는 봉우리를 찾는 움직임이 다르다.
 
 - KL(p_data || p_g): 봉우리 덮기(변분 오토인코더 같다)
-- KL(p_g || p_data): 봉우리 찾기(맞겨루기 만들개 같다)
+- KL(p_g || p_data): 봉우리 찾기(맞겨루기 생성기 같다)
 
 ### 3. 영합 놀이가 아니다
 
@@ -443,9 +443,9 @@ G이 서툴러 $D(G(z)) \approx 0$일 때:
 ## 14. 실전 권고
 
 ```python
-# 여느 맞겨루기 만들개 익히기는 기본으로 포화하지 않는 손실을 쓴다
+# 여느 맞겨루기 생성기 익히기는 기본으로 포화하지 않는 손실을 쓴다
 def recommended_generator_loss(discriminator, fake_data):
-    """맞겨루기 만들개를 익히는 권하는 방식."""
+    """맞겨루기 생성기를 익히는 권하는 방식."""
     d_fake = discriminator(fake_data)
     
     # 포화하지 않는 손실
@@ -462,12 +462,12 @@ def recommended_generator_loss(discriminator, fake_data):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-본디 맞겨루기 만들개 손실과 젠슨-섀넌 벌어짐의 관계를 이끌어 내라.
+본디 맞겨루기 생성기 손실과 젠슨-섀넌 벌어짐의 관계를 이끌어 내라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    가장 좋은 가름개 $D^*(x) = \frac{p_d(x)}{p_d(x) + p_g(x)}$을 값 함수에 넣으면:
+    가장 좋은 판별기 $D^*(x) = \frac{p_d(x)}{p_d(x) + p_g(x)}$을 값 함수에 넣으면:
 
     $$V(G, D^*) = \mathbb{E}_{p_d}\left[\log \frac{p_d}{p_d + p_g}\right] + \mathbb{E}_{p_g}\left[\log \frac{p_g}{p_d + p_g}\right]$$
 
@@ -482,12 +482,12 @@ def recommended_generator_loss(discriminator, fake_data):
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-본디 맞겨루기 만들개 손실, 포화하지 않는 손실, 바서슈타인 손실을 기울기의 움직임과 익히기의 안정 면에서 견주어라.
+본디 맞겨루기 생성기 손실, 포화하지 않는 손실, 바서슈타인 손실을 기울기의 움직임과 익히기의 안정 면에서 견주어라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    | 손실 | 만들개 목표 | 기울기 문제 | 안정 |
+    | 손실 | 생성기 목표 | 기울기 문제 | 안정 |
     |------|-------------------|----------------|-----------|
     | **본디** | $\min \log(1 - D(G(z)))$ | $D$이 셀 때 사라진다 | 나쁘다 |
     | **포화하지 않음** | $\max \log D(G(z))$ | 앞머리 기울기가 세다 | 더 낫다 |
@@ -500,7 +500,7 @@ def recommended_generator_loss(discriminator, fake_data):
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-맞겨루기 만들개 놀이의 내시 균형에서 $p_g = p_{\text{data}}$이고 모든 $x$에 대해 $D(x) = 1/2$임을 보여라.
+맞겨루기 생성기 놀이의 내시 균형에서 $p_g = p_{\text{data}}$이고 모든 $x$에 대해 $D(x) = 1/2$임을 보여라.
 
 </div>
 
@@ -517,7 +517,7 @@ WGAN-GP의 립시츠 묶음을 설명하고 무게 자르기보다 기울기 벌
 </div>
 
 ??? success "연습문제 4 풀이"
-    WGAN은 평가개(가름개)가 1-립시츠이기를 요구한다. 곧 모든 $x, y$에 대해 $|D(x) - D(y)| \leq \|x - y\|$이다. **무게 자르기**는 무게를 $[-c, c]$으로 묶어 이를 지키게 하지만 다음을 낳는다. (1) 담이를 덜 쓴다(무게 공간의 대부분을 쓰지 않는다). (2) $c$에 따라 기울기가 터지거나 사라진다. (3) 평가개가 단순한 함수만 배운다. **기울기 벌점**(WGAN-GP)은 $\hat{x}$이 실제 표본과 가짜 표본 사이를 메울 때 $\lambda \mathbb{E}_{\hat{x}}[(\|\nabla_x D(\hat{x})\| - 1)^2]$을 더한다. 이는 알맞은 점에서 립시츠 묶음을 부드럽게 지키게 하여 평가개가 담이를 온전히 쓰게 하고 익히기를 더 안정시킨다.
+    WGAN은 평가개(판별기)가 1-립시츠이기를 요구한다. 곧 모든 $x, y$에 대해 $|D(x) - D(y)| \leq \|x - y\|$이다. **무게 자르기**는 무게를 $[-c, c]$으로 묶어 이를 지키게 하지만 다음을 낳는다. (1) 담이를 덜 쓴다(무게 공간의 대부분을 쓰지 않는다). (2) $c$에 따라 기울기가 터지거나 사라진다. (3) 평가개가 단순한 함수만 배운다. **기울기 벌점**(WGAN-GP)은 $\hat{x}$이 실제 표본과 가짜 표본 사이를 메울 때 $\lambda \mathbb{E}_{\hat{x}}[(\|\nabla_x D(\hat{x})\| - 1)^2]$을 더한다. 이는 알맞은 점에서 립시츠 묶음을 부드럽게 지키게 하여 평가개가 담이를 온전히 쓰게 하고 익히기를 더 안정시킨다.
 
 
 ---
@@ -727,7 +727,7 @@ WGAN-GP의 립시츠 묶음을 설명하고 무게 자르기보다 기울기 벌
 
 ## 정리하며
 
-| 갈래 | 본디 맞겨루기 만들개 손실 |
+| 갈래 | 본디 맞겨루기 생성기 손실 |
 |--------|-------------------|
 | D 손실 | 두값 어긋 엔트로피(실제=1, 가짜=0) |
 | G 손실 | min log(1 - D(G(z))) |
@@ -738,7 +738,7 @@ WGAN-GP의 립시츠 묶음을 설명하고 무게 자르기보다 기울기 벌
 
 # 포화하지 않는 손실
 
-포화하지 않는 손실은 본디 맞겨루기 만들개의 만들개 손실을 실제에 맞게 고친 것으로, 만들개가 가장 필요로 하는 익히기 앞머리에 더 센 기울기를 준다.
+포화하지 않는 손실은 본디 맞겨루기 생성기의 생성기 손실을 실제에 맞게 고친 것으로, 생성기가 가장 필요로 하는 익히기 앞머리에 더 센 기울기를 준다.
 
 | 갈래 | 본디 손실 | 포화하지 않는 손실 |
 |--------|---------------|---------------------|
@@ -748,4 +748,4 @@ WGAN-GP의 립시츠 묶음을 설명하고 무게 자르기보다 기울기 벌
 | **영합 놀이** | 그렇다 | 아니다 |
 | **쓰임** | 이론용 | 실제용(기본) |
 
-포화하지 않는 손실은 맞겨루기 만들개 익히기의 **여느 고르기**이다. 본디 손실과 같은 붙박이점을 지키면서 실제에 더 알맞은 가장 좋게 하기 움직임을 준다.
+포화하지 않는 손실은 맞겨루기 생성기 익히기의 **여느 고르기**이다. 본디 손실과 같은 붙박이점을 지키면서 실제에 더 알맞은 가장 좋게 하기 움직임을 준다.

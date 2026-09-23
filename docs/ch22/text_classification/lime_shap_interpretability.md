@@ -87,7 +87,7 @@ print("""
   from lime.lime_text import LimeTextExplainer
   from sklearn.pipeline import make_pipeline
 
-  # 물길 만들기(벡터로 만들개 + 갈래 매개)
+  # 물길 만들기(벡터로 생성기 + 갈래 매개)
   pipe = make_pipeline(vectorizer, clf)
 
   # LIME 풀이개 첫자리매김
@@ -396,7 +396,7 @@ Part 1: LIME (Local Interpretable Model-Agnostic Explanations)
   from lime.lime_text import LimeTextExplainer
   from sklearn.pipeline import make_pipeline
 
-  # 물길 만들기(벡터로 만들개 + 갈래 매개)
+  # 물길 만들기(벡터로 생성기 + 갈래 매개)
   pipe = make_pipeline(vectorizer, clf)
 
   # LIME 풀이개 첫자리매김

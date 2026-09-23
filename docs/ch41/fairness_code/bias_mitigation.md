@@ -83,8 +83,8 @@ class AdversarialDebiasing(nn.Module):
     """
     익히며 눅이기: 맞겨루며 치우침 걷어내기.
 
-    맞겨루는 익힘으로 치우침을 걷어낸다. 가름개는 겨눈 것을
-    미루어 보도록 배우고, 맞수는 가름개의 나타냄에서 예민한
+    맞겨루는 익힘으로 치우침을 걷어낸다. 분류기는 겨눈 것을
+    미루어 보도록 배우고, 맞수는 분류기의 나타냄에서 예민한
     됨됨이를 알아내려 한다.
     """
 
@@ -104,7 +104,7 @@ class AdversarialDebiasing(nn.Module):
             nn.ReLU()
         )
 
-        # 가름개(겨눈 이름표를 미루어 본다)
+        # 분류기(겨눈 이름표를 미루어 본다)
         self.classifier = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim // 2),
             nn.ReLU(),
@@ -128,7 +128,7 @@ class AdversarialDebiasing(nn.Module):
             x: 들임 결
 
         Returns:
-            (가름개 미루어 봄, 맞수 미루어 봄) 짝
+            (분류기 미루어 봄, 맞수 미루어 봄) 짝
         """
         features = self.encoder(x)
         y_pred = self.classifier(features)
@@ -185,7 +185,7 @@ def train_adversarial_debiasing(
         adv_loss.backward()
         optimizer_adv.step()
 
-        # 가름개를 익힌다(맞수 잃음은 크게, 가름개 잃음은 작게)
+        # 분류기를 익힌다(맞수 잃음은 크게, 분류기 잃음은 작게)
         model.classifier.train()
         model.encoder.train()
         model.adversary.eval()
@@ -201,7 +201,7 @@ def train_adversarial_debiasing(
         optimizer_clf.step()
 
         if (epoch + 1) % 20 == 0:
-            print(f"시대 {epoch+1}/{epochs}, 가름개 잃음: {clf_loss.item():.4f}, "
+            print(f"시대 {epoch+1}/{epochs}, 분류기 잃음: {clf_loss.item():.4f}, "
                   f"맞수 잃음: {adv_loss.item():.4f}")
 
     return model

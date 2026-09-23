@@ -1,5 +1,5 @@
-# 가름개 없는 이끌기
-**가름개 없는 이끌기(CFG)**는 따로 가름개를 두지 않고 퍼짐 모델의 조건 만들어 내기 품질을 높이는 재주이다.
+# 분류기 없는 이끌기
+**분류기 없는 이끌기(CFG)**는 따로 분류기를 두지 않고 퍼짐 모델의 조건 만들어 내기 품질을 높이는 재주이다.
 
 ---
 
@@ -13,19 +13,19 @@
 - 조건 없는 표본만큼 또렷하지 않다
 - 자잘한 조건의 세부를 담지 못한다
 
-### 가름개 이끌기(앞선 방식)
+### 분류기 이끌기(앞선 방식)
 
-Dhariwal와 Nichol(2021)은 뽑기를 이끌려 가름개 $p_\phi(c|x_t)$을 쓰자고 했다.
+Dhariwal와 Nichol(2021)은 뽑기를 이끌려 분류기 $p_\phi(c|x_t)$을 쓰자고 했다.
 
 $$
 \tilde{\epsilon}(x_t, t, c) = \epsilon_\theta(x_t, t) - \sqrt{1-\bar{\alpha}_t} \nabla_{x_t} \log p_\phi(c|x_t)
 $$
 
-**한계**: 잡음 섞인 가름개를 익혀야 하고 걸음마다 기울기를 셈해야 한다.
+**한계**: 잡음 섞인 분류기를 익혀야 하고 걸음마다 기울기를 셈해야 한다.
 
 ---
 
-## 2. 가름개 없는 이끌기
+## 2. 분류기 없는 이끌기
 
 ### 핵심 생각(Ho와 Salimans, 2022)
 
@@ -65,7 +65,7 @@ $$
 \tilde{s}(x_t, t, c) = s(x_t, t) + w \cdot \nabla_{x_t} \log p(c|x_t)
 $$
 
-CFG는 가름개 기울기를 은근히 다음과 같이 셈한다.
+CFG는 분류기 기울기를 은근히 다음과 같이 셈한다.
 
 $$
 \nabla_{x_t} \log p(c|x_t) \propto \epsilon_\theta(x_t, t, c) - \epsilon_\theta(x_t, t, \varnothing)
@@ -83,7 +83,7 @@ $$
 
 ---
 
-## 4. 가름개 없는 이끌기로 익히기
+## 4. 분류기 없는 이끌기로 익히기
 
 ### 조건 떨구기
 
@@ -122,7 +122,7 @@ def training_step(model, x_0, condition, p_uncond=0.1):
 ### 알고리즘
 
 ```
-알고리즘: 가름개 없는 이끌기 뽑기
+알고리즘: 분류기 없는 이끌기 뽑기
 ───────────────────────
 들임: 모델 ε_θ, 조건 c, 이끌기 잣수 w
 
@@ -157,7 +157,7 @@ class CFGSampler:
     
     @torch.no_grad()
     def sample(self, shape, condition, null_condition, device, num_steps=50):
-        """가름개 없는 이끌기로 뽑는다."""
+        """분류기 없는 이끌기로 뽑는다."""
         x = torch.randn(shape, device=device)
         
         timesteps = self.get_timesteps(num_steps)
@@ -296,24 +296,24 @@ ImageNet 모델은 $w \approx 2-4$으로 CFG를 쓴다.
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-조건 퍼짐 모델에서 가름개 이끌기와 가름개 없는 이끌기의 차이를 설명하라.
+조건 퍼짐 모델에서 분류기 이끌기와 분류기 없는 이끌기의 차이를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    **가름개 이끌기**는 잡음을 아는 가름개 $p(y|x_t)$을 따로 익혀 점수를 $\tilde{s}(x_t) = s(x_t) + w \nabla_{x_t} \log p(y|x_t)$으로 고쳐 표본을 갈래 $y$ 쪽으로 이끈다. **가름개 없는 이끌기**는 조건 있는 모드와 없는 모드를 지닌 퍼짐 모델 하나를 익힌 뒤 $\tilde{\epsilon} = (1+w)\epsilon_\theta(x_t, y) - w \epsilon_\theta(x_t, \emptyset)$으로 아우른다. 가름개 없는 이끌기를 더 낫게 여기는 까닭은 (1) 따로 가름개가 필요 없고, (2) 가름개가 잡음 섞인 들임을 다루지 않아도 되며, (3) 어떤 조건 신호(글, 갈래, 그림)에도 통하고, (4) 실제로 품질 높은 표본을 내기 때문이다.
+    **분류기 이끌기**는 잡음을 아는 분류기 $p(y|x_t)$을 따로 익혀 점수를 $\tilde{s}(x_t) = s(x_t) + w \nabla_{x_t} \log p(y|x_t)$으로 고쳐 표본을 갈래 $y$ 쪽으로 이끈다. **분류기 없는 이끌기**는 조건 있는 모드와 없는 모드를 지닌 퍼짐 모델 하나를 익힌 뒤 $\tilde{\epsilon} = (1+w)\epsilon_\theta(x_t, y) - w \epsilon_\theta(x_t, \emptyset)$으로 아우른다. 분류기 없는 이끌기를 더 낫게 여기는 까닭은 (1) 따로 분류기가 필요 없고, (2) 분류기가 잡음 섞인 들임을 다루지 않아도 되며, (3) 어떤 조건 신호(글, 갈래, 그림)에도 통하고, (4) 실제로 품질 높은 표본을 내기 때문이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-점수 함수에 베이즈 규칙을 써서 가름개 없는 이끌기 공식을 이끌어 내라.
+점수 함수에 베이즈 규칙을 써서 분류기 없는 이끌기 공식을 이끌어 내라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    조건 점수는 $\nabla_x \log p(x_t|y) = \nabla_x \log p(x_t) + \nabla_x \log p(y|x_t)$이다. 은근한 가름개 기울기는 다음과 같다.
+    조건 점수는 $\nabla_x \log p(x_t|y) = \nabla_x \log p(x_t) + \nabla_x \log p(y|x_t)$이다. 은근한 분류기 기울기는 다음과 같다.
 
     $$\nabla_x \log p(y|x_t) = \nabla_x \log p(x_t|y) - \nabla_x \log p(x_t)$$
 
@@ -340,7 +340,7 @@ ImageNet 모델은 $w \approx 2-4$으로 CFG를 쓴다.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-익히는 동안 가름개 없는 이끌기를 어떻게 짜는가? 조건을 마구잡이로 떨구는 것이 왜 꼭 필요한가?
+익히는 동안 분류기 없는 이끌기를 어떻게 짜는가? 조건을 마구잡이로 떨구는 것이 왜 꼭 필요한가?
 
 </div>
 
@@ -349,4 +349,4 @@ ImageNet 모델은 $w \approx 2-4$으로 CFG를 쓴다.
 
 ## 정리하며
 
-가름개 없는 이끌기는 조건 없는 헤아림과 조건 있는 헤아림을 아울러 조건 만들어 내기를 높인다. 조건 떨구기로 익혀야 하고 추론 비용이 두 배가 되지만 표본 품질과 조건 힘을 크게 높인다. 이끌기 잣수 $w$이 충실함과 다양함의 맞바꿈을 다스리며 글에서 그림으로에서는 흔히 7.5 언저리를 쓴다.
+분류기 없는 이끌기는 조건 없는 헤아림과 조건 있는 헤아림을 아울러 조건 만들어 내기를 높인다. 조건 떨구기로 익혀야 하고 추론 비용이 두 배가 되지만 표본 품질과 조건 힘을 크게 높인다. 이끌기 잣수 $w$이 충실함과 다양함의 맞바꿈을 다스리며 글에서 그림으로에서는 흔히 7.5 언저리를 쓴다.

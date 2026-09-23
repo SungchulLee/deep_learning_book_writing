@@ -5,9 +5,9 @@
 """
 
 """
-맞겨루기 만들개 도구
+맞겨루기 생성기 도구
 
-이 단원은 맞겨루기 만들개를 익히고 그려 보고 따지는 도구 함수를 담는다.
+이 단원은 맞겨루기 생성기를 익히고 그려 보고 따지는 도구 함수를 담는다.
 """
 
 import torch
@@ -40,10 +40,10 @@ def weights_init(m):
 def save_samples(generator: nn.Module, epoch: int, device: str, 
                 fixed_noise: torch.Tensor, filename: str = None):
     """
-    만들개에서 보기 그림을 만들어 갈무리한다.
+    생성기에서 보기 그림을 만들어 갈무리한다.
     
     인수:
-        generator: 만들개 신경망
+        generator: 생성기 신경망
         epoch: 현재 에포크 번호
         device: 돌릴 장치
         fixed_noise: 한결같은 그림을 위한 붙박이 잡음
@@ -79,11 +79,11 @@ def save_samples(generator: nn.Module, epoch: int, device: str,
 def plot_training_progress(g_losses: List[float], d_losses: List[float],
                           filename: str = 'training_progress.png'):
     """
-    만들개와 가름개의 손실 곡선을 그린다.
+    생성기와 판별기의 손실 곡선을 그린다.
     
     인수:
-        g_losses: 만들개 손실 목록
-        d_losses: 가름개 손실 목록
+        g_losses: 생성기 손실 목록
+        d_losses: 판별기 손실 목록
         filename: 내놓을 파일 이름
     """
     plt.figure(figsize=(10, 5))
@@ -104,12 +104,12 @@ def plot_discriminator_outputs(discriminator: nn.Module, real_data: torch.Tensor
                                generator: nn.Module, noise: torch.Tensor,
                                device: str, filename: str = 'discriminator_outputs.png'):
     """
-    실제 자료와 가짜 자료에 대한 가름개 내놓기의 히스토그램을 그린다.
+    실제 자료와 가짜 자료에 대한 판별기 내놓기의 히스토그램을 그린다.
     
     인수:
-        discriminator: 가름개 신경망
+        discriminator: 판별기 신경망
         real_data: 실제 자료 표본
-        generator: 만들개 신경망
+        generator: 생성기 신경망
         noise: 가짜 표본을 만들 잡음
         device: 돌릴 장치
         filename: 내놓을 파일 이름
@@ -118,10 +118,10 @@ def plot_discriminator_outputs(discriminator: nn.Module, real_data: torch.Tensor
     generator.eval()
     
     with torch.no_grad():
-        # 실제 자료에 대한 가름개 내놓기를 얻는다
+        # 실제 자료에 대한 판별기 내놓기를 얻는다
         d_real = discriminator(real_data).cpu().numpy()
         
-        # 가짜 자료를 만들고 가름개 내놓기를 얻는다
+        # 가짜 자료를 만들고 판별기 내놓기를 얻는다
         fake_data = generator(noise)
         d_fake = discriminator(fake_data).cpu().numpy()
     
@@ -151,7 +151,7 @@ def interpolate_latent(generator: nn.Module, z1: torch.Tensor, z2: torch.Tensor,
     숨은 벡터 둘 사이를 메워 만든다.
     
     인수:
-        generator: 만들개 신경망
+        generator: 생성기 신경망
         z1: 첫째 숨은 벡터
         z2: 둘째 숨은 벡터
         steps: 사이 메우기 걸음 수
@@ -197,7 +197,7 @@ def generate_latent_grid(generator: nn.Module, latent_dim: int = 100,
     숨은 차원 둘을 바꾸어 표본 격자를 만든다.
     
     인수:
-        generator: 만들개 신경망
+        generator: 생성기 신경망
         latent_dim: 숨은 공간의 차원
         grid_size: 격자의 크기(grid_size x grid_size)
         device: 돌릴 장치
@@ -243,7 +243,7 @@ def generate_latent_grid(generator: nn.Module, latent_dim: int = 100,
 
 
 class GANLosses:
-    """여러 맞겨루기 만들개 손실 함수 모음."""
+    """여러 맞겨루기 생성기 손실 함수 모음."""
     
     @staticmethod
     def vanilla_gan_loss(d_real: torch.Tensor, d_fake: torch.Tensor,
@@ -252,8 +252,8 @@ class GANLosses:
         본디 GAN 잃음(두 갈래 엇갈린 엔트로피).
         
         인수:
-            d_real: 실제 자료에 대한 가름개 내놓기
-            d_fake: 가짜 자료에 대한 가름개 내놓기
+            d_real: 실제 자료에 대한 판별기 내놓기
+            d_fake: 가짜 자료에 대한 판별기 내놓기
             mode: 'discriminator'이나 'generator'
         
         반환값:
@@ -277,13 +277,13 @@ class GANLosses:
     @staticmethod
     def nonsaturating_loss(d_fake: torch.Tensor) -> torch.Tensor:
         """
-        포화하지 않는 만들개 손실.
+        포화하지 않는 생성기 손실.
         
         인수:
-            d_fake: 가짜 자료에 대한 가름개 내놓기
+            d_fake: 가짜 자료에 대한 판별기 내놓기
         
         반환값:
-            만들개 손실
+            생성기 손실
         """
         return -torch.mean(torch.log(d_fake + 1e-8))
     
@@ -291,11 +291,11 @@ class GANLosses:
     def wasserstein_loss(d_real: torch.Tensor, d_fake: torch.Tensor,
                         mode: str = 'discriminator') -> torch.Tensor:
         """
-        바서슈타인 맞겨루기 만들개 손실.
+        바서슈타인 맞겨루기 생성기 손실.
         
         인수:
-            d_real: 참 자료에 대한 가름개(비평가)의 내놓음
-            d_fake: 가짜 자료에 대한 가름개(비평가)의 내놓음
+            d_real: 참 자료에 대한 판별기(비평가)의 내놓음
+            d_fake: 가짜 자료에 대한 판별기(비평가)의 내놓음
             mode: 'discriminator'이나 'generator'
         
         반환값:
@@ -323,7 +323,7 @@ def label_smoothing(labels: torch.Tensor, smoothing: float = 0.1) -> torch.Tenso
 
 def add_noise_to_inputs(data: torch.Tensor, noise_std: float = 0.1) -> torch.Tensor:
     """
-    가름개 들임에 잡음을 더한다(익힘이 든든해진다).
+    판별기 들임에 잡음을 더한다(익힘이 든든해진다).
     
     인수:
         data: 들임 자료
@@ -343,7 +343,7 @@ def calculate_gradient_penalty(discriminator: nn.Module, real_data: torch.Tensor
     WGAN-GP의 기울기 벌점을 셈한다.
     
     인수:
-        discriminator: 가름개 신경망
+        discriminator: 판별기 신경망
         real_data: 실제 자료 표본
         fake_data: 만든 가짜 표본
         device: 돌릴 장치
@@ -360,7 +360,7 @@ def calculate_gradient_penalty(discriminator: nn.Module, real_data: torch.Tensor
     # 실제와 가짜 사이를 메운다
     interpolates = (alpha * real_data + (1 - alpha) * fake_data).requires_grad_(True)
     
-    # 가름개 내놓기를 얻는다
+    # 판별기 내놓기를 얻는다
     d_interpolates = discriminator(interpolates)
     
     # 기울기를 셈한다
@@ -389,10 +389,10 @@ def save_checkpoint(generator: nn.Module, discriminator: nn.Module,
     모델 되짚기 지점을 갈무리한다.
     
     인수:
-        generator: 만들개 신경망
-        discriminator: 가름개 신경망
-        g_optimizer: 만들개 가장 좋게 하개
-        d_optimizer: 가름개 가장 좋게 하개
+        generator: 생성기 신경망
+        discriminator: 판별기 신경망
+        g_optimizer: 생성기 가장 좋게 하개
+        d_optimizer: 판별기 가장 좋게 하개
         epoch: 현재 에포크
         filename: 되짚을 자리 파일 이름
     """
@@ -412,10 +412,10 @@ def load_checkpoint(generator: nn.Module, discriminator: nn.Module,
     모델 되짚기 지점을 불러온다.
     
     인수:
-        generator: 만들개 신경망
-        discriminator: 가름개 신경망
-        g_optimizer: 만들개 가장 좋게 하개
-        d_optimizer: 가름개 가장 좋게 하개
+        generator: 생성기 신경망
+        discriminator: 판별기 신경망
+        g_optimizer: 생성기 가장 좋게 하개
+        d_optimizer: 판별기 가장 좋게 하개
         filename: 되짚을 자리 파일 이름
         device: 불러올 기기
     

@@ -522,7 +522,7 @@ def average_drop_increase(
                얼마나 잦은가?
 
     Args:
-        model: 가름개 모형
+        model: 분류기 모형
         input_tensor: 본디 들임
         cam: 갈래 살아남 그림
         target_class: 겨눈 갈래 번호

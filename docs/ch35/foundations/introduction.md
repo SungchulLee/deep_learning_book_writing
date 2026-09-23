@@ -132,7 +132,7 @@ class GeneratedGraph:
         return self.num_edges / max_edges if max_edges > 0 else 0.0
 
 class GraphGenerator(ABC, nn.Module):
-    """그래프 만들개의 추상 바탕 갈래."""
+    """그래프 생성기의 추상 바탕 갈래."""
 
     def __init__(self, max_nodes: int, node_feature_dim: int = 0):
         super().__init__()

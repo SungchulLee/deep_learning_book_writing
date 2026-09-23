@@ -73,7 +73,7 @@
 
 - [CNN 그림 그리기와 쪼개기](model_specific/cnn_visualization.md) -- 겹친 그물을 위한 켜마다의 쓸모 퍼뜨리기와 DeepLIFT
 - [GNN 풀이 방법](model_specific/gnn_explanation.md) -- 그래프 신경 그물을 위한 GNNExplainer, PGExplainer, SubgraphX
-- [변환기 더듬기](model_specific/transformer_probing.md) -- 변환기의 숨은 나타냄을 살피는 더듬는 가름개와 BertViz
+- [변환기 더듬기](model_specific/transformer_probing.md) -- 변환기의 숨은 나타냄을 살피는 더듬는 분류기와 BertViz
 - [결 되돌리기](model_specific/feature_inversion.md) -- 가운데 나타냄에서 들임을 되세워 모형이 무엇을 보는지 드러내기
 
 ---

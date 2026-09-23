@@ -1,6 +1,6 @@
 # 밝혀 낸 든든함
 
-**밝혀 낸 든든함**은 정해진 반지름 안의 어떤 흔듦에도 가름개의 미루어 봄이 바뀌지 않음을 수학으로 다짐한다. 남다른 치기로 시험해 보는 겪은 막이와 달리, 밝혀 낸 막이는 있을 수 있는 모든 치기에 대해 **증명할 수 있는 다짐**을 준다.
+**밝혀 낸 든든함**은 정해진 반지름 안의 어떤 흔듦에도 분류기의 미루어 봄이 바뀌지 않음을 수학으로 다짐한다. 남다른 치기로 시험해 보는 겪은 막이와 달리, 밝혀 낸 막이는 있을 수 있는 모든 치기에 대해 **증명할 수 있는 다짐**을 준다.
 
 ---
 
@@ -19,9 +19,9 @@
 
 ### 고갱이 깨침
 
-**아무렇게나 매끄럽게 하기**(코언 등, 2019)은 가우스 잡음에 걸쳐 미루어 봄을 고르게 하여 어떤 가름개든 밝혀 낼 수 있게 든든한 것으로 바꾼다.
+**아무렇게나 매끄럽게 하기**(코언 등, 2019)은 가우스 잡음에 걸쳐 미루어 봄을 고르게 하여 어떤 분류기든 밝혀 낼 수 있게 든든한 것으로 바꾼다.
 
-밑 가름개 $f: \mathbb{R}^d \to \mathcal{Y}$이 있을 때 **매끄럽게 한 가름개**을 짓는다.
+밑 분류기 $f: \mathbb{R}^d \to \mathcal{Y}$이 있을 때 **매끄럽게 한 분류기**을 짓는다.
 
 $$
 g(\mathbf{x}) = \arg\max_c \mathbb{P}_{\boldsymbol{\epsilon} \sim \mathcal{N}(0, \sigma^2 I)}[f(\mathbf{x} + \boldsymbol{\epsilon}) = c]
@@ -31,7 +31,7 @@ $$
 
 ### 밝히기 정리
 
-**정리(코언 등, 2019):** 매끄럽게 한 가름개 $g$이 들임 $\mathbf{x}$에서 갈래 $c_A$을 낌새 $p_A$으로 미루어 보고, 다음 갈래 $c_B$의 낌새가 $p_B$이면, $g(\mathbf{x}) = c_A$은 다음 $\ell_2$ 반지름 안에서 밝혀 낸 든든함을 지닌다.
+**정리(코언 등, 2019):** 매끄럽게 한 분류기 $g$이 들임 $\mathbf{x}$에서 갈래 $c_A$을 낌새 $p_A$으로 미루어 보고, 다음 갈래 $c_B$의 낌새가 $p_B$이면, $g(\mathbf{x}) = c_A$은 다음 $\ell_2$ 반지름 안에서 밝혀 낸 든든함을 지닌다.
 
 $$
 R = \frac{\sigma}{2}\left(\Phi^{-1}(p_A) - \Phi^{-1}(p_B)\right)
@@ -99,7 +99,7 @@ class RandomizedSmoothing:
     Parameters
     ----------
     base_classifier : nn.Module
-        매끄럽게 할 밑 가름개
+        매끄럽게 할 밑 분류기
     sigma : float
         가우스 잡음의 잣대 어긋남
         σ이 클수록 밝혀 낸 반지름은 크고 맞음은 낮다
@@ -321,7 +321,7 @@ class RandomizedSmoothing:
 
 class SmoothClassifier(nn.Module):
     """
-    익힘과 미루어 봄에서 가름개를 매끄럽게 해 주는 감싸개.
+    익힘과 미루어 봄에서 분류기를 매끄럽게 해 주는 감싸개.
     """
     
     def __init__(self, base_classifier: nn.Module, sigma: float, num_samples: int = 1):
@@ -363,7 +363,7 @@ import torchvision.transforms as transforms
 base_model = torchvision.models.resnet18(num_classes=10)
 base_model.load_state_dict(torch.load('cifar10_resnet18.pth'))
 
-# 매끄럽게 한 가름개를 만든다
+# 매끄럽게 한 분류기를 만든다
 smoother = RandomizedSmoothing(base_model, sigma=0.25)
 
 # 시험 자료를 얹는다
@@ -507,12 +507,12 @@ $\underline{z}_y > \max_{i \neq y} \overline{z}_i$이면 그 미루어 봄은 �
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
+선형 분류기 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
+    선형 분류기에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
@@ -536,7 +536,7 @@ $\underline{z}_y > \max_{i \neq y} \overline{z}_i$이면 그 미루어 봄은 �
 </div>
 
 ??? success "연습문제 3 풀이"
-    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
 
 ---
 
