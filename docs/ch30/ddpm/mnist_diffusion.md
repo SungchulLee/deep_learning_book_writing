@@ -1,14 +1,14 @@
-# MNIST 퍼짐 모델
+# MNIST 확산 모델
 
-이 단원은 요즘 만들어 내는 모델의 핵심 부품인 mnist 퍼짐 모델을 짠다. 여기서 보이는 개념과 재주를 알면 퍼짐 모델과 점수 바탕 만들어 내는 방법을 다루는 데 꼭 필요한 앎을 얻는다. 이 짜기는 또렷함과 실제 쓸모의 균형을 맞추어 배우기에도 실험하기에도 알맞다.
+이 단원은 요즘 만들어 내는 모델의 핵심 부품인 mnist 확산 모델을 짠다. 여기서 보이는 개념과 재주를 알면 확산 모델과 점수 바탕 만들어 내는 방법을 다루는 데 꼭 필요한 앎을 얻는다. 이 짜기는 또렷함과 실제 쓸모의 균형을 맞추어 배우기에도 실험하기에도 알맞다.
 
 ## 1. 코드
 
 ```python
 """
-MNIST 퍼짐 모델
+MNIST 확산 모델
 
-MNIST 숫자 만들어 내기를 위한 퍼짐 모델의 온전한 짜기.
+MNIST 숫자 만들어 내기를 위한 확산 모델의 온전한 짜기.
 학부생을 위한 그럴듯한 그림 만들어 내기 보기를 준다.
 """
 
@@ -36,7 +36,7 @@ from unet_architecture import SimpleUNet
 
 class MNISTDiffusion:
     """
-    MNIST 퍼짐 모델의 익히기와 뽑기를 감싸는 갈래.
+    MNIST 확산 모델의 익히기와 뽑기를 감싸는 갈래.
     """
     
     def __init__(self, 
@@ -46,7 +46,7 @@ class MNISTDiffusion:
                  device: str = None):
         """
         인수:
-            timesteps: 퍼짐 때 걸음 수
+            timesteps: 확산 때 걸음 수
             batch_size: 익히기 배치 크기
             learning_rate: 최적화기의 학습률
             device: 익힐 장치('cuda' 또는 'cpu')
@@ -62,7 +62,7 @@ class MNISTDiffusion:
         
         print(f"Using device: {self.device}")
         
-        # 퍼짐 매개변수를 채비한다
+        # 확산 매개변수를 채비한다
         betas = cosine_beta_schedule(timesteps)
         self.diffusion_params = get_diffusion_parameters(betas)
         
@@ -195,7 +195,7 @@ class MNISTDiffusion:
     
     def train(self, epochs: int, save_interval: int = 10):
         """
-        퍼짐 모델을 익힌다.
+        확산 모델을 익힌다.
         
         인수:
             epochs: 학습 에포크 수
@@ -270,13 +270,13 @@ class MNISTDiffusion:
 
 def main():
     """
-    MNIST 퍼짐의 으뜸 익히기 대본.
+    MNIST 확산의 으뜸 익히기 대본.
     """
     print("=" * 50)
     print("MNIST Diffusion Model Training")
     print("=" * 50)
     
-    # 퍼짐 모델을 첫자리매김한다
+    # 확산 모델을 첫자리매김한다
     mnist_diffusion = MNISTDiffusion(
         timesteps=1000,
         batch_size=128,
@@ -303,7 +303,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-mnist 퍼짐 모델의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.
+mnist 확산 모델의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.
 
 이 짜기의 핵심에는 수치의 안정을 꼼꼼히 다루기, 고르게 맞추기 재주를 제대로 쓰기, 효율 좋은 셈 결이 든다. 익히기 절차에는 잡음 차례표, 기울기 다루기, 이따금의 따지기가 들며 모두 품질 높은 결과를 내는 데 결정적이다.
 
@@ -331,7 +331,7 @@ mnist 퍼짐 모델의 짜기는 이 마당에 자리 잡은 방식을 따른다
 </div>
 
 ??? success "연습문제 2 풀이"
-    손실 함수는 모델이 헤아린 값과 목표 사이의 어긋남을 잰다. 잡음 헤아리기에서는 평균 제곱 어긋남 손실 $\|\epsilon - \epsilon_\theta(x_t, t)\|^2$을 쓰는데, 이것이 로그 가능도의 변분 아래 한계에 맞물리기 때문이다. 매개변수 $\theta$에 대한 기울기는 $-2(\epsilon - \epsilon_\theta) \nabla_\theta \epsilon_\theta$이며 헤아림 어긋남을 줄이는 방향을 가리킨다. 이 손실을 가장 작게 하는 것이 퍼짐 모델에서 자료 로그 가능도의 아래 한계를 가장 크게 하는 것과 같으므로 알맞다.
+    손실 함수는 모델이 헤아린 값과 목표 사이의 어긋남을 잰다. 잡음 헤아리기에서는 평균 제곱 어긋남 손실 $\|\epsilon - \epsilon_\theta(x_t, t)\|^2$을 쓰는데, 이것이 로그 가능도의 변분 아래 한계에 맞물리기 때문이다. 매개변수 $\theta$에 대한 기울기는 $-2(\epsilon - \epsilon_\theta) \nabla_\theta \epsilon_\theta$이며 헤아림 어긋남을 줄이는 방향을 가리킨다. 이 손실을 가장 작게 하는 것이 확산 모델에서 자료 로그 가능도의 아래 한계를 가장 크게 하는 것과 같으므로 알맞다.
 
 ---
 
@@ -347,8 +347,8 @@ mnist 퍼짐 모델의 짜기는 이 마당에 자리 잡은 방식을 따른다
 
 ## 정리하며
 
-**다룬 것** — MNIST 퍼짐 모델
+**다룬 것** — MNIST 확산 모델
 
-mnist 퍼짐 모델의 짜기는 이 마당에 자리 잡은 방식을 따른다.
+mnist 확산 모델의 짜기는 이 마당에 자리 잡은 방식을 따른다.
 
 고갱이 갈래는 `MNISTDiffusion`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

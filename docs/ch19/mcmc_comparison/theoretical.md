@@ -134,7 +134,7 @@ $\epsilon \sim d^{-1/4}$이고 $L \sim d^{1/4}$일 때.
 **정리**: 제안이 $\mathcal{N}(x, \sigma^2/d \cdot I)$인 곱 과녁 $\pi(x) = \prod_{i=1}^d f(x_i)$에서 $d \to \infty$이면:
 
 1. 가장 좋은 받아들임 비율은 $\alpha^* = 0.234$이다
-2. 퍼짐 극한은 $dX_t = h(\alpha)^{1/2} dW_t$이다
+2. 확산 극한은 $dX_t = h(\alpha)^{1/2} dW_t$이다
 3. 효율 $h(\alpha)$은 $\alpha = 0.234$에서 가장 크다
 
 ### 방법마다 가장 좋은 받아들임 비율

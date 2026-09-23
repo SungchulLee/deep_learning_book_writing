@@ -682,7 +682,7 @@ nav:
         - 온전한 따지기 보기: ch29/gan_evaluation/complete_evaluation_example.md
       - 29.5 맞겨루기 튼튼함:
         - 공격: ch29/adversarial_robustness/attacks.md
-    - 30 퍼짐 모델:
+    - 30 확산 모델:
       - 장 살펴보기: ch30/index.md
       - 30.1 바탕:
         - 뒤 과정: ch30/foundations/reverse_process.md
@@ -705,25 +705,25 @@ nav:
         - 점수 확률 미분 방정식: ch30/score_based/08_score_sde.md
         - U-Net으로 그림 만들어 내기: ch30/score_based/09_image_generation_unet.md
         - 그림 만들어 내기: ch30/score_based/09_image_generation.md
-        - 퍼짐과의 온전한 이음: ch30/score_based/10_complete_diffusion_connection.md
+        - 확산과의 온전한 이음: ch30/score_based/10_complete_diffusion_connection.md
         - 나아간 쓰임새: ch30/score_based/10_advanced_applications.md
-      - 30.3 잡음 없애는 퍼짐 확률 모델:
+      - 30.3 잡음 없애는 확산 확률 모델:
         - 잡음 차례표: ch30/ddpm/noise_schedule.md
         - 뽑기: ch30/ddpm/sampling.md
         - DDPM 장난감: ch30/ddpm/01_ddpm_toy.md
         - DDPM: ch30/ddpm/02_ddpm.md
         - 조건 DDPM: ch30/ddpm/03_conditional_ddpm.md
         - DDIM 빠른 뽑기: ch30/ddpm/04_ddim_fast_sampling.md
-        - 숨은 자리 퍼짐: ch30/ddpm/05_latent_diffusion.md
+        - 숨은 자리 확산: ch30/ddpm/05_latent_diffusion.md
         - 방법 견주기: ch30/ddpm/compare_methods.md
-        - 퍼짐 도구: ch30/ddpm/diffusion_utils.md
+        - 확산 도구: ch30/ddpm/diffusion_utils.md
         - 뽑기 보기: ch30/ddpm/example_sample.md
         - 익히기 보기: ch30/ddpm/example_train.md
-        - MNIST 퍼짐: ch30/ddpm/mnist_diffusion.md
-        - 단순한 퍼짐: ch30/ddpm/simple_diffusion.md
+        - MNIST 확산: ch30/ddpm/mnist_diffusion.md
+        - 단순한 확산: ch30/ddpm/simple_diffusion.md
         - U-Net 얼개: ch30/ddpm/unet_architecture.md
-      - 30.4 잡음 없애는 퍼짐 암시 모델:
-        - 잡음 없애는 퍼짐 암시 모델 바탕: ch30/ddim/fundamentals.md
+      - 30.4 잡음 없애는 확산 암시 모델:
+        - 잡음 없애는 확산 암시 모델 바탕: ch30/ddim/fundamentals.md
       - 30.5 조건 만들어 내기:
         - 판별기 없는 이끌기: ch30/conditional/classifier_free.md
       - 30.6 따지기:
@@ -924,7 +924,7 @@ nav:
         - 랑주뱅의 바탕: ch19/langevin/fundamentals.md
         - 다듬지 않은 랑주뱅: ch19/langevin/ula.md
         - 메트로폴리스로 다듬은 랑주뱅 알고리즘: ch19/langevin/mala.md
-        - 점수 맞추기와 퍼짐 모형: ch19/langevin/score_and_diffusion.md
+        - 점수 맞추기와 확산 모형: ch19/langevin/score_and_diffusion.md
       - 19.8 어림 베이즈 셈하기:
         - 가능도 없는 추론: ch19/abc/likelihood_free.md
         - ABC 물리치기 표집: ch19/abc/rejection_sampling.md
@@ -1203,10 +1203,10 @@ nav:
         - 이웃 행렬: ch35/one_shot/adjacency.md
         - GraphGAN: ch35/one_shot/graphgan.md
         - GraphVAE: ch35/one_shot/graphvae.md
-      - 35.4 퍼짐:
+      - 35.4 확산:
         - DiGress: ch35/diffusion/digress.md
         - GDSS: ch35/diffusion/gdss.md
-        - 그래프 퍼짐: ch35/diffusion/graph_diffusion.md
+        - 그래프 확산: ch35/diffusion/graph_diffusion.md
       - 35.5 금융:
         - 거래: ch35/finance/transactions.md
   - VIII 힘 북돋우는 배움:

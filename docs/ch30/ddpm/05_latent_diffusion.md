@@ -1,15 +1,15 @@
-# 숨은 퍼짐
+# 숨은 확산
 
-이 단원은 요즘 만들어 내는 모델의 핵심 부품인 숨은 퍼짐을 짠다. 여기서 보이는 개념과 재주를 알면 퍼짐 모델과 점수 바탕 만들어 내는 방법을 다루는 데 꼭 필요한 앎을 얻는다. 이 짜기는 또렷함과 실제 쓸모의 균형을 맞추어 배우기에도 실험하기에도 알맞다.
+이 단원은 요즘 만들어 내는 모델의 핵심 부품인 숨은 확산을 짠다. 여기서 보이는 개념과 재주를 알면 확산 모델과 점수 바탕 만들어 내는 방법을 다루는 데 꼭 필요한 앎을 얻는다. 이 짜기는 또렷함과 실제 쓸모의 균형을 맞추어 배우기에도 실험하기에도 알맞다.
 
 ## 1. 코드
 
 ```python
-"""숨은 퍼짐."""
+"""숨은 확산."""
 # ==========================================
-# 숨은 퍼짐 모델(LDM)
+# 숨은 확산 모델(LDM)
 # - Stable Diffusion의 핵심 생각
-# - 누른 숨은 공간에서의 퍼짐(화소 공간이 아님)
+# - 누른 숨은 공간에서의 확산(화소 공간이 아님)
 # - 훨씬 효율이 좋다: 익히기와 뽑기가 빠르다
 # - Rombach 외, 2022
 # ==========================================
@@ -33,7 +33,7 @@ LATENT_SCALE = 4        # 공간 줄이기 갑절
 BATCH_SIZE = 128
 LR = 2e-4
 EPOCHS_VAE = 10         # 먼저 오토인코더를 익힌다
-EPOCHS_DIFF = 5         # 그런 다음 퍼짐을 익힌다
+EPOCHS_DIFF = 5         # 그런 다음 확산을 익힌다
 T = 1000
 BASE_CH = 64
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -107,7 +107,7 @@ class VAE(nn.Module):
         return self.decoder(z)
 
 # ==========================================
-# 2) 숨은 퍼짐 U-Net
+# 2) 숨은 확산 U-Net
 #    (누른 숨은 공간에서 돈다)
 # ==========================================
 class SinusoidalPosEmb(nn.Module):
@@ -206,7 +206,7 @@ class LatentUNet(nn.Module):
         return self.out_conv(F.silu(self.out_norm(h)))
 
 # ==========================================
-# 3) 숨은 퍼짐 과정
+# 3) 숨은 확산 과정
 # ==========================================
 def cosine_beta_schedule(timesteps, s=0.008):
     steps = timesteps + 1
@@ -221,14 +221,14 @@ def extract(a, t, x_shape):
     return out.reshape(-1, *([1] * (len(x_shape) - 1)))
 
 class LatentDiffusion(nn.Module):
-    """숨은 공간의 퍼짐 모델"""
+    """숨은 공간의 확산 모델"""
     def __init__(self, vae, unet, timesteps=T):
         super().__init__()
         self.vae = vae
         self.unet = unet
         self.timesteps = timesteps
         
-        # 퍼짐 익히기 동안 변분 오토인코더를 얼린다
+        # 확산 익히기 동안 변분 오토인코더를 얼린다
         for param in self.vae.parameters():
             param.requires_grad = False
         
@@ -363,7 +363,7 @@ def train_vae(vae, loader, epochs):
         print(f"[VAE Epoch {epoch}] Recon: {running_recon/len(loader):.4f}, KL: {running_kl/len(loader):.4f}")
 
 def train_latent_diffusion(ldm, loader, epochs):
-    """그런 다음 숨은 공간에서 퍼짐을 익힌다"""
+    """그런 다음 숨은 공간에서 확산을 익힌다"""
     print("\n" + "="*60)
     print("STAGE 2: Training Latent Diffusion")
     print("="*60)
@@ -403,10 +403,10 @@ def main():
     # 먼저 오토인코더를 익힌다
     train_vae(vae, loader, EPOCHS_VAE)
     
-    # 숨은 퍼짐 모델을 만든다
+    # 숨은 확산 모델을 만든다
     ldm = LatentDiffusion(vae, unet, timesteps=T).to(DEVICE)
     
-    # 숨은 공간에서 퍼짐을 익힌다
+    # 숨은 공간에서 확산을 익힌다
     train_latent_diffusion(ldm, loader, EPOCHS_DIFF)
     
     # 표본 만들기
@@ -430,7 +430,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-숨은 퍼짐의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.
+숨은 확산의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.
 
 이 짜기의 핵심에는 수치의 안정을 꼼꼼히 다루기, 고르게 맞추기 재주를 제대로 쓰기, 효율 좋은 셈 결이 든다. 익히기 절차에는 잡음 차례표, 기울기 다루기, 이따금의 따지기가 들며 모두 품질 높은 결과를 내는 데 결정적이다.
 
@@ -458,7 +458,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "연습문제 2 풀이"
-    손실 함수는 모델이 헤아린 값과 목표 사이의 어긋남을 잰다. 잡음 헤아리기에서는 평균 제곱 어긋남 손실 $\|\epsilon - \epsilon_\theta(x_t, t)\|^2$을 쓰는데, 이것이 로그 가능도의 변분 아래 한계에 맞물리기 때문이다. 매개변수 $\theta$에 대한 기울기는 $-2(\epsilon - \epsilon_\theta) \nabla_\theta \epsilon_\theta$이며 헤아림 어긋남을 줄이는 방향을 가리킨다. 이 손실을 가장 작게 하는 것이 퍼짐 모델에서 자료 로그 가능도의 아래 한계를 가장 크게 하는 것과 같으므로 알맞다.
+    손실 함수는 모델이 헤아린 값과 목표 사이의 어긋남을 잰다. 잡음 헤아리기에서는 평균 제곱 어긋남 손실 $\|\epsilon - \epsilon_\theta(x_t, t)\|^2$을 쓰는데, 이것이 로그 가능도의 변분 아래 한계에 맞물리기 때문이다. 매개변수 $\theta$에 대한 기울기는 $-2(\epsilon - \epsilon_\theta) \nabla_\theta \epsilon_\theta$이며 헤아림 어긋남을 줄이는 방향을 가리킨다. 이 손실을 가장 작게 하는 것이 확산 모델에서 자료 로그 가능도의 아래 한계를 가장 크게 하는 것과 같으므로 알맞다.
 
 ---
 
@@ -474,8 +474,8 @@ if __name__ == "__main__":
 
 ## 정리하며
 
-**다룬 것** — 숨은 퍼짐
+**다룬 것** — 숨은 확산
 
-숨은 퍼짐의 짜기는 이 마당에 자리 잡은 방식을 따른다.
+숨은 확산의 짜기는 이 마당에 자리 잡은 방식을 따른다.
 
 고갱이 갈래는 `Encoder`, `Decoder`, `VAE`, `SinusoidalPosEmb`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

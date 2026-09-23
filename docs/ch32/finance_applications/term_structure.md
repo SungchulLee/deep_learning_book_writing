@@ -80,7 +80,7 @@ $$\mathcal{L} = \sum_{t} \sum_{\tau} (y(\tau, t) - \hat{y}(\tau, t))^2$$
 </div>
 
 ??? success "연습문제 2 풀이"
-    HJM 아래에서 선도 이자율의 떠돎은 $\alpha(t, T) = \sigma(t, T)\int_t^T \sigma(t, s)\,ds$을 만족해야 한다. 떠돎 $\mu_\theta$과 퍼짐 $\sigma_\theta$을 가진 신경 상미분 방정식에서는 $\mu_\theta(f, t, T) = \sigma_\theta(f, t, T)\int_t^T \sigma_\theta(f, t, s)\,ds$이라는 제약이 된다. 지키는 방법: $\sigma_\theta$만 매개변수로 두고 제약에서 $\mu_\theta$을 셈하거나, 손실에 벌점 항을 더한다. $\square$
+    HJM 아래에서 선도 이자율의 떠돎은 $\alpha(t, T) = \sigma(t, T)\int_t^T \sigma(t, s)\,ds$을 만족해야 한다. 떠돎 $\mu_\theta$과 확산 $\sigma_\theta$을 가진 신경 상미분 방정식에서는 $\mu_\theta(f, t, T) = \sigma_\theta(f, t, T)\int_t^T \sigma_\theta(f, t, s)\,ds$이라는 제약이 된다. 지키는 방법: $\sigma_\theta$만 매개변수로 두고 제약에서 $\mu_\theta$을 셈하거나, 손실에 벌점 항을 더한다. $\square$
 
 ---
 
@@ -92,7 +92,7 @@ $$\mathcal{L} = \sum_{t} \sum_{\tau} (y(\tau, t) - \hat{y}(\tau, t))^2$$
 </div>
 
 ??? success "연습문제 3 풀이"
-    바시체크($dr = \kappa(\theta - r)dt + \sigma dW$)와 CIR($\sigma\sqrt{r}$ 퍼짐)은 매개변수가 붙박여 있다. 신경 상미분 방정식은 떠돎과 퍼짐을 신경망 $f_\theta(r, t)$과 $g_\theta(r, t)$으로 바꾸어 때에 따라 달라지는 평균 되돌림과 상태에 매인 변동성을 배운다. 국면 바뀜에서는 신경망이 드러난 갈아 듦 없이 여러 국면을 은근히 나타내지만, 지나치게 맞는 것을 막으려면 자료와 규칙 세우기가 더 필요하다. $\square$
+    바시체크($dr = \kappa(\theta - r)dt + \sigma dW$)와 CIR($\sigma\sqrt{r}$ 확산)은 매개변수가 붙박여 있다. 신경 상미분 방정식은 떠돎과 확산을 신경망 $f_\theta(r, t)$과 $g_\theta(r, t)$으로 바꾸어 때에 따라 달라지는 평균 되돌림과 상태에 매인 변동성을 배운다. 국면 바뀜에서는 신경망이 드러난 갈아 듦 없이 여러 국면을 은근히 나타내지만, 지나치게 맞는 것을 막으려면 자료와 규칙 세우기가 더 필요하다. $\square$
 
 ---
 

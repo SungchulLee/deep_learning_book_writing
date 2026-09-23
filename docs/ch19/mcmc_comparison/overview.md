@@ -180,7 +180,7 @@ $$
 x₀ → x₁ → x₂ → x₃ → ... → xₗ
      MH   MH   MH        MH
 ```
-전체 거리: $\mathcal{O}(\sqrt{L}\epsilon)$(퍼짐 커짐새)
+전체 거리: $\mathcal{O}(\sqrt{L}\epsilon)$(확산 커짐새)
 
 *HMC($L$ 걸음짜리 자취 하나)*:
 ```

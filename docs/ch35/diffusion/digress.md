@@ -1,10 +1,10 @@
-# DiGress: 그래프 만들기를 위한 띄엄띄엄 잡소리 없애기 퍼짐
+# DiGress: 그래프 만들기를 위한 띄엄띄엄 잡소리 없애기 확산
 
-DiGress(Vignac et al., 2023)은 갈래로 나뉜 마디와 변의 갈래에서 잡소리를 한꺼번에 없애 그래프를 만드는 띄엄띄엄 퍼짐 모델이다. 이어진 값으로 느슨히 하는 길과 달리 DiGress은 갈래 퍼짐 과정을 써서 띄엄띄엄한 그래프 얼개에서 그대로 돈다. 잡소리 없애는 그물로 그래프 트랜스포머를 쓰고 그래프에 맞게 설계한 잡소리 모형을 내놓아, 만들기 품질을 높이는 빨아들이는 상태와 주변 분포를 담는다. DiGress은 분자와 일반 그래프 만들기 잣대에서 가장 앞선 결과를 낸다.
+DiGress(Vignac et al., 2023)은 갈래로 나뉜 마디와 변의 갈래에서 잡소리를 한꺼번에 없애 그래프를 만드는 띄엄띄엄 확산 모델이다. 이어진 값으로 느슨히 하는 길과 달리 DiGress은 갈래 확산 과정을 써서 띄엄띄엄한 그래프 얼개에서 그대로 돈다. 잡소리 없애는 그물로 그래프 트랜스포머를 쓰고 그래프에 맞게 설계한 잡소리 모형을 내놓아, 만들기 품질을 높이는 빨아들이는 상태와 주변 분포를 담는다. DiGress은 분자와 일반 그래프 만들기 잣대에서 가장 앞선 결과를 낸다.
 
 ---
 
-## 1. 그래프 위의 띄엄띄엄 퍼짐
+## 1. 그래프 위의 띄엄띄엄 확산
 
 DiGress에서 그래프는 $\mathcal{G} = (\mathbf{X}, \mathbf{E})$으로 나타내며, $\mathbf{X} \in \{0, \ldots, a\}^n$은 갈래 마디 갈래($a$개 갈래에 "없음" 갈래 하나)이고 $\mathbf{E} \in \{0, \ldots, b\}^{n \times n}$은 갈래 변 갈래($b$개 갈래에 "변 없음")이다.
 
@@ -102,7 +102,7 @@ $$
 
 ## 3. 익히기 손실
 
-띄엄띄엄 퍼짐의 변분 아래 가둠은 걸음마다의 쿨백-라이블러 어긋남으로 쪼개진다:
+띄엄띄엄 확산의 변분 아래 가둠은 걸음마다의 쿨백-라이블러 어긋남으로 쪼개진다:
 
 $$
 \mathcal{L}_{\text{VLB}} = \sum_{t=1}^{T} \mathbb{E}_{q(\mathcal{G}_t \mid \mathcal{G}_0)} \left[ D_{\text{KL}}(q(\mathcal{G}_{t-1} \mid \mathcal{G}_t, \mathcal{G}_0) \| p_\theta(\mathcal{G}_{t-1} \mid \mathcal{G}_t)) \right]
@@ -120,7 +120,7 @@ $$
 
 ```python
 """
-DiGress: 그래프 만들기의 띄엄띄엄 잡소리 없애기 퍼짐.
+DiGress: 그래프 만들기의 띄엄띄엄 잡소리 없애기 확산.
 """
 import torch
 import torch.nn as nn
@@ -128,7 +128,7 @@ import torch.nn.functional as F
 import math
 
 class CategoricalDiffusion:
-    """마디와 변의 갈래 퍼짐 과정."""
+    """마디와 변의 갈래 확산 과정."""
 
     def __init__(
         self,
@@ -380,7 +380,7 @@ if __name__ == "__main__":
     e_0 = torch.triu(e_0, diagonal=1)
     e_0 = e_0 + e_0.transpose(1, 2)
 
-    # 갈래 퍼짐
+    # 갈래 확산
     node_marg = torch.tensor([0.6, 0.3, 0.1])
     edge_marg = torch.tensor([0.7, 0.2, 0.1])
     diffusion = CategoricalDiffusion(
@@ -512,4 +512,4 @@ Done. DiGress training framework operational.
 
 ## 정리하며
 
-이 마당은 그래프 위의 띄엄띄엄 퍼짐, 그래프 트랜스포머 잡소리 없애개, 익히기 손실, 짜기: DiGress의 핵심 조각을 차례로 짚었다.
+이 마당은 그래프 위의 띄엄띄엄 확산, 그래프 트랜스포머 잡소리 없애개, 익히기 손실, 짜기: DiGress의 핵심 조각을 차례로 짚었다.

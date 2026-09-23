@@ -5,9 +5,9 @@
 """
 
 """
-MNIST 퍼짐 모델
+MNIST 확산 모델
 
-MNIST 숫자 만들어 내기를 위한 퍼짐 모델의 온전한 짜기.
+MNIST 숫자 만들어 내기를 위한 확산 모델의 온전한 짜기.
 학부생을 위한 그럴듯한 그림 만들어 내기 보기를 준다.
 """
 
@@ -35,7 +35,7 @@ from unet_architecture import SimpleUNet
 
 class MNISTDiffusion:
     """
-    MNIST 퍼짐 모델의 익히기와 뽑기를 감싸는 갈래.
+    MNIST 확산 모델의 익히기와 뽑기를 감싸는 갈래.
     """
     
     def __init__(self, 
@@ -45,7 +45,7 @@ class MNISTDiffusion:
                  device: str = None):
         """
         인수:
-            timesteps: 퍼짐 때 걸음 수
+            timesteps: 확산 때 걸음 수
             batch_size: 익히기 배치 크기
             learning_rate: 최적화기의 학습률
             device: 익힐 장치('cuda' 또는 'cpu')
@@ -61,7 +61,7 @@ class MNISTDiffusion:
         
         print(f"Using device: {self.device}")
         
-        # 퍼짐 매개변수를 채비한다
+        # 확산 매개변수를 채비한다
         betas = cosine_beta_schedule(timesteps)
         self.diffusion_params = get_diffusion_parameters(betas)
         
@@ -194,7 +194,7 @@ class MNISTDiffusion:
     
     def train(self, epochs: int, save_interval: int = 10):
         """
-        퍼짐 모델을 익힌다.
+        확산 모델을 익힌다.
         
         인수:
             epochs: 학습 에포크 수
@@ -269,13 +269,13 @@ class MNISTDiffusion:
 
 def main():
     """
-    MNIST 퍼짐의 으뜸 익히기 대본.
+    MNIST 확산의 으뜸 익히기 대본.
     """
     print("=" * 50)
     print("MNIST Diffusion Model Training")
     print("=" * 50)
     
-    # 퍼짐 모델을 첫자리매김한다
+    # 확산 모델을 첫자리매김한다
     mnist_diffusion = MNISTDiffusion(
         timesteps=1000,
         batch_size=128,

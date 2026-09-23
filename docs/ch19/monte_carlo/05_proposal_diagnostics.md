@@ -189,7 +189,7 @@ class ProposalDiagnostics:
         top_10pct_idx = sorted_indices[:int(0.1 * len(samples))]
         top_samples = samples[top_10pct_idx]
         
-        # 위쪽 표본의 퍼짐
+        # 위쪽 표본의 확산
         top_spread = np.std(top_samples)
         
         return {

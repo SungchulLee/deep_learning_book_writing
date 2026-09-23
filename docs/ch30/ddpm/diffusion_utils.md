@@ -1,13 +1,13 @@
-# 퍼짐 도구
+# 확산 도구
 
-이 단원은 요즘 만들어 내는 모델의 핵심 부품인 퍼짐 도구를 짠다. 여기서 보이는 개념과 재주를 알면 퍼짐 모델과 점수 바탕 만들어 내는 방법을 다루는 데 꼭 필요한 앎을 얻는다. 이 짜기는 또렷함과 실제 쓸모의 균형을 맞추어 배우기에도 실험하기에도 알맞다.
+이 단원은 요즘 만들어 내는 모델의 핵심 부품인 확산 도구를 짠다. 여기서 보이는 개념과 재주를 알면 확산 모델과 점수 바탕 만들어 내는 방법을 다루는 데 꼭 필요한 앎을 얻는다. 이 짜기는 또렷함과 실제 쓸모의 균형을 맞추어 배우기에도 실험하기에도 알맞다.
 
 ## 1. 코드
 
 ```python
-"""퍼짐 도구."""
+"""확산 도구."""
 # ============================================================================
-# diffusion_utils.py - 퍼짐 모델의 수학 바탕
+# diffusion_utils.py - 확산 모델의 수학 바탕
 # ============================================================================
 
 import matplotlib.pyplot as plt
@@ -16,20 +16,20 @@ import torch
 import torch.nn as nn
 
 """
-퍼짐 모델 도구 - 핵심 개념
+확산 모델 도구 - 핵심 개념
 ==========================================
 
-이 단원은 퍼짐 모델의 수학 엔진을 담는다.
+이 단원은 확산 모델의 수학 엔진을 담는다.
 
 고갱이 조각:
 ---------------
 1. 잡음 일정: 때 걸음마다 잡음을 얼마나 더할지 매긴다(β_t)
-2. 퍼짐 매개변수: 효율을 위해 미리 셈한 수학 상수
-3. 앞 퍼짐: 닫힌 꼴 공식으로 잡음 더하기
+2. 확산 매개변수: 효율을 위해 미리 셈한 수학 상수
+3. 앞 확산: 닫힌 꼴 공식으로 잡음 더하기
    x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε
-4. 뒤 퍼짐: 잡음을 거듭 걷어 낸다(만들기)
+4. 뒤 확산: 잡음을 거듭 걷어 낸다(만들기)
 5. 익히기 도구: 배우기 위한 손실 셈하기
-6. 그려 보기 연장: 퍼짐을 눈으로 이해하기
+6. 그려 보기 연장: 확산을 눈으로 이해하기
 
 수학 바탕:
 ------------------------
@@ -64,7 +64,7 @@ def linear_beta_schedule(timesteps: int, beta_start: float = 0.0001,
     요즘 방식: 그림에는 코사인 차례표가 낫다.
     
     인수:
-        timesteps: 온 퍼짐 걸음 수(T)
+        timesteps: 온 확산 걸음 수(T)
         beta_start: 처음 잡음 크기(≈0.0001)
         beta_end: 마지막 잡음 크기(≈0.02)
     
@@ -104,7 +104,7 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
                (니콜 & 다리왈, 2021)
     
     인수:
-        timesteps: 온 퍼짐 걸음
+        timesteps: 온 확산 걸음
         s: 작은 치우침(기본값 0.008. 처음에 β_t ≈ 0이 되는 것을 막는다)
     
     반환값:
@@ -126,12 +126,12 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
     return torch.clip(betas, 0.0001, 0.9999)
 
 # ============================================================================
-# 퍼짐 매개변수(효율을 위해 미리 셈함)
+# 확산 매개변수(효율을 위해 미리 셈함)
 # ============================================================================
 
 def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     """
-    퍼짐에 필요한 수학 상수를 모두 미리 셈한다.
+    확산에 필요한 수학 상수를 모두 미리 셈한다.
     
     왜 미리 셈하는가?
     ---------------
@@ -144,8 +144,8 @@ def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     -------------------
     α_t = 1 - β_t                    (남는 신호)
     ᾱ_t = ∏_{i=1}^t α_i             (쌓은 신호)
-    √ᾱ_t, √(1-ᾱ_t)                  (앞 퍼짐 계수)
-    1/√α_t                           (뒤 퍼짐 잣대)
+    √ᾱ_t, √(1-ᾱ_t)                  (앞 확산 계수)
+    1/√α_t                           (뒤 확산 잣대)
     σ_t² = β_t(1-ᾱ_{t-1})/(1-ᾱ_t)  (사후 흩어짐)
     
     인수:
@@ -172,11 +172,11 @@ def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     # ᾱ_{t-1}(ᾱ_0 = 1이므로 앞에 1.0을 붙인다)
     alphas_cumprod_prev = torch.cat([torch.ones(1), alphas_cumprod[:-1]])
     
-    # 앞 퍼짐 계수: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
+    # 앞 확산 계수: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
     sqrt_alphas_cumprod = torch.sqrt(alphas_cumprod)
     sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - alphas_cumprod)
     
-    # 뒤 퍼짐 잣수 맞추기: μ = 1/√α_t·(...)
+    # 뒤 확산 잣수 맞추기: μ = 1/√α_t·(...)
     sqrt_recip_alphas = torch.sqrt(1.0 / alphas)
     
     # 사후 흩어짐: 뒤로 갈 때 잡음을 얼마나 더할지
@@ -237,14 +237,14 @@ def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tens
     return out.reshape(batch_size, *trailing_dims)
 
 # ============================================================================
-# 앞 퍼짐
+# 앞 확산
 # ============================================================================
 
 def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
                      sqrt_alphas_cumprod: torch.Tensor,
                      sqrt_one_minus_alphas_cumprod: torch.Tensor) -> torch.Tensor:
     """
-    앞 퍼짐을 쓴다: 깨끗한 자료에 잡음을 더한다.
+    앞 확산을 쓴다: 깨끗한 자료에 잡음을 더한다.
     
     식:
     --------
@@ -277,18 +277,18 @@ def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
     sqrt_alpha_t = extract(sqrt_alphas_cumprod, t, x_0.shape)
     sqrt_one_minus_alpha_t = extract(sqrt_one_minus_alphas_cumprod, t, x_0.shape)
     
-    # 앞 퍼짐 공식을 쓴다
+    # 앞 확산 공식을 쓴다
     return sqrt_alpha_t * x_0 + sqrt_one_minus_alpha_t * noise
 
 # ============================================================================
-# 뒤 퍼짐(만들어 내기)
+# 뒤 확산(만들어 내기)
 # ============================================================================
 
 @torch.no_grad()
 def p_sample(model: nn.Module, x_t: torch.Tensor, t: int, t_tensor: torch.Tensor,
             diffusion_params: dict, device: str = 'cpu') -> torch.Tensor:
     """
-    뒤 퍼짐을 한 걸음 한다: x_t → x_{t-1}.
+    뒤 확산을 한 걸음 한다: x_t → x_{t-1}.
     
     뒤 식:
     ----------------
@@ -347,7 +347,7 @@ def p_sample(model: nn.Module, x_t: torch.Tensor, t: int, t_tensor: torch.Tensor
 def sample(model: nn.Module, shape: tuple, timesteps: int,
           diffusion_params: dict, device: str = 'cpu') -> torch.Tensor:
     """
-    온전한 뒤 퍼짐으로 표본을 만든다.
+    온전한 뒤 확산으로 표본을 만든다.
     
     알고리즘:
     ----------
@@ -393,7 +393,7 @@ def sample(model: nn.Module, shape: tuple, timesteps: int,
 def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
             diffusion_params: dict, noise: torch.Tensor = None) -> torch.Tensor:
     """
-    퍼짐 모델의 익히기 손실을 셈한다.
+    확산 모델의 익히기 손실을 셈한다.
     
     DDPM 익힘 목표:
     ------------------------
@@ -406,7 +406,7 @@ def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
     - 잡음은 멈춰 있다: 모든 때 걸음에서 N(0,I)이다
     - t에 걸쳐 배움 목표가 고르다
     - 겪어 보니 표본의 좋음이 가장 높다
-    - 요즘 퍼짐 모델의 여느 방식이다
+    - 요즘 확산 모델의 여느 방식이다
     
     마구잡이 때 걸음 뽑기:
     -------------------------
@@ -428,7 +428,7 @@ def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
     if noise is None:
         noise = torch.randn_like(x_0)
     
-    # 앞 퍼짐을 쓴다: 아는 잡음으로 x_t을 만든다
+    # 앞 확산을 쓴다: 아는 잡음으로 x_t을 만든다
     x_t = forward_diffusion(
         x_0, t, noise,
         diffusion_params['sqrt_alphas_cumprod'],
@@ -448,7 +448,7 @@ def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
 def visualize_diffusion_process(x_0: torch.Tensor, timesteps: int,
                                diffusion_params: dict, num_images: int = 10):
     """
-    그림의 앞 퍼짐을 그려 본다(자료 → 잡음).
+    그림의 앞 확산을 그려 본다(자료 → 잡음).
     
     차츰 망가지는 모습을 보인다: 깨끗함 → 조금 잡음 → 아주 잡음 → 순수 잡음
     모델이 무엇을 거꾸로 돌려야 하는지 직관을 쌓는 데 도움이 된다.
@@ -630,7 +630,7 @@ KEY DIFFERENCES:
 
 ## 2. 논의
 
-퍼짐 도구의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.
+확산 도구의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.
 
 이 짜기의 핵심에는 수치의 안정을 꼼꼼히 다루기, 고르게 맞추기 재주를 제대로 쓰기, 효율 좋은 셈 결이 든다. 익히기 절차에는 잡음 차례표, 기울기 다루기, 이따금의 따지기가 들며 모두 품질 높은 결과를 내는 데 결정적이다.
 
@@ -658,7 +658,7 @@ KEY DIFFERENCES:
 </div>
 
 ??? success "연습문제 2 풀이"
-    손실 함수는 모델이 헤아린 값과 목표 사이의 어긋남을 잰다. 잡음 헤아리기에서는 평균 제곱 어긋남 손실 $\|\epsilon - \epsilon_\theta(x_t, t)\|^2$을 쓰는데, 이것이 로그 가능도의 변분 아래 한계에 맞물리기 때문이다. 매개변수 $\theta$에 대한 기울기는 $-2(\epsilon - \epsilon_\theta) \nabla_\theta \epsilon_\theta$이며 헤아림 어긋남을 줄이는 방향을 가리킨다. 이 손실을 가장 작게 하는 것이 퍼짐 모델에서 자료 로그 가능도의 아래 한계를 가장 크게 하는 것과 같으므로 알맞다.
+    손실 함수는 모델이 헤아린 값과 목표 사이의 어긋남을 잰다. 잡음 헤아리기에서는 평균 제곱 어긋남 손실 $\|\epsilon - \epsilon_\theta(x_t, t)\|^2$을 쓰는데, 이것이 로그 가능도의 변분 아래 한계에 맞물리기 때문이다. 매개변수 $\theta$에 대한 기울기는 $-2(\epsilon - \epsilon_\theta) \nabla_\theta \epsilon_\theta$이며 헤아림 어긋남을 줄이는 방향을 가리킨다. 이 손실을 가장 작게 하는 것이 확산 모델에서 자료 로그 가능도의 아래 한계를 가장 크게 하는 것과 같으므로 알맞다.
 
 ---
 
@@ -674,8 +674,8 @@ KEY DIFFERENCES:
 
 ## 정리하며
 
-**다룬 것** — 퍼짐 도구
+**다룬 것** — 확산 도구
 
-퍼짐 도구의 짜기는 이 마당에 자리 잡은 방식을 따른다.
+확산 도구의 짜기는 이 마당에 자리 잡은 방식을 따른다.
 
 고갱이 갈래는 `SinusoidalPositionEmbedding`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

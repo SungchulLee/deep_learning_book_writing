@@ -46,8 +46,8 @@ class Config:
     WARMUP_STEPS = 1000         # 배움 빠르기 몸 풀기 걸음
     GRAD_CLIP = 1.0             # 기울기 자르기 문턱값
     
-    # 퍼짐 자리매김
-    T = 1000                    # 퍼짐 때 걸음 수
+    # 확산 자리매김
+    T = 1000                    # 확산 때 걸음 수
     
     # 모델 얼개
     BASE_CH = 128               # 담이를 늘리려 64에서 늘렸다
@@ -416,7 +416,7 @@ class UNet(nn.Module):
 # ==========================================
 class DDPM(nn.Module):
     """
-    잡음 없애는 퍼짐 확률 모델.
+    잡음 없애는 확산 확률 모델.
     
     익히기: 자료에 잡음을 더하고(앞 과정) 그 잡음을 헤아리는 법을 배운다.
     뽑기: 순수 잡음에서 시작해 거듭 잡음을 없앤다(뒤 과정).
@@ -427,7 +427,7 @@ class DDPM(nn.Module):
         self.timesteps = timesteps
         self.device = device
 
-        # 퍼짐 매개변수를 미리 셈한다
+        # 확산 매개변수를 미리 셈한다
         betas = cosine_beta_schedule(timesteps).to(device)
         alphas = 1.0 - betas
         alphas_cumprod = torch.cumprod(alphas, dim=0)

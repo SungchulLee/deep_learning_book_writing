@@ -38,7 +38,7 @@
 
 - [바탕](mcmc/simulated_annealing/fundamentals.md) — 볼츠만 분포를 써서 온 세상 최적화를 하는 멈추지 않는 메트로폴리스-헤이스팅스
 - [온도 일정](mcmc/simulated_annealing/schedules.md) — 살펴보기와 써먹기의 주고받음을 다스리는 식힘 일정 짜기
-- [하나로 꿰는 개념으로서의 온도](mcmc/simulated_annealing/temperature_unifying.md) — MCMC의 온도와 소프트맥스, 퍼짐 모형, 강화 학습 사이의 이음
+- [하나로 꿰는 개념으로서의 온도](mcmc/simulated_annealing/temperature_unifying.md) — MCMC의 온도와 소프트맥스, 확산 모형, 강화 학습 사이의 이음
 - [멈추지 않는 MCMC로 본 SA](mcmc/simulated_annealing/sa_as_mcmc.md) — 과녁 분포가 바뀌는, 시간에 따라 달라지는 메트로폴리스-헤이스팅스로 흉내 담금질 이해하기
 - [모임 이론](mcmc/simulated_annealing/convergence.md) — SA이 언제 왜 온 세상 최적점을 찾는지의 수학 이론, 에너지 벽, 그리고 실전에서의 뜻
 - [EM을 위한 정해진 담금질](mcmc/simulated_annealing/annealed_em.md) — 가능도 최적화에서 국소 최적점을 벗어나려고 EM 알고리즘에 온도 쓰기
@@ -60,7 +60,7 @@
 - [바탕](langevin/fundamentals.md) — 랑주뱅 확률 미분 방정식으로 MCMC 표집과 기울기 기반 최적화를 잇는 이어진 시간 얼개
 - [바로잡지 않은 랑주뱅 알고리즘(ULA)](langevin/ula.md) — 메트로폴리스 바로잡기 없이 잘게 나눈 랑주뱅 동역학으로, 확률 기울기와 잘 맞는다
 - [MALA](langevin/mala.md) — 기울기를 담은 제안과 받아들임-물리침 바로잡기를 합친 메트로폴리스 바로잡은 랑주뱅 알고리즘
-- [점수 맞추기와 퍼짐](langevin/score_and_diffusion.md) — 랑주뱅 동역학, 밀도 어림, 낳는 모형을 하나로 꿰는 개념으로서의 점수 함수
+- [점수 맞추기와 확산](langevin/score_and_diffusion.md) — 랑주뱅 동역학, 밀도 어림, 낳는 모형을 하나로 꿰는 개념으로서의 점수 함수
 
 ---
 

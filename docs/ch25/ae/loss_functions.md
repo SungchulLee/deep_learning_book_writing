@@ -683,7 +683,7 @@ def add_masking_noise(images: torch.Tensor,
 
 $$\nabla_x \log p(x) \approx \frac{1}{\sigma^2}(f(\tilde{x}) - \tilde{x})$$
 
-이는 잡음 없애는 오토인코더를 점수 바탕 만들어 내는 모델, 퍼짐 모델, 에너지 바탕 모델과 잇는다.
+이는 잡음 없애는 오토인코더를 점수 바탕 만들어 내는 모델, 확산 모델, 에너지 바탕 모델과 잇는다.
 
 ---
 
