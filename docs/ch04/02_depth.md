@@ -28,91 +28,232 @@
 
 분류기 머리(fc1, fc2)는 모든 갈래에서 같다. 바뀌는 것은 합성곱 더미뿐이라
 정확도 차이를 깊이와 필터 크기의 몫으로 읽을 수 있다.
+
+실험 규모: 갈래 5개 x 씨앗 5개 = 학습 25번, 각 5 에포크.
 """
-import json, time
-import torch, torch.nn as nn, torch.optim as optim
+import json
+import time
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets, transforms
 
+
+# =============================================================================
+# 1. 실험 설정
+# =============================================================================
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-EPOCHS, BATCH, LR, SEEDS = 5, 100, 1e-3, [0,1,2,3,4]
 
-tf = transforms.Compose([transforms.ToTensor(),
-      transforms.Normalize((0.4914,0.4822,0.4465),(0.2470,0.2435,0.2616))])
-tr = datasets.CIFAR10("./data", train=True, transform=tf)
-te = datasets.CIFAR10("./data", train=False, transform=tf)
-Xtr = torch.cat([x for x,_ in DataLoader(tr, batch_size=2000)])
-ytr = torch.cat([y for _,y in DataLoader(tr, batch_size=2000)])
-Xte = torch.cat([x for x,_ in DataLoader(te, batch_size=2000)])
-yte = torch.cat([y for _,y in DataLoader(te, batch_size=2000)])
+NUM_EPOCHS    = 5
+BATCH_SIZE    = 100
+LEARNING_RATE = 1e-3
+SEEDS         = [0, 1, 2, 3, 4]   # 씨앗마다 초기 가중치와 섞는 순서가 달라진다
+RESULTS_FILE  = "cifar10_depth_filter_results.json"
 
 
+# =============================================================================
+# 2. 데이터: 변환을 한 번만 하고 메모리에 올려 둔다
+# =============================================================================
+# 보통은 DataLoader가 배치를 꺼낼 때마다 ToTensor와 Normalize를 다시 한다.
+# 이 실험은 학습을 25번 돌리므로 같은 변환을 125번(25번 x 5 에포크) 반복하게 된다.
+# 그래서 처음에 전체를 한 번 변환해 큰 텐서로 만들어 두고,
+# 이후에는 그 텐서를 잘라 쓰기만 한다.
+#
+# 이 방법이 통하는 조건:
+#   - 데이터가 메모리에 다 들어간다 (CIFAR-10 학습 이미지: float32로 약 600MB)
+#   - 변환이 고정되어 있다 (무작위 자르기, 뒤집기 같은 증강을 쓰면
+#     에포크마다 새로 변환해야 하므로 이 방법을 쓸 수 없다)
+
+# CIFAR-10 학습 데이터의 채널별 평균과 표준편차
+CIFAR10_MEAN = (0.4914, 0.4822, 0.4465)
+CIFAR10_STD  = (0.2470, 0.2435, 0.2616)
+
+transform = transforms.Compose([
+    transforms.ToTensor(),                          # PIL 이미지 -> [0,1] 범위 텐서, 모양 (3, 32, 32)
+    transforms.Normalize(CIFAR10_MEAN, CIFAR10_STD) # 채널마다 평균 0, 표준편차 1로 맞춘다
+])
+
+train_dataset = datasets.CIFAR10("./data", train=True,  download=True, transform=transform)
+test_dataset  = datasets.CIFAR10("./data", train=False, download=True, transform=transform)
+
+
+def dataset_to_tensors(dataset):
+    """데이터셋 전체를 한 번 훑어 (이미지 텐서, 정답 텐서)로 묶는다.
+
+    여기서 DataLoader는 학습용이 아니다. 변환을 2000장씩 나눠 돌리는 도구로만 쓴다.
+    이미지와 정답을 한 번에 모으므로 변환은 데이터셋당 딱 한 번 일어난다.
+    """
+    image_batches, label_batches = zip(*DataLoader(dataset, batch_size=2000))
+    return torch.cat(image_batches), torch.cat(label_batches)
+
+
+train_images, train_labels = dataset_to_tensors(train_dataset)  # (50000, 3, 32, 32), (50000,)
+test_images,  test_labels  = dataset_to_tensors(test_dataset)   # (10000, 3, 32, 32), (10000,)
+
+
+# =============================================================================
+# 3. 모형
+# =============================================================================
 class Net(nn.Module):
-    """블록마다 3x3을 n_per번 쌓고 풀링한다. n_per=1이면 4.1절의 4걸음이다."""
-    def __init__(self, n_per=1, k=3, dropout=0.25):
+    """블록 두 개(32채널, 64채널)에 합성곱을 쌓고, 블록 끝마다 풀링한다.
+
+    convs_per_block : 블록 하나에 쌓는 합성곱 수. 전체 합성곱 수 = 2 * convs_per_block.
+                      convs_per_block=1이면 4.1절의 4걸음(합성곱-풀링-합성곱-풀링)이다.
+    filter_size     : 합성곱 필터의 가로세로 크기 (홀수: 3 또는 5).
+    dropout         : fc1 뒤 드롭아웃 비율. 0이면 드롭아웃을 쓰지 않는다.
+
+    모양 변화 (convs_per_block=2 예):
+        3x32x32 -> 합성곱(3->32) -> 32x32x32 -> 합성곱(32->32) -> 32x32x32 -> 풀링 -> 32x16x16
+                -> 합성곱(32->64) -> 64x16x16 -> 합성곱(64->64) -> 64x16x16 -> 풀링 -> 64x8x8
+                -> 펼치기 -> 4096 -> fc1 -> 128 -> fc2 -> 10
+    """
+
+    def __init__(self, convs_per_block=1, filter_size=3, dropout=0.25):
         super().__init__()
-        layers, cin = [], 3
-        for cout in (32, 64):
-            for _ in range(n_per):
-                layers += [nn.Conv2d(cin, cout, k, padding=k//2), nn.ReLU()]
-                cin = cout
-            layers += [nn.MaxPool2d(2, 2)]
+
+        layers = []
+        in_channels = 3                         # 첫 입력은 RGB 3채널
+
+        for out_channels in (32, 64):           # 블록 두 개
+            for _ in range(convs_per_block):
+                # padding='same': 가로세로 크기를 그대로 둔다.
+                # 홀수 필터에서는 padding=filter_size//2 와 똑같다 (3x3 -> 1, 5x5 -> 2).
+                layers += [nn.Conv2d(in_channels, out_channels, filter_size, padding="same"),
+                           nn.ReLU()]
+                # 다음 합성곱의 입력 채널은 방금 만든 합성곱의 출력 채널이다.
+                # 이미 만든 층은 생성 시점의 in_channels 값을 저장해 두므로
+                # 여기서 값을 바꿔도 그 층에는 영향이 없다.
+                in_channels = out_channels
+            layers += [nn.MaxPool2d(2, 2)]      # 가로세로를 절반으로: 32->16, 16->8
+
         self.features = nn.Sequential(*layers)
-        self.drop = nn.Dropout(dropout) if dropout else nn.Identity()
-        self.fc1 = nn.Linear(64*8*8, 128)      # 모든 갈래에서 같다
-        self.fc2 = nn.Linear(128, 10)
+
+        # 분류기 머리: 모든 갈래에서 같다.
+        # 합성곱은 크기를 바꾸지 않고 풀링만 두 번 절반으로 줄이므로
+        # 깊이나 필터 크기와 상관없이 합성곱 더미의 출력은 언제나 64x8x8 = 4096이다.
+        self.dropout = nn.Dropout(dropout) if dropout else nn.Identity()
+        self.fc1 = nn.Linear(64 * 8 * 8, 128)
+        self.fc2 = nn.Linear(128, 10)           # CIFAR-10 부류 10개
+
     def forward(self, x):
-        x = self.features(x)
-        return self.fc2(self.drop(torch.relu(self.fc1(x.flatten(1)))))
+        x = self.features(x)                    # (배치, 64, 8, 8)
+        x = torch.relu(self.fc1(x.flatten(1)))  # (배치, 4096) -> (배치, 128)
+        return self.fc2(self.dropout(x))        # (배치, 10): 소프트맥스 전 점수(로짓)
 
 
-def run(seed, **kw):
+# =============================================================================
+# 4. 학습 한 번: 씨앗 하나, 갈래 하나
+# =============================================================================
+def train_and_evaluate(seed, **model_kwargs):
+    """모형을 새로 만들어 학습하고, 시험 정확도(%)와 모형 정보를 돌려준다."""
+
+    # 씨앗을 두 곳에 고정한다.
+    #   torch.manual_seed : 가중치 초기값, 드롭아웃 가면
+    #   shuffle_generator : 에포크마다 배치를 섞는 순서
+    # 그래서 같은 씨앗이면 갈래가 달라도 같은 순서의 배치를 본다.
+    # 갈래 사이의 차이는 모형 구조에서만 온다.
     torch.manual_seed(seed)
-    m = Net(**kw).to(device)
-    n_par = sum(p.numel() for p in m.parameters())
-    n_conv = sum(1 for mod in m.features if isinstance(mod, nn.Conv2d))
-    opt = optim.Adam(m.parameters(), lr=LR); crit = nn.CrossEntropyLoss()
-    g = torch.Generator().manual_seed(seed)
-    ld = DataLoader(TensorDataset(Xtr, ytr), batch_size=BATCH, shuffle=True, generator=g)
-    for _ in range(EPOCHS):
-        m.train()
-        for xb, yb in ld:
-            xb, yb = xb.to(device), yb.to(device)
-            opt.zero_grad(); crit(m(xb), yb).backward(); opt.step()
-    m.eval()
-    with torch.no_grad():
-        pred = torch.cat([m(Xte[i:i+1000].to(device)).argmax(1).cpu() for i in range(0,len(Xte),1000)])
-    return 100.0*(pred==yte).float().mean().item(), n_par, n_conv
+    model = Net(**model_kwargs).to(device)
+
+    num_params = sum(p.numel() for p in model.parameters())
+    num_conv_layers = sum(1 for layer in model.features if isinstance(layer, nn.Conv2d))
+
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    loss_fn = nn.CrossEntropyLoss()             # 로짓을 받아 내부에서 소프트맥스를 계산한다
+
+    # 이미 변환해 둔 텐서를 감싸므로 배치를 꺼내는 일은 텐서를 자르는 것뿐이다.
+    shuffle_generator = torch.Generator().manual_seed(seed)
+    train_loader = DataLoader(TensorDataset(train_images, train_labels),
+                              batch_size=BATCH_SIZE, shuffle=True,
+                              generator=shuffle_generator)
+
+    # 학습
+    for _ in range(NUM_EPOCHS):
+        model.train()                           # 드롭아웃 켜기
+        for images, labels in train_loader:
+            images, labels = images.to(device), labels.to(device)
+            optimizer.zero_grad()               # 지난 배치의 기울기 지우기
+            loss = loss_fn(model(images), labels)
+            loss.backward()                     # 기울기 계산
+            optimizer.step()                    # 가중치 갱신
+
+    # 평가: 시험 이미지 10000장을 1000장씩 나눠 예측한다.
+    # 테스트용 DataLoader(shuffle=False, batch_size=1000)와 같은 일을 직접 자르기로 한다.
+    model.eval()                                # 드롭아웃 끄기
+    with torch.no_grad():                       # 기울기 계산 안 함: 빠르고 메모리 절약
+        predictions = torch.cat([
+            model(test_images[i:i + 1000].to(device)).argmax(dim=1).cpu()
+            for i in range(0, len(test_images), 1000)
+        ])
+    accuracy = 100.0 * (predictions == test_labels).float().mean().item()
+
+    return accuracy, num_params, num_conv_layers
 
 
+# =============================================================================
+# 5. 갈래: 깊이, 필터 크기, 드롭아웃을 하나씩 바꾼다
+# =============================================================================
+# 비교 읽는 법:
+#   1번 vs 2번 : 필터 크기 (3x3 -> 5x5), 깊이는 같다
+#   1번 vs 3번 vs 4번 : 깊이 (합성곱 2 -> 4 -> 6겹), 필터는 같다
+#   3번 vs 5번 : 드롭아웃 유무, 나머지는 같다
 VARIANTS = [
-    ("합성곱 2겹 3x3 (4.1절)",  dict(n_per=1, k=3)),
-    ("합성곱 2겹 5x5",          dict(n_per=1, k=5)),
-    ("합성곱 4겹 3x3",          dict(n_per=2, k=3)),
-    ("합성곱 6겹 3x3",          dict(n_per=3, k=3)),
-    ("합성곱 4겹 3x3, 드롭아웃 없음", dict(n_per=2, k=3, dropout=0.0)),
+    ("합성곱 2겹 3x3 (4.1절)",        dict(convs_per_block=1, filter_size=3)),
+    ("합성곱 2겹 5x5",                dict(convs_per_block=1, filter_size=5)),
+    ("합성곱 4겹 3x3",                dict(convs_per_block=2, filter_size=3)),
+    ("합성곱 6겹 3x3",                dict(convs_per_block=3, filter_size=3)),
+    ("합성곱 4겹 3x3, 드롭아웃 없음", dict(convs_per_block=2, filter_size=3, dropout=0.0)),
 ]
-out={}
-for tag, kw in VARIANTS:
-    t0=time.time(); accs=[]
-    for s in SEEDS:
-        a,n_par,n_conv = run(s, **kw); accs.append(a)
-    mean=sum(accs)/len(accs)
-    out[tag]=dict(mean=round(mean,3), lo=round(min(accs),2), hi=round(max(accs),2),
-                  spread=round(max(accs)-min(accs),3), params=n_par, n_conv=n_conv,
-                  runs=[round(a,2) for a in accs])
-    print(f"  {tag:26s} {mean:6.2f}%  퍼짐 {max(accs)-min(accs):.2f} "
-          f"({min(accs):.2f}~{max(accs):.2f})  합성곱 {n_conv}층  매개변수 {n_par:,}  ({time.time()-t0:.0f}s)", flush=True)
+
+
+# =============================================================================
+# 6. 실행: 갈래마다 씨앗 5개로 돌려 평균과 퍼짐을 본다
+# =============================================================================
+# 씨앗 하나의 결과는 운이 섞여 있다. 퍼짐(최댓값 - 최솟값)보다 작은 평균 차이는
+# 구조의 차이라고 말하기 어렵다.
+results = {}
+
+for label, model_kwargs in VARIANTS:
+    start_time = time.time()
+    accuracies = []
+
+    for seed in SEEDS:
+        accuracy, num_params, num_conv_layers = train_and_evaluate(seed, **model_kwargs)
+        accuracies.append(accuracy)
+
+    mean_acc = sum(accuracies) / len(accuracies)
+    min_acc, max_acc = min(accuracies), max(accuracies)
+    spread = max_acc - min_acc
+
+    results[label] = dict(
+        mean=round(mean_acc, 3),
+        lo=round(min_acc, 2),
+        hi=round(max_acc, 2),
+        spread=round(spread, 3),
+        params=num_params,                      # 매개변수 수는 씨앗과 상관없이 같다
+        n_conv=num_conv_layers,
+        runs=[round(a, 2) for a in accuracies],
+    )
+
+    print(f"  {label:26s} {mean_acc:6.2f}%  퍼짐 {spread:.2f} "
+          f"({min_acc:.2f}~{max_acc:.2f})  합성곱 {num_conv_layers}층  "
+          f"매개변수 {num_params:,}  ({time.time() - start_time:.0f}s)", flush=True)
+
+# 결과를 파일로 남겨 표나 그림을 만들 때 다시 돌리지 않아도 되게 한다.
+with open(RESULTS_FILE, "w", encoding="utf-8") as f:
+    json.dump(results, f, ensure_ascii=False, indent=2)
 ```
 
 **출력:**
 
 ```
-  합성곱 2겹 3x3 (4.1절)          71.33%  퍼짐 1.11 (70.68~71.79)  합성곱 2층  매개변수 545,098  (147s)
-  합성곱 2겹 5x5                 71.53%  퍼짐 2.29 (70.21~72.50)  합성곱 2층  매개변수 579,402  (289s)
-  합성곱 4겹 3x3                 74.69%  퍼짐 1.37 (74.05~75.42)  합성곱 4층  매개변수 591,274  (421s)
-  합성곱 6겹 3x3                 72.84%  퍼짐 3.25 (70.68~73.93)  합성곱 6층  매개변수 637,450  (392s)
-  합성곱 4겹 3x3, 드롭아웃 없음        75.24%  퍼짐 1.23 (74.62~75.85)  합성곱 4층  매개변수 591,274  (242s)
+  합성곱 2겹 3x3 (4.1절)           71.33%  퍼짐 1.11 (70.68~71.79)  합성곱 2층  매개변수 545,098  (147s)
+  합성곱 2겹 5x5                  71.53%  퍼짐 2.29 (70.21~72.50)  합성곱 2층  매개변수 579,402  (289s)
+  합성곱 4겹 3x3                  74.69%  퍼짐 1.37 (74.05~75.42)  합성곱 4층  매개변수 591,274  (421s)
+  합성곱 6겹 3x3                  72.84%  퍼짐 3.25 (70.68~73.93)  합성곱 6층  매개변수 637,450  (392s)
+  합성곱 4겹 3x3, 드롭아웃 없음         75.24%  퍼짐 1.23 (74.62~75.85)  합성곱 4층  매개변수 591,274  (242s)
 ```
 
 ---
@@ -168,25 +309,25 @@ for tag, kw in VARIANTS:
 ![왼쪽은 합성곱 2겹·4겹·6겹의 시험 정확도를 에포크에 따라 그린 것으로 셋 다 10 에포크 언저리에서 꼭대기를 찍고 평평해진다. 오른쪽은 학습 정확도에서 시험 정확도를 뺀 틈으로, 같은 자리에서 가파르게 벌어지며 2겹이 가장 높다](figures/depth_curves.svg)
 
 !!! note "곡선은 어떻게 재는가"
-    위 코드의 `run()`에서 에포크 반복문 안에 재는 줄을 넣으면 된다. 모델을 다시
+    위 코드의 `train_and_evaluate()`에서 에포크 반복문 안에 재는 줄을 넣으면 된다. 모델을 다시
     학습할 필요가 없고, 어차피 돌아가는 학습에 평가만 얹는 것이다.
 
     ```python
     CHECK = [1] + list(range(5, 101, 5))       # 재는 지점
 
     @torch.no_grad()
-    def acc(m, X, y, bs=1000):
-        m.eval()
-        ok = sum((m(X[i:i+bs].to(device)).argmax(1).cpu() == y[i:i+bs]).sum().item()
+    def acc(model, X, y, bs=1000):
+        model.eval()
+        ok = sum((model(X[i:i+bs].to(device)).argmax(1).cpu() == y[i:i+bs]).sum().item()
                  for i in range(0, len(X), bs))
         return 100.0 * ok / len(X)
 
-    for ep in range(1, EPOCHS + 1):
+    for ep in range(1, NUM_EPOCHS + 1):
         ...                                     # 한 에포크 학습
         if ep in CHECK:
             curve.append(dict(epoch=ep,
-                              train=acc(m, Xtr, ytr),   # 5만 장
-                              test=acc(m, Xte, yte)))   # 1만 장
+                              train=acc(model, train_images, train_labels),   # 5만 장
+                              test=acc(model, test_images, test_labels)))    # 1만 장
     ```
 
     값은 5에포크마다만 재므로 덧짐이 8%다. 시험 평가는 한 에포크의 6.7%,
