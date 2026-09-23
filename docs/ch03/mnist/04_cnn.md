@@ -210,146 +210,208 @@ $$
 ## 2. 코드
 
 ```python
-"""3.4절 CNN의 여섯 갈래를 씨 다섯 개씩 재어 견준다.
-
-책의 규약 그대로: 정규화 (0.1307, 0.3081), 배치 128, Adam 1e-3, 5 에포크.
-달라지는 것은 필터 크기, 팽창, 드롭아웃, 합성곱 뒤 ReLU뿐이다.
 """
-import json, time
-import torch, torch.nn as nn, torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+4단계: MNIST 합성곱 신경망
+
+합성곱 층 두 개와 완전 연결층 두 개로 손글씨 숫자를 분류한다.
+이 장의 네 걸음 가운데 마지막이며, 앞의 세 걸음과 같은 데이터셋을 쓴다.
+"""
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-EPOCHS, BATCH, LR = 5, 128, 1e-3
-SEEDS = [0, 1, 2, 3, 4]
+torch.manual_seed(42)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
-tr = datasets.MNIST("./data", train=True, transform=tf)
-te = datasets.MNIST("./data", train=False, transform=tf)
-Xtr = torch.cat([x for x,_ in DataLoader(tr, batch_size=2000)])
-ytr = torch.cat([y for _,y in DataLoader(tr, batch_size=2000)])
-Xte = torch.cat([x for x,_ in DataLoader(te, batch_size=2000)])
-yte = torch.cat([y for _,y in DataLoader(te, batch_size=2000)])
+# =============================================================================
+# 데이터
+# =============================================================================
+# 앞의 세 걸음과 같은 정규화를 쓴다. 0.1307과 0.3081은 MNIST 학습 집합의
+# 화소 평균과 표준편차이며, 이 값으로 맞추어야 네 걸음의 결과를 나란히
+# 견줄 수 있다
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.1307,), (0.3081,)),
+])
 
+train_dataset = datasets.MNIST('./data', train=True, download=True, transform=transform)
+test_dataset = datasets.MNIST('./data', train=False, download=True, transform=transform)
+
+train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
+
+# =============================================================================
+# 모델
+# =============================================================================
 
 class CNN(nn.Module):
-    def __init__(self, k=3, dilation=1, dropout=0.25, conv_relu=True):
+    """합성곱 층 두 개와 완전 연결층 두 개."""
+
+    def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=k, dilation=dilation, padding="same")
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=k, dilation=dilation, padding="same")
+        # 앞의 세 걸음과 결정적으로 다른 점이 여기 있다. 이미지를 펼치지
+        # 않고 (1, 28, 28) 모양 그대로 받는다. 그래야 이웃 화소를 함께
+        # 볼 수 있다.
+        # 3x3 필터 32개가 이미지 전체를 훑는다. 필터는 위치마다 다시
+        # 배우는 것이 아니라 모든 위치에서 공유되므로, 왼쪽 위에서 배운
+        # 무늬를 오른쪽 아래에서도 그대로 알아본다. 이 가중치 공유가
+        # 평행 이동에 강해지는 까닭이다
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        # 2x2 최대 풀링이 가로세로를 각각 절반으로 줄인다.
+        # 28 -> 14 -> 7이 되어 완전 연결층에 들어가는 수가 크게 준다
         self.pool = nn.MaxPool2d(2, 2)
-        self.drop = nn.Dropout(dropout) if dropout else nn.Identity()
-        self.fc1 = nn.Linear(64*7*7, 128)
+        self.dropout = nn.Dropout(0.25)
+        # 두 번 풀링한 뒤의 모양이 (64, 7, 7)이므로 64*7*7 = 3136이다
+        self.fc1 = nn.Linear(64 * 7 * 7, 128)
         self.fc2 = nn.Linear(128, 10)
-        self.conv_relu = conv_relu
 
     def forward(self, x):
-        x = self.conv1(x)
-        if self.conv_relu: x = torch.relu(x)
-        x = self.pool(x)
-        x = self.conv2(x)
-        if self.conv_relu: x = torch.relu(x)
-        x = self.pool(x)
-        x = self.drop(torch.relu(self.fc1(x.flatten(1))))
-        return self.fc2(x)
+        # 오른쪽 주석이 그 줄을 지난 뒤의 모양이다. B는 배치 크기.
+        # 들어올 때 이미지 모양 그대로라는 점이 앞의 세 걸음과 다르다
+        #                                            x: (B,  1, 28, 28)
+
+        # --- 합성곱 블록 1 ---------------------------------------------
+        # 필터 32장이 각각 28x28 자리를 모두 훑어 특징 맵 32장을 만든다.
+        # padding=1이 테두리를 한 줄 채워 주므로 28x28이 그대로 남는다
+        x = self.conv1(x)        # 3x3 필터 32장       (B, 32, 28, 28)
+        # ReLU는 원소마다 적용되므로 모양을 바꾸지 않는다
+        x = torch.relu(x)        # 음수를 0으로         (B, 32, 28, 28)
+        # 2x2 칸마다 가장 큰 값 하나만 남겨 가로세로가 절반이 된다.
+        # 채널 수는 건드리지 않는다
+        x = self.pool(x)         # 2x2 최댓값 풀링      (B, 32, 14, 14)
+
+        # --- 합성곱 블록 2 ---------------------------------------------
+        # 이번에는 입력 채널이 32개다. 필터 하나가 32장을 한꺼번에 읽어
+        # 값 하나를 내므로, 필터 한 장의 크기가 32x3x3이다
+        x = self.conv2(x)        # 3x3 필터 64장       (B, 64, 14, 14)
+        x = torch.relu(x)        #                    (B, 64, 14, 14)
+        x = self.pool(x)         # 다시 절반으로        (B, 64,  7,  7)
+
+        # --- 분류기 ----------------------------------------------------
+        # 공간 구조를 다 쓰고 난 뒤에야 펼친다. 1~3단계가 맨 처음에
+        # 펼쳤던 것과 달리, 여기서는 합성곱이 이웃 관계를 이미 활용한
+        # 뒤이므로 잃을 것이 없다.
+        # flatten(1)은 0번 축(배치)만 남기고 나머지를 한 줄로 잇는다
+        x = x.flatten(1)         # 64*7*7 = 3136      (B, 3136)
+        x = self.fc1(x)          #                    (B, 128)
+        x = torch.relu(x)        #                    (B, 128)
+        # 드롭아웃도 모양을 바꾸지 않으며, model.train()일 때만 동작한다
+        x = self.dropout(x)      # 학습 때만 꺼뜨린다   (B, 128)
+        # 마지막에 소프트맥스를 걸지 않는다. CrossEntropyLoss가 안에
+        # 품고 있기 때문이며, 이는 2단계와 같은 규칙이다
+        x = self.fc2(x)          # 로짓 10개           (B, 10)
+        return x
 
 
-class Stacked(nn.Module):
-    """블록마다 3x3을 두 번. 받는 자리는 5x5와 같고 비선형성이 한 번 더 들어간다."""
+model = CNN().to(device)
+print(f"Trainable parameters: {sum(p.numel() for p in model.parameters()):,}")
 
-    def __init__(self, dropout=0.25):
-        super().__init__()
-        self.c1a = nn.Conv2d(1, 32, 3, padding=1);  self.c1b = nn.Conv2d(32, 32, 3, padding=1)
-        self.c2a = nn.Conv2d(32, 64, 3, padding=1); self.c2b = nn.Conv2d(64, 64, 3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.drop = nn.Dropout(dropout) if dropout else nn.Identity()
-        self.fc1 = nn.Linear(64*7*7, 128); self.fc2 = nn.Linear(128, 10)
+# =============================================================================
+# 학습
+# =============================================================================
+# 손실과 최적화 방식은 2단계에서 세운 사슬 그대로다. 바뀐 것은 모델뿐이다
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-    def forward(self, x):
-        x = self.pool(torch.relu(self.c1b(torch.relu(self.c1a(x)))))
-        x = self.pool(torch.relu(self.c2b(torch.relu(self.c2a(x)))))
-        return self.fc2(self.drop(torch.relu(self.fc1(x.flatten(1)))))
+EPOCHS = 5
+for epoch in range(1, EPOCHS + 1):
+    model.train()
+    for images, labels in train_loader:
+        images, labels = images.to(device), labels.to(device)
+        optimizer.zero_grad()
+        loss = criterion(model(images), labels)
+        loss.backward()
+        optimizer.step()
 
-
-def run(seed, cls=CNN, **kw):
-    torch.manual_seed(seed)
-    m = cls(**kw).to(device)
-    n_par = sum(p.numel() for p in m.parameters())
-    opt = optim.Adam(m.parameters(), lr=LR)
-    crit = nn.CrossEntropyLoss()
-    g = torch.Generator().manual_seed(seed)
-    ld = DataLoader(TensorDataset(Xtr, ytr), batch_size=BATCH, shuffle=True, generator=g)
-    for _ in range(EPOCHS):
-        m.train()
-        for xb, yb in ld:
-            xb, yb = xb.to(device), yb.to(device)
-            opt.zero_grad(); crit(m(xb), yb).backward(); opt.step()
-    m.eval()
+    # 에포크마다 시험 정확도를 재어 진행을 살핀다
+    model.eval()
+    correct = total = 0
     with torch.no_grad():
-        pred = torch.cat([m(Xte[i:i+1000].to(device)).argmax(1).cpu()
-                          for i in range(0, len(Xte), 1000)])
-    return 100.0*(pred == yte).float().mean().item(), n_par
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            preds = model(images).argmax(dim=1)
+            correct += (preds == labels).sum().item()
+            total += labels.size(0)
+    print(f"Epoch {epoch}/{EPOCHS}  Test Accuracy: {100 * correct / total:.2f}%")
 
-
-VARIANTS = [
-    ("3x3, 드롭아웃 (지금 책)",   dict(k=3, dropout=0.25)),
-    ("3x3, 드롭아웃 없음",        dict(k=3, dropout=0.0)),
-    ("5x5, 드롭아웃",             dict(k=5, dropout=0.25)),
-    ("5x5, 드롭아웃 없음",        dict(k=5, dropout=0.0)),
-    ("5x5 팽창2, 드롭아웃",       dict(k=5, dilation=2, dropout=0.25)),
-    ("3x3 두 겹, 드롭아웃",       dict(cls=Stacked, dropout=0.25)),
-    ("3x3 두 겹, 드롭아웃 없음",   dict(cls=Stacked, dropout=0.0)),
-    ("5x5, 드롭아웃·ReLU 없음",   dict(k=5, dropout=0.0, conv_relu=False)),
-]
-
-out = {}
-for tag, kw in VARIANTS:
-    t0 = time.time(); accs = []
-    for s in SEEDS:
-        a, n_par = run(s, **kw); accs.append(a)
-    mean = sum(accs)/len(accs)
-    out[tag] = dict(mean=round(mean,3), lo=round(min(accs),2), hi=round(max(accs),2),
-                    spread=round(max(accs)-min(accs),3), params=n_par,
-                    runs=[round(a,2) for a in accs])
-    print(f"  {tag:24s} {mean:6.2f}%  퍼짐 {max(accs)-min(accs):.2f} "
-          f"({min(accs):.2f}~{max(accs):.2f})  매개변수 {n_par:,}  ({time.time()-t0:.0f}s)", flush=True)
-
+print(f"\nFinal Test Accuracy: {100 * correct / total:.2f}%")
 ```
+
 
 **출력:**
 
 ```
-  3x3, 드롭아웃 (지금 책)          99.07%  퍼짐 0.20 (98.97~99.17)  매개변수 421,642  (145s)
-  3x3, 드롭아웃 없음              98.97%  퍼짐 0.23 (98.81~99.04)  매개변수 421,642  (143s)
-  5x5, 드롭아웃                 99.14%  퍼짐 0.27 (98.98~99.25)  매개변수 454,922  (189s)
-  5x5, 드롭아웃 없음              99.06%  퍼짐 0.21 (98.94~99.15)  매개변수 454,922  (190s)
-  5x5 팽창2, 드롭아웃             99.02%  퍼짐 0.16 (98.93~99.09)  매개변수 454,922  (191s)
-  3x3 두 겹, 드롭아웃             99.20%  퍼짐 0.38 (98.97~99.35)  매개변수 467,818  (232s)
-  3x3 두 겹, 드롭아웃 없음          99.09%  퍼짐 0.13 (99.01~99.14)  매개변수 467,818  (223s)
-  5x5, 드롭아웃·ReLU 없음         98.75%  퍼짐 0.52 (98.44~98.96)  매개변수 454,922  (169s)
+Trainable parameters: 421,642
+Epoch 1/5  Test Accuracy: 98.37%
+Epoch 2/5  Test Accuracy: 98.35%
+Epoch 3/5  Test Accuracy: 99.02%
+Epoch 4/5  Test Accuracy: 99.05%
+Epoch 5/5  Test Accuracy: 99.22%
+
+Final Test Accuracy: 99.22%
 ```
 
-### 여섯 갈래
+3단계의 97.42%에서 **99.22%**로 올랐다. 남은 오차의 3분의 2가 사라진 셈이다(2.58% → 0.78%).
 
-| 갈래 | 평균 | 퍼짐 | 범위 | 매개변수 |
+### 네 걸음을 돌아보며
+
+| 걸음 | 모델 | 매개변수 | 시험 정확도 | 더한 생각 |
 |---|---|---|---|---|
-| **3×3, 드롭아웃** (이 절의 모델) | 99.07% | 0.20 | 98.97~99.17 | 421,642 |
-| 3×3, 드롭아웃 없음 | 98.97% | 0.23 | 98.81~99.04 | 421,642 |
-| 5×5, 드롭아웃 | **99.14%** | 0.27 | 98.98~99.25 | 454,922 |
-| 5×5, 드롭아웃 없음 | 99.06% | 0.21 | 98.94~99.15 | 454,922 |
-| 5×5 팽창 2, 드롭아웃 | 99.02% | 0.16 | 98.93~99.09 | 454,922 |
-| 3×3 두 겹, 드롭아웃 | **99.20%** | 0.38 | 98.97~99.35 | 467,818 |
-| 3×3 두 겹, 드롭아웃 없음 | 99.09% | **0.13** | 99.01~99.14 | 467,818 |
-| 5×5, 드롭아웃·ReLU 없음 | 98.75% | **0.52** | 98.44~98.96 | 454,922 |
+| 1 | 템플릿 학습 | 7,850 (고정) | 82.03% | — |
+| 2 | 선형 + 소프트맥스 | 7,850 | 92.51% | 가중치를 학습한다 |
+| 3 | 다층 퍼셉트론 | 약 100,000 | 97.42% | 비선형성 |
+| 4 | 합성곱 신경망 | 421,642 | 99.22% | 이웃 관계 |
 
----
+1단계와 2단계는 매개변수 수가 **똑같다**. 달라진 것은 그 수를 평균으로 못박느냐 데이터에 맞추어 학습하느냐뿐인데 10%포인트가 넘게 벌어진다. 학습이라는 일이 그 자체로 얼마나 큰 몫인지를 보여 준다.
 
-## 5. 앞의 일곱은 서로 구별되지 않는다
+3단계와 4단계 사이에서는 매개변수가 네 배로 늘지만 정확도는 1.8%포인트만 오른다. 하지만 그 1.8%포인트가 남은 오차의 3분의 2라는 점이 중요하다. 정확도가 높아질수록 한 걸음의 값어치는 남은 오차로 재야 한다.
 
-표의 위 일곱 줄을 보라. 평균이 98.97%에서 99.20%까지 흩어져 있는데, **갈래 하나 안의 퍼짐이 0.13에서 0.38이다.** 평균끼리의 차이(0.23%포인트)가 한 갈래를 다시 돌릴 때 생기는 흔들림보다 작다.
+## 3. 논의
 
-곧 **필터를 키우든, 팽창을 주든, 층을 겹치든, 드롭아웃을 빼든 이 조건에서는 아무 일도 일어나지 않는다.**
+여기서 쓴 CNN 구조는 고전적인 방식을 따른다. 특징을 뽑는 합성곱 층 뒤에 분류를 맡는 완전 연결층이 온다. 첫 합성곱 층은 단일 채널 입력을 특징 맵 32개로 바꾸는데, 각 맵이 모서리나 꼭짓점 같은 서로 다른 저수준 무늬를 잡는다. 둘째 합성곱 층은 이를 엮어 숫자의 모양을 담은 더 높은 수준의 특징 맵 64개를 만든다. 합성곱 블록마다 뒤따르는 최댓값 풀링이 공간 차원을 절반으로 줄여, 가장 두드러진 특징은 지키면서 표현을 간결하게 만든다.
+
+학습 반복문은 2단계에서 세운 사슬 그대로다. 순전파로 예측을 구하고, 교차 엔트로피로 손실을 계산하고, 역전파로 기울기를 구하고, Adam으로 매개변수를 갱신한다. 바뀐 것은 모델뿐이며 학습률도 $10^{-3}$으로 같다. 네 걸음이 모두 같은 손실과 같은 최적화기를 쓰는 것은 일부러 그렇게 한 것이다. 그래야 정확도의 차이를 **구조의 차이**로 읽을 수 있다.
+
+완전 연결층 앞에 두는 `nn.Dropout(0.25)`은 학습 동안 뉴런의 4분의 1을 무작위로 0으로 만들어, 어느 한 뉴런에도 기대지 않는 여벌 있는 표현을 배우게 한다. 정칙화의 값어치는 언제나 "얼마나 과적합할 상황인가"에 상대적인데, 5 에포크라는 짧은 학습에서는 과적합이 아직 본격적으로 시작되지 않는다.
+
+**그래서 여기서는 재어도 나오지 않는다.** 빼고 씨 다섯 개로 돌리면 99.07%가 98.97%가 되는데, 한 갈래 안의 흔들림이 그보다 크다(다음 절). 곧 이 장치가 이 조건에서 버는 것을 **이 실험은 가릴 수 없다.**
+
+!!! note "그런데도 왜 두는가"
+    솔직히 적자면, **측정이 두라고 해서 두는 것이 아니다.** 측정은 있으나 없으나 모른다고 말한다.
+
+    두는 까닭은 둘이다. 하나는 이것이 실제로 쓰이는 짜임이고, 8장과 9장이 정칙화를 본격적으로 다룰 때 돌아올 자리이기 때문이다. 다른 하나는 이 구조가 **책의 다른 곳에 걸려 있기** 때문이다. [4.1절](../../ch04/01_two_ladders.md)의 사다리와 [5장의 심판 CNN](../../ch05/dimreduction/index.md)이 같은 구조를 같은 규약으로 쓰므로, 여기서 바꾸면 그 수들이 모두 어긋난다.
+
+    다만 이 사다리의 규칙에 비추면 걸리는 데가 있다. 걸음마다 **생각 하나씩만** 더하기로 했는데, 4걸음이 더한 생각은 이웃 관계이지 드롭아웃이 아니다. 드롭아웃은 같은 걸음에 몰래 끼어든 둘째 생각이며, 재어 보니 아무것도 벌지 않는다. 엄밀히 하자면 빼는 편이 규칙에 맞다.
+
+## 4. 손잡이를 돌려 보면 — 아무것도 움직이지 않는다
+
+이 구조에는 손댈 곳이 여럿이다. 필터를 5×5로 키우면? 팽창을 주면? 3×3을 두 겹으로 쌓으면? 드롭아웃을 빼면? **여덟 가지를 씨 다섯 개씩 재어 보았다.**
+
+| 갈래 | 평균 | 퍼짐 | 범위 |
+|---|---|---|---|
+| **3×3, 드롭아웃** (이 절의 모델) | 99.07% | 0.20 | 98.97~99.17 |
+| 3×3, 드롭아웃 없음 | 98.97% | 0.23 | 98.81~99.04 |
+| 5×5, 드롭아웃 | **99.14%** | 0.27 | 98.98~99.25 |
+| 5×5, 드롭아웃 없음 | 99.06% | 0.21 | 98.94~99.15 |
+| 5×5 팽창 2 | 99.02% | 0.16 | 98.93~99.09 |
+| 3×3 두 겹, 드롭아웃 | **99.20%** | 0.38 | 98.97~99.35 |
+| 3×3 두 겹, 드롭아웃 없음 | 99.09% | 0.13 | 99.01~99.14 |
+| 5×5, 드롭아웃·ReLU 없음 | 98.75% | **0.52** | 98.44~98.96 |
+
+**위 일곱이 서로 구별되지 않는다.** 평균이 98.97%에서 99.20%까지 흩어져 있는데, 갈래 하나 안의 퍼짐이 0.13에서 0.38이다. 평균끼리의 차이가 **같은 갈래를 다시 돌릴 때 생기는 흔들림보다 작다.**
+
+씨별 값을 보면 함정이 눈에 보인다.
+
+| 갈래 | 씨 0 | 씨 1 | 씨 2 | 씨 3 | 씨 4 |
+|---|---|---|---|---|---|
+| 3×3, 드롭아웃 | 99.17 | 99.10 | 98.97 | 98.98 | 99.14 |
+| 5×5, 드롭아웃 없음 | 99.06 | 98.94 | **99.14** | 99.03 | 99.15 |
+
+한 번씩만 돌려 견주면 어떤 이야기든 지어낼 수 있다. 5×5에서 씨 4를, 3×3에서 씨 2를 뽑으면 "5×5가 0.18%포인트 낫다"가 되고, 반대로 뽑으면 "3×3이 0.23%포인트 낫다"가 된다. **같은 두 모델에서 정반대의 결론이 나온다.**
 
 ### 까닭은 이미 천장에 닿았기 때문이다
 
@@ -361,62 +423,16 @@ for tag, kw in VARIANTS:
 
 | | 정확도 | 남은 오차 | 씨 퍼짐 | 퍼짐 ÷ 남은 오차 |
 |---|---|---|---|---|
-| MNIST 4걸음 | 99.07% | **0.93%p** | 0.20 | **22%** |
-| [CIFAR-10 4걸음](../../ch04/01_two_ladders.md) | 71.78% | 28.22%p | 1.11 | 4% |
+| MNIST (이 절) | 99.07% | **0.93%p** | 0.20 | **22%** |
+| [CIFAR-10](../../ch04/01_two_ladders.md) | 71.78% | 28.22%p | 1.11 | 4% |
 
-CIFAR-10에서는 흔들림이 남은 오차의 4%뿐이므로, 1%포인트짜리 개선도 또렷이 보인다. **잴 여지가 스물다섯 배 넓다.**
+**잴 여지가 스물다섯 배 넓다.** [4.2절](../../ch04/02_depth.md)이 같은 손잡이를 거기서 돌려 본다. 거기서는 깊이가 3.36%포인트를 벌며, 이 표에서 아무것도 아니던 변경이 그 장 최대의 이득이 된다.
 
-[4장](../../ch04/index.md)이 자료를 바꾸는 까닭이 이것이다. MNIST를 버려서가 아니라, **여기서는 다음 걸음을 잴 자가 없기 때문**이다. 이 절의 일곱 갈래가 그것을 손으로 만져 본 셈이다.
-
-이것이 왜 놀라운지 씨별 값을 보면 안다.
-
-| 갈래 | 씨 0 | 씨 1 | 씨 2 | 씨 3 | 씨 4 |
-|---|---|---|---|---|---|
-| 3×3, 드롭아웃 | 99.17 | 99.10 | 98.97 | 98.98 | 99.14 |
-| 5×5, 드롭아웃 없음 | 99.06 | 98.94 | **99.14** | 99.03 | 99.15 |
-
-한 번씩만 돌려 놓고 견주면 어떤 이야기든 지어낼 수 있다. 5×5 쪽에서 씨 4(99.15)를 뽑고 3×3 쪽에서 씨 2(98.97)를 뽑으면 "5×5가 0.18%포인트 낫다"가 되고, 반대로 뽑으면 "3×3이 0.23%포인트 낫다"가 된다. **같은 두 모델에서 정반대의 결론이 나온다.**
-
-!!! note "이 함정은 흔하다"
-    구조를 조금 바꾸고 한 번 돌려 좋아진 것을 보면 그 변경이 효과가 있었다고 믿게 된다. 그러나 흔들림이 0.2%포인트인 자리에서 0.1%포인트를 얻은 것은 **아무것도 얻지 않은 것**이다.
-
-    [4.1절](../../ch04/01_two_ladders.md)이 이 규율을 본격적으로 다룬다. 여기서 미리 한 번 겪어 두면 그 절이 훨씬 쉬워진다.
+[4장](../../ch04/index.md)이 자료를 바꾸는 까닭이 이것이다. MNIST를 버려서가 아니라 **여기서는 다음 걸음을 잴 자가 없기 때문**이다.
 
 ---
 
-### 3×3 두 겹은 왜 이기지 못하는가
-
-표에서 평균이 가장 높은 것은 **3×3 두 겹 + 드롭아웃**(99.20%)이다. 오늘날 표준이 3×3인 까닭을 생각하면 그럴듯한 결과다. VGG가 큰 필터를 버린 논거가 이것이었다. 3×3을 두 번 쌓으면 5×5와 받는 자리가 같으면서 비선형성이 한 번 더 들어간다.
-
-그런데 이 표에서는 **이기지 못한다.** 범위가 98.97~99.35로, 이 절 모델의 범위(98.97~99.17)를 통째로 품는다. 게다가 퍼짐이 0.38로 이 일곱 가운데 가장 넓다.
-
-값은 또렷하다.
-
-| | 매개변수 | 5번 돌리는 데 |
-|---|---|---|
-| 3×3 홑겹 | 421,642 | 145초 |
-| 3×3 두 겹 | 467,818 (+11%) | 232초 (+60%) |
-
-**11% 더 큰 모델로 60% 더 오래 돌려 얻은 것이 흔들림 안의 0.13%포인트다.**
-
-!!! note "VGG의 논거는 조건부다"
-    "3×3 두 겹이 5×5보다 매개변수가 적다"는 말을 흔히 듣는다. 채널 수가 그대로일 때는 맞다. $2 \times 9C^2 = 18C^2 < 25C^2$이기 때문이다.
-
-    **이 모델에서는 틀리다.** 블록마다 채널을 늘리기 때문이다(1→32, 32→64). 두 겹으로 만들면 둘째 층이 32→32와 64→64로 통째로 더해진다.
-
-    | 합성곱 매개변수 | 합 |
-    |---|---|
-    | 3×3 홑겹 | 18,816 |
-    | 5×5 홑겹 | 52,096 |
-    | 3×3 두 겹 | **64,992** |
-
-    두 겹이 5×5보다 **많다.** 널리 쓰이는 논거라도 그것이 성립하는 조건을 따져야 하며, 여기서는 그 조건이 깨져 있다.
-
-    덧붙이면 `fc1` 하나가 401,536개라 합성곱 몫은 어차피 전체의 일부다. 이 모델에서 매개변수를 줄이고 싶다면 손댈 곳은 필터가 아니라 완전 연결층이다.
-
----
-
-## 6. 마지막 갈래만 다르다
+## 5. 마지막 갈래만 다르다
 
 여섯째 줄은 다르다. 합성곱 뒤의 ReLU를 없애자 **98.75%로 내려가고, 무엇보다 퍼짐이 0.52로 두 배 넘게 벌어진다.**
 
@@ -437,7 +453,7 @@ CIFAR-10에서는 흔들림이 남은 오차의 4%뿐이므로, 1%포인트짜�
 
 ---
 
-## 7. 첫 층의 필터는 무엇을 보는가
+## 6. 첫 층의 필터는 무엇을 보는가
 
 `conv1`이 배운 것을 직접 들여다볼 수 있다. 필터가 32장이고 저마다 $3 \times 3$이므로 볼 것이 288개의 수뿐이다. 아래는 이 절의 코드를 그대로 5 에포크 돌린 뒤의 모습이며, 그때의 시험 정확도는 99.18%였다(본문이 보고하는 99.22%와 마지막 자리가 다른 것은 실행마다 생기는 흔들림이다).
 
