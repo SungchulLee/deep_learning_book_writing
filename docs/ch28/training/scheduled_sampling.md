@@ -113,4 +113,4 @@ def scheduled_sampling_step(model, x, epsilon):
 
 ## 정리하며
 
-이 마당은 알고리즘、구현、한계、대안을 차례로 짚었다.
+이 마당은 알고리즘, 구현, 한계, 대안을 차례로 짚었다.

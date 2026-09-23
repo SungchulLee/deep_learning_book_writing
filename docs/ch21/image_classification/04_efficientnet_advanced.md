@@ -11,7 +11,7 @@ import math
 
 
 class SwishActivation(nn.Module):
-    """스위시 깨어남: x * sigmoid(x)"""
+    """스위시 활성화: x * sigmoid(x)"""
     def forward(self, x):
         return x * torch.sigmoid(x)
 

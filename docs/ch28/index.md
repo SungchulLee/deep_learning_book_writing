@@ -73,4 +73,4 @@
 
 ## 정리하며
 
-이 마당은 바탕、인수 나누기、PixelCNN、WaveNet을 차례로 짚었다.
+이 마당은 바탕, 인수 나누기, PixelCNN, WaveNet을 차례로 짚었다.

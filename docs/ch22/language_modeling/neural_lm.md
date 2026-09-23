@@ -190,7 +190,7 @@ class FeedforwardLM(nn.Module):
         # 펴기: (batch, context_size * embed_dim)
         embeds = embeds.view(x.size(0), -1)
         
-        # tanh 깨어남을 갖춘 숨은 층
+        # tanh 활성화를 갖춘 숨은 층
         hidden = torch.tanh(self.fc1(embeds))
         
         # 내놓는 로짓

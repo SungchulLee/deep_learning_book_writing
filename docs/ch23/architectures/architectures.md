@@ -64,11 +64,11 @@ class RMSNorm(nn.Module):
 
 ---
 
-## 4. 깨어남 함수
+## 4. 활성화 함수
 
 ### SwiGLU
 
-스위시 깨어남을 쓴 문 달린 선형 낱:
+스위시 활성화를 쓴 문 달린 선형 낱:
 
 $$\text{SwiGLU}(x) = \text{Swish}(xW_1) \otimes (xW_2)$$
 
@@ -76,7 +76,7 @@ $$\text{SwiGLU}(x) = \text{Swish}(xW_1) \otimes (xW_2)$$
 
 ```python
 class SwiGLU(nn.Module):
-    """앞먹임 그물을 위한 SwiGLU 깨어남."""
+    """앞먹임 그물을 위한 SwiGLU 활성화."""
     
     def __init__(self, dim: int, hidden_dim: int = None, bias: bool = False):
         super().__init__()
@@ -95,7 +95,7 @@ class SwiGLU(nn.Module):
 
 ### 앞먹임 그물 견줌
 
-| 깨어남 | 매개변수 | 성능 | 쓰이는 곳 |
+| 활성화 | 매개변수 | 성능 | 쓰이는 곳 |
 |------------|------------|-------------|---------|
 | ReLU | $2 \cdot d \cdot d_{ff}$ | 밑금 | 맨 처음 변환기 |
 | GELU | $2 \cdot d \cdot d_{ff}$ | +1% | GPT-2, BERT |
@@ -395,7 +395,7 @@ class LLaMABlock(nn.Module):
 |-----------|-------|---------|---------|
 | 고르게 맞추기 | LayerNorm | RMSNorm | RMSNorm |
 | 고르게 맞추기 자리 | 뒤 | 앞 | 앞 |
-| 깨어남 | GELU | SwiGLU | SwiGLU |
+| 활성화 | GELU | SwiGLU | SwiGLU |
 | 자리 | 배움 | RoPE | RoPE |
 | 눈길 | 여러 머리 눈길 | 묶은 물음 눈길 | 미끄러지는 창 + 묶은 물음 눈길 |
 | 맥락 | 2K/4K | 4K | 8K(미끄러지는 창) |
@@ -467,7 +467,7 @@ GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 �
 요즘 큰 말 모델 얼개는 다음을 담고 있다:
 
 1. **RMSNorm**: 평균 빼기 없는 더 빠른 고르게 맞추기
-2. **SwiGLU**: 나타내는 힘을 키우는 문 달린 깨어남
+2. **SwiGLU**: 나타내는 힘을 키우는 문 달린 활성화
 3. **RoPE**: 돌림에 바탕한 상대 자리 부호
 4. **묶은 물음 눈길/여러 물음 눈길**: 효율적인 미룸을 위해 줄인 열쇠-값 곳간
 5. **미끄러지는 창**: 한 줄 복잡도의 눈길

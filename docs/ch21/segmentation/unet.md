@@ -119,7 +119,7 @@ class DoubleConv(nn.Module):
     겹 누비기 덩이: (Conv → BN → ReLU) × 2
     
     이것이 U-넷의 고갱이 벽돌이다. 인코더와 디코더의
-    켜마다 배치 고르게 맞추기와 ReLU 깨어남을 곁들인
+    켜마다 배치 고르게 맞추기와 ReLU 활성화를 곁들인
     잇단 3×3 누비기 둘로 이루어진다.
     
     인수:
@@ -354,7 +354,7 @@ $$\mathbf{O} = \mathbf{W}_E \cdot \mathbf{E} + \mathbf{W}_D \cdot \mathbf{D}$$
 ```python
 def visualize_unet_activations(model, image, layer_names=None):
     """
-    건너뛰는 이음을 이해하려 U-넷의 가운데 깨어남을 그려 본다.
+    건너뛰는 이음을 이해하려 U-넷의 가운데 활성화를 그려 본다.
     
     인수:
         model: 익힌 U-넷 모델
@@ -385,7 +385,7 @@ def visualize_unet_activations(model, image, layer_names=None):
     # 시각화한다
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     
-    # 인코더 깨어남 그리기
+    # 인코더 활성화 그리기
     for idx, (name, act) in enumerate(activations.items()):
         ax = axes[idx // 3, idx % 3]
         # 채널에 걸쳐 고루내기
@@ -413,7 +413,7 @@ class BCEWithLogitsLoss(nn.Module):
     """
     두 갈래 나누기를 위한 두 갈래 엇갈린 엔트로피 손실.
     
-    시그모이드 깨어남과 두 갈래 엇갈린 엔트로피를 수치로 든든한 함수 하나로 아우른다.
+    시그모이드 활성화와 두 갈래 엇갈린 엔트로피를 수치로 든든한 함수 하나로 아우른다.
     """
     def __init__(self, pos_weight: float = None):
         super().__init__()

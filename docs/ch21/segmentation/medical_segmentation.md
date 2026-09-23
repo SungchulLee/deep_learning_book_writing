@@ -243,7 +243,7 @@ class MedicalUNet(nn.Module):
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.dec1 = DoubleConv(128, 64)
         
-        # 마지막 내놓음(깨어남 없음, BCEWithLogitsLoss를 쓴다)
+        # 마지막 내놓음(활성화 없음, BCEWithLogitsLoss를 쓴다)
         self.out = nn.Conv2d(64, num_classes, kernel_size=1)
     
     def forward(self, x):

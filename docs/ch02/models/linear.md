@@ -172,4 +172,4 @@ MSE 손실 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 
 ## 정리하며
 
-이 마당은 정의、설명、예제을 차례로 짚었다.
+이 마당은 정의, 설명, 예제을 차례로 짚었다.

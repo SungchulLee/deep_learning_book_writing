@@ -596,7 +596,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 ## 정리하며
 
-이 마당은 수학적 정식화、컷아웃이 통하는 이유、PyTorch 구현、학습 예제을 차례로 짚었다.
+이 마당은 수학적 정식화, 컷아웃이 통하는 이유, PyTorch 구현, 학습 예제을 차례로 짚었다.
 
 **참고 문헌**
 

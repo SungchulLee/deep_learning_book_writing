@@ -303,4 +303,4 @@ loss = nn.CrossEntropyLoss()(logits, targets)
 
 ## 정리하며
 
-이 마당은 판단의 틀、PyTorch 빠른 참조、확률적 해석 안내、흔한 실수을 차례로 짚었다.
+이 마당은 판단의 틀, PyTorch 빠른 참조, 확률적 해석 안내, 흔한 실수을 차례로 짚었다.

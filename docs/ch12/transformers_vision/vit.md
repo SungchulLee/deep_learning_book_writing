@@ -337,7 +337,7 @@ scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
 
 ## 정리하며
 
-이 마당은 동기: 왜 트랜스포머를 비전에 쓰는가、구조 개관、PyTorch 구현、모형의 변형을 차례로 짚었다.
+이 마당은 동기: 왜 트랜스포머를 비전에 쓰는가, 구조 개관, PyTorch 구현, 모형의 변형을 차례로 짚었다.
 
 **참고 문헌**
 

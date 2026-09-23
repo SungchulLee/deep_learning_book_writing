@@ -229,8 +229,8 @@ def plot_scree(eigenvalues):
 
 선형 오토인코더는 다음으로 이루어진다:
 
-- **인코더:** $\mathbf{z} = \mathbf{W}_e^T \mathbf{x}$(치우침 없음, 깨어남 없음)
-- **디코더:** $\hat{\mathbf{x}} = \mathbf{W}_d \mathbf{z}$(치우침 없음, 깨어남 없음)
+- **인코더:** $\mathbf{z} = \mathbf{W}_e^T \mathbf{x}$(치우침 없음, 활성화 없음)
+- **디코더:** $\hat{\mathbf{x}} = \mathbf{W}_d \mathbf{z}$(치우침 없음, 활성화 없음)
 
 익히기 목표는 다음과 같다:
 
@@ -254,7 +254,7 @@ import torch.nn as nn
 class LinearAutoencoder(nn.Module):
     """주성분 분석과 같은 선형 오토인코더.
 
-    평균 제곱 어긋남 손실을 쓰고 깨어남도 치우침도 없으면 익히기가
+    평균 제곱 어긋남 손실을 쓰고 활성화도 치우침도 없으면 익히기가
     주성분 분석 풀이로 모인다.
     """
     def __init__(self, input_dim, latent_dim):
@@ -302,7 +302,7 @@ X, color = make_swiss_roll(n_samples=1000, noise=0.1)
 
 ### 비선형 방법으로 넘어가기
 
-비선형 깨어남 함수를 붙이면 선형 오토인코더가 굽은 다양체를 배울 수 있는 비선형 오토인코더가 된다:
+비선형 활성화 함수를 붙이면 선형 오토인코더가 굽은 다양체를 배울 수 있는 비선형 오토인코더가 된다:
 
 ```python
 # 선형(≈ 주성분 분석)
@@ -468,7 +468,7 @@ from torchvision import datasets, transforms
 torch.manual_seed(0)
 
 class PCAAutoencoder(nn.Module):
-    """선형 오토인코더(깨어남 없음, 치우침 없음) ≡ 주성분 분석."""
+    """선형 오토인코더(활성화 없음, 치우침 없음) ≡ 주성분 분석."""
     def __init__(self, input_dim=784, latent_dim=20):
         super().__init__()
         self.encoder = nn.Linear(input_dim, latent_dim, bias=False)

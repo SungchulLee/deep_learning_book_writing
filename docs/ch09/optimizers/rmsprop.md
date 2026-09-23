@@ -119,4 +119,4 @@ RMSprop과 Adam을 비교하라. Adam은 RMSprop에 무엇을 더하는가?
 
 ## 정리하며
 
-이 마당은 갱신 규칙、PyTorch 구현、Adagrad와의 비교、중심화한 기울기를 쓸 때을 차례로 짚었다.
+이 마당은 갱신 규칙, PyTorch 구현, Adagrad와의 비교, 중심화한 기울기를 쓸 때을 차례로 짚었다.

@@ -783,7 +783,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
 ## 정리하며
 
-이 마당은 핵심 착상、수학적 틀、풀이 예제: 베르누이 분포、흔한 분포들의 MLE을 차례로 짚었다.
+이 마당은 핵심 착상, 수학적 틀, 풀이 예제: 베르누이 분포, 흔한 분포들의 MLE을 차례로 짚었다.
 
 **참고 문헌**
 

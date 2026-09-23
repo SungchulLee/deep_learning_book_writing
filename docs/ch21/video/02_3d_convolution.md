@@ -302,7 +302,7 @@ class Conv3DBlock(nn.Module):
         # 배치 고르게 맞추기: 익히기를 든든하게 한다
         out = self.bn(out)
         
-        # 깨어남: 비선형을 들여온다
+        # 활성화: 비선형을 들여온다
         out = self.relu(out)
         
         # 모으기: 차원을 줄이고 받는 자리를 넓힌다
@@ -602,7 +602,7 @@ def analyze_feature_maps(model: nn.Module, video: torch.Tensor):
     with torch.no_grad():
         _ = model(video)
     
-    # 깨어남 꼴 찍기
+    # 활성화 꼴 찍기
     print(f"\nFeature map shapes:")
     for name in layer_names[:5]:  # 처음 5개 층 보이기
         if name in activations:

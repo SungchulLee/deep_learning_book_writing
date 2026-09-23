@@ -540,7 +540,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 ## 정리하며
 
-이 마당은 수학적 정식화、이론적 해석、PyTorch 구현、드롭아웃을 쓰는 학습을 차례로 짚었다.
+이 마당은 수학적 정식화, 이론적 해석, PyTorch 구현, 드롭아웃을 쓰는 학습을 차례로 짚었다.
 
 **참고 문헌**
 
