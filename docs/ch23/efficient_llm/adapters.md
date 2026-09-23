@@ -42,7 +42,7 @@ $$
 \text{Adapter params} = 2 \times d \times r + r + d
 $$
 
-층마다 눈길 뒤와 앞먹임 그물 뒤에 어댑터를 두면:
+층마다 어텐션 뒤와 앞먹임 그물 뒤에 어댑터를 두면:
 
 $$
 \text{Total params} = L \times 2 \times (2dr + r + d)
@@ -152,7 +152,7 @@ class SerialAdapterTransformerLayer(nn.Module):
     밑층마다 뒤에 맞춤개를 잇달아 둔 변환기 층.
     
     구조:
-        x → 눈길 → 맞춤개 → 더하고 고르게 → 앞먹임 그물 → 맞춤개 → 더하고 고르게
+        x → 어텐션 → 맞춤개 → 더하고 고르게 → 앞먹임 그물 → 맞춤개 → 더하고 고르게
     """
     
     def __init__(
@@ -189,7 +189,7 @@ class SerialAdapterTransformerLayer(nn.Module):
         x: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        # 눈길 + 맞춤개
+        # 어텐션 + 맞춤개
         attn_out, _ = self.self_attn(x, x, x, key_padding_mask=attention_mask)
         attn_out = self.adapter_attn(attn_out)
         x = self.norm1(x + self.dropout(attn_out))
@@ -247,7 +247,7 @@ class ParallelAdapterTransformerLayer(nn.Module):
         x: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        # 나란히: 맞춤개와 눈길이 모두 x를 받는다
+        # 나란히: 맞춤개와 어텐션이 모두 x를 받는다
         attn_out, _ = self.self_attn(x, x, x, key_padding_mask=attention_mask)
         adapter_out = self.adapter_attn(x) - x  # 남는 이음을 뺀다
         x = self.norm1(x + self.dropout(attn_out) + self.adapter_scale * adapter_out)
@@ -288,7 +288,7 @@ class AdapterFusion(nn.Module):
             for param in adapter.parameters():
                 param.requires_grad = False
         
-        # 녹여 붙이는 눈길
+        # 녹여 붙이는 어텐션
         self.query = nn.Linear(input_dim, input_dim)
         self.key = nn.Linear(input_dim, input_dim)
         self.value = nn.Linear(input_dim, input_dim)
@@ -306,7 +306,7 @@ class AdapterFusion(nn.Module):
         # 쌓기: [배치, 차례, 맞춤개 수, 숨은]
         adapter_stack = torch.stack(adapter_outputs, dim=2)
         
-        # 맞춤개에 대한 눈길
+        # 맞춤개에 대한 어텐션
         query = self.query(x).unsqueeze(2)
         keys = self.key(adapter_stack)
         
@@ -392,7 +392,7 @@ class MultiTaskAdapterModel(nn.Module):
 
 | 전략 | 층당 어댑터 | 권하는 바 |
 |----------|----------------|----------------|
-| 눈길에만 | 1 | 가장 적게 |
+| 어텐션에만 | 1 | 가장 적게 |
 | 앞먹임 그물에만 | 1 | 흔히 넉넉하다 |
 | **둘 다** | 2 | **권함** |
 
@@ -533,7 +533,7 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 |--------|---------|
 | **얼개** | 내리쬐기 → 활성화 → 올리쬐기 + 잔차 |
 | **매개변수** | 모델의 1~5% |
-| **놓을 자리** | 눈길 뒤 그리고/또는 앞먹임 그물 뒤 |
+| **놓을 자리** | 어텐션 뒤 그리고/또는 앞먹임 그물 뒤 |
 | **핵심 이점** | 단원별이고 여러 일이 쉽다 |
 | **맞바꿈** | 미룸 덧짐 |
 

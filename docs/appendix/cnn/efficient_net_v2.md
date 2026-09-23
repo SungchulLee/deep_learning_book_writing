@@ -93,7 +93,7 @@ EfficientNetV2은 어디에나 SiLU(Swish) 살림을 쓰는데, 여러 자리에
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-쥐어짜 북돋우기(SE) 눈길과 건너뛰는 이음을 갖춘 온전한 `FusedMBConv` 덩이를 짜라.
+쥐어짜 북돋우기(SE) 어텐션과 건너뛰는 이음을 갖춘 온전한 `FusedMBConv` 덩이를 짜라.
 
 </div>
 

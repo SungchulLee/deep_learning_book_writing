@@ -16,7 +16,7 @@
 밝힘:
 가장 앞선 두드러짐 방법 들머리:
 - 켜마다의 쓸모 퍼뜨리기(LRP)
-- 눈길 굴리기(변환기에 씀)
+- 어텐션 굴리기(변환기에 씀)
 - DeepLIFT
 - 깊은 배움을 위한 SHAP
 
@@ -46,10 +46,10 @@ def overview_advanced_methods():
     print("나은 점: 지켜짐 됨됨이를 채운다")
     print("쓰일 자리: 쓸모를 정확히 쪼개야 할 때")
 
-    print("\n2. 눈길 굴리기(변환기)")
+    print("\n2. 어텐션 굴리기(변환기)")
     print("-" * 70)
-    print("생각: 켜마다의 눈길 그림을 한데 모은다")
-    print("꼴: Att = Π_l Att^(l), Att^(l)은 켜마다의 눈길")
+    print("생각: 켜마다의 어텐션 그림을 한데 모은다")
+    print("꼴: Att = Π_l Att^(l), Att^(l)은 켜마다의 어텐션")
     print("나은 점: 변환기가 어디를 보는지 그린다")
     print("쓰일 자리: 눈 변환기, BERT 등")
 
@@ -78,7 +78,7 @@ def overview_advanced_methods():
     print("• Captum (PyTorch): https://captum.ai/")
     print("• SHAP: https://github.com/slundberg/shap")
     print("• LRP Toolbox: https://github.com/sebastian-lapuschkin/lrp_toolbox")
-    print("• 변환기 풀이하기: 눈길 굴리기 논문")
+    print("• 변환기 풀이하기: 어텐션 굴리기 논문")
     print("="*70)
 
 
@@ -93,11 +93,11 @@ def example_1_when_to_use_what():
     print("  A) 빠른 벌레잡기 → 맨 기울기")
     print("  B) 논문에 실을 그림 → 이끈 Grad-CAM")
     print("  C) 이론 보장 → 쌓은 기울기나 SHAP")
-    print("  D) 변환기 알아보기 → 눈길 굴리기")
+    print("  D) 변환기 알아보기 → 어텐션 굴리기")
 
     print("\n물음 2: 모형 갈래는?")
     print("  A) CNN → Grad-CAM, 이끈 Grad-CAM")
-    print("  B) 변환기 → 눈길 굴리기")
+    print("  B) 변환기 → 어텐션 굴리기")
     print("  C) 아무거나 → 쌓은 기울기, SHAP")
 
     print("\n물음 3: 무엇에 매였는가?")
@@ -169,10 +169,10 @@ if __name__ == "__main__":
 나은 점: 지켜짐 됨됨이를 채운다
 쓰일 자리: 쓸모를 정확히 쪼개야 할 때
 
-2. 눈길 굴리기(변환기)
+2. 어텐션 굴리기(변환기)
 ----------------------------------------------------------------------
-생각: 켜마다의 눈길 그림을 한데 모은다
-꼴: Att = Π_l Att^(l), Att^(l)은 켜마다의 눈길
+생각: 켜마다의 어텐션 그림을 한데 모은다
+꼴: Att = Π_l Att^(l), Att^(l)은 켜마다의 어텐션
 나은 점: 변환기가 어디를 보는지 그린다
 쓰일 자리: 눈 변환기, BERT 등
 
@@ -225,24 +225,24 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-눈길 짐 뒤(값과 곱하기 앞)에 드롭아웃 켜를 더하여라. 익히는 동안 드롭아웃 비율을 0.1으로 잡아라. 눈길 드롭아웃이 정칙화에 왜 도움이 되는지 밝혀라.
+어텐션 짐 뒤(값과 곱하기 앞)에 드롭아웃 켜를 더하여라. 익히는 동안 드롭아웃 비율을 0.1으로 잡아라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 밝혀라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 눈길 드롭아웃은 익히는 동안 눈길 짐 몇몇을 아무렇게나 0으로 만들어, 모형이 특정 낱말끼리의 얽힘에 지나치게 기대는 것을 막는다. 그래서 모형이 눈길을 더 고루 나누고 더 든든한 나타냄을 배우게 되는데, 여느 드롭아웃이 신경 세포끼리 함께 굳는 것을 막는 것과 같은 결이다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 짐 몇몇을 아무렇게나 0으로 만들어, 모형이 특정 낱말끼리의 얽힘에 지나치게 기대는 것을 막는다. 그래서 모형이 어텐션을 더 고루 나누고 더 든든한 나타냄을 배우게 되는데, 여느 드롭아웃이 신경 세포끼리 함께 굳는 것을 막는 것과 같은 결이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-제 눈길의 셈 복잡도를 열 길이 $n$과 모형 차원 $d$의 함수로 밝혀라. 이것이 왜 긴 열에 Longformer이나 Linformer 같은 얼개를 부르는가?
+제 어텐션의 셈 복잡도를 열 길이 $n$과 모형 차원 $d$의 함수로 밝혀라. 이것이 왜 긴 열에 Longformer이나 Linformer 같은 얼개를 부르는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    여느 제 눈길은 $n \times n$ 눈길 행렬을 셈하므로 때가 $O(n^2 d)$이고 눈길 짐에 드는 기억이 $O(n^2)$이다. 열이 길면(보기로 $n = 4096$) 감당할 수 없다. Longformer는 그 자리 미끄럼 창 눈길($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 온 세상 눈길을 아울러 쓴다. Linformer는 열쇠와 값을 낮은 차원 $k \ll n$으로 쏘아 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 나타내는 힘을 얼마쯤 내주고 긴 들임에서의 쓸모를 얻는다.
+    여느 제 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때가 $O(n^2 d)$이고 어텐션 짐에 드는 기억이 $O(n^2)$이다. 열이 길면(보기로 $n = 4096$) 감당할 수 없다. Longformer는 그 자리 미끄럼 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 온 세상 어텐션을 아울러 쓴다. Linformer는 열쇠와 값을 낮은 차원 $k \ll n$으로 쏘아 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 나타내는 힘을 얼마쯤 내주고 긴 들임에서의 쓸모를 얻는다.
 
 ---
 <div class="drillbox" markdown>

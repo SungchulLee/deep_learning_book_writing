@@ -18,7 +18,7 @@
 
 - [차례로 하는 그래프 만들기](autoregressive/sequential.md) -- 표준 차례와 확률의 사슬 규칙으로 그래프 분포를 자기 되돌이로 인수 분해하기
 - [GraphRNN](autoregressive/graphrnn.md) -- 마디와 변을 차례로 만드는 그래프 켜와 변 켜의 되돌이를 가진 켜진 되돌이 신경망 얼개
-- [GRAN](autoregressive/gran.md) -- 커질 수 있는 자기 되돌이 만들기를 위해 그래프 신경망 바탕 눈길을 쓰는 덩이 단위 그래프 만들기
+- [GRAN](autoregressive/gran.md) -- 커질 수 있는 자기 되돌이 만들기를 위해 그래프 신경망 바탕 어텐션을 쓰는 덩이 단위 그래프 만들기
 
 ### 31.3 한 번에 만들기 방법
 

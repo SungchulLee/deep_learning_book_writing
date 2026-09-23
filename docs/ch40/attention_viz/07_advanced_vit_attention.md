@@ -1,16 +1,16 @@
 # 앞선 켜
 
-앞선 켜: 눈 변환기(ViT)의 눈길 그리기. 눈 변환기에 맞춘 그림 그리기로, 자리 눈길을 보인다
+앞선 켜: 눈 변환기(ViT)의 어텐션 그리기. 눈 변환기에 맞춘 그림 그리기로, 자리 어텐션을 보인다
 
-신경 그물이 무엇을 배우는지 아는 일은 믿음을 쌓고 모형의 벌레를 잡는 데 종요롭다. 이 꾸러미는 모형이 들임을 어떻게 다루고 어떻게 판단하는지 드러내는 눈길 그림 그리기 재주를 보이며, 그물의 움직임을 눈으로 보고 수로 재게 해 준다.
+신경 그물이 무엇을 배우는지 아는 일은 믿음을 쌓고 모형의 벌레를 잡는 데 종요롭다. 이 꾸러미는 모형이 들임을 어떻게 다루고 어떻게 판단하는지 드러내는 어텐션 그림 그리기 재주를 보이며, 그물의 움직임을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
 ```python
 """
-앞선 켜: 눈 변환기(ViT)의 눈길 그리기
+앞선 켜: 눈 변환기(ViT)의 어텐션 그리기
 
-눈 변환기에 맞춘 그림 그리기로, 그림 조각에 걸친 자리 눈길
+눈 변환기에 맞춘 그림 그리기로, 그림 조각에 걸친 자리 어텐션
 결을 보인다.
 """
 
@@ -34,10 +34,10 @@ except ImportError:
 
 class ViTAttentionVisualizer:
     """
-    눈 변환기의 눈길 결을 그리는 개.
+    눈 변환기의 어텐션 결을 그리는 개.
 
     ViT은 그림을 조각으로 나누고 변환기를 건다. 이 클래스는 모형이
-    자리마다 어떻게 눈길을 두는지 그리도록 돕는다.
+    자리마다 어떻게 어텐션을 두는지 그리도록 돕는다.
     """
 
     def __init__(self, image_size: int = 224, patch_size: int = 16):
@@ -64,7 +64,7 @@ class ViTAttentionVisualizer:
         매개변수:
         ----------
         attention : torch.Tensor
-            눈길 행렬, 꼴: (조각 수+1, 조각 수+1)
+            어텐션 행렬, 꼴: (조각 수+1, 조각 수+1)
             (+1은 CLS 낱말)
         image : torch.Tensor, 없어도 됨
             본디 그림 텐서, 꼴: (3, H, W)
@@ -74,7 +74,7 @@ class ViTAttentionVisualizer:
         if isinstance(attention, torch.Tensor):
             attention = attention.cpu().numpy()
 
-        # 눈여겨보는 조각에서 뻗는 눈길을 뽑는다
+        # 눈여겨보는 조각에서 뻗는 어텐션을 뽑는다
         patch_attention = attention[focus_patch, :]
 
         # 2차원 격자로 꼴을 바꾼다(CLS 낱말은 뺀다)
@@ -83,10 +83,10 @@ class ViTAttentionVisualizer:
         if focus_patch == 0:  # CLS 낱말
             # 그릴 때 CLS 낱말은 건너뛴다
             spatial_attention = patch_attention[1:].reshape(grid_size, grid_size)
-            title = "CLS 낱말이 조각에 두는 눈길"
+            title = "CLS 낱말이 조각에 두는 어텐션"
         else:
             spatial_attention = patch_attention[1:].reshape(grid_size, grid_size)
-            title = f"조각 {focus_patch-1}의 눈길"
+            title = f"조각 {focus_patch-1}의 어텐션"
 
         # 그림을 만든다
         if image is not None:
@@ -105,10 +105,10 @@ class ViTAttentionVisualizer:
             axes[0].set_title('본디 그림', fontsize=12, fontweight='bold')
             axes[0].axis('off')
 
-            # 눈길 그림을 겹쳐 보인다
+            # 어텐션 그림을 겹쳐 보인다
             axes[1].imshow(img_np, alpha=0.5)
 
-            # 눈길 그림을 그림 크기로 키운다
+            # 어텐션 그림을 그림 크기로 키운다
             attn_resized = F.interpolate(
                 torch.tensor(spatial_attention).unsqueeze(0).unsqueeze(0),
                 size=(self.image_size, self.image_size),
@@ -128,7 +128,7 @@ class ViTAttentionVisualizer:
             ax.set_title(title, fontsize=13, fontweight='bold', pad=15)
             ax.set_xlabel('조각 세로줄', fontsize=11)
             ax.set_ylabel('조각 가로줄', fontsize=11)
-            plt.colorbar(im, ax=ax, label='눈길 짐')
+            plt.colorbar(im, ax=ax, label='어텐션 짐')
 
         plt.tight_layout()
 
@@ -142,40 +142,40 @@ class ViTAttentionVisualizer:
                                layer_idx: int = -1,
                                head_idx: int = 0):
         """
-        정한 켜와 머리의 온 눈길 그림을 그린다.
+        정한 켜와 머리의 온 어텐션 그림을 그린다.
 
-        자리 눈길 결을 보이는 격자를 만든다.
+        자리 어텐션 결을 보이는 격자를 만든다.
         """
         if attention.dim() == 4:  # (배치, 머리, 열, 열)
             attention = attention[0, head_idx]  # 정한 머리를 집는다
 
         attention = attention.cpu().numpy()
 
-        # 눈길 행렬을 그린다
+        # 어텐션 행렬을 그린다
         fig, ax = plt.subplots(figsize=(10, 9))
 
         im = ax.imshow(attention, cmap='viridis', aspect='auto')
         ax.set_xlabel('열쇠 조각', fontsize=12, fontweight='bold')
         ax.set_ylabel('물음 조각', fontsize=12, fontweight='bold')
-        ax.set_title(f'ViT 눈길 - 켜 {layer_idx}, 머리 {head_idx}',
+        ax.set_title(f'ViT 어텐션 - 켜 {layer_idx}, 머리 {head_idx}',
                     fontsize=14, fontweight='bold', pad=20)
 
-        plt.colorbar(im, ax=ax, label='눈길 짐')
+        plt.colorbar(im, ax=ax, label='어텐션 짐')
         plt.tight_layout()
         plt.show()
 
 def example_vit_attention():
-    """보기: ViT 자리 눈길 그리기."""
+    """보기: ViT 자리 어텐션 그리기."""
     print("=" * 70)
-    print("눈 변환기 눈길 그리기")
+    print("눈 변환기 어텐션 그리기")
     print("=" * 70)
 
-    # 지어낸 ViT 눈길을 만든다
+    # 지어낸 ViT 어텐션을 만든다
     image_size = 224
     patch_size = 16
     num_patches = (image_size // patch_size) ** 2
 
-    # 지어낸 눈길을 만든다(CLS 낱말 몫으로 조각 수+1)
+    # 지어낸 어텐션을 만든다(CLS 낱말 몫으로 조각 수+1)
     seq_len = num_patches + 1
     attention = torch.zeros(seq_len, seq_len)
 
@@ -185,20 +185,20 @@ def example_vit_attention():
 
     # 다른 조각은 그 자리를 본다
     for i in range(1, seq_len):
-        # 그 자리 눈길 결을 만든다
+        # 그 자리 어텐션 결을 만든다
         distances = torch.abs(torch.arange(1, seq_len) - i)
         attn_logits = -distances.float() * 0.5
         attention[i, 1:] = torch.softmax(attn_logits, dim=0) * 0.9
-        attention[i, 0] = 0.05  # CLS에도 얼마쯤 눈길
-        attention[i, i] = 0.05  # 제 눈길
+        attention[i, 0] = 0.05  # CLS에도 얼마쯤 어텐션
+        attention[i, i] = 0.05  # 제 어텐션
 
     # 그림으로 보인다
     viz = ViTAttentionVisualizer(image_size=image_size, patch_size=patch_size)
 
-    print("\nCLS 낱말의 눈길을 그린다(모형이 어디에 눈길을 두는가):")
+    print("\nCLS 낱말의 어텐션을 그린다(모형이 어디에 어텐션을 두는가):")
     viz.visualize_patch_attention(attention, focus_patch=0)
 
-    print("\n가운데 조각의 눈길을 그린다:")
+    print("\n가운데 조각의 어텐션을 그린다:")
     center_patch = num_patches // 2
     viz.visualize_patch_attention(attention, focus_patch=center_patch)
 
@@ -208,27 +208,27 @@ if __name__ == "__main__":
 
     print("\n고갱이 깨침:")
     print("  - CLS 낱말이 모든 조각의 소식을 한데 모은다")
-    print("  - 자리 눈길이 그림의 어느 자리가 중요한지 드러낸다")
+    print("  - 자리 어텐션이 그림의 어느 자리가 중요한지 드러낸다")
     print("  - 그 자리 조각은 흔히 가까운 자리를 본다")
-    print("  - 눈길 그림이 두드러진 물체를 짚어 줄 수 있다")
+    print("  - 어텐션 그림이 두드러진 물체를 짚어 줄 수 있다")
 ```
 
 **출력:**
 
 ```
 ======================================================================
-눈 변환기 눈길 그리기
+눈 변환기 어텐션 그리기
 ======================================================================
 
-CLS 낱말의 눈길을 그린다(모형이 어디에 눈길을 두는가):
+CLS 낱말의 어텐션을 그린다(모형이 어디에 어텐션을 두는가):
 
-가운데 조각의 눈길을 그린다:
+가운데 조각의 어텐션을 그린다:
 
 고갱이 깨침:
   - CLS 낱말이 모든 조각의 소식을 한데 모은다
-  - 자리 눈길이 그림의 어느 자리가 중요한지 드러낸다
+  - 자리 어텐션이 그림의 어느 자리가 중요한지 드러낸다
   - 그 자리 조각은 흔히 가까운 자리를 본다
-  - 눈길 그림이 두드러진 물체를 짚어 줄 수 있다
+  - 어텐션 그림이 두드러진 물체를 짚어 줄 수 있다
 ```
 
 ## 2. 논의
@@ -242,7 +242,7 @@ CLS 낱말의 눈길을 그린다(모형이 어디에 눈길을 두는가):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 눈길 그림 그리기에 알맞은지 밝혀라.
+코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 어텐션 그림 그리기에 알맞은지 밝혀라.
 
 </div>
 
@@ -254,24 +254,24 @@ CLS 낱말의 눈길을 그린다(모형이 어디에 눈길을 두는가):
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-눈길 짐 뒤(값과 곱하기 앞)에 드롭아웃 켜를 더하여라. 익히는 동안 드롭아웃 비율을 0.1으로 잡아라. 눈길 드롭아웃이 정칙화에 왜 도움이 되는지 밝혀라.
+어텐션 짐 뒤(값과 곱하기 앞)에 드롭아웃 켜를 더하여라. 익히는 동안 드롭아웃 비율을 0.1으로 잡아라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 밝혀라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 눈길 드롭아웃은 익히는 동안 눈길 짐 몇몇을 아무렇게나 0으로 만들어, 모형이 특정 낱말끼리의 얽힘에 지나치게 기대는 것을 막는다. 그래서 모형이 눈길을 더 고루 나누고 더 든든한 나타냄을 배우게 되는데, 여느 드롭아웃이 신경 세포끼리 함께 굳는 것을 막는 것과 같은 결이다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 짐 몇몇을 아무렇게나 0으로 만들어, 모형이 특정 낱말끼리의 얽힘에 지나치게 기대는 것을 막는다. 그래서 모형이 어텐션을 더 고루 나누고 더 든든한 나타냄을 배우게 되는데, 여느 드롭아웃이 신경 세포끼리 함께 굳는 것을 막는 것과 같은 결이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-제 눈길의 셈 복잡도를 열 길이 $n$과 모형 차원 $d$의 함수로 밝혀라. 이것이 왜 긴 열에 Longformer이나 Linformer 같은 얼개를 부르는가?
+제 어텐션의 셈 복잡도를 열 길이 $n$과 모형 차원 $d$의 함수로 밝혀라. 이것이 왜 긴 열에 Longformer이나 Linformer 같은 얼개를 부르는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    여느 제 눈길은 $n \times n$ 눈길 행렬을 셈하므로 때가 $O(n^2 d)$이고 눈길 짐에 드는 기억이 $O(n^2)$이다. 열이 길면(보기로 $n = 4096$) 감당할 수 없다. Longformer는 그 자리 미끄럼 창 눈길($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 온 세상 눈길을 아울러 쓴다. Linformer는 열쇠와 값을 낮은 차원 $k \ll n$으로 쏘아 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 나타내는 힘을 얼마쯤 내주고 긴 들임에서의 쓸모를 얻는다.
+    여느 제 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때가 $O(n^2 d)$이고 어텐션 짐에 드는 기억이 $O(n^2)$이다. 열이 길면(보기로 $n = 4096$) 감당할 수 없다. Longformer는 그 자리 미끄럼 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 온 세상 어텐션을 아울러 쓴다. Linformer는 열쇠와 값을 낮은 차원 $k \ll n$으로 쏘아 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 나타내는 힘을 얼마쯤 내주고 긴 들임에서의 쓸모를 얻는다.
 
 ---
 <div class="drillbox" markdown>

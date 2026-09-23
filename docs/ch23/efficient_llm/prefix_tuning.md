@@ -35,7 +35,7 @@
 
 ### 어떻게 되는가
 
-앞가지 다듬기는 눈길 무게를 고치는 대신 눈길이 보는 것을 고친다:
+앞가지 다듬기는 어텐션 무게를 고치는 대신 어텐션이 보는 것을 고친다:
 
 $$
 \text{Attention}(Q, [P_K; K], [P_V; V])
@@ -47,13 +47,13 @@ $$
 
 ## 4. 수학적 바탕
 
-### 보통의 눈길
+### 보통의 어텐션
 
 $$
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 $$
 
-### 앞가지를 붙인 눈길
+### 앞가지를 붙인 어텐션
 
 길이 $l$인 앞가지에서:
 
@@ -69,11 +69,11 @@ $$
 \text{Attention}(Q, K', V') = \text{softmax}\left(\frac{QK'^T}{\sqrt{d_k}}\right)V'
 $$
 
-앞가지 항목은 실제 토막이 모두 눈길을 줄 수 있는 "가상 토막"이 되는 셈이다.
+앞가지 항목은 실제 토막이 모두 어텐션을 줄 수 있는 "가상 토막"이 되는 셈이다.
 
 ### 매개변수의 수
 
-층이 $L$개, 눈길 머리가 $H$개, 머리 차원이 $d_h$인 모델에서:
+층이 $L$개, 어텐션 머리가 $H$개, 머리 차원이 $d_h$인 모델에서:
 
 $$
 \text{Prefix params} = l \times L \times 2 \times H \times d_h = 2 \times l \times L \times d_{model}
@@ -215,7 +215,7 @@ class PrefixTuningModel(nn.Module):
         # 앞가지를 만든다
         prefix_keys, prefix_values = self.get_prefix(batch_size)
         
-        # 앞가지에 맞춰 눈길 가림막을 넓힌다
+        # 앞가지에 맞춰 어텐션 가림막을 넓힌다
         if attention_mask is not None:
             prefix_mask = torch.ones(
                 batch_size, self.prefix_length,
@@ -226,7 +226,7 @@ class PrefixTuningModel(nn.Module):
         
         # 앞가지를 곁들여 앞먹임한다(짜기는 바탕 모델에 따라 다르다)
         # 이는 간추린 겉면이며, 실제 짜기는
-        # 눈길 층마다 prefix_keys, prefix_values를 넣어야 한다
+        # 어텐션 층마다 prefix_keys, prefix_values를 넣어야 한다
         return self.base_model(
             input_ids,
             attention_mask=attention_mask,
@@ -245,14 +245,14 @@ class PrefixTuningModel(nn.Module):
         return tuple(past_key_values)
 ```
 
-### 눈길 층과 아우르기
+### 어텐션 층과 아우르기
 
 ```python
 class PrefixAttention(nn.Module):
     """
-    앞가지를 받치는 여러 머리 눈길.
+    앞가지를 받치는 여러 머리 어텐션.
     
-    눈길을 셈하기 앞서 열쇠와 값 앞에 앞가지를 붙인다.
+    어텐션을 셈하기 앞서 열쇠와 값 앞에 앞가지를 붙인다.
     """
     
     def __init__(
@@ -455,7 +455,7 @@ class PromptTuning(nn.Module):
         # 시킴말을 들임에 잇는다
         inputs_embeds = torch.cat([prompt_embeds, input_embeds], dim=1)
         
-        # 눈길 가림막을 넓힌다
+        # 어텐션 가림막을 넓힌다
         if attention_mask is not None:
             prompt_mask = torch.ones(batch_size, self.num_virtual_tokens, device=device)
             attention_mask = torch.cat([prompt_mask, attention_mask], dim=1)

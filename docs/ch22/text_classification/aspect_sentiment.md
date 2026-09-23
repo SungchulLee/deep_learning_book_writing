@@ -11,7 +11,7 @@
 # ---
 # title: "갈래별 마음결 살피기"
 # description: "VADER로 것/갈래 수준의 결이 고운 마음결,
-#               PyTorch 눈길 바탕 모델, 변환기 방식"
+#               PyTorch 어텐션 바탕 모델, 변환기 방식"
 # ---
 #
 # 보통의 마음결 살피기는 글월마다 이름표 하나를 준다.
@@ -24,7 +24,7 @@
 #
 #   1부 – VADER로 하는 규칙 바탕 갈래별 마음결 살피기
 #   2부 – 갈래 뽑기(이름씨 마디 덩이 짓기)
-#   3부 – 눈길 바탕 갈래별 마음결 모델(PyTorch)
+#   3부 – 어텐션 바탕 갈래별 마음결 모델(PyTorch)
 #   4부 – 곁딸린 월을 쓴 변환기 갈래별 마음결 살피기
 #   5부 – 금융 갈래별 마음결 살피기 쓰임새
 #
@@ -191,7 +191,7 @@ print("=" * 60)
 # 갈래 뽑기는 다음으로 할 수 있다:
 # 1. 달림 뜯어 읽기(nsubj, dobj 관계)
 # 2. 잦기 바탕(그 분야에서 가장 흔한 이름씨)
-# 3. 익힌 모델의 눈길 무게
+# 3. 익힌 모델의 어텐션 무게
 # 4. 차례 이름표 붙이기(갈래에 대한 BIO 이름표)
 
 print("""
@@ -225,24 +225,24 @@ print("""
 
 
 # =====================================================================
-# 3부 – 눈길 바탕 갈래별 마음결 살피기(PyTorch)
+# 3부 – 어텐션 바탕 갈래별 마음결 살피기(PyTorch)
 # =====================================================================
 print("=" * 60)
 print("Part 3: Attention-Based ABSA Model (PyTorch)")
 print("=" * 60)
 
-# 핵심 생각: 월과 목표 갈래가 주어질 때 눈길을 써서
+# 핵심 생각: 월과 목표 갈래가 주어질 때 어텐션을 써서
 # 그 갈래와 맞닿는 낱말에 초점을 둔다.
 #
 # 얼개:
-#   [낱말 묻힘] → 두 방향 LSTM → 눈길(aspect_emb) → 갈래 매기기
+#   [낱말 묻힘] → 두 방향 LSTM → 어텐션(aspect_emb) → 갈래 매기기
 
 
 class AspectAttentionClassifier(nn.Module):
-    """눈길 바탕 갈래별 마음결 모델.
+    """어텐션 바탕 갈래별 마음결 모델.
 
-    갈래 묻힘을 물음으로 삼아 맥락 낱말에 눈길을 준 뒤
-    눈길을 준 나타냄에 갈래를 매긴다.
+    갈래 묻힘을 물음으로 삼아 맥락 낱말에 어텐션을 준 뒤
+    어텐션을 준 나타냄에 갈래를 매긴다.
 
     인수:
         vocab_size:  낱말 곳간 크기
@@ -255,7 +255,7 @@ class AspectAttentionClassifier(nn.Module):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
         self.lstm = nn.LSTM(embed_dim, hidden_dim, bidirectional=True, batch_first=True)
-        # 눈길: 갈래와 맥락을 같은 공간으로 내리쬐기
+        # 어텐션: 갈래와 맥락을 같은 공간으로 내리쬐기
         self.attn_proj = nn.Linear(hidden_dim * 2, hidden_dim * 2)
         self.classifier = nn.Linear(hidden_dim * 2, num_classes)
 
@@ -277,8 +277,8 @@ class AspectAttentionClassifier(nn.Module):
         asp_emb = self.embedding(aspect_ids)         # [B, A, E]
         asp_repr = asp_emb.mean(dim=1, keepdim=True) # [B, 1, E]
 
-        # 갈래를 헤아리는 눈길
-        # 맥락을 내리쬐고 눈길 점수 셈하기
+        # 갈래를 헤아리는 어텐션
+        # 맥락을 내리쬐고 어텐션 점수 셈하기
         ctx_proj = self.attn_proj(ctx_out)           # [B, L, 2H]
         # 내리쬔 맥락과의 점곱으로 갈래를 물음으로 쓰기
         # 묻힘으로 갈래를 숨은 차원까지 부풀린 뒤 그대로 쓰기
@@ -322,7 +322,7 @@ print("=" * 60)
 
 # 요즘 방식: 갈래별 마음결 살피기를 월 짝 갈래 매기기로 바꾼다.
 # 들임: "[CLS] 월 [SEP] 갈래 낱말 [SEP]"
-# 이러면 BERT가 엇갈린 눈길로 갈래에 눈길을 줄 수 있다.
+# 이러면 BERT가 엇갈린 어텐션으로 갈래에 어텐션을 줄 수 있다.
 
 print("""
   from transformers import AutoModelForSequenceClassification, AutoTokenizer

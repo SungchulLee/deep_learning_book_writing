@@ -677,7 +677,7 @@ Found 4 local minima:
 
 - **이어진 상태**: 람자우어 외(2021)
 - **지수 담이**: 다항 무늬로 $\propto 2^{N/2}$
-- **변환기와의 이음**: 이어 떠올림 기억으로서의 눈길
+- **변환기와의 이음**: 이어 떠올림 기억으로서의 어텐션
 
 ```python
 class ModernHopfield(nn.Module):
@@ -698,7 +698,7 @@ class ModernHopfield(nn.Module):
     
     def retrieve(self, query: torch.Tensor) -> torch.Tensor:
         """
-        소프트맥스 눈길로 무늬를 되찾는다.
+        소프트맥스 어텐션으로 무늬를 되찾는다.
         
         x_new = softmax(β * X^T * q)^T * X
         """

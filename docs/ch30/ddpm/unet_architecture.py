@@ -75,7 +75,7 @@ class ResidualBlock(nn.Module):
 
 class AttentionBlock(nn.Module):
     """
-    멀리 떨어진 매임을 담는 스스로 눈길 덩이.
+    멀리 떨어진 매임을 담는 스스로 어텐션 덩이.
     """
     
     def __init__(self, channels: int, num_heads: int = 4):
@@ -150,7 +150,7 @@ class UNet(nn.Module):
     
     그물은 다음을 지닌다.
     - 줄이기를 갖춘 인코더 길
-    - 눈길을 갖춘 병목
+    - 어텐션을 갖춘 병목
     - 키우기와 건너뛰기 이음을 갖춘 디코더 길
     - 때 걸음을 조건으로 삼는 때 박아 넣기
     """
@@ -171,7 +171,7 @@ class UNet(nn.Module):
             base_channels: 바탕 채널 수
             channel_multipliers: 해상도 층마다 채널 갑절
             num_res_blocks: 해상도마다 남은 덩이의 수
-            attention_resolutions: 눈길을 쓸 해상도
+            attention_resolutions: 어텐션을 쓸 해상도
             dropout: 드롭아웃 확률
             time_emb_dim: 때 박아 넣기의 차원
         """

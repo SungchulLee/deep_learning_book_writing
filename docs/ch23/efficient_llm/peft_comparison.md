@@ -152,7 +152,7 @@ class LoRAConfig:
         self.rank = rank
         self.alpha = alpha
         self.dropout = dropout
-        # 붙박이: 눈길 쏘기에 적용한다
+        # 붙박이: 어텐션 쏘기에 적용한다
         self.target_modules = target_modules or ['q_proj', 'v_proj']
 
 def apply_lora(
@@ -221,8 +221,8 @@ def count_parameters(model: nn.Module) -> dict:
 |----------------|---------|------------|
 | 물음만(q) | 좋음 | 가장 적음 |
 | 물음 + 값(q, v) | 더 좋음 | 적음 |
-| 모든 눈길(q, k, v, o) | 가장 좋음 | 가운데 |
-| 눈길 + 다층 퍼셉트론 | 이득이 미미 | 많음 |
+| 모든 어텐션(q, k, v, o) | 가장 좋음 | 가운데 |
+| 어텐션 + 다층 퍼셉트론 | 이득이 미미 | 많음 |
 
 **권하는 바**: 좋음과 매개변수의 맞바꿈이 가장 나은 `q_proj`와 `v_proj`로 시작하라.
 
@@ -402,14 +402,14 @@ class QLoRALayer(nn.Module):
 
 ## 5. 앞가지 다듬기
 
-익힐 수 있는 이어진 시킴말을 들임 앞에 붙여, 모델 무게를 바꾸지 않고 눈길을 고친다:
+익힐 수 있는 이어진 시킴말을 들임 앞에 붙여, 모델 무게를 바꾸지 않고 어텐션을 고친다:
 
 ```python
 class PrefixTuning(nn.Module):
     """
     앞가지 다듬기: 들임 앞에 붙는 이어진 시킴말을 배운다.
     
-    따로 떨어진 시킴말 토막 대신, 눈길 층마다 열쇠-값 짝 앞에 붙는
+    따로 떨어진 시킴말 토막 대신, 어텐션 층마다 열쇠-값 짝 앞에 붙는
     이어진 묻힘을 배운다.
     """
     
@@ -478,7 +478,7 @@ class PrefixTuning(nn.Module):
 
 class PrefixAttention(nn.Module):
     """
-    앞가지 다듬기를 쓰도록 고친 눈길 층.
+    앞가지 다듬기를 쓰도록 고친 어텐션 층.
     """
     
     def __init__(self, original_attention: nn.Module, prefix_length: int):
@@ -486,7 +486,7 @@ class PrefixAttention(nn.Module):
         self.attention = original_attention
         self.prefix_length = prefix_length
         
-        # 본디 눈길을 얼린다
+        # 본디 어텐션을 얼린다
         for param in self.attention.parameters():
             param.requires_grad = False
     
@@ -501,13 +501,13 @@ class PrefixAttention(nn.Module):
         열쇠와 값 앞에 앞가지를 붙여 앞먹임한다.
         """
         # 숨은 상태에서 Q, K, V를 셈한다
-        # (짜기는 눈길 얼개에 따라 다르다)
+        # (짜기는 어텐션 얼개에 따라 다르다)
         
         # K와 V 앞에 앞가지를 붙인다
         # K = [앞가지 열쇠; K]
         # V = [앞가지 값; V]
         
-        # 앞가지에 맞춰 눈길 가림막을 넓힌다(앞가지는 늘 본다)
+        # 앞가지에 맞춰 어텐션 가림막을 넓힌다(앞가지는 늘 본다)
         if attention_mask is not None:
             prefix_mask = torch.ones(
                 attention_mask.shape[0], self.prefix_length,
@@ -515,7 +515,7 @@ class PrefixAttention(nn.Module):
             )
             attention_mask = torch.cat([prefix_mask, attention_mask], dim=1)
         
-        # 넓힌 K, V로 눈길을 셈한다
+        # 넓힌 K, V로 어텐션을 셈한다
         # ...
         
         pass  # 온전한 짜기는 모델 얼개에 따라 다르다
@@ -532,7 +532,7 @@ class Adapter(nn.Module):
     """
     맞춤개 모듈: 내림 쏘기 → 비선형 → 올림 쏘기 + 남는 이음.
     
-    눈길이나 앞먹임 그물 밑층 뒤에 끼운다.
+    어텐션이나 앞먹임 그물 밑층 뒤에 끼운다.
     """
     
     def __init__(
@@ -566,7 +566,7 @@ class AdapterTransformerBlock(nn.Module):
     맞춤개를 끼운 변환기 덩이.
     
     구조:
-        x → 눈길 → 맞춤개 → 층 고르게 맞추기 → 앞먹임 그물 → 맞춤개 → 층 고르게 맞추기 → 내놓기
+        x → 어텐션 → 맞춤개 → 층 고르게 맞추기 → 앞먹임 그물 → 맞춤개 → 층 고르게 맞추기 → 내놓기
     """
     
     def __init__(
@@ -585,7 +585,7 @@ class AdapterTransformerBlock(nn.Module):
         # 덩이에서 숨은 크기를 알아낸다
         hidden_size = self._get_hidden_size(original_block)
         
-        # 눈길과 앞먹임 그물 뒤에 맞춤개를 더한다
+        # 어텐션과 앞먹임 그물 뒤에 맞춤개를 더한다
         self.adapter_attn = Adapter(hidden_size, bottleneck_size)
         self.adapter_ffn = Adapter(hidden_size, bottleneck_size)
     
@@ -693,7 +693,7 @@ Quality
 
 ```python
 # 기억 공간 효율을 가장 크게 하려는 QLoRA + 기울기 되짚기
-# 눈길에는 LoRA + 여러 층 인식개에는 맞춤개
+# 어텐션에는 LoRA + 여러 층 인식개에는 맞춤개
 # 더 큰 담이를 위한 앞가지 다듬기 + LoRA
 ```
 

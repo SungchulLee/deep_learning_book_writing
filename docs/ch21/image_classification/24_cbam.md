@@ -1,6 +1,6 @@
 # CBAM
 
-CBAM은 2018년 논문 "CBAM: Convolutional Block Attention Module"에서 나왔다. 채널 눈길과 자리 눈길을 차례로 쓰는 얼개이다.
+CBAM은 2018년 논문 "CBAM: Convolutional Block Attention Module"에서 나왔다. 채널 어텐션과 자리 어텐션을 차례로 쓰는 얼개이다.
 
 이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 그림 가르기를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 얼개의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
 
@@ -9,9 +9,9 @@ CBAM은 2018년 논문 "CBAM: Convolutional Block Attention Module"에서 나왔
 ```python
 #!/usr/bin/env python3
 '''
-CBAM — 누비기 덩이 눈길 단원
+CBAM — 누비기 덩이 어텐션 단원
 논문: "CBAM: Convolutional Block Attention Module" (2018)
-핵심: 채널 눈길과 자리 눈길을 차례로 쓰는 얼개
+핵심: 채널 어텐션과 자리 어텐션을 차례로 쓰는 얼개
 '''
 import torch
 import torch.nn as nn

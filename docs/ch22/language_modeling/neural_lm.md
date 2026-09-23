@@ -10,7 +10,7 @@
 - PyTorch로 앞먹임 신경 말 모델을 짠다
 - 맥락 길이가 바뀌는 되돌이 그물 바탕 말 모델을 세운다
 - 멀리 떨어진 얽힘을 다루는 LSTM 말 모델을 짠다
-- 스스로 눈길을 쓰는 변환기 바탕 말 모델을 꾸민다
+- 스스로 어텐션을 쓰는 변환기 바탕 말 모델을 꾸민다
 - 일에 따라 알맞은 얼개를 견주고 고른다
 
 ---
@@ -604,9 +604,9 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
 
 ## 6. 변환기 말 모델
 
-변환기는 되돌이를 **스스로 눈길**로 갈음해 나란히 익히기와 더 나은 먼 거리 나타내기를 가능하게 한다.
+변환기는 되돌이를 **스스로 어텐션**로 갈음해 나란히 익히기와 더 나은 먼 거리 나타내기를 가능하게 한다.
 
-### 스스로 눈길 얼개
+### 스스로 어텐션 얼개
 
 나타냄의 이음 $\mathbf{X} = [\mathbf{x}_1, \ldots, \mathbf{x}_n]$이 주어지면
 
@@ -620,7 +620,7 @@ $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\fr
 
 ### 인과 가리기
 
-말 나타내기에서는 앞으로 올 토막에 눈길을 주지 못하게 막아야 한다:
+말 나타내기에서는 앞으로 올 토막에 어텐션을 주지 못하게 막아야 한다:
 
 $$\text{mask}_{ij} = \begin{cases} 0 & \text{if } j \leq i \\ -\infty & \text{otherwise} \end{cases}$$
 
@@ -664,7 +664,7 @@ class TransformerLM(nn.Module):
     인수:
         vocab_size: 낱말 곳간의 크기
         d_model: 모형 차원
-        nhead: 눈길 머리의 개수
+        nhead: 어텐션 머리의 개수
         num_layers: 변환기 층의 개수
         dim_feedforward: 앞먹임 그물의 안쪽 차원
         dropout: 드롭아웃 확률
@@ -707,7 +707,7 @@ class TransformerLM(nn.Module):
         self.fc.bias.data.zero_()
     
     def generate_causal_mask(self, size: int) -> torch.Tensor:
-        """인과 눈길 마스크 만들기."""
+        """인과 어텐션 마스크 만들기."""
         mask = torch.triu(torch.ones(size, size), diagonal=1).bool()
         return mask
     
@@ -731,7 +731,7 @@ class TransformerLM(nn.Module):
         # 인과 가림
         mask = self.generate_causal_mask(seq_len).to(x.device)
         
-        # 변환기 앞먹임(스스로 눈길만)
+        # 변환기 앞먹임(스스로 어텐션만)
         output = self.transformer(x, x, tgt_mask=mask)
         
         # 어휘로 사영한다
@@ -926,7 +926,7 @@ print(tokenizer.decode(output[0]))
 
 2. **LSTM과 GRU**: GRU 말 모델을 짜고 같은 자료에서 LSTM과 헷갈림도를 견주어라.
 
-3. **눈길 그려 보기**: 변환기 말 모델의 눈길 무늬를 그려 보라. 들임 갈래에 따라 어떤 무늬가 나타나는가?
+3. **어텐션 그려 보기**: 변환기 말 모델의 어텐션 무늬를 그려 보라. 들임 갈래에 따라 어떤 무늬가 나타나는가?
 
 4. **만들어 낸 글의 좋음**: 같은 시킴말에 대해 n-그램, LSTM, 변환기 모델이 만든 글을 견주어라.
 

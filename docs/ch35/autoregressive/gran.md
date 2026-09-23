@@ -1,6 +1,6 @@
-# GRAN: 그래프 되돌이 눈길 신경망
+# GRAN: 그래프 되돌이 어텐션 신경망
 
-GRAN(Liao et al., 2019)은 마디를 하나씩이 아니라 **덩이**로 만들어 GraphRNN의 커지기 한계를 다룬다. 걸음마다 마디 $B$개의 덩이를 한꺼번에 더하며 그래프 신경망 바탕 눈길 얼개로 새 마디와 기존 마디의 주고받음을 나타낸다. 이 덩이 단위 만들기는 그래프 신경망 쪽지 건네기의 비용을 여러 마디에 고루 나누어 만들기 걸음을 $O(n)$ 대신 $O(n/B)$으로 줄이면서, 눈길 바탕 변 헤아리기로 나타냄 힘을 지킨다.
+GRAN(Liao et al., 2019)은 마디를 하나씩이 아니라 **덩이**로 만들어 GraphRNN의 커지기 한계를 다룬다. 걸음마다 마디 $B$개의 덩이를 한꺼번에 더하며 그래프 신경망 바탕 어텐션 얼개로 새 마디와 기존 마디의 주고받음을 나타낸다. 이 덩이 단위 만들기는 그래프 신경망 쪽지 건네기의 비용을 여러 마디에 고루 나누어 만들기 걸음을 $O(n)$ 대신 $O(n/B)$으로 줄이면서, 어텐션 바탕 변 헤아리기로 나타냄 힘을 지킨다.
 
 ---
 
@@ -27,13 +27,13 @@ $$
 
 ### 그래프 신경망 등뼈
 
-만들기 걸음마다 GRAN은 늘린 그래프(기존 마디 + 새 후보 $B$개)에 눈길이 있는 그래프 신경망을 쓴다. 그래프 신경망은 쪽지 건네기를 $L$바퀴 돈다:
+만들기 걸음마다 GRAN은 늘린 그래프(기존 마디 + 새 후보 $B$개)에 어텐션이 있는 그래프 신경망을 쓴다. 그래프 신경망은 쪽지 건네기를 $L$바퀴 돈다:
 
 $$
 \mathbf{h}_v^{(\ell+1)} = \mathbf{h}_v^{(\ell)} + \text{MLP}^{(\ell)}\left(\sum_{u \in \tilde{\mathcal{N}}(v)} \alpha_{vu}^{(\ell)} \cdot \mathbf{W}^{(\ell)} \mathbf{h}_u^{(\ell)}\right)
 $$
 
-여기서 $\tilde{\mathcal{N}}(v)$은 기존 이웃과 새 마디로의 후보 변을 함께 담는다. 눈길 무게 $\alpha_{vu}^{(\ell)}$은 다음과 같이 셈한다:
+여기서 $\tilde{\mathcal{N}}(v)$은 기존 이웃과 새 마디로의 후보 변을 함께 담는다. 어텐션 무게 $\alpha_{vu}^{(\ell)}$은 다음과 같이 셈한다:
 
 $$
 \alpha_{vu}^{(\ell)} = \frac{\exp(e_{vu}^{(\ell)})}{\sum_{w \in \tilde{\mathcal{N}}(v)} \exp(e_{vw}^{(\ell)})}
@@ -94,11 +94,11 @@ GRAN의 덩이 단위 만들기는 금융 낱것 무리가 한꺼번에 시장�
 
 ---
 
-## 7. 짜기: 눈길을 쓴 GRAN
+## 7. 짜기: 어텐션을 쓴 GRAN
 
 ```python
 """
-GRAN: 덩이 단위 그래프 만들기를 위한 그래프 되돌이 눈길 신경망.
+GRAN: 덩이 단위 그래프 만들기를 위한 그래프 되돌이 어텐션 신경망.
 """
 import torch
 import torch.nn as nn
@@ -107,7 +107,7 @@ import math
 from typing import Optional
 
 class GRANAttentionLayer(nn.Module):
-    """GRAN의 눈길 바탕 그래프 신경망 층 하나."""
+    """GRAN의 어텐션 바탕 그래프 신경망 층 하나."""
 
     def __init__(self, hidden_dim: int, num_heads: int = 4):
         super().__init__()
@@ -197,9 +197,9 @@ class MixtureBernoulliDecoder(nn.Module):
 
 class GRAN(nn.Module):
     """
-    그래프 되돌이 눈길 신경망.
+    그래프 되돌이 어텐션 신경망.
     
-    그래프 신경망 눈길과 베르누이 섞음 변 헤아리기로
+    그래프 신경망 어텐션과 베르누이 섞음 변 헤아리기로
     그래프를 덩이 단위로 만든다.
     """
 

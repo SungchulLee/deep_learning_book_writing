@@ -5,7 +5,7 @@
 ## 1. 학습 목표
 
 - 맨 변환기에서 요즘 큰 말 모델까지의 핵심 얼개 바뀜을 이해한다
-- RMSNorm, SwiGLU, 돌림 묻힘, 묶은 물음 눈길을 짠다
+- RMSNorm, SwiGLU, 돌림 묻힘, 묶은 물음 어텐션을 짠다
 - 여러 얼개 고름의 맞바꿈을 살핀다
 - GPT, LLaMA, Mistral 갈래의 얼개를 견준다
 
@@ -13,7 +13,7 @@
 
 ## 2. 들어가며
 
-요즘 큰 말 모델은 처음 변환기를 넘어 수많은 얼개의 새로움을 담고 있다. 이 고침은 고갱이 눈길 얼개는 그대로 두면서 익히기의 든든함, 셈의 효율, 모델의 능력을 낫게 한다.
+요즘 큰 말 모델은 처음 변환기를 넘어 수많은 얼개의 새로움을 담고 있다. 이 고침은 고갱이 어텐션 얼개는 그대로 두면서 익히기의 든든함, 셈의 효율, 모델의 능력을 낫게 한다.
 
 ---
 
@@ -165,7 +165,7 @@ class RotaryEmbedding(nn.Module):
 
 ### RoPE의 좋은 점
 
-1. **상대 자리**: 눈길이 절대 자리가 아니라 $(m - n)$에 달렸다
+1. **상대 자리**: 어텐션이 절대 자리가 아니라 $(m - n)$에 달렸다
 2. **밖으로 늘리기**: 절대 묻힘보다 길이에 두루 통한다
 3. **매개변수를 더하지 않음**: 자리를 돌림으로 부호화한다
 
@@ -194,7 +194,7 @@ def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float 
 
 ```python
 class MultiQueryAttention(nn.Module):
-    """여러 물음 눈길: 열쇠-값 머리 하나, 물음 머리 여럿."""
+    """여러 물음 어텐션: 열쇠-값 머리 하나, 물음 머리 여럿."""
     
     def __init__(self, dim: int, num_heads: int):
         super().__init__()
@@ -217,7 +217,7 @@ class MultiQueryAttention(nn.Module):
         k = k.expand(-1, -1, self.num_heads, -1)
         v = v.expand(-1, -1, self.num_heads, -1)
         
-        # 여느 눈길
+        # 여느 어텐션
         scores = torch.einsum('blhd,bmhd->bhlm', q, k) / (self.head_dim ** 0.5)
         attn = torch.softmax(scores, dim=-1)
         out = torch.einsum('bhlm,bmhd->blhd', attn, v)
@@ -227,11 +227,11 @@ class MultiQueryAttention(nn.Module):
 
 ### 배치 질의 어텐션 (GQA)
 
-여러 머리 눈길과 여러 물음 눈길의 사이. 곧 물음 머리 배치가 열쇠-값 머리를 나눠 쓴다:
+여러 머리 어텐션과 여러 물음 어텐션의 사이. 곧 물음 머리 배치가 열쇠-값 머리를 나눠 쓴다:
 
 ```python
 class GroupedQueryAttention(nn.Module):
-    """무리 지은 물음 눈길: 열쇠-값 머리 수 < 물음 머리 수."""
+    """무리 지은 물음 어텐션: 열쇠-값 머리 수 < 물음 머리 수."""
     
     def __init__(
         self, 
@@ -261,7 +261,7 @@ class GroupedQueryAttention(nn.Module):
         k = k.repeat_interleave(self.num_groups, dim=2)
         v = v.repeat_interleave(self.num_groups, dim=2)
         
-        # 여느 눈길 셈하기
+        # 여느 어텐션 셈하기
         q = q.transpose(1, 2)  # (배치, 머리, 길이, 차원)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
@@ -274,12 +274,12 @@ class GroupedQueryAttention(nn.Module):
         return self.o_proj(out)
 ```
 
-### 눈길 견줌
+### 어텐션 견줌
 
 | 갈래 | 열쇠-값 머리 | 열쇠-값 곳간 크기 | 좋음 | 쓰이는 곳 |
 |------|----------|---------------|---------|---------|
 | MHA | H | $2 \cdot H \cdot d_h$ | Best | GPT-3 |
-| 묶은 물음 눈길 | H/G | $2 \cdot H/G \cdot d_h$ | 여러 머리 눈길에 가깝다 | LLaMA-2 70B |
+| 묶은 물음 어텐션 | H/G | $2 \cdot H/G \cdot d_h$ | 여러 머리 어텐션에 가깝다 | LLaMA-2 70B |
 | MQA | 1 | $2 \cdot d_h$ | Good | PaLM |
 
 ---
@@ -288,7 +288,7 @@ class GroupedQueryAttention(nn.Module):
 
 ### Mistral의 방식
 
-창 크기가 $W$인 가까운 자리 눈길:
+창 크기가 $W$인 가까운 자리 어텐션:
 
 ```python
 def sliding_window_mask(seq_len: int, window_size: int) -> torch.Tensor:
@@ -302,7 +302,7 @@ def sliding_window_mask(seq_len: int, window_size: int) -> torch.Tensor:
     return mask
 
 class SlidingWindowAttention(nn.Module):
-    """효율을 위해 미끄러지는 창을 쓰는 눈길."""
+    """효율을 위해 미끄러지는 창을 쓰는 어텐션."""
     
     def __init__(self, dim: int, num_heads: int, window_size: int = 4096):
         super().__init__()
@@ -323,7 +323,7 @@ class SlidingWindowAttention(nn.Module):
         mask = sliding_window_mask(L, self.window_size).to(x.device)
         mask = mask.masked_fill(mask == 0, float('-inf'))
         
-        # 가림막을 쓴 눈길
+        # 가림막을 쓴 어텐션
         scores = torch.einsum('bnhd,bmhd->bhnm', q, k) / (self.head_dim ** 0.5)
         scores = scores + mask
         attn = torch.softmax(scores, dim=-1)
@@ -335,7 +335,7 @@ class SlidingWindowAttention(nn.Module):
 ### 좋은 점
 
 - **기억 공간**: O(n²) 대신 O(n·W)
-- **실효 맥락**: 층을 쌓아 여전히 온 차례에 눈길을 준다
+- **실효 맥락**: 층을 쌓아 여전히 온 차례에 어텐션을 준다
 
 ---
 
@@ -359,7 +359,7 @@ class LLaMABlock(nn.Module):
         self.attention_norm = RMSNorm(dim, eps=norm_eps)
         self.ffn_norm = RMSNorm(dim, eps=norm_eps)
         
-        # 무리 지은 물음 눈길
+        # 무리 지은 물음 어텐션
         self.attention = GroupedQueryAttention(dim, num_heads, num_kv_heads)
         
         # SwiGLU 앞먹임 그물
@@ -374,7 +374,7 @@ class LLaMABlock(nn.Module):
         positions: torch.Tensor,
         mask: torch.Tensor = None
     ) -> torch.Tensor:
-        # 남는 이음을 곁들인 눈길
+        # 남는 이음을 곁들인 어텐션
         h = self.attention_norm(x)
         h = self.attention(h, positions, mask)
         x = x + h
@@ -397,7 +397,7 @@ class LLaMABlock(nn.Module):
 | 고르게 맞추기 자리 | 뒤 | 앞 | 앞 |
 | 활성화 | GELU | SwiGLU | SwiGLU |
 | 자리 | 배움 | RoPE | RoPE |
-| 눈길 | 여러 머리 눈길 | 묶은 물음 눈길 | 미끄러지는 창 + 묶은 물음 눈길 |
+| 어텐션 | 여러 머리 어텐션 | 묶은 물음 어텐션 | 미끄러지는 창 + 묶은 물음 어텐션 |
 | 맥락 | 2K/4K | 4K | 8K(미끄러지는 창) |
 
 ---
@@ -469,8 +469,8 @@ GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 �
 1. **RMSNorm**: 평균 빼기 없는 더 빠른 고르게 맞추기
 2. **SwiGLU**: 나타내는 힘을 키우는 문 달린 활성화
 3. **RoPE**: 돌림에 바탕한 상대 자리 부호
-4. **묶은 물음 눈길/여러 물음 눈길**: 효율적인 미룸을 위해 줄인 열쇠-값 곳간
-5. **미끄러지는 창**: 한 줄 복잡도의 눈길
+4. **묶은 물음 어텐션/여러 물음 어텐션**: 효율적인 미룸을 위해 줄인 열쇠-값 곳간
+5. **미끄러지는 창**: 한 줄 복잡도의 어텐션
 
 **참고 문헌**
 

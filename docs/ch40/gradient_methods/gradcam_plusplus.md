@@ -94,7 +94,7 @@ $$
 w_k^c = \sum_i \sum_j \alpha_{ij}^{kc} \cdot \text{ReLU}\left(\frac{\partial y^c}{\partial A_{ij}^k}\right)
 $$
 
-**고갱이 깨침**: 짐을 매기기 앞서 기울기에 ReLU을 걸므로, Grad-CAM++은 갈래 점수에 **양수로 이바지하는** 그림점에만 눈길을 둔다.
+**고갱이 깨침**: 짐을 매기기 앞서 기울기에 ReLU을 걸므로, Grad-CAM++은 갈래 점수에 **양수로 이바지하는** 그림점에만 어텐션을 둔다.
 
 ---
 
@@ -242,7 +242,7 @@ class GradCAMPlusPlus:
         # 살아남 그림을 짐 실어 아우른다
         heatmap = (weights * A).sum(dim=1, keepdim=True)  # [1, 1, H', W']
 
-        # ReLU을 건다(양수 이바지에만 눈길)
+        # ReLU을 건다(양수 이바지에만 어텐션)
         heatmap = F.relu(heatmap)
 
         # [0, 1]으로 고르게 한다

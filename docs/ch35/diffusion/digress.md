@@ -82,7 +82,7 @@ $$
 \mathbf{e}_{ij}^{(\ell+1)} = \mathbf{e}_{ij}^{(\ell)} + \text{MLP}^{(\ell)}([\mathbf{h}_i^{(\ell+1)} \| \mathbf{h}_j^{(\ell+1)} \| \mathbf{e}_{ij}^{(\ell)}])
 $$
 
-눈길 얼개는 변 특징을 눈길 무게에 담는다:
+어텐션 얼개는 변 특징을 어텐션 무게에 담는다:
 
 $$
 \alpha_{ij}^{(\ell)} = \frac{(\mathbf{W}_Q \mathbf{h}_i)^\top (\mathbf{W}_K \mathbf{h}_j) + (\mathbf{W}_E \mathbf{e}_{ij})^\top \mathbf{w}_a}{\sqrt{d_k}}
@@ -288,7 +288,7 @@ class DiGressTransformerLayer(nn.Module):
         K = self.W_K(h).view(B, n, heads, hd)
         V = self.W_V(h).view(B, n, heads, hd)
 
-        # 변 치우침을 더한 눈길
+        # 변 치우침을 더한 어텐션
         attn = torch.einsum("bihd,bjhd->bijh", Q, K) / math.sqrt(hd)
         edge_bias = self.W_E(e)  # (B, n, n, heads)
         attn = attn + edge_bias

@@ -5,8 +5,8 @@
 """
 
 """
-변환기 모형을 위한 눈길 그림 그리기
-변환기 얼개의 제 눈길 결을 그린다
+변환기 모형을 위한 어텐션 그림 그리기
+변환기 얼개의 제 어텐션 결을 그린다
 """
 
 import torch
@@ -24,12 +24,12 @@ import warnings
 
 class AttentionVisualizer:
     """
-    변환기 모형의 눈길 짐을 그린다.
+    변환기 모형의 어텐션 짐을 그린다.
     """
 
     def __init__(self, model: nn.Module):
         """
-        눈길 그리개의 첫자리를 잡는다.
+        어텐션 그리개의 첫자리를 잡는다.
 
         Args:
             model: 변환기 모형(보기로 BERT, GPT, ViT)
@@ -40,25 +40,25 @@ class AttentionVisualizer:
 
     def register_hooks(self, layer_names: Optional[List[str]] = None):
         """
-        눈길 짐을 붙들려고 앞으로 걸음 갈고리를 건다.
+        어텐션 짐을 붙들려고 앞으로 걸음 갈고리를 건다.
 
         Args:
-            layer_names: 갈고리를 걸 켜 이름 목록. None이면 모든 눈길 켜에 건다.
+            layer_names: 갈고리를 걸 켜 이름 목록. None이면 모든 어텐션 켜에 건다.
         """
         def hook_fn(name):
             def hook(module, input, output):
-                # 눈길 짐을 갈무리한다
+                # 어텐션 짐을 갈무리한다
                 # 내놓기 꼴은 모형 얼개마다 다르다
                 if isinstance(output, tuple) and len(output) > 1:
-                    # 흔히 (내놓기, 눈길 짐)
+                    # 흔히 (내놓기, 어텐션 짐)
                     self.attention_maps[name] = output[1].detach()
                 else:
                     self.attention_maps[name] = output.detach()
             return hook
 
-        # 눈길 꾸러미를 찾아 갈고리를 건다
+        # 어텐션 꾸러미를 찾아 갈고리를 건다
         for name, module in self.model.named_modules():
-            # 흔한 눈길 꾸러미 이름
+            # 흔한 어텐션 꾸러미 이름
             if any(x in name.lower() for x in ['attention', 'attn', 'self_attn']):
                 if layer_names is None or name in layer_names:
                     handle = module.register_forward_hook(hook_fn(name))
@@ -72,10 +72,10 @@ class AttentionVisualizer:
 
     def get_attention_maps(self) -> Dict[str, torch.Tensor]:
         """
-        붙든 눈길 그림을 내놓는다.
+        붙든 어텐션 그림을 내놓는다.
 
         Returns:
-            켜 이름을 눈길 텐서에 이어 주는 사전
+            켜 이름을 어텐션 텐서에 이어 주는 사전
         """
         return self.attention_maps
 
@@ -84,12 +84,12 @@ class AttentionVisualizer:
                                 head_idx: int = 0,
                                 figsize: Tuple[int, int] = (10, 8)) -> plt.Figure:
         """
-        정한 머리의 눈길 짐을 그린다.
+        정한 머리의 어텐션 짐을 그린다.
 
         Args:
-            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 어텐션 텐서
             tokens: 이름표로 쓸 낱말 목록
-            head_idx: 그릴 눈길 머리의 번호
+            head_idx: 그릴 어텐션 머리의 번호
             figsize: 그림 크기
 
         Returns:
@@ -108,7 +108,7 @@ class AttentionVisualizer:
 
         # 열 그림을 그린다
         sns.heatmap(attn, annot=False, cmap='viridis', square=True,
-                   cbar_kws={'label': '눈길 짐'}, ax=ax)
+                   cbar_kws={'label': '어텐션 짐'}, ax=ax)
 
         # 낱말이 있으면 이름표를 붙인다
         if tokens:
@@ -117,7 +117,7 @@ class AttentionVisualizer:
 
         ax.set_xlabel('열쇠 자리')
         ax.set_ylabel('물음 자리')
-        ax.set_title(f'눈길 머리 {head_idx}')
+        ax.set_title(f'어텐션 머리 {head_idx}')
 
         plt.tight_layout()
         return fig
@@ -127,10 +127,10 @@ class AttentionVisualizer:
                            max_heads: int = 8,
                            figsize: Tuple[int, int] = (16, 12)) -> plt.Figure:
         """
-        눈길 머리 여럿을 격자로 그린다.
+        어텐션 머리 여럿을 격자로 그린다.
 
         Args:
-            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 눈길 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 어텐션 텐서
             tokens: 낱말 목록
             max_heads: 보일 머리의 가장 큰 수
             figsize: 그림 크기
@@ -167,7 +167,7 @@ class AttentionVisualizer:
         for i in range(num_heads, len(axes)):
             axes[i].axis('off')
 
-        plt.suptitle('여러 머리 눈길 결', fontsize=16)
+        plt.suptitle('여러 머리 어텐션 결', fontsize=16)
         plt.tight_layout()
         return fig
 
@@ -176,7 +176,7 @@ class AttentionVisualizer:
                                   average_heads: bool = True,
                                   figsize: Tuple[int, int] = (10, 8)) -> plt.Figure:
         """
-        정한 켜의 눈길을 그린다.
+        정한 켜의 어텐션을 그린다.
 
         Args:
             layer_name: 켜 이름
@@ -188,7 +188,7 @@ class AttentionVisualizer:
             Matplotlib 그림
         """
         if layer_name not in self.attention_maps:
-            raise ValueError(f"눈길 그림에 켜 {layer_name}이 없다")
+            raise ValueError(f"어텐션 그림에 켜 {layer_name}이 없다")
 
         attn = self.attention_maps[layer_name]
 
@@ -205,7 +205,7 @@ class AttentionVisualizer:
         fig, ax = plt.subplots(figsize=figsize)
 
         sns.heatmap(attn, annot=False, cmap='viridis', square=True,
-                   cbar_kws={'label': '고른 눈길'}, ax=ax)
+                   cbar_kws={'label': '고른 어텐션'}, ax=ax)
 
         if tokens:
             ax.set_xticklabels(tokens, rotation=90)
@@ -213,7 +213,7 @@ class AttentionVisualizer:
 
         ax.set_xlabel('열쇠 자리')
         ax.set_ylabel('물음 자리')
-        ax.set_title(f'켜: {layer_name} (고른 눈길)')
+        ax.set_title(f'켜: {layer_name} (고른 어텐션)')
 
         plt.tight_layout()
         return fig
@@ -223,10 +223,10 @@ class AttentionVisualizer:
                            query_idx: int,
                            figsize: Tuple[int, int] = (12, 6)) -> plt.Figure:
         """
-        정한 물음 낱말에서 뻗는 눈길 흐름을 그린다.
+        정한 물음 낱말에서 뻗는 어텐션 흐름을 그린다.
 
         Args:
-            attention_weights: 눈길 텐서
+            attention_weights: 어텐션 텐서
             tokens: 낱말 목록
             query_idx: 물음 낱말의 번호
             figsize: 그림 크기
@@ -248,8 +248,8 @@ class AttentionVisualizer:
         ax.bar(positions, attn, color='steelblue', alpha=0.7)
         ax.set_xticks(positions)
         ax.set_xticklabels(tokens, rotation=45, ha='right')
-        ax.set_ylabel('눈길 짐')
-        ax.set_title(f'"{tokens[query_idx]}"에서 다른 낱말로 가는 눈길')
+        ax.set_ylabel('어텐션 짐')
+        ax.set_title(f'"{tokens[query_idx]}"에서 다른 낱말로 가는 어텐션')
         ax.grid(axis='y', alpha=0.3)
 
         plt.tight_layout()
@@ -263,18 +263,18 @@ class BERTAttentionVisualizer(AttentionVisualizer):
 
     def extract_attention_from_output(self, outputs):
         """
-        BERT 모형의 내놓기에서 눈길 짐을 뽑아낸다.
+        BERT 모형의 내놓기에서 어텐션 짐을 뽑아낸다.
 
         Args:
             outputs: BERT(transformers 곳집) 모형의 내놓기
 
         Returns:
-            켜마다 하나씩인 눈길 텐서 목록
+            켜마다 하나씩인 어텐션 텐서 목록
         """
         if hasattr(outputs, 'attentions') and outputs.attentions is not None:
             return outputs.attentions
         else:
-            warnings.warn("모형 내놓기에 눈길 짐이 없다. "
+            warnings.warn("모형 내놓기에 어텐션 짐이 없다. "
                         "모형을 output_attentions=True로 부르라")
             return []
 
@@ -284,10 +284,10 @@ def visualize_token_attention(attention_weights: torch.Tensor,
                               layer_idx: int = -1,
                               save_path: Optional[str] = None) -> plt.Figure:
     """
-    낱말에 대한 눈길을 빠르게 그리는 도움 함수.
+    낱말에 대한 어텐션을 빠르게 그리는 도움 함수.
 
     Args:
-        attention_weights: 눈길 텐서 (켜, 배치, 머리, 열, 열)
+        attention_weights: 어텐션 텐서 (켜, 배치, 머리, 열, 열)
         tokens: 낱말 목록
         layer_idx: 그릴 켜 번호(-1이면 마지막 켜)
         save_path: 그림을 갈무리할 길
@@ -313,11 +313,11 @@ def visualize_token_attention(attention_weights: torch.Tensor,
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(attn, xticklabels=tokens, yticklabels=tokens,
                cmap='viridis', square=True,
-               cbar_kws={'label': '눈길 짐'})
+               cbar_kws={'label': '어텐션 짐'})
 
     ax.set_xlabel('열쇠 자리')
     ax.set_ylabel('물음 자리')
-    ax.set_title(f'눈길 결 (켜 {layer_idx})')
+    ax.set_title(f'어텐션 결 (켜 {layer_idx})')
     plt.xticks(rotation=90)
     plt.yticks(rotation=0)
     plt.tight_layout()

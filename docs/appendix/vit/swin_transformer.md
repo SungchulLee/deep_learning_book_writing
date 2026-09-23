@@ -1,6 +1,6 @@
 # Swin Transformer
 
-Swin Transformer은 2021년 글 "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows"에서 나왔다. 잘 들도록 옮긴 창 눈길과 층을 이룬 결 그림을 쓴다.
+Swin Transformer은 2021년 글 "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows"에서 나왔다. 잘 들도록 옮긴 창 어텐션과 층을 이룬 결 그림을 쓴다.
 
 여기 짜보기는 Swin Transformer을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -11,7 +11,7 @@ Swin Transformer은 2021년 글 "Swin Transformer: Hierarchical Vision Transform
 '''
 Swin Transformer - 옮긴 창을 쓰는 층 이룬 보기 변환기
 논문: "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows" (2021)
-고갱이: 잘 들도록 옮긴 창 눈길과 층을 이룬 특징 지도
+고갱이: 잘 들도록 옮긴 창 어텐션과 층을 이룬 특징 지도
 '''
 import torch
 import torch.nn as nn
@@ -99,12 +99,12 @@ Parameters: 773,704
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-스스로 눈길의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
+스스로 어텐션의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    여느 스스로 눈길은 $n \times n$ 눈길 행렬을 셈하므로 때는 $O(n^2 d)$, 눈길 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 눈길($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 두루 눈길을 아울러 쓴다. Linformer는 열쇠와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 들임에서 잘 들게 한다.
+    여느 스스로 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때는 $O(n^2 d)$, 어텐션 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 두루 어텐션을 아울러 쓴다. Linformer는 열쇠와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 들임에서 잘 들게 한다.
 
 ---
 

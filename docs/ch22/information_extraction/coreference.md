@@ -58,7 +58,7 @@ $$P(a_j \mid m_i) = \frac{\exp(s(m_i, m_j))}{\sum_{k \leq i} \exp(s(m_i, m_k)) +
 ### 구조
 
 1. **구간 늘어놓기**: 길이 $L$까지의 모든 구간을 헤아린다
-2. **구간 나타내기**: $\mathbf{g}_i = [\mathbf{h}_{\text{start}}; \mathbf{h}_{\text{end}}; \hat{\mathbf{h}}_i; \phi(i)]$이며 $\hat{\mathbf{h}}_i$은 눈길 짐을 실은 머리 낱말 나타냄이고 $\phi(i)$은 구간 너비를 담는다
+2. **구간 나타내기**: $\mathbf{g}_i = [\mathbf{h}_{\text{start}}; \mathbf{h}_{\text{end}}; \hat{\mathbf{h}}_i; \phi(i)]$이며 $\hat{\mathbf{h}}_i$은 어텐션 짐을 실은 머리 낱말 나타냄이고 $\phi(i)$은 구간 너비를 담는다
 3. **언급 점수**: $s_m(i) = \text{FFNN}_m(\mathbf{g}_i)$
 4. **앞선 말 점수**: $s_a(i, j) = \text{FFNN}_a([\mathbf{g}_i; \mathbf{g}_j; \mathbf{g}_i \circ \mathbf{g}_j; \phi(i,j)])$
 5. **짝 점수**: $s(i, j) = s_m(i) + s_m(j) + s_a(i, j)$
@@ -79,7 +79,7 @@ class CorefScorer(nn.Module):
     """간추린 같은 것 가리키기 점수 매기기 단원."""
     def __init__(self, hidden_dim=768, ffnn_dim=1000):
         super().__init__()
-        span_dim = hidden_dim * 3 + 20  # 시작, 끝, 머리 눈길, 너비 특징
+        span_dim = hidden_dim * 3 + 20  # 시작, 끝, 머리 어텐션, 너비 특징
         self.mention_score = nn.Sequential(
             nn.Linear(span_dim, ffnn_dim), nn.ReLU(), nn.Dropout(0.3),
             nn.Linear(ffnn_dim, 1),

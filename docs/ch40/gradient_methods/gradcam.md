@@ -37,7 +37,7 @@ $$
 
 - $A^k \in \mathbb{R}^{H' \times W'}$은 겨눈 겹치는 켜의 $k$번째 결 그림
 - $\alpha^c_k$은 갈래 $c$에 대한 결 그림 $k$의 중요함 짐
-- ReLU은 이바지가 양수인 결에만 눈길을 두게 한다
+- ReLU은 이바지가 양수인 결에만 어텐션을 두게 한다
 
 ### 중요함 짐 셈하기
 
@@ -670,7 +670,7 @@ Grad-CAM이 **성긴 자리 짚기**를 내는 까닭은 이렇다.
 cam_cat = grad_cam(input_tensor, target_class=281)  # 고양이 갈래
 cam_dog = grad_cam(input_tensor, target_class=235)  # 개 갈래
 
-# CAM을 견주면 갈래마다 어느 자리에 눈길을 두는지 드러난다
+# CAM을 견주면 갈래마다 어느 자리에 어텐션을 두는지 드러난다
 # 다만 겹치거나 헛된 살아남이 있을 수 있다
 ```
 
@@ -679,7 +679,7 @@ cam_dog = grad_cam(input_tensor, target_class=235)  # 개 갈래
 Grad-CAM은 결 그림의 중요함이 자리마다 한결같다고 여긴다. 다음에서는 이것이 맞지 않을 수 있다.
 
 - 결 그림의 자리마다 다른 뜻이 실려 있을 때
-- 모형이 안에서 눈길 얼개를 쓸 때
+- 모형이 안에서 어텐션 얼개를 쓸 때
 - 결의 중요함이 자리마다 다를 때
 
 ### 4. 기울기 잦아듦
@@ -718,12 +718,12 @@ cam = grad_cam(image_tensor, target_class=predicted_class)
 ```python
 # 문서 그림 가름개에 쓴다
 cam = grad_cam(document_image, target_class=class_map["quarterly_report"])
-# 모형이 어느 마디(표, 그림표, 서명)에 눈길을 두는지 그린다
+# 모형이 어느 마디(표, 그림표, 서명)에 어텐션을 두는지 그린다
 ```
 
 ### 기술 살피기
 
-CNN 바탕 거래 모형이 어느 그림표 결에 눈길을 두는지 그린다.
+CNN 바탕 거래 모형이 어느 그림표 결에 어텐션을 두는지 그린다.
 
 ```python
 # 촛대 결 알아보개에 쓴다
@@ -860,7 +860,7 @@ $$
 
 - 잔 낱까지 자리를 짚어야 할 때 → 이끈 Grad-CAM
 - 이론 보장이 있어야 할 때 → 쌓은 기울기
-- CNN이 아닌 얼개일 때 → 눈길 그림 그리기, SHAP
+- CNN이 아닌 얼개일 때 → 어텐션 그림 그리기, SHAP
 
 **살펴볼 거리**
 

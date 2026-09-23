@@ -12,7 +12,7 @@
 =====================================================
 
 이 각본은 뜻 나누기의 가장 앞선 재주를 보여 준다:
-- 눈길 얼개(CBAM)
+- 어텐션 얼개(CBAM)
 - 앞선 손실 함수(초점 + 다이스 + 테두리)
 - 여러 잣수 익히기
 - 시험 때 불리기
@@ -62,17 +62,17 @@ print(f"  Multi-scale Training: {USE_MULTI_SCALE}")
 print(f"  Test-time Augmentation: {USE_TTA}\n")
 
 # ============================================================================
-# 1단계: 눈길 단원
+# 1단계: 어텐션 단원
 # ============================================================================
 """
-눈길 얼개는 모델이 중요한 자리와 특징에 초점을 두게 돕는다.
-CBAM(누비기 덩이 눈길 단원)은 눈길을
+어텐션 얼개는 모델이 중요한 자리와 특징에 초점을 두게 돕는다.
+CBAM(누비기 덩이 어텐션 단원)은 어텐션을
 채널 차원과 자리 차원 모두에 준다.
 """
 
 class ChannelAttention(nn.Module):
     """
-    채널 눈길 단원.
+    채널 어텐션 단원.
     어떤 채널(특징)이 중요한지 배운다.
     """
     def __init__(self, in_channels, reduction=16):
@@ -96,7 +96,7 @@ class ChannelAttention(nn.Module):
 
 class SpatialAttention(nn.Module):
     """
-    자리 눈길 단원.
+    자리 어텐션 단원.
     어떤 자리가 중요한지 배운다.
     """
     def __init__(self, kernel_size=7):
@@ -114,8 +114,8 @@ class SpatialAttention(nn.Module):
 
 class CBAM(nn.Module):
     """
-    누비기 덩이 눈길 단원.
-    채널 눈길과 자리 눈길을 아우른다.
+    누비기 덩이 어텐션 단원.
+    채널 어텐션과 자리 어텐션을 아우른다.
     """
     def __init__(self, in_channels, reduction=16):
         super().__init__()
@@ -123,19 +123,19 @@ class CBAM(nn.Module):
         self.spatial_attention = SpatialAttention()
     
     def forward(self, x):
-        # 채널 눈길 쓰기
+        # 채널 어텐션 쓰기
         x = x * self.channel_attention(x)
-        # 자리 눈길 쓰기
+        # 자리 어텐션 쓰기
         x = x * self.spatial_attention(x)
         return x
 
 
 # ============================================================================
-# 2단계: 눈길을 갖춘 앞선 U-넷
+# 2단계: 어텐션을 갖춘 앞선 U-넷
 # ============================================================================
 
 class AttentionDoubleConv(nn.Module):
-    """눈길을 갖춘 겹 누비기 덩이."""
+    """어텐션을 갖춘 겹 누비기 덩이."""
     def __init__(self, in_channels, out_channels, use_attention=True):
         super().__init__()
         self.conv = nn.Sequential(
@@ -157,7 +157,7 @@ class AttentionDoubleConv(nn.Module):
 class AdvancedUNet(nn.Module):
     """
     다음을 갖춘 앞선 U-넷:
-    - 눈길 단원(CBAM)
+    - 어텐션 단원(CBAM)
     - 깊은 이끎(있어도 되고 없어도 됨)
     - 잔차 이음(있어도 되고 없어도 됨)
     """
@@ -177,7 +177,7 @@ class AdvancedUNet(nn.Module):
         self.enc4 = AttentionDoubleConv(256, 512, use_attention)
         self.pool4 = nn.MaxPool2d(2)
         
-        # 눈길을 갖춘 병목
+        # 어텐션을 갖춘 병목
         self.bottleneck = AttentionDoubleConv(512, 1024, use_attention=True)
         
         # 디코더
@@ -417,7 +417,7 @@ train_dataset = MultiScaleDataset(num_samples=800)
 val_dataset = MultiScaleDataset(num_samples=100, scales=[256])  # 검증용 붙박이 잣수
 test_dataset = MultiScaleDataset(num_samples=100, scales=[256])
 
-BATCH_SIZE = 4  # 여러 잣수와 눈길 때문에 더 작다
+BATCH_SIZE = 4  # 여러 잣수와 어텐션 때문에 더 작다
 def multiscale_collate(batch):
     """배치마다 잣수 하나를 골라 그 배치 전체를 같은 크기로 맞춘다."""
     scale = int(np.random.choice(train_dataset.scales))

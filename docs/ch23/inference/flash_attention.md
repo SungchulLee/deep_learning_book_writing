@@ -1,26 +1,26 @@
-# 플래시 눈길
+# 플래시 어텐션
 
-Dao 외(2022)가 내놓은 플래시 눈길은 들고남을 헤아리는 정확한 눈길 알고리즘으로, 기억 공간 씀씀이를 O(N²)에서 O(N)으로 줄이면서 보통의 눈길보다 2~4배 빠르다. GPU의 기억 공간 다가감 무늬를 조심스레 짜서 이를 이룬다.
+Dao 외(2022)가 내놓은 플래시 어텐션은 들고남을 헤아리는 정확한 어텐션 알고리즘으로, 기억 공간 씀씀이를 O(N²)에서 O(N)으로 줄이면서 보통의 어텐션보다 2~4배 빠르다. GPU의 기억 공간 다가감 무늬를 조심스레 짜서 이를 이룬다.
 
 ---
 
 ## 1. 기억 공간의 병목
 
-### 보통 눈길의 기억 공간 탈
+### 보통 어텐션의 기억 공간 탈
 
-보통의 눈길은 다음을 셈한다:
+보통의 어텐션은 다음을 셈한다:
 
 $$
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 $$
 
-이러려면 온전한 $N \times N$ 눈길 행렬을 실제로 만들어야 한다.
+이러려면 온전한 $N \times N$ 어텐션 행렬을 실제로 만들어야 한다.
 
 ```
 Memory usage: O(N²) for storing attention scores
 ```
 
-float16으로 토막 10만 개짜리 이음을 다루면 눈길에만 $100K \times 100K \times 2 = 20$GB가 든다!
+float16으로 토막 10만 개짜리 이음을 다루면 어텐션에만 $100K \times 100K \times 2 = 20$GB가 든다!
 
 ### 들고남 복잡도
 
@@ -32,7 +32,7 @@ GPU 연산은 셈이 아니라 기억 공간에 묶이는 일이 흔하다:
 | 소프트맥스 | 적음 | 많음(온 행렬 읽고 쓰기) |
 | 떨구기 | 아주 적음 | 많음 |
 
-플래시 눈길은 FLOPs가 아니라 **기억 공간 들고남**을 다듬는다.
+플래시 어텐션은 FLOPs가 아니라 **기억 공간 들고남**을 다듬는다.
 
 ---
 
@@ -40,7 +40,7 @@ GPU 연산은 셈이 아니라 기억 공간에 묶이는 일이 흔하다:
 
 ### 1. 타일 나누기
 
-온 눈길을 셈하는 대신 타일 단위로 다룬다:
+온 어텐션을 셈하는 대신 타일 단위로 다룬다:
 
 ```
 For each tile of Q:
@@ -68,9 +68,9 @@ $$
 
 ### 3. 다시 셈하기
 
-뒤먹임 동안 눈길 무게를 담아 두는 대신 다시 셈한다:
+뒤먹임 동안 어텐션 무게를 담아 두는 대신 다시 셈한다:
 
-- 기억 공간을 아낀다: O(N²) 눈길 행렬을 담지 않는다
+- 기억 공간을 아낀다: O(N²) 어텐션 행렬을 담지 않는다
 - 셈은 조금 더 들지만 기억 공간 들고남이 줄어 더 빠르다
 
 ---
@@ -95,7 +95,7 @@ Output: O ∈ ℝ^{N×d}
        for i = 1 to Tr:  # Q 덩이를 되풀이한다
            Load Qi, Oi, ℓi, mi from HBM to SRAM
            
-           # 이 덩이의 눈길을 셈한다
+           # 이 덩이의 어텐션을 셈한다
            Sij = Qi @ Kj.T / √d
            
            # 흐르는 최댓값을 새로 고친다
@@ -138,10 +138,10 @@ def flash_attention_forward_reference(
     causal: bool = False
 ) -> torch.Tensor:
     """
-    플래시 눈길의 본보기 짜기(이해를 돕기 위해).
+    플래시 어텐션의 본보기 짜기(이해를 돕기 위해).
     
     참고: 이는 가르치려고 간추린 판이다.
-    실제 플래시 눈길은 효율을 위해 CUDA로 짠다.
+    실제 플래시 어텐션은 효율을 위해 CUDA로 짠다.
     
     인수:
         Q: 물음 [배치, 머리, 차례 길이, 머리 차원]
@@ -180,7 +180,7 @@ def flash_attention_forward_reference(
             
             Qi = Q[:, :, q_start:q_end, :]
             
-            # 이 덩이의 눈길 점수를 셈한다
+            # 이 덩이의 어텐션 점수를 셈한다
             Sij = torch.matmul(Qi, Kj.transpose(-2, -1)) * scale
             
             # 필요하면 인과 가림을 적용한다
@@ -203,7 +203,7 @@ def flash_attention_forward_reference(
             # 새 최댓값
             mi_new = torch.maximum(mi, mij)
             
-            # 수치가 안정되게 눈길 무게를 셈한다
+            # 수치가 안정되게 어텐션 무게를 셈한다
             Pij = torch.exp(Sij - mi_new)
             lij = Pij.sum(dim=-1, keepdim=True)
             
@@ -225,10 +225,10 @@ def flash_attention_forward_reference(
 
 class FlashAttention(nn.Module):
     """
-    PyTorch가 가장 좋게 다듬은 짜기를 쓰는 플래시 눈길 모듈.
+    PyTorch가 가장 좋게 다듬은 짜기를 쓰는 플래시 어텐션 모듈.
     
     torch.nn.functional.scaled_dot_product_attention을 쓰며,
-    쓸 수 있을 때 플래시 눈길을 저절로 쓴다.
+    쓸 수 있을 때 플래시 어텐션을 저절로 쓴다.
     """
     
     def __init__(
@@ -260,7 +260,7 @@ class FlashAttention(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        플래시 눈길을 쓰는 앞먹임.
+        플래시 어텐션을 쓰는 앞먹임.
         
         인수:
             x: 입력 [batch, seq_len, d_model]
@@ -281,7 +281,7 @@ class FlashAttention(nn.Module):
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
-        # PyTorch가 가장 좋게 다듬은 SDPA를 쓴다(플래시 눈길이 들어 있다)
+        # PyTorch가 가장 좋게 다듬은 SDPA를 쓴다(플래시 어텐션이 들어 있다)
         # 가장 좋은 짜기를 저절로 고른다
         output = F.scaled_dot_product_attention(
             q, k, v,
@@ -298,7 +298,7 @@ class FlashAttention(nn.Module):
 
 class FlashAttentionWithKVCache(nn.Module):
     """
-    만들어 내기를 위해 열쇠-값 곳간을 받치는 플래시 눈길.
+    만들어 내기를 위해 열쇠-값 곳간을 받치는 플래시 어텐션.
     """
     
     def __init__(
@@ -349,7 +349,7 @@ class FlashAttentionWithKVCache(nn.Module):
         
         present_key_value = (k, v) if use_cache else None
         
-        # 플래시 눈길
+        # 플래시 어텐션
         # 곳간을 쓰는 만들어 내기에서는 물음만 짧다
         is_causal = (past_key_value is None and seq_len > 1)
         
@@ -366,7 +366,7 @@ class FlashAttentionWithKVCache(nn.Module):
         return output, present_key_value
 
 def benchmark_attention(seq_lengths: list, d_model: int = 512, num_heads: int = 8):
-    """플래시 눈길과 여느 눈길의 잣대를 잰다."""
+    """플래시 어텐션과 여느 어텐션의 잣대를 잰다."""
     import time
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -382,7 +382,7 @@ def benchmark_attention(seq_lengths: list, d_model: int = 512, num_heads: int = 
         k = torch.randn(1, num_heads, seq_len, head_dim, device=device)
         v = torch.randn(1, num_heads, seq_len, head_dim, device=device)
         
-        # 여느 눈길
+        # 여느 어텐션
         torch.cuda.synchronize() if device.type == 'cuda' else None
         start = time.time()
         
@@ -394,7 +394,7 @@ def benchmark_attention(seq_lengths: list, d_model: int = 512, num_heads: int = 
         torch.cuda.synchronize() if device.type == 'cuda' else None
         time_standard = (time.time() - start) / 10
         
-        # 플래시 눈길(SDPA로)
+        # 플래시 어텐션(SDPA로)
         torch.cuda.synchronize() if device.type == 'cuda' else None
         start = time.time()
         
@@ -405,7 +405,7 @@ def benchmark_attention(seq_lengths: list, d_model: int = 512, num_heads: int = 
         time_flash = (time.time() - start) / 10
         
         # 메모리 사용량
-        memory_standard = seq_len * seq_len * 4 / (1024 ** 2)  # float32 눈길 행렬의 MB
+        memory_standard = seq_len * seq_len * 4 / (1024 ** 2)  # float32 어텐션 행렬의 MB
         
         print(f"  Standard: {time_standard*1000:.2f}ms, ~{memory_standard:.1f}MB attention matrix")
         print(f"  Flash:    {time_flash*1000:.2f}ms (no attention matrix stored)")
@@ -431,7 +431,7 @@ if __name__ == "__main__":
     batch_size = 2
     seq_len = 1024
     
-    # 플래시 눈길 모듈을 시험한다
+    # 플래시 어텐션 모듈을 시험한다
     flash_attn = FlashAttention(d_model, num_heads, causal=True)
     
     x = torch.randn(batch_size, seq_len, d_model)
@@ -461,14 +461,14 @@ if __name__ == "__main__":
     K = torch.randn(1, 4, 64, 32)
     V = torch.randn(1, 4, 64, 32)
     
-    # 여느 눈길
+    # 여느 어텐션
     scale = 32 ** -0.5
     standard_out = torch.matmul(
         F.softmax(torch.matmul(Q, K.transpose(-2, -1)) * scale, dim=-1),
         V
     )
     
-    # 플래시 눈길 참고
+    # 플래시 어텐션 참고
     flash_out = flash_attention_forward_reference(Q, K, V, block_size=16)
     
     # 서로 맞는지 살핀다
@@ -509,7 +509,7 @@ Max difference between standard and flash: 2.38e-07
 
 ### 기억 사용
 
-| 차례 길이 | 보통 눈길 | 플래시 눈길 |
+| 차례 길이 | 보통 어텐션 | 플래시 어텐션 |
 |-----------------|-------------------|-----------------|
 | 1K | 4메가바이트 | O(block_size) |
 | 4K | 64메가바이트 | O(block_size) |
@@ -526,22 +526,22 @@ Max difference between standard and flash: 2.38e-07
 
 ---
 
-## 6. 플래시 눈길 2
+## 6. 플래시 어텐션 2
 
-플래시 눈길 2는 다음을 더 다듬는다:
+플래시 어텐션 2는 다음을 더 다듬는다:
 
 1. **더 나은 나란히 하기**: 배치가 아니라 차례 길이로 쪼갠다
 2. **행렬곱이 아닌 FLOPs 줄이기**: 소프트맥스 연산을 가장 적게 한다
 3. **더 나은 일 나누기**: GPU 점유율에 맞춰 다듬는다
 
-흔한 빨라짐: **플래시 눈길 1보다 2배**
+흔한 빨라짐: **플래시 어텐션 1보다 2배**
 
 ---
 
 ## 7. PyTorch에 아우르기
 
 ```python
-# PyTorch 2.0 이상은 가능하면 플래시 눈길을 저절로 쓴다
+# PyTorch 2.0 이상은 가능하면 플래시 어텐션을 저절로 쓴다
 output = F.scaled_dot_product_attention(
     query, key, value,
     is_causal=True  # 녹여 붙인 인과 가림막을 쓸 수 있게 한다
@@ -568,19 +568,19 @@ with torch.backends.cuda.sdp_kernel(
 </div>
 
 ??? success "연습문제 1 풀이"
-    자기되돌리기로 글을 만들 때 새 토막마다 앞선 토막 모두에 눈길을 준다. 갈무리하지 않으면 토막 $t$을 만들 때 앞선 토막 $t-1$개의 열쇠와 값 되비춤을 다시 셈하므로 길이 $T$의 이음에 온 셈이 $O(t^2)$이 된다. 열쇠-값 갈무리를 쓰면 앞선 걸음의 열쇠와 값을 담아 두었다가 되쓰므로 걸음마다 새 토막의 열쇠와 값만 셈하면 되어 온 셈이 $O(T)$으로 준다. 맞바꿈은 이렇다. 열쇠-값 갈무리의 기억 자리가 $O(T \cdot L \cdot d)$으로 늘어난다. 여기서 $L$은 층 수, $d$은 숨은 차수다. 큰 모델로 긴 이음을 다루면 GPU 기억 자리를 크게 잡아먹을 수 있다.
+    자기되돌리기로 글을 만들 때 새 토막마다 앞선 토막 모두에 어텐션을 준다. 갈무리하지 않으면 토막 $t$을 만들 때 앞선 토막 $t-1$개의 열쇠와 값 되비춤을 다시 셈하므로 길이 $T$의 이음에 온 셈이 $O(t^2)$이 된다. 열쇠-값 갈무리를 쓰면 앞선 걸음의 열쇠와 값을 담아 두었다가 되쓰므로 걸음마다 새 토막의 열쇠와 값만 셈하면 되어 온 셈이 $O(T)$으로 준다. 맞바꿈은 이렇다. 열쇠-값 갈무리의 기억 자리가 $O(T \cdot L \cdot d)$으로 늘어난다. 여기서 $L$은 층 수, $d$은 숨은 차수다. 큰 모델로 긴 이음을 다루면 GPU 기억 자리를 크게 잡아먹을 수 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-플래시 눈길의 고갱이 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
+플래시 어텐션의 고갱이 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    플래시 눈길은 GPU 기억 자리의 층 얼개를 쓴다. 여느 눈길은 $N \times N$ 눈길 행렬을 HBM(느린 GPU 기억 자리)에 실제로 만들어 기억 자리에 매인 셈이 된다. 플래시 눈길은 셈을 SRAM(빠른 칩 안 기억 자리)에 들어가는 덩이로 쪼개어, 온전한 눈길 행렬을 한 번도 만들지 않고 덩이마다 눈길을 셈한다. 이어 가는 소프트맥스(달리는 최댓값과 합을 좇는다)로 딱 맞는 눈길을 조금씩 셈한다. 빨라지는 까닭은 뜨는 셈 횟수가 줄어서가 아니라 HBM 읽고 쓰기가 줄어서다(입출력 복잡도가 $O(N^2 d)$에서 $O(N^2 d^2 / M)$으로 떨어지며 $M$은 SRAM 크기다). 그래서 벽시계 시간이 2~4배 빨라지고 기억 자리는 $O(N)$이 된다.
+    플래시 어텐션은 GPU 기억 자리의 층 얼개를 쓴다. 여느 어텐션은 $N \times N$ 어텐션 행렬을 HBM(느린 GPU 기억 자리)에 실제로 만들어 기억 자리에 매인 셈이 된다. 플래시 어텐션은 셈을 SRAM(빠른 칩 안 기억 자리)에 들어가는 덩이로 쪼개어, 온전한 어텐션 행렬을 한 번도 만들지 않고 덩이마다 어텐션을 셈한다. 이어 가는 소프트맥스(달리는 최댓값과 합을 좇는다)로 딱 맞는 어텐션을 조금씩 셈한다. 빨라지는 까닭은 뜨는 셈 횟수가 줄어서가 아니라 HBM 읽고 쓰기가 줄어서다(입출력 복잡도가 $O(N^2 d)$에서 $O(N^2 d^2 / M)$으로 떨어지며 $M$은 SRAM 크기다). 그래서 벽시계 시간이 2~4배 빨라지고 기억 자리는 $O(N)$이 된다.
 
 ---
 
@@ -608,11 +608,11 @@ with torch.backends.cuda.sdp_kernel(
 
 ## 정리하며
 
-플래시 눈길은 눈길 셈하기의 판을 뒤집는다:
+플래시 어텐션은 어텐션 셈하기의 판을 뒤집는다:
 
-1. **O(N) 기억 공간**: N×N 눈길 행렬을 담을 필요가 없다
+1. **O(N) 기억 공간**: N×N 어텐션 행렬을 담을 필요가 없다
 2. **2~4배 빠름**: 들고남을 헤아리는 알고리즘이 기억 공간 대역폭을 줄인다
-3. **정확한 셈**: 보통의 눈길과 같은 결과
+3. **정확한 셈**: 보통의 어텐션과 같은 결과
 4. **긴 차례**: 토막 10만 개 넘는 차례로도 익힐 수 있다
 
 **참고 문헌**

@@ -177,7 +177,7 @@ class SimpleCharTransformer(nn.Module):
     """
     글자 수준 말 나타내기를 위한 단순한 변환기.
     
-    이는 되돌이 대신 스스로 눈길을 쓰는 더 요즘다운 되돌이 신경망의 대안이다.
+    이는 되돌이 대신 스스로 어텐션을 쓰는 더 요즘다운 되돌이 신경망의 대안이다.
     변환기는 GPT 같은 모델의 바탕 얼개이다.
     GPT 같은 모델.
     """
@@ -194,7 +194,7 @@ class SimpleCharTransformer(nn.Module):
         인수:
             vocab_size: 서로 다른 글자의 수
             embedding_dim: 박아 넣기의 차원(n_heads으로 나누어떨어져야 한다)
-            n_heads: 눈길 머리의 수
+            n_heads: 어텐션 머리의 수
             n_layers: 변환기 층의 수
             max_seq_length: 최대 차례 길이(자리 부호화용)
         """

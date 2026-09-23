@@ -157,7 +157,7 @@ class DETR(nn.Module):
         # 물체 물음을 첫 과녁 낱말로 쓴다 (T, B, C)
         query = self.query_embed.weight.unsqueeze(1).repeat(1, B, 1)
 
-        # 변환기: 인코더가 src을 다루고, 디코더가 src에 눈길을 주며 물음을 다룬다
+        # 변환기: 인코더가 src을 다루고, 디코더가 src에 어텐션을 주며 물음을 다룬다
         hs = self.transformer(src=src, tgt=query)  # (T, B, C)
 
         # 배치를 앞에 두도록 바꾼다: (B, T, C)

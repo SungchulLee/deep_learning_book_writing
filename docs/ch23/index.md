@@ -9,7 +9,7 @@
 
 - 큰 말 모델 개요 — 큰 말 모델의 정의, 할 수 있는 것, 한계
 - 뿌리와 발전 — n-그램에서 요즘 큰 말 모델 갈래까지의 흐름
-- 디코더 얼개 — 인과 스스로 눈길을 쓰는 디코더만의 변환기
+- 디코더 얼개 — 인과 스스로 어텐션을 쓰는 디코더만의 변환기
 - 다음 토막 어림하기 — 자기되돌리기 말 나타내기 목표와 풀기 전략
 - [미리 익히기 목표](llm_foundations/pretraining_objectives.md) — 인과 말 나타내기와 가린 말 나타내기, 잡음 없애기 목표, UL2 같은 요즘 전략
 - 토막내기와 규모 — BPE, WordPiece, SentencePiece와 낱말 곳간 크기의 맞바꿈
@@ -26,7 +26,7 @@
 
 큰 말 모델의 핵심 얼개 새로움과 모델 갈래.
 
-- [얼개의 새로움](architectures/architectures.md) — RMSNorm, SwiGLU, 돌림 묻힘, 묶은 물음 눈길
+- [얼개의 새로움](architectures/architectures.md) — RMSNorm, SwiGLU, 돌림 묻힘, 묶은 물음 어텐션
 - [GPT 계열](architectures/gpt_series.md) — GPT-1에서 GPT-4까지의 흐름과 떠오르는 능력
 - LLaMA 갈래 — 미룸 효율을 앞세운 열린 바탕 모델
 
@@ -109,13 +109,13 @@
 
 - 미룸 개요 — 기억 공간 대역폭 병목, 미리 채우기와 풀기 단계
 - [열쇠-값 곳간](inference/kv_cache.md) — 열쇠-값 텐서를 갈무리해 겹치는 셈 없애기
-- [플래시 눈길](inference/flash_attention.md) — 들고남을 헤아리는 정확한 눈길, 기억 공간 O(N)
+- [플래시 어텐션](inference/flash_attention.md) — 들고남을 헤아리는 정확한 어텐션, 기억 공간 O(N)
 - [양자화](inference/quantization.md) — 펼치기를 위한 무게와 활성화의 양자화
 - [미리 짚어 풀기](inference/speculative_decoding.md) — 작은 모델로 밑그림을 그리고 확인해 빠르게 하기
-- 쪽 나눈 눈길 — 열쇠-값 곳간을 다스리는 가상 기억 공간 생각(vLLM)
+- 쪽 나눈 어텐션 — 열쇠-값 곳간을 다스리는 가상 기억 공간 생각(vLLM)
 - 이어지는 배치 짓기 — 처리량을 낫게 하는 바퀴 단위 일정 짜기
 - 모델 나눠 담기 — 모델 무게를 여러 기기에 흩뿌리기
-- 텐서 나란히 하기 — 선형 층과 눈길 층의 칸 나란히 하기와 줄 나란히 하기
+- 텐서 나란히 하기 — 선형 층과 어텐션 층의 칸 나란히 하기와 줄 나란히 하기
 - 물길 나란히 하기 — 층별 흩뿌리기와 물길 거품 살피기
 - [모델 눌러 담기](inference/model_compression_overview.md) — 펼치기를 위한 가지치기, 양자화, 앎 내리기
 

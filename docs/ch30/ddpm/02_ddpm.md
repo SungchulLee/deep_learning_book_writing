@@ -14,7 +14,7 @@
 #   2. 익히기의 안정을 위한 기울기 자르기
 #   3. 배움 빠르기 몸 풀기 + 코사인 줄이기 차례표
 #   4. 늘린 모델 담이(BASE_CH=128)
-#   5. 여러 해상도 눈길(8, 16)
+#   5. 여러 해상도 어텐션(8, 16)
 #   6. 층마다 남은 덩이를 더 둠(2 대신 3)
 #   7. 오래 익힐 때를 위한 되짚을 자리 갈무리
 #   8. 지켜보려 익히는 동안 표본 만들기
@@ -53,7 +53,7 @@ class Config:
     BASE_CH = 128               # 담이를 늘리려 64에서 늘렸다
     CH_MULTS = (1, 2, 4, 4)     # 층마다 채널 갑절
     NUM_RES_BLOCKS = 3          # 층마다 남은 덩이(예전에는 2)
-    ATTN_RES = {8, 16}          # 이 해상도에서 눈길을 쓴다
+    ATTN_RES = {8, 16}          # 이 해상도에서 어텐션을 쓴다
     TIME_EMB_DIM = 256          # 때 걸음 박아 넣기 차원
     DROPOUT = 0.1               # 정칙화를 위한 드롭아웃
     
@@ -145,7 +145,7 @@ class SinusoidalPosEmb(nn.Module):
 
 
 # ==========================================
-# 3) 벽돌: 남은 덩이, 눈길, 키우기/줄이기
+# 3) 벽돌: 남은 덩이, 어텐션, 키우기/줄이기
 # ==========================================
 class ResidualBlock(nn.Module):
     """
@@ -194,7 +194,7 @@ class ResidualBlock(nn.Module):
 
 class SelfAttention2d(nn.Module):
     """
-    2차원 특징 지도의 여러 머리 스스로 눈길.
+    2차원 특징 지도의 여러 머리 스스로 어텐션.
     멀리 떨어진 공간의 매임을 담는다.
     """
     def __init__(self, channels, num_heads=4):
@@ -208,7 +208,7 @@ class SelfAttention2d(nn.Module):
         self.v = nn.Conv2d(channels, channels, 1)
         self.proj = nn.Conv2d(channels, channels, 1)
         
-        # 눈길의 잣수 갑절
+        # 어텐션의 잣수 갑절
         self.scale = self.head_dim ** -0.5
 
     def forward(self, x):
@@ -220,7 +220,7 @@ class SelfAttention2d(nn.Module):
         k = self.k(x_norm).reshape(b, self.num_heads, self.head_dim, h * w)
         v = self.v(x_norm).reshape(b, self.num_heads, self.head_dim, h * w)
         
-        # 눈길: softmax(Q @ K^T / sqrt(d)) @ V
+        # 어텐션: softmax(Q @ K^T / sqrt(d)) @ V
         attn = torch.einsum("bhcn,bhcm->bhnm", q, k) * self.scale
         attn = attn.softmax(dim=-1)
         
@@ -261,13 +261,13 @@ class UNet(nn.Module):
     잡음 헤아리기를 위한 U-Net 등뼈.
     
     구조:
-    - 인코더: 남은 덩이와 눈길을 갖춘 줄이는 길
-    - 병목: 눈길을 갖춘 가운데 덩이
+    - 인코더: 남은 덩이와 어텐션을 갖춘 줄이는 길
+    - 병목: 어텐션을 갖춘 가운데 덩이
     - 디코더: 건너뛰기 이음을 갖춘 키우는 길
     
     특징:
     - 남은 덩이마다 때 박아 넣기로 조건 주기
-    - 정한 해상도에서의 스스로 눈길
+    - 정한 해상도에서의 스스로 어텐션
     - 해상도 층마다 남은 덩이 여럿
     """
     def __init__(
@@ -307,7 +307,7 @@ class UNet(nn.Module):
                 block_in_ch = ch if j == 0 else out_ch
                 level_blocks.append(ResidualBlock(block_in_ch, out_ch, time_emb_dim, dropout))
             
-            # 정한 해상도에서의 눈길
+            # 정한 해상도에서의 어텐션
             attn = SelfAttention2d(out_ch) if res in attn_res else nn.Identity()
             
             # 줄이기(마지막 층만 빼고)
@@ -347,7 +347,7 @@ class UNet(nn.Module):
                     block_in_ch = out_ch
                 level_blocks.append(ResidualBlock(block_in_ch, out_ch, time_emb_dim, dropout))
             
-            # 정한 해상도에서의 눈길
+            # 정한 해상도에서의 어텐션
             attn = SelfAttention2d(out_ch) if res in attn_res else nn.Identity()
             
             # 키우기(첫 층만 빼고)

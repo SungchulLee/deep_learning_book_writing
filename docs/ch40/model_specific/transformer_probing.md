@@ -94,7 +94,7 @@ class TransformerProbe:
 
 ## 2. BertViz과 아우르기
 
-BertViz은 눈길 결을 주고받으며 그려 준다.
+BertViz은 어텐션 결을 주고받으며 그려 준다.
 
 ```python
 from bertviz import head_view, model_view
@@ -185,7 +185,7 @@ def probe_financial_model(model, tokenizer, device):
 
 ## 정리하며
 
-더듬는 가름개는 변환기가 켜마다 어떤 소식을 담는지 드러내어, 눈길 그림 그리기를 채워 주는 얼개 낱의 이해를 준다. BertViz으로 주고받으며 살피는 것과 아우르면 변환기 풀이하기의 든든한 연장이 된다.
+더듬는 가름개는 변환기가 켜마다 어떤 소식을 담는지 드러내어, 어텐션 그림 그리기를 채워 주는 얼개 낱의 이해를 준다. BertViz으로 주고받으며 살피는 것과 아우르면 변환기 풀이하기의 든든한 연장이 된다.
 
 **살펴볼 거리**
 

@@ -1022,7 +1022,7 @@ nav:
         - 빛 흐름: ch21/video/06_optical_flow.md
         - 영상 CNN-LSTM: ch21/video/07_cnn_lstm_video.md
         - 몸짓 알아보기: ch21/video/08_action_recognition.md
-        - 때에 걸친 눈길: ch21/video/09_temporal_attention.md
+        - 때에 걸친 어텐션: ch21/video/09_temporal_attention.md
         - 느림빠름 그물: ch21/video/10_slowfast_network.md
         - 영상 변환기: ch21/video/11_video_transformer.md
         - 영상 이해 기획: ch21/video/12_video_understanding_project.md
@@ -1106,7 +1106,7 @@ nav:
         - 앞가지 다듬기: ch23/efficient_llm/prefix_tuning.md
       - 23.8 미룸 가장 좋게 하기:
         - 열쇠-값 곳간: ch23/inference/kv_cache.md
-        - 플래시 눈길: ch23/inference/flash_attention.md
+        - 플래시 어텐션: ch23/inference/flash_attention.md
         - 양자화: ch23/inference/quantization.md
         - 미리 짚어 풀기: ch23/inference/speculative_decoding.md
         - 양자화를 헤아린 익히기: ch23/inference/04_quantization_aware_training.md
@@ -1146,7 +1146,7 @@ nav:
       - 33.4 자리 방법:
         - 그래프 겹말기 신경망: ch33/convolutions/gcn.md
         - GraphSAGE: ch33/convolutions/graphsage.md
-        - 그래프 눈길 신경망: ch33/convolutions/gat.md
+        - 그래프 어텐션 신경망: ch33/convolutions/gat.md
         - 그래프 같은 꼴 신경망: ch33/convolutions/gin.md
       - 33.5 나아간 그래프 신경망 방법:
         - 깊은 그래프 신경망: ch33/advanced/deep_gnns.md
@@ -1180,7 +1180,7 @@ nav:
         - 숨은 되먹임과 드러난 되먹임: ch34/foundations/implicit_explicit.md
       - 34.2 신경망 방법:
         - 추천 시스템을 위한 스스로 담개: ch34/neural_methods/autoencoder_recsys.md
-        - 눈길 바탕 추천 시스템: ch34/neural_methods/attention_recsys.md
+        - 어텐션 바탕 추천 시스템: ch34/neural_methods/attention_recsys.md
       - 34.3 금융 쓰임새:
         - 꾸러미 권하기: ch34/finance/portfolio_suggestion.md
         - 연구 보고서 추천: ch34/finance/research_recommendation.md
@@ -1332,8 +1332,8 @@ nav:
         - 쌓은 기울기: ch40/gradient_methods/integrated_gradients.md
         - SmoothGrad: ch40/gradient_methods/smoothgrad.md
         - 이끈 되짚기: ch40/gradient_methods/guided_backprop.md
-        - 눈길 그림 그리기: ch40/gradient_methods/attention_visualization.md
-        - 눈길 보기: ch40/gradient_methods/example_attention.md
+        - 어텐션 그림 그리기: ch40/gradient_methods/attention_visualization.md
+        - 어텐션 보기: ch40/gradient_methods/example_attention.md
         - Grad-CAM 보기: ch40/gradient_methods/example_gradcam.md
         - SmoothGrad: ch40/gradient_methods/03_smoothgrad.md
         - 쌓은 기울기: ch40/gradient_methods/04_integrated_gradients.md
@@ -1342,12 +1342,12 @@ nav:
         - 이끈 Grad-CAM: ch40/gradient_methods/07_guided_gradcam.md
         - 견주어 살피기: ch40/gradient_methods/08_comparative_analysis.md
         - 앞선 재주: ch40/gradient_methods/09_advanced_techniques.md
-      - 40.3 눈길 그림 그리기:
-        - 눈길 결 살피기: ch40/attention_viz/pattern_analysis.md
-        - 가운데 엇결 눈길: ch40/attention_viz/06_intermediate_cross_attention.md
-        - 앞선 ViT 눈길: ch40/attention_viz/07_advanced_vit_attention.md
-        - 앞선 눈길 흐름: ch40/attention_viz/08_advanced_attention_flow.md
-        - 앞선 기울기 눈길: ch40/attention_viz/09_advanced_gradient_attention.md
+      - 40.3 어텐션 그림 그리기:
+        - 어텐션 결 살피기: ch40/attention_viz/pattern_analysis.md
+        - 가운데 엇결 어텐션: ch40/attention_viz/06_intermediate_cross_attention.md
+        - 앞선 ViT 어텐션: ch40/attention_viz/07_advanced_vit_attention.md
+        - 앞선 어텐션 흐름: ch40/attention_viz/08_advanced_attention_flow.md
+        - 앞선 기울기 어텐션: ch40/attention_viz/09_advanced_gradient_attention.md
       - 40.4 결 몫 매기기:
         - 커널 SHAP: ch40/feature_attribution/kernel_shap.md
         - 깊은 SHAP: ch40/feature_attribution/deep_shap.md
@@ -1501,7 +1501,7 @@ nav:
       - GRU: appendix/sequence/gru.md
       - 두 방향 RNN / GRU / LSTM: appendix/sequence/bidirectional.md
       - Seq2Seq: appendix/sequence/seq2seq.md
-      - 눈길 Seq2Seq: appendix/sequence/attention_seq2seq.md
+      - 어텐션 Seq2Seq: appendix/sequence/attention_seq2seq.md
     - A6 변환기:
       - T5: appendix/transformers/t5.md
       - RoBERTa: appendix/transformers/roberta.md
@@ -1526,7 +1526,7 @@ nav:
       - 신경 ODE: appendix/generative/neural_ode.md
     - A8 그림 신경 그물:
       - 그림 엮음 그물(GCN): appendix/gnn/gcn.md
-      - 그림 눈길 그물(GAT): appendix/gnn/gat.md
+      - 그림 어텐션 그물(GAT): appendix/gnn/gat.md
       - GraphSAGE: appendix/gnn/graphsage.md
       - 그림 같은꼴 그물(GIN): appendix/gnn/gin.md
       - 알림 넘기기(MPNN): appendix/gnn/mpnn.md
@@ -1539,7 +1539,7 @@ nav:
       - 부드러운 움직이는 이-따지는 이(SAC): appendix/rl/sac.md
       - TD3: appendix/rl/td3.md
     - A10 잔손질 묶음:
-      - 눈길 얼개: appendix/utils/attention.md
+      - 어텐션 얼개: appendix/utils/attention.md
       - 잣대 잡기 켜: appendix/utils/normalization.md
       - 살림 함수: appendix/utils/activations.md
       - 자리 담기: appendix/utils/positional.md

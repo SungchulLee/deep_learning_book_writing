@@ -19,7 +19,7 @@ LLaMA - 메타 AI의 큰 말 모형
   - 배운 붙박이 자리 대신 도는 자리 담기(RoPE)
 
 두루마리: appendix/transformers/llama.py
-눈여겨볼 것: RMSNorm + SwiGLU + 앞만 보는 눈길에 마음을 둔, 주석을 단 배우기용 짜보기다.
+눈여겨볼 것: RMSNorm + SwiGLU + 앞만 보는 어텐션에 마음을 둔, 주석을 단 배우기용 짜보기다.
       잘 다듬은 LLaMA이 아니라 읽기 쉬운 본이다.
 """
 
@@ -69,7 +69,7 @@ class SwiGLU(nn.Module):
 
 class CausalSelfAttention(nn.Module):
     """
-    앞만 보는(가린) 스스로 눈길(여러 머리).
+    앞만 보는(가린) 스스로 어텐션(여러 머리).
     쉽게 하려고 RoPE 셈은 빼고 여느 앞만 보는 가림을 쓴다.
     """
     def __init__(self, dim: int, nhead: int):
@@ -94,10 +94,10 @@ class CausalSelfAttention(nn.Module):
         k = k.view(B, S, self.nhead, self.head_dim).transpose(1, 2)
         v = v.view(B, S, self.nhead, self.head_dim).transpose(1, 2)
 
-        # 눈길 점수: (B, nhead, S, S)
+        # 어텐션 점수: (B, nhead, S, S)
         scores = (q @ k.transpose(-2, -1)) / (self.head_dim ** 0.5)
 
-        # 앞만 보는 가림: 뒤에 올 낱말에 눈길을 주지 못하게 한다
+        # 앞만 보는 가림: 뒤에 올 낱말에 어텐션을 주지 못하게 한다
         mask = torch.triu(torch.ones(S, S, device=x.device), diagonal=1).bool()
         scores = scores.masked_fill(mask, float("-inf"))
 
@@ -113,7 +113,7 @@ class LLaMABlock(nn.Module):
     """
     LLaMA 결의 변환기 덩이 하나(단순하게 만듦):
       - RMSNorm
-      - 앞만 보는 스스로 눈길
+      - 앞만 보는 스스로 어텐션
       - RMSNorm
       - SwiGLU 앞먹임
       - 나머지 이음
@@ -192,24 +192,24 @@ logits: torch.Size([2, 12, 1000])
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-눈길 짐 뒤(값과 곱하기 앞)에 드롭아웃 켜를 더하여라. 익히는 동안 드롭아웃 비율 0.1을 써라. 눈길 드롭아웃이 다독임에 왜 도움이 되는지 밝혀라.
+어텐션 짐 뒤(값과 곱하기 앞)에 드롭아웃 켜를 더하여라. 익히는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 다독임에 왜 도움이 되는지 밝혀라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 눈길 드롭아웃은 익히는 동안 눈길 짐 얼마를 아무렇게나 0으로 만들어, 모형이 낱말끼리의 어떤 사이에만 기대는 것을 막는다. 그래서 모형이 눈길을 더 고루 나누고 더 든든한 드러냄을 배우게 되는데, 이는 여느 드롭아웃이 신경 낱자리끼리 함께 길드는 것을 막는 것과 같다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 짐 얼마를 아무렇게나 0으로 만들어, 모형이 낱말끼리의 어떤 사이에만 기대는 것을 막는다. 그래서 모형이 어텐션을 더 고루 나누고 더 든든한 드러냄을 배우게 되는데, 이는 여느 드롭아웃이 신경 낱자리끼리 함께 길드는 것을 막는 것과 같다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-스스로 눈길의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
+스스로 어텐션의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    여느 스스로 눈길은 $n \times n$ 눈길 행렬을 셈하므로 때는 $O(n^2 d)$, 눈길 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 눈길($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 두루 눈길을 아울러 쓴다. Linformer는 열쇠와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 들임에서 잘 들게 한다.
+    여느 스스로 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때는 $O(n^2 d)$, 어텐션 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 두루 어텐션을 아울러 쓴다. Linformer는 열쇠와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 들임에서 잘 들게 한다.
 
 ---
 

@@ -1,17 +1,17 @@
-# 눈길 Seq2Seq
+# 어텐션 Seq2Seq
 
-눈길 Seq2Seq은 2014년 글 "Neural Machine Translation by Jointly Learning to Align and Translate"에서 나왔다. 들임에서 걸리는 곳에 마음을 두게 하는 눈길 얼개를 쓴다.
+어텐션 Seq2Seq은 2014년 글 "Neural Machine Translation by Jointly Learning to Align and Translate"에서 나왔다. 들임에서 걸리는 곳에 마음을 두게 하는 어텐션 얼개를 쓴다.
 
-여기 짜보기는 눈길 Seq2Seq을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 짜보기는 어텐션 Seq2Seq을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 '''
-Seq2Seq의 눈길 얼개
+Seq2Seq의 어텐션 얼개
 논문: "Neural Machine Translation by Jointly Learning to Align and Translate" (2014)
-고갱이: 들임에서 걸리는 곳에 마음을 두게 하는 눈길 얼개
+고갱이: 들임에서 걸리는 곳에 마음을 두게 하는 어텐션 얼개
 '''
 import torch
 import torch.nn as nn
@@ -37,7 +37,7 @@ class Attention(nn.Module):
         hidden = hidden.permute(1, 0, 2)  # [batch, 1, hidden_size]
         hidden = hidden.repeat(1, seq_len, 1)  # [batch, seq_len, hidden_size]
         
-        # 눈길 힘을 셈한다
+        # 어텐션 힘을 셈한다
         energy = torch.tanh(self.attn(torch.cat((hidden, encoder_outputs), dim=2)))
         attention = self.v(energy).squeeze(2)  # [batch, seq_len]
         
@@ -54,7 +54,7 @@ class AttentionDecoder(nn.Module):
     def forward(self, input, hidden, encoder_outputs):
         embedded = self.embedding(input)
         
-        # 눈길 짐을 셈한다
+        # 어텐션 짐을 셈한다
         a = self.attention(hidden, encoder_outputs)
         a = a.unsqueeze(1)  # [batch, 1, seq_len]
         
@@ -119,24 +119,24 @@ Parameters: 1,140,836
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-눈길 짐 뒤(값과 곱하기 앞)에 드롭아웃 켜를 더하여라. 익히는 동안 드롭아웃 비율 0.1을 써라. 눈길 드롭아웃이 다독임에 왜 도움이 되는지 밝혀라.
+어텐션 짐 뒤(값과 곱하기 앞)에 드롭아웃 켜를 더하여라. 익히는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 다독임에 왜 도움이 되는지 밝혀라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 눈길 드롭아웃은 익히는 동안 눈길 짐 얼마를 아무렇게나 0으로 만들어, 모형이 낱말끼리의 어떤 사이에만 기대는 것을 막는다. 그래서 모형이 눈길을 더 고루 나누고 더 든든한 드러냄을 배우게 되는데, 이는 여느 드롭아웃이 신경 낱자리끼리 함께 길드는 것을 막는 것과 같다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 짐 얼마를 아무렇게나 0으로 만들어, 모형이 낱말끼리의 어떤 사이에만 기대는 것을 막는다. 그래서 모형이 어텐션을 더 고루 나누고 더 든든한 드러냄을 배우게 되는데, 이는 여느 드롭아웃이 신경 낱자리끼리 함께 길드는 것을 막는 것과 같다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-스스로 눈길의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
+스스로 어텐션의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    여느 스스로 눈길은 $n \times n$ 눈길 행렬을 셈하므로 때는 $O(n^2 d)$, 눈길 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 눈길($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 두루 눈길을 아울러 쓴다. Linformer는 열쇠와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 들임에서 잘 들게 한다.
+    여느 스스로 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때는 $O(n^2 d)$, 어텐션 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 낱말에 대한 성긴 두루 어텐션을 아울러 쓴다. Linformer는 열쇠와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 들임에서 잘 들게 한다.
 
 ---
 
@@ -158,7 +158,7 @@ Parameters: 1,140,836
 
 ## 정리하며
 
-**다룬 것** — 눈길 Seq2Seq
+**다룬 것** — 어텐션 Seq2Seq
 
 이 짜보기는 갈래 3개(`Attention`, `AttentionDecoder`, `AttentionSeq2Seq`)를 매기고, 이들이 어울려 온전한 이음 모형 얼개를 이룬다.
 

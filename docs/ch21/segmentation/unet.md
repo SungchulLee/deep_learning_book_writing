@@ -619,14 +619,14 @@ Standard U-Net skip:      U-Net++ nested skips:
     E4 → D4                       E4 → D4
 ```
 
-### 눈길 U-넷
+### 어텐션 U-넷
 
-건너뛰는 이음에 눈길 문을 더해 디코더가 알맞은 인코더 특징에 초점을 두게 한다:
+건너뛰는 이음에 어텐션 문을 더해 디코더가 알맞은 인코더 특징에 초점을 두게 한다:
 
 ```python
 class AttentionGate(nn.Module):
     """
-    눈길 U-넷의 눈길 문.
+    어텐션 U-넷의 어텐션 문.
     
     건너뛰는 이음에서 온 알맞은 특징을 도드라지게 하는 법을 배운다.
     """
@@ -654,11 +654,11 @@ class AttentionGate(nn.Module):
         gate_up = F.interpolate(self.W_g(gate), size=skip.shape[2:], 
                                  mode='bilinear', align_corners=True)
         
-        # 아울러 눈길 셈하기
+        # 아울러 어텐션 셈하기
         combined = self.relu(gate_up + self.W_x(skip))
         attention = self.psi(combined)
         
-        # 건너뛰는 이음에 눈길 쓰기
+        # 건너뛰는 이음에 어텐션 쓰기
         return skip * attention
 ```
 
@@ -822,7 +822,7 @@ U-넷은 이어 붙이기 방식의 건너뛰는 이음을 갖춘 우아한 대�
 1. **대칭 꾸밈** 덕분에 디코더 켜마다 같은 해상도의 인코더 특징을 쓸 수 있다
 2. **이어 붙이는 건너뛰는 이음**은 더하기보다 앎을 더 많이 지킨다
 3. 자료 불리기를 세게 하고 건너뛰는 이음을 써서 **자료가 적어도 잘 된다**
-4. **요즘 변종의 바탕**: U-Net++, 눈길 U-넷, ResU-넷
+4. **요즘 변종의 바탕**: U-Net++, 어텐션 U-넷, ResU-넷
 
 U-넷은 여전히 아주 경쟁력이 있으며, 의료 영상이나 자료가 적은 다른 나누기 일에서 흔히 가장 먼저 써 보는 얼개이다.
 

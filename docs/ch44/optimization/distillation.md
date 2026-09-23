@@ -421,7 +421,7 @@ def compare_models():
 ```python
 class FeatureDistillationLoss(nn.Module):
     """
-    결에 기댄 앎 옮기기(FitNets / 눈길 옮기기).
+    결에 기댄 앎 옮기기(FitNets / 어텐션 옮기기).
     
     스승과 제자의 가운데 결을 맞추어
     날임만 옮길 때보다 더 센 이끔 신호를 준다.
@@ -441,7 +441,7 @@ class FeatureDistillationLoss(nn.Module):
             temperature: 날임 앎 옮기기 온도
             alpha: 굳은 잃음의 짐
             beta: 결 잃음의 짐
-            spatial_matching: 자리 눈길 그림을 맞출지
+            spatial_matching: 자리 어텐션 그림을 맞출지
         """
         super().__init__()
         self.temperature = temperature
@@ -490,7 +490,7 @@ class FeatureDistillationLoss(nn.Module):
         student_proj = self.projector(student_features)
         
         if self.spatial_matching:
-            # 눈길 옮기기: 자리 눈길 그림을 맞춘다
+            # 어텐션 옮기기: 자리 어텐션 그림을 맞춘다
             student_attn = self._spatial_attention(student_proj)
             teacher_attn = self._spatial_attention(teacher_features)
             feature_loss = self.mse_loss(student_attn, teacher_attn)
@@ -516,13 +516,13 @@ class FeatureDistillationLoss(nn.Module):
     
     def _spatial_attention(self, features: torch.Tensor) -> torch.Tensor:
         """
-        자리 눈길 그림을 셈한다: 갈래에 걸친 살림 제곱의 합.
+        자리 어텐션 그림을 셈한다: 갈래에 걸친 살림 제곱의 합.
         
         Args:
             features: 결 그림 (B, C, H, W)
             
         Returns:
-            잣대 맞춘 눈길 그림 (B, H, W)
+            잣대 맞춘 어텐션 그림 (B, H, W)
         """
         attention = (features ** 2).sum(dim=1)  # (B, H, W)
         attention = attention / (attention.sum(dim=(1, 2), keepdim=True) + 1e-8)
@@ -531,11 +531,11 @@ class FeatureDistillationLoss(nn.Module):
 def attention_transfer_loss(student_attention: torch.Tensor,
                            teacher_attention: torch.Tensor) -> torch.Tensor:
     """
-    홀로 쓰는 눈길 옮기기 잃음.
+    홀로 쓰는 어텐션 옮기기 잃음.
     
-    자리 눈길 그림(모형이 "보는" 자리)을 맞춘다.
+    자리 어텐션 그림(모형이 "보는" 자리)을 맞춘다.
     """
-    # 눈길 그림의 잣대를 맞춘다
+    # 어텐션 그림의 잣대를 맞춘다
     student_norm = F.normalize(
         student_attention.pow(2).mean(1).view(student_attention.size(0), -1), 
         dim=1
@@ -1150,7 +1150,7 @@ def evaluate_distillation_agreement(teacher: nn.Module,
 1. **고갱이 깨침**: 작은 제자가 큰 스승을 흉내 내도록 익힌다
 2. **부드러운 과녁**: 온도로 낌새의 사이를 지킨다
 3. **잃음 함수**: 굳은 이름표와 부드러운 과녁을 아우른다
-4. **한발 더 나간 방법**: 결 맞추기, 눈길 옮기기, 스스로 옮기기
+4. **한발 더 나간 방법**: 결 맞추기, 어텐션 옮기기, 스스로 옮기기
 5. **온도**: 얼개 차이가 클수록 높인다
 
 고갱이로 즐겨 쓸 길:

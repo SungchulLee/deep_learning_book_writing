@@ -288,7 +288,7 @@ class NERExample:
         padding_length = max_length - len(token_ids)
         token_ids += [token_to_idx['<PAD>']] * padding_length
         
-        # 눈길 마스크 만들기
+        # 어텐션 마스크 만들기
         attention_mask = [1] * min(len(self.tokens), max_length)
         attention_mask += [0] * padding_length
         

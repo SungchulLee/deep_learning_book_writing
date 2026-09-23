@@ -1,14 +1,14 @@
-# 눈길 결 살피기
+# 어텐션 결 살피기
 
-눈길 짐을 그저 그리는 데서 나아가, **눈길 결이 머리와 켜와 갈래를 가로질러 어떻게 짜이는지** 아는 일이 변환기 모형을 풀이하는 데 꼭 있어야 한다. 이 마디는 여러 머리 살피기, 켜를 따라가는 흐름, 엇갈린 눈길 풀이하기, 그림 그리는 연장, 그리고 눈길과 몫 매기기의 종요로운 차이를 한데 모은다.
+어텐션 짐을 그저 그리는 데서 나아가, **어텐션 결이 머리와 켜와 갈래를 가로질러 어떻게 짜이는지** 아는 일이 변환기 모형을 풀이하는 데 꼭 있어야 한다. 이 마디는 여러 머리 살피기, 켜를 따라가는 흐름, 엇갈린 어텐션 풀이하기, 그림 그리는 연장, 그리고 어텐션과 몫 매기기의 종요로운 차이를 한데 모은다.
 
 ---
 
-## 1. 여러 머리 눈길 살피기
+## 1. 여러 머리 어텐션 살피기
 
 ### 수학 뒷그림
 
-여러 머리 눈길은 $H$개의 눈길 분포를 나란히 셈한다.
+여러 머리 어텐션은 $H$개의 어텐션 분포를 나란히 셈한다.
 
 $$
 \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_H) W^O
@@ -31,9 +31,9 @@ $$
 | **자리** | 이웃한 낱말을 본다 | 앞선 켜 |
 | **월 얼개** | 매인 얽힘을 따라간다 | 가운데 켜 |
 | **가름표** | 가르는 표([SEP], 문장 부호)를 본다 | 여러 켜 |
-| **드문 낱말** | 잦지 않은 낱말에 눈길을 둔다 | 가운데 켜 |
+| **드문 낱말** | 잦지 않은 낱말에 어텐션을 둔다 | 가운데 켜 |
 | **뜻** | 뜻이 이어진 개념을 본다 | 뒤쪽 켜 |
-| **넓게/고루** | 눈길을 고루 흩는다 | 여러 켜 |
+| **넓게/고루** | 어텐션을 고루 흩는다 | 여러 켜 |
 
 ### 여러 머리 그리기
 
@@ -51,7 +51,7 @@ def visualize_all_heads(
     figsize: tuple = (20, 16)
 ) -> plt.Figure:
     """
-    한 켜의 모든 머리의 눈길 결을 그린다.
+    한 켜의 모든 머리의 어텐션 결을 그린다.
 
     Args:
         attention_weights: [배치, 머리 수, 열 길이, 열 길이]
@@ -88,7 +88,7 @@ def visualize_all_heads(
     for idx in range(num_heads, len(axes)):
         axes[idx].set_visible(False)
 
-    fig.suptitle(f'켜 {layer} - 모든 눈길 머리', fontsize=14)
+    fig.suptitle(f'켜 {layer} - 모든 어텐션 머리', fontsize=14)
     plt.tight_layout()
     return fig
 ```
@@ -102,7 +102,7 @@ def compute_head_diversity(
     attention_weights: torch.Tensor
 ) -> dict:
     """
-    눈길 머리 사이의 다름을 살핀다.
+    어텐션 머리 사이의 다름을 살핀다.
 
     Args:
         attention_weights: [배치, 머리 수, 열 길이, 열 길이]
@@ -155,7 +155,7 @@ def compute_head_importance(
     기울기 바탕 점수로 머리의 중요함을 셈한다.
 
     미셸 외(2019)의 방법을 쓴다:
-    중요함 = E[|grad(L) * 눈길|]
+    중요함 = E[|grad(L) * 어텐션|]
 
     Returns:
         importance_matrix: [켜 수, 머리 수]
@@ -186,15 +186,15 @@ def compute_head_importance(
 
 ---
 
-## 2. 켜를 따라가는 눈길 결
+## 2. 켜를 따라가는 어텐션 결
 
 ### 이론 뒷그림
 
-소식이 변환기의 켜를 지나면서 눈길 결이 짜임새 있게 바뀐다.
+소식이 변환기의 켜를 지나면서 어텐션 결이 짜임새 있게 바뀐다.
 
-- **앞선 켜**(1~3): 그 자리의 월 얼개 얽힘을 담는다. 이웃 낱말 눈길, 자리 결
+- **앞선 켜**(1~3): 그 자리의 월 얼개 얽힘을 담는다. 이웃 낱말 어텐션, 자리 결
 - **가운데 켜**(4~8): 월 얼개를 담는다. 매인 얽힘, 같은 것 가리키기
-- **뒤쪽 켜**(9~12): 추린 뜻 결을 쌓는다. 주제 눈길, 멀리 미치는 매임
+- **뒤쪽 켜**(9~12): 추린 뜻 결을 쌓는다. 주제 어텐션, 멀리 미치는 매임
 
 이 흐름은 CNN에서 보이는 켜 있는 결 배움과 나란하다.
 
@@ -207,7 +207,7 @@ def compare_layers(
     layers_to_compare: list = None
 ) -> plt.Figure:
     """
-    변환기 켜를 가로질러 눈길 결을 견준다.
+    변환기 켜를 가로질러 어텐션 결을 견준다.
 
     Args:
         attention_weights_by_layer: 켜마다의 [배치, 머리, 열, 열] 목록
@@ -239,9 +239,9 @@ def compare_layers(
 
 def compute_locality_score(attention_weights: torch.Tensor, window: int = 3) -> float:
     """
-    눈길이 그 자리에 머무는지 멀리 미치는지 잰다.
+    어텐션이 그 자리에 머무는지 멀리 미치는지 잰다.
 
-    그 자리 셈 = 대각선에서 ±창 안에 든 눈길 무게의 몫.
+    그 자리 셈 = 대각선에서 ±창 안에 든 어텐션 무게의 몫.
     """
     attn = attention_weights[0].mean(dim=0).detach().cpu().numpy()
     seq_len = attn.shape[0]
@@ -264,13 +264,13 @@ def compute_locality_score(attention_weights: torch.Tensor, window: int = 3) -> 
 
 1. **깊어질수록 그 자리에 덜 머문다**: 앞선 켜는 그 자리를 보고(창 3 안에 ~80%), 뒤쪽 켜는 멀리 본다(~40%)
 2. **머리를 쳐내도 견디는 만큼이 켜마다 다르다**: 뒤쪽 켜가 머리를 없애도 더 든든하다
-3. **나머지 이음이 중요하다**: 소식이 건너뛰는 이음으로 눈길을 지나치므로, 눈길만으로는 온 소식 흐름을 담을 수 없다
+3. **나머지 이음이 중요하다**: 소식이 건너뛰는 이음으로 어텐션을 지나치므로, 어텐션만으로는 온 소식 흐름을 담을 수 없다
 
 ---
 
-## 3. 엇갈린 눈길 풀이하기
+## 3. 엇갈린 어텐션 풀이하기
 
-엇갈린 눈길은 서로 다른 두 열을 이어 인코더와 푸는 개 사이에 소식이 흐르게 한다. 옮김, 간추리기, 물음 답하기 얼개를 풀이하려면 엇갈린 눈길을 알아야 한다.
+엇갈린 어텐션은 서로 다른 두 열을 이어 인코더와 푸는 개 사이에 소식이 흐르게 한다. 옮김, 간추리기, 물음 답하기 얼개를 풀이하려면 엇갈린 어텐션을 알아야 한다.
 
 ### 수학 밑바탕
 
@@ -280,7 +280,7 @@ $$
 \text{CrossAttn}(Q^d, K^e, V^e) = \text{softmax}\left(\frac{Q^d (K^e)^\top}{\sqrt{d_k}}\right) V^e
 $$
 
-눈길 짐이 맞춤 행렬 $A \in \mathbb{R}^{T_d \times T_e}$을 이루며, $A_{ij}$은 푸는 개의 자리 $i$이 인코더의 자리 $j$을 얼마나 보는지 알린다.
+어텐션 짐이 맞춤 행렬 $A \in \mathbb{R}^{T_d \times T_e}$을 이루며, $A_{ij}$은 푸는 개의 자리 $i$이 인코더의 자리 $j$을 얼마나 보는지 알린다.
 
 ### 짜보기
 
@@ -292,7 +292,7 @@ def visualize_cross_attention(
     head: int = None
 ) -> plt.Figure:
     """
-    인코더-푸는 개의 엇갈린 눈길을 그린다.
+    인코더-푸는 개의 엇갈린 어텐션을 그린다.
 
     Args:
         cross_attention: [배치, 머리, 받는 열 길이, 보내는 열 길이]
@@ -302,10 +302,10 @@ def visualize_cross_attention(
     """
     if head is not None:
         attn = cross_attention[0, head].detach().cpu().numpy()
-        title = f'엇갈린 눈길 (머리 {head})'
+        title = f'엇갈린 어텐션 (머리 {head})'
     else:
         attn = cross_attention[0].mean(dim=0).detach().cpu().numpy()
-        title = '엇갈린 눈길 (고르게 함)'
+        title = '엇갈린 어텐션 (고르게 함)'
 
     fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -330,7 +330,7 @@ def analyze_cross_attention_alignment(
     target_tokens: list
 ) -> dict:
     """
-    엇갈린 눈길에서 맞춤의 됨됨이를 살핀다.
+    엇갈린 어텐션에서 맞춤의 됨됨이를 살핀다.
 
     맞춤이 얼마나 또렷하고 얼마나 덮는지를 자로 내놓는다.
     """
@@ -340,7 +340,7 @@ def analyze_cross_attention_alignment(
     eps = 1e-10
     entropy = -(attn * torch.log(attn + eps)).sum(dim=-1).mean().item()
 
-    # 덮음: 문턱을 넘게 눈길을 받은 보내는 쪽 낱말의 몫
+    # 덮음: 문턱을 넘게 어텐션을 받은 보내는 쪽 낱말의 몫
     max_attn_per_source = attn.max(dim=0)[0]
     coverage = (max_attn_per_source > 0.1).float().mean().item()
 
@@ -366,9 +366,9 @@ BertViz(빅, 2019)은 그리는 결 셋을 준다.
 
 | 결 | 보이는 것 | 쓰일 자리 |
 |------|-------|----------|
-| **눈길 머리 봄** | 머리 하나의 눈길 결 | 정한 머리의 움직임 살피기 |
-| **모형 봄** | 모든 켜의 모든 머리 | 눈길 퍼짐을 두루 보기 |
-| **신경 세포 봄** | 물음-열쇠 쪼갬 | 무엇이 눈길을 이끄는지 알기 |
+| **어텐션 머리 봄** | 머리 하나의 어텐션 결 | 정한 머리의 움직임 살피기 |
+| **모형 봄** | 모든 켜의 모든 머리 | 어텐션 퍼짐을 두루 보기 |
+| **신경 세포 봄** | 물음-열쇠 쪼갬 | 무엇이 어텐션을 이끄는지 알기 |
 
 ### BertViz 쓰기
 
@@ -418,7 +418,7 @@ def create_attention_heatmap_grid(
     figsize: tuple = (24, 20)
 ) -> plt.Figure:
     """
-    켜 × 머리의 눈길 격자를 두루 만든다.
+    켜 × 머리의 어텐션 격자를 두루 만든다.
     """
     fig, axes = plt.subplots(num_layers, num_heads, figsize=figsize)
 
@@ -435,7 +435,7 @@ def create_attention_heatmap_grid(
             if head_idx == 0:
                 ax.set_ylabel(f'L{layer_idx}', fontsize=8)
 
-    fig.suptitle('눈길 결: 켜(가로줄) × 머리(세로줄)', fontsize=14)
+    fig.suptitle('어텐션 결: 켜(가로줄) × 머리(세로줄)', fontsize=14)
     plt.tight_layout()
     return fig
 
@@ -446,7 +446,7 @@ def create_attention_flow_sankey(
     top_k: int = 5
 ):
     """
-    정한 낱말에서 눈길이 어디로 흐르는지 보이는
+    정한 낱말에서 어텐션이 어디로 흐르는지 보이는
     생키 결의 흐름 그림을 만든다.
     """
     attn = attention_weights[0].detach().cpu().numpy()
@@ -471,22 +471,22 @@ def create_attention_flow_sankey(
 
 ---
 
-## 5. 눈길 대 몫 매기기: 종요로운 가름
+## 5. 어텐션 대 몫 매기기: 종요로운 가름
 
 ### 고갱이 문제
 
-모형 풀이하기에서 종요로운 가름은 **눈길 짐**과 **몫 점수**의 차이다.
+모형 풀이하기에서 종요로운 가름은 **어텐션 짐**과 **몫 점수**의 차이다.
 
-- **눈길**은 모형이 어디를 "보는지" 보인다. 곧 들임 낱말에 걸친 짐의 퍼짐이다
+- **어텐션**은 모형이 어디를 "보는지" 보인다. 곧 들임 낱말에 걸친 짐의 퍼짐이다
 - **몫 매기기**는 무엇이 참으로 내놓기를 흔드는지, 곧 들임마다의 인과 이바지를 드러낸다
 
-이 둘은 **같은 것이 아니다**. 제인과 월리스(2019)는 눈길 짐이 기울기 바탕 몫과 얽히지 않을 때가 많으며, 눈길 분포를 달리해도 똑같은 미루어 봄이 나올 수 있음을 밝혔다.
+이 둘은 **같은 것이 아니다**. 제인과 월리스(2019)는 어텐션 짐이 기울기 바탕 몫과 얽히지 않을 때가 많으며, 어텐션 분포를 달리해도 똑같은 미루어 봄이 나올 수 있음을 밝혔다.
 
-### 눈길 ≠ 풀이인 까닭
+### 어텐션 ≠ 풀이인 까닭
 
-눈길을 풀이 방법으로 삼기 어렵게 하는 몫이 여럿 있다.
+어텐션을 풀이 방법으로 삼기 어렵게 하는 몫이 여럿 있다.
 
-**값 바꿈**: 눈길 짐은 어느 값 벡터를 아우를지 정하지만, 값 벡터 자체도 바뀐다. 어떤 낱말에 눈길이 크다고 그 낱말의 소식이 내놓기를 판치는 것은 아니다.
+**값 바꿈**: 어텐션 짐은 어느 값 벡터를 아우를지 정하지만, 값 벡터 자체도 바뀐다. 어떤 낱말에 어텐션이 크다고 그 낱말의 소식이 내놓기를 판치는 것은 아니다.
 
 $$
 \text{output}_i = \sum_j \alpha_{ij} V_j W^V
@@ -494,15 +494,15 @@ $$
 
 이바지는 $\alpha_{ij}$과 $V_j$의 속살에 함께 달렸다.
 
-**나머지 이음**: 소식이 건너뛰는 이음으로 눈길을 지나친다. 내놓기 나타냄에는 눈길이 모은 소식과 본디 들임이 함께 들어 있으므로 눈길 짐만으로는 그림이 온전하지 않다.
+**나머지 이음**: 소식이 건너뛰는 이음으로 어텐션을 지나친다. 내놓기 나타냄에는 어텐션이 모은 소식과 본디 들임이 함께 들어 있으므로 어텐션 짐만으로는 그림이 온전하지 않다.
 
 $$
 \mathbf{h}_i^{(l+1)} = \mathbf{h}_i^{(l)} + \text{Attn}(\mathbf{h}^{(l)})
 $$
 
-**여러 켜 겹침**: 여러 켜 변환기에서는 한 낱말의 소식이 여러 눈길 길을 거쳐 내놓기에 이를 수 있다. 켜 하나의 눈길로는 이런 에두른 미침을 담을 수 없다.
+**여러 켜 겹침**: 여러 켜 변환기에서는 한 낱말의 소식이 여러 어텐션 길을 거쳐 내놓기에 이를 수 있다. 켜 하나의 어텐션으로는 이런 에두른 미침을 담을 수 없다.
 
-### 눈길과 몫 매기기 견주기
+### 어텐션과 몫 매기기 견주기
 
 ```python
 def compare_attention_and_attribution(
@@ -513,12 +513,12 @@ def compare_attention_and_attribution(
     device: torch.device = None
 ) -> dict:
     """
-    눈길 짐과 기울기 바탕 몫을 견준다.
+    어텐션 짐과 기울기 바탕 몫을 견준다.
     """
     model.eval()
     input_ids = input_ids.to(device)
 
-    # 눈길 짐을 얻는다
+    # 어텐션 짐을 얻는다
     with torch.no_grad():
         outputs = model(input_ids, output_attentions=True)
         attention = outputs.attentions[layer][0].mean(dim=0)
@@ -533,7 +533,7 @@ def compare_attention_and_attribution(
 
     gradient_attr = embeddings.grad.abs().sum(dim=-1)[0]
 
-    # [CLS] 낱말에서 뻗는 눈길(흔히 고른다)
+    # [CLS] 낱말에서 뻗는 어텐션(흔히 고른다)
     attn_scores = attention[0].detach().cpu().numpy()
     grad_scores = gradient_attr.detach().cpu().numpy()
 
@@ -557,10 +557,10 @@ def compare_attention_and_attribution(
 
 | 방법 | 알맞은 자리 | 한계 |
 |--------|----------|------------|
-| **눈길 짐** | 모형의 움직임 둘러보기, 얼개 알기, 가설 세우기 | 미더운 몫이 아니고 값 속살에 흔들린다 |
-| **눈길 굴리기** | 켜를 가로지르는 소식 흐름 좇기 | 눈길 ≈ 소식 흐름이라고 여긴다 |
-| **눈길 흐름** | 여러 켜에 걸쳐 더 미더운 몫 매기기 | 셈이 비싸다 |
-| **기울기 몫 매기기** | 미더운 중요함 재기 | 눈길만의 깨침을 놓친다 |
+| **어텐션 짐** | 모형의 움직임 둘러보기, 얼개 알기, 가설 세우기 | 미더운 몫이 아니고 값 속살에 흔들린다 |
+| **어텐션 굴리기** | 켜를 가로지르는 소식 흐름 좇기 | 어텐션 ≈ 소식 흐름이라고 여긴다 |
+| **어텐션 흐름** | 여러 켜에 걸쳐 더 미더운 몫 매기기 | 셈이 비싸다 |
+| **기울기 몫 매기기** | 미더운 중요함 재기 | 어텐션만의 깨침을 놓친다 |
 | **아울러 쓰기** | 가장 두루 알기 | 풀이하기가 더 까다롭다 |
 
 ---
@@ -575,14 +575,14 @@ def comprehensive_attention_analysis(
     device: torch.device
 ) -> dict:
     """
-    여러 재주를 아우른 두루 갖춘 눈길 살피기.
+    여러 재주를 아우른 두루 갖춘 어텐션 살피기.
     """
     # 낱말로 쪼갠다
     inputs = tokenizer(text, return_tensors='pt', padding=True)
     input_ids = inputs['input_ids'].to(device)
     tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
 
-    # 눈길을 곁들인 앞으로 걸음
+    # 어텐션을 곁들인 앞으로 걸음
     model.eval()
     with torch.no_grad():
         outputs = model(**{k: v.to(device) for k, v in inputs.items()},
@@ -670,12 +670,12 @@ def comprehensive_attention_analysis(
 
 ## 정리하며
 
-눈길 결 살피기는 변환기의 움직임을 넉넉히 들여다보게 해 주지만 조심히 읽어야 한다.
+어텐션 결 살피기는 변환기의 움직임을 넉넉히 들여다보게 해 주지만 조심히 읽어야 한다.
 
 1. **여러 머리의 다름**이 맡음새를 드러낸다. 너무 비슷한 머리는 쳐낼 수 있다
 2. **켜를 따라가는 흐름**이 그 자리에서 온 세상으로 가는 켜 있는 결 쌓기를 보인다
-3. **엇갈린 눈길의 맞춤**은 인코더-푸는 개 모형에서 알려 주는 바가 많다
-4. **눈길 ≠ 몫 매기기**: 눈길로 얻은 깨침은 늘 기울기 바탕 방법으로 따져 보라
+3. **엇갈린 어텐션의 맞춤**은 인코더-푸는 개 모형에서 알려 주는 바가 많다
+4. **어텐션 ≠ 몫 매기기**: 어텐션으로 얻은 깨침은 늘 기울기 바탕 방법으로 따져 보라
 5. BertViz 같은 **주고받는 연장**은 둘러보기에 값지지만 수로 재는 자를 곁들여야 한다
 
 **살펴볼 거리**
