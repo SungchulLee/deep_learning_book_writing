@@ -205,9 +205,9 @@ X = np.column_stack([np.ones(n), income, dti])   # 첫 열의 1은 절편 자리
 def neg_log_lik(beta):
     z = X[train] @ beta
     # 로지스틱 회귀의 음의 로그가능도.
-    # log(1+e^z) 를 log1p(exp(z))로 쓰는 까닭은 z가 클 때
-    # exp(z)가 넘치는 것을 막기 위해서다
-    return -np.sum(default[train] * z - np.log1p(np.exp(z)))
+    # log(1+e^z)를 logaddexp(0, z)로 쓴다. z가 크면 exp(z)가 넘쳐
+    # inf가 되는데, logaddexp는 큰 쪽을 밖으로 빼내어 그것을 막는다
+    return -np.sum(default[train] * z - np.logaddexp(0.0, z))
 
 # 닫힌 형태가 없으므로 수치 최적화로 푼다. 목적함수가 볼록이라
 # BFGS가 전역 최소로 간다

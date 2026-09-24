@@ -1150,7 +1150,7 @@ $$
 
 ### 갈래 매개 없는 이끌기(CFG)
 
-본디 퍼짐 모델에서 온 CFG는 글 만들어 내기도 낫게 할 수 있다:
+본디 확산 모델에서 온 CFG는 글 만들어 내기도 낫게 할 수 있다:
 
 $$
 \tilde{z} = z_{\text{uncond}} + w \cdot (z_{\text{cond}} - z_{\text{uncond}})
