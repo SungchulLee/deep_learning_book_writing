@@ -4,6 +4,17 @@
 
 트랜스포머에 바탕을 둔 구조는 자연어 처리를 뒤바꾸어 놓았다. 이 구현은 트랜스포머의 개념을 살피며, 갖가지 과제에서 최고 수준의 성능을 내게 하는 주의 얼개와 구조의 본을 보여 준다.
 
+!!! note "이 쪽은 앞 장의 모듈을 읽어 쓴다"
+    아래 코드가 `from self_attention import SelfAttention`으로 시작한다. 그 모듈은 이 쪽 곁이 아니라 **[12.5절 자기 어텐션](../../ch11/attention/self_attention.md)** 옆에 `self_attention.py`로 놓여 있다.
+
+    돌려 보려면 그 파일을 이 쪽과 같은 곳에 두거나, 가져오기 경로를 잡아 준다.
+
+    ```python
+    import sys
+    sys.path.append("../../ch11/attention")   # self_attention.py가 있는 곳
+    from self_attention import SelfAttention
+    ```
+
 ## 1. 코드
 
 ```python

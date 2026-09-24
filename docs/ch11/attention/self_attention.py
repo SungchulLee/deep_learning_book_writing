@@ -290,3 +290,58 @@ class VisionSelfAttention(nn.Module):
         output = self.norm(patches + attended)
         
         return output, weights
+
+
+class MultiHeadSelfAttention(nn.Module):
+    """머리 여럿을 둔 자기 어텐션.
+
+    위의 SelfAttention은 머리가 하나다. 머리를 여럿 두면 같은 자리에서
+    서로 다른 관계를 따로 볼 수 있다. d_model을 num_heads로 나누어
+    머리마다 좁은 공간을 주므로, 머리를 늘려도 매개변수는 늘지 않는다.
+
+    입력과 출력 모양은 모두 (batch, seq_len, embed_dim)이다.
+    """
+
+    def __init__(self, embed_dim: int, num_heads: int, dropout: float = 0.0):
+        super().__init__()
+        if embed_dim % num_heads != 0:
+            raise ValueError(
+                f"embed_dim({embed_dim})이 num_heads({num_heads})로 나누어떨어져야 한다")
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.head_dim = embed_dim // num_heads
+        self.scale = self.head_dim ** -0.5
+
+        # 머리 전체를 한 번에 사영한 뒤 쪼갠다
+        self.W_q = nn.Linear(embed_dim, embed_dim)
+        self.W_k = nn.Linear(embed_dim, embed_dim)
+        self.W_v = nn.Linear(embed_dim, embed_dim)
+        self.out_proj = nn.Linear(embed_dim, embed_dim)
+        self.dropout = nn.Dropout(dropout)
+
+    def _split(self, x: torch.Tensor) -> torch.Tensor:
+        """(B, L, E) -> (B, H, L, head_dim)"""
+        B, L, _ = x.shape
+        return x.view(B, L, self.num_heads, self.head_dim).transpose(1, 2)
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        B, L, _ = x.shape
+        q = self._split(self.W_q(x))
+        k = self._split(self.W_k(x))
+        v = self._split(self.W_v(x))
+
+        scores = (q @ k.transpose(-2, -1)) * self.scale   # (B, H, L, L)
+        if mask is not None:
+            # (B, L) 짜리 채움 가리개든 (L, L) 짜리 인과 가리개든 받는다
+            if mask.dim() == 2 and mask.shape[0] == B:
+                mask = mask[:, None, None, :]
+            scores = scores.masked_fill(mask == 0, float("-inf"))
+
+        attn = self.dropout(torch.softmax(scores, dim=-1))
+        out = attn @ v                                     # (B, H, L, head_dim)
+        out = out.transpose(1, 2).reshape(B, L, self.embed_dim)
+        return self.out_proj(out), attn

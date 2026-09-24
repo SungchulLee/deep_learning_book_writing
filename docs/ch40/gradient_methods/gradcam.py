@@ -295,3 +295,63 @@ def analyze_layer_gradcam(model, image_tensor, target_class, device):
         results[name] = heatmap.cpu().numpy()
 
     return results
+
+
+# 페이지들이 쓰는 이름. 위 클래스가 __call__과 generate_visualization으로
+# 정의해 둔 것과 같은 것이며, 이름만 맞춘다.
+GradCAM.generate_cam = GradCAM.__call__
+GradCAM.visualize_cam = GradCAM.generate_visualization
+
+
+class GradCAMPlusPlus(GradCAM):
+    """Grad-CAM++ — 짐을 매기는 방법만 다르다.
+
+    Grad-CAM은 기울기를 그냥 평균내어 켜마다 짐 하나를 얻는다(α_k = mean(∂y/∂A^k)).
+    그래서 같은 갈래의 물체가 그림에 여럿 있으면 가장 센 것 하나에 쏠린다.
+
+    Grad-CAM++는 자리마다 짐을 따로 매긴다. 양의 기울기만 세되,
+    그 자리가 얼마나 드문지를 2계·3계 항으로 나누어 준다.
+
+        α^kij = (∂²y/∂A²) / (2·∂²y/∂A² + Σ A^k · ∂³y/∂A³)
+        w_k   = Σ_ij α^kij · relu(∂y/∂A^k_ij)
+
+    점수에 지수를 씌운 경우 ∂ⁿy/∂Aⁿ가 (∂y/∂A)ⁿ이 되므로, 기울기 하나로
+    위 식을 그대로 셈할 수 있다. 아래가 그 꼴이다.
+    """
+
+    def __call__(
+        self,
+        image_tensor: torch.Tensor,
+        target_class: int = None,
+        device: torch.device = None
+    ) -> torch.Tensor:
+        if device is None:
+            device = next(self.model.parameters()).device
+
+        self.model.eval()
+        image_tensor = image_tensor.to(device)
+        output = self.model(image_tensor)
+        if target_class is None:
+            target_class = output.argmax(dim=1).item()
+
+        self.model.zero_grad()
+        output[0, target_class].backward()
+
+        grads = self.gradients[0]           # [K, H', W']
+        acts = self.activations[0]          # [K, H', W']
+
+        g2, g3 = grads ** 2, grads ** 3
+        denom = 2.0 * g2 + (acts * g3).sum(dim=(1, 2), keepdim=True)
+        alpha = g2 / torch.where(denom != 0, denom, torch.ones_like(denom))
+        weights = (alpha * F.relu(grads)).sum(dim=(1, 2))      # [K]
+
+        cam = F.relu((weights[:, None, None] * acts).sum(dim=0))
+        cam = cam - cam.min()
+        cam = cam / (cam.max() + 1e-8)
+        cam = F.interpolate(cam[None, None], size=image_tensor.shape[2:],
+                            mode='bilinear', align_corners=False)
+        return cam.squeeze()
+
+
+GradCAMPlusPlus.generate_cam = GradCAMPlusPlus.__call__
+GradCAMPlusPlus.visualize_cam = GradCAM.generate_visualization

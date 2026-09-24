@@ -110,3 +110,32 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(model.parameters(), lr=ARGS.lr)
     losses = train(model, nn.CrossEntropyLoss(), optimizer, epochs=5)
     print(f"vocab {ARGS.vocab_size}, n-grams {len(ngrams)}, last loss {losses[-1]:.4f}")
+
+
+# ---------------------------------------------------------------------------
+# 쪽들이 ngr.ARGS.* 로 닿는 이름들. 위에 이미 모듈 수준으로 있는 것을
+# ARGS에도 걸어 둔다 — 설정을 한 군데에서 읽게 하려는 것이다.
+# ---------------------------------------------------------------------------
+ARGS.test_sentence = TEST_SENTENCE
+ARGS.word_to_ix = word_to_ix
+
+
+def make_context_target_pairs(sentence=None, context_size=None):
+    """글월을 (앞 낱말 몇 개, 다음 낱말) 짝으로 자른다.
+
+    위의 `ngrams`를 만든 것과 같은 규칙이다. 글월이나 문맥 크기를 바꾸어
+    가며 쓰려고 함수로 따로 둔다.
+    """
+    sentence = TEST_SENTENCE if sentence is None else sentence
+    context_size = ARGS.context_size if context_size is None else context_size
+    return [([sentence[i - j - 1] for j in range(context_size)], sentence[i])
+            for i in range(context_size, len(sentence))]
+
+
+def prepare_sequence(seq, to_ix=None):
+    """낱말 열을 번호 텐서로 바꾼다. 모르는 낱말은 0번으로 둔다."""
+    to_ix = word_to_ix if to_ix is None else to_ix
+    return torch.tensor([to_ix.get(w, 0) for w in seq], dtype=torch.long)
+
+
+__all__ = __all__ + ["make_context_target_pairs", "prepare_sequence"]
