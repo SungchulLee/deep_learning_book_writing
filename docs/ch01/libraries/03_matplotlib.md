@@ -22,6 +22,31 @@ Matplotlib의 구조는 두 층이다.
 - **Figure**: 도화지 한 장
 - **Axes**: 그 위에 놓인 그래프 하나. 한 도화지에 여럿 놓을 수 있다
 
+!!! warning "먼저 해 둘 것 — 한글 글꼴을 잡지 않으면 글자가 네모로 나온다"
+    이 절의 그림에는 "학습 손실", "에포크" 같은 한글이 들어간다. 그런데 **matplotlib의 기본 글꼴에는 한글이 없다.** 그대로 그리면 글자 자리마다 □□□가 찍히고, 그리는 동안 이런 경고가 쏟아진다.
+
+    ```
+    Glyph 44257 (\N{HANGUL SYLLABLE GOG}) missing from current font.
+    ```
+
+    아래 여섯 줄을 그리기 전에 한 번 돌려 두면 된다.
+
+    ```python
+    import matplotlib
+    from matplotlib import font_manager
+
+    # macOS, Windows, Linux 차례로 있는 것을 고른다
+    for name in ("AppleGothic", "Malgun Gothic", "NanumGothic", "Noto Sans CJK KR"):
+        if name in {f.name for f in font_manager.fontManager.ttflist}:
+            matplotlib.rcParams["font.family"] = name
+            break
+    matplotlib.rcParams["axes.unicode_minus"] = False   # 음수 기호가 깨지는 것을 막는다
+    ```
+
+    마지막 줄을 빼먹으면 축 눈금의 **음수 기호**가 네모로 나온다. 한글 글꼴을 잡으면서 유니코드 빼기 기호를 그 글꼴에서 찾으려 하기 때문이다.
+
+    **이 책이 싣는 그림은 사정이 다르다.** 그림 파일에 한글을 아예 넣지 않고 축 이름을 영어로 적는다. 글꼴이 없는 기계에서 열어도 깨지지 않게 하려는 것이며, 그래서 [4.2절](../../ch04/02_depth.md)이나 [6.4절](../../imdb/04_lstm.md)의 곡선 그림에는 `epoch`, `test accuracy` 같은 영어만 보인다.
+
 ```python
 import matplotlib
 matplotlib.use("Agg")            # 화면 없이 파일로만 그릴 때 쓰는 설정

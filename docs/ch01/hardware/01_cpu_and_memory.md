@@ -134,7 +134,7 @@ col_time = timed(lambda: A.sum(axis=0))
 print(f"배열 크기            : {A.shape}, {A.nbytes / 1e6:.0f} MB")
 print(f"행을 따라 더하기      : {row_time * 1e3:6.2f} ms  (메모리를 곧게 훑음)")
 print(f"열을 따라 더하기      : {col_time * 1e3:6.2f} ms  (건너뛰며 훑음)")
-print(f"더한 원소 개수는 같다 : {A.sum(axis=1).size * 4000 == A.sum(axis=0).size * 4000}")
+print(f"두 합이 같은가        : {np.allclose(A.sum(axis=1).sum(), A.sum(axis=0).sum())}")
 ```
 
 **출력:**
@@ -143,7 +143,7 @@ print(f"더한 원소 개수는 같다 : {A.sum(axis=1).size * 4000 == A.sum(axi
 배열 크기            : (4000, 4000), 128 MB
 행을 따라 더하기      :   2.23 ms  (메모리를 곧게 훑음)
 열을 따라 더하기      :   2.55 ms  (건너뛰며 훑음)
-더한 원소 개수는 같다 : True
+두 합이 같은가        : True
 ```
 
 더하는 숫자의 개수는 정확히 같은데도 걸리는 값이 다르다. 건너뛰며 읽으면 캐시가 실어 온 덩이에서 값 하나만 쓰고 버리게 되기 때문이다.
