@@ -4,6 +4,11 @@
 
 합성곱 구조는 요즘 컴퓨터 비전 시스템의 뼈대를 이룬다. 이 구현은 PyTorch로 잔차 신경망 설계의 핵심 개념을 보이며, 이미지 데이터에서 공간적인 특징의 위계가 어떻게 학습되는지 드러낸다.
 
+!!! note "먼저 해 둘 것 — 이 쪽은 앞 쪽의 모델을 읽어 쓴다"
+    아래 코드의 첫 줄이 `from resnet import resnet18, resnet34, resnet50`이다. **[ResNet 구현 쪽](02_resnet_implementation.md)의 코드를 `resnet.py`라는 이름으로 저장해 두어야** 돌아간다. 그 쪽이 `resnet18`부터 `resnet152`까지를 정의한다.
+
+    `torchvision.models`의 것을 써도 되지만 그대로는 알맞지 않다. 그쪽은 224×224 입력을 받도록 첫 층이 7×7 stride 2이고 곧바로 max pool이 따라와, 32×32인 CIFAR-10에서는 시작부터 8×8로 줄어든다. 쓰려면 첫 층을 3×3 stride 1로 바꾸고 max pool을 빼야 한다.
+
 ## 1. 코드
 
 ```python
@@ -28,17 +33,11 @@ import os
 # ========================================================================
 
 
-# 우리 구현에서 ResNet 가져오기
-# 참고: 실제로는 residual_connections 디렉터리에서 실행하거나
-# 그에 맞게 가져오기 경로를 고쳐야 한다
-try:
-    from residual_connections_02_resnet_implementation import resnet18, resnet34, resnet50
-except ImportError:
-    # 대안: 여기서 최소한의 ResNet을 만들거나 torchvision에서 가져온다
-    print("Note: Could not import from 02_resnet_implementation.py")
-    print("Make sure to run from the correct directory or adjust imports")
-    import sys
-    sys.exit(1)
+# 앞 쪽의 ResNet을 읽어 쓴다.
+# 02_resnet_implementation.md의 코드를 resnet.py로 저장해 두고 그것을 가져온다.
+# torchvision의 것을 쓰려면 아래 줄을 바꾼다. 다만 그쪽은 224x224를 받도록
+# 만들어져 있어 첫 층이 7x7/stride 2이며, 32x32인 CIFAR-10에서는 너무 많이 줄인다.
+from resnet import resnet18, resnet34, resnet50
 
 
 def get_cifar10_dataloaders(batch_size=128, num_workers=2):
