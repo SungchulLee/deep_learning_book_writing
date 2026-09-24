@@ -414,4 +414,4 @@ MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴�
 - Gelman & Rubin (1992): $\hat{R}$ 통계량
 - Geweke (1992): 시계열 진단
 - Vehtari et al. (2021): 차례로 고르게 한 $\hat{R}$, ESS 권고
-- Gelman et al. (2013): Bayesian Data Analysis(11장)
+- Gelman et al. (2013): Bayesian Data Analysis(12장)

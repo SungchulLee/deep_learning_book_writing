@@ -40,7 +40,7 @@ $$\mathbf{h}_t = \text{LSTM}(\mathbf{x}_t, \mathbf{h}_{t-1}) = \mathbf{h}_t(\mat
 
 ### 트랜스포머 기반 전이
 
-트랜스포머 구조(11~12장)가 더 효율적인 시간 전이를 가능케 한다.
+트랜스포머 구조(12~13장)가 더 효율적인 시간 전이를 가능케 한다.
 
 $$\text{Output}_t = \text{MultiHeadAttention}(\mathbf{x}_t, \text{context})$$
 
@@ -249,8 +249,8 @@ $$\tau_{\text{lookback}} = f(\text{autocorrelation decay time})$$
 ## 10. 관련 주제
 
 - 시계열을 위한 도메인 적응
-- 시간 모델과 순환 신경망 (11장)
-- 시계열을 위한 트랜스포머 (12장)
+- 시간 모델과 순환 신경망 (12장)
+- 시계열을 위한 트랜스포머 (13장)
 - 비정상 과정 모형화
 
 ---

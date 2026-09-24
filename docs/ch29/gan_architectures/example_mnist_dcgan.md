@@ -557,7 +557,7 @@ MNIST에서 DCGAN을 50바퀴 익히고 익히기 손실 곡선을 살펴라. �
 </div>
 
 ??? success "연습문제 8 풀이"
-    부류 표지를 두 그물 모두에 넣는다. [26장의 조건부 변분 오토인코더](../../ch26/architecture/conditional_vae.md)와
+    부류 표지를 두 그물 모두에 넣는다. [27장의 조건부 변분 오토인코더](../../ch26/architecture/conditional_vae.md)와
     같은 생각이다.
 
     ```python
@@ -591,7 +591,7 @@ MNIST에서 DCGAN을 50바퀴 익히고 익히기 손실 곡선을 살펴라. �
 <div class="drillbox" markdown>
 
 **연습문제 9.** <span class="diff med" title="중간"></span>
-이 예의 결과를 26장의 변분 오토인코더와 나란히 놓을 때 조심할 점은 무엇인가?
+이 예의 결과를 27장의 변분 오토인코더와 나란히 놓을 때 조심할 점은 무엇인가?
 
 </div>
 

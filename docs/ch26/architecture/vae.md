@@ -281,7 +281,7 @@ Generated samples shape: torch.Size([10, 784])
     ```
 
     KL 항이 $\mu$와 $\log\sigma^2$을 필요로 하므로 밖으로 내보내야 한다. 오토인코더라면
-    출력 하나로 충분했다([25장 모듈 연습문제 3](../../ch25/architecture/autoencoder.md)).
+    출력 하나로 충분했다([26장 모듈 연습문제 3](../../ch25/architecture/autoencoder.md)).
 
     그래서 익히기 반복문의 모양도 달라진다.
 
@@ -449,7 +449,7 @@ Generated samples shape: torch.Size([10, 784])
     다른 모델의 ELBO와 나란히 놓으면 안 된다([베타 VAE 연습문제 3](beta_vae.md)).
 
     전처리를 적는 것은 오토인코더와 같은 이유다
-    ([25장 모듈 연습문제 6](../../ch25/architecture/autoencoder.md)).
+    ([26장 모듈 연습문제 6](../../ch25/architecture/autoencoder.md)).
 
     되불러 올 때 `weights_only=True`를 쓰는 편이 안전하다.
 

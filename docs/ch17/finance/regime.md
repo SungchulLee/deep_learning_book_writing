@@ -36,7 +36,7 @@ $$
 P(z_t = k \mid r_{1:t}) \propto p(r_t \mid z_t = k) \sum_j A_{jk} \, P(z_{t-1} = j \mid r_{1:t-1})
 $$
 
-이는 숨은 마르코프 모형 거르개의 앞먹임이다([19장: 숨은 마르코프 모형](../../ch19/markov_chains/hmm.md)을 보라).
+이는 숨은 마르코프 모형 거르개의 앞먹임이다([20장: 숨은 마르코프 모형](../../ch19/markov_chains/hmm.md)을 보라).
 
 ### 구현
 

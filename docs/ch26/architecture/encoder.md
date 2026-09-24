@@ -231,7 +231,7 @@ nn.init.constant_(encoder.fc_logvar.bias, -1.0)
     ```
 
     바뀐 것이 이 한 줄뿐인데, 이것이 압축기와 만들어 내는 모델을 가른다
-    ([23.5절](../../ch25/limits/latent_sampling.md)).
+    ([24.5절](../../ch25/limits/latent_sampling.md)).
 
     매개변수로 보면 마지막 층만 두 배가 된다. $256 \times 16$이 $256 \times 32$가
     되므로 4,096개가 늘 뿐, 전체 100만여 개에 견주면 0.4%다. **거의 공짜로 성격이

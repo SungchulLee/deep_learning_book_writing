@@ -293,4 +293,4 @@ GP은 불확실성을 수로 나타내는 힘 덕분에 금융 모형에 특히 
 
 - Rasmussen, C. E., & Williams, C. K. I. (2006). *Gaussian Processes for Machine Learning*. MIT Press.
 - Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. MIT Press. 15장.
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer. 6.4절.
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer. 7.4절.

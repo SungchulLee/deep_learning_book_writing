@@ -853,7 +853,7 @@ SNIS의 치우침이 $O(1/n)$임을 겪어 보고 확인하여라. 표본 크기
 
 1. Geweke, J. (1989). "Bayesian inference in econometric models using Monte Carlo integration." *Econometrica*, 57(6), 1317-1339.
 
-2. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9.4절: 스스로 고르게 하는 중요도 표집.
+2. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 10.4절: 스스로 고르게 하는 중요도 표집.
 
 3. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer. 3.3절.
 

@@ -16,9 +16,9 @@
 
 !!! note "함께 볼 것"
     이 절은 회귀에서 가장 기본이 되는 손실 하나를 최대가능도에서 끝까지 유도한다.
-    여러 회귀 손실을 나란히 견주어 보는 것은 [9장의 회귀 손실의 비교](../../ch09/loss/02_regression_losses_comparison.md)이고,
+    여러 회귀 손실을 나란히 견주어 보는 것은 [10장의 회귀 손실의 비교](../../ch09/loss/02_regression_losses_comparison.md)이고,
     이상치에 견디는 절충안은 [후버 손실](../../ch09/loss/huber_loss.md)이다.
-    이름이 비슷하지만 하는 일이 전혀 다른 **L2 정칙화**는 [8장](../../ch08/regularization/l2_regularization.md)에서 다룬다.
+    이름이 비슷하지만 하는 일이 전혀 다른 **L2 정칙화**는 [9장](../../ch08/regularization/l2_regularization.md)에서 다룬다.
     분류 쪽의 짝이 되는 손실은 같은 절의 [교차 엔트로피 손실](cross_entropy.md)이다.
 
 ---
@@ -95,7 +95,7 @@ $$\text{SSE} = \|\mathbf{y} - \hat{\mathbf{y}}\|_2^2$$
     - **L2 손실**: $\|\mathbf{y} - \hat{\mathbf{y}}\|_2^2$ — **잔차**의 노름. 데이터에 얼마나 맞는지를 잰다
     - **L2 정칙화**: $\lambda\|\boldsymbol{\theta}\|_2^2$ — **매개변수**의 노름. 모델이 얼마나 큰지를 벌한다
 
-    둘은 함께 쓰이며 서로를 대신하지 못한다. 자세한 것은 [8장](../../ch08/regularization/l2_regularization.md)에 있다.
+    둘은 함께 쓰이며 서로를 대신하지 못한다. 자세한 것은 [9장](../../ch08/regularization/l2_regularization.md)에 있다.
 
 ---
 

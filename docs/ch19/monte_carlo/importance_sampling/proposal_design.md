@@ -666,7 +666,7 @@ $\pi = 0.3 \mathcal{N}(-5, 1) + 0.7 \mathcal{N}(3, 0.5)$의 섞음 제안을 짜
 
 **참고 문헌**
 
-1. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9.5절: 제안 분포.
+1. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 10.5절: 제안 분포.
 
 2. Cappé, O., Guillin, A., Marin, J. M., & Robert, C. P. (2004). "Population Monte Carlo." *Journal of Computational and Graphical Statistics*, 13(4), 907-929.
 
