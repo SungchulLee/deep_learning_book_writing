@@ -4,6 +4,8 @@ make_figures.py - 6장의 그림을 만든다
 ================================================================================
 
 만드는 그림:
+    rung23_curves.svg   2걸음과 3걸음을 30 에포크까지 늘려 나란히 그린다.
+                        이 장의 규약인 5 에포크가 어디쯤인지 세로선으로 둔다
     lstm_curves.svg     4걸음 LSTM을 30 에포크까지 늘려 씨 다섯 벌의 곡선을
                         따로 그린다. 3걸음과 5걸음의 값을 가로선으로 둔다
 
@@ -36,6 +38,8 @@ import matplotlib.pyplot as plt
 matplotlib.rcParams["svg.fonttype"] = "path"
 
 LOG = os.environ.get("LOG", "imdb_step4_e30.log")
+LOG_R2 = os.environ.get("LOG_R2", "ch6_rung2_e30.log")
+LOG_R3 = os.environ.get("LOG_R3", "ch6_rung3_e30.log")
 
 # 같은 규약으로 잰 다른 걸음들 (본문 표와 같은 값)
 RUNG3 = 87.03          # 박아 넣기 + 평균
@@ -118,5 +122,60 @@ def fig_lstm_curves():
         print(f"   {seed}     {pk:6.2f} ({pe:2d})   {vals[-1]:6.2f} ({eps[-1]:2d})   {min(after):6.2f}")
 
 
+# === 그림: 2걸음과 3걸음을 같은 예산에서 ====================================
+def fig_rung23_curves():
+    """규약이 걸음들 사이에서 중립인가를 보이는 그림.
+
+    5 에포크는 3걸음의 꼭대기 언저리이고 2걸음은 아직 오르는 중이다.
+    그래서 그 자리에서 잰 차이가 가장 크게 나온다.
+    """
+    r2, r3 = load_curves(LOG_R2), load_curves(LOG_R3)
+    if not r2 or not r3:
+        raise SystemExit("need both rung2 and rung3 logs")
+
+    def band(c):
+        eps = sorted(set.intersection(*[set(v) for v in c.values()]))
+        lo = [min(c[s][e] for s in c) for e in eps]
+        hi = [max(c[s][e] for s in c) for e in eps]
+        mid = [sum(c[s][e] for s in c) / len(c) for e in eps]
+        return eps, lo, mid, hi
+
+    fig, ax = plt.subplots(figsize=(9, 4.4))
+    ax.axvline(PROTOCOL_EPOCHS, color="#bbbbbb", lw=1.0, zorder=1)
+    for c, col, lab in ((r2, "#1f77b4", "rung 2: linear"),
+                        (r3, "#d62728", "rung 3: embedding + mean")):
+        eps, lo, mid, hi = band(c)
+        ax.fill_between(eps, lo, hi, color=col, alpha=0.18, lw=0, zorder=2)
+        ax.plot(eps, mid, color=col, lw=1.8, marker="o", ms=2.5, label=lab, zorder=3)
+
+    xmax = max(max(v) for v in r2.values())
+    ax.set_xlim(0.5, xmax + 0.5)
+    ax.set_ylim(72, 90)
+    ax.set_xticks(range(5, xmax + 1, 5))
+    ax.set_xlabel("epoch")
+    ax.set_ylabel("test accuracy (%)")
+    ax.text(PROTOCOL_EPOCHS + 0.4, 72.6, "chapter budget: 5 epochs",
+            ha="left", va="bottom", fontsize=8, color="#888888")
+    ax.annotate("rung 3 peaks here (~ep 9)", xy=(9, 88.0), xytext=(13.5, 89.0),
+                fontsize=8, color="#d62728",
+                arrowprops=dict(arrowstyle="->", color="#d62728", lw=0.8))
+    ax.annotate("rung 2 still rising at 30", xy=(30, 83.5), xytext=(20.5, 78.5),
+                fontsize=8, color="#1f77b4",
+                arrowprops=dict(arrowstyle="->", color="#1f77b4", lw=0.8))
+    ax.legend(loc="lower right", fontsize=8, framealpha=0.0)
+    ax.spines["top"].set_visible(False); ax.spines["right"].set_visible(False)
+    ax.grid(axis="y", lw=0.4, color="#dddddd", zorder=0)
+    fig.tight_layout()
+    fig.savefig("rung23_curves.svg", transparent=True)
+    plt.close(fig)
+    print("  rung23_curves.svg")
+    print("\n  epoch   rung2    rung3     gap")
+    for e in (5, 10, 20, 30):
+        a = [r2[s][e] for s in r2]; b = [r3[s][e] for s in r3]
+        ma, mb = sum(a)/len(a), sum(b)/len(b)
+        print(f"   {e:2d}    {ma:6.2f}   {mb:6.2f}   {mb-ma:+5.2f}")
+
+
 if __name__ == "__main__":
     fig_lstm_curves()
+    fig_rung23_curves()
