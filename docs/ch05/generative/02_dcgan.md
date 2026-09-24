@@ -244,7 +244,7 @@ MLP 쪽은 균형점($D \approx 1.386$)으로 되돌아갔다. DCGAN은 처음�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff normal" title="중간"></span>
+**연습문제 1.** <span class="diff med" title="중간"></span>
 DCGAN의 클래스 안 다양함이 1.085로 1을 넘었다. "진짜보다 다양하다"가 아니라면 무엇일 수 있는가? 가려내는 방법을 적어라.
 
 </div>

@@ -344,7 +344,7 @@ $\alpha$만 바꾼 세 칸을 나란히 놓으면 마지막 이야기가 나온�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 증류한 학생(74.73%)은 [4.3절](03_vgg16_transfer.md)의 VGG16 전이(84.93%)에 한참 못 미친다. 그렇다면 VGG16을 교사로 삼아 4걸음 CNN에 증류하면 어떻게 되겠는가? 무엇이 이 절의 실험과 달라지는가?
 
 </div>
@@ -364,7 +364,7 @@ $\alpha$만 바꾼 세 칸을 나란히 놓으면 마지막 이야기가 나온�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff normal" title="중간"></span>
+**연습문제 3.** <span class="diff med" title="중간"></span>
 본문은 대조군(홑모델 교사)이 없었다면 2.68%포인트를 모두 앙상블 공으로 돌렸을 것이라고 했다. 이 절의 결론 가운데 대조군이 **없었다면 틀렸을** 것을 하나 더 찾아라.
 
 </div>

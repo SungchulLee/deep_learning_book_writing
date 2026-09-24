@@ -196,7 +196,7 @@ print("나쁜 쪽으로 미는 낱말:", ", ".join(vocab[i] for i in top_neg))
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 자주 나오는 낱말이 판정을 좌우하는 문제를 학습 없이 고치는 방법이 있다. 무엇인가?
 
 </div>

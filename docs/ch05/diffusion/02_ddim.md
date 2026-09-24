@@ -263,7 +263,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff normal" title="중간"></span>
+**연습문제 1.** <span class="diff med" title="중간"></span>
 DDIM은 무작위 항이 없어 같은 $z$가 언제나 같은 그림이 된다. 이 성질로 무엇을 할 수 있는가?
 
 </div>

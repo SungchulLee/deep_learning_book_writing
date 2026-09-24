@@ -445,7 +445,7 @@ CIFAR-10 CNN의 매개변수 545,098개를 층별로 세어라. 3장의 MNIST CN
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff normal" title="중간"></span>
+**연습문제 3.** <span class="diff med" title="중간"></span>
 3장에서 합성곱은 1.50%포인트를 벌었고 CIFAR-10에서는 20.78%포인트를 벌었다. 이 차이를 "CIFAR-10이 더 어렵기 때문"이라고만 설명하면 부족하다. **어떤 성질** 때문에 이웃 관계가 CIFAR-10에서 더 값진지 두 가지를 들어라.
 
 </div>
@@ -461,7 +461,7 @@ CIFAR-10 CNN의 매개변수 545,098개를 층별로 세어라. 3장의 MNIST CN
 
 <div class="drillbox" markdown>
 
-**연습문제 4.** <span class="diff normal" title="중간"></span>
+**연습문제 4.** <span class="diff med" title="중간"></span>
 1걸음의 CIFAR-10 템플릿은 평균색을 보고 있었다. 그렇다면 **각 이미지에서 그 이미지의 평균색을 빼고** 템플릿 학습을 다시 하면 어떻게 되겠는가? 먼저 예상한 뒤 재어 보라.
 
 </div>
@@ -501,7 +501,7 @@ CIFAR-10 CNN의 매개변수 545,098개를 층별로 세어라. 3장의 MNIST CN
 
 <div class="drillbox" markdown>
 
-**연습문제 6.** <span class="diff normal" title="중간"></span>
+**연습문제 6.** <span class="diff med" title="중간"></span>
 본문은 초기화·섞기·드롭아웃의 퍼짐(1.23, 1.55, 1.15)을 다섯 번으로는 줄 세울 수 없다고 했다. 줄 세우려면 몇 번쯤 돌려야 하는지 어림하라.
 
 </div>

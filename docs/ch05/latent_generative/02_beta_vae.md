@@ -216,7 +216,7 @@ $\beta = 4$ 줄을 다시 보라. 복원은 가장 나쁜데 **확신도는 가�
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff normal" title="중간"></span>
+**연습문제 1.** <span class="diff med" title="중간"></span>
 본문은 고름이 클래스 안의 다양함을 못 본다고 했다. 그것을 재는 자를 설계하고, $\beta = 4$가 정말 전형적인 숫자만 그리는지 확인하는 방법을 적어라.
 
 </div>

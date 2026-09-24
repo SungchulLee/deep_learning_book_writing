@@ -233,7 +233,7 @@ for k in (2, 64):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 cVAE-2의 부호 2개는 무엇을 담고 있겠는가? 확인하는 방법을 적어라.
 
 </div>

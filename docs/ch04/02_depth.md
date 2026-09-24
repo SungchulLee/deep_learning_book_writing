@@ -417,7 +417,7 @@ with open(RESULTS_FILE, "w", encoding="utf-8") as f:
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff normal" title="중간"></span>
+**연습문제 1.** <span class="diff med" title="중간"></span>
 본문은 5×5 한 겹과 3×3 두 겹이 "받는 자리가 같다"고 했다. 이를 확인하라. 그리고 3×3 세 겹은 몇 ×몇에 해당하는가?
 
 </div>

@@ -220,7 +220,7 @@ print("학습이 고른 나쁜 쪽 낱말:", ", ".join(vocab[i] for i in np.args
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 본문은 "훌륭하다고 말하고 싶지만 지루했다"와 그 반대가 같은 벡터가 된다고 했다. 정말 같은가? 아니라면 어디가 다른가?
 
 </div>

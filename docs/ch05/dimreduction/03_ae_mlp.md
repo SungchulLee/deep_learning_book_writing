@@ -183,7 +183,7 @@ MSE로는 28% 나아졌을 뿐인데 **숫자 정체는 두 배 가까이 올랐
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff normal" title="중간"></span>
+**연습문제 1.** <span class="diff med" title="중간"></span>
 부호 2에서 MSE는 28%만 좋아졌는데 숫자 정체는 두 배가 되었다. 이 어긋남이 무엇을 뜻하는지 설명하라.
 
 </div>
@@ -203,7 +203,7 @@ MSE로는 28% 나아졌을 뿐인데 **숫자 정체는 두 배 가까이 올랐
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 본문 그림의 오른쪽 판은 잠재 공간을 격자로 훑어 복호한 것이다. 이 그림에서 **부호 2가 왜 모자란지**를 읽어 낼 수 있는가?
 
 </div>

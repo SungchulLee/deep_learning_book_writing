@@ -312,7 +312,7 @@ print(f"\n4걸음 LSTM  평균 {sum(accs) / len(accs):.2f}%  "
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 본문은 퍼짐 4.75를 "자리를 잡지 못했다"는 진단으로 읽었다. 이 읽기가 맞는지 시험하려면 무엇을 재면 되는가? 두 가지를 적어라.
 
 </div>

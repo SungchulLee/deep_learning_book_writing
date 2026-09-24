@@ -332,7 +332,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 U-Net에 때 $t$를 넣지 않고 $x_t$만 넣으면 무엇이 잘못되는가?
 
 </div>

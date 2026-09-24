@@ -313,7 +313,7 @@ for epochs in (30, 100):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 본문 4절의 네 칸에서, 만약 5 에포크에서만 재고 그만두었다면 어떤 결론을 내렸겠는가? 30 에포크에서만 재고 그만두었다면? 이 물음이 실험 설계에 주는 교훈은 무엇인가?
 
 </div>
@@ -331,7 +331,7 @@ for epochs in (30, 100):
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff normal" title="중간"></span>
+**연습문제 3.** <span class="diff med" title="중간"></span>
 `RandomHorizontalFlip`은 CIFAR-10에서 쓸 수 있고 MNIST에서는 쓸 수 없다. 그렇다면 **위아래 뒤집기**(`RandomVerticalFlip`)는 CIFAR-10에서 쓸 수 있는가? `RandomRotation(15)`는?
 
 </div>

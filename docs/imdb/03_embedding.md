@@ -220,7 +220,7 @@ with torch.no_grad():
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff normal" title="중간"></span>
+**연습문제 1.** <span class="diff med" title="중간"></span>
 평의 12.5%가 400칸에서 잘린다. 잘린 뒷부분에 판정을 뒤집을 말이 있다면? `MAX_LEN`을 키우면 해결되는가?
 
 </div>

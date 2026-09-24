@@ -261,7 +261,7 @@ MLP끼리는 시험 그림의 38%에서 서로 다르게 답하고, 그만큼 �
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 본문은 씨앗만 바꾸어 다양성을 얻었다. 씨앗 말고 무엇을 바꾸면 더 다양해지겠는가? 세 가지를 들고, 각각이 [4.1절](01_two_ladders.md)의 규약을 깨는지 따져라.
 
 </div>

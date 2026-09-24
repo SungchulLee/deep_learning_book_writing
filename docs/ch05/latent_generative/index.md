@@ -106,7 +106,7 @@ samples = decoder(z)
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff normal" title="중간"></span>
+**연습문제 1.** <span class="diff med" title="중간"></span>
 본문은 오토인코더에서 뽑을 때 "부호의 평균과 표준편차에 맞춘 정규분포"를 썼다. 더 나은 방법을 두 가지 생각해 보고, 그래도 64차원에서 잘 안 될 까닭을 말하라.
 
 </div>

@@ -272,7 +272,7 @@ IMDB에서 좋게 보았는지 나쁘게 보았는지를 가르는 일은 **어�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 본문은 LSTM의 퍼짐 4.75를 "출력까지의 길이가 길어서"로 설명했다. 이 설명이 맞다면, LSTM의 구조를 어떻게 고쳤을 때 퍼짐이 줄어야 하는가? 두 가지를 적어라.
 
 </div>

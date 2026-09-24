@@ -265,7 +265,7 @@ for k in (2, 64):
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 부호 2에서는 VAE가 오토인코더를 이기지 못하고 부호 64에서는 크게 이긴다. 이 사실만으로 "부호는 크게 두는 편이 낫다"고 말할 수 있는가?
 
 </div>

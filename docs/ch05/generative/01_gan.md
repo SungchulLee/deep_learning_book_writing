@@ -263,7 +263,7 @@ GAN의 손실에는 목표 그림이 없다. 판별기는 흐릿한 그림을 **
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 본문은 제곱오차가 "애매할 때 평균을 고른다"고 했다. 이를 간단한 계산으로 보여라.
 
 </div>
@@ -293,7 +293,7 @@ GAN의 손실에는 목표 그림이 없다. 판별기는 흐릿한 그림을 **
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff normal" title="중간"></span>
+**연습문제 3.** <span class="diff med" title="중간"></span>
 본문의 손실 곡선을 보고 "잘 학습되고 있다"인지 "무너지고 있다"인지 판단할 수 있는가? 판단할 수 없다면 무엇을 보아야 하는가?
 
 </div>

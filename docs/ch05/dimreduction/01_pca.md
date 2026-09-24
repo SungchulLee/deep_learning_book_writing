@@ -134,7 +134,7 @@ for k in (2, 16, 32, 64):
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff normal" title="중간"></span>
+**연습문제 1.** <span class="diff med" title="중간"></span>
 PCA-2는 4를 9로, 5도 9로 되살린다. 어떤 숫자 짝이 서로 잘 섞이는지 알아보려면 무엇을 재면 되는가?
 
 </div>

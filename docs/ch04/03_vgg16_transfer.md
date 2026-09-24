@@ -285,7 +285,7 @@ VGG16은 64장 가운데 18장이 색을 버리고 밝기 변화만 본다. 1,00
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 $32 \times 32$ 그림을 $224 \times 224$로 키워 넣었다. 화소 수가 49배로 늘지만 정보는 하나도 늘지 않는다. 그런데도 이 방법이 통하는 까닭은 무엇인가? 키우지 않고 $32 \times 32$를 그대로 넣으면 무슨 일이 일어나는가?
 
 </div>
@@ -301,7 +301,7 @@ $32 \times 32$ 그림을 $224 \times 224$로 키워 넣었다. 화소 수가 49�
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff normal" title="중간"></span>
+**연습문제 3.** <span class="diff med" title="중간"></span>
 본문은 "가져온 것은 첫 층이 아니라 그 위에 쌓인 것들"이라고 했다. 이 주장을 확인할 실험을 설계하라.
 
 </div>

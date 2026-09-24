@@ -470,7 +470,7 @@ dec = nn.Sequential(
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff normal" title="중간"></span>
+**연습문제 2.** <span class="diff med" title="중간"></span>
 PCA-64는 화소를 48분의 1로 줄이는데도 탐침 정확도가 원시 화소와 같다. 그렇다면 모델을 48분의 1로 작게 만들 수 있는가? 매개변수를 세어 답하라.
 
 </div>
@@ -495,7 +495,7 @@ PCA-64는 화소를 48분의 1로 줄이는데도 탐침 정확도가 원시 화
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff normal" title="중간"></span>
+**연습문제 3.** <span class="diff med" title="중간"></span>
 본문은 conv AE의 병목 2,048개를 MLP에 넣으면 48.08%, CNN에 넣으면 58.61%라고 했다. 그런데 병목의 채널 순서를 무작위로 섞은 뒤 다시 재면 어떻게 되겠는가? 자리(8×8)를 섞으면?
 
 </div>

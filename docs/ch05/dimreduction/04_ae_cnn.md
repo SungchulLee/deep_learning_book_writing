@@ -190,7 +190,7 @@ MSE로 보면 AE_CNN이 PCA보다 **네 배** 좋다. 숫자 정체로 보면 **
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff normal" title="중간"></span>
+**연습문제 1.** <span class="diff med" title="중간"></span>
 부호 64에서 AE_CNN은 AE_MLP보다 MSE가 56% 낮은데 숫자 정체는 0.01%포인트밖에 좋지 않다. 이 둘이 어긋나는 까닭을 설명하고, 어긋남이 사라지게 하려면 실험을 어떻게 바꾸어야 할지 말하라.
 
 </div>
