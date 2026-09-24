@@ -132,6 +132,8 @@ nav:
         - 같은 특징, 배운 가중치: imdb/02_linear.md
       - 6.3 박아 넣기:
         - 낱말을 벡터로: imdb/03_embedding.md
+      - 6.4 차례를 읽는다:
+        - LSTM: imdb/04_lstm.md
     - 7 PyTorch 기초:
       - 장 개요: ch06/index.md
       - 7.1 텐서:
