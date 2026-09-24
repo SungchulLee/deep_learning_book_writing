@@ -126,6 +126,10 @@ nav:
         - DDIM: ch05/diffusion/02_ddim.md
     - 6 IMDB로 보는 글월 분류:
       - 장 개요: imdb/index.md
+      - 6.1 낱말 세기:
+        - 최근접 중심: imdb/01_counting.md
+      - 6.2 선형 학습:
+        - 같은 특징, 배운 가중치: imdb/02_linear.md
     - 7 PyTorch 기초:
       - 장 개요: ch06/index.md
       - 7.1 텐서:
