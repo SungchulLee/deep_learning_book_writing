@@ -42,7 +42,10 @@ from torch.utils.data import DataLoader, TensorDataset
 # ===========================================================================
 # 설정
 # ===========================================================================
-DATASET = "fancyzhx/yelp_review_full"   # 별 다섯 갈래. 두 갈래는 yelp_polarity
+# 별 다섯 갈래. 두 갈래짜리(yelp_polarity)와 **주인이 다르다** —
+# polarity는 fancyzhx, full은 Yelp 아래에 있다. 차례로 시도한다.
+CANDIDATES = ["Yelp/yelp_review_full", "yelp_review_full",
+              "fancyzhx/yelp_review_full"]
 VOCAB_SIZE, MAX_LEN, EMB_DIM, HIDDEN, HEADS = 20000, 400, 64, 64, 4
 FF_DIM = 4 * EMB_DIM
 EPOCHS, BATCH, LR, PAD = 5, 100, 1e-3, 0
@@ -62,8 +65,17 @@ except ImportError:
 from scipy import sparse
 from sklearn.feature_extraction.text import CountVectorizer
 
-print(f"'{DATASET}' 를 내려받는다", flush=True)
-ds = load_dataset(DATASET)
+print("별 다섯 갈래 Yelp를 내려받는다", flush=True)
+ds = None
+for cand in CANDIDATES:
+    try:
+        ds = load_dataset(cand)
+        print(f"  '{cand}' 에서 읽었다", flush=True)
+        break
+    except Exception as exc:
+        print(f"  '{cand}' 실패 ({type(exc).__name__})", flush=True)
+if ds is None:
+    raise SystemExit("자료를 읽지 못했다.")
 train_ds, test_ds = ds["train"], ds["test"]
 train_y = np.array(train_ds["label"])
 test_y = np.array(test_ds["label"])
