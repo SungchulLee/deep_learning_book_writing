@@ -54,8 +54,9 @@ class TransformerClassifier(nn.Module):
     def forward(self, x):
         h = self.emb(x) + self.pos
         pad = (x == PAD)
+        apad = pad.clone(); apad[:, 0] = False   # 5걸음과 같은 막음 (빈 줄 대비)
         for attn, n1, ff, n2 in zip(self.attn, self.n1, self.ff, self.n2):
-            a, _ = attn(h, h, h, key_padding_mask=pad)
+            a, _ = attn(h, h, h, key_padding_mask=apad)
             h = n1(h + a)                 # 여기까지가 5걸음
             h = n2(h + ff(h))             # 이 한 줄이 6걸음이다
         m = (~pad).unsqueeze(-1).float()
