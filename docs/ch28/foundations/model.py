@@ -33,7 +33,7 @@ class CharRNN(nn.Module):
     3. 다음 글자를 헤아린다
     
     구조:
-        박아 넣기 -> 긴 짧은 기억 -> 선형 -> 소프트맥스
+        임베딩 -> 긴 짧은 기억 -> 선형 -> 소프트맥스
     """
     
     def __init__(self, 
@@ -46,7 +46,7 @@ class CharRNN(nn.Module):
         
         인수:
             vocab_size: 낱말 속 서로 다른 글자의 수
-            embedding_dim: 글자 박아 넣기의 차원
+            embedding_dim: 글자 임베딩의 차원
             hidden_dim: 긴 짧은 기억의 숨은 낱개 수
             n_layers: 긴 짧은 기억 층의 수
         """
@@ -56,11 +56,11 @@ class CharRNN(nn.Module):
         self.hidden_dim = hidden_dim
         self.n_layers = n_layers
         
-        # 박아 넣기 층: 글자 어깨수를 빽빽한 벡터로 바꾼다
-        # 글자마다 배울 수 있는 박아 넣기 벡터를 갖는다
+        # 임베딩 층: 글자 어깨수를 빽빽한 벡터로 바꾼다
+        # 글자마다 배울 수 있는 임베딩 벡터를 갖는다
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         
-        # 긴 짧은 기억: 박아 넣기의 차례를 다룬다
+        # 긴 짧은 기억: 임베딩의 차례를 다룬다
         # batch_first=True는 들임 꼴이 [배치, 차례, 특징]이라는 뜻이다
         self.lstm = nn.LSTM(
             embedding_dim, 
@@ -96,7 +96,7 @@ class CharRNN(nn.Module):
         
         # 1. 글자를 박아 넣는다
         # 들임: [배치, 차례 길이]
-        # 내놓기: [배치, 차례 길이, 박아 넣기 차원]
+        # 내놓기: [배치, 차례 길이, 임베딩 차원]
         embedded = self.embedding(x)
         
         # 2. 긴 짧은 기억으로 다룬다
@@ -190,7 +190,7 @@ class SimpleCharTransformer(nn.Module):
         
         인수:
             vocab_size: 서로 다른 글자의 수
-            embedding_dim: 박아 넣기의 차원(n_heads으로 나누어떨어져야 한다)
+            embedding_dim: 임베딩의 차원(n_heads으로 나누어떨어져야 한다)
             n_heads: 어텐션 머리의 수
             n_layers: 변환기 층의 수
             max_seq_length: 최대 차례 길이(자리 부호화용)
@@ -200,10 +200,10 @@ class SimpleCharTransformer(nn.Module):
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
         
-        # 토큰 박아 넣기: 글자 어깨수를 벡터로 바꾼다
+        # 토큰 임베딩: 글자 어깨수를 벡터로 바꾼다
         self.token_embedding = nn.Embedding(vocab_size, embedding_dim)
         
-        # 자리 박아 넣기: 자리 앎을 더한다
+        # 자리 임베딩: 자리 앎을 더한다
         # 변환기에는 본디 차례가 없으므로 자리 앎을 더한다
         self.position_embedding = nn.Embedding(max_seq_length, embedding_dim)
         
@@ -232,14 +232,14 @@ class SimpleCharTransformer(nn.Module):
         """
         batch_size, seq_length = x.shape
         
-        # 토큰 박아 넣기
+        # 토큰 임베딩
         token_emb = self.token_embedding(x)
         
-        # 자리 박아 넣기
+        # 자리 임베딩
         positions = torch.arange(seq_length, device=x.device).unsqueeze(0)
         pos_emb = self.position_embedding(positions)
         
-        # 토큰 박아 넣기와 자리 박아 넣기를 아우른다
+        # 토큰 임베딩과 자리 임베딩을 아우른다
         x = token_emb + pos_emb
         
         # 인과 가림막을 만든다: 자리마다 앞 자리만 볼 수 있다

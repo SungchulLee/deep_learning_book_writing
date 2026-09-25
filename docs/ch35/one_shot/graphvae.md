@@ -8,7 +8,7 @@ GraphVAE(Simonovsky & Komodakis, 2018)은 변분 오토인코더 틀을 한 번�
 
 ### 인코더
 
-인코더는 들임 그래프 $\mathcal{G} = (\mathbf{A}, \mathbf{X})$을 숨은 자리의 가우스 사후 분포로 옮긴다. 그래프 신경망이 마디 박아 넣기를 셈하고 이를 그래프 켜의 나타냄으로 모은다:
+인코더는 들임 그래프 $\mathcal{G} = (\mathbf{A}, \mathbf{X})$을 숨은 자리의 가우스 사후 분포로 옮긴다. 그래프 신경망이 마디 임베딩을 셈하고 이를 그래프 켜의 나타냄으로 모은다:
 
 $$
 \mathbf{H} = \text{GNN}_{\text{enc}}(\mathbf{A}, \mathbf{X}) \in \mathbb{R}^{n \times d_h}
@@ -18,7 +18,7 @@ $$
 \mathbf{h}_{\mathcal{G}} = \text{READOUT}(\mathbf{H}) \in \mathbb{R}^{d_h}
 $$
 
-사후 분포의 잡은 그래프 박아 넣기에서 셈한다:
+사후 분포의 잡은 그래프 임베딩에서 셈한다:
 
 $$
 \boldsymbol{\mu} = \text{MLP}_\mu(\mathbf{h}_{\mathcal{G}}), \quad \log \boldsymbol{\sigma}^2 = \text{MLP}_\sigma(\mathbf{h}_{\mathcal{G}})

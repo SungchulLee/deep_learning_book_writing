@@ -9,8 +9,8 @@
 # ============================================================
 # 갈래 조건 DDPM(CIFAR-10) — PyTorch, 주석을 잘 단 코드
 # - 남은 덩이와 (쓸 수 있는) 어텐션을 갖춘 U-Net
-# - 사인 꼴 때 걸음 박아 넣기
-# - 이름표 조건 주기(때 박아 넣기에 박아 넣기를 더함)
+# - 사인 꼴 때 걸음 임베딩
+# - 이름표 조건 주기(때 임베딩에 임베딩을 더함)
 # - 이름표 떨구기로 분류기 없는 이끌기를 쓸 수 있음
 # ============================================================
 import math
@@ -65,7 +65,7 @@ def extract(a, t, x_shape):
     return out
 
 # ==========================================
-# 2) 사인 꼴 때 걸음 박아 넣기
+# 2) 사인 꼴 때 걸음 임베딩
 # ==========================================
 class SinusoidalPosEmb(nn.Module):
     def __init__(self, dim):
@@ -112,7 +112,7 @@ class ResidualBlock(nn.Module):
         # 첫 겹말기
         h = self.conv1(self.act1(self.norm1(x)))
 
-        # 때 박아 넣기에서 오는 FiLM 조건 주기
+        # 때 임베딩에서 오는 FiLM 조건 주기
         scale, shift = self.time_mlp(t_emb).chunk(2, dim=1)
         scale = scale[:, :, None, None]
         shift = shift[:, :, None, None]
@@ -165,8 +165,8 @@ class Upsample(nn.Module):
 class UNetCond(nn.Module):
     """
     조건 U-Net.
-    조건 주기: 갈래 이름표 -> 박아 넣기 -> 때 박아 넣기에 더함.
-    분류기 없는 이끌기에서는 "빈" 이름표를 위해 박아 넣기 자리를 하나 더 둔다.
+    조건 주기: 갈래 이름표 -> 임베딩 -> 때 임베딩에 더함.
+    분류기 없는 이끌기에서는 "빈" 이름표를 위해 임베딩 자리를 하나 더 둔다.
     """
     def __init__(self, in_ch=IN_CHANNELS, base_ch=BASE_CH, ch_mults=(1,2,4,4),
                  attn_res=ATTN_RES, img_size=IMG_SIZE, time_emb_dim=256,
@@ -174,7 +174,7 @@ class UNetCond(nn.Module):
         super().__init__()
         self.in_conv = nn.Conv2d(in_ch, base_ch, 3, padding=1)
 
-        # 때 박아 넣기 여러 층 신경망
+        # 때 임베딩 여러 층 신경망
         self.time_sinus = SinusoidalPosEmb(time_emb_dim)
         self.time_mlp = nn.Sequential(
             nn.Linear(time_emb_dim, time_emb_dim * 4),
@@ -182,7 +182,7 @@ class UNetCond(nn.Module):
             nn.Linear(time_emb_dim * 4, time_emb_dim),
         )
 
-        # 이름표 박아 넣기(CFG이면 빈 토큰을 위해 +1)
+        # 이름표 임베딩(CFG이면 빈 토큰을 위해 +1)
         label_vocab = num_classes + (1 if use_cfg else 0)
         self.label_emb = nn.Embedding(label_vocab, time_emb_dim)
 
@@ -240,7 +240,7 @@ class UNetCond(nn.Module):
         t: [B] integer timesteps
         y: [B] 갈래 이름표(CFG 빈 조건이면 NUM_CLASSES 또는 NULL_CLASS_ID)
         """
-        # 때 박아 넣기를 세우고 이름표 박아 넣기를 더한다
+        # 때 임베딩을 세우고 이름표 임베딩을 더한다
         t_emb = self.time_mlp(self.time_sinus(t))  # [B, D]
         y_emb = self.label_emb(y)                  # [B, D]
         t_emb = t_emb + y_emb                      # 단순하고 잘 듣는 조건 주기

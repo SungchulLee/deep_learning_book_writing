@@ -94,7 +94,7 @@ def training_step(model, x_0, condition, p_uncond=0.1):
     # 조건을 마구잡이로 떨구기
     mask = torch.rand(x_0.shape[0]) < p_uncond
     condition_input = condition.clone()
-    condition_input[mask] = null_condition  # 예컨대 빈 박아 넣기
+    condition_input[mask] = null_condition  # 예컨대 빈 임베딩
     
     # 여느 DDPM 익히기
     t = sample_timesteps(x_0.shape[0])
@@ -112,8 +112,8 @@ def training_step(model, x_0, condition, p_uncond=0.1):
 | 조건 갈래 | 빈 조건 나타냄 |
 |----------------|---------------------|
 | 갈래 이름표 | 특별한 "갈래 없음" 토큰 |
-| 글 박아 넣기 | 빈 글자열 박아 넣기 |
-| 그림 | 0 텐서나 배운 박아 넣기 |
+| 글 임베딩 | 빈 글자열 임베딩 |
+| 그림 | 0 텐서나 배운 임베딩 |
 
 ---
 
@@ -345,7 +345,7 @@ ImageNet 모델은 $w \approx 2-4$으로 CFG를 쓴다.
 </div>
 
 ??? success "연습문제 4 풀이"
-    익히는 동안 조건 신호 $c$을 확률 $p_{\text{uncond}}$(흔히 10-20%)으로 빈 토큰 $\emptyset$으로 마구잡이로 바꾼다. 그러면 신경망 하나로 $\epsilon_\theta(x_t, t, c)$과 $\epsilon_\theta(x_t, t, \emptyset)$을 모두 가르친다. 빈 토큰은 0 벡터나 배운 박아 넣기, 빈 글자열일 수 있다. 마구잡이 떨구기가 꼭 필요한 까닭은 (1) 그것이 없으면 모델이 조건 없는 분포를 배우지 못해 이끌기 공식을 쓸 수 없고, (2) 떨구는 비율이 균형을 다스리며(너무 높으면 조건 배움이 줄고 너무 낮으면 조건 없는 모델이 나빠진다), (3) 은근히 규칙을 세워 조건 있는 만들어 내기와 없는 만들어 내기의 품질을 모두 높이기 때문이다.
+    익히는 동안 조건 신호 $c$을 확률 $p_{\text{uncond}}$(흔히 10-20%)으로 빈 토큰 $\emptyset$으로 마구잡이로 바꾼다. 그러면 신경망 하나로 $\epsilon_\theta(x_t, t, c)$과 $\epsilon_\theta(x_t, t, \emptyset)$을 모두 가르친다. 빈 토큰은 0 벡터나 배운 임베딩, 빈 글자열일 수 있다. 마구잡이 떨구기가 꼭 필요한 까닭은 (1) 그것이 없으면 모델이 조건 없는 분포를 배우지 못해 이끌기 공식을 쓸 수 없고, (2) 떨구는 비율이 균형을 다스리며(너무 높으면 조건 배움이 줄고 너무 낮으면 조건 없는 모델이 나빠진다), (3) 은근히 규칙을 세워 조건 있는 만들어 내기와 없는 만들어 내기의 품질을 모두 높이기 때문이다.
 
 ## 정리하며
 

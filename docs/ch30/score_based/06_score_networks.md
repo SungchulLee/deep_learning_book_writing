@@ -67,7 +67,7 @@ class NoiseConditionalScoreNetwork(nn.Module):
     
     def sigma_embedding(self, sigma):
         """
-        잡음 수준의 사인 꼴 박아 넣기.
+        잡음 수준의 사인 꼴 임베딩.
         
         변환기의 자리 부호화와 비슷하다.
         """

@@ -187,7 +187,7 @@ def main():
     # 초매개변수
     SEQUENCE_LENGTH = 50  # 들임 차례의 길이
     BATCH_SIZE = 64       # 배치 크기
-    EMBEDDING_DIM = 128   # 박아 넣기 차원
+    EMBEDDING_DIM = 128   # 임베딩 차원
     HIDDEN_DIM = 256      # 숨은 차원(되돌이 신경망용)
     N_LAYERS = 2          # 층의 수
     N_EPOCHS = 50         # 익히기 바퀴 수

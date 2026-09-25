@@ -130,7 +130,7 @@ nav:
         - 최근접 중심: imdb/01_counting.md
       - 6.2 선형 학습:
         - 같은 특징, 배운 가중치: imdb/02_linear.md
-      - 6.3 박아 넣기:
+      - 6.3 임베딩:
         - 배워서 얻은 벡터: imdb/03_embedding.md
         - 빌려 온 벡터: imdb/03_frozen.md
       - 6.4 차례를 읽는다:
@@ -1186,7 +1186,7 @@ nav:
       - 34.7 마디와 이음의 일:
         - 마디 가름: ch33/node_link/node_classification.md
         - 이음 헤아리기: ch33/node_link/link_prediction.md
-        - 마디 박아 넣기: ch33/node_link/node_embedding.md
+        - 마디 임베딩: ch33/node_link/node_embedding.md
         - 무리 찾기: ch33/node_link/community_detection.md
       - 34.8 그래프 신경망의 쓰임새:
         - 분자 성질 헤아리기: ch33/applications/molecular.md

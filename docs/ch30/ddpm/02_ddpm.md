@@ -54,7 +54,7 @@ class Config:
     CH_MULTS = (1, 2, 4, 4)     # 층마다 채널 갑절
     NUM_RES_BLOCKS = 3          # 층마다 남은 덩이(예전에는 2)
     ATTN_RES = {8, 16}          # 이 해상도에서 어텐션을 쓴다
-    TIME_EMB_DIM = 256          # 때 걸음 박아 넣기 차원
+    TIME_EMB_DIM = 256          # 때 걸음 임베딩 차원
     DROPOUT = 0.1               # 정칙화를 위한 드롭아웃
     
     # 지수 이동 평균 자리매김
@@ -115,12 +115,12 @@ def extract(a, t, x_shape):
 
 
 # ==========================================
-# 2) 사인 꼴 때 걸음 박아 넣기
+# 2) 사인 꼴 때 걸음 임베딩
 # ==========================================
 class SinusoidalPosEmb(nn.Module):
     """
-    때 걸음의 사인 꼴 자리 박아 넣기.
-    사인과 코사인으로 낱값 때 걸음을 차원 높은 박아 넣기로 옮긴다.
+    때 걸음의 사인 꼴 자리 임베딩.
+    사인과 코사인으로 낱값 때 걸음을 차원 높은 임베딩으로 옮긴다.
     """
     def __init__(self, dim):
         super().__init__()
@@ -137,7 +137,7 @@ class SinusoidalPosEmb(nn.Module):
         )
         args = t * freqs[None, :]  # [B, half]
         
-        # 사인과 코사인 박아 넣기를 이어 붙인다
+        # 사인과 코사인 임베딩을 이어 붙인다
         emb = torch.cat([torch.sin(args), torch.cos(args)], dim=-1)  # [B, dim]
         if self.dim % 2 == 1:
             emb = F.pad(emb, (0, 1))
@@ -149,9 +149,9 @@ class SinusoidalPosEmb(nn.Module):
 # ==========================================
 class ResidualBlock(nn.Module):
     """
-    때 박아 넣기로 조건을 준 남은 덩이.
+    때 임베딩으로 조건을 준 남은 덩이.
     GroupNorm, SiLU 깨움, 그리고 쓸 수 있는 떨구기를 쓴다.
-    때 박아 넣기가 잣수와 옮김(FiLM)으로 특징을 조절한다.
+    때 임베딩이 잣수와 옮김(FiLM)으로 특징을 조절한다.
     """
     def __init__(self, in_ch, out_ch, time_emb_dim, dropout=0.1, groups=8):
         super().__init__()
@@ -160,7 +160,7 @@ class ResidualBlock(nn.Module):
         self.act1 = nn.SiLU()
         self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
 
-        # 때 박아 넣기 쏘기(잣수와 옮김)
+        # 때 임베딩 쏘기(잣수와 옮김)
         self.time_mlp = nn.Sequential(
             nn.SiLU(),
             nn.Linear(time_emb_dim, out_ch * 2)
@@ -266,7 +266,7 @@ class UNet(nn.Module):
     - 디코더: 건너뛰기 이음을 갖춘 키우는 길
     
     특징:
-    - 남은 덩이마다 때 박아 넣기로 조건 주기
+    - 남은 덩이마다 때 임베딩으로 조건 주기
     - 정한 해상도에서의 셀프 어텐션
     - 해상도 층마다 남은 덩이 여럿
     """
@@ -284,7 +284,7 @@ class UNet(nn.Module):
         super().__init__()
         self.in_conv = nn.Conv2d(in_ch, base_ch, 3, padding=1)
 
-        # 때 박아 넣기 여러 층 신경망
+        # 때 임베딩 여러 층 신경망
         self.time_emb = nn.Sequential(
             SinusoidalPosEmb(time_emb_dim),
             nn.Linear(time_emb_dim, time_emb_dim * 4),
@@ -369,7 +369,7 @@ class UNet(nn.Module):
         self.out_conv = nn.Conv2d(ch, in_ch, 3, padding=1)
 
     def forward(self, x, t):
-        # 때 박아 넣기
+        # 때 임베딩
         t_emb = self.time_emb(t)
 
         # ========== 인코더 ==========

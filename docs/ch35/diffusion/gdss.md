@@ -146,7 +146,7 @@ class ScoreNetworkGNN(nn.Module):
         self.max_nodes = max_nodes
         self.node_feat_dim = node_feat_dim
 
-        # 때 박아 넣기
+        # 때 임베딩
         self.time_mlp = nn.Sequential(
             nn.Linear(1, hidden_dim),
             nn.SiLU(),

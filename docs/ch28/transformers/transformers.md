@@ -255,7 +255,7 @@ class GPT(nn.Module):
     GPT 꼴 자기 되돌이 변환기.
     
     구조:
-        - 토큰 박아 넣기 + 자리 박아 넣기
+        - 토큰 임베딩 + 자리 임베딩
         - 변환기 디코더 덩이 쌓기
         - 낱말로의 내놓기 쏘기
     """
@@ -290,7 +290,7 @@ class GPT(nn.Module):
         # 마지막 층 정규화
         self.ln_f = nn.LayerNorm(d_model)
         
-        # 내놓기 쏘기(흔히 토큰 박아 넣기와 묶는다)
+        # 내놓기 쏘기(흔히 토큰 임베딩과 묶는다)
         self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
         
         # 무게 묶기
@@ -415,9 +415,9 @@ def create_gpt2(config_name: str) -> GPT:
 
 ## 5. 자리 부호
 
-### 배운 자리 박아 넣기
+### 배운 자리 임베딩
 
-GPT은 배운 자리 박아 넣기, 곧 단순한 찾아보기 표를 쓴다.
+GPT은 배운 자리 임베딩, 곧 단순한 찾아보기 표를 쓴다.
 
 ```python
 self.position_embedding = nn.Embedding(max_seq_len, d_model)
@@ -466,7 +466,7 @@ class SinusoidalPositionalEncoding(nn.Module):
         return x + self.pe[:, :x.size(1)]
 ```
 
-### 돌림 자리 박아 넣기(RoPE)
+### 돌림 자리 임베딩(RoPE)
 
 요즘 모델(LLaMA 등)은 돌림으로 자리를 담는 RoPE을 쓴다.
 
@@ -510,7 +510,7 @@ class RotaryPositionalEmbedding(nn.Module):
         seq_len: int
     ) -> tuple:
         """
-        물음과 열쇠에 돌림 박아 넣기를 쓴다.
+        물음과 열쇠에 돌림 임베딩을 쓴다.
         
         인수:
             q: 물음 텐서 [배치, 머리 수, 차례 길이, d_k]
@@ -871,7 +871,7 @@ class GPTWithCheckpointing(GPT):
     """기억을 줄이려 기울기 되짚을 자리를 둔 GPT."""
     
     def forward(self, input_ids, attention_mask=None):
-        # ... 박아 넣기 ...
+        # ... 임베딩 ...
         
         for block in self.blocks:
             # 기억을 아끼려 덩이마다 되짚을 자리를 둔다
@@ -900,7 +900,7 @@ class FinancialGPT(GPT):
     def __init__(self, financial_vocab_size: int, **kwargs):
         super().__init__(vocab_size=financial_vocab_size, **kwargs)
         
-        # 덧붙인 돈살림 낱개 박아 넣기
+        # 덧붙인 돈살림 낱개 임베딩
         self.entity_embedding = nn.Embedding(1000, kwargs.get('d_model', 768))
 ```
 
@@ -964,7 +964,7 @@ class TimeSeriesTransformer(nn.Module):
 
 1. **어텐션 그려 보기**: 모델이 무엇을 보는지 알아보려 어텐션 머리 그려 보기를 짜라.
 
-2. **자리 부호화 견주기**: 인공 과제에서 배운 박아 넣기, 사인 꼴, RoPE을 견주어라.
+2. **자리 부호화 견주기**: 인공 과제에서 배운 임베딩, 사인 꼴, RoPE을 견주어라.
 
 3. **열쇠-값 저장턱 짜기**: GPT 모델에 온전한 열쇠-값 저장턱을 짜고 빨라진 정도를 재라.
 

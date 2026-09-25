@@ -47,7 +47,7 @@ class SimpleUNet(nn.Module):
     def __init__(self, in_channels=1, base_channels=64, time_emb_dim=128):
         super().__init__()
         
-        # 때 박아 넣기
+        # 때 임베딩
         self.time_mlp = nn.Sequential(
             nn.Linear(1, time_emb_dim),
             nn.SiLU(),
@@ -82,7 +82,7 @@ class SimpleUNet(nn.Module):
         self.dec1 = nn.Conv2d(base_channels, in_channels, 3, padding=1)
     
     def forward(self, x, t):
-        # 때 박아 넣기
+        # 때 임베딩
         t_emb = self.time_mlp(t.view(-1, 1))
         
         # 부호화

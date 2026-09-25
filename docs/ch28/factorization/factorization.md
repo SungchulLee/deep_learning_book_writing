@@ -104,7 +104,7 @@ class DiscreteARModel(nn.Module):
         super().__init__()
         self.vocab_size = vocab_size
         
-        # 박아 넣기 층: 띄엄띄엄한 토큰을 이어진 벡터로 바꾼다
+        # 임베딩 층: 띄엄띄엄한 토큰을 이어진 벡터로 바꾼다
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         
         # 맥락 인코더: 앞 토큰을 다룬다
@@ -128,7 +128,7 @@ class DiscreteARModel(nn.Module):
             로짓 [배치 크기, 차례 길이, 낱말 수]
         """
         # 들임 토큰을 박아 넣는다
-        embedded = self.embedding(x)  # [배치, 차례 길이, 박아 넣기 차원]
+        embedded = self.embedding(x)  # [배치, 차례 길이, 임베딩 차원]
         
         # 맥락 부호화
         hidden_states, _ = self.encoder(embedded)  # [배치, 차례 길이, 숨은 차원]

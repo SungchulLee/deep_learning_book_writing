@@ -9,7 +9,7 @@ GRAN(Liao et al., 2019)은 마디를 하나씩이 아니라 **덩이**로 만들
 GRAN은 그래프 만들기를 $\lceil n/B \rceil$걸음으로 가른다. 걸음 $t$에서 모델은:
 
 1. 부분으로 지어진 그래프 $\mathcal{G}_{<t}$에 새 후보 마디 $B$개를 더한다
-2. 늘린 그래프에 그래프 신경망을 돌려 마디 박아 넣기를 셈한다
+2. 늘린 그래프에 그래프 신경망을 돌려 마디 임베딩을 셈한다
 3. 새 마디마다 기존 마디와 새 마디 모두와의 변을 헤아린다
 4. 뽑은 변으로 그래프를 고친다
 
@@ -135,7 +135,7 @@ class GRANAttentionLayer(nn.Module):
     ) -> torch.Tensor:
         """
         인수:
-            h: (n_total, hidden_dim) 마디 박아 넣기
+            h: (n_total, hidden_dim) 마디 임베딩
             adj: (n_total, n_total) 이웃 행렬(이미 있는 것 + 후보)
             candidate_mask: (n_total, n_total) 후보 변 가리개
         """

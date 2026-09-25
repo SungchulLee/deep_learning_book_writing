@@ -42,10 +42,10 @@ class TimeConditionalScoreNetwork(nn.Module):
     def __init__(self, data_dim=2, hidden_dim=128, time_embed_dim=32):
         super().__init__()
         
-        # 때 박아 넣기(변환기처럼 사인 꼴)
+        # 때 임베딩(변환기처럼 사인 꼴)
         self.time_embed_dim = time_embed_dim
         
-        # 때 박아 넣기를 위한 여러 층 신경망
+        # 때 임베딩을 위한 여러 층 신경망
         self.time_mlp = nn.Sequential(
             nn.Linear(time_embed_dim, hidden_dim),
             nn.SiLU(),
@@ -134,7 +134,7 @@ print("""
 1. 때 조건 주기:
    - 확산 모델에 꼭 필요하다
    - 사인 꼴 묻힘(변환기 방식)
-   - 또는 배울 수 있는 박아 넣기
+   - 또는 배울 수 있는 임베딩
 
 2. 2차원과 표 자료에서:
    - 층 고르게 맞추기를 갖춘 여러 층 신경망
@@ -181,7 +181,7 @@ Epoch 800: Loss = 2.645384, σ = 0.500
 1. 때 조건 주기:
    - 확산 모델에 꼭 필요하다
    - 사인 꼴 묻힘(변환기 방식)
-   - 또는 배울 수 있는 박아 넣기
+   - 또는 배울 수 있는 임베딩
 
 2. 2차원과 표 자료에서:
    - 층 고르게 맞추기를 갖춘 여러 층 신경망

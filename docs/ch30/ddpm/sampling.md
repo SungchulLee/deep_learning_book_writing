@@ -267,7 +267,7 @@ class DDPMSampler:
         t : int
             지금 때 걸음.
         condition : Tensor, optional
-            조건 앎(갈래 이름표, 글 박아 넣기 등).
+            조건 앎(갈래 이름표, 글 임베딩 등).
 
         반환값
         -------
@@ -435,7 +435,7 @@ class DDPMSampler:
         shape : tuple
             만들 표본의 꼴.
         condition : Tensor
-            조건 신호(갈래 이름표, 글 박아 넣기 등).
+            조건 신호(갈래 이름표, 글 임베딩 등).
         guidance_scale : float
             이끎 세기 s. 1보다 크면 조건 분포가 뾰족해진다.
         show_progress : bool

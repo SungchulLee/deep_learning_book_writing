@@ -54,7 +54,7 @@ class NCSN(nn.Module):
     def __init__(self, data_dim=2, hidden_dim=128, n_layers=4):
         super().__init__()
         
-        # 잡음 박아 넣기
+        # 잡음 임베딩
         self.sigma_embed = nn.Sequential(
             nn.Linear(1, hidden_dim),
             nn.SiLU(),

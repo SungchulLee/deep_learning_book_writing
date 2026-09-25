@@ -278,7 +278,7 @@ class DiGressTransformerLayer(nn.Module):
         인수:
             h: (B, n, d) 마디 특징
             e: (B, n, n, d) 변 특징
-            t_emb: (B, d) 때 박아 넣기
+            t_emb: (B, d) 때 임베딩
         """
         B, n, d = h.shape
         heads = self.num_heads

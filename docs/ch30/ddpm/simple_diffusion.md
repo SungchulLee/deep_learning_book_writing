@@ -347,7 +347,7 @@ class Simple2DModel(nn.Module):
     def __init__(self, hidden_dim: int = 128):
         super().__init__()
         
-        # 때 박아 넣기: 낱값 때 걸음 → 64차원 나타냄
+        # 때 임베딩: 낱값 때 걸음 → 64차원 나타냄
         self.time_embed = nn.Sequential(
             nn.Linear(1, 64),
             nn.SiLU(),  # SiLU(x) = x * 시그모이드(x)
@@ -382,7 +382,7 @@ class Simple2DModel(nn.Module):
         # 때 걸음을 풍부한 나타냄으로 박아 넣는다
         t_emb = self.time_embed(t_normalized)  # (배치, 1) → (배치, 64)
         
-        # 자료와 때 박아 넣기를 이어 붙인다
+        # 자료와 때 임베딩을 이어 붙인다
         h = torch.cat([x, t_emb], dim=-1)  # (배치, 66)
         
         # 잡음을 헤아린다

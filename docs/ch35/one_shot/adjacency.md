@@ -54,7 +54,7 @@ $$
 
 ### 인수로 나눈 디코더
 
-잡의 수를 줄이려 이웃 헤아리기를 마디 박아 넣기로 인수 분해한다:
+잡의 수를 줄이려 이웃 헤아리기를 마디 임베딩으로 인수 분해한다:
 
 $$
 \mathbf{Z}_{\text{nodes}} = \text{MLP}_{\text{node}}(\mathbf{z}) \in \mathbb{R}^{n_{\max} \times d_h}
@@ -175,7 +175,7 @@ class FactoredDecoder(nn.Module):
         self.max_nodes = max_nodes
         self.node_embed_dim = node_embed_dim
 
-        # 숨은 값에서 마디 박아 넣기로
+        # 숨은 값에서 마디 임베딩으로
         self.node_decoder = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
@@ -206,7 +206,7 @@ class FactoredDecoder(nn.Module):
         B = z.size(0)
         n = self.max_nodes
 
-        # 마디 박아 넣기를 푼다
+        # 마디 임베딩을 푼다
         node_embeds = self.node_decoder(z).view(B, n, self.node_embed_dim)
 
         # 겹선형 변 헤아리기: A_ij = σ(z_i^T W z_j + b)

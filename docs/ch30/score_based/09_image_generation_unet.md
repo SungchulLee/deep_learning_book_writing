@@ -56,7 +56,7 @@ MNIST를 위한 단출한 U-Net:
 """)
 
 class TimeEmbedding(nn.Module):
-    """사인 꼴 때 박아 넣기"""
+    """사인 꼴 때 임베딩"""
     def __init__(self, dim):
         super().__init__()
         self.dim = dim
@@ -82,7 +82,7 @@ class SimpleUNet(nn.Module):
     def __init__(self, channels=[1, 32, 64, 128], time_dim=128):
         super().__init__()
         
-        # 때 박아 넣기
+        # 때 임베딩
         self.time_mlp = nn.Sequential(
             TimeEmbedding(time_dim),
             nn.Linear(time_dim, time_dim),
@@ -115,7 +115,7 @@ class SimpleUNet(nn.Module):
         반환값:
             score: [B, 1, 28, 28]
         """
-        # 때 박아 넣기
+        # 때 임베딩
         t_emb = self.time_mlp(t)
         
         # 인코더
@@ -141,7 +141,7 @@ print("U-Net architecture defined!")
 print("""
 고갱이 조각:
 --------------
-1. 때 박아 넣기: 신경망에 잡음 수준을 알려 준다
+1. 때 임베딩: 신경망에 잡음 수준을 알려 준다
 2. 건너뛰기 이음: 공간의 세부를 지킨다
 3. 남은 덩이: 가장 좋게 하기가 쉬워진다
 4. 무리 고르게 맞추기: 만들어 내는 모델에서 배치 고르게 맞추기보다 낫다
@@ -305,7 +305,7 @@ U-Net architecture defined!
 
 고갱이 조각:
 --------------
-1. 때 박아 넣기: 신경망에 잡음 수준을 알려 준다
+1. 때 임베딩: 신경망에 잡음 수준을 알려 준다
 2. 건너뛰기 이음: 공간의 세부를 지킨다
 3. 남은 덩이: 가장 좋게 하기가 쉬워진다
 4. 무리 고르게 맞추기: 만들어 내는 모델에서 배치 고르게 맞추기보다 낫다

@@ -86,7 +86,7 @@ $$
 \mathbf{L} = \mathbf{D} - \mathbf{A} = \mathbf{U} \boldsymbol{\Lambda} \mathbf{U}^\top
 $$
 
-고윳값 $\boldsymbol{\Lambda} = \text{diag}(\lambda_1, \ldots, \lambda_n)$은 온 자리 얼개 성질(이어짐, 넓힘, 뭉침)을 담고 고유 벡터 $\mathbf{U}$은 스펙트럼 박아 넣기 자리에서 마디의 자리를 담는다. $(\boldsymbol{\Lambda}, \mathbf{U})$을 만들고 $\mathbf{A} = \mathbf{D} - \mathbf{U}\boldsymbol{\Lambda}\mathbf{U}^\top$으로 되지으면 자연스럽게 자리바꿈에 같이 바뀌는 나타냄이 나온다.
+고윳값 $\boldsymbol{\Lambda} = \text{diag}(\lambda_1, \ldots, \lambda_n)$은 온 자리 얼개 성질(이어짐, 넓힘, 뭉침)을 담고 고유 벡터 $\mathbf{U}$은 스펙트럼 임베딩 자리에서 마디의 자리를 담는다. $(\boldsymbol{\Lambda}, \mathbf{U})$을 만들고 $\mathbf{A} = \mathbf{D} - \mathbf{U}\boldsymbol{\Lambda}\mathbf{U}^\top$으로 되지으면 자연스럽게 자리바꿈에 같이 바뀌는 나타냄이 나온다.
 
 ---
 

@@ -48,7 +48,7 @@ class ConditionalScoreNetwork(nn.Module):
     def __init__(self, data_dim=2, n_classes=10, hidden_dim=128):
         super().__init__()
         
-        # 갈래 박아 넣기
+        # 갈래 임베딩
         self.class_embed = nn.Embedding(n_classes, hidden_dim)
         
         # 점수 신경망

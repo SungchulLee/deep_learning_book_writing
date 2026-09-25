@@ -1,11 +1,11 @@
-# 마디 박아 넣기
+# 마디 임베딩
 
-마디 박아 넣기는 마디와 이음 켜 일의 중요한 개념이다. 이 짜기는 얽힌 핵심 알고리즘과 자료 얼개를 손으로 만져 보게 하며 이론 바탕과 실제로 펼칠 때 살필 것을 함께 보여 준다.
+마디 임베딩은 마디와 이음 켜 일의 중요한 개념이다. 이 짜기는 얽힌 핵심 알고리즘과 자료 얼개를 손으로 만져 보게 하며 이론 바탕과 실제로 펼칠 때 살필 것을 함께 보여 준다.
 
 ## 1. 코드
 
 ```python
-"""29.6.3: 마디 박아 넣기 - DeepWalk과 Node2Vec."""
+"""29.6.3: 마디 임베딩 - DeepWalk과 Node2Vec."""
 import torch, torch.nn as nn, torch.nn.functional as F
 import numpy as np, networkx as nx
 from collections import defaultdict
@@ -75,7 +75,7 @@ def demo():
         loss = model(c, ctx, neg)
         opt.zero_grad(); loss.backward(); opt.step()
         if (epoch+1) % 10 == 0: print(f"  Epoch {epoch+1}: Loss = {loss.item():.4f}")
-    # 박아 넣기 살피기
+    # 임베딩 살피기
     emb = model.embed.weight.detach()
     y = [0 if G.nodes[i].get('club','')=='Mr. Hi' else 1 for i in range(n)]
     c0 = emb[torch.tensor([i for i,l in enumerate(y) if l==0])].mean(0)
@@ -102,7 +102,7 @@ Node Embedding
 
 ## 2. 논의
 
-이 짜기는 마디 박아 넣기의 핵심 논리를 감싼 `SkipGramEmbedding` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
+이 짜기는 마디 임베딩의 핵심 논리를 감싼 `SkipGramEmbedding` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
 보여 주기 함수는 잘 알려진 그래프 자료 묶음에서 이 조각들의 실제 쓰임을 보인다. 내놓기를 살펴보면 윗매개변수를 어떻게 고르고 문제를 어떻게 차리느냐에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
@@ -146,8 +146,8 @@ Node Embedding
 
 ## 정리하며
 
-**다룬 것** — 마디 박아 넣기
+**다룬 것** — 마디 임베딩
 
-이 짜기는 마디 박아 넣기의 핵심 논리를 감싼 `SkipGramEmbedding` 갈래를 한가운데 둔다.
+이 짜기는 마디 임베딩의 핵심 논리를 감싼 `SkipGramEmbedding` 갈래를 한가운데 둔다.
 
 고갱이 갈래는 `SkipGramEmbedding`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

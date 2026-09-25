@@ -42,7 +42,7 @@ LOG_R2 = os.environ.get("LOG_R2", "ch6_rung2_e30.log")
 LOG_R3 = os.environ.get("LOG_R3", "ch6_rung3_e30.log")
 
 # 같은 규약으로 잰 다른 걸음들 (본문 표와 같은 값)
-RUNG3 = 87.03          # 박아 넣기 + 평균
+RUNG3 = 87.03          # 임베딩 + 평균
 RUNG5 = 86.11          # 셀프 어텐션
 RUNG2 = 78.80          # 선형 학습
 PROTOCOL_EPOCHS = 5    # 이 장이 표준으로 삼은 예산

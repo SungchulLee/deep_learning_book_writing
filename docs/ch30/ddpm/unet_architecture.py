@@ -8,7 +8,7 @@
 확산 모델을 위한 U-Net 얼개
 
 이 단원은 확산 모델에 흔히 쓰는 U-Net 얼개를 짠다.
-U-Net은 잡음 섞인 그림과 때 걸음 박아 넣기를 들임으로 받아 잡음을 헤아린다.
+U-Net은 잡음 섞인 그림과 때 걸음 임베딩을 들임으로 받아 잡음을 헤아린다.
 """
 
 import torch
@@ -23,7 +23,7 @@ from diffusion_utils import SinusoidalPositionEmbedding
 
 class ResidualBlock(nn.Module):
     """
-    GroupNorm과 때 박아 넣기를 갖춘 남은 덩이.
+    GroupNorm과 때 임베딩을 갖춘 남은 덩이.
     """
     
     def __init__(self, in_channels: int, out_channels: int, time_emb_dim: int, 
@@ -36,7 +36,7 @@ class ResidualBlock(nn.Module):
         self.norm1 = nn.GroupNorm(num_groups, in_channels)
         self.norm2 = nn.GroupNorm(num_groups, out_channels)
         
-        # 때 박아 넣기 쏘기
+        # 때 임베딩 쏘기
         self.time_mlp = nn.Linear(time_emb_dim, out_channels)
         
         # 잔차 연결
@@ -61,7 +61,7 @@ class ResidualBlock(nn.Module):
         x = F.silu(x)
         x = self.conv1(x)
         
-        # 때 박아 넣기를 더한다
+        # 때 임베딩을 더한다
         time_emb = self.time_mlp(time_emb)
         x = x + time_emb[:, :, None, None]  # 공간 차원으로 퍼뜨린다
         
@@ -152,7 +152,7 @@ class UNet(nn.Module):
     - 줄이기를 갖춘 인코더 길
     - 어텐션을 갖춘 병목
     - 키우기와 건너뛰기 이음을 갖춘 디코더 길
-    - 때 걸음을 조건으로 삼는 때 박아 넣기
+    - 때 걸음을 조건으로 삼는 때 임베딩
     """
     
     def __init__(self, 
@@ -173,14 +173,14 @@ class UNet(nn.Module):
             num_res_blocks: 해상도마다 남은 덩이의 수
             attention_resolutions: 어텐션을 쓸 해상도
             dropout: 드롭아웃 확률
-            time_emb_dim: 때 박아 넣기의 차원
+            time_emb_dim: 때 임베딩의 차원
         """
         super().__init__()
         
         self.in_channels = in_channels
         self.out_channels = out_channels
         
-        # 때 박아 넣기
+        # 때 임베딩
         self.time_embedding = nn.Sequential(
             SinusoidalPositionEmbedding(base_channels),
             nn.Linear(base_channels, time_emb_dim),
@@ -255,7 +255,7 @@ class UNet(nn.Module):
         반환값:
             예측한 잡음, 꼴 (batch, out_channels, height, width)
         """
-        # 때 박아 넣기
+        # 때 임베딩
         time_emb = self.time_embedding(time)
         
         # 첫 합성곱
@@ -306,7 +306,7 @@ class SimpleUNet(nn.Module):
                  base_channels: int = 32, time_emb_dim: int = 128):
         super().__init__()
         
-        # 때 박아 넣기
+        # 때 임베딩
         self.time_embedding = nn.Sequential(
             SinusoidalPositionEmbedding(base_channels),
             nn.Linear(base_channels, time_emb_dim),
