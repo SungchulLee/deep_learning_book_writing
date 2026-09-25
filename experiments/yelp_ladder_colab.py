@@ -128,12 +128,28 @@ def prepare(n):
     ytr = torch.from_numpy(train_y[idx]).long()
     Xte = build_ids(test_txt, index)          # 시험은 언제나 전부 쓴다
     yte = torch.from_numpy(test_y).long()
+    empt = int((Xtr == PAD).all(1).sum()), int((Xte == PAD).all(1).sum())
+    print(f"  통째로 빈 줄  학습 {empt[0]}  시험 {empt[1]}"
+          f"  (어텐션에서 NaN을 내는 자리 — safe_mask가 막는다)", flush=True)
     return Xtr, ytr, Xte, yte
 
 
 # ===========================================================================
 # 네 걸음 — 6장 그대로
 # ===========================================================================
+def safe_mask(pad):
+    """줄 전체가 채움이면 어텐션의 softmax가 전부 -inf를 보고 NaN을 낸다.
+
+    NaN 하나가 기울기를 타고 번져 가중치 전체를 NaN으로 만들고, 그러면
+    모델이 늘 같은 갈래만 내놓아 정확도가 정확히 50.00%로 굳는다.
+    한 자리만 열어 둔다. 3걸음의 clamp(min=1), 4걸음의 lengths.clamp(min=1)과
+    같은 구실이며, IMDB에는 빈 줄이 없어 드러나지 않던 자리다.
+    """
+    m = pad.clone()
+    m[:, 0] = False
+    return m
+
+
 class MeanEmbedding(nn.Module):
     def __init__(self):
         super().__init__()
@@ -174,7 +190,8 @@ class AttentionClassifier(nn.Module):
     def forward(self, x):
         e = self.emb(x) + self.pos
         pad = (x == PAD)
-        a, _ = self.attn(e, e, e, key_padding_mask=pad)
+        apad = safe_mask(pad)
+        a, _ = self.attn(e, e, e, key_padding_mask=apad)
         h = self.norm(e + a)
         m = (~pad).unsqueeze(-1).float()
         return self.fc((h * m).sum(1) / m.sum(1).clamp(min=1))
@@ -195,7 +212,7 @@ class TransformerClassifier(nn.Module):
     def forward(self, x):
         h = self.emb(x) + self.pos
         pad = (x == PAD)
-        a, _ = self.attn(h, h, h, key_padding_mask=pad)
+        a, _ = self.attn(h, h, h, key_padding_mask=safe_mask(pad))
         h = self.n1(h + a)
         h = self.n2(h + self.ff(h))
         m = (~pad).unsqueeze(-1).float()
@@ -231,7 +248,10 @@ def train_one(Model, seed, Xtr, ytr, Xte, yte):
         m.train()
         for xb, yb in ld:
             opt.zero_grad()
-            crit(m(xb.to(device)), yb.to(device)).backward()
+            loss = crit(m(xb.to(device)), yb.to(device))
+            if not torch.isfinite(loss):
+                raise RuntimeError("손실이 NaN이다 — 조용히 50%로 굳기 전에 멈춘다")
+            loss.backward()
             opt.step()
     return accuracy(m, Xte, yte)
 
