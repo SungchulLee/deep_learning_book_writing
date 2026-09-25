@@ -58,10 +58,30 @@ except ImportError:
     from datasets import load_dataset
 
 print("Yelp를 내려받는다 (처음 한 번만, 몇 분 걸린다)", flush=True)
-ds = load_dataset("yelp_polarity")
-train_txt = ds["train"]["text"];  train_y = np.array(ds["train"]["label"])
-test_txt = ds["test"]["text"];    test_y = np.array(ds["test"]["label"])
-print(f"  학습 {len(train_txt):,}편  시험 {len(test_txt):,}편", flush=True)
+
+# 예전 이름 "yelp_polarity"는 새 huggingface_hub에서 풀리지 않는다.
+# 이름이 'namespace/name' 꼴이라야 하며, 이 자료는 fancyzhx로 옮겨 갔다.
+CANDIDATES = ["fancyzhx/yelp_polarity", "yelp_polarity"]
+ds = None
+for cand in CANDIDATES:
+    try:
+        ds = load_dataset(cand)
+        print(f"  '{cand}' 에서 읽었다", flush=True)
+        break
+    except Exception as exc:
+        print(f"  '{cand}' 실패 ({type(exc).__name__})", flush=True)
+if ds is None:
+    raise SystemExit("Yelp를 읽지 못했다. datasets를 올리거나 이름을 확인하라.")
+
+# 글월은 미리 다 꺼내지 않는다. 56만 편을 파이썬 문자열로 들고 있으면
+# 2만 5천 칸을 돌 때도 그만큼을 쥐고 있게 된다. 이름표만 먼저 꺼낸다.
+train_ds, test_ds = ds["train"], ds["test"]
+train_y = np.array(train_ds["label"])
+test_y = np.array(test_ds["label"])
+test_txt = test_ds["text"]                    # 3만 8천 편, 이쪽은 작다
+print(f"  학습 {len(train_ds):,}편  시험 {len(test_txt):,}편  "
+      f"이름표 {sorted(set(train_y.tolist()))}", flush=True)
+assert set(train_y.tolist()) == {0, 1}, "이름표가 0/1이 아니다"
 
 TOKEN = re.compile(r"[a-z']+")
 
@@ -98,7 +118,7 @@ def prepare(n):
     나빠지는 것이 자료가 적다는 말의 일부이기 때문이다.
     """
     idx = subsample(n)
-    txt = [train_txt[i] for i in idx]
+    txt = train_ds.select(idx.tolist())["text"]        # 고른 것만 꺼낸다
     counts = Counter()
     for t in txt:
         counts.update(tokenize(t))
