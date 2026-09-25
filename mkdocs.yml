@@ -131,11 +131,14 @@ nav:
       - 6.2 선형 학습:
         - 같은 특징, 배운 가중치: imdb/02_linear.md
       - 6.3 박아 넣기:
-        - 낱말을 벡터로: imdb/03_embedding.md
+        - 배워서 얻은 벡터: imdb/03_embedding.md
+        - 빌려 온 벡터: imdb/03_frozen.md
       - 6.4 차례를 읽는다:
         - LSTM: imdb/04_lstm.md
       - 6.5 멀리 있는 것을 곧장 본다:
         - 셀프 어텐션: imdb/05_attention.md
+      - 6.6 블록을 완성한다:
+        - 트랜스포머: imdb/06_transformer.md
     - 7 PyTorch 기초:
       - 장 개요: ch06/index.md
       - 7.1 텐서:
