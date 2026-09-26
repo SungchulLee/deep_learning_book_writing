@@ -67,11 +67,25 @@ GloVe 덮은 몫  낱말 19,153/20,000 (95.8%)  쓰임 98.2%
 
 규약은 앞 걸음들과 같다 (CPU, 스레드 1, 5 에포크, 씨앗 0~4).
 차원만 50으로 내리고, 그래서 '배운 50차원'을 대조군으로 함께 돌린다.
+
+    python frozen_ladder.py frozen      # 빌려 온 벡터를 얼린다
+    python frozen_ladder.py learned     # 대조군: 같은 50차원을 배운다
 """
 
 import gzip
+import re
+import sys
+import time
+from collections import Counter
 from pathlib import Path
 
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+ROOT = Path("./data/aclImdb")
 # GloVe 50차원. gensim-data가 올려 둔 것을 그대로 내려받아 쓴다(66MB).
 # https://github.com/piskvorky/gensim-data/releases/download/
 #     glove-wiki-gigaword-50/glove-wiki-gigaword-50.gz
@@ -79,8 +93,46 @@ GLOVE = Path("./data/glove-wiki-gigaword-50.gz")
 
 VOCAB_SIZE, MAX_LEN, EMB_DIM, HIDDEN, HEADS = 20000, 400, 50, 50, 5
 FF_DIM = 4 * EMB_DIM
+EPOCHS, BATCH, LR, PAD = 5, 100, 1e-3, 0
+torch.set_num_threads(1)
+
+TOKEN = re.compile(r"[a-z']+")
 
 
+def tokenize(t):
+    return TOKEN.findall(t.replace("<br />", " ").lower())
+
+
+def load(split):
+    docs, labels = [], []
+    for label, name in ((1, "pos"), (0, "neg")):
+        for f in sorted((ROOT / split / name).glob("*.txt")):
+            docs.append(tokenize(f.read_text(encoding="utf-8")))
+            labels.append(label)
+    return docs, np.array(labels)
+
+
+train_docs, train_y = load("train")
+test_docs, test_y = load("test")
+counts = Counter(w for d in train_docs for w in d)
+vocab = ["<pad>"] + [w for w, _ in counts.most_common(VOCAB_SIZE - 1)]
+index = {w: i for i, w in enumerate(vocab)}
+
+
+def to_ids(docs):
+    X = np.zeros((len(docs), MAX_LEN), dtype=np.int64)
+    for r, d in enumerate(docs):
+        ids = [index[w] for w in d if w in index][:MAX_LEN]
+        X[r, :len(ids)] = ids
+    return torch.from_numpy(X)
+
+
+Xtr = to_ids(train_docs); ytr = torch.from_numpy(train_y).long()
+Xte = to_ids(test_docs);  yte = torch.from_numpy(test_y).long()
+print(f"자료 학습 {len(train_docs):,}편  시험 {len(test_docs):,}편", flush=True)
+
+
+# === 빌려 온 벡터를 읽어 우리 낱말집에 맞춘다 ================================
 def build_glove():
     """GloVe를 읽어 (VOCAB_SIZE, EMB_DIM) 행렬을 만든다. 없는 낱말은 세어 둔다."""
     want = set(vocab)
@@ -94,11 +146,17 @@ def build_glove():
 
     g = torch.Generator().manual_seed(42)         # 없는 낱말의 초기값도 고정한다
     W = torch.randn(VOCAB_SIZE, EMB_DIM, generator=g) * 0.1
+    hit = 0
     for i, w in enumerate(vocab):
         v = found.get(w)
         if v is not None:
-            W[i] = torch.from_numpy(v)
+            W[i] = torch.from_numpy(v); hit += 1
     W[PAD] = 0.0
+    # 덮은 몫을 빈도로도 잰다. 낱말 수보다 이쪽이 실제 영향을 말해 준다.
+    tok_tot = sum(counts[w] for w in vocab[1:])
+    tok_hit = sum(counts[w] for w in vocab[1:] if w in found)
+    print(f"GloVe 덮은 몫  낱말 {hit:,}/{VOCAB_SIZE:,} ({100*hit/VOCAB_SIZE:.1f}%)  "
+          f"쓰임 {100*tok_hit/tok_tot:.1f}%", flush=True)
     return W
 
 
@@ -113,15 +171,184 @@ def make_emb(frozen):
             e.weight.copy_(GLOVE_W)
         e.weight.requires_grad_(False)            # 여기서 언다
     return e
+
+
+# === 네 걸음 — 앞 쪽들과 같고, 임베딩만 make_emb으로 받는다 ==================
+def safe_mask(pad):
+    """줄 전체가 채움이면 softmax가 -inf만 보고 NaN을 낸다. 한 자리를 연다."""
+    m = pad.clone(); m[:, 0] = False
+    return m
+
+
+class MeanEmbedding(nn.Module):
+    def __init__(self, frozen):
+        super().__init__()
+        self.emb = make_emb(frozen)
+        self.fc = nn.Linear(EMB_DIM, 2)
+
+    def forward(self, x):
+        e = self.emb(x)
+        m = (x != PAD).unsqueeze(-1).float()
+        return self.fc((e * m).sum(1) / m.sum(1).clamp(min=1))
+
+
+class LSTMClassifier(nn.Module):
+    def __init__(self, frozen):
+        super().__init__()
+        self.emb = make_emb(frozen)
+        self.lstm = nn.LSTM(EMB_DIM, HIDDEN, batch_first=True)
+        self.fc = nn.Linear(HIDDEN, 2)
+
+    def forward(self, x):
+        e = self.emb(x)
+        lengths = (x != PAD).sum(1).clamp(min=1).cpu()
+        packed = nn.utils.rnn.pack_padded_sequence(e, lengths, batch_first=True,
+                                                   enforce_sorted=False)
+        _, (h, _) = self.lstm(packed)
+        return self.fc(h[-1])
+
+
+class AttentionClassifier(nn.Module):
+    def __init__(self, frozen):
+        super().__init__()
+        self.emb = make_emb(frozen)
+        self.pos = nn.Parameter(torch.randn(1, MAX_LEN, EMB_DIM) * 0.02)
+        # 50이 4로 나누어떨어지지 않아 머리가 4가 아니라 5다. 고른 것이 아니라
+        # 차원을 50으로 내리면서 강요된 것이다.
+        self.attn = nn.MultiheadAttention(EMB_DIM, HEADS, batch_first=True)
+        self.norm = nn.LayerNorm(EMB_DIM)
+        self.fc = nn.Linear(EMB_DIM, 2)
+
+    def forward(self, x):
+        e = self.emb(x) + self.pos
+        pad = (x == PAD)
+        a, _ = self.attn(e, e, e, key_padding_mask=safe_mask(pad))
+        h = self.norm(e + a)
+        m = (~pad).unsqueeze(-1).float()
+        return self.fc((h * m).sum(1) / m.sum(1).clamp(min=1))
+
+
+class TransformerClassifier(nn.Module):
+    def __init__(self, frozen):
+        super().__init__()
+        self.emb = make_emb(frozen)
+        self.pos = nn.Parameter(torch.randn(1, MAX_LEN, EMB_DIM) * 0.02)
+        self.attn = nn.MultiheadAttention(EMB_DIM, HEADS, batch_first=True)
+        self.n1 = nn.LayerNorm(EMB_DIM)
+        self.ff = nn.Sequential(nn.Linear(EMB_DIM, FF_DIM), nn.ReLU(),
+                                nn.Linear(FF_DIM, EMB_DIM))
+        self.n2 = nn.LayerNorm(EMB_DIM)
+        self.fc = nn.Linear(EMB_DIM, 2)
+
+    def forward(self, x):
+        h = self.emb(x) + self.pos
+        pad = (x == PAD)
+        a, _ = self.attn(h, h, h, key_padding_mask=safe_mask(pad))
+        h = self.n1(h + a)
+        h = self.n2(h + self.ff(h))
+        m = (~pad).unsqueeze(-1).float()
+        return self.fc((h * m).sum(1) / m.sum(1).clamp(min=1))
+
+
+RUNGS = [("3 평균", MeanEmbedding), ("4 LSTM", LSTMClassifier),
+         ("5 어텐션", AttentionClassifier), ("6 트랜스포머", TransformerClassifier)]
+
+
+@torch.no_grad()
+def accuracy(m):
+    m.eval()
+    ok = 0
+    for i in range(0, len(Xte), 500):
+        ok += (m(Xte[i:i + 500]).argmax(1) == yte[i:i + 500]).sum().item()
+    return 100.0 * ok / len(Xte)
+
+
+def run(Model, frozen, seed):
+    torch.manual_seed(seed)
+    m = Model(frozen)
+    # 얼린 것은 최적화기에 넘기지 않는다. 넘겨도 기울기가 None이라 갱신되지
+    # 않지만, 넘기지 않는 편이 뜻이 분명하다.
+    opt = optim.Adam([p for p in m.parameters() if p.requires_grad], lr=LR)
+    crit = nn.CrossEntropyLoss()
+    g = torch.Generator().manual_seed(seed)
+    ld = DataLoader(TensorDataset(Xtr, ytr), batch_size=BATCH,
+                    shuffle=True, generator=g)
+    for _ in range(EPOCHS):
+        m.train()
+        for xb, yb in ld:
+            opt.zero_grad(); crit(m(xb), yb).backward(); opt.step()
+    return accuracy(m)
+
+
+if __name__ == "__main__":
+    frozen = sys.argv[1] == "frozen"
+    tag = "빌려 온 벡터 (언 것)" if frozen else "배운 벡터 (50차원 대조군)"
+    print(f"\n{'='*62}\n=== {tag} ===\n{'='*62}", flush=True)
+
+    for name, Model in RUNGS:
+        probe = Model(frozen)
+        tot = sum(p.numel() for p in probe.parameters())
+        tr = sum(p.numel() for p in probe.parameters() if p.requires_grad)
+        accs = []
+        for s in range(5):
+            t0 = time.time()
+            a = run(Model, frozen, s)
+            accs.append(a)
+            print(f"    {name}  씨앗 {s}  {a:.2f}%  ({time.time()-t0:.0f}s)", flush=True)
+        print(f"  >> {name}  평균 {sum(accs)/5:.2f}%  "
+              f"퍼짐 {max(accs)-min(accs):.2f} ({min(accs):.2f}~{max(accs):.2f})  "
+              f"매개변수 {tot:,} (학습 {tr:,})\n", flush=True)
 ```
 
-최적화기에 넘길 때 얼린 것을 빼 주어야 한다. 넣어도 기울기가 `None`이라 갱신되지는 않지만, 넣지 않는 편이 뜻이 분명하다.
+**출력** (`python frozen_ladder.py frozen`):
 
-```python
-opt = optim.Adam([p for p in m.parameters() if p.requires_grad], lr=LR)
+```
+자료 학습 25,000편  시험 25,000편
+GloVe 덮은 몫  낱말 19,153/20,000 (95.8%)  쓰임 98.2%
+
+==============================================================
+=== 빌려 온 벡터 (언 것) ===
+==============================================================
+    3 평균  씨앗 0  71.02%  (4s)
+    3 평균  씨앗 1  70.50%  (4s)
+    3 평균  씨앗 2  70.86%  (4s)
+    3 평균  씨앗 3  70.58%  (4s)
+    3 평균  씨앗 4  70.61%  (4s)
+  >> 3 평균  평균 70.72%  퍼짐 0.52 (70.50~71.02)  매개변수 1,000,102 (학습 102)
+
+    4 LSTM  씨앗 0  69.64%  (977s)
+    4 LSTM  씨앗 1  51.93%  (1443s)
+    4 LSTM  씨앗 2  78.91%  (1404s)
+    4 LSTM  씨앗 3  60.69%  (1345s)
+    4 LSTM  씨앗 4  80.13%  (1314s)
+  >> 4 LSTM  평균 68.26%  퍼짐 28.20 (51.93~80.13)  매개변수 1,020,502 (학습 20,502)
+
+    5 어텐션  씨앗 0  82.32%  (720s)
+    5 어텐션  씨앗 1  82.94%  (668s)
+    5 어텐션  씨앗 2  83.18%  (667s)
+    5 어텐션  씨앗 3  83.10%  (898s)
+    5 어텐션  씨앗 4  83.17%  (700s)
+  >> 5 어텐션  평균 82.94%  퍼짐 0.85 (82.32~83.18)  매개변수 1,030,402 (학습 30,402)
+
+    6 트랜스포머  씨앗 0  83.90%  (735s)
+    6 트랜스포머  씨앗 1  83.53%  (733s)
+    6 트랜스포머  씨앗 2  83.86%  (791s)
+    6 트랜스포머  씨앗 3  83.88%  (857s)
+    6 트랜스포머  씨앗 4  84.14%  (779s)
+  >> 6 트랜스포머  평균 83.86%  퍼짐 0.61 (83.53~84.14)  매개변수 1,050,752 (학습 50,752)
 ```
 
----
+**출력** (`python frozen_ladder.py learned` — 대조군):
+
+```
+==============================================================
+=== 배운 벡터 (50차원 대조군) ===
+==============================================================
+  >> 3 평균  평균 86.83%  퍼짐 0.52 (86.50~87.02)  매개변수 1,000,102 (학습 1,000,102)
+  >> 4 LSTM  평균 81.58%  퍼짐 7.16 (77.56~84.72)  매개변수 1,020,502 (학습 1,020,502)
+  >> 5 어텐션  평균 86.00%  퍼짐 0.74 (85.52~86.26)  매개변수 1,030,402 (학습 1,030,402)
+  >> 6 트랜스포머  평균 85.95%  퍼짐 0.50 (85.75~86.25)  매개변수 1,050,752 (학습 1,050,752)
+```
 
 ## 4. 사다리를 통째로 다시 오른다
 
@@ -162,6 +389,82 @@ opt = optim.Adam([p for p in m.parameters() if p.requires_grad], lr=LR)
 빌려 온 칸에서는 두 가지가 **한꺼번에** 바뀌었다. 벡터가 나빠졌고, 동시에 학습 매개변수가 128만에서 3만으로 줄었다. 어느 쪽이 부호를 바꾸었는지 이 표로는 가릴 수 없다.
 
 가르려면 **하나만** 움직여야 한다. 그래서 3걸음이 IMDB에서 배운 임베딩을 꺼내어 **그대로 얼리고** 사다리를 다시 올랐다. 벡터는 좋고 학습 매개변수는 빌려 온 칸과 똑같다.
+
+위 스크립트에서 달라지는 것은 **임베딩을 어디서 가져오는가** 하나뿐이다.
+
+```python
+"""가름 실험: 좋은 임베딩을 '얼려서' 사다리를 오른다.
+
+빌려 온 칸에서는 두 가지가 한꺼번에 바뀌었다 — 벡터가 나빠졌고, 학습
+매개변수가 128만에서 3만으로 줄었다. 어느 쪽이 부호를 바꾸었는지 그
+표로는 가릴 수 없다.
+
+그래서 3걸음이 IMDB에서 배운 임베딩을 꺼내 얼린다. 학습 매개변수는
+빌려 온 칸과 똑같고 벡터만 좋다.
+
+  본문의 읽기가 옳다면 -> 어텐션이 벌지 못한다 (배운 칸처럼)
+  매개변수 탓이라면   -> 어텐션이 번다 (빌려 온 칸처럼)
+"""
+
+def make_emb(W):
+    """W가 주어지면 그것을 넣고 얼린다. 아니면 보통의 학습되는 임베딩."""
+    e = nn.Embedding(VOCAB_SIZE, EMB_DIM, padding_idx=PAD)
+    if W is not None:
+        with torch.no_grad():
+            e.weight.copy_(W)
+        e.weight.requires_grad_(False)
+    return e
+
+
+if __name__ == "__main__":
+    # 1. 3걸음을 보통대로 학습시켜 임베딩을 꺼낸다
+    base = train(MeanEmbedding, None, seed=0)
+    W = base.emb.weight.detach().clone()
+    print(f"  3걸음 {accuracy(base):.2f}%  -> 임베딩 {tuple(W.shape)} 를 얼린다")
+
+    # 2. 그것을 얼리고 사다리를 다시 오른다
+    for name, Model in RUNGS:
+        accs = [accuracy(train(Model, W, s)) for s in range(5)]
+        ...
+```
+
+**출력:**
+
+```
+=== 3걸음을 학습해 임베딩을 꺼낸다 (씨앗 0) ===
+  3걸음 86.86%  (7s)  -> 임베딩 (20000, 50) 를 얼린다
+
+==============================================================
+=== 배운 벡터를 얼린 사다리 ===
+==============================================================
+    3 평균  씨앗 0  86.92%  (4s)
+    3 평균  씨앗 1  86.92%  (3s)
+    3 평균  씨앗 2  86.82%  (4s)
+    3 평균  씨앗 3  86.94%  (4s)
+    3 평균  씨앗 4  86.93%  (3s)
+  >> 3 평균  평균 86.91%  퍼짐 0.12 (86.82~86.94)  학습 매개변수 102
+
+    4 LSTM  씨앗 0  83.62%  (446s)
+    4 LSTM  씨앗 1  84.24%  (752s)
+    4 LSTM  씨앗 2  85.18%  (786s)
+    4 LSTM  씨앗 3  82.43%  (792s)
+    4 LSTM  씨앗 4  69.48%  (767s)
+  >> 4 LSTM  평균 80.99%  퍼짐 15.70 (69.48~85.18)  학습 매개변수 20,502
+
+    5 어텐션  씨앗 0  87.60%  (542s)
+    5 어텐션  씨앗 1  87.80%  (535s)
+    5 어텐션  씨앗 2  87.39%  (533s)
+    5 어텐션  씨앗 3  87.50%  (540s)
+    5 어텐션  씨앗 4  87.39%  (881s)
+  >> 5 어텐션  평균 87.54%  퍼짐 0.41 (87.39~87.80)  학습 매개변수 30,402
+
+    6 트랜스포머  씨앗 0  87.36%  (1409s)
+    6 트랜스포머  씨앗 1  87.40%  (1174s)
+    6 트랜스포머  씨앗 2  87.53%  (609s)
+    6 트랜스포머  씨앗 3  87.52%  (594s)
+    6 트랜스포머  씨앗 4  87.17%  (623s)
+  >> 6 트랜스포머  평균 87.40%  퍼짐 0.36 (87.17~87.53)  학습 매개변수 50,752
+```
 
 | | 3 평균 | 4 LSTM | 5 어텐션 | 6 트랜스포머 | 학습 매개변수 |
 |---|---|---|---|---|---|

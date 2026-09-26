@@ -29,11 +29,65 @@ $$
 ```python
 """6걸음: 트랜스포머 인코더 블록을 완성한다.
 
-5걸음은 LN(e + attn)에서 멈춘다. 여기에 앞먹임 갈래를 얹고
-잔차와 정규화를 한 번 더 건다. 규약은 5걸음과 글자 하나 다르지 않다.
+5걸음은 LN(e + attn)에서 멈춘다. 여기에 앞먹임 갈래를 얹고 잔차와
+정규화를 한 번 더 건다. 규약은 5걸음과 글자 하나 다르지 않다.
+
+    python transformer.py 1      # 한 겹
+    python transformer.py 2      # 두 겹
 """
 
+import re
+import sys
+import time
+from collections import Counter
+from pathlib import Path
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+ROOT = Path("./data/aclImdb")
+VOCAB_SIZE, MAX_LEN, EMB_DIM, HEADS = 20000, 400, 64, 4
 FF_DIM = 4 * EMB_DIM                  # 논문의 표준 비율
+EPOCHS, BATCH, LR, PAD = 5, 100, 1e-3, 0
+torch.set_num_threads(1)              # 스레드 수가 바뀌면 더하는 차례가 바뀐다
+
+TOKEN = re.compile(r"[a-z']+")
+
+
+def tokenize(t):
+    return TOKEN.findall(t.replace("<br />", " ").lower())
+
+
+def load(split):
+    docs, labels = [], []
+    for label, name in ((1, "pos"), (0, "neg")):
+        for f in sorted((ROOT / split / name).glob("*.txt")):
+            docs.append(tokenize(f.read_text(encoding="utf-8")))
+            labels.append(label)
+    return docs, np.array(labels)
+
+
+train_docs, train_y = load("train")
+test_docs, test_y = load("test")
+counts = Counter(w for d in train_docs for w in d)
+vocab = ["<pad>"] + [w for w, _ in counts.most_common(VOCAB_SIZE - 1)]
+index = {w: i for i, w in enumerate(vocab)}
+
+
+def to_ids(docs):
+    X = np.zeros((len(docs), MAX_LEN), dtype=np.int64)
+    for r, d in enumerate(docs):
+        ids = [index[w] for w in d if w in index][:MAX_LEN]
+        X[r, :len(ids)] = ids
+    return X
+
+
+Xtr = torch.from_numpy(to_ids(train_docs)); ytr = torch.from_numpy(train_y).long()
+Xte = torch.from_numpy(to_ids(test_docs));  yte = torch.from_numpy(test_y).long()
+print(f"자료 학습 {len(train_docs):,}편  시험 {len(test_docs):,}편", flush=True)
 
 
 class TransformerClassifier(nn.Module):
@@ -54,26 +108,76 @@ class TransformerClassifier(nn.Module):
     def forward(self, x):
         h = self.emb(x) + self.pos
         pad = (x == PAD)
-        apad = pad.clone(); apad[:, 0] = False   # 5걸음과 같은 막음 (빈 줄 대비)
+        # 줄이 통째로 비면 softmax가 NaN을 낸다. 한 자리를 열어 둔다
+        apad = pad.clone(); apad[:, 0] = False
         for attn, n1, ff, n2 in zip(self.attn, self.n1, self.ff, self.n2):
             a, _ = attn(h, h, h, key_padding_mask=apad)
             h = n1(h + a)                 # 여기까지가 5걸음
             h = n2(h + ff(h))             # 이 한 줄이 6걸음이다
         m = (~pad).unsqueeze(-1).float()
         return self.fc((h * m).sum(1) / m.sum(1).clamp(min=1))
+
+
+def run(seed, layers):
+    torch.manual_seed(seed)
+    m = TransformerClassifier(layers)
+    opt = optim.Adam(m.parameters(), lr=LR)
+    crit = nn.CrossEntropyLoss()
+    g = torch.Generator().manual_seed(seed)
+    ld = DataLoader(TensorDataset(Xtr, ytr), batch_size=BATCH,
+                    shuffle=True, generator=g)
+    for _ in range(EPOCHS):
+        m.train()
+        for xb, yb in ld:
+            opt.zero_grad(); crit(m(xb), yb).backward(); opt.step()
+    m.eval()
+    with torch.no_grad():
+        pred = torch.cat([m(Xte[i:i + 500]).argmax(1)
+                          for i in range(0, len(Xte), 500)])
+    return 100.0 * pred.eq(yte).float().mean().item()
+
+
+if __name__ == "__main__":
+    layers = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+    n = sum(p.numel() for p in TransformerClassifier(layers).parameters())
+    print(f"\n=== encoder layer {layers}겹  매개변수 {n:,} ===", flush=True)
+    accs = []
+    for s in range(5):
+        t0 = time.time()
+        a = run(s, layers)
+        accs.append(a)
+        print(f"  씨앗 {s}  {a:.2f}%   ({time.time()-t0:.0f}s)", flush=True)
+    print(f"\n6걸음 트랜스포머({layers}겹)  평균 {sum(accs)/len(accs):.2f}%  "
+          f"퍼짐 {max(accs)-min(accs):.2f} ({min(accs):.2f}~{max(accs):.2f})  "
+          f"매개변수 {n:,}", flush=True)
 ```
 
-**출력:**
+**출력** (`python transformer.py 1`):
 
 ```
+자료 학습 25,000편  시험 25,000편
+
 === encoder layer 1겹  매개변수 1,355,714 ===
-  씨앗 0  85.94%
-  씨앗 1  86.07%
-  씨앗 2  85.90%
-  씨앗 3  86.01%
-  씨앗 4  85.97%
+  씨앗 0  85.94%   (639s)
+  씨앗 1  86.07%   (669s)
+  씨앗 2  85.90%   (652s)
+  씨앗 3  86.01%   (681s)
+  씨앗 4  85.97%   (899s)
 
 6걸음 트랜스포머(1겹)  평균 85.98%  퍼짐 0.17 (85.90~86.07)  매개변수 1,355,714
+```
+
+**출력** (`python transformer.py 2` — 두 겹):
+
+```
+=== encoder layer 2겹  매개변수 1,405,698 ===
+  씨앗 0  85.41%   (1324s)
+  씨앗 1  86.01%   (1331s)
+  씨앗 2  85.51%   (1827s)
+  씨앗 3  86.00%   (1621s)
+  씨앗 4  85.90%   (1597s)
+
+6걸음 트랜스포머(2겹)  평균 85.77%  퍼짐 0.60 (85.41~86.01)  매개변수 1,405,698
 ```
 
 앞먹임 갈래가 더하는 매개변수는 33,216개다($50 \to 256 \to 50$이 아니라 $64 \to 256 \to 64$이며, 정규화 128개가 붙는다). 전체의 2.4%이고, 임베딩 몫은 여전히 **94.4%**다. 그러므로 이 견줌도 크기를 붙들어 맨 채 구조만 바꾼 견줌이다.
