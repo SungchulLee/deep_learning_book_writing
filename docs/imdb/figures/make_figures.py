@@ -28,6 +28,9 @@ make_figures.py - 6장의 그림을 만든다
 
 import os
 import re
+
+# 곡선 원자료(.npy)가 있는 곳. 실험 스크립트가 남긴 자리를 가리킨다.
+NPY_DIR = os.environ.get("NPY_DIR", ".")
 from collections import defaultdict
 
 import matplotlib
@@ -176,6 +179,59 @@ def fig_rung23_curves():
         print(f"   {e:2d}    {ma:6.2f}   {mb:6.2f}   {mb-ma:+5.2f}")
 
 
+def fig_stars_crossover():
+    """여덟 갈래 별점에서 3걸음과 5걸음의 30에포크 곡선.
+
+    이 장에서 가장 또렷한 예산 이야기다. 두 곡선이 **6에포크에서 교차**하고,
+    이 장의 규약인 5에포크는 그 바로 한 에포크 앞이다. 어디서 멈추느냐에 따라
+    같은 두 모델의 차이가 +7.75에서 -9.09까지 움직인다.
+    """
+    import numpy as np
+    A = np.load(os.path.join(NPY_DIR, "curve_mean.npy"))   # (씨앗, 에포크)
+    B = np.load(os.path.join(NPY_DIR, "curve_attn.npy"))
+    ep = np.arange(1, A.shape[1] + 1)
+    a, b = A.mean(0), B.mean(0)
+
+    fig, ax = plt.subplots(figsize=(6.4, 4.0))
+    ax.fill_between(ep, A.min(0), A.max(0), color="#1f77b4", alpha=0.15, lw=0)
+    ax.fill_between(ep, B.min(0), B.max(0), color="#d62728", alpha=0.15, lw=0)
+    ax.plot(ep, a, color="#1f77b4", lw=1.8, label="rung 3  average")
+    ax.plot(ep, b, color="#d62728", lw=1.8, label="rung 5  attention")
+
+    ax.axvline(5, color="#888888", lw=0.9, ls="--")
+    ax.text(5.3, 25.4, "chapter budget: 5 epochs", fontsize=8, color="#888888")
+    ax.axvline(6, color="#444444", lw=0.9, ls=":")
+    ax.text(6.3, 44.2, "curves cross: ep 6", fontsize=8, color="#444444")
+
+    ia, ib = int(a.argmax()), int(b.argmax())
+    ax.plot([ep[ia]], [a[ia]], "o", color="#1f77b4", ms=5)
+    ax.plot([ep[ib]], [b[ib]], "o", color="#d62728", ms=5)
+    ax.annotate(f"peak {a[ia]:.2f} (ep {ep[ia]})", xy=(ep[ia], a[ia]),
+                xytext=(ep[ia] + 2.5, a[ia] + 1.6), fontsize=8, color="#1f77b4",
+                arrowprops=dict(arrowstyle="->", color="#1f77b4", lw=0.8))
+    ax.annotate(f"peak {b[ib]:.2f} (ep {ep[ib]})", xy=(ep[ib], b[ib]),
+                xytext=(ep[ib] + 3.0, b[ib] + 3.2), fontsize=8, color="#d62728",
+                arrowprops=dict(arrowstyle="->", color="#d62728", lw=0.8))
+
+    ax.axhline(20.09, color="#aaaaaa", lw=0.8, ls="-.")
+    ax.text(21.0, 20.6, "majority class 20.09", fontsize=8, color="#888888")
+
+    ax.set_xlabel("epoch"); ax.set_ylabel("test accuracy (%)")
+    ax.set_title("IMDB, 8 star classes: attention is earlier, not better", fontsize=10)
+    ax.set_xlim(1, 30); ax.set_ylim(19, 46)
+    ax.legend(loc="upper right", fontsize=8, framealpha=0.0)
+    ax.spines["top"].set_visible(False); ax.spines["right"].set_visible(False)
+    ax.grid(axis="y", lw=0.4, color="#dddddd", zorder=0)
+    fig.tight_layout()
+    fig.savefig("stars_crossover.svg", transparent=True)
+    plt.close(fig)
+    print("  stars_crossover.svg")
+    print("\n  epoch   rung3   rung5     gap")
+    for e in (1, 3, 5, 6, 13, 20, 30):
+        print(f"   {e:2d}    {a[e-1]:6.2f}  {b[e-1]:6.2f}   {b[e-1]-a[e-1]:+5.2f}")
+
+
 if __name__ == "__main__":
     fig_lstm_curves()
     fig_rung23_curves()
+    fig_stars_crossover()

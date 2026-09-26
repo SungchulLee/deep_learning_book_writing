@@ -139,6 +139,8 @@ nav:
         - 셀프 어텐션: imdb/05_attention.md
       - 6.6 블록을 완성한다:
         - 트랜스포머: imdb/06_transformer.md
+      - 6.7 일감을 어렵게 하면:
+        - 별점 맞히기: imdb/07_stars.md
     - 7 PyTorch 기초:
       - 장 개요: ch06/index.md
       - 7.1 텐서:
