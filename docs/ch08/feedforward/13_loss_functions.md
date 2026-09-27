@@ -20,6 +20,9 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -174,7 +177,7 @@ BCE with Logits: 0.3088
   Use: Binary classification (includes sigmoid)
   More numerically stable than BCE alone
 
-Cross Entropy: 0.8693
+Cross Entropy: 1.4412
   Use: Multi-class classification (includes log_softmax)
   Most common for classification tasks
 
@@ -182,9 +185,25 @@ Cross Entropy: 0.8693
 LOSS FUNCTION SELECTION GUIDE
 ======================================================================
 
+문제 유형             | 권장 손실             | 출력 활성화
+----------------------|----------------------|-------------------
+회귀                  | MSELoss              | 없음(선형)
+회귀(이상치 있음)    | L1Loss / SmoothL1    | 없음
+이진 분류             | BCEWithLogitsLoss    | 없음(로짓)
+다중 클래스           | CrossEntropyLoss     | 없음(로짓)
+다중 레이블           | BCEWithLogitsLoss    | 없음(로짓)
 
-... (19 lines omitted)
+핵심:
+✓ *WithLogits 판을 쓰라. 더 안정적이다
+✓ 이 손실 앞에 활성화를 걸지 마라
+✓ CrossEntropyLoss는 원-핫이 아니라 클래스 인덱스를 받는다
+✓ MSE는 회귀에, 교차 엔트로피는 분류에 알맞다
+✓ L1은 MSE보다 이상치에 강건하다
 
+흔한 실수:
+✗ BCEWithLogitsLoss 앞에 시그모이드를 걸기
+✗ CrossEntropyLoss 앞에 소프트맥스를 걸기
+✗ 분류에 MSE 쓰기
 ✗ 회귀에 교차 엔트로피 쓰기
 
 

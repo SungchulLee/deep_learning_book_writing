@@ -29,6 +29,9 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 print("=" * 70)
 print("Understanding Sequences")
@@ -309,56 +312,210 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (199줄)"
 
-```
-======================================================================
-Understanding Sequences
-======================================================================
+    ```
+    ======================================================================
+    Understanding Sequences
+    ======================================================================
 
-======================================================================
-SECTION 1: What is a Sequence?
-======================================================================
+    ======================================================================
+    SECTION 1: What is a Sequence?
+    ======================================================================
 
-순차열이란 다음을 만족하는, 순서가 있는 데이터의 모음이다.
-1. 순서가 중요하다 (원소를 바꾸면 뜻이 달라진다)
-2. 원소가 시간이나 자리로 이어져 있다
-3. 지난 원소가 앞으로의 예측에 영향을 준다
+    순차열이란 다음을 만족하는, 순서가 있는 데이터의 모음이다.
+    1. 순서가 중요하다 (원소를 바꾸면 뜻이 달라진다)
+    2. 원소가 시간이나 자리로 이어져 있다
+    3. 지난 원소가 앞으로의 예측에 영향을 준다
 
-예제:
----------
-✓ 텍스트: "I love PyTorch"와 "PyTorch love I"
-✓ 시계열: 주가 [100, 102, 105, 103]
-✓ 음향: 소리의 파형
-✓ 영상: 시간에 따른 프레임
-✗ 이미지: (대개 순차적이지 않으며 CNN이 공간적으로 다룬다)
-✗ 표 형태 데이터: (대개 순서가 없다)
+    예제:
+    ---------
+    ✓ 텍스트: "I love PyTorch"와 "PyTorch love I"
+    ✓ 시계열: 주가 [100, 102, 105, 103]
+    ✓ 음향: 소리의 파형
+    ✓ 영상: 시간에 따른 프레임
+    ✗ 이미지: (대개 순차적이지 않으며 CNN이 공간적으로 다룬다)
+    ✗ 표 형태 데이터: (대개 순서가 없다)
 
-보통의 데이터와의 핵심 차이:
----------------------------------
-보통: 표본마다 서로 독립이다
-순차: 원소마다 앞선 원소에 기댄다!
+    보통의 데이터와의 핵심 차이:
+    ---------------------------------
+    보통: 표본마다 서로 독립이다
+    순차: 원소마다 앞선 원소에 기댄다!
 
 
-======================================================================
-SECTION 2: Simple Sequence Examples
-======================================================================
+    ======================================================================
+    SECTION 2: Simple Sequence Examples
+    ======================================================================
 
-Example 1: Number Sequence
+    Example 1: Number Sequence
+      Sequence: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      Pattern: Each number = previous + 1
+      Next prediction: 11
 
-... (156 lines omitted)
+    Example 2: Text Sequence
+      Sequence: The cat sat on the mat
+      Order matters: Rearrange → different meaning!
+      Wrong order: mat the cat The on sat (nonsense!)
 
-RNN:  숨은 상태라는 기억
+    Example 3: Time Series (Temperature)
+      Data: [72, 73, 75, 78, 82, 85, 87, 85, 80, 75]
+      Pattern: Temperature rises then falls (daily cycle)
+      Plot saved as 'sequence_example.png'
 
-요령:
---------
-RNN에 넣기 전에 순차열을 꼭 그려 보라!
-데이터의 짜임을 이해하면 절반은 이긴 셈이다.
+    ======================================================================
+    SECTION 3: Sequences as PyTorch Tensors
+    ======================================================================
 
-======================================================================
-Tutorial Complete! ✓
-======================================================================
-```
+    Sequence Tensor Shapes:
+    --------------------------------------------------
+
+    1. Single Sequence:
+       Data: tensor([1, 2, 3, 4, 5])
+       Shape: torch.Size([5])
+       Interpretation: (sequence_length,)
+
+    2. Single Sequence with Features:
+       Shape: torch.Size([5, 3])
+       Interpretation: (sequence_length, num_features)
+       Example: 5 timesteps, each with [x, y, z] coordinates
+
+    3. Batch of Sequences (Standard RNN Input):
+       Shape: torch.Size([32, 10, 5])
+       Interpretation: (batch_size, sequence_length, num_features)
+       Example: 32 sequences, each 10 timesteps, 5 features per step
+
+    Shape Convention for RNNs:
+      • batch_first=True:  (batch, seq_len, features)
+      • batch_first=False: (seq_len, batch, features)
+      • We'll use batch_first=True (more intuitive)
+
+    ======================================================================
+    SECTION 4: Handling Variable Length Sequences
+    ======================================================================
+
+    Problem: Real sequences have different lengths!
+
+    Example Sentences:
+      1. 'I love AI' → 3 words
+      2. 'Deep learning is amazing' → 4 words
+      3. 'PyTorch makes it easy to build neural networks' → 8 words
+
+    Solution: PADDING
+    --------------------------------------------------
+
+    Padded Sequences:
+      1. [1, 2, 3, 0, 0, 0, 0, 0, 0]
+          Real: ['I', 'love', 'AI']
+          Padding: [0, 0, 0, 0, 0, 0]
+      2. [1, 2, 3, 4, 0, 0, 0, 0, 0]
+          Real: ['Deep', 'learning', 'is', 'amazing']
+          Padding: [0, 0, 0, 0, 0]
+      3. [1, 2, 3, 4, 5, 6, 7, 8, 0]
+          Real: ['PyTorch', 'makes', 'it', 'easy', 'to', 'build', 'neural', 'networks']
+          Padding: [0]
+
+    ======================================================================
+    SECTION 5: Understanding Time Dependencies
+    ======================================================================
+
+    왜 순차열에 RNN을 쓰는가?
+    ----------------------
+    문제: 원소마다 앞선 원소에 기댄다
+
+    예: 다음 낱말 예측하기
+      "The cat sat on the ___"
+      
+    "mat"을 예측하려면 모델이 다음을 알아야 한다.
+      • 앞 낱말: "the"
+      • 문맥: "cat sat on"
+      • 문법: 명사가 와야 한다
+      
+    보통의 신경망:
+      ✗ 낱말을 저마다 따로 처리한다
+      ✗ 앞선 낱말의 기억이 없다
+      ✗ 시간적인 무늬를 붙잡지 못한다
+
+    RNN (순환 신경망):
+      ✓ 숨은 상태(기억)를 지닌다
+      ✓ t-1에서 t로 정보를 넘긴다
+      ✓ 시간적인 무늬를 배울 수 있다
+      
+    수학으로 보면:
+    -----------------
+    보통 신경망:  y = f(x)
+    RNN:         y_t = f(x_t, h_{t-1})
+                 
+    여기서 h_{t-1}은 앞 시각의 숨은 상태이다!
+
+
+    Example: Number Pattern
+    Sequence: [10, 12, 15, 19, 24, 30]
+    Differences: [2, 3, 4, 5, 6]
+    Pattern: Each number increases by (prev_diff + 1)
+    Next prediction: 37 = 37
+
+    ======================================================================
+    SECTION 6: Creating Training Data from Sequences
+    ======================================================================
+
+    How to create (input, target) pairs from sequences:
+
+    Full sequence: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    Window size: 3
+
+    Training pairs (input → target):
+    --------------------------------------------------
+      [1, 2, 3] → 4
+      [2, 3, 4] → 5
+      [3, 4, 5] → 6
+      [4, 5, 6] → 7
+      [5, 6, 7] → 8
+      [6, 7, 8] → 9
+      [7, 8, 9] → 10
+
+    This is called 'sliding window' approach
+    RNNs learn to predict next element given previous elements!
+
+    ======================================================================
+    SUMMARY - Key Takeaways
+    ======================================================================
+
+    ✅ 배운 것:
+       1. 순차열은 순서가 중요한, 순서 있는 데이터이다
+       2. 텍스트, 시계열, 음향, 영상에서 흔하다
+       3. 원소마다 앞선 원소에 기댄다
+       4. 3차원 텐서 (배치, seq_len, 특징)로 나타낸다
+
+    ✅ 핵심 개념:
+       • 시간적 의존: x_t는 x_{t-1}, x_{t-2}, …에 기댄다
+       • 길이가 다양하다: 배치로 묶으려면 덧대기가 필요하다
+       • 미끄럼창: 학습 쌍을 만든다
+       • 기억: RNN은 숨은 상태를 지닌다
+
+    ✅ 다음 단계:
+       → 02_text_preprocessing.py: 텍스트 토큰화 익히기
+       → 03_time_series_basics.py: 시계열 준비하기
+       → 04_simple_rnn.py: 첫 RNN 만들기!
+
+    중요한 구별:
+    ----------------------
+    CNN:  공간적인 관계 (이미지)
+    RNN:  시간적인 관계 (순차열)
+    CNN:  입력 크기가 고정
+    RNN:  순차열의 길이가 다양 (덧대기와 함께)
+    CNN:  기억이 없다
+    RNN:  숨은 상태라는 기억
+
+    요령:
+    --------
+    RNN에 넣기 전에 순차열을 꼭 그려 보라!
+    데이터의 짜임을 이해하면 절반은 이긴 셈이다.
+
+    ======================================================================
+    Tutorial Complete! ✓
+    ======================================================================
+    ```
+
 
 ## 2. 논의
 

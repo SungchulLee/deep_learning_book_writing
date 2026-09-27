@@ -28,6 +28,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import numpy as np
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -266,22 +269,39 @@ Loss: MSE (Mean Squared Error)
 ================================================================================
 Training...
 ================================================================================
-Epoch [ 20/200] Loss: 0.3543
-Epoch [ 40/200] Loss: 0.3119
-Epoch [ 60/200] Loss: 0.2975
-Epoch [ 80/200] Loss: 0.2888
-Epoch [100/200] Loss: 0.2816
-Epoch [120/200] Loss: 0.2835
-Epoch [140/200] Loss: 0.2759
-Epoch [160/200] Loss: 0.2766
-Epoch [180/200] Loss: 0.2726
-Epoch [200/200] Loss: 0.2724
+Epoch [ 20/200] Loss: 0.3538
+Epoch [ 40/200] Loss: 0.3166
+Epoch [ 60/200] Loss: 0.2956
+Epoch [ 80/200] Loss: 0.2806
+Epoch [100/200] Loss: 0.2801
+Epoch [120/200] Loss: 0.2753
+Epoch [140/200] Loss: 0.2700
+Epoch [160/200] Loss: 0.2672
+Epoch [180/200] Loss: 0.2684
+Epoch [200/200] Loss: 0.2685
 
 Final Results:
-Train RMSE: $48679.15
+Train RMSE: $47604.32
+Test RMSE: $51187.30
 
-... (20 lines omitted)
+Plots saved!
 
+================================================================================
+KEY POINTS FOR REGRESSION
+================================================================================
+
+회귀의 특징:
+✓ MSELoss나 L1Loss를 쓴다(교차 엔트로피가 아니다!)
+✓ 출력 뉴런 하나(활성화 함수 없음)
+✓ 입력 특징을 정규화하거나 표준화하라
+✓ RMSE, MAE, R² 점수로 평가하라
+
+손실 함수:
+- MSELoss: 큰 오차에 더 큰 벌점을 준다
+- L1Loss: 이상치에 더 강건하다
+- SmoothL1Loss: 혼합형 접근
+
+METRICS:
 - MSE: 평균 제곱 오차
 - RMSE: MSE의 제곱근(목표와 단위가 같다)
 - MAE: 평균 절대 오차
@@ -292,6 +312,7 @@ TIPS:
 - 데이터에 이상치가 있는지 확인하라
 - 예측과 실제를 견주어 시각화하라
 - 잔차의 분포를 분석하라
+
 ```
 
 ## 2. 논의

@@ -144,11 +144,16 @@ test_dataset = torchvision.datasets.MNIST(
     root='./data', train=False, transform=transform
 )
 
+# num_workers 를 0으로 둔다. 1 이상이면 자료를 나르는 일을 딴 프로세스에
+# 맡기는데, 맥과 윈도에서는 그 프로세스를 **새로 띄우며**(spawn) 이 각본을
+# 처음부터 다시 읽는다. 로더를 만드는 아래 줄이 맨 바깥에 있으므로 새 프로세스가
+# 또 로더를 만들고, 그것이 또 프로세스를 띄워 끝내 죽는다. 1 이상을 쓰려면
+# 이 아래 모든 것을 `if __name__ == "__main__":` 안으로 넣어야 한다.
 train_loader = torch.utils.data.DataLoader(
-    train_dataset, batch_size=128, shuffle=True, num_workers=2
+    train_dataset, batch_size=128, shuffle=True, num_workers=0
 )
 test_loader = torch.utils.data.DataLoader(
-    test_dataset, batch_size=128, shuffle=False, num_workers=2
+    test_dataset, batch_size=128, shuffle=False, num_workers=0
 )
 
 # 학습에는 간단한 모델을 쓴다

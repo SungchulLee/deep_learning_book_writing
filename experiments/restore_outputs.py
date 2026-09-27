@@ -84,16 +84,26 @@ def insert_seed(code):
     # 찾으면 주석이나 설명글 속의 그 말에 걸려, torch 를 들이지도 않은 쪽에
     # torch.manual_seed 를 끼우게 된다 — `ch06/autograd/autograd_from_scratch.md`
     # 가 numpy 만으로 자동 미분을 손수 짜면서 글 속에 그 말을 적어 둔 경우다.
+    # 무엇이 어떤 이름으로 묶였는지 정확히 따진다. 파이썬의 규칙은 이렇다.
+    #
+    #   import torch                 -> torch 가 묶인다
+    #   import torch.optim           -> torch 가 묶인다
+    #   import torch.optim as optim  -> optim 만 묶인다. torch 는 **안** 묶인다
+    #   from torch import nn         -> nn 만 묶인다. torch 는 **안** 묶인다
+    #
+    # 점이 있는 이름에 별명을 달았을 때 뿌리 이름까지 묶인 것으로 잘못 세면
+    # `torch.optim.manual_seed(0)` 같은 없는 것을 부르게 된다.
     names, last = {}, 0
     for node in tree.body:
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             last = max(last, getattr(node, "end_lineno", node.lineno))
             if isinstance(node, ast.Import):
                 for a in node.names:
-                    names[a.name.split(".")[0]] = a.asname or a.name.split(".")[0]
-            elif node.module:
-                names.setdefault(node.module.split(".")[0],
-                                 node.module.split(".")[0])
+                    if a.asname is None:
+                        root = a.name.split(".")[0]
+                        names[root] = root
+                    elif "." not in a.name:
+                        names[a.name] = a.asname        # import numpy as np
         elif isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
             continue                      # 맨 앞 설명글은 건너뛴다
         else:

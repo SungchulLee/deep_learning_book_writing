@@ -58,10 +58,24 @@ TIMING = re.compile(r"\d+\.?\d*\s*(m?s\b|us\b|sec|초|x\b|배)|elapsed|time=|GB/
                     # 시간에서 끌어낸 백분율·배수도 기계에 딸린 값이다.
                     # `Time Savings: 36.4%` 는 %만 붙어 있어 시간처럼 보이지
                     # 않지만, 두 시간을 견준 값이라 기계가 바뀌면 바뀐다.
-                    r"|[Ss]avings|[Ss]peedup|[Tt]ime [Pp]er|아낀")
+                    r"|[Ss]avings|[Ss]peedup|[Tt]ime [Pp]er|아낀"
+                    # 갈무리한 그림의 바이트 수. matplotlib 판과 글꼴에 따라
+                    # 달라지므로 다른 기계에서 같을 수 없다.
+                    r"|파일 크기|[Ff]ile size|바이트|bytes")
 
 # 출력이 길어 줄인 자리에 글쓴이가 손으로 적어 넣은 표시. 나올 리가 없다.
 ELIDED = re.compile(r"\(\s*\d+\s*lines? omitted\s*\)|^\s*\.\.\.\s*$|생략")
+
+# 메모리 번지와 id. 프로세스마다 달라 어느 기계에서도 다시 나오지 않는다.
+#
+# `ch06/tensor_attrs/memory_layout_strides.md`는 같은 번지를 네 번 찍어 두 텐서가
+# 자료를 함께 쓴다는 것을 보인다. 값 자체는 아무 뜻이 없고 **같다는 것**이 뜻이라,
+# 번지를 싣는 것은 그 쪽에서는 올바른 가르침이다. 다만 견줄 수는 없다.
+# (`x.data_ptr() == y.data_ptr()` 를 찍으면 견줄 수 있게 되지만, 그것은 코드를
+# 바꾸는 일이다.)
+ADDRESS = re.compile(r"object at 0x|0x[0-9a-fA-F]{6,}|"
+                     r"\b(id|pointer|ptr|address|번지)\b\s*[:=]|^\s*\d{9,}\s*$",
+                     re.I | re.M)
 
 
 def code_blocks(md_text):
@@ -77,24 +91,28 @@ def code_blocks(md_text):
 FOLD_HEAD = re.compile(r'\?\?\? note "전체 출력[^"]*"\n')
 
 
-def find_output(md_text):
-    """출력을 찾는다. 펼쳐 놓은 것과 접어 놓은 것을 **둘 다** 읽는다.
+PLAIN_OUT = re.compile(r"\*\*출력[:：]?\*\*\s*\n+```[a-z]*\n(.*?)```", re.S)
 
-    긴 출력은 `??? note "전체 출력 (186줄)"` 안에 접혀 들어간다. 접히면
-    `**출력:**` 표시가 사라지므로, 그것만 찾으면 접힌 쪽은 통째로 확인
-    대상에서 빠져 버린다 — 고쳐 놓고 확인은 못 하게 되는 셈이다.
+
+def find_output(md_text, start=0):
+    """`start` 뒤에 **가장 먼저** 나오는 출력 블록.
+
+    펼쳐 놓은 것(`**출력:**`)과 접어 놓은 것(`??? note "전체 출력 …"`)을 함께
+    보고, 둘 중 앞에 있는 것을 고른다. 접히면 `**출력:**` 표시가 사라지므로
+    그것만 찾으면 접힌 쪽이 확인에서 빠지고, 어느 한쪽만 찾으면 둘이 섞여
+    있는 쪽에서 차례가 뒤집힌다.
 
     돌려주는 것: (시작 자리, 끝 자리, 출력 내용)
     """
-    m = re.search(r"\*\*출력[:：]?\*\*\s*\n+```[a-z]*\n(.*?)```", md_text, re.S)
-    if m:
-        return m.start(), m.end(), m.group(1)
-
-    m = FOLD_HEAD.search(md_text)
-    if not m:
+    plain = PLAIN_OUT.search(md_text, start)
+    fold = FOLD_HEAD.search(md_text, start)
+    if plain and (not fold or plain.start() < fold.start()):
+        return plain.start(), plain.end(), plain.group(1)
+    if not fold:
         return None, None, None
-    body, end = [], m.end()
-    for line in md_text[m.end():].split("\n"):
+
+    body, end = [], fold.end()
+    for line in md_text[fold.end():].split("\n"):
         if line.strip() == "" or line.startswith("    "):
             body.append(line[4:] if line.startswith("    ") else "")
             end += len(line) + 1
@@ -103,7 +121,22 @@ def find_output(md_text):
     text = "\n".join(body)
     text = re.sub(r"^\s*```[a-z]*\n", "", text)         # 안쪽 울타리를 벗긴다
     text = re.sub(r"```\s*$", "", text)
-    return m.start(), end, text
+    return fold.start(), end, text
+
+
+def all_outputs(md_text):
+    """쪽에 있는 출력 블록을 앞에서부터 모두 찾는다.
+
+    한 쪽에 출력이 여럿인 곳이 54쪽 있다(`ch06/tensor_attrs/memory_layout_strides.md`
+    는 22개다). 첫 블록만 보면 나머지는 확인도 손질도 받지 못한다.
+    """
+    outs, pos = [], 0
+    while True:
+        s, e, t = find_output(md_text, pos)
+        if s is None:
+            return outs
+        outs.append((s, e, t))
+        pos = e
 
 
 def output_block(md_text):
@@ -140,11 +173,17 @@ def sandbox_cwd(stack):
 def check(md_path, timeout=1800):
     md = md_path.read_text()
 
-    start, _, want = find_output(md)
-    if start is None:
+    outs = all_outputs(md)
+    if not outs:
         return None
-    blocks = code_blocks(md[:start])                 # 함정 1: 출력 앞의 것만
-    if not blocks or not want:
+
+    # 블록이 여럿이면 한 번만 돌리고 **모든** 출력을 그 하나에 견준다.
+    # 뒤 블록은 앞 블록에서 만든 이름을 쓰는 일이 많아 따로 돌릴 수 없고,
+    # 블록마다 돌리면 같은 학습을 여러 번 하게 된다. 이어 붙여 한 번 돌리면
+    # 모든 출력이 차례로 나오므로, 실린 줄이 그 안에 있는지만 보면 된다.
+    blocks = code_blocks(md[:outs[-1][0]])           # 함정 1: 마지막 출력 앞까지만
+    want = "\n".join(t for _, _, t in outs)
+    if not blocks or not want.strip():
         return None
 
     # 함정 2: 어느 한 가지로 정할 수 없다.
@@ -185,7 +224,9 @@ def check(md_path, timeout=1800):
 
     wanted = numeric_lines(want)
     missing = [l for l in wanted if l not in r.stdout]
-    hard = [l for l in missing if not TIMING.search(l)]
+    # 기계에 딸린 줄(시간·번지)은 세되 어긋남으로 치지 않는다
+    hard = [l for l in missing
+            if not TIMING.search(l) and not ADDRESS.search(l)]
     return ("확인", len(wanted) - len(missing), len(wanted), hard, len(missing) - len(hard))
 
 

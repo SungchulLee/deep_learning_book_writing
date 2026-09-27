@@ -1298,8 +1298,37 @@ Unknown variance (NIG prior):
 LAPLACE APPROXIMATION
 ======================================================================
 
-... (32 lines omitted)
+Exact log evidence: -64.8066
+Laplace approximation: -64.9228
+Difference: 0.1162
 
+MAP estimates: μ = 4.608, σ² = 2.803
+
+======================================================================
+MODEL COMPARISON
+======================================================================
+Data: 68 successes in 100 trials
+
+Fair coin (α=50, β=50):
+  Log evidence: -66.3883
+
+Slight bias allowed (α=5, β=5):
+  Log evidence: -64.4785
+
+Uniform (α=1, β=1):
+  Log evidence: -64.8401
+
+Biased prior (α=6, β=4):
+  Log evidence: -63.9947
+
+--- Posterior Model Probabilities ---
+  Fair coin (α=50, β=50): 0.0427
+  Slight bias allowed (α=5, β=5): 0.2884
+  Uniform (α=1, β=1): 0.2009
+  Biased prior (α=6, β=4): 0.4679
+
+--- Bayes Factors vs Best Model (Biased prior (α=6, β=4)) ---
+  vs Fair coin (α=50, β=50): Strong evidence for Model 1 (log₁₀ BF = 1.04)
   vs Slight bias allowed (α=5, β=5): Not worth more than a bare mention evidence for Model 1 (log₁₀ BF = 0.21)
   vs Uniform (α=1, β=1): Not worth more than a bare mention evidence for Model 1 (log₁₀ BF = 0.37)
 

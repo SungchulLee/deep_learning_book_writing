@@ -334,6 +334,7 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+
 ============================================================
 GRU: Gated Recurrent Unit Networks
 ============================================================
@@ -367,9 +368,23 @@ When z_t ≈ 0.5: Mix equally
 
 Example with h_{t-1} = [1, 2, 3] and h̃_t = [5, 6, 7]:
 
+z ≈ 0 (Keep old):
+  Result: [1.4 2.4 3.4]
 
-... (17 lines omitted)
+z ≈ 1 (Use new):
+  Result: [4.6 5.6 6.6]
 
+z ≈ 0.5 (Mix):
+  Result: [3. 4. 5.]
+
+============================================================
+LSTM vs GRU Parameter Comparison
+============================================================
+
+For input_size=100, hidden_size=200:
+LSTM parameters: 240,800
+GRU parameters:  180,600
+Reduction:       25.0%
 
 GRU has ~25% fewer parameters than LSTM
 This means:

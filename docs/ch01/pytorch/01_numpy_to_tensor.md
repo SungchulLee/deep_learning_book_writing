@@ -205,6 +205,8 @@ f(x)     = 12.0      (2^3 + 2*2 = 12)
 ```python
 import torch
 
+torch.manual_seed(0)               # 아래 실린 손실값이 다시 나오게 하려면 있어야 한다
+
 # 1) NumPy처럼 쓴다
 x = torch.randn(1000, 784)
 
@@ -214,7 +216,12 @@ device = ("cuda" if torch.cuda.is_available()
 x = x.to(device)
 
 # 3) 미분이 필요한 값에는 requires_grad를 붙인다
-W = torch.randn(784, 10, device=device, requires_grad=True)
+#
+# CPU에서 뽑아 옮긴다. `torch.randn(..., device="mps")` 처럼 장치에서 바로
+# 뽑으면 장치마다 난수 흐름이 달라, 같은 씨앗을 물려도 CPU에서는 768.7119,
+# MPS에서는 773.8671 이 나온다. 아래 실린 값이 어느 기계에서나 같게 하려면
+# CPU에서 뽑은 뒤 옮겨야 한다
+W = torch.randn(784, 10).to(device).requires_grad_(True)
 y = x @ W
 loss = y.pow(2).mean()
 loss.backward()
@@ -230,7 +237,7 @@ print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 모양")
 ```
 자료   : (1000, 784) on mps:0
 가중치 : (784, 10) on mps:0
-손실   : 770.3815
+손실   : 768.7119
 경사   : (784, 10)  <- W와 같은 모양
 ```
 

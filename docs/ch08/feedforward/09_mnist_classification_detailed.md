@@ -119,7 +119,13 @@ train_loader = DataLoader(
     dataset=train_dataset,
     batch_size=batch_size,
     shuffle=True,  # 더 나은 학습을 위해 섞기
-    num_workers=2  # 병렬 데이터 적재
+    # num_workers 를 0으로 둔다. 1 이상이면 자료를 나르는 일을 딴 프로세스에
+    # 맡기는데, 맥과 윈도에서는 그 프로세스를 **새로 띄우며**(spawn) 이 각본을
+    # 처음부터 다시 읽는다. 로더를 만드는 이 줄이 맨 바깥에 있으므로 새 프로세스가
+    # 또 로더를 만들고, 그것이 또 프로세스를 띄워 끝내 죽는다.
+    # 1 이상을 쓰려면 이 아래 모든 것을 `if __name__ == "__main__":` 안으로
+    # 넣어야 한다 — 그러면 다시 읽히는 쪽에서는 그 안이 돌지 않는다.
+    num_workers=0
 )
 
 test_loader = DataLoader(
@@ -450,56 +456,236 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (225줄)"
 
-```
-======================================================================
-Welcome to MNIST Classification!
-======================================================================
+    ```
+    ======================================================================
+    Welcome to MNIST Classification!
+    ======================================================================
 
-MNIST Dataset:
-  - 70,000 handwritten digit images (0-9)
-  - 28x28 grayscale images
-  - Classic machine learning benchmark
-  - Real-world computer vision task!
+    MNIST Dataset:
+      - 70,000 handwritten digit images (0-9)
+      - 28x28 grayscale images
+      - Classic machine learning benchmark
+      - Real-world computer vision task!
 
-======================================================================
-STEP 1: Loading MNIST Dataset
-======================================================================
-Using device: cpu
+    ======================================================================
+    STEP 1: Loading MNIST Dataset
+    ======================================================================
+    Using device: cpu
 
-Downloading MNIST dataset (if not already present)...
-Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
+    Downloading MNIST dataset (if not already present)...
 
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
-Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
+    Dataset loaded successfully!
+      Training samples: 60000
+      Test samples: 10000
 
-Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
+    Sample exploration:
+      Image shape: torch.Size([1, 28, 28])
+      Label: 5
+      Image value range: [0.00, 1.00]
 
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
-Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
+    ======================================================================
+    STEP 2: Creating Data Loaders
+    ======================================================================
 
-Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+    What is a DataLoader?
+      - Batches data for efficient training
+      - Shuffles data each epoch
+      - Handles parallel data loading
+      - Essential for large datasets!
 
-... (214 lines omitted)
+    Data loaders created:
+      Batch size: 64
+      Training batches: 938
+      Test batches: 157
 
-   - CNN(뒤에서 다룬다): 99% 이상
-   - 우리 모델: 약 {test_accuracy:.1f}%
+    Example batch:
+      Images shape: torch.Size([64, 1, 28, 28])
+      Labels shape: torch.Size([64])
 
-다음 단계:
-- 튜토리얼 07: 검증 집합과 정칙화 더하기
-- 튜토리얼 08: 배치 정규화
-- 튜토리얼 09: 더 깊은 신경망
-- 튜토리얼 10: 고급 기법
+    ======================================================================
+    STEP 3: Visualizing Sample Images
+    ======================================================================
+    Sample images saved as '06_mnist_samples.png'
 
-Training completed successfully! ✓
-```
+    ======================================================================
+    STEP 4: Defining the Neural Network
+    ======================================================================
+    Model architecture:
+    MNISTNet(
+      (network): Sequential(
+        (0): Linear(in_features=784, out_features=128, bias=True)
+        (1): ReLU()
+        (2): Linear(in_features=128, out_features=64, bias=True)
+        (3): ReLU()
+        (4): Linear(in_features=64, out_features=10, bias=True)
+      )
+    )
+
+    Total parameters: 109,386
+
+    ======================================================================
+    STEP 5: Loss Function and Optimizer
+    ======================================================================
+    Loss function: CrossEntropyLoss
+      - Perfect for multi-class classification
+      - Expects raw logits (no softmax needed in model)
+      - Numerically stable
+
+    Optimizer: Adam (lr=0.001)
+
+    ======================================================================
+    STEP 6: Training the Model
+    ======================================================================
+    Training for 5 epochs...
+
+    Epoch [1/5], Step [100/938], Loss: 0.4545
+    Epoch [1/5], Step [200/938], Loss: 0.2417
+    Epoch [1/5], Step [300/938], Loss: 0.3676
+    Epoch [1/5], Step [400/938], Loss: 0.3433
+    Epoch [1/5], Step [500/938], Loss: 0.1827
+    Epoch [1/5], Step [600/938], Loss: 0.2787
+    Epoch [1/5], Step [700/938], Loss: 0.1157
+    Epoch [1/5], Step [800/938], Loss: 0.3682
+    Epoch [1/5], Step [900/938], Loss: 0.2025
+
+    Epoch [1/5] Summary:
+      Average Loss: 0.3366
+      Training Accuracy: 90.35%
+
+    Epoch [2/5], Step [100/938], Loss: 0.0667
+    Epoch [2/5], Step [200/938], Loss: 0.1484
+    Epoch [2/5], Step [300/938], Loss: 0.1382
+    Epoch [2/5], Step [400/938], Loss: 0.1201
+    Epoch [2/5], Step [500/938], Loss: 0.1329
+    Epoch [2/5], Step [600/938], Loss: 0.0858
+    Epoch [2/5], Step [700/938], Loss: 0.1096
+    Epoch [2/5], Step [800/938], Loss: 0.2055
+    Epoch [2/5], Step [900/938], Loss: 0.1312
+
+    Epoch [2/5] Summary:
+      Average Loss: 0.1333
+      Training Accuracy: 96.05%
+
+    Epoch [3/5], Step [100/938], Loss: 0.0865
+    Epoch [3/5], Step [200/938], Loss: 0.0713
+    Epoch [3/5], Step [300/938], Loss: 0.0296
+    Epoch [3/5], Step [400/938], Loss: 0.1709
+    Epoch [3/5], Step [500/938], Loss: 0.2423
+    Epoch [3/5], Step [600/938], Loss: 0.0770
+    Epoch [3/5], Step [700/938], Loss: 0.0820
+    Epoch [3/5], Step [800/938], Loss: 0.0695
+    Epoch [3/5], Step [900/938], Loss: 0.0555
+
+    Epoch [3/5] Summary:
+      Average Loss: 0.0914
+      Training Accuracy: 97.15%
+
+    Epoch [4/5], Step [100/938], Loss: 0.0684
+    Epoch [4/5], Step [200/938], Loss: 0.0489
+    Epoch [4/5], Step [300/938], Loss: 0.0804
+    Epoch [4/5], Step [400/938], Loss: 0.0451
+    Epoch [4/5], Step [500/938], Loss: 0.1064
+    Epoch [4/5], Step [600/938], Loss: 0.0588
+    Epoch [4/5], Step [700/938], Loss: 0.0642
+    Epoch [4/5], Step [800/938], Loss: 0.1143
+    Epoch [4/5], Step [900/938], Loss: 0.0189
+
+    Epoch [4/5] Summary:
+      Average Loss: 0.0680
+      Training Accuracy: 97.94%
+
+    Epoch [5/5], Step [100/938], Loss: 0.0096
+    Epoch [5/5], Step [200/938], Loss: 0.0126
+    Epoch [5/5], Step [300/938], Loss: 0.0561
+    Epoch [5/5], Step [400/938], Loss: 0.0991
+    Epoch [5/5], Step [500/938], Loss: 0.0387
+    Epoch [5/5], Step [600/938], Loss: 0.0262
+    Epoch [5/5], Step [700/938], Loss: 0.1680
+    Epoch [5/5], Step [800/938], Loss: 0.0521
+    Epoch [5/5], Step [900/938], Loss: 0.0338
+
+    Epoch [5/5] Summary:
+      Average Loss: 0.0534
+      Training Accuracy: 98.33%
+
+
+    ======================================================================
+    STEP 7: Testing the Model
+    ======================================================================
+
+    Overall Test Accuracy: 97.46%
+
+    Per-class accuracy:
+      Digit 0: 98.67%
+      Digit 1: 98.85%
+      Digit 2: 96.80%
+      Digit 3: 97.33%
+      Digit 4: 95.21%
+      Digit 5: 97.98%
+      Digit 6: 96.56%
+      Digit 7: 97.76%
+      Digit 8: 97.74%
+      Digit 9: 97.52%
+
+    ======================================================================
+    STEP 8: Visualizing Predictions
+    ======================================================================
+    Predictions saved as '06_predictions.png'
+
+    ======================================================================
+    STEP 9: Training Progress Visualization
+    ======================================================================
+    Training progress saved as '06_training_progress.png'
+
+    ======================================================================
+    STEP 10: Saving the Model
+    ======================================================================
+    Model saved to: mnist_model.pth
+
+    ======================================================================
+    핵심 정리
+    ======================================================================
+
+    1. 실제 데이터 작업 흐름:
+       a) 데이터셋을 불러온다(torchvision.datasets)
+       b) 데이터 로더를 만든다(배치 구성, 섞기)
+       c) 모델 구조를 정의한다
+       d) 배치로 학습한다
+       e) 시험 집합에서 평가한다
+
+    2. DataLoader의 이점:
+       - 자동 배치 구성
+       - 데이터 섞기
+       - 병렬 적재
+       - 기억 자리 아끼기
+
+    3. 분류에 쓰는 CrossEntropyLoss:
+       - LogSoftmax와 NLLLoss를 합친다
+       - 원본 로짓을 받는다(모델에 소프트맥스를 두지 않는다)
+       - 수치적으로 안정적이다
+
+    4. 학습 모범 사례:
+       - 학습 앞에 model.train()
+       - 평가 앞에 model.eval()
+       - 추론 중에는 torch.no_grad()
+       - 손실과 정확도를 함께 추적한다
+
+    5. MNIST의 일반적인 정확도:
+       - 단순 순전파 신경망: 95~97%
+       - CNN(뒤에서 다룬다): 99% 이상
+       - 우리 모델: 약 {test_accuracy:.1f}%
+
+    다음 단계:
+    - 튜토리얼 07: 검증 집합과 정칙화 더하기
+    - 튜토리얼 08: 배치 정규화
+    - 튜토리얼 09: 더 깊은 신경망
+    - 튜토리얼 10: 고급 기법
+
+    Training completed successfully! ✓
+    ```
+
 
 ## 2. 논의
 

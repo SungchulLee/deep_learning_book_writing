@@ -193,56 +193,165 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (154줄)"
 
-```
-======================================================================
-Text Preprocessing for RNNs
-======================================================================
+    ```
+    ======================================================================
+    Text Preprocessing for RNNs
+    ======================================================================
 
-======================================================================
-SECTION 1: Tokenization
-======================================================================
+    ======================================================================
+    SECTION 1: Tokenization
+    ======================================================================
 
-Original texts:
-  1. 'I love machine learning'
-  2. 'Deep learning is amazing'
-  3. 'PyTorch makes deep learning easy'
-  4. 'I love PyTorch'
-  5. 'Machine learning is the future'
+    Original texts:
+      1. 'I love machine learning'
+      2. 'Deep learning is amazing'
+      3. 'PyTorch makes deep learning easy'
+      4. 'I love PyTorch'
+      5. 'Machine learning is the future'
 
-Tokenized (split into words):
-  1. ['i', 'love', 'machine', 'learning']
-  2. ['deep', 'learning', 'is', 'amazing']
-  3. ['pytorch', 'makes', 'deep', 'learning', 'easy']
-  4. ['i', 'love', 'pytorch']
-  5. ['machine', 'learning', 'is', 'the', 'future']
+    Tokenized (split into words):
+      1. ['i', 'love', 'machine', 'learning']
+      2. ['deep', 'learning', 'is', 'amazing']
+      3. ['pytorch', 'makes', 'deep', 'learning', 'easy']
+      4. ['i', 'love', 'pytorch']
+      5. ['machine', 'learning', 'is', 'the', 'future']
 
-======================================================================
-SECTION 2: Building Vocabulary
-======================================================================
+    ======================================================================
+    SECTION 2: Building Vocabulary
+    ======================================================================
 
-Vocabulary size: 16 words
+    Vocabulary size: 16 words
 
-Special tokens:
-  <PAD>: 0 (for padding)
-  <UNK>: 1 (unknown words)
-  <SOS>: 2 (start of sequence)
-  <EOS>: 3 (end of sequence)
+    Special tokens:
+      <PAD>: 0 (for padding)
+      <UNK>: 1 (unknown words)
+      <SOS>: 2 (start of sequence)
+      <EOS>: 3 (end of sequence)
 
-... (111 lines omitted)
+    Word to Index mapping:
+      '<PAD>' → 0
+      '<UNK>' → 1
+      '<SOS>' → 2
+      '<EOS>' → 3
+      'i' → 4
+      'love' → 5
+      'machine' → 6
+      'learning' → 7
+      'deep' → 8
+      'is' → 9
+      'amazing' → 10
+      'pytorch' → 11
+      'makes' → 12
+      'easy' → 13
+      'the' → 14
 
-   그다음: 04_simple_rnn.py (첫 RNN 만들기!)
+    ======================================================================
+    SECTION 3: Converting Text to Number Sequences
+    ======================================================================
 
-흔한 어휘 크기:
-  • 작은 데이터셋: 낱말 5,000~10,000개
-  • 중간: 낱말 20,000~50,000개
-  • 큰 것: 낱말 100,000개 이상 (GPT는 50,257개를 쓴다)
+    Converting texts to sequences of indices:
 
-======================================================================
-Tutorial Complete! ✓
-======================================================================
-```
+    'I love machine learning'
+      → [4, 5, 6, 7]
+      Words: ['i', 'love', 'machine', 'learning']
+
+    'Deep learning is amazing'
+      → [8, 7, 9, 10]
+      Words: ['deep', 'learning', 'is', 'amazing']
+
+    'PyTorch makes deep learning easy'
+      → [11, 12, 8, 7, 13]
+      Words: ['pytorch', 'makes', 'deep', 'learning', 'easy']
+
+    'I love PyTorch'
+      → [4, 5, 11]
+      Words: ['i', 'love', 'pytorch']
+
+    'Machine learning is the future'
+      → [6, 7, 9, 14, 15]
+      Words: ['machine', 'learning', 'is', 'the', 'future']
+
+    ======================================================================
+    SECTION 4: Padding Sequences
+    ======================================================================
+
+    Padding all sequences to length 6:
+
+    'I love machine learning'
+      Padded: [4, 5, 6, 7, 0, 0]
+
+    'Deep learning is amazing'
+      Padded: [8, 7, 9, 10, 0, 0]
+
+    'PyTorch makes deep learning easy'
+      Padded: [11, 12, 8, 7, 13, 0]
+
+    'I love PyTorch'
+      Padded: [4, 5, 11, 0, 0, 0]
+
+    'Machine learning is the future'
+      Padded: [6, 7, 9, 14, 15, 0]
+
+    Final tensor shape: torch.Size([5, 6])
+      (batch_size=5, sequence_length=6)
+
+    ======================================================================
+    SECTION 5: Word Embeddings
+    ======================================================================
+
+    낱말 임베딩은 낱말의 색인을 조밀한 벡터로 바꾼다.
+      • 낱말마다 → 수의 벡터 (100차원 따위)
+      • 비슷한 낱말은 벡터도 비슷하다
+      • 학습 중에 배운다!
+
+    Example:
+      'king' → [0.2, -0.5, 0.8, …]
+      'queen' → [0.3, -0.4, 0.7, …]  (비슷하다!)
+      'car' → [-0.8, 0.3, -0.2, …]  (다르다)
+
+
+    Embedding layer:
+      Vocabulary size: 16
+      Embedding dimension: 50
+      Total parameters: 800
+
+    After embedding:
+      Input shape: torch.Size([5, 6])
+      Output shape: torch.Size([5, 6, 50])
+      (batch, seq_len, embedding_dim)
+
+    ======================================================================
+    SUMMARY
+    ======================================================================
+
+    ✅ 텍스트 전처리 흐름:
+       1. 토큰화: 텍스트 → 낱말
+       2. 어휘: 낱말 → 색인
+       3. 순차열: 텍스트 → 색인의 목록
+       4. 덧대기: 다양한 길이 → 고정된 길이
+       5. 임베딩: 색인 → 조밀한 벡터
+
+    ✅ 핵심 부품:
+       • 어휘: 낱말과 색인을 잇는다
+       • 특수 토큰: <PAD>, <UNK>, <SOS>, <EOS>
+       • 임베딩 층: 학습 가능한 낱말 벡터
+       • 덧대기: 다양한 길이를 다룬다
+
+    ✅ 다음: 03_time_series_basics.py
+       그다음: 04_simple_rnn.py (첫 RNN 만들기!)
+
+    흔한 어휘 크기:
+      • 작은 데이터셋: 낱말 5,000~10,000개
+      • 중간: 낱말 20,000~50,000개
+      • 큰 것: 낱말 100,000개 이상 (GPT는 50,257개를 쓴다)
+
+    ======================================================================
+    Tutorial Complete! ✓
+    ======================================================================
+    ```
+
 
 ## 2. 논의
 

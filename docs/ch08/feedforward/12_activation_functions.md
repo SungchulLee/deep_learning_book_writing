@@ -164,9 +164,19 @@ LeakyReLU
   단점: 이득이 한결같지 않다
   쓰임: 죽은 ReLU 문제를 만났을 때
 
+ELU(지수 선형 유닛)
+  Formula: f(x) = x if x>0 else α(e^x - 1)
+  장점: 매끄럽고 평균 활성값이 0에 더 가깝다
+  단점: 계산 비용이 더 크다
+  쓰임: ReLU가 잘 안 될 때
 
-... (13 lines omitted)
+Softplus
+  Formula: f(x) = log(1 + e^x)
+  장점: ReLU를 매끄럽게 근사한다
+  단점: 비용이 더 크다
+  쓰임: 실무에서는 드물고 이론적 관심 대상이다
 
+RECOMMENDATIONS:
   - 은닉층: ReLU(기본), 필요하면 LeakyReLU
   - 이진 출력: 시그모이드
   - 다중 클래스 출력: 소프트맥스(CrossEntropyLoss로)

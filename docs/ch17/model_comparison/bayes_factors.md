@@ -1447,56 +1447,107 @@ if __name__ == "__main__":
     demo_sequential_evidence()
 ```
 
-**출력:**
+??? note "전체 출력 (96줄)"
 
-```
-======================================================================
-BAYES FACTORS: BASIC DEMONSTRATION
-======================================================================
+    ```
+    ======================================================================
+    BAYES FACTORS: BASIC DEMONSTRATION
+    ======================================================================
 
-Data: 68 successes in 100 trials (true θ = 0.65)
+    Data: 68 successes in 100 trials (true θ = 0.65)
 
---- Comparing Prior Beliefs ---
+    --- Comparing Prior Beliefs ---
 
-Log evidences:
-  Uniform prior (α=β=1):     -64.8401
-  Fair coin (α=β=50):        -66.3883
-  Biased prior (α=7, β=3):   -63.9391
+    Log evidences:
+      Uniform prior (α=β=1):     -64.8401
+      Fair coin (α=β=50):        -66.3883
+      Biased prior (α=7, β=3):   -63.9391
 
-Bayes factors:
-  Uniform vs Biased:  Weak evidence for M2 (log10 BF = -0.39)
-  Fair vs Biased:     Strong evidence for M2 (log10 BF = -1.06)
-  Uniform vs Fair:    Substantial evidence for M1 (log10 BF = 0.67)
+    Bayes factors:
+      Uniform vs Biased:  Weak evidence for M2 (log10 BF = -0.39)
+      Fair vs Biased:     Strong evidence for M2 (log10 BF = -1.06)
+      Uniform vs Fair:    Substantial evidence for M1 (log10 BF = 0.67)
 
-Posterior model probabilities (equal priors):
-  Uniform: 0.2721
-  Fair:    0.0579
-  Biased:  0.6700
+    Posterior model probabilities (equal priors):
+      Uniform: 0.2721
+      Fair:    0.0579
+      Biased:  0.6700
 
-======================================================================
-SAVAGE-DICKEY DENSITY RATIO
-======================================================================
+    ======================================================================
+    SAVAGE-DICKEY DENSITY RATIO
+    ======================================================================
 
-Data: n=50, mean=0.313, std=1.190
-True μ = 0.3
+    Data: n=50, mean=0.313, std=1.190
+    True μ = 0.3
 
-Testing H0: μ = 0 vs H1: μ ~ N(0, 1)
-Log B_01 = -0.4395
-Interpretation: Weak evidence for M2 (log10 BF = -0.19)
+    Testing H0: μ = 0 vs H1: μ ~ N(0, 1)
+    Log B_01 = -0.4395
+    Interpretation: Weak evidence for M2 (log10 BF = -0.19)
 
-... (53 lines omitted)
+    Densities at null value (μ = 0):
+      Prior density:     0.398942
+      Posterior density: 0.257073
+      Ratio (B_01):      0.644388
 
-  n      Successes   log₁₀ B₁₂   Interpretation
--------------------------------------------------------
-  10       6         -0.322        Inconclusive
-  25      19         +0.392        Inconclusive
-  50      37         +0.549        Substantial for uniform
- 100      68         +0.169        Inconclusive
- 150     103         +0.310        Inconclusive
- 200     134         +0.173        Inconclusive
+    ======================================================================
+    BIC APPROXIMATION TO BAYES FACTORS
+    ======================================================================
 
-*** Evidence accumulates as more data arrives
-```
+    True model: y = 1 + 0.5x - 0.3x² + ε
+    Sample size: n = 100
+
+    --- Model Comparison ---
+    Degree 1: log-lik = -85.89, BIC = 181.00
+    Degree 2: log-lik = -63.17, BIC = 140.15
+    Degree 3: log-lik = -61.20, BIC = 140.81
+    Degree 4: log-lik = -60.73, BIC = 144.49
+    Degree 5: log-lik = -60.72, BIC = 149.08
+
+    --- Approximate log Bayes factors vs Degree 2 ---
+    Degree 2 vs Degree 1: log B = 20.42 (Decisive evidence for M1)
+    Degree 2 vs Degree 3: log B = 0.33 (Weak evidence for M1)
+    Degree 2 vs Degree 4: log B = 2.17 (Substantial evidence for M1)
+    Degree 2 vs Degree 5: log B = 4.46 (Strong evidence for M1)
+
+    ======================================================================
+    LINDLEY'S PARADOX
+    ======================================================================
+
+    Effect size: d = 0.15 (small)
+    Prior under H1: μ ~ N(0, 1)
+
+      n      p-value   Reject H0?   log₁₀ B₀₁   BF conclusion
+    -----------------------------------------------------------------
+       20    0.9220     No           +0.659        H0
+       50    0.8118     No           +0.844        H0
+      100    0.0844     No           +0.391        Inconclusive
+      500    0.0006     Yes          -1.269        H1
+     1000    0.0000     Yes          -10.179        H1
+     5000    0.0000     Yes          -15.847        H1
+
+    *** The paradox: Large samples show 'significant' p-values
+        but Bayes factors favor the null hypothesis!
+
+    ======================================================================
+    SEQUENTIAL EVIDENCE ACCUMULATION
+    ======================================================================
+
+    True θ = 0.65
+    Comparing: M1 (uniform) vs M2 (fair coin, α=β=20)
+
+    Sequential Bayes factors (M1 vs M2):
+      n      Successes   log₁₀ B₁₂   Interpretation
+    -------------------------------------------------------
+      10       6         -0.322        Inconclusive
+      25      19         +0.392        Inconclusive
+      50      37         +0.549        Substantial for uniform
+     100      68         +0.169        Inconclusive
+     150     103         +0.310        Inconclusive
+     200     134         +0.173        Inconclusive
+
+    *** Evidence accumulates as more data arrives
+    ```
+
 
 ---
 

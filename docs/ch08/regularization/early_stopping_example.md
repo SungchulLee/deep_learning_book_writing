@@ -407,9 +407,15 @@ Early Stop (patience=20):
 
 Advanced Early Stop:
   Test Loss: 0.1034
+  Test Accuracy: 0.9767
+  Test AUC: 0.9904
 
-... (9 lines omitted)
 
+Plot saved as 'early_stopping_comparison.png'
+
+============================================================
+Key Insights
+============================================================
 • Without early stopping: Trained for 200 epochs
 • With early stopping (p=10): Stopped at epoch 20
 • With early stopping (p=20): Stopped at epoch 30

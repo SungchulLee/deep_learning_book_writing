@@ -422,9 +422,52 @@ Batch Norm vs Layer Norm Comparison
 ============================================================
 
 Original data shape: torch.Size([8, 10])
+Original data:
+ tensor([[ 1.9269,  1.4873,  0.9007, -2.1055,  0.6784, -1.2345, -0.0431, -1.6047,
+         -0.7521,  1.6487],
+        [-0.3925, -1.4036, -0.7279, -0.5594, -0.7688,  0.7624,  1.6423, -0.1596,
+         -0.4974,  0.4396]])
 
-... (46 lines omitted)
+After Batch Normalization:
+Mean per feature (across batch): [-0.26340058  0.8332318  -0.39194098  0.08024922  0.04736656]
+Mean per sample (across features): [ 0.09021159 -0.16648701  0.71324587]
 
+After Layer Normalization:
+Mean per feature (across batch): [-0.45110974  0.748088   -0.5378934   0.16673607 -0.05450348]
+Mean per sample (across features): [-3.57627883e-08 -1.45286325e-08  7.15255766e-08]
+
+------------------------------------------------------------
+Key Differences:
+------------------------------------------------------------
+Batch Normalization:
+  - Normalizes across the BATCH dimension
+  - Each feature is normalized using batch statistics
+  - Depends on batch size (problematic for small batches)
+  - Different behavior in train vs eval mode
+  - Best for: CNNs, large batches, feedforward networks
+
+Layer Normalization:
+  - Normalizes across the FEATURE dimension
+  - Each sample is normalized independently
+  - Independent of batch size
+  - Same behavior in train and eval mode
+  - Best for: RNNs, Transformers, small batches
+
+============================================================
+Small Batch Problem
+============================================================
+
+With Batch Normalization:
+Small batch (n=2) std: 1.0254
+Large batch (n=64) std: 1.0008
+
+With Layer Normalization:
+Small batch (n=2) std: 1.0260
+Large batch (n=64) std: 1.0008
+
+Observation:
+- BatchNorm is sensitive to batch size
+- LayerNorm is consistent across batch sizes
 - Use LayerNorm when batch size is small or variable
 
 ============================================================

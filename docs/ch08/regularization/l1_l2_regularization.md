@@ -313,9 +313,13 @@ Training L1 Regularization...
   Train MAE: 5.5836
   Test MAE: 15.3670
 
+Training L2 Regularization...
+  Train MAE: 5.3377
+  Test MAE: 15.3074
 
-... (7 lines omitted)
-
+Training L1+L2 (Elastic Net)...
+  Train MAE: 5.5722
+  Test MAE: 15.3700
 
 Neural network plot saved as 'nn_regularization_comparison.png'
 

@@ -20,6 +20,9 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 import matplotlib.pyplot as plt
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -168,19 +171,19 @@ INITIALIZATION METHODS:
 ----------------------------------------------------------------------
 
 XAVIER:
-  Mean: 0.000187
-  Std: 0.043858
+  Mean: 0.000057
+  Std: 0.043842
   Min: -0.075955, Max: 0.075955
 
 HE:
-  Mean: 0.000077
-  Std: 0.050549
-  Min: -0.087479, Max: 0.087482
+  Mean: -0.000094
+  Std: 0.050494
+  Min: -0.087481, Max: 0.087480
 
 NORMAL:
-  Mean: 0.000013
-  Std: 0.010013
-  Min: -0.041641, Max: 0.044718
+  Mean: 0.000019
+  Std: 0.009999
+  Min: -0.047237, Max: 0.048272
 
 ZEROS:
   Mean: 0.000000
@@ -194,9 +197,26 @@ INITIALIZATION GUIDE
 자비에르(글로로) 초기화:
   Formula: U(-√(6/(n_in + n_out)), √(6/(n_in + n_out)))
   쓰는 곳: 시그모이드, tanh 활성화
+  목표: 층 사이에서 분산을 유지한다
 
-... (20 lines omitted)
+HE (KAIMING) INITIALIZATION:
+  Formula: U(-√(6/n_in), √(6/n_in))
+  쓰는 곳: ReLU와 그 변형
+  목표: ReLU의 비선형성을 반영한다
 
+정규 초기화:
+  Formula: N(0, 0.01)
+  쓰임: 드물다. 너무 작거나 클 수 있다
+
+ZEROS:
+  가중치에는 절대 쓰지 마라!(대칭이 깨지지 않는다)
+  편향에는 괜찮다
+
+RECOMMENDATIONS:
+  ReLU 신경망 → He 초기화(PyTorch의 기본값)
+  시그모이드나 tanh → 자비에르 초기화
+  편향 → 0이나 작은 상수
+  
 PyTorch 기본값: 선형층에 카이밍 균등 초기화
 
 

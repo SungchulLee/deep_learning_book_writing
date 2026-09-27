@@ -44,6 +44,10 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 from utils import word_embedding_ngram as ngr
 
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
+
 print("=" * 70)
 print("TUTORIAL 4: N-gram Model with NLLLoss")
 print("=" * 70)
@@ -397,56 +401,240 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (229줄)"
 
-```
-======================================================================
-TUTORIAL 4: N-gram Model with NLLLoss
-======================================================================
+    ```
+    ======================================================================
+    TUTORIAL 4: N-gram Model with NLLLoss
+    ======================================================================
 
-======================================================================
-PART 1: CrossEntropyLoss vs NLLLoss
-======================================================================
+    ======================================================================
+    PART 1: CrossEntropyLoss vs NLLLoss
+    ======================================================================
 
-수학적인 관계:
-------------------------------
+    수학적인 관계:
+    ------------------------------
 
-CrossEntropyLoss는 연산 두 가지를 합친 것이다.
-1. LogSoftmax: 로짓을 로그 확률로 바꾼다
-2. NLLLoss: 음의 로그 가능도를 계산한다
+    CrossEntropyLoss는 연산 두 가지를 합친 것이다.
+    1. LogSoftmax: 로짓을 로그 확률로 바꾼다
+    2. NLLLoss: 음의 로그 가능도를 계산한다
 
-식:
-  CrossEntropyLoss(x, y) = NLLLoss(LogSoftmax(x), y)
+    식:
+      CrossEntropyLoss(x, y) = NLLLoss(LogSoftmax(x), y)
 
-왜 중요한가:
-- CrossEntropyLoss: 입력은 로짓(날 점수)이다
-- NLLLoss: 입력은 로그 확률이다
+    왜 중요한가:
+    - CrossEntropyLoss: 입력은 로짓(날 점수)이다
+    - NLLLoss: 입력은 로그 확률이다
 
-수학적으로 확인해 보자!
+    수학적으로 확인해 보자!
 
 
---- Demonstration ---
-Logits (raw scores): tensor([2., 5., 1.])
-Target: 1
+    --- Demonstration ---
+    Logits (raw scores): tensor([2., 5., 1.])
+    Target: 1
 
-Method 1 - CrossEntropyLoss directly:
-  Loss: 0.065884
+    Method 1 - CrossEntropyLoss directly:
+      Loss: 0.065884
 
-Method 2 - LogSoftmax + NLLLoss:
+    Method 2 - LogSoftmax + NLLLoss:
+      Log probabilities: tensor([-3.0659, -0.0659, -4.0659])
+      Loss: 0.065884
 
-... (186 lines omitted)
+    Are they equal? True
+    Yes! CrossEntropyLoss = LogSoftmax + NLLLoss
 
-✓ Word embeddings
-✓ N-gram language models
-✓ Three different loss function approaches
-✓ The relationship between them
+    For reference:
+      Softmax probabilities: tensor([0.0466, 0.9362, 0.0171])
+      Log softmax: tensor([-3.0659, -0.0659, -4.0659])
+      Log(prob[target]): -0.065884
+      Negative log likelihood: 0.065884
 
-Ready for intermediate tutorials? Go to 02_intermediate/!
+    ======================================================================
+    PART 2: Modifying the Model for NLLLoss
+    ======================================================================
 
-======================================================================
-END OF TUTORIAL 4
-======================================================================
-```
+    NLLLoss를 쓰려면 모델의 순전파가 날 로짓 대신 로그 확률을 내놓도록
+    고쳐야 한다.
+
+    필요한 변경:
+    1. 마지막 층으로 LogSoftmax 더하기
+    2. CrossEntropyLoss 대신 NLLLoss 쓰기
+
+    고친 모델을 만들어 보자!
+
+
+    Modified model created!
+    Key change: forward() returns log probabilities using F.log_softmax()
+
+    ======================================================================
+    PART 3: Training with NLLLoss
+    ======================================================================
+
+    Training configuration:
+      Model: NGramLanguageModelerNLL (outputs log probabilities)
+      Loss function: nn.NLLLoss
+      Optimizer: SGD
+      Learning rate: 0.001
+      Epochs: 10
+
+    Starting training...
+
+      epoch   1/10  loss 4.0883
+      epoch   2/10  loss 4.0879
+      epoch   3/10  loss 4.0876
+      epoch   4/10  loss 4.0872
+      epoch   5/10  loss 4.0868
+      epoch   6/10  loss 4.0865
+      epoch   7/10  loss 4.0861
+      epoch   8/10  loss 4.0858
+      epoch   9/10  loss 4.0854
+      epoch  10/10  loss 4.0851
+
+    ======================================================================
+    PART 4: Comparing All Three Loss Functions
+    ======================================================================
+
+    Training comparison models...
+    Training model 1: nn.CrossEntropyLoss...
+    Training model 2: F.cross_entropy...
+
+    ----------------------------------------------------------------------
+    Final losses:
+      nn.CrossEntropyLoss:        4.043935
+      F.cross_entropy:            4.132479
+      nn.NLLLoss (+ LogSoftmax):  4.085099
+    ----------------------------------------------------------------------
+
+    All three approaches give similar results!
+    Small differences are due to random weight initialization.
+
+    ======================================================================
+    PART 5: When to Use Each Loss Function
+    ======================================================================
+
+    선택 길잡이:
+    --------------
+
+    CrossEntropyLoss를 쓸 때:
+    ✓ 모델이 (소프트맥스 없이) 날 로짓을 내놓을 때
+    ✓ PyTorch가 알아서 다 처리하기를 바랄 때
+    ✓ 분류에서 가장 흔한 선택이다
+    ✓ 처음 배우는 이에게 권한다
+
+    NLLLoss를 쓸 때:
+    ✓ 다른 데 쓸 로그 확률이 필요할 때
+    ✓ 모델이 이미 log_softmax를 적용할 때
+    ✓ 확률 계산을 더 세밀하게 다루고 싶을 때
+    ✓ 확률 분포를 직접 다룰 때
+
+    코드 견주기:
+    ---------------
+
+    CrossEntropyLoss를 쓸 때:
+    def forward(self, x):
+        logits = self.layers(x)
+        return logits  # 활성화 없음
+        
+    loss = nn.CrossEntropyLoss()
+    output = model(input)
+    loss_value = loss(output, target)  # PyTorch가 속에서 소프트맥스를 건다
+
+    With NLLLoss:
+    def forward(self, x):
+        logits = self.layers(x)
+        return F.log_softmax(logits, dim=1)  # log_softmax을 건다
+        
+    loss = nn.NLLLoss()
+    output = model(input)  # 이미 로그 확률이다
+    loss_value = loss(output, target)  # 음의 로그 가능도를 곧바로 셈한다
+
+    Key Insight:
+    -----------
+    Both approaches are equivalent:
+      CrossEntropyLoss(logits, y) = NLLLoss(log_softmax(logits), y)
+
+    The choice is about where you apply the log_softmax:
+    - CrossEntropyLoss: Applied inside the loss function
+    - NLLLoss: Applied in your model's forward pass
+
+
+    ======================================================================
+    PART 6: Why LogSoftmax? (Numerical Stability)
+    ======================================================================
+
+    Why use log_softmax instead of log(softmax)?
+    -------------------------------------------
+
+    log_softmax is numerically more stable!
+
+    Naive approach (unstable):
+      probs = softmax(logits)
+      log_probs = log(probs)  # 수치 문제가 생길 수 있다!
+
+    Better approach (stable):
+      log_probs = log_softmax(logits)  # 수학적으로 다듬어졌다
+
+    Example issue with naive approach:
+      softmax([1000, 1001]) → [~0, ~1]  
+      log(~0) → -inf (problem!)
+      
+    log_softmax handles this correctly using mathematical tricks.
+
+    Lesson: Always use log_softmax, never log(softmax)!
+
+
+    --- Demonstration of Numerical Issues ---
+    Softmax of large logits: tensor([0.2447, 0.6652, 0.0900])
+    Notice the very small probability: 9.00e-02
+    Log of softmax: tensor([-1.4076, -0.4076, -2.4076])
+    See the very negative number? -2.41
+
+    Using log_softmax directly: tensor([-1.4076, -0.4076, -2.4076])
+    Much more stable and accurate!
+
+    ======================================================================
+    KEY TAKEAWAYS
+    ======================================================================
+
+    1. Mathematical relationship:
+       CrossEntropyLoss = LogSoftmax + NLLLoss
+       
+    2. Input requirements:
+       - CrossEntropyLoss: Expects logits (raw scores)
+       - NLLLoss: Expects log probabilities
+       
+    3. When to use each:
+       - CrossEntropyLoss: Default choice, easiest to use
+       - NLLLoss: When you need log probabilities elsewhere
+       
+    4. Numerical stability:
+       - Always use log_softmax, never log(softmax)
+       - PyTorch functions are optimized for stability
+       
+    5. All approaches give same results:
+       - Choose based on convenience and code structure
+       - Performance is equivalent
+       
+    6. Best practices:
+       - For classification: Use CrossEntropyLoss
+       - Keep model and loss consistent
+       - Don't apply softmax in model if using CrossEntropyLoss
+
+    Congratulations!
+    ---------------
+    You've completed all basic tutorials and understand:
+    ✓ Word embeddings
+    ✓ N-gram language models
+    ✓ Three different loss function approaches
+    ✓ The relationship between them
+
+    Ready for intermediate tutorials? Go to 02_intermediate/!
+
+    ======================================================================
+    END OF TUTORIAL 4
+    ======================================================================
+    ```
+
 
 ## 2. 논의
 

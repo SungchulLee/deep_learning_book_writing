@@ -220,28 +220,28 @@ Dropout and Regularization
 ======================================================================
 
 Training WITHOUT Dropout:
-No Dropout - Epoch 1: Train=91.8%, Test=96.1%
-No Dropout - Epoch 2: Train=96.8%, Test=97.2%
-No Dropout - Epoch 3: Train=97.9%, Test=97.6%
-No Dropout - Epoch 4: Train=98.4%, Test=97.5%
-No Dropout - Epoch 5: Train=98.7%, Test=98.0%
-No Dropout - Epoch 6: Train=99.0%, Test=97.8%
-No Dropout - Epoch 7: Train=99.0%, Test=98.0%
-No Dropout - Epoch 8: Train=99.3%, Test=98.1%
-No Dropout - Epoch 9: Train=99.2%, Test=98.0%
-No Dropout - Epoch 10: Train=99.3%, Test=97.4%
+No Dropout - Epoch 1: Train=91.8%, Test=95.7%
+No Dropout - Epoch 2: Train=96.8%, Test=97.4%
+No Dropout - Epoch 3: Train=97.9%, Test=97.4%
+No Dropout - Epoch 4: Train=98.3%, Test=97.7%
+No Dropout - Epoch 5: Train=98.6%, Test=98.2%
+No Dropout - Epoch 6: Train=98.9%, Test=98.1%
+No Dropout - Epoch 7: Train=99.1%, Test=98.2%
+No Dropout - Epoch 8: Train=99.1%, Test=97.8%
+No Dropout - Epoch 9: Train=99.3%, Test=98.0%
+No Dropout - Epoch 10: Train=99.3%, Test=97.7%
 
 Training WITH Dropout:
-Dropout 0.5 - Epoch 1: Train=88.3%, Test=95.9%
-Dropout 0.5 - Epoch 2: Train=94.9%, Test=96.9%
-Dropout 0.5 - Epoch 3: Train=96.0%, Test=97.4%
+Dropout 0.5 - Epoch 1: Train=88.2%, Test=95.2%
+Dropout 0.5 - Epoch 2: Train=94.8%, Test=96.8%
+Dropout 0.5 - Epoch 3: Train=95.9%, Test=97.4%
 Dropout 0.5 - Epoch 4: Train=96.5%, Test=97.7%
 Dropout 0.5 - Epoch 5: Train=96.8%, Test=97.8%
-Dropout 0.5 - Epoch 6: Train=97.0%, Test=98.0%
-Dropout 0.5 - Epoch 7: Train=97.3%, Test=97.7%
+Dropout 0.5 - Epoch 6: Train=97.1%, Test=97.8%
+Dropout 0.5 - Epoch 7: Train=97.3%, Test=97.8%
 Dropout 0.5 - Epoch 8: Train=97.4%, Test=98.1%
-Dropout 0.5 - Epoch 9: Train=97.5%, Test=98.1%
-Dropout 0.5 - Epoch 10: Train=97.6%, Test=98.0%
+Dropout 0.5 - Epoch 9: Train=97.6%, Test=98.1%
+Dropout 0.5 - Epoch 10: Train=97.7%, Test=98.2%
 
 Plot saved as '08_dropout_comparison.png'
 
@@ -249,8 +249,28 @@ Plot saved as '08_dropout_comparison.png'
 KEY TAKEAWAYS
 ======================================================================
 
-... (23 lines omitted)
-
+DROPOUT:
+  - 학습 중 뉴런을 무작위로 떨어뜨린다
+  - 특징들이 함께 적응하는 것을 막는다
+  - 여러 신경망의 앙상블처럼 작동한다
+  - 은닉층의 일반적인 비율: 0.2~0.5
+  
+USAGE:
+  model.train()  # 학습 중에는 드롭아웃 켜기
+  model.eval()   # 평가 중에는 드롭아웃 끄기
+  
+그 밖의 정칙화:
+  - L2(최적화기의 weight_decay): 큰 가중치에 벌점을 준다
+  - L1: 희소성을 북돋운다
+  - 조기 종료: 검증 손실이 늘면 멈춘다
+  - 데이터 증강: 데이터셋을 인위적으로 늘린다
+  
+언제 쓰는가:
+  ✓ 작은 데이터셋에 큰 모델을 쓸 때
+  ✓ 모델이 과적합한다(학습 정확도 >> 시험 정확도)
+  ✓ 깊은 신경망
+  
+드롭아웃 비율:
   - 입력층: 0.1~0.2(낮게)
   - 은닉층: 0.3~0.5(높게)
   - 출력층: 절대 쓰지 마라!

@@ -23,6 +23,9 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -225,9 +228,26 @@ PLACEMENT:
 - 대안: 선형 → 활성화 → 배치 정규화
   (둘 다 되지만 앞의 것이 더 흔하다)
 
+PARAMETERS:
+- 입력: 정규화할 특징의 수
+- 완전 연결층: num_features = output_dim
+- 합성곱층: num_features = num_channels
 
-... (20 lines omitted)
+중요한 점:
+⚠ batch_size > 1이어야 한다(표본이 여럿 필요하다)
+⚠ 학습 모드와 평가 모드에서 동작이 다르다
+⚠ model.train()과 model.eval() 부르기를 잊지 마라!
 
+
+======================================================================
+BATCH NORMALIZATION VARIANTS
+======================================================================
+
+BatchNorm1d: 완전 연결층용 (batch, features)
+BatchNorm2d: 합성곱층용 (batch, channels, height, width)
+BatchNorm3d: 3차원 데이터용 (batch, channels, depth, height, width)
+
+LayerNorm: 특징 방향으로 정규화한다(트랜스포머에서 쓴다)
 InstanceNorm: 표본마다 따로 정규화한다
 GroupNorm: 층 정규화와 인스턴스 정규화의 중간형
 

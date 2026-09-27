@@ -205,26 +205,60 @@ Random seed set to 1 for reproducibility
 ======================================================================
 Loading MNIST Dataset
 ======================================================================
-Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
 
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
-Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
+Dataset loaded successfully!
+  Training batches: 938
+  Test batches: 10
+  Images per training batch: 64
+  Total training images: 60032
 
-Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
+Sample batch shape:
+  Images: torch.Size([64, 1, 28, 28])
+  Labels: torch.Size([64])
 
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
-Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
+Image tensor details:
+  - Batch size: 64
+  - Channels: 1 (grayscale)
+  - Height: 28 pixels
+  - Width: 28 pixels
 
-Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+======================================================================
+Visualizing MNIST Images
+======================================================================
 
-... (69 lines omitted)
+Displaying 64 sample images...
+Each image shows a handwritten digit (0-9)
+Close the plot window to continue.
 
+======================================================================
+Dataset Statistics
+======================================================================
+
+Class distribution in training set:
+Digit      | Count      | Percentage
+-----------------------------------
+0          | 5923       | 9.87%
+1          | 6742       | 11.24%
+2          | 5958       | 9.93%
+3          | 6131       | 10.22%
+4          | 5842       | 9.74%
+5          | 5421       | 9.04%
+6          | 5918       | 9.86%
+7          | 6265       | 10.44%
+8          | 5851       | 9.75%
+9          | 5949       | 9.91%
+
+Total training samples: 60000
+Note: The dataset is well-balanced across all digits!
+
+======================================================================
+Understanding Pixel Values
+======================================================================
+
+Sample image statistics:
+  Shape: (28, 28)
+  Data type: float32
+  Min value: -1.0000
   Max value: 1.0000
   Mean value: -0.8363
   Std deviation: 0.4804

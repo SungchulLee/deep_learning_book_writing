@@ -110,51 +110,54 @@ $$
 !!! note "쓰임새"
     $\alpha+\beta$ 가 앞확률의 **유사 관측 수**다. $n$ 이 이보다 훨씬 크면 앞확률의 자취는 거의 남지 않는다. 흩어짐 식의 분모에 $\alpha_n+\beta_n+1$ 이 있으므로 관측이 늘수록 뒤확률이 대략 $1/n$ 의 빠르기로 좁아진다.
 
-```python
-from scipy import stats
-import numpy as np
+??? note "코드 1 (43줄)"
 
-class BetaBinomialModel:
-    """이진 자료를 위한 베타-이항 켤레 모형."""
-    
-    def __init__(self, alpha=1, beta=1):
-        """Beta(alpha, beta) 앞확률로 첫걸음을 잡는다."""
-        self.prior_alpha = alpha
-        self.prior_beta = beta
-        self.posterior_alpha = alpha
-        self.posterior_beta = beta
-        self.data_history = []
-    
-    def update(self, successes, trials):
-        """관측 자료로 뒤확률을 새로 고친다."""
-        failures = trials - successes
-        self.posterior_alpha += successes
-        self.posterior_beta += failures
-        self.data_history.append((successes, trials))
-    
-    def posterior_predictive(self, n_trials=1):
-        """뒤확률 예측 확률을 셈한다."""
-        y_values = np.arange(n_trials + 1)
-        probs = []
-        
-        for y in y_values:
-            prob = (stats.binom.comb(n_trials, y) * 
-                   stats.beta.beta_func(y + self.posterior_alpha, 
-                                       n_trials - y + self.posterior_beta) / 
-                   stats.beta.beta_func(self.posterior_alpha, 
-                                       self.posterior_beta))
-            probs.append(prob)
-        
-        return np.array(probs)
-    
-    def summary(self):
-        """간추린 통계량을 찍는다."""
-        post_dist = stats.beta(self.posterior_alpha, self.posterior_beta)
-        
-        print(f"Posterior: Beta({self.posterior_alpha}, {self.posterior_beta})")
-        print(f"  Mean: {post_dist.mean():.4f}")
-        print(f"  95% CI: [{post_dist.ppf(0.025):.4f}, {post_dist.ppf(0.975):.4f}]")
-```
+    ```python
+    from scipy import stats
+    import numpy as np
+
+    class BetaBinomialModel:
+        """이진 자료를 위한 베타-이항 켤레 모형."""
+
+        def __init__(self, alpha=1, beta=1):
+            """Beta(alpha, beta) 앞확률로 첫걸음을 잡는다."""
+            self.prior_alpha = alpha
+            self.prior_beta = beta
+            self.posterior_alpha = alpha
+            self.posterior_beta = beta
+            self.data_history = []
+
+        def update(self, successes, trials):
+            """관측 자료로 뒤확률을 새로 고친다."""
+            failures = trials - successes
+            self.posterior_alpha += successes
+            self.posterior_beta += failures
+            self.data_history.append((successes, trials))
+
+        def posterior_predictive(self, n_trials=1):
+            """뒤확률 예측 확률을 셈한다."""
+            y_values = np.arange(n_trials + 1)
+            probs = []
+
+            for y in y_values:
+                prob = (stats.binom.comb(n_trials, y) * 
+                       stats.beta.beta_func(y + self.posterior_alpha, 
+                                           n_trials - y + self.posterior_beta) / 
+                       stats.beta.beta_func(self.posterior_alpha, 
+                                           self.posterior_beta))
+                probs.append(prob)
+
+            return np.array(probs)
+
+        def summary(self):
+            """간추린 통계량을 찍는다."""
+            post_dist = stats.beta(self.posterior_alpha, self.posterior_beta)
+
+            print(f"Posterior: Beta({self.posterior_alpha}, {self.posterior_beta})")
+            print(f"  Mean: {post_dist.mean():.4f}")
+            print(f"  95% CI: [{post_dist.ppf(0.025):.4f}, {post_dist.ppf(0.975):.4f}]")
+    ```
+
 
 **보기 1.** <span class="diff easy" title="쉬움"></span> 고른 앞확률 $\text{Beta}(1,1)$ 에서 동전을 $10$ 번 던져 앞면 $7$ 번을 보았다. 뒤확률과 그 평균·최빈값·표준편차를 구하시오.
 
@@ -282,40 +285,43 @@ $$
 !!! note "쓰임새"
     푸아송은 평균과 흩어짐이 같아야 하는데 실제 개수 데이터는 흩어짐이 더 큰 일이 흔하다. 음이항 예측 분포는 $\lambda$ 의 불확실성까지 흩어짐에 얹으므로 이 **과대 흩어짐**을 저절로 담아낸다.
 
-```python
-class GammaPoissonModel:
-    """세기 자료를 위한 감마-푸아송 켤레 모형."""
-    
-    def __init__(self, alpha=1, beta=1):
-        """Gamma(alpha, beta) 앞확률로 첫걸음을 잡는다."""
-        self.prior_alpha = alpha
-        self.prior_beta = beta
-        self.posterior_alpha = alpha
-        self.posterior_beta = beta
-        self.data = []
-    
-    def update(self, counts):
-        """관측된 세기로 뒤확률을 새로 고친다."""
-        counts = np.asarray(counts)
-        self.posterior_alpha += np.sum(counts)
-        self.posterior_beta += len(counts)
-        self.data.extend(counts)
-    
-    def posterior_predictive(self):
-        """뒤확률 예측 분포(음이항)를 되돌린다."""
-        n = self.posterior_alpha
-        p = self.posterior_beta / (self.posterior_beta + 1)
-        return stats.nbinom(n, p)
-    
-    def summary(self):
-        """간추린 통계량을 찍는다."""
-        post_dist = stats.gamma(self.posterior_alpha, 
-                                scale=1/self.posterior_beta)
-        
-        print(f"Posterior: Gamma({self.posterior_alpha}, {self.posterior_beta})")
-        print(f"  Mean (rate): {post_dist.mean():.4f}")
-        print(f"  95% CI: [{post_dist.ppf(0.025):.4f}, {post_dist.ppf(0.975):.4f}]")
-```
+??? note "코드 2 (32줄)"
+
+    ```python
+    class GammaPoissonModel:
+        """세기 자료를 위한 감마-푸아송 켤레 모형."""
+
+        def __init__(self, alpha=1, beta=1):
+            """Gamma(alpha, beta) 앞확률로 첫걸음을 잡는다."""
+            self.prior_alpha = alpha
+            self.prior_beta = beta
+            self.posterior_alpha = alpha
+            self.posterior_beta = beta
+            self.data = []
+
+        def update(self, counts):
+            """관측된 세기로 뒤확률을 새로 고친다."""
+            counts = np.asarray(counts)
+            self.posterior_alpha += np.sum(counts)
+            self.posterior_beta += len(counts)
+            self.data.extend(counts)
+
+        def posterior_predictive(self):
+            """뒤확률 예측 분포(음이항)를 되돌린다."""
+            n = self.posterior_alpha
+            p = self.posterior_beta / (self.posterior_beta + 1)
+            return stats.nbinom(n, p)
+
+        def summary(self):
+            """간추린 통계량을 찍는다."""
+            post_dist = stats.gamma(self.posterior_alpha, 
+                                    scale=1/self.posterior_beta)
+
+            print(f"Posterior: Gamma({self.posterior_alpha}, {self.posterior_beta})")
+            print(f"  Mean (rate): {post_dist.mean():.4f}")
+            print(f"  95% CI: [{post_dist.ppf(0.025):.4f}, {post_dist.ppf(0.975):.4f}]")
+    ```
+
 
 **보기 3.** <span class="diff easy" title="쉬움"></span> 누리집 방문이 하루 평균 몇 번인지 알고자 한다. 앞확률 $\text{Gamma}(2, 1)$ 에 $5$ 일 동안 $3, 7, 4, 6, 5$ 번을 관측했다. 뒤확률을 구하시오.
 
@@ -364,49 +370,52 @@ $$
 !!! note "쓰임새"
     정밀도로 보면 베이즈 갱신이 **정보를 더하는 일**이다. 앞확률이 $\tau_0$, 데이터가 $n\tau$ 만큼 정보를 들고 오고 뒤확률은 그 합을 갖는다. 표준편차로 적으면 이 단순함이 가려진다.
 
-```python
-class NormalNormalModel:
-    """정규-정규 켤레 모형(흩어짐을 아는 경우)."""
-    
-    def __init__(self, prior_mean=0, prior_std=1, known_std=1):
-        """N(prior_mean, prior_std^2) 앞확률로 첫걸음을 잡는다."""
-        self.prior_mean = prior_mean
-        self.prior_std = prior_std
-        self.known_std = known_std
-        
-        self.posterior_mean = prior_mean
-        self.posterior_std = prior_std
-        self.data = []
-    
-    def update(self, observations):
-        """새 관측으로 뒤확률을 새로 고친다."""
-        observations = np.asarray(observations)
-        n = len(observations)
-        x_bar = np.mean(observations)
-        
-        # 정밀도 셈하기
-        prior_precision = 1 / (self.prior_std ** 2)
-        data_precision = n / (self.known_std ** 2)
-        posterior_precision = prior_precision + data_precision
-        
-        # 매개변수 갱신
-        self.posterior_mean = ((prior_precision * self.prior_mean + 
-                               data_precision * x_bar) / posterior_precision)
-        self.posterior_std = np.sqrt(1 / posterior_precision)
-        
-        # 잇단 새로 고치기용
-        self.prior_mean = self.posterior_mean
-        self.prior_std = self.posterior_std
-        
-        self.data.extend(observations)
-    
-    def summary(self):
-        """간추린 통계량을 찍는다."""
-        post_dist = stats.norm(self.posterior_mean, self.posterior_std)
-        
-        print(f"Posterior: N({self.posterior_mean:.4f}, {self.posterior_std:.4f})")
-        print(f"  95% CI: [{post_dist.ppf(0.025):.4f}, {post_dist.ppf(0.975):.4f}]")
-```
+??? note "코드 3 (41줄)"
+
+    ```python
+    class NormalNormalModel:
+        """정규-정규 켤레 모형(흩어짐을 아는 경우)."""
+
+        def __init__(self, prior_mean=0, prior_std=1, known_std=1):
+            """N(prior_mean, prior_std^2) 앞확률로 첫걸음을 잡는다."""
+            self.prior_mean = prior_mean
+            self.prior_std = prior_std
+            self.known_std = known_std
+
+            self.posterior_mean = prior_mean
+            self.posterior_std = prior_std
+            self.data = []
+
+        def update(self, observations):
+            """새 관측으로 뒤확률을 새로 고친다."""
+            observations = np.asarray(observations)
+            n = len(observations)
+            x_bar = np.mean(observations)
+
+            # 정밀도 셈하기
+            prior_precision = 1 / (self.prior_std ** 2)
+            data_precision = n / (self.known_std ** 2)
+            posterior_precision = prior_precision + data_precision
+
+            # 매개변수 갱신
+            self.posterior_mean = ((prior_precision * self.prior_mean + 
+                                   data_precision * x_bar) / posterior_precision)
+            self.posterior_std = np.sqrt(1 / posterior_precision)
+
+            # 잇단 새로 고치기용
+            self.prior_mean = self.posterior_mean
+            self.prior_std = self.posterior_std
+
+            self.data.extend(observations)
+
+        def summary(self):
+            """간추린 통계량을 찍는다."""
+            post_dist = stats.norm(self.posterior_mean, self.posterior_std)
+
+            print(f"Posterior: N({self.posterior_mean:.4f}, {self.posterior_std:.4f})")
+            print(f"  95% CI: [{post_dist.ppf(0.025):.4f}, {post_dist.ppf(0.975):.4f}]")
+    ```
+
 
 **보기 4.** <span class="diff easy" title="쉬움"></span> 측정 잡음이 $\sigma = 2$ 임을 알고 앞확률이 $\mathcal{N}(10, 5^2)$ 이다. $n=9$ 개를 재어 평균 $\bar x = 12$ 를 얻었다. 뒤확률을 구하시오.
 
@@ -582,535 +591,538 @@ $$
 
 앞의 마당에서 이끌어 낸 갱신 규칙을 갈래로 묶은 것이다. 차례대로 베타-이항, 정규-정규, 정규-역감마이다.
 
-```python
-"""
-베르누이-베타 켤레 모형: 온전한 구현
+??? note "코드 4 (527줄)"
 
-이 모듈은 베타-베르누이 켤레 짝을 써서 이진 자료에 대한 베이즈 추론을
-두루 갖춰 구현한다.
-"""
-
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import stats
-from scipy.special import beta as beta_func
-from typing import Tuple, List, Optional
-from dataclasses import dataclass
-
-@dataclass
-class BetaPosterior:
+    ```python
     """
-    베타 뒤확률 분포를 나타낸다.
-    
-    속성
-    ----------
-    alpha : float
-        첫째 모양 매개변수(가짜 성공 + 1)
-    beta : float
-        둘째 모양 매개변수(가짜 실패 + 1)
-    n_successes : int
-        관측된 성공 횟수
-    n_trials : int
-        관측된 시도 횟수
+    베르누이-베타 켤레 모형: 온전한 구현
+
+    이 모듈은 베타-베르누이 켤레 짝을 써서 이진 자료에 대한 베이즈 추론을
+    두루 갖춰 구현한다.
     """
-    alpha: float
-    beta: float
-    n_successes: int = 0
-    n_trials: int = 0
-    
-    @property
-    def mean(self) -> float:
-        """뒤확률 평균 E[θ|D]."""
-        return self.alpha / (self.alpha + self.beta)
-    
-    @property
-    def mode(self) -> Optional[float]:
-        """뒤확률 최빈값(MAP 어림값)."""
-        if self.alpha > 1 and self.beta > 1:
-            return (self.alpha - 1) / (self.alpha + self.beta - 2)
-        elif self.alpha <= 1 and self.beta > 1:
-            return 0.0
-        elif self.alpha > 1 and self.beta <= 1:
-            return 1.0
-        else:
-            return None  # 쌍봉이거나 정해지지 않음
-    
-    @property
-    def variance(self) -> float:
-        """뒤확률 흩어짐 Var[θ|D]."""
-        a, b = self.alpha, self.beta
-        return (a * b) / ((a + b)**2 * (a + b + 1))
-    
-    @property
-    def std(self) -> float:
-        """뒤확률 표준편차."""
-        return np.sqrt(self.variance)
-    
-    def pdf(self, theta: np.ndarray) -> np.ndarray:
-        """뒤확률 밀도의 값을 매긴다."""
-        return stats.beta.pdf(theta, self.alpha, self.beta)
-    
-    def cdf(self, theta: float) -> float:
-        """뒤확률 누적분포함수의 값을 매긴다."""
-        return stats.beta.cdf(theta, self.alpha, self.beta)
-    
-    def quantile(self, p: float) -> float:
-        """뒤확률 분위수를 셈한다."""
-        return stats.beta.ppf(p, self.alpha, self.beta)
-    
-    def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import stats
+    from scipy.special import beta as beta_func
+    from typing import Tuple, List, Optional
+    from dataclasses import dataclass
+
+    @dataclass
+    class BetaPosterior:
         """
-        양끝이 같은 믿음 구간을 셈한다.
-        
-        매개변수
+        베타 뒤확률 분포를 나타낸다.
+
+        속성
         ----------
-        level : float
-            믿음 수준(95% 구간이면 기본값 0.95)
-        
-        반환값
-        -------
-        tuple
-            (아래, 위) 경계
-        """
-        alpha_level = 1 - level
-        lower = self.quantile(alpha_level / 2)
-        upper = self.quantile(1 - alpha_level / 2)
-        return (lower, upper)
-    
-    def hpd_interval(self, level: float = 0.95, n_points: int = 1000) -> Tuple[float, float]:
-        """
-        최고 뒤확률 밀도 구간을 셈한다.
-        
-        주어진 확률 질량을 담는 가장 짧은 구간.
-        """
-        # HPD을 찾는 격자 뒤지기
-        theta_grid = np.linspace(0.001, 0.999, n_points)
-        pdf_vals = self.pdf(theta_grid)
-        
-        # 밀도로 정렬(내림차순)
-        sorted_idx = np.argsort(pdf_vals)[::-1]
-        sorted_theta = theta_grid[sorted_idx]
-        sorted_pdf = pdf_vals[sorted_idx]
-        
-        # 확률 질량 쌓기
-        cumsum = np.cumsum(sorted_pdf) * (theta_grid[1] - theta_grid[0])
-        cutoff_idx = np.searchsorted(cumsum, level)
-        
-        # HPD 구역 경계
-        hpd_theta = sorted_theta[:cutoff_idx + 1]
-        return (hpd_theta.min(), hpd_theta.max())
-    
-    def sample(self, n_samples: int) -> np.ndarray:
-        """뒤확률에서 표본을 뽑는다."""
-        return stats.beta.rvs(self.alpha, self.beta, size=n_samples)
-    
-    def predictive_prob(self) -> float:
-        """다음 관측이 성공일 확률(라플라스의 규칙)."""
-        return self.mean
-    
-    def __repr__(self) -> str:
-        return f"Beta({self.alpha:.2f}, {self.beta:.2f})"
-
-class BetaBernoulliModel:
-    """
-    온전한 베타-베르누이 켤레 모형.
-    
-    매개변수
-    ----------
-    prior_alpha : float
-        앞확률 α 매개변수
-    prior_beta : float
-        앞확률 β 매개변수
-    """
-    
-    def __init__(self, prior_alpha: float = 1.0, prior_beta: float = 1.0):
-        self.prior_alpha = prior_alpha
-        self.prior_beta = prior_beta
-        self._reset()
-    
-    def _reset(self):
-        """앞확률 상태로 되돌린다."""
-        self.current_alpha = self.prior_alpha
-        self.current_beta = self.prior_beta
-        self.n_successes = 0
-        self.n_trials = 0
-    
-    @property
-    def prior(self) -> BetaPosterior:
-        """앞확률 분포를 되돌린다."""
-        return BetaPosterior(self.prior_alpha, self.prior_beta)
-    
-    @property
-    def posterior(self) -> BetaPosterior:
-        """지금의 뒤확률 분포를 되돌린다."""
-        return BetaPosterior(
-            self.current_alpha, 
-            self.current_beta,
-            self.n_successes,
-            self.n_trials
-        )
-    
-    def update(self, successes: int, trials: int) -> BetaPosterior:
-        """
-        새 관측으로 뒤확률을 새로 고친다.
-        
-        매개변수
-        ----------
-        successes : int
+        alpha : float
+            첫째 모양 매개변수(가짜 성공 + 1)
+        beta : float
+            둘째 모양 매개변수(가짜 실패 + 1)
+        n_successes : int
             관측된 성공 횟수
-        trials : int
+        n_trials : int
             관측된 시도 횟수
-        
-        반환값
-        -------
-        BetaPosterior
-            새로 고친 뒤확률 분포
         """
-        self.current_alpha += successes
-        self.current_beta += (trials - successes)
-        self.n_successes += successes
-        self.n_trials += trials
-        return self.posterior
-    
-    def update_single(self, outcome: int) -> BetaPosterior:
+        alpha: float
+        beta: float
+        n_successes: int = 0
+        n_trials: int = 0
+
+        @property
+        def mean(self) -> float:
+            """뒤확률 평균 E[θ|D]."""
+            return self.alpha / (self.alpha + self.beta)
+
+        @property
+        def mode(self) -> Optional[float]:
+            """뒤확률 최빈값(MAP 어림값)."""
+            if self.alpha > 1 and self.beta > 1:
+                return (self.alpha - 1) / (self.alpha + self.beta - 2)
+            elif self.alpha <= 1 and self.beta > 1:
+                return 0.0
+            elif self.alpha > 1 and self.beta <= 1:
+                return 1.0
+            else:
+                return None  # 쌍봉이거나 정해지지 않음
+
+        @property
+        def variance(self) -> float:
+            """뒤확률 흩어짐 Var[θ|D]."""
+            a, b = self.alpha, self.beta
+            return (a * b) / ((a + b)**2 * (a + b + 1))
+
+        @property
+        def std(self) -> float:
+            """뒤확률 표준편차."""
+            return np.sqrt(self.variance)
+
+        def pdf(self, theta: np.ndarray) -> np.ndarray:
+            """뒤확률 밀도의 값을 매긴다."""
+            return stats.beta.pdf(theta, self.alpha, self.beta)
+
+        def cdf(self, theta: float) -> float:
+            """뒤확률 누적분포함수의 값을 매긴다."""
+            return stats.beta.cdf(theta, self.alpha, self.beta)
+
+        def quantile(self, p: float) -> float:
+            """뒤확률 분위수를 셈한다."""
+            return stats.beta.ppf(p, self.alpha, self.beta)
+
+        def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
+            """
+            양끝이 같은 믿음 구간을 셈한다.
+
+            매개변수
+            ----------
+            level : float
+                믿음 수준(95% 구간이면 기본값 0.95)
+
+            반환값
+            -------
+            tuple
+                (아래, 위) 경계
+            """
+            alpha_level = 1 - level
+            lower = self.quantile(alpha_level / 2)
+            upper = self.quantile(1 - alpha_level / 2)
+            return (lower, upper)
+
+        def hpd_interval(self, level: float = 0.95, n_points: int = 1000) -> Tuple[float, float]:
+            """
+            최고 뒤확률 밀도 구간을 셈한다.
+
+            주어진 확률 질량을 담는 가장 짧은 구간.
+            """
+            # HPD을 찾는 격자 뒤지기
+            theta_grid = np.linspace(0.001, 0.999, n_points)
+            pdf_vals = self.pdf(theta_grid)
+
+            # 밀도로 정렬(내림차순)
+            sorted_idx = np.argsort(pdf_vals)[::-1]
+            sorted_theta = theta_grid[sorted_idx]
+            sorted_pdf = pdf_vals[sorted_idx]
+
+            # 확률 질량 쌓기
+            cumsum = np.cumsum(sorted_pdf) * (theta_grid[1] - theta_grid[0])
+            cutoff_idx = np.searchsorted(cumsum, level)
+
+            # HPD 구역 경계
+            hpd_theta = sorted_theta[:cutoff_idx + 1]
+            return (hpd_theta.min(), hpd_theta.max())
+
+        def sample(self, n_samples: int) -> np.ndarray:
+            """뒤확률에서 표본을 뽑는다."""
+            return stats.beta.rvs(self.alpha, self.beta, size=n_samples)
+
+        def predictive_prob(self) -> float:
+            """다음 관측이 성공일 확률(라플라스의 규칙)."""
+            return self.mean
+
+        def __repr__(self) -> str:
+            return f"Beta({self.alpha:.2f}, {self.beta:.2f})"
+
+    class BetaBernoulliModel:
         """
-        관측 하나로 새로 고친다.
-        
+        온전한 베타-베르누이 켤레 모형.
+
         매개변수
         ----------
-        outcome : int
-            0 또는 1
-        
-        반환값
-        -------
-        BetaPosterior
-            새로 고친 뒤확률
+        prior_alpha : float
+            앞확률 α 매개변수
+        prior_beta : float
+            앞확률 β 매개변수
         """
-        return self.update(outcome, 1)
-    
-    def update_sequence(self, outcomes: List[int]) -> List[BetaPosterior]:
-        """
-        차례대로 새로 고치며 뒤확률의 자취를 되돌린다.
-        
-        매개변수
-        ----------
-        outcomes : list
-            0/1 관측의 늘어놓음
-        
-        반환값
-        -------
-        list
-            새로 고칠 때마다의 뒤확률 분포 목록
-        """
-        history = [self.posterior]
-        for outcome in outcomes:
-            self.update_single(outcome)
-            history.append(self.posterior)
-        return history
-    
-    def log_marginal_likelihood(self) -> float:
-        """
-        로그 주변 가능도(로그 증거)를 셈한다.
-        
-        log p(D) = log B(α + k, β + n - k) - log B(α, β)
-        
-        반환값
-        -------
-        float
-            로그 주변 가능도
-        """
-        from scipy.special import betaln
-        
-        prior_term = betaln(self.prior_alpha, self.prior_beta)
-        posterior_term = betaln(self.current_alpha, self.current_beta)
-        
-        return posterior_term - prior_term
-    
-    def predictive_distribution(self, m: int) -> np.ndarray:
-        """
-        앞으로의 시도 m번에 대한 베타-이항 예측 분포를 셈한다.
-        
-        매개변수
-        ----------
-        m : int
-            앞으로의 시도 횟수
-        
-        반환값
-        -------
-        array
-            성공 k' = 0, 1, ..., m의 확률
-        """
-        from scipy.special import comb, betaln
-        
-        a, b = self.current_alpha, self.current_beta
-        k_vals = np.arange(m + 1)
-        
-        log_probs = (
-            np.log(comb(m, k_vals, exact=False)) +
-            betaln(a + k_vals, b + m - k_vals) -
-            betaln(a, b)
-        )
-        
-        return np.exp(log_probs)
 
-# =============================================================================
-# 그려 보기 함수
-# =============================================================================
+        def __init__(self, prior_alpha: float = 1.0, prior_beta: float = 1.0):
+            self.prior_alpha = prior_alpha
+            self.prior_beta = prior_beta
+            self._reset()
 
-def plot_beta_distribution(
-    alpha: float, 
-    beta: float, 
-    ax: Optional[plt.Axes] = None,
-    label: Optional[str] = None,
-    color: str = 'steelblue',
-    fill: bool = True
-) -> plt.Axes:
-    """베타 분포를 그린다."""
-    if ax is None:
-        _, ax = plt.subplots(figsize=(8, 5))
-    
-    theta = np.linspace(0.001, 0.999, 500)
-    pdf = stats.beta.pdf(theta, alpha, beta)
-    
-    if fill:
-        ax.fill_between(theta, pdf, alpha=0.3, color=color)
-    ax.plot(theta, pdf, color=color, linewidth=2, label=label)
-    
-    ax.set_xlabel('θ', fontsize=12)
-    ax.set_ylabel('Density', fontsize=12)
-    ax.set_xlim(0, 1)
-    ax.grid(True, alpha=0.3)
-    
-    return ax
+        def _reset(self):
+            """앞확률 상태로 되돌린다."""
+            self.current_alpha = self.prior_alpha
+            self.current_beta = self.prior_beta
+            self.n_successes = 0
+            self.n_trials = 0
 
-def plot_prior_posterior(
-    model: BetaBernoulliModel,
-    true_theta: Optional[float] = None,
-    title: str = "Bayesian Update"
-) -> plt.Figure:
-    """앞확률, 가능도, 뒤확률을 그려 본다."""
-    
-    fig, ax = plt.subplots(figsize=(10, 6))
-    theta = np.linspace(0.001, 0.999, 500)
-    
-    # 앞확률
-    prior_pdf = stats.beta.pdf(theta, model.prior_alpha, model.prior_beta)
-    ax.plot(theta, prior_pdf / prior_pdf.max(), 'b--', 
-            linewidth=2, label=f'Prior: Beta({model.prior_alpha}, {model.prior_beta})')
-    
-    # 가능도(그려 보려고 고르게 함)
-    if model.n_trials > 0:
-        k, n = model.n_successes, model.n_trials
-        likelihood = theta**k * (1 - theta)**(n - k)
-        ax.plot(theta, likelihood / likelihood.max(), 'g:', 
-                linewidth=2, label=f'Likelihood ({k}/{n} successes)')
-    
-    # 뒤확률
-    post = model.posterior
-    posterior_pdf = post.pdf(theta)
-    ax.fill_between(theta, posterior_pdf / posterior_pdf.max(), 
-                    alpha=0.3, color='red')
-    ax.plot(theta, posterior_pdf / posterior_pdf.max(), 'r-', 
-            linewidth=2, label=f'Posterior: {post}')
-    
-    # 참값
-    if true_theta is not None:
-        ax.axvline(true_theta, color='black', linestyle='--', 
-                   linewidth=2, label=f'True θ = {true_theta}')
-    
-    # 뒤확률 평균
-    ax.axvline(post.mean, color='red', linestyle=':', linewidth=1.5)
-    
-    ax.set_xlabel('θ', fontsize=12)
-    ax.set_ylabel('Density (normalized)', fontsize=12)
-    ax.set_title(title, fontsize=14)
-    ax.legend(loc='upper left', fontsize=10)
-    ax.set_xlim(0, 1)
-    ax.grid(True, alpha=0.3)
-    
-    return fig
+        @property
+        def prior(self) -> BetaPosterior:
+            """앞확률 분포를 되돌린다."""
+            return BetaPosterior(self.prior_alpha, self.prior_beta)
 
-def plot_sequential_update(
-    outcomes: List[int],
-    prior_alpha: float = 1.0,
-    prior_beta: float = 1.0,
-    true_theta: Optional[float] = None
-) -> plt.Figure:
-    """차례대로 베이즈 새로 고치기를 그려 본다."""
-    
-    model = BetaBernoulliModel(prior_alpha, prior_beta)
-    history = model.update_sequence(outcomes)
-    
-    n_steps = len(history)
-    n_cols = min(4, n_steps)
-    n_rows = (n_steps + n_cols - 1) // n_cols
-    
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(4*n_cols, 3*n_rows))
-    axes = np.atleast_2d(axes).flatten()
-    
-    theta = np.linspace(0.001, 0.999, 200)
-    
-    for i, (ax, post) in enumerate(zip(axes[:n_steps], history)):
-        pdf = post.pdf(theta)
-        ax.fill_between(theta, pdf, alpha=0.4, color='steelblue')
-        ax.plot(theta, pdf, 'b-', linewidth=2)
-        
-        if true_theta is not None:
-            ax.axvline(true_theta, color='red', linestyle='--', linewidth=1.5)
-        
-        ax.axvline(post.mean, color='green', linestyle=':', linewidth=1.5)
-        
-        if i == 0:
-            ax.set_title(f'Prior\nE[θ]={post.mean:.3f}')
-        else:
-            cumsum = sum(outcomes[:i])
-            ax.set_title(f'After {i} obs ({cumsum}/{i})\nE[θ]={post.mean:.3f}')
-        
+        @property
+        def posterior(self) -> BetaPosterior:
+            """지금의 뒤확률 분포를 되돌린다."""
+            return BetaPosterior(
+                self.current_alpha, 
+                self.current_beta,
+                self.n_successes,
+                self.n_trials
+            )
+
+        def update(self, successes: int, trials: int) -> BetaPosterior:
+            """
+            새 관측으로 뒤확률을 새로 고친다.
+
+            매개변수
+            ----------
+            successes : int
+                관측된 성공 횟수
+            trials : int
+                관측된 시도 횟수
+
+            반환값
+            -------
+            BetaPosterior
+                새로 고친 뒤확률 분포
+            """
+            self.current_alpha += successes
+            self.current_beta += (trials - successes)
+            self.n_successes += successes
+            self.n_trials += trials
+            return self.posterior
+
+        def update_single(self, outcome: int) -> BetaPosterior:
+            """
+            관측 하나로 새로 고친다.
+
+            매개변수
+            ----------
+            outcome : int
+                0 또는 1
+
+            반환값
+            -------
+            BetaPosterior
+                새로 고친 뒤확률
+            """
+            return self.update(outcome, 1)
+
+        def update_sequence(self, outcomes: List[int]) -> List[BetaPosterior]:
+            """
+            차례대로 새로 고치며 뒤확률의 자취를 되돌린다.
+
+            매개변수
+            ----------
+            outcomes : list
+                0/1 관측의 늘어놓음
+
+            반환값
+            -------
+            list
+                새로 고칠 때마다의 뒤확률 분포 목록
+            """
+            history = [self.posterior]
+            for outcome in outcomes:
+                self.update_single(outcome)
+                history.append(self.posterior)
+            return history
+
+        def log_marginal_likelihood(self) -> float:
+            """
+            로그 주변 가능도(로그 증거)를 셈한다.
+
+            log p(D) = log B(α + k, β + n - k) - log B(α, β)
+
+            반환값
+            -------
+            float
+                로그 주변 가능도
+            """
+            from scipy.special import betaln
+
+            prior_term = betaln(self.prior_alpha, self.prior_beta)
+            posterior_term = betaln(self.current_alpha, self.current_beta)
+
+            return posterior_term - prior_term
+
+        def predictive_distribution(self, m: int) -> np.ndarray:
+            """
+            앞으로의 시도 m번에 대한 베타-이항 예측 분포를 셈한다.
+
+            매개변수
+            ----------
+            m : int
+                앞으로의 시도 횟수
+
+            반환값
+            -------
+            array
+                성공 k' = 0, 1, ..., m의 확률
+            """
+            from scipy.special import comb, betaln
+
+            a, b = self.current_alpha, self.current_beta
+            k_vals = np.arange(m + 1)
+
+            log_probs = (
+                np.log(comb(m, k_vals, exact=False)) +
+                betaln(a + k_vals, b + m - k_vals) -
+                betaln(a, b)
+            )
+
+            return np.exp(log_probs)
+
+    # =============================================================================
+    # 그려 보기 함수
+    # =============================================================================
+
+    def plot_beta_distribution(
+        alpha: float, 
+        beta: float, 
+        ax: Optional[plt.Axes] = None,
+        label: Optional[str] = None,
+        color: str = 'steelblue',
+        fill: bool = True
+    ) -> plt.Axes:
+        """베타 분포를 그린다."""
+        if ax is None:
+            _, ax = plt.subplots(figsize=(8, 5))
+
+        theta = np.linspace(0.001, 0.999, 500)
+        pdf = stats.beta.pdf(theta, alpha, beta)
+
+        if fill:
+            ax.fill_between(theta, pdf, alpha=0.3, color=color)
+        ax.plot(theta, pdf, color=color, linewidth=2, label=label)
+
+        ax.set_xlabel('θ', fontsize=12)
+        ax.set_ylabel('Density', fontsize=12)
         ax.set_xlim(0, 1)
-        ax.set_xlabel('θ')
-    
-    # 안 쓰는 축 감추기
-    for ax in axes[n_steps:]:
-        ax.set_visible(False)
-    
-    plt.suptitle('Sequential Bayesian Updating', fontsize=14)
-    plt.tight_layout()
-    
-    return fig
+        ax.grid(True, alpha=0.3)
 
-# =============================================================================
-# 보여 주기
-# =============================================================================
+        return ax
 
-def demo_basic_inference():
-    """기본 베타-베르누이 추론을 보인다."""
-    
-    print("=" * 60)
-    print("BASIC BETA-BERNOULLI INFERENCE")
-    print("=" * 60)
-    
-    # 준비
-    true_theta = 0.7
-    n_trials = 20
-    np.random.seed(42)
-    data = np.random.binomial(1, true_theta, n_trials)
-    k = data.sum()
-    
-    print(f"\nTrue θ: {true_theta}")
-    print(f"Data: {k} successes in {n_trials} trials")
-    print(f"MLE: {k/n_trials:.4f}")
-    
-    # 서로 다른 앞확률
-    priors = [
-        ("Uniform", 1, 1),
-        ("Jeffreys", 0.5, 0.5),
-        ("Informative (pessimistic)", 2, 8),
-        ("Informative (optimistic)", 8, 2),
-    ]
-    
-    print("\nPosterior summaries under different priors:")
-    print("-" * 60)
-    
-    for name, alpha, beta in priors:
-        model = BetaBernoulliModel(alpha, beta)
-        model.update(k, n_trials)
+    def plot_prior_posterior(
+        model: BetaBernoulliModel,
+        true_theta: Optional[float] = None,
+        title: str = "Bayesian Update"
+    ) -> plt.Figure:
+        """앞확률, 가능도, 뒤확률을 그려 본다."""
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        theta = np.linspace(0.001, 0.999, 500)
+
+        # 앞확률
+        prior_pdf = stats.beta.pdf(theta, model.prior_alpha, model.prior_beta)
+        ax.plot(theta, prior_pdf / prior_pdf.max(), 'b--', 
+                linewidth=2, label=f'Prior: Beta({model.prior_alpha}, {model.prior_beta})')
+
+        # 가능도(그려 보려고 고르게 함)
+        if model.n_trials > 0:
+            k, n = model.n_successes, model.n_trials
+            likelihood = theta**k * (1 - theta)**(n - k)
+            ax.plot(theta, likelihood / likelihood.max(), 'g:', 
+                    linewidth=2, label=f'Likelihood ({k}/{n} successes)')
+
+        # 뒤확률
         post = model.posterior
-        ci = post.credible_interval(0.95)
-        
-        print(f"\n{name} prior: Beta({alpha}, {beta})")
-        print(f"  Posterior: Beta({post.alpha:.1f}, {post.beta:.1f})")
-        print(f"  Mean: {post.mean:.4f}")
-        print(f"  Mode: {post.mode:.4f}" if post.mode else "  Mode: undefined")
-        print(f"  Std:  {post.std:.4f}")
-        print(f"  95% CI: [{ci[0]:.4f}, {ci[1]:.4f}]")
-        print(f"  P(next success): {post.predictive_prob():.4f}")
+        posterior_pdf = post.pdf(theta)
+        ax.fill_between(theta, posterior_pdf / posterior_pdf.max(), 
+                        alpha=0.3, color='red')
+        ax.plot(theta, posterior_pdf / posterior_pdf.max(), 'r-', 
+                linewidth=2, label=f'Posterior: {post}')
 
-def demo_sequential_learning():
-    """차례대로 새로 고치기를 보인다."""
-    
-    print("\n" + "=" * 60)
-    print("SEQUENTIAL BAYESIAN LEARNING")
-    print("=" * 60)
-    
-    true_theta = 0.6
-    np.random.seed(123)
-    outcomes = list(np.random.binomial(1, true_theta, 15))
-    
-    print(f"\nTrue θ: {true_theta}")
-    print(f"Outcomes: {outcomes}")
-    
-    model = BetaBernoulliModel(1, 1)  # 고른 앞확률
-    
-    print("\nEvolution of posterior mean:")
-    print("-" * 40)
-    
-    for i, outcome in enumerate(outcomes):
-        model.update_single(outcome)
-        post = model.posterior
-        cumsum = sum(outcomes[:i+1])
-        print(f"After obs {i+1:2d} (x={outcome}): "
-              f"E[θ|D] = {post.mean:.4f}, "
-              f"σ = {post.std:.4f}, "
-              f"Data: {cumsum}/{i+1}")
-    
-    # 시각화 만들기
-    fig = plot_sequential_update(outcomes, true_theta=true_theta)
-    fig.savefig('sequential_beta_update.png', dpi=150, bbox_inches='tight')
-    plt.close()
-    print("\nSee: sequential_beta_update.png")
+        # 참값
+        if true_theta is not None:
+            ax.axvline(true_theta, color='black', linestyle='--', 
+                       linewidth=2, label=f'True θ = {true_theta}')
 
-def demo_predictive_distribution():
-    """뒤확률 예측 분포를 보인다."""
-    
-    print("\n" + "=" * 60)
-    print("POSTERIOR PREDICTIVE DISTRIBUTION")
-    print("=" * 60)
-    
-    # 관측 자료
-    k, n = 7, 10
-    
-    model = BetaBernoulliModel(1, 1)
-    model.update(k, n)
-    
-    print(f"\nObserved: {k} successes in {n} trials")
-    print(f"Posterior: Beta({model.current_alpha}, {model.current_beta})")
-    
-    # 다음 시도 m번 미리 알기
-    m = 10
-    predictive = model.predictive_distribution(m)
-    
-    print(f"\nPredictive distribution for next {m} trials:")
-    print("-" * 40)
-    
-    fig, ax = plt.subplots(figsize=(10, 5))
-    
-    k_vals = np.arange(m + 1)
-    ax.bar(k_vals, predictive, color='steelblue', alpha=0.7, edgecolor='black')
-    
-    # 기댓값
-    expected = np.sum(k_vals * predictive)
-    ax.axvline(expected, color='red', linestyle='--', linewidth=2,
-               label=f'E[k\'] = {expected:.2f}')
-    
-    ax.set_xlabel('Number of successes in next 10 trials', fontsize=12)
-    ax.set_ylabel('Probability', fontsize=12)
-    ax.set_title('Beta-Binomial Posterior Predictive Distribution', fontsize=14)
-    ax.legend()
-    ax.set_xticks(k_vals)
-    
-    plt.tight_layout()
-    plt.savefig('predictive_distribution.png', dpi=150, bbox_inches='tight')
-    plt.close()
-    
-    print(f"Expected successes in next {m}: {expected:.2f}")
-    print(f"Most likely outcome: {k_vals[np.argmax(predictive)]} successes")
-    print("\nSee: predictive_distribution.png")
+        # 뒤확률 평균
+        ax.axvline(post.mean, color='red', linestyle=':', linewidth=1.5)
 
-if __name__ == "__main__":
-    demo_basic_inference()
-    demo_sequential_learning()
-    demo_predictive_distribution()
-```
+        ax.set_xlabel('θ', fontsize=12)
+        ax.set_ylabel('Density (normalized)', fontsize=12)
+        ax.set_title(title, fontsize=14)
+        ax.legend(loc='upper left', fontsize=10)
+        ax.set_xlim(0, 1)
+        ax.grid(True, alpha=0.3)
+
+        return fig
+
+    def plot_sequential_update(
+        outcomes: List[int],
+        prior_alpha: float = 1.0,
+        prior_beta: float = 1.0,
+        true_theta: Optional[float] = None
+    ) -> plt.Figure:
+        """차례대로 베이즈 새로 고치기를 그려 본다."""
+
+        model = BetaBernoulliModel(prior_alpha, prior_beta)
+        history = model.update_sequence(outcomes)
+
+        n_steps = len(history)
+        n_cols = min(4, n_steps)
+        n_rows = (n_steps + n_cols - 1) // n_cols
+
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=(4*n_cols, 3*n_rows))
+        axes = np.atleast_2d(axes).flatten()
+
+        theta = np.linspace(0.001, 0.999, 200)
+
+        for i, (ax, post) in enumerate(zip(axes[:n_steps], history)):
+            pdf = post.pdf(theta)
+            ax.fill_between(theta, pdf, alpha=0.4, color='steelblue')
+            ax.plot(theta, pdf, 'b-', linewidth=2)
+
+            if true_theta is not None:
+                ax.axvline(true_theta, color='red', linestyle='--', linewidth=1.5)
+
+            ax.axvline(post.mean, color='green', linestyle=':', linewidth=1.5)
+
+            if i == 0:
+                ax.set_title(f'Prior\nE[θ]={post.mean:.3f}')
+            else:
+                cumsum = sum(outcomes[:i])
+                ax.set_title(f'After {i} obs ({cumsum}/{i})\nE[θ]={post.mean:.3f}')
+
+            ax.set_xlim(0, 1)
+            ax.set_xlabel('θ')
+
+        # 안 쓰는 축 감추기
+        for ax in axes[n_steps:]:
+            ax.set_visible(False)
+
+        plt.suptitle('Sequential Bayesian Updating', fontsize=14)
+        plt.tight_layout()
+
+        return fig
+
+    # =============================================================================
+    # 보여 주기
+    # =============================================================================
+
+    def demo_basic_inference():
+        """기본 베타-베르누이 추론을 보인다."""
+
+        print("=" * 60)
+        print("BASIC BETA-BERNOULLI INFERENCE")
+        print("=" * 60)
+
+        # 준비
+        true_theta = 0.7
+        n_trials = 20
+        np.random.seed(42)
+        data = np.random.binomial(1, true_theta, n_trials)
+        k = data.sum()
+
+        print(f"\nTrue θ: {true_theta}")
+        print(f"Data: {k} successes in {n_trials} trials")
+        print(f"MLE: {k/n_trials:.4f}")
+
+        # 서로 다른 앞확률
+        priors = [
+            ("Uniform", 1, 1),
+            ("Jeffreys", 0.5, 0.5),
+            ("Informative (pessimistic)", 2, 8),
+            ("Informative (optimistic)", 8, 2),
+        ]
+
+        print("\nPosterior summaries under different priors:")
+        print("-" * 60)
+
+        for name, alpha, beta in priors:
+            model = BetaBernoulliModel(alpha, beta)
+            model.update(k, n_trials)
+            post = model.posterior
+            ci = post.credible_interval(0.95)
+
+            print(f"\n{name} prior: Beta({alpha}, {beta})")
+            print(f"  Posterior: Beta({post.alpha:.1f}, {post.beta:.1f})")
+            print(f"  Mean: {post.mean:.4f}")
+            print(f"  Mode: {post.mode:.4f}" if post.mode else "  Mode: undefined")
+            print(f"  Std:  {post.std:.4f}")
+            print(f"  95% CI: [{ci[0]:.4f}, {ci[1]:.4f}]")
+            print(f"  P(next success): {post.predictive_prob():.4f}")
+
+    def demo_sequential_learning():
+        """차례대로 새로 고치기를 보인다."""
+
+        print("\n" + "=" * 60)
+        print("SEQUENTIAL BAYESIAN LEARNING")
+        print("=" * 60)
+
+        true_theta = 0.6
+        np.random.seed(123)
+        outcomes = list(np.random.binomial(1, true_theta, 15))
+
+        print(f"\nTrue θ: {true_theta}")
+        print(f"Outcomes: {outcomes}")
+
+        model = BetaBernoulliModel(1, 1)  # 고른 앞확률
+
+        print("\nEvolution of posterior mean:")
+        print("-" * 40)
+
+        for i, outcome in enumerate(outcomes):
+            model.update_single(outcome)
+            post = model.posterior
+            cumsum = sum(outcomes[:i+1])
+            print(f"After obs {i+1:2d} (x={outcome}): "
+                  f"E[θ|D] = {post.mean:.4f}, "
+                  f"σ = {post.std:.4f}, "
+                  f"Data: {cumsum}/{i+1}")
+
+        # 시각화 만들기
+        fig = plot_sequential_update(outcomes, true_theta=true_theta)
+        fig.savefig('sequential_beta_update.png', dpi=150, bbox_inches='tight')
+        plt.close()
+        print("\nSee: sequential_beta_update.png")
+
+    def demo_predictive_distribution():
+        """뒤확률 예측 분포를 보인다."""
+
+        print("\n" + "=" * 60)
+        print("POSTERIOR PREDICTIVE DISTRIBUTION")
+        print("=" * 60)
+
+        # 관측 자료
+        k, n = 7, 10
+
+        model = BetaBernoulliModel(1, 1)
+        model.update(k, n)
+
+        print(f"\nObserved: {k} successes in {n} trials")
+        print(f"Posterior: Beta({model.current_alpha}, {model.current_beta})")
+
+        # 다음 시도 m번 미리 알기
+        m = 10
+        predictive = model.predictive_distribution(m)
+
+        print(f"\nPredictive distribution for next {m} trials:")
+        print("-" * 40)
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        k_vals = np.arange(m + 1)
+        ax.bar(k_vals, predictive, color='steelblue', alpha=0.7, edgecolor='black')
+
+        # 기댓값
+        expected = np.sum(k_vals * predictive)
+        ax.axvline(expected, color='red', linestyle='--', linewidth=2,
+                   label=f'E[k\'] = {expected:.2f}')
+
+        ax.set_xlabel('Number of successes in next 10 trials', fontsize=12)
+        ax.set_ylabel('Probability', fontsize=12)
+        ax.set_title('Beta-Binomial Posterior Predictive Distribution', fontsize=14)
+        ax.legend()
+        ax.set_xticks(k_vals)
+
+        plt.tight_layout()
+        plt.savefig('predictive_distribution.png', dpi=150, bbox_inches='tight')
+        plt.close()
+
+        print(f"Expected successes in next {m}: {expected:.2f}")
+        print(f"Most likely outcome: {k_vals[np.argmax(predictive)]} successes")
+        print("\nSee: predictive_distribution.png")
+
+    if __name__ == "__main__":
+        demo_basic_inference()
+        demo_sequential_learning()
+        demo_predictive_distribution()
+    ```
+
 
 **출력:**
 
@@ -1148,9 +1160,46 @@ Informative (pessimistic) prior: Beta(2, 8)
   Mode: 0.5357
   Std:  0.0896
   95% CI: [0.3569, 0.7055]
+  P(next success): 0.5333
 
-... (40 lines omitted)
+Informative (optimistic) prior: Beta(8, 2)
+  Posterior: Beta(22.0, 8.0)
+  Mean: 0.7333
+  Mode: 0.7500
+  Std:  0.0794
+  95% CI: [0.5646, 0.8727]
+  P(next success): 0.7333
 
+============================================================
+SEQUENTIAL BAYESIAN LEARNING
+============================================================
+
+True θ: 0.6
+Outcomes: [0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1]
+
+Evolution of posterior mean:
+----------------------------------------
+After obs  1 (x=0): E[θ|D] = 0.3333, σ = 0.2357, Data: 0/1
+After obs  2 (x=1): E[θ|D] = 0.5000, σ = 0.2236, Data: 1/2
+After obs  3 (x=1): E[θ|D] = 0.6000, σ = 0.2000, Data: 2/3
+After obs  4 (x=1): E[θ|D] = 0.6667, σ = 0.1782, Data: 3/4
+After obs  5 (x=0): E[θ|D] = 0.5714, σ = 0.1750, Data: 3/5
+After obs  6 (x=1): E[θ|D] = 0.6250, σ = 0.1614, Data: 4/6
+After obs  7 (x=0): E[θ|D] = 0.5556, σ = 0.1571, Data: 4/7
+After obs  8 (x=0): E[θ|D] = 0.5000, σ = 0.1508, Data: 4/8
+After obs  9 (x=1): E[θ|D] = 0.5455, σ = 0.1437, Data: 5/9
+After obs 10 (x=1): E[θ|D] = 0.5833, σ = 0.1367, Data: 6/10
+After obs 11 (x=1): E[θ|D] = 0.6154, σ = 0.1300, Data: 7/11
+After obs 12 (x=0): E[θ|D] = 0.5714, σ = 0.1278, Data: 7/12
+After obs 13 (x=1): E[θ|D] = 0.6000, σ = 0.1225, Data: 8/13
+After obs 14 (x=1): E[θ|D] = 0.6250, σ = 0.1174, Data: 9/14
+After obs 15 (x=1): E[θ|D] = 0.6471, σ = 0.1126, Data: 10/15
+
+See: sequential_beta_update.png
+
+============================================================
+POSTERIOR PREDICTIVE DISTRIBUTION
+============================================================
 
 Observed: 7 successes in 10 trials
 Posterior: Beta(8, 4)
@@ -1163,562 +1212,565 @@ Most likely outcome: 7 successes
 See: predictive_distribution.png
 ```
 
-```python
-"""
-흩어짐을 아는 가우스 추론: 온전한 구현
+??? note "코드 5 (554줄)"
 
-이 모듈은 흩어짐을 알 때 가우스 분포의 평균에 대한 베이즈 추론을 주며,
-정밀도로 무게를 준 평균 내기와 차례대로 새로 고치기를
-보여 준다.
-"""
-
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import stats
-from typing import Tuple, List, Optional
-from dataclasses import dataclass
-
-@dataclass
-class GaussianPosterior:
+    ```python
     """
-    μ의 가우스 뒤확률 분포를 나타낸다.
-    
-    속성
-    ----------
-    mean : float
-        뒤확률 평균 μₙ
-    variance : float
-        뒤확률 흩어짐 σₙ²
-    n_observations : int
-        담아 넣은 관측의 개수
+    흩어짐을 아는 가우스 추론: 온전한 구현
+
+    이 모듈은 흩어짐을 알 때 가우스 분포의 평균에 대한 베이즈 추론을 주며,
+    정밀도로 무게를 준 평균 내기와 차례대로 새로 고치기를
+    보여 준다.
     """
-    mean: float
-    variance: float
-    n_observations: int = 0
-    
-    @property
-    def precision(self) -> float:
-        """뒤확률 정밀도 τₙ = 1/σₙ²."""
-        return 1.0 / self.variance
-    
-    @property
-    def std(self) -> float:
-        """뒤확률 표준편차 σₙ."""
-        return np.sqrt(self.variance)
-    
-    def pdf(self, mu: np.ndarray) -> np.ndarray:
-        """뒤확률 밀도의 값을 매긴다."""
-        return stats.norm.pdf(mu, self.mean, self.std)
-    
-    def cdf(self, mu: float) -> float:
-        """뒤확률 누적분포함수의 값을 매긴다."""
-        return stats.norm.cdf(mu, self.mean, self.std)
-    
-    def quantile(self, p: float) -> float:
-        """뒤확률 분위수를 셈한다."""
-        return stats.norm.ppf(p, self.mean, self.std)
-    
-    def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import stats
+    from typing import Tuple, List, Optional
+    from dataclasses import dataclass
+
+    @dataclass
+    class GaussianPosterior:
         """
-        믿음 구간을 셈한다.
-        
-        가우스에서는 양끝이 같은 구간과 HPD 구간이 맞아떨어진다.
-        """
-        alpha = 1 - level
-        z = stats.norm.ppf(1 - alpha/2)
-        return (self.mean - z * self.std, self.mean + z * self.std)
-    
-    def sample(self, n_samples: int) -> np.ndarray:
-        """뒤확률에서 표본을 뽑는다."""
-        return np.random.normal(self.mean, self.std, n_samples)
-    
-    def __repr__(self) -> str:
-        return f"N({self.mean:.4f}, {self.variance:.4f})"
+        μ의 가우스 뒤확률 분포를 나타낸다.
 
-class GaussianKnownVarianceModel:
-    """
-    흩어짐을 알 때 가우스 평균에 대한 베이즈 추론.
-    
-    매개변수
-    ----------
-    prior_mean : float
-        앞확률 평균 μ₀
-    prior_variance : float
-        앞확률 흩어짐 σ₀²
-    known_variance : float
-        아는 자료 흩어짐 σ²
-    """
-    
-    def __init__(
-        self, 
-        prior_mean: float, 
-        prior_variance: float, 
-        known_variance: float
-    ):
-        self.prior_mean = prior_mean
-        self.prior_variance = prior_variance
-        self.known_variance = known_variance
-        
-        # 정밀도
-        self.prior_precision = 1.0 / prior_variance
-        self.data_precision = 1.0 / known_variance
-        
-        # 지금 상태
-        self._reset()
-    
-    def _reset(self):
-        """앞확률 상태로 되돌린다."""
-        self.current_precision = self.prior_precision
-        self.current_mean = self.prior_mean
-        self.n_observations = 0
-        self.sum_x = 0.0
-    
-    @property
-    def prior(self) -> GaussianPosterior:
-        """앞확률 분포를 되돌린다."""
-        return GaussianPosterior(self.prior_mean, self.prior_variance, 0)
-    
-    @property
-    def posterior(self) -> GaussianPosterior:
-        """지금의 뒤확률 분포를 되돌린다."""
-        return GaussianPosterior(
-            self.current_mean,
-            1.0 / self.current_precision,
-            self.n_observations
-        )
-    
-    def update(self, data: np.ndarray) -> GaussianPosterior:
+        속성
+        ----------
+        mean : float
+            뒤확률 평균 μₙ
+        variance : float
+            뒤확률 흩어짐 σₙ²
+        n_observations : int
+            담아 넣은 관측의 개수
         """
-        새 관측으로 뒤확률을 새로 고친다.
-        
+        mean: float
+        variance: float
+        n_observations: int = 0
+
+        @property
+        def precision(self) -> float:
+            """뒤확률 정밀도 τₙ = 1/σₙ²."""
+            return 1.0 / self.variance
+
+        @property
+        def std(self) -> float:
+            """뒤확률 표준편차 σₙ."""
+            return np.sqrt(self.variance)
+
+        def pdf(self, mu: np.ndarray) -> np.ndarray:
+            """뒤확률 밀도의 값을 매긴다."""
+            return stats.norm.pdf(mu, self.mean, self.std)
+
+        def cdf(self, mu: float) -> float:
+            """뒤확률 누적분포함수의 값을 매긴다."""
+            return stats.norm.cdf(mu, self.mean, self.std)
+
+        def quantile(self, p: float) -> float:
+            """뒤확률 분위수를 셈한다."""
+            return stats.norm.ppf(p, self.mean, self.std)
+
+        def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
+            """
+            믿음 구간을 셈한다.
+
+            가우스에서는 양끝이 같은 구간과 HPD 구간이 맞아떨어진다.
+            """
+            alpha = 1 - level
+            z = stats.norm.ppf(1 - alpha/2)
+            return (self.mean - z * self.std, self.mean + z * self.std)
+
+        def sample(self, n_samples: int) -> np.ndarray:
+            """뒤확률에서 표본을 뽑는다."""
+            return np.random.normal(self.mean, self.std, n_samples)
+
+        def __repr__(self) -> str:
+            return f"N({self.mean:.4f}, {self.variance:.4f})"
+
+    class GaussianKnownVarianceModel:
+        """
+        흩어짐을 알 때 가우스 평균에 대한 베이즈 추론.
+
         매개변수
         ----------
-        data : array
-            새 관측
-        
-        반환값
-        -------
-        GaussianPosterior
-            새로 고친 뒤확률
+        prior_mean : float
+            앞확률 평균 μ₀
+        prior_variance : float
+            앞확률 흩어짐 σ₀²
+        known_variance : float
+            아는 자료 흩어짐 σ²
         """
-        data = np.atleast_1d(data)
-        n = len(data)
-        
-        # 충분 통계량 새로 고치기
-        self.n_observations += n
-        self.sum_x += data.sum()
-        
-        # 정밀도 새로 고치기(정밀도는 더해진다)
-        self.current_precision = self.prior_precision + self.n_observations * self.data_precision
-        
-        # 평균 새로 고치기(정밀도로 무게 준 평균)
-        self.current_mean = (
-            self.prior_precision * self.prior_mean + 
-            self.data_precision * self.sum_x
-        ) / self.current_precision
-        
-        return self.posterior
-    
-    def update_single(self, x: float) -> GaussianPosterior:
-        """관측 하나로 새로 고친다."""
-        return self.update(np.array([x]))
-    
-    def update_sequential(self, data: np.ndarray) -> List[GaussianPosterior]:
-        """
-        차례대로 새로 고치며 뒤확률의 자취를 되돌린다.
-        
-        매개변수
-        ----------
-        data : array
-            관측의 늘어놓음
-        
-        반환값
-        -------
-        list
-            관측마다의 뒤확률
-        """
-        self._reset()
-        history = [self.posterior]
-        
-        for x in data:
-            self.update_single(x)
-            history.append(self.posterior)
-        
-        return history
-    
-    def predictive_distribution(self) -> Tuple[float, float]:
-        """
-        다음 관측의 뒤확률 예측 분포를 셈한다.
-        
-        반환값
-        -------
-        tuple
-            (예측_평균, 예측_흩어짐)
-        """
-        pred_mean = self.current_mean
-        pred_var = self.known_variance + 1.0 / self.current_precision
-        return pred_mean, pred_var
-    
-    def log_marginal_likelihood(self, data: np.ndarray) -> float:
-        """
-        로그 주변 가능도(로그 증거)를 셈한다.
-        
-        log p(D) = log ∫ p(D|μ) p(μ) dμ
-        
-        가우스-가우스에서는 이것을 닫힌 꼴로 얻을 수 있다.
-        """
-        n = len(data)
-        x_bar = data.mean()
-        
-        # 주변 분포는 흩어짐이 부푼 가우스
-        marginal_var = self.prior_variance + self.known_variance / n
-        
-        # 앞확률 평균에서의 제곱 어긋남의 합
-        ss_from_prior = np.sum((data - self.prior_mean)**2)
-        
-        # 로그 주변 가능도
-        log_ml = (
-            -0.5 * n * np.log(2 * np.pi * self.known_variance)
-            - 0.5 * ss_from_prior / self.known_variance
-            + 0.5 * np.log(self.prior_variance / (self.prior_variance + self.known_variance / n))
-            + 0.5 * n**2 * (x_bar - self.prior_mean)**2 / 
-              (self.known_variance * (n * self.prior_variance / self.known_variance + 1))
-        )
-        
-        return log_ml
-    
-    def prior_weight(self) -> float:
-        """앞확률 평균에 주는 무게를 셈한다."""
-        return self.prior_precision / self.current_precision
-    
-    def data_weight(self) -> float:
-        """자료 평균에 주는 무게를 셈한다."""
-        return (self.n_observations * self.data_precision) / self.current_precision
-    
-    def equivalent_prior_samples(self) -> float:
-        """앞확률을 맞먹는 관측 개수로 나타낸다."""
-        return self.prior_precision / self.data_precision
 
-# =============================================================================
-# 그려 보기 함수
-# =============================================================================
+        def __init__(
+            self, 
+            prior_mean: float, 
+            prior_variance: float, 
+            known_variance: float
+        ):
+            self.prior_mean = prior_mean
+            self.prior_variance = prior_variance
+            self.known_variance = known_variance
 
-def plot_precision_weighted_averaging(
-    model: GaussianKnownVarianceModel,
-    data: np.ndarray,
-    true_mu: Optional[float] = None
-) -> plt.Figure:
-    """정밀도로 무게를 준 평균 내기를 그려 본다."""
-    
-    model._reset()
-    model.update(data)
-    
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-    
-    # 왼쪽: 앞확률, 가능도, 뒤확률
-    ax = axes[0]
-    
-    x_bar = data.mean()
-    mu_range = np.linspace(
-        min(model.prior_mean, x_bar) - 3 * max(np.sqrt(model.prior_variance), np.sqrt(model.known_variance)),
-        max(model.prior_mean, x_bar) + 3 * max(np.sqrt(model.prior_variance), np.sqrt(model.known_variance)),
-        500
-    )
-    
-    # 앞확률
-    prior_pdf = stats.norm.pdf(mu_range, model.prior_mean, np.sqrt(model.prior_variance))
-    ax.plot(mu_range, prior_pdf, 'b--', linewidth=2, 
-            label=f'Prior: N({model.prior_mean}, {model.prior_variance})')
-    
-    # 가능도(그려 보려고 고르게 함)
-    likelihood_var = model.known_variance / len(data)
-    likelihood_pdf = stats.norm.pdf(mu_range, x_bar, np.sqrt(likelihood_var))
-    ax.plot(mu_range, likelihood_pdf, 'g:', linewidth=2,
-            label=f'Likelihood: centered at x̄={x_bar:.2f}')
-    
-    # 뒤확률
-    post = model.posterior
-    posterior_pdf = post.pdf(mu_range)
-    ax.fill_between(mu_range, posterior_pdf, alpha=0.3, color='red')
-    ax.plot(mu_range, posterior_pdf, 'r-', linewidth=2,
-            label=f'Posterior: {post}')
-    
-    if true_mu is not None:
-        ax.axvline(true_mu, color='black', linestyle='--', linewidth=2,
-                   label=f'True μ = {true_mu}')
-    
-    ax.axvline(post.mean, color='red', linestyle=':', linewidth=1.5)
-    
-    ax.set_xlabel('μ', fontsize=12)
-    ax.set_ylabel('Density', fontsize=12)
-    ax.set_title('Bayesian Update: Precision-Weighted Averaging', fontsize=12)
-    ax.legend(fontsize=9)
-    ax.grid(True, alpha=0.3)
-    
-    # 오른쪽: 무게 그림
-    ax = axes[1]
-    
-    weights = [model.prior_weight(), model.data_weight()]
-    labels = [f'Prior\nμ₀ = {model.prior_mean}', f'Data\nx̄ = {x_bar:.2f}']
-    colors = ['steelblue', 'forestgreen']
-    
-    bars = ax.bar(labels, weights, color=colors, edgecolor='black', linewidth=2)
-    
-    for bar, w in zip(bars, weights):
-        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
-                f'{w:.1%}', ha='center', fontsize=12, fontweight='bold')
-    
-    ax.set_ylabel('Weight in Posterior Mean', fontsize=12)
-    ax.set_title(f'Weights (n={len(data)}, prior ≈ {model.equivalent_prior_samples():.1f} samples)', 
-                 fontsize=12)
-    ax.set_ylim(0, 1.1)
-    ax.grid(True, alpha=0.3, axis='y')
-    
-    plt.tight_layout()
-    return fig
+            # 정밀도
+            self.prior_precision = 1.0 / prior_variance
+            self.data_precision = 1.0 / known_variance
 
-def plot_sequential_updating(
-    data: np.ndarray,
-    prior_mean: float,
-    prior_variance: float,
-    known_variance: float,
-    true_mu: Optional[float] = None
-) -> plt.Figure:
-    """차례대로 베이즈 새로 고치기를 그려 본다."""
-    
-    model = GaussianKnownVarianceModel(prior_mean, prior_variance, known_variance)
-    history = model.update_sequential(data)
-    
-    fig, axes = plt.subplots(2, 1, figsize=(12, 8))
-    
-    # 위: 뒤확률 평균과 믿음 구간의 흐름
-    ax = axes[0]
-    
-    n_vals = np.arange(len(history))
-    means = [h.mean for h in history]
-    cis = [h.credible_interval(0.95) for h in history]
-    lowers = [ci[0] for ci in cis]
-    uppers = [ci[1] for ci in cis]
-    
-    ax.fill_between(n_vals, lowers, uppers, alpha=0.3, color='steelblue',
-                    label='95% Credible Interval')
-    ax.plot(n_vals, means, 'b-', linewidth=2, marker='o', markersize=4,
-            label='Posterior Mean')
-    
-    if true_mu is not None:
-        ax.axhline(true_mu, color='red', linestyle='--', linewidth=2,
-                   label=f'True μ = {true_mu}')
-    
-    ax.axhline(prior_mean, color='gray', linestyle=':', linewidth=1.5,
-               label=f'Prior Mean = {prior_mean}')
-    
-    ax.set_xlabel('Number of Observations', fontsize=12)
-    ax.set_ylabel('μ', fontsize=12)
-    ax.set_title('Sequential Bayesian Updating', fontsize=14)
-    ax.legend(loc='upper right', fontsize=9)
-    ax.grid(True, alpha=0.3)
-    
-    # 아래: 뒤확률 표준편차의 흐름
-    ax = axes[1]
-    
-    stds = [h.std for h in history]
-    ax.plot(n_vals, stds, 'g-', linewidth=2, marker='s', markersize=4)
-    
-    # 이론상 점근
-    asymptotic_std = np.sqrt(known_variance) / np.sqrt(np.maximum(n_vals, 1))
-    asymptotic_std[0] = np.sqrt(prior_variance)
-    ax.plot(n_vals, asymptotic_std, 'r--', linewidth=1.5, 
-            label=r'Asymptotic: $\sigma/\sqrt{n}$')
-    
-    ax.set_xlabel('Number of Observations', fontsize=12)
-    ax.set_ylabel('Posterior Std Dev', fontsize=12)
-    ax.set_title('Uncertainty Reduction', fontsize=14)
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    return fig
+            # 지금 상태
+            self._reset()
 
-def plot_predictive_distribution(
-    model: GaussianKnownVarianceModel,
-    true_mu: Optional[float] = None
-) -> plt.Figure:
-    """뒤확률 예측 분포를 그려 본다."""
-    
-    pred_mean, pred_var = model.predictive_distribution()
-    post = model.posterior
-    
-    fig, ax = plt.subplots(figsize=(10, 6))
-    
-    x_range = np.linspace(pred_mean - 4*np.sqrt(pred_var), 
-                          pred_mean + 4*np.sqrt(pred_var), 500)
-    
-    # μ의 뒤확률
-    posterior_pdf = post.pdf(x_range)
-    ax.plot(x_range, posterior_pdf, 'b-', linewidth=2,
-            label=f'Posterior for μ: N({post.mean:.2f}, {post.variance:.3f})')
-    
-    # x_{n+1}의 예측 분포
-    predictive_pdf = stats.norm.pdf(x_range, pred_mean, np.sqrt(pred_var))
-    ax.fill_between(x_range, predictive_pdf, alpha=0.3, color='orange')
-    ax.plot(x_range, predictive_pdf, 'orange', linewidth=2,
-            label=f'Predictive for x: N({pred_mean:.2f}, {pred_var:.3f})')
-    
-    if true_mu is not None:
-        ax.axvline(true_mu, color='red', linestyle='--', linewidth=2,
-                   label=f'True μ = {true_mu}')
-    
-    ax.set_xlabel('Value', fontsize=12)
-    ax.set_ylabel('Density', fontsize=12)
-    ax.set_title('Posterior vs Predictive Distribution', fontsize=14)
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3)
-    
-    # 흩어짐 쪼개기 적어 넣기
-    textstr = (f'Predictive Var = {pred_var:.3f}\n'
-               f'  = Aleatoric ({model.known_variance:.3f})\n'
-               f'  + Epistemic ({post.variance:.3f})')
-    ax.text(0.02, 0.98, textstr, transform=ax.transAxes, fontsize=10,
-            verticalalignment='top', fontfamily='monospace',
-            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-    
-    plt.tight_layout()
-    return fig
+        def _reset(self):
+            """앞확률 상태로 되돌린다."""
+            self.current_precision = self.prior_precision
+            self.current_mean = self.prior_mean
+            self.n_observations = 0
+            self.sum_x = 0.0
 
-# =============================================================================
-# 보여 주기
-# =============================================================================
+        @property
+        def prior(self) -> GaussianPosterior:
+            """앞확률 분포를 되돌린다."""
+            return GaussianPosterior(self.prior_mean, self.prior_variance, 0)
 
-def demo_basic_inference():
-    """기본 가우스 추론을 보인다."""
-    
-    print("=" * 60)
-    print("GAUSSIAN INFERENCE WITH KNOWN VARIANCE")
-    print("=" * 60)
-    
-    # 준비
-    true_mu = 5.0
-    known_var = 4.0  # σ² = 4, 그러므로 σ = 2
-    
-    np.random.seed(42)
-    n = 10
-    data = np.random.normal(true_mu, np.sqrt(known_var), n)
-    
-    print(f"\nTrue μ: {true_mu}")
-    print(f"Known σ²: {known_var}")
-    print(f"Sample: n = {n}, x̄ = {data.mean():.4f}")
-    print(f"MLE: {data.mean():.4f}")
-    
-    # 서로 다른 앞확률
-    priors = [
-        ("Weak prior (σ₀² = 100)", 0.0, 100.0),
-        ("Moderate prior", 3.0, 4.0),
-        ("Strong prior (wrong)", 10.0, 1.0),
-        ("Strong prior (right)", 5.0, 1.0),
-    ]
-    
-    print("\nPosterior summaries under different priors:")
-    print("-" * 60)
-    
-    for name, mu0, var0 in priors:
-        model = GaussianKnownVarianceModel(mu0, var0, known_var)
+        @property
+        def posterior(self) -> GaussianPosterior:
+            """지금의 뒤확률 분포를 되돌린다."""
+            return GaussianPosterior(
+                self.current_mean,
+                1.0 / self.current_precision,
+                self.n_observations
+            )
+
+        def update(self, data: np.ndarray) -> GaussianPosterior:
+            """
+            새 관측으로 뒤확률을 새로 고친다.
+
+            매개변수
+            ----------
+            data : array
+                새 관측
+
+            반환값
+            -------
+            GaussianPosterior
+                새로 고친 뒤확률
+            """
+            data = np.atleast_1d(data)
+            n = len(data)
+
+            # 충분 통계량 새로 고치기
+            self.n_observations += n
+            self.sum_x += data.sum()
+
+            # 정밀도 새로 고치기(정밀도는 더해진다)
+            self.current_precision = self.prior_precision + self.n_observations * self.data_precision
+
+            # 평균 새로 고치기(정밀도로 무게 준 평균)
+            self.current_mean = (
+                self.prior_precision * self.prior_mean + 
+                self.data_precision * self.sum_x
+            ) / self.current_precision
+
+            return self.posterior
+
+        def update_single(self, x: float) -> GaussianPosterior:
+            """관측 하나로 새로 고친다."""
+            return self.update(np.array([x]))
+
+        def update_sequential(self, data: np.ndarray) -> List[GaussianPosterior]:
+            """
+            차례대로 새로 고치며 뒤확률의 자취를 되돌린다.
+
+            매개변수
+            ----------
+            data : array
+                관측의 늘어놓음
+
+            반환값
+            -------
+            list
+                관측마다의 뒤확률
+            """
+            self._reset()
+            history = [self.posterior]
+
+            for x in data:
+                self.update_single(x)
+                history.append(self.posterior)
+
+            return history
+
+        def predictive_distribution(self) -> Tuple[float, float]:
+            """
+            다음 관측의 뒤확률 예측 분포를 셈한다.
+
+            반환값
+            -------
+            tuple
+                (예측_평균, 예측_흩어짐)
+            """
+            pred_mean = self.current_mean
+            pred_var = self.known_variance + 1.0 / self.current_precision
+            return pred_mean, pred_var
+
+        def log_marginal_likelihood(self, data: np.ndarray) -> float:
+            """
+            로그 주변 가능도(로그 증거)를 셈한다.
+
+            log p(D) = log ∫ p(D|μ) p(μ) dμ
+
+            가우스-가우스에서는 이것을 닫힌 꼴로 얻을 수 있다.
+            """
+            n = len(data)
+            x_bar = data.mean()
+
+            # 주변 분포는 흩어짐이 부푼 가우스
+            marginal_var = self.prior_variance + self.known_variance / n
+
+            # 앞확률 평균에서의 제곱 어긋남의 합
+            ss_from_prior = np.sum((data - self.prior_mean)**2)
+
+            # 로그 주변 가능도
+            log_ml = (
+                -0.5 * n * np.log(2 * np.pi * self.known_variance)
+                - 0.5 * ss_from_prior / self.known_variance
+                + 0.5 * np.log(self.prior_variance / (self.prior_variance + self.known_variance / n))
+                + 0.5 * n**2 * (x_bar - self.prior_mean)**2 / 
+                  (self.known_variance * (n * self.prior_variance / self.known_variance + 1))
+            )
+
+            return log_ml
+
+        def prior_weight(self) -> float:
+            """앞확률 평균에 주는 무게를 셈한다."""
+            return self.prior_precision / self.current_precision
+
+        def data_weight(self) -> float:
+            """자료 평균에 주는 무게를 셈한다."""
+            return (self.n_observations * self.data_precision) / self.current_precision
+
+        def equivalent_prior_samples(self) -> float:
+            """앞확률을 맞먹는 관측 개수로 나타낸다."""
+            return self.prior_precision / self.data_precision
+
+    # =============================================================================
+    # 그려 보기 함수
+    # =============================================================================
+
+    def plot_precision_weighted_averaging(
+        model: GaussianKnownVarianceModel,
+        data: np.ndarray,
+        true_mu: Optional[float] = None
+    ) -> plt.Figure:
+        """정밀도로 무게를 준 평균 내기를 그려 본다."""
+
+        model._reset()
         model.update(data)
+
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+        # 왼쪽: 앞확률, 가능도, 뒤확률
+        ax = axes[0]
+
+        x_bar = data.mean()
+        mu_range = np.linspace(
+            min(model.prior_mean, x_bar) - 3 * max(np.sqrt(model.prior_variance), np.sqrt(model.known_variance)),
+            max(model.prior_mean, x_bar) + 3 * max(np.sqrt(model.prior_variance), np.sqrt(model.known_variance)),
+            500
+        )
+
+        # 앞확률
+        prior_pdf = stats.norm.pdf(mu_range, model.prior_mean, np.sqrt(model.prior_variance))
+        ax.plot(mu_range, prior_pdf, 'b--', linewidth=2, 
+                label=f'Prior: N({model.prior_mean}, {model.prior_variance})')
+
+        # 가능도(그려 보려고 고르게 함)
+        likelihood_var = model.known_variance / len(data)
+        likelihood_pdf = stats.norm.pdf(mu_range, x_bar, np.sqrt(likelihood_var))
+        ax.plot(mu_range, likelihood_pdf, 'g:', linewidth=2,
+                label=f'Likelihood: centered at x̄={x_bar:.2f}')
+
+        # 뒤확률
         post = model.posterior
-        ci = post.credible_interval(0.95)
-        
-        print(f"\n{name}")
-        print(f"  Prior: N({mu0}, {var0})")
-        print(f"  Posterior: {post}")
-        print(f"  Prior weight: {model.prior_weight():.1%}")
-        print(f"  Data weight: {model.data_weight():.1%}")
-        print(f"  95% CI: [{ci[0]:.3f}, {ci[1]:.3f}]")
+        posterior_pdf = post.pdf(mu_range)
+        ax.fill_between(mu_range, posterior_pdf, alpha=0.3, color='red')
+        ax.plot(mu_range, posterior_pdf, 'r-', linewidth=2,
+                label=f'Posterior: {post}')
 
-def demo_sequential_updating():
-    """차례대로 새로 고치기를 보인다."""
-    
-    print("\n" + "=" * 60)
-    print("SEQUENTIAL BAYESIAN UPDATING")
-    print("=" * 60)
-    
-    true_mu = 100.0
-    known_var = 25.0  # σ = 5
-    
-    np.random.seed(123)
-    data = np.random.normal(true_mu, np.sqrt(known_var), 20)
-    
-    # 틀린 앞확률로 시작
-    prior_mean = 80.0
-    prior_var = 100.0
-    
-    print(f"\nTrue μ: {true_mu}")
-    print(f"Prior: N({prior_mean}, {prior_var}) [wrong!]")
-    print(f"Known σ²: {known_var}")
-    
-    model = GaussianKnownVarianceModel(prior_mean, prior_var, known_var)
-    
-    print("\nPosterior evolution:")
-    print("-" * 50)
-    print(f"{'n':>4} {'x':>8} {'E[μ|D]':>10} {'σ_post':>10} {'Data Wt':>10}")
-    print("-" * 50)
-    
-    for i, x in enumerate(data[:10]):
-        model.update_single(x)
-        print(f"{i+1:4d} {x:8.2f} {model.current_mean:10.3f} "
-              f"{model.posterior.std:10.3f} {model.data_weight():10.1%}")
-    
-    # 시각화 만들기
-    model._reset()
-    fig = plot_sequential_updating(data, prior_mean, prior_var, known_var, true_mu)
-    fig.savefig('gaussian_sequential_update.png', dpi=150, bbox_inches='tight')
-    plt.close()
-    print("\nSee: gaussian_sequential_update.png")
+        if true_mu is not None:
+            ax.axvline(true_mu, color='black', linestyle='--', linewidth=2,
+                       label=f'True μ = {true_mu}')
 
-def demo_predictive():
-    """예측 분포를 보인다."""
-    
-    print("\n" + "=" * 60)
-    print("POSTERIOR PREDICTIVE DISTRIBUTION")
-    print("=" * 60)
-    
-    true_mu = 50.0
-    known_var = 16.0  # σ = 4
-    
-    np.random.seed(456)
-    data = np.random.normal(true_mu, np.sqrt(known_var), 15)
-    
-    model = GaussianKnownVarianceModel(
-        prior_mean=45.0,
-        prior_variance=25.0,
-        known_variance=known_var
-    )
-    model.update(data)
-    
-    pred_mean, pred_var = model.predictive_distribution()
-    post = model.posterior
-    
-    print(f"\nObserved: {len(data)} observations")
-    print(f"Posterior for μ: N({post.mean:.2f}, {post.variance:.4f})")
-    print(f"\nPredictive for x_{len(data)+1}:")
-    print(f"  Mean: {pred_mean:.2f}")
-    print(f"  Variance: {pred_var:.4f}")
-    print(f"    = Aleatoric ({known_var:.4f}) + Epistemic ({post.variance:.4f})")
-    
-    # 95% 예측 구간
-    z = 1.96
-    pi_lower = pred_mean - z * np.sqrt(pred_var)
-    pi_upper = pred_mean + z * np.sqrt(pred_var)
-    print(f"  95% Prediction Interval: [{pi_lower:.2f}, {pi_upper:.2f}]")
-    
-    fig = plot_predictive_distribution(model, true_mu)
-    fig.savefig('gaussian_predictive.png', dpi=150, bbox_inches='tight')
-    plt.close()
-    print("\nSee: gaussian_predictive.png")
+        ax.axvline(post.mean, color='red', linestyle=':', linewidth=1.5)
 
-if __name__ == "__main__":
-    demo_basic_inference()
-    demo_sequential_updating()
-    demo_predictive()
-```
+        ax.set_xlabel('μ', fontsize=12)
+        ax.set_ylabel('Density', fontsize=12)
+        ax.set_title('Bayesian Update: Precision-Weighted Averaging', fontsize=12)
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3)
+
+        # 오른쪽: 무게 그림
+        ax = axes[1]
+
+        weights = [model.prior_weight(), model.data_weight()]
+        labels = [f'Prior\nμ₀ = {model.prior_mean}', f'Data\nx̄ = {x_bar:.2f}']
+        colors = ['steelblue', 'forestgreen']
+
+        bars = ax.bar(labels, weights, color=colors, edgecolor='black', linewidth=2)
+
+        for bar, w in zip(bars, weights):
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+                    f'{w:.1%}', ha='center', fontsize=12, fontweight='bold')
+
+        ax.set_ylabel('Weight in Posterior Mean', fontsize=12)
+        ax.set_title(f'Weights (n={len(data)}, prior ≈ {model.equivalent_prior_samples():.1f} samples)', 
+                     fontsize=12)
+        ax.set_ylim(0, 1.1)
+        ax.grid(True, alpha=0.3, axis='y')
+
+        plt.tight_layout()
+        return fig
+
+    def plot_sequential_updating(
+        data: np.ndarray,
+        prior_mean: float,
+        prior_variance: float,
+        known_variance: float,
+        true_mu: Optional[float] = None
+    ) -> plt.Figure:
+        """차례대로 베이즈 새로 고치기를 그려 본다."""
+
+        model = GaussianKnownVarianceModel(prior_mean, prior_variance, known_variance)
+        history = model.update_sequential(data)
+
+        fig, axes = plt.subplots(2, 1, figsize=(12, 8))
+
+        # 위: 뒤확률 평균과 믿음 구간의 흐름
+        ax = axes[0]
+
+        n_vals = np.arange(len(history))
+        means = [h.mean for h in history]
+        cis = [h.credible_interval(0.95) for h in history]
+        lowers = [ci[0] for ci in cis]
+        uppers = [ci[1] for ci in cis]
+
+        ax.fill_between(n_vals, lowers, uppers, alpha=0.3, color='steelblue',
+                        label='95% Credible Interval')
+        ax.plot(n_vals, means, 'b-', linewidth=2, marker='o', markersize=4,
+                label='Posterior Mean')
+
+        if true_mu is not None:
+            ax.axhline(true_mu, color='red', linestyle='--', linewidth=2,
+                       label=f'True μ = {true_mu}')
+
+        ax.axhline(prior_mean, color='gray', linestyle=':', linewidth=1.5,
+                   label=f'Prior Mean = {prior_mean}')
+
+        ax.set_xlabel('Number of Observations', fontsize=12)
+        ax.set_ylabel('μ', fontsize=12)
+        ax.set_title('Sequential Bayesian Updating', fontsize=14)
+        ax.legend(loc='upper right', fontsize=9)
+        ax.grid(True, alpha=0.3)
+
+        # 아래: 뒤확률 표준편차의 흐름
+        ax = axes[1]
+
+        stds = [h.std for h in history]
+        ax.plot(n_vals, stds, 'g-', linewidth=2, marker='s', markersize=4)
+
+        # 이론상 점근
+        asymptotic_std = np.sqrt(known_variance) / np.sqrt(np.maximum(n_vals, 1))
+        asymptotic_std[0] = np.sqrt(prior_variance)
+        ax.plot(n_vals, asymptotic_std, 'r--', linewidth=1.5, 
+                label=r'Asymptotic: $\sigma/\sqrt{n}$')
+
+        ax.set_xlabel('Number of Observations', fontsize=12)
+        ax.set_ylabel('Posterior Std Dev', fontsize=12)
+        ax.set_title('Uncertainty Reduction', fontsize=14)
+        ax.legend(fontsize=10)
+        ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        return fig
+
+    def plot_predictive_distribution(
+        model: GaussianKnownVarianceModel,
+        true_mu: Optional[float] = None
+    ) -> plt.Figure:
+        """뒤확률 예측 분포를 그려 본다."""
+
+        pred_mean, pred_var = model.predictive_distribution()
+        post = model.posterior
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        x_range = np.linspace(pred_mean - 4*np.sqrt(pred_var), 
+                              pred_mean + 4*np.sqrt(pred_var), 500)
+
+        # μ의 뒤확률
+        posterior_pdf = post.pdf(x_range)
+        ax.plot(x_range, posterior_pdf, 'b-', linewidth=2,
+                label=f'Posterior for μ: N({post.mean:.2f}, {post.variance:.3f})')
+
+        # x_{n+1}의 예측 분포
+        predictive_pdf = stats.norm.pdf(x_range, pred_mean, np.sqrt(pred_var))
+        ax.fill_between(x_range, predictive_pdf, alpha=0.3, color='orange')
+        ax.plot(x_range, predictive_pdf, 'orange', linewidth=2,
+                label=f'Predictive for x: N({pred_mean:.2f}, {pred_var:.3f})')
+
+        if true_mu is not None:
+            ax.axvline(true_mu, color='red', linestyle='--', linewidth=2,
+                       label=f'True μ = {true_mu}')
+
+        ax.set_xlabel('Value', fontsize=12)
+        ax.set_ylabel('Density', fontsize=12)
+        ax.set_title('Posterior vs Predictive Distribution', fontsize=14)
+        ax.legend(fontsize=10)
+        ax.grid(True, alpha=0.3)
+
+        # 흩어짐 쪼개기 적어 넣기
+        textstr = (f'Predictive Var = {pred_var:.3f}\n'
+                   f'  = Aleatoric ({model.known_variance:.3f})\n'
+                   f'  + Epistemic ({post.variance:.3f})')
+        ax.text(0.02, 0.98, textstr, transform=ax.transAxes, fontsize=10,
+                verticalalignment='top', fontfamily='monospace',
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+        plt.tight_layout()
+        return fig
+
+    # =============================================================================
+    # 보여 주기
+    # =============================================================================
+
+    def demo_basic_inference():
+        """기본 가우스 추론을 보인다."""
+
+        print("=" * 60)
+        print("GAUSSIAN INFERENCE WITH KNOWN VARIANCE")
+        print("=" * 60)
+
+        # 준비
+        true_mu = 5.0
+        known_var = 4.0  # σ² = 4, 그러므로 σ = 2
+
+        np.random.seed(42)
+        n = 10
+        data = np.random.normal(true_mu, np.sqrt(known_var), n)
+
+        print(f"\nTrue μ: {true_mu}")
+        print(f"Known σ²: {known_var}")
+        print(f"Sample: n = {n}, x̄ = {data.mean():.4f}")
+        print(f"MLE: {data.mean():.4f}")
+
+        # 서로 다른 앞확률
+        priors = [
+            ("Weak prior (σ₀² = 100)", 0.0, 100.0),
+            ("Moderate prior", 3.0, 4.0),
+            ("Strong prior (wrong)", 10.0, 1.0),
+            ("Strong prior (right)", 5.0, 1.0),
+        ]
+
+        print("\nPosterior summaries under different priors:")
+        print("-" * 60)
+
+        for name, mu0, var0 in priors:
+            model = GaussianKnownVarianceModel(mu0, var0, known_var)
+            model.update(data)
+            post = model.posterior
+            ci = post.credible_interval(0.95)
+
+            print(f"\n{name}")
+            print(f"  Prior: N({mu0}, {var0})")
+            print(f"  Posterior: {post}")
+            print(f"  Prior weight: {model.prior_weight():.1%}")
+            print(f"  Data weight: {model.data_weight():.1%}")
+            print(f"  95% CI: [{ci[0]:.3f}, {ci[1]:.3f}]")
+
+    def demo_sequential_updating():
+        """차례대로 새로 고치기를 보인다."""
+
+        print("\n" + "=" * 60)
+        print("SEQUENTIAL BAYESIAN UPDATING")
+        print("=" * 60)
+
+        true_mu = 100.0
+        known_var = 25.0  # σ = 5
+
+        np.random.seed(123)
+        data = np.random.normal(true_mu, np.sqrt(known_var), 20)
+
+        # 틀린 앞확률로 시작
+        prior_mean = 80.0
+        prior_var = 100.0
+
+        print(f"\nTrue μ: {true_mu}")
+        print(f"Prior: N({prior_mean}, {prior_var}) [wrong!]")
+        print(f"Known σ²: {known_var}")
+
+        model = GaussianKnownVarianceModel(prior_mean, prior_var, known_var)
+
+        print("\nPosterior evolution:")
+        print("-" * 50)
+        print(f"{'n':>4} {'x':>8} {'E[μ|D]':>10} {'σ_post':>10} {'Data Wt':>10}")
+        print("-" * 50)
+
+        for i, x in enumerate(data[:10]):
+            model.update_single(x)
+            print(f"{i+1:4d} {x:8.2f} {model.current_mean:10.3f} "
+                  f"{model.posterior.std:10.3f} {model.data_weight():10.1%}")
+
+        # 시각화 만들기
+        model._reset()
+        fig = plot_sequential_updating(data, prior_mean, prior_var, known_var, true_mu)
+        fig.savefig('gaussian_sequential_update.png', dpi=150, bbox_inches='tight')
+        plt.close()
+        print("\nSee: gaussian_sequential_update.png")
+
+    def demo_predictive():
+        """예측 분포를 보인다."""
+
+        print("\n" + "=" * 60)
+        print("POSTERIOR PREDICTIVE DISTRIBUTION")
+        print("=" * 60)
+
+        true_mu = 50.0
+        known_var = 16.0  # σ = 4
+
+        np.random.seed(456)
+        data = np.random.normal(true_mu, np.sqrt(known_var), 15)
+
+        model = GaussianKnownVarianceModel(
+            prior_mean=45.0,
+            prior_variance=25.0,
+            known_variance=known_var
+        )
+        model.update(data)
+
+        pred_mean, pred_var = model.predictive_distribution()
+        post = model.posterior
+
+        print(f"\nObserved: {len(data)} observations")
+        print(f"Posterior for μ: N({post.mean:.2f}, {post.variance:.4f})")
+        print(f"\nPredictive for x_{len(data)+1}:")
+        print(f"  Mean: {pred_mean:.2f}")
+        print(f"  Variance: {pred_var:.4f}")
+        print(f"    = Aleatoric ({known_var:.4f}) + Epistemic ({post.variance:.4f})")
+
+        # 95% 예측 구간
+        z = 1.96
+        pi_lower = pred_mean - z * np.sqrt(pred_var)
+        pi_upper = pred_mean + z * np.sqrt(pred_var)
+        print(f"  95% Prediction Interval: [{pi_lower:.2f}, {pi_upper:.2f}]")
+
+        fig = plot_predictive_distribution(model, true_mu)
+        fig.savefig('gaussian_predictive.png', dpi=150, bbox_inches='tight')
+        plt.close()
+        print("\nSee: gaussian_predictive.png")
+
+    if __name__ == "__main__":
+        demo_basic_inference()
+        demo_sequential_updating()
+        demo_predictive()
+    ```
+
 
 **출력:**
 
@@ -1756,8 +1808,41 @@ Strong prior (wrong)
   Data weight: 71.4%
   95% CI: [6.021, 8.116]
 
+Strong prior (right)
+  Prior: N(5.0, 1.0)
+  Posterior: N(5.6401, 0.2857)
+  Prior weight: 28.6%
+  Data weight: 71.4%
+  95% CI: [4.592, 6.688]
 
-... (36 lines omitted)
+============================================================
+SEQUENTIAL BAYESIAN UPDATING
+============================================================
+
+True μ: 100.0
+Prior: N(80.0, 100.0) [wrong!]
+Known σ²: 25.0
+
+Posterior evolution:
+--------------------------------------------------
+   n        x     E[μ|D]     σ_post    Data Wt
+--------------------------------------------------
+   1    94.57     91.657      4.472      80.0%
+   2   104.99     97.582      3.333      88.9%
+   3   101.41     98.761      2.774      92.3%
+   4    92.47     97.280      2.425      94.1%
+   5    97.11     97.247      2.182      95.2%
+   6   108.26     99.009      2.000      96.0%
+   7    87.87     97.472      1.857      96.6%
+   8    97.86     97.519      1.741      97.0%
+   9   106.33     98.471      1.644      97.3%
+  10    95.67     98.197      1.562      97.6%
+
+See: gaussian_sequential_update.png
+
+============================================================
+POSTERIOR PREDICTIVE DISTRIBUTION
+============================================================
 
 Observed: 15 observations
 Posterior for μ: N(49.47, 1.0230)
@@ -1771,591 +1856,594 @@ Predictive for x_16:
 See: gaussian_predictive.png
 ```
 
-```python
-"""
-흩어짐을 모르는 가우스 추론: 온전한 구현
+??? note "코드 6 (583줄)"
 
-이 모듈은 정규-역감마 켤레 앞확률을 써서 가우스 분포의 평균과 흩어짐에 대한
-베이즈 추론을 주며, 평균의 주변 뒤확률이 스튜던트 t임을
-보여 준다.
-"""
+    ```python
+    """
+    흩어짐을 모르는 가우스 추론: 온전한 구현
 
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import stats
-from scipy.special import gammaln
-from typing import Tuple, List, Optional
-from dataclasses import dataclass
+    이 모듈은 정규-역감마 켤레 앞확률을 써서 가우스 분포의 평균과 흩어짐에 대한
+    베이즈 추론을 주며, 평균의 주변 뒤확률이 스튜던트 t임을
+    보여 준다.
+    """
 
-@dataclass
-class NIGParameters:
-    """
-    정규-역감마 분포의 매개변수.
-    
-    NIG 분포는 다음과 같이 매개변수로 나타낸다:
-        σ² ~ 역감마(α, β)
-        μ | σ² ~ N(μ₀, σ²/κ)
-    
-    속성
-    ----------
-    mu : float
-        위치 매개변수 μ₀
-    kappa : float
-        정밀도 눈금 κ(평균에 대한 실효 표본 크기)
-    alpha : float
-        흩어짐의 모양 매개변수 α
-    beta : float
-        흩어짐의 눈금 매개변수 β
-    """
-    mu: float
-    kappa: float
-    alpha: float
-    beta: float
-    
-    def __post_init__(self):
-        if self.kappa <= 0:
-            raise ValueError("kappa must be positive")
-        if self.alpha <= 0:
-            raise ValueError("alpha must be positive")
-        if self.beta <= 0:
-            raise ValueError("beta must be positive")
-    
-    @property
-    def variance_mean(self) -> Optional[float]:
-        """α > 1이면 E[σ²] = β/(α-1)."""
-        if self.alpha > 1:
-            return self.beta / (self.alpha - 1)
-        return None
-    
-    @property
-    def variance_mode(self) -> float:
-        """Mode[σ²] = β/(α+1)."""
-        return self.beta / (self.alpha + 1)
-    
-    @property
-    def degrees_of_freedom(self) -> float:
-        """μ의 주변 t분포의 자유도."""
-        return 2 * self.alpha
-    
-    @property
-    def mu_scale(self) -> float:
-        """μ의 주변 t분포의 눈금 매개변수."""
-        return np.sqrt(self.beta / (self.alpha * self.kappa))
-    
-    def __repr__(self) -> str:
-        return f"NIG(μ={self.mu:.4f}, κ={self.kappa:.4f}, α={self.alpha:.4f}, β={self.beta:.4f})"
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import stats
+    from scipy.special import gammaln
+    from typing import Tuple, List, Optional
+    from dataclasses import dataclass
 
-class StudentTPosterior:
-    """
-    μ의 주변 스튜던트 t 뒤확률을 나타낸다.
-    
-    매개변수
-    ----------
-    loc : float
-        위치 매개변수(뒤확률 평균)
-    scale : float
-        배율 매개변수
-    df : float
-        자유도
-    """
-    
-    def __init__(self, loc: float, scale: float, df: float):
-        self.loc = loc
-        self.scale = scale
-        self.df = df
-        self._dist = stats.t(df=df, loc=loc, scale=scale)
-    
-    @property
-    def mean(self) -> Optional[float]:
-        """df > 1이면 평균이 있다."""
-        return self.loc if self.df > 1 else None
-    
-    @property
-    def variance(self) -> Optional[float]:
-        """df > 2이면 흩어짐이 있다."""
-        if self.df > 2:
-            return (self.df / (self.df - 2)) * self.scale**2
-        return None
-    
-    def pdf(self, x: np.ndarray) -> np.ndarray:
-        """뒤확률 밀도의 값을 매긴다."""
-        return self._dist.pdf(x)
-    
-    def cdf(self, x: float) -> float:
-        """뒤확률 누적분포함수의 값을 매긴다."""
-        return self._dist.cdf(x)
-    
-    def quantile(self, p: float) -> float:
-        """뒤확률 분위수를 셈한다."""
-        return self._dist.ppf(p)
-    
-    def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
-        """양끝이 같은 믿음 구간을 셈한다."""
-        alpha = 1 - level
-        return (self.quantile(alpha/2), self.quantile(1 - alpha/2))
-    
-    def sample(self, n_samples: int) -> np.ndarray:
-        """뒤확률에서 표본을 뽑는다."""
-        return self._dist.rvs(n_samples)
-    
-    def __repr__(self) -> str:
-        return f"t_{self.df:.1f}({self.loc:.4f}, {self.scale:.4f})"
-
-class InverseGammaPosterior:
-    """
-    σ²의 주변 역감마 뒤확률을 나타낸다.
-    
-    매개변수
-    ----------
-    alpha : float
-        모양 매개변수
-    beta : float
-        배율 매개변수
-    """
-    
-    def __init__(self, alpha: float, beta: float):
-        self.alpha = alpha
-        self.beta = beta
-        self._dist = stats.invgamma(a=alpha, scale=beta)
-    
-    @property
-    def mean(self) -> Optional[float]:
-        """α > 1이면 평균이 있다."""
-        return self.beta / (self.alpha - 1) if self.alpha > 1 else None
-    
-    @property
-    def mode(self) -> float:
-        """최빈값 = β/(α+1)."""
-        return self.beta / (self.alpha + 1)
-    
-    def pdf(self, x: np.ndarray) -> np.ndarray:
-        """뒤확률 밀도의 값을 매긴다."""
-        return self._dist.pdf(x)
-    
-    def cdf(self, x: float) -> float:
-        """뒤확률 누적분포함수의 값을 매긴다."""
-        return self._dist.cdf(x)
-    
-    def quantile(self, p: float) -> float:
-        """뒤확률 분위수를 셈한다."""
-        return self._dist.ppf(p)
-    
-    def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
-        """양끝이 같은 믿음 구간을 셈한다."""
-        alpha = 1 - level
-        return (self.quantile(alpha/2), self.quantile(1 - alpha/2))
-    
-    def sample(self, n_samples: int) -> np.ndarray:
-        """뒤확률에서 표본을 뽑는다."""
-        return self._dist.rvs(n_samples)
-    
-    def __repr__(self) -> str:
-        return f"Inv-Gamma({self.alpha:.4f}, {self.beta:.4f})"
-
-class GaussianUnknownVarianceModel:
-    """
-    평균과 흩어짐을 모르는 가우스에 대한 베이즈 추론.
-    
-    정규-역감마 켤레 앞확률을 쓴다.
-    
-    매개변수
-    ----------
-    prior_mu : float
-        앞확률 평균 위치 μ₀
-    prior_kappa : float
-        앞확률 정밀도 눈금 κ₀
-    prior_alpha : float
-        앞확률 모양 α₀
-    prior_beta : float
-        앞확률 눈금 β₀
-    """
-    
-    def __init__(
-        self,
-        prior_mu: float = 0.0,
-        prior_kappa: float = 1.0,
-        prior_alpha: float = 1.0,
-        prior_beta: float = 1.0
-    ):
-        self.prior = NIGParameters(prior_mu, prior_kappa, prior_alpha, prior_beta)
-        self._reset()
-    
-    def _reset(self):
-        """앞확률 상태로 되돌린다."""
-        self.current = NIGParameters(
-            self.prior.mu, self.prior.kappa, 
-            self.prior.alpha, self.prior.beta
-        )
-        self.n_observations = 0
-        self._data_sum = 0.0
-        self._data_sum_sq = 0.0
-    
-    @property
-    def posterior_nig(self) -> NIGParameters:
-        """지금의 NIG 뒤확률 매개변수를 되돌린다."""
-        return self.current
-    
-    @property
-    def posterior_mu(self) -> StudentTPosterior:
-        """μ의 주변 뒤확률(스튜던트 t)을 되돌린다."""
-        return StudentTPosterior(
-            loc=self.current.mu,
-            scale=self.current.mu_scale,
-            df=self.current.degrees_of_freedom
-        )
-    
-    @property
-    def posterior_variance(self) -> InverseGammaPosterior:
-        """σ²의 주변 뒤확률(역감마)을 되돌린다."""
-        return InverseGammaPosterior(
-            alpha=self.current.alpha,
-            beta=self.current.beta
-        )
-    
-    def update(self, data: np.ndarray) -> NIGParameters:
+    @dataclass
+    class NIGParameters:
         """
-        새 관측으로 뒤확률을 새로 고친다.
-        
+        정규-역감마 분포의 매개변수.
+
+        NIG 분포는 다음과 같이 매개변수로 나타낸다:
+            σ² ~ 역감마(α, β)
+            μ | σ² ~ N(μ₀, σ²/κ)
+
+        속성
+        ----------
+        mu : float
+            위치 매개변수 μ₀
+        kappa : float
+            정밀도 눈금 κ(평균에 대한 실효 표본 크기)
+        alpha : float
+            흩어짐의 모양 매개변수 α
+        beta : float
+            흩어짐의 눈금 매개변수 β
+        """
+        mu: float
+        kappa: float
+        alpha: float
+        beta: float
+
+        def __post_init__(self):
+            if self.kappa <= 0:
+                raise ValueError("kappa must be positive")
+            if self.alpha <= 0:
+                raise ValueError("alpha must be positive")
+            if self.beta <= 0:
+                raise ValueError("beta must be positive")
+
+        @property
+        def variance_mean(self) -> Optional[float]:
+            """α > 1이면 E[σ²] = β/(α-1)."""
+            if self.alpha > 1:
+                return self.beta / (self.alpha - 1)
+            return None
+
+        @property
+        def variance_mode(self) -> float:
+            """Mode[σ²] = β/(α+1)."""
+            return self.beta / (self.alpha + 1)
+
+        @property
+        def degrees_of_freedom(self) -> float:
+            """μ의 주변 t분포의 자유도."""
+            return 2 * self.alpha
+
+        @property
+        def mu_scale(self) -> float:
+            """μ의 주변 t분포의 눈금 매개변수."""
+            return np.sqrt(self.beta / (self.alpha * self.kappa))
+
+        def __repr__(self) -> str:
+            return f"NIG(μ={self.mu:.4f}, κ={self.kappa:.4f}, α={self.alpha:.4f}, β={self.beta:.4f})"
+
+    class StudentTPosterior:
+        """
+        μ의 주변 스튜던트 t 뒤확률을 나타낸다.
+
         매개변수
         ----------
-        data : array
-            새 관측
-        
-        반환값
-        -------
-        NIGParameters
-            새로 고친 뒤확률 매개변수
+        loc : float
+            위치 매개변수(뒤확률 평균)
+        scale : float
+            배율 매개변수
+        df : float
+            자유도
         """
-        data = np.atleast_1d(data).astype(float)
-        n = len(data)
-        
-        if n == 0:
+
+        def __init__(self, loc: float, scale: float, df: float):
+            self.loc = loc
+            self.scale = scale
+            self.df = df
+            self._dist = stats.t(df=df, loc=loc, scale=scale)
+
+        @property
+        def mean(self) -> Optional[float]:
+            """df > 1이면 평균이 있다."""
+            return self.loc if self.df > 1 else None
+
+        @property
+        def variance(self) -> Optional[float]:
+            """df > 2이면 흩어짐이 있다."""
+            if self.df > 2:
+                return (self.df / (self.df - 2)) * self.scale**2
+            return None
+
+        def pdf(self, x: np.ndarray) -> np.ndarray:
+            """뒤확률 밀도의 값을 매긴다."""
+            return self._dist.pdf(x)
+
+        def cdf(self, x: float) -> float:
+            """뒤확률 누적분포함수의 값을 매긴다."""
+            return self._dist.cdf(x)
+
+        def quantile(self, p: float) -> float:
+            """뒤확률 분위수를 셈한다."""
+            return self._dist.ppf(p)
+
+        def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
+            """양끝이 같은 믿음 구간을 셈한다."""
+            alpha = 1 - level
+            return (self.quantile(alpha/2), self.quantile(1 - alpha/2))
+
+        def sample(self, n_samples: int) -> np.ndarray:
+            """뒤확률에서 표본을 뽑는다."""
+            return self._dist.rvs(n_samples)
+
+        def __repr__(self) -> str:
+            return f"t_{self.df:.1f}({self.loc:.4f}, {self.scale:.4f})"
+
+    class InverseGammaPosterior:
+        """
+        σ²의 주변 역감마 뒤확률을 나타낸다.
+
+        매개변수
+        ----------
+        alpha : float
+            모양 매개변수
+        beta : float
+            배율 매개변수
+        """
+
+        def __init__(self, alpha: float, beta: float):
+            self.alpha = alpha
+            self.beta = beta
+            self._dist = stats.invgamma(a=alpha, scale=beta)
+
+        @property
+        def mean(self) -> Optional[float]:
+            """α > 1이면 평균이 있다."""
+            return self.beta / (self.alpha - 1) if self.alpha > 1 else None
+
+        @property
+        def mode(self) -> float:
+            """최빈값 = β/(α+1)."""
+            return self.beta / (self.alpha + 1)
+
+        def pdf(self, x: np.ndarray) -> np.ndarray:
+            """뒤확률 밀도의 값을 매긴다."""
+            return self._dist.pdf(x)
+
+        def cdf(self, x: float) -> float:
+            """뒤확률 누적분포함수의 값을 매긴다."""
+            return self._dist.cdf(x)
+
+        def quantile(self, p: float) -> float:
+            """뒤확률 분위수를 셈한다."""
+            return self._dist.ppf(p)
+
+        def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
+            """양끝이 같은 믿음 구간을 셈한다."""
+            alpha = 1 - level
+            return (self.quantile(alpha/2), self.quantile(1 - alpha/2))
+
+        def sample(self, n_samples: int) -> np.ndarray:
+            """뒤확률에서 표본을 뽑는다."""
+            return self._dist.rvs(n_samples)
+
+        def __repr__(self) -> str:
+            return f"Inv-Gamma({self.alpha:.4f}, {self.beta:.4f})"
+
+    class GaussianUnknownVarianceModel:
+        """
+        평균과 흩어짐을 모르는 가우스에 대한 베이즈 추론.
+
+        정규-역감마 켤레 앞확률을 쓴다.
+
+        매개변수
+        ----------
+        prior_mu : float
+            앞확률 평균 위치 μ₀
+        prior_kappa : float
+            앞확률 정밀도 눈금 κ₀
+        prior_alpha : float
+            앞확률 모양 α₀
+        prior_beta : float
+            앞확률 눈금 β₀
+        """
+
+        def __init__(
+            self,
+            prior_mu: float = 0.0,
+            prior_kappa: float = 1.0,
+            prior_alpha: float = 1.0,
+            prior_beta: float = 1.0
+        ):
+            self.prior = NIGParameters(prior_mu, prior_kappa, prior_alpha, prior_beta)
+            self._reset()
+
+        def _reset(self):
+            """앞확률 상태로 되돌린다."""
+            self.current = NIGParameters(
+                self.prior.mu, self.prior.kappa, 
+                self.prior.alpha, self.prior.beta
+            )
+            self.n_observations = 0
+            self._data_sum = 0.0
+            self._data_sum_sq = 0.0
+
+        @property
+        def posterior_nig(self) -> NIGParameters:
+            """지금의 NIG 뒤확률 매개변수를 되돌린다."""
             return self.current
-        
-        # 충분 통계량 새로 고치기
-        self.n_observations += n
-        self._data_sum += data.sum()
-        self._data_sum_sq += (data**2).sum()
-        
-        # 전체 표본 평균
-        overall_mean = self._data_sum / self.n_observations
-        
-        # 표본 흩어짐 셈하기(모든 자료를 써서)
-        if self.n_observations > 1:
-            ss = self._data_sum_sq - self.n_observations * overall_mean**2
-        else:
-            ss = 0.0
-        
-        # NIG 새로 고치기 공식
-        kappa_n = self.prior.kappa + self.n_observations
-        mu_n = (self.prior.kappa * self.prior.mu + self._data_sum) / kappa_n
-        alpha_n = self.prior.alpha + self.n_observations / 2
-        
-        # 베타 새로 고치기
-        prior_data_sq = (self.prior.kappa * self.n_observations / kappa_n) * \
-                        (overall_mean - self.prior.mu)**2
-        beta_n = self.prior.beta + 0.5 * ss + 0.5 * prior_data_sq
-        
-        self.current = NIGParameters(mu_n, kappa_n, alpha_n, beta_n)
-        return self.current
-    
-    def update_single(self, x: float) -> NIGParameters:
-        """온라인 공식을 써서 관측 하나로 새로 고친다."""
-        kappa_old = self.current.kappa
-        mu_old = self.current.mu
-        
-        # 매개변수 갱신
-        kappa_new = kappa_old + 1
-        mu_new = (kappa_old * mu_old + x) / kappa_new
-        alpha_new = self.current.alpha + 0.5
-        beta_new = self.current.beta + (kappa_old * (x - mu_old)**2) / (2 * kappa_new)
-        
-        self.current = NIGParameters(mu_new, kappa_new, alpha_new, beta_new)
-        self.n_observations += 1
-        self._data_sum += x
-        self._data_sum_sq += x**2
-        
-        return self.current
-    
-    def update_sequential(self, data: np.ndarray) -> List[NIGParameters]:
-        """차례대로 새로 고치며 뒤확률의 자취를 되돌린다."""
-        self._reset()
-        history = [self.current]
-        
-        for x in data:
-            self.update_single(x)
-            history.append(self.current)
-        
-        return history
-    
-    def predictive_distribution(self) -> StudentTPosterior:
-        """다음 관측의 뒤확률 예측 분포를 셈한다."""
-        pred_scale = np.sqrt(
-            self.current.beta * (self.current.kappa + 1) / 
-            (self.current.alpha * self.current.kappa)
-        )
-        return StudentTPosterior(
-            loc=self.current.mu,
-            scale=pred_scale,
-            df=self.current.degrees_of_freedom
-        )
-    
-    def sample_posterior(self, n_samples: int) -> Tuple[np.ndarray, np.ndarray]:
-        """뒤확률에서 (mu, sigma2) 결합 표본을 뽑는다."""
-        # 먼저 역감마에서 σ²을 표집
-        sigma2_samples = self.posterior_variance.sample(n_samples)
-        
-        # 그다음 정규에서 μ | σ²을 표집
-        mu_std = np.sqrt(sigma2_samples / self.current.kappa)
-        mu_samples = np.random.normal(self.current.mu, mu_std)
-        
-        return mu_samples, sigma2_samples
-    
-    def log_marginal_likelihood(self, data: np.ndarray) -> float:
-        """로그 주변 가능도(모형 증거)를 셈한다."""
-        data = np.atleast_1d(data)
-        n = len(data)
-        
-        if n == 0:
-            return 0.0
-        
-        # 뒤확률 매개변수 셈하기
-        x_bar = data.mean()
-        ss = ((data - x_bar)**2).sum() if n > 1 else 0.0
-        
-        kappa_n = self.prior.kappa + n
-        alpha_n = self.prior.alpha + n / 2
-        prior_data_sq = (self.prior.kappa * n / kappa_n) * (x_bar - self.prior.mu)**2
-        beta_n = self.prior.beta + 0.5 * ss + 0.5 * prior_data_sq
-        
-        # 로그 주변 가능도
-        log_ml = (
-            gammaln(alpha_n) - gammaln(self.prior.alpha)
-            + self.prior.alpha * np.log(self.prior.beta) - alpha_n * np.log(beta_n)
-            + 0.5 * np.log(self.prior.kappa / kappa_n)
-            - (n / 2) * np.log(2 * np.pi)
-        )
-        
-        return log_ml
 
-# =============================================================================
-# 그려 보기 함수
-# =============================================================================
+        @property
+        def posterior_mu(self) -> StudentTPosterior:
+            """μ의 주변 뒤확률(스튜던트 t)을 되돌린다."""
+            return StudentTPosterior(
+                loc=self.current.mu,
+                scale=self.current.mu_scale,
+                df=self.current.degrees_of_freedom
+            )
 
-def plot_joint_posterior(
-    model: GaussianUnknownVarianceModel,
-    true_mu: Optional[float] = None,
-    true_sigma2: Optional[float] = None,
-    n_grid: int = 100
-) -> plt.Figure:
-    """결합 뒤확률과 주변 뒤확률을 그려 본다."""
-    
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-    
-    post_mu = model.posterior_mu
-    post_var = model.posterior_variance
-    
-    # 그릴 범위 정하기
-    mu_std = post_mu.scale * np.sqrt(post_mu.df / (post_mu.df - 2)) if post_mu.df > 2 else post_mu.scale * 3
-    mu_range = (post_mu.loc - 4*mu_std, post_mu.loc + 4*mu_std)
-    
-    var_mean = post_var.mean if post_var.mean is not None else post_var.mode
-    var_range = (max(0.01, var_mean * 0.1), var_mean * 3)
-    
-    mu_vals = np.linspace(mu_range[0], mu_range[1], n_grid)
-    var_vals = np.linspace(var_range[0], var_range[1], n_grid)
-    
-    # 왼쪽 위: 결합 뒤확률 등고선
-    ax = axes[0, 0]
-    MU, VAR = np.meshgrid(mu_vals, var_vals)
-    
-    joint_log_pdf = np.zeros_like(MU)
-    for i, v in enumerate(var_vals):
-        mu_given_var = stats.norm(loc=model.current.mu, scale=np.sqrt(v / model.current.kappa))
-        joint_log_pdf[i, :] = mu_given_var.logpdf(mu_vals) + post_var._dist.logpdf(v)
-    
-    joint_pdf = np.exp(joint_log_pdf - joint_log_pdf.max())
-    
-    contour = ax.contourf(MU, VAR, joint_pdf, levels=20, cmap='Blues')
-    if true_mu is not None:
-        ax.axvline(true_mu, color='red', linestyle='--', linewidth=2)
-    if true_sigma2 is not None:
-        ax.axhline(true_sigma2, color='red', linestyle='--', linewidth=2)
-    
-    ax.set_xlabel('μ', fontsize=12)
-    ax.set_ylabel('σ²', fontsize=12)
-    ax.set_title('Joint Posterior p(μ, σ² | D)', fontsize=14)
-    plt.colorbar(contour, ax=ax)
-    
-    # 오른쪽 위: μ의 주변 분포
-    ax = axes[0, 1]
-    ax.plot(mu_vals, post_mu.pdf(mu_vals), 'b-', linewidth=2, label=f'{post_mu}')
-    ax.fill_between(mu_vals, post_mu.pdf(mu_vals), alpha=0.3)
-    if true_mu is not None:
-        ax.axvline(true_mu, color='red', linestyle='--', linewidth=2)
-    ax.set_xlabel('μ', fontsize=12)
-    ax.set_ylabel('Density', fontsize=12)
-    ax.set_title(f'Marginal Posterior for μ (df = {post_mu.df:.0f})', fontsize=14)
-    ax.legend(fontsize=9)
-    ax.grid(True, alpha=0.3)
-    
-    # 왼쪽 아래: σ²의 주변 분포
-    ax = axes[1, 0]
-    ax.plot(var_vals, post_var.pdf(var_vals), 'b-', linewidth=2, label=f'{post_var}')
-    ax.fill_between(var_vals, post_var.pdf(var_vals), alpha=0.3)
-    if true_sigma2 is not None:
-        ax.axvline(true_sigma2, color='red', linestyle='--', linewidth=2)
-    ax.axvline(post_var.mode, color='green', linestyle=':', label=f'Mode = {post_var.mode:.3f}')
-    ax.set_xlabel('σ²', fontsize=12)
-    ax.set_ylabel('Density', fontsize=12)
-    ax.set_title('Marginal Posterior for σ²', fontsize=14)
-    ax.legend(fontsize=9)
-    ax.grid(True, alpha=0.3)
-    
-    # 오른쪽 아래: 뒤확률 표본
-    ax = axes[1, 1]
-    mu_samples, var_samples = model.sample_posterior(1000)
-    ax.scatter(mu_samples, var_samples, alpha=0.3, s=10, c='steelblue')
-    if true_mu is not None and true_sigma2 is not None:
-        ax.scatter([true_mu], [true_sigma2], color='red', s=100, marker='*', zorder=5)
-    ax.set_xlabel('μ', fontsize=12)
-    ax.set_ylabel('σ²', fontsize=12)
-    ax.set_title('Posterior Samples', fontsize=14)
-    ax.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    return fig
+        @property
+        def posterior_variance(self) -> InverseGammaPosterior:
+            """σ²의 주변 뒤확률(역감마)을 되돌린다."""
+            return InverseGammaPosterior(
+                alpha=self.current.alpha,
+                beta=self.current.beta
+            )
 
-def plot_sequential_updating(
-    data: np.ndarray,
-    prior_mu: float,
-    prior_kappa: float,
-    prior_alpha: float,
-    prior_beta: float,
-    true_mu: Optional[float] = None,
-    true_sigma2: Optional[float] = None
-) -> plt.Figure:
-    """차례대로 베이즈 새로 고치기를 그려 본다."""
-    
-    model = GaussianUnknownVarianceModel(prior_mu, prior_kappa, prior_alpha, prior_beta)
-    history = model.update_sequential(data)
-    
-    n_vals = np.arange(len(history))
-    
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    
-    # 왼쪽 위: μ의 뒤확률 평균
-    ax = axes[0, 0]
-    mu_means = [h.mu for h in history]
-    
-    ci_lower, ci_upper = [], []
-    for h in history:
-        post = StudentTPosterior(h.mu, h.mu_scale, h.degrees_of_freedom)
-        ci = post.credible_interval(0.95)
-        ci_lower.append(ci[0])
-        ci_upper.append(ci[1])
-    
-    ax.fill_between(n_vals, ci_lower, ci_upper, alpha=0.3, color='steelblue', label='95% CI')
-    ax.plot(n_vals, mu_means, 'b-', linewidth=2, marker='o', markersize=4, label='E[μ|D]')
-    if true_mu is not None:
-        ax.axhline(true_mu, color='red', linestyle='--', linewidth=2, label=f'True μ = {true_mu}')
-    ax.set_xlabel('Observations', fontsize=12)
-    ax.set_ylabel('μ', fontsize=12)
-    ax.set_title('Posterior for Mean', fontsize=14)
-    ax.legend(fontsize=9)
-    ax.grid(True, alpha=0.3)
-    
-    # 오른쪽 위: σ²의 뒤확률 최빈값
-    ax = axes[0, 1]
-    var_modes = [h.variance_mode for h in history]
-    ax.plot(n_vals, var_modes, 'g-', linewidth=2, marker='s', markersize=4, label='Mode[σ²|D]')
-    if true_sigma2 is not None:
-        ax.axhline(true_sigma2, color='red', linestyle='--', linewidth=2, label=f'True σ² = {true_sigma2}')
-    ax.set_xlabel('Observations', fontsize=12)
-    ax.set_ylabel('σ²', fontsize=12)
-    ax.set_title('Posterior for Variance', fontsize=14)
-    ax.legend(fontsize=9)
-    ax.grid(True, alpha=0.3)
-    
-    # 왼쪽 아래: 자유도
-    ax = axes[1, 0]
-    dfs = [h.degrees_of_freedom for h in history]
-    ax.plot(n_vals, dfs, 'm-', linewidth=2, marker='d', markersize=4)
-    ax.axhline(30, color='gray', linestyle=':', alpha=0.7, label='df=30 (≈Normal)')
-    ax.set_xlabel('Observations', fontsize=12)
-    ax.set_ylabel('Degrees of Freedom', fontsize=12)
-    ax.set_title('Student-t df (2αₙ)', fontsize=14)
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3)
-    
-    # 오른쪽 아래: κ과 α의 자람
-    ax = axes[1, 1]
-    kappas = [h.kappa for h in history]
-    alphas = [h.alpha for h in history]
-    ax.plot(n_vals, kappas, 'b-', linewidth=2, label='κₙ')
-    ax.plot(n_vals, alphas, 'g-', linewidth=2, label='αₙ')
-    ax.set_xlabel('Observations', fontsize=12)
-    ax.set_ylabel('Parameter Value', fontsize=12)
-    ax.set_title('NIG Parameter Evolution', fontsize=14)
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    return fig
+        def update(self, data: np.ndarray) -> NIGParameters:
+            """
+            새 관측으로 뒤확률을 새로 고친다.
 
-# =============================================================================
-# 보여 주기
-# =============================================================================
+            매개변수
+            ----------
+            data : array
+                새 관측
 
-def demo_basic_inference():
-    """흩어짐을 모를 때의 기본 추론을 보인다."""
-    
-    print("=" * 70)
-    print("GAUSSIAN INFERENCE WITH UNKNOWN VARIANCE")
-    print("=" * 70)
-    
-    true_mu, true_sigma2 = 5.0, 4.0
-    np.random.seed(42)
-    data = np.random.normal(true_mu, np.sqrt(true_sigma2), 20)
-    
-    print(f"\nTrue: μ = {true_mu}, σ² = {true_sigma2}")
-    print(f"Data: n = {len(data)}, x̄ = {data.mean():.4f}, s² = {data.var(ddof=1):.4f}")
-    
-    model = GaussianUnknownVarianceModel(0.0, 0.1, 0.1, 0.1)
-    model.update(data)
-    
-    print(f"\nPosterior NIG: {model.posterior_nig}")
-    print(f"Marginal for μ: {model.posterior_mu}")
-    print(f"Marginal for σ²: {model.posterior_variance}")
+            반환값
+            -------
+            NIGParameters
+                새로 고친 뒤확률 매개변수
+            """
+            data = np.atleast_1d(data).astype(float)
+            n = len(data)
 
-def demo_t_test_connection():
-    """빈도주의 t검정과의 이음을 보인다."""
-    
-    print("\n" + "=" * 70)
-    print("CONNECTION TO t-TEST")
-    print("=" * 70)
-    
-    np.random.seed(456)
-    data = np.random.normal(50, 10, 25)
-    
-    # 빈도주의
-    x_bar, s = data.mean(), data.std(ddof=1)
-    t_crit = stats.t.ppf(0.975, df=len(data)-1)
-    freq_ci = (x_bar - t_crit * s/np.sqrt(len(data)), x_bar + t_crit * s/np.sqrt(len(data)))
-    
-    # 흐릿한 앞확률을 쓴 베이즈
-    model = GaussianUnknownVarianceModel(0.0, 0.001, 0.001, 0.001)
-    model.update(data)
-    bayes_ci = model.posterior_mu.credible_interval(0.95)
-    
-    print(f"\nFrequentist 95% CI: [{freq_ci[0]:.4f}, {freq_ci[1]:.4f}]")
-    print(f"Bayesian 95% CI:    [{bayes_ci[0]:.4f}, {bayes_ci[1]:.4f}]")
-    print(f"Difference: {abs(freq_ci[1] - bayes_ci[1]):.6f}")
+            if n == 0:
+                return self.current
 
-if __name__ == "__main__":
-    demo_basic_inference()
-    demo_t_test_connection()
-```
+            # 충분 통계량 새로 고치기
+            self.n_observations += n
+            self._data_sum += data.sum()
+            self._data_sum_sq += (data**2).sum()
+
+            # 전체 표본 평균
+            overall_mean = self._data_sum / self.n_observations
+
+            # 표본 흩어짐 셈하기(모든 자료를 써서)
+            if self.n_observations > 1:
+                ss = self._data_sum_sq - self.n_observations * overall_mean**2
+            else:
+                ss = 0.0
+
+            # NIG 새로 고치기 공식
+            kappa_n = self.prior.kappa + self.n_observations
+            mu_n = (self.prior.kappa * self.prior.mu + self._data_sum) / kappa_n
+            alpha_n = self.prior.alpha + self.n_observations / 2
+
+            # 베타 새로 고치기
+            prior_data_sq = (self.prior.kappa * self.n_observations / kappa_n) * \
+                            (overall_mean - self.prior.mu)**2
+            beta_n = self.prior.beta + 0.5 * ss + 0.5 * prior_data_sq
+
+            self.current = NIGParameters(mu_n, kappa_n, alpha_n, beta_n)
+            return self.current
+
+        def update_single(self, x: float) -> NIGParameters:
+            """온라인 공식을 써서 관측 하나로 새로 고친다."""
+            kappa_old = self.current.kappa
+            mu_old = self.current.mu
+
+            # 매개변수 갱신
+            kappa_new = kappa_old + 1
+            mu_new = (kappa_old * mu_old + x) / kappa_new
+            alpha_new = self.current.alpha + 0.5
+            beta_new = self.current.beta + (kappa_old * (x - mu_old)**2) / (2 * kappa_new)
+
+            self.current = NIGParameters(mu_new, kappa_new, alpha_new, beta_new)
+            self.n_observations += 1
+            self._data_sum += x
+            self._data_sum_sq += x**2
+
+            return self.current
+
+        def update_sequential(self, data: np.ndarray) -> List[NIGParameters]:
+            """차례대로 새로 고치며 뒤확률의 자취를 되돌린다."""
+            self._reset()
+            history = [self.current]
+
+            for x in data:
+                self.update_single(x)
+                history.append(self.current)
+
+            return history
+
+        def predictive_distribution(self) -> StudentTPosterior:
+            """다음 관측의 뒤확률 예측 분포를 셈한다."""
+            pred_scale = np.sqrt(
+                self.current.beta * (self.current.kappa + 1) / 
+                (self.current.alpha * self.current.kappa)
+            )
+            return StudentTPosterior(
+                loc=self.current.mu,
+                scale=pred_scale,
+                df=self.current.degrees_of_freedom
+            )
+
+        def sample_posterior(self, n_samples: int) -> Tuple[np.ndarray, np.ndarray]:
+            """뒤확률에서 (mu, sigma2) 결합 표본을 뽑는다."""
+            # 먼저 역감마에서 σ²을 표집
+            sigma2_samples = self.posterior_variance.sample(n_samples)
+
+            # 그다음 정규에서 μ | σ²을 표집
+            mu_std = np.sqrt(sigma2_samples / self.current.kappa)
+            mu_samples = np.random.normal(self.current.mu, mu_std)
+
+            return mu_samples, sigma2_samples
+
+        def log_marginal_likelihood(self, data: np.ndarray) -> float:
+            """로그 주변 가능도(모형 증거)를 셈한다."""
+            data = np.atleast_1d(data)
+            n = len(data)
+
+            if n == 0:
+                return 0.0
+
+            # 뒤확률 매개변수 셈하기
+            x_bar = data.mean()
+            ss = ((data - x_bar)**2).sum() if n > 1 else 0.0
+
+            kappa_n = self.prior.kappa + n
+            alpha_n = self.prior.alpha + n / 2
+            prior_data_sq = (self.prior.kappa * n / kappa_n) * (x_bar - self.prior.mu)**2
+            beta_n = self.prior.beta + 0.5 * ss + 0.5 * prior_data_sq
+
+            # 로그 주변 가능도
+            log_ml = (
+                gammaln(alpha_n) - gammaln(self.prior.alpha)
+                + self.prior.alpha * np.log(self.prior.beta) - alpha_n * np.log(beta_n)
+                + 0.5 * np.log(self.prior.kappa / kappa_n)
+                - (n / 2) * np.log(2 * np.pi)
+            )
+
+            return log_ml
+
+    # =============================================================================
+    # 그려 보기 함수
+    # =============================================================================
+
+    def plot_joint_posterior(
+        model: GaussianUnknownVarianceModel,
+        true_mu: Optional[float] = None,
+        true_sigma2: Optional[float] = None,
+        n_grid: int = 100
+    ) -> plt.Figure:
+        """결합 뒤확률과 주변 뒤확률을 그려 본다."""
+
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+        post_mu = model.posterior_mu
+        post_var = model.posterior_variance
+
+        # 그릴 범위 정하기
+        mu_std = post_mu.scale * np.sqrt(post_mu.df / (post_mu.df - 2)) if post_mu.df > 2 else post_mu.scale * 3
+        mu_range = (post_mu.loc - 4*mu_std, post_mu.loc + 4*mu_std)
+
+        var_mean = post_var.mean if post_var.mean is not None else post_var.mode
+        var_range = (max(0.01, var_mean * 0.1), var_mean * 3)
+
+        mu_vals = np.linspace(mu_range[0], mu_range[1], n_grid)
+        var_vals = np.linspace(var_range[0], var_range[1], n_grid)
+
+        # 왼쪽 위: 결합 뒤확률 등고선
+        ax = axes[0, 0]
+        MU, VAR = np.meshgrid(mu_vals, var_vals)
+
+        joint_log_pdf = np.zeros_like(MU)
+        for i, v in enumerate(var_vals):
+            mu_given_var = stats.norm(loc=model.current.mu, scale=np.sqrt(v / model.current.kappa))
+            joint_log_pdf[i, :] = mu_given_var.logpdf(mu_vals) + post_var._dist.logpdf(v)
+
+        joint_pdf = np.exp(joint_log_pdf - joint_log_pdf.max())
+
+        contour = ax.contourf(MU, VAR, joint_pdf, levels=20, cmap='Blues')
+        if true_mu is not None:
+            ax.axvline(true_mu, color='red', linestyle='--', linewidth=2)
+        if true_sigma2 is not None:
+            ax.axhline(true_sigma2, color='red', linestyle='--', linewidth=2)
+
+        ax.set_xlabel('μ', fontsize=12)
+        ax.set_ylabel('σ²', fontsize=12)
+        ax.set_title('Joint Posterior p(μ, σ² | D)', fontsize=14)
+        plt.colorbar(contour, ax=ax)
+
+        # 오른쪽 위: μ의 주변 분포
+        ax = axes[0, 1]
+        ax.plot(mu_vals, post_mu.pdf(mu_vals), 'b-', linewidth=2, label=f'{post_mu}')
+        ax.fill_between(mu_vals, post_mu.pdf(mu_vals), alpha=0.3)
+        if true_mu is not None:
+            ax.axvline(true_mu, color='red', linestyle='--', linewidth=2)
+        ax.set_xlabel('μ', fontsize=12)
+        ax.set_ylabel('Density', fontsize=12)
+        ax.set_title(f'Marginal Posterior for μ (df = {post_mu.df:.0f})', fontsize=14)
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3)
+
+        # 왼쪽 아래: σ²의 주변 분포
+        ax = axes[1, 0]
+        ax.plot(var_vals, post_var.pdf(var_vals), 'b-', linewidth=2, label=f'{post_var}')
+        ax.fill_between(var_vals, post_var.pdf(var_vals), alpha=0.3)
+        if true_sigma2 is not None:
+            ax.axvline(true_sigma2, color='red', linestyle='--', linewidth=2)
+        ax.axvline(post_var.mode, color='green', linestyle=':', label=f'Mode = {post_var.mode:.3f}')
+        ax.set_xlabel('σ²', fontsize=12)
+        ax.set_ylabel('Density', fontsize=12)
+        ax.set_title('Marginal Posterior for σ²', fontsize=14)
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3)
+
+        # 오른쪽 아래: 뒤확률 표본
+        ax = axes[1, 1]
+        mu_samples, var_samples = model.sample_posterior(1000)
+        ax.scatter(mu_samples, var_samples, alpha=0.3, s=10, c='steelblue')
+        if true_mu is not None and true_sigma2 is not None:
+            ax.scatter([true_mu], [true_sigma2], color='red', s=100, marker='*', zorder=5)
+        ax.set_xlabel('μ', fontsize=12)
+        ax.set_ylabel('σ²', fontsize=12)
+        ax.set_title('Posterior Samples', fontsize=14)
+        ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        return fig
+
+    def plot_sequential_updating(
+        data: np.ndarray,
+        prior_mu: float,
+        prior_kappa: float,
+        prior_alpha: float,
+        prior_beta: float,
+        true_mu: Optional[float] = None,
+        true_sigma2: Optional[float] = None
+    ) -> plt.Figure:
+        """차례대로 베이즈 새로 고치기를 그려 본다."""
+
+        model = GaussianUnknownVarianceModel(prior_mu, prior_kappa, prior_alpha, prior_beta)
+        history = model.update_sequential(data)
+
+        n_vals = np.arange(len(history))
+
+        fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+        # 왼쪽 위: μ의 뒤확률 평균
+        ax = axes[0, 0]
+        mu_means = [h.mu for h in history]
+
+        ci_lower, ci_upper = [], []
+        for h in history:
+            post = StudentTPosterior(h.mu, h.mu_scale, h.degrees_of_freedom)
+            ci = post.credible_interval(0.95)
+            ci_lower.append(ci[0])
+            ci_upper.append(ci[1])
+
+        ax.fill_between(n_vals, ci_lower, ci_upper, alpha=0.3, color='steelblue', label='95% CI')
+        ax.plot(n_vals, mu_means, 'b-', linewidth=2, marker='o', markersize=4, label='E[μ|D]')
+        if true_mu is not None:
+            ax.axhline(true_mu, color='red', linestyle='--', linewidth=2, label=f'True μ = {true_mu}')
+        ax.set_xlabel('Observations', fontsize=12)
+        ax.set_ylabel('μ', fontsize=12)
+        ax.set_title('Posterior for Mean', fontsize=14)
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3)
+
+        # 오른쪽 위: σ²의 뒤확률 최빈값
+        ax = axes[0, 1]
+        var_modes = [h.variance_mode for h in history]
+        ax.plot(n_vals, var_modes, 'g-', linewidth=2, marker='s', markersize=4, label='Mode[σ²|D]')
+        if true_sigma2 is not None:
+            ax.axhline(true_sigma2, color='red', linestyle='--', linewidth=2, label=f'True σ² = {true_sigma2}')
+        ax.set_xlabel('Observations', fontsize=12)
+        ax.set_ylabel('σ²', fontsize=12)
+        ax.set_title('Posterior for Variance', fontsize=14)
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3)
+
+        # 왼쪽 아래: 자유도
+        ax = axes[1, 0]
+        dfs = [h.degrees_of_freedom for h in history]
+        ax.plot(n_vals, dfs, 'm-', linewidth=2, marker='d', markersize=4)
+        ax.axhline(30, color='gray', linestyle=':', alpha=0.7, label='df=30 (≈Normal)')
+        ax.set_xlabel('Observations', fontsize=12)
+        ax.set_ylabel('Degrees of Freedom', fontsize=12)
+        ax.set_title('Student-t df (2αₙ)', fontsize=14)
+        ax.legend(fontsize=10)
+        ax.grid(True, alpha=0.3)
+
+        # 오른쪽 아래: κ과 α의 자람
+        ax = axes[1, 1]
+        kappas = [h.kappa for h in history]
+        alphas = [h.alpha for h in history]
+        ax.plot(n_vals, kappas, 'b-', linewidth=2, label='κₙ')
+        ax.plot(n_vals, alphas, 'g-', linewidth=2, label='αₙ')
+        ax.set_xlabel('Observations', fontsize=12)
+        ax.set_ylabel('Parameter Value', fontsize=12)
+        ax.set_title('NIG Parameter Evolution', fontsize=14)
+        ax.legend(fontsize=10)
+        ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        return fig
+
+    # =============================================================================
+    # 보여 주기
+    # =============================================================================
+
+    def demo_basic_inference():
+        """흩어짐을 모를 때의 기본 추론을 보인다."""
+
+        print("=" * 70)
+        print("GAUSSIAN INFERENCE WITH UNKNOWN VARIANCE")
+        print("=" * 70)
+
+        true_mu, true_sigma2 = 5.0, 4.0
+        np.random.seed(42)
+        data = np.random.normal(true_mu, np.sqrt(true_sigma2), 20)
+
+        print(f"\nTrue: μ = {true_mu}, σ² = {true_sigma2}")
+        print(f"Data: n = {len(data)}, x̄ = {data.mean():.4f}, s² = {data.var(ddof=1):.4f}")
+
+        model = GaussianUnknownVarianceModel(0.0, 0.1, 0.1, 0.1)
+        model.update(data)
+
+        print(f"\nPosterior NIG: {model.posterior_nig}")
+        print(f"Marginal for μ: {model.posterior_mu}")
+        print(f"Marginal for σ²: {model.posterior_variance}")
+
+    def demo_t_test_connection():
+        """빈도주의 t검정과의 이음을 보인다."""
+
+        print("\n" + "=" * 70)
+        print("CONNECTION TO t-TEST")
+        print("=" * 70)
+
+        np.random.seed(456)
+        data = np.random.normal(50, 10, 25)
+
+        # 빈도주의
+        x_bar, s = data.mean(), data.std(ddof=1)
+        t_crit = stats.t.ppf(0.975, df=len(data)-1)
+        freq_ci = (x_bar - t_crit * s/np.sqrt(len(data)), x_bar + t_crit * s/np.sqrt(len(data)))
+
+        # 흐릿한 앞확률을 쓴 베이즈
+        model = GaussianUnknownVarianceModel(0.0, 0.001, 0.001, 0.001)
+        model.update(data)
+        bayes_ci = model.posterior_mu.credible_interval(0.95)
+
+        print(f"\nFrequentist 95% CI: [{freq_ci[0]:.4f}, {freq_ci[1]:.4f}]")
+        print(f"Bayesian 95% CI:    [{bayes_ci[0]:.4f}, {bayes_ci[1]:.4f}]")
+        print(f"Difference: {abs(freq_ci[1] - bayes_ci[1]):.6f}")
+
+    if __name__ == "__main__":
+        demo_basic_inference()
+        demo_t_test_connection()
+    ```
+
 
 **출력:**
 
