@@ -140,6 +140,46 @@ Full MathJax/admonition rules are in `agents/SKILL.md`. Key points:
 - Korean headings get positional anchors (`#_6`), not slugs, so intra-page `](#…)` links
   are fragile. Name the section in the link text instead of linking to it.
 
+## Code and Output
+
+A content page carries the **whole** program and the **whole** output it produced, so
+that reading the page is enough and nobody has to rerun anything.
+
+- **Never truncate output.** A block ending in `... (N lines omitted)` sends the reader
+  straight back to the interpreter, which is the one thing this rule exists to prevent.
+  If the output runs long, put it in a collapsible block rather than cutting it:
+
+  ```text
+  ??? note "전체 출력 (186줄)"
+
+      ```
+      ...the complete output, indented four spaces...
+      ```
+  ```
+
+- **Seed anything random that reaches the page.** `torch.randn`, `nn.Linear` init,
+  `np.random`, shuffling dataloaders — if a printed number depends on it, the page needs
+  `torch.manual_seed(...)` / `np.random.seed(...)` before it. An unseeded number is not
+  reproducible for any reader, and it cannot be checked later either.
+- **One run is not a measurement.** When a page compares two models, vary the seed and
+  report the spread; a gap smaller than the spread is not a gap. `docs/ch02/models/trees.md`
+  shows the short form of this, and the IMDB chapter builds on it.
+
+### Checking that the page still tells the truth
+
+`mkdocs build --strict` validates links and syntax. It cannot tell whether the numbers
+printed on a page still come out of the code above them, so editing code without rerunning
+it drifts silently.
+
+```bash
+python experiments/verify_outputs.py ch02/models/trees.md   # runs it, diffs the numbers
+python experiments/restore_outputs.py <page>                # reruns and writes output back
+```
+
+Paths are relative to `docs/`. Both run the page's code in a throwaway directory with
+`data/` linked in — examples write `.png` and `.pth` next to themselves, and running them
+from the repo root litters it.
+
 ## Figures
 
 Figures live in `docs/<chapter>/<section>/figures/` and are embedded with plain
