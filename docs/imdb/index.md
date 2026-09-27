@@ -10,6 +10,37 @@
 
 ---
 
+## 자료를 먼저 갖춘다
+
+[3장](../ch03/index.md)부터 [5장](../ch05/index.md)까지는 `torchvision`이 `download=True` 한 줄로 자료를 받아 왔다. **IMDB는 그렇지 않다.** 손으로 받아 풀어 두어야 하며, 이 장의 모든 쪽이 `./data/aclImdb`에 있다고 보고 코드를 적는다.
+
+```bash
+mkdir -p data && cd data
+curl -LO https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz   # 84MB
+tar xzf aclImdb_v1.tar.gz
+```
+
+풀고 나면 이런 모양이라야 한다.
+
+```
+data/aclImdb/
+├── train/pos/   12,500개    train/neg/   12,500개
+└── test/pos/    12,500개    test/neg/    12,500개
+```
+
+파일 이름이 `200_8.txt` 꼴인데 뒤의 수가 **별점**이다. [7걸음](07_stars.md)이 그것을 이름표로 쓴다.
+
+[빌려 온 벡터](03_frozen.md) 쪽은 GloVe도 함께 쓴다. 그쪽에만 필요하므로 그 쪽에서 받으면 된다.
+
+```bash
+cd data
+curl -LO https://github.com/piskvorky/gensim-data/releases/download/glove-wiki-gigaword-50/glove-wiki-gigaword-50.gz   # 66MB
+```
+
+이 장의 코드는 모두 **저장소 뿌리에서** 돌리는 것으로 적혀 있다. `./data/...`가 그 뜻이다.
+
+---
+
 ## 왜 글월인가
 
 그림과 글월은 한 가지가 결정적으로 다르다. **그림은 크기가 같고 글월은 길이가 제각각이다.** MNIST는 언제나 28×28이지만 영화평은 스무 낱말일 수도 오백 낱말일 수도 있다.
