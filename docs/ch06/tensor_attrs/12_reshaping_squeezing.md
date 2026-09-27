@@ -348,56 +348,211 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (200줄)"
 
-```
-================================================================================
-reshape: change shape (may copy if needed)
-================================================================================
-x: tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])
-x.shape: torch.Size([12])
-reshape(3, 4):
- tensor([[ 0,  1,  2,  3],
-        [ 4,  5,  6,  7],
-        [ 8,  9, 10, 11]])
-reshape(2, 2, 3).shape: torch.Size([2, 2, 3])
-reshape(3, -1).shape: torch.Size([3, 4])
+    ```
 
-================================================================================
-view vs reshape: view requires contiguous memory
-================================================================================
-view(4, 3) works: torch.Size([4, 3])
-After transpose, is_contiguous: False
-reshape() works even when non-contiguous
-After .contiguous(), view works
+    ================================================================================
+    reshape: change shape (may copy if needed)
+    ================================================================================
+    x: tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])
+    x.shape: torch.Size([12])
+    reshape(3, 4):
+     tensor([[ 0,  1,  2,  3],
+            [ 4,  5,  6,  7],
+            [ 8,  9, 10, 11]])
+    reshape(2, 2, 3).shape: torch.Size([2, 2, 3])
+    reshape(3, -1).shape: torch.Size([3, 4])
 
-================================================================================
-flatten: collapse to 1D
-================================================================================
-x.shape: torch.Size([2, 3, 4])
-flatten(): torch.Size([24])
-flatten(start_dim=1): torch.Size([2, 12])
-flatten(1, 1): torch.Size([2, 3, 4])
+    ================================================================================
+    view vs reshape: view requires contiguous memory
+    ================================================================================
+    view(4, 3) works: torch.Size([4, 3])
+    After transpose, is_contiguous: False
+    reshape() works even when non-contiguous
+    After .contiguous(), view works
 
-================================================================================
-squeeze: remove dimensions of size 1
-================================================================================
-Original shape: torch.Size([1, 3, 1, 4, 1])
-squeeze(): torch.Size([3, 4])
+    ================================================================================
+    flatten: collapse to 1D
+    ================================================================================
+    x.shape: torch.Size([2, 3, 4])
+    flatten(): torch.Size([24])
+    flatten(start_dim=1): torch.Size([2, 12])
+    flatten(1, 1): torch.Size([2, 3, 4])
 
-... (156 lines omitted)
+    ================================================================================
+    squeeze: remove dimensions of size 1
+    ================================================================================
+    Original shape: torch.Size([1, 3, 1, 4, 1])
+    squeeze(): torch.Size([3, 4])
+    squeeze(0): torch.Size([3, 1, 4, 1])
+    squeeze(2): torch.Size([1, 3, 4, 1])
+    squeeze(1) (size > 1, no change): torch.Size([1, 3, 1, 4, 1])
 
+    ================================================================================
+    unsqueeze: add dimension of size 1
+    ================================================================================
+    Original shape: torch.Size([3, 4])
+    unsqueeze(0): torch.Size([1, 3, 4])
+    unsqueeze(1): torch.Size([3, 1, 4])
+    unsqueeze(-1): torch.Size([3, 4, 1])
+    unsqueeze(0).unsqueeze(-1): torch.Size([1, 3, 4, 1])
 
-Memory layout:
-  .contiguous()     - Create contiguous copy if needed
-  .is_contiguous()  - Check if contiguous
+    ================================================================================
+    Indexing with None adds dimension (same as unsqueeze)
+    ================================================================================
+    x.shape: torch.Size([3, 4])
+    x[None, :, :]: torch.Size([1, 3, 4])
+    x[:, None, :]: torch.Size([3, 1, 4])
+    x[:, :, None]: torch.Size([3, 4, 1])
 
-Tips:
-  - Use -1 in reshape to infer dimension
-  - view requires contiguous, reshape doesn't
-  - Most reshaping ops return views (no copy)
-  - transpose/permute change strides, may need .contiguous()
-```
+    ================================================================================
+    transpose: swap two dimensions
+    ================================================================================
+    x (3, 4):
+     tensor([[ 0,  1,  2,  3],
+            [ 4,  5,  6,  7],
+            [ 8,  9, 10, 11]])
+    transpose(0, 1) (4, 3):
+     tensor([[ 0,  4,  8],
+            [ 1,  5,  9],
+            [ 2,  6, 10],
+            [ 3,  7, 11]])
+    x.T (same as transpose):
+     tensor([[ 0,  4,  8],
+            [ 1,  5,  9],
+            [ 2,  6, 10],
+            [ 3,  7, 11]])
+    Is view: False
+
+    ================================================================================
+    permute: reorder dimensions
+    ================================================================================
+    Original shape: torch.Size([2, 3, 4, 5])
+    permute(2, 0, 3, 1): torch.Size([4, 2, 5, 3])
+
+    Image format conversion:
+      HWC: torch.Size([10, 224, 224, 3]) → CHW: torch.Size([10, 3, 224, 224])
+
+    ================================================================================
+    movedim: move dimensions to new positions
+    ================================================================================
+    Original shape: torch.Size([2, 3, 4, 5])
+    movedim(source=1, destination=3): torch.Size([2, 4, 5, 3])
+    movedim([0,1], [2,3]): torch.Size([4, 5, 2, 3])
+
+    ================================================================================
+    swapdims: swap two dimensions (alias for transpose)
+    ================================================================================
+    Original: torch.Size([2, 3, 4])
+    swapdims(0, 2): torch.Size([4, 3, 2])
+
+    ================================================================================
+    Reshaping with -1 for auto-inference
+    ================================================================================
+    reshape(3, -1): torch.Size([3, 8])
+    reshape(-1, 6): torch.Size([4, 6])
+    reshape(2, 3, -1): torch.Size([2, 3, 4])
+    Multiple -1 fails (expected): only one dimension can be inferred...
+
+    ================================================================================
+    Practical pattern: batch processing
+    ================================================================================
+    Single sample: torch.Size([3, 224, 224])
+    As batch: torch.Size([1, 3, 224, 224])
+    Remove batch: torch.Size([3, 224, 224])
+
+    ================================================================================
+    Practical pattern: sequence to batch
+    ================================================================================
+    Sequence: torch.Size([10, 512])
+    Batched: torch.Size([1, 10, 512])
+    Each item as batch: torch.Size([10, 1, 512])
+
+    ================================================================================
+    Practical pattern: flattening for linear layer
+    ================================================================================
+    CNN features: torch.Size([32, 128, 7, 7])
+    Flattened: torch.Size([32, 6272])
+    Using reshape: torch.Size([32, 6272])
+
+    ================================================================================
+    View must preserve total elements
+    ================================================================================
+    12 elements can reshape to:
+      (12,): 12 elements
+      (1, 12): 12 elements
+      (12, 1): 12 elements
+      (3, 4): 12 elements
+      (4, 3): 12 elements
+      (2, 6): 12 elements
+      (2, 2, 3): 12 elements
+    reshape(5, 5) fails: shape '[5, 5]' is invalid for input of size 12...
+
+    ================================================================================
+    Understanding contiguity with strides
+    ================================================================================
+    x (contiguous):
+     tensor([[ 0,  1,  2,  3],
+            [ 4,  5,  6,  7],
+            [ 8,  9, 10, 11]])
+      stride: (4, 1)
+      is_contiguous: True
+
+    x.t() (non-contiguous):
+     tensor([[ 0,  4,  8],
+            [ 1,  5,  9],
+            [ 2,  6, 10],
+            [ 3,  7, 11]])
+      stride: (1, 4)
+      is_contiguous: False
+
+    After .contiguous():
+      stride: (3, 1)
+      is_contiguous: True
+
+    ================================================================================
+    Combining operations: common workflow
+    ================================================================================
+    Input: torch.Size([8, 20, 256])
+    After transpose: torch.Size([20, 8, 256])
+    After reshape for heads: torch.Size([20, 8, 8, 32])
+    After permute: torch.Size([8, 8, 20, 32])
+
+    ================================================================================
+    Quick reference: reshaping operations
+    ================================================================================
+
+    Shape changes:
+      .reshape(shape)   - Change shape (may copy)
+      .view(shape)      - Change shape (must be contiguous)
+      .flatten()        - Collapse to 1D
+      .flatten(start, end) - Collapse specific dims
+
+    Dimension manipulation:
+      .squeeze()        - Remove size-1 dimensions
+      .squeeze(dim)     - Remove specific size-1 dim
+      .unsqueeze(dim)   - Add size-1 dimension
+      x[None, ...]      - Add dimension via indexing
+
+    Reordering dimensions:
+      .transpose(d1, d2) - Swap two dimensions
+      .T                 - Transpose (2D only)
+      .permute(dims)     - Arbitrary reordering
+      .movedim(src, dst) - Move dimension(s)
+      .swapdims(d1, d2)  - Swap dimensions
+
+    Memory layout:
+      .contiguous()     - Create contiguous copy if needed
+      .is_contiguous()  - Check if contiguous
+
+    Tips:
+      - Use -1 in reshape to infer dimension
+      - view requires contiguous, reshape doesn't
+      - Most reshaping ops return views (no copy)
+      - transpose/permute change strides, may need .contiguous()
+    ```
+
 
 ## 2. 논의
 

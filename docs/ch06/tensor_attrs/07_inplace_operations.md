@@ -185,56 +185,104 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (93줄)"
 
-```
-================================================================================
-Basic in-place operations
-================================================================================
-Original x: tensor([1., 2., 3., 4., 5.])
-After x.add_(10): tensor([11., 12., 13., 14., 15.])
-After x.mul_(2): tensor([22., 24., 26., 28., 30.])
-After x.clamp_(0, 30): tensor([22., 24., 26., 28., 30.])
+    ```
 
-================================================================================
-Memory sharing with in-place ops
-================================================================================
-a and b share memory: True
-b also changed: tensor([ 2.5410,  0.7066, -1.1788])
+    ================================================================================
+    Basic in-place operations
+    ================================================================================
+    Original x: tensor([1., 2., 3., 4., 5.])
+    After x.add_(10): tensor([11., 12., 13., 14., 15.])
+    After x.mul_(2): tensor([22., 24., 26., 28., 30.])
+    After x.clamp_(0, 30): tensor([22., 24., 26., 28., 30.])
 
-================================================================================
-Out-of-place vs in-place comparison
-================================================================================
-Out-of-place: 0.0124s
-In-place:     0.0039s
-Speedup:      3.19x
+    ================================================================================
+    Memory sharing with in-place ops
+    ================================================================================
+    a and b share memory: True
+    b also changed: tensor([ 2.5410,  0.7066, -1.1788])
 
-================================================================================
-Autograd restriction: in-place on leaf tensors with requires_grad
-================================================================================
-ERROR (expected): a leaf Variable that requires grad is being used in an in-place operation....
-Out-of-place works: tensor([2., 3., 4.], grad_fn=<AddBackward0>)
-In-place with no_grad: tensor([2., 3., 4.], requires_grad=True)
+    ================================================================================
+    Out-of-place vs in-place comparison
+    ================================================================================
+    Out-of-place: 0.0739s
+    In-place:     0.0211s
+    Speedup:      3.51x
 
-================================================================================
-In-place ops on non-leaf tensors (intermediate results)
-================================================================================
-In-place on non-leaf can break autograd graph
+    ================================================================================
+    Autograd restriction: in-place on leaf tensors with requires_grad
+    ================================================================================
+    ERROR (expected): a leaf Variable that requires grad is being used in an in-place operation....
+    Out-of-place works: tensor([2., 3., 4.], grad_fn=<AddBackward0>)
+    In-place with no_grad: tensor([2., 3., 4.], requires_grad=True)
 
+    ================================================================================
+    In-place ops on non-leaf tensors (intermediate results)
+    ================================================================================
+    In-place on non-leaf can break autograd graph
 
-... (49 lines omitted)
+    ================================================================================
+    Common in-place operations showcase
+    ================================================================================
+    Original t: tensor([-0.5707, -2.4878,  0.7807, -0.3018,  0.1119])
+    abs_(): tensor([0.5707, 2.4878, 0.7807, 0.3018, 0.1119])
+    neg_(): tensor([ 0.5707,  2.4878, -0.7807,  0.3018, -0.1119])
+    sqrt_().abs_(): tensor([   nan,    nan, 0.8836,    nan, 0.3346])
+    pow_(2): tensor([0.3257, 6.1892, 0.6095, 0.0911, 0.0125])
+    uniform_(-1, 1): tensor([ 0.8857,  0.0620, -0.2872,  0.9226, -0.6273])
+    normal_(0, 1): tensor([-1.2833,  0.5187,  0.4093,  1.3558,  0.4099])
 
-  - Parameter updates inside torch.no_grad()
-  - Memory-critical situations
-  - Explicit tensor initialization (fill_, zero_, normal_)
-  - When you KNOW autograd won't be needed
+    ================================================================================
+    fill_ and zero_ operations
+    ================================================================================
+    Before fill_:
+     tensor([[-1.4160,  0.5773,  2.2979],
+            [-0.2392, -0.0332,  0.1740],
+            [-0.5576, -0.3373,  1.0424]])
+    After fill_(7.0):
+     tensor([[7., 7., 7.],
+            [7., 7., 7.],
+            [7., 7., 7.]])
+    After zero_():
+     tensor([[0., 0., 0.],
+            [0., 0., 0.],
+            [0., 0., 0.]])
 
-✗ Avoid in-place ops for:
-  - Leaf tensors with requires_grad=True
-  - Intermediate computation results in autograd
-  - When code clarity is more important than speed
-  - When tensors might be aliased unexpectedly
-```
+    ================================================================================
+    Indexed in-place assignment
+    ================================================================================
+    After indexed assignment: tensor([ 0., 10., 20., 30.,  0.])
+    After boolean mask assignment: tensor([ 0., 10., -1., -1.,  0.])
+
+    ================================================================================
+    copy_ for in-place copying
+    ================================================================================
+    dst before copy_:
+     tensor([[0., 0., 0.],
+            [0., 0., 0.],
+            [0., 0., 0.]])
+    dst after copy_(src):
+     tensor([[ 1.3839,  1.5731, -1.4241],
+            [-0.1446, -0.1387, -0.9443],
+            [-0.6245, -0.2811,  1.2099]])
+
+    ================================================================================
+    Best practices: when to use in-place
+    ================================================================================
+    ✓ Use in-place ops for:
+      - Parameter updates inside torch.no_grad()
+      - Memory-critical situations
+      - Explicit tensor initialization (fill_, zero_, normal_)
+      - When you KNOW autograd won't be needed
+
+    ✗ Avoid in-place ops for:
+      - Leaf tensors with requires_grad=True
+      - Intermediate computation results in autograd
+      - When code clarity is more important than speed
+      - When tensors might be aliased unexpectedly
+    ```
+
 
 ## 2. 논의
 

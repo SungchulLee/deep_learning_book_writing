@@ -383,56 +383,275 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (264줄)"
 
-```
-================================================================================
-Element-wise multiplication: * or mul()
-================================================================================
-a:
- tensor([[1., 2.],
-        [3., 4.]])
-b:
- tensor([[5., 6.],
-        [7., 8.]])
-a * b (element-wise):
- tensor([[ 5., 12.],
-        [21., 32.]])
+    ```
 
-================================================================================
-Matrix multiplication: @ or matmul()
-================================================================================
-a @ b (matrix multiplication):
- tensor([[19., 22.],
-        [43., 50.]])
-torch.matmul(a, b):
- tensor([[19., 22.],
-        [43., 50.]])
-Equal: True
+    ================================================================================
+    Element-wise multiplication: * or mul()
+    ================================================================================
+    a:
+     tensor([[1., 2.],
+            [3., 4.]])
+    b:
+     tensor([[5., 6.],
+            [7., 8.]])
+    a * b (element-wise):
+     tensor([[ 5., 12.],
+            [21., 32.]])
 
-================================================================================
-Matrix-vector multiplication
-================================================================================
-A.shape: torch.Size([3, 4])
-x.shape: torch.Size([4])
-(A @ x).shape: torch.Size([3])
-torch.mv(A, x).shape: torch.Size([3])
+    ================================================================================
+    Matrix multiplication: @ or matmul()
+    ================================================================================
+    a @ b (matrix multiplication):
+     tensor([[19., 22.],
+            [43., 50.]])
+    torch.matmul(a, b):
+     tensor([[19., 22.],
+            [43., 50.]])
+    Equal: True
 
-================================================================================
+    ================================================================================
+    Matrix-vector multiplication
+    ================================================================================
+    A.shape: torch.Size([3, 4])
+    x.shape: torch.Size([4])
+    (A @ x).shape: torch.Size([3])
+    torch.mv(A, x).shape: torch.Size([3])
 
-... (220 lines omitted)
+    ================================================================================
+    Vector dot product
+    ================================================================================
+    a: tensor([1., 2., 3.])
+    b: tensor([4., 5., 6.])
+    dot(a, b): 32.0
+    Manual: 1*4 + 2*5 + 3*6 = 32
 
-Decompositions:
-  linalg.svd()   - Singular value decomposition
-  linalg.qr()    - QR decomposition
-  linalg.cholesky() - Cholesky decomposition
+    ================================================================================
+    Matrix multiplication: mm() for 2D only
+    ================================================================================
+    mm(a, b).shape: torch.Size([3, 5])
+    matmul(a, b).shape: torch.Size([3, 5])
 
-Tips:
-  - Use @ for clean matrix multiplication
-  - matmul broadcasts, mm/bmm don't
-  - einsum is powerful but can be slower
-  - For large matrices, check numerical stability
-```
+    ================================================================================
+    Batch matrix multiplication: bmm()
+    ================================================================================
+    bmm(batch_a, batch_b).shape: torch.Size([10, 3, 5])
+    batch_a @ batch_b shape: torch.Size([10, 3, 5])
+
+    ================================================================================
+    Broadcasting with matmul
+    ================================================================================
+    a.shape: torch.Size([5, 3, 4])
+    b.shape: torch.Size([4, 2])
+    (a @ b).shape: torch.Size([5, 3, 2])
+
+    Complex broadcasting:
+    a.shape: torch.Size([2, 1, 3, 4])
+    b.shape: torch.Size([1, 5, 4, 2])
+    (a @ b).shape: torch.Size([2, 5, 3, 2])
+
+    ================================================================================
+    Outer product
+    ================================================================================
+    a: tensor([1., 2., 3.])
+    b: tensor([4., 5., 6., 7.])
+    outer(a, b):
+     tensor([[ 4.,  5.,  6.,  7.],
+            [ 8., 10., 12., 14.],
+            [12., 15., 18., 21.]])
+    Shape: torch.Size([3, 4])
+
+    ================================================================================
+    Cross product (3D vectors only)
+    ================================================================================
+    a: tensor([1., 0., 0.])
+    b: tensor([0., 1., 0.])
+    cross(a, b): tensor([0., 0., 1.])
+
+    ================================================================================
+    einsum: Einstein summation notation
+    ================================================================================
+    einsum matrix multiply:
+      'ik,kj->ij'
+      a.shape: torch.Size([3, 4])
+      b.shape: torch.Size([4, 5])
+      result.shape: torch.Size([3, 5])
+
+    Batch matmul: 'bik,bkj->bij'
+      result.shape: torch.Size([10, 3, 5])
+
+    Transpose: 'ij->ji'
+      a.shape: torch.Size([3, 4])
+      result.shape: torch.Size([4, 3])
+
+    Trace: 'ii->'
+      result: 1.3307507038116455
+
+    Batch trace: 'bii->b'
+      result.shape: torch.Size([10])
+
+    ================================================================================
+    Matrix power
+    ================================================================================
+    a:
+     tensor([[1., 2.],
+            [3., 4.]])
+    a²:
+     tensor([[ 7., 10.],
+            [15., 22.]])
+    Check: a @ a:
+     tensor([[ 7., 10.],
+            [15., 22.]])
+
+    ================================================================================
+    Matrix inverse
+    ================================================================================
+    a:
+     tensor([[1., 2.],
+            [3., 4.]])
+    inv(a):
+     tensor([[-2.0000,  1.0000],
+            [ 1.5000, -0.5000]])
+    a @ inv(a) (should be I):
+     tensor([[1., 0.],
+            [0., 1.]])
+
+    ================================================================================
+    Determinant
+    ================================================================================
+    a:
+     tensor([[1., 2.],
+            [3., 4.]])
+    det(a): -2.0
+    Manual: 1*4 - 2*3 = -2
+
+    ================================================================================
+    Solving linear systems: Ax = b
+    ================================================================================
+    A:
+     tensor([[3., 1.],
+            [1., 2.]])
+    b:
+     tensor([[9.],
+            [8.]])
+    Solution x:
+     tensor([[2.],
+            [3.]])
+    Verify A @ x:
+     tensor([[9.],
+            [8.]])
+    Close to b: True
+
+    ================================================================================
+    Eigenvalues and eigenvectors
+    ================================================================================
+    A:
+     tensor([[ 4., -2.],
+            [ 1.,  1.]])
+    Eigenvalues: tensor([3.+0.j, 2.+0.j])
+    Eigenvectors:
+     tensor([[0.8944+0.j, 0.7071+0.j],
+            [0.4472+0.j, 0.7071+0.j]])
+
+    ================================================================================
+    Singular Value Decomposition (SVD)
+    ================================================================================
+    A.shape: torch.Size([5, 3])
+    U.shape: torch.Size([5, 3])
+    S.shape: torch.Size([3])
+    Vh.shape: torch.Size([3, 3])
+    Reconstruction error: 7.152557373046875e-07
+
+    ================================================================================
+    QR decomposition
+    ================================================================================
+    A.shape: torch.Size([5, 3])
+    Q.shape: torch.Size([5, 3])
+    R.shape: torch.Size([3, 3])
+    Q^T @ Q (should be I):
+     tensor([[ 1.0000e+00, -1.1481e-08,  4.6591e-08],
+            [-1.1481e-08,  1.0000e+00, -9.1405e-08],
+            [ 4.6591e-08, -9.1405e-08,  1.0000e+00]])
+
+    ================================================================================
+    Cholesky decomposition
+    ================================================================================
+    A:
+     tensor([[4., 2.],
+            [2., 3.]])
+    L (lower triangular):
+     tensor([[2.0000, 0.0000],
+            [1.0000, 1.4142]])
+    L @ L^T:
+     tensor([[4., 2.],
+            [2., 3.]])
+
+    ================================================================================
+    Matrix rank and condition number
+    ================================================================================
+    A.shape: torch.Size([5, 3])
+    Rank: 3
+    Condition number: 4.5633673667907715
+
+    ================================================================================
+    Trace (sum of diagonal elements)
+    ================================================================================
+    Trace: -3.5180656909942627
+    Sum of diagonal: -3.5180656909942627
+    Equal: True
+
+    ================================================================================
+    Practical: attention mechanism
+    ================================================================================
+    Attention scores shape: torch.Size([8, 10, 10])
+    Attention output shape: torch.Size([8, 10, 64])
+
+    ================================================================================
+    Practical: batch linear transformation
+    ================================================================================
+    Input shape: torch.Size([100, 512])
+    Weight shape: torch.Size([512, 256])
+    Output shape: torch.Size([100, 256])
+
+    ================================================================================
+    Quick reference: matrix operations
+    ================================================================================
+
+    Multiplication:
+      * or mul()     - Element-wise multiplication
+      @ or matmul()  - Matrix multiplication (flexible)
+      mm()           - Matrix multiply (2D only)
+      mv()           - Matrix-vector multiply
+      bmm()          - Batch matrix multiply
+
+    Vector operations:
+      dot()          - Dot product
+      cross()        - Cross product (3D)
+      outer()        - Outer product
+
+    Advanced:
+      einsum()       - Einstein summation
+
+    Linear algebra:
+      linalg.inv()   - Matrix inverse
+      linalg.det()   - Determinant
+      linalg.solve() - Solve Ax=b
+      linalg.eig()   - Eigenvalues/vectors
+      trace()        - Sum of diagonal
+
+    Decompositions:
+      linalg.svd()   - Singular value decomposition
+      linalg.qr()    - QR decomposition
+      linalg.cholesky() - Cholesky decomposition
+
+    Tips:
+      - Use @ for clean matrix multiplication
+      - matmul broadcasts, mm/bmm don't
+      - einsum is powerful but can be slower
+      - For large matrices, check numerical stability
+    ```
+
 
 ## 2. 논의
 

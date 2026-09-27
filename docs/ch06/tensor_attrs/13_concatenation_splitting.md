@@ -347,56 +347,234 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (223줄)"
 
-```
-================================================================================
-torch.cat: concatenate along existing dimension
-================================================================================
-a:
- tensor([[1, 2],
-        [3, 4]])
-b:
- tensor([[5, 6],
-        [7, 8]])
-cat([a, b], dim=0):
- tensor([[1, 2],
-        [3, 4],
-        [5, 6],
-        [7, 8]])
-  Shape: torch.Size([4, 2])
-cat([a, b], dim=1):
- tensor([[1, 2, 5, 6],
-        [3, 4, 7, 8]])
-  Shape: torch.Size([2, 4])
+    ```
 
-================================================================================
-torch.cat with multiple tensors
-================================================================================
-cat([t1, t2, t3], dim=1):
- tensor([[1, 3, 5],
-        [2, 4, 6]])
+    ================================================================================
+    torch.cat: concatenate along existing dimension
+    ================================================================================
+    a:
+     tensor([[1, 2],
+            [3, 4]])
+    b:
+     tensor([[5, 6],
+            [7, 8]])
+    cat([a, b], dim=0):
+     tensor([[1, 2],
+            [3, 4],
+            [5, 6],
+            [7, 8]])
+      Shape: torch.Size([4, 2])
+    cat([a, b], dim=1):
+     tensor([[1, 2, 5, 6],
+            [3, 4, 7, 8]])
+      Shape: torch.Size([2, 4])
 
-================================================================================
-torch.cat requires matching dimensions (except cat dim)
-================================================================================
-a.shape: torch.Size([2, 3, 4])
-b.shape: torch.Size([2, 5, 4])
-cat(dim=1).shape: torch.Size([2, 8, 4])
+    ================================================================================
+    torch.cat with multiple tensors
+    ================================================================================
+    cat([t1, t2, t3], dim=1):
+     tensor([[1, 3, 5],
+            [2, 4, 6]])
 
-... (179 lines omitted)
+    ================================================================================
+    torch.cat requires matching dimensions (except cat dim)
+    ================================================================================
+    a.shape: torch.Size([2, 3, 4])
+    b.shape: torch.Size([2, 5, 4])
+    cat(dim=1).shape: torch.Size([2, 8, 4])
+    cat(dim=0) fails: Sizes of tensors must match except in dimension 0. Expected ...
 
-Key differences:
-  cat:   Concatenate along existing dim (dims must match)
-  stack: Stack along new dim (ALL shapes must match)
-  split: Specify chunk sizes
-  chunk: Specify number of chunks
+    ================================================================================
+    torch.stack: stack along NEW dimension
+    ================================================================================
+    stack([a,b,c], dim=0):
+     tensor([[1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9]])
+      Shape: torch.Size([3, 3])
+    stack([a,b,c], dim=1):
+     tensor([[1, 4, 7],
+            [2, 5, 8],
+            [3, 6, 9]])
+      Shape: torch.Size([3, 3])
 
-Performance tips:
-  - Use stack() instead of iterative cat()
-  - Pre-allocate when possible
-  - unbind() returns tuple (faster than loop + indexing)
-```
+    ================================================================================
+    stack vs cat comparison
+    ================================================================================
+    cat shapes: (3,4) + (3,4) + (3,4) →  torch.Size([9, 4])
+    stack shapes: (3,4) + (3,4) + (3,4) → torch.Size([3, 3, 4])
+
+    ================================================================================
+    torch.split: split into specific sizes
+    ================================================================================
+    x:
+     tensor([[ 0,  1,  2],
+            [ 3,  4,  5],
+            [ 6,  7,  8],
+            [ 9, 10, 11]])
+    split(x, 2, dim=0):
+      Chunk 0:
+    tensor([[0, 1, 2],
+            [3, 4, 5]])
+      Chunk 1:
+    tensor([[ 6,  7,  8],
+            [ 9, 10, 11]])
+    split(x, [1,2,1], dim=0):
+      Chunk 0 shape: torch.Size([1, 3])
+      Chunk 1 shape: torch.Size([2, 3])
+      Chunk 2 shape: torch.Size([1, 3])
+
+    ================================================================================
+    torch.chunk: split into equal chunks
+    ================================================================================
+    x: tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])
+    chunk(x, 3):
+      Chunk 0: tensor([0, 1, 2, 3])
+      Chunk 1: tensor([4, 5, 6, 7])
+      Chunk 2: tensor([ 8,  9, 10, 11])
+    chunk(x, 5):
+      Chunk 0 size: torch.Size([3])
+      Chunk 1 size: torch.Size([3])
+      Chunk 2 size: torch.Size([3])
+      Chunk 3 size: torch.Size([3])
+
+    ================================================================================
+    torch.unbind: unpack along dimension
+    ================================================================================
+    x:
+     tensor([[1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9]])
+    unbind(dim=0):
+      Row 0: tensor([1, 2, 3])
+      Row 1: tensor([4, 5, 6])
+      Row 2: tensor([7, 8, 9])
+    unbind(dim=1):
+      Col 0: tensor([1, 4, 7])
+      Col 1: tensor([2, 5, 8])
+      Col 2: tensor([3, 6, 9])
+
+    ================================================================================
+    torch.hstack, vstack, dstack helpers
+    ================================================================================
+    hstack([a, b]):
+     tensor([[1, 4],
+            [2, 5],
+            [3, 6]])
+      Equivalent to cat(dim=1)
+    vstack:
+     tensor([[1, 2, 3],
+            [4, 5, 6]])
+      Equivalent to cat(dim=0)
+    dstack shape: torch.Size([3, 1, 2])
+      Stacks along new dimension 2
+
+    ================================================================================
+    Practical pattern: batching samples
+    ================================================================================
+    Individual samples: torch.Size([3, 224, 224])
+    Stacked batch: torch.Size([3, 3, 224, 224])
+
+    ================================================================================
+    Practical pattern: sequence concatenation
+    ================================================================================
+    seq1: torch.Size([10, 512])
+    seq2: torch.Size([15, 512])
+    Combined sequence: torch.Size([25, 512])
+
+    ================================================================================
+    Practical pattern: multi-GPU gathering
+    ================================================================================
+    Per-GPU outputs: torch.Size([8, 10])
+    All outputs: torch.Size([24, 10])
+
+    ================================================================================
+    Practical pattern: feature concatenation
+    ================================================================================
+    Text features: torch.Size([32, 512])
+    Image features: torch.Size([32, 2048])
+    Meta features: torch.Size([32, 64])
+    Combined features: torch.Size([32, 2624])
+
+    ================================================================================
+    split for train/val/test splits
+    ================================================================================
+    Data: torch.Size([100, 10])
+    Train: torch.Size([70, 10])
+    Val: torch.Size([15, 10])
+    Test: torch.Size([15, 10])
+
+    ================================================================================
+    Combining cat and split for dynamic batching
+    ================================================================================
+    Concatenated shape: torch.Size([26, 128])
+    Recovered sequences:
+      Seq 0: torch.Size([5, 128])
+      Seq 1: torch.Size([8, 128])
+      Seq 2: torch.Size([3, 128])
+      Seq 3: torch.Size([10, 128])
+
+    ================================================================================
+    Stack for time series data
+    ================================================================================
+    Daily measurements: torch.Size([24, 5])
+    Time series: torch.Size([7, 24, 5])
+
+    ================================================================================
+    meshgrid for creating coordinate grids
+    ================================================================================
+    x: tensor([-1.0000, -0.5000,  0.0000,  0.5000,  1.0000])
+    grid_x:
+     tensor([[-1.0000, -1.0000, -1.0000, -1.0000, -1.0000],
+            [-0.5000, -0.5000, -0.5000, -0.5000, -0.5000],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.0000],
+            [ 0.5000,  0.5000,  0.5000,  0.5000,  0.5000],
+            [ 1.0000,  1.0000,  1.0000,  1.0000,  1.0000]])
+    grid_y:
+     tensor([[-1.0000, -0.5000,  0.0000,  0.5000,  1.0000],
+            [-1.0000, -0.5000,  0.0000,  0.5000,  1.0000],
+            [-1.0000, -0.5000,  0.0000,  0.5000,  1.0000],
+            [-1.0000, -0.5000,  0.0000,  0.5000,  1.0000],
+            [-1.0000, -0.5000,  0.0000,  0.5000,  1.0000]])
+    Coordinate pairs shape: torch.Size([5, 5, 2])
+
+    ================================================================================
+    Efficient batching with list comprehension
+    ================================================================================
+    Slow (iterative cat): 0.0003s
+    Fast (single stack): 0.0000s
+    Speedup: 23.0x
+
+    ================================================================================
+    Quick reference: combining and splitting
+    ================================================================================
+
+    Combining tensors:
+      torch.cat(tensors, dim)   - Concatenate along existing dim
+      torch.stack(tensors, dim) - Stack along NEW dimension
+      torch.hstack(tensors)     - Horizontal stack (columns)
+      torch.vstack(tensors)     - Vertical stack (rows)
+      torch.dstack(tensors)     - Depth stack (3rd dimension)
+
+    Splitting tensors:
+      torch.split(x, size, dim) - Split into chunks of size
+      torch.chunk(x, n, dim)    - Split into n equal parts
+      torch.unbind(x, dim)      - Unpack along dimension
+
+    Key differences:
+      cat:   Concatenate along existing dim (dims must match)
+      stack: Stack along new dim (ALL shapes must match)
+      split: Specify chunk sizes
+      chunk: Specify number of chunks
+
+    Performance tips:
+      - Use stack() instead of iterative cat()
+      - Pre-allocate when possible
+      - unbind() returns tuple (faster than loop + indexing)
+    ```
+
 
 ## 2. 논의
 

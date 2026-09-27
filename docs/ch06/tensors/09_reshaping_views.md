@@ -21,6 +21,9 @@
 """
 
 import torch
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -368,56 +371,238 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (227줄)"
 
-```
-======================================================================
-1. Basic Reshaping - reshape() vs view()
-======================================================================
-Original 1D tensor: tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])
-Shape: torch.Size([12])
+    ```
 
-Reshape to (3, 4):
-tensor([[ 0,  1,  2,  3],
-        [ 4,  5,  6,  7],
-        [ 8,  9, 10, 11]])
+    ======================================================================
+    1. Basic Reshaping - reshape() vs view()
+    ======================================================================
+    Original 1D tensor: tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])
+    Shape: torch.Size([12])
 
-View as (3, 4):
-tensor([[ 0,  1,  2,  3],
-        [ 4,  5,  6,  7],
-        [ 8,  9, 10, 11]])
+    Reshape to (3, 4):
+    tensor([[ 0,  1,  2,  3],
+            [ 4,  5,  6,  7],
+            [ 8,  9, 10, 11]])
 
-Reshape to (2, 2, 3):
-tensor([[[ 0,  1,  2],
-         [ 3,  4,  5]],
+    View as (3, 4):
+    tensor([[ 0,  1,  2,  3],
+            [ 4,  5,  6,  7],
+            [ 8,  9, 10, 11]])
 
-        [[ 6,  7,  8],
-         [ 9, 10, 11]]])
+    Reshape to (2, 2, 3):
+    tensor([[[ 0,  1,  2],
+             [ 3,  4,  5]],
 
-======================================================================
-2. Automatic Size Inference with -1
-======================================================================
-reshape(-1, 4):
-tensor([[ 0,  1,  2,  3],
-        [ 4,  5,  6,  7],
-        [ 8,  9, 10, 11],
-        [12, 13, 14, 15],
-        [16, 17, 18, 19],
-        [20, 21, 22, 23]])
+            [[ 6,  7,  8],
+             [ 9, 10, 11]]])
 
-... (183 lines omitted)
+    ======================================================================
+    2. Automatic Size Inference with -1
+    ======================================================================
+    reshape(-1, 4):
+    tensor([[ 0,  1,  2,  3],
+            [ 4,  5,  6,  7],
+            [ 8,  9, 10, 11],
+            [12, 13, 14, 15],
+            [16, 17, 18, 19],
+            [20, 21, 22, 23]])
+    Shape: torch.Size([6, 4])
 
-    4. 칸 벡터 (10, 1)을 줄 벡터 (1, 10)으로 바꾸어라
-    5. (2, 3, 4, 5) 텐서를 만들어 (5, 2, 4, 3)으로 자리를 바꾸어라
-    
-    Solutions:
-    
-1. Shape: torch.Size([4, 5]) → torch.Size([2, 2, 5])
-2. Shape: torch.Size([3, 224, 224]) → torch.Size([1, 3, 224, 224])
-3. Shape: torch.Size([10, 5, 4]) → torch.Size([10, 20])
-4. Shape: torch.Size([10, 1]) → torch.Size([1, 10])
-5. Shape: torch.Size([2, 3, 4, 5]) → torch.Size([5, 2, 4, 3])
-```
+    reshape(3, -1):
+    tensor([[ 0,  1,  2,  3,  4,  5,  6,  7],
+            [ 8,  9, 10, 11, 12, 13, 14, 15],
+            [16, 17, 18, 19, 20, 21, 22, 23]])
+    Shape: torch.Size([3, 8])
+
+    ======================================================================
+    3. Flatten - Convert to 1D
+    ======================================================================
+    3D tensor shape: torch.Size([2, 3, 4])
+    flatten(): tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+            18, 19, 20, 21, 22, 23])
+    Shape: torch.Size([24])
+
+    flatten(start_dim=1) shape: torch.Size([2, 12])
+    Values:
+    tensor([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11],
+            [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]])
+
+    reshape(-1): tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+            18, 19, 20, 21, 22, 23])
+    view(-1): tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+            18, 19, 20, 21, 22, 23])
+
+    ======================================================================
+    4. Adding Dimensions - unsqueeze()
+    ======================================================================
+    Original vector: tensor([1, 2, 3, 4, 5])
+    Shape: torch.Size([5])
+
+    unsqueeze(0) - Row vector:
+    tensor([[1, 2, 3, 4, 5]])
+    Shape: torch.Size([1, 5])
+
+    unsqueeze(1) - Column vector:
+    tensor([[1],
+            [2],
+            [3],
+            [4],
+            [5]])
+    Shape: torch.Size([5, 1])
+
+    unsqueeze(-1):
+    tensor([[1],
+            [2],
+            [3],
+            [4],
+            [5]])
+    Shape: torch.Size([5, 1])
+
+    Double unsqueeze shape: torch.Size([1, 5, 1])
+    vec[None, :] shape: torch.Size([1, 5])
+    vec[:, None] shape: torch.Size([5, 1])
+
+    ======================================================================
+    5. Removing Dimensions - squeeze()
+    ======================================================================
+    Original shape: torch.Size([1, 5, 1, 3, 1])
+    squeeze() shape: torch.Size([5, 3])
+    squeeze(0) shape: torch.Size([5, 1, 3, 1])
+    squeeze(2) shape: torch.Size([1, 5, 3, 1])
+    squeeze(1) shape: torch.Size([1, 5, 1, 3, 1])
+
+    ======================================================================
+    6. Transpose - Swap Dimensions
+    ======================================================================
+    Original matrix (3x4):
+    tensor([[ 0,  1,  2,  3],
+            [ 4,  5,  6,  7],
+            [ 8,  9, 10, 11]])
+
+    transpose(0, 1) - Now (4x3):
+    tensor([[ 0,  4,  8],
+            [ 1,  5,  9],
+            [ 2,  6, 10],
+            [ 3,  7, 11]])
+
+    mat.T (same as transpose):
+    tensor([[ 0,  4,  8],
+            [ 1,  5,  9],
+            [ 2,  6, 10],
+            [ 3,  7, 11]])
+
+    3D tensor shape: torch.Size([2, 3, 4])
+    transpose(0, 2) shape: torch.Size([4, 3, 2])
+
+    ======================================================================
+    7. Permute - Rearrange Multiple Dimensions
+    ======================================================================
+    Original shape: torch.Size([2, 3, 4, 5])
+    permute(3, 1, 0, 2) shape: torch.Size([5, 3, 2, 4])
+
+    Image batch (NCHW): torch.Size([32, 3, 224, 224])
+    Image batch (NHWC): torch.Size([32, 224, 224, 3])
+
+    ======================================================================
+    8. Contiguity - Memory Layout Matters
+    ======================================================================
+    Original (contiguous): True
+    Contiguous matrix:
+      Value: tensor([[0, 1, 2],
+            [3, 4, 5]])
+      Shape: torch.Size([2, 3])
+      Stride: (3, 1)
+      Contiguous: True
+
+    After transpose (non-contiguous): False
+    Transposed matrix:
+      Value: tensor([[0, 3],
+            [1, 4],
+            [2, 5]])
+      Shape: torch.Size([3, 2])
+      Stride: (1, 3)
+      Contiguous: False
+
+    Error with view() on non-contiguous: view size is not compatible with input tensor's size and stride (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.
+
+    After contiguous(): True
+    Flattened transposed matrix: tensor([0, 3, 1, 4, 2, 5])
+    Using reshape() instead: tensor([0, 3, 1, 4, 2, 5])
+
+    Shared storage before contiguous? True
+    Shared storage after contiguous? False
+
+    ======================================================================
+    9. Common Reshaping Patterns
+    ======================================================================
+    Batch of vectors: torch.Size([64, 128])
+    Flattened images: torch.Size([32, 2352])
+    Conv input shape: torch.Size([16, 512, 1, 1])
+    Grouped tensor shape: torch.Size([3, 20])
+    Groups:
+    tensor([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+             18, 19],
+            [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
+             38, 39],
+            [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
+             58, 59]])
+    Single image: torch.Size([3, 224, 224])
+    As batch: torch.Size([1, 3, 224, 224])
+
+    ======================================================================
+    10. Best Practices and Tips
+    ======================================================================
+
+        핵심 학습:
+        
+        1. **reshape()과 view() 견주기**
+           - reshape()을 써라: 더 안전하고 늘 된다(필요하면 베낀다)
+           - view()를 써라: 텐서가 이어져 있음을 안다면 더 빠르다
+        
+        2. **Contiguity**
+           - transpose() 같은 셈은 이어지지 않은 보기를 만든다
+           - 확실하지 않으면 view() 앞에 contiguous()을 불러라
+           - reshape()은 이를 절로 다룬다
+        
+        3. **기억 자리 아끼기**
+           - 꼴 바꾸기는 대개 공짜다(보기를 만든다)
+           - contiguous()은 베낌을 만든다(때와 기억 자리가 든다)
+           - 꼭 필요할 때만 contiguous()을 불러라
+        
+        4. **차원 다루기**
+           - unsqueeze()은 차원을 더한다(펴 맞추기에 쓸모 있다)
+           - squeeze()은 크기 1인 차원을 없앤다
+           - reshape()에서 크기를 절로 미루게 하려면 -1을 써라
+        
+        5. **흔한 함정**
+           - 모양을 바꾼 뒤에는 늘 텐서 모양을 살펴라
+           - 보기는 본디 텐서와 기억 자리를 나눠 쓴다는 것을 잊지 마라
+           - 기억하라: 모양을 바꿀 때 온 원소 수가 맞아야 한다
+        
+
+    ======================================================================
+    Practice Exercises
+    ======================================================================
+
+        다음 학습을 해 보아라.
+        
+        1. 모양이 (4, 5)인 텐서를 만들고 (2, 2, 5)으로 바꾸어라
+        2. (3, 224, 224) 그림에 앞쪽으로 배치 차원을 더하여라
+        3. (10, 5, 4) 텐서를 (10, 20) 텐서로 펼쳐라
+        4. 칸 벡터 (10, 1)을 줄 벡터 (1, 10)으로 바꾸어라
+        5. (2, 3, 4, 5) 텐서를 만들어 (5, 2, 4, 3)으로 자리를 바꾸어라
+        
+        Solutions:
+        
+    1. Shape: torch.Size([4, 5]) → torch.Size([2, 2, 5])
+    2. Shape: torch.Size([3, 224, 224]) → torch.Size([1, 3, 224, 224])
+    3. Shape: torch.Size([10, 5, 4]) → torch.Size([10, 20])
+    4. Shape: torch.Size([10, 1]) → torch.Size([1, 10])
+    5. Shape: torch.Size([2, 3, 4, 5]) → torch.Size([5, 2, 4, 3])
+    ```
+
 
 ## 2. 논의
 

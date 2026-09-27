@@ -385,56 +385,270 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (259줄)"
 
-```
-================================================================================
-Basic comparison operators
-================================================================================
-a: tensor([1, 2, 3, 4, 5])
-b: tensor([1, 1, 3, 5, 5])
-a == b: tensor([ True, False,  True, False,  True])
-a != b: tensor([False,  True, False,  True, False])
-a < b: tensor([False, False, False,  True, False])
-a <= b: tensor([ True, False,  True,  True,  True])
-a > b: tensor([False,  True, False, False, False])
-a >= b: tensor([ True,  True,  True, False,  True])
+    ```
 
-================================================================================
-Comparison with scalars
-================================================================================
-x: tensor([ 0.3367,  0.1288,  0.2345,  0.2303, -1.1229])
-x > 0: tensor([ True,  True,  True,  True, False])
-x <= 0.5: tensor([True, True, True, True, True])
-x == 0: tensor([False, False, False, False, False])
+    ================================================================================
+    Basic comparison operators
+    ================================================================================
+    a: tensor([1, 2, 3, 4, 5])
+    b: tensor([1, 1, 3, 5, 5])
+    a == b: tensor([ True, False,  True, False,  True])
+    a != b: tensor([False,  True, False,  True, False])
+    a < b: tensor([False, False, False,  True, False])
+    a <= b: tensor([ True, False,  True,  True,  True])
+    a > b: tensor([False,  True, False, False, False])
+    a >= b: tensor([ True,  True,  True, False,  True])
 
-================================================================================
-Element-wise comparison functions
-================================================================================
-torch.eq(a, b): tensor([False,  True, False])
-torch.ne(a, b): tensor([ True, False,  True])
-torch.lt(a, b): tensor([ True, False, False])
-torch.le(a, b): tensor([ True,  True, False])
-torch.gt(a, b): tensor([False, False,  True])
-torch.ge(a, b): tensor([False,  True,  True])
+    ================================================================================
+    Comparison with scalars
+    ================================================================================
+    x: tensor([ 0.3367,  0.1288,  0.2345,  0.2303, -1.1229])
+    x > 0: tensor([ True,  True,  True,  True, False])
+    x <= 0.5: tensor([True, True, True, True, True])
+    x == 0: tensor([False, False, False, False, False])
 
-================================================================================
-Logical operators: &, |, ~ (and, or, not)
-================================================================================
+    ================================================================================
+    Element-wise comparison functions
+    ================================================================================
+    torch.eq(a, b): tensor([False,  True, False])
+    torch.ne(a, b): tensor([ True, False,  True])
+    torch.lt(a, b): tensor([ True, False, False])
+    torch.le(a, b): tensor([ True,  True, False])
+    torch.gt(a, b): tensor([False, False,  True])
+    torch.ge(a, b): tensor([False,  True,  True])
 
-... (215 lines omitted)
+    ================================================================================
+    Logical operators: &, |, ~ (and, or, not)
+    ================================================================================
+    a: tensor([ True,  True, False, False])
+    b: tensor([ True, False,  True, False])
+    a & b (and): tensor([ True, False, False, False])
+    a | b (or): tensor([ True,  True,  True, False])
+    ~a (not): tensor([False, False,  True,  True])
 
-  torch.isfinite(x)     - Check for finite values
+    x: tensor([-0.1863,  2.2082, -0.6380,  0.4617,  0.2674,  0.5349,  0.8094,  1.1103,
+            -1.6898, -0.9890])
+    In range [-0.5, 0.5]: tensor([ True, False, False,  True,  True, False, False, False, False, False])
+    Values: tensor([-0.1863,  0.4617,  0.2674])
 
-Equality checks:
-  torch.equal(a, b)     - Exact equality
-  torch.allclose(a, b)  - Approximate equality
-  torch.isclose(a, b)   - Element-wise approximate equality
+    ================================================================================
+    torch.where: conditional selection
+    ================================================================================
+    condition: tensor([ True, False,  True, False])
+    a: tensor([1, 2, 3, 4])
+    b: tensor([10, 20, 30, 40])
+    where(condition, a, b): tensor([ 1, 20,  3, 40])
 
-Element-wise max/min:
-  torch.maximum(a, b)   - Element-wise maximum
-  torch.minimum(a, b)   - Element-wise minimum
-```
+    x: tensor([ 0.9580,  1.3221,  0.8172, -0.7658, -0.7506])
+    ReLU (x if x>0 else 0): tensor([0.9580, 1.3221, 0.8172, 0.0000, 0.0000])
+
+    ================================================================================
+    clamp: limit values to range
+    ================================================================================
+    x: tensor([-2., -1.,  0.,  1.,  2.,  3.,  4.])
+    clamp(0, 2): tensor([0., 0., 0., 1., 2., 2., 2.])
+    clamp(min=0): tensor([0., 0., 0., 1., 2., 3., 4.])
+    clamp(max=2): tensor([-2., -1.,  0.,  1.,  2.,  2.,  2.])
+    After clamp_(0, 2): tensor([0., 0., 0., 1., 2., 2., 2.])
+
+    ================================================================================
+    clip: alias for clamp
+    ================================================================================
+    clip and clamp are identical: True
+
+    ================================================================================
+    sort: sort values along dimension
+    ================================================================================
+    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
+    Sorted values: tensor([1, 1, 2, 3, 4, 5, 5, 6, 9])
+    Sorted indices: tensor([1, 3, 6, 0, 2, 4, 8, 7, 5])
+    Sorted descending: tensor([9, 6, 5, 5, 4, 3, 2, 1, 1])
+
+    Matrix:
+     tensor([[0, 9, 6, 9],
+            [5, 4, 8, 8],
+            [6, 0, 0, 0]])
+    Sorted rows:
+     tensor([[0, 6, 9, 9],
+            [4, 5, 8, 8],
+            [0, 0, 0, 6]])
+    Sorted columns:
+     tensor([[0, 0, 0, 0],
+            [5, 4, 6, 8],
+            [6, 9, 8, 9]])
+
+    ================================================================================
+    argsort: indices that would sort the tensor
+    ================================================================================
+    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
+    argsort: tensor([1, 3, 6, 0, 2, 4, 8, 7, 5])
+    x[argsort]: tensor([1, 1, 2, 3, 4, 5, 5, 6, 9])
+    argsort(descending): tensor([5, 7, 8, 4, 2, 0, 6, 3, 1])
+
+    ================================================================================
+    topk: k largest (or smallest) elements
+    ================================================================================
+    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
+    Top 3 values: tensor([9, 6, 5])
+    Top 3 indices: tensor([5, 7, 8])
+    Bottom 3 values: tensor([1, 1, 2])
+    Bottom 3 indices: tensor([1, 3, 6])
+
+    Matrix:
+     tensor([[0, 1, 3, 0, 1],
+            [1, 7, 9, 4, 3],
+            [8, 9, 3, 7, 8]])
+    Top 2 per row:
+     tensor([[3, 1],
+            [9, 7],
+            [9, 8]])
+
+    ================================================================================
+    kthvalue: k-th smallest element
+    ================================================================================
+    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
+    5th smallest value: 4
+    5th smallest index: 2
+
+    ================================================================================
+    Checking for special values: nan, inf
+    ================================================================================
+    x: tensor([1., nan, 3., inf, -inf])
+    isnan: tensor([False,  True, False, False, False])
+    isinf: tensor([False, False, False,  True,  True])
+    isfinite: tensor([ True, False,  True, False, False])
+    isposinf: tensor([False, False, False,  True, False])
+    isneginf: tensor([False, False, False, False,  True])
+    Number of NaNs: 1
+    Number of infs: 2
+
+    ================================================================================
+    allclose and isclose: approximate equality
+    ================================================================================
+    a: tensor([1., 2., 3.])
+    b: tensor([1.0001, 2.0001, 3.0001])
+    a == b: False
+    allclose (default tol): False
+    allclose (strict tol): False
+    isclose: tensor([False, False, False])
+
+    ================================================================================
+    equal: exact equality of all elements
+    ================================================================================
+    equal(a, b): True
+    equal(a, c): False
+
+    ================================================================================
+    maximum and minimum: element-wise max/min of two tensors
+    ================================================================================
+    a: tensor([1, 5, 3, 7])
+    b: tensor([4, 2, 6, 1])
+    maximum(a, b): tensor([4, 5, 6, 7])
+    minimum(a, b): tensor([1, 2, 3, 1])
+
+    ================================================================================
+    Practical: filtering with conditions
+    ================================================================================
+    Temperatures: tensor([15.5000, 18.2000, 22.1000, 19.8000, 25.3000, 28.7000, 23.4000])
+    Comfortable days: tensor([False,  True,  True,  True, False, False,  True])
+    Comfortable temps: tensor([18.2000, 22.1000, 19.8000, 23.4000])
+    Number of comfortable days: 4
+
+    ================================================================================
+    Practical: outlier detection
+    ================================================================================
+    Total points: 100
+    Outliers: 3
+    Outlier percentage: 3.0%
+
+    ================================================================================
+    Practical: top-k accuracy
+    ================================================================================
+    Logits shape: torch.Size([10, 5])
+    Targets: tensor([3, 4, 2, 2, 1, 3, 2, 0, 3, 2])
+    Top-1 accuracy: 10.0%
+    Top-3 accuracy: 70.0%
+
+    ================================================================================
+    Practical: thresholding
+    ================================================================================
+    Image:
+     tensor([[0.0036, 0.8104, 0.8741, 0.9729, 0.3821],
+            [0.0892, 0.6124, 0.7762, 0.0023, 0.3865],
+            [0.2003, 0.4563, 0.2539, 0.2956, 0.3413],
+            [0.0248, 0.9103, 0.9192, 0.4216, 0.4431],
+            [0.2959, 0.0485, 0.0134, 0.6858, 0.2255]])
+    Binary (threshold=0.5):
+     tensor([[0., 1., 1., 1., 0.],
+            [0., 1., 1., 0., 0.],
+            [0., 0., 0., 0., 0.],
+            [0., 1., 1., 0., 0.],
+            [0., 0., 0., 1., 0.]])
+    Soft threshold (0.3):
+     tensor([[0.0000, 0.5104, 0.5741, 0.6729, 0.0821],
+            [0.0000, 0.3124, 0.4762, 0.0000, 0.0865],
+            [0.0000, 0.1563, 0.0000, 0.0000, 0.0413],
+            [0.0000, 0.6103, 0.6192, 0.1216, 0.1431],
+            [0.0000, 0.0000, 0.0000, 0.3858, 0.0000]])
+
+    ================================================================================
+    Practical: NaN handling
+    ================================================================================
+    Data with NaNs: tensor([1., 2., nan, 4., nan, 6.])
+    After replacing NaNs with mean: tensor([1.0000, 2.0000, 3.2500, 4.0000, 3.2500, 6.0000])
+    After removing NaNs: tensor([1., 2., 4., 6.])
+
+    ================================================================================
+    Practical: ranking
+    ================================================================================
+    Scores: tensor([85, 92, 78, 95, 88, 92, 70])
+    Ranks: tensor([5, 2, 6, 1, 4, 3, 7])
+    (1 = highest, 7 = lowest)
+
+    ================================================================================
+    Quick reference: comparisons and selection
+    ================================================================================
+
+    Comparison operators:
+      ==, !=, <, <=, >, >=  - Element-wise comparison
+      torch.eq, ne, lt, le, gt, ge - Functional forms
+
+    Logical operators:
+      &, |, ~               - Logical and, or, not
+      torch.logical_and/or/not/xor - Functional forms
+
+    Conditional selection:
+      torch.where(cond, a, b) - Select from a or b based on condition
+
+    Clamping:
+      torch.clamp(x, min, max) - Limit values to range
+      torch.clip(x, min, max)  - Alias for clamp
+
+    Sorting:
+      torch.sort(x)         - Sort values and return indices
+      torch.argsort(x)      - Indices that would sort
+
+    Selection:
+      torch.topk(x, k)      - Top k values/indices
+      torch.kthvalue(x, k)  - k-th smallest value
+
+    Special value checks:
+      torch.isnan(x)        - Check for NaN
+      torch.isinf(x)        - Check for infinity
+      torch.isfinite(x)     - Check for finite values
+
+    Equality checks:
+      torch.equal(a, b)     - Exact equality
+      torch.allclose(a, b)  - Approximate equality
+      torch.isclose(a, b)   - Element-wise approximate equality
+
+    Element-wise max/min:
+      torch.maximum(a, b)   - Element-wise maximum
+      torch.minimum(a, b)   - Element-wise minimum
+    ```
+
 
 ## 2. 논의
 

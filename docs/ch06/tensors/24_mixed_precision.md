@@ -8,6 +8,9 @@
 """튜토리얼 24: 섞인 촘촘함 익히기 - 기억 자리를 덜 쓰며 더 빠르게"""
 import torch
 import torch.nn as nn
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -110,6 +113,7 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+
 ======================================================================
 1. What is Mixed Precision?
 ======================================================================
@@ -132,7 +136,7 @@ Memory savings: 50%
 3. Automatic Mixed Precision (AMP)
 ======================================================================
 Using autocast for mixed precision:
-Loss computed in mixed precision: 2.3538
+Loss computed in mixed precision: 2.3975
 
 ======================================================================
 4. Manual Mixed Precision
@@ -143,9 +147,37 @@ Model converted to float16:
   2.weight: torch.float16
   2.bias: torch.float16
 
+======================================================================
+5. When to Use Mixed Precision
+======================================================================
 
-... (31 lines omitted)
+    다음 때에 섞인 촘촘함을 쓴다.
+    ✓ 큰 모델을 익힐 때
+    ✓ GPU 기억 자리가 넉넉하지 않을 때
+    ✓ 맞는 GPU(텐서 코어)이 있을 때
+    ✓ 배치 크기가 목이 될 때
+    
+    조심할 것:
+    ✗ 아주 작은 기울기(GradScaler을 써라)
+    ✗ 맞춤 셈(fp16을 받치지 않을 수 있다)
+    ✗ 수치가 흔들리는 탈
+    
 
+======================================================================
+6. Complete Training Example
+======================================================================
+
+    # 표준 학습
+    for epoch in range(epochs):
+        for x, y in dataloader:
+            optimizer.zero_grad()
+            output = model(x)
+            loss = criterion(output, y)
+            loss.backward()
+            optimizer.step()
+    
+    # 혼합 정밀도 학습
+    scaler = torch.cuda.amp.GradScaler()
     for epoch in range(epochs):
         for x, y in dataloader:
             optimizer.zero_grad()

@@ -342,56 +342,235 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (224줄)"
 
-```
-================================================================================
-Basic reductions: sum, mean, prod
-================================================================================
-x:
- tensor([[ 0.3367,  0.1288,  0.2345,  0.2303],
-        [-1.1229, -0.1863,  2.2082, -0.6380],
-        [ 0.4617,  0.2674,  0.5349,  0.8094]])
-sum: 3.264584541320801
-mean: 0.2720487117767334
-prod (product): -3.6888061003992334e-05
+    ```
 
-================================================================================
-Dimension-wise reductions
-================================================================================
-x:
- tensor([[1., 2., 3.],
-        [4., 5., 6.],
-        [7., 8., 9.]])
-sum(dim=0): tensor([12., 15., 18.])
-  Result shape: torch.Size([3])
-sum(dim=1): tensor([ 6., 15., 24.])
-  Result shape: torch.Size([3])
+    ================================================================================
+    Basic reductions: sum, mean, prod
+    ================================================================================
+    x:
+     tensor([[ 0.3367,  0.1288,  0.2345,  0.2303],
+            [-1.1229, -0.1863,  2.2082, -0.6380],
+            [ 0.4617,  0.2674,  0.5349,  0.8094]])
+    sum: 3.264584541320801
+    mean: 0.2720487117767334
+    prod (product): -3.6888061003992334e-05
 
-================================================================================
-keepdim: preserve reduced dimensions as size 1
-================================================================================
-x.shape: torch.Size([3, 4, 5])
-mean(dim=1).shape: torch.Size([3, 5])
-mean(dim=1, keepdim=True).shape: torch.Size([3, 1, 5])
-Normalized shape: torch.Size([3, 4, 5])
+    ================================================================================
+    Dimension-wise reductions
+    ================================================================================
+    x:
+     tensor([[1., 2., 3.],
+            [4., 5., 6.],
+            [7., 8., 9.]])
+    sum(dim=0): tensor([12., 15., 18.])
+      Result shape: torch.Size([3])
+    sum(dim=1): tensor([ 6., 15., 24.])
+      Result shape: torch.Size([3])
 
-================================================================================
-Multiple dimension reductions
+    ================================================================================
+    keepdim: preserve reduced dimensions as size 1
+    ================================================================================
+    x.shape: torch.Size([3, 4, 5])
+    mean(dim=1).shape: torch.Size([3, 5])
+    mean(dim=1, keepdim=True).shape: torch.Size([3, 1, 5])
+    Normalized shape: torch.Size([3, 4, 5])
 
-... (180 lines omitted)
+    ================================================================================
+    Multiple dimension reductions
+    ================================================================================
+    x.shape: torch.Size([2, 3, 4, 5])
+    mean(dim=(1,3)).shape: torch.Size([2, 4])
+    mean(dim=(1,3), keepdim=True).shape: torch.Size([2, 1, 4, 1])
 
-Logical:
-  .all()     - True if all elements True
-  .any()     - True if any element True
-  torch.count_nonzero() - Count non-zero elements
+    ================================================================================
+    Standard deviation and variance
+    ================================================================================
+    std: 0.8983126878738403
+    var: 0.8069656491279602
+    Relation: var = std²: 0.8069656491279602 ≈ 0.806965708732605
 
-Cumulative:
-  .cumsum(dim) - Cumulative sum
-  .cumprod(dim) - Cumulative product
+    Biased (default, Bessel correction):
+      std(correction=1): 0.8983126878738403
+    Unbiased:
+      std(correction=0): 0.8938098549842834
 
-Note: Most operations support dim and keepdim parameters
-```
+    ================================================================================
+    Min and max operations
+    ================================================================================
+    x:
+     tensor([[ 0.2545,  0.0662, -1.2704,  0.6674],
+            [-1.0002, -0.0244,  0.2497, -1.7517],
+            [-0.1309,  1.4378, -0.1544, -0.2853]])
+    min: -1.7517130374908447
+    max: 1.437826156616211
+    min(dim=1) values: tensor([-1.2704, -1.7517, -0.2853])
+    min(dim=1) indices: tensor([2, 3, 3])
+    max(dim=1) values: tensor([0.6674, 0.2497, 1.4378])
+    max(dim=1) indices: tensor([3, 2, 1])
+
+    ================================================================================
+    argmin and argmax: just the indices
+    ================================================================================
+    x:
+     tensor([[-0.1389, -0.8561, -0.5364, -1.0440],
+            [ 1.2561,  0.4627, -0.3151,  0.5482],
+            [ 0.0369, -0.8128,  0.0121, -0.6397]])
+    argmin (global): 3
+    argmax (global): 4
+    argmin(dim=1): tensor([3, 2, 1])
+    argmax(dim=1): tensor([0, 0, 0])
+
+    ================================================================================
+    aminmax: min and max together
+    ================================================================================
+    aminmax: -1.7989355325698853 1.8586984872817993
+    aminmax(dim=1):
+      mins: tensor([-0.5964, -1.7989, -0.6021])
+      maxs: tensor([0.7355, 1.8587, 0.6732])
+
+    ================================================================================
+    Quantiles and percentiles
+    ================================================================================
+    median: -0.014654344879090786
+    25th percentile: -0.6737703680992126
+    75th percentile: 0.7074064016342163
+    IQR: 1.3811767101287842
+    10th, 50th, 90th percentiles: tensor([-1.3014, -0.0146,  1.3046])
+
+    ================================================================================
+    Norms and distances
+    ================================================================================
+    L2 norm: 5.0 (expect 5.0)
+    L1 norm: 7.0
+    L∞ norm: 4.0
+    Frobenius norm: 2.696213722229004
+    Distance between vectors: 5.0
+
+    ================================================================================
+    Logical reductions: all, any
+    ================================================================================
+    x:
+     tensor([[ True,  True,  True],
+            [ True, False,  True],
+            [False, False, False]])
+    all() (all True): False
+    any() (any True): True
+    all(dim=1): tensor([ True, False, False])
+    any(dim=1): tensor([ True,  True, False])
+
+    values: tensor([-0.3302,  0.6592,  0.8909, -0.7871, -0.1409])
+    All positive: False
+    Any positive: True
+
+    ================================================================================
+    Counting operations
+    ================================================================================
+    x:
+     tensor([[1, 0, 3],
+            [0, 0, 6],
+            [7, 8, 0]])
+    numel (total elements): 9
+    count_nonzero: 5
+    count_nonzero(dim=0): tensor([2, 1, 2])
+    count_nonzero(dim=1): tensor([2, 1, 2])
+
+    ================================================================================
+    Cumulative operations
+    ================================================================================
+    x: tensor([1., 2., 3., 4., 5.])
+    cumsum: tensor([ 1.,  3.,  6., 10., 15.])
+    cumprod: tensor([  1.,   2.,   6.,  24., 120.])
+
+    mat:
+     tensor([[1., 2., 3.],
+            [4., 5., 6.]])
+    cumsum(dim=0):
+     tensor([[1., 2., 3.],
+            [5., 7., 9.]])
+    cumsum(dim=1):
+     tensor([[ 1.,  3.,  6.],
+            [ 4.,  9., 15.]])
+
+    ================================================================================
+    Mode and unique values
+    ================================================================================
+    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
+    mode value: 1
+    mode index: 3
+    unique values: tensor([1, 2, 3, 4, 5, 6, 9])
+    unique with counts:
+      1: 2 times
+      2: 1 times
+      3: 1 times
+      4: 1 times
+      5: 2 times
+      6: 1 times
+      9: 1 times
+
+    ================================================================================
+    Batch statistics example: normalizing batches
+    ================================================================================
+    Batch shape: torch.Size([4, 3, 32, 32])
+    Mean shape: torch.Size([1, 3, 1, 1])
+    Std shape: torch.Size([1, 3, 1, 1])
+    Normalized shape: torch.Size([4, 3, 32, 32])
+    Normalized mean ≈ 0: tensor([ 7.4506e-09,  1.1409e-08, -1.3271e-08])
+    Normalized std ≈ 1: tensor([1.0000, 1.0000, 1.0000])
+
+    ================================================================================
+    Statistical summary function
+    ================================================================================
+
+    Random matrix:
+      Shape: torch.Size([100, 50])
+      dtype: torch.float32
+      Min: -4.5905
+      Max: 3.7069
+      Mean: 0.0070
+      Std: 1.0168
+      Median: 0.0181
+
+    ================================================================================
+    Quick reference: reduction operations
+    ================================================================================
+
+    Basic statistics:
+      .sum()     - Sum of all elements
+      .mean()    - Average of all elements
+      .std()     - Standard deviation
+      .var()     - Variance
+      .prod()    - Product of all elements
+
+    Extrema:
+      .min()     - Minimum value (+ index if dim specified)
+      .max()     - Maximum value (+ index if dim specified)
+      .argmin()  - Index of minimum
+      .argmax()  - Index of maximum
+      .aminmax() - Min and max together
+
+    Distribution:
+      .median()  - Median value
+      .quantile(q) - q-th quantile
+      .mode()    - Most frequent value
+
+    Norms:
+      .norm(p)   - p-norm (p=1, 2, inf, 'fro')
+      torch.dist(a, b, p) - Distance between tensors
+
+    Logical:
+      .all()     - True if all elements True
+      .any()     - True if any element True
+      torch.count_nonzero() - Count non-zero elements
+
+    Cumulative:
+      .cumsum(dim) - Cumulative sum
+      .cumprod(dim) - Cumulative product
+
+    Note: Most operations support dim and keepdim parameters
+    ```
+
 
 ## 2. 논의
 

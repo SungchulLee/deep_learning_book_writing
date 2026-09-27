@@ -260,13 +260,14 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+
 ================================================================================
 1) torch.from_numpy(np_array) → SHARE (no copy)
 ================================================================================
 arr (before): [1. 2. 3.]
 t_shared (before): tensor([1., 2., 3.])
-ptr(arr)    = 105553174397968
-ptr(tensor) = 105553174397968 (same → shared)
+ptr(arr)    = 105553162087072
+ptr(tensor) = 105553162087072 (same → shared)
 arr (after arr[0]=99):       [99.  2.  3.]
 t_shared (after arr change): tensor([99.,  2.,  3.])
 arr (after t_shared[1]=-7):  [99. -7.  3.]
@@ -279,8 +280,8 @@ arr3 (before): [1.1 2.2 3.3]
 t_as (before):  tensor([1.1000, 2.2000, 3.3000], dtype=torch.float64)
 arr3 (after arr3[1]=222): [  1.1 222.    3.3]
 t_as (after):             tensor([  1.1000, 222.0000,   3.3000], dtype=torch.float64)
-ptr(arr3)  = 105553172818688
-ptr(t_as)  = 105553172818688 (same → shared; different → copied)
+ptr(arr3)  = 105553159487552
+ptr(t_as)  = 105553159487552 (same → shared; different → copied)
 
 ================================================================================
 3) torch.tensor(np_array) → COPY (independent)
@@ -289,13 +290,38 @@ arr2 (before): [10 20 30]
 t_copy (before): tensor([10, 20, 30])
 arr2 (after arr2[0]=123): [123  20  30]
 t_copy (unchanged):        tensor([10, 20, 30])
-ptr(arr2)   = 105553172818592
-ptr(t_copy) = 5242231040 (different → copy)
+ptr(arr2)   = 105553159487648
+ptr(t_copy) = 5736726400 (different → copy)
 
 ================================================================================
+4) Dtype mappings (float32, float64, int64, int32, uint8, bool)
+================================================================================
+NumPy dtype  float32 → Torch dtype torch.float32
+NumPy dtype  float64 → Torch dtype torch.float64
+NumPy dtype    int64 → Torch dtype torch.int64
+NumPy dtype    int32 → Torch dtype torch.int32
+NumPy dtype    uint8 → Torch dtype torch.uint8
+NumPy dtype     bool → Torch dtype torch.bool
 
-... (28 lines omitted)
+================================================================================
+5) Strided NumPy views (positive step) → SHARE
+================================================================================
+base: [0. 1. 2. 3. 4. 5. 6. 7. 8. 9.]
+view: [0. 2. 4. 6. 8.]
+t_view: tensor([0., 2., 4., 6., 8.])
+ptr(base)  = 105553157210448
+ptr(view)  = 105553157210448
+ptr(t_view) = 105553157210448 (same as view → shared)
+After view[0]=999 → base: [999.   1.   2.   3.   4.   5.   6.   7.   8.   9.]
+After view[0]=999 → t_view: tensor([999.,   2.,   4.,   6.,   8.])
 
+================================================================================
+6) Read-only NumPy arrays → from_numpy may error
+================================================================================
+from_numpy(readonly) succeeded (behavior may vary)
+Fallback via copy: tensor([1., 2., 3.])
+
+================================================================================
 7) Complex dtype example: may need explicit conversion
 ================================================================================
 from_numpy(complex128) succeeded on this setup

@@ -213,56 +213,122 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (111줄)"
 
-```
-================================================================================
-Base tensor
-================================================================================
-base:
- tensor([[1., 2., 3.],
-        [4., 5., 6.]], requires_grad=True)
-base.requires_grad: True
-ptr(base): 4923011712
+    ```
 
-================================================================================
-1) Plain assignment: alias reference (NO COPY)
-================================================================================
-alias is base?        True
-ptr(alias) == ptr(base)? True
+    ================================================================================
+    Base tensor
+    ================================================================================
+    base:
+     tensor([[1., 2., 3.],
+            [4., 5., 6.]], requires_grad=True)
+    base.requires_grad: True
+    ptr(base): 4437640000
 
-After base.add_(100):
-base:
- tensor([[101., 102., 103.],
-        [104., 105., 106.]], requires_grad=True)
-alias (same object):
- tensor([[101., 102., 103.],
-        [104., 105., 106.]], requires_grad=True)
+    ================================================================================
+    1) Plain assignment: alias reference (NO COPY)
+    ================================================================================
+    alias is base?        True
+    ptr(alias) == ptr(base)? True
 
-================================================================================
-2) Views that SHARE storage (slicing / view / reshape)
-================================================================================
-ptr(view_slice): 4923011712
-ptr(view_view) : 4923011712
-ptr(view_resh) : 4923011712
-All share storage with base? -> True
+    After base.add_(100):
+    base:
+     tensor([[101., 102., 103.],
+            [104., 105., 106.]], requires_grad=True)
+    alias (same object):
+     tensor([[101., 102., 103.],
+            [104., 105., 106.]], requires_grad=True)
 
-After view_slice.mul_(10):
-base:
+    ================================================================================
+    2) Views that SHARE storage (slicing / view / reshape)
+    ================================================================================
+    ptr(view_slice): 4437640000
+    ptr(view_view) : 4437640000
+    ptr(view_resh) : 4437640000
+    All share storage with base? -> True
 
-... (66 lines omitted)
+    After view_slice.mul_(10):
+    base:
+     tensor([[ 1., 20., 30.],
+            [ 4., 50., 60.]], requires_grad=True)
+    view_slice:
+     tensor([[20., 30.],
+            [50., 60.]], grad_fn=<AsStridedBackward0>)
 
+    ================================================================================
+    3) .clone(): DEEP COPY (no storage sharing)
+    ================================================================================
+    ptr(clone): 5253725696   ptr(base): 4437640000
+    Shares storage? -> False
 
-================================================================================
-8) Summary
-================================================================================
-• alias = base           : NO COPY, same Python object & storage
-• view/slice/reshape     : SHARE storage (when possible)
-• clone()                : COPY, independent storage; keeps autograd link
-• detach()               : SHARE storage; breaks autograd link
-• detach().clone()       : COPY + no grad (safe snapshot)
-• In-place ops affect ALL tensors sharing the storage; use with care.
-```
+    After base.add_(1000):
+    base:
+     tensor([[1001., 1002., 1003.],
+            [1004., 1005., 1006.]], requires_grad=True)
+    clone (unchanged):
+     tensor([[1., 2., 3.],
+            [4., 5., 6.]], grad_fn=<CloneBackward0>)
+
+    ================================================================================
+    4) .detach(): shares storage, stops grad
+    ================================================================================
+    d.requires_grad: False
+    ptr(detach) == ptr(base)? True
+
+    After base.add_(5):
+    base:
+     tensor([[ 6.,  7.,  8.],
+            [ 9., 10., 11.]], requires_grad=True)
+    detach (reflects change):
+     tensor([[ 6.,  7.,  8.],
+            [ 9., 10., 11.]])
+
+    ================================================================================
+    5) .detach().clone(): no grad + deep copy
+    ================================================================================
+    dc.requires_grad: False
+    ptr(detach().clone) == ptr(base)? False
+
+    After base.mul_(2):
+    base:
+     tensor([[ 2.,  4.,  6.],
+            [ 8., 10., 12.]], requires_grad=True)
+    detach().clone (unchanged):
+     tensor([[1., 2., 3.],
+            [4., 5., 6.]])
+
+    ================================================================================
+    6) Autograd note: clone vs detach
+    ================================================================================
+    x.grad from clone-path: tensor([3., 3., 3.])
+    backward on detach path raised: element 0 of tensors does not require grad and does not have a grad_fn
+
+    ================================================================================
+    7) In-place ops can silently affect ALL tensors sharing the storage
+    ================================================================================
+    Before in-place on view:
+    a: tensor([1., 2., 3.], requires_grad=True)  ptr: 4334865152
+    v: tensor([2., 3.], grad_fn=<SliceBackward0>)  ptr: 4334865152
+    c: tensor([1., 2., 3.], grad_fn=<CloneBackward0>)  ptr: 4335005120
+
+    After v.add_(100):
+    a (affected): tensor([  1., 102., 103.], requires_grad=True)
+    v (view):     tensor([102., 103.], grad_fn=<AsStridedBackward0>)
+    c (clone):    tensor([1., 2., 3.], grad_fn=<CloneBackward0>)
+
+    ================================================================================
+    8) Summary
+    ================================================================================
+    • alias = base           : NO COPY, same Python object & storage
+    • view/slice/reshape     : SHARE storage (when possible)
+    • clone()                : COPY, independent storage; keeps autograd link
+    • detach()               : SHARE storage; breaks autograd link
+    • detach().clone()       : COPY + no grad (safe snapshot)
+    • In-place ops affect ALL tensors sharing the storage; use with care.
+
+    ```
+
 
 ## 2. 논의
 

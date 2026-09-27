@@ -225,56 +225,112 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (101줄)"
 
-```
-================================================================================
-Broadcasting Rule 1: Align from trailing (rightmost) dimensions
-================================================================================
-  torch.Size([3, 4, 5]) + torch.Size([5]) → torch.Size([3, 4, 5])
+    ```
 
-================================================================================
-Broadcasting Rule 2: Prepend 1s to shorter tensor
-================================================================================
-  torch.Size([3, 4, 5]) + torch.Size([4, 5]) → torch.Size([3, 4, 5])
+    ================================================================================
+    Broadcasting Rule 1: Align from trailing (rightmost) dimensions
+    ================================================================================
+      torch.Size([3, 4, 5]) + torch.Size([5]) → torch.Size([3, 4, 5])
 
-================================================================================
-Broadcasting Rule 3: Size-1 dimensions expand to match
-================================================================================
-  torch.Size([3, 1, 5]) + torch.Size([1, 4, 5]) → torch.Size([3, 4, 5])
-  Both broadcast to torch.Size([3, 4, 5])
+    ================================================================================
+    Broadcasting Rule 2: Prepend 1s to shorter tensor
+    ================================================================================
+      torch.Size([3, 4, 5]) + torch.Size([4, 5]) → torch.Size([3, 4, 5])
 
-================================================================================
-Scalar broadcasting (0-D tensor)
-================================================================================
-  torch.Size([3, 4]) * torch.Size([]) → torch.Size([3, 4])
+    ================================================================================
+    Broadcasting Rule 3: Size-1 dimensions expand to match
+    ================================================================================
+      torch.Size([3, 1, 5]) + torch.Size([1, 4, 5]) → torch.Size([3, 4, 5])
+      Both broadcast to torch.Size([3, 4, 5])
 
-================================================================================
-Common pattern: (batch, features) + (features,)
-================================================================================
-  torch.Size([32, 128]) + torch.Size([128]) → torch.Size([32, 128])
-  Common in neural networks: adding bias to batched data
+    ================================================================================
+    Scalar broadcasting (0-D tensor)
+    ================================================================================
+      torch.Size([3, 4]) * torch.Size([]) → torch.Size([3, 4])
 
-================================================================================
-Common pattern: (batch, channels, H, W) + (channels, 1, 1)
-================================================================================
-  torch.Size([8, 3, 64, 64]) * torch.Size([3, 1, 1]) → torch.Size([8, 3, 64, 64])
-  Common in CNNs: per-channel operations
+    ================================================================================
+    Common pattern: (batch, features) + (features,)
+    ================================================================================
+      torch.Size([32, 128]) + torch.Size([128]) → torch.Size([32, 128])
+      Common in neural networks: adding bias to batched data
 
+    ================================================================================
+    Common pattern: (batch, channels, H, W) + (channels, 1, 1)
+    ================================================================================
+      torch.Size([8, 3, 64, 64]) * torch.Size([3, 1, 1]) → torch.Size([8, 3, 64, 64])
+      Common in CNNs: per-channel operations
 
-... (57 lines omitted)
+    ================================================================================
+    Matrix-vector broadcasting
+    ================================================================================
+      Row-wise: torch.Size([5, 4]) + torch.Size([4]) → torch.Size([5, 4])
+      Col-wise: torch.Size([5, 4]) + torch.Size([5, 1]) → torch.Size([5, 4])
 
-  Examples of compatible shapes:
-    (5, 1, 7)            + (3, 7)               → (5, 3, 7)
-    (3, 1)               + (1, 4)               → (3, 4)
-    (8, 1, 6, 1)         + (7, 1, 5)            → (8, 7, 6, 5)
-    (5,)                 + (3, 5)               → (3, 5)
-    ()                   + (3, 4)               → (3, 4)
+    ================================================================================
+    Outer product via broadcasting
+    ================================================================================
+      torch.Size([3, 1]) * torch.Size([1, 4]) → torch.Size([3, 4])
+      Outer product:
+     tensor([[ 10.,  20.,  30.,  40.],
+            [ 20.,  40.,  60.,  80.],
+            [ 30.,  60.,  90., 120.]])
 
-  Examples of INCOMPATIBLE shapes:
-    (3, 4)               + (5,)                 ✗ (dims don't match: 4 ≠ 5)
-    (2, 3)               + (3, 2)               ✗ (both dims non-1: 2≠3 and 3≠2)
-```
+    ================================================================================
+    Broadcasting incompatibility (will fail)
+    ================================================================================
+      ERROR (expected): The size of tensor a (4) must match the size of tensor b (5)...
+      (3, 4) vs (5,) → dimension 1: 4 ≠ 5
+
+    ================================================================================
+    Broadcasting with unsqueeze to add size-1 dimensions
+    ================================================================================
+      torch.Size([3, 4]) + torch.Size([1, 4]) → torch.Size([3, 4])
+      ERROR: (3, 4) + (4, 1) incompatible
+      torch.Size([3, 4]) + torch.Size([3, 1]) → torch.Size([3, 4]) ✓
+
+    ================================================================================
+    Explicit broadcast_to for clarity
+    ================================================================================
+      Automatic: torch.Size([4, 3]) + torch.Size([3]) → torch.Size([4, 3])
+      Explicit: broadcast_to((4, 3)) → torch.Size([4, 3])
+      Is view (shares storage): True
+
+    ================================================================================
+    Common bug: unintended broadcasting with missing dimensions
+    ================================================================================
+      Wrong mean shape: torch.Size([10, 3])
+      Correct mean shape: torch.Size([10, 3, 1, 1])
+      Correct result shape: torch.Size([10, 3, 32, 32])
+
+    ================================================================================
+    Broadcasting with torch.where (conditional selection)
+    ================================================================================
+      where: torch.Size([3, 4]), torch.Size([4]) → torch.Size([3, 4])
+
+    ================================================================================
+    Memory efficiency: broadcasting creates views, not copies
+    ================================================================================
+      Broadcasted shape: torch.Size([1000, 3])
+      Shares storage: True
+      Storage size: 3 elements (only original data)
+
+    ================================================================================
+    Quick reference: broadcasting shape compatibility
+    ================================================================================
+      Examples of compatible shapes:
+        (5, 1, 7)            + (3, 7)               → (5, 3, 7)
+        (3, 1)               + (1, 4)               → (3, 4)
+        (8, 1, 6, 1)         + (7, 1, 5)            → (8, 7, 6, 5)
+        (5,)                 + (3, 5)               → (3, 5)
+        ()                   + (3, 4)               → (3, 4)
+
+      Examples of INCOMPATIBLE shapes:
+        (3, 4)               + (5,)                 ✗ (dims don't match: 4 ≠ 5)
+        (2, 3)               + (3, 2)               ✗ (both dims non-1: 2≠3 and 3≠2)
+    ```
+
 
 ## 2. 논의
 

@@ -10,6 +10,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import os
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -156,56 +159,107 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (96줄)"
 
-```
-======================================================================
-1. Saving Model State Dict
-======================================================================
-Model created:
-SimpleModel(
-  (fc1): Linear(in_features=10, out_features=20, bias=True)
-  (fc2): Linear(in_features=20, out_features=1, bias=True)
-)
+    ```
 
-Model weights saved to 'model_weights.pth'
-This saves only the parameters, not the architecture!
+    ======================================================================
+    1. Saving Model State Dict
+    ======================================================================
+    Model created:
+    SimpleModel(
+      (fc1): Linear(in_features=10, out_features=20, bias=True)
+      (fc2): Linear(in_features=20, out_features=1, bias=True)
+    )
 
-======================================================================
-2. Loading Model State Dict
-======================================================================
-Weights loaded into new model
-Weights match: True
+    Model weights saved to 'model_weights.pth'
+    This saves only the parameters, not the architecture!
 
-======================================================================
-3. Saving Entire Model
-======================================================================
-Full model saved (architecture + weights)
-Full model loaded
-Note: This requires the model class definition to be available!
+    ======================================================================
+    2. Loading Model State Dict
+    ======================================================================
+    Weights loaded into new model
+    Weights match: True
 
-======================================================================
-4. Saving Training Checkpoint
-======================================================================
-Training checkpoint saved with:
-  - Epoch: 10
-  - Model weights
-  - Optimizer state
-  - Loss: 0.123
+    ======================================================================
+    3. Saving Entire Model
+    ======================================================================
+    Full model saved (architecture + weights)
+    Full model loaded
+    Note: This requires the model class definition to be available!
 
-... (52 lines omitted)
+    ======================================================================
+    4. Saving Training Checkpoint
+    ======================================================================
+    Training checkpoint saved with:
+      - Epoch: 10
+      - Model weights
+      - Optimizer state
+      - Loss: 0.123
 
-    6. 저장한 뒤 제대로 불러와지는지 따져라
-    7. 다른 기기에서 불러올 때는 map_location='cpu'을 써라
-    8. 곁들인 정보(초매개변수 따위)도 저장하라
-    9. 불러오는 코드를 자주 시험하라
-    10. 추론 전용 저장을 따로 두어라
-    
-    이름 보기: model_epoch50_loss0.123_acc0.95.pth
-    
+    ======================================================================
+    5. Resuming Training
+    ======================================================================
+    Resuming from epoch 10
+    Last loss: 0.123
+    Ready to continue training!
 
-Checkpoint files cleaned up.
-```
+    ======================================================================
+    6. Save Best Model Only
+    ======================================================================
+    New best model saved! Loss: 0.1000
+
+    ======================================================================
+    7. Model Versioning
+    ======================================================================
+    Checkpoint saved: model_epoch_5.pth
+    Useful for comparing different training stages!
+
+    ======================================================================
+    8. Saving for Inference Only
+    ======================================================================
+    Inference-only model saved
+    Remember to call model.eval() before inference!
+
+    ======================================================================
+    9. Cross-Platform Compatibility
+    ======================================================================
+
+        가장 널리 맞물리게 하려면
+        
+        # 저장
+        torch.save(model.state_dict(), 'model.pth', _use_new_zipfile_serialization=True)
+        
+        # 장치 대응과 함께 불러오기
+        model.load_state_dict(torch.load('model.pth', map_location='cpu'))
+        
+        # 그런 다음 원하는 장치로 옮긴다
+        model = model.to(device)
+        
+
+    ======================================================================
+    10. Best Practices
+    ======================================================================
+
+        모델 되짚음 저장을 잘 하는 버릇:
+        
+        1. 너그럽게 쓰려면 온 모델이 아니라 state_dict을 저장하라
+        2. 학습 상태(판, 최적화기, 손실)를 저장하라
+        3. 자리를 아끼려면 가장 좋은 것 N개만 남겨라
+        4. 알아보기 쉬운 이름을 써라(판, 자, 날짜)
+        5. 에폭마다 또는 N 걸음마다 저장하라
+        6. 저장한 뒤 제대로 불러와지는지 따져라
+        7. 다른 기기에서 불러올 때는 map_location='cpu'을 써라
+        8. 곁들인 정보(초매개변수 따위)도 저장하라
+        9. 불러오는 코드를 자주 시험하라
+        10. 추론 전용 저장을 따로 두어라
+        
+        이름 보기: model_epoch50_loss0.123_acc0.95.pth
+        
+
+    Checkpoint files cleaned up.
+    ```
+
 
 ## 2. 논의
 

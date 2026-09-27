@@ -40,6 +40,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from contextlib import ExitStack
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent      # 저장소 뿌리
@@ -75,6 +76,21 @@ def numeric_lines(text):
             and not ELIDED.search(l)]
 
 
+
+def sandbox_cwd(stack):
+    """쪽의 코드를 돌릴 **버리는 자리**를 만든다.
+
+    예제들은 그림(.png)과 저장 파일(.pth)을 현재 자리에 쏟아 놓는다.
+    저장소 뿌리에서 돌리면 그것들이 뿌리에 쌓이므로, 빈 자리를 만들고
+    자료만 심볼릭 링크로 빌려다 쓴다. 자리째 지우면 찌꺼기도 함께 간다.
+    """
+    d = stack.enter_context(tempfile.TemporaryDirectory())
+    for name in ("data", "figures"):
+        src = ROOT / name
+        if src.exists():
+            (Path(d) / name).symlink_to(src)
+    return d
+
 def check(md_path, timeout=1800):
     md = md_path.read_text()
 
@@ -97,19 +113,21 @@ def check(md_path, timeout=1800):
         candidates.append(max(blocks, key=lambda b: len(b.splitlines())))
 
     r = None
-    for code in candidates:
-        with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as f:
-            f.write(code)
-            tmp = f.name
-        try:
-            r = subprocess.run([sys.executable, tmp], capture_output=True,
-                               text=True, timeout=timeout, cwd=ROOT)
-        except subprocess.TimeoutExpired:
-            return ("시간초과", 0, 0, [], 0)
-        finally:
-            Path(tmp).unlink(missing_ok=True)
-        if r.returncode == 0:
-            break
+    with ExitStack() as stack:
+        cwd = sandbox_cwd(stack)
+        for code in candidates:
+            with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as f:
+                f.write(code)
+                tmp = f.name
+            try:
+                r = subprocess.run([sys.executable, tmp], capture_output=True,
+                                   text=True, timeout=timeout, cwd=cwd)
+            except subprocess.TimeoutExpired:
+                return ("시간초과", 0, 0, [], 0)
+            finally:
+                Path(tmp).unlink(missing_ok=True)
+            if r.returncode == 0:
+                break
 
     if r is None or r.returncode != 0:
         tail = r.stderr.strip().splitlines()[-2:] if r else []

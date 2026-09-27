@@ -8,6 +8,9 @@
 """튜토리얼 25: 기억 자리 다루기 - 기억 자리 씀씀이 다듬기"""
 import torch
 import torch.nn as nn
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -136,56 +139,123 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (112줄)"
 
-```
-======================================================================
-1. Understanding Memory Usage
-======================================================================
-Tensor shape: torch.Size([1000, 1000])
-Element size: 4 bytes
-Number of elements: 1000000
-Total memory: 3.81 MB
+    ```
 
-======================================================================
-2. In-place Operations Save Memory
-======================================================================
-Initial memory ID: 4698835536
-After x + 1 (new tensor): 4698835776
-After x.add_(1) (same tensor): 4698835536
-In-place operations modify tensor without creating a copy!
+    ======================================================================
+    1. Understanding Memory Usage
+    ======================================================================
+    Tensor shape: torch.Size([1000, 1000])
+    Element size: 4 bytes
+    Number of elements: 1000000
+    Total memory: 3.81 MB
 
-======================================================================
-3. Detaching from Computation Graph
-======================================================================
-y requires_grad: True
-y has grad_fn: True
+    ======================================================================
+    2. In-place Operations Save Memory
+    ======================================================================
+    Initial memory ID: 5377377216
+    After x + 1 (new tensor): 5377376976
+    After x.add_(1) (same tensor): 5377377216
+    In-place operations modify tensor without creating a copy!
 
-After detach:
-z requires_grad: False
-z has grad_fn: False
-Detach removes from computation graph, saves memory!
+    ======================================================================
+    3. Detaching from Computation Graph
+    ======================================================================
+    y requires_grad: True
+    y has grad_fn: True
 
-======================================================================
-4. Using torch.no_grad()
-======================================================================
-During inference, use no_grad to save memory:
-Output requires_grad: False
-No gradients computed or stored!
+    After detach:
+    z requires_grad: False
+    z has grad_fn: False
+    Detach removes from computation graph, saves memory!
 
-... (68 lines omitted)
+    ======================================================================
+    4. Using torch.no_grad()
+    ======================================================================
+    During inference, use no_grad to save memory:
+    Output requires_grad: False
+    No gradients computed or stored!
 
-    2. 기울기가 필요 없으면 .detach()을 불러라
-    3. 안전할 때는 제자리 셈(_)을 써라
-    4. 실제 배치 크기를 키우려면 기울기를 쌓아라
-    5. 섞인 촘촘함 익히기를 써라(튜토리얼 24을 보아라)
-    6. 다 쓴 큰 텐서는 지워라: del x
-    7. GPU 저장을 비워라: torch.cuda.empty_cache()
-    8. 깊은 망에는 기울기 되짚음 저장을 써라
-    9. 기억 자리 씀씀이를 살펴 목을 찾아라
-    10. 배치 크기나 모델 크기를 줄이는 것도 생각해 보아라
-    
-```
+    ======================================================================
+    5. Gradient Accumulation
+    ======================================================================
+
+        Instead of:
+            batch_size = 128  # 기억 자리가 모자랄 수 있다!
+            
+        기울기 쌓기를 쓴다.
+            batch_size = 32
+            accumulation_steps = 4  # 실제 배치 크기 = 128
+            
+        for i, (x, y) in enumerate(dataloader):
+            output = model(x)
+            loss = criterion(output, y) / accumulation_steps
+            loss.backward()
+            
+            if (i + 1) % accumulation_steps == 0:
+                optimizer.step()
+                optimizer.zero_grad()
+        
+
+    ======================================================================
+    6. Checkpoint Activations
+    ======================================================================
+
+        아주 깊은 망에는 기울기 되짚음 저장을 쓴다.
+        
+        from torch.utils.checkpoint import checkpoint
+        
+        class DeepModel(nn.Module):
+            def forward(self, x):
+                # 메모리를 위해 계산을 희생한다
+                x = checkpoint(self.layer1, x)
+                x = checkpoint(self.layer2, x)
+                x = checkpoint(self.layer3, x)
+                return x
+        
+        셈을 30% 더 하는 대신 기억 자리를 10분의 1로 줄인다!
+        
+
+    ======================================================================
+    7. Empty Cache (GPU)
+    ======================================================================
+    torch.cuda.empty_cache() - Releases cached GPU memory
+
+    ======================================================================
+    8. Memory Profiling
+    ======================================================================
+
+        PyTorch의 기억 자리 살피개를 쓴다.
+        
+        from torch.profiler import profile, ProfilerActivity
+        
+        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+                     profile_memory=True) as prof:
+            model(input)
+        
+        print(prof.key_averages().table(sort_by="self_cuda_memory_usage"))
+        
+
+    ======================================================================
+    9. Best Practices Summary
+    ======================================================================
+
+        기억 자리 다듬기 요령:
+        
+        1. 추론 때는 torch.no_grad()을 써라
+        2. 기울기가 필요 없으면 .detach()을 불러라
+        3. 안전할 때는 제자리 셈(_)을 써라
+        4. 실제 배치 크기를 키우려면 기울기를 쌓아라
+        5. 섞인 촘촘함 익히기를 써라(튜토리얼 24을 보아라)
+        6. 다 쓴 큰 텐서는 지워라: del x
+        7. GPU 저장을 비워라: torch.cuda.empty_cache()
+        8. 깊은 망에는 기울기 되짚음 저장을 써라
+        9. 기억 자리 씀씀이를 살펴 목을 찾아라
+        10. 배치 크기나 모델 크기를 줄이는 것도 생각해 보아라
+        
+    ```
+
 
 ## 2. 논의
 
