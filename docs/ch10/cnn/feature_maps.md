@@ -130,7 +130,7 @@ $$\text{Memory (elements)} = N \times C \times H \times W$$
 
 $$\text{Memory (bytes)} = N \times C \times H \times W \times \text{bytes per element}$$
 
-float32(원소당 4바이트)에서는 $64 \times 224 \times 224$ 특징 맵 하나가 약 $64 \times 224 \times 224 \times 4 \approx 12.3$MB를 쓴다.
+float32(원소당 4바이트)에서는 $64 \times 224 \times 224$ 특징 맵 하나가 $64 \times 224 \times 224 \times 4 = 12{,}845{,}056$바이트, 곧 약 **12.85MB**를 쓴다. 아래 표가 찍는 값과 같은 셈법이다($10^6$바이트를 1MB로 센다). $2^{20}$바이트를 1MB로 세면 12.25가 되므로, 어느 쪽으로 세는지를 밝혀 두는 편이 낫다.
 
 ### 층별 분석
 
@@ -316,7 +316,12 @@ def visualize_feature_maps(model, image, layer_name, max_channels=16):
     
     rows = int(np.ceil(num_channels / 4))
     fig, axes = plt.subplots(rows, 4, figsize=(12, 3 * rows))
-    axes = axes.flatten() if rows > 1 else [axes] if rows == 1 else axes
+
+    # atleast_1d 를 거쳐 펴는 까닭: subplots 는 줄이 하나면 (4,) 짜리 배열을,
+    # 여럿이면 (rows, 4) 짜리 배열을 준다. 줄이 하나일 때 이것을 [axes] 로
+    # 감싸면 원소가 **하나뿐인** 목록이 되어 axes[1] 에서 IndexError 가 난다.
+    # max_channels 를 4 이하로 주면 바로 그 자리에 걸린다.
+    axes = np.atleast_1d(axes).flatten()
     
     for i in range(num_channels):
         axes[i].imshow(feat[i].cpu().numpy(), cmap='viridis')
@@ -331,7 +336,7 @@ def visualize_feature_maps(model, image, layer_name, max_channels=16):
                  f'{feat.shape[1]}×{feat.shape[2]})')
     plt.tight_layout()
     plt.savefig(f'feature_maps_{layer_name}.png', dpi=150, bbox_inches='tight')
-    plt.show()
+    plt.close(fig)   # 화면이 없는 자리에서 plt.show() 는 멈춘다. 파일로 남겼으니 닫는다
 ```
 
 ### 채널의 통계량
@@ -550,6 +555,8 @@ $1 \times 1$ 합성곱(점별 합성곱)은 특징 맵을 어떻게 바꾸는가
 
 ??? success "연습문제 4 풀이"
     $1\times1$ 합성곱은 공간 차원을 바꾸지 않고 공간 위치마다 채널을 섞는다. (1) 채널 차원 줄이기(ResNet의 병목 층), (2) 채널 늘리기, (3) (활성화와 함께) 비선형 더하기에 쓰인다. 공간 위치마다 공유된 MLP를 따로 적용하는 것과 같다.
+
+---
 
 ## 정리하며
 
