@@ -102,8 +102,13 @@ git commit -m "update: <name>"
 
 ## Navigation Structure
 
-Nav hierarchy: **Parts → Chapters → Sections → Pages**. Nav entries point to `.md` and `.py`
-files only.
+Nav hierarchy: **Parts → Chapters → Sections → Pages**. Nav entries point to `.md` files.
+
+> **`.py` files are not in nav** — none of the ones under `docs/` are, and new ones should not
+> be added. They sit beside the `.md` that embeds the same code, and mkdocs copies them verbatim
+> into `site/`, so each is already reachable by URL
+> (`/ch03/linear_softmax/03_mle.py`) as a downloadable companion. Putting one in nav would
+> render it as a page of its own, which is not what they are for.
 
 ```yaml
 nav:
@@ -215,12 +220,16 @@ the box styles live in `docs/stylesheets/extra.css`.
 
 ### Add a new section
 1. Create `docs/chapter_name/section_name/` with `.md`/`.py` files
-2. Add nav entries to `mkdocs.yml` (`.md` and `.py` only)
+2. Add nav entries to `mkdocs.yml` for the `.md` files (`.py` files are not navigated —
+   see Navigation Structure)
 
 ### Add a new chapter
 1. Create `docs/chapter_name/` with `index.md` and section subdirectories
 2. Add chapter block to `mkdocs.yml` under the correct Part
 
 ### Add a Python example
-1. Create `.py` in the relevant section directory
+1. Create `.py` in the relevant section directory — **no nav entry**; it is served automatically
 2. Educational style: module docstring, `# ===` dividers, `if __name__ == "__main__":` guard
+3. Embed the same code in the page's `.md` with its real output below it, so the page can be
+   read without running anything. Paths inside the script are relative to the repo root
+   (`./data/...`), which is where it is meant to be run from.
