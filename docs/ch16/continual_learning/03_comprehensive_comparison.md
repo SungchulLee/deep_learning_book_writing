@@ -759,9 +759,39 @@ Running Experiments...
 [3/4] Elastic Weight Consolidation...
   Avg Acc: 56.63%, BWT: -53.54%
 
+[4/4] Learning Without Forgetting...
+  Avg Acc: 76.42%, BWT: -13.67%
 
-... (33 lines omitted)
+========================================================================================================================
+COMPREHENSIVE METHOD COMPARISON
+========================================================================================================================
 
+Method               Avg Acc      BWT          Learn Acc    Time (s)     Memory (MB) 
+------------------------------------------------------------------------------------------------------------------------
+Naive                     54.24%     -56.75%      99.64%       1.55       0.00
+ExperienceReplay          94.80%      -5.88%      99.50%       2.27       0.00
+EWC                       56.63%     -53.54%      99.46%       4.49       0.00
+LWF                       76.42%     -13.67%      87.35%       1.92       0.00
+
+========================================================================================================================
+
+Visualization saved as 'continual_learning_comparison.png'
+
+======================================================================
+KEY TAKEAWAYS
+======================================================================
+
+📊 Performance Ranking (by Avg Accuracy):
+  1. ExperienceReplay: 94.80%
+  2. LWF: 76.42%
+  3. EWC: 56.63%
+  4. Naive: 54.24%
+
+💾 Memory Efficiency:
+  - EWC & LWF: No example storage (privacy-preserving)
+  - Experience Replay: Stores examples (memory overhead)
+
+⚡ Computational Cost:
   - Naive & ER: Single forward/backward per batch
   - EWC: Extra Fisher computation per task
   - LWF: Double forward pass per batch

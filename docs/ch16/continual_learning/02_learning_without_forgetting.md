@@ -633,56 +633,168 @@
     ```
 
 
-**출력:**
+??? note "전체 출력 (157줄)"
 
-```
-======================================================================
-LEARNING WITHOUT FORGETTING (LWF)
-======================================================================
+    ```
+    ======================================================================
+    LEARNING WITHOUT FORGETTING (LWF)
+    ======================================================================
 
-LWF prevents forgetting by:
-  1. Saving predictions from the model before learning new task
-  2. Using knowledge distillation to preserve these predictions
-  3. No need to store previous examples (privacy-preserving)
-======================================================================
+    LWF prevents forgetting by:
+      1. Saving predictions from the model before learning new task
+      2. Using knowledge distillation to preserve these predictions
+      3. No need to store previous examples (privacy-preserving)
+    ======================================================================
 
-Using device: cpu
+    Using device: cpu
 
-Task Configuration:
-  Task 0: Classes [0, 1]
-  Task 1: Classes [2, 3]
-  Task 2: Classes [4, 5]
-  Task 3: Classes [6, 7]
-  Task 4: Classes [8, 9]
+    Task Configuration:
+      Task 0: Classes [0, 1]
+      Task 1: Classes [2, 3]
+      Task 2: Classes [4, 5]
+      Task 3: Classes [6, 7]
+      Task 4: Classes [8, 9]
 
-Model: 267,266 parameters
+    Model: 267,266 parameters
 
-======================================================================
-CONTINUAL LEARNING WITH LEARNING WITHOUT FORGETTING (LWF)
-======================================================================
-Distillation Lambda (λ): 1.0
-Temperature (T): 2.0
+    ======================================================================
+    CONTINUAL LEARNING WITH LEARNING WITHOUT FORGETTING (LWF)
+    ======================================================================
+    Distillation Lambda (λ): 1.0
+    Temperature (T): 2.0
 
-============================================================
-Training Task 0 with LWF
-First task: No distillation needed
-============================================================
-  Epoch 1/5 - Loss: 0.0264, Acc: 99.19%
-  Epoch 2/5 - Loss: 0.0022, Acc: 99.92%
+    ============================================================
+    Training Task 0 with LWF
+    First task: No distillation needed
+    ============================================================
+      Epoch 1/5 - Loss: 0.0264, Acc: 99.19%
+      Epoch 2/5 - Loss: 0.0022, Acc: 99.92%
+      Epoch 3/5 - Loss: 0.0016, Acc: 99.95%
+      Epoch 4/5 - Loss: 0.0038, Acc: 99.89%
+      Epoch 5/5 - Loss: 0.0025, Acc: 99.91%
 
-... (114 lines omitted)
+      Updating old model for next task...
+      Old model updated and frozen
 
+    ============================================================
+    Evaluation after Task 0
+    ============================================================
+      Task 0: 99.91% (just learned)
 
-⚠️  Considerations:
-  - Requires two forward passes per batch
-  - λ and T are important hyperparameters
-  - May struggle if task domains are very different
+    ============================================================
+    Training Task 1 with LWF
+    Distillation: λ=1.0, T=2.0
+    ============================================================
+      Epoch 1/5 - Total: 1.2142, New: 0.6438, Distill: 0.5704, Acc: 63.98%
+      Epoch 2/5 - Total: 1.0966, New: 0.5527, Distill: 0.5438, Acc: 60.93%
+      Epoch 3/5 - Total: 1.0840, New: 0.5419, Distill: 0.5422, Acc: 61.10%
+      Epoch 4/5 - Total: 1.0751, New: 0.5336, Distill: 0.5416, Acc: 61.29%
+      Epoch 5/5 - Total: 1.0689, New: 0.5277, Distill: 0.5412, Acc: 61.25%
 
-📝 Hyperparameter Tuning Tips:
-  - λ ∈ [0.5, 5.0]: Higher = more preservation
-  - T ∈ [1.0, 4.0]: Higher = softer targets
-======================================================================
-```
+      Updating old model for next task...
+      Old model updated and frozen
+
+    ============================================================
+    Evaluation after Task 1
+    ============================================================
+      Task 0: 99.95% (was 99.91%, change +0.05%)
+      Task 1: 59.60% (just learned)
+
+    ============================================================
+    Training Task 2 with LWF
+    Distillation: λ=1.0, T=2.0
+    ============================================================
+      Epoch 1/5 - Total: 0.4970, New: 0.3085, Distill: 0.1885, Acc: 89.98%
+      Epoch 2/5 - Total: 0.4630, New: 0.2787, Distill: 0.1843, Acc: 90.71%
+      Epoch 3/5 - Total: 0.4585, New: 0.2754, Distill: 0.1831, Acc: 90.91%
+      Epoch 4/5 - Total: 0.4559, New: 0.2727, Distill: 0.1832, Acc: 90.88%
+      Epoch 5/5 - Total: 0.4549, New: 0.2722, Distill: 0.1826, Acc: 90.82%
+
+      Updating old model for next task...
+      Old model updated and frozen
+
+    ============================================================
+    Evaluation after Task 2
+    ============================================================
+      Task 0: 98.11% (was 99.91%, change -1.80%)
+      Task 1: 76.00% (was 59.60%, change +16.41%)
+      Task 2: 90.23% (just learned)
+
+    ============================================================
+    Training Task 3 with LWF
+    Distillation: λ=1.0, T=2.0
+    ============================================================
+      Epoch 1/5 - Total: 0.6409, New: 0.3877, Distill: 0.2531, Acc: 85.83%
+      Epoch 2/5 - Total: 0.6168, New: 0.3703, Distill: 0.2466, Acc: 86.69%
+      Epoch 3/5 - Total: 0.6161, New: 0.3696, Distill: 0.2464, Acc: 86.71%
+      Epoch 4/5 - Total: 0.6140, New: 0.3683, Distill: 0.2457, Acc: 86.69%
+      Epoch 5/5 - Total: 0.6142, New: 0.3678, Distill: 0.2464, Acc: 86.76%
+
+      Updating old model for next task...
+      Old model updated and frozen
+
+    ============================================================
+    Evaluation after Task 3
+    ============================================================
+      Task 0: 99.34% (was 99.91%, change -0.57%)
+      Task 1: 75.76% (was 59.60%, change +16.16%)
+      Task 2: 71.29% (was 90.23%, change -18.94%)
+      Task 3: 84.99% (just learned)
+
+    ============================================================
+    Training Task 4 with LWF
+    Distillation: λ=1.0, T=2.0
+    ============================================================
+      Epoch 1/5 - Total: 0.5922, New: 0.3981, Distill: 0.1940, Acc: 89.43%
+      Epoch 2/5 - Total: 0.5687, New: 0.3682, Distill: 0.2005, Acc: 92.58%
+      Epoch 3/5 - Total: 0.5623, New: 0.3609, Distill: 0.2014, Acc: 93.05%
+      Epoch 4/5 - Total: 0.5615, New: 0.3585, Distill: 0.2030, Acc: 93.47%
+      Epoch 5/5 - Total: 0.5600, New: 0.3565, Distill: 0.2036, Acc: 93.74%
+
+      Updating old model for next task...
+      Old model updated and frozen
+
+    ============================================================
+    Evaluation after Task 4
+    ============================================================
+      Task 0: 62.08% (was 99.91%, change -37.83%)
+      Task 1: 88.64% (was 59.60%, change +29.04%)
+      Task 2: 38.15% (was 90.23%, change -52.08%)
+      Task 3: 96.42% (was 84.99%, change +11.43%)
+      Task 4: 93.29% (just learned)
+
+    ======================================================================
+    LWF RESULTS
+    ======================================================================
+
+    📊 Key Metrics:
+       Average Accuracy:     75.72%
+       Learning Accuracy:    85.61%
+       Backward Transfer:    -12.36%
+
+    ⏱️  Training Time: 2.43 seconds
+
+    Visualization saved as 'lwf_results.png'
+
+    ======================================================================
+    KEY INSIGHTS
+    ======================================================================
+
+    ✓ LWF preserves knowledge without storing examples
+    ✓ Knowledge distillation is privacy-preserving
+    ✓ Simple to implement with any architecture
+
+    ⚠️  Considerations:
+      - Requires two forward passes per batch
+      - λ and T are important hyperparameters
+      - May struggle if task domains are very different
+
+    📝 Hyperparameter Tuning Tips:
+      - λ ∈ [0.5, 5.0]: Higher = more preservation
+      - T ∈ [1.0, 4.0]: Higher = softer targets
+    ======================================================================
+    ```
+
 
 ## 2. 논의
 
