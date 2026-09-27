@@ -3,12 +3,12 @@
 ├───────────────┼──────────┼──────────┤
 │ Math score    │ 6.5 / 10 │ 9.5 / 10 │
 ├───────────────┼──────────┼──────────┤
-│ Writing score │ 8.0 / 10 │ 9.0 / 10 │
+│ Writing score │ 8.5 / 10 │ 9.0 / 10 │
 └───────────────┴──────────┴──────────┘
 
 v1 → v2  2026-09-28
 Math fixes: 3 (🔴 1, 🟡 2, 🟢 0)
-Writing fixes: 1 (🔴 1, 🟡 0, 🟢 0)
+Writing fixes: 1 (🔴 0, 🟡 0, 🟢 1)
 Skipped: exercise difficulty runs med → easy → hard → easy rather than ascending.
 CLAUDE.md explicitly says not to renumber existing pages for this, since the
 cross-references would have to move with them.
@@ -26,9 +26,11 @@ Notes
 - 🟡 plt.show() inside visualize_feature_maps blocks forever where there is no
   display, and the function already writes the figure to disk. Replaced with
   plt.close(fig).
-- 🔴 Exercise 4's solution had no `---` before `## 정리하며`, so the closing table
-  rendered inside the collapsible solution — the same defect found in
-  convolution.md, suggesting it may be systematic across the chapter.
+- 🟢 Exercise 4's solution had no `---` before `## 정리하며`. Recorded as critical at
+  first on the assumption that it broke rendering; it does not. The built HTML shows
+  every <details> closing correctly, since Markdown ends the block at any unindented
+  line. 1,096 pages book-wide share the pattern, which is itself evidence it is the
+  house style rather than a defect. Separator kept for consistency only.
 - Left visualize_feature_maps and feature_map_statistics without output blocks.
   Both need a trained model and a dataset to say anything, and WRITER.md forbids
   adding examples that were not in the original.

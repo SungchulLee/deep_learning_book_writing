@@ -3,12 +3,12 @@
 ├───────────────┼──────────┼──────────┤
 │ Math score    │ 5.0 / 10 │ 9.5 / 10 │
 ├───────────────┼──────────┼──────────┤
-│ Writing score │ 7.0 / 10 │ 9.0 / 10 │
+│ Writing score │ 7.5 / 10 │ 9.0 / 10 │
 └───────────────┴──────────┴──────────┘
 
 v1 → v2  2026-09-28
 Math fixes: 4 (🔴 2, 🟡 2, 🟢 0)
-Writing fixes: 3 (🔴 1, 🟡 2, 🟢 0)
+Writing fixes: 3 (🔴 0, 🟡 2, 🟢 1)
 Skipped: 🟢 the page uses both `*` and `⋆` for cross-correlation. This is the
 convention it states up front (line 7), so both readings are defensible and
 changing it would touch a dozen formulas for no gain.
@@ -32,8 +32,11 @@ Notes
   The equivariance output is the more useful of the two — it shows the outputs are
   NOT equal yet match exactly once shifted back, which is the actual content of
   "equivariant" and is easy to misread as "invariant".
-- 🔴 Exercise 4's solution had no `---` before `## 정리하며`, so the closing summary
-  rendered inside the collapsible solution.
+- 🟢 Exercise 4's solution had no `---` before `## 정리하며`. I first recorded this as
+  critical, believing the closing section rendered inside the collapsible block. That
+  was wrong — checked the built HTML and every <details> opens and closes correctly,
+  because Markdown terminates the block at any unindented line. The separator was
+  added for consistency with exercises 1–3, which is cosmetic, not a fix.
 - 🟡 84-word opening sentence split.
 - Seeded three snippets that drew unseeded tensors; the asymmetric-kernel
   comparison's published 30.2844 was a value from an unseeded run and is now
