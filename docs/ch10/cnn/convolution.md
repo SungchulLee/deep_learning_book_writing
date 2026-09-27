@@ -1,6 +1,6 @@
 # 합성곱 연산
 
-합성곱 신경망(CNN)이라는 이름은 함수 둘을 엮어 셋째 함수를 만드는 수학 연산인 **합성곱**에서 왔다. 딥러닝에서 합성곱은 신경망이 입력 데이터로부터 특징의 공간적 위계를 스스로 배우게 해 주며, 그 덕분에 이미지 인식과 컴퓨터 비전, 신호 처리 과제에서 아주 강력하다.
+합성곱 신경망(CNN)이라는 이름은 함수 둘을 엮어 셋째 함수를 만드는 수학 연산인 **합성곱**에서 왔다. 딥러닝에서 이 연산이 하는 일은 하나다. 작은 핵 하나를 이미지 전체에 되풀이해 적용하여, 어디에 있든 같은 무늬를 같은 방식으로 잡아내는 것이다. 그 되풀이 덕분에 신경망은 특징의 공간적 위계를 스스로 배우고, 이미지 인식과 신호 처리에서 강력해진다.
 
 이 절은 이산 합성곱과 상호상관을 엄밀하게 다루어, CNN이 이미지에서 특징을 뽑아내는 방식을 이해하는 데 필요한 이론적 바탕을 세운다.
 
@@ -30,7 +30,7 @@ $$(x * h)[n] = \sum_{m=-\infty}^{\infty} x[m] \cdot h[n - m]$$
 
 **상호상관**은 합성곱과 비슷하되 핵을 **뒤집지 않는다**.
 
-$$(x \star h)[n] = \sum_{m=-\infty}^{\infty} x[m] \cdot h[n + m]$$
+$$(x \star h)[n] = \sum_{m=-\infty}^{\infty} x[n + m] \cdot h[m]$$
 
 또는 같은 말로, 크기가 $k$인 유한한 핵에 대해 다음과 같다.
 
@@ -242,6 +242,7 @@ import torch
 import torch.nn.functional as F
 
 # 평행 이동 동변성 보이기
+torch.manual_seed(0)
 kernel = torch.randn(1, 1, 3, 3)
 
 # 원래 이미지
@@ -256,9 +257,27 @@ img_shifted[0, 0, 4:7, 4:7] = 1.0  # (4,4) 자리의 같은 정사각형
 out1 = F.conv2d(img, kernel, padding=1)
 out2 = F.conv2d(img_shifted, kernel, padding=1)
 
-# 두 출력은 서로 옮겨진 것이다
-# (경계 효과는 빼고)
+# 동변이라는 말은 "출력도 꼭 그만큼 옮겨진다"는 뜻이다. 말로 두지 말고 재 보자.
+# out2를 두 칸씩 되돌려 out1과 겹쳐 본다. 가장자리는 덧대기 때문에 다르므로
+# 두 쪽 모두 안쪽만 잘라 견준다.
+shift = 2
+a = out1[0, 0, :-shift, :-shift]      # 원래 것의 안쪽
+b = out2[0, 0, shift:, shift:]        # 옮긴 것을 되돌린 안쪽
+
+print(f"겹친 자리 크기   : {tuple(a.shape)}")
+print(f"되돌린 뒤 최대 차이: {(a - b).abs().max().item():.2e}")
+print(f"출력이 통째로 같은가: {torch.allclose(out1, out2)}")
 ```
+
+**출력:**
+
+```
+겹친 자리 크기   : (8, 8)
+되돌린 뒤 최대 차이: 0.00e+00
+출력이 통째로 같은가: False
+```
+
+두 줄을 함께 읽어야 뜻이 산다. 출력은 **같지 않다**(마지막 줄). 그런데 두 칸 되돌려 겹치면 **정확히 0**이다(가운데 줄). 이것이 동변이다 — 값이 변하지 않는 것이 아니라 **값이 입력과 똑같이 따라 움직이는 것**이다.
 
 ### 지역성 (지역 수용 영역)
 
@@ -365,7 +384,13 @@ def conv2d_via_im2col(x, weight, bias=None, stride=1, padding=0):
     # im2col: 조각 뽑기
     # unfold는 한 차원을 따라 미끄러지는 창을 뽑는다
     cols = x.unfold(2, kH, stride).unfold(3, kW, stride)  # (N, C_in, H_out, W_out, kH, kW)
-    cols = cols.contiguous().view(N, C_in * kH * kW, H_out * W_out)  # (N, C_in*kH*kW, L)
+
+    # 차원 차례를 먼저 바꾸어야 한다. 위의 꼴은 자리(H_out, W_out)가 핵 안쪽
+    # (kH, kW)보다 **앞**에 있는데, 우리가 필요한 것은 핵 한 조각이 한 열에
+    # 모인 (C_in*kH*kW, L) 이다. 차례를 바꾸지 않고 view 로 접으면 같은 메모리를
+    # 다른 뜻으로 읽어 조각이 뒤섞인다 — 그래도 모양은 맞으므로 조용히 틀린다.
+    cols = cols.permute(0, 1, 4, 5, 2, 3).contiguous()    # (N, C_in, kH, kW, H_out, W_out)
+    cols = cols.view(N, C_in * kH * kW, H_out * W_out)    # (N, C_in*kH*kW, L)
     
     # 가중치 모양 바꾸기: (C_out, C_in*kH*kW)
     W_row = weight.view(C_out, -1)
@@ -382,6 +407,7 @@ def conv2d_via_im2col(x, weight, bias=None, stride=1, padding=0):
     return out
 
 # PyTorch와 견주어 확인
+torch.manual_seed(0)
 x = torch.randn(2, 3, 8, 8)
 w = torch.randn(16, 3, 3, 3)
 b = torch.randn(16)
@@ -395,8 +421,10 @@ print(f"Max difference: {(out_custom - out_pytorch).abs().max().item():.2e}")
 **출력:**
 
 ```
-Max difference: 3.38e+01
+Max difference: 2.38e-06
 ```
+
+부동소수점 오차만 남았다. 이 자리의 수가 $10^{-6}$ 언저리가 아니라 **몇십**으로 나온다면 permute를 빠뜨린 것이다. 모양은 그대로 맞으므로 터지지 않고 조용히 틀린 값을 내놓는다.
 
 이 행렬 곱 관점은 입력에 대한 합성곱의 **역전파**가 왜 전치 합성곱인지도 밝혀 준다. 그것은 $\mathbf{T}^\top$을 곱하는 것에 해당한다.
 
@@ -501,9 +529,31 @@ edge_y = F.conv2d(image, sobel_y, padding=1)
 # 모서리의 크기 계산
 edge_magnitude = torch.sqrt(edge_x**2 + edge_y**2)
 
-# 결과: edge_x는 세로 모서리를, edge_y는 가로 모서리를 잡는다
-# edge_magnitude는 모든 모서리를 보인다
+# 어느 핵이 어느 모서리를 잡는지 자리를 집어 재 본다.
+# 정사각형은 16~47 행·열에 있으므로 (32, 16)은 **세로** 모서리 위의 한 점이고
+# (16, 32)는 **가로** 모서리 위의 한 점이다.
+v = (32, 16)   # 세로 모서리
+h = (16, 32)   # 가로 모서리
+
+print(f"{'자리':<12} {'sobel_x':>9} {'sobel_y':>9}")
+print(f"{'세로 모서리':<12} {edge_x[0,0][v]:>9.1f} {edge_y[0,0][v]:>9.1f}")
+print(f"{'가로 모서리':<12} {edge_x[0,0][h]:>9.1f} {edge_y[0,0][h]:>9.1f}")
+print(f"\n크기의 최댓값: {edge_magnitude.max().item():.1f}")
 ```
+
+**출력:**
+
+```
+자리             sobel_x   sobel_y
+세로 모서리             4.0       0.0
+가로 모서리             0.0       4.0
+
+크기의 최댓값: 4.2
+```
+
+핵마다 **자기 방향에서만** 4.0이 서고 다른 방향에서는 정확히 0이다. 두 핵이 서로 직교한 방향을 본다는 뜻이다.
+
+크기의 최댓값 4.2는 모서리 한가운데가 아니라 **모퉁이**에서 나온다. 모퉁이에서는 두 핵이 함께 반응하되 어느 쪽도 온전한 4.0을 내지 못해 $\sqrt{3^2+3^2} \approx 4.24$가 된다. 모서리 한가운데의 4.0보다 조금 크다.
 
 ### 합성곱과 상호상관 견주기
 
@@ -521,6 +571,7 @@ def cross_correlation(x, kernel):
     return F.conv2d(x, kernel)
 
 # 차이를 보려고 비대칭 핵 사용
+torch.manual_seed(0)
 kernel = torch.tensor([[1., 2., 3.],
                        [4., 5., 6.],
                        [7., 8., 9.]]).view(1, 1, 3, 3)
@@ -549,7 +600,7 @@ print(f"Difference: {(conv_symmetric - xcorr_symmetric).abs().max().item():.2e}"
 
 ```
 For asymmetric kernels, convolution ≠ cross-correlation
-Difference: 30.2844
+Difference: 36.2866
 
 For symmetric kernels, convolution = cross-correlation
 Difference: 0.00e+00
@@ -707,6 +758,8 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
     핵이 대칭일 때, 곧 모든 $\tau$에 대해 $g(\tau) = g(-\tau)$일 때 둘이 같아진다. 가우스 핵과 항등 핵이 그 예이다.
 
     실제로 딥러닝 프레임워크는 상호상관을 쓰면서 그것을 "합성곱"이라 부른다. 핵을 학습하므로 이 구별은 중요하지 않다. 필요하면 신경망이 뒤집힌 것을 배운다.
+
+---
 
 ## 정리하며
 
