@@ -4,518 +4,521 @@
 
 ## 1. 코드
 
-```python
-"""
-================================================================================
-4단계 - 과제 1: MNIST 숫자 분류를 위한 신경망
-================================================================================
+??? note "코드 (510줄)"
 
-학습 목표:
-- 온전한 신경망을 밑바닥부터 짓는다
-- 참 세상의 데이터셋(MNIST)으로 익힌다
-- 학습/검증/시험 나누기를 제대로 짠다
-- 배운 경사 하강법 개념을 모두 쓴다
-- 정확도 95%를 넘긴다
-
-어려움: ⭐⭐⭐⭐ 과제
-
-걸리는 때: 60~90분
-
-PREREQUISITES:
-- 1~3단계를 마쳤을 것
-- 신경망을 이해하고 있을 것
-- PyTorch에 익숙할 것
-
-과제 밝힘:
---------------------
-MNIST은 손글씨 숫자(0~9) 70,000개의 데이터셋이다.
-- 학습 배치: 그림 60,000장
-- 시험 배치: 그림 10,000장
-- 그림 크기: 28x28 잿빛
-- 일: 그림마다 10클래스(0~9) 가운데 하나로 가른다
-
-기계 학습의 대표 척도 문제다!
-
-================================================================================
-"""
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, random_split
-from torchvision import datasets, transforms
-import numpy as np
-import matplotlib.pyplot as plt
-import time
-
-print("="*80)
-print("MNIST DIGIT CLASSIFICATION WITH NEURAL NETWORKS")
-print("="*80)
-
-# 재현성을 위한 난수 시드 설정
-torch.manual_seed(42)
-np.random.seed(42)
-
-# ============================================================================
-# 1부: 데이터 적재와 전처리
-# ============================================================================
-print("\n" + "="*80)
-print("PART 1: LOADING MNIST DATASET")
-print("="*80)
-
-# 변환 정의
-# mean=0.1307, std=0.3081로 정규화(MNIST 통계)
-transform = transforms.Compose([
-    transforms.ToTensor(),  # Convert PIL Image to tensor
-    transforms.Normalize((0.1307,), (0.3081,))  # Normalize
-])
-
-# 학습 데이터 내려받아 불러오기
-print("Downloading MNIST dataset (this may take a minute)...")
-train_dataset = datasets.MNIST(
-    root='./data', 
-    train=True, 
-    download=True, 
-    transform=transform
-)
-
-# 테스트 데이터 내려받아 불러오기
-test_dataset = datasets.MNIST(
-    root='./data', 
-    train=False, 
-    download=True, 
-    transform=transform
-)
-
-# 학습 데이터에서 검증 집합 분리
-train_size = int(0.8 * len(train_dataset))  # 80% for training
-val_size = len(train_dataset) - train_size  # 20% for validation
-
-train_dataset, val_dataset = random_split(
-    train_dataset, 
-    [train_size, val_size],
-    generator=torch.Generator().manual_seed(42)
-)
-
-print(f"\n✓ Dataset loaded successfully!")
-print(f"  Training samples:   {len(train_dataset):,}")
-print(f"  Validation samples: {len(val_dataset):,}")
-print(f"  Test samples:       {len(test_dataset):,}")
-
-# 데이터 로더 생성
-batch_size = 64
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
-print(f"\nBatch size: {batch_size}")
-print(f"Batches per epoch: {len(train_loader)}")
-
-# ============================================================================
-# 2부: 예시 데이터 시각화
-# ============================================================================
-print("\n" + "="*80)
-print("PART 2: VISUALIZING SAMPLE DATA")
-print("="*80)
-
-# 학습 데이터 한 배치 가져오기
-examples = iter(train_loader)
-example_data, example_targets = next(examples)
-
-print(f"\nBatch shape: {example_data.shape}")  # (batch_size, 1, 28, 28)
-print(f"Labels shape: {example_targets.shape}")  # (batch_size,)
-
-# 처음 이미지 10개 그리기
-fig, axes = plt.subplots(2, 5, figsize=(12, 5))
-axes = axes.flatten()
-
-for i in range(10):
-    img = example_data[i].squeeze()  # Remove channel dimension
-    label = example_targets[i].item()
-    
-    axes[i].imshow(img, cmap='gray')
-    axes[i].set_title(f'Label: {label}')
-    axes[i].axis('off')
-
-plt.tight_layout()
-plt.savefig('mnist_samples.png', dpi=150)
-print("\n✓ Sample images saved as 'mnist_samples.png'")
-
-# ============================================================================
-# 3부: 신경망 구조 정의
-# ============================================================================
-print("\n" + "="*80)
-print("PART 3: NEURAL NETWORK ARCHITECTURE")
-print("="*80)
-
-class MNISTNet(nn.Module):
+    ```python
     """
-    MNIST 분류를 위한 신경망
-    
-    Architecture:
-    - 입력: 28x28 = 특징 784개
-    - 은닉층 1: 뉴런 128개 + ReLU
-    - 은닉층 2: 뉴런 64개 + ReLU
-    - 출력 층: 뉴런 10개(숫자마다 하나)
+    ================================================================================
+    4단계 - 과제 1: MNIST 숫자 분류를 위한 신경망
+    ================================================================================
+
+    학습 목표:
+    - 온전한 신경망을 밑바닥부터 짓는다
+    - 참 세상의 데이터셋(MNIST)으로 익힌다
+    - 학습/검증/시험 나누기를 제대로 짠다
+    - 배운 경사 하강법 개념을 모두 쓴다
+    - 정확도 95%를 넘긴다
+
+    어려움: ⭐⭐⭐⭐ 과제
+
+    걸리는 때: 60~90분
+
+    PREREQUISITES:
+    - 1~3단계를 마쳤을 것
+    - 신경망을 이해하고 있을 것
+    - PyTorch에 익숙할 것
+
+    과제 밝힘:
+    --------------------
+    MNIST은 손글씨 숫자(0~9) 70,000개의 데이터셋이다.
+    - 학습 배치: 그림 60,000장
+    - 시험 배치: 그림 10,000장
+    - 그림 크기: 28x28 잿빛
+    - 일: 그림마다 10클래스(0~9) 가운데 하나로 가른다
+
+    기계 학습의 대표 척도 문제다!
+
+    ================================================================================
     """
-    
-    def __init__(self):
-        super(MNISTNet, self).__init__()
-        
-        # 입력층: 784(28x28) → 128
-        self.fc1 = nn.Linear(28 * 28, 128)
-        
-        # 은닉층: 128 → 64
-        self.fc2 = nn.Linear(128, 64)
-        
-        # 출력층: 64 → 10(클래스 0-9)
-        self.fc3 = nn.Linear(64, 10)
-        
-        # 정칙화를 위한 드롭아웃(과적합을 막는다)
-        self.dropout = nn.Dropout(0.2)
-    
-    def forward(self, x):
+
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    from torch.utils.data import DataLoader, random_split
+    from torchvision import datasets, transforms
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import time
+
+    print("="*80)
+    print("MNIST DIGIT CLASSIFICATION WITH NEURAL NETWORKS")
+    print("="*80)
+
+    # 재현성을 위한 난수 시드 설정
+    torch.manual_seed(42)
+    np.random.seed(42)
+
+    # ============================================================================
+    # 1부: 데이터 적재와 전처리
+    # ============================================================================
+    print("\n" + "="*80)
+    print("PART 1: LOADING MNIST DATASET")
+    print("="*80)
+
+    # 변환 정의
+    # mean=0.1307, std=0.3081로 정규화(MNIST 통계)
+    transform = transforms.Compose([
+        transforms.ToTensor(),  # Convert PIL Image to tensor
+        transforms.Normalize((0.1307,), (0.3081,))  # Normalize
+    ])
+
+    # 학습 데이터 내려받아 불러오기
+    print("Downloading MNIST dataset (this may take a minute)...")
+    train_dataset = datasets.MNIST(
+        root='./data', 
+        train=True, 
+        download=True, 
+        transform=transform
+    )
+
+    # 테스트 데이터 내려받아 불러오기
+    test_dataset = datasets.MNIST(
+        root='./data', 
+        train=False, 
+        download=True, 
+        transform=transform
+    )
+
+    # 학습 데이터에서 검증 집합 분리
+    train_size = int(0.8 * len(train_dataset))  # 80% for training
+    val_size = len(train_dataset) - train_size  # 20% for validation
+
+    train_dataset, val_dataset = random_split(
+        train_dataset, 
+        [train_size, val_size],
+        generator=torch.Generator().manual_seed(42)
+    )
+
+    print(f"\n✓ Dataset loaded successfully!")
+    print(f"  Training samples:   {len(train_dataset):,}")
+    print(f"  Validation samples: {len(val_dataset):,}")
+    print(f"  Test samples:       {len(test_dataset):,}")
+
+    # 데이터 로더 생성
+    batch_size = 64
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+    print(f"\nBatch size: {batch_size}")
+    print(f"Batches per epoch: {len(train_loader)}")
+
+    # ============================================================================
+    # 2부: 예시 데이터 시각화
+    # ============================================================================
+    print("\n" + "="*80)
+    print("PART 2: VISUALIZING SAMPLE DATA")
+    print("="*80)
+
+    # 학습 데이터 한 배치 가져오기
+    examples = iter(train_loader)
+    example_data, example_targets = next(examples)
+
+    print(f"\nBatch shape: {example_data.shape}")  # (batch_size, 1, 28, 28)
+    print(f"Labels shape: {example_targets.shape}")  # (batch_size,)
+
+    # 처음 이미지 10개 그리기
+    fig, axes = plt.subplots(2, 5, figsize=(12, 5))
+    axes = axes.flatten()
+
+    for i in range(10):
+        img = example_data[i].squeeze()  # Remove channel dimension
+        label = example_targets[i].item()
+
+        axes[i].imshow(img, cmap='gray')
+        axes[i].set_title(f'Label: {label}')
+        axes[i].axis('off')
+
+    plt.tight_layout()
+    plt.savefig('mnist_samples.png', dpi=150)
+    print("\n✓ Sample images saved as 'mnist_samples.png'")
+
+    # ============================================================================
+    # 3부: 신경망 구조 정의
+    # ============================================================================
+    print("\n" + "="*80)
+    print("PART 3: NEURAL NETWORK ARCHITECTURE")
+    print("="*80)
+
+    class MNISTNet(nn.Module):
         """
-        망을 지나는 순전파
-        
-        Args:
-            x: 모양이 (batch_size, 1, 28, 28)인 입력 텐서
-        
-        Returns:
-            output: 모양이 (batch_size, 10)인 로짓
+        MNIST 분류를 위한 신경망
+
+        Architecture:
+        - 입력: 28x28 = 특징 784개
+        - 은닉층 1: 뉴런 128개 + ReLU
+        - 은닉층 2: 뉴런 64개 + ReLU
+        - 출력 층: 뉴런 10개(숫자마다 하나)
         """
-        # 이미지 펼치기: (배치, 1, 28, 28) → (배치, 784)
-        x = x.view(-1, 28 * 28)
-        
-        # ReLU 활성화를 쓰는 은닉층 1
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = self.dropout(x)
-        
-        # ReLU 활성화를 쓰는 은닉층 2
-        x = self.fc2(x)
-        x = F.relu(x)
-        x = self.dropout(x)
-        
-        # 출력층(활성화 없음 - CrossEntropyLoss를 쓸 것이다)
-        x = self.fc3(x)
-        
-        return x
 
-# 모델 생성
-model = MNISTNet()
+        def __init__(self):
+            super(MNISTNet, self).__init__()
 
-# 매개변수 개수 세기
-total_params = sum(p.numel() for p in model.parameters())
-trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+            # 입력층: 784(28x28) → 128
+            self.fc1 = nn.Linear(28 * 28, 128)
 
-print("\nModel Architecture:")
-print(model)
-print(f"\nTotal parameters: {total_params:,}")
-print(f"Trainable parameters: {trainable_params:,}")
+            # 은닉층: 128 → 64
+            self.fc2 = nn.Linear(128, 64)
 
-# ============================================================================
-# 4부: 학습 준비
-# ============================================================================
-print("\n" + "="*80)
-print("PART 4: TRAINING CONFIGURATION")
-print("="*80)
+            # 출력층: 64 → 10(클래스 0-9)
+            self.fc3 = nn.Linear(64, 10)
 
-# 손실 함수: 분류를 위한 CrossEntropyLoss
-# LogSoftmax와 NLLLoss를 결합한다
-criterion = nn.CrossEntropyLoss()
+            # 정칙화를 위한 드롭아웃(과적합을 막는다)
+            self.dropout = nn.Dropout(0.2)
 
-# 최적화기: Adam(3단계에서 즐겨 쓰던 것!)
-learning_rate = 0.001
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+        def forward(self, x):
+            """
+            망을 지나는 순전파
 
-# 학습률 스케줄러: 검증 손실이 정체되면 학습률을 줄인다
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, 
-    mode='min', 
-    factor=0.5, 
-    patience=3, 
-    verbose=True
-)
+            Args:
+                x: 모양이 (batch_size, 1, 28, 28)인 입력 텐서
 
-print(f"Loss function: CrossEntropyLoss")
-print(f"Optimizer: Adam")
-print(f"Learning rate: {learning_rate}")
-print(f"Scheduler: ReduceLROnPlateau")
+            Returns:
+                output: 모양이 (batch_size, 10)인 로짓
+            """
+            # 이미지 펼치기: (배치, 1, 28, 28) → (배치, 784)
+            x = x.view(-1, 28 * 28)
 
-# ============================================================================
-# 5부: 학습 함수와 검증 함수
-# ============================================================================
+            # ReLU 활성화를 쓰는 은닉층 1
+            x = self.fc1(x)
+            x = F.relu(x)
+            x = self.dropout(x)
 
-def train_epoch(model, train_loader, criterion, optimizer):
-    """한 에폭 익힌다"""
-    model.train()  # Set model to training mode
-    
-    total_loss = 0
-    correct = 0
-    total = 0
-    
-    for batch_idx, (data, target) in enumerate(train_loader):
-        # 순전파
-        output = model(data)
-        loss = criterion(output, target)
-        
-        # 역전파
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        
-        # 통계
-        total_loss += loss.item()
-        _, predicted = torch.max(output.data, 1)
-        total += target.size(0)
-        correct += (predicted == target).sum().item()
-    
-    avg_loss = total_loss / len(train_loader)
-    accuracy = 100 * correct / total
-    
-    return avg_loss, accuracy
+            # ReLU 활성화를 쓰는 은닉층 2
+            x = self.fc2(x)
+            x = F.relu(x)
+            x = self.dropout(x)
 
+            # 출력층(활성화 없음 - CrossEntropyLoss를 쓸 것이다)
+            x = self.fc3(x)
 
-def validate(model, val_loader, criterion):
-    """모델을 다진다"""
-    model.eval()  # Set model to evaluation mode
-    
-    total_loss = 0
-    correct = 0
-    total = 0
-    
-    with torch.no_grad():  # No gradients needed
-        for data, target in val_loader:
+            return x
+
+    # 모델 생성
+    model = MNISTNet()
+
+    # 매개변수 개수 세기
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+    print("\nModel Architecture:")
+    print(model)
+    print(f"\nTotal parameters: {total_params:,}")
+    print(f"Trainable parameters: {trainable_params:,}")
+
+    # ============================================================================
+    # 4부: 학습 준비
+    # ============================================================================
+    print("\n" + "="*80)
+    print("PART 4: TRAINING CONFIGURATION")
+    print("="*80)
+
+    # 손실 함수: 분류를 위한 CrossEntropyLoss
+    # LogSoftmax와 NLLLoss를 결합한다
+    criterion = nn.CrossEntropyLoss()
+
+    # 최적화기: Adam(3단계에서 즐겨 쓰던 것!)
+    learning_rate = 0.001
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    # 학습률 스케줄러: 검증 손실이 정체되면 학습률을 줄인다
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, 
+        mode='min', 
+        factor=0.5, 
+        patience=3, 
+        verbose=True
+    )
+
+    print(f"Loss function: CrossEntropyLoss")
+    print(f"Optimizer: Adam")
+    print(f"Learning rate: {learning_rate}")
+    print(f"Scheduler: ReduceLROnPlateau")
+
+    # ============================================================================
+    # 5부: 학습 함수와 검증 함수
+    # ============================================================================
+
+    def train_epoch(model, train_loader, criterion, optimizer):
+        """한 에폭 익힌다"""
+        model.train()  # Set model to training mode
+
+        total_loss = 0
+        correct = 0
+        total = 0
+
+        for batch_idx, (data, target) in enumerate(train_loader):
+            # 순전파
             output = model(data)
             loss = criterion(output, target)
-            
+
+            # 역전파
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            # 통계
             total_loss += loss.item()
             _, predicted = torch.max(output.data, 1)
             total += target.size(0)
             correct += (predicted == target).sum().item()
-    
-    avg_loss = total_loss / len(val_loader)
-    accuracy = 100 * correct / total
-    
-    return avg_loss, accuracy
 
-# ============================================================================
-# 6부: 학습 루프
-# ============================================================================
-print("\n" + "="*80)
-print("PART 6: TRAINING")
-print("="*80)
+        avg_loss = total_loss / len(train_loader)
+        accuracy = 100 * correct / total
 
-n_epochs = 15
+        return avg_loss, accuracy
 
-# 이력 추적
-train_losses = []
-train_accuracies = []
-val_losses = []
-val_accuracies = []
 
-print(f"\nTraining for {n_epochs} epochs...")
-print("-" * 80)
-print(f"{'Epoch':>5} | {'Train Loss':>10} | {'Train Acc':>10} | {'Val Loss':>10} | {'Val Acc':>10} | {'Time':>7}")
-print("-" * 80)
+    def validate(model, val_loader, criterion):
+        """모델을 다진다"""
+        model.eval()  # Set model to evaluation mode
 
-start_time = time.time()
+        total_loss = 0
+        correct = 0
+        total = 0
 
-for epoch in range(n_epochs):
-    epoch_start = time.time()
-    
-    # 학습
-    train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer)
-    
-    # 검증
-    val_loss, val_acc = validate(model, val_loader, criterion)
-    
-    # 학습률 스케줄링
-    scheduler.step(val_loss)
-    
-    # 이력 저장
-    train_losses.append(train_loss)
-    train_accuracies.append(train_acc)
-    val_losses.append(val_loss)
-    val_accuracies.append(val_acc)
-    
-    epoch_time = time.time() - epoch_start
-    
-    print(f"{epoch+1:5d} | {train_loss:10.4f} | {train_acc:9.2f}% | {val_loss:10.4f} | {val_acc:9.2f}% | {epoch_time:6.1f}s")
+        with torch.no_grad():  # No gradients needed
+            for data, target in val_loader:
+                output = model(data)
+                loss = criterion(output, target)
 
-total_time = time.time() - start_time
-print("-" * 80)
-print(f"Training completed in {total_time:.1f}s ({total_time/n_epochs:.1f}s per epoch)")
+                total_loss += loss.item()
+                _, predicted = torch.max(output.data, 1)
+                total += target.size(0)
+                correct += (predicted == target).sum().item()
 
-# ============================================================================
-# 7부: 테스트 집합 평가
-# ============================================================================
-print("\n" + "="*80)
-print("PART 7: FINAL EVALUATION ON TEST SET")
-print("="*80)
+        avg_loss = total_loss / len(val_loader)
+        accuracy = 100 * correct / total
 
-test_loss, test_acc = validate(model, test_loader, criterion)
+        return avg_loss, accuracy
 
-print(f"\nTest Set Results:")
-print(f"  Loss: {test_loss:.4f}")
-print(f"  Accuracy: {test_acc:.2f}%")
+    # ============================================================================
+    # 6부: 학습 루프
+    # ============================================================================
+    print("\n" + "="*80)
+    print("PART 6: TRAINING")
+    print("="*80)
 
-if test_acc > 95:
-    print("\n🎉 Congratulations! You achieved >95% accuracy!")
-elif test_acc > 90:
-    print("\n✓ Good job! Try tuning hyperparameters to reach 95%")
-else:
-    print("\n→ Try training longer or adjusting the architecture")
+    n_epochs = 15
 
-# ============================================================================
-# 8부: 시각화
-# ============================================================================
-print("\n" + "="*80)
-print("VISUALIZATION")
-print("="*80)
+    # 이력 추적
+    train_losses = []
+    train_accuracies = []
+    val_losses = []
+    val_accuracies = []
 
-fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    print(f"\nTraining for {n_epochs} epochs...")
+    print("-" * 80)
+    print(f"{'Epoch':>5} | {'Train Loss':>10} | {'Train Acc':>10} | {'Val Loss':>10} | {'Val Acc':>10} | {'Time':>7}")
+    print("-" * 80)
 
-# 그림 1: 손실 곡선
-axes[0, 0].plot(train_losses, label='Train', linewidth=2)
-axes[0, 0].plot(val_losses, label='Validation', linewidth=2)
-axes[0, 0].set_xlabel('Epoch')
-axes[0, 0].set_ylabel('Loss')
-axes[0, 0].set_title('Training and Validation Loss')
-axes[0, 0].legend()
-axes[0, 0].grid(True, alpha=0.3)
+    start_time = time.time()
 
-# 그림 2: 정확도 곡선
-axes[0, 1].plot(train_accuracies, label='Train', linewidth=2)
-axes[0, 1].plot(val_accuracies, label='Validation', linewidth=2)
-axes[0, 1].set_xlabel('Epoch')
-axes[0, 1].set_ylabel('Accuracy (%)')
-axes[0, 1].set_title('Training and Validation Accuracy')
-axes[0, 1].legend()
-axes[0, 1].grid(True, alpha=0.3)
+    for epoch in range(n_epochs):
+        epoch_start = time.time()
 
-# 그림 3: 예측 표본
-model.eval()
-examples = iter(test_loader)
-example_data, example_targets = next(examples)
+        # 학습
+        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer)
 
-with torch.no_grad():
-    output = model(example_data)
-    _, predictions = torch.max(output, 1)
+        # 검증
+        val_loss, val_acc = validate(model, val_loader, criterion)
 
-# 처음 테스트 예제 6개 보여주기
-for i in range(6):
-    ax = axes[1, i//3]
-    
-    if i < 3:
-        idx = i
+        # 학습률 스케줄링
+        scheduler.step(val_loss)
+
+        # 이력 저장
+        train_losses.append(train_loss)
+        train_accuracies.append(train_acc)
+        val_losses.append(val_loss)
+        val_accuracies.append(val_acc)
+
+        epoch_time = time.time() - epoch_start
+
+        print(f"{epoch+1:5d} | {train_loss:10.4f} | {train_acc:9.2f}% | {val_loss:10.4f} | {val_acc:9.2f}% | {epoch_time:6.1f}s")
+
+    total_time = time.time() - start_time
+    print("-" * 80)
+    print(f"Training completed in {total_time:.1f}s ({total_time/n_epochs:.1f}s per epoch)")
+
+    # ============================================================================
+    # 7부: 테스트 집합 평가
+    # ============================================================================
+    print("\n" + "="*80)
+    print("PART 7: FINAL EVALUATION ON TEST SET")
+    print("="*80)
+
+    test_loss, test_acc = validate(model, test_loader, criterion)
+
+    print(f"\nTest Set Results:")
+    print(f"  Loss: {test_loss:.4f}")
+    print(f"  Accuracy: {test_acc:.2f}%")
+
+    if test_acc > 95:
+        print("\n🎉 Congratulations! You achieved >95% accuracy!")
+    elif test_acc > 90:
+        print("\n✓ Good job! Try tuning hyperparameters to reach 95%")
     else:
-        idx = i + 3
-    
-    img = example_data[idx].squeeze()
-    true_label = example_targets[idx].item()
-    pred_label = predictions[idx].item()
-    
-    color = 'green' if true_label == pred_label else 'red'
-    
-    if i < 3:
-        ax.imshow(img, cmap='gray')
-        ax.set_title(f'True: {true_label}, Pred: {pred_label}', color=color)
-        ax.axis('off')
+        print("\n→ Try training longer or adjusting the architecture")
 
-# 그림 4: 혼동 시각화
-axes[1, 1].text(0.5, 0.5, 
-                f'Test Accuracy\n{test_acc:.2f}%\n\nTest Loss\n{test_loss:.4f}',
-                horizontalalignment='center',
-                verticalalignment='center',
-                fontsize=20,
-                transform=axes[1, 1].transAxes)
-axes[1, 1].axis('off')
+    # ============================================================================
+    # 8부: 시각화
+    # ============================================================================
+    print("\n" + "="*80)
+    print("VISUALIZATION")
+    print("="*80)
 
-plt.tight_layout()
-plt.savefig('mnist_results.png', dpi=150)
-print("\n✓ Results saved as 'mnist_results.png'")
-print("\nClose the plot window to continue...")
-plt.show()
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 
-# ============================================================================
-# 9부: 모델 저장
-# ============================================================================
-print("\n" + "="*80)
-print("SAVING MODEL")
-print("="*80)
+    # 그림 1: 손실 곡선
+    axes[0, 0].plot(train_losses, label='Train', linewidth=2)
+    axes[0, 0].plot(val_losses, label='Validation', linewidth=2)
+    axes[0, 0].set_xlabel('Epoch')
+    axes[0, 0].set_ylabel('Loss')
+    axes[0, 0].set_title('Training and Validation Loss')
+    axes[0, 0].legend()
+    axes[0, 0].grid(True, alpha=0.3)
 
-# 모델 가중치 저장
-torch.save(model.state_dict(), 'mnist_model.pth')
-print("\n✓ Model saved as 'mnist_model.pth'")
+    # 그림 2: 정확도 곡선
+    axes[0, 1].plot(train_accuracies, label='Train', linewidth=2)
+    axes[0, 1].plot(val_accuracies, label='Validation', linewidth=2)
+    axes[0, 1].set_xlabel('Epoch')
+    axes[0, 1].set_ylabel('Accuracy (%)')
+    axes[0, 1].set_title('Training and Validation Accuracy')
+    axes[0, 1].legend()
+    axes[0, 1].grid(True, alpha=0.3)
 
-print("\nTo load the model later:")
-print("  model = MNISTNet()")
-print("  model.load_state_dict(torch.load('mnist_model.pth'))")
-print("  model.eval()")
+    # 그림 3: 예측 표본
+    model.eval()
+    examples = iter(test_loader)
+    example_data, example_targets = next(examples)
 
-# ============================================================================
-# 10부: 핵심 요점
-# ============================================================================
-print("\n" + "="*80)
-print("KEY TAKEAWAYS")
-print("="*80)
-print("""
-1. 온전한 기계 학습 흐름:
-   ✓ 데이터 불러오기와 미리 다듬기
-   ✓ 학습/검증/시험 나누기
-   ✓ 모델 매기기
-   ✓ 제대로 따지는 학습 루프
-   ✓ 그림으로 보기와 모델 저장
+    with torch.no_grad():
+        output = model(example_data)
+        _, predictions = torch.max(output, 1)
 
-2. 좋은 버릇:
-   • 초매개변수를 손볼 때는 늘 검증 배치를 써라
-   • 마지막으로 따질 때까지 시험 배치에 손대지 마라
-   • 정칙화에는 드롭아웃을 써라
-   • 학습률 짜기를 넣어라
-   • 나중에 쓰도록 모델을 저장하라
+    # 처음 테스트 예제 6개 보여주기
+    for i in range(6):
+        ax = axes[1, i//3]
 
-3. 움직이는 경사 하강법:
-   • Adam 최적화기는 빨리 모여든다
-   • DataLoader로 하는 배치 학습
-   • 자동 미분이 복잡한 망을 다룬다
-   • 1~3단계의 모든 개념이 여기 쓰였다!
+        if i < 3:
+            idx = i
+        else:
+            idx = i + 3
 
-4. 좋은 성능 이루기:
-   • MNIST에서 정확도 95% 넘기기는 이룰 수 있다
-   • 구조를 제대로 꾸미는 일이 종요롭다
-   • 초매개변수를 손보면 결과가 나아진다
-   • 흔히 더 익히면 도움이 된다(어느 선까지는)
+        img = example_data[idx].squeeze()
+        true_label = example_targets[idx].item()
+        pred_label = predictions[idx].item()
 
-5. 다음 걸음:
-   • 여러 구조를 써 보아라(층을 늘리거나 줄여서)
-   • 초매개변수를 이리저리 바꾸어 보아라
-   • 성능을 높이려면 누비기 층을 더하라
-   • 다른 데이터셋도 써 보아라(패션 MNIST, CIFAR-10)
-""")
+        color = 'green' if true_label == pred_label else 'red'
 
-print("="*80)
-print("🎉 CONGRATULATIONS!")
-print("="*80)
-print("""
-온전한 신경망 과제를 마쳤다!
+        if i < 3:
+            ax.imshow(img, cmap='gray')
+            ax.set_title(f'True: {true_label}, Pred: {pred_label}', color=color)
+            ax.axis('off')
 
-이제 다음을 할 수 있다.
-✓ 참 데이터셋을 불러오고 미리 다듬기
-✓ PyTorch로 신경망 짓기
-✓ 경사 하강법으로 모델 익히기
-✓ 결과를 따지고 그림으로 보기
-✓ 익힌 모델을 저장하고 불러오기
+    # 그림 4: 혼동 시각화
+    axes[1, 1].text(0.5, 0.5, 
+                    f'Test Accuracy\n{test_acc:.2f}%\n\nTest Loss\n{test_loss:.4f}',
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    fontsize=20,
+                    transform=axes[1, 1].transAxes)
+    axes[1, 1].axis('off')
 
-이것이 깊은 학습의 바탕이다!
-""")
-print("="*80)
+    plt.tight_layout()
+    plt.savefig('mnist_results.png', dpi=150)
+    print("\n✓ Results saved as 'mnist_results.png'")
+    print("\nClose the plot window to continue...")
+    plt.show()
+
+    # ============================================================================
+    # 9부: 모델 저장
+    # ============================================================================
+    print("\n" + "="*80)
+    print("SAVING MODEL")
+    print("="*80)
+
+    # 모델 가중치 저장
+    torch.save(model.state_dict(), 'mnist_model.pth')
+    print("\n✓ Model saved as 'mnist_model.pth'")
+
+    print("\nTo load the model later:")
+    print("  model = MNISTNet()")
+    print("  model.load_state_dict(torch.load('mnist_model.pth'))")
+    print("  model.eval()")
+
+    # ============================================================================
+    # 10부: 핵심 요점
+    # ============================================================================
+    print("\n" + "="*80)
+    print("KEY TAKEAWAYS")
+    print("="*80)
+    print("""
+    1. 온전한 기계 학습 흐름:
+       ✓ 데이터 불러오기와 미리 다듬기
+       ✓ 학습/검증/시험 나누기
+       ✓ 모델 매기기
+       ✓ 제대로 따지는 학습 루프
+       ✓ 그림으로 보기와 모델 저장
+
+    2. 좋은 버릇:
+       • 초매개변수를 손볼 때는 늘 검증 배치를 써라
+       • 마지막으로 따질 때까지 시험 배치에 손대지 마라
+       • 정칙화에는 드롭아웃을 써라
+       • 학습률 짜기를 넣어라
+       • 나중에 쓰도록 모델을 저장하라
+
+    3. 움직이는 경사 하강법:
+       • Adam 최적화기는 빨리 모여든다
+       • DataLoader로 하는 배치 학습
+       • 자동 미분이 복잡한 망을 다룬다
+       • 1~3단계의 모든 개념이 여기 쓰였다!
+
+    4. 좋은 성능 이루기:
+       • MNIST에서 정확도 95% 넘기기는 이룰 수 있다
+       • 구조를 제대로 꾸미는 일이 종요롭다
+       • 초매개변수를 손보면 결과가 나아진다
+       • 흔히 더 익히면 도움이 된다(어느 선까지는)
+
+    5. 다음 걸음:
+       • 여러 구조를 써 보아라(층을 늘리거나 줄여서)
+       • 초매개변수를 이리저리 바꾸어 보아라
+       • 성능을 높이려면 누비기 층을 더하라
+       • 다른 데이터셋도 써 보아라(패션 MNIST, CIFAR-10)
+    """)
+
+    print("="*80)
+    print("🎉 CONGRATULATIONS!")
+    print("="*80)
+    print("""
+    온전한 신경망 과제를 마쳤다!
+
+    이제 다음을 할 수 있다.
+    ✓ 참 데이터셋을 불러오고 미리 다듬기
+    ✓ PyTorch로 신경망 짓기
+    ✓ 경사 하강법으로 모델 익히기
+    ✓ 결과를 따지고 그림으로 보기
+    ✓ 익힌 모델을 저장하고 불러오기
+
+    이것이 깊은 학습의 바탕이다!
+    """)
+    print("="*80)
 
 
-if __name__ == "__main__":
-    pass
-```
+    if __name__ == "__main__":
+        pass
+    ```
+
 
 ??? note "전체 출력 (156줄)"
 

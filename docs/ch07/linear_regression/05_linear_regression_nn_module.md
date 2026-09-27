@@ -4,360 +4,363 @@
 
 ## 1. 코드
 
-```python
-"""
-==============================================================================
-05_linear_regression_nn_module.py
-==============================================================================
-어려움: ⭐⭐ (가운데)
+??? note "코드 (352줄)"
 
-DESCRIPTION:
-    PyTorch의 nn.Module과 nn.Linear을 쓰는 선형 회귀.
-    이것이 PyTorch에서 모델을 짓는 "제대로 된" 길이다.
-
-다루는 것:
-    - 모델을 위한 nn.Module 클래스
-    - nn.Linear 층
-    - 최적화기(torch.optim.SGD)
-    - 더 깔끔하고 잘 늘어나는 코드
-
-PREREQUISITES:
-    - 튜토리얼 04(자동 미분)
-
-학습 목표:
-    - nn.Module으로 맞춤 모델을 만든다
-    - 붙박이 층(nn.Linear)을 쓴다
-    - 매개변수 고치기에 최적화기를 쓴다
-    - PyTorch의 좋은 버릇을 따른다
-
-걸리는 때: 20분쯤
-==============================================================================
-"""
-
-import torch
-import torch.nn as nn
-import matplotlib.pyplot as plt
-
-print("=" * 70)
-print("LINEAR REGRESSION WITH NN.MODULE")
-print("=" * 70)
-
-# ============================================================================
-# 1부: 데이터 생성
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 1: GENERATE DATA")
-print("=" * 70)
-
-torch.manual_seed(42)
-
-TRUE_W = 2.5
-TRUE_B = 3.0
-n_samples = 100
-
-X = torch.rand(n_samples, 1) * 20 - 10  # Shape: (100, 1)
-noise = torch.randn(n_samples, 1) * 2
-y = TRUE_W * X + TRUE_B + noise
-
-print(f"Data shapes: X={X.shape}, y={y.shape}")
-print(f"True parameters: w={TRUE_W}, b={TRUE_B}")
-
-# ============================================================================
-# 2부: NN.MODULE로 모델 정의하기
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 2: DEFINE MODEL CLASS")
-print("=" * 70)
-
-class LinearRegressionModel(nn.Module):
+    ```python
     """
-    nn.Module을 쓰는 선형 회귀 모델
-    
-    이것이 PyTorch에서 모델을 매기는 여느 길이다.
-    모든 모델은 nn.Module을 물려받아야 한다.
+    ==============================================================================
+    05_linear_regression_nn_module.py
+    ==============================================================================
+    어려움: ⭐⭐ (가운데)
+
+    DESCRIPTION:
+        PyTorch의 nn.Module과 nn.Linear을 쓰는 선형 회귀.
+        이것이 PyTorch에서 모델을 짓는 "제대로 된" 길이다.
+
+    다루는 것:
+        - 모델을 위한 nn.Module 클래스
+        - nn.Linear 층
+        - 최적화기(torch.optim.SGD)
+        - 더 깔끔하고 잘 늘어나는 코드
+
+    PREREQUISITES:
+        - 튜토리얼 04(자동 미분)
+
+    학습 목표:
+        - nn.Module으로 맞춤 모델을 만든다
+        - 붙박이 층(nn.Linear)을 쓴다
+        - 매개변수 고치기에 최적화기를 쓴다
+        - PyTorch의 좋은 버릇을 따른다
+
+    걸리는 때: 20분쯤
+    ==============================================================================
     """
-    
-    def __init__(self, input_dim=1, output_dim=1):
+
+    import torch
+    import torch.nn as nn
+    import matplotlib.pyplot as plt
+
+    print("=" * 70)
+    print("LINEAR REGRESSION WITH NN.MODULE")
+    print("=" * 70)
+
+    # ============================================================================
+    # 1부: 데이터 생성
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 1: GENERATE DATA")
+    print("=" * 70)
+
+    torch.manual_seed(42)
+
+    TRUE_W = 2.5
+    TRUE_B = 3.0
+    n_samples = 100
+
+    X = torch.rand(n_samples, 1) * 20 - 10  # Shape: (100, 1)
+    noise = torch.randn(n_samples, 1) * 2
+    y = TRUE_W * X + TRUE_B + noise
+
+    print(f"Data shapes: X={X.shape}, y={y.shape}")
+    print(f"True parameters: w={TRUE_W}, b={TRUE_B}")
+
+    # ============================================================================
+    # 2부: NN.MODULE로 모델 정의하기
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 2: DEFINE MODEL CLASS")
+    print("=" * 70)
+
+    class LinearRegressionModel(nn.Module):
         """
-        모델의 초기화한다
-        
-        Args:
-            input_dim: 입력 특징의 수
-            output_dim: 출력 특징의 수
+        nn.Module을 쓰는 선형 회귀 모델
+
+        이것이 PyTorch에서 모델을 매기는 여느 길이다.
+        모든 모델은 nn.Module을 물려받아야 한다.
         """
-        # 언제나 부모 생성자를 먼저 호출한다
-        super(LinearRegressionModel, self).__init__()
-        
-        # 층을 정의한다
-        # nn.Linear(in_features, out_features)
-        # 이렇게 하면 y = X @ W.T + b가 된다
-        # 여기서 W의 모양은 (out_features, in_features)이다
-        self.linear = nn.Linear(input_dim, output_dim)
-        
-    def forward(self, x):
-        """
-        순전파: 데이터가 모델을 어떻게 흐르는지 매긴다
-        
-        Args:
-            x: 입력 텐서
-        
-        Returns:
-            내놓는 예측
-        """
-        return self.linear(x)
 
-# 모델 인스턴스 생성
-model = LinearRegressionModel(input_dim=1, output_dim=1)
+        def __init__(self, input_dim=1, output_dim=1):
+            """
+            모델의 초기화한다
 
-print("Model created:")
-print(model)
-print(f"\nModel parameters:")
-for name, param in model.named_parameters():
-    print(f"  {name}: shape={param.shape}, requires_grad={param.requires_grad}")
+            Args:
+                input_dim: 입력 특징의 수
+                output_dim: 출력 특징의 수
+            """
+            # 언제나 부모 생성자를 먼저 호출한다
+            super(LinearRegressionModel, self).__init__()
 
-# ============================================================================
-# 3부: 손실과 최적화기 정의
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 3: DEFINE LOSS AND OPTIMIZER")
-print("=" * 70)
+            # 층을 정의한다
+            # nn.Linear(in_features, out_features)
+            # 이렇게 하면 y = X @ W.T + b가 된다
+            # 여기서 W의 모양은 (out_features, in_features)이다
+            self.linear = nn.Linear(input_dim, output_dim)
 
-# 손실 함수
-criterion = nn.MSELoss()  # Mean Squared Error
-print(f"Loss function: {criterion}")
+        def forward(self, x):
+            """
+            순전파: 데이터가 모델을 어떻게 흐르는지 매긴다
 
-# 최적화기 - 매개변수 갱신을 자동으로 처리한다!
-learning_rate = 0.01
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-print(f"Optimizer: {optimizer}")
-print(f"Learning rate: {learning_rate}")
+            Args:
+                x: 입력 텐서
 
-print("""
-최적화기를 쓰는 핵심 이점:
-1. 모델의 매개변수를 모두 절로 고친다
-2. 직접 매개변수를 고칠 일이 없다
-3. 최적화기를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
-4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
-""")
+            Returns:
+                내놓는 예측
+            """
+            return self.linear(x)
 
-# ============================================================================
-# 4부: 학습 루프 - PyTorch 방식
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 4: TRAINING LOOP")
-print("=" * 70)
+    # 모델 인스턴스 생성
+    model = LinearRegressionModel(input_dim=1, output_dim=1)
 
-n_epochs = 100
-loss_history = []
-w_history = []
-b_history = []
+    print("Model created:")
+    print(model)
+    print(f"\nModel parameters:")
+    for name, param in model.named_parameters():
+        print(f"  {name}: shape={param.shape}, requires_grad={param.requires_grad}")
 
-print(f"Training for {n_epochs} epochs...")
-print(f"\n{'Epoch':<8} {'Loss':<12} {'w':<12} {'b':<12}")
-print("-" * 50)
+    # ============================================================================
+    # 3부: 손실과 최적화기 정의
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 3: DEFINE LOSS AND OPTIMIZER")
+    print("=" * 70)
 
-for epoch in range(n_epochs):
-    # 1. 순전파
-    y_pred = model(X)
-    loss = criterion(y_pred, y)
-    
-    # 2. 역전파
-    optimizer.zero_grad()  # Zero gradients (replaces w.grad.zero_())
-    loss.backward()        # Compute gradients
-    optimizer.step()       # Update parameters (replaces manual update)
-    
-    # 이력 추적
-    loss_history.append(loss.item())
-    w_history.append(model.linear.weight.item())
-    b_history.append(model.linear.bias.item())
-    
-    if (epoch + 1) % 10 == 0 or epoch == 0:
-        print(f"{epoch+1:<8} {loss.item():<12.4f} "
-              f"{model.linear.weight.item():<12.4f} "
-              f"{model.linear.bias.item():<12.4f}")
+    # 손실 함수
+    criterion = nn.MSELoss()  # Mean Squared Error
+    print(f"Loss function: {criterion}")
 
-print("\n" + "=" * 70)
-print("TRAINING COMPLETED")
-print("=" * 70)
+    # 최적화기 - 매개변수 갱신을 자동으로 처리한다!
+    learning_rate = 0.01
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    print(f"Optimizer: {optimizer}")
+    print(f"Learning rate: {learning_rate}")
 
-final_w = model.linear.weight.item()
-final_b = model.linear.bias.item()
+    print("""
+    최적화기를 쓰는 핵심 이점:
+    1. 모델의 매개변수를 모두 절로 고친다
+    2. 직접 매개변수를 고칠 일이 없다
+    3. 최적화기를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
+    4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
+    """)
 
-print(f"\nFinal Results:")
-print(f"  Learned w: {final_w:.4f} (True: {TRUE_W}, Error: {abs(final_w-TRUE_W):.4f})")
-print(f"  Learned b: {final_b:.4f} (True: {TRUE_B}, Error: {abs(final_b-TRUE_B):.4f})")
-print(f"  Final loss: {loss_history[-1]:.6f}")
+    # ============================================================================
+    # 4부: 학습 루프 - PyTorch 방식
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 4: TRAINING LOOP")
+    print("=" * 70)
 
-# ============================================================================
-# 5부: 모델 평가 모드
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 5: MODEL EVALUATION MODE")
-print("=" * 70)
+    n_epochs = 100
+    loss_history = []
+    w_history = []
+    b_history = []
 
-print("""
-모델에는 두 결이 있다.
-1. 학습 결(model.train()): 기본이며 드롭아웃, 배치 정규화 따위를 켠다
-2. 따짐 결(model.eval()): 드롭아웃, 배치 정규화 따위를 끈다
+    print(f"Training for {n_epochs} epochs...")
+    print(f"\n{'Epoch':<8} {'Loss':<12} {'w':<12} {'b':<12}")
+    print("-" * 50)
 
-선형 회귀에서는 걸리지 않지만 좋은 버릇이다!
-""")
+    for epoch in range(n_epochs):
+        # 1. 순전파
+        y_pred = model(X)
+        loss = criterion(y_pred, y)
 
-# 모델을 평가 모드로 바꾼다
-model.eval()
-print("Model set to evaluation mode")
+        # 2. 역전파
+        optimizer.zero_grad()  # Zero gradients (replaces w.grad.zero_())
+        loss.backward()        # Compute gradients
+        optimizer.step()       # Update parameters (replaces manual update)
 
-# 예측한다 (경사 추적이 필요 없다)
-with torch.no_grad():
-    X_test = torch.tensor([[5.0], [-3.0], [0.0]])
-    y_pred_test = model(X_test)
-    
-print(f"\nTest predictions:")
-for i in range(len(X_test)):
-    x_val = X_test[i].item()
-    y_true_val = TRUE_W * x_val + TRUE_B
-    y_pred_val = y_pred_test[i].item()
-    print(f"  X={x_val:6.1f} -> Pred: {y_pred_val:7.2f}, True: {y_true_val:7.2f}")
+        # 이력 추적
+        loss_history.append(loss.item())
+        w_history.append(model.linear.weight.item())
+        b_history.append(model.linear.bias.item())
 
-# ============================================================================
-# 6부: 모델 저장하고 불러오기
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 6: SAVING AND LOADING MODELS")
-print("=" * 70)
+        if (epoch + 1) % 10 == 0 or epoch == 0:
+            print(f"{epoch+1:<8} {loss.item():<12.4f} "
+                  f"{model.linear.weight.item():<12.4f} "
+                  f"{model.linear.bias.item():<12.4f}")
 
-# 모델을 저장한다
-model_path = 'linear_model.pth'
-torch.save(model.state_dict(), model_path)
-print(f"Model saved to: {model_path}")
+    print("\n" + "=" * 70)
+    print("TRAINING COMPLETED")
+    print("=" * 70)
 
-# 모델을 불러온다
-new_model = LinearRegressionModel(input_dim=1, output_dim=1)
-new_model.load_state_dict(torch.load(model_path))
-new_model.eval()
-print("Model loaded successfully")
+    final_w = model.linear.weight.item()
+    final_b = model.linear.bias.item()
 
-# 불러온 모델을 확인한다
-with torch.no_grad():
-    y_pred_loaded = new_model(X_test)
-    print("\nVerifying loaded model (should match above):")
+    print(f"\nFinal Results:")
+    print(f"  Learned w: {final_w:.4f} (True: {TRUE_W}, Error: {abs(final_w-TRUE_W):.4f})")
+    print(f"  Learned b: {final_b:.4f} (True: {TRUE_B}, Error: {abs(final_b-TRUE_B):.4f})")
+    print(f"  Final loss: {loss_history[-1]:.6f}")
+
+    # ============================================================================
+    # 5부: 모델 평가 모드
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 5: MODEL EVALUATION MODE")
+    print("=" * 70)
+
+    print("""
+    모델에는 두 결이 있다.
+    1. 학습 결(model.train()): 기본이며 드롭아웃, 배치 정규화 따위를 켠다
+    2. 따짐 결(model.eval()): 드롭아웃, 배치 정규화 따위를 끈다
+
+    선형 회귀에서는 걸리지 않지만 좋은 버릇이다!
+    """)
+
+    # 모델을 평가 모드로 바꾼다
+    model.eval()
+    print("Model set to evaluation mode")
+
+    # 예측한다 (경사 추적이 필요 없다)
+    with torch.no_grad():
+        X_test = torch.tensor([[5.0], [-3.0], [0.0]])
+        y_pred_test = model(X_test)
+
+    print(f"\nTest predictions:")
     for i in range(len(X_test)):
-        print(f"  X={X_test[i].item():6.1f} -> Pred: {y_pred_loaded[i].item():7.2f}")
+        x_val = X_test[i].item()
+        y_true_val = TRUE_W * x_val + TRUE_B
+        y_pred_val = y_pred_test[i].item()
+        print(f"  X={x_val:6.1f} -> Pred: {y_pred_val:7.2f}, True: {y_true_val:7.2f}")
 
-# ============================================================================
-# 7부: 결과 시각화
-# ============================================================================
+    # ============================================================================
+    # 6부: 모델 저장하고 불러오기
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 6: SAVING AND LOADING MODELS")
+    print("=" * 70)
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    # 모델을 저장한다
+    model_path = 'linear_model.pth'
+    torch.save(model.state_dict(), model_path)
+    print(f"Model saved to: {model_path}")
 
-# 손실 곡선
-axes[0, 0].plot(loss_history, linewidth=2, color='blue')
-axes[0, 0].set_xlabel('Epoch')
-axes[0, 0].set_ylabel('Loss')
-axes[0, 0].set_title('Training Loss (nn.Module)')
-axes[0, 0].grid(True, alpha=0.3)
-axes[0, 0].set_yscale('log')
+    # 모델을 불러온다
+    new_model = LinearRegressionModel(input_dim=1, output_dim=1)
+    new_model.load_state_dict(torch.load(model_path))
+    new_model.eval()
+    print("Model loaded successfully")
 
-# 매개변수의 변화
-axes[0, 1].plot(w_history, label='w', linewidth=2)
-axes[0, 1].axhline(y=TRUE_W, color='r', linestyle='--', label=f'True w={TRUE_W}')
-axes[0, 1].plot(b_history, label='b', linewidth=2)
-axes[0, 1].axhline(y=TRUE_B, color='g', linestyle='--', label=f'True b={TRUE_B}')
-axes[0, 1].set_xlabel('Epoch')
-axes[0, 1].set_ylabel('Value')
-axes[0, 1].set_title('Parameter Evolution')
-axes[0, 1].legend()
-axes[0, 1].grid(True, alpha=0.3)
+    # 불러온 모델을 확인한다
+    with torch.no_grad():
+        y_pred_loaded = new_model(X_test)
+        print("\nVerifying loaded model (should match above):")
+        for i in range(len(X_test)):
+            print(f"  X={X_test[i].item():6.1f} -> Pred: {y_pred_loaded[i].item():7.2f}")
 
-# 최종 적합
-model.eval()
-with torch.no_grad():
-    X_sorted, _ = torch.sort(X, dim=0)
-    y_pred_sorted = model(X_sorted)
+    # ============================================================================
+    # 7부: 결과 시각화
+    # ============================================================================
 
-axes[1, 0].scatter(X.numpy(), y.numpy(), alpha=0.5, s=20)
-axes[1, 0].plot(X_sorted.numpy(), y_pred_sorted.numpy(), 'r-', linewidth=2)
-axes[1, 0].set_xlabel('X')
-axes[1, 0].set_ylabel('y')
-axes[1, 0].set_title('Final Model Fit')
-axes[1, 0].grid(True, alpha=0.3)
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-# 코드 비교
-comparison = """
-학습 루프가 나아온 길:
+    # 손실 곡선
+    axes[0, 0].plot(loss_history, linewidth=2, color='blue')
+    axes[0, 0].set_xlabel('Epoch')
+    axes[0, 0].set_ylabel('Loss')
+    axes[0, 0].set_title('Training Loss (nn.Module)')
+    axes[0, 0].grid(True, alpha=0.3)
+    axes[0, 0].set_yscale('log')
 
-튜토리얼 02(넘파이):
-  - 직접 쓰는 기울기 식
-  - 직접 하는 매개변수 고치기
-  - 코드 40줄쯤
+    # 매개변수의 변화
+    axes[0, 1].plot(w_history, label='w', linewidth=2)
+    axes[0, 1].axhline(y=TRUE_W, color='r', linestyle='--', label=f'True w={TRUE_W}')
+    axes[0, 1].plot(b_history, label='b', linewidth=2)
+    axes[0, 1].axhline(y=TRUE_B, color='g', linestyle='--', label=f'True b={TRUE_B}')
+    axes[0, 1].set_xlabel('Epoch')
+    axes[0, 1].set_ylabel('Value')
+    axes[0, 1].set_title('Parameter Evolution')
+    axes[0, 1].legend()
+    axes[0, 1].grid(True, alpha=0.3)
 
-튜토리얼 03(직접 하는 PyTorch):
-  - 텐서 셈
-  - 직접 하는 기울기
-  - 직접 하는 고치기
+    # 최종 적합
+    model.eval()
+    with torch.no_grad():
+        X_sorted, _ = torch.sort(X, dim=0)
+        y_pred_sorted = model(X_sorted)
 
-튜토리얼 04(자동 미분):
-  - loss.backward()
-  - 직접 하는 고치기
-  - grad.zero_()
+    axes[1, 0].scatter(X.numpy(), y.numpy(), alpha=0.5, s=20)
+    axes[1, 0].plot(X_sorted.numpy(), y_pred_sorted.numpy(), 'r-', linewidth=2)
+    axes[1, 0].set_xlabel('X')
+    axes[1, 0].set_ylabel('y')
+    axes[1, 0].set_title('Final Model Fit')
+    axes[1, 0].grid(True, alpha=0.3)
 
-튜토리얼 05(nn.Module):
-  - model(X)
-  - optimizer.zero_grad()
-  - loss.backward()
-  - optimizer.step()
-  
-훨씬 깔끔하고 손보기 좋다!
-"""
-axes[1, 1].text(0.05, 0.95, comparison, transform=axes[1, 1].transAxes,
-                fontsize=9, verticalalignment='top', fontfamily='monospace')
-axes[1, 1].axis('off')
+    # 코드 비교
+    comparison = """
+    학습 루프가 나아온 길:
 
-plt.tight_layout()
-plt.savefig('05_nn_module_results.png', dpi=100)
-print("\nSaved visualization to: 05_nn_module_results.png")
-plt.show()
+    튜토리얼 02(넘파이):
+      - 직접 쓰는 기울기 식
+      - 직접 하는 매개변수 고치기
+      - 코드 40줄쯤
 
-print("\n" + "=" * 70)
-print("SUMMARY")
-print("=" * 70)
-print("""
-여느 PyTorch 학습 루프:
+    튜토리얼 03(직접 하는 PyTorch):
+      - 텐서 셈
+      - 직접 하는 기울기
+      - 직접 하는 고치기
 
-model = MyModel()
-criterion = nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+    튜토리얼 04(자동 미분):
+      - loss.backward()
+      - 직접 하는 고치기
+      - grad.zero_()
 
-for epoch in range(n_epochs):
-    # 순전파
-    y_pred = model(X)
-    loss = criterion(y_pred, y)
-    
-    # 역전파
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+    튜토리얼 05(nn.Module):
+      - model(X)
+      - optimizer.zero_grad()
+      - loss.backward()
+      - optimizer.step()
 
-핵심 조각:
-1. nn.Module: 모든 모델의 밑 클래스
-2. nn.Linear: 붙박이 선형 층
-3. optimizer: 매개변수 고치기를 다룬다
-4. criterion: 손실 함수
+    훨씬 깔끔하고 손보기 좋다!
+    """
+    axes[1, 1].text(0.05, 0.95, comparison, transform=axes[1, 1].transAxes,
+                    fontsize=9, verticalalignment='top', fontfamily='monospace')
+    axes[1, 1].axis('off')
 
-Advantages:
-✓ 깔끔하고 읽기 좋은 코드
-✓ 복잡한 모델으로 넓히기 쉽다
-✓ 매개변수를 절로 다룬다
-✓ 모델을 저장하고 불러오기 쉽다
-✓ GPU을 받친다(.to('cuda')만 더하면 된다)
+    plt.tight_layout()
+    plt.savefig('05_nn_module_results.png', dpi=100)
+    print("\nSaved visualization to: 05_nn_module_results.png")
+    plt.show()
 
-다음: 튜토리얼 06 - 여러 입력 특징!
-""")
+    print("\n" + "=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+    print("""
+    여느 PyTorch 학습 루프:
+
+    model = MyModel()
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+
+    for epoch in range(n_epochs):
+        # 순전파
+        y_pred = model(X)
+        loss = criterion(y_pred, y)
+
+        # 역전파
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    핵심 조각:
+    1. nn.Module: 모든 모델의 밑 클래스
+    2. nn.Linear: 붙박이 선형 층
+    3. optimizer: 매개변수 고치기를 다룬다
+    4. criterion: 손실 함수
+
+    Advantages:
+    ✓ 깔끔하고 읽기 좋은 코드
+    ✓ 복잡한 모델으로 넓히기 쉽다
+    ✓ 매개변수를 절로 다룬다
+    ✓ 모델을 저장하고 불러오기 쉽다
+    ✓ GPU을 받친다(.to('cuda')만 더하면 된다)
+
+    다음: 튜토리얼 06 - 여러 입력 특징!
+    """)
 
 
-if __name__ == "__main__":
-    pass
-```
+    if __name__ == "__main__":
+        pass
+    ```
+
 
 ??? note "전체 출력 (140줄)"
 

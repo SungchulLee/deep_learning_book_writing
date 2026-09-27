@@ -56,432 +56,435 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
 
 ## 2. 코드
 
-```python
-"""
-===============================================================================
-1단계: 소프트맥스 회귀 기초
-===============================================================================
-어려움: 첫걸음
-미리 알아 둘 것: 기본 파이썬, 기본 넘파이
-학습 목표:
-  - 소프트맥스 함수가 무엇을 하는지 이해한다
-  - 교차 엔트로피 손실이 어떻게 도는지 배운다
-  - 넘파이와 PyTorch 짜보기를 견준다
-  - 로짓, 확률, 손실 사이의 사이를 이해한다
+??? note "코드 1 (424줄)"
 
-소요 시간: 20~30분
-===============================================================================
-"""
-
-import numpy as np
-import torch
-import torch.nn as nn
-
-print("=" * 80)
-print("LEVEL 1: SOFTMAX REGRESSION FUNDAMENTALS")
-print("=" * 80)
-
-# =============================================================================
-# 1부: 소프트맥스 함수 이해하기
-# =============================================================================
-print("\n" + "=" * 80)
-print("PART 1: Understanding Softmax")
-print("=" * 80)
-
-"""
-소프트맥스란 무엇인가?
-----------------
-소프트맥스는 실수 벡터(로짓이라 한다)를 확률 분포로 바꾼다. 출력마다
-0과 1 사이이고 모두 더하면 1이다.
-
-식: softmax(x_i) = exp(x_i) / sum(exp(x_j) for all j)
-
-왜 쓰는가?
-- 날것 점수를 읽을 수 있는 확률로 바꾼다
-- 점수 사이의 차이를 키운다(큰 값일수록 확률이 높아진다)
-- 여러 클래스 분류에 꼭 필요하다
-"""
-
-def softmax_numpy(x):
+    ```python
     """
-    1차원 배열의 소프트맥스 값을 계산한다.
-    
-    Args:
-        x (np.array): 로짓(날것 점수) 입력 배열
-    
-    Returns:
-        np.array: 확률 분포(더하면 1)
-    
-    눈여겨볼 것: 수치가 든든하도록 exp 앞에 최댓값을 뺀다.
-          결과는 그대로이면서 넘침을 막는다.
+    ===============================================================================
+    1단계: 소프트맥스 회귀 기초
+    ===============================================================================
+    어려움: 첫걸음
+    미리 알아 둘 것: 기본 파이썬, 기본 넘파이
+    학습 목표:
+      - 소프트맥스 함수가 무엇을 하는지 이해한다
+      - 교차 엔트로피 손실이 어떻게 도는지 배운다
+      - 넘파이와 PyTorch 짜보기를 견준다
+      - 로짓, 확률, 손실 사이의 사이를 이해한다
+
+    소요 시간: 20~30분
+    ===============================================================================
     """
-    # 수치적 안정성을 위해 최댓값을 뺀다 (exp에서 넘침을 막는다)
-    x_shifted = x - np.max(x)
-    exp_values = np.exp(x_shifted)
-    probabilities = exp_values / np.sum(exp_values)
-    return probabilities
 
+    import numpy as np
+    import torch
+    import torch.nn as nn
 
-# 예 1: 기본적인 소프트맥스 계산
-print("\nExample 1: Converting logits to probabilities")
-print("-" * 80)
-logits = np.array([2.0, 1.0, 0.1])
-print(f"Input logits:         {logits}")
-print(f"  (These are raw, unnormalized scores from a model)")
+    print("=" * 80)
+    print("LEVEL 1: SOFTMAX REGRESSION FUNDAMENTALS")
+    print("=" * 80)
 
-probabilities = softmax_numpy(logits)
-print(f"\nOutput probabilities: {probabilities}")
-print(f"  (These are interpretable as class probabilities)")
-print(f"Sum of probabilities: {np.sum(probabilities):.6f}")
-print(f"  (Should always equal 1.0)")
+    # =============================================================================
+    # 1부: 소프트맥스 함수 이해하기
+    # =============================================================================
+    print("\n" + "=" * 80)
+    print("PART 1: Understanding Softmax")
+    print("=" * 80)
 
-# 예 2: 로짓을 바꿨을 때의 효과
-print("\n\nExample 2: How logits affect probabilities")
-print("-" * 80)
-logits_scenarios = [
-    np.array([1.0, 1.0, 1.0]),    # All equal
-    np.array([3.0, 1.0, 1.0]),    # One much larger
-    np.array([10.0, 1.0, 1.0]),   # One extremely larger
-]
-
-for i, logits in enumerate(logits_scenarios, 1):
-    probs = softmax_numpy(logits)
-    print(f"Scenario {i}: logits = {logits}")
-    print(f"            probs  = {probs}")
-    print()
-
-print("💡 Key Insight: Larger differences in logits lead to more confident predictions!")
-
-
-# =============================================================================
-# 2부: PyTorch에서의 소프트맥스
-# =============================================================================
-print("\n" + "=" * 80)
-print("PART 2: Softmax in PyTorch")
-print("=" * 80)
-
-# PyTorch 텐서로 바꾼다
-logits_torch = torch.tensor([2.0, 1.0, 0.1])
-print(f"\nInput (PyTorch tensor): {logits_torch}")
-
-# 0번 차원을 따라 소프트맥스를 적용한다 (1차원 텐서에서는 유일한 차원)
-probs_torch = torch.softmax(logits_torch, dim=0)
-print(f"Output probabilities:   {probs_torch}")
-
-# 배치 데이터에 대해 (여러 표본을 한꺼번에)
-print("\n\nBatched Example (3 samples, 3 classes each):")
-print("-" * 80)
-# 모양: (batch_size, num_classes) = (3, 3)
-batch_logits = torch.tensor([
-    [2.0, 1.0, 0.1],   # Sample 1
-    [0.5, 2.5, 1.0],   # Sample 2
-    [1.5, 1.5, 1.5],   # Sample 3
-])
-print("Logits (3 samples x 3 classes):")
-print(batch_logits)
-
-# dim=1을 따라 소프트맥스를 적용한다 (표본마다 클래스에 걸쳐)
-batch_probs = torch.softmax(batch_logits, dim=1)
-print("\nProbabilities (after softmax):")
-print(batch_probs)
-print(f"\nSum for each sample: {batch_probs.sum(dim=1)}")
-print("  (Each row sums to 1.0)")
-
-
-# =============================================================================
-# 3부: 교차 엔트로피 손실 이해하기
-# =============================================================================
-print("\n" + "=" * 80)
-print("PART 3: Cross-Entropy Loss")
-print("=" * 80)
-
-"""
-교차 엔트로피 손실이란 무엇인가?
-----------------------------
-교차 엔트로피는 예측한 확률 분포가 참 분포와 얼마나 다른지 잰다.
-손실이 작을수록 예측이 좋다.
-
-참 클래스가 k인 표본 하나에 대해
-  손실 = -log(p_k)
-  
-여기서 p_k은 참 클래스에 매긴 예측 확률이다.
-
-왜 음의 로그인가?
-- p_k = 1.0이면(완벽한 예측) 손실 = -log(1.0) = 0
-- p_k = 0.5이면(아리송함) 손실 = -log(0.5) = 0.69
-- p_k = 0.1이면(틀림) 손실 = -log(0.1) = 2.30
-- p_k → 0이면(크게 틀림) 손실 → 끝없이 커진다
-"""
-
-def cross_entropy_numpy(true_class, predicted_probs):
     """
-    표본 하나의 교차 엔트로피 손실을 계산한다.
-    
-    Args:
-        true_class (int): 참 클래스의 번호(0, 1, 2, ...)
-        predicted_probs (np.array): 클래스마다의 예측 확률
-    
-    Returns:
-        float: 교차 엔트로피 손실 값
+    소프트맥스란 무엇인가?
+    ----------------
+    소프트맥스는 실수 벡터(로짓이라 한다)를 확률 분포로 바꾼다. 출력마다
+    0과 1 사이이고 모두 더하면 1이다.
+
+    식: softmax(x_i) = exp(x_i) / sum(exp(x_j) for all j)
+
+    왜 쓰는가?
+    - 날것 점수를 읽을 수 있는 확률로 바꾼다
+    - 점수 사이의 차이를 키운다(큰 값일수록 확률이 높아진다)
+    - 여러 클래스 분류에 꼭 필요하다
     """
-    # log(0)을 피하려고 작은 엡실론을 더한다
-    eps = 1e-15
-    predicted_probs = np.clip(predicted_probs, eps, 1 - eps)
-    
-    # 손실은 참 클래스의 음의 로그 확률이다
-    loss = -np.log(predicted_probs[true_class])
-    return loss
+
+    def softmax_numpy(x):
+        """
+        1차원 배열의 소프트맥스 값을 계산한다.
+
+        Args:
+            x (np.array): 로짓(날것 점수) 입력 배열
+
+        Returns:
+            np.array: 확률 분포(더하면 1)
+
+        눈여겨볼 것: 수치가 든든하도록 exp 앞에 최댓값을 뺀다.
+              결과는 그대로이면서 넘침을 막는다.
+        """
+        # 수치적 안정성을 위해 최댓값을 뺀다 (exp에서 넘침을 막는다)
+        x_shifted = x - np.max(x)
+        exp_values = np.exp(x_shifted)
+        probabilities = exp_values / np.sum(exp_values)
+        return probabilities
 
 
-print("\nExample: Comparing good vs bad predictions")
-print("-" * 80)
+    # 예 1: 기본적인 소프트맥스 계산
+    print("\nExample 1: Converting logits to probabilities")
+    print("-" * 80)
+    logits = np.array([2.0, 1.0, 0.1])
+    print(f"Input logits:         {logits}")
+    print(f"  (These are raw, unnormalized scores from a model)")
 
-# 참 클래스는 0이다 (첫 번째 클래스)
-true_class = 0
+    probabilities = softmax_numpy(logits)
+    print(f"\nOutput probabilities: {probabilities}")
+    print(f"  (These are interpretable as class probabilities)")
+    print(f"Sum of probabilities: {np.sum(probabilities):.6f}")
+    print(f"  (Should always equal 1.0)")
 
-# 좋은 예측 (정답 클래스의 확률이 높다)
-good_probs = np.array([0.8, 0.15, 0.05])
-loss_good = cross_entropy_numpy(true_class, good_probs)
+    # 예 2: 로짓을 바꿨을 때의 효과
+    print("\n\nExample 2: How logits affect probabilities")
+    print("-" * 80)
+    logits_scenarios = [
+        np.array([1.0, 1.0, 1.0]),    # All equal
+        np.array([3.0, 1.0, 1.0]),    # One much larger
+        np.array([10.0, 1.0, 1.0]),   # One extremely larger
+    ]
 
-# 중간 정도의 예측 (정답 클래스의 확률이 보통이다)
-medium_probs = np.array([0.5, 0.3, 0.2])
-loss_medium = cross_entropy_numpy(true_class, medium_probs)
+    for i, logits in enumerate(logits_scenarios, 1):
+        probs = softmax_numpy(logits)
+        print(f"Scenario {i}: logits = {logits}")
+        print(f"            probs  = {probs}")
+        print()
 
-# 나쁜 예측 (정답 클래스의 확률이 낮다)
-bad_probs = np.array([0.1, 0.6, 0.3])
-loss_bad = cross_entropy_numpy(true_class, bad_probs)
-
-print(f"True class: {true_class}")
-print(f"\nGood prediction:   probs = {good_probs}   → loss = {loss_good:.4f}")
-print(f"Medium prediction: probs = {medium_probs} → loss = {loss_medium:.4f}")
-print(f"Bad prediction:    probs = {bad_probs}   → loss = {loss_bad:.4f}")
-print("\n💡 Key Insight: Lower loss = better prediction on the true class!")
-
-
-# =============================================================================
-# 4부: PyTorch의 CrossEntropyLoss (올바른 방법)
-# =============================================================================
-print("\n" + "=" * 80)
-print("PART 4: PyTorch CrossEntropyLoss")
-print("=" * 80)
-
-"""
-종요로운 개념: PyTorch의 CrossEntropyLoss
---------------------------------------------
-nn.CrossEntropyLoss은 다음을 아우른다.
-  1. 소프트맥스(로짓을 확률로 바꾼다)
-  2. 로그(로그를 취한다)
-  3. 음의 로그 가능도(손실을 계산한다)
-
-INPUT:
-  - 예측: 날것 로짓(척도 맞추지 않은 점수)이지 확률이 아니다
-  - 과녁: 클래스 번호(0, 1, 2, ...)이지 원핫 벡터가 아니다
-
-CrossEntropyLoss 앞에 소프트맥스를 걸지 마라. 안에서 절로 한다!
-"""
-
-# 손실 함수를 만든다
-criterion = nn.CrossEntropyLoss()
-
-print("\nExample 1: Single sample")
-print("-" * 80)
-
-# 참 클래스의 인덱스
-y_true = torch.tensor([0])  # Shape: (1,) - true class is 0
-
-# 예측 (로짓) - 소프트맥스를 적용하지 말 것!
-# 모양: (1, 3) - 표본 1개, 클래스 3개
-y_pred_good = torch.tensor([[3.0, 1.0, 0.5]])   # High score on class 0
-y_pred_bad = torch.tensor([[0.5, 3.0, 2.0]])    # High score on class 1
-
-loss_good = criterion(y_pred_good, y_true)
-loss_bad = criterion(y_pred_bad, y_true)
-
-print(f"True class: {y_true.item()}")
-print(f"\nGood logits: {y_pred_good}")
-print(f"  Loss: {loss_good.item():.4f}")
-print(f"\nBad logits: {y_pred_bad}")
-print(f"  Loss: {loss_bad.item():.4f}")
-
-# 예측된 클래스를 보려면 argmax를 쓴다
-pred_class_good = torch.argmax(y_pred_good, dim=1)
-pred_class_bad = torch.argmax(y_pred_bad, dim=1)
-print(f"\nPredicted class (good): {pred_class_good.item()} ✓")
-print(f"Predicted class (bad):  {pred_class_bad.item()} ✗")
+    print("💡 Key Insight: Larger differences in logits lead to more confident predictions!")
 
 
-print("\n\nExample 2: Batch of samples")
-print("-" * 80)
+    # =============================================================================
+    # 2부: PyTorch에서의 소프트맥스
+    # =============================================================================
+    print("\n" + "=" * 80)
+    print("PART 2: Softmax in PyTorch")
+    print("=" * 80)
 
-# 표본 4개, 각 클래스 3개의 배치
-y_true_batch = torch.tensor([2, 0, 1, 2])  # Shape: (4,)
+    # PyTorch 텐서로 바꾼다
+    logits_torch = torch.tensor([2.0, 1.0, 0.1])
+    print(f"\nInput (PyTorch tensor): {logits_torch}")
 
-# 표본 4개의 로짓
-y_pred_batch = torch.tensor([
-    [0.5, 1.0, 3.0],   # Sample 0: should predict class 2 ✓
-    [2.5, 0.5, 0.3],   # Sample 1: should predict class 0 ✓
-    [0.2, 2.8, 0.5],   # Sample 2: should predict class 1 ✓
-    [1.5, 2.0, 0.8],   # Sample 3: predicts class 1, true is 2 ✗
-])  # Shape: (4, 3)
+    # 0번 차원을 따라 소프트맥스를 적용한다 (1차원 텐서에서는 유일한 차원)
+    probs_torch = torch.softmax(logits_torch, dim=0)
+    print(f"Output probabilities:   {probs_torch}")
 
-loss_batch = criterion(y_pred_batch, y_true_batch)
-print(f"Batch loss (average): {loss_batch.item():.4f}")
+    # 배치 데이터에 대해 (여러 표본을 한꺼번에)
+    print("\n\nBatched Example (3 samples, 3 classes each):")
+    print("-" * 80)
+    # 모양: (batch_size, num_classes) = (3, 3)
+    batch_logits = torch.tensor([
+        [2.0, 1.0, 0.1],   # Sample 1
+        [0.5, 2.5, 1.0],   # Sample 2
+        [1.5, 1.5, 1.5],   # Sample 3
+    ])
+    print("Logits (3 samples x 3 classes):")
+    print(batch_logits)
 
-# 예측을 얻는다
-pred_classes = torch.argmax(y_pred_batch, dim=1)
-print(f"\nTrue classes:      {y_true_batch.numpy()}")
-print(f"Predicted classes: {pred_classes.numpy()}")
-
-# 정확도를 계산한다
-accuracy = (pred_classes == y_true_batch).float().mean()
-print(f"Accuracy: {accuracy.item():.2%}")
-
-
-# =============================================================================
-# 5부: 전체 파이프라인 시각화
-# =============================================================================
-print("\n" + "=" * 80)
-print("PART 5: Complete Pipeline")
-print("=" * 80)
-
-print("""
-온전한 소프트맥스 회귀 흐름:
-------------------------------------------
-
-1. 모델 출력(로짓)
-   ↓
-   [2.5, 1.0, 0.3]  ← 날것, 척도 맞추지 않은 점수
-   
-2. 소프트맥스(CrossEntropyLoss 안에서)
-   ↓
-   [0.77, 0.17, 0.08]  ← 확률(합이 1이다)
-   
-3. 교차 엔트로피 손실
-   ↓
-   참 클래스와 견준다 → 손실을 계산한다
-   
-4. Backpropagation
-   ↓
-   손실을 줄이도록 모델 가중치를 고친다
-
-익힐 때는
-  - CrossEntropyLoss을 쓴다(안에서 소프트맥스를 다룬다)
-  - 입력: 로짓(날것 점수)
-  - 과녁: 클래스 번호
-
-추론(예측)에서는
-  - 모델에서 로짓을 얻는다
-  - 확률이 필요하면 소프트맥스를 건다(골라 쓴다)
-  - argmax으로 예측 클래스를 얻는다
-""")
+    # dim=1을 따라 소프트맥스를 적용한다 (표본마다 클래스에 걸쳐)
+    batch_probs = torch.softmax(batch_logits, dim=1)
+    print("\nProbabilities (after softmax):")
+    print(batch_probs)
+    print(f"\nSum for each sample: {batch_probs.sum(dim=1)}")
+    print("  (Each row sums to 1.0)")
 
 
-# =============================================================================
-# 6부: 흔한 실수와 모범 사례
-# =============================================================================
-print("\n" + "=" * 80)
-print("PART 6: Common Mistakes and Best Practices")
-print("=" * 80)
+    # =============================================================================
+    # 3부: 교차 엔트로피 손실 이해하기
+    # =============================================================================
+    print("\n" + "=" * 80)
+    print("PART 3: Cross-Entropy Loss")
+    print("=" * 80)
 
-print("""
-❌ 잘못 1: CrossEntropyLoss 앞에 소프트맥스를 거는 것
---------------------------------------------------
-# 틀린 방법:
-probs = torch.softmax(logits, dim=1)
-loss = criterion(probs, targets)  # 소프트맥스를 두 번!
+    """
+    교차 엔트로피 손실이란 무엇인가?
+    ----------------------------
+    교차 엔트로피는 예측한 확률 분포가 참 분포와 얼마나 다른지 잰다.
+    손실이 작을수록 예측이 좋다.
 
-# 옳은 방법:
-loss = criterion(logits, targets)  # CrossEntropyLoss이 소프트맥스를 건다
+    참 클래스가 k인 표본 하나에 대해
+      손실 = -log(p_k)
 
+    여기서 p_k은 참 클래스에 매긴 예측 확률이다.
 
-❌ 잘못 2: 원핫으로 바꾼 과녁을 쓰는 것
---------------------------------------------------
-# 틀린 방법:
-targets = torch.tensor([[1, 0, 0], [0, 1, 0]])  # 원핫으로 매김
+    왜 음의 로그인가?
+    - p_k = 1.0이면(완벽한 예측) 손실 = -log(1.0) = 0
+    - p_k = 0.5이면(아리송함) 손실 = -log(0.5) = 0.69
+    - p_k = 0.1이면(틀림) 손실 = -log(0.1) = 2.30
+    - p_k → 0이면(크게 틀림) 손실 → 끝없이 커진다
+    """
 
-# 옳은 방법:
-targets = torch.tensor([0, 1])  # 클래스 번호
+    def cross_entropy_numpy(true_class, predicted_probs):
+        """
+        표본 하나의 교차 엔트로피 손실을 계산한다.
 
+        Args:
+            true_class (int): 참 클래스의 번호(0, 1, 2, ...)
+            predicted_probs (np.array): 클래스마다의 예측 확률
 
-❌ 잘못 3: 텐서 모양이 틀린 것
---------------------------------------------------
-# 표본 10개, 클래스 5개의 배치에 대해:
-로짓의 모양은 이래야 한다:  (10, 5)
-과녁의 모양은 이래야 한다: (10,)이며 (10, 1)이나 (10, 5)가 아니다
+        Returns:
+            float: 교차 엔트로피 손실 값
+        """
+        # log(0)을 피하려고 작은 엡실론을 더한다
+        eps = 1e-15
+        predicted_probs = np.clip(predicted_probs, eps, 1 - eps)
 
-
-✅ 좋은 버릇:
---------------------------------------------------
-1. 모델은 로짓을 돌려준다(forward()에 소프트맥스를 두지 않는다)
-2. 학습에는 CrossEntropyLoss을 쓴다
-3. 확률이 필요하면 추론에서만 소프트맥스를 건다
-4. 과녁으로 원핫 벡터가 아니라 클래스 번호를 쓴다
-5. 텐서 모양을 살핀다: 로짓 (N, C), 과녁 (N,)
-""")
-
-
-# =============================================================================
-# 7부: 연습 문제
-# =============================================================================
-print("\n" + "=" * 80)
-print("PART 7: Quick Practice")
-print("=" * 80)
-
-print("""
-결과를 미리 짚어 보아라.
----------------------------
-Given:
-  - 참 클래스: 1
-  - Logits: [1.0, 5.0, 2.0]
-
-Questions:
-1. 모델은 어느 클래스를 예측하겠는가?(실마리: argmax)
-2. 손실은 클까 작을까?(실마리: 예측이 맞는가?)
-
-살펴보자.
-""")
-
-true_class_exercise = torch.tensor([1])
-logits_exercise = torch.tensor([[1.0, 5.0, 2.0]])
-
-predicted_class = torch.argmax(logits_exercise, dim=1)
-loss_exercise = criterion(logits_exercise, true_class_exercise)
-
-print(f"True class: {true_class_exercise.item()}")
-print(f"Predicted class: {predicted_class.item()}")
-print(f"Loss: {loss_exercise.item():.4f}")
-print(f"Correct prediction? {predicted_class.item() == true_class_exercise.item()}")
+        # 손실은 참 클래스의 음의 로그 확률이다
+        loss = -np.log(predicted_probs[true_class])
+        return loss
 
 
-# =============================================================================
-# 요약
-# =============================================================================
-print("\n" + "=" * 80)
-print("SUMMARY - What You Learned")
-print("=" * 80)
+    print("\nExample: Comparing good vs bad predictions")
+    print("-" * 80)
 
-print("""
-✅ 소프트맥스가 로짓을 확률로 바꾼다
-✅ 교차 엔트로피가 예측의 좋음을 잰다
-✅ 손실이 작을수록 예측이 좋다
-✅ PyTorch의 CrossEntropyLoss:
-   - 입력으로 로짓을 받는다(확률이 아니다)
-   - 과녁으로 클래스 번호를 받는다(원핫이 아니다)
-   - 안에서 소프트맥스 + 로그 + NLL을 아우른다
+    # 참 클래스는 0이다 (첫 번째 클래스)
+    true_class = 0
 
-다음 걸음:
------------
-→ 2단계: 분류를 위한 단순한 신경망 짓기
-→ 3단계: 참 데이터셋으로 익히기(MNIST)
-→ 4단계: 앞선 기법와 다듬기
+    # 좋은 예측 (정답 클래스의 확률이 높다)
+    good_probs = np.array([0.8, 0.15, 0.05])
+    loss_good = cross_entropy_numpy(true_class, good_probs)
 
-🎉 잘했다! 기초를 익혔다!
-""")
+    # 중간 정도의 예측 (정답 클래스의 확률이 보통이다)
+    medium_probs = np.array([0.5, 0.3, 0.2])
+    loss_medium = cross_entropy_numpy(true_class, medium_probs)
+
+    # 나쁜 예측 (정답 클래스의 확률이 낮다)
+    bad_probs = np.array([0.1, 0.6, 0.3])
+    loss_bad = cross_entropy_numpy(true_class, bad_probs)
+
+    print(f"True class: {true_class}")
+    print(f"\nGood prediction:   probs = {good_probs}   → loss = {loss_good:.4f}")
+    print(f"Medium prediction: probs = {medium_probs} → loss = {loss_medium:.4f}")
+    print(f"Bad prediction:    probs = {bad_probs}   → loss = {loss_bad:.4f}")
+    print("\n💡 Key Insight: Lower loss = better prediction on the true class!")
 
 
-if __name__ == "__main__":
-    pass
-```
+    # =============================================================================
+    # 4부: PyTorch의 CrossEntropyLoss (올바른 방법)
+    # =============================================================================
+    print("\n" + "=" * 80)
+    print("PART 4: PyTorch CrossEntropyLoss")
+    print("=" * 80)
+
+    """
+    종요로운 개념: PyTorch의 CrossEntropyLoss
+    --------------------------------------------
+    nn.CrossEntropyLoss은 다음을 아우른다.
+      1. 소프트맥스(로짓을 확률로 바꾼다)
+      2. 로그(로그를 취한다)
+      3. 음의 로그 가능도(손실을 계산한다)
+
+    INPUT:
+      - 예측: 날것 로짓(척도 맞추지 않은 점수)이지 확률이 아니다
+      - 과녁: 클래스 번호(0, 1, 2, ...)이지 원핫 벡터가 아니다
+
+    CrossEntropyLoss 앞에 소프트맥스를 걸지 마라. 안에서 절로 한다!
+    """
+
+    # 손실 함수를 만든다
+    criterion = nn.CrossEntropyLoss()
+
+    print("\nExample 1: Single sample")
+    print("-" * 80)
+
+    # 참 클래스의 인덱스
+    y_true = torch.tensor([0])  # Shape: (1,) - true class is 0
+
+    # 예측 (로짓) - 소프트맥스를 적용하지 말 것!
+    # 모양: (1, 3) - 표본 1개, 클래스 3개
+    y_pred_good = torch.tensor([[3.0, 1.0, 0.5]])   # High score on class 0
+    y_pred_bad = torch.tensor([[0.5, 3.0, 2.0]])    # High score on class 1
+
+    loss_good = criterion(y_pred_good, y_true)
+    loss_bad = criterion(y_pred_bad, y_true)
+
+    print(f"True class: {y_true.item()}")
+    print(f"\nGood logits: {y_pred_good}")
+    print(f"  Loss: {loss_good.item():.4f}")
+    print(f"\nBad logits: {y_pred_bad}")
+    print(f"  Loss: {loss_bad.item():.4f}")
+
+    # 예측된 클래스를 보려면 argmax를 쓴다
+    pred_class_good = torch.argmax(y_pred_good, dim=1)
+    pred_class_bad = torch.argmax(y_pred_bad, dim=1)
+    print(f"\nPredicted class (good): {pred_class_good.item()} ✓")
+    print(f"Predicted class (bad):  {pred_class_bad.item()} ✗")
+
+
+    print("\n\nExample 2: Batch of samples")
+    print("-" * 80)
+
+    # 표본 4개, 각 클래스 3개의 배치
+    y_true_batch = torch.tensor([2, 0, 1, 2])  # Shape: (4,)
+
+    # 표본 4개의 로짓
+    y_pred_batch = torch.tensor([
+        [0.5, 1.0, 3.0],   # Sample 0: should predict class 2 ✓
+        [2.5, 0.5, 0.3],   # Sample 1: should predict class 0 ✓
+        [0.2, 2.8, 0.5],   # Sample 2: should predict class 1 ✓
+        [1.5, 2.0, 0.8],   # Sample 3: predicts class 1, true is 2 ✗
+    ])  # Shape: (4, 3)
+
+    loss_batch = criterion(y_pred_batch, y_true_batch)
+    print(f"Batch loss (average): {loss_batch.item():.4f}")
+
+    # 예측을 얻는다
+    pred_classes = torch.argmax(y_pred_batch, dim=1)
+    print(f"\nTrue classes:      {y_true_batch.numpy()}")
+    print(f"Predicted classes: {pred_classes.numpy()}")
+
+    # 정확도를 계산한다
+    accuracy = (pred_classes == y_true_batch).float().mean()
+    print(f"Accuracy: {accuracy.item():.2%}")
+
+
+    # =============================================================================
+    # 5부: 전체 파이프라인 시각화
+    # =============================================================================
+    print("\n" + "=" * 80)
+    print("PART 5: Complete Pipeline")
+    print("=" * 80)
+
+    print("""
+    온전한 소프트맥스 회귀 흐름:
+    ------------------------------------------
+
+    1. 모델 출력(로짓)
+       ↓
+       [2.5, 1.0, 0.3]  ← 날것, 척도 맞추지 않은 점수
+
+    2. 소프트맥스(CrossEntropyLoss 안에서)
+       ↓
+       [0.77, 0.17, 0.08]  ← 확률(합이 1이다)
+
+    3. 교차 엔트로피 손실
+       ↓
+       참 클래스와 견준다 → 손실을 계산한다
+
+    4. Backpropagation
+       ↓
+       손실을 줄이도록 모델 가중치를 고친다
+
+    익힐 때는
+      - CrossEntropyLoss을 쓴다(안에서 소프트맥스를 다룬다)
+      - 입력: 로짓(날것 점수)
+      - 과녁: 클래스 번호
+
+    추론(예측)에서는
+      - 모델에서 로짓을 얻는다
+      - 확률이 필요하면 소프트맥스를 건다(골라 쓴다)
+      - argmax으로 예측 클래스를 얻는다
+    """)
+
+
+    # =============================================================================
+    # 6부: 흔한 실수와 모범 사례
+    # =============================================================================
+    print("\n" + "=" * 80)
+    print("PART 6: Common Mistakes and Best Practices")
+    print("=" * 80)
+
+    print("""
+    ❌ 잘못 1: CrossEntropyLoss 앞에 소프트맥스를 거는 것
+    --------------------------------------------------
+    # 틀린 방법:
+    probs = torch.softmax(logits, dim=1)
+    loss = criterion(probs, targets)  # 소프트맥스를 두 번!
+
+    # 옳은 방법:
+    loss = criterion(logits, targets)  # CrossEntropyLoss이 소프트맥스를 건다
+
+
+    ❌ 잘못 2: 원핫으로 바꾼 과녁을 쓰는 것
+    --------------------------------------------------
+    # 틀린 방법:
+    targets = torch.tensor([[1, 0, 0], [0, 1, 0]])  # 원핫으로 매김
+
+    # 옳은 방법:
+    targets = torch.tensor([0, 1])  # 클래스 번호
+
+
+    ❌ 잘못 3: 텐서 모양이 틀린 것
+    --------------------------------------------------
+    # 표본 10개, 클래스 5개의 배치에 대해:
+    로짓의 모양은 이래야 한다:  (10, 5)
+    과녁의 모양은 이래야 한다: (10,)이며 (10, 1)이나 (10, 5)가 아니다
+
+
+    ✅ 좋은 버릇:
+    --------------------------------------------------
+    1. 모델은 로짓을 돌려준다(forward()에 소프트맥스를 두지 않는다)
+    2. 학습에는 CrossEntropyLoss을 쓴다
+    3. 확률이 필요하면 추론에서만 소프트맥스를 건다
+    4. 과녁으로 원핫 벡터가 아니라 클래스 번호를 쓴다
+    5. 텐서 모양을 살핀다: 로짓 (N, C), 과녁 (N,)
+    """)
+
+
+    # =============================================================================
+    # 7부: 연습 문제
+    # =============================================================================
+    print("\n" + "=" * 80)
+    print("PART 7: Quick Practice")
+    print("=" * 80)
+
+    print("""
+    결과를 미리 짚어 보아라.
+    ---------------------------
+    Given:
+      - 참 클래스: 1
+      - Logits: [1.0, 5.0, 2.0]
+
+    Questions:
+    1. 모델은 어느 클래스를 예측하겠는가?(실마리: argmax)
+    2. 손실은 클까 작을까?(실마리: 예측이 맞는가?)
+
+    살펴보자.
+    """)
+
+    true_class_exercise = torch.tensor([1])
+    logits_exercise = torch.tensor([[1.0, 5.0, 2.0]])
+
+    predicted_class = torch.argmax(logits_exercise, dim=1)
+    loss_exercise = criterion(logits_exercise, true_class_exercise)
+
+    print(f"True class: {true_class_exercise.item()}")
+    print(f"Predicted class: {predicted_class.item()}")
+    print(f"Loss: {loss_exercise.item():.4f}")
+    print(f"Correct prediction? {predicted_class.item() == true_class_exercise.item()}")
+
+
+    # =============================================================================
+    # 요약
+    # =============================================================================
+    print("\n" + "=" * 80)
+    print("SUMMARY - What You Learned")
+    print("=" * 80)
+
+    print("""
+    ✅ 소프트맥스가 로짓을 확률로 바꾼다
+    ✅ 교차 엔트로피가 예측의 좋음을 잰다
+    ✅ 손실이 작을수록 예측이 좋다
+    ✅ PyTorch의 CrossEntropyLoss:
+       - 입력으로 로짓을 받는다(확률이 아니다)
+       - 과녁으로 클래스 번호를 받는다(원핫이 아니다)
+       - 안에서 소프트맥스 + 로그 + NLL을 아우른다
+
+    다음 걸음:
+    -----------
+    → 2단계: 분류를 위한 단순한 신경망 짓기
+    → 3단계: 참 데이터셋으로 익히기(MNIST)
+    → 4단계: 앞선 기법와 다듬기
+
+    🎉 잘했다! 기초를 익혔다!
+    """)
+
+
+    if __name__ == "__main__":
+        pass
+    ```
+
 
 ??? note "전체 출력 (209줄)"
 
@@ -707,57 +710,60 @@ if __name__ == "__main__":
 
 두 자료의 모양이 같으므로 $D = 784$, $K = 10$으로 매개변수 수가 7850개로 똑같다. 따라서 결과의 차이는 **자료의 어려움에서만** 온다.
 
-```python
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+??? note "코드 2 (49줄)"
+
+    ```python
+    import torch
+    import torch.nn as nn
+    from torch.utils.data import DataLoader
+    from torchvision import datasets, transforms
 
 
-def run(name, dataset_cls, mean, std, epochs=10):
-    """소프트맥스 회귀 하나를 주어진 자료에 학습시키고 시험 정확도를 돌려준다."""
-    torch.manual_seed(42)
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((mean,), (std,)),
-    ])
-    train_set = dataset_cls('./data', train=True, download=True, transform=transform)
-    test_set = dataset_cls('./data', train=False, download=True, transform=transform)
-    train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
-    test_loader = DataLoader(test_set, batch_size=1000, shuffle=False)
+    def run(name, dataset_cls, mean, std, epochs=10):
+        """소프트맥스 회귀 하나를 주어진 자료에 학습시키고 시험 정확도를 돌려준다."""
+        torch.manual_seed(42)
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((mean,), (std,)),
+        ])
+        train_set = dataset_cls('./data', train=True, download=True, transform=transform)
+        test_set = dataset_cls('./data', train=False, download=True, transform=transform)
+        train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
+        test_loader = DataLoader(test_set, batch_size=1000, shuffle=False)
 
-    # 은닉층 없는 아핀 변환 하나. D=784, K=10 이므로 10*(784+1)=7850개.
-    model = nn.Sequential(nn.Flatten(), nn.Linear(28 * 28, 10))
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+        # 은닉층 없는 아핀 변환 하나. D=784, K=10 이므로 10*(784+1)=7850개.
+        model = nn.Sequential(nn.Flatten(), nn.Linear(28 * 28, 10))
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-    for _ in range(epochs):
-        model.train()
-        for images, labels in train_loader:
-            optimizer.zero_grad()
-            criterion(model(images), labels).backward()
-            optimizer.step()
+        for _ in range(epochs):
+            model.train()
+            for images, labels in train_loader:
+                optimizer.zero_grad()
+                criterion(model(images), labels).backward()
+                optimizer.step()
 
-    model.eval()
-    correct = total = 0
-    with torch.no_grad():
-        for images, labels in test_loader:
-            correct += (model(images).argmax(1) == labels).sum().item()
-            total += labels.size(0)
-    n_params = sum(p.numel() for p in model.parameters())
-    return 100 * correct / total, n_params
+        model.eval()
+        correct = total = 0
+        with torch.no_grad():
+            for images, labels in test_loader:
+                correct += (model(images).argmax(1) == labels).sum().item()
+                total += labels.size(0)
+        n_params = sum(p.numel() for p in model.parameters())
+        return 100 * correct / total, n_params
 
 
-# 두 자료 각각의 화소 평균과 표준편차로 고르게 한다
-acc_mnist, n1 = run("MNIST", datasets.MNIST, 0.1307, 0.3081)
-acc_fashion, n2 = run("Fashion-MNIST", datasets.FashionMNIST, 0.2860, 0.3530)
+    # 두 자료 각각의 화소 평균과 표준편차로 고르게 한다
+    acc_mnist, n1 = run("MNIST", datasets.MNIST, 0.1307, 0.3081)
+    acc_fashion, n2 = run("Fashion-MNIST", datasets.FashionMNIST, 0.2860, 0.3530)
 
-print(f"{'자료':<16} {'매개변수':>10} {'시험 정확도':>12}")
-print("-" * 42)
-print(f"{'MNIST':<16} {n1:>10,} {acc_mnist:>11.2f}%")
-print(f"{'Fashion-MNIST':<16} {n2:>10,} {acc_fashion:>11.2f}%")
-print(f"\n같은 모델, 같은 매개변수 수인데 {acc_mnist - acc_fashion:.2f}%포인트 차이가 난다.")
-```
+    print(f"{'자료':<16} {'매개변수':>10} {'시험 정확도':>12}")
+    print("-" * 42)
+    print(f"{'MNIST':<16} {n1:>10,} {acc_mnist:>11.2f}%")
+    print(f"{'Fashion-MNIST':<16} {n2:>10,} {acc_fashion:>11.2f}%")
+    print(f"\n같은 모델, 같은 매개변수 수인데 {acc_mnist - acc_fashion:.2f}%포인트 차이가 난다.")
+    ```
+
 
 **출력:**
 

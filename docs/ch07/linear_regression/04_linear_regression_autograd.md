@@ -4,368 +4,371 @@ PyTorch의 autograd 체계는 경사 공식을 손으로 유도하고 코딩할 
 
 ## 1. 코드
 
-```python
-"""
-==============================================================================
-04_linear_regression_autograd.py
-==============================================================================
-어려움: ⭐⭐ (가운데)
+??? note "코드 (360줄)"
 
-DESCRIPTION:
-    PyTorch의 자동 미분(autograd)을 쓰는 선형 회귀.
-    이제 직접 기울기를 셈하지 않는다! 미적분은 PyTorch에 맡긴다.
+    ```python
+    """
+    ==============================================================================
+    04_linear_regression_autograd.py
+    ==============================================================================
+    어려움: ⭐⭐ (가운데)
 
-다루는 것:
-    - 자동 미분을 위한 requires_grad=True 쓰기
-    - 기울기 셈을 위한 .backward()
-    - 기울기 쌓기와 0으로 만들기
-    - torch.no_grad() 자리
+    DESCRIPTION:
+        PyTorch의 자동 미분(autograd)을 쓰는 선형 회귀.
+        이제 직접 기울기를 셈하지 않는다! 미적분은 PyTorch에 맡긴다.
 
-PREREQUISITES:
-    - 튜토리얼 01(autograd를 곁들인 PyTorch 기초)
-    - 튜토리얼 03(직접 하는 PyTorch 기울기)
+    다루는 것:
+        - 자동 미분을 위한 requires_grad=True 쓰기
+        - 기울기 셈을 위한 .backward()
+        - 기울기 쌓기와 0으로 만들기
+        - torch.no_grad() 자리
 
-학습 목표:
-    - 기울기 셈에 autograd를 쓴다
-    - 언제 기울기를 0으로 만들지 이해한다
-    - 잘 들도록 no_grad() 자리를 쓴다
-    - 직접 계산하는 코드와 견준다
+    PREREQUISITES:
+        - 튜토리얼 01(autograd를 곁들인 PyTorch 기초)
+        - 튜토리얼 03(직접 하는 PyTorch 기울기)
 
-걸리는 때: 15분쯤
-==============================================================================
-"""
+    학습 목표:
+        - 기울기 셈에 autograd를 쓴다
+        - 언제 기울기를 0으로 만들지 이해한다
+        - 잘 들도록 no_grad() 자리를 쓴다
+        - 직접 계산하는 코드와 견준다
 
-import torch
-import matplotlib.pyplot as plt
+    걸리는 때: 15분쯤
+    ==============================================================================
+    """
 
-print("=" * 70)
-print("LINEAR REGRESSION WITH AUTOGRAD")
-print("=" * 70)
+    import torch
+    import matplotlib.pyplot as plt
 
-# ============================================================================
-# 1부: 데이터 생성
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 1: GENERATE DATA")
-print("=" * 70)
+    print("=" * 70)
+    print("LINEAR REGRESSION WITH AUTOGRAD")
+    print("=" * 70)
 
-torch.manual_seed(42)
+    # ============================================================================
+    # 1부: 데이터 생성
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 1: GENERATE DATA")
+    print("=" * 70)
 
-TRUE_W = 2.0
-TRUE_B = 1.0
-n_samples = 100
+    torch.manual_seed(42)
 
-# 데이터를 생성한다
-X = torch.rand(n_samples) * 20 - 10  # Random values between -10 and 10
-noise = torch.randn(n_samples) * 2    # Gaussian noise
-y = TRUE_W * X + TRUE_B + noise
+    TRUE_W = 2.0
+    TRUE_B = 1.0
+    n_samples = 100
 
-print(f"Generated {n_samples} samples")
-print(f"True parameters: w={TRUE_W}, b={TRUE_B}")
+    # 데이터를 생성한다
+    X = torch.rand(n_samples) * 20 - 10  # Random values between -10 and 10
+    noise = torch.randn(n_samples) * 2    # Gaussian noise
+    y = TRUE_W * X + TRUE_B + noise
 
-# ============================================================================
-# 2부: requires_grad=True로 매개변수 초기화
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 2: INITIALIZE PARAMETERS WITH AUTOGRAD")
-print("=" * 70)
+    print(f"Generated {n_samples} samples")
+    print(f"True parameters: w={TRUE_W}, b={TRUE_B}")
 
-# 핵심 차이: requires_grad=True로 설정한다
-# 이는 PyTorch에게 이 텐서들에 대한 연산을 추적하여
-# 경사를 자동으로 계산하라고 알려 준다
-w = torch.tensor([0.0], requires_grad=True)  # ← requires_grad=True!
-b = torch.tensor([0.0], requires_grad=True)  # ← requires_grad=True!
+    # ============================================================================
+    # 2부: requires_grad=True로 매개변수 초기화
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 2: INITIALIZE PARAMETERS WITH AUTOGRAD")
+    print("=" * 70)
 
-print(f"Parameters initialized:")
-print(f"  w: {w.item():.4f}, requires_grad={w.requires_grad}")
-print(f"  b: {b.item():.4f}, requires_grad={b.requires_grad}")
+    # 핵심 차이: requires_grad=True로 설정한다
+    # 이는 PyTorch에게 이 텐서들에 대한 연산을 추적하여
+    # 경사를 자동으로 계산하라고 알려 준다
+    w = torch.tensor([0.0], requires_grad=True)  # ← requires_grad=True!
+    b = torch.tensor([0.0], requires_grad=True)  # ← requires_grad=True!
 
-# ============================================================================
-# 3부: 모델과 손실 정의
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 3: DEFINE MODEL AND LOSS")
-print("=" * 70)
+    print(f"Parameters initialized:")
+    print(f"  w: {w.item():.4f}, requires_grad={w.requires_grad}")
+    print(f"  b: {b.item():.4f}, requires_grad={b.requires_grad}")
 
-def model(X, w, b):
-    """선형 모델: y = w*X + b"""
-    return w * X + b
+    # ============================================================================
+    # 3부: 모델과 손실 정의
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 3: DEFINE MODEL AND LOSS")
+    print("=" * 70)
 
-def mse_loss(y_true, y_pred):
-    """평균제곱오차 손실"""
-    return torch.mean((y_true - y_pred) ** 2)
+    def model(X, w, b):
+        """선형 모델: y = w*X + b"""
+        return w * X + b
 
-print("Model and loss functions defined")
-print("Note: Same as before, but now PyTorch tracks operations")
+    def mse_loss(y_true, y_pred):
+        """평균제곱오차 손실"""
+        return torch.mean((y_true - y_pred) ** 2)
 
-# ============================================================================
-# 4부: AUTOGRAD를 쓰는 학습 루프
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 4: TRAINING LOOP WITH AUTOGRAD")
-print("=" * 70)
+    print("Model and loss functions defined")
+    print("Note: Same as before, but now PyTorch tracks operations")
 
-learning_rate = 0.01
-n_epochs = 100
+    # ============================================================================
+    # 4부: AUTOGRAD를 쓰는 학습 루프
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 4: TRAINING LOOP WITH AUTOGRAD")
+    print("=" * 70)
 
-loss_history = []
-w_history = [w.item()]
-b_history = [b.item()]
+    learning_rate = 0.01
+    n_epochs = 100
 
-print(f"Training Configuration:")
-print(f"  Learning rate: {learning_rate}")
-print(f"  Epochs: {n_epochs}")
-print(f"\n{'Epoch':<8} {'Loss':<12} {'w':<12} {'b':<12} {'grad_w':<12} {'grad_b':<12}")
-print("-" * 75)
+    loss_history = []
+    w_history = [w.item()]
+    b_history = [b.item()]
 
-for epoch in range(n_epochs):
-    # 1. 순전파: 예측과 손실을 계산한다
-    #    PyTorch가 계산 그래프를 자동으로 만든다
-    y_pred = model(X, w, b)
-    loss = mse_loss(y, y_pred)
-    
-    # 2. 역전파: 경사를 자동으로 계산한다!
-    #    여기서 마법이 일어난다 - 경사 공식을 손으로 쓸 필요가 없다!
-    loss.backward()  # Computes gradients via backpropagation
-    
-    # 이제 w.grad와 b.grad에 경사가 들어 있다
-    # (앞에서 직접 계산했던 것과 같은 값이다!)
-    
-    # 3. 매개변수를 갱신한다
-    #    torch.no_grad()를 쓰는 이유는 매개변수 갱신 연산을
-    #    계산 그래프에 기록하고 싶지 않기 때문이다
+    print(f"Training Configuration:")
+    print(f"  Learning rate: {learning_rate}")
+    print(f"  Epochs: {n_epochs}")
+    print(f"\n{'Epoch':<8} {'Loss':<12} {'w':<12} {'b':<12} {'grad_w':<12} {'grad_b':<12}")
+    print("-" * 75)
+
+    for epoch in range(n_epochs):
+        # 1. 순전파: 예측과 손실을 계산한다
+        #    PyTorch가 계산 그래프를 자동으로 만든다
+        y_pred = model(X, w, b)
+        loss = mse_loss(y, y_pred)
+
+        # 2. 역전파: 경사를 자동으로 계산한다!
+        #    여기서 마법이 일어난다 - 경사 공식을 손으로 쓸 필요가 없다!
+        loss.backward()  # Computes gradients via backpropagation
+
+        # 이제 w.grad와 b.grad에 경사가 들어 있다
+        # (앞에서 직접 계산했던 것과 같은 값이다!)
+
+        # 3. 매개변수를 갱신한다
+        #    torch.no_grad()를 쓰는 이유는 매개변수 갱신 연산을
+        #    계산 그래프에 기록하고 싶지 않기 때문이다
+        with torch.no_grad():
+            w -= learning_rate * w.grad
+            b -= learning_rate * b.grad
+
+        # 이력 저장
+        loss_history.append(loss.item())
+        w_history.append(w.item())
+        b_history.append(b.item())
+
+        # 4. 다음 반복을 위해 경사를 0으로 만든다
+        #    매우 중요: 경사는 기본적으로 누적된다!
+        #    다음 역전파 전에 반드시 0으로 만들어야 한다
+        w.grad.zero_()
+        b.grad.zero_()
+
+        # 진행 상황 출력
+        if (epoch + 1) % 10 == 0 or epoch == 0:
+            print(f"{epoch+1:<8} {loss.item():<12.4f} {w.item():<12.4f} "
+                  f"{b.item():<12.4f} {w.grad.item():<12.4f} {b.grad.item():<12.4f}")
+
+    print("\n" + "=" * 70)
+    print("TRAINING COMPLETED")
+    print("=" * 70)
+    print(f"\nFinal Results:")
+    print(f"  Learned w: {w.item():.4f} (True: {TRUE_W}, Error: {abs(w.item()-TRUE_W):.4f})")
+    print(f"  Learned b: {b.item():.4f} (True: {TRUE_B}, Error: {abs(b.item()-TRUE_B):.4f})")
+    print(f"  Final loss: {loss_history[-1]:.4f}")
+
+    # ============================================================================
+    # 5부: 경사 누적 이해하기
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 5: UNDERSTANDING GRADIENT ACCUMULATION")
+    print("=" * 70)
+
+    print("""
+    기울기를 0으로 만들어야 하는 까닭은?
+
+    PyTorch는 기본으로 기울기를 쌓는다. 큰 배치를 흉내내는 기울기 쌓기 같은
+    앞선 자리에서는 쓸모 있지만,
+    여느 학습에서는 루프마다 새 기울기를 바란다.
+
+    0으로 만들지 않으면 어떻게 되는지 보기:
+    """)
+
+    # 시연
+    x_demo = torch.tensor([2.0], requires_grad=True)
+
+    # 첫 번째 역전파
+    y_demo = x_demo ** 2
+    y_demo.backward()
+    print(f"After first backward: x_demo.grad = {x_demo.grad.item()}")  # Should be 4
+
+    # 경사를 초기화하지 않은 두 번째 역전파
+    y_demo = x_demo ** 2
+    y_demo.backward()
+    print(f"After second backward (accumulated): x_demo.grad = {x_demo.grad.item()}")  # 4 + 4 = 8
+
+    # 이제 0으로 만들고 다시 해 보자
+    x_demo.grad.zero_()
+    y_demo = x_demo ** 2
+    y_demo.backward()
+    print(f"After zeroing and third backward: x_demo.grad = {x_demo.grad.item()}")  # Back to 4
+
+    print("\nThis is why we call w.grad.zero_() in the training loop!")
+
+    # ============================================================================
+    # 6부: torch.no_grad() 문맥 사용하기
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 6: UNDERSTANDING torch.no_grad()")
+    print("=" * 70)
+
+    print("""
+    torch.no_grad()은 기울기 좇기를 잠깐 끈다.
+    다음 때에 쓴다.
+    1. 예측할 때(추론)
+    2. 매개변수를 고칠 때(학습 루프에서 한 것처럼)
+    3. 기울기가 필요 없는 어떤 셈에서든
+
+    Benefits:
+    - 기억 자리를 아낀다(셈 그래프를 만들지 않는다)
+    - 셈이 더 빠르다
+    - 뜻하지 않은 기울기 셈을 막는다
+
+    Example:
+    """)
+
+    x_demo2 = torch.tensor([1.0], requires_grad=True)
+
+    # 경사 추적을 켠 경우
+    y_grad = x_demo2 ** 2
+    print(f"With gradients: y_grad.requires_grad = {y_grad.requires_grad}")
+
+    # 경사 추적을 끈 경우
     with torch.no_grad():
-        w -= learning_rate * w.grad
-        b -= learning_rate * b.grad
-    
-    # 이력 저장
-    loss_history.append(loss.item())
-    w_history.append(w.item())
-    b_history.append(b.item())
-    
-    # 4. 다음 반복을 위해 경사를 0으로 만든다
-    #    매우 중요: 경사는 기본적으로 누적된다!
-    #    다음 역전파 전에 반드시 0으로 만들어야 한다
-    w.grad.zero_()
-    b.grad.zero_()
-    
-    # 진행 상황 출력
-    if (epoch + 1) % 10 == 0 or epoch == 0:
-        print(f"{epoch+1:<8} {loss.item():<12.4f} {w.item():<12.4f} "
-              f"{b.item():<12.4f} {w.grad.item():<12.4f} {b.grad.item():<12.4f}")
+        y_no_grad = x_demo2 ** 2
+        print(f"Inside no_grad: y_no_grad.requires_grad = {y_no_grad.requires_grad}")
 
-print("\n" + "=" * 70)
-print("TRAINING COMPLETED")
-print("=" * 70)
-print(f"\nFinal Results:")
-print(f"  Learned w: {w.item():.4f} (True: {TRUE_W}, Error: {abs(w.item()-TRUE_W):.4f})")
-print(f"  Learned b: {b.item():.4f} (True: {TRUE_B}, Error: {abs(b.item()-TRUE_B):.4f})")
-print(f"  Final loss: {loss_history[-1]:.4f}")
+    print("\nThis is essential for efficient inference and parameter updates!")
 
-# ============================================================================
-# 5부: 경사 누적 이해하기
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 5: UNDERSTANDING GRADIENT ACCUMULATION")
-print("=" * 70)
+    # ============================================================================
+    # 7부: 결과 시각화
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 7: VISUALIZE RESULTS")
+    print("=" * 70)
 
-print("""
-기울기를 0으로 만들어야 하는 까닭은?
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-PyTorch는 기본으로 기울기를 쌓는다. 큰 배치를 흉내내는 기울기 쌓기 같은
-앞선 자리에서는 쓸모 있지만,
-여느 학습에서는 루프마다 새 기울기를 바란다.
+    # 그림 1: 손실 곡선
+    axes[0, 0].plot(loss_history, linewidth=2, color='purple')
+    axes[0, 0].set_xlabel('Epoch')
+    axes[0, 0].set_ylabel('Loss (MSE)')
+    axes[0, 0].set_title('Training Loss with Autograd')
+    axes[0, 0].grid(True, alpha=0.3)
+    axes[0, 0].set_yscale('log')
 
-0으로 만들지 않으면 어떻게 되는지 보기:
-""")
+    # 그림 2: 매개변수의 변화
+    axes[0, 1].plot(w_history, label='w (slope)', linewidth=2, color='blue')
+    axes[0, 1].axhline(y=TRUE_W, color='r', linestyle='--', linewidth=2, label=f'True w={TRUE_W}')
+    axes[0, 1].plot(b_history, label='b (intercept)', linewidth=2, color='green')
+    axes[0, 1].axhline(y=TRUE_B, color='orange', linestyle='--', linewidth=2, label=f'True b={TRUE_B}')
+    axes[0, 1].set_xlabel('Epoch')
+    axes[0, 1].set_ylabel('Parameter Value')
+    axes[0, 1].set_title('Parameter Convergence (Autograd)')
+    axes[0, 1].legend()
+    axes[0, 1].grid(True, alpha=0.3)
 
-# 시연
-x_demo = torch.tensor([2.0], requires_grad=True)
+    # 그림 3: 최종 적합
+    with torch.no_grad():  # No gradients needed for visualization
+        X_sorted, _ = torch.sort(X)
+        y_pred_sorted = model(X_sorted, w, b)
 
-# 첫 번째 역전파
-y_demo = x_demo ** 2
-y_demo.backward()
-print(f"After first backward: x_demo.grad = {x_demo.grad.item()}")  # Should be 4
+    axes[1, 0].scatter(X.detach().numpy(), y.detach().numpy(), alpha=0.5, s=20, label='Data')
+    axes[1, 0].plot(X_sorted.detach().numpy(), (TRUE_W * X_sorted + TRUE_B).detach().numpy(), 
+                    'r--', linewidth=2, label=f'True: y={TRUE_W}x+{TRUE_B}')
+    axes[1, 0].plot(X_sorted.detach().numpy(), y_pred_sorted.detach().numpy(), 
+                    'g-', linewidth=2, label=f'Learned: y={w.item():.2f}x+{b.item():.2f}')
+    axes[1, 0].set_xlabel('X')
+    axes[1, 0].set_ylabel('y')
+    axes[1, 0].set_title('Data with Learned Model')
+    axes[1, 0].legend()
+    axes[1, 0].grid(True, alpha=0.3)
 
-# 경사를 초기화하지 않은 두 번째 역전파
-y_demo = x_demo ** 2
-y_demo.backward()
-print(f"After second backward (accumulated): x_demo.grad = {x_demo.grad.item()}")  # 4 + 4 = 8
+    # 그림 4: 비교 표
+    comparison_text = f"""
+    자동 미분과 직접 하는 기울기 견주기
 
-# 이제 0으로 만들고 다시 해 보자
-x_demo.grad.zero_()
-y_demo = x_demo ** 2
-y_demo.backward()
-print(f"After zeroing and third backward: x_demo.grad = {x_demo.grad.item()}")  # Back to 4
+    코드 복잡도:
+      손수:   기울기 식에 5줄 넘게 든다
+      자동 미분: 한 줄이면 된다(loss.backward())
 
-print("\nThis is why we call w.grad.zero_() in the training loop!")
+    Flexibility:
+      손수:   넓히기 어렵다
+      자동 미분: 어떤 함수에도 통한다
 
-# ============================================================================
-# 6부: torch.no_grad() 문맥 사용하기
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 6: UNDERSTANDING torch.no_grad()")
-print("=" * 70)
+    Errors:
+      손수:   실수하기 쉽다
+      자동 미분: 절로 되니 실수가 없다
 
-print("""
-torch.no_grad()은 기울기 좇기를 잠깐 끈다.
-다음 때에 쓴다.
-1. 예측할 때(추론)
-2. 매개변수를 고칠 때(학습 루프에서 한 것처럼)
-3. 기울기가 필요 없는 어떤 셈에서든
+    Performance:
+      손수:   비슷하다
+      자동 미분: 아주 잘 다듬어져 있다
 
-Benefits:
-- 기억 자리를 아낀다(셈 그래프를 만들지 않는다)
-- 셈이 더 빠르다
-- 뜻하지 않은 기울기 셈을 막는다
+    Results:
+      Final w: {w.item():.4f} (Error: {abs(w.item()-TRUE_W):.4f})
+      Final b: {b.item():.4f} (Error: {abs(b.item()-TRUE_B):.4f})
+    """
+    axes[1, 1].text(0.1, 0.95, comparison_text, 
+                    transform=axes[1, 1].transAxes,
+                    fontsize=9, verticalalignment='top',
+                    fontfamily='monospace',
+                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    axes[1, 1].axis('off')
 
-Example:
-""")
+    plt.tight_layout()
+    plt.savefig('04_autograd_results.png', dpi=100)
+    print("Saved visualization to: 04_autograd_results.png")
+    plt.show()
 
-x_demo2 = torch.tensor([1.0], requires_grad=True)
+    print("\n" + "=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+    print("""
+    핵심 학습:
 
-# 경사 추적을 켠 경우
-y_grad = x_demo2 ** 2
-print(f"With gradients: y_grad.requires_grad = {y_grad.requires_grad}")
+    1. 자동 미분 기초:
+       - 매개변수에 requires_grad=True를 둔다
+       - PyTorch가 셈 그래프를 절로 세운다
+       - .backward()을 불러 모든 기울기를 계산한다
 
-# 경사 추적을 끈 경우
-with torch.no_grad():
-    y_no_grad = x_demo2 ** 2
-    print(f"Inside no_grad: y_no_grad.requires_grad = {y_no_grad.requires_grad}")
+    2. 학습 루프의 짜임:
+       for epoch in range(n_epochs):
+           # 순전파
+           y_pred = model(X, w, b)
+           loss = loss_function(y, y_pred)
 
-print("\nThis is essential for efficient inference and parameter updates!")
+           # 역전파
+           loss.backward()  # ← 기울기를 절로 계산한다
 
-# ============================================================================
-# 7부: 결과 시각화
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 7: VISUALIZE RESULTS")
-print("=" * 70)
+           # 매개변수 갱신
+           with torch.no_grad():
+               w -= learning_rate * w.grad
+               b -= learning_rate * b.grad
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+           # 경사 초기화
+           w.grad.zero_()
+           b.grad.zero_()
 
-# 그림 1: 손실 곡선
-axes[0, 0].plot(loss_history, linewidth=2, color='purple')
-axes[0, 0].set_xlabel('Epoch')
-axes[0, 0].set_ylabel('Loss (MSE)')
-axes[0, 0].set_title('Training Loss with Autograd')
-axes[0, 0].grid(True, alpha=0.3)
-axes[0, 0].set_yscale('log')
+    3. 종요로운 점:
+       ✓ backward() 앞에는 늘 기울기를 0으로 만들어라
+       ✓ 매개변수를 고칠 때는 torch.no_grad()을 써라
+       ✓ 기울기는 기본으로 쌓인다
+       ✓ 직접 계산한 것과 결과가 같다
 
-# 그림 2: 매개변수의 변화
-axes[0, 1].plot(w_history, label='w (slope)', linewidth=2, color='blue')
-axes[0, 1].axhline(y=TRUE_W, color='r', linestyle='--', linewidth=2, label=f'True w={TRUE_W}')
-axes[0, 1].plot(b_history, label='b (intercept)', linewidth=2, color='green')
-axes[0, 1].axhline(y=TRUE_B, color='orange', linestyle='--', linewidth=2, label=f'True b={TRUE_B}')
-axes[0, 1].set_xlabel('Epoch')
-axes[0, 1].set_ylabel('Parameter Value')
-axes[0, 1].set_title('Parameter Convergence (Autograd)')
-axes[0, 1].legend()
-axes[0, 1].grid(True, alpha=0.3)
+    4. ADVANTAGES:
+       ✓ 직접 쓰는 기울기 식이 없다
+       ✓ 실수가 적다
+       ✓ 미분할 수 있는 어떤 함수에도 통한다
+       ✓ 복잡한 모델에도 잘 늘어난다
 
-# 그림 3: 최종 적합
-with torch.no_grad():  # No gradients needed for visualization
-    X_sorted, _ = torch.sort(X)
-    y_pred_sorted = model(X_sorted, w, b)
-
-axes[1, 0].scatter(X.detach().numpy(), y.detach().numpy(), alpha=0.5, s=20, label='Data')
-axes[1, 0].plot(X_sorted.detach().numpy(), (TRUE_W * X_sorted + TRUE_B).detach().numpy(), 
-                'r--', linewidth=2, label=f'True: y={TRUE_W}x+{TRUE_B}')
-axes[1, 0].plot(X_sorted.detach().numpy(), y_pred_sorted.detach().numpy(), 
-                'g-', linewidth=2, label=f'Learned: y={w.item():.2f}x+{b.item():.2f}')
-axes[1, 0].set_xlabel('X')
-axes[1, 0].set_ylabel('y')
-axes[1, 0].set_title('Data with Learned Model')
-axes[1, 0].legend()
-axes[1, 0].grid(True, alpha=0.3)
-
-# 그림 4: 비교 표
-comparison_text = f"""
-자동 미분과 직접 하는 기울기 견주기
-
-코드 복잡도:
-  손수:   기울기 식에 5줄 넘게 든다
-  자동 미분: 한 줄이면 된다(loss.backward())
-
-Flexibility:
-  손수:   넓히기 어렵다
-  자동 미분: 어떤 함수에도 통한다
-
-Errors:
-  손수:   실수하기 쉽다
-  자동 미분: 절로 되니 실수가 없다
-
-Performance:
-  손수:   비슷하다
-  자동 미분: 아주 잘 다듬어져 있다
-
-Results:
-  Final w: {w.item():.4f} (Error: {abs(w.item()-TRUE_W):.4f})
-  Final b: {b.item():.4f} (Error: {abs(b.item()-TRUE_B):.4f})
-"""
-axes[1, 1].text(0.1, 0.95, comparison_text, 
-                transform=axes[1, 1].transAxes,
-                fontsize=9, verticalalignment='top',
-                fontfamily='monospace',
-                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-axes[1, 1].axis('off')
-
-plt.tight_layout()
-plt.savefig('04_autograd_results.png', dpi=100)
-print("Saved visualization to: 04_autograd_results.png")
-plt.show()
-
-print("\n" + "=" * 70)
-print("SUMMARY")
-print("=" * 70)
-print("""
-핵심 학습:
-
-1. 자동 미분 기초:
-   - 매개변수에 requires_grad=True를 둔다
-   - PyTorch가 셈 그래프를 절로 세운다
-   - .backward()을 불러 모든 기울기를 계산한다
-
-2. 학습 루프의 짜임:
-   for epoch in range(n_epochs):
-       # 순전파
-       y_pred = model(X, w, b)
-       loss = loss_function(y, y_pred)
-       
-       # 역전파
-       loss.backward()  # ← 기울기를 절로 계산한다
-       
-       # 매개변수 갱신
-       with torch.no_grad():
-           w -= learning_rate * w.grad
-           b -= learning_rate * b.grad
-       
-       # 경사 초기화
-       w.grad.zero_()
-       b.grad.zero_()
-
-3. 종요로운 점:
-   ✓ backward() 앞에는 늘 기울기를 0으로 만들어라
-   ✓ 매개변수를 고칠 때는 torch.no_grad()을 써라
-   ✓ 기울기는 기본으로 쌓인다
-   ✓ 직접 계산한 것과 결과가 같다
-
-4. ADVANTAGES:
-   ✓ 직접 쓰는 기울기 식이 없다
-   ✓ 실수가 적다
-   ✓ 미분할 수 있는 어떤 함수에도 통한다
-   ✓ 복잡한 모델에도 잘 늘어난다
-
-다음 걸음:
-- 튜토리얼 05: 코드를 깔끔하게 하는 nn.Module 쓰기
-- 튜토리얼 06: 여러 입력 특징
-- 튜토리얼 07: 다항 회귀
-""")
+    다음 걸음:
+    - 튜토리얼 05: 코드를 깔끔하게 하는 nn.Module 쓰기
+    - 튜토리얼 06: 여러 입력 특징
+    - 튜토리얼 07: 다항 회귀
+    """)
 
 
-if __name__ == "__main__":
-    pass
-```
+    if __name__ == "__main__":
+        pass
+    ```
+
 
 ??? note "전체 출력 (144줄)"
 

@@ -4,379 +4,382 @@
 
 ## 1. 코드
 
-```python
-"""
-==============================================================================
-03_linear_regression_manual_pytorch.py
-==============================================================================
-어려움: ⭐⭐ (첫걸음~가운데)
+??? note "코드 (371줄)"
 
-DESCRIPTION:
-    PyTorch 텐서를 쓰되 기울기는 직접 계산하는 선형 회귀.
-    넘파이와 온전한 PyTorch 사이를 잇는다. 텐서가 어떻게 도는지 보이면서도
-    기울기 셈은 우리가 다스린다.
-
-다루는 것:
-    - 넘파이 코드를 PyTorch 텐서로 옮기기
-    - 텐서로 직접 기울기 계산
-    - 텐서 셈 이해하기
-    - 넘파이와 PyTorch의 길 견주기
-
-PREREQUISITES:
-    - 튜토리얼 01(PyTorch 기초)
-    - 튜토리얼 02(넘파이로 하는 선형 회귀)
-
-학습 목표:
-    - 셈에 PyTorch 텐서를 쓴다
-    - 기울기를 직접 계산한다(아직 autograd는 쓰지 않는다)
-    - 텐서 셈과 넘파이 셈의 다름을 이해한다
-    - autograd가 무엇을 대신해 줄지 헤아린다
-
-걸리는 때: 20분쯤
-==============================================================================
-"""
-
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
-
-print("=" * 70)
-print("LINEAR REGRESSION WITH PYTORCH TENSORS (MANUAL GRADIENTS)")
-print("=" * 70)
-
-# ============================================================================
-# 1부: 합성 데이터 생성
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 1: GENERATE SYNTHETIC DATA")
-print("=" * 70)
-
-# 재현성을 위한 난수 시드 설정
-torch.manual_seed(42)
-np.random.seed(42)
-
-# 참된 매개변수
-TRUE_W = 2.0
-TRUE_B = 1.0
-
-# 먼저 NumPy로 데이터를 생성한다
-n_samples = 100
-X_numpy = np.random.uniform(-10, 10, n_samples)
-noise = np.random.normal(0, 2, n_samples)
-y_numpy = TRUE_W * X_numpy + TRUE_B + noise
-
-# PyTorch 텐서로 변환
-# 대부분의 PyTorch 연산에서 dtype=torch.float32가 표준이다
-X = torch.from_numpy(X_numpy).float()  # Convert to float32 tensor
-y = torch.from_numpy(y_numpy).float()
-
-print(f"Generated {n_samples} data points")
-print(f"True parameters: w={TRUE_W}, b={TRUE_B}")
-print(f"\nData types:")
-print(f"  X: {X.dtype}, shape: {X.shape}")
-print(f"  y: {y.dtype}, shape: {y.shape}")
-print(f"\nFirst 5 samples:")
-print(f"X[:5] = {X[:5]}")
-print(f"y[:5] = {y[:5]}")
-
-# ============================================================================
-# 2부: 모델 정의
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 2: DEFINE THE MODEL")
-print("=" * 70)
-
-def predict(X, w, b):
+    ```python
     """
-    선형 모델: y_pred = w * X + b
-    
-    Args:
-        X: 입력 특징(텐서)
-        w: 가중치 매개변수(텐서)
-        b: 편향 매개변수(텐서)
-    
-    Returns:
-        y_pred: 예측(텐서)
+    ==============================================================================
+    03_linear_regression_manual_pytorch.py
+    ==============================================================================
+    어려움: ⭐⭐ (첫걸음~가운데)
+
+    DESCRIPTION:
+        PyTorch 텐서를 쓰되 기울기는 직접 계산하는 선형 회귀.
+        넘파이와 온전한 PyTorch 사이를 잇는다. 텐서가 어떻게 도는지 보이면서도
+        기울기 셈은 우리가 다스린다.
+
+    다루는 것:
+        - 넘파이 코드를 PyTorch 텐서로 옮기기
+        - 텐서로 직접 기울기 계산
+        - 텐서 셈 이해하기
+        - 넘파이와 PyTorch의 길 견주기
+
+    PREREQUISITES:
+        - 튜토리얼 01(PyTorch 기초)
+        - 튜토리얼 02(넘파이로 하는 선형 회귀)
+
+    학습 목표:
+        - 셈에 PyTorch 텐서를 쓴다
+        - 기울기를 직접 계산한다(아직 autograd는 쓰지 않는다)
+        - 텐서 셈과 넘파이 셈의 다름을 이해한다
+        - autograd가 무엇을 대신해 줄지 헤아린다
+
+    걸리는 때: 20분쯤
+    ==============================================================================
     """
-    return w * X + b
 
-def compute_loss(y_true, y_pred):
-    """
-    평균 제곱 오차(MSE) 손실
-    
-    Args:
-        y_true: 참 값(텐서)
-        y_pred: 예측(텐서)
-    
-    Returns:
-        loss: MSE 값(홑값 텐서)
-    """
-    n = y_true.shape[0]  # Number of samples
-    loss = (1 / n) * torch.sum((y_true - y_pred) ** 2)
-    return loss
+    import torch
+    import numpy as np
+    import matplotlib.pyplot as plt
 
-# 매개변수를 텐서로 초기화한다
-w = torch.tensor([0.0], dtype=torch.float32)
-b = torch.tensor([0.0], dtype=torch.float32)
+    print("=" * 70)
+    print("LINEAR REGRESSION WITH PYTORCH TENSORS (MANUAL GRADIENTS)")
+    print("=" * 70)
 
-print(f"Initialized parameters:")
-print(f"  w: {w}, shape: {w.shape}, dtype: {w.dtype}")
-print(f"  b: {b}, shape: {b.shape}, dtype: {b.dtype}")
+    # ============================================================================
+    # 1부: 합성 데이터 생성
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 1: GENERATE SYNTHETIC DATA")
+    print("=" * 70)
 
-# 초기 예측을 시험한다
-y_pred_init = predict(X, w, b)
-initial_loss = compute_loss(y, y_pred_init)
+    # 재현성을 위한 난수 시드 설정
+    torch.manual_seed(42)
+    np.random.seed(42)
 
-print(f"\nInitial predictions:")
-print(f"  y_pred[:5]: {y_pred_init[:5]}")
-print(f"  Initial loss: {initial_loss.item():.4f}")
+    # 참된 매개변수
+    TRUE_W = 2.0
+    TRUE_B = 1.0
 
-# ============================================================================
-# 3부: 경사 직접 계산하기
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 3: MANUAL GRADIENT COMPUTATION")
-print("=" * 70)
+    # 먼저 NumPy로 데이터를 생성한다
+    n_samples = 100
+    X_numpy = np.random.uniform(-10, 10, n_samples)
+    noise = np.random.normal(0, 2, n_samples)
+    y_numpy = TRUE_W * X_numpy + TRUE_B + noise
 
-def compute_gradients(X, y_true, y_pred):
-    """
-    w과 b에 대한 MSE의 기울기를 직접 계산한다
-    
-    넘파이 클래스와 똑같되 PyTorch 텐서를 쓴다
-    
-    ∂Loss/∂w = (2/n) * sum((y_pred - y_true) * X)
-    ∂Loss/∂b = (2/n) * sum(y_pred - y_true)
-    
-    Args:
-        X: 입력 특징(텐서)
-        y_true: 참 값(텐서)
-        y_pred: 예측(텐서)
-    
-    Returns:
-        grad_w: 가중치에 대한 기울기(텐서)
-        grad_b: 편향에 대한 기울기(텐서)
-    """
-    n = X.shape[0]
-    error = y_pred - y_true
-    
-    # PyTorch 연산으로 경사를 계산한다
-    grad_w = (2.0 / n) * torch.sum(error * X)
-    grad_b = (2.0 / n) * torch.sum(error)
-    
-    return grad_w, grad_b
+    # PyTorch 텐서로 변환
+    # 대부분의 PyTorch 연산에서 dtype=torch.float32가 표준이다
+    X = torch.from_numpy(X_numpy).float()  # Convert to float32 tensor
+    y = torch.from_numpy(y_numpy).float()
 
-# 경사 계산을 시험한다
-grad_w, grad_b = compute_gradients(X, y, y_pred_init)
-print(f"Initial gradients:")
-print(f"  grad_w: {grad_w.item():.4f}")
-print(f"  grad_b: {grad_b.item():.4f}")
+    print(f"Generated {n_samples} data points")
+    print(f"True parameters: w={TRUE_W}, b={TRUE_B}")
+    print(f"\nData types:")
+    print(f"  X: {X.dtype}, shape: {X.shape}")
+    print(f"  y: {y.dtype}, shape: {y.shape}")
+    print(f"\nFirst 5 samples:")
+    print(f"X[:5] = {X[:5]}")
+    print(f"y[:5] = {y[:5]}")
 
-# ============================================================================
-# 4부: 학습 루프
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 4: TRAINING LOOP")
-print("=" * 70)
+    # ============================================================================
+    # 2부: 모델 정의
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 2: DEFINE THE MODEL")
+    print("=" * 70)
 
-# 매개변수를 초기화한다
-w = torch.tensor([0.0], dtype=torch.float32)
-b = torch.tensor([0.0], dtype=torch.float32)
+    def predict(X, w, b):
+        """
+        선형 모델: y_pred = w * X + b
 
-# 초매개변수
-learning_rate = 0.01
-n_epochs = 100
+        Args:
+            X: 입력 특징(텐서)
+            w: 가중치 매개변수(텐서)
+            b: 편향 매개변수(텐서)
 
-# 추적
-loss_history = []
-w_history = [w.item()]
-b_history = [b.item()]
+        Returns:
+            y_pred: 예측(텐서)
+        """
+        return w * X + b
 
-print(f"Training Configuration:")
-print(f"  Learning rate: {learning_rate}")
-print(f"  Number of epochs: {n_epochs}")
-print(f"\n{'Epoch':<8} {'Loss':<12} {'w':<12} {'b':<12}")
-print("-" * 50)
+    def compute_loss(y_true, y_pred):
+        """
+        평균 제곱 오차(MSE) 손실
 
-for epoch in range(n_epochs):
-    # 1. 순전파
-    y_pred = predict(X, w, b)
-    
-    # 2. 손실 계산
-    loss = compute_loss(y, y_pred)
-    loss_history.append(loss.item())  # .item() converts tensor to Python number
-    
-    # 3. 경사를 직접 계산한다
-    grad_w, grad_b = compute_gradients(X, y, y_pred)
-    
-    # 4. 매개변수를 갱신한다
-    # 참고: 혹시 있을 계산 그래프에서 떼어내야 한다
-    # 아직 autograd를 쓰지 않지만 좋은 습관이다
-    w = w - learning_rate * grad_w
-    b = b - learning_rate * grad_b
-    
-    # 이력 저장
-    w_history.append(w.item())
-    b_history.append(b.item())
-    
-    # 진행 상황 출력
-    if (epoch + 1) % 10 == 0 or epoch == 0:
-        print(f"{epoch+1:<8} {loss.item():<12.4f} {w.item():<12.4f} {b.item():<12.4f}")
+        Args:
+            y_true: 참 값(텐서)
+            y_pred: 예측(텐서)
 
-print("\n" + "=" * 70)
-print("TRAINING COMPLETED")
-print("=" * 70)
-print(f"\nFinal Results:")
-print(f"  Learned w: {w.item():.4f} (True: {TRUE_W})")
-print(f"  Learned b: {b.item():.4f} (True: {TRUE_B})")
-print(f"  Final loss: {loss_history[-1]:.4f}")
-print(f"  Initial loss: {loss_history[0]:.4f}")
+        Returns:
+            loss: MSE 값(홑값 텐서)
+        """
+        n = y_true.shape[0]  # Number of samples
+        loss = (1 / n) * torch.sum((y_true - y_pred) ** 2)
+        return loss
 
-# ============================================================================
-# 5부: 비교 - PYTORCH 연산과 NUMPY 연산
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 5: PYTORCH OPERATIONS - KEY DIFFERENCES FROM NUMPY")
-print("=" * 70)
+    # 매개변수를 텐서로 초기화한다
+    w = torch.tensor([0.0], dtype=torch.float32)
+    b = torch.tensor([0.0], dtype=torch.float32)
 
-print("""
-PyTorch 텐서와 넘파이 배열 견주기:
+    print(f"Initialized parameters:")
+    print(f"  w: {w}, shape: {w.shape}, dtype: {w.dtype}")
+    print(f"  b: {b}, shape: {b.shape}, dtype: {b.dtype}")
 
-Similarities:
-1. 낯이 비슷하다: 셈의 이름이 대개 같다
-2. 수학 셈이 같다
-3. 자리 잡기와 자르기가 비슷하게 움직인다
+    # 초기 예측을 시험한다
+    y_pred_init = predict(X, w, b)
+    initial_loss = compute_loss(y, y_pred_init)
 
-핵심 다름:
+    print(f"\nInitial predictions:")
+    print(f"  y_pred[:5]: {y_pred_init[:5]}")
+    print(f"  Initial loss: {initial_loss.item():.4f}")
 
-1. 기기 받침:
-   - PyTorch: CPU에서도 GPU에서도 돈다
-   - 넘파이: CPU에서만 돈다
-   Example:
-     tensor_cpu = torch.tensor([1, 2, 3])
-     tensor_gpu = tensor_cpu.to('cuda')  # 쓸 수 있으면 GPU으로 옮긴다
+    # ============================================================================
+    # 3부: 경사 직접 계산하기
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 3: MANUAL GRADIENT COMPUTATION")
+    print("=" * 70)
 
-2. 자동 미분:
-   - PyTorch: 붙박이 autograd(다음 학습에서 쓴다)
-   - 넘파이: 기울기를 직접 계산해야 한다
-   
-3. 데이터 클래스:
-   - PyTorch: 기본 실수가 float32이다
-   - 넘파이: 기본 실수가 float64이다
-   
-4. 제자리 셈:
-   - PyTorch: _으로 끝나는 셈이 제자리 셈이다
-   - 넘파이: 대개 드러내 놓고 대입해야 한다
-   Example:
-     x.add_(1)  # 제자리에서 1을 더한다(PyTorch)
-     x = x + 1  # 새 배열을 만든다(넘파이)
+    def compute_gradients(X, y_true, y_pred):
+        """
+        w과 b에 대한 MSE의 기울기를 직접 계산한다
 
-5. 값 뽑아내기:
-   - PyTorch: 파이썬 홑값을 얻으려면 .item()을 쓴다
-   - 넘파이: 곧바로 꺼내거나 .item()을 쓴다
-   Example:
-     scalar = tensor.item()  # PyTorch
-     scalar = array[0]       # 넘파이
-""")
+        넘파이 클래스와 똑같되 PyTorch 텐서를 쓴다
 
-# ============================================================================
-# 6부: 결과 시각화
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 6: VISUALIZE RESULTS")
-print("=" * 70)
+        ∂Loss/∂w = (2/n) * sum((y_pred - y_true) * X)
+        ∂Loss/∂b = (2/n) * sum(y_pred - y_true)
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+        Args:
+            X: 입력 특징(텐서)
+            y_true: 참 값(텐서)
+            y_pred: 예측(텐서)
 
-# 그림 1: 손실 곡선
-axes[0, 0].plot(loss_history, linewidth=2, color='blue')
-axes[0, 0].set_xlabel('Epoch')
-axes[0, 0].set_ylabel('Loss (MSE)')
-axes[0, 0].set_title('Training Loss (PyTorch Implementation)')
-axes[0, 0].grid(True, alpha=0.3)
+        Returns:
+            grad_w: 가중치에 대한 기울기(텐서)
+            grad_b: 편향에 대한 기울기(텐서)
+        """
+        n = X.shape[0]
+        error = y_pred - y_true
 
-# 그림 2: 매개변수의 변화
-axes[0, 1].plot(w_history, label='w (slope)', linewidth=2)
-axes[0, 1].axhline(y=TRUE_W, color='r', linestyle='--', label=f'True w={TRUE_W}')
-axes[0, 1].plot(b_history, label='b (intercept)', linewidth=2)
-axes[0, 1].axhline(y=TRUE_B, color='g', linestyle='--', label=f'True b={TRUE_B}')
-axes[0, 1].set_xlabel('Epoch')
-axes[0, 1].set_ylabel('Parameter Value')
-axes[0, 1].set_title('Parameter Convergence')
-axes[0, 1].legend()
-axes[0, 1].grid(True, alpha=0.3)
+        # PyTorch 연산으로 경사를 계산한다
+        grad_w = (2.0 / n) * torch.sum(error * X)
+        grad_b = (2.0 / n) * torch.sum(error)
 
-# 그림 3: 최종 적합
-X_sorted, indices = torch.sort(X)
-y_sorted = y[indices]
-y_pred_final = predict(X_sorted, w, b)
+        return grad_w, grad_b
 
-# 그림을 그리기 위해 numpy로 변환
-X_sorted_np = X_sorted.numpy()
-y_sorted_np = y_sorted.numpy()
-y_pred_final_np = y_pred_final.detach().numpy()
+    # 경사 계산을 시험한다
+    grad_w, grad_b = compute_gradients(X, y, y_pred_init)
+    print(f"Initial gradients:")
+    print(f"  grad_w: {grad_w.item():.4f}")
+    print(f"  grad_b: {grad_b.item():.4f}")
 
-axes[1, 0].scatter(X.numpy(), y.numpy(), alpha=0.5, label='Data')
-axes[1, 0].plot(X_sorted_np, TRUE_W * X_sorted_np + TRUE_B, 'r-', 
-                linewidth=2, label=f'True: y={TRUE_W}x+{TRUE_B}')
-axes[1, 0].plot(X_sorted_np, y_pred_final_np, 'g-', 
-                linewidth=2, label=f'Learned: y={w.item():.2f}x+{b.item():.2f}')
-axes[1, 0].set_xlabel('X')
-axes[1, 0].set_ylabel('y')
-axes[1, 0].set_title('Data with Learned Model')
-axes[1, 0].legend()
-axes[1, 0].grid(True, alpha=0.3)
+    # ============================================================================
+    # 4부: 학습 루프
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 4: TRAINING LOOP")
+    print("=" * 70)
 
-# 그림 4: 학습률 민감도
-axes[1, 1].text(0.5, 0.6, 'Key Insights:', ha='center', fontsize=14, weight='bold')
-axes[1, 1].text(0.5, 0.5, f'Final w: {w.item():.4f} (error: {abs(w.item()-TRUE_W):.4f})', 
-                ha='center', fontsize=11)
-axes[1, 1].text(0.5, 0.4, f'Final b: {b.item():.4f} (error: {abs(b.item()-TRUE_B):.4f})', 
-                ha='center', fontsize=11)
-axes[1, 1].text(0.5, 0.3, f'Loss reduction: {((loss_history[0]-loss_history[-1])/loss_history[0]*100):.1f}%', 
-                ha='center', fontsize=11)
-axes[1, 1].text(0.5, 0.1, 'Next: Autograd will compute\ngradients automatically!', 
-                ha='center', fontsize=10, style='italic')
-axes[1, 1].set_xlim(0, 1)
-axes[1, 1].set_ylim(0, 1)
-axes[1, 1].axis('off')
+    # 매개변수를 초기화한다
+    w = torch.tensor([0.0], dtype=torch.float32)
+    b = torch.tensor([0.0], dtype=torch.float32)
 
-plt.tight_layout()
-plt.savefig('03_pytorch_manual.png', dpi=100)
-print("Saved visualization to: 03_pytorch_manual.png")
-plt.show()
+    # 초매개변수
+    learning_rate = 0.01
+    n_epochs = 100
 
-print("\n" + "=" * 70)
-print("SUMMARY")
-print("=" * 70)
-print("""
-배운 것:
-1. PyTorch 텐서는 넘파이 배열과 비슷하되 덧붙은 결이 있다
-2. 같은 수학 셈이 텐서에도 통한다
-3. 기울기 셈은 아직 직접 한다(지금까지는!)
-4. 코드 짜임은 넘파이 클래스와 똑같다
+    # 추적
+    loss_history = []
+    w_history = [w.item()]
+    b_history = [b.item()]
 
-PyTorch 텐서의 이점:
-✓ GPU 빠르게 하기(여기서는 안 썼지만 쓸 수 있다)
-✓ 자동 미분(다음 학습에서 다룬다!)
-✓ 신경망을 위한 더 큰 생태계의 한 조각이다
-✓ 잘 다듬은 C++/CUDA 뒷단
+    print(f"Training Configuration:")
+    print(f"  Learning rate: {learning_rate}")
+    print(f"  Number of epochs: {n_epochs}")
+    print(f"\n{'Epoch':<8} {'Loss':<12} {'w':<12} {'b':<12}")
+    print("-" * 50)
 
-이 길을 고른 까닭:
-- 수식을 이해하려고 기울기를 직접 계산했다
-- 다음 학습에서는 autograd가 대신해 준다
-- 직접 계산해 보면 모델의 탈을 잡는 데 도움이 된다
-- PyTorch가 밑바탕 수식을 바꾸지 않음을 보여 준다
+    for epoch in range(n_epochs):
+        # 1. 순전파
+        y_pred = predict(X, w, b)
 
-다음 걸음:
-- 튜토리얼 04: autograd로 기울기를 절로 계산한다
-- 이제 직접 기울기 식을 쓸 일이 없다!
-- 모델 구조와 학습에 마음을 둔다
-""")
+        # 2. 손실 계산
+        loss = compute_loss(y, y_pred)
+        loss_history.append(loss.item())  # .item() converts tensor to Python number
+
+        # 3. 경사를 직접 계산한다
+        grad_w, grad_b = compute_gradients(X, y, y_pred)
+
+        # 4. 매개변수를 갱신한다
+        # 참고: 혹시 있을 계산 그래프에서 떼어내야 한다
+        # 아직 autograd를 쓰지 않지만 좋은 습관이다
+        w = w - learning_rate * grad_w
+        b = b - learning_rate * grad_b
+
+        # 이력 저장
+        w_history.append(w.item())
+        b_history.append(b.item())
+
+        # 진행 상황 출력
+        if (epoch + 1) % 10 == 0 or epoch == 0:
+            print(f"{epoch+1:<8} {loss.item():<12.4f} {w.item():<12.4f} {b.item():<12.4f}")
+
+    print("\n" + "=" * 70)
+    print("TRAINING COMPLETED")
+    print("=" * 70)
+    print(f"\nFinal Results:")
+    print(f"  Learned w: {w.item():.4f} (True: {TRUE_W})")
+    print(f"  Learned b: {b.item():.4f} (True: {TRUE_B})")
+    print(f"  Final loss: {loss_history[-1]:.4f}")
+    print(f"  Initial loss: {loss_history[0]:.4f}")
+
+    # ============================================================================
+    # 5부: 비교 - PYTORCH 연산과 NUMPY 연산
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 5: PYTORCH OPERATIONS - KEY DIFFERENCES FROM NUMPY")
+    print("=" * 70)
+
+    print("""
+    PyTorch 텐서와 넘파이 배열 견주기:
+
+    Similarities:
+    1. 낯이 비슷하다: 셈의 이름이 대개 같다
+    2. 수학 셈이 같다
+    3. 자리 잡기와 자르기가 비슷하게 움직인다
+
+    핵심 다름:
+
+    1. 기기 받침:
+       - PyTorch: CPU에서도 GPU에서도 돈다
+       - 넘파이: CPU에서만 돈다
+       Example:
+         tensor_cpu = torch.tensor([1, 2, 3])
+         tensor_gpu = tensor_cpu.to('cuda')  # 쓸 수 있으면 GPU으로 옮긴다
+
+    2. 자동 미분:
+       - PyTorch: 붙박이 autograd(다음 학습에서 쓴다)
+       - 넘파이: 기울기를 직접 계산해야 한다
+
+    3. 데이터 클래스:
+       - PyTorch: 기본 실수가 float32이다
+       - 넘파이: 기본 실수가 float64이다
+
+    4. 제자리 셈:
+       - PyTorch: _으로 끝나는 셈이 제자리 셈이다
+       - 넘파이: 대개 드러내 놓고 대입해야 한다
+       Example:
+         x.add_(1)  # 제자리에서 1을 더한다(PyTorch)
+         x = x + 1  # 새 배열을 만든다(넘파이)
+
+    5. 값 뽑아내기:
+       - PyTorch: 파이썬 홑값을 얻으려면 .item()을 쓴다
+       - 넘파이: 곧바로 꺼내거나 .item()을 쓴다
+       Example:
+         scalar = tensor.item()  # PyTorch
+         scalar = array[0]       # 넘파이
+    """)
+
+    # ============================================================================
+    # 6부: 결과 시각화
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 6: VISUALIZE RESULTS")
+    print("=" * 70)
+
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+    # 그림 1: 손실 곡선
+    axes[0, 0].plot(loss_history, linewidth=2, color='blue')
+    axes[0, 0].set_xlabel('Epoch')
+    axes[0, 0].set_ylabel('Loss (MSE)')
+    axes[0, 0].set_title('Training Loss (PyTorch Implementation)')
+    axes[0, 0].grid(True, alpha=0.3)
+
+    # 그림 2: 매개변수의 변화
+    axes[0, 1].plot(w_history, label='w (slope)', linewidth=2)
+    axes[0, 1].axhline(y=TRUE_W, color='r', linestyle='--', label=f'True w={TRUE_W}')
+    axes[0, 1].plot(b_history, label='b (intercept)', linewidth=2)
+    axes[0, 1].axhline(y=TRUE_B, color='g', linestyle='--', label=f'True b={TRUE_B}')
+    axes[0, 1].set_xlabel('Epoch')
+    axes[0, 1].set_ylabel('Parameter Value')
+    axes[0, 1].set_title('Parameter Convergence')
+    axes[0, 1].legend()
+    axes[0, 1].grid(True, alpha=0.3)
+
+    # 그림 3: 최종 적합
+    X_sorted, indices = torch.sort(X)
+    y_sorted = y[indices]
+    y_pred_final = predict(X_sorted, w, b)
+
+    # 그림을 그리기 위해 numpy로 변환
+    X_sorted_np = X_sorted.numpy()
+    y_sorted_np = y_sorted.numpy()
+    y_pred_final_np = y_pred_final.detach().numpy()
+
+    axes[1, 0].scatter(X.numpy(), y.numpy(), alpha=0.5, label='Data')
+    axes[1, 0].plot(X_sorted_np, TRUE_W * X_sorted_np + TRUE_B, 'r-', 
+                    linewidth=2, label=f'True: y={TRUE_W}x+{TRUE_B}')
+    axes[1, 0].plot(X_sorted_np, y_pred_final_np, 'g-', 
+                    linewidth=2, label=f'Learned: y={w.item():.2f}x+{b.item():.2f}')
+    axes[1, 0].set_xlabel('X')
+    axes[1, 0].set_ylabel('y')
+    axes[1, 0].set_title('Data with Learned Model')
+    axes[1, 0].legend()
+    axes[1, 0].grid(True, alpha=0.3)
+
+    # 그림 4: 학습률 민감도
+    axes[1, 1].text(0.5, 0.6, 'Key Insights:', ha='center', fontsize=14, weight='bold')
+    axes[1, 1].text(0.5, 0.5, f'Final w: {w.item():.4f} (error: {abs(w.item()-TRUE_W):.4f})', 
+                    ha='center', fontsize=11)
+    axes[1, 1].text(0.5, 0.4, f'Final b: {b.item():.4f} (error: {abs(b.item()-TRUE_B):.4f})', 
+                    ha='center', fontsize=11)
+    axes[1, 1].text(0.5, 0.3, f'Loss reduction: {((loss_history[0]-loss_history[-1])/loss_history[0]*100):.1f}%', 
+                    ha='center', fontsize=11)
+    axes[1, 1].text(0.5, 0.1, 'Next: Autograd will compute\ngradients automatically!', 
+                    ha='center', fontsize=10, style='italic')
+    axes[1, 1].set_xlim(0, 1)
+    axes[1, 1].set_ylim(0, 1)
+    axes[1, 1].axis('off')
+
+    plt.tight_layout()
+    plt.savefig('03_pytorch_manual.png', dpi=100)
+    print("Saved visualization to: 03_pytorch_manual.png")
+    plt.show()
+
+    print("\n" + "=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+    print("""
+    배운 것:
+    1. PyTorch 텐서는 넘파이 배열과 비슷하되 덧붙은 결이 있다
+    2. 같은 수학 셈이 텐서에도 통한다
+    3. 기울기 셈은 아직 직접 한다(지금까지는!)
+    4. 코드 짜임은 넘파이 클래스와 똑같다
+
+    PyTorch 텐서의 이점:
+    ✓ GPU 빠르게 하기(여기서는 안 썼지만 쓸 수 있다)
+    ✓ 자동 미분(다음 학습에서 다룬다!)
+    ✓ 신경망을 위한 더 큰 생태계의 한 조각이다
+    ✓ 잘 다듬은 C++/CUDA 뒷단
+
+    이 길을 고른 까닭:
+    - 수식을 이해하려고 기울기를 직접 계산했다
+    - 다음 학습에서는 autograd가 대신해 준다
+    - 직접 계산해 보면 모델의 탈을 잡는 데 도움이 된다
+    - PyTorch가 밑바탕 수식을 바꾸지 않음을 보여 준다
+
+    다음 걸음:
+    - 튜토리얼 04: autograd로 기울기를 절로 계산한다
+    - 이제 직접 기울기 식을 쓸 일이 없다!
+    - 모델 구조와 학습에 마음을 둔다
+    """)
 
 
-if __name__ == "__main__":
-    pass
-```
+    if __name__ == "__main__":
+        pass
+    ```
+
 
 ??? note "전체 출력 (142줄)"
 

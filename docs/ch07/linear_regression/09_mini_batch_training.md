@@ -4,370 +4,373 @@
 
 ## 1. 코드
 
-```python
-"""
-==============================================================================
-09_mini_batch_training.py
-==============================================================================
-어려움: ⭐⭐⭐⭐ (앞선)
+??? note "코드 (362줄)"
 
-DESCRIPTION:
-    PyTorch DataLoader를 쓰는 작은 배치 경사 하강법.
-    온 데이터셋 대신 배치로 잘 들게 익힌다.
+    ```python
+    """
+    ==============================================================================
+    09_mini_batch_training.py
+    ==============================================================================
+    어려움: ⭐⭐⭐⭐ (앞선)
 
-다루는 것:
-    - Dataset과 DataLoader 클래스
-    - 작은 배치 경사 하강법
-    - 배치 크기가 미치는 영향
-    - 섞기와 뽑기
-    - 학습이 잘 듦
+    DESCRIPTION:
+        PyTorch DataLoader를 쓰는 작은 배치 경사 하강법.
+        온 데이터셋 대신 배치로 잘 들게 익힌다.
 
-PREREQUISITES:
-    - 튜토리얼 05(nn.Module)
+    다루는 것:
+        - Dataset과 DataLoader 클래스
+        - 작은 배치 경사 하강법
+        - 배치 크기가 미치는 영향
+        - 섞기와 뽑기
+        - 학습이 잘 듦
 
-걸리는 때: 25분쯤
-==============================================================================
-"""
+    PREREQUISITES:
+        - 튜토리얼 05(nn.Module)
 
-import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader, TensorDataset
-import numpy as np
-import matplotlib.pyplot as plt
-import time
+    걸리는 때: 25분쯤
+    ==============================================================================
+    """
 
-print("=" * 70)
-print("MINI-BATCH TRAINING WITH DATALOADER")
-print("=" * 70)
+    import torch
+    import torch.nn as nn
+    from torch.utils.data import Dataset, DataLoader, TensorDataset
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import time
 
-# ============================================================================
-# 1부: 큰 데이터셋 생성
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 1: GENERATE LARGE DATASET")
-print("=" * 70)
+    print("=" * 70)
+    print("MINI-BATCH TRAINING WITH DATALOADER")
+    print("=" * 70)
 
-torch.manual_seed(42)
-np.random.seed(42)
+    # ============================================================================
+    # 1부: 큰 데이터셋 생성
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 1: GENERATE LARGE DATASET")
+    print("=" * 70)
 
-# 큰 데이터셋을 생성한다
-n_samples = 10000
-n_features = 50
+    torch.manual_seed(42)
+    np.random.seed(42)
 
-X = torch.randn(n_samples, n_features)
-true_weights = torch.randn(n_features, 1)
-y = X @ true_weights + torch.randn(n_samples, 1) * 0.5
+    # 큰 데이터셋을 생성한다
+    n_samples = 10000
+    n_features = 50
 
-print(f"Dataset created:")
-print(f"  Samples: {n_samples}")
-print(f"  Features: {n_features}")
-print(f"  X shape: {X.shape}")
-print(f"  y shape: {y.shape}")
+    X = torch.randn(n_samples, n_features)
+    true_weights = torch.randn(n_features, 1)
+    y = X @ true_weights + torch.randn(n_samples, 1) * 0.5
 
-# ============================================================================
-# 2부: 사용자 정의 Dataset 클래스 만들기
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 2: CUSTOM DATASET CLASS")
-print("=" * 70)
+    print(f"Dataset created:")
+    print(f"  Samples: {n_samples}")
+    print(f"  Features: {n_features}")
+    print(f"  X shape: {X.shape}")
+    print(f"  y shape: {y.shape}")
 
-class RegressionDataset(Dataset):
-    """회귀 데이터를 위한 사용자 정의 Dataset 클래스"""
-    
-    def __init__(self, X, y):
-        """
-        Args:
-            X: 특징 텐서
-            y: 과녁 텐서
-        """
-        self.X = X
-        self.y = y
-        
-    def __len__(self):
-        """표본 개수를 반환한다"""
-        return len(self.X)
-    
-    def __getitem__(self, idx):
-        """
-        표본 하나를 돌려준다
-        
-        Args:
-            idx: 표본 번호
-        
-        Returns:
-            튜플: (특징, 과녁)
-        """
-        return self.X[idx], self.y[idx]
+    # ============================================================================
+    # 2부: 사용자 정의 Dataset 클래스 만들기
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 2: CUSTOM DATASET CLASS")
+    print("=" * 70)
 
-# 데이터셋 생성
-dataset = RegressionDataset(X, y)
-print(f"Dataset created with {len(dataset)} samples")
+    class RegressionDataset(Dataset):
+        """회귀 데이터를 위한 사용자 정의 Dataset 클래스"""
 
-# 시험 데이터셋
-sample_x, sample_y = dataset[0]
-print(f"\nFirst sample:")
-print(f"  X shape: {sample_x.shape}")
-print(f"  y value: {sample_y.item():.4f}")
+        def __init__(self, X, y):
+            """
+            Args:
+                X: 특징 텐서
+                y: 과녁 텐서
+            """
+            self.X = X
+            self.y = y
 
-# 대안: TensorDataset 사용 (기본적인 경우에는 더 간단하다)
-tensor_dataset = TensorDataset(X, y)
-print(f"\nTensorDataset created (alternative approach)")
+        def __len__(self):
+            """표본 개수를 반환한다"""
+            return len(self.X)
 
-# ============================================================================
-# 3부: DATALOADER 만들기
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 3: CREATE DATALOADER")
-print("=" * 70)
+        def __getitem__(self, idx):
+            """
+            표본 하나를 돌려준다
 
-batch_size = 128  # Number of samples per batch
+            Args:
+                idx: 표본 번호
 
-dataloader = DataLoader(
-    dataset,
-    batch_size=batch_size,
-    shuffle=True,      # Shuffle data each epoch
-    num_workers=0,     # Number of subprocesses for data loading
-    drop_last=False    # Keep last incomplete batch
-)
+            Returns:
+                튜플: (특징, 과녁)
+            """
+            return self.X[idx], self.y[idx]
 
-print(f"DataLoader created:")
-print(f"  Batch size: {batch_size}")
-print(f"  Number of batches: {len(dataloader)}")
-print(f"  Shuffle: True")
+    # 데이터셋 생성
+    dataset = RegressionDataset(X, y)
+    print(f"Dataset created with {len(dataset)} samples")
 
-# 배치 묶기를 보여준다
-print(f"\nIterating through first batch:")
-for batch_X, batch_y in dataloader:
-    print(f"  Batch X shape: {batch_X.shape}")
-    print(f"  Batch y shape: {batch_y.shape}")
-    break
+    # 시험 데이터셋
+    sample_x, sample_y = dataset[0]
+    print(f"\nFirst sample:")
+    print(f"  X shape: {sample_x.shape}")
+    print(f"  y value: {sample_y.item():.4f}")
 
-# ============================================================================
-# 4부: 학습 방법 비교
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 4: COMPARE BATCH SIZES")
-print("=" * 70)
+    # 대안: TensorDataset 사용 (기본적인 경우에는 더 간단하다)
+    tensor_dataset = TensorDataset(X, y)
+    print(f"\nTensorDataset created (alternative approach)")
 
-class SimpleModel(nn.Module):
-    def __init__(self, n_features):
-        super(SimpleModel, self).__init__()
-        self.linear = nn.Linear(n_features, 1)
-    
-    def forward(self, x):
-        return self.linear(x)
+    # ============================================================================
+    # 3부: DATALOADER 만들기
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 3: CREATE DATALOADER")
+    print("=" * 70)
 
-def train_with_batch_size(batch_size, n_epochs=20):
-    """지정한 배치 크기로 모델을 학습시킨다"""
-    # DataLoader를 만든다
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    
-    # 모델과 최적화기
-    model = SimpleModel(n_features)
+    batch_size = 128  # Number of samples per batch
+
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,      # Shuffle data each epoch
+        num_workers=0,     # Number of subprocesses for data loading
+        drop_last=False    # Keep last incomplete batch
+    )
+
+    print(f"DataLoader created:")
+    print(f"  Batch size: {batch_size}")
+    print(f"  Number of batches: {len(dataloader)}")
+    print(f"  Shuffle: True")
+
+    # 배치 묶기를 보여준다
+    print(f"\nIterating through first batch:")
+    for batch_X, batch_y in dataloader:
+        print(f"  Batch X shape: {batch_X.shape}")
+        print(f"  Batch y shape: {batch_y.shape}")
+        break
+
+    # ============================================================================
+    # 4부: 학습 방법 비교
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 4: COMPARE BATCH SIZES")
+    print("=" * 70)
+
+    class SimpleModel(nn.Module):
+        def __init__(self, n_features):
+            super(SimpleModel, self).__init__()
+            self.linear = nn.Linear(n_features, 1)
+
+        def forward(self, x):
+            return self.linear(x)
+
+    def train_with_batch_size(batch_size, n_epochs=20):
+        """지정한 배치 크기로 모델을 학습시킨다"""
+        # DataLoader를 만든다
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+        # 모델과 최적화기
+        model = SimpleModel(n_features)
+        criterion = nn.MSELoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+
+        losses = []
+        epoch_times = []
+
+        for epoch in range(n_epochs):
+            start_time = time.time()
+            epoch_loss = 0.0
+            n_batches = 0
+
+            for batch_X, batch_y in loader:
+                # 순전파
+                y_pred = model(batch_X)
+                loss = criterion(y_pred, batch_y)
+
+                # 역전파
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+                epoch_loss += loss.item()
+                n_batches += 1
+
+            avg_loss = epoch_loss / n_batches
+            losses.append(avg_loss)
+            epoch_times.append(time.time() - start_time)
+
+        return losses, epoch_times, model
+
+    # 여러 배치 크기로 학습한다
+    batch_sizes = [32, 128, 512, len(dataset)]  # Last one is full batch
+    results = {}
+
+    print(f"Training with different batch sizes...")
+    for bs in batch_sizes:
+        print(f"\n  Batch size: {bs}")
+        losses, times, model = train_with_batch_size(bs)
+        results[bs] = {
+            'losses': losses,
+            'times': times,
+            'final_loss': losses[-1],
+            'avg_time': np.mean(times)
+        }
+        print(f"    Final loss: {losses[-1]:.6f}")
+        print(f"    Avg time/epoch: {np.mean(times):.4f}s")
+
+    # ============================================================================
+    # 5부: 결과 시각화
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 5: VISUALIZE BATCH SIZE EFFECTS")
+    print("=" * 70)
+
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+    # 그림 1: 손실 곡선
+    ax = axes[0, 0]
+    for bs in batch_sizes:
+        label = f'Batch size: {bs}' if bs != len(dataset) else 'Full batch (GD)'
+        ax.plot(results[bs]['losses'], label=label, linewidth=2)
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel('Loss')
+    ax.set_title('Training Loss vs Batch Size')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    ax.set_yscale('log')
+
+    # 그림 2: 학습 시간
+    ax = axes[0, 1]
+    batch_labels = [f'{bs}' if bs != len(dataset) else 'Full' for bs in batch_sizes]
+    times = [results[bs]['avg_time'] for bs in batch_sizes]
+    ax.bar(batch_labels, times)
+    ax.set_xlabel('Batch Size')
+    ax.set_ylabel('Avg Time per Epoch (s)')
+    ax.set_title('Training Speed vs Batch Size')
+    ax.grid(True, alpha=0.3, axis='y')
+
+    # 그림 3: 최종 손실 비교
+    ax = axes[1, 0]
+    final_losses = [results[bs]['final_loss'] for bs in batch_sizes]
+    ax.bar(batch_labels, final_losses)
+    ax.set_xlabel('Batch Size')
+    ax.set_ylabel('Final Loss')
+    ax.set_title('Final Loss vs Batch Size')
+    ax.grid(True, alpha=0.3, axis='y')
+
+    # 그림 4: 요약 문구
+    ax = axes[1, 1]
+    summary_text = """
+    배치 크기가 미치는 영향:
+
+    작은 배치(32, 128):
+    ✓ 루프가 빠르다
+    ✓ 기울기 고침이 더 잦다
+    ✓ 기울기에 잡음이 더 많다
+    ✓ 두루 더 잘 미친다
+    ✗ 셈이 덜 효율적이다
+
+    가운데 배치(512):
+    ✓ 고루 좋다
+    ✓ 학습이 든든하다
+    ✓ Efficient
+
+    온 배치(경사 하강법):
+    ✓ 기울기가 가장 든든하다
+    ✓ Deterministic
+    ✗ 고치기가 더디다
+    ✗ 기억 자리를 많이 쓴다
+    ✗ 지나치게 맞춰질 수 있다
+
+    Recommendation:
+    - 32~256에서 비롯하라
+    - 기억 자리가 넉넉하면 키워라
+    - 검증 손실을 지켜보아라
+    """
+    ax.text(0.1, 0.95, summary_text, transform=ax.transAxes,
+            fontsize=9, verticalalignment='top', fontfamily='monospace',
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    ax.axis('off')
+
+    plt.tight_layout()
+    plt.savefig('09_batch_size_comparison.png', dpi=100)
+    print("Saved visualization")
+    plt.show()
+
+    # ============================================================================
+    # 6부: 효율적인 학습 루프 본보기
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("PART 6: EFFICIENT TRAINING LOOP TEMPLATE")
+    print("=" * 70)
+
+    print("""
+    DataLoader를 쓰는 여느 PyTorch 학습 루프:
+
+    # 준비
+    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+    model = MyModel()
     criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    
-    losses = []
-    epoch_times = []
-    
+    optimizer = torch.optim.Adam(model.parameters())
+
+    # 학습 루프
     for epoch in range(n_epochs):
-        start_time = time.time()
-        epoch_loss = 0.0
-        n_batches = 0
-        
-        for batch_X, batch_y in loader:
+        model.train()  # 학습 결로 둔다
+
+        for batch_X, batch_y in train_loader:
             # 순전파
             y_pred = model(batch_X)
             loss = criterion(y_pred, batch_y)
-            
+
             # 역전파
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            
-            epoch_loss += loss.item()
-            n_batches += 1
-        
-        avg_loss = epoch_loss / n_batches
-        losses.append(avg_loss)
-        epoch_times.append(time.time() - start_time)
-    
-    return losses, epoch_times, model
 
-# 여러 배치 크기로 학습한다
-batch_sizes = [32, 128, 512, len(dataset)]  # Last one is full batch
-results = {}
+        # 평가 (선택)
+        model.eval()
+        with torch.no_grad():
+            val_loss = evaluate(model, val_loader)
 
-print(f"Training with different batch sizes...")
-for bs in batch_sizes:
-    print(f"\n  Batch size: {bs}")
-    losses, times, model = train_with_batch_size(bs)
-    results[bs] = {
-        'losses': losses,
-        'times': times,
-        'final_loss': losses[-1],
-        'avg_time': np.mean(times)
-    }
-    print(f"    Final loss: {losses[-1]:.6f}")
-    print(f"    Avg time/epoch: {np.mean(times):.4f}s")
+    고갱이:
+    1. DataLoader이 배치 만들기와 섞기를 다룬다
+    2. 에폭마다 모든 배치를 훑는다
+    3. 한 에폭 = 온 데이터셋을 한 번 훑기
+    4. 기울기는 온 데이터가 아니라 배치마다 계산한다
+    """)
 
-# ============================================================================
-# 5부: 결과 시각화
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 5: VISUALIZE BATCH SIZE EFFECTS")
-print("=" * 70)
+    print("\n" + "=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+    print("""
+    작은 배치 익히기:
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    1. Dataset 클래스:
+       - 데이터(X, y)를 지닌다
+       - __len__과 __getitem__을 짠다
+       - 데이터 불리기와 바꾸기를 더할 수 있다
 
-# 그림 1: 손실 곡선
-ax = axes[0, 0]
-for bs in batch_sizes:
-    label = f'Batch size: {bs}' if bs != len(dataset) else 'Full batch (GD)'
-    ax.plot(results[bs]['losses'], label=label, linewidth=2)
-ax.set_xlabel('Epoch')
-ax.set_ylabel('Loss')
-ax.set_title('Training Loss vs Batch Size')
-ax.legend()
-ax.grid(True, alpha=0.3)
-ax.set_yscale('log')
+    2. DATALOADER:
+       - 데이터를 절로 묶는다
+       - 에폭마다 섞는다
+       - 나란히 데이터 불러오기(num_workers)
+       - 마지막의 모자란 배치를 다룬다
 
-# 그림 2: 학습 시간
-ax = axes[0, 1]
-batch_labels = [f'{bs}' if bs != len(dataset) else 'Full' for bs in batch_sizes]
-times = [results[bs]['avg_time'] for bs in batch_sizes]
-ax.bar(batch_labels, times)
-ax.set_xlabel('Batch Size')
-ax.set_ylabel('Avg Time per Epoch (s)')
-ax.set_title('Training Speed vs Batch Size')
-ax.grid(True, alpha=0.3, axis='y')
+    3. 배치 크기의 맞바꿈:
+       - 작으면 잡음이 많지만 빠르다
+       - 크면 든든하지만 느리다
+       - 알맞은 자리: 32~512
+       - 2의 거듭제곱을 권한다
 
-# 그림 3: 최종 손실 비교
-ax = axes[1, 0]
-final_losses = [results[bs]['final_loss'] for bs in batch_sizes]
-ax.bar(batch_labels, final_losses)
-ax.set_xlabel('Batch Size')
-ax.set_ylabel('Final Loss')
-ax.set_title('Final Loss vs Batch Size')
-ax.grid(True, alpha=0.3, axis='y')
+    4. BENEFITS:
+       ✓ 기억 자리를 아낀다(데이터를 모두 올리지 않는다)
+       ✓ 더 빨리 모여든다(고침이 잦다)
+       ✓ 두루 더 잘 미친다
+       ✓ GPU의 나란한 셈을 쓸 수 있다
 
-# 그림 4: 요약 문구
-ax = axes[1, 1]
-summary_text = """
-배치 크기가 미치는 영향:
-
-작은 배치(32, 128):
-✓ 루프가 빠르다
-✓ 기울기 고침이 더 잦다
-✓ 기울기에 잡음이 더 많다
-✓ 두루 더 잘 미친다
-✗ 셈이 덜 효율적이다
-
-가운데 배치(512):
-✓ 고루 좋다
-✓ 학습이 든든하다
-✓ Efficient
-
-온 배치(경사 하강법):
-✓ 기울기가 가장 든든하다
-✓ Deterministic
-✗ 고치기가 더디다
-✗ 기억 자리를 많이 쓴다
-✗ 지나치게 맞춰질 수 있다
-
-Recommendation:
-- 32~256에서 비롯하라
-- 기억 자리가 넉넉하면 키워라
-- 검증 손실을 지켜보아라
-"""
-ax.text(0.1, 0.95, summary_text, transform=ax.transAxes,
-        fontsize=9, verticalalignment='top', fontfamily='monospace',
-        bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-ax.axis('off')
-
-plt.tight_layout()
-plt.savefig('09_batch_size_comparison.png', dpi=100)
-print("Saved visualization")
-plt.show()
-
-# ============================================================================
-# 6부: 효율적인 학습 루프 본보기
-# ============================================================================
-print("\n" + "=" * 70)
-print("PART 6: EFFICIENT TRAINING LOOP TEMPLATE")
-print("=" * 70)
-
-print("""
-DataLoader를 쓰는 여느 PyTorch 학습 루프:
-
-# 준비
-train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
-model = MyModel()
-criterion = nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters())
-
-# 학습 루프
-for epoch in range(n_epochs):
-    model.train()  # 학습 결로 둔다
-    
-    for batch_X, batch_y in train_loader:
-        # 순전파
-        y_pred = model(batch_X)
-        loss = criterion(y_pred, batch_y)
-        
-        # 역전파
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    
-    # 평가 (선택)
-    model.eval()
-    with torch.no_grad():
-        val_loss = evaluate(model, val_loader)
-
-고갱이:
-1. DataLoader이 배치 만들기와 섞기를 다룬다
-2. 에폭마다 모든 배치를 훑는다
-3. 한 에폭 = 온 데이터셋을 한 번 훑기
-4. 기울기는 온 데이터가 아니라 배치마다 계산한다
-""")
-
-print("\n" + "=" * 70)
-print("SUMMARY")
-print("=" * 70)
-print("""
-작은 배치 익히기:
-
-1. Dataset 클래스:
-   - 데이터(X, y)를 지닌다
-   - __len__과 __getitem__을 짠다
-   - 데이터 불리기와 바꾸기를 더할 수 있다
-
-2. DATALOADER:
-   - 데이터를 절로 묶는다
-   - 에폭마다 섞는다
-   - 나란히 데이터 불러오기(num_workers)
-   - 마지막의 모자란 배치를 다룬다
-
-3. 배치 크기의 맞바꿈:
-   - 작으면 잡음이 많지만 빠르다
-   - 크면 든든하지만 느리다
-   - 알맞은 자리: 32~512
-   - 2의 거듭제곱을 권한다
-
-4. BENEFITS:
-   ✓ 기억 자리를 아낀다(데이터를 모두 올리지 않는다)
-   ✓ 더 빨리 모여든다(고침이 잦다)
-   ✓ 두루 더 잘 미친다
-   ✓ GPU의 나란한 셈을 쓸 수 있다
-
-다음: 튜토리얼 10 - 온전한 실전 흐름!
-""")
+    다음: 튜토리얼 10 - 온전한 실전 흐름!
+    """)
 
 
-if __name__ == "__main__":
-    pass
-```
+    if __name__ == "__main__":
+        pass
+    ```
+
 
 ??? note "전체 출력 (131줄)"
 
