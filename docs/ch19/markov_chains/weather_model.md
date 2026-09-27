@@ -41,6 +41,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import Counter
 
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+np.random.seed(0)
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -530,56 +534,108 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (97줄)"
 
-```
-WEATHER MODELING WITH MARKOV CHAINS
-====================================
+    ```
+    WEATHER MODELING WITH MARKOV CHAINS
+    ====================================
 
-======================================================================
-Example 1: Three-State Weather Model
-======================================================================
+    ======================================================================
+    Example 1: Three-State Weather Model
+    ======================================================================
 
-Observed weather sequence (30 days):
-['Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Rainy', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Rainy', 'Cloudy', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Cloudy', 'Rainy', 'Rainy', 'Rainy', 'Cloudy', 'Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Cloudy', 'Sunny', 'Sunny']
+    Observed weather sequence (30 days):
+    ['Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Rainy', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Rainy', 'Cloudy', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Cloudy', 'Rainy', 'Rainy', 'Rainy', 'Cloudy', 'Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Cloudy', 'Sunny', 'Sunny']
 
-Observed frequencies:
-  Cloudy: 10/30 = 0.333
-  Rainy: 8/30 = 0.267
-  Sunny: 12/30 = 0.400
+    Observed frequencies:
+      Cloudy: 10/30 = 0.333
+      Rainy: 8/30 = 0.267
+      Sunny: 12/30 = 0.400
 
-Estimated Transition Matrix:
-                Sunny     Cloudy      Rainy
-Sunny          0.6364     0.3636     0.0000
-Cloudy         0.4000     0.2000     0.4000
-Rainy          0.0000     0.5000     0.5000
+    Estimated Transition Matrix:
+                    Sunny     Cloudy      Rainy
+    Sunny          0.6364     0.3636     0.0000
+    Cloudy         0.4000     0.2000     0.4000
+    Rainy          0.0000     0.5000     0.5000
 
-----------------------------------------------------------------------
-Predictions if today is Sunny:
-  P(Tomorrow = Cloudy | Today = Sunny) = 0.3636
-  P(Tomorrow = Rainy | Today = Sunny) = 0.0000
-  P(Tomorrow = Sunny | Today = Sunny) = 0.6364
+    ----------------------------------------------------------------------
+    Predictions if today is Sunny:
+      P(Tomorrow = Cloudy | Today = Sunny) = 0.3636
+      P(Tomorrow = Rainy | Today = Sunny) = 0.0000
+      P(Tomorrow = Sunny | Today = Sunny) = 0.6364
 
-Predictions 7 days ahead if today is Sunny:
-  P(Day 7 = Cloudy | Today = Sunny) = 0.3432
-  P(Day 7 = Rainy | Today = Sunny) = 0.2672
-  P(Day 7 = Sunny | Today = Sunny) = 0.3895
+    Predictions 7 days ahead if today is Sunny:
+      P(Day 7 = Cloudy | Today = Sunny) = 0.3432
+      P(Day 7 = Rainy | Today = Sunny) = 0.2672
+      P(Day 7 = Sunny | Today = Sunny) = 0.3895
 
-======================================================================
+    ======================================================================
+    Example 2: Stationary Distribution Analysis
+    ======================================================================
 
-... (54 lines omitted)
+    Transition Matrix:
+                    Sunny     Cloudy      Rainy
+    Sunny          0.7000     0.2500     0.0500
+    Cloudy         0.3000     0.4000     0.3000
+    Rainy          0.2000     0.3000     0.5000
 
-Weather model visualizations saved to weather_model.png
+    ----------------------------------------------------------------------
+    Stationary Distribution (long-run frequencies):
 
-======================================================================
-Practical Applications:
-======================================================================
-1. Short-term weather prediction (1-7 days)
-2. Long-term climate pattern analysis
-3. Agricultural planning
-4. Event planning based on weather probabilities
-5. Understanding stationary behavior of weather systems
-```
+    Using eigenvector method:
+      π(Cloudy) = 0.307692
+      π(Rainy) = 0.230769
+      π(Sunny) = 0.461538
+
+    Using matrix power method:
+      π(Cloudy) = 0.307692
+      π(Rainy) = 0.230769
+      π(Sunny) = 0.461538
+
+    ----------------------------------------------------------------------
+    Verification via simulation (10,000 days):
+
+    Simulated frequencies:
+      Cloudy: 0.302470 (theoretical: 0.307692)
+      Rainy: 0.221578 (theoretical: 0.230769)
+      Sunny: 0.475952 (theoretical: 0.461538)
+
+    ======================================================================
+    Example 3: Seasonal Weather Patterns
+    ======================================================================
+
+    Summer Transition Matrix:
+    [[0.8  0.15 0.05]
+     [0.5  0.3  0.2 ]
+     [0.4  0.4  0.2 ]]
+
+    Winter Transition Matrix:
+    [[0.5 0.3 0.2]
+     [0.3 0.4 0.3]
+     [0.2 0.3 0.5]]
+
+    ----------------------------------------------------------------------
+    Simulated 90-day frequencies:
+    State      Summer          Winter         
+    Sunny      0.6813          0.4066         
+    Cloudy     0.2088          0.2747         
+    Rainy      0.1099          0.3187         
+
+    ======================================================================
+    Creating Visualizations
+    ======================================================================
+    Weather model visualizations saved to weather_model.png
+
+    ======================================================================
+    Practical Applications:
+    ======================================================================
+    1. Short-term weather prediction (1-7 days)
+    2. Long-term climate pattern analysis
+    3. Agricultural planning
+    4. Event planning based on weather probabilities
+    5. Understanding stationary behavior of weather systems
+    ```
+
 
 ## 2. 논의
 

@@ -549,6 +549,7 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+
 ======================================================================
 STRUCTURE LEARNING FOR BAYESIAN NETWORKS
 ======================================================================
@@ -582,9 +583,32 @@ Best operation: Add C -> A
 BIC score: -1946.20 -> -1827.99 (Δ = 118.21)
 
 Iteration 3
+Best operation: Add B -> A
+BIC score: -1827.99 -> -1819.63 (Δ = 8.36)
 
-... (26 lines omitted)
+Iteration 4
+No improvement found. Converged!
 
+Final graph has 3 edges
+Final BIC score: -1819.63
+
+Learned edges: [('B', 'C'), ('B', 'A'), ('C', 'A')]
+
+======================================================================
+KEY TAKEAWAYS
+======================================================================
+
+1. Two main approaches:
+   - Constraint-based (PC algorithm): Test independencies
+   - Score-based: Optimize scoring function
+
+2. Structure learning is hard!
+   - Super-exponential space of DAGs
+   - NP-hard in general
+   - Need heuristic search methods
+
+3. Challenges:
+   - Observational equivalence (multiple DAGs fit data equally)
    - Limited data (statistical power)
    - Computational complexity
 
@@ -595,6 +619,7 @@ Iteration 3
    - Validate learned structures
 
 ======================================================================
+
 ```
 
 ## 2. 논의

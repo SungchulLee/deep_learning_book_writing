@@ -51,6 +51,10 @@ P = │ Q  R  │  여기서:
 import numpy as np
 import matplotlib.pyplot as plt
 
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+np.random.seed(0)
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -503,56 +507,103 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (92줄)"
 
-```
-ABSORBING MARKOV CHAINS
-=======================
+    ```
+    ABSORBING MARKOV CHAINS
+    =======================
 
-======================================================================
-Example 1: Gambler's Ruin
-======================================================================
+    ======================================================================
+    Example 1: Gambler's Ruin
+    ======================================================================
 
-Transition Matrix:
-[[1.  0.  0.  0.  0. ]
- [0.5 0.  0.5 0.  0. ]
- [0.  0.5 0.  0.5 0. ]
- [0.  0.  0.5 0.  0.5]
- [0.  0.  0.  0.  1. ]]
+    Transition Matrix:
+    [[1.  0.  0.  0.  0. ]
+     [0.5 0.  0.5 0.  0. ]
+     [0.  0.5 0.  0.5 0. ]
+     [0.  0.  0.5 0.  0.5]
+     [0.  0.  0.  0.  1. ]]
 
-Absorbing states: ['$0 (Broke)', '$4 (Win)']
-Transient states: ['$1', '$2', '$3']
+    Absorbing states: ['$0 (Broke)', '$4 (Win)']
+    Transient states: ['$1', '$2', '$3']
 
-----------------------------------------------------------------------
-Fundamental Matrix N (expected visits):
-         $1       $2       $3      
-$1         1.5000   1.0000   0.5000
-$2         1.0000   2.0000   1.0000
-$3         0.5000   1.0000   1.5000
+    ----------------------------------------------------------------------
+    Fundamental Matrix N (expected visits):
+             $1       $2       $3      
+    $1         1.5000   1.0000   0.5000
+    $2         1.0000   2.0000   1.0000
+    $3         0.5000   1.0000   1.5000
 
-----------------------------------------------------------------------
-Expected Steps to Absorption:
-  Starting from $1: 3.0000 steps
-  Starting from $2: 4.0000 steps
-  Starting from $3: 3.0000 steps
+    ----------------------------------------------------------------------
+    Expected Steps to Absorption:
+      Starting from $1: 3.0000 steps
+      Starting from $2: 4.0000 steps
+      Starting from $3: 3.0000 steps
 
-----------------------------------------------------------------------
-Absorption Probabilities:
+    ----------------------------------------------------------------------
+    Absorption Probabilities:
 
+      Starting from $1:
+        P(absorb at $0 (Broke)) = 0.750000
+        P(absorb at $4 (Win)) = 0.250000
 
-... (49 lines omitted)
+      Starting from $2:
+        P(absorb at $0 (Broke)) = 0.500000
+        P(absorb at $4 (Win)) = 0.500000
 
-Absorption visualization saved
+      Starting from $3:
+        P(absorb at $0 (Broke)) = 0.250000
+        P(absorb at $4 (Win)) = 0.750000
 
-======================================================================
-Key Concepts:
-======================================================================
-1. Absorbing state: P[i][i] = 1
-2. Fundamental matrix: N = (I - Q)^{-1}
-3. Expected steps to absorption: t = N × 1
-4. Absorption probabilities: B = N × R
-5. N[i][j] = expected visits to state j from state i
-```
+    ----------------------------------------------------------------------
+    Variance of Steps to Absorption:
+      Starting from $1: 8.0000 (std = 2.8284)
+      Starting from $2: 8.0000 (std = 2.8284)
+      Starting from $3: 8.0000 (std = 2.8284)
+
+    ======================================================================
+    Example 2: Disease Progression Model
+    ======================================================================
+
+    Transition Matrix:
+                    Healthy   Infected  Recovered       Dead
+    Healthy          0.7000     0.3000     0.0000     0.0000
+    Infected         0.0000     0.4000     0.5000     0.1000
+    Recovered        0.0000     0.0000     1.0000     0.0000
+    Dead             0.0000     0.0000     0.0000     1.0000
+
+    Absorbing states: ['Recovered', 'Dead']
+    Transient states: ['Healthy', 'Infected']
+
+    Expected time until recovery or death:
+      From Healthy: 5.0000 days
+      From Infected: 1.6667 days
+
+    Final outcome probabilities:
+
+      Starting from Healthy:
+        Recovered: 0.8333 (83.33%)
+        Dead: 0.1667 (16.67%)
+
+      Starting from Infected:
+        Recovered: 0.8333 (83.33%)
+        Dead: 0.1667 (16.67%)
+
+    ======================================================================
+    Creating Absorption Visualization
+    ======================================================================
+    Absorption visualization saved
+
+    ======================================================================
+    Key Concepts:
+    ======================================================================
+    1. Absorbing state: P[i][i] = 1
+    2. Fundamental matrix: N = (I - Q)^{-1}
+    3. Expected steps to absorption: t = N × 1
+    4. Absorption probabilities: B = N × R
+    5. N[i][j] = expected visits to state j from state i
+    ```
+
 
 ## 2. 논의
 

@@ -720,56 +720,132 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (121줄)"
 
-```
-None
+    ```
 
-================================================================================
-2D vs 3D CONVOLUTION COMPARISON
-================================================================================
+    영상 이해 — 첫걸음 수준
+    파일 02: 3차원 누비기 — 자리와 때에 걸친 특징 뽑기
 
-Input video shape: torch.Size([2, 16, 3, 64, 64])
-  B=2 (batch), T=16 (time), C=3 (channels)
-  H=64 (height), W=64 (width)
+    이 파일은 영상을 위한 3차원 누비기 그물을 다룬다:
+    - 3차원 누비기와 2차원 누비기 견주어 이해하기
+    - 자리와 때의 특징 뽑기
+    - PyTorch로 3차원 누비기 신경망 짜기
+    - C3D(3차원 누비기) 얼개
+    - 2차원 누비기 신경망 대안과의 견줌
 
-1. Applying 2D Convolution (frame-by-frame)...
-   Parameters: 1792
-   Kernel size: (3, 3) - spatial only
-   Output shape: torch.Size([2, 16, 64, 64, 64])
-   ✗ Frames processed independently - no temporal modeling
+    수학적 바탕:
+    3차원 누비기 연산:
+        들임 V ∈ ℝ^(T×C×H×W)과 알맹이 K ∈ ℝ^(t×c×h×w)에 대해:
+        
+        Output(τ, i, j) = Σ Σ Σ Σ V(τ+t', c', i+h', j+w') · K(t', c', h', w')
+                          t' c' h' w'
+        
+    2차원과의 핵심 차이:
+        - 2차원 누비기: 자리 차원(H, W)만 다룬다
+        - 3차원 누비기: 자리와 때의 덩어리(T, H, W)를 함께 다룬다
+        
+    이러면 그물이 움직임 무늬를 곧바로 배울 수 있다!
 
-2. Applying 3D Convolution (spatiotemporal)...
-   Parameters: 5248
-   Kernel size: (3, 3, 3) - spatiotemporal
-   Output shape: torch.Size([2, 64, 16, 64, 64])
-   ✓ Temporal dimension processed - learns motion!
 
-3. Parameter Comparison:
-   2D Conv: 1,792 parameters
-   3D Conv: 5,248 parameters
-   Ratio: 3D has 2.9x more parameters
-   Reason: 3D kernel has additional temporal dimension
+    ================================================================================
+    2D vs 3D CONVOLUTION COMPARISON
+    ================================================================================
 
-================================================================================
-C3D ARCHITECTURE DEMONSTRATION
-================================================================================
+    Input video shape: torch.Size([2, 16, 3, 64, 64])
+      B=2 (batch), T=16 (time), C=3 (channels)
+      H=64 (height), W=64 (width)
 
-1. Creating C3D model...
+    1. Applying 2D Convolution (frame-by-frame)...
+       Parameters: 1792
+       Kernel size: (3, 3) - spatial only
+       Output shape: torch.Size([2, 16, 64, 64, 64])
+       ✗ Frames processed independently - no temporal modeling
 
-... (55 lines omitted)
+    2. Applying 3D Convolution (spatiotemporal)...
+       Parameters: 5248
+       Kernel size: (3, 3, 3) - spatiotemporal
+       Output shape: torch.Size([2, 64, 16, 64, 64])
+       ✓ Temporal dimension processed - learns motion!
 
-       - 요즘 얼개(R3D, I3D)에 쓰인다
-    
-    5. 실전에서 헤아릴 점:
-       - 3차원 누비기 신경망은 셈 값이 비싸다
-       - 익히려면 힘센 GPU가 필요하다
-       - 기억 공간 때문에 배치 크기가 제한된다(자리·때 덩어리가 크다)
-       - 이점: 날 영상에서 끝에서 끝까지 배운다
-    
-    다음: 3차원 누비기 신경망으로 단순 영상 갈래 매개를 세운다!
-    
-```
+    3. Parameter Comparison:
+       2D Conv: 1,792 parameters
+       3D Conv: 5,248 parameters
+       Ratio: 3D has 2.9x more parameters
+       Reason: 3D kernel has additional temporal dimension
+
+    ================================================================================
+    C3D ARCHITECTURE DEMONSTRATION
+    ================================================================================
+
+    1. Creating C3D model...
+       Total parameters: 78,412,325
+       Trainable parameters: 78,412,325
+       Model size: ~313.6 MB (fp32)
+
+    2. Testing with sample video...
+       Input shape: torch.Size([2, 3, 16, 112, 112])
+       Output shape: torch.Size([2, 101])
+       Output: class logits for 101 classes
+
+    3. Top 5 predictions for first video:
+       1. Class 27: 0.0101
+       2. Class 24: 0.0101
+       3. Class 53: 0.0101
+       4. Class 67: 0.0101
+       5. Class 23: 0.0101
+
+    4. Visualizing learned kernels...
+
+    First Conv3d layer:
+      Weight shape: torch.Size([64, 3, 3, 3, 3])
+      Kernel size: (3, 3, 3)
+    Kernel visualization saved to 02_3d_kernels.png
+
+    Analyzing feature maps...
+
+    Feature map shapes:
+      conv1.conv: torch.Size([2, 64, 16, 112, 112])
+      conv2.conv: torch.Size([2, 128, 8, 56, 56])
+      conv3a.conv: torch.Size([2, 256, 4, 28, 28])
+      conv3b.conv: torch.Size([2, 256, 4, 28, 28])
+      conv4a.conv: torch.Size([2, 512, 2, 14, 14])
+
+    ================================================================================
+    KEY TAKEAWAYS
+    ================================================================================
+
+        1. 3차원 누비기:
+           - 2차원 누비기를 때 차원으로 넓힌다
+           - 알맹이: (t, h, w)가 자리·때 덩어리를 다룬다
+           - 날 화소에서 움직임 무늬를 곧바로 배운다
+        
+        2. 2차원과 3차원의 맞바꿈:
+           - 2차원: 더 빠르고 기억 공간이 적으며 때를 나타내지 않는다
+           - 3차원: 더 느리고 매개변수가 많으며 움직임을 담아낸다
+           - 때 알맹이 차원 때문에 3차원은 매개변수가 약 3배 많다
+        
+        3. C3D 얼개:
+           - 3x3x3 알맹이를 쓴 누비기 층 8개(실제로 가장 좋다)
+           - 자리와 때 차원을 차츰 줄인다
+           - 들임: 112x112 RGB 틀 16개
+           - 갈래 101개에 매개변수 약 7800만
+        
+        4. 잔차 3차원 덩이:
+           - 아주 깊은 3차원 누비기 신경망을 익힐 수 있게 한다
+           - 잔차 이음으로 기울기가 더 잘 흐른다
+           - 요즘 얼개(R3D, I3D)에 쓰인다
+        
+        5. 실전에서 헤아릴 점:
+           - 3차원 누비기 신경망은 셈 값이 비싸다
+           - 익히려면 힘센 GPU가 필요하다
+           - 기억 공간 때문에 배치 크기가 제한된다(자리·때 덩어리가 크다)
+           - 이점: 날 영상에서 끝에서 끝까지 배운다
+        
+        다음: 3차원 누비기 신경망으로 단순 영상 갈래 매개를 세운다!
+        
+    ```
+
 
 ## 2. 논의
 

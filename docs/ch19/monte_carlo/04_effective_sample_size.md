@@ -513,56 +513,145 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (134줄)"
 
-```
-======================================================================
-EXAMPLE 1: ESS Depends on Proposal Quality
-======================================================================
+    ```
+    ======================================================================
+    EXAMPLE 1: ESS Depends on Proposal Quality
+    ======================================================================
 
-Analyzing ESS for 2000 samples:
+    Analyzing ESS for 2000 samples:
 
-Proposal          ESS  Rel ESS       CV  Entropy  Top 10%
-----------------------------------------------------------------------
-Perfect        2000.0  100.00%     0.00  100.00%      200
-Good           1903.9   95.20%     0.22   99.61%      167
-Okay           1536.2   76.81%     0.55   97.48%      121
-Poor            728.4   36.42%     1.32   88.85%       52
-Bad              90.7    4.53%     4.59   88.58%        2
-Terrible          3.1    0.15%    25.51   23.02%        1
+    Proposal          ESS  Rel ESS       CV  Entropy  Top 10%
+    ----------------------------------------------------------------------
+    Perfect        2000.0  100.00%     0.00  100.00%      200
+    Good           1903.9   95.20%     0.22   99.61%      167
+    Okay           1536.2   76.81%     0.55   97.48%      121
+    Poor            728.4   36.42%     1.32   88.85%       52
+    Bad              90.7    4.53%     4.59   88.58%        2
+    Terrible          3.1    0.15%    25.51   23.02%        1
 
-======================================================================
-EXAMPLE 2: ESS and Estimation Variance
-======================================================================
+    ======================================================================
+    EXAMPLE 2: ESS and Estimation Variance
+    ======================================================================
 
-Estimating E[θ²] = 26.000
-Replications: 500, Samples per replication: 1000
+    Estimating E[θ²] = 26.000
+    Replications: 500, Samples per replication: 1000
 
-Proposal          ESS       Bias    Std Dev       RMSE
-------------------------------------------------------------
-High ESS        984.8    -0.0116     0.2906     0.2908
-Medium ESS      624.6    -0.0176     0.3579     0.3584
-Low ESS         183.2    -0.0133     0.7018     0.7019
+    Proposal          ESS       Bias    Std Dev       RMSE
+    ------------------------------------------------------------
+    High ESS        984.8    -0.0116     0.2906     0.2908
+    Medium ESS      624.6    -0.0176     0.3579     0.3584
+    Low ESS         183.2    -0.0133     0.7018     0.7019
 
-======================================================================
-EXAMPLE 3: How ESS Scales with Sample Size
-======================================================================
+    ======================================================================
+    EXAMPLE 3: How ESS Scales with Sample Size
+    ======================================================================
 
-Sample Size vs ESS (averaged over 100 runs):
+    Sample Size vs ESS (averaged over 100 runs):
 
-... (90 lines omitted)
+           n   Mean ESS      ESS/n    Std ESS
+    ------------------------------------------
+         100       62.5      0.625        3.7
+         500      314.0      0.628        7.6
+        1000      626.1      0.626       11.2
+        2000     1248.5      0.624       15.2
+        5000     3127.0      0.625       22.9
+       10000     6248.6      0.625       35.4
 
+    ======================================================================
+    EXAMPLE 4: Weight Concentration Analysis
+    ======================================================================
 
-7. ESS은 n에 비례해 커진다:
-   - 표본 n개에서 ESS/n ≈ c이면
-   - 그러면 아무 n에 대해서도 (대체로) ESS/n ≈ c이다
-   - 상대 효율은 대체로 일정하다
+    Good (ESS high):
+      Total samples: 2000
+      ESS: 1967.5
 
-8. 실전 규칙:
-   - ESS > 1000: 대개 웬만한 쓰임새에 넉넉하다
-   - ESS/n > 0.1: 받아들일 만한 효율
-   - ESS/n < 0.01: 반드시 더 나은 제안이 필요하다
-```
+      Weight concentration:
+          182 samples (  9.1%) account for 10% of weight
+          455 samples ( 22.8%) account for 25% of weight
+          918 samples ( 45.9%) account for 50% of weight
+         1407 samples ( 70.3%) account for 75% of weight
+         1729 samples ( 86.5%) account for 90% of weight
+         1849 samples ( 92.5%) account for 95% of weight
+         1960 samples ( 98.0%) account for 99% of weight
+
+    Medium (ESS mid):
+      Total samples: 2000
+      ESS: 1254.2
+
+      Weight concentration:
+           92 samples (  4.6%) account for 10% of weight
+          231 samples ( 11.6%) account for 25% of weight
+          488 samples ( 24.4%) account for 50% of weight
+          819 samples ( 40.9%) account for 75% of weight
+         1144 samples ( 57.2%) account for 90% of weight
+         1329 samples ( 66.5%) account for 95% of weight
+         1630 samples ( 81.5%) account for 99% of weight
+
+    Poor (ESS low):
+      Total samples: 2000
+      ESS: 358.9
+
+      Weight concentration:
+           22 samples (  1.1%) account for 10% of weight
+           57 samples (  2.9%) account for 25% of weight
+          128 samples (  6.4%) account for 50% of weight
+          238 samples ( 11.9%) account for 75% of weight
+          380 samples ( 19.0%) account for 90% of weight
+          489 samples ( 24.4%) account for 95% of weight
+          716 samples ( 35.8%) account for 99% of weight
+
+    ======================================================================
+    KEY TAKEAWAYS
+    ======================================================================
+
+    1. 실효 표본 크기(ESS)는 중요도 표집의 질을 재어 준다:
+       - ESS = 1/Σᵢwᵢ²(고르게 한 무게)
+       - ESS = (Σᵢw̃ᵢ)²/Σᵢw̃ᵢ²(고르게 하지 않은 무게)
+       - 범위: 1 ≤ ESS ≤ n
+
+    2. 풀이:
+       - ESS/n ≈ 1: 아주 좋음, 무게가 거의 고르다
+       - ESS/n ≈ 0.5: 좋음, 실효 표본이 절반
+       - ESS/n < 0.1: 나쁨, 더 나은 제안을 생각해 보라
+       - ESS/n << 0.01: 나쁨, 몇몇 표본이 판친다
+
+    3. 흩어짐과의 관계:
+       - 흩어짐 부풂 ≈ n/ESS
+       - ESS이 낮을수록 → 어림값의 흩어짐이 커진다
+       - 제안을 낫게 하지 않고 n만 늘려서는 고칠 수 없다
+
+    4. 무게 몰림:
+       - ESS이 낮다 → 몇몇 표본이 무게의 대부분을 진다
+       - 살피기: 무게의 50%에 표본이 몇 개나 드나?
+       - 되도록 여러 표본에 널리 퍼져 있어야 한다
+
+    5. 늘 살펴야 할 진단:
+       - ESS과 상대 ESS(ESS/n)
+       - 무게의 변이 계수
+       - 무게 몰림(위쪽 10%, 50%, 90%)
+       - 최대 무게 값
+       - 무게 엔트로피
+
+    6. ESS이 낮을 때:
+       - n만 늘리지 마라(별 도움이 안 된다)
+       - 제안 분포 낫게 하기
+       - 맞춰 가는 중요도 표집 생각해 보기
+       - 아니면 MCMC 방법으로 바꾸기
+
+    7. ESS은 n에 비례해 커진다:
+       - 표본 n개에서 ESS/n ≈ c이면
+       - 그러면 아무 n에 대해서도 (대체로) ESS/n ≈ c이다
+       - 상대 효율은 대체로 일정하다
+
+    8. 실전 규칙:
+       - ESS > 1000: 대개 웬만한 쓰임새에 넉넉하다
+       - ESS/n > 0.1: 받아들일 만한 효율
+       - ESS/n < 0.01: 반드시 더 나은 제안이 필요하다
+
+    ```
+
 
 ## 2. 논의
 

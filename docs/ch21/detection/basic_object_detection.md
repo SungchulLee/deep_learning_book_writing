@@ -374,8 +374,10 @@ def detection_pipeline(boxes, scores, classes, conf_threshold=0.5, nms_threshold
         return [], [], []
     
     # 2단계: 갈래마다 NMS 쓰기
-    # 알아냄을 갈래별로 묶기
-    unique_classes = set(classes)
+    # 알아냄을 갈래별로 묶기.
+    # sorted 를 씌우는 까닭: 집합을 그냥 돌면 순서가 파이썬이 그때그때 잡는
+    # 해시에 달려 있어, 같은 씨앗으로 돌려도 아래 찍히는 차례가 바뀐다
+    unique_classes = sorted(set(classes))
     final_boxes = []
     final_scores = []
     final_classes = []
@@ -578,57 +580,120 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (110줄)"
 
-```
-======================================================================
-BASIC OBJECT DETECTION CONCEPTS
-======================================================================
+    ```
+    ======================================================================
+    BASIC OBJECT DETECTION CONCEPTS
+    ======================================================================
 
-This example teaches fundamental detection concepts:
-1. Bounding boxes and coordinate systems
-2. Intersection over Union (IoU)
-3. Non-Maximum Suppression (NMS)
-4. Confidence scores and thresholding
+    This example teaches fundamental detection concepts:
+    1. Bounding boxes and coordinate systems
+    2. Intersection over Union (IoU)
+    3. Non-Maximum Suppression (NMS)
+    4. Confidence scores and thresholding
 
-Step 1: Bounding Box Formats
-----------------------------------------------------------------------
-Original format (xyxy): [100, 150, 300, 450]
-  → Top-left: (100, 150)
-  → Bottom-right: (300, 450)
+    Step 1: Bounding Box Formats
+    ----------------------------------------------------------------------
+    Original format (xyxy): [100, 150, 300, 450]
+      → Top-left: (100, 150)
+      → Bottom-right: (300, 450)
 
-Converted to xywh: [100, 150, 200, 300]
-  → Position: (100, 150)
-  → Size: 200 × 300
+    Converted to xywh: [100, 150, 200, 300]
+      → Position: (100, 150)
+      → Size: 200 × 300
 
-Converted to cxcywh (YOLO): [200.0, 300.0, 200, 300]
-  → Center: (200.0, 300.0)
-  → Size: 200 × 300
+    Converted to cxcywh (YOLO): [200.0, 300.0, 200, 300]
+      → Center: (200.0, 300.0)
+      → Size: 200 × 300
 
 
-Step 2: Intersection over Union (IoU)
-----------------------------------------------------------------------
-Box A: [100, 100, 200, 200]
-Box B: [150, 150, 250, 250]
-IoU: 0.1429
+    Step 2: Intersection over Union (IoU)
+    ----------------------------------------------------------------------
+    Box A: [100, 100, 200, 200]
+    Box B: [150, 150, 250, 250]
+    IoU: 0.1429
 
-Perfect match IoU: 1.0000 (boxes are identical)
-No overlap IoU: 0.0000 (boxes don't overlap)
+    Perfect match IoU: 1.0000 (boxes are identical)
+    No overlap IoU: 0.0000 (boxes don't overlap)
+    One inside another IoU: 0.3600
 
-... (67 lines omitted)
+    Step 3: Non-Maximum Suppression (NMS)
+    ----------------------------------------------------------------------
+    Before NMS: 4 detections
+      Detection 1: [100, 100, 200, 200], confidence: 0.95
+      Detection 2: [105, 105, 205, 205], confidence: 0.88
+      Detection 3: [110, 95, 210, 195], confidence: 0.82
+      Detection 4: [300, 300, 400, 400], confidence: 0.90
 
-5. Pipeline: Confidence filter → NMS → Final detections
+    After NMS: 2 detections kept
+      Detection 1: [100, 100, 200, 200], confidence: 0.95
+      Detection 4: [300, 300, 400, 400], confidence: 0.90
 
-Core Metrics:
-  - Typical confidence threshold: 0.5
-  - Typical NMS IoU threshold: 0.5
-  - IoU > 0.5 considered 'good' detection
+    Removed 2 duplicate detections
 
-You now understand the foundations of object detection!
-Next: Example 2 - Learn YOLO architecture
-======================================================================
-```
+    Step 4: Confidence Thresholding
+    ----------------------------------------------------------------------
+    All detections:
+      dog: confidence=0.95, box=[100, 100, 200, 200]
+      dog: confidence=0.75, box=[150, 150, 250, 250]
+      cat: confidence=0.45, box=[300, 100, 400, 200]
+      car: confidence=0.25, box=[350, 300, 450, 400]
 
+    After confidence threshold (0.5):
+      dog: confidence=0.95, box=[100, 100, 200, 200]
+      dog: confidence=0.75, box=[150, 150, 250, 250]
+
+    Filtered out 2 low-confidence detections
+
+    Step 5: Complete Detection Pipeline
+    ----------------------------------------------------------------------
+    Raw model predictions: 7 detections
+      dog: 0.95
+      dog: 0.88
+      dog: 0.82
+      cat: 0.90
+      cat: 0.75
+      car: 0.45
+      person: 0.30
+
+    Final detections: 2 objects
+      cat: 0.90 at [300, 300, 400, 400]
+      dog: 0.95 at [100, 100, 200, 200]
+
+    Pipeline removed 5 detections
+      - Confidence filtering: 2 detections
+      - NMS: 3 duplicates
+
+    Step 6: Visualization
+    ----------------------------------------------------------------------
+    Creating visualization...
+    Visualization saved as 'basic_detection_results.png'
+
+    ======================================================================
+    BASIC OBJECT DETECTION CONCEPTS - COMPLETE!
+    ======================================================================
+
+    Key Takeaways:
+    1. Bounding Box: 4 numbers define object location
+       - Multiple formats: xyxy, xywh, cxcywh
+    2. IoU: Measures overlap between boxes (0-1 range)
+       - Used for evaluation and NMS
+    3. NMS: Removes duplicate detections
+       - Keeps highest confidence, removes high IoU overlaps
+    4. Confidence: Filters unreliable detections
+       - Trade-off between precision and recall
+    5. Pipeline: Confidence filter → NMS → Final detections
+
+    Core Metrics:
+      - Typical confidence threshold: 0.5
+      - Typical NMS IoU threshold: 0.5
+      - IoU > 0.5 considered 'good' detection
+
+    You now understand the foundations of object detection!
+    Next: Example 2 - Learn YOLO architecture
+    ======================================================================
+    ```
 ## 2. 논의
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.

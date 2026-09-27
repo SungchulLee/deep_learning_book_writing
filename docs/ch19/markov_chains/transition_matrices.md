@@ -489,56 +489,121 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (110줄)"
 
-```
-TRANSITION MATRIX ANALYSIS
-==========================
+    ```
+    TRANSITION MATRIX ANALYSIS
+    ==========================
 
-======================================================================
-Example 1: Two-Step Transition Probability Computation
-======================================================================
+    ======================================================================
+    Example 1: Two-Step Transition Probability Computation
+    ======================================================================
 
-Transition Matrix P:
-[[0.7 0.3]
- [0.4 0.6]]
+    Transition Matrix P:
+    [[0.7 0.3]
+     [0.4 0.6]]
 
-Computing P^2 manually using Chapman-Kolmogorov:
-P^2[0][0] = P[0][0]*P[0][0] + P[0][1]*P[1][0]
-P^2[0][0] = 0.6100
-P^2[0][1] = 0.3900
-P^2[1][0] = 0.5200
-P^2[1][1] = 0.4800
+    Computing P^2 manually using Chapman-Kolmogorov:
+    P^2[0][0] = P[0][0]*P[0][0] + P[0][1]*P[1][0]
+    P^2[0][0] = 0.6100
+    P^2[0][1] = 0.3900
+    P^2[1][0] = 0.5200
+    P^2[1][1] = 0.4800
 
-P^2 via matrix multiplication:
-[[0.61 0.39]
- [0.52 0.48]]
+    P^2 via matrix multiplication:
+    [[0.61 0.39]
+     [0.52 0.48]]
 
-Verification (difference should be ~0):
-[[1.11022302e-16 5.55111512e-17]
- [0.00000000e+00 0.00000000e+00]]
+    Verification (difference should be ~0):
+    [[1.11022302e-16 5.55111512e-17]
+     [0.00000000e+00 0.00000000e+00]]
 
-Interpretation:
-Starting from state 0, probability of being in state 0 after 2 steps: 0.6100
-Starting from state 0, probability of being in state 1 after 2 steps: 0.3900
+    Interpretation:
+    Starting from state 0, probability of being in state 0 after 2 steps: 0.6100
+    Starting from state 0, probability of being in state 1 after 2 steps: 0.3900
 
-======================================================================
-Example 2: State Distribution Evolution
-======================================================================
+    ======================================================================
+    Example 2: State Distribution Evolution
+    ======================================================================
 
-... (67 lines omitted)
+    Initial distribution (uniform):
+    π_0 = [0.33333333 0.33333333 0.33333333]
 
-Visualization saved to transition_probabilities.png
+    Distribution evolution:
+    Step     Sunny        Cloudy       Rainy       
+    0        0.333333     0.333333     0.333333    
+    1        0.366667     0.350000     0.283333    
+    2        0.390000     0.345000     0.265000    
+    5        0.413970     0.338485     0.247545    
+    10       0.418382     0.337271     0.244347    
+    20       0.418604     0.337209     0.244186    
+    50       0.418605     0.337209     0.244186    
 
-======================================================================
-Key Takeaways:
-======================================================================
-1. P^n[i][j] gives the probability of transitioning from i to j in n steps
-2. Chapman-Kolmogorov: P^(m+n) = P^m × P^n
-3. Distribution evolution: π_n = π_0 × P^n
-4. For regular chains, P^n converges to a limit matrix
-5. The limit matrix has all rows equal to the stationary distribution
-```
+    ----------------------------------------------------------------------
+    Starting from definitely Sunny (π_0 = [1, 0, 0]):
+    Step     Sunny        Cloudy       Rainy       
+    0        1.000000     0.000000     0.000000    
+    1        0.700000     0.250000     0.050000    
+    2        0.570000     0.295000     0.135000    
+    5        0.443070     0.330475     0.226455    
+    10       0.419780     0.336886     0.243334    
+    20       0.418607     0.337209     0.244184    
+    50       0.418605     0.337209     0.244186    
+
+    ======================================================================
+    Example 3: Convergence Analysis
+    ======================================================================
+
+    Transition Matrix P:
+    [[0.5 0.3 0.2]
+     [0.2 0.6 0.2]
+     [0.3 0.3 0.4]]
+
+    Convergence achieved at step 15
+
+    Limiting matrix (all rows identical = stationary distribution):
+    [[0.32142857 0.42857143 0.25      ]
+     [0.32142857 0.42857143 0.25      ]
+     [0.32142857 0.42857143 0.25      ]]
+
+    Stationary distribution:
+      π(A) = 0.321429
+      π(B) = 0.428571
+      π(C) = 0.250000
+
+    Convergence plot saved to convergence_plot.png
+
+    ======================================================================
+    Example 4: Specific n-Step Probabilities
+    ======================================================================
+
+    Transition Matrix (Health States):
+                 Healthy  Sick  Recovered
+    Healthy      [0.8 0.2 0. ]
+    Sick         [0.  0.5 0.5]
+    Recovered    [0.9 0.  0.1]
+
+    Specific probability queries:
+    P(Sick after 1 steps | start from Healthy) = 0.200000
+    P(Sick after 5 steps | start from Healthy) = 0.246220
+    P(Recovered after 10 steps | start from Healthy) = 0.136996
+    P(Healthy after 3 steps | start from Sick) = 0.630000
+
+    ======================================================================
+    Creating Probability Evolution Visualization
+    ======================================================================
+    Visualization saved to transition_probabilities.png
+
+    ======================================================================
+    Key Takeaways:
+    ======================================================================
+    1. P^n[i][j] gives the probability of transitioning from i to j in n steps
+    2. Chapman-Kolmogorov: P^(m+n) = P^m × P^n
+    3. Distribution evolution: π_n = π_0 × P^n
+    4. For regular chains, P^n converges to a limit matrix
+    5. The limit matrix has all rows equal to the stationary distribution
+    ```
+
 
 ## 2. 논의
 

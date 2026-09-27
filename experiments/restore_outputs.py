@@ -88,13 +88,38 @@ def run(code, timeout=1200):
         Path(tmp).unlink(missing_ok=True)
 
 
+FOLD_HEAD = re.compile(r'\?\?\? note "전체 출력[^"]*"\n')
+
+
+def find_output(md):
+    """출력이 놓인 자리. 펼친 것과 접은 것을 둘 다 찾는다.
+
+    한 번 접고 나면 `**출력:**` 표시가 사라지므로, 그것만 찾으면 접힌 쪽은
+    다시 손볼 수 없게 된다.
+    """
+    m = re.search(r"\*\*출력[:：]?\*\*\s*\n+```[a-z]*\n(.*?)```", md, re.S)
+    if m:
+        return m.start(), m.end(), m.group(1)
+    m = FOLD_HEAD.search(md)
+    if not m:
+        return None, None, None
+    body, end = [], m.end()
+    for line in md[m.end():].split("\n"):
+        if line.strip() == "" or line.startswith("    "):
+            body.append(line[4:] if line.startswith("    ") else "")
+            end += len(line) + 1
+        else:
+            break
+    return m.start(), end, "\n".join(body)
+
+
 def fix(rel, timeout=1200):
     p = ROOT / "docs" / rel
     md = p.read_text()
-    om = re.search(r"(\*\*출력[:：]?\*\*\s*\n+```[a-z]*\n)(.*?)(```)", md, re.S)
-    if not om:
+    o_start, o_end, o_text = find_output(md)
+    if o_start is None:
         return f"{rel}: 출력 블록이 없다"
-    cm = list(re.finditer(r"(```python\n)(.*?)(```)", md[:om.start()], re.S))
+    cm = list(re.finditer(r"(```python\n)(.*?)(```)", md[:o_start], re.S))
     if not cm:
         return f"{rel}: 코드 블록이 없다"
     block = max(cm, key=lambda m: len(m.group(2)))
@@ -110,20 +135,19 @@ def fix(rel, timeout=1200):
         last = (r.stderr.strip().splitlines() or ["(까닭 없음)"])[-1]
         return f"{rel}: 실행 실패 — {last[:90]} (건드리지 않았다)"
 
-    was_cut = bool(CUT.search(om.group(2)))
+    was_cut = bool(CUT.search(o_text))
     n_out = len(r.stdout.splitlines())
     if n_out == 0:
         return f"{rel}: 출력이 비었다 — 건드리지 않았다"
 
     if n_out > LONG:
         indented = "\n".join("    " + l if l else "" for l in r.stdout.split("\n"))
-        tail = f'??? note "전체 출력 ({n_out}줄)"\n\n    ```\n{indented}    ```\n'
-        new_out = tail
+        new_out = f'??? note "전체 출력 ({n_out}줄)"\n\n    ```\n{indented}    ```\n'
     else:
-        new_out = om.group(1) + r.stdout + om.group(3)
+        new_out = "**출력:**\n\n```\n" + r.stdout + "```"
 
     p.write_text(md[:block.start()] + block.group(1) + seeded + block.group(3)
-                 + md[block.end():om.start()] + new_out + md[om.end():])
+                 + md[block.end():o_start] + new_out + md[o_end:])
 
     bits = []
     if was_cut:

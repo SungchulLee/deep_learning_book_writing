@@ -70,10 +70,40 @@ def code_blocks(md_text):
     return out
 
 
-def output_block(md_text):
-    """`**출력:**` 바로 뒤에 오는 ``` 블록."""
+FOLD_HEAD = re.compile(r'\?\?\? note "전체 출력[^"]*"\n')
+
+
+def find_output(md_text):
+    """출력을 찾는다. 펼쳐 놓은 것과 접어 놓은 것을 **둘 다** 읽는다.
+
+    긴 출력은 `??? note "전체 출력 (186줄)"` 안에 접혀 들어간다. 접히면
+    `**출력:**` 표시가 사라지므로, 그것만 찾으면 접힌 쪽은 통째로 확인
+    대상에서 빠져 버린다 — 고쳐 놓고 확인은 못 하게 되는 셈이다.
+
+    돌려주는 것: (시작 자리, 끝 자리, 출력 내용)
+    """
     m = re.search(r"\*\*출력[:：]?\*\*\s*\n+```[a-z]*\n(.*?)```", md_text, re.S)
-    return m.group(1) if m else None
+    if m:
+        return m.start(), m.end(), m.group(1)
+
+    m = FOLD_HEAD.search(md_text)
+    if not m:
+        return None, None, None
+    body, end = [], m.end()
+    for line in md_text[m.end():].split("\n"):
+        if line.strip() == "" or line.startswith("    "):
+            body.append(line[4:] if line.startswith("    ") else "")
+            end += len(line) + 1
+        else:
+            break
+    text = "\n".join(body)
+    text = re.sub(r"^\s*```[a-z]*\n", "", text)         # 안쪽 울타리를 벗긴다
+    text = re.sub(r"```\s*$", "", text)
+    return m.start(), end, text
+
+
+def output_block(md_text):
+    return find_output(md_text)[2]
 
 
 def numeric_lines(text):
@@ -106,11 +136,10 @@ def sandbox_cwd(stack):
 def check(md_path, timeout=1800):
     md = md_path.read_text()
 
-    marker = re.search(r"\*\*출력[:：]?\*\*", md)
-    if not marker:
+    start, _, want = find_output(md)
+    if start is None:
         return None
-    blocks = code_blocks(md[:marker.start()])        # 함정 1: 출력 앞의 것만
-    want = output_block(md)
+    blocks = code_blocks(md[:start])                 # 함정 1: 출력 앞의 것만
     if not blocks or not want:
         return None
 

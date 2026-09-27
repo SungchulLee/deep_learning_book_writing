@@ -44,6 +44,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+np.random.seed(0)
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -563,9 +567,9 @@ Example 1: Symmetric Random Walk (p = 0.5)
 ======================================================================
 
 Single path of 100 steps:
-  Final position: -8
+  Final position: 2
   Maximum position: 3
-  Minimum position: -9
+  Minimum position: -14
 
 Theoretical properties after 100 steps:
   Expected position: 0.00
@@ -573,24 +577,61 @@ Theoretical properties after 100 steps:
   Standard deviation: 10.00
 
 Empirical statistics (10000 simulations):
-  Mean final position: 0.04
-  Variance: 99.00
-  Standard deviation: 9.95
+  Mean final position: -0.16
+  Variance: 99.57
+  Standard deviation: 9.98
 
 ======================================================================
 Example 2: Biased Random Walk (p = 0.6)
 ======================================================================
 
 Simulation of 1000 steps with p = 0.6:
-  Final position: 164
+  Final position: 228
 
 Theoretical properties:
   Expected drift per step: 0.20
   Expected position after 1000 steps: 200.00
   Variance: 960.00
 
-... (40 lines omitted)
+----------------------------------------------------------------------
+Comparing different values of p:
+p        E[X_1000]       Var[X_1000]    
+0.3      -400.00         840.00         
+0.5      0.00            1000.00        
+0.7      400.00          840.00         
 
+======================================================================
+Example 3: First Passage Time
+======================================================================
+
+Finding first passage times to position 10
+(symmetric walk, p = 0.5)
+
+Results from 918 successful walks:
+  Mean first passage time: 757.47 steps
+  Median: 209.00 steps
+  Min: 10 steps
+  Max: 9662 steps
+  Did not reach in 82 cases
+
+======================================================================
+Example 4: Two-Dimensional Random Walk
+======================================================================
+
+Simulation of 1000 steps:
+  Final position: (0, -24)
+  Final distance from origin: 24.00
+  Max |x|: 14
+  Max |y|: 32
+
+Distance statistics (1000 simulations):
+  Mean distance: 28.19
+  Theoretical approximation: 25.23
+
+======================================================================
+Creating Visualizations
+======================================================================
+Random walk visualizations saved to random_walks.png
 
 ======================================================================
 Key Properties of Random Walks:

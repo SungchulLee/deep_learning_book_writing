@@ -566,56 +566,264 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (253줄)"
 
-```
-======================================================================
-IMPORTANCE SAMPLING EXERCISES
-======================================================================
+    ```
+    ======================================================================
+    IMPORTANCE SAMPLING EXERCISES
+    ======================================================================
 
-======================================================================
-BEGINNER LEVEL EXERCISES
-======================================================================
+    ======================================================================
+    BEGINNER LEVEL EXERCISES
+    ======================================================================
 
-----------------------------------------------------------------------
-EXERCISE 1: Estimating E[X²] for Exponential Distribution
-----------------------------------------------------------------------
+    ----------------------------------------------------------------------
+    EXERCISE 1: Estimating E[X²] for Exponential Distribution
+    ----------------------------------------------------------------------
 
-문제:
---------
-X ~ Exp(λ=2)이라 하자. 여기서 x ≥ 0에 대해 확률 밀도는 p(x) = 2e^(-2x)이다.
-제안 q(x) = Exp(1)을 쓴 중요도 표집으로 E[X²] 어림하기.
+    문제:
+    --------
+    X ~ Exp(λ=2)이라 하자. 여기서 x ≥ 0에 대해 확률 밀도는 p(x) = 2e^(-2x)이다.
+    제안 q(x) = Exp(1)을 쓴 중요도 표집으로 E[X²] 어림하기.
 
-가) 중요도 표집 구현하기
-나) 손으로 구한 값과 견주기: E[X²] = 2/λ² = 0.5
-다) ESS 셈하기
-라) 표본 크기를 달리하며 모임 살펴보기
+    가) 중요도 표집 구현하기
+    나) 손으로 구한 값과 견주기: E[X²] = 2/λ² = 0.5
+    다) ESS 셈하기
+    라) 표본 크기를 달리하며 모임 살펴보기
 
 
-SOLUTION:
-Analytical E[X²] = 0.500000
+    SOLUTION:
+    Analytical E[X²] = 0.500000
 
-Results:
-n        Estimate     Error        ESS        ESS/n
--------------------------------------------------------
-100      0.442062     0.057938     76.2       76.21%
-500      0.521344     0.021344     365.1      73.02%
-1000     0.491838     0.008162     751.4      75.14%
-5000     0.491079     0.008921     3765.8     75.32%
+    Results:
+    n        Estimate     Error        ESS        ESS/n
+    -------------------------------------------------------
+    100      0.442062     0.057938     76.2       76.21%
+    500      0.521344     0.021344     365.1      73.02%
+    1000     0.491838     0.008162     751.4      75.14%
+    5000     0.491079     0.008921     3765.8     75.32%
 
-... (209 lines omitted)
+    Key insights:
+    - ESS/n shows the efficiency of the proposal
+    - Error decreases with √n for consistent estimator
+    - This proposal works well because it has heavier tails than target
 
-- 알맞은 제안 고르기
-- 흩어짐 줄이는 기법
-- 복잡한 뒤확률 다루기
+    ----------------------------------------------------------------------
+    EXERCISE 2: Effect of Prior Choice in Beta-Binomial Model
+    ----------------------------------------------------------------------
 
-더 익히려면:
-- 서로 다른 과녁 분포 시도하기
-- 제안 집안을 이것저것 시험해 보기
-- 중요도 표집과 MCMC 방법 견주기
-- 맞춰 가는 중요도 표집의 여러 갈래 구현하기
-- 참 베이즈 추론 문제에 쓰기
-```
+    문제:
+    --------
+    베르누이 시도 20번에 성공 15번을 관측한다.
+    다음을 쓴 중요도 표집으로 θ의 뒤확률 평균 어림하기:
+    가) 고른 앞확률: Beta(1,1)을 제안으로
+    나) 제프리스 앞확률: Beta(0.5,0.5)을 제안으로
+    다) 정보 있는 앞확률: Beta(2,2)을 제안으로
+
+    경우마다 ESS과 정확도 견주기.
+
+
+    SOLUTION:
+
+    Using 2000 samples:
+    Prior                     Post Mean    ESS        ESS/n
+    -------------------------------------------------------
+    Uniform Beta(1,1)         0.725754     670.0      33.50%
+      (analytical)            0.727273    
+    Jeffreys Beta(0.5,0.5)    0.728980     487.1      24.36%
+      (analytical)            0.738095    
+    Informative Beta(2,2)     0.705001     731.5      36.57%
+      (analytical)            0.708333    
+
+    Key insights:
+    - All give accurate posterior mean estimates
+    - ESS depends on prior-posterior mismatch
+    - Weak prior as proposal → good ESS when data is strong
+
+    ======================================================================
+    INTERMEDIATE LEVEL EXERCISES
+    ======================================================================
+
+    ----------------------------------------------------------------------
+    EXERCISE 3: Determining Optimal Sample Size
+    ----------------------------------------------------------------------
+
+    문제:
+    --------
+    제안 q ~ N(3,2)로 θ ~ N(5,1)일 때 E[θ]을 어림하면:
+
+    가) 어림값의 흩어짐은 n에 따라 어떻게 변하는가?
+    나) 95% 믿음 구간의 너비가 0.1 미만이 되는 데 필요한 표본 크기 어림하기
+    다) 셈 값과 정확도의 주고받음 견주기
+
+
+    SOLUTION:
+
+    Variance scaling with sample size:
+    n        Est Var      Std Error    95% CI Width    Time (ms)
+    -----------------------------------------------------------------
+    50       0.042747     0.206754     0.810474        2.15
+    100      0.021549     0.146796     0.575441        1.14
+    200      0.008219     0.090656     0.355373        2.54
+    500      0.003464     0.058852     0.230700        1.46
+    1000     0.001794     0.042359     0.166048        1.80
+    2000     0.000805     0.028375     0.111228        2.64
+    5000     0.000373     0.019300     0.075658        4.41
+
+    Key insights:
+    - Variance ∝ 1/n (standard Monte Carlo rate)
+    - For CI width < 0.1, need approximately n ≥ 1500
+    - Computational cost scales linearly with n
+
+    ----------------------------------------------------------------------
+    EXERCISE 4: Identifying and Fixing Poor Proposals
+    ----------------------------------------------------------------------
+
+    문제:
+    --------
+    과녁이 π ~ N(10, 1)일 때 제안 q ~ N(0, 1)을 써 본다.
+    이는 나쁜 제안이다. 왜 그런지 진단하고 나아질 길을 내놓아라.
+
+    가) ESS 셈하기
+    나) 무게 분포 살펴보기
+    다) 더 나은 제안을 내놓고 시험하기
+
+
+    SOLUTION:
+
+    Poor Proposal Analysis:
+      Proposal: N(0, 1)
+      ESS: 1.0 (0.1%)
+      Max weight: 0.993085
+      CV of weights: 44.40
+      Samples for 50% weight: 1 (0.1%)
+
+    Diagnosis:
+      ✗ Very low ESS (~1-2% efficiency)
+      ✗ Few samples carry most weight
+      ✗ Proposal mean far from target mean
+      ✗ Most samples in low-probability region
+
+    Improved Proposal Analysis:
+      Proposal: N(10, 1.5)
+      ESS: 1650.1 (82.5%)
+      Max weight: 0.000759
+      Improvement: 1627.5x better ESS
+
+    ======================================================================
+    ADVANCED LEVEL EXERCISES
+    ======================================================================
+
+    ----------------------------------------------------------------------
+    EXERCISE 5: Rare Event Probability Estimation
+    ----------------------------------------------------------------------
+
+    문제:
+    --------
+    X ~ N(0, 1)일 때 P(X > 4) 어림하기. 이는 드문 일이다(p ≈ 0.000032).
+
+    가) 어수룩한 몬테카를로 시도하기
+    나) 옮긴 제안으로 중요도 표집 쓰기
+    다) 흩어짐 줄임 배수 셈하기
+    라) 상대 오차 10%에 맞는 표본 크기 정하기
+
+
+    SOLUTION:
+    True probability: 0.00003167
+
+    Naive MC (100000 samples):
+      Estimate: 0.00002000
+      Relative error: 36.9%
+
+    Importance Sampling (10000 samples):
+      Estimate: 0.00003569
+      Relative error: 12.7%
+      ESS: 1.4
+
+    Variance Comparison (1000 samples, 500 replications):
+      MC variance: 2.72e-08
+      IS variance: 5.00e-07
+      Variance reduction: 0.1x
+
+    Sample size for 10% relative error:
+      MC needs: 2713 samples
+      IS needs: 49862 samples
+      Reduction: 0.1x fewer samples with IS
+
+    ----------------------------------------------------------------------
+    EXERCISE 6: Importance Sampling for Multimodal Posterior
+    ----------------------------------------------------------------------
+
+    문제:
+    --------
+    봉우리 둘인 뒤확률을 만드는 섞음 가능도를 보자:
+      가능도: y = 2일 때 0.4*N(y|θ, 1) + 0.6*N(y|θ+6, 1)
+      앞확률: θ ~ N(0, 4)
+      
+    뒤확률에 봉우리가 둘 있다. 중요도 표집 전략을 짜라.
+
+    가) 성분 하나짜리 제안 구현하기
+    나) 섞음 제안 구현하기
+    다) ESS 견주기
+    라) 뒤확률의 평균과 흩어짐 어림하기
+
+
+    SOLUTION:
+
+    Single-Component Proposal N(-2, 3):
+      ESS: 1853.3 (37.1%)
+      Posterior mean: 0.1304
+      Posterior std: 2.3837
+
+    Mixture Proposal:
+      Components: 0.4*N(-1,1.5) + 0.6*N(-7,1.5)
+      ESS: 449.0 (9.0%)
+      Posterior mean: 0.2663
+      Posterior std: 2.4415
+
+    Improvement: 0.24x better ESS with mixture proposal
+
+    Key insights:
+    - Multimodal posteriors need careful proposal design
+    - Single-component proposals may miss modes
+    - Mixture proposals can capture multiple modes
+    - ESS much higher with mixture proposal
+
+    ======================================================================
+    EXERCISE SUMMARY
+    ======================================================================
+
+    이 연습 문제가 다루는 것:
+
+    첫걸음 단계:
+    1. 기본 중요도 표집의 구현과 모임
+    2. 켤레 모형에서 앞확률 고름의 효과
+
+    중급 단계:
+    3. 표본 크기 정하기와 값-정확도의 주고받음
+    4. 나쁜 제안 진단하고 고치기
+
+    앞선 단계:
+    5. 흩어짐을 줄인 드문 일 어림
+    6. 섞음 제안으로 다루는, 봉우리가 여럿인 뒤확률
+
+    익히게 되는 핵심 솜씨:
+    - 중요도 표집을 밑바닥부터 구현하기
+    - ESS 셈하고 풀이하기
+    - 제안의 질 진단하기
+    - 알맞은 제안 고르기
+    - 흩어짐 줄이는 기법
+    - 복잡한 뒤확률 다루기
+
+    더 익히려면:
+    - 서로 다른 과녁 분포 시도하기
+    - 제안 집안을 이것저것 시험해 보기
+    - 중요도 표집과 MCMC 방법 견주기
+    - 맞춰 가는 중요도 표집의 여러 갈래 구현하기
+    - 참 베이즈 추론 문제에 쓰기
+
+    ```
+
 
 ## 2. 논의
 

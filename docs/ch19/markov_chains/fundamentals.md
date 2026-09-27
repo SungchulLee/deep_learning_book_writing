@@ -503,8 +503,10 @@ Rainy    0.417211  0.337593  0.245196
 
 50-Step Transition Matrix P^50:
 ----------------------------------------
-
-... (5 lines omitted)
+            Sunny    Cloudy     Rainy
+Sunny    0.418605  0.337210  0.244186
+Cloudy   0.418605  0.337210  0.244186
+Rainy    0.418605  0.337210  0.244186
 
 Distribution evolution starting from Sunny:
   n= 0: π = [1.000000, 0.000000, 0.000000]

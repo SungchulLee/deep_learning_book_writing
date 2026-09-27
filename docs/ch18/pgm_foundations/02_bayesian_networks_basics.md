@@ -41,6 +41,10 @@ from typing import Dict, List, Set, Tuple, Optional, Union
 from itertools import product
 import pandas as pd
 
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+np.random.seed(0)
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -740,56 +744,217 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (206줄)"
 
-```
-======================================================================
-BAYESIAN NETWORKS - BASICS
-======================================================================
+    ```
 
-Topics covered:
-1. Building Bayesian Networks
-2. Conditional Probability Tables (CPTs)
-3. Computing joint probabilities
-4. Forward sampling
+    ======================================================================
+    BAYESIAN NETWORKS - BASICS
+    ======================================================================
 
-======================================================================
-Example 1: Weather Network
-======================================================================
+    Topics covered:
+    1. Building Bayesian Networks
+    2. Conditional Probability Tables (CPTs)
+    3. Computing joint probabilities
+    4. Forward sampling
 
-Building Weather Network...
-----------------------------------------------------------------------
-Network built successfully!
-Variables: ['Cloudy', 'Sprinkler', 'Rain', 'WetGrass']
-Edges: [('Cloudy', 'Sprinkler'), ('Cloudy', 'Rain'), ('Sprinkler', 'WetGrass'), ('Rain', 'WetGrass')]
+    ======================================================================
+    Example 1: Weather Network
+    ======================================================================
 
-======================================================================
-CONDITIONAL PROBABILITY TABLES
-======================================================================
+    Building Weather Network...
+    ----------------------------------------------------------------------
+    Network built successfully!
+    Variables: ['Cloudy', 'Sprinkler', 'Rain', 'WetGrass']
+    Edges: [('Cloudy', 'Sprinkler'), ('Cloudy', 'Rain'), ('Sprinkler', 'WetGrass'), ('Rain', 'WetGrass')]
 
-P(Cloudy)
- Cloudy  Probability
-      0          0.5
-      1          0.5
-----------------------------------------------------------------------
+    ======================================================================
+    CONDITIONAL PROBABILITY TABLES
+    ======================================================================
 
-P(Sprinkler | Cloudy)
- Cloudy  Sprinkler  Probability
-      0          0          0.5
+    P(Cloudy)
+     Cloudy  Probability
+          0          0.5
+          1          0.5
+    ----------------------------------------------------------------------
 
-... (161 lines omitted)
+    P(Sprinkler | Cloudy)
+     Cloudy  Sprinkler  Probability
+          0          0          0.5
+          0          1          0.5
+          1          0          0.9
+          1          1          0.1
+    ----------------------------------------------------------------------
 
+    P(Rain | Cloudy)
+     Cloudy  Rain  Probability
+          0     0          0.8
+          0     1          0.2
+          1     0          0.2
+          1     1          0.8
+    ----------------------------------------------------------------------
 
-1. Bayesian Networks = DAG + CPTs
-2. CPTs specify P(Variable | Parents)
-3. Joint distribution: P(X1,...,Xn) = ∏ P(Xi | Parents(Xi))
-4. Forward sampling follows topological order
-5. Network structure encodes conditional independence
+    P(WetGrass | Rain, Sprinkler)
+     Rain  Sprinkler  WetGrass  Probability
+        0          0         0         1.00
+        0          0         1         0.00
+        0          1         0         0.10
+        0          1         1         0.90
+        1          0         0         0.10
+        1          0         1         0.90
+        1          1         0         0.01
+        1          1         1         0.99
+    ----------------------------------------------------------------------
 
-======================================================================
-Next: Learn about inference in Bayesian Networks!
-======================================================================
-```
+    ======================================================================
+    DEMONSTRATION: Computing Joint Probabilities
+    ======================================================================
+
+    Building Weather Network...
+    ----------------------------------------------------------------------
+    Network built successfully!
+    Variables: ['Cloudy', 'Sprinkler', 'Rain', 'WetGrass']
+    Edges: [('Cloudy', 'Sprinkler'), ('Cloudy', 'Rain'), ('Sprinkler', 'WetGrass'), ('Rain', 'WetGrass')]
+
+    Computing joint probabilities for different scenarios:
+    ----------------------------------------------------------------------
+
+    Scenario 1: Cloudy=No, Sprinkler=No, Rain=No, WetGrass=No
+    P(assignment) = 0.200000
+
+    Factorization:
+      = P(Cloudy=0)
+      × P(Sprinkler=0 | Cloudy=0)
+      × P(Rain=0 | Cloudy=0)
+      × P(WetGrass=0 | Sprinkler=0, Rain=0)
+
+    Scenario 2: Cloudy=Yes, Sprinkler=No, Rain=Yes, WetGrass=Yes
+    P(assignment) = 0.324000
+
+    Factorization:
+      = P(Cloudy=1)
+      × P(Sprinkler=0 | Cloudy=1)
+      × P(Rain=1 | Cloudy=1)
+      × P(WetGrass=1 | Sprinkler=0, Rain=1)
+
+    Scenario 3: Cloudy=Yes, Sprinkler=Yes, Rain=Yes, WetGrass=Yes
+    P(assignment) = 0.039600
+
+    Factorization:
+      = P(Cloudy=1)
+      × P(Sprinkler=1 | Cloudy=1)
+      × P(Rain=1 | Cloudy=1)
+      × P(WetGrass=1 | Sprinkler=1, Rain=1)
+
+    ======================================================================
+    DEMONSTRATION: Forward Sampling
+    ======================================================================
+
+    Building Weather Network...
+    ----------------------------------------------------------------------
+    Network built successfully!
+    Variables: ['Cloudy', 'Sprinkler', 'Rain', 'WetGrass']
+    Edges: [('Cloudy', 'Sprinkler'), ('Cloudy', 'Rain'), ('Sprinkler', 'WetGrass'), ('Rain', 'WetGrass')]
+
+    Generating 10000 samples from the network...
+
+    First 10 samples:
+     Cloudy  Sprinkler  Rain  WetGrass
+          1          0     1         1
+          1          1     0         0
+          0          1     0         1
+          1          0     1         1
+          0          1     0         1
+          1          0     1         1
+          0          1     0         1
+          1          0     1         1
+          0          0     0         0
+          1          0     1         1
+
+    ----------------------------------------------------------------------
+    Empirical vs. True Probabilities
+    ----------------------------------------------------------------------
+
+    P(Cloudy=1):
+      True: 0.500
+      Empirical: 0.497
+
+    P(WetGrass=1):
+      True: 0.647
+      Empirical: 0.641
+
+    P(Rain=1 | Cloudy=1):
+      True: 0.800
+      Empirical: 0.784
+
+    Note: With more samples, empirical probabilities converge to true values!
+
+    ======================================================================
+    Example 2: Student Network
+    ======================================================================
+
+    Building Student Network...
+    ----------------------------------------------------------------------
+    Student network built successfully!
+
+    ======================================================================
+    CONDITIONAL PROBABILITY TABLES
+    ======================================================================
+
+    P(Difficulty)
+     Difficulty  Probability
+              0          0.6
+              1          0.4
+    ----------------------------------------------------------------------
+
+    P(Intelligence)
+     Intelligence  Probability
+                0          0.7
+                1          0.3
+    ----------------------------------------------------------------------
+
+    P(Grade | Difficulty, Intelligence)
+     Difficulty  Intelligence  Grade  Probability
+              0             0      0         0.30
+              0             0      1         0.40
+              0             0      2         0.30
+              0             1      0         0.90
+              0             1      1         0.08
+              0             1      2         0.02
+              1             0      0         0.05
+              1             0      1         0.25
+              1             0      2         0.70
+              1             1      0         0.50
+              1             1      1         0.30
+              1             1      2         0.20
+    ----------------------------------------------------------------------
+
+    P(Letter | Grade)
+     Grade  Letter  Probability
+         0       0          0.1
+         0       1          0.9
+         1       0          0.4
+         1       1          0.6
+         2       0          0.9
+         2       1          0.1
+    ----------------------------------------------------------------------
+
+    ======================================================================
+    KEY TAKEAWAYS
+    ======================================================================
+
+    1. Bayesian Networks = DAG + CPTs
+    2. CPTs specify P(Variable | Parents)
+    3. Joint distribution: P(X1,...,Xn) = ∏ P(Xi | Parents(Xi))
+    4. Forward sampling follows topological order
+    5. Network structure encodes conditional independence
+
+    ======================================================================
+    Next: Learn about inference in Bayesian Networks!
+    ======================================================================
+
+    ```
+
 
 ## 2. 논의
 

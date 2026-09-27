@@ -776,56 +776,164 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (153줄)"
 
-```
-======================================================================
-PROBABILISTIC GRAPHICAL MODELS - FUNDAMENTALS
-======================================================================
+    ```
 
-This module introduces the core concepts of PGMs:
-1. Probability distributions and their operations
-2. Independence and conditional independence
-3. Graphical representations (directed graphs)
-4. D-separation
-5. Factorization of joint distributions
-======================================================================
-DEMONSTRATION: Independence vs Conditional Independence
-======================================================================
+    ======================================================================
+    PROBABILISTIC GRAPHICAL MODELS - FUNDAMENTALS
+    ======================================================================
 
-Example 1: Two Independent Coin Flips
-----------------------------------------------------------------------
-Joint distribution P(Coin1, Coin2):
-[[0.25 0.25]
- [0.25 0.25]]
+    This module introduces the core concepts of PGMs:
+    1. Probability distributions and their operations
+    2. Independence and conditional independence
+    3. Graphical representations (directed graphs)
+    4. D-separation
+    5. Factorization of joint distributions
+    ======================================================================
+    DEMONSTRATION: Independence vs Conditional Independence
+    ======================================================================
 
-Are Coin1 and Coin2 independent? True
+    Example 1: Two Independent Coin Flips
+    ----------------------------------------------------------------------
+    Joint distribution P(Coin1, Coin2):
+    [[0.25 0.25]
+     [0.25 0.25]]
 
-
-Example 2: Dependent Variables (Weather and Umbrella)
-----------------------------------------------------------------------
-Joint distribution P(Rain, Umbrella):
-[[0.5  0.05]
- [0.05 0.4 ]]
-
-Are Rain and Umbrella independent? False
+    Are Coin1 and Coin2 independent? True
 
 
-Example 3: Conditional Independence (Chain Structure)
+    Example 2: Dependent Variables (Weather and Umbrella)
+    ----------------------------------------------------------------------
+    Joint distribution P(Rain, Umbrella):
+    [[0.5  0.05]
+     [0.05 0.4 ]]
 
-... (108 lines omitted)
+    Are Rain and Umbrella independent? False
 
 
-5. These concepts are fundamental to all graphical models:
-   - Bayesian networks (next module)
-   - Markov random fields
-   - Factor graphs
-   - And many more...
+    Example 3: Conditional Independence (Chain Structure)
+    ----------------------------------------------------------------------
+    Structure: X -> Z -> Y
+    X and Y are conditionally independent given Z
 
-======================================================================
-Next: Learn how to build and use Bayesian networks!
-======================================================================
-```
+    Are X and Y independent? False
+    Are X and Y conditionally independent given Z? True
+
+    Intuition: Once we know Z, knowing X doesn't give us additional
+    information about Y. All the influence from X to Y goes through Z.
+
+
+    ======================================================================
+    DEMONSTRATION: D-Separation in Different Structures
+    ======================================================================
+
+    Structure 1: Chain (X -> Z -> Y)
+    ----------------------------------------------------------------------
+    Graph: X -> Z -> Y
+    X ⊥ Y | Z? True (should be True)
+    X ⊥ Y | ∅? False (should be False)
+
+    Intuition: Information flows from X to Y through Z.
+    If we observe Z, the path is blocked.
+
+
+    Structure 2: Fork (X <- Z -> Y)
+    ----------------------------------------------------------------------
+    Graph: X <- Z -> Y
+    X ⊥ Y | Z? True (should be True)
+    X ⊥ Y | ∅? False (should be False)
+
+    Intuition: Z is a common cause of X and Y.
+    If we observe Z, X and Y become independent.
+
+
+    Structure 3: Collider (X -> Z <- Y)
+    ----------------------------------------------------------------------
+    Graph: X -> Z <- Y
+    X ⊥ Y | Z? False (should be False)
+    X ⊥ Y | ∅? True (should be True)
+
+    Intuition: Z is a common effect of X and Y.
+    If we DON'T observe Z, X and Y are independent.
+    If we DO observe Z, X and Y become dependent (explaining away effect).
+
+
+    Visualizing all three structures...
+
+
+    ======================================================================
+    DEMONSTRATION: Factorization in Bayesian Networks
+    ======================================================================
+
+    Consider a simple alarm system:
+    - Burglary and Earthquake are independent events
+    - Alarm goes off if Burglary OR Earthquake occurs
+    - John and Mary call if they hear the Alarm
+
+    Structure: Burglary -> Alarm <- Earthquake
+               Alarm -> JohnCalls
+               Alarm -> MaryCalls
+
+
+    Naive joint distribution representation:
+    ----------------------------------------------------------------------
+    Without structure: P(B, E, A, J, M)
+    Number of parameters: 2^5 - 1 = 31 independent parameters
+    (We need to store probability for each of 32 possible combinations)
+
+
+    Factorized representation using Bayesian network:
+    ----------------------------------------------------------------------
+    P(B, E, A, J, M) = P(B) × P(E) × P(A|B,E) × P(J|A) × P(M|A)
+
+    Number of parameters:
+    - P(B): 1 parameter (probability of burglary)
+    - P(E): 1 parameter (probability of earthquake)
+    - P(A|B,E): 4 parameters (2×2 combinations of B and E)
+    - P(J|A): 2 parameters (2 values of A)
+    - P(M|A): 2 parameters (2 values of A)
+    Total: 1 + 1 + 4 + 2 + 2 = 10 parameters
+
+    Space savings: 31 vs 10 parameters (68% reduction!)
+
+
+    This factorization also enables efficient inference:
+    - We can compute conditional probabilities efficiently
+    - We can perform reasoning with incomplete information
+    - We can identify independence relationships
+
+
+    ======================================================================
+    KEY TAKEAWAYS
+    ======================================================================
+
+    1. PGMs provide a compact representation of joint distributions
+       using graph structure to encode independence relationships.
+
+    2. Independence and conditional independence are different:
+       - Independent: P(X,Y) = P(X)P(Y)
+       - Conditionally independent: P(X,Y|Z) = P(X|Z)P(Y|Z)
+
+    3. D-separation is a graphical test for conditional independence:
+       - Chain & Fork: Z blocks the path when observed
+       - Collider: Z blocks the path when NOT observed
+
+    4. Factorization enables efficient computation:
+       P(X1,...,Xn) = ∏ P(Xi | Parents(Xi))
+
+    5. These concepts are fundamental to all graphical models:
+       - Bayesian networks (next module)
+       - Markov random fields
+       - Factor graphs
+       - And many more...
+
+    ======================================================================
+    Next: Learn how to build and use Bayesian networks!
+    ======================================================================
+
+    ```
+
 
 ## 2. 논의
 

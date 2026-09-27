@@ -38,6 +38,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import eig
 
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+np.random.seed(0)
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -495,56 +499,119 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (108줄)"
 
-```
-STATIONARY DISTRIBUTION ANALYSIS
-=================================
+    ```
+    STATIONARY DISTRIBUTION ANALYSIS
+    =================================
 
-======================================================================
-Example 1: Computing Stationary Distribution - Method Comparison
-======================================================================
+    ======================================================================
+    Example 1: Computing Stationary Distribution - Method Comparison
+    ======================================================================
 
-Transition Matrix P:
-[[0.5 0.3 0.2]
- [0.2 0.6 0.2]
- [0.3 0.3 0.4]]
+    Transition Matrix P:
+    [[0.5 0.3 0.2]
+     [0.2 0.6 0.2]
+     [0.3 0.3 0.4]]
 
-----------------------------------------------------------------------
-Method 1: Eigenvector Approach
-Stationary distribution:
-  π(A) = 0.32142857
-  π(B) = 0.42857143
-  π(C) = 0.25000000
+    ----------------------------------------------------------------------
+    Method 1: Eigenvector Approach
+    Stationary distribution:
+      π(A) = 0.32142857
+      π(B) = 0.42857143
+      π(C) = 0.25000000
 
-Verification (π × P should equal π):
-  Max difference: 5.55e-17
+    Verification (π × P should equal π):
+      Max difference: 5.55e-17
 
-----------------------------------------------------------------------
-Method 2: Matrix Power Iteration
-Converged in 19 iterations
-Stationary distribution:
-  π(A) = 0.32142857
-  π(B) = 0.42857143
-  π(C) = 0.25000000
+    ----------------------------------------------------------------------
+    Method 2: Matrix Power Iteration
+    Converged in 19 iterations
+    Stationary distribution:
+      π(A) = 0.32142857
+      π(B) = 0.42857143
+      π(C) = 0.25000000
 
-----------------------------------------------------------------------
-Method 3: Linear System Solution
-Stationary distribution:
+    ----------------------------------------------------------------------
+    Method 3: Linear System Solution
+    Stationary distribution:
+      π(A) = 0.32142857
+      π(B) = 0.42857143
+      π(C) = 0.25000000
 
-... (65 lines omitted)
+    ----------------------------------------------------------------------
+    Method 4: Long-run Simulation (1,000,000 steps)
+    Stationary distribution:
+      π(A) = 0.32097100
+      π(B) = 0.42841900
+      π(C) = 0.25061000
 
-Convergence visualization saved
+    ----------------------------------------------------------------------
+    Comparison of All Methods:
+    State    Eigenvec     Power        Linear       Simulation  
+    A        0.32142857   0.32142857   0.32142857   0.32097100  
+    B        0.42857143   0.42857143   0.42857143   0.42841900  
+    C        0.25000000   0.25000000   0.25000000   0.25061000  
 
-======================================================================
-Key Theoretical Results:
-======================================================================
-1. Stationary distribution satisfies: π = π × P
-2. For ergodic chains: unique stationary distribution exists
-3. Ergodic = irreducible + aperiodic
-4. P^n converges to π for ergodic chains
-5. Long-run proportion in state j equals π_j
-```
+    ======================================================================
+    Example 2: Physical Interpretation
+    ======================================================================
+
+    Queue System Transition Matrix:
+                           Empty   1 Customer  2 Customers
+    Empty                 0.5000       0.4000       0.1000
+    1 Customer            0.3000       0.5000       0.2000
+    2 Customers           0.4000       0.4000       0.2000
+
+    Stationary Distribution (Long-run Proportions):
+      Empty          : π = 0.395062 (39.51%)
+      1 Customer     : π = 0.444444 (44.44%)
+      2 Customers    : π = 0.160494 (16.05%)
+
+    Interpretation:
+      In the long run:
+      - Queue is empty 39.5% of the time
+      - Queue has 1 customer 44.4% of the time
+      - Queue has 2 customers 16.0% of the time
+
+      Average number of customers in system: 0.7654
+
+    ======================================================================
+    Example 3: Ergodicity Analysis
+    ======================================================================
+
+    Case 1: Ergodic Chain
+      Is ergodic: True
+      P^1 has all positive entries
+      ⟹ Stationary distribution exists and is unique
+      Stationary: [0.32142857 0.42857143 0.25      ]
+
+    Case 2: Periodic Chain
+      Is ergodic: False
+      This chain cycles: A → B → C → A
+      Stationary distribution exists but convergence doesn't occur
+      Stationary: [0.33333333 0.33333333 0.33333333]
+
+    Case 3: Reducible Chain (Two Components)
+      Is ergodic: False
+      Two separate components: {0,1} and {2,3}
+      Stationary distribution depends on initial state
+
+    ======================================================================
+    Creating Convergence Visualization
+    ======================================================================
+    Convergence visualization saved
+
+    ======================================================================
+    Key Theoretical Results:
+    ======================================================================
+    1. Stationary distribution satisfies: π = π × P
+    2. For ergodic chains: unique stationary distribution exists
+    3. Ergodic = irreducible + aperiodic
+    4. P^n converges to π for ergodic chains
+    5. Long-run proportion in state j equals π_j
+    ```
+
 
 ## 2. 논의
 

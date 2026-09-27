@@ -34,6 +34,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+np.random.seed(0)
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -364,12 +368,12 @@ Transition Matrix:
 
 Simulating 20 steps...
 
-State sequence: ['Off', 'Off', 'On', 'Off', 'Off', 'Off', 'On', 'On', 'On', 'On', 'On', 'Off', 'Off', 'Off', 'On', 'On', 'Off', 'Off', 'Off', 'On', 'Off']
+State sequence: ['Off', 'Off', 'On', 'On', 'On', 'On', 'Off', 'Off', 'Off', 'Off', 'Off', 'On', 'On', 'Off', 'On', 'Off', 'Off', 'Off', 'On', 'Off', 'On']
 
 Estimating state distribution after 100 steps...
 Estimated probabilities:
-  P(Off) = 0.5724
-  P(On) = 0.4276
+  P(Off) = 0.5679
+  P(On) = 0.4321
 
 ============================================================
 Example 2: Three-State Weather Model
@@ -382,12 +386,19 @@ Cloudy  [0.3, 0.4, 0.3]
 Rainy   [0.1, 0.4, 0.5]
 
 Simulating 30 days starting from Sunny...
-Days  0- 9: ['Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny']
-Days 10-19: ['Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Cloudy', 'Rainy', 'Cloudy', 'Sunny']
-Days 20-29: ['Cloudy', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny']
+Days  0- 9: ['Sunny', 'Cloudy', 'Cloudy', 'Cloudy', 'Cloudy', 'Rainy', 'Rainy', 'Cloudy', 'Cloudy', 'Sunny']
+Days 10-19: ['Sunny', 'Cloudy', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Sunny', 'Cloudy']
+Days 20-29: ['Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Rainy', 'Rainy', 'Cloudy', 'Rainy', 'Rainy', 'Rainy']
+Days 30-30: ['Rainy']
 
-... (10 lines omitted)
+State frequencies in simulation:
+  Sunny  : 12/31 = 0.387
+  Cloudy : 10/31 = 0.323
+  Rainy  :  9/31 = 0.290
 
+============================================================
+Creating Visualization
+============================================================
 
 Visualization saved to markov_sequence.png
 
