@@ -48,8 +48,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent      # 저장소 뿌리
 DOCS = ROOT / "docs"
 
-# 초·밀리초·배속처럼 기계마다 달라지는 값이 든 줄
-TIMING = re.compile(r"\d+\.?\d*\s*(m?s\b|us\b|sec|초|x\b|배)|elapsed|time=|GB/s|MB")
+# 초·밀리초·배속처럼 기계마다 달라지는 값이 든 줄.
+#
+# 잰 시간끼리 **나눈 값**도 마찬가지다. `옮기는 값 / 계산 값: 0.07` 같은 줄은
+# 단위가 없어 눈에 잘 띄지 않지만 기계가 바뀌면 함께 바뀐다 — 그런 쪽의
+# 주장은 대개 "1보다 크면" 처럼 문턱으로 적혀 있지 값으로 적혀 있지 않다.
+TIMING = re.compile(r"\d+\.?\d*\s*(m?s\b|us\b|sec|초|x\b|배)|elapsed|time=|GB/s|MB"
+                    r"|옮기는 값|계산 값|처리량|초당|비율")
 
 # 출력이 길어 줄인 자리에 글쓴이가 손으로 적어 넣은 표시. 나올 리가 없다.
 ELIDED = re.compile(r"\(\s*\d+\s*lines? omitted\s*\)|^\s*\.\.\.\s*$|생략")
