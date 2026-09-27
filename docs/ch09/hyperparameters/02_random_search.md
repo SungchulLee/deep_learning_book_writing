@@ -29,6 +29,18 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import classification_report, accuracy_score
 from scipy.stats import randint, uniform
 import time
+
+
+def describe(dist):
+    """분포를 사람이 읽을 수 있게 적는다.
+
+    그냥 찍으면 `<... rv_discrete_frozen object at 0x1330c59a0>` 처럼 메모리
+    번지가 나온다. 번지는 돌릴 때마다 달라지므로 쪽에 실어 둘 수가 없고,
+    읽는 이에게 알려 주는 것도 없다. 이름과 구간을 적으면 둘 다 풀린다.
+    """
+    if hasattr(dist, "dist"):                  # scipy 의 얼린 분포
+        return f"{dist.dist.name}{dist.args}"
+    return str(dist)                           # 그냥 목록이면 그대로
 from utils import (load_sample_dataset, print_results,
                    plot_parameter_importance)
 
@@ -62,7 +74,7 @@ def random_search_random_forest():
     print("\nParameter Distributions:")
     print("-" * 40)
     for param, dist in param_distributions.items():
-        print(f"{param}: {dist}")
+        print(f"{param}: {describe(dist)}")
     print("-" * 40)
     
     # 모델을 만든다
@@ -148,7 +160,7 @@ def random_search_gradient_boosting():
     print("\nParameter Distributions:")
     print("-" * 40)
     for param, dist in param_distributions.items():
-        print(f"{param}: {dist}")
+        print(f"{param}: {describe(dist)}")
     print("-" * 40)
     
     # 모델을 만든다
@@ -384,57 +396,219 @@ if __name__ == "__main__":
     print("- Trade-off between number of iterations and computation time")
 ```
 
-**출력:**
+??? note "전체 출력 (209줄)"
 
-```
-============================================================
-HYPERPARAMETER TUNING: RANDOM SEARCH
-============================================================
+    ```
 
-Random Search samples parameter settings from specified
-distributions for a fixed number of iterations. It's often
-more efficient than Grid Search, especially for large parameter
-spaces.
+    ============================================================
+    HYPERPARAMETER TUNING: RANDOM SEARCH
+    ============================================================
 
-
-### Example 1: Random Forest with Random Search ###
-
-============================================================
-RANDOM SEARCH - RANDOM FOREST CLASSIFIER
-============================================================
-
-Parameter Distributions:
-----------------------------------------
-n_estimators: <scipy.stats._distn_infrastructure.rv_discrete_frozen object at 0x10600cc80>
-max_depth: [None, 10, 20, 30, 40, 50]
-min_samples_split: <scipy.stats._distn_infrastructure.rv_discrete_frozen object at 0x13742c650>
-min_samples_leaf: <scipy.stats._distn_infrastructure.rv_discrete_frozen object at 0x136ba6300>
-max_features: ['sqrt', 'log2', None]
-bootstrap: [True, False]
-----------------------------------------
-
-Will try 100 random combinations...
-Fitting 5 folds for each of 100 candidates, totalling 500 fits
-
-============================================================
-Random Search (Random Forest)
-============================================================
-  가장 좋은 조절 값:
-
-... (165 lines omitted)
-
-Score Difference: 0.0000
+    Random Search samples parameter settings from specified
+    distributions for a fixed number of iterations. It's often
+    more efficient than Grid Search, especially for large parameter
+    spaces.
 
 
-Random Search completed! Check the results above.
+    ### Example 1: Random Forest with Random Search ###
 
-Key Takeaways:
-- Random Search is more efficient for large parameter spaces
-- Can use continuous distributions (not just discrete grids)
-- Often finds good parameters with fewer iterations
-- Trade-off between number of iterations and computation time
-```
+    ============================================================
+    RANDOM SEARCH - RANDOM FOREST CLASSIFIER
+    ============================================================
 
+    Parameter Distributions:
+    ----------------------------------------
+    n_estimators: randint(50, 500)
+    max_depth: [None, 10, 20, 30, 40, 50]
+    min_samples_split: randint(2, 20)
+    min_samples_leaf: randint(1, 10)
+    max_features: ['sqrt', 'log2', None]
+    bootstrap: [True, False]
+    ----------------------------------------
+
+    Will try 100 random combinations...
+    Fitting 5 folds for each of 100 candidates, totalling 500 fits
+
+    ============================================================
+    Random Search (Random Forest)
+    ============================================================
+      가장 좋은 조절 값:
+        bootstrap                True
+        max_depth                30
+        max_features             sqrt
+        min_samples_leaf         8
+        min_samples_split        8
+        n_estimators             171
+      맞대 보기 점수 : 0.9753
+      시험 점수      : 0.9630
+      걸린 값        : 15.36초
+
+    Classification Report:
+                  precision    recall  f1-score   support
+
+               0       0.95      1.00      0.97        18
+               1       1.00      0.90      0.95        21
+               2       0.94      1.00      0.97        15
+
+        accuracy                           0.96        54
+       macro avg       0.96      0.97      0.96        54
+    weighted avg       0.97      0.96      0.96        54
+
+
+    Top 5 Parameter Combinations:
+    ------------------------------------------------------------
+
+    Rank 1: Score = 0.9753
+      bootstrap: True
+      max_depth: 30
+      max_features: sqrt
+      min_samples_leaf: 8
+      min_samples_split: 8
+      n_estimators: 171
+
+    Rank 36: Score = 0.9753
+      bootstrap: False
+      max_depth: 40
+      max_features: sqrt
+      min_samples_leaf: 1
+      min_samples_split: 3
+      n_estimators: 102
+
+    Rank 38: Score = 0.9753
+      bootstrap: True
+      max_depth: 20
+      max_features: sqrt
+      min_samples_leaf: 6
+      min_samples_split: 6
+      n_estimators: 421
+
+    Rank 39: Score = 0.9753
+      bootstrap: False
+      max_depth: 50
+      max_features: log2
+      min_samples_leaf: 1
+      min_samples_split: 10
+      n_estimators: 173
+
+    Rank 40: Score = 0.9753
+      bootstrap: True
+      max_depth: 50
+      max_features: sqrt
+      min_samples_leaf: 3
+      min_samples_split: 5
+      n_estimators: 452
+
+
+    ### Example 2: Gradient Boosting with Random Search ###
+
+    ============================================================
+    RANDOM SEARCH - GRADIENT BOOSTING CLASSIFIER
+    ============================================================
+
+    Parameter Distributions:
+    ----------------------------------------
+    n_estimators: randint(50, 300)
+    learning_rate: uniform(0.01, 0.3)
+    max_depth: randint(3, 10)
+    min_samples_split: randint(2, 20)
+    min_samples_leaf: randint(1, 10)
+    subsample: uniform(0.6, 0.4)
+    max_features: ['sqrt', 'log2', None]
+    ----------------------------------------
+
+    Will try 50 random combinations...
+    Fitting 5 folds for each of 50 candidates, totalling 250 fits
+
+    ============================================================
+    Random Search (Gradient Boosting)
+    ============================================================
+      가장 좋은 조절 값:
+        learning_rate            0.30569513623318023
+        max_depth                9
+        max_features             None
+        min_samples_leaf         8
+        min_samples_split        18
+        n_estimators             87
+        subsample                0.7471132530877013
+      맞대 보기 점수 : 0.7800
+      시험 점수      : 0.7400
+      걸린 값        : 27.65초
+
+    Classification Report:
+                  precision    recall  f1-score   support
+
+               0       0.66      0.74      0.70        50
+               1       0.75      0.75      0.75        51
+               2       0.84      0.73      0.78        49
+
+        accuracy                           0.74       150
+       macro avg       0.75      0.74      0.74       150
+    weighted avg       0.75      0.74      0.74       150
+
+
+
+    ### Example 3: Effect of Number of Iterations ###
+
+    ============================================================
+    COMPARING DIFFERENT NUMBER OF ITERATIONS
+    ============================================================
+
+    Trying different numbers of random combinations...
+
+    n_iter= 10: CV Score=0.9619, Test Score=0.8889, Time=0.62s
+    n_iter= 25: CV Score=0.9619, Test Score=0.8889, Time=1.36s
+    n_iter= 50: CV Score=0.9619, Test Score=0.8889, Time=2.96s
+    n_iter=100: CV Score=0.9619, Test Score=0.8889, Time=5.88s
+
+    ============================================================
+    Observations:
+    - More iterations generally lead to better scores
+    - But returns diminish after a certain point
+    - Balance between computational cost and performance
+    ============================================================
+
+
+    ### Example 4: Random vs Grid Search ###
+
+    ============================================================
+    RANDOM SEARCH VS GRID SEARCH
+    ============================================================
+
+    Grid Search will try all 96 combinations
+    Random Search will try 50 random combinations
+
+    --- Running Grid Search ---
+
+    --- Running Random Search ---
+
+    ============================================================
+    COMPARISON RESULTS
+    ============================================================
+
+    Grid Search:
+      Best CV Score: 0.9758
+      Test Score: 1.0000
+      Time: 5.42 seconds
+      Combinations tried: 96
+
+    Random Search:
+      Best CV Score: 0.9758
+      Test Score: 1.0000
+      Time: 3.45 seconds
+      Combinations tried: 50
+
+    Time Savings: 36.4%
+    Score Difference: 0.0000
+
+
+    Random Search completed! Check the results above.
+
+    Key Takeaways:
+    - Random Search is more efficient for large parameter spaces
+    - Can use continuous distributions (not just discrete grids)
+    - Often finds good parameters with fewer iterations
+    - Trade-off between number of iterations and computation time
+    ```
 ## 2. 논의
 
 `RandomizedSearchCV`를 쓰는 무작위 탐색은 격자를 모두 열거하는 대신 매개변수 분포에서 값을 뽑는다. Bergstra와 Bengio(2012)는 어떤 초매개변수가 다른 것보다 훨씬 중요할 때, 무작위 탐색이 중요한 매개변수의 서로 다른 값을 더 많이 살펴보므로 좋은 설정을 더 빨리 찾는다는 것을 보였다.

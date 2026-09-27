@@ -4,571 +4,729 @@
 
 ## 1. 코드
 
-```python
-"""
-================================================================================
-고급 01: 사용자 정의 손실 함수 만들기
-================================================================================
+??? note "코드 (515줄)"
 
-배울 내용:
-- 사용자 정의 손실을 언제 왜 만드는가
-- 사용자 정의 손실 함수를 구현하는 법
-- 여러 손실 항 결합하기
-- 불균형한 데이터를 위한 가중 손실
-- 초점 손실, 다이스 손실을 비롯한 고급 손실
-
-선수 지식:
-- 입문과 중급 튜토리얼을 마친다
-- PyTorch 자동 미분을 잘 이해한다
-
-소요 시간: 약 30분
-================================================================================
-"""
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-print("=" * 80)
-print("CREATING CUSTOM LOSS FUNCTIONS")
-print("=" * 80)
-
-# ============================================================================
-# 1절: 왜 사용자 정의 손실 함수를 만드는가?
-# ============================================================================
-print("\n" + "-" * 80)
-print("WHY CREATE CUSTOM LOSS FUNCTIONS?")
-print("-" * 80)
-
-print("""
-표준 손실(MSE, 교차 엔트로피)이 늘 목표에 들어맞지는 않는다.
-
-1. 분야에 특화된 목적:
-   • 의료 영상: 분할 겹침을 재는 다이스 손실
-   • 객체 탐지: 경계 상자를 위한 IoU 손실
-   • GAN: 적대적 손실
-
-2. 데이터 불균형 다루기:
-   • 어려운 예제를 위한 초점 손실
-   • 드문 클래스를 위한 가중 손실
-
-3. 다중 과제 학습:
-   • 여러 손실을 결합한다
-   • 서로 다른 목적의 균형을 잡는다
-
-4. 맞춤 제약:
-   • 물리 지식을 반영한 손실
-   • 특정 성질을 강제한다
-
-5. 연구와 실험:
-   • 새로운 착상을 시험한다
-   • 기존 방법을 개선한다
-""")
-
-# ============================================================================
-# 2절: 기본적인 사용자 정의 손실 - 함수 방식
-# ============================================================================
-print("\n" + "-" * 80)
-print("METHOD 1: Custom Loss as a Function")
-print("-" * 80)
-
-def custom_mse_loss(predictions, targets):
+    ```python
     """
-    평균제곱오차를 직접 구현하기
-    시연을 위한 것이다. 실무에서는 nn.MSELoss()를 쓰라!
+    ================================================================================
+    고급 01: 사용자 정의 손실 함수 만들기
+    ================================================================================
+
+    배울 내용:
+    - 사용자 정의 손실을 언제 왜 만드는가
+    - 사용자 정의 손실 함수를 구현하는 법
+    - 여러 손실 항 결합하기
+    - 불균형한 데이터를 위한 가중 손실
+    - 초점 손실, 다이스 손실을 비롯한 고급 손실
+
+    선수 지식:
+    - 입문과 중급 튜토리얼을 마친다
+    - PyTorch 자동 미분을 잘 이해한다
+
+    소요 시간: 약 30분
+    ================================================================================
     """
-    # 차이의 제곱 계산
-    squared_diff = (predictions - targets) ** 2
-    
-    # 평균 내기
-    loss = torch.mean(squared_diff)
-    
-    return loss
 
-# 시험해 보기
-pred = torch.tensor([1.0, 2.0, 3.0])
-target = torch.tensor([1.5, 2.5, 3.5])
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    # 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+    # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+    torch.manual_seed(0)
 
-loss = custom_mse_loss(pred, target)
-print(f"Custom MSE Loss: {loss.item():.4f}")
+    print("=" * 80)
+    print("CREATING CUSTOM LOSS FUNCTIONS")
+    print("=" * 80)
 
-# PyTorch의 MSE와 비교
-pytorch_loss = F.mse_loss(pred, target)
-print(f"PyTorch MSE Loss: {pytorch_loss.item():.4f}")
-print(f"Match: {torch.allclose(loss, pytorch_loss)}\n")
+    # ============================================================================
+    # 1절: 왜 사용자 정의 손실 함수를 만드는가?
+    # ============================================================================
+    print("\n" + "-" * 80)
+    print("WHY CREATE CUSTOM LOSS FUNCTIONS?")
+    print("-" * 80)
 
-print("KEY POINTS:")
-print("  ✓ Use torch operations (not numpy) for autograd")
-print("  ✓ Make sure output is a scalar (for backpropagation)")
-print("  ✓ All operations must be differentiable")
+    print("""
+    표준 손실(MSE, 교차 엔트로피)이 늘 목표에 들어맞지는 않는다.
 
-# ============================================================================
-# 3절: 사용자 정의 손실 - 클래스 방식 (권장)
-# ============================================================================
-print("\n" + "-" * 80)
-print("METHOD 2: Custom Loss as a Class (Recommended)")
-print("-" * 80)
+    1. 분야에 특화된 목적:
+       • 의료 영상: 분할 겹침을 재는 다이스 손실
+       • 객체 탐지: 경계 상자를 위한 IoU 손실
+       • GAN: 적대적 손실
 
-class WeightedMSELoss(nn.Module):
-    """
-    표본별 가중치를 쓰는 MSE 손실
-    어떤 표본이 다른 것보다 중요할 때 쓸모 있다
-    """
-    def __init__(self, reduction='mean'):
-        super(WeightedMSELoss, self).__init__()
-        self.reduction = reduction
-    
-    def forward(self, predictions, targets, weights=None):
+    2. 데이터 불균형 다루기:
+       • 어려운 예제를 위한 초점 손실
+       • 드문 클래스를 위한 가중 손실
+
+    3. 다중 과제 학습:
+       • 여러 손실을 결합한다
+       • 서로 다른 목적의 균형을 잡는다
+
+    4. 맞춤 제약:
+       • 물리 지식을 반영한 손실
+       • 특정 성질을 강제한다
+
+    5. 연구와 실험:
+       • 새로운 착상을 시험한다
+       • 기존 방법을 개선한다
+    """)
+
+    # ============================================================================
+    # 2절: 기본적인 사용자 정의 손실 - 함수 방식
+    # ============================================================================
+    print("\n" + "-" * 80)
+    print("METHOD 1: Custom Loss as a Function")
+    print("-" * 80)
+
+    def custom_mse_loss(predictions, targets):
         """
-        인수:
-            predictions: 모델의 예측
-            targets: 참값
-            weights: 표본별 가중치 (선택 사항, 기본값은 모두 1)
+        평균제곱오차를 직접 구현하기
+        시연을 위한 것이다. 실무에서는 nn.MSELoss()를 쓰라!
         """
-        # 제곱 오차 계산
-        squared_error = (predictions - targets) ** 2
-        
-        # 가중치가 주어지면 적용
-        if weights is not None:
-            squared_error = squared_error * weights
-        
-        # 줄이기 적용
-        if self.reduction == 'mean':
-            return torch.mean(squared_error)
-        elif self.reduction == 'sum':
-            return torch.sum(squared_error)
-        else:  # 'none'
-            return squared_error
+        # 차이의 제곱 계산
+        squared_diff = (predictions - targets) ** 2
 
-# 시험해 보기
-criterion = WeightedMSELoss()
+        # 평균 내기
+        loss = torch.mean(squared_diff)
 
-# 예: 뒤쪽 표본이 더 중요하다
-weights = torch.tensor([0.5, 1.0, 2.0])  # 중요도 올리기
-weighted_loss = criterion(pred, target, weights)
+        return loss
 
-print(f"Weighted MSE Loss: {weighted_loss.item():.4f}")
-print(f"Unweighted MSE Loss: {loss.item():.4f}")
-print(f"\nThe weighted loss is higher because we emphasized the later samples")
+    # 시험해 보기
+    pred = torch.tensor([1.0, 2.0, 3.0])
+    target = torch.tensor([1.5, 2.5, 3.5])
 
-# ============================================================================
-# 4절: 초점 손실 - 불균형 분류를 위해
-# ============================================================================
-print("\n" + "-" * 80)
-print("FOCAL LOSS: Handling Class Imbalance")
-print("-" * 80)
+    loss = custom_mse_loss(pred, target)
+    print(f"Custom MSE Loss: {loss.item():.4f}")
 
-print("""
-문제: 불균형한 데이터셋(예: 음성 95%, 양성 5%)
-  • 늘 음성으로 예측해도 정확도 95%가 나온다
-  • 분류하기 어려운 예제가 무시된다
-  
-해법: 초점 손실
-  • 쉬운 예제의 가중치를 낮춘다
-  • 어려운 예제에 집중한다
-  • Formula: FL = -α(1-p)^γ log(p)
-    여기서 γ는 초점의 세기를 정한다(흔히 2)
-""")
+    # PyTorch의 MSE와 비교
+    pytorch_loss = F.mse_loss(pred, target)
+    print(f"PyTorch MSE Loss: {pytorch_loss.item():.4f}")
+    print(f"Match: {torch.allclose(loss, pytorch_loss)}\n")
 
-class FocalLoss(nn.Module):
-    """
-    이진 분류를 위한 초점 손실
-    
-    논문: "Focal Loss for Dense Object Detection"
-    https://arxiv.org/abs/1708.02002
-    """
-    def __init__(self, alpha=0.25, gamma=2.0):
+    print("KEY POINTS:")
+    print("  ✓ Use torch operations (not numpy) for autograd")
+    print("  ✓ Make sure output is a scalar (for backpropagation)")
+    print("  ✓ All operations must be differentiable")
+
+    # ============================================================================
+    # 3절: 사용자 정의 손실 - 클래스 방식 (권장)
+    # ============================================================================
+    print("\n" + "-" * 80)
+    print("METHOD 2: Custom Loss as a Class (Recommended)")
+    print("-" * 80)
+
+    class WeightedMSELoss(nn.Module):
         """
-        인수:
-            alpha: 클래스 균형을 위한 가중 인수
-            gamma: 집중 매개변수 (클수록 어려운 예에 더 집중한다)
+        표본별 가중치를 쓰는 MSE 손실
+        어떤 표본이 다른 것보다 중요할 때 쓸모 있다
         """
-        super(FocalLoss, self).__init__()
-        self.alpha = alpha
-        self.gamma = gamma
-    
-    def forward(self, predictions, targets):
+        def __init__(self, reduction='mean'):
+            super(WeightedMSELoss, self).__init__()
+            self.reduction = reduction
+
+        def forward(self, predictions, targets, weights=None):
+            """
+            인수:
+                predictions: 모델의 예측
+                targets: 참값
+                weights: 표본별 가중치 (선택 사항, 기본값은 모두 1)
+            """
+            # 제곱 오차 계산
+            squared_error = (predictions - targets) ** 2
+
+            # 가중치가 주어지면 적용
+            if weights is not None:
+                squared_error = squared_error * weights
+
+            # 줄이기 적용
+            if self.reduction == 'mean':
+                return torch.mean(squared_error)
+            elif self.reduction == 'sum':
+                return torch.sum(squared_error)
+            else:  # 'none'
+                return squared_error
+
+    # 시험해 보기
+    criterion = WeightedMSELoss()
+
+    # 예: 뒤쪽 표본이 더 중요하다
+    weights = torch.tensor([0.5, 1.0, 2.0])  # 중요도 올리기
+    weighted_loss = criterion(pred, target, weights)
+
+    print(f"Weighted MSE Loss: {weighted_loss.item():.4f}")
+    print(f"Unweighted MSE Loss: {loss.item():.4f}")
+    print(f"\nThe weighted loss is higher because we emphasized the later samples")
+
+    # ============================================================================
+    # 4절: 초점 손실 - 불균형 분류를 위해
+    # ============================================================================
+    print("\n" + "-" * 80)
+    print("FOCAL LOSS: Handling Class Imbalance")
+    print("-" * 80)
+
+    print("""
+    문제: 불균형한 데이터셋(예: 음성 95%, 양성 5%)
+      • 늘 음성으로 예측해도 정확도 95%가 나온다
+      • 분류하기 어려운 예제가 무시된다
+
+    해법: 초점 손실
+      • 쉬운 예제의 가중치를 낮춘다
+      • 어려운 예제에 집중한다
+      • Formula: FL = -α(1-p)^γ log(p)
+        여기서 γ는 초점의 세기를 정한다(흔히 2)
+    """)
+
+    class FocalLoss(nn.Module):
         """
-        인수:
-            predictions: 모델의 예측 (로짓)
-            targets: 참값 (0 또는 1)
+        이진 분류를 위한 초점 손실
+
+        논문: "Focal Loss for Dense Object Detection"
+        https://arxiv.org/abs/1708.02002
         """
-        # 로짓을 확률로 바꾸기
-        probs = torch.sigmoid(predictions)
-        
-        # 초점 가중치 계산
-        # 양성 클래스: (1-p)^γ
-        # 음성 클래스: p^γ
-        focal_weight = torch.where(
-            targets == 1,
-            (1 - probs) ** self.gamma,
-            probs ** self.gamma
-        )
-        
-        # BCE 손실 계산
-        bce_loss = F.binary_cross_entropy_with_logits(
-            predictions, targets, reduction='none'
-        )
-        
-        # 초점 가중치와 alpha 적용
-        focal_loss = self.alpha * focal_weight * bce_loss
-        
-        return torch.mean(focal_loss)
+        def __init__(self, alpha=0.25, gamma=2.0):
+            """
+            인수:
+                alpha: 클래스 균형을 위한 가중 인수
+                gamma: 집중 매개변수 (클수록 어려운 예에 더 집중한다)
+            """
+            super(FocalLoss, self).__init__()
+            self.alpha = alpha
+            self.gamma = gamma
 
-# 초점 손실 시연
-print("\nExample: Imbalanced binary classification")
-print("Dataset: 90% class 0, 10% class 1\n")
+        def forward(self, predictions, targets):
+            """
+            인수:
+                predictions: 모델의 예측 (로짓)
+                targets: 참값 (0 또는 1)
+            """
+            # 로짓을 확률로 바꾸기
+            probs = torch.sigmoid(predictions)
 
-# 초점 손실 만들기
-focal_criterion = FocalLoss(alpha=0.25, gamma=2.0)
-bce_criterion = nn.BCEWithLogitsLoss()
+            # 초점 가중치 계산
+            # 양성 클래스: (1-p)^γ
+            # 음성 클래스: p^γ
+            focal_weight = torch.where(
+                targets == 1,
+                (1 - probs) ** self.gamma,
+                probs ** self.gamma
+            )
 
-# 예시 예측과 목푯값
-logits = torch.tensor([2.0, -1.5, -2.0, 3.0, -1.0])  # 모델의 날 출력
-targets = torch.tensor([1.0, 0.0, 0.0, 1.0, 0.0])     # 참 레이블
+            # BCE 손실 계산
+            bce_loss = F.binary_cross_entropy_with_logits(
+                predictions, targets, reduction='none'
+            )
 
-# 해석을 위해 로짓을 확률로 바꾸기
-probs = torch.sigmoid(logits)
+            # 초점 가중치와 alpha 적용
+            focal_loss = self.alpha * focal_weight * bce_loss
 
-print("Sample predictions and difficulty:")
-for i, (logit, prob, target) in enumerate(zip(logits, probs, targets)):
-    correct = (prob > 0.5 and target == 1) or (prob < 0.5 and target == 0)
-    confidence = prob if target == 1 else 1 - prob
-    difficulty = "EASY" if confidence > 0.8 else "HARD"
-    status = "✓" if correct else "✗"
-    
-    print(f"  Sample {i+1}: Target={int(target)}, Prob={prob:.3f}, "
-          f"{difficulty} {status}")
+            return torch.mean(focal_loss)
 
-# 손실 계산
-focal_loss = focal_criterion(logits, targets)
-bce_loss = bce_criterion(logits, targets)
+    # 초점 손실 시연
+    print("\nExample: Imbalanced binary classification")
+    print("Dataset: 90% class 0, 10% class 1\n")
 
-print(f"\nStandard BCE Loss: {bce_loss.item():.4f}")
-print(f"Focal Loss: {focal_loss.item():.4f}")
-print("\nFocal loss emphasizes the hard examples more!")
+    # 초점 손실 만들기
+    focal_criterion = FocalLoss(alpha=0.25, gamma=2.0)
+    bce_criterion = nn.BCEWithLogitsLoss()
 
-# ============================================================================
-# 5절: 다이스 손실 - 분할을 위해
-# ============================================================================
-print("\n" + "-" * 80)
-print("DICE LOSS: For Segmentation Tasks")
-print("-" * 80)
+    # 예시 예측과 목푯값
+    logits = torch.tensor([2.0, -1.5, -2.0, 3.0, -1.0])  # 모델의 날 출력
+    targets = torch.tensor([1.0, 0.0, 0.0, 1.0, 0.0])     # 참 레이블
 
-print("""
-다이스 계수: 예측과 참값이 얼마나 겹치는지 잰다
-  • 의료 영상 분할에 쓴다
-  • 범위: 0(전혀 안 겹침)부터 1(완전히 겹침)까지
-  • Formula: Dice = 2|A ∩ B| / (|A| + |B|)
-  
-다이스 손실 = 1 - 다이스 계수
-""")
+    # 해석을 위해 로짓을 확률로 바꾸기
+    probs = torch.sigmoid(logits)
 
-class DiceLoss(nn.Module):
-    """
-    이진 분할을 위한 다이스 손실
-    예측과 목푯값의 겹침을 잰다
-    """
-    def __init__(self, smooth=1.0):
+    print("Sample predictions and difficulty:")
+    for i, (logit, prob, target) in enumerate(zip(logits, probs, targets)):
+        correct = (prob > 0.5 and target == 1) or (prob < 0.5 and target == 0)
+        confidence = prob if target == 1 else 1 - prob
+        difficulty = "EASY" if confidence > 0.8 else "HARD"
+        status = "✓" if correct else "✗"
+
+        print(f"  Sample {i+1}: Target={int(target)}, Prob={prob:.3f}, "
+              f"{difficulty} {status}")
+
+    # 손실 계산
+    focal_loss = focal_criterion(logits, targets)
+    bce_loss = bce_criterion(logits, targets)
+
+    print(f"\nStandard BCE Loss: {bce_loss.item():.4f}")
+    print(f"Focal Loss: {focal_loss.item():.4f}")
+    print("\nFocal loss emphasizes the hard examples more!")
+
+    # ============================================================================
+    # 5절: 다이스 손실 - 분할을 위해
+    # ============================================================================
+    print("\n" + "-" * 80)
+    print("DICE LOSS: For Segmentation Tasks")
+    print("-" * 80)
+
+    print("""
+    다이스 계수: 예측과 참값이 얼마나 겹치는지 잰다
+      • 의료 영상 분할에 쓴다
+      • 범위: 0(전혀 안 겹침)부터 1(완전히 겹침)까지
+      • Formula: Dice = 2|A ∩ B| / (|A| + |B|)
+
+    다이스 손실 = 1 - 다이스 계수
+    """)
+
+    class DiceLoss(nn.Module):
         """
-        인수:
-            smooth: 0으로 나누는 것을 막는 평활 인수
+        이진 분할을 위한 다이스 손실
+        예측과 목푯값의 겹침을 잰다
         """
-        super(DiceLoss, self).__init__()
-        self.smooth = smooth
-    
-    def forward(self, predictions, targets):
+        def __init__(self, smooth=1.0):
+            """
+            인수:
+                smooth: 0으로 나누는 것을 막는 평활 인수
+            """
+            super(DiceLoss, self).__init__()
+            self.smooth = smooth
+
+        def forward(self, predictions, targets):
+            """
+            인수:
+                predictions: 모델의 예측 (시그모이드를 거친 0~1의 값)
+                targets: 참 이진 마스크 (0 또는 1)
+            """
+            # 텐서 펼치기
+            predictions = predictions.view(-1)
+            targets = targets.view(-1)
+
+            # 교집합과 합집합 계산
+            intersection = (predictions * targets).sum()
+            union = predictions.sum() + targets.sum()
+
+            # 다이스 계수
+            dice = (2. * intersection + self.smooth) / (union + self.smooth)
+
+            # 다이스 손실
+            return 1 - dice
+
+    # 다이스 손실 시연
+    print("\nExample: Binary segmentation")
+
+    # 간단한 5x5 "이미지" 만들기
+    true_mask = torch.tensor([
+        [0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0],
+        [0, 1, 1, 1, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0]
+    ], dtype=torch.float32)
+
+    # 좋은 예측 (참값에 가깝다)
+    good_pred = torch.tensor([
+        [0, 0, 0, 0, 0],
+        [0, 0.9, 0.8, 0.9, 0],
+        [0, 0.85, 0.95, 0.85, 0],
+        [0, 0.9, 0.8, 0.9, 0],
+        [0, 0, 0, 0, 0]
+    ], dtype=torch.float32)
+
+    # 나쁜 예측 (겹침이 적다)
+    bad_pred = torch.tensor([
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0.8, 0.9, 0.85, 0, 0],
+        [0.9, 0.8, 0.9, 0, 0],
+        [0, 0, 0, 0, 0]
+    ], dtype=torch.float32)
+
+    dice_criterion = DiceLoss()
+
+    good_loss = dice_criterion(good_pred, true_mask)
+    bad_loss = dice_criterion(bad_pred, true_mask)
+
+    print(f"Good prediction Dice Loss: {good_loss.item():.4f}")
+    print(f"Bad prediction Dice Loss: {bad_loss.item():.4f}")
+    print("\nLower loss = better overlap!")
+
+    # ============================================================================
+    # 6절: 여러 손실 결합하기
+    # ============================================================================
+    print("\n" + "-" * 80)
+    print("COMBINING MULTIPLE LOSS TERMS")
+    print("-" * 80)
+
+    print("""
+    여러 목적을 한꺼번에 최적화하고 싶을 때가 많다.
+      • 재구성 + 정칙화
+      • 과제 손실 + 일관성 손실
+      • 여러 과제 손실(다중 과제 학습)
+
+    접근: 손실의 가중합
+      전체 손실 = α₁ × 손실₁ + α₂ × 손실₂ + ...
+    """)
+
+    class CombinedLoss(nn.Module):
         """
-        인수:
-            predictions: 모델의 예측 (시그모이드를 거친 0~1의 값)
-            targets: 참 이진 마스크 (0 또는 1)
+        학습 가능하거나 고정된 가중치로 여러 손실 함수를 결합한다
         """
-        # 텐서 펼치기
-        predictions = predictions.view(-1)
-        targets = targets.view(-1)
-        
-        # 교집합과 합집합 계산
-        intersection = (predictions * targets).sum()
-        union = predictions.sum() + targets.sum()
-        
-        # 다이스 계수
-        dice = (2. * intersection + self.smooth) / (union + self.smooth)
-        
-        # 다이스 손실
-        return 1 - dice
+        def __init__(self, loss_weights=None):
+            """
+            인수:
+                loss_weights: 손실 이름을 가중치에 대응시키는 사전
+                             None이면 가중치를 모두 같게 한다
+            """
+            super(CombinedLoss, self).__init__()
+            self.loss_weights = loss_weights or {}
 
-# 다이스 손실 시연
-print("\nExample: Binary segmentation")
+            # 개별 손실 정의
+            self.mse_loss = nn.MSELoss()
+            self.l1_loss = nn.L1Loss()
 
-# 간단한 5x5 "이미지" 만들기
-true_mask = torch.tensor([
-    [0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 0],
-    [0, 1, 1, 1, 0],
-    [0, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0]
-], dtype=torch.float32)
+        def forward(self, predictions, targets):
+            """손실의 가중 결합을 계산한다"""
+            # 가중치 얻기 (기본값 1.0)
+            w_mse = self.loss_weights.get('mse', 1.0)
+            w_l1 = self.loss_weights.get('l1', 1.0)
 
-# 좋은 예측 (참값에 가깝다)
-good_pred = torch.tensor([
-    [0, 0, 0, 0, 0],
-    [0, 0.9, 0.8, 0.9, 0],
-    [0, 0.85, 0.95, 0.85, 0],
-    [0, 0.9, 0.8, 0.9, 0],
-    [0, 0, 0, 0, 0]
-], dtype=torch.float32)
+            # 개별 손실 계산
+            mse = self.mse_loss(predictions, targets)
+            l1 = self.l1_loss(predictions, targets)
 
-# 나쁜 예측 (겹침이 적다)
-bad_pred = torch.tensor([
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0.8, 0.9, 0.85, 0, 0],
-    [0.9, 0.8, 0.9, 0, 0],
-    [0, 0, 0, 0, 0]
-], dtype=torch.float32)
+            # 합친다
+            total_loss = w_mse * mse + w_l1 * l1
 
-dice_criterion = DiceLoss()
+            # 전체와 성분을 돌려준다 (기록에 쓸모 있다)
+            return total_loss, {'mse': mse.item(), 'l1': l1.item()}
 
-good_loss = dice_criterion(good_pred, true_mask)
-bad_loss = dice_criterion(bad_pred, true_mask)
+    # 결합된 손실 시험
+    combined_criterion = CombinedLoss(loss_weights={'mse': 0.7, 'l1': 0.3})
 
-print(f"Good prediction Dice Loss: {good_loss.item():.4f}")
-print(f"Bad prediction Dice Loss: {bad_loss.item():.4f}")
-print("\nLower loss = better overlap!")
+    pred = torch.tensor([1.0, 2.0, 3.0])
+    target = torch.tensor([1.5, 2.5, 3.5])
 
-# ============================================================================
-# 6절: 여러 손실 결합하기
-# ============================================================================
-print("\n" + "-" * 80)
-print("COMBINING MULTIPLE LOSS TERMS")
-print("-" * 80)
+    total_loss, components = combined_criterion(pred, target)
 
-print("""
-여러 목적을 한꺼번에 최적화하고 싶을 때가 많다.
-  • 재구성 + 정칙화
-  • 과제 손실 + 일관성 손실
-  • 여러 과제 손실(다중 과제 학습)
-  
-접근: 손실의 가중합
-  전체 손실 = α₁ × 손실₁ + α₂ × 손실₂ + ...
-""")
+    print("\nCombined Loss Example:")
+    print(f"  MSE component: {components['mse']:.4f} (weight: 0.7)")
+    print(f"  L1 component: {components['l1']:.4f} (weight: 0.3)")
+    print(f"  Total loss: {total_loss.item():.4f}")
 
-class CombinedLoss(nn.Module):
-    """
-    학습 가능하거나 고정된 가중치로 여러 손실 함수를 결합한다
-    """
-    def __init__(self, loss_weights=None):
-        """
-        인수:
-            loss_weights: 손실 이름을 가중치에 대응시키는 사전
-                         None이면 가중치를 모두 같게 한다
-        """
-        super(CombinedLoss, self).__init__()
-        self.loss_weights = loss_weights or {}
-        
-        # 개별 손실 정의
-        self.mse_loss = nn.MSELoss()
-        self.l1_loss = nn.L1Loss()
-    
-    def forward(self, predictions, targets):
-        """손실의 가중 결합을 계산한다"""
-        # 가중치 얻기 (기본값 1.0)
-        w_mse = self.loss_weights.get('mse', 1.0)
-        w_l1 = self.loss_weights.get('l1', 1.0)
-        
-        # 개별 손실 계산
-        mse = self.mse_loss(predictions, targets)
-        l1 = self.l1_loss(predictions, targets)
-        
-        # 합친다
-        total_loss = w_mse * mse + w_l1 * l1
-        
-        # 전체와 성분을 돌려준다 (기록에 쓸모 있다)
-        return total_loss, {'mse': mse.item(), 'l1': l1.item()}
+    print("\nWHY COMBINE LOSSES?")
+    print("  • MSE: Smooth gradients, penalizes large errors")
+    print("  • L1: Robust to outliers")
+    print("  • Combination: Balance both properties!")
 
-# 결합된 손실 시험
-combined_criterion = CombinedLoss(loss_weights={'mse': 0.7, 'l1': 0.3})
+    # ============================================================================
+    # 7절: 사용자 정의 손실의 좋은 관행
+    # ============================================================================
+    print("\n" + "-" * 80)
+    print("BEST PRACTICES FOR CUSTOM LOSSES")
+    print("-" * 80)
 
-pred = torch.tensor([1.0, 2.0, 3.0])
-target = torch.tensor([1.5, 2.5, 3.5])
+    print("""
+    ✓ DO:
+      1. 손실에는 nn.Module 기반 클래스를 쓴다
+      2. 모든 연산을 PyTorch로 한다(넘파이 말고)
+      3. 작은 예제로 기울기 흐름을 시험한다
+      4. 수치 안정성을 더한다(완충 항, 값 제한)
+      5. 손실 함수를 잘 문서화한다
+      6. 기본 초매개변수를 제공한다
+      7. 역전파를 위해 스칼라를 돌려준다
+      8. 수치 안정성을 살핀다(log(0)과 0으로 나누기를 피한다)
 
-total_loss, components = combined_criterion(pred, target)
+    ✗ DON'T:
+      1. 손실 안에서 .item()을 쓴다(기울기가 끊긴다)
+      2. 제자리 연산을 함부로 쓴다
+      3. 경계 상황 처리를 잊는다
+      4. 손실이 텐서가 아닌 상수에 의존하게 만든다
+      5. 기울기가 없는 연산을 쓴다
 
-print("\nCombined Loss Example:")
-print(f"  MSE component: {components['mse']:.4f} (weight: 0.7)")
-print(f"  L1 component: {components['l1']:.4f} (weight: 0.3)")
-print(f"  Total loss: {total_loss.item():.4f}")
+    손실 시험하기:
+      1. 올바른 모양(스칼라)을 돌려주는지 확인한다
+      2. 기울기가 흐르는지 확인한다: loss.backward()
+      3. 이미 아는 입력과 출력으로 시험한다
+      4. 참조 구현이 있으면 견주어 본다
+      5. 경계 상황에서 수치 안정성을 확인한다
+    """)
 
-print("\nWHY COMBINE LOSSES?")
-print("  • MSE: Smooth gradients, penalizes large errors")
-print("  • L1: Robust to outliers")
-print("  • Combination: Balance both properties!")
+    # 예: 사용자 정의 손실 시험하기
+    def test_custom_loss():
+        """사용자 정의 손실을 시험하는 틀"""
+        print("\nTesting Custom Loss:")
 
-# ============================================================================
-# 7절: 사용자 정의 손실의 좋은 관행
-# ============================================================================
-print("\n" + "-" * 80)
-print("BEST PRACTICES FOR CUSTOM LOSSES")
-print("-" * 80)
+        # 1. 손실 만들기
+        loss_fn = WeightedMSELoss()
 
-print("""
-✓ DO:
-  1. 손실에는 nn.Module 기반 클래스를 쓴다
-  2. 모든 연산을 PyTorch로 한다(넘파이 말고)
-  3. 작은 예제로 기울기 흐름을 시험한다
-  4. 수치 안정성을 더한다(완충 항, 값 제한)
-  5. 손실 함수를 잘 문서화한다
-  6. 기본 초매개변수를 제공한다
-  7. 역전파를 위해 스칼라를 돌려준다
-  8. 수치 안정성을 살핀다(log(0)과 0으로 나누기를 피한다)
+        # 2. 기울기를 갖는 시험 입력 만들기
+        pred = torch.randn(10, requires_grad=True)
+        target = torch.randn(10)
 
-✗ DON'T:
-  1. 손실 안에서 .item()을 쓴다(기울기가 끊긴다)
-  2. 제자리 연산을 함부로 쓴다
-  3. 경계 상황 처리를 잊는다
-  4. 손실이 텐서가 아닌 상수에 의존하게 만든다
-  5. 기울기가 없는 연산을 쓴다
+        # 3. 손실 계산
+        loss = loss_fn(pred, target)
 
-손실 시험하기:
-  1. 올바른 모양(스칼라)을 돌려주는지 확인한다
-  2. 기울기가 흐르는지 확인한다: loss.backward()
-  3. 이미 아는 입력과 출력으로 시험한다
-  4. 참조 구현이 있으면 견주어 본다
-  5. 경계 상황에서 수치 안정성을 확인한다
-""")
+        # 4. 모양 확인
+        assert loss.dim() == 0, "Loss should be scalar!"
+        print(f"  ✓ Shape check passed: {loss.shape}")
 
-# 예: 사용자 정의 손실 시험하기
-def test_custom_loss():
-    """사용자 정의 손실을 시험하는 틀"""
-    print("\nTesting Custom Loss:")
-    
-    # 1. 손실 만들기
-    loss_fn = WeightedMSELoss()
-    
-    # 2. 기울기를 갖는 시험 입력 만들기
-    pred = torch.randn(10, requires_grad=True)
-    target = torch.randn(10)
-    
-    # 3. 손실 계산
-    loss = loss_fn(pred, target)
-    
-    # 4. 모양 확인
-    assert loss.dim() == 0, "Loss should be scalar!"
-    print(f"  ✓ Shape check passed: {loss.shape}")
-    
-    # 5. 역전파 시험
-    loss.backward()
-    assert pred.grad is not None, "Gradients should flow!"
-    print(f"  ✓ Gradient check passed")
-    
-    # 6. 수치 안정성 시험
-    edge_pred = torch.tensor([0.0, 1e-10, 1e10])
-    edge_target = torch.tensor([0.0, 0.0, 1e10])
-    edge_loss = loss_fn(edge_pred, edge_target)
-    assert not torch.isnan(edge_loss), "Loss should handle edge cases!"
-    print(f"  ✓ Numerical stability check passed")
-    
-    print("  All tests passed! ✓\n")
+        # 5. 역전파 시험
+        loss.backward()
+        assert pred.grad is not None, "Gradients should flow!"
+        print(f"  ✓ Gradient check passed")
 
-test_custom_loss()
+        # 6. 수치 안정성 시험
+        edge_pred = torch.tensor([0.0, 1e-10, 1e10])
+        edge_target = torch.tensor([0.0, 0.0, 1e10])
+        edge_loss = loss_fn(edge_pred, edge_target)
+        assert not torch.isnan(edge_loss), "Loss should handle edge cases!"
+        print(f"  ✓ Numerical stability check passed")
 
-# ============================================================================
-# 요약
-# ============================================================================
-print("\n" + "=" * 80)
-print("KEY TAKEAWAYS")
-print("=" * 80)
-print("""
-1. 표준 손실이 맞지 않을 때 맞춤 손실을 만든다.
-   • 분야에 특화된 목적
-   • 데이터 불균형 다루기
-   • 다중 과제 학습
-   • 연구 실험
+        print("  All tests passed! ✓\n")
 
-2. 두 가지 접근:
-   • 함수: 단순하며 빠른 실험에 알맞다
-   • 클래스(nn.Module): 전문적이고 설정 가능하며 권장된다
+    test_custom_loss()
 
-3. 고급 손실 예:
-   • 초점 손실: 불균형 분류용
-   • 다이스 손실: 분할 겹침용
-   • 결합 손실: 여러 목적
+    # ============================================================================
+    # 요약
+    # ============================================================================
+    print("\n" + "=" * 80)
+    print("KEY TAKEAWAYS")
+    print("=" * 80)
+    print("""
+    1. 표준 손실이 맞지 않을 때 맞춤 손실을 만든다.
+       • 분야에 특화된 목적
+       • 데이터 불균형 다루기
+       • 다중 과제 학습
+       • 연구 실험
 
-4. 구현 요령:
-   • PyTorch 연산만 쓴다
-   • 역전파를 위해 스칼라를 돌려준다
-   • 수치 안정성을 더한다
-   • 철저히 시험한다
+    2. 두 가지 접근:
+       • 함수: 단순하며 빠른 실험에 알맞다
+       • 클래스(nn.Module): 전문적이고 설정 가능하며 권장된다
 
-5. 흔한 패턴:
-   • 중요도를 반영한 가중 손실
-   • 여러 항 결합
-   • 클래스 균형 가중치
-   • 어려운 예제 캐기
+    3. 고급 손실 예:
+       • 초점 손실: 불균형 분류용
+       • 다이스 손실: 분할 겹침용
+       • 결합 손실: 여러 목적
 
-다음 단계:
-→ 불균형 데이터셋에 초점 손실을 구현해 보라
-→ 손실 조합을 실험해 보라
-→ 문제에 맞는 분야 특화 손실을 만들어 보라
-→ 새로운 손실 함수를 다룬 논문을 살펴보라
-""")
-print("=" * 80)
+    4. 구현 요령:
+       • PyTorch 연산만 쓴다
+       • 역전파를 위해 스칼라를 돌려준다
+       • 수치 안정성을 더한다
+       • 철저히 시험한다
+
+    5. 흔한 패턴:
+       • 중요도를 반영한 가중 손실
+       • 여러 항 결합
+       • 클래스 균형 가중치
+       • 어려운 예제 캐기
+
+    다음 단계:
+    → 불균형 데이터셋에 초점 손실을 구현해 보라
+    → 손실 조합을 실험해 보라
+    → 문제에 맞는 분야 특화 손실을 만들어 보라
+    → 새로운 손실 함수를 다룬 논문을 살펴보라
+    """)
+    print("=" * 80)
 
 
-if __name__ == "__main__":
-    pass
-```
-
-**출력:**
-
-```
-================================================================================
-CREATING CUSTOM LOSS FUNCTIONS
-================================================================================
-
---------------------------------------------------------------------------------
-WHY CREATE CUSTOM LOSS FUNCTIONS?
---------------------------------------------------------------------------------
-
-표준 손실(MSE, 교차 엔트로피)이 늘 목표에 들어맞지는 않는다.
-
-1. 분야에 특화된 목적:
-   • 의료 영상: 분할 겹침을 재는 다이스 손실
-   • 객체 탐지: 경계 상자를 위한 IoU 손실
-   • GAN: 적대적 손실
-
-2. 데이터 불균형 다루기:
-   • 어려운 예제를 위한 초점 손실
-   • 드문 클래스를 위한 가중 손실
-
-3. 다중 과제 학습:
-   • 여러 손실을 결합한다
-   • 서로 다른 목적의 균형을 잡는다
-
-4. 맞춤 제약:
-   • 물리 지식을 반영한 손실
-   • 특정 성질을 강제한다
-
-5. 연구와 실험:
-   • 새로운 착상을 시험한다
-   • 기존 방법을 개선한다
+    if __name__ == "__main__":
+        pass
+    ```
 
 
---------------------------------------------------------------------------------
+??? note "전체 출력 (197줄)"
 
-... (154 lines omitted)
+    ```
+    ================================================================================
+    CREATING CUSTOM LOSS FUNCTIONS
+    ================================================================================
 
-   • 클래스 균형 가중치
-   • 어려운 예제 캐기
+    --------------------------------------------------------------------------------
+    WHY CREATE CUSTOM LOSS FUNCTIONS?
+    --------------------------------------------------------------------------------
 
-다음 단계:
-→ 불균형 데이터셋에 초점 손실을 구현해 보라
-→ 손실 조합을 실험해 보라
-→ 문제에 맞는 분야 특화 손실을 만들어 보라
-→ 새로운 손실 함수를 다룬 논문을 살펴보라
+    표준 손실(MSE, 교차 엔트로피)이 늘 목표에 들어맞지는 않는다.
 
-================================================================================
-```
+    1. 분야에 특화된 목적:
+       • 의료 영상: 분할 겹침을 재는 다이스 손실
+       • 객체 탐지: 경계 상자를 위한 IoU 손실
+       • GAN: 적대적 손실
+
+    2. 데이터 불균형 다루기:
+       • 어려운 예제를 위한 초점 손실
+       • 드문 클래스를 위한 가중 손실
+
+    3. 다중 과제 학습:
+       • 여러 손실을 결합한다
+       • 서로 다른 목적의 균형을 잡는다
+
+    4. 맞춤 제약:
+       • 물리 지식을 반영한 손실
+       • 특정 성질을 강제한다
+
+    5. 연구와 실험:
+       • 새로운 착상을 시험한다
+       • 기존 방법을 개선한다
+
+
+    --------------------------------------------------------------------------------
+    METHOD 1: Custom Loss as a Function
+    --------------------------------------------------------------------------------
+    Custom MSE Loss: 0.2500
+    PyTorch MSE Loss: 0.2500
+    Match: True
+
+    KEY POINTS:
+      ✓ Use torch operations (not numpy) for autograd
+      ✓ Make sure output is a scalar (for backpropagation)
+      ✓ All operations must be differentiable
+
+    --------------------------------------------------------------------------------
+    METHOD 2: Custom Loss as a Class (Recommended)
+    --------------------------------------------------------------------------------
+    Weighted MSE Loss: 0.2917
+    Unweighted MSE Loss: 0.2500
+
+    The weighted loss is higher because we emphasized the later samples
+
+    --------------------------------------------------------------------------------
+    FOCAL LOSS: Handling Class Imbalance
+    --------------------------------------------------------------------------------
+
+    문제: 불균형한 데이터셋(예: 음성 95%, 양성 5%)
+      • 늘 음성으로 예측해도 정확도 95%가 나온다
+      • 분류하기 어려운 예제가 무시된다
+      
+    해법: 초점 손실
+      • 쉬운 예제의 가중치를 낮춘다
+      • 어려운 예제에 집중한다
+      • Formula: FL = -α(1-p)^γ log(p)
+        여기서 γ는 초점의 세기를 정한다(흔히 2)
+
+
+    Example: Imbalanced binary classification
+    Dataset: 90% class 0, 10% class 1
+
+    Sample predictions and difficulty:
+      Sample 1: Target=1, Prob=0.881, EASY ✓
+      Sample 2: Target=0, Prob=0.182, EASY ✓
+      Sample 3: Target=0, Prob=0.119, EASY ✓
+      Sample 4: Target=1, Prob=0.953, EASY ✓
+      Sample 5: Target=0, Prob=0.269, HARD ✓
+
+    Standard BCE Loss: 0.1634
+    Focal Loss: 0.0017
+
+    Focal loss emphasizes the hard examples more!
+
+    --------------------------------------------------------------------------------
+    DICE LOSS: For Segmentation Tasks
+    --------------------------------------------------------------------------------
+
+    다이스 계수: 예측과 참값이 얼마나 겹치는지 잰다
+      • 의료 영상 분할에 쓴다
+      • 범위: 0(전혀 안 겹침)부터 1(완전히 겹침)까지
+      • Formula: Dice = 2|A ∩ B| / (|A| + |B|)
+      
+    다이스 손실 = 1 - 다이스 계수
+
+
+    Example: Binary segmentation
+    Good prediction Dice Loss: 0.0644
+    Bad prediction Dice Loss: 0.4785
+
+    Lower loss = better overlap!
+
+    --------------------------------------------------------------------------------
+    COMBINING MULTIPLE LOSS TERMS
+    --------------------------------------------------------------------------------
+
+    여러 목적을 한꺼번에 최적화하고 싶을 때가 많다.
+      • 재구성 + 정칙화
+      • 과제 손실 + 일관성 손실
+      • 여러 과제 손실(다중 과제 학습)
+      
+    접근: 손실의 가중합
+      전체 손실 = α₁ × 손실₁ + α₂ × 손실₂ + ...
+
+
+    Combined Loss Example:
+      MSE component: 0.2500 (weight: 0.7)
+      L1 component: 0.5000 (weight: 0.3)
+      Total loss: 0.3250
+
+    WHY COMBINE LOSSES?
+      • MSE: Smooth gradients, penalizes large errors
+      • L1: Robust to outliers
+      • Combination: Balance both properties!
+
+    --------------------------------------------------------------------------------
+    BEST PRACTICES FOR CUSTOM LOSSES
+    --------------------------------------------------------------------------------
+
+    ✓ DO:
+      1. 손실에는 nn.Module 기반 클래스를 쓴다
+      2. 모든 연산을 PyTorch로 한다(넘파이 말고)
+      3. 작은 예제로 기울기 흐름을 시험한다
+      4. 수치 안정성을 더한다(완충 항, 값 제한)
+      5. 손실 함수를 잘 문서화한다
+      6. 기본 초매개변수를 제공한다
+      7. 역전파를 위해 스칼라를 돌려준다
+      8. 수치 안정성을 살핀다(log(0)과 0으로 나누기를 피한다)
+
+    ✗ DON'T:
+      1. 손실 안에서 .item()을 쓴다(기울기가 끊긴다)
+      2. 제자리 연산을 함부로 쓴다
+      3. 경계 상황 처리를 잊는다
+      4. 손실이 텐서가 아닌 상수에 의존하게 만든다
+      5. 기울기가 없는 연산을 쓴다
+
+    손실 시험하기:
+      1. 올바른 모양(스칼라)을 돌려주는지 확인한다
+      2. 기울기가 흐르는지 확인한다: loss.backward()
+      3. 이미 아는 입력과 출력으로 시험한다
+      4. 참조 구현이 있으면 견주어 본다
+      5. 경계 상황에서 수치 안정성을 확인한다
+
+
+    Testing Custom Loss:
+      ✓ Shape check passed: torch.Size([])
+      ✓ Gradient check passed
+      ✓ Numerical stability check passed
+      All tests passed! ✓
+
+
+    ================================================================================
+    KEY TAKEAWAYS
+    ================================================================================
+
+    1. 표준 손실이 맞지 않을 때 맞춤 손실을 만든다.
+       • 분야에 특화된 목적
+       • 데이터 불균형 다루기
+       • 다중 과제 학습
+       • 연구 실험
+
+    2. 두 가지 접근:
+       • 함수: 단순하며 빠른 실험에 알맞다
+       • 클래스(nn.Module): 전문적이고 설정 가능하며 권장된다
+
+    3. 고급 손실 예:
+       • 초점 손실: 불균형 분류용
+       • 다이스 손실: 분할 겹침용
+       • 결합 손실: 여러 목적
+
+    4. 구현 요령:
+       • PyTorch 연산만 쓴다
+       • 역전파를 위해 스칼라를 돌려준다
+       • 수치 안정성을 더한다
+       • 철저히 시험한다
+
+    5. 흔한 패턴:
+       • 중요도를 반영한 가중 손실
+       • 여러 항 결합
+       • 클래스 균형 가중치
+       • 어려운 예제 캐기
+
+    다음 단계:
+    → 불균형 데이터셋에 초점 손실을 구현해 보라
+    → 손실 조합을 실험해 보라
+    → 문제에 맞는 분야 특화 손실을 만들어 보라
+    → 새로운 손실 함수를 다룬 논문을 살펴보라
+
+    ================================================================================
+    ```
+
 
 ## 2. 논의
 

@@ -222,4 +222,6 @@ if __name__ == "__main__":
         print(__doc__)
         sys.exit(0)
     for rel in args:
-        print("  " + fix(rel, timeout))
+        # flush 를 해야 한다. 안 하면 파일로 돌릴 때 블록 단위로 모아 두어,
+        # 이미 여러 쪽을 끝냈는데도 로그가 비어 보여 멈춘 것처럼 읽힌다.
+        print("  " + fix(rel, timeout), flush=True)

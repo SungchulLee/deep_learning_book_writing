@@ -250,56 +250,127 @@ if __name__ == "__main__":
     print("- Start with coarse grid, then refine around best values")
 ```
 
-**출력:**
+??? note "전체 출력 (116줄)"
 
-```
-============================================================
-HYPERPARAMETER TUNING: GRID SEARCH
-============================================================
+    ```
 
-Grid Search systematically works through multiple combinations
-of parameter values, cross-validating as it goes to determine
-which combination gives the best performance.
+    ============================================================
+    HYPERPARAMETER TUNING: GRID SEARCH
+    ============================================================
 
-
-### Example 1: Random Forest ###
-
-============================================================
-GRID SEARCH - RANDOM FOREST CLASSIFIER
-============================================================
-
-격자 살펴보기
-  n_estimators             3가지  [50, 100, 200]
-  max_depth                4가지  [None, 10, 20, 30]
-  min_samples_split        3가지  [2, 5, 10]
-  min_samples_leaf         3가지  [1, 2, 4]
-  max_features             2가지  ['sqrt', 'log2']
-  합쳐서 216가지 짝
-
-Searching through 216 combinations...
-Fitting 5 folds for each of 216 candidates, totalling 1080 fits
-
-============================================================
-Grid Search (Random Forest)
-============================================================
-  가장 좋은 조절 값:
-    max_depth                None
-    max_features             sqrt
-    min_samples_leaf         2
-
-... (72 lines omitted)
+    Grid Search systematically works through multiple combinations
+    of parameter values, cross-validating as it goes to determine
+    which combination gives the best performance.
 
 
+    ### Example 1: Random Forest ###
 
-Grid Search completed! Check the results above.
+    ============================================================
+    GRID SEARCH - RANDOM FOREST CLASSIFIER
+    ============================================================
 
-Key Takeaways:
-- Grid Search is exhaustive and guaranteed to find the best
-  combination within your specified grid
-- Computational cost grows exponentially with parameters
-- Use nested CV for unbiased performance estimates
-- Start with coarse grid, then refine around best values
-```
+    격자 살펴보기
+      n_estimators             3가지  [50, 100, 200]
+      max_depth                4가지  [None, 10, 20, 30]
+      min_samples_split        3가지  [2, 5, 10]
+      min_samples_leaf         3가지  [1, 2, 4]
+      max_features             2가지  ['sqrt', 'log2']
+      합쳐서 216가지 짝
+
+    Searching through 216 combinations...
+    Fitting 5 folds for each of 216 candidates, totalling 1080 fits
+
+    ============================================================
+    Grid Search (Random Forest)
+    ============================================================
+      가장 좋은 조절 값:
+        max_depth                None
+        max_features             sqrt
+        min_samples_leaf         2
+        min_samples_split        2
+        n_estimators             50
+      맞대 보기 점수 : 0.9757
+      시험 점수      : 1.0000
+      걸린 값        : 121.53초
+
+    Classification Report:
+                  precision    recall  f1-score   support
+
+               0       1.00      1.00      1.00        18
+               1       1.00      1.00      1.00        21
+               2       1.00      1.00      1.00        15
+
+        accuracy                           1.00        54
+       macro avg       1.00      1.00      1.00        54
+    weighted avg       1.00      1.00      1.00        54
+
+
+
+    ### Example 2: Support Vector Machine ###
+
+    ============================================================
+    GRID SEARCH - SUPPORT VECTOR MACHINE
+    ============================================================
+
+    격자 살펴보기
+      C                        4가지  [0.1, 1, 10, 100]
+      gamma                    5가지  ['scale', 'auto', 0.001, 0.01, 0.1]
+      kernel                   3가지  ['rbf', 'poly', 'sigmoid']
+      합쳐서 60가지 짝
+
+    Searching through 60 combinations...
+    Fitting 5 folds for each of 60 candidates, totalling 300 fits
+
+    ============================================================
+    Grid Search (SVM)
+    ============================================================
+      가장 좋은 조절 값:
+        C                        1
+        gamma                    0.1
+        kernel                   rbf
+      맞대 보기 점수 : 0.9810
+      시험 점수      : 0.9111
+      걸린 값        : 0.16초
+
+    Classification Report:
+                  precision    recall  f1-score   support
+
+               0       1.00      1.00      1.00        15
+               1       0.82      0.93      0.88        15
+               2       0.92      0.80      0.86        15
+
+        accuracy                           0.91        45
+       macro avg       0.92      0.91      0.91        45
+    weighted avg       0.92      0.91      0.91        45
+
+
+
+    ### Example 3: Nested Cross-Validation ###
+
+    ============================================================
+    NESTED GRID SEARCH (More Robust Evaluation)
+    ============================================================
+
+    Performing nested cross-validation...
+
+    Outer CV Scores: [0.78571429 0.71428571 0.74285714 0.77142857 0.62857143]
+    Mean Score: 0.7286 (+/- 0.1114)
+    Search Time: 16.57 seconds
+
+    Best Parameters: {'max_depth': 20, 'min_samples_split': 5, 'n_estimators': 200}
+    Test Set Score: 0.7467
+
+
+    Grid Search completed! Check the results above.
+
+    Key Takeaways:
+    - Grid Search is exhaustive and guaranteed to find the best
+      combination within your specified grid
+    - Computational cost grows exponentially with parameters
+    - Use nested CV for unbiased performance estimates
+    - Start with coarse grid, then refine around best values
+    ```
+
 
 ## 2. 논의
 

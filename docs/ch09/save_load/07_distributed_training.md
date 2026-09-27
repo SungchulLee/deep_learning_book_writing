@@ -23,6 +23,9 @@ DataParallel이나 DistributedDataParallel을 쓸 때 모델을 제대로
 
 import torch
 import torch.nn as nn
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 print("=" * 70)
 print("DISTRIBUTED TRAINING CHECKPOINTS")
@@ -282,56 +285,131 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (120줄)"
 
-```
-======================================================================
-DISTRIBUTED TRAINING CHECKPOINTS
-======================================================================
+    ```
+    ======================================================================
+    DISTRIBUTED TRAINING CHECKPOINTS
+    ======================================================================
 
-======================================================================
-SCENARIO 1: DataParallel
-======================================================================
+    ======================================================================
+    SCENARIO 1: DataParallel
+    ======================================================================
 
-Single GPU or CPU mode
+    Single GPU or CPU mode
 
-Simulating training...
+    Simulating training...
 
---- SAVING ---
-Saving model.state_dict()
-Checkpoint saved to 'dataparallel_checkpoint.pth'
+    --- SAVING ---
+    Saving model.state_dict()
+    Checkpoint saved to 'dataparallel_checkpoint.pth'
 
-First few state dict keys:
-  fc1.weight
-  fc1.bias
-  fc2.weight
+    First few state dict keys:
+      fc1.weight
+      fc1.bias
+      fc2.weight
 
---- LOADING ---
-State dict loaded into fresh model
+    --- LOADING ---
+    State dict loaded into fresh model
 
-======================================================================
-SCENARIO 2: Handling 'module.' Prefix
-======================================================================
+    ======================================================================
+    SCENARIO 2: Handling 'module.' Prefix
+    ======================================================================
 
-Original state dict keys:
-  fc1.weight
-  fc1.bias
-  fc2.weight
+    Original state dict keys:
+      fc1.weight
+      fc1.bias
+      fc2.weight
+
+    Cleaned state dict keys:
+      fc1.weight
+      fc1.bias
+      fc2.weight
+
+    Clean checkpoint saved to 'clean_checkpoint.pth'
+    Loaded into unwrapped model successfully
+
+    ======================================================================
+    BEST PRACTICES FOR DISTRIBUTED TRAINING
+    ======================================================================
+
+    SAVING:
+    -------
+    1. DataParallel에서는 늘 model.module.state_dict()를 저장하라
+       - 'module.' 접두사가 자동으로 없어진다
+       - 체크포인트를 옮겨 쓰기 좋게 만든다
+
+    2. 감싸개에만 있는 키 없이 저장한다
+       - 불러오기가 더 유연하다
+
+    3. 감싸기에 대한 메타데이터를 담는다
+       - 모델을 올바로 다시 만드는 데 도움이 된다
+
+    Example:
+        if isinstance(model, nn.DataParallel):
+            state_dict = model.module.state_dict()
+        else:
+            state_dict = model.state_dict()
+        
+        torch.save({
+            'model_state_dict': state_dict,
+            'is_parallel': isinstance(model, nn.DataParallel),
+        }, path)
 
 
-... (77 lines omitted)
+    LOADING:
+    --------
+    1. 먼저 기본 모델에 불러온다
+       - 필요하면 그다음 감싼다
+       - 과정을 더 잘 다룰 수 있다
 
-======================================================================
-TUTORIAL COMPLETE
-======================================================================
+    2. 유연하게 하려면 strict=False를 쓰라
+       - 빠졌거나 예상 밖인 키를 처리한다
 
-Key Takeaways:
-1. Save model.module.state_dict() for DataParallel
-2. Remove 'module.' prefix when saving
-3. Load into base model, then wrap
-4. Use helper functions for prefix handling
-5. Save metadata about model wrapping
-```
+    3. 'module.' 접두사가 있으면 없앤다
+       - 정리에는 도우미 함수를 쓴다
+
+    Example:
+        model = SimpleModel()
+        checkpoint = torch.load(path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        
+        # 필요하면 감싸기
+        if use_multi_gpu:
+            model = nn.DataParallel(model)
+
+
+    흔한 문제:
+    --------------
+    1. RuntimeError: 키가 빠졌거나 예상 밖의 키
+       → 'module.' 접두사가 맞는지 확인하라
+       → remove_module_prefix() 함수를 쓰라
+
+    2. DataParallel로 저장하고 없이 불러오기
+       → 상태 사전에 'module.' 접두사가 있다
+       → strict=False로 불러오거나 접두사를 정리하라
+
+    3. DataParallel 없이 저장하고 함께 불러오기
+       → 'module.' 접두사를 붙여야 한다
+       → 또는 model.module에 불러온다
+
+    4. GPU 개수가 다르면 체크포인트가 불러와지지 않음
+       → 감싸개 없는 깨끗한 상태 사전을 저장하라
+       → 불러온 뒤에 감싸개를 다시 만들라
+
+
+    ======================================================================
+    TUTORIAL COMPLETE
+    ======================================================================
+
+    Key Takeaways:
+    1. Save model.module.state_dict() for DataParallel
+    2. Remove 'module.' prefix when saving
+    3. Load into base model, then wrap
+    4. Use helper functions for prefix handling
+    5. Save metadata about model wrapping
+    ```
+
 
 ## 2. 논의
 

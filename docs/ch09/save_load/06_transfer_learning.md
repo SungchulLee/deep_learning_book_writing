@@ -24,6 +24,9 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 print("=" * 70)
 print("TRANSFER LEARNING SAVE/LOAD TUTORIAL")
@@ -287,8 +290,37 @@ Frozen parameters: 11,684,382
 SAVING FINE-TUNED MODEL
 ======================================================================
 
+Checkpoint saved to 'transfer_learning_checkpoint.pth'
+File size: 42.73 MB
 
-... (32 lines omitted)
+======================================================================
+LOADING FINE-TUNED MODEL
+======================================================================
+
+Model state loaded
+Layer freezing applied
+Optimizer state loaded
+
+======================================================================
+PARTIAL STATE DICT LOADING
+======================================================================
+
+Loading only specific layers...
+Partial state dict loaded (excluding fc layer)
+
+======================================================================
+HANDLING MISSING/UNEXPECTED KEYS
+======================================================================
+
+Shape-mismatched keys skipped: ['fc.weight', 'fc.bias']
+
+Missing keys: 2
+  ['fc.weight', 'fc.bias']
+Unexpected keys: 0
+
+Model loaded with partial matching
+
+Cleaned up 'transfer_learning_checkpoint.pth'
 
 ======================================================================
 TUTORIAL COMPLETE

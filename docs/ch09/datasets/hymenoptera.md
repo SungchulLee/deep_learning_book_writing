@@ -275,56 +275,142 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (131줄)"
 
-```
-Hymenoptera dataset downloaded and extracted.
-Epoch 0/24
-----------
-  train Loss: 0.5599 Acc: 0.9139
-  val Loss: 12.7522 Acc: 0.5425
+    ```
+    Hymenoptera dataset downloaded and extracted.
+    Epoch 0/24
+    ----------
+      train Loss: 0.5599 Acc: 0.9139
+      val Loss: 12.7522 Acc: 0.5425
 
-Epoch 1/24
-----------
-  train Loss: 9.4083 Acc: 0.6189
-  val Loss: 20.5794 Acc: 0.5425
+    Epoch 1/24
+    ----------
+      train Loss: 9.4083 Acc: 0.6189
+      val Loss: 20.5794 Acc: 0.5425
 
-Epoch 2/24
-----------
-  train Loss: 14.6956 Acc: 0.5369
-  val Loss: 20.6320 Acc: 0.5425
+    Epoch 2/24
+    ----------
+      train Loss: 14.6956 Acc: 0.5369
+      val Loss: 20.6320 Acc: 0.5425
 
-Epoch 3/24
-----------
-  train Loss: 14.8269 Acc: 0.5369
-  val Loss: 20.5971 Acc: 0.5425
+    Epoch 3/24
+    ----------
+      train Loss: 14.8269 Acc: 0.5369
+      val Loss: 20.5971 Acc: 0.5425
 
-Epoch 4/24
-----------
-  train Loss: 14.8024 Acc: 0.5369
-  val Loss: 20.6695 Acc: 0.5425
+    Epoch 4/24
+    ----------
+      train Loss: 14.8024 Acc: 0.5369
+      val Loss: 20.6695 Acc: 0.5425
 
-Epoch 5/24
-----------
-  train Loss: 14.7878 Acc: 0.5369
-  val Loss: 20.1131 Acc: 0.5425
+    Epoch 5/24
+    ----------
+      train Loss: 14.7878 Acc: 0.5369
+      val Loss: 20.1131 Acc: 0.5425
 
-Epoch 6/24
-----------
+    Epoch 6/24
+    ----------
+      train Loss: 14.7704 Acc: 0.5328
+      val Loss: 20.1344 Acc: 0.5425
 
-... (88 lines omitted)
+    Epoch 7/24
+    ----------
+      train Loss: 21.0102 Acc: 0.4959
+      val Loss: 10.0418 Acc: 0.5425
 
-Epoch 24/24
-----------
-  train Loss: 0.7524 Acc: 0.5205
-  val Loss: 0.5186 Acc: 0.7647
+    Epoch 8/24
+    ----------
+      train Loss: 8.7442 Acc: 0.4877
+      val Loss: 0.6372 Acc: 0.6471
 
-Training complete in 2m 1s
-Best val Acc: 0.7778
-Accuracy: 79 %
-  class  ants: 78.6 %
-  class  bees: 79.5 %
-```
+    Epoch 9/24
+    ----------
+      train Loss: 1.1150 Acc: 0.6066
+      val Loss: 1.6665 Acc: 0.5425
+
+    Epoch 10/24
+    ----------
+      train Loss: 1.7852 Acc: 0.4836
+      val Loss: 1.6086 Acc: 0.5425
+
+    Epoch 11/24
+    ----------
+      train Loss: 1.7942 Acc: 0.5000
+      val Loss: 1.5750 Acc: 0.5425
+
+    Epoch 12/24
+    ----------
+      train Loss: 1.7860 Acc: 0.5082
+      val Loss: 1.6646 Acc: 0.5425
+
+    Epoch 13/24
+    ----------
+      train Loss: 1.7920 Acc: 0.4918
+      val Loss: 1.6256 Acc: 0.5425
+
+    Epoch 14/24
+    ----------
+      train Loss: 2.2034 Acc: 0.4959
+      val Loss: 0.8266 Acc: 0.5686
+
+    Epoch 15/24
+    ----------
+      train Loss: 1.3222 Acc: 0.4590
+      val Loss: 0.5155 Acc: 0.7516
+
+    Epoch 16/24
+    ----------
+      train Loss: 0.9417 Acc: 0.4016
+      val Loss: 0.5145 Acc: 0.7712
+
+    Epoch 17/24
+    ----------
+      train Loss: 0.8511 Acc: 0.4139
+      val Loss: 0.5100 Acc: 0.7647
+
+    Epoch 18/24
+    ----------
+      train Loss: 0.8309 Acc: 0.4016
+      val Loss: 0.5179 Acc: 0.7778
+
+    Epoch 19/24
+    ----------
+      train Loss: 0.8300 Acc: 0.4303
+      val Loss: 0.5271 Acc: 0.7778
+
+    Epoch 20/24
+    ----------
+      train Loss: 0.8314 Acc: 0.4303
+      val Loss: 0.5195 Acc: 0.7778
+
+    Epoch 21/24
+    ----------
+      train Loss: 0.7638 Acc: 0.5328
+      val Loss: 0.5195 Acc: 0.7647
+
+    Epoch 22/24
+    ----------
+      train Loss: 0.7515 Acc: 0.5123
+      val Loss: 0.5244 Acc: 0.7778
+
+    Epoch 23/24
+    ----------
+      train Loss: 0.7578 Acc: 0.5205
+      val Loss: 0.5215 Acc: 0.7647
+
+    Epoch 24/24
+    ----------
+      train Loss: 0.7524 Acc: 0.5205
+      val Loss: 0.5186 Acc: 0.7647
+
+    Training complete in 16m 24s
+    Best val Acc: 0.7778
+    Accuracy: 79 %
+      class  ants: 78.6 %
+      class  bees: 79.5 %
+    ```
+
 
 ## 2. 논의
 

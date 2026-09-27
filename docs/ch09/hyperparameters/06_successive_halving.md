@@ -404,9 +404,29 @@ Stage 0: 16 configs, budget=1 epochs
 
 Stage 1: 8 configs, budget=2 epochs
   Config(lr=1.00e-02, bs=128, id=776646) -> accuracy=0.5317
+  Config(lr=1.00e-04, bs=16, id=670487) -> accuracy=0.5050
+  Config(lr=1.00e-01, bs=64, id=91161) -> accuracy=0.4617
+  Config(lr=1.00e-03, bs=32, id=256787) -> accuracy=0.4917
+  Config(lr=1.00e-02, bs=16, id=772246) -> accuracy=0.4750
+  Config(lr=1.00e-02, bs=32, id=107473) -> accuracy=0.5217
+  Config(lr=1.00e-01, bs=32, id=571858) -> accuracy=0.5267
+  Config(lr=1.00e-02, bs=64, id=709570) -> accuracy=0.4867
+  Keeping top 4 config(s)
 
-... (23 lines omitted)
+Stage 2: 4 configs, budget=4 epochs
+  Config(lr=1.00e-02, bs=128, id=776646) -> accuracy=0.5000
+  Config(lr=1.00e-01, bs=32, id=571858) -> accuracy=0.5267
+  Config(lr=1.00e-02, bs=32, id=107473) -> accuracy=0.5167
+  Config(lr=1.00e-04, bs=16, id=670487) -> accuracy=0.5083
+  Keeping top 2 config(s)
 
+Stage 3: 2 configs, budget=8 epochs
+  Config(lr=1.00e-01, bs=32, id=571858) -> accuracy=0.4733
+  Config(lr=1.00e-02, bs=32, id=107473) -> accuracy=0.5050
+  Keeping top 1 config(s)
+
+Best config: Config(lr=1.00e-02, bs=32, id=107473)
+Final accuracy at r_max=16: 0.5367
 
 ======================================================================
 HYPERBAND

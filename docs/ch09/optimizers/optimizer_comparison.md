@@ -305,56 +305,121 @@ if __name__ == "__main__":
     print_summary()
 ```
 
-**출력:**
+??? note "전체 출력 (110줄)"
 
-```
-================================================================================
-TEST 1: Simple Quadratic Function
-================================================================================
-Minimizing f(x, y) = x^2 + y^2
-Starting point: x=10, y=10
-
-Iteration    Adam f(x,y)     RMSprop f(x,y)  AdaGrad f(x,y) 
---------------------------------------------------------------------------------
-0            196.02000000    187.55088938    162.00000002   
-10           158.58456702    134.72215130    56.41388894    
-20           125.79381676    103.25381613    26.39460664    
-30           97.87188501     78.28367763     13.19415351    
-40           74.70788831     57.63329665     6.77405221     
-
-Conclusion: All three converge well on this simple problem.
+    ```
 
 
+    ================================================================================
+    TEST 1: Simple Quadratic Function
+    ================================================================================
+    Minimizing f(x, y) = x^2 + y^2
+    Starting point: x=10, y=10
 
-================================================================================
-TEST 2: Ill-Conditioned Problem
-================================================================================
-Minimizing f(x, y) = 100*x^2 + y^2
-Starting point: x=10, y=10
-(x direction has much larger gradients than y direction)
+    Iteration    Adam f(x,y)     RMSprop f(x,y)  AdaGrad f(x,y) 
+    --------------------------------------------------------------------------------
+    0            196.02000000    187.55088938    162.00000002   
+    10           158.58456702    134.72215130    56.41388894    
+    20           125.79381676    103.25381613    26.39460664    
+    30           97.87188501     78.28367763     13.19415351    
+    40           74.70788831     57.63329665     6.77405221     
 
-Iteration    Adam f(x,y)     RMSprop f(x,y)  AdaGrad f(x,y) 
---------------------------------------------------------------------------------
-0            9899.010000     9471.319913     8181.000000    
-20           6352.587745     5214.317711     1332.927634    
-40           3772.748357     2910.481477     342.089636     
-60           2074.497165     1363.257978     93.027793      
-80           1051.791278     452.221025      25.659421      
+    Conclusion: All three converge well on this simple problem.
 
 
-... (64 lines omitted)
 
-  ✓ Combines RMSprop + Momentum
-  ✓ Includes bias correction
-  ✓ Usually works well with default hyperparameters
-  ✓ Most popular optimizer in deep learning
-  • Best for: General purpose, default choice
+    ================================================================================
+    TEST 2: Ill-Conditioned Problem
+    ================================================================================
+    Minimizing f(x, y) = 100*x^2 + y^2
+    Starting point: x=10, y=10
+    (x direction has much larger gradients than y direction)
 
-Hyperparameter Recommendations:
-  Adam:    lr=0.001, beta1=0.9, beta2=0.999
-  RMSprop: lr=0.001, rho=0.9
-  AdaGrad: lr=0.01
-```
+    Iteration    Adam f(x,y)     RMSprop f(x,y)  AdaGrad f(x,y) 
+    --------------------------------------------------------------------------------
+    0            9899.010000     9471.319913     8181.000000    
+    20           6352.587745     5214.317711     1332.927634    
+    40           3772.748357     2910.481477     342.089636     
+    60           2074.497165     1363.257978     93.027793      
+    80           1051.791278     452.221025      25.659421      
+
+    Conclusion: Adaptive methods handle different gradient scales automatically!
+
+
+
+    ================================================================================
+    TEST 3: Noisy Gradients
+    ================================================================================
+    Minimizing f(x, y) = x^2 + y^2 with noisy gradient estimates
+    Starting point: x=10, y=10
+
+    Iteration    Adam f(x,y)     RMSprop f(x,y)  AdaGrad f(x,y) 
+    --------------------------------------------------------------------------------
+    0            196.020000      187.550889      162.000000     
+    20           125.959298      103.577110      27.026679      
+    40           74.806532       57.796310       6.971340       
+    60           41.113410       27.052619       1.890734       
+    80           20.828289       9.023060        0.531231       
+
+    Conclusion: Adam's momentum helps smooth out noisy gradients better.
+
+
+
+    ================================================================================
+    TEST 4: Rosenbrock Function (Challenging Benchmark)
+    ================================================================================
+    Minimizing f(x, y) = (1-x)^2 + 100*(y - x^2)^2
+    Global minimum at (1, 1)
+    Starting point: x=-1, y=-1
+
+    Iteration    Adam f(x,y)        RMSprop f(x,y)     AdaGrad f(x,y)    
+    --------------------------------------------------------------------------------
+    0            392.089501         367.208303         296.020000        
+    200          2.144669           0.431561           1.548199          
+    400          1.498415           0.106057           1.471525          
+    600          1.423645           0.059361           1.408719          
+    800          1.332703           0.041348           1.347106          
+
+    Final positions:
+      Adam:    x=-0.108335, y=0.013289
+      RMSprop: x=0.877699, y=0.783831
+      AdaGrad: x=-0.134348, y=0.020197
+      (Target: x=1.0, y=1.0)
+
+    Conclusion: Adam often performs best on challenging optimization landscapes.
+
+
+
+    ================================================================================
+    OPTIMIZER SUMMARY
+    ================================================================================
+
+    AdaGrad (2011):
+      ✓ Adapts learning rate per parameter
+      ✓ Good for sparse gradients
+      ✗ Learning rate monotonically decreases (can stop learning)
+      • Best for: Sparse data, NLP, recommender systems
+
+    RMSprop (2012):
+      ✓ Uses moving average of squared gradients
+      ✓ Fixes AdaGrad's diminishing learning rates
+      ✓ Works well on non-stationary problems
+      • Best for: RNNs, non-stationary objectives
+
+    Adam (2014):
+      ✓ Combines RMSprop + Momentum
+      ✓ Includes bias correction
+      ✓ Usually works well with default hyperparameters
+      ✓ Most popular optimizer in deep learning
+      • Best for: General purpose, default choice
+
+    Hyperparameter Recommendations:
+      Adam:    lr=0.001, beta1=0.9, beta2=0.999
+      RMSprop: lr=0.001, rho=0.9
+      AdaGrad: lr=0.01
+
+    ```
+
 
 ## 2. 논의
 

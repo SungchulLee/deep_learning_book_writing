@@ -260,7 +260,12 @@ Iteration    x            y            z
 Notice: z converges slower because it's updated less frequently,
 but AdaGrad gives it a relatively larger effective learning rate!
 
-... (8 lines omitted)
+
+
+============================================================
+AdaGrad Learning Rate Decay
+============================================================
+Effective learning rate = lr / sqrt(sum of squared gradients)
 
 Iteration    Param           Effective LR   
 ------------------------------------------------------------
@@ -272,6 +277,7 @@ Iteration    Param           Effective LR
 
 Notice: The effective learning rate monotonically decreases.
 This can cause AdaGrad to stop learning prematurely in some cases.
+
 ```
 
 ## 2. 논의

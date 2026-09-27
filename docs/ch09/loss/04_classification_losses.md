@@ -367,56 +367,247 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (236줄)"
 
-```
-================================================================================
-CLASSIFICATION LOSS FUNCTIONS
-================================================================================
+    ```
+    ================================================================================
+    CLASSIFICATION LOSS FUNCTIONS
+    ================================================================================
 
---------------------------------------------------------------------------------
-CLASSIFICATION VS REGRESSION
---------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------
+    CLASSIFICATION VS REGRESSION
+    --------------------------------------------------------------------------------
 
-회귀(앞선 튜토리얼에서 다루었다):
-  • 연속값을 예측한다
-  • 예: 집값(\$150,000), 온도(25.3°C)
-  • 손실: MSE, MAE, 후버
-  
-CLASSIFICATION:
-  • 이산 범주나 클래스를 예측한다
-  • 예: 메일이 스팸인지 아닌지, 이미지가 고양이/개/새인지
-  • 손실: 교차 엔트로피, 이진 교차 엔트로피
-  
-핵심 차이: 분류는 클래스마다 확률을 출력한다!
+    회귀(앞선 튜토리얼에서 다루었다):
+      • 연속값을 예측한다
+      • 예: 집값(\$150,000), 온도(25.3°C)
+      • 손실: MSE, MAE, 후버
+      
+    CLASSIFICATION:
+      • 이산 범주나 클래스를 예측한다
+      • 예: 메일이 스팸인지 아닌지, 이미지가 고양이/개/새인지
+      • 손실: 교차 엔트로피, 이진 교차 엔트로피
+      
+    핵심 차이: 분류는 클래스마다 확률을 출력한다!
 
 
---------------------------------------------------------------------------------
-BINARY CLASSIFICATION EXAMPLE: Spam Detection
---------------------------------------------------------------------------------
-Let's classify 5 emails as Spam (1) or Not Spam (0):
+    --------------------------------------------------------------------------------
+    BINARY CLASSIFICATION EXAMPLE: Spam Detection
+    --------------------------------------------------------------------------------
+    Let's classify 5 emails as Spam (1) or Not Spam (0):
 
-True labels: tensor([0., 1., 0., 1., 1.])
-  0 = Not Spam, 1 = Spam
+    True labels: tensor([0., 1., 0., 1., 1.])
+      0 = Not Spam, 1 = Spam
 
-Predicted probabilities: tensor([0.1000, 0.9000, 0.2000, 0.8000, 0.6000])
-  Higher = More likely to be spam
+    Predicted probabilities: tensor([0.1000, 0.9000, 0.2000, 0.8000, 0.6000])
+      Higher = More likely to be spam
 
-Interpretation:
+    Interpretation:
+      Email 1: True=Not Spam, Predicted=Not Spam (90% confident) ✓
+      Email 2: True=Spam    , Predicted=Spam     (90% confident) ✓
+      Email 3: True=Not Spam, Predicted=Not Spam (80% confident) ✓
+      Email 4: True=Spam    , Predicted=Spam     (80% confident) ✓
+      Email 5: True=Spam    , Predicted=Spam     (60% confident) ✓
 
-... (193 lines omitted)
+    --------------------------------------------------------------------------------
+    BINARY CROSS-ENTROPY LOSS (BCE)
+    --------------------------------------------------------------------------------
+    BCE Loss: 0.2336
 
-5. 추론할 때(예측할 때):
-   • 이진: 시그모이드 뒤 0.5를 기준으로 나눈다
-   • 다중 클래스: 소프트맥스 뒤 argmax를 취한다
+    WHAT IS BCE?
+      Formula: -[y × log(p) + (1-y) × log(1-p)]
+      where y = true label (0 or 1), p = predicted probability
 
-다음 단계:
-→ 간단한 이미지 분류기를 만들어 보라
-→ 클래스 수를 달리하여 실험해 보라
-→ 클래스 불균형과 가중 손실을 배워 보라
+    WHY THIS FORMULA?
+      • When true label = 1 (Spam):
+        Loss = -log(p) → Low if p is high (correct!)
+      • When true label = 0 (Not Spam):
+        Loss = -log(1-p) → Low if p is low (correct!)
 
-================================================================================
-```
+    Per-sample losses:
+      Email 1: True=0, Pred=0.10 → Loss=0.1054
+      Email 2: True=1, Pred=0.90 → Loss=0.1054
+      Email 3: True=0, Pred=0.20 → Loss=0.2231
+      Email 4: True=1, Pred=0.80 → Loss=0.2231
+      Email 5: True=1, Pred=0.60 → Loss=0.5108
+
+    --------------------------------------------------------------------------------
+    UNDERSTANDING LOGITS (RAW OUTPUTS)
+    --------------------------------------------------------------------------------
+
+    실제로 신경망은 "로짓"(가공하지 않은 무계 값)을 출력한다.
+    시그모이드 함수로 로짓을 확률로 바꾼다.
+
+    로짓(원본) → 시그모이드 → 확률(0에서 1)
+
+    Raw logits: tensor([-2.0000,  3.0000, -1.5000,  2.5000,  0.5000])
+
+    After sigmoid: tensor([0.1192, 0.9526, 0.1824, 0.9241, 0.6225])
+
+    Sigmoid function properties:
+      • logit = 0 → probability = 0.5 (uncertain)
+      • logit > 0 → probability > 0.5 (likely class 1)
+      • logit < 0 → probability < 0.5 (likely class 0)
+      • More extreme logits = more confident predictions
+
+    --------------------------------------------------------------------------------
+    BCEWithLogitsLoss - RECOMMENDED FOR TRAINING
+    --------------------------------------------------------------------------------
+
+    모델 → 시그모이드 → BCE 손실 대신
+    쓰기:       모델 → BCEWithLogitsLoss(둘을 합친다!)
+
+    Benefits:
+      ✓ 수치가 더 든든하다
+      ✓ 계산이 더 빠르다
+      ✓ 기울기 문제를 막는다
+
+    Loss using BCEWithLogitsLoss: 0.1860
+    Loss using BCE(sigmoid(logits)): 0.1860
+    → Same result! But BCEWithLogitsLoss is more stable
+
+
+    --------------------------------------------------------------------------------
+    MULTI-CLASS CLASSIFICATION: Image Classification
+    --------------------------------------------------------------------------------
+    Classifying 4 images into 3 categories: Cat, Dog, Bird
+
+    True classes: tensor([0, 2, 1, 0])
+      Image 1: Cat (0)
+      Image 2: Bird (2)
+      Image 3: Dog (1)
+      Image 4: Cat (0)
+
+    Model logits (raw outputs):
+    tensor([[3.0000, 1.0000, 0.5000],
+            [0.5000, 0.8000, 2.5000],
+            [1.0000, 2.0000, 0.5000],
+            [2.5000, 1.5000, 1.0000]])
+    Shape: torch.Size([4, 3]) (4 images, 3 classes)
+
+    Probabilities after softmax:
+    tensor([[0.8214, 0.1112, 0.0674],
+            [0.1027, 0.1386, 0.7587],
+            [0.2312, 0.6285, 0.1402],
+            [0.6285, 0.2312, 0.1402]])
+
+    Note: Each row sums to 1.0 (100% probability distributed across classes)
+
+    Predictions:
+      Image 1: True=Cat , Predicted=Cat  (82.1% confident) ✓
+      Image 2: True=Bird, Predicted=Bird (75.9% confident) ✓
+      Image 3: True=Dog , Predicted=Dog  (62.9% confident) ✓
+      Image 4: True=Cat , Predicted=Cat  (62.9% confident) ✓
+
+    --------------------------------------------------------------------------------
+    CROSS-ENTROPY LOSS (Multi-Class)
+    --------------------------------------------------------------------------------
+    Cross-Entropy Loss: 0.3504
+
+    KEY POINTS:
+      1. CrossEntropyLoss takes RAW LOGITS (not probabilities!)
+      2. It applies softmax internally (more stable)
+      3. True labels are class indices (not one-hot encoded)
+      4. Formula: -log(probability of true class)
+
+    Per-sample losses:
+      Image 1: True class=Cat, Probability=0.8214, Loss=0.1967
+      Image 2: True class=Bird, Probability=0.7587, Loss=0.2761
+      Image 3: True class=Dog, Probability=0.6285, Loss=0.4644
+      Image 4: True class=Cat, Probability=0.6285, Loss=0.4644
+
+    → Lower probability for true class = Higher loss
+
+    --------------------------------------------------------------------------------
+    ONE-HOT ENCODING VS CLASS INDICES
+    --------------------------------------------------------------------------------
+    PyTorch CrossEntropyLoss uses CLASS INDICES (simpler!)
+    Class indices: tensor([0, 2, 1, 0])
+
+    But you might see ONE-HOT ENCODING in other frameworks:
+    One-hot encoded:
+    tensor([[1, 0, 0],
+            [0, 0, 1],
+            [0, 1, 0],
+            [1, 0, 0]])
+
+    Each row has a 1 in the position of the true class, 0s elsewhere
+
+    Converting back: tensor([0, 2, 1, 0])
+    Same as original: True
+
+    --------------------------------------------------------------------------------
+    COMPARISON: Binary vs Multi-Class Classification
+    --------------------------------------------------------------------------------
+
+    ╔═══════════════════╦════════════════════╦═════════════════════════╗
+    ║                   ║ 이진               ║ 다중 클래스             ║
+    ╠═══════════════════╬════════════════════╬═════════════════════════╣
+    ║ 클래스 수         ║ 2(예: 예/아니오)   ║ 3 이상(예: 고양이/개/새)║
+    ║ 모델 출력         ║ 로짓 1개           ║ 로짓 N개(N = 클래스 수) ║
+    ║ 활성화            ║ 시그모이드         ║ 소프트맥스              ║
+    ║ 출력 범위         ║ [0, 1]             ║ [0, 1](합이 1)          ║
+    ║ 손실 함수         ║ BCEWithLogitsLoss  ║ CrossEntropyLoss        ║
+    ║ 참 레이블 형식    ║ 0 또는 1           ║ 클래스 인덱스(0~N-1)    ║
+    ╚═══════════════════╩════════════════════╩═════════════════════════╝
+
+
+    --------------------------------------------------------------------------------
+    PRACTICAL TIPS
+    --------------------------------------------------------------------------------
+
+    ✓ DO:
+      • 이진 분류에는 BCEWithLogitsLoss를 쓴다
+      • 다중 클래스 분류에는 CrossEntropyLoss를 쓴다
+      • 활성화(시그모이드나 소프트맥스)는 손실 함수가 안에서 처리하게 하라
+      • CrossEntropyLoss의 레이블에는 클래스 인덱스를 쓴다
+      • 수렴을 확인하려면 학습 중 손실을 살핀다
+
+    ✗ DON'T:
+      • BCEWithLogitsLoss 앞에 시그모이드를 걸기(안에서 이미 한다!)
+      • CrossEntropyLoss 앞에 소프트맥스를 걸기(안에서 이미 한다!)
+      • 원본 로짓에 BCELoss 쓰기(대신 BCEWithLogitsLoss를 쓰라)
+      • CrossEntropyLoss에 원-핫 레이블 쓰기(클래스 인덱스를 쓰라)
+
+    흔한 모델 구조:
+      이진:       [...층...] → Linear(in_features, 1) → BCEWithLogitsLoss
+      다중 클래스: [...층...] → Linear(in_features, num_classes) → CrossEntropyLoss
+
+
+    ================================================================================
+    KEY TAKEAWAYS
+    ================================================================================
+
+    1. 분류는 연속값이 아니라 이산 범주를 예측한다
+
+    2. 이진 분류(클래스 2개):
+       • BCEWithLogitsLoss를 쓴다
+       • 모델이 값 하나(로짓)를 출력한다
+       • 시그모이드가 로짓을 확률로 바꾼다
+       • 레이블은 0 또는 1이다
+
+    3. 다중 클래스 분류(클래스 3개 이상):
+       • CrossEntropyLoss를 쓴다
+       • 모델이 클래스마다 하나씩 N개의 값(로짓)을 출력한다
+       • 소프트맥스가 로짓을 확률 분포로 바꾼다
+       • 레이블은 클래스 인덱스(0, 1, 2, ...)이다
+
+    4. 두 손실 함수 모두 활성화를 안에서 처리한다
+       • 손실 앞에서 시그모이드나 소프트맥스를 직접 걸지 마라!
+       • 이렇게 하면 수치적으로 더 안정적이다
+
+    5. 추론할 때(예측할 때):
+       • 이진: 시그모이드 뒤 0.5를 기준으로 나눈다
+       • 다중 클래스: 소프트맥스 뒤 argmax를 취한다
+
+    다음 단계:
+    → 간단한 이미지 분류기를 만들어 보라
+    → 클래스 수를 달리하여 실험해 보라
+    → 클래스 불균형과 가중 손실을 배워 보라
+
+    ================================================================================
+    ```
+
 
 ## 2. 논의
 

@@ -279,56 +279,172 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (161줄)"
 
-```
-================================================================================
-COMMON REGRESSION LOSS FUNCTIONS
-================================================================================
+    ```
+    ================================================================================
+    COMMON REGRESSION LOSS FUNCTIONS
+    ================================================================================
 
---------------------------------------------------------------------------------
-SAMPLE DATA: Predicting Test Scores
---------------------------------------------------------------------------------
-Actual scores: tensor([85., 90., 88., 92., 15.])
-Predicted scores: tensor([84., 89., 87., 91., 87.])
-Errors: tensor([  1.,   1.,   1.,   1., -72.])
+    --------------------------------------------------------------------------------
+    SAMPLE DATA: Predicting Test Scores
+    --------------------------------------------------------------------------------
+    Actual scores: tensor([85., 90., 88., 92., 15.])
+    Predicted scores: tensor([84., 89., 87., 91., 87.])
+    Errors: tensor([  1.,   1.,   1.,   1., -72.])
 
-Note: The 5th student has an error of -72 (a huge outlier!)
-Let's see how different loss functions handle this...
+    Note: The 5th student has an error of -72 (a huge outlier!)
+    Let's see how different loss functions handle this...
 
---------------------------------------------------------------------------------
-1. MEAN SQUARED ERROR (MSE) - L2 Loss
---------------------------------------------------------------------------------
-MSE Loss: 1037.6000
-RMSE (Root MSE): 32.2118
+    --------------------------------------------------------------------------------
+    1. MEAN SQUARED ERROR (MSE) - L2 Loss
+    --------------------------------------------------------------------------------
+    MSE Loss: 1037.6000
+    RMSE (Root MSE): 32.2118
 
-CHARACTERISTICS:
-✓ Most commonly used for regression
-✓ Differentiable everywhere (smooth gradients)
-✓ Sensitive to outliers (squares the error!)
-✓ Formula: (1/n) × Σ(predicted - actual)²
+    CHARACTERISTICS:
+    ✓ Most commonly used for regression
+    ✓ Differentiable everywhere (smooth gradients)
+    ✓ Sensitive to outliers (squares the error!)
+    ✓ Formula: (1/n) × Σ(predicted - actual)²
 
-Squared errors: tensor([1.0000e+00, 1.0000e+00, 1.0000e+00, 1.0000e+00, 5.1840e+03])
-Notice how the outlier error 5184 dominates!
-It's 1296.0x larger than all others combined!
+    Squared errors: tensor([1.0000e+00, 1.0000e+00, 1.0000e+00, 1.0000e+00, 5.1840e+03])
+    Notice how the outlier error 5184 dominates!
+    It's 1296.0x larger than all others combined!
 
---------------------------------------------------------------------------------
-2. MEAN ABSOLUTE ERROR (MAE) - L1 Loss
---------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------
+    2. MEAN ABSOLUTE ERROR (MAE) - L1 Loss
+    --------------------------------------------------------------------------------
+    MAE Loss: 15.2000
 
-... (118 lines omitted)
+    CHARACTERISTICS:
+    ✓ More robust to outliers than MSE
+    ✓ Less sensitive to large errors (doesn't square them)
+    ✗ Not differentiable at zero (can cause optimization issues)
+    ✓ Formula: (1/n) × Σ|predicted - actual|
 
-   • 범용 → Smooth L1
+    Absolute errors: tensor([ 1.,  1.,  1.,  1., 72.])
+    The outlier contributes 72, but not as dramatically as MSE
 
-4. 세 손실 모두 미분 가능하며 PyTorch 자동 미분과 함께 쓸 수 있다
+    --------------------------------------------------------------------------------
+    COMPARISON: MSE vs MAE with Outlier
+    --------------------------------------------------------------------------------
+    MSE Loss: 1037.6000
+    MAE Loss: 15.2000
 
-다음 단계:
-→ 자신의 데이터로 시도해 보라
-→ 이상치의 크기를 달리하여 실험해 보라
-→ 분류 손실(교차 엔트로피 등)을 배워 보라
+    Without the outlier:
+    MSE Loss (no outlier): 1.0000
+    MAE Loss (no outlier): 1.0000
 
-================================================================================
-```
+    Impact of the outlier:
+    MSE increased by: 103660.0%
+    MAE increased by: 1420.0%
+
+    → MSE is MUCH more sensitive to outliers!
+
+    --------------------------------------------------------------------------------
+    3. SMOOTH L1 LOSS (Huber Loss) - Best of Both Worlds
+    --------------------------------------------------------------------------------
+    Smooth L1 Loss: 14.7000
+
+    CHARACTERISTICS:
+    ✓ Combines benefits of MSE and MAE
+    ✓ Quadratic for small errors (like MSE)
+    ✓ Linear for large errors (like MAE)
+    ✓ More robust to outliers than MSE
+    ✓ Smoother gradients than MAE
+
+    HOW IT WORKS:
+    If |error| < 1: loss = 0.5 × error²  (MSE behavior)
+    If |error| ≥ 1: loss = |error| - 0.5  (MAE behavior)
+    Error 1:    1.0 → MAE regime
+    Error 2:    1.0 → MAE regime
+    Error 3:    1.0 → MAE regime
+    Error 4:    1.0 → MAE regime
+    Error 5:  -72.0 → MAE regime
+
+    --------------------------------------------------------------------------------
+    DECISION GUIDE: Which Loss Should You Use?
+    --------------------------------------------------------------------------------
+
+    📊 평균 제곱 오차(MSE)를 쓸 때:
+       ✓ 데이터가 깨끗하고 이상치가 적다
+       ✓ 큰 오차에 큰 벌점을 주어야 한다
+       ✓ 최적화를 위해 매끄러운 기울기를 원한다
+       ✓ 예: 안정된 시장에서 집값 예측
+
+    📏 평균 절대 오차(MAE)를 쓸 때:
+       ✓ 데이터에 이상치가 있다
+       ✓ 모든 오차를 더 고르게 다루어야 한다
+       ✓ 오차를 데이터와 같은 단위로 보고 싶다
+       ✓ 예: 배달 시간 예측(교통 이상치가 흔하다)
+
+    🎯 Smooth L1 손실(후버)을 쓸 때:
+       ✓ 이상치에 강건하기를 바란다
+       ✓ 그러면서도 매끄러운 최적화를 원한다
+       ✓ 이따금 이상값이 섞인 실제 데이터에 가장 알맞다
+       ✓ 예: 객체 탐지의 경계 상자 회귀
+
+
+    --------------------------------------------------------------------------------
+    PRACTICAL IMPACT: How Loss Choice Affects Training
+    --------------------------------------------------------------------------------
+    When we have an outlier with error = 72:
+    MSE gradient magnitude: 72.0
+    MAE gradient magnitude: 1.0
+
+    → MSE produces a gradient 72x larger for this outlier!
+    → This means the model will update much more aggressively
+    → Outliers can dominate training with MSE
+
+    --------------------------------------------------------------------------------
+    EXPERIMENT: Different Data Scenarios
+    --------------------------------------------------------------------------------
+
+    Clean data (small errors):
+      MSE:         1.00
+      MAE:         1.00
+      Smooth L1:   0.50
+
+    Moderate errors:
+      MSE:        25.00
+      MAE:         5.00
+      Smooth L1:   4.50
+
+    With outlier:
+      MSE:       1037.60
+      MAE:        15.20
+      Smooth L1:  14.70
+
+    ================================================================================
+    KEY TAKEAWAYS
+    ================================================================================
+
+    1. 손실 함수마다 오차를 다르게 다룬다.
+       • MSE: 오차를 제곱한다 → 이상치에 매우 민감하다
+       • MAE: 절대 오차 → 이상치에 강건하다
+       • Smooth L1: 혼합형 → 두 방식의 장점을 함께 지닌다
+
+    2. 손실 선택은 학습에 영향을 준다.
+       • MSE는 모델이 이상치에 무리하게 맞추도록 밀어붙인다
+       • MAE는 모든 오차를 더 고르게 다룬다
+       • Smooth L1은 둘 사이에서 균형을 잡는다
+
+    3. 데이터에 맞추어 고른다.
+       • 깨끗한 데이터 → MSE
+       • 잡음이나 이상치 → MAE 또는 Smooth L1
+       • 범용 → Smooth L1
+
+    4. 세 손실 모두 미분 가능하며 PyTorch 자동 미분과 함께 쓸 수 있다
+
+    다음 단계:
+    → 자신의 데이터로 시도해 보라
+    → 이상치의 크기를 달리하여 실험해 보라
+    → 분류 손실(교차 엔트로피 등)을 배워 보라
+
+    ================================================================================
+    ```
+
 
 ## 2. 논의
 

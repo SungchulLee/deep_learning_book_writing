@@ -241,9 +241,43 @@ MSE using F.mse_loss: 85.0000
 Manual MSE == Functional MSE? True
 
 --------------------------------------------------------------------------------
+METHOD 3: Using nn.MSELoss Class
+--------------------------------------------------------------------------------
+MSE using nn.MSELoss: 85.0000
 
-... (37 lines omitted)
+WHY USE A CLASS?
+- You can configure it once (e.g., different reduction methods)
+- Cleaner code in training loops
+- Can easily swap different loss functions
 
+--------------------------------------------------------------------------------
+BONUS: Understanding 'reduction' Parameter
+--------------------------------------------------------------------------------
+Reduction='mean': 85.0000
+Reduction='sum': 425.0000
+Reduction='none': tensor([100., 100.,  25., 100., 100.])
+
+Note: sum = mean × number_of_samples
+Verification: 85.0000 × 5 = 425.0000
+
+--------------------------------------------------------------------------------
+INTERPRETING LOSS VALUES
+--------------------------------------------------------------------------------
+Perfect predictions → Loss: 0.0000
+Better predictions → Loss: 2.2000
+Worse predictions → Loss: 900.0000
+
+KEY INSIGHT: Lower loss = Better predictions!
+
+================================================================================
+KEY TAKEAWAYS
+================================================================================
+
+1. 손실 함수는 예측이 얼마나 틀렸는지 잰다
+2. 손실이 낮을수록 예측이 좋다(손실 0이면 완벽하다)
+3. PyTorch에서 손실을 계산하는 세 가지 방법:
+   - 직접 계산(학습용이나 맞춤 손실용)
+   - F.mse_loss()(함수형 API, 빠르고 단순하다)
    - nn.MSELoss()(클래스 API, 학습 루프에 가장 알맞다)
 4. MSE는 회귀 문제(연속값 예측)에 알맞다
 5. 'reduction' 매개변수는 오차를 모으는 방식을 정한다

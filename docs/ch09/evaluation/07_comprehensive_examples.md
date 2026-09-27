@@ -364,56 +364,204 @@ if __name__ == "__main__":
     run_all_examples()
 ```
 
-**출력:**
+??? note "전체 출력 (193줄)"
 
-```
-################################################################################
-#                                                                              #
-#                    COMPREHENSIVE EXAMPLES                                     #
-#               End-to-End Model Evaluation Workflows                            #
-#                                                                              #
-################################################################################
-================================================================================
-EXAMPLE 1: BINARY CLASSIFICATION - CREDIT CARD FRAUD DETECTION
-================================================================================
+    ```
 
-1. GENERATING DATA
---------------------------------------------------------------------------------
-Total samples: 10000
-Fraudulent transactions: 539 (5.39%)
-Legitimate transactions: 9461 (94.61%)
-⚠ HIGHLY IMBALANCED DATASET
+    ################################################################################
+    #                                                                              #
+    #                    COMPREHENSIVE EXAMPLES                                     #
+    #               End-to-End Model Evaluation Workflows                            #
+    #                                                                              #
+    ################################################################################
+    ================================================================================
+    EXAMPLE 1: BINARY CLASSIFICATION - CREDIT CARD FRAUD DETECTION
+    ================================================================================
 
-2. SPLITTING DATA
---------------------------------------------------------------------------------
-Training set: 8000 samples
-Test set: 2000 samples
+    1. GENERATING DATA
+    --------------------------------------------------------------------------------
+    Total samples: 10000
+    Fraudulent transactions: 539 (5.39%)
+    Legitimate transactions: 9461 (94.61%)
+    ⚠ HIGHLY IMBALANCED DATASET
 
-3. TRAINING MODELS
---------------------------------------------------------------------------------
-✓ Logistic Regression trained
-✓ Random Forest trained
+    2. SPLITTING DATA
+    --------------------------------------------------------------------------------
+    Training set: 8000 samples
+    Test set: 2000 samples
 
-4. CROSS-VALIDATION
---------------------------------------------------------------------------------
-Logistic Regression F1 Score: 0.5607 (+/- 0.0952)
-Random Forest F1 Score: 0.5026 (+/- 0.1425)
+    3. TRAINING MODELS
+    --------------------------------------------------------------------------------
+    ✓ Logistic Regression trained
+    ✓ Random Forest trained
 
-5. TEST SET EVALUATION
+    4. CROSS-VALIDATION
+    --------------------------------------------------------------------------------
+    Logistic Regression F1 Score: 0.5607 (+/- 0.0952)
+    Random Forest F1 Score: 0.5026 (+/- 0.1425)
 
-... (149 lines omitted)
+    5. TEST SET EVALUATION
+    --------------------------------------------------------------------------------
 
-📚 KEY TAKEAWAYS:
-================================================================================
-1. Always use appropriate metrics for your problem type and business context
-2. Use stratified splitting for classification, especially with imbalanced data
-3. Cross-validation provides more reliable performance estimates than single split
-4. Consider both model performance AND business implications
-5. Confusion matrices reveal which errors your model makes
-6. Compare multiple models before settling on one
-7. Document your evaluation methodology for reproducibility
-================================================================================
-```
+    LOGISTIC REGRESSION:
+      Accuracy: 0.9625
+      Precision: 0.9714
+      Recall: 0.3148
+      F1-Score: 0.4755
+      ROC-AUC: 0.8211
+
+    RANDOM FOREST:
+      Accuracy: 0.9615
+      Precision: 1.0000
+      Recall: 0.2870
+      F1-Score: 0.4460
+      ROC-AUC: 0.9192
+
+    6. CONFUSION MATRIX (Random Forest)
+    --------------------------------------------------------------------------------
+    [[1892    0]
+     [  77   31]]
+
+    True Negatives (Legitimate correctly identified): 1892
+    False Positives (Legitimate flagged as fraud): 0
+    False Negatives (Fraud missed): 77
+    True Positives (Fraud caught): 31
+
+    7. BUSINESS INTERPRETATION
+    --------------------------------------------------------------------------------
+    Out of 108 fraudulent transactions:
+      ✓ Caught: 31 (28.7%)
+      ✗ Missed: 77 (71.3%)
+
+    Out of 1892 legitimate transactions:
+      ✓ Approved: 1892 (100.0%)
+      ✗ Incorrectly flagged: 0 (0.0%)
+
+    ================================================================================
+
+
+    ================================================================================
+    EXAMPLE 2: MULTI-CLASS CLASSIFICATION - IRIS SPECIES
+    ================================================================================
+
+    1. LOADING DATA
+    --------------------------------------------------------------------------------
+    Total samples: 150
+    Features: ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']
+    Classes: ['setosa' 'versicolor' 'virginica']
+
+    2. SPLITTING DATA
+    --------------------------------------------------------------------------------
+
+    3. TRAINING MODEL
+    --------------------------------------------------------------------------------
+    ✓ Random Forest trained
+
+    4. STRATIFIED CROSS-VALIDATION
+    --------------------------------------------------------------------------------
+    CV Accuracy: 0.9524 (+/- 0.0852)
+
+    5. TEST SET EVALUATION
+    --------------------------------------------------------------------------------
+    Overall Accuracy: 0.8889
+
+    Per-Class Metrics:
+                  precision    recall  f1-score   support
+
+          setosa       1.00      1.00      1.00        15
+      versicolor       0.78      0.93      0.85        15
+       virginica       0.92      0.73      0.81        15
+
+        accuracy                           0.89        45
+       macro avg       0.90      0.89      0.89        45
+    weighted avg       0.90      0.89      0.89        45
+
+
+    6. CONFUSION MATRIX
+    --------------------------------------------------------------------------------
+                 Predicted
+                   seto   vers   virg
+    Actual
+    setosa        15      0      0
+    versicolor     0     14      1
+    virginica      0      4     11
+
+    ================================================================================
+
+
+    ================================================================================
+    EXAMPLE 3: REGRESSION - HOUSE PRICE PREDICTION
+    ================================================================================
+
+    1. GENERATING DATA
+    --------------------------------------------------------------------------------
+    Total samples: 1000
+    Features: 10 (square feet, bedrooms, location score, etc.)
+    Price range: $200,000 - $700,000
+    Mean price: $455,824
+
+    2. SPLITTING DATA
+    --------------------------------------------------------------------------------
+
+    3. TRAINING MODELS
+    --------------------------------------------------------------------------------
+    ✓ Ridge Regression trained
+    ✓ Random Forest trained
+
+    4. CROSS-VALIDATION
+    --------------------------------------------------------------------------------
+    Ridge R² Score: 0.9918 (+/- 0.0019)
+    Random Forest R² Score: 0.8785 (+/- 0.0496)
+
+    5. TEST SET EVALUATION
+    --------------------------------------------------------------------------------
+
+    RIDGE REGRESSION:
+      MAE: $6,098.17
+      RMSE: $7,517.15
+      R² Score: 0.9925
+
+    RANDOM FOREST:
+      MAE: $22,582.57
+      RMSE: $29,342.15
+      R² Score: 0.8853
+
+    6. SAMPLE PREDICTIONS (Random Forest)
+    --------------------------------------------------------------------------------
+       Actual Price   Predicted Price        Error
+    --------------------------------------------------
+    $       562,880 $         530,842 $     32,038
+    $       480,307 $         472,571 $      7,736
+    $       408,467 $         395,849 $     12,618
+    $       471,523 $         482,055 $    -10,532
+    $       441,151 $         497,155 $    -56,004
+    $       604,026 $         530,244 $     73,782
+    $       424,141 $         464,710 $    -40,569
+    $       461,645 $         450,219 $     11,426
+    $       485,020 $         480,934 $      4,086
+    $       539,037 $         546,958 $     -7,921
+
+    ================================================================================
+
+
+    ################################################################################
+    #                                                                              #
+    #                         ALL EXAMPLES COMPLETED                               #
+    #                                                                              #
+    ################################################################################
+
+    📚 KEY TAKEAWAYS:
+    ================================================================================
+    1. Always use appropriate metrics for your problem type and business context
+    2. Use stratified splitting for classification, especially with imbalanced data
+    3. Cross-validation provides more reliable performance estimates than single split
+    4. Consider both model performance AND business implications
+    5. Confusion matrices reveal which errors your model makes
+    6. Compare multiple models before settling on one
+    7. Document your evaluation methodology for reproducibility
+    ================================================================================
+    ```
+
 
 ## 2. 논의
 

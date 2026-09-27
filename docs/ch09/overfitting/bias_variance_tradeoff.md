@@ -293,8 +293,27 @@ Max Depth    Bias²           Variance        Total Error
 6            0.0279          0.0431          0.0710         
 7            0.0337          0.0473          0.0810         
 8            0.0380          0.0438          0.0818         
+9            0.0398          0.0473          0.0871         
+10           0.0425          0.0496          0.0921         
+11           0.0417          0.0492          0.0908         
+12           0.0379          0.0500          0.0878         
+13           0.0445          0.0443          0.0888         
+14           0.0351          0.0511          0.0862         
+15           0.0397          0.0461          0.0858         
+======================================================================
+Optimal Complexity: Max Depth = 4
+Minimum Total Error: 0.0579
+======================================================================
 
-... (22 lines omitted)
+Bias-variance tradeoff plot saved as 'bias_variance_tradeoff.png'
+Predictions visualization saved as 'bias_variance_predictions.png'
+
+======================================================================
+Key Concepts:
+======================================================================
+• BIAS: Error from incorrect assumptions (underfitting)
+  - High bias → model too simple → systematic errors
+  - Low complexity models have high bias
 
 • VARIANCE: Error from sensitivity to training data (overfitting)
   - High variance → model too complex → unstable predictions

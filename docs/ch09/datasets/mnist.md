@@ -237,56 +237,148 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (137줄)"
 
-```
-Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
+    ```
+    [1,   100] loss: 1.2268413
+    [1,   200] loss: 0.6762528
+    [1,   300] loss: 0.5423621
+    [1,   400] loss: 0.3955110
+    [1,   500] loss: 0.3451793
+    [1,   600] loss: 0.2722260
+    [1,   700] loss: 0.2495641
+    [1,   800] loss: 0.2336635
+    [1,   900] loss: 0.1787234
+    [2,   100] loss: 0.1616425
+    [2,   200] loss: 0.1707605
+    [2,   300] loss: 0.1476284
+    [2,   400] loss: 0.1317965
+    [2,   500] loss: 0.1430719
+    [2,   600] loss: 0.1194900
+    [2,   700] loss: 0.1308619
+    [2,   800] loss: 0.1342847
+    [2,   900] loss: 0.1086862
+    [3,   100] loss: 0.1064620
+    [3,   200] loss: 0.1040552
+    [3,   300] loss: 0.0994132
+    [3,   400] loss: 0.0862094
+    [3,   500] loss: 0.0988619
+    [3,   600] loss: 0.0963443
+    [3,   700] loss: 0.0918163
+    [3,   800] loss: 0.0987642
+    [3,   900] loss: 0.0817158
+    [4,   100] loss: 0.0893050
+    [4,   200] loss: 0.0867413
+    [4,   300] loss: 0.0741176
+    [4,   400] loss: 0.0735338
+    [4,   500] loss: 0.0767195
+    [4,   600] loss: 0.0756848
+    [4,   700] loss: 0.0754038
+    [4,   800] loss: 0.0842071
+    [4,   900] loss: 0.0690014
+    [5,   100] loss: 0.0724872
+    [5,   200] loss: 0.0716603
+    [5,   300] loss: 0.0712729
+    [5,   400] loss: 0.0624583
+    [5,   500] loss: 0.0673477
+    [5,   600] loss: 0.0660317
+    [5,   700] loss: 0.0700283
+    [5,   800] loss: 0.0740323
+    [5,   900] loss: 0.0593979
+    [6,   100] loss: 0.0657551
+    [6,   200] loss: 0.0623210
+    [6,   300] loss: 0.0621727
+    [6,   400] loss: 0.0507785
+    [6,   500] loss: 0.0615643
+    [6,   600] loss: 0.0630819
+    [6,   700] loss: 0.0552831
+    [6,   800] loss: 0.0651452
+    [6,   900] loss: 0.0553009
+    [7,   100] loss: 0.0608834
+    [7,   200] loss: 0.0645298
+    [7,   300] loss: 0.0582906
+    [7,   400] loss: 0.0519960
+    [7,   500] loss: 0.0591846
+    [7,   600] loss: 0.0568298
+    [7,   700] loss: 0.0571153
+    [7,   800] loss: 0.0612060
+    [7,   900] loss: 0.0528919
+    [8,   100] loss: 0.0607193
+    [8,   200] loss: 0.0600888
+    [8,   300] loss: 0.0493189
+    [8,   400] loss: 0.0489381
+    [8,   500] loss: 0.0500094
+    [8,   600] loss: 0.0516449
+    [8,   700] loss: 0.0567348
+    [8,   800] loss: 0.0576415
+    [8,   900] loss: 0.0458774
+    [9,   100] loss: 0.0539871
+    [9,   200] loss: 0.0557084
+    [9,   300] loss: 0.0490090
+    [9,   400] loss: 0.0420257
+    [9,   500] loss: 0.0533018
+    [9,   600] loss: 0.0534333
+    [9,   700] loss: 0.0510741
+    [9,   800] loss: 0.0527045
+    [9,   900] loss: 0.0453930
+    [10,   100] loss: 0.0519041
+    [10,   200] loss: 0.0477362
+    [10,   300] loss: 0.0456561
+    [10,   400] loss: 0.0433271
+    [10,   500] loss: 0.0490685
+    [10,   600] loss: 0.0475104
+    [10,   700] loss: 0.0471566
+    [10,   800] loss: 0.0540270
+    [10,   900] loss: 0.0426829
+    [11,   100] loss: 0.0562640
+    [11,   200] loss: 0.0526303
+    [11,   300] loss: 0.0487617
+    [11,   400] loss: 0.0494923
+    [11,   500] loss: 0.0458794
+    [11,   600] loss: 0.0466035
+    [11,   700] loss: 0.0497668
+    [11,   800] loss: 0.0531775
+    [11,   900] loss: 0.0467396
+    [12,   100] loss: 0.0532734
+    [12,   200] loss: 0.0509588
+    [12,   300] loss: 0.0438266
+    [12,   400] loss: 0.0471100
+    [12,   500] loss: 0.0462306
+    [12,   600] loss: 0.0484390
+    [12,   700] loss: 0.0465859
+    [12,   800] loss: 0.0532990
+    [12,   900] loss: 0.0411312
+    [13,   100] loss: 0.0494849
+    [13,   200] loss: 0.0491107
+    [13,   300] loss: 0.0457686
+    [13,   400] loss: 0.0384080
+    [13,   500] loss: 0.0432677
+    [13,   600] loss: 0.0500087
+    [13,   700] loss: 0.0474824
+    [13,   800] loss: 0.0512351
+    [13,   900] loss: 0.0427363
+    [14,   100] loss: 0.0520116
+    [14,   200] loss: 0.0492149
+    [14,   300] loss: 0.0465975
+    [14,   400] loss: 0.0385379
+    [14,   500] loss: 0.0438415
+    [14,   600] loss: 0.0512444
+    [14,   700] loss: 0.0473516
+    [14,   800] loss: 0.0501071
+    [14,   900] loss: 0.0458168
+    Accuracy on 10 000 test images: 98 %
+      class     0: 99.5 %
+      class     1: 99.6 %
+      class     2: 98.8 %
+      class     3: 99.2 %
+      class     4: 98.9 %
+      class     5: 99.1 %
+      class     6: 98.5 %
+      class     7: 98.7 %
+      class     8: 98.9 %
+      class     9: 97.8 %
+    ```
 
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
-Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
-
-Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
-
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
-Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
-
-Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
-
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw/t10k-images-idx3-ubyte.gz
-Extracting ./data/MNIST/raw/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw
-
-Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
-
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz to ./data/MNIST/raw/t10k-labels-idx1-ubyte.gz
-Extracting ./data/MNIST/raw/t10k-labels-idx1-ubyte.gz to ./data/MNIST/raw
-
-[1,   100] loss: 1.2268413
-
-... (126 lines omitted)
-
-  class     0: 99.5 %
-  class     1: 99.6 %
-  class     2: 98.8 %
-  class     3: 99.2 %
-  class     4: 98.9 %
-  class     5: 99.1 %
-  class     6: 98.5 %
-  class     7: 98.7 %
-  class     8: 98.9 %
-  class     9: 97.8 %
-```
 
 ## 2. 논의
 
