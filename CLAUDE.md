@@ -164,6 +164,24 @@ that reading the page is enough and nobody has to rerun anything.
 - **One run is not a measurement.** When a page compares two models, vary the seed and
   report the spread; a gap smaller than the spread is not a gap. `docs/ch02/models/trees.md`
   shows the short form of this, and the IMDB chapter builds on it.
+- **Seeding is not always enough.** Iterating a `set` prints in hash order, and Python
+  randomizes string hashing per process — such a page varies run to run no matter how it is
+  seeded. Sort the set. `ch21/detection/basic_object_detection.md` had this.
+
+### Code stays open; output may fold
+
+Code is the explanation, not an appendix to it, so it is **not** collapsed on a normal page.
+Find-in-page does not reach inside a closed `<details>` on Safari or Firefox, so folding
+code hides exactly the identifiers a reader hunts for. (Site search is unaffected — mkdocs
+indexes the source either way.)
+
+The exception is a page that is a **reference listing rather than a lesson**: 400+ lines of
+code with under 25% prose. There is no explanation there for the code to interrupt, so it
+folds into `??? note "코드 (N줄)"`. About 118 pages qualify; `experiments/fold_code.py --list`
+names them, and folds every top-level block on a page when run against one.
+
+Measure prose as `total − code − output`. Counting output as prose makes a page with a long
+restored output look discursive and slip out of the rule.
 
 ### Checking that the page still tells the truth
 
