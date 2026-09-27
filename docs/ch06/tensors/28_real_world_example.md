@@ -188,6 +188,7 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+
 ======================================================================
 Complete MNIST Classifier Pipeline
 ======================================================================
@@ -221,9 +222,26 @@ Epoch [2/5]
   Val Loss: 2.3075, Val Acc: 8.50%
 Epoch [3/5]
   Train Loss: 2.3014, Train Acc: 9.50%
+  Val Loss: 2.3041, Val Acc: 11.00%
+  → New best model! Acc: 11.00%
+Epoch [4/5]
+  Train Loss: 2.2934, Train Acc: 12.50%
+  Val Loss: 2.3084, Val Acc: 9.00%
+Epoch [5/5]
+  Train Loss: 2.2959, Train Acc: 12.75%
+  Val Loss: 2.3078, Val Acc: 8.00%
 
-... (20 lines omitted)
+5. Final Evaluation...
+Final Validation Accuracy: 8.00%
 
+6. Inference Example...
+True label: 4
+Predicted: 0
+Confidence: 0.1115
+
+======================================================================
+Training Complete!
+======================================================================
 
     다음 걸음:
     1. 참 MNIST 데이터셋으로 해 보아라(torchvision.datasets.MNIST)

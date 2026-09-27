@@ -250,7 +250,11 @@ train_loader = torch.utils.data.DataLoader(
     dataset=train_dataset,
     batch_size=config['batch_size'],
     shuffle=True,            # 에포크마다 학습 데이터 섞기
-    num_workers=2,           # 데이터 적재에 하위 프로세스 2개 쓰기
+    # num_workers 를 0으로 둔다. 1 이상이면 맥과 윈도가 일꾼 프로세스를
+    # **새로 띄우며**(spawn) 이 각본을 처음부터 다시 읽는다. 맨 바깥에서 자료를
+    # 돌리고 있으면 일꾼이 또 일꾼을 띄워 끝내 죽는다. 1 이상을 쓰려면 돌리는
+    # 부분을 모두 `if __name__ == "__main__":` 안으로 넣어야 한다.
+    num_workers=0,           # 데이터 적재에 하위 프로세스 2개 쓰기
     pin_memory=True          # CPU-GPU 전송 속도 높이기
 )
 
@@ -258,7 +262,7 @@ test_loader = torch.utils.data.DataLoader(
     dataset=test_dataset,
     batch_size=config['batch_size'],
     shuffle=False,           # 시험 데이터는 섞지 않는다
-    num_workers=2,
+    num_workers=0,
     pin_memory=True
 )
 

@@ -9,6 +9,9 @@
 import torch
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import numpy as np
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -174,12 +177,13 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+
 ======================================================================
 1. Basic Dataset and DataLoader
 ======================================================================
 Dataset size: 100
-First sample: (tensor([ 1.2441, -0.0942, -0.9447, -0.8294,  1.2059, -0.6530,  0.6002,  0.9770,
-        -2.9084,  0.2132]), tensor(0))
+First sample: (tensor([-1.1258, -1.1524, -0.2506, -0.4339,  0.8487,  0.6920, -0.3160, -2.1152,
+         0.3223, -1.2633]), tensor(1))
 
 DataLoader created with batch_size=10
 Number of batches: 10
@@ -207,9 +211,37 @@ Batch: torch.Size([20, 5]), torch.Size([20])
 4. Training Loop with DataLoader
 ======================================================================
 Training for 2 epochs:
+Epoch 1: Avg Loss = 0.7115
+Epoch 2: Avg Loss = 0.7190
 
-... (31 lines omitted)
+======================================================================
+5. Data Augmentation Example
+======================================================================
+Dataset with random horizontal flip augmentation
+Batch: images=torch.Size([10, 3, 32, 32]), labels=torch.Size([10])
 
+======================================================================
+6. Splitting Dataset
+======================================================================
+Total dataset size: 100
+Train set size: 80
+Val set size: 20
+
+Train and validation loaders created!
+
+======================================================================
+7. Collate Function - Custom Batching
+======================================================================
+Using custom collate function
+Batch: torch.Size([10, 10]), torch.Size([10])
+
+======================================================================
+8. Best Practices
+======================================================================
+
+    DataLoader를 잘 쓰는 버릇:
+    
+    1. 더 빨리 불러오려면 일꾼을 여럿 써라(num_workers > 0)
     2. GPU을 쓸 때는 pin_memory=True를 켜라
     3. 학습 데이터를 섞어라(shuffle=True)
     4. 검증/시험 데이터는 섞지 마라

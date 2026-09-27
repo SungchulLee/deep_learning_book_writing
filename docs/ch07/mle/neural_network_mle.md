@@ -529,9 +529,18 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
       MSE: 0.1308
       NLL: -0.7024
 
+📊 Creating visualizations...
 
-... (12 lines omitted)
+📊 Figure saved as 'neural_network_mle_results.png'
 
+================================================================================
+✅ COMPLETE!
+================================================================================
+
+💡 KEY TAKEAWAYS:
+   1. Neural networks ARE MLE when trained with appropriate losses
+   2. MSE = MLE with Gaussian assumption and fixed variance
+   3. Heteroscedastic networks predict uncertainty!
    4. Custom loss functions = Custom probabilistic assumptions
    5. This enables uncertainty-aware deep learning
 

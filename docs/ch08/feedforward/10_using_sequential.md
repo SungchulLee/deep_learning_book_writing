@@ -41,6 +41,9 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ================================================================================
 # 1부: 간단한 Sequential 모델
@@ -389,56 +392,171 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (160줄)"
 
-```
-================================================================================
-PART 1: Building a Simple Sequential Model
-================================================================================
-Simple Sequential Model:
-Sequential(
-  (0): Linear(in_features=784, out_features=256, bias=True)
-  (1): ReLU()
-  (2): Linear(in_features=256, out_features=128, bias=True)
-  (3): ReLU()
-  (4): Linear(in_features=128, out_features=10, bias=True)
-)
+    ```
+    ================================================================================
+    PART 1: Building a Simple Sequential Model
+    ================================================================================
+    Simple Sequential Model:
+    Sequential(
+      (0): Linear(in_features=784, out_features=256, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=256, out_features=128, bias=True)
+      (3): ReLU()
+      (4): Linear(in_features=128, out_features=10, bias=True)
+    )
 
-Total parameters: 235,146
+    Total parameters: 235,146
 
-================================================================================
-PART 2: Sequential with Named Layers
-================================================================================
-Named Sequential Model:
-  flatten: Flatten(start_dim=1, end_dim=-1)
-  fc1: Linear(in_features=784, out_features=256, bias=True)
-  relu1: ReLU()
-  dropout1: Dropout(p=0.2, inplace=False)
-  fc2: Linear(in_features=256, out_features=128, bias=True)
-  relu2: ReLU()
-  dropout2: Dropout(p=0.2, inplace=False)
-  fc3: Linear(in_features=128, out_features=10, bias=True)
+    ================================================================================
+    PART 2: Sequential with Named Layers
+    ================================================================================
+    Named Sequential Model:
+      flatten: Flatten(start_dim=1, end_dim=-1)
+      fc1: Linear(in_features=784, out_features=256, bias=True)
+      relu1: ReLU()
+      dropout1: Dropout(p=0.2, inplace=False)
+      fc2: Linear(in_features=256, out_features=128, bias=True)
+      relu2: ReLU()
+      dropout2: Dropout(p=0.2, inplace=False)
+      fc3: Linear(in_features=128, out_features=10, bias=True)
 
-================================================================================
-PART 3: Composing Sequential Blocks
-================================================================================
-Modular Sequential Model:
-Sequential(
-  (0): Flatten(start_dim=1, end_dim=-1)
+    ================================================================================
+    PART 3: Composing Sequential Blocks
+    ================================================================================
+    Modular Sequential Model:
+    Sequential(
+      (0): Flatten(start_dim=1, end_dim=-1)
+      (1): Sequential(
+        (0): Linear(in_features=784, out_features=512, bias=True)
+        (1): ReLU()
+        (2): Dropout(p=0.3, inplace=False)
+      )
+      (2): Sequential(
+        (0): Linear(in_features=512, out_features=256, bias=True)
+        (1): ReLU()
+        (2): Dropout(p=0.3, inplace=False)
+      )
+      (3): Sequential(
+        (0): Linear(in_features=256, out_features=128, bias=True)
+        (1): ReLU()
+        (2): Dropout(p=0.2, inplace=False)
+      )
+      (4): Linear(in_features=128, out_features=10, bias=True)
+    )
 
-... (148 lines omitted)
+    Number of layers: 5
 
-1. Sequential로 5~6층짜리 더 깊은 모델을 만들어 보라
-2. 층 사이에 배치 정규화를 넣어 보라
-3. 드롭아웃 비율을 달리하여 실험해 보라
-4. "넓은" 신경망(층마다 뉴런이 많다)과 "깊은" 신경망(층이 많다)을 만들어 견주어 보라
-5. 설정 목록으로 Sequential 모델을 만들어 내는 함수를 짜 보라
-6. 자르기로 중간 특징을 뽑아 보라
-7. 여러 활성화 함수(LeakyReLU, ELU 등)를 써 보라
-8. Sequential 모델의 앙상블을 만들어 보라
-9. 첫 층의 가중치를 시각화해 보라
-10. 층을 없애는 방식으로 모델 가지치기를 구현해 보라
-```
+    ================================================================================
+    PART 4: Training Sequential Model on MNIST
+    ================================================================================
+    Using device: cpu
+
+    Training...
+    Epoch [1/5] | Train Loss: 0.3512, Acc: 90.35% | Test Loss: 0.1639, Acc: 94.98%
+    Epoch [2/5] | Train Loss: 0.1340, Acc: 96.01% | Test Loss: 0.1066, Acc: 96.69%
+    Epoch [3/5] | Train Loss: 0.0894, Acc: 97.28% | Test Loss: 0.0879, Acc: 97.10%
+    Epoch [4/5] | Train Loss: 0.0658, Acc: 97.92% | Test Loss: 0.0862, Acc: 97.21%
+    Epoch [5/5] | Train Loss: 0.0492, Acc: 98.50% | Test Loss: 0.0766, Acc: 97.55%
+
+    ================================================================================
+    PART 5: Architecture Comparison
+    ================================================================================
+
+    Model Comparison:
+    --------------------------------------------------------------------------------
+    Model                     Parameters      Layers    
+    --------------------------------------------------------------------------------
+    Simple (3 layers)         235,146         5         
+    Named (with dropout)      235,146         8         
+    Modular (4 layers)        567,434         11        
+    --------------------------------------------------------------------------------
+
+    ================================================================================
+    PART 6: Accessing Sequential Model Components
+    ================================================================================
+    First layer of simple_model:
+    Linear(in_features=784, out_features=256, bias=True)
+
+    Third layer (second ReLU):
+    ReLU()
+
+    All layers:
+      Layer 0: Linear
+      Layer 1: ReLU
+      Layer 2: Linear
+      Layer 3: ReLU
+      Layer 4: Linear
+
+    First 3 layers:
+    Sequential(
+      (0): Linear(in_features=784, out_features=256, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=256, out_features=128, bias=True)
+    )
+
+    Modifying model by adding a new layer:
+    Original output size: 10
+    Extended output size: 5
+
+    ================================================================================
+    PART 7: Visualizing Training Progress
+    ================================================================================
+    Training progress saved as '04_sequential_training.png'
+
+    ================================================================================
+    KEY TAKEAWAYS
+    ================================================================================
+
+    1. nn.Sequential은 단순한 순전파 구조에 안성맞춤이다
+       - 깔끔하고 읽기 쉬운 코드
+       - 빠른 시제품 제작
+       - 맞춤 nn.Module보다 군더더기가 적다
+
+    2. Sequential을 쓰는 세 가지 방법:
+       - 단순: 층을 순서대로 넘기기만 한다
+       - 이름 붙이기: 디버깅을 돕도록 튜플을 쓴다
+       - 모듈화: 다시 쓸 수 있는 블록을 조립한다
+
+    3. Sequential의 한계:
+       ✗ 여러 입력이나 출력을 다룰 수 없다
+       ✗ 맞춤 순전파 논리를 넣을 수 없다
+       ✗ 조건부 실행이 안 된다
+       → 이런 경우에는 맞춤 nn.Module을 쓰라
+
+    4. Sequential 모델은 다음과 온전히 호환된다.
+       ✓ 모든 PyTorch 학습 API
+       ✓ 모델 저장과 불러오기
+       ✓ 전이 학습
+       ✓ 모델 점검 도구
+
+    5. Sequential 모델은 접근, 자르기, 고치기가 쉽다
+       - 인덱스로 접근: model[0]
+       - Slice: model[:3]
+       - 순회: for layer in model
+
+    언제 쓰는가:
+      - 층을 단순히 쌓을 때는 Sequential을 쓴다
+      - 복잡한 구조에는 맞춤 Module을 쓴다
+
+    ================================================================================
+    EXERCISES TO TRY
+    ================================================================================
+
+    1. Sequential로 5~6층짜리 더 깊은 모델을 만들어 보라
+    2. 층 사이에 배치 정규화를 넣어 보라
+    3. 드롭아웃 비율을 달리하여 실험해 보라
+    4. "넓은" 신경망(층마다 뉴런이 많다)과 "깊은" 신경망(층이 많다)을 만들어 견주어 보라
+    5. 설정 목록으로 Sequential 모델을 만들어 내는 함수를 짜 보라
+    6. 자르기로 중간 특징을 뽑아 보라
+    7. 여러 활성화 함수(LeakyReLU, ELU 등)를 써 보라
+    8. Sequential 모델의 앙상블을 만들어 보라
+    9. 첫 층의 가중치를 시각화해 보라
+    10. 층을 없애는 방식으로 모델 가지치기를 구현해 보라
+
+    ```
+
 
 ## 2. 논의
 

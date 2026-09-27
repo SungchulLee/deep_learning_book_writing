@@ -36,6 +36,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import numpy as np
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 print("=" * 70)
 print("MULTIVARIATE LINEAR REGRESSION")
@@ -284,56 +287,133 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (122줄)"
 
-```
-======================================================================
-MULTIVARIATE LINEAR REGRESSION
-======================================================================
+    ```
+    ======================================================================
+    MULTIVARIATE LINEAR REGRESSION
+    ======================================================================
 
-======================================================================
-PART 1: LOAD CALIFORNIA HOUSING DATASET
-======================================================================
-Dataset loaded:
-  Samples: 20640
-  Features: 8
+    ======================================================================
+    PART 1: LOAD CALIFORNIA HOUSING DATASET
+    ======================================================================
+    Dataset loaded:
+      Samples: 20640
+      Features: 8
 
-Feature names:
-  0: MedInc
-  1: HouseAge
-  2: AveRooms
-  3: AveBedrms
-  4: Population
-  5: AveOccup
-  6: Latitude
-  7: Longitude
+    Feature names:
+      0: MedInc
+      1: HouseAge
+      2: AveRooms
+      3: AveBedrms
+      4: Population
+      5: AveOccup
+      6: Latitude
+      7: Longitude
 
-Target: Median house value ($100k)
-  Min: $15.0k
-  Max: $500.0k
-  Mean: $206.9k
+    Target: Median house value ($100k)
+      Min: $15.0k
+      Max: $500.0k
+      Mean: $206.9k
 
-======================================================================
-PART 2: DATA PREPROCESSING
-======================================================================
-Data split:
-  Training samples: 16512
-  Test samples: 4128
+    ======================================================================
+    PART 2: DATA PREPROCESSING
+    ======================================================================
+    Data split:
+      Training samples: 16512
+      Test samples: 4128
 
+    Feature scaling applied (StandardScaler)
+      Train X: mean≈0, std≈1
+      Train y: mean≈0, std≈1
 
-... (78 lines omitted)
+    Tensor shapes:
+      X_train: torch.Size([16512, 8])
+      y_train: torch.Size([16512, 1])
 
+    ======================================================================
+    PART 3: DEFINE MULTIVARIATE MODEL
+    ======================================================================
+    Model created with 8 input features
+    MultiLinearRegression(
+      (linear): Linear(in_features=8, out_features=1, bias=True)
+    )
 
-4. Adam 최적화기:
-   - 다변량에서는 SGD보다 잘 듣는 일이 잦다
-   - 매개변수마다 맞추어 가는 학습률
+    Parameter shapes:
+      Weight: torch.Size([1, 8])
+      Bias: torch.Size([1])
 
-5. 따짐 자:
-   - R²: 설명된 분산의 몫(1.0이면 완벽하다)
-   - MAE: 평균 절대 오차(뜻을 읽기 쉽다)
+    ======================================================================
+    PART 4: TRAINING
+    ======================================================================
+    Training for 200 epochs with Adam optimizer...
 
-다음: 튜토리얼 07 - 다항 회귀!
-```
+    Epoch    Train Loss      Test Loss      
+    ---------------------------------------------
+    1        1.491943        1.123750       
+    20       0.441741        0.437953       
+    40       0.391823        0.416824       
+    60       0.388718        0.414640       
+    80       0.387528        0.415757       
+    100      0.387456        0.416443       
+    120      0.387450        0.415813       
+    140      0.387449        0.415788       
+    160      0.387449        0.415847       
+    180      0.387449        0.415848       
+    200      0.387449        0.415845       
+
+    Training completed!
+
+    ======================================================================
+    PART 5: EVALUATION
+    ======================================================================
+    Model Performance:
+      Train R²: 0.6126
+      Test R²: 0.5758
+      Train MAE: $52.86k
+      Test MAE: $53.32k
+
+    Feature Importance (absolute weights):
+      MedInc              :   0.7390
+      HouseAge            :   0.1060
+      AveRooms            :   0.2546
+      AveBedrms           :   0.2934
+      Population          :   0.0020
+      AveOccup            :   0.0353
+      Latitude            :   0.7758
+      Longitude           :   0.7523
+
+    Saved visualization
+
+    ======================================================================
+    SUMMARY
+    ======================================================================
+
+    다변량 회귀의 고갱이:
+
+    1. 여러 특징: y = w₁x₁ + w₂x₂ + ... + wₙxₙ + b
+
+    2. 특징 척도 잡기가 종요롭다.
+       - 잣대가 다른 특징은 학습에 탈을 낼 수 있다
+       - StandardScaler: (x - mean) / std
+       - 늘 학습 데이터에만 맞춰라!
+
+    3. 학습/시험 나누기:
+       - 본 적 없는 데이터로 평가한다
+       - 지나치게 맞춰졌는지 가늠할 수 있다
+
+    4. Adam 최적화기:
+       - 다변량에서는 SGD보다 잘 듣는 일이 잦다
+       - 매개변수마다 맞추어 가는 학습률
+
+    5. 따짐 자:
+       - R²: 설명된 분산의 몫(1.0이면 완벽하다)
+       - MAE: 평균 절대 오차(뜻을 읽기 쉽다)
+
+    다음: 튜토리얼 07 - 다항 회귀!
+
+    ```
+
 
 ## 2. 논의
 

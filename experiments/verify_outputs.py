@@ -199,6 +199,10 @@ def check(md_path, timeout=1800):
     # 옆에 놓인 .py 를 불러 쓰는 쪽이 있다 — 그 자리를 PYTHONPATH 에 얹는다
     import os
     env = dict(os.environ)
+    # plt.show() 는 화면이 있는 백엔드에서 **영원히 멈춘다**. 확인하는 자리에는
+    # 화면이 없으니 기다릴 사람도 없다. Agg 로 묶으면 그림은 파일로만 가고
+    # 코드는 그대로 지나간다 — 이 한 줄이 14쪽을 시간초과에서 90초로 바꿨다.
+    env.setdefault("MPLBACKEND", "Agg")
     env["PYTHONPATH"] = str(md_path.parent) + os.pathsep + env.get("PYTHONPATH", "")
 
     r = None
@@ -212,7 +216,11 @@ def check(md_path, timeout=1800):
                 r = subprocess.run([sys.executable, tmp], capture_output=True,
                                    text=True, timeout=timeout, cwd=cwd, env=env)
             except subprocess.TimeoutExpired:
-                return ("시간초과", 0, 0, [], 0)
+                # 이어 붙인 것이 오래 걸리면 가장 긴 블록만으로 한 번 더 해 본다.
+                # 이어 붙이면 연습문제 풀이까지 함께 돌아 훨씬 오래 걸리는데,
+                # 여기서 바로 포기하면 되돌림을 써 보지도 못하고 끝난다.
+                r = None
+                continue
             finally:
                 Path(tmp).unlink(missing_ok=True)
             if r.returncode == 0:

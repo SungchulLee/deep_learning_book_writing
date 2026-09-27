@@ -359,56 +359,151 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (140줄)"
 
-```
-======================================================================
-LINEAR REGRESSION WITH NN.MODULE
-======================================================================
+    ```
+    ======================================================================
+    LINEAR REGRESSION WITH NN.MODULE
+    ======================================================================
 
-======================================================================
-PART 1: GENERATE DATA
-======================================================================
-Data shapes: X=torch.Size([100, 1]), y=torch.Size([100, 1])
-True parameters: w=2.5, b=3.0
+    ======================================================================
+    PART 1: GENERATE DATA
+    ======================================================================
+    Data shapes: X=torch.Size([100, 1]), y=torch.Size([100, 1])
+    True parameters: w=2.5, b=3.0
 
-======================================================================
-PART 2: DEFINE MODEL CLASS
-======================================================================
-Model created:
-LinearRegressionModel(
-  (linear): Linear(in_features=1, out_features=1, bias=True)
-)
+    ======================================================================
+    PART 2: DEFINE MODEL CLASS
+    ======================================================================
+    Model created:
+    LinearRegressionModel(
+      (linear): Linear(in_features=1, out_features=1, bias=True)
+    )
 
-Model parameters:
-  linear.weight: shape=torch.Size([1, 1]), requires_grad=True
-  linear.bias: shape=torch.Size([1]), requires_grad=True
+    Model parameters:
+      linear.weight: shape=torch.Size([1, 1]), requires_grad=True
+      linear.bias: shape=torch.Size([1]), requires_grad=True
 
-======================================================================
-PART 3: DEFINE LOSS AND OPTIMIZER
-======================================================================
-Loss function: MSELoss()
-Optimizer: SGD (
-Parameter Group 0
-    dampening: 0
-    differentiable: False
-    foreach: None
-    fused: None
-    lr: 0.01
+    ======================================================================
+    PART 3: DEFINE LOSS AND OPTIMIZER
+    ======================================================================
+    Loss function: MSELoss()
+    Optimizer: SGD (
+    Parameter Group 0
+        dampening: 0
+        differentiable: False
+        foreach: None
+        fused: None
+        lr: 0.01
+        maximize: False
+        momentum: 0
+        nesterov: False
+        weight_decay: 0
+    )
+    Learning rate: 0.01
 
-... (96 lines omitted)
+    최적화기를 쓰는 핵심 이점:
+    1. 모델의 매개변수를 모두 절로 고친다
+    2. 직접 매개변수를 고칠 일이 없다
+    3. 최적화기를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
+    4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
 
-4. criterion: 손실 함수
 
-Advantages:
-✓ 깔끔하고 읽기 좋은 코드
-✓ 복잡한 모델으로 넓히기 쉽다
-✓ 매개변수를 절로 다룬다
-✓ 모델을 저장하고 불러오기 쉽다
-✓ GPU을 받친다(.to('cuda')만 더하면 된다)
+    ======================================================================
+    PART 4: TRAINING LOOP
+    ======================================================================
+    Training for 100 epochs...
 
-다음: 튜토리얼 06 - 여러 입력 특징!
-```
+    Epoch    Loss         w            b           
+    --------------------------------------------------
+    1        201.7735     1.7567       -0.1792     
+    10       9.9214       2.4788       0.3536      
+    20       7.5113       2.4743       0.8363      
+    30       5.9003       2.4706       1.2310      
+    40       4.8235       2.4675       1.5537      
+    50       4.1037       2.4650       1.8175      
+    60       3.6226       2.4630       2.0331      
+    70       3.3010       2.4613       2.2095      
+    80       3.0861       2.4599       2.3536      
+    90       2.9424       2.4588       2.4715      
+    100      2.8464       2.4579       2.5679      
+
+    ======================================================================
+    TRAINING COMPLETED
+    ======================================================================
+
+    Final Results:
+      Learned w: 2.4579 (True: 2.5, Error: 0.0421)
+      Learned b: 2.5679 (True: 3.0, Error: 0.4321)
+      Final loss: 2.846351
+
+    ======================================================================
+    PART 5: MODEL EVALUATION MODE
+    ======================================================================
+
+    모델에는 두 결이 있다.
+    1. 학습 결(model.train()): 기본이며 드롭아웃, 배치 정규화 따위를 켠다
+    2. 따짐 결(model.eval()): 드롭아웃, 배치 정규화 따위를 끈다
+
+    선형 회귀에서는 걸리지 않지만 좋은 버릇이다!
+
+    Model set to evaluation mode
+
+    Test predictions:
+      X=   5.0 -> Pred:   14.86, True:   15.50
+      X=  -3.0 -> Pred:   -4.81, True:   -4.50
+      X=   0.0 -> Pred:    2.57, True:    3.00
+
+    ======================================================================
+    PART 6: SAVING AND LOADING MODELS
+    ======================================================================
+    Model saved to: linear_model.pth
+    Model loaded successfully
+
+    Verifying loaded model (should match above):
+      X=   5.0 -> Pred:   14.86
+      X=  -3.0 -> Pred:   -4.81
+      X=   0.0 -> Pred:    2.57
+
+    Saved visualization to: 05_nn_module_results.png
+
+    ======================================================================
+    SUMMARY
+    ======================================================================
+
+    여느 PyTorch 학습 루프:
+
+    model = MyModel()
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+
+    for epoch in range(n_epochs):
+        # 순전파
+        y_pred = model(X)
+        loss = criterion(y_pred, y)
+        
+        # 역전파
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    핵심 조각:
+    1. nn.Module: 모든 모델의 밑 클래스
+    2. nn.Linear: 붙박이 선형 층
+    3. optimizer: 매개변수 고치기를 다룬다
+    4. criterion: 손실 함수
+
+    Advantages:
+    ✓ 깔끔하고 읽기 좋은 코드
+    ✓ 복잡한 모델으로 넓히기 쉽다
+    ✓ 매개변수를 절로 다룬다
+    ✓ 모델을 저장하고 불러오기 쉽다
+    ✓ GPU을 받친다(.to('cuda')만 더하면 된다)
+
+    다음: 튜토리얼 06 - 여러 입력 특징!
+
+    ```
+
 
 ## 2. 논의
 

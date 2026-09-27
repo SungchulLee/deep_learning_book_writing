@@ -500,9 +500,32 @@ Probability → Odds → Log-Odds conversion:
  Probability         Odds     Log-Odds
 ------------------------------------------------------------
       0.0100       0.0101      -4.5951
+      0.1000       0.1111      -2.1972
+      0.2500       0.3333      -1.0986
+      0.5000       1.0000       0.0000
+      0.7500       3.0000       1.0986
+      0.9000       9.0000       2.1972
+      0.9900      99.0001       4.5951
 
-... (26 lines omitted)
+======================================================================
+LOGISTIC REGRESSION COEFFICIENT INTERPRETATION
+======================================================================
 
+True coefficients:
+  Intercept (β₀): 0.500
+  Feature 1 (β₁): 1.500 → Odds Ratio: 4.482
+  Feature 2 (β₂): -0.800 → Odds Ratio: 0.449
+
+Learned coefficients (on standardized features):
+  Intercept (β₀): 0.568
+  Feature 1 (β₁): 1.386 → Odds Ratio: 4.000
+  Feature 2 (β₂): -0.943 → Odds Ratio: 0.390
+
+======================================================================
+NUMERICAL STABILITY OF SIGMOID
+======================================================================
+
+Comparing naive vs stable sigmoid for extreme values:
 ------------------------------------------------------------
          z           Naive          Stable         PyTorch
 ------------------------------------------------------------

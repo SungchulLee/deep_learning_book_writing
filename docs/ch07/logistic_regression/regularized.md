@@ -644,56 +644,102 @@ plt.show()
 print("\n✓ Results visualization saved!")
 ```
 
-**출력:**
+??? note "전체 출력 (91줄)"
 
-```
-======================================================================
-REGULARIZED LOGISTIC REGRESSION — COMPLETE PIPELINE
-======================================================================
+    ```
+    ======================================================================
+    REGULARIZED LOGISTIC REGRESSION — COMPLETE PIPELINE
+    ======================================================================
 
-======================================================================
-REGULARIZATION COMPARISON ON BREAST CANCER DATASET
-======================================================================
+    ======================================================================
+    REGULARIZATION COMPARISON ON BREAST CANCER DATASET
+    ======================================================================
 
-Data prepared:
-  Training:   341 samples
-  Validation: 114 samples
-  Test:       114 samples
-  Features:   30
+    Data prepared:
+      Training:   341 samples
+      Validation: 114 samples
+      Test:       114 samples
+      Features:   30
 
---- No Regularization ---
+    --- No Regularization ---
 
-  Accuracy:  0.9561
-  Precision: 0.9855
-  Recall:    0.9444
-  F1-Score:  0.9645
-  AUC-ROC:   0.9934
+      Accuracy:  0.9561
+      Precision: 0.9855
+      Recall:    0.9444
+      F1-Score:  0.9645
+      AUC-ROC:   0.9934
 
-  Confusion Matrix:
-             Predicted
-               0     1
-  Actual 0     41     1
-         1      4    68
+      Confusion Matrix:
+                 Predicted
+                   0     1
+      Actual 0     41     1
+             1      4    68
 
---- L2 (Ridge, λ=0.01) ---
+    --- L2 (Ridge, λ=0.01) ---
 
-  Accuracy:  0.9825
-  Precision: 0.9861
-  Recall:    0.9861
+      Accuracy:  0.9825
+      Precision: 0.9861
+      Recall:    0.9861
+      F1-Score:  0.9861
+      AUC-ROC:   0.9960
 
-... (48 lines omitted)
+      Confusion Matrix:
+                 Predicted
+                   0     1
+      Actual 0     41     1
+             1      1    71
 
-L2 REGULARIZATION STRENGTH TUNING
-======================================================================
-λ=0.0000  : Val Loss=0.0562, Test AUC=0.9934, ||β||=4.1285
-λ=0.0001  : Val Loss=0.0563, Test AUC=0.9937, ||β||=4.0792
-λ=0.0010  : Val Loss=0.0574, Test AUC=0.9940, ||β||=3.8835
-λ=0.0100  : Val Loss=0.0783, Test AUC=0.9960, ||β||=2.2926
-λ=0.1000  : Val Loss=0.1494, Test AUC=0.9954, ||β||=1.1335
-λ=1.0000  : Val Loss=0.3146, Test AUC=0.9934, ||β||=0.4598
+    --- L1 (Lasso, λ=0.001) ---
 
-✓ Results visualization saved!
-```
+      Accuracy:  0.9737
+      Precision: 0.9859
+      Recall:    0.9722
+      F1-Score:  0.9790
+      AUC-ROC:   0.9947
+
+      Confusion Matrix:
+                 Predicted
+                   0     1
+      Actual 0     41     1
+             1      2    70
+
+    --- Elastic Net ---
+
+      Accuracy:  0.9825
+      Precision: 0.9861
+      Recall:    0.9861
+      F1-Score:  0.9861
+      AUC-ROC:   0.9964
+
+      Confusion Matrix:
+                 Predicted
+                   0     1
+      Actual 0     41     1
+             1      1    71
+
+
+    Weight Statistics Comparison:
+    ----------------------------------------------------------------------
+    Method                           ||β||₂    Nonzero      AUC
+    ----------------------------------------------------------------------
+    No Regularization                4.1285         30/30   0.9934
+    L2 (Ridge, λ=0.01)               2.2926         30/30   0.9960
+    L1 (Lasso, λ=0.001)              3.9982         30/30   0.9947
+    Elastic Net                      2.6788         30/30   0.9964
+
+    ======================================================================
+    L2 REGULARIZATION STRENGTH TUNING
+    ======================================================================
+    λ=0.0000  : Val Loss=0.0562, Test AUC=0.9934, ||β||=4.1285
+    λ=0.0001  : Val Loss=0.0563, Test AUC=0.9937, ||β||=4.0792
+    λ=0.0010  : Val Loss=0.0574, Test AUC=0.9940, ||β||=3.8835
+    λ=0.0100  : Val Loss=0.0783, Test AUC=0.9960, ||β||=2.2926
+    λ=0.1000  : Val Loss=0.1494, Test AUC=0.9954, ||β||=1.1335
+    λ=1.0000  : Val Loss=0.3146, Test AUC=0.9934, ||β||=0.4598
+
+    ✓ Results visualization saved!
+    ```
+
 
 ---
 

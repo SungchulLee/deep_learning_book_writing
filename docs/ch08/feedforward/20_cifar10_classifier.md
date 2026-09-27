@@ -84,10 +84,14 @@ test_dataset = torchvision.datasets.CIFAR10(
 # 데이터 로더 만들기
 batch_size = 128
 train_loader = torch.utils.data.DataLoader(
-    train_dataset, batch_size=batch_size, shuffle=True, num_workers=2
+    # num_workers 를 0으로 둔다. 1 이상이면 맥과 윈도가 일꾼 프로세스를
+    # **새로 띄우며**(spawn) 이 각본을 처음부터 다시 읽는다. 맨 바깥에서 자료를
+    # 돌리고 있으면 일꾼이 또 일꾼을 띄워 끝내 죽는다. 1 이상을 쓰려면 돌리는
+    # 부분을 모두 `if __name__ == "__main__":` 안으로 넣어야 한다.
+    train_dataset, batch_size=batch_size, shuffle=True, num_workers=0
 )
 test_loader = torch.utils.data.DataLoader(
-    test_dataset, batch_size=batch_size, shuffle=False, num_workers=2
+    test_dataset, batch_size=batch_size, shuffle=False, num_workers=0
 )
 
 print(f"Training samples: {len(train_dataset)}")

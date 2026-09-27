@@ -799,56 +799,254 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (243줄)"
 
-```
-================================================================================
-LEVEL 4: ADVANCED SOFTMAX REGRESSION TECHNIQUES
-================================================================================
+    ```
+    ================================================================================
+    LEVEL 4: ADVANCED SOFTMAX REGRESSION TECHNIQUES
+    ================================================================================
 
-================================================================================
-PART 1: Implementing Softmax Regression from Scratch
-================================================================================
-Generating synthetic dataset...
-Training samples: 800
-Test samples: 200
-Features: 20
-Classes: 3
+    ================================================================================
+    PART 1: Implementing Softmax Regression from Scratch
+    ================================================================================
+    Generating synthetic dataset...
+    Training samples: 800
+    Test samples: 200
+    Features: 20
+    Classes: 3
 
-Training NumPy implementation...
-Epoch 50: Loss = 0.7205, Train Acc = 0.7125, Test Acc = 0.6650
-Epoch 100: Loss = 0.7185, Train Acc = 0.7113, Test Acc = 0.6550
-Epoch 150: Loss = 0.7181, Train Acc = 0.7087, Test Acc = 0.6550
-Epoch 200: Loss = 0.7179, Train Acc = 0.7087, Test Acc = 0.6600
+    Training NumPy implementation...
+    Epoch 50: Loss = 0.7205, Train Acc = 0.7125, Test Acc = 0.6650
+    Epoch 100: Loss = 0.7185, Train Acc = 0.7113, Test Acc = 0.6550
+    Epoch 150: Loss = 0.7181, Train Acc = 0.7087, Test Acc = 0.6550
+    Epoch 200: Loss = 0.7179, Train Acc = 0.7087, Test Acc = 0.6600
 
-✅ NumPy implementation final test accuracy: 66.00%
+    ✅ NumPy implementation final test accuracy: 66.00%
 
-================================================================================
-PART 2: Batch Normalization
-================================================================================
+    ================================================================================
+    PART 2: Batch Normalization
+    ================================================================================
 
-Comparing models with/without batch normalization...
+    Comparing models with/without batch normalization...
 
-Training: Without BatchNorm
-----------------------------------------
-Final test accuracy: 0.8650
+    Training: Without BatchNorm
+    ----------------------------------------
+    Final test accuracy: 0.8650
 
-Training: With BatchNorm
-----------------------------------------
+    Training: With BatchNorm
+    ----------------------------------------
+    Final test accuracy: 0.8800
 
-... (199 lines omitted)
+    ================================================================================
+    PART 3: Learning Rate Scheduling
+    ================================================================================
+    Visualizing learning rate schedules...
 
-• 되도는 신경망이나 흔들리는 학습에서는 기울기를 자른다
-• 일반화를 높이려면 레이블 스무딩을 살펴본다
+    Training with StepLR scheduler...
+    Epoch 20: Learning Rate = 0.001000
+    Epoch 40: Learning Rate = 0.000100
+    Epoch 60: Learning Rate = 0.000010
+    ✅ Training with LR scheduling complete
 
-다음 걸음:
------------
-→ 5단계: 여러 데이터셋과 구조를 견주기
-→ 여러 기법을 뒤섞어 실험해 보기
-→ 제 데이터셋에 써 보기
+    ================================================================================
+    PART 4: Early Stopping
+    ================================================================================
+    Training with early stopping...
+    Epoch 1: Train Loss = 1.1228, Val Loss = 1.0128
+    Epoch 2: Train Loss = 1.0015, Val Loss = 0.9222
+      Validation loss improved: 1.0128 → 0.9222
+    Epoch 3: Train Loss = 0.9420, Val Loss = 0.8578
+      Validation loss improved: 0.9222 → 0.8578
+    Epoch 4: Train Loss = 0.8788, Val Loss = 0.8164
+      Validation loss improved: 0.8578 → 0.8164
+    Epoch 5: Train Loss = 0.8527, Val Loss = 0.7746
+      Validation loss improved: 0.8164 → 0.7746
+    Epoch 6: Train Loss = 0.8028, Val Loss = 0.7472
+      Validation loss improved: 0.7746 → 0.7472
+    Epoch 7: Train Loss = 0.7777, Val Loss = 0.7149
+      Validation loss improved: 0.7472 → 0.7149
+    Epoch 8: Train Loss = 0.7812, Val Loss = 0.6939
+      Validation loss improved: 0.7149 → 0.6939
+    Epoch 9: Train Loss = 0.7302, Val Loss = 0.6690
+      Validation loss improved: 0.6939 → 0.6690
+    Epoch 10: Train Loss = 0.7394, Val Loss = 0.6502
+      Validation loss improved: 0.6690 → 0.6502
+    Epoch 11: Train Loss = 0.6925, Val Loss = 0.6257
+      Validation loss improved: 0.6502 → 0.6257
+    Epoch 12: Train Loss = 0.6588, Val Loss = 0.6027
+      Validation loss improved: 0.6257 → 0.6027
+    Epoch 13: Train Loss = 0.6741, Val Loss = 0.5875
+      Validation loss improved: 0.6027 → 0.5875
+    Epoch 14: Train Loss = 0.6474, Val Loss = 0.5770
+      Validation loss improved: 0.5875 → 0.5770
+    Epoch 15: Train Loss = 0.6280, Val Loss = 0.5573
+      Validation loss improved: 0.5770 → 0.5573
+    Epoch 16: Train Loss = 0.5973, Val Loss = 0.5414
+      Validation loss improved: 0.5573 → 0.5414
+    Epoch 17: Train Loss = 0.5824, Val Loss = 0.5389
+      Validation loss improved: 0.5414 → 0.5389
+    Epoch 18: Train Loss = 0.5838, Val Loss = 0.5233
+      Validation loss improved: 0.5389 → 0.5233
+    Epoch 19: Train Loss = 0.5735, Val Loss = 0.5114
+      Validation loss improved: 0.5233 → 0.5114
+    Epoch 20: Train Loss = 0.5445, Val Loss = 0.4930
+      Validation loss improved: 0.5114 → 0.4930
+    Epoch 21: Train Loss = 0.5755, Val Loss = 0.4886
+      Validation loss improved: 0.4930 → 0.4886
+    Epoch 22: Train Loss = 0.5454, Val Loss = 0.4876
+      Validation loss improved: 0.4886 → 0.4876
+    Epoch 23: Train Loss = 0.5165, Val Loss = 0.4830
+      Validation loss improved: 0.4876 → 0.4830
+    Epoch 24: Train Loss = 0.5055, Val Loss = 0.4734
+      Validation loss improved: 0.4830 → 0.4734
+    Epoch 25: Train Loss = 0.4835, Val Loss = 0.4698
+      Validation loss improved: 0.4734 → 0.4698
+    Epoch 26: Train Loss = 0.4946, Val Loss = 0.4502
+      Validation loss improved: 0.4698 → 0.4502
+    Epoch 27: Train Loss = 0.4959, Val Loss = 0.4443
+      Validation loss improved: 0.4502 → 0.4443
+    Epoch 28: Train Loss = 0.4719, Val Loss = 0.4408
+      Validation loss improved: 0.4443 → 0.4408
+    Epoch 29: Train Loss = 0.5177, Val Loss = 0.4312
+      Validation loss improved: 0.4408 → 0.4312
+    Epoch 30: Train Loss = 0.4732, Val Loss = 0.4200
+      Validation loss improved: 0.4312 → 0.4200
+    Epoch 31: Train Loss = 0.4607, Val Loss = 0.4247
+      EarlyStopping counter: 1/10
+    Epoch 32: Train Loss = 0.4736, Val Loss = 0.4171
+      Validation loss improved: 0.4200 → 0.4171
+    Epoch 33: Train Loss = 0.4456, Val Loss = 0.4203
+      EarlyStopping counter: 1/10
+    Epoch 34: Train Loss = 0.4490, Val Loss = 0.4088
+      Validation loss improved: 0.4171 → 0.4088
+    Epoch 35: Train Loss = 0.4241, Val Loss = 0.3966
+      Validation loss improved: 0.4088 → 0.3966
+    Epoch 36: Train Loss = 0.4233, Val Loss = 0.3902
+      Validation loss improved: 0.3966 → 0.3902
+    Epoch 37: Train Loss = 0.4037, Val Loss = 0.3777
+      Validation loss improved: 0.3902 → 0.3777
+    Epoch 38: Train Loss = 0.4656, Val Loss = 0.3676
+      Validation loss improved: 0.3777 → 0.3676
+    Epoch 39: Train Loss = 0.4031, Val Loss = 0.3719
+      EarlyStopping counter: 1/10
+    Epoch 40: Train Loss = 0.4229, Val Loss = 0.3701
+      EarlyStopping counter: 2/10
+    Epoch 41: Train Loss = 0.3966, Val Loss = 0.3792
+      EarlyStopping counter: 3/10
+    Epoch 42: Train Loss = 0.4098, Val Loss = 0.3713
+      EarlyStopping counter: 4/10
+    Epoch 43: Train Loss = 0.3976, Val Loss = 0.3554
+      Validation loss improved: 0.3676 → 0.3554
+    Epoch 44: Train Loss = 0.4156, Val Loss = 0.3478
+      Validation loss improved: 0.3554 → 0.3478
+    Epoch 45: Train Loss = 0.3831, Val Loss = 0.3456
+      Validation loss improved: 0.3478 → 0.3456
+    Epoch 46: Train Loss = 0.3563, Val Loss = 0.3408
+      Validation loss improved: 0.3456 → 0.3408
+    Epoch 47: Train Loss = 0.3967, Val Loss = 0.3317
+      Validation loss improved: 0.3408 → 0.3317
+    Epoch 48: Train Loss = 0.3757, Val Loss = 0.3447
+      EarlyStopping counter: 1/10
+    Epoch 49: Train Loss = 0.3973, Val Loss = 0.3419
+      EarlyStopping counter: 2/10
+    Epoch 50: Train Loss = 0.3442, Val Loss = 0.3343
+      EarlyStopping counter: 3/10
+    Epoch 51: Train Loss = 0.3917, Val Loss = 0.3449
+      EarlyStopping counter: 4/10
+    Epoch 52: Train Loss = 0.3618, Val Loss = 0.3467
+      EarlyStopping counter: 5/10
+    Epoch 53: Train Loss = 0.3652, Val Loss = 0.3495
+      EarlyStopping counter: 6/10
+    Epoch 54: Train Loss = 0.3646, Val Loss = 0.3325
+      EarlyStopping counter: 7/10
+    Epoch 55: Train Loss = 0.3483, Val Loss = 0.3351
+      EarlyStopping counter: 8/10
+    Epoch 56: Train Loss = 0.3356, Val Loss = 0.3487
+      EarlyStopping counter: 9/10
+    Epoch 57: Train Loss = 0.3611, Val Loss = 0.3313
+      EarlyStopping counter: 10/10
 
-🎉 잘했다! 앞선 기법을 익혔다!
-```
+    ✅ Early stopping triggered at epoch 57
+
+    ================================================================================
+    PART 5: Gradient Clipping
+    ================================================================================
+    Training with gradient clipping (max_norm=1.0)...
+    Epoch 5: Avg gradient norm = 1.0583
+    Epoch 10: Avg gradient norm = 1.1695
+    Epoch 15: Avg gradient norm = 1.3154
+    Epoch 20: Avg gradient norm = 1.5507
+    ✅ Training with gradient clipping complete
+
+    ================================================================================
+    PART 6: Label Smoothing
+    ================================================================================
+    Comparing standard CrossEntropy vs Label Smoothing...
+
+    Standard CrossEntropy:
+    ----------------------------------------
+    Test accuracy: 0.8750
+
+    Label Smoothing (0.1):
+    ----------------------------------------
+    Test accuracy: 0.8250
+
+    ================================================================================
+    SUMMARY - What You Learned
+    ================================================================================
+
+    ✅ 넘파이로 소프트맥스 회귀를 밑바닥부터 짰다
+    ✅ 학습을 든든하게 하려고 배치 정규화를 썼다
+    ✅ 학습률 짜기 전략을 걸었다
+    ✅ 과적합을 막으려고 조기 종료를 짰다
+    ✅ 학습을 든든하게 하려고 기울기 절단을 썼다
+    ✅ 정칙화 기법로 레이블 스무딩을 살펴보았다
+
+    앞선 기법 간추림:
+    ---------------------------
+    1. 배치 정규화
+       - 층의 입력을 맞춘다
+       - 학습을 빠르게 한다
+       - 정칙화 노릇을 한다
+
+    2. 학습률 짜기
+       - 계단 잦아들기: 사이를 두고 학습률을 떨어뜨린다
+       - 지수: 매끄럽게 이어지는 잦아들기
+       - 코사인: 코사인 굽이를 따른다
+
+    3. 조기 종료
+       - 검증 손실을 지켜보아라
+       - 나아짐이 없으면 멈춘다
+       - 가장 좋은 모델을 저장한다
+
+    4. 기울기 절단
+       - 기울기가 터지는 것을 막는다
+       - 기울기의 크기를 옭아맨다
+       - 든든함을 높인다
+
+    5. 레이블 스무딩
+       - 딱딱한 과녁 대신 부드러운 과녁
+       - 지나친 자신을 막는다
+       - 일반화이 더 낫다
+
+    가장 좋은 버릇:
+    --------------
+    • 더 깊은 망에는 배치 정규화를 쓴다
+    • 학습률을 크게 비롯해 차츰 낮춘다
+    • 검증 배치와 함께 늘 조기 종료를 쓴다
+    • 되도는 신경망이나 흔들리는 학습에서는 기울기를 자른다
+    • 일반화를 높이려면 레이블 스무딩을 살펴본다
+
+    다음 걸음:
+    -----------
+    → 5단계: 여러 데이터셋과 구조를 견주기
+    → 여러 기법을 뒤섞어 실험해 보기
+    → 제 데이터셋에 써 보기
+
+    🎉 잘했다! 앞선 기법을 익혔다!
+
+    ```
+
 
 ## 2. 논의
 

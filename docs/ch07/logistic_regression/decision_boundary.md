@@ -475,9 +475,11 @@ DECISION BOUNDARY VISUALIZATION
 
 Learned coefficients:
   β₀ (intercept): -0.324
+  β₁: 0.456
+  β₂: 3.412
 
-... (5 lines omitted)
-
+Decision boundary equation:
+  x₂ = 0.095 + -0.134 x₁
 
 ======================================================================
 TRAINING: BCELoss vs BCEWithLogitsLoss

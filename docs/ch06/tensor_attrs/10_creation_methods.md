@@ -312,56 +312,243 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (232줄)"
 
-```
-================================================================================
-torch.tensor: creates copy from data
-================================================================================
-torch.tensor(data):
- tensor([[1, 2],
-        [3, 4]])
-dtype: torch.int64 | device: cpu
-With dtype=float64: torch.float64
+    ```
 
-================================================================================
-torch.as_tensor: may share memory with input
-================================================================================
-torch.as_tensor(numpy):
- tensor([[1, 2],
-        [3, 4]])
-After modifying numpy, torch tensor: 999
+    ================================================================================
+    torch.tensor: creates copy from data
+    ================================================================================
+    torch.tensor(data):
+     tensor([[1, 2],
+            [3, 4]])
+    dtype: torch.int64 | device: cpu
+    With dtype=float64: torch.float64
 
-================================================================================
-torch.from_numpy: shares memory with numpy
-================================================================================
-torch.from_numpy: tensor([1., 2., 3.], dtype=torch.float64)
-Shares memory: True
+    ================================================================================
+    torch.as_tensor: may share memory with input
+    ================================================================================
+    torch.as_tensor(numpy):
+     tensor([[1, 2],
+            [3, 4]])
+    After modifying numpy, torch tensor: 999
 
-================================================================================
-torch.zeros: all zeros
-================================================================================
-zeros(3, 4):
- tensor([[0., 0., 0., 0.],
-        [0., 0., 0., 0.],
-        [0., 0., 0., 0.]])
-zeros with dtype=int64:
- tensor([[0, 0, 0],
-        [0, 0, 0]])
+    ================================================================================
+    torch.from_numpy: shares memory with numpy
+    ================================================================================
+    torch.from_numpy: tensor([1., 2., 3.], dtype=torch.float64)
+    Shares memory: True
 
-... (188 lines omitted)
+    ================================================================================
+    torch.zeros: all zeros
+    ================================================================================
+    zeros(3, 4):
+     tensor([[0., 0., 0., 0.],
+            [0., 0., 0., 0.],
+            [0., 0., 0., 0.]])
+    zeros with dtype=int64:
+     tensor([[0, 0, 0],
+            [0, 0, 0]])
 
-  torch.logspace(start, end, n)  - n log-spaced
+    ================================================================================
+    torch.ones: all ones
+    ================================================================================
+    ones(2, 3):
+     tensor([[1., 1., 1.],
+            [1., 1., 1.]])
 
-Structured tensors:
-  torch.eye(n)                 - Identity matrix
-  torch.diag(vector)           - Diagonal matrix
+    ================================================================================
+    torch.full: fill with specific value
+    ================================================================================
+    full((3,3), 7.5):
+     tensor([[7.5000, 7.5000, 7.5000],
+            [7.5000, 7.5000, 7.5000],
+            [7.5000, 7.5000, 7.5000]])
 
-From data:
-  torch.tensor(data)           - Copy from list/array
-  torch.from_numpy(array)      - Share memory with numpy
-  torch.as_tensor(data)        - Share memory if possible
-```
+    ================================================================================
+    torch.empty: uninitialized memory (fast but random values)
+    ================================================================================
+    empty(2, 3) (uninitialized):
+     tensor([[0., 0., 0.],
+            [0., 0., 0.]])
+    ⚠️  Values are random - don't rely on them!
+
+    ================================================================================
+    torch.eye: identity matrix
+    ================================================================================
+    eye(4):
+     tensor([[1., 0., 0., 0.],
+            [0., 1., 0., 0.],
+            [0., 0., 1., 0.],
+            [0., 0., 0., 1.]])
+    eye(3, 5):
+     tensor([[1., 0., 0., 0., 0.],
+            [0., 1., 0., 0., 0.],
+            [0., 0., 1., 0., 0.]])
+
+    ================================================================================
+    torch.diag: create diagonal matrix or extract diagonal
+    ================================================================================
+    diag(vector):
+     tensor([[1., 0., 0., 0.],
+            [0., 2., 0., 0.],
+            [0., 0., 3., 0.],
+            [0., 0., 0., 4.]])
+    diag(matrix): tensor([ 1.9269, -1.2345, -0.3925,  0.7624])
+    Upper diagonal: tensor([ 1.4873, -0.0431, -1.4036])
+
+    ================================================================================
+    torch.arange: sequence like Python range
+    ================================================================================
+    arange(10): tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    arange(2, 10, 2): tensor([2, 4, 6, 8])
+    arange(0, 1, 0.1): tensor([0.0000, 0.1000, 0.2000, 0.3000, 0.4000, 0.5000, 0.6000, 0.7000, 0.8000,
+            0.9000])
+
+    ================================================================================
+    torch.linspace: linearly spaced values
+    ================================================================================
+    linspace(0, 10, 11): tensor([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.])
+    linspace(-π, π, 7): tensor([-3.1400e+00, -2.0933e+00, -1.0467e+00, -1.1921e-07,  1.0467e+00,
+             2.0933e+00,  3.1400e+00])
+
+    ================================================================================
+    torch.logspace: logarithmically spaced values
+    ================================================================================
+    logspace(0, 3, 4): tensor([   1.,   10.,  100., 1000.])
+    Exponentially increasing: 10^0, 10^1, 10^2, 10^3
+
+    ================================================================================
+    torch.rand: uniform [0, 1)
+    ================================================================================
+    rand(3, 4):
+     tensor([[0.8854, 0.5739, 0.2666, 0.6274],
+            [0.2696, 0.4414, 0.2969, 0.8317],
+            [0.1053, 0.2695, 0.3588, 0.1994]])
+    Range: [0, 1)
+
+    ================================================================================
+    torch.randn: standard normal N(0, 1)
+    ================================================================================
+    randn(3, 4):
+     tensor([[-0.9890,  0.9580,  1.3221,  0.8172],
+            [-0.7658, -0.7506,  1.3525,  0.6863],
+            [-0.3278,  0.7950,  0.2815,  0.0562]])
+    Distribution: N(0, 1)
+    Custom N(10, 2.5): mean=10.07, std=2.40
+
+    ================================================================================
+    torch.randint: random integers
+    ================================================================================
+    randint(0, 10, (3,4)):
+     tensor([[0, 8, 2, 5],
+            [3, 2, 6, 6],
+            [3, 4, 9, 4]])
+    Range: [0, 10)
+
+    ================================================================================
+    torch.randperm: random permutation
+    ================================================================================
+    randperm(10): tensor([0, 6, 1, 9, 7, 3, 2, 5, 4, 8])
+    Useful for shuffling indices
+
+    ================================================================================
+    torch.multinomial: sample from multinomial distribution
+    ================================================================================
+    Weights: tensor([1., 2., 3., 4.])
+    Samples: tensor([0, 1, 2, 1, 1, 3, 2, 3, 2, 0])
+    Higher indices (3) should appear more often
+
+    ================================================================================
+    _like constructors: same shape as another tensor
+    ================================================================================
+    Template shape: torch.Size([3, 4])
+    zeros_like: torch.Size([3, 4]) torch.float32
+    ones_like: torch.Size([3, 4]) torch.float32
+    rand_like: torch.Size([3, 4]) torch.float32
+    zeros_like with dtype override: torch.int32
+
+    ================================================================================
+    Device specification
+    ================================================================================
+    CPU tensor device: cpu
+    CUDA not available, skipping GPU examples
+
+    ================================================================================
+    requires_grad specification
+    ================================================================================
+    requires_grad: True
+    is_leaf: True
+    Set requires_grad after: True
+
+    ================================================================================
+    torch.empty_like vs torch.zeros_like performance
+    ================================================================================
+    empty_like: 0.0038s
+    zeros_like: 0.2931s
+    Speedup: 77.70x
+    ⚠️  Use empty only when you'll immediately overwrite values
+
+    ================================================================================
+    Complex number tensors
+    ================================================================================
+    Complex tensor: tensor([1.+4.j, 2.+5.j, 3.+6.j])
+    dtype: torch.complex64
+    Direct complex: tensor([1.+2.j, 3.+4.j, 5.+6.j])
+
+    ================================================================================
+    Sparse tensors (briefly)
+    ================================================================================
+    Sparse tensor:
+     tensor(indices=tensor([[0, 1, 2],
+                           [1, 0, 2]]),
+           values=tensor([3., 4., 5.]),
+           size=(3, 3), nnz=3, layout=torch.sparse_coo)
+    Dense representation:
+     tensor([[0., 3., 0.],
+            [4., 0., 0.],
+            [0., 0., 5.]])
+
+    ================================================================================
+    Cloning and copying
+    ================================================================================
+    Shares storage (clone): False
+    Detached clone requires_grad: False
+
+    ================================================================================
+    Quick reference: creation functions
+    ================================================================================
+
+    Zero-value tensors:
+      torch.zeros(shape)           - All zeros
+      torch.zeros_like(tensor)     - Zeros with same shape
+
+    One-value tensors:
+      torch.ones(shape)            - All ones
+      torch.ones_like(tensor)      - Ones with same shape
+      torch.full(shape, value)     - All same value
+
+    Random tensors:
+      torch.rand(shape)            - Uniform [0, 1)
+      torch.randn(shape)           - Normal N(0, 1)
+      torch.randint(low, high, sz) - Random integers
+      torch.randperm(n)            - Random permutation
+
+    Sequential tensors:
+      torch.arange(start, end, step) - Like Python range
+      torch.linspace(start, end, n)  - n evenly spaced
+      torch.logspace(start, end, n)  - n log-spaced
+
+    Structured tensors:
+      torch.eye(n)                 - Identity matrix
+      torch.diag(vector)           - Diagonal matrix
+
+    From data:
+      torch.tensor(data)           - Copy from list/array
+      torch.from_numpy(array)      - Share memory with numpy
+      torch.as_tensor(data)        - Share memory if possible
+    ```
+
 
 ## 2. 논의
 

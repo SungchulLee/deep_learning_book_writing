@@ -369,56 +369,142 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (131줄)"
 
-```
-======================================================================
-MINI-BATCH TRAINING WITH DATALOADER
-======================================================================
+    ```
+    ======================================================================
+    MINI-BATCH TRAINING WITH DATALOADER
+    ======================================================================
 
-======================================================================
-PART 1: GENERATE LARGE DATASET
-======================================================================
-Dataset created:
-  Samples: 10000
-  Features: 50
-  X shape: torch.Size([10000, 50])
-  y shape: torch.Size([10000, 1])
+    ======================================================================
+    PART 1: GENERATE LARGE DATASET
+    ======================================================================
+    Dataset created:
+      Samples: 10000
+      Features: 50
+      X shape: torch.Size([10000, 50])
+      y shape: torch.Size([10000, 1])
 
-======================================================================
-PART 2: CUSTOM DATASET CLASS
-======================================================================
-Dataset created with 10000 samples
+    ======================================================================
+    PART 2: CUSTOM DATASET CLASS
+    ======================================================================
+    Dataset created with 10000 samples
 
-First sample:
-  X shape: torch.Size([50])
-  y value: -11.3370
+    First sample:
+      X shape: torch.Size([50])
+      y value: -11.3370
 
-TensorDataset created (alternative approach)
+    TensorDataset created (alternative approach)
 
-======================================================================
-PART 3: CREATE DATALOADER
-======================================================================
-DataLoader created:
-  Batch size: 128
-  Number of batches: 79
-  Shuffle: True
+    ======================================================================
+    PART 3: CREATE DATALOADER
+    ======================================================================
+    DataLoader created:
+      Batch size: 128
+      Number of batches: 79
+      Shuffle: True
 
-Iterating through first batch:
+    Iterating through first batch:
+      Batch X shape: torch.Size([128, 50])
+      Batch y shape: torch.Size([128, 1])
 
-... (87 lines omitted)
+    ======================================================================
+    PART 4: COMPARE BATCH SIZES
+    ======================================================================
+    Training with different batch sizes...
 
-   - 알맞은 자리: 32~512
-   - 2의 거듭제곱을 권한다
+      Batch size: 32
+        Final loss: 0.277866
+        Avg time/epoch: 0.7139s
 
-4. BENEFITS:
-   ✓ 기억 자리를 아낀다(데이터를 모두 올리지 않는다)
-   ✓ 더 빨리 모여든다(고침이 잦다)
-   ✓ 두루 더 잘 미친다
-   ✓ GPU의 나란한 셈을 쓸 수 있다
+      Batch size: 128
+        Final loss: 0.257229
+        Avg time/epoch: 0.3285s
 
-다음: 튜토리얼 10 - 온전한 실전 흐름!
-```
+      Batch size: 512
+        Final loss: 0.350713
+        Avg time/epoch: 0.2409s
+
+      Batch size: 10000
+        Final loss: 32.032711
+        Avg time/epoch: 0.3220s
+
+    ======================================================================
+    PART 5: VISUALIZE BATCH SIZE EFFECTS
+    ======================================================================
+    Saved visualization
+
+    ======================================================================
+    PART 6: EFFICIENT TRAINING LOOP TEMPLATE
+    ======================================================================
+
+    DataLoader를 쓰는 여느 PyTorch 학습 루프:
+
+    # 준비
+    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+    model = MyModel()
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters())
+
+    # 학습 루프
+    for epoch in range(n_epochs):
+        model.train()  # 학습 결로 둔다
+        
+        for batch_X, batch_y in train_loader:
+            # 순전파
+            y_pred = model(batch_X)
+            loss = criterion(y_pred, batch_y)
+            
+            # 역전파
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        
+        # 평가 (선택)
+        model.eval()
+        with torch.no_grad():
+            val_loss = evaluate(model, val_loader)
+
+    고갱이:
+    1. DataLoader이 배치 만들기와 섞기를 다룬다
+    2. 에폭마다 모든 배치를 훑는다
+    3. 한 에폭 = 온 데이터셋을 한 번 훑기
+    4. 기울기는 온 데이터가 아니라 배치마다 계산한다
+
+
+    ======================================================================
+    SUMMARY
+    ======================================================================
+
+    작은 배치 익히기:
+
+    1. Dataset 클래스:
+       - 데이터(X, y)를 지닌다
+       - __len__과 __getitem__을 짠다
+       - 데이터 불리기와 바꾸기를 더할 수 있다
+
+    2. DATALOADER:
+       - 데이터를 절로 묶는다
+       - 에폭마다 섞는다
+       - 나란히 데이터 불러오기(num_workers)
+       - 마지막의 모자란 배치를 다룬다
+
+    3. 배치 크기의 맞바꿈:
+       - 작으면 잡음이 많지만 빠르다
+       - 크면 든든하지만 느리다
+       - 알맞은 자리: 32~512
+       - 2의 거듭제곱을 권한다
+
+    4. BENEFITS:
+       ✓ 기억 자리를 아낀다(데이터를 모두 올리지 않는다)
+       ✓ 더 빨리 모여든다(고침이 잦다)
+       ✓ 두루 더 잘 미친다
+       ✓ GPU의 나란한 셈을 쓸 수 있다
+
+    다음: 튜토리얼 10 - 온전한 실전 흐름!
+
+    ```
+
 
 ## 2. 논의
 

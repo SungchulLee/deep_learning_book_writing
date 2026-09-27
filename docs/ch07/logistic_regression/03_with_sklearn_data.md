@@ -38,6 +38,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 print("="*80)
 print("BREAST CANCER CLASSIFICATION - A REAL-WORLD EXAMPLE")
@@ -414,56 +417,183 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (172줄)"
 
-```
-================================================================================
-BREAST CANCER CLASSIFICATION - A REAL-WORLD EXAMPLE
-================================================================================
+    ```
+    ================================================================================
+    BREAST CANCER CLASSIFICATION - A REAL-WORLD EXAMPLE
+    ================================================================================
 
-================================================================================
-PART 1: LOADING AND EXPLORING THE DATASET
-================================================================================
+    ================================================================================
+    PART 1: LOADING AND EXPLORING THE DATASET
+    ================================================================================
 
-1.1: About the Wisconsin Breast Cancer Dataset
-----------------------------------------
+    1.1: About the Wisconsin Breast Cancer Dataset
+    ----------------------------------------
 
-데이터셋: 위스콘신 유방암 진단 데이터셋
-밑동: UCI 기계 학습 저장소
-표본: 환자 569명
-특징: 디지털 그림에서 셈한 수치 특징 30개
-과녁: 악성(1)인가 양성(0)인가
+    데이터셋: 위스콘신 유방암 진단 데이터셋
+    밑동: UCI 기계 학습 저장소
+    표본: 환자 569명
+    특징: 디지털 그림에서 셈한 수치 특징 30개
+    과녁: 악성(1)인가 양성(0)인가
 
-특징에는 다음이 있다.
-  - 반지름(가운데에서 둘레 위 점까지 거리의 평균)
-  - 결(잿빛 값의 표준편차)
-  - 둘레, 넓이, 매끄러움, 옹골참 따위
-  
-목표: 이 특징으로 종양이 악성인지 양성인지 예측한다
-
-
-Dataset loaded successfully!
-Number of samples: 569
-Number of features: 30
-Feature names (first 5): ['mean radius' 'mean texture' 'mean perimeter' 'mean area'
- 'mean smoothness']
-Target names: ['malignant' 'benign']
-
-Class distribution:
-
-... (129 lines omitted)
+    특징에는 다음이 있다.
+      - 반지름(가운데에서 둘레 위 점까지 거리의 평균)
+      - 결(잿빛 값의 표준편차)
+      - 둘레, 넓이, 매끄러움, 옹골참 따위
+      
+    목표: 이 특징으로 종양이 악성인지 양성인지 예측한다
 
 
-5. 어려움: 특징의 종요로움 살피기
-   어떤 특징이 가장 종요로운가?
-   model.linear.weight 값을 보아라
+    Dataset loaded successfully!
+    Number of samples: 569
+    Number of features: 30
+    Feature names (first 5): ['mean radius' 'mean texture' 'mean perimeter' 'mean area'
+     'mean smoothness']
+    Target names: ['malignant' 'benign']
+
+    Class distribution:
+      Malignant (0): 212 (37.3%)
+      Benign (1): 357 (62.7%)
+
+    ================================================================================
+    PART 2: DATA PREPROCESSING
+    ================================================================================
+
+    2.1: Why Standardization?
+    ----------------------------------------
+
+    특징 표준화: 특징을 평균 0, 표준편차 1이 되도록 바꾼다
+
+    왜 필요한가:
+      1. 특징마다 잣대가 다르다(보기: 반지름과 넓이)
+      2. 표준화한 특징에서 경사 하강법이 더 빨리 모여든다
+      3. 잣대가 큰 특징이 휘어잡는 것을 막는다
+      
+    식: z = (x - mean) / std
+
+    IMPORTANT: 
+      - 스케일러는 학습 데이터에만 맞춘다
+      - 시험 데이터에는 같은 바꾸기를 건다
+      - 시험 데이터에는 결코 맞추지 마라(정보가 새어 나간다!)
 
 
-================================================================================
-NEXT: 04_bce_vs_bcewithlogits.py
-Learn about numerical stability and better loss functions!
-================================================================================
-```
+    Data split:
+      Training: 455 samples
+      Test: 114 samples
+
+    After standardization:
+      Training mean: -0.000000 (should be ≈0)
+      Training std: 1.000000 (should be ≈1)
+
+    Tensor shapes:
+      X_train: torch.Size([455, 30])
+      y_train: torch.Size([455, 1])
+      X_test: torch.Size([114, 30])
+      y_test: torch.Size([114, 1])
+
+    ================================================================================
+    PART 3: BUILDING THE MODEL
+    ================================================================================
+    Model created with 30 input features
+    Total parameters: 31
+
+    ================================================================================
+    PART 4: TRAINING THE MODEL
+    ================================================================================
+
+    Training for 500 epochs...
+    ----------------------------------------
+    Epoch [100/500] Loss: 0.0987 Accuracy: 0.9802
+    Epoch [200/500] Loss: 0.0802 Accuracy: 0.9846
+    Epoch [300/500] Loss: 0.0723 Accuracy: 0.9846
+    Epoch [400/500] Loss: 0.0677 Accuracy: 0.9846
+    Epoch [500/500] Loss: 0.0646 Accuracy: 0.9868
+
+    Training completed!
+
+    ================================================================================
+    PART 5: COMPREHENSIVE EVALUATION
+    ================================================================================
+
+    5.1: Classification Metrics
+    ----------------------------------------
+    Accuracy:  0.9649  - Overall correctness
+    Precision: 0.9857  - Of predicted benign, how many were correct?
+    Recall:    0.9583  - Of actual benign, how many did we find?
+    F1-Score:  0.9718  - Harmonic mean of precision and recall
+
+    5.2: Confusion Matrix
+    ----------------------------------------
+                    Predicted
+                  Malig  Benign
+    Actual Malig     41      1
+           Benign     3     69
+
+    True Negatives (TN):  41 - Correctly identified malignant
+    False Positives (FP): 1 - Incorrectly predicted benign (BAD!)
+    False Negatives (FN): 3 - Incorrectly predicted malignant
+    True Positives (TP):  69 - Correctly identified benign
+
+    ================================================================================
+    PART 6: CREATING VISUALIZATIONS
+    ================================================================================
+    Visualization saved!
+
+    ================================================================================
+    KEY TAKEAWAYS
+    ================================================================================
+
+    1. 데이터 미리 다듬기
+       - 특징은 늘 표준화하라
+       - 스케일러는 학습 데이터에만 맞춰라
+       - 시험 데이터에는 같은 바꾸기를 건다
+
+    2. 따짐 자
+       - 정확도: 고른 데이터셋에 좋다
+       - 정밀도: 헛정확도의 값이 클 때 종요롭다
+       - 재현율: 놓침의 값이 클 때 종요롭다
+       - F1 점수: 정밀도와 재현율의 고른 자리
+
+    3. 의료에서의 쓰임
+       - 헛정확도: 쓸데없는 걱정과 시술
+       - 놓침: 병을 놓친다(아주 위험하다!)
+       - 흔히 높은 재현율을 앞세운다(병을 모두 잡아낸다)
+
+    4. 좋은 버릇
+       - 정확도만이 아니라 여러 자를 써라
+       - 혼동 행렬을 이해하라
+       - 그 분야에서 오차이 치르는 값을 헤아려라
+
+
+    ================================================================================
+    EXERCISES
+    ================================================================================
+
+    1. 쉬움: test_size 값을 바꾸어 보아라(0.1, 0.3, 0.5)
+       성능에 어떤 영향을 주는가?
+
+    2. 보통: 분류 문턱을 0.5에서 0.3으로 바꾸어라
+       정밀도와 재현율에 어떤 영향을 주는가?
+
+    3. 보통: 여러 학습률을 써 보아라
+       lr=0.01, 0.1, 1.0의 학습 굽이를 그려라
+
+    4. 어려움: 가중치 실은 손실 함수를 짜라
+       놓침에 더 큰 벌을 주어라
+       실마리: BCELoss의 pos_weight 매개변수를 써라
+
+    5. 어려움: 특징의 종요로움 살피기
+       어떤 특징이 가장 종요로운가?
+       model.linear.weight 값을 보아라
+
+
+    ================================================================================
+    NEXT: 04_bce_vs_bcewithlogits.py
+    Learn about numerical stability and better loss functions!
+    ================================================================================
+    ```
+
 
 ## 2. 논의
 

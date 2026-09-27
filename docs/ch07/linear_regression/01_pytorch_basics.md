@@ -39,6 +39,9 @@ PREREQUISITES:
 
 import torch
 import numpy as np
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 print("=" * 70)
 print("PART 1: CREATING TENSORS")
@@ -290,56 +293,163 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (152줄)"
 
-```
-======================================================================
-PART 1: CREATING TENSORS
-======================================================================
+    ```
+    ======================================================================
+    PART 1: CREATING TENSORS
+    ======================================================================
 
-1.1 Creating tensors from Python lists:
-1D tensor: tensor([1, 2, 3, 4, 5])
-Shape: torch.Size([5])
-Data type: torch.int64
+    1.1 Creating tensors from Python lists:
+    1D tensor: tensor([1, 2, 3, 4, 5])
+    Shape: torch.Size([5])
+    Data type: torch.int64
 
-2D tensor:
-tensor([[1, 2, 3],
-        [4, 5, 6]])
-Shape: torch.Size([2, 3])
-Data type: torch.int64
+    2D tensor:
+    tensor([[1, 2, 3],
+            [4, 5, 6]])
+    Shape: torch.Size([2, 3])
+    Data type: torch.int64
 
-1.2 Creating tensors with specific data types:
-Float tensor: tensor([1., 2., 3.]), dtype: torch.float32
-Float32 tensor: tensor([1., 2., 3.]), dtype: torch.float32
+    1.2 Creating tensors with specific data types:
+    Float tensor: tensor([1., 2., 3.]), dtype: torch.float32
+    Float32 tensor: tensor([1., 2., 3.]), dtype: torch.float32
 
-1.3 Creating tensors from NumPy arrays:
-Tensor from NumPy: tensor([1, 2, 3, 4, 5])
-Back to NumPy: [1 2 3 4 5]
+    1.3 Creating tensors from NumPy arrays:
+    Tensor from NumPy: tensor([1, 2, 3, 4, 5])
+    Back to NumPy: [1 2 3 4 5]
 
-1.4 Creating special tensors:
-Zeros:
-tensor([[0., 0., 0.],
-        [0., 0., 0.]])
+    1.4 Creating special tensors:
+    Zeros:
+    tensor([[0., 0., 0.],
+            [0., 0., 0.]])
 
-Ones:
-tensor([[1., 1., 1.],
-        [1., 1., 1.]])
+    Ones:
+    tensor([[1., 1., 1.],
+            [1., 1., 1.]])
 
-Random:
+    Random:
+    tensor([[0.4963, 0.7682, 0.0885],
+            [0.1320, 0.3074, 0.6341]])
 
-... (109 lines omitted)
+    Random normal:
+    tensor([[ 1.2645, -0.6874,  0.1604],
+            [-0.6065, -0.7831,  1.0622]])
 
-14     2.8681     0.0174     -0.2639   
-15     2.8944     0.0111     -0.2111   
-16     2.9156     0.0071     -0.1689   
-17     2.9324     0.0046     -0.1351   
-18     2.9460     0.0029     -0.1081   
-19     2.9568     0.0019     -0.0865   
+    Arange: tensor([0, 2, 4, 6, 8])
+    Linspace: tensor([0.0000, 0.2500, 0.5000, 0.7500, 1.0000])
 
-Final x: 2.965412
-Expected minimum at x=3
-Final f(x): 0.001196
-```
+    ======================================================================
+    PART 2: TENSOR OPERATIONS
+    ======================================================================
+
+    2.1 Basic arithmetic operations:
+    a + b = tensor([5., 7., 9.])
+    a - b = tensor([-3., -3., -3.])
+    a * b = tensor([ 4., 10., 18.])
+    a / b = tensor([0.2500, 0.4000, 0.5000])
+    a ** 2 = tensor([1., 4., 9.])
+
+    2.2 Matrix operations:
+    Element-wise multiplication:
+    tensor([[ 5., 12.],
+            [21., 32.]])
+
+    Matrix multiplication (A @ B):
+    tensor([[19., 22.],
+            [43., 50.]])
+
+    Transpose of A:
+    tensor([[1., 3.],
+            [2., 4.]])
+
+    2.3 Reshaping tensors:
+    Original: tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11]), shape: torch.Size([12])
+
+    Reshaped to 3x4:
+    tensor([[ 0,  1,  2,  3],
+            [ 4,  5,  6,  7],
+            [ 8,  9, 10, 11]])
+
+    Reshaped to 2x6:
+    tensor([[ 0,  1,  2,  3,  4,  5],
+            [ 6,  7,  8,  9, 10, 11]])
+
+    Reshaped to 4x-1 (becomes 4x3):
+    tensor([[ 0,  1,  2],
+            [ 3,  4,  5],
+            [ 6,  7,  8],
+            [ 9, 10, 11]])
+
+    ======================================================================
+    PART 3: AUTOMATIC DIFFERENTIATION (AUTOGRAD)
+    ======================================================================
+
+    3.1 Understanding requires_grad:
+    x = tensor([2.], requires_grad=True)
+    x.requires_grad = True
+
+    y = x^2 = tensor([4.], grad_fn=<PowBackward0>)
+    y.requires_grad = True
+
+    3.2 Computing gradients:
+    dy/dx at x=2: tensor([4.])
+
+    3.3 More complex example:
+
+    f(x) = 3x^2 + 2x + 1
+    f(3) = 34.0
+    df/dx at x=3: 20.0
+    Expected (6*3 + 2 = 20): 20
+
+    3.4 Gradient accumulation:
+    First backward: x.grad = tensor([4.])
+    Second backward (accumulated): x.grad = tensor([16.])
+
+    3.5 Zeroing gradients:
+    First backward: x.grad = tensor([4.])
+    After zeroing: x.grad = tensor([0.])
+    Second backward (after zeroing): x.grad = tensor([12.])
+
+    3.6 Detaching from the computation graph:
+    y_detached.requires_grad = False
+
+    3.7 No gradient context:
+    Inside no_grad context, y.requires_grad = False
+
+    ======================================================================
+    PART 4: PRACTICAL EXAMPLE - SIMPLE DERIVATIVE
+    ======================================================================
+
+    4.1 Finding minimum of f(x) = (x-3)^2:
+    Step   x          f(x)       df/dx     
+    ----------------------------------------
+    0      0.0000     9.0000     -6.0000   
+    1      0.6000     5.7600     -4.8000   
+    2      1.0800     3.6864     -3.8400   
+    3      1.4640     2.3593     -3.0720   
+    4      1.7712     1.5099     -2.4576   
+    5      2.0170     0.9664     -1.9661   
+    6      2.2136     0.6185     -1.5729   
+    7      2.3709     0.3958     -1.2583   
+    8      2.4967     0.2533     -1.0066   
+    9      2.5973     0.1621     -0.8053   
+    10     2.6779     0.1038     -0.6442   
+    11     2.7423     0.0664     -0.5154   
+    12     2.7938     0.0425     -0.4123   
+    13     2.8351     0.0272     -0.3299   
+    14     2.8681     0.0174     -0.2639   
+    15     2.8944     0.0111     -0.2111   
+    16     2.9156     0.0071     -0.1689   
+    17     2.9324     0.0046     -0.1351   
+    18     2.9460     0.0029     -0.1081   
+    19     2.9568     0.0019     -0.0865   
+
+    Final x: 2.965412
+    Expected minimum at x=3
+    Final f(x): 0.001196
+    ```
+
 
 ## 2. 논의
 

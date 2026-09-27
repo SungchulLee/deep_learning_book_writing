@@ -398,56 +398,189 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (178줄)"
 
-```
-================================================================================
-MODEL CHECKPOINTING AND PERSISTENCE
-================================================================================
+    ```
+    ================================================================================
+    MODEL CHECKPOINTING AND PERSISTENCE
+    ================================================================================
 
-================================================================================
-TRAINING WITH AUTOMATIC CHECKPOINTING
-================================================================================
-Training for 50 epochs
-Saving checkpoints every 10 epochs
-------------------------------------------------------------
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.3525
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.3675
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.4175
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.4775
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.5150
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.5575
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.6250
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.6600
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.7025
-Epoch [10/50] Loss: 0.5961 Train Acc: 0.7431 Test Acc: 0.7300
-✓ Checkpoint saved to checkpoints/checkpoint_epoch_10.pt
-✓ Best model saved to checkpoints/best_model.pt
-  → New best accuracy: 0.7300
-✓ Best model saved to checkpoints/best_model.pt
+    ================================================================================
+    TRAINING WITH AUTOMATIC CHECKPOINTING
+    ================================================================================
+    Training for 50 epochs
+    Saving checkpoints every 10 epochs
+    ------------------------------------------------------------
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.3525
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.3675
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.4175
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.4775
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.5150
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.5575
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.6250
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.6600
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.7025
+    Epoch [10/50] Loss: 0.5961 Train Acc: 0.7431 Test Acc: 0.7300
+    ✓ Checkpoint saved to checkpoints/checkpoint_epoch_10.pt
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.7300
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.7725
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8000
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8250
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8350
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8500
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8575
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8650
+    Epoch [20/50] Loss: 0.4639 Train Acc: 0.8762 Test Acc: 0.8700
+    ✓ Checkpoint saved to checkpoints/checkpoint_epoch_20.pt
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8700
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8725
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8750
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8800
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8875
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8900
+    Epoch [30/50] Loss: 0.3945 Train Acc: 0.8869 Test Acc: 0.8875
+    ✓ Checkpoint saved to checkpoints/checkpoint_epoch_30.pt
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8925
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8950
+    Epoch [40/50] Loss: 0.3541 Train Acc: 0.8894 Test Acc: 0.8925
+    ✓ Checkpoint saved to checkpoints/checkpoint_epoch_40.pt
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.8975
+    ✓ Best model saved to checkpoints/best_model.pt
+      → New best accuracy: 0.9000
+    Epoch [50/50] Loss: 0.3289 Train Acc: 0.8888 Test Acc: 0.9000
+    ✓ Checkpoint saved to checkpoints/checkpoint_epoch_50.pt
 
-... (134 lines omitted)
+    Training completed!
+    Best test accuracy: 0.9000
+
+    ================================================================================
+    DEMONSTRATING RESUME FROM CHECKPOINT
+    ================================================================================
+    ✓ Checkpoint loaded from checkpoints/checkpoint_epoch_20.pt
+      Epoch: 19
+      Loss: 0.4639
+      Accuracy: 0.8700
+
+    Resuming training from epoch 20...
+    Epoch [20] Loss: 0.4549 Accuracy: 0.8775
+    Epoch [25] Loss: 0.4175 Accuracy: 0.8844
+
+    ✓ Successfully resumed and continued training!
+
+    ================================================================================
+    LOADING MODEL FOR INFERENCE (DEPLOYMENT)
+    ================================================================================
+    ✓ Model loaded for inference
+
+    Inference test on 5 samples:
+      Sample 1: Predicted=0, Probability=0.4676, Actual=1
+      Sample 2: Predicted=1, Probability=0.8888, Actual=1
+      Sample 3: Predicted=1, Probability=0.6175, Actual=1
+      Sample 4: Predicted=1, Probability=0.6468, Actual=0
+      Sample 5: Predicted=0, Probability=0.1400, Actual=0
+
+    ================================================================================
+    CHECKPOINT MANAGEMENT
+    ================================================================================
+    Found 6 checkpoint files:
+      best_model.pt                  (1.6 KB)
+      checkpoint_epoch_10.pt         (3.6 KB)
+      checkpoint_epoch_20.pt         (3.6 KB)
+      checkpoint_epoch_30.pt         (3.6 KB)
+      checkpoint_epoch_40.pt         (3.6 KB)
+      checkpoint_epoch_50.pt         (3.6 KB)
+
+    ================================================================================
+    KEY TAKEAWAYS
+    ================================================================================
+
+    1. 저장의 클래스
+       ✓ 온 되짚음 저장: 모델 + 최적화기 + 학습 상태
+       ✓ 가장 좋은 모델: 모델 가중치만(내놓기용)
+       ✓ 때맞춰: N 에폭마다 저장
+
+    2. 되짚음 저장에 담기는 것
+       ✓ model_state_dict: 모델 가중치
+       ✓ optimizer_state_dict: 최적화기 상태(여세 따위)
+       ✓ epoch: 이제 판 번호
+       ✓ loss/accuracy: 성능 자
+       ✓ 덧붙임: 학습률, 마구잡이 상태 따위
+
+    3. 좋은 버릇
+       ✓ 되짚음 저장을 자주 하라
+       ✓ 가장 좋은 모델은 따로 저장하라
+       ✓ 이어 가려면 학습 상태도 넣어라
+       ✓ 묵은 되짚음 저장은 치워라
+       ✓ 뜻이 담긴 두루마리 이름을 써라
+       ✓ 곁들인 정보(설정, 날짜 따위)도 저장하라
+
+    4. 언제 되짚음 저장을 할까
+       ✓ N 에폭마다(보기: 10 에폭마다)
+       ✓ 검증이 나아질 때
+       ✓ 오래 익히기 앞에
+       ✓ 초매개변수를 바꾸기 앞에
+
+    5. 두루마리 저장 짜임
+       checkpoints/
+       ├── best_model.pt          # 가장 성능이 좋은 모델
+       ├── checkpoint_epoch_10.pt # 때맞춘 되짚음 저장
+       ├── checkpoint_epoch_20.pt
+       └── last_checkpoint.pt     # 가장 마지막 상태
 
 
-4. 어려움: 되짚음 저장에 판 번호를 매겨라.
-   - 모델의 여러 판을 남긴다
-   - 에폭마다 성능을 견준다
-   - 필요하면 앞선 판으로 되돌린다
+    ================================================================================
+    EXERCISES
+    ================================================================================
 
-5. 어려움: 내놓기 꾸러미를 만들어라.
-   - 모델과 미리 다듬기(스케일러)를 저장한다
-   - 추론 함수를 더한다
-   - 단순한 낯을 만든다
-```
+    1. 쉬움: 학습 자취(손실, 정확도)를 JSON으로 저장하라
+
+    2. 보통: 되짚음 저장 불러오기를 곁들인 조기 종료를 짜라.
+       - 검증이 나아지면 저장한다
+       - N 판 동안 나아지지 않으면 멈추고 가장 좋은 것을 불러온다
+
+    3. 보통: 되짚음 저장에 곁들인 정보를 더하여라.
+       - Timestamp
+       - Hyperparameters
+       - 모델 구조의 속내
+
+    4. 어려움: 되짚음 저장에 판 번호를 매겨라.
+       - 모델의 여러 판을 남긴다
+       - 에폭마다 성능을 견준다
+       - 필요하면 앞선 판으로 되돌린다
+
+    5. 어려움: 내놓기 꾸러미를 만들어라.
+       - 모델과 미리 다듬기(스케일러)를 저장한다
+       - 추론 함수를 더한다
+       - 단순한 낯을 만든다
+
+    ```
+
 
 ## 2. 논의
 

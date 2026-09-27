@@ -32,6 +32,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LONG = 90                      # 이보다 긴 출력은 접는다
+MAX_OUT = 3000                 # 이보다 많으면 출력으로 보지 않는다
 
 SEED_LINE = ("\n# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린\n"
              "# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다\n"
@@ -111,14 +112,18 @@ def insert_seed(code):
     if last == 0:
         return code
 
+    # 둘을 함께 쓰는 쪽이 많다. torch 씨앗만 물리면 numpy 쪽 난수가 그대로
+    # 풀려 있어 쪽에 실린 수가 여전히 다시 나오지 않는다.
+    seeds = []
     if "torch" in names:
-        seed = f"{names['torch']}.manual_seed(0)"
-    elif "numpy" in names:
-        seed = f"{names['numpy']}.random.seed(0)"
-    elif "random" in names:
-        seed = f"{names['random']}.seed(0)"
-    else:
+        seeds.append(f"{names['torch']}.manual_seed(0)")
+    if "numpy" in names and re.search(r"np\.random|numpy\.random", code):
+        seeds.append(f"{names['numpy']}.random.seed(0)")
+    if "random" in names and re.search(r"\brandom\.", code):
+        seeds.append(f"{names['random']}.seed(0)")
+    if not seeds:
         return code                       # 씨앗을 물릴 것이 없다
+    seed = "\n".join(seeds)
 
     line = ("\n# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린\n"
             "# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다\n"
@@ -140,6 +145,10 @@ def run(code, timeout=1200, page_dir=None):
         f.write(code)
         tmp = f.name
     env = dict(os.environ)
+    # plt.show() 는 화면이 있는 백엔드에서 **영원히 멈춘다**. 확인하는 자리에는
+    # 화면이 없으니 기다릴 사람도 없다. Agg 로 묶으면 그림은 파일로만 가고
+    # 코드는 그대로 지나간다 — 이 한 줄이 14쪽을 시간초과에서 90초로 바꿨다.
+    env.setdefault("MPLBACKEND", "Agg")
     if page_dir:
         env["PYTHONPATH"] = str(page_dir) + os.pathsep + env.get("PYTHONPATH", "")
     try:
@@ -154,26 +163,31 @@ def run(code, timeout=1200, page_dir=None):
 FOLD_HEAD = re.compile(r'\?\?\? note "전체 출력[^"]*"\n')
 
 
-def find_output(md):
-    """출력이 놓인 자리. 펼친 것과 접은 것을 둘 다 찾는다.
+PLAIN_OUT = re.compile(r"\*\*출력[:：]?\*\*\s*\n+```[a-z]*\n(.*?)```", re.S)
 
-    한 번 접고 나면 `**출력:**` 표시가 사라지므로, 그것만 찾으면 접힌 쪽은
-    다시 손볼 수 없게 된다.
+
+def find_output(md, start=0):
+    """`start` 뒤에 **가장 먼저** 나오는 출력 블록.
+
+    펼친 것과 접은 것을 함께 보고 **앞에 있는 것**을 고른다. 이 차례가
+    중요하다. 접힌 것보다 `**출력:**` 를 먼저 찾으면, 한 번 접은 쪽에서
+    뒤쪽에 남아 있는 딴 `**출력:**` 이 잡혀 엉뚱한 블록을 갈아 버린다
+    (`ch07/softmax_regression/01_fundamentals.md`가 그런 쪽이다).
     """
-    m = re.search(r"\*\*출력[:：]?\*\*\s*\n+```[a-z]*\n(.*?)```", md, re.S)
-    if m:
-        return m.start(), m.end(), m.group(1)
-    m = FOLD_HEAD.search(md)
-    if not m:
+    plain = PLAIN_OUT.search(md, start)
+    fold = FOLD_HEAD.search(md, start)
+    if plain and (not fold or plain.start() < fold.start()):
+        return plain.start(), plain.end(), plain.group(1)
+    if not fold:
         return None, None, None
-    body, end = [], m.end()
-    for line in md[m.end():].split("\n"):
+    body, end = [], fold.end()
+    for line in md[fold.end():].split("\n"):
         if line.strip() == "" or line.startswith("    "):
             body.append(line[4:] if line.startswith("    ") else "")
             end += len(line) + 1
         else:
             break
-    return m.start(), end, "\n".join(body)
+    return fold.start(), end, "\n".join(body)
 
 
 def fix(rel, timeout=1200):
@@ -187,8 +201,20 @@ def fix(rel, timeout=1200):
         return f"{rel}: 코드 블록이 없다"
     block = max(cm, key=lambda m: len(m.group(2)))
 
-    seeded = insert_seed(block.group(2))
-    added_seed = seeded != block.group(2)
+    # 접어 둔 쪽의 코드는 네 칸 들여써져 있다. 그대로 돌리면 IndentationError 다.
+    # 들여쓰기를 벗겨 돌리고, 쪽에 다시 쓸 때는 원래대로 입혀 준다.
+    raw = block.group(2)
+    lines = raw.split("\n")
+    pad = min((len(l) - len(l.lstrip()) for l in lines if l.strip()), default=0)
+    body = "\n".join(l[pad:] if l.strip() else l for l in lines) if pad else raw
+
+    seeded = insert_seed(body)
+    added_seed = seeded != body
+    if pad:                                # 벗긴 만큼 되입힌다
+        seeded_out = "\n".join(" " * pad + l if l.strip() else l
+                               for l in seeded.split("\n"))
+    else:
+        seeded_out = seeded
 
     try:
         r = run(seeded, timeout, page_dir=p.parent)
@@ -203,13 +229,25 @@ def fix(rel, timeout=1200):
     if n_out == 0:
         return f"{rel}: 출력이 비었다 — 건드리지 않았다"
 
+    # 말이 안 되는 출력은 거절한다. 끝값 0으로 끝났다고 해서 쪽에 실을 만한
+    # 출력이라는 뜻은 아니다. `ch07/softmax_regression/05_comprehensive.md`는
+    # num_workers>0 을 맨 바깥에서 쓰는 탓에 맥에서 제 자신을 거듭 띄워,
+    # freeze_support() 안내문 49,699줄(2.1MB)을 쏟아 놓고도 0으로 끝났다.
+    # 그것을 그대로 쪽에 써 넣으면 쪽이 망가진다.
+    if n_out > MAX_OUT:
+        return (f"{rel}: 출력이 {n_out:,}줄이다 — 너무 많아 거절했다 "
+                f"(num_workers 가 맨 바깥에 있는지 보라). 건드리지 않았다")
+    if "freeze_support" in r.stdout or "spawn" in r.stdout[:2000].lower():
+        return (f"{rel}: 출력이 프로세스 되띄우기 안내문이다 — 거절했다. "
+                f"건드리지 않았다")
+
     if n_out > LONG:
         indented = "\n".join("    " + l if l else "" for l in r.stdout.split("\n"))
         new_out = f'??? note "전체 출력 ({n_out}줄)"\n\n    ```\n{indented}    ```\n'
     else:
         new_out = "**출력:**\n\n```\n" + r.stdout + "```"
 
-    p.write_text(md[:block.start()] + block.group(1) + seeded + block.group(3)
+    p.write_text(md[:block.start()] + block.group(1) + seeded_out + block.group(3)
                  + md[block.end():o_start] + new_out + md[o_end:])
 
     bits = []

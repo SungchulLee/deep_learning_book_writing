@@ -608,9 +608,12 @@ Total gradient (averaged): ['-0.154', '-0.248']
 HESSIAN AND CONVEXITY
 ======================================================================
 Training data: n=160, d=6
+Hessian eigenvalues: [0.       0.073101 0.149802 0.25     0.362199 0.664898]
+All non-negative: True
+Smallest eigenvalue: 0.000000
+=> Loss is convex (PSD Hessian confirmed)
 
-... (6 lines omitted)
-
+======================================================================
 CONVERGENCE COMPARISON
 ======================================================================
 GD final loss (50 iters):     0.492159

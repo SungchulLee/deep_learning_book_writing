@@ -126,6 +126,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import comb
 from typing import Tuple
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
+np.random.seed(0)
 
 # ========================================================================
 # 메인
@@ -516,9 +520,13 @@ CAPTURE-RECAPTURE MLE - Wildlife Population Estimation
 
 📊 Figure saved as 'capture_recapture_mle_results.png'
 
-
-... (7 lines omitted)
-
+================================================================================
+✅ SUMMARY
+================================================================================
+   The capture-recapture method works!
+   • We estimated 149 animals
+   • True population is 150 animals
+   • Estimation error: 0.7%
 ================================================================================
 
 💡 KEY INSIGHTS:
