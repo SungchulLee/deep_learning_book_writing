@@ -548,56 +548,167 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (156줄)"
 
-```
-======================================================================
-MODULE 52.01: EVALUATION BASICS FOR GENERATIVE MODELS
-======================================================================
+    ```
 
-======================================================================
-Basic Likelihood Computation
-======================================================================
+    ======================================================================
+    MODULE 52.01: EVALUATION BASICS FOR GENERATIVE MODELS
+    ======================================================================
 
-Test data: 100 samples from N(0, 1)
-Mean: 0.0598, Std: 0.9864
+    ======================================================================
+    Basic Likelihood Computation
+    ======================================================================
 
-----------------------------------------------------------------------
-Model Comparison:
-----------------------------------------------------------------------
-Model 1 N(0, 1)  - Correct:       -1.4023
-Model 2 N(5, 1)  - Wrong mean:    -13.6035
-Model 3 N(0, 25) - Wrong variance: -2.5477
+    Test data: 100 samples from N(0, 1)
+    Mean: 0.0598, Std: 0.9864
 
-----------------------------------------------------------------------
-Interpretation:
-----------------------------------------------------------------------
-Higher log-likelihood means the model better explains the data.
-Model 1 (correct distribution) achieves the highest likelihood.
-Likelihood difference (correct vs wrong mean): 12.2012
-Likelihood difference (correct vs wrong var):  1.1454
+    ----------------------------------------------------------------------
+    Model Comparison:
+    ----------------------------------------------------------------------
+    Model 1 N(0, 1)  - Correct:       -1.4023
+    Model 2 N(5, 1)  - Wrong mean:    -13.6035
+    Model 3 N(0, 25) - Wrong variance: -2.5477
 
-----------------------------------------------------------------------
-Negative Log-Likelihood (NLL) - Lower is Better:
-----------------------------------------------------------------------
-Model 1: 1.4023
-Model 2: 13.6035
-Model 3: 2.5477
+    ----------------------------------------------------------------------
+    Interpretation:
+    ----------------------------------------------------------------------
+    Higher log-likelihood means the model better explains the data.
+    Model 1 (correct distribution) achieves the highest likelihood.
+    Likelihood difference (correct vs wrong mean): 12.2012
+    Likelihood difference (correct vs wrong var):  1.1454
 
+    ----------------------------------------------------------------------
+    Negative Log-Likelihood (NLL) - Lower is Better:
+    ----------------------------------------------------------------------
+    Model 1: 1.4023
+    Model 2: 13.6035
+    Model 3: 2.5477
 
-... (112 lines omitted)
+    NLL is often used as a loss function for training generative models.
+    ======================================================================
+    Demonstrating Likelihood vs. Sample Quality Tradeoff
+    ======================================================================
 
-       - 가능도 바탕: 정확한 확률 셈하기
-       - 표본 바탕: 보기의 품질과 통계
-       - 과제 바탕: 뒤따르는 일에서의 솜씨
-    
-    5. 흠 없는 잣대 하나는 없다:
-       - 잣대마다 센 곳과 여린 곳이 있다
-       - 서로 메우는 잣대를 여럿 쓴다
-       - 그때의 쓰임새를 살핀다
-    
-======================================================================
-```
+    Real data: 1000 samples from bimodal distribution
+    Mode 1 centered at -3.0, Mode 2 centered at +3.0
+
+    ----------------------------------------------------------------------
+    Likelihood Evaluation:
+    ----------------------------------------------------------------------
+    Model A (Single Mode):  Log-Likelihood = -10.3827
+    Model B (Wide Gaussian): Log-Likelihood = -2.6624
+
+    ⚠️  Model B has HIGHER likelihood despite missing mode structure!
+        This illustrates that likelihood alone doesn't guarantee
+        good sample quality or mode coverage.
+
+    ----------------------------------------------------------------------
+    Sample Quality Evaluation:
+    ----------------------------------------------------------------------
+
+    Model A (Single Mode):
+      Mean Error: 3.0699
+      Std Error:  2.1124
+
+    Model B (Wide Gaussian):
+      Mean Error: 0.1079
+      Std Error:  1.3129
+
+    ======================================================================
+    KEY INSIGHT:
+    ======================================================================
+    Model B achieves higher likelihood by spreading probability mass
+    across both modes, but its samples are less realistic because they
+    often fall between modes where real data doesn't exist.
+
+    Model A captures one mode perfectly (realistic samples) but
+    achieves lower likelihood because it assigns zero probability to
+    the other mode (mode collapse).
+
+    This is why we need BOTH likelihood and sample-based evaluation!
+    ======================================================================
+
+    ======================================================================
+    Generating Visualizations
+    ======================================================================
+    ======================================================================
+    Demonstrating Likelihood vs. Sample Quality Tradeoff
+    ======================================================================
+
+    Real data: 1000 samples from bimodal distribution
+    Mode 1 centered at -3.0, Mode 2 centered at +3.0
+
+    ----------------------------------------------------------------------
+    Likelihood Evaluation:
+    ----------------------------------------------------------------------
+    Model A (Single Mode):  Log-Likelihood = -10.2470
+    Model B (Wide Gaussian): Log-Likelihood = -2.6584
+
+    ⚠️  Model B has HIGHER likelihood despite missing mode structure!
+        This illustrates that likelihood alone doesn't guarantee
+        good sample quality or mode coverage.
+
+    ----------------------------------------------------------------------
+    Sample Quality Evaluation:
+    ----------------------------------------------------------------------
+
+    Model A (Single Mode):
+      Mean Error: 3.0316
+      Std Error:  2.0913
+
+    Model B (Wide Gaussian):
+      Mean Error: 0.0696
+      Std Error:  1.3350
+
+    ======================================================================
+    KEY INSIGHT:
+    ======================================================================
+    Model B achieves higher likelihood by spreading probability mass
+    across both modes, but its samples are less realistic because they
+    often fall between modes where real data doesn't exist.
+
+    Model A captures one mode perfectly (realistic samples) but
+    achieves lower likelihood because it assigns zero probability to
+    the other mode (mode collapse).
+
+    This is why we need BOTH likelihood and sample-based evaluation!
+    ======================================================================
+
+    ✓ Visualization saved as 'evaluation_concepts.png'
+
+    ======================================================================
+    KEY TAKEAWAYS
+    ======================================================================
+
+        1. 가능도는 확률 매기기를 잰다:
+           - 가능도가 클수록 자료 분포에 잘 맞는다
+           - 어떤 모델(가우스, 흐름)에서는 정확히 셈할 수 있다
+           - 익힘 목표로 쓴다(가능도를 크게 하는 것은 음의 로그 가능도를 작게 하는 것이다)
+        
+        2. 표본 품질은 그럴듯함을 잰다:
+           - 만든 표본이 얼마나 좋아 보이는가?
+           - 사람의 판단이나 배운 잣대가 필요하다
+           - 가능도와 이어지지 않을 수 있다
+        
+        3. 가능도와 표본의 맞바꿈:
+           - 가능도가 높다고 좋은 표본이 보장되지 않는다
+           - 좋은 표본이 높은 가능도를 보장하지 않는다
+           - 두 갈래의 따지기가 모두 필요하다
+        
+        4. 여러 따지기 틀:
+           - 가능도 바탕: 정확한 확률 셈하기
+           - 표본 바탕: 보기의 품질과 통계
+           - 과제 바탕: 뒤따르는 일에서의 솜씨
+        
+        5. 흠 없는 잣대 하나는 없다:
+           - 잣대마다 센 곳과 여린 곳이 있다
+           - 서로 메우는 잣대를 여럿 쓴다
+           - 그때의 쓰임새를 살핀다
+        
+    ======================================================================
+    ```
+
 
 ## 2. 논의
 

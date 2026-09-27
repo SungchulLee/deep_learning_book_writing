@@ -15,6 +15,9 @@ import torch.nn as nn
 import torchvision
 import time
 from tqdm import tqdm
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # 견주기용 단순한 U-Net
 class SimpleUNet(nn.Module):
@@ -198,12 +201,12 @@ if __name__ == "__main__":
 ======================================================================
 Method 1: DDPM (Original)
 ======================================================================
-⏱️  Time: 2.20s
+⏱️  Time: 79.89s
 
 ======================================================================
 Method 2: DDIM (Fast Sampling)
 ======================================================================
-⏱️  Time: 0.11s
+⏱️  Time: 3.87s
 
 ======================================================================
 📈 RESULTS
@@ -211,15 +214,26 @@ Method 2: DDIM (Fast Sampling)
 
 Method               Time            Steps           Speed
 ----------------------------------------------------------------------
-DDPM                   2.20s         1000            1.0x (baseline)
-DDIM                   0.11s         50              20.6x faster!
+DDPM                  79.89s         1000            1.0x (baseline)
+DDIM                   3.87s         50              20.7x faster!
 
-🚀 DDIM is 20.6x faster than DDPM!
+🚀 DDIM is 20.7x faster than DDPM!
    DDPM: 1000 denoising steps
    DDIM: 50 denoising steps
 
-... (14 lines omitted)
+💾 Saved comparison to: comparison_ddpm_vs_ddim.png
+   Top row: DDPM samples
+   Bottom row: DDIM samples
 
+======================================================================
+💡 KEY TAKEAWAYS
+======================================================================
+
+    1. DDPM: 느리지만 본디 방법
+       - 때 걸음 1000개를 모두 쓴다
+       - 걸음마다 아무 잡음을 더한다
+       - 품질은 높지만 시간이 걸린다
+    
     2. DDIM: 빠르고 정해져 있다
        - 대부분의 때 걸음을 건너뛴다(50개만 쓴다)
        - 정해진 대로(같은 씨앗이면 같은 그림)

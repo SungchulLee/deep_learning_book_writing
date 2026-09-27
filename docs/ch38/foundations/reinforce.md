@@ -4,430 +4,433 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
 
 ## 1. 코드
 
-```python
-"""
-34.1.3장: REINFORCE 알고리즘
-=====================================
-여러 갈래를 갖춘 온전한 REINFORCE 구현:
-- 맹탕 REINFORCE
-- 앞으로의 보상을 쓰는 REINFORCE
-- 돌아옴 고르게 하기를 쓰는 REINFORCE
-- CartPole과 이어진 다스리기에서 익히기
-"""
+??? note "코드 (422줄)"
 
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.distributions import Categorical, Normal
-import numpy as np
-import gymnasium as gym
-from typing import List, Tuple, Optional
-from collections import deque
-
-# ========================================================================
-# 메인
-# ========================================================================
-
-
-# ---------------------------------------------------------------------------
-# 방침 그물
-# ---------------------------------------------------------------------------
-
-class DiscretePolicyNetwork(nn.Module):
-    """따로 떨어진 움직임을 위한 방침 그물."""
-    
-    def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(obs_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, act_dim),
-        )
-    
-    def forward(self, obs: torch.Tensor) -> Categorical:
-        logits = self.net(obs)
-        return Categorical(logits=logits)
-
-
-class ContinuousPolicyNetwork(nn.Module):
-    """이어진 움직임을 위한 방침 그물."""
-    
-    def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(obs_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-        )
-        self.mean_head = nn.Linear(hidden_dim, act_dim)
-        self.log_std = nn.Parameter(torch.zeros(act_dim))
-    
-    def forward(self, obs: torch.Tensor) -> Normal:
-        features = self.net(obs)
-        mean = self.mean_head(features)
-        std = self.log_std.exp().expand_as(mean)
-        return Normal(mean, std)
-
-
-# ---------------------------------------------------------------------------
-# REINFORCE 부림꾼
-# ---------------------------------------------------------------------------
-
-class REINFORCE:
+    ```python
     """
-    REINFORCE 방침 기울기 부림꾼.
-    
-    매개변수
-    ----------
-    env : gym.Env
-        Gymnasium 둘레.
-    lr : float
-        배움률.
-    gamma : float
-        깎기 인자.
-    hidden_dim : int
-        숨은 켜의 크기.
-    use_reward_to_go : bool
-        True이면 까닭 매김(앞으로의 보상)을 쓴다. 아니면 온 돌아옴을 쓴다.
-    normalize_returns : bool
-        True이면 돌아옴을 평균 0, 흩어짐 1로 고르게 한다.
-    entropy_coef : float
-        엔트로피 덤 계수(살펴보기를 북돋운다).
+    34.1.3장: REINFORCE 알고리즘
+    =====================================
+    여러 갈래를 갖춘 온전한 REINFORCE 구현:
+    - 맹탕 REINFORCE
+    - 앞으로의 보상을 쓰는 REINFORCE
+    - 돌아옴 고르게 하기를 쓰는 REINFORCE
+    - CartPole과 이어진 다스리기에서 익히기
     """
-    
-    def __init__(
-        self,
-        env: gym.Env,
-        lr: float = 1e-3,
-        gamma: float = 0.99,
-        hidden_dim: int = 128,
-        use_reward_to_go: bool = True,
-        normalize_returns: bool = True,
-        entropy_coef: float = 0.01,
-    ):
-        self.env = env
-        self.gamma = gamma
-        self.use_reward_to_go = use_reward_to_go
-        self.normalize_returns = normalize_returns
-        self.entropy_coef = entropy_coef
-        
-        # 움직임 공간 갈래를 알아낸다
-        obs_dim = env.observation_space.shape[0]
-        self.continuous = isinstance(env.action_space, gym.spaces.Box)
-        
-        if self.continuous:
-            act_dim = env.action_space.shape[0]
-            self.policy = ContinuousPolicyNetwork(obs_dim, act_dim, hidden_dim)
-        else:
-            act_dim = env.action_space.n
-            self.policy = DiscretePolicyNetwork(obs_dim, act_dim, hidden_dim)
-        
-        self.optimizer = optim.Adam(self.policy.parameters(), lr=lr)
-    
-    def select_action(self, obs: np.ndarray) -> Tuple[np.ndarray, torch.Tensor, torch.Tensor]:
-        """지금 방침에서 움직임을 고른다."""
-        obs_t = torch.FloatTensor(obs).unsqueeze(0)
-        dist = self.policy(obs_t)
-        action = dist.sample()
-        log_prob = dist.log_prob(action)
-        entropy = dist.entropy()
-        
-        if self.continuous:
-            log_prob = log_prob.sum(dim=-1)
-            entropy = entropy.sum(dim=-1)
-            return action.detach().numpy().flatten(), log_prob, entropy
-        else:
-            return action.item(), log_prob, entropy
-    
-    def compute_returns(self, rewards: List[float]) -> torch.Tensor:
-        """깎은 돌아옴을 셈한다."""
-        if self.use_reward_to_go:
-            # 앞으로의 보상: G_t = r_t + γ·r_{t+1} + γ²·r_{t+2} + ...
-            returns = []
-            G = 0.0
-            for r in reversed(rewards):
-                G = r + self.gamma * G
-                returns.insert(0, G)
-            returns = torch.tensor(returns, dtype=torch.float32)
-        else:
-            # 온 자취 돌아옴: 모든 때 걸음에 R(τ)로 무게를 준다
-            R = sum(self.gamma ** t * r for t, r in enumerate(rewards))
-            returns = torch.full((len(rewards),), R, dtype=torch.float32)
-        
-        if self.normalize_returns and len(returns) > 1:
-            returns = (returns - returns.mean()) / (returns.std() + 1e-8)
-        
-        return returns
-    
-    def collect_episode(self) -> Tuple[List, List, List, float]:
-        """온전한 에피소드 하나를 모은다."""
-        obs, _ = self.env.reset()
-        log_probs, entropies, rewards = [], [], []
-        
-        done = False
-        while not done:
-            action, log_prob, entropy = self.select_action(obs)
-            next_obs, reward, terminated, truncated, _ = self.env.step(action)
-            
-            log_probs.append(log_prob)
-            entropies.append(entropy)
-            rewards.append(reward)
-            
-            obs = next_obs
-            done = terminated or truncated
-        
-        return log_probs, entropies, rewards, sum(rewards)
-    
-    def update(self, log_probs: List, entropies: List, rewards: List):
-        """REINFORCE 고침을 한 번 벌인다."""
-        returns = self.compute_returns(rewards)
-        
-        # 로그 낌새와 엔트로피를 쌓는다
-        log_probs_t = torch.stack(log_probs).squeeze()
-        entropies_t = torch.stack(entropies).squeeze()
-        
-        # 방침 기울기 손실: -E[log π(a|s) · G_t]
-        policy_loss = -(log_probs_t * returns).mean()
-        
-        # 살펴보기를 위한 엔트로피 덤
-        entropy_loss = -entropies_t.mean()
-        
-        # 온 손실
-        loss = policy_loss + self.entropy_coef * entropy_loss
-        
-        self.optimizer.zero_grad()
-        loss.backward()
-        # 든든함을 위한 기울기 자르기
-        nn.utils.clip_grad_norm_(self.policy.parameters(), max_norm=0.5)
-        self.optimizer.step()
-        
-        return policy_loss.item(), entropies_t.mean().item()
-    
-    def train(
-        self,
-        n_episodes: int = 1000,
-        print_interval: int = 100,
-        solved_reward: Optional[float] = None,
-    ) -> List[float]:
+
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    from torch.distributions import Categorical, Normal
+    import numpy as np
+    import gymnasium as gym
+    from typing import List, Tuple, Optional
+    from collections import deque
+
+    # ========================================================================
+    # 메인
+    # ========================================================================
+
+
+    # ---------------------------------------------------------------------------
+    # 방침 그물
+    # ---------------------------------------------------------------------------
+
+    class DiscretePolicyNetwork(nn.Module):
+        """따로 떨어진 움직임을 위한 방침 그물."""
+
+        def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
+            super().__init__()
+            self.net = nn.Sequential(
+                nn.Linear(obs_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, act_dim),
+            )
+
+        def forward(self, obs: torch.Tensor) -> Categorical:
+            logits = self.net(obs)
+            return Categorical(logits=logits)
+
+
+    class ContinuousPolicyNetwork(nn.Module):
+        """이어진 움직임을 위한 방침 그물."""
+
+        def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
+            super().__init__()
+            self.net = nn.Sequential(
+                nn.Linear(obs_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+            )
+            self.mean_head = nn.Linear(hidden_dim, act_dim)
+            self.log_std = nn.Parameter(torch.zeros(act_dim))
+
+        def forward(self, obs: torch.Tensor) -> Normal:
+            features = self.net(obs)
+            mean = self.mean_head(features)
+            std = self.log_std.exp().expand_as(mean)
+            return Normal(mean, std)
+
+
+    # ---------------------------------------------------------------------------
+    # REINFORCE 부림꾼
+    # ---------------------------------------------------------------------------
+
+    class REINFORCE:
         """
-        REINFORCE로 부림꾼을 익힌다.
-        
+        REINFORCE 방침 기울기 부림꾼.
+
         매개변수
         ----------
-        n_episodes : int
-            익힘 에피소드의 개수.
-        print_interval : int
-            나아감을 얼마나 자주 찍을지.
-        solved_reward : float, 고를 수 있음
-            주어지면 평균 보상이 이를 넘을 때 익힘을 멈춘다.
-        
-        돌려주는 값
-        -------
-        episode_rewards : float의 목록
-            보상 내력.
+        env : gym.Env
+            Gymnasium 둘레.
+        lr : float
+            배움률.
+        gamma : float
+            깎기 인자.
+        hidden_dim : int
+            숨은 켜의 크기.
+        use_reward_to_go : bool
+            True이면 까닭 매김(앞으로의 보상)을 쓴다. 아니면 온 돌아옴을 쓴다.
+        normalize_returns : bool
+            True이면 돌아옴을 평균 0, 흩어짐 1로 고르게 한다.
+        entropy_coef : float
+            엔트로피 덤 계수(살펴보기를 북돋운다).
         """
-        episode_rewards = []
-        recent_rewards = deque(maxlen=100)
-        
-        for episode in range(1, n_episodes + 1):
-            log_probs, entropies, rewards, total_reward = self.collect_episode()
-            policy_loss, avg_entropy = self.update(log_probs, entropies, rewards)
-            
-            episode_rewards.append(total_reward)
-            recent_rewards.append(total_reward)
-            avg_reward = np.mean(recent_rewards)
-            
-            if episode % print_interval == 0:
-                print(
-                    f"Episode {episode:>5d} | "
-                    f"Reward: {total_reward:>7.1f} | "
-                    f"Avg(100): {avg_reward:>7.1f} | "
-                    f"Loss: {policy_loss:>8.4f} | "
-                    f"Entropy: {avg_entropy:>6.3f}"
-                )
-            
-            if solved_reward is not None and avg_reward >= solved_reward:
-                print(f"\nSolved in {episode} episodes! Avg reward: {avg_reward:.1f}")
-                break
-        
-        return episode_rewards
 
+        def __init__(
+            self,
+            env: gym.Env,
+            lr: float = 1e-3,
+            gamma: float = 0.99,
+            hidden_dim: int = 128,
+            use_reward_to_go: bool = True,
+            normalize_returns: bool = True,
+            entropy_coef: float = 0.01,
+        ):
+            self.env = env
+            self.gamma = gamma
+            self.use_reward_to_go = use_reward_to_go
+            self.normalize_returns = normalize_returns
+            self.entropy_coef = entropy_coef
 
-# ---------------------------------------------------------------------------
-# 배치 REINFORCE (고침마다 에피소드 여럿)
-# ---------------------------------------------------------------------------
+            # 움직임 공간 갈래를 알아낸다
+            obs_dim = env.observation_space.shape[0]
+            self.continuous = isinstance(env.action_space, gym.spaces.Box)
 
-class BatchREINFORCE(REINFORCE):
-    """
-    흩어짐을 줄이려 배치로 고치는 REINFORCE.
-    
-    기울기 고침을 벌이기 앞서 에피소드 여럿을 모아 배치에 걸쳐
-    기울기를 고르게 한다.
-    """
-    
-    def __init__(self, *args, batch_size: int = 10, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.batch_size = batch_size
-    
-    def train(
-        self,
-        n_episodes: int = 1000,
-        print_interval: int = 100,
-        solved_reward: Optional[float] = None,
-    ) -> List[float]:
-        episode_rewards = []
-        recent_rewards = deque(maxlen=100)
-        
-        episode = 0
-        while episode < n_episodes:
-            # 에피소드 배치를 모은다
-            batch_log_probs = []
-            batch_entropies = []
-            batch_returns = []
-            batch_rewards = []
-            
-            for _ in range(self.batch_size):
-                log_probs, entropies, rewards, total_reward = self.collect_episode()
-                returns = self.compute_returns(rewards)
-                
-                batch_log_probs.extend(log_probs)
-                batch_entropies.extend(entropies)
-                batch_returns.append(returns)
-                batch_rewards.append(total_reward)
-                
-                episode += 1
-                episode_rewards.append(total_reward)
-                recent_rewards.append(total_reward)
-            
-            # 온 넘어감을 잇는다
-            all_log_probs = torch.stack(batch_log_probs).squeeze()
-            all_entropies = torch.stack(batch_entropies).squeeze()
-            all_returns = torch.cat(batch_returns)
-            
-            # 온 배치에 걸쳐 돌아옴을 고르게 한다
-            if self.normalize_returns:
-                all_returns = (all_returns - all_returns.mean()) / (all_returns.std() + 1e-8)
-            
-            # 기울기 고침 한 번
-            policy_loss = -(all_log_probs * all_returns).mean()
-            entropy_loss = -all_entropies.mean()
+            if self.continuous:
+                act_dim = env.action_space.shape[0]
+                self.policy = ContinuousPolicyNetwork(obs_dim, act_dim, hidden_dim)
+            else:
+                act_dim = env.action_space.n
+                self.policy = DiscretePolicyNetwork(obs_dim, act_dim, hidden_dim)
+
+            self.optimizer = optim.Adam(self.policy.parameters(), lr=lr)
+
+        def select_action(self, obs: np.ndarray) -> Tuple[np.ndarray, torch.Tensor, torch.Tensor]:
+            """지금 방침에서 움직임을 고른다."""
+            obs_t = torch.FloatTensor(obs).unsqueeze(0)
+            dist = self.policy(obs_t)
+            action = dist.sample()
+            log_prob = dist.log_prob(action)
+            entropy = dist.entropy()
+
+            if self.continuous:
+                log_prob = log_prob.sum(dim=-1)
+                entropy = entropy.sum(dim=-1)
+                return action.detach().numpy().flatten(), log_prob, entropy
+            else:
+                return action.item(), log_prob, entropy
+
+        def compute_returns(self, rewards: List[float]) -> torch.Tensor:
+            """깎은 돌아옴을 셈한다."""
+            if self.use_reward_to_go:
+                # 앞으로의 보상: G_t = r_t + γ·r_{t+1} + γ²·r_{t+2} + ...
+                returns = []
+                G = 0.0
+                for r in reversed(rewards):
+                    G = r + self.gamma * G
+                    returns.insert(0, G)
+                returns = torch.tensor(returns, dtype=torch.float32)
+            else:
+                # 온 자취 돌아옴: 모든 때 걸음에 R(τ)로 무게를 준다
+                R = sum(self.gamma ** t * r for t, r in enumerate(rewards))
+                returns = torch.full((len(rewards),), R, dtype=torch.float32)
+
+            if self.normalize_returns and len(returns) > 1:
+                returns = (returns - returns.mean()) / (returns.std() + 1e-8)
+
+            return returns
+
+        def collect_episode(self) -> Tuple[List, List, List, float]:
+            """온전한 에피소드 하나를 모은다."""
+            obs, _ = self.env.reset()
+            log_probs, entropies, rewards = [], [], []
+
+            done = False
+            while not done:
+                action, log_prob, entropy = self.select_action(obs)
+                next_obs, reward, terminated, truncated, _ = self.env.step(action)
+
+                log_probs.append(log_prob)
+                entropies.append(entropy)
+                rewards.append(reward)
+
+                obs = next_obs
+                done = terminated or truncated
+
+            return log_probs, entropies, rewards, sum(rewards)
+
+        def update(self, log_probs: List, entropies: List, rewards: List):
+            """REINFORCE 고침을 한 번 벌인다."""
+            returns = self.compute_returns(rewards)
+
+            # 로그 낌새와 엔트로피를 쌓는다
+            log_probs_t = torch.stack(log_probs).squeeze()
+            entropies_t = torch.stack(entropies).squeeze()
+
+            # 방침 기울기 손실: -E[log π(a|s) · G_t]
+            policy_loss = -(log_probs_t * returns).mean()
+
+            # 살펴보기를 위한 엔트로피 덤
+            entropy_loss = -entropies_t.mean()
+
+            # 온 손실
             loss = policy_loss + self.entropy_coef * entropy_loss
-            
+
             self.optimizer.zero_grad()
             loss.backward()
+            # 든든함을 위한 기울기 자르기
             nn.utils.clip_grad_norm_(self.policy.parameters(), max_norm=0.5)
             self.optimizer.step()
-            
-            avg_reward = np.mean(recent_rewards)
-            if episode % print_interval < self.batch_size:
-                print(
-                    f"Episode {episode:>5d} | "
-                    f"Batch Avg: {np.mean(batch_rewards):>7.1f} | "
-                    f"Avg(100): {avg_reward:>7.1f}"
+
+            return policy_loss.item(), entropies_t.mean().item()
+
+        def train(
+            self,
+            n_episodes: int = 1000,
+            print_interval: int = 100,
+            solved_reward: Optional[float] = None,
+        ) -> List[float]:
+            """
+            REINFORCE로 부림꾼을 익힌다.
+
+            매개변수
+            ----------
+            n_episodes : int
+                익힘 에피소드의 개수.
+            print_interval : int
+                나아감을 얼마나 자주 찍을지.
+            solved_reward : float, 고를 수 있음
+                주어지면 평균 보상이 이를 넘을 때 익힘을 멈춘다.
+
+            돌려주는 값
+            -------
+            episode_rewards : float의 목록
+                보상 내력.
+            """
+            episode_rewards = []
+            recent_rewards = deque(maxlen=100)
+
+            for episode in range(1, n_episodes + 1):
+                log_probs, entropies, rewards, total_reward = self.collect_episode()
+                policy_loss, avg_entropy = self.update(log_probs, entropies, rewards)
+
+                episode_rewards.append(total_reward)
+                recent_rewards.append(total_reward)
+                avg_reward = np.mean(recent_rewards)
+
+                if episode % print_interval == 0:
+                    print(
+                        f"Episode {episode:>5d} | "
+                        f"Reward: {total_reward:>7.1f} | "
+                        f"Avg(100): {avg_reward:>7.1f} | "
+                        f"Loss: {policy_loss:>8.4f} | "
+                        f"Entropy: {avg_entropy:>6.3f}"
+                    )
+
+                if solved_reward is not None and avg_reward >= solved_reward:
+                    print(f"\nSolved in {episode} episodes! Avg reward: {avg_reward:.1f}")
+                    break
+
+            return episode_rewards
+
+
+    # ---------------------------------------------------------------------------
+    # 배치 REINFORCE (고침마다 에피소드 여럿)
+    # ---------------------------------------------------------------------------
+
+    class BatchREINFORCE(REINFORCE):
+        """
+        흩어짐을 줄이려 배치로 고치는 REINFORCE.
+
+        기울기 고침을 벌이기 앞서 에피소드 여럿을 모아 배치에 걸쳐
+        기울기를 고르게 한다.
+        """
+
+        def __init__(self, *args, batch_size: int = 10, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.batch_size = batch_size
+
+        def train(
+            self,
+            n_episodes: int = 1000,
+            print_interval: int = 100,
+            solved_reward: Optional[float] = None,
+        ) -> List[float]:
+            episode_rewards = []
+            recent_rewards = deque(maxlen=100)
+
+            episode = 0
+            while episode < n_episodes:
+                # 에피소드 배치를 모은다
+                batch_log_probs = []
+                batch_entropies = []
+                batch_returns = []
+                batch_rewards = []
+
+                for _ in range(self.batch_size):
+                    log_probs, entropies, rewards, total_reward = self.collect_episode()
+                    returns = self.compute_returns(rewards)
+
+                    batch_log_probs.extend(log_probs)
+                    batch_entropies.extend(entropies)
+                    batch_returns.append(returns)
+                    batch_rewards.append(total_reward)
+
+                    episode += 1
+                    episode_rewards.append(total_reward)
+                    recent_rewards.append(total_reward)
+
+                # 온 넘어감을 잇는다
+                all_log_probs = torch.stack(batch_log_probs).squeeze()
+                all_entropies = torch.stack(batch_entropies).squeeze()
+                all_returns = torch.cat(batch_returns)
+
+                # 온 배치에 걸쳐 돌아옴을 고르게 한다
+                if self.normalize_returns:
+                    all_returns = (all_returns - all_returns.mean()) / (all_returns.std() + 1e-8)
+
+                # 기울기 고침 한 번
+                policy_loss = -(all_log_probs * all_returns).mean()
+                entropy_loss = -all_entropies.mean()
+                loss = policy_loss + self.entropy_coef * entropy_loss
+
+                self.optimizer.zero_grad()
+                loss.backward()
+                nn.utils.clip_grad_norm_(self.policy.parameters(), max_norm=0.5)
+                self.optimizer.step()
+
+                avg_reward = np.mean(recent_rewards)
+                if episode % print_interval < self.batch_size:
+                    print(
+                        f"Episode {episode:>5d} | "
+                        f"Batch Avg: {np.mean(batch_rewards):>7.1f} | "
+                        f"Avg(100): {avg_reward:>7.1f}"
+                    )
+
+                if solved_reward is not None and avg_reward >= solved_reward:
+                    print(f"\nSolved in {episode} episodes! Avg reward: {avg_reward:.1f}")
+                    break
+
+            return episode_rewards
+
+
+    # ---------------------------------------------------------------------------
+    # 보여 주기
+    # ---------------------------------------------------------------------------
+
+    def train_cartpole():
+        """CartPole-v1에서 REINFORCE를 익힌다."""
+        print("=" * 60)
+        print("REINFORCE on CartPole-v1")
+        print("=" * 60)
+
+        env = gym.make("CartPole-v1")
+
+        agent = REINFORCE(
+            env=env,
+            lr=1e-3,
+            gamma=0.99,
+            hidden_dim=128,
+            use_reward_to_go=True,
+            normalize_returns=True,
+            entropy_coef=0.01,
+        )
+
+        rewards = agent.train(n_episodes=1000, print_interval=100, solved_reward=475.0)
+        env.close()
+        return rewards
+
+
+    def train_cartpole_batch():
+        """CartPole-v1에서 배치 REINFORCE를 익힌다."""
+        print("\n" + "=" * 60)
+        print("Batch REINFORCE on CartPole-v1")
+        print("=" * 60)
+
+        env = gym.make("CartPole-v1")
+
+        agent = BatchREINFORCE(
+            env=env,
+            lr=1e-3,
+            gamma=0.99,
+            hidden_dim=128,
+            use_reward_to_go=True,
+            normalize_returns=True,
+            entropy_coef=0.01,
+            batch_size=10,
+        )
+
+        rewards = agent.train(n_episodes=1000, print_interval=100, solved_reward=475.0)
+        env.close()
+        return rewards
+
+
+    def compare_variants():
+        """CartPole에서 REINFORCE 갈래들을 견준다."""
+        print("\n" + "=" * 60)
+        print("Comparing REINFORCE Variants")
+        print("=" * 60)
+
+        variants = {
+            "Total Return": {"use_reward_to_go": False, "normalize_returns": False},
+            "Reward-to-Go": {"use_reward_to_go": True, "normalize_returns": False},
+            "RTG + Normalize": {"use_reward_to_go": True, "normalize_returns": True},
+        }
+
+        n_episodes = 500
+        n_trials = 3
+
+        for name, kwargs in variants.items():
+            trial_rewards = []
+            for trial in range(n_trials):
+                env = gym.make("CartPole-v1")
+                torch.manual_seed(trial)
+                np.random.seed(trial)
+
+                agent = REINFORCE(
+                    env=env, lr=1e-3, gamma=0.99, hidden_dim=128,
+                    entropy_coef=0.01, **kwargs
                 )
-            
-            if solved_reward is not None and avg_reward >= solved_reward:
-                print(f"\nSolved in {episode} episodes! Avg reward: {avg_reward:.1f}")
-                break
-        
-        return episode_rewards
+
+                rewards = agent.train(n_episodes=n_episodes, print_interval=n_episodes + 1)
+                trial_rewards.append(np.mean(rewards[-100:]))
+                env.close()
+
+            avg = np.mean(trial_rewards)
+            std = np.std(trial_rewards)
+            print(f"{name:<20}: Final Avg Reward = {avg:.1f} ± {std:.1f}")
 
 
-# ---------------------------------------------------------------------------
-# 보여 주기
-# ---------------------------------------------------------------------------
+    if __name__ == "__main__":
+        train_cartpole()
+        train_cartpole_batch()
+        compare_variants()
+    ```
 
-def train_cartpole():
-    """CartPole-v1에서 REINFORCE를 익힌다."""
-    print("=" * 60)
-    print("REINFORCE on CartPole-v1")
-    print("=" * 60)
-    
-    env = gym.make("CartPole-v1")
-    
-    agent = REINFORCE(
-        env=env,
-        lr=1e-3,
-        gamma=0.99,
-        hidden_dim=128,
-        use_reward_to_go=True,
-        normalize_returns=True,
-        entropy_coef=0.01,
-    )
-    
-    rewards = agent.train(n_episodes=1000, print_interval=100, solved_reward=475.0)
-    env.close()
-    return rewards
-
-
-def train_cartpole_batch():
-    """CartPole-v1에서 배치 REINFORCE를 익힌다."""
-    print("\n" + "=" * 60)
-    print("Batch REINFORCE on CartPole-v1")
-    print("=" * 60)
-    
-    env = gym.make("CartPole-v1")
-    
-    agent = BatchREINFORCE(
-        env=env,
-        lr=1e-3,
-        gamma=0.99,
-        hidden_dim=128,
-        use_reward_to_go=True,
-        normalize_returns=True,
-        entropy_coef=0.01,
-        batch_size=10,
-    )
-    
-    rewards = agent.train(n_episodes=1000, print_interval=100, solved_reward=475.0)
-    env.close()
-    return rewards
-
-
-def compare_variants():
-    """CartPole에서 REINFORCE 갈래들을 견준다."""
-    print("\n" + "=" * 60)
-    print("Comparing REINFORCE Variants")
-    print("=" * 60)
-    
-    variants = {
-        "Total Return": {"use_reward_to_go": False, "normalize_returns": False},
-        "Reward-to-Go": {"use_reward_to_go": True, "normalize_returns": False},
-        "RTG + Normalize": {"use_reward_to_go": True, "normalize_returns": True},
-    }
-    
-    n_episodes = 500
-    n_trials = 3
-    
-    for name, kwargs in variants.items():
-        trial_rewards = []
-        for trial in range(n_trials):
-            env = gym.make("CartPole-v1")
-            torch.manual_seed(trial)
-            np.random.seed(trial)
-            
-            agent = REINFORCE(
-                env=env, lr=1e-3, gamma=0.99, hidden_dim=128,
-                entropy_coef=0.01, **kwargs
-            )
-            
-            rewards = agent.train(n_episodes=n_episodes, print_interval=n_episodes + 1)
-            trial_rewards.append(np.mean(rewards[-100:]))
-            env.close()
-        
-        avg = np.mean(trial_rewards)
-        std = np.std(trial_rewards)
-        print(f"{name:<20}: Final Avg Reward = {avg:.1f} ± {std:.1f}")
-
-
-if __name__ == "__main__":
-    train_cartpole()
-    train_cartpole_batch()
-    compare_variants()
-```
 
 ## 2. 논의
 

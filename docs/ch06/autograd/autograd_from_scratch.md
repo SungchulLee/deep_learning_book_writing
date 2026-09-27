@@ -584,9 +584,31 @@ Part 4: Tensor-level automatic differentiation
 [[ 4.14151687  4.14151687]
  [-0.06840064 -0.06840064]
  [-0.52165256 -0.52165256]]
+  dL/db: [[4. 4.]]
 
-... (25 lines omitted)
+============================================================
+Part 5: Validation against PyTorch autograd
+============================================================
+  Scalar test:  f(x) = (x²-1)/(x+1) at x=3
+    PyTorch grad:  1.000000
+    Our grad:      1.000000
+    Match: True
 
+  Tensor test: y = X @ W + b, loss = sum(y)
+    dL/dW max |diff| = 0.00e+00
+    dL/db max |diff| = 0.00e+00
+    Match: True
+
+  ReLU test: h = relu(X @ W), loss = sum(h)
+    dL/dW max |diff| = 0.00e+00
+    Match: True
+
+============================================================
+Part 6: Training a tiny NN with our autograd
+============================================================
+  Epoch    0: loss = 1.0227
+  Epoch  100: loss = 0.9977
+  Epoch  200: loss = 0.3222
   Epoch  300: loss = 0.0221
   Epoch  400: loss = 0.0094
 

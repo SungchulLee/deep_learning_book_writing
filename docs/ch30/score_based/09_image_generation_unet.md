@@ -28,6 +28,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -278,56 +281,161 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (150줄)"
 
-```
-MODULE 09: Image Generation with U-Net
-================================================================================
+    ```
+    MODULE 09: Image Generation with U-Net
+    ================================================================================
 
-왜 그림에 U-Net인가?
---------------------
-점수 함수 s(x)은 들임 x과 크기가 같아야 한다
+    왜 그림에 U-Net인가?
+    --------------------
+    점수 함수 s(x)은 들임 x과 크기가 같아야 한다
 
-그림에서는:
-- Input: [B, C, H, W]
-- 내놓음: [B, C, H, W](화소와 통로마다의 점수)
+    그림에서는:
+    - Input: [B, C, H, W]
+    - 내놓음: [B, C, H, W](화소와 통로마다의 점수)
 
-U-Net 얼개:
-1. 인코더: 줄이기 + 특징 뽑기
-2. 디코더: 키우기 + 내놓기 만들기
-3. 건너뛰기 이음: 공간의 앎을 지킨다
-4. 때 조건 주기: 잡음 수준마다 다른 점수
+    U-Net 얼개:
+    1. 인코더: 줄이기 + 특징 뽑기
+    2. 디코더: 키우기 + 내놓기 만들기
+    3. 건너뛰기 이음: 공간의 앎을 지킨다
+    4. 때 조건 주기: 잡음 수준마다 다른 점수
 
-MNIST를 위한 단출한 U-Net:
---------------------------
+    MNIST를 위한 단출한 U-Net:
+    --------------------------
 
-U-Net architecture defined!
+    U-Net architecture defined!
 
-고갱이 조각:
---------------
-1. 때 임베딩: 신경망에 잡음 수준을 알려 준다
-2. 건너뛰기 이음: 공간의 세부를 지킨다
-3. 남은 덩이: 가장 좋게 하기가 쉬워진다
-4. 무리 고르게 맞추기: 만들어 내는 모델에서 배치 고르게 맞추기보다 낫다
-5. 어텐션(쓸 수 있음): 해상도 높은 그림용
+    고갱이 조각:
+    --------------
+    1. 때 임베딩: 신경망에 잡음 수준을 알려 준다
+    2. 건너뛰기 이음: 공간의 세부를 지킨다
+    3. 남은 덩이: 가장 좋게 하기가 쉬워진다
+    4. 무리 고르게 맞추기: 만들어 내는 모델에서 배치 고르게 맞추기보다 낫다
+    5. 어텐션(쓸 수 있음): 해상도 높은 그림용
 
-익힘 꾀:
------------------
-1. 그림 x ~ p_data을 뽑는다
+    익힘 꾀:
+    -----------------
+    1. 그림 x ~ p_data을 뽑는다
+    2. 잡음 층 t ~ Uniform[0, T]을 뽑는다
+    3. Add noise: x_t = √ᾱ_t x + √(1-ᾱ_t) ε
+    4. Predict noise: ε_θ(x_t, t)
+    5. Loss: ||ε - ε_θ(x_t, t)||²
 
-... (107 lines omitted)
-
-✓ 잡음 없애는 점수 맞추기(단원 02) → 익히기 목표
-✓ 랑주뱅(단원 03) → 뽑기 절차
-✓ 여러 잣수(단원 07) → 때 조건 주기
-✓ 확률 미분 방정식(단원 08) → 이어진 적기
-
-모든 것이 이어진다!
+    이는 모습만 다른 잡음 없애는 점수 맞추기이다!
+    Score s(x_t, t) = -ε_θ(x_t, t) / √(1-ᾱ_t)
 
 
-✓ Module 09 complete!
-Final module: Complete unification with diffusion models!
-```
+    Conceptual training code:
+    --------------------------------------------------------------------------------
+
+    def train_score_model_mnist(model, dataloader, n_timesteps=1000, epochs=10):
+        '''MNIST에서 점수 모델을 익힌다'''
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
+        
+        # 선형 잡음 차례표
+        betas = torch.linspace(0.0001, 0.02, n_timesteps)
+        alphas = 1 - betas
+        alphas_cumprod = torch.cumprod(alphas, dim=0)
+        
+        for epoch in range(epochs):
+            for images, _ in dataloader:
+                # 아무 때 걸음
+                t = torch.randint(0, n_timesteps, (images.shape[0],))
+                
+                # 잡음 더하기
+                noise = torch.randn_like(images)
+                sqrt_alpha_bar = alphas_cumprod[t].sqrt()[:, None, None, None]
+                sqrt_one_minus_alpha_bar = (1 - alphas_cumprod[t]).sqrt()[:, None, None, None]
+                noisy_images = sqrt_alpha_bar * images + sqrt_one_minus_alpha_bar * noise
+                
+                # 잡음을 헤아린다(점수를 헤아리는 것과 같다)
+                predicted_noise = model(noisy_images, t)
+                
+                # 손실
+                loss = F.mse_loss(predicted_noise, noise)
+                
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+            
+            print(f"Epoch {epoch}: Loss = {loss.item():.4f}")
+        
+        return model
+
+    # 표집
+    @torch.no_grad()
+    def generate_images(model, n_samples=64, n_timesteps=1000):
+        '''거꾸로 확산으로 그림을 만든다'''
+        # 잡음에서 시작한다
+        x = torch.randn(n_samples, 1, 28, 28)
+        
+        for t in reversed(range(n_timesteps)):
+            t_tensor = torch.ones(n_samples, dtype=torch.long) * t
+            
+            # 잡음을 헤아린다
+            predicted_noise = model(x, t_tensor)
+            
+            # 점수 셈하기
+            alpha_t = alphas[t]
+            alpha_bar_t = alphas_cumprod[t]
+            
+            # 잡음을 없앤다
+            beta_t = betas[t]
+            x = (1 / alpha_t.sqrt()) * (x - beta_t / (1 - alpha_bar_t).sqrt() * predicted_noise)
+            
+            # 잡음을 더한다(마지막 걸음만 빼고)
+            if t > 0:
+                x = x + beta_t.sqrt() * torch.randn_like(x)
+        
+        return x
+
+
+    실제로 살필 점:
+    ------------------------
+
+    셈 자원 요구:
+    - MNIST: GPU에서 약 2~4시간
+    - CIFAR-10: GPU에서 약 1~2일
+    - ImageNet: 여러 GPU에서 약 1주
+
+    기억 자리 아끼기:
+    - 기울기 되짚을 자리 두기
+    - Mixed precision (FP16)
+    - 배치 크기 맞추기
+
+    뽑기 빠르기:
+    - 표준: 걸음 1000개(그림 한 장에 10초쯤)
+    - DDIM: 걸음 50개(그림 한 장에 0.5초쯤)
+    - DPM-Solver: 걸음 20개(그림 한 장에 0.2초쯤)
+    - 한결같음 모델: 걸음 한 개!(앞으로 다룰 이야기)
+
+    품질 자:
+    - FID(프레셰 인셉션 거리)
+    - 인셉션 점수
+    - 정밀도와 재현율
+    - 사람이 따지기
+
+    흔한 결과:
+    - MNIST: FID 5~10쯤(아주 좋음)
+    - CIFAR-10: FID 3~10쯤(최고 수준)
+    - ImageNet 256x256: FID 2~5쯤(최고 수준)
+
+    여태 배운 것과의 이음:
+    --------------------------------
+    ✓ 점수 함수(단원 01) → 잡음 헤아리기
+    ✓ 잡음 없애는 점수 맞추기(단원 02) → 익히기 목표
+    ✓ 랑주뱅(단원 03) → 뽑기 절차
+    ✓ 여러 잣수(단원 07) → 때 조건 주기
+    ✓ 확률 미분 방정식(단원 08) → 이어진 적기
+
+    모든 것이 이어진다!
+
+
+    ✓ Module 09 complete!
+    Final module: Complete unification with diffusion models!
+    ```
+
 
 ## 2. 논의
 

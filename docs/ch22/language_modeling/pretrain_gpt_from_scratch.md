@@ -306,9 +306,30 @@ Part 3: ConstantLengthDataset
   Doc1: 'Hello world'  →  [101, 7592, 2088, 102]
   Doc2: 'Deep learning' →  [101, 2784, 4083, 102]
   Concatenated: [101, 7592, 2088, 102, 0, 101, 2784, 4083, 102, 0]
+  Chunked (seq_len=5): [[101,7592,2088,102,0], [101,2784,4083,102,0]]
 
-... (24 lines omitted)
+============================================================
+Part 4: Training Loop with Gradient Accumulation
+============================================================
 
+  익히기 자리매김(GPT-2 Small 보기):
+    batch_size:                   12
+    gradient_accumulation_steps:  1
+    effective_batch_size:         12 * num_gpus
+    learning_rate:                5e-4
+    lr_scheduler:                 데우기를 곁들인 코사인
+    warmup_steps:                 2000
+    max_train_steps:              150000
+    weight_decay:                 0.1
+    seq_length:                   1024
+    gradient_checkpointing:       True
+
+============================================================
+Part 5: Evaluation — Perplexity & Generation
+============================================================
+
+  헷갈림도 — 말 모델의 표준 잣대
+    PPL = exp(평균 엇갈린 엔트로피 손실)
     헷갈림도가 낮다 = 모델이 남겨 둔 글에 더 높은 확률을 준다
 
 ============================================================

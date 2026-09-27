@@ -302,8 +302,26 @@ if __name__ == "__main__":
   걸음 27: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
   걸음 28: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
   걸음 29: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-
-... (21 lines omitted)
+  걸음 30: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 31: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 32: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 33: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 34: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 35: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 36: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 37: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 38: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 39: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 40: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 41: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 42: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 43: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 44: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 45: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 46: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 47: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 48: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  걸음 49: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
 
 죽임 스위치가 당겨졌는가: True
 까닭: 오늘 잃음 위끝: -3.0%

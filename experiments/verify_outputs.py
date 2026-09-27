@@ -153,6 +153,11 @@ def check(md_path, timeout=1800):
     if len(blocks) > 1:
         candidates.append(max(blocks, key=lambda b: len(b.splitlines())))
 
+    # 옆에 놓인 .py 를 불러 쓰는 쪽이 있다 — 그 자리를 PYTHONPATH 에 얹는다
+    import os
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(md_path.parent) + os.pathsep + env.get("PYTHONPATH", "")
+
     r = None
     with ExitStack() as stack:
         cwd = sandbox_cwd(stack)
@@ -162,7 +167,7 @@ def check(md_path, timeout=1800):
                 tmp = f.name
             try:
                 r = subprocess.run([sys.executable, tmp], capture_output=True,
-                                   text=True, timeout=timeout, cwd=cwd)
+                                   text=True, timeout=timeout, cwd=cwd, env=env)
             except subprocess.TimeoutExpired:
                 return ("시간초과", 0, 0, [], 0)
             finally:

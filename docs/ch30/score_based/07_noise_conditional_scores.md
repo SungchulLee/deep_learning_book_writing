@@ -28,6 +28,11 @@ import torch
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다.
+# 익힘 자료를 만드는 make_moons 는 numpy 쪽 무작위를 쓰므로 함께 고정한다
+torch.manual_seed(0)
+np.random.seed(0)
 
 # ========================================================================
 # 메인
@@ -240,18 +245,41 @@ MODULE 07: Noise Conditional Score Networks
 
 Training NCSN with 10 noise levels...
 σ range: [0.010, 1.000]
-Epoch 0: Loss = 12432753.000000
-Epoch 400: Loss = 11582172.000000
-Epoch 800: Loss = 11497666.000000
-Epoch 1200: Loss = 12189007.000000
-Epoch 1600: Loss = 10814448.000000
+Epoch 0: Loss = 11250250.000000
+Epoch 400: Loss = 10413595.000000
+Epoch 800: Loss = 12017707.000000
+Epoch 1200: Loss = 11552046.000000
+Epoch 1600: Loss = 11454724.000000
 
 Generating samples via annealed Langevin dynamics...
   Annealing step 1/10: σ = 1.0000
   Annealing step 2/10: σ = 0.5995
+  Annealing step 3/10: σ = 0.3594
+  Annealing step 4/10: σ = 0.2154
+  Annealing step 5/10: σ = 0.1292
+  Annealing step 6/10: σ = 0.0774
+  Annealing step 7/10: σ = 0.0464
+  Annealing step 8/10: σ = 0.0278
+  Annealing step 9/10: σ = 0.0167
+  Annealing step 10/10: σ = 0.0100
+✓ Saved: 07_annealed_langevin.png
 
-... (26 lines omitted)
+고갱이 눈썰미:
+------------
+1. 큰 잡음(σ_1)에서 시작한다: 표본이 온 공간을 덮는다
+2. 잡음을 차츰 줄인다: 표본이 자료 다양체로 모인다
+3. 잡음 수준마다 앞 수준을 다듬는다
+4. 이것이 바로 뒤 확산 과정이다!
 
+잡음 짜임 설계:
+---------------------
+- 등비 수열: σ_i = σ_max * (σ_min/σ_max)^(i/L)
+- 층이 많을수록 옮겨감이 매끄럽지만 뽑기가 느리다
+- 맞추어 가는 걸음 크기: ε_i ∝ σ_i²
+
+DDPM과의 이음:
+-----------------
+DDPM forward: x_t = √(ᾱ_t) x_0 + √(1-ᾱ_t) ε
 → 차례표에 따라 잡음을 더하는 것과 같다
 
 DDPM 거꾸로: 점수로 p(x_{t-1}|x_t)을 배운다

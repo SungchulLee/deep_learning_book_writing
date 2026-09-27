@@ -34,6 +34,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 
 # =====================================================================
@@ -384,56 +387,201 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (190줄)"
 
-```
-============================================================
-Part 1: LIME (Local Interpretable Model-Agnostic Explanations)
-============================================================
-  Classifier accuracy: 1.000
+    ```
+    ============================================================
+    Part 1: LIME (Local Interpretable Model-Agnostic Explanations)
+    ============================================================
+      Classifier accuracy: 1.000
 
-  # 글 풀이에 LIME 쓰기:
-  from lime.lime_text import LimeTextExplainer
-  from sklearn.pipeline import make_pipeline
+      # 글 풀이에 LIME 쓰기:
+      from lime.lime_text import LimeTextExplainer
+      from sklearn.pipeline import make_pipeline
 
-  # 물길 만들기(벡터로 생성기 + 갈래 매개)
-  pipe = make_pipeline(vectorizer, clf)
+      # 물길 만들기(벡터로 생성기 + 갈래 매개)
+      pipe = make_pipeline(vectorizer, clf)
 
-  # LIME 풀이개 첫자리매김
-  class_names = ["negative", "positive"]
-  explainer = LimeTextExplainer(class_names=class_names)
+      # LIME 풀이개 첫자리매김
+      class_names = ["negative", "positive"]
+      explainer = LimeTextExplainer(class_names=class_names)
 
-  # 어림 하나 풀이하기
-  text = "Revenue declined sharply missing consensus estimates"
-  exp = explainer.explain_instance(
-      text,
-      pipe.predict_proba,
-      num_features=6,       # 가장 중요한 낱말 6개
-      num_samples=1000,     # 흔든 횟수
-  )
+      # 어림 하나 풀이하기
+      text = "Revenue declined sharply missing consensus estimates"
+      exp = explainer.explain_instance(
+          text,
+          pipe.predict_proba,
+          num_features=6,       # 가장 중요한 낱말 6개
+          num_samples=1000,     # 흔든 횟수
+      )
 
-  # 풀이 보기
-  print(exp.as_list())
-  # → [('declined', -0.42),    # 부정 쪽으로 민다
-  #    ('missing', -0.31),     # 음성 쪽으로 민다
-  #    ('revenue', 0.08),      # 살짝 양성(아리송함)
-  #    ('consensus', -0.12),   # 음성 쪽으로 민다
-  #    ('sharply', -0.19),     # 음성 쪽으로 민다
-  #    ('estimates', 0.05)]    # 가운데
+      # 풀이 보기
+      print(exp.as_list())
+      # → [('declined', -0.42),    # 부정 쪽으로 민다
+      #    ('missing', -0.31),     # 음성 쪽으로 민다
+      #    ('revenue', 0.08),      # 살짝 양성(아리송함)
+      #    ('consensus', -0.12),   # 음성 쪽으로 민다
+      #    ('sharply', -0.19),     # 음성 쪽으로 민다
+      #    ('estimates', 0.05)]    # 가운데
 
-... (147 lines omitted)
+      # 그려 보기(공책에서)
+      exp.as_pyplot_figure()  # 가로 막대 그림
+      exp.show_in_notebook()  # 주고받는 HTML
 
-    text = "Tesla missed delivery targets amid supply chain disruptions"
-    # FinBERT의 어림: 음성 (0.89)
-    # LIME 풀이:
-    #   "missed"       → -0.35 (센 음성 신호)
-    #   "disruptions"  → -0.22 (음성 맥락)
-    #   "delivery"     → -0.08 (이 맥락에서는 살짝 음성)
-    #   "targets"      → -0.05 ("missing"과 얽힘)
-    #   "Tesla"        →  0.02 (가운데 — 좋다! 상표 치우침 없음)
+      Manual LIME-style explanation (without library):
+      --------------------------------------------------
+      Original prediction: neg=0.808, pos=0.192
+      Word importance (leave-one-out):
+                Revenue: +0.0228 (removing it changes P(pos) by this much)
+               declined: -0.0556 (removing it changes P(pos) by this much)
+                sharply: -0.0236 (removing it changes P(pos) by this much)
+                missing: -0.0236 (removing it changes P(pos) by this much)
+              consensus: -0.0236 (removing it changes P(pos) by this much)
+              estimates: -0.0236 (removing it changes P(pos) by this much)
 
-Done.
-```
+    ============================================================
+    Part 2: SHAP — LinearExplainer for Sklearn Models
+    ============================================================
+
+      import shap
+
+      # 선형 모델에는 SHAP에 정확한 디코더가 있다
+      explainer = shap.LinearExplainer(
+          clf,
+          X_train_tfidf,
+          feature_perturbation="interventional",
+      )
+      shap_values = explainer.shap_values(X_test_tfidf)
+
+      # 전체 간추림: 모든 어림에 걸쳐 어떤 특징이 가장 중요한가?
+      shap.summary_plot(
+          shap_values,
+          X_test_tfidf.toarray(),
+          feature_names=vectorizer.get_feature_names_out(),
+      )
+      # → 시험 뭉치에 걸친 특징마다의 SHAP 값 분포를 보여 준다
+      # 빨간 점 = 특징 값이 큼, 파란 점 = 특징 값이 작음
+      # x축 = SHAP 값(모델 내놓음에 미치는 영향)
+
+      # 낱낱의 풀이: 이 보기가 왜 이렇게 갈래 매겨졌는가?
+      shap.force_plot(
+          explainer.expected_value,
+          shap_values[0, :],
+          X_test_tfidf[0, :].toarray(),
+          feature_names=vectorizer.get_feature_names_out(),
+      )
+
+      Top features by logistic regression coefficient (SHAP-adjacent):
+      Most positive (bullish indicators):
+                      strong: +1.2797
+                        year: +0.9374
+                      raised: +0.9374
+                    earnings: +0.9374
+                    reported: +0.9374
+      Most negative (bearish indicators):
+                    declined: -1.1870
+               deteriorating: -1.0194
+                      warned: -1.0194
+                      demand: -1.0194
+                     lowered: -1.0194
+
+    ============================================================
+    Part 3: SHAP DeepExplainer for PyTorch Models
+    ============================================================
+      LSTM accuracy: 0.700
+
+      # PyTorch LSTM에 SHAP DeepExplainer 쓰기:
+      import shap
+
+      # 익힘 자료의 일부를 배경으로 쓰기
+      background = X_encoded[:20]
+
+      explainer = shap.DeepExplainer(model, background)
+
+      # 시험 어림 풀이하기
+      test_samples = X_encoded[180:185]
+      shap_values = explainer.shap_values(test_samples)
+
+      # shap_values는 목록이다(갈래마다 하나)
+      # shap_values[1] = 양성 갈래 쪽 몫
+      # 꼴: (num_samples, seq_len)
+
+      # 그려 보려고 낱말로 되돌려 대응시키기
+      idx2word = {v: k for k, v in word2idx.items()}
+      sample_words = [
+          [idx2word.get(idx.item(), "PAD") for idx in sample]
+          for sample in test_samples
+      ]
+
+      shap.initjs()
+      shap.force_plot(
+          explainer.expected_value[1],
+          shap_values[1][0],
+          sample_words[0],
+      )
+
+
+    ============================================================
+    Part 4: LIME vs SHAP Comparison
+    ============================================================
+
+      ┌─────────────────┬──────────────────────┬──────────────────────┐
+      │ 갈래            │ LIME                 │ SHAP                 │
+      ├─────────────────┼──────────────────────┼──────────────────────┤
+      │ 이론            │ 자리에 매인 선형 어림 │ 섀플리 값            │
+      │ 범위            │ 자리만               │ 자리 + 전체          │
+      │ 한결같음        │ 보장 없음            │ 수학으로 증명됨      │
+      │ 빠르기          │ 더 빠름(표집)        │ 더 느림(정확)        │
+      │ 모델 받치기     │ 아무 깜깜이 상자나   │ 다듬은 풀이개        │
+      │ 든든함          │ 들쭉날쭉(마구잡이)   │ 늘 같음              │
+      │ 더해짐          │ 아니다               │ 그렇다(값이 더해진다) │
+      │ 알맞은 곳       │ 빠른 자리 눈썰미     │ 엄밀한 몫 나누기     │
+      └─────────────────┴──────────────────────┴──────────────────────┘
+
+      언제 무엇을 쓸까:
+      - LIME: 빠른 벌레잡기, 모델에 매이지 않음, 아무 갈래 매개나
+      - SHAP (Linear): 선형 모델에 정확한 값(빠르다)
+      - SHAP (Deep):   신경망 몫 나누기
+      - SHAP (Kernel): 아무 모델이나, 가장 비싸지만 유연하다
+
+    ============================================================
+    Part 5: Financial NLP Interpretability Use Cases
+    ============================================================
+
+      1. 규제 지킴:
+         - 어떤 낱말이 "높은 위험" 갈래를 일으켰는지 보이기
+         - 자동 글월 가려내기의 감사 자취
+
+      2. 마음결 바탕 거래:
+         - 뉴스 글이 왜 약세로 갈래 매겨졌는지 이해하기
+         - 참된 마음결과 잡음 낱말 가리기
+
+      3. 신용 위험 재기:
+         - 연차 보고서의 어떤 마디가 경고 신호를 냈는가?
+         - 신용도 점수 매기기의 특징 몫 나누기
+
+      4. 이상 알아채기:
+         - 어떤 보고서가 왜 이상하다고 표시됐는지 풀이하기
+         - 이상 점수를 끌어올리는 핵심 마디 가려내기
+
+      5. 모델 벌레잡기:
+         - 헛된 얽힘 찾기(보기로 회사 이름 → 마음결)
+         - 특징 중요도로 자료 새어 나감 알아채기
+
+      보기: FinBERT의 어림 풀이하기
+
+        text = "Tesla missed delivery targets amid supply chain disruptions"
+        # FinBERT의 어림: 음성 (0.89)
+        # LIME 풀이:
+        #   "missed"       → -0.35 (센 음성 신호)
+        #   "disruptions"  → -0.22 (음성 맥락)
+        #   "delivery"     → -0.08 (이 맥락에서는 살짝 음성)
+        #   "targets"      → -0.05 ("missing"과 얽힘)
+        #   "Tesla"        →  0.02 (가운데 — 좋다! 상표 치우침 없음)
+
+    Done.
+    ```
+
 
 ## 2. 논의
 

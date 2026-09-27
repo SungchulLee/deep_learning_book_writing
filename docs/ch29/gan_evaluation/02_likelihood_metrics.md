@@ -708,56 +708,166 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (155줄)"
 
-```
-======================================================================
-MODULE 52.02: LIKELIHOOD-BASED METRICS
-======================================================================
-======================================================================
-Negative Log-Likelihood (NLL) Demonstration
-======================================================================
+    ```
 
-Example 1: Perfect Model
-----------------------------------------------------------------------
-Log probabilities: all 0.0 (prob = 1.0)
-NLL: -0.000000
-Interpretation: Model assigns probability 1 to all samples
-               (Only possible if model memorizes all data)
+    ======================================================================
+    MODULE 52.02: LIKELIHOOD-BASED METRICS
+    ======================================================================
+    ======================================================================
+    Negative Log-Likelihood (NLL) Demonstration
+    ======================================================================
 
- Example 2: Good Model
-----------------------------------------------------------------------
-Mean log probability: -1.9701
-NLL: 1.9701 ± 0.0493
-Interpretation: Model assigns average probability 0.1394
+    Example 1: Perfect Model
+    ----------------------------------------------------------------------
+    Log probabilities: all 0.0 (prob = 1.0)
+    NLL: -0.000000
+    Interpretation: Model assigns probability 1 to all samples
+                   (Only possible if model memorizes all data)
 
-Example 3: Poor Model
-----------------------------------------------------------------------
-Mean log probability: -9.9636
-NLL: 9.9636
-Interpretation: Model assigns average probability 0.000047
-               (Very low probability = poor model)
+     Example 2: Good Model
+    ----------------------------------------------------------------------
+    Mean log probability: -1.9701
+    NLL: 1.9701 ± 0.0493
+    Interpretation: Model assigns average probability 0.1394
 
-======================================================================
-Model Comparison:
-======================================================================
-Model                NLL             Avg Probability
-----------------------------------------------------------------------
-Perfect              -0.0000         1.000000
+    Example 3: Poor Model
+    ----------------------------------------------------------------------
+    Mean log probability: -9.9636
+    NLL: 9.9636
+    Interpretation: Model assigns average probability 0.000047
+                   (Very low probability = poor model)
 
-... (111 lines omitted)
+    ======================================================================
+    Model Comparison:
+    ======================================================================
+    Model                NLL             Avg Probability
+    ----------------------------------------------------------------------
+    Perfect              -0.0000         1.000000
+    Good                 1.9701          0.139441
+    Poor                 9.9636          0.000047
 
-       - 그림 모델: 공정한 견줌에는 차원마다 비트를 쓴다
-       - 늘 믿음 구간을 알린다
-    
-    5. 한계:
-       - 높은 가능도 ≠ 좋은 표본
-       - 서로 메우는 표본 바탕 잣대가 필요하다
-       - 모델 담이에 민감하다
-       - 사람의 느낌과 이어지지 않을 수 있다
-    
-======================================================================
-```
+    Lower NLL = Better model
+
+    ======================================================================
+    Bits Per Dimension (BPD) Demonstration
+    ======================================================================
+
+    Model A (MNIST):
+      Dimensions: 784
+      NLL: 100.00
+
+    Model B (CIFAR-10):
+      Dimensions: 3072
+      NLL: 380.00
+
+    ----------------------------------------------------------------------
+    Problem: Cannot directly compare NLL across different dimensions!
+    ----------------------------------------------------------------------
+
+    Solution: Normalize using BPD
+    ----------------------------------------------------------------------
+    Model A (MNIST):
+      BPD: 0.1840
+      Quality: Excellent
+
+    Model B (CIFAR-10):
+      BPD: 0.1785
+      Quality: Excellent
+
+    ======================================================================
+    Information-Theoretic Interpretation:
+    ======================================================================
+
+    For 8-bit images, uniform distribution gives BPD = 8.0
+    (Each pixel can be one of 256 values, requiring 8 bits)
+
+    Model A achieves 0.18 BPD:
+      Compression: 97.7% compared to uniform
+
+    Model B achieves 0.18 BPD:
+      Compression: 97.8% compared to uniform
+
+    ======================================================================
+    Perplexity Demonstration
+    ======================================================================
+
+    Language Model with vocabulary size: 10000
+    ----------------------------------------------------------------------
+
+    Model 1: Random Baseline
+      Log prob per token: -9.2103
+      Perplexity: 10000.0
+      Interpretation: Very Poor (nearly random) (Random baseline: 10000)
+
+    Model 2: Moderate Model
+      Average log prob: -4.5900
+      NLL: 4.5900
+      Perplexity: 98.5
+      Interpretation: Excellent (Random baseline: 10000)
+
+    Model 3: Good Model
+      Average log prob: -1.6211
+      NLL: 1.6211
+      Perplexity: 5.1
+      Interpretation: Excellent (Random baseline: 10000)
+
+    ======================================================================
+    Perplexity Comparison:
+    ======================================================================
+    Model                Perplexity      Effective Choices
+    ----------------------------------------------------------------------
+    Random               10000.0         All 10000 tokens
+    Moderate             98.5            ~98 likely tokens
+    Good                 5.1             ~5 likely tokens
+
+    Lower perplexity = Better language model
+    Perplexity ≈ effective vocabulary size at each position
+
+    ======================================================================
+    Generating Visualizations
+    ======================================================================
+
+    ✓ Visualization saved as 'likelihood_metrics.png'
+
+    ======================================================================
+    KEY TAKEAWAYS
+    ======================================================================
+
+        1. 음의 로그 가능도(NLL):
+           - 모델이 자료에 얼마나 잘 확률을 매기는지 잰다
+           - 음의 로그 가능도가 낮을수록 잘 맞는다
+           - 익히기 손실 함수로 쓴다
+           - 표준 오차로 믿음 구간을 셈할 수 있다
+        
+        2. 차원마다의 비트 수(BPD):
+           - 차원에 걸친 공정한 견줌을 위해 음의 로그 가능도를 고르게 맞춘다
+           - 앎 이론의 풀이
+           - BPD = NLL / (차원 수 × log(2))
+           - 견줌을 가능하게 한다: MNIST와 CIFAR와 ImageNet
+        
+        3. 헷갈림도:
+           - 말 모델에 맞춘 잣대
+           - 헷갈림도 = exp(토큰마다의 음의 로그 가능도)
+           - 직관: "실제로 쓰이는 낱말 수"
+           - 헷갈림도가 낮을수록 헤아림이 자신 있다
+        
+        4. 잣대 고르기:
+           - 변분 오토인코더, 흐름: 음의 로그 가능도나 차원마다 비트를 쓴다
+           - 말 모델: 헷갈림도를 쓴다
+           - 그림 모델: 공정한 견줌에는 차원마다 비트를 쓴다
+           - 늘 믿음 구간을 알린다
+        
+        5. 한계:
+           - 높은 가능도 ≠ 좋은 표본
+           - 서로 메우는 표본 바탕 잣대가 필요하다
+           - 모델 담이에 민감하다
+           - 사람의 느낌과 이어지지 않을 수 있다
+        
+    ======================================================================
+    ```
+
 
 ## 2. 논의
 

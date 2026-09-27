@@ -26,6 +26,7 @@ FinBERT 마음결.
 #
 # 바탕: O'Reilly "Practical NLP" 10장
 
+import zlib          # 어디서 돌려도 같은 값을 주는 해시 (아래 토막내기에 쓴다)
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -213,7 +214,11 @@ def simple_tokenize(texts, max_len=64, vocab_size=5000):
     all_ids, all_masks = [], []
     for text in texts:
         tokens = text.lower().split()[:max_len]
-        ids = [(hash(t) % (vocab_size - 1)) + 1 for t in tokens]
+        # 붙박이 hash() 를 쓰면 안 된다. 파이썬은 글자열 해시에 프로세스마다
+        # 다른 소금을 섞으므로, 씨앗을 아무리 고정해도 토막마다 붙는 번호가
+        # 돌릴 때마다 달라진다 — 여기 실린 손실값이 다시 나오지 않는 까닭이
+        # 그것이었다. crc32 는 어디서 돌려도 같은 값을 준다
+        ids = [(zlib.crc32(t.encode()) % (vocab_size - 1)) + 1 for t in tokens]
         mask = [1] * len(ids)
         # 덧대기
         pad_len = max_len - len(ids)
@@ -395,57 +400,173 @@ if __name__ == "__main__":
     pass
 ```
 
-**출력:**
+??? note "전체 출력 (163줄)"
 
-```
-============================================================
-Part 1: Loading FinBERT
-============================================================
+    ```
+    ============================================================
+    Part 1: Loading FinBERT
+    ============================================================
 
-  # 마음결 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
-  from transformers import AutoModelForSequenceClassification, AutoTokenizer
+      # 마음결 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
+      from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-  model_name = "ProsusAI/finbert"
-  tokenizer = AutoTokenizer.from_pretrained(model_name)
-  model = AutoModelForSequenceClassification.from_pretrained(model_name)
-  model.eval()
+      model_name = "ProsusAI/finbert"
+      tokenizer = AutoTokenizer.from_pretrained(model_name)
+      model = AutoModelForSequenceClassification.from_pretrained(model_name)
+      model.eval()
 
-  # 빠른 미룸
-  text = "Tesla reported record deliveries, beating analyst expectations."
-  inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=128)
-  with torch.no_grad():
-      logits = model(**inputs).logits
-      probs = F.softmax(logits, dim=-1)
-      labels = ["positive", "negative", "neutral"]
-      pred = labels[probs.argmax()]
-      print(f"Sentiment: {pred} ({probs.max():.3f})")
-  # → 마음결: 양성 (0.92)
+      # 빠른 미룸
+      text = "Tesla reported record deliveries, beating analyst expectations."
+      inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=128)
+      with torch.no_grad():
+          logits = model(**inputs).logits
+          probs = F.softmax(logits, dim=-1)
+          labels = ["positive", "negative", "neutral"]
+          pred = labels[probs.argmax()]
+          print(f"Sentiment: {pred} ({probs.max():.3f})")
+      # → 마음결: 양성 (0.92)
 
-============================================================
-Part 2: Zero-Shot Inference via HuggingFace Pipeline
-============================================================
+    ============================================================
+    Part 2: Zero-Shot Inference via HuggingFace Pipeline
+    ============================================================
 
-  from transformers import pipeline
+      from transformers import pipeline
 
-  finbert = pipeline(
-      "sentiment-analysis",
-      model="ProsusAI/finbert",
-      tokenizer="ProsusAI/finbert",
+      finbert = pipeline(
+          "sentiment-analysis",
+          model="ProsusAI/finbert",
+          tokenizer="ProsusAI/finbert",
+      )
 
-... (120 lines omitted)
+      # 어림 하나
+      result = finbert("AAPL missed revenue estimates by 2%.")
+      # → [{'label': 'negative', 'score': 0.87}]
 
-     어림을 웃도는 것이 양성임을 안다.
+      # 배치 어림
+      texts = [
+          "Revenue grew 15% year-over-year, exceeding guidance.",
+          "The company announced layoffs affecting 10% of staff.",
+          "Q3 earnings were in line with consensus expectations.",
+          "Short sellers are increasing their positions in the stock.",
+      ]
+      results = finbert(texts)
+      for text, res in zip(texts, results):
+          print(f"  {res['label']:>8} ({res['score']:.2f}): {text[:60]}")
 
-  금융 자연어 다루기의 쓰임새:
-  - 실적 발표 마음결 좇기
-  - 초과 수익을 위한 뉴스 마음결
-  - 사회 그물(StockTwits/Reddit) 마음결 점수 매기기
-  - SEC 보고서의 어조 살피기
-  - 분석 보고서 갈래 매기기
+    ============================================================
+    Part 3: Fine-Tuning FinBERT on StockTwits Data
+    ============================================================
+      Creating synthetic StockTwits-like data for demonstration...
+      Dataset: 240 examples (120 bullish, 120 bearish)
 
-Done.
-```
+      Training:
+        Epoch 2: loss=0.5276, val_acc=1.000
+        Epoch 4: loss=0.2557, val_acc=1.000
+        Epoch 6: loss=0.0389, val_acc=1.000
+        Epoch 8: loss=0.0058, val_acc=1.000
 
+    ============================================================
+    Part 4: Evaluation & Per-Stock Breakdown
+    ============================================================
+
+      실제 자료를 쓴 온전한 곱게 다듬기 물길:
+
+      from transformers import (
+          AutoModelForSequenceClassification, AutoTokenizer,
+          Trainer, TrainingArguments,
+      )
+      from datasets import Dataset
+      import pandas as pd
+
+      # StockTwits 자료 읽어 들이기
+      df = pd.read_csv("stocktwits_data.csv")
+      # 칸: symbol, message, sentiment(Bullish/Bearish), message_id
+      # 이름표 부호화
+      df["label"] = (df["sentiment"] == "Bullish").astype(int)
+
+      tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
+      model = AutoModelForSequenceClassification.from_pretrained(
+          "ProsusAI/finbert", num_labels=2
+      )
+
+      def tokenize(batch):
+          return tokenizer(
+              batch["message"], padding="max_length",
+              truncation=True, max_length=128,
+          )
+
+      ds = Dataset.from_pandas(df[["message", "label"]])
+      ds = ds.map(tokenize, batched=True)
+      ds = ds.train_test_split(test_size=0.1, seed=42)
+
+      args = TrainingArguments(
+          output_dir="./finbert-stocktwits",
+          num_train_epochs=4,
+          per_device_train_batch_size=16,
+          per_device_eval_batch_size=64,
+          learning_rate=2e-5,
+          weight_decay=0.01,
+          warmup_ratio=0.1,
+          evaluation_strategy="epoch",
+          save_strategy="epoch",
+          load_best_model_at_end=True,
+          fp16=True,
+      )
+
+      trainer = Trainer(
+          model=model, args=args,
+          train_dataset=ds["train"],
+          eval_dataset=ds["test"],
+          tokenizer=tokenizer,
+      )
+      trainer.train()
+
+      # 종목별 값매김
+      for symbol in ["FB", "AMZN", "GOOGL"]:
+          subset = df[df["symbol"] == symbol]
+          preds = trainer.predict(Dataset.from_pandas(subset))
+          acc = (preds.predictions.argmax(-1) == subset["label"].values).mean()
+          print(f"  {symbol}: {acc:.3f} accuracy ({len(subset)} samples)")
+
+    ============================================================
+    Part 5: FinBERT vs Generic BERT vs Lexicon-Based
+    ============================================================
+
+      금융 마음결 일에서의 견줌:
+
+      ┌─────────────────────┬───────────┬──────────┬─────────────┐
+      │ 방법                │ 정확도    │ F1 점수  │ 분야 맞음   │
+      ├─────────────────────┼───────────┼──────────┼─────────────┤
+      │ TextBlob(낱말집)    │   0.58    │   0.52   │ 나쁨        │
+      │ VADER               │   0.62    │   0.57   │ 보통        │
+      │ BERT-base           │   0.71    │   0.68   │ 일반        │
+      │ FinBERT(영 발)      │   0.76    │   0.73   │ 좋음        │
+      │ FinBERT(곱게 다듬음)│   0.83    │   0.81   │ 아주 좋음   │
+      └─────────────────────┴───────────┴──────────┴─────────────┘
+
+      FinBERT가 일반 모델을 앞서는 까닭:
+
+      1. 분야 낱말: "bullish", "bearish", "overbought" 등
+         일반 BERT가 담아내지 못하는 금융 특유의 뜻을 지닌다.
+
+      2. 마음결의 방향: "Short position"은 일반 글에서는 가운데이지만
+         금융 맥락에서는 흔히 약세이다.
+
+      3. 부정 다루기: "Revenue did not meet expectations"는
+         금융 보고서의 말을 이해한다.
+
+      4. 수의 맥락: "EPS of $2.50 vs $2.30 expected" — FinBERT는
+         어림을 웃도는 것이 양성임을 안다.
+
+      금융 자연어 다루기의 쓰임새:
+      - 실적 발표 마음결 좇기
+      - 초과 수익을 위한 뉴스 마음결
+      - 사회 그물(StockTwits/Reddit) 마음결 점수 매기기
+      - SEC 보고서의 어조 살피기
+      - 분석 보고서 갈래 매기기
+
+    Done.
+    ```
 ## 2. 논의
 
 `SimpleFinancialClassifier` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.

@@ -22,6 +22,7 @@
 고치고 나면 반드시 `verify_outputs.py`로 되짚어 본다.
 """
 
+import ast
 import re
 import subprocess
 import sys
@@ -60,30 +61,82 @@ def sandbox_cwd(stack):
 def insert_seed(code):
     """맨 위 import 무리 바로 다음에 씨앗 줄을 끼운다.
 
-    씨앗이 필요 없거나 이미 있으면 코드를 그대로 돌려준다.
+    자리는 **구문으로** 찾는다. 줄 생김새로 찾으면 여러 줄에 걸친 import
+
+        from attention_visualization import (
+            AttentionVisualizer,
+            ...
+        )
+
+    의 첫 줄이 마지막 import 줄로 잡혀, 씨앗이 괄호 **안**에 들어가고
+    쪽이 통째로 SyntaxError 가 된다.
+
+    씨앗이 필요 없거나 끼울 자리가 없으면 코드를 그대로 돌려준다.
     """
-    if "manual_seed" in code or not USES_RANDOM.search(code):
+    if "manual_seed" in code or "np.random.seed" in code or not USES_RANDOM.search(code):
         return code
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return code                       # 이미 깨진 쪽은 건드리지 않는다
+
+    # 무엇을 들였는지 **구문으로** 본다. `"import torch" in code` 처럼 글자로
+    # 찾으면 주석이나 설명글 속의 그 말에 걸려, torch 를 들이지도 않은 쪽에
+    # torch.manual_seed 를 끼우게 된다 — `ch06/autograd/autograd_from_scratch.md`
+    # 가 numpy 만으로 자동 미분을 손수 짜면서 글 속에 그 말을 적어 둔 경우다.
+    names, last = {}, 0
+    for node in tree.body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            last = max(last, getattr(node, "end_lineno", node.lineno))
+            if isinstance(node, ast.Import):
+                for a in node.names:
+                    names[a.name.split(".")[0]] = a.asname or a.name.split(".")[0]
+            elif node.module:
+                names.setdefault(node.module.split(".")[0],
+                                 node.module.split(".")[0])
+        elif isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
+            continue                      # 맨 앞 설명글은 건너뛴다
+        else:
+            break                         # 진짜 코드가 시작되면 멈춘다
+    if last == 0:
+        return code
+
+    if "torch" in names:
+        seed = f"{names['torch']}.manual_seed(0)"
+    elif "numpy" in names:
+        seed = f"{names['numpy']}.random.seed(0)"
+    elif "random" in names:
+        seed = f"{names['random']}.seed(0)"
+    else:
+        return code                       # 씨앗을 물릴 것이 없다
+
+    line = ("\n# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린\n"
+            "# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다\n"
+            f"{seed}\n")
     lines = code.split("\n")
-    last = None
-    for i, l in enumerate(lines):
-        if re.match(r"\s*(import|from)\s+\S", l):
-            last = i
-        elif last is not None and l.strip() and not l.startswith(("#", '"')):
-            break
-    if last is None or "import torch" not in code:
-        return code                       # 끼울 자리가 없다. 건드리지 않는다
-    return "\n".join(lines[:last + 1]) + SEED_LINE + "\n".join(lines[last + 1:])
+    return "\n".join(lines[:last]) + line + "\n".join(lines[last:])
 
 
-def run(code, timeout=1200):
+def run(code, timeout=1200, page_dir=None):
+    """코드를 버리는 자리에서 돌린다.
+
+    `page_dir`을 주면 그 자리를 PYTHONPATH 앞에 붙인다. 쪽에 실린 코드가
+    옆에 놓인 `.py`를 불러 쓰는 일이 있기 때문이다 —
+    `ch40/gradient_methods/example_attention.md`가 같은 자리의
+    `attention_visualization.py`를 부르는 것이 그런 경우다.
+    """
+    import os
     with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as f:
         f.write(code)
         tmp = f.name
+    env = dict(os.environ)
+    if page_dir:
+        env["PYTHONPATH"] = str(page_dir) + os.pathsep + env.get("PYTHONPATH", "")
     try:
         with ExitStack() as stack:
             return subprocess.run([sys.executable, tmp], capture_output=True,
-                                  text=True, timeout=timeout, cwd=sandbox_cwd(stack))
+                                  text=True, timeout=timeout,
+                                  cwd=sandbox_cwd(stack), env=env)
     finally:
         Path(tmp).unlink(missing_ok=True)
 
@@ -128,7 +181,7 @@ def fix(rel, timeout=1200):
     added_seed = seeded != block.group(2)
 
     try:
-        r = run(seeded, timeout)
+        r = run(seeded, timeout, page_dir=p.parent)
     except subprocess.TimeoutExpired:
         return f"{rel}: 시간초과 ({timeout}초) — 건드리지 않았다"
     if r.returncode != 0:

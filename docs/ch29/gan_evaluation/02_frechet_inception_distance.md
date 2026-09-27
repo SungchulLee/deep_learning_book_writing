@@ -463,56 +463,126 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (115줄)"
 
-```
-======================================================================
-MODULE 52: FRÉCHET INCEPTION DISTANCE (FID)
-======================================================================
-======================================================================
-Fréchet Inception Distance (FID) Demonstration
-======================================================================
+    ```
 
-Scenario 1: Identical Distributions
-----------------------------------------------------------------------
-Mean 1: [0. 0.]
-Mean 2: [0. 0.]
-FID: 0.000000
-Interpretation: FID ≈ 0 indicates identical distributions
+    ======================================================================
+    MODULE 52: FRÉCHET INCEPTION DISTANCE (FID)
+    ======================================================================
+    ======================================================================
+    Fréchet Inception Distance (FID) Demonstration
+    ======================================================================
 
-Scenario 2: Different Means (Same Covariance)
-----------------------------------------------------------------------
-Mean 1: [0. 0.]
-Mean 2: [3. 3.]
-Mean difference norm: 4.2426
-FID: 18.0000
-Interpretation: FID increases with mean difference
+    Scenario 1: Identical Distributions
+    ----------------------------------------------------------------------
+    Mean 1: [0. 0.]
+    Mean 2: [0. 0.]
+    FID: 0.000000
+    Interpretation: FID ≈ 0 indicates identical distributions
 
-Scenario 3: Different Covariances (Same Mean)
-----------------------------------------------------------------------
-Covariance 1:
-[[1. 0.]
- [0. 1.]]
-Covariance 2:
-[[4. 0.]
- [0. 4.]]
-FID: 2.0000
-Interpretation: FID sensitive to variance differences
+    Scenario 2: Different Means (Same Covariance)
+    ----------------------------------------------------------------------
+    Mean 1: [0. 0.]
+    Mean 2: [3. 3.]
+    Mean difference norm: 4.2426
+    FID: 18.0000
+    Interpretation: FID increases with mean difference
 
+    Scenario 3: Different Covariances (Same Mean)
+    ----------------------------------------------------------------------
+    Covariance 1:
+    [[1. 0.]
+     [0. 1.]]
+    Covariance 2:
+    [[4. 0.]
+     [0. 4.]]
+    FID: 2.0000
+    Interpretation: FID sensitive to variance differences
 
-... (71 lines omitted)
+    Scenario 4: Both Mean and Covariance Different
+    ----------------------------------------------------------------------
+    Mean difference: 2.8284
+    FID: 9.0961
+    Interpretation: FID captures both mean and covariance differences
 
-       - 모든 잘못됨을 알아내지는 못한다
-       - 다른 잣대와 아울러야 한다
-    
-    6. 흔한 값:
-       - FID < 10: 뛰어난 품질
-       - FID 10-50: 좋은 품질
-       - FID 50-100: 보통 품질
-       - FID > 100: 나쁜 품질
-    
-======================================================================
-```
+    ======================================================================
+    FID Comparison Summary:
+    ======================================================================
+    Identical distributions:     FID = 0.0000
+    Different means:             FID = 18.0000
+    Different covariances:       FID = 2.0000
+    Both different:              FID = 9.0961
+
+    Key Insight: FID increases as distributions become more different
+
+    ======================================================================
+    FID with Feature Vectors
+    ======================================================================
+
+    Generating 5000 samples with 2048 features...
+
+    ----------------------------------------------------------------------
+    FID Comparison:
+    ----------------------------------------------------------------------
+    Computing FID with 5000 real and 5000 generated samples...
+    ✓ FID computed: 420.0195
+    Computing FID with 5000 real and 5000 generated samples...
+    ✓ FID computed: 932.6412
+    Computing FID with 5000 real and 5000 generated samples...
+    ✓ FID computed: 722.7666
+
+    Generator 1 (similar):        FID = 420.02
+    Generator 2 (shifted):        FID = 932.64
+    Generator 3 (mode collapse):  FID = 722.77
+
+    ----------------------------------------------------------------------
+    Interpretation:
+    ----------------------------------------------------------------------
+    • Lower FID = Better match to real distribution
+    • FID sensitive to both mean shifts and variance changes
+    • Reduced variance (mode collapse) increases FID
+
+    ======================================================================
+    KEY TAKEAWAYS
+    ======================================================================
+
+        1. FID 뜻매김:
+           - 실제 분포와 만든 분포 사이의 거리를 잰다
+           - 특징 공간에서 정규 분포를 가정한다
+           - FID가 낮을수록 만들어 내는 품질이 좋다
+        
+        2. 수학의 몫:
+           - 평균 차이: ||μ_r - μ_g||²
+           - Covariance term: Tr(Σ_r + Σ_g - 2(Σ_r Σ_g)^{1/2})
+           - 정규 분포의 닫힌 꼴 풀이
+        
+        3. 왜 InceptionV3인가?
+           - 그림의 뜻 특징을 담는다
+           - ImageNet으로 미리 익혔다
+           - 2048차원 pool3 특징
+           - 화소 공간 견줌보다 낫다
+        
+        4. 표본 크기가 중요하다:
+           - 가장 적어도: 표본 2048개(= 특징 차원)
+           - 권함: 표본 10,000개 이상
+           - 표본이 많을수록 FID 어림이 든든하다
+        
+        5. 한계:
+           - 가우스 분포라고 가정한다(맞지 않을 수 있다)
+           - 특징 뽑개를 무엇으로 고르느냐에 치우친다
+           - 모든 잘못됨을 알아내지는 못한다
+           - 다른 잣대와 아울러야 한다
+        
+        6. 흔한 값:
+           - FID < 10: 뛰어난 품질
+           - FID 10-50: 좋은 품질
+           - FID 50-100: 보통 품질
+           - FID > 100: 나쁜 품질
+        
+    ======================================================================
+    ```
+
 
 ## 2. 논의
 

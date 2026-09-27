@@ -6,695 +6,698 @@
 
 ## 1. 코드
 
-```python
-"""
-보기 4: 앞선 뜻 나누기 재주
-=====================================================
+??? note "코드 (687줄)"
 
-이 각본은 뜻 나누기의 가장 앞선 재주를 보여 준다:
-- 어텐션 얼개(CBAM)
-- 앞선 손실 함수(초점 + 다이스 + 테두리)
-- 여러 잣수 익히기
-- 시험 때 불리기
-- 뒷손질
-- 섞인 정밀도 익히기
-
-이 재주들은 어려운 일에서 성능을 크게 올릴 수 있다.
-
-지은이: PyTorch Semantic Segmentation Tutorial
-날짜: 2025
-"""
-
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
-from torch.cuda.amp import autocast, GradScaler
-import numpy as np
-import matplotlib.pyplot as plt
-from PIL import Image, ImageDraw
-import time
-from scipy.ndimage import binary_erosion, binary_dilation
-
-# 난수 씨앗을 설정한다
-torch.manual_seed(42)
-np.random.seed(42)
-
-# ============================================================================
-# 설정
-# ============================================================================
-
-USE_MIXED_PRECISION = True
-USE_MULTI_SCALE = True
-USE_TTA = True  # 시험 때 불리기
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print(f"Using device: {device}")
-
-if USE_MIXED_PRECISION and not torch.cuda.is_available():
-    print("⚠ Mixed precision requires CUDA. Disabling.")
-    USE_MIXED_PRECISION = False
-
-print(f"\nConfiguration:")
-print(f"  Mixed Precision: {USE_MIXED_PRECISION}")
-print(f"  Multi-scale Training: {USE_MULTI_SCALE}")
-print(f"  Test-time Augmentation: {USE_TTA}\n")
-
-# ============================================================================
-# 1단계: 어텐션 단원
-# ============================================================================
-"""
-어텐션 얼개는 모델이 중요한 자리와 특징에 초점을 두게 돕는다.
-CBAM(누비기 덩이 어텐션 단원)은 어텐션을
-채널 차원과 자리 차원 모두에 준다.
-"""
-
-class ChannelAttention(nn.Module):
+    ```python
     """
-    채널 어텐션 단원.
-    어떤 채널(특징)이 중요한지 배운다.
+    보기 4: 앞선 뜻 나누기 재주
+    =====================================================
+
+    이 각본은 뜻 나누기의 가장 앞선 재주를 보여 준다:
+    - 어텐션 얼개(CBAM)
+    - 앞선 손실 함수(초점 + 다이스 + 테두리)
+    - 여러 잣수 익히기
+    - 시험 때 불리기
+    - 뒷손질
+    - 섞인 정밀도 익히기
+
+    이 재주들은 어려운 일에서 성능을 크게 올릴 수 있다.
+
+    지은이: PyTorch Semantic Segmentation Tutorial
+    날짜: 2025
     """
-    def __init__(self, in_channels, reduction=16):
-        super().__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.max_pool = nn.AdaptiveMaxPool2d(1)
-        
-        self.fc = nn.Sequential(
-            nn.Conv2d(in_channels, in_channels // reduction, 1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels // reduction, in_channels, 1, bias=False)
-        )
-        self.sigmoid = nn.Sigmoid()
-    
-    def forward(self, x):
-        avg_out = self.fc(self.avg_pool(x))
-        max_out = self.fc(self.max_pool(x))
-        out = avg_out + max_out
-        return self.sigmoid(out)
 
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    import torch.nn.functional as F
+    from torch.utils.data import Dataset, DataLoader
+    from torch.cuda.amp import autocast, GradScaler
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from PIL import Image, ImageDraw
+    import time
+    from scipy.ndimage import binary_erosion, binary_dilation
 
-class SpatialAttention(nn.Module):
+    # 난수 씨앗을 설정한다
+    torch.manual_seed(42)
+    np.random.seed(42)
+
+    # ============================================================================
+    # 설정
+    # ============================================================================
+
+    USE_MIXED_PRECISION = True
+    USE_MULTI_SCALE = True
+    USE_TTA = True  # 시험 때 불리기
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    if USE_MIXED_PRECISION and not torch.cuda.is_available():
+        print("⚠ Mixed precision requires CUDA. Disabling.")
+        USE_MIXED_PRECISION = False
+
+    print(f"\nConfiguration:")
+    print(f"  Mixed Precision: {USE_MIXED_PRECISION}")
+    print(f"  Multi-scale Training: {USE_MULTI_SCALE}")
+    print(f"  Test-time Augmentation: {USE_TTA}\n")
+
+    # ============================================================================
+    # 1단계: 어텐션 단원
+    # ============================================================================
     """
-    자리 어텐션 단원.
-    어떤 자리가 중요한지 배운다.
+    어텐션 얼개는 모델이 중요한 자리와 특징에 초점을 두게 돕는다.
+    CBAM(누비기 덩이 어텐션 단원)은 어텐션을
+    채널 차원과 자리 차원 모두에 준다.
     """
-    def __init__(self, kernel_size=7):
-        super().__init__()
-        self.conv = nn.Conv2d(2, 1, kernel_size, padding=kernel_size//2, bias=False)
-        self.sigmoid = nn.Sigmoid()
-    
-    def forward(self, x):
-        avg_out = torch.mean(x, dim=1, keepdim=True)
-        max_out, _ = torch.max(x, dim=1, keepdim=True)
-        x = torch.cat([avg_out, max_out], dim=1)
-        x = self.conv(x)
-        return self.sigmoid(x)
+
+    class ChannelAttention(nn.Module):
+        """
+        채널 어텐션 단원.
+        어떤 채널(특징)이 중요한지 배운다.
+        """
+        def __init__(self, in_channels, reduction=16):
+            super().__init__()
+            self.avg_pool = nn.AdaptiveAvgPool2d(1)
+            self.max_pool = nn.AdaptiveMaxPool2d(1)
+
+            self.fc = nn.Sequential(
+                nn.Conv2d(in_channels, in_channels // reduction, 1, bias=False),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(in_channels // reduction, in_channels, 1, bias=False)
+            )
+            self.sigmoid = nn.Sigmoid()
+
+        def forward(self, x):
+            avg_out = self.fc(self.avg_pool(x))
+            max_out = self.fc(self.max_pool(x))
+            out = avg_out + max_out
+            return self.sigmoid(out)
 
 
-class CBAM(nn.Module):
+    class SpatialAttention(nn.Module):
+        """
+        자리 어텐션 단원.
+        어떤 자리가 중요한지 배운다.
+        """
+        def __init__(self, kernel_size=7):
+            super().__init__()
+            self.conv = nn.Conv2d(2, 1, kernel_size, padding=kernel_size//2, bias=False)
+            self.sigmoid = nn.Sigmoid()
+
+        def forward(self, x):
+            avg_out = torch.mean(x, dim=1, keepdim=True)
+            max_out, _ = torch.max(x, dim=1, keepdim=True)
+            x = torch.cat([avg_out, max_out], dim=1)
+            x = self.conv(x)
+            return self.sigmoid(x)
+
+
+    class CBAM(nn.Module):
+        """
+        누비기 덩이 어텐션 단원.
+        채널 어텐션과 자리 어텐션을 아우른다.
+        """
+        def __init__(self, in_channels, reduction=16):
+            super().__init__()
+            self.channel_attention = ChannelAttention(in_channels, reduction)
+            self.spatial_attention = SpatialAttention()
+
+        def forward(self, x):
+            # 채널 어텐션 쓰기
+            x = x * self.channel_attention(x)
+            # 자리 어텐션 쓰기
+            x = x * self.spatial_attention(x)
+            return x
+
+
+    # ============================================================================
+    # 2단계: 어텐션을 갖춘 앞선 U-넷
+    # ============================================================================
+
+    class AttentionDoubleConv(nn.Module):
+        """어텐션을 갖춘 겹 누비기 덩이."""
+        def __init__(self, in_channels, out_channels, use_attention=True):
+            super().__init__()
+            self.conv = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 3, padding=1),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_channels, out_channels, 3, padding=1),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(inplace=True)
+            )
+            self.attention = CBAM(out_channels) if use_attention else nn.Identity()
+
+        def forward(self, x):
+            x = self.conv(x)
+            x = self.attention(x)
+            return x
+
+
+    class AdvancedUNet(nn.Module):
+        """
+        다음을 갖춘 앞선 U-넷:
+        - 어텐션 단원(CBAM)
+        - 깊은 이끎(있어도 되고 없어도 됨)
+        - 잔차 이음(있어도 되고 없어도 됨)
+        """
+        def __init__(self, in_channels=3, num_classes=1, use_attention=True):
+            super().__init__()
+
+            # 인코더
+            self.enc1 = AttentionDoubleConv(in_channels, 64, use_attention)
+            self.pool1 = nn.MaxPool2d(2)
+
+            self.enc2 = AttentionDoubleConv(64, 128, use_attention)
+            self.pool2 = nn.MaxPool2d(2)
+
+            self.enc3 = AttentionDoubleConv(128, 256, use_attention)
+            self.pool3 = nn.MaxPool2d(2)
+
+            self.enc4 = AttentionDoubleConv(256, 512, use_attention)
+            self.pool4 = nn.MaxPool2d(2)
+
+            # 어텐션을 갖춘 병목
+            self.bottleneck = AttentionDoubleConv(512, 1024, use_attention=True)
+
+            # 디코더
+            self.upconv4 = nn.ConvTranspose2d(1024, 512, 2, stride=2)
+            self.dec4 = AttentionDoubleConv(1024, 512, use_attention)
+
+            self.upconv3 = nn.ConvTranspose2d(512, 256, 2, stride=2)
+            self.dec3 = AttentionDoubleConv(512, 256, use_attention)
+
+            self.upconv2 = nn.ConvTranspose2d(256, 128, 2, stride=2)
+            self.dec2 = AttentionDoubleConv(256, 128, use_attention)
+
+            self.upconv1 = nn.ConvTranspose2d(128, 64, 2, stride=2)
+            self.dec1 = AttentionDoubleConv(128, 64, use_attention)
+
+            # 최종 출력
+            self.out = nn.Conv2d(64, num_classes, 1)
+
+        def forward(self, x):
+            # 인코더
+            enc1 = self.enc1(x)
+            x = self.pool1(enc1)
+
+            enc2 = self.enc2(x)
+            x = self.pool2(enc2)
+
+            enc3 = self.enc3(x)
+            x = self.pool3(enc3)
+
+            enc4 = self.enc4(x)
+            x = self.pool4(enc4)
+
+            # 병목
+            x = self.bottleneck(x)
+
+            # 디코더
+            x = self.upconv4(x)
+            x = torch.cat([x, enc4], dim=1)
+            x = self.dec4(x)
+
+            x = self.upconv3(x)
+            x = torch.cat([x, enc3], dim=1)
+            x = self.dec3(x)
+
+            x = self.upconv2(x)
+            x = torch.cat([x, enc2], dim=1)
+            x = self.dec2(x)
+
+            x = self.upconv1(x)
+            x = torch.cat([x, enc1], dim=1)
+            x = self.dec1(x)
+
+            x = self.out(x)
+            return x
+
+
+    model = AdvancedUNet(in_channels=3, num_classes=1, use_attention=True)
+    model = model.to(device)
+
+    print(f"Model: Advanced U-Net with CBAM Attention")
+    print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}\n")
+
+    # ============================================================================
+    # 3단계: 앞선 손실 함수
+    # ============================================================================
     """
-    누비기 덩이 어텐션 단원.
-    채널 어텐션과 자리 어텐션을 아우른다.
+    앞선 손실 함수는 나누기의 좋음을 크게 올릴 수 있다.
+    가장 좋은 결과를 위해 여러 손실을 아우른다.
     """
-    def __init__(self, in_channels, reduction=16):
-        super().__init__()
-        self.channel_attention = ChannelAttention(in_channels, reduction)
-        self.spatial_attention = SpatialAttention()
-    
-    def forward(self, x):
-        # 채널 어텐션 쓰기
-        x = x * self.channel_attention(x)
-        # 자리 어텐션 쓰기
-        x = x * self.spatial_attention(x)
-        return x
+
+    class FocalLoss(nn.Module):
+        """
+        갈래 치우침을 다루는 초점 손실.
+        쉬운 보기의 무게를 낮추고 어려운 음성에 초점을 둔다.
+        """
+        def __init__(self, alpha=0.25, gamma=2.0):
+            super().__init__()
+            self.alpha = alpha
+            self.gamma = gamma
+
+        def forward(self, inputs, targets):
+            BCE_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
+            pt = torch.exp(-BCE_loss)  # 참 갈래의 확률
+            focal_loss = self.alpha * (1-pt)**self.gamma * BCE_loss
+            return focal_loss.mean()
 
 
-# ============================================================================
-# 2단계: 어텐션을 갖춘 앞선 U-넷
-# ============================================================================
+    class DiceLoss(nn.Module):
+        """나누기를 위한 다이스 손실."""
+        def __init__(self, smooth=1e-6):
+            super().__init__()
+            self.smooth = smooth
 
-class AttentionDoubleConv(nn.Module):
-    """어텐션을 갖춘 겹 누비기 덩이."""
-    def __init__(self, in_channels, out_channels, use_attention=True):
-        super().__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 3, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, 3, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
-        self.attention = CBAM(out_channels) if use_attention else nn.Identity()
-    
-    def forward(self, x):
-        x = self.conv(x)
-        x = self.attention(x)
-        return x
+        def forward(self, inputs, targets):
+            inputs = torch.sigmoid(inputs)
+            inputs = inputs.view(-1)
+            targets = targets.view(-1)
+
+            intersection = (inputs * targets).sum()
+            dice = (2. * intersection + self.smooth) / (inputs.sum() + targets.sum() + self.smooth)
+            return 1 - dice
 
 
-class AdvancedUNet(nn.Module):
-    """
-    다음을 갖춘 앞선 U-넷:
-    - 어텐션 단원(CBAM)
-    - 깊은 이끎(있어도 되고 없어도 됨)
-    - 잔차 이음(있어도 되고 없어도 됨)
-    """
-    def __init__(self, in_channels=3, num_classes=1, use_attention=True):
-        super().__init__()
-        
-        # 인코더
-        self.enc1 = AttentionDoubleConv(in_channels, 64, use_attention)
-        self.pool1 = nn.MaxPool2d(2)
-        
-        self.enc2 = AttentionDoubleConv(64, 128, use_attention)
-        self.pool2 = nn.MaxPool2d(2)
-        
-        self.enc3 = AttentionDoubleConv(128, 256, use_attention)
-        self.pool3 = nn.MaxPool2d(2)
-        
-        self.enc4 = AttentionDoubleConv(256, 512, use_attention)
-        self.pool4 = nn.MaxPool2d(2)
-        
-        # 어텐션을 갖춘 병목
-        self.bottleneck = AttentionDoubleConv(512, 1024, use_attention=True)
-        
-        # 디코더
-        self.upconv4 = nn.ConvTranspose2d(1024, 512, 2, stride=2)
-        self.dec4 = AttentionDoubleConv(1024, 512, use_attention)
-        
-        self.upconv3 = nn.ConvTranspose2d(512, 256, 2, stride=2)
-        self.dec3 = AttentionDoubleConv(512, 256, use_attention)
-        
-        self.upconv2 = nn.ConvTranspose2d(256, 128, 2, stride=2)
-        self.dec2 = AttentionDoubleConv(256, 128, use_attention)
-        
-        self.upconv1 = nn.ConvTranspose2d(128, 64, 2, stride=2)
-        self.dec1 = AttentionDoubleConv(128, 64, use_attention)
-        
-        # 최종 출력
-        self.out = nn.Conv2d(64, num_classes, 1)
-    
-    def forward(self, x):
-        # 인코더
-        enc1 = self.enc1(x)
-        x = self.pool1(enc1)
-        
-        enc2 = self.enc2(x)
-        x = self.pool2(enc2)
-        
-        enc3 = self.enc3(x)
-        x = self.pool3(enc3)
-        
-        enc4 = self.enc4(x)
-        x = self.pool4(enc4)
-        
-        # 병목
-        x = self.bottleneck(x)
-        
-        # 디코더
-        x = self.upconv4(x)
-        x = torch.cat([x, enc4], dim=1)
-        x = self.dec4(x)
-        
-        x = self.upconv3(x)
-        x = torch.cat([x, enc3], dim=1)
-        x = self.dec3(x)
-        
-        x = self.upconv2(x)
-        x = torch.cat([x, enc2], dim=1)
-        x = self.dec2(x)
-        
-        x = self.upconv1(x)
-        x = torch.cat([x, enc1], dim=1)
-        x = self.dec1(x)
-        
-        x = self.out(x)
-        return x
+    class BoundaryLoss(nn.Module):
+        """
+        테두리 자리를 도드라지게 하는 손실.
+        테두리에 가까운 화소에 더 큰 무게를 준다.
+        """
+        def __init__(self, theta=5):
+            super().__init__()
+            self.theta = theta  # 테두리 너비를 다스린다
+
+        def forward(self, inputs, targets):
+            # 테두리 무게 셈하기
+            # 테두리에 가까운 화소에 더 큰 무게
+            targets_np = targets.cpu().numpy()
+            boundary_weights = np.zeros_like(targets_np)
+
+            for i in range(targets_np.shape[0]):
+                mask = targets_np[i, 0]
+                # 테두리를 찾으려 깎고 부풀리기
+                eroded = binary_erosion(mask > 0.5, iterations=2)
+                dilated = binary_dilation(mask > 0.5, iterations=2)
+                boundary = dilated & ~eroded
+                boundary_weights[i, 0] = boundary.astype(np.float32) * self.theta + 1.0
+
+            boundary_weights = torch.from_numpy(boundary_weights).to(inputs.device)
+
+            # 무게를 준 두 갈래 엇갈린 엔트로피
+            bce = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
+            weighted_bce = bce * boundary_weights
+            return weighted_bce.mean()
 
 
-model = AdvancedUNet(in_channels=3, num_classes=1, use_attention=True)
-model = model.to(device)
+    class CombinedLoss(nn.Module):
+        """
+        아우른 손실: 초점 + 다이스 + 테두리
+        여러 손실의 센 점을 써먹는다.
+        """
+        def __init__(self, alpha=0.3, beta=0.4, gamma=0.3):
+            super().__init__()
+            self.alpha = alpha  # 초점 손실의 무게
+            self.beta = beta    # 다이스 손실의 무게
+            self.gamma = gamma  # 테두리 손실의 무게
 
-print(f"Model: Advanced U-Net with CBAM Attention")
-print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}\n")
+            self.focal = FocalLoss()
+            self.dice = DiceLoss()
+            self.boundary = BoundaryLoss()
 
-# ============================================================================
-# 3단계: 앞선 손실 함수
-# ============================================================================
-"""
-앞선 손실 함수는 나누기의 좋음을 크게 올릴 수 있다.
-가장 좋은 결과를 위해 여러 손실을 아우른다.
-"""
+        def forward(self, inputs, targets):
+            focal_loss = self.focal(inputs, targets)
+            dice_loss = self.dice(inputs, targets)
+            boundary_loss = self.boundary(inputs, targets)
 
-class FocalLoss(nn.Module):
-    """
-    갈래 치우침을 다루는 초점 손실.
-    쉬운 보기의 무게를 낮추고 어려운 음성에 초점을 둔다.
-    """
-    def __init__(self, alpha=0.25, gamma=2.0):
-        super().__init__()
-        self.alpha = alpha
-        self.gamma = gamma
-    
-    def forward(self, inputs, targets):
-        BCE_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
-        pt = torch.exp(-BCE_loss)  # 참 갈래의 확률
-        focal_loss = self.alpha * (1-pt)**self.gamma * BCE_loss
-        return focal_loss.mean()
+            total = (self.alpha * focal_loss + 
+                    self.beta * dice_loss + 
+                    self.gamma * boundary_loss)
+            return total
 
 
-class DiceLoss(nn.Module):
-    """나누기를 위한 다이스 손실."""
-    def __init__(self, smooth=1e-6):
-        super().__init__()
-        self.smooth = smooth
-    
-    def forward(self, inputs, targets):
-        inputs = torch.sigmoid(inputs)
-        inputs = inputs.view(-1)
-        targets = targets.view(-1)
-        
-        intersection = (inputs * targets).sum()
-        dice = (2. * intersection + self.smooth) / (inputs.sum() + targets.sum() + self.smooth)
-        return 1 - dice
+    criterion = CombinedLoss()
+    print("Loss: Combined (Focal + Dice + Boundary)")
+
+    # ============================================================================
+    # 4단계: 여러 잣수를 갖춘 인공 자료 뭉치
+    # ============================================================================
+
+    class MultiScaleDataset(Dataset):
+        """여러 잣수의 그림을 돌려주는 자료 뭉치."""
+        def __init__(self, num_samples=800, scales=[256, 384] if USE_MULTI_SCALE else [256]):
+            self.num_samples = num_samples
+            self.scales = scales
+            self.samples = []
+
+            print(f"Generating {num_samples} samples at scales {scales}...")
+            for i in range(num_samples):
+                # 가장 큰 잣수에서 만들기
+                img, mask = self._generate_sample(max(scales))
+                self.samples.append((img, mask))
+
+        def _generate_sample(self, size):
+            """인공 나누기 표본을 만든다."""
+            img = Image.new('RGB', (size, size), 
+                           tuple(np.random.randint(100, 200, 3).tolist()))
+            mask = Image.new('L', (size, size), 0)
+
+            draw_img = ImageDraw.Draw(img)
+            draw_mask = ImageDraw.Draw(mask)
+
+            # 여러 꼴
+            for _ in range(np.random.randint(1, 4)):
+                shape_type = np.random.choice(['circle', 'rectangle'])
+                center_x = np.random.randint(size//4, 3*size//4)
+                center_y = np.random.randint(size//4, 3*size//4)
+                shape_size = np.random.randint(size//10, size//5)
+
+                color = tuple(np.random.randint(50, 150, 3).tolist())
+
+                if shape_type == 'circle':
+                    bbox = [center_x - shape_size, center_y - shape_size,
+                           center_x + shape_size, center_y + shape_size]
+                    draw_img.ellipse(bbox, fill=color)
+                    draw_mask.ellipse(bbox, fill=255)
+                else:
+                    bbox = [center_x - shape_size, center_y - shape_size,
+                           center_x + shape_size, center_y + shape_size]
+                    draw_img.rectangle(bbox, fill=color)
+                    draw_mask.rectangle(bbox, fill=255)
+
+            return img, mask
+
+        def __len__(self):
+            return self.num_samples
+
+        def __getitem__(self, idx):
+            img, mask = self.samples[idx]
+
+            # 잣수는 보기마다가 아니라 배치마다 골라야 한다. 보기마다 고르면
+            # 한 배치에 크기가 다른 텐서가 섞여 stack이 되지 않는다.
+            # 여기서는 가장 큰 잣수로 내놓고, 줄이는 일은 collate가 맡는다.
+            scale = max(self.scales)
+            img = img.resize((scale, scale), Image.BILINEAR)
+            mask = mask.resize((scale, scale), Image.NEAREST)
+
+            # 텐서로 바꾼다
+            img_array = np.array(img).astype(np.float32) / 255.0
+            mask_array = np.array(mask).astype(np.float32) / 255.0
+
+            img_tensor = torch.from_numpy(img_array).permute(2, 0, 1)
+            mask_tensor = torch.from_numpy(mask_array).unsqueeze(0)
+
+            return img_tensor, mask_tensor
 
 
-class BoundaryLoss(nn.Module):
-    """
-    테두리 자리를 도드라지게 하는 손실.
-    테두리에 가까운 화소에 더 큰 무게를 준다.
-    """
-    def __init__(self, theta=5):
-        super().__init__()
-        self.theta = theta  # 테두리 너비를 다스린다
-    
-    def forward(self, inputs, targets):
-        # 테두리 무게 셈하기
-        # 테두리에 가까운 화소에 더 큰 무게
-        targets_np = targets.cpu().numpy()
-        boundary_weights = np.zeros_like(targets_np)
-        
-        for i in range(targets_np.shape[0]):
-            mask = targets_np[i, 0]
-            # 테두리를 찾으려 깎고 부풀리기
-            eroded = binary_erosion(mask > 0.5, iterations=2)
-            dilated = binary_dilation(mask > 0.5, iterations=2)
-            boundary = dilated & ~eroded
-            boundary_weights[i, 0] = boundary.astype(np.float32) * self.theta + 1.0
-        
-        boundary_weights = torch.from_numpy(boundary_weights).to(inputs.device)
-        
-        # 무게를 준 두 갈래 엇갈린 엔트로피
-        bce = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
-        weighted_bce = bce * boundary_weights
-        return weighted_bce.mean()
+    # 데이터셋들을 만든다
+    train_dataset = MultiScaleDataset(num_samples=800)
+    val_dataset = MultiScaleDataset(num_samples=100, scales=[256])  # 검증용 붙박이 잣수
+    test_dataset = MultiScaleDataset(num_samples=100, scales=[256])
+
+    BATCH_SIZE = 4  # 여러 잣수와 어텐션 때문에 더 작다
+    def multiscale_collate(batch):
+        """배치마다 잣수 하나를 골라 그 배치 전체를 같은 크기로 맞춘다."""
+        scale = int(np.random.choice(train_dataset.scales))
+        imgs, masks = zip(*batch)
+        imgs = F.interpolate(torch.stack(imgs), size=(scale, scale),
+                             mode='bilinear', align_corners=False)
+        masks = F.interpolate(torch.stack(masks), size=(scale, scale), mode='nearest')
+        return imgs, masks
 
 
-class CombinedLoss(nn.Module):
-    """
-    아우른 손실: 초점 + 다이스 + 테두리
-    여러 손실의 센 점을 써먹는다.
-    """
-    def __init__(self, alpha=0.3, beta=0.4, gamma=0.3):
-        super().__init__()
-        self.alpha = alpha  # 초점 손실의 무게
-        self.beta = beta    # 다이스 손실의 무게
-        self.gamma = gamma  # 테두리 손실의 무게
-        
-        self.focal = FocalLoss()
-        self.dice = DiceLoss()
-        self.boundary = BoundaryLoss()
-    
-    def forward(self, inputs, targets):
-        focal_loss = self.focal(inputs, targets)
-        dice_loss = self.dice(inputs, targets)
-        boundary_loss = self.boundary(inputs, targets)
-        
-        total = (self.alpha * focal_loss + 
-                self.beta * dice_loss + 
-                self.gamma * boundary_loss)
-        return total
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True,
+                              collate_fn=multiscale_collate)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
+    print(f"\nDataset created: {len(train_dataset)} train, {len(val_dataset)} val, {len(test_dataset)} test\n")
 
-criterion = CombinedLoss()
-print("Loss: Combined (Focal + Dice + Boundary)")
+    # ============================================================================
+    # 5단계: 가장 좋게 하개와 일정 짜개
+    # ============================================================================
 
-# ============================================================================
-# 4단계: 여러 잣수를 갖춘 인공 자료 뭉치
-# ============================================================================
+    optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=30, eta_min=1e-6)
 
-class MultiScaleDataset(Dataset):
-    """여러 잣수의 그림을 돌려주는 자료 뭉치."""
-    def __init__(self, num_samples=800, scales=[256, 384] if USE_MULTI_SCALE else [256]):
-        self.num_samples = num_samples
-        self.scales = scales
-        self.samples = []
-        
-        print(f"Generating {num_samples} samples at scales {scales}...")
-        for i in range(num_samples):
-            # 가장 큰 잣수에서 만들기
-            img, mask = self._generate_sample(max(scales))
-            self.samples.append((img, mask))
-    
-    def _generate_sample(self, size):
-        """인공 나누기 표본을 만든다."""
-        img = Image.new('RGB', (size, size), 
-                       tuple(np.random.randint(100, 200, 3).tolist()))
-        mask = Image.new('L', (size, size), 0)
-        
-        draw_img = ImageDraw.Draw(img)
-        draw_mask = ImageDraw.Draw(mask)
-        
-        # 여러 꼴
-        for _ in range(np.random.randint(1, 4)):
-            shape_type = np.random.choice(['circle', 'rectangle'])
-            center_x = np.random.randint(size//4, 3*size//4)
-            center_y = np.random.randint(size//4, 3*size//4)
-            shape_size = np.random.randint(size//10, size//5)
-            
-            color = tuple(np.random.randint(50, 150, 3).tolist())
-            
-            if shape_type == 'circle':
-                bbox = [center_x - shape_size, center_y - shape_size,
-                       center_x + shape_size, center_y + shape_size]
-                draw_img.ellipse(bbox, fill=color)
-                draw_mask.ellipse(bbox, fill=255)
+    if USE_MIXED_PRECISION:
+        scaler = GradScaler()
+
+    # ============================================================================
+    # 6단계: 섞인 정밀도로 익히기
+    # ============================================================================
+
+    def train_one_epoch(model, loader, criterion, optimizer, scaler, device):
+        """켜져 있으면 섞인 정밀도로 익힌다."""
+        model.train()
+        running_loss = 0.0
+
+        for images, masks in loader:
+            images = images.to(device)
+            masks = masks.to(device)
+
+            optimizer.zero_grad()
+
+            if USE_MIXED_PRECISION:
+                with autocast():
+                    outputs = model(images)
+                    # 마스크 크기에 맞게 내놓음 크기 바꾸기(여러 잣수용)
+                    if outputs.shape[-2:] != masks.shape[-2:]:
+                        outputs = F.interpolate(outputs, size=masks.shape[-2:], 
+                                              mode='bilinear', align_corners=False)
+                    loss = criterion(outputs, masks)
+
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
             else:
-                bbox = [center_x - shape_size, center_y - shape_size,
-                       center_x + shape_size, center_y + shape_size]
-                draw_img.rectangle(bbox, fill=color)
-                draw_mask.rectangle(bbox, fill=255)
-        
-        return img, mask
-    
-    def __len__(self):
-        return self.num_samples
-    
-    def __getitem__(self, idx):
-        img, mask = self.samples[idx]
-        
-        # 잣수는 보기마다가 아니라 배치마다 골라야 한다. 보기마다 고르면
-        # 한 배치에 크기가 다른 텐서가 섞여 stack이 되지 않는다.
-        # 여기서는 가장 큰 잣수로 내놓고, 줄이는 일은 collate가 맡는다.
-        scale = max(self.scales)
-        img = img.resize((scale, scale), Image.BILINEAR)
-        mask = mask.resize((scale, scale), Image.NEAREST)
-        
-        # 텐서로 바꾼다
-        img_array = np.array(img).astype(np.float32) / 255.0
-        mask_array = np.array(mask).astype(np.float32) / 255.0
-        
-        img_tensor = torch.from_numpy(img_array).permute(2, 0, 1)
-        mask_tensor = torch.from_numpy(mask_array).unsqueeze(0)
-        
-        return img_tensor, mask_tensor
-
-
-# 데이터셋들을 만든다
-train_dataset = MultiScaleDataset(num_samples=800)
-val_dataset = MultiScaleDataset(num_samples=100, scales=[256])  # 검증용 붙박이 잣수
-test_dataset = MultiScaleDataset(num_samples=100, scales=[256])
-
-BATCH_SIZE = 4  # 여러 잣수와 어텐션 때문에 더 작다
-def multiscale_collate(batch):
-    """배치마다 잣수 하나를 골라 그 배치 전체를 같은 크기로 맞춘다."""
-    scale = int(np.random.choice(train_dataset.scales))
-    imgs, masks = zip(*batch)
-    imgs = F.interpolate(torch.stack(imgs), size=(scale, scale),
-                         mode='bilinear', align_corners=False)
-    masks = F.interpolate(torch.stack(masks), size=(scale, scale), mode='nearest')
-    return imgs, masks
-
-
-train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True,
-                          collate_fn=multiscale_collate)
-val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-
-print(f"\nDataset created: {len(train_dataset)} train, {len(val_dataset)} val, {len(test_dataset)} test\n")
-
-# ============================================================================
-# 5단계: 가장 좋게 하개와 일정 짜개
-# ============================================================================
-
-optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=30, eta_min=1e-6)
-
-if USE_MIXED_PRECISION:
-    scaler = GradScaler()
-
-# ============================================================================
-# 6단계: 섞인 정밀도로 익히기
-# ============================================================================
-
-def train_one_epoch(model, loader, criterion, optimizer, scaler, device):
-    """켜져 있으면 섞인 정밀도로 익힌다."""
-    model.train()
-    running_loss = 0.0
-    
-    for images, masks in loader:
-        images = images.to(device)
-        masks = masks.to(device)
-        
-        optimizer.zero_grad()
-        
-        if USE_MIXED_PRECISION:
-            with autocast():
                 outputs = model(images)
-                # 마스크 크기에 맞게 내놓음 크기 바꾸기(여러 잣수용)
                 if outputs.shape[-2:] != masks.shape[-2:]:
                     outputs = F.interpolate(outputs, size=masks.shape[-2:], 
                                           mode='bilinear', align_corners=False)
                 loss = criterion(outputs, masks)
-            
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            outputs = model(images)
-            if outputs.shape[-2:] != masks.shape[-2:]:
-                outputs = F.interpolate(outputs, size=masks.shape[-2:], 
-                                      mode='bilinear', align_corners=False)
-            loss = criterion(outputs, masks)
-            loss.backward()
-            optimizer.step()
-        
-        running_loss += loss.item()
-    
-    return running_loss / len(loader)
+                loss.backward()
+                optimizer.step()
+
+            running_loss += loss.item()
+
+        return running_loss / len(loader)
 
 
-def calculate_dice(pred, target):
-    """다이스 계수를 셈한다."""
-    with torch.no_grad():
-        pred = torch.sigmoid(pred)
-        pred = (pred > 0.5).float()
-        
-        pred = pred.view(-1)
-        target = target.view(-1)
-        
-        intersection = (pred * target).sum()
-        dice = (2. * intersection + 1e-6) / (pred.sum() + target.sum() + 1e-6)
-        return dice.item()
+    def calculate_dice(pred, target):
+        """다이스 계수를 셈한다."""
+        with torch.no_grad():
+            pred = torch.sigmoid(pred)
+            pred = (pred > 0.5).float()
+
+            pred = pred.view(-1)
+            target = target.view(-1)
+
+            intersection = (pred * target).sum()
+            dice = (2. * intersection + 1e-6) / (pred.sum() + target.sum() + 1e-6)
+            return dice.item()
 
 
-def validate(model, loader, criterion, device):
-    """다이스 셈하기를 곁들인 검증."""
-    model.eval()
-    running_loss = 0.0
-    running_dice = 0.0
-    
-    with torch.no_grad():
+    def validate(model, loader, criterion, device):
+        """다이스 셈하기를 곁들인 검증."""
+        model.eval()
+        running_loss = 0.0
+        running_dice = 0.0
+
+        with torch.no_grad():
+            for images, masks in loader:
+                images = images.to(device)
+                masks = masks.to(device)
+
+                if USE_MIXED_PRECISION:
+                    with autocast():
+                        outputs = model(images)
+                        loss = criterion(outputs, masks)
+                else:
+                    outputs = model(images)
+                    loss = criterion(outputs, masks)
+
+                dice = calculate_dice(outputs, masks)
+
+                running_loss += loss.item()
+                running_dice += dice
+
+        return running_loss / len(loader), running_dice / len(loader)
+
+
+    # ============================================================================
+    # 7단계: 시험 때 불리기
+    # ============================================================================
+
+    def test_time_augmentation(model, image, device):
+        """
+        시험 때 불리기를 여러 번 하고 어림을 고루낸다.
+        튼튼함을 낫게 하며 흔히 성능을 1~3% 올린다.
+        """
+        model.eval()
+        predictions = []
+
+        with torch.no_grad():
+            # 원래
+            pred = torch.sigmoid(model(image))
+            predictions.append(pred)
+
+            # 가로 뒤집기
+            pred = torch.sigmoid(model(torch.flip(image, dims=[3])))
+            predictions.append(torch.flip(pred, dims=[3]))
+
+            # 세로 뒤집기
+            pred = torch.sigmoid(model(torch.flip(image, dims=[2])))
+            predictions.append(torch.flip(pred, dims=[2]))
+
+            # 두 방향 다 뒤집기
+            pred = torch.sigmoid(model(torch.flip(image, dims=[2, 3])))
+            predictions.append(torch.flip(pred, dims=[2, 3]))
+
+        # 모든 어림 고루내기
+        avg_pred = torch.stack(predictions).mean(dim=0)
+        return avg_pred
+
+
+    def evaluate_with_tta(model, loader, device):
+        """시험 때 불리기로 평가한다."""
+        model.eval()
+        running_dice = 0.0
+
         for images, masks in loader:
             images = images.to(device)
             masks = masks.to(device)
-            
-            if USE_MIXED_PRECISION:
-                with autocast():
-                    outputs = model(images)
-                    loss = criterion(outputs, masks)
+
+            if USE_TTA:
+                predictions = test_time_augmentation(model, images, device)
             else:
-                outputs = model(images)
-                loss = criterion(outputs, masks)
-            
-            dice = calculate_dice(outputs, masks)
-            
-            running_loss += loss.item()
-            running_dice += dice
-    
-    return running_loss / len(loader), running_dice / len(loader)
+                with torch.no_grad():
+                    predictions = torch.sigmoid(model(images))
+
+            # 다이스 셈하기
+            pred = (predictions > 0.5).float()
+            target = masks
+
+            pred = pred.view(-1)
+            target = target.view(-1)
+
+            intersection = (pred * target).sum()
+            dice = (2. * intersection + 1e-6) / (pred.sum() + target.sum() + 1e-6)
+            running_dice += dice.item()
+
+        return running_dice / len(loader)
 
 
-# ============================================================================
-# 7단계: 시험 때 불리기
-# ============================================================================
+    # ============================================================================
+    # 8단계: 익히기 되풀이
+    # ============================================================================
 
-def test_time_augmentation(model, image, device):
-    """
-    시험 때 불리기를 여러 번 하고 어림을 고루낸다.
-    튼튼함을 낫게 하며 흔히 성능을 1~3% 올린다.
-    """
-    model.eval()
-    predictions = []
-    
-    with torch.no_grad():
-        # 원래
-        pred = torch.sigmoid(model(image))
-        predictions.append(pred)
-        
-        # 가로 뒤집기
-        pred = torch.sigmoid(model(torch.flip(image, dims=[3])))
-        predictions.append(torch.flip(pred, dims=[3]))
-        
-        # 세로 뒤집기
-        pred = torch.sigmoid(model(torch.flip(image, dims=[2])))
-        predictions.append(torch.flip(pred, dims=[2]))
-        
-        # 두 방향 다 뒤집기
-        pred = torch.sigmoid(model(torch.flip(image, dims=[2, 3])))
-        predictions.append(torch.flip(pred, dims=[2, 3]))
-    
-    # 모든 어림 고루내기
-    avg_pred = torch.stack(predictions).mean(dim=0)
-    return avg_pred
+    NUM_EPOCHS = 30
 
+    print(f"{'='*70}")
+    print(f"Starting advanced training for {NUM_EPOCHS} epochs...")
+    print(f"{'='*70}\n")
 
-def evaluate_with_tta(model, loader, device):
-    """시험 때 불리기로 평가한다."""
-    model.eval()
-    running_dice = 0.0
-    
-    for images, masks in loader:
-        images = images.to(device)
-        masks = masks.to(device)
-        
-        if USE_TTA:
-            predictions = test_time_augmentation(model, images, device)
-        else:
-            with torch.no_grad():
-                predictions = torch.sigmoid(model(images))
-        
-        # 다이스 셈하기
-        pred = (predictions > 0.5).float()
-        target = masks
-        
-        pred = pred.view(-1)
-        target = target.view(-1)
-        
-        intersection = (pred * target).sum()
-        dice = (2. * intersection + 1e-6) / (pred.sum() + target.sum() + 1e-6)
-        running_dice += dice.item()
-    
-    return running_dice / len(loader)
+    best_dice = 0.0
+    start_time = time.time()
 
+    for epoch in range(NUM_EPOCHS):
+        print(f"Epoch {epoch + 1}/{NUM_EPOCHS}")
 
-# ============================================================================
-# 8단계: 익히기 되풀이
-# ============================================================================
+        # 학습
+        train_loss = train_one_epoch(model, train_loader, criterion, 
+                                     optimizer, scaler if USE_MIXED_PRECISION else None, device)
 
-NUM_EPOCHS = 30
+        # 검증
+        val_loss, val_dice = validate(model, val_loader, criterion, device)
 
-print(f"{'='*70}")
-print(f"Starting advanced training for {NUM_EPOCHS} epochs...")
-print(f"{'='*70}\n")
+        # 결과 출력
+        print(f"  Train Loss: {train_loss:.4f}")
+        print(f"  Val Loss: {val_loss:.4f}, Val Dice: {val_dice:.4f}")
 
-best_dice = 0.0
-start_time = time.time()
+        # 학습률 스케줄링
+        scheduler.step()
 
-for epoch in range(NUM_EPOCHS):
-    print(f"Epoch {epoch + 1}/{NUM_EPOCHS}")
-    
-    # 학습
-    train_loss = train_one_epoch(model, train_loader, criterion, 
-                                 optimizer, scaler if USE_MIXED_PRECISION else None, device)
-    
-    # 검증
-    val_loss, val_dice = validate(model, val_loader, criterion, device)
-    
-    # 결과 출력
-    print(f"  Train Loss: {train_loss:.4f}")
-    print(f"  Val Loss: {val_loss:.4f}, Val Dice: {val_dice:.4f}")
-    
-    # 학습률 스케줄링
-    scheduler.step()
-    
-    # 최고 성능 모델 저장
-    if val_dice > best_dice:
-        best_dice = val_dice
-        torch.save(model.state_dict(), 'best_advanced_model.pth')
-        print("  ✓ Best model saved")
-    
-    print()
+        # 최고 성능 모델 저장
+        if val_dice > best_dice:
+            best_dice = val_dice
+            torch.save(model.state_dict(), 'best_advanced_model.pth')
+            print("  ✓ Best model saved")
 
-total_time = time.time() - start_time
-print(f"{'='*70}")
-print(f"Training completed in {total_time//60:.0f}m {total_time%60:.0f}s")
-print(f"Best validation Dice: {best_dice:.4f}")
-print(f"{'='*70}\n")
+        print()
 
-# ============================================================================
-# 9단계: 시험 때 불리기를 쓴 마지막 값매김
-# ============================================================================
+    total_time = time.time() - start_time
+    print(f"{'='*70}")
+    print(f"Training completed in {total_time//60:.0f}m {total_time%60:.0f}s")
+    print(f"Best validation Dice: {best_dice:.4f}")
+    print(f"{'='*70}\n")
 
-model.load_state_dict(torch.load('best_advanced_model.pth'))
+    # ============================================================================
+    # 9단계: 시험 때 불리기를 쓴 마지막 값매김
+    # ============================================================================
 
-print("Final Test Evaluation:")
-print("="*70)
+    model.load_state_dict(torch.load('best_advanced_model.pth'))
 
-# 시험 때 불리기 안 씀
-test_dice_no_tta = evaluate_with_tta(model, test_loader, device)
-print(f"Test Dice (no TTA): {test_dice_no_tta:.4f}")
+    print("Final Test Evaluation:")
+    print("="*70)
 
-# 시험 때 불리기 씀
-if USE_TTA:
-    print("\nEvaluating with Test-Time Augmentation...")
-    USE_TTA_TEMP = True
-    test_dice_tta = evaluate_with_tta(model, test_loader, device)
-    print(f"Test Dice (with TTA): {test_dice_tta:.4f}")
-    print(f"TTA Improvement: +{(test_dice_tta - test_dice_no_tta):.4f}")
+    # 시험 때 불리기 안 씀
+    test_dice_no_tta = evaluate_with_tta(model, test_loader, device)
+    print(f"Test Dice (no TTA): {test_dice_no_tta:.4f}")
 
-# ============================================================================
-# 요약
-# ============================================================================
+    # 시험 때 불리기 씀
+    if USE_TTA:
+        print("\nEvaluating with Test-Time Augmentation...")
+        USE_TTA_TEMP = True
+        test_dice_tta = evaluate_with_tta(model, test_loader, device)
+        print(f"Test Dice (with TTA): {test_dice_tta:.4f}")
+        print(f"TTA Improvement: +{(test_dice_tta - test_dice_no_tta):.4f}")
 
-print("\n" + "="*70)
-print("ADVANCED SEGMENTATION TECHNIQUES COMPLETE!")
-print("="*70)
-print("\nTechniques Applied:")
-print("✓ Attention mechanisms (CBAM)")
-print("✓ Advanced loss (Focal + Dice + Boundary)")
-if USE_MULTI_SCALE:
-    print("✓ Multi-scale training")
-if USE_MIXED_PRECISION:
-    print("✓ Mixed precision training (FP16)")
-if USE_TTA:
-    print("✓ Test-time augmentation")
+    # ============================================================================
+    # 요약
+    # ============================================================================
 
-print("\nPerformance Gains:")
-print(f"  Final Dice Score: {test_dice_tta if USE_TTA else test_dice_no_tta:.4f}")
-print(f"  Training Time: {total_time//60:.0f}m {total_time%60:.0f}s")
+    print("\n" + "="*70)
+    print("ADVANCED SEGMENTATION TECHNIQUES COMPLETE!")
+    print("="*70)
+    print("\nTechniques Applied:")
+    print("✓ Attention mechanisms (CBAM)")
+    print("✓ Advanced loss (Focal + Dice + Boundary)")
+    if USE_MULTI_SCALE:
+        print("✓ Multi-scale training")
+    if USE_MIXED_PRECISION:
+        print("✓ Mixed precision training (FP16)")
+    if USE_TTA:
+        print("✓ Test-time augmentation")
 
-print("\nKey Takeaways:")
-print("1. Attention mechanisms focus on important features")
-print("2. Combined losses leverage multiple objectives")
-print("3. Multi-scale training improves scale invariance")
-print("4. TTA boosts performance with minimal code")
-print("5. Mixed precision speeds up training")
+    print("\nPerformance Gains:")
+    print(f"  Final Dice Score: {test_dice_tta if USE_TTA else test_dice_no_tta:.4f}")
+    print(f"  Training Time: {total_time//60:.0f}m {total_time%60:.0f}s")
 
-print("\nYou've completed all 4 examples!")
-print("You're now ready for:")
-print("- Real-world segmentation projects")
-print("- Kaggle competitions")
-print("- Research in semantic segmentation")
-print("- Production deployment")
-print("="*70)
+    print("\nKey Takeaways:")
+    print("1. Attention mechanisms focus on important features")
+    print("2. Combined losses leverage multiple objectives")
+    print("3. Multi-scale training improves scale invariance")
+    print("4. TTA boosts performance with minimal code")
+    print("5. Mixed precision speeds up training")
+
+    print("\nYou've completed all 4 examples!")
+    print("You're now ready for:")
+    print("- Real-world segmentation projects")
+    print("- Kaggle competitions")
+    print("- Research in semantic segmentation")
+    print("- Production deployment")
+    print("="*70)
 
 
-if __name__ == "__main__":
-    pass
-```
+    if __name__ == "__main__":
+        pass
+    ```
+
 
 ## 2. 논의
 

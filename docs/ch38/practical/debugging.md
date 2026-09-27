@@ -16,6 +16,11 @@ import torch.nn as nn
 import numpy as np
 from collections import deque
 from typing import Dict, List, Optional
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다.
+# 꾸며 낸 배움 자취는 numpy로 뽑으므로 numpy 씨앗도 함께 고정한다
+torch.manual_seed(0)
+np.random.seed(0)
 
 # ========================================================================
 # 메인
@@ -254,23 +259,28 @@ Training Diagnostics Simulation
 ==================================================
 RL Training Diagnostics Report
 ==================================================
-episode_rewards     : mean=249.6145  std= 28.8581  last=297.5122
-policy_loss         : mean=  0.2767  std=  0.1034  last=  0.0903
-value_loss          : mean=  0.6495  std=  0.1855  last=  0.7207
+episode_rewards     : mean=245.2857  std= 35.5063  last=262.4467
+policy_loss         : mean=  0.2411  std=  0.1106  last=  0.1497
+value_loss          : mean=  0.6024  std=  0.2143  last=  0.7231
 entropy             : mean=  0.3275  std=  0.0722  last=  0.2050
-kl_divergence       : mean=  0.0140  std=  0.0054  last=  0.0096
-clip_fraction       : mean=  0.1373  std=  0.0522  last= -0.0043
-grad_norm           : mean=  0.2990  std=  0.0978  last=  0.2821
-explained_variance  : 0.8805
+kl_divergence       : mean=  0.0144  std=  0.0052  last=  0.0133
+clip_fraction       : mean=  0.1495  std=  0.0460  last=  0.1103
+grad_norm           : mean=  0.3050  std=  0.0924  last=  0.3198
+explained_variance  : 0.9192
 
 ✅ All diagnostics healthy
 
 
 ==================================================
 Simulating Problematic Training...
-
-... (8 lines omitted)
-
+==================================================
+==================================================
+RL Training Diagnostics Report
+==================================================
+episode_rewards     : mean= 30.2500  std=  2.8831  last= 25.5000
+entropy             : mean=  0.0010  std=  0.0000  last=  0.0010
+kl_divergence       : mean=  0.2000  std=  0.0000  last=  0.2000
+clip_fraction       : mean=  0.7000  std=  0.0000  last=  0.7000
 grad_norm           : mean=595.0000  std= 57.6628  last=690.0000
 explained_variance  : 0.0000
 

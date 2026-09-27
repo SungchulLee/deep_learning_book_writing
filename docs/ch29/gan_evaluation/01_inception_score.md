@@ -404,56 +404,146 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (135줄)"
 
-```
-======================================================================
-MODULE 52: INCEPTION SCORE (IS)
-======================================================================
-======================================================================
-Inception Score Intuition
-======================================================================
+    ```
 
-Scenario 1: High Quality + High Diversity (IDEAL)
-----------------------------------------------------------------------
-IS: 6.0636 ± 0.0000
-Quality: Good
-Explanation: Confident predictions + diverse classes = High IS
+    ======================================================================
+    MODULE 52: INCEPTION SCORE (IS)
+    ======================================================================
+    ======================================================================
+    Inception Score Intuition
+    ======================================================================
 
-Scenario 2: Low Quality (Uncertain Predictions)
-----------------------------------------------------------------------
-IS: 1.0000 ± 0.0000
-Quality: Very Poor
-Explanation: p(y|x) = p(y) → KL = 0 → IS = exp(0) = 1.0
-Minimum possible IS = 1.0
+    Scenario 1: High Quality + High Diversity (IDEAL)
+    ----------------------------------------------------------------------
+    IS: 6.0636 ± 0.0000
+    Quality: Good
+    Explanation: Confident predictions + diverse classes = High IS
 
-Scenario 3: Mode Collapse (Single Class)
-----------------------------------------------------------------------
-IS: 1.0000 ± 0.0000
-Quality: Very Poor
-Explanation: Confident predictions but no diversity
-p(y) peaked at one class → Low KL → Low IS
+    Scenario 2: Low Quality (Uncertain Predictions)
+    ----------------------------------------------------------------------
+    IS: 1.0000 ± 0.0000
+    Quality: Very Poor
+    Explanation: p(y|x) = p(y) → KL = 0 → IS = exp(0) = 1.0
+    Minimum possible IS = 1.0
 
-Scenario 4: Good Quality but Limited Diversity
-----------------------------------------------------------------------
-IS: 2.6876 ± 0.0000
-Quality: Poor to Moderate
-Explanation: Confident but not covering all classes
+    Scenario 3: Mode Collapse (Single Class)
+    ----------------------------------------------------------------------
+    IS: 1.0000 ± 0.0000
+    Quality: Very Poor
+    Explanation: Confident predictions but no diversity
+    p(y) peaked at one class → Low KL → Low IS
 
+    Scenario 4: Good Quality but Limited Diversity
+    ----------------------------------------------------------------------
+    IS: 2.6876 ± 0.0000
+    Quality: Poor to Moderate
+    Explanation: Confident but not covering all classes
 
-... (91 lines omitted)
+    ======================================================================
+    IS Comparison:
+    ======================================================================
+    High quality + high diversity:  IS = 6.06
+    Low quality (uncertain):        IS = 1.00 (minimum)
+    Mode collapse (one class):      IS = 1.00
+    Good quality + limited diversity: IS = 2.69
 
-       - 맞겨루기 꾀에 속을 수 있다
-    
-    6. 모범 사례:
-       - 표준편차를 셈할 때는 splits=10을 쓴다
-       - 인셉션 점수 ± 표준편차를 함께 알린다
-       - 늘 다른 자와 함께 쓴다(FID, 정밀도와 재현율)
-       - 눈으로 살펴보는 일을 곁들인다
-       - 일에 맞춘 따지기도 함께 생각한다
-    
-======================================================================
-```
+    Key Insight: IS balances quality (sharpness) and diversity
+
+    ======================================================================
+    Inception Score Limitations
+    ======================================================================
+
+    Limitation 1: Cannot Detect Memorization/Overfitting
+    ----------------------------------------------------------------------
+    A model that perfectly memorizes training images can achieve
+    high IS, even though it's not truly generating novel samples.
+
+    Example: Generating 100 real images repeatedly
+             → High IS (confident + diverse)
+             → But not creative/generative!
+
+    Limitation 2: Ignores Within-Class Diversity
+    ----------------------------------------------------------------------
+    IS only cares about class labels, not visual diversity.
+
+    Example: Generating 1000 identical cat images
+             → Still get high IS if classified as 'cat'
+             → But zero visual diversity!
+
+    1000 identical images → IS = 1.00
+    This should be low but IS doesn't capture it!
+
+    Limitation 3: Can Be Fooled by Adversarial Generation
+    ----------------------------------------------------------------------
+    Strategy: Generate exactly one image per class
+              → Maximum diversity (uniform p(y))
+              → Confident predictions (sharp p(y|x))
+              → High IS!
+
+    But only 10 unique images for 1000 ImageNet classes is terrible!
+
+    Limitation 4: Tied to InceptionV3 Classifier
+    ----------------------------------------------------------------------
+    IS depends on InceptionV3's learned representations.
+    • Only works well for ImageNet-like natural images
+    • May not work for: medical images, satellite imagery,
+      abstract art, non-photorealistic images
+    • Different classifiers give different IS values
+
+    ======================================================================
+    Recommendation: Use IS alongside other metrics!
+    ======================================================================
+    • Combine with FID (detects mode collapse better)
+    • Add precision/recall (measures coverage)
+    • Include visual inspection
+    • Consider task-specific metrics
+
+    ======================================================================
+    KEY TAKEAWAYS
+    ======================================================================
+
+        1. 인셉션 점수 식:
+           IS = exp(E_x[KL(p(y|x) || p(y))])
+           - p(y|x): 조건 분포(품질, 곧 뾰족함)
+           - p(y): 가장자리 분포(다양함)
+           - KL 갈림이 둘의 균형을 잡는다
+        
+        2. 인셉션 점수가 재는 것:
+           - 품질: 헤아림이 얼마나 자신 있는가?
+           - 다양함: 갈래를 얼마나 두루 덮는가?
+           - 인셉션 점수가 높다 = 자신 있는 헤아림 + 다양한 표본
+        
+        3. 흔한 값:
+           - 가장 작은 값: 인셉션 점수 = 1.0(고른 헤아림)
+           - 좋음: 인셉션 점수 5.0 초과
+           - 아주 좋음: 인셉션 점수 8.0 초과
+           - 참 ImageNet: 인셉션 점수 ≈ 11.2
+        
+        4. 좋은 점:
+           - 수 하나로 나타내는 자
+           - 셈이 빠르다
+           - 품질과 다양함의 절충을 잡아낸다
+           - 널리 쓰이고 잘 알려져 있다
+        
+        5. 한계:
+           - 외워 버림이나 지나치게 맞춰짐을 알아채지 못한다
+           - 갈래 안의 다양함을 놓친다
+           - ImageNet 같은 그림에서만 쓸모 있다
+           - InceptionV3 분류기에 매여 있다
+           - 맞겨루기 꾀에 속을 수 있다
+        
+        6. 모범 사례:
+           - 표준편차를 셈할 때는 splits=10을 쓴다
+           - 인셉션 점수 ± 표준편차를 함께 알린다
+           - 늘 다른 자와 함께 쓴다(FID, 정밀도와 재현율)
+           - 눈으로 살펴보는 일을 곁들인다
+           - 일에 맞춘 따지기도 함께 생각한다
+        
+    ======================================================================
+    ```
+
 
 ## 논의
 

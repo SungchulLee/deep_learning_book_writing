@@ -253,56 +253,116 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (105줄)"
 
-```
-======================================================================
-COMPREHENSIVE NER DEMONSTRATION
-Module 38: Named Entity Recognition
-======================================================================
-======================================================================
-1. RULE-BASED NER DEMONSTRATION
-======================================================================
+    ```
 
-Note: Rule-based demo requires beginner modules. Error: No module named 'beginner'
+    ======================================================================
+    COMPREHENSIVE NER DEMONSTRATION
+    Module 38: Named Entity Recognition
+    ======================================================================
+    ======================================================================
+    1. RULE-BASED NER DEMONSTRATION
+    ======================================================================
 
-
-======================================================================
-2. DICTIONARY-BASED NER DEMONSTRATION
-======================================================================
-
-Note: Dictionary-based demo requires beginner modules. Error: No module named 'beginner'
+    Note: Rule-based demo requires beginner modules. Error: No module named 'beginner'
 
 
-======================================================================
-3. FEATURE EXTRACTION FOR TRADITIONAL ML
-======================================================================
+    ======================================================================
+    2. DICTIONARY-BASED NER DEMONSTRATION
+    ======================================================================
 
-Note: Feature extraction demo requires intermediate modules. Error: No module named 'intermediate'
-
-
-======================================================================
-4. NER EVALUATION METRICS
-======================================================================
-
-Note: Evaluation demo requires intermediate modules. Error: No module named 'intermediate'
+    Note: Dictionary-based demo requires beginner modules. Error: No module named 'beginner'
 
 
-======================================================================
+    ======================================================================
+    3. FEATURE EXTRACTION FOR TRADITIONAL ML
+    ======================================================================
 
-... (61 lines omitted)
+    Note: Feature extraction demo requires intermediate modules. Error: No module named 'intermediate'
 
-======================================================================
-DEMONSTRATION COMPLETE
-======================================================================
 
-Explore individual module files for detailed implementations:
-  - beginner/     : Basic NER concepts and simple approaches
-  - intermediate/ : Traditional ML and feature engineering
-  - advanced/     : Deep learning architectures
-  - utils/        : Helper utilities
-  - data/         : Sample datasets
-```
+    ======================================================================
+    4. NER EVALUATION METRICS
+    ======================================================================
+
+    Note: Evaluation demo requires intermediate modules. Error: No module named 'intermediate'
+
+
+    ======================================================================
+    5. DEEP LEARNING ARCHITECTURES
+    ======================================================================
+
+    BiLSTM-CRF Architecture:
+      Input → Embedding → BiLSTM → Linear → CRF → Output
+      - Captures context from both directions
+      - CRF layer enforces valid tag sequences
+      - State-of-the-art for sequence labeling
+
+    Transformer Architecture (BERT/RoBERTa):
+      Input → BERT → Linear → Softmax → Tags
+      - Uses pre-trained language understanding
+      - Contextual embeddings
+      - Current state-of-the-art performance
+
+    ----------------------------------------------------------------------
+    Modern NER systems typically use transformer-based models
+
+
+    ======================================================================
+    SUMMARY: NER APPROACH COMPARISON
+    ======================================================================
+
+    Approach        Precision    Recall     Speed        Data Needed     Best For
+    ----------------------------------------------------------------------------------------------------
+    Rule-based      High         Low        Very Fast    None            Domain-specific patterns
+    Dictionary      High         Low        Very Fast    None            Known entities
+    CRF             Medium       Medium     Fast         Moderate        General NER
+    BiLSTM-CRF      High         High       Medium       Large           General NER
+    Transformer     Very High    Very High  Slow         Very Large      State-of-the-art
+
+    ======================================================================
+    NEXT STEPS
+    ======================================================================
+
+    1. For quick prototyping: Start with rule-based or dictionary NER
+    2. For better performance: Collect training data and use CRF or BiLSTM-CRF
+    3. For state-of-the-art: Fine-tune a transformer model (BERT/RoBERTa)
+    4. For production: Combine multiple approaches (ensemble)
+
+    ======================================================================
+    LEARNING PATH
+    ======================================================================
+
+    Week 1 (Beginner):
+      - Understanding NER concepts and entity types
+      - IOB tagging schemes
+      - Rule-based and dictionary-based approaches
+
+    Week 2 (Intermediate):
+      - Feature extraction techniques
+      - CRF for sequence labeling
+      - Evaluation metrics and dataset creation
+
+    Week 3-4 (Advanced):
+      - BiLSTM-CRF architecture
+      - Transformer-based NER (BERT, RoBERTa)
+      - Fine-tuning and production deployment
+
+    ======================================================================
+
+    ======================================================================
+    DEMONSTRATION COMPLETE
+    ======================================================================
+
+    Explore individual module files for detailed implementations:
+      - beginner/     : Basic NER concepts and simple approaches
+      - intermediate/ : Traditional ML and feature engineering
+      - advanced/     : Deep learning architectures
+      - utils/        : Helper utilities
+      - data/         : Sample datasets
+    ```
+
 
 ## 2. 논의
 

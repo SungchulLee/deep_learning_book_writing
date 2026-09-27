@@ -220,34 +220,23 @@ RESTRICTED BOLTZMANN MACHINES
 ======================================================================
 TRAINING RBM ON MNIST
 ======================================================================
-Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
 
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
-Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
+RBM Architecture:
+  Visible units: 784
+  Hidden units: 256
+  CD-k steps: 1
+Epoch 1/10, Reconstruction Error: 122.7035
+Epoch 2/10, Reconstruction Error: 86.7822
+Epoch 3/10, Reconstruction Error: 75.9758
+Epoch 4/10, Reconstruction Error: 69.3618
+Epoch 5/10, Reconstruction Error: 64.7623
+Epoch 6/10, Reconstruction Error: 61.2752
+Epoch 7/10, Reconstruction Error: 58.5078
+Epoch 8/10, Reconstruction Error: 56.2475
+Epoch 9/10, Reconstruction Error: 54.3384
+Epoch 10/10, Reconstruction Error: 52.7134
 
-Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
-
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
-Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
-
-Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
-
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw/t10k-images-idx3-ubyte.gz
-Extracting ./data/MNIST/raw/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw
-
-Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
-Failed to download (trying next):
-
-... (24 lines omitted)
+✓ RBM training complete
 
 ======================================================================
 MODULE COMPLETE

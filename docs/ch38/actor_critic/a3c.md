@@ -4,522 +4,525 @@
 
 ## 1. 코드
 
-```python
-"""
-34.2.3장: 발 안 맞춘 이점 행위자-비평가(A3C)
-==========================================================
-온 세상 모형과 가장 좋게 하는 개를 위한 함께 쓰는 기억을
-쓰는, 파이토치 여러 프로세스 A3C 구현.
-"""
+??? note "코드 (514줄)"
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.multiprocessing as mp
-from torch.distributions import Categorical
-import numpy as np
-import gymnasium as gym
-from typing import List
-import os
-
-# ========================================================================
-# 메인
-# ========================================================================
-
-
-# ---------------------------------------------------------------------------
-# 행위자-비평가 그물
-# ---------------------------------------------------------------------------
-
-class A3CNetwork(nn.Module):
-    """등뼈를 함께 쓰는 A3C용 행위자-비평가 그물."""
-    
-    def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
-        super().__init__()
-        self.features = nn.Sequential(
-            nn.Linear(obs_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-        )
-        self.actor = nn.Linear(hidden_dim, act_dim)
-        self.critic = nn.Linear(hidden_dim, 1)
-        
-        # 무게 첫 값 매기기
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                nn.init.orthogonal_(m.weight, np.sqrt(2))
-                nn.init.constant_(m.bias, 0)
-        nn.init.orthogonal_(self.actor.weight, 0.01)
-        nn.init.orthogonal_(self.critic.weight, 1.0)
-    
-    def forward(self, obs):
-        features = self.features(obs)
-        logits = self.actor(features)
-        value = self.critic(features).squeeze(-1)
-        return logits, value
-    
-    def get_action_and_value(self, obs, action=None):
-        logits, value = self.forward(obs)
-        dist = Categorical(logits=logits)
-        if action is None:
-            action = dist.sample()
-        return action, dist.log_prob(action), dist.entropy(), value
-
-
-# ---------------------------------------------------------------------------
-# 함께 쓰는 Adam 가장 좋게 하는 개
-# ---------------------------------------------------------------------------
-
-class SharedAdam(torch.optim.Adam):
+    ```python
     """
-    여러 프로세스를 위해 상태를 함께 쓰는 Adam.
-    
-    함께 쓰는 기억으로 가장 좋게 하는 개의 상태 텐서를 프로세스
-    사이에서 함께 써 Hogwild 꼴 고침을 이루게 한다.
+    34.2.3장: 발 안 맞춘 이점 행위자-비평가(A3C)
+    ==========================================================
+    온 세상 모형과 가장 좋게 하는 개를 위한 함께 쓰는 기억을
+    쓰는, 파이토치 여러 프로세스 A3C 구현.
     """
-    
-    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8):
-        super().__init__(params, lr=lr, betas=betas, eps=eps)
-        # 상태에 첫 값을 매기고 기억을 함께 쓴다
-        for group in self.param_groups:
-            for p in group["params"]:
-                state = self.state[p]
-                state["step"] = torch.zeros(1)
-                state["exp_avg"] = torch.zeros_like(p.data)
-                state["exp_avg_sq"] = torch.zeros_like(p.data)
-                
-                # 기억 함께 쓰기
-                state["step"].share_memory_()
-                state["exp_avg"].share_memory_()
-                state["exp_avg_sq"].share_memory_()
+
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    import torch.multiprocessing as mp
+    from torch.distributions import Categorical
+    import numpy as np
+    import gymnasium as gym
+    from typing import List
+    import os
+
+    # ========================================================================
+    # 메인
+    # ========================================================================
 
 
-# ---------------------------------------------------------------------------
-# A3C 일꾼
-# ---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
+    # 행위자-비평가 그물
+    # ---------------------------------------------------------------------------
 
-def a3c_worker(
-    rank: int,
-    global_model: A3CNetwork,
-    optimizer: SharedAdam,
-    env_id: str,
-    global_episode_counter: mp.Value,
-    global_rewards: mp.Manager,
-    max_episodes: int,
-    gamma: float = 0.99,
-    n_steps: int = 20,
-    entropy_coef: float = 0.01,
-    value_coef: float = 0.5,
-    max_grad_norm: float = 40.0,
-):
-    """
-    A3C 일꾼 프로세스.
-    
-    일꾼마다:
-    1. 제 모형을 온 세상 모형에 맞춘다
-    2. n_steps만큼 겪음을 모은다
-    3. 제자리에서 기울기를 셈한다
-    4. 그 기울기를 온 세상 모형에 매긴다
-    """
-    torch.manual_seed(rank + 42)
-    
-    env = gym.make(env_id)
-    obs_dim = env.observation_space.shape[0]
-    act_dim = env.action_space.n
-    
-    # 제 모형(함께 쓰지 않는다)
-    local_model = A3CNetwork(obs_dim, act_dim)
-    
-    obs, _ = env.reset(seed=rank)
-    episode_reward = 0.0
-    
-    while True:
-        # 익힘이 끝났는지 살핀다
-        with global_episode_counter.get_lock():
-            if global_episode_counter.value >= max_episodes:
-                break
-        
-        # 제 모형을 온 세상 모형에 맞춘다
-        local_model.load_state_dict(global_model.state_dict())
-        
-        # n걸음 굴림을 모은다
-        states, actions, rewards, dones = [], [], [], []
-        log_probs, values, entropies = [], [], []
-        
-        for _ in range(n_steps):
-            obs_t = torch.FloatTensor(obs).unsqueeze(0)
-            
-            with torch.no_grad():
-                action, log_prob, entropy, value = local_model.get_action_and_value(obs_t)
-            
-            next_obs, reward, terminated, truncated, _ = env.step(action.item())
-            done = terminated or truncated
-            
-            states.append(obs)
-            actions.append(action.item())
-            rewards.append(reward)
-            dones.append(done)
-            
-            episode_reward += reward
-            obs = next_obs
-            
-            if done:
-                with global_episode_counter.get_lock():
-                    global_episode_counter.value += 1
-                    ep_num = global_episode_counter.value
-                
-                global_rewards.append(episode_reward)
-                
-                if ep_num % 100 == 0:
-                    recent = list(global_rewards)[-100:]
-                    print(
-                        f"Worker {rank} | Episode {ep_num} | "
-                        f"Reward: {episode_reward:.1f} | "
-                        f"Avg(100): {np.mean(recent):.1f}"
-                    )
-                
-                episode_reward = 0.0
-                obs, _ = env.reset()
-                
-                if ep_num >= max_episodes:
-                    break
-        
-        # 돌아옴과 이점을 셈한다
-        states_t = torch.FloatTensor(np.array(states))
-        actions_t = torch.LongTensor(actions)
-        
-        # 마지막 상태의 부트스트랩 값
-        with torch.no_grad():
-            if dones[-1]:
-                R = 0.0
-            else:
-                _, last_value = local_model(torch.FloatTensor(obs).unsqueeze(0))
-                R = last_value.item()
-        
-        returns = []
-        for t in reversed(range(len(rewards))):
-            R = rewards[t] + gamma * R * (1 - dones[t])
-            returns.insert(0, R)
-        returns = torch.FloatTensor(returns)
-        
-        # 기울기를 켜고 앞으로 지나가기
-        _, log_probs_t, entropies_t, values_t = local_model.get_action_and_value(
-            states_t, actions_t
-        )
-        
-        # 이점
-        advantages = returns - values_t.detach()
-        
-        # 손실
-        policy_loss = -(log_probs_t * advantages).mean()
-        value_loss = F.mse_loss(values_t, returns)
-        entropy_loss = -entropies_t.mean()
-        
-        total_loss = policy_loss + value_coef * value_loss + entropy_coef * entropy_loss
-        
-        # 제 모형에서 기울기를 셈한다
-        optimizer.zero_grad()
-        total_loss.backward()
-        nn.utils.clip_grad_norm_(local_model.parameters(), max_grad_norm)
-        
-        # 기울기를 온 세상 모형으로 옮긴다
-        for local_param, global_param in zip(
-            local_model.parameters(), global_model.parameters()
-        ):
-            if global_param.grad is None:
-                global_param.grad = local_param.grad.clone()
-            else:
-                global_param.grad.copy_(local_param.grad)
-        
-        # 온 세상 모형에 기울기를 매긴다(Hogwild 꼴)
-        optimizer.step()
-    
-    env.close()
+    class A3CNetwork(nn.Module):
+        """등뼈를 함께 쓰는 A3C용 행위자-비평가 그물."""
+
+        def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
+            super().__init__()
+            self.features = nn.Sequential(
+                nn.Linear(obs_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+            )
+            self.actor = nn.Linear(hidden_dim, act_dim)
+            self.critic = nn.Linear(hidden_dim, 1)
+
+            # 무게 첫 값 매기기
+            for m in self.modules():
+                if isinstance(m, nn.Linear):
+                    nn.init.orthogonal_(m.weight, np.sqrt(2))
+                    nn.init.constant_(m.bias, 0)
+            nn.init.orthogonal_(self.actor.weight, 0.01)
+            nn.init.orthogonal_(self.critic.weight, 1.0)
+
+        def forward(self, obs):
+            features = self.features(obs)
+            logits = self.actor(features)
+            value = self.critic(features).squeeze(-1)
+            return logits, value
+
+        def get_action_and_value(self, obs, action=None):
+            logits, value = self.forward(obs)
+            dist = Categorical(logits=logits)
+            if action is None:
+                action = dist.sample()
+            return action, dist.log_prob(action), dist.entropy(), value
 
 
-# ---------------------------------------------------------------------------
-# A3C 익힘 이끄개
-# ---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
+    # 함께 쓰는 Adam 가장 좋게 하는 개
+    # ---------------------------------------------------------------------------
 
-class A3CTrainer:
-    """
-    A3C 익힘을 이끄는 것.
-    
-    일꾼 프로세스를 돋아나게 하고 온 세상 모형과 가장 좋게 하는
-    개를 다룬다.
-    """
-    
-    def __init__(
-        self,
-        env_id: str = "CartPole-v1",
-        n_workers: int = 4,
-        n_steps: int = 20,
-        lr: float = 1e-3,
+    class SharedAdam(torch.optim.Adam):
+        """
+        여러 프로세스를 위해 상태를 함께 쓰는 Adam.
+
+        함께 쓰는 기억으로 가장 좋게 하는 개의 상태 텐서를 프로세스
+        사이에서 함께 써 Hogwild 꼴 고침을 이루게 한다.
+        """
+
+        def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8):
+            super().__init__(params, lr=lr, betas=betas, eps=eps)
+            # 상태에 첫 값을 매기고 기억을 함께 쓴다
+            for group in self.param_groups:
+                for p in group["params"]:
+                    state = self.state[p]
+                    state["step"] = torch.zeros(1)
+                    state["exp_avg"] = torch.zeros_like(p.data)
+                    state["exp_avg_sq"] = torch.zeros_like(p.data)
+
+                    # 기억 함께 쓰기
+                    state["step"].share_memory_()
+                    state["exp_avg"].share_memory_()
+                    state["exp_avg_sq"].share_memory_()
+
+
+    # ---------------------------------------------------------------------------
+    # A3C 일꾼
+    # ---------------------------------------------------------------------------
+
+    def a3c_worker(
+        rank: int,
+        global_model: A3CNetwork,
+        optimizer: SharedAdam,
+        env_id: str,
+        global_episode_counter: mp.Value,
+        global_rewards: mp.Manager,
+        max_episodes: int,
         gamma: float = 0.99,
-        hidden_dim: int = 128,
+        n_steps: int = 20,
         entropy_coef: float = 0.01,
         value_coef: float = 0.5,
+        max_grad_norm: float = 40.0,
     ):
-        self.env_id = env_id
-        self.n_workers = n_workers
-        self.n_steps = n_steps
-        self.gamma = gamma
-        self.entropy_coef = entropy_coef
-        self.value_coef = value_coef
-        
-        # 차원을 알아낸다
+        """
+        A3C 일꾼 프로세스.
+
+        일꾼마다:
+        1. 제 모형을 온 세상 모형에 맞춘다
+        2. n_steps만큼 겪음을 모은다
+        3. 제자리에서 기울기를 셈한다
+        4. 그 기울기를 온 세상 모형에 매긴다
+        """
+        torch.manual_seed(rank + 42)
+
         env = gym.make(env_id)
         obs_dim = env.observation_space.shape[0]
         act_dim = env.action_space.n
-        env.close()
-        
-        # 온 세상 모형(함께 쓰는 기억)
-        self.global_model = A3CNetwork(obs_dim, act_dim, hidden_dim)
-        self.global_model.share_memory()
-        
-        # 함께 쓰는 가장 좋게 하는 개
-        self.optimizer = SharedAdam(self.global_model.parameters(), lr=lr)
-    
-    def train(self, max_episodes: int = 2000) -> List[float]:
-        """일꾼 프로세스 여럿으로 익힌다."""
-        mp.set_start_method("spawn", force=True)
-        
-        # 함께 쓰는 세개
-        global_episode_counter = mp.Value("i", 0)
-        manager = mp.Manager()
-        global_rewards = manager.list()
-        
-        # 일꾼을 돋아나게 한다
-        processes = []
-        for rank in range(self.n_workers):
-            p = mp.Process(
-                target=a3c_worker,
-                args=(
-                    rank,
-                    self.global_model,
-                    self.optimizer,
-                    self.env_id,
-                    global_episode_counter,
-                    global_rewards,
-                    max_episodes,
-                    self.gamma,
-                    self.n_steps,
-                    self.entropy_coef,
-                    self.value_coef,
-                ),
-            )
-            p.start()
-            processes.append(p)
-        
-        # 온 일꾼을 기다린다
-        for p in processes:
-            p.join()
-        
-        return list(global_rewards)
-    
-    def evaluate(self, n_episodes: int = 10) -> float:
-        """온 세상 모형을 따진다."""
-        env = gym.make(self.env_id)
-        rewards = []
-        
-        for _ in range(n_episodes):
-            obs, _ = env.reset()
-            total_reward = 0.0
-            done = False
-            
-            while not done:
-                with torch.no_grad():
-                    obs_t = torch.FloatTensor(obs).unsqueeze(0)
-                    logits, _ = self.global_model(obs_t)
-                    action = logits.argmax(dim=-1).item()
-                
-                obs, reward, terminated, truncated, _ = env.step(action)
-                total_reward += reward
-                done = terminated or truncated
-            
-            rewards.append(total_reward)
-        
-        env.close()
-        return np.mean(rewards)
 
+        # 제 모형(함께 쓰지 않는다)
+        local_model = A3CNetwork(obs_dim, act_dim)
 
-# ---------------------------------------------------------------------------
-# 프로세스 하나로 쉽게 흉내 낸 A3C
-# ---------------------------------------------------------------------------
+        obs, _ = env.reset(seed=rank)
+        episode_reward = 0.0
 
-class SimulatedA3C:
-    """
-    프로세스 하나에서 쉽게 흉내 낸 A3C.
-    
-    둘레를 여럿 지니고 차례대로 고쳐 A3C의 거동을 흉내 낸다.
-    여러 프로세스의 얽힘 없이 보여 주기에 쓸모 있다.
-    """
-    
-    def __init__(
-        self,
-        env_id: str = "CartPole-v1",
-        n_workers: int = 4,
-        n_steps: int = 20,
-        lr: float = 1e-3,
-        gamma: float = 0.99,
-        hidden_dim: int = 128,
-        entropy_coef: float = 0.01,
-        value_coef: float = 0.5,
-    ):
-        self.n_workers = n_workers
-        self.n_steps = n_steps
-        self.gamma = gamma
-        self.entropy_coef = entropy_coef
-        self.value_coef = value_coef
-        
-        # 둘레를 만든다
-        self.envs = [gym.make(env_id) for _ in range(n_workers)]
-        obs_dim = self.envs[0].observation_space.shape[0]
-        act_dim = self.envs[0].action_space.n
-        
-        # 온 세상 모형
-        self.global_model = A3CNetwork(obs_dim, act_dim, hidden_dim)
-        self.optimizer = torch.optim.Adam(self.global_model.parameters(), lr=lr)
-        
-        # 제 모형들
-        self.local_models = [
-            A3CNetwork(obs_dim, act_dim, hidden_dim) for _ in range(n_workers)
-        ]
-    
-    def train(self, max_episodes: int = 1000, print_interval: int = 100):
-        all_rewards = []
-        recent_rewards = deque(maxlen=100)
-        episode_count = 0
-        
-        # 봄에 첫 값을 매긴다
-        obs_list = [env.reset(seed=i)[0] for i, env in enumerate(self.envs)]
-        episode_rewards = [0.0] * self.n_workers
-        
-        while episode_count < max_episodes:
-            # 일꾼마다 모으고 고친다
-            for w in range(self.n_workers):
-                # 제 모형을 온 세상 모형에 맞춘다
-                self.local_models[w].load_state_dict(self.global_model.state_dict())
-                
-                # 굴림을 모은다
-                states, actions, rewards, dones = [], [], [], []
-                
-                for _ in range(self.n_steps):
-                    obs_t = torch.FloatTensor(obs_list[w]).unsqueeze(0)
-                    with torch.no_grad():
-                        action, _, _, _ = self.local_models[w].get_action_and_value(obs_t)
-                    
-                    next_obs, reward, terminated, truncated, _ = self.envs[w].step(action.item())
-                    done = terminated or truncated
-                    
-                    states.append(obs_list[w])
-                    actions.append(action.item())
-                    rewards.append(reward)
-                    dones.append(done)
-                    episode_rewards[w] += reward
-                    
-                    obs_list[w] = next_obs
-                    
-                    if done:
-                        all_rewards.append(episode_rewards[w])
-                        recent_rewards.append(episode_rewards[w])
-                        episode_count += 1
-                        episode_rewards[w] = 0.0
-                        obs_list[w], _ = self.envs[w].reset()
-                        
-                        if episode_count % print_interval == 0:
-                            print(
-                                f"Episode {episode_count} | "
-                                f"Avg(100): {np.mean(recent_rewards):.1f}"
-                            )
-                        
-                        if episode_count >= max_episodes:
-                            break
-                
-                if episode_count >= max_episodes:
+        while True:
+            # 익힘이 끝났는지 살핀다
+            with global_episode_counter.get_lock():
+                if global_episode_counter.value >= max_episodes:
                     break
-                
-                # 돌아옴을 셈한다
-                states_t = torch.FloatTensor(np.array(states))
-                actions_t = torch.LongTensor(actions)
-                
+
+            # 제 모형을 온 세상 모형에 맞춘다
+            local_model.load_state_dict(global_model.state_dict())
+
+            # n걸음 굴림을 모은다
+            states, actions, rewards, dones = [], [], [], []
+            log_probs, values, entropies = [], [], []
+
+            for _ in range(n_steps):
+                obs_t = torch.FloatTensor(obs).unsqueeze(0)
+
                 with torch.no_grad():
-                    if dones[-1]:
-                        R = 0.0
-                    else:
-                        _, last_v = self.local_models[w](
-                            torch.FloatTensor(obs_list[w]).unsqueeze(0)
+                    action, log_prob, entropy, value = local_model.get_action_and_value(obs_t)
+
+                next_obs, reward, terminated, truncated, _ = env.step(action.item())
+                done = terminated or truncated
+
+                states.append(obs)
+                actions.append(action.item())
+                rewards.append(reward)
+                dones.append(done)
+
+                episode_reward += reward
+                obs = next_obs
+
+                if done:
+                    with global_episode_counter.get_lock():
+                        global_episode_counter.value += 1
+                        ep_num = global_episode_counter.value
+
+                    global_rewards.append(episode_reward)
+
+                    if ep_num % 100 == 0:
+                        recent = list(global_rewards)[-100:]
+                        print(
+                            f"Worker {rank} | Episode {ep_num} | "
+                            f"Reward: {episode_reward:.1f} | "
+                            f"Avg(100): {np.mean(recent):.1f}"
                         )
-                        R = last_v.item()
-                
-                returns_list = []
-                for t in reversed(range(len(rewards))):
-                    R = rewards[t] + self.gamma * R * (1 - dones[t])
-                    returns_list.insert(0, R)
-                returns_t = torch.FloatTensor(returns_list)
-                
-                # 앞으로 지나가기 + 손실
-                _, lp, ent, val = self.local_models[w].get_action_and_value(states_t, actions_t)
-                adv = returns_t - val.detach()
-                
-                loss = (
-                    -(lp * adv).mean()
-                    + self.value_coef * F.mse_loss(val, returns_t)
-                    - self.entropy_coef * ent.mean()
-                )
-                
-                # 온 세상 모형에 기울기를 매긴다
-                self.optimizer.zero_grad()
-                loss.backward()
-                
-                for local_p, global_p in zip(
-                    self.local_models[w].parameters(),
-                    self.global_model.parameters()
-                ):
-                    if global_p.grad is None:
-                        global_p.grad = local_p.grad.clone()
-                    else:
-                        global_p.grad.copy_(local_p.grad)
-                
-                nn.utils.clip_grad_norm_(self.global_model.parameters(), 40.0)
-                self.optimizer.step()
-        
-        for env in self.envs:
+
+                    episode_reward = 0.0
+                    obs, _ = env.reset()
+
+                    if ep_num >= max_episodes:
+                        break
+
+            # 돌아옴과 이점을 셈한다
+            states_t = torch.FloatTensor(np.array(states))
+            actions_t = torch.LongTensor(actions)
+
+            # 마지막 상태의 부트스트랩 값
+            with torch.no_grad():
+                if dones[-1]:
+                    R = 0.0
+                else:
+                    _, last_value = local_model(torch.FloatTensor(obs).unsqueeze(0))
+                    R = last_value.item()
+
+            returns = []
+            for t in reversed(range(len(rewards))):
+                R = rewards[t] + gamma * R * (1 - dones[t])
+                returns.insert(0, R)
+            returns = torch.FloatTensor(returns)
+
+            # 기울기를 켜고 앞으로 지나가기
+            _, log_probs_t, entropies_t, values_t = local_model.get_action_and_value(
+                states_t, actions_t
+            )
+
+            # 이점
+            advantages = returns - values_t.detach()
+
+            # 손실
+            policy_loss = -(log_probs_t * advantages).mean()
+            value_loss = F.mse_loss(values_t, returns)
+            entropy_loss = -entropies_t.mean()
+
+            total_loss = policy_loss + value_coef * value_loss + entropy_coef * entropy_loss
+
+            # 제 모형에서 기울기를 셈한다
+            optimizer.zero_grad()
+            total_loss.backward()
+            nn.utils.clip_grad_norm_(local_model.parameters(), max_grad_norm)
+
+            # 기울기를 온 세상 모형으로 옮긴다
+            for local_param, global_param in zip(
+                local_model.parameters(), global_model.parameters()
+            ):
+                if global_param.grad is None:
+                    global_param.grad = local_param.grad.clone()
+                else:
+                    global_param.grad.copy_(local_param.grad)
+
+            # 온 세상 모형에 기울기를 매긴다(Hogwild 꼴)
+            optimizer.step()
+
+        env.close()
+
+
+    # ---------------------------------------------------------------------------
+    # A3C 익힘 이끄개
+    # ---------------------------------------------------------------------------
+
+    class A3CTrainer:
+        """
+        A3C 익힘을 이끄는 것.
+
+        일꾼 프로세스를 돋아나게 하고 온 세상 모형과 가장 좋게 하는
+        개를 다룬다.
+        """
+
+        def __init__(
+            self,
+            env_id: str = "CartPole-v1",
+            n_workers: int = 4,
+            n_steps: int = 20,
+            lr: float = 1e-3,
+            gamma: float = 0.99,
+            hidden_dim: int = 128,
+            entropy_coef: float = 0.01,
+            value_coef: float = 0.5,
+        ):
+            self.env_id = env_id
+            self.n_workers = n_workers
+            self.n_steps = n_steps
+            self.gamma = gamma
+            self.entropy_coef = entropy_coef
+            self.value_coef = value_coef
+
+            # 차원을 알아낸다
+            env = gym.make(env_id)
+            obs_dim = env.observation_space.shape[0]
+            act_dim = env.action_space.n
             env.close()
-        
-        return all_rewards
+
+            # 온 세상 모형(함께 쓰는 기억)
+            self.global_model = A3CNetwork(obs_dim, act_dim, hidden_dim)
+            self.global_model.share_memory()
+
+            # 함께 쓰는 가장 좋게 하는 개
+            self.optimizer = SharedAdam(self.global_model.parameters(), lr=lr)
+
+        def train(self, max_episodes: int = 2000) -> List[float]:
+            """일꾼 프로세스 여럿으로 익힌다."""
+            mp.set_start_method("spawn", force=True)
+
+            # 함께 쓰는 세개
+            global_episode_counter = mp.Value("i", 0)
+            manager = mp.Manager()
+            global_rewards = manager.list()
+
+            # 일꾼을 돋아나게 한다
+            processes = []
+            for rank in range(self.n_workers):
+                p = mp.Process(
+                    target=a3c_worker,
+                    args=(
+                        rank,
+                        self.global_model,
+                        self.optimizer,
+                        self.env_id,
+                        global_episode_counter,
+                        global_rewards,
+                        max_episodes,
+                        self.gamma,
+                        self.n_steps,
+                        self.entropy_coef,
+                        self.value_coef,
+                    ),
+                )
+                p.start()
+                processes.append(p)
+
+            # 온 일꾼을 기다린다
+            for p in processes:
+                p.join()
+
+            return list(global_rewards)
+
+        def evaluate(self, n_episodes: int = 10) -> float:
+            """온 세상 모형을 따진다."""
+            env = gym.make(self.env_id)
+            rewards = []
+
+            for _ in range(n_episodes):
+                obs, _ = env.reset()
+                total_reward = 0.0
+                done = False
+
+                while not done:
+                    with torch.no_grad():
+                        obs_t = torch.FloatTensor(obs).unsqueeze(0)
+                        logits, _ = self.global_model(obs_t)
+                        action = logits.argmax(dim=-1).item()
+
+                    obs, reward, terminated, truncated, _ = env.step(action)
+                    total_reward += reward
+                    done = terminated or truncated
+
+                rewards.append(total_reward)
+
+            env.close()
+            return np.mean(rewards)
 
 
-from collections import deque
+    # ---------------------------------------------------------------------------
+    # 프로세스 하나로 쉽게 흉내 낸 A3C
+    # ---------------------------------------------------------------------------
+
+    class SimulatedA3C:
+        """
+        프로세스 하나에서 쉽게 흉내 낸 A3C.
+
+        둘레를 여럿 지니고 차례대로 고쳐 A3C의 거동을 흉내 낸다.
+        여러 프로세스의 얽힘 없이 보여 주기에 쓸모 있다.
+        """
+
+        def __init__(
+            self,
+            env_id: str = "CartPole-v1",
+            n_workers: int = 4,
+            n_steps: int = 20,
+            lr: float = 1e-3,
+            gamma: float = 0.99,
+            hidden_dim: int = 128,
+            entropy_coef: float = 0.01,
+            value_coef: float = 0.5,
+        ):
+            self.n_workers = n_workers
+            self.n_steps = n_steps
+            self.gamma = gamma
+            self.entropy_coef = entropy_coef
+            self.value_coef = value_coef
+
+            # 둘레를 만든다
+            self.envs = [gym.make(env_id) for _ in range(n_workers)]
+            obs_dim = self.envs[0].observation_space.shape[0]
+            act_dim = self.envs[0].action_space.n
+
+            # 온 세상 모형
+            self.global_model = A3CNetwork(obs_dim, act_dim, hidden_dim)
+            self.optimizer = torch.optim.Adam(self.global_model.parameters(), lr=lr)
+
+            # 제 모형들
+            self.local_models = [
+                A3CNetwork(obs_dim, act_dim, hidden_dim) for _ in range(n_workers)
+            ]
+
+        def train(self, max_episodes: int = 1000, print_interval: int = 100):
+            all_rewards = []
+            recent_rewards = deque(maxlen=100)
+            episode_count = 0
+
+            # 봄에 첫 값을 매긴다
+            obs_list = [env.reset(seed=i)[0] for i, env in enumerate(self.envs)]
+            episode_rewards = [0.0] * self.n_workers
+
+            while episode_count < max_episodes:
+                # 일꾼마다 모으고 고친다
+                for w in range(self.n_workers):
+                    # 제 모형을 온 세상 모형에 맞춘다
+                    self.local_models[w].load_state_dict(self.global_model.state_dict())
+
+                    # 굴림을 모은다
+                    states, actions, rewards, dones = [], [], [], []
+
+                    for _ in range(self.n_steps):
+                        obs_t = torch.FloatTensor(obs_list[w]).unsqueeze(0)
+                        with torch.no_grad():
+                            action, _, _, _ = self.local_models[w].get_action_and_value(obs_t)
+
+                        next_obs, reward, terminated, truncated, _ = self.envs[w].step(action.item())
+                        done = terminated or truncated
+
+                        states.append(obs_list[w])
+                        actions.append(action.item())
+                        rewards.append(reward)
+                        dones.append(done)
+                        episode_rewards[w] += reward
+
+                        obs_list[w] = next_obs
+
+                        if done:
+                            all_rewards.append(episode_rewards[w])
+                            recent_rewards.append(episode_rewards[w])
+                            episode_count += 1
+                            episode_rewards[w] = 0.0
+                            obs_list[w], _ = self.envs[w].reset()
+
+                            if episode_count % print_interval == 0:
+                                print(
+                                    f"Episode {episode_count} | "
+                                    f"Avg(100): {np.mean(recent_rewards):.1f}"
+                                )
+
+                            if episode_count >= max_episodes:
+                                break
+
+                    if episode_count >= max_episodes:
+                        break
+
+                    # 돌아옴을 셈한다
+                    states_t = torch.FloatTensor(np.array(states))
+                    actions_t = torch.LongTensor(actions)
+
+                    with torch.no_grad():
+                        if dones[-1]:
+                            R = 0.0
+                        else:
+                            _, last_v = self.local_models[w](
+                                torch.FloatTensor(obs_list[w]).unsqueeze(0)
+                            )
+                            R = last_v.item()
+
+                    returns_list = []
+                    for t in reversed(range(len(rewards))):
+                        R = rewards[t] + self.gamma * R * (1 - dones[t])
+                        returns_list.insert(0, R)
+                    returns_t = torch.FloatTensor(returns_list)
+
+                    # 앞으로 지나가기 + 손실
+                    _, lp, ent, val = self.local_models[w].get_action_and_value(states_t, actions_t)
+                    adv = returns_t - val.detach()
+
+                    loss = (
+                        -(lp * adv).mean()
+                        + self.value_coef * F.mse_loss(val, returns_t)
+                        - self.entropy_coef * ent.mean()
+                    )
+
+                    # 온 세상 모형에 기울기를 매긴다
+                    self.optimizer.zero_grad()
+                    loss.backward()
+
+                    for local_p, global_p in zip(
+                        self.local_models[w].parameters(),
+                        self.global_model.parameters()
+                    ):
+                        if global_p.grad is None:
+                            global_p.grad = local_p.grad.clone()
+                        else:
+                            global_p.grad.copy_(local_p.grad)
+
+                    nn.utils.clip_grad_norm_(self.global_model.parameters(), 40.0)
+                    self.optimizer.step()
+
+            for env in self.envs:
+                env.close()
+
+            return all_rewards
 
 
-def demo_simulated_a3c():
-    """프로세스 하나로 흉내 낸 A3C를 보여 준다."""
-    print("=" * 60)
-    print("Simulated A3C on CartPole-v1")
-    print("=" * 60)
-    
-    agent = SimulatedA3C(
-        env_id="CartPole-v1",
-        n_workers=4,
-        n_steps=20,
-        lr=1e-3,
-        gamma=0.99,
-        hidden_dim=128,
-        entropy_coef=0.01,
-        value_coef=0.5,
-    )
-    
-    rewards = agent.train(max_episodes=1000, print_interval=200)
-    
-    if len(rewards) >= 100:
-        print(f"\nFinal avg reward (last 100): {np.mean(rewards[-100:]):.1f}")
+    from collections import deque
 
 
-if __name__ == "__main__":
-    demo_simulated_a3c()
-```
+    def demo_simulated_a3c():
+        """프로세스 하나로 흉내 낸 A3C를 보여 준다."""
+        print("=" * 60)
+        print("Simulated A3C on CartPole-v1")
+        print("=" * 60)
+
+        agent = SimulatedA3C(
+            env_id="CartPole-v1",
+            n_workers=4,
+            n_steps=20,
+            lr=1e-3,
+            gamma=0.99,
+            hidden_dim=128,
+            entropy_coef=0.01,
+            value_coef=0.5,
+        )
+
+        rewards = agent.train(max_episodes=1000, print_interval=200)
+
+        if len(rewards) >= 100:
+            print(f"\nFinal avg reward (last 100): {np.mean(rewards[-100:]):.1f}")
+
+
+    if __name__ == "__main__":
+        demo_simulated_a3c()
+    ```
+
 
 ## 2. 논의
 

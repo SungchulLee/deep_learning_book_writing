@@ -301,56 +301,186 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력:**
+??? note "전체 출력 (175줄)"
 
-```
-======================================================================
-COMPLETE GENERATIVE MODEL EVALUATION EXAMPLE
-======================================================================
+    ```
 
-이 보기는 두루 갖춘 따지기 흐름을 보인다.
-1. 모델에서 표본을 만든다
-2. 눈으로 품질 따지기
-3. 통계로 견주기
-4. FID 셈하기
-5. 다양함 따지기
-6. 표본 품질 잣대
-7. 견주어 살피기
+    ======================================================================
+    COMPLETE GENERATIVE MODEL EVALUATION EXAMPLE
+    ======================================================================
 
-실제로는 다음도 넣는다.
-- 인셉션 점수
-- 정밀도와 재현율
-- 느낌으로 재는 자(LPIPS)
-- 사람이 따지기
-    
+    이 보기는 두루 갖춘 따지기 흐름을 보인다.
+    1. 모델에서 표본을 만든다
+    2. 눈으로 품질 따지기
+    3. 통계로 견주기
+    4. FID 셈하기
+    5. 다양함 따지기
+    6. 표본 품질 잣대
+    7. 견주어 살피기
 
-======================================================================
-COMPARATIVE EVALUATION
-======================================================================
+    실제로는 다음도 넣는다.
+    - 인셉션 점수
+    - 정밀도와 재현율
+    - 느낌으로 재는 자(LPIPS)
+    - 사람이 따지기
+        
 
-Real dataset: 1000 samples
-Initialized poor quality generator
-Initialized moderate quality generator
-Initialized good quality generator
-======================================================================
-Evaluating POOR quality model
-======================================================================
+    ======================================================================
+    COMPARATIVE EVALUATION
+    ======================================================================
 
-1. Generating samples...
+    Real dataset: 1000 samples
+    Initialized poor quality generator
+    Initialized moderate quality generator
+    Initialized good quality generator
+    ======================================================================
+    Evaluating POOR quality model
+    ======================================================================
 
-... (131 lines omitted)
+    1. Generating samples...
+       ✓ Generated 1000 samples
 
-       - 바탕과 견준다
-    
-    5. 실제 얼개에서 살필 것:
-       - 잣대 셈하기를 자동으로 한다
-       - 익히는 동안 잣대를 좇는다
-       - 품질 문턱을 정한다
-       - 나빠지는지 지켜본다
-       - 사람이 꾸준히 따진다
-    
-======================================================================
-```
+    2. Visual Quality Assessment:
+       Real data shape: torch.Size([1000, 1, 28, 28])
+       Generated data shape: torch.Size([1000, 1, 28, 28])
+       Real data range: [0.240, 0.845]
+       Generated range: [0.091, 0.909]
+
+    3. Statistical Comparison:
+       Real:      μ=0.5033, σ=0.0658
+       Generated: μ=0.5000, σ=0.1181
+       Mean error: 0.0033
+       Std error:  0.0523
+
+    4. Computing Mock FID:
+       Mock FID: 0.4464 (lower is better)
+
+    5. Diversity Assessment:
+       Average pairwise distance: 4.6734
+       Minimum pairwise distance: 4.1471
+
+    6. Sample Quality Metrics:
+       Distribution MSE: 0.000011
+    ======================================================================
+    Evaluating MODERATE quality model
+    ======================================================================
+
+    1. Generating samples...
+       ✓ Generated 1000 samples
+
+    2. Visual Quality Assessment:
+       Real data shape: torch.Size([1000, 1, 28, 28])
+       Generated data shape: torch.Size([1000, 1, 28, 28])
+       Real data range: [0.240, 0.845]
+       Generated range: [0.188, 0.855]
+
+    3. Statistical Comparison:
+       Real:      μ=0.5033, σ=0.0658
+       Generated: μ=0.5098, σ=0.0801
+       Mean error: 0.0064
+       Std error:  0.0143
+
+    4. Computing Mock FID:
+       Mock FID: 0.7318 (lower is better)
+
+    5. Diversity Assessment:
+       Average pairwise distance: 2.8887
+       Minimum pairwise distance: 2.5466
+
+    6. Sample Quality Metrics:
+       Distribution MSE: 0.000039
+    ======================================================================
+    Evaluating GOOD quality model
+    ======================================================================
+
+    1. Generating samples...
+       ✓ Generated 1000 samples
+
+    2. Visual Quality Assessment:
+       Real data shape: torch.Size([1000, 1, 28, 28])
+       Generated data shape: torch.Size([1000, 1, 28, 28])
+       Real data range: [0.240, 0.845]
+       Generated range: [0.291, 0.914]
+
+    3. Statistical Comparison:
+       Real:      μ=0.5033, σ=0.0658
+       Generated: μ=0.5266, σ=0.0832
+       Mean error: 0.0233
+       Std error:  0.0174
+
+    4. Computing Mock FID:
+       Mock FID: 3.6429 (lower is better)
+
+    5. Diversity Assessment:
+       Average pairwise distance: 1.9243
+       Minimum pairwise distance: 1.7126
+
+    6. Sample Quality Metrics:
+       Distribution MSE: 0.000544
+
+    ======================================================================
+    EVALUATION SUMMARY
+    ======================================================================
+
+    Metric                    Poor            Moderate        Good           
+    ----------------------------------------------------------------------
+    mean_error                0.003308        0.006424        0.023276       
+    std_error                 0.052266        0.014296        0.017408       
+    mock_fid                  0.446412        0.731808        3.642924       
+    avg_diversity             4.673360        2.888695        1.924251       
+    min_diversity             4.147131        2.546647        1.712604       
+    distribution_mse          0.000011        0.000039        0.000544       
+
+    ----------------------------------------------------------------------
+    Best Model Analysis:
+    ----------------------------------------------------------------------
+
+    Mock FID (lower is better):
+      Poor: 0.4464
+      Moderate: 0.7318
+      Good: 3.6429
+
+    Diversity (higher avg distance is better):
+      Poor: 4.6734
+      Moderate: 2.8887
+      Good: 1.9243
+
+    ======================================================================
+    KEY INSIGHTS FROM EVALUATION
+    ======================================================================
+
+        1. 잣대가 여럿 필요하다:
+           - 잣대 하나가 모든 것을 담지는 못한다
+           - 잣대마다 재는 면이 다르다
+           - 수로 따지기 + 결로 따지기를 아우른다
+        
+        2. 잣대 풀이:
+           - FID가 낮을수록 참 분포에 잘 들어맞는다
+           - 다양함이 클수록 봉우리 무너짐이 적다
+           - 통계 어긋남이 작을수록 적률이 잘 맞는다
+        
+        3. 품질 수준:
+           - 나쁨: 높은 FID, 낮은 다양함, 큰 통계 어긋남
+           - 보통: 중간 FID, 보통 다양함
+           - 좋음: 낮은 FID, 높은 다양함, 작은 어긋남
+        
+        4. 가장 좋은 방식:
+           - 표본을 넉넉히 만든다(FID이면 1만 개 이상)
+           - 서로 메우는 잣대를 여럿 쓴다
+           - 눈으로 살펴보기를 넣는다
+           - 믿음 구간을 알린다
+           - 바탕과 견준다
+        
+        5. 실제 얼개에서 살필 것:
+           - 잣대 셈하기를 자동으로 한다
+           - 익히는 동안 잣대를 좇는다
+           - 품질 문턱을 정한다
+           - 나빠지는지 지켜본다
+           - 사람이 꾸준히 따진다
+        
+    ======================================================================
+    ```
+
 
 ## 2. 논의
 
