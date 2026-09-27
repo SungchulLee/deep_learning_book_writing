@@ -49,6 +49,11 @@ def sandbox_cwd(stack):
         src = ROOT / name
         if src.exists():
             (Path(d) / name).symlink_to(src)
+    # 5장의 쪽들은 장 첫머리에서 만든 심판 CNN(mnist_judge.pt)을 함께 읽는다.
+    # 뿌리에 그런 파일이 있으면 빌려 준다 — 없으면 그 쪽은 그냥 실패하고,
+    # 그것이 곧 "먼저 만들어야 한다"는 알림이 된다.
+    for art in list(ROOT.glob("*.pt")) + list(ROOT.glob("*.pth")):
+        (Path(d) / art.name).symlink_to(art)
     return d
 
 

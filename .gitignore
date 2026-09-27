@@ -19,3 +19,9 @@ data/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# 예제를 돌리면 뿌리에 쌓이는 산출물. 5장의 심판 CNN(mnist_judge.pt)처럼
+# 여러 쪽이 함께 읽는 것도 있으나, 만드는 코드가 책 안에 있으므로 담지 않는다.
+/*.pt
+/*.pth
+/*.png

@@ -12,7 +12,9 @@
     python experiments/verify_outputs.py ch02/models/trees.md
     python experiments/verify_outputs.py ch01/libraries/*.md
 
-경로는 `docs/` 기준이고, 코드는 **저장소 뿌리에서** 돈다(`./data/...`).
+경로는 `docs/` 기준이다. 코드는 **버리는 자리**에서 돈다 — 예제들이 그림과
+저장 파일을 현재 자리에 쏟아 놓으므로 저장소 뿌리에서 돌리면 뿌리가 덮인다.
+자료(`data/`)와 뿌리의 `.pt` 파일만 심볼릭 링크로 빌려 준다.
 
 세 가지 함정
 -----------
@@ -89,6 +91,11 @@ def sandbox_cwd(stack):
         src = ROOT / name
         if src.exists():
             (Path(d) / name).symlink_to(src)
+    # 5장의 쪽들은 장 첫머리에서 만든 심판 CNN(mnist_judge.pt)을 함께 읽는다.
+    # 뿌리에 그런 파일이 있으면 빌려 준다 — 없으면 그 쪽은 그냥 실패하고,
+    # 그것이 곧 "먼저 만들어야 한다"는 알림이 된다.
+    for art in list(ROOT.glob("*.pt")) + list(ROOT.glob("*.pth")):
+        (Path(d) / art.name).symlink_to(art)
     return d
 
 def check(md_path, timeout=1800):
