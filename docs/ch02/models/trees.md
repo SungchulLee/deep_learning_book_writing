@@ -77,25 +77,34 @@ for i in top3:
     print(f"  Feature {i}: importance={importances[i]:.4f}")
 
 # ── 3. 같은 데이터에 신경망을 태워 견준다 ───────────────────────────
-# 표 형태의 자료에서는 트리 계열이 신경망과 맞먹거나 앞서는 일이 흔하다.
-# 신경망이 늘 이기는 것이 아님을 눈으로 확인하는 자리다
+# 트리는 씨앗을 고정해 두었으므로 돌릴 때마다 같은 수가 나온다. 신경망은
+# 처음 무게를 무작위로 잡으므로 그렇지 않다. 한 번만 돌려 견주면 그 한 번이
+# 운이었는지 알 수 없으므로, 씨앗을 바꿔 가며 다섯 번 돌려 **퍼짐**까지 본다
 X_t = torch.tensor(X_tr, dtype=torch.float32)
 y_t = torch.tensor(y_tr, dtype=torch.long)   # 교차 엔트로피는 정수 레이블을 받는다
+X_te_t = torch.tensor(X_te, dtype=torch.float32)
 
-net = torch.nn.Sequential(
-    torch.nn.Linear(10, 32), torch.nn.ReLU(), torch.nn.Linear(32, 2))
-opt = torch.optim.Adam(net.parameters(), lr=0.01)
+nn_accs = []
+for seed in range(5):
+    torch.manual_seed(seed)                  # 이 줄이 있어야 같은 수가 다시 나온다
+    net = torch.nn.Sequential(
+        torch.nn.Linear(10, 32), torch.nn.ReLU(), torch.nn.Linear(32, 2))
+    opt = torch.optim.Adam(net.parameters(), lr=0.01)
 
-for _ in range(200):
-    loss = torch.nn.functional.cross_entropy(net(X_t), y_t)
-    opt.zero_grad(); loss.backward(); opt.step()
+    for _ in range(200):
+        loss = torch.nn.functional.cross_entropy(net(X_t), y_t)
+        opt.zero_grad(); loss.backward(); opt.step()
 
-# 평가할 때는 기울기가 필요 없으므로 추적을 꺼서 메모리와 시간을 아낀다
-with torch.no_grad():
-    X_te_t = torch.tensor(X_te, dtype=torch.float32)
-    # argmax(1): 두 갈래의 로짓 가운데 큰 쪽을 고른다
-    nn_acc = (net(X_te_t).argmax(1).numpy() == y_te).mean()
-print(f"Neural net accuracy: {nn_acc:.4f}")
+    # 평가할 때는 기울기가 필요 없으므로 추적을 꺼서 메모리와 시간을 아낀다
+    with torch.no_grad():
+        # argmax(1): 두 갈래의 로짓 가운데 큰 쪽을 고른다
+        nn_accs.append((net(X_te_t).argmax(1).numpy() == y_te).mean())
+    print(f"  Neural net (seed {seed}): {nn_accs[-1]:.4f}")
+
+lo, hi = min(nn_accs), max(nn_accs)
+print(f"Neural net: {lo:.4f} ~ {hi:.4f}, spread {hi - lo:.4f}, "
+      f"mean {sum(nn_accs) / len(nn_accs):.4f}")
+print(f"Tree      : {tree.score(X_te, y_te):.4f}")
 ```
 
 **출력:**
@@ -107,8 +116,34 @@ Nodes: 45, Leaves: 23
   Feature 0: importance=0.3268
   Feature 5: importance=0.2612
   Feature 1: importance=0.1654
-Neural net accuracy: 0.8900
+  Neural net (seed 0): 0.9100
+  Neural net (seed 1): 0.9000
+  Neural net (seed 2): 0.9000
+  Neural net (seed 3): 0.8900
+  Neural net (seed 4): 0.9100
+Neural net: 0.8900 ~ 0.9100, spread 0.0200, mean 0.9020
+Tree      : 0.8800
 ```
+
+신경망이 트리를 2.2%p 앞선다. 다만 **한 번만 돌렸다면 이렇게 말할 수 없었다.**
+씨앗에 따라 0.8900에서 0.9100까지 흔들리니, 어느 한 번을 집어 트리의 0.8800과
+견주는 것은 그 한 번이 운이었는지 아닌지를 모르고 견주는 것이다. 다섯 번의
+가장 낮은 값이 트리보다 높아야 비로소 앞선다고 말할 수 있고, 여기서는 그렇다.
+
+퍼짐보다 작은 차이는 차이가 아니라는 이 규칙은 6장에서 모형들을 줄 세울 때
+다시 쓴다. 지금 기억할 것은 규칙 자체보다, **씨앗을 고정하지 않은 수는 아예
+견줄 수 없다**는 쪽이다.
+
+!!! note "표 형태의 자료에서는 트리가 이긴다던데"
+
+    자주 쓰이는 말이고 실제 자료에서는 대체로 맞지만, 이 예는 그것을 보여
+    주지 못한다. `make_classification`이 정보를 담은 특성들의 **선형 결합**으로
+    자료를 만들기 때문이다. 비스듬한 경계가 정답인 자료라, 축에 평행하게만
+    자르는 트리에게 애초에 불리하다.
+
+    말이 맞는지 보려면 자료가 그 말을 시험할 수 있는 것이어야 한다. 여기서
+    확인할 수 있는 것은 트리가 신경망의 2.2%p 안에 들어온다는 것 — 해석까지
+    덤으로 주면서 — 까지다.
 
 ---
 

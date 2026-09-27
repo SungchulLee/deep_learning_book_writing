@@ -7,6 +7,9 @@
 ```python
 """튜토리얼 15: 고윳값과 특잇값 쪼개기 - 앞선 행렬 쪼개기"""
 import torch
+# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
 
 # ========================================================================
 # 메인
@@ -82,6 +85,7 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+
 ======================================================================
 1. Eigenvalues and Eigenvectors
 ======================================================================
@@ -105,8 +109,8 @@ U shape: torch.Size([4, 3])
 S shape: torch.Size([3])
 Vh shape: torch.Size([3, 3])
 
-Singular values: tensor([3.1300, 1.9768, 1.7227])
-Reconstruction error: 8.49e-07
+Singular values: tensor([3.2245, 1.4537, 0.2943])
+Reconstruction error: 8.39e-07
 
 ======================================================================
 3. Matrix Rank
@@ -115,9 +119,29 @@ M =
 tensor([[1., 2., 3.],
         [4., 5., 6.],
         [7., 8., 9.]])
+Rank: 2
 
-... (23 lines omitted)
+Random matrix rank: 3
 
+======================================================================
+4. QR Decomposition
+======================================================================
+A shape: torch.Size([5, 3])
+Q shape: torch.Size([5, 3])
+R shape: torch.Size([3, 3])
+Q is orthonormal: False
+Reconstruction: True
+
+======================================================================
+5. Cholesky Decomposition
+======================================================================
+A (positive definite) =
+tensor([[4., 2.],
+        [2., 3.]])
+L (lower triangular) =
+tensor([[2.0000, 0.0000],
+        [1.0000, 1.4142]])
+L @ L.T =
 tensor([[4., 2.],
         [2., 3.]])
 
@@ -126,7 +150,7 @@ tensor([[4., 2.],
 ======================================================================
 Data shape: torch.Size([100, 10])
 Top 3 principal components:
-Explained variance: tensor([0.1567, 0.1409, 0.1289])
+Explained variance: tensor([0.1721, 0.1411, 0.1305])
 Reduced data shape: torch.Size([100, 3])
 ```
 
