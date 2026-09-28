@@ -211,8 +211,134 @@ def fig_depth_curves():
     print("wrote depth_curves.svg")
 
 
+
+# =============================================================================
+# 4.3의 그림 둘
+# =============================================================================
+def _box(ax, x, y, w, h, label, sub=None, fc="#dfe6ee", ec="#5b6b7d", fs=7.5):
+    """상자 하나와 그 안의 글자. 글자는 모두 ASCII 로 적는다.
+
+    윗글과 아랫글의 간격은 상자 높이에 **비례**해야 한다. 고정값으로 두면
+    상자가 조금만 높아져도 두 줄이 겹쳐 읽을 수 없게 된다.
+    """
+    ax.add_patch(plt.Rectangle((x, y), w, h, facecolor=fc, edgecolor=ec, linewidth=0.9))
+    cy = y + h / 2
+    if sub:
+        ax.text(x + w / 2, cy + h * 0.17, label, ha="center", va="center", fontsize=fs)
+        ax.text(x + w / 2, cy - h * 0.19, sub, ha="center", va="center",
+                fontsize=fs - 1.3, color="#44525f")
+    else:
+        ax.text(x + w / 2, cy, label, ha="center", va="center", fontsize=fs)
+
+
+def fig_vgg16_architecture():
+    """VGG16의 뼈대. 4걸음 CNN을 위에 놓아 '같은 부품, 더 많이'를 보인다.
+
+    보는 이가 읽어야 할 것: 두 줄이 같은 부품(3x3 conv, 2x2 pool)으로만
+    이루어져 있고, 다른 것은 그 부품을 몇 번 쌓았는가뿐이라는 점.
+    """
+    CONV, POOL, FC = "#cfe0f3", "#f3ddc9", "#d8ecd6"
+    GAP, H = 0.9, 5.0
+
+    # 두 줄을 먼저 자리부터 셈해 둔다. 폭을 나중에 맞추려면 총 길이를 알아야 한다
+    top = [("conv 3x3", "32", CONV, 10), ("pool", "/2", POOL, 6),
+           ("conv 3x3", "64", CONV, 10), ("pool", "/2", POOL, 6),
+           ("FC", "128", FC, 7), ("FC", "10", FC, 7)]
+    bot = []
+    for n, ch, out in [(2, "64", "112"), (2, "128", "56"), (3, "256", "28"),
+                       (3, "512", "14"), (3, "512", "7")]:
+        bot.append((f"conv 3x3 x{n}", ch, CONV, 4.6 * n + 1.6))
+        bot.append(("pool", out, POOL, 5.0))
+    for ch in ("4096", "4096", "1000"):
+        bot.append(("FC", ch, FC, 6.4))
+
+    wide = max(sum(w for *_, w in row) + GAP * (len(row) - 1) for row in (top, bot))
+    fig, ax = plt.subplots(figsize=(12, 3.6))
+    ax.set_xlim(-1, wide + 1); ax.set_ylim(0, 32); ax.axis("off")
+
+    ax.text(0, 28.2, "Step 4 CNN  (trained from scratch on CIFAR-10)",
+            fontsize=9, weight="bold")
+    x = 0
+    for lab, sub, fc, w in top:
+        _box(ax, x, 21.8, w, H, lab, sub, fc); x += w + GAP
+    ax.text(x + 1.4, 24.3, "2 conv layers    545,098 params",
+            fontsize=8, va="center", color="#44525f")
+
+    ax.text(0, 15.4, "VGG16  (trained on ImageNet, 1.2M images)",
+            fontsize=9, weight="bold")
+    x = 0
+    for lab, sub, fc, w in bot:
+        _box(ax, x, 9.0, w, H, lab, sub, fc); x += w + GAP
+    ax.text(0, 5.4, "13 conv layers    138,357,544 params    input 224x224,  "
+                    "each pool halves the map",
+            fontsize=8, color="#44525f")
+
+    # 잇는 선은 아래 제목 글자에 닿기 전에 멈춘다 (닿으면 글자를 가로지른다)
+    ax.annotate("", xy=(5.0, 16.6), xytext=(5.0, 21.8),
+                arrowprops=dict(arrowstyle="-", ls=":", color="#8a97a4", lw=0.9))
+    ax.text(6.2, 18.9, "same two parts, stacked deeper",
+            fontsize=8, color="#8a97a4")
+
+    fig.tight_layout()
+    fig.savefig("vgg16_architecture.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  vgg16_architecture.svg")
+
+
+def fig_transfer_learning():
+    """전이의 얼개: 무엇을 얼리고 무엇을 새로 다는가, 그리고 그 몫.
+
+    보는 이가 읽어야 할 것: 잘라 내는 자리가 마지막 FC 하나뿐이고,
+    새로 배우는 매개변수가 전체의 0.03%밖에 되지 않는다는 점.
+    """
+    fig, ax = plt.subplots(figsize=(11, 3.9))
+    ax.set_xlim(-1, 92); ax.set_ylim(0, 36); ax.axis("off")
+
+    FROZEN, CUT, NEW = "#e2e6ea", "#f6d6d6", "#cfe8cf"
+
+    ax.text(0, 33.2, "VGG16 as a frozen feature extractor", fontsize=9, weight="bold")
+
+    # 얼린 몸통
+    _box(ax, 0, 22.0, 34, 5.4, "conv blocks 1-5  (13 conv layers)", "FROZEN", FROZEN, fs=8)
+    _box(ax, 35.5, 22.0, 11, 5.4, "FC 4096", "FROZEN", FROZEN, fs=8)
+    _box(ax, 48.0, 22.0, 11, 5.4, "FC 4096", "FROZEN", FROZEN, fs=8)
+    # 떼어 내는 머리
+    _box(ax, 60.5, 22.0, 13, 5.4, "FC 1000", "REMOVED", CUT, fs=8)
+    ax.plot([60.5, 73.5], [22.0, 27.4], color="#b05555", lw=1.1)
+    ax.plot([60.5, 73.5], [27.4, 22.0], color="#b05555", lw=1.1)
+    # 새로 다는 머리
+    _box(ax, 76.0, 22.0, 13, 5.4, "FC 10", "TRAINED", NEW, fs=8)
+
+    # 상자 **위로** 넘어가게 둔다. 상자 높이에 걸치면 떼어 낸 칸의 글자를 가린다
+    ax.annotate("", xy=(82.5, 27.6), xytext=(53.0, 27.6),
+                arrowprops=dict(arrowstyle="->", color="#4a7a4a", lw=1.2,
+                                connectionstyle="arc3,rad=-0.35"))
+    ax.text(67.5, 31.4, "replace the head", fontsize=8, color="#4a7a4a", ha="center")
+
+    # 아래: 매개변수 몫 막대
+    ax.text(0, 13.0, "Who chose these numbers?", fontsize=9, weight="bold")
+    bar_y, bar_h, W = 6.0, 4.0, 89.0
+    frac = 40970 / (134260544 + 40970)          # 0.0003
+    ax.add_patch(plt.Rectangle((0, bar_y), W * (1 - frac), bar_h,
+                               facecolor=FROZEN, edgecolor="#5b6b7d", lw=0.9))
+    ax.add_patch(plt.Rectangle((W * (1 - frac), bar_y), max(W * frac, 0.45), bar_h,
+                               facecolor=NEW, edgecolor="#4a7a4a", lw=0.9))
+    ax.text(W / 2, bar_y + bar_h / 2, "ImageNet chose  134,260,544  (99.97%)",
+            ha="center", va="center", fontsize=8)
+    ax.annotate("we chose 40,970  (0.03%)", xy=(W, bar_y + bar_h / 2),
+                xytext=(W - 26, bar_y - 4.2), fontsize=8, color="#3f6b3f",
+                arrowprops=dict(arrowstyle="->", color="#4a7a4a", lw=1.0))
+
+    fig.tight_layout()
+    fig.savefig("transfer_learning.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  transfer_learning.svg")
+
+
 if __name__ == "__main__":
     fig_class_mean_templates()
     fig_vgg16_conv1()
     fig_pca_reconstructions()
     fig_depth_curves()
+    fig_vgg16_architecture()
+    fig_transfer_learning()
