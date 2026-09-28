@@ -154,7 +154,7 @@ vgg_layers = [
 ]
 
 rf, jump = compute_receptive_field(vgg_layers)
-print(f"Receptive field: {rf}×{rf}")  # 22×22
+print(f"Receptive field: {rf}×{rf}")  # 16×16
 print(f"Jump (output stride): {jump}")  # 4
 ```
 
@@ -336,7 +336,7 @@ def wavenet_receptive_field(num_blocks, layers_per_block, kernel_size=2):
 # 층 10개짜리 블록 3개로 이루어진 WaveNet
 rf, total_layers = wavenet_receptive_field(3, 10, kernel_size=2)
 print(f"WaveNet (3 blocks × 10 layers): {total_layers} layers, RF = {rf}")
-# RF = 3 × (2^10 - 1) + 1 = 3069
+# RF = 3 × (2^10 - 1) + 1 = 3 × 1023 + 1 = 3070
 ```
 
 **출력:**
