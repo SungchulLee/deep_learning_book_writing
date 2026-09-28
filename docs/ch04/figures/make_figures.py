@@ -232,52 +232,78 @@ def _box(ax, x, y, w, h, label, sub=None, fc="#dfe6ee", ec="#5b6b7d", fs=7.5):
 
 
 def fig_vgg16_architecture():
-    """VGG16의 뼈대. 4걸음 CNN을 위에 놓아 '같은 부품, 더 많이'를 보인다.
+    """VGG16을 **부피**로 그린다. 4걸음 CNN을 같은 자로 나란히 둔다.
 
-    보는 이가 읽어야 할 것: 두 줄이 같은 부품(3x3 conv, 2x2 pool)으로만
-    이루어져 있고, 다른 것은 그 부품을 몇 번 쌓았는가뿐이라는 점.
+    보는 이가 읽어야 할 것: 상자가 지날수록 **낮아지고 두꺼워진다**는 것.
+    낮아지는 것은 공간 해상도(224 -> 7)이고 두꺼워지는 것은 채널 수(3 -> 512)다.
+    납작한 칸을 늘어놓으면 이 맞바꿈이 보이지 않는다.
+
+    상자의 높이는 한 변에 비례하고(로그로 눌렀다), 너비는 채널 수의 제곱근에
+    비례한다. 채널을 그대로 쓰면 512가 3을 짓눌러 그림이 되지 않는다.
     """
+    import math
+
+    def h_of(side):  return 1.6 + 5.2 * math.log10(side) / math.log10(224)
+    def w_of(ch):    return 1.1 + 4.6 * math.sqrt(ch) / math.sqrt(512)
+
     CONV, POOL, FC = "#cfe0f3", "#f3ddc9", "#d8ecd6"
-    GAP, H = 0.9, 5.0
 
-    # 두 줄을 먼저 자리부터 셈해 둔다. 폭을 나중에 맞추려면 총 길이를 알아야 한다
-    top = [("conv 3x3", "32", CONV, 10), ("pool", "/2", POOL, 6),
-           ("conv 3x3", "64", CONV, 10), ("pool", "/2", POOL, 6),
-           ("FC", "128", FC, 7), ("FC", "10", FC, 7)]
-    bot = []
-    for n, ch, out in [(2, "64", "112"), (2, "128", "56"), (3, "256", "28"),
-                       (3, "512", "14"), (3, "512", "7")]:
-        bot.append((f"conv 3x3 x{n}", ch, CONV, 4.6 * n + 1.6))
-        bot.append(("pool", out, POOL, 5.0))
-    for ch in ("4096", "4096", "1000"):
-        bot.append(("FC", ch, FC, 6.4))
+    def draw(ax, stages, y0, fs=6.6):
+        """stages: (라벨, 한 변, 채널, 색). 왼쪽부터 놓고 총 너비를 돌려준다."""
+        x = 0.0
+        for lab, side, ch, fc in stages:
+            w, h = w_of(ch), h_of(side)
+            ax.add_patch(plt.Rectangle((x, y0 - h / 2), w, h, facecolor=fc,
+                                       edgecolor="#5b6b7d", linewidth=0.8))
+            ax.text(x + w / 2, y0 + h / 2 + 0.5, lab, ha="center", va="bottom",
+                    fontsize=fs, color="#33414d")
+            ax.text(x + w / 2, y0 - h / 2 - 0.5, f"{side}x{side}x{ch}",
+                    ha="center", va="top", fontsize=fs - 0.6, color="#66737f")
+            x += w + 0.85
+        return x
 
-    wide = max(sum(w for *_, w in row) + GAP * (len(row) - 1) for row in (top, bot))
-    fig, ax = plt.subplots(figsize=(12, 3.6))
-    ax.set_xlim(-1, wide + 1); ax.set_ylim(0, 32); ax.axis("off")
+    vgg = [("input", 224, 3, "#eceff1"),
+           ("conv x2", 224, 64, CONV), ("pool", 112, 64, POOL),
+           ("conv x2", 112, 128, CONV), ("pool", 56, 128, POOL),
+           ("conv x3", 56, 256, CONV), ("pool", 28, 256, POOL),
+           ("conv x3", 28, 512, CONV), ("pool", 14, 512, POOL),
+           ("conv x3", 14, 512, CONV), ("pool", 7, 512, POOL)]
+    step4 = [("input", 28, 1, "#eceff1"),
+             ("conv", 28, 32, CONV), ("pool", 14, 32, POOL),
+             ("conv", 14, 64, CONV), ("pool", 7, 64, POOL)]
 
-    ax.text(0, 28.2, "Step 4 CNN  (trained from scratch on CIFAR-10)",
-            fontsize=9, weight="bold")
-    x = 0
-    for lab, sub, fc, w in top:
-        _box(ax, x, 21.8, w, H, lab, sub, fc); x += w + GAP
-    ax.text(x + 1.4, 24.3, "2 conv layers    545,098 params",
-            fontsize=8, va="center", color="#44525f")
+    # 총 너비를 먼저 셈해 눈금을 맞춘다. 눈금을 어림으로 박으면 마지막 상자가
+    # 오른쪽 밖으로 잘려 나간다 (FC 1000 이 그렇게 잘렸었다)
+    span = sum(w_of(c) + 0.85 for _, _, c, _ in vgg) + 3 * 2.85
+    fig, ax = plt.subplots(figsize=(13, 5.4))
+    ax.set_xlim(-1.2, span + 1.0); ax.set_ylim(-1.5, 23.5); ax.axis("off")
 
-    ax.text(0, 15.4, "VGG16  (trained on ImageNet, 1.2M images)",
-            fontsize=9, weight="bold")
-    x = 0
-    for lab, sub, fc, w in bot:
-        _box(ax, x, 9.0, w, H, lab, sub, fc); x += w + GAP
-    ax.text(0, 5.4, "13 conv layers    138,357,544 params    input 224x224,  "
-                    "each pool halves the map",
-            fontsize=8, color="#44525f")
+    ax.text(0, 21.6, "VGG16  —  13 conv layers, 138,357,544 params",
+            fontsize=9.5, weight="bold")
+    xv = draw(ax, vgg, 15.2)
+    for lab, ch in (("FC", 4096), ("FC", 4096), ("FC", 1000)):
+        ax.add_patch(plt.Rectangle((xv, 15.2 - 1.1), 2.0, 2.2, facecolor=FC,
+                                   edgecolor="#5b6b7d", linewidth=0.8))
+        ax.text(xv + 1.0, 15.2 + 1.8, lab, ha="center", fontsize=6.6, color="#33414d")
+        ax.text(xv + 1.0, 15.2 - 1.9, str(ch), ha="center", va="top",
+                fontsize=6.0, color="#66737f")
+        xv += 2.85
 
-    # 잇는 선은 아래 제목 글자에 닿기 전에 멈춘다 (닿으면 글자를 가로지른다)
-    ax.annotate("", xy=(5.0, 16.6), xytext=(5.0, 21.8),
-                arrowprops=dict(arrowstyle="-", ls=":", color="#8a97a4", lw=0.9))
-    ax.text(6.2, 18.9, "same two parts, stacked deeper",
-            fontsize=8, color="#8a97a4")
+    ax.text(0, 7.4, "Step 4 CNN  —  2 conv layers, 421,642 params (MNIST)",
+            fontsize=9.5, weight="bold")
+    xs = draw(ax, step4, 2.6)
+    for lab, ch in (("FC", 128), ("FC", 10)):
+        ax.add_patch(plt.Rectangle((xs, 2.6 - 1.1), 2.0, 2.2, facecolor=FC,
+                                   edgecolor="#5b6b7d", linewidth=0.8))
+        ax.text(xs + 1.0, 2.6 + 1.8, lab, ha="center", fontsize=6.6, color="#33414d")
+        ax.text(xs + 1.0, 2.6 - 1.9, str(ch), ha="center", va="top",
+                fontsize=6.0, color="#66737f")
+        xs += 2.85
+
+    ax.annotate("", xy=(xv - 3.0, 19.6), xytext=(2.0, 19.6),
+                arrowprops=dict(arrowstyle="->", color="#8a97a4", lw=1.0))
+    ax.text((xv) / 2, 20.1, "spatial size shrinks 224 -> 7,   channels grow 3 -> 512",
+            ha="center", fontsize=8, color="#7b8792")
 
     fig.tight_layout()
     fig.savefig("vgg16_architecture.svg", transparent=True, bbox_inches="tight")
