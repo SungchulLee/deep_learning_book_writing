@@ -25,3 +25,4 @@ __pycache__/
 /*.pt
 /*.pth
 /*.png
+experiments/ch04_10ep/
