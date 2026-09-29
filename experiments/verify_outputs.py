@@ -215,6 +215,7 @@ def check(md_path, timeout=1800):
     env["PYTHONPATH"] = str(md_path.parent) + os.pathsep + env.get("PYTHONPATH", "")
 
     r = None
+    timed_out = False
     with ExitStack() as stack:
         cwd = sandbox_cwd(stack)
         for code in candidates:
@@ -229,15 +230,22 @@ def check(md_path, timeout=1800):
                 # 이어 붙이면 연습문제 풀이까지 함께 돌아 훨씬 오래 걸리는데,
                 # 여기서 바로 포기하면 되돌림을 써 보지도 못하고 끝난다.
                 r = None
+                timed_out = True
                 continue
             finally:
                 Path(tmp).unlink(missing_ok=True)
             if r.returncode == 0:
                 break
 
+    # 시간초과를 실행실패와 한 칸에 넣으면 안 된다. 시간초과는 stderr 가 비어 있어
+    # 까닭 없는 "실행실패" 한 줄로만 보이는데, 정작 고칠 것은 쪽이 아니라 --timeout 이다.
+    if r is None and timed_out:
+        return ("시간초과", 0, 0,
+                [f"{timeout}초 안에 못 끝냈다. --timeout <초> 로 늘려서 다시 돌려라."], 0)
+
     if r is None or r.returncode != 0:
         tail = r.stderr.strip().splitlines()[-2:] if r else []
-        return ("실행실패", 0, 0, tail, 0)
+        return ("실행실패", 0, 0, tail or ["stderr 가 비어 있다"], 0)
 
     wanted = numeric_lines(want)
     missing = [l for l in wanted if l not in r.stdout]

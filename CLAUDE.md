@@ -194,6 +194,12 @@ python experiments/verify_outputs.py ch02/models/trees.md   # runs it, diffs the
 python experiments/restore_outputs.py <page>                # reruns and writes output back
 ```
 
+**Both default to a 1800-second timeout.** A page that trains anything — `ch04/02_depth.md`
+is 25 trainings, about 45 minutes — will blow through it, so pass `--timeout <seconds>` for
+those. A timeout used to report as a bare `실행실패` with no reason under it, because the
+killed subprocess leaves no stderr; it now reports `시간초과` and names the flag. If you see
+`실행실패` with nothing under it on a heavy page, suspect the timeout before the page.
+
 Paths are relative to `docs/`. Both run the page's code in a throwaway directory with
 `data/` linked in — examples write `.png` and `.pth` next to themselves, and running them
 from the repo root litters it.
