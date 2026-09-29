@@ -389,10 +389,91 @@ def fig_transfer_learning():
     print("  transfer_learning.svg")
 
 
+def fig_vgg16_layers():
+    """VGG16을 **층 목록**으로 쌓아 그린다. 부피 그림과 짝이다.
+
+    부피 그림은 "낮아지면서 두꺼워진다"를 보이지만 층마다의 정확한 수는
+    읽히지 않는다. 이 그림은 그 반대다 -- 왼쪽에 층 이름, 가운데에 연산,
+    오른쪽에 **그 층을 지나고 난 텐서 모양**을 적는다. 둘을 함께 두면
+    구조와 모양이 한 자리에서 읽힌다.
+
+    모양은 PyTorch 차례(NCHW)로 적는다. 흔히 도는 그림들은 224x224x3처럼
+    텐서플로 차례로 적어 두는데, 이 책의 코드가 내놓는 것과 어긋난다.
+
+    흔한 잘못 하나: 인터넷에 도는 VGG16 그림 가운데 conv3 를 두 층으로
+    그려 둔 것이 많다. 그러면 합성곱이 12층이 되어 이름의 16(=13+3)과
+    맞지 않는다. 블록마다 2-2-3-3-3 이다.
+    """
+    CONV = ("#fce4d2", "#d4813f")
+    POOL = ("#dbe7f7", "#4a72b8")
+    FCL  = ("#dfeadb", "#4e7a43")
+    SMAX = ("#fbdada", "#c44f4f")
+    INP  = ("#e6e6e6", "#333333")
+    AVG  = ("#eef1f4", "#8a97a4")
+
+    # (층 이름, 상자 글, 지나고 난 모양, 색). 아래에서 위로 쌓는다.
+    rows = [
+        ("",         "Input",              "3x224x224",   INP),
+        ("conv1-1",  "3x3 conv, 64",       "64x224x224",  CONV),
+        ("conv1-2",  "3x3 conv, 64",       "64x224x224",  CONV),
+        ("",         "Pool",               "64x112x112",  POOL),
+        ("conv2-1",  "3x3 conv, 128",      "128x112x112", CONV),
+        ("conv2-2",  "3x3 conv, 128",      "128x112x112", CONV),
+        ("",         "Pool",               "128x56x56",   POOL),
+        ("conv3-1",  "3x3 conv, 256",      "256x56x56",   CONV),
+        ("conv3-2",  "3x3 conv, 256",      "256x56x56",   CONV),
+        ("conv3-3",  "3x3 conv, 256",      "256x56x56",   CONV),
+        ("",         "Pool",               "256x28x28",   POOL),
+        ("conv4-1",  "3x3 conv, 512",      "512x28x28",   CONV),
+        ("conv4-2",  "3x3 conv, 512",      "512x28x28",   CONV),
+        ("conv4-3",  "3x3 conv, 512",      "512x28x28",   CONV),
+        ("",         "Pool",               "512x14x14",   POOL),
+        ("conv5-1",  "3x3 conv, 512",      "512x14x14",   CONV),
+        ("conv5-2",  "3x3 conv, 512",      "512x14x14",   CONV),
+        ("conv5-3",  "3x3 conv, 512",      "512x14x14",   CONV),
+        ("",         "Pool",               "512x7x7",     POOL),
+        ("",         "AdaptiveAvgPool 7x7","512x7x7",     AVG),
+        ("fc6",      "FC 4096",            "4096",        FCL),
+        ("fc7",      "FC 4096",            "4096",        FCL),
+        ("fc8",      "FC 1000",            "1000",        FCL),
+        ("",         "Softmax",            "1000",        SMAX),
+    ]
+
+    BW, BH, GAP = 6.4, 0.78, 0.17
+    fig, ax = plt.subplots(figsize=(7.6, 12.2))
+    ax.axis("off")
+
+    for i, (name, mid, shape, (fill, edge)) in enumerate(rows):
+        y = i * (BH + GAP)
+        ax.add_patch(plt.Rectangle((0, y), BW, BH, facecolor=fill,
+                                   edgecolor=edge, linewidth=1.3))
+        ax.text(BW / 2, y + BH / 2, mid, ha="center", va="center",
+                fontsize=9.5, color="#26323c")
+        if name:
+            ax.text(-0.28, y + BH / 2, name, ha="right", va="center",
+                    fontsize=9.5, color="#26323c")
+        ax.text(BW + 0.28, y + BH / 2, shape, ha="left", va="center",
+                fontsize=8.6, color="#6b7883")
+
+    top = len(rows) * (BH + GAP)
+    ax.text(BW / 2, -0.95, "VGG16", ha="center", fontsize=12, weight="bold")
+    ax.text(BW + 0.28, top + 0.10, "shape after the layer  (PyTorch, NCHW)",
+            ha="left", va="bottom", fontsize=8.2, color="#8a97a4")
+    ax.text(-0.28, top + 0.10, "13 conv + 3 FC = 16",
+            ha="right", va="bottom", fontsize=8.2, color="#8a97a4")
+
+    ax.set_xlim(-2.5, BW + 3.9)
+    ax.set_ylim(-1.5, top + 0.9)
+    fig.savefig("vgg16_layers.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  vgg16_layers.svg")
+
+
 if __name__ == "__main__":
     fig_class_mean_templates()
     fig_vgg16_conv1()
     fig_pca_reconstructions()
     fig_depth_curves()
     fig_vgg16_architecture()
+    fig_vgg16_layers()
     fig_transfer_learning()
