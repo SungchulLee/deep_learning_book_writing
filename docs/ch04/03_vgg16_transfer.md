@@ -122,7 +122,10 @@ device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 # === 1. ImageNet 규약에 맞춘 전처리 =========================================
 transform = transforms.Compose([
-    transforms.Resize(224),                    # 32x32 -> 224x224
+    # 보간이 일어나는 자리는 여기 한 줄뿐이다. 기본값이 겹선형(bilinear)이라
+    # 화소 사이를 지어내 채운다. 나오는 50,176칸 가운데 원래 값은 1,024칸,
+    # 곧 2%뿐이다. ToTensor 앞에 두었으므로 텐서가 아니라 PIL 그림을 키운다
+    transforms.Resize(224),                    # 3x32x32 -> 3x224x224
     transforms.ToTensor(),
     # 상수가 4장 앞부분과 다르다. CIFAR-10의 통계가 아니라 ImageNet의 것이다
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
