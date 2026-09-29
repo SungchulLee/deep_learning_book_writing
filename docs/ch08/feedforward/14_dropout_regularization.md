@@ -137,13 +137,16 @@ def train_and_evaluate(model, name, epochs=10):
     
     return train_accs, test_accs
 
-# 주의: 씨앗을 심지 않아 두 모델의 초기 가중치가 서로 다르다.
-# 차이를 온전히 드롭아웃 탓으로 돌리려면 모델을 만들기 직전마다
-# torch.manual_seed(42)를 불러야 한다
+# 모델을 만들기 직전마다 같은 씨앗을 심는다. 두 모델의 층 구성이 같으므로
+# 초기 가중치도 같아지고, 배치 순서까지 같은 자리에서 출발한다. 그래야
+# 아래 표에 남는 차이를 드롭아웃 탓으로 돌릴 수 있고, 이 쪽에 실린 수도
+# 다시 돌렸을 때 그대로 나온다
 print("\nTraining WITHOUT Dropout:")
+torch.manual_seed(42)
 no_drop_train, no_drop_test = train_and_evaluate(NoDropoutNet(), "No Dropout")
 
 print("\nTraining WITH Dropout:")
+torch.manual_seed(42)
 drop_train, drop_test = train_and_evaluate(DropoutNet(0.5), "Dropout 0.5")
 
 # 비교 그리기
@@ -220,28 +223,28 @@ Dropout and Regularization
 ======================================================================
 
 Training WITHOUT Dropout:
-No Dropout - Epoch 1: Train=91.8%, Test=95.7%
-No Dropout - Epoch 2: Train=96.8%, Test=97.4%
-No Dropout - Epoch 3: Train=97.9%, Test=97.4%
-No Dropout - Epoch 4: Train=98.3%, Test=97.7%
-No Dropout - Epoch 5: Train=98.6%, Test=98.2%
-No Dropout - Epoch 6: Train=98.9%, Test=98.1%
-No Dropout - Epoch 7: Train=99.1%, Test=98.2%
-No Dropout - Epoch 8: Train=99.1%, Test=97.8%
-No Dropout - Epoch 9: Train=99.3%, Test=98.0%
-No Dropout - Epoch 10: Train=99.3%, Test=97.7%
+No Dropout - Epoch 1: Train=91.8%, Test=96.2%
+No Dropout - Epoch 2: Train=96.9%, Test=97.0%
+No Dropout - Epoch 3: Train=97.8%, Test=97.6%
+No Dropout - Epoch 4: Train=98.4%, Test=97.9%
+No Dropout - Epoch 5: Train=98.7%, Test=97.9%
+No Dropout - Epoch 6: Train=98.9%, Test=97.6%
+No Dropout - Epoch 7: Train=99.1%, Test=97.8%
+No Dropout - Epoch 8: Train=99.1%, Test=98.1%
+No Dropout - Epoch 9: Train=99.2%, Test=97.7%
+No Dropout - Epoch 10: Train=99.4%, Test=97.7%
 
 Training WITH Dropout:
-Dropout 0.5 - Epoch 1: Train=88.2%, Test=95.2%
+Dropout 0.5 - Epoch 1: Train=88.2%, Test=95.6%
 Dropout 0.5 - Epoch 2: Train=94.8%, Test=96.8%
-Dropout 0.5 - Epoch 3: Train=95.9%, Test=97.4%
-Dropout 0.5 - Epoch 4: Train=96.5%, Test=97.7%
-Dropout 0.5 - Epoch 5: Train=96.8%, Test=97.8%
+Dropout 0.5 - Epoch 3: Train=96.0%, Test=97.3%
+Dropout 0.5 - Epoch 4: Train=96.4%, Test=97.4%
+Dropout 0.5 - Epoch 5: Train=96.8%, Test=97.6%
 Dropout 0.5 - Epoch 6: Train=97.1%, Test=97.8%
-Dropout 0.5 - Epoch 7: Train=97.3%, Test=97.8%
-Dropout 0.5 - Epoch 8: Train=97.4%, Test=98.1%
-Dropout 0.5 - Epoch 9: Train=97.6%, Test=98.1%
-Dropout 0.5 - Epoch 10: Train=97.7%, Test=98.2%
+Dropout 0.5 - Epoch 7: Train=97.2%, Test=98.0%
+Dropout 0.5 - Epoch 8: Train=97.4%, Test=98.0%
+Dropout 0.5 - Epoch 9: Train=97.5%, Test=98.1%
+Dropout 0.5 - Epoch 10: Train=97.6%, Test=97.8%
 
 Plot saved as '08_dropout_comparison.png'
 

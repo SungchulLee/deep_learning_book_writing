@@ -64,7 +64,7 @@ print(f"x: {x}")
 
 # 순전파: loss = sum(x²)
 loss = (x ** 2).sum()
-print(f"loss: {loss}")
+print("loss:", loss)   # f-string을 쓰면 0차원 텐서가 맨 실수로 찍혀 grad_fn이 사라진다
 
 # 역전파: d(loss)/dx = 2x
 loss.backward()
@@ -77,9 +77,9 @@ print(f"Match: {torch.allclose(x.grad, 2 * x.detach())}")
 **출력:**
 ```
 x: tensor([ 1.5410, -0.2934, -2.1788], requires_grad=True)
-loss: tensor(7.2274, grad_fn=<SumBackward0>)
-x.grad: tensor([ 3.0820, -0.5868, -4.3576])
-Expected (2x): tensor([ 3.0820, -0.5868, -4.3576])
+loss: tensor(7.2079, grad_fn=<SumBackward0>)
+x.grad: tensor([ 3.0820, -0.5869, -4.3576])
+Expected (2x): tensor([ 3.0820, -0.5869, -4.3576])
 Match: True
 ```
 
