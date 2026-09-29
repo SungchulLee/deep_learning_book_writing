@@ -31,7 +31,7 @@
 - [CIFAR-10 데이터셋](cnn/03_cifar10_dataset.md) — 색이 있는 자연 영상으로 옮겨 가기
 - [Fashion-MNIST 분류기](cnn/05_fashion_mnist_classifier.md) — 앞의 개념을 모아 첫 분류기를 세운다
 - [CIFAR-10 기본](cnn/06_cifar10_basic.md) — 자연 영상에서의 바탕 성능
-- [CIFAR-10 심화](cnn/07_cifar10_advanced.md) — 증강과 정칙화로 그 성능을 끌어올리기
+- [CIFAR-10 심화](cnn/07_cifar10_advanced.md) — 합성곱을 넷으로 늘리고 학습률을 깎아 가며 재기
 - [이진 분류](cnn/08_binary_classification.md) — 두 갈래만 가를 때 달라지는 것
 - [CNN 유틸리티](cnn/cnn_utils.md) — 이 절의 예제들이 함께 쓰는 도구
 
