@@ -157,14 +157,17 @@ Measurements behind the rewrite
   page had no output block, so there was nothing to check and the page had never
   been checked once. It now offers 136 numeric lines.
 
-  A full `verify_outputs.py` pass has to train all 45 classifiers, roughly 2.6
-  CPU-hours. It was launched with `--timeout 86400` and was still running when
-  this entry was written: the machine was carrying a load average between 38 and
-  123 from other agents all evening, and the run was getting about a fifth of one
-  core. Anyone rerunning it should pass a timeout well above the 7200 the other
-  pages need — at an idle machine expect 1–2 hours, under load much more. The
-  four-pair bit-exact spot check above is what stands in for it here, and it
-  covers the two numbers the prose leans on hardest (4 vs 9's 0.008196 and
+  A full `verify_outputs.py` pass has to train all 45 classifiers. When this
+  entry was first written that run was still going — the machine was carrying a
+  load average between 38 and 123 from other agents, and it was getting about a
+  fifth of one core — so the four-pair bit-exact spot check above stood in for
+  it, covering the two numbers the prose leans on hardest (4 vs 9's 0.008196 and
   6 vs 7's 0.000009).
+
+  **The full pass has since completed on an idle machine: `일치 … 136/136 줄`.**
+  Every published number reproduces, not just the four spot-checked pairs, so
+  the caveat above is now historical. Anyone rerunning it should still pass a
+  timeout well above the 7200 the other pages need; on 8 idle cores it finishes
+  comfortably, under load it does not.
 
   No wall-clock number is published on this page and none was measured for it.
