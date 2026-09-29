@@ -274,7 +274,9 @@ def fig_vgg16_architecture():
                                  edgecolor=EDGE, linewidth=0.7))
         ax.text(x0 + h / 2 + vx / 2, y0 + h + vy + 0.30, label,
                 ha="center", va="bottom", fontsize=fs, color="#2f3d49")
-        ax.text(x0 + h / 2, y0 - 0.32, f"{side}x{side}x{ch}",
+        # PyTorch 는 채널이 앞이다(NCHW). 224x224x3 은 텐서플로 차례이므로
+        # 이 책의 코드가 내놓는 모양과 어긋난다 -- 512x7x7 로 적는다.
+        ax.text(x0 + h / 2, y0 - 0.32, f"{ch}x{side}x{side}",
                 ha="center", va="top", fontsize=fs - 0.7, color="#69757f")
         return x0 + h + vx
 
