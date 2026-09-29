@@ -1,6 +1,6 @@
 # 다층 퍼셉트론
 
-[2단계](../linear_softmax/06_implementation.md)의 선형 모델은 92.44%에서 멈췄다. 결정 경계가 선형이라는 제약 때문이다. 자연스러운 다음 수는 층을 하나 더 쌓는 것이다. 784 → 128 → 10으로 가면 매개변수가 7850개에서 10만 개 남짓으로 늘어나니, 표현력도 그만큼 늘 것 같다.
+[2단계](../linear_softmax/06_implementation.md)의 선형 모델은 92.35%에서 멈췄다. 결정 경계가 선형이라는 제약 때문이다. 자연스러운 다음 수는 층을 하나 더 쌓는 것이다. 784 → 128 → 10으로 가면 매개변수가 7850개에서 10만 개 남짓으로 늘어나니, 표현력도 그만큼 늘 것 같다.
 
 그런데 층만 쌓아서는 **아무것도 얻지 못한다.** 이 절은 먼저 그 사실을 보이고, 무엇을 더해야 하는지를 밝힌다.
 
@@ -37,9 +37,9 @@ $$
 | 구조 | 저장된 매개변수 | 실효 자유도 | 시험 정확도 |
 |---|---|---|---|
 | 784 → 128 → 10, 활성화 **없음** | 101,770 | 7,850 | **92.07%** |
-| 784 → 128 → 10, ReLU **있음** | 101,770 | 101,770 | **97.94%** |
+| 784 → 128 → 10, ReLU **있음** | 101,770 | 101,770 | **97.90%** |
 
-활성화가 없으면 92.07%로, 2단계의 선형 모델(92.44%)과 사실상 같은 자리에 머문다. 매개변수를 13배 저장하고 학습에 그만큼 시간을 쓰고도 얻은 것이 없다.
+활성화가 없으면 92.07%로, 2단계의 선형 모델(92.35%)과 사실상 같은 자리에 머문다. 매개변수를 13배 저장하고 학습에 그만큼 시간을 쓰고도 얻은 것이 없다.
 
 학습이 끝난 무활성화 모델의 두 가중치 행렬을 실제로 곱해 $W' = W_1 W_2$을 만들고, 그 하나의 아핀 변환과 원래 2층 신경망의 출력을 견주면 최대 오차가 $7.6 \times 10^{-6}$이다. 부동소수점 오차 수준이며, 두 모델이 같은 함수라는 뜻이다.
 
@@ -119,7 +119,7 @@ ReLU가 하는 일이 두 128짜리 띠 사이에서 눈에 보인다. 왼쪽 �
 
 끝의 두 띠도 읽어 둘 값이 있다. 로짓에는 음수가 섞여 있어 붉은 칸이 보이지만, 소프트맥스를 지난 확률 띠에는 짙은 칸이 하나뿐이다. 이 이미지에서 모델이 7에 준 확률이 0.9985이다. 소프트맥스와 argmax는 모델 바깥이 아니라 안쪽의 마지막 두 걸음이다. 다만 코드에서는 소프트맥스가 따로 보이지 않는다. `nn.CrossEntropyLoss`가 안에 품고 있기 때문이다.
 
-(그림을 만든 실행은 5 에포크로 돌린 옛 규약의 것이라 시험 정확도가 97.27%였다. 본문이 보고하는 97.89%는 10 에포크로 다시 잰 값이다. 그림이 보이려는 것은 정확도가 아니라 층이 무엇을 배우는가이므로 그대로 둔다.)
+(그림을 만든 실행은 5 에포크로 돌린 옛 규약의 것이라 시험 정확도가 97.27%였다. 본문이 보고하는 97.90%는 10 에포크로 다시 잰 값이다. 그림이 보이려는 것은 정확도가 아니라 층이 무엇을 배우는가이므로 그대로 둔다.)
 
 ```python
 """
@@ -185,7 +185,9 @@ print(f"Checkpoint directory: {checkpoint_dir}")
 # 장치 설정
 # PyTorch는 CPU에서도 GPU(CUDA)에서도 돌 수 있다
 # GPU를 쓰면 학습이 크게 빨라진다 (10~100배)
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available()
+                      else "mps" if torch.backends.mps.is_available()
+                      else "cpu")
 print(f"Using device: {device}")
 if device.type == 'cuda':
     print(f"GPU Name: {torch.cuda.get_device_name(0)}")
@@ -249,10 +251,18 @@ print(f"  Number of classes: {len(train_dataset.classes)}")
 
 # 데이터 로더 만들기
 # DataLoader가 배치 묶기, 섞기, 병렬 적재를 처리한다
+#
+# 섞는 차례만 따로 맡는 발생기를 준다. 전역 난수에 매어 두면, 학습 중간에
+# 시험 집합을 한 번 훑는 것만으로 다음 에포크의 차례가 달라진다.
+# DataLoader는 훑기 시작할 때마다 난수를 하나 꺼내 쓰기 때문이다 —
+# **섞지 않는 로더도 그렇다.**
+shuffle_gen = torch.Generator().manual_seed(42)
+
 train_loader = torch.utils.data.DataLoader(
     dataset=train_dataset,
     batch_size=config['batch_size'],
     shuffle=True,            # 에포크마다 학습 데이터 섞기
+    generator=shuffle_gen,   # 섞는 차례를 이 발생기에만 맨다
     # num_workers 를 0으로 둔다. 1 이상이면 맥과 윈도가 일꾼 프로세스를
     # **새로 띄우며**(spawn) 이 각본을 처음부터 다시 읽는다. 맨 바깥에서 자료를
     # 돌리고 있으면 일꾼이 또 일꾼을 띄워 끝내 죽는다. 1 이상을 쓰려면 돌리는
@@ -370,6 +380,12 @@ class MNISTClassifier(nn.Module):
         return torch.argmax(logits, dim=1)
 
 # 모델을 만들어 장치로 옮기기
+# 모델을 만들기 **직전에** 씨앗을 다시 박는다.
+# 위에서 표본 그림을 그리려고 test_loader 를 한 번 훑었는데(iter),
+# 그것만으로 전역 난수가 한 칸 나아갔다. DataLoader 는 훑기 시작할 때마다
+# 난수를 하나 꺼내 쓰기 때문이다 — 섞지 않는 로더도 그렇다.
+# 다시 박지 않으면 처음 가중치가 4장의 같은 모델과 달라진다.
+torch.manual_seed(42)
 model = MNISTClassifier(
     config['input_size'],
     config['hidden_size'],
@@ -765,7 +781,7 @@ if __name__ == "__main__":
     STEP 1: Configuration and Device Setup
     ================================================================================
     Checkpoint directory: ./checkpoints
-    Using device: cpu
+    Using device: mps
 
     Hyperparameters:
       input_size     : 784
@@ -820,12 +836,12 @@ if __name__ == "__main__":
     Starting training for 10 epochs...
     Steps per epoch: 600
     --------------------------------------------------------------------------------
-    Epoch [1/10], Step [100/600], Loss: 0.4673, Accuracy: 82.75%
-    Epoch [1/10], Step [200/600], Loss: 0.2658, Accuracy: 87.07%
-    Epoch [1/10], Step [300/600], Loss: 0.1997, Accuracy: 88.95%
-    Epoch [1/10], Step [400/600], Loss: 0.1835, Accuracy: 90.20%
-    Epoch [1/10], Step [500/600], Loss: 0.1501, Accuracy: 91.11%
-    Epoch [1/10], Step [600/600], Loss: 0.1842, Accuracy: 91.78%
+    Epoch [1/10], Step [100/600], Loss: 0.2863, Accuracy: 83.54%
+    Epoch [1/10], Step [200/600], Loss: 0.3372, Accuracy: 87.14%
+    Epoch [1/10], Step [300/600], Loss: 0.3540, Accuracy: 88.98%
+    Epoch [1/10], Step [400/600], Loss: 0.1801, Accuracy: 90.28%
+    Epoch [1/10], Step [500/600], Loss: 0.1245, Accuracy: 91.20%
+    Epoch [1/10], Step [600/600], Loss: 0.0852, Accuracy: 91.78%
 
     Epoch [1/10] Summary:
       Average Loss: 0.2827
@@ -833,153 +849,153 @@ if __name__ == "__main__":
       ✓ Saved checkpoint: ./checkpoints/model_epoch_1.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
-    Epoch [2/10], Step [100/600], Loss: 0.0980, Accuracy: 95.93%
-    Epoch [2/10], Step [200/600], Loss: 0.1189, Accuracy: 96.09%
-    Epoch [2/10], Step [300/600], Loss: 0.0862, Accuracy: 96.24%
-    Epoch [2/10], Step [400/600], Loss: 0.0734, Accuracy: 96.29%
-    Epoch [2/10], Step [500/600], Loss: 0.1698, Accuracy: 96.40%
-    Epoch [2/10], Step [600/600], Loss: 0.0636, Accuracy: 96.50%
+    Epoch [2/10], Step [100/600], Loss: 0.1723, Accuracy: 95.91%
+    Epoch [2/10], Step [200/600], Loss: 0.2127, Accuracy: 95.83%
+    Epoch [2/10], Step [300/600], Loss: 0.2699, Accuracy: 96.06%
+    Epoch [2/10], Step [400/600], Loss: 0.1597, Accuracy: 96.11%
+    Epoch [2/10], Step [500/600], Loss: 0.0546, Accuracy: 96.23%
+    Epoch [2/10], Step [600/600], Loss: 0.0616, Accuracy: 96.35%
 
     Epoch [2/10] Summary:
-      Average Loss: 0.1235
-      Training Accuracy: 96.50%
+      Average Loss: 0.1238
+      Training Accuracy: 96.35%
       ✓ Saved checkpoint: ./checkpoints/model_epoch_2.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
-    Epoch [3/10], Step [100/600], Loss: 0.0351, Accuracy: 97.35%
-    Epoch [3/10], Step [200/600], Loss: 0.0666, Accuracy: 97.36%
-    Epoch [3/10], Step [300/600], Loss: 0.0581, Accuracy: 97.41%
-    Epoch [3/10], Step [400/600], Loss: 0.1042, Accuracy: 97.43%
-    Epoch [3/10], Step [500/600], Loss: 0.0742, Accuracy: 97.45%
-    Epoch [3/10], Step [600/600], Loss: 0.2823, Accuracy: 97.45%
+    Epoch [3/10], Step [100/600], Loss: 0.1361, Accuracy: 97.32%
+    Epoch [3/10], Step [200/600], Loss: 0.0769, Accuracy: 97.36%
+    Epoch [3/10], Step [300/600], Loss: 0.0643, Accuracy: 97.42%
+    Epoch [3/10], Step [400/600], Loss: 0.1371, Accuracy: 97.32%
+    Epoch [3/10], Step [500/600], Loss: 0.0339, Accuracy: 97.36%
+    Epoch [3/10], Step [600/600], Loss: 0.1210, Accuracy: 97.40%
 
     Epoch [3/10] Summary:
-      Average Loss: 0.0860
-      Training Accuracy: 97.45%
+      Average Loss: 0.0868
+      Training Accuracy: 97.40%
       ✓ Saved checkpoint: ./checkpoints/model_epoch_3.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
-    Epoch [4/10], Step [100/600], Loss: 0.0582, Accuracy: 97.97%
-    Epoch [4/10], Step [200/600], Loss: 0.0413, Accuracy: 98.06%
-    Epoch [4/10], Step [300/600], Loss: 0.0399, Accuracy: 97.96%
-    Epoch [4/10], Step [400/600], Loss: 0.0635, Accuracy: 97.97%
-    Epoch [4/10], Step [500/600], Loss: 0.0918, Accuracy: 97.95%
-    Epoch [4/10], Step [600/600], Loss: 0.0610, Accuracy: 97.97%
+    Epoch [4/10], Step [100/600], Loss: 0.0321, Accuracy: 97.95%
+    Epoch [4/10], Step [200/600], Loss: 0.0770, Accuracy: 98.07%
+    Epoch [4/10], Step [300/600], Loss: 0.0955, Accuracy: 98.02%
+    Epoch [4/10], Step [400/600], Loss: 0.0590, Accuracy: 97.99%
+    Epoch [4/10], Step [500/600], Loss: 0.1021, Accuracy: 97.97%
+    Epoch [4/10], Step [600/600], Loss: 0.0862, Accuracy: 98.00%
 
     Epoch [4/10] Summary:
-      Average Loss: 0.0655
-      Training Accuracy: 97.97%
+      Average Loss: 0.0667
+      Training Accuracy: 98.00%
       ✓ Saved checkpoint: ./checkpoints/model_epoch_4.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
-    Epoch [5/10], Step [100/600], Loss: 0.1125, Accuracy: 98.52%
-    Epoch [5/10], Step [200/600], Loss: 0.0431, Accuracy: 98.47%
-    Epoch [5/10], Step [300/600], Loss: 0.0529, Accuracy: 98.45%
-    Epoch [5/10], Step [400/600], Loss: 0.1274, Accuracy: 98.43%
-    Epoch [5/10], Step [500/600], Loss: 0.0836, Accuracy: 98.40%
-    Epoch [5/10], Step [600/600], Loss: 0.0422, Accuracy: 98.38%
+    Epoch [5/10], Step [100/600], Loss: 0.0371, Accuracy: 98.30%
+    Epoch [5/10], Step [200/600], Loss: 0.0601, Accuracy: 98.40%
+    Epoch [5/10], Step [300/600], Loss: 0.1000, Accuracy: 98.37%
+    Epoch [5/10], Step [400/600], Loss: 0.0440, Accuracy: 98.41%
+    Epoch [5/10], Step [500/600], Loss: 0.0303, Accuracy: 98.37%
+    Epoch [5/10], Step [600/600], Loss: 0.0846, Accuracy: 98.36%
 
     Epoch [5/10] Summary:
-      Average Loss: 0.0522
-      Training Accuracy: 98.38%
+      Average Loss: 0.0520
+      Training Accuracy: 98.36%
       ✓ Saved checkpoint: ./checkpoints/model_epoch_5.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
-    Epoch [6/10], Step [100/600], Loss: 0.0989, Accuracy: 99.01%
-    Epoch [6/10], Step [200/600], Loss: 0.0603, Accuracy: 98.97%
-    Epoch [6/10], Step [300/600], Loss: 0.0465, Accuracy: 98.94%
-    Epoch [6/10], Step [400/600], Loss: 0.0187, Accuracy: 98.86%
-    Epoch [6/10], Step [500/600], Loss: 0.0644, Accuracy: 98.80%
-    Epoch [6/10], Step [600/600], Loss: 0.0906, Accuracy: 98.72%
+    Epoch [6/10], Step [100/600], Loss: 0.0644, Accuracy: 98.73%
+    Epoch [6/10], Step [200/600], Loss: 0.0176, Accuracy: 98.77%
+    Epoch [6/10], Step [300/600], Loss: 0.0164, Accuracy: 98.74%
+    Epoch [6/10], Step [400/600], Loss: 0.1163, Accuracy: 98.77%
+    Epoch [6/10], Step [500/600], Loss: 0.0090, Accuracy: 98.76%
+    Epoch [6/10], Step [600/600], Loss: 0.0406, Accuracy: 98.77%
 
     Epoch [6/10] Summary:
-      Average Loss: 0.0421
-      Training Accuracy: 98.72%
+      Average Loss: 0.0400
+      Training Accuracy: 98.77%
       ✓ Saved checkpoint: ./checkpoints/model_epoch_6.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
-    Epoch [7/10], Step [100/600], Loss: 0.0154, Accuracy: 99.18%
-    Epoch [7/10], Step [200/600], Loss: 0.0335, Accuracy: 99.08%
-    Epoch [7/10], Step [300/600], Loss: 0.0610, Accuracy: 99.02%
-    Epoch [7/10], Step [400/600], Loss: 0.0586, Accuracy: 98.98%
-    Epoch [7/10], Step [500/600], Loss: 0.0380, Accuracy: 98.96%
-    Epoch [7/10], Step [600/600], Loss: 0.0561, Accuracy: 98.90%
+    Epoch [7/10], Step [100/600], Loss: 0.0042, Accuracy: 99.18%
+    Epoch [7/10], Step [200/600], Loss: 0.0313, Accuracy: 99.14%
+    Epoch [7/10], Step [300/600], Loss: 0.0885, Accuracy: 99.15%
+    Epoch [7/10], Step [400/600], Loss: 0.0095, Accuracy: 99.06%
+    Epoch [7/10], Step [500/600], Loss: 0.0713, Accuracy: 98.98%
+    Epoch [7/10], Step [600/600], Loss: 0.0616, Accuracy: 98.95%
 
     Epoch [7/10] Summary:
-      Average Loss: 0.0338
-      Training Accuracy: 98.90%
+      Average Loss: 0.0331
+      Training Accuracy: 98.95%
       ✓ Saved checkpoint: ./checkpoints/model_epoch_7.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
-    Epoch [8/10], Step [100/600], Loss: 0.0217, Accuracy: 99.08%
-    Epoch [8/10], Step [200/600], Loss: 0.0258, Accuracy: 99.12%
-    Epoch [8/10], Step [300/600], Loss: 0.0365, Accuracy: 99.19%
-    Epoch [8/10], Step [400/600], Loss: 0.0647, Accuracy: 99.16%
-    Epoch [8/10], Step [500/600], Loss: 0.0075, Accuracy: 99.15%
-    Epoch [8/10], Step [600/600], Loss: 0.0130, Accuracy: 99.06%
+    Epoch [8/10], Step [100/600], Loss: 0.1041, Accuracy: 99.12%
+    Epoch [8/10], Step [200/600], Loss: 0.0198, Accuracy: 99.17%
+    Epoch [8/10], Step [300/600], Loss: 0.0146, Accuracy: 99.17%
+    Epoch [8/10], Step [400/600], Loss: 0.0273, Accuracy: 99.11%
+    Epoch [8/10], Step [500/600], Loss: 0.0135, Accuracy: 99.08%
+    Epoch [8/10], Step [600/600], Loss: 0.0300, Accuracy: 99.07%
 
     Epoch [8/10] Summary:
-      Average Loss: 0.0285
-      Training Accuracy: 99.06%
+      Average Loss: 0.0288
+      Training Accuracy: 99.07%
       ✓ Saved checkpoint: ./checkpoints/model_epoch_8.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
-    Epoch [9/10], Step [100/600], Loss: 0.0132, Accuracy: 99.44%
-    Epoch [9/10], Step [200/600], Loss: 0.0026, Accuracy: 99.44%
-    Epoch [9/10], Step [300/600], Loss: 0.0893, Accuracy: 99.31%
-    Epoch [9/10], Step [400/600], Loss: 0.0037, Accuracy: 99.24%
-    Epoch [9/10], Step [500/600], Loss: 0.0170, Accuracy: 99.22%
-    Epoch [9/10], Step [600/600], Loss: 0.0161, Accuracy: 99.19%
+    Epoch [9/10], Step [100/600], Loss: 0.0143, Accuracy: 99.32%
+    Epoch [9/10], Step [200/600], Loss: 0.0200, Accuracy: 99.35%
+    Epoch [9/10], Step [300/600], Loss: 0.0174, Accuracy: 99.32%
+    Epoch [9/10], Step [400/600], Loss: 0.0113, Accuracy: 99.29%
+    Epoch [9/10], Step [500/600], Loss: 0.0406, Accuracy: 99.24%
+    Epoch [9/10], Step [600/600], Loss: 0.0654, Accuracy: 99.25%
 
     Epoch [9/10] Summary:
-      Average Loss: 0.0252
-      Training Accuracy: 99.19%
+      Average Loss: 0.0230
+      Training Accuracy: 99.25%
       ✓ Saved checkpoint: ./checkpoints/model_epoch_9.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
-    Epoch [10/10], Step [100/600], Loss: 0.0296, Accuracy: 99.40%
-    Epoch [10/10], Step [200/600], Loss: 0.0410, Accuracy: 99.38%
-    Epoch [10/10], Step [300/600], Loss: 0.0016, Accuracy: 99.34%
-    Epoch [10/10], Step [400/600], Loss: 0.0122, Accuracy: 99.38%
-    Epoch [10/10], Step [500/600], Loss: 0.0161, Accuracy: 99.37%
-    Epoch [10/10], Step [600/600], Loss: 0.0264, Accuracy: 99.34%
+    Epoch [10/10], Step [100/600], Loss: 0.0448, Accuracy: 99.59%
+    Epoch [10/10], Step [200/600], Loss: 0.0206, Accuracy: 99.61%
+    Epoch [10/10], Step [300/600], Loss: 0.0190, Accuracy: 99.57%
+    Epoch [10/10], Step [400/600], Loss: 0.0066, Accuracy: 99.53%
+    Epoch [10/10], Step [500/600], Loss: 0.0028, Accuracy: 99.44%
+    Epoch [10/10], Step [600/600], Loss: 0.0150, Accuracy: 99.40%
 
     Epoch [10/10] Summary:
-      Average Loss: 0.0208
-      Training Accuracy: 99.34%
+      Average Loss: 0.0186
+      Training Accuracy: 99.40%
       ✓ Saved checkpoint: ./checkpoints/model_epoch_10.pt
       🌟 New best accuracy! Saving as best model...
     --------------------------------------------------------------------------------
 
     Training completed!
-    Best training accuracy: 99.34%
+    Best training accuracy: 99.40%
 
     ================================================================================
     STEP 6.5: Loading Best Model
     ================================================================================
     ✓ Loaded model from: ./checkpoints/model_epoch_10.pt
       Epoch: 10
-      Accuracy: 99.34%
-      Loss: 0.0208
+      Accuracy: 99.40%
+      Loss: 0.0186
 
     ================================================================================
     STEP 7: Evaluating on Test Set (Using Best Model)
     ================================================================================
-    Overall Test Accuracy: 97.89%
-    Correct predictions: 9789/10000
+    Overall Test Accuracy: 97.90%
+    Correct predictions: 9790/10000
 
     Per-Class Accuracy:
     ----------------------------------------
-      Digit 0: 99.18% (972/980)
-      Digit 1: 99.47% (1129/1135)
-      Digit 2: 98.16% (1013/1032)
-      Digit 3: 97.52% (985/1010)
-      Digit 4: 98.07% (963/982)
-      Digit 5: 98.21% (876/892)
-      Digit 6: 97.81% (937/958)
-      Digit 7: 96.30% (990/1028)
+      Digit 0: 99.29% (973/980)
+      Digit 1: 98.85% (1122/1135)
+      Digit 2: 98.26% (1014/1032)
+      Digit 3: 97.62% (986/1010)
+      Digit 4: 97.56% (958/982)
+      Digit 5: 98.65% (880/892)
+      Digit 6: 97.91% (938/958)
+      Digit 7: 96.89% (996/1028)
       Digit 8: 96.71% (942/974)
-      Digit 9: 97.32% (982/1009)
+      Digit 9: 97.22% (981/1009)
     ----------------------------------------
 
     ================================================================================
@@ -1051,9 +1067,7 @@ if __name__ == "__main__":
         print(sorted(os.listdir('./checkpoints')))
 
     ```
-
-
-2단계의 92.44%에서 **97.89%**로 올랐다. 더한 것은 은닉층 하나와 ReLU뿐이다. 그 하나로 결정 경계가 선형이라는 제약이 풀리면서, 한 클래스 안의 서로 다른 필체를 각기 다른 은닉 뉴런이 맡을 수 있게 된다.
+2단계의 92.35%에서 **97.90%**로 올랐다. 더한 것은 은닉층 하나와 ReLU뿐이다. 그 하나로 결정 경계가 선형이라는 제약이 풀리면서, 한 클래스 안의 서로 다른 필체를 각기 다른 은닉 뉴런이 맡을 수 있게 된다.
 
 남은 약점은 첫 줄에 있다. 이 모델도 이미지를 784차원 벡터로 펼치고 시작하므로 화소의 이웃 관계를 쓰지 못한다. 마지막 걸음이 그것을 되찾는다.
 
@@ -1290,7 +1304,7 @@ with torch.no_grad():
 ## 연습문제
 
 !!! note "아래 풀이의 수치에 대하여"
-    풀이에 적힌 값은 모두 이 쪽의 설정(입력 정규화 적용, 배치 100, Adam $10^{-3}$, 10 에포크, 씨앗 42)으로 실제로 재어 얻은 것이다. 초기 가중치와 자료를 섞는 차례가 실행마다 달라 정확도는 0.1~0.4%포인트쯤 흔들리므로, 본문이 보고하는 97.89%와 마지막 자리가 다를 수 있다. 한 표 안의 값들은 모두 같은 조건에서 잰 것이므로 서로 견주는 데에는 문제가 없다.
+    풀이에 적힌 값은 모두 이 쪽의 설정(입력 정규화 적용, 배치 100, Adam $10^{-3}$, 10 에포크, 씨앗 42)으로 실제로 재어 얻은 것이다. 초기 가중치와 자료를 섞는 차례가 실행마다 달라 정확도는 0.1~0.4%포인트쯤 흔들리므로, 본문이 보고하는 97.90%와 마지막 자리가 다를 수 있다. 한 표 안의 값들은 모두 같은 조건에서 잰 것이므로 서로 견주는 데에는 문제가 없다.
 
 <div class="drillbox" markdown>
 

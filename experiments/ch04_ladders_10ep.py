@@ -45,6 +45,9 @@ STATS = {
 SHAPE = {"MNIST": (1, 28), "CIFAR10": (3, 32)}     # (채널 수, 한 변)
 
 
+SHUFFLE_GEN = torch.Generator()        # 섞는 차례만 맡는다. 쪽의 코드와 같다
+
+
 def loaders(name, shuffle_gen=None):
     mean, std = STATS[name]
     tf = transforms.Compose([transforms.ToTensor(),
@@ -52,9 +55,9 @@ def loaders(name, shuffle_gen=None):
     cls = getattr(torchvision.datasets, name)
     tr = cls(root=str(ROOT / "data"), train=True, download=True, transform=tf)
     te = cls(root=str(ROOT / "data"), train=False, download=True, transform=tf)
-    train_loader = (DataLoader(tr, batch_size=BATCH, shuffle=True, generator=shuffle_gen)
-                    if shuffle_gen is not None
-                    else DataLoader(tr, batch_size=BATCH, shuffle=True))
+    train_loader = DataLoader(tr, batch_size=BATCH, shuffle=True,
+                              generator=shuffle_gen if shuffle_gen is not None
+                              else SHUFFLE_GEN)
     return (train_loader,
             DataLoader(tr, batch_size=1000, shuffle=False),
             DataLoader(te, batch_size=1000, shuffle=False))
@@ -159,6 +162,7 @@ def task_main(args, out):
     for key in ("linear", "mlp", "cnn"):
         t0 = time.time()
         torch.manual_seed(SEED)
+        SHUFFLE_GEN.manual_seed(SEED)
         model = BUILD[key](C, S)
         acc = train_and_test(model, tr, te)
         p = sum(q.numel() for q in model.parameters())
@@ -176,6 +180,7 @@ def task_spread(args, out):
     for seed in args.seeds:
         t0 = time.time()
         torch.manual_seed(seed)
+        SHUFFLE_GEN.manual_seed(seed)
         tr, _, te = loaders(name)
         torch.manual_seed(seed)
         acc = train_and_test(BUILD[key](C, S), tr, te)
