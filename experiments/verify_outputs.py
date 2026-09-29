@@ -270,8 +270,11 @@ def check(md_path, timeout=1800):
 
     hard = [l for l in missing
             if not TIMING.search(l) and not ADDRESS.search(l)]
+    # (값은 맞고 시간만 다른 줄, 값까지 안 맞지만 봐 준 줄) 을 따로 돌려준다.
+    # 둘을 한 수로 합치면 "5개는 셈에서 뺐다"가 되어, 실제로는 값이 다 맞은
+    # 경우까지 안 본 것처럼 읽힌다.
     return ("확인", len(wanted) - len(missing), len(wanted), hard,
-            soft + len(missing) - len(hard))
+            (soft, len(missing) - len(hard)))
 
 
 def main(rels, timeout=1800):
@@ -288,7 +291,13 @@ def main(rels, timeout=1800):
                 print(f"      {d}")
             bad += 1
         else:
-            note = f"   (기계에 딸린 줄 {n_time}개는 셈에서 뺐다)" if n_time else ""
+            n_soft, n_skip = n_time
+            bits = []
+            if n_soft:
+                bits.append(f"줄 {n_soft}개는 시간·번지만 다르고 값은 같다")
+            if n_skip:
+                bits.append(f"줄 {n_skip}개는 값이 달라도 기계 탓으로 보고 봐 줬다")
+            note = f"   ({', '.join(bits)})" if bits else ""
             print(f"  {'일치  ' if not detail else '어긋남'} {rel}   {ok}/{tot} 줄{note}")
             for d in detail:
                 print(f"      실린 줄이 안 나온다: {d[:90]}")
