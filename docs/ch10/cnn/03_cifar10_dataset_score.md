@@ -41,10 +41,21 @@ Notes
 - 🔴 연습문제 3 (was 2) quoted CIFAR-10's channel statistics as "평균 0.4914,
   0.4822, 0.4465; 표준편차 0.2023, 0.1994, 0.2010". Measured them on the 50,000
   training images: the means are exactly right, the standard deviations are not
-  — over all pixels they are **0.2470, 0.2435, 0.2616**. The quoted trio matches
-  neither the all-pixel std nor the std of per-image channel means (0.1284,
-  0.1258, 0.1533); it is a number that circulates in CIFAR-10 code and is simply
-  wrong. Published the measuring code and its output.
+  — over all pixels they are **0.2470, 0.2435, 0.2616**.
+  I first recorded the quoted trio as matching no statistic and therefore simply
+  wrong. That was itself wrong. 0.2023, 0.1994, 0.2010 is the mean of the
+  PER-IMAGE standard deviations — `x.std(dim=(1,2)).mean(dim=0)` — agreeing to
+  all four published decimals. It is the most-cited CIFAR-10 constant in
+  circulation, and a reader will meet it constantly, so the page now derives both
+  numbers instead of dismissing one: per-image scatter and image-to-image scatter
+  are different quantities, they add in quadrature
+  (√(0.2023² + 0.1284²) = 0.2396, close to 0.2470; the residual is because the
+  per-image stds are averaged arithmetically, not in quadrature), and
+  `transforms.Normalize` divides by one dataset-wide constant, which is the
+  all-pixel std. ch04 uses 0.2470 as well, so the book is now self-consistent.
+  The ratio is only 1.22×, so either trains — the point is that they measure
+  different things, not that one is a typo. Published the measuring code and its
+  output; reran it as printed.
 - 🟡 The page never stated how many images CIFAR-10 has — it printed shapes and
   class counts but no totals, so 5만/1만 appeared only inside an exercise
   statement. Added `len(trainloader.dataset)` / `len(testloader.dataset)` /
