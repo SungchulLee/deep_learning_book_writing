@@ -253,40 +253,49 @@ def fig_vgg16_layers():
     INP  = ("#e6e6e6", "#333333")
     AVG  = ("#eef1f4", "#8a97a4")
 
-    # (층 이름, 상자 글, 지나고 난 모양, 색). 아래에서 위로 쌓는다.
+    # (층 이름, 상자 글, 224를 넣었을 때 모양, 32를 넣었을 때 모양, 색)
+    # 두 열을 나란히 두는 까닭: 224에서는 적응 풀링이 하는 일이 없어서
+    # (7x7 -> 7x7) 쓸데없는 줄로 보인다. 32를 함께 적어야 그 줄이 무엇을
+    # 하는 자리인지 드러난다 -- 1x1 을 7x7 로 맞춰 주는 것이 그 일이다.
     rows = [
-        ("",         "Input",              "3x224x224",   INP),
-        ("conv1-1",  "3x3 conv, 64",       "64x224x224",  CONV),
-        ("conv1-2",  "3x3 conv, 64",       "64x224x224",  CONV),
-        ("",         "Pool",               "64x112x112",  POOL),
-        ("conv2-1",  "3x3 conv, 128",      "128x112x112", CONV),
-        ("conv2-2",  "3x3 conv, 128",      "128x112x112", CONV),
-        ("",         "Pool",               "128x56x56",   POOL),
-        ("conv3-1",  "3x3 conv, 256",      "256x56x56",   CONV),
-        ("conv3-2",  "3x3 conv, 256",      "256x56x56",   CONV),
-        ("conv3-3",  "3x3 conv, 256",      "256x56x56",   CONV),
-        ("",         "Pool",               "256x28x28",   POOL),
-        ("conv4-1",  "3x3 conv, 512",      "512x28x28",   CONV),
-        ("conv4-2",  "3x3 conv, 512",      "512x28x28",   CONV),
-        ("conv4-3",  "3x3 conv, 512",      "512x28x28",   CONV),
-        ("",         "Pool",               "512x14x14",   POOL),
-        ("conv5-1",  "3x3 conv, 512",      "512x14x14",   CONV),
-        ("conv5-2",  "3x3 conv, 512",      "512x14x14",   CONV),
-        ("conv5-3",  "3x3 conv, 512",      "512x14x14",   CONV),
-        ("",         "Pool",               "512x7x7",     POOL),
-        ("",         "AdaptiveAvgPool 7x7","512x7x7",     AVG),
-        ("fc6",      "FC 4096",            "4096",        FCL),
-        ("fc7",      "FC 4096",            "4096",        FCL),
-        ("fc8",      "FC 1000",            "1000",        FCL),
-        ("",         "Softmax",            "1000",        SMAX),
+        ("",         "Input",              "3x224x224",   "3x32x32",   INP),
+        ("conv1-1",  "3x3 conv, 64",       "64x224x224",  "64x32x32",  CONV),
+        ("conv1-2",  "3x3 conv, 64",       "64x224x224",  "64x32x32",  CONV),
+        ("",         "Pool",               "64x112x112",  "64x16x16",  POOL),
+        ("conv2-1",  "3x3 conv, 128",      "128x112x112", "128x16x16", CONV),
+        ("conv2-2",  "3x3 conv, 128",      "128x112x112", "128x16x16", CONV),
+        ("",         "Pool",               "128x56x56",   "128x8x8",   POOL),
+        ("conv3-1",  "3x3 conv, 256",      "256x56x56",   "256x8x8",   CONV),
+        ("conv3-2",  "3x3 conv, 256",      "256x56x56",   "256x8x8",   CONV),
+        ("conv3-3",  "3x3 conv, 256",      "256x56x56",   "256x8x8",   CONV),
+        ("",         "Pool",               "256x28x28",   "256x4x4",   POOL),
+        ("conv4-1",  "3x3 conv, 512",      "512x28x28",   "512x4x4",   CONV),
+        ("conv4-2",  "3x3 conv, 512",      "512x28x28",   "512x4x4",   CONV),
+        ("conv4-3",  "3x3 conv, 512",      "512x28x28",   "512x4x4",   CONV),
+        ("",         "Pool",               "512x14x14",   "512x2x2",   POOL),
+        ("conv5-1",  "3x3 conv, 512",      "512x14x14",   "512x2x2",   CONV),
+        ("conv5-2",  "3x3 conv, 512",      "512x14x14",   "512x2x2",   CONV),
+        ("conv5-3",  "3x3 conv, 512",      "512x14x14",   "512x2x2",   CONV),
+        ("",         "Pool",               "512x7x7",     "512x1x1",   POOL),
+        ("",         "AdaptiveAvgPool 7x7","512x7x7",     "512x7x7",   AVG),
+        ("fc6",      "FC 4096",            "4096",        "4096",      FCL),
+        ("fc7",      "FC 4096",            "4096",        "4096",      FCL),
+        ("fc8",      "FC 1000",            "1000",        "1000",      FCL),
+        ("",         "Softmax",            "1000",        "1000",      SMAX),
     ]
 
     BW, BH, GAP = 6.4, 0.78, 0.17
-    fig, ax = plt.subplots(figsize=(7.6, 12.2))
+    C1, C2 = BW + 0.30, BW + 3.05          # 두 모양 열의 왼쪽 끝
+    fig, ax = plt.subplots(figsize=(9.6, 12.2))
     ax.axis("off")
 
-    for i, (name, mid, shape, (fill, edge)) in enumerate(rows):
+    for i, (name, mid, s224, s32, (fill, edge)) in enumerate(rows):
         y = i * (BH + GAP)
+        adaptive = mid.startswith("Adaptive")
+        if adaptive:                        # 두 열이 갈라졌다 다시 만나는 줄
+            ax.add_patch(plt.Rectangle((C2 - 0.34, y - GAP / 2), 2.75, BH + GAP,
+                                       facecolor="#fff3cd", edgecolor="none",
+                                       zorder=0))
         ax.add_patch(plt.Rectangle((0, y), BW, BH, facecolor=fill,
                                    edgecolor=edge, linewidth=1.3))
         ax.text(BW / 2, y + BH / 2, mid, ha="center", va="center",
@@ -294,18 +303,27 @@ def fig_vgg16_layers():
         if name:
             ax.text(-0.28, y + BH / 2, name, ha="right", va="center",
                     fontsize=9.5, color="#26323c")
-        ax.text(BW + 0.28, y + BH / 2, shape, ha="left", va="center",
+        ax.text(C1, y + BH / 2, s224, ha="left", va="center",
                 fontsize=8.6, color="#6b7883")
+        ax.text(C2, y + BH / 2, s32, ha="left", va="center", fontsize=8.6,
+                color="#a06a10" if adaptive else "#6b7883",
+                weight="bold" if adaptive else "normal")
 
     top = len(rows) * (BH + GAP)
     ax.text(BW / 2, -0.95, "VGG16", ha="center", fontsize=12, weight="bold")
-    ax.text(BW + 0.28, top + 0.10, "shape after the layer  (PyTorch, NCHW)",
+    for x, head in ((C1, "input 224x224"), (C2, "input 32x32")):
+        ax.text(x, top + 0.10, head, ha="left", va="bottom",
+                fontsize=8.6, color="#5b6b7d", weight="bold")
+    ax.text(C1, top + 0.72, "shape after the layer  (PyTorch, NCHW)",
             ha="left", va="bottom", fontsize=8.2, color="#8a97a4")
     ax.text(-0.28, top + 0.10, "13 conv + 3 FC = 16",
             ha="right", va="bottom", fontsize=8.2, color="#8a97a4")
+    ax.text(C2 + 2.55, 19 * (BH + GAP) + BH / 2,
+            "1x1 -> 7x7 here:\nthe only row where\nthe columns meet",
+            fontsize=7.8, color="#a06a10", ha="left", va="center")
 
-    ax.set_xlim(-2.5, BW + 3.9)
-    ax.set_ylim(-1.5, top + 0.9)
+    ax.set_xlim(-2.5, C2 + 5.2)
+    ax.set_ylim(-1.5, top + 1.5)
     fig.savefig("vgg16_layers.svg", transparent=True, bbox_inches="tight")
     plt.close(fig)
     print("  vgg16_layers.svg")
