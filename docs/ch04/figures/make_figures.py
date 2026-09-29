@@ -242,70 +242,96 @@ def fig_vgg16_architecture():
     비례한다. 채널을 그대로 쓰면 512가 3을 짓눌러 그림이 되지 않는다.
     """
     import math
+    from matplotlib.colors import to_rgb
 
-    def h_of(side):  return 1.6 + 5.2 * math.log10(side) / math.log10(224)
-    def w_of(ch):    return 1.1 + 4.6 * math.sqrt(ch) / math.sqrt(512)
+    # 앞면은 공간 크기(한 변), 앞으로 밀어낸 깊이는 채널 수다. 둘 다 제곱근으로
+    # 눌렀다 -- 그대로 쓰면 7x7이 224x224 옆에서 점이 되고 3채널이 512 옆에서
+    # 사라진다. 눌러도 "낮아지면서 두꺼워진다"는 맞바꿈은 그대로 보인다.
+    def face_of(side): return 0.55 + 3.65 * math.sqrt(side / 224)
+    def deep_of(ch):   return 0.30 + 2.30 * math.sqrt(ch / 512)
 
-    CONV, POOL, FC = "#cfe0f3", "#f3ddc9", "#d8ecd6"
+    CONV, POOL, FC = "#bcd6f0", "#f0cfb4", "#c8e6c4"
+    EDGE = "#4a5a6b"
+    VX, VY = 0.62, 0.46          # 앞으로 밀어내는 방향(등각)
 
-    def draw(ax, stages, y0, fs=6.6):
-        """stages: (라벨, 한 변, 채널, 색). 왼쪽부터 놓고 총 너비를 돌려준다."""
+    def shade(c, f):
+        r, g, b = to_rgb(c)
+        return (min(1, r * f), min(1, g * f), min(1, b * f))
+
+    def volume(ax, x, yc, side, ch, color, label, fs=6.4):
+        """상자 하나를 그리고 **오른쪽 끝 x**를 돌려준다."""
+        h, e = face_of(side), deep_of(ch)
+        vx, vy = VX * e, VY * e
+        x0, y0 = x, yc - h / 2
+        A, B = (x0, y0), (x0 + h, y0)
+        C, D = (x0 + h, y0 + h), (x0, y0 + h)
+        off = lambda p: (p[0] + vx, p[1] + vy)
+        for pts, f in (([D, C, off(C), off(D)], 1.12),      # 윗면
+                       ([B, C, off(C), off(B)], 0.80)):     # 옆면
+            ax.add_patch(plt.Polygon(pts, closed=True, facecolor=shade(color, f),
+                                     edgecolor=EDGE, linewidth=0.7))
+        ax.add_patch(plt.Polygon([A, B, C, D], closed=True, facecolor=color,
+                                 edgecolor=EDGE, linewidth=0.7))
+        ax.text(x0 + h / 2 + vx / 2, y0 + h + vy + 0.30, label,
+                ha="center", va="bottom", fontsize=fs, color="#2f3d49")
+        ax.text(x0 + h / 2, y0 - 0.32, f"{side}x{side}x{ch}",
+                ha="center", va="top", fontsize=fs - 0.7, color="#69757f")
+        return x0 + h + vx
+
+    def bar(ax, x, yc, n, label, fs=6.4):
+        """FC 한 층. 부피가 아니라 벡터이므로 납작한 막대로 그린다."""
+        w, h = 0.42, 2.3
+        ax.add_patch(plt.Rectangle((x, yc - h / 2), w, h, facecolor=FC,
+                                   edgecolor=EDGE, linewidth=0.7))
+        ax.text(x + w / 2, yc + h / 2 + 0.30, label, ha="center", va="bottom",
+                fontsize=fs, color="#2f3d49")
+        ax.text(x + w / 2, yc - h / 2 - 0.32, str(n), ha="center", va="top",
+                fontsize=fs - 0.7, color="#69757f")
+        return x + w
+
+    def row(ax, yc, vols, fcs, gap=0.62):
         x = 0.0
-        for lab, side, ch, fc in stages:
-            w, h = w_of(ch), h_of(side)
-            ax.add_patch(plt.Rectangle((x, y0 - h / 2), w, h, facecolor=fc,
-                                       edgecolor="#5b6b7d", linewidth=0.8))
-            ax.text(x + w / 2, y0 + h / 2 + 0.5, lab, ha="center", va="bottom",
-                    fontsize=fs, color="#33414d")
-            ax.text(x + w / 2, y0 - h / 2 - 0.5, f"{side}x{side}x{ch}",
-                    ha="center", va="top", fontsize=fs - 0.6, color="#66737f")
-            x += w + 0.85
-        return x
+        for side, ch, color, label in vols:
+            x = volume(ax, x, yc, side, ch, color, label) + gap
+        for n, label in fcs:
+            x = bar(ax, x, yc, n, label) + gap * 0.8
+        return x - gap
 
-    vgg = [("input", 224, 3, "#eceff1"),
-           ("conv x2", 224, 64, CONV), ("pool", 112, 64, POOL),
-           ("conv x2", 112, 128, CONV), ("pool", 56, 128, POOL),
-           ("conv x3", 56, 256, CONV), ("pool", 28, 256, POOL),
-           ("conv x3", 28, 512, CONV), ("pool", 14, 512, POOL),
-           ("conv x3", 14, 512, CONV), ("pool", 7, 512, POOL)]
-    step4 = [("input", 28, 1, "#eceff1"),
-             ("conv", 28, 32, CONV), ("pool", 14, 32, POOL),
-             ("conv", 14, 64, CONV), ("pool", 7, 64, POOL)]
+    vgg = [(224, 3, "#e4e9ec", "input"),
+           (224, 64, CONV, "conv x2"), (112, 64, POOL, "pool"),
+           (112, 128, CONV, "conv x2"), (56, 128, POOL, "pool"),
+           (56, 256, CONV, "conv x3"), (28, 256, POOL, "pool"),
+           (28, 512, CONV, "conv x3"), (14, 512, POOL, "pool"),
+           (14, 512, CONV, "conv x3"), (7, 512, POOL, "pool")]
+    step4 = [(32, 3, "#e4e9ec", "input"),
+             (32, 32, CONV, "conv"), (16, 32, POOL, "pool"),
+             (16, 64, CONV, "conv"), (8, 64, POOL, "pool")]
 
-    # 총 너비를 먼저 셈해 눈금을 맞춘다. 눈금을 어림으로 박으면 마지막 상자가
-    # 오른쪽 밖으로 잘려 나간다 (FC 1000 이 그렇게 잘렸었다)
-    span = sum(w_of(c) + 0.85 for _, _, c, _ in vgg) + 3 * 2.85
-    fig, ax = plt.subplots(figsize=(13, 5.4))
-    ax.set_xlim(-1.2, span + 1.0); ax.set_ylim(-1.5, 23.5); ax.axis("off")
+    fig, ax = plt.subplots(figsize=(15, 6.4))
+    ax.axis("off")
 
-    ax.text(0, 21.6, "VGG16  —  13 conv layers, 138,357,544 params",
-            fontsize=9.5, weight="bold")
-    xv = draw(ax, vgg, 15.2)
-    for lab, ch in (("FC", 4096), ("FC", 4096), ("FC", 1000)):
-        ax.add_patch(plt.Rectangle((xv, 15.2 - 1.1), 2.0, 2.2, facecolor=FC,
-                                   edgecolor="#5b6b7d", linewidth=0.8))
-        ax.text(xv + 1.0, 15.2 + 1.8, lab, ha="center", fontsize=6.6, color="#33414d")
-        ax.text(xv + 1.0, 15.2 - 1.9, str(ch), ha="center", va="top",
-                fontsize=6.0, color="#66737f")
-        xv += 2.85
+    Y_VGG, Y_S4 = 10.4, 2.0
+    ax.text(0, Y_VGG + 4.3, "VGG16  —  13 conv layers, 138,357,544 params",
+            fontsize=10, weight="bold")
+    xv = row(ax, Y_VGG, vgg, [(4096, "FC"), (4096, "FC"), (1000, "FC")])
 
-    ax.text(0, 7.4, "Step 4 CNN  —  2 conv layers, 421,642 params (MNIST)",
-            fontsize=9.5, weight="bold")
-    xs = draw(ax, step4, 2.6)
-    for lab, ch in (("FC", 128), ("FC", 10)):
-        ax.add_patch(plt.Rectangle((xs, 2.6 - 1.1), 2.0, 2.2, facecolor=FC,
-                                   edgecolor="#5b6b7d", linewidth=0.8))
-        ax.text(xs + 1.0, 2.6 + 1.8, lab, ha="center", fontsize=6.6, color="#33414d")
-        ax.text(xs + 1.0, 2.6 - 1.9, str(ch), ha="center", va="top",
-                fontsize=6.0, color="#66737f")
-        xs += 2.85
+    ax.text(0, Y_S4 + 3.0, "Step 4 CNN  —  2 conv layers, 545,098 params (CIFAR-10)",
+            fontsize=10, weight="bold")
+    xs = row(ax, Y_S4, step4, [(128, "FC"), (10, "FC")])
 
-    ax.annotate("", xy=(xv - 3.0, 19.6), xytext=(2.0, 19.6),
-                arrowprops=dict(arrowstyle="->", color="#8a97a4", lw=1.0))
-    ax.text((xv) / 2, 20.1, "spatial size shrinks 224 -> 7,   channels grow 3 -> 512",
+    ax.annotate("", xy=(xv * 0.66, Y_VGG + 3.5), xytext=(0.4, Y_VGG + 3.5),
+                arrowprops=dict(arrowstyle="->", color="#93a0ac", lw=1.0))
+    ax.text(xv * 0.33, Y_VGG + 3.7,
+            "front face shrinks 224 -> 7,   depth grows 3 -> 512",
             ha="center", fontsize=8, color="#7b8792")
 
-    fig.tight_layout()
+    # 눈금은 **그린 것에서** 얻는다. 손으로 어림한 폭을 박아 두었더니 5번째
+    # 블록과 FC 세 층이 통째로 오른쪽 밖으로 잘려 나가 있었다.
+    ax.relim(); ax.autoscale_view()
+    x_hi = max(xv, xs)
+    ax.set_xlim(-0.8, x_hi + 0.8)
+    ax.set_ylim(Y_S4 - 3.4, Y_VGG + 5.2)
+
     fig.savefig("vgg16_architecture.svg", transparent=True, bbox_inches="tight")
     plt.close(fig)
     print("  vgg16_architecture.svg")
