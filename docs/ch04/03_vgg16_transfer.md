@@ -146,12 +146,19 @@ net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 def extract(ds):
     """VGG16을 한 번만 통과시켜 특징을 모아 둔다.
 
+    **32 -> 224로 키우는 자리가 이 함수 안에 보이지 않는다.** 위에서 만든
+    `transform`이 데이터셋에 붙어 있고, torchvision은 그것을 미리 적용해 두는
+    것이 아니라 표본을 꺼낼 때마다 적용한다. 곧 아래 `for x, y in loader`가
+    한 바퀴 돌 때 `ds[i]`가 불리고, 그 안에서 Resize(224)가 일어난다.
+    루프에 닿은 x는 이미 (100, 3, 224, 224)다.
+
     num_workers=0인 까닭: macOS는 작업자 프로세스를 spawn으로 띄우므로
     스크립트를 다시 import 한다. __main__ 가드가 없으면 전체가 재실행된다.
     """
     loader = DataLoader(ds, batch_size=100, shuffle=False, num_workers=0)
     feats, labels = [], []
-    for x, y in loader:
+    for x, y in loader:                        # 여기서 비로소 Resize가 돈다.
+        assert x.shape[1:] == (3, 224, 224)    # 3x32x32가 아니라 이것이 들어간다
         feats.append(net(x.to(device)).cpu())
         labels.append(y)
     return torch.cat(feats), torch.cat(labels)
@@ -193,6 +200,20 @@ print(f"학습한 매개변수 {sum(p.numel() for p in head.parameters()):,}")
 5걸음 정확도 84.93%
 학습한 매개변수 40,970
 ```
+
+!!! note "키우는 자리가 코드에 안 보이는 까닭"
+    위 코드를 따라 읽으면 $32 \to 224$로 키우는 줄이 어디에도 없어 보인다. `extract()` 안에도 없고, 그림을 건드리는 문장이 하나도 없다. 그런데도 `net`에 들어가는 것은 $3 \times 224 \times 224$다.
+
+    `transform`이 **데이터셋에 붙어 있기** 때문이다. torchvision의 데이터셋은 `transform`을 만들 때 한 번 적용해 두는 것이 아니라, `ds[i]`로 표본을 꺼낼 때마다 적용한다. 그 `ds[i]`를 부르는 것이 `DataLoader`이므로, 키우는 일은 `for x, y in loader` 한 바퀴마다 조용히 일어난다.
+
+    ```python
+    ds = datasets.CIFAR10(..., transform=None)          # (100, 3, 32, 32)
+    ds = datasets.CIFAR10(..., transform=Resize(224))   # (100, 3, 224, 224)
+    ```
+
+    같은 자료, 같은 루프인데 나오는 모양이 다르다. 그래서 위 코드의 루프 첫 줄에 `assert`를 하나 두었다 — 눈에 보이지 않는 일이 정말 일어났는지는 그렇게 확인하는 수밖에 없다.
+
+    게으르게 두는 것이 낭비처럼 보이지만 그 반대다. $224 \times 224$ 5만 장을 미리 만들어 두면 float32로 **28GB**이고, 꺼낼 때마다 만들면 배치 하나치인 **57MB**만 있으면 된다. 500배 차이다. 자료를 원래 크기로 두고 필요할 때 키우는 것이 이 걸음이 노트북에서 도는 까닭이다.
 
 특징을 뽑는 데 5만 장에 750초, 1만 장에 150초가 든다. 머리를 학습하는 5 에포크는 그에 견주면 순식간이다.
 
