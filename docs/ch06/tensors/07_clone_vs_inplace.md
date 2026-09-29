@@ -19,15 +19,26 @@ def header(title: str):
     print("=" * 80)
 
 
-def ptr(t: torch.Tensor) -> int:
-    """밑 저장소의 데이터 가리개를 (십진수로) 돌려준다.
+def shares(a: torch.Tensor, b: torch.Tensor) -> bool:
+    """두 텐서가 같은 밑 저장소를 나눠 쓰는지 돌려준다.
 
-    • 밑 저장소 버퍼의 첫머리를 가리킨다(텐서가 자리 옮김이나 걸음을 지닌 보기라면
-      논리상 첫 원소를 가리키지는 않는다).
-    • 두 텐서가 *같은* 저장소를 나눠 쓰면 모양이나 걸음이 달라도
-      data_ptr() 값이 같다.
+    • `t.untyped_storage().data_ptr()`는 저장소 버퍼의 첫머리 번지이다. 그 번지를
+      그대로 찍으면 `4437640000` 같은 수가 나오는데, 이 수는 돌릴 때마다, 기계마다
+      달라진다. 쪽에 실어 두어도 읽는 이가 다시 얻을 수 없는 수이므로 싣지 않는다.
+    • 여기서 가르치려는 것은 번지 값이 아니라 **두 텐서가 같은 저장소를 쓰는가**이다.
+      그 견줌은 어디서 돌리든 늘 같은 답이 나온다. 그래서 번지 대신 견줌을 찍는다.
+    • 두 텐서가 *같은* 저장소를 나눠 쓰면 모양이나 걸음이 달라도 이 값이 True이다.
     """
-    return t.storage().data_ptr()
+    return a.untyped_storage().data_ptr() == b.untyped_storage().data_ptr()
+
+
+def offset(t: torch.Tensor) -> int:
+    """저장소 첫머리에서 이 텐서의 첫 원소까지의 거리(원소 수).
+
+    같은 저장소를 쓰는 보기들끼리 어디서부터 보는지를 가른다. 번지와 달리
+    돌릴 때마다 같은 수가 나온다.
+    """
+    return t.storage_offset()
 
 
 def main():
@@ -41,7 +52,8 @@ def main():
     header("Base tensor")
     print("base:\n", base)
     print("base.requires_grad:", base.requires_grad)
-    print("ptr(base):", ptr(base))
+    print("base storage (elements):", base.untyped_storage().nbytes() // base.element_size())
+    print("base storage_offset:", offset(base))
 
     # ----------------------------------------------------------------------------
     # 1) 평범한 파이썬 대입: 복사 없음(또 하나의 참조일 뿐)
@@ -50,7 +62,7 @@ def main():
     # `alias`와 `base`는 완전히 같은 파이썬 객체이다 → 같은 저장소, 같은 경사 플래그.
     alias = base
     print("alias is base?       ", alias is base)     # True (same object identity)
-    print("ptr(alias) == ptr(base)?", ptr(alias) == ptr(base))
+    print("alias shares storage with base?", shares(alias, base))
 
     # 한쪽 이름으로 제자리 변경을 하면 다른 쪽에서도 보인다(같은 객체이다).
     # base가 requires_grad=True인 잎이라 제자리 변경은 no_grad 안에서만
@@ -74,11 +86,15 @@ def main():
     view_view  = base.view(2, 3)      # view with same shape → shares
     view_resh  = base.reshape(2, 3)   # may return a view; may allocate if needed
 
-    print("ptr(view_slice):", ptr(view_slice))
-    print("ptr(view_view) :", ptr(view_view))
-    print("ptr(view_resh) :", ptr(view_resh))
+    # 번지 대신 "같은 저장소인가"와 "저장소 어디서부터 보는가"를 찍는다.
+    print("view_slice shares storage with base?", shares(view_slice, base),
+          " storage_offset:", offset(view_slice))
+    print("view_view  shares storage with base?", shares(view_view, base),
+          " storage_offset:", offset(view_view))
+    print("view_resh  shares storage with base?", shares(view_resh, base),
+          " storage_offset:", offset(view_resh))
     print("All share storage with base? ->",
-          ptr(view_slice) == ptr(base) and ptr(view_view) == ptr(base))
+          shares(view_slice, base) and shares(view_view, base))
 
     # 뷰를 통한 제자리 변경이 원본을 갱신한다(저장소를 공유한다).
     with torch.no_grad():
@@ -97,8 +113,9 @@ def main():
     header("3) .clone(): DEEP COPY (no storage sharing)")
     # clone()은 자체 저장소를 가진 새 텐서를 만든다. autograd 그래프는 보존된다.
     c = base.clone()
-    print("ptr(clone):", ptr(c), "  ptr(base):", ptr(base))
-    print("Shares storage? ->", ptr(c) == ptr(base))
+    # 값은 같지만 저장소는 다르다 — 이것이 깊은 복사다.
+    print("Same values as base? ->", torch.equal(c.detach(), base.detach()))
+    print("Shares storage? ->", shares(c, base))
 
     # 원본에 대한 제자리 변경은 복제본에 영향을 주지 않는다(버퍼가 독립적이다).
     with torch.no_grad():
@@ -119,7 +136,7 @@ def main():
     # 원래 그래프와의 grad_fn 관계도 없다.
     d = base.detach()
     print("d.requires_grad:", d.requires_grad)
-    print("ptr(detach) == ptr(base)?", ptr(d) == ptr(base))
+    print("detach shares storage with base?", shares(d, base))
 
     # 원본에 대한 제자리 변경이 d에서도 보인다(저장소를 공유한다).
     with torch.no_grad():
@@ -139,7 +156,7 @@ def main():
     # autograd와 연결되지 않고 메모리도 독립적인 "안전한 스냅숏" 패턴.
     dc = base.detach().clone()
     print("dc.requires_grad:", dc.requires_grad)
-    print("ptr(detach().clone) == ptr(base)?", ptr(dc) == ptr(base))
+    print("detach().clone shares storage with base?", shares(dc, base))
 
     # 원본에 대한 제자리 변경은 dc에 영향을 주지 않는다(독립적이다).
     with torch.no_grad():
@@ -184,9 +201,11 @@ def main():
     c = a.clone()  # independent copy
 
     print("Before in-place on view:")
-    print("a:", a, " ptr:", ptr(a))
-    print("v:", v, " ptr:", ptr(v))
-    print("c:", c, " ptr:", ptr(c))
+    print("a:", a)
+    print("v:", v, " shares storage with a:", shares(v, a),
+          " storage_offset:", offset(v))
+    print("c:", c, " shares storage with a:", shares(c, a),
+          " storage_offset:", offset(c))
 
     with torch.no_grad():
         v.add_(100)  # in-place on the view → updates shared positions in `a`
@@ -213,7 +232,7 @@ if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (111줄)"
+??? note "전체 출력 (112줄)"
 
     ```
 
@@ -224,13 +243,14 @@ if __name__ == "__main__":
      tensor([[1., 2., 3.],
             [4., 5., 6.]], requires_grad=True)
     base.requires_grad: True
-    ptr(base): 4437640000
+    base storage (elements): 6
+    base storage_offset: 0
 
     ================================================================================
     1) Plain assignment: alias reference (NO COPY)
     ================================================================================
     alias is base?        True
-    ptr(alias) == ptr(base)? True
+    alias shares storage with base? True
 
     After base.add_(100):
     base:
@@ -243,9 +263,9 @@ if __name__ == "__main__":
     ================================================================================
     2) Views that SHARE storage (slicing / view / reshape)
     ================================================================================
-    ptr(view_slice): 4437640000
-    ptr(view_view) : 4437640000
-    ptr(view_resh) : 4437640000
+    view_slice shares storage with base? True  storage_offset: 1
+    view_view  shares storage with base? True  storage_offset: 0
+    view_resh  shares storage with base? True  storage_offset: 0
     All share storage with base? -> True
 
     After view_slice.mul_(10):
@@ -259,7 +279,7 @@ if __name__ == "__main__":
     ================================================================================
     3) .clone(): DEEP COPY (no storage sharing)
     ================================================================================
-    ptr(clone): 5253725696   ptr(base): 4437640000
+    Same values as base? -> True
     Shares storage? -> False
 
     After base.add_(1000):
@@ -274,7 +294,7 @@ if __name__ == "__main__":
     4) .detach(): shares storage, stops grad
     ================================================================================
     d.requires_grad: False
-    ptr(detach) == ptr(base)? True
+    detach shares storage with base? True
 
     After base.add_(5):
     base:
@@ -288,7 +308,7 @@ if __name__ == "__main__":
     5) .detach().clone(): no grad + deep copy
     ================================================================================
     dc.requires_grad: False
-    ptr(detach().clone) == ptr(base)? False
+    detach().clone shares storage with base? False
 
     After base.mul_(2):
     base:
@@ -308,9 +328,9 @@ if __name__ == "__main__":
     7) In-place ops can silently affect ALL tensors sharing the storage
     ================================================================================
     Before in-place on view:
-    a: tensor([1., 2., 3.], requires_grad=True)  ptr: 4334865152
-    v: tensor([2., 3.], grad_fn=<SliceBackward0>)  ptr: 4334865152
-    c: tensor([1., 2., 3.], grad_fn=<CloneBackward0>)  ptr: 4335005120
+    a: tensor([1., 2., 3.], requires_grad=True)
+    v: tensor([2., 3.], grad_fn=<SliceBackward0>)  shares storage with a: True  storage_offset: 1
+    c: tensor([1., 2., 3.], grad_fn=<CloneBackward0>)  shares storage with a: False  storage_offset: 0
 
     After v.add_(100):
     a (affected): tensor([  1., 102., 103.], requires_grad=True)
@@ -335,6 +355,8 @@ if __name__ == "__main__":
 이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.
 
 경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.
+
+출력에 번지가 하나도 없다는 점을 눈여겨보자. `t.untyped_storage().data_ptr()`를 그대로 찍으면 `4437640000` 같은 수가 나오지만, 그 수는 돌릴 때마다, 기계마다 달라서 이 쪽에 실어 두어도 읽는 이가 다시 얻을 수 없다. 게다가 그 수 자체는 아무것도 가르쳐 주지 않는다 — 가르치는 것은 **두 텐서의 번지가 같은가**이다. 그래서 `shares(a, b)`가 그 견줌을, `offset(t)`이 저장소 첫머리에서 몇 번째 원소부터 보는지를 돌려주도록 두었다. 둘 다 어느 기계에서 돌리든 같은 답이 나오며, 슬라이스와 뷰는 저장소를 함께 쓰고(`True`) clone은 그렇지 않다(`False`)는 사실은 그대로 읽힌다. 실제로 `view_slice`의 `storage_offset`이 `1`인 것은, 같은 저장소를 두 번째 원소부터 본다는 뜻이다.
 
 ## 연습문제
 

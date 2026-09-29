@@ -30,11 +30,19 @@ def main():
     
     header("2. In-place Operations Save Memory")
     x = torch.randn(1000, 1000)
-    print(f"Initial memory ID: {id(x)}")
+    # data_ptr()가 돌려주는 번지 값은 돌릴 때마다, 기계마다 다르다. 그래서 번지
+    # 자체는 싣지 않고, 뜻이 있는 것 — 같은 저장소를 쓰는가 — 만 견주어 찍는다
+    x_storage = x.data_ptr()
+    first = x[0, 0].item()
+
     y = x + 1  # Creates new tensor
-    print(f"After x + 1 (new tensor): {id(y)}")
+    print(f"x + 1 -> same object as x?    {y is x}")
+    print(f"x + 1 -> same storage as x?   {y.data_ptr() == x_storage}")
+    print(f"x left unchanged by x + 1?    {x[0, 0].item() == first}")
+
     x.add_(1)  # In-place operation
-    print(f"After x.add_(1) (same tensor): {id(x)}")
+    print(f"x.add_(1) -> same storage?    {x.data_ptr() == x_storage}")
+    print(f"x changed in place?           {abs(x[0, 0].item() - (first + 1)) < 1e-6}")
     print("In-place operations modify tensor without creating a copy!")
     
     header("3. Detaching from Computation Graph")
@@ -139,7 +147,7 @@ if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (112줄)"
+??? note "전체 출력 (114줄)"
 
     ```
 
@@ -154,9 +162,11 @@ if __name__ == "__main__":
     ======================================================================
     2. In-place Operations Save Memory
     ======================================================================
-    Initial memory ID: 5377377216
-    After x + 1 (new tensor): 5377376976
-    After x.add_(1) (same tensor): 5377377216
+    x + 1 -> same object as x?    False
+    x + 1 -> same storage as x?   False
+    x left unchanged by x + 1?    True
+    x.add_(1) -> same storage?    True
+    x changed in place?           True
     In-place operations modify tensor without creating a copy!
 
     ======================================================================
@@ -183,29 +193,29 @@ if __name__ == "__main__":
 
         Instead of:
             batch_size = 128  # 기억 자리가 모자랄 수 있다!
-            
+
         기울기 쌓기를 쓴다.
             batch_size = 32
             accumulation_steps = 4  # 실제 배치 크기 = 128
-            
+
         for i, (x, y) in enumerate(dataloader):
             output = model(x)
             loss = criterion(output, y) / accumulation_steps
             loss.backward()
-            
+
             if (i + 1) % accumulation_steps == 0:
                 optimizer.step()
                 optimizer.zero_grad()
-        
+
 
     ======================================================================
     6. Checkpoint Activations
     ======================================================================
 
         아주 깊은 망에는 기울기 되짚음 저장을 쓴다.
-        
+
         from torch.utils.checkpoint import checkpoint
-        
+
         class DeepModel(nn.Module):
             def forward(self, x):
                 # 메모리를 위해 계산을 희생한다
@@ -213,9 +223,9 @@ if __name__ == "__main__":
                 x = checkpoint(self.layer2, x)
                 x = checkpoint(self.layer3, x)
                 return x
-        
+
         셈을 30% 더 하는 대신 기억 자리를 10분의 1로 줄인다!
-        
+
 
     ======================================================================
     7. Empty Cache (GPU)
@@ -227,22 +237,22 @@ if __name__ == "__main__":
     ======================================================================
 
         PyTorch의 기억 자리 살피개를 쓴다.
-        
+
         from torch.profiler import profile, ProfilerActivity
-        
+
         with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
                      profile_memory=True) as prof:
             model(input)
-        
+
         print(prof.key_averages().table(sort_by="self_cuda_memory_usage"))
-        
+
 
     ======================================================================
     9. Best Practices Summary
     ======================================================================
 
         기억 자리 다듬기 요령:
-        
+
         1. 추론 때는 torch.no_grad()을 써라
         2. 기울기가 필요 없으면 .detach()을 불러라
         3. 안전할 때는 제자리 셈(_)을 써라
@@ -253,7 +263,7 @@ if __name__ == "__main__":
         8. 깊은 망에는 기울기 되짚음 저장을 써라
         9. 기억 자리 씀씀이를 살펴 목을 찾아라
         10. 배치 크기나 모델 크기를 줄이는 것도 생각해 보아라
-        
+
     ```
 
 
@@ -264,6 +274,8 @@ if __name__ == "__main__":
 PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법을 제공한다. 각 모듈이 자신의 매개변수와 하위 모듈을 관리하므로 모델을 살펴보고, 저장하고, 장치 사이에 옮기기가 간편하다.
 
 경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.
+
+둘째 마당이 보이는 것은 번지가 아니라 견줌이다. `x.data_ptr()`를 그대로 찍으면 `5377377216` 같은 수가 나오는데, 돌릴 때마다, 기계마다 달라지므로 쪽에 실어 둘 수 없는 수이다. 대신 셈을 하기 전 번지를 `x_storage`에 붙들어 두고 나중 번지와 견주기만 한다. `x + 1`은 새 저장소를 잡으므로 `same storage as x? False`가 되고 `x` 자체는 그대로 남지만, `x.add_(1)`은 같은 저장소에 그대로 써 넣으므로 `same storage? True`이면서 값이 바뀐다. 이것이 제자리 셈이 기억 자리를 아끼는 까닭이다 — 견줌으로 적었으니 누가 어디서 돌려도 같은 답이 나온다.
 
 ## 연습문제
 
