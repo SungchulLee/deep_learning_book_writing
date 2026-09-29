@@ -285,8 +285,8 @@ def fig_vgg16_layers():
     ]
 
     BW, BH, GAP = 6.4, 0.78, 0.17
-    C1, C2 = BW + 0.30, BW + 3.05          # 두 모양 열의 왼쪽 끝
-    fig, ax = plt.subplots(figsize=(9.6, 12.2))
+    C1, C2 = BW + 0.30, BW + 4.15          # 두 모양 열의 왼쪽 끝
+    fig, ax = plt.subplots(figsize=(10.4, 12.2))
     ax.axis("off")
 
     for i, (name, mid, s224, s32, (fill, edge)) in enumerate(rows):
@@ -311,19 +311,26 @@ def fig_vgg16_layers():
 
     top = len(rows) * (BH + GAP)
     ax.text(BW / 2, -0.95, "VGG16", ha="center", fontsize=12, weight="bold")
-    for x, head in ((C1, "input 224x224"), (C2, "input 32x32")):
-        ax.text(x, top + 0.10, head, ha="left", va="bottom",
-                fontsize=8.6, color="#5b6b7d", weight="bold")
-    ax.text(C1, top + 0.72, "shape after the layer  (PyTorch, NCHW)",
+
+    # 어느 열이 이 절이 실제로 돌리는 길인지 적어 둔다. 적어 두지 않으면
+    # 32 열을 파이프라인으로 읽게 된다 -- 실제로 그렇게 읽혔다.
+    heads = ((C1, "input 224x224", "Resize(224)\nthis section  84.93%", "#2f6b3a"),
+             (C2, "input 32x32",   "no Resize\nthe trap  62.45%", "#a06a10"))
+    for x, head, sub, col in heads:
+        ax.text(x, top + 0.92, head, ha="left", va="bottom",
+                fontsize=8.8, color="#3c4b58", weight="bold")
+        ax.text(x, top + 0.10, sub, ha="left", va="bottom",
+                fontsize=7.6, color=col, linespacing=1.35)
+    ax.text(C1, top + 2.00, "shape after the layer  (PyTorch, NCHW)",
             ha="left", va="bottom", fontsize=8.2, color="#8a97a4")
-    ax.text(-0.28, top + 0.10, "13 conv + 3 FC = 16",
+    ax.text(-0.28, top + 0.92, "13 conv + 3 FC = 16",
             ha="right", va="bottom", fontsize=8.2, color="#8a97a4")
     ax.text(C2 + 2.55, 19 * (BH + GAP) + BH / 2,
             "1x1 -> 7x7 here:\nthe only row where\nthe columns meet",
             fontsize=7.8, color="#a06a10", ha="left", va="center")
 
-    ax.set_xlim(-2.5, C2 + 5.2)
-    ax.set_ylim(-1.5, top + 1.5)
+    ax.set_xlim(-2.5, C2 + 4.6)
+    ax.set_ylim(-1.5, top + 2.9)
     fig.savefig("vgg16_layers.svg", transparent=True, bbox_inches="tight")
     plt.close(fig)
     print("  vgg16_layers.svg")

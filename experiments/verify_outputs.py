@@ -248,11 +248,30 @@ def check(md_path, timeout=1800):
         return ("실행실패", 0, 0, tail or ["stderr 가 비어 있다"], 0)
 
     wanted = numeric_lines(want)
-    missing = [l for l in wanted if l not in r.stdout]
-    # 기계에 딸린 줄(시간·번지)은 세되 어긋남으로 치지 않는다
+
+    # 기계에 딸린 **자리**만 지우고 나머지는 그대로 견준다. 줄째로 빼면 안 된다 --
+    # 4.2 의 결과 줄은 "... 72.76%  퍼짐 0.89 ... (328s)" 처럼 정확도와 시간이
+    # 한 줄에 같이 있어서, 시간을 핑계로 줄을 빼면 정확도까지 안 보고 넘어간다.
+    # 그 쪽이 실제로 "일치 0/5 줄"로 통과했었다.
+    def blur(s):
+        return re.sub(r"\s+", " ", ADDRESS.sub(" ", TIMING.sub(" ", s))).strip()
+
+    out_blurred = "\n".join(blur(l) for l in r.stdout.splitlines())
+
+    missing, soft = [], 0
+    for l in wanted:
+        if l in r.stdout:
+            continue
+        b = blur(l)
+        if b and b in out_blurred:
+            soft += 1                      # 시간이나 번지만 다르다. 값은 맞다
+            continue
+        missing.append(l)
+
     hard = [l for l in missing
             if not TIMING.search(l) and not ADDRESS.search(l)]
-    return ("확인", len(wanted) - len(missing), len(wanted), hard, len(missing) - len(hard))
+    return ("확인", len(wanted) - len(missing), len(wanted), hard,
+            soft + len(missing) - len(hard))
 
 
 def main(rels, timeout=1800):
