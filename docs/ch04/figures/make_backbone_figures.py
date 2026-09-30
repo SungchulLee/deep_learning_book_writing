@@ -79,6 +79,7 @@ def title(ax, ix, iy, iw, ih, t, sub=None):
 
 
 def draw(name, svg, spec_row, inset_fn, heads, caption, iw=6.0, ih=5.2):
+    """층 목록만 그린다. 블록 속은 draw_block() 이 따로, 같은 크기로 그린다."""
     d = SHAPES[name]
     sizes = [str(s) for s in d["sizes"]]
     rows, tr = d["rows"], d["trace"]
@@ -119,17 +120,9 @@ def draw(name, svg, spec_row, inset_fn, heads, caption, iw=6.0, ih=5.2):
     ax.text(BW + 0.3, top + 1.05, "shape after the layer  (PyTorch, NCHW)",
             ha="left", va="bottom", fontsize=7.6, color="#8a97a4")
 
-    ix = BW + 3 * COL + 0.9
-    iy = max(0.0, spec_y - ih / 2 + BH / 2)
-    ax.add_patch(plt.Rectangle((ix, iy), iw, ih, facecolor="#fffdf5",
-                               edgecolor="#c9a227", linewidth=1.3, zorder=1))
-    inset_fn(ax, ix, iy, iw, ih)
-    arrow(ax, (BW + 3 * COL - 0.4, spec_y + BH / 2), (ix - 0.12, spec_y + BH / 2),
-          color="#c9a227", lw=1.2)
-
     ax.text(-2.9, -1.05, caption, ha="left", va="bottom",
             fontsize=7.4, color="#8a6d1a")
-    ax.set_xlim(-3.2, ix + iw + 0.6)
+    ax.set_xlim(-3.2, BW + 3 * COL + 0.6)
     ax.set_ylim(-1.3, top + 1.9)
     ax.axis("off")
     fig.savefig(svg, transparent=True, bbox_inches="tight")
@@ -261,6 +254,144 @@ def inset_convnext(ax, ix, iy, iw, ih):
             ha="center", fontsize=6.6, color="#8a6d1a", zorder=3)
 
 
+
+# =============================================================================
+# 블록 그림 — 층 목록과 **같은 크기**로 따로 그린다.
+#
+# 이 블록이 곧 그 모델이 내놓은 생각이므로, 층 목록 옆에 작게 끼워 넣으면
+# 순서가 뒤바뀐다. 따로 떼어 크게 그리고, 안을 지나는 동안 모양이 어떻게
+# 바뀌는지를 함께 적는다 -- 그것이 층 목록이 대신 말해 줄 수 없는 것이다.
+# =============================================================================
+RW, RH, RG = 6.2, 0.62, 0.34     # 블록 그림의 상자 크기
+
+
+def draw_block(svg, title_text, subtitle, rows, caption, note=None, skip=None):
+    """rows: (글, 색, 들어온 모양, 나간 모양). 아래에서 위로 쌓는다.
+
+    skip: (아래 칸 번호, 위 칸 번호, 라벨) — 건너뛰는 이음을 그린다.
+    """
+    n = len(rows)
+    fig, ax = plt.subplots(figsize=(11.0, 1.9 + 0.62 * n))
+    x0 = 0.0
+    for k, (txt, col, shp_in, shp_out) in enumerate(rows):
+        y = k * (RH + RG)
+        fill, edge = col
+        ax.add_patch(plt.Rectangle((x0, y), RW, RH, facecolor=fill,
+                                   edgecolor=edge, linewidth=1.3))
+        ax.text(x0 + RW / 2, y + RH / 2, txt, ha="center", va="center",
+                fontsize=9.0, color="#26323c")
+        if shp_out:
+            ax.text(x0 + RW + 0.35, y + RH / 2, shp_out, ha="left", va="center",
+                    fontsize=8.2, color="#6b7883")
+        if k == 0 and shp_in:
+            ax.text(x0 + RW + 0.35, y - RG / 2 - 0.02, shp_in, ha="left",
+                    va="center", fontsize=8.2, color="#6b7883")
+            ax.text(x0 - 0.3, y - RG / 2 - 0.02, "in", ha="right", va="center",
+                    fontsize=8.2, color="#54626e")
+        if k:
+            ax.add_patch(FancyArrowPatch((x0 + RW / 2, y - RG + 0.04),
+                                         (x0 + RW / 2, y - 0.04),
+                                         arrowstyle="->", color="#8a97a4", lw=1.0,
+                                         mutation_scale=10, zorder=3))
+    top = n * (RH + RG) - RG
+    if skip:
+        a, b, lab = skip
+        ya = a * (RH + RG) - RG / 2
+        yb = b * (RH + RG) + RH / 2
+        ax.add_patch(FancyArrowPatch((x0 - 0.55, ya), (x0 - 0.55, yb),
+                                     arrowstyle="->", color="#c9a227", lw=2.0,
+                                     mutation_scale=11,
+                                     connectionstyle="arc3,rad=-0.45", zorder=3))
+        ax.text(x0 - 1.9, (ya + yb) / 2, lab, ha="center", va="center",
+                fontsize=8.4, color="#8a6d1a")
+    ax.text(x0 + RW / 2, top + 0.95, title_text, ha="center", va="bottom",
+            fontsize=12.5, weight="bold", color="#8a6d1a")
+    ax.text(x0 + RW / 2, top + 0.45, subtitle, ha="center", va="bottom",
+            fontsize=8.8, color="#8a6d1a")
+    ax.text(x0 + RW + 0.35, top + 0.45, "shape", ha="left", va="bottom",
+            fontsize=8.2, color="#8a97a4")
+    if note:
+        ax.text(-3.4, -1.05, note, ha="left", va="bottom", fontsize=8.2,
+                color="#6b7883")
+    ax.text(-3.4, -1.65, caption, ha="left", va="bottom", fontsize=8.2,
+            color="#8a6d1a")
+    ax.set_xlim(-3.6, RW + 4.6)
+    ax.set_ylim(-2.0, top + 1.9)
+    ax.axis("off")
+    fig.savefig(svg, transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  " + svg)
+
+
+BLOCKS = [
+ ("resnet18_block.svg", "BasicBlock", "inside layer1.0 of ResNet18, at input 224",
+  [("3x3 conv - BN - ReLU", CONV, "64x56x56", "64x56x56"),
+   ("3x3 conv - BN",        CONV, None,       "64x56x56"),
+   ("+   (add x)",          SPEC, None,       "64x56x56"),
+   ("ReLU",                 NORM, None,       "64x56x56")],
+  "the add needs matching shapes -- which is why the shortcut can stay an untouched x",
+  "the block learns F(x); x is added, never altered",
+  (0, 2, "identity x")),
+
+ ("mobilenet_block.svg", "InvertedResidual", "inside features.7 of MobileNetV3-L, at input 224",
+  [("1x1 conv  (expand)",      CONV, "40x14x14", "240x14x14"),
+   ("3x3 depthwise  (space)",  SPEC, None,       "240x14x14"),
+   ("Squeeze-Excitation",      NORM, None,       "240x14x14"),
+   ("1x1 conv  (project)",     CONV, None,       "80x14x14")],
+  "40 -> 240 -> 80 : the middle swells, which is what inverted means",
+  "space is seen only by the 3x3 depthwise; channels are mixed only by the two 1x1s",
+  None),
+
+ ("convnext_block.svg", "ConvNeXt block", "inside features.5 of ConvNeXt-T, at input 224",
+  [("7x7 depthwise conv", SPEC, "384x14x14", "384x14x14"),
+   ("LayerNorm",          NORM, None,        "384x14x14"),
+   ("1x1  (Linear)  4x",  CONV, None,        "1536x14x14"),
+   ("GELU",               NORM, None,        "1536x14x14"),
+   ("1x1  (Linear)  back",CONV, None,        "384x14x14"),
+   ("+   (add x)",        SPEC, None,        "384x14x14")],
+  "384 -> 1536 -> 384 : the same swollen waist as MobileNet, but a 7x7 kernel and LayerNorm",
+  "one activation per block, not one per convolution",
+  (0, 5, "identity x")),
+
+ ("inception_block.svg", "Inception block", "inside Mixed_5b of Inception v3, at input 299",
+  [("1x1 -> 64",                       CONV, "192x35x35", "64x35x35"),
+   ("1x1 -> 48,  5x5 -> 64",           CONV, None,        "64x35x35"),
+   ("1x1 -> 64,  3x3 -> 96, 3x3 -> 96",CONV, None,        "96x35x35"),
+   ("avgpool 3x3,  1x1 -> 32",         CONV, None,        "32x35x35"),
+   ("concat",                          SPEC, None,        "256x35x35")],
+  "four branches run side by side and concatenate: 64+64+96+32 = 256",
+  "the side stays 35; what splits is channels, not space",
+  None),
+
+ ("densenet_block.svg", "DenseBlock", "inside denseblock1 of DenseNet121, first four layers, at input 224",
+  [("layer 1   1x1 -> 128, 3x3 -> 32", CONV, "64x56x56",  "96x56x56"),
+   ("layer 2   1x1 -> 128, 3x3 -> 32", CONV, None,        "128x56x56"),
+   ("layer 3   1x1 -> 128, 3x3 -> 32", CONV, None,        "160x56x56"),
+   ("layer 4   1x1 -> 128, 3x3 -> 32", SPEC, None,        "192x56x56")],
+  "each layer makes 32 channels and concatenates them -- nothing is added, so channels pile up",
+  "after all six layers: 64 + 6x32 = 256, which is the denseblock1 row in the layer list",
+  None),
+
+ ("efficientnet_block.svg", "MBConv", "inside features.5 of EfficientNet-B0, at input 224",
+  [("1x1 conv  (expand)",      CONV, "80x14x14", "480x14x14"),
+   ("5x5 depthwise  (space)",  SPEC, None,       "480x14x14"),
+   ("Squeeze-Excitation",      NORM, None,       "480x14x14"),
+   ("1x1 conv  (project)",     CONV, None,       "112x14x14")],
+  "80 -> 480 -> 112 : the same inverted bottleneck as MobileNet, here with a 5x5 kernel",
+  "compound scaling decides how many of these and how wide -- the block itself is borrowed",
+  None),
+ ("vit_block.svg", "Transformer block", "one block of ViT-B/16, at input 224",
+  [("LayerNorm",                  NORM, "197x768", "197x768"),
+   ("Multi-Head Attention  x12",  SPEC, None,      "197x768"),
+   ("+   (add x)",                SPEC, None,      "197x768"),
+   ("LayerNorm",                  NORM, None,      "197x768"),
+   ("MLP  768 -> 3072 -> 768",    CONV, None,      "197x768"),
+   ("+",                          SPEC, None,      "197x768")],
+  "still 197x768 after twelve of these -- nothing here shrinks",
+  "where a CNN would pool the space down, this has no such step",
+  None),
+]
+
 RUNS = [
  ("resnet18", "resnet18_layers.svg", "layer1.0", inset_resnet,
   [("input 224", "the usual", "#2f6b3a"), ("input 32", "runs, silently", "#a06a10"),
@@ -295,3 +426,5 @@ RUNS = [
 if __name__ == "__main__":
     for args in RUNS:
         draw(*args)
+    for args in BLOCKS:
+        draw_block(*args[:5], note=args[5], skip=args[6] if len(args) > 6 else None)
