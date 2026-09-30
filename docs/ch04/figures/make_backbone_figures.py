@@ -82,7 +82,7 @@ def draw(name, svg, spec_row, inset_fn, heads, caption, iw=6.0, ih=5.2):
     fig, ax = plt.subplots(figsize=(17.0, 1.2 + 0.42 * len(rows)))
     spec_y = None
     for i, (lab, text) in enumerate(rows):
-        y = (len(rows) - 1 - i) * (BH + GAP)        # 입력이 맨 아래
+        y = i * (BH + GAP)                          # rows[0] 이 입력이므로 맨 아래로 간다
         is_spec = (lab == spec_row)
         if is_spec:
             ax.add_patch(plt.Rectangle((-2.9, y - GAP / 2), BW + 3.0 + 3 * COL,
