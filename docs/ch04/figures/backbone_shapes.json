@@ -1,0 +1,649 @@
+{
+ "resnet18": {
+  "sizes": [
+   224,
+   32,
+   448
+  ],
+  "rows": [
+   [
+    "input",
+    "Input"
+   ],
+   [
+    "conv1",
+    "7x7 conv, 64, stride 2"
+   ],
+   [
+    "maxpool",
+    "MaxPool 3x3, stride 2"
+   ],
+   [
+    "layer1.0",
+    "BasicBlock, 64"
+   ],
+   [
+    "layer1.1",
+    "BasicBlock, 64"
+   ],
+   [
+    "layer2.0",
+    "BasicBlock, 128  (stride 2)"
+   ],
+   [
+    "layer2.1",
+    "BasicBlock, 128"
+   ],
+   [
+    "layer3.0",
+    "BasicBlock, 256  (stride 2)"
+   ],
+   [
+    "layer3.1",
+    "BasicBlock, 256"
+   ],
+   [
+    "layer4.0",
+    "BasicBlock, 512  (stride 2)"
+   ],
+   [
+    "layer4.1",
+    "BasicBlock, 512"
+   ],
+   [
+    "avgpool",
+    "Global AvgPool"
+   ],
+   [
+    "fc",
+    "FC 1000"
+   ]
+  ],
+  "trace": {
+   "224": {
+    "shapes": {
+     "conv1": "64x112x112",
+     "maxpool": "64x56x56",
+     "layer1.0": "64x56x56",
+     "layer1.1": "64x56x56",
+     "layer2.0": "128x28x28",
+     "layer2.1": "128x28x28",
+     "layer3.0": "256x14x14",
+     "layer3.1": "256x14x14",
+     "layer4.0": "512x7x7",
+     "layer4.1": "512x7x7",
+     "avgpool": "512x1x1",
+     "fc": "1000"
+    },
+    "error": null
+   },
+   "32": {
+    "shapes": {
+     "conv1": "64x16x16",
+     "maxpool": "64x8x8",
+     "layer1.0": "64x8x8",
+     "layer1.1": "64x8x8",
+     "layer2.0": "128x4x4",
+     "layer2.1": "128x4x4",
+     "layer3.0": "256x2x2",
+     "layer3.1": "256x2x2",
+     "layer4.0": "512x1x1",
+     "layer4.1": "512x1x1",
+     "avgpool": "512x1x1",
+     "fc": "1000"
+    },
+    "error": null
+   },
+   "448": {
+    "shapes": {
+     "conv1": "64x224x224",
+     "maxpool": "64x112x112",
+     "layer1.0": "64x112x112",
+     "layer1.1": "64x112x112",
+     "layer2.0": "128x56x56",
+     "layer2.1": "128x56x56",
+     "layer3.0": "256x28x28",
+     "layer3.1": "256x28x28",
+     "layer4.0": "512x14x14",
+     "layer4.1": "512x14x14",
+     "avgpool": "512x1x1",
+     "fc": "1000"
+    },
+    "error": null
+   }
+  }
+ },
+ "inception": {
+  "sizes": [
+   299,
+   32,
+   598
+  ],
+  "rows": [
+   [
+    "input",
+    "Input"
+   ],
+   [
+    "Conv2d_1a",
+    "3x3 conv, 32, stride 2"
+   ],
+   [
+    "Conv2d_2a",
+    "3x3 conv, 32"
+   ],
+   [
+    "Conv2d_2b",
+    "3x3 conv, 64, pad 1"
+   ],
+   [
+    "maxpool1",
+    "MaxPool 3x3, stride 2"
+   ],
+   [
+    "Conv2d_3b",
+    "1x1 conv, 80"
+   ],
+   [
+    "Conv2d_4a",
+    "3x3 conv, 192"
+   ],
+   [
+    "maxpool2",
+    "MaxPool 3x3, stride 2"
+   ],
+   [
+    "Mixed_5b",
+    "Inception block"
+   ],
+   [
+    "Mixed_5c",
+    "Inception block"
+   ],
+   [
+    "Mixed_5d",
+    "Inception block"
+   ],
+   [
+    "Mixed_6a",
+    "Inception block  (stride 2)"
+   ],
+   [
+    "Mixed_6b",
+    "Inception block"
+   ],
+   [
+    "Mixed_6c",
+    "Inception block"
+   ],
+   [
+    "Mixed_6d",
+    "Inception block"
+   ],
+   [
+    "Mixed_6e",
+    "Inception block"
+   ],
+   [
+    "Mixed_7a",
+    "Inception block  (stride 2)"
+   ],
+   [
+    "Mixed_7b",
+    "Inception block"
+   ],
+   [
+    "Mixed_7c",
+    "Inception block"
+   ],
+   [
+    "avgpool",
+    "Global AvgPool"
+   ],
+   [
+    "fc",
+    "FC 1000"
+   ]
+  ],
+  "trace": {
+   "299": {
+    "shapes": {
+     "Conv2d_1a": "32x149x149",
+     "Conv2d_2a": "32x147x147",
+     "Conv2d_2b": "64x147x147",
+     "maxpool1": "64x73x73",
+     "Conv2d_3b": "80x73x73",
+     "Conv2d_4a": "192x71x71",
+     "maxpool2": "192x35x35",
+     "Mixed_5b": "256x35x35",
+     "Mixed_5c": "288x35x35",
+     "Mixed_5d": "288x35x35",
+     "Mixed_6a": "768x17x17",
+     "Mixed_6b": "768x17x17",
+     "Mixed_6c": "768x17x17",
+     "Mixed_6d": "768x17x17",
+     "Mixed_6e": "768x17x17",
+     "Mixed_7a": "1280x8x8",
+     "Mixed_7b": "2048x8x8",
+     "Mixed_7c": "2048x8x8",
+     "avgpool": "2048x1x1",
+     "fc": "1000"
+    },
+    "error": null
+   },
+   "32": {
+    "shapes": {
+     "Conv2d_1a": "32x15x15",
+     "Conv2d_2a": "32x13x13",
+     "Conv2d_2b": "64x13x13",
+     "maxpool1": "64x6x6",
+     "Conv2d_3b": "80x6x6",
+     "Conv2d_4a": "192x4x4",
+     "maxpool2": "192x1x1",
+     "Mixed_5b": "256x1x1",
+     "Mixed_5c": "288x1x1",
+     "Mixed_5d": "288x1x1"
+    },
+    "error": "RuntimeError"
+   },
+   "598": {
+    "shapes": {
+     "Conv2d_1a": "32x298x298",
+     "Conv2d_2a": "32x296x296",
+     "Conv2d_2b": "64x296x296",
+     "maxpool1": "64x147x147",
+     "Conv2d_3b": "80x147x147",
+     "Conv2d_4a": "192x145x145",
+     "maxpool2": "192x72x72",
+     "Mixed_5b": "256x72x72",
+     "Mixed_5c": "288x72x72",
+     "Mixed_5d": "288x72x72",
+     "Mixed_6a": "768x35x35",
+     "Mixed_6b": "768x35x35",
+     "Mixed_6c": "768x35x35",
+     "Mixed_6d": "768x35x35",
+     "Mixed_6e": "768x35x35",
+     "Mixed_7a": "1280x17x17",
+     "Mixed_7b": "2048x17x17",
+     "Mixed_7c": "2048x17x17",
+     "avgpool": "2048x1x1",
+     "fc": "1000"
+    },
+    "error": null
+   }
+  }
+ },
+ "mobilenet": {
+  "sizes": [
+   224,
+   32,
+   448
+  ],
+  "rows": [
+   [
+    "input",
+    "Input"
+   ],
+   [
+    "features.0",
+    "3x3 conv, 16, stride 2"
+   ],
+   [
+    "features.1",
+    "InvertedResidual 1"
+   ],
+   [
+    "features.2",
+    "InvertedResidual 2"
+   ],
+   [
+    "features.3",
+    "InvertedResidual 3"
+   ],
+   [
+    "features.4",
+    "InvertedResidual 4"
+   ],
+   [
+    "features.5",
+    "InvertedResidual 5"
+   ],
+   [
+    "features.6",
+    "InvertedResidual 6"
+   ],
+   [
+    "features.7",
+    "InvertedResidual 7"
+   ],
+   [
+    "features.8",
+    "InvertedResidual 8"
+   ],
+   [
+    "features.9",
+    "InvertedResidual 9"
+   ],
+   [
+    "features.10",
+    "InvertedResidual 10"
+   ],
+   [
+    "features.11",
+    "InvertedResidual 11"
+   ],
+   [
+    "features.12",
+    "InvertedResidual 12"
+   ],
+   [
+    "features.13",
+    "InvertedResidual 13"
+   ],
+   [
+    "features.14",
+    "InvertedResidual 14"
+   ],
+   [
+    "features.15",
+    "InvertedResidual 15"
+   ],
+   [
+    "features.16",
+    "1x1 conv, 960"
+   ],
+   [
+    "avgpool",
+    "Global AvgPool"
+   ],
+   [
+    "classifier",
+    "FC 1280 - FC 1000"
+   ]
+  ],
+  "trace": {
+   "224": {
+    "shapes": {
+     "features.0": "16x112x112",
+     "features.1": "16x112x112",
+     "features.2": "24x56x56",
+     "features.3": "24x56x56",
+     "features.4": "40x28x28",
+     "features.5": "40x28x28",
+     "features.6": "40x28x28",
+     "features.7": "80x14x14",
+     "features.8": "80x14x14",
+     "features.9": "80x14x14",
+     "features.10": "80x14x14",
+     "features.11": "112x14x14",
+     "features.12": "112x14x14",
+     "features.13": "160x7x7",
+     "features.14": "160x7x7",
+     "features.15": "160x7x7",
+     "features.16": "960x7x7",
+     "avgpool": "960x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   },
+   "32": {
+    "shapes": {
+     "features.0": "16x16x16",
+     "features.1": "16x16x16",
+     "features.2": "24x8x8",
+     "features.3": "24x8x8",
+     "features.4": "40x4x4",
+     "features.5": "40x4x4",
+     "features.6": "40x4x4",
+     "features.7": "80x2x2",
+     "features.8": "80x2x2",
+     "features.9": "80x2x2",
+     "features.10": "80x2x2",
+     "features.11": "112x2x2",
+     "features.12": "112x2x2",
+     "features.13": "160x1x1",
+     "features.14": "160x1x1",
+     "features.15": "160x1x1",
+     "features.16": "960x1x1",
+     "avgpool": "960x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   },
+   "448": {
+    "shapes": {
+     "features.0": "16x224x224",
+     "features.1": "16x224x224",
+     "features.2": "24x112x112",
+     "features.3": "24x112x112",
+     "features.4": "40x56x56",
+     "features.5": "40x56x56",
+     "features.6": "40x56x56",
+     "features.7": "80x28x28",
+     "features.8": "80x28x28",
+     "features.9": "80x28x28",
+     "features.10": "80x28x28",
+     "features.11": "112x28x28",
+     "features.12": "112x28x28",
+     "features.13": "160x14x14",
+     "features.14": "160x14x14",
+     "features.15": "160x14x14",
+     "features.16": "960x14x14",
+     "avgpool": "960x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   }
+  }
+ },
+ "efficientnet": {
+  "sizes": [
+   224,
+   32,
+   448
+  ],
+  "rows": [
+   [
+    "input",
+    "Input"
+   ],
+   [
+    "features.0",
+    "3x3 conv, 32, stride 2"
+   ],
+   [
+    "features.1",
+    "MBConv x1, 16"
+   ],
+   [
+    "features.2",
+    "MBConv x2, 24"
+   ],
+   [
+    "features.3",
+    "MBConv x2, 40"
+   ],
+   [
+    "features.4",
+    "MBConv x3, 80"
+   ],
+   [
+    "features.5",
+    "MBConv x3, 112"
+   ],
+   [
+    "features.6",
+    "MBConv x4, 192"
+   ],
+   [
+    "features.7",
+    "MBConv x1, 320"
+   ],
+   [
+    "features.8",
+    "1x1 conv, 1280"
+   ],
+   [
+    "avgpool",
+    "Global AvgPool"
+   ],
+   [
+    "classifier",
+    "FC 1000"
+   ]
+  ],
+  "trace": {
+   "224": {
+    "shapes": {
+     "features.0": "32x112x112",
+     "features.1": "16x112x112",
+     "features.2": "24x56x56",
+     "features.3": "40x28x28",
+     "features.4": "80x14x14",
+     "features.5": "112x14x14",
+     "features.6": "192x7x7",
+     "features.7": "320x7x7",
+     "features.8": "1280x7x7",
+     "avgpool": "1280x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   },
+   "32": {
+    "shapes": {
+     "features.0": "32x16x16",
+     "features.1": "16x16x16",
+     "features.2": "24x8x8",
+     "features.3": "40x4x4",
+     "features.4": "80x2x2",
+     "features.5": "112x2x2",
+     "features.6": "192x1x1",
+     "features.7": "320x1x1",
+     "features.8": "1280x1x1",
+     "avgpool": "1280x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   },
+   "448": {
+    "shapes": {
+     "features.0": "32x224x224",
+     "features.1": "16x224x224",
+     "features.2": "24x112x112",
+     "features.3": "40x56x56",
+     "features.4": "80x28x28",
+     "features.5": "112x28x28",
+     "features.6": "192x14x14",
+     "features.7": "320x14x14",
+     "features.8": "1280x14x14",
+     "avgpool": "1280x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   }
+  }
+ },
+ "vit": {
+  "sizes": [
+   224,
+   32,
+   448
+  ],
+  "rows": [
+   [
+    "input",
+    "Input"
+   ],
+   [
+    "conv_proj",
+    "16x16 conv, 768, stride 16"
+   ],
+   [
+    "block 0",
+    "Transformer block 0"
+   ],
+   [
+    "block 1",
+    "Transformer block 1"
+   ],
+   [
+    "block 2",
+    "Transformer block 2"
+   ],
+   [
+    "block 3",
+    "Transformer block 3"
+   ],
+   [
+    "block 4",
+    "Transformer block 4"
+   ],
+   [
+    "block 5",
+    "Transformer block 5"
+   ],
+   [
+    "block 6",
+    "Transformer block 6"
+   ],
+   [
+    "block 7",
+    "Transformer block 7"
+   ],
+   [
+    "block 8",
+    "Transformer block 8"
+   ],
+   [
+    "block 9",
+    "Transformer block 9"
+   ],
+   [
+    "block 10",
+    "Transformer block 10"
+   ],
+   [
+    "block 11",
+    "Transformer block 11"
+   ],
+   [
+    "encoder.ln",
+    "LayerNorm"
+   ],
+   [
+    "heads",
+    "FC 1000"
+   ]
+  ],
+  "trace": {
+   "224": {
+    "shapes": {
+     "conv_proj": "768x14x14",
+     "block 0": "197x768",
+     "block 1": "197x768",
+     "block 2": "197x768",
+     "block 3": "197x768",
+     "block 4": "197x768",
+     "block 5": "197x768",
+     "block 6": "197x768",
+     "block 7": "197x768",
+     "block 8": "197x768",
+     "block 9": "197x768",
+     "block 10": "197x768",
+     "block 11": "197x768",
+     "encoder.ln": "197x768",
+     "heads": "1000"
+    },
+    "error": null
+   },
+   "32": {
+    "shapes": {},
+    "error": "AssertionError"
+   },
+   "448": {
+    "shapes": {},
+    "error": "AssertionError"
+   }
+  }
+ }
+}
