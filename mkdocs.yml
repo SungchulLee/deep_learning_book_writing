@@ -99,8 +99,13 @@ nav:
         - 3x3을 쌓는다: ch04/02_depth.md
       - 4.5 데이터 증강:
         - 자료를 불려 천장을 올린다: ch04/04_augmentation.md
-      - 4.6 VGG16 전이:
-        - 남의 데이터로 배운 표현: ch04/03_vgg16_transfer.md
+      - 4.6 전이:
+        - 남의 데이터로 배운 표현 (VGG16): ch04/03_vgg16_transfer.md
+        - Inception — 크기를 고르지 않는다: ch04/09_transfer_inception.md
+        - ResNet — 지름길을 얹는다: ch04/08_transfer_resnet.md
+        - MobileNet — 합성곱을 쪼갠다: ch04/10_transfer_mobilenet.md
+        - EfficientNet — 세 축을 함께 키운다: ch04/11_transfer_efficientnet.md
+        - ViT — 합성곱을 버린다: ch04/12_transfer_vit.md
     - 5 MNIST로 보는 생성:
       - 장 개요: ch05/index.md
       - 5.1 차원축소:
