@@ -100,7 +100,7 @@ nav:
       - 4.5 데이터 증강:
         - 자료를 불려 천장을 올린다: ch04/04_augmentation.md
       - 4.6 전이:
-        - 남의 데이터로 배운 표현 (VGG16): ch04/03_vgg16_transfer.md
+        - VGG16 — 3x3만 쌓는다: ch04/03_vgg16_transfer.md
         - Inception — 크기를 고르지 않는다: ch04/09_transfer_inception.md
         - ResNet — 지름길을 얹는다: ch04/08_transfer_resnet.md
         - MobileNet — 합성곱을 쪼갠다: ch04/10_transfer_mobilenet.md
