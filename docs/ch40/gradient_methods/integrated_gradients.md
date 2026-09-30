@@ -100,13 +100,13 @@ $$
 
 ### 공리 2: 짜기에 흔들리지 않음
 
-**말하면**: 모든 들임에 같은 내놓기를 내는 두 그물은 안쪽 얼개가 어떻든 같은 몫을 받아야 한다.
+**말하면**: 모든 들임에 같은 내놓기를 내는 두 그물은 안쪽 구조가 어떻든 같은 몫을 받아야 한다.
 
 **엄밀히**: 모든 $\mathbf{x}$에 대해 $f(\mathbf{x}) = g(\mathbf{x})$이면 $\text{IG}^f_i(\mathbf{x}) = \text{IG}^g_i(\mathbf{x})$이다.
 
 **왜 중요한가**: 시그모이드를 $\sigma(x)$으로 짜든 $1 - \sigma(-x)$으로 짜든 함수가 수학으로 같으므로 몫이 달라져서는 안 된다.
 
-**DeepLIFT은 왜 어기는가**: DeepLIFT은 셈 그래프를 따라 이바지를 퍼뜨리므로, 함수가 같아도 그래프 얼개가 다르면 다른 몫이 나올 수 있다.
+**DeepLIFT은 왜 어기는가**: DeepLIFT은 셈 그래프를 따라 이바지를 퍼뜨리므로, 함수가 같아도 그래프 구조가 다르면 다른 몫이 나올 수 있다.
 
 ### 따라 나오는 됨됨이: 온전함
 
@@ -226,7 +226,7 @@ def create_baseline(
         baseline = torch.zeros_like(image_tensor)
 
     elif baseline_type == 'blur':
-        # 들임을 세게 흐리게 한 것(낮은 잦기 얼개를 남긴다)
+        # 들임을 세게 흐리게 한 것(낮은 잦기 구조를 남긴다)
         from torchvision.transforms.functional import gaussian_blur
         baseline = gaussian_blur(image_tensor, kernel_size=51, sigma=20)
 
@@ -458,7 +458,7 @@ def compute_integrated_gradients_batched(
 | 밑금 | 밝힘 | 알맞은 자리 |
 |----------|-------------|----------|
 | **0(검정)** | 온통 0인 텐서 | 그림(가장 흔하다) |
-| **흐림** | 세게 흐리게 한 들임 | 얼개를 남길 때 |
+| **흐림** | 세게 흐리게 한 들임 | 구조를 남길 때 |
 | **아무렇게나** | 고른 아무 잡음 | 모둠으로 고르게 할 때 |
 | **평균** | 자료의 평균값 | 고르게 한 들임 |
 | **엔트로피 가장 큼** | 0.5(그림이면 잿빛) | 아리송함이 가장 클 때 |

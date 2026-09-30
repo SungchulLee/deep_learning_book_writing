@@ -2,7 +2,7 @@
 
 Swin Transformer은 2021년 글 "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows"에서 나왔다. 잘 들도록 옮긴 창 어텐션과 층을 이룬 결 그림을 쓴다.
 
-여기 짜보기는 Swin Transformer을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 얼개와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 짜보기는 Swin Transformer을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -66,9 +66,9 @@ Parameters: 773,704
 
 ## 2. 논의
 
-이 짜보기는 갈래 2개(`WindowAttention`, `SwinTransformer`)를 매기고, 이들이 어울려 온전한 보기 변환기 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
+이 짜보기는 갈래 2개(`WindowAttention`, `SwinTransformer`)를 매기고, 이들이 어울려 온전한 보기 변환기 구조를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
-여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 핵심 깨침은 크기와 상관없이 그대로다.
+여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 구조라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 구조의 핵심 깨침은 크기와 상관없이 그대로다.
 
 ## 연습문제
 
@@ -87,7 +87,7 @@ Parameters: 773,704
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-얼개를 크기 $64 \times 64$의 RGB 그림(들임 꼴: $3 \times 64 \times 64$)을 받도록 고쳐라. 켜의 차수를 모두 그에 맞게 손보고 모형이 어긋남 없이 도는지 따져라.
+구조를 크기 $64 \times 64$의 RGB 그림(들임 꼴: $3 \times 64 \times 64$)을 받도록 고쳐라. 켜의 차수를 모두 그에 맞게 손보고 모형이 어긋남 없이 도는지 따져라.
 
 </div>
 
@@ -99,7 +99,7 @@ Parameters: 773,704
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
+셀프 어텐션의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 구조를 이끄는 까닭은 무엇인가?
 
 </div>
 
@@ -111,7 +111,7 @@ Parameters: 773,704
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`WindowAttention`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`WindowAttention`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -128,6 +128,6 @@ Parameters: 773,704
 
 **다룬 것** — Swin Transformer
 
-이 짜보기는 갈래 2개(`WindowAttention`, `SwinTransformer`)를 매기고, 이들이 어울려 온전한 보기 변환기 얼개를 이룬다.
+이 짜보기는 갈래 2개(`WindowAttention`, `SwinTransformer`)를 매기고, 이들이 어울려 온전한 보기 변환기 구조를 이룬다.
 
 핵심 갈래는 `WindowAttention`, `SwinTransformer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

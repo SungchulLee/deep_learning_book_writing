@@ -258,10 +258,10 @@ def example_multiple_classes():
 
 def example_different_architectures():
     """
-    보기: 여러 얼개에 Grad-CAM 걸기
+    보기: 여러 구조에 Grad-CAM 걸기
     """
     print("\n" + "=" * 60)
-    print("보기 5: 여러 얼개에 거는 Grad-CAM")
+    print("보기 5: 여러 구조에 거는 Grad-CAM")
     print("=" * 60)
 
     architectures = {
@@ -294,7 +294,7 @@ def example_different_architectures():
 
     plt.tight_layout()
     plt.savefig('gradcam_different_architectures.png', dpi=150, bbox_inches='tight')
-    print("\n얼개 견줌을 'gradcam_different_architectures.png'에 갈무리했다")
+    print("\n구조 견줌을 'gradcam_different_architectures.png'에 갈무리했다")
     plt.close()
 
 
@@ -319,7 +319,7 @@ if __name__ == "__main__":
 
 그림으로 보이기는 모형의 움직임을 알고 익힘의 탈을 짚어내는 데 큰 몫을 한다. 그리는 코드는 배운 나타냄, 모여 가는 결, 따짐 자를 들여다보게 해서 손에 잡히지 않던 셈을 눈에 보이게 한다.
 
-여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 얼개의 갈래, 여러 자료를 바꿔 가며 해 보면 이해가 깊어지고 모형 풀이하기에 대한 감이 몸에 붙는다.
+여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 갈래, 여러 자료를 바꿔 가며 해 보면 이해가 깊어지고 모형 풀이하기에 대한 감이 몸에 붙는다.
 
 ## 연습문제
 
@@ -355,7 +355,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 얼개 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 살핌 잃음이 오르면 짚어낸다. 정칙화(드롭아웃, 짐 줄이기, 자료 늘리기)나 모형 크기 줄이기로 고친다. 익힘과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 살핌 잃음이 오르면 짚어낸다. 정칙화(드롭아웃, 짐 줄이기, 자료 늘리기)나 모형 크기 줄이기로 고친다. 익힘과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
 
@@ -384,7 +384,7 @@ if __name__ == "__main__":
         for p in model.parameters():
             assert p.grad is not None
     ```
-    얼개가 끝에서 끝까지 익히기를 받치는지 알려면 기울기 흐름을 시험하는 것이 특히 중요하다.
+    구조가 끝에서 끝까지 익히기를 받치는지 알려면 기울기 흐름을 시험하는 것이 특히 중요하다.
 
 ## 정리하며
 

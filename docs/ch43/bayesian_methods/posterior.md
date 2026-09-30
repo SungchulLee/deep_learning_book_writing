@@ -135,7 +135,7 @@ $$
 
 HMC는 기울기 소식을 써서 앎에 바탕한 내놓기를 한다.
 
-**덧댄 얼개**: 밀어 나감 $\rho$을 들여 해밀턴 값을 매긴다.
+**덧댄 구조**: 밀어 나감 $\rho$을 들여 해밀턴 값을 매긴다.
 
 $$
 H(\theta, \rho) = -\log p(\theta \mid \mathcal{D}) + \frac{1}{2}\rho^\top M^{-1} \rho
@@ -760,7 +760,7 @@ class SGLD(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            신경 그물 얼개
+            신경 그물 구조
         prior_std : float
             짐의 앞선 분포 표준편차
         noise_std : float
@@ -929,7 +929,7 @@ class LaplaceApproximation(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            신경 그물 얼개
+            신경 그물 구조
         prior_std : float
             앞선 분포의 표준편차
         noise_std : float
@@ -1095,7 +1095,7 @@ class MeanFieldVI(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            신경 그물 얼개
+            신경 그물 구조
         prior_std : float
             앞선 분포의 표준편차
         noise_std : float
@@ -1283,7 +1283,7 @@ class DeepEnsemble(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            신경 그물 얼개
+            신경 그물 구조
         n_members : int
             모둠 갈래의 수
         noise_std : float
@@ -1690,7 +1690,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+이 마디의 아리송함 재기 방법을 거래 구조의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
 
 </div>
 

@@ -26,7 +26,7 @@ import torch.nn.functional as F
 # ========================================================================
 
 # 살피기를 곁들인 두루 갖춘 맞댐 벌어짐 짜기
-# ... (비슷하게 자세한 얼개)
+# ... (비슷하게 자세한 구조)
 
 def main():
     print("Module complete - see 04_restricted_boltzmann_machines.py for RBM+CD")

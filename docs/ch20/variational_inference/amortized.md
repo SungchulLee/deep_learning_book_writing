@@ -122,7 +122,7 @@ class Encoder(nn.Module):
     """
     VAE 인코더: 들임 x을 변분 매개변수 (μ, log σ²)로 잇는다.
     
-    얼개: x -> [숨은 층] -> (μ, log σ²)
+    구조: x -> [숨은 층] -> (μ, log σ²)
     """
     
     def __init__(self, input_dim: int, hidden_dims: list, latent_dim: int):
@@ -161,7 +161,7 @@ class Decoder(nn.Module):
     """
     VAE 디코더: 숨은 z을 되살림 매개변수로 잇는다.
     
-    얼개: z -> [숨은 층] -> x_recon
+    구조: z -> [숨은 층] -> x_recon
     """
     
     def __init__(self, latent_dim: int, hidden_dims: list, output_dim: int):

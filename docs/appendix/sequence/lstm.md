@@ -1,8 +1,8 @@
 # LSTM
 
-LSTM은 1997년 글 "Long Short-Term Memory"에서 나왔다. 이음 속 멀리 떨어진 매임을 담는 문 얼개를 쓴다.
+LSTM은 1997년 글 "Long Short-Term Memory"에서 나왔다. 이음 속 멀리 떨어진 매임을 담는 문 구조를 쓴다.
 
-여기 짜보기는 LSTM을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 얼개와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 짜보기는 LSTM을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -11,7 +11,7 @@ LSTM은 1997년 글 "Long Short-Term Memory"에서 나왔다. 이음 속 멀리 
 '''
 LSTM - 긴 짧은 기억 그물
 논문: "Long Short-Term Memory" (1997)
-핵심: 이음에서 멀리 걸친 기댐을 담아내는 문 얼개
+핵심: 이음에서 멀리 걸친 기댐을 담아내는 문 구조
 '''
 import torch
 import torch.nn as nn
@@ -66,9 +66,9 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
 
 ## 2. 논의
 
-`LSTMModel` 갈래는 PyTorch의 `nn.Module` 낯을 써서 모형 얼개를 담는다. `forward` 방법이 셈 그림을 매기므로 익히는 동안 PyTorch의 autograd가 기울기 셈을 절로 다룬다. 이렇게 묶음으로 나눈 꾸밈 덕에 몫 하나하나를 고치거나 더 큰 흐름에 넣기가 쉽다.
+`LSTMModel` 갈래는 PyTorch의 `nn.Module` 낯을 써서 모형 구조를 담는다. `forward` 방법이 셈 그림을 매기므로 익히는 동안 PyTorch의 autograd가 기울기 셈을 절로 다룬다. 이렇게 묶음으로 나눈 꾸밈 덕에 몫 하나하나를 고치거나 더 큰 흐름에 넣기가 쉽다.
 
-여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 핵심 깨침은 크기와 상관없이 그대로다.
+여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 구조라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 구조의 핵심 깨침은 크기와 상관없이 그대로다.
 
 ## 연습문제
 
@@ -111,7 +111,7 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`LSTMModel`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`LSTMModel`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -128,6 +128,6 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
 
 **다룬 것** — LSTM
 
-`LSTMModel` 갈래는 PyTorch의 `nn.Module` 낯을 써서 모형 얼개를 담는다.
+`LSTMModel` 갈래는 PyTorch의 `nn.Module` 낯을 써서 모형 구조를 담는다.
 
 핵심 갈래는 `LSTMModel`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

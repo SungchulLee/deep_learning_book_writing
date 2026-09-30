@@ -42,7 +42,7 @@ $$L_V = \max\left[(V_\theta - V_\text{과녁})^2, (V_\text{자름} - V_\text{과
 
 ---
 
-## 2. 익힘 되돌이 얼개
+## 2. 익힘 되돌이 구조
 
 ```
 온 고침 수 = total_timesteps / (n_envs × n_steps)

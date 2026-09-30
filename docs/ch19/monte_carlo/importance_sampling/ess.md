@@ -351,7 +351,7 @@ Terrible: N(0, 1)                1.2       0.0%      65.82       4653.5x
 
 **답**: 대체로 그렇다. 제안과 과녁의 짝이 붙박이면 ESS 비(ESS/n)가 대략 상수로 남는다.
 
-**증명 얼개:**
+**증명 구조:**
 
 $$
 \text{ESS} = \frac{n}{1 + \text{CV}^2(\tilde{w})}
@@ -614,7 +614,7 @@ def track_ess_over_iterations(
 | 신용 VaR(99.9%) | 5,000 이상 | 경제적 자본 모형 |
 | 스트레스 시험 | 500 이상 | CCAR/DFAST 상황 |
 
-**실제 제품 얼개를 위한 ESS과 모임 지켜보기:**
+**실제 제품 구조를 위한 ESS과 모임 지켜보기:**
 
 ```python
 def risk_estimation_with_ess_monitoring(

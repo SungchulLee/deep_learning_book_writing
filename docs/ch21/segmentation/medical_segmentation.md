@@ -2,7 +2,7 @@
 
 보기 3: 의료 그림 나누기. 이 각본은 그 분야에 맞춘 의료 그림 나누기를 보여 준다.
 
-이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 그림 나누기를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 얼개의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
+이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 그림 나누기를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
 
 ## 1. 코드
 
@@ -685,7 +685,7 @@
 
 ## 2. 논의
 
-여기 짠 것은 함께 어울려 온전한 그림 나누기 얼개를 이루는 클래스 5개(`SyntheticMedicalDataset`, `DoubleConv`, `MedicalUNet`, `DiceLoss`, 그 밖 1개)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
+여기 짠 것은 함께 어울려 온전한 그림 나누기 구조를 이루는 클래스 5개(`SyntheticMedicalDataset`, `DoubleConv`, `MedicalUNet`, `DiceLoss`, 그 밖 1개)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.
 
@@ -734,7 +734,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `SyntheticMedicalDataset`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 얼개를 만들어라. 층 2, 4, 8개로 시험하여라.
+층이나 덩이의 개수를 정할 수 있도록 `SyntheticMedicalDataset`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
 
 </div>
 
@@ -751,6 +751,6 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 
 **다룬 것** — 보기 3
 
-여기 짠 것은 함께 어울려 온전한 그림 나누기 얼개를 이루는 클래스 5개(`SyntheticMedicalDataset`, `DoubleConv`, `MedicalUNet`, `DiceLoss`, 그 밖 1개)를 정한다.
+여기 짠 것은 함께 어울려 온전한 그림 나누기 구조를 이루는 클래스 5개(`SyntheticMedicalDataset`, `DoubleConv`, `MedicalUNet`, `DiceLoss`, 그 밖 1개)를 정한다.
 
 핵심 갈래는 `SyntheticMedicalDataset`, `DoubleConv`, `MedicalUNet`, `DiceLoss`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -2,7 +2,7 @@
 
 Stable Diffusion은 2022년 글 "High-Resolution Image Synthesis with Latent Diffusion Models"에서 나왔다. - *숨은 밭*에서의 번짐 - 엇결 어텐션으로 글월을 조건으로 삼는다.
 
-여기 짜보기는 Stable Diffusion을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 얼개와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 짜보기는 Stable Diffusion을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -57,9 +57,9 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜보기는 갈래 2개(`LatentUNet`, `StableDiffusion`)를 매기고, 이들이 어울려 온전한 생성기 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
+이 짜보기는 갈래 2개(`LatentUNet`, `StableDiffusion`)를 매기고, 이들이 어울려 온전한 생성기 모형 구조를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
-여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 핵심 깨침은 크기와 상관없이 그대로다.
+여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 구조라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 구조의 핵심 깨침은 크기와 상관없이 그대로다.
 
 ## 연습문제
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 얼개를 이끄는 까닭은 무엇인가?
+셀프 어텐션의 셈 번거로움을 이음 길이 $n$과 모형 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 구조를 이끄는 까닭은 무엇인가?
 
 </div>
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`LatentUNet`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`LatentUNet`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -119,6 +119,6 @@ if __name__ == "__main__":
 
 **다룬 것** — Stable Diffusion
 
-이 짜보기는 갈래 2개(`LatentUNet`, `StableDiffusion`)를 매기고, 이들이 어울려 온전한 생성기 모형 얼개를 이룬다.
+이 짜보기는 갈래 2개(`LatentUNet`, `StableDiffusion`)를 매기고, 이들이 어울려 온전한 생성기 모형 구조를 이룬다.
 
 핵심 갈래는 `LatentUNet`, `StableDiffusion`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

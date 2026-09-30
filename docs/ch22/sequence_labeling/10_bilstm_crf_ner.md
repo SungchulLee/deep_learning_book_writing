@@ -122,7 +122,7 @@ BiLSTM-CRF model created successfully!
 
 ## 2. 논의
 
-`BiLSTM_CRF` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
+`BiLSTM_CRF` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
 
 여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
 
@@ -167,7 +167,7 @@ BiLSTM-CRF model created successfully!
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `BiLSTM_CRF`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 얼개를 만들어라. 층 2, 4, 8개로 시험하여라.
+층이나 덩이의 개수를 정할 수 있도록 `BiLSTM_CRF`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
 
 </div>
 
@@ -184,6 +184,6 @@ BiLSTM-CRF model created successfully!
 
 **다룬 것** — 두 방향 LSTM-CRF 이름 알아보기
 
-`BiLSTM_CRF` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다.
+`BiLSTM_CRF` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다.
 
 핵심 갈래는 `BiLSTM_CRF`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

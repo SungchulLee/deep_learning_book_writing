@@ -692,7 +692,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
     $y' = y - y_0 \mathbf{1}$이고 $y'_0 = 0$이다. 연습문제 4에 따라
     $\text{softmax}(y') = \text{softmax}(y)$이다.
 
-    그리고 이 뺄셈은 같은 얼개 안에서 이룰 수 있다. $a_0$을 $A$의 0번째 행이라 하면
+    그리고 이 뺄셈은 같은 구조 안에서 이룰 수 있다. $a_0$을 $A$의 0번째 행이라 하면
 
     $$A' = A - \mathbf{1} a_0^{\top}, \qquad b' = b - b_0 \mathbf{1}$$
 

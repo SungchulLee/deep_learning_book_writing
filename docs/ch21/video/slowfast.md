@@ -59,7 +59,7 @@ class SlowFast(nn.Module):
     영상 알아보기를 위한 느림빠름 그물
     (Feichtenhofer et al., 2019)
     
-    두 갈래 길 얼개:
+    두 갈래 길 구조:
     - 느림 길: 낮은 틀 비율, 많은 채널
     - 빠름 길: 높은 틀 비율, 적은 채널
     - 옆 이음이 길 사이의 앎을 녹여 붙인다
@@ -404,7 +404,7 @@ def train_slowfast(model, train_loader, epochs=196):
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-느림빠름 얼개를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
+느림빠름 구조를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
 
 </div>
 
@@ -416,7 +416,7 @@ def train_slowfast(model, train_loader, epochs=196):
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff easy" title="쉬움"></span>
-그림 가르기 얼개(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
+그림 가르기 구조(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
 
 </div>
 
@@ -439,7 +439,7 @@ def train_slowfast(model, train_loader, epochs=196):
     | **(2+1)차원 누비기** | $O(k^2 C^2 THW + k C^2 THW)$ | 그 자리 | 다듬기 쉽고 매개변수가 적다 |
     | **때 어텐션** | $O(T^2 CHW)$ | 두루 | $T$에 이차이며 너그럽다 |
 
-    3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 셀프 어텐션은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 얼개(보기로 Video Swin Transformer)는 흔히 가까운 자리의 어텐션과 층진 꾸밈을 아우른다.
+    3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 셀프 어텐션은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 구조(보기로 Video Swin Transformer)는 흔히 가까운 자리의 어텐션과 층진 꾸밈을 아우른다.
 
 ## 정리하며
 

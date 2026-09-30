@@ -206,7 +206,7 @@ $$
 \ell(\theta^{(t+1)}) \geq \ell(\theta^{(t)})
 $$
 
-**증명 얼개**:
+**증명 구조**:
 
 1. E 걸음 뒤에 $\mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \ell(\theta^{(t)})$이다(경계가 팽팽하다)
 2. M 걸음이 $\mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)})$을 보장한다

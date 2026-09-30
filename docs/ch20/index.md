@@ -8,7 +8,7 @@
 
 ## 1. 변분 추론
 
-- [변분 추론 얼개](variational_inference/framework.md) -- 변분 추론을 최적화로 세우기, KL 벌어짐과의 관계, 다른 방법과의 견줌
+- [변분 추론 구조](variational_inference/framework.md) -- 변분 추론을 최적화로 세우기, KL 벌어짐과의 관계, 다른 방법과의 견줌
 - [증거 아래 경계(ELBO)](variational_inference/elbo.md) -- 서로 보완하는 세 가지 이끌어 내기, 틈 살피기, 팽팽함의 조건, EM 및 VAE과의 이음
 - [평균장 변분 추론](variational_inference/mean_field.md) -- 온전히 인수로 나눈 어림, 가장 좋은 인수 이끌어 내기, 상관을 무시할 때의 한계
 - [매개변수 바꾸기와 깜깜이 변분 추론](variational_inference/reparameterization.md) -- 점수 함수 어림꼴, 흩어짐 줄이기, 기울기를 쓰는 변분 추론을 위한 매개변수 바꾸기 재주
@@ -19,7 +19,7 @@
 ## 2. 기댓값-최대화
 
 - [EM의 바탕](em/foundations.md) -- 숨은 변수 모형, 숨은 변수가 하는 일, EM 알고리즘이 필요한 까닭
-- [E 걸음과 M 걸음](em/e_step_m_step.md) -- 뒤확률 셈하기와 기댓값 충분 통계량을 비롯한 걸음마다의 자세한 얼개
+- [E 걸음과 M 걸음](em/e_step_m_step.md) -- 뒤확률 셈하기와 기댓값 충분 통계량을 비롯한 걸음마다의 자세한 구조
 - [가우스 섞음 모형](em/gmm.md) -- 온전한 이끌어 내기, 구현, 금융으로의 넓힘을 갖춘 EM의 대표 쓰임새
 - [EM의 갈래](em/variants.md) -- 넓힌 EM, 변분 EM, 그리고 E 걸음이나 M 걸음이 닫힌 꼴이 아닌 모형으로의 넓힘
 

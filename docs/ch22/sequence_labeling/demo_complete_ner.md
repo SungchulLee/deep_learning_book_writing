@@ -138,7 +138,7 @@ def demo_evaluation():
 
 
 def demo_architectures():
-    """깊은 배움 얼개 보이기."""
+    """깊은 배움 구조 보이기."""
     print("\n\n" + "="*70)
     print("5. DEEP LEARNING ARCHITECTURES")
     print("="*70)

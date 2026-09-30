@@ -220,7 +220,7 @@ class EncoderDecoder(nn.Module):
 
 $$\text{FFN}(\mathbf{x}) = f(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2$$
 
-여기서 $\mathbf{W}_1 \in \mathbb{R}^{d \times d_{ff}}$은 "열쇠"(무늬 탐지기)를 셈하고 $\mathbf{W}_2 \in \mathbb{R}^{d_{ff} \times d}$은 "값"(딸린 정보)을 담아 둔다. 안쪽 차원 $d_{ff}$은 대개 $4d$이어서 순전파 신경망은 층마다 주의 얼개의 네 배의 매개변수를 가진다.
+여기서 $\mathbf{W}_1 \in \mathbb{R}^{d \times d_{ff}}$은 "열쇠"(무늬 탐지기)를 셈하고 $\mathbf{W}_2 \in \mathbb{R}^{d_{ff} \times d}$은 "값"(딸린 정보)을 담아 둔다. 안쪽 차원 $d_{ff}$은 대개 $4d$이어서 순전파 신경망은 층마다 주의 구조의 네 배의 매개변수를 가진다.
 
 ---
 
@@ -340,7 +340,7 @@ $$
 여기서 $W^O \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이다(역시 표준 정식화에서 편향 항이 없다). 출력은 입력과 같은 꼴 $\mathbb{R}^{n \times d_{\text{model}}}$이다.
 
 !!! note "주의에는 편향 항이 없다"
-    본디 트랜스포머 정식화는 $W^Q$, $W^K$, $W^V$, $W^O$ 사영에 편향 항을 쓰지 않는다. 주의 얼개에는 스케일 조정($\sqrt{d_k}$)과 정규화(소프트맥스)가 들어 있어 신호를 넉넉히 다스리므로 이 단계에서 더하는 편향이 필요하지 않다. 어떤 구현(예: 파이토치의 `nn.MultiheadAttention`)은 기본으로 편향을 두지만 `bias=False`로 하면 본디 설계와 같아진다.
+    본디 트랜스포머 정식화는 $W^Q$, $W^K$, $W^V$, $W^O$ 사영에 편향 항을 쓰지 않는다. 주의 구조에는 스케일 조정($\sqrt{d_k}$)과 정규화(소프트맥스)가 들어 있어 신호를 넉넉히 다스리므로 이 단계에서 더하는 편향이 필요하지 않다. 어떤 구현(예: 파이토치의 `nn.MultiheadAttention`)은 기본으로 편향을 두지만 `bias=False`로 하면 본디 설계와 같아진다.
 
 ##### 다중 머리 정식화
 
@@ -1526,7 +1526,7 @@ $$
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-질의는 디코더에서, 열쇠와 값은 인코더에서 오는 교차 주의 얼개를 구현하라.
+질의는 디코더에서, 열쇠와 값은 인코더에서 오는 교차 주의 구조를 구현하라.
 
 </div>
 

@@ -1,8 +1,8 @@
 # CBAM
 
-CBAM은 2018년 논문 "CBAM: Convolutional Block Attention Module"에서 나왔다. 채널 어텐션과 자리 어텐션을 차례로 쓰는 얼개이다.
+CBAM은 2018년 논문 "CBAM: Convolutional Block Attention Module"에서 나왔다. 채널 어텐션과 자리 어텐션을 차례로 쓰는 구조이다.
 
-이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 그림 가르기를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 얼개의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
+이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 그림 가르기를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
 
 ## 1. 코드
 
@@ -11,7 +11,7 @@ CBAM은 2018년 논문 "CBAM: Convolutional Block Attention Module"에서 나왔
 '''
 CBAM — 누비기 덩이 어텐션 단원
 논문: "CBAM: Convolutional Block Attention Module" (2018)
-핵심: 채널 어텐션과 자리 어텐션을 차례로 쓰는 얼개
+핵심: 채널 어텐션과 자리 어텐션을 차례로 쓰는 구조
 '''
 import torch
 import torch.nn as nn
@@ -91,7 +91,7 @@ Parameters: 75,146
 
 ## 2. 논의
 
-여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 4개(`ChannelAttention`, `SpatialAttention`, `CBAMBlock`, `CBAM_ResNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
+여기 짠 것은 함께 어울려 온전한 그림 가르기 구조를 이루는 클래스 4개(`ChannelAttention`, `SpatialAttention`, `CBAMBlock`, `CBAM_ResNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
 
 여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
 
@@ -136,7 +136,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `ChannelAttention`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 얼개를 만들어라. 층 2, 4, 8개로 시험하여라.
+층이나 덩이의 개수를 정할 수 있도록 `ChannelAttention`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
 
 </div>
 
@@ -153,6 +153,6 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 
 **다룬 것** — CBAM
 
-여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 4개(`ChannelAttention`, `SpatialAttention`, `CBAMBlock`, `CBAM_ResNet`)를 정한다.
+여기 짠 것은 함께 어울려 온전한 그림 가르기 구조를 이루는 클래스 4개(`ChannelAttention`, `SpatialAttention`, `CBAMBlock`, `CBAM_ResNet`)를 정한다.
 
 핵심 갈래는 `ChannelAttention`, `SpatialAttention`, `CBAMBlock`, `CBAM_ResNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

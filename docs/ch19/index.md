@@ -57,7 +57,7 @@
 
 ## 4. 랑주뱅 동역학
 
-- [바탕](langevin/fundamentals.md) — 랑주뱅 확률 미분 방정식으로 MCMC 표집과 기울기 기반 최적화를 잇는 이어진 시간 얼개
+- [바탕](langevin/fundamentals.md) — 랑주뱅 확률 미분 방정식으로 MCMC 표집과 기울기 기반 최적화를 잇는 이어진 시간 구조
 - [바로잡지 않은 랑주뱅 알고리즘(ULA)](langevin/ula.md) — 메트로폴리스 바로잡기 없이 잘게 나눈 랑주뱅 동역학으로, 확률 기울기와 잘 맞는다
 - [MALA](langevin/mala.md) — 기울기를 담은 제안과 받아들임-물리침 바로잡기를 합친 메트로폴리스 바로잡은 랑주뱅 알고리즘
 - [점수 맞추기와 확산](langevin/score_and_diffusion.md) — 랑주뱅 동역학, 밀도 어림, 낳는 모형을 하나로 꿰는 개념으로서의 점수 함수
@@ -78,7 +78,7 @@
 - [훑어보기](mcmc_comparison/overview.md) — MH, 깁스, 랑주뱅, HMC를 두루 견주고 실전에서 방법 고르는 길잡이
 - [이론으로 견주기](mcmc_comparison/theoretical.md) — 모임 속도, 스펙트럼 분석, 가장 좋은 눈금 잡기 이론을 아우르는 엄밀한 견줌
 - [차원에 따른 눈금](mcmc_comparison/scaling.md) — 차원이 커질 때 MCMC 방법마다 어떻게 굴러가는지와 효율을 지키는 전략
-- [실전에서 방법 고르기](mcmc_comparison/method_selection.md) — 미분 가능함, 차원, 얽힘 짜임, 셈 예산에 기댄 결정 얼개
+- [실전에서 방법 고르기](mcmc_comparison/method_selection.md) — 미분 가능함, 차원, 얽힘 짜임, 셈 예산에 기댄 결정 구조
 
 ---
 

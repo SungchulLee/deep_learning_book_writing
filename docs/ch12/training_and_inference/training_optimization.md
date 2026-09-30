@@ -326,7 +326,7 @@ loss = train_step_mixed_precision(model, optimizer, criterion, src, tgt, scaler,
 | 활성 | 성분당 4바이트 | 성분당 2바이트 | 50% |
 | 최적화기 상태 (Adam) | 매개변수당 12바이트 | 매개변수당 8바이트 | 33% |
 
-### 효율적인 주의 얼개
+### 효율적인 주의 구조
 
 긴 수열에서는 $O(n^2)$의 주의 비용을 줄이는 여러 대안이 있다.
 

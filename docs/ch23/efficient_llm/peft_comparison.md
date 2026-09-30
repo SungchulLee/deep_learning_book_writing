@@ -501,7 +501,7 @@ class PrefixAttention(nn.Module):
         열쇠와 값 앞에 앞가지를 붙여 앞먹임한다.
         """
         # 숨은 상태에서 Q, K, V를 셈한다
-        # (짜기는 어텐션 얼개에 따라 다르다)
+        # (짜기는 어텐션 구조에 따라 다르다)
         
         # K와 V 앞에 앞가지를 붙인다
         # K = [앞가지 열쇠; K]
@@ -518,7 +518,7 @@ class PrefixAttention(nn.Module):
         # 넓힌 K, V로 어텐션을 셈한다
         # ...
         
-        pass  # 온전한 짜기는 모델 얼개에 따라 다르다
+        pass  # 온전한 짜기는 모델 구조에 따라 다르다
 ```
 
 ---
@@ -590,7 +590,7 @@ class AdapterTransformerBlock(nn.Module):
         self.adapter_ffn = Adapter(hidden_size, bottleneck_size)
     
     def _get_hidden_size(self, block: nn.Module) -> int:
-        """덩이 얼개에서 숨은 크기를 알아내려 한다."""
+        """덩이 구조에서 숨은 크기를 알아내려 한다."""
         for name, module in block.named_modules():
             if isinstance(module, nn.Linear):
                 return module.out_features
@@ -598,7 +598,7 @@ class AdapterTransformerBlock(nn.Module):
     
     def forward(self, hidden_states: torch.Tensor, **kwargs):
         # 이는 간추린 판이며, 실제 짜기는
-        # 쓰는 변환기 얼개에 따라 다르다
+        # 쓰는 변환기 구조에 따라 다르다
         
         # 어텐션
         attn_output = self.original.attention(hidden_states, **kwargs)
@@ -620,7 +620,7 @@ class AdapterTransformerBlock(nn.Module):
 
 def add_adapters(model: nn.Module, bottleneck_size: int = 64) -> nn.Module:
     """모든 변환기 덩이에 맞춤개를 더한다."""
-    # 짜기는 모델 얼개에 따라 다르다
+    # 짜기는 모델 구조에 따라 다르다
     # 이는 두루 쓰는 방식의 본이다
     pass
 ```

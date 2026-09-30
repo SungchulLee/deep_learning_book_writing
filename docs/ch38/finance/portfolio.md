@@ -32,7 +32,7 @@ $$r_t = \underbrace{w_t^\top R_t}_{\text{밑천 돌아옴}} - \underbrace{\lambd
 
 ---
 
-## 2. 방침 얼개
+## 2. 방침 구조
 
 ### 밑천 방침 그물
 ```

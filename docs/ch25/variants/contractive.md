@@ -262,7 +262,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
     """
     인코더의 민감함으로 오그리는 오토인코더와 여느 오토인코더를 견준다.
     """
-    # 여느 오토인코더(얼개는 같고 오그림 벌주기는 없다)
+    # 여느 오토인코더(구조는 같고 오그림 벌주기는 없다)
     standard_ae = ContractiveAutoencoder().to(device)
     optimizer = optim.Adam(standard_ae.parameters(), lr=0.001)
     criterion = nn.MSELoss()

@@ -1,6 +1,6 @@
 # Grad-CAM: 기울기 짐 실은 갈래 살아남 그림
 
-**기울기 짐 실은 갈래 살아남 그림(Grad-CAM)**은 CNN 바탕 모형의 판단을 눈에 보이게 풀이하는 재주다. 정해진 얼개를 바라던 앞선 갈래 살아남 그림(CAM) 방법과 달리, Grad-CAM은 얼개를 고치거나 다시 익히지 않고도 어떤 CNN 얼개에나 듣는다.
+**기울기 짐 실은 갈래 살아남 그림(Grad-CAM)**은 CNN 바탕 모형의 판단을 눈에 보이게 풀이하는 재주다. 정해진 구조를 바라던 앞선 갈래 살아남 그림(CAM) 방법과 달리, Grad-CAM은 구조를 고치거나 다시 익히지 않고도 어떤 CNN 구조에나 듣는다.
 
 Grad-CAM은 밑바탕이 되는 물음에 답한다. **들임 그림의 어느 자리가 어떤 갈래를 미루어 보는 데 가장 중요한가?**
 
@@ -147,7 +147,7 @@ import numpy as np
 
 class GradCAM:
     """
-    어떤 CNN 얼개에도 쓰는 Grad-CAM 짜보기.
+    어떤 CNN 구조에도 쓰는 Grad-CAM 짜보기.
 
     Args:
         model: PyTorch CNN 모형
@@ -296,7 +296,7 @@ class GradCAM:
         return visualization
 ```
 
-### 얼개마다 겨눈 켜 집기
+### 구조마다 겨눈 켜 집기
 
 ```python
 def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
@@ -305,7 +305,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
 
     Args:
         model: 미리 익힌 모형
-        architecture: 모형 얼개 이름
+        architecture: 모형 구조 이름
 
     Returns:
         겨눈 겹치는 켜
@@ -337,7 +337,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
         return model.Mixed_7c
 
     else:
-        raise ValueError(f"모르는 얼개: {architecture}")
+        raise ValueError(f"모르는 구조: {architecture}")
 ```
 
 ### 온전히 쓰는 보기
@@ -427,7 +427,7 @@ plt.show()
 | 갈래 가려냄 | 세다 | - |
 
 ```python
-# 얼개마다의 겨눈 켜
+# 구조마다의 겨눈 켜
 target_layers = {
     'resnet': model.layer4[-1],
     'vgg': model.features[-1],
@@ -578,7 +578,7 @@ def negative_gradcam(gradcam, image_tensor, target_class, device):
 ```python
 def analyze_layer_gradcam(model, image_tensor, target_class, device):
     """
-    켜마다의 Grad-CAM을 견주어 결의 켜 얼개를 알아본다.
+    켜마다의 Grad-CAM을 견주어 결의 켜 구조를 알아본다.
     """
     # ResNet이면 layer2, layer3, layer4을 견준다
     layers = {
@@ -616,14 +616,14 @@ Grad-CAM은 저우 외(2016)의 **갈래 살아남 그림(CAM)**을 넓힌 것�
 
 | 결 | CAM | Grad-CAM |
 |--------|-----|----------|
-| 얼개 | GAP + FC이 있어야 함 | 아무 CNN |
+| 구조 | GAP + FC이 있어야 함 | 아무 CNN |
 | 다시 익히기 | GAP이 없는 모형에는 있어야 함 | 없어도 됨 |
 | 겨눈 켜 | 못 박힘(마지막 겹치는 켜) | 아무 겹치는 켜 |
 | 짐 셈하기 | FC 켜의 짐 | 기울기 바탕 |
 | 풀이 됨됨이 | 높음 | 높음 |
 | 셈 값 | 낮음 | 높음(되짚기) |
 
-**핵심 깨침**: GAP→FC 얼개에서는 Grad-CAM과 CAM이 똑같은 열매를 낸다. Grad-CAM은 CAM을 아무 얼개로나 넓힌 것이다.
+**핵심 깨침**: GAP→FC 구조에서는 Grad-CAM과 CAM이 똑같은 열매를 낸다. Grad-CAM은 CAM을 아무 구조로나 넓힌 것이다.
 
 ### 결 고움의 맞바꿈
 
@@ -649,7 +649,7 @@ Grad-CAM이 **성긴 자리 짚기**를 내는 까닭은 이렇다.
 
 가장 큰 걸림돌은 결 고움이다. 깊은 켜의 결 그림은 흔히 들임보다 훨씬 작다.
 
-| 얼개 | 들임 크기 | Layer4 크기 | 줄어든 곱 |
+| 구조 | 들임 크기 | Layer4 크기 | 줄어든 곱 |
 |--------------|------------|-------------|-----------|
 | ResNet-50 | 224×224 | 7×7 | 32곱절 |
 | VGG-16 | 224×224 | 14×14 | 16곱절 |
@@ -679,7 +679,7 @@ cam_dog = grad_cam(input_tensor, target_class=235)  # 개 갈래
 Grad-CAM은 결 그림의 중요함이 자리마다 한결같다고 여긴다. 다음에서는 이것이 맞지 않을 수 있다.
 
 - 결 그림의 자리마다 다른 뜻이 실려 있을 때
-- 모형이 안에서 어텐션 얼개를 쓸 때
+- 모형이 안에서 어텐션 구조를 쓸 때
 - 결의 중요함이 자리마다 다를 때
 
 ### 4. 기울기 잦아듦
@@ -833,7 +833,7 @@ $$
 ### 핵심 됨됨이
 
 - **갈래를 가려낸다**: 갈래가 다르면 열 그림도 다르다
-- **얼개를 가리지 않는다**: 어떤 CNN에도 듣는다
+- **구조를 가리지 않는다**: 어떤 CNN에도 듣는다
 - **성긴 자리 짚기**: "무엇"이 아니라 "어디"를 보인다
 - **빠르게 셈한다**: 앞으로-되짚기 한 번이면 된다
 - **다시 익히지 않는다**: 미리 익힌 모형에 그대로 쓴다
@@ -860,7 +860,7 @@ $$
 
 - 잔 낱까지 자리를 짚어야 할 때 → 이끈 Grad-CAM
 - 이론 보장이 있어야 할 때 → 쌓은 기울기
-- CNN이 아닌 얼개일 때 → 어텐션 그림 그리기, SHAP
+- CNN이 아닌 구조일 때 → 어텐션 그림 그리기, SHAP
 
 **살펴볼 거리**
 

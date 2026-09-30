@@ -22,7 +22,7 @@
 - 대조 학습 길잡이 — SimCLR, MoCo, MAE와 불리기 방법을 다루는 구현 모음
 - 대조 학습 — InfoNCE 틀, 양성 쌍과 음성 쌍, 정보 이론의 바탕
 - SimCLR — 데이터 불리기 짜맞춤과 사영 머리를 갖춘 간단한 대조 틀
-- MoCo — 효율적인 대조 학습을 위한 유동 사전과 큐 얼개를 갖춘 관성 대조
+- MoCo — 효율적인 대조 학습을 위한 유동 사전과 큐 구조를 갖춘 관성 대조
 - BYOL — 음성 표본 없이 좋은 표현을 이루는 Bootstrap Your Own Latent
 - SimSiam — 무너짐을 막는 데 기울기 멈춤만 쓰는 가장 간단한 비대조 방법
 - Barlow Twins — 임베딩의 교차 상관 행렬을 항등 행렬에 가깝게 만들어 배우기
@@ -48,7 +48,7 @@
 
 - 자기 증류 훑어보기 — 자기 증류 방식과 그 정보 이론적 바탕
 - [지식 증류의 기초](self_distillation/distillation_basics.md) — 어둠의 지식과 온도 조정을 아우르는 교사-학생 틀의 기본
-- [EMA 교사](self_distillation/ema_teacher.md) — 자기 증류에서 안정된 목표 모형을 위한 지수 이동 평균 교사 얼개
+- [EMA 교사](self_distillation/ema_teacher.md) — 자기 증류에서 안정된 목표 모형을 위한 지수 이동 평균 교사 구조
 - DINO — 이름표 없는 자기 증류로 ViT에서 뜻있는 어텐션 지도를 얻기
 - DINOv2 — DINO와 iBOT 목표를 아울러 보편적인 시각 특징을 내도록 자기 증류를 키우기
 

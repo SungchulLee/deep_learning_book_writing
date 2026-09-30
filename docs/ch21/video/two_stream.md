@@ -6,7 +6,7 @@
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
-- 두 갈래 얼개를 쓰는 까닭을 이해한다
+- 두 갈래 구조를 쓰는 까닭을 이해한다
 - 자리 갈래 그물과 때 갈래 그물을 짠다
 - 때 갈래에 쓸 빛 흐름을 셈하고 앞손질한다
 - 갈래별 어림을 아우르는 좋은 녹여 붙이기 전략을 꾸민다
@@ -631,7 +631,7 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-느림빠름 얼개를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
+느림빠름 구조를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
 
 </div>
 
@@ -643,7 +643,7 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff easy" title="쉬움"></span>
-그림 가르기 얼개(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
+그림 가르기 구조(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
 
 </div>
 
@@ -666,7 +666,7 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
     | **(2+1)차원 누비기** | $O(k^2 C^2 THW + k C^2 THW)$ | 그 자리 | 다듬기 쉽고 매개변수가 적다 |
     | **때 어텐션** | $O(T^2 CHW)$ | 두루 | $T$에 이차이며 너그럽다 |
 
-    3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 셀프 어텐션은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 얼개(보기로 Video Swin Transformer)는 흔히 가까운 자리의 어텐션과 층진 꾸밈을 아우른다.
+    3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 셀프 어텐션은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 구조(보기로 Video Swin Transformer)는 흔히 가까운 자리의 어텐션과 층진 꾸밈을 아우른다.
 
 ## 정리하며
 

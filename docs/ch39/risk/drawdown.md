@@ -464,9 +464,9 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 무릅씀 다루기 얼개를 함께 이룬다. 갈래마다 남다른 조각을 감싸므로 코드가 조각조각 나뉘어 늘리기 쉽다. `forward` 방법이 파이토치가 저절로 미분할 때 쓰는 셈 그래프를 정한다.
+이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 무릅씀 다루기 구조를 함께 이룬다. 갈래마다 남다른 조각을 감싸므로 코드가 조각조각 나뉘어 늘리기 쉽다. `forward` 방법이 파이토치가 저절로 미분할 때 쓰는 셈 그래프를 정한다.
 
-여기서 보인 결은 더 얽힌 자리로 자연스럽게 넓어진다. 매개변수와 얼개 갈래와 자료 뭉치를 바꿔 가며 해 보면 이해가 깊어지고 계량 금융 일감에 대한 실제 감이 쌓인다.
+여기서 보인 결은 더 얽힌 자리로 자연스럽게 넓어진다. 매개변수와 구조 갈래와 자료 뭉치를 바꿔 가며 해 보면 이해가 깊어지고 계량 금융 일감에 대한 실제 감이 쌓인다.
 
 ## 연습문제
 
@@ -502,14 +502,14 @@ if __name__ == "__main__":
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔한 어그러짐은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 노름을 지켜보아(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기) 짚어 낸다. 기울기 자르기, 더 나은 첫 값 매기기(자비에/카이밍), 얼개 바꾸기(남는 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 손실은 줄어드는데 살피기 손실이 늘면 짚어 낸다. 정칙화(드롭아웃, 무게 삭임, 자료 늘리기)나 모형 그릇 줄이기로 고친다. 익힘 재기와 살피기 재기를 늘 함께 지켜보아 이런 걸림돌을 일찍 잡아야 한다.
+    흔한 어그러짐은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 노름을 지켜보아(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기) 짚어 낸다. 기울기 자르기, 더 나은 첫 값 매기기(자비에/카이밍), 구조 바꾸기(남는 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 손실은 줄어드는데 살피기 손실이 늘면 짚어 낸다. 정칙화(드롭아웃, 무게 삭임, 자료 늘리기)나 모형 그릇 줄이기로 고친다. 익힘 재기와 살피기 재기를 늘 함께 지켜보아 이런 걸림돌을 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`DrawdownConfig`을 켜나 덩이의 개수를 마음대로 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 들쭉날쭉한 얼개를 만들어라. 켜 2, 4, 8개로 시험해 보라.
+`DrawdownConfig`을 켜나 덩이의 개수를 마음대로 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 들쭉날쭉한 구조를 만들어라. 켜 2, 4, 8개로 시험해 보라.
 
 </div>
 
@@ -526,6 +526,6 @@ if __name__ == "__main__":
 
 **다룬 것** — 내림폭
 
-이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 무릅씀 다루기 얼개를 함께 이룬다.
+이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 무릅씀 다루기 구조를 함께 이룬다.
 
 핵심 갈래는 `DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

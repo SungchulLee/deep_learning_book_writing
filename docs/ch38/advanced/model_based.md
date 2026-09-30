@@ -54,7 +54,7 @@ $$\nabla_\theta J \approx \nabla_\theta \sum_t \hat{r}(s_t, \pi_\theta(s_t))$$
 
 ---
 
-## 3. 모형 얼개
+## 3. 모형 구조
 
 움직임 모형은 $(\hat{s}', \hat{r}) = f_\psi(s, a)$을 미리 본다.
 

@@ -2,7 +2,7 @@
 
 깊은 배움의 치우침 눅이기 재주. 기계 배움 모형의 치우침을 줄이는 여러 길.
 
-기계 배움 얼개에서 고름을 지키는 일은 윤리로도 마땅하고 참으로도 걸린 문제다. 이 꾸러미는 깊은 배움 모형의 치우침을 알아내고, 재고, 눅이는 재주를 보이며, 이론의 고름 잣대를 손에 잡히는 코드로 이어 준다.
+기계 배움 구조에서 고름을 지키는 일은 윤리로도 마땅하고 참으로도 걸린 문제다. 이 꾸러미는 깊은 배움 모형의 치우침을 알아내고, 재고, 눅이는 재주를 보이며, 이론의 고름 잣대를 손에 잡히는 코드로 이어 준다.
 
 ## 1. 코드
 
@@ -453,11 +453,11 @@
 
 ## 2. 논의
 
-이 짜보기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다. 클래스마다 따로 떨어진 조각을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 저절로 미분하는 데 쓰는 셈 그래프를 세운다.
+이 짜보기는 함께 어우러져 온전한 깊은 배움 구조를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다. 클래스마다 따로 떨어진 조각을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 저절로 미분하는 데 쓰는 셈 그래프를 세운다.
 
 익힘 돌기는 여느 PyTorch 결을 따른다. 앞으로 걸음으로 미루어 봄을 셈하고, 잃음을 셈하고, 되짚기로 기울기를 셈하고, 가장 좋게 하는 개로 매개변수를 고친다. 시대마다 자를 좇으면 모여 가는 결이 드러나고 덜 맞추기나 지나치게 맞추기 같은 탈을 짚어내기 좋다.
 
-여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 얼개의 갈래, 여러 자료를 바꿔 가며 해 보면 이해가 깊어지고 기계 배움 일감에 대한 감이 몸에 붙는다.
+여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 갈래, 여러 자료를 바꿔 가며 해 보면 이해가 깊어지고 기계 배움 일감에 대한 감이 몸에 붙는다.
 
 ## 연습문제
 
@@ -493,14 +493,14 @@
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 얼개 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 살핌 잃음이 오르면 짚어낸다. 정칙화(드롭아웃, 짐 줄이기, 자료 늘리기)나 모형 크기 줄이기로 고친다. 익힘과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 살핌 잃음이 오르면 짚어낸다. 정칙화(드롭아웃, 짐 줄이기, 자료 늘리기)나 모형 크기 줄이기로 고친다. 익힘과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`ReweighingMitigation`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`ReweighingMitigation`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -517,6 +517,6 @@
 
 **다룬 것** — 치우침 눅이기
 
-이 짜보기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다.
+이 짜보기는 함께 어우러져 온전한 깊은 배움 구조를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다.
 
 핵심 갈래는 `ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

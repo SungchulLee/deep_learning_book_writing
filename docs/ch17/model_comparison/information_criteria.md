@@ -37,7 +37,7 @@ $$
 
 **아카이케 정보 기준**은 참 데이터 생성 분포 $p_{\text{true}}$과 맞춘 모형 사이의 기대 쿨백-라이블러 벌어짐을 가장 작게 한다.
 
-**얼개**: 모르는 $p_{\text{true}}$에서 온 데이터 $\mathcal{D} = \{x_1, \ldots, x_n\}$이 주어지면 다음과 같다.
+**구조**: 모르는 $p_{\text{true}}$에서 온 데이터 $\mathcal{D} = \{x_1, \ldots, x_n\}$이 주어지면 다음과 같다.
 
 $$
 \text{KL}(p_{\text{true}} \| p_{\hat{\theta}}) = \int p_{\text{true}}(x) \log \frac{p_{\text{true}}(x)}{p(x \mid \hat{\theta})} \, dx

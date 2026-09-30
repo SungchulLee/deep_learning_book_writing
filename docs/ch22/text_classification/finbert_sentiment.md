@@ -569,7 +569,7 @@ if __name__ == "__main__":
     ```
 ## 2. 논의
 
-`SimpleFinancialClassifier` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
+`SimpleFinancialClassifier` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.
 
@@ -616,7 +616,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `SimpleFinancialClassifier`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 얼개를 만들어라. 층 2, 4, 8개로 시험하여라.
+층이나 덩이의 개수를 정할 수 있도록 `SimpleFinancialClassifier`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
 
 </div>
 
@@ -633,6 +633,6 @@ if __name__ == "__main__":
 
 **다룬 것** — FinBERT 마음결
 
-`SimpleFinancialClassifier` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다.
+`SimpleFinancialClassifier` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다.
 
 핵심 갈래는 `SimpleFinancialClassifier`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

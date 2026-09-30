@@ -184,7 +184,7 @@ $$
 
 ### 베타-베르누이 모형
 
-**얼개**: $x_i \sim \text{Bernoulli}(\theta)$, $\theta \sim \text{Beta}(\alpha_0, \beta_0)$
+**구조**: $x_i \sim \text{Bernoulli}(\theta)$, $\theta \sim \text{Beta}(\alpha_0, \beta_0)$
 
 **증거**:
 
@@ -206,7 +206,7 @@ $$
 
 ### 흩어짐을 아는 가우스
 
-**얼개**: $x_i \sim \mathcal{N}(\mu, \sigma^2)$($\sigma^2$을 앎), $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$
+**구조**: $x_i \sim \mathcal{N}(\mu, \sigma^2)$($\sigma^2$을 앎), $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$
 
 **증거**:
 
@@ -224,7 +224,7 @@ $$
 
 ### 흩어짐을 모르는 가우스(NIG 앞확률)
 
-**얼개**: $x_i \sim \mathcal{N}(\mu, \sigma^2)$, $(\mu, \sigma^2) \sim \text{NIG}(\mu_0, \kappa_0, \alpha_0, \beta_0)$
+**구조**: $x_i \sim \mathcal{N}(\mu, \sigma^2)$, $(\mu, \sigma^2) \sim \text{NIG}(\mu_0, \kappa_0, \alpha_0, \beta_0)$
 
 **로그 증거**:
 

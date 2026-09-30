@@ -511,7 +511,7 @@ class SwinUNet(nn.Module):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-스윈 트랜스포머의 어긋난 창 얼개를 설명하고 그것이 왜 일차 복잡도를 이루게 하는지 밝혀라.
+스윈 트랜스포머의 어긋난 창 구조를 설명하고 그것이 왜 일차 복잡도를 이루게 하는지 밝혀라.
 
 </div>
 

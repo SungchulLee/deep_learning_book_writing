@@ -1,8 +1,8 @@
 # Seq2Seq
 
-Seq2Seq은 2014년 글 "Sequence to Sequence Learning with Neural Networks"에서 나왔다. 이음을 옮기는 인코더-디코더 얼개다.
+Seq2Seq은 2014년 글 "Sequence to Sequence Learning with Neural Networks"에서 나왔다. 이음을 옮기는 인코더-디코더 구조다.
 
-여기 짜보기는 Seq2Seq을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 얼개와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 짜보기는 Seq2Seq을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -11,7 +11,7 @@ Seq2Seq은 2014년 글 "Sequence to Sequence Learning with Neural Networks"에�
 '''
 Seq2Seq - 신경 그물로 하는 이음에서 이음으로 배우기
 논문: "Sequence to Sequence Learning with Neural Networks" (2014)
-핵심: 이음을 옮기기 위한 인코더-디코더 얼개
+핵심: 이음을 옮기기 위한 인코더-디코더 구조
 '''
 import torch
 import torch.nn as nn
@@ -72,9 +72,9 @@ Parameters: 2,874,344
 
 ## 2. 논의
 
-이 짜보기는 갈래 3개(`Encoder`, `Decoder`, `Seq2Seq`)를 매기고, 이들이 어울려 온전한 이음 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
+이 짜보기는 갈래 3개(`Encoder`, `Decoder`, `Seq2Seq`)를 매기고, 이들이 어울려 온전한 이음 모형 구조를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
-여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 핵심 깨침은 크기와 상관없이 그대로다.
+여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 구조라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 구조의 핵심 깨침은 크기와 상관없이 그대로다.
 
 ## 연습문제
 
@@ -117,7 +117,7 @@ Parameters: 2,874,344
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`Encoder`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`Encoder`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -134,6 +134,6 @@ Parameters: 2,874,344
 
 **다룬 것** — Seq2Seq
 
-이 짜보기는 갈래 3개(`Encoder`, `Decoder`, `Seq2Seq`)를 매기고, 이들이 어울려 온전한 이음 모형 얼개를 이룬다.
+이 짜보기는 갈래 3개(`Encoder`, `Decoder`, `Seq2Seq`)를 매기고, 이들이 어울려 온전한 이음 모형 구조를 이룬다.
 
 핵심 갈래는 `Encoder`, `Decoder`, `Seq2Seq`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -96,7 +96,7 @@ Entity
 
 $$P(\mathcal{T}_m | m, c) = \prod_{t \in \mathcal{T}} P(t \in \mathcal{T}_m | m, c)$$
 
-층 얼개가 앞뒤 맞아야 한다. $t \in \mathcal{T}_m$이고 $t'$이 $t$의 윗갈래이면 $t' \in \mathcal{T}_m$이다.
+층 구조가 앞뒤 맞아야 한다. $t \in \mathcal{T}_m$이고 $t'$이 $t$의 윗갈래이면 $t' \in \mathcal{T}_m$이다.
 
 ---
 

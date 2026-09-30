@@ -129,7 +129,7 @@ Thermodynamic quantities for double-well potential:
 ```python
 def visualize_phase_transition_analogy():
     """
-    열역학 양이 얼개 바뀜을 어떻게 알리는지 보여 준다
+    열역학 양이 구조 바뀜을 어떻게 알리는지 보여 준다
     볼츠만 분포에서.
     """
     x = torch.linspace(-4, 4, 1000)

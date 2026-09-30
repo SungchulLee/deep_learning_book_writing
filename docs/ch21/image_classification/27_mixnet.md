@@ -88,7 +88,7 @@ Parameters: 1,596,088
 
 ## 2. 논의
 
-여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 3개(`MixConv2d`, `MixNetBlock`, `MixNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
+여기 짠 것은 함께 어울려 온전한 그림 가르기 구조를 이루는 클래스 3개(`MixConv2d`, `MixNetBlock`, `MixNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
 
 여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
 
@@ -133,7 +133,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `MixConv2d`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 얼개를 만들어라. 층 2, 4, 8개로 시험하여라.
+층이나 덩이의 개수를 정할 수 있도록 `MixConv2d`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
 
 </div>
 
@@ -150,6 +150,6 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 
 **다룬 것** — MixNet
 
-여기 짠 것은 함께 어울려 온전한 그림 가르기 얼개를 이루는 클래스 3개(`MixConv2d`, `MixNetBlock`, `MixNet`)를 정한다.
+여기 짠 것은 함께 어울려 온전한 그림 가르기 구조를 이루는 클래스 3개(`MixConv2d`, `MixNetBlock`, `MixNet`)를 정한다.
 
 핵심 갈래는 `MixConv2d`, `MixNetBlock`, `MixNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -2,7 +2,7 @@
 
 Dueling DQN은 2016년 글 "Dueling Network Architectures for Deep Reinforcement Learning"에서 나왔다. - V(s)과 A(s,a)을 따로 배운 뒤 Q(s,a)으로 아우른다 - 값이 비슷한 움직임이 많을 때 도움이 된다.
 
-여기 짜보기는 Dueling DQN을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 얼개와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 짜보기는 Dueling DQN을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -10,7 +10,7 @@ Dueling DQN은 2016년 글 "Dueling Network Architectures for Deep Reinforcement
 #!/usr/bin/env python3
 """
 Dueling DQN - 값 흐름과 이득 흐름을 따로 두기
-글: "깊은 북돋움 배움을 위한 겨루는 그물 얼개" (2016)
+글: "깊은 북돋움 배움을 위한 겨루는 그물 구조" (2016)
 지은이: 쯔위 왕 외
 핵심 깨침:
   - V(s)과 A(s,a)을 따로 배운 뒤 Q(s,a)으로 아우른다
@@ -78,9 +78,9 @@ Q: torch.Size([3, 4])
 
 ## 2. 논의
 
-`DuelingQNetwork` 갈래는 PyTorch의 `nn.Module` 낯을 써서 모형 얼개를 담는다. `forward` 방법이 셈 그림을 매기므로 익히는 동안 PyTorch의 autograd가 기울기 셈을 절로 다룬다. 이렇게 묶음으로 나눈 꾸밈 덕에 몫 하나하나를 고치거나 더 큰 흐름에 넣기가 쉽다.
+`DuelingQNetwork` 갈래는 PyTorch의 `nn.Module` 낯을 써서 모형 구조를 담는다. `forward` 방법이 셈 그림을 매기므로 익히는 동안 PyTorch의 autograd가 기울기 셈을 절로 다룬다. 이렇게 묶음으로 나눈 꾸밈 덕에 몫 하나하나를 고치거나 더 큰 흐름에 넣기가 쉽다.
 
-여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 핵심 깨침은 크기와 상관없이 그대로다.
+여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 구조라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 구조의 핵심 깨침은 크기와 상관없이 그대로다.
 
 ## 연습문제
 
@@ -116,14 +116,14 @@ Q: torch.Size([3, 4])
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫자리 잡기(Xavier/Kaiming), 얼개 고치기(나머지 이음, 잣대 잡기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 따짐 잃음이 오르면 짚어낸다. 다독임(드롭아웃, 짐 줄이기, 자료 불리기)이나 모형 크기 줄이기로 고친다. 익힘과 따짐 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫자리 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 잣대 잡기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 따짐 잃음이 오르면 짚어낸다. 다독임(드롭아웃, 짐 줄이기, 자료 불리기)이나 모형 크기 줄이기로 고친다. 익힘과 따짐 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`DuelingQNetwork`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`DuelingQNetwork`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -140,6 +140,6 @@ Q: torch.Size([3, 4])
 
 **다룬 것** — Dueling DQN
 
-`DuelingQNetwork` 갈래는 PyTorch의 `nn.Module` 낯을 써서 모형 얼개를 담는다.
+`DuelingQNetwork` 갈래는 PyTorch의 `nn.Module` 낯을 써서 모형 구조를 담는다.
 
 핵심 갈래는 `DuelingQNetwork`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

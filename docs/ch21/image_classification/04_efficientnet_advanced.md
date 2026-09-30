@@ -1,6 +1,6 @@
 # 앞선 EfficientNet
 
-EfficientNet은 겹친 잣수 맞추기를 들여왔는데, 붙박이 잣수 계수 한 벌로 그물의 깊이, 너비, 해상도를 고르게 키운다. 2019년 Tan과 Le가 내놓은 이 방식은 신경 얼개 찾기로 가장 좋은 바탕(EfficientNet-B0)을 찾은 뒤 그것을 짜임새 있게 키운다. 이로써 사람이 손수 꾸민 얼개보다 나은 정확도와 효율을 얻는다.
+EfficientNet은 겹친 잣수 맞추기를 들여왔는데, 붙박이 잣수 계수 한 벌로 그물의 깊이, 너비, 해상도를 고르게 키운다. 2019년 Tan과 Le가 내놓은 이 방식은 신경 구조 찾기로 가장 좋은 바탕(EfficientNet-B0)을 찾은 뒤 그것을 짜임새 있게 키운다. 이로써 사람이 손수 꾸민 구조보다 나은 정확도와 효율을 얻는다.
 
 ## 1. 코드
 
@@ -73,7 +73,7 @@ class MBConvBlock(nn.Module):
 
 
 class EfficientNet(nn.Module):
-    """겹친 잣수 맞추기를 쓴 EfficientNet 얼개."""
+    """겹친 잣수 맞추기를 쓴 EfficientNet 구조."""
     def __init__(self, width_mult=1.0, depth_mult=1.0, num_classes=10,
                  dropout=0.2):
         super().__init__()

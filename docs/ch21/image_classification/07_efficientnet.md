@@ -1,6 +1,6 @@
 # EfficientNet
 
-EfficientNet은 겹친 잣수 맞추기와 MBConv 덩이로 매개변수를 아주 적게 쓰면서 높은 정확도를 낸다. 여기 짠 것은 EfficientNet-B0 얼개를 간추린 판으로, 핵심 벽돌인 줄기, MBConv 단계, 갈래 매기기 머리를 보여 준다.
+EfficientNet은 겹친 잣수 맞추기와 MBConv 덩이로 매개변수를 아주 적게 쓰면서 높은 정확도를 낸다. 여기 짠 것은 EfficientNet-B0 구조를 간추린 판으로, 핵심 벽돌인 줄기, MBConv 단계, 갈래 매기기 머리를 보여 준다.
 
 ## 1. 코드
 

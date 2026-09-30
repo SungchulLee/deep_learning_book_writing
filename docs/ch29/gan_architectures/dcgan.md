@@ -1,6 +1,6 @@
 # 깊은 겹말기 맞겨루기 생성기
 
-이 짜기는 Radford 외(2016)의 얼개 지침을 따른 실제 쓸 만한 품질의 DCGAN을 준다. 28x28(MNIST에 맞는) 판과 64x64(본디 논문) 판을 모두 담아 자리 바꾼 겹말기, 배치 고르게 맞추기, 안정된 맞겨루기 생성기 익히기를 위해 권하는 깨움 함수를 제대로 쓰는 법을 보인다.
+이 짜기는 Radford 외(2016)의 구조 지침을 따른 실제 쓸 만한 품질의 DCGAN을 준다. 28x28(MNIST에 맞는) 판과 64x64(본디 논문) 판을 모두 담아 자리 바꾼 겹말기, 배치 고르게 맞추기, 안정된 맞겨루기 생성기 익히기를 위해 권하는 깨움 함수를 제대로 쓰는 법을 보인다.
 
 ## 1. 코드
 
@@ -12,7 +12,7 @@
 "Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks"
 (Radford et al., 2016)
 
-핵심 얼개 원칙:
+핵심 구조 원칙:
 1. 모으기를 성큼 겹말기로 바꾼다
 2. G과 D 모두에 배치 고르게 맞추기를 쓴다
 3. 온전 이음 숨은 층을 없앤다
@@ -259,7 +259,7 @@ class DCGAN64Discriminator(nn.Module):
 
 
 def test_dcgan():
-    """DCGAN 얼개를 시험한다."""
+    """DCGAN 구조를 시험한다."""
     print("Testing DCGAN for 28x28 images (MNIST)...")
     
     # 28x28 판을 시험한다
@@ -325,11 +325,11 @@ All tests passed! ✓
 
 ## 2. 논의
 
-DCGANGenerator은 두 단계 얼개를 쓴다. 곧 먼저 숨은 벡터를 배치 고르게 맞추기를 갖춘 선형 층으로 공간 특징 지도에 쏜 뒤 자리 바꾼 겹말기로 키운다. 키우는 덩이마다 ConvTranspose2d, BatchNorm2d, ReLU의 결을 따르며 마지막 층은 Tanh으로 $[-1, 1]$ 안의 그림을 만든다. 갈래 적기와 자세한 설명글이 있어 참고 짜기로 알맞다.
+DCGANGenerator은 두 단계 구조를 쓴다. 곧 먼저 숨은 벡터를 배치 고르게 맞추기를 갖춘 선형 층으로 공간 특징 지도에 쏜 뒤 자리 바꾼 겹말기로 키운다. 키우는 덩이마다 ConvTranspose2d, BatchNorm2d, ReLU의 결을 따르며 마지막 층은 Tanh으로 $[-1, 1]$ 안의 그림을 만든다. 갈래 적기와 자세한 설명글이 있어 참고 짜기로 알맞다.
 
 DCGANDiscriminator은 성큼 겹말기로 들임 그림을 차츰 줄이면서 특징 채널 수를 늘린다. 논문 지침에 따라 첫 겹말기 층은 배치 고르게 맞추기를 빼고 기울기 0.2인 LeakyReLU을 내내 쓴다. 마지막 겹말기는 표본마다 값 하나로 줄이고 두값 가르기를 위해 시그모이드를 지난다.
 
-64x64 판(DCGAN64Generator과 DCGAN64Discriminator)은 본디 논문을 더 가깝게 따라 $(z, 1, 1)$ 들임에서 시작해 키우기/줄이기 네 단계의 대칭 얼개를 쓴다. 이 판은 숨은 벡터를 4차원 꼴 $(B, z, 1, 1)$으로 받으며 이는 많은 맞겨루기 생성기 틀에서 쓰는 약속이다.
+64x64 판(DCGAN64Generator과 DCGAN64Discriminator)은 본디 논문을 더 가깝게 따라 $(z, 1, 1)$ 들임에서 시작해 키우기/줄이기 네 단계의 대칭 구조를 쓴다. 이 판은 숨은 벡터를 4차원 꼴 $(B, z, 1, 1)$으로 받으며 이는 많은 맞겨루기 생성기 틀에서 쓰는 약속이다.
 
 ## 연습문제
 
@@ -625,6 +625,6 @@ DCGAN 무게 첫자리매김 방식(겹말기 층은 평균 0, 표준 편차 0.0
 
 **다룬 것** — 깊은 겹말기 맞겨루기 생성기
 
-DCGANGenerator은 두 단계 얼개를 쓴다.
+DCGANGenerator은 두 단계 구조를 쓴다.
 
 핵심 갈래는 `DCGANGenerator`, `DCGANDiscriminator`, `DCGAN64Generator`, `DCGAN64Discriminator`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
