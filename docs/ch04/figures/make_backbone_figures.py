@@ -32,16 +32,18 @@ HL   = "#fff3cd"                   # 짚는 칸 바탕
 BW, BH, GAP = 6.0, 0.70, 0.16
 
 
-def stack(ax, rows, x0=0.0):
-    """rows: (왼쪽 이름, 상자 글, 오른쪽 모양, 색, 고갱이인가)
+def stack(ax, rows, heads, x0=0.0):
+    """rows: (왼쪽 이름, 상자 글, [모양 셋], 색, 고갱이인가)
 
-    아래에서 위로 쌓고, 고갱이 줄은 바탕을 칠한다. 고갱이 줄의 y를 돌려준다.
+    VGG16 그림과 같이 **모양 열을 셋** 둔다. 넣는 크기를 바꾸면 무엇이 달라지고
+    무엇이 안 달라지는지가 그 셋을 가로로 읽으면 바로 보인다. 못 도는 칸은
+    "--" 로 둔다.
     """
     spec_y = None
-    for i, (name, mid, shape, (fill, edge), is_spec) in enumerate(rows):
+    for i, (name, mid, shapes, (fill, edge), is_spec) in enumerate(rows):
         y = i * (BH + GAP)
         if is_spec:
-            ax.add_patch(plt.Rectangle((x0 - 2.7, y - GAP / 2), BW + 6.6, BH + GAP,
+            ax.add_patch(plt.Rectangle((x0 - 2.7, y - GAP / 2), BW + 13.4, BH + GAP,
                                        facecolor=HL, edgecolor="none", zorder=0))
             spec_y = y
         ax.add_patch(plt.Rectangle((x0, y), BW, BH, facecolor=fill,
@@ -51,9 +53,20 @@ def stack(ax, rows, x0=0.0):
         if name:
             ax.text(x0 - 0.26, y + BH / 2, name, ha="right", va="center",
                     fontsize=8.2, color="#26323c")
-        ax.text(x0 + BW + 0.26, y + BH / 2, shape, ha="left", va="center",
-                fontsize=7.8, color="#6b7883")
-    return spec_y, len(rows) * (BH + GAP)
+        for c, sh in enumerate(shapes):
+            dead = sh in ("--", "")
+            ax.text(x0 + BW + 0.3 + c * 3.6, y + BH / 2, sh or "--",
+                    ha="left", va="center", fontsize=7.6,
+                    color="#c44f4f" if dead else "#6b7883")
+    top = len(rows) * (BH + GAP)
+    for c, (h, sub, col) in enumerate(heads):
+        ax.text(x0 + BW + 0.3 + c * 3.6, top + 0.55, h, ha="left", va="bottom",
+                fontsize=8.2, weight="bold", color="#3c4b58")
+        ax.text(x0 + BW + 0.3 + c * 3.6, top + 0.12, sub, ha="left", va="bottom",
+                fontsize=7.0, color=col)
+    ax.text(x0 + BW + 0.3, top + 1.35, "shape after the layer  (PyTorch, NCHW)",
+            ha="left", va="bottom", fontsize=7.8, color="#8a97a4")
+    return spec_y, top
 
 
 def inset(ax, x, y, w, h, title):
@@ -93,20 +106,23 @@ def finish(ax, fig, name, xlim, ylim, caption=None):
 # =============================================================================
 def fig_resnet():
     rows = [
-        ("",        "Input",                 "3x224x224",   INP,  False),
-        ("conv1",   "7x7 conv, 64, stride 2","64x112x112",  CONV, False),
-        ("",        "MaxPool 3x3, stride 2", "64x56x56",    POOL, False),
-        ("layer1",  "BasicBlock x2, 64",     "64x56x56",    SPEC, True),
-        ("layer2",  "BasicBlock x2, 128",    "128x28x28",   CONV, False),
-        ("layer3",  "BasicBlock x2, 256",    "256x14x14",   CONV, False),
-        ("layer4",  "BasicBlock x2, 512",    "512x7x7",     CONV, False),
-        ("",        "Global AvgPool",        "512x1x1",     POOL, False),
-        ("fc",      "FC 1000",               "1000",        FCL,  False),
+        ("",        "Input",                 ["3x224x224","3x32x32","3x448x448"], INP,  False),
+        ("conv1",   "7x7 conv, 64, stride 2",["64x112x112","64x16x16","64x224x224"], CONV, False),
+        ("",        "MaxPool 3x3, stride 2", ["64x56x56","64x8x8","64x112x112"], POOL, False),
+        ("layer1",  "BasicBlock x2, 64",     ["64x56x56","64x8x8","64x112x112"], SPEC, True),
+        ("layer2",  "BasicBlock x2, 128",    ["128x28x28","128x4x4","128x56x56"], CONV, False),
+        ("layer3",  "BasicBlock x2, 256",    ["256x14x14","256x2x2","256x28x28"], CONV, False),
+        ("layer4",  "BasicBlock x2, 512",    ["512x7x7","512x1x1","512x14x14"], CONV, False),
+        ("",        "Global AvgPool",        ["512x1x1","512x1x1","512x1x1"], POOL, False),
+        ("fc",      "FC 1000",               ["1000","1000","1000"], FCL,  False),
     ]
-    fig, ax = plt.subplots(figsize=(11.6, 6.2))
-    sy, top = stack(ax, rows)
+    heads = [("input 224", "the usual", "#2f6b3a"),
+             ("input 32", "CIFAR as-is: runs", "#a06a10"),
+             ("input 448", "runs too", "#5b6b7d")]
+    fig, ax = plt.subplots(figsize=(17.4, 6.4))
+    sy, top = stack(ax, rows, heads)
 
-    ix, iy, iw, ih = BW + 4.6, sy - 2.1, 5.0, 4.6
+    ix, iy, iw, ih = BW + 11.6, sy - 2.1, 5.9, 4.6
     inset(ax, ix, iy, iw, ih, "BasicBlock")
     cx = ix + iw / 2
     node(ax, cx - 1.5, iy + 3.05, 3.0, 0.5, "3x3 conv - BN - ReLU")
@@ -124,9 +140,9 @@ def fig_resnet():
           color="#c9a227", lw=1.9, rad=-0.42)
     ax.text(cx + 2.35, iy + 2.7, "identity\nshortcut", ha="center", va="center",
             fontsize=7.4, color="#8a6d1a", zorder=3)
-    arrow(ax, (BW + 1.9, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
+    arrow(ax, (BW + 10.6, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
 
-    finish(ax, fig, "resnet18_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 0.6),
+    finish(ax, fig, "resnet18_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 2.3),
            caption="the block learns F(x); x is added back unchanged")
 
 
@@ -135,18 +151,21 @@ def fig_resnet():
 # =============================================================================
 def fig_inception():
     rows = [
-        ("",         "Input",                "3x299x299",  INP,  False),
-        ("stem",     "conv x5 + pool x2",    "192x35x35",  CONV, False),
-        ("Mixed_5b", "Inception block x3",   "288x35x35",  SPEC, True),
-        ("Mixed_6a", "Inception block x5",   "768x17x17",  CONV, False),
-        ("Mixed_7a", "Inception block x3",   "2048x8x8",   CONV, False),
-        ("",         "Global AvgPool",       "2048x1x1",   POOL, False),
-        ("fc",       "FC 1000",              "1000",       FCL,  False),
+        ("",         "Input",                ["3x299x299","3x32x32","3x598x598"], INP,  False),
+        ("stem",     "conv x5 + pool x2",    ["192x35x35","192x1x1","192x72x72"], CONV, False),
+        ("Mixed_5b", "Inception block x3",   ["288x35x35","288x1x1","288x72x72"], SPEC, True),
+        ("Mixed_6a", "Inception block x5",   ["768x17x17","--","768x35x35"], CONV, False),
+        ("Mixed_7a", "Inception block x3",   ["2048x8x8","--","2048x17x17"], CONV, False),
+        ("",         "Global AvgPool",       ["2048x1x1","--","2048x1x1"], POOL, False),
+        ("fc",       "FC 1000",              ["1000","--","1000"], FCL,  False),
     ]
-    fig, ax = plt.subplots(figsize=(12.6, 5.6))
-    sy, top = stack(ax, rows)
+    heads = [("input 299", "the usual", "#2f6b3a"),
+             ("input 32", "dies at Mixed_6a", "#c44f4f"),
+             ("input 598", "runs", "#5b6b7d")]
+    fig, ax = plt.subplots(figsize=(18.4, 5.8))
+    sy, top = stack(ax, rows, heads)
 
-    ix, iy, iw, ih = BW + 4.6, sy - 1.7, 6.4, 4.2
+    ix, iy, iw, ih = BW + 11.6, sy - 1.7, 6.4, 4.2
     inset(ax, ix, iy, iw, ih, "Inception block (Mixed_5b)")
     cx = ix + iw / 2
     ax.text(cx, iy + 0.45, "192 channels in", ha="center", fontsize=7.4,
@@ -161,9 +180,9 @@ def fig_inception():
         arrow(ax, (bx + w / 2, iy + 2.74), (cx, iy + 3.12), rad=0.12)
     node(ax, cx - 1.7, iy + 3.15, 3.4, 0.5, "concat -> 256", ("#fdf0c8", "#c9a227"))
     ax.text(cx, iy + 3.05, "", ha="center")
-    arrow(ax, (BW + 1.9, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
+    arrow(ax, (BW + 10.6, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
 
-    finish(ax, fig, "inception_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 0.6),
+    finish(ax, fig, "inception_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 2.3),
            caption="four filter sizes run in parallel; 1x1 shrinks channels first")
 
 
@@ -172,18 +191,21 @@ def fig_inception():
 # =============================================================================
 def fig_mobilenet():
     rows = [
-        ("",       "Input",                    "3x224x224",   INP,  False),
-        ("stem",   "3x3 conv, 16, stride 2",   "16x112x112",  CONV, False),
-        ("blocks", "InvertedResidual x15",     "160x7x7",     SPEC, True),
-        ("",       "1x1 conv, 960",            "960x7x7",     CONV, False),
-        ("",       "Global AvgPool",           "960x1x1",     POOL, False),
-        ("",       "FC 1280 - Hardswish",      "1280",        FCL,  False),
-        ("cls[3]", "FC 1000",                  "1000",        FCL,  False),
+        ("",       "Input",                    ["3x224x224","3x32x32","3x448x448"], INP,  False),
+        ("stem",   "3x3 conv, 16, stride 2",   ["16x112x112","16x16x16","16x224x224"], CONV, False),
+        ("blocks", "InvertedResidual x15",     ["160x7x7","160x1x1","160x14x14"], SPEC, True),
+        ("",       "1x1 conv, 960",            ["960x7x7","960x1x1","960x14x14"], CONV, False),
+        ("",       "Global AvgPool",           ["960x1x1","960x1x1","960x1x1"], POOL, False),
+        ("",       "FC 1280 - Hardswish",      ["1280","1280","1280"], FCL,  False),
+        ("cls[3]", "FC 1000",                  ["1000","1000","1000"], FCL,  False),
     ]
-    fig, ax = plt.subplots(figsize=(11.8, 5.6))
-    sy, top = stack(ax, rows)
+    heads = [("input 224", "the usual", "#2f6b3a"),
+             ("input 32", "CIFAR as-is: runs", "#a06a10"),
+             ("input 448", "runs too", "#5b6b7d")]
+    fig, ax = plt.subplots(figsize=(17.4, 5.8))
+    sy, top = stack(ax, rows, heads)
 
-    ix, iy, iw, ih = BW + 4.6, sy - 1.8, 5.2, 4.4
+    ix, iy, iw, ih = BW + 11.6, sy - 1.8, 5.2, 4.4
     inset(ax, ix, iy, iw, ih, "InvertedResidual")
     cx = ix + iw / 2
     steps = [("1x1 conv  (expand)", CONV), ("3x3 depthwise  (space)", SPEC),
@@ -194,9 +216,9 @@ def fig_mobilenet():
             arrow(ax, (cx, iy + 0.53 + k * 0.72), (cx, iy + 0.30 + k * 0.72))
     ax.text(cx, iy + 3.62, "channels mixed only by the 1x1s",
             ha="center", fontsize=7.2, color="#8a6d1a", zorder=3)
-    arrow(ax, (BW + 1.9, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
+    arrow(ax, (BW + 10.6, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
 
-    finish(ax, fig, "mobilenet_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 0.6),
+    finish(ax, fig, "mobilenet_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 2.3),
            caption="depthwise holds 3% of the weights; the 1x1s hold 97%")
 
 
@@ -205,19 +227,22 @@ def fig_mobilenet():
 # =============================================================================
 def fig_efficientnet():
     rows = [
-        ("",       "Input",                  "3x224x224",   INP,  False),
-        ("stem",   "3x3 conv, 32, stride 2", "32x112x112",  CONV, False),
-        ("s1-s2",  "MBConv x3",              "24x56x56",    CONV, False),
-        ("s3-s5",  "MBConv x9",              "112x14x14",   SPEC, True),
-        ("s6-s7",  "MBConv x4",              "320x7x7",     CONV, False),
-        ("",       "1x1 conv, 1280",         "1280x7x7",    CONV, False),
-        ("",       "Global AvgPool",         "1280",        POOL, False),
-        ("cls[1]", "FC 1000",                "1000",        FCL,  False),
+        ("",       "Input",                  ["3x224x224","3x32x32","3x448x448"], INP,  False),
+        ("stem",   "3x3 conv, 32, stride 2", ["32x112x112","32x16x16","32x224x224"], CONV, False),
+        ("s1-s2",  "MBConv x3",              ["24x56x56","24x8x8","24x112x112"], CONV, False),
+        ("s3-s5",  "MBConv x9",              ["112x14x14","112x2x2","112x28x28"], SPEC, True),
+        ("s6-s7",  "MBConv x4",              ["320x7x7","320x1x1","320x14x14"], CONV, False),
+        ("",       "1x1 conv, 1280",         ["1280x7x7","1280x1x1","1280x14x14"], CONV, False),
+        ("",       "Global AvgPool",         ["1280","1280","1280"], POOL, False),
+        ("cls[1]", "FC 1000",                ["1000","1000","1000"], FCL,  False),
     ]
-    fig, ax = plt.subplots(figsize=(12.2, 6.0))
-    sy, top = stack(ax, rows)
+    heads = [("input 224", "the usual", "#2f6b3a"),
+             ("input 32", "CIFAR as-is: runs", "#a06a10"),
+             ("input 448", "runs too", "#5b6b7d")]
+    fig, ax = plt.subplots(figsize=(18.0, 6.2))
+    sy, top = stack(ax, rows, heads)
 
-    ix, iy, iw, ih = BW + 4.6, sy - 2.0, 5.6, 4.8
+    ix, iy, iw, ih = BW + 11.6, sy - 2.0, 5.6, 4.8
     inset(ax, ix, iy, iw, ih, "compound scaling")
     cx = ix + iw / 2
     axes_ = [("depth  d", "more MBConv blocks", 0),
@@ -232,9 +257,9 @@ def fig_efficientnet():
             ha="center", fontsize=7.4, color="#8a6d1a", zorder=3)
     ax.text(cx, iy + 0.42, "B0 -> B7 : one architecture, seven sizes",
             ha="center", fontsize=7.0, color="#8a6d1a", zorder=3)
-    arrow(ax, (BW + 1.9, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
+    arrow(ax, (BW + 10.6, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
 
-    finish(ax, fig, "efficientnet_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 0.6),
+    finish(ax, fig, "efficientnet_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 2.3),
            caption="4.4 measured depth alone stalling: 4 layers 76.74%, 6 layers 75.74%")
 
 
@@ -243,18 +268,21 @@ def fig_efficientnet():
 # =============================================================================
 def fig_vit():
     rows = [
-        ("",         "Input",                    "3x224x224",  INP,  False),
-        ("conv_proj","16x16 conv, 768, stride 16","768x14x14", SPEC, True),
-        ("",         "flatten + class token",    "197x768",    NORM, False),
-        ("",         "+ position embedding",     "197x768",    NORM, False),
-        ("encoder",  "Transformer block x12",    "197x768",    CONV, False),
-        ("",         "LayerNorm, take token 0",  "768",        NORM, False),
-        ("heads",    "FC 1000",                  "1000",       FCL,  False),
+        ("",         "Input",                    ["3x224x224","3x32x32","3x448x448"], INP,  False),
+        ("conv_proj","16x16 conv, 768, stride 16",["768x14x14","--","--"], SPEC, True),
+        ("",         "flatten + class token",    ["197x768","--","--"], NORM, False),
+        ("",         "+ position embedding",     ["197x768","--","--"], NORM, False),
+        ("encoder",  "Transformer block x12",    ["197x768","--","--"], CONV, False),
+        ("",         "LayerNorm, take token 0",  ["768","--","--"], NORM, False),
+        ("heads",    "FC 1000",                  ["1000","--","--"], FCL,  False),
     ]
-    fig, ax = plt.subplots(figsize=(12.4, 5.8))
-    sy, top = stack(ax, rows)
+    heads = [("input 224", "the only one that runs", "#2f6b3a"),
+             ("input 32", "AssertionError", "#c44f4f"),
+             ("input 448", "AssertionError", "#c44f4f")]
+    fig, ax = plt.subplots(figsize=(18.0, 6.0))
+    sy, top = stack(ax, rows, heads)
 
-    ix, iy, iw, ih = BW + 4.6, sy - 1.5, 6.0, 4.4
+    ix, iy, iw, ih = BW + 11.6, sy - 1.5, 6.6, 4.4
     inset(ax, ix, iy, iw, ih, "patchify  =  strided convolution")
     cx = ix + iw / 2
     # 왼쪽: 그림을 조각으로
@@ -276,9 +304,9 @@ def fig_vit():
     arrow(ax, (gx + 4 * cell + 0.15, gy + 2 * cell), (tx - 0.12, iy + 1.7))
     ax.text(cx + 0.4, iy + 3.62, "196 + 1 = 197 tokens, 768 wide",
             ha="center", fontsize=7.4, color="#8a6d1a", zorder=3)
-    arrow(ax, (BW + 1.9, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
+    arrow(ax, (BW + 10.6, sy + BH / 2), (ix - 0.15, sy + BH / 2), color="#c9a227", lw=1.2)
 
-    finish(ax, fig, "vit_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 0.6),
+    finish(ax, fig, "vit_layers.svg", (-3.0, ix + iw + 1.2), (-1.5, top + 2.3),
            caption="no locality is built in; attention sees all 197 tokens from block 1")
 
 
