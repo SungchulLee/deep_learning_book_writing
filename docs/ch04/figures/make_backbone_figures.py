@@ -152,17 +152,22 @@ def inset_resnet(ax, ix, iy, iw, ih):
 
 
 def inset_inception(ax, ix, iy, iw, ih):
-    title(ax, ix, iy, iw, ih, "Inception block", "(Mixed_5b)")
+    title(ax, ix, iy, iw, ih, "Inception block",
+          "(Mixed_5b)   number = output channels")
     cx = ix + iw / 2
-    w = 1.22
-    for k, txt in enumerate(["1x1\n64", "1x1 48\n5x5 64",
-                             "1x1 64\n3x3 x2\n96", "pool\n1x1 32"]):
-        bx = ix + 0.36 + k * (w + 0.18)
-        node(ax, bx, iy + 1.45, w, 1.75, txt, CONV, fs=6.5)
-        arrow(ax, (cx, iy + 1.02), (bx + w / 2, iy + 1.42), rad=0.12)
-        arrow(ax, (bx + w / 2, iy + 3.24), (cx, iy + 3.62), rad=0.12)
-    node(ax, cx - 1.6, iy + 3.65, 3.2, 0.46, "concat -> 256", SPEC)
-    ax.text(cx, iy + 0.72, "192 channels in", ha="center", fontsize=6.9,
+    w = 1.26
+    # 층 하나에 한 줄. "3x3 x2" 처럼 묶어 적으면 3x3x2 로 읽혀 텐서 모양처럼 보인다.
+    branches = ["1x1 -> 64",
+                "1x1 -> 48\n5x5 -> 64",
+                "1x1 -> 64\n3x3 -> 96\n3x3 -> 96",
+                "avgpool 3x3\n1x1 -> 32"]
+    for k, txt in enumerate(branches):
+        bx = ix + 0.30 + k * (w + 0.16)
+        node(ax, bx, iy + 1.40, w, 1.90, txt, CONV, fs=6.2)
+        arrow(ax, (cx, iy + 0.98), (bx + w / 2, iy + 1.37), rad=0.12)
+        arrow(ax, (bx + w / 2, iy + 3.34), (cx, iy + 3.70), rad=0.12)
+    node(ax, cx - 1.7, iy + 3.72, 3.4, 0.46, "concat -> 64+64+96+32 = 256", SPEC, fs=6.6)
+    ax.text(cx, iy + 0.68, "192 channels in", ha="center", fontsize=6.9,
             color="#6b7883", zorder=3)
 
 
