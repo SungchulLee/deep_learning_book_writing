@@ -91,18 +91,16 @@ nav:
       - 장 개요: ch04/index.md
       - 4.1 같은 사다리, 다른 데이터:
         - MNIST와 CIFAR-10을 나란히: ch04/01_two_ladders.md
-      - 4.2 깊이:
-        - 3x3을 쌓는다: ch04/02_depth.md
-      - 4.3 VGG16 전이:
-        - 다섯째 걸음: ch04/03_vgg16_transfer.md
-      - 4.4 데이터 증강:
-        - 여섯째 걸음: ch04/04_augmentation.md
-      - 4.5 차원축소:
-        - 라벨 없이 표현을 배울 수 있는가: ch04/05_dimensionality_reduction.md
-      - 4.6 앙상블:
+      - 4.2 앙상블:
         - 새 생각 없이 남은 정확도: ch04/06_ensemble.md
-      - 4.7 증류:
+      - 4.3 증류:
         - 앙상블을 한 모델에 옮기기: ch04/07_distillation.md
+      - 4.4 깊이:
+        - 3x3을 쌓는다: ch04/02_depth.md
+      - 4.5 데이터 증강:
+        - 자료를 불려 천장을 올린다: ch04/04_augmentation.md
+      - 4.6 VGG16 전이:
+        - 남의 데이터로 배운 표현: ch04/03_vgg16_transfer.md
     - 5 MNIST로 보는 생성:
       - 장 개요: ch05/index.md
       - 5.1 차원축소:
@@ -111,6 +109,7 @@ nav:
         - AE_Linear: ch05/dimreduction/02_ae_linear.md
         - AE_MLP: ch05/dimreduction/03_ae_mlp.md
         - AE_CNN: ch05/dimreduction/04_ae_cnn.md
+        - CIFAR-10 분류에 써 보면: ch05/dimreduction/05_cifar_classification.md
       - 5.2 잠재공간 생성모델:
         - 전체 그림: ch05/latent_generative/index.md
         - VAE: ch05/latent_generative/01_vae.md
