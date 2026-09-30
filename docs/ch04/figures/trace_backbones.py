@@ -108,12 +108,42 @@ VIT = [("input", "Input", None)] + \
     [("encoder.ln", "LayerNorm", "encoder.ln"),
      ("heads",      "FC 1000",   "heads")]
 
+
+DENSENET = [("input", "Input", None)] + [
+    ("conv0",        "7x7 conv, 64, stride 2", "features.conv0"),
+    ("pool0",        "MaxPool 3x3, stride 2",  "features.pool0"),
+    ("denseblock1",  "DenseBlock x6",          "features.denseblock1"),
+    ("transition1",  "1x1 conv + AvgPool",     "features.transition1"),
+    ("denseblock2",  "DenseBlock x12",         "features.denseblock2"),
+    ("transition2",  "1x1 conv + AvgPool",     "features.transition2"),
+    ("denseblock3",  "DenseBlock x24",         "features.denseblock3"),
+    ("transition3",  "1x1 conv + AvgPool",     "features.transition3"),
+    ("denseblock4",  "DenseBlock x16",         "features.denseblock4"),
+    ("norm5",        "BatchNorm",              "features.norm5"),
+    ("classifier",   "FC 1000",                "classifier"),
+]
+
+CONVNEXT = [("input", "Input", None)] + [
+    ("features.0", "4x4 conv, 96, stride 4  (patchify stem)", "features.0"),
+    ("features.1", "ConvNeXt block x3, 96",                   "features.1"),
+    ("features.2", "downsample -> 192",                       "features.2"),
+    ("features.3", "ConvNeXt block x3, 192",                  "features.3"),
+    ("features.4", "downsample -> 384",                       "features.4"),
+    ("features.5", "ConvNeXt block x9, 384",                  "features.5"),
+    ("features.6", "downsample -> 768",                       "features.6"),
+    ("features.7", "ConvNeXt block x3, 768",                  "features.7"),
+    ("avgpool",    "Global AvgPool",                          "avgpool"),
+    ("classifier", "LayerNorm - Flatten - FC 1000",           "classifier"),
+]
+
 SPECS = {
     "resnet18":     (M.resnet18, RESNET, [224, 32, 448]),
     "inception":    (lambda: M.inception_v3(init_weights=False), INCEPTION, [299, 32, 598]),
     "mobilenet":    (M.mobilenet_v3_large, MOBILENET, [224, 32, 448]),
     "efficientnet": (M.efficientnet_b0, EFFICIENTNET, [224, 32, 448]),
     "vit":          (M.vit_b_16, VIT, [224, 32, 448]),
+    "densenet":     (M.densenet121, DENSENET, [224, 32, 448]),
+    "convnext":     (M.convnext_tiny, CONVNEXT, [224, 32, 448]),
 }
 
 if __name__ == "__main__":

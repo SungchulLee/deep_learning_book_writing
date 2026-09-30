@@ -645,5 +645,212 @@
     "error": "AssertionError"
    }
   }
+ },
+ "densenet": {
+  "sizes": [
+   224,
+   32,
+   448
+  ],
+  "rows": [
+   [
+    "input",
+    "Input"
+   ],
+   [
+    "conv0",
+    "7x7 conv, 64, stride 2"
+   ],
+   [
+    "pool0",
+    "MaxPool 3x3, stride 2"
+   ],
+   [
+    "denseblock1",
+    "DenseBlock x6"
+   ],
+   [
+    "transition1",
+    "1x1 conv + AvgPool"
+   ],
+   [
+    "denseblock2",
+    "DenseBlock x12"
+   ],
+   [
+    "transition2",
+    "1x1 conv + AvgPool"
+   ],
+   [
+    "denseblock3",
+    "DenseBlock x24"
+   ],
+   [
+    "transition3",
+    "1x1 conv + AvgPool"
+   ],
+   [
+    "denseblock4",
+    "DenseBlock x16"
+   ],
+   [
+    "norm5",
+    "BatchNorm"
+   ],
+   [
+    "classifier",
+    "FC 1000"
+   ]
+  ],
+  "trace": {
+   "224": {
+    "shapes": {
+     "conv0": "64x112x112",
+     "pool0": "64x56x56",
+     "denseblock1": "256x56x56",
+     "transition1": "128x28x28",
+     "denseblock2": "512x28x28",
+     "transition2": "256x14x14",
+     "denseblock3": "1024x14x14",
+     "transition3": "512x7x7",
+     "denseblock4": "1024x7x7",
+     "norm5": "1024x7x7",
+     "classifier": "1000"
+    },
+    "error": null
+   },
+   "32": {
+    "shapes": {
+     "conv0": "64x16x16",
+     "pool0": "64x8x8",
+     "denseblock1": "256x8x8",
+     "transition1": "128x4x4",
+     "denseblock2": "512x4x4",
+     "transition2": "256x2x2",
+     "denseblock3": "1024x2x2",
+     "transition3": "512x1x1",
+     "denseblock4": "1024x1x1",
+     "norm5": "1024x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   },
+   "448": {
+    "shapes": {
+     "conv0": "64x224x224",
+     "pool0": "64x112x112",
+     "denseblock1": "256x112x112",
+     "transition1": "128x56x56",
+     "denseblock2": "512x56x56",
+     "transition2": "256x28x28",
+     "denseblock3": "1024x28x28",
+     "transition3": "512x14x14",
+     "denseblock4": "1024x14x14",
+     "norm5": "1024x14x14",
+     "classifier": "1000"
+    },
+    "error": null
+   }
+  }
+ },
+ "convnext": {
+  "sizes": [
+   224,
+   32,
+   448
+  ],
+  "rows": [
+   [
+    "input",
+    "Input"
+   ],
+   [
+    "features.0",
+    "4x4 conv, 96, stride 4  (patchify stem)"
+   ],
+   [
+    "features.1",
+    "ConvNeXt block x3, 96"
+   ],
+   [
+    "features.2",
+    "downsample -> 192"
+   ],
+   [
+    "features.3",
+    "ConvNeXt block x3, 192"
+   ],
+   [
+    "features.4",
+    "downsample -> 384"
+   ],
+   [
+    "features.5",
+    "ConvNeXt block x9, 384"
+   ],
+   [
+    "features.6",
+    "downsample -> 768"
+   ],
+   [
+    "features.7",
+    "ConvNeXt block x3, 768"
+   ],
+   [
+    "avgpool",
+    "Global AvgPool"
+   ],
+   [
+    "classifier",
+    "LayerNorm - Flatten - FC 1000"
+   ]
+  ],
+  "trace": {
+   "224": {
+    "shapes": {
+     "features.0": "96x56x56",
+     "features.1": "96x56x56",
+     "features.2": "192x28x28",
+     "features.3": "192x28x28",
+     "features.4": "384x14x14",
+     "features.5": "384x14x14",
+     "features.6": "768x7x7",
+     "features.7": "768x7x7",
+     "avgpool": "768x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   },
+   "32": {
+    "shapes": {
+     "features.0": "96x8x8",
+     "features.1": "96x8x8",
+     "features.2": "192x4x4",
+     "features.3": "192x4x4",
+     "features.4": "384x2x2",
+     "features.5": "384x2x2",
+     "features.6": "768x1x1",
+     "features.7": "768x1x1",
+     "avgpool": "768x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   },
+   "448": {
+    "shapes": {
+     "features.0": "96x112x112",
+     "features.1": "96x112x112",
+     "features.2": "192x56x56",
+     "features.3": "192x56x56",
+     "features.4": "384x28x28",
+     "features.5": "384x28x28",
+     "features.6": "768x14x14",
+     "features.7": "768x14x14",
+     "avgpool": "768x1x1",
+     "classifier": "1000"
+    },
+    "error": null
+   }
+  }
  }
 }

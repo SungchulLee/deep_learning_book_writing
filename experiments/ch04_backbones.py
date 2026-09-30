@@ -24,7 +24,10 @@ SEEDS = [0, 1, 2, 3, 4]
 # (이름, 만드는 함수, 가중치, 머리를 떼는 함수, 입력 크기)
 def strip_vgg(m):      d = m.classifier[6].in_features; m.classifier = nn.Sequential(*list(m.classifier.children())[:-1]); return d
 def strip_fc(m):       d = m.fc.in_features;            m.fc = nn.Identity();            return d
-def strip_cls(m, i):   d = m.classifier[i].in_features; m.classifier[i] = nn.Identity(); return d
+def strip_cls(m, i):
+    if i is None:                       # classifier 가 Linear 하나인 경우(DenseNet)
+        d = m.classifier.in_features; m.classifier = nn.Identity(); return d
+    d = m.classifier[i].in_features; m.classifier[i] = nn.Identity(); return d
 def strip_vit(m):      d = m.heads.head.in_features;    m.heads.head = nn.Identity();    return d
 
 BACKBONES = [
@@ -34,6 +37,8 @@ BACKBONES = [
     ("MobileNetV3-L",  M.mobilenet_v3_large,  M.MobileNet_V3_Large_Weights.IMAGENET1K_V1,  lambda m: strip_cls(m, 3), 224),
     ("EfficientNet-B0",M.efficientnet_b0,     M.EfficientNet_B0_Weights.IMAGENET1K_V1,     lambda m: strip_cls(m, 1), 224),
     ("ViT-B/16",       M.vit_b_16,            M.ViT_B_16_Weights.IMAGENET1K_V1,            strip_vit,                 224),
+    ("DenseNet121",    M.densenet121,         M.DenseNet121_Weights.IMAGENET1K_V1,         lambda m: strip_cls(m, None), 224),
+    ("ConvNeXt-T",     M.convnext_tiny,       M.ConvNeXt_Tiny_Weights.IMAGENET1K_V1,       lambda m: strip_cls(m, 2),    224),
 ]
 
 

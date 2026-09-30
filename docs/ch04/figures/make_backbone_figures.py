@@ -223,6 +223,44 @@ def inset_vit(ax, ix, iy, iw, ih):
     arrow(ax, (gx + 4 * cell + 0.12, gy + 2 * cell), (tx - 0.10, iy + 1.85))
 
 
+
+def inset_densenet(ax, ix, iy, iw, ih):
+    title(ax, ix, iy, iw, ih, "DenseBlock", "concatenate, do not add")
+    cx = ix + iw / 2
+    # 아래에서 위로. 층마다 앞의 것을 모두 이어 붙여 받는다.
+    for k in range(4):
+        y = iy + 0.70 + k * 0.72
+        node(ax, cx - 1.9, y, 2.5, 0.46, f"layer {k+1}", CONV if k else SPEC, fs=6.9)
+        ax.text(cx + 0.78, y + 0.23, f"in {64 + 32*k}", ha="left", va="center",
+                fontsize=6.5, color="#6b7883", zorder=3)
+        if k:
+            arrow(ax, (cx - 0.65, y - 0.26), (cx - 0.65, y - 0.02))
+    # 건너뛰어 올라가는 이음들
+    for k in range(3):
+        y0 = iy + 0.93 + k * 0.72
+        arrow(ax, (cx - 2.05, y0), (cx - 2.05, iy + 0.93 + (k + 1.6) * 0.72),
+              color="#c9a227", lw=1.2, rad=-0.45)
+    ax.text(cx - 2.35, iy + 2.1, "every earlier\nfeature map,\nconcatenated",
+            ha="right", va="center", fontsize=6.6, color="#8a6d1a", zorder=3)
+    ax.text(cx, iy + 3.70, "growth rate 32: each layer adds 32 channels",
+            ha="center", fontsize=6.7, color="#8a6d1a", zorder=3)
+
+
+def inset_convnext(ax, ix, iy, iw, ih):
+    title(ax, ix, iy, iw, ih, "ConvNeXt block", "a CNN rebuilt with transformer habits")
+    cx = ix + iw / 2
+    for k, (txt, col) in enumerate([("7x7 depthwise conv", SPEC),
+                                    ("LayerNorm", NORM),
+                                    ("1x1 conv -> 4x wider", CONV),
+                                    ("GELU", NORM),
+                                    ("1x1 conv -> back", CONV)]):
+        node(ax, cx - 2.0, iy + 0.62 + k * 0.62, 4.0, 0.44, txt, col, fs=6.6)
+        if k:
+            arrow(ax, (cx, iy + 0.44 + k * 0.62), (cx, iy + 0.60 + k * 0.62))
+    ax.text(cx, iy + 3.86, "big kernel, LayerNorm, GELU, one activation",
+            ha="center", fontsize=6.6, color="#8a6d1a", zorder=3)
+
+
 RUNS = [
  ("resnet18", "resnet18_layers.svg", "layer1.0", inset_resnet,
   [("input 224", "the usual", "#2f6b3a"), ("input 32", "runs, silently", "#a06a10"),
@@ -240,6 +278,14 @@ RUNS = [
   [("input 224", "the usual", "#2f6b3a"), ("input 32", "runs, silently", "#a06a10"),
    ("input 448", "runs too", "#5b6b7d")],
   "4.4 measured depth alone stalling: 4 layers 76.74%, 6 layers 75.74%"),
+ ("densenet", "densenet_layers.svg", "denseblock1", inset_densenet,
+  [("input 224", "the usual", "#2f6b3a"), ("input 32", "runs, silently", "#a06a10"),
+   ("input 448", "runs too", "#5b6b7d")],
+  "6.95M parameters, yet 552s to extract -- 3.2x MobileNetV3-L, which is smaller still"),
+ ("convnext", "convnext_layers.svg", "features.5", inset_convnext,
+  [("input 224", "the usual", "#2f6b3a"), ("input 32", "runs, silently", "#a06a10"),
+   ("input 448", "runs too", "#5b6b7d")],
+  "no attention anywhere, and it covers 88% of the climb from VGG16 to ViT"),
  ("vit", "vit_layers.svg", "conv_proj", inset_vit,
   [("input 224", "the only one that runs", "#2f6b3a"),
    ("input 32", "AssertionError", "#c44f4f"), ("input 448", "AssertionError", "#c44f4f")],
