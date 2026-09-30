@@ -187,7 +187,8 @@ def inset_mobilenet(ax, ix, iy, iw, ih):
                                     ("1x1 conv  (project)", CONV)]):
         node(ax, cx - 2.0, iy + 0.85 + k * 0.80, 4.0, 0.50, txt, col, fs=6.9)
         if k:
-            arrow(ax, (cx, iy + 0.83 + k * 0.80), (cx, iy + 0.60 + k * 0.80))
+            # 아래 상자 위쪽에서 이 상자 아래쪽으로 — 위를 향한다
+            arrow(ax, (cx, iy + 0.55 + k * 0.80), (cx, iy + 0.83 + k * 0.80))
 
 
 def inset_efficientnet(ax, ix, iy, iw, ih):
