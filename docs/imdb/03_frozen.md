@@ -2,7 +2,7 @@
 
 [앞 쪽](03_embedding.md)은 낱말마다의 벡터를 **IMDB에서 처음부터 배웠다.** 이 쪽은 그 자리에 남이 배워 둔 벡터를 넣고 **얼린다.** 학습하지 않는다.
 
-[4.3절](../ch04/03_vgg16_transfer.md)이 그림에서 한 일과 같다. 그쪽은 ImageNet 120만 장에서 배운 VGG16의 특징을 얼려 쓰고 그 위에 분류기만 얹었다. 글월에서 그에 해당하는 것이 **미리 배워 둔 낱말 벡터**다.
+[4.6절](../ch04/03_vgg16_transfer.md)이 그림에서 한 일과 같다. 그쪽은 ImageNet 120만 장에서 배운 VGG16의 특징을 얼려 쓰고 그 위에 분류기만 얹었다. 글월에서 그에 해당하는 것이 **미리 배워 둔 낱말 벡터**다.
 
 그런데 이 쪽이 하려는 일은 전이 학습을 소개하는 것만이 아니다. **이 장의 사다리가 뒤집혀 있다는 사실을 설명하는 것**이다.
 
@@ -70,6 +70,7 @@ GloVe 덮은 몫  낱말 19,153/20,000 (95.8%)  쓰임 98.2%
 
     python frozen_ladder.py frozen      # 빌려 온 벡터를 얼린다
     python frozen_ladder.py learned     # 대조군: 같은 50차원을 배운다
+    python frozen_ladder.py             # 이름을 대지 않으면 6절의 가름 실험
 """
 
 import gzip
@@ -281,23 +282,27 @@ def run(Model, frozen, seed):
 
 
 if __name__ == "__main__":
-    frozen = sys.argv[1] == "frozen"
-    tag = "빌려 온 벡터 (언 것)" if frozen else "배운 벡터 (50차원 대조군)"
-    print(f"\n{'='*62}\n=== {tag} ===\n{'='*62}", flush=True)
+    # 이름을 댄 사다리만 오른다. 아무것도 대지 않으면 정의만 갖춰 두고 지나가며,
+    # 그때는 이 파일 뒤에 이어 붙인 6절의 가름 실험이 돈다.
+    for mode in sys.argv[1:]:
+        frozen = mode == "frozen"
+        tag = "빌려 온 벡터 (언 것)" if frozen else "배운 벡터 (50차원 대조군)"
+        print(f"\n{'='*62}\n=== {tag} ===\n{'='*62}", flush=True)
 
-    for name, Model in RUNGS:
-        probe = Model(frozen)
-        tot = sum(p.numel() for p in probe.parameters())
-        tr = sum(p.numel() for p in probe.parameters() if p.requires_grad)
-        accs = []
-        for s in range(5):
-            t0 = time.time()
-            a = run(Model, frozen, s)
-            accs.append(a)
-            print(f"    {name}  씨앗 {s}  {a:.2f}%  ({time.time()-t0:.0f}s)", flush=True)
-        print(f"  >> {name}  평균 {sum(accs)/5:.2f}%  "
-              f"퍼짐 {max(accs)-min(accs):.2f} ({min(accs):.2f}~{max(accs):.2f})  "
-              f"매개변수 {tot:,} (학습 {tr:,})\n", flush=True)
+        for name, Model in RUNGS:
+            probe = Model(frozen)
+            tot = sum(p.numel() for p in probe.parameters())
+            tr = sum(p.numel() for p in probe.parameters() if p.requires_grad)
+            accs = []
+            for s in range(5):
+                t0 = time.time()
+                a = run(Model, frozen, s)
+                accs.append(a)
+                print(f"    {name}  씨앗 {s}  {a:.2f}%  ({time.time()-t0:.0f}s)",
+                      flush=True)
+            print(f"  >> {name}  평균 {sum(accs)/5:.2f}%  "
+                  f"퍼짐 {max(accs)-min(accs):.2f} ({min(accs):.2f}~{max(accs):.2f})  "
+                  f"매개변수 {tot:,} (학습 {tr:,})\n", flush=True)
 ```
 
 **출력** (`python frozen_ladder.py frozen`):
@@ -390,7 +395,7 @@ GloVe 덮은 몫  낱말 19,153/20,000 (95.8%)  쓰임 98.2%
 
 가르려면 **하나만** 움직여야 한다. 그래서 3걸음이 IMDB에서 배운 임베딩을 꺼내어 **그대로 얼리고** 사다리를 다시 올랐다. 벡터는 좋고 학습 매개변수는 빌려 온 칸과 똑같다.
 
-위 스크립트에서 달라지는 것은 **임베딩을 어디서 가져오는가** 하나뿐이다.
+위 스크립트에 **이어 붙인다.** 자료·낱말집·네 걸음의 정의를 그대로 쓰고, 달라지는 것은 **임베딩을 어디서 가져오는가** 하나뿐이다. 사다리 이름을 대지 않고 `python frozen_ladder.py` 라고만 하면 이 가름 실험이 돈다.
 
 ```python
 """가름 실험: 좋은 임베딩을 '얼려서' 사다리를 오른다.
@@ -404,10 +409,18 @@ GloVe 덮은 몫  낱말 19,153/20,000 (95.8%)  쓰임 98.2%
 
   본문의 읽기가 옳다면 -> 어텐션이 벌지 못한다 (배운 칸처럼)
   매개변수 탓이라면   -> 어텐션이 번다 (빌려 온 칸처럼)
+
+위 스크립트 뒤에 그대로 이어 붙인 부분이다.
 """
 
+
 def make_emb(W):
-    """W가 주어지면 그것을 넣고 얼린다. 아니면 보통의 학습되는 임베딩."""
+    """W가 주어지면 그것을 넣고 얼린다. 아니면 보통의 학습되는 임베딩.
+
+    앞의 make_emb을 덮어쓴다. 네 걸음의 __init__이 받은 인자를 그대로
+    이 함수에 넘기므로, 모델에 행렬을 주면 언 임베딩이 되고 None을 주면
+    보통의 학습되는 임베딩이 된다. 모델 코드는 한 글자도 건드리지 않는다.
+    """
     e = nn.Embedding(VOCAB_SIZE, EMB_DIM, padding_idx=PAD)
     if W is not None:
         with torch.no_grad():
@@ -416,16 +429,48 @@ def make_emb(W):
     return e
 
 
-if __name__ == "__main__":
+def train(Model, W, seed):
+    """run()과 같은 학습이되 정확도가 아니라 **모델**을 돌려준다.
+
+    3걸음이 배운 임베딩 행렬을 꺼내 써야 하므로 모델이 필요하다.
+    """
+    torch.manual_seed(seed)
+    m = Model(W)
+    opt = optim.Adam([p for p in m.parameters() if p.requires_grad], lr=LR)
+    crit = nn.CrossEntropyLoss()
+    g = torch.Generator().manual_seed(seed)
+    ld = DataLoader(TensorDataset(Xtr, ytr), batch_size=BATCH,
+                    shuffle=True, generator=g)
+    for _ in range(EPOCHS):
+        m.train()
+        for xb, yb in ld:
+            opt.zero_grad(); crit(m(xb), yb).backward(); opt.step()
+    return m
+
+
+if __name__ == "__main__" and not sys.argv[1:]:
     # 1. 3걸음을 보통대로 학습시켜 임베딩을 꺼낸다
-    base = train(MeanEmbedding, None, seed=0)
+    print("=== 3걸음을 학습해 임베딩을 꺼낸다 (씨앗 0) ===", flush=True)
+    t0 = time.time()
+    base = train(MeanEmbedding, None, 0)
     W = base.emb.weight.detach().clone()
-    print(f"  3걸음 {accuracy(base):.2f}%  -> 임베딩 {tuple(W.shape)} 를 얼린다")
+    print(f"  3걸음 {accuracy(base):.2f}%  ({time.time()-t0:.0f}s)"
+          f"  -> 임베딩 {tuple(W.shape)} 를 얼린다", flush=True)
 
     # 2. 그것을 얼리고 사다리를 다시 오른다
+    print(f"\n{'='*62}\n=== 배운 벡터를 얼린 사다리 ===\n{'='*62}", flush=True)
     for name, Model in RUNGS:
-        accs = [accuracy(train(Model, W, s)) for s in range(5)]
-        ...
+        tr = sum(p.numel() for p in Model(W).parameters() if p.requires_grad)
+        accs = []
+        for s in range(5):
+            t0 = time.time()
+            a = accuracy(train(Model, W, s))
+            accs.append(a)
+            print(f"    {name}  씨앗 {s}  {a:.2f}%  ({time.time()-t0:.0f}s)",
+                  flush=True)
+        print(f"  >> {name}  평균 {sum(accs)/5:.2f}%  "
+              f"퍼짐 {max(accs)-min(accs):.2f} ({min(accs):.2f}~{max(accs):.2f})  "
+              f"학습 매개변수 {tr:,}\n", flush=True)
 ```
 
 **출력:**
@@ -534,11 +579,11 @@ if __name__ == "__main__":
 
 ---
 
-## 9. 4.3절과 거울상이다
+## 9. 4.6절과 거울상이다
 
-[4.3절](../ch04/03_vgg16_transfer.md)에서 빌려 온 특징은 **크게 이겼다.** 여기서는 크게 진다. 같은 수법이 왜 반대로 나오는가.
+[4.6절](../ch04/03_vgg16_transfer.md)에서 빌려 온 특징은 **크게 이겼다.** 여기서는 크게 진다. 같은 수법이 왜 반대로 나오는가.
 
-| | [4.3절 VGG16](../ch04/03_vgg16_transfer.md) | 이 쪽 GloVe |
+| | [4.6절 VGG16](../ch04/03_vgg16_transfer.md) | 이 쪽 GloVe |
 |---|---|---|
 | 빌려 온 곳 | ImageNet 120만 장 | 위키백과·뉴스 60억 낱말 |
 | 내 자료 | CIFAR-10 5만 장 | IMDB 2만 5천 편 |
@@ -546,7 +591,7 @@ if __name__ == "__main__":
 
 가른 것은 **내 자료로 그 표현을 배울 수 있는가**이다. CIFAR-10은 $32 \times 32$ 그림 5만 장으로 좋은 시각 특징을 배우기 어렵다. 그래서 빌리는 편이 낫다. IMDB는 평 2만 5천 편에 낱말 2만 개뿐이라 **낱말마다의 감정을 배우기에 넉넉하다.** 게다가 배우는 것이 곧 과제이므로, 내가 배운 것이 남이 배운 일반적인 것보다 이 과제에 잘 맞는다.
 
-[4.4절](../ch04/04_augmentation.md)이 전이의 우위가 라벨이 넉넉해질수록 4분의 1로 준다고 재었다. 이 쪽은 그 이야기의 끝을 보여 준다. **라벨이 넉넉하고 과제가 좁으면 빌리는 것이 손해가 된다.**
+[4.5절](../ch04/04_augmentation.md)이 전이의 우위가 라벨이 넉넉해질수록 4분의 1로 준다고 재었다. 이 쪽은 그 이야기의 끝을 보여 준다. **라벨이 넉넉하고 과제가 좁으면 빌리는 것이 손해가 된다.**
 
 ---
 
@@ -629,7 +674,7 @@ if __name__ == "__main__":
 
     51.93%라는 값이 그 모습이다. 그 씨앗은 **아무것도 배우지 못하고** 한쪽 갈래만 내놓는 자리에 갇혔다.
 
-    실무의 교훈도 같다. 얼린 특징 위에 올리는 머리는 **되도록 얕고 최적화하기 쉬운 것**이라야 한다. [4.3절](../ch04/03_vgg16_transfer.md)이 VGG16 위에 선형 층 하나만 올린 것이 그 까닭이다.
+    실무의 교훈도 같다. 얼린 특징 위에 올리는 머리는 **되도록 얕고 최적화하기 쉬운 것**이라야 한다. [4.6절](../ch04/03_vgg16_transfer.md)이 VGG16 위에 선형 층 하나만 올린 것이 그 까닭이다.
 
 ---
 
@@ -650,6 +695,6 @@ if __name__ == "__main__":
 
     **두 후보를 가르는 것이 이 걸음이다.** 임베딩을 얼려 97%를 무력화했더니 어텐션이 12.22%포인트를 벌었다. 첫째 후보만으로는 이 결과를 설명할 수 없다. 과제가 원래 차례를 안 쓴다면 얼리든 말든 어텐션이 벌 것이 없어야 한다.
 
-    곧 **낮은 수를 얻으려고 돌린 실험이 아니라 다른 수들을 읽으려고 돌린 실험**이다. [4.7절](../ch04/07_distillation.md)이 홑모델 교사를 대조군으로 둔 것, [4.1절](../ch04/01_two_ladders.md)이 템플릿 걸음을 굳이 잰 것과 같은 자리에 있다. 사다리의 낮은 칸은 그 자체로 쓰라고 있는 것이 아니라 **위 칸을 읽는 눈금으로** 있는 것이다.
+    곧 **낮은 수를 얻으려고 돌린 실험이 아니라 다른 수들을 읽으려고 돌린 실험**이다. [4.3절](../ch04/07_distillation.md)이 홑모델 교사를 대조군으로 둔 것, [4.1절](../ch04/01_two_ladders.md)이 템플릿 걸음을 굳이 잰 것과 같은 자리에 있다. 사다리의 낮은 칸은 그 자체로 쓰라고 있는 것이 아니라 **위 칸을 읽는 눈금으로** 있는 것이다.
 
-    덧붙여 이 걸음은 [4.3절](../ch04/03_vgg16_transfer.md)의 결론에 조건을 붙인다. 그 절만 읽으면 "빌려 오는 것이 이긴다"로 남지만, 두 쪽을 함께 읽으면 **"내 자료로 그 표현을 배울 수 없을 때 빌려 오는 것이 이긴다"**가 된다. 조건이 붙은 쪽이 참이다.
+    덧붙여 이 걸음은 [4.6절](../ch04/03_vgg16_transfer.md)의 결론에 조건을 붙인다. 그 절만 읽으면 "빌려 오는 것이 이긴다"로 남지만, 두 쪽을 함께 읽으면 **"내 자료로 그 표현을 배울 수 없을 때 빌려 오는 것이 이긴다"**가 된다. 조건이 붙은 쪽이 참이다.
