@@ -142,7 +142,7 @@ class SimpleUNet(nn.Module):
 
 print("U-Net architecture defined!")
 print("""
-고갱이 조각:
+핵심 조각:
 --------------
 1. 때 임베딩: 신경망에 잡음 수준을 알려 준다
 2. 건너뛰기 이음: 공간의 세부를 지킨다
@@ -306,7 +306,7 @@ if __name__ == "__main__":
 
     U-Net architecture defined!
 
-    고갱이 조각:
+    핵심 조각:
     --------------
     1. 때 임베딩: 신경망에 잡음 수준을 알려 준다
     2. 건너뛰기 이음: 공간의 세부를 지킨다
@@ -487,4 +487,4 @@ if __name__ == "__main__":
 
 그림 만들어 내기 U-Net의 짜기는 이 마당에 자리 잡은 방식을 따른다.
 
-고갱이 갈래는 `TimeEmbedding`, `SimpleUNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `TimeEmbedding`, `SimpleUNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

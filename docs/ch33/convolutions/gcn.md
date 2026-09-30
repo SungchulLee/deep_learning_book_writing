@@ -309,4 +309,4 @@ Test accuracy: 0.5000
 
 이 짜기는 그래프 겹말기 신경망(GCN)의 핵심 논리를 감싼 `GCNConvManual`, `GCN` 갈래를 한가운데 둔다.
 
-고갱이 갈래는 `GCNConvManual`, `GCN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `GCNConvManual`, `GCN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

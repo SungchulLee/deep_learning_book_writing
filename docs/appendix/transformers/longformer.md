@@ -2,7 +2,7 @@
 
 Longformer는 2020년 글 "Longformer: The Long-Document Transformer"에서 나왔다. - 온전한 O(S^2) 어텐션을 다음으로 갈음한다: (가) 미닫이 창 그 자리 어텐션(O(S * 창)) (나) 골라 쓰는 두루 어텐션 낱말(예: [CLS], 물음 낱말).
 
-여기 짜보기는 Longformer를 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 짜보기는 Longformer를 짧고 배우기 좋게 보인 본이다. 코드는 핵심 얼개와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -12,7 +12,7 @@ Longformer는 2020년 글 "Longformer: The Long-Document Transformer"에서 나�
 Longformer - 긴 글월 변환기
 글: "Longformer: 긴 글월 변환기" (2020)
 지은이: 이즈 벨타기, 매슈 피터스, 아르만 코한
-고갱이 깨침:
+핵심 깨침:
   - 온전한 O(S^2) 어텐션을 다음으로 갈음한다:
       (가) 미닫이 창 그 자리 어텐션 (O(S * window))
       (나) 골라 쓰는 두루 어텐션 낱말(예: [CLS], 물음 낱말)
@@ -133,7 +133,7 @@ logits: torch.Size([2, 20, 1000])
 
 이 짜보기는 갈래 3개(`WindowSelfAttention`, `LongformerBlock`, `Longformer`)를 매기고, 이들이 어울려 온전한 변환기 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
-여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 고갱이 깨침은 크기와 상관없이 그대로다.
+여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 핵심 깨침은 크기와 상관없이 그대로다.
 
 ## 연습문제
 
@@ -195,4 +195,4 @@ logits: torch.Size([2, 20, 1000])
 
 이 짜보기는 갈래 3개(`WindowSelfAttention`, `LongformerBlock`, `Longformer`)를 매기고, 이들이 어울려 온전한 변환기 얼개를 이룬다.
 
-고갱이 갈래는 `WindowSelfAttention`, `LongformerBlock`, `Longformer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `WindowSelfAttention`, `LongformerBlock`, `Longformer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

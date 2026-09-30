@@ -258,4 +258,4 @@ if __name__ == "__main__":
 
 앞으로 걸어가며 살피는 개는 때 차례를 지키면서 겹치지 않는 익힘-시험 쪼갬을 만든다.
 
-고갱이 갈래는 `WalkForwardConfig`, `WalkForwardAnalyzer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `WalkForwardConfig`, `WalkForwardAnalyzer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

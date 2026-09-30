@@ -232,4 +232,4 @@ Reversed mean: 0.000590
 
 신호 대 잡음 살피기는 금융 미리 보기가 얼마나 어려운지를 수로 보인다.
 
-고갱이 갈래는 `SNRConfig`, `SNRAnalyzer`, `EnsembleAgent`, `DataAugmenter`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `SNRConfig`, `SNRAnalyzer`, `EnsembleAgent`, `DataAugmenter`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

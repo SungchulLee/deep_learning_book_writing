@@ -108,4 +108,4 @@ for epoch in range(0, 100, 20):
 
 녹여 붙인 MBConv은 깊이별 다음 점별이라는 무늬를 여느 $3 \times 3$ 합성곱 하나와 그 뒤의 $1 \times 1$ 투영으로 갈음한다.
 
-고갱이 갈래는 `FusedMBConv`, `EfficientNetV2`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `FusedMBConv`, `EfficientNetV2`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

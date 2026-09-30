@@ -384,4 +384,4 @@ if __name__ == "__main__":
 
 이 짜기는 기본 두 끝 줄 바탕과 효율 좋은 판의 핵심 논리를 감싼 `BasicReplayBuffer`, `EfficientReplayBuffer`, `CombinedReplayBuffer` 갈래를 한가운데 둔다.
 
-고갱이 갈래는 `BasicReplayBuffer`, `EfficientReplayBuffer`, `CombinedReplayBuffer`, `FrameStackReplayBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `BasicReplayBuffer`, `EfficientReplayBuffer`, `CombinedReplayBuffer`, `FrameStackReplayBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

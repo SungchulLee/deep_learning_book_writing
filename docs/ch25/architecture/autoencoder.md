@@ -324,4 +324,4 @@ Loss: 31782.0742
 
 `SimpleAutoencoder`은 인코더와 디코더의 층 너비가 맞는 대칭 설계를 따른다(input_dim에서 hidden_dim, hidden_dim, latent_dim으로, 그리고 그 반대). 이 대칭이 꼭 필요하지는 않고 대칭이 아닌 얼개도 잘 되지만, 모델의 담이를 따져 보기 쉬워지고 디코더가 적어도 인코더만큼의 표현력을 갖추게 한다.
 
-고갱이 갈래는 `SimpleAutoencoder`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `SimpleAutoencoder`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

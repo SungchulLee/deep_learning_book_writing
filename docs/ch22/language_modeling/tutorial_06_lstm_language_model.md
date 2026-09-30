@@ -139,4 +139,4 @@ LSTM은 말 나타내기 잣대에서 맨 되돌이 그물보다 헷갈림도가
 
 LSTM은 문 셋(잊음, 들임, 날임)을 두어 칸 상태를 지나는 소식의 흐름을 다스린다.
 
-고갱이 갈래는 `LSTMLanguageModel`, `TiedLSTMLanguageModel`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `LSTMLanguageModel`, `TiedLSTMLanguageModel`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

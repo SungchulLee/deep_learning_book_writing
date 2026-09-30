@@ -103,7 +103,7 @@ attribution = lrp.attribute(input_tensor, target=target_class)
 
 ## 2. DeepLIFT
 
-### 고갱이 생각
+### 핵심 생각
 
 DeepLIFT은 살아남을 견줌 살아남과 견주어 미루어 봄을 풀이하며, 잦아든 신경 세포에서 기울기가 사라지는 문제를 다룬다.
 

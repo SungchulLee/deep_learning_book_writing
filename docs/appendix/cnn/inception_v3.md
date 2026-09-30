@@ -1,6 +1,6 @@
 # Inception V3
 
-Inception v3은 2015년 글 "Inception 얼개 다시 보기"에서 나왔으며, 몇 가지 고갱이 새로움으로 본디 GoogLeNet을 다듬었다. 큰 거르개를 작고 어긋난 것으로 쪼개는 나눈 엮음, 이름표 매끄럽게 하기 다독임, 익힘을 든든하게 하는 도움 분류기다. 이 나아짐이 함께 더 잘 들고 더 맞는 얼개를 이루어 그림 가름 연구의 여느 밑금이 되었다.
+Inception v3은 2015년 글 "Inception 얼개 다시 보기"에서 나왔으며, 몇 가지 핵심 새로움으로 본디 GoogLeNet을 다듬었다. 큰 거르개를 작고 어긋난 것으로 쪼개는 나눈 엮음, 이름표 매끄럽게 하기 다독임, 익힘을 든든하게 하는 도움 분류기다. 이 나아짐이 함께 더 잘 들고 더 맞는 얼개를 이루어 그림 가름 연구의 여느 밑금이 되었다.
 
 ## 1. 코드
 
@@ -9,7 +9,7 @@ Inception v3은 2015년 글 "Inception 얼개 다시 보기"에서 나왔으며,
 '''
 Inception v3 - 다듬은 인셉션 얼개
 논문: "Rethinking the Inception Architecture" (2015)
-고갱이: 인수로 나눈 엮음(nx1과 1xn), 레이블 스무딩, 곁들이 분류기
+핵심: 인수로 나눈 엮음(nx1과 1xn), 레이블 스무딩, 곁들이 분류기
 '''
 import torch
 import torch.nn as nn
@@ -115,4 +115,4 @@ Inception v3의 가장 큰 얼개 이바지는 엮음 나누기다. $5 \times 5$
 
 Inception v3의 가장 큰 얼개 이바지는 엮음 나누기다.
 
-고갱이 갈래는 `InceptionV3`, `InceptionModule`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `InceptionV3`, `InceptionModule`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

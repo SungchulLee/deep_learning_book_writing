@@ -272,7 +272,7 @@ def speculative_sample(
     draft_token: torch.Tensor
 ) -> Tuple[torch.Tensor, bool]:
     """
-    미리 짚어 뽑기의 고갱이 연산.
+    미리 짚어 뽑기의 핵심 연산.
     
     인수:
         target_probs: [낱말 곳간 크기] 목표 모델의 확률
@@ -482,7 +482,7 @@ Tiny → Small → Medium → Target
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-플래시 어텐션의 고갱이 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
+플래시 어텐션의 핵심 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
 
 </div>
 

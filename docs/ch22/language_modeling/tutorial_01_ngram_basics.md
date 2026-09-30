@@ -295,4 +295,4 @@ n-그램 모델의 근본 맞바꿈은 나타내는 힘과 자료의 성김 사�
 
 n낱말 모델은 사슬 법칙과 마르코프 가정을 써서 월의 확률을 조건부 확률의 곱으로 쪼갠다.
 
-고갱이 갈래는 `UnigramModel`, `BigramModel`, `TrigramModel`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `UnigramModel`, `BigramModel`, `TrigramModel`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -147,4 +147,4 @@ Challenge: vanishing/exploding gradients
 
 되도는 신경망 말 모델은 이음을 토막 하나씩 다루며 걸음마다 $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b_h)$에 따라 숨은 상태 벡터를 고친다.
 
-고갱이 갈래는 `RNNLanguageModel`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `RNNLanguageModel`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

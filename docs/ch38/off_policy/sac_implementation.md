@@ -415,4 +415,4 @@ if __name__ == "__main__":
 
 이 구현은 SAC 온전한 구현의 한가운데 논리를 담은 `ReplayBuffer`, `SquashedGaussianActor`, `TwinQCritic` 클래스를 축으로 삼는다.
 
-고갱이 갈래는 `ReplayBuffer`, `SquashedGaussianActor`, `TwinQCritic`, `SAC`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `ReplayBuffer`, `SquashedGaussianActor`, `TwinQCritic`, `SAC`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

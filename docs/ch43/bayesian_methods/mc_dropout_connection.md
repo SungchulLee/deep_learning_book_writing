@@ -3,7 +3,7 @@
 
 ---
 
-## 1. 고갱이 깨침
+## 1. 핵심 깨침
 
 ### 익히는 동안의 드롭아웃
 
@@ -222,7 +222,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 
 ## 정리하며
 
-### 고갱이 식
+### 핵심 식
 
 **뒷분포 어림**: $q(W) = M \cdot \text{diag}(z)$, $z \sim \text{Bernoulli}(1-p)$
 
@@ -236,7 +236,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 | 이미 있는 모형을 쓴다 | 아리송함을 낮게 볼 수 있다 |
 | 짜기가 단순하다 | 어림이 거칠다 |
 
-### 고갱이 살펴볼 거리
+### 핵심 살펴볼 거리
 
 - Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian approximation. *ICML*.
 - Kendall, A., & Gal, Y. (2017). What uncertainties do we need in Bayesian deep learning? *NeurIPS*.

@@ -150,4 +150,4 @@ DenseNet-121과 ResNet-50을 익힐 때의 기억 공간 씀씀이를 견주고,
 
 촘촘한 이음은 앎이 가장 잘 흐르게 한다.
 
-고갱이 갈래는 `DenseLayer`, `DenseBlock`, `TransitionLayer`, `DenseNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `DenseLayer`, `DenseBlock`, `TransitionLayer`, `DenseNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

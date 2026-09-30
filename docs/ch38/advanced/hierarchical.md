@@ -299,4 +299,4 @@ if __name__ == "__main__":
 
 이 구현은 켜 있는 힘 북돋우는 배움의 한가운데 논리를 담은 `OptionPolicy`, `TerminationFunction`, `OptionCritic` 클래스를 축으로 삼는다.
 
-고갱이 갈래는 `OptionPolicy`, `TerminationFunction`, `OptionCritic`, `OptionCriticAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `OptionPolicy`, `TerminationFunction`, `OptionCritic`, `OptionCriticAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

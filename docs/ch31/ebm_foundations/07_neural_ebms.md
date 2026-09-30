@@ -214,4 +214,4 @@ if __name__ == "__main__":
 
 신경망 에너지 바탕 모델은 에너지 함수 $E_\theta(x)$을 깊은 신경망으로 매개변수화하여 복잡한 자료 분포를 나타내는 데 엄청난 너그러움을 준다.
 
-고갱이 갈래는 `ConvEnergyNetwork`, `StableConvEnergyNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `ConvEnergyNetwork`, `StableConvEnergyNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

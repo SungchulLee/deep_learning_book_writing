@@ -858,4 +858,4 @@ FID를 재는 데 걸리는 값을 어떻게 줄이는가?
 
 이 짜기는 프레셰 인셉션 거리(FID)에 대해 자리 잡은 가장 좋은 방식을 따른다.
 
-고갱이 갈래는 `FIDCalculator`, `SimpleInceptionV3Wrapper`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `FIDCalculator`, `SimpleInceptionV3Wrapper`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

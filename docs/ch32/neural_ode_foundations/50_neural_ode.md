@@ -154,4 +154,4 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 
 이 짜기는 함께 어울려 온전한 깊은 배움 얼개를 이루는 갈래 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 뜻매김한다.
 
-고갱이 갈래는 `ODEFunc`, `ODEBlock`, `NeuralODE`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `ODEFunc`, `ODEBlock`, `NeuralODE`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

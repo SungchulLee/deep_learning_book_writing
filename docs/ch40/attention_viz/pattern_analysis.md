@@ -258,7 +258,7 @@ def compute_locality_score(attention_weights: torch.Tensor, window: int = 3) -> 
     return local_mass / total_mass if total_mass > 0 else 0.0
 ```
 
-### 고갱이 열매
+### 핵심 열매
 
 여러 변환기 얼개에 걸친 연구에서 한결같은 결이 드러난다.
 
@@ -473,7 +473,7 @@ def create_attention_flow_sankey(
 
 ## 5. 어텐션 대 몫 매기기: 종요로운 가름
 
-### 고갱이 문제
+### 핵심 문제
 
 모형 풀이하기에서 종요로운 가름은 **어텐션 짐**과 **몫 점수**의 차이다.
 

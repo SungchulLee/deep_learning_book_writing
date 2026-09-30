@@ -129,4 +129,4 @@ ConvNeXtBlock이 LayerNorm 대신 BatchNorm을 쓰도록 고쳐라. 무엇을 �
 
 ConvNeXt은 트랜스포머의 설계 선택을 합성곱 얼거리에 짜임새 있게 들여온다.
 
-고갱이 갈래는 `ConvNeXtBlock`, `ConvNeXt`, `ConvNeXtBlockBN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `ConvNeXtBlock`, `ConvNeXt`, `ConvNeXtBlockBN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

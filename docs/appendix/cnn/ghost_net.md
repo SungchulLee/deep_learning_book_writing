@@ -9,7 +9,7 @@ GhostNet은 2020년 글 "GhostNet: 값싼 셈으로 더 많은 결 얻기"에서
 '''
 GhostNet - 값싼 셈으로 특징 더 뽑기
 논문: "GhostNet: More Features from Cheap Operations" (2020)
-고갱이: 그림자 묶음이 더 적은 매개변수로 더 많은 특징을 만들어 낸다
+핵심: 그림자 묶음이 더 적은 매개변수로 더 많은 특징을 만들어 낸다
 '''
 import torch
 import torch.nn as nn
@@ -182,4 +182,4 @@ Parameters: 989,680
 
 그림자 묶음은 겪어 본 살핌에 바탕을 둔다.
 
-고갱이 갈래는 `GhostModule`, `GhostBottleneck`, `GhostNet`, `MultiLevelGhostModule`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `GhostModule`, `GhostBottleneck`, `GhostNet`, `MultiLevelGhostModule`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -140,7 +140,7 @@ if __name__ == "__main__":
     torch.manual_seed(42)
     example_translation_attention()
 
-    print("\n고갱이 깨침:")
+    print("\n핵심 깨침:")
     print("  - 엇갈린 어텐션은 보내는 쪽과 받는 쪽의 얽힘을 보인다")
     print("  - 옮김과 지어내기를 알아보는 데 쓸모 있다")
     print("  - 낱말이 맞물리는 결을 드러낸다")
@@ -161,7 +161,7 @@ l'              <- machine         (짐: 0.806)
 apprentissage   <- machine         (짐: 0.618)
 automatique     <- learning        (짐: 0.894)
 
-고갱이 깨침:
+핵심 깨침:
   - 엇갈린 어텐션은 보내는 쪽과 받는 쪽의 얽힘을 보인다
   - 옮김과 지어내기를 알아보는 데 쓸모 있다
   - 낱말이 맞물리는 결을 드러낸다
@@ -178,7 +178,7 @@ automatique     <- learning        (짐: 0.894)
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 어텐션 그림 그리기에 알맞은지 밝혀라.
+코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 어텐션 그림 그리기에 알맞은지 밝혀라.
 
 </div>
 
@@ -243,4 +243,4 @@ automatique     <- learning        (짐: 0.894)
 
 그림으로 보이기는 모형의 움직임을 알고 익힘의 탈을 짚어내는 데 큰 몫을 한다.
 
-고갱이 갈래는 `CrossAttentionVisualizer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `CrossAttentionVisualizer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

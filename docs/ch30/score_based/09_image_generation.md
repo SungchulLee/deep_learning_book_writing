@@ -233,4 +233,4 @@ This demo shows the architecture and training loop.
 
 그림 만들어 내기의 짜기는 이 마당에 자리 잡은 방식을 따른다.
 
-고갱이 갈래는 `SimpleUNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `SimpleUNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

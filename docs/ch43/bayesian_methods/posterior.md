@@ -193,7 +193,7 @@ $$
 \boxed{\theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D}) + \eta_t, \quad \eta_t \sim \mathcal{N}(0, \epsilon_t I)}
 $$
 
-**고갱이 깨침**: 걸음 크기가 $\epsilon_t \to 0$으로 줄면 메트로폴리스 받기 걸음을 건너뛸 수 있다.
+**핵심 깨침**: 걸음 크기가 $\epsilon_t \to 0$으로 줄면 메트로폴리스 받기 걸음을 건너뛸 수 있다.
 
 **걸음 크기 짜임**: 다음을 채워야 한다.
 
@@ -1710,7 +1710,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 | **깊은 모둠** | MAP 여럿 | 가운데~높음 | 가운데 |
 | **MC 드롭아웃** | 넌지시 하는 VI | 낮음~가운데 | 아주 높음 |
 
-### 고갱이 식
+### 핵심 식
 
 **뒷분포**:
 
@@ -1766,7 +1766,7 @@ $$
 | 변이 베이즈 신경 그물 | 43장: 변이 베이즈 신경 그물 | VI을 자세히 다룸 |
 | 모형 견주기 | 43장: 소식 잣대 | 가장자리 그럴듯함 |
 
-### 고갱이 살펴볼 거리
+### 핵심 살펴볼 거리
 
 - Welling, M., & Teh, Y. W. (2011). Bayesian learning via stochastic gradient Langevin dynamics. *ICML*.
 - Blundell, C., et al. (2015). Weight uncertainty in neural networks. *ICML*.

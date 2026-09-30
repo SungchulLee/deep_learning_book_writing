@@ -1542,7 +1542,7 @@ $$
 
 ### 쓸 자리
 
-| 쓰임 | 고갱이 아리송함 | 쓰는 길 |
+| 쓰임 | 핵심 아리송함 | 쓰는 길 |
 |-------------|-----------------|-------|
 | **살아 있는 배움** | 앎의 것(서로 나눈 소식/BALD) | 알려 주는 바가 큰 점 고르기 |
 | **밖 분포 알아내기** | 앎의 것 | 낯선 들임에 표시하기 |
@@ -1559,7 +1559,7 @@ $$
 | 변이 베이즈 신경 그물 | 43장: 변이 베이즈 신경 그물 | 크게 늘릴 수 있는 아리송함 어림 |
 | 모형 견주기 | 43장: 소식 잣대 | 모형 고르기의 아리송함 |
 
-### 고갱이 살펴볼 거리
+### 핵심 살펴볼 거리
 
 - Kendall, A., & Gal, Y. (2017). What uncertainties do we need in Bayesian deep learning for computer vision? *NeurIPS*.
 - Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian approximation: Representing model uncertainty in deep learning. *ICML*.

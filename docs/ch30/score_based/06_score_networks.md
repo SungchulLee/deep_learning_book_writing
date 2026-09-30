@@ -20,7 +20,7 @@ FILE: 06_score_networks.py
 수학 바탕:
     점수 신경망은 ∇log p(x)을 나타내는 벡터 마당을 내놓아야 한다.
     
-    설계에서 살필 고갱이:
+    설계에서 살필 핵심:
     1. 마지막 활성화가 없다(내놓음이 어떤 실수든 될 수 있다)
     2. 흔히 잡음 수준 σ을 조건으로 삼는다
     3. 안정을 위해 립시츠 이어짐이어야 한다
@@ -253,4 +253,4 @@ Deep: torch.Size([32, 2])
 
 점수 신경망의 짜기는 이 마당에 자리 잡은 방식을 따른다.
 
-고갱이 갈래는 `NoiseConditionalScoreNetwork`, `ResidualBlock`, `DeepScoreNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `NoiseConditionalScoreNetwork`, `ResidualBlock`, `DeepScoreNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

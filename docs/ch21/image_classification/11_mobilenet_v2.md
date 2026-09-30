@@ -121,4 +121,4 @@ MobileNetV3 방식의 하드 스위시 활성화를 짜고 ReLU6과 견주어라
 
 MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정반대다.
 
-고갱이 갈래는 `InvertedResidual`, `MobileNetV2`, `HardSwish`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `InvertedResidual`, `MobileNetV2`, `HardSwish`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

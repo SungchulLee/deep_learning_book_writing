@@ -195,4 +195,4 @@ Wav2Vec 2.0이 말소리의 스스로 살피는 미리 익히기에 (오토인�
 
 Wav2Vec 2.0은 크게 두 단계로 돌아간다.
 
-고갱이 갈래는 `FeatureEncoder`, `Wav2Vec2`, `StereoFeatureEncoder`, `Wav2Vec2ForASR`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `FeatureEncoder`, `Wav2Vec2`, `StereoFeatureEncoder`, `Wav2Vec2ForASR`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

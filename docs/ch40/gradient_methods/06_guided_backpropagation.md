@@ -118,7 +118,7 @@ def main():
         example_1_guided_vs_vanilla()
 
         print("\n" + "="*70)
-        print("고갱이:")
+        print("핵심:")
         print("1. ReLU 되짚기 걸음을 고친다")
         print("2. 양수 기울기만 퍼뜨린다")
         print("3. 더 또렷하고 깨끗한 그림을 낸다")
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 기울기 바탕 풀이에 알맞은지 밝혀라.
+코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 기울기 바탕 풀이에 알맞은지 밝혀라.
 
 </div>
 
@@ -211,4 +211,4 @@ if __name__ == "__main__":
 
 `GuidedBackpropReLU` 클래스는 PyTorch의 `nn.Module` 사이틀로 모형 얼개를 감싼다.
 
-고갱이 갈래는 `GuidedBackpropReLU`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `GuidedBackpropReLU`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

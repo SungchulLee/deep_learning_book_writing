@@ -124,4 +124,4 @@ Knowledge Graph Completion (TransE)
 
 이 짜기는 앎 그래프 채우기의 핵심 논리를 감싼 `TransE` 갈래를 한가운데 둔다.
 
-고갱이 갈래는 `TransE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `TransE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

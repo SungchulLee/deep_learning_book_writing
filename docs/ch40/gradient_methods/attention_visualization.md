@@ -346,7 +346,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 기울기 바탕 풀이에 알맞은지 밝혀라.
+코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 기울기 바탕 풀이에 알맞은지 밝혀라.
 
 </div>
 
@@ -411,4 +411,4 @@ if __name__ == "__main__":
 
 그림으로 보이기는 모형의 움직임을 알고 익힘의 탈을 짚어내는 데 큰 몫을 한다.
 
-고갱이 갈래는 `AttentionVisualizer`, `BERTAttentionVisualizer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `AttentionVisualizer`, `BERTAttentionVisualizer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

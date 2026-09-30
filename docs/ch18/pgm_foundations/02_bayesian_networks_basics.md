@@ -1076,4 +1076,4 @@ print(f'P(Rain=1|WetGrass=1) exact = {p_rain_wet/p_wet:.4f}')
 
 베이즈 망은 튜플 $(G, P)$이며, 여기서 $G = (V, E)$은 DAG이고 $P = \{P(X_i | \text{Parents}(X_i))\}$은 조건부 확률 분포의 배치다.
 
-고갱이 갈래는 `ConditionalProbabilityTable`, `BayesianNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `ConditionalProbabilityTable`, `BayesianNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -16,7 +16,7 @@
 
 라플라스 어림은 **일 끝난 뒤** 방법이다. 이미 익힌 그물을 받아 아리송함 재기를 덧댄다.
 
-### 고갱이 깨침
+### 핵심 깨침
 
 뒷분포를 봉우리(MAP 어림)를 가운데로 삼는 가우스로 어림한다.
 
@@ -131,7 +131,7 @@ $$
 - $A^{(l)} = \frac{1}{N}\sum_{n=1}^N a_n^{(l-1)} (a_n^{(l-1)})^\top$ — 들임 살림의 함께 바뀜
 - $G^{(l)} = \frac{1}{N}\sum_{n=1}^N g_n^{(l)} (g_n^{(l)})^\top$ — 날임 기울기의 함께 바뀜
 
-**고갱이 결**: 크로네커 곱의 거꿀은 잘 셈된다.
+**핵심 결**: 크로네커 곱의 거꿀은 잘 셈된다.
 
 $$
 (A \otimes G)^{-1} = A^{-1} \otimes G^{-1}
@@ -915,7 +915,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 
 ## 정리하며
 
-### 고갱이 식
+### 핵심 식
 
 **라플라스 뒷분포**:
 
@@ -953,7 +953,7 @@ $$
 | **모둠** | 라플라스와 함께 쓸 수 있다 |
 | **피셔 소식** | 어떤 잃음에서는 GGN ≈ 피셔다 |
 
-### 고갱이 살펴볼 거리
+### 핵심 살펴볼 거리
 
 - MacKay, D. J. (1992). A practical Bayesian framework for backpropagation networks. *Neural Computation*.
 - Ritter, H., et al. (2018). A scalable Laplace approximation for neural networks. *ICLR*.

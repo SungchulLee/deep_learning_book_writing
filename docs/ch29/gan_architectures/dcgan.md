@@ -627,4 +627,4 @@ DCGAN 무게 첫자리매김 방식(겹말기 층은 평균 0, 표준 편차 0.0
 
 DCGANGenerator은 두 단계 얼개를 쓴다.
 
-고갱이 갈래는 `DCGANGenerator`, `DCGANDiscriminator`, `DCGAN64Generator`, `DCGAN64Discriminator`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `DCGANGenerator`, `DCGANDiscriminator`, `DCGAN64Generator`, `DCGAN64Discriminator`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

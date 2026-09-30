@@ -153,4 +153,4 @@ Deep GCN with Residual Connections
 
 깊은 그래프 신경망을 세울 때의 한가운데 어려움은 지나친 매끄러워짐이다.
 
-고갱이 갈래는 `GCNLayer`, `ResGCN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `GCNLayer`, `ResGCN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

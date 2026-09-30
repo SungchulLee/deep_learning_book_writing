@@ -417,4 +417,4 @@ if __name__ == "__main__":
 
 이 구현은 자연 방침 기울기의 한가운데 논리를 담은 `PolicyNet`, `ValueNet`, `NaturalPolicyGradient` 클래스를 축으로 삼는다.
 
-고갱이 갈래는 `PolicyNet`, `ValueNet`, `NaturalPolicyGradient`, `VanillaPG`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `PolicyNet`, `ValueNet`, `NaturalPolicyGradient`, `VanillaPG`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

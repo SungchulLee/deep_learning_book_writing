@@ -129,7 +129,7 @@ for epoch in range(1000):
         print(f"Epoch {epoch}: Loss = {loss.item():.6f}, σ = {sigma:.3f}")
 
 print("""
-고갱이 얼개 고르기:
+핵심 얼개 고르기:
 
 1. 때 조건 주기:
    - 확산 모델에 꼭 필요하다
@@ -176,7 +176,7 @@ Epoch 400: Loss = 390.588104, σ = 0.050
 Epoch 600: Loss = 0.411998, σ = 1.000
 Epoch 800: Loss = 2.645384, σ = 0.500
 
-고갱이 얼개 고르기:
+핵심 얼개 고르기:
 
 1. 때 조건 주기:
    - 확산 모델에 꼭 필요하다
@@ -257,4 +257,4 @@ Epoch 800: Loss = 2.645384, σ = 0.500
 
 점수 신경망 얼개의 짜기는 이 마당에 자리 잡은 방식을 따른다.
 
-고갱이 갈래는 `TimeConditionalScoreNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `TimeConditionalScoreNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

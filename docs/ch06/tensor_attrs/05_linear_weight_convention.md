@@ -9,7 +9,7 @@
 """
 PyTorch nn.Linear의 가중치 관례와 같은 꼴들.
 
-고갱이:
+핵심:
 - nn.Linear(in_features, out_features)이 담는 것:
     weight.shape == (out_features, in_features)
     bias.shape   == (out_features,)  (bias=True이면)

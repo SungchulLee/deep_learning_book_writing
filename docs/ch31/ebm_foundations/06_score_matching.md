@@ -330,4 +330,4 @@ Next: 07_neural_ebms.py
 
 점수 함수 $s(x) = \nabla_x \log p(x)$은 로그 확률이 가장 빠르게 커지는 방향을 담는다.
 
-고갱이 갈래는 `EnergyNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `EnergyNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

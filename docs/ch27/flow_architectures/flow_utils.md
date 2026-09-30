@@ -1426,4 +1426,4 @@
 
 이 짜기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 갈래 5개(`BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`, 그리고 하나 더)를 정한다.
 
-고갱이 갈래는 `BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

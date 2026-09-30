@@ -205,4 +205,4 @@ Parameters: 7,275
 
 앞먹임 신경 말 모델은 n-그램 모델의 성긴 셈 표를, 낱말을 이어진 벡터 나타냄(묻힘)에 대응시키는 빽빽한 신경망으로 갈음한다.
 
-고갱이 갈래는 `Vocabulary`, `FeedforwardLanguageModel`, `FeedforwardLMWithDropout`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `Vocabulary`, `FeedforwardLanguageModel`, `FeedforwardLMWithDropout`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

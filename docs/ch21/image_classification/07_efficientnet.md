@@ -77,7 +77,7 @@ Parameters: 1,352,888
 
 ## 2. 논의
 
-MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 고갱이 벽돌이다. 뒤집힌 병목 구조를 쓰는데, 채널을 먼저 넓히고 깊이별 합성곱으로 다룬 뒤 더 작은 차원으로 되비춘다. $f(x) = x \cdot \sigma(x)$으로 매긴 SiLU(Swish) 활성 함수는 ReLU보다 매끄러운 기울기를 준다.
+MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 핵심 벽돌이다. 뒤집힌 병목 구조를 쓰는데, 채널을 먼저 넓히고 깊이별 합성곱으로 다룬 뒤 더 작은 차원으로 되비춘다. $f(x) = x \cdot \sigma(x)$으로 매긴 SiLU(Swish) 활성 함수는 ReLU보다 매끄러운 기울기를 준다.
 
 이 간추린 짜기는 EfficientNet의 뼈대를 보여 준다. 곧 처음 특징을 뽑는 누비기 줄기, 채널이 늘고 자리 해상도가 줄어드는 MBConv 덩이의 차례, 그리고 전체 평균 모으기 앞에서 1280채널로 부풀리는 갈래 매기기 머리이다.
 
@@ -136,6 +136,6 @@ MBConv 덩이에 쥐어짜기-북돋우기를 더하고 늘어난 매개변수�
 
 **다룬 것** — EfficientNet
 
-MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 고갱이 벽돌이다.
+MBConv(모바일 뒤집힌 병목 합성곱) 블록이 EfficientNet의 핵심 벽돌이다.
 
-고갱이 갈래는 `MBConv`, `EfficientNet`, `SE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `MBConv`, `EfficientNet`, `SE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

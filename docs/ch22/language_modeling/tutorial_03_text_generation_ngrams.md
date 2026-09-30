@@ -236,4 +236,4 @@ Temp 1.5: the cat sat on the cat and the cat sat on the cat sat on the log
 
 욕심쟁이 풀기는 늘 가장 그럴듯한 다음 낱말을 골라 늘 같은 내놓음을 낸다.
 
-고갱이 갈래는 `TextGeneratorBigram`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `TextGeneratorBigram`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

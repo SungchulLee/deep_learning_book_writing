@@ -129,4 +129,4 @@ expand1x1=64, expand3x3=64인 파이어 단원이 내놓는 채널 수는 얼마
 
 파이어 모듈이 SqueezeNet을 SqueezeNet이게 하는 새로움이다.
 
-고갱이 갈래는 `Fire`, `SqueezeNet`, `FireWithBypass`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `Fire`, `SqueezeNet`, `FireWithBypass`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

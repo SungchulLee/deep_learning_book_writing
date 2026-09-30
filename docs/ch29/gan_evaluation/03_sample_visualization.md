@@ -1005,4 +1005,4 @@ if __name__ == "__main__":
 
 이 짜기는 표본 그려 보기와 품질 따지기에 대해 자리 잡은 가장 좋은 방식을 따른다.
 
-고갱이 갈래는 `SampleGridVisualizer`, `LatentSpaceInterpolation`, `ReconstructionQuality`, `SimpleDecoder`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `SampleGridVisualizer`, `LatentSpaceInterpolation`, `ReconstructionQuality`, `SimpleDecoder`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

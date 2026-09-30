@@ -311,4 +311,4 @@ if __name__ == "__main__":
 
 이 짜기는 QT-Opt의 핵심 논리를 감싼 `ContinuousQNetwork`, `CEM`, `ReplayBuffer` 갈래를 한가운데 둔다.
 
-고갱이 갈래는 `ContinuousQNetwork`, `CEM`, `ReplayBuffer`, `QTOptAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `ContinuousQNetwork`, `CEM`, `ReplayBuffer`, `QTOptAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

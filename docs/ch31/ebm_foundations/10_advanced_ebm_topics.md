@@ -225,4 +225,4 @@ CURRICULUM COMPLETE
 
 에너지 바탕 모델과 확산 모델의 이음은 요즘 만들어 내기에서 가장 중요한 통찰 가운데 하나이다.
 
-고갱이 갈래는 `LatentVariableEBM`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `LatentVariableEBM`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

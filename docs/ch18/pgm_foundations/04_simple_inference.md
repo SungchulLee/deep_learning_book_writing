@@ -616,4 +616,4 @@ print(f'Likelihood weighting: P(R=1|W=1)={result:.4f}, used all {n_samples} samp
 
 낱낱 세기 추론은 조건부 확률의 정의 $P(Q|E) = P(Q, E) / P(E)$을 써서 $P(\text{Query} | \text{Evidence})$ 꼴의 물음에 답한다.
 
-고갱이 갈래는 `InferenceByEnumeration`, `RejectionSampling`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `InferenceByEnumeration`, `RejectionSampling`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

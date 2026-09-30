@@ -303,4 +303,4 @@ p 값: 0.3452
 
 샤프 비에 대한 부트스트랩 검정은 덩이 부트스트랩을 써서 금융 돌아옴의 앞뒤 얽힘 얼개를 지킨다.
 
-고갱이 갈래는 `BootstrapTest`, `PermutationTest`, `MultipleTestingCorrection`, `MinimumBacktestLength`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `BootstrapTest`, `PermutationTest`, `MultipleTestingCorrection`, `MinimumBacktestLength`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

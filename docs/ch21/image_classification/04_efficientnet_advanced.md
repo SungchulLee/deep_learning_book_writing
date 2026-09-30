@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-복합 스케일링이 EfficientNet의 고갱이 이바지다. 여느 방법은 그물을 한 차원으로만 키우지만(더 깊게, 더 넓게, 또는 더 높은 해상도로) EfficientNet은 계수 $\alpha$, $\beta$, $\gamma$에 공통 지수 $\phi$을 올려 셋을 한꺼번에 키운다. 깊이 $= \alpha^\phi$, 너비 $= \beta^\phi$, 해상도 $= \gamma^\phi$이다. 격자 탐색으로 $\alpha \cdot \beta^2 \cdot \gamma^2 \approx 2$이라는 제약 아래 가장 좋은 $\alpha$, $\beta$, $\gamma$을 찾고, 그다음 $\phi$이 모델 전체 크기를 다스린다.
+복합 스케일링이 EfficientNet의 핵심 이바지다. 여느 방법은 그물을 한 차원으로만 키우지만(더 깊게, 더 넓게, 또는 더 높은 해상도로) EfficientNet은 계수 $\alpha$, $\beta$, $\gamma$에 공통 지수 $\phi$을 올려 셋을 한꺼번에 키운다. 깊이 $= \alpha^\phi$, 너비 $= \beta^\phi$, 해상도 $= \gamma^\phi$이다. 격자 탐색으로 $\alpha \cdot \beta^2 \cdot \gamma^2 \approx 2$이라는 제약 아래 가장 좋은 $\alpha$, $\beta$, $\gamma$을 찾고, 그다음 $\phi$이 모델 전체 크기를 다스린다.
 
 MBConv 덩이는 깊이별로 갈라지는 누비기와 쥐어짜기-북돋우기 어텐션을 아우른다. 부풀리기 단계가 채널을 늘리고, 깊이별 누비기가 매개변수를 거의 안 쓰고 자리 앎을 다루며, SE 단원이 채널의 중요함을 다시 매기고, 내리쬐기 단계가 내놓는 차원으로 다시 눌러 담는다. 들임과 내놓음의 꼴이 맞을 때 건너뛰는 이음을 쓴다.
 
@@ -218,6 +218,6 @@ $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$, $\phi = 2$인 복합 스케일�
 
 **다룬 것** — 앞선 EfficientNet
 
-복합 스케일링이 EfficientNet의 고갱이 이바지다.
+복합 스케일링이 EfficientNet의 핵심 이바지다.
 
-고갱이 갈래는 `SwishActivation`, `SqueezeExcitation`, `MBConvBlock`, `EfficientNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `SwishActivation`, `SqueezeExcitation`, `MBConvBlock`, `EfficientNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

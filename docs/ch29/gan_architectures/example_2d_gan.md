@@ -585,4 +585,4 @@ SimpleGenerator과 SimpleDiscriminator은 2차원 자료를 위해 만든 작은
 
 SimpleGenerator과 SimpleDiscriminator은 2차원 자료를 위해 만든 작은 여러 층 신경망이다.
 
-고갱이 갈래는 `SimpleGenerator`, `SimpleDiscriminator`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `SimpleGenerator`, `SimpleDiscriminator`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

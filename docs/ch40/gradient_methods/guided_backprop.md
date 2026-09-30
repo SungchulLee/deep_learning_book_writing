@@ -237,7 +237,7 @@ def compute_guided_gradcam(
 
 이끈 되짚기는 되짚는 동안 음수 기울기를 가려 또렷하고 촘촘한 그림을 낸다. Grad-CAM과 아우르면 이끈 Grad-CAM이 되어 결 고움과 갈래 가려냄을 함께 준다.
 
-**고갱이 식:**
+**핵심 식:**
 
 $$
 \frac{\partial L}{\partial x}\bigg|_{\text{이끈}} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0] \cdot \mathbf{1}\left[\frac{\partial L}{\partial y} > 0\right]

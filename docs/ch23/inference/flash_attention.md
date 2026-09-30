@@ -575,7 +575,7 @@ with torch.backends.cuda.sdp_kernel(
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-플래시 어텐션의 고갱이 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
+플래시 어텐션의 핵심 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
 
 </div>
 

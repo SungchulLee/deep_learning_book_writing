@@ -135,4 +135,4 @@ class MAEPretraining(nn.Module):
 
 전역 반응 정규화(GRN)는 자기 지도 학습에서 일어나는 특징 붕괴를 다룬다.
 
-고갱이 갈래는 `GRN`, `ConvNeXtV2Block`, `ConvNeXtV2`, `MAEPretraining`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `GRN`, `ConvNeXtV2Block`, `ConvNeXtV2`, `MAEPretraining`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -9,7 +9,7 @@ EfficientNetV2은 2021년 글 "EfficientNetV2: 더 작은 모형과 더 빠른 �
 '''
 EfficientNetV2 - 나아진 효율과 빠르기
 논문: "EfficientNetV2: Smaller Models and Faster Training" (2021)
-고갱이: Fused-MBConv 층, 차츰 나아가는 배움, 빨라진 익히기
+핵심: Fused-MBConv 층, 차츰 나아가는 배움, 빨라진 익히기
 '''
 import torch
 import torch.nn as nn
@@ -58,9 +58,9 @@ Parameters: 1,281,648
 
 ## 2. 논의
 
-EfficientNetV2의 고갱이 얼개 새로움은 녹여 붙인 MBConv 덩이다. 이른 도막에서 깊이별로 가른 엮음을 여느 $3 \times 3$ 엮음으로 갈음한다. 깊이별로 가른 엮음은 매개변수가 적지만 셈의 밀도가 낮아 요즘 빠르게 하는 쇠 붙임새(GPU/TPU)를 덜 쓴다. 녹여 붙인 갈래는 여느 $3 \times 3$ 엮음으로 갈래를 넓힌 뒤 $1 \times 1$으로 되비추어, 매개변수가 조금 늘지만 쇠 붙임새를 더 잘 쓴다. EfficientNetV2은 결 그림이 큰 이른 도막에는 녹여 붙인 MBConv을, 늦은 도막에는 여느 MBConv을 쓴다.
+EfficientNetV2의 핵심 얼개 새로움은 녹여 붙인 MBConv 덩이다. 이른 도막에서 깊이별로 가른 엮음을 여느 $3 \times 3$ 엮음으로 갈음한다. 깊이별로 가른 엮음은 매개변수가 적지만 셈의 밀도가 낮아 요즘 빠르게 하는 쇠 붙임새(GPU/TPU)를 덜 쓴다. 녹여 붙인 갈래는 여느 $3 \times 3$ 엮음으로 갈래를 넓힌 뒤 $1 \times 1$으로 되비추어, 매개변수가 조금 늘지만 쇠 붙임새를 더 잘 쓴다. EfficientNetV2은 결 그림이 큰 이른 도막에는 녹여 붙인 MBConv을, 늦은 도막에는 여느 MBConv을 쓴다.
 
-차근차근 배우는 꾀도 고갱이 이바지다. 익히는 동안 그림의 결과 다독임의 셈(드롭아웃, 자료 불리기)을 차츰 올린다. 이른 판에는 작은 그림과 여린 불리기를 써서 거친 결을 빨리 배우게 하고, 늦은 판에는 온 결의 그림과 센 다독임을 쓴다. 이 맞추어 가는 길은 결을 붙박은 익힘보다 익힘 때를 최대 11배까지 줄일 수 있다.
+차근차근 배우는 꾀도 핵심 이바지다. 익히는 동안 그림의 결과 다독임의 셈(드롭아웃, 자료 불리기)을 차츰 올린다. 이른 판에는 작은 그림과 여린 불리기를 써서 거친 결을 빨리 배우게 하고, 늦은 판에는 온 결의 그림과 센 다독임을 쓴다. 이 맞추어 가는 길은 결을 붙박은 익힘보다 익힘 때를 최대 11배까지 줄일 수 있다.
 
 EfficientNetV2은 어디에나 SiLU(Swish) 살림을 쓰는데, 여러 자리에서 ReLU보다 낫다고 밝혀졌다. SiLU 함수 $f(x) = x \cdot \sigma(x)$은 매끄럽고 한 방향으로만 오르지 않아 익히는 동안 기울기가 더 잘 흐른다.
 
@@ -135,6 +135,6 @@ EfficientNetV2은 어디에나 SiLU(Swish) 살림을 쓰는데, 여러 자리에
 
 **다룬 것** — EfficientNet V2
 
-EfficientNetV2의 고갱이 얼개 새로움은 녹여 붙인 MBConv 덩이다.
+EfficientNetV2의 핵심 얼개 새로움은 녹여 붙인 MBConv 덩이다.
 
-고갱이 갈래는 `FusedMBConv`, `EfficientNetV2`, `FusedMBConvSE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `FusedMBConv`, `EfficientNetV2`, `FusedMBConvSE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -245,4 +245,4 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 
 이 짜기는 갈래 2개(`CausalConv1d`, `SimpleDilatedStack`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 얼개를 이룬다.
 
-고갱이 갈래는 `CausalConv1d`, `SimpleDilatedStack`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `CausalConv1d`, `SimpleDilatedStack`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

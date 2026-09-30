@@ -1036,4 +1036,4 @@ print('Cond. independent given D=0?', np.allclose(p_given_d0, np.outer(p_s1_d0, 
 
 PGM은 그래프 이론과 확률 이론을 합쳐 높은 차원의 분포를 간결하게 나타낸다.
 
-고갱이 갈래는 `ProbabilityDistribution`, `DirectedGraph`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `ProbabilityDistribution`, `DirectedGraph`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

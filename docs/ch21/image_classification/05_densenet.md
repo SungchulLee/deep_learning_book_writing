@@ -174,4 +174,4 @@ DenseLayer마다 있는 병목($1 \times 1$ 합성곱)이 무엇을 하는지 �
 
 빽빽한 연결 무늬란 켜 $\ell$이 앞선 모든 켜 $x_0, x_1, \ldots, x_{\ell-1}$의 특징 지도를 들임으로 받는다는 뜻이다.
 
-고갱이 갈래는 `DenseLayer`, `DenseBlock`, `Transition`, `DenseNet121`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `DenseLayer`, `DenseBlock`, `Transition`, `DenseNet121`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

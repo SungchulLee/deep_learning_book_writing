@@ -27,7 +27,7 @@ $$
 
 여기서 $\theta_t$은 돌림 또는 붙박인 배움 비율로 익힌 마지막 $T$판의 짐이다.
 
-**고갱이 살핌**: SWA 짐은 잃음 터에서 더 판판하고 너른 자리에 놓여 두루 미침이 나아진다.
+**핵심 살핌**: SWA 짐은 잃음 터에서 더 판판하고 너른 자리에 놓여 두루 미침이 나아진다.
 
 **SWAG는 SWA을 넓혀** 평균뿐 아니라 짐 자취의 퍼짐까지 담는다.
 
@@ -35,7 +35,7 @@ $$
 
 ## 2. SWAG 알고리즘
 
-### 고갱이 깨침
+### 핵심 깨침
 
 SGD 자취에 가우스를 맞춘다.
 
@@ -207,7 +207,7 @@ SWAG는 어림 라플라스 어림으로 볼 수 있다.
 
 **SWAG**: $q(\theta) = \mathcal{N}(\bar{\theta}_{\text{SWA}}, \Sigma_{\text{SWAG}})$
 
-고갱이 다름은 이렇다.
+핵심 다름은 이렇다.
 
 - SWAG는 MAP 대신 SWA 평균(더 판판한 자리일 수 있다)을 쓴다
 - SWAG는 자취의 자로 헤세 행렬의 거꿀을 어림한다
@@ -824,7 +824,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 
 ## 정리하며
 
-### 고갱이 식
+### 핵심 식
 
 **SWAG 분포**:
 
@@ -862,7 +862,7 @@ $$
 | 깊은 모둠 | 함께 쓸 수 있다(여럿 SWAG) |
 | 아리송함 | 앎의 아리송함 어림을 준다 |
 
-### 고갱이 살펴볼 거리
+### 핵심 살펴볼 거리
 
 - Maddox, W., et al. (2019). A simple baseline for Bayesian inference in deep learning. *NeurIPS*.
 - Izmailov, P., et al. (2018). Averaging weights leads to wider optima and better generalization. *UAI*.

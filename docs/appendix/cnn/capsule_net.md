@@ -9,7 +9,7 @@
 '''
 CapsNet - 꼬투리 그물
 논문: "Dynamic Routing Between Capsules" (2017)
-고갱이: 벡터를 내놓는 꼬투리와 움직이는 길 잡기
+핵심: 벡터를 내놓는 꼬투리와 움직이는 길 잡기
 '''
 import torch
 import torch.nn as nn
@@ -168,4 +168,4 @@ Parameters: 8,215,568
 
 캡슐 그물의 밑바탕 새로움은 캡슐이라는 깨침이다.
 
-고갱이 갈래는 `PrimaryCaps`, `DigitCaps`, `CapsNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `PrimaryCaps`, `DigitCaps`, `CapsNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -326,4 +326,4 @@ Found 3 entities:
 
 여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 차례 이름표 붙이기의 핵심 개념을 보여 준다.
 
-고갱이 갈래는 `EntityDictionary`, `DictionaryNER`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `EntityDictionary`, `DictionaryNER`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -56,7 +56,7 @@ VGG의 한결같은 꾸밈 덕분에 여러 뒤이은 일(FCN, 더 빠른 R-CNN)
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-VGGNet의 고갱이 구조 이바지를 밝혀라. 내내 $3 \times 3$ 합성곱만 쓴 것이 왜 큰 나아감이었는가?
+VGGNet의 핵심 구조 이바지를 밝혀라. 내내 $3 \times 3$ 합성곱만 쓴 것이 왜 큰 나아감이었는가?
 
 </div>
 

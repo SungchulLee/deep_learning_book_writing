@@ -301,4 +301,4 @@ Its OOS Sharpe: -0.0552
 
 때 열을 위한 앞으로 걸어가며 살피기는 온 익힘 자료가 시험 자료보다 앞서게 하여 뽑기 밖 됨됨이를 정직하게 따진다.
 
-고갱이 갈래는 `OverfittingConfig`, `WalkForwardValidator`, `DeflatedSharpeRatio`, `ProbabilityOfOverfitting`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `OverfittingConfig`, `WalkForwardValidator`, `DeflatedSharpeRatio`, `ProbabilityOfOverfitting`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

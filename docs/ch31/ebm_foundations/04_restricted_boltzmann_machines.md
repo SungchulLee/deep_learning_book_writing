@@ -358,4 +358,4 @@ Next: 05_contrastive_divergence.py
 
 제한 볼츠만 기계는 두 쪽 에너지 함수 $E(v,h) = -a^\top v - b^\top h - v^\top W h$ 위에 세운 바탕이 되는 만들어 내는 모델이다.
 
-고갱이 갈래는 `RestrictedBoltzmannMachine`, `PersistentRBM`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `RestrictedBoltzmannMachine`, `PersistentRBM`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

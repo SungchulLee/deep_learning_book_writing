@@ -158,4 +158,4 @@ Drug-Target Interaction Prediction
 
 `DrugTargetPredictor` 모델은 약 분자와 단백질 과녁을 따로 부호화한 뒤 합쳐 주고받음을 헤아리는 두 갈래 얼개를 보인다.
 
-고갱이 갈래는 `DrugTargetPredictor`, `DrugTargetPredictorWithBonds`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `DrugTargetPredictor`, `DrugTargetPredictorWithBonds`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

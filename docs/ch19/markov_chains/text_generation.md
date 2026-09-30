@@ -208,4 +208,4 @@ MARKOV CHAIN TEXT GENERATION
 
 이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 마르코프 사슬의 핵심 개념을 보인다.
 
-고갱이 갈래는 `MarkovTextGenerator`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `MarkovTextGenerator`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -651,4 +651,4 @@ if __name__ == "__main__":
 
 `TextLSTM` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 얼개를 감싼다.
 
-고갱이 갈래는 `TextLSTM`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `TextLSTM`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

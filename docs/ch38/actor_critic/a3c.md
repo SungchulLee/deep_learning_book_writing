@@ -574,4 +574,4 @@
 
 이 구현은 발 안 맞춘 이점 행위자-비평가(A3C)의 한가운데 논리를 담은 `A3CNetwork`, `SharedAdam`, `A3CTrainer` 클래스를 축으로 삼는다.
 
-고갱이 갈래는 `A3CNetwork`, `SharedAdam`, `A3CTrainer`, `SimulatedA3C`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `A3CNetwork`, `SharedAdam`, `A3CTrainer`, `SimulatedA3C`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

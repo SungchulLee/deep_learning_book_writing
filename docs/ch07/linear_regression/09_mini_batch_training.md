@@ -327,7 +327,7 @@
         with torch.no_grad():
             val_loss = evaluate(model, val_loader)
 
-    고갱이:
+    핵심:
     1. DataLoader이 배치 만들기와 섞기를 다룬다
     2. 에폭마다 모든 배치를 훑는다
     3. 한 에폭 = 온 데이터셋을 한 번 훑기
@@ -468,7 +468,7 @@
         with torch.no_grad():
             val_loss = evaluate(model, val_loader)
 
-    고갱이:
+    핵심:
     1. DataLoader이 배치 만들기와 섞기를 다룬다
     2. 에폭마다 모든 배치를 훑는다
     3. 한 에폭 = 온 데이터셋을 한 번 훑기

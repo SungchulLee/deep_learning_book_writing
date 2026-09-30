@@ -9,7 +9,7 @@
 '''
 GAN - 맞겨루기 생성기
 논문: "Generative Adversarial Networks" (2014)
-고갱이: 맞겨루며 익히는 두 그물(생성기와 판별기)
+핵심: 맞겨루며 익히는 두 그물(생성기와 판별기)
 '''
 import torch
 import torch.nn as nn
@@ -373,4 +373,4 @@ $$
 
 맞겨루기 생성기 얼개는 겨루는 신경망 둘로 이루어진다.
 
-고갱이 갈래는 `Generator`, `Discriminator`, `GAN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `Generator`, `Discriminator`, `GAN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

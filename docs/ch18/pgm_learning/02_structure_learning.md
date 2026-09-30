@@ -753,4 +753,4 @@ for name, struct in structures.items():
 
 PC 알고리즘 같은 제약 기반 방법은 완전 무방향 그래프에서 시작해 조건부 독립을 검정하며 변을 차근차근 지운다.
 
-고갱이 갈래는 `IndependenceTest`, `PCAlgorithm`, `ScoreBasedLearning`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `IndependenceTest`, `PCAlgorithm`, `ScoreBasedLearning`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

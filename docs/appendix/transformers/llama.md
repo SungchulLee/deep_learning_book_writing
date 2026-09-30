@@ -2,7 +2,7 @@
 
 LLaMA은 2023년 글 "LLaMA: Open and Efficient Foundation Language Models"에서 나왔다.
 
-여기 짜보기는 LLaMA을 짧고 배우기 좋게 보인 본이다. 코드는 고갱이 얼개와 앞으로 걸음에 마음을 두어, 고갱이 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 짜보기는 LLaMA을 짧고 배우기 좋게 보인 본이다. 코드는 핵심 얼개와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -12,7 +12,7 @@ LLaMA은 2023년 글 "LLaMA: Open and Efficient Foundation Language Models"에�
 LLaMA - 메타 AI의 큰 말 모형
 글: "LLaMA: 열려 있고 잘 드는 밑바탕 말 모형" (2023)
 지은이: 메타 AI
-고갱이 깨침(크게 보아):
+핵심 깨침(크게 보아):
   - 디코더만 있는 변환기(GPT 결)
   - 켜 잣대 잡기 대신 RMSNorm
   - SwiGLU 앞먹임
@@ -173,7 +173,7 @@ logits: torch.Size([2, 12, 1000])
 
 이 짜보기는 갈래 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`, and 1 more)를 매기고, 이들이 어울려 온전한 변환기 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
-여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 고갱이 깨침은 크기와 상관없이 그대로다.
+여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 핵심 깨침은 크기와 상관없이 그대로다.
 
 ## 연습문제
 
@@ -235,4 +235,4 @@ logits: torch.Size([2, 12, 1000])
 
 이 짜보기는 갈래 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`, and 1 more)를 매기고, 이들이 어울려 온전한 변환기 얼개를 이룬다.
 
-고갱이 갈래는 `RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

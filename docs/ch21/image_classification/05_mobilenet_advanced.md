@@ -159,4 +159,4 @@ if __name__ == "__main__":
 
 뒤집힌 잔차 블록은 여느 병목 무늬를 뒤집는다.
 
-고갱이 갈래는 `DepthwiseSeparableConv`, `InvertedResidual`, `MobileNetV2`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `DepthwiseSeparableConv`, `InvertedResidual`, `MobileNetV2`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

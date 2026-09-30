@@ -634,4 +634,4 @@ print(f'P(D=1|A=1) = {P_D_given_A1[1]:.4f}')
 
 변수 없애기는 CPT을 인자로 바꾼 뒤 숨은 변수를 되풀이해 없앤다.
 
-고갱이 갈래는 `Factor`, `VariableElimination`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `Factor`, `VariableElimination`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

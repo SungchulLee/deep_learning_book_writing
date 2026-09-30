@@ -226,7 +226,7 @@ def example_gradient_attribution():
 if __name__ == "__main__":
     example_gradient_attribution()
 
-    print("\n고갱이 생각:")
+    print("\n핵심 생각:")
     print("  - 쌓은 기울기: 든든한 몫 매기기 방법")
     print("  - 기울기 × 들임: 더 단순한 갈음")
     print("  - 어느 낱말이 미루어 봄을 이끄는지 드러낸다")
@@ -248,7 +248,7 @@ if __name__ == "__main__":
   - 'cat'과 'mouse'의 몫이 크다
   - 관사('the')의 몫은 작다
 
-고갱이 생각:
+핵심 생각:
   - 쌓은 기울기: 든든한 몫 매기기 방법
   - 기울기 × 들임: 더 단순한 갈음
   - 어느 낱말이 미루어 봄을 이끄는지 드러낸다
@@ -266,7 +266,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 어텐션 그림 그리기에 알맞은지 밝혀라.
+코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 어텐션 그림 그리기에 알맞은지 밝혀라.
 
 </div>
 
@@ -331,4 +331,4 @@ if __name__ == "__main__":
 
 그림으로 보이기는 모형의 움직임을 알고 익힘의 탈을 짚어내는 데 큰 몫을 한다.
 
-고갱이 갈래는 `GradientAttentionAnalyzer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `GradientAttentionAnalyzer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

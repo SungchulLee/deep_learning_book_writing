@@ -9,7 +9,7 @@
 35.1.1 DQN의 바탕
 ========================
 
-DQN의 고갱이 조각: Q 그물 얼개, 움직임 고르기,
+DQN의 핵심 조각: Q 그물 얼개, 움직임 고르기,
 그리고 기본 DQN 익히기 되돌이.
 """
 
@@ -362,4 +362,4 @@ $$
 
 이 짜기는 Q 그물 얼개와 움직임 고르기의 핵심 논리를 감싼 `MLPQNetwork`, `ConvQNetwork`, `EpsilonGreedy` 갈래를 한가운데 둔다.
 
-고갱이 갈래는 `MLPQNetwork`, `ConvQNetwork`, `EpsilonGreedy`, `BasicDQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `MLPQNetwork`, `ConvQNetwork`, `EpsilonGreedy`, `BasicDQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

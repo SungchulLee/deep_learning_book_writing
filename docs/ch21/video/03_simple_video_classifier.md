@@ -718,4 +718,4 @@
 
 여기 짠 것은 함께 어울려 온전한 영상 이해 얼개를 이루는 클래스 3개(`Simple3DCNN`, `SyntheticVideoDataset`, `VideoClassifier`)를 정한다.
 
-고갱이 갈래는 `Simple3DCNN`, `SyntheticVideoDataset`, `VideoClassifier`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `Simple3DCNN`, `SyntheticVideoDataset`, `VideoClassifier`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

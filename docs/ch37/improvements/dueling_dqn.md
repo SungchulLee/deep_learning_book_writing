@@ -320,4 +320,4 @@ if __name__ == "__main__":
 
 이 짜기는 맞겨루기 DQN의 핵심 논리를 감싼 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer` 갈래를 한가운데 둔다.
 
-고갱이 갈래는 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer`, `DuelingDQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer`, `DuelingDQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

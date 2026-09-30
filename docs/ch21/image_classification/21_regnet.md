@@ -129,4 +129,4 @@ for i, (w, d) in enumerate(zip(widths, depths)):
 
 RegNet의 설계 철학은 좋은 그물을 내놓는 설계 공간의 단순한 매개변수화를 찾는 것이다.
 
-고갱이 갈래는 `RegNetBlock`, `RegNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `RegNetBlock`, `RegNet`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

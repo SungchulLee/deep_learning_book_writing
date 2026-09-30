@@ -296,4 +296,4 @@ CUSUM(쌓인 합) 알아내개는 잣대 평균에서 벗어난 만큼을 쌓아
 
 CUSUM(쌓인 합) 알아내개는 잣대 평균에서 벗어난 만큼을 쌓아 평균이 옮겨 가는지 지켜본다.
 
-고갱이 갈래는 `NonStationarityConfig`, `CUSUMDetector`, `DistributionShiftDetector`, `AdaptivePolicy`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `NonStationarityConfig`, `CUSUMDetector`, `DistributionShiftDetector`, `AdaptivePolicy`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -23,9 +23,9 @@ Grad-CAM은 밑바탕이 되는 물음에 답한다. **들임 그림의 어느 �
 
 갈래 $c$을 미루어 보는 데 중요한 그림 자리를 짚어 주는 열 그림 $L^c_{\text{Grad-CAM}} \in \mathbb{R}^{u \times v}$을 찾는다.
 
-### 고갱이 세움새
+### 핵심 세움새
 
-Grad-CAM은 겹침 결 그림에 남아 있는 자리 소식을 살려 쓴다. 고갱이 깨침은 **뒤쪽 겹치는 켜에 뜻이 담겨 있고** **기울기가 겨눈 갈래에 대한 중요함을 알린다**는 것이다.
+Grad-CAM은 겹침 결 그림에 남아 있는 자리 소식을 살려 쓴다. 핵심 깨침은 **뒤쪽 겹치는 켜에 뜻이 담겨 있고** **기울기가 겨눈 갈래에 대한 중요함을 알린다**는 것이다.
 
 겨눈 갈래 $c$에 대해 Grad-CAM은 이렇게 셈한다.
 
@@ -485,7 +485,7 @@ multi_cam = multi_layer_gradcam(model, input_tensor, layers, target_class=281)
 
 ### 여러 갈래 견주기
 
-Grad-CAM의 고갱이 됨됨이는 **갈래를 가려낸다**는 것이다.
+Grad-CAM의 핵심 됨됨이는 **갈래를 가려낸다**는 것이다.
 
 ```python
 def compare_gradcam_classes(
@@ -623,7 +623,7 @@ Grad-CAM은 저우 외(2016)의 **갈래 살아남 그림(CAM)**을 넓힌 것�
 | 풀이 됨됨이 | 높음 | 높음 |
 | 셈 값 | 낮음 | 높음(되짚기) |
 
-**고갱이 깨침**: GAP→FC 얼개에서는 Grad-CAM과 CAM이 똑같은 열매를 낸다. Grad-CAM은 CAM을 아무 얼개로나 넓힌 것이다.
+**핵심 깨침**: GAP→FC 얼개에서는 Grad-CAM과 CAM이 똑같은 열매를 낸다. Grad-CAM은 CAM을 아무 얼개로나 넓힌 것이다.
 
 ### 결 고움의 맞바꿈
 
@@ -816,7 +816,7 @@ cam = grad_cam(xray_image, target_class=class_map["pneumonia"])
 
 Grad-CAM은 CNN의 판단에 대해 풀이할 수 있고 갈래를 가려내는 그림을 준다.
 
-### 고갱이 식
+### 핵심 식
 
 **중요함 짐:**
 
@@ -830,7 +830,7 @@ $$
 L^c_{\text{Grad-CAM}} = \text{ReLU}\left( \sum_k \alpha^c_k A^k \right)
 $$
 
-### 고갱이 됨됨이
+### 핵심 됨됨이
 
 - **갈래를 가려낸다**: 갈래가 다르면 열 그림도 다르다
 - **얼개를 가리지 않는다**: 어떤 CNN에도 듣는다

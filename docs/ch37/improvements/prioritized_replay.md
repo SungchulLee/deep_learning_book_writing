@@ -339,4 +339,4 @@ if __name__ == "__main__":
 
 이 짜기는 앞섬 되돌려 보기의 핵심 논리를 감싼 `SumTree`, `PrioritizedReplayBuffer` 갈래를 한가운데 둔다.
 
-고갱이 갈래는 `SumTree`, `PrioritizedReplayBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `SumTree`, `PrioritizedReplayBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

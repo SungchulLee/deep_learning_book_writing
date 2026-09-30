@@ -22,7 +22,7 @@ $$
 
 ### 변이의 길
 
-**고갱이 깨침**: 다룰 수 없는 뒷분포를 다룰 수 있는 분포로 어림한다.
+**핵심 깨침**: 다룰 수 없는 뒷분포를 다룰 수 있는 분포로 어림한다.
 
 $$
 p(\theta \mid \mathcal{D}) \approx q_\phi(\theta)
@@ -181,7 +181,7 @@ $$
 
 ### 매개변수 다시 잡기 풀이
 
-**고갱이 깨침**: $\theta$을 $\phi$과 잡음의 붙박인 함수로 적는다.
+**핵심 깨침**: $\theta$을 $\phi$과 잡음의 붙박인 함수로 적는다.
 
 $$
 \theta = g(\phi, \epsilon) = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
@@ -290,7 +290,7 @@ $$
 
 ### 그 자리 매개변수 다시 잡기
 
-**고갱이 깨침**: 선형 켜에서는 살림을 곧바로 뽑는다.
+**핵심 깨침**: 선형 켜에서는 살림을 곧바로 뽑는다.
 
 $$
 a = Wx = (\mu_W + \sigma_W \odot \epsilon_W)x
@@ -1618,7 +1618,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 
 ## 정리하며
 
-### 고갱이 깨침
+### 핵심 깨침
 
 **변이 미루어 봄**은 다룰 수 없는 뒷분포를 어림한다.
 
@@ -1692,7 +1692,7 @@ $$
 | 뒷분포 미루어 봄 | 43장: 뒷분포 미루어 봄 | 미루어 봄 방법으로서의 VI |
 | 모형 견주기 | 43장: 모형 밑거리 | ELBO가 밑거리를 마디 짓는다 |
 
-### 고갱이 살펴볼 거리
+### 핵심 살펴볼 거리
 
 - Blundell, C., et al. (2015). Weight uncertainty in neural networks. *ICML*.
 - Kingma, D. P., & Welling, M. (2014). Auto-encoding variational Bayes. *ICLR*.

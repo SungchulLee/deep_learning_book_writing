@@ -482,4 +482,4 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
 
 이 구현은 REINFORCE 알고리즘의 한가운데 논리를 담은 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE` 클래스를 축으로 삼는다.
 
-고갱이 갈래는 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE`, `BatchREINFORCE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE`, `BatchREINFORCE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

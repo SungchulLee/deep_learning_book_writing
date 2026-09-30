@@ -9,7 +9,7 @@ ConvNeXt은 2022년 글 "2020년대를 위한 엮음 그물"에서 나왔으며,
 '''
 ConvNeXt - 2020년대를 위한 엮음 그물
 논문: "A ConvNet for the 2020s" (2022)
-고갱이: 보기 변환기의 설계를 들여와 요즘에 맞게 고친 ResNet
+핵심: 보기 변환기의 설계를 들여와 요즘에 맞게 고친 ResNet
 '''
 import torch
 import torch.nn as nn
@@ -145,4 +145,4 @@ ConvNeXt이 주는 더 큰 가르침은, 보기 변환기가 낫다고 여겨진
 
 ConvNeXt 덩이는 변환기에서 여러 꾸밈을 가져온다.
 
-고갱이 갈래는 `ConvNeXtBlock`, `ConvNeXt`, `ConvNeXtMultiStage`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `ConvNeXtBlock`, `ConvNeXt`, `ConvNeXtMultiStage`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

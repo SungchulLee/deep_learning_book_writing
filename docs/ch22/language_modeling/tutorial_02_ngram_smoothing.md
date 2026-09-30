@@ -243,4 +243,4 @@ $\lambda_2 + \lambda_1 = 1$인 선형 사이 메우기에서, 낱말 사전의 �
 
 라플라스 부드럽게 하기(하나 더하기)는 가장 단순한 방식이다.
 
-고갱이 갈래는 `LaplaceBigramModel`, `InterpolatedBigramModel`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `LaplaceBigramModel`, `InterpolatedBigramModel`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

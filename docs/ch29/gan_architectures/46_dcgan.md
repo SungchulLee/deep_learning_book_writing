@@ -376,4 +376,4 @@ DCGAN을 MNIST에 쓸 때 원 논문과 다르게 해야 할 것은 무엇인가
 
 DCGAN 얼개는 본디 논문의 중요한 설계 원칙 여럿을 따른다.
 
-고갱이 갈래는 `DCGenerator`, `DCDiscriminator`, `DCGAN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `DCGenerator`, `DCDiscriminator`, `DCGAN`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

@@ -685,4 +685,4 @@ transition_matrices.py (모듈 02) 옮김 행렬과 상태 확률 다루기
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다.
 
-고갱이 갈래는 `TransitionMatrixAnalyzer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `TransitionMatrixAnalyzer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

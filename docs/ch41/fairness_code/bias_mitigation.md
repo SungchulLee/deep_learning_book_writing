@@ -519,4 +519,4 @@
 
 이 짜보기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다.
 
-고갱이 갈래는 `ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

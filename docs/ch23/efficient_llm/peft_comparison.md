@@ -704,12 +704,12 @@ Quality
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-LoRA의 고갱이 생각을 밝혀라. 모델의 좋음을 지키면서 익힐 매개변수를 어떻게 줄이는가?
+LoRA의 핵심 생각을 밝혀라. 모델의 좋음을 지키면서 익힐 매개변수를 어떻게 줄이는가?
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    LoRA(낮은 계수 맞추기)는 미리 익힌 무게 행렬 $W_0 \in \mathbb{R}^{d \times k}$을 얼리고 낮은 계수 고침 $\Delta W = BA$을 더한다. 여기서 $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$이고 $r \ll \min(d, k)$이다. 앞으로 걸음은 $h = (W_0 + BA)x$이 된다. $A$과 $B$만 익히므로 익힐 매개변수가 $dk$개에서 $r(d+k)$개로 준다. $d = k = 4096$이고 $r = 8$인 흔한 층이면 $256\times$ 줄어든다. 고갱이 눈썰미는 곱게 다듬는 동안의 무게 고침이 타고난 계수가 낮다는 것이며, 그래서 낮은 계수 쪼갬이 종요로운 맞춤을 담아낸다.
+    LoRA(낮은 계수 맞추기)는 미리 익힌 무게 행렬 $W_0 \in \mathbb{R}^{d \times k}$을 얼리고 낮은 계수 고침 $\Delta W = BA$을 더한다. 여기서 $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$이고 $r \ll \min(d, k)$이다. 앞으로 걸음은 $h = (W_0 + BA)x$이 된다. $A$과 $B$만 익히므로 익힐 매개변수가 $dk$개에서 $r(d+k)$개로 준다. $d = k = 4096$이고 $r = 8$인 흔한 층이면 $256\times$ 줄어든다. 핵심 눈썰미는 곱게 다듬는 동안의 무게 고침이 타고난 계수가 낮다는 것이며, 그래서 낮은 계수 쪼갬이 종요로운 맞춤을 담아낸다.
 
 ---
 

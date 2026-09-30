@@ -509,7 +509,7 @@ HuggingFace 앎 내리기 잣대.
     print("=" * 60)
 
     # transformers가 없는 환경을 위해, 만든 자료에 단순한 앞먹임 그물을 써서
-    # 앎 내리기의 고갱이 논리를 보인다.
+    # 앎 내리기의 핵심 논리를 보인다.
 
     torch.manual_seed(42)
 
@@ -759,4 +759,4 @@ HuggingFace 앎 내리기 잣대.
 
 여기 짠 것은 함께 어울려 온전한 모델 눌러 담기 얼개를 이루는 클래스 4개(`PerformanceBenchmark`, `OnnxPipeline`, `SimpleTeacher`, `SimpleStudent`)를 정한다.
 
-고갱이 갈래는 `DistillationTrainer`, `PerformanceBenchmark`, `OnnxPipeline`, `SimpleTeacher`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 갈래는 `DistillationTrainer`, `PerformanceBenchmark`, `OnnxPipeline`, `SimpleTeacher`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
