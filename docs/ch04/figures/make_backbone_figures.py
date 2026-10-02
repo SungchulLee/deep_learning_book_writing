@@ -705,7 +705,7 @@ BLOCKS = [
   (0, 4, "identity x")),
  ("vit_block.svg", "Transformer block", "one block of ViT-B/16, at input 224",
   [("LayerNorm",                  NORM, "197x768", "197x768"),
-   ("Multi-Head Attention  x12",  SPEC, None,      "197x768"),
+   ("Multi-Head Attention, 12 heads", SPEC, None,   "197x768"),
    ("+   (add x)",                SPEC, None,      "197x768"),
    ("LayerNorm",                  NORM, None,      "197x768"),
    ("MLP  768 -> 3072 -> 768",    CONV, None,      "197x768"),
