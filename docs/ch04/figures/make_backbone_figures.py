@@ -324,6 +324,166 @@ def draw_block(svg, title_text, subtitle, rows, caption, note=None, skip=None):
 
 
 # =============================================================================
+# 잔차 블록도 따로 그린다.
+#
+# draw_block 으로 그리면 틀린 말을 하지는 않는다 -- 본줄기는 정말 한 줄로
+# 이어지고, 지름길은 옆에 호를 하나 그려 두었다. 다만 셋이 아쉬웠다.
+#
+#   1. "3x3 conv - BN - ReLU" 처럼 세 연산을 한 칸에 눌러 담았다. 더하는 자리
+#      앞에 ReLU 가 없다는 것이 이 블록의 요점인데, 눌러 담으면 그 자리가
+#      보이지 않는다.
+#   2. 더하는 자리가 다른 칸과 똑같은 네모였다. 들어오는 줄이 둘인 곳은
+#      그것 하나뿐이므로 모양이 달라야 한다.
+#   3. **모양이 맞지 않는 블록을 그리지 않았다.** 그림 설명이 "the add needs
+#      matching shapes" 라고 물음을 띄워 놓고 답을 그리지 않은 꼴이다.
+#      ResNet18 에서 layer2/3/4 의 첫 블록은 채널이 두 배가 되고 한 변이
+#      반으로 줄어 x 를 그대로 더할 수 없다. 그 자리에 1x1 합성곱이 선다.
+#
+# 그래서 두 갈래를 나란히 그린다 -- 왼쪽은 x 를 그대로 더하는 layer1.0,
+# 오른쪽은 1x1 로 x 를 맞춰 주는 layer2.0.
+# =============================================================================
+MW, MH, MV = 4.0, 0.60, 0.46      # 본줄기 상자: 너비, 높이, 사이
+SHPW, SKIPX, SKIPW = 2.35, 0.62, 3.70   # 모양 칸, 지름길 간격, 지름길 상자
+DASH = 0.28                       # 점선 테두리가 상자에서 떨어지는 거리
+PANEL = SHPW + MW + SKIPX + SKIPW + 1.5
+
+
+def draw_residual_block(svg, panels, caption, note=None):
+    """panels: [(제목, 밑글, 본줄기 [(글,색,모양)], 지름길 글 또는 None, 나간 모양)]
+
+    본줄기는 아래에서 위로, 지름길은 x 에서 오른쪽으로 빠져 더하는 자리로
+    올라간다. 더하는 자리는 동그라미이고 ReLU 는 그 **뒤**에 온다.
+    """
+    nrow = max(len(p[2]) for p in panels)
+    pitch = MH + MV
+    y_x = -1.45                            # x 띠
+    y_add = nrow * pitch + 0.30            # 동그라미 복판
+    y_relu = y_add + 0.62                  # 마지막 ReLU 상자 밑변
+    fig, ax = plt.subplots(figsize=(11.0, 2.0 + 0.60 * (nrow + 3)))
+
+    for pi, (ttl, sub, rows, skip_txt, shp_out) in enumerate(panels):
+        px = pi * PANEL
+        bx = px + SHPW                     # 본줄기 상자 왼쪽 끝
+        cx = bx + MW / 2
+        sx = bx + MW + SKIPX + SKIPW / 2   # 지름길 복판
+
+        # x 띠는 본줄기와 지름길을 함께 받친다
+        ax.add_patch(plt.Rectangle((bx, y_x), MW, MH, facecolor=INP[0],
+                                   edgecolor=INP[1], linewidth=1.3))
+        ax.text(cx, y_x + MH / 2, "x", ha="center", va="center",
+                fontsize=10.5, style="italic", color="#26323c")
+        ax.text(bx - DASH - 0.16, y_x + MH / 2, rows[0][2], ha="right",
+                va="center", fontsize=8.0, color="#6b7883")
+
+        # F(x) 를 점선으로 두른다. 모양 글씨는 점선 **바깥**에 둔다 --
+        # 안쪽에 두면 테두리가 글씨를 가로지른다.
+        dash_top = nrow * pitch - MV + DASH
+        ax.add_patch(plt.Rectangle((bx - DASH, -DASH), MW + 2 * DASH,
+                                   dash_top + DASH, fill=False,
+                                   edgecolor="#8a97a4", linewidth=1.0,
+                                   linestyle=(0, (4, 3)), zorder=1))
+        ax.text(bx + MW + DASH + 0.10, dash_top, "F(x)", ha="left", va="top",
+                fontsize=8.6, color="#54626e", style="italic")
+
+        for r, (txt, col, shp) in enumerate(rows):
+            y = r * pitch
+            fill, edge = col
+            ax.add_patch(plt.Rectangle((bx, y), MW, MH, facecolor=fill,
+                                       edgecolor=edge, linewidth=1.3, zorder=2))
+            ax.text(cx, y + MH / 2, txt, ha="center", va="center",
+                    fontsize=8.4, color="#26323c", zorder=3)
+            if shp:
+                ax.text(bx - DASH - 0.16, y + MH / 2, shp, ha="right",
+                        va="center", fontsize=8.0, color="#6b7883")
+            lo = y_x + MH if r == 0 else y - MV
+            ax.add_patch(FancyArrowPatch((cx, lo + 0.04), (cx, y - 0.04),
+                                         arrowstyle="->", color="#8a97a4",
+                                         lw=1.0, mutation_scale=10, zorder=3))
+
+        # 더하는 자리 -- 들어오는 줄이 둘인 유일한 곳이므로 동그라미로 둔다
+        ax.add_patch(FancyArrowPatch((cx, nrow * pitch - MV + 0.04),
+                                     (cx, y_add - 0.26), arrowstyle="->",
+                                     color="#8a97a4", lw=1.0,
+                                     mutation_scale=10, zorder=3))
+        ax.add_patch(plt.Circle((cx, y_add), 0.24, facecolor=SPEC[0],
+                                edgecolor=SPEC[1], linewidth=1.3, zorder=4))
+        ax.text(cx, y_add, "+", ha="center", va="center", fontsize=11,
+                color="#26323c", zorder=5)
+
+        # 지름길: x 에서 오른쪽으로 빠져 올라가 더하는 자리로 들어온다
+        ax.plot([cx, sx], [y_x + MH / 2, y_x + MH / 2], color="#c9a227",
+                lw=1.6, zorder=2, solid_capstyle="round")
+        if skip_txt:
+            sh2 = 2 * MH
+            sy = (nrow * pitch) / 2 - sh2 / 2
+            ax.plot([sx, sx], [y_x + MH / 2, sy], color="#c9a227", lw=1.6, zorder=2)
+            ax.add_patch(plt.Rectangle((sx - SKIPW / 2, sy), SKIPW, sh2,
+                                       facecolor=SPEC[0], edgecolor=SPEC[1],
+                                       linewidth=1.3, zorder=3))
+            ax.text(sx, sy + sh2 / 2, skip_txt, ha="center", va="center",
+                    fontsize=8.0, color="#26323c", zorder=4)
+            ax.plot([sx, sx], [sy + sh2, y_add], color="#c9a227", lw=1.6, zorder=2)
+        else:
+            ax.plot([sx, sx], [y_x + MH / 2, y_add], color="#c9a227",
+                    lw=1.6, zorder=2)
+            ax.text(sx + 0.16, (y_x + y_add) / 2, "identity", ha="left",
+                    va="center", fontsize=8.0, color="#8a6d1a", rotation=90)
+        ax.add_patch(FancyArrowPatch((sx, y_add), (cx + 0.26, y_add),
+                                     arrowstyle="->", color="#c9a227", lw=1.6,
+                                     mutation_scale=11, zorder=3))
+
+        # 더한 **뒤** 의 ReLU
+        ax.add_patch(FancyArrowPatch((cx, y_add + 0.26), (cx, y_relu - 0.04),
+                                     arrowstyle="->", color="#8a97a4", lw=1.0,
+                                     mutation_scale=10, zorder=3))
+        fill, edge = NORM
+        ax.add_patch(plt.Rectangle((bx, y_relu), MW, MH, facecolor=fill,
+                                   edgecolor=edge, linewidth=1.3, zorder=2))
+        ax.text(cx, y_relu + MH / 2, "ReLU", ha="center", va="center",
+                fontsize=8.4, color="#26323c", zorder=3)
+        ax.text(bx - DASH - 0.16, y_relu + MH / 2, shp_out, ha="right",
+                va="center", fontsize=8.0, color="#6b7883")
+
+        ax.text(bx + MW / 2, y_relu + MH + 0.95, ttl, ha="center", va="bottom",
+                fontsize=11.5, weight="bold", color="#8a6d1a")
+        ax.text(bx + MW / 2, y_relu + MH + 0.48, sub, ha="center", va="bottom",
+                fontsize=8.4, color="#8a6d1a")
+
+    if note:
+        ax.text(0, y_x - 0.75, note, ha="left", va="top", fontsize=8.2,
+                color="#6b7883")
+    ax.text(0, y_x - 1.35, caption, ha="left", va="top", fontsize=8.2,
+            color="#8a6d1a")
+    # 지름길 상자는 본줄기 오른쪽 끝에서 SKIPX + SKIPW 만큼 더 나간다.
+    # patch 는 기본으로 axes 에 잘리므로 xlim 이 그것을 다 담아야 한다.
+    ax.set_xlim(-0.4, (len(panels) - 1) * PANEL + SHPW + MW + SKIPX
+                + SKIPW + 0.6)
+    ax.set_ylim(y_x - 2.3, y_relu + MH + 2.0)
+    ax.axis("off")
+    fig.savefig(svg, transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  " + svg)
+
+
+RESIDUAL_PANELS = [
+    ("x is added untouched", "layer1.0 -- shapes already match",
+     [("3x3 conv, stride 1", CONV, "64x56x56"),
+      ("BatchNorm",          NORM, None),
+      ("ReLU",               NORM, None),
+      ("3x3 conv, stride 1", CONV, None),
+      ("BatchNorm",          NORM, "64x56x56")],
+     None, "64x56x56"),
+    ("x has to be reshaped first", "layer2.0 -- channels double, side halves",
+     [("3x3 conv, stride 2", CONV, "64x56x56"),
+      ("BatchNorm",          NORM, "128x28x28"),
+      ("ReLU",               NORM, None),
+      ("3x3 conv, stride 1", CONV, None),
+      ("BatchNorm",          NORM, "128x28x28")],
+     "1x1 conv, stride 2\n+ BatchNorm", "128x28x28"),
+]
+
+
+# =============================================================================
 # Inception 블록만 그리는 법이 다르다.
 #
 # draw_block 은 칸마다 화살표를 이어 붙이는 **한 줄 쌓기**다. 그것으로 Inception
@@ -421,15 +581,6 @@ INCEPTION_BRANCHES = [
 
 
 BLOCKS = [
- ("resnet18_block.svg", "BasicBlock", "inside layer1.0 of ResNet18, at input 224",
-  [("3x3 conv - BN - ReLU", CONV, "64x56x56", "64x56x56"),
-   ("3x3 conv - BN",        CONV, None,       "64x56x56"),
-   ("+   (add x)",          SPEC, None,       "64x56x56"),
-   ("ReLU",                 NORM, None,       "64x56x56")],
-  "the add needs matching shapes -- which is why the shortcut can stay an untouched x",
-  "the block learns F(x); x is added, never altered",
-  (0, 2, "identity x")),
-
  ("mobilenet_block.svg", "InvertedResidual", "inside features.7 of MobileNetV3-L, at input 224",
   [("1x1 conv  (expand)",      CONV, "40x14x14", "240x14x14"),
    ("3x3 depthwise  (space)",  SPEC, None,       "240x14x14"),
@@ -515,6 +666,12 @@ if __name__ == "__main__":
         draw(*args)
     for args in BLOCKS:
         draw_block(*args[:5], note=args[5], skip=args[6] if len(args) > 6 else None)
+    draw_residual_block(
+        "resnet18_block.svg", RESIDUAL_PANELS,
+        "F(x) is what the block learns; x reaches the add either untouched or "
+        "through one 1x1",
+        note="the add is the only place two lines meet, and ReLU comes after "
+             "it, not before -- so nothing clips x on its way through")
     draw_inception_block(
         "inception_block.svg", "Inception block",
         "inside Mixed_5b of Inception v3, at input 299",
