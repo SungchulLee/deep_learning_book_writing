@@ -58,7 +58,7 @@ $$192 \times 48 \times 1 \times 1 + 48 \times 64 \times 5 \times 5 = 9{,}216 + 7
 
 ## 2. 코드 — 여기만 다섯 줄이다
 
-4.6절의 코드에서 고칠 줄은 다섯이다. 다른 등뼈로 갈아 끼울 때는 보통 넷이면 되는데, **Inception만 하나가 더 붙는다.**
+[4.6절](03_vgg16_transfer.md)의 코드에서 고칠 줄은 다섯이다. 다른 등뼈로 갈아 끼울 때는 보통 넷이면 되는데, **Inception만 하나가 더 붙는다.**
 
 ```diff
 - from torchvision.models import vgg16, VGG16_Weights

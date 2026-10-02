@@ -56,7 +56,7 @@ $$H(x) = F(x) + x$$
 
 ## 2. 코드 — 세 줄이 네 줄로 바뀐다
 
-4.6절의 프로그램에서 바뀌는 것은 이것뿐이다.
+[4.6절](03_vgg16_transfer.md)의 프로그램에서 바뀌는 것은 이것뿐이다.
 
 ```diff
 - from torchvision.models import vgg16, VGG16_Weights
