@@ -294,15 +294,18 @@ def draw_block(svg, title_text, subtitle, rows, caption, note=None, skip=None):
                                          arrowstyle="->", color="#8a97a4", lw=1.0,
                                          mutation_scale=10, zorder=3))
     top = n * (RH + RG) - RG
-    if skip:
-        a, b, lab = skip
+    # 지름길은 하나일 수도 여럿일 수도 있다. ViT 블록은 더하는 자리가 둘이라
+    # 둘 다 그려야 한다 -- 들어오는 줄이 하나뿐인 "+" 는 아무 말도 하지 않는다.
+    skips = [skip] if (skip and isinstance(skip[0], int)) else list(skip or [])
+    for i, (a, b, lab) in enumerate(skips):
+        off = 0.55 + i * 1.15
         ya = a * (RH + RG) - RG / 2
         yb = b * (RH + RG) + RH / 2
-        ax.add_patch(FancyArrowPatch((x0 - 0.55, ya), (x0 - 0.55, yb),
+        ax.add_patch(FancyArrowPatch((x0 - off, ya), (x0 - off, yb),
                                      arrowstyle="->", color="#c9a227", lw=2.0,
                                      mutation_scale=11,
                                      connectionstyle="arc3,rad=-0.45", zorder=3))
-        ax.text(x0 - 1.9, (ya + yb) / 2, lab, ha="center", va="center",
+        ax.text(x0 - off - 1.25, (ya + yb) / 2, lab, ha="center", va="center",
                 fontsize=8.4, color="#8a6d1a")
     ax.text(x0 + RW / 2, top + 0.95, title_text, ha="center", va="bottom",
             fontsize=12.5, weight="bold", color="#8a6d1a")
@@ -315,8 +318,97 @@ def draw_block(svg, title_text, subtitle, rows, caption, note=None, skip=None):
                 color="#6b7883")
     ax.text(-3.4, -1.65, caption, ha="left", va="bottom", fontsize=8.2,
             color="#8a6d1a")
-    ax.set_xlim(-3.6, RW + 4.6)
+    ax.set_xlim(-3.6 - 1.15 * max(0, len(skips) - 1), RW + 4.6)
     ax.set_ylim(-2.0, top + 1.9)
+    ax.axis("off")
+    fig.savefig(svg, transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  " + svg)
+
+
+# =============================================================================
+# DenseBlock 도 따로 그린다.
+#
+# draw_block 으로 그리면 층 넷이 화살표로 이어진 **사슬**이 된다. 그러면 둘째
+# 층이 첫째 층의 출력만 받는 것처럼 보이는데, DenseBlock 에서 둘째 층은 그
+# 아래 것을 **모두 이어 붙여** 받는다(denselayer2 의 conv1 은 입력 채널이
+# 96 이다 -- 들어온 64 에 첫 층이 만든 32 를 더한 값이다). 이어 붙이기가
+# 곧 이 블록의 이름인데 사슬 그림에는 그것이 한 군데도 없다.
+#
+# 그래서 채널 띠가 자라는 모습으로 그린다. 먼저 온 채널은 층을 **비켜 지나**
+# 그대로 남고, 층은 32 칸을 새로 만들어 오른쪽에 덧붙일 뿐이다.
+# =============================================================================
+DCH = 0.034                        # 채널 하나가 차지하는 가로 길이
+DBARH, DLH, DGAP = 0.46, 0.58, 0.46
+
+
+def draw_dense_block(svg, title_text, subtitle, x_ch, growth, nlayer, inner,
+                     caption, note=None):
+    pitch = DBARH + DLH + 2 * DGAP
+    total = x_ch + growth * nlayer
+    DW = total * DCH
+    fig, ax = plt.subplots(figsize=(11.0, 1.9 + 0.74 * nlayer))
+
+    def bar(y, chans, mark_new):
+        x = 0.0
+        for i, c in enumerate(chans):
+            w = c * DCH
+            if i == 0:
+                col = INP
+            elif mark_new and i == len(chans) - 1:
+                col = SPEC
+            else:
+                col = CONV
+            ax.add_patch(plt.Rectangle((x, y), w, DBARH, facecolor=col[0],
+                                       edgecolor=col[1], linewidth=1.1, zorder=2))
+            ax.text(x + w / 2, y + DBARH / 2, str(c), ha="center", va="center",
+                    fontsize=7.4, color="#26323c", zorder=3)
+            x += w
+        ax.text(x + 0.20, y + DBARH / 2, f"{sum(chans)}ch", ha="left",
+                va="center", fontsize=8.0, color="#6b7883")
+
+    for k in range(nlayer + 1):
+        bar(k * pitch, [x_ch] + [growth] * k, k > 0)
+
+    for k in range(nlayer):
+        yb = k * pitch                              # 들어가는 띠
+        yl = yb + DBARH + DGAP                      # 층
+        yn = (k + 1) * pitch                        # 나오는 띠
+        win = (x_ch + growth * k) * DCH             # 층이 받는 띠의 너비
+        ax.add_patch(plt.Rectangle((0, yl), DW, DLH, facecolor=CONV[0],
+                                   edgecolor=CONV[1], linewidth=1.3, zorder=2))
+        ax.text(DW / 2, yl + DLH / 2, f"layer {k + 1}    {inner}", ha="center",
+                va="center", fontsize=8.4, color="#26323c", zorder=3)
+        # 받는 것은 그 아래 띠 **전체**다
+        ax.add_patch(FancyArrowPatch((win / 2, yb + DBARH + 0.04),
+                                     (win / 2, yl - 0.04), arrowstyle="->",
+                                     color="#8a97a4", lw=1.0, mutation_scale=10,
+                                     zorder=3))
+        # 내놓는 32 칸은 오른쪽 끝에 새로 붙는다
+        xn = win + growth * DCH / 2
+        ax.add_patch(FancyArrowPatch((xn, yl + DLH + 0.04), (xn, yn - 0.04),
+                                     arrowstyle="->", color="#8a97a4", lw=1.0,
+                                     mutation_scale=10, zorder=3))
+        # 먼저 온 채널은 층을 비켜 그대로 올라간다 -- 이것이 이어 붙이기다
+        ax.add_patch(FancyArrowPatch((-0.42, yb + DBARH / 2),
+                                     (-0.42, yn + DBARH / 2), arrowstyle="->",
+                                     color="#c9a227", lw=1.7, mutation_scale=11,
+                                     connectionstyle="arc3,rad=-0.30", zorder=3))
+
+    top = nlayer * pitch + DBARH
+    ax.text(DW / 2, top + 0.95, title_text, ha="center", va="bottom",
+            fontsize=12.5, weight="bold", color="#8a6d1a")
+    ax.text(DW / 2, top + 0.45, subtitle, ha="center", va="bottom",
+            fontsize=8.8, color="#8a6d1a")
+    ax.text(-1.75, (nlayer * pitch) / 2, "carried through\nuntouched",
+            ha="center", va="center", fontsize=8.0, color="#8a6d1a")
+    if note:
+        ax.text(-1.95, -0.95, note, ha="left", va="top", fontsize=8.2,
+                color="#6b7883")
+    ax.text(-1.95, -1.55, caption, ha="left", va="top", fontsize=8.2,
+            color="#8a6d1a")
+    ax.set_xlim(-3.1, DW + 2.2)
+    ax.set_ylim(-2.5, top + 1.9)
     ax.axis("off")
     fig.savefig(svg, transparent=True, bbox_inches="tight")
     plt.close(fig)
@@ -581,14 +673,15 @@ INCEPTION_BRANCHES = [
 
 
 BLOCKS = [
- ("mobilenet_block.svg", "InvertedResidual", "inside features.7 of MobileNetV3-L, at input 224",
-  [("1x1 conv  (expand)",      CONV, "40x14x14", "240x14x14"),
-   ("3x3 depthwise  (space)",  SPEC, None,       "240x14x14"),
-   ("Squeeze-Excitation",      NORM, None,       "240x14x14"),
-   ("1x1 conv  (project)",     CONV, None,       "80x14x14")],
-  "40 -> 240 -> 80 : the middle swells, which is what inverted means",
+ ("mobilenet_block.svg", "InvertedResidual", "inside features.12 of MobileNetV3-L, at input 224",
+  [("1x1 conv  (expand)",         CONV, "112x14x14", "672x14x14"),
+   ("3x3 depthwise  (space)",     SPEC, None,        "672x14x14"),
+   ("Squeeze-Excitation  (gate)", NORM, None,        "672x14x14"),
+   ("1x1 conv  (project)",        CONV, None,        "112x14x14"),
+   ("+   (add x)",                SPEC, None,        "112x14x14")],
+  "112 -> 672 -> 112 : the middle swells, which is what inverted means",
   "space is seen only by the 3x3 depthwise; channels are mixed only by the two 1x1s",
-  None),
+  (0, 4, "identity x")),
 
  ("convnext_block.svg", "ConvNeXt block", "inside features.5 of ConvNeXt-T, at input 224",
   [("7x7 depthwise conv", SPEC, "384x14x14", "384x14x14"),
@@ -601,33 +694,25 @@ BLOCKS = [
   "one activation per block, not one per convolution",
   (0, 5, "identity x")),
 
- ("densenet_block.svg", "DenseBlock", "inside denseblock1 of DenseNet121, first four layers, at input 224",
-  [("layer 1   1x1 -> 128, 3x3 -> 32", CONV, "64x56x56",  "96x56x56"),
-   ("layer 2   1x1 -> 128, 3x3 -> 32", CONV, None,        "128x56x56"),
-   ("layer 3   1x1 -> 128, 3x3 -> 32", CONV, None,        "160x56x56"),
-   ("layer 4   1x1 -> 128, 3x3 -> 32", SPEC, None,        "192x56x56")],
-  "each layer makes 32 channels and concatenates them -- nothing is added, so channels pile up",
-  "after all six layers: 64 + 6x32 = 256, which is the denseblock1 row in the layer list",
-  None),
-
- ("efficientnet_block.svg", "MBConv", "inside features.5 of EfficientNet-B0, at input 224",
-  [("1x1 conv  (expand)",      CONV, "80x14x14", "480x14x14"),
-   ("5x5 depthwise  (space)",  SPEC, None,       "480x14x14"),
-   ("Squeeze-Excitation",      NORM, None,       "480x14x14"),
-   ("1x1 conv  (project)",     CONV, None,       "112x14x14")],
-  "80 -> 480 -> 112 : the same inverted bottleneck as MobileNet, here with a 5x5 kernel",
+ ("efficientnet_block.svg", "MBConv", "inside features.5[1] of EfficientNet-B0, at input 224",
+  [("1x1 conv  (expand)",         CONV, "112x14x14", "672x14x14"),
+   ("5x5 depthwise  (space)",     SPEC, None,        "672x14x14"),
+   ("Squeeze-Excitation  (gate)", NORM, None,        "672x14x14"),
+   ("1x1 conv  (project)",        CONV, None,        "112x14x14"),
+   ("+   (add x)",                SPEC, None,        "112x14x14")],
+  "112 -> 672 -> 112 : the same inverted bottleneck as MobileNet, here with a 5x5 kernel",
   "compound scaling decides how many of these and how wide -- the block itself is borrowed",
-  None),
+  (0, 4, "identity x")),
  ("vit_block.svg", "Transformer block", "one block of ViT-B/16, at input 224",
   [("LayerNorm",                  NORM, "197x768", "197x768"),
    ("Multi-Head Attention  x12",  SPEC, None,      "197x768"),
    ("+   (add x)",                SPEC, None,      "197x768"),
    ("LayerNorm",                  NORM, None,      "197x768"),
    ("MLP  768 -> 3072 -> 768",    CONV, None,      "197x768"),
-   ("+",                          SPEC, None,      "197x768")],
+   ("+   (add h)",                SPEC, None,      "197x768")],
   "still 197x768 after twelve of these -- nothing here shrinks",
   "where a CNN would pool the space down, this has no such step",
-  None),
+  [(0, 2, "x"), (3, 5, "h")]),
 ]
 
 RUNS = [
@@ -639,7 +724,7 @@ RUNS = [
   [("input 299", "the usual", "#2f6b3a"), ("input 32", "dies at Mixed_6a", "#c44f4f"),
    ("input 598", "runs", "#5b6b7d")],
   "at 32 the stem already bottoms out at 1x1; three blocks survive, the fourth raises"),
- ("mobilenet", "mobilenet_layers.svg", "features.7", inset_mobilenet,
+ ("mobilenet", "mobilenet_layers.svg", "features.12", inset_mobilenet,
   [("input 224", "the usual", "#2f6b3a"), ("input 32", "runs, silently", "#a06a10"),
    ("input 448", "runs too", "#5b6b7d")],
   "depthwise holds 3% of the weights; the 1x1s hold 97%"),
@@ -666,6 +751,13 @@ if __name__ == "__main__":
         draw(*args)
     for args in BLOCKS:
         draw_block(*args[:5], note=args[5], skip=args[6] if len(args) > 6 else None)
+    draw_dense_block(
+        "densenet_block.svg", "DenseBlock",
+        "inside denseblock1 of DenseNet121, first four of six layers, at input 224",
+        64, 32, 4, "1x1 -> 128, 3x3 -> 32",
+        "after all six layers: 64 + 6x32 = 256, the denseblock1 row in the layer list",
+        note="every layer reads all the channels below it and appends 32 more; "
+             "nothing is summed, so the bar only grows")
     draw_residual_block(
         "resnet18_block.svg", RESIDUAL_PANELS,
         "F(x) is what the block learns; x reaches the add either untouched or "
