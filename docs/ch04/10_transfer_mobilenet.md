@@ -82,7 +82,13 @@ $$112 \;\xrightarrow{\;1 \times 1\;}\; 672 \;\xrightarrow{\;3 \times 3\;}\; 672 
 
     $$\operatorname{hardsigmoid}(x) = \begin{cases} 0 & (x \le -3) \\[2pt] 1 & (x \ge 3) \\[2pt] \dfrac{x}{6} + \dfrac{1}{2} & (\text{그 밖}) \end{cases}$$
 
-    더하기와 나누기 한 번이면 끝나므로 $e^{-x}$를 부르는 것보다 훨씬 빠르다. 모양은 시그모이드와 어긋나야 최대 0.069밖에 차이 나지 않고, 여기서 하는 일이 **0과 1 사이의 문을 만드는 것**뿐이라 그 정도 어긋남은 값을 치를 까닭이 없다. 휴대폰에서 도는 것을 목표로 삼은 MobileNetV3다운 맞바꿈이며, 같은 자리에 [EfficientNet](11_transfer_efficientnet.md)은 보통 시그모이드를 쓴다. 활성 함수도 ReLU와 SiLU로 갈린다.
+    더하기와 나누기 한 번이면 끝나므로 $e^{-x}$를 부르는 것보다 훨씬 빠르다. 모양은 시그모이드와 어긋나야 최대 0.069밖에 차이 나지 않고, 여기서 하는 일이 **0과 1 사이의 문을 만드는 것**뿐이라 그 정도 어긋남은 값을 치를 까닭이 없다. 휴대폰에서 도는 것을 목표로 삼은 MobileNetV3다운 맞바꿈이며, 같은 자리에 [EfficientNet](11_transfer_efficientnet.md)은 보통 시그모이드를 쓴다. 사이의 활성 함수도 ReLU 대신 **SiLU**(Sigmoid Linear Unit, 스위시라고도 한다)를 쓰는데, $\operatorname{SiLU}(x) = x\,\sigma(x)$로 ReLU를 매끄럽게 만든 것이다.
+
+그리고 MobileNetV3는 이 바꿔치기를 **한 번 더** 한다. 아래 2절에서 `classifier`를 펼쳐 찍으면 `Hardswish()`라는 층이 나오는데, 그것이 SiLU에 똑같은 수술을 한 것이다.
+
+$$\operatorname{hardswish}(x) = x \cdot \operatorname{hardsigmoid}(x)$$
+
+SiLU와 어긋나야 최대 0.142다. 곧 이 그물은 문을 만들 때도 활성화를 걸 때도 **지수 함수를 한 번도 부르지 않는다.** 이름 앞에 붙은 "하드"는 언제나 같은 뜻이다 — 매끄러운 곡선을 **직선 몇 토막으로 바꿔 치운 것**.
 
     **2번과 4번은 $1 \times 1$ 합성곱 두 개이고 서로 다른 층이다.** torchvision에서도 `fc1`과 `fc2`라는 이름의 `Conv2d(672, 168, 1)`과 `Conv2d(168, 672, 1)` 둘로 따로 적혀 있다.
 
