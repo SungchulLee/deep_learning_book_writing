@@ -327,6 +327,92 @@ def draw_block(svg, title_text, subtitle, rows, caption, note=None, skip=None):
 
 
 # =============================================================================
+# 어텐션 한 칸도 따로 그린다.
+#
+# 블록 그림에서 "Multi-Head Attention, 12 heads" 는 상자 하나였다. 그 안에
+# Q·K·V 세 사영, 머리 쪼개기, 197x197 짜리 어텐션 행렬, 소프트맥스, 다시
+# 이어 붙이기, 출력 사영이 전부 들어 있다. 블록에서 가장 많은 일이 일어나는
+# 칸인데 그림에서는 가장 말이 없었다.
+#
+# 층 목록에서 블록을 떼어 따로 그린 것과 같은 까닭으로, 그 칸을 떼어 따로
+# 그린다. 특히 **197x197** 이 눈에 보여야 한다 -- 토큰 수의 제곱으로 자라는
+# 유일한 자리이고, ViT 가 큰 그림에서 비싼 까닭이 거기 있다.
+# =============================================================================
+AW, AH, AVG, ACG = 3.25, 0.64, 0.52, 0.45     # 어텐션 그림의 상자와 사이
+
+
+def draw_attention(svg, title_text, subtitle, caption, note=None):
+    pitch_x, pitch_y = AW + ACG, AH + AVG
+    W = 3 * AW + 2 * ACG
+    cx = [i * pitch_x + AW / 2 for i in range(3)]
+    fig, ax = plt.subplots(figsize=(11.0, 6.6))
+
+    def box(x, y, w, txt, col, shp=None, fs=8.4):
+        fill, edge = col
+        ax.add_patch(plt.Rectangle((x, y), w, AH, facecolor=fill, edgecolor=edge,
+                                   linewidth=1.3, zorder=2))
+        ax.text(x + w / 2, y + AH / 2, txt, ha="center", va="center",
+                fontsize=fs, color="#26323c", zorder=3)
+        if shp:
+            ax.text(W + 0.30, y + AH / 2, shp, ha="left", va="center",
+                    fontsize=8.0, color="#6b7883")
+
+    def up(x, y0, y1, col="#8a97a4", lw=1.0):
+        ax.add_patch(FancyArrowPatch((x, y0 + 0.04), (x, y1 - 0.04),
+                                     arrowstyle="->", color=col, lw=lw,
+                                     mutation_scale=10, zorder=3))
+
+    y = [i * pitch_y for i in range(7)]
+    box(0, y[0], W, "input  (after LayerNorm)", INP, "197x768")
+    for i, t in enumerate(["W_Q   768 -> 768", "W_K   768 -> 768", "W_V   768 -> 768"]):
+        box(i * pitch_x, y[1], AW, t, CONV)
+        up(cx[i], y[0] + AH, y[1])
+    ax.text(W + 0.30, y[1] + AH / 2, "197x768 -> 12 x (197x64)", ha="left",
+            va="center", fontsize=8.0, color="#6b7883")
+
+    span = 2 * AW + ACG                      # Q 와 K 두 칸을 덮는다
+    box(0, y[2], span, "Q K^T  /  8", SPEC, None)
+    ax.text(W + 0.30, y[2] + AH / 2, "197x197  <- tokens squared", ha="left",
+            va="center", fontsize=8.0, color="#c4792f")
+    up(cx[0], y[1] + AH, y[2]); up(cx[1], y[1] + AH, y[2])
+    box(0, y[3], span, "softmax  (each row)", NORM, None)
+    ax.text(W + 0.30, y[3] + AH / 2, "197x197", ha="left", va="center",
+            fontsize=8.0, color="#6b7883")
+    up(span / 2, y[2] + AH, y[3])
+
+    box(0, y[4], W, "x V   (weighted average of V)", SPEC, "12 x (197x64)")
+    up(span / 2, y[3] + AH, y[4])
+    # V 는 어텐션 행렬을 거치지 않고 옆으로 올라와 여기서 합류한다
+    ax.plot([cx[2], cx[2]], [y[1] + AH, y[4] - 0.04], color="#c9a227", lw=1.7,
+            zorder=2, solid_capstyle="round")
+    up(cx[2], y[4] - 0.30, y[4], col="#c9a227", lw=1.7)
+    ax.text(cx[2] + 0.18, (y[1] + y[4]) / 2, "V skips the matrix", ha="left",
+            va="center", fontsize=7.8, color="#8a6d1a", rotation=90)
+
+    box(0, y[5], W, "concat   12 heads", SPEC, "197x768")
+    up(W / 2, y[4] + AH, y[5])
+    box(0, y[6], W, "out_proj   768 -> 768", CONV, "197x768")
+    up(W / 2, y[5] + AH, y[6])
+
+    top = y[6] + AH
+    ax.text(W / 2, top + 0.95, title_text, ha="center", va="bottom",
+            fontsize=12.5, weight="bold", color="#8a6d1a")
+    ax.text(W / 2, top + 0.45, subtitle, ha="center", va="bottom",
+            fontsize=8.8, color="#8a6d1a")
+    ax.text(W + 0.30, top + 0.45, "shape", ha="left", va="bottom",
+            fontsize=8.2, color="#8a97a4")
+    if note:
+        ax.text(0, -0.95, note, ha="left", va="top", fontsize=8.2, color="#6b7883")
+    ax.text(0, -1.55, caption, ha="left", va="top", fontsize=8.2, color="#8a6d1a")
+    ax.set_xlim(-0.4, W + 5.6)
+    ax.set_ylim(-2.4, top + 1.9)
+    ax.axis("off")
+    fig.savefig(svg, transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  " + svg)
+
+
+# =============================================================================
 # DenseBlock 도 따로 그린다.
 #
 # draw_block 으로 그리면 층 넷이 화살표로 이어진 **사슬**이 된다. 그러면 둘째
@@ -751,6 +837,13 @@ if __name__ == "__main__":
         draw(*args)
     for args in BLOCKS:
         draw_block(*args[:5], note=args[5], skip=args[6] if len(args) > 6 else None)
+    draw_attention(
+        "vit_attention.svg", "Multi-Head Attention",
+        "inside one Transformer block of ViT-B/16, at input 224",
+        "the only shape here that is not 197x768 is the 197x197 matrix, "
+        "and it is the one that grows as tokens squared",
+        note="every token looks at every token; 12 heads do it side by side "
+             "on 64 dimensions each, then the results are concatenated back to 768")
     draw_dense_block(
         "densenet_block.svg", "DenseBlock",
         "inside denseblock1 of DenseNet121, all six layers, at input 224",

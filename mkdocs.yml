@@ -107,7 +107,7 @@ nav:
         - MobileNet — 합성곱을 쪼갠다: ch04/10_transfer_mobilenet.md
         - EfficientNet — 세 축을 함께 키운다: ch04/11_transfer_efficientnet.md
         - ConvNeXt — 트랜스포머의 설계를 되돌려 넣는다: ch04/14_transfer_convnext.md
-        - ViT — 합성곱을 버린다: ch04/12_transfer_vit.md
+        - ViT — 비전 트랜스포머: ch04/12_transfer_vit.md
     - 5 MNIST로 보는 생성:
       - 장 개요: ch05/index.md
       - 5.1 차원축소:
