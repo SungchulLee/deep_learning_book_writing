@@ -105,7 +105,7 @@ nav:
         - ResNet — 지름길로 입력을 더하기: ch04/08_transfer_resnet.md
         - DenseNet — 더하지 않고 이어 붙이기: ch04/13_transfer_densenet.md
         - MobileNet — 합성곱 쪼개기: ch04/10_transfer_mobilenet.md
-        - EfficientNet — MobileNet + 스케일링: ch04/11_transfer_efficientnet.md
+        - EfficientNet — MobileNet + 세 축 함께 스케일링: ch04/11_transfer_efficientnet.md
         - ConvNeXt — CNN + 트랜스포머의 설계 철학: ch04/14_transfer_convnext.md
         - ViT — 비전 트랜스포머: ch04/12_transfer_vit.md
     - 5 MNIST로 보는 생성:

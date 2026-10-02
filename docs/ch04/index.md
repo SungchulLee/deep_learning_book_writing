@@ -50,7 +50,7 @@
     | [ResNet](08_transfer_resnet.md) | 지름길로 입력을 더하기 | 86.84% | 0.64 | 11,176,512 |
     | [DenseNet](13_transfer_densenet.md) | 더하지 않고 이어 붙이기 | 89.58% | 0.17 | 6,953,856 |
     | [MobileNet](10_transfer_mobilenet.md) | 합성곱 쪼개기 | 89.60% | 0.17 | 4,202,032 |
-    | [EfficientNet](11_transfer_efficientnet.md) | MobileNet + 스케일링 | 91.31% | 0.19 | 4,007,548 |
+    | [EfficientNet](11_transfer_efficientnet.md) | MobileNet + 세 축 함께 스케일링 | 91.31% | 0.19 | 4,007,548 |
     | [ConvNeXt](14_transfer_convnext.md) | CNN + 트랜스포머의 설계 철학 | 94.12% | 0.33 | 27,820,128 |
     | [ViT](12_transfer_vit.md) | 합성곱 버리기 | 95.34% | 0.29 | 85,798,656 |
 
