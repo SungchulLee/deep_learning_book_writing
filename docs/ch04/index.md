@@ -45,14 +45,14 @@
 
     | 쪽 | 무엇을 달리하는가 | 정확도 | 퍼짐 | 얼린 매개변수 |
     |---|---|---|---|---|
-    | [VGG16](03_vgg16_transfer.md) | 3×3만 쌓는다 | 84.75% | 0.80 | 134,260,544 |
-    | [Inception](09_transfer_inception.md) | 여러 개의 크기를 같이 쓴다 | 86.51% | 0.79 | 25,112,264 |
-    | [ResNet](08_transfer_resnet.md) | 지름길로 입력을 더한다 | 86.84% | 0.64 | 11,176,512 |
-    | [DenseNet](13_transfer_densenet.md) | 더하지 않고 이어 붙인다 | 89.58% | 0.17 | 6,953,856 |
-    | [MobileNet](10_transfer_mobilenet.md) | 합성곱을 쪼갠다 | 89.60% | 0.17 | 4,202,032 |
+    | [VGG16](03_vgg16_transfer.md) | 3×3만 쌓기 | 84.75% | 0.80 | 134,260,544 |
+    | [Inception](09_transfer_inception.md) | 여러 개의 크기를 같이 쓰기 | 86.51% | 0.79 | 25,112,264 |
+    | [ResNet](08_transfer_resnet.md) | 지름길로 입력을 더하기 | 86.84% | 0.64 | 11,176,512 |
+    | [DenseNet](13_transfer_densenet.md) | 더하지 않고 이어 붙이기 | 89.58% | 0.17 | 6,953,856 |
+    | [MobileNet](10_transfer_mobilenet.md) | 합성곱 쪼개기 | 89.60% | 0.17 | 4,202,032 |
     | [EfficientNet](11_transfer_efficientnet.md) | MobileNet + 스케일링 | 91.31% | 0.19 | 4,007,548 |
     | [ConvNeXt](14_transfer_convnext.md) | CNN + 트랜스포머의 설계 철학 | 94.12% | 0.33 | 27,820,128 |
-    | [ViT](12_transfer_vit.md) | 합성곱을 버린다 | 95.34% | 0.29 | 85,798,656 |
+    | [ViT](12_transfer_vit.md) | 합성곱 버리기 | 95.34% | 0.29 | 85,798,656 |
 
     여덟 줄을 한 규약으로 쟀다 — $224$로 키우고, ImageNet 상수로 정규화하고, 등뼈를 얼려 특징을 한 번만 뽑고, 선형 머리 하나를 Adam $10^{-3}$으로 5 에포크 돌린다. 씨앗은 다섯이고 적은 값은 그 평균이다.
 

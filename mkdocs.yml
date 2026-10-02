@@ -100,11 +100,11 @@ nav:
       - 4.5 데이터 증강:
         - 자료를 불려 천장을 올린다: ch04/04_augmentation.md
       - 4.6 전이:
-        - VGG16 — 3x3만 쌓는다: ch04/03_vgg16_transfer.md
-        - Inception — 여러 개의 크기를 같이 쓴다: ch04/09_transfer_inception.md
-        - ResNet — 지름길로 입력을 더한다: ch04/08_transfer_resnet.md
-        - DenseNet — 더하지 않고 이어 붙인다: ch04/13_transfer_densenet.md
-        - MobileNet — 합성곱을 쪼갠다: ch04/10_transfer_mobilenet.md
+        - VGG16 — 3x3만 쌓기: ch04/03_vgg16_transfer.md
+        - Inception — 여러 개의 크기를 같이 쓰기: ch04/09_transfer_inception.md
+        - ResNet — 지름길로 입력을 더하기: ch04/08_transfer_resnet.md
+        - DenseNet — 더하지 않고 이어 붙이기: ch04/13_transfer_densenet.md
+        - MobileNet — 합성곱 쪼개기: ch04/10_transfer_mobilenet.md
         - EfficientNet — MobileNet + 스케일링: ch04/11_transfer_efficientnet.md
         - ConvNeXt — CNN + 트랜스포머의 설계 철학: ch04/14_transfer_convnext.md
         - ViT — 비전 트랜스포머: ch04/12_transfer_vit.md
