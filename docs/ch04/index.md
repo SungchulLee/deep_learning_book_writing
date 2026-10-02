@@ -46,7 +46,7 @@
     | 쪽 | 무엇을 달리하는가 | 정확도 | 퍼짐 | 얼린 매개변수 |
     |---|---|---|---|---|
     | [VGG16](03_vgg16_transfer.md) | 3×3만 쌓는다 | 84.75% | 0.80 | 134,260,544 |
-    | [Inception](09_transfer_inception.md) | 크기를 고르지 않는다 | 86.51% | 0.79 | 25,112,264 |
+    | [Inception](09_transfer_inception.md) | 여러 개의 크기를 같이 쓴다 | 86.51% | 0.79 | 25,112,264 |
     | [ResNet](08_transfer_resnet.md) | 지름길로 입력을 더한다 | 86.84% | 0.64 | 11,176,512 |
     | [DenseNet](13_transfer_densenet.md) | 더하지 않고 이어 붙인다 | 89.58% | 0.17 | 6,953,856 |
     | [MobileNet](10_transfer_mobilenet.md) | 합성곱을 쪼갠다 | 89.60% | 0.17 | 4,202,032 |
