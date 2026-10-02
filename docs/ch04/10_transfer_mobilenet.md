@@ -78,21 +78,21 @@ $$112 \;\xrightarrow{\;1 \times 1\;}\; 672 \;\xrightarrow{\;3 \times 3\;}\; 672 
 
     $$672 \times 14 \times 14 \;\xrightarrow{\text{avgpool}}\; 672 \;\xrightarrow{1 \times 1}\; 168 \;\xrightarrow{\text{ReLU}}\; 168 \;\xrightarrow{1 \times 1}\; 672 \;\xrightarrow{\text{hardsigmoid}}\; 672 \;\xrightarrow{\times}\; 672 \times 14 \times 14$$
 
+    **2번과 4번은 $1 \times 1$ 합성곱 두 개이고 서로 다른 층이다.** torchvision에서도 `fc1`과 `fc2`라는 이름의 `Conv2d(672, 168, 1)`과 `Conv2d(168, 672, 1)` 둘로 따로 적혀 있다.
+
+    그런데 2번에 닿을 때 자리는 이미 $1 \times 1$로 뭉개진 뒤다. 한 칸짜리 자리에 거는 $1 \times 1$ 합성곱은 **완전 연결층과 똑같은 연산**이다 — 수 672개를 받아 168개를 내놓는 행렬 곱 하나다. 논문들이 이 둘을 FC로 그리는 까닭이 그것이고, torchvision이 그래도 `Conv2d`로 적어 둔 것은 앞뒤에서 모양을 바꿔 끼울 일이 없어서다. 이름이 `fc1`, `fc2`인데 클래스가 `Conv2d`인 어긋남도 여기서 나온다.
+
     5번의 **하드시그모이드**(hard-sigmoid)는 시그모이드 $\sigma(x) = 1/(1 + e^{-x})$를 **조각별 선형 함수로 근사**한 것이다. 지수를 셈하지 않으려고 만든 것이며, PyTorch의 정의는 이렇다.
 
     $$\operatorname{hardsigmoid}(x) = \begin{cases} 0 & (x \le -3) \\[2pt] 1 & (x \ge 3) \\[2pt] \dfrac{x}{6} + \dfrac{1}{2} & (\text{그 밖}) \end{cases}$$
 
-    더하기와 나누기 한 번이면 끝나므로 $e^{-x}$를 부르는 것보다 훨씬 빠르다. 모양은 시그모이드와 어긋나야 최대 0.069밖에 차이 나지 않고, 여기서 하는 일이 **0과 1 사이의 문을 만드는 것**뿐이라 그 정도 어긋남은 값을 치를 까닭이 없다. 휴대폰에서 도는 것을 목표로 삼은 MobileNetV3다운 맞바꿈이며, 같은 자리에 [EfficientNet](11_transfer_efficientnet.md)은 보통 시그모이드를 쓴다. 사이의 활성 함수도 ReLU 대신 **SiLU**(Sigmoid Linear Unit, 스위시라고도 한다)를 쓰는데, $\operatorname{SiLU}(x) = x\,\sigma(x)$로 ReLU를 매끄럽게 만든 것이다.
+    더하기와 나누기 한 번이면 끝나므로 $e^{-x}$를 부르는 것보다 훨씬 빠르다. 모양은 시그모이드와 어긋나야 최대 0.069밖에 차이 나지 않고, 여기서 하는 일이 **0과 1 사이의 문을 만드는 것**뿐이라 그 정도 어긋남은 값을 치를 까닭이 없다. 휴대폰에서 도는 것을 목표로 삼은 MobileNetV3다운 맞바꿈이며, 같은 자리에 뒤의 [EfficientNet](11_transfer_efficientnet.md)은 보통 시그모이드를 쓴다. 사이의 활성 함수도 ReLU 대신 **SiLU**(Sigmoid Linear Unit, 스위시라고도 한다)를 쓰는데, $\operatorname{SiLU}(x) = x\,\sigma(x)$로 ReLU를 매끄럽게 만든 것이다.
 
-그리고 MobileNetV3는 이 바꿔치기를 **한 번 더** 한다. 아래 2절에서 `classifier`를 펼쳐 찍으면 `Hardswish()`라는 층이 나오는데, 그것이 SiLU에 똑같은 수술을 한 것이다.
+    그리고 MobileNetV3는 이 바꿔치기를 **한 번 더** 한다. 아래 2절에서 `classifier`를 펼쳐 찍으면 `Hardswish()`라는 층이 나오는데, 그것이 SiLU에 똑같은 수술을 한 것이다.
 
-$$\operatorname{hardswish}(x) = x \cdot \operatorname{hardsigmoid}(x)$$
+    $$\operatorname{hardswish}(x) = x \cdot \operatorname{hardsigmoid}(x)$$
 
-SiLU와 어긋나야 최대 0.142다. 곧 이 그물은 문을 만들 때도 활성화를 걸 때도 **지수 함수를 한 번도 부르지 않는다.** 이름 앞에 붙은 "하드"는 언제나 같은 뜻이다 — 매끄러운 곡선을 **직선 몇 토막으로 바꿔 치운 것**.
-
-    **2번과 4번은 $1 \times 1$ 합성곱 두 개이고 서로 다른 층이다.** torchvision에서도 `fc1`과 `fc2`라는 이름의 `Conv2d(672, 168, 1)`과 `Conv2d(168, 672, 1)` 둘로 따로 적혀 있다.
-
-    그런데 2번에 닿을 때 자리는 이미 $1 \times 1$로 뭉개진 뒤다. 한 칸짜리 자리에 거는 $1 \times 1$ 합성곱은 **완전 연결층과 똑같은 연산**이다 — 수 672개를 받아 168개를 내놓는 행렬 곱 하나다. 논문들이 이 둘을 FC로 그리는 까닭이 그것이고, torchvision이 그래도 `Conv2d`로 적어 둔 것은 앞뒤에서 모양을 바꿔 끼울 일이 없어서다. 이름이 `fc1`, `fc2`인데 클래스가 `Conv2d`인 어긋남도 여기서 나온다.
+    SiLU와 어긋나야 최대 0.142다. 곧 이 그물은 문을 만들 때도 활성화를 걸 때도 **지수 함수를 한 번도 부르지 않는다.** 이름 앞에 붙은 "하드"는 언제나 같은 뜻이다 — 매끄러운 곡선을 **직선 몇 토막으로 바꿔 치운 것**.
 
     곧 **채널마다 달린 문**이며, 그 문을 여닫는 정도를 그림 전체를 보고 정한다. 모양은 들어올 때와 나갈 때가 같아서 ($672 \times 14 \times 14$) 그림에서는 한 칸으로 보이지만, 안에서는 자리를 모두 뭉갰다가 되살린다.
 

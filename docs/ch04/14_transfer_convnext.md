@@ -72,7 +72,7 @@ ConvNeXt가 하는 일은 이 둘을 갈라 놓는 것이다. **지역성은 지
 
 | 자리 | 옛 CNN이 하던 것 | ConvNeXt가 하는 것 | 이 책의 어디에 |
 |---|---|---|---|
-| 줄기 | ResNet은 $7 \times 7$ 보폭 2 합성곱 + $3 \times 3$ 최댓값 풀링 | $4 \times 4$ 보폭 4 합성곱 하나 (조각내기) | [ViT 쪽](12_transfer_vit.md)의 조각 임베딩 |
+| 줄기 | ResNet은 $7 \times 7$ 보폭 2 합성곱 + $3 \times 3$ 최댓값 풀링 | $4 \times 4$ 보폭 4 합성곱 하나 (조각내기) | 뒤의 [ViT 쪽](12_transfer_vit.md)의 조각 임베딩 |
 | 공간 거르기 | $3 \times 3$ 표준 합성곱 | $7 \times 7$ **깊이별** 합성곱 | [MobileNet 쪽](10_transfer_mobilenet.md), [11.1절](../ch10/cnn/depthwise_separable.md) |
 | 정규화 | 배치 정규화 | 층 정규화 | [11.3절](../ch10/vit/cnn_to_vit_bridge.md) |
 | 활성화 | ReLU | GELU | — |
