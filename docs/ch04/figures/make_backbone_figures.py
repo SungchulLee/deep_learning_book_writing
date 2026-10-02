@@ -323,6 +323,103 @@ def draw_block(svg, title_text, subtitle, rows, caption, note=None, skip=None):
     print("  " + svg)
 
 
+# =============================================================================
+# Inception 블록만 그리는 법이 다르다.
+#
+# draw_block 은 칸마다 화살표를 이어 붙이는 **한 줄 쌓기**다. 그것으로 Inception
+# 을 그리면 네 갈래가 차례로 이어진 것처럼 보인다 -- 첫 갈래가 둘째 갈래로
+# 들어가는 것처럼. 실제로는 넷이 같은 입력을 나란히 받아 concat 에서야 처음
+# 만나므로, 그 그림은 없는 차례를 하나 지어내는 셈이다. 블록의 생각 자체가
+# "크기를 고르지 않고 다 해 본다" 인데 그것이 바로 가려진다.
+#
+# 그래서 갈래를 **가로로** 늘어놓는 함수를 따로 둔다.
+# =============================================================================
+BW, BH, BGAP, CGAP = 3.3, 0.72, 0.52, 0.42   # 갈래 상자 크기와 사이
+
+# 갈래를 지나는 중간 칸은 옅게, 그 갈래가 내놓는 칸은 짙게 칠한다. 더해서
+# 256 이 되는 네 수가 어느 칸에서 나오는지 눈으로 짚을 수 있어야 한다.
+MID = ("#fdf3ea", "#e0a877")
+
+
+def draw_inception_block(svg, title_text, subtitle, branches, caption,
+                         shp_in, shp_out, note=None):
+    """branches: [[(글, 색), ...], ...] -- 갈래마다 아래에서 위로 쌓는다.
+
+    맨 윗칸이 그 갈래가 내놓는 것이고, 그 채널 수가 concat 에서 더해진다.
+    """
+    ncol = len(branches)
+    nrow = max(len(b) for b in branches)
+    pitch_x, pitch_y = BW + CGAP, BH + BGAP
+    width = ncol * BW + (ncol - 1) * CGAP
+    fig, ax = plt.subplots(figsize=(11.0, 2.2 + 0.72 * (nrow + 2)))
+
+    y_in, y_cat = -pitch_y, nrow * pitch_y
+
+    def bar(y, txt, col, shp):
+        fill, edge = col
+        ax.add_patch(plt.Rectangle((0, y), width, BH, facecolor=fill,
+                                   edgecolor=edge, linewidth=1.3))
+        ax.text(width / 2, y + BH / 2, txt, ha="center", va="center",
+                fontsize=9.5, color="#26323c")
+        ax.text(width + 0.3, y + BH / 2, shp, ha="left", va="center",
+                fontsize=8.2, color="#6b7883")
+
+    bar(y_in, "Input", INP, shp_in)
+    bar(y_cat, "Concatenation", SPEC, shp_out)
+
+    def arrow(xc, y0, y1):
+        ax.add_patch(FancyArrowPatch((xc, y0 + 0.04), (xc, y1 - 0.04),
+                                     arrowstyle="->", color="#8a97a4", lw=1.0,
+                                     mutation_scale=10, zorder=3))
+
+    for k, boxes in enumerate(branches):
+        x = k * pitch_x
+        xc = x + BW / 2
+        for r, (txt, col) in enumerate(boxes):
+            y = r * pitch_y
+            fill, edge = col
+            ax.add_patch(plt.Rectangle((x, y), BW, BH, facecolor=fill,
+                                       edgecolor=edge, linewidth=1.3))
+            ax.text(xc, y + BH / 2, txt, ha="center", va="center",
+                    fontsize=8.4, color="#26323c")
+            if r:
+                arrow(xc, y - BGAP, y)           # 갈래 안에서 위로
+        arrow(xc, y_in + BH, 0.0)                # 입력에서 갈라진다
+        arrow(xc, (len(boxes) - 1) * pitch_y + BH, y_cat)   # concat 으로 모인다
+
+    ax.text(width / 2, y_cat + BH + 0.95, title_text, ha="center", va="bottom",
+            fontsize=12.5, weight="bold", color="#8a6d1a")
+    ax.text(width / 2, y_cat + BH + 0.45, subtitle, ha="center", va="bottom",
+            fontsize=8.8, color="#8a6d1a")
+    ax.text(width + 0.3, y_cat + BH + 0.45, "shape", ha="left", va="bottom",
+            fontsize=8.2, color="#8a97a4")
+    if note:
+        ax.text(0, y_in - 0.75, note, ha="left", va="top", fontsize=8.2,
+                color="#6b7883")
+    ax.text(0, y_in - 1.35, caption, ha="left", va="top", fontsize=8.2,
+            color="#8a6d1a")
+    ax.set_xlim(-0.5, width + 3.9)
+    ax.set_ylim(y_in - 2.3, y_cat + BH + 1.9)
+    ax.axis("off")
+    fig.savefig(svg, transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  " + svg)
+
+
+# Mixed_5b = InceptionA(192, pool_features=32). 갈래 차례는 torchvision 이
+# concat 하는 차례 그대로다: branch1x1, branch5x5, branch3x3dbl, branch_pool.
+INCEPTION_BRANCHES = [
+    [("1x1 conv, 64", CONV)],
+    [("1x1 conv, 48", MID),
+     ("5x5 conv, pad 2, 64", CONV)],
+    [("1x1 conv, 64", MID),
+     ("3x3 conv, pad 1, 96", MID),
+     ("3x3 conv, pad 1, 96", CONV)],
+    [("3x3 avgpool, pad 1", POOL),
+     ("1x1 conv, 32", CONV)],
+]
+
+
 BLOCKS = [
  ("resnet18_block.svg", "BasicBlock", "inside layer1.0 of ResNet18, at input 224",
   [("3x3 conv - BN - ReLU", CONV, "64x56x56", "64x56x56"),
@@ -352,16 +449,6 @@ BLOCKS = [
   "384 -> 1536 -> 384 : the same swollen waist as MobileNet, but a 7x7 kernel and LayerNorm",
   "one activation per block, not one per convolution",
   (0, 5, "identity x")),
-
- ("inception_block.svg", "Inception block", "inside Mixed_5b of Inception v3, at input 299",
-  [("1x1 -> 64",                       CONV, "192x35x35", "64x35x35"),
-   ("1x1 -> 48,  5x5 -> 64",           CONV, None,        "64x35x35"),
-   ("1x1 -> 64,  3x3 -> 96, 3x3 -> 96",CONV, None,        "96x35x35"),
-   ("avgpool 3x3,  1x1 -> 32",         CONV, None,        "32x35x35"),
-   ("concat",                          SPEC, None,        "256x35x35")],
-  "four branches run side by side and concatenate: 64+64+96+32 = 256",
-  "the side stays 35; what splits is channels, not space",
-  None),
 
  ("densenet_block.svg", "DenseBlock", "inside denseblock1 of DenseNet121, first four layers, at input 224",
   [("layer 1   1x1 -> 128, 3x3 -> 32", CONV, "64x56x56",  "96x56x56"),
@@ -428,3 +515,11 @@ if __name__ == "__main__":
         draw(*args)
     for args in BLOCKS:
         draw_block(*args[:5], note=args[5], skip=args[6] if len(args) > 6 else None)
+    draw_inception_block(
+        "inception_block.svg", "Inception block",
+        "inside Mixed_5b of Inception v3, at input 299",
+        INCEPTION_BRANCHES,
+        "the four meet only here: 64 + 64 + 96 + 32 = 256 channels",
+        "192x35x35", "256x35x35",
+        note="all four read the same input at the same time; "
+             "pale boxes are on the way, solid boxes are what a branch hands over")
