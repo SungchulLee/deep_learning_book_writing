@@ -753,9 +753,9 @@ if __name__ == "__main__":
         draw_block(*args[:5], note=args[5], skip=args[6] if len(args) > 6 else None)
     draw_dense_block(
         "densenet_block.svg", "DenseBlock",
-        "inside denseblock1 of DenseNet121, first four of six layers, at input 224",
-        64, 32, 4, "1x1 conv, 128   ->   3x3 conv, 32",
-        "after all six layers: 64 + 6x32 = 256, the denseblock1 row in the layer list",
+        "inside denseblock1 of DenseNet121, all six layers, at input 224",
+        64, 32, 6, "1x1 conv, 128   ->   3x3 conv, 32",
+        "64 + 6x32 = 256, which is exactly the denseblock1 row in the layer list",
         note="every layer reads all the channels below it and appends 32 more; "
              "nothing is summed, so the bar only grows. the 1x1 always hands the "
              "3x3 exactly 128 channels, however long the bar has grown")
