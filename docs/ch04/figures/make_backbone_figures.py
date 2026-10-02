@@ -424,7 +424,7 @@ def draw_attention(svg, title_text, subtitle, caption, note=None):
 # 그래서 채널 띠가 자라는 모습으로 그린다. 먼저 온 채널은 층을 **비켜 지나**
 # 그대로 남고, 층은 32 칸을 새로 만들어 오른쪽에 덧붙일 뿐이다.
 # =============================================================================
-DCH = 0.034                        # 채널 하나가 차지하는 가로 길이
+DCH = 0.052                        # 채널 하나가 차지하는 가로 길이
 DBARH, DLH, DGAP = 0.46, 0.58, 0.46
 
 
@@ -433,7 +433,7 @@ def draw_dense_block(svg, title_text, subtitle, x_ch, growth, nlayer, inner,
     pitch = DBARH + DLH + 2 * DGAP
     total = x_ch + growth * nlayer
     DW = total * DCH
-    fig, ax = plt.subplots(figsize=(11.0, 1.9 + 0.74 * nlayer))
+    fig, ax = plt.subplots(figsize=(13.5, 1.9 + 0.74 * nlayer))
 
     def bar(y, chans, mark_new):
         x = 0.0
@@ -488,13 +488,18 @@ def draw_dense_block(svg, title_text, subtitle, x_ch, growth, nlayer, inner,
             fontsize=8.8, color="#8a6d1a")
     ax.text(-1.75, (nlayer * pitch) / 2, "carried through\nuntouched",
             ha="center", va="center", fontsize=8.0, color="#8a6d1a")
+    # 설명이 여러 줄이면 그만큼 아래로 밀어야 caption 과 겹치지 않는다
+    y = -0.95
     if note:
-        ax.text(-1.95, -0.95, note, ha="left", va="top", fontsize=8.2,
+        ax.text(-1.95, y, note, ha="left", va="top", fontsize=8.2,
                 color="#6b7883")
-    ax.text(-1.95, -1.55, caption, ha="left", va="top", fontsize=8.2,
+        y -= 0.40 * (note.count("\n") + 1) + 0.22
+    else:
+        y -= 0.60
+    ax.text(-1.95, y, caption, ha="left", va="top", fontsize=8.2,
             color="#8a6d1a")
     ax.set_xlim(-3.1, DW + 2.2)
-    ax.set_ylim(-2.5, top + 1.9)
+    ax.set_ylim(y - 0.9, top + 1.9)
     ax.axis("off")
     fig.savefig(svg, transparent=True, bbox_inches="tight")
     plt.close(fig)
@@ -849,9 +854,9 @@ if __name__ == "__main__":
         "inside denseblock1 of DenseNet121, all six layers, at input 224",
         64, 32, 6, "1x1 conv, 128   ->   3x3 conv, 32",
         "64 + 6x32 = 256, which is exactly the denseblock1 row in the layer list",
-        note="every layer reads all the channels below it and appends 32 more; "
-             "nothing is summed, so the bar only grows. the 1x1 always hands the "
-             "3x3 exactly 128 channels, however long the bar has grown")
+        note="every layer reads all the channels below it and appends 32 more;\n"
+             "nothing is summed, so the bar only grows. the 1x1 always hands\n"
+             "the 3x3 exactly 128 channels, however long the bar has grown")
     draw_residual_block(
         "resnet18_block.svg", RESIDUAL_PANELS,
         "F(x) is what the block learns; x reaches the add either untouched or "
