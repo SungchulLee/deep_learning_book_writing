@@ -754,10 +754,11 @@ if __name__ == "__main__":
     draw_dense_block(
         "densenet_block.svg", "DenseBlock",
         "inside denseblock1 of DenseNet121, first four of six layers, at input 224",
-        64, 32, 4, "1x1 -> 128, 3x3 -> 32",
+        64, 32, 4, "1x1 conv, 128   ->   3x3 conv, 32",
         "after all six layers: 64 + 6x32 = 256, the denseblock1 row in the layer list",
         note="every layer reads all the channels below it and appends 32 more; "
-             "nothing is summed, so the bar only grows")
+             "nothing is summed, so the bar only grows. the 1x1 always hands the "
+             "3x3 exactly 128 channels, however long the bar has grown")
     draw_residual_block(
         "resnet18_block.svg", RESIDUAL_PANELS,
         "F(x) is what the block learns; x reaches the add either untouched or "
