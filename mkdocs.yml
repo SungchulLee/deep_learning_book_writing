@@ -102,7 +102,7 @@ nav:
       - 4.6 전이:
         - VGG16 — 3x3만 쌓는다: ch04/03_vgg16_transfer.md
         - Inception — 크기를 고르지 않는다: ch04/09_transfer_inception.md
-        - ResNet — 지름길을 얹는다: ch04/08_transfer_resnet.md
+        - ResNet — 지름길로 입력을 더한다: ch04/08_transfer_resnet.md
         - DenseNet — 더하지 않고 이어 붙인다: ch04/13_transfer_densenet.md
         - MobileNet — 합성곱을 쪼갠다: ch04/10_transfer_mobilenet.md
         - EfficientNet — MobileNet + 스케일링: ch04/11_transfer_efficientnet.md
