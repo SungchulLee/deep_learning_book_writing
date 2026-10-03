@@ -1,6 +1,6 @@
 # 스칼라를 텐서로
 
-이 스크립트는 스칼라를 텐서로 바꾸는 방법을 보여준다. 이 개념들을 이해하는 것은 효과적인 PyTorch 프로그래밍과 딥러닝 모델 개발에 필수적이다.
+값 하나를 텐서로 감싸는 데에도 고를 것이 둘 있다. **계수**(rank)와 **자료형**(dtype)이다. 둘 다 적지 않으면 PyTorch가 대신 정하는데, 그 규칙이 함수마다 다르다. 이 쪽은 같은 수 42를 네 가지 방법으로 감싸면서 무엇이 달라지는지 본다.
 
 ## 1. 코드
 
@@ -55,7 +55,9 @@ def main():
     # --------------------------------------------
     t4 = torch.scalar_tensor(scalar_val)
     print_info(t4)
-    # 스칼라 입력에 대해 torch.tensor(scalar_val)과 동등하다(dtype은 추론된다).
+    # 주의: torch.tensor(42)와 **같지 않다.** torch.tensor는 파이썬 값의 꼴을
+    # 보고 int64로 미루지만, scalar_tensor는 값을 보지 않고 기본 실수형
+    # (float32)으로 만든다. 아래 출력에서 t1은 tensor(42), t4는 tensor(42.)이다.
 
     # --------------------------------------------
     # 5) 파이썬 float에서 → dtype의 기본값은 float32
@@ -164,16 +166,28 @@ t8.grad (expected 5.0): 5.0
 
 ## 2. 논의
 
-이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.
+**계수 0과 계수 1은 다르다.** `torch.tensor(42)`의 모양은 `torch.Size([])`이고 `torch.tensor([42])`의 모양은 `torch.Size([1])`이다. 원소 개수는 둘 다 하나지만 앞의 것은 수이고 뒤의 것은 길이 1인 벡터다. 대괄호 하나가 계수를 하나 올린다. 뒤에 나오는 브로드캐스팅과 축약은 이 차이를 보고 움직이므로, 여기서 헷갈리면 거기서 모양이 어긋난다.
 
-여기서 보여준 패턴들은 실무적인 PyTorch 개발의 토대이다. 각 개념은 데이터 표현, 자동 미분, 하드웨어 가속을 하나의 일관된 API로 통합하는 텐서 추상화 위에 세워진다.
+**자료형을 미루는 규칙은 함수마다 다르다.** 위 출력에서 같은 42가 두 가지 자료형으로 나왔다.
+
+| 만드는 법 | 42를 주면 | 7.7을 주면 | 무엇을 보고 정하나 |
+|---|---|---|---|
+| `torch.tensor(…)` | `int64` | `float32` | **파이썬 값의 꼴** |
+| `torch.scalar_tensor(…)` | `float32` | `float32` | 값을 보지 않는다 — 늘 기본 실수형 |
+| `torch.full((), …)` | `int64` | `float32` | **파이썬 값의 꼴** |
+
+`scalar_tensor`만 입력을 보지 않는다. 정수를 넣었는데 실수가 나오므로, 정수 색인이나 정수 나눗셈을 기대한 자리에 쓰면 조용히 어긋난다.
+
+**정수 텐서는 경사를 지닐 수 없다.** 자동 미분은 미분이 정의되는 자료형, 곧 실수와 복소수에서만 돌아간다. 그래서 `requires_grad=True`는 `float32` 같은 실수형에만 붙는다. 이것이 자료형을 미루는 규칙을 그냥 넘길 수 없는 까닭이다 — `torch.tensor(42)`로 만든 잎에는 경사를 켤 수 없고, 그 사실은 모양이 아니라 자료형에 적혀 있다.
+
+**`item()`은 계수가 아니라 원소 개수를 본다.** `numel() == 1`이면 계수가 0이든 1이든 2이든 통한다. 원소가 둘 이상이면 `RuntimeError`다 — `ValueError`가 아니므로 `except ValueError`로는 잡히지 않는다. 위 코드가 `RuntimeError`를 잡는 까닭이다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
+`torch.tensor(5)`, `torch.tensor([5])`, `torch.tensor([[5]])` 셋을 만들어 각각의 `.shape`, `.dim()`, `.numel()`을 찍어라. 원소 개수가 모두 같은데도 서로 다른 텐서인 까닭을 한 문장으로 적고, 셋 가운데 `.item()`이 되는 것이 몇 개인지 답하라.
 
 </div>
 
@@ -181,11 +195,21 @@ t8.grad (expected 5.0): 5.0
     ```python
     import torch
 
-    x = torch.tensor(3.0, requires_grad=True)
-    f = x**3 - 2*x**2 + x
-    f.backward()
-    print(x.grad)  # f'(x) = 3x^2 - 4x + 1 = 27 - 12 + 1 = 16.0
+    for t in [torch.tensor(5), torch.tensor([5]), torch.tensor([[5]])]:
+        print(tuple(t.shape), t.dim(), t.numel(), t.item())
     ```
+
+    ```
+    () 0 1 5
+    (1,) 1 1 5
+    (1, 1) 2 1 5
+    ```
+
+    원소 개수는 셋 다 1이지만 **계수가 0, 1, 2로 다르다.** 대괄호 한 겹이 차원 하나를
+    더한다. 곧 "값이 몇 개인가"와 "그 값들이 몇 차원으로 놓여 있는가"는 따로
+    적히는 정보다.
+
+    `.item()`은 셋 다 된다. `numel() == 1`만 보고 계수는 보지 않기 때문이다.
 
 ---
 
@@ -193,20 +217,49 @@ t8.grad (expected 5.0): 5.0
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-`retain_graph=True` 없이 같은 계산 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+아래 다섯 가지의 `dtype`을 **찍어 보기 전에** 적어 보고, 그 다음 실제로 확인하라. 틀린 것이 있으면 어떤 규칙을 잘못 짚었는지 밝혀라.
+
+```python
+torch.tensor(42)         torch.tensor(42.0)      torch.scalar_tensor(42)
+torch.full((), 7)        torch.full((), 7.7)
+```
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    기본적으로 PyTorch는 메모리를 아끼기 위해 `.backward()` 후에 계산 그래프를 해제한다. `.backward()`를 두 번째로 호출하면 더 이상 존재하지 않는 그래프를 훑으려 하므로 `RuntimeError`가 발생한다. `retain_graph=True`로 두면 그래프가 메모리에 남아 재사용할 수 있지만, 모든 중간 텐서가 할당된 채로 남으므로 메모리 소비가 늘어난다.
+    ```python
+    import torch
+
+    print(torch.tensor(42).dtype)
+    print(torch.tensor(42.0).dtype)
+    print(torch.scalar_tensor(42).dtype)
+    print(torch.full((), 7).dtype)
+    print(torch.full((), 7.7).dtype)
+    ```
+
+    ```
+    torch.int64
+    torch.float32
+    torch.float32
+    torch.int64
+    torch.float32
+    ```
+
+    헷갈리는 것은 셋째뿐이다. `torch.tensor`와 `torch.full`은 **파이썬 값이 정수인지
+    실수인지 보고** 미루므로 42는 `int64`, 7.7은 `float32`가 된다. 그런데
+    `torch.scalar_tensor`는 값을 보지 않고 늘 기본 실수형을 쓴다. 그래서 정수 42를
+    주어도 `float32`가 나온다.
+
+    실수를 부르는 자리는 정수를 기대한 곳이다. 색인이나 정수 나눗셈에 쓰려고
+    `scalar_tensor`로 수를 만들면 조용히 실수가 되어 있다.
 
 ---
 
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고 손실을 계산한 뒤, 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하는 코드를 작성하라. 관찰된 값을 설명하라.
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+`torch.tensor(42, requires_grad=True)`를 실행하면 무엇이 일어나는가? 오류가 난다면 메시지를 그대로 옮기고, 42라는 값은 그대로 두면서 고치는 방법을 **두 가지** 제시하라. 그리고 이 오류가 모양이 아니라 자료형의 문제인 까닭을 설명하라.
 
 </div>
 
@@ -214,19 +267,38 @@ t8.grad (expected 5.0): 5.0
     ```python
     import torch
 
-    w = torch.tensor(2.0, requires_grad=True)
-    for i in range(3):
-        loss = (w ** 2).sum()
-        loss.backward()
-        print(f'After backward {i+1}: w.grad = {w.grad}')
-    # 출력: 4.0, 8.0, 12.0
-    # 경사가 누적된다. 매 backward가 기존 경사에 2*w = 4.0을 더한다.
+    try:
+        torch.tensor(42, requires_grad=True)
+    except RuntimeError as e:
+        print(type(e).__name__, "-", e)
     ```
+
+    ```
+    RuntimeError - Only Tensors of floating point and complex dtype can require gradients
+    ```
+
+    고치는 두 가지 방법은 모두 자료형을 실수로 바꾸는 것이다.
+
+    ```python
+    a = torch.tensor(42.0, requires_grad=True)                      # 값을 실수로 적는다
+    b = torch.tensor(42, dtype=torch.float32, requires_grad=True)   # dtype을 밝힌다
+    print(a.dtype, a.requires_grad)   # torch.float32 True
+    print(b.dtype, b.requires_grad)   # torch.float32 True
+    ```
+
+    모양의 문제가 아닌 까닭은 이렇다. 경사는 **미분**이고, 미분은 값을 조금
+    움직였을 때의 변화율이다. `int64`에는 "조금"이 없다 — 42와 43 사이에 값이
+    없으므로 도함수를 정의할 자리가 없다. 그래서 PyTorch는 계수가 0이든 100이든
+    상관하지 않고 자료형만 보고 거절한다. 같은 이유로 `.item()`이 돌려주는 파이썬
+    `float`에는 `grad_fn`이 없다. 텐서를 벗어난 순간 그래프에서 떨어져 나온다.
 
 ## 정리하며
 
-**다룬 것** — 스칼라를 텐서로
+값 하나를 텐서로 감쌀 때 PyTorch가 대신 정하는 것이 둘이다.
 
-이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다.
+- **계수** — `torch.tensor(42)`는 계수 0, `torch.tensor([42])`는 계수 1이다. 대괄호 한 겹이 차원 하나다. 원소 개수가 같다고 같은 텐서가 아니다.
+- **자료형** — `torch.tensor`와 `torch.full`은 파이썬 값이 정수인지 실수인지 보고 미룬다. `torch.scalar_tensor`는 값을 보지 않고 늘 기본 실수형을 쓴다.
 
-앞의 연습문제 3개로 직접 확인할 수 있다.
+이 둘이 뒤에서 각각 발목을 잡는다. 계수는 브로드캐스팅과 축약에서 모양을 어긋나게 하고, 자료형은 경사에서 막는다 — 정수 텐서에는 `requires_grad=True`를 붙일 수 없다. 미분할 자리가 없기 때문이다.
+
+`.item()`은 셋 중 어느 것도 보지 않는다. `numel() == 1`이기만 하면 계수와 무관하게 통하고, 원소가 둘 이상이면 `ValueError`가 아니라 `RuntimeError`를 낸다.
