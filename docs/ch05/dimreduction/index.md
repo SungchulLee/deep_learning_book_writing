@@ -101,7 +101,7 @@ if __name__ == "__main__":
     torch.manual_seed(SEED)
     judge = JudgeCNN().to(device)
     opt = optim.Adam(judge.parameters(), lr=LR)
-    # 섞는 차례를 전역 난수와 떼어 놓는다 (4.1절 6절 참고)
+    # 섞는 차례를 전역 난수와 떼어 놓는다 (4.1절 「이 표를 믿어도 되는가」 참고)
     g = torch.Generator().manual_seed(SEED)
     loader = DataLoader(TensorDataset(Xtr_img, ytr), batch_size=BATCH,
                         shuffle=True, generator=g)
