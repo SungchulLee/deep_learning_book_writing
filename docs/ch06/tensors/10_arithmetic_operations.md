@@ -82,13 +82,15 @@ def main():
     header("2. In-place Operations")
     
     x = torch.tensor([1.0, 2.0, 3.0])
+    before = id(x)
     print(f"Original x = {x}")
-    print(f"Memory address: {id(x)}")
-    
+
     # 제자리 연산은 밑줄(_)로 끝난다
     x.add_(10)  # x = x + 10
     print(f"After x.add_(10) = {x}")
-    print(f"Memory address: {id(x)}")  # Same address!
+    # 번지 자체는 찍지 않는다. 프로세스마다 달라서 이 쪽에 실어 두어도 읽는 이가
+    # 다시 얻을 수 없고, 그 수가 가르치는 것도 없다. 가르치는 것은 **같은가**이다.
+    print(f"같은 객체인가: {id(x) == before}  ← 새 텐서를 만들지 않았다")
     
     x.mul_(2)  # x = x * 2
     print(f"After x.mul_(2) = {x}")
@@ -357,7 +359,7 @@ if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (179줄)"
+??? note "전체 출력 (178줄)"
 
     ```
 
@@ -381,9 +383,8 @@ if __name__ == "__main__":
     2. In-place Operations
     ======================================================================
     Original x = tensor([1., 2., 3.])
-    Memory address: 5058447552
     After x.add_(10) = tensor([11., 12., 13.])
-    Memory address: 5058447552
+    같은 객체인가: True  ← 새 텐서를 만들지 않았다
     After x.mul_(2) = tensor([22., 24., 26.])
     After x.div_(4) = tensor([5.5000, 6.0000, 6.5000])
 
@@ -540,8 +541,6 @@ if __name__ == "__main__":
     4. Element-wise max = tensor([3, 5, 6])
     5. Sigmoid = tensor([0.1192, 0.2689, 0.5000, 0.7311, 0.8808])
     ```
-
-
 ## 2. 논의
 
 **나눗셈은 자료형을 바꾼다.** 정수 둘을 나누어도 결과는 실수다.
