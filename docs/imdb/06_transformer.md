@@ -152,7 +152,9 @@ if __name__ == "__main__":
           f"매개변수 {n:,}", flush=True)
 ```
 
-**출력** (`python transformer.py 1`):
+인수를 주지 않으면 한 겹이다(`python transformer.py` 또는 `python transformer.py 1`).
+
+**출력:**
 
 ```
 자료 학습 25,000편  시험 25,000편
