@@ -272,6 +272,22 @@ def main():
     
     # 주의: 확장된 텐서를 수정하면 예상치 못한 결과가 생길 수 있다!
     # 확장된 텐서를 제자리에서 수정하지 말 것
+
+    # broadcast_to() — expand와 같은 일을 하지만 **읽는 사람에게 뜻이 분명하다.**
+    # expand는 "길이 1인 차원을 늘린다"는 제 규칙을 알아야 읽히고,
+    # broadcast_to는 "이 모양으로 펴 맞춘다"고 그대로 적는다.
+    bt = vec.broadcast_to(4, 3)
+    print(f"\nbroadcast_to(4, 3): {bt.shape}")
+    print(f"expand와 같은가: {torch.equal(bt, expanded)}")
+    print(f"역시 복사 안 함: {vec.storage().data_ptr() == bt.storage().data_ptr()}")
+
+    # 둘은 하는 일이 같다. 앞쪽에 차원을 새로 붙이는 것도, -1로 "그대로 두기"를
+    # 적는 것도 양쪽 다 된다. 고르는 기준은 읽는 맛뿐이다.
+    print(f"\nexpand(2, 4, 3):       {vec.expand(2, 4, 3).shape}")
+    print(f"broadcast_to(2, 4, 3): {vec.broadcast_to(2, 4, 3).shape}")
+    print(f"둘이 같은가: {torch.equal(vec.expand(2, 4, 3), vec.broadcast_to(2, 4, 3))}")
+    # broadcast_to는 NumPy의 np.broadcast_to와 이름이 같아서, 두 쪽을 함께
+    # 읽는 코드에서는 이쪽이 눈에 덜 걸린다.
     
     # -------------------------------------------------------------------------
     # 10. 고급: einsum을 이용한 브로드캐스팅
@@ -343,7 +359,7 @@ if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (199줄)"
+??? note "전체 출력 (207줄)"
 
     ```
 
@@ -515,6 +531,14 @@ if __name__ == "__main__":
 
     Same storage? True
 
+    broadcast_to(4, 3): torch.Size([4, 3])
+    expand와 같은가: True
+    역시 복사 안 함: True
+
+    expand(2, 4, 3):       torch.Size([2, 4, 3])
+    broadcast_to(2, 4, 3): torch.Size([2, 4, 3])
+    둘이 같은가: True
+
     ======================================================================
     10. Advanced: einsum
     ======================================================================
@@ -546,8 +570,6 @@ if __name__ == "__main__":
     4. Distance matrix: torch.Size([5, 5])
     5. torch.Size([2, 3, 1]) + torch.Size([1, 1, 4]) = torch.Size([2, 3, 4])
     ```
-
-
 ## 2. 논의
 
 브로드캐스팅은 작은 텐서를 가상으로 확장하여 모양이 다른 텐서 사이의 원소별 연산을 가능하게 한다. PyTorch는 차원을 오른쪽부터 맞추며, 각 차원 쌍이 서로 같거나, 둘 중 하나가 1이거나, 아예 없을 것을 요구한다. 이로써 데이터를 명시적으로 복제하지 않아도 되어 메모리 효율이 좋고 빠르다.

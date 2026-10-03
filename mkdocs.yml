@@ -156,19 +156,15 @@ nav:
         - NumPy 배열을 텐서로: ch06/tensors/04_numpy_array_to_tensor.md
         - Pandas를 텐서로: ch06/tensors/05_pandas_to_tensor.md
         - 팩토리 함수: ch06/tensors/06_factory_functions.md
-        - clone과 제자리 연산: ch06/tensors/07_clone_vs_inplace.md
+        - 별명, 뷰, clone의 구별: ch06/tensors/07_clone_vs_inplace.md
         - 인덱싱과 슬라이싱: ch06/tensors/08_indexing_slicing.md
         - 재구성과 뷰: ch06/tensors/09_reshaping_views.md
         - 산술 연산: ch06/tensors/10_arithmetic_operations.md
         - 브로드캐스팅: ch06/tensors/11_broadcasting.md
-        - 축약 연산: ch06/tensors/12_reduction_operations.md
         - 논리 연산: ch06/tensors/13_logical_operations.md
-        - 행렬 연산: ch06/tensors/14_matrix_operations.md
         - 고윳값과 SVD: ch06/tensors/15_eigenvalues_svd.md
-        - 이어 붙이기와 쌓기: ch06/tensors/16_concatenation_stacking.md
         - 텐서 비교: ch06/tensors/17_tensor_comparison.md
-        - Autograd 기초: ch06/tensors/18_autograd_basics.md
-        - 경사 계산: ch06/tensors/19_gradient_computation.md
+        - 야코비안과 고차 미분: ch06/tensors/19_gradient_computation.md
         - 사용자 정의 함수: ch06/tensors/20_custom_functions.md
         - 간단한 신경망: ch06/tensors/21_simple_neural_network.md
         - 최적화 기초: ch06/tensors/22_optimization_basics.md
@@ -186,12 +182,10 @@ nav:
         - 메모리와 저장소: ch06/tensor_attrs/04_memory_and_storage.md
         - Linear 가중치 관례: ch06/tensor_attrs/05_linear_weight_convention.md
         - cat 시각화: ch06/tensor_attrs/06_cat_visualization.md
-        - 제자리 연산: ch06/tensor_attrs/07_inplace_operations.md
-        - 브로드캐스팅 규칙: ch06/tensor_attrs/08_broadcasting_rules.md
-        - 인덱싱과 마스킹: ch06/tensor_attrs/09_indexing_masking.md
+        - 제자리 연산과 autograd 제약: ch06/tensor_attrs/07_inplace_operations.md
+        - 불리언 마스킹과 where: ch06/tensor_attrs/09_indexing_masking.md
         - 생성 방법: ch06/tensor_attrs/10_creation_methods.md
         - 축약과 통계: ch06/tensor_attrs/11_reductions_statistics.md
-        - 재구성과 차원 제거: ch06/tensor_attrs/12_reshaping_squeezing.md
         - 이어 붙이기와 나누기: ch06/tensor_attrs/13_concatenation_splitting.md
         - 행렬 연산: ch06/tensor_attrs/14_matrix_operations.md
         - 비교, 범위 제한, 정렬: ch06/tensor_attrs/15_comparison_clamping_sorting.md

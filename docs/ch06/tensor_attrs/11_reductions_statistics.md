@@ -184,6 +184,12 @@ def main():
     A = torch.randn(3, 4)
     frobenius = A.norm(p='fro')
     print("Frobenius norm:", frobenius.item())
+
+    # 핵 노름(nuclear) — 특잇값의 합이다. 프로베니우스는 특잇값의
+    # 제곱합의 제곱근이므로, 핵 노름이 늘 프로베니우스보다 크거나 같다.
+    nuclear = A.norm(p='nuc')
+    print("Nuclear norm:", nuclear.item())
+    print("핵 >= 프로베니우스:", nuclear.item() >= frobenius.item())
     
     # 두 텐서 사이의 거리
     y = torch.tensor([6., 8.])
@@ -267,6 +273,15 @@ def main():
     for val, count in zip(unique_vals, counts):
         print(f"  {val.item()}: {count.item()} times")
 
+    # bincount — 음이 아닌 정수를 셀 때는 unique보다 간편하다.
+    # 값 자체가 자리 번호가 되므로, 나타나지 않은 값은 0으로 채워진다.
+    # 그래서 길이가 max(x)+1이 되고, 자리와 값이 맞아떨어진다.
+    counts_int = torch.bincount(torch.tensor([1, 2, 3, 2, 1, 2, 3]))
+    print("bincount:", counts_int)       # 0은 0번, 1은 2번, 2는 3번, 3은 2번
+    print("길이 = max+1 :", len(counts_int))
+    # unique는 나타난 값만 돌려주므로 자리와 값이 어긋난다. 라벨을 세어
+    # 부류별 개수를 얻을 때 bincount가 곧바로 쓰이는 까닭이다.
+
     # -------------------------------------------------------------------------
     header("Batch statistics example: normalizing batches")
     # 이미지 배치: (배치, 채널, 높이, 너비)
@@ -324,8 +339,12 @@ def main():
     print("  .mode()    - Most frequent value")
     
     print("\nNorms:")
-    print("  .norm(p)   - p-norm (p=1, 2, inf, 'fro')")
+    print("  .norm(p)   - p-norm (p=1, 2, inf, 'fro', 'nuc')")
     print("  torch.dist(a, b, p) - Distance between tensors")
+
+    print("\nCounting:")
+    print("  torch.unique(x, return_counts=True) - Distinct values and counts")
+    print("  torch.bincount(x) - Counts per value, indexed by value")
     
     print("\nLogical:")
     print("  .all()     - True if all elements True")
@@ -342,7 +361,7 @@ if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (224줄)"
+??? note "전체 출력 (232줄)"
 
     ```
 
@@ -446,6 +465,8 @@ if __name__ == "__main__":
     L1 norm: 7.0
     L∞ norm: 4.0
     Frobenius norm: 2.696213722229004
+    Nuclear norm: 4.021577835083008
+    핵 >= 프로베니우스: True
     Distance between vectors: 5.0
 
     ================================================================================
@@ -508,6 +529,8 @@ if __name__ == "__main__":
       5: 2 times
       6: 1 times
       9: 1 times
+    bincount: tensor([0, 2, 3, 2])
+    길이 = max+1 : 4
 
     ================================================================================
     Batch statistics example: normalizing batches
@@ -556,8 +579,12 @@ if __name__ == "__main__":
       .mode()    - Most frequent value
 
     Norms:
-      .norm(p)   - p-norm (p=1, 2, inf, 'fro')
+      .norm(p)   - p-norm (p=1, 2, inf, 'fro', 'nuc')
       torch.dist(a, b, p) - Distance between tensors
+
+    Counting:
+      torch.unique(x, return_counts=True) - Distinct values and counts
+      torch.bincount(x) - Counts per value, indexed by value
 
     Logical:
       .all()     - True if all elements True
@@ -570,8 +597,6 @@ if __name__ == "__main__":
 
     Note: Most operations support dim and keepdim parameters
     ```
-
-
 ## 2. 논의
 
 브로드캐스팅은 작은 텐서를 가상으로 확장하여 모양이 다른 텐서 사이의 원소별 연산을 가능하게 한다. PyTorch는 차원을 오른쪽부터 맞추며, 각 차원 쌍이 서로 같거나, 둘 중 하나가 1이거나, 아예 없을 것을 요구한다. 이로써 데이터를 명시적으로 복제하지 않아도 되어 메모리 효율이 좋고 빠르다.

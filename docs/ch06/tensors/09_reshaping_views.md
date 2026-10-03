@@ -219,6 +219,28 @@ def main():
     
     image_batch_hwc = image_batch.permute(0, 2, 3, 1)  # Keep batch, move channels to end
     print(f"Image batch (NHWC): {image_batch_hwc.shape}")  # torch.Size([32, 224, 224, 3])
+
+    # movedim() - 옮길 차원 하나만 말한다. 나머지는 순서를 지킨 채 밀려난다.
+    # permute는 **모든** 차원의 새 순서를 적어야 하므로, 차원이 넷만 되어도
+    # 건드리지 않을 셋까지 써야 한다. 바로 위의 NCHW→NHWC가 그 예다.
+    moved = torch.movedim(image_batch, 1, 3)   # 채널(1번)을 끝으로 옮긴다
+    print(f"\nmovedim(1, 3): {moved.shape}")   # permute(0, 2, 3, 1)과 같다
+    print(f"permute와 같은가: {torch.equal(moved, image_batch_hwc)}")
+    # 여러 개를 한꺼번에 옮길 수도 있다
+    moved2 = torch.movedim(tensor_4d, [0, 1], [2, 3])
+    print(f"movedim([0,1], [2,3]): {moved2.shape}")
+
+    # swapdims() - transpose의 다른 이름이다. 뜻이 더 분명해서 읽기에 낫다.
+    swapped = torch.swapdims(tensor_4d, 0, 2)
+    print(f"\nswapdims(0, 2): {swapped.shape}")
+    print(f"transpose와 같은가: {torch.equal(swapped, tensor_4d.transpose(0, 2))}")
+
+    # .t() - 2차원 전용 줄임말이다. 계수가 3 이상이면 오류를 낸다.
+    print(f"\nmat.t() shape: {mat.t().shape}")
+    try:
+        tensor_4d.t()
+    except RuntimeError as e:
+        print("4차원에 .t():", str(e)[:60])
     
     # -------------------------------------------------------------------------
     # 8. 연속성 - 메모리 배치가 중요하다
@@ -371,7 +393,7 @@ if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (227줄)"
+??? note "전체 출력 (237줄)"
 
     ```
 
@@ -505,6 +527,16 @@ if __name__ == "__main__":
     Image batch (NCHW): torch.Size([32, 3, 224, 224])
     Image batch (NHWC): torch.Size([32, 224, 224, 3])
 
+    movedim(1, 3): torch.Size([32, 224, 224, 3])
+    permute와 같은가: True
+    movedim([0,1], [2,3]): torch.Size([4, 5, 2, 3])
+
+    swapdims(0, 2): torch.Size([4, 3, 2, 5])
+    transpose와 같은가: True
+
+    mat.t() shape: torch.Size([4, 3])
+    4차원에 .t(): t() expects a tensor with <= 2 dimensions, but self is 4D
+
     ======================================================================
     8. Contiguity - Memory Layout Matters
     ======================================================================
@@ -602,8 +634,6 @@ if __name__ == "__main__":
     4. Shape: torch.Size([10, 1]) → torch.Size([1, 10])
     5. Shape: torch.Size([2, 3, 4, 5]) → torch.Size([5, 2, 4, 3])
     ```
-
-
 ## 2. 논의
 
 브로드캐스팅은 작은 텐서를 가상으로 확장하여 모양이 다른 텐서 사이의 원소별 연산을 가능하게 한다. PyTorch는 차원을 오른쪽부터 맞추며, 각 차원 쌍이 서로 같거나, 둘 중 하나가 1이거나, 아예 없을 것을 요구한다. 이로써 데이터를 명시적으로 복제하지 않아도 되어 메모리 효율이 좋고 빠르다.
