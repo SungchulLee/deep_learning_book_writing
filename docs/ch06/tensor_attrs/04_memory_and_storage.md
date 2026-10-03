@@ -49,8 +49,8 @@ def main():
     v = t.view(12)            # view (when possible) → shares storage
     r = t.reshape(6, 2)       # may return view or copy
     c = t.clone()             # always copy
-    print("view shares storage:", id(t.storage()) == id(v.storage()))
-    print("clone shares storage:", id(t.storage()) == id(c.storage()))
+    print("view shares storage:", t.untyped_storage().data_ptr() == v.untyped_storage().data_ptr())
+    print("clone shares storage:", t.untyped_storage().data_ptr() == c.untyped_storage().data_ptr())
     print("Before in-place, v[:5]:", v[:5])
     t[0, 0] = -999
     print("After  in-place, v[:5]:", v[:5])
@@ -109,7 +109,7 @@ Tc.is_contiguous: True | Tc.stride: (3, 1)
 ================================================================================
 view() vs reshape() vs clone()
 ================================================================================
-view shares storage: False
+view shares storage: True
 clone shares storage: False
 Before in-place, v[:5]: tensor([0., 1., 2., 3., 4.])
 After  in-place, v[:5]: tensor([-999.,    1.,    2.,    3.,    4.])

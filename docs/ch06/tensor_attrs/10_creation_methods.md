@@ -270,7 +270,7 @@ def main():
     
     # clone()은 복사본을 만든다
     copy = original.clone()
-    print("Shares storage (clone):", id(original.storage()) == id(copy.storage()))
+    print("Shares storage (clone):", original.untyped_storage().data_ptr() == copy.untyped_storage().data_ptr())
     
     # 경사가 없는 복사본을 만들려면 detach().clone()
     x = torch.randn(3, requires_grad=True)
@@ -484,9 +484,9 @@ if __name__ == "__main__":
     ================================================================================
     torch.empty_like vs torch.zeros_like performance
     ================================================================================
-    empty_like: 0.0038s
-    zeros_like: 0.2931s
-    Speedup: 77.70x
+    empty_like: 0.0018s
+    zeros_like: 0.1779s
+    Speedup: 98.33x
     ⚠️  Use empty only when you'll immediately overwrite values
 
     ================================================================================
@@ -548,8 +548,6 @@ if __name__ == "__main__":
       torch.from_numpy(array)      - Share memory with numpy
       torch.as_tensor(data)        - Share memory if possible
     ```
-
-
 ## 2. 논의
 
 경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.

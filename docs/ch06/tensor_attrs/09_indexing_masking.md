@@ -40,7 +40,7 @@ def main():
     
     view = a[1:3, 2:4]  # Slice rows 1-2, cols 2-3
     print("view = a[1:3, 2:4]:\n", view)
-    print("Is view (shares storage):", id(a.storage()) == id(view.storage()))
+    print("Is view (shares storage):", a.untyped_storage().data_ptr() == view.untyped_storage().data_ptr())
     
     # 뷰를 수정하면 원본이 바뀐다
     view[0, 0] = 999
@@ -241,21 +241,21 @@ def main():
     
     # 기본 슬라이싱 → 뷰
     view = a[1:3, 2:4]
-    print("Basic slice is view:", id(a.storage()) == id(view.storage()))
+    print("Basic slice is view:", a.untyped_storage().data_ptr() == view.untyped_storage().data_ptr())
     
     # 불리언 인덱싱 → 복사본
     mask = a > 5
     copy1 = a[mask]
-    print("Boolean indexing is copy:", id(a.storage()) != id(copy1.storage()))
+    print("Boolean indexing is copy:", a.untyped_storage().data_ptr() != copy1.untyped_storage().data_ptr())
     
     # 정수 배열 인덱싱 → 복사본
     indices = torch.tensor([0, 2])
     copy2 = a[indices]
-    print("Integer array indexing is copy:", id(a.storage()) != id(copy2.storage()))
+    print("Integer array indexing is copy:", a.untyped_storage().data_ptr() != copy2.untyped_storage().data_ptr())
     
     # 보폭 슬라이싱 → 뷰
     view2 = a[::2, ::2]
-    print("Step slicing is view:", id(a.storage()) == id(view2.storage()))
+    print("Step slicing is view:", a.untyped_storage().data_ptr() == view2.untyped_storage().data_ptr())
 
     # -------------------------------------------------------------------------
     header("Practical example: attention masking")
@@ -306,7 +306,7 @@ if __name__ == "__main__":
     view = a[1:3, 2:4]:
      tensor([[ 7,  8],
             [12, 13]])
-    Is view (shares storage): False
+    Is view (shares storage): True
     After view[0,0]=999, a[1,2]: 999
 
     ================================================================================
@@ -455,10 +455,10 @@ if __name__ == "__main__":
     ================================================================================
     View vs copy: when does indexing copy?
     ================================================================================
-    Basic slice is view: False
+    Basic slice is view: True
     Boolean indexing is copy: True
     Integer array indexing is copy: True
-    Step slicing is view: False
+    Step slicing is view: True
 
     ================================================================================
     Practical example: attention masking
@@ -481,8 +481,6 @@ if __name__ == "__main__":
     Total samples: 100, Class 1 samples: 32
     Samples with feature[0] > 0: 49
     ```
-
-
 ## 2. 논의
 
 브로드캐스팅은 작은 텐서를 가상으로 확장하여 모양이 다른 텐서 사이의 원소별 연산을 가능하게 한다. PyTorch는 차원을 오른쪽부터 맞추며, 각 차원 쌍이 서로 같거나, 둘 중 하나가 1이거나, 아예 없을 것을 요구한다. 이로써 데이터를 명시적으로 복제하지 않아도 되어 메모리 효율이 좋고 빠르다.

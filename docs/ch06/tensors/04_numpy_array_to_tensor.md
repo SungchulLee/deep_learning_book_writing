@@ -29,7 +29,7 @@ def ptr_numpy(a: np.ndarray) -> int:
 def ptr_torch(t: torch.Tensor) -> int:
     """PyTorch 텐서 저장소의 밑 데이터 가리개를 (파이썬 정수로) 돌려준다.
     Notes:
-      • C++의 Tensor.storage().data_ptr()과 같다.
+      • C++의 Tensor.untyped_storage().data_ptr()과 같다.
       • 두 객체가 같은 밑 버퍼를 가리키면 "기억 자리를 나눠 쓴다"고 하지만,
         논리상 첫 원소는 서로 다른 자리(걸음)에서 비롯할 수 있다.
     """

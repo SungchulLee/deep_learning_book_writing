@@ -256,7 +256,7 @@ def main():
     
     # 텐서들이 저장소를 공유하는지 확인
     print(f"\nShared storage? {original.data_ptr() == view.data_ptr()}")  # False (different data pointer due to offset)
-    print(f"Same underlying storage? {original.storage().data_ptr() == view.storage().data_ptr()}")  # True!
+    print(f"Same underlying storage? {original.untyped_storage().data_ptr() == view.untyped_storage().data_ptr()}")  # True!
     
     # -------------------------------------------------------------------------
     # 9. 흔한 패턴과 용례

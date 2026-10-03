@@ -268,7 +268,7 @@ def main():
     print(f"Values:\n{expanded}")
     
     # 메모리 확인: expand는 복사하지 않는다!
-    print(f"\nSame storage? {vec.storage().data_ptr() == expanded.storage().data_ptr()}")
+    print(f"\nSame storage? {vec.untyped_storage().data_ptr() == expanded.untyped_storage().data_ptr()}")
     
     # 주의: 확장된 텐서를 수정하면 예상치 못한 결과가 생길 수 있다!
     # 확장된 텐서를 제자리에서 수정하지 말 것
@@ -279,7 +279,7 @@ def main():
     bt = vec.broadcast_to(4, 3)
     print(f"\nbroadcast_to(4, 3): {bt.shape}")
     print(f"expand와 같은가: {torch.equal(bt, expanded)}")
-    print(f"역시 복사 안 함: {vec.storage().data_ptr() == bt.storage().data_ptr()}")
+    print(f"역시 복사 안 함: {vec.untyped_storage().data_ptr() == bt.untyped_storage().data_ptr()}")
 
     # 둘은 하는 일이 같다. 앞쪽에 차원을 새로 붙이는 것도, -1로 "그대로 두기"를
     # 적는 것도 양쪽 다 된다. 고르는 기준은 읽는 맛뿐이다.

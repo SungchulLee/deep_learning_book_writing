@@ -276,8 +276,8 @@ def main():
     print(f"Using reshape() instead: {flat_T_reshape}")
     
     # 성능 참고: contiguous()는 복사본을 만들므로 시간과 메모리가 든다
-    print(f"\nShared storage before contiguous? {mat_T.storage().data_ptr() == mat_c.storage().data_ptr()}")  # True
-    print(f"Shared storage after contiguous? {mat_T_cont.storage().data_ptr() == mat_c.storage().data_ptr()}")  # False
+    print(f"\nShared storage before contiguous? {mat_T.untyped_storage().data_ptr() == mat_c.untyped_storage().data_ptr()}")  # True
+    print(f"Shared storage after contiguous? {mat_T_cont.untyped_storage().data_ptr() == mat_c.untyped_storage().data_ptr()}")  # False
     
     # -------------------------------------------------------------------------
     # 9. 흔한 재구성 패턴

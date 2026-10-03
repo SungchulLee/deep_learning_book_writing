@@ -36,7 +36,9 @@ x = torch.tensor([[1, 2, 3],
 print(x.storage())        # [1, 2, 3, 4, 5, 6]
 print(len(x.storage()))   # 6 elements total
 print(type(x.storage()))  # torch.storage.TypedStorage
-print(x.storage().data_ptr())  # Memory address
+# 번지 자체는 찍지 않는다 — 프로세스마다 달라서 다시 얻을 수 없고, 그 수가
+# 가르치는 것도 없다. 뜻이 있는 것은 **뷰가 같은 번지를 가리킨다**는 사실이다.
+print(x.view(6).untyped_storage().data_ptr() == x.untyped_storage().data_ptr())  # True
 ```
 
 **출력:**
@@ -51,7 +53,7 @@ print(x.storage().data_ptr())  # Memory address
 [torch.storage.TypedStorage(dtype=torch.int64, device=cpu) of size 6]
 6
 <class 'torch.storage.TypedStorage'>
-4723814848
+True
 ```
 
 여러 텐서가 같은 저장소를 공유할 수 있다.
@@ -61,7 +63,7 @@ t = torch.arange(6).reshape(2, 3)
 t_view = t[0]  # First row
 
 # 둘 다 같은 바탕 데이터를 가리킨다
-print(t.storage().data_ptr() == t_view.storage().data_ptr())  # True
+print(t.untyped_storage().data_ptr() == t_view.untyped_storage().data_ptr())  # True
 ```
 
 **출력:**
@@ -227,7 +229,7 @@ original = torch.arange(12).reshape(3, 4)
 reshaped = original.reshape(4, 3)
 
 # 저장소를 공유하는지 확인
-print(original.storage().data_ptr() == reshaped.storage().data_ptr())  # True
+print(original.untyped_storage().data_ptr() == reshaped.untyped_storage().data_ptr())  # True
 
 # 한쪽을 수정하면 다른 쪽도 바뀐다!
 original[0, 0] = 99
@@ -323,11 +325,11 @@ x = torch.arange(24).reshape(4, 6)
 # 슬라이싱
 y = x[1:3, 2:5]
 print(y.stride())  # Same as x: (6, 1)
-print(y.storage().data_ptr() == x.storage().data_ptr())  # True
+print(y.untyped_storage().data_ptr() == x.untyped_storage().data_ptr())  # True
 
 # 재구성(연속일 때)
 z = x.reshape(2, 12)
-print(z.storage().data_ptr() == x.storage().data_ptr())  # True
+print(z.untyped_storage().data_ptr() == x.untyped_storage().data_ptr())  # True
 ```
 
 **출력:**
@@ -468,7 +470,7 @@ flat = t_T.reshape(-1)  # Works!
 print(f"Reshaped: {flat}")
 
 # 다만 복사본이 만들어질 수 있다
-print(t.storage().data_ptr() == flat.storage().data_ptr())  # False - a copy was made
+print(t.untyped_storage().data_ptr() == flat.untyped_storage().data_ptr())  # False - a copy was made
 ```
 
 **출력:**
@@ -512,7 +514,7 @@ original = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
 # clone()은 같은 경사 추적을 가진 복사본을 만든다
 cloned = original.clone()
 
-print(f"Same storage: {original.storage().data_ptr() == cloned.storage().data_ptr()}")
+print(f"Same storage: {original.untyped_storage().data_ptr() == cloned.untyped_storage().data_ptr()}")
 # False - 메모리가 다르다
 
 print(f"Clone requires_grad: {cloned.requires_grad}")  # True
@@ -534,7 +536,7 @@ original = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
 detached = original.detach()
 
 print(f"Detached requires_grad: {detached.requires_grad}")  # False
-print(f"Same storage: {original.storage().data_ptr() == detached.storage().data_ptr()}")
+print(f"Same storage: {original.untyped_storage().data_ptr() == detached.untyped_storage().data_ptr()}")
 # True - 같은 메모리이다!
 ```
 
@@ -678,7 +680,7 @@ def inspect_tensor(t, name="tensor"):
     print(f"  Contiguous: {t.is_contiguous()}")
     print(f"  Storage offset: {t.storage_offset()}")
     print(f"  Storage size: {len(t.storage())}")
-    print(f"  Data pointer: {t.storage().data_ptr()}")
+    print(f"  Data pointer: {t.untyped_storage().data_ptr()}")
     print()
 
 # 사용 예
