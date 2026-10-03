@@ -1,6 +1,6 @@
 # NumPy 배열을 텐서로
 
-이 스크립트는 NumPy 배열을 텐서로 바꾸는 방법을 보여준다. 이 개념들을 이해하는 것은 효과적인 PyTorch 프로그래밍과 딥러닝 모델 개발에 필수적이다.
+NumPy 배열을 텐서로 바꾸는 길이 셋인데, 겉보기 결과는 모두 같고 **메모리를 공유하는지**가 다르다. 공유하면 한쪽을 고치면 다른 쪽도 바뀐다. 그래서 어느 것을 골랐는지가 나중에 멀리 떨어진 자리에서 티가 난다. 이 쪽은 셋을 가려 쓰는 기준을 세운다.
 
 ## 1. 코드
 
@@ -66,8 +66,8 @@ def main():
 
     print("arr (before):", arr)
     print("t_shared (before):", t_shared)
-    print("ptr(arr)    =", ptr_numpy(arr))
-    print("ptr(tensor) =", ptr_torch(t_shared), "(same → shared)")
+    # 주소 자체는 돌릴 때마다 달라지므로 찍지 않는다. 뜻이 있는 것은 "같은가"다.
+    print("같은 메모리를 보는가:", ptr_numpy(arr) == ptr_torch(t_shared), "→ 공유")
 
     # 어느 쪽을 바꾸어도 다른 쪽이 갱신된다(같은 저장소를 가리킨다):
     arr[0] = 99.0
@@ -88,12 +88,17 @@ def main():
     #   그러나 결과 텐서는 대개 PyTorch의 행 우선 기준으로 비연속적이다
     #   (스트라이드가 열 우선 배치를 반영한다). 많은 연산이 잘 동작하지만, 연속성을
     #   요구하는 연산은 내부적으로 복사하거나 t_as = t_as.contiguous()를 요구한다  # **COPY**
-    # • 다음 경우에는 **COPY**한다:
-    #     - ndarray가 읽기 전용이거나,
-    #     - 스트라이드/배치가 지원되지 않거나(예: arr[::-1] 같은 음수 스트라이드),
-    #     - dtype/device 변경이 요청된 경우:
-    #         · as_tensor(ndarray, dtype=...)는 dtype을 맞추려고 COPY할 수 있다
-    #         · as_tensor(..., device=...)는 해당 장치에 생성한다 → COPY
+    # • **COPY**하는 경우는 사실 하나다 — dtype이나 device를 바꿔 달라고 했을 때다:
+    #         · as_tensor(ndarray, dtype=...)는 dtype이 다르면 COPY한다
+    #         · as_tensor(..., device=...)는 해당 장치에 새로 만든다 → COPY
+    # • 다음은 복사하지 **않는다.** 흔히 복사할 것이라 짐작하는 자리이니 눈여겨볼 만하다:
+    #     - **읽기 전용 ndarray도 공유한다.** 복사해서 지켜 주지 않고, 대신
+    #       "쓰기 불가 배열은 지원하지 않는다"는 UserWarning을 띄운 뒤 그냥 공유한다.
+    #       그 텐서에 쓰면 무엇이 일어날지 정해져 있지 않다. 지키고 싶으면
+    #       내가 arr.copy()를 하거나 torch.tensor(arr)를 써야 한다.
+    #     - 비연속 ndarray도 공유한다(예: arr2d[:, 0] 같은 열 슬라이스).
+    # • 음수 스트라이드(예: arr[::-1])는 복사가 아니라 **ValueError**다. 음수
+    #   스트라이드 텐서를 PyTorch가 아직 못 다루므로, arr[::-1].copy()로 넘긴다.
     #
     # from_numpy(ndarray)에 대한 참고:
     #   - from_numpy는 주어진 CPU ndarray와 **항상 공유한다**(수치형, 쓰기 가능, 호환 스트라이드).
@@ -112,8 +117,8 @@ def main():
     print("arr3 (after arr3[1]=222):", arr3)
     print("t_as (after):            ", t_as)
 
-    print("ptr(arr3)  =", ptr_numpy(arr3))
-    print("ptr(t_as)  =", ptr_torch(t_as), "(same → shared; different → copied)")
+    print("같은 메모리를 보는가:", ptr_numpy(arr3) == ptr_torch(t_as),
+          "→ 공유(자료형과 장치를 그대로 두었으므로)")
 
     # ------------------------------------------------------------------------------
     # 3) tensor(np_array): **COPY**(독립적인 메모리)
@@ -130,13 +135,13 @@ def main():
     #
     # 2) torch.from_numpy(ndarray)  → SHARE(복사 없음)
     #    • 무복사: 텐서가 CPU NumPy 배열과 저장소를 공유한다.
-    #    • 요구조건: 수치형 dtype, 쓰기 가능, 호환되는(보통 양수) 스트라이드.
+    #    • 요구조건: 수치형 dtype, 양수 스트라이드. 읽기 전용이어도 공유한다(경고만 난다).
     #    • 공유를 끊기 전까지는(예: .clone(), .contiguous(), .to('cuda')) 변경이 양쪽에 반영된다.
     #    • dtype/device를 넘길 수 없다. dtype은 ndarray에서 얻고 device는 CPU이다.
     #
     # 3) torch.as_tensor(ndarray)  → 공유 시도(안 되면 COPY)
-    #    • from_numpy처럼 무복사를 선호한다. 호환되지 않으면(읽기 전용, 음수 스트라이드,
-    #      dtype/device 변경이 필요하면) 조용히 COPY를 만든다.
+    #    • from_numpy처럼 무복사를 선호한다. **dtype이나 device를 바꿔야 할 때만**
+    #      조용히 COPY한다. 읽기 전용이거나 비연속이어도 공유한다.
     #    • 수동 확인 없이 "가능하면 공유"를 해 주는 편리한 선택.
     #
     # 어림 규칙:
@@ -161,8 +166,7 @@ def main():
     print("arr2 (after arr2[0]=123):", arr2)
     print("t_copy (unchanged):       ", t_copy)  # separate storage
 
-    print("ptr(arr2)   =", ptr_numpy(arr2))
-    print("ptr(t_copy) =", ptr_torch(t_copy), "(different → copy)")
+    print("같은 메모리를 보는가:", ptr_numpy(arr2) == ptr_torch(t_copy), "→ 베낌")
 
     # ------------------------------------------------------------------------------
     # 4) from_numpy/as_tensor가 흔히 지원하는 dtype 대응
@@ -192,9 +196,9 @@ def main():
     print("base:", base)
     print("view:", view)
     print("t_view:", t_view)
-    print("ptr(base)  =", ptr_numpy(base))
-    print("ptr(view)  =", ptr_numpy(view))     # pointer may point into base’s buffer
-    print("ptr(t_view) =", ptr_torch(t_view), "(same as view → shared)")
+    # 보기(view)는 밑바탕 배열의 버퍼를 가리킨다
+    print("base와 view가 같은 메모리:", ptr_numpy(base) == ptr_numpy(view))
+    print("view와 텐서가 같은 메모리:", ptr_numpy(view) == ptr_torch(t_view), "→ 공유")
 
     # 변경이 모든 별칭에 반영된다:
     view[0] = 999.0
@@ -266,8 +270,7 @@ if __name__ == "__main__":
 ================================================================================
 arr (before): [1. 2. 3.]
 t_shared (before): tensor([1., 2., 3.])
-ptr(arr)    = 105553162087072
-ptr(tensor) = 105553162087072 (same → shared)
+같은 메모리를 보는가: True → 공유
 arr (after arr[0]=99):       [99.  2.  3.]
 t_shared (after arr change): tensor([99.,  2.,  3.])
 arr (after t_shared[1]=-7):  [99. -7.  3.]
@@ -280,8 +283,7 @@ arr3 (before): [1.1 2.2 3.3]
 t_as (before):  tensor([1.1000, 2.2000, 3.3000], dtype=torch.float64)
 arr3 (after arr3[1]=222): [  1.1 222.    3.3]
 t_as (after):             tensor([  1.1000, 222.0000,   3.3000], dtype=torch.float64)
-ptr(arr3)  = 105553159487552
-ptr(t_as)  = 105553159487552 (same → shared; different → copied)
+같은 메모리를 보는가: True → 공유(자료형과 장치를 그대로 두었으므로)
 
 ================================================================================
 3) torch.tensor(np_array) → COPY (independent)
@@ -290,8 +292,7 @@ arr2 (before): [10 20 30]
 t_copy (before): tensor([10, 20, 30])
 arr2 (after arr2[0]=123): [123  20  30]
 t_copy (unchanged):        tensor([10, 20, 30])
-ptr(arr2)   = 105553159487648
-ptr(t_copy) = 5736726400 (different → copy)
+같은 메모리를 보는가: False → 베낌
 
 ================================================================================
 4) Dtype mappings (float32, float64, int64, int32, uint8, bool)
@@ -309,9 +310,8 @@ NumPy dtype     bool → Torch dtype torch.bool
 base: [0. 1. 2. 3. 4. 5. 6. 7. 8. 9.]
 view: [0. 2. 4. 6. 8.]
 t_view: tensor([0., 2., 4., 6., 8.])
-ptr(base)  = 105553157210448
-ptr(view)  = 105553157210448
-ptr(t_view) = 105553157210448 (same as view → shared)
+base와 view가 같은 메모리: True
+view와 텐서가 같은 메모리: True → 공유
 After view[0]=999 → base: [999.   1.   2.   3.   4.   5.   6.   7.   8.   9.]
 After view[0]=999 → t_view: tensor([999.,   2.,   4.,   6.,   8.])
 
@@ -336,9 +336,25 @@ tensor(np_array)       → **COPY** (always independent)
 
 ## 2. 논의
 
-CPU 텐서에서 PyTorch와 NumPy의 상호 운용은 매끄럽다. `torch.from_numpy()`는 배열과 메모리를 공유하는 텐서를 만들고, `torch.tensor()`는 항상 복사한다. 어떤 연산이 저장소를 공유하고 어떤 연산이 독립적인 복사본을 만드는지 이해하는 것이 미묘한 버그를 피하는 데 결정적이다.
+세 함수가 하는 일은 **복사할지 공유할지**로 갈린다.
 
-GPU 가속은 텐서 연산, 특히 신경망 계산을 지배하는 행렬 곱에 대해 몇 자릿수의 속도 향상을 제공한다. `.to(device)`로 텐서와 모델을 GPU로 옮기는 것은 간단하지만, 성능을 유지하려면 CPU-GPU 사이의 데이터 전송을 최소화하는 것이 결정적이다.
+| | 메모리를 | 복사하는 때 |
+|---|---|---|
+| `torch.tensor(arr)` | 늘 **복사한다** | 언제나 |
+| `torch.from_numpy(arr)` | 늘 **공유한다** | 복사하지 않는다 — 못 하면 오류다 |
+| `torch.as_tensor(arr)` | 되도록 **공유한다** | dtype이나 device를 바꿀 때만 |
+
+**`as_tensor`가 복사하는 경우는 생각보다 적다.** 자료형과 장치를 그대로 두면 거의 늘 공유한다. 짐작과 어긋나는 자리가 둘 있다.
+
+- **읽기 전용 배열도 공유한다.** `arr.flags.writeable = False`로 잠가 두어도 `as_tensor`는 복사해서 지켜 주지 않는다. "쓰기 불가 배열은 지원하지 않는다"는 경고를 한 번 띄우고 그냥 공유한다. 그 텐서에 쓰면 무슨 일이 생길지 정해져 있지 않다. 지키려면 `arr.copy()`를 하거나 `torch.tensor(arr)`를 쓴다.
+- **비연속 배열도 공유한다.** `arr2d[:, 0]`처럼 띄엄띄엄 놓인 열도 스트라이드를 그대로 받아 공유한다.
+
+반대로 **음수 스트라이드는 복사가 아니라 오류다.** `arr[::-1]`을 넘기면 `ValueError`가 난다. PyTorch가 음수 스트라이드 텐서를 아직 다루지 못하기 때문이다. `arr[::-1].copy()`로 넘겨야 한다.
+
+**고르는 기준.** 배열이 뒤에서 바뀔 수 있고 텐서는 그대로여야 하면 `torch.tensor`로 끊는다. 큰 배열을 옮기는 값이 아까우면 `from_numpy`로 공유하고, 공유한다는 사실을 기억한다. 둘 중 무엇이든 상관없으면 `as_tensor`가 알아서 한다.
+
+!!! warning "`.numpy()`는 경사를 좇는 텐서에서 막힌다"
+    `requires_grad=True`인 텐서에 `.numpy()`를 부르면 `RuntimeError`다. NumPy에는 계산 그래프가 없으니, 공유된 메모리를 통해 값이 바뀌면 autograd가 모르는 채로 경사가 틀어진다. 그래서 `.detach()`로 그래프에서 떼어 낸 뒤에 넘긴다. 오류 메시지 자체가 그 방법을 알려 준다.
 
 ## 연습문제
 
@@ -351,12 +367,27 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 ??? success "연습문제 1 풀이"
     ```python
-    import numpy as np
+    import numpy as np, torch
+
     arr = np.array([1.0, 2.0, 3.0])
     t = torch.from_numpy(arr)
-    arr[0] = 99.0
-    print(t)  # tensor([99.,  2.,  3.]) -- shared memory
+    arr[0] = 99.0          # NumPy 쪽만 고친다
+    print("arr:", arr)
+    print("t:  ", t)
     ```
+
+    ```
+    arr: [99.  2.  3.]
+    t:   tensor([99.,  2.,  3.], dtype=torch.float64)
+    ```
+
+    텐서를 건드리지 않았는데 텐서가 바뀌었다. `from_numpy`는 메모리를 공유하므로 둘이
+    같은 숫자를 들여다보고 있는 것이다.
+
+    출력에 딸려 나온 `dtype=torch.float64`도 눈여겨볼 만하다. `torch.tensor([1., 2., 3.])`는
+    `float32`가 되는데, 여기서는 NumPy의 기본 자료형인 `float64`가 그대로 넘어왔다.
+    공유하려면 자료형을 바꿀 수 없으니 당연한 일이다. 곧 **NumPy에서 온 텐서는 흔히
+    `float64`**이고, `float32`를 기대하는 모델에 그대로 넣으면 자료형이 어긋난다.
 
 ---
 
@@ -364,12 +395,54 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-`torch.as_tensor()`가 언제 데이터를 복사하고 언제 메모리를 공유하는지 설명하라. 어떤 조건에서 복사가 일어나는가?
+`torch.as_tensor()`가 언제 공유하고 언제 복사하는지 **재어서** 밝혀라. 아래 다섯 경우를 모두 확인하고, 복사 여부는 `arr.__array_interface__['data'][0] == t.data_ptr()`로 판정하라.
+
+1. 보통의 `float64` 배열
+2. 읽기 전용 배열 (`arr.flags.writeable = False`)
+3. `dtype=torch.float32`를 함께 요청한 `float64` 배열
+4. 비연속 열 슬라이스 (`arr2d[:, 0]`)
+5. 거꾸로 뒤집은 배열 (`arr[::-1]`)
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `torch.as_tensor()`는 입력이 스트라이드가 호환되는 쓰기 가능한 NumPy 배열이고 요청한 dtype/device가 일치할 때 메모리를 공유한다. 배열이 읽기 전용이거나, 스트라이드가 음수이거나, dtype 또는 device 변환이 필요할 때는 복사한다.
+    ```python
+    import numpy as np, torch
+
+    def shares(a, t):
+        return a.__array_interface__['data'][0] == t.data_ptr()
+
+    a = np.array([1., 2., 3.])
+    print("보통            :", shares(a, torch.as_tensor(a)))
+
+    ro = np.array([1., 2., 3.]); ro.flags.writeable = False
+    print("읽기 전용       :", shares(ro, torch.as_tensor(ro)))
+
+    f = np.array([1., 2., 3.])
+    print("dtype 바꿔 달라면:", shares(f, torch.as_tensor(f, dtype=torch.float32)))
+
+    col = np.array([[1., 2.], [3., 4.]])[:, 0]
+    print("비연속 열       :", shares(col, torch.as_tensor(col)))
+
+    try:
+        torch.as_tensor(np.array([1., 2., 3.])[::-1])
+    except ValueError as e:
+        print("뒤집은 배열     : ValueError -", str(e)[:48])
+    ```
+
+    ```
+    보통            : True
+    읽기 전용       : True
+    dtype 바꿔 달라면: False
+    비연속 열       : True
+    뒤집은 배열     : ValueError - At least one stride in the given numpy array
+    ```
+
+    재어 보면 규칙이 짧다. **`as_tensor`는 dtype이나 device를 바꿔야 할 때만 복사한다.**
+
+    짐작과 어긋나는 것이 둘이다. 읽기 전용 배열은 복사해서 지켜 줄 것 같지만 **공유한다** — 경고만 한 번 띄우고 넘어가므로, 그 텐서에 쓰면 잠가 둔 배열이 조용히 바뀐다. 비연속 배열도 복사할 것 같지만 스트라이드를 그대로 받아 공유한다.
+
+    그리고 뒤집은 배열은 복사가 아니라 **오류**다. 복사 여부를 묻는 문제에 답이 셋이라는 뜻이다 — 공유, 복사, 그리고 거절.
 
 ---
 
@@ -383,17 +456,38 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 ??? success "연습문제 3 풀이"
     ```python
+    import torch
+
+    torch.manual_seed(0)
     x = torch.randn(3, requires_grad=True)
-    # x.numpy()  # 오류: 경사가 필요한 텐서에는 numpy()를 호출할 수 없다
-    x_np = x.detach().cpu().numpy()  # Correct: detach from graph first
+    try:
+        x.numpy()
+    except RuntimeError as e:
+        print(e)
+
+    x_np = x.detach().cpu().numpy()   # 그래프에서 떼어 낸 뒤 넘긴다
+    print(x_np)
     ```
 
-    NumPy에는 autograd 체계가 없으므로, 추적 중인 텐서의 뷰를 노출하면 경사 계산을 망가뜨리는 변경이 일어날 수 있다. `.detach()`는 텐서를 계산 그래프에서 떼어낸다.
+    ```
+    Can't call numpy() on Tensor that requires grad. Use tensor.detach().numpy() instead.
+    [ 1.5409961 -0.2934289 -2.1787894]
+    ```
+
+    까닭은 공유 때문이다. `.numpy()`는 복사하지 않고 메모리를 **공유한다.** 그래서 NumPy 쪽에서 값을 고치면 텐서의 값이 autograd가 모르는 사이에 바뀐다. 순전파 때 쓴 값과 역전파 때 있는 값이 달라지면 경사가 틀리는데, 틀렸다는 표시는 어디에도 남지 않는다. 그래서 PyTorch는 조용히 틀리게 두는 대신 아예 막는다.
+
+    `.detach()`는 그래프에서 떼어 낸 새 텐서를 준다(메모리는 여전히 공유한다). 떼어 낸 뒤에는 autograd가 좇지 않으므로 값이 바뀌어도 망가질 것이 없다. `.cpu()`를 덧붙인 것은 NumPy가 CPU 메모리만 읽기 때문이다 — CPU에 있는 텐서라면 아무 일도 하지 않는다.
 
 ## 정리하며
 
-**다룬 것** — NumPy 배열을 텐서로
+NumPy 배열에서 텐서를 얻는 세 길은 **메모리를 공유하는지**로 갈린다.
 
-CPU 텐서에서 PyTorch와 NumPy의 상호 운용은 매끄럽다.
+- `torch.tensor(arr)` — 늘 복사한다. 끊어 두고 싶을 때.
+- `torch.from_numpy(arr)` — 늘 공유한다. 복사를 못 하므로 자료형도 바꿀 수 없고, 그래서 NumPy의 `float64`가 그대로 넘어온다.
+- `torch.as_tensor(arr)` — 되도록 공유한다. **dtype이나 device를 바꿀 때만** 복사한다.
 
-앞의 연습문제 3개로 직접 확인할 수 있다.
+`as_tensor`가 복사하는 경우는 생각보다 적다. 읽기 전용 배열도, 비연속 배열도 공유한다. 읽기 전용은 특히 조심할 자리다 — 지켜 주지 않고 경고만 띄운다. 음수 스트라이드는 복사가 아니라 `ValueError`다.
+
+반대 방향인 `.numpy()`도 공유한다. 그래서 `requires_grad=True`인 텐서에서는 막힌다. 공유된 메모리로 값이 바뀌면 autograd가 모르는 채 경사가 틀어지기 때문이다. `.detach()`로 떼어 낸 뒤에 넘긴다.
+
+공유는 값이 아니라 **메모리를 함께 쓰는 일**이다. 그러므로 어느 함수를 썼는지가 멀리 떨어진 자리에서 티가 난다.
