@@ -80,10 +80,14 @@ $$H(x) = F(x) + x$$
 - net = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).to(device).eval()
 - net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 + net = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).to(device).eval()
++ # 머리가 Linear(512, 1000) 하나뿐이라 잘라 다시 묶을 것이 없다. 그 자리를
++ # Identity로 갈면 forward가 부르던 self.fc가 받은 것을 그대로 내놓는다.
++ # .eval()은 여기서도 반드시 필요하다 — ResNet18에 드롭아웃은 없지만
++ # 배치 정규화가 있어서, 빠뜨리면 지금 배치의 통계로 특징이 흔들린다
 + net.fc = nn.Identity()
 
 - head = nn.Linear(4096, 10).to(device)
-+ head = nn.Linear(512, 10).to(device)
++ head = nn.Linear(512, 10).to(device)   # extract()가 (50000, 512)를 돌려준다
 ```
 
 전처리도, 특징을 한 번만 뽑아 두는 구조도, Adam $10^{-3}$·5 에포크·배치 100도 손대지 않는다. `extract()`가 돌려주는 것만 $(50000, 4096)$에서 $(50000, 512)$로 바뀐다.
