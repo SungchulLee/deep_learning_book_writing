@@ -74,9 +74,10 @@ v3의 나머지 새로움은 [부록의 Inception v3](../appendix/cnn/inception_
 - net = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).to(device).eval()
 - net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 + net = inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1).to(device).eval()
++ # ResNet18과 같은 꼴이다 — 머리가 Linear(2048, 1000) 하나뿐이라 그 자리만 간다
 + net.fc = nn.Identity()
 - head = nn.Linear(4096, 10).to(device)
-+ head = nn.Linear(2048, 10).to(device)
++ head = nn.Linear(2048, 10).to(device)   # extract()가 (50000, 2048)을 돌려준다
 ```
 
 **하나가 더 붙는 자리는 `Resize`다.** ImageNet 등뼈는 대개 $224 \times 224$로 학습되어 4.6절의 `Resize(224)`를 그대로 물려받는다. Inception v3만 $299 \times 299$다. 그리고 이것은 취향이 아니라 **계약**이다 — 아래 상자가 보이듯 크기가 모자라면 이 등뼈는 오류를 낸다.
@@ -303,6 +304,9 @@ Inception v3은 $299 \times 299$를 넣으므로 화소가 VGG16의 $(299/224)^2
     **끼울 자리는 `maxpool2` 바로 뒤다.** 위 표의 32 열을 보면 그 자리에서 특징 맵이 $192 \times 1 \times 1$이 되고, 그다음 `Mixed_6a`가 터진다. 299를 넣었을 때 그 자리의 모양이 $192 \times 35 \times 35$이므로 $35 \times 35$로 맞추어 주면 된다.
 
     ```python
+    # 떼는 것이 아니라 **감싼다**. 원래의 maxpool2를 새 Sequential의 첫 칸에
+    # 그대로 두고 뒤에 적응 풀링을 덧붙이므로, 원래 하던 풀링은 그대로 일어나고
+    # 그 결과만 192x1x1 -> 192x35x35로 늘어난다.
     net.maxpool2 = nn.Sequential(net.maxpool2, nn.AdaptiveAvgPool2d((35, 35)))
     ```
 
