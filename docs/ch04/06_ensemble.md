@@ -10,11 +10,19 @@
 
 ## 1. 코드
 
+평균을 내는 곳은 아래 `ensemble()` 하나뿐이다. 나머지는 모두 그 함수에 넣을 **확률 다섯 장을 마련하는 일**이다.
+
 ```python
 """4.2절: 같은 모델을 씨앗만 바꾸어 다섯 번 학습하고 확률을 평균한다.
 
 seeds.py가 하던 것과 딱 한 군데가 다르다. 정확도만 적고 모델을 버리는
 대신, 시험 집합의 확률을 남겨 둔다.
+
+하는 일은 셋뿐이다.
+  (1) 씨앗 0~4로 같은 그물을 다섯 번 학습한다.
+  (2) 다섯이 시험 집합에 내놓은 확률 (10000, 10) 을 다섯 장 모아 둔다.
+  (3) 그 다섯 장을 겹쳐 모델 축으로 평균한다.
+새 구조도 새 자료도 없다. 달라지는 것은 torch.manual_seed 에 넣는 수 하나다.
 """
 
 import torch
@@ -25,9 +33,14 @@ from torch.utils.data import DataLoader, TensorDataset
 import torchvision
 import torchvision.transforms as transforms
 
+# === 규약 =====================================================
+# 4.1절과 같은 규약이되 에포크만 10이 아니라 5다. 한 모델을 길게 돌리는
+# 대신 다섯 모델을 짧게 돌리는 것이 이 절이 하는 거래다.
 BATCH, LR, EPOCHS = 100, 1e-3, 5
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
+# === 자료 =====================================================
+# CIFAR-10 채널별 평균과 표준편차로 정규화한다. 이 장이 쓰는 규약이다.
 tf = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))])
@@ -36,89 +49,181 @@ te_ds = torchvision.datasets.CIFAR10("./data", train=False, download=True, trans
 
 
 def materialize(ds):
+    """데이터셋 전체를 한 번에 텐서로 펼친다.
+
+    모델을 다섯 번 학습하므로, 그때마다 그림을 디코딩하고 transform 을
+    다시 거치면 같은 일을 다섯 번 하는 셈이다. 한 번만 해 두면 다섯 번의
+    학습이 그것을 돌려 쓴다. 시험 집합도 마찬가지인데 이쪽은 이유가 하나
+    더 있다 — 다섯 모델이 **똑같은 Xte 를 똑같은 순서로** 보아야 확률
+    다섯 장을 겹칠 수 있다.
+    """
     xs, ys = [], []
     for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
-        xs.append(x); ys.append(y)
+        xs.append(x)
+        ys.append(y)
     return torch.cat(xs), torch.cat(ys)
 
 
-Xtr, ytr = materialize(tr_ds)                  # (50000, 3, 32, 32)
-Xte, yte = materialize(te_ds)
+Xtr, ytr = materialize(tr_ds)   # (50000, 3, 32, 32), (50000,)
+Xte, yte = materialize(te_ds)   # (10000, 3, 32, 32), (10000,)
 
 
+# === 그물 =====================================================
 class CNN(nn.Module):
-    """4.1절 4걸음 그대로."""
+    """4.1절 4걸음 그대로. 매개변수 545,098개."""
 
     def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
+        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)    # 3채널 → 32채널
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)   # 32채널 → 64채널
+        self.pool = nn.MaxPool2d(2, 2)                 # 지날 때마다 변 길이 절반
         self.dropout = nn.Dropout(0.25)
-        self.fc1 = nn.Linear(64 * 8 * 8, 128)
-        self.fc2 = nn.Linear(128, 10)
+        self.fc1 = nn.Linear(64 * 8 * 8, 128)          # 4096 → 128
+        self.fc2 = nn.Linear(128, 10)                  # 128 → 10
 
-    def forward(self, x):
-        x = self.pool(torch.relu(self.conv1(x)))
-        x = self.pool(torch.relu(self.conv2(x)))
-        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+    def forward(self, x):                   # 들어올 때      (N, 3, 32, 32)
+        # 걸음 1 — 합성곱. padding=1 이라 3x3 을 걸어도 변 길이가 줄지 않는다.
+        x = self.conv1(x)                   # 채널만 3 → 32  (N, 32, 32, 32)
+        x = torch.relu(x)                   # 모양 그대로    (N, 32, 32, 32)
+        x = self.pool(x)                    # 변 길이 절반   (N, 32, 16, 16)
+
+        # 걸음 2 — 같은 것을 한 번 더. 채널은 늘고 변 길이는 준다.
+        x = self.conv2(x)                   # 채널만 32 → 64 (N, 64, 16, 16)
+        x = torch.relu(x)                   # 모양 그대로    (N, 64, 16, 16)
+        x = self.pool(x)                    # 변 길이 절반   (N, 64, 8, 8)
+
+        # 걸음 3 — 펴서 빽빽한 층으로. 64*8*8 = 4096 이 fc1 의 입력 크기다.
+        x = x.flatten(1)                    # 축 0(그림)은 둠 (N, 4096)
+        x = self.fc1(x)                     #               (N, 128)
+        x = torch.relu(x)                   # 모양 그대로    (N, 128)
+        x = self.dropout(x)                 # train() 일 때만 (N, 128)
+                                            #   끊는다. eval() 이면 그냥 통과
+
+        # 걸음 4 — 클래스 열 개로. 여기서 나오는 것은 **로짓**이다.
+        return self.fc2(x)                  # 나갈 때        (N, 10)
+                                            #   softmax 는 아직 아니다 —
+                                            #   학습은 crit 이, 시험은
+                                            #   test_probs 가 각각 씌운다
 
 
+# === 학습 =====================================================
 def train(seed, epochs=EPOCHS):
-    torch.manual_seed(seed)                     # 달라지는 것은 이것뿐이다
+    """씨앗 하나로 모델 하나를 학습해 **평가 모드로** 돌려준다."""
+    torch.manual_seed(seed)        # 달라지는 것은 이것뿐이다 — 가중치
+                                   # 초깃값과 드롭아웃 패턴이 여기서 갈린다
     model = CNN().to(device)
     opt = optim.Adam(model.parameters(), lr=LR)
-    crit = nn.CrossEntropyLoss()
+    crit = nn.CrossEntropyLoss()   # 로짓을 받아 안에서 log_softmax 를 한다.
+                                   # 그래서 forward 가 로짓을 내놓는 것이다
+
+    # 섞는 순서도 씨앗을 따라가도록 전용 난수기를 쓴다. 전역 난수기는 바로
+    # 위에서 가중치를 뽑느라 이미 소비되었으므로, 따로 두어야 "씨앗 s의
+    # 섞는 순서"가 무엇인지 분명해진다.
     g = torch.Generator().manual_seed(seed)
     loader = DataLoader(TensorDataset(Xtr, ytr), batch_size=BATCH,
                         shuffle=True, generator=g)
+
     for _ in range(epochs):
-        model.train()
+        model.train()              # 드롭아웃 켜기
         for x, y in loader:
             x, y = x.to(device), y.to(device)
             opt.zero_grad()
-            crit(model(x), y).backward()
+            loss = crit(model(x), y)
+            loss.backward()
             opt.step()
-    return model.eval()
+    return model.eval()            # 드롭아웃 끄기 — 아래 test_probs 가 이것에
+                                   # 기댄다. 켜 둔 채로 재면 모델마다 확률이
+                                   # 매번 달라져 겹칠 수가 없다
 
 
+# === 확률 남기기 ===============================================
 @torch.no_grad()
 def test_probs(model):
-    """시험 집합의 클래스 확률 (10000, 10).
+    """시험 집합 1만 장에 대한 클래스 확률 (10000, 10).
 
-    로짓이 아니라 softmax를 평균한다. 모델마다 로짓의 크기가 제멋대로라,
-    로짓을 평균하면 확신이 센 모델이 과도한 발언권을 갖는다.
+    행 하나가 그림 한 장이고 열 열 개가 클래스 열 개다. softmax 를 지났으니
+    **한 행의 합은 1**이다. 이 성질 하나가 아래 ensemble() 을 성립시킨다.
+
+    로짓이 아니라 확률을 남기는 까닭은 ensemble() 에 적었다.
+    1000장씩 끊는 것은 메모리 때문일 뿐 결과와는 무관하다.
     """
-    return torch.cat([torch.softmax(model(Xte[i:i + 1000].to(device)), 1).cpu()
-                      for i in range(0, len(Xte), 1000)])
+    chunks = []
+    for i in range(0, len(Xte), 1000):
+        logits = model(Xte[i:i + 1000].to(device))   # (1000, 10) 크기가 제멋대로
+        batch_probs = torch.softmax(logits, 1)       # (1000, 10) 행마다 합이 1
+        chunks.append(batch_probs.cpu())
+    return torch.cat(chunks)                         # (10000, 10)
+
+
+# === 평균 내기 — 이 절이 하는 일 전부 ==========================
+def ensemble(prob_list):
+    """확률 여러 장을 겹쳐 **모델 축으로** 평균한 (10000, 10).
+
+    왜 로짓이 아니라 확률인가.
+      로짓은 크기가 정해져 있지 않다. 어떤 모델은 [-2, 8] 을, 어떤 모델은
+      [-20, 30] 을 내놓으며, 둘이 나타내는 확신이 같아도 그럴 수 있다.
+      로짓을 그냥 평균하면 **수가 큰 모델이 평균을 끌고 간다.** 다섯 표를
+      걷는 것이 아니라 목소리 큰 하나를 따르는 셈이 된다.
+      softmax 를 지나면 다섯이 모두 합 1짜리 확률이 되므로 발언권이 같아진다.
+      그래서 평균할 것은 확률이다. (연습문제 1)
+    """
+    # (1) 다섯 장을 새 축 0에 쌓는다. 축 0이 "몇 번째 모델인가"가 된다.
+    stacked = torch.stack(prob_list)        # (5, 10000, 10)
+
+    # (2) 그 축 0으로 평균한다. 같은 그림 같은 클래스에 매긴 다섯 개의 확률이
+    #     하나로 합쳐진다. 축 1(그림)이나 축 2(클래스)로 평균하는 것도 문법
+    #     으로는 되지만 뜻이 전혀 다르다 — 고를 축은 하나뿐이다.
+    #     합이 1인 행 다섯을 평균했으므로 결과도 행의 합이 1이다. 즉 평균은
+    #     여전히 확률분포이고, 그래서 argmax 를 할 수 있다.
+    return stacked.mean(0)                  # (10000, 10)
+
+
+def predict(prob_matrix):
+    """확률 (N, 10) → 예측 클래스 (N,). 여기서 축 1은 **클래스** 축이다.
+
+    바로 위 mean(0) 의 0과 이 argmax(1) 의 1은 서로 다른 축을 가리킨다.
+    (5, 10000, 10) 에서 모델 축을 접고 나면 남는 것은 (10000, 10) 이고,
+    그 축 1이 클래스다.
+    """
+    return prob_matrix.argmax(1)
 
 
 def acc(pred):
+    """예측 (N,) 을 정답 yte 와 견준 정확도(%)."""
     return 100.0 * (pred == yte).float().mean().item()
 
 
-probs = []
+# === (1) 다섯 번 학습하고 확률을 모은다 ========================
+probs = []                                  # 길이 5, 원소마다 (10000, 10)
 for seed in range(5):
     m = train(seed)
-    probs.append(test_probs(m))
-    print(f"  씨앗 {seed}  {acc(probs[-1].argmax(1)):.2f}%", flush=True)
+    p = test_probs(m)                       # 이 모델이 본 1만 장의 확률
+    probs.append(p)
+    print(f"  씨앗 {seed}  {acc(predict(p)):.2f}%", flush=True)
 
-singles = [acc(p.argmax(1)) for p in probs]
+# === (2) 홑모델들은 어디쯤인가 =================================
+singles = [acc(predict(p)) for p in probs]
 print(f"\n홑모델 평균 {sum(singles) / 5:.2f}%  가장 좋은 것 {max(singles):.2f}%")
 
-# 몇 개를 모을 때까지 이득이 이어지는가
+# === (3) 몇 개를 모을 때까지 이득이 이어지는가 =================
+# probs[:k] 이므로 "k개"는 언제나 씨앗 0~k-1 이다. 잘한 순서로 고른 k개가
+# 아니다 — 고르기 시작하면 시험 집합을 보고 고르는 셈이 된다.
 print()
 for k in range(1, 6):
-    ens = torch.stack(probs[:k]).mean(0)
-    print(f"앙상블 {k}개  {acc(ens.argmax(1)):.2f}%")
+    ens = ensemble(probs[:k])               # (10000, 10)
+    print(f"앙상블 {k}개  {acc(predict(ens)):.2f}%")
 
-# 다양성 — 두 모델이 서로 다르게 답한 비율의 평균
-preds = torch.stack([p.argmax(1) for p in probs])
+# === (4) 다양성 — 두 모델이 서로 다르게 답한 비율의 평균 =======
+# preds 는 확률이 아니라 **답**을 쌓은 것이다. 축 0이 모델, 축 1이 그림.
+preds = torch.stack([predict(p) for p in probs])      # (5, 10000)
 dis = [100.0 * (preds[i] != preds[j]).float().mean().item()
-       for i in range(5) for j in range(i + 1, 5)]
+       for i in range(5) for j in range(i + 1, 5)]    # 쌍 10개
 print(f"\n서로 다르게 답한 비율 {sum(dis) / len(dis):.2f}%")
 
-# 천장 — 다섯 가운데 하나라도 맞힌 비율
+# === (5) 천장 — 다섯 가운데 하나라도 맞힌 비율 =================
+# (preds == yte) 는 (5, 10000) 짜리 참거짓표다. any(0) 이 모델 축을 접어
+# 그림마다 "다섯 중 하나라도 맞혔는가"만 남긴다. 어떤 결합 방식도 이 값을
+# 넘지 못하므로 천장이다.
 print(f"신탁 (하나라도 맞힌 비율) {100.0 * (preds == yte).any(0).float().mean():.2f}%")
 ```
 
