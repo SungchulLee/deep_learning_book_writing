@@ -82,11 +82,24 @@ net = densenet121(weights=None)          # 세기만 하므로 가중치는 필�
 print("denseblock1의 여섯 층 — 받는 채널과 매개변수")
 prev = 0
 for name, layer in net.features.denseblock1.named_children():
+    # layer.conv1 은 촘촘한 층의 1x1 병목이다. 그 in_channels 가 곧 "이 층이
+    # 읽는 것"이고, 층마다 32씩 자란다(64, 96, 128, ... = 성장률 32).
+    #
+    # 읽는 폭은 자라는데 증가분이 +4,160으로 일정한 까닭은 셈을 쪼개 보면 나온다.
+    # 촘촘한 층 하나는 norm1 -> relu1 -> conv1(1x1) -> norm2 -> relu2 -> conv2(3x3)다.
+    # 입력 채널이 32 늘 때 커지는 것은 앞의 둘뿐이다.
+    #   conv1 : 1x1 이므로 32 x 128 =  4,096 만 늘고
+    #   norm1 : 채널마다 둘이므로 2 x 32 =  64 만 늘고
+    #   conv2 : 언제나 128 -> 32 라 그대로
+    # 합이 4,160 이다. 비싼 3x3 을 1x1 **뒤에** 둔 덕이고, 그래서 층을 쌓는
+    # 값이 깊이에 따라 불어나지 않는다.
     n = sum(p.numel() for p in layer.parameters())
     print(f"  {name:12s} 입력 {layer.conv1.in_channels:>4}채널  출력 32채널  "
           f"{n:>7,}개" + (f"  (+{n - prev:,})" if prev else ""))
     prev = n
 
+# features 와 classifier 로 쪼개 적는 까닭은 아래 3절이 얼리는 것이
+# features 쪽뿐이기 때문이다. classifier 백만 개는 떼어 버린다
 whole = sum(p.numel() for p in net.parameters())
 feats = sum(p.numel() for p in net.features.parameters())
 head = sum(p.numel() for p in net.classifier.parameters())
@@ -126,10 +139,13 @@ denseblock1의 여섯 층 — 받는 채널과 매개변수
 - net = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).to(device).eval()
 - net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 + net = densenet121(weights=DenseNet121_Weights.IMAGENET1K_V1).to(device).eval()
++ # VGG16과 이름이 같은 classifier 지만 속이 다르다. VGG16은 층 일곱짜리
++ # Sequential 이라 잘라 다시 묶어야 했고, 이쪽은 Linear(1024, 1000) 하나라
++ # 통째로 Identity 로 갈아도 된다. 같은 이름에 속지 말 것
 + net.classifier = nn.Identity()
 
 - head = nn.Linear(4096, 10).to(device)
-+ head = nn.Linear(1024, 10).to(device)
++ head = nn.Linear(1024, 10).to(device)   # extract()가 (50000, 1024)를 돌려준다
 ```
 
 `extract()`가 돌려주는 것만 $(50000, 4096)$에서 $(50000, 1024)$로 바뀐다.
@@ -260,17 +276,30 @@ def cost(model):
     세는 관례와는 두 배 차이가 나지만, 아래에서 쓰는 것은 비뿐이다."""
     read = mac = 0
 
+    # 전방 후크는 층이 **실제로 돌 때** 불린다. 그래서 모양을 손으로 따라가지
+    # 않아도 되고, 이어 붙이기처럼 입력이 커지는 구조도 저절로 반영된다.
+    #   m = 그 층,  i = 입력 튜플,  o = 출력 텐서
     def hook(m, i, o):
         nonlocal read, mac
+        # i[0] 이 이 합성곱에 들어온 텐서다. DenseNet 에서는 이것이 앞의 모든
+        # 특징 맵을 이어 붙인 것이므로, 깊은 층일수록 이 수가 크다.
+        # 세고자 하는 것이 바로 그 "다시 읽는 양"이다
         read += i[0].numel()
-        h, w = o.shape[2:]
+        h, w = o.shape[2:]                     # 출력 자리의 개수
+        # 자리마다 (핵 크기 x 입력 채널 x 출력 채널) 번 곱한다.
+        # groups 로 나누는 까닭: 묶음 합성곱은 출력 채널 하나가 입력 전체가
+        # 아니라 in_channels/groups 개만 읽는다. DenseNet121 은 groups 가 모두
+        # 1이라 이 나눗셈이 아무 일도 하지 않지만, 아래에서 같은 함수로 재는
+        # MobileNetV3 는 groups 가 960까지 가므로 없으면 크게 부풀려 센다
         mac += (m.kernel_size[0] * m.kernel_size[1] * m.in_channels
                 * m.out_channels * h * w // m.groups)
 
+    # 후크를 모든 합성곱에 걸고, 한 장을 흘려 보내고, 다시 떼어 낸다.
+    # 떼지 않으면 모델에 남아 다음 호출에서도 더해진다
     hs = [m.register_forward_hook(hook) for m in model.modules()
           if isinstance(m, nn.Conv2d)]
     with torch.no_grad():
-        model(torch.randn(1, 3, 224, 224))
+        model(torch.randn(1, 3, 224, 224))     # 값은 쓰지 않는다. 모양만 쓴다
     for h in hs:
         h.remove()
     return read, mac
