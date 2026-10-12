@@ -146,10 +146,16 @@ $$\operatorname{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_h}}\right) V$$
 - net = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).to(device).eval()
 - net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 + net = vit_b_16(weights=ViT_B_16_Weights.IMAGENET1K_V1).to(device).eval()
++ # 머리가 한 겹 더 들어가 있다. heads 는 Sequential 이고 그 안에 head 라는
++ # 이름의 Linear(768, 1000) 하나가 들어 있어, net.heads.head 로 짚는다.
++ # net.heads = nn.Identity() 로 해도 돌아가지만 그러면 Sequential 째 날아간다.
++ #
++ # 여덟 등뼈 가운데 .eval() 이 가장 중요한 곳이 여기다 — nn.Dropout 이
++ # 서른일곱 개다. 빠뜨리면 뽑아 둔 특징이 가장 크게 망가진다
 + net.heads.head = nn.Identity()
 
 - head = nn.Linear(4096, 10).to(device)
-+ head = nn.Linear(768, 10).to(device)
++ head = nn.Linear(768, 10).to(device)   # extract()가 (50000, 768)을 돌려준다
 ```
 
 나머지는 글자 하나까지 같다. `Resize(224)`와 ImageNet 정규화, 특징을 한 번만 뽑아 두는 `extract()`, Adam $10^{-3}$, 5 에포크, 배치 100까지 그대로다.
@@ -171,6 +177,7 @@ torch.manual_seed(0)
 
 m = vit_b_16(weights=None)                     # 구조만 보므로 가중치가 필요 없다
 total = sum(p.numel() for p in m.parameters())
+# heads 안에 head 하나뿐이라 heads 전체를 세어도 머리만 센 것이 된다
 head1000 = sum(p.numel() for p in m.heads.parameters())
 
 m.heads.head = nn.Identity()                   # 1000갈래 머리를 뗀다
@@ -187,6 +194,12 @@ print(f"나오는 특징 모양          : {tuple(feat.shape)}")
 print(f"새 머리 Linear(768, 10)   : "
       f"{sum(p.numel() for p in nn.Linear(768, 10).parameters()):,}")
 
+#   앞의 CNN 등뼈들은 32를 넣어도 돌았다. 적응 평균 풀링이 어떤 크기든
+#   정해진 모양으로 접어 주기 때문이다. ViT 에는 그 자리가 없다 —
+#   224를 16으로 끊어 14x14 = 196 조각을 만들고, 거기에 CLS 토큰 하나를
+#   더한 197 자리에 맞추어 위치 임베딩을 학습해 두었다(모양 (1, 197, 768)).
+#   32를 넣으면 조각이 4개뿐이라 그 표에 맞을 수가 없고, 그래서 forward 가
+#   아예 들어오는 길목에서 막는다. Resize(224)가 이 등뼈의 계약이다
 try:                                           # 224가 아닌 것을 넣으면
     with torch.no_grad():
         m(torch.randn(1, 3, 32, 32))
