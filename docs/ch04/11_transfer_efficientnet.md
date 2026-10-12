@@ -67,11 +67,18 @@ import torchvision.models as M
 # 해상도 = 그 가중치가 학습된 입력 크기 (torchvision의 권장 자르기 크기)
 print(f"{'model':>5} {'depth':>6} {'width':>6} {'resolution':>11} {'params':>12}")
 for i in range(8):
+    # B0~B7 여덟을 이름으로 찾아 돈다. 함수와 가중치 열거형이 짝지어
+    # efficientnet_b3 / EfficientNet_B3_Weights 로 이름 지어져 있어 가능하다
     net = getattr(M, f"efficientnet_b{i}")(weights=None)
     weights = getattr(M, f"EfficientNet_B{i}_Weights").IMAGENET1K_V1
 
+    # type(m).__name__ 으로 견주는 까닭: MBConv 는 torchvision.models 에서
+    # 밖으로 내보내지 않는 클래스라 import 해 isinstance 로 쓸 수 없다.
+    # 비공개 경로를 파고드는 대신 이름으로 센다
     depth = sum(1 for m in net.modules() if type(m).__name__ == "MBConv")
-    width = net.classifier[1].in_features
+    width = net.classifier[1].in_features      # 분류기가 받는 차원 = 너비
+    # 권장 해상도는 가중치 꾸러미의 딸림 정보에 적혀 있다. transforms() 는
+    # 전처리 **설명**을 만들 뿐이라 가중치를 내려받지 않는다
     res = weights.transforms().crop_size[0]
     params = sum(p.numel() for p in net.parameters())
 
@@ -214,10 +221,15 @@ V1의 블록은 [11.1절 깊이별 분리 합성곱](../ch10/cnn/depthwise_separ
 - net = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).to(device).eval()
 - net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 + net = efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1).to(device).eval()
++ # classifier 는 Sequential(Dropout(0.2), Linear(1280, 1000)) 둘뿐이다.
++ # [1] 만 갈면 **마지막에 남는 것이 Dropout** 이다 — 4.6절 VGG16에서 [:-1] 이
++ # 남긴 것과 같은 자리다. 이 그물의 nn.Dropout 은 그 하나뿐이고, 켜진 채로
++ # 두면 뽑아 둔 1,280개 가운데 20%가 0이 되고 같은 그림에서 매번 다른 특징이
++ # 나온다. 위 .eval() 이 그것을 끈다 (더불어 StochasticDepth 열여섯 개도)
 + net.classifier[1] = nn.Identity()
 
 - head = nn.Linear(4096, 10).to(device)
-+ head = nn.Linear(1280, 10).to(device)
++ head = nn.Linear(1280, 10).to(device)   # extract()가 (50000, 1280)을 돌려준다
 ```
 
 전처리도, `extract()`도, 머리를 학습하는 고리도, 씨앗도 그대로다. **머리를 갈아 끼우는 방식만 다르다.**
