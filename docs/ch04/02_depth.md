@@ -164,10 +164,18 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(64 * 8 * 8, 128)
         self.fc2 = nn.Linear(128, 10)           # CIFAR-10 부류 10개
 
-    def forward(self, x):
+    def forward(self, x):                       # 들어올 때 (배치, 3, 32, 32)
+        # 합성곱 더미. 갈래마다 층 수도 필터 크기도 다르지만 **나오는 모양은
+        # 언제나 같다** — 합성곱은 padding='same' 이라 가로세로를 두고, 줄이는
+        # 것은 풀링 두 번뿐이기 때문이다. 아래 머리를 모든 갈래가 공유할 수
+        # 있는 것이 그 덕이고, 그래서 정확도 차이를 더미의 몫으로만 읽는다.
         x = self.features(x)                    # (배치, 64, 8, 8)
-        x = torch.relu(self.fc1(x.flatten(1)))  # (배치, 4096) -> (배치, 128)
-        return self.fc2(self.dropout(x))        # (배치, 10): 소프트맥스 전 점수(로짓)
+        x = x.flatten(1)                        # 64*8*8 = 4096 (배치, 4096)
+        x = self.fc1(x)                         #               (배치, 128)
+        x = torch.relu(x)                       # 모양 그대로   (배치, 128)
+        x = self.dropout(x)                     # train() 일 때만 끊는다.
+                                                # dropout=0 갈래는 Identity 라 그냥 통과
+        return self.fc2(x)                      # (배치, 10): 소프트맥스 전 점수(로짓)
 
 
 # =============================================================================
@@ -384,18 +392,24 @@ Files already downloaded and verified
     학습할 필요가 없고, 어차피 돌아가는 학습에 평가만 얹는 것이다.
 
     ```python
-    CHECK = [1] + list(range(5, 101, 5))       # 재는 지점
+    CHECK = [1] + list(range(5, 101, 5))       # 재는 지점: 1, 5, 10, ..., 100
 
-    @torch.no_grad()
+    @torch.no_grad()                            # 재기만 하므로 기울기는 필요 없다
     def acc(model, X, y, bs=1000):
+        # 드롭아웃을 꺼야 재는 값이 흔들리지 않는다. 다만 여기서 켜 두고
+        # 나가는데, 위 학습 반복문이 **에포크마다 첫 줄에서** model.train() 을
+        # 다시 부르기 때문에 다음 에포크는 제대로 켜진 채로 시작한다.
+        # 그 줄이 반복문 밖으로 나가면 이 함수가 학습을 조용히 망가뜨린다.
         model.eval()
         ok = sum((model(X[i:i+bs].to(device)).argmax(1).cpu() == y[i:i+bs]).sum().item()
                  for i in range(0, len(X), bs))
         return 100.0 * ok / len(X)
 
     for ep in range(1, NUM_EPOCHS + 1):
-        ...                                     # 한 에포크 학습
+        ...                                     # 한 에포크 학습 (model.train() 포함)
         if ep in CHECK:
+            # 학습 쪽도 같이 재야 틈(학습 - 시험)을 그릴 수 있다.
+            # 비싼 쪽은 이것이다 — 5만 장이라 한 에포크의 33.3%가 든다.
             curve.append(dict(epoch=ep,
                               train=acc(model, train_images, train_labels),   # 5만 장
                               test=acc(model, test_images, test_labels)))    # 1만 장
