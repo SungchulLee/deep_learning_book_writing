@@ -55,8 +55,20 @@ $$
 
 ## 3. 코드
 
+학습은 두 판으로 나뉜다. 먼저 **교사** 다섯을 4.2절 그대로 학습해 그 로짓을 받아 적고, 그 다음 **학생**을 여러 설정으로 학습해 견준다. 손실이 갈라지는 곳은 `train()` 안의 `if teacher_logits is None:` 한 군데뿐이다.
+
 ```python
-"""4.3절: 앙상블 다섯을 교사로 삼아 학생 한 모델에 옮긴다."""
+"""4.3절: 앙상블 다섯을 교사로 삼아 학생 한 모델에 옮긴다.
+
+4.2절과 달라지는 것은 둘이다.
+  (1) 교사의 로짓을 **학습 집합**에 대해 미리 받아 적는다. 4.2절은 시험
+      집합의 확률만 있으면 되었지만, 증류는 학생을 가르칠 때마다 교사의
+      답이 필요하므로 학습 집합 쪽이 있어야 한다.
+  (2) 손실이 하나 더 생긴다 — 라벨과 맞추는 항 말고, 교사의 분포와
+      맞추는 항. 둘을 alpha 로 섞는다.
+구조도 규약도 4.1절 4걸음 CNN 그대로다. 학생은 교사보다 작지 않다 —
+이 절이 옮기려는 것은 용량이 아니라 **앙상블이 아는 것**이다.
+"""
 
 import torch
 import torch.nn as nn
@@ -66,9 +78,13 @@ from torch.utils.data import DataLoader, TensorDataset
 import torchvision
 import torchvision.transforms as transforms
 
+# === 규약 =====================================================
+# 4.2절과 같다. EPOCHS 는 교사를 학습할 때 쓰고, 학생은 아래에서 5와 30을
+# 따로 넘겨 받는다 — 짧은 예산과 긴 예산에서 부호가 뒤집히는지 보려는 것이다.
 BATCH, LR, EPOCHS = 100, 1e-3, 5
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
+# === 자료 =====================================================
 tf = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))])
@@ -77,74 +93,130 @@ te_ds = torchvision.datasets.CIFAR10("./data", train=False, download=True, trans
 
 
 def materialize(ds):
+    """데이터셋 전체를 한 번에 텐서로 펼친다. (4.2절과 같다)
+
+    이 절은 모델을 스무 번 넘게 학습하므로 돌려 쓰는 값이 4.2절보다 크다.
+    그리고 아래 교사 로짓은 **행 번호로** 찾아 쓸 것이므로, Xtr 의 행 순서가
+    프로그램이 도는 내내 고정되어 있어야 한다. 여기서 한 번 정해지고 끝이다.
+    """
     xs, ys = [], []
     for x, y in DataLoader(ds, batch_size=2000, shuffle=False):
-        xs.append(x); ys.append(y)
+        xs.append(x)
+        ys.append(y)
     return torch.cat(xs), torch.cat(ys)
 
 
-Xtr, ytr = materialize(tr_ds)                  # (50000, 3, 32, 32)
-Xte, yte = materialize(te_ds)
+Xtr, ytr = materialize(tr_ds)   # (50000, 3, 32, 32), (50000,)
+Xte, yte = materialize(te_ds)   # (10000, 3, 32, 32), (10000,)
 
 
+# === 그물 — 교사도 학생도 이것 하나다 ==========================
 class CNN(nn.Module):
-    """4.1절 4걸음 그대로."""
+    """4.1절 4걸음 그대로. 매개변수 545,098개."""
 
     def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
+        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)    # 3채널 → 32채널
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)   # 32채널 → 64채널
+        self.pool = nn.MaxPool2d(2, 2)                 # 지날 때마다 변 길이 절반
         self.dropout = nn.Dropout(0.25)
-        self.fc1 = nn.Linear(64 * 8 * 8, 128)
-        self.fc2 = nn.Linear(128, 10)
+        self.fc1 = nn.Linear(64 * 8 * 8, 128)          # 4096 → 128
+        self.fc2 = nn.Linear(128, 10)                  # 128 → 10
 
-    def forward(self, x):
-        x = self.pool(torch.relu(self.conv1(x)))
-        x = self.pool(torch.relu(self.conv2(x)))
-        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+    def forward(self, x):                   # 들어올 때      (N, 3, 32, 32)
+        x = self.conv1(x)                   # 채널만 3 → 32  (N, 32, 32, 32)
+        x = torch.relu(x)                   # 모양 그대로    (N, 32, 32, 32)
+        x = self.pool(x)                    # 변 길이 절반   (N, 32, 16, 16)
+        x = self.conv2(x)                   # 채널만 32 → 64 (N, 64, 16, 16)
+        x = torch.relu(x)                   # 모양 그대로    (N, 64, 16, 16)
+        x = self.pool(x)                    # 변 길이 절반   (N, 64, 8, 8)
+        x = x.flatten(1)                    # 64*8*8 = 4096  (N, 4096)
+        x = self.fc1(x)                     #               (N, 128)
+        x = torch.relu(x)                   # 모양 그대로    (N, 128)
+        x = self.dropout(x)                 # train() 일 때만 (N, 128)
+        return self.fc2(x)                  # **로짓**이다   (N, 10)
+                                            #   온도는 바로 이 로짓에 건다
 
 
+# === 학습 — 교사와 학생이 같은 함수를 쓴다 =====================
 def train(seed, epochs, teacher_logits=None, T=1.0, alpha=1.0):
-    """teacher_logits가 없으면 평소의 하드 라벨 학습이다."""
-    torch.manual_seed(seed)
+    """teacher_logits가 없으면 평소의 하드 라벨 학습이다.
+
+    teacher_logits : (50000, 10) — 학습 집합 **전체**에 대한 교사의 로짓.
+                     None 이면 교사 없이 라벨만 보고 배운다 (= 기준선).
+    T              : 온도. 로짓을 T로 나누어 분포를 편다. T=1 이면 평소대로.
+    alpha          : 부드러운 항의 몫. 1.0 이면 라벨을 아예 보지 않는
+                     순수 증류, 0.5 면 절반씩 섞는다.
+    """
+    torch.manual_seed(seed)        # 가중치 초깃값과 드롭아웃 패턴이 여기서 갈린다
     model = CNN().to(device)
     opt = optim.Adam(model.parameters(), lr=LR)
-    g = torch.Generator().manual_seed(seed)
-    idx = torch.arange(len(Xtr))
+    g = torch.Generator().manual_seed(seed)   # 섞는 순서도 씨앗을 따라가게
+
+    # 자료에 **행 번호**를 함께 실어 보낸다. loader 가 섞어 버리므로, 배치로
+    # 돌아온 그림이 Xtr 의 몇 번째 행이었는지를 따로 들고 있지 않으면 그
+    # 그림에 대한 교사의 로짓을 찾을 수 없다. idx 가 그 길잡이다.
+    idx = torch.arange(len(Xtr))                        # (50000,)
     loader = DataLoader(TensorDataset(Xtr, ytr, idx), batch_size=BATCH,
                         shuffle=True, generator=g)
+
     for _ in range(epochs):
-        model.train()
-        for x, y, i in loader:
+        model.train()                       # 드롭아웃 켜기
+        for x, y, i in loader:              # x (100,3,32,32), y (100,), i (100,)
             x, y = x.to(device), y.to(device)
             opt.zero_grad()
-            sl = model(x)
+            sl = model(x)                   # 학생의 로짓 (100, 10)
+
             if teacher_logits is None:
+                # --- 기준선: 라벨만 본다. 정답 하나에 1, 나머지에 0 ---
                 loss = F.cross_entropy(sl, y)
             else:
+                # --- 증류: 교사의 분포를 함께 본다 ---
+                # i 로 이 배치에 해당하는 교사의 로짓만 꺼낸다 (100, 10).
+                # 섞인 순서를 그대로 따라가므로 행이 어긋나지 않는다.
                 tl = teacher_logits[i].to(device)
+
                 # 부드러운 항: 두 분포를 T로 펴서 KL을 잰다.
                 # T^2을 곱하는 까닭은 1/T로 펴면 기울기가 1/T^2로 줄기 때문이다.
                 # 곱하지 않으면 T를 올릴 때마다 학습률을 내린 것과 같아진다
-                soft = F.kl_div(F.log_softmax(sl / T, 1),
-                                F.softmax(tl / T, 1),
+                #
+                # F.kl_div 의 인자 자리가 비대칭이다. 첫째(학생)는 **로그**
+                # 확률을, 둘째(교사)는 그냥 확률을 받는다. 그래서 한쪽만
+                # log_softmax 이고 다른 쪽은 softmax 다 — 실수로 맞추면
+                # 조용히 다른 양을 재게 된다.
+                # reduction="batchmean" 은 배치 크기로만 나눈다. 기본값 "mean"
+                # 은 배치 x 클래스 = 1000 으로 나누어 KL 을 10분의 1로 줄인다.
+                soft = F.kl_div(F.log_softmax(sl / T, 1),   # 학생: 로그 확률
+                                F.softmax(tl / T, 1),       # 교사: 확률
                                 reduction="batchmean") * (T * T)
+
                 # 딱딱한 항: 평소의 교차 엔트로피
                 hard = F.cross_entropy(sl, y)
+
+                # 둘을 섞는다. alpha=1 이면 hard 는 계산만 하고 버려진다.
                 loss = alpha * soft + (1 - alpha) * hard
+
             loss.backward()
             opt.step()
-    return model.eval()
+    return model.eval()            # 드롭아웃 끄기 — 아래 logits_of 가 이것에 기댄다
 
 
+# === 재기 =====================================================
 @torch.no_grad()
 def logits_of(model, X):
+    """X 전체에 대한 로짓 (len(X), 10). 확률이 아니라 **로짓**을 돌려준다.
+
+    4.2절의 test_probs 는 softmax 까지 씌워 돌려주었다. 여기서 씌우지 않는
+    까닭은 쓰임이 둘이기 때문이다 — 교사의 로짓은 아래에서 평균한 뒤 T로
+    나누어야 하고, T를 거는 자리는 softmax **앞**이다. 미리 씌워 버리면
+    온도를 걸 수 없다.
+    """
     return torch.cat([model(X[i:i + 1000].to(device)).cpu()
                       for i in range(0, len(X), 1000)])
 
 
 def accuracy(model, X, y):
+    """정확도(%). argmax 는 단조라 softmax 를 씌우든 말든 답은 같다."""
     return 100.0 * (logits_of(model, X).argmax(1) == y).float().mean().item()
 
 
@@ -152,37 +224,56 @@ def accuracy(model, X, y):
 print("=== 교사 학습 ===")
 teachers = []
 for seed in range(5):
-    m = train(seed, EPOCHS)
+    m = train(seed, EPOCHS)        # teacher_logits 없이 = 평범한 하드 라벨 학습
     teachers.append(m)
     print(f"  씨앗 {seed}: 시험 {accuracy(m, Xte, yte):.2f}%", flush=True)
 
 # 두 가지로 모을 수 있다. 증류가 쓰는 것은 로짓 평균이다 — 온도가 로짓에 걸리므로
-L = torch.stack([logits_of(m, Xte) for m in teachers])
+# L 의 축 0은 모델(5), 축 1은 그림(10000), 축 2는 클래스(10)다.
+L = torch.stack([logits_of(m, Xte) for m in teachers])      # (5, 10000, 10)
+#   로짓 평균: 축 0을 접고 나서 끝. softmax 는 argmax 에 영향이 없으니 생략
 print(f"\n앙상블 (로짓 평균) {100.0 * (L.mean(0).argmax(1) == yte).float().mean():.2f}%")
+#   확률 평균: 축 2(클래스)로 softmax 를 먼저 씌우고 나서 축 0을 접는다.
+#   순서가 반대일 뿐인데 4.2절이 잰 바로 그 값이 나온다
 print(f"앙상블 (확률 평균) {100.0 * (torch.softmax(L, 2).mean(0).argmax(1) == yte).float().mean():.2f}%"
       "   <- 4.2절")
 
 # 교사의 로짓은 학습 집합에 대해 미리 한 번 계산해 둔다.
 # 교사는 얼려 두므로 다시 계산할 까닭이 없다
-TL = torch.stack([logits_of(m, Xtr) for m in teachers]).mean(0)
-TL1 = logits_of(teachers[0], Xtr)               # 대조군: 홑모델 교사
+# — 학생을 스무 번 넘게 학습하는 동안 이 두 텐서를 계속 돌려 쓴다.
+TL = torch.stack([logits_of(m, Xtr) for m in teachers]).mean(0)   # (50000, 10)
+TL1 = logits_of(teachers[0], Xtr)               # 대조군: 홑모델 교사 (50000, 10)
 
 
 # === 학생: 씨앗 셋으로 재고 퍼짐도 적는다 ===================================
 def measure(tag, epochs, **kw):
+    """같은 설정을 씨앗 10·11·12로 세 번 학습해 한 줄로 적는다.
+
+    한 번 돌린 값은 측정이 아니므로 셋을 돌려 평균과 퍼짐을 같이 적는다.
+    두 줄의 차이가 퍼짐보다 작으면 차이라고 말할 수 없다.
+
+    틈 = 학습 정확도 − 시험 정확도. 얼마나 외웠는지를 나타낸다.
+    씨앗 10을 한 번 더 학습하는데, train() 이 씨앗만으로 결정되므로 이것은
+    위 accs[0] 과 **같은 모델**이다. 다시 학습해 이번엔 Xtr 로 잴 뿐이다.
+    """
     accs = [accuracy(train(s, epochs, **kw), Xte, yte) for s in (10, 11, 12)]
     gap = accuracy(train(10, epochs, **kw), Xtr, ytr) - accs[0]
     print(f"  {tag:26s} 시험 {sum(accs) / 3:.2f}%  "
           f"퍼짐 {max(accs) - min(accs):.2f}  틈 {gap:5.2f}", flush=True)
 
 
+# 짧은 예산 — 온도를 올려 가며 본다. alpha=1.0 은 라벨을 아예 보지 않는 순수 증류
 print("\n=== 학생 5 에포크 ===")
 measure("하드 라벨만 (기준선)", 5)
 for T in (1, 3, 5):
     measure(f"앙상블 교사, T={T}", 5, teacher_logits=TL, T=T, alpha=1.0)
 measure("앙상블 교사, T=3, 하드 절반", 5, teacher_logits=TL, T=3, alpha=0.5)
+# 대조군 — 교사를 앙상블이 아니라 홑모델 하나로 바꾼다. 나머지는 모두 같다.
+# 이득이 "증류라서"가 아니라 "교사가 앙상블이라서" 나온 것인지 가린다
 measure("홑모델 교사, T=3 (대조군)", 5, teacher_logits=TL1, T=3, alpha=1.0)
 
+# 긴 예산 — 같은 설정을 30 에포크로. 짧은 예산에서 손해였던 것의 부호가
+# 여기서 뒤집히는지가 이 절의 물음이다
 print("\n=== 학생 30 에포크 ===")
 measure("하드 라벨만", 30)
 measure("앙상블 T=3, 하드 절반", 30, teacher_logits=TL, T=3, alpha=0.5)
