@@ -38,7 +38,18 @@
 바뀌는 것은 `transform` 하나뿐이다. 모델도 손실도 최적화기도 [4.1절](01_two_ladders.md) 4걸음 그대로다.
 
 ```python
-"""6걸음: 데이터 증강. 4.1절 4걸음의 CNN을 그대로 두고 transform만 바꾼다."""
+"""6걸음: 데이터 증강. 4.1절 4걸음의 CNN을 그대로 두고 transform만 바꾼다.
+
+이 절은 **변환 목록 하나만** 바꾼다. 그물도 규약도 손대지 않으므로, 정확도
+차이를 증강의 몫으로만 읽을 수 있다.
+
+이 쪽의 프로그램이 4.2~4.4절과 다르게 생긴 까닭이 하나 있다. 그쪽은 모두
+dataset_to_tensors / materialize 로 자료를 한 번 변환해 큰 텐서로 구워 두고
+돌려 썼다. 증강은 그 수법을 쓸 수 없다 — 무작위 자르기와 뒤집기는 **에포크
+마다 다시 걸려야** 하고, 구워 두면 한 번 뽑은 크롭이 끝까지 고정되어 증강이
+아니라 자료를 한 번 흔든 것이 된다. 그래서 여기서는 게으른 Dataset 을 그대로
+쓰고, 에포크마다 변환 비용을 치른다. 증강이 공짜가 아닌 첫째 까닭이다.
+"""
 
 import torch
 import torch.nn as nn
@@ -47,6 +58,8 @@ from torch.utils.data import DataLoader, Subset
 import torchvision
 import torchvision.transforms as transforms
 
+# 씨앗은 42 하나다. 이 쪽이 재는 것은 증강 있음과 없음의 **차이**이고, 그
+# 차이가 믿을 만한지는 4.1절이 같은 그물에서 잰 씨앗 퍼짐 0.89로 가늠한다.
 SEED, BATCH, LR = 42, 100, 1e-3
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 MEAN, STD = (0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)
@@ -60,18 +73,23 @@ plain = transforms.Compose([
 # 학습용 — 증강을 앞에 붙인다.
 # 순서가 중요하다. RandomCrop은 PIL 이미지에 걸리므로 ToTensor보다 앞에 온다
 aug = transforms.Compose([
+    # 32 -> 사방 4픽셀 덧대어 40x40 -> 거기서 32x32 를 무작위로 잘라 낸다.
+    # 그림이 최대 네 픽셀씩 흔들리는 셈이고, 나오는 크기는 그대로 32x32 다.
     transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
+    transforms.RandomHorizontalFlip(),      # 기본 p=0.5. 반은 좌우를 뒤집는다
     transforms.ToTensor(),
     transforms.Normalize(MEAN, STD),
 ])
 
 
 def datasets(use_aug):
+    """세 벌을 돌려준다. 같은 5만 장이 두 가지 변환으로 두 번 등장한다."""
     tr = torchvision.datasets.CIFAR10("./data", train=True, download=True,
                                       transform=aug if use_aug else plain)
     # 학습 정확도를 잴 때에도 plain을 쓴다. 증강된 그림으로 재면
     # "얼마나 외웠는가"를 알 수 없다
+    # — 잘리고 뒤집힌 그림을 맞히는 정확도는 외운 정도가 아니라 증강의
+    #   난이도를 재는 값이 된다. tr 과 tr_eval 은 같은 그림 같은 순서다.
     tr_eval = torchvision.datasets.CIFAR10("./data", train=True, download=True,
                                            transform=plain)
     te = torchvision.datasets.CIFAR10("./data", train=False, download=True,
@@ -84,22 +102,36 @@ class CNN(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
+        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)    # 3채널 → 32채널
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)   # 32채널 → 64채널
+        self.pool = nn.MaxPool2d(2, 2)                 # 지날 때마다 변 길이 절반
         self.dropout = nn.Dropout(0.25)
-        self.fc1 = nn.Linear(64 * 8 * 8, 128)
-        self.fc2 = nn.Linear(128, 10)
+        self.fc1 = nn.Linear(64 * 8 * 8, 128)          # 4096 → 128
+        self.fc2 = nn.Linear(128, 10)                  # 128 → 10
 
-    def forward(self, x):
-        x = self.pool(torch.relu(self.conv1(x)))
-        x = self.pool(torch.relu(self.conv2(x)))
-        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+    def forward(self, x):                   # 들어올 때      (N, 3, 32, 32)
+        x = self.conv1(x)                   # 채널만 3 → 32  (N, 32, 32, 32)
+        x = torch.relu(x)                   # 모양 그대로    (N, 32, 32, 32)
+        x = self.pool(x)                    # 변 길이 절반   (N, 32, 16, 16)
+        x = self.conv2(x)                   # 채널만 32 → 64 (N, 64, 16, 16)
+        x = torch.relu(x)                   # 모양 그대로    (N, 64, 16, 16)
+        x = self.pool(x)                    # 변 길이 절반   (N, 64, 8, 8)
+        x = x.flatten(1)                    # 64*8*8 = 4096  (N, 4096)
+        x = self.fc1(x)                     #               (N, 128)
+        x = torch.relu(x)                   # 모양 그대로    (N, 128)
+        x = self.dropout(x)                 # train() 일 때만 (N, 128)
+        return self.fc2(x)                  # 로짓           (N, 10)
 
 
 @torch.no_grad()
 def accuracy(model, ds, idx=None):
-    model.eval()
+    """ds 의 정확도(%). idx 가 주어지면 그 행들만 본다.
+
+    idx 는 **원본 데이터셋의 행 번호**다. 그래서 학습에 쓴 1,000장과 여기서
+    재는 1,000장이 정확히 같은 그림이 된다 — 학습은 Subset(tr, idx) 로 돌고
+    재기는 Subset(tr_eval, idx) 로 도는데, 둘의 행 순서가 같기 때문이다.
+    """
+    model.eval()                            # 드롭아웃 끄기
     if idx is not None:
         ds = Subset(ds, idx)
     correct = n = 0
@@ -110,30 +142,40 @@ def accuracy(model, ds, idx=None):
 
 
 def run(use_aug, epochs, n_label=None):
-    """n_label이 주어지면 학습 집합에서 그만큼만 쓴다."""
+    """n_label이 주어지면 학습 집합에서 그만큼만 쓴다.
+
+    n_label 이 켜지는 쪽이 이 절의 둘째 실험이다. 라벨이 적을 때 증강이
+    버는 몫은 5만 장일 때와 부호가 다르다.
+    """
     tr, tr_eval, te = datasets(use_aug)
     idx = None
     if n_label is not None:
         # 어느 부분집합을 고르는지도 고정해 둔다
+        # — 증강 있음과 없음이 **같은 1,000장**을 보아야 견줄 수 있다.
+        #   전역 난수기를 쓰면 아래 가중치 초기화와 뽑기 순서가 얽힌다.
         g = torch.Generator().manual_seed(SEED)
         idx = torch.randperm(len(tr), generator=g)[:n_label].tolist()
         tr = Subset(tr, idx)
 
-    torch.manual_seed(SEED)
+    torch.manual_seed(SEED)        # 가중치 초깃값과 드롭아웃 패턴
     model = CNN().to(device)
     opt = optim.Adam(model.parameters(), lr=LR)
-    crit = nn.CrossEntropyLoss()
-    g = torch.Generator().manual_seed(SEED)
+    crit = nn.CrossEntropyLoss()   # 로짓을 받아 안에서 소프트맥스를 한다
+    g = torch.Generator().manual_seed(SEED)   # 섞는 순서 (위 g 와는 딴 몸이다)
     loader = DataLoader(tr, batch_size=BATCH, shuffle=True, generator=g)
 
     for _ in range(epochs):
-        model.train()
-        for x, y in loader:
+        model.train()              # 드롭아웃 켜기. accuracy() 가 eval 로 두고
+                                   # 나가므로 이 줄이 반복문 안에 있어야 한다
+        for x, y in loader:        # 증강은 여기서 걸린다 — 에포크마다 새 크롭
             x, y = x.to(device), y.to(device)
             opt.zero_grad()
-            crit(model(x), y).backward()
+            loss = crit(model(x), y)
+            loss.backward()
             opt.step()
 
+    # 학습 쪽은 plain 으로 잰 tr_eval 에서, 시험 쪽은 te 에서.
+    # 틈 = 학습 - 시험 이 곧 "얼마나 외웠는가"다
     tr_acc = accuracy(model, tr_eval, idx)
     te_acc = accuracy(model, te)
     tag = "증강 있음" if use_aug else "증강 없음"
@@ -141,11 +183,14 @@ def run(use_aug, epochs, n_label=None):
           f"시험 {te_acc:5.2f}  틈 {tr_acc - te_acc:5.2f}", flush=True)
 
 
+# 실험 하나 — 라벨 5만 장. 짧은 예산(5)과 긴 예산(30)에서 부호가 뒤집히는가
 print("=== 전체 5만 장 ===")
 for epochs in (5, 30):
     for use_aug in (False, True):
         run(use_aug, epochs)
 
+# 실험 둘 — 라벨 1,000장. 자료가 모자랄 때로 옮기면 어떻게 되는가.
+# 한 에포크가 50분의 1이라 예산을 30, 100으로 키워도 싸다
 print("\n=== 라벨 1,000장 ===")
 for epochs in (30, 100):
     for use_aug in (False, True):
