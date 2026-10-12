@@ -133,10 +133,17 @@ ConvNeXt가 하는 일은 이 둘을 갈라 놓는 것이다. **지역성은 지
 - net = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).to(device).eval()
 - net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 + net = convnext_tiny(weights=ConvNeXt_Tiny_Weights.IMAGENET1K_V1).to(device).eval()
++ # classifier 는 Sequential(LayerNorm2d, Flatten, Linear(768, 1000)) 셋이고
++ # 머리는 [2] 하나다. **통째로 Identity 로 갈면 안 된다** — 벡터로 펴 주는
++ # Flatten 까지 함께 사라져 (N, 768, 1, 1) 이 나오고, 뒤의 Linear 가 터진다.
++ # 아래 3절이 그 오류를 그대로 찍어 둔다.
++ # 한편 .eval() 은 이 등뼈에서 끌 것이 없다 — 드롭아웃도 배치 정규화도 없고
++ # 층 정규화는 두 모드가 같다. 그래도 등뼈를 갈 때마다 세어 보지 않으려면
++ # 붙여 두는 편이 싸다
 + net.classifier[2] = nn.Identity()
 
 - head = nn.Linear(4096, 10).to(device)
-+ head = nn.Linear(768, 10).to(device)
++ head = nn.Linear(768, 10).to(device)   # extract()가 (50000, 768)을 돌려준다
 ```
 
 나머지는 글자 하나까지 같다. `Resize(224)`와 ImageNet 정규화, 특징을 한 번만 뽑아 두는 `extract()`, Adam $10^{-3}$, 5 에포크, 배치 100까지 그대로다.
@@ -182,7 +189,11 @@ print(m.classifier)
 # === 1. 트랜스포머에서 되돌려 온 자리를 센다 ================================
 convs = [x for x in m.modules() if isinstance(x, nn.Conv2d)]
 dw = [x for x in convs if x.groups > 1]        # groups > 1 이면 깊이별이다
+# 깊이별 열여덟 개가 모두 groups == in_channels == out_channels 인 끝 경우다.
+# MobileNet 쪽과 달리 이 그물의 깊이별에는 치우침이 있으므로 bias 도 센다
 w_dw = sum(x.weight.numel() + x.bias.numel() for x in dw)
+# 같은 자리를 표준 합성곱으로 두었다면. 49 = 7x7 을 박아 둔 것은 이 그물의
+# 깊이별 핵이 모두 7x7 이기 때문이고, 아래 "깊이별 핵 크기" 줄이 그것을 찍는다
 w_dense = sum(x.in_channels * x.out_channels * 49 + x.out_channels for x in dw)
 
 print(f"\n합성곱 {len(convs)}개 (그 가운데 깊이별 {len(dw)}개)")
@@ -404,6 +415,11 @@ def macs(model):
             total += (m.kernel_size[0] * m.kernel_size[1] * m.in_channels
                       * m.out_channels * h * w // m.groups)
         elif isinstance(m, nn.Linear):
+            # 고친 자리가 여기다. ConvNeXt 의 1x1 합성곱은 nn.Linear 로 적혀
+            # 있고 출력이 (N, H, W, C) 꼴이라, 자리마다 한 번씩 걸린다.
+            # o.numel() // o.shape[-1] 이 그 자리의 개수다 — 마지막 축이 특징
+            # 차원이므로 그것으로 나누면 N*H*W 가 남는다. MobileNet 쪽 판은
+            # 이 곱이 없어 한 번만 걸린다고 세므로 ConvNeXt 를 크게 낮춘다
             total += m.in_features * m.out_features * (o.numel() // o.shape[-1])
 
     hs = [m.register_forward_hook(hook) for m in model.modules()
