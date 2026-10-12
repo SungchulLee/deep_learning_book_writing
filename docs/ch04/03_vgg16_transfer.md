@@ -187,6 +187,15 @@ net = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).to(device).eval()
 # classifier의 마지막 Linear(4096, 1000)을 떼면 4096차원 특징이 나온다.
 # ImageNet의 1,000개 클래스 점수는 우리에게 쓸모가 없고, 그 직전 층이
 # "이 그림에 무엇이 있는가"를 4,096개 수로 적어 둔 것이다
+#
+# classifier 는 모듈 일곱이다.
+#   [0] Linear(25088, 4096)  [1] ReLU  [2] Dropout(0.5)
+#   [3] Linear(4096, 4096)   [4] ReLU  [5] Dropout(0.5)
+#   [6] Linear(4096, 1000)   <- 이것만 떼어 낸다
+# 그래서 [:-1] 뒤에 **마지막으로 남는 층이 Dropout(0.5)** 이다. 위 .eval()
+# 이 그토록 중요한 까닭이 이것이다 -- 켜진 채로 두면 뽑아 둔 특징 4,096개의
+# 절반이 0이 되고 나머지는 두 배로 불어난다. 떼는 층이 하나 적었더라면
+# 이 실수는 조용히 넘어갔을 것이다
 net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 
 
@@ -202,16 +211,25 @@ def extract(ds):
 
     num_workers=0인 까닭: macOS는 작업자 프로세스를 spawn으로 띄우므로
     스크립트를 다시 import 한다. __main__ 가드가 없으면 전체가 재실행된다.
+
+    net(x) 한 번에 일어나는 일 (배치 100 기준):
+        (100, 3, 224, 224)
+          -> features  (100, 512, 7, 7)     합성곱 열셋, 풀링 다섯
+          -> avgpool   (100, 512, 7, 7)     이미 7x7 이라 하는 일이 없다
+          -> flatten   (100, 25088)         512*7*7 = 25088
+          -> classifier(100, 4096)          위에서 머리를 뗀 덕에 4096 에서 멈춘다
     """
     loader = DataLoader(ds, batch_size=100, shuffle=False, num_workers=0)
     feats, labels = [], []
     for x, y in loader:                        # 여기서 비로소 Resize가 돈다.
         assert x.shape[1:] == (3, 224, 224)    # 3x32x32가 아니라 이것이 들어간다
-        feats.append(net(x.to(device)).cpu())
+        feats.append(net(x.to(device)).cpu())  # (100, 4096) 을 CPU 로 받아 쌓는다
         labels.append(y)
     return torch.cat(feats), torch.cat(labels)
 
 
+# 여기서 무거운 일이 끝난다. 아래 학습은 이 두 텐서만 보고 돌므로,
+# 에포크를 다섯 번 돌아도 VGG16 순전파는 더 일어나지 않는다
 X_train, y_train = extract(train_ds)           # (50000, 4096)
 X_test, y_test = extract(test_ds)              # (10000, 4096)
 
@@ -219,25 +237,31 @@ X_test, y_test = extract(test_ds)              # (10000, 4096)
 # 4,096개 특징을 10개 클래스로 잇는 선형 층 하나뿐이다.
 # 규약은 2걸음과 같다: CrossEntropyLoss + Adam(1e-3) + 5 에포크
 torch.manual_seed(42)
-head = nn.Linear(4096, 10).to(device)
+head = nn.Linear(4096, 10).to(device)          # 매개변수 4096*10 + 10 = 40,970
 opt = optim.Adam(head.parameters(), lr=1e-3)
-crit = nn.CrossEntropyLoss()
+crit = nn.CrossEntropyLoss()                   # 로짓을 받아 안에서 소프트맥스를 한다
 
 g = torch.Generator().manual_seed(42)          # 섞는 차례를 따로 고정한다
 loader = DataLoader(TensorDataset(X_train, y_train), batch_size=100,
                     shuffle=True, generator=g)
 
 for _ in range(5):
+    # head 는 Linear 하나뿐이라 드롭아웃도 배치 정규화도 없다. 곧 train() 과
+    # eval() 이 이 모델에는 아무 일도 하지 않는다 -- 습관으로 적어 둔 줄이다.
+    # 얼린 net 쪽의 .eval() 과 혼동하지 말 것. 그쪽은 반드시 필요하다
     head.train()
-    for xb, yb in loader:
+    for xb, yb in loader:                      # xb (100, 4096), yb (100,)
         xb, yb = xb.to(device), yb.to(device)
         opt.zero_grad()
-        crit(head(xb), yb).backward()
+        loss = crit(head(xb), yb)              # head(xb) 는 로짓 (100, 10)
+        loss.backward()
         opt.step()
 
 head.eval()
 with torch.no_grad():
-    pred = head(X_test.to(device)).argmax(1).cpu()
+    # 1만 장을 한 번에 넣는다. (10000, 4096) 짜리 float32 는
+    # 10000*4096*4바이트 = 156MiB 로, 한 덩이로 올려도 되는 크기다
+    pred = head(X_test.to(device)).argmax(1).cpu()   # (10000,)
 print(f"5걸음 정확도 {100.0 * (pred == y_test).float().mean():.2f}%")
 print(f"학습한 매개변수 {sum(p.numel() for p in head.parameters()):,}")
 ```
