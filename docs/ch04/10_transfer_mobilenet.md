@@ -139,10 +139,18 @@ from torchvision.models import mobilenet_v3_large
 net = mobilenet_v3_large(weights=None)          # 세기만 하므로 가중치는 필요 없다
 convs = [m for m in net.modules() if isinstance(m, nn.Conv2d)]
 dw = [m for m in convs if m.groups > 1]         # groups > 1 이면 깊이별이다
+# 엄밀히 말하면 groups > 1 은 "묶음 합성곱"이라는 뜻이고, 깊이별은 그 가운데
+# groups == in_channels == out_channels 인 끝 경우다. 이 그물에서는 묶음 합성곱
+# 열다섯 개가 모두 그 끝 경우라 둘을 구별할 필요가 없다.
 
+# bias 를 세지 않는 까닭: 이 그물의 합성곱은 뒤에 배치 정규화가 붙어 있어
+# 모두 bias=None 이다. 치우침이 있는 그물이라면 한 항을 더해야 한다
 w_all = sum(m.weight.numel() for m in convs)
 w_dw = sum(m.weight.numel() for m in dw)
 # 같은 모양을 표준 합성곱으로 두었다면 얼마였겠는가
+# 깊이별의 실제 가중치는 (in/groups) x out x k x k 이고 groups == in 이므로
+# out x k x k 로 줄어든다. 아래 식은 그 나눗셈을 지운 것, 곧 채널을 모두
+# 섞었을 때의 값이다. 두 값의 비가 곧 "쪼개서 아낀 배수"다
 w_dense = sum(m.in_channels * m.out_channels * m.kernel_size[0] * m.kernel_size[1]
               for m in dw)
 
@@ -199,10 +207,18 @@ print(f"그러면 합성곱 가중치 전체가 {w_all - w_dw + w_dense:,} "
 - net = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).to(device).eval()
 - net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 + net = mobilenet_v3_large(weights=MobileNet_V3_Large_Weights.IMAGENET1K_V1).to(device).eval()
++ # classifier 가 Sequential 이지만 VGG16처럼 잘라 묶지 않는다. 네 칸
++ # (Linear 960->1280, Hardswish, Dropout, Linear 1280->1000) 가운데 머리는
++ # [3] 하나이고, 앞의 셋은 등뼈에 속하므로 남겨야 한다.
++ #
++ # 통째로 Identity 로 갈아도 터지지는 않는다 — 1280이 아니라 960차원이
++ # 조용히 나올 뿐이다. 사전 학습된 Linear(960->1280) 를 건너뛴 값이므로
++ # 표의 1280 줄과 견줄 수 없는 다른 특징이다. 터져 주면 알아차리겠지만
++ # 이쪽은 그냥 돌아가므로 더 위험하다
 + net.classifier[3] = nn.Identity()
 
 - head = nn.Linear(4096, 10).to(device)
-+ head = nn.Linear(1280, 10).to(device)
++ head = nn.Linear(1280, 10).to(device)   # extract()가 (50000, 1280)을 돌려준다
 ```
 
 !!! note "왜 `fc`가 아니고 `classifier[3]`인가"
@@ -309,19 +325,34 @@ def macs(model):
     비뿐이고 비는 어느 쪽으로 세든 같다."""
     total = 0
 
+    # 전방 후크는 층이 실제로 돌 때 불린다. 그래서 출력 자리 수(h, w)를
+    # 손으로 따라가지 않아도 되고, 모델마다 다른 모양도 저절로 맞는다.
+    #   m = 그 층,  i = 입력 튜플,  o = 출력 텐서
     def hook(m, i, o):
         nonlocal total
         if isinstance(m, nn.Conv2d):
-            h, w = o.shape[2:]
+            h, w = o.shape[2:]                 # 출력 자리의 개수
+            # 자리마다 (핵 x 입력 채널 x 출력 채널) 번 곱한다.
+            # **이 쪽의 요점이 바로 // m.groups 다.** 깊이별 합성곱은 출력 채널
+            # 하나가 입력 전체가 아니라 in_channels/groups 개만 읽으며, 여기서는
+            # groups == in_channels 이므로 읽는 양이 채널 수만큼 줄어든다.
+            # 이 나눗셈을 빼면 MobileNet 을 표준 합성곱으로 세는 셈이 되어
+            # 아래 "셈의 비"가 1에 가깝게 나오고, 쪼갠 이야기가 사라진다
             total += (m.kernel_size[0] * m.kernel_size[1] * m.in_channels
                       * m.out_channels * h * w // m.groups)
         elif isinstance(m, nn.Linear):
+            # 선형층은 한 번 걸린다고 본다. VGG16과 MobileNet 의 분류기는
+            # 실제로 벡터 하나에 한 번씩만 걸리므로 맞다. 다만 1x1 합성곱을
+            # nn.Linear 로 적어 자리마다 거는 그물(ConvNeXt)에서는 이 줄이
+            # 크게 낮춰 세므로, 그 쪽에서는 자리 수를 곱해 고쳐야 한다
             total += m.in_features * m.out_features
 
+    # 후크를 걸고, 한 장을 흘려 보내고, 다시 떼어 낸다. 떼지 않으면 모델에
+    # 남아 다음 호출에서도 더해진다
     hs = [m.register_forward_hook(hook) for m in model.modules()
           if isinstance(m, (nn.Conv2d, nn.Linear))]
     with torch.no_grad():
-        model(torch.randn(1, 3, 224, 224))
+        model(torch.randn(1, 3, 224, 224))     # 값은 쓰지 않는다. 모양만 쓴다
     for h in hs:
         h.remove()
     return total
