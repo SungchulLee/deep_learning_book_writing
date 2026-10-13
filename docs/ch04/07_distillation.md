@@ -41,8 +41,10 @@ $T = 1$이면 평소 그대로이고, $T$를 키우면 분포가 고르게 퍼�
 손실은 두 항을 섞는다.
 
 $$
-L = \alpha \cdot T^2 \cdot \mathrm{KL}\!\left(p^{\text{학생}}_T \,\|\, p^{\text{교사}}_T\right) \;+\; (1 - \alpha)\cdot \mathrm{CE}(z^{\text{학생}}, y)
+L = \alpha \cdot T^2 \cdot \mathrm{KL}\!\left(p^{\text{교사}}_T \,\|\, p^{\text{학생}}_T\right) \;+\; (1 - \alpha)\cdot \mathrm{CE}(z^{\text{학생}}, y)
 $$
+
+$\mathrm{KL}$은 두 자리를 바꿀 수 없다. $\mathrm{KL}(t \,\|\, q) = \sum_i t_i \log(t_i / q_i)$이고, 앞자리가 **무게를 재는 쪽**이다. 증류에서는 교사가 앞에 선다 — 교사가 확률을 둔 곳마다 학생이 따라오지 않으면 벌을 받는다는 뜻이고, 그래서 교사가 작게나마 개에 둔 확률이 학생을 끌어당긴다. 자리를 바꾸면 학생이 확률을 둔 곳만 따지게 되어, 어두운 지식을 가져오려던 목적이 뒤집힌다.
 
 !!! warning "$T^2$을 빼먹으면 실험이 조용히 망가진다"
     부드러운 항의 기울기는 $1/T^2$에 비례해 줄어든다. 그런데 딱딱한 항 $\mathrm{CE}(z, y)$에는 $T$가 아예 없다.

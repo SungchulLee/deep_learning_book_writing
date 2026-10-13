@@ -25,12 +25,12 @@
 
 지식 증류의 목표는 두 성분을 아우른다.
 
-$$\mathcal{L}_{\text{KD}} = \alpha \mathcal{L}_{\text{CE}}(\mathbf{y}_s, \mathbf{y}) + (1-\alpha) \mathcal{L}_{\text{KL}}(\mathbf{p}_s, \mathbf{p}_t)$$
+$$\mathcal{L}_{\text{KD}} = \alpha \mathcal{L}_{\text{CE}}(\mathbf{y}_s, \mathbf{y}) + (1-\alpha) \mathcal{L}_{\text{KL}}(\mathbf{p}_t \,\|\, \mathbf{p}_s)$$
 
 여기서 각 기호는 다음과 같다.
 
 - $\mathcal{L}_{\text{CE}}$은 참 이름표 $\mathbf{y}$에 대한 교차 엔트로피 손실이다
-- $\mathcal{L}_{\text{KL}}$은 학생과 교사의 출력 사이의 쿨백-라이블러 발산이다
+- $\mathcal{L}_{\text{KL}}$은 교사의 출력에서 학생의 출력으로 잰 쿨백-라이블러 발산이다. KL은 비대칭이라 자리가 뜻을 바꾼다 — 교사가 앞에 선다
 - $\mathbf{p}_s, \mathbf{p}_t$은 부드럽게 한 확률 분포이다
 - $\alpha$은 지도의 원천을 다스리는 가중치 매개변수이다
 
@@ -44,7 +44,7 @@ $$\mathbf{p}_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}$$
 
 부드럽게 한 분포 사이의 KL 발산은 다음과 같다.
 
-$$D_{\text{KL}}(\mathbf{p}_s \| \mathbf{p}_t) = -\sum_i \mathbf{p}_t(T) \log \frac{\mathbf{p}_s(T)}{\mathbf{p}_t(T)}$$
+$$D_{\text{KL}}(\mathbf{p}_t \| \mathbf{p}_s) = \sum_i \mathbf{p}_t^{(i)}(T) \log \frac{\mathbf{p}_t^{(i)}(T)}{\mathbf{p}_s^{(i)}(T)}$$
 
 **온도의 효과**:
 

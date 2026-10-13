@@ -96,7 +96,10 @@ HuggingFace 앎 내리기 잣대.
                 수식:
                     soft_teacher = softmax(teacher_logits / T)
                     soft_student = log_softmax(student_logits / T)
-                    L_soft = KL(soft_student, soft_teacher) × T²
+                    L_soft = KL(p_teacher ‖ p_student) × T²
+                             = F.kl_div(soft_student, soft_teacher) × T²
+                             (KL은 비대칭이다. 수식에서는 교사가 앞이고,
+                              F.kl_div 에서는 학생이 첫 인자다 — 자리가 반대다)
                     L_hard = CE(student_logits, labels)
                     L = α × L_hard + (1 - α) × L_soft
                 """

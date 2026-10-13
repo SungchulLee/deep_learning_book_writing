@@ -162,7 +162,7 @@ where T is temperature (T > 1 makes distribution softer)
 L_total = α × L_hard + (1-α) × L_soft
 
 L_hard = CrossEntropy(y_student, y_true)
-L_soft = KL_divergence(p_student, p_teacher) × T²
+L_soft = KL_divergence(p_teacher ‖ p_student) × T²   (앞자리가 교사다)
 ```
 
 T² 항이 기울기의 크기 잣수를 메워 준다.
