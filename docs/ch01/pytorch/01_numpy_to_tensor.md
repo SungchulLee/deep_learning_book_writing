@@ -160,7 +160,7 @@ print(f"다시 CPU로    : {x_gpu.cpu().device}")
 다시 CPU로    : cpu
 ```
 
-`Expected all tensors to be on the same device`는 PyTorch를 쓰며 가장 자주 만나는 오류이다. 모델은 GPU에 올려 놓고 자료는 CPU에 둔 채로 넣으면 이 오류가 난다. **모델과 자료를 같은 장치로 보내는 것**이 학습 루프의 기본 규율이다.
+`Expected all tensors to be on the same device`는 PyTorch를 쓰며 가장 자주 만나는 오류이다. 모델은 GPU에 올려 놓고 데이터는 CPU에 둔 채로 넣으면 이 오류가 난다. **모델과 데이터를 같은 장치로 보내는 것**이 학습 루프의 기본 규율이다.
 
 ---
 
@@ -291,7 +291,7 @@ NumPy만으로 신경망을 학습시킬 수 있는가?
 
 **다룬 것** — 텐서가 배열에 무엇을 더했는가
 
-텐서는 `ndarray`에 **장치**와 **자동 미분**을 더한 것이다. 문법은 거의 그대로여서 NumPy를 알면 PyTorch의 절반은 이미 아는 셈이다.
+텐서는 `ndarray`에 **장치**와 **자동 미분**을 더한 것이다. 문법은 거의 그대로여서 NumPy를 알면 PyTorch의 절반은 이미 아는 계산이다.
 
 기억할 것은 셋이다. `from_numpy`와 `.numpy()`는 **메모리를 함께 쓴다**는 것, 계산에 참여하는 텐서는 **같은 장치**에 있어야 한다는 것, 그리고 `requires_grad=True`를 붙인 텐서에는 PyTorch가 미분을 대신 구해 준다는 것이다.
 

@@ -1,8 +1,8 @@
-# 소수 예시 트랜스포머
+# 퓨샷 트랜스포머
 
-트랜스포머 기반 소수 예시 학습. 자기 주의로 받침 집합과 물음 집합을 함께 다루는 오늘날의 접근법으로,
+트랜스포머 기반 퓨샷 학습. 셀프 어텐션로 받침 집합과 물음 집합을 함께 다루는 오늘날의 접근법으로,
 
-모자란 데이터나 서로 이어진 데이터에서 효율적으로 배우는 것은 오늘날 깊은 학습의 한가운데 놓인 어려움이다. 이 모듈은 모델이 앞선 앎을 살려 새 과제에 재빨리 맞추어 가게 하는 소수 예시 학습 기법을 보여 준다.
+모자란 데이터나 서로 이어진 데이터에서 효율적으로 배우는 것은 오늘날 깊은 학습의 한가운데 놓인 어려움이다. 이 모듈은 모델이 앞선 앎을 살려 새 과제에 재빨리 맞추어 가게 하는 퓨샷 학습 기법을 보여 준다.
 
 ## 1. 코드
 
@@ -280,18 +280,18 @@ Set embedding shape: torch.Size([1, 128])
 
 ## 2. 논의
 
-이 구현은 함께 어울려 온전한 소수 예시 학습 구조를 이루는 클래스 4개(`PositionalEncoding`, `TransformerFewShotClassifier`, `SetTransformer`, `MultiheadAttentionBlock`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
+이 구현은 함께 어울려 온전한 퓨샷 학습 구조를 이루는 클래스 4개(`PositionalEncoding`, `TransformerFewShotClassifier`, `SetTransformer`, `MultiheadAttentionBlock`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.
 
-여기서 보인 본새는 더 복잡한 상황으로도 자연스럽게 넓어진다. 초매개변수, 구조의 변형, 여러 데이터셋을 두고 실험해 보면 이해가 깊어지고 메타 학습 과제에 대한 실전 감각이 쌓인다.
+여기서 보인 본새는 더 복잡한 상황으로도 자연스럽게 넓어진다. 하이퍼파라미터, 구조의 변형, 여러 데이터셋을 두고 실험해 보면 이해가 깊어지고 메타 학습 과제에 대한 실전 감각이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-기본 초기화 상태의 `PositionalEncoding`에 든 학습 가능한 매개변수의 총 개수를 셈하라. 가중치와 편향을 모두 넣어 층별로 나누어 보여라.
+기본 초기화 상태의 `PositionalEncoding`에 든 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 보여라.
 
 </div>
 
@@ -315,12 +315,12 @@ Set embedding shape: torch.Size([1, 128])
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-자기 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 자기 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
 
 ---
 
@@ -342,8 +342,8 @@ Set embedding shape: torch.Size([1, 128])
 
 ## 정리하며
 
-**다룬 것** — 소수 예시 트랜스포머
+**다룬 것** — 퓨샷 트랜스포머
 
-이 구현은 함께 어울려 온전한 소수 예시 학습 구조를 이루는 클래스 4개(`PositionalEncoding`, `TransformerFewShotClassifier`, `SetTransformer`, `MultiheadAttentionBlock`)를 정한다.
+이 구현은 함께 어울려 온전한 퓨샷 학습 구조를 이루는 클래스 4개(`PositionalEncoding`, `TransformerFewShotClassifier`, `SetTransformer`, `MultiheadAttentionBlock`)를 정한다.
 
 핵심 클래스는 `PositionalEncoding`, `TransformerFewShotClassifier`, `SetTransformer`, `MultiheadAttentionBlock`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

@@ -1,8 +1,8 @@
-# 자기 되돌이 모델
+# 자기회귀 모델
 
-시계열을 위한 자기 되돌이 모델. 이 단원은 PyTorch로 단순한 AR(p) 모델을 짠다.
+시계열을 위한 자기회귀 모델. 이 단원은 PyTorch로 단순한 AR(p) 모델을 짠다.
 
-자기 되돌이 모델은 앞선 모든 낱개를 조건으로 삼아 낱개마다 미리 헤아려 자료를 만든다. 이 단원은 자기 되돌이 모델 부품의 짜기를 보이며 차례대로 만들어 내는 과정과 그 구조의 요구를 그려 보인다.
+자기회귀 모델은 앞선 모든 낱개를 조건으로 삼아 낱개마다 미리 헤아려 데이터를 만든다. 이 단원은 자기회귀 모델 부품의 짜기를 보이며 차례대로 만들어 내는 과정과 그 구조의 요구를 그려 보인다.
 
 ## 1. 코드
 
@@ -286,16 +286,16 @@ Number of parameters: 1281
 
 ## 2. 논의
 
-이 짜기는 갈래 2개(`ARModel`, `NeuralARModel`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 구조를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 셈 그래프를 뜻매김한다.
+이 짜기는 갈래 2개(`ARModel`, `NeuralARModel`)를 뜻매김하며 이들이 함께 온전한 자기회귀 모델 구조를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 계산 그래프를 뜻매김한다.
 
-여기서 보인 결은 더 복잡한 경우로 자연스럽게 넓혀진다. 웃매개변수와 구조 변형, 여러 자료 묶음을 실험하면 만들어 내는 모델 일에 대한 이해가 깊어지고 실제 직관이 쌓인다.
+여기서 보인 결은 더 복잡한 경우로 자연스럽게 넓혀진다. 웃매개변수와 구조 변형, 여러 데이터셋을 실험하면 생성 모델 일에 대한 이해가 깊어지고 실제 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫자리매김에서 `ARModel`의 배울 수 있는 매개변수 총수를 셈하라. 무게와 치우침을 모두 넣어 층별로 나누어 적어라.
+기본 첫자리매김에서 `ARModel`의 배울 수 있는 매개변수 총수를 계산하라. 무게와 편향을 모두 넣어 층별로 나누어 적어라.
 
 </div>
 
@@ -312,7 +312,7 @@ Number of parameters: 1281
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 
@@ -342,12 +342,12 @@ Number of parameters: 1281
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이하라. (여느 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 PyTorch가 모든 매개변수를 가장 좋게 하기에 등록한다. `for n in [2, 4, 8]: model = ARModel(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험하라.
+    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이하라. (여느 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 PyTorch가 모든 매개변수를 최적화에 등록한다. `for n in [2, 4, 8]: model = ARModel(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험하라.
 
 ## 정리하며
 
-**다룬 것** — 자기 되돌이 모델
+**다룬 것** — 자기회귀 모델
 
-이 짜기는 갈래 2개(`ARModel`, `NeuralARModel`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 구조를 이룬다.
+이 짜기는 갈래 2개(`ARModel`, `NeuralARModel`)를 뜻매김하며 이들이 함께 온전한 자기회귀 모델 구조를 이룬다.
 
 핵심 갈래는 `ARModel`, `NeuralARModel`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

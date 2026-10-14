@@ -6,7 +6,7 @@
 
     $$\text{Cross-Entropy Loss} = \text{Negative Log-Likelihood of Categorical Distribution}$$
     
-    교차 엔트로피 손실로 분류기를 학습시킬 때 당신은 범주형 가능도 아래에서 최대가능도 추정을 하고 있는 것이다.
+    교차 엔트로피 손실로 분류기를 학습시킬 때 당신은 범주형 우도 아래에서 최대가능도 추정을 하고 있는 것이다.
 
 ---
 
@@ -14,7 +14,7 @@
 
 ### 확률 모델
 
-이진 분류에서는 이름표를 베르누이 확률변수로 모형화한다.
+이진 분류에서는 레이블을 베르누이 확률변수로 모델링한다.
 
 $$
 y | x \sim \text{Bernoulli}(\sigma(f_\theta(x)))
@@ -24,7 +24,7 @@ $$
 
 ### 유도
 
-$\hat{p} = \sigma(f_\theta(x))$일 때 관측 하나의 **가능도**는 다음과 같다.
+$\hat{p} = \sigma(f_\theta(x))$일 때 관측 하나의 **우도**는 다음과 같다.
 
 $$
 p(y | x, \theta) = \hat{p}^{\,y} \cdot (1 - \hat{p})^{1-y}
@@ -44,7 +44,7 @@ $$
 
 ### 왜 시그모이드인가?
 
-시그모이드 함수는 로그 승산(로짓) 매개화에서 자연스럽게 나온다. 로그 승산을 선형 함수로 모형화하면 다음과 같다.
+시그모이드 함수는 로그 승산(로짓) 매개화에서 자연스럽게 나온다. 로그 승산을 선형 함수로 모델링하면 다음과 같다.
 
 $$
 \log \frac{p}{1-p} = f_\theta(x) \implies p = \sigma(f_\theta(x))
@@ -82,7 +82,7 @@ $$
 
 ### 유도
 
-정답 클래스에서 $y_k = 1$인 원-핫 이름표 $\mathbf{y} = (y_1, \ldots, y_K)$에 대해 다음이 성립한다.
+정답 클래스에서 $y_k = 1$인 원-핫 레이블 $\mathbf{y} = (y_1, \ldots, y_K)$에 대해 다음이 성립한다.
 
 $$
 p(\mathbf{y} | x, \theta) = \prod_{k=1}^{K} \hat{p}_k^{y_k}
@@ -94,7 +94,7 @@ $$
 -\log p(\mathbf{y} | x, \theta) = -\sum_{k=1}^{K} y_k \log \hat{p}_k
 $$
 
-$c_i$이 정답 클래스인 딱딱한 이름표에서는 이것이 $-\log \hat{p}_{c_i}$으로 간단해진다. **범주형 교차 엔트로피** 손실은 다음과 같다.
+$c_i$이 정답 클래스인 딱딱한 레이블에서는 이것이 $-\log \hat{p}_{c_i}$으로 간단해진다. **범주형 교차 엔트로피** 손실은 다음과 같다.
 
 $$
 \boxed{\mathcal{L}_{\text{CE}} = -\frac{1}{n}\sum_{i=1}^{n} \log \hat{p}_{i, c_i}}
@@ -122,11 +122,11 @@ $$
 
 ---
 
-## 3. 이름표 평활화
+## 3. 레이블 평활화
 
 ### 동기
 
-딱딱한 원-핫 이름표는 모델이 극단적인 로짓을 내도록(소프트맥스 출력을 0이나 1 쪽으로 밀도록) 부추긴다. **이름표 평활화**는 딱딱한 이름표를 혼합으로 대체한다.
+딱딱한 원-핫 레이블은 모델이 극단적인 로짓을 내도록(소프트맥스 출력을 0이나 1 쪽으로 밀도록) 부추긴다. **레이블 평활화**는 딱딱한 레이블을 혼합으로 대체한다.
 
 $$
 y_k^{\text{smooth}} = (1 - \epsilon) \cdot y_k + \frac{\epsilon}{K}
@@ -136,11 +136,11 @@ $$
 
 ### MLE의 관점에서의 해석
 
-이름표 평활화는 혼합 분포 아래의 MLE와 같다. 확률 $(1 - \epsilon)$으로 이름표가 정확하고, 확률 $\epsilon$으로 이름표가 모든 클래스에서 균등하게 뽑힌다. 이는 모델이 덜 확신하는 예측을 하도록 정칙화한다.
+레이블 평활화는 혼합 분포 아래의 MLE와 같다. 확률 $(1 - \epsilon)$으로 레이블이 정확하고, 확률 $\epsilon$으로 레이블이 모든 클래스에서 균등하게 뽑힌다. 이는 모델이 덜 확신하는 예측을 하도록 정칙화한다.
 
 ---
 
-## 4. 다중 이름표 분류
+## 4. 다중 레이블 분류
 
 각 표본이 여러 클래스에 독립적으로 속할 수 있으면 모델은 독립인 베르누이 분포들의 곱이 된다.
 
@@ -288,12 +288,12 @@ def train_classification_mle_perspective():
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-초점 손실 $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고, $\gamma = 0$일 때 표준 교차 엔트로피로 환원됨을 보여라.
+Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고, $\gamma = 0$일 때 표준 교차 엔트로피로 환원됨을 보여라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    정답 클래스 확률 $p_t$에 대한 표준 교차 엔트로피는 $\text{CE}(p_t) = -\log(p_t)$이다. 초점 손실은 여기에 조절 인수를 더한다.
+    정답 클래스 확률 $p_t$에 대한 표준 교차 엔트로피는 $\text{CE}(p_t) = -\log(p_t)$이다. Focal Loss은 여기에 조절 인수를 더한다.
 
     $$
     \text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)
@@ -308,12 +308,12 @@ def train_classification_mle_perspective():
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-10개 클래스 문제에서 매개변수 $\epsilon = 0.1$인 이름표 평활화를 구현하고, 신뢰도 그림으로 딱딱한 이름표와 보정 정도를 비교하라.
+10개 클래스 문제에서 매개변수 $\epsilon = 0.1$인 레이블 평활화를 구현하고, 신뢰도 그림으로 딱딱한 레이블과 보정 정도를 비교하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이름표 평활화를 쓰면 목표 분포가 $y_k' = (1-\epsilon)y_k + \epsilon/K$이 된다. 여기서 $K$은 클래스의 개수이다.
+    레이블 평활화를 쓰면 목표 분포가 $y_k' = (1-\epsilon)y_k + \epsilon/K$이 된다. 여기서 $K$은 클래스의 개수이다.
 
     ```python
     import torch
@@ -327,7 +327,7 @@ def train_classification_mle_perspective():
         smooth = -log_probs.mean(dim=-1)
         return ((1 - epsilon) * nll + epsilon * smooth).mean()
     ```
-    이름표 평활화는 지나치게 확신에 찬 예측을 막고 보통 보정을 개선한다. 신뢰도 그림에서 예측 확률이 관측 빈도와 더 잘 맞는 것을 볼 수 있다.
+    레이블 평활화는 지나치게 확신에 찬 예측을 막고 보통 보정을 개선한다. 신뢰도 그림에서 예측 확률이 관측 빈도와 더 잘 맞는 것을 볼 수 있다.
 
 ---
 
@@ -357,7 +357,7 @@ def train_classification_mle_perspective():
 </div>
 
 ??? success "연습문제 4 풀이"
-    누적 확률을 모형화한다. 문턱값 $\theta_1 < \theta_2 < \cdots < \theta_{K-1}$에 대해 $P(Y \leq k | x) = \sigma(\theta_k - f(x))$이다.
+    누적 확률을 모델링한다. 문턱값 $\theta_1 < \theta_2 < \cdots < \theta_{K-1}$에 대해 $P(Y \leq k | x) = \sigma(\theta_k - f(x))$이다.
 
     클래스 확률: $P(Y = k) = P(Y \leq k) - P(Y \leq k-1)$이다.
 
@@ -376,7 +376,7 @@ def train_classification_mle_perspective():
 
 ## 정리하며
 
-이 마당은 이진 분류: 베르누이 MLE에서 나오는 BCE, 다중 클래스 분류: 범주형 MLE에서 나오는 교차 엔트로피, 이름표 평활화, 다중 이름표 분류를 차례로 짚었다.
+이 마당은 이진 분류: 베르누이 MLE에서 나오는 BCE, 다중 클래스 분류: 범주형 MLE에서 나오는 교차 엔트로피, 레이블 평활화, 다중 레이블 분류를 차례로 짚었다.
 
 **참고 문헌**
 

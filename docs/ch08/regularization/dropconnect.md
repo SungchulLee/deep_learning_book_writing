@@ -458,7 +458,7 @@ def train_with_dropconnect(
 | 연산 | 드롭아웃 | 드롭커넥트 |
 |-----------|---------|-------------|
 | 마스크의 크기 | $d_{\text{in}}$ | $d_{\text{in}} \times d_{\text{out}}$ |
-| 마스크 뽑기 | $O(d_{\text{in}})$ | $O(d_{\text{in}} \times d_{\text{out}})$ |
+| 마스크 샘플링 | $O(d_{\text{in}})$ | $O(d_{\text{in}} \times d_{\text{out}})$ |
 | 메모리 부담 | 무시할 만함 | 가중치 행렬에 비례 |
 | 추론 | 표준과 같음 | 표준과 같음 |
 

@@ -1,6 +1,6 @@
 # 베이즈 선형 회귀
 
-베이즈 선형 회귀는 모형 매개변수에 앞확률 분포를 얹고 온전한 뒤확률 분포를 셈하여 고전 선형 회귀를 넓힌다. 점 어림값을 내놓는 빈도주의 회귀와 달리 베이즈 길은 뒤확률로 불확실함을 정확히 재며, 예측 분포가 관측 잡음과 매개변수 불확실함을 모두 저절로 담는다.
+베이즈 선형 회귀는 모델 매개변수에 사전확률 분포를 얹고 온전한 사후확률 분포를 셈하여 고전 선형 회귀를 넓힌다. 점 어림값을 내놓는 빈도주의 회귀와 달리 베이즈 길은 사후확률로 불확실성을 정확히 재며, 예측 분포가 관측 잡음과 매개변수 불확실성을 모두 저절로 담는다.
 
 ## 1. 코드
 
@@ -173,18 +173,18 @@ Next: Module 10 - Advanced Applications
 
 ## 2. 논의
 
-베이즈 선형 회귀 모형은 $\varepsilon \sim N(0, \sigma^2 I)$인 $y = X\beta + \varepsilon$을 가정하고 정규 앞확률 $\beta \sim N(m_0, V_0)$을 둔다. 뒤확률은 켤레 정규다. 곧 $\beta | y \sim N(m_n, V_n)$이며 $V_n = (V_0^{-1} + \sigma^{-2} X^T X)^{-1}$이고 $m_n = V_n(V_0^{-1} m_0 + \sigma^{-2} X^T y)$이다.
+베이즈 선형 회귀 모델은 $\varepsilon \sim N(0, \sigma^2 I)$인 $y = X\beta + \varepsilon$을 가정하고 정규 사전확률 $\beta \sim N(m_0, V_0)$을 둔다. 사후확률은 켤레 정규다. 곧 $\beta | y \sim N(m_n, V_n)$이며 $V_n = (V_0^{-1} + \sigma^{-2} X^T X)^{-1}$이고 $m_n = V_n(V_0^{-1} m_0 + \sigma^{-2} X^T y)$이다.
 
-핵심 이점은 예측 분포다. 새 들임 $x_*$에 대해 예측은 $y_* | y \sim N(x_*^T m_n, \sigma^2 + x_*^T V_n x_*)$을 따른다. 덧붙은 마디 $x_*^T V_n x_*$이 매개변수 불확실성을 담아, 자료가 성긴 자리에서 예측 구간을 넓혀 불확실성 눈금을 저절로 맞춘다.
+핵심 이점은 예측 분포다. 새 입력 $x_*$에 대해 예측은 $y_* | y \sim N(x_*^T m_n, \sigma^2 + x_*^T V_n x_*)$을 따른다. 덧붙은 마디 $x_*^T V_n x_*$이 매개변수 불확실성을 담아, 데이터가 성긴 자리에서 예측 구간을 넓혀 불확실성 눈금을 저절로 맞춘다.
 
-코드는 인공 자료를 만들고, 약하게 알려 주는 앞확률로 뒤확률을 해석적으로 셈하며, 뒤확률 평균 예측과 95% 예측 구간을 함께 그린다. $\beta$의 뒤확률 표본을 뽑으면 그럴듯한 회귀 직선의 무리가 보인다. 앞확률이 정칙화 노릇을 하며, $V_0 = \lambda^{-1} I$이면 베이즈 회귀가 능선 회귀와 이어진다.
+코드는 인공 데이터를 만들고, 약하게 알려 주는 사전확률로 사후확률을 해석적으로 셈하며, 사후확률 평균 예측과 95% 예측 구간을 함께 그린다. $\beta$의 사후확률 표본을 뽑으면 그럴듯한 회귀 직선의 무리가 보인다. 사전확률이 정칙화 노릇을 하며, $V_0 = \lambda^{-1} I$이면 베이즈 회귀가 능선 회귀와 이어진다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-$y = \sin(x) + \varepsilon$에서 만든 자료에 대해 차수 3의 베이즈 다항 회귀를 짜라. 예측 평균과 95% 믿음 구간을 그려라.
+$y = \sin(x) + \varepsilon$에서 만든 데이터에 대해 차수 3의 베이즈 다항 회귀를 짜라. 예측 평균과 95% 믿음 구간을 그려라.
 
 </div>
 
@@ -221,12 +221,12 @@ plt.show()
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-앞확률이 $\beta \sim N(0, \lambda^{-1}I)$일 때 베이즈 뒤확률 평균이 능선 회귀 어림값과 같음을 보여라.
+사전확률이 $\beta \sim N(0, \lambda^{-1}I)$일 때 베이즈 사후확률 평균이 능선 회귀 어림값과 같음을 보여라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    뒤확률 평균은 $m_n = V_n(\sigma^{-2}X^Ty) = (\lambda I + \sigma^{-2}X^TX)^{-1}\sigma^{-2}X^Ty$이다. 분자와 분모에 $\sigma^2$을 곱하면 $m_n = (\lambda\sigma^2 I + X^TX)^{-1}X^Ty$이다. 이는 능선 회귀 풀이 $\hat{\beta}_{\text{ridge}} = (X^TX + \lambda\sigma^2 I)^{-1}X^Ty$과 꼭 같으므로 둘이 같음이 세워진다. $\square$
+    사후확률 평균은 $m_n = V_n(\sigma^{-2}X^Ty) = (\lambda I + \sigma^{-2}X^TX)^{-1}\sigma^{-2}X^Ty$이다. 분자와 분모에 $\sigma^2$을 곱하면 $m_n = (\lambda\sigma^2 I + X^TX)^{-1}X^Ty$이다. 이는 능선 회귀 풀이 $\hat{\beta}_{\text{ridge}} = (X^TX + \lambda\sigma^2 I)^{-1}X^Ty$과 꼭 같으므로 둘이 같음이 세워진다. $\square$
 
 
 ---
@@ -234,7 +234,7 @@ plt.show()
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-단순 선형 회귀에서 베이즈 예측 구간의 너비를 빈도주의 예측 구간과 견주어라. 자료점 30개를 만들고 시험 자리 100곳에서 둘 다 셈하여라.
+단순 선형 회귀에서 베이즈 예측 구간의 너비를 빈도주의 예측 구간과 비교하여라. 자료점 30개를 만들고 시험 자리 100곳에서 둘 다 계산하여라.
 
 </div>
 
@@ -268,12 +268,12 @@ freq_width = 2*stats.t.ppf(0.975, n-2)*np.sqrt(s2*(1+np.sum((X_td@np.linalg.inv(
 print(f'Mean Bayesian width: {np.mean(bayes_width):.3f}')
 print(f'Mean Frequentist width: {np.mean(freq_width):.3f}')
 ```
-약하게만 알려 주는 앞확률을 쓰면 두 길은 아주 비슷한 구간을 내놓는다. 앞확률이 불확실함을 조금 더 보태므로 베이즈 구간이 살짝 더 넓다.
+약하게만 알려 주는 사전확률을 쓰면 두 길은 아주 비슷한 구간을 내놓는다. 사전확률이 불확실성을 조금 더 보태므로 베이즈 구간이 살짝 더 넓다.
 
 ## 정리하며
 
 **다룬 것** — 베이즈 선형 회귀
 
-베이즈 선형 회귀 모형은 $\varepsilon \sim N(0, \sigma^2 I)$인 $y = X\beta + \varepsilon$을 가정하고 정규 앞확률 $\beta \sim N(m_0, V_0)$을 둔다.
+베이즈 선형 회귀 모델은 $\varepsilon \sim N(0, \sigma^2 I)$인 $y = X\beta + \varepsilon$을 가정하고 정규 사전확률 $\beta \sim N(m_0, V_0)$을 둔다.
 
 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

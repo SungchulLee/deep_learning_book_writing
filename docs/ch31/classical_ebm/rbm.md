@@ -8,15 +8,15 @@
 
 1. 제한 볼츠만 기계의 두 쪽 구조를 이해한다
 2. 다룰 만한 조건 분포를 이끌어 낸다
-3. 맞댐 벌어짐 익히기를 짠다
-4. 실제 자료(MNIST)로 제한 볼츠만 기계를 익힌다
+3. Contrastive Divergence 학습을 짠다
+4. 실제 데이터(MNIST)로 제한 볼츠만 기계를 학습된이다
 5. 배운 특징을 그려 보고 되짓기를 한다
 
 ---
 
 ## 2. 들어가며
 
-제한 볼츠만 기계(RBM)는 에너지 바탕 배움의 가장 성공한 실제 쓰임새이다. "제한"은 이음이 드러난 층과 숨은 층 사이에만 있고 같은 층 안에는 없다는 제약을 가리킨다. 이 두 쪽 구조 덕에 덩이 깁스 뽑기로 추론이 다룰 만해지고 맞댐 벌어짐으로 효율 좋게 익힐 수 있다.
+제한 볼츠만 기계(RBM)는 에너지 기반 학습의 가장 성공한 실제 쓰임새이다. "제한"은 이음이 드러난 층과 은닉층 사이에만 있고 같은 층 안에는 없다는 제약을 가리킨다. 이 두 쪽 구조 덕에 덩이 깁스 샘플링로 추론이 다룰 만해지고 Contrastive Divergence로 효율 좋게 익힐 수 있다.
 
 ---
 
@@ -47,11 +47,11 @@ $$E(\mathbf{v}, \mathbf{h}) = -\mathbf{a}^T \mathbf{v} - \mathbf{b}^T \mathbf{h}
 
 여기서 각 기호는 다음과 같다.
 
-- $\mathbf{v} \in \{0, 1\}^{n_v}$: 드러난 단위(자료)
+- $\mathbf{v} \in \{0, 1\}^{n_v}$: 드러난 단위(데이터)
 - $\mathbf{h} \in \{0, 1\}^{n_h}$: 숨은 단위(특징)
 - $\mathbf{W} \in \mathbb{R}^{n_v \times n_h}$: 무게 행렬
-- $\mathbf{a} \in \mathbb{R}^{n_v}$: 드러난 단위의 치우침
-- $\mathbf{b} \in \mathbb{R}^{n_h}$: 숨은 단위의 치우침
+- $\mathbf{a} \in \mathbb{R}^{n_v}$: 드러난 단위의 편향
+- $\mathbf{b} \in \mathbb{R}^{n_h}$: 숨은 단위의 편향
 
 ---
 
@@ -203,7 +203,7 @@ class RestrictedBoltzmannMachine(nn.Module):
 
 ---
 
-## 6. 맞댐 벌어짐
+## 6. Contrastive Divergence
 
 ### CD-k 알고리즘
 
@@ -215,11 +215,11 @@ $$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} = \langle v_i h_j \rangle_
 
 $$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} \approx \langle v_i h_j \rangle_{\text{data}} - \langle v_i h_j \rangle_{k}$$
 
-### 맞댐 벌어짐이 통하는 까닭
+### Contrastive Divergence가 통하는 까닭
 
-- 자료에서 시작하면 사슬이 더 빨리 섞인다
+- 데이터에서 시작하면 사슬이 더 빨리 섞인다
 - 좋은 결과를 얻는 데 흔히 $k=1$이면 넉넉하다
-- 이 어림은 치우쳐 있지만 흩어짐이 작다
+- 이 어림은 치우쳐 있지만 분산이 작다
 
 ---
 
@@ -229,7 +229,7 @@ $$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} \approx \langle v_i h_j \r
 
     1. 제한 볼츠만 기계는 이음을 드러난 단위와 숨은 단위의 짝으로만 제한한다
     2. 두 쪽 구조가 다룰 만한 조건 분포를 가능하게 한다
-    3. 맞댐 벌어짐이 효율 좋은 어림 기울기를 준다
+    3. Contrastive Divergence가 효율 좋은 어림 기울기를 준다
     4. 자유 에너지는 드러난 단위에 대한 실제 에너지이다
     5. 제한 볼츠만 기계는 쓸모 있는 특징 나타냄을 배운다
 
@@ -240,7 +240,7 @@ $$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} \approx \langle v_i h_j \r
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-결합 에너지 $E(\mathbf{v}, \mathbf{h})$에서 숨은 단위를 닫힌 꼴로 가장자리로 몰아내어 이진 제한 볼츠만 기계의 자유 에너지 $F(\mathbf{v})$을 이끌어 내라. $\mathbf{h}$에 대한 합의 걸음마다 보여라.
+결합 에너지 $E(\mathbf{v}, \mathbf{h})$에서 숨은 단위를 닫힌 형태로 가장자리로 몰아내어 이진 제한 볼츠만 기계의 자유 에너지 $F(\mathbf{v})$을 이끌어 내라. $\mathbf{h}$에 대한 합의 걸음마다 보여라.
 
 </div>
 
@@ -268,12 +268,12 @@ $$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} \approx \langle v_i h_j \r
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-CD-1 고침 규칙이 로그 가능도 기울기의 치우친 어림개임을 보여라. 자세히는 음의 국면 표본 $\langle v_i h_j \rangle_1$이 왜 모델 기댓값 $\langle v_i h_j \rangle_{\text{model}}$과 같지 않은지 밝히고, 치우침이 줄어드는 조건을 적어라.
+CD-1 고침 규칙이 로그 우도 기울기의 치우친 어림개임을 보여라. 자세히는 음의 국면 표본 $\langle v_i h_j \rangle_1$이 왜 모델 기댓값 $\langle v_i h_j \rangle_{\text{model}}$과 같지 않은지 밝히고, 편향이 줄어드는 조건을 적어라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    정확한 기울기는 $\langle v_i h_j \rangle_{\text{data}} - \langle v_i h_j \rangle_{\text{model}}$이며 모델 기댓값에는 평형 분포의 표본이 필요하다. CD-1은 마르코프 사슬을 자료 점에서 첫자리매김하고 깁스 걸음을 한 번만 돌려 평형에 이르지 못한 분포 $q^{(1)}$의 표본을 만든다. 따라서 $\langle v_i h_j \rangle_1 \neq \langle v_i h_j \rangle_{\text{model}}$이며 이 어림개는 치우쳐 있다. $k$이 커질수록 사슬이 평형에 가까워지므로 치우침이 줄어든다. 실제로는 자료 점에서 첫자리매김하면 사슬이 확률 높은 자리 가까이에 놓이므로 치우침이 작다. 게다가 이어지는 맞댐 벌어짐(PCD)은 고침에 걸쳐 사슬을 이어 가며 익히는 동안 섞이게 하여 치우침을 더 줄인다. $\square$
+    정확한 기울기는 $\langle v_i h_j \rangle_{\text{data}} - \langle v_i h_j \rangle_{\text{model}}$이며 모델 기댓값에는 평형 분포의 표본이 필요하다. CD-1은 마르코프 사슬을 데이터 점에서 첫자리매김하고 깁스 걸음을 한 번만 돌려 평형에 이르지 못한 분포 $q^{(1)}$의 표본을 만든다. 따라서 $\langle v_i h_j \rangle_1 \neq \langle v_i h_j \rangle_{\text{model}}$이며 이 어림개는 치우쳐 있다. $k$이 커질수록 사슬이 평형에 가까워지므로 편향이 줄어든다. 실제로는 데이터 점에서 첫자리매김하면 사슬이 확률 높은 자리 가까이에 놓이므로 편향이 작다. 게다가 이어지는 Contrastive Divergence(PCD)은 고침에 걸쳐 사슬을 이어 가며 익히는 동안 섞이게 하여 편향을 더 줄인다. $\square$
 
 ---
 
@@ -293,7 +293,7 @@ CD-1 고침 규칙이 로그 가능도 기울기의 치우친 어림개임을 �
 
     $$P(v_i | \mathbf{h}) = \mathcal{N}\!\left(a_i + \sigma_i \sum_j W_{ij} h_j,\; \sigma_i^2\right)$$
 
-    숨은 단위의 조건 분포는 여전히 시그모이드이다: $P(h_j = 1 | \mathbf{v}) = \sigma\!\left(b_j + \sum_i \frac{v_i}{\sigma_i} W_{ij}\right)$. 맞댐 벌어짐 고침 규칙은 구조가 같지만(양의 국면 통계에서 음의 국면 통계를 뺀다) 드러난 단위 뽑기는 이제 베르누이가 아니라 정규 분포에서 뽑는다. 흩어짐 $\sigma_i^2$은 로그 가능도에 기울기 내려가기를 하여 배우거나 간단히 1로 붙박이할 수 있다. $\square$
+    숨은 단위의 조건 분포는 여전히 시그모이드이다: $P(h_j = 1 | \mathbf{v}) = \sigma\!\left(b_j + \sum_i \frac{v_i}{\sigma_i} W_{ij}\right)$. Contrastive Divergence 고침 규칙은 구조가 같지만(양의 국면 통계에서 음의 국면 통계를 뺀다) 드러난 단위 샘플링은 이제 베르누이가 아니라 정규 분포에서 뽑는다. 분산 $\sigma_i^2$은 로그 우도에 기울기 내려가기를 하여 배우거나 간단히 1로 붙박이할 수 있다. $\square$
 
 ---
 
@@ -305,11 +305,11 @@ $F$이 자유 에너지일 때 제한 볼츠만 기계의 나눔 함수가 $Z = 
 </div>
 
 ??? success "연습문제 4 풀이"
-    뜻매김에 따라 $Z = \sum_{\mathbf{v}, \mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h}))$이다. 이를 다음과 같이 고쳐 쓸 수 있다:
+    정의에 따라 $Z = \sum_{\mathbf{v}, \mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h}))$이다. 이를 다음과 같이 고쳐 쓸 수 있다:
 
     $$Z = \sum_{\mathbf{v}} \sum_{\mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h})) = \sum_{\mathbf{v}} \exp(-F(\mathbf{v}))$$
 
-    여기서 $F(\mathbf{v}) = -\log \sum_{\mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h}))$은 자유 에너지이다. $F(\mathbf{v})$이 숨은 단위를 닫힌 꼴로 가장자리로 몰아내므로(두 쪽 구조 덕에 다룰 만하다) 이는 정확하다. 그러나 $Z$을 셈하려면 드러난 단위의 자리 얽이 $2^{n_v}$가지 모두에 대해 $\exp(-F(\mathbf{v}))$을 더해야 한다. $n_v = 784$(MNIST)인 흔한 제한 볼츠만 기계에서 이 합은 항이 $2^{784}$개여서 정확한 셈이 다룰 수 없다. $\square$
+    여기서 $F(\mathbf{v}) = -\log \sum_{\mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h}))$은 자유 에너지이다. $F(\mathbf{v})$이 숨은 단위를 닫힌 형태로 가장자리로 몰아내므로(두 쪽 구조 덕에 다룰 만하다) 이는 정확하다. 그러나 $Z$을 셈하려면 드러난 단위의 자리 얽이 $2^{n_v}$가지 모두에 대해 $\exp(-F(\mathbf{v}))$을 더해야 한다. $n_v = 784$(MNIST)인 흔한 제한 볼츠만 기계에서 이 합은 항이 $2^{784}$개여서 정확한 계산이 다룰 수 없다. $\square$
 
 ## 정리하며
 

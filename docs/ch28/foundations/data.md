@@ -1,8 +1,8 @@
 # 데이터
 
-시계열 자기 되돌이 모델을 위한 자료 만들기 도구. 이 단원은 인공 시계열 자료를 만드는 함수를 담는다
+시계열 자기회귀 모델을 위한 데이터 만들기 도구. 이 단원은 인공 시계열 데이터를 만드는 함수를 담는다
 
-자기 되돌이 모델은 앞선 모든 낱개를 조건으로 삼아 낱개마다 미리 헤아려 자료를 만든다. 이 단원은 자기 되돌이 모델 부품의 짜기를 보이며 차례대로 만들어 내는 과정과 그 구조의 요구를 그려 보인다.
+자기회귀 모델은 앞선 모든 낱개를 조건으로 삼아 낱개마다 미리 헤아려 데이터를 만든다. 이 단원은 자기회귀 모델 부품의 짜기를 보이며 차례대로 만들어 내는 과정과 그 구조의 요구를 그려 보인다.
 
 ## 1. 코드
 
@@ -223,14 +223,14 @@ Saved visualization to sample_time_series.png
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.
 
-여기서 보인 결은 더 복잡한 경우로 자연스럽게 넓혀진다. 웃매개변수와 구조 변형, 여러 자료 묶음을 실험하면 만들어 내는 모델 일에 대한 이해가 깊어지고 실제 직관이 쌓인다.
+여기서 보인 결은 더 복잡한 경우로 자연스럽게 넓혀진다. 웃매개변수와 구조 변형, 여러 데이터셋을 실험하면 생성 모델 일에 대한 이해가 깊어지고 실제 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 끝까지 읽고 핵심 설계 결정을 가려내라. 구체적인 짜기 고르기 셋을 적고 저마다 자기 되돌이 모델에 어울리는 까닭을 설명하라.
+코드를 끝까지 읽고 핵심 설계 결정을 가려내라. 구체적인 짜기 고르기 셋을 적고 저마다 자기회귀 모델에 어울리는 까닭을 설명하라.
 
 </div>
 
@@ -247,7 +247,7 @@ Saved visualization to sample_time_series.png
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 
@@ -266,7 +266,7 @@ Saved visualization to sample_time_series.png
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-Data 짜기를 확인하는 두루 갖춘 시험 함수를 적어라. 빈 들임, 낱개 하나짜리 들임, 아주 큰 들임, 끝값(0이나 아주 큰 수)을 담은 들임 같은 가장자리 경우를 시험하라.
+Data 짜기를 확인하는 두루 갖춘 시험 함수를 적어라. 빈 입력, 낱개 하나짜리 입력, 아주 큰 입력, 끝값(0이나 아주 큰 수)을 담은 입력 같은 가장자리 경우를 시험하라.
 
 </div>
 

@@ -1,8 +1,8 @@
-# 두 방향 LSTM-CRF 이름 알아보기
+# BiLSTM-CRF 개체명 인식
 
-이름 알아보기를 위한 두 방향 LSTM-CRF. 가장 앞선 차례 이름표 붙이기를 위해 CRF 층을 얹은 두 방향 LSTM.
+개체명 인식을 위한 양방향 LSTM-CRF. 가장 앞선 시퀀스 레이블링을 위해 CRF 층을 얹은 양방향 LSTM.
 
-자연어 다루기는 깊은 배움 방식으로 크게 달라졌다. 이 단원은 차례 이름표 붙이기 재주를 보여 주며, 신경망이 글을 어떻게 다루고 만들어 내는지 밝히는 실전 짜기를 준다.
+자연어 처리는 딥러닝 방식으로 크게 달라졌다. 이 단원은 시퀀스 레이블링 재주를 보여 주며, 신경망이 글을 어떻게 다루고 만들어 내는지 밝히는 실전 짜기를 준다.
 
 ## 1. 코드
 
@@ -122,16 +122,16 @@ BiLSTM-CRF model created successfully!
 
 ## 2. 논의
 
-`BiLSTM_CRF` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
+`BiLSTM_CRF` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 계산을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
+여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-붙박이 첫자리매김일 때 `BiLSTM_CRF`의 배울 수 있는 매개변수 전체 개수를 셈하여라. 무게와 치우침을 모두 넣어 층별로 나누어 세어라.
+붙박이 첫자리매김일 때 `BiLSTM_CRF`의 배울 수 있는 매개변수 전체 개수를 계산하여라. 무게와 편향을 모두 넣어 층별로 나누어 세어라.
 
 </div>
 
@@ -148,7 +148,7 @@ BiLSTM-CRF model created successfully!
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 
@@ -178,11 +178,11 @@ BiLSTM-CRF model created successfully!
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = BiLSTM_CRF(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = BiLSTM_CRF(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 
-**다룬 것** — 두 방향 LSTM-CRF 이름 알아보기
+**다룬 것** — 양방향 LSTM-CRF 개체명 인식
 
 `BiLSTM_CRF` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다.
 

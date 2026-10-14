@@ -1,6 +1,6 @@
 # EfficientNet V2
 
-Tan과 Le의 2021년 논문 "EfficientNetV2: Smaller Models and Faster Training"에서 나온 EfficientNetV2는 앞쪽 층의 깊이별 누비기를 Fused-MBConv 덩이로 갈음하고 차츰 배우기 전략을 써서 익히기 빠르기를 낫게 한다.
+Tan과 Le의 2021년 논문 "EfficientNetV2: Smaller Models and Faster Training"에서 나온 EfficientNetV2는 앞쪽 층의 깊이별 합성곱을 Fused-MBConv 덩이로 갈음하고 차츰 학습하기 전략을 써서 학습 빠르기를 낫게 한다.
 
 ## 1. 코드
 
@@ -53,7 +53,7 @@ Parameters: 1,281,648
 
 녹여 붙인 MBConv은 깊이별 다음 점별이라는 무늬를 여느 $3 \times 3$ 합성곱 하나와 그 뒤의 $1 \times 1$ 투영으로 갈음한다. 깊이별 합성곱이 하드웨어를 덜 쓰는 이른 단계에서 이를 쓴다. 뒤 단계는 채널 수가 넉넉해 이득이 있으므로 여전히 깊이별 분리 합성곱을 쓰는 여느 MBConv을 쓴다.
 
-차츰 배우기는 익히는 동안 그림 크기와 벌주기 세기를 함께 키운다. 모델은 작은 그림과 약한 불리기로 익히기를 시작해 둘을 차츰 키운다. 이러면 앞쪽 익히기가 빨라지고(작은 그림은 빠르다) 끝에 가서는 큰 그림으로 높은 정확도를 낸다.
+차츰 학습하기는 익히는 동안 그림 크기와 정칙화 세기를 함께 키운다. 모델은 작은 그림과 약한 불리기로 학습을 시작해 둘을 차츰 키운다. 이러면 앞쪽 학습이 빨라지고(작은 그림은 빠르다) 끝에 가서는 큰 그림으로 높은 정확도를 낸다.
 
 ## 연습문제
 
@@ -72,7 +72,7 @@ Fused-MBConv이 매개변수가 더 많은데도 앞쪽 층에서 MBConv보다 �
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-차츰 배우기 일정과 그것이 벌주기에 미치는 영향을 설명하여라.
+차츰 학습하기 일정과 그것이 정칙화에 미치는 영향을 설명하여라.
 
 </div>
 
@@ -84,7 +84,7 @@ Fused-MBConv이 매개변수가 더 많은데도 앞쪽 층에서 MBConv보다 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-세대가 지날수록 그림 크기를 키우는 단순한 차츰 배우기 일정 짜개를 짜라.
+세대가 지날수록 그림 크기를 키우는 단순한 차츰 학습하기 일정 짜개를 짜라.
 
 </div>
 

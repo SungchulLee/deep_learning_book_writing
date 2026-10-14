@@ -67,7 +67,7 @@ Parameters: 646,344
 
 ## 2. 논의
 
-파이어 모듈이 SqueezeNet을 SqueezeNet이게 하는 새로움이다. 쥐어짜기 켜가 채널 수를 작은 값(예: 16)으로 줄이고, 넓히기 켜가 $1 \times 1$과 $3 \times 3$ 합성곱을 나란히 걸어 그 날임을 이어 붙인다. 이 쥐어짜고 넓히는 무늬가 표현력을 지키면서 매개변수를 크게 줄인다.
+파이어 모듈이 SqueezeNet을 SqueezeNet이게 하는 새로움이다. 쥐어짜기 켜가 채널 수를 작은 값(예: 16)으로 줄이고, 넓히기 켜가 $1 \times 1$과 $3 \times 3$ 합성곱을 나란히 걸어 그 출력을 이어 붙인다. 이 쥐어짜고 넓히는 무늬가 표현력을 지키면서 매개변수를 크게 줄인다.
 
 SqueezeNet은 구조를 잘 꾸미면 매개변수를 50분의 1만 쓰고도 AlexNet 수준의 정확도를 낼 수 있음을 보여 준다. 깊은 눌러 담기 재주로 줄이면 모델이 0.5 MB 아래로 작아져 자원이 극도로 빠듯한 기기에도 펼칠 수 있다.
 
@@ -76,7 +76,7 @@ SqueezeNet은 구조를 잘 꾸미면 매개변수를 50분의 1만 쓰고도 Al
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-squeeze=16, expand1x1=64, expand3x3=64, 들임 채널=128인 파이어 단원의 매개변수 개수를 셈하여라.
+squeeze=16, expand1x1=64, expand3x3=64, 입력 채널=128인 파이어 단원의 매개변수 개수를 계산하여라.
 
 </div>
 
@@ -110,7 +110,7 @@ expand1x1=64, expand3x3=64인 파이어 단원이 내놓는 채널 수는 얼마
 </div>
 
 ??? success "연습문제 3 풀이"
-    `in_channels == expand1x1 + expand3x3`일 때, 곧 들임과 내놓음의 채널 수가 맞을 때 건너뛰는 이음을 더할 수 있다:
+    `in_channels == expand1x1 + expand3x3`일 때, 곧 입력과 내놓음의 채널 수가 맞을 때 건너뛰는 이음을 더할 수 있다:
 
     ```python
     class FireWithBypass(Fire):

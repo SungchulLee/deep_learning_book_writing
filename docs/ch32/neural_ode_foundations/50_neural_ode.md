@@ -1,8 +1,8 @@
-# 신경 상미분 방정식
+# 신경 상미분방정식(Neural ODE)
 
-신경 상미분 방정식은 2018년 논문 "Neural Ordinary Differential Equations"에서 나왔다. 이어진 깊이 모델과 기억을 아끼는 뒷걸음 퍼뜨리기이다.
+신경 상미분방정식은 2018년 논문 "Neural Ordinary Differential Equations"에서 나왔다. 이어진 깊이 모델과 기억을 아끼는 뒷걸음 퍼뜨리기이다.
 
-신경 상미분 방정식은 띄엄띄엄한 층을 이어진 움직임으로 바꾸어 신경망의 깊이를 이어진 양으로 뜻매김한다. 이 짜기는 상미분 방정식 솔버를 깊은 배움 안에서 어떻게 쓸 수 있는지 보이며 맞추어 가는 셈과 기억을 아끼는 익히기를 가능하게 한다.
+신경 상미분방정식은 띄엄띄엄한 층을 이어진 움직임으로 바꾸어 신경망의 깊이를 이어진 양으로 뜻매김한다. 이 짜기는 상미분 방정식 솔버를 딥러닝 안에서 어떻게 쓸 수 있는지 보이며 맞추어 가는 계산과 기억을 아끼는 학습을 가능하게 한다.
 
 ## 1. 코드
 
@@ -90,16 +90,16 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 
 ## 2. 논의
 
-이 짜기는 함께 어울려 온전한 깊은 배움 구조를 이루는 갈래 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 뜻매김한다. 갈래마다 뚜렷한 조각을 감싸 코드를 조각내고 넓히기 쉽게 만든다. `forward` 메서드가 파이토치의 자동 미분에 쓰이는 셈 그래프를 뜻매김한다.
+이 짜기는 함께 어울려 온전한 딥러닝 구조를 이루는 갈래 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 뜻매김한다. 갈래마다 뚜렷한 조각을 감싸 코드를 조각내고 넓히기 쉽게 만든다. `forward` 메서드가 파이토치의 자동 미분에 쓰이는 계산 그래프를 뜻매김한다.
 
-여기서 보인 결은 더 복잡한 경우로 자연스레 넓어진다. 웃매개변수, 구조 변형, 여러 자료 묶음을 시험해 보면 이해가 깊어지고 기계 배움 일에 대한 실전 직관이 선다.
+여기서 보인 결은 더 복잡한 경우로 자연스레 넓어진다. 웃매개변수, 구조 변형, 여러 데이터셋을 시험해 보면 이해가 깊어지고 머신러닝 일에 대한 실전 직관이 선다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫자리매김으로 `ODEFunc`의 배울 수 있는 매개변수의 온 개수를 셈하라. 무게와 치우침을 모두 담아 층마다 나누어 적어라.
+기본 첫자리매김으로 `ODEFunc`의 배울 수 있는 매개변수의 온 개수를 계산하라. 무게와 편향을 모두 담아 층마다 나누어 적어라.
 
 </div>
 
@@ -116,7 +116,7 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 
@@ -146,12 +146,12 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (여느 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 파이토치가 모든 매개변수를 가장 좋게 하기에 등록한다. `for n in [2, 4, 8]: model = ODEFunc(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험하라.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (여느 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 파이토치가 모든 매개변수를 최적화에 등록한다. `for n in [2, 4, 8]: model = ODEFunc(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험하라.
 
 ## 정리하며
 
-**다룬 것** — 신경 상미분 방정식
+**다룬 것** — 신경 상미분방정식
 
-이 짜기는 함께 어울려 온전한 깊은 배움 구조를 이루는 갈래 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 뜻매김한다.
+이 짜기는 함께 어울려 온전한 딥러닝 구조를 이루는 갈래 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 뜻매김한다.
 
 핵심 갈래는 `ODEFunc`, `ODEBlock`, `NeuralODE`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

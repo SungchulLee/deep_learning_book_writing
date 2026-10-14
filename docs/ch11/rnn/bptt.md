@@ -1,18 +1,18 @@
-# 시간을 거슬러 가는 역전파
+# 시간 역전파(BPTT)
 
-순환 신경망을 학습시키려면 펼친 계산 그래프를 지나 기울기를 계산해야 하는데, 이 절차를 **시간을 거슬러 가는 역전파(BPTT)**라 한다. BPTT를 이해하면 RNN이 어떻게 배우는지, 그리고 왜 긴 순차열에서 애를 먹는지 알 수 있다.
+순환 신경망을 학습시키려면 펼친 계산 그래프를 지나 기울기를 계산해야 하는데, 이 절차를 **시간을 거슬러 가는 역전파(BPTT)**라 한다. BPTT를 이해하면 RNN이 어떻게 배우는지, 그리고 왜 긴 시퀀스에서 애를 먹는지 알 수 있다.
 
 ---
 
 ## 1. 펼친 계산 그래프
 
-길이가 $T$인 순차열을 처리하는 RNN을 생각해 보자.
+길이가 $T$인 시퀀스를 처리하는 RNN을 생각해 보자.
 
 $$h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$$
 
 $$y_t = W_{hy} h_t$$
 
-펼치면 깊이가 순차열의 길이 $T$과 같고 모든 층이 가중치를 나누어 쓰며 "층" 하나가 시각 하나에 대응하는 깊은 순방향 신경망이 된다.
+펼치면 깊이가 시퀀스의 길이 $T$과 같고 모든 층이 가중치를 나누어 쓰며 "층" 하나가 시각 하나에 대응하는 깊은 순방향 신경망이 된다.
 
 ```
 Loss = L₁ + L₂ + L₃ + L₄
@@ -36,7 +36,7 @@ $$\mathcal{L} = \sum_{t=1}^{T} L_t(y_t, \hat{y}_t)$$
 
 $$L_t = -\sum_{c} \hat{y}_{t,c} \log(y_{t,c})$$
 
-마지막 출력만 써서 순차열을 분류할 때는 다음과 같다.
+마지막 출력만 써서 시퀀스를 분류할 때는 다음과 같다.
 
 $$\mathcal{L} = L_T(y_T, \hat{y})$$
 
@@ -52,9 +52,9 @@ $$\frac{\partial \mathcal{L}}{\partial W_{hy}} = \sum_{t=1}^{T} \frac{\partial L
 
 $y_t = W_{hy} h_t$이므로 미분이 간단하다. $W_{hy}$은 시각마다 국소적으로 작용하므로 시간에 걸친 연쇄 법칙이 필요 없다.
 
-### 숨은 상태의 기울기
+### 은닉 상태의 기울기
 
-숨은 상태 $h_t$의 기울기는 두 곳에서 온다. 하나는 시각 $t$의 지역 손실이고, 다른 하나는 $h_{t+1}$을 지나 미래 시각에서 거슬러 오는 기울기이다.
+은닉 상태 $h_t$의 기울기는 두 곳에서 온다. 하나는 시각 $t$의 지역 손실이고, 다른 하나는 $h_{t+1}$을 지나 미래 시각에서 거슬러 오는 기울기이다.
 
 $$\frac{\partial \mathcal{L}}{\partial h_t} = \frac{\partial L_t}{\partial h_t} + \frac{\partial \mathcal{L}}{\partial h_{t+1}} \cdot \frac{\partial h_{t+1}}{\partial h_t}$$
 
@@ -62,7 +62,7 @@ $$\frac{\partial \mathcal{L}}{\partial h_t} = \frac{\partial L_t}{\partial h_t} 
 
 ### 순환 가중치
 
-$h_t$이 $W_{hh}$에 곧바로도 기대고 이전의 모든 숨은 상태를 통해서도 기대므로, 기울기 $\frac{\partial \mathcal{L}}{\partial W_{hh}}$을 구하려면 시간에 걸친 온전한 연쇄 법칙이 필요하다.
+$h_t$이 $W_{hh}$에 곧바로도 기대고 이전의 모든 은닉 상태를 통해서도 기대므로, 기울기 $\frac{\partial \mathcal{L}}{\partial W_{hh}}$을 구하려면 시간에 걸친 온전한 연쇄 법칙이 필요하다.
 
 $$\frac{\partial L_T}{\partial W_{hh}} = \sum_{t=1}^{T} \frac{\partial L_T}{\partial h_T} \cdot \frac{\partial h_T}{\partial h_t} \cdot \frac{\partial^+ h_t}{\partial W_{hh}}$$
 
@@ -180,7 +180,7 @@ def bptt_manual(xs, hs, ys, targets, W_xh, W_hh, W_hy):
 
 ## 7. 잘라 낸 BPTT
 
-아주 긴 순차열에서는 (숨은 상태를 모두 저장해야 하므로) 메모리가 순차열 길이에 비례해 늘어 온전한 BPTT를 감당할 수 없다. **잘라 낸 BPTT**는 역전파를 시각 $k$개로 제한한다.
+아주 긴 시퀀스에서는 (은닉 상태를 모두 저장해야 하므로) 메모리가 시퀀스 길이에 비례해 늘어 온전한 BPTT를 감당할 수 없다. **잘라 낸 BPTT**는 역전파를 시각 $k$개로 제한한다.
 
 ```python
 def truncated_bptt(model, sequence, chunk_size, optimizer, criterion):
@@ -213,13 +213,13 @@ def truncated_bptt(model, sequence, chunk_size, optimizer, criterion):
     return total_loss
 ```
 
-`.detach()` 호출이 기울기의 흐름을 자르는 장치이다. 숨은 상태 값은 덩이에서 덩이로 이어지지만 기울기는 떼어 낸 지점을 거슬러 가지 못한다. 기울기의 정확도를 계산 효율과 맞바꾸는 셈이며, $k$단계보다 긴 의존은 배울 수 없다.
+`.detach()` 호출이 기울기의 흐름을 자르는 장치이다. 은닉 상태 값은 덩이에서 덩이로 이어지지만 기울기는 떼어 낸 지점을 거슬러 가지 못한다. 기울기의 정확도를 계산 효율과 맞바꾸는 계산이며, $k$단계보다 긴 의존은 배울 수 없다.
 
 ---
 
 ## 8. 계산 복잡도
 
-길이가 $T$이고 숨은 차원이 $H$인 순차열에 대해 다음과 같다.
+길이가 $T$이고 숨은 차원이 $H$인 시퀀스에 대해 다음과 같다.
 
 | 연산 | 시간 | 공간 |
 |-----------|------|-------|
@@ -227,7 +227,7 @@ def truncated_bptt(model, sequence, chunk_size, optimizer, criterion):
 | 역전파 | $O(T \cdot H^2)$ | $O(T \cdot H)$ |
 | 잘라 낸 BPTT (덩이 $k$) | $O(T \cdot H^2)$ | $O(k \cdot H)$ |
 
-공간 복잡도는 기울기 계산을 위해 시각마다 숨은 상태를 저장하는 데서 대부분 나온다. 잘라 낸 BPTT는 필요한 공간을 $O(T \cdot H)$에서 $O(k \cdot H)$으로 줄인다.
+공간 복잡도는 기울기 계산을 위해 시각마다 은닉 상태를 저장하는 데서 대부분 나온다. 잘라 낸 BPTT는 필요한 공간을 $O(T \cdot H)$에서 $O(k \cdot H)$으로 줄인다.
 
 ---
 
@@ -270,7 +270,7 @@ def visualize_gradient_flow(model, x):
 </div>
 
 ??? success "연습문제 1 풀이"
-    온전한 BPTT는 순차열 전체를 펼쳐 모든 시각을 거슬러 역전파한다. 잘라 낸 BPTT는 순차열을 길이 $k$의 덩이로 나누어 덩이 안에서만 역전파한다. 잘라 낸 BPTT는 먼 거리 기울기의 정확도를 메모리 효율($O(T)$ 대신 $O(k)$)과 맞바꾼다.
+    온전한 BPTT는 시퀀스 전체를 펼쳐 모든 시각을 거슬러 역전파한다. 잘라 낸 BPTT는 시퀀스를 길이 $k$의 덩이로 나누어 덩이 안에서만 역전파한다. 잘라 낸 BPTT는 먼 거리 기울기의 정확도를 메모리 효율($O(T)$ 대신 $O(k)$)과 맞바꾼다.
 
 ---
 
@@ -289,12 +289,12 @@ def visualize_gradient_flow(model, x):
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff easy" title="쉬움"></span>
-순차열 길이가 $T$일 때 BPTT의 메모리 복잡도는 얼마인가?
+시퀀스 길이가 $T$일 때 BPTT의 메모리 복잡도는 얼마인가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    역전파를 위해 숨은 상태를 모두 저장하는 데 $O(T \cdot d_h)$이 든다. 긴 순차열에서는 감당하기 어렵다. 해법으로는 잘라 낸 BPTT($T$을 줄인다), 기울기 검사점 두기(저장 대신 다시 계산한다), 되돌릴 수 있는 RNN이 있다.
+    역전파를 위해 은닉 상태를 모두 저장하는 데 $O(T \cdot d_h)$이 든다. 긴 시퀀스에서는 감당하기 어렵다. 해법으로는 잘라 낸 BPTT($T$을 줄인다), 기울기 검사점 두기(저장 대신 다시 계산한다), 되돌릴 수 있는 RNN이 있다.
 
 ---
 

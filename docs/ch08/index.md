@@ -82,13 +82,13 @@
 - [드롭아웃](regularization/dropout.md) — 활성화를 무작위로 0으로 만들어 뉴런의 공적응을 막는다
 - [드롭커넥트](regularization/dropconnect.md) — 개별 가중치를 0으로 만들어 더 세밀한 확률적 정칙화를 한다
 - [조기 종료](regularization/early_stopping.md) — 검증 성능이 더 나아지지 않으면 학습을 멈춘다
-- [L1 정칙화](regularization/l1_regularization.md) — 희소성과 자동 특징 선택을 북돋우는 라쏘 벌점
-- [L2 정칙화](regularization/l2_regularization.md) — 작고 매끄러운 가중치 분포를 이끄는 릿지 벌점
-- [엘라스틱 넷](regularization/elastic_net.md) — 상관된 특징에서 안정성을 얻기 위해 L1과 L2 벌점을 결합한다
+- [L1 정칙화](regularization/l1_regularization.md) — 희소성과 자동 특징 선택을 북돋우는 라쏘 패널티
+- [L2 정칙화](regularization/l2_regularization.md) — 작고 매끄러운 가중치 분포를 이끄는 릿지 패널티
+- [엘라스틱 넷](regularization/elastic_net.md) — 상관된 특징에서 안정성을 얻기 위해 L1과 L2 패널티를 결합한다
 - [데이터 증강](regularization/data_augmentation.md) — 의미를 보존하는 변환으로 학습 집합을 늘린다
-- [이름표 평활화](regularization/label_smoothing.md) — 지나치게 확신에 찬 예측을 막고 보정을 개선하는 부드러운 목표
+- [레이블 평활화](regularization/label_smoothing.md) — 지나치게 확신에 찬 예측을 막고 보정을 개선하는 부드러운 목표
 - [믹스업](regularization/mixup.md) — 더 매끄러운 결정 경계를 위해 예제 쌍의 볼록 결합으로 학습한다
-- [컷믹스](regularization/cutmix.md) — 이미지 조각을 오려 붙이고 이름표를 그 비율대로 섞는다
+- [컷믹스](regularization/cutmix.md) — 이미지 조각을 오려 붙이고 레이블을 그 비율대로 섞는다
 - [컷아웃](regularization/cutout.md) — 무작위 직사각형으로 가려 다양한 공간 특징에 기대도록 이끈다
 - [잡음 주입](regularization/noise_injection.md) — 견고함을 위해 입력, 가중치, 활성화에 무작위 요동을 더한다
 

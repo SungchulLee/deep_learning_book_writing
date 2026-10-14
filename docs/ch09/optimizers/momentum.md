@@ -74,7 +74,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-모멘텀 SGD의 실효 걸음 크기는 기본 SGD에 견주어 얼마인가?
+모멘텀 SGD의 실효 걸음 크기는 기본 SGD에 비교하여 얼마인가?
 
 </div>
 

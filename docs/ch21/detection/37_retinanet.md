@@ -1,8 +1,8 @@
-# 레티나넷
+# RetinaNet
 
-레티나넷은 2017년 논문 "Focal Loss for Dense Object Detection"에서 나왔다. 갈래 치우침을 다루는 초점 손실과 특징 피라미드 그물(FPN)을 쓴다.
+레티나넷은 2017년 논문 "Focal Loss for Dense Object Detection"에서 나왔다. 갈래 편향을 다루는 Focal Loss과 특징 피라미드 네트워크(FPN)을 쓴다.
 
-이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 물체 알아내기를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
+이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 객체 탐지를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 학습 전략을 보여 주는 실전 PyTorch 코드이다.
 
 ## 1. 코드
 
@@ -95,18 +95,18 @@ Parameters: 4,719,156
 
 ## 2. 논의
 
-여기 짠 것은 함께 어울려 온전한 물체 알아내기 구조를 이루는 클래스 2개(`FPN`, `RetinaNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 셈 그래프를 정한다.
+여기 짠 것은 함께 어울려 온전한 객체 탐지 구조를 이루는 클래스 2개(`FPN`, `RetinaNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정한다.
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
+여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`FPN`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 배치에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+`FPN`의 순방향을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 입력 표본 4개짜리 배치에 대해 주요 연산(합성곱, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
 
 </div>
 
@@ -123,7 +123,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 셈한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 날임에 맞춘다. `model = FPN(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 출력에 맞춘다. `model = FPN(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
 
 ---
 
@@ -153,12 +153,12 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = FPN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = FPN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 
 **다룬 것** — 레티나넷
 
-여기 짠 것은 함께 어울려 온전한 물체 알아내기 구조를 이루는 클래스 2개(`FPN`, `RetinaNet`)를 정한다.
+여기 짠 것은 함께 어울려 온전한 객체 탐지 구조를 이루는 클래스 2개(`FPN`, `RetinaNet`)를 정한다.
 
 핵심 갈래는 `FPN`, `RetinaNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

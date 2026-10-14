@@ -202,7 +202,7 @@ def minibatch_gradient_descent(X, y, model, criterion,
     return model
 ```
 
-### PyTorch 자료 불러오개
+### PyTorch 데이터 불러오개
 
 ```python
 from torch.utils.data import TensorDataset, DataLoader

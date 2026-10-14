@@ -1,6 +1,6 @@
 # MobileNet V2
 
-MobileNetV2는 Sandler 외의 2018년 논문 "MobileNetV2: Inverted Residuals and Linear Bottlenecks"에서 나왔다. 처음 MobileNet 위에, 깊이별로 갈라지는 누비기를 쓴 뒤집은 잔차 덩이를 들여왔으며 손전화 기기에서 효율적으로 미루도록 꾸몄다.
+MobileNetV2는 Sandler 외의 2018년 논문 "MobileNetV2: Inverted Residuals and Linear Bottlenecks"에서 나왔다. 처음 MobileNet 위에, 깊이별로 갈라지는 합성곱을 쓴 뒤집은 잔차 덩이를 들여왔으며 손전화 기기에서 효율적으로 미루도록 꾸몄다.
 
 ## 1. 코드
 
@@ -64,21 +64,21 @@ Parameters: 1,281,928
 
 ## 2. 논의
 
-MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정반대다. 가운데에서 채널을 눌러 담는 대신 부풀리고, 깊이별 누비기로 다룬 뒤 다시 내리쬔다. 내리쬐기 단계의 선형 병목(활성화 없음)이 좁은 나타냄 속의 앎을 지킨다. 활성화를 6에서 자르는 ReLU6은 고정소수점 미룸과 맞물리게 하려고 쓴다.
+MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정반대다. 가운데에서 채널을 눌러 담는 대신 부풀리고, 깊이별 합성곱로 다룬 뒤 다시 내리쬔다. 내리쬐기 단계의 선형 병목(활성화 없음)이 좁은 나타냄 속의 앎을 지킨다. 활성화를 6에서 자르는 ReLU6은 고정소수점 추론과 맞물리게 하려고 쓴다.
 
-너비 곱셈수 매개변수는 모든 채널 수를 고르게 키워 정확도와 늦음 사이를 매끄럽게 맞바꾸게 한다. 너비 1.0인 MobileNetV2는 매개변수가 약 350만 개로 실시간 손전화 미룸에 알맞다.
+너비 곱셈수 매개변수는 모든 채널 수를 고르게 키워 정확도와 늦음 사이를 매끄럽게 맞바꾸게 한다. 너비 1.0인 MobileNetV2는 매개변수가 약 350만 개로 실시간 손전화 추론에 알맞다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-들임과 내놓음 차원이 같을 때 뒤집은 잔차 덩이와 보통 잔차 덩이의 FLOPs를 견주어라.
+입력과 내놓음 차원이 같을 때 뒤집은 잔차 덩이와 보통 잔차 덩이의 FLOPs를 비교하여라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    들임 채널 $C$개, 날임 채널 $C$개, 넓힘 비율 6, 공간 크기 $H \times W$일 때
+    입력 채널 $C$개, 출력 채널 $C$개, 넓힘 비율 6, 공간 크기 $H \times W$일 때
 
     - 뒤집힌 잔차: 넓힘($C \times 6C$) + 깊이별($6C \times 9$) + 투영($6C \times C$) = $C \times 6C \times H \times W + 6C \times 9 \times H \times W + 6C \times C \times H \times W = (12C^2 + 54C) \times H \times W$
     - 여느 잔차($3 \times 3$): $2 \times C \times C \times 9 \times H \times W = 18C^2 \times H \times W$
@@ -102,7 +102,7 @@ MobileNetV2는 왜 보통의 ReLU 대신 ReLU6을 쓰는가?
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-MobileNetV3 방식의 하드 스위시 활성화를 짜고 ReLU6과 견주어라.
+MobileNetV3 방식의 하드 스위시 활성화를 짜고 ReLU6과 비교하여라.
 
 </div>
 
@@ -113,7 +113,7 @@ MobileNetV3 방식의 하드 스위시 활성화를 짜고 ReLU6과 견주어라
             return x * torch.clamp(x + 3, 0, 6) / 6
     ```
 
-    하드 스위시는 시그모이드 셈 없이 스위시 함수를 어림한다. 손전화 미룸에 효율적이면서도 ReLU6보다 조금 더 정확하다. MobileNetV3은 뒤쪽 층에 하드 스위시를, 앞쪽 층에 ReLU를 쓴다.
+    하드 스위시는 시그모이드 계산 없이 스위시 함수를 어림한다. 손전화 추론에 효율적이면서도 ReLU6보다 조금 더 정확하다. MobileNetV3은 뒤쪽 층에 하드 스위시를, 앞쪽 층에 ReLU를 쓴다.
 
 ## 정리하며
 

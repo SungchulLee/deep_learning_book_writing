@@ -2,7 +2,7 @@
 
 이미지 분류로 비전 트랜스포머 학습하기
 
-트랜스포머에 바탕을 둔 구조는 자연어 처리를 뒤바꾸어 놓았다. 이 구현은 트랜스포머의 개념을 살피며, 갖가지 과제에서 최고 수준의 성능을 내게 하는 주의 구조와 구조의 본을 보여 준다.
+트랜스포머에 기초를 둔 구조는 자연어 처리를 뒤바꾸어 놓았다. 이 구현은 트랜스포머의 개념을 살피며, 갖가지 과제에서 최고 수준의 성능을 내게 하는 주의 구조와 구조의 본을 보여 준다.
 
 ## 1. 코드
 
@@ -47,9 +47,9 @@ Ready for image classification training!
 
 ## 2. 논의
 
-이 구현은 깔끔하고 읽기 쉬운 파이토치 코드로 트랜스포머의 핵심 개념을 보여 준다. 모듈 방식의 짜임 덕분에 낱낱의 부품을 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.
+이 구현은 깔끔하고 읽기 쉬운 파이토치 코드로 트랜스포머의 핵심 개념을 보여 준다. 모듈 방식의 구조 덕분에 낱낱의 부품을 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
+여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
 
 ## 연습문제
 
@@ -73,7 +73,7 @@ Ready for image classification training!
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 

@@ -2,7 +2,7 @@
 
 Seq2Seq 모델을 위한 데이터 전처리 도구. 토큰화, 어휘 만들기, 데이터 적재를 담고 있다.
 
-순차열 모형은 시간적이고 순서가 있는 데이터를 다루는 데 바탕이 된다. 이 구현은 순차열 모델의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
+시퀀스 모델은 시간적이고 순서가 있는 데이터를 다루는 데 기초가 된다. 이 구현은 시퀀스 모델의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
 
 ## 1. 코드
 
@@ -419,16 +419,16 @@ Loaded target vocabulary size: 25
 
 ## 2. 논의
 
-이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 순차열 모델의 핵심 개념을 보인다. 모듈식 짜임 덕분에 부품 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.
+이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 시퀀스 모델의 핵심 개념을 보인다. 모듈식 구조 덕분에 부품 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 순차열 처리 과제에 대한 실용적인 직관이 쌓인다.
+여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 시퀀스 처리 과제에 대한 실용적인 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 훑으며 핵심 설계 결정을 찾아라. 구체적인 구현 선택 세 가지를 열거하고 각각이 순차열 모델에 알맞은 까닭을 설명하라.
+코드를 훑으며 핵심 설계 결정을 찾아라. 구체적인 구현 선택 세 가지를 열거하고 각각이 시퀀스 모델에 알맞은 까닭을 설명하라.
 
 </div>
 
@@ -445,7 +445,7 @@ Loaded target vocabulary size: 25
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 
@@ -492,6 +492,6 @@ Loaded target vocabulary size: 25
 
 **다룬 것** — 데이터 전처리
 
-이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 순차열 모델의 핵심 개념을 보인다.
+이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 시퀀스 모델의 핵심 개념을 보인다.
 
 핵심 클래스는 `Tokenizer`, `Vocabulary`, `ParallelDataset`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

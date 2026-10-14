@@ -1,8 +1,8 @@
-# 가운데 수준
+# 구조적 가지치기
 
-가운데 수준: 짜임 있는 가지치기. 이 각본은 짜임 전체를 없애는 짜임 있는 가지치기를 보여 준다.
+가운데 수준: 구조 있는 가지치기. 이 각본은 구조 전체를 없애는 구조 있는 가지치기를 보여 준다.
 
-깊은 배움 모델을 효율적으로 펼치려면 모델 크기, 빠르기, 정확도의 맞바꿈을 조심스레 다듬어야 한다. 여기 짠 것은 실전 환경에서 신경망을 눌러 담고 빠르게 하는 데 쓰는 모델 눌러 담기 재주를 보여 준다.
+딥러닝 모델을 효율적으로 펼치려면 모델 크기, 빠르기, 정확도의 트레이드오프를 조심스레 다듬어야 한다. 여기 짠 것은 실전 환경에서 신경망을 눌러 담고 빠르게 하는 데 쓰는 모델 압축 재주를 보여 준다.
 
 ## 1. 코드
 
@@ -198,16 +198,16 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-`SimpleCNN` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다. `forward` 메서드가 셈 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 셈을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
+`SimpleCNN` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 계산을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
 
-여기 보인 무늬는 더 복잡한 장면으로 자연스레 넓혀 쓸 수 있다. 웃매개변수, 구조의 변종, 서로 다른 자료 뭉치로 실험해 보면 이해가 깊어지고 효율적인 펼치기 일에 대한 실전 직관이 쌓인다.
+여기 보인 무늬는 더 복잡한 장면으로 자연스레 넓혀 쓸 수 있다. 웃매개변수, 구조의 변종, 서로 다른 데이터셋로 실험해 보면 이해가 깊어지고 효율적인 펼치기 일에 대한 실전 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`SimpleCNN`의 앞먹임을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 들임 표본 4개짜리 배치에 대해 주요 연산(누비기, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+`SimpleCNN`의 순방향을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 입력 표본 4개짜리 배치에 대해 주요 연산(합성곱, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
 
 </div>
 
@@ -224,7 +224,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 셈한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 날임에 맞춘다. `model = SimpleCNN(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 출력에 맞춘다. `model = SimpleCNN(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
 
 ---
 
@@ -254,7 +254,7 @@ $64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 가장 좋게 하기에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = SimpleCNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = SimpleCNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 

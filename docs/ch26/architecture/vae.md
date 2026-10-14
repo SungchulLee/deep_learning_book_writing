@@ -1,8 +1,8 @@
 # 변분 오토인코더
 
-변분 오토인코더(VAE) 다시 매개변수화 재주로 확률 숨은 공간을 짠다
+변분 오토인코더(VAE) 다시 매개변수화 재주로 확률 잠재공간을 짠다
 
-오토인코더와 변분 오토인코더는 눌러 담은 나타냄을 배우고 새 자료를 만들어 내는 힘 있는 연장이다. 이 짜기는 핵심 구조와 익히기 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
+오토인코더와 변분 오토인코더는 눌러 담은 나타냄을 배우고 새 데이터를 만들어 내는 힘 있는 연장이다. 이 짜기는 핵심 구조와 학습 절차를 보이며 수학 얼거리를 도는 PyTorch 부호에 잇는다.
 
 ## 1. 코드
 
@@ -200,18 +200,18 @@ Generated samples shape: torch.Size([10, 784])
 
 ## 2. 논의
 
-`VAE` 갈래는 PyTorch의 `nn.Module` 겉면으로 모델 구조를 감싼다. `forward` 방법이 셈 그래프를 정하며, 그래서 PyTorch의 저절로 미분하기가 익히는 동안 기울기 셈하기를 알아서 다룬다. 이 모듈 설계 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 넣기가 쉽다.
+`VAE` 갈래는 PyTorch의 `nn.Module` 겉면으로 모델 구조를 감싼다. `forward` 방법이 계산 그래프를 정하며, 그래서 PyTorch의 저절로 미분하기가 익히는 동안 기울기 계산을 알아서 다룬다. 이 모듈 설계 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 넣기가 쉽다.
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.
 
-여기서 보인 결은 더 복잡한 경우로 자연스레 넓어진다. 웃매개변수, 구조 변형, 여러 자료 묶음을 시험해 보면 이해가 깊어지고 나타냄 배우기 일에 대한 실전 직관이 선다.
+여기서 보인 결은 더 복잡한 경우로 자연스레 넓어진다. 웃매개변수, 구조 변형, 여러 데이터셋을 시험해 보면 이해가 깊어지고 나타냄 학습하기 일에 대한 실전 직관이 선다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-붙박이 첫자리매김에서 `VAE`의 배울 수 있는 매개변수의 총수를 셈하라. 무게와 치우침을 모두 넣어 층마다 나누어 세어라.
+붙박이 첫자리매김에서 `VAE`의 배울 수 있는 매개변수의 총수를 계산하라. 무게와 편향을 모두 넣어 층마다 나누어 세어라.
 
 </div>
 
@@ -228,7 +228,7 @@ Generated samples shape: torch.Size([10, 784])
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 
@@ -258,7 +258,7 @@ Generated samples shape: torch.Size([10, 784])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (수수한 파이썬 목록이 아니라) `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 가장 좋게 하기에 올린다. 다음으로 시험하라: `for n in [2, 4, 8]: model = VAE(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (수수한 파이썬 목록이 아니라) `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 최적화에 올린다. 다음으로 시험하라: `for n in [2, 4, 8]: model = VAE(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 
 ---
@@ -283,7 +283,7 @@ Generated samples shape: torch.Size([10, 784])
     KL 항이 $\mu$와 $\log\sigma^2$을 필요로 하므로 밖으로 내보내야 한다. 오토인코더라면
     출력 하나로 충분했다([26장 모듈 연습문제 3](../../ch25/architecture/autoencoder.md)).
 
-    그래서 익히기 반복문의 모양도 달라진다.
+    그래서 학습 반복문의 모양도 달라진다.
 
     ```python
     out, mu, logvar = model(x)                # 셋을 받는다
@@ -303,7 +303,7 @@ Generated samples shape: torch.Size([10, 784])
 </div>
 
 ??? success "연습문제 6 풀이"
-    익히기와 평가에서 다르게 쓰고 싶기 때문이다.
+    학습과 평가에서 다르게 쓰고 싶기 때문이다.
 
     ```python
     def reparameterize(self, mu, logvar):
@@ -313,7 +313,7 @@ Generated samples shape: torch.Size([10, 784])
         return mu + torch.randn_like(std) * std
     ```
 
-    이렇게 두면 `model.eval()`이 알아서 처리해 준다. 다시 세우기 그림을 보일 때 매번
+    이렇게 두면 `model.eval()`이 알아서 처리해 준다. 재구성 그림을 보일 때 매번
     다른 결과가 나오는 일을 막아 준다.
 
     다만 이 선택에는 한 가지 위험이 있다. **익힐 때 뽑지 않으면 모델이 오토인코더가
@@ -342,13 +342,13 @@ Generated samples shape: torch.Size([10, 784])
     | 매개변수 합 | 1,075,488 | 1,079,600 |
     | 늘어난 몫 | | +4,112 (0.4%) |
 
-    **0.4% 늘려서 만들어 내는 모델이 된다.** 표본이 숫자로 보이는 비율이 0.2%에서
+    **0.4% 늘려서 생성 모델이 된다.** 표본이 숫자로 보이는 비율이 0.2%에서
     57.4%로 가는 값이 이것이다.
 
-    코드로는 다시 뽑기 한 줄, KL 항 두 줄, `forward`가 셋을 돌려주기가 늘었다.
+    코드로는 다시 샘플링 한 줄, KL 항 두 줄, `forward`가 셋을 돌려주기가 늘었다.
 
     이 값싼 변화가 두 장을 나누어 다루는 까닭이기도 하다. 구현의 차이는 사소한데 모델의
-    성격이 달라진다. 한쪽은 압축기이고 한쪽은 만들어 내는 모델이다.
+    성격이 달라진다. 한쪽은 압축기이고 한쪽은 생성 모델이다.
 
 ---
 
@@ -369,10 +369,10 @@ Generated samples shape: torch.Size([10, 784])
         return rec + beta * kl                        # 여기
     ```
 
-    구조는 손대지 않는다. 그래서 익힌 모델을 서로 갈아 끼울 수 있고, $\beta$만 바꾸어
+    구조는 손대지 않는다. 그래서 학습된 모델을 서로 갈아 끼울 수 있고, $\beta$만 바꾸어
     쓸어 보기가 쉽다([베타 VAE](beta_vae.md)).
 
-    같은 자리에 자유 비트도 얹힌다.
+    같은 자리에 Free Bits도 얹힌다.
 
     ```python
     kl_dim = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())   # (B, k)
@@ -392,7 +392,7 @@ Generated samples shape: torch.Size([10, 784])
 </div>
 
 ??? success "연습문제 9 풀이"
-    익히기에서는 표본 하나로 어림하지만, 값매김에서는 여러 번 뽑아 평균 내는 것이 낫다.
+    학습에서는 표본 하나로 어림하지만, 평가에서는 여러 번 뽑아 평균 내는 것이 낫다.
     더 나아가 **중요도 무게를 준 하한**이 훨씬 빡빡하다.
 
     ```python
@@ -444,8 +444,8 @@ Generated samples shape: torch.Size([10, 784])
                 'free_bits': 0.0}, path)       # 자유 비트를 썼는가
     ```
 
-    $\beta$와 자유 비트를 적어 두어야 하는 까닭은 **손실 값을 견줄 수 있어야** 하기
-    때문이다. $\beta \ne 1$이거나 자유 비트를 썼다면 그 손실은 증거 하한이 아니므로
+    $\beta$와 Free Bits를 적어 두어야 하는 까닭은 **손실 값을 견줄 수 있어야** 하기
+    때문이다. $\beta \ne 1$이거나 Free Bits를 썼다면 그 손실은 증거 하한이 아니므로
     다른 모델의 ELBO와 나란히 놓으면 안 된다([베타 VAE 연습문제 3](beta_vae.md)).
 
     전처리를 적는 것은 오토인코더와 같은 이유다

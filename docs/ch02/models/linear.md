@@ -35,13 +35,13 @@ y = \alpha x + \beta
 $$
 
 !!! note "통계와 기계학습의 차이"
-    이 뼈대는 통계학에서도 똑같다. 데이터를 받아 모델을 세우고 예측한다는 순서가 같으므로, **다른 것은 모델뿐이다.** 통계학이 해석 가능하고 가정이 뚜렷한 모델을 고르는 자리에서, 기계학습은 가정을 줄이고 표현력이 큰 모델을 고른다. 선형 회귀는 두 분야가 같은 모델을 쓰는 몇 안 되는 지점이며, 그래서 둘을 견주기에 가장 좋은 출발점이다.
+    이 뼈대는 통계학에서도 똑같다. 데이터를 받아 모델을 세우고 예측한다는 순서가 같으므로, **다른 것은 모델뿐이다.** 통계학이 해석 가능하고 가정이 뚜렷한 모델을 고르는 자리에서, 기계학습은 가정을 줄이고 표현력이 큰 모델을 고른다. 선형 회귀는 두 분야가 같은 모델을 쓰는 몇 안 되는 지점이며, 그래서 둘을 비교에 가장 좋은 출발점이다.
 
-**정칙화(regularization)** 는 큰 가중치에 벌점을 부과하여 과적합을 막는다.
+**정칙화(regularization)** 는 큰 가중치에 패널티를 부과하여 과적합을 막는다.
 
 - **릿지(L2)**: $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha \|\boldsymbol{\beta}\|^2$을 최소화한다. 모든 계수를 0 쪽으로 줄이지만 정확히 0으로 만들지는 않는다. 특징들이 상관되어 있을 때 사용한다.
 - **라쏘(L1)**: $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha \|\boldsymbol{\beta}\|_1$을 최소화한다. 일부 계수를 정확히 0으로 만들어 특징 선택을 수행한다.
-- **엘라스틱넷**: L1과 L2 벌점을 결합한다. 특징들이 상관되어 있으면서 희소성도 원할 때 사용한다.
+- **엘라스틱넷**: L1과 L2 패널티를 결합한다. 특징들이 상관되어 있으면서 희소성도 원할 때 사용한다.
 
 **딥러닝과의 연결**: PyTorch의 `nn.Linear` 층 하나가 바로 이 모델을 구현한다. L2 정칙화는 최적화기의 `weight_decay`에 대응한다. L1 정칙화는 손실에 직접 더해 주어야 한다.
 
@@ -132,7 +132,7 @@ MSE 손실 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 </div>
 
 ??? success "연습문제 2 풀이"
-    릿지 회귀는 $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha\|\boldsymbol{\beta}\|^2$을 최소화한다. 닫힌 형태 해는 $\hat{\boldsymbol{\beta}}_{\text{ridge}} = (\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$이다. 기하학적으로 릿지는 $\boldsymbol{\beta}$가 $\ell_2$ 공 안에 있도록 제약한다. $\alpha \to 0$이면 릿지는 OLS(정칙화 없음)로 수렴한다. $\alpha \to \infty$이면 벌점이 지배하여 $\hat{\boldsymbol{\beta}} \to \mathbf{0}$이 되고 모델은 $\mathbf{y}$의 평균을 예측한다. $\alpha\mathbf{I}$를 더하면 $\mathbf{X}^\top\mathbf{X}$가 특이행렬이어도 가역성이 보장된다.
+    릿지 회귀는 $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha\|\boldsymbol{\beta}\|^2$을 최소화한다. 닫힌 형태 해는 $\hat{\boldsymbol{\beta}}_{\text{ridge}} = (\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$이다. 기하학적으로 릿지는 $\boldsymbol{\beta}$가 $\ell_2$ 공 안에 있도록 제약한다. $\alpha \to 0$이면 릿지는 OLS(정칙화 없음)로 수렴한다. $\alpha \to \infty$이면 패널티가 지배하여 $\hat{\boldsymbol{\beta}} \to \mathbf{0}$이 되고 모델은 $\mathbf{y}$의 평균을 예측한다. $\alpha\mathbf{I}$를 더하면 $\mathbf{X}^\top\mathbf{X}$가 특이행렬이어도 가역성이 보장된다.
 
 ---
 
@@ -178,7 +178,7 @@ MSE 손실 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 
 그런데도 이 절이 같은 문제를 경사 하강법으로 한 번 더 푸는 까닭이 있다. **그 절차가 신경망으로 그대로 이어지기 때문**이다. 순전파로 예측하고, 손실을 재고, 역전파로 기울기를 구하고, 한 걸음 옮긴다. 모델만 바꾸면 이 뼈대는 그대로다.
 
-정칙화는 큰 가중치에 벌점을 걸어 과적합을 막는다. L2(릿지)는 계수를 0 쪽으로 줄이되 0으로 만들지 않고, L1(라쏘)은 일부를 정확히 0으로 만들어 특징을 고른다. **L2는 SGD의 `weight_decay`와 정확히 같은 것**이며(연습문제 3), 다만 Adam에서는 그 동등성이 깨져 AdamW가 따로 있다.
+정칙화는 큰 가중치에 패널티를 걸어 과적합을 막는다. L2(릿지)는 계수를 0 쪽으로 줄이되 0으로 만들지 않고, L1(라쏘)은 일부를 정확히 0으로 만들어 특징을 고른다. **L2는 SGD의 `weight_decay`와 정확히 같은 것**이며(연습문제 3), 다만 Adam에서는 그 동등성이 깨져 AdamW가 따로 있다.
 
 `nn.Linear` 층 하나가 곧 이 모델이다. [3장](../../ch03/index.md)의 2걸음이 이것을 MNIST에 걸어 92%를 얻고, 나머지 두 걸음이 그 위에 비선형성과 이웃 관계를 얹는다.
 

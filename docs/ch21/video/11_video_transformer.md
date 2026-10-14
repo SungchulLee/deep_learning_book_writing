@@ -1,8 +1,8 @@
-# 영상 변환기
+# 비디오 트랜스포머
 
-영상 변환기
+영상 트랜스포머
 
-이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 영상 이해를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 익히기 전략을 보여 주는 실전 PyTorch 코드이다.
+이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 영상 이해를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 학습 전략을 보여 주는 실전 PyTorch 코드이다.
 
 ## 1. 코드
 
@@ -28,16 +28,16 @@ Video Transformers module
 
 ## 2. 논의
 
-여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 영상 이해의 핵심 개념을 보여 준다. 단원별로 나뉜 짜임 덕분에 낱낱의 조각을 익히고 다른 일이나 자료 뭉치에 맞게 고치기 쉽다.
+여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 영상 이해의 핵심 개념을 보여 준다. 단원별로 나뉜 구조 덕분에 낱낱의 조각을 익히고 다른 일이나 데이터셋에 맞게 고치기 쉽다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
+여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 끝까지 읽고 핵심 꾸밈 결정을 가려내어라. 구체적인 짜기 고름 세 가지를 들고 저마다 왜 영상 이해에 알맞은지 설명하여라.
+코드를 끝까지 읽고 핵심 꾸밈 결정을 가려내어라. 구체적인 짜기 공정성 세 가지를 들고 저마다 왜 영상 이해에 알맞은지 설명하여라.
 
 </div>
 
@@ -54,7 +54,7 @@ Video Transformers module
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 
@@ -73,7 +73,7 @@ Video Transformers module
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-단원 34의 짜기를 확인하는 두루 살피는 시험 함수를 쓰라. 빈 들임, 원소가 하나인 들임, 아주 큰 들임, 값이 극단인 들임(0, 아주 큰 수)을 비롯한 모서리 경우를 시험하여라.
+단원 34의 짜기를 확인하는 두루 살피는 시험 함수를 쓰라. 빈 입력, 원소가 하나인 입력, 아주 큰 입력, 값이 극단인 입력(0, 아주 큰 수)을 비롯한 모서리 경우를 시험하여라.
 
 </div>
 

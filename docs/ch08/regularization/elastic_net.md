@@ -6,9 +6,9 @@
 
 ## 1. 수학적 정식화
 
-### 결합된 벌점
+### 결합된 패널티
 
-엘라스틱 넷의 벌점은 L1 노름과 L2 노름의 가중 결합이다.
+엘라스틱 넷의 패널티는 L1 노름과 L2 노름의 가중 결합이다.
 
 $$
 \Omega(w) = \alpha \|w\|_1 + \frac{1 - \alpha}{2} \|w\|_2^2
@@ -471,11 +471,11 @@ def compare_regularization_methods(X, y, alpha_values):
 
 ---
 
-## 6. 초매개변수 선택
+## 6. 하이퍼파라미터 선택
 
 ### 이차원 탐색
 
-엘라스틱 넷에는 초매개변수가 둘 있다. $\lambda$(전체 강도)와 $\alpha$(L1/L2 혼합)이다.
+엘라스틱 넷에는 하이퍼파라미터가 둘 있다. $\lambda$(전체 강도)와 $\alpha$(L1/L2 혼합)이다.
 
 ```python
 import numpy as np
@@ -684,7 +684,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-엘라스틱 넷의 벌점을 쓰고, 혼합 매개변수 $\alpha$이 L1과 L2의 균형을 어떻게 조절하는지 설명하라.
+엘라스틱 넷의 패널티를 쓰고, 혼합 매개변수 $\alpha$이 L1과 L2의 균형을 어떻게 조절하는지 설명하라.
 
 </div>
 
@@ -701,7 +701,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 </div>
 
 ??? success "연습문제 2 풀이"
-    상관된 특징이 있으면 라쏘는 하나를 임의로 고르고 나머지를 0으로 만든다(불안정한 선택). 엘라스틱 넷의 L2 항은 상관된 특징이 비슷한 계수를 갖도록 이끈다(묶음 효과). $x_i \approx x_j$이면 $|w_i - w_j|$이 벌점을 받아 둘 다 남는다.
+    상관된 특징이 있으면 라쏘는 하나를 임의로 고르고 나머지를 0으로 만든다(불안정한 선택). 엘라스틱 넷의 L2 항은 상관된 특징이 비슷한 계수를 갖도록 이끈다(묶음 효과). $x_i \approx x_j$이면 $|w_i - w_j|$이 패널티를 받아 둘 다 남는다.
 
 ---
 
@@ -727,7 +727,7 @@ PyTorch 학습 루프에서 엘라스틱 넷 정칙화를 구현하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-엘라스틱 넷 벌점에 대한 근접 연산자를 유도하라.
+엘라스틱 넷 패널티에 대한 근접 연산자를 유도하라.
 
 </div>
 

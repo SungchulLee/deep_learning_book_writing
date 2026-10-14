@@ -1,4 +1,4 @@
-# 닫힌 형태의 해
+# 해석적 해
 
 반복적 최적화가 필요한 대부분의 기계 학습 문제와 달리, 선형 회귀에는 **정규 방정식**이라
 불리는 **닫힌 형태**의 해가 있다. 이 페이지에서는 제일원리에서부터 해를 전개한다.
@@ -217,7 +217,7 @@ $$
 \|\mathbf{y}\|^2 = \|\hat{\mathbf{y}}\|^2 + \|\mathbf{r}\|^2
 $$
 
-이것이 분산분석(ANOVA) 분해의 기하학적 바탕이다.
+이것이 분산분석(ANOVA) 분해의 기하학적 기초다.
 
 $$
 \underbrace{\|\mathbf{y} - \bar{y}\mathbf{1}\|^2}_{\text{SS}_{\text{tot}}}
@@ -476,7 +476,7 @@ $$
 | SVD | $O(np^2)$ | $O(np)$ | 가장 견고하며 계수 부족도 처리 |
 | 경사 하강법 | $O(knp)$ | $O(p)$ | $p > 10{,}000$이거나 $n$이 아주 클 때 가장 좋다 |
 
-**경험칙:** $p < 10{,}000$이면 닫힌 형태의 해를 쓰고, 특징 공간이 더 크거나
+**경험칙:** $p < 10{,}000$이면 해석적 해를 쓰고, 특징 공간이 더 크거나
 미니배치 학습이 필요하면 경사 하강법으로 바꾼다.
 
 ---
@@ -539,7 +539,7 @@ MSE의 경사를 0으로 두어 정규 방정식 $\mathbf{X}^\top\mathbf{X}\math
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-닫힌 형태의 해가 $\mathbf{y}$를 $\mathbf{X}$의 열공간 위로 직교 사영한 것임을 보여라.
+해석적 해가 $\mathbf{y}$를 $\mathbf{X}$의 열공간 위로 직교 사영한 것임을 보여라.
 
 </div>
 
@@ -563,7 +563,7 @@ $\mathbf{X}^\top\mathbf{X}$의 역행렬을 직접 구하는 것보다 유사역
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`torch.linalg.solve`와 유사역행렬 두 가지로 닫힌 형태의 해를 구현하라. 조건이 나쁜 문제에서 수치적 정확도를 비교하라.
+`torch.linalg.solve`와 유사역행렬 두 가지로 해석적 해를 구현하라. 조건이 나쁜 문제에서 수치적 정확도를 비교하라.
 
 </div>
 
@@ -584,7 +584,7 @@ $\mathbf{X}^\top\mathbf{X}$의 역행렬을 직접 구하는 것보다 유사역
 | 개념 | 핵심 공식 |
 |---------|-------------|
 | 정규 방정식 | $\mathbf{X}^\top\mathbf{X}\boldsymbol{\theta}^* = \mathbf{X}^\top\mathbf{y}$ |
-| 닫힌 형태의 해 | $\boldsymbol{\theta}^* = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$ |
+| 해석적 해 | $\boldsymbol{\theta}^* = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$ |
 | 사영 행렬 | $\mathbf{P} = \mathbf{X}(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top$ |
 | 직교성 | $\mathbf{X}^\top(\mathbf{y} - \hat{\mathbf{y}}) = \mathbf{0}$ |
 | ANOVA | $\text{SS}_{\text{tot}} = \text{SS}_{\text{reg}} + \text{SS}_{\text{res}}$ |

@@ -1,8 +1,8 @@
-# 글 만들기
+# 텍스트 생성
 
 text_generation.py (모듈 09) 마르코프 사슬로 글 만들기
 
-확률 과정과 표집 방법은 확률적 기계 학습의 바탕 도구이다. 이 모듈은 마르코프 사슬의 개념을 보이며 수학 이론과 셈 구현 사이의 틈을 잇는다.
+확률 과정과 샘플링 방법은 확률적 기계 학습의 기초 도구이다. 이 모듈은 마르코프 사슬의 개념을 보이며 수학 이론과 계산 구현 사이의 틈을 잇는다.
 
 ## 1. 코드
 
@@ -133,16 +133,16 @@ MARKOV CHAIN TEXT GENERATION
 
 ## 2. 논의
 
-이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 마르코프 사슬의 핵심 개념을 보인다. 모듈로 나뉘어 있어 부분마다 따로 살펴보고 다른 일감이나 자료 묶음에 맞춰 고치기 쉽다.
+이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 마르코프 사슬의 핵심 개념을 보인다. 모듈로 나뉘어 있어 부분마다 따로 살펴보고 다른 과제이나 데이터셋에 맞춰 고치기 쉽다.
 
-여기서 보인 무늬는 더 복잡한 상황으로 자연스럽게 넓어진다. 웃매개변수, 구조의 변형, 서로 다른 자료 묶음을 이리저리 시험해 보면 이해가 깊어지고 확률 과정 일감에 대한 실전 직관이 쌓인다.
+여기서 보인 무늬는 더 복잡한 상황으로 자연스럽게 넓어진다. 웃매개변수, 구조의 변형, 서로 다른 데이터셋을 이리저리 시험해 보면 이해가 깊어지고 확률 과정 과제에 대한 실전 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 죽 읽고 핵심 설계 결정을 가려내어라. 구체적인 구현 고름 셋을 적고 저마다 왜 마르코프 사슬에 알맞은지 설명하여라.
+코드를 죽 읽고 핵심 설계 결정을 가려내어라. 구체적인 구현 공정성 셋을 적고 저마다 왜 마르코프 사슬에 알맞은지 설명하여라.
 
 </div>
 
@@ -159,7 +159,7 @@ MARKOV CHAIN TEXT GENERATION
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 

@@ -510,7 +510,7 @@ print_gradient_report(stats)
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-ReLU가 시그모이드에 견주어 경사 소실 문제를 어떻게 누그러뜨리는지 설명하라.
+ReLU가 시그모이드에 비교하여 경사 소실 문제를 어떻게 누그러뜨리는지 설명하라.
 
 </div>
 

@@ -123,7 +123,7 @@ PyTorch 텐서는 `requires_grad` 깃발을 통해 자동 미분을 지원하지
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-`n_samples=10000`으로 1000 에폭의 시간을 재어 CPU와 (가능하다면) GPU에서 학습 루프를 견주어 보라. 실제 소요 시간은 `time.time()`으로 측정하라. 데이터 크기가 얼마부터 GPU 가속이 값어치를 하는가?
+`n_samples=10000`으로 1000 에폭의 시간을 재어 CPU와 (가능하다면) GPU에서 학습 루프를 비교하여 보라. 실제 소요 시간은 `time.time()`으로 측정하라. 데이터 크기가 얼마부터 GPU 가속이 값어치를 하는가?
 
 </div>
 

@@ -1,8 +1,8 @@
-# 내림폭
+# 낙폭(Drawdown)
 
-35.4.2장: 내림폭 다스리기. 자리 크기 잣대기와 회로 차단기를 곁들인, 내림폭을 살피는 힘 북돋우는 배움.
+35.4.2장: 낙폭 다스리기. 자리 크기 잣대기와 회로 차단기를 곁들인, 낙폭을 살피는 강화학습.
 
-계량 금융에 깊은 배움을 올리려면 든든한 서비스 바탕이 있어야 한다. 이 꾸러미는 지켜보기, 무릅씀 다스리기, 서비스에 올리는 꾀를 아우르는 무릅씀 다루기 설계 결을 다룬다.
+계량 금융에 딥러닝을 올리려면 든든한 서비스 기초가 있어야 한다. 이 꾸러미는 지켜보기, 위험 다스리기, 서비스에 올리는 꾀를 아우르는 위험 다루기 설계 결을 다룬다.
 
 ## 1. 코드
 
@@ -464,33 +464,33 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 무릅씀 다루기 구조를 함께 이룬다. 갈래마다 남다른 조각을 감싸므로 코드가 조각조각 나뉘어 늘리기 쉽다. `forward` 방법이 파이토치가 저절로 미분할 때 쓰는 셈 그래프를 정한다.
+이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 위험 다루기 구조를 함께 이룬다. 갈래마다 남다른 조각을 감싸므로 코드가 조각조각 나뉘어 늘리기 쉽다. `forward` 방법이 파이토치가 저절로 미분할 때 쓰는 계산 그래프를 정한다.
 
-여기서 보인 결은 더 얽힌 자리로 자연스럽게 넓어진다. 매개변수와 구조 갈래와 자료 뭉치를 바꿔 가며 해 보면 이해가 깊어지고 계량 금융 일감에 대한 실제 감이 쌓인다.
+여기서 보인 결은 더 얽힌 자리로 자연스럽게 넓어진다. 매개변수와 구조 갈래와 데이터셋을 바꿔 가며 해 보면 이해가 깊어지고 계량 금융 과제에 대한 실제 감이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫 값으로 만든 `DrawdownConfig`에서 배우는 매개변수의 온 개수를 셈하여라. 무게와 치우침을 모두 넣어 켜마다 나누어 적어라.
+기본 첫 값으로 만든 `DrawdownConfig`에서 배우는 매개변수의 온 개수를 계산하여라. 무게와 편향을 모두 넣어 켜마다 나누어 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)`마다 무게 매개변수가 `in_features * out_features`개, 치우침 매개변수가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 무게가 `in_c * out_c * k * k`개, 치우침이 `out_c`개다. `nn.Embedding(num, dim)`은 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
+    `nn.Linear(in_features, out_features)`마다 무게 매개변수가 `in_features * out_features`개, 편향 매개변수가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 무게가 `in_c * out_c * k * k`개, 편향이 `out_c`개다. `nn.Embedding(num, dim)`은 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-으뜸 함수나 갈래에 들임이 바라는 꼴과 자료형인지 살피는 검사를 더하라. 옳지 않은 들임에는 알기 쉬운 잘못 알림을 내어라.
+으뜸 함수나 갈래에 입력이 바라는 꼴과 자료형인지 살피는 검사를 더하라. 옳지 않은 입력에는 알기 쉬운 잘못 알림을 내어라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 방법(또는 걸맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살피기를 더한다. 꼴을 살필 때에는 종요로운 차원을 짚는다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알기 쉬운 잘못 알림은 벌레잡기를 크게 빠르게 하고 코드를 되쓰기 좋게 만든다.
+    `forward` 방법(또는 걸맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살피기를 더한다. 꼴을 살필 때에는 중요한 차원을 짚는다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알기 쉬운 잘못 알림은 디버깅을 크게 빠르게 하고 코드를 되쓰기 좋게 만든다.
 
 ---
 
@@ -502,7 +502,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔한 어그러짐은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 노름을 지켜보아(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기) 짚어 낸다. 기울기 자르기, 더 나은 첫 값 매기기(자비에/카이밍), 구조 바꾸기(남는 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 손실은 줄어드는데 살피기 손실이 늘면 짚어 낸다. 정칙화(드롭아웃, 무게 삭임, 자료 늘리기)나 모형 그릇 줄이기로 고친다. 익힘 재기와 살피기 재기를 늘 함께 지켜보아 이런 걸림돌을 일찍 잡아야 한다.
+    흔한 어그러짐은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 노름을 지켜보아(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기) 짚어 낸다. 기울기 자르기, 더 나은 첫 값 매기기(자비에/카이밍), 구조 바꾸기(남는 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 손실은 줄어드는데 살피기 손실이 늘면 짚어 낸다. 정칙화(드롭아웃, 무게 삭임, 데이터 늘리기)나 모델 그릇 줄이기로 고친다. 학습 재기와 살피기 재기를 늘 함께 지켜보아 이런 걸림돌을 일찍 잡아야 한다.
 
 ---
 
@@ -520,12 +520,12 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 되돌이한다. `for layer in self.layers: x = layer(x)`. (그냥 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 파이토치가 온 매개변수를 가장 좋게 하기에 등록한다. 시험: `for n in [2, 4, 8]: model = DrawdownConfig(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 방법에서 되돌이한다. `for layer in self.layers: x = layer(x)`. (그냥 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 파이토치가 온 매개변수를 최적화에 등록한다. 시험: `for n in [2, 4, 8]: model = DrawdownConfig(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 
-**다룬 것** — 내림폭
+**다룬 것** — 낙폭
 
-이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 무릅씀 다루기 구조를 함께 이룬다.
+이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 위험 다루기 구조를 함께 이룬다.
 
 핵심 갈래는 `DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

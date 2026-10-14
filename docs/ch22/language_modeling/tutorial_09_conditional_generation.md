@@ -1,8 +1,8 @@
-# 실습 09
+# 튜토리얼 09 조건부 생성
 
-길잡이 09: 다스린 글 만들어 내기 전략. 글 만들어 내기의 좋음을 다스리고 낫게 하는 앞선 재주.
+길잡이 09: 다스린 텍스트 생성 전략. 텍스트 생성의 좋음을 다스리고 낫게 하는 앞선 재주.
 
-자연어 다루기는 깊은 배움 방식으로 크게 달라졌다. 이 단원은 말 모델 재주를 보여 주며, 신경망이 글을 어떻게 다루고 만들어 내는지 밝히는 실전 짜기를 준다.
+자연어 처리는 딥러닝 방식으로 크게 달라졌다. 이 단원은 언어 모델 재주를 보여 주며, 신경망이 글을 어떻게 다루고 만들어 내는지 밝히는 실전 짜기를 준다.
 
 ## 1. 코드
 
@@ -376,16 +376,16 @@ Text Generation Strategies Comparison
 
 ## 2. 논의
 
-여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 말 모델의 핵심 개념을 보여 준다. 단원별로 나뉜 짜임 덕분에 낱낱의 조각을 익히고 다른 일이나 자료 뭉치에 맞게 고치기 쉽다.
+여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 언어 모델의 핵심 개념을 보여 준다. 단원별로 나뉜 구조 덕분에 낱낱의 조각을 익히고 다른 일이나 데이터셋에 맞게 고치기 쉽다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
+여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 끝까지 읽고 핵심 꾸밈 결정을 가려내어라. 구체적인 짜기 고름 세 가지를 들고 저마다 왜 말 모델에 알맞은지 설명하여라.
+코드를 끝까지 읽고 핵심 꾸밈 결정을 가려내어라. 구체적인 짜기 공정성 세 가지를 들고 저마다 왜 언어 모델에 알맞은지 설명하여라.
 
 </div>
 
@@ -402,7 +402,7 @@ Text Generation Strategies Comparison
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 
@@ -449,6 +449,6 @@ Text Generation Strategies Comparison
 
 **다룬 것** — 실습 09
 
-여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 말 모델의 핵심 개념을 보여 준다.
+여기 짠 것은 깔끔하고 읽기 좋은 PyTorch 코드로 언어 모델의 핵심 개념을 보여 준다.
 
 핵심 갈래는 `GenerationStrategies`, `RepetitionPenalty`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

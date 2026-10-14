@@ -2,7 +2,7 @@
 
 모델 가리지 않는 메타 학습(MAML). 참고: Finn 외, "Model-Agnostic Meta-Learning for Fast Adaptation" (2017)
 
-모자란 데이터나 서로 이어진 데이터에서 효율적으로 배우는 것은 오늘날 깊은 학습의 한가운데 놓인 어려움이다. 이 모듈은 모델이 앞선 앎을 살려 새 과제에 재빨리 맞추어 가게 하는 소수 예시 학습 기법을 보여 준다.
+모자란 데이터나 서로 이어진 데이터에서 효율적으로 배우는 것은 오늘날 깊은 학습의 한가운데 놓인 어려움이다. 이 모듈은 모델이 앞선 앎을 살려 새 과제에 재빨리 맞추어 가게 하는 퓨샷 학습 기법을 보여 준다.
 
 ## 1. 코드
 
@@ -249,18 +249,18 @@ Predictions: tensor([1, 4, 2, 0, 2, 1, 0, 0, 4, 4, 0, 2, 4, 0, 4])
 
 ## 2. 논의
 
-이 구현은 함께 어울려 온전한 소수 예시 학습 구조를 이루는 클래스 2개(`SimpleClassifier`, `MAML`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
+이 구현은 함께 어울려 온전한 퓨샷 학습 구조를 이루는 클래스 2개(`SimpleClassifier`, `MAML`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
 
 손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.
 
-여기서 보인 본새는 더 복잡한 상황으로도 자연스럽게 넓어진다. 초매개변수, 구조의 변형, 여러 데이터셋을 두고 실험해 보면 이해가 깊어지고 메타 학습 과제에 대한 실전 감각이 쌓인다.
+여기서 보인 본새는 더 복잡한 상황으로도 자연스럽게 넓어진다. 하이퍼파라미터, 구조의 변형, 여러 데이터셋을 두고 실험해 보면 이해가 깊어지고 메타 학습 과제에 대한 실전 감각이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-기본 초기화 상태의 `SimpleClassifier`에 든 학습 가능한 매개변수의 총 개수를 셈하라. 가중치와 편향을 모두 넣어 층별로 나누어 보여라.
+기본 초기화 상태의 `SimpleClassifier`에 든 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 보여라.
 
 </div>
 
@@ -277,7 +277,7 @@ Predictions: tensor([1, 4, 2, 0, 2, 1, 0, 0, 4, 4, 0, 2, 4, 0, 4])
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
 
 ---
 
@@ -313,6 +313,6 @@ Predictions: tensor([1, 4, 2, 0, 2, 1, 0, 0, 4, 4, 0, 2, 4, 0, 4])
 
 **다룬 것** — MAML
 
-이 구현은 함께 어울려 온전한 소수 예시 학습 구조를 이루는 클래스 2개(`SimpleClassifier`, `MAML`)를 정한다.
+이 구현은 함께 어울려 온전한 퓨샷 학습 구조를 이루는 클래스 2개(`SimpleClassifier`, `MAML`)를 정한다.
 
 핵심 클래스는 `SimpleClassifier`, `MAML`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

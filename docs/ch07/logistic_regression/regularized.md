@@ -18,7 +18,7 @@
 
 ### 완전 분리 문제
 
-학습 데이터가 **선형 분리 가능**하면 로지스틱 회귀의 최대가능도 추정값이 존재하지 않는다. 모델이 예측을 더 확신에 차게 만들어 언제나 가능도를 높일 수 있으므로 최적 매개변수가 $\|\boldsymbol{\beta}\| \to \infty$으로 발산한다.
+학습 데이터가 **선형 분리 가능**하면 로지스틱 회귀의 최대가능도 추정값이 존재하지 않는다. 모델이 예측을 더 확신에 차게 만들어 언제나 우도를 높일 수 있으므로 최적 매개변수가 $\|\boldsymbol{\beta}\| \to \infty$으로 발산한다.
 
 수학적으로, ($y_i \in \{-1, +1\}$ 부호화를 쓸 때) 모든 $i$에 대해 $y_i(\mathbf{x}_i^\top \boldsymbol{\beta}^*) > 0$인 $\boldsymbol{\beta}^*$이 존재한다면, $c \to \infty$으로 $\boldsymbol{\beta}^* \to c\boldsymbol{\beta}^*$처럼 배율을 키울 때 모든 예측이 확실성 쪽으로 몰리고 로그가능도가 (상한인) 0에 다가가지만 결코 도달하지는 못한다.
 
@@ -38,13 +38,13 @@
 
 ### 정칙화된 목적 함수
 
-L2 정칙화는 가중치의 L2 노름 제곱에 벌점을 더한다.
+L2 정칙화는 가중치의 L2 노름 제곱에 패널티를 더한다.
 
 $$
 \mathcal{L}_{\text{ridge}}(\boldsymbol{\beta}) = -\frac{1}{n}\sum_{i=1}^{n} \left[ y_i \log p_i + (1-y_i) \log(1-p_i) \right] + \frac{\lambda}{2}\|\boldsymbol{\beta}_{1:d}\|_2^2
 $$
 
-여기서 $\lambda > 0$은 정칙화 강도이고 $\boldsymbol{\beta}_{1:d}$은 절편 $\beta_0$을 뺀 것이다(절편에는 보통 벌점을 주지 않는다).
+여기서 $\lambda > 0$은 정칙화 강도이고 $\boldsymbol{\beta}_{1:d}$은 절편 $\beta_0$을 뺀 것이다(절편에는 보통 패널티를 주지 않는다).
 
 ### L2 정칙화가 있을 때의 경사
 
@@ -72,7 +72,7 @@ $$
 \boldsymbol{\beta}_{\text{MAP}} = \arg\max_{\boldsymbol{\beta}} \left[ \log P(\mathcal{D}|\boldsymbol{\beta}) + \log P(\boldsymbol{\beta}) \right]
 $$
 
-$\log P(\boldsymbol{\beta}) = -\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2 + \text{const}$이므로 사후확률을 최대화하는 것은 릿지 벌점을 준 손실을 최소화하는 것과 같다.
+$\log P(\boldsymbol{\beta}) = -\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2 + \text{const}$이므로 사후확률을 최대화하는 것은 릿지 패널티를 준 손실을 최소화하는 것과 같다.
 
 ---
 
@@ -80,7 +80,7 @@ $\log P(\boldsymbol{\beta}) = -\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2 + \te
 
 ### 정칙화된 목적 함수
 
-L1 정칙화는 절댓값의 합에 벌점을 준다.
+L1 정칙화는 절댓값의 합에 패널티를 준다.
 
 $$
 \mathcal{L}_{\text{lasso}}(\boldsymbol{\beta}) = -\frac{1}{n}\sum_{i=1}^{n} \left[ y_i \log p_i + (1-y_i) \log(1-p_i) \right] + \lambda \|\boldsymbol{\beta}_{1:d}\|_1
@@ -108,7 +108,7 @@ $$
 
 ### L1과 L2 결합하기
 
-엘라스틱 넷은 두 벌점을 결합한다.
+엘라스틱 넷은 두 패널티를 결합한다.
 
 $$
 \mathcal{L}_{\text{elastic}}(\boldsymbol{\beta}) = \text{BCE} + \lambda_1 \|\boldsymbol{\beta}_{1:d}\|_1 + \frac{\lambda_2}{2}\|\boldsymbol{\beta}_{1:d}\|_2^2
@@ -130,7 +130,7 @@ $$
 
 ### 정칙화 요약
 
-| 정칙화 항 | 벌점 | 사전분포 | 희소성 | 경사 |
+| 정칙화 항 | 패널티 | 사전분포 | 희소성 | 경사 |
 |-------------|---------|-------|----------|----------|
 | L2 (릿지) | $\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2$ | 가우스 | 없음 | $\lambda \boldsymbol{\beta}$ |
 | L1 (라쏘) | $\lambda\|\boldsymbol{\beta}\|_1$ | 라플라스 | 있음 | $\lambda \operatorname{sign}(\boldsymbol{\beta})$ |
@@ -768,7 +768,7 @@ print("\n✓ Results visualization saved!")
 |----------|--------|
 | 조기 종료 | 과적합을 막는다 |
 | L2에는 `weight_decay` | 효율적이며 최적화기에 내장되어 있다 |
-| L1 벌점은 직접 구현 | PyTorch에는 L1 정칙화가 내장되어 있지 않다 |
+| L1 패널티는 직접 구현 | PyTorch에는 L1 정칙화가 내장되어 있지 않다 |
 | 최고 모델 체크포인트 | 최고 성능을 잃지 않는다 |
 
 ### 평가
@@ -879,12 +879,12 @@ $\lambda > 0$일 때 정칙화된 헤세 행렬 $\mathbf{H}_{\text{ridge}} = \ma
 
 | 개념 | 공식 | 핵심 통찰 |
 |---------|---------|-------------|
-| L2 벌점 | $\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2$ | 모든 가중치를 줄인다; 가우스 사전분포 |
-| L1 벌점 | $\lambda\|\boldsymbol{\beta}\|_1$ | 희소성을 만든다; 라플라스 사전분포 |
+| L2 패널티 | $\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2$ | 모든 가중치를 줄인다; 가우스 사전분포 |
+| L1 패널티 | $\lambda\|\boldsymbol{\beta}\|_1$ | 희소성을 만든다; 라플라스 사전분포 |
 | 엘라스틱 넷 | $\lambda[\alpha\|\boldsymbol{\beta}\|_1 + \frac{1-\alpha}{2}\|\boldsymbol{\beta}\|_2^2]$ | 무리 짓기 + 희소성 |
 | L2 경사 | $\lambda\boldsymbol{\beta}$ | 가중치 감쇠 |
 | L1 열경사 | $\lambda\operatorname{sign}(\boldsymbol{\beta})$ | 0 쪽으로 일정하게 민다 |
 | PyTorch의 L2 | 최적화기의 `weight_decay` | 내장되어 있고 효율적이다 |
-| PyTorch의 L1 | 손실에 벌점을 직접 더한다 | 명시적으로 추가해야 한다 |
+| PyTorch의 L1 | 손실에 패널티를 직접 더한다 | 명시적으로 추가해야 한다 |
 
 정칙화는 분리 가능한 데이터에서 실패할 수 있는 방법이던 로지스틱 회귀를 수렴이 보장되는 견고하고 잘 정의된 알고리즘으로 바꾼다. L1, L2, 엘라스틱 넷 중 무엇을 고를지는 문제의 구조에 달려 있다. 즉 희소한 해를 기대하는지 조밀한 해를 기대하는지, 그리고 특징들이 어떻게 상관되어 있는지에 달려 있다.

@@ -14,7 +14,7 @@
 - 우아한 경사 공식 $\nabla_\mathbf{z}\mathcal{L} = \hat{\boldsymbol{\pi}} - \mathbf{y}$을 PyTorch로 확인하기
 
 !!! note "함께 볼 것"
-    교차 엔트로피는 **5.4절 소프트맥스 회귀**에도 등장한다. 거기서는 소프트맥스 분류기의 자연스러운 손실로 유도하고 PyTorch의 세 인터페이스(`nn.CrossEntropyLoss`, `F.cross_entropy`, `nn.NLLLoss`)를 쓴 N-그램 언어 모델로 보여준다. 이 절은 더 폭넓게 다룬다. 정보 이론적 토대, 행렬 형태를 포함한 전체 배치 경사 유도, NumPy로 바닥부터 만드는 구현, 그리고 초점 손실과의 관계를 살펴본다.
+    교차 엔트로피는 **5.4절 소프트맥스 회귀**에도 등장한다. 거기서는 소프트맥스 분류기의 자연스러운 손실로 유도하고 PyTorch의 세 인터페이스(`nn.CrossEntropyLoss`, `F.cross_entropy`, `nn.NLLLoss`)를 쓴 N-그램 언어 모델로 보여준다. 이 절은 더 폭넓게 다룬다. 정보 이론적 토대, 행렬 형태를 포함한 전체 배치 경사 유도, NumPy로 바닥부터 만드는 구현, 그리고 Focal Loss과의 관계를 살펴본다.
 
 ---
 
@@ -26,11 +26,11 @@
 
 - **데이터:** $y^{(i)} \in \{1, \ldots, K\}$인 $\mathcal{D} = \{(\mathbf{x}^{(i)}, y^{(i)})\}_{i=1}^{N}$
 - **모델:** 확률 $\hat{\pi}_k^{(i)} = P(Y = k \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta})$을 예측한다
-- **목표:** 관측된 데이터의 가능도를 최대로 만드는 매개변수 $\boldsymbol{\theta}$을 찾는다
+- **목표:** 관측된 데이터의 우도를 최대로 만드는 매개변수 $\boldsymbol{\theta}$을 찾는다
 
-### 가능도 함수
+### 우도 함수
 
-표본들이 독립이라고 가정하면 가능도는 다음과 같다.
+표본들이 독립이라고 가정하면 우도는 다음과 같다.
 
 $$\mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^{N} P\bigl(Y = y^{(i)} \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta}\bigr) = \prod_{i=1}^{N} \hat{\pi}_{y^{(i)}}^{(i)}$$
 
@@ -40,7 +40,7 @@ $$\mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^{N} \prod_{k=1}^{K} \bigl(\hat{
 
 ### 로그가능도
 
-로그를 취하면(로그는 단조이므로 로그가능도를 최대화하는 것은 가능도를 최대화하는 것과 같다) 다음과 같다.
+로그를 취하면(로그는 단조이므로 로그가능도를 최대화하는 것은 우도를 최대화하는 것과 같다) 다음과 같다.
 
 $$\ell(\boldsymbol{\theta}) = \log \mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \hat{\pi}_k^{(i)}$$
 
@@ -72,7 +72,7 @@ $$H(\mathbf{p}, \mathbf{q}) = -\sum_{k=1}^{K} p_k \log q_k = \mathbb{E}_{X \sim 
 
 ### 분류에서의 교차 엔트로피
 
-참 이름표가 원-핫 $\mathbf{y}$(참 클래스 $c$)이고 예측 확률이 $\hat{\boldsymbol{\pi}}$인 표본 하나에 대해 다음과 같다.
+참 레이블이 원-핫 $\mathbf{y}$(참 클래스 $c$)이고 예측 확률이 $\hat{\boldsymbol{\pi}}$인 표본 하나에 대해 다음과 같다.
 
 $$H(\mathbf{y}, \hat{\boldsymbol{\pi}}) = -\sum_{k=1}^{K} y_k \log \hat{\pi}_k = -\log \hat{\pi}_c$$
 
@@ -117,13 +117,13 @@ $$\boxed{H(\mathbf{p}, \mathbf{q}) = H(\mathbf{p}) + D_{KL}(\mathbf{p} \| \mathb
 
 교차 엔트로피는 $\mathbf{p}$에 내재한 불확실성(엔트로피)에 $\mathbf{p}$ 대신 $\mathbf{q}$을 쓰는 "추가 비용"(KL 발산)을 더한 것과 같다.
 
-### 분류에서 (원-핫 이름표)
+### 분류에서 (원-핫 레이블)
 
-$\mathbf{y}$이 원-핫이면 $H(\mathbf{y}) = 0$이다(이름표에 불확실성이 없다). 따라서 다음이 성립한다.
+$\mathbf{y}$이 원-핫이면 $H(\mathbf{y}) = 0$이다(레이블에 불확실성이 없다). 따라서 다음이 성립한다.
 
 $$H(\mathbf{y}, \hat{\boldsymbol{\pi}}) = D_{KL}(\mathbf{y} \| \hat{\boldsymbol{\pi}})$$
 
-**교차 엔트로피 최소화 = 참 이름표로부터의 KL 발산 최소화.**
+**교차 엔트로피 최소화 = 참 레이블로부터의 KL 발산 최소화.**
 
 ---
 
@@ -212,13 +212,13 @@ $$\frac{\partial \mathcal{L}}{\partial z_j} = -y_j + \hat{\pi}_j = \hat{\pi}_j -
 
 $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{z}} = \hat{\boldsymbol{\pi}} - \mathbf{y}}$$
 
-경사는 그저 **예측 확률과 참 이름표의 차이**이다.
+경사는 그저 **예측 확률과 참 레이블의 차이**이다.
 
 **해석:**
 
 - $\hat{\pi}_c \approx 1$이면(맞는 예측) 경사가 $\approx 0$이다 (작은 갱신)
 - $\hat{\pi}_c \approx 0$이면(틀린 예측) 경사가 크다 (큰 갱신)
-- 경사가 예측을 참 이름표 쪽으로 "민다"
+- 경사가 예측을 참 레이블 쪽으로 "민다"
 
 ### 2단계: 가중치에 대한 경사
 
@@ -246,7 +246,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \hat{\boldsymbol{\pi
 
 $$\mathcal{L}_{\text{total}} = \frac{1}{N} \sum_{i=1}^{N} \mathcal{L}^{(i)}$$
 
-$\mathbf{X} \in \mathbb{R}^{N \times D}$(표본이 행), $\hat{\mathbf{P}} \in \mathbb{R}^{N \times K}$(예측 확률), $\mathbf{Y} \in \mathbb{R}^{N \times K}$(원-핫 이름표)이라 하자.
+$\mathbf{X} \in \mathbb{R}^{N \times D}$(표본이 행), $\hat{\mathbf{P}} \in \mathbb{R}^{N \times K}$(예측 확률), $\mathbf{Y} \in \mathbb{R}^{N \times K}$(원-핫 레이블)이라 하자.
 
 $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{W}} = \frac{1}{N} (\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{X}}$$
 
@@ -259,7 +259,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \frac{1}{N} (\hat{\m
 | 참 클래스 확률 $\hat{\pi}_c$ | 경사의 크기 | 해석 |
 |-------------------------------|-------------------|----------------|
 | 0.99 | 작음 ($\approx 0.01$) | 확신하고 맞음 → 작은 갱신 |
-| 0.50 | 중간 ($\approx 0.50$) | 불확실함 → 적당한 갱신 |
+| 0.50 | 중간 ($\approx 0.50$) | 불확실성 → 적당한 갱신 |
 | 0.01 | 큼 ($\approx 0.99$) | 확신했는데 틀림 → 큰 갱신 |
 
 **경사의 방향:** 참 클래스의 경사는 음수여서 로짓을 올리고, 다른 클래스의 경사는 양수여서 로짓을 내린다. 그 결과 참 클래스와 나머지 사이의 간격이 벌어진다.
@@ -282,7 +282,7 @@ $$\text{BCE} = -\frac{1}{N} \sum_{i=1}^{N} \left[ y^{(i)} \log \hat{p}^{(i)} + (
 
 $$\text{Weighted CE} = -\frac{1}{N} \sum_{i=1}^{N} w_{y^{(i)}} \log \hat{\pi}_{y^{(i)}}^{(i)}$$
 
-### 이름표 평활화 교차 엔트로피
+### 레이블 평활화 교차 엔트로피
 
 원-핫 목표 대신 평활화된 목표를 쓴다.
 
@@ -291,7 +291,7 @@ $$\tilde{y}_k = \begin{cases}
 \frac{\epsilon}{K-1} & \text{otherwise}
 \end{cases}$$
 
-### 초점 손실
+### Focal Loss
 
 쉬운 예의 비중을 낮추어 클래스 불균형에 대응한다.
 
@@ -732,7 +732,7 @@ $$\boxed{\text{Gradient} = \text{Predicted} - \text{True}}$$
 
 !!! info "세 가지 관점"
 
-    1. **통계적:** 관측된 이름표의 가능도를 최대화한다
+    1. **통계적:** 관측된 레이블의 우도를 최대화한다
     2. **정보 이론적:** 부호화의 비효율을 최소화한다
     3. **기하학적:** (KL 발산을 통해) 분포 사이의 "거리"를 잰다
 

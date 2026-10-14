@@ -16,7 +16,7 @@
 
 !!! note "함께 볼 것"
     이 절은 회귀에서 가장 기본이 되는 손실 하나를 최대가능도에서 끝까지 유도한다.
-    여러 회귀 손실을 나란히 견주어 보는 것은 [10장의 회귀 손실의 비교](../../ch09/loss/02_regression_losses_comparison.md)이고,
+    여러 회귀 손실을 나란히 비교하여 보는 것은 [10장의 회귀 손실의 비교](../../ch09/loss/02_regression_losses_comparison.md)이고,
     이상치에 견디는 절충안은 [후버 손실](../../ch09/loss/huber_loss.md)이다.
     이름이 비슷하지만 하는 일이 전혀 다른 **L2 정칙화**는 [9장](../../ch08/regularization/l2_regularization.md)에서 다룬다.
     분류 쪽의 짝이 되는 손실은 같은 절의 [교차 엔트로피 손실](cross_entropy.md)이다.
@@ -31,9 +31,9 @@
 
 - **데이터:** $y^{(i)} \in \mathbb{R}$인 $\mathcal{D} = \{(\mathbf{x}^{(i)}, y^{(i)})\}_{i=1}^{N}$
 - **모델:** 값 $\hat{y}^{(i)} = f(\mathbf{x}^{(i)};\, \boldsymbol{\theta})$을 예측한다
-- **목표:** 관측된 데이터의 가능도를 최대로 만드는 매개변수 $\boldsymbol{\theta}$을 찾는다
+- **목표:** 관측된 데이터의 우도를 최대로 만드는 매개변수 $\boldsymbol{\theta}$을 찾는다
 
-분류에서는 모델이 확률을 곧바로 내놓았으므로 가능도를 적는 일이 자연스러웠다. 회귀에서 모델이 내놓는 것은 실수 하나뿐이므로, 가능도를 적으려면 **잡음이 어떻게 섞이는지**를 먼저 말해야 한다.
+분류에서는 모델이 확률을 곧바로 내놓았으므로 우도를 적는 일이 자연스러웠다. 회귀에서 모델이 내놓는 것은 실수 하나뿐이므로, 우도를 적으려면 **잡음이 어떻게 섞이는지**를 먼저 말해야 한다.
 
 ### 가우시안 잡음 가정
 
@@ -45,9 +45,9 @@ $$y^{(i)} = f(\mathbf{x}^{(i)};\, \boldsymbol{\theta}) + \varepsilon^{(i)}, \qqu
 
 $$p\bigl(y^{(i)} \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta}\bigr) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{\bigl(y^{(i)} - \hat{y}^{(i)}\bigr)^2}{2\sigma^2}\right)$$
 
-### 가능도 함수
+### 우도 함수
 
-표본들이 독립이라고 가정하면 가능도는 곱이 된다.
+표본들이 독립이라고 가정하면 우도는 곱이 된다.
 
 $$\mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^{N} p\bigl(y^{(i)} \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta}\bigr) = \prod_{i=1}^{N} \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{\bigl(y^{(i)} - \hat{y}^{(i)}\bigr)^2}{2\sigma^2}\right)$$
 

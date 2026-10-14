@@ -2,7 +2,7 @@
 
 Seq2Seq 모델을 위한 디코더 모듈. 어텐션이 있는 것과 없는 것 등 여러 디코더 구조를 구현한다.
 
-순차열 모형은 시간적이고 순서가 있는 데이터를 다루는 데 바탕이 된다. 이 구현은 순차열 모델의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
+시퀀스 모델은 시간적이고 순서가 있는 데이터를 다루는 데 기초가 된다. 이 구현은 시퀀스 모델의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
 
 ## 1. 코드
 
@@ -377,9 +377,9 @@ Attention weights shape: torch.Size([32, 20])
 
 ## 2. 논의
 
-이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 순차열 모델 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
+이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 시퀀스 모델 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 순차열 처리 과제에 대한 실용적인 직관이 쌓인다.
+여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 시퀀스 처리 과제에 대한 실용적인 직관이 쌓인다.
 
 ## 연습문제
 
@@ -410,12 +410,12 @@ Attention weights shape: torch.Size([32, 20])
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-자기 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 자기 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
 
 ---
 
@@ -439,6 +439,6 @@ Attention weights shape: torch.Size([32, 20])
 
 **다룬 것** — 디코더
 
-이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 순차열 모델 구조를 이룬다.
+이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 시퀀스 모델 구조를 이룬다.
 
 핵심 클래스는 `BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`이며 앞의 연습문제 4개로 직접 확인할 수 있다.

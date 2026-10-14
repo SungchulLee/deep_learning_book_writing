@@ -1,8 +1,8 @@
-# 고르게 하는 흐름
+# 정규화 흐름
 
-고르게 하는 흐름: 바탕 도구와 바탕 갈래. 가르치기 위한 것
+정규화 흐름: 기초 도구와 기초 갈래. 가르치기 위한 것
 
-고르게 하는 흐름은 뒤집을 수 있는 바꿈으로 정확한 가능도 셈하기를 준다. 이 짜기는 깊은 배움 개념을 보이며, 일대일 대응의 차례를 거쳐 단순한 분포가 복잡한 분포로 어떻게 바뀌는지 드러낸다.
+정규화 흐름은 뒤집을 수 있는 바꿈으로 정확한 우도 계산을 준다. 이 짜기는 딥러닝 개념을 보이며, 일대일 대응의 차례를 거쳐 단순한 분포가 복잡한 분포로 어떻게 바뀌는지 드러낸다.
 
 ## 1. 코드
 
@@ -1358,13 +1358,13 @@
 
 ## 2. 논의
 
-이 짜기는 함께 어우러져 온전한 깊은 배움 구조를 이루는 갈래 5개(`BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`, 그리고 하나 더)를 정한다. 갈래마다 뚜렷한 조각을 감싸 부호를 모듈답고 넓히기 쉽게 만든다. `forward` 방법이 PyTorch가 저절로 미분하는 데 쓰는 셈 그래프를 정한다.
+이 짜기는 함께 어우러져 온전한 딥러닝 구조를 이루는 갈래 5개(`BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`, 그리고 하나 더)를 정한다. 갈래마다 뚜렷한 조각을 감싸 부호를 모듈답고 넓히기 쉽게 만든다. `forward` 방법이 PyTorch가 저절로 미분하는 데 쓰는 계산 그래프를 정한다.
 
 학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.
 
 시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.
 
-여기서 보인 결은 더 복잡한 경우로 자연스레 넓어진다. 웃매개변수, 구조 변형, 여러 자료 묶음을 시험해 보면 이해가 깊어지고 기계 배움 일에 대한 실전 직관이 선다.
+여기서 보인 결은 더 복잡한 경우로 자연스레 넓어진다. 웃매개변수, 구조 변형, 여러 데이터셋을 시험해 보면 이해가 깊어지고 머신러닝 일에 대한 실전 직관이 선다.
 
 ## 연습문제
 
@@ -1388,7 +1388,7 @@
 </div>
 
 ??? success "연습문제 2 풀이"
-    최적화기를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 매개변수마다 적응적인 학습률과 운동량 추정값을 유지하므로 초반 에폭에서 대체로 더 빠르게 수렴한다. Adam의 손실 곡선은 보통 처음 몇 에폭에서 더 가파르게 떨어지지만, 최적점 근처에서는 운동량을 쓴 SGD보다 조금 더 흔들릴 수 있다. 공정한 비교를 위해 둘을 같은 난수 씨앗과 같은 에폭 수로 실행하라.
+    최적화기를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 매개변수마다 적응적인 학습률과 운동량 추정값을 유지하므로 초반 에폭에서 대체로 더 빠르게 수렴한다. Adam의 손실 곡선은 보통 처음 몇 에폭에서 더 가파르게 떨어지지만, 최적점 근처에서는 운동량을 쓴 SGD보다 조금 더 흔들릴 수 있다. 공정한 비교를 위해 둘을 같은 난수 시드와 같은 에폭 수로 실행하라.
 
 ---
 
@@ -1418,12 +1418,12 @@
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (수수한 파이썬 목록이 아니라) `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 가장 좋게 하기에 올린다. 다음으로 시험하라: `for n in [2, 4, 8]: model = BaseDistribution(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이한다. (수수한 파이썬 목록이 아니라) `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 최적화에 올린다. 다음으로 시험하라: `for n in [2, 4, 8]: model = BaseDistribution(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 
-**다룬 것** — 고르게 하는 흐름
+**다룬 것** — 정규화 흐름
 
-이 짜기는 함께 어우러져 온전한 깊은 배움 구조를 이루는 갈래 5개(`BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`, 그리고 하나 더)를 정한다.
+이 짜기는 함께 어우러져 온전한 딥러닝 구조를 이루는 갈래 5개(`BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`, 그리고 하나 더)를 정한다.
 
 핵심 갈래는 `BaseDistribution`, `Flow`, `FlowSequence`, `AffineTransform`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -1,8 +1,8 @@
 # 모델
 
-글자 수준 자기 되돌이 말 모델. 이 단원은 다음을 배우는 신경 자기 되돌이 모델을 짠다
+글자 수준 자기회귀 언어 모델. 이 단원은 다음을 배우는 신경 자기회귀 모델을 짠다
 
-자기 되돌이 모델은 앞선 모든 낱개를 조건으로 삼아 낱개마다 미리 헤아려 자료를 만든다. 이 단원은 자기 되돌이 모델 부품의 짜기를 보이며 차례대로 만들어 내는 과정과 그 구조의 요구를 그려 보인다.
+자기회귀 모델은 앞선 모든 낱개를 조건으로 삼아 낱개마다 미리 헤아려 데이터를 만든다. 이 단원은 자기회귀 모델 부품의 짜기를 보이며 차례대로 만들어 내는 과정과 그 구조의 요구를 그려 보인다.
 
 ## 1. 코드
 
@@ -345,16 +345,16 @@ Output shape: torch.Size([16, 50])
 
 ## 2. 논의
 
-이 짜기는 갈래 2개(`CharRNN`, `SimpleCharTransformer`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 구조를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 셈 그래프를 뜻매김한다.
+이 짜기는 갈래 2개(`CharRNN`, `SimpleCharTransformer`)를 뜻매김하며 이들이 함께 온전한 자기회귀 모델 구조를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 계산 그래프를 뜻매김한다.
 
-여기서 보인 결은 더 복잡한 경우로 자연스럽게 넓혀진다. 웃매개변수와 구조 변형, 여러 자료 묶음을 실험하면 만들어 내는 모델 일에 대한 이해가 깊어지고 실제 직관이 쌓인다.
+여기서 보인 결은 더 복잡한 경우로 자연스럽게 넓혀진다. 웃매개변수와 구조 변형, 여러 데이터셋을 실험하면 생성 모델 일에 대한 이해가 깊어지고 실제 직관이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫자리매김에서 `CharRNN`의 배울 수 있는 매개변수 총수를 셈하라. 무게와 치우침을 모두 넣어 층별로 나누어 적어라.
+기본 첫자리매김에서 `CharRNN`의 배울 수 있는 매개변수 총수를 계산하라. 무게와 편향을 모두 넣어 층별로 나누어 적어라.
 
 </div>
 
@@ -378,12 +378,12 @@ Output shape: torch.Size([16, 50])
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-자기 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 자기 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
 
 ---
 
@@ -401,12 +401,12 @@ Output shape: torch.Size([16, 50])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이하라. (여느 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 PyTorch가 모든 매개변수를 가장 좋게 하기에 등록한다. `for n in [2, 4, 8]: model = CharRNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험하라.
+    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이하라. (여느 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 PyTorch가 모든 매개변수를 최적화에 등록한다. `for n in [2, 4, 8]: model = CharRNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험하라.
 
 ## 정리하며
 
 **다룬 것** — 모델
 
-이 짜기는 갈래 2개(`CharRNN`, `SimpleCharTransformer`)를 뜻매김하며 이들이 함께 온전한 자기 되돌이 모델 구조를 이룬다.
+이 짜기는 갈래 2개(`CharRNN`, `SimpleCharTransformer`)를 뜻매김하며 이들이 함께 온전한 자기회귀 모델 구조를 이룬다.
 
 핵심 갈래는 `CharRNN`, `SimpleCharTransformer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
