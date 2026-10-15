@@ -1,8 +1,8 @@
-# 2차원 주성분 분석 Sklearn
+# scikit-learn으로 구현하는 2차원 PCA
 
-Scikit-learn은 가운데 맞추기, 쪼개기, 재구성을 말끔한 fit/transform 겉면으로 다루는 실전용 주성분 분석 짜기를 준다. 이 보기는 NumPy 판과 같은 2차원에서 1차원 줄이기를 `sklearn.decomposition.PCA`으로 보이며, 저절로 가운데를 맞추고 분산 통계를 갖추며 `inverse_transform`으로 다시 세우는 편함을 드러낸다.
+`sklearn.decomposition.PCA`는 학습 평균과 주성분을 저장하고 새 데이터의 투영과 재구성을 제공한다. 이 예제는 NumPy 구현과 같은 생성 설정의 2차원 데이터를 1차원으로 줄인다. 라이브러리의 배열 방향, 분산 정의와 적합·변환의 구분에 초점을 맞춘다.
 
-## 1. 코드
+## 1. 예제 코드
 
 ```python
 """2차원 주성분 분석 Sklearn."""
@@ -59,60 +59,85 @@ if __name__ == "__main__":
     pass
 ```
 
-## 2. 논의
+## 2. 적합·변환·재구성
 
-sklearn의 PCA 갈래가 주성분 분석 흐름 전체를 감싼다. `fit_transform(X)`을 부르면 속으로 데이터의 가운데를 맞추고(평균을 `pca.mean_`에 담는다) 특잇값 분해를 셈해 쏜 점수를 돌려준다. `inverse_transform`은 점수에 주성분을 곱하고 평균을 도로 더해 본디 공간의 나타냄을 다시 세운다. NumPy 판에서 손으로 하던 기록을 없애 준다.
+`fit_transform(X)`는 평균과 방향을 적합하고 학습 점수 150×1을 반환한다. 평균은 `mean_`, 방향은 `components_`에 저장된다. `components_`는 성분×특징 배열이므로 여기서는 1×2다. 입력을 중심화하지만 특징별 단위 분산 표준화는 자동으로 하지 않는다.
 
-sklearn의 핵심 설계 공정성 하나는 `pca.components_`이 주방향을 세로줄이 아니라 가로줄로 담는다는 것이다. 가로줄마다 기초 벡터라는 관례와는 맞지만, 선형 대수 교과서의 세로줄 관례를 기대한 이는 걸려 넘어질 수 있다. 설명하는 분산 비는 `pca.explained_variance_ratio_`으로 볼 수 있고 성분을 모두 남기면 합이 1.0이다.
+`inverse_transform`은 점수에 방향을 곱하고 평균을 더한다. 차원을 줄인 경우 버린 방향은 되살릴 수 없으며 주부분공간으로 투영된 점을 반환한다. 기본값처럼 whitening을 사용하지 않을 때 행벡터 식은 z=(x−μ)Wᵀ, x̂=zW+μ다.
 
-실전 부호에는 sklearn PCA가 더 주는 것이 있다. `n_components`을 실수로(예컨대 0.95) 주면 그만큼의 분산을 남길 성분을 알아서 고르고, `svd_solver='randomized'`은 큰 행렬의 계산을 빠르게 하며, `whiten=True`은 성분을 단위 분산으로 다시 재어 특징 잣수에 민감한 알고리즘의 전처리로 쓸모 있다.
+## 3. 분산 속성과 MSE
+
+`explained_variance_`는 n−1 분모의 선택된 공분산 고윳값이다. `explained_variance_ratio_`의 분모는 선택된 성분의 합이 아니라 전체 데이터 분산이다. 전체 분산이 양수이고 모든 유효 분산을 남기면 비율의 합은 수치 오차 범위에서 1이다.
+
+이 코드의 재구성 오차는 두 특징의 원소별 평균이다. 버린 고윳값 λ₂와는 MSE=(n−1)λ₂/(2n) 관계이므로 λ₂ 자체와 같지 않다. 생성 모수의 첫 분산 비율과 유한 표본의 값도 구분한다.
+
+## 4. 성분 수와 whitening
+
+0과 1 사이의 실수 `n_components`는 지원되는 분해 설정에서 목표 누적 분산을 넘는 성분 수를 선택한다. 필요한 수는 학습 데이터와 전처리에 따라 달라지므로 적합된 변환기와 실제 `n_components_`를 함께 관리한다.
+
+`whiten=True`는 남긴 점수를 고윳값 제곱근으로 나누어 학습 표본 공분산이 단위 행렬이 되도록 한다. 양의 분산 성분이 전제이며 작은 고윳값의 잡음을 증폭할 수 있다. 원래 방향별 분산 차이를 없애는 것이므로 후속 작업에서 유용한지는 검증한다. `inverse_transform`은 적용한 스케일도 되돌린다.
+
+## 5. 분해 방법과 평가
+
+전체 SVD, 절단·무작위 방법과 공분산 고유분해는 데이터 크기와 목표 성분 수, 지원 버전에 따라 선택할 수 있다. 근사 방법의 오차와 무작위성, 공분산 방식의 수치 안정성을 고려한다. 정확한 옵션·제약은 [PCA 공식 문서](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html)를 참고한다.
+
+예측 평가에서는 학습 데이터에만 적합한 PCA로 검증·테스트 데이터를 변환한다. 교차 검증은 전처리와 분류기를 Pipeline으로 묶어 폴드 안에서 적합한다. 전체 데이터에 PCA를 먼저 적합하면 레이블을 사용하지 않아도 평가 데이터의 구조가 학습에 들어간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-같은 데이터셋에 `PCA(n_components=0.95)`을 써라. sklearn은 성분을 몇 개 고르며 저마다 설명하는 분산 비는 얼마인가?
+PCA(n_components=0.95)가 성분 수를 정하는 원리를 설명하라. 이 데이터에서 결과를 생성 공분산만으로 확정할 수 있는가?
 
 </div>
 
 ??? success "연습문제 1 풀이"
+
+    학습 표본의 누적 설명 분산이 목표를 넘는 최소 성분 수를 선택한다. 생성 공분산의 첫 비율이 약 95.1%여도 유한 표본에서는 달라지므로 반드시 한 개라고 단정할 수 없다. 아래 코드는 실제 선택된 수와 비율을 조회한다.
+
     ```python
     pca_auto = PCA(n_components=0.95)
     pca_auto.fit(X)
     print(f"Components selected: {pca_auto.n_components_}")
     print(f"Variance ratios: {pca_auto.explained_variance_ratio_}")
     ```
-    상관이 큰 이 2차원 데이터셋에서는 주성분1이 이미 분산의 95%를 넘게 설명하므로 sklearn이 성분 하나를 고른다. 그 분산 비는 대략 0.96이다.
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-sklearn 주성분 분석의 재구성 평균 제곱 어긋남을 이론 하한(주성분2 방향의 분산)과 비교하여라. 둘은 같은가? 까닭을 설명하라.
+아래 코드의 reconstruction_error와 var_pc2가 같지 않은 이유를 식으로 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
+
+    var_pc2는 n−1로 나눈 두 번째 공분산 고윳값이고 reconstruction_error는 n×2 원소의 평균이다. 따라서 MSE=(n−1)var_pc2/(2n)이다. n=150이면 계수는 149/300이다. 작은 차이만 있는 것이 아니라 특징 수 2의 계수도 들어간다.
+
     ```python
     pca_full = PCA(n_components=2).fit(X)
     var_pc2 = pca_full.explained_variance_[1]
     print(f"Reconstruction MSE: {reconstruction_error:.6f}")
     print(f"PC2 variance:       {var_pc2:.6f}")
     ```
-    주성분2을 버렸을 때의 재구성 평균 제곱 어긋남은 (편향 없는 분산 어림개에서 오는 $n/(n-1)$ 인수까지) 주성분2 방향의 분산과 같다. 이는 주성분 분석의 기초 성질이다. 곧 가장 좋은 $k$차원 쏘기가 재구성 어긋남을 가장 작게 하고, 남는 어긋남은 버린 고윳값의 합과 같다.
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-`PCA(whiten=True)`을 써서 바꾼 점수의 공분산 행렬을 살펴라. 그것이 항등 행렬임을 확인하고 하얗게 하기가 언제 이로운지 설명하라.
+whitening 뒤 표본 공분산이 단위 행렬이 되는 조건과 그 대가를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
+
+    양의 고윳값 성분의 점수를 그 표준편차로 나누면 같은 학습 데이터의 n−1 표본 공분산이 단위 행렬이 된다. 이는 독립성을 보장하지 않는다. 작은 분산의 잡음을 키우고 원래 방향별 분산 정보를 제거할 수 있으므로 후속 태스크에서 평가한다.
+
     ```python
     pca_white = PCA(n_components=2, whiten=True)
     scores_white = pca_white.fit_transform(X)
@@ -120,7 +145,6 @@ sklearn 주성분 분석의 재구성 평균 제곱 어긋남을 이론 하한(�
     print("Covariance of whitened scores:")
     print(np.round(cov_white, 4))
     ```
-    공분산 행렬이 (거의) 항등이며, 이는 하얗게 하기가 특징의 상관을 없애고 분산을 1로 고른다는 것을 확인해 준다. 뒤따르는 알고리즘(예컨대 독립 성분 분석, k-평균, 신경망)이 입력 분포가 방향에 무관하다고 여기거나 특징 잣수에 민감할 때 하얗게 하기가 이롭다.
 
 
 ---
@@ -128,18 +152,13 @@ sklearn 주성분 분석의 재구성 평균 제곱 어긋남을 이론 하한(�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-`fit`, `transform`, `fit_transform`을 언제 각각 쓰는가?
+fit과 transform의 역할을 구분하고 아래 코드에 필요한 전제를 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    | 메서드 | 하는 일 | 쓰는 데이터 |
-    |---|---|---|
-    | `fit` | 평균과 성분을 배운다 | 학습 데이터만 |
-    | `transform` | 배운 것으로 옮긴다 | 아무 데이터나 |
-    | `fit_transform` | 둘을 한 번에 | 학습 데이터만 |
 
-    규칙은 하나다. **`fit`이 들어간 것은 학습 데이터에만 쓴다.**
+    fit은 학습 평균과 방향을 추정하고 transform은 저장한 변환을 적용한다. fit_transform은 학습 데이터에서 두 작업을 수행한다. 아래 X_train과 X_test는 미리 정의해야 하며 같은 특징 순서를 사용한다. 테스트에는 다시 적합하지 않는다.
 
     ```python
     pca = PCA(n_components=1)
@@ -147,205 +166,120 @@ sklearn 주성분 분석의 재구성 평균 제곱 어긋남을 이론 하한(�
     Z_test  = pca.transform(X_test)        # 배운 것을 쓴다
     ```
 
-    시험 데이터에 `fit_transform`을 쓰면 시험 데이터의 평균과 성분을 쓰게 되어 **정보가
-    샌다.** 그리고 두 데이터가 다른 좌표계에 놓이므로 견줄 수 없게 된다.
-
-    직접 짤 때 평균을 저장해 두어야 했던 것과 같은 이야기다
-    ([NumPy 연습문제 7](01_pca_2d_numpy.md)). `sklearn`은 그것을 `fit`이 강제해 준다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 5.** <span class="diff easy" title="쉬움"></span>
-`explained_variance_`와 `explained_variance_ratio_`가 어떻게 다른가?
+선택된 성분이 적을 때 explained_variance_ratio_의 합이 1보다 작은 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 5 풀이"
-    앞은 고윳값 그 자체이고 뒤는 전체에 대한 비율이다.
+
+    각 비율의 분모가 전체 분산이기 때문이다. 합은 남긴 성분이 설명하는 비율이다. 선택 고윳값만 합해 다시 정규화하면 라이브러리의 전체 분산 비율과 다른 양이 된다. 전체 분산이 0인 데이터에는 이 비율이 정의되지 않는다.
 
     ```python
     pca.explained_variance_        # 고윳값. 단위가 자료의 단위^2
     pca.explained_variance_ratio_  # 합이 1이 되도록 나눈 것
     ```
 
-    관계는 이렇다.
-
-    $$\text{ratio}_j = \frac{\lambda_j}{\sum_{i} \lambda_i}$$
-
-    한 가지 조심할 점이 있다. `n_components`를 작게 두면 분모가 **남은 성분까지 포함한
-    전체**다. 곧 `n_components=2`로 두어도 `explained_variance_ratio_`의 합이 1이 아니라
-    0.168 같은 값이 된다(MNIST의 경우).
-
-    그러므로 `ratio_.sum()`이 1이 아니라고 놀랄 일이 아니다. 그 값이 곧 **남긴 분산의
-    비율**이며 우리가 보고 싶어 하던 수다.
-
-    누적 곡선을 그리려면 `n_components`를 비워 두고 모두 구한 뒤 `np.cumsum`을 쓴다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 6.** <span class="diff med" title="중간"></span>
-`inverse_transform`은 무엇을 되돌리는가? 완전히 되돌아오는가?
+inverse_transform이 정확한 원본을 반환하는 경우와 반환하지 않는 경우를 설명하라.
 
 </div>
 
 ??? success "연습문제 6 풀이"
-    점수를 원래 공간으로 되돌린다.
 
-    $$\hat x = \bar x + V_k z$$
-
-    곧 성분을 곱하고 평균을 더한다. `transform`의 역이지만 **정보를 되돌리지는
-    못한다.** 버린 $d - k$개 방향의 성분은 사라진 것이므로 복구할 수 없다.
-
-    돌아오는 것은 원래 점이 아니라 **주부분 공간에 수직으로 사영한 점**이다. 그래서
+    버린 방향의 성분이 없으면 원본을 수치 오차 범위에서 복원한다. 일반적인 차원 축소에서는 평균을 지나는 선택 부분공간에 투영된 점을 반환한다. 모든 입력 방향을 포함하는 기저를 남기는 경우는 정확 복원의 충분조건이다.
 
     ```python
     X2 = pca.inverse_transform(pca.transform(X))
     ((X - X2)**2).mean()          # 0이 아니다. 버린 고윳값의 합/d
     ```
 
-    이 값이 버린 고윳값으로 예측된다는 것을 [기본 연습문제 3](pca_fundamentals.md)에서
-    확인했다.
-
-    $k = d$이면 아무것도 버리지 않으므로 정확히 되돌아온다. 수치 오차만 남는다. 그것을
-    확인해 보는 것이 짜기가 맞는지 보는 좋은 검사다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 7.** <span class="diff med" title="중간"></span>
-직접 짠 것과 `sklearn`의 결과가 부호만 다르게 나왔다. 무엇을 확인하겠는가?
+직접 구현과 비교할 때 점수 절댓값만 검사하면 항상 충분한가?
 
 </div>
 
 ??? success "연습문제 7 풀이"
-    **정상이다.** 고유 벡터의 부호는 정해지지 않는다
-    ([유도 연습문제 4](pca_derivation.md)).
 
-    확인할 것은 부호에 딸리지 않는 값들이 일치하는지다.
-
-    | 확인할 것 | 같아야 하는가 |
-    |---|---|
-    | `explained_variance_` | 그렇다 |
-    | 재구성 어긋남 | 그렇다 |
-    | 점수의 절댓값 | 그렇다 |
-    | 점수의 부호 | 아니다 |
+    단순 고윳값에서 부호만 다른 경우에는 유용하지만 중복 고윳값에서는 같은 공간 안의 회전도 가능해 절댓값이 달라질 수 있다. 정렬된 고윳값과 재구성, 투영 행렬 또는 부분공간 각도를 함께 비교한다. 아래 변수들은 미리 정의해야 하며 dtype과 공분산 분모도 맞춘다.
 
     ```python
     assert np.allclose(np.abs(Z_mine), np.abs(Z_sklearn))
     assert np.allclose(ev_mine, pca.explained_variance_)
     ```
 
-    `sklearn`은 부호를 고정하는 관례를 쓴다. 각 성분에서 절댓값이 가장 큰 원소가 양수가
-    되게 맞추므로(`svd_flip`), 같은 데이터에 대해서는 재현된다. 직접 짠 코드에 같은 관례를
-    넣으면 부호까지 맞출 수 있다.
-
-    부호가 아니라 **성분의 순서나 크기**가 다르면 그때는 진짜 버그다. 가운데 맞추기를
-    빠뜨렸거나 축을 잘못 잡은 것이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 8.** <span class="diff med" title="중간"></span>
-`svd_solver` 옵션은 무엇을 고르는 것인가? 언제 신경 써야 하는가?
+분해 알고리즘을 선택할 때 고려할 조건을 설명하라.
 
 </div>
 
 ??? success "연습문제 8 풀이"
-    쪼개기를 어떤 알고리즘으로 할지 고른다. 기본값 `'auto'`가 데이터 크기를 보고 정한다.
 
-    | 값 | 쓰는 때 |
-    |---|---|
-    | `'full'` | 전체 특잇값 분해. 작은 데이터 |
-    | `'randomized'` | $k$가 $d$보다 훨씬 작은 큰 데이터 |
-    | `'arpack'` | 성분 몇 개만, 희소 데이터 |
+    전체 스펙트럼이 필요하면 전체 분해를, 큰 행렬에서 소수 성분만 필요하면 절단·무작위 분해를 검토한다. 표본이 많고 특징이 적으면 공분산 고유분해도 선택지지만 조건수 문제가 있다. 지원 입력과 목표 차원의 제약은 사용 버전에서 확인한다.
 
-    신경 쓸 때는 **데이터가 커서 느리거나 메모리가 모자랄 때**다. MNIST에서 성분 50개만
-    필요하다면 `'randomized'`가 훨씬 빠르다. 784개를 모두 구할 이유가 없다.
 
-    무작위 방식은 **어림**이라는 점을 알아 두어야 한다. 근사이므로 `random_state`에 따라
-    결과가 조금 달라지고, 앞쪽 성분은 매우 정확하지만 뒤쪽은 덜하다. 누적 분산 곡선을
-    끝까지 그리려면 `'full'`이 맞다.
-
-    2차원 장난감 데이터에서는 무엇을 고르든 차이가 없다. 이런 옵션이 있다는 것만 알아
-    두면 큰 데이터로 옮길 때 막히지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 9.** <span class="diff med" title="중간"></span>
-`n_components`에 소수를 넣을 수 있다. 무슨 뜻인가?
+실수 n_components로 적합한 모델을 저장할 때 무엇을 기록해야 하는가?
 
 </div>
 
 ??? success "연습문제 9 풀이"
-    남길 분산의 **비율**을 뜻한다.
+
+    설정한 분산 임계값뿐 아니라 적합된 평균·방향과 실제 n_components_를 저장한다. 학습 데이터를 바꾸면 선택 차원이 달라질 수 있으므로 뒤 모델도 같은 적합된 변환과 함께 관리한다. 차원을 정수로 고정하는 것만으로 평균이나 기저 불일치가 해결되지는 않는다.
 
     ```python
     PCA(n_components=0.95)    # 흩어짐 95%를 남기는 가장 작은 k
     ```
 
-    `fit` 뒤에 `pca.n_components_`를 보면 실제로 고른 개수가 나온다. MNIST라면 154가
-    된다([기본 연습문제 1](pca_fundamentals.md)).
-
-    편리하지만 조심할 점이 있다. **$k$가 데이터에 따라 달라진다.** 학습 데이터를 바꾸거나
-    전처리를 바꾸면 고른 $k$가 달라지므로, 뒤따르는 모델의 입력 차원이 바뀐다. 저장하고
-    되불러 올 때 차원이 안 맞는 사고가 이렇게 난다.
-
-    그래서 실험 단계에서는 소수로 두어 적당한 $k$를 찾고, 정해지면 **정수로 못 박아 두는**
-    편이 안전하다. 무엇을 골랐는지 기록에 남기기도 좋다.
-
-    정수 대신 `'mle'`를 넣는 선택도 있는데, 차원을 추정하는 방법을 쓴다. 가정이 들어가는
-    방법이므로 결과를 그대로 믿기보다 참고로 보는 것이 좋다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 10.** <span class="diff hard" title="어려움"></span>
-`sklearn`의 주성분 분석을 물길(pipeline) 안에서 쓸 때 무엇을 조심해야 하는가?
+전체 데이터에 PCA를 먼저 적합한 뒤 교차 검증하는 첫 코드와 Pipeline을 쓰는 두 번째 코드를 비교하라.
 
 </div>
 
 ??? success "연습문제 10 풀이"
-    가장 큰 것은 **교차 검증 안에서 `fit`이 되게 하는 것**이다.
 
-    흔한 잘못은 이렇다.
+    첫 방식은 각 검증 폴드의 분포가 전처리에 들어간다. 두 번째 방식은 각 학습 폴드에서 표준화와 PCA, 분류기를 적합해 누출을 피한다. 표준화 전 PCA와 PCA 점수의 스케일링은 서로 다른 목적이며 적용 순서는 의도에 따라 정한다. 코드에 쓰인 cross_val_score, make_pipeline과 분류기 등은 별도 정의·import가 필요하다.
 
     ```python
     Z = PCA(n_components=50).fit_transform(X)      # 전체 자료로 fit
     scores = cross_val_score(clf, Z, y, cv=5)      # 그 뒤에 교차 검증
     ```
-
-    이러면 각 접기의 검증 몫이 주성분 분석을 맞추는 데 이미 쓰였으므로 **정보가 샌다.**
-    점수가 낙관적으로 나온다.
-
-    옳은 방식은 물길로 묶는 것이다.
-
     ```python
     pipe = make_pipeline(StandardScaler(), PCA(n_components=50), LogisticRegression())
     scores = cross_val_score(pipe, X, y, cv=5)     # 접기마다 fit 이 다시 된다
     ```
 
-    이러면 접기마다 훈련 몫으로만 평균과 성분을 배운다.
-
-    새는 정도는 데이터 수에 달린다. 표본이 많으면 작지만, 표본이 적고 차원이 높으면
-    크게 낙관적이 된다. 주성분 분석은 표지를 보지 않으므로 새는 정도가 지도 학습
-    전처리보다 덜하다고 여겨지기도 하는데, **그래도 새는 것은 새는 것이다.**
-
-    순서도 중요하다. 표준화가 주성분 분석보다 **앞**에 와야 한다. 뒤에 두면 이미 상관을
-    없앤 점수를 다시 눈금 맞추는 계산이라 뜻이 달라진다.
 
 ## 정리하며
 
-**다룬 것** — 2차원 주성분 분석 Sklearn
-
-sklearn의 PCA 갈래가 주성분 분석 흐름 전체를 감싼다.
-
-앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+scikit-learn PCA는 중심화 통계와 방향을 저장해 변환·재구성을 제공한다. components_의 행 방향, n−1 고윳값과 원소별 MSE, whitening의 스케일을 구분한다. 평가 데이터에는 학습 변환을 재사용하고 교차 검증의 전처리는 Pipeline 안에서 적합한다.

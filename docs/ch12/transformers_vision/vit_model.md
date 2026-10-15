@@ -1,8 +1,6 @@
 # 비전 트랜스포머 모델
 
-비전 트랜스포머(ViT) 구현. 이미지 분류에서 합성곱 신경망과 트랜스포머를 잇는다
-
-트랜스포머에 기초를 둔 구조는 자연어 처리를 뒤바꾸어 놓았다. 이 구현은 트랜스포머의 개념을 살피며, 갖가지 과제에서 최고 수준의 성능을 내게 하는 주의 구조와 구조의 본을 보여 준다.
+패치 투영, 멀티헤드 어텐션, GELU MLP와 Pre-LN 블록으로 ViT 분류 모델을 구성한다. Tiny·Small·Base·Large 함수는 크기를 정하는 팩터리이며 사전 학습 체크포인트를 불러오지는 않는다.
 
 ## 1. 코드
 
@@ -278,68 +276,66 @@ Number of parameters: 85,806,346
 
 ## 2. 논의
 
-이 구현은 함께 어울려 온전한 트랜스포머 구조를 이루는 클래스 5개(`PatchEmbedding`, `MultiHeadAttention`, `MLP`, `TransformerBlock`, 그리고 하나 더)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
+기본 패치 16과 224 해상도에서 196개 패치에 CLS를 더해 197개 토큰을 사용한다. MultiHeadAttention은 $(B,N,E)$를 $(B,H,N,E/H)$로 나누고 점수·가중합 뒤 원래 특징 차원으로 합친다. E는 H로 나누어떨어져야 한다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
+TransformerBlock은 입력을 정규화한 뒤 어텐션·MLP를 실행하고 잔차를 더하는 Pre-LN이다. 스택 끝에도 LayerNorm을 적용한다. 어텐션 확률·출력과 MLP 등에 드롭아웃이 있어 학습·평가 모드를 구분한다. 클래스 다섯 개의 역할은 PatchEmbedding, MultiHeadAttention, MLP, TransformerBlock과 VisionTransformer다.
+
+정사각 img_size로 위치 표를 고정하며 입력 해상도 자동 보간과 패딩 마스크는 없다. 마지막 head는 로짓을 반환한다. 초기화는 Linear·LayerNorm과 CLS·위치 표를 다루지만 Conv2d는 기본 초기화를 유지한다. main은 Base의 출력 클래스를 10으로 바꾼 무작위 순전파 예제다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`PatchEmbedding`의 순방향을 따라가며 텐서의 꼴을 좇아라. 기본 매개변수로 표본 4개짜리 배치를 넣었을 때 주요 연산(합성곱, 풀링, 선형 층)마다 그 뒤의 꼴을 적어라.
+main의 패치·CLS·최종 출력 모양과 매개변수 수를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+    입력 (2,3,224,224)에서 패치 (2,196,768), CLS 포함 (2,197,768), 출력 (2,10)이다. 계수는 85,806,346개이며 학습 결과가 아니라 구조의 수다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+RGB 64×64, 패치 16으로 구성하려면 무엇을 맞춰야 하는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 합성곱 층의 `in_channels`를 지금 값에서 3으로 바꾸어라. $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$ 공식으로 합성곱과 풀링 층마다 그 뒤의 공간 차원을 다시 계산하라. 마지막 합성곱·풀링 층의 편 출력에 맞도록 첫 선형 층의 `in_features`를 고쳐라. `model = PatchEmbedding(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`로 확인하라.
+    in_channels는 기본값이 이미 3이다. VisionTransformer(img_size=64,patch_size=16)로 구성하면 16패치와 CLS 하나가 된다. 기존 224 모델의 위치 표는 맞지 않으므로 재초기화·보간과 미세 조정 조건을 정해야 한다. 풀링·평탄 분류층의 크기를 바꾸는 CNN 문제가 아니다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+패치 크기를 줄일 때 어텐션과 다른 층의 비용은 어떻게 달라지는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    양 축의 패치 수가 두 배씩이면 토큰은 대략 네 배, 전체 점수·가중합은 대략 열여섯 배다. 투영·MLP는 토큰 수에 선형이므로 약 네 배다. CLS와 경계·배치·특징 차원을 반영해 실제 비용을 비교한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`PatchEmbedding`이 층이나 블록의 개수를 설정할 수 있도록 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`를 써서 깊이를 바꿀 수 있는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 되풀이하라. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 파이토치가 최적화 대상 매개변수를 모두 등록한다. `for n in [2, 4, 8]: model = PatchEmbedding(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험하라.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 비전 트랜스포머 모델
-
-이 구현은 함께 어울려 온전한 트랜스포머 구조를 이루는 클래스 5개(`PatchEmbedding`, `MultiHeadAttention`, `MLP`, `TransformerBlock`, 그리고 하나 더)를 정한다.
-
-핵심 클래스는 `PatchEmbedding`, `MultiHeadAttention`, `MLP`, `TransformerBlock`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+직접 구현한 Pre-LN ViT의 각 모듈을 텐서 축과 연결해 이해한다. 크기 팩터리는 사전 학습을 뜻하지 않으며 해상도·패치 변경은 위치 표와 연산량도 함께 바꾼다.

@@ -1,8 +1,6 @@
 # DeepLabV3
 
-DeepLabV3은 2017년 논문 "Rethinking Atrous Convolution for Semantic Image Segmentation"에서 나왔다. 구멍 뚫린 자리 피라미드 모으기(ASPP)와 여러 벌림 비율을 쓴다.
-
-이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 이미지 분할을 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 학습 전략을 보여 주는 실전 PyTorch 코드이다.
+DeepLabv3는 dilated(atrous) convolution과 여러 공간 범위의 문맥을 결합하는 ASPP를 사용하는 시맨틱 분할 모델이다. 아래 구현은 ASPP의 병렬 분기와 입력 크기로의 보간을 보여 준다. backbone은 stem 수준으로 축약되어 있어 원 DeepLabv3의 전체 구조·학습·성능을 재현하지 않는다.
 
 ## 1. 코드
 
@@ -104,68 +102,84 @@ Parameters: 820,821
 
 ## 2. 논의
 
-여기 짠 것은 함께 어울려 전체 이미지 나누기 구조를 이루는 클래스 2개(`ASPP`, `DeepLabV3`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정한다.
+### Dilated convolution의 간격과 범위
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
+커널 크기 k, dilation=r이면 이론적인 유효 커널 크기는 k_eff=k+(k−1)(r−1)이다.3×3에서는2r+1이므로 r=6·12·18은13·25·37 크기의 영역에 걸친9개 표본을 참조한다. 같은9개 가중치의 간격을 늘리는 것이지 영역의 모든 픽셀에 별도 가중치를 두는 큰 dense 커널이 아니다. 파라미터 수는 dilation만 바꿔서는 늘지 않는다.
+
+padding=r, stride1이면3×3 dilated 연산의 공간 크기를 유지한다. 큰 dilation은 유한한 특징 맵에서 많은 표본이 패딩 밖으로 나가거나 사이 간격의 정보가 빠질 수 있다. 범위를 넓힌다는 것과 모든 세부를 포괄한다는 것은 다르다.
+
+### ASPP의 다섯 분기
+
+코드는1×1, r=6·12·18인3×3 세 개, 전역 평균 풀링의 다섯 분기를 쓴다. 각 분기는 O채널이며 global 분기를 원 특징 크기로 보간한 뒤5O채널로 연결한다. 마지막1×1은5O→O로 조합한다. 순차적인 큰 dilation 세 층이 아니라 같은 입력을 병렬 처리하는 구조다.
+
+전역 풀링 분기는 BN 직전 N×O×1×1이므로 학습 모드 배치1에서는 채널당 표본이 하나여서 문제가 된다. 큰 입력 공간이 이 위치의 통계 표본 수를 늘려 주지는 않는다. 평가 모드의 저장 통계 사용과 학습 모드의 조건을 구분한다.
+
+### backbone과 입력 좌표
+
+예제 backbone은 stride2 합성곱과 stride2 풀링뿐이어서 특징 stride는 대략4다. 원 모델의 더 깊은 dilated backbone과 output stride8·16 등의 설정과 다르다. 같은 dilation 숫자를 쓰더라도 입력 이미지 기준 간격은 backbone stride와 수용영역에 따라 달라진다. 원 모델의 rate를 어떤 해상도의 특징에나 그대로 적용하는 것이 항상 같은 설계는 아니다.
+
+입력64×64에서 backbone은64채널16×16, ASPP는256채널16×16, classifier는K채널16×16을 만들고 마지막에64×64로 보간한다. 반환값은 로짓이며 K클래스 CE에는 N×H×W의 정수 레이블을 사용한다. 보간은 정렬과 크기를 맞추지만 그 자체로 경계의 정확도를 보장하지 않는다.
+
+### 모듈 확장
+
+ASPP 분기를 늘리거나 rate를 바꿀 때는 병렬 목록, 채널 연결과 마지막 projection의 입력 폭을 함께 바꿔야 한다. 연습의 일반 ModuleList 순차 골격은 이런 병렬 설계를 구현하지 않는다. 정확한 scope와 실험은 [DeepLabv3 원 논문](https://arxiv.org/abs/1706.05587)을 참고한다. 기존 코드는 파라미터 수만 출력하며 실행·학습 결과를 새로 확인하지 않았다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`ASPP`의 순방향을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 입력 표본 4개짜리 배치에 대해 주요 연산(합성곱, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+입력 (4,64,16,16), ASPP(64,256)의 형태를 추적하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+    네 공간 분기는 각각 (4,256,16,16)이다. 전역 풀링 분기는 (4,256,1,1)을 만들고16×16로 보간한다. 연결 뒤 (4,1280,16,16), 마지막1×1 뒤 (4,256,16,16)이다. 분기 결과를 더하는 구조가 아니라 연결한 뒤 투영한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+64×64 RGB의 최종 출력과 배치1 학습의 주의점을 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 출력에 맞춘다. `model = ASPP(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+    특징은64×16×16, ASPP 뒤256×16×16, 분류 뒤K×16×16이고 마지막 보간으로K×64×64로 돌아온다. 입력 채널은 이미3이며 fc는 없다. 전역 풀링 분기의 BN은1×O×1×1을 받아 학습 모드 배치1에서 유효 통계가 부족하다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 입출력 차원에서 표준 합성곱과 깊이별 분리 합성곱의 매개변수 개수와 FLOPs를 비교하라. 계산 절감이 가장 큰 것은 언제인가?
+3×3 dilation6·12·18의 범위와 매개변수 수를 비교하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 `Conv2d(C_in, C_out, k)`은 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개의 매개변수를 갖는다. 깊이별 분리 합성곱은 이를 둘로 나눈다. (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나), (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 합성곱)이다. 매개변수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 매개변수가 약 $8{-}9\times$ 적어진다. 절감은 $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크다.
+    이론적 유효 커널 범위는 각각13·25·37이지만 모두9개 공간 가중치를 사용한다. 일반 채널 합성곱이라 가중치는9C_inC_out이고 dilation만으로 바뀌지 않는다. 특징 맵의 실제 유효 범위와 패딩, backbone stride까지 고려해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `ASPP`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
+ASPP rate 분기를 추가할 때 아래 일반 목록 골격에 부족한 부분을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+
+    각 분기가 같은 입력을 받는 병렬 forward, 공간 정렬, 채널 연결과 projection 폭을 정해야 한다. g개 공간 분기와 전역 분기를 모두O채널로 두면 projection 입력은(g+1)O다. YourBlock·dim의 순차 골격만으로 ASPP가 구현되지 않는다.
+
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = ASPP(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
 
 ## 정리하며
 
-**다룬 것** — DeepLabV3
-
-여기 짠 것은 함께 어울려 전체 이미지 나누기 구조를 이루는 클래스 2개(`ASPP`, `DeepLabV3`)를 정한다.
-
-핵심 갈래는 `ASPP`, `DeepLabV3`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+ASPP는 여러 dilation과 전역 문맥을 병렬 결합한다. dilation의 간격·범위와 매개변수 수, backbone stride를 구분하며 전역 풀링 뒤 BN의 학습 조건과 축약 모델의 범위를 확인한다.

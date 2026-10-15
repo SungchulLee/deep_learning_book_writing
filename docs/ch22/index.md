@@ -1,127 +1,53 @@
 # 23장: 자연어 처리
-이 장은 자연어 처리의 핵심 일과 딥러닝 구조를 다룬다. 말 나타내기와 시퀀스 레이블링에서 글 가르기, 정보 추출, 기계 번역, 질의응답, 간추리기까지 살펴본다. 절마다 수학 기초를 내놓고 고전에서 신경망으로 이어지는 흐름을 좇으며 실전에서 쓸 짜기를 준다.
 
----
+자연어 처리에서는 텍스트의 표현뿐 아니라 무엇을 예측하고 어떤 단위로 평가하는지가 중요하다. 이 장은 언어 모델링과 개체명 인식에서 출발해 감성 분류·정보 추출·번역·질의응답·토픽 모델링을 살펴본다. 각 예제의 전처리·출력·학습 범위와 구현상의 제약을 본문에서 함께 설명한다.
 
-## 1. 말 나타내기
+## 1. 언어 모델링
 
-n-그램 모델에서 신경망 구조와 요즘의 생성 전략까지, 단어 차례를 어림하기.
+다음 토큰의 확률과 텍스트 생성의 선택 규칙을 구분한다. 어휘·문장 경계·인과성·padding 및 같은 기준의 평가가 핵심이다.
 
-- 말 나타내기 단원 — 통계 언어 모델과 신경 언어 모델을 아우르는 단원 개요
-- 빠른 시작 길잡이 — 말 나타내기 보기를 위한 설치와 자리매김
-- [n-그램 언어 모델](language_modeling/ngram.md) — 최대 우도 어림과 부드럽게 하기를 쓴 유니그램, 바이그램, 트라이그램 모델
-- [신경망 언어 모델](language_modeling/neural_lm.md) — PyTorch로 짠 순방향, 순환 신경망, LSTM 언어 모델
-- 토막내기 — BPE, WordPiece, SentencePiece 알고리즘
-- 인과 말 나타내기와 가린 말 나타내기 — 자기회귀 목표와 가리기 목표 비교
-- 헷갈림도 — 앎 이론에서 온 표준 내재 평가 잣대
-- [샘플링 전략](language_modeling/sampling_strategies.md) — 욕심쟁이, 빔 찾기, top-k, top-p, 온도 기초 풀기
-- 다스린 생성 — 프롬프트 다듬기, 제약을 둔 풀기, 사람 피드백 강화학습으로 내놓음 이끌기
+- [n-그램 언어 모델](language_modeling/ngram.md)과 [빈도 모델 기초](language_modeling/tutorial_01_ngram_basics.md): 문맥·종료 사건과 미관측 조합
+- [확률 평활화](language_modeling/tutorial_02_ngram_smoothing.md)와 [n-그램 생성](language_modeling/tutorial_03_text_generation_ngrams.md): 정규화·보간·후보 선택
+- [신경 언어 모델](language_modeling/neural_lm.md): [순방향 모델](language_modeling/tutorial_04_feedforward_lm.md), [RNN](language_modeling/tutorial_05_rnn_language_model.md), [LSTM](language_modeling/tutorial_06_lstm_language_model.md), [트랜스포머](language_modeling/tutorial_07_transformer_lm.md)
+- [사전 학습 모델 파인튜닝](language_modeling/tutorial_08_pretrained_lm.md)과 [처음부터 GPT 사전 학습](language_modeling/pretrain_gpt_from_scratch.md): 가중치 초기화·자료 구성·학습의 범위
+- [샘플링 전략](language_modeling/sampling_strategies.md), [조건부 생성](language_modeling/tutorial_09_conditional_generation.md), [언어 모델 평가](language_modeling/tutorial_10_lm_evaluation.md)
+- [wav2vec 2.0](language_modeling/10_wav2vec.md): 음성 표현의 자기지도 목적과 축약 구조
 
----
+## 2. 시퀀스 레이블링과 개체명 인식
 
-## 2. 시퀀스 레이블링
+개체의 구간·유형을 찾고 단어와 subword의 레이블을 정렬한다. 토큰 정확도와 개체 구간 F1은 서로 다른 지표다.
 
-이름 있는 것 알아보기, 품사 붙이기, 덩이 짓기를 비롯한 토막 수준의 어림 일.
+- [개체명 인식 기초](sequence_labeling/ner_fundamentals.md), [개체 유형](sequence_labeling/entity_types.md), [BIO 레이블](sequence_labeling/bio_tagging.md)
+- [기초 예제](sequence_labeling/01_ner_basics.md), [IOB 검토](sequence_labeling/02_iob_tagging.md), [규칙](sequence_labeling/03_rule_based_ner.md), [사전](sequence_labeling/04_dictionary_ner.md), [특징 추출](sequence_labeling/05_feature_extraction.md)
+- [CRF](sequence_labeling/crf.md)와 [CRF 예제](sequence_labeling/06_crf_ner.md), [BiLSTM](sequence_labeling/bilstm_ner.md), [BiLSTM-CRF 구조](sequence_labeling/10_bilstm_crf_ner.md), [트랜스포머 구조](sequence_labeling/11_transformer_ner.md)
+- [평가 원칙](sequence_labeling/ner_evaluation.md), [평가 예제](sequence_labeling/07_evaluation_metrics.md), [데이터셋 구성](sequence_labeling/08_dataset_creation.md)
+- [파이프라인 골격](sequence_labeling/15_production_ner.md)과 [통합 시연](sequence_labeling/demo_complete_ner.md): 실제 구현과 미구현 부분 구분
 
-- 개체명 인식 단원 개요 — 규칙 기초에서 트랜스포머 모델까지 두루 살피는 입문
-- 빠른 시작 길잡이 — 개체명 인식 보기의 설치와 빠른 시작
-- [개체명 인식 기초](sequence_labeling/ner_fundamentals.md) — 정의, 자연어 물길에서의 몫, 시퀀스 레이블링로 세우기
-- [개체 유형과 분류 체계](sequence_labeling/entity_types.md) — CoNLL, OntoNotes, 분야별 것 갈래 체계
-- [BIO 레이블 방식](sequence_labeling/bio_tagging.md) — IOB, IOB2, BIOES 레이블 꼴과 서로 바꾸기
-- 품사 붙이기 — 표준 레이블 모음을 쓴 품사 붙이기
-- 덩이 짓기 — 이름씨, 움직씨 등의 마디 덩이를 가려내는 얕은 뜯어 읽기
-- 특징 빚기 — 개체명 인식을 위해 손수 만든 철자, 단어, 맥락 특징
-- 규칙 기초 개체명 인식 — 정규식을 쓴 무늬 기초 것 알아보기
-- 사전과 지명록 방법 — 어림 짝짓기와 지명록 특징을 쓴 사전 기초 개체명 인식
-- [조건부 랜덤 필드(CRF)](sequence_labeling/crf.md) — 선형 사슬 CRF 유도와 PyTorch 짜기
-- [BiLSTM 개체명 인식](sequence_labeling/bilstm_ner.md) — 글자 임베딩을 곁들인 양방향 LSTM으로 시퀀스 레이블링
-- 양방향 LSTM-CRF — 시퀀스 레이블링을 위한 끝에서 끝까지 물길
-- 트랜스포머 개체명 인식 — 개체명 인식을 위해 BERT와 RoBERTa를 파인튜닝
-- 토막 갈래 매기기를 위한 BERT — HuggingFace로 개체명 인식에 BERT를 파인튜닝
-- 아래낱말 토막 맞추기 — 아래낱말 토막을 단어 수준 레이블에 맞추기
-- 개체명 인식 데이터셋 — CoNLL-2003과 OntoNotes를 비롯한 표준 잣대
-- [개체명 인식 평가 잣대](sequence_labeling/ner_evaluation.md) — 딱 맞음과 일부 맞음 F1로 하는 것 수준 평가
-- 겹겹이 든 개체명 인식 — 겹치고 겹겹이 든 것 표시 다루기
-- 말을 넘나드는 개체명 인식 — 데이터가 많은 말에서 적은 말로 옮기기
-- 몇 개만으로 하는 개체명 인식 — 레이블 붙인 보기를 아주 적게 쓰고 것을 알아보기
-- 분야 맞추기 — 글 출처가 다를 때 생기는 분야 틈을 개체명 인식에서 잇기
+## 3. 감성 분류와 모델 해석
 
----
+문장 전체 감성과 특정 측면의 감성은 다르다. 분류 성능·모델 설명과 업무적 유효성도 각각 평가해야 한다.
 
-## 3. 글 가르기
-
-단어 자루 기초에서 트랜스포머 파인튜닝까지, 텍스트 수준의 갈래 매기기.
-
-- 글 가르기의 근본 — 일의 정의, 물길, 확률로 세우기
-- 단어 자루와 TF-IDF — 갈래 매기기를 위한 계산 기초 텍스트 나타내기
-- 글을 위한 합성곱 신경망 — 단어 임베딩 위에 1차원 합성곱을 쓴 TextCNN
-- 글을 위한 순환 신경망 — 차례대로 다루는 LSTM/RNN 갈래 매개
-- 트랜스포머 갈래 매기기 — CLS 토막을 쓴 BERT 파인튜닝로 글 가르기
-- 감성 살피기 — 두 갈래, 결이 고운, 갈래별 감성 일
-- 층진 갈래 매기기 — 부모-자식이 어긋나지 않는 갈래 체계 기초 갈래 매기기
-- 여러 레이블 갈래 매기기 — 두 갈래 엇갈린 엔트로피 손실로 텍스트마다 여러 갈래 어림하기
-
----
+- [측면 기반 감성 분석](text_classification/aspect_sentiment.md): 측면 추출과 측면 조건부 분류
+- [FinBERT와 금융 텍스트](text_classification/finbert_sentiment.md): 사전 학습 모델 안내와 합성 자료의 작은 모델 구분
+- [LIME·SHAP 모델 해석](text_classification/lime_shap_interpretability.md): 삭제 민감도·회귀 계수·설명 기여도의 차이
 
 ## 4. 정보 추출
 
-관계, 사건, 지식 그래프를 거쳐 구조 없는 글에서 구조 있는 앎 뽑아내기.
+구조화된 기록에는 개체·관계뿐 아니라 출처·시간·사건 상태와 한정 문맥을 보존해야 한다.
 
-- [정보 추출 개요](information_extraction/ie_overview.md) — 정보 추출 물길과 금융 응용
-- 관계 샘플링 — 것 사이의 관계를 뽑는 물길 방식과 함께 푸는 방식
-- [이벤트 추출](information_extraction/event_extraction.md) — 글에서 방아쇠 찾기와 딸린 것 샘플링
-- [상호참조 해결](information_extraction/coreference.md) — 텍스트 수준 정보 추출을 위한 언급 찾기와 앞선 말 잇기
-- [Open Information Extraction](information_extraction/open_ie.md) — 틀 없이 세 쌍을 뽑아 글을 캐어 보기
-- 지식 그래프 세우기 — 것 잇기와 임베딩을 갖춘 끝에서 끝까지 지식 그래프 물길
+- [정보 추출 개요](information_extraction/ie_overview.md)
+- [이벤트 추출](information_extraction/event_extraction.md): 트리거와 사건별 인자·역할
+- [상호참조 해결](information_extraction/coreference.md): 언급·선행 후보와 클러스터
+- [Open IE](information_extraction/open_ie.md): 열린 관계 표현과 문맥 보존
 
----
+## 5. 번역·질의응답·토픽 모델링
 
-## 5. 기계 번역
+과제마다 출력 공간과 평가 단위가 다르다. 생성과 구간 선택, 확률 분포와 행렬 성분을 구분한다.
 
-통계 방법에서 신경망과 트랜스포머 기반 방식까지, 말 사이 옮기기.
-
-- 기계 번역 개요 — 규칙 기초에서 신경 기계 번역으로의 흐름
-- 통계 기계 번역 — 잡음 통로 모델, IBM 맞추기, 마디 기초 옮김
-- 신경 기계 번역 — 인코더-디코더 구조와 앎의 병목
-- 기계 번역의 어텐션 — 옮김을 위한 더하기, 곱하기, 점곱 어텐션
-- [트랜스포머 기계 번역](machine_translation/transformer_mt.md) — 순환 신경망 기초 옮김을 갈음하는 여러 머리 셀프 어텐션
-- 아래낱말 나누기 — 열린 단어 곳간 옮김을 위한 BPE와 SentencePiece
-- 여러 말 기계 번역 — 모델 하나로 하는 여럿 대 여럿 옮김과 영 발 옮김
-- 데이터가 적은 말의 기계 번역 — 데이터 증강과 옮겨 학습하기
-- 기계 번역 평가 — BLEU 점수 계산, 신경 잣대, 평가 절차
-
----
-
-## 6. 질의응답
-
-뽑아내기, 새로 짓기, 앎 기초 방식으로 물음에 답하기.
-
-- 질의응답 개요 — 질의응답 일의 갈래와 금융 응용
-- 읽고 이해하기 — 기계 읽기의 잣대와 어려움
-- [추출형 질의응답](question_answering/extractive_qa.md) — 질의응답을 위한 BERT 기초 구간 샘플링
-- 구간 샘플링 — 시작/끝 자리 어림의 수학 세우기
-- 새로 짓는 질의응답 — 원문을 녹여 다시 말하는 답 만들기
-- 열린 분야 질의응답 — 말뭉치 규모의 질의응답을 위한 찾개-읽개 구조
-- 앎 기초 질의응답 — 구조 있는 앎 곳간에 물어 답하기
-- 여러 걸음 질의응답 — 여러 증거 조각을 따져 답하기
-- 질의응답 데이터셋 — SQuAD, Natural Questions, TriviaQA 등의 잣대
-
----
-
-## 7. 간추리기
-
-뽑아 고르기와 새로 지어 내기로 텍스트 줄이기.
-
-- 간추리기 개요 — 정의, 갈래, 방식 비교
-- 뽑아내는 간추리기 — 원문에서 중요한 월 고르기
-- 새로 짓는 간추리기 — 다시 말하기와 녹여 붙이기로 새 간추림 글 만들기
-- 차례에서 차례로 간추리기 — 어텐션을 갖춘 인코더-디코더 모델
-- 트랜스포머 간추리기 — 가장 앞선 간추리기를 위한 BART, T5, Pegasus
-- 여러 텍스트 간추리기 — 서로 얽힌 텍스트 여럿을 아울러 간추리기
-- 간추리기 평가 — ROUGE 잣대와 평가 절차
-
----
+- [트랜스포머 기계 번역](machine_translation/transformer_mt.md): 인과·교차 어텐션과 번역 평가
+- [추출형 질의응답](question_answering/extractive_qa.md): 유효 답 구간·답 없음·긴 문맥
+- [LSA와 LDA 토픽 모델링](topic_modeling/topic_modeling_lda_lsa.md): 저차원 성분·확률 모형·신경 잠재 표현
 
 ## 정리하며
 
-이 마당은 말 나타내기, 시퀀스 레이블링, 글 가르기, 정보 추출을 차례로 짚었다.
+전처리·정답 정의·모델 인터페이스·평가 프로토콜이 맞아야 자연어 처리의 결과를 해석할 수 있다. 구조 선언이나 안내 문자열을 완성된 학습·추론의 증거로 취급하지 않고, 동일 조건의 독립 평가로 실제 성능을 확인한다.

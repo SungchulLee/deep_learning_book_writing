@@ -1,99 +1,55 @@
 # 9장: 신경망의 구성 요소
 
-이 장은 신경망을 짓는 데 쓰이는 기본 구성 요소를 다룬다. 활성화 함수, 순방향 신경망의 구조, 가중치 초기화, 정규화 층, 정칙화 기법이다. 각 주제를 수학적 제일원리에서부터 전개하며 PyTorch 구현을 함께 제시한다. 이 구성 요소들이 모여 어떤 딥러닝 모델이든 조립하고 학습시키는 데 쓰는 어휘를 이룬다.
-
----
+이 장에서는 다층 퍼셉트론을 구성하고 학습시키는 데 필요한 요소를 살펴본다. 활성화 함수로 비선형성을 만들고, 순전파와 역전파로 예측과 경사를 계산한다. 이어서 초기화, 정규화 층, 과적합을 줄이는 기법이 학습에 어떤 영향을 주는지 설명한다.
 
 ## 1. 활성화 함수
 
-활성화 함수는 신경망에 비선형성을 들여와 복잡한 패턴을 배울 수 있게 한다.
+활성화 함수는 아핀 변환만으로 표현할 수 없는 관계를 학습하게 한다. 함수의 모양뿐 아니라 도함수, 출력 범위, 손실과의 조합을 함께 살펴본다.
 
-- 활성화 함수 개요 — 단계별 예제를 갖춘 튜토리얼 배치의 개요
-- 활성화 함수 훑어보기 — 비선형성이 필요한 이유, 붕괴 증명, 활성화 함수의 분류
-- ReLU — 정류 선형 단위. 은닉층의 기본 활성화이며 경사 소실 문제를 해결한다
-- 시그모이드 — 이진 출력 확률과 게이트 장치를 위한 로지스틱 함수
-- Tanh — 순환 신경망에서 0을 중심으로 하는 유계 활성화를 위한 쌍곡탄젠트
-- Leaky ReLU — 음수 입력에서도 0이 아닌 경사를 주어 죽은 뉴런 문제를 해결한다
-- PReLU — 학습 중에 최적화되는 학습 가능한 음의 기울기를 갖는 매개변수 ReLU
-- [ELU](activations/elu.md) — 음수 입력에서 매끄럽게 포화하는 지수 선형 단위
-- SELU — 명시적인 정규화 층 없이 스스로 정규화하는 신경망을 가능하게 하는 배율 조정 ELU
-- GELU — 가우스 오차 선형 단위. 트랜스포머 구조의 표준 활성화이다
-- Swish / SiLU — EfficientNet과 SwiGLU를 통해 현대 대형 언어 모델에 쓰이는 자기 게이트 활성화
-- Mish — 객체 탐지의 YOLOv4에 채택된 매끄럽고 단조롭지 않은 활성화
-- 소프트맥스 — 다중 클래스 분류를 위해 로짓을 확률 분포로 바꾼다
-- 선택 안내 — 구조와 과제에 따라 활성화를 고르는 체계적인 틀
-
----
+- [ELU](activations/elu.md): 음수 입력에서도 값을 내는 활성화
+- [회귀 예제](activations/07_regression_with_activations.md): 출력 범위와 활성화 선택
+- [다중 클래스 분류](activations/06_multiclass_classification.md): 로짓과 확률의 구분
+- [활성화 비교](activations/09_activation_comparison.md): 같은 실험 조건에서의 비교
 
 ## 2. 순방향 신경망
 
-다층 퍼셉트론의 구조, 순전파와 역전파, 그리고 경사의 흐름.
+먼저 각 층의 차원과 매개변수 개수를 정리하고, 데이터와 경사가 층을 통과하는 과정을 이해한다. 구현 예제는 NumPy의 수동 계산에서 PyTorch의 학습 루프와 응용으로 이어진다.
 
-- 순방향 신경망 개요 — 수학적 토대와 PyTorch 숙달을 아우르는 완전한 튜토리얼
-- 시작하기 — 빠른 설치와 첫걸음
-- 빠른 참조 — 주제별로 빠르게 찾아보는 요약표
-- 0단계: 토대 — NumPy로 신경망을 바닥부터 만들기
-- 1단계: PyTorch 기초 — Autograd, `nn.Module`, 최적화기 사용법
-- 2단계: 신경망 만들기 — MNIST, 여러 구조, 활성화 비교
-- 3단계: 심화 기법 — 정칙화, 정규화, 일정 조절, 초기화
-- 4단계: 응용 — CIFAR-10, 회귀, 다중 과제 학습, 깊은 구조
-- [MLP 구조](feedforward/mlp_architecture.md) — 뉴런 하나에서 완전한 신경망까지, 매개변수 세기, PyTorch 구현
-- [보편 근사](feedforward/universal_approximation.md) — 정리, 기하학적 직관, 너비 복잡도 분석
-- [깊이와 너비](feedforward/depth_vs_width.md) — 지수적 분리 결과, 계층적 합성, 실무적 절충
-- [순전파](feedforward/forward_pass.md) — 전파 방정식, 수치적 추적, 계산 그래프, 복잡도 분석
-- [역전파](feedforward/backpropagation.md) — 연쇄 법칙 유도, 손으로 계산하기, 일반 점화식, autograd로 확인하기
-- [경사의 흐름](feedforward/gradient_flow.md) — 경사 소실과 폭발, 야코비 행렬 분석, 완화 전략
-
----
+- [MLP 구조](feedforward/mlp_architecture.md)
+- [순전파](feedforward/forward_pass.md)와 [역전파](feedforward/backpropagation.md)
+- [보편 근사 정리](feedforward/universal_approximation.md)
+- [깊이와 너비](feedforward/depth_vs_width.md)
+- [경사의 흐름](feedforward/gradient_flow.md)
 
 ## 3. 가중치 초기화
 
-깊은 신경망을 지나는 신호 전파가 안정적으로 유지되도록 초기 가중치 분포를 정하는 일.
+초기화는 층을 지나는 활성화와 경사의 크기에 영향을 준다. 분산 보존에 관한 근사 가정을 이해하고 활성화에 맞는 방법을 선택한다.
 
-- [가중치 초기화](weight_initialization/weight_initialization.md) — 분산 조건, 초기화 문제, 실무 지침
-- Xavier(Glorot) 초기화 — 시그모이드와 tanh 활성화를 위한 분산 보존
-- [He(Kaiming) 초기화](weight_initialization/he_init.md) — 현대적 구조의 ReLU 계열 활성화를 위해 조정한 분산
+- [가중치 초기화의 원리](weight_initialization/weight_initialization.md)
+- [He 초기화](weight_initialization/he_init.md)
 
----
+## 4. 정규화 층
 
-## 4. 정규화
+정규화 층(normalization)은 정한 축의 통계량으로 활성화의 크기를 조정한다. 배치 통계량을 쓰는지, 표본마다 계산하는지, 학습과 평가에서 동작이 달라지는지 구분한다.
 
-활성화의 분포를 다스려 학습을 안정시키고 빠르게 하는 정규화 층.
+- [배치 정규화](normalization/batch_normalization.md)
+- [레이어 정규화](normalization/layer_normalization.md)
+- [인스턴스 정규화](normalization/instance_normalization.md)
+- [RMSNorm](normalization/rms_norm.md)
+- [정규화 층 비교](normalization/normalization_comparison.md)
 
-- 정규화 층 개요 — 정규화 구현을 위한 튜토리얼 안내
-- 정규화 훑어보기 — 내부 공변량 이동, 일반적인 틀, 설계 공간
-- 배치 정규화 — 특징이나 채널마다 배치 차원에 걸쳐 정규화하기
-- 배치 정규화의 이론 — 공변량 이동 가설, 손실 지형의 평활화, 경사 분석
-- 배치 정규화: 학습과 추론 — 이동 통계량, 모드 전환, 흔히 빠지는 함정
-- 층 정규화 — 표본마다 특징에 걸쳐 정규화하며, 트랜스포머의 표준이다
-- 그룹 정규화 — 배치 크기와 무관한 채널 그룹 단위 정규화
-- 인스턴스 정규화 — 화풍 변환과 GAN을 위한 표본별·채널별 공간 정규화
-- [RMSNorm](normalization/rms_norm.md) — 제곱평균제곱근을 쓰는 간소화된 층 정규화. LLaMA와 Mistral에 쓰인다
-- 정규화 기법 비교 — 종합 비교표와 각 방법을 언제 쓸지에 대한 지침
+## 5. 과적합을 줄이는 기법
 
----
+일반화 성능을 높이려는 정규화(regularization)는 정규화 층과 구별한다. 검증 데이터로 강도를 선택하고, 각 기법의 가정이 과제에 맞는지 확인한다.
 
-## 5. 정칙화
-
-일반화를 높이고 과적합을 막기 위해 학습에 제약을 두는 전략.
-
-- 정칙화 기법 개요 — 실용적인 구현을 갖춘 튜토리얼 배치
-- [정칙화 훑어보기](regularization/regularization_overview.md) — 편향-분산 절충, 제약 최적화의 기하, 기법의 분류
-- [드롭아웃](regularization/dropout.md) — 활성화를 무작위로 0으로 만들어 뉴런의 공적응을 막는다
-- [드롭커넥트](regularization/dropconnect.md) — 개별 가중치를 0으로 만들어 더 세밀한 확률적 정칙화를 한다
-- [조기 종료](regularization/early_stopping.md) — 검증 성능이 더 나아지지 않으면 학습을 멈춘다
-- [L1 정칙화](regularization/l1_regularization.md) — 희소성과 자동 특징 선택을 북돋우는 라쏘 패널티
-- [L2 정칙화](regularization/l2_regularization.md) — 작고 매끄러운 가중치 분포를 이끄는 릿지 패널티
-- [엘라스틱 넷](regularization/elastic_net.md) — 상관된 특징에서 안정성을 얻기 위해 L1과 L2 패널티를 결합한다
-- [데이터 증강](regularization/data_augmentation.md) — 의미를 보존하는 변환으로 학습 집합을 늘린다
-- [레이블 평활화](regularization/label_smoothing.md) — 지나치게 확신에 찬 예측을 막고 보정을 개선하는 부드러운 목표
-- [믹스업](regularization/mixup.md) — 더 매끄러운 결정 경계를 위해 예제 쌍의 볼록 결합으로 학습한다
-- [컷믹스](regularization/cutmix.md) — 이미지 조각을 오려 붙이고 레이블을 그 비율대로 섞는다
-- [컷아웃](regularization/cutout.md) — 무작위 직사각형으로 가려 다양한 공간 특징에 기대도록 이끈다
-- [잡음 주입](regularization/noise_injection.md) — 견고함을 위해 입력, 가중치, 활성화에 무작위 요동을 더한다
-
----
+- [정규화 개요](regularization/regularization_overview.md)
+- [드롭아웃](regularization/dropout.md)과 [드롭커넥트](regularization/dropconnect.md)
+- [조기 종료](regularization/early_stopping.md)
+- [L1](regularization/l1_regularization.md), [L2](regularization/l2_regularization.md), [엘라스틱 넷](regularization/elastic_net.md)
+- [데이터 증강](regularization/data_augmentation.md)과 [레이블 스무딩](regularization/label_smoothing.md)
+- [믹스업](regularization/mixup.md), [컷믹스](regularization/cutmix.md), [컷아웃](regularization/cutout.md)
+- [잡음 주입](regularization/noise_injection.md)
 
 ## 정리하며
 
-이 마당은 활성화 함수, 순방향 신경망, 가중치 초기화, 정규화를 차례로 짚었다.
+신경망 설계에서는 구조, 활성화, 손실, 초기화, 학습과 평가 모드를 함께 고려해야 한다. 각 요소의 효과는 데이터와 학습 조건에 따라 달라지므로 검증 성능과 계산 비용을 기준으로 판단한다.

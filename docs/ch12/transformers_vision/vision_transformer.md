@@ -1,8 +1,6 @@
 # 비전 트랜스포머
 
-비전 트랜스포머 (ViT)
-
-트랜스포머에 기초를 둔 구조는 자연어 처리를 뒤바꾸어 놓았다. 이 구현은 트랜스포머의 개념을 살피며, 갖가지 과제에서 최고 수준의 성능을 내게 하는 주의 구조와 구조의 본을 보여 준다.
+외부 PatchEmbedding과 PyTorch 인코더를 연결해 이미지 분류 로짓을 만드는 간단한 ViT 예제다. 사전 학습 가중치는 읽지 않으며, 패치 투영·CLS·위치 표와 분류 출력을 연결하는 데 초점을 둔다.
 
 ## 1. 코드
 
@@ -62,68 +60,66 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-`VisionTransformer` 클래스는 파이토치의 `nn.Module` 인터페이스로 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정하여, 학습 중에 파이토치의 자동 미분 체계가 기울기 계산을 알아서 하게 한다. 이 모듈 방식의 설계 덕분에 낱낱의 부품을 고치거나 모델을 더 큰 파이프라인에 끼워 넣기가 쉽다.
+기본 입력은 $(B,3,224,224)$다. 패치 투영 뒤 $(B,196,768)$에 CLS 하나를 붙여 $(B,197,768)$로 만들고 위치 표를 더한다. $(197,B,768)$로 전치해 인코더에 넣은 뒤 첫 위치를 분류해 $(B,1000)$ 로짓을 반환한다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
+num_layers 인수가 이미 깊이를 정한다. 기본 TransformerEncoderLayer는 Post-LN·ReLU를 사용하며 원래 ViT의 Pre-LN 구성과 같지 않다. 바깥의 추가 최종 LayerNorm도 없다. 무작위 CLS·위치 표와 계수 수를 사전 학습 성능으로 해석하지 않는다.
+
+patch_embed.n_patches로 위치 길이를 생성하므로 실제 입력이 다른 패치 수를 만들면 더하기에서 모양이 맞지 않는다. 정사각 img_size 메타데이터만 저장하며 자동 위치 보간·패딩 마스크는 없다. 외부 모듈의 검색 경로와 패치 클래스 인터페이스도 맞춰야 한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-기본 초기화 상태의 `VisionTransformer`에 든 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 보여라.
+기본 모델의 매개변수를 구성별로 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    패치 투영 590,592개, CLS 768개, 위치 표 151,296개, 인코더 12층 85,054,464개, 분류기 769,000개로 총 86,566,120개다. 별도의 최종 정규화가 있는 다른 ViT 예제와 수가 다르다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력이 기대하는 모양과 자료형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
+입력 검증에서 무엇을 확인해야 하는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    4차원 실수 텐서의 RGB 채널, 장치·자료형, 실제 패치 격자와 위치 표 길이를 확인한다. 입력 특징을 무조건 float32로 고정하는 것은 혼합 정밀도 등에서 불필요하다. 임의 직사각형이 같은 패치 수를 만들더라도 공간 좌표 의미가 같다고 가정하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현에서 생길 수 있는 실패 양상 두 가지를 서술하고, 각각을 어떻게 진단하고 고칠지 설명하라.
+해상도를 바꾸거나 깊이를 조절할 때 각각 무엇을 바꾸는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔한 실패 양상은 다음과 같다. (1) **경사 소실/폭발** — 경사의 노름을 지켜보아 진단한다(`torch.nn.utils.clip_grad_norm_`을 쓰거나 층마다 `param.grad.norm()`을 기록한다). 경사 자르기, 더 나은 초기화(Xavier/Kaiming), 또는 구조 변경(잔차 연결, 정규화)으로 고친다. (2) **과적합** — 학습 손실은 줄어드는데 검증 손실이 늘어나면 진단된다. 정칙화(드롭아웃, 가중치 감쇠, 데이터 증강)나 모델 용량 축소로 고친다. 이런 문제를 일찍 잡아내려면 언제나 학습 지표와 검증 지표를 함께 살펴라.
+    해상도는 패치 격자·위치 표와 가중치 보간·미세 조정 문제다. 깊이는 이미 num_layers로 정하며 계수 수와 계산량을 바꾼다. 한 변경이 다른 조건까지 자동으로 해결하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`VisionTransformer`이 층이나 블록의 개수를 설정할 수 있도록 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`를 써서 깊이를 바꿀 수 있는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 되풀이하라. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 파이토치가 최적화 대상 매개변수를 모두 등록한다. `for n in [2, 4, 8]: model = VisionTransformer(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험하라.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 비전 트랜스포머
-
-`VisionTransformer` 클래스는 파이토치의 `nn.Module` 인터페이스로 모델 구조를 감싼다.
-
-핵심 클래스는 `VisionTransformer`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+이 모델은 패치 토큰과 CLS 분류의 흐름을 보여 준다. PyTorch 기본 블록의 세부 설정, 위치 표의 고정 길이와 사전 학습 여부를 구분해 다른 ViT 구현과 비교한다.

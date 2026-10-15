@@ -64,7 +64,7 @@ $$
 
 ### 1.4 대각합 항등식
 
-MLE 유도와 정칙화된 손실에서는 여러 대각합 항등식이 등장한다.
+MLE 유도와 정규화된 손실에서는 여러 대각합 항등식이 등장한다.
 
 | 항등식 | 공식 |
 |----------|---------|
@@ -127,7 +127,7 @@ $$
 \qquad \text{(정규 방정식)}
 $$
 
-$\mathbf{X}^\top\mathbf{X}$이 가역이면(즉 $\mathbf{X}$가 완전 열계수를 가지면)
+$\mathbf{X}^\top\mathbf{X}$이 가역이면(즉 $\mathbf{X}$가 열 전체 랭크를 가지면)
 다음이 성립한다.
 
 $$
@@ -147,7 +147,7 @@ $$
 모든 $\mathbf{v}$에 대해
 $\mathbf{v}^\top\mathbf{X}^\top\mathbf{X}\mathbf{v}
 = \|\mathbf{X}\mathbf{v}\|^2 \geq 0$이므로 헤세 행렬은 양의 준정부호이고 손실은
-**볼록**하다. $\mathbf{X}$가 완전 열계수를 가지면($n \geq p + 1$이고 완전한
+**볼록**하다. $\mathbf{X}$가 열 전체 랭크를 가지면($n \geq p + 1$이고 완전한
 다중공선성이 없으면) 엄격한 볼록성이 성립하여 유일한 전역 최솟값이 보장된다.
 
 ---
@@ -189,7 +189,7 @@ $$
 
 ### 4.2 사영 행렬 (햇 행렬)
 
-**사영 행렬**은 다음과 같다.
+다음 식은 $\mathbf X$의 열들이 선형 독립일 때의 사영 행렬이다. 랭크가 부족하면 $\mathbf P=\mathbf X\mathbf X^+$를 사용한다. 예측의 사영은 유일하지만 이를 나타내는 파라미터는 여러 개일 수 있다.
 
 $$
 \mathbf{P}
@@ -202,9 +202,9 @@ $$
 |----------|---------|----------------|
 | 멱등성 | $\mathbf{P}^2 = \mathbf{P}$ | 두 번 사영해도 결과가 같다 |
 | 대칭성 | $\mathbf{P}^\top = \mathbf{P}$ | 자기수반 작용소 |
-| 계수 | $\mathrm{rank}(\mathbf{P}) = p + 1$ | 열공간의 차원 |
+| 랭크 | $\mathrm{rank}(\mathbf{P}) = p + 1$ | 열공간의 차원 |
 | 고윳값 | 0 또는 1뿐 | 순수한 사영 |
-| 대각합 | $\mathrm{tr}(\mathbf{P}) = p + 1$ | 계수와 같다 |
+| 대각합 | $\mathrm{tr}(\mathbf{P}) = p + 1$ | 랭크와 같다 |
 
 ### 4.3 피타고라스 분해
 
@@ -217,7 +217,7 @@ $$
 \|\mathbf{y}\|^2 = \|\hat{\mathbf{y}}\|^2 + \|\mathbf{r}\|^2
 $$
 
-이것이 분산분석(ANOVA) 분해의 기하학적 기초다.
+편향 열을 포함한 OLS 학습 표본에서는 잔차가 상수 벡터에도 직교하므로, 중심화한 총제곱합을 다음과 같이 분해할 수 있다. 임의 모델이나 테스트셋의 예측에는 이 직교 분해가 그대로 성립하지 않는다.
 
 $$
 \underbrace{\|\mathbf{y} - \bar{y}\mathbf{1}\|^2}_{\text{SS}_{\text{tot}}}
@@ -225,8 +225,7 @@ $$
 + \underbrace{\|\mathbf{r}\|^2}_{\text{SS}_{\text{res}}}
 $$
 
-따라서 $R^2 = \text{SS}_{\text{reg}} / \text{SS}_{\text{tot}}$은 설명된 분산의
-비율을 잰다.
+이 조건에서 정답 분산이 0이 아니면 $R^2=\text{SS}_{\text{reg}}/\text{SS}_{\text{tot}}$로 해석한다. 일반적인 평가 정의는 $1-\text{SS}_{\text{res}}/\text{SS}_{\text{tot}}$이며 테스트셋에서는 음수도 가능하다.
 
 ### 4.4 기하학적 $R^2$
 
@@ -234,8 +233,7 @@ $$
 R^2 = \cos^2\!\theta
 $$
 
-여기서 $\theta$는 중심화된 목표 $(\mathbf{y} - \bar{y}\mathbf{1})$과 그 사영
-$(\hat{\mathbf{y}} - \bar{y}\mathbf{1})$ 사이의 각이다.
+여기서 $\theta$는 편향을 포함한 OLS 학습 표본에서 중심화한 정답과 예측 사이의 각도다. 정답과 예측 벡터가 모두 0이 아닌 경우를 가정한다. 테스트셋의 일반적인 $R^2$를 항상 각도의 제곱으로 해석할 수는 없다.
 
 ### 4.5 지렛값
 
@@ -434,7 +432,7 @@ def anova_decomposition(X: torch.Tensor, y: torch.Tensor):
 
 ### 7.1 다중공선성에 가까울 때
 
-$\mathbf{X}^\top\mathbf{X}$이 거의 특이할 때는 작은 정칙화 항을 더한다
+$\mathbf{X}^\top\mathbf{X}$이 거의 특이할 때는 작은 정규화 항을 더한다
 (이는 $\lambda$가 아주 작은 릿지 회귀이다).
 
 $$
@@ -454,9 +452,9 @@ def fit_regularised(
     return torch.linalg.solve(X.T @ X + alpha * torch.eye(d), X.T @ y)
 ```
 
-### 7.2 부족결정 계 (n < p)
+### 7.2 관측보다 파라미터가 많은 경우
 
-관측보다 매개변수가 많으면 해가 무한히 많다. **최소 노름** 해는 다음과 같다.
+관측보다 파라미터가 많으면 파라미터의 최소제곱 해가 유일하지 않다. 다음 역행렬 식은 $\mathbf X$가 행 전체 랭크일 때 성립한다. 일반적으로는 최소 노름 해 $\boldsymbol\theta^*=\mathbf X^+\mathbf y$를 사용한다.
 
 $$
 \boldsymbol{\theta}^*
@@ -469,15 +467,16 @@ $$
 
 ## 8. 복잡도 비교
 
-| 방법 | 시간 | 공간 | 비고 |
-|--------|------|-------|-------|
-| 정규 방정식 | $O(np^2 + p^3)$ | $O(p^2)$ | $p < 10{,}000$일 때 가장 좋다 |
-| QR 분해 | $O(np^2)$ | $O(np)$ | 역행렬을 직접 구하는 것보다 안정적 |
-| SVD | $O(np^2)$ | $O(np)$ | 가장 견고하며 계수 부족도 처리 |
-| 경사 하강법 | $O(knp)$ | $O(p)$ | $p > 10{,}000$이거나 $n$이 아주 클 때 가장 좋다 |
+아래는 $n\ge p$인 밀집 행렬의 대표적인 비용이다. 공간은 입력 데이터 보관을 제외한 추가 작업 공간의 개략값이며 구현에 따라 달라진다.
 
-**경험칙:** $p < 10{,}000$이면 해석적 해를 쓰고, 특징 공간이 더 크거나
-미니배치 학습이 필요하면 경사 하강법으로 바꾼다.
+| 방법 | 시간 | 추가 공간·주의점 |
+|---|---|---|
+| 정규 방정식 | $O(np^2+p^3)$ | $O(p^2)$, 그람 행렬에서 조건수가 제곱된다 |
+| QR | $O(np^2)$ | 보통 $O(np)$, 원래 설계 행렬을 직접 분해한다 |
+| SVD | $O(np^2)$ | 보통 $O(np)$, 작은 특이값과 랭크를 다룰 수 있다 |
+| 전체 배치 GD | $O(knp)$ | 파라미터 외 잔차·작업 공간도 필요하며 $k$는 반복 수다 |
+
+방법 선택에는 데이터의 크기뿐 아니라 희소성, 조건수, 메모리와 필요한 정확도를 함께 고려한다. 특징 수 10,000 같은 고정 경계를 보편적인 기준으로 삼지 않는다. 최소제곱 솔버로 시작하고, 스트리밍이나 큰 희소 문제에서는 반복법을 검토한다.
 
 ---
 
@@ -532,7 +531,7 @@ MSE의 경사를 0으로 두어 정규 방정식 $\mathbf{X}^\top\mathbf{X}\math
 </div>
 
 ??? success "연습문제 1 풀이"
-    $\nabla_\mathbf{w} L = \frac{1}{N}\mathbf{X}^\top(\mathbf{Xw}-\mathbf{y}) = 0$에서 $\mathbf{X}^\top\mathbf{Xw} = \mathbf{X}^\top\mathbf{y}$이 나온다. $\mathbf{X}^\top\mathbf{X}$이 가역이면 $\hat{\mathbf{w}} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$이다.
+    $\nabla_\mathbf{w} L = \frac{2}{N}\mathbf{X}^\top(\mathbf{Xw}-\mathbf{y}) = 0$에서 $\mathbf{X}^\top\mathbf{Xw} = \mathbf{X}^\top\mathbf{y}$이 나온다. $\mathbf{X}^\top\mathbf{X}$이 가역이면 $\hat{\mathbf{w}} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$이다.
 
 ---
 
@@ -556,7 +555,7 @@ $\mathbf{X}^\top\mathbf{X}$의 역행렬을 직접 구하는 것보다 유사역
 </div>
 
 ??? success "연습문제 3 풀이"
-    $(\mathbf{X}^\top\mathbf{X})^{-1}$을 계산하면 조건수가 제곱된다. $\kappa(\mathbf{X}^\top\mathbf{X}) = \kappa(\mathbf{X})^2$이기 때문이다. SVD 기반 유사역행렬 $\mathbf{X}^+ = \mathbf{V}\Sigma^+\mathbf{U}^\top$은 $\mathbf{X}$의 특잇값을 직접 다루므로 제곱을 피하고, 조건이 나쁜 문제에서도 수치적 안정성을 제공한다.
+    $(\mathbf{X}^\top\mathbf{X})^{-1}$을 계산하면 조건수가 제곱된다. $\kappa(\mathbf{X}^\top\mathbf{X}) = \kappa(\mathbf{X})^2$이기 때문이다. SVD 기반 유사역행렬 $\mathbf{X}^+ = \mathbf{V}\Sigma^+\mathbf{U}^\top$은 $\mathbf{X}$의 특이값을 직접 다루므로 제곱을 피하고, 조건이 나쁜 문제에서도 수치적 안정성을 제공한다.
 
 ---
 
@@ -589,7 +588,7 @@ $\mathbf{X}^\top\mathbf{X}$의 역행렬을 직접 구하는 것보다 유사역
 | 직교성 | $\mathbf{X}^\top(\mathbf{y} - \hat{\mathbf{y}}) = \mathbf{0}$ |
 | ANOVA | $\text{SS}_{\text{tot}} = \text{SS}_{\text{reg}} + \text{SS}_{\text{res}}$ |
 | $R^2$ (기하학적) | 중심화된 $\mathbf{y}$와 $\hat{\mathbf{y}}$ 사이의 $\cos^2\theta$ |
-| 권장 해법 | `torch.linalg.lstsq()` / `np.linalg.solve()` |
+| 권장 해법 | `torch.linalg.lstsq()` / `np.linalg.lstsq()` |
 
 ---
 

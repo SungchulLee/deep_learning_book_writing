@@ -1,6 +1,6 @@
 # Autograd 관련 속성
 
-이 스크립트는 autograd와 관련된 텐서 속성을 보여준다. 이 개념들을 이해하는 것은 효과적인 PyTorch 프로그래밍과 딥러닝 모델 개발에 필수적이다.
+기울기가 필요한 텐서라도 `.grad`가 항상 채워지는 것은 아니다. `requires_grad`·`is_leaf`·`grad_fn`으로 추적 여부와 그래프의 위치를 구별한다.
 
 ## 1. 코드
 
@@ -134,11 +134,9 @@ a.grad (accumulated from two backward passes): tensor([ 4.,  8., 12.])
 
 ## 2. 논의
 
-이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.
+`requires_grad`는 이후 연산을 추적할지 결정하는 속성이고, `grad_fn`은 그 텐서를 만든 미분 연산을 가리킨다. 사용자가 직접 만든 학습 매개변수는 보통 잎 텐서이며 `grad_fn`이 없다.
 
-PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법을 제공한다. 각 모듈이 자신의 매개변수와 하위 모듈을 관리하므로 모델을 살펴보고, 저장하고, 장치 사이에 옮기기가 간편하다.
-
-벡터-야코비 곱(VJP)은 후진 모드 자동 미분의 핵심 기본 연산이다. 야코비안이 $J$인 함수 $f: \mathbb{R}^n \to \mathbb{R}^m$에 대해 VJP는 주어진 벡터 $v$에 대한 $v^\top J$를 계산한다. 출력이 스칼라가 아닐 때 PyTorch는 어떤 출력들의 선형 결합을 미분할지 지정하도록 `.backward()`에 경사 인수 $v$를 명시할 것을 요구한다.
+역전파에서 기본적으로 `.grad`가 누적되는 것은 기울기를 요구하는 잎 텐서다. 비잎 텐서의 중간 기울기를 보려면 `retain_grad()`를 사용한다. `retain_grad`와 그래프 재사용을 위한 `retain_graph`는 다른 기능이다.
 
 ## 연습문제
 
@@ -165,12 +163,12 @@ PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-`retain_graph=True` 없이 같은 계산 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+제곱합처럼 저장된 중간값이 필요한 손실에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    기본적으로 PyTorch는 메모리를 아끼기 위해 `.backward()` 후에 계산 그래프를 해제한다. `.backward()`를 두 번째로 호출하면 더 이상 존재하지 않는 그래프를 훑으려 하므로 `RuntimeError`가 발생한다. `retain_graph=True`로 두면 그래프가 메모리에 남아 재사용할 수 있지만, 모든 중간 텐서가 할당된 채로 남으므로 메모리 소비가 늘어난다.
+    기본 역전파는 사용을 마친 저장 텐서를 해제한다. 같은 그래프의 두 번째 역전파에 이 값들이 필요하면 `RuntimeError`가 발생한다. 저장 텐서가 필요 없는 단순 연산은 반복 호출이 가능할 수도 있으므로 모든 그래프에서 반드시 오류가 나는 것은 아니다. 첫 호출의 `retain_graph=True`는 필요한 중간 결과를 보존해 재사용을 가능하게 하지만 그만큼 메모리를 더 오래 사용한다. `.grad` 초기화는 이 보존 여부와 별개의 작업이다.
 
 ---
 
@@ -178,7 +176,7 @@ PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고 손실을 계산한 뒤, 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하는 코드를 작성하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 
@@ -197,8 +195,4 @@ PyTorch의 `nn.Module`은 신경망 구조를 정의하는 체계적인 방법�
 
 ## 정리하며
 
-**다룬 것** — Autograd 관련 속성
-
-이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다.
-
-앞의 연습문제 3개로 직접 확인할 수 있다.
+기울기가 필요한 텐서라도 `.grad`가 항상 채워지는 것은 아니다. `requires_grad`·`is_leaf`·`grad_fn`으로 추적 여부와 그래프의 위치를 구별한다.

@@ -1,75 +1,26 @@
-# 개체 유형과 분류 체계
+# 개체 유형과 주석 체계
 
----
+개체명 인식(NER)의 유형 체계는 무엇을 개체로 보고 어떤 이름으로 분류할지 정한다. 사람·조직·장소처럼 익숙한 범주도 데이터셋에 따라 경계와 처리 규칙이 다르다. 유형 목록만 가져오기보다 언급 범위·중첩·모호한 표현·정규화와 주석 지침을 함께 정의해야 한다.
 
-## 1. 학습 목표
+## 1. 대표 데이터셋의 유형
 
-- 분야를 넘나드는 표준 개체명 인식 갈래 체계를 이해한다
-- CoNLL, OntoNotes, 분야별 갈래 체계를 견준다
-- 금융을 비롯한 새 분야의 것 갈래 체계를 꾸민다
-- 층진 갈래와 결이 고운 갈래 매기기를 다룬다
+[CoNLL-2003](https://aclanthology.org/W03-0419/)은 PER·ORG·LOC·MISC의 네 유형을 사용한다. MISC는 세계의 모든 ‘나머지 대상’을 빠짐없이 담는 범주가 아니라 해당 주석 지침의 범주다. 국적 형용사 등 데이터셋의 처리 예를 확인하며 행사·수상 이름을 다른 데이터의 EVENT·WORK_OF_ART와 기계적으로 대응시키지 않는다.
 
----
+[OntoNotes 5.0](https://catalog.ldc.upenn.edu/LDC2013T19)의 흔한 NER 체계는 PERSON·NORP·FAC·ORG·GPE·LOC·PRODUCT·EVENT·WORK_OF_ART·LAW·LANGUAGE와 DATE·TIME·PERCENT·MONEY·QUANTITY·ORDINAL·CARDINAL의18유형이다. 앞의11개와 수량·시간 표현7개를 구분할 수 있다. GPE는 국가·도시 등 지정학적 실체로 자연 지형 등을 포함하는 LOC와 다르지만 문맥·지침에 따른 판단이 필요하다.
 
-## 2. 표준 갈래 체계
+ACE의 정식 명칭은 Automatic Content Extraction이며 PER·ORG·GPE·LOC·FAC·WEA·VEH와 세부 유형을 사용한다. NER와 이름·보통명사·대명사 언급을 포괄하는 entity mention 탐지의 범위는 다를 수 있다. 서로 다른 벤치마크의 클래스 수·성능을 주석 범위가 같은 것처럼 비교하지 않는다.
 
-### CoNLL-2003(갈래 4개)
+## 2. 분야별 체계와 개체 연결
 
-기초가 되는 잣대 갈래 체계:
+생의학에서는 유전자·단백질·질병·화학물질·종·세포 등 목적에 맞는 유형을 사용할 수 있다. 같은 텍스트 범위가 유전자와 단백질 중 무엇을 가리키는지, 명명 변형과 중첩을 어떻게 처리할지는 데이터 지침에 달렸다. 데이터셋 이름만으로 모든 범주가 포함된다고 가정하지 않는다.
 
-| 갈래 | 부호 | 보기 |
-|------|------|----------|
-| 사람 | PER | "Barack Obama", "Marie Curie" |
-| 조직 | ORG | "Apple Inc.", "United Nations" |
-| 자리 | LOC | "Paris", "Mount Everest" |
-| 그 밖 | MISC | "World Cup", "Nobel Prize" |
+금융 문서에는 회사·종목 코드·금융상품·금액·경제지표·보고 기간 등 별도의 설계가 가능하다. AAPL이라는 종목 코드와 회사 언급, S&P 500이라는 지수와 금융상품을 같은 범주로 둘지 결정해야 한다. 회사 이름을 식별하는 NER와 특정 회사·종목 ID에 연결하는 entity linking은 다른 단계다. 규제기관도 ORG의 세부 유형으로 둘 수 있으며 반드시 배타적인 독립 최상위 클래스로 만들 필요는 없다.
 
-### OntoNotes 5.0(갈래 18개)
+법률 문서의 법원·법령·사건·당사자·인용도 목적에 맞게 정의한다. 이들 예시는 과제 설계의 후보이지 모든 금융·의료·법률 자료에 적용되는 단일 표준은 아니다.
 
-이름 있는 것, 수, 때를 갈라 놓은 더 풍부한 갈래 체계:
+## 3. 계층과 다중 레이블
 
-**이름 있는 것**: PERSON, NORP(국적/종교/정치 집단), FAC(시설), ORG, GPE(지정학적 것), LOC, PRODUCT, EVENT, WORK_OF_ART, LAW, LANGUAGE
-
-**수로 된 것**: DATE, TIME, PERCENT, MONEY, QUANTITY, ORDINAL, CARDINAL
-
-### ACE(자동 내용 샘플링)
-
-아래 갈래를 갖는 것 갈래 일곱: PER, ORG, GPE, LOC, FAC, WEA(무기), VEH(탈것). 갈래마다 아래 갈래가 더 있다(보기로 PER.Individual, PER.Group).
-
----
-
-## 3. 분야별 갈래 체계
-
-### 생의학 개체명 인식
-
-| 갈래 | 보기 | 데이터셋 |
-|------|----------|----------|
-| 유전자/단백질 | BRCA1, p53, insulin | JNLPBA, BioCreative |
-| 병 | diabetes, COVID-19 | NCBI Disease |
-| 약/화학물질 | aspirin, metformin | BC5CDR |
-| 종 | *E. coli*, human | LINNAEUS |
-| 세포 갈래 | T-cell, neuron | JNLPBA |
-
-### 금융 개체명 인식
-
-| 갈래 | 보기 | 쓰임새 |
-|------|----------|----------|
-| 회사 | "Goldman Sachs", "AAPL" | 종목 기호에 잇기 |
-| 금융 상품 | "10-year Treasury", "S&P 500" | 자산 꾸러미 살피기 |
-| 돈 액수 | "\$23억", "€5천만" | 실적 샘플링 |
-| 경제 지표 | "GDP", "CPI", "unemployment rate" | 거시 살피기 |
-| 날짜/기간 | "Q3 2024", "fiscal year" | 때 맞추기 |
-| 규제 기관 | "SEC", "Fed", "ECB" | 규정 지킴 살피기 |
-
-### 법률 개체명 인식
-
-사건 이름, 법원, 법령, 관할, 당사자, 판사, 법률 인용.
-
----
-
-## 4. 층진 것 갈래 매기기
-
-결이 고운 것 갈래 매기기는 것을 갈래 층위의 마디에 배정한다:
+계층 체계는 세부 유형과 상위 유형의 관계를 표현한다. 예를 들어 하위 유형을 선택하면 모든 조상 유형도 선택하도록 하는 정책을 둘 수 있다.
 
 ```
 Entity
@@ -90,112 +41,88 @@ Entity
     └── Natural Feature
 ```
 
-### 수식으로 나타내기
+언급 m과 문맥 c에서 각 유형 t의 포함 확률을 q_t로 두고 이진 포함 여부 z_t를 독립 Bernoulli로 근사한다면 완전한 레이블 집합의 확률은 다음과 같다.
 
-앞뒤 흐름 $c$과 함께 개체 언급 $m$이 주어졌을 때 갈래 배치 $\mathcal{T}_m \subseteq \mathcal{T}$을 예측한이다.
+$$p(z\mid m,c)=\prod_{t\in\mathcal T}q_t^{z_t}(1-q_t)^{1-z_t}.$$
 
-$$P(\mathcal{T}_m | m, c) = \prod_{t \in \mathcal{T}} P(t \in \mathcal{T}_m | m, c)$$
+양성 유형의 확률만 곱하면 ‘이 유형들은 모두 포함’의 독립 근사이지, 다른 유형이 제외된 정확한 집합의 확률은 아니다. 또한 독립 sigmoid만으로 하위 선택→상위 선택의 일관성이 자동 보장되지 않는다. 계층적 조건부 모델·제약·조상 추가 등의 정책을 명시해야 한다.
 
-층 구조가 앞뒤 맞아야 한다. $t \in \mathcal{T}_m$이고 $t'$이 $t$의 윗갈래이면 $t' \in \mathcal{T}_m$이다.
+같은 수준의 유형을 배타적으로 둘 수도, 여러 레이블을 허용할 수도 있다. 실체의 유형 계층과 한 문장에서 겹치거나 중첩되는 언급 범위는 별개의 구조다. 평면 BIO 하나로 모든 중첩·불연속 개체를 표현할 수 있는 것은 아니다.
 
----
+## 4. 주석 지침과 일치도
 
-## 5. 맞춤 갈래 체계 꾸미기
+유형은 후속 과제에 유용하면서 사람이 일관되게 판단할 수 있어야 한다. 이름의 접미사·직함·구두점 포함 여부, 약어·대명사·일반명사, 모호한 문맥·중첩·미정 유형을 예문으로 명시한다. 작은 표본을 독립적으로 주석하고 불일치의 원인을 지침과 데이터에 반영한다. 희귀 유형을 너무 세분화하면 학습·평가의 불확실성이 커질 수 있다.
 
-### 지침
+Cohen의 κ=(p_o−p_e)/(1−p_e)는 두 주석자의 고정된 판단 단위에서 관찰·우연 일치를 비교한다. p_e=1이면 분모가0이며 빈도 분포·주석 단위에 민감하다. 자유로운 span 선택에는 먼저 판단 단위와 대응 규칙을 정해야 한다. O가 많은 토큰 일치도나 임의의 κ>0.8 하나만으로 경계·유형의 신뢰성을 보장할 수 없다.
 
-1. **서로 겹치지 않음**: 같은 층위에서 갈래가 겹치는 것을 가장 작게 한다
-2. **덮음**: 관심 있는 것이 모두 적어도 한 갈래에 대응되게 한다
-3. **결의 균형**: 너무 고우면 표시하는 값이 커지고, 너무 거칠면 쓸모가 줄어든다
-4. **뒤따르는 일과의 맞춤**: 목표 쓰임새에 도움이 되는 갈래를 꾸민다
-5. **표시 가능함**: 사람이 갈래를 가려낼 수 있어야 한다
-
-### 표시하는 사람들 사이의 일치
-
-맛보기로 단 주석에 코헨의 $\kappa$이나 플라이스의 $\kappa$을 써서 갈래 나누기의 좋음을 잰다.
-
-$$\kappa = \frac{p_o - p_e}{1 - p_e}$$
-
-여기서 $p_o$은 살펴본 맞음이고 $p_e$은 어쩌다 맞을 바라는 값이다. 믿을 만한 주석을 얻으려면 $\kappa > 0.8$을 노린다.
-
----
+개체 span의 정확 일치 F1·경계만의 일치·유형 혼동과 어려운 사례를 함께 살펴본다. 일치도가 높아도 지침 자체가 목표 업무의 의미를 잘못 반영할 수 있으므로 타당성과 일치도를 구분한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-BIO 레이블 방식을 설명하여라. 월 "Barack Obama visited New York City"에 레이블을 어떻게 붙이겠는가?
+CoNLL의 LOC·MISC를 OntoNotes의 GPE·LOC·EVENT로 단순 매핑하기 어려운 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    BIO 레이블에서 **B-X**는 갈래 X인 것의 시작을, **I-X**는 것의 안쪽(이어짐)을, **O**는 어느 것에도 들지 않는 토막을 나타낸다.
 
-    | 토막 | 레이블 |
-    |-------|-----|
-    | Barack | B-PER |
-    | Obama | I-PER |
-    | visited | O |
-    | New | B-LOC |
-    | York | I-LOC |
-    | City | I-LOC |
+    범주 수뿐 아니라 언급의 범위·정의·주석 지침이 다르다. MISC는 보편적인 나머지 전체가 아니고 LOC의 포함 범위도 체계에 따라 다르다. 원문·지침을 확인한 재주석이나 명시적인 정보 손실 매핑이 필요하다.
 
-    B 레이블은 같은 갈래의 것이 잇달아 나올 때(보기로 "Obama Trump"를 서로 다른 PER 둘로) 가리는 데 꼭 필요하다.
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-시퀀스 레이블링에서 자리마다 따로 소프트맥스로 갈래를 매기는 대신 양방향 LSTM 위에 CRF 층을 얹는 까닭은 무엇인가?
+독립 sigmoid 유형 예측이 계층 일관성을 자동으로 만족하는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    자리마다 따로 소프트맥스를 쓰면 레이블을 서로 아랑곳없이 다루어 넘어감의 매임을 버린다. 보기로 O 뒤에 I-PER을 미루어 볼 수 있는데, BIO 이름 붙이기에서는 옳지 않다. CRF 켜는 레이블 이음 전체의 함께 확률을 모델로 삼아, 어떤 레이블 넘어감이 옳은지 담는 넘어감 행렬 $A_{ij}$을 배운다. 이음의 CRF 점수는 $s(x, y) = \sum_t (E_{y_t, t} + A_{y_t, y_{t+1}})$이며 $E$은 양방향 LSTM에서 나온 내보냄 점수다. 이러면 비터비 풀기로 두루 앞뒤가 맞는 추론을 얻는다.
+
+    하위 유형의 확률은 높고 상위는 낮을 수 있어 자동 보장되지 않는다. 조상 레이블의 추가·제약 또는 계층 조건부 모델을 정의해야 한다. 유형의 다중 레이블과 span 중첩은 별개다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-것 수준에서의 개체명 인식 평가에 쓰는 정밀도, 재현율, F1 점수를 설명하여라. 것 수준 평가가 토막 수준보다 왜 더 빡빡한가?
+정확한 다중 레이블 집합 확률에서 음성 유형 항이 필요한 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    **개체 수준** 따지기는 개체의 테두리와 갈래가 모두 딱 맞아야 한다. 정밀도 = (옳게 예측한 개체) / (예측한 개체 모두). 재현율 = (옳게 예측한 개체) / (참 개체 모두). $F_1 = 2 \cdot \frac{P \cdot R}{P + R}$이다. 이는 토막 수준보다 깐깐하다. 참 개체가 "New York City"인데 "New York"으로 미루어 보면 토막 수준에서는 반쯤 점수를 받지만(토막 3개 가운데 2개가 맞다) 개체 수준에서는 0점이다(테두리가 어긋난다). 개체 수준의 자가 참 세상의 쓸모를 더 잘 비춘다.
+
+    선택된 유형뿐 아니라 제외된 유형의 사건도 지정하는 확률이기 때문이다. 독립 Bernoulli 근사에서는 q_t의 양성 항과1−q_t의 음성 항을 모두 곱한다. 양성 항만 곱하면 다른 유형의 제외를 표현하지 않는다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-양방향 LSTM은 양쪽 방향의 맥락을 어떻게 담아내는가? 자리 $t$에서의 은닉 상태 계산을 적어라.
+κ가 높으면 NER 주석 체계가 검증되었다고 말할 수 있는가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    양방향 LSTM은 $x_1, \ldots, x_T$을 다루는 앞으로 가는 LSTM과 $x_T, \ldots, x_1$을 다루는 뒤로 가는 LSTM으로 이루어진다.
 
-    $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
+    판단 단위·유형 빈도·O 비중·경계 처리에 따라 값이 달라 단독으로 충분하지 않다. span 대응·정확 일치·유형 혼동·희귀 사례와 실제 업무의 타당성을 함께 검토한다. 보편적인0.8임계값이 신뢰성을 보장하지 않는다.
 
-    자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 단어가 양쪽에서 걸리는 일이 잦으므로 이것이 중요하다.
+
 
 ## 정리하며
 
-1. **CoNLL-2003**은 개체명 인식의 표준 4갈래 잣대를 준다
-2. **OntoNotes**는 수와 때로 된 것을 넣어 18갈래로 넓힌다
-3. **분야별 갈래 체계**는 생의학, 금융, 법률 자연어 처리에 꼭 필요하다
-4. **층진 갈래 매기기**는 결이 고운 것 가르기를 가능하게 한다
-5. **갈래 체계 꾸미기**는 결, 덮음, 표시 가능함의 균형을 잡아야 한다
-
----
+개체 유형은 데이터셋의 지침·언급 범위·분야 목표와 함께 정의한다. 계층·다중 레이블·중첩 span·개체 연결을 구분하고, 독립 확률과 계층 제약 및 주석 일치도의 가정을 명시한다.
 
 **참고 문헌**
 
-1. Tjong Kim Sang, E. F., & De Meulder, F. (2003). CoNLL-2003 Shared Task. *CoNLL*.
-2. Weischedel, R., et al. (2013). OntoNotes Release 5.0. LDC.
-3. Ling, X., & Weld, D. S. (2012). Fine-Grained Entity Recognition. *AAAI*.
-4. Alvarado, J., et al. (2015). Domain-Specific Named Entity Recognition in Financial Texts. *ACL FinNLP Workshop*.
+1. Tjong Kim Sang, E. F., & De Meulder, F. (2003). [Introduction to the CoNLL-2003 Shared Task: Language-Independent Named Entity Recognition](https://aclanthology.org/W03-0419/).
+2. Weischedel, R., et al. (2013). [OntoNotes Release 5.0](https://catalog.ldc.upenn.edu/LDC2013T19). LDC.
+3. Ling, X., & Weld, D. S. (2012). Fine-Grained Entity Recognition. AAAI.

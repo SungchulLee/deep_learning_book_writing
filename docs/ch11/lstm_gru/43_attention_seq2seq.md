@@ -1,8 +1,6 @@
 # 어텐션 Seq2Seq
 
-어텐션 Seq2Seq는 2014년 논문 "Neural Machine Translation by Jointly Learning to Align and Translate"에서 나왔다. 입력의 쓸모 있는 부분에 집중하는 어텐션 메커니즘이다.
-
-시퀀스 모델은 시간적이고 순서가 있는 데이터를 다루는 데 기초가 된다. 이 구현은 순환 신경망의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
+인코더의 위치별 출력과 디코더 상태로 가산 어텐션을 계산하는 Seq2Seq 구조다. 가중합 문맥을 이전 토큰의 임베딩과 함께 GRU 디코더에 전달한다. 본문 실행부는 매개변수 수만 확인하며 모델을 학습하지 않는다.
 
 ## 1. 코드
 
@@ -98,68 +96,68 @@ Parameters: 1,140,836
 
 ## 2. 논의
 
-이 구현은 클래스 세 개(`Attention`, `AttentionDecoder`, `AttentionSeq2Seq`)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
+이 인코더는 입력 임베딩 없이 LSTM을 사용하므로 src는 $(B,S,F)$의 실수 특징이다. 반면 trg는 $(B,T)$의 정수 토큰 ID다. input_size=100은 인코더 특징 수이고 output_size=100은 출력 어휘 크기이며, 같은 숫자여도 의미가 다르다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 시퀀스 모델 과제에 대한 실용적인 직관이 쌓인다.
+Attention은 단일 층 상태 $(1,B,H)$를 입력 길이만큼 반복하고, 인코더 출력과 이어 붙여 점수를 계산한다. 소프트맥스 축은 입력 위치다. AttentionDecoder는 $(B,1)$의 토큰 하나와 상태를 받아 $(B,V)$ 로짓, 새 상태와 $(B,S)$ 가중치를 반환한다.
+
+인코더는 LSTM이고 디코더는 GRU이므로 인코더의 최종 셀 상태는 버리고 은닉 상태만 초기 디코더 상태로 사용한다. 여러 층으로 일반화하려면 어텐션 쿼리와 초기 상태의 층 축을 따로 처리해야 한다.
+
+패딩 마스크가 없어 패딩 위치도 정규화와 문맥 계산에 포함된다. trg의 한 칸 이동은 호출자가 처리해야 하며 이 코드는 이전 정답 토큰을 입력하는 계산 형태다. 자유 생성, 종료 조건과 실제 번역 평가는 포함되어 있지 않다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 초기화를 쓴 `Attention`의 학습 가능한 매개변수 총수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 세어라.
+은닉 크기 H인 Attention의 학습 매개변수 수를 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    Linear(2H,H)는 $2H^2+H$개, 편향 없는 Linear(H,1)은 H개다. 합계는 $2H^2+2H$개이고 H=256이면 131584개다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-어텐션 가중치 뒤에(값과 곱하기 전에) 드롭아웃 층을 추가하라. 학습 중에는 드롭아웃 비율 0.1을 쓴다. 어텐션 드롭아웃이 정칙화에 도움이 되는 이유를 설명하라.
+소프트맥스 뒤에 드롭아웃을 적용하면 가중치 합은 어떻게 되는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`이다. 어텐션 드롭아웃은 학습 중에 일부 어텐션 가중치를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에 지나치게 기대지 않게 한다. 이는 모델이 어텐션을 더 고르게 분산시키고 더 견고한 표현을 배우도록 북돋우며, 표준 드롭아웃이 뉴런의 공적응을 막는 것과 비슷하다.
+    학습 중 일부 가중치가 0이 되고 유지된 값은 1/(1-p)배 되므로 한 번의 호출에서 합이 반드시 1인 것은 아니다. 기대값은 원래 가중치와 같다. 평가 모드에서는 드롭아웃이 꺼진다. 규제 효과가 있을 수 있지만 더 고른 분포나 성능 향상을 보장하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+입력 길이 S, 출력 길이 T인 이 가산 어텐션의 비용을 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    각 단계에서 모든 입력 위치의 결합 특징을 H차원으로 선형 변환하므로 현재 직접 구현의 점수 계산은 대략 $O(TSH^2)$다. 문맥 가중합은 $O(TSH)$다. 전체 디코더 단계의 가중치를 저장하면 $O(TS)$이며, 이는 입력 길이만의 셀프 어텐션 $S^2$와 구분한다. 투영을 미리 계산하면 연산 구성이 달라질 수 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 수를 설정할 수 있도록 `Attention`을 확장하라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 훑는다. (보통의 파이썬 리스트가 아니라) `nn.ModuleList`을 써야 PyTorch가 최적화를 위해 모든 매개변수를 등록한다. `for n in [2, 4, 8]: model = Attention(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 어텐션 Seq2Seq
-
-이 구현은 클래스 세 개(`Attention`, `AttentionDecoder`, `AttentionSeq2Seq`)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다.
-
-핵심 클래스는 `Attention`, `AttentionDecoder`, `AttentionSeq2Seq`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+어텐션 Seq2Seq는 현재 디코더 상태로 입력 위치들을 참조한다. 이 구현의 src·trg 자료형, 단일 층 상태와 패딩 마스크 부재를 확인해야 한다. 모델 정의만으로 번역 성능이나 생성 동작이 검증된 것은 아니다.

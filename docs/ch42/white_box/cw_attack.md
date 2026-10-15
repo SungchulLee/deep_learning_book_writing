@@ -463,7 +463,7 @@ class CarliniWagnerL2:
 
 ## 정리하며
 
-이 마당은 수학 기초, 알고리즘, PyTorch로 짜기, 비교: PGD과 C&W을 차례로 짚었다.
+이 절에서는 수학 기초, 알고리즘, PyTorch로 짜기, 비교: PGD과 C&W을 살펴보았다.
 
 **살펴볼 거리**
 

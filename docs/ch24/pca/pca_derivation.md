@@ -1,161 +1,59 @@
-# 주성분 분석 유도
-분산 최대화와 어긋남 최소화 관점에서 주성분 분석을 엄밀히 유도.
+# 주성분 분석의 유도
 
----
+PCA의 분산 최대화와 재구성 오차 최소화는 같은 직교 부분공간을 선택하는 문제다. 이 절에서는 중심화된 유한 데이터에 대한 등식을 유도하고, 최적 부분공간과 그 안의 기저가 얼마나 유일한지 살펴본다.
 
-주성분 분석은 서로 같은 두 가지 꼴로 세울 수 있다. 곧 **최대 분산**(쏜 데이터가 가장 넓게 퍼지는 방향 찾기)과 **최소 재구성 어긋남**(본디 데이터를 가장 잘 어림하는 계수 $k$짜리 선형 쏘기 찾기)이다. 이 절은 둘 다 이끌어 내고 서로 같음을 밝히며 선형 오토인코더와의 이음을 세운다.
+## 1. 표기와 공분산
 
----
+X∈ℝⁿˣᵈ의 각 행은 학습 평균을 뺀 표본이며 Σ=XᵀX/n이다. Σ는 실수 대칭 양의 준정부호 행렬이므로 다음과 같이 분해된다.
 
-## 1. 자리매김과 기호
+$$\Sigma=V\Lambda V^T,\qquad V^TV=I,\qquad
+\lambda_1\ge\cdots\ge\lambda_d\ge0.$$
 
-$\mathbf{X} \in \mathbb{R}^{n \times d}$을 $d$차원 관측 $n$개를 담은 가운데 맞춘 데이터 행렬이라 하자. 가로줄 $\mathbf{x}^{(i)}$마다 평균을 뺐다. 곧 $\frac{1}{n}\sum_{i=1}^n \mathbf{x}^{(i)} = \mathbf{0}$이다.
+여기서는 n으로 나눈 경험 공분산을 사용한다. n>1에서 1/(n−1)을 사용하면 고윳값이 n/(n−1)배 되지만 주성분 방향과 설명 분산 비율은 같다. 이후 표본별 평균 오차와의 등식은 n 관례를 기준으로 한다.
 
-표본 공분산 행렬은 다음과 같다:
+## 2. 첫 주성분: 분산 최대화
 
-$$\boldsymbol{\Sigma} = \frac{1}{n}\mathbf{X}^T\mathbf{X} \in \mathbb{R}^{d \times d}$$
+단위 벡터 v에 대한 점수는 z_i=x_iᵀv다. 평균이 0이므로 경험 분산은 다음과 같다.
 
-$\boldsymbol{\Sigma}$이 실수 대칭이고 준양정치이므로 스펙트럼 쪼개기가 된다:
+$$\frac1n\sum_i z_i^2=v^T\Sigma v.$$
 
-$$\boldsymbol{\Sigma} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}^T = \sum_{i=1}^d \lambda_i \mathbf{v}_i \mathbf{v}_i^T$$
+제약 vᵀv=1이 없으면 v를 키워 목적을 무한히 키울 수 있다. 라그랑주 함수는 다음과 같다.
 
-여기서 $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_d \geq 0$은 고윳값이고 $\{\mathbf{v}_1, \ldots, \mathbf{v}_d\}$은 정규 직교 고유 기초다.
+$$\mathcal L(v,\lambda)=v^T\Sigma v-\lambda(v^Tv-1).$$
 
-!!! note "관례: $1/n$과 $1/(n-1)$"
-    여기서는 $1/n$(모집단 꼴)을 쓴다. $1/(n-1)$(베셀 바로잡기)을 쓰면 고윳값의 크기는 달라지지만 고유벡터의 방향은 그대로여서 어느 관례에서나 주성분은 똑같다.
+정지 조건 2Σv−2λv=0으로부터 Σv=λv를 얻는다. 이때 목적값은 vᵀΣv=λ다. 정지 조건만으로 최대·최소를 구분한 것은 아니며, 목적을 최대화하려면 가장 큰 고윳값의 고유공간에서 단위 벡터를 선택한다. 단위 구가 콤팩트하고 목적이 연속이므로 최댓값은 존재한다.
 
----
+## 3. 여러 성분과 부분공간
 
-## 2. 유도 1: 분산 최대화
+두 번째 성분에는 vᵀv₁=0을 추가한다. 정지 조건은 2Σv−2λv−μv₁=0이다. 왼쪽에 v₁ᵀ를 곱하면 대칭성과 직교성으로 μ=0을 얻는다. 따라서 남은 직교 공간에서 가장 큰 고윳값인 λ₂의 방향을 선택한다. 같은 절차로 직교 고유벡터를 구성한다.
 
-### 성분 하나(k = 1)
+k개 방향을 한꺼번에 구하는 문제는 다음과 같다.
 
-쏜 데이터 $\{z^{(i)} = {\mathbf{x}^{(i)}}^T \mathbf{v}\}_{i=1}^n$의 분산을 가장 크게 하는 단위 벡터 $\mathbf{v} \in \mathbb{R}^d$을 찾는다.
+$$\max_{W^TW=I_k}\operatorname{tr}(W^T\Sigma W).$$
 
-데이터의 가운데가 맞았으므로 쏜 평균은 0이다:
+상위 k개 고유벡터를 열로 둔 W가 최댓값 Σ_{j≤k}λ_j를 달성한다. 하지만 이 **대각합 목적만으로** W의 열을 개별 주성분 순서로 고정하지는 않는다. 어떤 직교 Q에 대해서도 WQ는 같은 부분공간과 목적값을 가지며, 일반적인 Q에서는 점수 공분산이 대각행렬이 아닐 수 있다. PCA의 표준 기저는 공분산을 대각화하고 분산 순으로 정렬한 기저다.
 
-$$\bar{z} = \frac{1}{n}\sum_{i=1}^n {\mathbf{x}^{(i)}}^T \mathbf{v} = \left(\frac{1}{n}\sum_{i=1}^n \mathbf{x}^{(i)}\right)^T \mathbf{v} = \mathbf{0}^T \mathbf{v} = 0$$
+## 4. 재구성 오차 최소화와의 동등성
 
-쏜 분산은 다음과 같다:
+WᵀW=I일 때 P=WWᵀ는 대칭이며 P²=P인 직교 투영 행렬이다. 피타고라스 관계로 다음이 성립한다.
 
-$$\operatorname{Var}(z) = \frac{1}{n}\sum_{i=1}^n \left({\mathbf{x}^{(i)}}^T \mathbf{v}\right)^2 = \frac{1}{n}\sum_{i=1}^n \mathbf{v}^T \mathbf{x}^{(i)} {\mathbf{x}^{(i)}}^T \mathbf{v} = \mathbf{v}^T \left(\frac{1}{n}\mathbf{X}^T\mathbf{X}\right) \mathbf{v} = \mathbf{v}^T \boldsymbol{\Sigma} \mathbf{v}$$
+$$\|x-Px\|^2=\|x\|^2-x^TPx.$$
 
-가장 좋게 하는 문제는 다음과 같다:
+표본에 대해 평균을 취하면 다음과 같다.
 
-$$\max_{\mathbf{v}} \; \mathbf{v}^T \boldsymbol{\Sigma} \mathbf{v} \quad \text{subject to} \quad \mathbf{v}^T \mathbf{v} = 1$$
+$$\frac1n\|X-XWW^T\|_F^2=\operatorname{tr}(\Sigma)-\operatorname{tr}(W^T\Sigma W).$$
 
-**라그랑주 곱수로 푸는 풀이.** 라그랑주 함수를 세운다:
+첫 항은 W와 무관하므로 재구성 오차 최소화가 분산 최대화와 같다. PCA 기저에서 최소 오차는 다음과 같다.
 
-$$\mathcal{L}(\mathbf{v}, \lambda) = \mathbf{v}^T \boldsymbol{\Sigma} \mathbf{v} - \lambda(\mathbf{v}^T \mathbf{v} - 1)$$
+$$\mathcal E_k=\sum_{j>k}\lambda_j.$$
 
-기울기를 영으로 놓으면 다음과 같다.
+왼쪽은 표본당 제곱 거리 평균이다. `mean()`으로 모든 n×d 원소의 제곱 오차를 평균하면 값은 E_k/d다. 1/(n−1) 고윳값을 쓴 경우에는 오차 환산에 (n−1)/n도 필요하다.
 
-$$\frac{\partial \mathcal{L}}{\partial \mathbf{v}} = 2\boldsymbol{\Sigma}\mathbf{v} - 2\lambda\mathbf{v} = \mathbf{0}$$
+에카르트–영–미르스키 정리는 X의 절단 SVD가 랭크 **k 이하** 행렬 중 프로베니우스 오차를 최소화함을 보인다. 이 대수적 최적성에는 가우시안 잡음 가정이 필요하지 않다. 가우시안 오차 모델은 제곱 오차를 확률적으로 해석하는 별도의 관점이다.
 
-$$\boldsymbol{\Sigma}\mathbf{v} = \lambda\mathbf{v}$$
+## 5. 계산과 평균 복원
 
-이는 $\boldsymbol{\Sigma}$의 고윳값 방정식이다. 가장 좋은 $\mathbf{v}$은 고유벡터여야 하고 거기 딸린 고윳값 $\lambda$이 쏜 분산을 준다:
-
-$$\mathbf{v}^T \boldsymbol{\Sigma} \mathbf{v} = \mathbf{v}^T \lambda \mathbf{v} = \lambda \|\mathbf{v}\|^2 = \lambda$$
-
-분산을 가장 크게 하려면 **가장 큰 고윳값** $\lambda_1$에 딸린 고유벡터를 고른다. 따라서 $\mathbf{v}_1^* = \mathbf{v}_1$(첫 주성분)이다.
-
-### 성분 여럿(k > 1)
-
-둘째 주성분은 $\mathbf{v}_1$과 직교한다는 조건 아래 분산을 가장 크게 해서 얻는다:
-
-$$\max_{\mathbf{v}} \; \mathbf{v}^T \boldsymbol{\Sigma} \mathbf{v} \quad \text{s.t.} \quad \mathbf{v}^T \mathbf{v} = 1, \; \mathbf{v}^T \mathbf{v}_1 = 0$$
-
-라그랑주 함수는 다음과 같다:
-
-$$\mathcal{L} = \mathbf{v}^T \boldsymbol{\Sigma} \mathbf{v} - \lambda(\mathbf{v}^T \mathbf{v} - 1) - \mu(\mathbf{v}^T \mathbf{v}_1)$$
-
-$\partial \mathcal{L}/\partial \mathbf{v} = 0$으로 두면:
-
-$$2\boldsymbol{\Sigma}\mathbf{v} - 2\lambda\mathbf{v} - \mu\mathbf{v}_1 = \mathbf{0}$$
-
-왼쪽에 $\mathbf{v}_1^T$을 곱하고 $\mathbf{v}_1^T \mathbf{v} = 0$과 $\boldsymbol{\Sigma}\mathbf{v}_1 = \lambda_1 \mathbf{v}_1$을 쓰면:
-
-$$2\lambda_1 \underbrace{\mathbf{v}_1^T \mathbf{v}}_{= 0} - 2\lambda \underbrace{\mathbf{v}_1^T \mathbf{v}}_{= 0} - \mu \underbrace{\mathbf{v}_1^T \mathbf{v}_1}_{= 1} = 0 \implies \mu = 0$$
-
-$\mu = 0$이므로 정지 조건이 $\boldsymbol{\Sigma}\mathbf{v} = \lambda\mathbf{v}$으로 줄어 $\mathbf{v}$은 또 고유벡터이다. 직교 제약으로 $\mathbf{v}_1$을 빼면 분산을 가장 크게 하는 공정성은 $\mathbf{v}_2$(고윳값 $\lambda_2$)이다.
-
-귀납으로 $k$번째 주성분은 $k$번째로 큰 고윳값에 딸린 고유벡터이다.
-
-### 한꺼번에 세우기
-
-성분 $k$개 문제는 행렬 $\mathbf{W} \in \mathbb{R}^{d \times k}$에 대한 최적화 하나로도 적을 수 있다:
-
-$$\max_{\mathbf{W}} \; \operatorname{tr}\!\left(\mathbf{W}^T \boldsymbol{\Sigma} \mathbf{W}\right) \quad \text{s.t.} \quad \mathbf{W}^T \mathbf{W} = \mathbf{I}_k$$
-
-대각합 목표는 쏜 방향마다의 분산을 더한 것이다. 풀이는 $\mathbf{W}^* = [\mathbf{v}_1, \ldots, \mathbf{v}_k]$이고 최댓값은 $\sum_{i=1}^k \lambda_i$이다.
-
----
-
-## 3. 유도 2: 재구성 어긋남 최소화
-
-### 정식화
-
-분산을 가장 크게 하는 대신 재구성 제곱 어긋남의 평균을 가장 작게 하는 계수 $k$짜리 쏘기를 찾을 수도 있다:
-
-$$\min_{\mathbf{W}} \; \frac{1}{n}\sum_{i=1}^n \left\|\mathbf{x}^{(i)} - \mathbf{W}\mathbf{W}^T \mathbf{x}^{(i)}\right\|^2 \quad \text{s.t.} \quad \mathbf{W}^T \mathbf{W} = \mathbf{I}_k$$
-
-여기서 $\mathbf{W}\mathbf{W}^T$은 $\mathbf{W}$의 세로줄 공간으로 하는 직교 쏘기이다.
-
-### 유도
-
-제곱 노름을 펼치면:
-
-$$\left\|\mathbf{x} - \mathbf{W}\mathbf{W}^T \mathbf{x}\right\|^2 = \mathbf{x}^T\mathbf{x} - 2\mathbf{x}^T\mathbf{W}\mathbf{W}^T\mathbf{x} + \mathbf{x}^T\mathbf{W}\underbrace{\mathbf{W}^T\mathbf{W}}_{=\mathbf{I}}\mathbf{W}^T\mathbf{x} = \mathbf{x}^T\mathbf{x} - \mathbf{x}^T\mathbf{W}\mathbf{W}^T\mathbf{x}$$
-
-표본에 걸쳐 더하면:
-
-$$\frac{1}{n}\sum_i \left\|\mathbf{x}^{(i)} - \mathbf{W}\mathbf{W}^T\mathbf{x}^{(i)}\right\|^2 = \underbrace{\frac{1}{n}\sum_i \left\|\mathbf{x}^{(i)}\right\|^2}_{\text{constant}} - \operatorname{tr}\!\left(\mathbf{W}^T \boldsymbol{\Sigma} \mathbf{W}\right)$$
-
-이를 가장 작게 하는 것은 $\operatorname{tr}(\mathbf{W}^T \boldsymbol{\Sigma} \mathbf{W})$을 가장 크게 하는 것과 같으며 이는 바로 분산 최대화 문제이다. 그러므로 두 꼴은 서로 같다.
-
-### 닫힌 형태 어긋남
-
-고유 기초 $\{\mathbf{v}_1, \ldots, \mathbf{v}_d\}$을 쓰면 데이터의 전체 분산이 다음처럼 쪼개진다:
-
-$$\frac{1}{n}\sum_i \left\|\mathbf{x}^{(i)}\right\|^2 = \operatorname{tr}(\boldsymbol{\Sigma}) = \sum_{j=1}^d \lambda_j$$
-
-으뜸 $k$개 성분이 잡는 분산은 $\sum_{j=1}^k \lambda_j$이므로 재구성 어긋남은 다음과 같다:
-
-$$\mathcal{E}_k = \sum_{j=1}^d \lambda_j - \sum_{j=1}^k \lambda_j = \sum_{j=k+1}^d \lambda_j$$
-
-**재구성 어긋남은 버린 고윳값의 합과 같다.**
-
----
-
-## 4. 같음 간추리기
-
-| 꼴 | 목표 | 풀이 |
-|-------------|-----------|----------|
-| **최대 분산** | $\max_{\mathbf{W}} \operatorname{tr}(\mathbf{W}^T\boldsymbol{\Sigma}\mathbf{W})$ | 으뜸 $k$개 고유벡터 |
-| **최소 어긋남** | $\min_{\mathbf{W}} \frac{1}{n}\sum_i \|\mathbf{x}^{(i)} - \mathbf{W}\mathbf{W}^T\mathbf{x}^{(i)}\|^2$ | 으뜸 $k$개 고유벡터 |
-
-둘 다 같은 $\mathbf{W}^* = [\mathbf{v}_1, \ldots, \mathbf{v}_k]$을 준다.
-
----
-
-## 5. k차원 주성분 분석 알고리즘
-
-가운데 맞춘 데이터 $\mathbf{X} \in \mathbb{R}^{n \times d}$과 목표 차원 $k$이 주어질 때:
-
-**걸음 1.** 공분산 행렬 $\boldsymbol{\Sigma} = \frac{1}{n}\mathbf{X}^T\mathbf{X}$을 계산한다.
-
-**걸음 2.** 고윳값을 내림차순으로 정렬해 고윳값 쪼개기 $\boldsymbol{\Sigma} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}^T$을 찾는다.
-
-**걸음 3.** 실림 행렬 $\mathbf{W} = [\mathbf{v}_1, \ldots, \mathbf{v}_k] \in \mathbb{R}^{d \times k}$을 만든다.
-
-**걸음 4.** 점수를 계산한다: $\mathbf{Z} = \mathbf{X}\mathbf{W} \in \mathbb{R}^{n \times k}$.
-
-**걸음 5.** 다시 세운다: $\hat{\mathbf{X}} = \mathbf{Z}\mathbf{W}^T = \mathbf{X}\mathbf{W}\mathbf{W}^T \in \mathbb{R}^{n \times d}$.
-
-다시 세운 $\hat{\mathbf{x}}^{(i)}$은 무게 붙은 주방향의 합이다:
-
-$$\hat{\mathbf{x}}^{(i)} = \sum_{j=1}^k \underbrace{\left({\mathbf{x}^{(i)}}^T \mathbf{v}_j\right)}_{\text{score}} \, \mathbf{v}_j$$
+고윳값을 내림차순으로 정렬하고 상위 k개 고유벡터 W를 선택하면 점수 Z=XW와 중심화 재구성 X̂=ZWᵀ를 얻는다. 원래 데이터에서 시작했다면 학습 평균을 빼고, 복원 뒤에는 다시 더한다. 새 데이터에도 학습 평균을 사용한다.
 
 ```python
 import numpy as np
@@ -185,43 +83,27 @@ def pca(X, k):
     return W, Z, eigenvalues
 ```
 
----
+이 함수는 중심화와 평균 저장을 하지 않으므로 입력 X가 이미 중심화되어 있어야 한다. 반환 고윳값도 상위 k개뿐이어서 전체 분산 비율이나 버린 고윳값 합을 계산하기에는 부족하다. 1≤k≤d와 유효한 표본 수를 확인해야 한다.
 
-## 6. 유도 3: 선형 오토인코더와 같음
+SVD X=USVᵀ를 직접 구하면 방향은 V의 열, 점수는 U_kS_k, 고윳값은 s_j²/n이다. 공분산을 만들면 0이 아닌 특잇값 기준 조건수가 제곱되므로 작은 성분의 수치 정확도에 불리할 수 있다. 반면 n이 매우 크고 d가 작으면 공분산 고유분해가 실용적일 수 있다. 크기와 목표 차원에 따라 얇은 SVD, 절단·무작위 분해 등을 선택한다.
 
-### 준비
+## 6. 선형 오토인코더와의 관계
 
-인코더 $\mathbf{W}_e \in \mathbb{R}^{d \times k}$과 디코더 $\mathbf{W}_d \in \mathbb{R}^{d \times k}$을 가진 선형 오토인코더를 보자:
+열벡터 표기에서 인코더 W_eᵀ와 디코더 W_d의 재구성은 W_dW_eᵀx다. 중심화된 데이터와 바이어스·활성화 없는 모델의 손실을 다음과 같이 둔다.
 
-$$\text{Encode:} \quad \mathbf{z} = \mathbf{W}_e^T \mathbf{x}, \qquad \text{Decode:} \quad \hat{\mathbf{x}} = \mathbf{W}_d \mathbf{z}$$
+$$L(W_e,W_d)=\frac1n\sum_i\|x_i-W_dW_e^Tx_i\|^2.$$
 
-다시 세운 것은 $\hat{\mathbf{x}} = \mathbf{W}_d \mathbf{W}_e^T \mathbf{x}$이고 평균 제곱 어긋남 손실은 다음과 같다:
+W_e를 고정하고 W_d로 미분하면 정상 방정식을 얻는다.
 
-$$\mathcal{L}(\mathbf{W}_e, \mathbf{W}_d) = \frac{1}{n}\sum_{i=1}^n \left\|\mathbf{x}^{(i)} - \mathbf{W}_d \mathbf{W}_e^T \mathbf{x}^{(i)}\right\|^2$$
+$$\Sigma W_e=W_d(W_e^T\Sigma W_e).$$
 
-### 인코더가 주어졌을 때 가장 좋은 디코더
+괄호 안 행렬이 가역이면 다음과 같다.
 
-$\mathbf{W}_e$을 고정하면 손실이 $\mathbf{W}_d$에 대해 이차이다. 미분해 0으로 두면:
+$$W_d=\Sigma W_e(W_e^T\Sigma W_e)^{-1}.$$
 
-$$\frac{\partial \mathcal{L}}{\partial \mathbf{W}_d} = -\frac{2}{n}\sum_i \left(\mathbf{x}^{(i)} - \mathbf{W}_d \mathbf{W}_e^T \mathbf{x}^{(i)}\right) {\mathbf{x}^{(i)}}^T \mathbf{W}_e = \mathbf{0}$$
+특이한 경우에는 역행렬을 그대로 사용할 수 없으며 의사역행렬과 비유일성을 고려해야 한다. 양의 정부호 Σ에서 1≤k<d이고 λ_k>λ_{k+1}라면 최적 재구성은 상위 k차원 부분공간의 투영이다. 예를 들어 가역 A에 대해 W_e=W A⁻ᵀ, W_d=W A는 같은 최적 재구성을 준다. 따라서 두 가중치가 같거나 인코더가 정규직교인 것은 필수 조건이 아니다.
 
-$$\boldsymbol{\Sigma}\mathbf{W}_e = \mathbf{W}_d (\mathbf{W}_e^T \boldsymbol{\Sigma} \mathbf{W}_e)$$
-
-$\mathbf{W}_e^T \boldsymbol{\Sigma} \mathbf{W}_e$의 역이 있으면:
-
-$$\mathbf{W}_d = \boldsymbol{\Sigma}\mathbf{W}_e (\mathbf{W}_e^T \boldsymbol{\Sigma} \mathbf{W}_e)^{-1}$$
-
-### 전역 최적에서
-
-$\mathcal{L}$의 전역 최솟값에서 $\mathbf{W}_e$과 $\mathbf{W}_d$의 세로줄 공간은 $\boldsymbol{\Sigma}$의 으뜸 $k$개 고유벡터가 뻗는 아래 공간과 같아진다. $\mathbf{W}_e$의 세로줄이 고유벡터와 결이 맞는 정규 직교이면 $\mathbf{W}_d = \mathbf{W}_e$이고 재구성 행렬은 다음이 된다:
-
-$$\mathbf{W}_d \mathbf{W}_e^T = \mathbf{W}\mathbf{W}^T$$
-
-이는 주성분 쏘기와 똑같다.
-
-### 실전에서 뜻하는 바
-
-(활성화 함수도 편향도 없는) 선형 오토인코더를 평균 제곱 어긋남 손실로 기울기 내려가기로 익히면 주성분 분석 풀이로 모인다. 모였을 때의 손실은 주성분 분석의 재구성 어긋남 $\sum_{j=k+1}^d \lambda_j$과 같다.
+공분산이 특이하면 학습 데이터가 놓이지 않는 영공간에서의 동작은 손실로 정해지지 않는다. 중복 고윳값이 경계를 가로지르면 최적 부분공간 자체도 여러 개일 수 있다. [선형 오토인코더 연구](https://proceedings.mlr.press/v97/kunin19a.html)의 주부분공간 결과를 임의의 유한 학습 실행에 대한 수렴 보장으로 확대하지 않는다.
 
 ```python
 import torch
@@ -264,19 +146,14 @@ def verify_equivalence(X, k, epochs=5000, lr=0.01):
     print(f"Linear AE error: {ae_error:.6f}")
 ```
 
----
+`verify_equivalence`는 같은 중심화 데이터에서 PCA의 표본별 오차와 학습 손실을 비교하려 한다. 원소별 평균 손실에 d를 곱해 단위를 맞추지만, 기록한 `loss`는 마지막 옵티마이저 갱신 **전** 값이다. 유한 에포크의 근접한 값만으로 전역 수렴이나 기저의 일치를 증명하지는 못한다.
 
-## 7. 설명하는 분산 살피기
+## 7. 분산 비율과 상관 없는 좌표
 
-### 성분마다의 비
+전체 분산이 양수일 때 누적 설명 분산 비율은 다음과 같다.
 
-$$\text{EVR}_k = \frac{\lambda_k}{\sum_{i=1}^d \lambda_i} = \frac{\lambda_k}{\operatorname{tr}(\boldsymbol{\Sigma})}$$
-
-### 쌓아 올린 비
-
-$$\text{CEVR}_k = \frac{\sum_{i=1}^k \lambda_i}{\sum_{i=1}^d \lambda_i} = 1 - \frac{\mathcal{E}_k}{\operatorname{tr}(\boldsymbol{\Sigma})}$$
-
-쌓아 올린 비는 남긴 전체 분산의 몫을 곧바로 잰다. 그 여집합이 재구성 어긋남의 몫이다.
+$$\operatorname{CEVR}_k=\frac{\sum_{j\le k}\lambda_j}{\operatorname{tr}(\Sigma)}
+=1-\frac{\mathcal E_k}{\operatorname{tr}(\Sigma)}.$$
 
 ```python
 def explained_variance_analysis(eigenvalues):
@@ -289,77 +166,72 @@ def explained_variance_analysis(eigenvalues):
     return evr, cumulative_evr, reconstruction_error
 ```
 
----
+이 함수는 전체 스펙트럼을 내림차순으로 받는다는 전제다. 전체 분산이 0이면 비율이 정의되지 않는다. PCA 고유벡터 기저의 점수 공분산은 WᵀΣW=diag(λ₁,…,λ_k)다. 상관이 없다는 성질은 해당 데이터의 경험 공분산에 대한 것이며 좌표의 통계적 독립성이나 테스트 데이터에서의 무상관을 보장하지 않는다.
 
-## 8. 주성분 분석 풀이의 성질
+## 8. 부호와 유일성
 
-### 상관 없는 점수
+각 고유벡터의 부호는 자유다. 점수와 방향을 함께 뒤집으면 재구성과 거리는 유지된다. 부호를 고정하는 표시 관례는 해석을 돕지만 학습된 방향의 의미를 추가로 보장하지 않는다.
 
-점수 벡터끼리는 상관이 없다:
-
-$$\operatorname{Cov}(\mathbf{z}) = \frac{1}{n}\mathbf{Z}^T\mathbf{Z} = \frac{1}{n}\mathbf{W}^T \mathbf{X}^T \mathbf{X} \mathbf{W} = \mathbf{W}^T \boldsymbol{\Sigma} \mathbf{W} = \boldsymbol{\Lambda}_k$$
-
-여기서 $\boldsymbol{\Lambda}_k = \operatorname{diag}(\lambda_1, \ldots, \lambda_k)$이다. 쏜 데이터의 공분산이 대각이다. 곧 주성분이 데이터의 상관을 없앤다.
-
-### 가장 좋음
-
-**에카르트-영-미르스키 정리.** 계수 $k$짜리 모든 행렬 가운데 $\hat{\mathbf{X}} = \mathbf{X}\mathbf{W}\mathbf{W}^T$이 $\|\mathbf{X} - \hat{\mathbf{X}}\|_F^2$을 가장 작게 한다. 이는 직교 쏘기 가운데 주성분 분석이 가장 좋다는 것보다 센 말이다. 곧 쏘기든 아니든 계수 $k$짜리 어떤 행렬도 더 낮은 프로베니우스 노름 어긋남을 내지 못한다.
-
-### 분산 쪼개기
-
-전체 분산이 남긴 몫과 잃은 몫으로 쪼개진다:
-
-$$\underbrace{\operatorname{tr}(\boldsymbol{\Sigma})}_{\text{total}} = \underbrace{\sum_{i=1}^k \lambda_i}_{\text{retained}} + \underbrace{\sum_{i=k+1}^d \lambda_i}_{\text{reconstruction error}}$$
-
----
+λ_k>λ_{k+1}이면 상위 k차원 부분공간은 유일하다. 개별 방향까지 부호 외에 유일하려면 해당 고윳값이 단순해야 한다. 선택된 공간 내부의 중복은 기저만 비유일하게 만들고, 선택 경계의 중복은 어떤 k차원 부분공간을 고를지도 비유일하게 만든다. 거의 같은 고윳값은 작은 데이터 변화에서 개별 축을 불안정하게 만들 수 있다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-쏜 데이터의 분산을 가장 크게 해서 첫 주성분을 이끌어 내어라.
+첫 주성분이 최대 고윳값의 단위 고유벡터인 이유를 유도하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    $X$을 가운데 맞춘 데이터 행렬($n \times d$)이라 하자. 쏜 분산을 가장 크게 하는 단위 벡터 $w_1$을 찾는다. 곧 $S = \frac{1}{n} X^\top X$이 공분산 행렬일 때 $\max_{\|w\|=1} w^\top S w$이다. 제약 $w^\top w = 1$ 아래 라그랑주 곱수를 쓰면 $\nabla_w [w^\top S w - \lambda(w^\top w - 1)] = 2Sw - 2\lambda w = 0$이라 $Sw = \lambda w$을 얻는다. 풀이는 가장 큰 고윳값 $\lambda_1$에 딸린 $S$의 고유벡터이다. 쏜 분산은 $w_1^\top S w_1 = \lambda_1$과 같다. $\square$
+
+    제약 목적은 max wᵀΣw, wᵀw=1이다. 라그랑주 정지 조건은 Σw=λw이고 목적값은 λ다. 따라서 가장 큰 고윳값의 단위 고유벡터를 고른다. 정지 조건만으로 모든 고유벡터가 최대라는 결론을 내리지는 않는다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-주성분 분석과 특잇값 분해의 관계를 설명하라. 특잇값 분해로 주성분 분석을 어떻게 효율 좋게 셈하는가?
+SVD와 공분산 고유분해의 관계를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    가운데 맞춘 데이터 행렬의 특잇값 분해가 $X = U \Sigma V^\top$이므로 공분산 행렬은 $S = \frac{1}{n} X^\top X = \frac{1}{n} V \Sigma^2 V^\top$이다. $V$의 세로줄이 $S$의 고유벡터(주성분)이고 $\sigma_i^2 / n$이 그에 딸린 고윳값(분산)이다. 쏜 데이터는 $XV = U\Sigma$이다. 특잇값 분해는 $S$의 고윳값 쪼개기보다 수치가 안정되고 $n < d$일 때 $d \times d$ 행렬을 만들지 않아도 된다.
+
+    중심화 X=USVᵀ이면 Σ=XᵀX/n=V(S²/n)Vᵀ다. V의 열이 주방향이고 점수는 U_kS_k다. 1/(n−1) 관례는 고윳값만 s_j²/(n−1)로 바꾼다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-커널 PCA은 언제 선형 주성분 분석보다 나은가? 보기를 들어라.
+커널 PCA가 선형 PCA의 최적성에 모순되지 않으면서 다른 결과를 주는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    커널 PCA은 커널 함수 $k(x_i, x_j) = \langle \phi(x_i), \phi(x_j) \rangle$이 이끄는 특징 공간에서 주성분 분석을 해 비선형 구조를 잡는다. 보기: 겹동그라미로 놓인 데이터는 선형 주성분 분석으로 가를 수 없지만(두 동그라미가 겹치는 구간에 쏘인다) 방사 기초 함수 알맹이를 쓰면 동그라미가 선형으로 갈라지는 공간에 옮겨져 커널 PCA이 그 구조를 뽑아낸다. 선형 쏘기로는 잡을 수 없는 비선형 매니폴드 구조가 데이터에 있을 때 커널 PCA이 이롭다.
+
+    선형 PCA의 최적성은 원래 좌표의 제곱 재구성 오차와 고정 랭크에 대한 것이다. 커널 PCA는 비선형 특징 공간에서 다른 공분산과 기하를 사용한다. 따라서 분류나 시각화가 개선될 가능성은 있어도 원래 선형 최적성에 대한 반례는 아니다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-남길 주성분의 수를 어떻게 고르는가? 설명하는 분산을 쓰는 방식을 적어라.
+누적 설명 분산 비율로 성분 수를 정할 때 무엇이 보존되고 무엇은 보장되지 않는가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    앞선 $k$개 성분이 설명하는 분산의 몫은 $\sum_{i=1}^k \lambda_i / \sum_{i=1}^d \lambda_i$이다. **팔꿈치 방법**은 $k$에 대한 쌓아 올린 설명 분산을 그려, 성분을 더 넣어도 얻는 것이 줄어드는 "팔꿈치"에서 $k$을 고른다. 전체 분산의 90~95%를 설명할 만큼 성분을 남기는 것이 흔한 문턱이다. 예컨대 100차원 데이터셋에서 성분 3개가 분산의 95%를 설명하면 3차원으로 줄여도 앎을 5%만 잃고 차원을 $33\times$ 줄인다.
+
+    양의 전체 분산에서 Σ_{j≤k}λ_j/Σ_jλ_j가 임계값에 도달하는 최소 k를 고른다. 보존 대상은 학습 데이터의 제곱 거리 기준 분산이다. 레이블 정보, 테스트 정확도와 파일 크기가 같은 비율로 보존되는 것은 아니다.
+
 
 
 ---
@@ -367,138 +239,58 @@ $$\underbrace{\operatorname{tr}(\boldsymbol{\Sigma})}_{\text{total}} = \underbra
 <div class="drillbox" markdown>
 
 **연습문제 5.** <span class="diff med" title="중간"></span>
-분산을 가장 크게 하는 유도와 재구성 어긋남을 가장 작게 하는 유도가 왜 같은 답을 주는가?
+분산 최대화와 재구성 오차 최소화가 같은 이유를 식으로 보여라.
 
 </div>
 
 ??? success "연습문제 5 풀이"
-    두 목표의 합이 상수이기 때문이다.
 
-    단위 벡터 $w$에 사영할 때, 각 점을 $x_i - \bar x$로 두면 피타고라스로
+    WᵀW=I이면 P=WWᵀ는 직교 투영이므로 ||x||²=||Px||²+||x−Px||²다. 표본 평균을 취하면 tr(Σ)=tr(WᵀΣW)+E(W)다. 왼쪽이 W와 무관하므로 설명 분산을 최대화하면 오차가 최소화된다.
 
-    $$\underbrace{\|x_i - \bar x\|^2}_{\text{상수}}
-      = \underbrace{(w^\top (x_i - \bar x))^2}_{\text{사영의 크기}}
-      + \underbrace{\|(x_i - \bar x) - w w^\top (x_i - \bar x)\|^2}_{\text{버린 몫}}$$
 
-    이 식을 모든 $i$에 대해 더하면 왼쪽은 $w$와 무관한 상수이고 오른쪽의 두 항이
-    각각 분산과 재구성 어긋남이다.
-
-    $$\text{전체 흩어짐} = \text{설명한 흩어짐} + \text{다시 세우기 어긋남}$$
-
-    그러므로 앞 항을 가장 크게 하는 것과 뒤 항을 가장 작게 하는 것이 **정확히 같은
-    문제**다. $\square$
-
-    이 관계가 [기본 연습문제 3](pca_fundamentals.md)에서 수치로 확인한 것의 근거다.
-    버린 고윳값의 합이 어긋남과 일치했던 것이 바로 이 분해다.
-
-    두 유도를 모두 적어 두는 까닭은 **일반화되는 방향이 다르기** 때문이다. 분산
-    쪽은 여러 변수의 관계를 보는 방법들로, 어긋남 쪽은 오토인코더와 행렬 채우기로
-    이어진다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 6.** <span class="diff hard" title="어려움"></span>
-제1성분이 공분산 행렬의 가장 큰 고유 벡터라는 것을 라그랑주 승수로 보이라.
+한꺼번에 k개 방향의 대각합을 최대화하면 각 열이 반드시 분산 순으로 정렬된 고유벡터인가?
 
 </div>
 
 ??? success "연습문제 6 풀이"
-    사영한 분산을 가장 크게 하는 문제는 이렇다.
 
-    $$\max_w \; w^\top \Sigma w \quad \text{제약} \quad w^\top w = 1$$
+    그렇지 않다. 최적 W에 임의 직교 Q를 곱한 WQ도 같은 부분공간과 대각합을 갖는다. 개별 PCA 축을 얻으려면 해당 공간에서 공분산을 대각화하고 고윳값 순으로 정렬한다. 부분공간 최적성과 기저 선택을 구분해야 한다.
 
-    제약이 없으면 $w$를 키우는 것만으로 목적이 무한히 커지므로 제약이 필요하다.
-    라그랑주 함수를 세운다.
 
-    $$\mathcal{L}(w, \lambda) = w^\top \Sigma w - \lambda (w^\top w - 1)$$
-
-    $w$로 미분해 0으로 둔다.
-
-    $$\frac{\partial \mathcal{L}}{\partial w} = 2\Sigma w - 2\lambda w = 0
-      \quad \Longrightarrow \quad \Sigma w = \lambda w$$
-
-    곧 **정류점이 곧 고유 벡터**다. 그리고 그때의 목적값이
-
-    $$w^\top \Sigma w = w^\top (\lambda w) = \lambda$$
-
-    이므로 목적값이 곧 고윳값이다. 따라서 가장 큰 고윳값에 딸린 고유 벡터가 답이다.
-    $\square$
-
-    두 가지를 짚어 둘 만하다.
-
-    **왜 최댓값이 있는가.** $\Sigma$가 대칭 반양정이므로 고윳값이 모두 실수이고 아래로
-    묶인다. 단위 구가 옹골지므로 연속 함수인 목적이 최댓값을 가진다.
-
-    **다음 성분은 어떻게 되는가.** $w_1$에 직교한다는 제약을 더해 같은 일을 하면 두 번째
-    고유 벡터가 나온다. 이것이 성분들이 직교하는 까닭이며, 대칭 행렬의 고유 벡터가
-    직교한다는 사실의 다른 얼굴이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 7.** <span class="diff med" title="중간"></span>
-고유 쪼개기와 특잇값 분해 가운데 무엇으로 짜야 하는가?
+공분산 고유분해와 직접 SVD의 수치·계산상 차이를 설명하라.
 
 </div>
 
 ??? success "연습문제 7 풀이"
-    **특잇값 분해 쪽이 거의 언제나 낫다.**
 
-    데이터 행렬 $X_c$(가운데 맞춘 것)의 특잇값 분해가 $X_c = U S V^\top$이면
+    XᵀX를 만들면 0이 아닌 특잇값에 대한 조건수가 제곱되어 작은 성분을 구할 때 불리할 수 있다. 직접 SVD는 d×d 공분산을 명시적으로 만들지 않아도 된다. 다만 n이 매우 크고 d가 작으면 공분산 방식이 효율적일 수 있다. 데이터 크기와 필요한 성분 수에 맞추어 선택한다.
 
-    $$\Sigma = \frac{X_c^\top X_c}{n-1} = V \frac{S^2}{n-1} V^\top$$
 
-    이므로 $V$의 열이 성분이고 $\lambda_j = s_j^2/(n-1)$이다. 같은 답이다.
-
-    차이는 수치와 비용이다.
-
-    | | 고유 쪼개기 | 특잇값 분해 |
-    |---|---|---|
-    | $\Sigma$를 만드는가 | 만든다 ($d \times d$) | 안 만든다 |
-    | 조건수 | $\Sigma$의 조건수 = $X$의 제곱 | $X$의 조건수 |
-    | $d \gg n$일 때 | $784^2$ 행렬을 만든다 | 필요 없다 |
-
-    둘째 줄이 핵심이다. $\Sigma$를 만드는 것은 제곱하는 일이므로 조건수가 제곱되어
-    작은 고윳값의 정확도가 크게 나빠진다. 특잇값 분해는 $X$에 바로 작용하므로 그
-    손실이 없다.
-
-    MNIST는 $n=60{,}000$, $d=784$라 어느 쪽도 감당할 만하다. 그런데 유전체 데이터처럼
-    $d$가 수만이고 $n$이 수백이면 $\Sigma$를 만드는 것 자체가 불가능하고, 특잇값
-    쪼개기라야 된다.
-
-    아주 큰 데이터에서는 처음 $k$개만 구하는 무작위 특잇값 분해를 쓴다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 8.** <span class="diff med" title="중간"></span>
-성분의 부호는 정해지는가?
+주성분 부호를 고정하는 관례의 역할과 아래 코드의 한계를 설명하라.
 
 </div>
 
 ??? success "연습문제 8 풀이"
-    정해지지 않는다. $w$가 고유 벡터이면 $-w$도 고유 벡터이며 사영한 분산이 같다.
 
-    그래서 같은 데이터에 같은 알고리즘을 돌려도 꾸러미나 판마다 부호가 다를 수 있다.
-    실무에서 겪는 일이다.
-
-    | 무엇이 바뀌는가 | 무엇이 안 바뀌는가 |
-    |---|---|
-    | 점수의 부호 | 재구성 |
-    | 실림 그림이 뒤집힘 | 설명하는 분산 |
-    | 흩뿌림 그림이 거울처럼 뒤집힘 | 점들 사이의 거리 |
-
-    오른쪽 칸이 중요하다. **쓸모 있는 것은 모두 부호에 딸리지 않는다.** 그래서 대개
-    걱정하지 않아도 된다.
-
-    성분을 **풀이할 때**는 문제가 된다. "제2성분이 크면 장기 금리가 높다"라고 적었는데
-    다시 돌렸을 때 부호가 뒤집히면 글이 틀리게 된다. 그래서 부호를 고정하는 관례를
-    두는 것이 좋다. 예컨대 실림의 합이 양수가 되게 하거나, 가장 큰 절댓값을 갖는
-    성분이 양수가 되게 맞춘다.
+    부호 고정은 반복 결과의 표시와 해석을 맞추는 관례이며 재구성이나 설명 분산을 바꾸지 않는다. 아래 코드는 V의 행이 성분이라는 전제이고 열이 성분인 행렬에는 그대로 적용할 수 없다. 행 합이 0이면 이 규칙으로 부호가 정해지지 않는다. 점수도 같은 부호로 바꾸어야 한다. 중복 고윳값의 공간 안 회전 자유는 부호 규칙만으로 해결되지 않는다.
 
     ```python
     for j in range(k):
@@ -506,77 +298,37 @@ $$\underbrace{\operatorname{tr}(\boldsymbol{\Sigma})}_{\text{total}} = \underbra
             V[j] = -V[j]
     ```
 
-    고윳값이 겹치면 부호보다 더한 자유가 생긴다. 그 고유 공간 안에서 어떤 직교 기저든
-    답이 되므로 성분 개개의 뜻이 사라진다. 그때는 개별 성분을 풀이하지 않는 것이 맞다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 9.** <span class="diff med" title="중간"></span>
-주성분 분석 풀이가 하나로 정해지는 조건은 무엇인가?
+주부분공간과 개별 주성분의 유일성 조건을 구분하라.
 
 </div>
 
 ??? success "연습문제 9 풀이"
-    고윳값이 서로 다르면(겹치지 않으면) 부호를 빼고 하나로 정해진다.
 
-    $\lambda_1 > \lambda_2 > \cdots > \lambda_k > \lambda_{k+1}$이면 각 고유 공간이
-    1차원이므로 성분마다 방향이 하나씩 정해진다.
+    λ_k>λ_{k+1}이면 상위 k차원 부분공간은 유일하다. 그 내부에 중복 고윳값이 있으면 개별 축은 유일하지 않다. 경계에서 λ_k=λ_{k+1}이면 그 고유공간을 가르는 최적 부분공간도 여러 개다. 개별 단순 고윳값의 축은 부호를 제외하고 정해진다.
 
-    겹치면 달라진다. $\lambda_i = \lambda_{i+1}$이면 그 2차원 고유 공간 안의 **어떤
-    직교 기저든** 답이 되므로 성분 개개는 정해지지 않는다. 정해지는 것은 부분 공간뿐이다.
 
-    실제 데이터에서 정확히 겹치는 일은 드물지만 **거의 겹치는** 일은 흔하고, 그때는
-    수치적으로 불안정해진다. 표본을 조금 바꾸거나 시드를 바꾸면 두 성분이 서로 섞인다.
-
-    확인하는 법은 고윳값을 나란히 보는 것이다. MNIST의 앞쪽은 9.705%, 7.096%, 6.169%로
-    충분히 떨어져 있어 앞 몇 성분은 안정적이다. 그런데 뒤로 가면 값이 촘촘해지므로
-    (100번째가 0.101%) 개별 성분을 풀이하려 해서는 안 된다.
-
-    **$k$번째와 $k+1$번째 고윳값의 틈**을 보는 것이 $k$를 고르는 또 하나의 근거가 되기도
-    한다. 틈이 크면 그 자리에서 끊는 것이 안정적이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 10.** <span class="diff hard" title="어려움"></span>
-주성분 분석이 최선이라는 것은 어떤 뜻에서 참인가? 무엇을 가정하는가?
+PCA의 최적성에 가우시안 잡음 가정이 필요한가? 선형 오토인코더 학습과의 관계도 설명하라.
 
 </div>
 
 ??? success "연습문제 10 풀이"
-    에카르트–영 정리의 뜻에서 참이다. **계수 $k$의 모든 선형 사영 가운데** 제곱
-    어긋남을 가장 작게 한다.
 
-    가정이 그 문장 안에 둘 들어 있다.
+    유한 행렬의 랭크 k 이하 프로베니우스 근사 최적성에는 확률적 잡음 가정이 필요하지 않다. 가우시안 모형은 제곱 오차의 별도 확률 해석이다. 적절한 선형 오토인코더의 전역 최적 손실은 PCA와 같지만, 임의 초기화와 유한 경사 학습의 도달 여부나 인코더 기저의 일치까지 보장하지 않는다.
 
-    **선형이라는 가정.** 굽은 매니폴드는 다룰 수 없다. 겹동그라미 데이터에서 주성분 분석으로
-    1차원을 만들면 선형 분류 정확도가 45.2%로 찍기보다 못한데, 커널 PCA은
-    같은 1차원으로 100%를 낸다([커널 PCA](kernel_pca.md)).
 
-    **제곱 어긋남이라는 가정.** 이것은 가우시안 잡음을 가정하는 것과 같다. 이상값이
-    있으면 제곱이 그것을 크게 벌하므로 성분이 이상값 쪽으로 끌려간다. 이상값에 튼튼한
-    변형들이 여기서 나온다.
-
-    가정 밖의 것도 짚어 둘 만하다. 주성분 분석은 **표지를 보지 않는다.** 그러므로
-    "가르기에 좋은 방향"을 찾아 주지 않는다. 분산이 큰 방향이 가르는 방향과 다를 수
-    있고, 실제로 다른 경우가 흔하다. 표지를 쓰려면 선형 판별 분석 쪽이다.
-
-    그래서 "주성분 분석은 최선이다"라는 말을 들을 때 **무엇들 가운데 최선인가**를
-    물어야 한다. 계수가 정해진 선형 사영들 가운데서만 최선이며, 그 울타리 밖에는 더
-    나은 것이 많다.
 
 ## 정리하며
 
-| 결과 | 말 |
-|--------|-----------|
-| **첫 주성분** | 가장 큰 고윳값에 딸린 $\boldsymbol{\Sigma}$의 고유벡터 |
-| **$k$번째 주성분** | $k$번째로 큰 고윳값에 딸린 고유벡터 |
-| **쏜 분산** | 고윳값과 같다: $\operatorname{Var}(z_k) = \lambda_k$ |
-| **재구성 어긋남** | 버린 고윳값의 합: $\sum_{j > k} \lambda_j$ |
-| **최대 분산 ≡ 최소 어긋남** | 같은 풀이: 으뜸 $k$개 고유벡터 |
-| **선형 오토인코더 ≡ 주성분 분석** | 평균 제곱 어긋남으로 학습된 선형 오토인코더는 주성분 분석 풀이로 모인다 |
-| **점수의 상관 없음** | $\operatorname{Cov}(\mathbf{z}) = \boldsymbol{\Lambda}_k$ |
-| **가장 좋음** | 계수 $k$짜리 가장 좋은 어림(에카르트-영-미르스키) |
+PCA는 직교 투영의 피타고라스 분해를 통해 분산 최대화와 재구성 오차 최소화를 연결한다. 고유벡터 기저, 최적 부분공간과 일반적인 선형 인코더는 구분해야 한다. 분모와 오차 평균 단위를 맞추고, 부호·중복 고윳값·특이 공분산에 따른 비유일성을 고려한다.

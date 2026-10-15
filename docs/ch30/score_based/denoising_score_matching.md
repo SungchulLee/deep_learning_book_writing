@@ -1,148 +1,84 @@
-# Denoising Score Matching
-디노이징 스코어 매칭(Vincent, 2011)는 드러난 스코어 매칭의 비싼 헤세 대각합을 아는 목표에 대한 단순한 되돌아 기대기 손실로 바꾼다. 잡음으로 흔든 분포의 점수를 배워 계산 비용 문제와 밀도 낮은 자리 어림 문제를 함께 푼다. 이는 요즘 모든 확산 모델의 기초가 되는 학습 목표이다.
+# 디노이징 스코어 매칭의 원리
 
----
+디노이징 스코어 매칭(DSM)은 데이터에 노이즈를 더하고 계산 가능한 조건부 스코어를 회귀하는 방법이다. 미지의 데이터 밀도를 직접 평가하지 않아도 노이즈로 평활화된 주변 밀도의 스코어를 학습할 수 있다. 입력 야코비안의 trace를 계산하는 목적을 피할 수 있지만, 평활화와 유한 표본·학습 오차까지 제거하는 것은 아니다.
 
-## 1. 왜 필요한가
+## 1. 노이즈 주변 분포와 조건부 목표
 
-드러난 스코어 매칭에는 실제로 결정적인 한계가 둘 있다.
+깨끗한 데이터 x₀에 σ>0의 등방 가우시안 노이즈를 더한다.
 
-| 문제 | 설명 | 영향 |
-|---------|-------------|--------|
-| **계산 비용** | 라플라시안 $\text{tr}(\nabla_{\mathbf{x}} \mathbf{s}_\theta)$은 뒤먹임 $D$번이 필요하다 | 그림에서는 쓸 수 없다($D > 10^4$) |
-| **밀도 낮은 자리 어림** | $p_{\text{data}}(\mathbf{x}) \approx 0$인 곳에서 점수 어림을 믿기 어렵다 | 봉우리 사이에서 샘플링이 실패한다 |
+$$\widetilde x=x_0+\sigma\epsilon,\qquad \epsilon\sim N(0,I),\qquad
+q_\sigma(\widetilde x\mid x_0)=N(\widetilde x;x_0,\sigma^2I)$$
 
-디노이징 스코어 매칭은 **잡음으로 흔든** 분포의 점수를 배워 둘 다 푼다.
+노이즈 관측의 주변 밀도는 다음과 같다.
 
----
+$$p_\sigma(\widetilde x)=\int q_\sigma(\widetilde x\mid x_0)p_{data}(x_0)dx_0$$
 
-## 2. 흔든 분포
+가우시안 평활화는 원본이 특이한 분포여도 σ>0에서 양의 매끄러운 밀도를 제공한다. 그러나 낮은 밀도 영역의 스코어가 유한 학습 데이터로 정확하게 추정된다고 보장하지는 않는다. 원본 밀도와 평활화 밀도의 차이도 남는다.
 
-깨끗한 데이터 $\mathbf{x} \sim p_{\text{data}}$과 정규 노이즈 커널이 주어질 때
+조건부 관측 스코어는 다음처럼 직접 계산할 수 있다.
 
-$$q(\tilde{\mathbf{x}} | \mathbf{x}) = \mathcal{N}(\tilde{\mathbf{x}} \,|\, \mathbf{x}, \, \sigma^2 \mathbf{I})$$
+$$a(\widetilde x,x_0)=\nabla_{\widetilde x}\log q_\sigma(\widetilde x\mid x_0)
+=-\frac{\widetilde x-x_0}{\sigma^2}=-\frac\epsilon\sigma$$
 
-잡음 섞인 표본의 가장자리 분포는 다음과 같다.
+## 2. 왜 주변 스코어를 학습하는가?
 
-$$q_\sigma(\tilde{\mathbf{x}}) = \int p_{\text{data}}(\mathbf{x}) \, q(\tilde{\mathbf{x}} | \mathbf{x}) \, d\mathbf{x}$$
+제곱오차 회귀의 목표를 a로 두자.
 
-이 매끄럽게 한 분포는 받침이 온전해(어디서나 뜻매김된다) 데이터 매니폴드에서 멀어도 점수가 잘 뜻매김된다.
+$$L_{DSM}(\theta)=\frac12\mathbb E_{x_0,\epsilon}
+\left\|s_\theta(x_0+\sigma\epsilon)+\frac\epsilon\sigma\right\|^2$$
 
----
+조건부 평균이 최적 회귀 함수이고, 적절한 미분·적분 조건에서 다음을 얻는다.
 
-## 3. 아는 목표 점수
+$$\mathbb E[a(\widetilde x,x_0)\mid\widetilde x]
+=\nabla_{\widetilde x}\log p_\sigma(\widetilde x)=s_\sigma(\widetilde x)$$
 
-핵심 통찰은 노이즈 커널의 점수를 닫힌 형태로 얻을 수 있다는 것이다.
+제곱오차의 조건부 분해는 DSM과 주변 스코어 오차의 관계를 보여 준다.
 
-$$\nabla_{\tilde{\mathbf{x}}} \log q(\tilde{\mathbf{x}} | \mathbf{x}) = -\frac{\tilde{\mathbf{x}} - \mathbf{x}}{\sigma^2}$$
+$$L_{DSM}(\theta)=\frac12\mathbb E_{\widetilde x\sim p_\sigma}
+\|s_\theta(\widetilde x)-s_\sigma(\widetilde x)\|^2
++\frac12\mathbb E\|a-s_\sigma\|^2$$
 
-$\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$일 때 $\tilde{\mathbf{x}} = \mathbf{x} + \sigma \boldsymbol{\epsilon}$으로 적으면 이는 $-\boldsymbol{\epsilon} / \sigma$이 된다. 잡음 섞인 점마다 목표 점수는 그저 깨끗한 데이터 쪽을 가리키며 잡음 수준의 역수로 잣수가 맞춰진다.
+마지막 항은 θ와 무관하지만 일반적으로 0이 아니다. 따라서 DSM의 최소 손실이 양수여도 모순이 아니다. [Vincent의 논문](https://doi.org/10.1162/NECO_a_00142)은 디노이징과 스코어 매칭의 연결을 다룬다.
 
----
+σ→0에서 평활화 밀도가 원본으로 접근한다는 사실만으로 **전체 DSM 손실값이 유한한 원본 스코어 매칭 손실로 수렴한다**고 말할 수는 없다. 위 상수는 σ에 의존하고 발산할 수 있다. 스코어의 수렴에도 매끄러움·적분 조건이 필요하며 특이한 원본 분포에는 일반적인 데이터 스코어가 없을 수도 있다.
 
-## 4. 디노이징 스코어 매칭의 목표
+## 3. 여러 노이즈 수준과 가중치
 
-**정리(Vincent, 2011).** 흔든 분포 $q_\sigma$의 가장 좋은 스코어 네트워크는 다음을 가장 작게 하여 찾는다.
+여러 양의 σi를 조건으로 주면 다음과 같은 목적을 구성할 수 있다.
 
-$$\mathcal{L}_{\text{DSM}}(\theta) = \frac{1}{2} \, \mathbb{E}_{\mathbf{x} \sim p_{\text{data}}} \, \mathbb{E}_{\tilde{\mathbf{x}} \sim q(\cdot | \mathbf{x})} \!\left[\|\mathbf{s}_\theta(\tilde{\mathbf{x}}) - \nabla_{\tilde{\mathbf{x}}} \log q(\tilde{\mathbf{x}} | \mathbf{x})\|^2\right]$$
+$$L(\theta)=\sum_i\lambda_i\mathbb E\left\|s_\theta(x_0+\sigma_i\epsilon,\sigma_i)+\frac\epsilon{\sigma_i}\right\|^2$$
 
-아는 목표를 넣으면:
+가중치 λi는 양수로 선택하고 수준을 뽑는 확률과 함께 해석한다. σ² 가중치는 목표 −ε/σ의 배율을 상쇄하는 다음 관계를 갖는다.
 
-$$\boxed{\mathcal{L}_{\text{DSM}}(\theta) = \frac{1}{2} \, \mathbb{E}_{\mathbf{x}, \boldsymbol{\epsilon}} \!\left[\left\|\mathbf{s}_\theta(\mathbf{x} + \sigma\boldsymbol{\epsilon}) + \frac{\boldsymbol{\epsilon}}{\sigma}\right\|^2\right]}$$
+$$\sigma^2\left\|s_\theta+\frac\epsilon\sigma\right\|^2
+=\|\sigma s_\theta+\epsilon\|^2$$
 
-학습이 되돌아 기대기 문제가 된다. 곧 잡음 섞인 표본마다 음의 잡음 방향을 헤아린다.
+이를 노이즈 예측으로 바꾸려면 εθ=−σsθ로 정의한다. 이 대수적 관계가 실제 파라미터 기울기의 크기나 학습 난이도를 모든 수준에서 같게 만든다는 뜻은 아니다. 데이터 스케일·조건 입력·모델 표현력도 영향을 준다.
 
----
+등비 σ 목록은 흔한 선택이지만 σmin=0.01이나 데이터의 최대 쌍별 거리를 σmax로 쓰는 규칙은 보편적인 최적값이 아니다. 이상값, 차원과 전처리에 민감하고 전체 쌍별 거리 계산도 비싸다. 학습 범위와 샘플링 초기분포·최종 노이즈를 함께 정한다.
 
-## 5. 드러난 스코어 매칭과 같음
+## 4. DDPM과 연결할 때 좌표를 구분한다
 
-디노이징 스코어 매칭과 드러난 스코어 매칭의 목표는 $\theta$에 매이지 않는 상수만큼만 다르다.
+DDPM 관측은 $x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\epsilon$이다. **xₜ 좌표**에서는 조건부 노이즈 표준편차가 √(1−ᾱt)이므로 다음과 같다.
 
-$$\mathcal{L}_{\text{DSM}}(\theta) = \mathcal{L}_{\text{ESM}}(\theta;\, q_\sigma) + C_\sigma$$
+$$s_{x_t}(x_t,t)=-\frac{\epsilon_\theta(x_t,t)}{\sqrt{1-\bar\alpha_t}}$$
 
-밝힘은 $\mathbf{s}_\theta$과 $\nabla_{\tilde{\mathbf{x}}} \log q_\sigma(\tilde{\mathbf{x}})$ 사이의 피셔 벌어짐을 펼친 뒤 온 기댓값 법칙으로 가장자리 점수 $\nabla \log q_\sigma$을 조건부 점수 $\nabla \log q(\tilde{\mathbf{x}} | \mathbf{x})$으로 바꾸어 나아간다. 드러난 스코어 매칭에서 $\mathbf{s}_{\text{data}}$을 없애는 어긋 항이 여기서는 아는 조건부 점수로 바뀌어 부분 적분 없이 같은 효과를 낸다.
+반면 $u_t=x_t/\sqrt{\bar\alpha_t}$로 재스케일하면 $u_t=x_0+\tau_t\epsilon$이고 $\tau_t=\sqrt{(1-\bar\alpha_t)/\bar\alpha_t}$다. 이때 스코어는 좌표 변환에 따라 달라진다.
 
-$\sigma \to 0$이면 흔든 분포가 데이터 분포로 모이므로 $\lim_{\sigma \to 0} \mathcal{L}_{\text{DSM}} = \mathcal{L}_{\text{ESM}} + C$이다. 따라서 $\sigma$이 작은 디노이징 스코어 매칭은 야코비를 전혀 셈하지 않고 드러난 스코어 매칭을 어림한다.
+$$s_{u_t}(u_t,t)=\sqrt{\bar\alpha_t}\,s_{x_t}(\sqrt{\bar\alpha_t}u_t,t)
+=-\frac{\epsilon_\theta}{\tau_t}$$
 
----
+τ를 쓰면서 xₜ 좌표의 스코어 배율을 그대로 사용하는 것은 맞지 않는다. 단순 노이즈 MSE는 가중 DSM과 연결되지만 전체 변분 우도 목적과 항상 같은 수치·가중치를 갖지는 않는다. [DDPM 논문](https://arxiv.org/abs/2006.11239)의 전이와 목적 정의를 함께 확인한다.
 
-## 6. 여러 잣수의 디노이징 스코어 매칭
+## 5. 다른 노이즈 커널
 
-### 잣수 하나의 한계
+라플라스 커널은 관측과 원본이 다른 위치에서 목표 스코어 −sign(x̃−x₀)/b를 갖는다. 일치점에서는 로그 밀도가 미분 가능하지 않아 별도 관례가 필요하다. 등방 D차원 t 커널의 스케일 행렬을 σ²I라 정의하면 목표는 다음과 같다.
 
-잡음 수준 $\sigma$ 하나는 편향과 덮기의 트레이드오프를 낳는다. $\sigma$이 작으면 데이터 가까이의 자잘한 세부를 담지만 밀도 낮은 자리를 잘 덮지 못한다. $\sigma$이 크면 공간을 채우지만 데이터 구조를 무너뜨린다.
+$$-\frac{(\nu+D)(\widetilde x-x_0)}{\nu\sigma^2+\|\widetilde x-x_0\|^2}$$
 
-### 노이즈 조건부 스코어 신경망(NCSN)
+t분포의 σ²I는 일반적으로 공분산과 다르며 ν>2일 때 공분산은 ν/(ν−2)배다. 커널을 바꾸면 회귀 목표·주변 분포와 생성 절차도 달라진다. 꼬리가 무거우면 임의 데이터에서 더 좋은 생성이나 강건성이 보장된다고 단정하지 않는다.
 
-풀이는 잡음 수준 범위 $\{\sigma_i\}_{i=1}^L$에 걸쳐 점수를 한꺼번에 배우는 것이다.
-
-$$\mathcal{L}_{\text{NCSN}}(\theta) = \sum_{i=1}^L \lambda(\sigma_i) \, \mathbb{E}_{\mathbf{x}, \boldsymbol{\epsilon}} \!\left[\left\|\mathbf{s}_\theta(\mathbf{x} + \sigma_i \boldsymbol{\epsilon},\, \sigma_i) + \frac{\boldsymbol{\epsilon}}{\sigma_i}\right\|^2\right]$$
-
-스코어 네트워크 $\mathbf{s}_\theta(\cdot, \sigma)$은 잡음 수준을 조건으로 삼으므로 $\sigma$으로 어깨수를 매긴 점수 무리를 배운다. $\sigma$이 크면 온마당 구조를 주고 작으면 자잘한 세부를 담는다. 뽑는 동안(식힘 랑주뱅 동역학) 잡음 수준을 차츰 낮춘다.
-
-### 노이즈 스케줄
-
-여느 고르기는 **등비 차례표**이다.
-
-$$\sigma_i = \sigma_{\min} \left(\frac{\sigma_{\max}}{\sigma_{\min}}\right)^{(i-1)/(L-1)}, \quad i = 1, \ldots, L$$
-
-흔한 값: $\sigma_{\max} \approx$ 데이터의 짝마다 최대 거리, $\sigma_{\min} \approx 0.01$, $L \in [10, 1000]$.
-
----
-
-## 7. 무게 매기기 방책
-
-$\lambda(\sigma)$을 어떻게 고르느냐가 학습 움직임에 영향을 준다.
-
-| 무게 | 공식 | 까닭 |
-|-----------|---------|-----------|
-| 고르게 | $\lambda = 1$ | 기초. 잡음 낮은 잣수가 기울기를 도맡는다 |
-| $\sigma^2$ | $\lambda = \sigma^2$ | 잣수에 걸쳐 기울기 크기를 고르게 한다(NCSN 기본값) |
-| 신호 대 잡음비 | $\lambda = 1/(1 + \sigma^2)$ | 자잘한 세부를 위해 잡음 낮은 자리를 무겁게 본다 |
-
-### 시그마 제곱 무게가 통하는 까닭
-
-점수 크기가 $\|\mathbf{s}\| \sim 1/\sigma$으로 커지므로 잣수 $\sigma$에서 무게 없는 손실은 $O(1/\sigma^2)$이다. $\sigma^2$을 곱하면 몫이 고르게 맞춰진다.
-
-$$\sigma^2 \left\|\mathbf{s}_\theta + \frac{\boldsymbol{\epsilon}}{\sigma}\right\|^2 = \|\sigma \, \mathbf{s}_\theta + \boldsymbol{\epsilon}\|^2$$
-
-이는 잡음 $\boldsymbol{\epsilon}$을 곧바로 헤아리는 것과 같으며 바로 DDPM의 학습 목표이다.
-
----
-
-## 8. 확산 모델과의 이음
-
-### 디노이징 스코어 매칭이 곧 DDPM 학습이다
-
-DDPM의 목표는 다음과 같다.
-
-$$\mathcal{L}_{\text{DDPM}}(t) = \mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\!\left[\|\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) - \boldsymbol{\epsilon}\|^2\right]$$
-
-여기서 $\mathbf{x}_t = \sqrt{\bar{\alpha}_t}\,\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t}\,\boldsymbol{\epsilon}$이다. 다음 대응 아래 이는 바로 $\sigma^2$ 무게를 준 디노이징 스코어 매칭이다.
-
-| DDPM | 디노이징 스코어 매칭 |
-|------|-----|
-| 잡음 헤아리개 $\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)$ | $\mathbf{s}_\theta = -\boldsymbol{\epsilon}_\theta / \sqrt{1 - \bar{\alpha}_t}$ |
-| 앞 과정 $\mathbf{x}_t$ | 잡음 섞인 표본 $\tilde{\mathbf{x}} = \mathbf{x} + \sigma_t \boldsymbol{\epsilon}$ |
-| 노이즈 스케줄 $\bar{\alpha}_t$ | $\sigma_t = \sqrt{(1 - \bar{\alpha}_t) / \bar{\alpha}_t}$ |
-
-세 틀, 곧 디노이징 스코어 매칭과 DDPM과 스코어 기반 확률 미분 방정식은 모두 같은 수학의 것을 그린다.
-
----
-
-## 9. 다른 노이즈 커널
-
-정규 잡음이 여느 것이지만 다른 알맹이도 쓸모 있을 수 있다.
-
-**라플라스 커널** $q(\tilde{\mathbf{x}} | \mathbf{x}) = \text{Laplace}(\tilde{\mathbf{x}} | \mathbf{x}, b)$: 목표 점수는 $-\text{sign}(\tilde{\mathbf{x}} - \mathbf{x})/b$이다. 꼬리가 두꺼운 데이터에 쓸모 있다.
-
-**스튜던트 $t$ 알맹이** $q(\tilde{\mathbf{x}} | \mathbf{x}) = t_\nu(\tilde{\mathbf{x}} | \mathbf{x}, \sigma^2)$: 목표 점수는 $-(\nu + D)(\tilde{\mathbf{x}} - \mathbf{x}) / (\nu\sigma^2 + \|\tilde{\mathbf{x}} - \mathbf{x}\|^2)$이다. 동떨어진 값에 튼튼하다.
-
----
-
-## 10. PyTorch 구현
-
-### 기본 디노이징 스코어 매칭 손실
+## 6. 기본 손실 함수의 인터페이스
 
 ```python
 import torch
@@ -167,9 +103,7 @@ def dsm_loss(score_net: nn.Module, x: torch.Tensor,
     return 0.5 * ((score - target)**2).sum(dim=-1).mean()
 ```
 
-### 에너지 기반 디노이징 스코어 매칭 손실
-
-모델을 곧바로 스코어 네트워크로 두지 않고 에너지 함수 $E_\theta(\mathbf{x})$으로 매개변수화할 때:
+첫 함수는 N×d 입력과 단일 인수 score_net을 가정하며 좌표 합·표본 평균에 1/2을 곱한다. 이미지에 쓰면 sum(dim=−1)은 너비만 합산하므로 이미지 전체 제곱 노름과 같지 않다. 입력 축을 명시해 집계해야 한다.
 
 ```python
 def dsm_loss_energy(energy_net: nn.Module, x: torch.Tensor,
@@ -198,7 +132,9 @@ def dsm_loss_energy(energy_net: nn.Module, x: torch.Tensor,
     return ((score - target)**2).sum(dim=1).mean()
 ```
 
-### 여러 잣수의 디노이징 스코어 매칭(NCSN 꼴)
+에너지 형태의 함수는 energy.sum의 입력 기울기를 **양의 부호**로 사용한다. 이는 log 비정규화 밀도 E, 즉 p∝exp(E)라는 관례다. 보통 p∝exp(−E)의 에너지 관례를 쓰면 부호가 반대다. 표본별 스칼라 출력을 전제로 하고 create_graph=True로 파라미터 미분을 유지한다. 따라서 직접 벡터 스코어 DSM과 달리 에너지에 대한 입력 미분과 혼합 미분 비용이 있다. 이 함수에는 1/2 배율도 없다.
+
+## 7. 다중 수준과 연속 σ 구현
 
 ```python
 def multi_scale_dsm_loss(
@@ -233,7 +169,7 @@ def multi_scale_dsm_loss(
     return loss
 ```
 
-### 효율 좋은 아무 시그마 학습
+각 수준을 모두 평가해 손실을 합산한다. 기본 가중치는 σ²를 합이 1이 되도록 정규화한다. 사용자 가중치와 σ 목록 길이가 다르면 zip이 짧은 쪽에 맞춰 잘라 버리므로 길이·양수·유한성 검사가 필요하다. 아래 ScoreNet처럼 두 인수를 받는 조건 모델과 연결한다. 단일 인수인 첫 함수에 이 모델을 바로 전달하면 호출 계약이 맞지 않는다.
 
 ```python
 def dsm_loss_random_sigma(
@@ -260,7 +196,7 @@ def dsm_loss_random_sigma(
     return 0.5 * (sigma**2 * (score - target)**2).sum(dim=-1).mean()
 ```
 
-### 잡음 조건을 갖춘 스코어 네트워크
+이 함수는 log σ를 균등하게 뽑으므로 σ 자체의 균등 선택이 아니다. σ는 N×1이고 좌표별 오차도 N×d여서 여기서는 가중치가 **좌표 합산 전** 올바르게 브로드캐스팅된다. 입력은 표 형태 N×d를 가정하며 σmin>0, σmax≥σmin이 필요하다. 이미지에는 별도의 축 확장이 필요하다.
 
 ```python
 class ScoreNet(nn.Module):
@@ -281,7 +217,7 @@ class ScoreNet(nn.Module):
         return self.net(inp)
 ```
 
-### 학습 되풀이
+조건은 log(σ)/4이며 σ는 N×1이어야 한다. 단일 스칼라를 자동 복제하지 않고 x와 조건의 dtype·device도 호출자가 맞춰야 한다.
 
 ```python
 import numpy as np
@@ -308,36 +244,59 @@ def train_dsm(data: torch.Tensor, n_epochs: int = 5000,
     return model
 ```
 
----
-
-## 11. 잡음 수준 고르기 길잡이
-
-1. 먼저 데이터를 평균 0, 분산 1으로 **고르게 맞춘다**.
-2. **잣수 하나의 디노이징 스코어 매칭:** 고르게 맞춘 데이터에서 $\sigma \approx 0.5$, 또는 가장 가까운 이웃 거리 가운데값의 $0.5$배.
-3. **여러 잣수의 디노이징 스코어 매칭:** $\sigma_{\min} = 0.01$에서 $\sigma_{\max} \approx \max_{i,j} \|\mathbf{x}_i - \mathbf{x}_j\|$까지의 등비 차례표.
-
----
+학습 함수는 각 반복에 무작위 순열의 앞 batch_size개를 사용해 **미니배치 하나만** 갱신한다. 따라서 n_epochs는 전체 데이터 순회 수가 아니라 갱신 횟수다. 모델은 CPU에 생성하며 외부 데이터를 자동 이동시키지 않는다. 검증·체크포인트·샘플링 실험은 포함하지 않는다.
 
 ## 연습문제
 
-1. **라플라스 커널 목표.** $q(\tilde{x}|x) = \frac{1}{2b}e^{-|\tilde{x}-x|/b}$에서 $\nabla_{\tilde{x}} \log q = -\text{sign}(\tilde{x} - x)/b$을 이끌어 내라.
+<div class="drillbox" markdown>
 
-2. **여러 잡음 실험.** 2차원 스위스 롤에서 $\sigma \in \{0.1, 0.3, 0.5, 1.0\}$ 하나씩으로 모델을 익혀라. 배운 점수 마당을 그리고 랑주뱅 동역학으로 표본 품질을 비교하여라.
+**연습문제 1.** <span class="diff med" title="중간"></span>
+DSM의 회귀 최적점이 개별 조건부 목표와 어떻게 다른지 설명하라.
 
-3. **무게 연구.** 여러 잣수의 디노이징 스코어 매칭에서 고른 무게와 $\sigma^2$ 무게를 비교하여라. 모인 뒤 잣수마다 손실을 재라.
+</div>
 
-4. **DDPM과 같음.** $\mathcal{L}_{\text{DDPM}}$에서 시작해 같은 뜻의 디노이징 스코어 매칭 적기를 이끌어 내라. $\bar{\alpha}_t$과 $\sigma_t$의 대응을 보여라.
+??? success "연습문제 1 풀이"
+    개별 목표는 −ε/σ이고 최적 출력은 관측 x̃가 주어졌을 때의 목표 조건부 평균이다. 이것이 노이즈 주변 밀도의 스코어다. 같은 관측에 가능한 원본이 여럿이면 목표의 조건부 분산이 남아 최소 손실도 양수일 수 있다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 2.** <span class="diff hard" title="어려움"></span>
+σ→0에서 DSM 손실값 전체가 원본 스코어 매칭 손실로 수렴한다고 말할 수 있는가?
+
+</div>
+
+??? success "연습문제 2 풀이"
+    일반적으로 없다. DSM과 주변 스코어 오차의 차이는 θ에 무관하지만 σ에 의존하는 조건부 분산 항이다. 매끄러운 원본에서도 목표의 제곱 노름은 D/σ² 규모여서 그 상수가 발산할 수 있다. 원본이 특이하면 원래 스코어의 존재부터 검토해야 한다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff med" title="중간"></span>
+연속 σ 손실에서 N×1 가중치와 N×d 오차를 곱한 뒤 좌표를 합하면 어떤 값을 얻는가?
+
+</div>
+
+??? success "연습문제 3 풀이"
+    같은 표본의 가중치가 그 표본의 d개 좌표에 곱해진 뒤 좌표를 합산하므로 표본별 가중 제곱 노름이 된다. 좌표를 먼저 합해 길이 N으로 만든 뒤 N×1을 곱하면 N×N 외적이 되어 다른 계산이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
+DDPM의 xₜ와 재스케일한 uₜ=xₜ/√ᾱₜ에서 노이즈 크기와 스코어 배율을 비교하라.
+
+</div>
+
+??? success "연습문제 4 풀이"
+    xₜ의 조건부 노이즈 표준편차는 √(1−ᾱₜ)이고 스코어는 −εθ/√(1−ᾱₜ)다. uₜ에서는 τₜ=√((1−ᾱₜ)/ᾱₜ)이고 스코어는 −εθ/τₜ, 즉 xₜ 스코어의 √ᾱₜ배다. 동일한 노이즈 예측이라도 미분 좌표에 따라 스코어의 배율이 달라진다.
 
 ## 정리하며
 
-| 항목 | 설명 |
-|--------|-------------|
-| **목표** | $\frac{1}{2}\mathbb{E}[\|\mathbf{s}_\theta(\tilde{\mathbf{x}}) + \boldsymbol{\epsilon}/\sigma\|^2]$ |
-| **목표 값** | $-\boldsymbol{\epsilon}/\sigma$(음의 잡음 방향) |
-| **비용** | 순방향 + 뒤먹임 한 번(헤세 없음) |
-| **같음** | $\sigma \to 0$이면 $\mathcal{L}_{\text{DSM}} \to \mathcal{L}_{\text{ESM}}$ |
-| **여러 잣수** | NCSN: 여러 $\sigma$ 수준의 점수를 배운다 |
-| **확산과의 이음** | DDPM 학습 = $\sigma^2$ 무게를 준 디노이징 스코어 매칭 |
+DSM은 조건부 노이즈 스코어의 회귀로 평활화된 주변 스코어를 학습한다. θ에 무관한 상수의 σ 의존성, 손실 집계 축과 에너지 부호를 명시한다. DDPM과 연결할 때는 노이즈 배율뿐 아니라 좌표 재스케일과 시간별 가중치를 구분한다.
 
 **참고 문헌**
 

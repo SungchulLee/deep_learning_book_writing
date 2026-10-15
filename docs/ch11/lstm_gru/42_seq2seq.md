@@ -1,8 +1,6 @@
 # Seq2Seq
 
-Seq2Seq는 2014년 논문 "Sequence to Sequence Learning with Neural Networks"에서 나왔다. 시퀀스 변환을 위한 인코더-디코더 구조이다.
-
-시퀀스 모델은 시간적이고 순서가 있는 데이터를 다루는 데 기초가 된다. 이 구현은 순환 신경망의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
+입력 토큰열을 LSTM 인코더의 최종 상태로 요약하고, 그 상태를 LSTM 디코더에 전달하는 기본 Seq2Seq 예제다. 본문 실행부는 모델의 매개변수 수만 출력하며 번역 데이터 학습이나 자유 생성은 수행하지 않는다.
 
 ## 1. 코드
 
@@ -72,68 +70,66 @@ Parameters: 2,874,344
 
 ## 2. 논의
 
-이 구현은 클래스 세 개(`Encoder`, `Decoder`, `Seq2Seq`)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
+Encoder의 input_size는 연속 특징 수가 아니라 입력 어휘 크기다. 정수 ID 형태 $(B,S)$를 임베딩한 뒤 인코더의 은닉·셀 상태를 반환한다. 인코더와 디코더는 같은 층수와 은닉 차원을 사용하므로 상태를 직접 전달할 수 있다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 시퀀스 모델 과제에 대한 실용적인 직관이 쌓인다.
+Decoder는 전달된 타깃 토큰열 전체를 입력받고 각 위치의 로짓을 계산한다. 학습 시 정답을 그대로 같은 위치의 입력과 타깃으로 쓰면 답을 미리 보게 되므로, 시작 토큰을 포함한 이전 토큰열을 입력으로 쓰고 한 칸 이동한 다음 토큰을 정답으로 만들어야 한다. 이 정렬은 현재 forward가 자동으로 수행하지 않는다.
+
+패딩과 실제 길이, 종료 토큰, 손실·옵티마이저와 검증 분할은 구현되어 있지 않다. 자유 생성에는 시작 토큰에서 시작해 예측 토큰을 다음 입력으로 전달하는 별도 루프가 필요하다. 현재 호출은 타깃 길이에 따른 로짓을 반환할 뿐 생성 전략을 구현한 것이 아니다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 초기화를 쓴 `Encoder`의 학습 가능한 매개변수 총수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 세어라.
+입력 어휘 V, 은닉 크기 h, 층수 L인 Encoder의 매개변수 수를 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    임베딩은 Vh개다. 모든 순환층의 입력·은닉 크기가 h이고 기본 두 편향을 사용하므로 층마다 $4h(2h+2)$개다. 총 $Vh+L\,4h(2h+2)$개이며 디코더와 출력층은 제외한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력이 기대하는 모양과 자료형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
+src와 trg의 형태·자료형, 디코더 정답의 정렬을 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    src는 $(B,S)$, trg 입력은 $(B,T)$의 long ID이며 각각 어휘 범위에 있어야 한다. 디코더 입력은 이전 정답 토큰, 손실의 타깃은 그 다음 토큰으로 정렬한다. 출력 로짓은 $(B,T,V_{out})$이고 패딩 위치는 손실에서 제외한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-은닉 크기가 $h$이고 입력 크기가 $x$로 같을 때 LSTM 셀과 GRU 셀의 매개변수 개수를 비교하라. 어느 쪽이 더 적으며 그 이유는 무엇인가?
+본문의 Seq2Seq forward만으로 새로운 번역을 생성할 수 있는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    LSTM에는 4개의 게이트(입력, 망각, 셀, 출력)가 있고 각 게이트가 입력과 은닉 상태 양쪽에 대한 가중치 행렬을 가지므로 $4 \times (x \cdot h + h \cdot h + h) = 4(xh + h^2 + h)$개의 매개변수를 갖는다. GRU에는 3개의 게이트(재설정, 갱신, 새 상태)가 있어 $3 \times (x \cdot h + h \cdot h + h) = 3(xh + h^2 + h)$개이다. GRU는 게이트를 4개 대신 3개 쓰고 셀 상태와 은닉 상태를 합치므로 LSTM의 75%에 해당하는 매개변수를 갖는다. 실무에서 GRU는 매개변수가 적은데도 LSTM에 견줄 만한 성능을 내는 경우가 많다.
+    새로운 타깃을 스스로 선택하는 루프가 없으므로 충분하지 않다. 인코더 상태와 시작 토큰에서 시작해 단계별 로짓을 선택하고 상태·토큰을 갱신해야 한다. 종료 토큰과 최대 길이도 정해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 수를 설정할 수 있도록 `Encoder`을 확장하라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 훑는다. (보통의 파이썬 리스트가 아니라) `nn.ModuleList`을 써야 PyTorch가 최적화를 위해 모든 매개변수를 등록한다. `for n in [2, 4, 8]: model = Encoder(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — Seq2Seq
-
-이 구현은 클래스 세 개(`Encoder`, `Decoder`, `Seq2Seq`)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다.
-
-핵심 클래스는 `Encoder`, `Decoder`, `Seq2Seq`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+기본 Seq2Seq는 인코더 상태를 디코더로 전달한다. 학습 입력의 한 칸 이동과 패딩 제외는 외부에서 맞춰야 하며, 현재 코드에는 학습과 자유 생성 루프가 없다.

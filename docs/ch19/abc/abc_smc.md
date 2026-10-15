@@ -1,52 +1,22 @@
 # ABC-SMC(순차 몬테카를로)
-ABC-SMC는 어림 베이즈 계산과 잇단 몬테카를로 방법을 합쳐, 너그러움을 알아서 고르고 복잡한 사후확률에서 효율적으로 표집하게 한다. 이 마당은 그 알고리즘과 여러 판, 그리고 실전 구현 길잡이를 보인다.
 
----
+ABC-SMC는 점차 작은 허용오차의 ABC 목표를 입자 집단으로 근사한다. 이전 집단을 제안에 활용하되 올바른 중요도 가중을 사용해야 하며, 적응 일정이나 많은 입자가 정확한 원사후를 자동으로 보장하지는 않는다.
 
 ## 1. 왜 필요한가
 
-### 앞선 방법의 한계
+넓은 사전의 비효율과 단일 체인의 국소 정체를 줄이기 위해 여러 입자를 유지하고 이전 단계로 제안을 구성한다. 허용오차는 미리 정하거나 관측한 거리로 적응할 수 있다.
 
-**ABC 물리치기**:
-
-- 사전확률에서 표집한다(비효율적이다)
-- 너그러움이 붙박이다(고르기 어렵다)
-- 알아서 맞추지 않는다
-
-**ABC-MCMC**:
-
-- 사후확률이 좁게 몰려 있으면 물리치기보다 낫다
-- 그러나 국소 봉우리에 갇힐 수 있다
-- 여전히 $\epsilon$을 미리 골라야 한다
-
-### SMC이라는 풀이
-
-ABC-SMC는 다음으로 이 문제를 다룬다:
-
-- 알갱이를 사전확률에서 사후확률로 되풀이해 옮긴다
-- 너그러움을 큰 값(쉬움)에서 작은 값(정확)으로 알아서 맞춘다
-- 다시 표집하기와 돌연변이로 여러 갈래를 지킨다
-- 자연스럽게 병렬로 돌릴 수 있게 한다
-
----
+입자가 많다고 모든 모드를 유지하는 것은 아니고 재표집·국소 제안이 다양성을 잃을 수 있다. 최종 목표는 선택한 요약·거리·양의 ε의 ABC 사후이며 원자료 사후와의 차이는 별도다.
 
 ## 2. ABC-SMC 알고리즘
 
-### 훑어보기
+초기 집단은 prior 기반 ABC 거절로 생성하고 동일 가중치를 준다. 이후에는 조상을 이전 가중치로 고르고 K_t(θ|조상)로 이동한 뒤 새 시뮬레이션이 현재 ε_t를 만족하면 채택한다.
 
-ABC-SMC는 다음을 겨냥하는 알갱이 무리의 늘어놓음을 만든다:
+전체 주변 제안은 q_t(θ)=∑_j w_j^{t−1}K_t(θ|θ_j^{t−1})다. 채택한 입자는 단순한 π_t 표본이 아니므로 다음 중요도 가중을 사용한다.
 
-$$
-\pi_1(\theta) \to \pi_2(\theta) \to \cdots \to \pi_T(\theta) \approx p(\theta | \mathbf{y})
-$$
+$$\widetilde w_i^{(t)}=p(\theta_i^{(t)})/q_t(\theta_i^{(t)}),\qquad w_i=\widetilde w_i/\sum_k\widetilde w_k.$$
 
-여기서 $\pi_t$마다 너그러움이 $\epsilon_1 > \epsilon_2 > \cdots > \epsilon_T$으로 줄어드는 ABC 사후확률이다.
-
-### 알고리즘 진술
-
-**입력**: 사전확률 $p(\theta)$, 흉내내기 장치 $p(\mathbf{x}|\theta)$, 관측 데이터 $\mathbf{y}$, 간추린 통계량 $S(\cdot)$, 거리 $\rho$, 너그러움 일정 $\{\epsilon_1, \ldots, \epsilon_T\}$, 알갱이의 개수 $N$
-
-**날 것**: 사후확률을 어림하는 무게 준 알갱이 $\{(\theta_i^{(T)}, w_i^{(T)})\}_{i=1}^N$
+아래 의사코드는 이 모집단형 ABC 중요도 방식이다. 다른 ABC-SMC의 이동·재표집 구성에는 그 방식에 맞는 가중 유도가 필요하다.
 
 ```
 # 세대 t = 1: 앞확률에서 표집
@@ -84,11 +54,13 @@ for t = 2 to T:
 return {(θᵢ⁽ᵀ⁾, wᵢ⁽ᵀ⁾)}
 ```
 
----
-
 ## 3. 구현
 
-### 온전한 파이썬 구현
+ABCSMC 클래스는 run(epsilon_schedule)과 초기·다음 집단 생성 메서드를 제공한다. n_particles는 양수이고 매개변수는 배열, 공분산은 유효한 양의 정부호를 가정한다. 거절 루프에 최대 시도 상한이 없어 작은 ε·불가능한 관측에서 끝나지 않을 수 있다.
+
+run_adaptive는 클래스 밖의 독립 함수로 제시되어 ABCSMC에 바인딩되지 않는다. 뒤의 sampler.run_adaptive 호출은 현재 클래스만으로 지원되지 않으며 epsilon_init=None일 때 호출하는 calibrate_initial_epsilon도 정의되지 않았다. 이 조각을 완결된 적응 샘플러로 볼 수 없다.
+
+적응 함수의 분위수는 비가중 거리 기준이다. 이는 일정 선택의 휴리스틱이며 가중 목표의 정확한 분위수가 아니다. 목표 ε에 닿기 전에 정체·최대 세대로 중단할 수 있으므로 실제 마지막 ε를 확인해야 한다. 밀도 분모의 직접 pdf 합에는 언더플로·오버플로가 가능하다.
 
 ```python
 import numpy as np
@@ -238,11 +210,6 @@ class ABCSMC:
         
         return particles, weights, history
 ```
-
-### 너그러움 알아서 고르기
-
-너그러움을 미리 못 박는 대신 알갱이의 거리에 기대어 알아서 맞춘다:
-
 ```python
 def run_adaptive(self, epsilon_init, epsilon_final, alpha=0.5, 
                  max_generations=20, verbose=True):
@@ -298,77 +265,19 @@ def run_adaptive(self, epsilon_init, epsilon_final, alpha=0.5,
     return particles, weights, history
 ```
 
----
-
 ## 4. 이론적 성질
 
-### 과녁 분포
+ABC 목표 π_t(θ)∝p(θ)A_t(θ)다. 그러나 시뮬레이션 조건을 통과한 제안의 분포는 q_t(θ)A_t(θ)에 비례한다. 따라서 두 분포의 비에서 A_t가 소거되어 가중치 p/q_t를 얻는다. 채택 전 q_t에 π_t/q_t를 쓰다가 A_t를 이유 없이 지우는 유도가 아니다.
 
-세대 $t$에서 ABC-SMC는 다음을 겨냥한다:
+가중치 ESS=1/∑w_i²는 [1,N]의 집중도 지표다. 재표집하면 N으로 돌아가도 복제 입자가 독립 정보를 늘리는 것은 아니다. 입자 근사·적응·가중 정밀도의 조건을 따로 검토한다.
 
-$$
-\pi_t(\theta) \propto p(\theta) \cdot P(\rho(S(\mathbf{X}), S(\mathbf{y})) < \epsilon_t | \theta)
-$$
+ε→0의 한계는 정칙성 아래 p(θ|S(y))이며 충분성 등이 있어야 원자료 사후와 같다. 고정 집단 크기의 유한 단계에서는 시뮬레이션·적응·정보 손실 오차가 모두 남는다. [정확한 중요도 유도의 모집단 ABC 논문](https://arxiv.org/abs/0805.2256)을 참고한다.
 
-$\epsilon_t \to 0$이면:
+## 5. 섭동 커널과 공분산
 
-$$
-\pi_t(\theta) \to p(\theta | \mathbf{y})
-$$
+가우스 섭동 커널의 2×가중 공분산은 실용적인 선택이지 모든 목표의 기대 시뮬레이션 수를 최소화하는 보편적 정리가 아니다. 4/(d+2)×공분산을 모든 ABC의 최적 커널이라고 제시하지 않는다. 목표·기준과 허용오차에 따라 적절한 커널이 달라진다.
 
-### 무게 유도
-
-세대 $t$의 중요도 무게는 다음과 같다:
-
-$$
-w_i^{(t)} \propto \frac{\pi_t(\theta_i^{(t)})}{\sum_{j=1}^N w_j^{(t-1)} K_t(\theta_i^{(t)} | \theta_j^{(t-1)})}
-$$
-
-$\alpha_t$이 ABC 받아들임 확률일 때 $\pi_t(\theta) \propto p(\theta) \cdot \alpha_t(\theta)$이므로:
-
-$$
-w_i^{(t)} \propto \frac{p(\theta_i^{(t)})}{\sum_{j=1}^N w_j^{(t-1)} K_t(\theta_i^{(t)} | \theta_j^{(t-1)})}
-$$
-
-(ABC 받아들임은 샘플링 안에 속뜻으로 들어 있다.)
-
-### 유효 표본 크기
-
-무게 주저앉음을 알아내려고 ESS을 지켜본다:
-
-$$
-\text{ESS} = \frac{1}{\sum_{i=1}^N (w_i^{(t)})^2}
-$$
-
-ESS이 너무 낮아지면 다시 표집해 무게를 고르게 되돌린다.
-
----
-
-## 5. 흔들기 알맹이
-
-### 가우스 알맹이(표준)
-
-$$
-K(\theta' | \theta) = \mathcal{N}(\theta' | \theta, \Sigma_t)
-$$
-
-**공분산 고르기**:
-
-- $\Sigma_t = 2 \times \text{Cov}(\{\theta_i^{(t-1)}\})$(무게 실은 표본 공분산의 두 배)
-- 가장 좋은 선형 오그라들기 어림자
-- 성분마다: $\Sigma_t = \text{diag}(\sigma_1^2, \ldots, \sigma_d^2)$
-
-### 가장 좋은 흔들기
-
-가장 좋은 흔들기 알맹이는 기대 흉내내기 횟수를 가장 작게 한다. 가우스 과녁에서는:
-
-$$
-K^*(\theta' | \theta) = \mathcal{N}\left(\theta' \big| \theta, \frac{4}{(d+2)} \text{Cov}(\pi_t)\right)
-$$
-
-### 국소 선형 회귀 알맹이
-
-알맹이를 그 자리의 기하에 맞춘다:
+local_kernel은 가까운 k개 입자의 공분산을 계산할 뿐 국소 선형 회귀를 하지 않는다. k·거리 스케일·정규화와 양의 정부호를 확인한다. 조상마다 다른 공분산을 쓰면 가중치 분모의 전체 혼합밀도에도 각 조상별 커널을 반영해야 한다.
 
 ```python
 def local_kernel(theta, particles, weights, k=50):
@@ -383,13 +292,11 @@ def local_kernel(theta, particles, weights, k=50):
     return 2 * np.cov(local_particles.T, aweights=local_weights)
 ```
 
----
+## 6. 조상 선택과 재표집
 
-## 6. 다시 표집하기 전략
+현재 ABCSMC는 매 제안마다 가중 조상을 뽑지만 ESS 임계값의 별도 maybe_resample을 run에서 호출하지 않는다. 추가 재표집을 한다면 이후 가중·이동 단계의 명세를 일관되게 구성해야 한다.
 
-### 언제 다시 표집하나
-
-ESS이 문턱값(이를테면 $N/2$) 아래로 떨어지면 다시 표집한다:
+아래 systematic_resample은 하나의 균등 난수로 누적 가중치 격자를 만든다. 가중치가 비음수·정규화되어 있고 끝 누적합의 반올림 경계를 처리해야 한다. 체계적 재표집이 모든 함수·입자 순서에서 다항 재표집보다 분산이 작다는 일반적인 순위는 없다. 재표집 변동·입자 중복·계보 다양성을 함께 본다.
 
 ```python
 def maybe_resample(particles, weights, threshold_ratio=0.5):
@@ -415,53 +322,15 @@ def systematic_resample(weights):
     return indices
 ```
 
-### 다시 표집하기 방식
-
-| 방식 | 분산 | 복잡도 |
-|--------|----------|------------|
-| 다항 | 더 크다 | O(N) |
-| 체계적 | 더 작다 | O(N) |
-| 잔차 | 더 작다 | O(N) |
-| 층 나눔 | 더 작다 | O(N) |
-
-분산이 작아 보통 체계적 다시 표집하기를 더 낫게 여긴다.
-
----
-
 ## 7. 실용적인 고려
 
-### 알갱이의 개수 고르기
+입자 수는 원하는 함수 정밀도와 전체 시뮬레이션 예산으로 정한다. N=1000~10000이라는 범위만으로 충분성을 보장하지 않는다. ε 일정·채택률·유효한 입자 수·모드 유지·실제 마지막 ε와 총 시도 수를 함께 기록한다.
 
-**어림 규칙**: $N = 1000$에서 $10000$
+단계별 가중치 분모를 N개 혼합밀도로 계산하면 집단마다 O(N²)의 커널 평가가 필요하다. 이 비용은 시뮬레이터 자체 비용과 별개다. 병렬 조각은 채택한 입자·거리만 반환하고 중요도 가중치를 계산하지 않으므로 전체 가중 ABC-SMC를 대체하지 않는다. 작업자 난수·직렬화와 종료 상한도 확인한다.
 
-**주고받음**:
-
-- 알갱이가 많다 → 어림이 낫고 계산이 늘어난다
-- 알갱이가 적다 → 빠르지만 분산이 크다
-
-### 너그러움 일정
-
-**붙박이 일정**:
 ```python
 epsilon_schedule = [2.0, 1.5, 1.0, 0.7, 0.5, 0.3, 0.2, 0.1]
 ```
-
-**알아서 맞추기**(권함):
-
-- $\epsilon_t$을 이제 거리의 분위수(예: 중앙값)로 둔다
-- 문제의 어려움에 저절로 맞춘다
-
-### 멈추는 기준
-
-1. **과녁 봐주는 값에 닿음**: $\epsilon_t \leq \epsilon_{target}$
-2. **봐주는 값이 멈춤**: $\epsilon_t \approx \epsilon_{t-1}$
-3. **최대 세대**: 안전 한도
-4. **계산 예산**: 최대 흉내내기 횟수
-
-### 병렬로 돌리기
-
-ABC-SMC는 세대 안에서 자연스럽게 병렬로 돈다:
-
 ```python
 from multiprocessing import Pool
 
@@ -504,13 +373,11 @@ def sample_population_parallel(prev_particles, prev_weights, epsilon,
     return particles, distances
 ```
 
----
-
 ## 8. 변형
 
-### 회귀 조정을 곁들인 ABC-SMC
+회귀 조정은 입자를 θ_adj=θ−m(S_sim)+m(S_obs)로 이동해 유한 ε 효과를 줄이려는 근사다. 아래 코드는 같은 비가중 회귀를 입자마다 다시 적합하며 ABC 가중·국소 커널을 반영하지 않는다. 조정값이 사전 지지집합 밖으로 갈 수도 있어 정확 사후 보정이라고 읽지 않는다.
 
-알갱이를 회귀 조정으로 뒤처리한다:
+multi_distance는 성분별 가중 절댓값의 합으로 하나의 거리를 정의한다. 가중치의 부호·스케일과 정보 의미를 명시한다. Population Monte Carlo와 SMC의 이름만으로 일정·조정이 필요 없어지지 않으며 실제 사용한 제안과 가중식으로 방법을 구분한다.
 
 ```python
 def regression_adjustment(particles, summaries, s_obs):
@@ -529,24 +396,19 @@ def regression_adjustment(particles, summaries, s_obs):
     
     return np.array(adjusted)
 ```
-
-### 여러 거리를 쓰는 ABC-SMC
-
-간추림마다 다른 거리를 쓴다:
-
 ```python
 def multi_distance(s1, s2, weights):
     """성분별 거리를 무게 두어 합친 것."""
     return np.sum(weights * np.abs(s1 - s2))
 ```
 
-### 모집단 몬테카를로 ABC
-
-일정이 필요 없는 판으로, 모든 것을 굴러가는 도중에 알아서 맞춘다.
-
----
-
 ## 9. 보기: 생태 모델
+
+Lotka–Volterra 조각은 연속시간 반응 과정의 정확 시뮬레이션이 아니라 결정적 Euler 변화에 가우스 잡음을 더하고 음수를 0으로 자르는 장난감 모형이다. 잡음 계수에 √dt가 없으므로 dt를 바꿀 때 같은 SDE를 근사하는 표준 Euler–Maruyama 식이라고 볼 수 없다.
+
+prior_sampler는 유한 직사각형 범위의 균등분포를 생성하지만 prior_logpdf는 양의 직교영역 전체에서 0을 반환한다. 지지집합이 일치하지 않고 후자는 전체 양의 영역에서 proper한 균등밀도가 아니다. 초기·후속 세대가 같은 사전 목표를 따른다는 정당화가 없다. 또한 run_adaptive는 클래스 메서드로 정의되지 않아 마지막 호출은 현재 조각 그대로 동작하지 않는다.
+
+관측은 같은 장난감 시뮬레이터에서 생성한 합성 자료다. 평균·표준편차·상관은 일반적으로 충분 요약이 아니며 상수·소멸 경로에서 상관 NaN도 확인해야 한다. 실제 생태 자료의 검증 결과로 소개하지 않는다.
 
 ```python
 # 로트카-볼테라 잡이-먹이 모형
@@ -603,52 +465,31 @@ particles, weights, history = sampler.run_adaptive(
 )
 ```
 
----
-
 ## 10. 비교
 
-| 방법 | 효율 | 알아서 맞추기 | 병렬성 | 복잡도 |
-|--------|------------|------------|-------------|------------|
-| ABC 물리치기 | 낮음 | 없음 | 높음 | 단순 |
-| ABC-MCMC | 보통 | 없음 | 낮음 | 보통 |
-| ABC-SMC | 높음 | 높음 | 높음 | 복잡 |
+ABC 거절은 독립 채택·단순성을, ABC-MCMC는 국소 제안·상관 체인을, ABC-SMC는 집단 제안과 가중·단계 비용을 갖는다. 어느 방식이 항상 가장 효율적인지는 정해져 있지 않다.
 
-복잡한 문제에서는 대체로 ABC-SMC가 가장 효율적이지만 구현에 품이 더 든다.
-
----
+같은 요약·거리·최종 ε와 관심량을 사용하고 총 시뮬레이션·커널 평가·워밍업 또는 pilot·병렬 비용을 맞춰 비교한다. 적응과 입자 수만으로 원사후의 정확성을 보장하지 않는다.
 
 ## 연습문제
 
-1. **구현.** 정규 모델에 ABC-SMC를 구현하여라. 물리치기 및 MCMC와 효율을 비교하여라.
+1. 채택 후 중요도 가중에 A_ε가 왜 없는가? 채택 제안 자체가 q_t A_ε에 비례해 목표 p A_ε와의 비에서 소거되기 때문이다.
 
-2. **알아서 맞추기와 붙박이 일정.** 너그러움을 알아서 고르는 것과 붙박이 등비 일정을 비교하여라. 어느 쪽이 더 효율적인가?
+2. 새 입자를 비가중으로 평균해도 되는가? 후속 집단은 일반적으로 중요도 가중이 필요하며 p/q_t를 정규화한 평균을 사용한다.
 
-3. **알갱이 개수에 대한 민감함.** 알갱이가 $N = 100, 500, 1000, 5000$개일 때 결과가 어떻게 바뀌는지 살펴라.
+3. local_kernel은 회귀인가? 가까운 입자의 공분산 계산이며 회귀를 수행하지 않는다. 조상별 커널 변화는 분모에도 반영해야 한다.
 
-4. **알맹이 비교.** 공분산 어림자를 달리한 가우스 알맹이를 비교하여라.
+4. 생태 예제의 사전 두 인터페이스는 일치하는가? 유한 상자 샘플러와 전체 양의 영역 로그값이 다르므로 일치하지 않는다.
 
-5. **생태 추론.** 로트카-볼테라 모델로 실제 생태 데이터셋에 ABC-SMC를 써라.
-
----
+5. sampler.run_adaptive 호출이 지원되는가? 독립 함수로 정의되어 클래스에 바인딩되지 않았으므로 현재 클래스에는 없다. 출력·실행을 가정하기 전에 실제 인터페이스를 확인해야 한다.
 
 ## 정리하며
 
-| 항목 | 설명 |
-|--------|-------------|
-| **알고리즘** | ABC을 쓴 순차 중요도 샘플링 |
-| **알아서 맞추기** | 세대를 거치며 너그러움이 줄어든다 |
-| **효율** | 물리치기/MCMC보다 높다 |
-| **병렬로 돌리기** | 세대 안에서 자연스럽다 |
-| **날 것** | 사후확률을 어림하는 무게 준 알갱이 |
-| **핵심 맞추기** | 알갱이의 개수, 너그러움 일정/알아서 맞추기 |
-
-ABC-SMC는 고전 ABC 방법 가운데 가장 앞선 것으로, 흉내내기 기반 모델에 효율적이고 알아서 맞추는 추론을 준다.
-
----
+ABC-SMC에서는 채택을 포함한 제안분포에서 정확한 중요도 가중을 유도해야 한다. 요약·허용오차의 근사와 입자 오차를 구분하고 사전의 일관성, 실제 적응 메서드와 재표집·병렬 조각의 범위를 확인한다.
 
 **참고 문헌**
 
 1. Sisson, S. A., Fan, Y., & Tanaka, M. M. (2007). "Sequential Monte Carlo Without Likelihoods." *PNAS*.
 2. Beaumont, M. A., Cornuet, J.-M., Marin, J.-M., & Robert, C. P. (2009). "Adaptive Approximate Bayesian Computation." *Biometrika*.
 3. Del Moral, P., Doucet, A., & Jasra, A. (2012). "An Adaptive Sequential Monte Carlo Method for Approximate Bayesian Computation." *Statistics and Computing*.
-4. Toni, T., Welch, D., Strelkowa, N., Ipsen, A., & Stumpf, M. P. (2009). "Approximate Bayesian Computation Scheme for Parameter Inference and Model Selection in Dynamical Systems." *JRSS-B*.
+4. Toni, T., Welch, D., Strelkowa, N., Ipsen, A., & Stumpf, M. P. (2009). "Approximate Bayesian Computation Scheme for Parameter Inference and Model Selection in Dynamical Systems." *Journal of the Royal Society Interface*, 6, 187–202.

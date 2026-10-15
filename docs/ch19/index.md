@@ -1,87 +1,80 @@
 # 20장: 샘플링과 추론
-이 장은 샘플링에 기댄 추론 방법의 이론과 실전을 다룬다. 기초가 되는 마르코프 사슬 이론에서 시작해 몬테카를로 적분, MCMC 알고리즘, 랑주뱅 동역학, 우도 없는 추론까지 나아간다. 이 방법들은 해석으로 풀 수 없을 때 베이즈 추론을 계산으로 굴리는 장치를 주며, 매개변수가 많은 복잡한 모델에서도 사후확률을 어림할 수 있게 한다.
 
----
+이 장은 해석적 적분·직접 생성이 어려운 분포의 기댓값과 사후 요약을 계산하는 방법을 다룬다. 마르코프 사슬의 불변성과 수렴 조건에서 출발해 몬테카를로 적분·중요도 샘플링·MCMC와 시뮬레이션 기반 추론을 연결한다. 최적화·고정 목표 샘플링·학습한 생성모형의 목적을 구분하고 실제 코드의 계산 범위와 유한 실행 오차를 함께 살핀다.
 
 ## 1. 마르코프 사슬
 
-- [기초](markov_chains/fundamentals.md) — 핵심 정의, 마르코프 성질, 전이 행렬, 여러 걸음 동역학
-- [정상분포](markov_chains/stationary.md) — 긴 눈으로 본 평형 분포와, 마르코프 사슬 이론을 MCMC에 잇는 그 중심 몫
-- [에르고드성](markov_chains/ergodicity.md) — 상태 갈래 나누기, 쪼갤 수 없음, 주기 없음, 되돌아옴, 그리고 MCMC가 맞음을 보장하는 모임
-- [은닉 마르코프 모델(HMM)](markov_chains/hmm.md) — 관측 모델을 갖춘 숨은 마르코프 사슬로, 사슬 이론과 통계 추론을 잇는다
+- [기초](markov_chains/fundamentals.md): 전이 커널·여러 단계 분포와 시간 평균
+- [정상분포](markov_chains/stationary.md): 불변성·유일성과 수렴의 차이
+- [에르고드성](markov_chains/ergodicity.md): 접근성·재귀성·주기와 혼합 진단
+- [은닉 마르코프 모형](markov_chains/hmm.md): 필터링·스무딩·최적 상태 경로
 
----
+유한 상태의 정리를 일반 상태에 그대로 확장하지 않고, 정상분포의 존재와 초기분포에서의 수렴을 구분한다.
 
-## 2. 몬테카를로 방법
+## 2. 몬테카를로 적분과 중요도 샘플링
 
-- [몬테카를로 적분](monte_carlo/integration.md) — 무작위 샘플링으로 감당하기 어려운 적분을 어림하기, 분산 줄이기 기법과 함께
-- [유효 표본 크기](monte_carlo/ess.md) — 무게 준 표본이나 얽힌 표본의 정보량을 재는 근본 진단
-- 물리치기 샘플링 — 위에서 눌러 주는 제안 분포로 과녁 분포의 샘플 생성
+- [몬테카를로 적분](monte_carlo/integration.md): 적률 조건·표준오차·분산 감소
+- [ESS의 두 의미](monte_carlo/ess.md): 가중치 집중도와 함수별 자기상관 진단
+- [중요도 샘플링 기초](monte_carlo/importance_sampling/fundamentals.md): 표준 IS와 지지집합·분산 조건
+- [자기정규화 IS](monte_carlo/importance_sampling/self_normalized.md): 미지 상수를 소거하는 비율 추정
+- [가중치 ESS](monte_carlo/importance_sampling/ess.md): 집중도 지표와 함수별 오차의 한계
+- [제안분포 설계](monte_carlo/importance_sampling/proposal_design.md): 관심 적분·모드·꼬리와 적응
+- [연습 예제](monte_carlo/exercises.md): 추정량·사전 변경·희귀 사건 비교
 
-### 중요도 샘플링
+표준 IS의 불편성과 SNIS의 일반적인 유한 표본 편향을 구분한다. 관측한 ESS가 높아도 미탐색 영역이나 특정 함수의 정확도가 보장되는 것은 아니다.
 
-- [기초](monte_carlo/importance_sampling/fundamentals.md) — 다른 분포에서 샘플링하고 중요도 무게를 주어 어떤 분포 아래의 기댓값 계산
-- [중요도 샘플링의 유효 표본 크기](monte_carlo/importance_sampling/ess.md) — 무게 준 중요도 표본이 과녁 분포의 독립 표본 몇 개에 맞먹는지 재기
-- [자기정규화 중요도 샘플링](monte_carlo/importance_sampling/self_normalized.md) — 분자와 분모를 함께 어림해 고르게 하지 않은 과녁 밀도 다루기
-- [제안 분포 설계](monte_carlo/importance_sampling/proposal_design.md) — 좋은 제안을 짜는 원칙과 전략, 가장 좋은 제안 유도까지
+## 3. MCMC와 HMC
 
----
+- [메트로폴리스-헤이스팅스](mcmc/metropolis_hastings.md): 정·역 흐름비와 미지 정규화 상수
+- [깁스 샘플링](mcmc/gibbs_sampling.md): 완전조건부 생성·블록·스캔과 상관
+- [MCMC 진단](mcmc/diagnostics.md): 여러 체인·R-hat·함수별 ESS·MCSE
+- [HMC 개요](mcmc/hmc/overview.md): 확장 목표와 에너지 차이 보정
+- [해밀턴 동역학](mcmc/hmc/hamiltonian_dynamics.md): 정확 흐름의 보존 구조
+- [위상 공간](mcmc/hmc/phase_space.md): 위치·운동량·에너지 면과 측도
+- [HMC 알고리즘](mcmc/hmc/algorithm.md): 실제 갱신과 구현 범위
+- [Leapfrog](mcmc/hmc/leapfrog_integrator.md): 대칭 분할·안정성과 수치 오차
+- [질량 행렬](mcmc/hmc/mass_matrix.md): 스케일·주파수와 행렬 관례
+- [기하학적 해석](mcmc/hmc/geometric_interpretation.md): 심플렉틱 구조·계량·곡률의 구분
+- [NUTS](mcmc/nuts.md): 유턴과 목표를 보존하는 트리·후보 선택
 
-## 3. MCMC 방법
+수락 규칙의 목표 불변성은 유한 실행의 수렴 증명과 다르다. 스텝·질량·워밍업·모드 탐색과 관심 요약의 수치 오차를 함께 확인한다.
 
-- [메트로폴리스-헤이스팅스](mcmc/metropolis_hastings.md) — 고르게 하는 상수까지만 아는 분포에서 표집하는 기초 MCMC 알고리즘
-- [깁스 샘플링](mcmc/gibbs_sampling.md) — 온전한 조건부 분포를 써서 받아들임 확률이 늘 1인 메트로폴리스-헤이스팅스의 특별한 경우
-- [MCMC 진단](mcmc/diagnostics.md) — 끝이 있는 MCMC 결과에서 모임, 섞임의 질, 사후확률 간추림의 미더움 살피기
-- [NUTS](mcmc/nuts.md) — 되돌아섬을 알아채 HMC 자취의 길이를 스스로 맞추는 U턴 없는 샘플러
+## 4. 랑주뱅과 스코어 기반 방법
 
-### 흉내 담금질
+- [랑주뱅 기초](langevin/fundamentals.md): 스코어·확산과 연속 목표의 정상성
+- [ULA와 SGLD](langevin/ula.md): 이산 편향·확률 경사·손실 배율
+- [MALA](langevin/mala.md): 비대칭 가우스 제안의 MH 보정
+- [스코어 매칭과 확산](langevin/score_and_diffusion.md): 노이즈 조건부 회귀·역시간 과정
 
-- [기초](mcmc/simulated_annealing/fundamentals.md) — 볼츠만 분포를 써서 온 세상 최적화를 하는 멈추지 않는 메트로폴리스-헤이스팅스
-- [온도 스케줄](mcmc/simulated_annealing/schedules.md) — 살펴보기와 써먹기의 주고받음을 다스리는 식힘 일정 짜기
-- [온도의 통합적 해석](mcmc/simulated_annealing/temperature_unifying.md) — MCMC의 온도와 소프트맥스, 확산 모델, 강화 학습 사이의 이음
-- [멈추지 않는 MCMC로 본 SA](mcmc/simulated_annealing/sa_as_mcmc.md) — 과녁 분포가 바뀌는, 시간에 따라 달라지는 메트로폴리스-헤이스팅스로 흉내 담금질 이해하기
-- [수렴 이론](mcmc/simulated_annealing/convergence.md) — SA이 언제 왜 온 세상 최적점을 찾는지의 수학 이론, 에너지 벽, 그리고 실전에서의 뜻
-- [Deterministic Annealing EM](mcmc/simulated_annealing/annealed_em.md) — 우도 최적화에서 국소 최적점을 벗어나려고 EM 알고리즘에 온도 쓰기
+온도 거듭제곱·가우스 오염·역확산은 관련된 아이디어지만 일반적으로 같은 목표군이나 전이가 아니다.
 
-### 해밀토니안 몬테카를로
+## 5. 시뮬레이티드 어닐링과 온도
 
-- [훑어보기](mcmc/hmc/overview.md) — HMC의 온전한 이론. 곧 랜덤 워크 방법을 크게 앞지르는, 물리가 이끄는 제안
-- [해밀턴 동역학](mcmc/hmc/hamiltonian_dynamics.md) — 라그랑주 역학에서 해밀턴 역학까지의 물리 기초, 심플렉틱 구조, 보존 법칙
-- [위상 공간](mcmc/hmc/phase_space.md) — 정해진 동역학을 가능하게 하는, 자리와 운동량 변수의 넓힌 상태 공간
-- [HMC 알고리즘](mcmc/hmc/algorithm.md) — 운동량 덧붙이기, Leapfrog 적분, 메트로폴리스 바로잡기를 갖춘 온전한 알고리즘
-- [Leapfrog 적분기](mcmc/hmc/leapfrog_integrator.md) — HMC를 위해 부피와 시간 뒤집힘을 지키는 심플렉틱 수치 적분기
-- [질량 행렬](mcmc/hmc/mass_matrix.md) — 운동량이 속도로 어떻게 옮겨지는지 맞추기, 기하로 풀이하기와 어림 전략과 함께
-- [기하로 풀이하기](mcmc/hmc/geometric_interpretation.md) — 미분 기하, 정보 기하, 물리적 직관으로 HMC 이해하기
+- [SA 기초](mcmc/simulated_annealing/fundamentals.md): 볼츠만 목표와 최선 방문 해
+- [시간 비균질 MCMC](mcmc/simulated_annealing/sa_as_mcmc.md): 순간 불변성과 실제 분포
+- [온도 스케줄](mcmc/simulated_annealing/schedules.md): 냉각·재가열과 유한 예산
+- [수렴 이론](mcmc/simulated_annealing/convergence.md): 장벽·로그족·수렴 개념
+- [결정적 어닐링 EM](mcmc/simulated_annealing/annealed_em.md): 엔트로피를 조절한 잠재 배정
+- [온도의 통합적 해석](mcmc/simulated_annealing/temperature_unifying.md): 템퍼링·소프트맥스·엔트로피 목적
 
----
+SA는 최적화를 위한 과정이며 냉각 궤적 전체를 원래 사후의 고정 목표 표본으로 평균하지 않는다. 점근 전역 집중과 실제 유한 예산의 해 품질도 구분한다.
 
-## 4. 랑주뱅 동역학
+## 6. 근사 베이즈 계산과 시뮬레이션 기반 추론
 
-- [기초](langevin/fundamentals.md) — 랑주뱅 확률 미분 방정식으로 MCMC 샘플링과 기울기 기반 최적화를 잇는 이어진 시간 구조
-- [비보정 랑주뱅 알고리즘(ULA)](langevin/ula.md) — 메트로폴리스 바로잡기 없이 잘게 나눈 랑주뱅 동역학으로, 확률 기울기와 잘 맞는다
-- [MALA](langevin/mala.md) — 기울기를 담은 제안과 받아들임-물리침 바로잡기를 합친 메트로폴리스 보정 랑주뱅 알고리즘
-- [스코어 매칭과 확산](langevin/score_and_diffusion.md) — 랑주뱅 동역학, 밀도 어림, 낳는 모델을 하나로 꿰는 개념으로서의 점수 함수
+- [우도 계산 없는 추론](abc/likelihood_free.md): 시뮬레이터·요약·근사의 대상
+- [ABC 거절](abc/rejection_sampling.md): 고정 ABC 목표의 직접 채택 표본
+- [ABC-MCMC](abc/abc_mcmc.md): 보조 시뮬레이션을 포함한 MH
+- [ABC-SMC](abc/abc_smc.md): 입자 제안·허용오차·중요도 가중
 
----
+ABC의 허용오차를 줄이는 것과 요약의 정보 손실을 없애는 것은 다른 문제다. 작은 허용오차의 한계는 일반적으로 요약을 조건으로 한 사후이며 충분성 등의 조건이 있어야 원자료 사후와 연결된다.
 
-## 5. 어림 베이즈 계산
+## 7. 방법 비교와 선택
 
-- [우도 없는 추론](abc/likelihood_free.md) — 우도는 없지만 흉내내기 장치가 있을 때의 흉내 기반 추론 들여오기
-- [ABC 거절 샘플링](abc/rejection_sampling.md) — 간추린 통계량과 너그러움 문턱값을 쓰는 가장 단순한 우도 없는 알고리즘
-- [ABC-MCMC](abc/abc_mcmc.md) — 매개변수 공간을 더 효율적으로 살펴보려고 ABC과 마르코프 사슬 몬테카를로 합치기
-- [ABC-SMC](abc/abc_smc.md) — 너그러움을 알아서 고르고 알갱이로 표집하는 잇단 몬테카를로 ABC
-
----
-
-## 6. MCMC 방법의 비교
-
-- [훑어보기](mcmc_comparison/overview.md) — MH, 깁스, 랑주뱅, HMC를 두루 견주고 실전에서 방법 고르는 길잡이
-- [이론적 비교](mcmc_comparison/theoretical.md) — 모임 속도, 스펙트럼 분석, 가장 좋은 눈금 잡기 이론을 아우르는 엄밀한 비교
-- [차원에 따른 눈금](mcmc_comparison/scaling.md) — 차원이 커질 때 MCMC 방법마다 어떻게 굴러가는지와 효율을 지키는 전략
-- [실전 알고리즘 선택](mcmc_comparison/method_selection.md) — 미분 가능함, 차원, 얽힘 구조, 계산 예산에 기댄 결정 구조
-
----
+- [비교 개요](mcmc_comparison/overview.md): 필요한 구조와 비용·진단
+- [이론적 비교](mcmc_comparison/theoretical.md): 거리·스펙트럼·점근 분산의 구분
+- [차원 스케일링](mcmc_comparison/scaling.md): 반복·평가·적분시간의 단위
+- [실전 알고리즘 선택](mcmc_comparison/method_selection.md): 모형·코드·예산에 맞는 후보
 
 ## 정리하며
 
-이 마당은 마르코프 사슬, 몬테카를로 방법, MCMC 방법, 랑주뱅 동역학을 차례로 짚었다.
+직접 생성·적분 가능성을 먼저 확인하고 필요한 구조를 활용해 방법을 고른다. 목표 근사, 커널 불변성·수렴 조건과 유한 시뮬레이션 오차를 나눠 평가하며, 코드와 출력은 실제 계산의 정의·가정에 맞춰 해석한다.

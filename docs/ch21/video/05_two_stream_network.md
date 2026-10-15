@@ -1,12 +1,10 @@
-# Two-Stream 네트워크
+# Two-Stream 네트워크: RGB와 옵티컬 플로우 결합
 
-영상 이해 — 가운데 수준. 파일 05: Two-Stream 네트워크 — 자리 갈래와 때 갈래 녹여 붙이기
-
-이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 영상 이해를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 학습 전략을 보여 주는 실전 PyTorch 코드이다.
+Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 정보를 서로 다른 가지에서 처리해 결합하는 방식이다. [원 논문](https://arxiv.org/abs/1406.2199)의 아이디어를 바탕으로 이 예제는 ResNet-50 두 가지와 세 로짓 결합 방법을 보여 준다. 원 논문의 구조·학습·흐름 추정을 그대로 재현한 구현은 아니다.
 
 ## 1. 코드
 
-??? note "코드 (541줄)"
+??? note "코드"
 
     ```python
     """
@@ -552,73 +550,97 @@
         main()
     ```
 
+## 2. RGB 가지와 프레임별 예측
 
-## 2. 논의
+`SpatialStream`은 ImageNet 사전 학습 ResNet-50의 분류 층을 제거하고 새 K클래스 head를 붙인다. backbone을 사전 학습했다는 사실과 새 행동 분류 head가 학습되었다는 것은 다르다. 가중치의 RGB 정규화·입력 분포를 맞춰야 하며 `pretrained`는 과거 API 형식이므로 설치 버전과 호환성을 확인한다.
 
-여기 짠 것은 함께 어울려 온전한 영상 이해 구조를 이루는 클래스 3개(`SpatialStream`, `TemporalStream`, `TwoStreamNetwork`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정한다.
+4차원 입력은 B×3×H×W이고, 5차원은 **B×T×3×H×W**다. 프레임별 2048차원 특징에서 로짓을 만든 뒤 시간 평균을 낸다. Conv3d의 B×C×T×H×W와 축 순서가 다르다. 이 평균은 시간 순서에 민감한 모형이 아니므로 프레임을 재배열해도 eval 모드의 결과는 같다. 학습 중 BN·dropout과 같은 확률적·배치 효과는 따로 고려한다.
 
-시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.
+## 3. 흐름 스택과 시간 가지
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
+L개의 연속 프레임 쌍의 수평·수직 flow를 연결하면 B×2L×H×W다. 기본 L=10이면 20채널을 받아야 하며 원본은 적어도 11프레임이 필요하다. `TemporalStream`은 첫 합성곱을 이 채널 수에 맞추고, ResNet 본체도 pretrained=False로 시작한다. RGB와 달리 시간 가지는 사전 학습 가중치를 사용하지 않는다.
+
+`extract_flow_stack`은 BTCHW의 처음 L개 쌍만 사용하고 뒤 프레임은 사용하지 않는다. 각 프레임을 CPU NumPy로 옮겨 Farnebäck를 계산한 뒤 flow를 CPU float32 텐서로 반환한다. 이 과정은 원래 RGB에 대한 미분 가능한 경로가 아니며 GPU 모델에 넣으려면 장치도 맞춰야 한다. 입력이 requires_grad이면 detach 없이 .numpy()를 호출하는 문제도 남는다.
+
+flow 계산 함수는 0~1 RGB 또는 grayscale을 가정해 255를 곱한다. 이미 uint8 0~255이거나 ImageNet 정규화된 값을 넣으면 올바른 영상 변환이 아니다. `cv2` import가 main 실행 조건 안에 있어 모듈을 import한 뒤 함수만 호출하면 별도로 import되지 않은 cv2 때문에 실패할 수 있다. 주 시연에서는 이 흐름 추출 함수 자체를 호출하지 않는다.
+
+## 4. 세 로짓 결합 방식
+
+각 가지는 B×K 로짓을 반환한다. average는 두 로짓의 산술 평균이고, weighted는 α=sigmoid(a)로 αz_RGB+(1−α)z_flow를 만든다. 초기 a=0.5이므로 α는 약0.622이며 정확히 반반이 아니다. learned는 연결한 2K차원을 MLP에 넣는다. 학습 가능한 결합이라고 자동으로 최적의 조합을 찾는 것은 아니다.
+
+로짓 평균 뒤 softmax와 확률을 먼저 구해 평균하는 것은 일반적으로 다르다. 동일 클래스 순서를 공유하고 두 가지의 스케일·학습 상태를 고려해야 한다. 기본 시연의 B=4,K=400에서는 분리·결합 출력이 모두 4×400이며 return_separate=True는 이 세 텐서의 튜플이다.
+
+## 5. 시연 결과와 실제 비용
+
+시연은 무작위 RGB·flow 입력에 새 행동 head의 출력을 계산할 뿐 행동 인식 학습이나 검증을 하지 않는다. 실제 프레임의 flow도 추출하지 않는다. 따라서 top3 값이나 요약 문구의 10~15% 개선을 이 코드의 실험 결과로 인용할 수 없다. 세 fusion 모델도 각각 새로 초기화되어 결합 방식만 통제한 성능 비교가 아니다.
+
+두 가지 backbone과 추가 head·flow 계산 때문에 비용이 늘지만 모든 설정에서 정확히 두 배는 아니다. 시간 가지의 입력 채널과 결합 방식도 매개변수 수를 바꾼다. flow를 미리 저장하면 학습 시 추정 비용을 줄일 수 있으나 저장·전처리·배포 비용은 남는다. RGB·flow 시간 구간과 crop 좌표의 정렬도 필수다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`SpatialStream`의 순방향을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 입력 표본 4개짜리 배치에 대해 주요 연산(합성곱, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+4×3×64×64 RGB가 SpatialStream을 통과할 때 주요 모양을 계산하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+
+    ResNet-50 stem 합성곱 뒤4×64×32×32, 최대 풀링 뒤4×64×16×16, 단계별4×256×16×16·4×512×8×8·4×1024×4×4·4×2048×2×2다. 전역 풀링 후4×2048을 새 선형 head에 넣어 기본4×400 로짓을 얻는다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+B×16×3×H×W에서 flow_length=10의 흐름 스택은 어떤 프레임을 쓰고 어디에 놓이는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 출력에 맞춘다. `model = SpatialStream(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+
+    프레임0→1부터9→10까지10쌍을 계산하므로 뒤5프레임은 사용하지 않는다. 출력은 B×20×H×W의 CPU float32다. RGB 구간과 정렬하고 시간 가지 모델의 장치·입력 범위와 맞춰야 한다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 입출력 차원에서 표준 합성곱과 깊이별 분리 합성곱의 매개변수 개수와 FLOPs를 비교하라. 계산 절감이 가장 큰 것은 언제인가?
+weighted fusion이 처음부터 두 가지를 반씩 반영하는가? 확률 평균과도 같은가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 `Conv2d(C_in, C_out, k)`은 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개의 매개변수를 갖는다. 깊이별 분리 합성곱은 이를 둘로 나눈다. (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나), (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 합성곱)이다. 매개변수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 매개변수가 약 $8{-}9\times$ 적어진다. 절감은 $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크다.
+
+    초기 매개변수가0.5라 sigmoid0.5≈0.622이 RGB 로짓의 가중치다. 로짓 가중 평균 뒤 softmax는 확률 가중 평균과 다르다. 반반 로짓 결합에는 α=0.5에 대응하는 매개변수0이 필요하다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `SpatialStream`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
+아래 ModuleList 확장만으로 Two-Stream의 시간 표현과 학습이 완성되는가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+
+    YourBlock 정의와 각 backbone 채널·stride를 맞추는 것 외에 흐름 스택의 순서·RGB 구간 정렬·입력 정규화·분류 학습이 필요하다. RGB 시간 평균만으로 순서 모델링이 추가되지는 않는다. 무작위 입력의 모양 확인은 행동 인식 평가가 아니다.
+
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = SpatialStream(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
 
 ## 정리하며
 
-**다룬 것** — 영상 이해
-
-여기 짠 것은 함께 어울려 온전한 영상 이해 구조를 이루는 클래스 3개(`SpatialStream`, `TemporalStream`, `TwoStreamNetwork`)를 정한다.
-
-핵심 갈래는 `SpatialStream`, `TemporalStream`, `TwoStreamNetwork`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+Two-Stream은 외형과 흐름을 별도 가지에서 처리한다. BTCHW·2L채널의 계약과 입력 범위·시간 정렬을 맞추고 로짓 결합과 확률 결합을 구분한다. 현재 시연의 무작위 입력과 새 head는 성능 개선을 입증하지 않는다.

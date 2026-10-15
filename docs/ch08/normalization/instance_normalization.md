@@ -1,8 +1,6 @@
 # 인스턴스 정규화
 
-인스턴스 정규화의 구현과 예제. 인스턴스 정규화는 표본마다, 채널마다 독립적으로 정규화한다.
-
-정규화 기법을 이해하는 것은 깊은 신경망을 효과적으로 만들고 학습시키는 데 필수적이다. 이 구현은 그 핵심 개념을 PyTorch로 보여주며, 현대적인 구조의 구성 요소를 직접 다뤄 볼 기회를 준다.
+인스턴스 정규화는 이미지의 표본·채널마다 공간 축의 통계량을 사용한다. NumPy 순전파와 이미지 변환 네트워크를 통해 배치 정규화와의 차이를 살펴본다.
 
 ## 1. 코드
 
@@ -527,68 +525,66 @@
 
 ## 2. 논의
 
-이 구현은 4개의 클래스(`InstanceNorm2dNumPy`, `StyleTransferNetwork`, `ResidualBlock`, `GeneratorWithInstanceNorm`)를 정의하며, 이들이 함께 작동하여 완전한 정규화 기법 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.
+입력이 `(N, C, H, W)`이면 각 `(N, C)` 조합에서 H와 W를 평균낸다. 서로 다른 표본이나 채널의 통계량을 섞지 않고 출력 모양을 유지한다. 이 과정이 표본별 대비 정보의 일부를 제거하므로 과제에 따라 유익하거나 필요한 정보를 잃을 수 있다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 확장된다. 하이퍼파라미터, 구조의 변형, 여러 데이터셋을 두루 실험해 보면 이해가 깊어지고 학습 최적화 과제에 대한 실용적인 직관이 쌓인다.
+NumPy 구현은 기본 affine=True이고 PyTorch InstanceNorm2d의 기본은 affine=False이므로 비교할 때 설정을 맞춘다. PyTorch는 기본적으로 이동 통계량을 추적하지 않아 학습과 평가 모두 현재 표본의 통계를 사용한다.
+
+StyleTransferNetwork와 GeneratorWithInstanceNorm은 별도의 구조 예이다. ResidualBlock은 그 안에서 재사용되지만, NumPy 클래스와 세 모듈을 모두 하나의 파이프라인으로 연결하는 것은 아니다. 스타일 손실이나 GAN의 전체 학습 과정까지 제공하는 예제로 해석하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`InstanceNorm2dNumPy`의 순전파를 따라가며 텐서의 모양을 추적하라. 기본 매개변수로 입력 표본 4개의 배치를 넣었을 때, 주요 연산(합성곱, 풀링, 선형 층)마다 그 뒤의 모양을 적어라.
+입력 `(4, 3, 64, 64)`의 통계량과 출력 모양을 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+    keepdims=True인 평균과 분산은 `(4, 3, 1, 1)`이다. affine=True의 배율·이동은 `(1, 3, 1, 1)`이며 출력은 `(4, 3, 64, 64)`이다. 정규화 자체는 합성곱이나 풀링을 수행하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+RGB 64×64 입력에 NumPy 정규화를 적용하려면 무엇을 지정해야 하는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 번째 합성곱 층의 `in_channels`를 현재 값에서 3으로 바꾼다. 공식 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$을 써서 합성곱 층과 풀링 층마다 공간 차원을 다시 계산한다. 마지막 합성곱/풀링 층의 평탄화된 출력에 맞도록 첫 번째 선형 층의 `in_features`를 고친다. 다음으로 확인한다. `model = InstanceNorm2dNumPy(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`.
+    num_features를 3으로 두고 NCHW NumPy 배열을 forward에 전달한다. PyTorch 텐서나 모델 호출·parameters 인터페이스를 기대하면 안 된다. 스타일 변환 모델은 이미 입력 채널이 3이며 정규화 클래스와 별도 구조이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 입출력 차원에서 표준 합성곱과 깊이별 분리 합성곱의 매개변수 개수와 FLOPs를 비교하라. 계산 절감이 가장 큰 것은 언제인가?
+배치 크기 1에서 BatchNorm2d와 InstanceNorm2d가 같은가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 `Conv2d(C_in, C_out, k)`은 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개의 매개변수를 갖는다. 깊이별 분리 합성곱은 이를 둘로 나눈다. (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나), (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 합성곱)이다. 매개변수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 매개변수가 약 $8{-}9\times$ 적어진다. 절감은 $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크다.
+    학습 중 통계 축은 이 경우 같아질 수 있다. 하지만 기본 affine와 이동 통계량 추적 설정, 평가 시 통계량이 다르므로 일반적으로 같은 연산이라고 할 수 없다. 모든 관련 설정을 맞춰야 수치 비교가 가능하다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 개수를 설정할 수 있도록 `InstanceNorm2dNumPy`를 확장하라. `__init__`에 `num_layers` 매개변수를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 매개변수를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = InstanceNorm2dNumPy(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 인스턴스 정규화
-
-이 구현은 4개의 클래스(`InstanceNorm2dNumPy`, `StyleTransferNetwork`, `ResidualBlock`, `GeneratorWithInstanceNorm`)를 정의하며, 이들이 함께 작동하여 완전한 정규화 기법 구조를 이룬다.
-
-핵심 클래스는 `InstanceNorm2dNumPy`, `StyleTransferNetwork`, `ResidualBlock`, `GeneratorWithInstanceNorm`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+인스턴스 정규화는 표본·채널별 공간 통계량을 사용한다. 기본 설정과 통계 축을 맞춰 비교하고, 정규화로 제거되는 정보가 목표 과제에 필요한지도 살핀다.

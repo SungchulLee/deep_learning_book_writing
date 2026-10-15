@@ -1,10 +1,8 @@
-# FinBERT 감성
+# FinBERT와 금융 텍스트 감성 분류
 
-FinBERT 감성.
+[ProsusAI FinBERT](https://huggingface.co/ProsusAI/finbert)는 금융 텍스트로 추가 사전 학습하고 감성 분류에 맞춘 BERT 기반 모델이다. 이 페이지에는 그 사용 안내와 별도로, 작은 무작위 초기화 트랜스포머를 합성 문장에 학습하는 실제 코드가 들어 있다. 두 모델과 각각의 레이블·평가 범위를 구분해서 읽는다.
 
-자연어 처리는 딥러닝 방식으로 크게 달라졌다. 이 단원은 글 가르기 재주를 보여 주며, 신경망이 글을 어떻게 다루고 만들어 내는지 밝히는 실전 짜기를 준다.
-
-## 1. 코드
+## 1. 코드와 기존 출력
 
 ```python
 """FinBERT 마음결."""
@@ -400,7 +398,7 @@ if __name__ == "__main__":
     pass
 ```
 
-??? note "전체 출력 (163줄)"
+**기존 출력:**
 
     ```
     ============================================================
@@ -567,72 +565,100 @@ if __name__ == "__main__":
 
     Done.
     ```
-## 2. 논의
 
-`SimpleFinancialClassifier` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 계산을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
+## 2. 실제 FinBERT와 안내 문자열
 
-학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.
+첫 부분의 from_pretrained·pipeline과 뒤의 실제 자료 파인튜닝은 print 문자열 안에 있다. 이 파일의 실행 코드가 FinBERT를 다운로드하거나 파인튜닝하지는 않는다. 안내의 예측 확률과 모델 비교 표도 실행해 측정한 결과가 아니다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
+ProsusAI 체크포인트의 레이블은 0=positive, 1=negative, 2=neutral이다. 본문의 합성 이진 분류 레이블은 0=bearish, 1=bullish로 서로 다르다. 미리 감성 레이블로 학습된 모델을 새 자료에 추가 학습 없이 적용하는 것을 이 코드에서 ‘zero-shot’이라고 부르지만, 사전의 감성 지도 학습 자체가 없었다는 뜻은 아니다.
+
+감성은 텍스트의 태도·표현에 대한 분류다. softmax 최댓값이 실제 정답 확률로 보정되어 있거나 주가 상승 확률이라는 보장은 없다. 금융 용어·수치 비교·부정의 이해 정도는 독립 자료에서 확인해야 하며 모든 문맥에서 일반 모델을 능가한다고 단정하지 않는다.
+
+## 3. 실제 학습하는 작은 모델
+
+SimpleFinancialClassifier는 CRC32 해시 단어 ID와 학습 가능한 위치 임베딩, 두 트랜스포머 인코더 층, 마스크 평균과 이진 head를 사용한다. 사전 학습 가중치를 가져오지 않는 모델이며 FinBERT의 축약 체크포인트가 아니다. 해시 충돌로 서로 다른 단어가 같은 ID를 가질 수 있고 문장 길이는 64로 잘린다.
+
+padding_idx=0인 임베딩과 src_key_padding_mask, 평균의 attention_mask는 각각 입력·어텐션·pooling에서 다른 역할을 한다. 위치 ID는 max_len 범위 안이어야 하며 모든 토큰이 padding인 입력은 평균 분모를 clamp하는 것만으로 encoder의 전부 마스킹된 계산까지 안전해지지 않는다.
+
+학습은 AdamW와 클리핑으로 8에포크 수행하도록 작성되어 있다. 출력 손실은 배치 평균을 다시 평균한 값으로 마지막 배치 크기에 따라 전체 표본 가중 평균과 다를 수 있다. 이 편집에서는 해당 학습이나 출력을 다시 실행하지 않았다.
+
+## 4. 중복 문장과 검증의 한계
+
+합성 자료는 긍정 8문장·부정 8문장을 각각 15번 반복한 240개다. 반복 항목을 무작위로 분할하므로 같은 문장이 학습·검증에 걸쳐 들어가는 누출이 생길 수 있다. 높은 정확도가 새로운 기업·표현·시기의 금융 텍스트로 일반화한다는 근거는 아니다.
+
+원문·재게시·유사 문장의 그룹을 분리하고 시간·출처·주석 기준을 고려해 검증·시험 자료를 구성한다. 정확도 외에 유형별 정밀도·재현율·F1과 중립·부정·숫자·복합 감성의 오류를 확인한다. 시기별 평가에는 공개된 당시의 정보만 사용해야 한다.
+
+## 5. 실제 자료로 확장할 때
+
+안내의 3클래스 체크포인트를 num_labels=2로 가져오는 예는 출력 head의 크기 불일치를 자동으로 해결하는 완성 코드가 아니다. 새 head 초기화와 올바른 label2id·id2label이 필요하고 라이브러리 버전의 인터페이스도 맞춰야 한다. 종목별 predict에 원래 데이터프레임을 바로 넘기면 필요한 토큰화 입력이 없으며 학습에 쓴 문장까지 평가에 포함될 수 있다.
+
+출력 표의 TextBlob·VADER·BERT·FinBERT 고정 정확도와 F1은 비교 실험 결과로 취급하지 않는다. 같은 데이터 분할·레이블·전처리·튜닝 예산에서 실제 측정해야 한다. 감성 분류 성능과 거래 성과의 평가는 별개다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-붙박이 첫자리매김일 때 `SimpleFinancialClassifier`의 배울 수 있는 매개변수 전체 개수를 계산하여라. 무게와 편향을 모두 넣어 층별로 나누어 세어라.
+본문 설정의 SimpleFinancialClassifier 매개변수 수를 계산하고 FinBERT와 구분하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+
+    단어 임베딩 5,000×128=640,000개, 위치 임베딩 64×128=8,192개다. encoder 층마다 어텐션 66,048개, FFN 65,920개, 두 LayerNorm 512개로 132,480개이며 두 층은 264,960개다. 분류 head 128×2+2=258개를 더해 총 913,410개다. 무작위 초기화 모델이며 사전 학습한 FinBERT의 매개변수 수가 아니다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-어텐션 가중치 뒤에(값과 곱하기 전에) 드롭아웃 층을 추가하라. 학습 중에는 드롭아웃 비율 0.1을 쓴다. 어텐션 드롭아웃이 정칙화에 도움이 되는 이유를 설명하라.
+반복한 합성 문장을 항목 단위로 무작위 분할하는 검증의 한계를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`이다. 어텐션 드롭아웃은 학습 중에 일부 어텐션 가중치를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에 지나치게 기대지 않게 한다. 이는 모델이 어텐션을 더 고르게 분산시키고 더 견고한 표현을 배우도록 북돋우며, 표준 드롭아웃이 뉴런의 공적응을 막는 것과 비슷하다.
+
+    16개의 고유 문장을 반복한 자료라 동일 문자열이 학습·검증 양쪽에 나타날 수 있다. 모델이 문장을 외운 결과와 새로운 문맥의 일반화를 구분할 수 없다. 원문·유사 문장 그룹을 나누고 새로운 시기·출처의 독립 시험 자료로 평가해야 한다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+FinBERT의 3클래스 레이블과 합성 이진 레이블이 다른 이유 및 head 변경 시 필요한 처리를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+
+    체크포인트는 0=positive, 1=negative, 2=neutral이고 합성 모델은 0=bearish, 1=bullish다. 번호를 그대로 옮기면 의미가 뒤집히거나 중립 처리가 사라진다. 이진 과제로 바꿀 때는 출력 크기·새 head 학습·레이블 매핑과 중립 자료의 포함/제외 정책을 명시해야 한다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `SimpleFinancialClassifier`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
+아래 ModuleList 자리표시자가 모델 깊이를 바꾸는 완성 코드인지 검토하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+
+    YourBlock·dim은 정의되지 않았고 현재 생성자는 num_layers를 받지 않는다. 실제 깊이는 TransformerEncoder 생성의 num_layers=2에 고정되어 있다. 깊이를 인자로 노출하면 연결·초기화·학습 설정과 매개변수 증가를 함께 검토해야 한다. ModuleList는 모듈 등록 도구일 뿐 그 자체로 forward나 파인튜닝을 완성하지 않는다.
+
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = SimpleFinancialClassifier(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
 
 ## 정리하며
 
-**다룬 것** — FinBERT 감성
-
-`SimpleFinancialClassifier` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다.
-
-핵심 갈래는 `SimpleFinancialClassifier`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+FinBERT 사용 안내와 합성 자료의 작은 트랜스포머 학습은 다르다. 레이블·체크포인트 head·중복 누출을 확인하고 같은 조건의 독립 평가로 분류 성능을 판단해야 한다.

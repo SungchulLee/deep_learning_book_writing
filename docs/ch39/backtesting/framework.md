@@ -210,7 +210,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "연습문제 1 풀이"
-    평균-분산 꾀는 몫을 $w^* = \frac{1}{\gamma} \Sigma^{-1} \mu$으로 계산한다. $\mu$은 굴러가는 평균 돌아옴 벡터이고 $\Sigma$은 굴러가는 공분산 행렬이다. 거의 뒤집을 수 없는 자리를 다루려고 $\Sigma$에 $\lambda I$(보기로 $\lambda = 0.01$)을 더해 정칙화한다.
+    평균-분산 꾀는 몫을 $w^* = \frac{1}{\gamma} \Sigma^{-1} \mu$으로 계산한다. $\mu$은 굴러가는 평균 돌아옴 벡터이고 $\Sigma$은 굴러가는 공분산 행렬이다. 거의 뒤집을 수 없는 자리를 다루려고 $\Sigma$에 $\lambda I$(보기로 $\lambda = 0.01$)을 더해 정규화한다.
 
     ```python
     def mean_variance_strategy(prices, weights, step, window=60, gamma=1.0):

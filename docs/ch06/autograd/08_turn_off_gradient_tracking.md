@@ -1,6 +1,6 @@
 # 경사 추적 끄기
 
-이 스크립트는 경사 추적을 끄는 방법을 보여준다. 이 개념들을 이해하는 것은 효과적인 PyTorch 프로그래밍과 딥러닝 모델 개발에 필수적이다.
+잎 텐서의 `requires_grad`를 바꾸어 이후 연산의 기록 여부를 제어한다. 추적할 대상이 없는 손실에 역전파를 요청하면 어떻게 되는지도 살펴본다.
 
 ## 1. 코드
 
@@ -64,9 +64,15 @@ element 0 of tensors does not require grad and does not have a grad_fn
 
 ## 2. 논의
 
-이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.
+### 잎 텐서의 추적 설정 변경
 
-경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.
+예제의 `w`는 직접 만든 잎 텐서다. `w.requires_grad_(False)` 이후 제곱합을 계산하면, 이 연산에는 경사를 요구하는 입력이 없으므로 손실도 경사를 추적하지 않는다. 이 손실의 `.backward()`는 미분할 그래프가 없어 실패한다.
+
+다만 입력 하나의 추적을 껐다고 연산 전체의 기록이 항상 꺼지는 것은 아니다. 다른 입력에 `requires_grad=True`가 설정되어 있으면 그 입력에 대한 미분 경로는 기록될 수 있다. 이미 만들어진 그래프를 소급해서 없애는 기능으로 해석해서도 안 된다.
+
+### 중간 텐서와 파라미터 동결
+
+미분 가능한 연산으로 만들어진 비잎 텐서의 `requires_grad`를 같은 방식으로 끄려고 하면 오류가 날 수 있다. 중간 결과를 분리하려면 `detach()`를 사용한다. 파라미터를 동결할 때는 기존 `.grad`도 점검해야 한다. 이전 경사가 남아 있으면 옵티마이저가 이를 사용해 값을 바꿀 수 있기 때문이다.
 
 ## 연습문제
 
@@ -93,12 +99,12 @@ element 0 of tensors does not require grad and does not have a grad_fn
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-`retain_graph=True` 없이 같은 계산 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+한 파라미터의 `requires_grad`를 끄면 관련 출력도 항상 경사를 추적하지 않는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    기본적으로 PyTorch는 메모리를 아끼기 위해 `.backward()` 후에 계산 그래프를 해제한다. `.backward()`를 두 번째로 호출하면 더 이상 존재하지 않는 그래프를 훑으려 하므로 `RuntimeError`가 발생한다. `retain_graph=True`로 두면 그래프가 메모리에 남아 재사용할 수 있지만, 모든 중간 텐서가 할당된 채로 남으므로 메모리 소비가 늘어난다.
+    아니다. 기록이 켜져 있고 다른 입력이 경사를 요구하면 그 입력에 대한 경로는 기록될 수 있다. 또한 `requires_grad=False`는 이전 `.grad`를 지우지 않으므로 학습 중 파라미터를 동결할 때 남은 경사도 정리해야 한다.
 
 ---
 
@@ -106,7 +112,7 @@ element 0 of tensors does not require grad and does not have a grad_fn
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고 손실을 계산한 뒤, 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하는 코드를 작성하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 
@@ -125,8 +131,4 @@ element 0 of tensors does not require grad and does not have a grad_fn
 
 ## 정리하며
 
-**다룬 것** — 경사 추적 끄기
-
-이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다.
-
-앞의 연습문제 3개로 직접 확인할 수 있다.
+`requires_grad_(False)`는 잎 텐서의 이후 경사 추적을 제어한다. 중간 결과의 분리나 기존 경사의 제거까지 자동으로 수행하는 것은 아니다.

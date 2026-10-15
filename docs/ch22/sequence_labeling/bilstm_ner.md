@@ -1,27 +1,8 @@
-# BiLSTM 개체명 인식
+# BiLSTM을 이용한 개체명 인식
 
----
+양방향 LSTM은 각 토큰에서 왼쪽·오른쪽 문맥을 결합한다. 직함·동사·이름의 다른 부분이 개체의 유형과 경계를 판단하는 단서가 될 수 있지만, 특정 동사 하나가 조직임을 확정하지는 않는다. The New York Times처럼 전체 언급을 판단할 때 내부의 New York만 별도 장소로 태깅할지는 데이터 지침에 달렸다.
 
-## 1. 학습 목표
-
-- 개체명 인식에서 두 방향 맥락이 왜 중요한지 이해한다
-- 양방향 LSTM 기초 시퀀스 레이블링 모델을 짠다
-- 꼴 특징을 위해 글자 수준 임베딩을 넣는다
-- 가장 좋은 성능을 위해 양방향 LSTM과 CRF를 아우른다
-
----
-
-## 2. 개체명 인식에 왜 양방향 LSTM인가?
-
-이름 있는 것을 정확히 알아보려면 **두 방향 맥락**이 필요하다:
-
-- **왼쪽 맥락**: "CEO **Satya Nadella**" — 직함이 사람임을 가리킨다
-- **오른쪽 맥락**: "**Microsoft** announced" — 움직씨가 조직임을 가리킨다
-- **두 방향 모두**: "The **New York** Times" — 마디 전체가 필요하다
-
----
-
-## 3. 구조
+## 1. 문맥 특징과 출력 로짓
 
 ```
 Word: "Apple"  "Inc"  "announced"  "profits"
@@ -38,33 +19,9 @@ Word: "Apple"  "Inc"  "announced"  "profits"
       B-ORG    I-ORG      O           O
 ```
 
----
+방향별 은닉 크기가 d이면 두 방향을 연결한 표현은2d차원이다. LSTM은 은닉·셀 상태를 각각 갱신하므로 h_t=LSTM(x_t,h_{t−1}) 표기는 셀 상태를 생략한 약식이다. 연결 특징을 선형 변환해 K개 태그 로짓을 만든다. 양방향은 뒤 토큰도 사용해 전체 문장 NER에 적합할 수 있지만 미래 입력이 없는 온라인 과제에는 그대로 적용할 수 없다.
 
-## 4. 수학적 정식화
-
-### 앞 방향 LSTM과 뒤 방향 LSTM
-
-**앞 방향 LSTM**은 왼쪽에서 오른쪽으로 다룬다:
-
-$$\overrightarrow{h}_t = \text{LSTM}(x_t, \overrightarrow{h}_{t-1})$$
-
-**뒤 방향 LSTM**은 오른쪽에서 왼쪽으로 다룬다:
-
-$$\overleftarrow{h}_t = \text{LSTM}(x_t, \overleftarrow{h}_{t+1})$$
-
-### 이어 붙인 나타냄
-
-$$h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t] \in \mathbb{R}^{2d}$$
-
-### 내보냄 점수
-
-$$e_t = W_o \cdot h_t + b_o \in \mathbb{R}^{|L|}$$
-
----
-
-## 5. PyTorch 구현
-
-### 기본 양방향 LSTM 개체명 인식
+## 2. 기본 BiLSTMNER
 
 ```python
 import torch
@@ -151,9 +108,13 @@ class BiLSTMNER(nn.Module):
             return torch.argmax(outputs['logits'], dim=-1)
 ```
 
-### 글자 임베딩을 갖춘 양방향 LSTM
+입력은 B×L 토큰 ID와 선택적 attention_mask·labels다. default hidden_dim256이면 방향별128, 연결256차원에서 B×L×K 로짓을 만든다. hidden_dim이 홀수이면 두 방향 합은2 floor(hidden_dim/2)라 선형 입력과 맞지 않는다. 단어 임베딩은 무작위 초기화이며 사전 학습 임베딩을 로드하는 코드가 없다.
 
-글자 수준 특징은 꼴(앞가지, 뒷가지, 대문자 쓰기)을 담아낸다:
+mask가 있으면 유효 길이로 pack한다. 양의 길이·오른쪽 연속 패딩을 가정하며 unpack은 배치의 최대 유효 길이로 줄어들 수 있다. labels가 원래 고정 패딩 길이를 유지하면 펼친 logits와 원소 수가 달라 CE에서 실패할 수 있다. total_length 또는 목표·마스크 정렬 규칙이 필요하다.
+
+손실은−100 레이블만 무시한다. attention_mask만0으로 두고 패딩 labels를O로 채우면 CE에서 자동으로 제외되지 않는다. 모든 레이블이−100일 때 평균의 유효 분모도 고려해야 한다. predict는 no_grad를 쓰지만 eval로 전환하지 않아 호출자가 학습 모드이면 dropout이 남는다. 반환 argmax에는 패딩 위치를 제거하는 별도 절차도 없다.
+
+## 3. 문자 특징을 결합하는 모델
 
 ```python
 class CharLSTM(nn.Module):
@@ -266,7 +227,13 @@ class BiLSTMCharNER(nn.Module):
         return {'loss': loss, 'logits': logits}
 ```
 
-### 양방향 LSTM-CRF
+CharLSTM은 B×L×M 문자 ID를 단어별 시퀀스로 펼쳐 방향별 최종 은닉을 연결한다. 기본 char_hidden_dim50이면 단어마다50차원이고 단어 임베딩100과 합쳐150차원의 입력이 된다. char_hidden_dim도 홀수이면 실제 출력2 floor(H/2)와 선언한 입력 차원이 달라질 수 있다.
+
+문자 길이 packing·mask가 없으므로 짧은 단어의 padding 문자도 LSTM 상태 갱신에 참여한다. embedding의 padding_idx0이 padding을0벡터로 만들어도 recurrent bias·은닉 갱신이 멈추는 것은 아니다. 전부 padding인 단어도 최종 특징이 항상0이 아니다.
+
+BiLSTMCharNER는 attention_mask를 인수로 받지만 실제 단어 LSTM의 packing·특징·손실 마스크에 사용하지 않는다. 단어 embedding에도 padding_idx가 없다. 양방향 문맥이 패딩 길이에 영향을 받을 수 있어 입력 mask가 있다는 사실만으로 패딩 처리가 완성되었다고 설명하면 안 된다. 문자 특징은 접두·접미·철자 패턴을 학습할 수 있지만 규칙을 자동으로 정확히 인식하거나 모든 희귀 개체를 해결하지는 않는다.
+
+## 4. BiLSTMCRF의 학습·디코딩 구분
 
 ```python
 class BiLSTMCRF(nn.Module):
@@ -399,100 +366,78 @@ class BiLSTMCRF(nn.Module):
         return best_tags
 ```
 
----
+이 페이지의 CRF는 정답 점수와 forward 알고리즘에서 모두 `transitions[next,prev]`를 사용한다. 그러나 `_viterbi_decode`는 broadcast 방식으로 `transitions[prev,next]`를 사용해 **학습한 분포와 다른 방향의 점수로 디코딩**한다. [별도 CRF 절](crf.md)의 구현과도 오류 위치가 같지 않으므로 각각의 경로를 확인해야 한다.
 
-## 6. 비교: 양방향 LSTM과 트랜스포머
+이 BiLSTMCRF의 인코더는 attention_mask를 받아도 packing하지 않는다. CRF의 오른쪽 패딩 mask가 태그 점수를 제외해도 BiLSTM의 역방향 상태가 패딩을 읽는 문제를 자동 해결하지는 않는다. CRF는 첫 위치가 유효한 비어 있지 않은 연속 prefix를 가정하고 패딩 tags도 유효 ID가 필요하다. CE용−100은 gather 전에 마스킹되지 않는다.
 
-| 갈래 | 양방향 LSTM | 트랜스포머 |
-|--------|--------|-------------|
-| 필요한 학습 데이터 | 적다 | 많다 |
-| 학습 빠르기 | 더 빠르다 | 더 느리다 |
-| 추론 빠르기 | 더 느리다 | 더 빠르다(배치) |
-| 성능 | 좋다 | 가장 좋다 |
-| 글자 특징 | 더하기 쉽다 | 아래낱말이 다룬다 |
-| 미리 학습의 이점 | GloVe/Word2Vec | BERT/RoBERTa |
+decode는 eval·no_grad를 자체 적용하지 않으며 BIO 강제 제약도 없다. CRF를 붙였다고 항상 올바른 BIO나 더 높은 F1을 보장하지 않는다. 모드·제약·전이 방향·유효 길이를 맞춘 뒤 같은 span 지표로 비교해야 한다.
 
----
+## 5. 다른 모델과 비교하기
 
-## 7. 모범 사례
+BiLSTM과 트랜스포머의 데이터 요구·속도·정확도를 하나의 고정 순위로 정할 수 없다. 사전 학습 규모·모델 크기·시퀀스 길이·장치·배치·토큰화·도메인이 영향을 준다. 무작위 BiLSTM과 대규모 사전 학습 인코더를 비교하면 구조뿐 아니라 사전 학습의 효과도 섞인다.
 
-1. **사전 학습된 단어 임베딩을 쓴다**(GloVe, fastText)
-2. 꼴을 위해 **글자 수준 특징을 더한다**
-3. 구조 있는 어림을 위해 **CRF와 아우른다**
-4. 층 사이에 **떨구기를 쓴다**(0.3~0.5)
-5. **기울기 자르기**(최대 노름 1.0~5.0)
-6. 검증 F1을 보고 **일찍 멈추기**
-
----
+문자 특징·dropout·경사 clipping·CRF·임베딩 초기화는 선택 가능한 설계다. 검증 자료에서 목적에 맞게 선택하고 최고 checkpoint와 독립 평가를 사용한다. 이 페이지는 구조 조각을 제공할 뿐 여러 모델을 학습한 통제 실험 결과를 제공하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-BIO 레이블 방식을 설명하여라. 월 "Barack Obama visited New York City"에 레이블을 어떻게 붙이겠는가?
+hidden_dim=255와 char_hidden_dim=51을 그대로 넣을 때 생길 수 있는 차원 문제를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    BIO 레이블에서 **B-X**는 갈래 X인 것의 시작을, **I-X**는 것의 안쪽(이어짐)을, **O**는 어느 것에도 들지 않는 토막을 나타낸다.
 
-    | 토막 | 레이블 |
-    |-------|-----|
-    | Barack | B-PER |
-    | Obama | I-PER |
-    | visited | O |
-    | New | B-LOC |
-    | York | I-LOC |
-    | City | I-LOC |
+    방향별 바닥 나눗셈 때문에 실제 연결 차원은254와50이다. 그러나 선형 또는 다음 LSTM은255·51로 선언한 값을 기대해 맞지 않을 수 있다. 양방향 연결 차원을 일관되게 정의해야 한다.
 
-    B 레이블은 같은 갈래의 것이 잇달아 나올 때(보기로 "Obama Trump"를 서로 다른 PER 둘로) 가리는 데 꼭 필요하다.
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-시퀀스 레이블링에서 자리마다 따로 소프트맥스로 갈래를 매기는 대신 양방향 LSTM 위에 CRF 층을 얹는 까닭은 무엇인가?
+기본 모델에서 packing 뒤 로짓과 labels의 길이가 다를 수 있는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    자리마다 따로 소프트맥스를 쓰면 레이블을 서로 아랑곳없이 다루어 넘어감의 매임을 버린다. 보기로 O 뒤에 I-PER을 미루어 볼 수 있는데, BIO 이름 붙이기에서는 옳지 않다. CRF 켜는 레이블 이음 전체의 함께 확률을 모델로 삼아, 어떤 레이블 넘어감이 옳은지 담는 넘어감 행렬 $A_{ij}$을 배운다. 이음의 CRF 점수는 $s(x, y) = \sum_t (E_{y_t, t} + A_{y_t, y_{t+1}})$이며 $E$은 양방향 LSTM에서 나온 내보냄 점수다. 이러면 비터비 풀기로 두루 앞뒤가 맞는 추론을 얻는다.
+
+    pad_packed_sequence가 배치의 최대 유효 길이로 반환하지만 labels는 원래 패딩 길이를 유지할 수 있다. CE는 펼친 원소 수가 같아야 하므로 total_length 또는 목표 정렬이 필요하다. −100 손실 마스크와 입력 packing도 서로 다른 기능이다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-것 수준에서의 개체명 인식 평가에 쓰는 정밀도, 재현율, F1 점수를 설명하여라. 것 수준 평가가 토막 수준보다 왜 더 빡빡한가?
+문자 padding_idx=0과 attention_mask 인수가 패딩을 완전히 해결하는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    **개체 수준** 따지기는 개체의 테두리와 갈래가 모두 딱 맞아야 한다. 정밀도 = (옳게 예측한 개체) / (예측한 개체 모두). 재현율 = (옳게 예측한 개체) / (참 개체 모두). $F_1 = 2 \cdot \frac{P \cdot R}{P + R}$이다. 이는 토막 수준보다 깐깐하다. 참 개체가 "New York City"인데 "New York"으로 미루어 보면 토막 수준에서는 반쯤 점수를 받지만(토막 3개 가운데 2개가 맞다) 개체 수준에서는 0점이다(테두리가 어긋난다). 개체 수준의 자가 참 세상의 쓸모를 더 잘 비춘다.
+
+    패딩 0 벡터도 LSTM의 상태 갱신을 멈추지 않고 문자 길이를 pack하지 않는다. 문자 결합 모델은 attention_mask를 사용하지 않아 단어 패딩도 읽는다. 각 단계의 유효 길이·목표 마스크를 실제로 연결해야 한다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-양방향 LSTM은 양쪽 방향의 맥락을 어떻게 담아내는가? 자리 $t$에서의 은닉 상태 계산을 적어라.
+이 페이지의 CRF 학습과 Viterbi의 전이 방향을 비교하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    양방향 LSTM은 $x_1, \ldots, x_T$을 다루는 앞으로 가는 LSTM과 $x_T, \ldots, x_1$을 다루는 뒤로 가는 LSTM으로 이루어진다.
 
-    $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
+    정답·forward는 [next,prev]로 일치하지만 Viterbi는 [prev,next]로 계산한다. 비대칭 전이면 학습한 분포의 최적 경로를 구하지 않는다. 방향을 통일하고 eval·no_grad와 BIO 제약도 필요에 맞게 적용해야 한다.
 
-    자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 단어가 양쪽에서 걸리는 일이 잦으므로 이것이 중요하다.
+
 
 ## 정리하며
 
-양방향 LSTM 모델은 여전히 개체명 인식의 센 기초다:
-
-- 두 방향 맥락을 잘 담아낸다
-- 학습 데이터가 적어도 잘 된다
-- 글자 특징으로 넓히기 쉽다
-- CRF 층이 경계 찾기를 낫게 한다
+BiLSTM은 양방향 문맥을 만들고 문자 특징·CRF와 결합할 수 있다. 그러나 차원·packing·목표 마스크·모드와 전이 방향이 맞아야 의미 있는 모델이 된다. 현재 코드의 패딩·디코딩 한계와 실제 학습·평가 범위를 구분한다.

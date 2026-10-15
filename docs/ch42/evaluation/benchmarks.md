@@ -475,7 +475,7 @@ def full_robustness_evaluation(
 
 ## 정리하며
 
-이 마당은 문제: 기울기 가리기, 오토어택, RobustBench, 두루 갖춘 따짐 절차를 차례로 짚었다.
+이 절에서는 문제: 기울기 가리기, 오토어택, RobustBench, 두루 갖춘 따짐 절차를 살펴보았다.
 
 **살펴볼 거리**
 

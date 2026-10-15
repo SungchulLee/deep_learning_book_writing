@@ -1,4 +1,6 @@
-# 정칙화된 로지스틱 회귀
+# 정규화된 로지스틱 회귀
+
+로지스틱 회귀의 정규화는 계수 크기와 모델 복잡도를 제어한다. 목적함수의 합·평균, 절편의 패널티 여부와 최적화 알고리즘을 맞추어 L1·L2를 해석한다.
 
 ---
 
@@ -6,21 +8,21 @@
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
-- 로지스틱 회귀에 정칙화가 왜 필요한지 이해하기
-- 정칙화된 손실 함수(L2, L1, 엘라스틱 넷)와 그 경사 유도하기
-- 정칙화의 기하학적 해석과 베이즈적 해석 설명하기
+- 로지스틱 회귀에 정규화가 왜 필요한지 이해하기
+- 정규화된 손실 함수(L2, L1, 엘라스틱 넷)와 그 경사 유도하기
+- 정규화의 기하학적 해석과 베이즈적 해석 설명하기
 - PyTorch로 실전에 쓸 수 있는 완전한 로지스틱 회귀 파이프라인 구현하기
-- 정칙화된 로지스틱 회귀를 실제 데이터셋에 적용하고 제대로 평가하기
+- 정규화된 로지스틱 회귀를 실제 데이터셋에 적용하고 제대로 평가하기
 
 ---
 
-## 2. 왜 정칙화하는가?
+## 2. 왜 정규화하는가?
 
 ### 완전 분리 문제
 
 학습 데이터가 **선형 분리 가능**하면 로지스틱 회귀의 최대가능도 추정값이 존재하지 않는다. 모델이 예측을 더 확신에 차게 만들어 언제나 우도를 높일 수 있으므로 최적 매개변수가 $\|\boldsymbol{\beta}\| \to \infty$으로 발산한다.
 
-수학적으로, ($y_i \in \{-1, +1\}$ 부호화를 쓸 때) 모든 $i$에 대해 $y_i(\mathbf{x}_i^\top \boldsymbol{\beta}^*) > 0$인 $\boldsymbol{\beta}^*$이 존재한다면, $c \to \infty$으로 $\boldsymbol{\beta}^* \to c\boldsymbol{\beta}^*$처럼 배율을 키울 때 모든 예측이 확실성 쪽으로 몰리고 로그가능도가 (상한인) 0에 다가가지만 결코 도달하지는 못한다.
+수학적으로, ($y_i \in \{-1, +1\}$ 부호화를 쓸 때) 모든 $i$에 대해 $y_i(\mathbf{x}_i^\top \boldsymbol{\beta}^*) > 0$인 $\boldsymbol{\beta}^*$이 존재한다면, $c \to \infty$으로 $\boldsymbol{\beta}^* \to c\boldsymbol{\beta}^*$처럼 배율을 키울 때 모든 예측이 확실성 쪽으로 몰리고 로그우도가 (상한인) 0에 다가가지만 결코 도달하지는 못한다.
 
 ### 고차원에서의 과적합
 
@@ -30,57 +32,57 @@
 - 특징들이 강하게 상관되어 있을 때 (다중공선성)
 - 모델이 학습 데이터의 잡음을 외울 때
 
-정칙화는 $\|\boldsymbol{\beta}\|$을 제약하여 지나치게 확신에 찬 예측을 막고 일반화를 개선한다.
+정규화는 $\|\boldsymbol{\beta}\|$을 제약하여 지나치게 확신에 찬 예측을 막고 일반화를 개선한다.
 
 ---
 
-## 3. L2 정칙화 (릿지)
+## 3. L2 정규화 (릿지)
 
-### 정칙화된 목적 함수
+### 정규화된 목적 함수
 
-L2 정칙화는 가중치의 L2 노름 제곱에 패널티를 더한다.
+L2 정규화는 가중치의 L2 노름 제곱에 패널티를 더한다.
 
 $$
 \mathcal{L}_{\text{ridge}}(\boldsymbol{\beta}) = -\frac{1}{n}\sum_{i=1}^{n} \left[ y_i \log p_i + (1-y_i) \log(1-p_i) \right] + \frac{\lambda}{2}\|\boldsymbol{\beta}_{1:d}\|_2^2
 $$
 
-여기서 $\lambda > 0$은 정칙화 강도이고 $\boldsymbol{\beta}_{1:d}$은 절편 $\beta_0$을 뺀 것이다(절편에는 보통 패널티를 주지 않는다).
+여기서 $\lambda > 0$은 정규화 강도이고 $\boldsymbol{\beta}_{1:d}$은 절편 $\beta_0$을 뺀 것이다(절편에는 보통 패널티를 주지 않는다).
 
-### L2 정칙화가 있을 때의 경사
+### L2 정규화가 있을 때의 경사
 
 $$
-\nabla_{\boldsymbol{\beta}} \mathcal{L}_{\text{ridge}} = \frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y}) + \lambda \boldsymbol{\beta}
+\nabla_{\boldsymbol{\beta}} \mathcal{L}_{\text{ridge}} = \frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y}) + \lambda D\boldsymbol{\beta}
 $$
 
-(절편 성분에는 $\lambda \beta_0 = 0$이다.) 정칙화 항은 매 경사 단계마다 $\boldsymbol{\beta}$을 0 쪽으로 당기는 힘을 더한다.
+여기서 $D=\operatorname{diag}(0,1,\ldots,1)$이므로 절편에 더하는 패널티 경사는 0이다. 절편 자체가 0이라는 뜻은 아니다. 정규화 항은 매 경사 단계마다 $\boldsymbol{\beta}$을 0 쪽으로 당기는 힘을 더한다.
 
 ### 결정 경계에 미치는 영향
 
-[결정 경계](decision_boundary.md) 절에서 보았듯이 $\|\boldsymbol{\beta}\|$이 확률 전이의 가파름을 조절한다. L2 정칙화는 $\|\boldsymbol{\beta}\|$을 줄여 경계 근처에서 확률이 더 부드럽게 전이하게 만들고, 예측의 확신을 낮추며(확률이 0.5에 더 가까워진다), 실무에서 더 잘 보정된 모델을 낳는다.
+L2는 가중치 크기를 제어해 과도한 확신을 줄이는 데 도움이 될 수 있다. 그러나 파라미터 방향과 절편도 변하므로 모든 확률이 일률적으로 0.5에 가까워지거나 보정이 반드시 개선되는 것은 아니다. 검증 데이터에서 확인한다.
 
 ### 베이즈적 해석
 
-L2 정칙화는 가중치에 **가우스 사전분포**를 주는 것과 같다.
+L2 정규화는 가중치에 **가우스 사전분포**를 주는 것과 같다.
 
 $$
-\boldsymbol{\beta} \sim \mathcal{N}(\mathbf{0}, \sigma_\beta^2 \mathbf{I}), \quad \text{where } \lambda = \frac{1}{\sigma_\beta^2}
+\boldsymbol{\beta} \sim \mathcal{N}(\mathbf{0}, \sigma_\beta^2 \mathbf{I}), \quad \text{where } \lambda = \frac{1}{n\sigma_\beta^2}
 $$
 
-정칙화된 목적 함수는 **최대 사후확률(MAP)** 추정에 대응한다.
+정규화된 목적 함수는 **최대 사후확률(MAP)** 추정에 대응한다.
 
 $$
 \boldsymbol{\beta}_{\text{MAP}} = \arg\max_{\boldsymbol{\beta}} \left[ \log P(\mathcal{D}|\boldsymbol{\beta}) + \log P(\boldsymbol{\beta}) \right]
 $$
 
-$\log P(\boldsymbol{\beta}) = -\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2 + \text{const}$이므로 사후확률을 최대화하는 것은 릿지 패널티를 준 손실을 최소화하는 것과 같다.
+앞의 목적은 평균 BCE이므로 고정 사전분포와 연결할 때 로그 사전 항도 $n$으로 나눈다. 절편을 제외한 가중치 $w$의 로그 사전은 $-\|w\|^2/(2\sigma_\beta^2)+C$이며, 평균 목적의 L2 계수는 $\lambda=1/(n\sigma_\beta^2)$다.
 
 ---
 
-## 4. L1 정칙화 (라쏘)
+## 4. L1 정규화 (라쏘)
 
-### 정칙화된 목적 함수
+### 정규화된 목적 함수
 
-L1 정칙화는 절댓값의 합에 패널티를 준다.
+L1 정규화는 절댓값의 합에 패널티를 준다.
 
 $$
 \mathcal{L}_{\text{lasso}}(\boldsymbol{\beta}) = -\frac{1}{n}\sum_{i=1}^{n} \left[ y_i \log p_i + (1-y_i) \log(1-p_i) \right] + \lambda \|\boldsymbol{\beta}_{1:d}\|_1
@@ -88,19 +90,19 @@ $$
 
 ### 희소성을 유도하는 성질
 
-L2와의 핵심 차이는 L1 정칙화가 **희소한** 해를 낸다는 점이다. 많은 계수가 정확히 0으로 밀려난다. 그래서 L1 정칙화는 일종의 **자동 특징 선택**이 된다.
+L2와의 핵심 차이는 L1 정규화가 **희소한** 해를 낸다는 점이다. 많은 계수가 정확히 0으로 밀려난다. 그래서 L1 정규화는 일종의 **자동 특징 선택**이 된다.
 
 기하학적으로 L1 제약 집합 $\|\boldsymbol{\beta}\|_1 \leq t$은 마름모(교차다포체)이다. 손실 등고선은 좌표 하나 이상이 정확히 0인 꼭짓점에서 이 마름모와 만날 가능성이 더 높다.
 
 ### 베이즈적 해석
 
-L1 정칙화는 가중치에 대한 **라플라스 사전분포**에 대응한다.
+L1 정규화는 가중치에 대한 **라플라스 사전분포**에 대응한다.
 
 $$
 P(\beta_j) = \frac{\lambda}{2}\exp(-\lambda|\beta_j|)
 $$
 
-라플라스 분포의 두꺼운 꼬리는 정말 중요한 특징에 큰 계수를 허용하고, 0에서의 날카로운 봉우리는 희소성을 북돋운다.
+위의 라플라스 밀도에서 $\lambda$는 사전분포의 비율 파라미터다. 이를 평균 BCE에 더한 패널티 계수와 맞추려면 $1/n$ 배율을 고려한다. L1 최적해는 희소성을 가질 수 있지만 단순 SGD·Adam의 유한 반복으로 정확한 0이 보장되는 것은 아니다. 근접 경사법 같은 수치 해법과 허용오차도 구분한다.
 
 ---
 
@@ -128,9 +130,9 @@ $$
 | L1 (라쏘) | 정말 중요한 특징이 적을 때, 특징 선택이 필요할 때 |
 | 엘라스틱 넷 | 상관된 특징이 있으면서 희소성도 필요할 때, 상관된 특징의 무리가 있을 때 |
 
-### 정칙화 요약
+### 정규화 요약
 
-| 정칙화 항 | 패널티 | 사전분포 | 희소성 | 경사 |
+| 정규화 항 | 패널티 | 사전분포 | 희소성 | 경사 |
 |-------------|---------|-------|----------|----------|
 | L2 (릿지) | $\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2$ | 가우스 | 없음 | $\lambda \boldsymbol{\beta}$ |
 | L1 (라쏘) | $\lambda\|\boldsymbol{\beta}\|_1$ | 라플라스 | 있음 | $\lambda \operatorname{sign}(\boldsymbol{\beta})$ |
@@ -752,7 +754,7 @@ print("\n✓ Results visualization saved!")
 | `DataLoader` 사용 | 효율적인 배치 묶기, 뒤섞기, 다중 처리 |
 | 특징 표준화 | 더 빠른 수렴, 특정 특징의 지배 방지 |
 | 층화 분할 | 클래스 분포를 보존한다 |
-| 세 갈래 분할 | 검증 집합에 과적합하는 것을 막는다 |
+| 세 갈래 분할 | 학습·선택·최종 평가의 역할을 분리한다 |
 
 ### 모델 설계
 
@@ -766,9 +768,9 @@ print("\n✓ Results visualization saved!")
 
 | 사례 | 이유 |
 |----------|--------|
-| 조기 종료 | 과적합을 막는다 |
-| L2에는 `weight_decay` | 효율적이며 최적화기에 내장되어 있다 |
-| L1 패널티는 직접 구현 | PyTorch에는 L1 정칙화가 내장되어 있지 않다 |
+| 조기 종료 | 과적합을 줄이는 데 도움이 될 수 있다 |
+| L2에는 `weight_decay` | 효율적이며 옵티마이저에 내장되어 있다 |
+| L1 패널티는 직접 구현 | PyTorch에는 L1 정규화가 내장되어 있지 않다 |
 | 최고 모델 체크포인트 | 최고 성능을 잃지 않는다 |
 
 ### 평가
@@ -786,63 +788,51 @@ print("\n✓ Results visualization saved!")
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-L1 정칙화의 근위 연산자(연성 문턱값 처리)를 유도하고 그것이 왜 희소성을 만드는지 설명하라.
+L1 정규화의 근접 연산자(소프트 임곗값 처리)를 유도하고 그것이 왜 희소성을 만드는지 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    $\lambda\|w\|_1$에 대한 근위 연산자는 다음과 같다.
+    $\lambda\|w\|_1$에 대한 근접 연산자는 다음과 같다.
 
     $$
     \text{prox}_{\lambda\|\cdot\|_1}(v) = \text{sign}(v) \max(|v| - \lambda, 0)
     $$
 
-    이것이 연성 문턱값 처리이다. $|v| \leq \lambda$인 값은 정확히 0이 되고, 더 큰 값은 0 쪽으로 $\lambda$만큼 줄어든다. 연성 문턱값이 작은 계수를 0으로 만드는 "죽은 구간"을 만들기 때문에 L1은 희소성을 낳는다.
+    이것이 소프트 임곗값 처리이다. $|v| \leq \lambda$인 값은 정확히 0이 되고, 더 큰 값은 0 쪽으로 $\lambda$만큼 줄어든다. 소프트 임곗값이 작은 계수를 0으로 만드는 "죽은 구간"을 만들기 때문에 L1은 희소성을 낳는다.
 
-    L2의 근위 연산자는 $\text{prox}_{\lambda\|\cdot\|_2^2}(v) = v/(1+2\lambda)$으로, 계수를 줄이기만 할 뿐 결코 0으로 만들지 않는다. 이것이 L2가 희소성을 만들지 못하는 이유이다.
+    L2의 근접 연산자는 $\text{prox}_{\lambda\|\cdot\|_2^2}(v) = v/(1+2\lambda)$으로, 계수를 줄이기만 할 뿐 결코 0으로 만들지 않는다. 이것이 L2가 희소성을 만들지 못하는 이유이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$\lambda > 0$일 때 정칙화된 헤세 행렬 $\mathbf{H}_{\text{ridge}} = \mathbf{X}^\top\mathbf{B}\mathbf{X} + n\lambda\mathbf{I}$이 언제나 양의 정부호임을 보여라.
+이 문제에서는 절편을 포함한 모든 파라미터에 L2를 적용한다고 하자. 합 BCE에 $n\lambda\|\beta\|^2/2$를 더한 헤세 행렬이 양의 정부호임을 보여라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    $\mathbf{B} = \text{diag}(p_i(1-p_i))$의 대각 성분이 음이 아니므로 $\mathbf{X}^\top\mathbf{B}\mathbf{X}$은 양의 준정부호이다. $\mathbf{v}^\top\mathbf{X}^\top\mathbf{B}\mathbf{X}\mathbf{v} = \|\mathbf{B}^{1/2}\mathbf{X}\mathbf{v}\|^2 \geq 0$이다.
-
-    $n\lambda\mathbf{I}$을 더하면 모든 고윳값이 $n\lambda > 0$만큼 옮겨진다.
-
-    $$
-    \mathbf{v}^\top\mathbf{H}_{\text{ridge}}\mathbf{v} = \mathbf{v}^\top\mathbf{X}^\top\mathbf{B}\mathbf{X}\mathbf{v} + n\lambda\|\mathbf{v}\|^2 \geq n\lambda\|\mathbf{v}\|^2 > 0
-    $$
-
-    이는 모든 $\mathbf{v} \neq 0$에 대해 성립한다. 따라서 $\mathbf{H}_{\text{ridge}}$은 양의 정부호이며 유일한 전역 최적점이 보장된다. $\square$
+    합 BCE의 헤세는 $X^\top BX\succeq0$이다. 임의의 $v\ne0$에 대해 $v^\top(X^\top BX+n\lambda I)v=\|B^{1/2}Xv\|^2+n\lambda\|v\|^2>0$이다. 따라서 모든 파라미터를 패널티에 포함한 이 목적은 강볼록하다. 절편을 제외한 본문의 패널티에서는 $I$를 $D$로 바꾸므로 같은 고윳값 하한을 그대로 사용할 수 없다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-완전히 분리 가능한 데이터에서도 L2 정칙화된 로지스틱 회귀에는 언제나 유한한 MLE가 존재함을 증명하라.
+절편을 포함한 모든 파라미터에 양의 L2 패널티를 줄 때, 분리 가능한 데이터에서도 유일한 유한 패널티 추정값이 존재함을 증명하라. 이를 비정규화 MLE와 구분하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    정칙화된 목적 함수는 $\mathcal{L}(\boldsymbol{\beta}) = -\ell(\boldsymbol{\beta}) + \frac{\lambda}{2}\|\boldsymbol{\beta}\|^2$이다.
-
-    $\|\boldsymbol{\beta}\| \to \infty$일 때 NLL $-\ell(\boldsymbol{\beta}) \geq 0$은 아래로 유계인 반면 $\frac{\lambda}{2}\|\boldsymbol{\beta}\|^2 \to \infty$이다. 따라서 $\mathcal{L} \to \infty$이다.
-
-    $\mathcal{L}$은 연속이고 (0으로) 아래로 유계이며 모든 방향에서 무한대로 가므로, 어떤 유한한 $\boldsymbol{\beta}^*$에서 최솟값을 갖는다. (위에서 증명한 양의 정부호 헤세 행렬로부터 오는) 엄격한 볼록성이 유일성을 보장한다. $\square$
+    NLL은 음이 아니고 연속이다. $\lambda\|\beta\|^2/2$는 $\|\beta\|\to\infty$에서 무한대로 커지므로 전체 목적은 유한한 점에서 최솟값을 갖는다. 모든 방향의 양의 L2 곡률이 엄격한 볼록성과 유일성을 준다. 이는 패널티 추정 또는 적절한 가우스 사전 아래의 MAP이지 원래 비정규화 MLE가 아니다. 절편을 패널티에서 빼면 모든 라벨이 같은 경우 등 추가 경계 사례를 따져야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-최적의 정칙화 강도 $\lambda$을 고르기 위한 k-겹 교차 검증을 구현하고 검증 곡선을 그려라.
+최적의 정규화 강도 $\lambda$을 고르기 위한 k-겹 교차 검증을 구현하고 검증 곡선을 그려라.
 
 </div>
 
@@ -883,8 +873,8 @@ $\lambda > 0$일 때 정칙화된 헤세 행렬 $\mathbf{H}_{\text{ridge}} = \ma
 | L1 패널티 | $\lambda\|\boldsymbol{\beta}\|_1$ | 희소성을 만든다; 라플라스 사전분포 |
 | 엘라스틱 넷 | $\lambda[\alpha\|\boldsymbol{\beta}\|_1 + \frac{1-\alpha}{2}\|\boldsymbol{\beta}\|_2^2]$ | 무리 짓기 + 희소성 |
 | L2 경사 | $\lambda\boldsymbol{\beta}$ | 가중치 감쇠 |
-| L1 열경사 | $\lambda\operatorname{sign}(\boldsymbol{\beta})$ | 0 쪽으로 일정하게 민다 |
-| PyTorch의 L2 | 최적화기의 `weight_decay` | 내장되어 있고 효율적이다 |
+| L1 부분경사 | $\lambda\operatorname{sign}(\boldsymbol{\beta})$ | 0 쪽으로 일정하게 민다 |
+| PyTorch의 L2 | 옵티마이저의 `weight_decay` | 내장되어 있고 효율적이다 |
 | PyTorch의 L1 | 손실에 패널티를 직접 더한다 | 명시적으로 추가해야 한다 |
 
-정칙화는 분리 가능한 데이터에서 실패할 수 있는 방법이던 로지스틱 회귀를 수렴이 보장되는 견고하고 잘 정의된 알고리즘으로 바꾼다. L1, L2, 엘라스틱 넷 중 무엇을 고를지는 문제의 구조에 달려 있다. 즉 희소한 해를 기대하는지 조밀한 해를 기대하는지, 그리고 특징들이 어떻게 상관되어 있는지에 달려 있다.
+정규화의 의미는 패널티 대상, 합·평균 배율과 수치 알고리즘에 달려 있다. 유한한 패널티 해의 존재, 희소성, 일반화와 최적화 수렴은 각각의 조건을 확인해야 한다.

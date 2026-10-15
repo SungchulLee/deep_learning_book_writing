@@ -1,30 +1,8 @@
-# 제한 볼츠만 기계
+# 제한 볼츠만 기계(RBM)
 
----
+일반 볼츠만 기계의 추론을 단순화하려면 연결 구조를 제한할 수 있다. RBM은 가시층과 은닉층 사이에만 연결을 두어, 한 층을 고정했을 때 다른 층의 각 단위가 조건부 독립이 되게 한다. 이 성질은 병렬 블록 깁스 갱신을 가능하게 하지만 전체 정규화 상수를 쉽게 만들어 주지는 않는다.
 
-## 1. 학습 목표
-
-이 절을 마치면 다음을 할 수 있다:
-
-1. 제한 볼츠만 기계의 두 쪽 구조를 이해한다
-2. 다룰 만한 조건 분포를 이끌어 낸다
-3. Contrastive Divergence 학습을 짠다
-4. 실제 데이터(MNIST)로 제한 볼츠만 기계를 학습된이다
-5. 배운 특징을 그려 보고 되짓기를 한다
-
----
-
-## 2. 들어가며
-
-제한 볼츠만 기계(RBM)는 에너지 기반 학습의 가장 성공한 실제 쓰임새이다. "제한"은 이음이 드러난 층과 은닉층 사이에만 있고 같은 층 안에는 없다는 제약을 가리킨다. 이 두 쪽 구조 덕에 덩이 깁스 샘플링로 추론이 다룰 만해지고 Contrastive Divergence로 효율 좋게 익힐 수 있다.
-
----
-
-## 3. 구조
-
-### 두 쪽 그래프 구조
-
-제한 볼츠만 기계는 정해진 이음 무늬를 가진다:
+## 1. 이분 그래프와 변수 관례
 
 ```
 Visible Layer (v):    ○  ○  ○  ○  ○  ○
@@ -33,55 +11,25 @@ Visible Layer (v):    ○  ○  ○  ○  ○  ○
 Hidden Layer (h):        ○       ○       ○
 ```
 
-**핵심 제약**:
+가시변수 vᵢ와 은닉변수 hⱼ는 0 또는 1을 사용한다. 이 페이지에서는 **코드에 맞추어 W의 모양을 n_h×n_v**로 둔다. 가시 편향은 a, 은닉 편향은 b이며 온도는 1이다.
 
-- 드러난 단위끼리의 이음 없음($W_{vv} = 0$)
-- 숨은 단위끼리의 이음 없음($W_{hh} = 0$)
-- 드러난 단위와 숨은 단위 사이의 이음만 있음($W_{vh}$)
+$$E(v,h)=-a^Tv-b^Th-h^TWv$$
 
-### 에너지 함수
+가시·가시 또는 은닉·은닉 연결은 없다. ±1 스핀 에너지의 조건부 확률에서 나타나는 계수 2를 이 0·1 정의에 그대로 붙이지 않는다. 연결 행렬을 전치한 n_v×n_h 관례와도 혼동하지 않는다.
 
-제한 볼츠만 기계의 에너지 함수는 다음과 같다:
+## 2. 조건부 확률의 인수분해
 
-$$E(\mathbf{v}, \mathbf{h}) = -\mathbf{a}^T \mathbf{v} - \mathbf{b}^T \mathbf{h} - \mathbf{v}^T \mathbf{W} \mathbf{h}$$
+v를 고정하면 에너지는 hⱼ별 선형 항으로 나뉜다. 각 0·1 선택의 비정규화 가중치는 1과 exp(bⱼ+ΣᵢWⱼᵢvᵢ)이므로 다음을 얻는다.
 
-여기서 각 기호는 다음과 같다.
+$$p(h_j=1\mid v)=\operatorname{sigmoid}\left(b_j+\sum_iW_{ji}v_i\right)$$
 
-- $\mathbf{v} \in \{0, 1\}^{n_v}$: 드러난 단위(데이터)
-- $\mathbf{h} \in \{0, 1\}^{n_h}$: 숨은 단위(특징)
-- $\mathbf{W} \in \mathbb{R}^{n_v \times n_h}$: 무게 행렬
-- $\mathbf{a} \in \mathbb{R}^{n_v}$: 드러난 단위의 편향
-- $\mathbf{b} \in \mathbb{R}^{n_h}$: 숨은 단위의 편향
+같은 방법으로 가시 단위의 조건부를 계산한다.
 
----
+$$p(v_i=1\mid h)=\operatorname{sigmoid}\left(a_i+\sum_jW_{ji}h_j\right)$$
 
-## 4. 다룰 만한 조건 분포
+주어진 반대 층 안에서 각 단위가 독립이므로 한 층 전체를 동시에 뽑을 수 있다. 그러나 주변분포 p(v)의 가시 단위들이 서로 독립이라는 뜻은 아니다. 은닉변수를 합하면 가시 단위 사이의 의존성을 표현할 수 있다.
 
-### 핵심 통찰
-
-두 쪽 구조 덕에 조건 분포가 인수로 나뉜다:
-
-$$P(\mathbf{h} | \mathbf{v}) = \prod_j P(h_j | \mathbf{v})$$
-
-$$P(\mathbf{v} | \mathbf{h}) = \prod_i P(v_i | \mathbf{h})$$
-
-### 유도
-
-숨은 단위 $j$에 대해:
-
-$$P(h_j = 1 | \mathbf{v}) = \sigma(b_j + \sum_i W_{ij} v_i) = \sigma(\mathbf{W}_{:,j}^T \mathbf{v} + b_j)$$
-
-드러난 단위 $i$에 대해:
-
-$$P(v_i = 1 | \mathbf{h}) = \sigma(a_i + \sum_j W_{ij} h_j) = \sigma(\mathbf{W}_{i,:} \mathbf{h} + a_i)$$
-
-여기서 $\sigma(x) = 1/(1 + e^{-x})$은 시그모이드 함수이다.
-
-**이 인수 나눔 덕에 한 층의 모든 단위를 나란히 뽑을 수 있다!**
-
----
-
-## 5. PyTorch 구현
+## 3. 구현과 텐서 모양
 
 ```python
 import torch
@@ -201,119 +149,95 @@ class RestrictedBoltzmannMachine(nn.Module):
         return prob_v
 ```
 
----
+입력 v는 B×n_v, 은닉 확률·샘플은 B×n_h다. F.linear(v,W,b)는 vWᵀ+b를 계산한다. 가시 복원에는 Wᵀ를 가중치로 넘겨 hW+a를 계산한다. 에너지와 자유 에너지는 각 관측치의 길이 B 벡터를 반환한다.
 
-## 6. Contrastive Divergence
+free_energy는 은닉 상태를 정확히 합한 다음 식을 사용한다.
 
-### CD-k 알고리즘
+$$F(v)=-a^Tv-\sum_j\operatorname{softplus}\left(b_j+\sum_iW_{ji}v_i\right)$$
 
-**정확한 기울기**:
+이는 가시 상태에 의존하는 자유 에너지이며, 모델 전체의 단일 스칼라 −log Z와 다른 양이다. p(v)=exp(−F(v))/Z를 계산하려면 여전히 Z가 필요하다.
 
-$$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} = \langle v_i h_j \rangle_{\text{data}} - \langle v_i h_j \rangle_{\text{model}}$$
+## 4. CD-k의 업데이트
 
-**CD-k 어림**:
+관측 v에서 시작해 h|v와 v|h를 k번 교대로 뽑고, 데이터의 충분통계에서 짧은 사슬의 충분통계를 뺀다. 정확한 우도 기울기의 negative phase는 평형 모델 분포를 요구하지만 CD-k는 일반적으로 거기에 도달하지 않은 분포를 사용한다.
 
-$$\frac{\partial \log P(\mathbf{v})}{\partial W_{ij}} \approx \langle v_i h_j \rangle_{\text{data}} - \langle v_i h_j \rangle_{k}$$
+코드의 positive phase는 은닉 확률을 사용해 prob_h0ᵀv0/B를 계산한다. negative phase는 마지막 **은닉 샘플 hk**를 사용해 hkᵀvk/B를 계산한다. 마지막 은닉 확률로 대체하는 다른 구현과 표본 분산이 다를 수 있다. a와 b도 데이터·사슬 평균 차이로 직접 갱신한다.
 
-### Contrastive Divergence가 통하는 까닭
+nn.Parameter를 사용하지만 optimizer와 backward를 호출하는 학습 루프는 아니다. .data에 학습률을 곱한 통계 차이를 더한다. 자동 미분 문맥을 끄지는 않아 중간 연산의 그래프가 불필요하게 만들어질 수 있다. k는 1 이상의 정수여야 하지만 함수가 검사하지 않는다. k=0이면 negative phase에 초기 은닉 샘플을 사용하는 다른 계산이 된다.
 
-- 데이터에서 시작하면 사슬이 더 빨리 섞인다
-- 좋은 결과를 얻는 데 흔히 $k=1$이면 넉넉하다
-- 이 어림은 치우쳐 있지만 분산이 작다
+CD는 유한 k에서 편향된 우도 기울기 근사다. 데이터 시작이 모든 모드를 탐색한다는 보장이나 k=1이면 언제나 충분하다는 결론은 없다. 적절한 고정 모델 사슬에서 k→∞의 수렴을 말할 수 있어도 유한 k의 편향이 매 단계 단조롭게 줄거나, 학습 중 persistent chain이 자동으로 평형을 유지하는 것은 아니다.
 
----
+## 5. 재구성과 생성 평가
 
-## 7. 핵심 정리
+contrastive_divergence의 반환값은 (v0−vk)²를 가시 차원에서 합한 뒤 배치 평균한 재구성 오차다. 이진 입력이면 비트 불일치 개수의 평균이며, 정확한 NLL이나 정규화된 우도는 아니다. 낮은 재구성 오차만으로 새로운 표본의 분포 품질을 보장하지 않는다.
 
-!!! success "핵심 개념"
+reconstruct는 은닉 상태를 **한 번 샘플링**하고 가시 확률을 반환한다. 은닉 샘플이 달라지면 재구성 확률도 달라질 수 있으므로 결정적인 오토인코더와 다르다. 테스트 입력을 주고 한 번 복원하는 것은 모델 평형에서 독립 생성한 이미지와도 다르다.
 
-    1. 제한 볼츠만 기계는 이음을 드러난 단위와 숨은 단위의 짝으로만 제한한다
-    2. 두 쪽 구조가 다룰 만한 조건 분포를 가능하게 한다
-    3. Contrastive Divergence가 효율 좋은 어림 기울기를 준다
-    4. 자유 에너지는 드러난 단위에 대한 실제 에너지이다
-    5. 제한 볼츠만 기계는 쓸모 있는 특징 나타냄을 배운다
-
----
+이 페이지에는 클래스만 정의되어 있다. DataLoader와 MNIST를 import하지만 실제 데이터 로드·훈련 반복·생성 그림이나 평가 결과는 없다. 0~1의 회색조 입력을 그대로 넣는 관행과 이산 Bernoulli 관측모델의 가정을 구분하고, 실제 이진 샘플링 또는 별도 관측분포가 필요한지 결정해야 한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-결합 에너지 $E(\mathbf{v}, \mathbf{h})$에서 숨은 단위를 닫힌 형태로 가장자리로 몰아내어 이진 제한 볼츠만 기계의 자유 에너지 $F(\mathbf{v})$을 이끌어 내라. $\mathbf{h}$에 대한 합의 걸음마다 보여라.
+코드의 행렬 방향을 사용해 은닉변수를 합하고 F(v)를 유도하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    결합 분포에서 시작한다:
 
-    $$P(\mathbf{v}) = \frac{1}{Z}\sum_{\mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h}))$$
+    v를 고정하면 exp(−E)=exp(aᵀv)∏ⱼexp(hⱼ[bⱼ+ΣᵢWⱼᵢvᵢ])다. 각 hⱼ∈{0,1}를 합하면 1+exp(bⱼ+ΣᵢWⱼᵢvᵢ)를 얻는다. 곱의 음의 로그를 취하면 F(v)=−aᵀv−Σⱼsoftplus(bⱼ+ΣᵢWⱼᵢvᵢ)이며 W는 n_h×n_v다. Z를 구한 것은 아니다.
 
-    제한 볼츠만 기계의 에너지를 넣으면:
 
-    $$\sum_{\mathbf{h}} \exp\!\left(\mathbf{a}^T \mathbf{v} + \mathbf{b}^T \mathbf{h} + \mathbf{v}^T \mathbf{W} \mathbf{h}\right)$$
-
-    $\mathbf{v}$이 주어지면 숨은 단위가 서로 얽매이지 않으므로 합이 인수로 나뉜다:
-
-    $$= \exp(\mathbf{a}^T \mathbf{v}) \prod_{j=1}^{n_h} \sum_{h_j \in \{0,1\}} \exp\!\left((b_j + \mathbf{W}_{:,j}^T \mathbf{v}) h_j\right)$$
-
-    인수마다 $1 + \exp(b_j + \mathbf{W}_{:,j}^T \mathbf{v})$이 되어 다음을 얻는다:
-
-    $$F(\mathbf{v}) = -\mathbf{a}^T \mathbf{v} - \sum_{j=1}^{n_h} \log\!\left(1 + \exp(b_j + \mathbf{W}_{:,j}^T \mathbf{v})\right)$$
-
-    이는 짜기에서 쓴 `softplus` 적기와 맞는다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-CD-1 고침 규칙이 로그 우도 기울기의 치우친 어림개임을 보여라. 자세히는 음의 국면 표본 $\langle v_i h_j \rangle_1$이 왜 모델 기댓값 $\langle v_i h_j \rangle_{\text{model}}$과 같지 않은지 밝히고, 편향이 줄어드는 조건을 적어라.
+CD-k의 negative phase가 정확한 우도 기울기의 모델 기댓값과 일반적으로 다른 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    정확한 기울기는 $\langle v_i h_j \rangle_{\text{data}} - \langle v_i h_j \rangle_{\text{model}}$이며 모델 기댓값에는 평형 분포의 표본이 필요하다. CD-1은 마르코프 사슬을 데이터 점에서 첫자리매김하고 깁스 걸음을 한 번만 돌려 평형에 이르지 못한 분포 $q^{(1)}$의 표본을 만든다. 따라서 $\langle v_i h_j \rangle_1 \neq \langle v_i h_j \rangle_{\text{model}}$이며 이 어림개는 치우쳐 있다. $k$이 커질수록 사슬이 평형에 가까워지므로 편향이 줄어든다. 실제로는 데이터 점에서 첫자리매김하면 사슬이 확률 높은 자리 가까이에 놓이므로 편향이 작다. 게다가 이어지는 Contrastive Divergence(PCD)은 고침에 걸쳐 사슬을 이어 가며 익히는 동안 섞이게 하여 편향을 더 줄인다. $\square$
+
+    데이터 분포 q₀에서 k번 전이한 qₖ를 사용하기 때문이다. qₖ가 평형 pθ와 다르면 해당 충분통계의 기대도 달라질 수 있다. 고정 모델의 적절한 사슬이 충분히 혼합하면 차이가 사라지지만, 짧은 사슬·다중 모드·움직이는 파라미터에서는 보장되지 않는다. 재구성 오차 감소만으로 이 차이가 작다고 판단할 수 없다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-드러난 단위가 조건 분포 $P(v_i | \mathbf{h}) = \mathcal{N}(\mu_i, \sigma_i^2)$을 가진 실수인 정규-베르누이 제한 볼츠만 기계를 짜라. 고친 에너지 함수와 $\mu_i$, $\sigma_i$의 고침 규칙을 이끌어 내라.
+가우스 가시변수를 사용하는 RBM의 조건부분포와 파라미터 기울기를 유도하라. σᵢ=exp(ρᵢ)>0으로 두고 에너지를 Σᵢ(vᵢ−aᵢ)²/(2σᵢ²)−bᵀh−Σᵢⱼ(vᵢ/σᵢ)Wⱼᵢhⱼ로 정하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    정규 드러난 단위에서 에너지는 다음과 같이 된다:
 
-    $$E(\mathbf{v}, \mathbf{h}) = \sum_i \frac{(v_i - a_i)^2}{2\sigma_i^2} - \sum_j b_j h_j - \sum_{i,j} \frac{v_i}{\sigma_i} W_{ij} h_j$$
+    vᵢ의 제곱을 완성하면 vᵢ|h∼N(aᵢ+σᵢΣⱼWⱼᵢhⱼ,σᵢ²)다. hⱼ|v의 성공확률은 sigmoid(bⱼ+ΣᵢWⱼᵢvᵢ/σᵢ)다. 일반식 ∇log p(v)=E_model[∇E]−E_{h|v}[∇E]를 사용한다. Wⱼᵢ의 기울기는 (vᵢ/σᵢ)hⱼ의 positive phase 평균에서 모델 평균을 뺀 값이고, aᵢ는 (vᵢ−aᵢ)/σᵢ²의 같은 차이, bⱼ는 hⱼ의 같은 차이다. ρᵢ에 대해서는 Aᵢ=(vᵢ−aᵢ)²/σᵢ²−(vᵢ/σᵢ)ΣⱼWⱼᵢhⱼ를 정의하면 E_positive[Aᵢ]−E_model[Aᵢ]다. 로그 우도를 최대화하려면 이 기울기 방향으로 더하며, NLL을 최소화할 때는 반대 부호를 쓴다. 이 조건부 평균은 별도 자유 모수가 아니라 a·σ·W와 h의 함수다. 여기의 Bernoulli 클래스에는 이 가우스 샘플링이 구현되어 있지 않다.
 
-    숨은 단위가 주어졌을 때 드러난 단위의 조건 분포는 다음과 같다:
 
-    $$P(v_i | \mathbf{h}) = \mathcal{N}\!\left(a_i + \sigma_i \sum_j W_{ij} h_j,\; \sigma_i^2\right)$$
-
-    숨은 단위의 조건 분포는 여전히 시그모이드이다: $P(h_j = 1 | \mathbf{v}) = \sigma\!\left(b_j + \sum_i \frac{v_i}{\sigma_i} W_{ij}\right)$. Contrastive Divergence 고침 규칙은 구조가 같지만(양의 국면 통계에서 음의 국면 통계를 뺀다) 드러난 단위 샘플링은 이제 베르누이가 아니라 정규 분포에서 뽑는다. 분산 $\sigma_i^2$은 로그 우도에 기울기 내려가기를 하여 배우거나 간단히 1로 붙박이할 수 있다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-$F$이 자유 에너지일 때 제한 볼츠만 기계의 나눔 함수가 $Z = \sum_{\mathbf{v}} \exp(-F(\mathbf{v}))$을 만족함을 밝혀라. 그다음 흔한 제한 볼츠만 기계 크기에서 $Z$을 정확히 셈하는 것이 왜 다룰 수 없는지 밝혀라.
+은닉변수 합이 닫힌 형태이면 Z도 쉽게 계산되는가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    정의에 따라 $Z = \sum_{\mathbf{v}, \mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h}))$이다. 이를 다음과 같이 고쳐 쓸 수 있다:
 
-    $$Z = \sum_{\mathbf{v}} \sum_{\mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h})) = \sum_{\mathbf{v}} \exp(-F(\mathbf{v}))$$
+    Z=Σ_vΣ_h exp(−E)=Σ_v exp(−F(v))다. F(v)는 쉽게 계산해도 가시 상태 전체는 2^n_v개다. 은닉 쪽을 대신 열거해 더 작은 층을 사용할 수도 있지만 일반적으로 작은 쪽도 크면 지수적 계산이 남는다. 조건부 추론의 단순함과 전체 정규화의 단순함을 구분한다.
 
-    여기서 $F(\mathbf{v}) = -\log \sum_{\mathbf{h}} \exp(-E(\mathbf{v}, \mathbf{h}))$은 자유 에너지이다. $F(\mathbf{v})$이 숨은 단위를 닫힌 형태로 가장자리로 몰아내므로(두 쪽 구조 덕에 다룰 만하다) 이는 정확하다. 그러나 $Z$을 셈하려면 드러난 단위의 자리 얽이 $2^{n_v}$가지 모두에 대해 $\exp(-F(\mathbf{v}))$을 더해야 한다. $n_v = 784$(MNIST)인 흔한 제한 볼츠만 기계에서 이 합은 항이 $2^{784}$개여서 정확한 계산이 다룰 수 없다. $\square$
+
 
 ## 정리하며
 
-이 마당은 학습 목표, 들어가며, 구조, 다룰 만한 조건 분포를 차례로 짚었다.
+RBM은 이분 그래프로 조건부 독립성과 닫힌 형태의 가시 자유 에너지를 얻는다. 코드의 W 방향과 확률·샘플의 사용 위치를 맞추어 읽고, CD 통계 업데이트와 정확한 우도 기울기, 재구성과 평형 생성을 구분한다.
 
 **참고 문헌**
 

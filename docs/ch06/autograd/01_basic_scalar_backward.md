@@ -1,6 +1,6 @@
-# 스칼라에 대한 기본 역전파
+# 스칼라 손실의 역전파
 
-이 스크립트는 스칼라에 대한 기본적인 역전파를 보여준다. 이 개념들을 이해하는 것은 효과적인 PyTorch 프로그래밍과 딥러닝 모델 개발에 필수적이다.
+벡터 입력의 제곱합을 미분하며 `requires_grad`, `grad_fn`, `is_leaf`, `.grad`의 역할을 구분한다. 이어서 중간 텐서의 경사를 보관하는 `retain_grad()`를 살펴본다.
 
 ## 1. 코드
 
@@ -198,11 +198,15 @@ loss.grad_fn: <SumBackward0 object at 0x117cd7130>
 
 ## 2. 논의
 
-이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다. 스칼라 손실에 `.backward()`를 호출하면 autograd가 계산 그래프를 역방향으로 훑으며 연쇄 법칙을 적용해 모든 잎 텐서의 경사를 계산한다. 이 구조가 PyTorch의 모든 신경망 학습을 떠받친다.
+### 손실에서 입력으로 거슬러 올라가기
 
-벡터-야코비 곱(VJP)은 후진 모드 자동 미분의 핵심 기본 연산이다. 야코비안이 $J$인 함수 $f: \mathbb{R}^n \to \mathbb{R}^m$에 대해 VJP는 주어진 벡터 $v$에 대한 $v^\top J$를 계산한다. 출력이 스칼라가 아닐 때 PyTorch는 어떤 출력들의 선형 결합을 미분할지 지정하도록 `.backward()`에 경사 인수 $v$를 명시할 것을 요구한다.
+예제의 손실은 $L=\sum_i x_i^2$이므로 각 입력에 대한 경사는 $\partial L/\partial x_i=2x_i$이다. 입력은 벡터지만 손실은 원소가 하나인 텐서이므로 `loss.backward()`에 별도의 경사 인수가 필요하지 않다. autograd는 손실 쪽의 경사 1에서 출발해 연쇄 법칙을 적용한다.
 
-경사 추적을 제어하는 것은 정확성과 성능 모두에 필수적이다. `torch.no_grad()` 컨텍스트 관리자는 매개변수 갱신이나 추론처럼 계산 그래프에 포함되어서는 안 되는 연산에 대해 autograd를 끈다. `.detach()` 메서드는 저장소는 공유하지만 그래프와는 분리된 텐서를 만들며, 값을 기록하거나 NumPy로 변환할 때 유용하다.
+### 계산에 참여하는 것과 경사를 보관하는 것
+
+`requires_grad=True`인 잎 텐서에는 기본적으로 경사가 `.grad`에 누적된다. `y = 2 * x`처럼 연산으로 만든 텐서는 역전파에 참여하더라도 기본적으로 `.grad`를 보관하지 않는다. 중간 경사를 확인하려면 역전파 전에 `y.retain_grad()`를 호출한다. `grad_fn`은 텐서를 만든 미분 가능한 연산을 가리키며, 경사 값 자체를 담는 속성이 아니다.
+
+`retain_grad()`는 중간 텐서의 경사를 저장하는 기능이다. 같은 순전파의 중간 결과를 다음 역전파에도 쓸 수 있게 보존하는 `retain_graph=True`와 구분해야 한다.
 
 ## 연습문제
 
@@ -229,12 +233,12 @@ loss.grad_fn: <SumBackward0 object at 0x117cd7130>
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-`retain_graph=True` 없이 같은 계산 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+`requires_grad=True`인 중간 텐서의 `.grad`가 역전파 후에도 `None`일 수 있는 이유는 무엇인가? 중간 경사를 확인하는 방법도 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    기본적으로 PyTorch는 메모리를 아끼기 위해 `.backward()` 후에 계산 그래프를 해제한다. `.backward()`를 두 번째로 호출하면 더 이상 존재하지 않는 그래프를 훑으려 하므로 `RuntimeError`가 발생한다. `retain_graph=True`로 두면 그래프가 메모리에 남아 재사용할 수 있지만, 모든 중간 텐서가 할당된 채로 남으므로 메모리 소비가 늘어난다.
+    비잎 텐서는 역전파에 참여해도 기본적으로 `.grad`를 보관하지 않는다. 역전파 전에 해당 텐서에 `retain_grad()`를 호출하면 중간 경사를 저장할 수 있다. 이는 그래프 재사용을 위한 `retain_graph=True`와 다르다.
 
 ---
 
@@ -242,7 +246,7 @@ loss.grad_fn: <SumBackward0 object at 0x117cd7130>
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고 손실을 계산한 뒤, 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하는 코드를 작성하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 
@@ -261,8 +265,4 @@ loss.grad_fn: <SumBackward0 object at 0x117cd7130>
 
 ## 정리하며
 
-**다룬 것** — 스칼라에 대한 기본 역전파
-
-이 코드는 `requires_grad=True`인 텐서에 대한 연산을 자동으로 추적하는 PyTorch의 autograd 체계를 보여준다.
-
-앞의 연습문제 3개로 직접 확인할 수 있다.
+역전파의 출발점은 손실이며, 결과는 기본적으로 경사를 추적하는 잎 텐서의 `.grad`에 쌓인다. 중간 텐서의 경사를 관찰할 때만 `retain_grad()`를 추가한다.

@@ -1,94 +1,58 @@
-# 장 개요
+# 시퀀스 모델
 
-이 장은 단어를 조밀한 벡터로 나타내는 일에서 시작하여 순환 구조를 거쳐 마침내 트랜스포머 혁명으로 이어진 어텐션 메커니즘까지, 시퀀스 모델의 전체 지형을 다룬다. 각 절이 앞 절 위에 쌓이며 기초가 되는 표현에서 점점 정교한 Seq2Seq 구조로 나아간다.
+문장과 시계열처럼 순서에 따라 의미가 달라지는 데이터를 시퀀스라고 한다. 이 장에서는 단어를 벡터로 표현하는 임베딩에서 시작해 RNN, LSTM과 GRU, Seq2Seq, 어텐션으로 이어지는 모델 구조를 살펴본다. 각 구조가 정보를 어떻게 전달하고, 어떤 제약을 보완하는지에 초점을 맞춘다.
 
----
+## 1. 단어 임베딩
 
-## 1. 1 단어 임베딩
+임베딩은 단어 ID를 학습 가능한 벡터로 바꾼다. 단어 사이의 관계는 벡터를 만드는 것만으로 생기지 않으며, 학습 데이터와 목적 함수에 따라 형성된다.
 
-단어를 연속 공간에 담는 조밀한 벡터 표현으로, 기하적인 성질로 의미의 관계를 붙잡는다.
+- [간단한 임베딩](embeddings/01_simple_embeddings.md): 임베딩 조회와 원핫 벡터의 관계
+- [Word2Vec](embeddings/01_word2vec_full.md): 단어와 주변 문맥을 이용한 표현 학습
+- [CBOW](embeddings/02_cbow_model.md)와 [Skip-gram](embeddings/03_skipgram_model.md): 문맥과 중심 단어를 예측하는 두 방식
+- [네거티브 샘플링](embeddings/02_negative_sampling.md): 일부 음성 예제를 이용하는 이진 분류 목적 함수
+- [GloVe](embeddings/glove_embedding.md): 단어 동시 출현 통계를 이용한 임베딩
+- [사전 학습 임베딩](embeddings/03_pretrained_embeddings.md), [분석](embeddings/04_embedding_analysis.md), [시각화](embeddings/04_embedding_visualization.md)
+- [손실 함수 비교](embeddings/01_loss_comparison.md): 다음 단어 예측에서 교차 엔트로피와 음의 로그 우도의 관계
 
-- 단어 임베딩 개요 — 원-핫 부호화에서 문맥 반영 표현까지 임베딩 기법의 종합 개관
-- 단어 임베딩 실습 — 단어 임베딩 기법을 익히는 PyTorch 실습 꾸러미
-- 빠른 시작 안내 — 5분 만에 단어 임베딩 시작하기
-- 원-핫 부호화 — 성긴 기호 표현이 왜 통하지 않는지, 그리고 분포 가설이 어떻게 조밀한 임베딩을 이끌어 냈는지
-- Word2Vec — Skip-gram과 CBOW 구조로 자연어 처리를 뒤바꾼 예측 기반 틀
-- Skip-gram 모델 — 가운데 단어에서 문맥 단어를 예측하기, 유도와 PyTorch 구현
-- CBOW 모델 — 둘레 문맥에서 가운데 단어를 예측하여 대규모로 빠르게 학습하기
-- 음성 표본 추출 — 다중 부류 소프트맥스를 이진 분류 문제로 바꾸어 효율적으로 학습하기
-- GloVe — 행렬 분해와 지역 문맥 창 방법을 결합한 전역 벡터
-- FastText — 글자 n-그램을 써서 어휘 밖 단어를 다루는 하위 단어 임베딩
-- 하위 단어 임베딩 — 단어를 글자 n-그램으로 쪼개어 드물거나 처음 보는 단어에 더 잘 일반화하기
-- 문맥 임베딩 — 둘레 문맥에 맞추어 달라지는 ELMo, BERT, GPT의 동적 표현
-- 임베딩 시각화 — PCA, t-SNE, UMAP으로 고차원 임베딩 그려 보기
+## 2. 순환 신경망
 
----
+RNN은 이전 시점의 은닉 상태와 현재 입력을 결합해 다음 은닉 상태를 계산한다. 같은 매개변수를 여러 시점에 공유하며 순차 정보를 처리한다.
 
-## 2. 2 순환 신경망
+- [시퀀스 데이터의 기초](rnn/01_sequence_basics.md), [텍스트 전처리](rnn/02_text_preprocessing.md), [시계열 데이터](rnn/03_time_series_basics.md)
+- [RNN의 기초](rnn/rnn_fundamentals.md)와 [기본 RNN](rnn/vanilla_rnn.md)
+- [시간 역전파(BPTT)](rnn/bptt.md)와 [기울기 소실](rnn/vanishing_gradients.md): 긴 시퀀스의 학습이 어려운 이유
+- [양방향 RNN](rnn/07_bidirectional_rnn.md): 앞뒤 문맥을 함께 활용하는 구조
+- [언어 모델](rnn/language_models.md)과 [텍스트 생성](rnn/10_text_generation.md)
 
-시각마다 은닉 상태를 이어 가며 시간적 의존을 다루는 순차 구조.
+## 3. LSTM과 GRU
 
-- [RNN의 기초](rnn/rnn_fundamentals.md) — 순차 데이터의 성질에서 순환을 이끌어 내는 자기회귀 인수분해까지
-- RNN 실습 꾸러미 — 기초부터 고급 시퀀스 모델까지 다루는 종합 PyTorch RNN 실습
-- [기본 RNN](rnn/vanilla_rnn.md) — tanh 비선형을 쓰는 엘만 RNN 구조와 밑바닥부터의 구현
-- 은닉 상태의 동역학 — 은닉 상태가 어떻게 기억 노릇을 하며 시각마다 달라지는지
-- [시간 역전파(BPTT)](rnn/bptt.md) — 펼친 계산 그래프에서 기울기 계산하기
-- [기울기 소실](rnn/vanishing_gradients.md) — 긴 시퀀스에서 곱셈이 되풀이되며 기울기가 지수적으로 작아지는 까닭
-- 기울기 폭발 — 기울기가 지수적으로 커지며 학습이 무너지는 현상
-- 기울기 자르기 — RNN 학습에서 기울기의 크기를 제한하여 폭발을 막기
-- 양방향 RNN — 온전한 문맥이 필요한 과제를 위해 시퀀스를 양쪽 방향으로 처리하기
-- 깊은 RNN — 위계적인 표현을 배우려고 RNN 층을 여러 겹 쌓기
-- [언어 모델](rnn/language_models.md) — 연쇄 법칙 분해로 시퀀스에 확률을 매기는 데 RNN 쓰기
+LSTM과 GRU는 게이트로 정보의 유지와 갱신을 조절한다. 기본 RNN의 장기 의존성 학습을 돕지만, 모든 데이터에서 기울기 소실이나 학습 실패를 없애는 것은 아니다.
 
----
+- [LSTM 구조](lstm_gru/lstm_architecture.md): 입력 게이트, 망각 게이트, 출력 게이트와 셀 상태
+- [셀 상태와 기울기 흐름](lstm_gru/cell_state.md), [Peephole 연결](lstm_gru/peephole.md)
+- [GRU 구조](lstm_gru/gru_architecture.md): 업데이트 게이트와 리셋 게이트
+- [GRU와 LSTM 비교](lstm_gru/gru_vs_lstm.md): 구조, 매개변수 수, 선택 기준
+- [LSTM 감성 분류](rnn/05_lstm_sentiment.md)와 [GRU 시계열 예측](rnn/06_gru_time_series.md)
 
-## 3. 3 LSTM과 GRU
+## 4. Seq2Seq 모델
 
-따로 마련한 기억 통로로 기울기 소실 문제를 푸는 게이트가 있는 순환 구조.
+Seq2Seq는 입력 시퀀스를 인코딩한 뒤 디코더로 출력 시퀀스를 생성하는 구조다. 기본 모델의 고정 크기 문맥 벡터가 갖는 제약과, 학습 때의 입력 방식이 추론에 미치는 영향을 살펴본다.
 
-- LSTM과 GRU 개요 — LSTM과 GRU의 이론과 구현과 비교를 아우르는 모듈 개관
-- [LSTM 구조](lstm_gru/lstm_architecture.md) — 망각 문, 입력 문, 출력 문이 있는 셀 상태라는 기억의 고속도로
-- LSTM의 문들 — 망각 문과 입력 문과 출력 문이 정보의 흐름을 어떻게 다스리는지에 대한 자세한 분석
-- [셀 상태와 기울기의 흐름](lstm_gru/cell_state.md) — LSTM의 셀 상태가 긴 시퀀스에서 기울기를 안정되게 전파하는 까닭
-- [Peephole 연결](lstm_gru/peephole.md) — 문이 셀 상태에 곧바로 닿게 하여 기억을 더 정교하게 다스리기
-- 쌓은 LSTM과 GRU — 위계적인 순차 표현을 위한 여러 층의 순환 신경망
-- [GRU 구조](lstm_gru/gru_architecture.md) — 셀 상태와 은닉 상태를 하나로 합친 두 문짜리 간소한 변형
-- [GRU와 LSTM의 비교](lstm_gru/gru_vs_lstm.md) — 구조와 매개변수, 실무에서의 선택 기준을 두루 비교
+- [Seq2Seq 모델](seq2seq/seq2seq_model.md), [인코더](seq2seq/encoder.md), [디코더](seq2seq/decoder.md)
+- [데이터 전처리](seq2seq/data_preprocessing.md)와 [학습](seq2seq/train.md): 패딩, 특수 토큰, 티처 포싱
+- [추론](seq2seq/inference.md)과 [길이 정규화](seq2seq/length_normalization.md): 출력 시퀀스 탐색과 점수 비교
+- [번역 예제](seq2seq/example_translation.md)와 [프랑스어에서 영어로 번역하는 코드](seq2seq/seq2seq_code.md)
 
----
+## 5. 어텐션
 
-## 4. 4 Seq2Seq 모델
+어텐션은 쿼리와 키의 관련도로 가중치를 구하고, 그 가중치로 값을 결합한다. 디코더가 입력의 여러 위치를 참조하게 하거나, 같은 시퀀스 안의 위치 사이에서 정보를 교환하게 한다.
 
-길이가 정해지지 않은 입력 시퀀스를 역시 길이가 정해지지 않은 출력 시퀀스로 바꾸는 인코더-디코더 구조.
-
-- Seq2Seq 개요 — 시퀀스 변환 문제와 인코더-디코더 틀
-- Seq2Seq 실습 꾸러미 — 여러 인코더 구조와 어텐션 메커니즘을 갖춘 완전한 구현
-- 인코더-디코더 틀 — 입력 시퀀스를 출력 시퀀스로 보내는 근본적인 틀
-- 문맥 벡터 — 인코더와 디코더를 잇는 차원이 고정된 다리, 그리고 그 정보 병목
-- 교사 강요 — 정답 토큰을 넣어 학습을 빠르게 하기, 그리고 노출 편향 문제
-- 빔 탐색 — 여러 가설을 한꺼번에 살펴 더 나은 시퀀스를 만들기
-- [길이 정규화](seq2seq/length_normalization.md) — 빔 탐색이 짧은 시퀀스로 기우는 것을 바로잡기
-- 예정된 표본 추출 — 학습 도중 교사 강요에서 자유 실행으로 차츰 옮겨 가기
-- [코드: 프랑스어에서 영어로 번역](seq2seq/seq2seq_code.md) — 바다나우 어텐션을 쓰는 seq2seq 번역의 완전한 구현
-
----
-
-## 5. 5 어텐션 메커니즘
-
-모델이 입력에서 쓸모 있는 부분을 골라 주목하게 해 주는 동적인 초점 장치.
-
-- [어텐션의 기초](attention/attention_fundamentals.md) — 부드러운 사전 찾기로 본 어텐션과 질의-키-값 틀
-- 어텐션 메커니즘 실습 — 기본 어텐션에서 멀티헤드 셀프 어텐션까지의 완전한 파이썬 구현
-- 바다나우 어텐션 — 덧셈 점수를 쓰는 신경망 기계 번역 최초의 어텐션 메커니즘
-- 루옹 어텐션 — 간소한 곱셈 점수 함수와 전역 어텐션 대 지역 어텐션 전략
-- [스케일 내적 어텐션 어텐션](attention/scaled_dot_product.md) — 기울기를 안정시키는 배율 조정을 갖춘 트랜스포머의 근본 구성 블록
-- [셀프 어텐션](attention/self_attention.md) — 같은 시퀀스에서 질의와 키와 값을 얻어 시퀀스 안의 의존을 다루기
-- [멀티헤드 어텐션](attention/multi_head_attention.md) — 서로 다른 표현 부분공간에 주목하는 나란한 어텐션 머리들
-- 어텐션의 무늬 — 셀프 어텐션, 교차 어텐션, 인과 어텐션에서 나타나는 특유의 가중치 분포
-- 어텐션 시각화 — 어텐션 행렬을 그리고 해석하는 실용적인 도구
-
----
+- [어텐션의 기초](attention/attention_fundamentals.md)
+- [스케일 내적 어텐션](attention/scaled_dot_product.md): 내적 점수의 크기를 조절하는 이유
+- [셀프 어텐션](attention/self_attention.md)과 [크로스 어텐션](attention/cross_attention.md): 쿼리·키·값의 출처에 따른 구분
+- [멀티헤드 어텐션](attention/multi_head_attention.md): 여러 표현 공간에서 정보를 결합하는 방법
+- [예제](attention/examples.md): 어텐션 연산의 구현과 해석
 
 ## 정리하며
 
-이 마당은 1 단어 임베딩, 2 순환 신경망, 3 LSTM과 GRU, 4 Seq2Seq 모델을 차례로 짚었다.
+임베딩은 토큰의 표현을, 순환 구조는 시간에 따른 상태 갱신을, Seq2Seq는 시퀀스 간 변환을 담당한다. 어텐션은 위치별 정보를 선택적으로 결합하는 연산이다. 각 예제에서는 입력과 출력의 형태, 학습 목표, 학습과 추론의 차이를 함께 확인해야 한다.

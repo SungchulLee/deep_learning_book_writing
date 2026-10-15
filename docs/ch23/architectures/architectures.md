@@ -1,45 +1,14 @@
-# 대규모 언어 모델 구조의 새로움
+# 대규모 언어 모델의 구조 변형
 
----
+정규화 위치, FFN, 위치 표현과 키·값 head 공유는 트랜스포머의 계산·메모리·학습에 영향을 준다. 여러 모델이 이 선택들을 조합하지만 모든 대규모 언어 모델이 같은 구성을 사용하는 것은 아니다. 구조의 이론적 이점과 아래 부분 구현에서 실제 얻는 효과도 구분한다.
 
-## 1. 학습 목표
+## 1. 정규화 위치와 RMSNorm
 
-- 맨 트랜스포머에서 요즘 대규모 언어 모델까지의 핵심 구조 바뀜을 이해한다
-- RMSNorm, SwiGLU, 돌림 임베딩, 묶은 물음 어텐션을 짠다
-- 여러 구조 공정성의 트레이드오프를 살핀다
-- GPT, LLaMA, Mistral 갈래의 구조를 견준다
+post-norm은 LayerNorm(x+Sublayer(x)), pre-norm은 x+Sublayer(LayerNorm(x)) 형태다. pre-norm은 잔차 경로의 기울기 전달에 도움이 될 수 있지만 모든 설정에서 최적이라는 뜻은 아니다. GPT-2 이후의 pre-norm을 원래 트랜스포머의 post-norm과 혼동하지 않는다.
 
----
+[RMSNorm](https://arxiv.org/abs/1910.07467)은 평균을 빼지 않고 마지막 특징 축의 제곱평균으로 스케일을 조절한다.
 
-## 2. 들어가며
-
-요즘 대규모 언어 모델은 처음 트랜스포머를 넘어 수많은 구조의 새로움을 담고 있다. 이 고침은 핵심 어텐션 구조는 그대로 두면서 학습의 든든함, 계산의 효율, 모델의 능력을 낫게 한다.
-
----
-
-## 3. 고르게 맞추기 변종
-
-### 앞 고르게 맞추기와 뒤 고르게 맞추기
-
-**처음 트랜스포머(뒤 고르게 맞추기)**:
-
-$$\text{output} = \text{LayerNorm}(x + \text{Sublayer}(x))$$
-
-**요즘 대규모 언어 모델(앞 고르게 맞추기)**:
-
-$$\text{output} = x + \text{Sublayer}(\text{LayerNorm}(x))$$
-
-앞 고르게 맞추기는 깊은 모델에서 기울기가 더 잘 흐르게 한다.
-
-### RMSNorm
-
-제곱 평균 제곱근 고르게 맞추기는 평균 빼기를 없앤다:
-
-$$\text{RMSNorm}(x) = \frac{x}{\text{RMS}(x)} \cdot \gamma$$
-
-여기서:
-
-$$\text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^{d} x_i^2}$$
+$$\operatorname{RMSNorm}(x)=\gamma\odot\frac{x}{\sqrt{d^{-1}\sum_i x_i^2+\epsilon}}.$$
 
 ```python
 import torch
@@ -60,19 +29,11 @@ class RMSNorm(nn.Module):
         return x_normed * self.weight
 ```
 
-**좋은 점**: LayerNorm보다 15% 빠르고 성능은 비슷하다.
+현재 구현의 학습 매개변수는 d개의 γ이며 편향은 없다. 평균 0을 보장하는 정규화가 아니고 저정밀 x²의 overflow나 누적 dtype도 검토해야 한다. 단순한 연산이라는 이점은 있지만 ‘항상 15% 빠르다’는 고정 속도 향상은 없다. 실제 커널·dtype·모양에서 비교해야 한다.
 
----
+## 2. SwiGLU와 FFN 폭
 
-## 4. 활성화 함수
-
-### SwiGLU
-
-스위시 활성화를 쓴 게이트가 있는 선형 낱:
-
-$$\text{SwiGLU}(x) = \text{Swish}(xW_1) \otimes (xW_2)$$
-
-여기서 $\text{Swish}(x) = x \cdot \sigma(x)$이고 $\sigma$은 시그모이드다.
+[SwiGLU](https://arxiv.org/abs/2002.05202)는 SiLU를 적용한 사영과 다른 사영을 원소별로 곱하고 출력 사영한다.
 
 ```python
 class SwiGLU(nn.Module):
@@ -93,27 +54,11 @@ class SwiGLU(nn.Module):
         return self.w2(nn.functional.silu(self.w1(x)) * self.w3(x))
 ```
 
-### 순방향 네트워크 비교
+편향을 제외하면 중간 차원 m의 두 행렬 FFN은 2dm개, 세 행렬 SwiGLU는 3dm개다. 공정하게 비교하려면 폭과 전체 매개변수·계산 예산을 맞춘다. m≈8d/3이면 폭 4d의 일반 FFN과 비슷한 가중치 수지만 코드가 m을 256의 배수로 올림하므로 정확한 수는 달라진다. GELU·SwiGLU에 고정된 1%·2% 성능 향상을 붙일 수는 없다.
 
-| 활성화 | 매개변수 | 성능 | 쓰이는 곳 |
-|------------|------------|-------------|---------|
-| ReLU | $2 \cdot d \cdot d_{ff}$ | 밑금 | 맨 처음 트랜스포머 |
-| GELU | $2 \cdot d \cdot d_{ff}$ | +1% | GPT-2, BERT |
-| SwiGLU | $3 \cdot d \cdot d_{ff}$ | +2% | LLaMA, 미스트랄 |
+## 3. RoPE의 회전과 상대 위치
 
----
-
-## 5. 자리 부호
-
-### 돌림 자리 임베딩(RoPE)
-
-RoPE는 복소 공간에서의 돌림으로 자리를 부호화한다:
-
-$$\text{RoPE}(x_m, m) = x_m e^{im\theta}$$
-
-실수 벡터에서는 차원 짝마다 돌림을 쓴다:
-
-$$R_\theta^m = \begin{pmatrix} \cos m\theta & -\sin m\theta \\ \sin m\theta & \cos m\theta \end{pmatrix}$$
+[RoPE](https://arxiv.org/abs/2104.09864)는 Q·K의 차원 쌍을 위치에 따른 각도로 회전한다. 같은 주파수의 회전에 대해 (R_m q)ᵀ(R_n k)=qᵀR_(n−m)k이므로 내적에 상대 위치가 반영된다. 실제 점수는 Q·K의 내용에도 의존한다.
 
 ```python
 class RotaryEmbedding(nn.Module):
@@ -163,17 +108,7 @@ class RotaryEmbedding(nn.Module):
         return rotated.flatten(-2)
 ```
 
-### RoPE의 좋은 점
-
-1. **상대 자리**: 어텐션이 절대 자리가 아니라 $(m - n)$에 달렸다
-2. **밖으로 늘리기**: 절대 임베딩보다 길이에 두루 통한다
-3. **매개변수를 더하지 않음**: 자리를 돌림으로 부호화한다
-
-### 넓힌 맥락: NTK를 헤아린 스케일링
-
-익힐 때보다 긴 차례에서는 기초 잦기의 잣수를 맞춘다:
-
-$$\theta'_i = \theta_i \cdot \alpha^{-2i/d}$$
+회전 차원은 짝수여야 하고 positions는 미리 계산한 표의 유효 인덱스여야 한다. B×L×H×d 같은 head 축이 있으면 cos·sin의 broadcast 축을 명시적으로 맞춰야 한다. 현재 forward는 그 축을 자동 삽입하지 않는다. 위치 표를 계산할 수 있다는 사실만으로 학습 길이 밖 성능이 보장되지는 않는다.
 
 ```python
 def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float = 2.0):
@@ -184,13 +119,11 @@ def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float 
     return inv_freq
 ```
 
----
+ntk_scaled_rope는 base'=base·scale^(d/(d−2))로 주파수를 바꾸는 예다. max_seq_len은 사용하지 않고 d=2이면 분모가 0이다. 유효 d>2와 양의 base·scale이 필요하다. 주파수 재조정은 실제 학습·평가와 함께 검토할 선택이며 단순히 캐시 길이를 늘리는 것과도 다르다.
 
-## 6. 어텐션의 갈래
+## 4. MHA·MQA·GQA
 
-### 다중 질의 어텐션 (MQA)
-
-모든 물음 머리가 키-값 머리 하나를 나눠 쓴다:
+MHA는 각 쿼리 head에 키·값 head를 대응시킨다. MQA는 모든 쿼리가 한 KV head를 공유하고, [GQA](https://arxiv.org/abs/2305.13245)는 그 사이의 개수로 KV head를 공유한다.
 
 ```python
 class MultiQueryAttention(nn.Module):
@@ -224,10 +157,6 @@ class MultiQueryAttention(nn.Module):
         
         return self.o_proj(out.reshape(B, L, -1))
 ```
-
-### 배치 질의 어텐션 (GQA)
-
-여러 머리 어텐션과 여러 물음 어텐션의 사이. 곧 물음 머리 배치가 키-값 머리를 나눠 쓴다:
 
 ```python
 class GroupedQueryAttention(nn.Module):
@@ -274,21 +203,13 @@ class GroupedQueryAttention(nn.Module):
         return self.o_proj(out)
 ```
 
-### 어텐션 비교
+모델 차원 d는 쿼리 head 수 H로 나누어져야 하며 H는 KV head 수 H_kv로 나누어져야 한다. H_kv=H면 MHA, H_kv=1이면 MQA다. 이 코드는 두 어텐션 모두 인과·padding 마스크와 KV cache가 없어 전체 입력을 양방향으로 본다. 그대로 자기회귀 언어 모델에 사용하면 미래 정보가 누출된다.
 
-| 갈래 | 키-값 머리 | KV 캐시 크기 | 좋음 | 쓰이는 곳 |
-|------|----------|---------------|---------|---------|
-| MHA | H | $2 \cdot H \cdot d_h$ | Best | GPT-3 |
-| 묶은 물음 어텐션 | H/G | $2 \cdot H/G \cdot d_h$ | 여러 머리 어텐션에 가깝다 | LLaMA-2 70B |
-| MQA | 1 | $2 \cdot d_h$ | Good | PaLM |
+길이 T·배치 B·층 수 L·head 차원 d_h에서 KV 원소 수는 2LBTH_kv d_h다. 실제 바이트는 dtype당 바이트를 곱한다. MHA 대비 H_kv/H 비율로 저장량을 줄일 수 있지만 GQA 코드의 repeat_interleave는 계산 시 head를 다시 복제한다. 캐시를 작은 head 수로 실제 저장하는 구현과 구분해야 한다. 품질·속도 우열은 학습·실행 조건에 달려 있다.
 
----
+## 5. 슬라이딩 윈도 어텐션
 
-## 7. 미끄러지는 창 주의
-
-### Mistral의 방식
-
-창 크기가 $W$인 가까운 자리 어텐션:
+국소 인과 어텐션은 위치 i에서 가까운 과거와 현재만 보도록 제한한다. [Mistral 7B](https://arxiv.org/abs/2310.06825)는 이런 구조와 GQA를 활용한 모델의 예다.
 
 ```python
 def sliding_window_mask(seq_len: int, window_size: int) -> torch.Tensor:
@@ -332,14 +253,11 @@ class SlidingWindowAttention(nn.Module):
         return self.out(out.reshape(B, L, -1))
 ```
 
-### 좋은 점
+현재 마스크는 i−window_size부터 i까지를 포함하므로 최대 window_size+1개 위치를 허용한다. 허용 위치의 값 1에 −∞ 차단을 더하는 형태라 모든 허용 점수에 공통 1이 추가되지만 소프트맥스에는 영향을 주지 않는다.
 
-- **기억 공간**: O(n²) 대신 O(n·W)
-- **실효 맥락**: 층을 쌓아 여전히 온 차례에 어텐션을 준다
+그러나 scores 자체를 B×H×T×T의 밀집 행렬로 만들므로 이 코드는 O(TW)의 희소 메모리·계산을 달성하지 않는다. 윈도 연산 전용 커널이나 필요한 위치만 구성하는 구현이 있어야 한다. 층 수를 늘리면 정보 경로가 더 멀리 갈 수 있지만 고정 깊이에서 임의 길이 전체 문맥을 항상 참조하는 것은 아니다.
 
----
-
-## 8. 온전한 LLaMA 방식 덩이
+## 6. 블록 연결과 구현 범위
 
 ```python
 class LLaMABlock(nn.Module):
@@ -387,90 +305,73 @@ class LLaMABlock(nn.Module):
         return x
 ```
 
----
+LLaMABlock은 두 pre-norm 잔차 경로와 GQA·SwiGLU의 연결 의도를 보여 준다. 하지만 GroupedQueryAttention.forward는 x 하나만 받는데 이 블록은 h·positions·mask를 넘겨 호출 시 인자 오류가 난다. rope를 선언하지만 Q·K에 적용하는 경로도 없다. 따라서 완성된 인과 LLaMA 블록이 아니다.
 
-## 9. 구조 비교
-
-| 조각 | GPT-3 | LLaMA-2 | Mistral |
-|-----------|-------|---------|---------|
-| 고르게 맞추기 | LayerNorm | RMSNorm | RMSNorm |
-| 고르게 맞추기 자리 | 뒤 | 앞 | 앞 |
-| 활성화 | GELU | SwiGLU | SwiGLU |
-| 자리 | 학습 | RoPE | RoPE |
-| 어텐션 | 여러 머리 어텐션 | 묶은 물음 어텐션 | 미끄러지는 창 + 묶은 물음 어텐션 |
-| 맥락 | 2K/4K | 4K | 8K(미끄러지는 창) |
-
----
-
-## 10. 핵심 통찰
-
-$$\boxed{\text{Modern LLMs} = \text{Transformer} + \text{Pre-Norm} + \text{RoPE} + \text{SwiGLU} + \text{GQA}}$$
-
----
+실제 블록에는 Q·K 회전·유효 마스크·cache와 위치 인덱스, dtype·shape 계약을 일치시켜야 한다. Llama 2도 크기별로 어텐션 구성이 다르므로 계열 전체에 GQA를 일률적으로 표시하지 않는다. 이 페이지는 부품 설명이며 논문의 전체 모델이나 벤치마크를 실행·재현한 결과가 아니다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-GPT, BERT, T5의 구조 차이를 비교하여라. 사전 학습 목표는 어떻게 다른가?
+bias 없는 중간 폭 m의 일반 FFN과 SwiGLU 매개변수 수를 비교하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    | 모델 | 구조 | 사전 학습 목표 | 방향 |
-    |-------|-------------|----------------------|----------------|
-    | **GPT** | 디코더만의 트랜스포머 | 인과 말 나타내기(다음 토막 어림) | 왼쪽에서 오른쪽만 |
-    | **BERT** | 인코더만의 트랜스포머 | 가린 말 나타내기 + 다음 월 어림 | 두 방향 |
-    | **T5** | 인코더-디코더 트랜스포머 | 구간 망가뜨리기(잡음 없애기) | 인코더: 두 방향, 디코더: 왼쪽에서 오른쪽 |
 
-    GPT는 생성에, BERT는 이해와 갈래 매기기에 뛰어나며, T5는 모든 일을 텍스트에서 텍스트로 세워 둘 다 잘한다.
+    일반 FFN은 d→m→d의 두 행렬로 2dm개다. SwiGLU는 두 d→m 사영과 한 m→d 출력으로 3dm개다. 같은 가중치 수를 위해 일반 FFN의 폭 4d에 대해 SwiGLU 폭을 약 8d/3로 둘 수 있지만 코드의 256 배수 올림을 반영해야 실제 수가 나온다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff easy" title="쉬움"></span>
-GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 눈썰미는 무엇인가?
+GQA에서 H=32, H_kv=8일 때 이론적인 KV 저장량과 현재 repeat_interleave의 차이를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    **GPT-1**(매개변수 1억 1700만): 살펴보지 않는 사전 학습과 살펴 배우는 파인튜닝이 여러 일에 통함을 보였다. **GPT-2**(15억): 규모만으로 영 발 성능이 나옴을 보였고 "언어 모델은 살펴보지 않는 여러 일 배우개"라는 눈썰미를 들여왔다. **GPT-3**(1750억): 기울기 고침 없이 몇 발 맥락 안에서 학습하기를 보였고 스케일링 법칙을 세웠다. **GPT-4**(크기 미공개): 여러 갈래(글 + 그림)이며 사람 피드백 강화학습으로 따짐, 시킴 따르기, 안전을 크게 낫게 했다. 핵심 눈썰미: 세대마다 매개변수, 데이터, 계산을 키우면 작은 규모에는 없던 창발적 능력이 나옴을 보였다.
+
+    같은 배치·길이·층·head 차원·dtype에서 작은 KV 캐시의 저장량은 MHA의 8/32=1/4다. 그러나 코드가 계산 전에 KV를 32개 head로 복제하므로 중간 텐서는 커진다. 실제 캐시도 구현하지 않아 저장량 감소를 측정한 결과는 아니다. 어텐션 점수의 T×T 메모리도 별도다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-자기회귀 말 나타내기와 가린 말 나타내기의 차이는 무엇인가? 요즘 대규모 언어 모델은 왜 대부분 자기회귀인가?
+마스크를 국소화한 코드가 곧바로 O(TW) 메모리를 얻지 못하는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    **자기회귀** 모델은 앞선 토막을 모두 보고 다음 토막을 예측한이다. $p(x_t | x_{<t})$이다. **가린** 모델은 가리지 않은 토막을 모두 보고 아무렇게나 가린 토막을 예측한이다. $p(x_t | x_{\setminus t})$이다. 자기회귀 모델이 널리 쓰이는 까닭은 이렇다. (1) 사람이 읽고 쓰는 것과 맞게 왼쪽에서 오른쪽으로 자연스레 글을 만든다. (2) 인과 구조 덕에 추론 때 키-값 갈무리가 잘 든다. (3) 크기 법칙이 자기회귀 목표에 이롭다(크게 키울 때 표본을 더 아낀다). (4) 앞뒤 흐름 속 학습하기와 지시 따르기가 다음 토막 추론에서 더 자연스레 돋아난다.
+
+    먼 위치의 점수를 −∞로 바꾸더라도 이미 T×T 밀집 scores를 만들었다면 할당량은 여전히 이차적이다. 필요한 윈도 위치만 계산·저장하는 구현이 필요하다. 또한 현재 window_size는 과거 위치 수이므로 현재를 포함한 최대 후보 수는 하나 더 많다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-맥락 안에서 학습하기라는 생각을 밝혀라. 왜 놀라우며 한계는 무엇인가?
+현재 LLaMABlock을 인과 언어 모델의 완성 블록으로 볼 수 없는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    맥락 안에서 학습하기(ICL)는 대규모 언어 모델이 기울기를 조금도 고치지 않고 프롬프트에 든 보기에 조건을 걸어 일을 해내는 힘이다. "Translate English to French: sea otter => loutre de mer, cheese => " 같은 프롬프트를 주면 모델이 "fromage"를 올바로 내놓는다. 모델을 옮김에 대놓고 학습된 적이 없는데도 그렇다는 점이 놀랍다. 갖가지 글로 미리 익히는 동안 보기에서 일의 무늬를 미루는 법을 배운 것이다. **한계**: (1) 여러 걸음 따짐이 필요한 복잡한 일에서는 성능이 떨어진다. (2) 보기의 차례와 꼴에 민감하다. (3) 맥락 창의 길이에 매인다. (4) 특화된 일에서는 곱게 다듬은 성능에 못 미친다. (5) 그 구조가 이론으로 온전히 밝혀지지 않았다.
+
+    어텐션 메서드 인자 수가 맞지 않아 호출 오류가 나고 RoPE 모듈도 실제 Q·K에 적용되지 않는다. GQA에는 인과·padding 마스크와 cache가 없다. 선언된 부품 이름만으로 계산 경로와 정보 접근이 구현되었다고 판단할 수 없다. 코드 수정·실행 없이 이 계약을 본문에서 구분한다.
+
+
 
 ## 정리하며
 
-요즘 대규모 언어 모델 구조는 다음을 담고 있다:
-
-1. **RMSNorm**: 평균 빼기 없는 더 빠른 고르게 맞추기
-2. **SwiGLU**: 나타내는 힘을 키우는 게이트가 있는 활성화
-3. **RoPE**: 돌림에 바탕한 상대 자리 부호
-4. **묶은 물음 어텐션/여러 물음 어텐션**: 효율적인 추론을 위해 줄인 KV 캐시
-5. **미끄러지는 창**: 한 줄 복잡도의 어텐션
+정규화·게이트 FFN·RoPE·KV head 공유·국소 어텐션은 서로 다른 구조 선택이다. 매개변수·캐시·밀집 중간 텐서 비용을 구분하고 실제 연결·마스크·차원과 평가로 효과를 확인해야 한다.
 
 **참고 문헌**
 

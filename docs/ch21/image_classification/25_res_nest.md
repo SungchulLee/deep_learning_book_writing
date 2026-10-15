@@ -1,6 +1,6 @@
 # ResNeSt
 
-2020년에 나온 ResNeSt(쪼갠 어텐션 네트워크)는 잔차 덩이 안의 여러 특징 지도 배치에 걸쳐 채널마다 어텐션을 주는 쪼갠 어텐션 덩이를 들여와 ResNet을 넓힌다. SE-Net과 SK-Net에서 실마리를 얻은 ResNeSt는 채널 사이의 주고받음을 더 고운 결로 담아내어, 계산 비용을 크게 늘리지 않고도 이미지 분류, 객체 탐지, 뜻 나누기 같은 일에서 나타냄 학습하기를 낫게 한다.
+ResNeSt는 여러 분기의 특징을 채널별 어텐션으로 결합하는 split-attention 잔차 네트워크다. radix는 결합할 분기의 수이며, 미니배치 크기나 그룹 합성곱의 그룹 수와 다르다. 아래 코드는 기본적인 가중 결합과 잔차를 보여 주는 한 단계의 축약형이다.
 
 ## 1. 코드
 
@@ -113,68 +113,82 @@ Parameters: 424,936
 
 ## 2. 논의
 
-여기 짠 것은 함께 어울려 전체 이미지 가르기 구조를 이루는 클래스 3개(`SplitAttention`, `ResNeStBlock`, `ResNeSt`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정한다.
+### 분기별 특징과 가중합
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
+`SplitAttention(C,R)`의 입력은 N×(RC)×H×W다. 이를 N×R×C×H×W로 나누고 분기를 더한 N×C×H×W에서 전역 평균을 구한다. 축소·확장 1×1 변환으로 RC개의 로짓을 만든 뒤 N×R×C로 바꾸어 radix 축에 softmax를 적용한다.
+
+각 표본·채널에서 R개 가중치의 합은 1이다. 최종 Y_nc=∑ᵣa_nrc X_nrc는 N×C×H×W다. SE의 독립 sigmoid 게이트와 달리 분기 사이에서 정규화한 가중합이며, 공간 위치별로 다른 가중치나 위치 쌍의 셀프 어텐션을 계산하지 않는다.
+
+### 형태와 정규화 조건
+
+C는 분기당 채널 수다. C채널만 입력하고 R로 나누면 풀링 뒤 C/R채널이 되어 fc1의 C입력과 맞지 않는다. RC채널과 view 가능한 메모리 형태를 확인해야 한다. `groups`는 두 1×1의 그룹 수이며 C·중간 폭·RC가 그 그룹 수에 맞아야 한다. radix·groups를 같은 의미로 쓰면 안 된다.
+
+전역 평균 뒤 BN은 N×inter_channels×1×1을 받으므로 학습 모드의 N=1에서는 채널당 통계 표본이 하나여서 문제가 된다. 원 영상의 공간 크기가 커도 이 위치에서는 이미 1×1로 축소되어 있다. R=1이면 코드의 softmax 가중치는 항상 1이다. 이 특수 경우에 sigmoid 게이트를 사용하는 다른 구현과 동일한 기능이라고 가정하지 않는다.
+
+### 잔차 블록과 전체 모델
+
+주 분기는 1×1 뒤 R배 채널을 만드는 그룹 3×3, split-attention, 최종 4배 폭의 1×1을 적용한다. 필요한 경우 지름길도 1×1로 형태를 맞춘다. 본체는 64 기준 폭의 블록 두 개와 분류기만 사용하며 전체 다단계 ResNeSt-50 등의 모델은 아니다.
+
+64×64 RGB 입력은 stem 뒤 32×32, 풀링 뒤 16×16이다. 첫 단계의 최종 폭은 256이고 전역 풀링 후 fc의 256입력과 맞는다. 작은 배치에서의 위 BN 조건과 실제 코드의 순전파 범위를 별도로 확인한다. 기존 실행부는 파라미터 수만 출력한다.
+
+연습의 `YourBlock` 목록은 미완성 반복 골격이다. 블록을 늘리려면 첫 블록과 후속 블록의 확장 폭, stride·투영을 추적해야 한다. 본체 이름이나 연결 수만으로 [원 논문](https://arxiv.org/abs/2004.08955)의 정확도·탐지·분할 성능을 재현했다고 판단하지 않는다. 코드·출력은 실행하지 않고 유지했다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`SplitAttention`의 순방향을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 입력 표본 4개짜리 배치에 대해 주요 연산(합성곱, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+C=64, R=2, 입력 (4,128,16,16)의 split-attention 형태를 추적하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+    분리 뒤 (4,2,64,16,16), 분기 합 뒤 (4,64,16,16), 전역 풀링 뒤 (4,64,1,1)이다. 중간 폭은 max(64×2/4,32)=32이고 fc2는 128채널을 만든다. (4,2,64)의 radix softmax 뒤 가중치를 곱해 분기를 합하면 (4,64,16,16)이 된다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+학습 모드에서 배치 1의 큰 이미지가 전역 풀링 뒤 BN 문제를 해결하는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 출력에 맞춘다. `model = SplitAttention(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+    해결하지 않는다. split-attention의 전역 풀링 뒤 형태는 (1,inter_channels,1,1)이므로 채널별 통계값이 하나다. 앞의 큰 공간은 이 BN에 남아 있지 않다. 배치·정규화 설계와 평가 모드의 통계 사용을 구분해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+radix softmax와 SE의 sigmoid, 위치 쌍 셀프 어텐션을 비교하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    radix softmax는 표본·채널마다 분기 가중치 합을 1로 만들고 특징을 가중합한다. SE는 채널별 독립 게이트를 곱하며 합이 1일 필요가 없다. 둘 다 여기서는 공간 위치 쌍의 n×n 어텐션을 계산하지 않는다. R=1에서 이 코드의 softmax는 항상 1이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `SplitAttention`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
+아래 반복 골격으로 ResNeSt 단계를 만들 때 필요한 입력 폭을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+
+    첫 블록은 이전 단계 폭을 받고 4×기준 폭을 출력한다. 뒤 블록은 그 확장 폭을 입력받아야 하며 필요한 stride·투영과 R배 split-attention 입력을 맞춘다. YourBlock·dim 등이 정의되지 않은 코드이므로 ModuleList만 붙여 완성된 단계나 동적인 SplitAttention이 되지는 않는다.
+
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = SplitAttention(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
 
 ## 정리하며
 
-**다룬 것** — ResNeSt
-
-여기 짠 것은 함께 어울려 전체 이미지 가르기 구조를 이루는 클래스 3개(`SplitAttention`, `ResNeStBlock`, `ResNeSt`)를 정한다.
-
-핵심 갈래는 `SplitAttention`, `ResNeStBlock`, `ResNeSt`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+Split-attention은 분기당 채널과 radix를 구분해 가중합한다. softmax 축, RC입력, 전역 풀링 뒤 BN의 유효 표본 수와 확장 출력 폭을 실제 코드 기준으로 확인한다. 한 단계 예제는 전체 ResNeSt와 다르다.

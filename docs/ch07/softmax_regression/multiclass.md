@@ -1,5 +1,7 @@
 # 다중 클래스 분류
 
+서로 배타적인 여러 클래스의 확률을 범주형 분포로 표현한다. 클래스 인덱스와 원핫·확률 목표의 차이를 수학적 표현과 PyTorch 인터페이스 양쪽에서 확인한다.
+
 ---
 
 ## 1. 학습 목표
@@ -8,7 +10,7 @@
 
 - 베르누이 분포의 일반화로서 범주형 분포 이해하기
 - 다중 클래스 분류의 확률질량함수 유도하기
-- 원-핫 부호화를 구현하고 그 수학적 성질 이해하기
+- 원핫 부호화를 구현하고 그 수학적 성질 이해하기
 - 범주형 분포를 소프트맥스 회귀의 틀과 연결하기
 - 이 개념들을 PyTorch에서 다중 클래스 분류 과제에 적용하기
 
@@ -29,7 +31,7 @@ $$P(Y = y) = p^y (1-p)^{1-y}$$
 
 ### 여러 클래스로 일반화하기
 
-클래스가 $K$개인 다중 클래스 분류에는 **범주형 분포**(**멀티눌리** 또는 **일반화 베르누이** 분포라고도 한다)가 필요하다. $Y \in \{1, 2, \ldots, K\}$을 클래스 레이블라 하고, $\boldsymbol{\pi} = (\pi_1, \pi_2, \ldots, \pi_K)$을 다음을 만족하는 확률 벡터라 하자.
+클래스가 $K$개인 다중 클래스 분류에는 **범주형 분포**(**멀티눌리** 또는 **일반화 베르누이** 분포라고도 한다)가 필요하다. $Y \in \{1, 2, \ldots, K\}$을 클래스 레이블이라 하고, $\boldsymbol{\pi} = (\pi_1, \pi_2, \ldots, \pi_K)$을 다음을 만족하는 확률 벡터라 하자.
 
 $$\pi_k = P(Y = k), \quad \sum_{k=1}^{K} \pi_k = 1, \quad \pi_k \geq 0$$
 
@@ -39,11 +41,11 @@ $$P(Y = k) = \pi_k$$
 
 ---
 
-## 3. 원-핫 부호화: 수학적 토대
+## 3. 원핫 부호화: 수학적 토대
 
 ### 정의와 동기
 
-**원-핫 부호화**는 범주형 레이블 $y \in \{1, 2, \ldots, K\}$을, 정확히 한 원소만 1이고 나머지는 모두 0인 이진 벡터 $\mathbf{y} \in \{0, 1\}^K$으로 바꾼다.
+**원핫 부호화**는 범주형 레이블 $y \in \{1, 2, \ldots, K\}$을, 정확히 한 원소만 1이고 나머지는 모두 0인 이진 벡터 $\mathbf{y} \in \{0, 1\}^K$으로 바꾼다.
 
 $$\mathbf{y} = \mathbf{e}_k = (0, \ldots, 0, \underbrace{1}_{k\text{-th position}}, 0, \ldots, 0)^T$$
 
@@ -55,7 +57,7 @@ $$\mathbf{y} = \mathbf{e}_k = (0, \ldots, 0, \underbrace{1}_{k\text{-th position
 
 ### 수학적 성질
 
-원-핫 벡터는 여러 중요한 성질을 만족한다.
+원핫 벡터는 여러 중요한 성질을 만족한다.
 
 **성질 1 (합이 1).**
 
@@ -77,11 +79,11 @@ $$\mathbf{y}^T \boldsymbol{\pi} = \pi_k \quad \text{when } Y = k$$
 
 ---
 
-## 4. 원-핫 부호화로 나타낸 범주형 분포
+## 4. 원핫 부호화로 나타낸 범주형 분포
 
 ### 간결한 PMF 표현
 
-원-핫 부호화를 쓰면 범주형 PMF를 우아한 곱의 형태로 쓸 수 있다.
+원핫 부호화를 쓰면 범주형 PMF를 우아한 곱의 형태로 쓸 수 있다.
 
 $$P(\mathbf{y} \mid \boldsymbol{\pi}) = \prod_{k=1}^{K} \pi_k^{y_k}$$
 
@@ -91,13 +93,13 @@ $$P(\mathbf{y} \mid \boldsymbol{\pi}) = \prod_{k=1}^{K} \pi_k^{y_k}$$
 
 $$P(\mathbf{y} \mid \boldsymbol{\pi}) = \pi_1^0 \cdot \pi_2^0 \cdots \pi_c^1 \cdots \pi_K^0 = \pi_c \checkmark$$
 
-### 로그가능도
+### 로그우도
 
 PMF에 로그를 취하면 다음과 같다.
 
 $$\log P(\mathbf{y} \mid \boldsymbol{\pi}) = \sum_{k=1}^{K} y_k \log \pi_k$$
 
-독립인 표본 $N$개로 이루어진 데이터셋 $\{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^{N}$에 대해 로그가능도는 다음이 된다.
+독립인 표본 $N$개로 이루어진 데이터셋 $\{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^{N}$에 대해 로그우도는 다음이 된다.
 
 $$\mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \pi_k^{(i)}$$
 
@@ -134,7 +136,7 @@ $$\mathbf{x} \;\xrightarrow{\;\mathbf{W},\, \mathbf{b}\;}\; \mathbf{z} = \mathbf
 
 - $\mathbf{W} \in \mathbb{R}^{K \times D}$은 가중치 행렬이다
 - $\mathbf{b} \in \mathbb{R}^K$은 편향 벡터이다
-- $\mathbf{z} \in \mathbb{R}^K$은 로짓(날것의 점수)이다
+- $\mathbf{z} \in \mathbb{R}^K$은 로짓(확률 변환 전 점수)이다
 - $\hat{\boldsymbol{\pi}} \in \Delta^{K-1}$은 확률 단체 위의 예측 확률이다
 - $\mathcal{L}$은 교차 엔트로피 손실이다
 
@@ -142,7 +144,7 @@ $$\mathbf{x} \;\xrightarrow{\;\mathbf{W},\, \mathbf{b}\;}\; \mathbf{z} = \mathbf
 
 ## 6. PyTorch 구현
 
-### 원-핫 부호 만들기
+### 원핫 부호 만들기
 
 ```python
 import torch
@@ -191,7 +193,7 @@ tensor([[1., 0., 0.],
         [1., 0., 0.]])
 ```
 
-### 원-핫을 직접 구현하기
+### 원핫을 직접 구현하기
 
 ```python
 def one_hot_manual(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
@@ -263,11 +265,11 @@ True class probabilities: tensor([0.7000, 0.6000, 0.5000])
 
 ---
 
-## 7. PyTorch의 CrossEntropyLoss에서 범주형 대 원-핫
+## 7. PyTorch의 CrossEntropyLoss에서 범주형 대 원핫
 
 ### 결정적으로 중요한 구현 세부 사항
 
-PyTorch의 `nn.CrossEntropyLoss`은 원-핫 벡터가 아니라 **클래스 인덱스**를 받는다.
+PyTorch의 `nn.CrossEntropyLoss`는 정수 클래스 인덱스와 실수형 클래스 확률 목표를 모두 지원한다. 일반 배치 분류의 인덱스 모드는 long 정답 $(N,)$를, 확률 목표 모드는 로짓과 같은 $(N,K)$의 실수형 목표를 사용한다. 정수형 원핫 텐서를 그대로 전달하는 것과 올바른 실수형 확률 목표를 구분한다. 자세한 조건은 [공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)를 참고한다.
 
 ```python
 import torch.nn as nn
@@ -296,11 +298,11 @@ labels_onehot = F.one_hot(labels_indices, num_classes=3).float()
 Loss with indices: 0.3854
 ```
 
-### 원-핫 부호화가 필요할 때
+### 원핫 부호화가 필요할 때
 
-다음 경우에는 원-핫 부호화를 명시적으로 쓴다.
+다음 경우에는 원핫 부호화를 명시적으로 쓴다.
 
-1. **레이블 평활화:** 딱딱한 목표 대신 부드러운 목표를 쓸 때
+1. **레이블 스무딩:** 딱딱한 목표 대신 부드러운 목표를 쓸 때
 2. **지식 증류:** 교사 모델의 확률 분포를 맞출 때
 3. **사용자 정의 손실 함수:** 명시적인 확률 목표가 필요할 때
 4. **시각화:** 모델의 예측을 살펴볼 때
@@ -411,7 +413,7 @@ Class counts: [5037 2996 1967]
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff easy" title="쉬움"></span>
-소프트맥스 함수의 야코비 행렬 $\frac{\partial p_i}{\partial z_j}$을 계산하라.
+소프트맥스 함수의 야코비안 행렬 $\frac{\partial p_i}{\partial z_j}$을 계산하라.
 
 </div>
 
@@ -453,25 +455,25 @@ Class counts: [5037 2996 1967]
 | 개념 | 공식 / 설명 |
 |---------|----------------------|
 | 범주형 PMF | $P(Y=k) = \pi_k$ |
-| 원-핫 부호화 | $y_k = \mathbb{1}[Y=k]$ |
+| 원핫 부호화 | $y_k = \mathbb{1}[Y=k]$ |
 | 곱 형태의 PMF | $P(\mathbf{y}\mid\boldsymbol{\pi}) = \prod_k \pi_k^{y_k}$ |
-| 로그가능도 | $\log P(\mathbf{y}\mid\boldsymbol{\pi}) = \sum_k y_k \log \pi_k$ |
+| 로그우도 | $\log P(\mathbf{y}\mid\boldsymbol{\pi}) = \sum_k y_k \log \pi_k$ |
 | 확률 꺼내기 | $\mathbf{y}^T \boldsymbol{\pi} = \pi_{\text{true class}}$ |
 
 ### PyTorch 함수
 
 | 할 일 | PyTorch 함수 |
 |------|------------------|
-| 원-핫 만들기 | `F.one_hot(labels, num_classes)` |
+| 원핫 만들기 | `F.one_hot(labels, num_classes)` |
 | 확률 꺼내기 | `probs.gather(1, labels.unsqueeze(1))` |
 | 범주형에서 샘플링 | `torch.multinomial(probs, n)` |
-| 교차 엔트로피 손실 | `nn.CrossEntropyLoss()` (인덱스를 받는다!) |
+| 교차 엔트로피 손실 | `nn.CrossEntropyLoss()` (인덱스 또는 확률 목표) |
 
 ### 흔히 빠지는 함정
 
 !!! warning "반드시 피해야 할 실수"
 
-    1. **`nn.CrossEntropyLoss`에 원-핫 벡터를 넘기지 마라** — 클래스 인덱스를 받는다
+    1. **목표 모드를 맞춘다** — 인덱스는 long 텐서, 확률·원핫 목표는 로짓과 같은 모양의 실수 텐서를 사용한다
     2. **`nn.CrossEntropyLoss` 앞에서 소프트맥스를 적용하지 마라** — 내부에서 적용된다
     3. **차원의 순서에 유의하라** — PyTorch는 `(classes, batch)`가 아니라 `(batch, classes)`를 쓴다
 

@@ -1,46 +1,42 @@
-# 모델 불가지론적 메타 학습(MAML)
+# MAML: 모델에 독립적인 메타 학습
 
-Finn 외(2017)가 들여온 모델 가리지 않는 메타 학습(MAML)은 거리 기반 방법과 비교하여 퓨샷 학습에 근본부터 다르게 다가간다. 붙박이 임베딩 공간을 배우는 대신, MAML은 기울기 걸음 몇 번만으로 새 과제에 재빨리 맞추어 갈 수 있게 하는 모델 매개변수의 **초기화**를 배운다.
-
-핵심 통찰은 우아하다. 서로 다른 여러 과제의 최적 매개변수에 가까운 처음 매개변수를 찾을 수 있다면, 그 이웃에 있는 어떤 새 과제든 기울기 걸음 몇 번으로 맞추어 갈 수 있다.
-
----
+MAML은 서포트 데이터로 몇 번 갱신한 뒤의 쿼리 성능이 좋아지도록 초기 가중치를 학습한다. Finn 등(2017)이 제안한 방법으로, 특정한 네트워크 구조를 요구하지 않지만 내부 손실을 경사로 최적화할 수 있어야 한다. 과제별 최적점에 단순히 가까운 초기화보다, 적은 갱신으로 적응하기 좋은 초기화를 찾는다는 점이 핵심이다.
 
 ## 1. MAML 알고리즘
 
 ### 문제 정식화
 
-MAML은 과제 위의 분포 $p(\mathcal{T})$을 쓸 수 있다고 놓는다. 과제 $\mathcal{T}_i$마다 손실 함수 $\mathcal{L}_{\mathcal{T}_i}$과 입출력 위 분포에서 뽑은 표본으로 이루어진다. 목표는 새 과제에 재빨리 맞출 수 있는 매개변수 $\theta$을 찾는 것이다.
+과제 분포에서 여러 과제를 추출하고, 각 과제를 서포트와 쿼리로 나눈다. 서포트 손실은 내부 적응에, 쿼리 손실은 초기 가중치의 외부 갱신에 쓴다. 최종 메타 테스트의 쿼리 정답은 학습에 사용하지 않는다.
 
-### 두 층 최적화
+### 이중 수준 최적화
 
-MAML은 최적화 되돌이 두 겹을 쓴다.
+MAML은 최적화 루프 두 겹을 쓴다.
 
-**안쪽 되돌이(과제 맞춤)**:
-받침 집합이 $\mathcal{D}_i^{\text{train}}$인 과제 $\mathcal{T}_i$이 주어지면 매개변수를 맞춘다.
+**내부 루프(과제 맞춤)**:
+서포트 집합이 $\mathcal{D}_i^{\text{train}}$인 과제 $\mathcal{T}_i$이 주어지면 매개변수를 맞춘다.
 
 $$\theta'_i = \theta - \alpha \nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta; \mathcal{D}_i^{\text{train}})$$
 
-**바깥 되돌이(메타 갱신)**:
-맞춘 매개변수가 물음 집합에서 낸 성능으로 초기화를 고친다.
+**외부 루프(메타 갱신)**:
+맞춘 매개변수가 쿼리 집합에서 낸 성능으로 초기화를 고친다.
 
 $$\theta \leftarrow \theta - \beta \nabla_\theta \sum_{\mathcal{T}_i \sim p(\mathcal{T})} \mathcal{L}_{\mathcal{T}_i}(\theta'_i; \mathcal{D}_i^{\text{test}})$$
 
 ### 메타 기울기
 
-핵심 수학 통찰은 맞춘 **뒤**의 손실을 맞추기 **앞**의 매개변수에 대해 최적화한다는 점이다. 그러려면 맞춤 과정을 꿰뚫는 기울기를 셈해야 한다.
+적응 후 쿼리 손실을 적응 전 가중치에 대해 미분한다. 아래 두 식에서는 같은 과제 손실 기호를 사용하지만 내부 경사는 서포트에서, 외부 손실은 쿼리에서 계산한다.
 
 $$\nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta'_i) = \nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta - \alpha \nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta))$$
 
 연쇄 법칙을 쓰면 다음과 같다.
 
-$$\nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta'_i) = \nabla_{\theta'_i} \mathcal{L}_{\mathcal{T}_i}(\theta'_i) \cdot \frac{\partial \theta'_i}{\partial \theta}$$
+$$\nabla_\theta L_{Q_i}(\theta'_i)=\left(\frac{\partial\theta'_i}{\partial\theta}\right)^\top\nabla_{\theta'_i}L_{Q_i}(\theta'_i)$$
 
 여기서 각 기호는 다음과 같다.
 
 $$\frac{\partial \theta'_i}{\partial \theta} = I - \alpha \nabla^2_\theta \mathcal{L}_{\mathcal{T}_i}(\theta)$$
 
-여기에 과제 손실의 **헤세 행렬**이 들어가므로 MAML은 이차 최적화 방법이 된다.
+여기에는 서포트 손실의 헤시안이 포함된다. 자동 미분으로 필요한 헤시안·벡터 곱을 계산할 수 있으므로 전체 헤시안 행렬을 직접 만들 필요는 없다. 2차 미분을 사용한다는 점과 뉴턴법처럼 헤시안의 역행렬로 갱신한다는 것은 다르다.
 
 ---
 
@@ -50,24 +46,24 @@ $$\frac{\partial \theta'_i}{\partial \theta} = I - \alpha \nabla^2_\theta \mathc
 
 안쪽 걸음이 하나일 때 메타 기울기는 다음과 같다.
 
-$$\nabla_\theta \mathcal{L}(\theta'_i) = \nabla_{\theta'_i} \mathcal{L}(\theta'_i) \cdot (I - \alpha H_{\mathcal{T}_i})$$
+$$\nabla_\theta L_{Q_i}(\theta'_i)=(I-\alpha H_{S_i})^\top\nabla_{\theta'_i}L_{Q_i}(\theta'_i)$$
 
-여기서 $H_{\mathcal{T}_i} = \nabla^2_\theta \mathcal{L}_{\mathcal{T}_i}(\theta)$은 헤세 행렬이다.
+여기서 H_S는 적응 전 가중치에서 계산한 서포트 손실의 헤시안이다. 열벡터 경사 규약에 맞춰 야코비안의 전치를 곱한다. 여러 내부 단계에서는 각 갱신의 야코비안을 연쇄적으로 통과한다.
 
 안쪽 걸음이 여럿이면 계산이 더 복잡해지지만, 맞춤 자취를 거슬러 되돌려 퍼뜨린다는 같은 원리를 따른다.
 
-### 일차 어림(FOMAML)
+### 1차 근사 FOMAML
 
-헤세 행렬을 온전히 셈하는 것은 값비싸다. FOMAML은 이차 항을 무시한다.
+FOMAML은 내부 경사의 가중치 의존성을 생략하고 적응 후 쿼리 경사를 초기 가중치에 전달한다. 아래의 근사는 내부 갱신의 야코비안을 단위행렬로 보는 것이다.
 
 $$\nabla_\theta \mathcal{L}(\theta'_i) \approx \nabla_{\theta'_i} \mathcal{L}(\theta'_i)$$
 
 이 어림은 $\frac{\partial \theta'_i}{\partial \theta} \approx I$을 놓는데, 다음일 때 그럴듯하다.
 
 - $\alpha$이 작다
-- 손실 지형이 그 언저리에서 평평하다(헤세 행렬이 작다)
+- 손실 지형이 그 언저리에서 평평하다(헤시안 행렬이 작다)
 
-실험으로 보면 FOMAML은 계산을 크게 줄이고도 온전한 MAML에 거의 맞먹는 성능을 낸다.
+근사의 오차는 내부 학습률과 곡률, 적응 경로에 따라 달라진다. 여러 단계를 누적하면 각 단계의 작은 차이가 커질 수 있으므로 FOMAML과 MAML의 성능 차이는 실제 검증 과제에서 비교한다.
 
 ### Reptile
 
@@ -81,7 +77,9 @@ $$\theta \leftarrow \theta + \epsilon \cdot \frac{1}{n} \sum_{i=1}^n (\theta'_i 
 
 ## 3. PyTorch 구현
 
-### 온전한 MAML 구현
+### MAML 기본 구현
+
+inner_loop는 원래 매개변수의 clone에서 시작한다. clone은 미분 연결을 유지하며, create_graph 설정으로 2차 항의 포함 여부를 정한다. 모델은 외부 매개변수 사전을 실제 forward 연산에 사용해야 한다. ConvMAMLModel은 평가 모드에서도 배치 통계를 직접 계산하므로 쿼리 배치 구성에 결과가 의존할 수 있다.
 
 ```python
 import torch
@@ -391,6 +389,8 @@ class MAML:
 
 ### FOMAML과 Reptile 변형
 
+FOMAML은 first_order=True를 전달한다. 아래 Reptile 코드는 쿼리 정확도 계산 중 원본 모델을 적응 가중치로 덮어쓰고 복원하지 않는다. 다음 과제가 같은 초기화에서 출발하지 않으며 마지막 외부 갱신도 마지막 적응 상태에 더해진다. 따라서 제시한 Reptile 수식을 그대로 구현한 것으로 읽으면 안 된다. 반환 손실 0.0도 측정한 쿼리 손실이 아니다.
+
 ```python
 class FOMAML(MAML):
     """
@@ -495,7 +495,9 @@ class Reptile:
 
 ## 4. 학습 절차
 
-### 완전한 학습 루프
+### 학습 루프의 구조
+
+sample_task는 이 페이지에 정의되어 있지 않다. 데이터셋에서 클래스·표본을 추출하고 로컬 라벨을 생성하는 함수를 따로 제공해야 한다. eval_interval은 이름과 달리 검증을 수행하지 않고 학습 배치 지표만 출력한다. 장치는 옵티마이저 생성 전에 모델에 설정하는 편이 명확하며 MetaSGD의 별도 학습률 텐서도 같은 장치로 이동해야 한다.
 
 ```python
 def train_maml(
@@ -539,13 +541,13 @@ def train_maml(
 
 ### 하이퍼파라미터 설정
 
-| 매개변수 | 흔한 값 | 비고 |
-|-----------|---------------|-------|
-| 안쪽 학습률($\alpha$) | 0.01 ~ 0.1 | 단순한 과제일수록 크게 |
-| 메타 학습률($\beta$) | 0.001 | Adam 최적화기 |
-| 안쪽 걸음 | 1~10 | 학습에는 1~5, 시험에는 더 많이 |
-| 메타 배치 크기 | 2~8 | 갱신마다의 과제 개수 |
-| 학습 되풀이 | 3만~6만 | 모일 때까지 |
+| 설정 | 역할 | 선택 기준 |
+|---|---|---|
+| 내부 학습률 | 서포트 적응의 갱신 크기 | 곡률과 적응 단계 수에 맞춰 검증 |
+| 메타 학습률 | 초기 가중치의 외부 갱신 크기 | 독립적인 검증 과제에서 선택 |
+| 내부 단계 수 | 과제별 적응 예산 | 학습·테스트 조건을 함께 기록 |
+| 메타 배치 크기 | 외부 갱신당 과제 수 | 메모리와 경사 변동을 고려 |
+| 외부 반복 수 | 메타 학습 예산 | 검증 성능으로 종료 시점 선택 |
 
 ---
 
@@ -553,7 +555,7 @@ def train_maml(
 
 ### Meta-SGD
 
-매개변수마다의 학습률을 배운다.
+Meta-SGD는 초기 가중치와 함께 매개변수별 갱신 계수를 학습한다. 계수에 양수 제약이 없으므로 갱신 크기뿐 아니라 방향도 바꿀 수 있다. 이 예제는 계수를 여러 내부 단계에서 공유한다. 다만 상속한 adapt_and_evaluate는 고정 inner_lr를 사용하므로 학습한 계수로 평가하려면 별도의 적응 경로가 필요하다.
 
 ```python
 class MetaSGD(MAML):
@@ -601,9 +603,9 @@ class MetaSGD(MAML):
         return adapted_params
 ```
 
-### ANIL(안쪽 되돌이 거의 없음)
+### ANIL(내부 루프 거의 없음)
 
-마지막 층만 맞춘다.
+ANIL은 내부 루프에서 헤드만 갱신하고 외부 루프에서는 특징 추출기도 학습한다. head_names에는 fc3.weight처럼 정확한 매개변수 이름을 전달한다. 아래 코드는 head_params 사전을 첫 단계에만 만들고 갱신하지 않으므로 여러 내부 단계에서 현재 적응 가중치가 아닌 이전 텐서를 미분하게 된다. 상속한 평가 함수도 모든 매개변수를 적응시키므로 이 예제만으로 일관된 ANIL 학습·평가가 완성되지는 않는다.
 
 ```python
 class ANIL(MAML):
@@ -653,7 +655,7 @@ class ANIL(MAML):
 
 ### 과제 적응 MAML
 
-과제 임베딩에 맞추어 적응을 조건 짓는다.
+아래 TaskAdaptiveMAML은 과제 임베딩으로 갱신 계수를 조절하려는 구조의 시작 부분이다. 기본 MAMLModel과 ConvMAMLModel에는 encoder 속성이 없으며, inner_loop는 lr_scales만 계산하고 적응 매개변수를 반환하지 않는다. 완성된 실행 예제로 사용할 수 없다.
 
 ```python
 class TaskAdaptiveMAML(MAML):
@@ -696,33 +698,23 @@ class TaskAdaptiveMAML(MAML):
 
 ## 6. 이론적 통찰
 
-### 숨은 기울기 내려가기
+### 적응 후 손실을 최적화하기
 
-MAML의 안쪽 되돌이는 다음의 해를 어림하는 것으로 볼 수 있다.
+MAML은 보통의 여러 과제 학습과 달리 각 과제에서 적응한 뒤의 손실을 최적화한다.
 
-$$\theta^*_{\mathcal{T}} = \argmin_\theta \mathcal{L}_{\mathcal{T}}(\theta)$$
+$$\min_\theta\mathbb E_\tau L_{Q_\tau}(U_{S_\tau}(\theta))$$
 
-초기화 $\theta_0$에서 기울기 걸음 몇 번을 밟아서 말이다.
+여기서 U는 정해진 수의 내부 갱신이다. 내부 루프가 과제 손실의 전역 최솟값에 수렴해야 하는 것은 아니다. 제한된 데이터와 갱신 예산에서 좋은 쿼리 성능을 내는 것이 목표다.
 
-### 여러 과제 학습과의 이음
+### 표현력과 실제 성능
 
-MAML은 다음을 최적화한다.
-
-$$\min_\theta \sum_{\mathcal{T}} \mathcal{L}_{\mathcal{T}}(\theta - \alpha \nabla_\theta \mathcal{L}_{\mathcal{T}}(\theta))$$
-
-이는 여러 과제 학습과 이어지지만, 맞춘 뒤에 평가한다는 결정적 차이가 있다.
-
-### 만능 함수 어림
-
-어떤 조건 아래에서는 넉넉한 용량을 가진 MAML이 어떤 학습 알고리즘이든 어림하도록 배울 수 있어 만능 메타 학습기가 된다.
-
----
+충분한 모델 용량과 특정한 조건에서 메타 학습기의 표현력을 분석할 수 있지만, 실제 학습이 임의의 학습 알고리즘을 찾아낸다는 뜻은 아니다. 새로운 과제에 대한 성능은 과제 분포와 모델, 내부 갱신 방식에 따라 평가한다.
 
 ## 7. 실용적인 고려
 
 ### MAML에서의 배치 정규화
 
-안쪽 되돌이에서 흐르는 통계를 고쳐서는 안 되므로 배치 정규화는 MAML에서 까다롭다.
+BatchNorm은 가중치 외에 통계 상태도 다루므로 과제 사이에 어떤 통계를 공유하는지 정해야 한다. 서포트 통계만 사용할지 쿼리 배치 통계도 사용할지에 따라 평가 조건이 달라진다. 아래 속성 변경만으로 이미 만들어진 running_mean과 running_var 버퍼를 제거하지는 않으므로 평가 동작까지 확인해야 한다.
 
 ```python
 # 모든 BatchNorm 층에 track_running_stats=False를 준다
@@ -731,18 +723,18 @@ for module in model.modules():
         module.track_running_stats = False
 ```
 
-### 기울기 자르기
+### 그래디언트 클리핑
 
-이차 계산에서 기울기가 터지지 않게 막는다.
+메타 손실의 backward 후, 외부 optimizer.step 전에 경사 노름을 제한할 수 있다. 아래 호출은 해당 위치에 삽입하는 코드 조각이다. 클리핑은 큰 갱신을 줄이지만 잘못된 미분 경로나 모든 학습 불안정을 해결하지는 않는다.
 
 ```python
 # meta_loss.backward() 뒤에
 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)
 ```
 
-### 기억 효율
+### 메모리 효율
 
-큰 모델에서는 기울기 검사점 두기를 쓴다.
+체크포인팅은 중간 활성값 저장을 줄이는 대신 역전파에서 재계산한다. 아래 조각은 params_flat, unflatten과 adaptation_step의 본문이 없어 완성된 구현이 아니다. 내부에서 autograd.grad를 사용하는 계산에 맞는 체크포인트 방식과 난수·상태 처리도 정해야 한다.
 
 ```python
 from torch.utils.checkpoint import checkpoint
@@ -765,35 +757,37 @@ def inner_loop_checkpointed(self, support_x, support_y, params):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-MAML 갱신 규칙을 끌어내고 안쪽 되돌이와 바깥 되돌이의 몫을 설명하라.
+MAML의 내부 적응과 외부 갱신에서 어떤 데이터를 사용하는가?
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    안쪽 되돌이: 과제 $i$에 맞춘다. 곧 $\theta'_i = \theta - \alpha \nabla_\theta L_i^{\text{support}}(\theta)$이다. 바깥 되돌이: 초기화를 최적화한다. 곧 $\theta \leftarrow \theta - \beta \nabla_\theta \sum_i L_i^{\text{query}}(\theta'_i)$이다. 바깥 기울기는 안쪽 기울기 걸음을 꿰뚫어 미분해야 하므로 이차 도함수가 필요하다.
+    내부 갱신은 각 과제의 서포트 손실로 적응 가중치를 만든다. 외부 갱신은 적응 가중치에서 계산한 쿼리 손실을 원래 초기 가중치에 대해 미분한다. 메타 학습 과제의 쿼리 정답은 외부 학습에 사용하지만 최종 메타 테스트 정답은 평가에만 사용한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-MAML은 왜 이차 기울기가 필요한가? 일차 MAML(FOMAML)은 언제 좋은 어림이 되는가?
+MAML의 2차 미분과 FOMAML 근사를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    바깥 기울기 $\nabla_\theta L(\theta'_i)$은 헤세-벡터 곱인 $\frac{\partial \theta'_i}{\partial \theta} = I - \alpha \nabla^2 L$을 쓴다. FOMAML은 이 항을 버리고 $\nabla_{\theta'} L$을 그대로 쓴다. 안쪽 학습률이 작아 $\theta' \approx \theta$일 때 FOMAML이 잘 굴러가며 계산은 훨씬 싸다.
+    한 단계 내부 갱신의 야코비안은 I−αH_S다. 정확한 메타 경사는 이 야코비안의 전치를 쿼리 경사에 곱하며, 자동 미분으로 헤시안·벡터 곱을 계산할 수 있다. FOMAML은 야코비안을 I로 근사한다. α가 작아도 곡률이 크거나 단계가 많으면 오차가 커질 수 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-`torch.autograd.grad`를 써서 파이토치로 MAML 안쪽 되돌이를 구현하라.
+아래 내부 루프 조각에서 갱신된 params가 실제 모델 예측에 사용되는지 검토하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
+    아래 코드는 params를 새 텐서 목록으로 바꾸지만 model(support_x)는 계속 원래 매개변수를 사용한다. 첫 단계 뒤 새 텐서는 다음 손실 그래프에 사용되지 않아 미분에 실패할 수 있다. 함수형 forward에 갱신된 이름별 매개변수를 전달해야 한다. 한 단계만 수행해도 반환값으로 쿼리 예측을 계산하는 경로가 따로 필요하다.
+
     ```python
     def inner_loop(model, support_x, support_y, inner_lr, inner_steps):
         params = list(model.parameters())
@@ -809,26 +803,16 @@ MAML은 왜 이차 기울기가 필요한가? 일차 MAML(FOMAML)은 언제 좋�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-MAML의 한계는 무엇인가?
+MAML의 계산 비용과 평가에서 주의할 점을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    한계: (1) 값비싸다. 이차 기울기와 안쪽 되돌이 걸음이 여럿 필요하다. (2) 기억을 많이 쓴다. 과제마다 계산 그래프를 담아 두어야 한다. (3) 안쪽 학습률과 걸음 수에 민감하다. (4) 모든 과제가 같은 구조를 나누어 쓴다고 놓는다. (5) 깊은 망에서는 흔들릴 수 있다. Reptile이나 ProtoNet 같은 대안이 이 가운데 일부를 다룬다.
+    내부 갱신 경로를 보존하면 단계 수에 따라 메모리와 계산량이 늘어난다. FOMAML은 2차 경사를 생략하지만 여전히 내부 적응이 필요하다. 서포트·쿼리 분리, 메타 테스트 과제의 독립성, BatchNorm 통계와 평가 적응 방식을 맞춰야 한다.
 
 ## 정리하며
 
-MAML은 퓨샷 학습에 힘 있는 최적화 기반 접근법을 준다.
-
-1. **배우는 법 학습하기**: 재빨리 맞추어 갈 수 있게 하는 초기화를 찾는다
-2. **모델 가리지 않음**: 미분할 수 있는 모델이면 무엇이든 된다
-3. **이론에 뿌리를 둠**: 이차 정보를 쓰는 두 층 최적화
-
-주요 트레이드오프는 다음과 같다.
-
-- 거리 학습보다 두루 쓸 수 있지만 계산이 값비싸다
-- 이차 계산은 어림할 수 있다(FOMAML, Reptile)
-- 배치 정규화를 비롯한 상태를 지닌 연산을 조심스레 다루어야 한다
+MAML은 적응 후 쿼리 손실을 통해 초기 가중치를 학습한다. 내부 갱신의 함수형 계산과 미분 경로가 핵심이며, FOMAML은 그 경로의 2차 항을 근사한다. 이 페이지의 기본 구현과 Reptile·Meta-SGD·ANIL·과제 적응 변형은 완성도가 다르므로 설명한 학습·평가 경로의 한계를 구분한다.
 
 **참고 문헌**
 

@@ -1,8 +1,6 @@
 # 디코더
 
-Seq2Seq 모델을 위한 디코더 모듈. 어텐션이 있는 것과 없는 것 등 여러 디코더 구조를 구현한다.
-
-시퀀스 모델은 시간적이고 순서가 있는 데이터를 다루는 데 기초가 된다. 이 구현은 시퀀스 모델의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
+이전 토큰과 순환 상태로 다음 토큰의 로짓을 계산하는 디코더를 비교한다. BasicDecoder는 상태만, AttentionDecoder는 인코더 위치별 가중합도 사용한다. 가산·내적 어텐션은 점수 함수의 대안이다.
 
 ## 1. 코드
 
@@ -377,68 +375,66 @@ Attention weights shape: torch.Size([32, 20])
 
 ## 2. 논의
 
-이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 시퀀스 모델 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
+한 단계의 토큰 입력은 $(B,1)$의 long ID다. 기본 디코더는 임베딩과 순환층을 거쳐 $(B,V)$의 로짓과 새 상태를 반환한다. LSTM에는 은닉·셀 상태가 모두 필요하고 GRU의 셀 반환값은 None이다. 여러 토큰을 넣으면 squeeze(1)이 시간 축을 제거하지 못하므로 문서화된 한 단계 호출과 구분해야 한다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 시퀀스 처리 과제에 대한 실용적인 직관이 쌓인다.
+AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttention을 호출한다. 문맥은 $(B,1,H_e)$이고 이를 토큰 임베딩과 함께 순환층에 넣는다. 출력층은 새 순환 출력·문맥·임베딩을 이어 붙여 로짓을 만든다. LuongAttention 클래스가 존재해도 기본 AttentionDecoder에 자동으로 사용되는 것은 아니다.
+
+마스크는 유효 위치가 1 또는 True라는 규약이다. 모든 입력 위치가 가려지면 -inf 점수의 소프트맥스에서 NaN이 생길 수 있으므로 빈 입력 처리가 필요하다. Luong dot 점수는 쿼리와 키 특징 차원이 같아야 하고 general은 투영으로 차원을 맞춘다. 무작위 입력의 출력 형태는 번역 품질을 검증하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 초기화를 쓴 `BasicDecoder`의 학습 가능한 매개변수 총수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 세어라.
+어휘 V, 임베딩 E, 은닉 H, 층수 L인 기본 LSTM 디코더의 매개변수를 계산하는 식을 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    임베딩 VE, 첫 순환층 $4H(E+H+2)$, 추가 각 층 $4H(2H+2)$, 출력층 VH+V를 합한다. 총 $VE+4H(E+H+2)+(L-1)4H(2H+2)+VH+V$다. 기본 두 편향을 포함한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-어텐션 가중치 뒤에(값과 곱하기 전에) 드롭아웃 층을 추가하라. 학습 중에는 드롭아웃 비율 0.1을 쓴다. 어텐션 드롭아웃이 정칙화에 도움이 되는 이유를 설명하라.
+어텐션 가중치에 드롭아웃을 적용할 때 마스크·정규화와 평가 모드를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`이다. 어텐션 드롭아웃은 학습 중에 일부 어텐션 가중치를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에 지나치게 기대지 않게 한다. 이는 모델이 어텐션을 더 고르게 분산시키고 더 견고한 표현을 배우도록 북돋우며, 표준 드롭아웃이 뉴런의 공적응을 막는 것과 비슷하다.
+    먼저 유효 위치만 소프트맥스로 정규화하고 그 뒤 드롭아웃을 적용할 수 있다. 학습 중 합이 매번 1인 것은 아니며 유지된 값은 재스케일된다. 평가에서는 드롭아웃을 끈다. 패딩 마스크를 대신하거나 균등한 주의를 보장하는 기법은 아니다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+크로스 어텐션의 입력 길이 S와 출력 길이 T를 셀프 어텐션의 길이와 구분하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    디코더의 각 위치는 S개의 인코더 위치를 참조하므로 가중치 수는 전체 T단계에 대해 TS다. 입력에 대한 셀프 어텐션의 S²와 같지 않다. 시간 비용에는 점수 함수의 차원과 투영, 순환층의 계산도 포함한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 수를 설정할 수 있도록 `BasicDecoder`을 확장하라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 훑는다. (보통의 파이썬 리스트가 아니라) `nn.ModuleList`을 써야 PyTorch가 최적화를 위해 모든 매개변수를 등록한다. `for n in [2, 4, 8]: model = BasicDecoder(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 디코더
-
-이 구현은 클래스 네 개(`BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`)를 정의하며, 이들이 어우러져 완전한 시퀀스 모델 구조를 이룬다.
-
-핵심 클래스는 `BasicDecoder`, `AttentionDecoder`, `BahdanauAttention`, `LuongAttention`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+한 단계 디코더의 토큰·상태 규약을 맞추고 어텐션 마스크가 유효한지 확인한다. 점수 함수를 바꾸는 것과 디코더 전체를 바꾸는 것은 다른 작업이다.

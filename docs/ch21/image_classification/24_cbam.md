@@ -1,8 +1,6 @@
 # CBAM
 
-CBAM은 2018년 논문 "CBAM: Convolutional Block Attention Module"에서 나왔다. 채널 어텐션과 자리 어텐션을 차례로 쓰는 구조이다.
-
-이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 이미지 분류를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 학습 전략을 보여 주는 실전 PyTorch 코드이다.
+CBAM은 채널 어텐션과 공간 어텐션을 순서대로 적용하는 CNN 모듈이다. Woo 외의 ECCV 2018 논문은 특징의 전역 통계에서 채널 게이트를 구하고, 이어서 채널을 요약한 특징에서 공간 게이트를 구한다. 아래 코드는 각 게이트의 형태와 브로드캐스트 연산을 살피는 예제다.
 
 ## 1. 코드
 
@@ -91,68 +89,84 @@ Parameters: 75,146
 
 ## 2. 논의
 
-여기 짠 것은 함께 어울려 전체 이미지 가르기 구조를 이루는 클래스 4개(`ChannelAttention`, `SpatialAttention`, `CBAMBlock`, `CBAM_ResNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정한다.
+### 채널 어텐션
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
+입력 X의 공간 평균과 공간 최댓값을 각각 N×C×1×1로 구한다. 두 요약을 **같은** 축소·확장 MLP에 통과시킨 뒤 합하고 sigmoid를 취해 채널 게이트 M_c(X)를 얻는다. 코드의 `ChannelAttention.forward`는 변환된 특징이 아니라 게이트를 반환하며 `CBAMBlock`이 X′=X⊙M_c(X)를 계산한다.
+
+두 풀링 경로가 MLP 가중치를 공유하므로 매개변수 수를 두 배로 세지 않는다. 축소 폭 m=⌊C/r⌋에서 편향 없는 가중치는 2Cm개다. 양의 r과 유효한 m이 필요하며, 작은 채널에 기본 r을 그대로 사용하는 것은 적절하지 않을 수 있다.
+
+### 공간 어텐션
+
+X′를 채널 축으로 평균·최대 요약해 각각 N×1×H×W를 만든다. 연결한 N×2×H×W에 k×k 합성곱과 sigmoid를 적용해 N×1×H×W의 M_s(X′)를 얻는다. 최종 X″=X′⊙M_s(X′)다. 모든 채널이 같은 공간 게이트를 공유한다.
+
+채널 게이트 뒤의 특징에서 공간 게이트를 계산하므로 순서를 바꾸면 일반적으로 다른 연산이다. sigmoid 게이트는 합이 1인 어텐션 확률이 아니며, n×n 위치 쌍을 비교하는 셀프 어텐션과도 다르다. 게이트를 시각화할 수 있지만 객관적인 설명·인과적 중요도를 자동으로 제공하는 것은 아니다.
+
+### 비용과 형태 조건
+
+공간 합성곱은 편향 없이 2k²개의 가중치를 갖는다. C=64, r=16, k=7이면 채널 MLP는 512개, 공간 합성곱은 98개로 합계 610개다. 하지만 전체 특징의 두 번의 풀링·곱셈과 공간 합성곱 비용도 있어 모듈 비용이 가중치 수 하나로 정해지지는 않는다. 홀수 k에서 padding=k//2가 공간 크기를 유지하며 짝수 k는 같은 형태를 보장하지 않는다.
+
+### 본체의 범위와 확장
+
+`CBAM_ResNet`은 64채널 stem과 풀링 뒤 CBAM 하나를 적용한 분류기다. 이름과 달리 잔차 블록이나 다단계 ResNet backbone은 없다. 입력 64×64에서는 stem 후 32×32, 풀링 후 16×16, CBAM 후 같은 형태이고 전역 풀링 뒤 64차원이다. 현재 fc(64,num_classes)와 맞으며 입력 크기 변경만으로 fc를 공간 크기만큼 바꿀 필요는 없다.
+
+연습의 ModuleList 골격은 `YourBlock` 등이 정의되지 않아 그대로 실행할 수 없다. 추가 블록과 게이트의 삽입 위치, 공유 여부·채널 수를 정하고 forward에서 실제로 호출해야 한다. 채널 게이트만 반복하는 것과 CNN backbone을 깊게 하는 것은 다른 모델이다. 성능은 [원 논문](https://arxiv.org/abs/1807.06521)의 평가와 이 축약 예제를 구분해 해석한다. 코드·출력은 실행하지 않고 보존했다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`ChannelAttention`의 순방향을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 입력 표본 4개짜리 배치에 대해 주요 연산(합성곱, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+(4,64,16,16) 입력에서 채널·공간 게이트의 형태를 추적하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+    공간 평균·최댓값은 각각 (4,64,1,1)이고 공유 MLP는 64→4→64를 적용한다. 합과 sigmoid 뒤 채널 게이트는 (4,64,1,1)이다. 이를 곱한 특징의 채널 평균·최댓값은 각각 (4,1,16,16)이고 연결 뒤 (4,2,16,16), 7×7 합성곱 뒤 공간 게이트는 (4,1,16,16)이다. 최종 특징은 원래 형태를 유지한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+CBAM_ResNet에 64×64 RGB를 입력할 때 fc의 입력 폭을 바꿔야 하는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 출력에 맞춘다. `model = ChannelAttention(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+    아니다. 입력 채널은 이미 3이며 stem과 풀링이 64×16×16 특징을 만든다. CBAM은 그 형태를 유지하고 적응형 풀링은 64차원으로 요약하므로 fc 입력도 64다. ChannelAttention 단독은 게이트를 반환하는 모듈이며 완전한 분류기가 아니다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+C=64, r=16, k=7에서 모듈의 가중치 수와 셀프 어텐션과의 차이를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    공유 채널 MLP는 2×64×4=512개이며 두 풀링 경로 때문에 두 배가 되지 않는다. 공간 합성곱은 2×7²=98개로 총 610개다. CBAM은 요약 통계에서 채널·위치 게이트를 만들고 n×n의 위치 쌍 어텐션을 계산하지 않는다. 활성 연산·메모리 비용은 별도로 포함한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `ChannelAttention`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
+아래 일반 ModuleList 골격을 CBAM 모델에 적용할 때 필요한 설계를 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+
+    정의되지 않은 YourBlock·dim을 구체적인 backbone 블록과 폭으로 바꾸고, CBAM의 삽입 위치·채널·forward 호출 순서를 정해야 한다. ModuleList는 등록 컨테이너이며 실행을 자동 수행하지 않는다. 이 골격은 ChannelAttention의 num_layers 인수를 구현하지도 전체 ResNet을 제공하지도 않는다.
+
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = ChannelAttention(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
 
 ## 정리하며
 
-**다룬 것** — CBAM
-
-여기 짠 것은 함께 어울려 전체 이미지 가르기 구조를 이루는 클래스 4개(`ChannelAttention`, `SpatialAttention`, `CBAMBlock`, `CBAM_ResNet`)를 정한다.
-
-핵심 갈래는 `ChannelAttention`, `SpatialAttention`, `CBAMBlock`, `CBAM_ResNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+CBAM은 공유 MLP의 채널 게이트를 적용한 뒤 공간 게이트를 계산한다. 게이트 반환값과 특징, 두 종류의 풀링 축·브로드캐스트를 구분한다. 작은 가중치 수나 어텐션이라는 이름만으로 성능·설명 가능성을 보장하지 않는다.

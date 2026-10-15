@@ -1,178 +1,45 @@
-# 장 개요
+# 10장: 학습 파이프라인
 
-이 장은 데이터 적재부터 모델 배포까지 PyTorch 학습 파이프라인 전체를 다룬다. 각 절은 중요한 단계 하나씩을 맡는다. 데이터셋과 변환, 데이터 로더, 학습 루프, 손실 함수, 최적화기, 학습률 스케줄러, 과적합 진단, 평가 지표, 하이퍼파라미터 조율, 모델 저장이다. 이들을 합치면 딥러닝 모델을 학습시키고 평가하고 배포하는 처음부터 끝까지의 작업 흐름이 된다.
+이 장에서는 데이터를 읽고 배치로 묶는 단계부터 학습, 검증, 모델 선택과 저장까지 연결한다. 각 구성 요소를 따로 이해하는 것과 함께, 전처리·분할·모드·평가 규약이 전체 과정에서 일관적인지 확인한다.
 
----
+## 1. 정확성과 효율성
 
-## 1. 데이터셋
+[구현의 정확성](foundations/correctness.md)과 [계산 효율](foundations/efficiency.md)을 구분한다. 올바른 구현이 일반화 성능을 보장하지 않고, 점근적 복잡도가 실제 시간을 완전히 설명하지도 않는다.
 
-PyTorch의 Dataset 추상으로 데이터를 불러오고 변환하고 증강하기.
+## 2. 데이터셋과 데이터로더
 
-- 데이터셋 개요 — Dataset과 DataLoader 예제 16개를 담은 튜토리얼 꾸러미
-- Dataset 클래스 — `torch.utils.data.Dataset` 인터페이스와 그 핵심 메서드 두 개
-- 내장 데이터셋 — torchvision, torchaudio, torchtext가 제공하는 바로 쓸 수 있는 데이터셋
-- 사용자 정의 데이터셋 — CSV, 이미지, 분야 특화 형식을 위한 데이터셋 구현하기
-- 데이터 변환 — `torchvision.transforms`과 `Compose`로 만드는 변환 파이프라인
-- 사용자 정의 변환 — 호출 가능한 클래스로 분야 특화 변환 작성하기
-- 증강의 기초 — 정칙화와 불변성 학습을 위한 무작위 변환
+텐서, 이미지 폴더, 좌표 레이블과 순차 데이터에 맞는 인터페이스를 살펴본다. 표본의 대응을 지키고 학습·검증·테스트를 먼저 분리한 뒤 필요한 통계량과 변환을 학습한다.
 
----
+- [TensorDataset](datasets/dataset_from_tensor.md)과 [IterableDataset 안내](datasets/11_iterable_style_minimal.md)
+- [MNIST](datasets/mnist.md), [FashionMNIST](datasets/fashion_mnist.md), [CIFAR-10](datasets/cifar10.md)
+- [얼굴 랜드마크](datasets/face_landmarks.md)와 [Hymenoptera 전이 학습](datasets/hymenoptera.md)
+- [텍스트 증강](datasets/nlp_augmentation.md)과 [약지도 학습](datasets/weak_supervision_snorkel.md)
+- [균형 샘플링](dataloaders/balanced_dataloader.md), [변환](dataloaders/dataloader_transforms.md), [배치 시각화](dataloaders/draw_batch_images.md)
 
-## 2. 데이터로더
+## 3. 학습 루프와 기록
 
-효율적인 학습을 위한 배치 묶기, 섞기, 샘플링, 병렬 적재.
+[MNIST 전체 학습](training/01_complete_mnist_training.md)과 [TensorBoard 기록](training/tensorboard_mnist_commented.md)을 통해 순전파, 손실, 역전파와 갱신을 연결한다. [실전 학습 요령](training/training_recipes.md)에서는 초기 점검, 혼합 정밀도와 메모리·처리량을 다룬다.
 
-- 데이터로더 개요 — 기초부터 분산 학습까지 아우르는 튜토리얼 꾸러미
-- 빠른 시작 — 5분 만에 DataLoader 시작하기
-- 꾸러미 요약 — 튜토리얼 꾸러미의 내용과 구성 훑어보기
-- DataLoader 기초 — 핵심 인터페이스, 매개변수 개관, 기본적인 반복 양식
-- 배치 전략 — 배치 크기가 학습 동역학, 수렴, 일반화에 미치는 영향
-- 섞기와 샘플링 — 표본 순서를 무작위로 하기와 내장 샘플러 쓰기
-- 사용자 정의 샘플러 — 응용에 맞는 전략을 위해 `Sampler` 인터페이스 구현하기
-- 가중 샘플링 — 클래스 불균형을 다루는 `WeightedRandomSampler`
-- 병합 함수 — 길이가 변하거나 중첩된 데이터를 배치로 묶기
-- 다중 프로세스 적재 — `num_workers`으로 데이터 준비를 병렬화하기
-- 메모리 고정 — CPU에서 GPU로의 전송을 빠르게 하는 페이지 고정 메모리
+## 4. 손실과 옵티마이저
 
----
+출력 형식과 목표에 맞는 [손실 선택](loss/loss_selection.md)이 먼저이다. [후버 손실](loss/huber_loss.md), [Focal Loss](loss/focal_loss.md)와 [사용자 정의 손실](loss/01_custom_loss_functions.md)을 살펴보고 각 가정과 집계 방식을 비교한다.
 
-## 3. 학습
+옵티마이저는 손실에서 계산한 경사를 사용해 갱신한다. [모멘텀](optimizers/momentum.md), [네스테로프](optimizers/nesterov.md), [Adagrad](optimizers/adagrad.md), [Adadelta](optimizers/adadelta.md), [RMSprop](optimizers/rmsprop.md), [Adam](optimizers/adam.md), [AdamW](optimizers/adamw.md), [LAMB](optimizers/lamb.md)의 상태와 갱신 차이를 이해한다. 어느 방법의 우열도 학습률과 평가 조건에서 분리해 판단할 수는 없다.
 
-학습 루프, 검증, 기록, 그리고 학습 기법.
+## 5. 학습률과 과적합
 
-- 학습 개요 — TensorBoard 시각화와 함께하는 MNIST 학습 튜토리얼
-- 빠른 시작 — 5분 설치와 첫 학습 실행
-- 학습 루프 — PyTorch의 표준 순전파-역전파-갱신 양식
-- 검증 루프 — 기울기를 계산하지 않고 일반화 성능 평가하기
-- 지표 기록 — 시간에 따른 손실, 정확도, 기울기 통계 남기기
-- TensorBoard — `SummaryWriter`로 하는 대화형 시각화
-- Weights & Biases — 클라우드 기반 실험 기록, 스윕, 협업 대시보드
-- 기울기 자르기 — 기울기 폭발을 막기 위해 기울기의 크기를 제한하기
-- 혼합 정밀도 학습 — 속도와 메모리를 아끼려고 FP32 주 가중치와 함께 FP16/BF16으로 계산하기
-- 재현성 — 난수 시드, 결정적 연산, 그리고 같은 결과를 다시 얻기
+[워밍업](schedulers/lr_warmup.md)과 [순환 학습률](schedulers/cyclical_lr.md)은 갱신의 시간별 스케일을 바꾼다. 호출 단위와 스케줄러 상태를 확인한다. [편향–분산](overfitting/bias_variance_tradeoff.md), [학습 곡선](overfitting/learning_curves_demo.md), [과적합·과소적합](overfitting/overfitting_underfitting_demo.md)을 함께 보며 학습 부족과 일반화 문제를 구분한다.
 
----
+## 6. 평가와 하이퍼파라미터 선택
 
-## 4. 손실 함수
+[분류 지표](evaluation/02_classification_metrics.md), [회귀 지표](evaluation/03_regression_metrics.md)와 [혼동 행렬](evaluation/05_confusion_matrix.md)은 서로 다른 오류를 보여 준다. [교차 검증](evaluation/04_cross_validation.md)과 [통계적 추론](evaluation/statistical_inference.md)에서는 선택 효과와 평가의 불확실성을 고려한다.
 
-3장에서 다룬 기본을 넘어서는 특수한 손실 함수들.
+[격자 탐색](hyperparameters/01_grid_search.md), [무작위 탐색](hyperparameters/02_random_search.md), [베이즈 최적화](hyperparameters/03_bayesian_optimization.md), [연속 반감법](hyperparameters/06_successive_halving.md)의 탐색 비용과 조건을 비교한다. 최종 테스트셋은 탐색에 반복 사용하지 않는다.
 
-- 손실과 최적화기 개요 — 손실 함수, 최적화기, 스케줄링을 다루는 튜토리얼 꾸러미
-- 시작하기 — 설치와 PyTorch 손실 함수 첫걸음
-- 빠른 참조 — 꼭 필요한 임포트와 흔한 손실/최적화기 양식 요약
-- [손실 함수 선택 안내](loss/loss_selection.md) — 과제와 데이터의 성격에 따라 손실 함수를 고르는 체계적인 틀
-- [Focal Loss](loss/focal_loss.md) — 쉬운 예의 비중을 낮추어 어렵고 잘못 분류된 표본에 집중하기
-- [후버 손실](loss/huber_loss.md) — MSE의 정밀함과 MAE의 이상점 견고성을 결합한 매끄러운 L1 손실
-- 힌지 손실 — SVM 방식 분류를 위한 최대 여백 손실
-- 사용자 정의 손실 함수 — 분할, 다중 과제 등에 맞는 분야 특화 목적 함수 설계하기
+## 7. 저장과 배포
 
----
-
-## 5. 최적화기
-
-기본 SGD부터 요즘의 적응형 방법까지 이르는 매개변수 갱신 알고리즘.
-
-- 최적화기 개요 — Adam, RMSprop, Adagrad 구현을 위한 튜토리얼 꾸러미
-- 최적화기 개관 — 최적화 문제, PyTorch 최적화기 인터페이스, 매개변수 배치
-- SGD — 기본 확률적 경사 하강법
-- [모멘텀](optimizers/momentum.md) — 더 빠른 수렴을 위한 지수 감쇠 기울기 평균
-- [네스테로프 가속 경사](optimizers/nesterov.md) — 최적점 근처의 수렴을 개선하는 미리 보기 기울기 계산
-- [Adagrad](optimizers/adagrad.md) — 지난 기울기에 기반한 매개변수별 적응형 학습률
-- [Adadelta](optimizers/adadelta.md) — 처음 학습률 없이도 되는 감쇠 기울기 누적
-- [RMSprop](optimizers/rmsprop.md) — 적응형 학습률을 위한 기울기 제곱의 지수 감쇠 평균
-- [Adam](optimizers/adam.md) — 모멘텀과 적응형 학습률에 편향 보정을 더한 방법
-- [AdamW](optimizers/adamw.md) — 적응형 최적화기에서 제대로 정칙화하기 위한 분리된 가중치 감쇠
-- AMSGrad — Adam의 수렴 문제를 바로잡는 이차 모멘트 최댓값 추적
-- NAdam — Adam의 틀에 네스테로프 모멘텀을 녹여 넣은 방법
-- RAdam — 분산을 살펴 워밍업을 전환하는 교정된 Adam
-- [LAMB](optimizers/lamb.md) — 안정적인 큰 배치 학습을 위한 층별 적응형 학습률
-- L-BFGS — 제한된 메모리로 헤세 역행렬을 근사하는 준뉴턴 방법
-- 최적화기 비교 — 수렴, 메모리, 일반화에 걸친 체계적인 비교
-- 선택 안내 — 최적화기를 고르기 위한 실용적인 판단의 틀
-- 실전 예제 — 이미지 분류와 자연어 처리를 위한 완전히 실행되는 예제
-
----
-
-## 6. 스케줄러
-
-수렴과 최종 모델의 품질을 높이는 학습률 스케줄링 전략.
-
-- 스케줄러 개요 — 스케줄링 구현을 위한 튜토리얼 꾸러미 개관
-- 스케줄러 개관 — 왜 필요한가, 고정 학습률의 딜레마, 스케줄링의 지형
-- 빠른 시작 — 2분 준비와 첫 스케줄러 예제
-- 스케줄러 안내 — 비교표, 판단 나무, 수식을 담은 완전한 안내
-- 통합 안내 — 내장 스케줄러와 사용자 정의 스케줄러를 함께 쓰기
-- Step LR — 일정 간격마다 곱셈으로 줄이기
-- Multi-Step LR — 지정한 에포크 이정표에서 줄이기
-- Exponential LR — 에포크마다 일정한 비율로 줄이기
-- 코사인 어닐링 — 낮은 학습률에 더 오래 머무는 매끄러운 코사인 감쇠
-- 워밍업 전략 — 학습 초반을 안정시키기 위해 학습률을 서서히 올리기
-- ReduceLROnPlateau — 검증 성능이 멈추면 반응하여 줄이기
-- OneCycleLR — 학습률과 모멘텀을 함께 조절하는 Smith의 1cycle 정책
-- 사용자 정의 스케줄러 — 분야에 맞는 정책을 위한 `LambdaLR`과 `LRScheduler` 기반 클래스
-
----
-
-## 7. 과적합과 일반화
-
-편향-분산의 관점에서 과적합을 진단하고 다루기.
-
-- 과적합 개요 — 다항 회귀 시연을 담은 튜토리얼 꾸러미
-- 과적합과 과소적합 — 정의, 증상, 그리고 학습의 두 가지 실패 방식
-- 과적합 탐지 — 학습-검증 간격 분석과 조기 경보 신호
-- 편향-분산 절충 — 모델의 단순함과 유연함 사이의 근본적인 긴장
-- 편향-분산 분해 — 형식적 분해와 편향·분산의 경험적 추정
-- 수학적 유도 — 첫 원리에서 시작하는 엄밀한 단계별 분해 유도
-- 교차 검증 — 튼튼한 일반화 추정을 위한 K겹 교차 검증
-- 학습-검증-시험 분할 — 매개변수 최적화, 선택, 평가를 위한 세 갈래 분할
-
----
-
-## 8. 평가
-
-분류 모델과 회귀 모델의 성능을 수치로 나타내는 지표들.
-
-- 평가 개요 — 핵심 모듈을 갖춘 종합 평가 꾸러미
-- 지표 개관 — 문제의 목표에 맞는 지표 고르기
-- 분류 지표 — 정확도, 정밀도, 재현율, F1, 그리고 문턱값에 따라 달라지는 척도들
-- 회귀 지표 — MSE, MAE, 결정계수, 그리고 이상점 민감도 분석
-- 혼동 행렬 — 예측과 실제 레이블을 표로 정리하기
-- ROC와 AUC — 수신자 조작 특성 곡선과 곡선 아래 넓이
-- 정밀도-재현율 곡선 — 양성이 드문 불균형 데이터셋을 위한 PR 곡선
-- 보정 — 확률의 품질을 재는 기대 보정 오차와 신뢰도 도표
-
----
-
-## 9. 하이퍼파라미터
-
-하이퍼파라미터를 찾고 분석하는 체계적인 방법.
-
-- 하이퍼파라미터 조율 개요 — 조율 기법을 위한 튜토리얼 꾸러미
-- 빠른 시작 — 설치와 첫 하이퍼파라미터 탐색
-- 격자 탐색 — 모든 매개변수 조합을 남김없이 평가하기
-- 무작위 탐색 — 하이퍼파라미터 분포에서 효율적으로 샘플링
-- 베이즈 최적화 — 값비싼 평가를 위해 대리 모델이 이끄는 탐색
-- 학습률 일정 — 학습률 범위 시험과 최적 일정 찾기
-- 중요도 분석 — fANOVA로 어떤 하이퍼파라미터가 가장 중요한지 가려내기
-
----
-
-## 10. 저장과 불러오기
-
-모델 저장, 검사점, 그리고 배포 형식.
-
-- 저장과 불러오기 개요 — 모델 저장과 배포를 위한 완전한 튜토리얼 모음
-- 빠른 시작 — 모델 배포 작업 흐름을 위한 빠른 준비
-- 상태 사전 — 옮겨 쓸 수 있는 모델 저장을 위해 PyTorch가 권하는 직렬화 형식
-- 검사점 저장 — 오래 걸리는 실험을 이어 갈 수 있도록 학습 상태 전체 저장하기
-- ONNX 내보내기 — 실전 배포를 위한 프레임워크 간 모델 형식
-- TorchScript — C++을 비롯한 파이썬 밖의 실행 환경을 위한 모델 직렬화
-- 최적 모델 저장 예제 — Hymenoptera 데이터셋에서 검사점 저장을 갖춘 완전한 학습 파이프라인
-- 모델 배포 개요 — 직렬화, API, 컨테이너화에 이르는 완전한 배포 파이프라인
-- 배포의 기초 — ONNX 변환, 양자화, 추론 최적화 기법
-
----
+[저장과 복원](save_load/01_basic_save_load.md)은 모델 상태와 구조·전처리를 함께 맞추는 작업이다. [ONNX](save_load/04_onnx_export.md), [양자화](save_load/2_quantization.md), [배포 파이프라인](save_load/4_deployment_pipeline.md)에서는 내보낸 결과의 입출력 규약과 수치적 일치를 확인한다.
 
 ## 정리하며
 
-이 마당은 데이터셋, 데이터로더, 학습, 손실 함수를 차례로 짚었다.
+학습 파이프라인은 데이터를 나누는 기준부터 평가와 복원까지 이어진다. 각 예제의 실행 범위와 가정을 읽고, 한 단계의 올바른 동작이 전체 과정의 신뢰성을 자동으로 보장하지 않는다는 점을 기억한다.

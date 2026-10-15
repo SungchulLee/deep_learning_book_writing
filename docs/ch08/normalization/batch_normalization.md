@@ -1,8 +1,6 @@
 # 배치 정규화
 
-배치 정규화의 구현과 예제. 배치 정규화는 배치 차원에 걸쳐 입력을 정규화한다.
-
-정규화 기법을 이해하는 것은 깊은 신경망을 효과적으로 만들고 학습시키는 데 필수적이다. 이 구현은 그 핵심 개념을 PyTorch로 보여주며, 현대적인 구조의 구성 요소를 직접 다뤄 볼 기회를 준다.
+배치 정규화의 NumPy 순전파와 PyTorch MLP·CNN 예제를 살펴본다. 벡터와 이미지에서 통계량을 구하는 축, 학습·평가 모드와 이동 통계량을 구분한다.
 
 ## 1. 코드
 
@@ -324,68 +322,66 @@ Additional Notes:
 
 ## 2. 논의
 
-이 구현은 3개의 클래스(`BatchNorm1dNumPy`, `SimpleNetworkWithBatchNorm`, `ConvNetWithBatchNorm`)를 정의하며, 이들이 함께 작동하여 완전한 정규화 기법 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.
+NumPy 구현은 `(B, C)`의 배치 축에서 평균과 분산을 구하고 특징별 gamma와 beta를 적용한다. 이 클래스는 nn.Module이 아니며, 자동 미분이나 매개변수 갱신을 제공하지 않는 순전파 시연이다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 확장된다. 하이퍼파라미터, 구조의 변형, 여러 데이터셋을 두루 실험해 보면 이해가 깊어지고 학습 최적화 과제에 대한 실용적인 직관이 쌓인다.
+PyTorch BatchNorm1d는 벡터에서 배치 축을, BatchNorm2d는 채널별 배치·공간 축을 함께 사용한다. 기본 설정의 평가에서는 누적된 이동 통계량을 사용하므로 학습과 동작이 다르다.
+
+NumPy 코드의 running_var는 분모 B인 배치 분산을 그대로 누적한다. PyTorch는 학습 출력에는 편향 분산 추정량을 쓰지만 이동 분산 갱신에는 불편추정량을 사용하므로 두 구현의 평가 출력이 항상 일치하지 않는다. [공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html)의 규약을 구분한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`BatchNorm1dNumPy`의 순전파를 따라가며 텐서의 모양을 추적하라. 기본 매개변수로 입력 표본 4개의 배치를 넣었을 때, 주요 연산(합성곱, 풀링, 선형 층)마다 그 뒤의 모양을 적어라.
+NumPy 구현의 `(4, C)` 입력에서 통계량과 출력 모양을 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+    평균과 분산, gamma와 beta는 `(C,)`이고 배치에 브로드캐스팅된다. 출력은 `(4, C)`이며 합성곱이나 풀링은 수행하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+ConvNetWithBatchNorm의 입력을 32×32에서 64×64로 바꾸면 마지막 선형층에 어떤 수정이 필요한가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 번째 합성곱 층의 `in_channels`를 현재 값에서 3으로 바꾼다. 공식 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$을 써서 합성곱 층과 풀링 층마다 공간 차원을 다시 계산한다. 마지막 합성곱/풀링 층의 평탄화된 출력에 맞도록 첫 번째 선형 층의 `in_features`를 고친다. 다음으로 확인한다. `model = BatchNorm1dNumPy(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`.
+    세 합성곱은 크기를 유지하고 세 번의 풀링이 각각 절반으로 줄이므로 32 입력은 4×4, 64 입력은 8×8이 된다. 마지막 선형층 입력은 256×8×8로 바꾸어야 한다. RGB 채널 수는 이미 3이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 입출력 차원에서 표준 합성곱과 깊이별 분리 합성곱의 매개변수 개수와 FLOPs를 비교하라. 계산 절감이 가장 큰 것은 언제인가?
+NumPy 구현과 PyTorch의 이동 분산이 다른 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 `Conv2d(C_in, C_out, k)`은 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개의 매개변수를 갖는다. 깊이별 분리 합성곱은 이를 둘로 나눈다. (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나), (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 합성곱)이다. 매개변수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 매개변수가 약 $8{-}9\times$ 적어진다. 절감은 $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크다.
+    NumPy 구현은 배치 분산을 불편 보정하지 않고 누적한다. PyTorch의 이동 분산에는 불편 보정이 들어간다. 학습 시 정규화 식과 이동 통계량 갱신식을 별도로 비교해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 개수를 설정할 수 있도록 `BatchNorm1dNumPy`를 확장하라. `__init__`에 `num_layers` 매개변수를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 PyTorch 모듈의 깊이 설정을 위한 조각이다. NumPy 클래스는 nn.Module이 아니며 `parameters()`나 PyTorch식 호출 인터페이스를 제공하지 않으므로 그대로 적용할 수 없다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 매개변수를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = BatchNorm1dNumPy(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 배치 정규화
-
-이 구현은 3개의 클래스(`BatchNorm1dNumPy`, `SimpleNetworkWithBatchNorm`, `ConvNetWithBatchNorm`)를 정의하며, 이들이 함께 작동하여 완전한 정규화 기법 구조를 이룬다.
-
-핵심 클래스는 `BatchNorm1dNumPy`, `SimpleNetworkWithBatchNorm`, `ConvNetWithBatchNorm`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+배치 정규화에서는 통계량을 구하는 축과 이동 통계량의 규약이 중요하다. NumPy 순전파 예제와 PyTorch의 자동 미분 모듈을 구분하고 평가 모드의 차이를 확인한다.

@@ -339,7 +339,7 @@ $$
 f_\theta(x) \approx f_{\hat{\theta}}(x) + J_{\hat{\theta}}(x)(\theta - \hat{\theta})
 $$
 
-여기서 $J_{\hat{\theta}}(x) = \nabla_\theta f_\theta(x)|_{\hat{\theta}}$은 야코비 행렬이다.
+여기서 $J_{\hat{\theta}}(x) = \nabla_\theta f_\theta(x)|_{\hat{\theta}}$은 야코비안 행렬이다.
 
 **예측한 분산**:
 

@@ -292,7 +292,7 @@ class MF_bias(nn.Module):
 
 **`nn.Embedding(n, 1)`으로 둔 편향**: 편향은 쓰는 이나 물건마다 스칼라 하나다. 내놓기 차원이 1인 `nn.Embedding`을 쓰면 숨은 인수처럼 이 스칼라를 찾기 표에 담는다. `.squeeze()`이 뒤따르는 차원을 없앤다. `(batch, 1)` → `(batch,)`.
 
-**왜 `nn.Parameter`이 아닌가?** `self.user_bias = nn.Parameter(torch.zeros(num_users))`으로 두고 손으로 번호를 짚어도 *된다*. `nn.Embedding` 쪽이 깔끔한 까닭은 배치 찾기를 저절로 다루고 가장 좋게 하개의 무게 스러짐과 잘 어울리기 때문이다.
+**왜 `nn.Parameter`이 아닌가?** `self.user_bias = nn.Parameter(torch.zeros(num_users))`으로 두고 손으로 번호를 짚어도 *된다*. `nn.Embedding` 쪽이 깔끔한 까닭은 배치 찾기를 저절로 다루고 옵티마이저의 무게 스러짐과 잘 어울리기 때문이다.
 
 **잡 개수**: $(m + n) \times d + (m + n)$. 편향 항은 잡을 $m + n$개만 더한다. 임베딩에 견주면 하찮다.
 

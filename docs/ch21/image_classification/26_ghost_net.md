@@ -1,8 +1,6 @@
 # GhostNet
 
-GhostNet은 2020년 논문 "GhostNet: More Features from Cheap Operations"에서 나왔다. 유령 단원은 매개변수를 덜 쓰고 특징을 더 만들어 낸다.
-
-이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 이미지 분류를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 학습 전략을 보여 주는 실전 PyTorch 코드이다.
+GhostNet은 일부 기본 특징을 표준 합성곱으로 만든 뒤 값싼 변환으로 추가 특징을 생성하는 CNN이다. Ghost 모듈은 모든 출력 채널을 독립적인 표준 합성곱으로 계산하는 대신 기존 특징을 활용한다. 아래 구현에는 ratio=1 경로의 문제가 있어 전체 모델의 완성된 실행 예제로 읽으면 안 된다.
 
 ## 1. 코드
 
@@ -111,68 +109,84 @@ Parameters: 989,680
 
 ## 2. 논의
 
-여기 짠 것은 함께 어울려 전체 이미지 가르기 구조를 이루는 클래스 3개(`GhostModule`, `GhostBottleneck`, `GhostNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정한다.
+### 기본 특징과 추가 특징
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
+`GhostModule`은 출력 폭 O와 ratio=s에서 m=⌊O/s⌋개의 기본 특징을 만들고, 그 특징에 그룹 합성곱을 적용해 O−m개를 더 만든다. 두 결과를 채널로 연결한다. 기본 특징은 공유하지만 서로 다른 변환을 학습할 수 있어 추가 특징이 단순 복사인 것은 아니다. 그렇다고 채널 수가 많아진 만큼 독립적인 정보가 보장되는 것도 아니다.
+
+입력 폭 I, primary 커널 k, cheap 커널 d에서 편향·BN을 제외한 가중치는 Imk²+(O−m)d²다. 두 번째 식은 groups=m이고 출력이 m의 정수배라는 조건을 사용한다. 같은 O출력을 만드는 표준 k×k의 IOk²와 비교할 수 있지만, 실제 비용은 공간 크기·BN·활성화·연결·장치 구현에도 영향을 받는다.
+
+### ratio의 조건과 실제 오류
+
+이 구현에는 ratio를 임의로 바꿔도 유효하도록 하는 채널 올림·슬라이싱 처리가 없다. m>0, O−m>0이고 cheap 출력 O−m이 그룹 수 m의 배수여야 한다. 예를 들어 ratio=2와 짝수 O는 이 조건을 맞추지만 일반 O나 ratio에서는 실패할 수 있다.
+
+`GhostBottleneck.ghost2`는 **ratio=1**을 사용한다. 그러면 m=O, O−m=0이 되어 추가 특징 합성곱과 BN이 0채널을 갖는 경로를 만든다. 정상적인 cheap 연산이 아니며 그대로 유효한 순전파를 수행할 수 없다. ratio=1일 때 추가 경로를 생략하는 등의 별도 처리가 필요하지만 요청에 따라 코드는 유지했다. 기존 파라미터 수 출력이 이 경로의 실행 가능성을 확인한 것은 아니다.
+
+### 병목과 축약 본체
+
+병목은 첫 Ghost 모듈, 필요하면 stride depthwise, 두 번째 Ghost 모듈과 지름길을 합한다. 두 모듈 모두 ReLU를 쓰므로 선형 출력 투영을 사용하는 원 병목과도 구분해야 한다. 본체에는 병목 세 개만 있고 전체 GhostNet의 단계·SE·학습 레시피를 재현하지 않는다.
+
+RGB 64×64 입력은 stem에서 16×32×32가 되고, 의도한 채널 흐름은 16→16→24→24이며 stride2 뒤 공간은 16×16이다. head는 960채널과 전역 풀링을 사용하지만 이 의도된 형태가 ratio=1의 실제 오류를 없애지는 않는다. [원 논문](https://openaccess.thecvf.com/content_CVPR_2020/html/Han_GhostNet_More_Features_From_Cheap_Operations_CVPR_2020_paper.html)의 결과와 예제 골격을 구분한다.
+
+### 깊이 변경
+
+연습의 ModuleList 코드는 정의되지 않은 `YourBlock`을 사용한다. 실제 병목을 반복하려면 입출력 폭·stride·지름길과 ratio의 유효성을 먼저 정해야 한다. ModuleList는 등록과 순회 구조를 제공할 뿐 잘못된 0채널 연산을 고치지 않는다. 코드·출력은 실행하지 않았다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`GhostModule`의 순방향을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 입력 표본 4개짜리 배치에 대해 주요 연산(합성곱, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+입력 (4,16,32,32), O=24, ratio=2인 GhostModule의 형태를 추적하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+    기본 폭 m=12이며 primary 1×1 뒤 (4,12,32,32), cheap depthwise 뒤 같은 형태다. 연결하면 (4,24,32,32)다. BN·ReLU는 채널 폭을 바꾸지 않는다. cheap 출력과 그룹 수의 나눗셈 조건도 맞는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+이 파일의 GhostNet을 64×64 RGB로 순전파할 때 형태 추적만으로 충분한가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 출력에 맞춘다. `model = GhostModule(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+    충분하지 않다. stem·블록·head의 의도된 폭이 맞아도 ghost2가 ratio=1로 0채널 cheap 연산을 구성한다. 입력 공간 크기를 바꾸거나 fc 폭을 맞추는 것으로 이 오류는 해결되지 않는다. 별도 ratio 분기와 연산 유효성을 먼저 검토해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 입출력 차원에서 표준 합성곱과 깊이별 분리 합성곱의 매개변수 개수와 FLOPs를 비교하라. 계산 절감이 가장 큰 것은 언제인가?
+Ghost 모듈과 표준 합성곱의 가중치를 비교하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 `Conv2d(C_in, C_out, k)`은 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개의 매개변수를 갖는다. 깊이별 분리 합성곱은 이를 둘로 나눈다. (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나), (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 합성곱)이다. 매개변수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 매개변수가 약 $8{-}9\times$ 적어진다. 절감은 $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크다.
+    기본 특징 m개와 추가 O−m개를 만들면 편향·BN을 제외한 가중치는 Imk²+(O−m)d²다. 그룹 수 m과 출력의 나눗셈 조건을 가정한다. 표준은 IOk²다. depthwise+pointwise를 순서대로 계산해 전체 출력을 만드는 구조와 달리 기본·추가 특징을 연결하므로 해당 구조의 식을 사용해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `GhostModule`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
+아래 반복 골격을 실제 Ghost 병목으로 확장하기 전에 검토할 조건을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+
+    ratio=1의 0채널 경로, 일반 ratio의 그룹 나눗셈, 병목별 입출력 폭·stride·지름길을 먼저 정해야 한다. YourBlock과 dim 등은 정의되지 않은 표시자이며 반복 컨테이너만 추가한다고 완성된 GhostNet이나 유효한 cheap 연산이 되는 것은 아니다.
+
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = GhostModule(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
 
 ## 정리하며
 
-**다룬 것** — GhostNet
-
-여기 짠 것은 함께 어울려 전체 이미지 가르기 구조를 이루는 클래스 3개(`GhostModule`, `GhostBottleneck`, `GhostNet`)를 정한다.
-
-핵심 갈래는 `GhostModule`, `GhostBottleneck`, `GhostNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+Ghost 모듈은 기본 특징에서 추가 특징을 생성해 연결한다. 비용은 실제 기본 폭과 cheap 변환으로 계산하며, 이 구현의 ratio=1은 0채널 경로를 만들어 별도 처리가 필요하다. 단순 채널 추적과 파라미터 합산이 실행 검증을 대신하지 않는다.

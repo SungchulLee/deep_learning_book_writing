@@ -1,6 +1,6 @@
 # PyramidNet
 
-"Deep Pyramidal Residual Learning for Image Recognition"(2017)에서 나온 PyramidNet은 줄여 뽑는 단계에서 계단처럼 늘리는 흔한 방식 대신, 잔차 덩이를 지나며 특징 지도 차원을 차츰 늘린다. 이 매끄러운 피라미드 넓힘은 나타냄의 짐을 층 사이에 더 고르게 나누어, 넘어가는 지점에서의 앎 손실을 줄이고 익히는 동안 기울기 흐름을 낫게 한다.
+PyramidNet은 잔차 블록을 지날 때마다 채널 폭을 점진적으로 늘리는 CNN이다. Han 외의 CVPR 2017 논문은 단계 경계에서만 폭을 크게 늘리는 구조와 이 방식을 비교했다. 아래 코드는 채널 증가와 zero-padding 지름길의 의도를 보여 주지만, 현재 풀링 조건 때문에 폭이 바뀌는 stride1 블록에서 형태가 맞지 않는다.
 
 ## 1. 코드
 
@@ -89,68 +89,82 @@ Parameters: 1,837,024
 
 ## 2. 논의
 
-여기 짠 것은 함께 어울려 전체 이미지 가르기 구조를 이루는 클래스 2개(`PyramidBasicBlock`, `PyramidNet`)를 정한다. 클래스마다 뚜렷한 조각 하나를 감싸므로 코드가 단원별로 나뉘고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정한다.
+### 채널 폭의 점진적 증가
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
+코드는 n=⌊(depth−2)/6⌋, 총 3n개 basic block을 사용한다. 증가율 Δ=α/(3n)에서 i번째 출력 폭은 round(16+Δ(i+1))이다. 기본 depth=110이면 n=18, 블록은 54개이며 α=48일 때 마지막 폭은 64다. 각 블록에 합성곱 두 개, stem과 분류기를 더하는 6n+2의 깊이 관례다.
+
+블록은 사전 활성화 BN–ReLU를 사용하며 마지막 BN의 출력에 지름길을 더하고 바로 반환한다. 덧셈 뒤 ReLU가 있는 일반 post-activation 블록과 다르다. 부드러운 폭 증가는 설계 선택이지 정보 손실이나 경사 문제를 모든 모델에서 줄인다는 보편적 보장은 아니다.
+
+### 지름길의 채널 패딩과 공간 축소
+
+채널만 늘어나면 기존 입력의 공간 크기를 유지하면서 새 채널을 0으로 채워 지름길을 맞출 수 있다. stride2로 공간을 줄이는 경계에서는 풀링도 필요하다. 학습 가능한 1×1 투영과 달리 추가 채널에 대응하는 지름길의 값은 0이며, 그 새 특징은 주 분기가 만든다.
+
+그러나 이 코드는 **stride≠1 또는 채널 수가 다르면 항상 AvgPool2d(2,2)**를 적용한다. 그래서 채널만 증가하고 stride=1인 블록에서도 지름길 공간이 절반으로 줄어 주 분기와 덧셈할 수 없다. 기본 α=48의 첫 블록도 16→17, stride1이므로 이미 이 문제가 발생한다. 채널을 패딩하는 연산은 공간 불일치를 고치지 못한다.
+
+stride2에서도 홀수 H를 3×3 padding1로 줄이면 ceil(H/2)지만 2×2 평균 풀링은 floor(H/2)이어서 불일치가 생길 수 있다. 채널이 감소하는 설정의 음수 padding을 확대용 zero-padding과 동일하게 해석해서도 안 된다.
+
+### 입력과 매개변수의 조건
+
+입력 RGB 64×64는 stem에서 공간을 유지하고 의도한 두 다운샘플 경계 후 16×16이 된다. 최종 적응형 풀링은 마지막 채널 폭으로 요약하므로 fc 폭을 공간 크기에 맞춰 바꿀 필요는 없다. 다만 이 의도된 흐름은 현재 지름길 오류가 해결되었다는 뜻은 아니다.
+
+유효한 n>0과 depth 관례, 증가 폭과 양의 채널, 경계의 stride를 명시해야 한다. depth가 6n+2가 아니면 정수 나눗셈으로 이름의 깊이와 실제 블록 수가 어긋날 수 있다. 연습의 ModuleList 골격은 폭 증가 일정을 구현하지 않는다. [원 논문](https://openaccess.thecvf.com/content_cvpr_2017/html/Han_Deep_Pyramidal_Residual_CVPR_2017_paper.html)의 결과와 현재 예제의 오류를 구분하며 코드·출력은 실행하지 않고 보존했다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`PyramidBasicBlock`의 순방향을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 입력 표본 4개짜리 배치에 대해 주요 연산(합성곱, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+기본 α=48, depth=110의 첫 블록 형태와 오류를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+    n=18, 증가율은48/54이고 첫 출력은round(16+48/54)=17이다. stride1 주 분기는 H×W를 유지하지만 채널이 다르다는 이유로 지름길은2×2 풀링되어 절반 크기가 된다. 채널 패딩 후에도 공간은 맞지 않아 덧셈이 실패한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+64×64 RGB의 의도된 경로와 실제 코드 검증을 구분하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 출력에 맞춘다. `model = PyramidBasicBlock(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+    stem은 16×64×64를 만들고 의도한 두 stride2 경계 뒤 공간은16×16이다. 전역 풀링 후 마지막 채널 폭을 fc에 전달한다. 하지만 그 이전의 stride1 채널 증가에서 지름길이 잘못 풀링되므로 이 형태 계획만으로 현재 모델이 실행된다고 할 수 없다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 입출력 차원에서 표준 합성곱과 깊이별 분리 합성곱의 매개변수 개수와 FLOPs를 비교하라. 계산 절감이 가장 큰 것은 언제인가?
+채널 zero-padding과 투영 지름길의 차이를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 `Conv2d(C_in, C_out, k)`은 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개의 매개변수를 갖는다. 깊이별 분리 합성곱은 이를 둘로 나눈다. (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나), (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 합성곱)이다. 매개변수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 매개변수가 약 $8{-}9\times$ 적어진다. 절감은 $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크다.
+    zero-padding은 기존 채널을 유지하고 추가 채널을 0으로 채워 학습 가중치를 늘리지 않는다. 투영은 1×1 가중치로 채널을 혼합한다. 어느 쪽이든 주 분기와 공간 크기를 맞춰야 하고, 공간 풀링은 채널 변화와 별도로 stride에 맞춰 적용해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `PyramidBasicBlock`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
+아래 반복 골격으로 PyramidNet을 구성하려면 어떤 값들을 추적해야 하는가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+
+    전체 블록 수, 실수 폭 증가율과 반올림한 입출력 폭, 두 다운샘플 경계, 채널 패딩과 공간 풀링 조건을 추적해야 한다. YourBlock·dim의 일반 목록은 이 일정이나 지름길을 구현하지 않는다. 정수 depth 관례와 양의 채널을 확인하고 forward 순회도 정의해야 한다.
+
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = PyramidBasicBlock(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
 
 ## 정리하며
 
-**다룬 것** — PyramidNet
-
-여기 짠 것은 함께 어울려 전체 이미지 가르기 구조를 이루는 클래스 2개(`PyramidBasicBlock`, `PyramidNet`)를 정한다.
-
-핵심 갈래는 `PyramidBasicBlock`, `PyramidNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+PyramidNet은 채널 폭을 블록마다 점진적으로 늘린다. 채널 패딩과 공간 축소는 다른 연산이며, 이 예제의 조건은 채널만 증가해도 풀링해 덧셈 오류를 만든다. 깊이·반올림·홀수 크기 조건을 함께 확인한다.

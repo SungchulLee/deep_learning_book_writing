@@ -1,192 +1,36 @@
 # 시퀀스 레이블링을 위한 조건부 랜덤 필드
 
----
+선형 사슬 조건부 랜덤 필드(CRF)는 입력 X가 주어졌을 때 레이블 열 Y의 조건부 분포를 모델링한다. 신경 인코더의 위치별 점수와 인접 레이블 전이 점수를 합해 전체 열을 정규화한다. 점수는 실수값의 잠재 함수이며 그 자체가 확률·우도인 것은 아니다. CRF를 붙이는 것만으로 BIO 규칙이 자동 강제되지는 않는다.
 
-## 1. 학습 목표
+## 1. 시퀀스 점수와 전이 방향
 
-이 절을 마치면 다음을 할 수 있게 된다.
+길이 n의 입력에서 K개 태그의 emission E∈R^(n×K), 전이 A를 두자. 이 절의 수식에서는 **A[a,b]를 이전 a→다음 b**의 점수로 정의한다. 시작 s·종료 e를 포함하면 다음과 같다.
 
-- 선형 사슬 CRF의 수학적 세우기를 이끌어 낸다
-- CRF와 신경 차례 모델의 관계를 이해한다
-- 효율적인 순방향 알고리즘으로 PyTorch에 CRF 층을 짠다
-- 음의 로그 우도 손실로 CRF 모델을 학습된이다
-- 가장 좋은 차례 어림을 위해 비터비 풀기를 한다
-- CRF 층을 양방향 LSTM 및 트랜스포머 구조와 아우른다
+$$S(X,Y)=s_{y_1}+\sum_{i=1}^{n}E_{i,y_i}
++\sum_{i=2}^{n}A_{y_{i-1},y_i}+e_{y_n}.$$
 
----
+$$p(Y\mid X)=\exp[S(X,Y)-\log Z(X)],\qquad
+Z(X)=\sum_{Y'\in\mathcal Y(X)}\exp S(X,Y').$$
 
-## 2. 들어가며
+전이만 이웃 레이블을 연결하더라도 E는 전체 입력 X를 보는 BiLSTM·트랜스포머에서 만들 수 있다. 유효 태그 열 집합에 제한을 두려면 시작·종료·전이 제약을 일관되게 적용한다. 학습용 정답은 같은 집합 안에 있어야 한다.
 
-조건부 마구잡이 밭(CRF)은 이음에 이름 붙이기를 위한 가려내는 확률 모델로, 조건부 확률 $P(\mathbf{Y}|\mathbf{X})$을 곧바로 모델로 삼는다. 토막마다 따로 가르는 분류기와 달리 CRF은 이웃한 레이블 사이의 매임을 담으므로, 레이블 넘어감이 정해진 무늬를 따르는 개체명 알아내기에 특히 잘 듣는다(보기로 I-PER은 B-PER이나 I-PER 뒤에만 올 수 있다).
+## 2. 순방향 알고리즘과 로그우도
 
----
+모든 K^n개 열을 열거하는 대신, i위치의 b로 끝나는 부분 열들의 로그합 α_i(b)를 계산한다.
 
-## 3. 수학적 기초
+$$\alpha_1(b)=s_b+E_{1,b},$$
 
-### 문제의 구조
+$$\alpha_i(b)=E_{i,b}+\operatorname{logsumexp}_{a}[\alpha_{i-1}(a)+A_{a,b}],$$
 
-다음이 주어졌다고 하자.
+$$\log Z(X)=\operatorname{logsumexp}_{b}[\alpha_n(b)+e_b].$$
 
-- 입력 이음: $\mathbf{X} = (x_1, x_2, \ldots, x_n)$
-- 출력 레이블: $\mathbf{Y} = (y_1, y_2, \ldots, y_n)$
-- Label set: $\mathcal{L} = \{l_1, l_2, \ldots, l_k\}$
+logsumexp는 큰 값의 지수 overflow 등을 피하도록 안정적으로 계산한다. 전체 경로가 금지된 경우처럼 모든 입력이−∞이면 별도의 유효 경로 처리가 필요하다. 복잡도는 O(nK²)이고 순방향 값만 갱신하면 O(K) 상태를 유지할 수 있다. 실제 배치·자동미분 중간 텐서·Viterbi 역추적 저장량은 따로 계산한다.
 
-### 선형 사슬 CRF 모델
+정답 Y*의 음의 로그우도는 L=log Z−S(X,Y*)다. 제약과 점수가 같은 정상화된 분포이면0이상이다. emission 경사는 주변확률−정답 지시값이며 전이 경사는 해당 전이의 기대 횟수−관측 횟수다. 전체 시퀀스 손실의 평균과 토큰 수로 나누는 평균은 서로 다른 가중 방식이다.
 
-조건부 확률을 다음과 같이 정한다:
+## 3. Viterbi와 코드의 방향 불일치
 
-$$
-P(\mathbf{Y}|\mathbf{X}) = \frac{1}{Z(\mathbf{X})} \exp\left(\sum_{i=1}^{n} s(y_i, \mathbf{X}, i) + \sum_{i=1}^{n} t(y_{i-1}, y_i)\right)
-$$
-
-여기서:
-
-- $s(y_i, \mathbf{X}, i)$: **내보냄 점수** - 입력이 주어졌을 때 자리 $i$에 레이블 $y_i$이 올 우도
-- $t(y_{i-1}, y_i)$: **넘어감 점수** - $y_{i-1}$에서 $y_i$으로 넘어갈 우도
-- $Z(\mathbf{X})$: **나눔 함수** - 잣대를 맞추는 상수
-
-### 점수 함수
-
-차례의 전체 점수는 다음과 같다:
-
-$$
-\text{Score}(\mathbf{X}, \mathbf{Y}) = \sum_{i=1}^{n} E_{y_i, i} + \sum_{i=1}^{n} T_{y_{i-1}, y_i}
-$$
-
-여기서:
-
-- $\mathbf{E} \in \mathbb{R}^{n \times k}$: 신경 인코더에서 나온 내보냄 행렬
-- $\mathbf{T} \in \mathbb{R}^{k \times k}$: 넘어감 행렬(배울 수 있는 매개변수)
-
-### 분배 함수
-
-나눔 함수는 가능한 모든 레이블 차례에 걸쳐 더한다:
-
-$$
-Z(\mathbf{X}) = \sum_{\mathbf{Y}' \in \mathcal{L}^n} \exp\left(\text{Score}(\mathbf{X}, \mathbf{Y}')\right)
-$$
-
-곧바로 셈하면 $O(k^n)$이라 감당할 수 없다. 그래서 **앞으로 가는 알고리즘**을 쓴다.
-
-### 순방향 알고리즘
-
-순방향 변수를 정한다:
-
-$$
-\alpha_i(y) = \sum_{\mathbf{Y}_{1:i-1}} \exp\left(\sum_{j=1}^{i} E_{y_j, j} + \sum_{j=2}^{i} T_{y_{j-1}, y_j}\right)
-$$
-
-이는 자리 $i$에서 레이블 $y$으로 끝나는 모든 부분 차례의 점수 합을 나타낸다.
-
-**되돌이 관계식**:
-
-$$
-\alpha_1(y) = \exp(E_{y,1} + T_{\text{START}, y})
-$$
-
-$$
-\alpha_i(y) = \sum_{y' \in \mathcal{L}} \alpha_{i-1}(y') \cdot \exp(T_{y', y} + E_{y, i})
-$$
-
-**나눔 함수**:
-
-$$
-Z(\mathbf{X}) = \sum_{y \in \mathcal{L}} \alpha_n(y) \cdot \exp(T_{y, \text{END}})
-$$
-
-**복잡도**: $O(n \cdot k^2)$이며 이음 길이에는 선형, 레이블 수에는 이차다.
-
-### 로그 공간에서 계산
-
-수치를 든든히 하려고 로그 자리에서 계산한다:
-
-$$
-\log \alpha_i(y) = \text{logsumexp}_{y'}\left(\log \alpha_{i-1}(y') + T_{y', y}\right) + E_{y, i}
-$$
-
-여기서:
-
-$$
-\text{logsumexp}(a_1, \ldots, a_m) = \log\left(\sum_{j=1}^{m} \exp(a_j)\right)
-$$
-
----
-
-## 4. 손실 함수
-
-### 음의 로그 우도
-
-학습 목표는 음의 로그 우도를 가장 작게 하는 것이다:
-
-$$
-\mathcal{L} = -\log P(\mathbf{Y}^*|\mathbf{X}) = -\text{Score}(\mathbf{X}, \mathbf{Y}^*) + \log Z(\mathbf{X})
-$$
-
-여기서 $\mathbf{Y}^*$은 참값 이음이다.
-
-### 기울기 계산
-
-내보냄 점수에 대한 기울기:
-
-$$
-\frac{\partial \mathcal{L}}{\partial E_{y,i}} = P(y_i = y | \mathbf{X}) - \mathbb{1}[y_i^* = y]
-$$
-
-넘어가기 점수에 대한 기울기:
-
-$$
-\frac{\partial \mathcal{L}}{\partial T_{y', y}} = \sum_{i=2}^{n} P(y_{i-1} = y', y_i = y | \mathbf{X}) - \sum_{i=2}^{n} \mathbb{1}[y_{i-1}^* = y', y_i^* = y]
-$$
-
----
-
-## 5. 비터비 풀기
-
-추론 때에는 가장 그럴듯한 차례를 찾는다:
-
-$$
-\mathbf{Y}^* = \arg\max_{\mathbf{Y}} P(\mathbf{Y}|\mathbf{X}) = \arg\max_{\mathbf{Y}} \text{Score}(\mathbf{X}, \mathbf{Y})
-$$
-
-### 비터비 알고리즘
-
-다음과 같이 정한다:
-
-$$
-v_i(y) = \max_{\mathbf{Y}_{1:i-1}} \text{Score}(\mathbf{X}_{1:i}, \mathbf{Y}_{1:i-1}, y)
-$$
-
-**되돌이**:
-
-$$
-v_1(y) = E_{y,1} + T_{\text{START}, y}
-$$
-
-$$
-v_i(y) = \max_{y' \in \mathcal{L}}\left(v_{i-1}(y') + T_{y', y}\right) + E_{y, i}
-$$
-
-**뒤 마스크**:
-
-$$
-b_i(y) = \arg\max_{y' \in \mathcal{L}}\left(v_{i-1}(y') + T_{y', y}\right)
-$$
-
-**되짚기**:
-
-$$
-y_n^* = \arg\max_{y}\left(v_n(y) + T_{y, \text{END}}\right)
-$$
-
-$$
-y_i^* = b_{i+1}(y_{i+1}^*) \quad \text{for } i = n-1, \ldots, 1
-$$
-
----
-
-## 6. PyTorch 구현
-
-### CRF 층 단원
+Viterbi는 logsumexp 대신 max를 쓰고 최적 이전 태그를 저장한다. 마지막 종료 점수를 더해 끝 태그를 선택하고 역추적한다. 시퀀스의 최적 경로와 위치별 주변확률의 argmax는 일반적으로 같지 않다.
 
 ```python
 import torch
@@ -473,7 +317,13 @@ class CRF(nn.Module):
         return best_tags_list
 ```
 
-### 양방향 LSTM-CRF 모델
+위 코드에는 중요한 전이 방향 불일치가 있다. `_compute_score`의 정답 점수는 `transitions[next,prev]`를 쓰지만 partition·Viterbi는 `transitions[prev,next]`로 계산한다. 비대칭 전이에서는 정답 점수와 정규화가 **다른 모델**이므로 반환값이 올바른 CRF 음의 로그우도가 아니며 음수가 될 수도 있다. 전이 방향을 한 관례로 통일하기 전에는 이 구현이 정상적인 CRF 학습·추론을 수행한다고 설명할 수 없다.
+
+기본 입력은 B×L×K emission, B×L 태그·bool mask다. batch_first=False일 때 시간·배치 축을 바꾼다. 첫 위치가 유효하고 적어도1토큰이며 mask는 오른쪽 패딩 형태의 연속 prefix라고 가정한다. 첫 위치는 mask를 확인하지 않고 사용하고, 마지막 태그도 mask 합−1로 고르므로 빈 열·중간이 비는 mask에는 맞지 않는다.
+
+패딩 태그도0~K−1의 유효 ID여야 한다. gather·전이 인덱싱 후 mask를 곱하므로−100 같은 CE ignore_index를 그대로 넣으면 안 된다. `pad_tag_id`는 저장만 하고 mask 생성·태그 제외에 사용하지 않는다. 입력 길이·태그 범위 검증도 별도로 필요하다.
+
+## 4. BiLSTM과 트랜스포머 연결
 
 ```python
 class BiLSTMCRF(nn.Module):
@@ -599,7 +449,9 @@ class BiLSTMCRF(nn.Module):
         return self.crf.decode(emissions, mask=mask)
 ```
 
-### 트랜스포머-CRF 모델
+BiLSTMCRF는 embedding·양방향 LSTM·선형 emission·CRF를 연결한다. hidden_dim//2를 방향별 크기로 쓰고 선형 입력은 hidden_dim이므로 hidden_dim은 짝수여야 한다. packed sequence는 양의 유효 길이와 오른쪽 패딩을 가정한다. unpack 때 total_length를 지정하지 않아 출력은 배치의 최대 유효 길이로 줄어들 수 있다. 입력 전체 패딩 길이를 유지한다고 가정하지 말고 emission·목표·mask의 대응을 명시한다.
+
+predict는 eval·no_grad를 자체 적용하지 않는다. 추론 호출자가 모드와 경사 추적을 정해야 dropout과 메모리 사용을 제어할 수 있다. CRF의 mask와 LSTM의 packing, embedding의 padding_idx는 서로 다른 기능이다.
 
 ```python
 from transformers import AutoModel
@@ -668,11 +520,11 @@ class TransformerCRF(nn.Module):
         return self.crf.decode(emissions, mask=attention_mask.bool())
 ```
 
----
+TransformerCRF는 사전 학습 인코더의 각 토큰 특징에서 태그 점수를 만든다. 특수 토큰·서브워드 목표를 실제 CRF 태그 열에 어떻게 정렬할지 정해야 한다. Transformer의 attention_mask를 그대로 CRF mask로 쓰면 `[CLS]`·`[SEP]`도 보통 유효 위치가 된다. 뒤 서브워드를−100으로 무시하는 CE 관례를 이 CRF에 그대로 쓸 수 없다. 유효 단어를 모아 연속 열로 만들거나 그에 맞는 별도 설계가 필요하다.
 
-## 7. 넘어가기 제약
+freeze_encoder는 인코더 매개변수의 경사를 끌 뿐 model.train()에서 dropout을 자동 고정하지는 않는다. 사전 학습 토큰화·입력과 학습하려는 태그 집합의 계약을 함께 확인한다.
 
-### IOB2 제약 쓰기
+## 5. IOB2 제약의 적용
 
 ```python
 def apply_iob2_constraints(
@@ -714,9 +566,11 @@ def apply_iob2_constraints(
                 crf.start_transitions.data[i] = penalty
 ```
 
----
+이 함수는 `transitions[next,prev]` 관례로 금지 전이·시작 점수를−10000으로 **한 번 대입**한다. partition·Viterbi의 반대 관례와도 맞지 않는다. 또한 유한 벌점은 경로를 수학적으로 제거하지 않으며 optimizer가 이후 값을 바꿀 수 있다. 매 순전파에서 적용하는 고정 마스크 등 지속적인 제약과 구분한다.
 
-## 8. 학습 되풀이
+진짜−∞를 적용하는 설계에서도 금지 점수×패딩0은NaN이 될 수 있으므로 mask 처리와 수치 연산 순서를 검토해야 한다. 학습 정규화·정답 점수·디코딩에서 같은 경로 집합을 쓰는 것이 핵심이다. IOB2의 종료에는 O·B·I가 가능하고 시작에는 I를 허용하지 않는다.
+
+## 6. 학습 루프의 인수·평가 계약
 
 ```python
 def train_ner_model(
@@ -798,109 +652,75 @@ def train_ner_model(
     return best_f1
 ```
 
----
+루프의 `model(input_ids,labels,attention_mask)`는 BiLSTMCRF의 인수 순서다. TransformerCRF는 `(input_ids,attention_mask,labels)`라 같은 호출을 쓰면 두 텐서가 뒤바뀐다. 키워드 인수나 공통 인터페이스가 필요하며 모델 자체의 장치도 호출 전에 맞춰야 한다.
 
-## 9. 계산에 대한 고려
+scheduler는 배치마다 인수 없이 step하므로 배치 단위 정책을 가정한다. epoch 단위나 검증 지표를 요구하는 스케줄러와 그대로 호환되는 범용 루프는 아니다. 출력 손실도 단순 배치 평균이어서 마지막 작은 배치가 다른 가중을 받을 수 있다.
 
-### 시간 복잡도
-
-| 연산 | 복잡도 |
-|-----------|------------|
-| 앞으로 가기(나눔 함수) | $O(n \cdot k^2)$ |
-| 비터비 풀기 | $O(n \cdot k^2)$ |
-| 뒤로 걸음 | $O(n \cdot k^2)$ |
-
-여기서 $n$은 차례의 길이, $k$은 레이블의 개수이다.
-
-### 기억 공간에서 헤아릴 점
-
-- 넘어감 행렬: 매개변수 $O(k^2)$개
-- 앞으로 가는 변수: 이음마다 $O(n \cdot k)$
-- 비터비를 위한 되짚는 마스크: $O(n \cdot k)$
-
-### 배치 계산
-
-위에 짠 것은 효율을 위해 배치 계산을 받쳐 준다:
-
-- 배치 차원에 걸친 벡터 연산
-- 길이가 들쭉날쭉한 차례를 위한 가림 계산
-- GPU로 빨라진 행렬 연산
-
----
+`compute_entity_f1`은 정의되어 있지 않다. 태그 ID를 문자열·span으로 바꾸는 매핑, 특수·패딩 위치와 무효 태그 정책을 포함한 정확 span 평가가 별도로 필요하다. best_f1이0에서 시작하므로 개선이 없으면 파일을 저장하지 않고, 저장한 최고 모델을 끝에 복원하지도 않는다. 검증을 재사용한 최고 점수와 독립 시험 성능을 구분한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-BIO 레이블 방식을 설명하여라. 월 "Barack Obama visited New York City"에 레이블을 어떻게 붙이겠는가?
+이 코드에서 CRF NLL이 올바른 정규화 확률의 손실이 아닐 수 있는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    BIO 레이블에서 **B-X**는 갈래 X인 것의 시작을, **I-X**는 것의 안쪽(이어짐)을, **O**는 어느 것에도 들지 않는 토막을 나타낸다.
 
-    | 토막 | 레이블 |
-    |-------|-----|
-    | Barack | B-PER |
-    | Obama | I-PER |
-    | visited | O |
-    | New | B-LOC |
-    | York | I-LOC |
-    | City | I-LOC |
+    정답 점수는 전이 [next,prev], partition과 Viterbi는 [prev,next]를 쓴다. 비대칭 전이에서 같은 점수 함수를 사용하지 않아 log Z−정답 점수가 정상화된 −log 확률이 아니다. 모든 경로의 전이 관례를 통일해야 한다.
 
-    B 레이블은 같은 갈래의 것이 잇달아 나올 때(보기로 "Obama Trump"를 서로 다른 PER 둘로) 가리는 데 꼭 필요하다.
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-시퀀스 레이블링에서 자리마다 따로 소프트맥스로 갈래를 매기는 대신 양방향 LSTM 위에 CRF 층을 얹는 까닭은 무엇인가?
+−100 패딩 태그와 중간에 False가 있는 mask를 그대로 사용할 수 있는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    자리마다 따로 소프트맥스를 쓰면 레이블을 서로 아랑곳없이 다루어 넘어감의 매임을 버린다. 보기로 O 뒤에 I-PER을 미루어 볼 수 있는데, BIO 이름 붙이기에서는 옳지 않다. CRF 켜는 레이블 이음 전체의 함께 확률을 모델로 삼아, 어떤 레이블 넘어감이 옳은지 담는 넘어감 행렬 $A_{ij}$을 배운다. 이음의 CRF 점수는 $s(x, y) = \sum_t (E_{y_t, t} + A_{y_t, y_{t+1}})$이며 $E$은 양방향 LSTM에서 나온 내보냄 점수다. 이러면 비터비 풀기로 두루 앞뒤가 맞는 추론을 얻는다.
+
+    gather·전이 인덱싱을 마스크보다 먼저 하므로 −100 태그는 맞지 않는다. 유효 ID를 채우고 오른쪽 연속 prefix 마스크를 사용해야 하며 첫 위치도 유효해야 한다. 빈 시퀀스는 별도 계약이 필요하다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-것 수준에서의 개체명 인식 평가에 쓰는 정밀도, 재현율, F1 점수를 설명하여라. 것 수준 평가가 토막 수준보다 왜 더 빡빡한가?
+apply_iob2_constraints의 유한 점수 대입은 영구적인 강제 제약인가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    **개체 수준** 따지기는 개체의 테두리와 갈래가 모두 딱 맞아야 한다. 정밀도 = (옳게 예측한 개체) / (예측한 개체 모두). 재현율 = (옳게 예측한 개체) / (참 개체 모두). $F_1 = 2 \cdot \frac{P \cdot R}{P + R}$이다. 이는 토막 수준보다 깐깐하다. 참 개체가 "New York City"인데 "New York"으로 미루어 보면 토막 수준에서는 반쯤 점수를 받지만(토막 3개 가운데 2개가 맞다) 개체 수준에서는 0점이다(테두리가 어긋난다). 개체 수준의 자가 참 세상의 쓸모를 더 잘 비춘다.
+
+    아니다. −10000은 유한값이고 학습 가능한 가중치라 갱신될 수 있다. 코드의 전이 방향도 partition과 반대다. 올바른 관례에서 학습·정답·디코딩에 지속적으로 같은 금지 경로를 적용해야 한다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-양방향 LSTM은 양쪽 방향의 맥락을 어떻게 담아내는가? 자리 $t$에서의 은닉 상태 계산을 적어라.
+공통 학습 루프에 TransformerCRF를 넣을 때 인수와 서브워드 목표를 점검하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    양방향 LSTM은 $x_1, \ldots, x_T$을 다루는 앞으로 가는 LSTM과 $x_T, \ldots, x_1$을 다루는 뒤로 가는 LSTM으로 이루어진다.
 
-    $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
+    TransformerCRF의 두 번째 인수는 attention_mask인데 루프는 labels를 보낸다. 키워드나 공통 인터페이스로 맞춘다. 특수 토큰·무시 서브워드의 −100 목표를 CRF 태그로 바로 쓰지 말고 유효 연속 열과 마스크를 구성해야 한다.
 
-    자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 단어가 양쪽에서 걸리는 일이 잦으므로 이것이 중요하다.
+
 
 ## 정리하며
 
-조건부 랜덤 필드는 다음으로 신경 차례 레이블 붙이개를 낫게 한다:
-
-1. **넘어가기 나타내기**: 배울 수 있는 넘어가기 점수로 레이블 사이의 얽힘을 담아낸다
-2. **전체 고르게 맞추기**: 모든 차례에 걸쳐 제대로 된 확률 분포를 보장한다
-3. **구조 있는 어림**: 비터비 알고리즘으로 가장 좋은 차례를 찾는다
-4. **제약 강제하기**: 가림으로 올바르지 않은 레이블 넘어가기를 막는다
-
-힘센 신경 인코더(양방향 LSTM, 트랜스포머)와 CRF 디코더를 아우른 것은, 특히 레이블 사이 얽힘이 중요할 때 개체명 인식의 센 방식으로 남아 있다.
+CRF는 같은 시퀀스 점수로 정답·정규화·Viterbi를 계산해야 한다. 현재 구현의 전이 방향 불일치와 마스크·패딩·모델 인수 계약은 학습 결과의 의미에 직접 영향을 준다. 유효 BIO 제약과 신경 인코더의 문맥 처리를 구분하고 정확 span 평가를 연결한다.
 
 **참고 문헌**
 

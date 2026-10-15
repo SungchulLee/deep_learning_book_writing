@@ -1,8 +1,6 @@
 # RNN 유틸리티
 
-rnn_utils.py RNN 실습을 위한 종합 유틸리티 모듈
-
-시퀀스 모델은 시간적이고 순서가 있는 데이터를 다루는 데 기초가 된다. 이 구현은 순환 신경망의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
+RNN 실습에 사용하는 모델, 학습·평가 함수와 텍스트·저장 도구를 모은 참조 페이지다. 네 모델은 서로 다른 대안이며 하나의 모델로 연결되어 있지 않다. 공통 함수가 모든 모델의 반환값과 과제에 바로 호환되는지 확인해야 한다.
 
 ## 1. 코드
 
@@ -356,72 +354,70 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 구현은 클래스 다섯 개(`SimpleRNN`, `LSTMClassifier`, `GRUPredictor`, `BiLSTM`, 그리고 하나 더)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다. 클래스마다 별개의 부품을 감싸므로 코드가 모듈식이고 넓히기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
+`SimpleRNN`은 연속 특징의 마지막 시점으로 분류 로짓과 은닉 상태의 튜플을 반환한다. `LSTMClassifier`와 `BiLSTM`은 토큰 ID를 임베딩하고 분류 로짓만 반환한다. `GRUPredictor`는 연속 특징으로부터 마지막 시점의 예측을 반환한다. `Vocabulary`는 신경망이 아닌 단어 사전이다.
 
-손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.
+`train_epoch`와 `evaluate`는 모델 반환값을 텐서로 가정한다. 따라서 튜플을 반환하는 SimpleRNN에는 그대로 사용할 수 없고 로짓을 분리해야 한다. 출력 차원이 2 이상이면 argmax 정확도를 계산하므로 여러 회귀 타깃이나 길이별 출력에는 적합한 지표가 아니다. 단일 이진 로짓에는 정확도가 0으로 보고될 수 있으므로 출력에 맞춘 평가가 필요하다.
 
-시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.
+손실은 배치 손실의 단순 평균이다. 마지막 배치가 작으면 표본 평균과 다르며 빈 로더에서는 0으로 나누게 된다. `evaluate`는 평가 모드를 유지하므로 이후 학습에서는 다시 train 모드를 설정해야 한다. 모델들은 길이 정보를 받지 않아 패딩 위치도 처리한다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 시퀀스 모델 과제에 대한 실용적인 직관이 쌓인다.
+저장 함수는 모델 state_dict와 선택적인 어휘 객체를 저장한다. 구조 인수와 전처리 규칙, 옵티마이저·스케줄러 상태와 난수 상태는 따로 관리해야 한다. 사용자 정의 Vocabulary 객체를 저장하면 최신 PyTorch의 기본 weights_only 로드에서 허용되지 않을 수 있다. 사전 데이터를 기본 자료형으로 저장하는 방식과 신뢰할 수 있는 객체 복원을 구분한다.
+
+`generate_sine_wave`는 각 표본에서 한 칸 이동한 입력·정답 배열을 만든다. 길이 전체를 예측하는 정답과 마지막 출력만 쓰는 GRUPredictor의 출력은 그대로 대응하지 않을 수 있다. 모델 출력과 타깃의 형태를 명시적으로 맞춰 의도하지 않은 브로드캐스팅을 방지한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 초기화를 쓴 `SimpleRNN`의 학습 가능한 매개변수 총수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 세어라.
+입력 차원 x, 은닉 차원 h, 출력 차원 o, 순환 층수 L인 SimpleRNN의 매개변수 수를 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    첫 순환층은 $h(x+h)+2h$개다. 추가 층은 각각 $2h^2+2h$개이고 출력층은 $oh+o$개다. 따라서 합계는 $h(x+h)+2h+(L-1)(2h^2+2h)+oh+o$다. 시퀀스 길이에 비례해 매개변수가 늘지는 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력이 기대하는 모양과 자료형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
+공통 학습 함수를 네 모델에 적용하기 전에 확인할 반환값과 과제 조건을 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    SimpleRNN의 튜플에서 로짓을 분리해야 한다. 분류의 정수 클래스와 회귀의 실수 타깃을 구분하고 손실에 맞는 모양을 확인한다. 출력 열 수가 여러 개라는 사실만으로 분류 정확도를 계산해서는 안 된다. 길이와 패딩도 별도 처리한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-은닉 크기가 $h$이고 입력 크기가 $x$로 같을 때 LSTM 셀과 GRU 셀의 매개변수 개수를 비교하라. 어느 쪽이 더 적으며 그 이유는 무엇인가?
+같은 입력·은닉 크기의 기본 LSTM과 GRU에서 편향을 포함한 셀 매개변수 수를 비교하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    LSTM에는 4개의 게이트(입력, 망각, 셀, 출력)가 있고 각 게이트가 입력과 은닉 상태 양쪽에 대한 가중치 행렬을 가지므로 $4 \times (x \cdot h + h \cdot h + h) = 4(xh + h^2 + h)$개의 매개변수를 갖는다. GRU에는 3개의 게이트(재설정, 갱신, 새 상태)가 있어 $3 \times (x \cdot h + h \cdot h + h) = 3(xh + h^2 + h)$개이다. GRU는 게이트를 4개 대신 3개 쓰고 셀 상태와 은닉 상태를 합치므로 LSTM의 75%에 해당하는 매개변수를 갖는다. 실무에서 GRU는 매개변수가 적은데도 LSTM에 견줄 만한 성능을 내는 경우가 많다.
+    PyTorch의 bias=True, 단일 층·방향, 투영 없는 설정에서는 LSTM이 $4h(x+h+2)$개, GRU가 $3h(x+h+2)$개다. 두 편향 벡터를 포함한 계산이며 임베딩과 출력층은 제외한다. LSTM의 네 계산 묶음은 세 게이트와 셀 후보다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 수를 설정할 수 있도록 `SimpleRNN`을 확장하라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 훑는다. (보통의 파이썬 리스트가 아니라) `nn.ModuleList`을 써야 PyTorch가 최적화를 위해 모든 매개변수를 등록한다. `for n in [2, 4, 8]: model = SimpleRNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — RNN 유틸리티
-
-이 구현은 클래스 다섯 개(`SimpleRNN`, `LSTMClassifier`, `GRUPredictor`, `BiLSTM`, 그리고 하나 더)를 정의하며, 이들이 어우러져 완전한 순환 신경망 구조를 이룬다.
-
-핵심 클래스는 `SimpleRNN`, `LSTMClassifier`, `GRUPredictor`, `BiLSTM`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+공통 유틸리티는 반환 형식, 입력과 타깃의 형태, 손실과 지표가 맞을 때 재사용할 수 있다. 이 페이지의 모델별 차이와 저장·복원의 범위를 확인한 뒤 연결해야 한다.

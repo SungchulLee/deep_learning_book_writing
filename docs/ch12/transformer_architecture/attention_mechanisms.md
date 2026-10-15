@@ -1,8 +1,6 @@
-# 주의 구조
+# RNN 어텐션 메커니즘
 
-순환 신경망을 위한 주의 구조
-
-트랜스포머에 기초를 둔 구조는 자연어 처리를 뒤바꾸어 놓았다. 이 구현은 트랜스포머의 개념을 살피며, 갖가지 과제에서 최고 수준의 성능을 내게 하는 주의 구조와 구조의 본을 보여 준다.
+가산 점수의 BahdanauAttention과 내적·일반형 점수의 LuongAttention을 비교한다. 이들은 순환 모델에 연결할 수 있는 어텐션 모듈이며 두 클래스를 합친 완전한 트랜스포머는 아니다.
 
 ## 1. 코드
 
@@ -99,68 +97,66 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 구현은 함께 어울려 온전한 트랜스포머 구조를 이루는 클래스 2개(`BahdanauAttention`, `LuongAttention`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
+BahdanauAttention은 쿼리를 $(B,H)$, 키를 $(B,S,H)$로 받아 가산 점수를 계산한다. 가중치는 $(B,S,1)$이고 키를 값으로도 사용해 $(B,H)$ 문맥을 반환한다. LuongAttention은 $(B,1,S)$의 가중치와 같은 형태의 문맥을 반환한다. 두 반환 가중치의 축이 다르다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
+Luong의 method는 dot 또는 general을 가정하지만 다른 문자열을 검증하지 않아 점수 변수가 정의되지 않을 수 있다. 두 모듈에는 길이·패딩 마스크 인수가 없다.
+
+별도 masked_softmax는 주로 $(B,Q,K)$ 점수와 길이 정보를 가정한다. reshape한 텐서에 제자리 대입하므로 원래 점수도 변경될 수 있다. 매우 작은 유한 점수로 마스킹하기 때문에 길이 0인 행이 0 가중치가 아니라 균등 분포가 되는 문제도 있다. 일반적인 임의 차원·빈 입력을 처리하는 함수로 보아서는 안 된다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-기본 초기화 상태의 `BahdanauAttention`에 든 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 보여라.
+은닉 H인 BahdanauAttention의 편향 포함 매개변수 수를 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    W1과 W2는 각각 $H^2+H$, V는 H+1개이므로 총 $2H^2+3H+1$개다. V의 스칼라 편향은 모든 위치에 같이 더해져 소프트맥스에서 상쇄되지만 등록 매개변수에는 포함된다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-어텐션 가중치 뒤에(값과 곱하기 전에) 드롭아웃 층을 추가하라. 학습 중에는 드롭아웃 비율 0.1을 쓴다. 어텐션 드롭아웃이 정칙화에 도움이 되는 이유를 설명하라.
+두 모듈에 패딩 처리를 추가한다면 어느 단계에 무엇이 필요한가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`이다. 어텐션 드롭아웃은 학습 중에 일부 어텐션 가중치를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에 지나치게 기대지 않게 한다. 이는 모델이 어텐션을 더 고르게 분산시키고 더 견고한 표현을 배우도록 북돋우며, 표준 드롭아웃이 뉴런의 공적응을 막는 것과 비슷하다.
+    점수에 유효 위치 마스크를 적용한 뒤 위치 축으로 소프트맥스한다. 반환 가중치 축이 다르므로 마스크 모양을 각각 맞춘다. 모든 위치가 패딩인 입력은 별도 처리한다. 드롭아웃을 추가하더라도 패딩 마스크를 대신하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+masked_softmax의 유한 음수 마스킹과 제자리 대입의 한계를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    전부 가린 행은 모든 점수가 같아 균등 확률이 될 수 있다. reshape가 원래 저장소를 공유하면 호출자의 점수도 수정되며 자동 미분의 제자리 연산 제약을 받을 수 있다. 입력 형태와 길이를 검사하고 전체 행 마스킹의 의미를 정해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`BahdanauAttention`이 층이나 블록의 개수를 설정할 수 있도록 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`를 써서 깊이를 바꿀 수 있는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 되풀이하라. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 파이토치가 최적화 대상 매개변수를 모두 등록한다. `for n in [2, 4, 8]: model = BahdanauAttention(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험하라.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 주의 구조
-
-이 구현은 함께 어울려 온전한 트랜스포머 구조를 이루는 클래스 2개(`BahdanauAttention`, `LuongAttention`)를 정한다.
-
-핵심 클래스는 `BahdanauAttention`, `LuongAttention`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+가산·내적 점수는 대안이며 반환 형태와 마스킹을 맞춰야 서로 교체할 수 있다. 별도 masked_softmax의 길이 0과 제자리 변경 동작을 일반적인 안전 처리로 오해하지 않는다.

@@ -1,81 +1,46 @@
-# 장 개요
+# 17장: 지속 학습
 
-이 장은 지속 학습(평생 학습이나 증분 학습이라고도 한다)를 다룬다. 이는 앞서 배운 앎을 파국적으로 잊지 않으면서 잇단 과제로 신경망을 익히는 근본 어려움을 다루는 분야이다. 안정성과 말랑함의 딜레마를 살피고, 여러 학습 상황을 정식화하며, 정칙화·되살리기·구조·증류라는 주요 방법 갈래를 표준 평가 잣대와 함께 훑어본다.
+지속 학습은 순차적으로 바뀌는 데이터에서 새 과제를 배우면서 유지해야 할 이전 능력을 보존하는 문제다. 이 장에서는 파국적 망각과 평가 지표를 정의하고 정규화·리플레이·증류·구조 분리의 접근을 비교한다.
 
----
+## 1. 문제와 평가
 
-## 1. 기초
+- [파국적 망각](continual_learning/catastrophic_forgetting.md): 순차 갱신의 영향과 경사 간섭
+- [평가 지표](continual_learning/evaluation_metrics.md): 정확도 행렬, 후방·전방 전이와 망각
 
-- 지속 학습 훑어보기 -- 지속 학습의 개념, 수학적 틀, 주요 접근법을 두루 들려주는 입문
-- 사용 안내 -- 설치 방법과 스크립트 구조를 담은 실전 빠른 시작 안내
-- [파국적 망각](continual_learning/catastrophic_forgetting.md) -- 수학적 정식화와 지난 이야기를 아우르는 잊음 현상의 빈틈없는 다룸
-- [평가 지표](continual_learning/evaluation_metrics.md) -- 정확도 행렬, 뒤와 앞으로의 옮김, 잊음 재기를 아우르는 표준 지표
-- 갈래 나누기 -- 전략(정칙화, 되살리기, 구조, 증류)과 정보 접근으로 방법을 가르기
-- 안정성과 말랑함의 딜레마 -- 옛 앎을 지키는 것과 새 과제를 배우는 것 사이의 근본적인 팽팽함
+테스트 시 과제 ID를 주는지, 전체 누적 클래스 중에서 예측하는지, 표본을 몇 번 학습하는지에 따라 평가가 달라진다. 아래 Split MNIST 예제는 과제별 숫자 쌍을 로컬 이진 라벨로 다시 매기는 설정이며 전체 10개 클래스 증분 분류와 구별한다.
 
----
+## 2. 순차 학습 예제
 
-## 2. 학습 상황
+- [망각 관찰](continual_learning/01_catastrophic_forgetting_demo.md): 이전 과제 성능 변화 기록
+- [단순 순차 학습](continual_learning/01_naive_sequential_learning.md): 추가 보존 장치가 없는 기준
+- [경험 리플레이](continual_learning/01_simple_experience_replay.md): 버퍼와 과거 표본 학습
+- [EWC](continual_learning/02_elastic_weight_consolidation.md): 경험적 피셔와 가중 이차 벌점
+- [LwF](continual_learning/02_learning_without_forgetting.md): 고정 교사 출력 증류
+- [방법 비교](continual_learning/03_comprehensive_comparison.md): 지표·시간·메모리 측정 범위
 
-- 과제 증분 학습 -- 학습 때와 시험 때 모두 과제 번호가 주어지는 가장 단순한 상황
-- 부류 증분 학습 -- 과제 번호 없이 지금까지 본 모든 부류 사이에서 가려내야 하는 가장 어려운 상황
-- 온라인 지속 학습 -- 데이터가 흐름으로 도착하고 표본마다 딱 한 번만 보이는 가장 빠듯한 상황
+## 3. 정규화 기반 방법
 
----
+- [개요](regularization_methods/overview.md): 중요도와 기준 가중치
+- [EWC 상세](regularization_methods/ewc.md): 베이즈 근사와 표본별 피셔
+- [온라인 EWC](regularization_methods/online_ewc.md): 과제별 통계의 누적 요약
+- [EWC·SI·MAS 비교](regularization_methods/comparison.md): 중요도 정의와 비용
 
-## 3. 정칙화 방법
+## 4. 리플레이 기반 방법
 
-- [훑어보기](regularization_methods/overview.md) -- 매개변수 중요도 어림을 거친 정칙화 기반 지속 학습의 입문
-- [탄성 가중치 통합(EWC)](regularization_methods/ewc.md) -- 베이즈 기초 위에서 피셔 정보 행렬로 중요한 매개변수를 지키기
-- [온라인 EWC](regularization_methods/online_ewc.md) -- 매개변수 중요도 어림을 쉼 없이 온라인으로 고치는 EWC의 확장
-- 시냅스 지능(SI) -- 손실을 줄이는 데 얼마나 이바지했는지로 학습 중에 매개변수 중요도를 좇기
-- 기억을 아는 시냅스(MAS) -- 매개변수 변화에 대한 출력의 민감도로 과제를 가리지 않고 중요도를 어림하기
-- [정칙화 방법의 비교](regularization_methods/comparison.md) -- 강점, 약점, 쓸 수 있는 곳까지 아우른 EWC, SI, MAS의 자세한 비교
+- [경험 리플레이 상세](replay_methods/experience_replay.md): 버퍼 전략과 손실 가중치
+- [A-GEM](replay_methods/agem.md): 참조 평균 경사와 충돌하는 방향의 투영
 
----
+## 5. 증류 기반 방법
 
-## 4. 되살리기 방법
+- [LwF 상세](distillation_methods/lwf.md): 새 입력에서 이전 출력 유지
+- [특징 증류](distillation_methods/feature_distillation.md): 중간 표현의 정렬과 손실 연결
+- [증류 방법 비교](distillation_methods/comparison.md): 출력·특징·어텐션·관계의 제약
 
-- 훑어보기 -- 본보기 담아 두기와 되뇌기 전략을 거친 되살리기 기반 지속 학습의 입문
-- [경험 리플레이](replay_methods/experience_replay.md) -- 앞선 과제의 보기를 담은 기억 버퍼를 지니고 되뇌기
-- 생성 되살리기 -- 날 데이터를 담아 두는 대신 생성 모델로 가짜 표본을 만들기
-- 기울기 에피소드 기억(GEM) -- 담아 둔 보기를 곧바로 되살리는 대신 기울기의 제약으로 쓰기
-- [A-GEM](replay_methods/agem.md) -- 평균 참조 기울기로 효율적으로 기울기를 쏘아 넣는 평균 GEM
-- 어두운 경험 리플레이 -- 우선순위를 움직여 가며 되살린 데이터에 과제마다의 무게 방식을 학습하기
+## 6. 구조 기반 방법
 
----
-
-## 5. 구조 방법
-
-- 훑어보기 -- 과제마다의 모듈과 움직이는 확장을 쓰는 구조 기반 방법의 입문
-- 점진 확장 신경망 -- 옛 기둥을 얼려 두고 옆 이음으로 새 용량을 더해 잊음을 막기
-- PackNet -- 가지치기, 다시 학습, 얼리기를 되풀이하여 망 하나에 여러 과제를 담기
-- 움직여 넓히는 망(DEN) -- 가려 다시 학습, 움직이는 확장, 뉴런 복제를 함께 쓰기
-- [Expert Gate](architecture_methods/expert_gate.md) -- 배운 문 망으로 데이터를 전문가 모듈에 보내기
-- [겹쳐 놓은 Supermask](architecture_methods/supermask.md) -- 얼린 기초 망 하나에서 이진 마스크로 과제마다의 부분 망 골라내기
-
----
-
-## 6. 증류 방법
-
-- 훑어보기 -- 부드러운 목표 제약을 거친 이어 배우기용 앎 증류의 입문
-- [Learning without Forgetting(LwF)](distillation_methods/lwf.md) -- 모델의 출력을 제 자신의 앞선 예측에 맞추어 옛 과제의 성능 지키기
-- LUCIR -- 코사인 고르기와 여백 순위로 부류 증분 학습의 가려내개 편향 다루기
-- PODNet -- 모은 증류 손실로 층마다 중간 특징을 옥죄기
-- [특징 증류](distillation_methods/feature_distillation.md) -- 잇단 과제에 걸쳐 중간 층 특징을 맞추어 배운 표현 지키기
-- [증류 방법의 비교](distillation_methods/comparison.md) -- 반응 기반, 특징 기반, 주의 기반, 관계 기반 증류의 비교 분석
-
----
-
-## 7. 벤치마크
-
-- 잣대 비교 -- 표준 잣대에 걸친 지속 학습 방법의 두루 비교
-- 표준 잣대 -- Split MNIST, Split CIFAR-100, Split ImageNet, 그리고 순열 잣대
-- 흐름 잣대 -- CORe50과 분포가 차츰 옮겨 가는 온라인 지속 학습 잣대
-- 평가 규약 -- 과제 증분 평가와 부류 증분 평가, 지표, 그리고 비교를 다스리는 지침
-
----
+- [Expert Gate](architecture_methods/expert_gate.md): 과제별 전문가와 재구성 기반 선택
+- [Supermask](architecture_methods/supermask.md): 고정 가중치에서 과제별 부분 네트워크 선택
 
 ## 정리하며
 
-이 마당은 기초, 학습 상황, 정칙화 방법, 되살리기 방법을 차례로 짚었다.
+과거 성능 유지와 새 과제 학습을 함께 평가한다. 가중치·출력·표본·경로 중 무엇을 보존하는지, 어떤 데이터와 과제 정보를 사용하는지 명시한다. 초기화·순서·표본 노출 예산과 추가 저장·계산을 맞추고 검증용 설정 선택과 최종 테스트를 분리한다.

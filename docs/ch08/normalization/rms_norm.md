@@ -1,6 +1,6 @@
-# RMSNorm (제곱평균제곱근 층 정규화)
+# RMSNorm
 
-2019년 Zhang과 Sennrich가 소개한 RMSNorm은 제곱평균제곱근(RMS) 통계량만으로 정규화하여 평균을 빼는 단계를 없앤, 층 정규화의 간소화된 변형이다. 이 단순화는 성능을 유지하거나 오히려 높이면서 계산 비용을 줄여 주어, RMSNorm은 LLaMA, Mistral, Gemma 같은 현대의 대형 언어 모델에서 널리 쓰인다.
+RMSNorm은 입력 평균을 빼지 않고 RMS(root mean square)를 이용해 스케일을 조정한다. 레이어 정규화의 간소화된 변형으로, LLaMA 등의 구조에 사용된다. 평균 중심화를 생략하는 설계가 적절한지와 실제 속도 향상은 모델·구현·장치 조건에서 판단해야 한다.
 
 ---
 
@@ -20,7 +20,7 @@ RMSNorm은 평균 중심화를 없애 이를 간소화한다.
 
 $$\text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{n}\sum_{i=1}^n x_i^2}$$
 
-$$\text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\text{RMS}(\mathbf{x}) + \epsilon}$$
+$$\text{RMSNorm}(\mathbf{x}) = \gamma\odot\frac{\mathbf{x}}{\sqrt{\frac1n\sum_i x_i^2+\epsilon}}$$
 
 여기서 각 기호는 다음과 같다.
 
@@ -35,7 +35,7 @@ $$\text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\text{RMS}(\mathbf
 | 평균 빼기 | 있음 | **없음** |
 | 분산 정규화 | 있음 | 대신 RMS를 쓴다 |
 | 학습 가능한 편향 | 있음 ($\beta$) | **없음** |
-| 계산 복잡도 | 통계량에 $O(2n)$ | 통계량에 $O(n)$ |
+| 점근적 계산 복잡도 | $O(n)$ | $O(n)$ |
 
 ---
 
@@ -160,11 +160,11 @@ class LayerNormBaseline(nn.Module):
 
 원 논문은 LayerNorm의 성공이 (평균을 빼는) 재중심화가 아니라 주로 **재배율 불변성**이라는 성질에서 온다고 가정한다.
 
-**재배율 불변성**: 임의의 스칼라 $a$에 대해 다음이 성립한다.
+**스케일에 대한 성질:** $\epsilon=0$이고 입력과 배율이 0이 아닐 때 다음 식이 성립한다. 실제 구현의 양의 epsilon은 0 근처의 안정성을 위해 이 정확한 불변성을 바꾼다.
 
 $$\text{RMSNorm}(a \cdot \mathbf{x}) = \text{sign}(a) \cdot \text{RMSNorm}(\mathbf{x})$$
 
-이 성질은 입력의 규모와 무관하게 경사의 흐름을 안정시킨다.
+이 성질은 입력 스케일에 덜 민감한 변환을 설명하지만, 전체 신경망의 경사나 학습 안정성을 단독으로 보장하지는 않는다.
 
 ### 실험적 증거
 
@@ -229,7 +229,7 @@ Skewed input (mean=1.64, std=2.14):
   RMSNorm:   mean=0.5673, std=0.7407
 ```
 
-참고: RMSNorm은 출력의 평균을 0으로 맞추지 않지만, 실무에서 이것이 성능을 해치지는 않는다.
+RMSNorm의 출력 평균은 일반적으로 0이 아니다. 평균 중심화가 필요한 과제에서는 레이어 정규화와 별도로 비교해야 한다.
 
 ---
 
@@ -237,11 +237,13 @@ Skewed input (mean=1.64, std=2.14):
 
 ### 입력에 대한 경사
 
-입력이 $\mathbf{x}$이고 출력이 $\mathbf{y}$인 RMSNorm에 대해 다음이 성립한다.
+$r=\sqrt{\frac1n\sum_jx_j^2+\epsilon}$, $y_i=\gamma_i x_i/r$, $g_i=\partial\mathcal{L}/\partial y_i$로 두면 입력 경사는 다음과 같다. 배율이 성분마다 다르므로 합 안에도 $\gamma_j$가 들어간다.
 
-$$\frac{\partial \mathcal{L}}{\partial x_i} = \frac{\gamma_i}{\text{RMS}(\mathbf{x})} \left( \frac{\partial \mathcal{L}}{\partial y_i} - \frac{y_i}{n \cdot \text{RMS}(\mathbf{x})^2} \sum_{j=1}^n x_j \frac{\partial \mathcal{L}}{\partial y_j} \right)$$
+$$\frac{\partial\mathcal{L}}{\partial x_i}=\frac{\gamma_i g_i}{r}-\frac{x_i}{nr^3}\sum_{j=1}^n\gamma_jx_jg_j$$
 
-### 간소화된 경사의 흐름
+### 사용자 정의 역전파 예제
+
+아래 보존된 구현의 `grad_x` 두 번째 항에는 `rms`로 나누는 인수가 하나 빠져 있어 위의 미분식과 일치하지 않는다. 사용자 정의 backward의 설명용 코드로 읽고, 실제 사용 전에는 자동 미분으로 계산한 경사와 대조해야 한다.
 
 ```python
 class RMSNormWithGradientAnalysis(torch.autograd.Function):
@@ -339,7 +341,7 @@ def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations
 # benchmark_normalization()
 ```
 
-대표적인 속도 향상은 GPU에서 **1.1~1.3배**이며, CPU에서는 더 크다.
+실제 속도는 융합 커널, 자료형, 텐서 크기, 장치에 달려 있다. 위 비교는 사용자 정의 구현과 레이어 정규화 구현을 비교하므로 연산 수만의 차이를 재는 것은 아니다. 워밍업, 동기화, 경사 기록 여부와 측정 범위를 맞춰 해석한다.
 
 ---
 
@@ -457,7 +459,9 @@ class GroupedQueryAttention(nn.Module):
         return self.wo(out)
 ```
 
-### 완전한 LLaMA 모델
+### RMSNorm을 사용하는 간략한 언어 모델
+
+아래는 정규화 위치를 보여 주는 구조 예이다. RoPE 보조 함수는 별도로 정의해야 하며, 자기회귀 학습에는 미래 토큰을 가리는 인과 마스크도 전달해야 한다. 본문의 `forward`는 그 마스크를 구성하지 않는다. 또한 클래스별 편향은 소프트맥스 확률을 바꿀 수 있으므로, 출력층의 `bias=False`는 소프트맥스가 편향을 없애 주기 때문이 아니라 해당 구조의 선택이다.
 
 ```python
 class LLaMA(nn.Module):
@@ -606,24 +610,24 @@ Parameter count:
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-RMSNorm 공식 $\text{RMSNorm}(x) = \frac{x}{\text{RMS}(x)} \cdot \gamma$을 유도하라. 여기서 $\text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2}$이다.
+$\epsilon=0$일 때 RMS 정규화된 벡터의 평균 제곱이 1임을 보여라. 학습 가능한 배율을 적용하면 어떻게 달라지는가?
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    RMSNorm은 중심을 맞추지 않고(평균을 빼지 않고) 입력의 제곱평균제곱근으로 정규화한다. 이로써 LayerNorm의 재중심화 단계가 사라져 계산이 약 7~10% 줄어든다. 학습 가능한 이득 $\gamma$이 정규화된 출력의 배율을 다시 조정한다.
+    $r^2=\sum_i x_i^2/n>0$이면 $\sum_i(x_i/r)^2/n=1$이다. 성분별 $\gamma_i$를 곱하면 평균 제곱은 일반적으로 1이 아니며, 양의 epsilon을 더한 경우에도 정확한 1은 아니다. 평균은 애초에 0으로 맞추지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-RMSNorm과 LayerNorm의 계산 비용을 비교하라.
+RMSNorm과 레이어 정규화의 점근적 복잡도와 실제 속도 차이를 구분하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    LayerNorm은 평균 계산($O(d)$), 분산 계산($O(d)$), 정규화, 배율 조정, 이동으로 원소 $d$개에 걸쳐 5개의 연산을 한다. RMSNorm은 RMS 계산($O(d)$), 정규화, 배율 조정으로 3개의 연산을 한다. RMSNorm은 평균 계산과 편향 매개변수를 건너뛰어 계산을 약 30% 아낀다.
+    둘 다 특징 수 d에 대해 O(d)이다. RMSNorm은 평균 빼기와 기본 편향 항을 생략하지만 실제 메모리 읽기와 축약·융합 방식에 따라 속도가 달라진다. 단순히 연산 단계를 세어 일정 비율의 속도 향상을 보장할 수 없다.
 
 ---
 
@@ -651,28 +655,16 @@ RMSNorm을 PyTorch로 구현하고 공식과 일치하는지 확인하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-현대의 대형 언어 모델(예: LLaMA)에서 LayerNorm 대신 RMSNorm이 기본이 된 이유는 무엇인가?
+사전학습 모델의 레이어 정규화를 RMSNorm으로 바로 교체해도 되는가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    경험적으로 LayerNorm의 평균 중심화는 큰 트랜스포머에서 이득이 미미한 반면 계산은 늘린다. RMSNorm은 같은 수준의 학습 안정성과 최종 성능을 더 낮은 지연으로 이루는데, 규모가 커질수록(매개변수 수십억 개, 토큰 수조 개) 이것이 크게 중요해진다.
+    평균을 제거하는지와 매개변수 구성이 달라져 같은 가중치에서 함수가 바뀐다. 따라서 별도의 학습과 검증 없이 동등한 변환으로 볼 수 없다. 원래 구조와 체크포인트의 규약을 유지하거나 교체 효과를 검증해야 한다.
 
 ## 정리하며
 
-RMSNorm은 다음과 같은 간소화된 정규화 기법이다.
-
-1. 층 정규화에서 **평균 중심화를 없앤다**
-2. 정규화에 분산 대신 **RMS를 쓴다**
-3. **계산 비용을** 약 10~30% **줄인다**
-4. 실무에서 **비슷한 성능을 유지한다**
-
-핵심 성질은 다음과 같다.
-
-- **평균을 빼지 않는다** — RMS로 배율만 조정한다
-- **편향 매개변수** $\beta$ **가 없다**
-- **계산이 더 빠르다** — 축약 연산이 하나 적다
-- **현대 대형 언어 모델의 표준** — LLaMA, Mistral, Gemma 등
+RMSNorm은 평균 중심화 없이 평균 제곱의 제곱근으로 입력을 스케일링한다. 이 페이지의 코드와 [PyTorch의 RMSNorm](https://docs.pytorch.org/docs/stable/generated/torch.nn.RMSNorm.html)은 epsilon을 제곱근 안에 더하는 형태이다. 레이어 정규화와 점근적 복잡도는 같으며 실제 효율과 성능은 구현·모델 조건에 따라 달라진다. 사전학습 모델에서는 구조와 정규화 규약을 함께 유지한다.
 
 **참고 문헌**
 

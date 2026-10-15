@@ -1,8 +1,6 @@
 # MAML
 
-모델 가리지 않는 메타 학습(MAML). 참고: Finn 외, "Model-Agnostic Meta-Learning for Fast Adaptation" (2017)
-
-모자란 데이터나 서로 이어진 데이터에서 효율적으로 배우는 것은 오늘날 깊은 학습의 한가운데 놓인 어려움이다. 이 모듈은 모델이 앞선 앎을 살려 새 과제에 재빨리 맞추어 가게 하는 퓨샷 학습 기법을 보여 준다.
+MAML(model-agnostic meta-learning)은 적은 서포트 데이터로 몇 번 갱신했을 때 새 과제에 잘 적응하는 초기 가중치를 학습한다. Finn 등의 「Model-Agnostic Meta-Learning for Fast Adaptation」(2017)에 기반해, 함수형 가중치 전달로 내부 갱신을 미분하는 예제다.
 
 ## 1. 코드
 
@@ -249,70 +247,66 @@ Predictions: tensor([1, 4, 2, 0, 2, 1, 0, 0, 4, 4, 0, 2, 4, 0, 4])
 
 ## 2. 논의
 
-이 구현은 함께 어울려 온전한 퓨샷 학습 구조를 이루는 클래스 2개(`SimpleClassifier`, `MAML`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
+과제 $\tau$에서 한 번 적응한 가중치는 $\theta'_\tau=\theta-\alpha\nabla_\theta L_{S_\tau}(\theta)$다. 메타 목표는 적응 후 쿼리 손실 $\mathbb E_\tau L_{Q_\tau}(\theta'_\tau)$를 줄이는 것이다. 내부 루프는 서포트 손실로 과제별 가중치를 만들고, 외부 루프는 여러 과제의 쿼리 손실을 평균 내어 원래 초기 가중치를 갱신한다. 서포트와 쿼리는 같은 과제의 클래스에 속하지만 표본은 분리한다.
 
-손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.
+inner_loop의 create_graph=True는 경사 계산 자체의 그래프를 보존한다. 따라서 외부 역전파는 내부 갱신을 통과하며 2차 미분 항도 포함한다. 모델 가중치를 제자리에서 덮어쓰는 대신 OrderedDict의 새 텐서를 forward에 넘기는 것이 핵심이다. num_inner_steps가 늘면 그래프와 메모리 부담도 커진다.
 
-여기서 보인 본새는 더 복잡한 상황으로도 자연스럽게 넓어진다. 하이퍼파라미터, 구조의 변형, 여러 데이터셋을 두고 실험해 보면 이해가 깊어지고 메타 학습 과제에 대한 실전 감각이 쌓인다.
+정확도 계산은 별도의 적응 루프를 다시 수행하고 각 단계에서 detach한다. 이는 기록용이며 메타 손실의 미분 경로와 구별된다. predict는 평가 모드에서도 서포트 적응에 경사를 사용하므로 전체 호출을 no_grad로 감싸면 안 된다. model.eval() 자체는 경사를 끄지 않는다. 예제는 무작위 과제 한 배치를 갱신하며 실제 퓨샷 일반화 성능을 측정하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-기본 초기화 상태의 `SimpleClassifier`에 든 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 보여라.
+예제의 input_dim=784, hidden_dim=128, output_dim=5일 때 SimpleClassifier의 매개변수 수를 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    첫 층은 784×128+128=100,480개, 둘째 층은 128×128+128=16,512개, 출력층은 128×5+5=645개다. 합계는 117,637개이며 ReLU에는 학습 매개변수가 없다. 생성자에는 기본 차원값이 없으므로 사용 예의 설정을 기준으로 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력이 기대하는 모양과 자료형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
+각 과제의 입력과 라벨, 과제 배치에 어떤 검증이 필요한가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    입력은 (표본 수, input_dim)의 실수 텐서이며 모델과 장치·자료형이 호환되어야 한다. 라벨은 표본 수와 같은 길이의 정수이며 0 이상 output_dim 미만이어야 한다. 서포트와 쿼리의 클래스 매핑을 일치시키고 두 집합의 표본을 분리한다. 빈 과제 목록은 평균에서 0으로 나누므로 허용하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현에서 생길 수 있는 실패 양상 두 가지를 서술하고, 각각을 어떻게 진단하고 고칠지 설명하라.
+한 번의 내부 갱신에서 메타 경사와 1차 근사의 차이를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔한 실패 양상은 다음과 같다. (1) **경사 소실/폭발** — 경사의 노름을 지켜보아 진단한다(`torch.nn.utils.clip_grad_norm_`을 쓰거나 층마다 `param.grad.norm()`을 기록한다). 경사 자르기, 더 나은 초기화(Xavier/Kaiming), 또는 구조 변경(잔차 연결, 정규화)으로 고친다. (2) **과적합** — 학습 손실은 줄어드는데 검증 손실이 늘어나면 진단된다. 정칙화(드롭아웃, 가중치 감쇠, 데이터 증강)나 모델 용량 축소로 고친다. 이런 문제를 일찍 잡아내려면 언제나 학습 지표와 검증 지표를 함께 살펴라.
+    정확한 메타 경사는 $(I-\alpha H_S)^\top\nabla_{\theta'}L_Q(\theta')$이며 $H_S$는 서포트 손실의 헤시안이다. 1차 MAML은 헤시안 항을 생략한다. 코드의 inner_loop는 create_graph=True로 정확한 경로를 유지하며, 정확도 계산에서 detach하는 것과 혼동해서는 안 된다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`SimpleClassifier`이 층이나 블록의 개수를 설정할 수 있도록 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`를 써서 깊이를 바꿀 수 있는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 되풀이하라. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 파이토치가 최적화 대상 매개변수를 모두 등록한다. `for n in [2, 4, 8]: model = SimpleClassifier(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험하라.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — MAML
-
-이 구현은 함께 어울려 온전한 퓨샷 학습 구조를 이루는 클래스 2개(`SimpleClassifier`, `MAML`)를 정한다.
-
-핵심 클래스는 `SimpleClassifier`, `MAML`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+MAML은 적응 후의 쿼리 손실로 초기 가중치를 학습한다. 함수형 내부 갱신의 미분 경로를 유지하고, 평가 시에도 서포트 적응에는 경사를 허용해야 한다.

@@ -227,7 +227,7 @@ in your portfolio. Similar tech companies recommended."
 
 ### 최적화
 
-Adam 가장 좋게 하개와 학습률 일정으로 학습된이다:
+Adam 옵티마이저와 학습률 일정으로 학습된이다:
 
 - 첫 학습률: 1e-3
 - 스러짐: 선형 또는 지수
@@ -376,4 +376,4 @@ $$\text{Attention}_{\text{cross-modal}}(q_{\text{text}}, K_{\text{price}}, V_{\t
 
 ## 정리하며
 
-이 마당은 핵심 개념, 수학적 틀, 어텐션 기반 추천 구조, 어텐션의 금융 응용을 차례로 짚었다.
+이 절에서는 핵심 개념, 수학적 틀, 어텐션 기반 추천 구조, 어텐션의 금융 응용을 살펴보았다.

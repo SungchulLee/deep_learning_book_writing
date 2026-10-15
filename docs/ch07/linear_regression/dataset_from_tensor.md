@@ -206,7 +206,7 @@ Saved: dataset_from_tensor.png
 
 `LinearRegression` 모델 하위 클래스는 `nn.Linear(in_features, out_features)`로 완전 연결 층 하나를 정의한다. forward 메서드의 `squeeze(-1)`은 마지막 차원을 없애 출력 모양을 1차원 목표 텐서와 맞춘다. 이는 `nn.Linear`의 출력이 `(batch, 1)` 모양인데 목표는 `(batch,)` 모양일 때 흔히 쓰는 방식이다. 모델은 `.to(device)`로 알맞은 장치로 옮기며, 모든 데이터 텐서도 같은 장치에 있어야 한다.
 
-학습 루프는 표준 패턴을 따른다. DataLoader의 배치를 순회하며 예측과 손실을 계산하고, `optimizer.zero_grad()`, `loss.backward()`, `optimizer.step()`을 차례로 호출한다. 에폭 평균을 올바르게 가중하기 위해 손실은 `loss.item() * len(y_batch)`로 배치에 걸쳐 누적한다. 마지막 배치의 표본 수가 배치 크기보다 적을 수 있으므로 이런 가중 평균이 중요하다.
+학습 루프는 표준 패턴을 따른다. DataLoader의 배치를 순회하며 예측과 손실을 계산하고, `optimizer.zero_grad()`, `loss.backward()`, `optimizer.step()`을 차례로 호출한다. 에포크 평균을 올바르게 가중하기 위해 손실은 `loss.item() * len(y_batch)`로 배치에 걸쳐 누적한다. 마지막 배치의 표본 수가 배치 크기보다 적을 수 있으므로 이런 가중 평균이 중요하다.
 
 모델 평가에는 `@torch.no_grad()` 데코레이터(`with torch.no_grad():` 블록과 같다)를 써서 경사 추적을 꺼 추론 중 메모리와 계산을 아낀다. $R^2$ 점수는 잔차제곱합과 총제곱합으로부터 직접 계산한다. 평가 후에는 모델 가중치를 참된 데이터 생성 매개변수와 비교하여 경사 하강법이 그것을 되찾았는지 확인한다. 마지막으로 `state_dict`와 함께 쓰는 `torch.save`와 `torch.load`가 표준 직렬화 방식을 보여준다.
 
@@ -215,19 +215,19 @@ Saved: dataset_from_tensor.png
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-기본 `'mean'` 축약 대신 `nn.MSELoss(reduction='sum')`을 쓰도록 스크립트를 수정하라. 학습을 안정적으로 유지하려면 학습률을 어떻게 바꿔야 하는가?
+평균 MSE를 합 MSE로 바꾸면 단순 SGD의 이동을 같게 하기 위해 학습률을 어떻게 조정해야 하는가?
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `reduction='sum'`을 쓰면 손실이 배치 크기에 비례하므로 경사가 배치 크기만큼 커진다. 이를 보정하려면 학습률을 배치 크기로 나누어야 한다. 예를 들어 `'mean'`에서 `lr=0.01`이 잘 동작했다면, 배치 크기 32인 `'sum'`에서는 `lr=0.01/32`(약 0.0003)가 필요하다. 반대로 `'sum'` 축약에서 원래 학습률을 그대로 쓰면 최적화기가 너무 큰 걸음을 내디뎌 발산한다.
+    출력 1개인 크기 $B$ 배치에서는 합 경사가 평균 경사의 $B$배이므로, 모멘텀·감쇠 없는 SGD에서는 학습률을 $B$로 나누면 같은 이동을 얻는다. 마지막 배치 크기가 다르면 그에 맞춰야 한다. 출력이 여러 개면 전체 원소 수가 분모이며 Adam 등에서도 같은 단순 대응이 항상 성립하는 것은 아니다. 보고용 손실의 집계 방식도 바꿔야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-학습 루프에 검증 분할을 추가하라. 80%는 학습에, 20%는 검증에 쓴다. 매 에폭마다 학습 MSE와 검증 MSE를 모두 출력하라.
+학습 루프에 검증 분할을 추가하라. 80%는 학습에, 20%는 검증에 쓴다. 매 에포크마다 학습 MSE와 검증 MSE를 모두 출력하라.
 
 </div>
 
@@ -299,8 +299,4 @@ Saved: dataset_from_tensor.png
 
 ## 정리하며
 
-**다룬 것** — 텐서로 만드는 데이터셋
-
-`LinearRegression` 모델 하위 클래스는 `nn.Linear(in_features, out_features)`로 완전 연결 층 하나를 정의한다.
-
-핵심 클래스는 `LinearRegression`이며 앞의 연습문제 3개로 직접 확인할 수 있다.
+같은 표본 축을 가진 텐서를 묶고 배치 단위로 학습한다. 마지막 배치의 크기, 출력 모양과 손실의 집계 방식을 일치시킨다.

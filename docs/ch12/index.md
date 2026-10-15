@@ -1,90 +1,47 @@
-# 장 개요
+# 트랜스포머
 
-이 장은 트랜스포머 구조를 두루 다룬다. 핵심 장치에서 시작하여 사전 학습 언어 모델을 거쳐 시각 응용까지 나아간다. 셀프 어텐션의 수학적 기초를 세우고, BERT와 GPT와 T5가 저마다 다른 과제에 트랜스포머를 어떻게 쓰는지 살피며, 트랜스포머가 컴퓨터 비전으로 넓혀진 모습을 들여다본다.
+트랜스포머는 어텐션으로 위치 사이의 정보를 결합하고, 위치 표현과 피드포워드 층으로 시퀀스를 처리한다. 이 장에서는 구조의 기본 요소를 정리한 뒤 사전 학습 모델, 학습·추론과 비전 응용으로 이어 간다. 모델 정의와 학습 결과, 무작위 입력 시연과 실제 평가를 구분하며 읽는다.
 
----
+## 1. 트랜스포머 구조
 
-## 1. 1 트랜스포머 구조
+Q·K·V의 투영, 마스크, 위치 표현과 정규화가 어떻게 연결되는지 살펴본다. 인코더·디코더는 각 입력과 학습 목표에 따라 다른 접근 제약을 사용한다.
 
-어텐션 메커니즘에서 완전한 인코더-디코더 구조까지, 트랜스포머의 핵심 부품.
+- [트랜스포머 구조](transformer_architecture/transformer_architecture.md)와 [인코더·디코더](transformer_architecture/encoder_decoder.md)
+- [셀프 어텐션](transformer_architecture/self_attention.md), [멀티헤드 어텐션](transformer_architecture/multihead_attention.md), [스케일 내적 어텐션](transformer_architecture/scaled_dot_product.md)
+- [마스크 어텐션](transformer_architecture/masked_attention.md): 미래 토큰과 패딩 위치의 제외
+- [위치 인코딩](transformer_architecture/positional_encoding.md), [사인·코사인 인코딩](transformer_architecture/sinusoidal_encoding.md), [학습 가능한 인코딩](transformer_architecture/learned_encoding.md)
+- [LayerNorm](transformer_architecture/layer_norm.md)과 [번역 학습 예제](transformer_architecture/train_translation.md)
 
-- 트랜스포머 자연어 처리 개관 — 기본 어텐션에서 비전 트랜스포머와 비교 연구까지 10단계 학습 길
-- 꾸러미 요약 — 트랜스포머의 모든 주제를 다루는 43개 파일 교육 꾸러미의 요약
-- 어텐션 복습 — 1단계: 셀프 어텐션으로 가는 다리인 RNN 기반 어텐션 메커니즘
-- 셀프 어텐션 개요 — 2단계: 트랜스포머의 기초에 있는 핵심 셀프 어텐션 장치
-- 멀티헤드 어텐션 개요 — 3단계: 여러 표현 부분공간에 걸친 나란한 어텐션 처리
-- 위치 부호화 개요 — 4단계: 순환 없이 트랜스포머의 입력에 위치 정보 넣기
-- [트랜스포머 구조](transformer_architecture/transformer_architecture.md) — 역사적 배경에서 인코더-디코더 설계까지의 온전한 구조 개관
-- [위치 부호화](transformer_architecture/positional_encoding.md) — 사인·코사인, 학습형, 상대적 위치 부호화 방식
-- [인코더-디코더 구조](transformer_architecture/encoder_decoder.md) — 인코더 전용, 디코더 전용, 인코더-디코더 방식과 그 쓰임새
-- [마스크 셀프 어텐션](transformer_architecture/masked_attention.md) — 트랜스포머 디코더의 자기회귀 생성을 위한 인과 마스크
-- [층 정규화](transformer_architecture/layer_norm.md) — 사전 정규화와 사후 정규화의 자리, 그리고 RMSNorm 같은 요즘의 대안
+## 2. 사전 학습 모델
 
----
+BERT, GPT와 T5는 공통 구성 요소를 사용하지만 접근 가능한 문맥과 사전 학습 목표가 다르다. 같은 “언어 모델”이라는 이름으로 모든 출력을 해석하지 않는다.
 
-## 2. 2 사전 학습 모델
+- [BERT](pretrained_models/bert.md): 양방향 문맥과 마스크 토큰 예측
+- [GPT](pretrained_models/gpt.md): 인과적 다음 토큰 예측과 생성
+- [T5](pretrained_models/t5.md): 텍스트 입력·출력 형식의 인코더·디코더
+- [Hugging Face 시작하기](pretrained_models/huggingface_quickstart.md)
+- [BERT 분류기](pretrained_models/bert_classifier.md), [GPT 생성기](pretrained_models/gpt_generator.md), [샘플링 전략](pretrained_models/sampling_strategies.md)
+- [제로샷 텍스트 분류](pretrained_models/zero_shot_text_classification.md)와 [모델 변형](pretrained_models/variants.md)
 
-요즘 자연어 처리의 지형을 그리는 대규모 사전 학습 트랜스포머 모델.
+## 3. 학습과 추론
 
-- 트랜스포머 인코더 개요 — 5단계: 마스크 언어 모델로 BERT 방식 인코더 세우기
-- 트랜스포머 디코더 개요 — 6단계: 자기회귀 생성을 위한 GPT 방식 디코더 세우기
-- BERT 텍스트 분류 개요 — 7단계: 감성 분석과 텍스트 분류를 위해 BERT 미세 조정하기
-- GPT 텍스트 생성 개요 — 8단계: 여러 표본 추출 전략으로 GPT 방식 모델에서 텍스트 만들기
-- [BERT](pretrained_models/bert.md) — 마스크 언어 모델로 사전 학습하는 트랜스포머 양방향 인코더 표현
-- [GPT](pretrained_models/gpt.md) — GPT-1부터 GPT-4까지, 자기회귀 언어 모델을 위한 생성형 사전 학습 트랜스포머
-- [T5](pretrained_models/t5.md) — 모든 자연어 처리 과제를 하나의 텍스트 생성 형식으로 아우르는 텍스트-투-텍스트 전이 트랜스포머
-- [트랜스포머의 변형](pretrained_models/variants.md) — RNN과 CNN과 트랜스포머 구조의 비교 개관
+정답 문맥을 사용하는 학습과 새 토큰을 하나씩 선택하는 생성은 실행 조건이 다르다. 속도·메모리는 모델 크기와 시퀀스 길이, 장치와 측정 방식에 따라 비교한다.
 
----
+- [학습과 추론](training_and_inference/training_inference.md)
+- [학습 최적화](training_and_inference/training_optimization.md): 학습률, 워밍업과 정규화
+- [트랜스포머 모델](training_and_inference/transformer_model.md)
+- [RNN 기준 모델](training_and_inference/rnn_baseline.md), [CNN 기준 모델](training_and_inference/cnn_baseline.md), [속도 비교](training_and_inference/benchmark_speed.md)
 
-## 3. 3 어텐션 시각화
+## 4. 비전 트랜스포머
 
-어텐션 분석으로 트랜스포머 모델이 배운 것을 해석하는 도구와 기법.
+이미지를 패치 토큰으로 표현하면 트랜스포머를 이미지 과제에도 적용할 수 있다. 패치 크기와 위치 표현, 전역·윈도 어텐션이 연산과 정보 전달에 주는 영향을 살펴본다.
 
-- 어텐션 지도 시각화 — 인코더 셀프 어텐션, 디코더 셀프 어텐션, 교차 어텐션 지도 그리기
-- 시각화 도구 — BertViz, matplotlib 열지도를 비롯한 어텐션 시각화 도구
-- 어텐션 뽑아내기 — PyTorch 모델에서 훅으로 어텐션 가중치를 꺼내는 방법
-- 머리와 층의 분석 — 머리의 분업 방식, 어텐션 엔트로피, 머리의 중요도 분석하기
-- 해석의 함정 — 어텐션이 설명이 아닌 까닭과 기울기 기반 방법과 함께 쓰는 법
-
----
-
-## 4. 4 학습과 추론
-
-트랜스포머를 효율적으로 학습시키고 추론 성능을 다듬는 실용적인 전략.
-
-- 비교 연구 개요 — 10단계: 속도와 정확도와 메모리에서 트랜스포머를 RNN 및 CNN과 비교
-- [학습과 추론](training_and_inference/training_inference.md) — 교사 강요로 하는 학습과 자기회귀 추론, 그리고 근본적인 방식의 차이
-- 학습의 기초 — 트랜스포머 학습을 위한 손실 함수, AdamW 최적화기, 기울기 쌓기
-- [학습 최적화](training_and_inference/training_optimization.md) — 깊은 어텐션 신경망을 위한 학습률 일정, 예열 전략, 규제
-- 예열과 일정 — 선형 예열, Noam 일정, 예열이 있는 코사인 담금질
-- 레이블 매끄럽게 하기 — 지나친 확신을 막고 일반화를 돕는 부드러운 표적
-- 큰 배치 학습 — 선형 및 제곱근 조정 규칙, LAMB 최적화기, 배치 크기의 길잡이
-- 메모리를 아끼는 학습 — 혼합 정밀도, 기울기 검사점, 그 밖의 메모리 최적화 기법
-- 추론 최적화 — KV 캐시, torch.compile, 빠른 자기회귀 생성을 위한 전략
-
----
-
-## 5. 5 시각을 위한 트랜스포머
-
-트랜스포머 구조를 자연어 처리에서 컴퓨터 비전 과제로 넓히기.
-
-- 트랜스포머 비전 개관 — 전통적인 CNN과 트랜스포머 기반 시각 구조를 잇는 교육 데이터
-- 비전 트랜스포머 개요 — 9단계: 조각 임베딩과 어텐션 롤아웃으로 이미지 분류에 트랜스포머 쓰기
-- [비전 트랜스포머 (ViT)](transformers_vision/vit.md) — 이미지 이해에서 합성곱에서 순수한 트랜스포머 구조로의 전환
-- ViT 구조 — 이미지 조각의 시퀀스에 적용한 표준 트랜스포머 인코더
-- 조각 임베딩 — 자연어의 단어 토큰화에 비교하여 이미지를 조각으로 토큰화하기
-- [위치 임베딩](transformers_vision/position_embeddings.md) — 순열에 무관한 이미지 조각 셀프 어텐션을 위해 공간 정보 담기
-- CLS 토큰 — 이미지 전체의 표현을 모으는 학습 가능한 분류 토큰
-- DeiT — 학습 전략을 다듬고 지식 증류를 쓰는 데이터 효율적인 이미지 트랜스포머
-- [스윈 트랜스포머](transformers_vision/swin.md) — 조밀 예측 과제에서 선형 복잡도를 내는 창 어텐션의 계층적 구조
-- 혼합 CNN-트랜스포머 — CNN의 귀납 편향과 트랜스포머의 전역 모델링 능력을 엮기
-- [CNN과 ViT의 비교](transformers_vision/cnn_vs_vit.md) — 합성곱 방식과 어텐션 방식의 구조적 기초와 강점과 트레이드오프
-- 학습 전략 — 강한 증강, 확률적 깊이, 긴 일정 등 ViT에 특화된 학습 기법
-- 어텐션 시각화 — CLS 토큰 어텐션과 조각 사이 어텐션 지도로 ViT의 예측 해석하기
-
----
+- [ViT](transformers_vision/vit.md)와 [모델 구현](transformers_vision/vit_model.md)
+- [패치 임베딩](transformers_vision/patch_embedding.md)과 [위치 임베딩](transformers_vision/position_embeddings.md)
+- [Swin Transformer](transformers_vision/swin.md): 윈도와 계층 구조
+- [CNN과 ViT 비교](transformers_vision/cnn_vs_vit.md)
+- [이미지 분류 학습](transformers_vision/train_image_classification.md)과 [시각화](transformers_vision/visualizations.md)
 
 ## 정리하며
 
-이 마당은 1 트랜스포머 구조, 2 사전 학습 모델, 3 어텐션 시각화, 4 학습과 추론을 차례로 짚었다.
+어텐션의 계산, 위치·마스크의 규약과 학습 목표를 연결해 트랜스포머를 이해한다. 사전 학습 모델과 새로 만든 모델을 구분하고, 가중치 시각화를 예측의 완전한 설명으로 해석하지 않는다.

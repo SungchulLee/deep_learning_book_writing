@@ -1,8 +1,6 @@
 # 배치 정규화
 
-09_batch_normalization.py - 안정적이고 빠른 학습. 배치 정규화는 층의 입력을 정규화하여 다음을 가져온다:
-
-순방향 신경망을 이해하는 것은 깊은 신경망을 효과적으로 만들고 학습시키는 데 필수적이다. 이 구현은 그 핵심 개념을 PyTorch로 보여주며, 현대적인 구조의 구성 요소를 직접 다뤄 볼 기회를 준다.
+배치 정규화가 없는 MLP와 있는 MLP를 정의하고 활성화의 변화를 살펴본다. 이 코드는 구조와 정규화 동작을 시연하며 두 모델의 전체 학습 성능 비교를 수행하지는 않는다.
 
 ## 1. 코드
 
@@ -262,70 +260,64 @@ EXERCISES:
 
 ## 2. 논의
 
-이 구현은 2개의 클래스(`NoBNNet`, `BNNet`)를 정의하며, 이들이 함께 작동하여 완전한 순방향 신경망 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.
+`BNNet`은 선형층 뒤, ReLU 앞에 BatchNorm1d를 배치한다. 각 특징의 배치 통계로 정규화한 뒤 학습 가능한 배율과 이동을 적용한다. 정규화 직후라도 epsilon과 아핀 변환 때문에 출력 분산이 항상 정확히 1은 아니다.
 
-시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.
-
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 확장된다. 하이퍼파라미터, 구조의 변형, 여러 데이터셋을 두루 실험해 보면 이해가 깊어지고 딥러닝의 기초 과제에 대한 실용적인 직관이 쌓인다.
+배치 정규화의 weight와 bias는 학습 매개변수이고 running_mean과 running_var는 버퍼이다. 기본 설정에서는 학습과 평가에 쓰는 통계량이 달라지므로 모드 전환이 중요하다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 초기화 상태의 `NoBNNet`에서 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 포함하여 층별로 나누어 세어라.
+NoBNNet과 배치 정규화를 추가한 모델의 학습 매개변수 수를 비교하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    NoBNNet은 235146개이다. BNNet은 256, 128차원의 배율·이동 계수 768개가 더해져 235914개이다. 이동 통계량 버퍼는 학습 매개변수 수에 포함하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력이 기대하는 모양과 자료형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
+이 벡터 입력 모델의 모양을 어떻게 점검하는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `forward` 메서드(또는 해당 함수)의 소개에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+    이미지를 784차원으로 펼친 후 각 선형층의 입력·출력 특징 수를 확인한다. BatchNorm1d는 `(B, C)`에서 특징 C별 배치 통계를 사용한다. 학습 시 특징당 통계량을 얻을 값이 하나뿐이면 정상적인 배치 통계를 계산할 수 없다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현에서 생길 수 있는 실패 양상 두 가지를 서술하고, 각각을 어떻게 진단하고 고칠지 설명하라.
+평가에서 배치 정규화를 학습 모드로 두면 어떤 문제가 생길 수 있는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔한 실패 양상은 다음과 같다. (1) **경사 소실/폭발** — 경사의 노름을 지켜보아 진단한다(`torch.nn.utils.clip_grad_norm_`을 쓰거나 층마다 `param.grad.norm()`을 기록한다). 경사 자르기, 더 나은 초기화(Xavier/Kaiming), 또는 구조 변경(잔차 연결, 정규화)으로 고친다. (2) **과적합** — 학습 손실은 줄어드는데 검증 손실이 늘어나면 진단된다. 정칙화(드롭아웃, 가중치 감쇠, 데이터 증강)나 모델 용량 축소로 고친다. 이런 문제를 일찍 잡아내려면 언제나 학습 지표와 검증 지표를 함께 살펴라.
+    기본 설정에서 현재 배치 통계량을 사용하고 이동 통계량도 갱신하므로, 예측이 함께 들어간 표본과 배치 크기에 영향을 받을 수 있다. 평가 모드와 경사 기록 중지를 각각 설정한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 개수를 설정할 수 있도록 `NoBNNet`를 확장하라. `__init__`에 `num_layers` 매개변수를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 매개변수를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = NoBNNet(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 배치 정규화
-
-이 구현은 2개의 클래스(`NoBNNet`, `BNNet`)를 정의하며, 이들이 함께 작동하여 완전한 순방향 신경망 구조를 이룬다.
-
-핵심 클래스는 `NoBNNet`, `BNNet`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+배치 정규화는 학습과 평가에서 사용하는 통계량을 구분해야 한다. 효과를 비교할 때는 계수와 버퍼, 모델 선택 시점과 최종 평가 조건을 함께 확인한다.

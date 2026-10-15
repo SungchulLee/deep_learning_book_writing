@@ -1,8 +1,6 @@
 # 심화
 
-4단계: 소프트맥스 회귀의 심화 기법
-
-이 튜토리얼은 PyTorch에서 소프트맥스 회귀에 대한 기초적인 이해를 쌓는다. 코드를 따라가 보면 모델을 세우고, 손실 함수를 정의하고, 경사 하강법으로 학습시키고, 분류 과제에서 성능을 평가하는 법을 알 수 있다.
+NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 스케줄링, 조기 종료, 경사 클리핑과 레이블 스무딩을 살펴본다. 각각은 서로 다른 목적의 도구이므로 한 가지 기법으로 묶어 해석하지 않는다.
 
 ## 1. 코드
 
@@ -1053,72 +1051,72 @@
 
 ## 2. 논의
 
-이 구현은 5개의 클래스(`SoftmaxRegressionNumPy`, `AdvancedClassifier`, `LRSchedulerDemo`, `EarlyStopping`, 그리고 하나 더)를 정의하며, 이들이 함께 작동하여 완전한 소프트맥스 회귀 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.
+### 수동 미분과 비선형 모델
 
-학습 루프는 표준적인 PyTorch 패턴을 따른다. 예측을 계산하는 순전파, 손실 계산, 경사를 구하는 역전파, 그리고 최적화기를 통한 매개변수 갱신이다. 에폭에 걸쳐 지표를 추적하면 수렴 양상이 드러나고 과소적합이나 과적합 같은 문제를 진단하는 데 도움이 된다.
+`SoftmaxRegressionNumPy`는 가중치와 편향을 NumPy 배열로 관리하며 경사를 직접 계산한다. `AdvancedClassifier`는 은닉층을 가진 PyTorch 모델이다. 두 클래스는 같은 모델의 필수 부품이 아니라 서로 다른 구현과 표현력을 보여주는 예제다.
 
-시각화는 모델의 거동을 이해하고 학습 문제를 진단하는 데 중요한 역할을 한다. 그림을 그리는 코드는 학습된 표현, 수렴의 움직임, 평가 지표에 대한 통찰을 주어 추상적인 계산을 손에 잡히게 만든다.
+### 학습 제어의 구분
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 확장된다. 하이퍼파라미터, 구조의 변형, 여러 데이터셋을 두루 실험해 보면 이해가 깊어지고 다중 클래스 분류 과제에 대한 실용적인 직관이 쌓인다.
+스케줄러는 학습률을 시간이나 지표에 따라 바꾸고, 클리핑은 계산된 경사의 노름을 제한한다. 조기 종료는 검증 기준으로 반복을 중단하며, 레이블 스무딩은 목표 분포 자체를 바꾼다. 어느 방법도 수렴이나 일반화 개선을 무조건 보장하지 않는다.
+
+### 체크포인트의 실제 보존
+
+제공 코드의 `model.state_dict().copy()`는 사전의 얕은 복사다. 값 텐서의 저장 공간이 모델과 공유될 수 있으므로 이후 학습 중 “최고 모델” 값도 바뀔 수 있다. 독립 텐서 복제나 깊은 복사, 당시 파일 저장이 필요하다. 원래 코드는 유지했으며, 그 코드가 최적 검증 시점을 확실히 복원한다고 해석하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-기본 초기화 상태의 `SoftmaxRegressionNumPy`에서 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 포함하여 층별로 나누어 세어라.
+NumPy 선형 소프트맥스 모델의 파라미터 수를 어떻게 계산하고, PyTorch의 `.parameters()`와 어떻게 구분하는가?
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    입력 $D$개, 클래스 $K$개이면 가중치 $DK$개와 편향 $K$개, 총 $K(D+1)$개다. NumPy 클래스는 nn.Module이 아니므로 `.parameters()`로 자동 등록된 목록을 얻는 구조가 아니다. 배열의 모양과 원소 수로 직접 확인한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-최적화기를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 최적화기와 학습 수렴을 비교하라. 두 손실 곡선을 같은 그래프에 그려라.
+옵티마이저를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 옵티마이저와 학습 수렴을 비교하라. 두 손실 곡선을 같은 그래프에 그려라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    최적화기를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 매개변수마다 적응적인 학습률과 운동량 추정값을 유지하므로 초반 에폭에서 대체로 더 빠르게 수렴한다. Adam의 손실 곡선은 보통 처음 몇 에폭에서 더 가파르게 떨어지지만, 최적점 근처에서는 운동량을 쓴 SGD보다 조금 더 흔들릴 수 있다. 공정한 비교를 위해 둘을 같은 난수 시드와 같은 에폭 수로 실행하라.
+    옵티마이저를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 경사와 경사 제곱의 이동 평균으로 성분별 업데이트를 조정한다. 어느 옵티마이저가 더 빨리 수렴하는지는 문제와 학습률에 달려 있다. 같은 초기 가중치와 데이터 순서, 평가 기준을 사용하고 각 학습률을 조정해 비교한다. 여러 시드의 변동과 검증 성능도 확인한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-은닉 크기가 $h$이고 입력 크기가 $x$로 같을 때 LSTM 셀과 GRU 셀의 매개변수 개수를 비교하라. 어느 쪽이 더 적으며 그 이유는 무엇인가?
+`state_dict().copy()`가 독립적인 최고 모델 스냅숏이 되지 않을 수 있는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    LSTM에는 4개의 게이트(입력, 망각, 셀, 출력)가 있고 각 게이트가 입력과 은닉 상태 양쪽에 대한 가중치 행렬을 가지므로 $4 \times (x \cdot h + h \cdot h + h) = 4(xh + h^2 + h)$개의 매개변수를 갖는다. GRU에는 3개의 게이트(재설정, 갱신, 새 상태)가 있어 $3 \times (x \cdot h + h \cdot h + h) = 3(xh + h^2 + h)$개이다. GRU는 게이트를 4개 대신 3개 쓰고 셀 상태와 은닉 상태를 합치므로 LSTM의 75%에 해당하는 매개변수를 갖는다. 실무에서 GRU는 매개변수가 적은데도 LSTM에 견줄 만한 성능을 내는 경우가 많다.
+    사전의 매핑만 복사하고 값 텐서는 원래 저장 공간을 공유할 수 있다. 학습이 값을 수정하면 복사 사전이 가리키는 값도 바뀔 수 있으므로 각 텐서 복제나 깊은 복사·당시 파일 저장이 필요하다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 개수를 설정할 수 있도록 `SoftmaxRegressionNumPy`를 확장하라. `__init__`에 `num_layers` 매개변수를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+제시된 ModuleList 확장 패턴을 현재 코드에 적용하려면 어떤 새 모델 정의가 필요한지 설명하라. NumPy 구현 또는 데이터 관리자와 학습 모델을 구분하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 일반적인 PyTorch 계층 구성 패턴의 일부이며 원래 클래스의 완성된 대체 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 매개변수를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = SoftmaxRegressionNumPy(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    PyTorch 모델 클래스를 별도로 정의하고 생성자·forward·출력 모양을 함께 맞춰야 한다. NumPy 클래스나 DatasetManager에 ModuleList를 붙인다고 자동으로 모델이 바뀌지 않는다. 비선형 은닉층을 추가하면 원래 단일 선형 소프트맥스 회귀와 다른 가설 공간이 된다.
 
 ## 정리하며
 
-**다룬 것** — 심화
-
-이 구현은 5개의 클래스(`SoftmaxRegressionNumPy`, `AdvancedClassifier`, `LRSchedulerDemo`, `EarlyStopping`, 그리고 하나 더)를 정의하며, 이들이 함께 작동하여 완전한 소프트맥스 회귀 구조를 이룬다.
-
-핵심 클래스는 `SoftmaxRegressionNumPy`, `AdvancedClassifier`, `LRSchedulerDemo`, `EarlyStopping`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+학습률 조절, 클리핑, 중단과 목표 스무딩은 서로 다른 기능이다. 비교 목적과 검증 기준을 정하고 체크포인트가 실제로 독립 저장되는지 확인한다.

@@ -1,10 +1,8 @@
-# 모델
+# 문자 단위 LSTM과 Transformer
 
-글자 수준 자기회귀 언어 모델. 이 단원은 다음을 배우는 신경 자기회귀 모델을 짠다
+이 절은 문자 문맥에서 다음 문자 하나의 logits를 예측하는 두 대안 모델을 정의한다. CharRNN은 LSTM의 마지막 은닉 출력을 사용하고 SimpleCharTransformer는 위치 임베딩과 인과적 self-attention을 사용한다. 출력은 두 모델 모두 `(B,vocab_size)`이므로 [문자 데이터 도구](data_2.md)의 창당 타깃 하나와 대응한다.
 
-자기회귀 모델은 앞선 모든 낱개를 조건으로 삼아 낱개마다 미리 헤아려 데이터를 만든다. 이 단원은 자기회귀 모델 부품의 짜기를 보이며 차례대로 만들어 내는 과정과 그 구조의 요구를 그려 보인다.
-
-## 1. 코드
+## 1. 구현과 출력
 
 ```python
 """
@@ -320,7 +318,11 @@ if __name__ == "__main__":
     print("\n✓ Both models working correctly!")
 ```
 
-**출력:**
+입력은 어휘 범위 안의 int64 ID `(B,T)`다. T는 1 이상이어야 한다. LSTM은 임베딩 `(B,T,E)`를 순환 처리하고 마지막 위치를 선형 분류한다. 반환값은 logits와 `(h,c)` 상태이며 각 상태 모양은 `(n_layers,B,H)`다. 상태를 전달하지 않으면 새 창을 기본 초기 상태에서 처리한다.
+
+Transformer는 토큰 임베딩에 학습 가능한 위치 임베딩을 더하고 상삼각 bool 마스크로 미래 위치를 차단한다. 여기의 mask=True는 해당 attention 연결을 금지한다. embedding_dim은 n_heads로 나누어져야 하고 T≤max_seq_length여야 한다. 모든 위치의 특징을 계산하지만 마지막 위치의 logits만 반환하며 별도 generate 메서드는 없다.
+
+**기존 출력 기록:**
 
 ```
 ============================================================
@@ -343,70 +345,87 @@ Output shape: torch.Size([16, 50])
 ✓ Both models working correctly!
 ```
 
-## 2. 논의
+실행 예는 무작위 ID와 무작위 가중치의 모양 확인이다. LSTM 생성 시 길이 10의 시드에 20개를 추가해 총 30개를 반환하지만 생성 품질을 검증하는 실험은 아니다. 출력의 “working correctly” 문구는 아래 생성 상태 재사용 문제까지 확인한 증거가 아니다.
 
-이 짜기는 갈래 2개(`CharRNN`, `SimpleCharTransformer`)를 뜻매김하며 이들이 함께 온전한 자기회귀 모델 구조를 이룬다. 갈래마다 뚜렷이 구분되는 부품을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 자동 미분에 쓰는 계산 그래프를 뜻매김한다.
+## 2. LSTM 생성 상태의 중복 처리
 
-여기서 보인 결은 더 복잡한 경우로 자연스럽게 넓혀진다. 웃매개변수와 구조 변형, 여러 데이터셋을 실험하면 생성 모델 일에 대한 이해가 깊어지고 실제 직관이 쌓인다.
+현재 generate는 매 스텝 이미 생성한 **전체 접두사**를 forward에 전달하면서 직전 hidden도 재사용한다. 첫 호출에서 abc를 읽고 다음 문자가 d라면, 다음 호출은 abc 뒤에 d만 이어 읽는 대신 이전 상태에서 abcd 전체를 다시 읽는다. 이는 학습에서 사용한 접두사 조건과 다른 은닉 상태를 만든다.
+
+올바른 두 방식은 전체 접두사를 매번 초기 상태에서 다시 계산하거나, 시드를 한 번 처리한 뒤 새 토큰만 전달하며 상태를 이어 가는 것이다. 이 둘을 혼합하면 안 된다. 코드와 출력은 보존했으며 현재 메서드를 표준 LSTM 조상 샘플러로 설명하지 않는다.
+
+생성은 eval·no_grad를 사용하고 온도로 logits를 나눈 뒤 범주형 표본을 뽑는다. 온도는 유한한 양수여야 하며 length는 추가할 문자 수다. EOS 중단·음수 길이 검사·문맥 길이 제한은 없다. 초기 시드의 장치와 ID 범위를 모델과 맞춰야 한다.
+
+## 3. 정규화와 계산비용
+
+LSTM은 층 수가 2 이상일 때 층 사이 dropout=0.2를 사용한다. 마지막 층의 모든 출력이나 순환 상태에 동일하게 dropout을 거는 설계와 다르다. TransformerEncoderLayer는 dropout=0.1을 설정하므로 attention·후속 경로의 내장 드롭아웃을 이미 포함한다. 평가 모드에서 드롭아웃은 비활성화된다.
+
+인과적 마스크가 있어도 Transformer의 주어진 문맥 계산은 여러 위치에서 병렬 처리할 수 있다. LSTM은 시간축 상태 의존성이 남는다. 표준 dense attention의 곱셈 비용은 O(T²E), projection과 feed-forward에는 O(TE²)도 들며 어휘 분류 비용은 별도다. 실제 메모리와 속도는 배치·헤드·커널·자료형에 영향을 받는다. 이 작은 모델에서 구조만으로 성능 우열을 단정할 수 없다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫자리매김에서 `CharRNN`의 배울 수 있는 매개변수 총수를 계산하라. 무게와 편향을 모두 넣어 층별로 나누어 적어라.
+CharRNN의 파라미터 수를 계산하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+
+    어휘 V, 임베딩 E, 은닉 H, 층 수 L에서 임베딩은 VE, 첫 LSTM 층은 4H(E+H+2), 후속 각 층은 4H(2H+2), 출력은 HV+V다. PyTorch LSTM에는 입력·순환 편향이 각각 있어 +2가 들어간다. 실행 예 V=50,E=32,H=64,L=2이면 63,218개다. 기본 E=64,H=128,L=2에서는 231,424+193V개다. vocab_size는 반드시 지정하며 기본값이 없다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-어텐션 가중치 뒤에(값과 곱하기 전에) 드롭아웃 층을 추가하라. 학습 중에는 드롭아웃 비율 0.1을 쓴다. 어텐션 드롭아웃이 정칙화에 도움이 되는 이유를 설명하라.
+본문의 드롭아웃 설정과 attention 확률에 적용하는 드롭아웃의 의미를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`이다. 어텐션 드롭아웃은 학습 중에 일부 어텐션 가중치를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에 지나치게 기대지 않게 한다. 이는 모델이 어텐션을 더 고르게 분산시키고 더 견고한 표현을 배우도록 북돋우며, 표준 드롭아웃이 뉴런의 공적응을 막는 것과 비슷하다.
+
+    TransformerEncoderLayer(dropout=0.1)은 내장 attention 드롭아웃을 이미 설정한다. 별도 층을 무조건 더하면 중복 적용일 수 있다. 소프트맥스 뒤 드롭아웃은 일부 가중치를 0으로 하고 남은 값을 보정해 기대값을 유지하지만 각 실행의 행 합이 반드시 1인 것은 아니다. 특정 연결에 대한 의존을 줄이는 정규화일 수 있어도 더 균일한 attention이나 성능 개선을 보장하지 않는다. LSTM의 층간 드롭아웃과도 구분한다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+Transformer의 문맥 길이 한계와 attention 비용을 구분하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+
+    본문에는 최대 길이 100의 위치 임베딩 표가 있어 T>100이면 계산비용 이전에 인덱스 범위 문제가 생긴다. 표를 늘리면 길이 범위를 확장할 수 있지만 학습·일반화는 별도다. Dense attention은 O(T²E), 선형 projection·feed-forward는 O(TE²)의 계산이 들며 단순 attention 가중치 저장은 헤드별 T²에 비례한다. 일부 최적화 커널은 전체 행렬 저장을 피하지만 dense 곱셈의 의존 구조 자체를 희소 attention으로 바꾸는 것과는 다르다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`CharRNN`을 층이나 덩이의 수를 맞출 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 만들어라. 2, 4, 8층으로 시험하라.
+층 수를 비교하려면 어느 인수를 사용하며 생성 버그와 어떤 관계가 있는가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+
+    CharRNN과 Transformer 모두 이미 n_layers 인수가 있다. 새 num_layers를 추가하지 않고 기존 인수로 깊이를 바꿀 수 있다. nn.LSTM과 nn.TransformerEncoder는 내부 모듈 파라미터를 등록하므로 아래 ModuleList 골격을 다시 붙일 필요는 없다. YourBlock은 정의되지 않은 예시다. 깊이를 바꾸어도 전체 접두사와 hidden을 중복 처리하는 generate 계약 문제는 해결되지 않는다. 구조 모양·파라미터 수와 생성 상태 관리를 따로 검토해야 한다.
+
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되풀이하라. (여느 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 PyTorch가 모든 매개변수를 최적화에 등록한다. `for n in [2, 4, 8]: model = CharRNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험하라.
+
 
 ## 정리하며
 
-**다룬 것** — 모델
-
-이 짜기는 갈래 2개(`CharRNN`, `SimpleCharTransformer`)를 뜻매김하며 이들이 함께 온전한 자기회귀 모델 구조를 이룬다.
-
-핵심 갈래는 `CharRNN`, `SimpleCharTransformer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+두 문자 모델은 문맥당 다음 문자 하나를 예측한다. 입력 ID·위치 한계·반환 형식과 드롭아웃을 확인하고, LSTM 생성에서는 전체 접두사 재계산과 상태 캐시를 혼합하지 않아야 한다. 무작위 출력 모양 확인은 학습·생성 정확도 검증을 대체하지 않는다.

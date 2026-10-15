@@ -1,213 +1,88 @@
 # 증거 하한(ELBO)
-증거 하한은 변분 추론, EM 알고리즘, VAE 학습의 한가운데 있는 양이다. 다룰 수 없는 로그 주변 우도를 아래에서 받치는, 다룰 수 있는 최적화 목표를 주며, 참 우도와의 틈은 KL 발산으로 또렷이 특징지어진다. 이 절에서는 서로 보완하는 세 가지 유도를 보이고, 틈과 팽팽함의 조건을 살피며, 핵심이 되는 다른 표현들을 펼치고, ELBO를 EM 알고리즘과 변분 자동인코더에 이어 준다.
 
----
+증거 하한(evidence lower bound, ELBO)은 로그 주변우도의 하한이며, 정확한 사후분포와 변분분포 사이의 KL 발산만큼 차이가 난다. EM에서는 현재 매개변수에서 이 차이를 0으로 만들고, 변분 추론에서는 제한된 분포족 안에서 차이를 줄인다. 어떤 변수를 적분하고 어떤 매개변수를 고정하는지 명시해야 같은 기호의 서로 다른 목적을 구분할 수 있다.
 
-## 1. 문제: 다룰 수 없는 주변 우도
+## 1. 주변우도와 지지집합
 
-잠재변수 모델에서 주변 우도(또는 *증거*)에는 잠재변수 $z$(상황에 따라서는 매개변수 $\theta$)에 걸친 적분이 들어 있다:
+고정 θ의 잠재변수 모델에서 p(X|θ)=∫p(X,Z|θ)dZ라 하자. 0<p(X|θ)<∞를 가정한다. 신경망 디코더처럼 적분의 닫힌 해가 없는 경우에도 효율적인 수치 근사가 가능할 수 있으므로 ‘해석적 해가 없다’와 ‘어떤 근사도 계산할 수 없다’는 다른 주장이다.
 
-$$p(\mathbf{X} | \theta) = \int p(\mathbf{X}, \mathbf{Z} | \theta) \, d\mathbf{Z}$$
+정규화된 q(Z)에 대해 ELBO를 다음과 같이 정의한다.
 
-신경망 디코더나 복잡한 우도 함수에서는 이 적분을 다룰 수 없다. 곧 닫힌 형태로 값을 매길 수도, 효율적으로 어림할 수도 없다. ELBO는 최적화할 *수 있는* 아래 경계를 준다.
+$$\mathcal L(q,\theta)=E_q[\log p(X,Z|\theta)-\log q(Z)].$$
 
----
+필요한 로그 기댓값이 정의되어야 한다. q가 양의 확률을 두는 영역에서 결합밀도가 0이면 하한이 −∞일 수 있다. 반대로 결합밀도가 양수인 영역을 q가 누락하면 아래 중요도 기댓값으로 전체 주변우도를 표현하는 등식이 성립하지 않을 수 있다. 두 방향의 지지집합 조건을 구분한다.
 
-## 2. 유도 1: 옌센 부등식
+## 2. Jensen 부등식에 의한 유도
 
-### 옌센 부등식
+결합밀도의 질량을 q가 모두 덮는 경우 w(Z)=p(X,Z|θ)/q(Z)를 쓰면 p(X|θ)=E_q[w]다. 양의 확률변수와 엄격히 오목한 log에 Jensen 부등식을 적용한다.
 
-($\log$ 같은) 오목 함수 $\varphi$과 아무 확률 변수 $Y$에 대해:
+$$\log p(X|\theta)=\log E_q[w]\geq E_q[\log w]=\mathcal L(q,\theta).$$
 
-$$\varphi(\mathbb{E}[Y]) \geq \mathbb{E}[\varphi(Y)]$$
+엄격히 오목한 함수에서는 적절한 유한성 조건 아래 입력이 거의 확실히 상수일 때만 등호가 성립한다. 단순히 오목하기만 한 함수에는 이 ‘오직 그때’ 조건을 일반화할 수 없다. w가 상수이고 전체 질량을 덮으면 상수는 p(X|θ)이므로 q(Z)=p(Z|X,θ)다.
 
-거의 확실히 $Y$이 상수일 때 그리고 오직 그때만 등호가 성립한다.
+q가 결합밀도의 일부만 덮더라도 E_q[w]≤p(X|θ)로부터 하한을 얻을 수 있다. 그러나 q의 지지집합 안에서 w가 상수라는 사실만으로 전체 증거와의 등호를 결론 내리면 안 된다. 빠진 질량이 없는지도 필요하다.
 
-!!! note "증명 밑그림"
-    볼록한 $\varphi$에 대해 $\mu = \mathbb{E}[X]$에서 기울기가 $\alpha$인 받침 초평면이 있어 $\varphi(X) \geq \alpha(X - \mu) + \varphi(\mu)$이다. 기댓값을 취하고 $\mathbb{E}[X - \mu] = 0$임을 쓰면 $\mathbb{E}[\varphi(X)] \geq \varphi(\mathbb{E}[X])$을 얻는다. 오목한 $\varphi$에서는 부등호가 뒤집힌다.
+## 3. KL 분해에 의한 유도
 
-### 옌센 부등식 쓰기
+Bayes 정리를 KL의 정의에 대입하면 다음 항등식을 얻는다. 각 항이 유한해 ∞−∞ 같은 미정형이 생기지 않는 경우를 가정한다.
 
-적분 안에서 곱하고 나누어 잠재변수에 대한 아무 분포 $q(\mathbf{Z})$을 들여온다:
+$$D_{\mathrm{KL}}\bigl(q(Z)\Vert p(Z|X,\theta)\bigr)=E_q[\log q]-E_q[\log p(X,Z|\theta)]+\log p(X|\theta).$$
 
-$$\log p(\mathbf{X} | \theta) = \log \int q(\mathbf{Z}) \frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{q(\mathbf{Z})} \, d\mathbf{Z} = \log \, \mathbb{E}_{q}\!\left[\frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{q(\mathbf{Z})}\right]$$
+$$\boxed{\log p(X|\theta)=\mathcal L(q,\theta)+D_{\mathrm{KL}}\bigl(q\Vert p(Z|X,\theta)\bigr)}.$$
 
-$\log$이 오목하므로 옌센 부등식은 다음을 준다:
+이는 하한과 증거 사이의 차이가 정확히 KL임을 보여 준다. q가 사후분포와 거의 어디서나 같으면 차이가 0이다. 고정 θ에서 ELBO를 높이는 것은 같은 방향의 KL을 낮추는 것과 같다. 다만 증거를 모르면 차이의 수치값도 일반적으로 알 수 없다.
 
-$$\log p(\mathbf{X} | \theta) \geq \mathbb{E}_{q}\!\left[\log \frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{q(\mathbf{Z})}\right] \;\equiv\; \mathcal{L}(q, \theta)$$
+## 4. 중요도 가중 하한
 
-오른쪽 변이 **증거 하한(ELBO)**이다.
+ELBO는 **로그 중요도 가중치의 기댓값**이다. 주변우도의 하한에 로그를 취한 별도 양이나, 로그 가중치 기댓값보다 더 작은 양이 아니다. 독립 표본 Z₁,…,Z_K∼q로 다음 목적을 만들 수 있다.
 
-### 등호가 성립할 때
+$$\mathcal L_K=E\left[\log\left(\frac1K\sum_{k=1}^K\frac{p(X,Z_k|\theta)}{q(Z_k)}\right)\right]\leq\log p(X|\theta).$$
 
-기댓값 안의 확률 변수가 상수일 때 옌센 부등식이 팽팽해진다. 이는 $q$의 받침에 있는 모든 $\mathbf{Z}$에 대해 $p(\mathbf{X}, \mathbf{Z} | \theta) / q(\mathbf{Z}) = c$이어야 함을 뜻한다. 양변을 고르게 하면 $c = p(\mathbf{X} | \theta)$임이 드러나고 따라서 다음이 성립한다:
+K=1이면 표준 ELBO다. 적절한 조건에서 표본 수에 따른 기대 하한의 비감소성을 얻지만, 임의의 한 표본 묶음에서 계산한 로그 평균이 항상 증거 아래에 있다는 뜻은 아니다. K→∞에서 증거에 접근하는 주장에도 지지집합·적분 가능성과 기대의 극한 교환 조건이 필요하다. 이 구조가 중요도 가중 자동인코더(IWAE)의 목적과 연결된다.
 
-$$q(\mathbf{Z}) = \frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{p(\mathbf{X} | \theta)} = p(\mathbf{Z} | \mathbf{X}, \theta)$$
+## 5. 같은 목적의 여러 표현
 
-$q$이 참 사후확률과 같을 때 그리고 오직 그때만 이 경계가 팽팽해진다.
+결합분포가 p(X|Z,θ)p(Z|θ)로 분해되면 다음과 같다.
 
----
+$$\mathcal L=E_q[\log p(X|Z,\theta)]-D_{\mathrm{KL}}(q\Vert p(Z|\theta))$$
 
-## 3. 유도 2: KL 발산 쪼개기
+$$=E_q[\log p(X|Z,\theta)]+E_q[\log p(Z|\theta)]+H(q).$$
 
-$q(\mathbf{Z})$에서 참 사후확률 $p(\mathbf{Z} | \mathbf{X}, \theta)$까지의 KL 발산을 쓴다:
+첫 항은 기댓값 로그 우도 또는 VAE의 재구성 항이다. 둘째 표현에서는 사전 적합과 엔트로피의 역할을 따로 볼 수 있다. 엔트로피 항은 다른 항과 함께 작용하므로 어떤 모델에서도 붕괴나 과소 분산을 반드시 막는다고 보장하지 않는다. 연속 분포의 미분 엔트로피는 음수일 수도 있다.
 
-$$D_{\text{KL}}\!\bigl(q(\mathbf{Z}) \,\|\, p(\mathbf{Z} | \mathbf{X}, \theta)\bigr) = \mathbb{E}_{q}\!\left[\log \frac{q(\mathbf{Z})}{p(\mathbf{Z} | \mathbf{X}, \theta)}\right]$$
+변분 자유 에너지를 F=−L로 정의하면 자유 에너지 최소화와 ELBO 최대화는 같은 문제다. 문헌마다 부호와 온도 정의가 다를 수 있으므로 식을 기준으로 읽는다.
 
-베이즈 정리 $p(\mathbf{Z} | \mathbf{X}, \theta) = p(\mathbf{X}, \mathbf{Z} | \theta) / p(\mathbf{X} | \theta)$을 넣으면:
+## 6. 근사 차이와 최적화 오차
 
-$$D_{\text{KL}} = \mathbb{E}_{q}[\log q(\mathbf{Z})] - \mathbb{E}_{q}[\log p(\mathbf{X}, \mathbf{Z} | \theta)] + \log p(\mathbf{X} | \theta)$$
+분포족을 포함관계 Q₁⊆Q₂로 확장하면 이론적인 최적 ELBO는 나빠지지 않는다. 실제 학습 결과는 초기화·최적화 오차 때문에 더 낮을 수 있다. 깊은 잠재모델로 생성모델까지 바꾸면 비교 대상인 증거 자체가 달라지므로 ‘층을 늘리면 같은 사후의 KL이 반드시 감소한다’는 결론은 아니다.
 
-정리하고 ELBO를 알아보면:
+단봉 가우스 근사는 다봉 사후를 정확히 표현하지 못할 수 있다. 그렇다고 분산이나 모든 예측량의 오차가 항상 같은 방향이라는 뜻은 아니다. 더 유연한 분포족, 구조화 근사와 가중 하한은 서로 다른 방식으로 근사 목적을 개선한다.
 
-$$\boxed{\log p(\mathbf{X} | \theta) = \mathcal{L}(q, \theta) + D_{\text{KL}}\!\bigl(q(\mathbf{Z}) \,\|\, p(\mathbf{Z} | \mathbf{X}, \theta)\bigr)}$$
+## 7. EM과 VAE
 
-$D_{\text{KL}} \geq 0$이므로 $\log p(\mathbf{X} | \theta) \geq \mathcal{L}(q, \theta)$을 되찾는다. 이 쪼갬은 틈을 정확히 짚어 주므로 옌센의 길보다 알려 주는 것이 많다.
+EM의 E 단계는 qₜ=p(Z|X,θₜ)로 현재 점의 하한을 일치시킨다. M 단계는 qₜ를 고정해 Q=E_qₜ[log p(X,Z|θ)]를 높인다. 엔트로피가 상수이므로 다음 부등식이 성립한다.
 
----
+$$\ell(\theta_{t+1})\geq\mathcal L(q_t,\theta_{t+1})\geq\mathcal L(q_t,\theta_t)=\ell(\theta_t).$$
 
-## 4. 유도 3: 중요도 샘플링의 눈
+제한된 사후 근사의 좌표 최적화는 ELBO를 높일 수 있어도 현재 우도와 하한이 일치하지 않으므로 같은 우도 단조성을 얻지 못한다. VAE는 입력별 q_φ(z|x)를 인코더로 공유하고 θ와 φ를 확률적 경사법으로 학습하므로 일반적으로 매번 ELBO가 증가한다는 보장도 없다. VI 전체가 CAVI 한 방식으로만 최적화되는 것은 아니다.
 
-중요도 샘플링의 눈으로 보면 주변 우도는 중요도 무게 $p(\mathbf{X}, \mathbf{Z} | \theta) / q(\mathbf{Z})$의 기댓값이다:
+VAE의 한 관측 목적은 E_qφ[log pθ(x|z)]−KL(qφ(z|x)∥p(z))다. 대각 가우스에서는 ε∼N(0,I), z=μ_φ(x)+σ_φ(x)⊙ε로 경로별 미분을 계산할 수 있다. 표본 하나는 확률적 경사 추정의 선택일 뿐 어떤 문제에서나 충분한 정확도를 보장하지 않는다.
 
-$$p(\mathbf{X} | \theta) = \mathbb{E}_{q}\!\left[\frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{q(\mathbf{Z})}\right]$$
+고정 분산의 가우스 디코더는 상수와 스케일을 제외하면 제곱오차, 베르누이 디코더는 이진 교차 엔트로피에 대응한다. 학습하는 관측 분산이나 손실의 합·평균 단위를 바꾸면 같은 목적이 아닐 수 있다. β-VAE는 KL에 β를 곱한 다른 목적이며 β≠1에서 원래 모델의 표준 ELBO와 같지 않다. β를 키운다고 표현의 품질이나 분리성이 단조롭게 개선되는 것도 아니다.
 
-ELBO는 옌센 부등식으로 얻은 이 기댓값의 아래 경계의 로그이다. 이 눈은 표본 여럿으로 경계를 팽팽하게 하는 **중요도 무게 자동인코더(IWAE)** 목표로 이어진다.
+[KL 발산](../../ch07/loss/kl_divergence.md)과 [재매개변수화](reparameterization.md)에서 관련 계산을 이어서 다룬다.
 
----
+## 8. 가우스 모델의 해석적 예제
 
-## 5. 근본 항등식
+θ∼N(μ₀,σ₀²), xᵢ|θ∼N(θ,σ²), q=N(m,s²)이고 두 분산이 양수라고 하자.
 
-세 가지 유도가 서로 다른 각도에서 같은 결과에 이른다:
+$$E_q[\log p(D|\theta)]=-\frac n2\log(2\pi\sigma^2)-\frac{\sum_i(x_i-m)^2+ns^2}{2\sigma^2},$$
 
-$$\log p(\mathbf{X} | \theta) = \mathcal{L}(q, \theta) + D_{\text{KL}}\!\bigl(q(\mathbf{Z}) \,\|\, p(\mathbf{Z} | \mathbf{X}, \theta)\bigr)$$
+$$E_q[\log p(\theta)]=-\frac12\log(2\pi\sigma_0^2)-\frac{(m-\mu_0)^2+s^2}{2\sigma_0^2},\qquad H(q)=\frac12\log(2\pi e s^2).$$
 
-이 항등식에서 곧바로 셋이 따라 나온다. 첫째, $D_{\text{KL}} \geq 0$이므로 ELBO는 늘 로그 증거의 아래 경계이다. 둘째, 참 로그 우도와 ELBO 사이의 틈은 정확히 $q$에서 참 사후확률까지의 KL 발산이다. 셋째, $q$에 대해 ELBO를 가장 크게 하는 것은 $D_{\text{KL}}(q \| p_{\text{posterior}})$을 가장 작게 하는 것과 같고, 이것이 변분 추론의 목표이다.
+세 항의 합이 ELBO다. 최적값은 s²=(σ₀⁻²+nσ⁻²)⁻¹, m=s²(μ₀σ₀⁻²+σ⁻²∑ᵢxᵢ)이며 정확한 사후와 일치한다. 이때 하한은 해당 계층 모델의 로그 증거와 같다.
 
----
-
-## 6. 다른 표현들
-
-ELBO는 여러 같은 뜻의 꼴로 다시 쓸 수 있으며 저마다 다른 통찰을 준다.
-
-### 결합 꼴
-
-$$\mathcal{L}(q, \theta) = \mathbb{E}_{q}[\log p(\mathbf{X}, \mathbf{Z} | \theta)] - \mathbb{E}_{q}[\log q(\mathbf{Z})]$$
-
-첫 항은 기댓값 완전 데이터 로그 우도이고, 둘째 항은 $q$의 엔트로피의 음수이다.
-
-### 되살림 + 정칙화 꼴
-
-결합 분포를 $p(\mathbf{X}, \mathbf{Z} | \theta) = p(\mathbf{X} | \mathbf{Z}, \theta) \, p(\mathbf{Z})$으로 인수 나누면:
-
-$$\mathcal{L}(q, \theta) = \underbrace{\mathbb{E}_{q}[\log p(\mathbf{X} | \mathbf{Z}, \theta)]}_{\text{reconstruction}} - \underbrace{D_{\text{KL}}\!\bigl(q(\mathbf{Z}) \,\|\, p(\mathbf{Z})\bigr)}_{\text{regularisation}}$$
-
-되살림 항은 데이터를 정확히 본뜨는 것을 북돋우고, KL 항은 사전확률에서 벗어나는 것에 벌을 준다. 이것이 VAE 학습에 쓰는 표준 꼴이다.
-
-### 엔트로피 꼴
-
-$$\mathcal{L}(q, \theta) = \mathbb{E}_{q}[\log p(\mathbf{X} | \mathbf{Z}, \theta)] + \mathbb{E}_{q}[\log p(\mathbf{Z})] + H[q]$$
-
-여기서 $H[q] = -\mathbb{E}_{q}[\log q(\mathbf{Z})]$이다. 엔트로피 항은 $q$이 넓게 퍼지도록 북돋아 한 점으로 찌부러지는 것을 막는다.
-
-### 자유 에너지의 음수
-
-물리 문헌에서 ELBO는 **변분 자유 에너지**의 음수이다. 곧 $\mathcal{F}(q) = -\mathcal{L}(q, \theta)$이다. 자유 에너지를 가장 작게 하는 것은 ELBO를 가장 크게 하는 것과 같다.
-
----
-
-## 7. 틈 살피기
-
-### 틈이 곧 KL 발산이다
-
-$$\text{Gap} = \log p(\mathbf{X} | \theta) - \mathcal{L}(q, \theta) = D_{\text{KL}}\!\bigl(q(\mathbf{Z}) \,\|\, p(\mathbf{Z} | \mathbf{X}, \theta)\bigr)$$
-
-$q = p(\mathbf{Z} | \mathbf{X}, \theta)$일 때 그리고 오직 그때만 틈이 0이다.
-
-### 틈에 영향을 주는 것들
-
-$q$ 집안의 표현력이 좋으면 틈이 작아지고, 참 사후확률이 복잡하거나 봉우리가 여럿이면 커진다. 참 사후확률의 봉우리가 여럿인데 $q$이 (이를테면 대각 가우스처럼) 봉우리 하나인 분포로 옭매여 있으면 0이 아닌 틈을 피할 수 없다.
-
-### 경계 팽팽하게 하기
-
-틈을 줄이는 방법으로는 더 풍성한 변분 집안(정규화 흐름, 자기 회귀 사후확률), 중요도 무게 주기(IWAE), 확률 층이 여럿인 층 숨은 구조가 있다.
-
----
-
-## 8. EM 알고리즘과의 이음
-
-EM 알고리즘은 $q$을 정확한 사후확률로 두는, ELBO 최대화의 특별한 경우이다.
-
-**E 걸음.** $q^{(t+1)}(\mathbf{Z}) = p(\mathbf{Z} | \mathbf{X}, \theta^{(t)})$으로 둔다. 그러면 $D_{\text{KL}} = 0$이 되어 경계가 팽팽해진다. 곧 $\mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \log p(\mathbf{X} | \theta^{(t)})$이다.
-
-**M 걸음.** $\theta$에 대해 $\mathcal{L}(q^{(t+1)}, \theta)$을 가장 크게 한다:
-
-$$\theta^{(t+1)} = \arg\max_\theta \, \mathbb{E}_{q^{(t+1)}}[\log p(\mathbf{X}, \mathbf{Z} | \theta)]$$
-
-엔트로피 $H[q^{(t+1)}]$이 $\theta$에 달려 있지 않으므로 이는 기댓값 완전 데이터 로그 우도를 가장 크게 하는 것으로 줄어든다.
-
-**단조롭게 나아짐.** M 걸음 뒤에 $\theta$이 $\theta^{(t+1)}$으로 바뀌면서 양수인 틈이 다시 생길 수 있다. 그러나 우도는 줄어들 수 없다:
-
-$$\log p(\mathbf{X} | \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \log p(\mathbf{X} | \theta^{(t)})$$
-
-### 기하로 풀이하기: 접하는 아래 경계
-
-$q$을 $\theta^{(t)}$에서의 사후확률로 두면 ELBO는 $\theta^{(t)}$에서 로그 우도 곡선에 닿고 다른 곳에서는 그 아래에 있다. M 걸음은 이 아래 경계의 봉우리로 옮겨 간다. 이는 **아래 받치고 최대화하기(MM)**의 한 보기이다.
-
-### EM, 변분 추론, VAE의 비교
-
-| 살필 점 | EM | 변분 추론 | VAE |
-|--------|----|-----------------------|-----|
-| **사후확률** | 정확한 $p(\mathbf{Z} \| \mathbf{X}, \theta)$ | 옭맨 집안 $q \in \mathcal{Q}$ | 신경망 $q_\phi(\mathbf{Z} \| \mathbf{X})$ |
-| **새로 고치기** | E와 M을 번갈아 | 좌표 오르기 변분 추론 | $(\theta, \phi)$에 대한 결합 확률 기울기 내리기 |
-| **추론** | 데이터 점마다 | 데이터 점마다 | 데이터에 걸쳐 나눠 갚음 |
-| **단조로움** | 예 | 예(집안 안에서) | 보장 없음 |
-
----
-
-## 9. VAE과의 이음
-
-VAE에서는 인코더 $q_\phi(\mathbf{Z} | \mathbf{X})$와 디코더 $p_\theta(\mathbf{X} | \mathbf{Z})$을 되살림 + 정칙화 꼴의 ELBO를 가장 크게 하여 함께 학습된이다:
-
-$$\mathcal{L}_{\text{VAE}} = \mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{\text{KL}}(q_\phi(z|x) \| p(z))$$
-
-되살림 항은 몬테카를로로 어림하며(흔히 표본 하나면 넉넉하다), KL 항은 $q_\phi$과 사전확률 $p(z)$이 모두 가우스이면 닫힌 형태가 된다. 기울기는 **매개변수 바꾸기 재주**로 샘플링 걸음을 지나 흐른다. 곧 $\epsilon \sim \mathcal{N}(0, I)$일 때 $z = \mu_\phi(x) + \sigma_\phi(x) \odot \epsilon$이다.
-
-### 디코더 고르기와 되살림 손실
-
-되살림 항 $\mathbb{E}_q[\log p_\theta(x|z)]$은 디코더의 분포에 따라 다른 손실에 맞대응된다. 곧 가우스 디코더는 평균 제곱 오차 손실($-\|x - \hat{x}\|^2 / 2\sigma^2$에 상수를 더한 것)을 주고, 베르누이 디코더는 두 값 교차 엔트로피 손실을 준다.
-
-### 베타-VAE의 주고받음
-
-$\beta$-VAE의 목표 $\mathcal{L} = \mathbb{E}_q[\log p_\theta(x|z)] - \beta \, D_{\text{KL}}$은 되살림의 질($\beta \to 0$)과 잠재공간의 반듯함($\beta \to \infty$) 사이를 메운다. 표준 VAE은 $\beta = 1$에 해당한다.
-
-(가우스의 닫힌 형태를 비롯한) KL 발산 계산을 자세히 다룬 것은 [KL 발산](../../ch07/loss/kl_divergence.md)을 보아라. 매개변수 바꾸기 재주는 매개변수 바꾸기 쪽을 보아라. VAE 목표의 온전한 PyTorch 구현은 PyTorch 구현을 보아라.
-
----
-
-## 10. 가우스 모델의 ELBO(풀어 본 보기)
-
-켤레 가우스 모델을 보자. 사전확률은 $\theta \sim \mathcal{N}(\mu_0, \sigma_0^2)$, 우도는 $i = 1, \ldots, n$에 대해 $x_i | \theta \sim \mathcal{N}(\theta, \sigma^2)$, 변분 집안은 $q(\theta) = \mathcal{N}(m, s^2)$이다.
-
-**기댓값 로그 우도:**
-
-$$\mathbb{E}_q[\log p(\mathcal{D} | \theta)] = -\frac{n}{2}\log(2\pi\sigma^2) - \frac{1}{2\sigma^2}\!\left[\sum_{i=1}^n (x_i - m)^2 + n s^2\right]$$
-
-여기서 $\mathbb{E}_q[(x_i - \theta)^2] = (x_i - m)^2 + s^2$을 썼다.
-
-**기댓값 로그 사전확률:**
-
-$$\mathbb{E}_q[\log p(\theta)] = -\frac{1}{2}\log(2\pi\sigma_0^2) - \frac{1}{2\sigma_0^2}\!\left[(m - \mu_0)^2 + s^2\right]$$
-
-**엔트로피:**
-
-$$H[q] = \frac{1}{2}\log(2\pi e \, s^2)$$
-
-ELBO는 이 세 항의 합이며 손으로 풀거나 $(m, s)$에 대한 기울기 오르기로 최적화할 수 있다.
-
----
-
-## 11. PyTorch 구현
+아래 구현은 이 해석적 목적을 Adam으로 최적화한다. 양의 표준편차를 log s로 매개변수화하지만 장치·자료형 처리는 일반화하지 않았다. 기록된 ELBO와 s는 갱신 전 값이고 m은 갱신 후 값이므로 이력을 같은 시점의 매개변수 쌍으로 해석할 때 주의한다. 코드와 출력·그림은 실행하거나 재생성하지 않았다.
 
 ```python
 import torch
@@ -270,45 +145,33 @@ def optimize_elbo(data: torch.Tensor, elbo_computer: GaussianELBO,
     return history, m.detach(), torch.exp(log_s).detach()
 ```
 
----
+## 9. 모델 비교에서의 한계
 
-## 12. 모델 고르기 잣대로서의 ELBO
+전역 매개변수까지 적절한 사전 아래 적분한 증거 p(D|M)와, 고정 θ에서 잠재 Z만 적분한 p(D|θ,M)는 다르다. 후자에 대한 ELBO를 θ로 최대화했다고 베이즈 모델 증거가 되는 것은 아니다.
 
-최적화한 ELBO $\mathcal{L}(q^*, \theta^*)$은 로그 모델 증거 $\log p(\mathcal{D} | \mathcal{M})$을 어림하며, 이는 모델을 비교하는 표준 베이즈 양이다. BIC이나 AIC와 달리 ELBO는 점 어림값이 아니라 ($q$으로 어림한) 온전한 사후확률을 쓰므로 모델의 복잡함에 더 풍성한 벌을 준다.
-
----
+모델별 ELBO는 log p(D|M)에서 각 모델의 서로 다른 사후 근사 차이를 뺀 값이다. 차이가 다르면 ELBO의 순위와 증거의 순위가 뒤집힐 수 있다. 근사족·최적화 수준·생략한 상수·데이터 단위가 일관된지 확인해야 하며, ‘완전한 사후를 사용하므로 AIC/BIC보다 풍부하다’는 식의 보편적인 우열을 주장하지 않는다.
 
 ## 연습문제
 
-### 연습 1: 옌센 등호의 조건
+### 연습 1: 지지집합과 등호
 
-중요도 비 $p(\mathbf{X}, \mathbf{Z} | \theta) / q(\mathbf{Z})$이 상수임을 확인하여, $q(\mathbf{Z}) = p(\mathbf{Z} | \mathbf{X}, \theta)$일 때 ELBO에 대한 옌센 부등식이 등호가 됨을 보여라.
+q가 결합밀도의 일부 영역만 덮을 때 E_q[p(X,Z)/q(Z)]와 p(X)의 관계를 구하라. 중요도 비가 q 아래에서 상수여도 전체 증거에 대한 Jensen 하한이 일치하지 않을 수 있는 이유를 설명하라.
 
-### 연습 2: 베타-이항의 ELBO
+### 연습 2: 베타–이항 ELBO
 
-사전확률이 $\theta \sim \text{Beta}(\alpha_0, \beta_0)$, 우도가 $x | \theta \sim \text{Binomial}(n, \theta)$, 변분 집안이 $q(\theta) = \text{Beta}(\alpha, \beta)$일 때의 ELBO를 이끌어 내어라.
+θ∼Beta(α₀,β₀), x|θ∼Binomial(n,θ), q=Beta(a,b)의 ELBO를 유도하라. 이항계수 항을 포함하고 정확한 사후에서 증거와 일치함을 보이라.
 
-### 연습 3: 수치로 본 팽팽함
+### 연습 3: 가우스 모델
 
-풀어 본 보기의 가우스 모델에서 $q$을 정확한 사후확률로 두면 ELBO가 로그 증거와 같아짐을 수치로 확인하여라.
+본문의 해석적 ELBO를 m과 s²로 미분해 최적값을 구하라. 정확한 사후가 변분분포족에 포함되는지 확인하라.
 
 ### 연습 4: EM과 VAE
 
-EM은 되풀이마다 로그 우도가 단조롭게 나아짐을 보장하는데 VAE 학습은 왜 그렇지 않은지 설명하여라.
+정확한 EM의 단조성 증명 중 어떤 등식이 제한된 변분 E 단계에서는 사라지는지 설명하라. 확률적 경사 갱신까지 사용할 때 추가로 생기는 차이도 구분하라.
 
 ## 정리하며
 
-| 유도 | 핵심 통찰 |
-|------------|-------------|
-| 옌센 부등식 | $\log \mathbb{E}[Y] \geq \mathbb{E}[\log Y]$, $Y$이 상수일 때 등호 |
-| KL 쪼개기 | $\log p(\mathbf{X}) = \mathcal{L} + D_{\text{KL}}(q \| p_{\text{post}})$ |
-| 중요도 샘플링 | ELBO가 로그 중요도 무게 기댓값을 아래에서 받친다 |
-
-| 표현 | 식 | 통찰 |
-|-------------|------------|---------|
-| 결합 | $\mathbb{E}_q[\log p(\mathbf{X}, \mathbf{Z})] - \mathbb{E}_q[\log q]$ | 기댓값 결합에 엔트로피를 더함 |
-| 되살림 + KL | $\mathbb{E}_q[\log p(\mathbf{X} \| \mathbf{Z})] - D_{\text{KL}}(q \| p(\mathbf{Z}))$ | 데이터에 맞음과 사전확률 |
-| 엔트로피 | $\mathbb{E}_q[\log p(\mathbf{X} \| \mathbf{Z})] + \mathbb{E}_q[\log p(\mathbf{Z})] + H[q]$ | 드러난 엔트로피 덤 |
+ELBO는 기대 로그 중요도 가중치이며 로그 증거와의 차이는 사후 KL이다. 중요도 표현의 지지집합, 기대 하한과 표본 추정값, 고정 매개변수의 주변우도와 베이즈 모델 증거를 구분해야 한다. 이 구분이 EM·VI·VAE의 서로 다른 보장을 설명한다.
 
 **참고 문헌**
 

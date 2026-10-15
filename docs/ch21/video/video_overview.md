@@ -1,60 +1,14 @@
-# 영상 기초: 읽어 들이고 다루기
+# 비디오 입력: 읽기·샘플링·전처리
 
----
+비디오는 순서가 있는 프레임 열 V=(I_1,…,I_T)이며 각 프레임은 높이 H·너비 W·채널 C를 갖는다. C는 클래스 수가 아니라 RGB 같은 입력 채널 수다. 어떤 프레임을 어떤 시간 간격으로 골라 어떤 축 순서로 모델에 넣는지를 명확히 해야 한다.
 
-## 1. 학습 목표
+## 1. 프레임 수와 실제 시간
 
-이 절을 마치면 다음을 할 수 있게 된다.
+고정 프레임률 f에서 T개 프레임의 재생 길이는 대략 T/f초다. 첫 프레임과 마지막 프레임 timestamp 사이 간격은 보통 (T−1)/f이며 두 표현의 기준이 다르다. 가변 프레임률이나 디코딩 누락이 있으면 실제 timestamp를 확인해야 한다. 같은 프레임 수여도 stride s에 따라 관찰 간격 s/f와 전체 시간 범위가 달라진다.
 
-- 영상 데이터를 틀의 시계열로 나타내는 법을 이해한다
-- 여러 뒷단(torchvision, OpenCV)으로 영상을 읽어 들이고 다룬다
-- 서로 다른 영상 텐서 꼴 사이를 옮긴다
-- 틀 샘플링과 샘플링 전략을 짠다
-- 영상 신경망에 알맞은 앞손질을 한다
+비디오 하나는 THWC·TCHW·CTHW, 배치는 BTCHW·BCTHW 등으로 표현할 수 있다. ‘PyTorch의 비디오는 항상 BTCHW’라는 고정 규칙은 없다. Conv3d는 일반적으로 BCTHW이고 아래 전처리 함수는 TCHW를 기준으로 한다. 축의 이름과 입력 모델의 계약을 함께 기록한다.
 
----
-
-## 2. 수학적 기초
-
-### 시계열로서의 영상
-
-영상 $V$은 근본적으로 틀 $T$개의 차례이다:
-
-$$V = \{I_1, I_2, \ldots, I_T\}$$
-
-여기서 틀 $I_t \in \mathbb{R}^{H \times W \times C}$은 때 $t$의 그림을 나타내며 높이는 $H$, 너비는 $W$, 갈래는 $C$개다(RGB이면 흔히 3이다).
-
-### 텐서로 나타내기
-
-PyTorch에서 영상은 4차원이나 5차원 텐서로 나타낸다:
-
-**영상 하나(4차원):**
-
-$$V \in \mathbb{R}^{T \times C \times H \times W}$$
-
-**영상 배치(5차원):**
-
-$$V \in \mathbb{R}^{B \times T \times C \times H \times W}$$
-
-여기서 $B$은 배치 크기이다.
-
-### 틀 비율과 길이
-
-때에 관한 성질 사이의 관계:
-
-$$\text{Duration (seconds)} = \frac{T}{\text{FPS}}$$
-
-$$T = \text{Duration} \times \text{FPS}$$
-
-여기서 초당 틀 수(FPS)가 때의 해상도를 정한다.
-
----
-
-## 3. 영상 읽어 들이기 뒷단
-
-### OpenCV 뒷단
-
-OpenCV는 유연하고 실전에 쓸 수 있는 영상 읽어 들이기를 준다:
+## 2. OpenCV와 torchvision 읽기
 
 ```python
 import cv2
@@ -107,9 +61,7 @@ class VideoLoader:
         return frames, info
 ```
 
-### Torchvision 뒷단
-
-torchvision으로 PyTorch에 곧바로 녹아든다:
+OpenCV의 프레임은 BGR이므로 RGB로 바꾸어 T×H×W×3 NumPy 배열로 모은다. 이 구현에는 파일 열기·빈 프레임·fps0 검사나 메타데이터와 실제 프레임 수의 일치 확인이 없다. 전체 프레임을 메모리에 올리므로 긴 영상은 디코딩·저장 비용도 고려한다. 고정 fps 메타데이터로 계산한 duration을 모든 파일의 정확한 timestamp 길이라고 가정하지 않는다.
 
 ```python
 from torchvision.io import read_video, write_video
@@ -131,9 +83,7 @@ def load_video_torchvision(video_path: str):
     return video, audio, info
 ```
 
-### 꼴 바꾸기
-
-틀이 다를 때는 꼴 사이를 옮기는 일이 꼭 필요하다:
+이 torchvision I/O 형식은 기본 THWC 비디오와 오디오·정보를 반환하는 API를 가정한다. 지원 API·코덱 의존성은 설치된 버전에서 확인한다. 이 메서드와 OpenCV 메서드의 정보 사전 키·오디오 처리도 같지 않다. 읽기 backend를 바꿀 때 반환 형태까지 같은 것으로 취급하면 안 된다.
 
 ```python
 def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
@@ -158,19 +108,9 @@ def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
     return video_tensor
 ```
 
----
+`convert_to_pytorch_format`은 uint8 RGB THWC를 float TCHW로 옮기고255로 나누는 함수다. 이미0~1인 입력에 다시 적용하면 값이255분의1로 줄어든다. BGR변환은 포함하지 않고, 채널·차원 검증도 없다. permute로 축을 옮기는 것과 reshape로 모양만 바꾸는 것은 다르다.
 
-## 4. 틀 샘플링 전략
-
-샘플링 전략은 어떤 틀을 다룰지 정하며, 계산 비용과 때의 덮음 사이 균형을 잡는다.
-
-### 고른 샘플링
-
-영상 전체에 고루 퍼지도록 틀을 뽑는다:
-
-$$i_k = \left\lfloor \frac{k \cdot T}{n} \right\rfloor \quad \text{for } k = 0, 1, \ldots, n-1$$
-
-여기서 $n$은 뽑을 틀의 개수이다.
+## 3. 전체 구간 샘플링과 stride
 
 ```python
 def uniform_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
@@ -189,9 +129,7 @@ def uniform_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
     return video[indices]
 ```
 
-### 때 성큼 샘플링
-
-$s$번째 틀마다 뽑는다:
+위 uniform_sampling은 linspace(0,T−1,n)을 정수로 바꿔 양 끝을 포함한다. n>1에서 인덱스는 floor(k(T−1)/(n−1))로 표현할 수 있고, n=1이면 첫 프레임이다. floor(kT/n)과는 다른 규칙이다. 짧은 영상에서 요청 수가 많으면 인덱스가 중복된다. 빈 입력·유효하지 않은 요청 수는 별도 규칙이 필요하다.
 
 ```python
 def stride_sampling(video: torch.Tensor, stride: int) -> torch.Tensor:
@@ -208,9 +146,9 @@ def stride_sampling(video: torch.Tensor, stride: int) -> torch.Tensor:
     return video[::stride]
 ```
 
-### 촘촘한 샘플링
+stride_sampling은 0번부터 양의 s 간격으로 선택한다. 영상 전체를 일정 수로 압축하는 uniform과 달리 출력 프레임 수가 원본 길이에 따라 달라진다. 큰 stride는 빠른 움직임을 놓칠 수 있으며 s=0·음수 등 허용 범위를 검증해야 한다.
 
-때 네트워크를 위해 겹치는 토막을 여럿 뽑는다:
+## 4. 여러 clip과 무작위 프레임
 
 ```python
 def dense_sampling(video: torch.Tensor, 
@@ -246,9 +184,7 @@ def dense_sampling(video: torch.Tensor,
     return clips
 ```
 
-### 마구잡이 샘플링
-
-익히는 동안 데이터 증강에 쓸모 있다:
+이 dense_sampling은 연속 clip의 시작점을 균일하게 두며 clip 하나면 중앙 시작점을 사용한다. 여러 clip은 입력 길이·clip 수에 따라 겹칠 수도 있고 떨어질 수도 있다. 원본이 짧으면 검은 프레임을 뒤에 추가해 길이를 맞춘다. 다만 padding은 기본 CPU float32로 생성되어 원본 GPU·다른 dtype과 일치하지 않을 수 있다. 마스크가 없어 추가 프레임과 실제 검은 장면을 모델이 자동 구분하지도 않는다.
 
 ```python
 def random_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
@@ -271,13 +207,9 @@ def random_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
     return video[indices]
 ```
 
----
+random_sampling은 복원 추출한 인덱스를 정렬한다. 중복 없는 부분집합이나 연속 구간 선택이 아니다. 실제 프레임 순서를 유지해도 인접 표본의 간격은 불규칙하며 같은 프레임이 반복될 수 있다. 학습 증강과 평가의 고정 샘플링 규칙을 구분한다.
 
-## 5. 영상 앞손질
-
-### 고르게 맞추기
-
-옮겨 학습하기를 위해 ImageNet 방식으로 고르게 맞춘다:
+## 5. 정규화·crop·resize
 
 ```python
 class VideoPreprocessor:
@@ -311,9 +243,7 @@ class VideoPreprocessor:
         return video * std + mean
 ```
 
-### 자리 잘라내기
-
-모든 틀에 한결같은 자리 잘라내기를 한다:
+정규화는 TCHW의 RGB 각 채널에 (x−μ)/σ를 적용한다. ImageNet 통계가 모든 비디오 사전 학습 모델의 통계와 같지는 않다. mean·std가 CPU에 있어 CUDA 입력과 바로 연산하면 장치 오류가 날 수 있고, 임의 dtype도 확인해야 한다. denormalize는 역선형변환만 하며 표시 범위 clamp는 포함하지 않는다. 정규화 앞뒤의 0 패딩은 서로 다른 값을 뜻한다.
 
 ```python
 def spatial_crop(video: torch.Tensor, 
@@ -345,9 +275,7 @@ def spatial_crop(video: torch.Tensor,
     return video[:, :, top:top+crop_h, left:left+crop_w]
 ```
 
-### 크기 바꾸기
-
-틀을 목표 해상도로 바꾼다:
+한 crop 위치를 모든 프레임에 적용해 우발적 흔들림을 줄인다. crop이 원본보다 크면 random 범위가 유효하지 않거나 슬라이싱이 예상과 다르게 작동한다. 시간 범위·공간 크기와 지원 position을 검증해야 한다. 목표 상자·마스크·flow가 있다면 같은 기하 변환과 각각의 레이블·벡터 규칙도 필요하다.
 
 ```python
 import torch.nn.functional as F
@@ -381,11 +309,9 @@ def resize_video(video: torch.Tensor,
     return resized
 ```
 
----
+resize는 T를 이미지 배치처럼 두고 공간 축만 bilinear 보간한다. 시간 프레임 수는 바꾸지 않으며 지정한 가로세로 크기로 늘이면 원본 종횡비가 변형될 수 있다. pad·crop을 사용하는 사전 학습 전처리와 동일하지 않다. 정수 클래스 마스크에는 이 보간을 그대로 적용하지 않는다.
 
-## 6. 시각화
-
-### 틀 보여 주기
+## 6. 표시와 다음 단계
 
 ```python
 import matplotlib.pyplot as plt
@@ -415,78 +341,70 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
     plt.show()
 ```
 
----
+표시할 때 정규화 값을 바로 0~1로 clamp하면 색이 달라질 수 있으므로 필요하면 먼저 역정규화한다. 위 함수는 num_frames=1이면 단일 Axes를 반복하려 해 오류가 날 수 있고, 빈 영상도 검증하지 않는다. 그림 출력은 프레임 선택을 이해하는 자료이며 학습·정확도 평가는 아니다.
 
-## 7. 다음 걸음
-
-영상 기초를 다졌으니 이제 다음을 살펴볼 수 있다:
-
-1. **3차원 합성곱** — 자리와 때에 걸친 특징 샘플링
-2. **때 나타내기** — 움직임과 흐름 이해하기
-3. **Two-Stream 네트워크** — 겉모습과 움직임 아우르기
-
----
+이후 [3D 합성곱](02_3d_convolution.md), [Two-Stream](two_stream.md), [SlowFast](slowfast.md)에 연결할 때 각 모델의 축 순서·입력 범위·샘플링 계약을 다시 확인한다. 같은 전처리 이름이라도 다른 절의 짧은 영상 처리·장치 이동 구현이 같다는 보장은 없다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-영상 이해를 위한 Two-Stream 네트워크의 핵심 눈썰미를 밝히고, 날 틀 위의 한 갈래만으로는 왜 모자란지 설명하여라.
+THWC 배열을 Conv3d 배치 입력으로 바꾸는 과정을 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    Two-Stream 네트워크는 **자리**(겉모습) 앎과 **때**(움직임) 앎을 서로 다른 갈래에서 다룬다. RGB 한 갈래만으로도 겉모습은 담아내지만 움직임에는 약한데, 그 까닭은 이렇다. (1) 때의 무늬는 여러 틀에 걸쳐 있어 넓은 받는 자리가 필요하다. (2) 움직임은 화소 바뀜 속에 숨어 있어 날 데이터에서 학습하기 어렵다. 옵티컬 플로우 갈래는 움직임을 드러내어 부호로 담아 서로 채워 주는 신호를 준다. 두 갈래는 보통 (늦게 또는 중간에서) 녹여 붙여 겉모습과 움직임 이해를 아우르며, 한 갈래 방식보다 훨씬 낫다.
+
+    RGB 색상과 0~255 범위를 확인한 뒤 THWC→CTHW로 축을 옮기고 배치를 추가해 BCTHW를 만든다. 본문 함수는 TCHW까지만 반환하므로 추가 축 정렬이 필요하다. permute와 reshape의 의미를 구분한다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-느림빠름 구조를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
+uniform_sampling의 n>1 인덱스와 n>T일 때의 결과를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    SlowFast은 길 둘을 쓴다. **느린** 길은 낮은 틀 빠르기(예: 2 FPS)로 돌며 갈래를 넉넉히 두어 자리의 뜻을 잘게 담고, **빠른** 길은 높은 틀 빠르기(예: 16 FPS)로 돌며 갈래를 적게 두어 빠른 때의 움직임을 담는다. 자리의 뜻은 더디게 바뀌고(높은 틀 빠르기가 필요 없다) 움직임은 잔 때 잣대에서 일어나므로 이 꾸밈이 잘 든다. 빠른 길은 가볍고(계산의 $\sim$20%) 때의 결을 주며, 느린 길은 자리의 넉넉함을 준다. 옆으로 잇는 이음이 두 길 사이의 소식을 녹여 아우른다.
+
+    인덱스는 $\lfloor k(T-1)/(n-1)\rfloor$로 양 끝을 포함한다. n>T이면 중복이 생길 수 있다. n=1은 첫 프레임이고 빈 영상은 별도 처리해야 한다. 일정 시간 간격의 stride 샘플링과는 출력 수·관찰 간격의 계약이 다르다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff easy" title="쉬움"></span>
-이미지 분류 구조(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
+짧은 GPU 영상의 dense_sampling과 normalize에 어떤 장치 문제가 있는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    핵심 어려움은 이렇다. (1) **계산 비용**: 때 차수를 더하면 데이터가 $T\times$($T$은 틀 수)만큼 늘어 3차원 합성곱이 값비싸진다. (2) **때 모델 짓기**: 2차원 합성곱은 틀 하나만 보아 때의 무늬를 놓친다. 2차원 알갱이를 손쉽게 3차원으로 부풀리면(I3D 따위) 값이 비싸다. (3) **길이가 바뀌는 입력**: 영상마다 길이가 달라 때 모으기나 샘플링 꾀가 든다. (4) **멀리 걸친 매임**: 중요한 일이 수백 틀에 걸칠 수 있어 그 자리 합성곱의 받는 밭을 넘어선다. (5) **학습 데이터**: 영상 데이터셋이 그림 데이터셋보다 작아 지나치게 맞춰질 걱정이 있다.
+
+    padding과 정규화 통계가 CPU 기본 텐서여서 GPU 입력과 일치하지 않는다. 입력 device·dtype에 맞게 만들어야 한다. 패딩의 유효성 마스크와 정규화 전후의 패딩 값도 명시한다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-영상을 나타내는 데 쓰는 3차원 합성곱, (2+1)차원으로 쪼갠 합성곱, 때에 걸친 셀프 어텐션을 비교하여라.
+TCHW resize가 시간 축도 줄이는가? 시각화 함수의 경계 사례도 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    | 방식 | 계산 | 때의 범위 | 학습 |
-    |----------|-------------|----------------|----------|
-    | **3차원 합성곱** | $O(k^3 C^2 THW)$ | 그 자리(틀 $k$개) | 값비싸고 사전 학습이 든다 |
-    | **(2+1)차원 합성곱** | $O(k^2 C^2 THW + k C^2 THW)$ | 그 자리 | 다듬기 쉽고 매개변수가 적다 |
-    | **때 어텐션** | $O(T^2 CHW)$ | 두루 | $T$에 이차이며 너그럽다 |
 
-    3차원 합성곱은 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 셀프 어텐션은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 구조(보기로 Video Swin Transformer)는 흔히 가까운 자리의 어텐션과 층진 꾸밈을 아우른다.
+    resize는 T를 배치로 취급해 H·W만 바꾸고 T는 그대로다. 시각화는 num_frames=1에서 Axes가 목록이 아니라 반복 오류가 날 수 있고 빈 영상도 검증하지 않는다. 정규화된 프레임은 표시 전에 필요한 역변환을 해야 한다.
+
+
 
 ## 정리하며
 
-| 살필 점 | 핵심 |
-|--------|------------|
-| **영상 꼴** | PyTorch에서는 $V \in \mathbb{R}^{T \times C \times H \times W}$ |
-| **읽어 들이기** | 유연함에는 OpenCV, PyTorch에 곧바로 쓰려면 torchvision |
-| **샘플링** | 고루 덮으려면 고른 샘플링, 불리기에는 마구잡이 |
-| **앞손질** | 옮겨 학습하기에는 ImageNet 방식 고르게 맞추기 |
-| **헤아릴 점** | 모든 틀에서 때의 한결같음을 지킨다 |
+비디오 입력은 축·색상·범위와 함께 실제 시간·샘플링·패딩을 정의한다. 균일·stride·연속 clip·복원 추출은 서로 다르며, 장치·dtype·전처리 통계와 목표 변환도 모델의 계약에 맞춰야 한다.

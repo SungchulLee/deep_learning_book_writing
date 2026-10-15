@@ -1,8 +1,6 @@
-# 주의를 쓰는 SEQ2SEQ
+# 어텐션을 결합한 GRU Seq2Seq
 
-주의를 쓰는 수열 대 수열 모델
-
-트랜스포머에 기초를 둔 구조는 자연어 처리를 뒤바꾸어 놓았다. 이 구현은 트랜스포머의 개념을 살피며, 갖가지 과제에서 최고 수준의 성능을 내게 하는 주의 구조와 구조의 본을 보여 준다.
+GRU 인코더·디코더에 Bahdanau 어텐션을 연결한 Seq2Seq 모델이다. 트랜스포머와 비교할 순환 모델이며, 셀프 어텐션으로 RNN을 대체한 구조가 아니다.
 
 ## 1. 코드
 
@@ -66,68 +64,66 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 구현은 함께 어울려 온전한 트랜스포머 구조를 이루는 클래스 3개(`Encoder`, `Decoder`, `Seq2SeqWithAttention`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
+Encoder는 정수 토큰 $(B,S)$를 임베딩한 뒤 GRU로 처리해 $(B,S,H)$ 출력과 $(1,B,H)$ 마지막 상태를 반환한다. Decoder는 한 시점의 입력 $(B,1)$, 은닉 상태와 전체 인코더 출력을 받아 $(B,V_t)$ 로짓을 반환한다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
+디코더는 이전 은닉 상태로 원문에 어텐션하고 문맥 벡터를 현재 토큰 임베딩과 이어 GRU에 넣는다. Seq2SeqWithAttention은 전달받은 tgt의 각 토큰을 순서대로 사용하므로 목표를 한 토큰 옮기는 일은 호출자가 해야 한다. 같은 tgt를 그대로 정답으로 주면 다음 토큰 학습이 아니다.
+
+원문 패딩 마스크와 길이 처리가 없고 임베딩에도 padding_idx가 없다. 패딩이 GRU 상태와 어텐션에 영향을 줄 수 있다. 이 코드는 학습 루프, 자유 생성이나 EOS 종료를 구현하지 않으며 빈 목표 시퀀스에서는 출력 목록을 stack할 수 없다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-기본 초기화 상태의 `Encoder`에 든 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 보여라.
+원문 어휘 크기 V, 임베딩 E, 은닉 H인 Encoder의 매개변수 수를 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    임베딩은 VE, 단층 GRU는 $3HE+3H^2+6H$이므로 합은 $VE+3HE+3H^2+6H$다. PyTorch GRU는 입력·은닉 경로의 편향을 각각 갖는다. 생성자에 기본값은 없어 수치 답을 위해 V·E·H를 지정해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-어텐션 가중치 뒤에(값과 곱하기 전에) 드롭아웃 층을 추가하라. 학습 중에는 드롭아웃 비율 0.1을 쓴다. 어텐션 드롭아웃이 정칙화에 도움이 되는 이유를 설명하라.
+이 어텐션에 드롭아웃을 추가할 위치와 해석을 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`이다. 어텐션 드롭아웃은 학습 중에 일부 어텐션 가중치를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에 지나치게 기대지 않게 한다. 이는 모델이 어텐션을 더 고르게 분산시키고 더 견고한 표현을 배우도록 북돋우며, 표준 드롭아웃이 뉴런의 공적응을 막는 것과 비슷하다.
+    BahdanauAttention 내부에서 소프트맥스 뒤, 키 벡터 가중합 앞에 적용한다. Decoder가 이미 받은 context에 드롭아웃을 적용하는 것은 가중치 드롭아웃과 다르다. 학습 시 일부 연결을 무작위로 제외하며 가중치 행 합이 항상 1이 되거나 분포가 더 고르게 된다고 보장하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+목표 길이 T, 원문 길이 S인 이 모델의 어텐션 점수 크기와 순차 계산을 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    각 디코더 시점은 S개 원문 위치의 점수를 구한다. 전체 점수 수는 배치당 TS이며 계산은 대략 $O(TSH^2)$다. 이 구현은 W2(keys)를 매 시점 다시 계산하므로 단순 가중합의 O(TSH)보다 큰 투영 비용이 있다. 디코더 은닉 상태는 GRU로 연결되어 T방향 계산이 순차적이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`Encoder`이 층이나 블록의 개수를 설정할 수 있도록 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`를 써서 깊이를 바꿀 수 있는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 되풀이하라. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 파이토치가 최적화 대상 매개변수를 모두 등록한다. `for n in [2, 4, 8]: model = Encoder(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험하라.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 주의를 쓰는 SEQ2SEQ
-
-이 구현은 함께 어울려 온전한 트랜스포머 구조를 이루는 클래스 3개(`Encoder`, `Decoder`, `Seq2SeqWithAttention`)를 정한다.
-
-핵심 클래스는 `Encoder`, `Decoder`, `Seq2SeqWithAttention`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+이 예제는 어텐션을 결합한 순환 Seq2Seq다. 입력·목표 시프트, 한 시점 디코더 규약과 패딩 처리를 확인해야 하며, 모델 정의만으로 번역 학습·생성이 완성되지는 않는다.

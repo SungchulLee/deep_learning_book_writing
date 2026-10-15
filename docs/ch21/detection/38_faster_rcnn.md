@@ -1,10 +1,8 @@
-# Faster R-CNN
+# Faster R-CNN의 영역 제안
 
-더 빠른 R-CNN은 2015년 논문 "Faster R-CNN: Towards Real-Time Object Detection"에서 나왔다. 자리 제안에 RPN을 쓰며 끝에서 끝까지 익힐 수 있다.
+Faster R-CNN은 backbone 특징을 공유하는 RPN으로 후보 영역을 만들고, 영역별 분류와 상자 회귀를 수행하는 두 단계 탐지기다. [원 논문](https://arxiv.org/abs/1506.01497)의 핵심은 외부 영역 제안 대신 학습 가능한 RPN을 사용하는 데 있다. ‘두 단계’는 이미지마다 서로 다른 신경망을 처음부터 별도로 실행한다는 뜻이 아니다.
 
-이 단원은 셈틀 보기라는 더 넓은 맥락 안에서 객체 탐지를 살펴본다. 여기 짠 것은 요즘 체계에서 쓰는 구조의 새로움과 학습 전략을 보여 주는 실전 PyTorch 코드이다.
-
-## 1. 코드
+## 1. 축약 코드의 범위
 
 ```python
 #!/usr/bin/env python3
@@ -68,76 +66,91 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-**출력:**
+**기존 출력:**
 
 ```
 Parameters: 30,385,567
 ```
 
-## 2. 논의
+위 `forward`는 backbone·RPN만 호출해 특징·objectness 로짓·앵커 오프셋을 반환한다. `roi_pool`, `fc`, `cls_score`, `bbox_pred`는 선언되어 있지만 사용하지 않는다. 매개변수 출력에는 이 미사용 head도 포함되며 전체 탐지 순전파가 검증된 것은 아니다.
 
-`FasterRCNN` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다. `forward` 메서드가 계산 그래프를 정하므로 익히는 동안 PyTorch의 자동 미분 체계가 기울기 계산을 알아서 다룬다. 이 단원별 꾸밈 덕분에 낱낱의 조각을 고치거나 모델을 더 큰 물길에 끼워 넣기가 쉽다.
+## 2. 실제 호출 경로와 빠진 연결
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 하이퍼파라미터와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 컴퓨터 비전 과제에 대한 실용적인 직관이 쌓인다.
+4×3×64×64 입력은 패딩된 합성곱 뒤에 4×64×64×64, 최대 풀링 뒤에 4×64×32×32가 된다. RPN 중간 특징은 4×512×32×32이고 분류·회귀는 각각 4×18×32×32, 4×36×32×32다. 18은 앵커 9개의 전경·배경 두 로짓씩, 36은 앵커 9개의 네 오프셋씩이다. 아직 객체 클래스나 이미지 좌표의 최종 상자가 아니다.
+
+전체 탐지에는 앵커 생성, 오프셋 디코딩, 영역 필터·NMS와 선택, 영역별 특징 추출, 분류·회귀와 최종 후처리가 필요하다. 학습에서는 앵커·RoI와 정답의 매칭 및 각 손실도 정의한다. RPN과 영역별 head가 backbone을 공유한다는 구조와 실제 학습 절차를 구분한다.
+
+## 3. 전역 풀링과 RoI 풀링의 차이
+
+`AdaptiveMaxPool2d((7,7))` 자체는 주어진 특징 전체를 7×7로 만든다. 제안 상자를 받아 그 상자별 영역을 선택하는 연산이 아니다. 전체 특징에 한 번 적용하면 이미지당 한 특징만 생기므로 객체별 RoI pooling을 대체하지 못한다.
+
+영역별로 64×7×7 특징을 얻었다고 가정하면 펼친 차원은 3136이고 `fc`는 4096차원으로 변환한다. 기본 `cls_score`의 21은 배경과 객체 클래스 20개, `bbox_pred`의 84는 클래스별 네 오프셋에 해당한다. 그러나 이 경로에 영역 특징을 공급하는 코드가 없다. RoI pooling은 영역별 bin을 최대 풀링하는 방식이고, 뒤의 Mask R-CNN에서 사용하는 RoIAlign의 연속 좌표 보간과는 다르다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`FasterRCNN`의 순방향을 따라가며 텐서 꼴을 좇아라. 붙박이 매개변수로 입력 표본 4개짜리 배치에 대해 주요 연산(합성곱, 모으기, 선형 층)마다 그 뒤의 꼴을 적어라.
+4×3×64×64 입력에서 실제 반환값의 텐서 모양을 계산하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 모양에서 출발하여 각 층을 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 (덧대기가 없으면) $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌거나 (`padding=k//2`이면) 그대로 유지된다. 커널이 2인 풀링은 공간 차원을 절반으로 만든다. 선형 층은 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임에 유의하며 추적한다. 중간 모양을 합성곱 층에서는 $(B, C, H, W)$로, 평탄화 후에는 $(B, F)$로 적는다.
+
+    features는 4×64×32×32, rpn_cls는 4×18×32×32, rpn_reg는 4×36×32×32다. 사전으로 반환되며 fc·cls_score·bbox_pred를 통과하지 않는다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$64 \times 64$ 크기의 RGB 이미지(입력 모양 $3 \times 64 \times 64$)를 받도록 구조를 수정하라. 모든 층의 차원을 그에 맞게 고치고 모델이 오류 없이 실행되는지 확인하라.
+64×64 RGB 입력을 위해 첫 합성곱과 fc를 반드시 수정해야 하는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    첫 엮음 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 엮음과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 엮음/모으기 켜의 편 출력에 맞춘다. `model = FasterRCNN(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+
+    첫 합성곱은 이미 3채널을 받으므로 수정할 필요가 없다. 실제 forward에서 fc는 호출되지 않는다. 영역별 7×7 특징을 만드는 전체 경로를 추가할 때 fc 입력 64×7×7을 확인해야 하며, 이미지 전체 크기를 곧바로 fc의 펼친 차원으로 사용하지 않는다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 입출력 차원에서 표준 합성곱과 깊이별 분리 합성곱의 매개변수 개수와 FLOPs를 비교하라. 계산 절감이 가장 큰 것은 언제인가?
+AdaptiveMaxPool2d만으로 RoI pooling을 구현했다고 할 수 없는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 `Conv2d(C_in, C_out, k)`은 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개의 매개변수를 갖는다. 깊이별 분리 합성곱은 이를 둘로 나눈다. (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나), (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 합성곱)이다. 매개변수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 매개변수가 약 $8{-}9\times$ 적어진다. 절감은 $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크다.
+
+    영역 좌표를 받아 이미지별 특징에서 해당 영역을 선택하는 과정이 빠져 있다. 전역 특징을 7×7로 줄이는 것과 제안마다 서로 다른 7×7 특징을 만드는 것은 다르다. 영역 좌표와 특징 stride의 대응도 필요하다.
+
+
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 덩이의 개수를 정할 수 있도록 `FasterRCNN`을 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이가 바뀌는 구조를 만들어라. 층 2, 4, 8개로 시험하여라.
+아래 ModuleList 조각으로 backbone 깊이를 바꿀 때 탐지 경로에 어떤 연결이 필요한가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+
+    YourBlock을 정의하고 RPN 입력 채널·특징 stride와 앵커 좌표를 일치시켜야 한다. 영역별 특징 추출과 head 입력도 맞춰야 한다. 모듈을 등록하는 것만으로 현재 사용하지 않는 head가 실행되거나 제안 영역 생성이 완성되지는 않는다.
+
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 되풀이한다. (그냥 파이썬 목록이 아니라) `nn.ModuleList`를 써야 PyTorch가 최적화에 쓸 매개변수를 모두 등록한다. 시험: `for n in [2, 4, 8]: model = FasterRCNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+
 
 ## 정리하며
 
-**다룬 것** — 더 빠른 R-CNN
-
-`FasterRCNN` 클래스는 PyTorch의 `nn.Module` 사이를 써서 모델 구조를 감싼다.
-
-핵심 갈래는 `FasterRCNN`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+Faster R-CNN의 두 단계는 영역 제안과 영역별 예측이다. 이 예제는 RPN 출력까지만 반환한다. 전역 적응형 풀링을 RoI pooling과 혼동하지 않고, 후보 영역과 head 사이의 좌표·특징 연결을 확인한다.

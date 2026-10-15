@@ -1,5 +1,7 @@
 # 경사 계산
 
+로지스틱 BCE의 경사는 예측 확률과 정답의 차이에 특징을 곱한 형태다. 이 식과 헤세 행렬을 유도하고, 볼록성이 보장하는 것과 보장하지 않는 것을 확인한다.
+
 ---
 
 ## 1. 학습 목표
@@ -92,7 +94,7 @@ $$
 
 ### 행렬 형태
 
-$\mathbf{X} \in \mathbb{R}^{n \times d}$을 설계 행렬(행이 표본), $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}) \in \mathbb{R}^n$을 예측 확률, $\mathbf{y} \in \{0,1\}^n$을 참 레이블라 하자. 그러면 다음이 성립한다.
+$\mathbf{X} \in \mathbb{R}^{n \times d}$을 설계 행렬(행이 표본), $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}) \in \mathbb{R}^n$을 예측 확률, $\mathbf{y} \in \{0,1\}^n$을 정답 레이블이라 하자. 그러면 다음이 성립한다.
 
 $$
 \boxed{\nabla_{\boldsymbol{\beta}} \mathcal{L} = \frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})}
@@ -104,10 +106,10 @@ $$
 
 | 모델 | 경사 (표본당) |
 |-------|----------------------|
-| 선형 회귀 | $(y_i - \hat{y}_i)\mathbf{x}_i$ |
+| 선형 회귀(절반 제곱오차) | $(\hat{y}_i-y_i)\mathbf{x}_i$ |
 | 로지스틱 회귀 | $(\hat{p}_i - y_i)\mathbf{x}_i$ |
 
-부호 관례와, 연속적인 예측 $\hat{y}_i$ 대신 확률 $\hat{p}_i$을 쓴다는 점만 빼면 형태가 동일하다.
+두 행 모두 하강법에 사용하는 경사의 부호를 맞춘 표기다. 연속적인 예측 $\hat{y}_i$ 대신 확률 $\hat{p}_i$을 쓴다는 점만 빼면 형태가 동일하다.
 
 ---
 
@@ -170,10 +172,10 @@ $$
 
 ### 전체 헤세 행렬
 
-(평균을 내지 않은 손실에 대해) 모든 표본에 걸쳐 더하면 다음과 같다.
+여기서는 합 손실 $S=n\mathcal L$의 헤세 행렬 $H_S$를 $\mathbf H$로 표기한다. 평균 손실의 헤세 행렬은 $H_S/n$이다. 경사와 헤세의 배율을 일치시켜야 하며, 뉴턴 업데이트에서는 같은 배율이 상쇄된다.
 
 $$
-\mathbf{H} = \nabla^2_{\boldsymbol{\beta}} \mathcal{L} = \sum_{i=1}^{n} p_i(1-p_i) \, \mathbf{x}_i \mathbf{x}_i^{\top}
+\mathbf{H} = \nabla^2_{\boldsymbol{\beta}} S = \sum_{i=1}^{n} p_i(1-p_i) \, \mathbf{x}_i \mathbf{x}_i^{\top}
 $$
 
 대각 가중치 행렬 $\mathbf{B} = \operatorname{diag}(p_1(1-p_1), \ldots, p_n(1-p_n))$을 정의하자. 그러면 다음이 성립한다.
@@ -196,7 +198,7 @@ $$
 \mathbf{v}^{\top} \mathbf{H} \mathbf{v} \geq 0 \quad \forall \, \mathbf{v}
 $$
 
-따라서 $\mathbf{H}$은 **양의 준정부호**이며, 이는 음의 로그가능도가 **볼록**함을 뜻한다. $\mathbf{X}$이 완전 열계수를 가지면 헤세 행렬이 엄격히 양의 정부호가 되어 손실이 엄격히 볼록해지고, 유일한 전역 최솟값이 보장된다.
+따라서 $\mathbf{H}$은 **양의 준정부호**이며, 이는 음의 로그우도가 **볼록**함을 뜻한다. $\mathbf{X}$이 열 전체 랭크를 가지면 헤세 행렬이 엄격히 양의 정부호가 되어 손실이 엄격히 볼록해지고, 유한한 최솟값이 존재한다면 유일하다. 완전히 분리되는 데이터에서는 열 전체 랭크여도 유한 MLE가 없을 수 있다.
 
 ---
 
@@ -204,7 +206,7 @@ $$
 
 ### 갱신 규칙
 
-뉴턴 방법은 헤세 행렬을 사용하여 곡률을 반영한 걸음을 내딛는다.
+이하 뉴턴 식의 경사와 헤세 행렬은 모두 합 손실에서 계산한다. 뉴턴 방법은 곡률을 이용해 방향을 정하지만, 선형계를 풀 수 있는 조건과 감쇠·선 탐색을 함께 고려해야 한다. 이차 수렴은 유한한 비퇴화 최적점 근처 등 추가 조건에서 성립한다.
 
 $$
 \boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \mathbf{H}^{-1} \mathbf{g}
@@ -300,7 +302,7 @@ $$
 z_i = \mathbf{x}_i^{\top}\boldsymbol{\beta}^{(t)} - \frac{p_i - y_i}{p_i(1-p_i)}
 $$
 
-이는 현재의 선형 예측자를 선형화한 보정 항으로 조정한 것이다. $p_i(1-p_i) = \sigma'(\mathbf{x}_i^{\top}\boldsymbol{\beta}^{(t)})$임에 유의하라. 즉 조정량은 잔차를 연결 함수의 도함수로 나눈 것이며, 이는 정확히 반응에 적용한 연결 함수의 일차 테일러 전개이다.
+이는 평균 $p_i$ 주변에서 연결 함수 $g(p)=\log(p/(1-p))$를 일차 근사해 만든 작업 반응이다. $g\prime(p_i)=1/[p_i(1-p_i)]$는 시그모이드 도함수의 역수다. $y_i$ 자체에 로그 오즈를 대입하면 0·1에서 발산하므로 그 식을 직접 계산하는 절차로 해석하지 않는다.
 
 ### GLM의 관점
 
@@ -638,7 +640,7 @@ Max difference: 1.27e+01
 </div>
 
 ??? success "연습문제 1 풀이"
-    데이터가 선형 분리 가능하면 모든 $i$에 대해 $y_i \mathbf{x}_i^\top\boldsymbol{\beta} > 0$인 $\boldsymbol{\beta}$이 존재한다. 로그가능도는 다음과 같다.
+    데이터가 선형 분리 가능하면 모든 $i$에 대해 $(2y_i-1)\mathbf{x}_i^\top\boldsymbol{\beta} > 0$인 $\boldsymbol{\beta}$이 존재한다. 로그우도는 다음과 같다.
 
     $$
     \ell(\boldsymbol{\beta}) = \sum_i [y_i \mathbf{x}_i^\top\boldsymbol{\beta} - \log(1+e^{\mathbf{x}_i^\top\boldsymbol{\beta}})]
@@ -673,14 +675,14 @@ Max difference: 1.27e+01
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-예측이 확신에 차감에 따라 경사의 크기 $\|(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}\|$이 어떻게 변하는지 분석하고, 이를 경사 소실과 연결하라.
+예측의 확신이 커짐에 따라 경사의 크기 $\|(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}\|$이 어떻게 변하는지 분석하고, 이를 경사 소실과 연결하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
     예측이 맞고 확신에 차 있으면 $\sigma(z) \approx y$이므로 잔차 $\sigma(z) - y \approx 0$이 되고 경사가 사라진다. 잘 분류된 점에서는 이것이 바람직하다.
 
-    그러나 깊은 신경망에서 시그모이드 활성화를 쓰면 포화 $\sigma'(z) = \sigma(z)(1-\sigma(z)) \leq 1/4$ 때문에 역전파 중 경사가 층마다 최소 4분의 1로 줄어든다. $L$개 층을 지나면 $\|\nabla\| \leq (1/4)^L$이 되어 지수적으로 사라진다. 이것이 ReLU 활성화와 배치 정규화가 개발된 동기가 되었다.
+    깊은 신경망의 경사는 활성화 도함수와 가중치 행렬의 곱을 포함한다. 시그모이드 국소 도함수는 최대 1/4여서 포화가 경사 소실에 기여할 수 있지만, 가중치 노름을 제외한 채 전체 경사가 항상 $(1/4)^L$ 이하라고 단정할 수는 없다. 틀렸는데 확신한 단일 로짓 BCE의 경사는 오히려 큰 잔차를 갖는다는 점도 구분한다.
 
 ---
 
@@ -734,7 +736,7 @@ Max difference: 1.27e+01
 | IRLS 갱신 | $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$ |
 | 작업 반응 | $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$ |
 
-우아한 경사 공식 $(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}$은 효율적인 일차 최적화를 가능케 하고, 헤세 행렬 $\mathbf{X}^\top\mathbf{B}\mathbf{X}$은 볼록성의 증명과 이차 수렴을 갖는 이차 방법(뉴턴/IRLS)의 토대를 함께 제공한다.
+BCE의 경사와 헤세 행렬을 같은 합·평균 기준으로 맞추면 GD와 뉴턴·IRLS를 비교할 수 있다. 볼록성은 유한 MLE의 존재나 모든 업데이트 설정의 수렴까지 보장하지 않는다.
 
 ---
 

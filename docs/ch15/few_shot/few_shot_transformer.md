@@ -1,8 +1,6 @@
 # 퓨샷 트랜스포머
 
-트랜스포머 기반 퓨샷 학습. 셀프 어텐션로 받침 집합과 물음 집합을 함께 다루는 오늘날의 접근법으로,
-
-모자란 데이터나 서로 이어진 데이터에서 효율적으로 배우는 것은 오늘날 깊은 학습의 한가운데 놓인 어려움이다. 이 모듈은 모델이 앞선 앎을 살려 새 과제에 재빨리 맞추어 가게 하는 퓨샷 학습 기법을 보여 준다.
+서포트와 쿼리의 특징을 하나의 시퀀스로 묶어 트랜스포머로 변환한 뒤 클래스별 유사도로 분류하는 예제다. 별도의 SetTransformer는 서포트 집합 전체를 하나의 벡터로 요약한다. 두 모델의 출력과 순서 의존성을 구분해 읽는다.
 
 ## 1. 코드
 
@@ -280,70 +278,66 @@ Set embedding shape: torch.Size([1, 128])
 
 ## 2. 논의
 
-이 구현은 함께 어울려 온전한 퓨샷 학습 구조를 이루는 클래스 4개(`PositionalEncoding`, `TransformerFewShotClassifier`, `SetTransformer`, `MultiheadAttentionBlock`)를 정한다. 클래스마다 서로 다른 부품을 감싸 코드를 모듈 방식으로 만들고 넓히기 쉽게 한다. `forward` 메서드가 파이토치가 자동 미분에 쓰는 계산 그래프를 정한다.
+입력 서포트 $(M,D)$와 쿼리 $(Q,D)$를 연결해 $(1,M+Q,d)$로 변환한다. 위치 표현과 트랜스포머를 적용한 뒤 각 쿼리와 클래스별 서포트의 코사인 유사도를 평균 내어 $(Q,N)$ 로짓을 만든다. classifier 선형층은 선언되어 있지만 forward에서 쓰이지 않으므로 이 손실로 학습되지 않는다. 라벨은 0부터 N−1까지 연속적이고 모든 클래스에 서포트가 있어야 한다.
 
-손실 계산은 모델의 출력을 최적화 목표와 이어 준다. 알맞은 손실 함수를 고르는 일은 결정적으로 중요하다. 손실 함수가 모델이 무엇을 최적화하도록 배울지를 정하며, 학습된 표현과 결정 경계를 직접 빚어내기 때문이다.
+어텐션 마스크가 없으므로 한 쿼리의 표현은 다른 쿼리에도 의존한다. 이는 쿼리 집합을 함께 활용하는 전이적(transductive) 평가에 해당한다. 쿼리 라벨을 입력하지는 않지만 쿼리를 하나씩 처리하는 평가와 조건이 다르다. 위치 표현도 있으므로 서포트 순서를 바꾸면 결과가 달라질 수 있다. 클래스별로 정렬한 순서가 불필요한 단서가 되는지도 점검한다. 기본 위치 버퍼는 총 100개 표본까지만 지원한다.
 
-여기서 보인 본새는 더 복잡한 상황으로도 자연스럽게 넓어진다. 하이퍼파라미터, 구조의 변형, 여러 데이터셋을 두고 실험해 보면 이해가 깊어지고 메타 학습 과제에 대한 실전 감각이 쌓인다.
+SetTransformer는 유도점 32개가 입력 집합에 어텐션하고, 그 결과에 다시 셀프 어텐션을 적용한 뒤 평균을 낸다. 입력 (B,M,D)에 대해 (B,d)를 반환하며 클래스별 분류 로짓은 제공하지 않는다. 위치 표현이 없고 평가 모드에서 입력 순서를 바꾸어도 같은 집합 요약을 얻는 구조다. 원 논문의 모든 블록을 그대로 구현한 것은 아니다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-기본 초기화 상태의 `PositionalEncoding`에 든 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 넣어 층별로 나누어 보여라.
+PositionalEncoding의 학습 매개변수와 버퍼를 구분하고 입력 조건을 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    사인·코사인 위치 표는 register_buffer로 등록되므로 학습 매개변수는 0개다. 모델 이동과 state_dict 저장에는 포함된다. 이 구현은 짝수 d_model을 가정하며 시퀀스 길이는 max_len 이하여야 한다. 트랜스포머에는 별도로 d_model이 nhead로 나누어떨어져야 하는 조건이 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-어텐션 가중치 뒤에(값과 곱하기 전에) 드롭아웃 층을 추가하라. 학습 중에는 드롭아웃 비율 0.1을 쓴다. 어텐션 드롭아웃이 정칙화에 도움이 되는 이유를 설명하라.
+현재 코드에 어텐션 드롭아웃이 있는지, 추가하려면 어디를 바꿔야 하는지 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`이다. 어텐션 드롭아웃은 학습 중에 일부 어텐션 가중치를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에 지나치게 기대지 않게 한다. 이는 모델이 어텐션을 더 고르게 분산시키고 더 견고한 표현을 배우도록 북돋우며, 표준 드롭아웃이 뉴런의 공적응을 막는 것과 비슷하다.
+    TransformerFewShotClassifier의 TransformerEncoderLayer는 dropout=0.1로 생성되어 어텐션 드롭아웃을 포함한다. MultiheadAttentionBlock의 nn.MultiheadAttention은 기본값 0을 사용하므로 생성자에 dropout을 지정할 수 있다. 반환된 어텐션 가중치에 나중에 드롭아웃을 적용해도 이미 계산된 attn_out에는 반영되지 않는다. 드롭아웃이 항상 더 균등한 어텐션을 만든다는 보장은 없다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+총 표본 수 L=M+Q일 때 트랜스포머와 유도점 기반 집합 요약의 어텐션 비용을 비교하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    일반 셀프 어텐션의 쌍별 계산은 O(L²d)다. 유도점 수를 I라 하면 이 SetTransformer의 두 어텐션은 O(IMd+I²d)다. 선형 투영과 FFN 비용은 별도다. I를 고정하면 입력 집합 길이에 대한 쌍별 계산은 선형으로 늘지만, 집합을 I개 표현으로 압축하는 설계가 과제에 적절한지는 평가해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`PositionalEncoding`이 층이나 블록의 개수를 설정할 수 있도록 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`를 써서 깊이를 바꿀 수 있는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 되풀이하라. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 파이토치가 최적화 대상 매개변수를 모두 등록한다. `for n in [2, 4, 8]: model = PositionalEncoding(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험하라.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 퓨샷 트랜스포머
-
-이 구현은 함께 어울려 온전한 퓨샷 학습 구조를 이루는 클래스 4개(`PositionalEncoding`, `TransformerFewShotClassifier`, `SetTransformer`, `MultiheadAttentionBlock`)를 정한다.
-
-핵심 클래스는 `PositionalEncoding`, `TransformerFewShotClassifier`, `SetTransformer`, `MultiheadAttentionBlock`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+표본을 함께 처리하는 트랜스포머 분류기와 집합 요약기는 서로 다른 출력을 만든다. 위치·쿼리 문맥에 따른 순서 및 평가 조건, 미사용 분류층과 최대 길이를 확인한다.

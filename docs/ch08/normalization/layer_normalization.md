@@ -1,8 +1,6 @@
-# 층 정규화
+# 레이어 정규화
 
-층 정규화의 구현과 예제. 층 정규화는 특징 차원에 걸쳐 입력을 정규화한다.
-
-정규화 기법을 이해하는 것은 깊은 신경망을 효과적으로 만들고 학습시키는 데 필수적이다. 이 구현은 그 핵심 개념을 PyTorch로 보여주며, 현대적인 구조의 구성 요소를 직접 다뤄 볼 기회를 준다.
+레이어 정규화는 표본마다 지정한 마지막 축들의 통계량을 사용한다. NumPy 순전파와 MLP, RNN, 트랜스포머 예제를 통해 정규화 축과 구조 안의 위치를 구분한다.
 
 ## 1. 코드
 
@@ -482,68 +480,66 @@ When to use Layer Normalization:
 
 ## 2. 논의
 
-이 구현은 4개의 클래스(`LayerNormNumPy`, `RNNWithLayerNorm`, `TransformerBlockWithLayerNorm`, `SimpleNetworkWithLayerNorm`)를 정의하며, 이들이 함께 작동하여 완전한 정규화 기법 구조를 이룬다. 각 클래스가 서로 다른 구성 요소를 감싸므로 코드가 모듈식이 되고 확장하기 쉬워진다. `forward` 메서드들이 PyTorch가 자동 미분에 사용하는 계산 그래프를 정의한다.
+LayerNormNumPy는 normalized_shape에 해당하는 마지막 축에서 평균·분산을 계산한다. gamma와 beta도 그 모양을 가지지만 NumPy 배열이므로 PyTorch의 자동 미분 매개변수는 아니다.
 
-여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 확장된다. 하이퍼파라미터, 구조의 변형, 여러 데이터셋을 두루 실험해 보면 이해가 깊어지고 학습 최적화 과제에 대한 실용적인 직관이 쌓인다.
+RNN 예제는 각 시점의 은닉 특징을 정규화한다. 트랜스포머 예제는 기본 MultiheadAttention의 `(시퀀스, 배치, 특징)` 순서를 사용하고, 잔차 합 뒤에 레이어 정규화를 적용하는 post-norm 구조이다.
+
+레이어 정규화는 현재 표본의 통계량을 학습과 평가에서 모두 사용한다. 기본적으로 이동 평균·분산을 누적하지 않으며, 배치가 작아도 같은 표본의 정규화 통계가 다른 표본에 의존하지 않는다. 모델의 드롭아웃 같은 다른 연산은 여전히 모드에 따라 달라진다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 초기화 상태의 `LayerNormNumPy`에서 학습 가능한 매개변수의 총 개수를 계산하라. 가중치와 편향을 모두 포함하여 층별로 나누어 세어라.
+normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)` 각각에는 `in_features * out_features`개의 가중치 매개변수와 (`bias=False`가 아닌 한) `out_features`개의 편향 매개변수가 있다. `nn.Conv2d(in_c, out_c, k)`에는 `in_c * out_c * k * k`개의 가중치와 `out_c`개의 편향이 있다. `nn.Embedding(num, dim)`에는 `num * dim`개의 매개변수가 있다. 모든 층에 대해 더하면 된다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    gamma와 beta에 각각 $D$개, 합계 $2D$개가 있다. PyTorch에서는 기본 설정에서 학습 매개변수로 등록되지만 NumPy 시연에서는 일반 배열이다. 배치 정규화의 running_mean·running_var와 같은 이동 통계량은 없다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-어텐션 가중치 뒤에(값과 곱하기 전에) 드롭아웃 층을 추가하라. 학습 중에는 드롭아웃 비율 0.1을 쓴다. 어텐션 드롭아웃이 정칙화에 도움이 되는 이유를 설명하라.
+입력이 `(T, B, D)`이고 LayerNorm(D)일 때 정규화 축은 무엇인가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`이다. 어텐션 드롭아웃은 학습 중에 일부 어텐션 가중치를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에 지나치게 기대지 않게 한다. 이는 모델이 어텐션을 더 고르게 분산시키고 더 견고한 표현을 배우도록 북돋우며, 표준 드롭아웃이 뉴런의 공적응을 막는 것과 비슷하다.
+    각 시점과 표본마다 마지막 D개 특징에서 평균과 분산을 구한다. 시간 T나 배치 B 전체를 섞지 않는다. normalized_shape를 바꾸면 정규화 축과 아핀 계수의 모양도 달라진다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 열의 길이 $n$과 모델 차원 $d$의 함수로 설명하라. 이것이 왜 긴 열에 대해 Longformer나 Linformer 같은 구조의 동기가 되는가?
+본문 트랜스포머 블록의 post-norm과 pre-norm을 구분하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도가 $O(n^2 d)$이고 어텐션 가중치에 $O(n^2)$의 메모리가 든다. 열이 길면(예: $n = 4096$) 감당하기 어려워진다. Longformer는 국소적인 미끄럼창 어텐션($w$이 창 크기일 때 $O(n \cdot w \cdot d)$)과 선택된 토큰에 대한 희소한 전역 어텐션을 결합한다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 표현력을 조금 내주고 긴 입력에서의 실용적인 효율을 얻는다.
+    본문은 하위층 출력과 잔차를 더한 뒤 정규화한다. pre-norm은 하위층의 입력을 먼저 정규화하고 그 출력을 잔차에 더한다. 정규화 위치를 바꾸는 것은 단순한 문법 차이가 아니며 경사 경로도 달라진다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 개수를 설정할 수 있도록 `LayerNormNumPy`를 확장하라. `__init__`에 `num_layers` 매개변수를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 매개변수를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = LayerNormNumPy(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-**다룬 것** — 층 정규화
-
-이 구현은 4개의 클래스(`LayerNormNumPy`, `RNNWithLayerNorm`, `TransformerBlockWithLayerNorm`, `SimpleNetworkWithLayerNorm`)를 정의하며, 이들이 함께 작동하여 완전한 정규화 기법 구조를 이룬다.
-
-핵심 클래스는 `LayerNormNumPy`, `RNNWithLayerNorm`, `TransformerBlockWithLayerNorm`, `SimpleNetworkWithLayerNorm`이며 앞의 연습문제 4개로 직접 확인할 수 있다.
+레이어 정규화는 배치가 아닌 지정 특징 축을 사용한다. 정규화 축, 아핀 계수의 모양, 잔차 합 전후의 위치를 구분하면 MLP와 시퀀스 모델의 구현을 읽기 쉽다.

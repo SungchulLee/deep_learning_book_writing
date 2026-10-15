@@ -12,7 +12,7 @@ $$
 \mathbf{x}^* = \arg\min_{\mathbf{x}} \|\Phi_l(\mathbf{x}) - \Phi_l(\mathbf{x}_0)\|^2 + \lambda R(\mathbf{x})
 $$
 
-여기서 $R(\mathbf{x})$은 자연스러워 보이는 그림이 나오도록 이끄는 정칙화 항(온 흔들림, $L^2$ 크기)이다.
+여기서 $R(\mathbf{x})$은 자연스러워 보이는 그림이 나오도록 이끄는 정규화 항(온 흔들림, $L^2$ 크기)이다.
 
 ---
 
