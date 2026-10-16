@@ -448,7 +448,7 @@ class RegularizedNetwork(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim, dropout_rate=0.3):
         super().__init__()
         # 층 안의 순서가 Linear -> BatchNorm -> ReLU -> Dropout 인 것이 요점이다.
-        #   BatchNorm이 Linear 바로 뒤: 활성 함수에 들어가기 전에 자를 맞춰야
+        #   BatchNorm이 Linear 바로 뒤: 활성화 함수에 들어가기 전에 자를 맞춰야
         #     ReLU가 한쪽으로 치우쳐 죽는 것을 막는다.
         #   Dropout이 맨 뒤: BatchNorm 앞에 두면 꺼진 유닛까지 섞여 배치 통계가
         #     흔들리고, 그러면 추론 때 쓰는 이동 통계가 훈련 때와 어긋난다.

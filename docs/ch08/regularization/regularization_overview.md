@@ -438,7 +438,7 @@ class RegularizedCNN(nn.Module):
         #   가중치 감쇠 — 가중치의 크기를 누른다(아래 옵티마이저에서)
         self.features = nn.Sequential(
             nn.Conv2d(3, 32, 3, padding=1),   # 32x32 유지
-            # 활성 함수 "앞"에 둔다. ReLU에 들어가는 값의 자를 맞춰야
+            # 활성화 함수 "앞"에 둔다. ReLU에 들어가는 값의 자를 맞춰야
             # 한쪽으로 치우쳐 유닛이 죽는 것을 막을 수 있다
             nn.BatchNorm2d(32),
             nn.ReLU(),

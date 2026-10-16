@@ -496,7 +496,7 @@ class PositionWiseFeedForward(nn.Module):
             d_model: 모형 차원
             d_ff: 순전파의 숨은 차원
             dropout: 드롭아웃 확률
-            activation: 활성 함수('relu' 또는 'gelu')
+            activation: 활성화 함수('relu' 또는 'gelu')
         """
         super().__init__()
         
@@ -552,7 +552,7 @@ class TransformerEncoderBlock(nn.Module):
             num_heads: 주의 머리의 수
             d_ff: 순전파의 숨은 차원
             dropout: 드롭아웃 확률
-            activation: 순전파의 활성 함수
+            activation: 순전파의 활성화 함수
             pre_norm: 앞 정규화(True)를 쓸지 뒤 정규화(False)를 쓸지
         """
         super().__init__()
@@ -660,7 +660,7 @@ class TransformerEncoder(nn.Module):
             d_ff: 순전파의 숨은 차원
             max_len: 순차열의 최대 길이
             dropout: 드롭아웃 확률
-            activation: 순전파의 활성 함수
+            activation: 순전파의 활성화 함수
             pre_norm: 앞 정규화 구조를 쓸지 여부
         """
         super().__init__()

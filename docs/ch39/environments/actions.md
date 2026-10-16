@@ -93,7 +93,7 @@ $$w_i = \frac{\tanh(a_i)}{\sum_j |\tanh(a_j)|} \cdot L_{\max}$$
 def transform_action(self, raw_action):
     """그물이 내놓은 날값을 옳은 밑천 무게로 옮긴다."""
 
-    # 1걸음: 활성 함수 매기기
+    # 1걸음: 활성화 함수 매기기
     if self.long_only:
         weights = torch.softmax(raw_action, dim=-1)
     else:

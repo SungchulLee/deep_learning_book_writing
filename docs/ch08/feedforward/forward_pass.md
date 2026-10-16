@@ -393,7 +393,7 @@ class TrackedMLP(nn.Module):
         a = x
 
         for i, layer in enumerate(self.layers):
-            z = layer(a)   # 활성 함수 앞의 값. 흔히 로짓 또는 pre-activation이라 한다
+            z = layer(a)   # 활성화 함수 앞의 값. 흔히 로짓 또는 pre-activation이라 한다
             if return_intermediates:
                 cache[f'z{i+1}'] = z
 
@@ -403,7 +403,7 @@ class TrackedMLP(nn.Module):
             a = torch.relu(z) if i < len(self.layers) - 1 else z
 
             if return_intermediates:
-                cache[f'a{i+1}'] = a   # z와 a를 따로 담아 두면 활성 함수가
+                cache[f'a{i+1}'] = a   # z와 a를 따로 담아 두면 활성화 함수가
                                        # 무엇을 얼마나 죽였는지 견줄 수 있다
 
         return (a, cache) if return_intermediates else a

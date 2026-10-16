@@ -33,7 +33,7 @@ class RegressionNetwork(nn.Module):
 
 def generate_regression_data(n_samples=500):
     # 주기가 세 번 반복되는 sin 곡선. 곡선을 맞추려면 비선형이
-    # 반드시 있어야 하므로 활성 함수의 몫을 보이기에 알맞다
+    # 반드시 있어야 하므로 활성화 함수의 몫을 보이기에 알맞다
     X = np.linspace(-3*np.pi, 3*np.pi, n_samples).reshape(-1, 1)
     y = np.sin(X) + 0.2 * np.random.randn(n_samples, 1)   # 잡음을 얹는다
     # 넘파이 기본이 float64라 그대로 넘기면 dtype이 어긋난다.

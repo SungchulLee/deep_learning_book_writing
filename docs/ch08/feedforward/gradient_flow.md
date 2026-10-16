@@ -298,7 +298,7 @@ def gradient_flow_experiment():
 
     for act_name, act_cls in activations.items():
         # 10층 신경망 만들기.
-        # 활성 함수만 바꾸고 나머지는 똑같이 두어야 차이를 활성 탓으로
+        # 활성화 함수만 바꾸고 나머지는 똑같이 두어야 차이를 활성 탓으로
         # 돌릴 수 있다
         layers = []
         for _ in range(10):
