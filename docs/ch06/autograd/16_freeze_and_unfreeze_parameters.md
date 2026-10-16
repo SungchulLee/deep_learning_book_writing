@@ -5,7 +5,7 @@
 ## 1. 코드
 
 ```python
-"""매개변수를 얼리고 녹이기."""
+"""파라메터를 얼리고 녹이기."""
 # freeze_unfreeze_demo.py
 import torch
 import torch.nn as nn
@@ -17,15 +17,15 @@ import torch.nn.functional as F
 
 def freeze_layer0(model: nn.Sequential):
     """
-    Sequential 안의 첫 선형 층(번호 0)을 얼린다.
-    '0.'으로 비롯하는 매개변수 이름을 고른다 → '0.weight', '0.bias'.
+    Sequential 안의 첫 선형 레이어(번호 0)을 얼린다.
+    '0.'으로 비롯하는 파라메터 이름을 고른다 → '0.weight', '0.bias'.
     """
     for name, p in model.named_parameters():
         if name.startswith("0."):
             p.requires_grad_(False)
 
 def unfreeze_all(model: nn.Module):
-    """모든 매개변수를 다시 익힐 수 있게 한다."""
+    """모든 파라메터를 다시 익힐 수 있게 한다."""
     for p in model.parameters():
         p.requires_grad_(True)
 
@@ -56,7 +56,7 @@ def main():
     loss = F.mse_loss(out, y)
     loss.backward()
 
-    # 역전파 후: 동결된 매개변수는 grad=None을 유지하고 나머지는 경사를 받는다
+    # 역전파 후: 동결된 파라메터는 grad=None을 유지하고 나머지는 경사를 받는다
     grad_status(model, title="After backward")
 
     # 모두 다시 동결 해제(선택 사항)
@@ -145,7 +145,7 @@ After unfreeze
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 

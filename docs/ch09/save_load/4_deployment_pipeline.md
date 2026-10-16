@@ -108,7 +108,7 @@
                 train_loader: 학습 데이터 로더
                 val_loader: 검증 데이터 로더
                 num_epochs: 학습 에포크 수
-                lr: 학습률
+                lr: 러닝레이트
 
             반환값:
                 학습된 모델
@@ -225,7 +225,7 @@
             모델 가지치기를 적용한다
 
             인수:
-                amount: 잘라 낼 가중치의 비율
+                amount: 잘라 낼 웨이트의 비율
                 val_loader: 정확도 시험용 검증 데이터
 
             반환값:
@@ -577,7 +577,7 @@ benchmark_model은 인수로 받은 model의 지연·크기를 측정하지만 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-자동 추천의 정확도 손실 1% 기준은 어떻게 해석해야 하는가?
+자동 추천의 정확도 로스 1% 기준은 어떻게 해석해야 하는가?
 
 </div>
 

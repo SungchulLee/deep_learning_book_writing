@@ -1,6 +1,6 @@
 # Dueling DQN
 
-Dueling DQN은 특별한 네트워크 구조로 Q 값을 상태 가치 함수와 행동 어드밴티지 함수로 나눈다. $Q(s, a) = V(s) + A(s, a) - \text{mean}_a A(s, a)$으로 쪼개면 네트워크가 어떤 행동이 있든 상관없이 어느 상태가 값진지 배울 수 있어, 특히 많은 행동의 효과가 비슷한 둘레에서 학습이 효율 좋아진다. 이 짜기는 여러 층 신경망과 합성곱 네트워크 모두에 맞겨루기 구조를 보이고 과녁 계산에 Double DQN을 더한다.
+Dueling DQN은 특별한 네트워크 구조로 Q 값을 상태 밸류 함수와 액션 어드밴티지 함수로 나눈다. $Q(s, a) = V(s) + A(s, a) - \text{mean}_a A(s, a)$으로 쪼개면 네트워크가 어떤 액션이 있든 상관없이 어느 상태가 값진지 배울 수 있어, 특히 많은 액션의 효과가 비슷한 둘레에서 학습이 효율 좋아진다. 이 짜기는 여러 레이어 뉴럴 넷트웍과 컨볼루션 네트워크 모두에 맞겨루기 구조를 보이고 타깃 계산에 Double DQN을 더한다.
 
 ## 1. 코드
 
@@ -9,7 +9,7 @@ Dueling DQN은 특별한 네트워크 구조로 Q 값을 상태 가치 함수와
 35.2.2 겨루기 DQN
 ===================
 
-값 갈래와 이점 갈래를 지닌 겨루기 그물 구조.
+값 클래스와 이점 클래스를 지닌 겨루기 넷트웍 구조.
 """
 
 import torch
@@ -27,25 +27,25 @@ import random
 
 
 class DuelingQNetwork(nn.Module):
-    """겨루기 Q 그물: 값 갈래와 이점 갈래를 나눈다.
+    """겨루기 Q 넷트웍: 값 클래스와 이점 클래스를 나눈다.
     
     Q(s,a) = V(s) + (A(s,a) - mean_a(A(s,a)))
     """
 
     def __init__(self, state_dim: int, action_dim: int, hidden_dim: int = 128):
         super().__init__()
-        # 함께 쓰는 특징 뽑개
+        # 함께 쓰는 피처 뽑개
         self.feature = nn.Sequential(
             nn.Linear(state_dim, hidden_dim),
             nn.ReLU(),
         )
-        # 값 갈래: V(s)
+        # 값 클래스: V(s)
         self.value_stream = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 1),
         )
-        # 이점 갈래: A(s, a)
+        # 이점 클래스: A(s, a)
         self.advantage_stream = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
@@ -69,7 +69,7 @@ class DuelingQNetwork(nn.Module):
 
 
 class DuelingConvQNetwork(nn.Module):
-    """아타리 갈래 그림 살핌을 위한 겨루기 구조."""
+    """아타리 클래스 그림 살핌을 위한 겨루기 구조."""
 
     def __init__(self, action_dim: int, in_channels: int = 4):
         super().__init__()
@@ -118,7 +118,7 @@ class ReplayBuffer:
 # ---------------------------------------------------------------------------
 
 class DuelingDQNAgent:
-    """겨루기 구조와 겹 DQN을 엮은 부림꾼."""
+    """겨루기 구조와 겹 DQN을 엮은 에이전트."""
 
     def __init__(self, state_dim, action_dim, lr=1e-3, gamma=0.99,
                  batch_size=64, buf_cap=50000, target_freq=200,
@@ -168,7 +168,7 @@ class DuelingDQNAgent:
             self.v_history.append(v.mean().item())
             self.a_history.append(adv.abs().mean().item())
 
-        # 겨루기 구조를 쓴 겹 DQN 과녁
+        # 겨루기 구조를 쓴 겹 DQN 타깃
         with torch.no_grad():
             best_a = self.online(ns).argmax(1)
             next_q = self.target(ns).gather(1, best_a.unsqueeze(1)).squeeze(1)
@@ -243,7 +243,7 @@ def demo_dueling_dqn():
             print(f"  Episode {ep+1}: avg50={avg:.1f}, ε={agent.epsilon:.3f}")
     env.close()
 
-    # --- V/A 갈래 살피기 ---
+    # --- V/A 클래스 살피기 ---
     print("\n--- V/A Stream Analysis ---")
     if agent.v_history:
         v_early = np.mean(agent.v_history[:200])
@@ -272,52 +272,52 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜기는 Dueling DQN의 핵심 논리를 감싼 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
+이 짜기는 Dueling DQN의 핵심 논리를 감싼 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer` 클래스를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
 보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 쓰는 모습을 보인다. 내놓기를 살피면 하이퍼파라미터 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗파라메터 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗매개변수 하나(학습률, 숨은 차원, 층 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
+보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗파라메터 하나(러닝레이트, 숨은 차원, 레이어 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗매개변수를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 학습률은 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗매개변수의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
+    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗파라메터를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 러닝레이트는 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗파라메터의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 손실 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
+이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 로스 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 고르기는 DQN 좋게 하기에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 기울기가 사라지는 것을 피한다. 손실 함수는 일의 갈래에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 손실) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
+    이 구조 고르기는 DQN 좋게 하기에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 그래디언트가 사라지는 것을 피한다. 로스 함수는 일의 클래스에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 로스) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 특징 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
+더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 피처 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 가중치 줄임)나 더 정교한 구조(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 웨이트 줄임)나 더 정교한 구조(레이어 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
 
 ## 정리하며
 
 **다룬 것** — Dueling DQN
 
-이 짜기는 Dueling DQN의 핵심 논리를 감싼 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer` 갈래를 한가운데 둔다.
+이 짜기는 Dueling DQN의 핵심 논리를 감싼 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer` 클래스를 한가운데 둔다.
 
-핵심 갈래는 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer`, `DuelingDQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `DuelingQNetwork`, `DuelingConvQNetwork`, `ReplayBuffer`, `DuelingDQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

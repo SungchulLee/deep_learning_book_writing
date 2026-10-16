@@ -1,6 +1,6 @@
-# 상미분방정식과 신경 ODE의 기초
+# 상미분방정식과 뉴럴 ODE의 기초
 
-신경 ODE는 은닉상태를 바꾸는 신경망을 “다음 층”이 아니라 시간 미분으로 정의한다. 그 미분을 수치 적분한 결과가 모델의 출력이다. 따라서 벡터장의 성질, 적분 구간·솔버와 미분 방식이 함께 모델의 동작을 결정한다. 먼저 고전 초기값 문제를 익힌 뒤 코드의 수치 근사와 학습 구조를 연결해 보자.
+뉴럴 ODE는 은닉상태를 바꾸는 뉴럴 넷트웍을 “다음 레이어”이 아니라 시간 미분으로 정의한다. 그 미분을 수치 적분한 결과가 모델의 출력이다. 따라서 벡터장의 성질, 적분 구간·솔버와 미분 방식이 함께 모델의 동작을 결정한다. 먼저 고전 초기값 문제를 익힌 뒤 코드의 수치 근사와 학습 구조를 연결해 보자.
 
 ## 1. 초기값 문제와 해의 조건
 
@@ -12,7 +12,7 @@ t를 직접 사용하지 않는 f(y)는 자율계이고, t에 명시적으로 �
 
 시간에 연속이고 상태에 국소 Lipschitz인 f는 초기점 주변에서 해의 존재·유일성을 보장한다. 이 조건만으로 모든 미래 시간의 해를 보장하지는 않는다. 예를 들어 y′=y²는 국소 Lipschitz지만 양의 초기값에서 유한 시간에 발산한다. 유한 구간 전체의 해에는 전역 Lipschitz·성장 제어 등 추가 조건이 필요하다.
 
-유한 가중치의 affine 층과 Lipschitz 활성화를 합성한 MLP는 상태에 대해 Lipschitz다. **ReLU와 Softplus는 둘 다 1-Lipschitz**이며 출력이 유계일 필요는 없다. ReLU의 비미분점은 유일성 조건의 위반과 다르다. Tanh는 유계·매끄럽고, GELU·SiLU는 출력이 유계가 아니지만 도함수가 유계다. 어떤 활성화를 택해도 큰 가중치의 수치 불안정성과 강성을 자동으로 막아 주지는 않는다.
+유한 웨이트의 affine 레이어와 Lipschitz 활성화를 합성한 MLP는 상태에 대해 Lipschitz다. **ReLU와 Softplus는 둘 다 1-Lipschitz**이며 출력이 유계일 필요는 없다. ReLU의 비미분점은 유일성 조건의 위반과 다르다. Tanh는 유계·매끄럽고, GELU·SiLU는 출력이 유계가 아니지만 도함수가 유계다. 어떤 활성화를 택해도 큰 웨이트의 수치 불안정성과 강성을 자동으로 막아 주지는 않는다.
 
 ## 2. 고전 벡터장 예제
 
@@ -31,7 +31,7 @@ def exponential_ode(y: torch.Tensor, t: float, k: float = 1.0) -> torch.Tensor:
     인수:
         y: 이제 상태 (batch_size, dim)
         t: 이제 때(이 자율 상미분 방정식에서는 쓰지 않는다)
-        k: 자람 빠르기 매개변수
+        k: 자람 빠르기 파라메터
         
     반환값:
         바뀜 빠르기 dy/dt
@@ -79,7 +79,7 @@ def lotka_volterra(state: torch.Tensor, t: float,
                    alpha: float = 1.5, beta: float = 1.0,
                    gamma: float = 3.0, delta: float = 1.0) -> torch.Tensor:
     """
-    로트카-볼테라 잡아먹개-먹이 움직임.
+    로트카-볼테라 잡아먹개-먹이 액션.
     
     인수:
         state: [먹이, 사냥꾼]의 수
@@ -162,7 +162,7 @@ def euler_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
 
 ## 4. RK4와 적응형 적분
 
-고전 RK4는 시작·중간 두 번·끝에서 네 기울기를 계산하고 (1,2,2,1)/6의 가중치를 사용한다. 충분히 매끄러운 문제에서 한 스텝 오차 O(h⁵), 전역 오차 O(h⁴)를 얻는다.
+고전 RK4는 시작·중간 두 번·끝에서 네 그래디언트를 계산하고 (1,2,2,1)/6의 웨이트를 사용한다. 충분히 매끄러운 문제에서 한 스텝 오차 O(h⁵), 전역 오차 O(h⁴)를 얻는다.
 
 ```python
 def rk4_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
@@ -233,7 +233,7 @@ integrate_adaptive는 odeint를 그대로 호출하는 래퍼다. 앞의 exponen
 
 ## 5. ResNet과의 연결
 
-잔차 블록 hₗ₊₁=hₗ+Fₗ(hₗ)은 형식적으로 단위 스텝 오일러와 닮았다. 하지만 층마다 임의의 다른 Fₗ을 가진 ResNet이 자동으로 하나의 고정 벡터장을 적분하는 것은 아니다. 고정 T에서 h=T/L로 줄이며 Fₗ≈h f(hₗ,tₗ)인 일관된 계열과 안정성 조건을 갖추어야 연속 극한을 논할 수 있다.
+잔차 블록 hₗ₊₁=hₗ+Fₗ(hₗ)은 형식적으로 단위 스텝 오일러와 닮았다. 하지만 레이어마다 임의의 다른 Fₗ을 가진 ResNet이 자동으로 하나의 고정 벡터장을 적분하는 것은 아니다. 고정 T에서 h=T/L로 줄이며 Fₗ≈h f(hₗ,tₗ)인 일관된 계열과 안정성 조건을 갖추어야 연속 극한을 논할 수 있다.
 
 ```python
 class ResNetBlock(nn.Module):
@@ -342,7 +342,7 @@ def plot_trajectories(f, initial_conditions, t_span, dt=0.01, ax=None):
     return ax
 ```
 
-plot 함수는 f(y,t)와 CPU 텐서를 가정한다. 신경망처럼 gradient를 추적하는 출력에 바로 numpy를 호출하면 변환할 수 없으며 no_grad 또는 detach 처리가 필요하다. 위상도는 수치 궤적과 함께 읽되 그림만으로 전역 안정성을 증명하지 않는다.
+plot 함수는 f(y,t)와 CPU 텐서를 가정한다. 뉴럴 넷트웍처럼 gradient를 추적하는 출력에 바로 numpy를 호출하면 변환할 수 없으며 no_grad 또는 detach 처리가 필요하다. 위상도는 수치 궤적과 함께 읽되 그림만으로 전역 안정성을 증명하지 않는다.
 
 ```python
 def analyze_fixed_point(f, y_star, epsilon=1e-5):
@@ -377,7 +377,7 @@ def analyze_fixed_point(f, y_star, epsilon=1e-5):
     print(f"Fixed point: {y_star.numpy()}")
     print(f"Jacobian eigenvalues: {eigenvalues.numpy()}")
     
-    # 안정성 갈래 나눔
+    # 안정성 클래스 나눔
     real_parts = eigenvalues.real
     if torch.all(real_parts < 0):
         print("Classification: Asymptotically stable (attractor)")
@@ -406,7 +406,7 @@ from torchdiffeq import odeint
 
 class ODEFunc(nn.Module):
     """
-    움직임 dh/dt = f(h, t)를 뜻매김한다.
+    액션 dh/dt = f(h, t)를 뜻매김한다.
     
     중요: torchdiffeq은 f(y, t)이 아니라 f(t, y) 꼴을 바란다!
     """
@@ -426,7 +426,7 @@ class ODEFunc(nn.Module):
         self.nfe += 1
         return self.net(h)
 
-# 기본 앞먹임
+# 기본 피드포워드
 dim = 10
 batch_size = 32
 
@@ -471,9 +471,9 @@ y = odeint(func, y0, t, method='euler',
 ```python
 class NeuralODEBlock(nn.Module):
     """
-    들임 h0을 내놓기 h(T)으로 바꾸는 신경 상미분 방정식 덩이.
+    들임 h0을 내놓기 h(T)으로 바꾸는 뉴럴 상미분 방정식 덩이.
     
-    이는 남은 이음 덩이의 쌓기를 이어진 움직임으로 바꾼다.
+    이는 남은 이음 덩이의 쌓기를 이어진 액션으로 바꾼다.
     """
     
     def __init__(self, dim: int, hidden_dim: int = 64, 
@@ -489,7 +489,7 @@ class NeuralODEBlock(nn.Module):
         self.rtol = rtol
         self.atol = atol
         
-        # 적분 때를 (매개변수가 아니라) 버퍼로 등록한다
+        # 적분 때를 (파라메터가 아니라) 버퍼로 등록한다
         self.register_buffer('t', torch.tensor([0., integration_time]))
     
     def forward(self, h0):
@@ -549,10 +549,10 @@ TimeVariantODEFunc는 배치마다 같은 스칼라 t를 확장해 상태와 연
 ```python
 class HypernetODEFunc(nn.Module):
     """
-    윗신경망 때 조건 주기를 쓴 움직임.
+    윗뉴럴 넷트웍 때 조건 주기를 쓴 액션.
     
-    작은 그물이 때의 함수로 층의 무게를 만들어 낸다.
-    드러난 이어 붙임 없이 때에 따라 매끄럽게 바뀌는 움직임을 가능하게 한다.
+    작은 넷트웍이 때의 함수로 레이어의 무게를 만들어 낸다.
+    드러난 이어 붙임 없이 때에 따라 매끄럽게 바뀌는 액션을 가능하게 한다.
     """
     
     def __init__(self, dim: int, hidden_dim: int = 64, hyper_dim: int = 16):
@@ -561,21 +561,21 @@ class HypernetODEFunc(nn.Module):
         self.dim = dim
         self.hidden_dim = hidden_dim
         
-        # 윗신경망이 때에서 무게를 만든다
+        # 윗뉴럴 넷트웍이 때에서 무게를 만든다
         self.hypernet = nn.Sequential(
             nn.Linear(1, hyper_dim),
             nn.Tanh(),
             nn.Linear(hyper_dim, hidden_dim * dim + hidden_dim)
         )
         
-        # 붙박인 층
+        # 붙박인 레이어
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
         self.fc3 = nn.Linear(hidden_dim, dim)
     
     def forward(self, t, h):
         batch_size = h.shape[0]
         
-        # 때에서 첫 층의 무게를 만든다
+        # 때에서 첫 레이어의 무게를 만든다
         t_input = t.view(1, 1) if t.dim() == 0 else t.view(-1, 1)
         hyper_out = self.hypernet(t_input)
         
@@ -583,7 +583,7 @@ class HypernetODEFunc(nn.Module):
         W = hyper_out[:, :self.hidden_dim * self.dim].view(self.hidden_dim, self.dim)
         b = hyper_out[:, self.hidden_dim * self.dim:].view(self.hidden_dim)
         
-        # 만든 무게로 앞먹임
+        # 만든 무게로 피드포워드
         h = torch.tanh(h @ W.T + b)
         h = torch.tanh(self.fc2(h))
         h = self.fc3(h)
@@ -591,19 +591,19 @@ class HypernetODEFunc(nn.Module):
         return h
 ```
 
-HypernetODEFunc는 스칼라 시간에서 첫 층의 W·b를 생성하고 나머지 두 층은 공유한다. 독립된 샘플별 시간 벡터를 임의로 받을 수 있는 코드는 아니다. hyper_out을 하나의 행렬로 view하는 모양이 스칼라 시간 호출에 맞추어져 있다.
+HypernetODEFunc는 스칼라 시간에서 첫 레이어의 W·b를 생성하고 나머지 두 레이어는 공유한다. 독립된 샘플별 시간 벡터를 임의로 받을 수 있는 코드는 아니다. hyper_out을 하나의 행렬로 view하는 모양이 스칼라 시간 호출에 맞추어져 있다.
 
 ## 9. MNIST 분류 구성
 
 ```python
 class NeuralODEClassifier(nn.Module):
     """
-    그림 가름을 위한 온전한 신경 상미분 방정식 모델.
+    그림 가름을 위한 온전한 뉴럴 상미분 방정식 모델.
     
     구조:
-        1. 줄이는 엮음(들임 → 특징)
-        2. 신경 상미분 방정식 덩이(이어진 바꿈)
-        3. 가름 머리(특징 → 로짓)
+        1. 줄이는 컨볼루션(들임 → 피처)
+        2. 뉴럴 상미분 방정식 덩이(이어진 바꿈)
+        3. 가름 머리(피처 → 로짓)
     """
     
     def __init__(self, in_channels: int = 1, 
@@ -626,7 +626,7 @@ class NeuralODEClassifier(nn.Module):
             nn.Linear(64 * 7 * 7, hidden_dim)
         )
         
-        # 신경 상미분 방정식 덩이
+        # 뉴럴 상미분 방정식 덩이
         self.ode_block = NeuralODEBlock(
             dim=hidden_dim,
             hidden_dim=hidden_dim * 2,
@@ -655,7 +655,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 def train_neural_ode_classifier():
-    """신경 상미분 방정식 분류기의 온전한 익히기 흐름."""
+    """뉴럴 상미분 방정식 분류기의 온전한 익히기 흐름."""
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     batch_size = 128
@@ -735,7 +735,7 @@ def train_neural_ode_classifier():
 
 ```python
 class NeuralODEWithAdaptiveTolerance(nn.Module):
-    """익히기와 따지기에 허용 오차를 달리한 신경 상미분 방정식."""
+    """익히기와 따지기에 허용 오차를 달리한 뉴럴 상미분 방정식."""
     
     def __init__(self, dim, hidden_dim=64):
         super().__init__()
@@ -761,7 +761,7 @@ class NeuralODEWithAdaptiveTolerance(nn.Module):
 
 ```python
 class RegularizedNeuralODE(nn.Module):
-    """운동 에너지 규칙 세우기를 쓴 신경 상미분 방정식."""
+    """운동 에너지 규칙 세우기를 쓴 뉴럴 상미분 방정식."""
     
     def __init__(self, dim, hidden_dim=64, kinetic_weight=0.01):
         super().__init__()
@@ -793,12 +793,12 @@ class RegularizedNeuralODE(nn.Module):
         return h_final
 ```
 
-RegularizedNeuralODE는 상태에 누적 변수 하나를 추가해 ∫||f||²dt를 계산한다. return_regularization=True일 때 돌려주는 규제 항을 실제 학습 손실에 더해야 효과가 있다. 상태 경로가 부드러워질 수 있지만 Jacobian 규제 ∫||∂f/∂h||²_Fdt와는 다른 양이며 후자는 여기 구현되어 있지 않다.
+RegularizedNeuralODE는 상태에 누적 변수 하나를 추가해 ∫||f||²dt를 계산한다. return_regularization=True일 때 돌려주는 규제 항을 실제 학습 로스에 더해야 효과가 있다. 상태 경로가 부드러워질 수 있지만 Jacobian 규제 ∫||∂f/∂h||²_Fdt와는 다른 양이며 후자는 여기 구현되어 있지 않다.
 
 ```python
 def init_neural_ode_weights(module):
     """
-    안정된 익히기를 위해 신경 상미분 방정식의 무게를 첫자리매김한다.
+    안정된 익히기를 위해 뉴럴 상미분 방정식의 무게를 첫자리매김한다.
     거의 항등인 바꿈으로 시작하도록 작은 무게를 쓴다.
     """
     if isinstance(module, nn.Linear):
@@ -814,8 +814,8 @@ def init_neural_ode_weights(module):
 ```python
 class MultiScaleNeuralODE(nn.Module):
     """
-    때 잣수가 여럿인 신경 상미분 방정식.
-    빠른 움직임과 느린 움직임이 함께 있는 문제에 쓸모 있다.
+    때 잣수가 여럿인 뉴럴 상미분 방정식.
+    빠른 액션과 느린 액션이 함께 있는 문제에 쓸모 있다.
     """
     
     def __init__(self, dim, hidden_dim=64):
@@ -838,7 +838,7 @@ MultiScaleNeuralODE는 같은 초기값에서 서로 다른 두 벡터장·적�
 ```python
 class HybridNeuralODE(nn.Module):
     """
-    띄엄띄엄한 중간 바꿈이 있는 신경 상미분 방정식.
+    띄엄띄엄한 중간 바꿈이 있는 뉴럴 상미분 방정식.
     어떤 바꿈이 본디 띄엄띄엄할 때 쓸모 있다
     (보기: 모으기, 눈여겨보기, 장 열고 닫는 일).
     """
@@ -869,12 +869,12 @@ HybridNeuralODE는 ODE 두 구간 사이에 잔차 변환을 넣는다. 각 블�
 
 ```python
 def debug_neural_ode(model, sample_input):
-    """신경 상미분 방정식의 벌레를 잡는 진단 함수."""
+    """뉴럴 상미분 방정식의 벌레를 잡는 진단 함수."""
     print("=" * 50)
     print("Neural ODE Diagnostics")
     print("=" * 50)
     
-    # 매개변수에 NaN이 있는지 살핀다
+    # 파라메터에 NaN이 있는지 살핀다
     nan_params = []
     for name, param in model.named_parameters():
         if torch.isnan(param).any():
@@ -885,7 +885,7 @@ def debug_neural_ode(model, sample_input):
     else:
         print("✓ No NaN in parameters")
     
-    # 앞먹임 살피기
+    # 피드포워드 살피기
     try:
         with torch.no_grad():
             output = model(sample_input)
@@ -904,7 +904,7 @@ def debug_neural_ode(model, sample_input):
         _ = model(sample_input)
         print(f"  Function evaluations: {model.ode_block.func.nfe}")
     
-    # 기울기 살피기
+    # 그래디언트 살피기
     model.zero_grad()
     output = model(sample_input)
     loss = output.sum()
@@ -940,7 +940,7 @@ np.random.seed(42)
 
 class LearnableODE(nn.Module):
     """
-    배울 수 있는 상미분 방정식 움직임 함수: dh/dt = f_theta(h, t).
+    배울 수 있는 상미분 방정식 액션 함수: dh/dt = f_theta(h, t).
     """
     
     def __init__(self, dim: int, hidden_dim: int = 64, time_dependent: bool = True):
@@ -1020,7 +1020,7 @@ def demonstrate_ode_fundamentals():
     print("SUMMARY")
     print("=" * 70)
     print("""
-    1. 상미분 방정식은 이어진 때의 움직임을 나타낸다: dy/dt = f(y, t)
+    1. 상미분 방정식은 이어진 때의 액션을 나타낸다: dy/dt = f(y, t)
     
     2. 수치 방법이 풀이를 어림한다.
        - 오일러: 온 어긋남 O(dt), 단순하지만 부정확하다
@@ -1030,9 +1030,9 @@ def demonstrate_ode_fundamentals():
     3. ResNet은 dt=1인 오일러 띄엄띄엄 나눔 그 자체다.
        h_{l+1} = h_l + f(h_l)  ←→  y_{n+1} = y_n + dt·f(y_n, t_n)
     
-    4. 신경 상미분 방정식은 이어진 끝값이다(L → ∞, dt → 0)
+    4. 뉴럴 상미분 방정식은 이어진 끝값이다(L → ∞, dt → 0)
     
-    5. 위상 그림이 움직임의 질적인 모습을 드러낸다
+    5. 위상 그림이 액션의 질적인 모습을 드러낸다
     """)
 
 if __name__ == "__main__":
@@ -1062,7 +1062,7 @@ Classification: Asymptotically stable (attractor)
 SUMMARY
 ======================================================================
 
-    1. 상미분 방정식은 이어진 때의 움직임을 나타낸다: dy/dt = f(y, t)
+    1. 상미분 방정식은 이어진 때의 액션을 나타낸다: dy/dt = f(y, t)
     
     2. 수치 방법이 풀이를 어림한다.
        - 오일러: 온 어긋남 O(dt), 단순하지만 부정확하다
@@ -1072,9 +1072,9 @@ SUMMARY
     3. ResNet은 dt=1인 오일러 띄엄띄엄 나눔 그 자체다.
        h_{l+1} = h_l + f(h_l)  ←→  y_{n+1} = y_n + dt·f(y_n, t_n)
     
-    4. 신경 상미분 방정식은 이어진 끝값이다(L → ∞, dt → 0)
+    4. 뉴럴 상미분 방정식은 이어진 끝값이다(L → ∞, dt → 0)
     
-    5. 위상 그림이 움직임의 질적인 모습을 드러낸다
+    5. 위상 그림이 액션의 질적인 모습을 드러낸다
 ```
 
 main이 호출하는 데모는 지수 성장의 수제 오일러·RK4 비교와 감쇠 진동자의 위상도·평형 선형화다. LearnableODE는 정의하지만 이 데모에서 학습하지 않는다. float 시간 인수를 텐서로 바꾸는 경로는 CPU에서 생성하므로 다른 장치에서 사용할 때 입력 장치를 맞춰야 한다. 출력 문자열의 ResNet 극한·정확도 주장은 앞서 설명한 조건 아래에서 읽는다.
@@ -1096,13 +1096,13 @@ make_spiral_data는 t에 따라 반지름이 늘어나는 **하나의 나선**�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-최종 상태 손실 L=ℓ(z(T))에서 열벡터 adjoint a=∂L/∂z의 방정식과 파라미터 기울기를 적어라.
+최종 상태 로스 L=ℓ(z(T))에서 열벡터 adjoint a=∂L/∂z의 방정식과 파라미터 그래디언트를 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
 
-    Jz=∂f/∂z, Jθ=∂f/∂θ라 하면 a′=−Jzᵀa, a(T)=∇ℓ(z(T))다. 초기값이 θ와 독립이고 손실에 직접 θ 항이 없으면 ∂L/∂θ=∫₀ᵀJθᵀa dt다. 역시간 적분에서는 부호와 적분 방향을 함께 바꾸어 같은 값을 얻는다. 중간 관측 손실에는 해당 시점의 adjoint 점프, θ에 의존하는 초기값에는 a(0)ᵀ∂z₀/∂θ가 추가된다. 수치적으로는 역적분·보간·허용 오차도 기울기에 영향을 준다.
+    Jz=∂f/∂z, Jθ=∂f/∂θ라 하면 a′=−Jzᵀa, a(T)=∇ℓ(z(T))다. 초기값이 θ와 독립이고 로스에 직접 θ 항이 없으면 ∂L/∂θ=∫₀ᵀJθᵀa dt다. 역시간 적분에서는 부호와 적분 방향을 함께 바꾸어 같은 값을 얻는다. 중간 관측 로스에는 해당 시점의 adjoint 점프, θ에 의존하는 초기값에는 a(0)ᵀ∂z₀/∂θ가 추가된다. 수치적으로는 역적분·보간·허용 오차도 그래디언트에 영향을 준다.
 
 
 
@@ -1132,7 +1132,7 @@ ODE 흐름의 가역성과 ReLU의 Lipschitz 성질을 설명하라.
 
 ??? success "연습문제 3 풀이"
 
-    충분한 유일성과 양방향으로 필요한 구간의 해가 존재하면 고정 시작·종료 시각의 흐름은 연속 역을 갖는다. 비자율계의 역은 종료 시각에서 시작 시각으로 푸는 두 시각 흐름이며 단순히 같은 시작 시각에서 −t를 넣는 것과 다르다. 수치 역적분은 정확한 역을 보장하지 않고 외부 차원 축소·분류 층도 가역일 필요가 없다. ReLU는 1-Lipschitz라 비미분점이 유일성을 깨지는 않는다. 국소 Lipschitz만으로 유한 시간 발산까지 막는 것도 아니다.
+    충분한 유일성과 양방향으로 필요한 구간의 해가 존재하면 고정 시작·종료 시각의 흐름은 연속 역을 갖는다. 비자율계의 역은 종료 시각에서 시작 시각으로 푸는 두 시각 흐름이며 단순히 같은 시작 시각에서 −t를 넣는 것과 다르다. 수치 역적분은 정확한 역을 보장하지 않고 외부 차원 축소·분류 레이어도 가역일 필요가 없다. ReLU는 1-Lipschitz라 비미분점이 유일성을 깨지는 않는다. 국소 Lipschitz만으로 유한 시간 발산까지 막는 것도 아니다.
 
 
 
@@ -1147,13 +1147,13 @@ ODE 흐름의 가역성과 ReLU의 Lipschitz 성질을 설명하라.
 
 ??? success "연습문제 4 풀이"
 
-    순방향은 입력·파라미터의 각 관심 방향에 JVP를 전파하므로 적은 수의 파라미터나 방향 도함수가 필요할 때 유리할 수 있다. 역방향 adjoint는 스칼라 손실의 gradient를 많은 파라미터에 대해 구할 때 유리하다. 전체 Jacobian을 얻는 비용은 순방향의 입력 방향 수와 역방향의 출력 방향 수에 영향을 받는다. 둘 다 벡터장·선형화 연산의 비용이 있으며 단순히 출력 차원 또는 파라미터 수와 무관한 고정 비용이라고 쓸 수 없다.
+    순방향은 입력·파라미터의 각 관심 방향에 JVP를 전파하므로 적은 수의 파라미터나 방향 도함수가 필요할 때 유리할 수 있다. 역방향 adjoint는 스칼라 로스의 gradient를 많은 파라미터에 대해 구할 때 유리하다. 전체 Jacobian을 얻는 비용은 순방향의 입력 방향 수와 역방향의 출력 방향 수에 영향을 받는다. 둘 다 벡터장·선형화 연산의 비용이 있으며 단순히 출력 차원 또는 파라미터 수와 무관한 고정 비용이라고 쓸 수 없다.
 
 
 
 ## 정리하며
 
-신경 ODE는 벡터장과 수치 적분을 함께 설계하는 모델이다. 해의 국소·전역 조건, 활성화의 Lipschitz 성질과 수치 안정성을 구분한다. 함수 인수 순서·내부 스텝·요청 출력 시점·미분 방식을 맞추고 각 코드가 실제로 호출하는 학습·데모의 범위를 확인한다.
+뉴럴 ODE는 벡터장과 수치 적분을 함께 설계하는 모델이다. 해의 국소·전역 조건, 활성화의 Lipschitz 성질과 수치 안정성을 구분한다. 함수 인수 순서·내부 스텝·요청 출력 시점·미분 방식을 맞추고 각 코드가 실제로 호출하는 학습·데모의 범위를 확인한다.
 
 **참고 문헌**
 

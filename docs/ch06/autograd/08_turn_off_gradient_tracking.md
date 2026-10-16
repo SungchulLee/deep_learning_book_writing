@@ -1,11 +1,11 @@
 # 경사 추적 끄기
 
-잎 텐서의 `requires_grad`를 바꾸어 이후 연산의 기록 여부를 제어한다. 추적할 대상이 없는 손실에 역전파를 요청하면 어떻게 되는지도 살펴본다.
+잎 텐서의 `requires_grad`를 바꾸어 이후 연산의 기록 여부를 제어한다. 추적할 대상이 없는 로스에 역전파를 요청하면 어떻게 되는지도 살펴본다.
 
 ## 1. 코드
 
 ```python
-"""기울기 좇기를 끈다."""
+"""그래디언트 좇기를 끈다."""
 import torch
 
 # ========================================================================
@@ -15,8 +15,8 @@ import torch
 def main():
 
     # 기본적으로 텐서는 requires_grad=False로 만들어진다
-    # (대부분의 텐서는 매개변수가 아니라 그냥 데이터이기 때문이다).
-    # 최적화하려는 매개변수에는 requires_grad=True를 명시적으로 설정해야 한다.
+    # (대부분의 텐서는 파라메터가 아니라 그냥 데이터이기 때문이다).
+    # 최적화하려는 파라메터에는 requires_grad=True를 명시적으로 설정해야 한다.
     w = torch.randn(4, requires_grad=True)  # Equivalent: w = torch.randn(4).requires_grad_()
     print("Before: w.requires_grad =", w.requires_grad)  # True
 
@@ -66,7 +66,7 @@ element 0 of tensors does not require grad and does not have a grad_fn
 
 ### 잎 텐서의 추적 설정 변경
 
-예제의 `w`는 직접 만든 잎 텐서다. `w.requires_grad_(False)` 이후 제곱합을 계산하면, 이 연산에는 경사를 요구하는 입력이 없으므로 손실도 경사를 추적하지 않는다. 이 손실의 `.backward()`는 미분할 그래프가 없어 실패한다.
+예제의 `w`는 직접 만든 잎 텐서다. `w.requires_grad_(False)` 이후 제곱합을 계산하면, 이 연산에는 경사를 요구하는 입력이 없으므로 로스도 경사를 추적하지 않는다. 이 로스의 `.backward()`는 미분할 그래프가 없어 실패한다.
 
 다만 입력 하나의 추적을 껐다고 연산 전체의 기록이 항상 꺼지는 것은 아니다. 다른 입력에 `requires_grad=True`가 설정되어 있으면 그 입력에 대한 미분 경로는 기록될 수 있다. 이미 만들어진 그래프를 소급해서 없애는 기능으로 해석해서도 안 된다.
 
@@ -112,7 +112,7 @@ element 0 of tensors does not require grad and does not have a grad_fn
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 

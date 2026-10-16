@@ -1,6 +1,6 @@
 # 정규분포 MLE
 
-독립 정규표본의 평균과 표준편차를 해석적으로 추정하고 경사 기반 결과와 비교한다. 양수 파라미터의 표현과 분산 MLE의 편향을 구분한다.
+독립 정규표본의 평균과 표준편차를 해석적으로 추정하고 경사 기반 결과와 비교한다. 양수 파라미터의 표현과 분산 MLE의 바이어스를 구분한다.
 
 ## 1. 코드
 
@@ -64,12 +64,12 @@ def analytical_mle(data: torch.Tensor):
 
 def gradient_based_mle(data: torch.Tensor, n_iterations: int = 1000):
     """
-    로그 가능도에 경사 상승법을 써서 매개변수를 어림한다.
+    로그 가능도에 경사 상승법을 써서 파라메터를 어림한다.
     
     시그마가 양수가 되도록 로그로 매긴다.
     σ = exp(log_sigma)
     """
-    # 매개변수를 초기화한다
+    # 파라메터를 초기화한다
     mu = torch.tensor(0.0, requires_grad=True)
     log_sigma = torch.tensor(0.0, requires_grad=True)  # σ = exp(log_sigma) > 0
     
@@ -82,7 +82,7 @@ def gradient_based_mle(data: torch.Tensor, n_iterations: int = 1000):
         # 로그가능도를 계산한다
         log_lik = compute_log_likelihood(data, mu, sigma)
         
-        # 손실은 음의 로그가능도이다
+        # 로스는 음의 로그가능도이다
         loss = -log_lik
         
         history.append((mu.item(), sigma.item(), loss.item()))
@@ -124,7 +124,7 @@ def visualize_results(data, true_mu, true_sigma, analytical_mu, analytical_sigma
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 2: 매개변수의 수렴 (μ)
+    # 그림 2: 파라메터의 수렴 (μ)
     ax = axes[0, 1]
     mus = [h[0] for h in history]
     ax.plot(mus, 'b-', linewidth=2, label='μ estimate')
@@ -136,7 +136,7 @@ def visualize_results(data, true_mu, true_sigma, analytical_mu, analytical_sigma
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 3: 매개변수의 수렴 (σ)
+    # 그림 3: 파라메터의 수렴 (σ)
     ax = axes[0, 2]
     sigmas = [h[1] for h in history]
     ax.plot(sigmas, 'b-', linewidth=2, label='σ estimate')

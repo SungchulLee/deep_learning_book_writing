@@ -77,7 +77,7 @@ class ExtractiveQAModel(nn.Module):
         return start_logits.squeeze(-1), end_logits.squeeze(-1)
 ```
 
-ExtractiveQAModel은 encoder 뒤에 H→2 선형 층을 붙여 B×T의 시작·끝 로짓을 반환한다. 이 새 head는 QA 데이터로 학습하지 않은 초기 상태다. 답의 문자 offset을 subword 위치에 정렬하고 시작·끝 교차 엔트로피, 답 없음 위치, 잘린 답·padding의 정책을 구성해야 한다. encoder의 attention_mask만으로 QA 손실이나 답 후보가 자동으로 제한되지 않는다.
+ExtractiveQAModel은 encoder 뒤에 H→2 선형 레이어를 붙여 B×T의 시작·끝 로짓을 반환한다. 이 새 head는 QA 데이터로 학습하지 않은 초기 상태다. 답의 문자 offset을 subword 위치에 정렬하고 시작·끝 교차 엔트로피, 답 없음 위치, 잘린 답·padding의 폴리시를 구성해야 한다. encoder의 attention_mask만으로 QA 로스나 답 후보가 자동으로 제한되지 않는다.
 
 학습된 QA 체크포인트를 불러오는 앞 예제와 새 head를 붙이는 이 예제는 학습 상태가 다르다. 모든 encoder가 BERT식 token_type_ids를 같은 방식으로 지원하는 것도 아니므로 선택한 모델의 인터페이스에 맞춘다.
 
@@ -89,7 +89,7 @@ ExtractiveQAModel은 encoder 뒤에 H→2 선형 층을 붙여 B×T의 시작·�
 
 ## 6. 정확 일치와 토큰 F1
 
-SQuAD 평가는 정규화한 문자열의 정확 일치(EM)와 답 토큰 중복 기반 F1을 사용한다. 이 토큰은 BERT subword ID가 아니라 평가 스크립트의 문자열 정규화·공백 분리 기준이다. 반복 토큰도 출현 수로 제한해 세고 정답 표현이 여러 개면 공식 정책에 따라 비교한다. 답 없음의 빈 답 처리도 포함해야 한다.
+SQuAD 평가는 정규화한 문자열의 정확 일치(EM)와 답 토큰 중복 기반 F1을 사용한다. 이 토큰은 BERT subword ID가 아니라 평가 스크립트의 문자열 정규화·공백 분리 기준이다. 반복 토큰도 출현 수로 제한해 세고 정답 표현이 여러 개면 공식 폴리시에 따라 비교한다. 답 없음의 빈 답 처리도 포함해야 한다.
 
 영어 SQuAD의 소문자화·관사·구두점 제거를 모든 언어의 일반 평가 규칙으로 적용하지 않는다. 한국어의 형태·띄어쓰기와 업무 요구에 맞는 원문·값 일치 기준을 별도로 명시할 수 있다.
 

@@ -119,7 +119,7 @@ class SinusoidalPositionalEncoding(nn.Module):
         # 배치 차원을 더한다 [1, max_len, d_model]
         pe = pe.unsqueeze(0)
         
-        # 버퍼로 등록한다 (매개변수는 아니지만 상태의 일부이다)
+        # 버퍼로 등록한다 (파라메터는 아니지만 상태의 일부이다)
         self.register_buffer('pe', pe)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -247,7 +247,7 @@ Visualization saved to 'positional_encoding_visualization.png'
 
 ## 4. 학습된 위치 인코딩
 
-다른 방법은 위치 임베딩을 매개변수로 학습하는 것이다.
+다른 방법은 위치 임베딩을 파라메터로 학습하는 것이다.
 
 $$
 \mathbf{P} = \text{Embedding}(\text{positions}) \in \mathbb{R}^{L \times d_{\text{model}}}
@@ -258,8 +258,8 @@ $$
 | 측면 | 사인·코사인 | 학습형 |
 |---|---|---|
 | 학습 범위 밖의 위치 | 수식으로 계산 가능, 구현의 버퍼 확장 필요 | 테이블 확장·위치 변환 등 별도 설계 필요 |
-| 과제에 따른 위치 표 갱신 | 고정 | 손실을 통해 학습 |
-| 학습 매개변수 | 0 | $L\times d_{\text{model}}$ |
+| 과제에 따른 위치 표 갱신 | 고정 | 로스를 통해 학습 |
+| 학습 파라메터 | 0 | $L\times d_{\text{model}}$ |
 | 긴 입력의 예측 품질 | 별도 평가 필요 | 별도 평가 필요 |
 
 ### 파이토치 구현: 학습된 인코딩
@@ -567,15 +567,15 @@ Key shape: torch.Size([32, 8, 100, 8])
 
 ---
 
-## 6. ALiBi (선형 편향을 쓰는 주의)
+## 6. ALiBi (선형 바이어스를 쓰는 주의)
 
-ALiBi는 자리에 따라 달라지는 편향을 어텐션 점수에 곧바로 더한다.
+ALiBi는 자리에 따라 달라지는 바이어스를 어텐션 점수에 곧바로 더한다.
 
 $$
 \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}} + \mathbf{m} \cdot [-(i-j)]\right)
 $$
 
-여기서 $\mathbf{m}$은 헤드마다 다른 기울기이다.
+여기서 $\mathbf{m}$은 헤드마다 다른 그래디언트이다.
 
 ### 구현
 
@@ -586,9 +586,9 @@ import math
 
 class ALiBiPositionalBias(nn.Module):
     """
-    선형 편향을 쓰는 주의(ALiBi).
+    선형 바이어스를 쓰는 주의(ALiBi).
     
-    주의 점수에 선형 자리 편향을 더한다.
+    주의 점수에 선형 자리 바이어스를 더한다.
     """
     
     def __init__(self, num_heads: int, max_len: int = 2048):
@@ -601,7 +601,7 @@ class ALiBiPositionalBias(nn.Module):
         
         self.num_heads = num_heads
         
-        # 머리마다 기울기를 셈한다
+        # 머리마다 그래디언트를 셈한다
         slopes = self._get_slopes(num_heads)
         self.register_buffer('slopes', slopes)
         
@@ -610,7 +610,7 @@ class ALiBiPositionalBias(nn.Module):
     
     def _get_slopes(self, num_heads: int) -> torch.Tensor:
         """
-        머리마다 ALiBi 기울기를 얻는다.
+        머리마다 ALiBi 그래디언트를 얻는다.
         
         등비수열을 쓴다: 2^(-8/n), 2^(-16/n), ..., 2^(-8)
         """
@@ -631,7 +631,7 @@ class ALiBiPositionalBias(nn.Module):
         return torch.tensor(slopes).view(num_heads, 1, 1)
     
     def _precompute_bias(self, max_len: int):
-        """자리 편향 행렬을 미리 셈한다."""
+        """자리 바이어스 행렬을 미리 셈한다."""
         # 자리 번호
         positions = torch.arange(max_len)
         
@@ -639,29 +639,29 @@ class ALiBiPositionalBias(nn.Module):
         relative_positions = positions.unsqueeze(0) - positions.unsqueeze(1)
         
         # ALiBi는 인과 주의에 음의 상대 자리를 쓴다
-        # 편향은 인과가 아니면 -|i - j|, 인과이면 -(i - j)이다 (위 삼각은 가린다)
+        # 바이어스는 인과가 아니면 -|i - j|, 인과이면 -(i - j)이다 (위 삼각은 가린다)
         bias = -torch.abs(relative_positions)
         
         self.register_buffer('alibi_bias', bias)
     
     def forward(self, seq_len: int) -> torch.Tensor:
         """
-        주어진 수열 길이의 ALiBi 편향을 얻는다.
+        주어진 수열 길이의 ALiBi 바이어스를 얻는다.
         
         인수:
             seq_len: 수열 길이
             
         반환값:
-            편향 텐서 [num_heads, seq_len, seq_len]
+            바이어스 텐서 [num_heads, seq_len, seq_len]
         """
-        # 지금 수열 길이의 편향을 얻는다
+        # 지금 수열 길이의 바이어스를 얻는다
         bias = self.alibi_bias[:seq_len, :seq_len]
         
-        # 기울기를 곱한다 [num_heads, seq_len, seq_len]
+        # 그래디언트를 곱한다 [num_heads, seq_len, seq_len]
         return self.slopes * bias
 
 class ALiBiAttention(nn.Module):
-    """ALiBi 자리 편향을 갖춘 다중 머리 주의."""
+    """ALiBi 자리 바이어스를 갖춘 다중 머리 주의."""
     
     def __init__(
         self,
@@ -684,7 +684,7 @@ class ALiBiAttention(nn.Module):
         self.v_proj = nn.Linear(d_model, d_model)
         self.out_proj = nn.Linear(d_model, d_model)
         
-        # ALiBi 편향
+        # ALiBi 바이어스
         self.alibi = ALiBiPositionalBias(num_heads)
         
         self.dropout = nn.Dropout(dropout)
@@ -695,7 +695,7 @@ class ALiBiAttention(nn.Module):
         mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        ALiBi 자리 편향을 쓰는 앞먹임.
+        ALiBi 자리 바이어스를 쓰는 피드포워드.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
@@ -719,7 +719,7 @@ class ALiBiAttention(nn.Module):
         # 주의 점수를 셈한다
         scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # ALiBi 편향을 더한다 [1, num_heads, seq_len, seq_len]
+        # ALiBi 바이어스를 더한다 [1, num_heads, seq_len, seq_len]
         alibi_bias = self.alibi(seq_len).unsqueeze(0)
         scores = scores + alibi_bias
         
@@ -767,12 +767,12 @@ Output shape: torch.Size([32, 100, 512])
 
 ## 7. 위치 인코딩 방법 비교
 
-| 방법 | 위치 정보를 넣는 곳 | 학습 매개변수 | 길이 확장 시 확인할 점 |
+| 방법 | 위치 정보를 넣는 곳 | 학습 파라메터 | 길이 확장 시 확인할 점 |
 |---|---|---|---|
 | 사인·코사인 | 입력 임베딩에 더함 | 0 | 위치 표와 마스크의 길이 |
 | 학습형 | 입력 임베딩에 더함 | $L\times d$ | 테이블 범위와 새 위치의 학습 |
 | RoPE | Q·K를 회전 | 기본형은 0 | 주파수, 위치 ID와 캐시 |
-| ALiBi | 어텐션 점수에 거리 편향을 더함 | 기본형은 0 | 편향·마스크 구현과 긴 문맥 평가 |
+| ALiBi | 어텐션 점수에 거리 바이어스를 더함 | 기본형은 0 | 바이어스·마스크 구현과 긴 문맥 평가 |
 
 ---
 
@@ -790,7 +790,7 @@ RoFormer에서 나와 LLaMA, Mistral을 비롯한 요즘 대형 언어 모델이
 
 전통적인 위치 인코딩에는 한계가 있다.
 
-위치 표현은 입력에 벡터를 더하거나, Q·K를 회전하거나, 점수에 편향을 더하는 방식으로 구성할 수 있다. 연산량과 긴 문맥 품질은 이 선택뿐 아니라 구현, 모델의 학습 조건과 평가 길이에 따라 달라진다.
+위치 표현은 입력에 벡터를 더하거나, Q·K를 회전하거나, 점수에 바이어스를 더하는 방식으로 구성할 수 있다. 연산량과 긴 문맥 품질은 이 선택뿐 아니라 구현, 모델의 학습 조건과 평가 길이에 따라 달라진다.
 
 RoPE는 쿼리와 키를 위치별로 회전시켜 내적의 위치 의존성을 상대 오프셋으로 표현한다. 내용 벡터를 고정하면 $(R_mq)^T(R_nk)=q^TR_{n-m}k$이며, 점수는 q와 k에도 의존한다.
 
@@ -1014,7 +1014,7 @@ class RoPEAttention(nn.Module):
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
-        앞먹임.
+        피드포워드.
         
         인수:
             x: 입력 [batch, seq_len, d_model]
@@ -1170,7 +1170,7 @@ def visualize_rope_properties():
     
     # 상대 자리에 따른 잦아듦
     ax2 = axes[1]
-    # 상대 자리의 함수로 본 평균 주의 가중치
+    # 상대 자리의 함수로 본 평균 주의 웨이트
     relative_weights = []
     for offset in range(-seq_len+1, seq_len):
         weights = []
@@ -1212,7 +1212,7 @@ if __name__ == "__main__":
     print(f"Query shape: {q.shape} -> {q_rot.shape}")
     print(f"Key shape: {k.shape} -> {k_rot.shape}")
     
-    # 온전한 주의 층을 시험한다
+    # 온전한 주의 레이어를 시험한다
     attention = RoPEAttention(d_model, num_heads, max_seq_len=2048)
     
     x = torch.randn(batch_size, seq_len, d_model)
@@ -1244,7 +1244,7 @@ if __name__ == "__main__":
         
         print(f"Step {step}: output={output.shape}, cache_len={kv_cache[0].size(2)}")
     
-    # 매개변수
+    # 파라메터
     total_params = sum(p.numel() for p in attention.parameters())
     print(f"\nTotal parameters: {total_params:,}")
     
@@ -1283,7 +1283,7 @@ Visualization saved to 'rope_visualization.png'
 |---|---|---|
 | 적용 | 토큰 표현에 위치 벡터를 더함 | Q·K의 성분 쌍을 회전 |
 | 상대 위치 | 삼각함수의 이동 관계를 활용할 수 있음 | 회전 내적에 상대 오프셋이 나타남 |
-| 거리별 점수 | 내용·학습 가중치에 의존 | 내용·주파수·상대 위치에 의존하며 단조 감소를 보장하지 않음 |
+| 거리별 점수 | 내용·학습 웨이트에 의존 | 내용·주파수·상대 위치에 의존하며 단조 감소를 보장하지 않음 |
 
 ### 길이를 늘리는 RoPE 변형
 
@@ -1297,7 +1297,7 @@ Visualization saved to 'rope_visualization.png'
 
 ### 핵심 내용
 
-RoPE는 Q·K의 회전 내적에 상대 위치를 반영한다. 회전 연산 자체는 학습 매개변수를 추가하지 않지만 점수 계산과 캐시 저장 비용은 남는다. 긴 위치를 계산하는 기능, 캐시의 올바른 사용과 긴 문맥에서의 예측 품질을 나누어 확인한다.
+RoPE는 Q·K의 회전 내적에 상대 위치를 반영한다. 회전 연산 자체는 학습 파라메터를 추가하지 않지만 점수 계산과 캐시 저장 비용은 남는다. 긴 위치를 계산하는 기능, 캐시의 올바른 사용과 긴 문맥에서의 예측 품질을 나누어 확인한다.
 
 위치별 회전을 쓰더라도 모든 거리에서 다른 회전이 수학적으로 보장되거나 어텐션이 거리에만 의존하는 것은 아니다.
 
@@ -1311,13 +1311,13 @@ RoPE는 Q·K의 회전 내적에 상대 위치를 반영한다. 회전 연산 �
 
 ## 9. ALiBi 깊이 들여다보기
 
-앞 절의 간단한 ALiBiAttention은 자동 인과 마스크가 없다. 이 절의 causal=True 구현은 인과 마스크를 적용하지만 마스크 크기를 자동 확장하지 않아 max_seq_len보다 긴 입력 시연은 모양 오류가 날 수 있다. 편향 캐시 재생성도 장치를 확인해야 한다.
+앞 절의 간단한 ALiBiAttention은 자동 인과 마스크가 없다. 이 절의 causal=True 구현은 인과 마스크를 적용하지만 마스크 크기를 자동 확장하지 않아 max_seq_len보다 긴 입력 시연은 모양 오류가 날 수 있다. 바이어스 캐시 재생성도 장치를 확인해야 한다.
 
-get_bias_for_kv_cache는 query_len 인수를 사용하지 않고 마지막 위치 한 개 기준의 편향을 만든다. 양의 기울기와 인과 마스킹에서 여러 쿼리 행 간 차이가 행별 상수라면 소프트맥스가 이를 상쇄하지만, 함수가 일반적인 상대 거리 행렬을 반환하는 것은 아니다. 추가 attention_mask는 점수에 더하는 가산 마스크다.
+get_bias_for_kv_cache는 query_len 인수를 사용하지 않고 마지막 위치 한 개 기준의 바이어스를 만든다. 양의 그래디언트와 인과 마스킹에서 여러 쿼리 행 간 차이가 행별 상수라면 소프트맥스가 이를 상쇄하지만, 함수가 일반적인 상대 거리 행렬을 반환하는 것은 아니다. 추가 attention_mask는 점수에 더하는 가산 마스크다.
 
 ### 들어가며
 
-ALiBi는 어텐션 점수에 헤드별 선형 거리 편향을 더하는 방식이다. 학습 가능한 위치 테이블이 없어 새 거리의 편향을 계산할 수 있지만, 학습 길이를 넘은 품질은 데이터와 모델별로 평가해야 한다.
+ALiBi는 어텐션 점수에 헤드별 선형 거리 바이어스를 더하는 방식이다. 학습 가능한 위치 테이블이 없어 새 거리의 바이어스를 계산할 수 있지만, 학습 길이를 넘은 품질은 데이터와 모델별로 평가해야 한다.
 
 ### 핵심 통찰
 
@@ -1327,7 +1327,7 @@ $$
 \text{softmax}\left(\mathbf{q}_i \mathbf{K}^T + m \cdot [-(i-j)]\right)
 $$
 
-여기서 $m$은 먼 자리에 주의하는 것에 벌을 주는, 헤드마다 다른 기울기이다.
+여기서 $m$은 먼 자리에 주의하는 것에 벌을 주는, 헤드마다 다른 그래디언트이다.
 
 ### 수학적 정식화
 
@@ -1348,9 +1348,9 @@ a_{ij} = \begin{cases}
 \end{cases}
 $$
 
-### 헤드마다 다른 기울기
+### 헤드마다 다른 그래디언트
 
-헤드별 기울기를 다르게 정한다. H가 2의 거듭제곱일 때 대표 구성은 다음 식과 같다.
+헤드별 그래디언트를 다르게 정한다. H가 2의 거듭제곱일 때 대표 구성은 다음 식과 같다.
 
 $$
 m_h = \frac{1}{2^{8h/H}}
@@ -1358,11 +1358,11 @@ $$
 
 H가 2의 거듭제곱일 때 위 식은 h=1,…,H를 사용한다. H=8이면 기울기는 $\{2^{-1},\ldots,2^{-8}\}$이다. 다른 헤드 수는 아래 get_alibi_slopes의 구성 규칙을 따른다.
 
-기울기 m이 클수록 같은 거리에 더 큰 음의 편향을 주어 가까운 위치를 강하게 선호한다. m이 작으면 거리 패널티가 완만하다. 실제 가중치는 내용 점수와 소프트맥스에도 의존한다.
+그래디언트 m이 클수록 같은 거리에 더 큰 음의 바이어스를 주어 가까운 위치를 강하게 선호한다. m이 작으면 거리 패널티가 완만하다. 실제 웨이트는 내용 점수와 소프트맥스에도 의존한다.
 
-### 편향 행렬
+### 바이어스 행렬
 
-시퀀스 길이가 $n$일 때 편향 행렬 $B$은 다음과 같다.
+시퀀스 길이가 $n$일 때 바이어스 행렬 $B$은 다음과 같다.
 
 $$
 B = \begin{bmatrix}
@@ -1384,7 +1384,7 @@ from typing import Optional, Tuple
 
 def get_alibi_slopes(num_heads: int) -> torch.Tensor:
     """
-    주의 머리마다 ALiBi 기울기를 셈한다.
+    주의 머리마다 ALiBi 그래디언트를 셈한다.
     
     등비수열을 쓴다: 2^(-8/n), 2^(-16/n), ..., 2^(-8)
     
@@ -1392,7 +1392,7 @@ def get_alibi_slopes(num_heads: int) -> torch.Tensor:
         num_heads: 주의 머리의 수
         
     반환값:
-        기울기 텐서 [num_heads]
+        그래디언트 텐서 [num_heads]
     """
     def get_slopes_power_of_2(n: int):
         start = 2 ** (-(2 ** -(math.log2(n) - 3)))
@@ -1413,10 +1413,10 @@ def get_alibi_slopes(num_heads: int) -> torch.Tensor:
 
 class ALiBiPositionalBias(nn.Module):
     """
-    ALiBi(선형 편향을 쓰는 주의) 위치 인코딩.
+    ALiBi(선형 바이어스를 쓰는 주의) 위치 인코딩.
     
-    자리에 따라 달라지는 선형 편향을 주의 점수에 더한다.
-    학습되는 매개변수가 없다. 등비 기울기뿐이다.
+    자리에 따라 달라지는 선형 바이어스를 주의 점수에 더한다.
+    학습되는 파라메터가 없다. 등비 그래디언트뿐이다.
     """
     
     def __init__(self, num_heads: int, max_seq_len: int = 4096):
@@ -1430,15 +1430,15 @@ class ALiBiPositionalBias(nn.Module):
         self.num_heads = num_heads
         self.max_seq_len = max_seq_len
         
-        # 머리마다 기울기를 얻는다
+        # 머리마다 그래디언트를 얻는다
         slopes = get_alibi_slopes(num_heads)
         self.register_buffer('slopes', slopes.view(num_heads, 1, 1))
         
-        # 편향 행렬을 미리 셈한다
+        # 바이어스 행렬을 미리 셈한다
         self._build_alibi_bias(max_seq_len)
     
     def _build_alibi_bias(self, seq_len: int):
-        """ALiBi 편향 행렬을 세운다."""
+        """ALiBi 바이어스 행렬을 세운다."""
         # 자리 번호
         positions = torch.arange(seq_len)
         
@@ -1447,7 +1447,7 @@ class ALiBiPositionalBias(nn.Module):
         relative_pos = positions.unsqueeze(0) - positions.unsqueeze(1)
         
         # 인과 주의에서는 j <= i만 따진다
-        # 허락된 자리의 편향은 -(i - j) = j - i이다
+        # 허락된 자리의 바이어스는 -(i - j) = j - i이다
         # 행마다 0, -1, -2, -3, ...이 된다
         relative_pos = relative_pos.float()
         
@@ -1456,21 +1456,21 @@ class ALiBiPositionalBias(nn.Module):
     
     def forward(self, seq_len: int) -> torch.Tensor:
         """
-        주어진 수열 길이의 ALiBi 편향을 얻는다.
+        주어진 수열 길이의 ALiBi 바이어스를 얻는다.
         
         인수:
             seq_len: 지금의 수열 길이
             
         반환값:
-            편향 텐서 [num_heads, seq_len, seq_len]
+            바이어스 텐서 [num_heads, seq_len, seq_len]
         """
         if seq_len > self.max_seq_len:
             self._build_alibi_bias(seq_len)
         
-        # 지금 수열 길이의 편향을 얻는다
+        # 지금 수열 길이의 바이어스를 얻는다
         bias = self.alibi_bias_base[:, :seq_len, :seq_len]
         
-        # 머리마다 다른 기울기를 곱한다: [num_heads, seq_len, seq_len]
+        # 머리마다 다른 그래디언트를 곱한다: [num_heads, seq_len, seq_len]
         return self.slopes * bias
     
     def get_bias_for_kv_cache(
@@ -1479,14 +1479,14 @@ class ALiBiPositionalBias(nn.Module):
         kv_len: int
     ) -> torch.Tensor:
         """
-        KV 캐시를 쓰는 점진 디코딩을 위한 ALiBi 편향을 얻는다.
+        KV 캐시를 쓰는 점진 디코딩을 위한 ALiBi 바이어스를 얻는다.
         
         인수:
             query_len: 질의 자리의 수(대개 1)
             kv_len: 캐시를 넣은 열쇠·값의 전체 길이
             
         반환값:
-            편향 텐서 [num_heads, query_len, kv_len]
+            바이어스 텐서 [num_heads, query_len, kv_len]
         """
         # 자리 kv_len-1의 질의 하나가 열쇠 kv_len개 모두에 주의할 때
         # 상대 자리: [-(kv_len-1), -(kv_len-2), ..., -1, 0]
@@ -1496,12 +1496,12 @@ class ALiBiPositionalBias(nn.Module):
         # 질의 차원으로 넓힌다: [1, kv_len]
         relative_pos = relative_pos.unsqueeze(0)
         
-        # 기울기를 곱한다: [num_heads, 1, kv_len]
+        # 그래디언트를 곱한다: [num_heads, 1, kv_len]
         return self.slopes * relative_pos
 
 class ALiBiAttention(nn.Module):
     """
-    ALiBi 자리 편향을 갖춘 다중 머리 주의.
+    ALiBi 자리 바이어스를 갖춘 다중 머리 주의.
     
     BLOOM, MPT를 비롯한 모형이 쓴다.
     """
@@ -1538,7 +1538,7 @@ class ALiBiAttention(nn.Module):
         self.v_proj = nn.Linear(d_model, d_model, bias=False)
         self.o_proj = nn.Linear(d_model, d_model, bias=False)
         
-        # ALiBi 편향
+        # ALiBi 바이어스
         self.alibi = ALiBiPositionalBias(num_heads, max_seq_len)
         
         self.dropout = nn.Dropout(dropout)
@@ -1556,7 +1556,7 @@ class ALiBiAttention(nn.Module):
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
-        ALiBi를 쓰는 앞먹임.
+        ALiBi를 쓰는 피드포워드.
         
         인수:
             x: 입력 [batch, seq_len, d_model]
@@ -1587,7 +1587,7 @@ class ALiBiAttention(nn.Module):
         # 주의 점수를 셈한다
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # ALiBi 편향을 더한다
+        # ALiBi 바이어스를 더한다
         if past_key_value is not None:
             # 점진 디코딩: 질의가 자리 하나이다
             alibi_bias = self.alibi.get_bias_for_kv_cache(seq_len, kv_len)
@@ -1655,14 +1655,14 @@ class ALiBiTransformerBlock(nn.Module):
         past_key_value: Optional[Tuple] = None,
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple]]:
-        """앞 정규화 구조의 앞먹임."""
+        """앞 정규화 구조의 피드포워드."""
         # 어텐션
         residual = x
         x = self.norm1(x)
         attn_out, present = self.attention(x, past_key_value=past_key_value, use_cache=use_cache)
         x = residual + self.dropout(attn_out)
         
-        # 순전파 신경망
+        # 순전파 뉴럴 넷트웍
         residual = x
         x = self.norm2(x)
         x = residual + self.feed_forward(x)
@@ -1670,7 +1670,7 @@ class ALiBiTransformerBlock(nn.Module):
         return x, present
 
 def visualize_alibi_bias(num_heads: int = 8, seq_len: int = 64):
-    """머리마다의 ALiBi 편향 무늬를 그려 본다."""
+    """머리마다의 ALiBi 바이어스 무늬를 그려 본다."""
     import matplotlib.pyplot as plt
     
     alibi = ALiBiPositionalBias(num_heads, seq_len)
@@ -1742,7 +1742,7 @@ if __name__ == "__main__":
         )
         print(f"Step {step}: cache_len={kv_cache[0].size(2)}")
     
-    # 매개변수
+    # 파라메터
     total_params = sum(p.numel() for p in attention.parameters())
     print(f"\nTotal parameters: {total_params:,}")
     print("(Note: ALiBi adds 0 extra parameters!)")
@@ -1754,28 +1754,28 @@ if __name__ == "__main__":
 
 ### ALiBi의 이점
 
-### 1. 매개변수가 더 들지 않는다
+### 1. 파라메터가 더 들지 않는다
 
-ALiBi는 미리 셈해 둔 기울기만 있으면 된다. 학습되는 임베딩이 없다.
+ALiBi는 미리 셈해 둔 그래디언트만 있으면 된다. 학습되는 임베딩이 없다.
 
-| 방식 | 위치 표현의 추가 학습 매개변수 |
+| 방식 | 위치 표현의 추가 학습 파라메터 |
 |---|---|
 | 학습형 절대 위치 | $L\times d$ |
 | 사인·코사인 | 0 |
-| 상대 위치 편향 | 헤드 수, 거리 범위 또는 버킷 수에 따라 다름 |
+| 상대 위치 바이어스 | 헤드 수, 거리 범위 또는 버킷 수에 따라 다름 |
 | ALiBi 기본형 | 0 |
 
-고정 버퍼와 전체 거리 행렬도 메모리를 사용하므로 추가 매개변수가 0이라는 사실을 저장 비용이 0이라는 뜻으로 해석하지 않는다.
+고정 버퍼와 전체 거리 행렬도 메모리를 사용하므로 추가 파라메터가 0이라는 사실을 저장 비용이 0이라는 뜻으로 해석하지 않는다.
 
 ### 2. 길이를 아주 잘 뻗는다
 
-ALiBi 원 논문은 학습보다 긴 입력에 대한 실험을 보고했다. 그 결과를 임의의 모델·데이터와 길이에 적용할 수는 없다. 같은 토큰화와 손실 집계 방식으로 길이별 품질 및 메모리를 측정해야 한다.
+ALiBi 원 논문은 학습보다 긴 입력에 대한 실험을 보고했다. 그 결과를 임의의 모델·데이터와 길이에 적용할 수는 없다. 같은 토큰화와 로스 집계 방식으로 길이별 품질 및 메모리를 측정해야 한다.
 
 이 페이지에는 길이별 퍼플렉시티 증가율을 재현하는 학습·평가 실험이 없다. 아래 긴 무작위 입력 시연은 예측 품질 평가가 아니다.
 
 ### 3. 끼워 넣기 쉽다
 
-점수에 편향을 더하되 인과 마스크와 패딩 마스크를 함께 맞춰야 한다. 기본 ALiBi의 거리 편향은 미래 토큰을 차단하지 않는다. 기존 사전 학습 모델의 위치 방식을 바꾸는 일도 단순한 교체만으로 같은 품질을 보장하지 않는다.
+점수에 바이어스를 더하되 인과 마스크와 패딩 마스크를 함께 맞춰야 한다. 기본 ALiBi의 거리 바이어스는 미래 토큰을 차단하지 않는다. 기존 사전 학습 모델의 위치 방식을 바꾸는 일도 단순한 교체만으로 같은 품질을 보장하지 않는다.
 
 ```python
 attn_scores = q @ k.T / sqrt(d_k)
@@ -1789,17 +1789,17 @@ attn_weights = softmax(attn_scores)
 |---|---|---|
 | 사인·코사인 | 입력에 더하는 고정 벡터 | 미리 저장하면 $O(nd)$ |
 | 학습형 | 위치 테이블 | $O(Ld)$ |
-| 버킷 상대 편향 | 상대 거리 버킷별 값 | 헤드·버킷별 표와 적용 시 점수 텐서 |
+| 버킷 상대 바이어스 | 상대 거리 버킷별 값 | 헤드·버킷별 표와 적용 시 점수 텐서 |
 | RoPE | Q·K 회전 | 주파수·삼각함수 캐시 |
-| ALiBi | 거리의 선형 편향 | 직접 만들면 헤드별 $O(n^2)$ 거리 편향 |
+| ALiBi | 거리의 선형 바이어스 | 직접 만들면 헤드별 $O(n^2)$ 거리 바이어스 |
 
 이는 위치 표현의 저장 방식 비교다. 전체 어텐션의 연산·메모리 복잡도를 대신하는 표는 아니다.
 
 ### 핵심 내용
 
-ALiBi는 고정 기울기로 상대 거리에 대한 선호를 점수에 넣는다. 기울기 크기, 마스킹과 캐시 위치를 함께 이해해야 하며, 긴 문맥 성능은 별도의 검증 대상이다.
+ALiBi는 고정 그래디언트로 상대 거리에 대한 선호를 점수에 넣는다. 그래디언트 크기, 마스킹과 캐시 위치를 함께 이해해야 하며, 긴 문맥 성능은 별도의 검증 대상이다.
 
-고정 거리 편향과 인과 마스크는 역할이 다르다. 위치 표현에 학습 계수가 없더라도 Q·K·V 투영과 다른 모델 매개변수는 학습한다.
+고정 거리 바이어스와 인과 마스크는 역할이 다르다. 위치 표현에 학습 계수가 없더라도 Q·K·V 투영과 다른 모델 파라메터는 학습한다.
 
 ### 참고 문헌
 
@@ -1826,12 +1826,12 @@ ALiBi는 고정 기울기로 상대 거리에 대한 선호를 점수에 넣는�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-사인·코사인과 학습 가능한 위치 임베딩의 매개변수, 구현 범위와 길이 확장을 비교하라.
+사인·코사인과 학습 가능한 위치 임베딩의 파라메터, 구현 범위와 길이 확장을 비교하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    사인·코사인은 고정 수식이며 학습형은 위치 테이블을 손실로 갱신한다. 전자는 저장 버퍼를, 후자는 조회 범위를 확인해야 한다. 버퍼 재계산이나 테이블 보간으로 긴 입력을 허용해도 그 길이에서의 예측 품질은 별도 평가가 필요하다.
+    사인·코사인은 고정 수식이며 학습형은 위치 테이블을 로스로 갱신한다. 전자는 저장 버퍼를, 후자는 조회 범위를 확인해야 한다. 버퍼 재계산이나 테이블 보간으로 긴 입력을 허용해도 그 길이에서의 예측 품질은 별도 평가가 필요하다.
 
 ---
 
@@ -1843,7 +1843,7 @@ ALiBi는 고정 기울기로 상대 거리에 대한 선호를 점수에 넣는�
 </div>
 
 ??? success "연습문제 3 풀이"
-    위치 마스크 등이 없는 결정적 셀프 어텐션은 $A(PX)=PA(X)$이므로 입력 재배열에 맞춰 출력도 재배열된다. 출력이 그대로라는 불변성과 다르다. RNN은 앞선 상태를 순차적으로 갱신하므로 입력 순서가 상태에 영향을 준다. 인과 마스크나 상대 위치 편향도 위치 정보를 제공할 수 있어 절대 위치 벡터만이 유일한 방법은 아니다.
+    위치 마스크 등이 없는 결정적 셀프 어텐션은 $A(PX)=PA(X)$이므로 입력 재배열에 맞춰 출력도 재배열된다. 출력이 그대로라는 불변성과 다르다. RNN은 앞선 상태를 순차적으로 갱신하므로 입력 순서가 상태에 영향을 준다. 인과 마스크나 상대 위치 바이어스도 위치 정보를 제공할 수 있어 절대 위치 벡터만이 유일한 방법은 아니다.
 
 ---
 
@@ -1867,7 +1867,7 @@ ALiBi는 고정 기울기로 상대 거리에 대한 선호를 점수에 넣는�
 
 ## 정리하며
 
-위치 표현은 입력에 벡터를 더하거나 Q·K를 회전하거나 점수에 편향을 더해 구성한다. 순열 동변성, 상대 위치의 수식과 실제 구현의 길이 제한을 구분한다. 새로운 위치를 계산할 수 있다는 사실만으로 긴 문맥에서 좋은 예측이 보장되지는 않는다.
+위치 표현은 입력에 벡터를 더하거나 Q·K를 회전하거나 점수에 바이어스를 더해 구성한다. 순열 동변성, 상대 위치의 수식과 실제 구현의 길이 제한을 구분한다. 새로운 위치를 계산할 수 있다는 사실만으로 긴 문맥에서 좋은 예측이 보장되지는 않는다.
 
 **참고 문헌**
 

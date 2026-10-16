@@ -32,7 +32,7 @@ $$D_\phi(z,p)=\phi(z)-\phi(p)-(z-p)^\top\nabla\phi(p)$$
 
 $$p(c\mid z)=\operatorname{softmax}_c\left(-\frac{\|z-p_c\|^2}{2\sigma^2}\right)$$
 
-이는 임베딩 공간의 확률 모형이다. 일반적인 신경망 f의 출력에 가우시안 밀도를 적용하는 것만으로 원래 입력 x의 정규화된 밀도 p(x|c)가 정의되는 것은 아니다.
+이는 임베딩 공간의 확률 모형이다. 일반적인 뉴럴 넷트웍 f의 출력에 가우시안 밀도를 적용하는 것만으로 원래 입력 x의 정규화된 밀도 p(x|c)가 정의되는 것은 아니다.
 
 ## 3. PyTorch 구현
 
@@ -177,10 +177,10 @@ class PrototypicalNetwork(nn.Module):
         query_labels: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        에피소드의 손실과 정확도를 셈한다.
+        에피소드의 로스와 정확도를 셈한다.
         
         반환값:
-            loss: 교차 엔트로피 손실
+            loss: 교차 엔트로피 로스
             accuracy: 가려내기 정확도
         """
         logits = self.forward(support, support_labels, query)
@@ -192,14 +192,14 @@ class PrototypicalNetwork(nn.Module):
         return loss, accuracy
 ```
 
-### 합성곱 인코더 구조
+### 컨볼루션 인코더 구조
 
 Conv4Encoder는 네 번 풀링한 뒤 적응형 평균 풀링을 적용하므로 최종 차원은 hidden_dim이다. 단순 평탄화 인코더와 달리 마지막 공간 크기에 비례해 차원이 늘지 않는다. 다만 네 번 풀링할 수 있을 만큼 입력이 커야 한다.
 
 ```python
 class Conv4Encoder(nn.Module):
     """
-    소수 예시 학습에서 흔히 쓰는 4층 합성곱 인코더.
+    소수 예시 학습에서 흔히 쓰는 4레이어 컨볼루션 인코더.
     """
     
     def __init__(self, in_channels: int = 1, hidden_dim: int = 64):
@@ -263,7 +263,7 @@ def train_prototypical_network(
         query = query.to(device)
         query_labels = query_labels.to(device)
         
-        # 앞먹임과 되돌림
+        # 피드포워드와 되돌림
         optimizer.zero_grad()
         loss, acc = model.loss(support, support_labels, query, query_labels)
         loss.backward()
@@ -484,7 +484,7 @@ class SemiSupervisedProtoNet(nn.Module):
 
 $$\mathbb E\|\hat p_c-\mu_c\|^2=\frac{\operatorname{tr}\Sigma_c}{K}$$
 
-차원별 분산이 σ²로 같으면 dσ²/K다. 평균 추정 오차가 줄어도 클래스 간 겹침이나 인코더의 편향은 남는다. 이 식만으로 분류 오차가 특정 속도로 줄어든다고 결론낼 수 없다.
+차원별 분산이 σ²로 같으면 dσ²/K다. 평균 추정 오차가 줄어도 클래스 간 겹침이나 인코더의 바이어스는 남는다. 이 식만으로 분류 오차가 특정 속도로 줄어든다고 결론낼 수 없다.
 
 ### 분류 계산 비용
 
@@ -510,7 +510,7 @@ def forward_with_normalization(self, support, support_labels, query):
     support_emb = F.normalize(support_emb, p=2, dim=1)
     query_emb = F.normalize(query_emb, p=2, dim=1)
     
-    # 앞먹임의 나머지...
+    # 피드포워드의 나머지...
 ```
 
 ### 데이터 증강
@@ -563,12 +563,12 @@ train_transform = transforms.Compose([
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-아래 손실 함수가 본문의 거리 정의와 같은지 확인하고 필요한 입력 조건을 설명하라.
+아래 로스 함수가 본문의 거리 정의와 같은지 확인하고 필요한 입력 조건을 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    torch.cdist의 기본값은 유클리드 거리이며 제곱하지 않았으므로 본문의 제곱 거리 로짓과 손실이 다르다. 순위는 같아도 확률과 경사는 달라진다. support_labels에는 0부터 n_way−1까지 빈 클래스가 없어야 한다.
+    torch.cdist의 기본값은 유클리드 거리이며 제곱하지 않았으므로 본문의 제곱 거리 로짓과 로스가 다르다. 순위는 같아도 확률과 경사는 달라진다. support_labels에는 0부터 n_way−1까지 빈 클래스가 없어야 한다.
 
     ```python
     def prototypical_loss(support_emb, support_labels, query_emb, query_labels, n_way):
@@ -588,7 +588,7 @@ train_transform = transforms.Compose([
 </div>
 
 ??? success "연습문제 4 풀이"
-    프로토타입 네트워크는 클래스 평균과 거리를 사용한다. 매칭 네트워크는 개별 서포트의 유사도 가중치로 라벨을 합산한다. 관계 네트워크는 특징 쌍의 관계 점수를 신경망으로 학습한다. 각 방법의 정확도와 비용은 인코더·에피소드 구성·비교 함수에 따라 달라진다.
+    프로토타입 네트워크는 클래스 평균과 거리를 사용한다. 매칭 네트워크는 개별 서포트의 유사도 웨이트로 라벨을 합산한다. 관계 네트워크는 피처 쌍의 관계 점수를 뉴럴 넷트웍으로 학습한다. 각 방법의 정확도와 비용은 인코더·에피소드 구성·비교 함수에 따라 달라진다.
 
 ## 정리하며
 

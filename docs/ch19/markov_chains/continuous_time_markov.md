@@ -46,7 +46,7 @@ class ContinuousTimeMarkovChain:
         """
         이어진 시간 마르코프 사슬 첫값 잡기.
         
-        매개변수:
+        파라메터:
             generator_matrix: Q[i][j]이 i에서 j으로의 비율인 Q(i≠j)
         """
         self.Q = np.array(generator_matrix, dtype=float)
@@ -208,13 +208,13 @@ CTMC의 대기시간과 다음 점프 상태 분포를 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-아래 신경망 시험 조각 대신 CTMC에서 점검할 항목을 설명하라.
+아래 뉴럴 넷트웍 시험 조각 대신 CTMC에서 점검할 항목을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
 
-    이 클래스는 신경망·경사 인터페이스가 없다. Q의 행합 0·비대각 비음성, P(0)=I, P(s+t)≈P(s)P(t), P(t)의 확률 조건, 정렬된 경로 시간과 마지막 T의 의미를 확인해야 한다. 흡수 상태·T=0·잘못된 초기 인덱스도 경계 사례다.
+    이 클래스는 뉴럴 넷트웍·경사 인터페이스가 없다. Q의 행합 0·비대각 비음성, P(0)=I, P(s+t)≈P(s)P(t), P(t)의 확률 조건, 정렬된 경로 시간과 마지막 T의 의미를 확인해야 한다. 흡수 상태·T=0·잘못된 초기 인덱스도 경계 사례다.
 
     ```python
     def test_continuoustimemarkovchain():

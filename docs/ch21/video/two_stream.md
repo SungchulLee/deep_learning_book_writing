@@ -1,10 +1,10 @@
-# 행동 인식을 위한 Two-Stream 네트워크
+# 액션 인식을 위한 Two-Stream 네트워크
 
-Two-Stream은 RGB 외형과 optical flow 이동 정보를 별도의 네트워크에서 처리해 결합하는 방식이다. [원 논문](https://arxiv.org/abs/1406.2199)은 두 신호의 상호 보완성을 행동 인식에서 실험했다. 이 계산 구조를 사람의 시각 경로와 정확히 일치하는 모형으로 해석하거나, flow가 모든 과제에서 RGB보다 낫다는 보장으로 확대하지 않는다.
+Two-Stream은 RGB 외형과 optical flow 이동 정보를 별도의 네트워크에서 처리해 결합하는 방식이다. [원 논문](https://arxiv.org/abs/1406.2199)은 두 신호의 상호 보완성을 액션 인식에서 실험했다. 이 계산 구조를 사람의 시각 경로와 정확히 일치하는 모형으로 해석하거나, flow가 모든 과제에서 RGB보다 낫다는 보장으로 확대하지 않는다.
 
 ## 1. RGB 가지와 프레임 집계
 
-RGB 한 프레임은 물체·장면·자세를 제공하지만 시간 방향이 중요한 행동은 여러 프레임이 필요할 수 있다. 그렇다고 RGB 기반 단일 경로가 시간 정보를 배울 수 없는 것은 아니다. 3D CNN·LSTM·attention 등으로도 시간 결합이 가능하다. Two-Stream의 특징은 여기서 흐름을 별도 입력으로 제공한다는 데 있다.
+RGB 한 프레임은 물체·장면·자세를 제공하지만 시간 방향이 중요한 액션은 여러 프레임이 필요할 수 있다. 그렇다고 RGB 기반 단일 경로가 시간 정보를 배울 수 없는 것은 아니다. 3D CNN·LSTM·attention 등으로도 시간 결합이 가능하다. Two-Stream의 피처는 여기서 흐름을 별도 입력으로 제공한다는 데 있다.
 
 ```python
 import torch
@@ -13,7 +13,7 @@ import torchvision.models as models
 
 class SpatialStream(nn.Module):
     """
-    겉모습에 바탕한 알아보기를 위한 자리 갈래.
+    겉모습에 바탕한 알아보기를 위한 자리 클래스.
     
     옮겨 배우기에 ImageNet에서 미리 익힌 모델을 쓴다.
     핵심 눈썰미: 몸짓은 흔히 물체 및 장면과 얽혀 있다.
@@ -36,10 +36,10 @@ class SpatialStream(nn.Module):
         else:
             raise ValueError(f"Unknown backbone: {backbone}")
         
-        # 마지막 온전히 이은 층 없애기
+        # 마지막 온전히 이은 레이어 없애기
         self.features = nn.Sequential(*list(base.children())[:-1])
         
-        # 몸짓 갈래 매개
+        # 몸짓 클래스 매개
         self.classifier = nn.Sequential(
             nn.Dropout(p=dropout),
             nn.Linear(self.feature_dim, num_classes)
@@ -50,7 +50,7 @@ class SpatialStream(nn.Module):
         인수:
             x: RGB 틀 (B, 3, H, W) 또는 영상 (B, T, 3, H, W)
         반환값:
-            갈래 로짓 (B, num_classes)
+            클래스 로짓 (B, num_classes)
         """
         # 영상 들임 다루기
         if x.dim() == 5:
@@ -61,7 +61,7 @@ class SpatialStream(nn.Module):
             is_video = False
             B = x.shape[0]
         
-        # 특징을 뽑는다
+        # 피처를 뽑는다
         features = self.features(x)
         features = features.flatten(1)  # (B*T, feature_dim)
         
@@ -75,7 +75,7 @@ class SpatialStream(nn.Module):
         return logits
     
     def extract_features(self, x: torch.Tensor) -> torch.Tensor:
-        """갈래를 매기지 않고 특징만 뽑는다."""
+        """클래스를 매기지 않고 피처만 뽑는다."""
         if x.dim() == 5:
             B, T, C, H, W = x.shape
             x = x.view(B * T, C, H, W)
@@ -86,13 +86,13 @@ class SpatialStream(nn.Module):
         return features
 ```
 
-SpatialStream은 ResNet-50 또는101의 이미지 특징을 사용하고 새 행동 분류 head를 붙인다. 배치 이미지는 B×3×H×W, 비디오는 B×T×3×H×W를 받는다. 비디오의 프레임 로짓을 평균하므로 eval에서 프레임 순서에 불변이다. extract_features는 비디오일 때 B×T×2048을 반환하며 아직 시간 요약을 하지 않는다. 사전 학습된 RGB 통계·입력 범위와 새 분류 head의 학습을 구분한다.
+SpatialStream은 ResNet-50 또는101의 이미지 피처를 사용하고 새 액션 분류 head를 붙인다. 배치 이미지는 B×3×H×W, 비디오는 B×T×3×H×W를 받는다. 비디오의 프레임 로짓을 평균하므로 eval에서 프레임 순서에 불변이다. extract_features는 비디오일 때 B×T×2048을 반환하며 아직 시간 요약을 하지 않는다. 사전 학습된 RGB 통계·입력 범위와 새 분류 head의 학습을 구분한다.
 
 ```python
 def sample_frames_spatial(video: torch.Tensor, 
                           num_samples: int = 25) -> torch.Tensor:
     """
-    자리 갈래 시험을 위해 틀을 뽑는다.
+    자리 클래스 시험을 위해 틀을 뽑는다.
     
     전략: 영상 전체에서 틀 25개를 고루 뽑는다.
     어림: 틀마다의 소프트맥스 점수를 고루낸 값.
@@ -109,7 +109,7 @@ def sample_frames_spatial(video: torch.Tensor,
 ```python
 class TemporalStream(nn.Module):
     """
-    움직임에 바탕한 알아보기를 위한 때 갈래.
+    액션에 바탕한 알아보기를 위한 때 클래스.
     
     들임: 잇단 빛 흐름 마당 L개의 쌓기.
     흐름마다 채널이 2개다(가로 u, 세로 v).
@@ -131,7 +131,7 @@ class TemporalStream(nn.Module):
         # 미리 익힌 무게를 쓸 수 없다(들임 채널이 다르다)
         resnet = models.resnet50(pretrained=False)
         
-        # 첫 누비기 층 갈음
+        # 첫 컨볼루션 레이어 갈음
         self.conv1 = nn.Conv2d(
             input_channels, 64,
             kernel_size=7, stride=2, padding=3, bias=False
@@ -147,7 +147,7 @@ class TemporalStream(nn.Module):
             self.conv1.weight.data = mean_weight.repeat(1, input_channels, 1, 1)
             self.conv1.weight.data /= input_channels  # 알맞게 잣수 맞추기
         
-        # 남은 층 베끼기
+        # 남은 레이어 베끼기
         self.bn1 = resnet.bn1
         self.relu = resnet.relu
         self.maxpool = resnet.maxpool
@@ -168,7 +168,7 @@ class TemporalStream(nn.Module):
         인수:
             flow: 쌓아 올린 빛 흐름 (B, 2*L, H, W)
         반환값:
-            갈래 로짓 (B, num_classes)
+            클래스 로짓 (B, num_classes)
         """
         x = self.conv1(flow)
         x = self.bn1(x)
@@ -186,9 +186,9 @@ class TemporalStream(nn.Module):
         return self.classifier(x)
 ```
 
-TemporalStream은 L개의 프레임 쌍을 수평·수직 두 채널씩 연결한 B×2L×H×W를 받는다. 기본 L10에서20채널이다. 첫 합성곱만 RGB 사전 학습 필터를 평균·복제해 초기화하고 나머지 ResNet은 pretrained=False의 무작위 초기값이다. 전체 시간 가지가 ImageNet 사전 학습 가중치를 이어받은 것으로 설명하지 않는다.
+TemporalStream은 L개의 프레임 쌍을 수평·수직 두 채널씩 연결한 B×2L×H×W를 받는다. 기본 L10에서20채널이다. 첫 컨볼루션만 RGB 사전 학습 필터를 평균·복제해 초기화하고 나머지 ResNet은 pretrained=False의 무작위 초기값이다. 전체 시간 가지가 ImageNet 사전 학습 웨이트를 이어받은 것으로 설명하지 않는다.
 
-코드는 RGB 필터의 채널 평균을2L번 복제한 뒤2L로 나눈다. 동일한 입력을 모든 채널에 넣었을 때 총 반응은 원 RGB 필터의 **합**이 아니라 **평균**에 해당한다. 원래 RGB 응답 크기를 자동 보존하는 초기화는 아니다. flow의 단위·범위는 RGB와 다르므로 분포까지 같아지는 것도 아니다. `if True` 때문에 이 초기화와 사전 학습 가중치 로드가 항상 수행된다.
+코드는 RGB 필터의 채널 평균을2L번 복제한 뒤2L로 나눈다. 동일한 입력을 모든 채널에 넣었을 때 총 반응은 원 RGB 필터의 **합**이 아니라 **평균**에 해당한다. 원래 RGB 응답 크기를 자동 보존하는 초기화는 아니다. flow의 단위·범위는 RGB와 다르므로 분포까지 같아지는 것도 아니다. `if True` 때문에 이 초기화와 사전 학습 웨이트 로드가 항상 수행된다.
 
 ## 3. 이동량과 flow 추출
 
@@ -213,8 +213,8 @@ def compute_optical_flow(frame1: np.ndarray,
         flow: (u, v) 성분을 갖는 빛 흐름 (H, W, 2)
         
     흐름 벡터는 화소의 옮김을 가리킨다:
-        - u: 가로 움직임(양수 = 오른쪽)
-        - v: 세로 움직임(양수 = 아래쪽)
+        - u: 가로 액션(양수 = 오른쪽)
+        - v: 세로 액션(양수 = 아래쪽)
     """
     # 잿빛 uint8로 바꾸기
     gray1 = cv2.cvtColor((frame1 * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
@@ -226,7 +226,7 @@ def compute_optical_flow(frame1: np.ndarray,
         flow = cv2.calcOpticalFlowFarneback(
             gray1, gray2, None,
             pyr_scale=0.5,    # 피라미드 잣수(0.5 = 고전 피라미드)
-            levels=3,          # 피라미드 층 수
+            levels=3,          # 피라미드 레이어 수
             winsize=15,        # 고루내기 창 크기
             iterations=3,      # 피라미드 켜마다의 되풀이 횟수
             poly_n=5,          # 화소 이웃의 크기
@@ -246,7 +246,7 @@ def extract_flow_stack(video: torch.Tensor,
                        flow_length: int = 10,
                        normalize: bool = True) -> torch.Tensor:
     """
-    때 갈래를 위해 영상에서 쌓아 올린 빛 흐름을 뽑는다.
+    때 클래스를 위해 영상에서 쌓아 올린 빛 흐름을 뽑는다.
     
     인수:
         video: 값이 [0, 1]인 영상 텐서 (T, C, H, W)
@@ -324,17 +324,17 @@ def visualize_flow(flow: np.ndarray) -> np.ndarray:
 
 방향·크기의 HSV 그림은 영상별 min-max 밝기를 사용한다. 다른 그림의 밝기로 절대 속도를 비교할 수 없고 일정한 크기장도 어둡게 표시될 수 있다. flow를 resize·반사하면 벡터 크기·부호도 해당 변환에 맞춰 바꿔야 한다.
 
-## 4. 점수 결합과 특징 결합
+## 4. 점수 결합과 피처 결합
 
 ```python
 class TwoStreamNetwork(nn.Module):
     """
-    녹여 붙이기를 갖춘 온전한 두 갈래 그물.
+    녹여 붙이기를 갖춘 온전한 두 클래스 넷트웍.
     
     녹여 붙이기 고름:
     1. 고루내기: 소프트맥스 점수의 단순 평균
     2. 무게: 배울 수 있거나 붙박이인 무게
-    3. 배움: 다층 퍼셉트론이 특징 벡터를 아우른다
+    3. 러닝: 다층 퍼셉트론이 피처 벡터를 아우른다
     """
     
     def __init__(self,
@@ -352,7 +352,7 @@ class TwoStreamNetwork(nn.Module):
             # 붙박이 무게 또는 배울 수 있는 무게
             self.alpha = nn.Parameter(torch.tensor(spatial_weight))
         elif fusion == 'learned':
-            # 특징을 이어 붙이고 아우름을 배우기
+            # 피처를 이어 붙이고 아우름을 배우기
             self.fusion_net = nn.Sequential(
                 nn.Linear(num_classes * 2, num_classes * 2),
                 nn.ReLU(),
@@ -368,15 +368,15 @@ class TwoStreamNetwork(nn.Module):
             rgb: RGB 틀 (B, 3, H, W) 또는 (B, T, 3, H, W)
             flow: 빛 흐름 쌓기 (B, 2*L, H, W)
         반환값:
-            녹여 붙인 갈래 로짓 (B, num_classes)
+            녹여 붙인 클래스 로짓 (B, num_classes)
         """
-        # 갈래별 어림 얻기
+        # 클래스별 어림 얻기
         spatial_logits = self.spatial(rgb)
         temporal_logits = self.temporal(flow)
         
         # 녹여 붙이기
         if self.fusion == 'average':
-            # 단순 고루내기(실제로는 때 갈래가 조금 낫다)
+            # 단순 고루내기(실제로는 때 클래스가 조금 낫다)
             fused = (spatial_logits + temporal_logits) / 2
             
         elif self.fusion == 'weighted':
@@ -392,15 +392,15 @@ class TwoStreamNetwork(nn.Module):
         return fused
 ```
 
-위 모델은 확률이 아닌 **로짓**을 결합한다. average는 로짓 평균이고 weighted는 sigmoid(alpha)로 제한한 가중 평균이다. 기본 spatial_weight0.4는 실제 가중치0.4가 아니라 sigmoid0.4≈0.599로 시작한다. learned는 연결한 로짓을 MLP로 변환한다. 클래스 순서가 같아야 하고 로짓 평균 뒤 softmax와 확률 평균은 일반적으로 다르다. 잘못된 fusion 문자열에는 반환 fused가 정의되지 않는 점도 현재 코드의 한계다.
+위 모델은 확률이 아닌 **로짓**을 결합한다. average는 로짓 평균이고 weighted는 sigmoid(alpha)로 제한한 가중 평균이다. 기본 spatial_weight0.4는 실제 웨이트0.4가 아니라 sigmoid0.4≈0.599로 시작한다. learned는 연결한 로짓을 MLP로 변환한다. 클래스 순서가 같아야 하고 로짓 평균 뒤 softmax와 확률 평균은 일반적으로 다르다. 잘못된 fusion 문자열에는 반환 fused가 정의되지 않는 점도 현재 코드의 한계다.
 
 ```python
 class FeatureFusionTwoStream(nn.Module):
     """
-    이른 녹여 붙이기: 두 갈래의 특징을 아우른다.
+    이른 녹여 붙이기: 두 클래스의 피처를 아우른다.
     
     점수 녹여 붙이기보다 잘 나타내지만
-    특징 차원을 맞춰야 한다.
+    피처 차원을 맞춰야 한다.
     """
     
     def __init__(self, num_classes: int = 101, flow_length: int = 10):
@@ -409,7 +409,7 @@ class FeatureFusionTwoStream(nn.Module):
         self.spatial = SpatialStream(num_classes)
         self.temporal = TemporalStream(num_classes, flow_length)
         
-        # 특징 차원: ResNet-50에서 2048
+        # 피처 차원: ResNet-50에서 2048
         self.fusion_layer = nn.Sequential(
             nn.Linear(2048 * 2, 2048),
             nn.ReLU(),
@@ -418,7 +418,7 @@ class FeatureFusionTwoStream(nn.Module):
         )
     
     def forward(self, rgb, flow):
-        # 특징 뽑아내기(로짓 아님)
+        # 피처 뽑아내기(로짓 아님)
         spatial_feat = self.spatial.extract_features(rgb)  # (B, 2048)
         temporal_feat = self.temporal.features(flow).flatten(1)  # (B, 2048)
         
@@ -427,21 +427,21 @@ class FeatureFusionTwoStream(nn.Module):
         return self.fusion_layer(combined)
 ```
 
-FeatureFusionTwoStream은 선언된 TemporalStream에 없는 `.features`를 호출하므로 그대로 실행할 수 없다. 또 RGB 비디오의 extract_features는 B×T×2048인데 예상 시간 특징은 B×2048이므로 시간 요약 규칙 없이 바로 연결할 수 없다. 각 가지에서 같은 시간 범위의 B×2048 특징을 얻는 명시적 경로와 집계가 필요하다. 특징 연결을 선언한 것만으로 학습·정렬이 완성되는 것은 아니다.
+FeatureFusionTwoStream은 선언된 TemporalStream에 없는 `.features`를 호출하므로 그대로 실행할 수 없다. 또 RGB 비디오의 extract_features는 B×T×2048인데 예상 시간 피처는 B×2048이므로 시간 요약 규칙 없이 바로 연결할 수 없다. 각 가지에서 같은 시간 범위의 B×2048 피처를 얻는 명시적 경로와 집계가 필요하다. 피처 연결을 선언한 것만으로 학습·정렬이 완성되는 것은 아니다.
 
 ## 5. 분리 학습과 공동 학습의 범위
 
 ```python
 def train_two_stream_separate():
     """
-    두 갈래 그물의 익히기 절차.
+    두 클래스 넷트웍의 익히기 절차.
     
-    1. RGB 틀로 자리 갈래 익히기(ImageNet에서 미리 익힌 것을 쓸 수 있다)
-    2. 빛 흐름 쌓기로 때 갈래 익히기
+    1. RGB 틀로 자리 클래스 익히기(ImageNet에서 미리 익힌 것을 쓸 수 있다)
+    2. 빛 흐름 쌓기로 때 클래스 익히기
     3. 시험 때 어림 녹여 붙이기
     """
     
-    # 자리 갈래 익히기
+    # 자리 클래스 익히기
     spatial_stream = SpatialStream(num_classes=101)
     spatial_optimizer = torch.optim.SGD(
         spatial_stream.parameters(),
@@ -461,7 +461,7 @@ def train_two_stream_separate():
             loss.backward()
             spatial_optimizer.step()
     
-    # 때 갈래 익히기(마찬가지로)
+    # 때 클래스 익히기(마찬가지로)
     temporal_stream = TemporalStream(num_classes=101)
     temporal_optimizer = torch.optim.SGD(
         temporal_stream.parameters(),
@@ -482,7 +482,7 @@ def train_two_stream_separate():
 
 ```python
 def train_two_stream_e2e(model, train_loader, optimizer, epochs):
-    """녹여 붙인 두 갈래 그물을 끝에서 끝까지 익히기."""
+    """녹여 붙인 두 클래스 넷트웍을 끝에서 끝까지 익히기."""
     
     for epoch in range(epochs):
         for rgb, flow, labels in train_loader:
@@ -524,7 +524,7 @@ RGB와 flow를 결합하는 이유와 RGB 시간 모델이 불가능하다는 �
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-TemporalStream이 전체 사전 학습 가중치를 쓰는가? 첫 필터의 복제·나눗셈은 어떤 응답을 만드는가?
+TemporalStream이 전체 사전 학습 웨이트를 쓰는가? 첫 필터의 복제·나눗셈은 어떤 응답을 만드는가?
 
 </div>
 
@@ -545,7 +545,7 @@ FeatureFusionTwoStream의 두 연결 문제를 설명하라.
 
 ??? success "연습문제 3 풀이"
 
-    TemporalStream에 features속성이 없어 호출이 실패한다. RGB 비디오 특징도B×T×2048이므로B×2048흐름 특징과 곧바로 연결할 수 없다. 명시적인 시간 특징 추출과 RGB 시간 요약·정렬이 필요하다.
+    TemporalStream에 features속성이 없어 호출이 실패한다. RGB 비디오 피처도B×T×2048이므로B×2048흐름 피처와 곧바로 연결할 수 없다. 명시적인 시간 피처 추출과 RGB 시간 요약·정렬이 필요하다.
 
 
 
@@ -554,16 +554,16 @@ FeatureFusionTwoStream의 두 연결 문제를 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-공동 학습 코드가 OpenCV 흐름 추정까지 학습하는가? weighted 초기값0.4의 실제 RGB 가중치는 얼마인가?
+공동 학습 코드가 OpenCV 흐름 추정까지 학습하는가? weighted 초기값0.4의 실제 RGB 웨이트는 얼마인가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
 
-    flow를 이미 계산한 입력으로 받으므로 OpenCV 과정에는 역전파하지 않는다. 실제 RGB 로짓 가중치는sigmoid0.4≈0.599다. 모델의train모드·장치·Fimport와 목표 텐서의 정의도 별도로 맞춰야 한다.
+    flow를 이미 계산한 입력으로 받으므로 OpenCV 과정에는 역전파하지 않는다. 실제 RGB 로짓 웨이트는sigmoid0.4≈0.599다. 모델의train모드·장치·Fimport와 목표 텐서의 정의도 별도로 맞춰야 한다.
 
 
 
 ## 정리하며
 
-Two-Stream을 구현하려면 RGB·flow의 시간 범위·단위·초기화·클래스 순서를 맞추고 로짓·확률·특징 결합을 구분해야 한다. 현재 특징 결합·학습 조각에는 빠진 연결이 있어 완성된 실험으로 볼 수 없다. 원 논문의 아이디어와 실제 제공 코드의 범위를 분리해 읽는다.
+Two-Stream을 구현하려면 RGB·flow의 시간 범위·단위·초기화·클래스 순서를 맞추고 로짓·확률·피처 결합을 구분해야 한다. 현재 피처 결합·학습 조각에는 빠진 연결이 있어 완성된 실험으로 볼 수 없다. 원 논문의 아이디어와 실제 제공 코드의 범위를 분리해 읽는다.

@@ -114,7 +114,7 @@ top-p 마스크를 오른쪽으로 한 칸 미는 이유와 이 구현의 경계
         filtered = torch.full_like(scaled, float('-inf'))
         filtered.scatter_(1, top_k_indices, top_k_values)
 
-        # 2단계: 상위 k 집합에 핵 거르기
+        # 2단계: 상위 k 집합에 커널 거르기
         sorted_logits, sorted_indices = torch.sort(filtered, descending=True)
         cumulative = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
         remove = cumulative > p

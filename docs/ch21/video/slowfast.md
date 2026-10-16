@@ -1,6 +1,6 @@
-# SlowFast 네트워크의 시간 정렬과 특징 결합
+# SlowFast 네트워크의 시간 정렬과 피처 결합
 
-[SlowFast](https://arxiv.org/abs/1812.03982)는 같은 RGB 비디오 구간을 시간 해상도가 다른 두 경로로 처리한다. Slow는 프레임 수를 적게, Fast는 채널을 적게 사용해 외형과 시간 변화를 상호 보완적으로 표현하도록 설계한다. 이는 시각 처리에서 영감을 얻은 계산 구조이지 사람의 신경 회로를 정확히 재현하거나 두 기능이 완전히 분리됨을 입증하는 모델은 아니다.
+[SlowFast](https://arxiv.org/abs/1812.03982)는 같은 RGB 비디오 구간을 시간 해상도가 다른 두 경로로 처리한다. Slow는 프레임 수를 적게, Fast는 채널을 적게 사용해 외형과 시간 변화를 상호 보완적으로 표현하도록 설계한다. 이는 시각 처리에서 영감을 얻은 계산 구조이지 사람의 뉴럴 회로를 정확히 재현하거나 두 기능이 완전히 분리됨을 입증하는 모델은 아니다.
 
 ## 1. 시간 비율과 채널 비율
 
@@ -16,10 +16,10 @@ import torch.nn as nn
 
 class SlowFast(nn.Module):
     """
-    영상 알아보기를 위한 느림빠름 그물
+    영상 알아보기를 위한 느림빠름 넷트웍
     (Feichtenhofer et al., 2019)
     
-    두 갈래 길 구조:
+    두 클래스 길 구조:
     - 느림 길: 낮은 틀 비율, 많은 채널
     - 빠름 길: 높은 틀 비율, 적은 채널
     - 옆 이음이 길 사이의 앎을 녹여 붙인다
@@ -70,7 +70,7 @@ class SlowFast(nn.Module):
                T는 alpha로 나누어떨어져야 한다
         
         반환값:
-            갈래 로짓 (B, num_classes)
+            클래스 로짓 (B, num_classes)
         """
         B, C, T, H, W = x.shape
         
@@ -103,7 +103,7 @@ class SlowFast(nn.Module):
         x_slow = x_slow.mean(dim=[2, 3, 4])  # (B, C_slow)
         x_fast = x_fast.mean(dim=[2, 3, 4])  # (B, C_fast)
         
-        # 이어 붙이고 갈래 매기기
+        # 이어 붙이고 클래스 매기기
         x = torch.cat([x_slow, x_fast], dim=1)
         
         return self.head(x)
@@ -145,7 +145,7 @@ class FastPathway(nn.Module):
     """
     빠름 길: 채널을 적게 쓰고 틀을 더 많이 다룬다.
     
-    움직임과 때에 걸친 흐름에 초점을 둔다.
+    액션과 때에 걸친 흐름에 초점을 둔다.
     """
     
     def __init__(self, in_channels: int, base_channels: int, alpha: int):
@@ -153,7 +153,7 @@ class FastPathway(nn.Module):
         
         self.alpha = alpha
         
-        # 움직임을 담아내려 때 알맹이를 키운 줄기
+        # 액션을 담아내려 때 커널을 키운 줄기
         self.stem = nn.Sequential(
             nn.Conv3d(in_channels, base_channels,
                      kernel_size=(5, 7, 7), stride=(1, 2, 2), padding=(2, 3, 3)),
@@ -190,7 +190,7 @@ class LateralConnection(nn.Module):
         self.alpha = alpha
         
         # 때 줄여 뽑기: 빠름 틀 → 느림 틀
-        # 성큼을 준 3차원 누비기 쓰기
+        # 성큼을 준 3차원 컨볼루션 쓰기
         self.transform = nn.Sequential(
             nn.Conv3d(fast_channels, fast_channels * 2,
                      kernel_size=(5, 1, 1), 
@@ -203,10 +203,10 @@ class LateralConnection(nn.Module):
     def forward(self, x_fast: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x_fast: 빠름 길의 특징 (B, C_fast, T_fast, H, W)
+            x_fast: 빠름 길의 피처 (B, C_fast, T_fast, H, W)
         
         반환값:
-            느림 길에 맞춘 옆 특징 (B, C_out, T_slow, H, W)
+            느림 길에 맞춘 옆 피처 (B, C_out, T_slow, H, W)
         """
         return self.transform(x_fast)
 
@@ -241,13 +241,13 @@ class ResBlock3D(nn.Module):
 
 코드는 stem·stage·lateral과 분류 head의 골격을 보여 주지만 현재 상태로 완성된 SlowFast가 아니다. `forward`가 호출하는 `_forward_stem` 메서드가 정의되어 있지 않아 그대로는 실행할 수 없다. 두 stem의 호출 경로를 추가해도 아래의 채널·시간 연결 문제를 별도로 해결해야 한다.
 
-Fast 특징을 lateral로 바꾸어 Slow와 채널 연결하면 입력 채널이 증가한다. 기본 첫 단계에서 Slow64채널과 lateral16채널을 연결하면80채널인데 첫 slow_block은64채널만 기대한다. 다음 단계도 lateral을 포함한 입력 채널을 stage 정의에 반영하지 않는다. 연결 연산을 썼다는 사실만으로 모델의 차원이 맞는 것은 아니다.
+Fast 피처를 lateral로 바꾸어 Slow와 채널 연결하면 입력 채널이 증가한다. 기본 첫 단계에서 Slow64채널과 lateral16채널을 연결하면80채널인데 첫 slow_block은64채널만 기대한다. 다음 단계도 lateral을 포함한 입력 채널을 stage 정의에 반영하지 않는다. 연결 연산을 썼다는 사실만으로 모델의 차원이 맞는 것은 아니다.
 
 시간 정렬도 다르다. 두 번째 Fast stage는 temporal_stride=2인데 대응 Slow stage는1이다. 각 lateral이 계속 고정 α로 다운샘플링하므로 같은 단계의 시간 길이가 더 이상 맞지 않을 수 있다. stage마다 두 경로가 이미 사용한 시간 stride와 lateral의 stride·padding을 함께 추적해야 한다. LateralConnection의 slow_channels 인수는 저장·변환에 사용하지 않으며 출력 채널은 fast_channels×2로 정해진다.
 
 ## 3. 잔차 블록과 모델 이름
 
-여기 ResBlock3D는 두3×3×3 합성곱과 필요시 projection shortcut을 사용하는 기본 블록이다. 공간 stride는1이고 시간 stride만 선택적으로 바뀐다. 표준 ResNet-50·101의 bottleneck 구조와 같은 블록이 아니며 단계 숫자만으로 원 SlowFast 모델의 재현이라고 할 수 없다.
+여기 ResBlock3D는 두3×3×3 컨볼루션과 필요시 projection shortcut을 사용하는 기본 블록이다. 공간 stride는1이고 시간 stride만 선택적으로 바뀐다. 표준 ResNet-50·101의 bottleneck 구조와 같은 블록이 아니며 단계 숫자만으로 원 SlowFast 모델의 재현이라고 할 수 없다.
 
 ```python
 def slowfast_4x16_r50():
@@ -282,7 +282,7 @@ def slowfast_8x8_r101():
 
 두 factory는 같은 클래스·같은 stage 반복 수3·4·6·3을 사용하고 α만8과4로 바꾼다. `slowfast_8x8_r101`이라는 이름이 실제 R101 backbone을 구성하지 않는다. 또한 원 논문의 T×τ 표기에서 T는 Slow 프레임 수, τ는 원본의 샘플링 간격이다. 현재 코드에는 그 τ를 입력 비디오에서 선택하는 과정이 없어 factory 이름만으로 관찰 구간을 확정할 수 없다.
 
-최종 head는 두 경로가 각각 slow_channels×8과 fast_channels×8의 특징을 반환한다고 가정해 평균 후 연결한다. 현재의 중간 연결 문제 때문에 이 출력까지 정상적으로 이어지는 구현으로 설명하면 안 된다.
+최종 head는 두 경로가 각각 slow_channels×8과 fast_channels×8의 피처를 반환한다고 가정해 평균 후 연결한다. 현재의 중간 연결 문제 때문에 이 출력까지 정상적으로 이어지는 구현으로 설명하면 안 된다.
 
 ## 4. 학습 루프의 전제
 
@@ -338,7 +338,7 @@ warm-up34epoch 이후 cosine scheduler를 호출하지만 T_max는 전체196epoc
 
 논문의 Kinetics 결과는 backbone·관찰 구간·사전 학습·평가 clip/crop·non-local 여부 등 특정 조건의 실험이다. 이 미완성 코드의 실행 결과나 일반적인 정확도·FLOPs 순위로 제시하지 않는다. 특히 R50·R101 이름과 모델 구조가 맞지 않는 상태에서 논문 수치를 연결하면 안 된다.
 
-Fast 비용은 일부 채널-채널 합성곱에서 대략 αβ²에 비례할 수 있지만 첫 RGB층·서로 다른 시간 커널·lateral·활성 메모리를 모두 설명하는 식은 아니다. 두 경로가 항상 더 정확하거나 Fast가 전체 비용의 고정20%라는 보장도 없다. 올바르게 연결한 모델에서 같은 평가 조건으로 비교해야 한다.
+Fast 비용은 일부 채널-채널 컨볼루션에서 대략 αβ²에 비례할 수 있지만 첫 RGB레이어·서로 다른 시간 커널·lateral·활성 메모리를 모두 설명하는 식은 아니다. 두 경로가 항상 더 정확하거나 Fast가 전체 비용의 고정20%라는 보장도 없다. 올바르게 연결한 모델에서 같은 평가 조건으로 비교해야 한다.
 
 ## 연습문제
 

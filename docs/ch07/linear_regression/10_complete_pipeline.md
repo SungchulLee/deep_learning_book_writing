@@ -1,6 +1,6 @@
 # 완전한 파이프라인
 
-실전에 쓸 수 있는 학습 파이프라인은 단순한 학습 루프를 넘어 설정 관리, 난수 시드를 통한 재현성, 적절한 학습/검증/시험 분할, 조기 종료, 모델 체크포인트, 학습률 일정, 종합적인 평가 지표를 포함한다. 이 튜토리얼은 이 모든 구성 요소를 하나의 일관된 파이프라인으로 엮어 실제 프로젝트의 본보기로 삼는다.
+실전에 쓸 수 있는 학습 파이프라인은 단순한 학습 루프를 넘어 설정 관리, 난수 시드를 통한 재현성, 적절한 학습/검증/시험 분할, 조기 종료, 모델 체크포인트, 러닝레이트 일정, 종합적인 평가 지표를 포함한다. 이 튜토리얼은 이 모든 구성 요소를 하나의 일관된 파이프라인으로 엮어 실제 프로젝트의 본보기로 삼는다.
 
 ## 1. 코드
 
@@ -23,7 +23,7 @@
         - 학습/검증/시험 나누기
         - 조기 종료
         - 모델 되짚음 저장
-        - 학습률 짜기
+        - 러닝레이트 짜기
         - 두루 갖춘 따짐
         - Reproducibility
 
@@ -59,7 +59,7 @@
     print("=" * 70)
 
     class Config:
-        """초매개변수를 담는 설정 클래스"""
+        """초파라메터를 담는 설정 클래스"""
         # 데이터
         test_size = 0.2
         val_size = 0.2  # From training set
@@ -77,7 +77,7 @@
         patience = 15
         min_delta = 1e-4
 
-        # 학습률 스케줄러
+        # 러닝레이트 스케줄러
         use_scheduler = True
         scheduler_patience = 5
         scheduler_factor = 0.5
@@ -137,7 +137,7 @@
     print(f"  Val:   {len(X_val)} samples ({len(X_val)/len(X)*100:.1f}%)")
     print(f"  Test:  {len(X_test)} samples ({len(X_test)/len(X)*100:.1f}%)")
 
-    # 특징 스케일링
+    # 피처 스케일링
     scaler_X = StandardScaler()
     scaler_y = StandardScaler()
 
@@ -185,13 +185,13 @@
             layers = []
             in_features = n_features
 
-            # 은닉층
+            # 은닉 레이어
             for hidden_size in hidden_sizes:
                 layers.append(nn.Linear(in_features, hidden_size))
                 layers.append(nn.ReLU())
                 in_features = hidden_size
 
-            # 출력층
+            # 출력 레이어
             layers.append(nn.Linear(in_features, 1))
 
             self.model = nn.Sequential(*layers)
@@ -304,7 +304,7 @@
         weight_decay=config.weight_decay
     )
 
-    # 학습률 스케줄러
+    # 러닝레이트 스케줄러
     scheduler = None
     if config.use_scheduler:
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -360,7 +360,7 @@
         history['train_loss'].append(train_loss)
         history['val_loss'].append(val_loss)
 
-        # 학습률 스케줄링
+        # 러닝레이트 스케줄링
         if scheduler:
             scheduler.step(val_loss)
 
@@ -528,7 +528,7 @@
 
     Observations:
       - {"이렇다 할 지나친 맞춰짐 없음" if abs(train_metrics['r2'] - test_metrics['r2']) < 0.05 else "지나친 맞춰짐이 얼마간 보임"}
-      - 가장 좋은 검증 손실: {best_checkpoint['val_loss']:.6f}
+      - 가장 좋은 검증 로스: {best_checkpoint['val_loss']:.6f}
       - 모델을 저장한 곳: {config.checkpoint_dir}/best_model.pth
     """
     ax7.text(0.1, 0.9, summary, transform=ax7.transAxes,
@@ -550,18 +550,18 @@
     ✓ 설정 다루기
     ✓ 반복할 수 있음(마구잡이 씨앗)
     ✓ 제대로 된 학습/검증/시험 나누기
-    ✓ 특징 척도 잡기
+    ✓ 피처 척도 잡기
     ✓ 효율적인 배치 만들기를 위한 DataLoader
     ✓ 조기 종료
     ✓ 모델 되짚음 저장
-    ✓ 학습률 짜기
+    ✓ 러닝레이트 짜기
     ✓ 두루 갖춘 적바림
     ✓ 여러 따짐 자
     ✓ 다듬어진 그림
 
     다음 걸음:
-    1. 다른 모델으로 해 보아라(은닉층을 더한다)
-    2. 초매개변수를 이리저리 바꾸어 보아라
+    1. 다른 모델으로 해 보아라(은닉 레이어를 더한다)
+    2. 초파라메터를 이리저리 바꾸어 보아라
     3. 제 데이터셋에 써 보아라
     4. GPU 받침을 더하여라(.to('cuda'))
     5. 엇갈아 검증하기를 짜라
@@ -682,18 +682,18 @@
     ✓ 설정 다루기
     ✓ 반복할 수 있음(마구잡이 씨앗)
     ✓ 제대로 된 학습/검증/시험 나누기
-    ✓ 특징 척도 잡기
+    ✓ 피처 척도 잡기
     ✓ 효율적인 배치 만들기를 위한 DataLoader
     ✓ 조기 종료
     ✓ 모델 되짚음 저장
-    ✓ 학습률 짜기
+    ✓ 러닝레이트 짜기
     ✓ 두루 갖춘 적바림
     ✓ 여러 따짐 자
     ✓ 다듬어진 그림
 
     다음 걸음:
-    1. 다른 모델으로 해 보아라(은닉층을 더한다)
-    2. 초매개변수를 이리저리 바꾸어 보아라
+    1. 다른 모델으로 해 보아라(은닉 레이어를 더한다)
+    2. 초파라메터를 이리저리 바꾸어 보아라
     3. 제 데이터셋에 써 보아라
     4. GPU 받침을 더하여라(.to('cuda'))
     5. 엇갈아 검증하기를 짜라
@@ -709,7 +709,7 @@
 
 재현성을 높이려면 Python·NumPy·PyTorch 등 사용한 난수원의 시드와 데이터 분할을 기록한다. GPU의 결정론 설정은 관련 연산에 적용되며, 시드를 맞춰도 하드웨어나 라이브러리 버전이 다른 실행의 완전한 일치가 보장되지는 않는다. 설정 객체에는 하이퍼파라미터와 전처리 방식, 체크포인트 경로를 함께 기록한다.
 
-조기 종료는 검증 지표의 개선이 멈춘 뒤 `patience`만큼 기다려 학습을 중단한다. 가장 좋은 검증 시점의 체크포인트를 복원하면 마지막 시점보다 유리할 수 있지만, 모집단에서 가장 잘 일반화된 모델이라는 보장은 아니다. 스케줄러는 학습률을 조정하는 별도 기능이며 학습을 이어가려면 옵티마이저·스케줄러 상태도 함께 저장한다.
+조기 종료는 검증 지표의 개선이 멈춘 뒤 `patience`만큼 기다려 학습을 중단한다. 가장 좋은 검증 시점의 체크포인트를 복원하면 마지막 시점보다 유리할 수 있지만, 모집단에서 가장 잘 일반화된 모델이라는 보장은 아니다. 스케줄러는 러닝레이트를 조정하는 별도 기능이며 학습을 이어가려면 옵티마이저·스케줄러 상태도 함께 저장한다.
 
 테스트셋에서는 RMSE, MAE, $R^2$와 잔차를 함께 살펴본다. $R^2$는 음수일 수 있으며 정답이 상수인 경우 처리 규칙도 확인해야 한다. 학습·테스트 성능의 차이가 작아도 둘 다 나쁘면 좋은 모델이 아니다. 검증셋은 선택에 사용하고 테스트셋은 최종 평가에 남겨 둔다.
 
@@ -718,7 +718,7 @@
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-선형 모델을 2층 MLP로 바꾸도록 `Config` 클래스에 `hidden_sizes=[64, 32]` 설정을 추가하라. California Housing 데이터셋에서 선형 모델과 MLP의 시험 $R^2$을 비교하라.
+선형 모델을 2레이어 MLP로 바꾸도록 `Config` 클래스에 `hidden_sizes=[64, 32]` 설정을 추가하라. California Housing 데이터셋에서 선형 모델과 MLP의 시험 $R^2$을 비교하라.
 
 </div>
 
@@ -726,7 +726,7 @@
     ```python
     # Config 클래스에서 다음과 같이 설정한다:
     # hidden_sizes = [64, 32]
-    # RegressionModel 클래스는 hidden_sizes 매개변수로 이미 이를 지원한다.
+    # RegressionModel 클래스는 hidden_sizes 파라메터로 이미 이를 지원한다.
     # MLP로 학습하면 대체로 선형 모델(예: 0.60-0.65)보다 높은
     # R^2(예: 0.75-0.82)이 나온다. 집값 관계가
     # 비선형이기 때문이다.
@@ -737,12 +737,12 @@
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-`ReduceLROnPlateau`는 무엇을 보고 학습률을 조정하며, 어떤 결과를 보장하지는 않는가?
+`ReduceLROnPlateau`는 무엇을 보고 러닝레이트를 조정하며, 어떤 결과를 보장하지는 않는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    지정한 지표의 개선 여부와 `patience`, `threshold` 등 설정을 기준으로 학습률을 줄인다. 정체가 큰 이동 폭에서 비롯된 경우 도움이 될 수 있지만 모델 부족이나 데이터 문제까지 해결하지는 않는다. 손실 감소나 더 좋은 최적해를 항상 보장하지 않는다.
+    지정한 지표의 개선 여부와 `patience`, `threshold` 등 설정을 기준으로 러닝레이트를 줄인다. 정체가 큰 이동 폭에서 비롯된 경우 도움이 될 수 있지만 모델 부족이나 데이터 문제까지 해결하지는 않는다. 로스 감소나 더 좋은 최적해를 항상 보장하지 않는다.
 
 ---
 

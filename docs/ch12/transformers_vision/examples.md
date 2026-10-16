@@ -55,7 +55,7 @@ def example_1_basic_inference():
 
 def example_2_compare_models():
     """
-    보기 2: 합성곱 신경망과 비전 트랜스포머와 섞은 모형 견주기
+    보기 2: 컨볼루션 뉴럴 넷트웍과 비전 트랜스포머와 섞은 모형 견주기
     """
     print("\n" + "="*60)
     print("Example 2: Comparing Different Architectures")
@@ -91,7 +91,7 @@ def example_3_patch_visualization():
     
     from vit_model import PatchEmbedding
     
-    # 조각 임베딩 층을 만든다
+    # 조각 임베딩 레이어를 만든다
     patch_embed = PatchEmbedding(
         img_size=224,
         patch_size=16,
@@ -180,7 +180,7 @@ def example_5_transfer_learning():
     print(f"\nStep 3: Freeze backbone layers")
     print(f"  - Only train classification head")
     
-    # 학습 가능한 매개변수 세기
+    # 학습 가능한 파라메터 세기
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
     
@@ -223,7 +223,7 @@ def example_6_model_variants():
 
 def example_7_hybrid_architecture():
     """
-    보기 7: 합성곱 신경망과 트랜스포머를 섞은 모형
+    보기 7: 컨볼루션 뉴럴 넷트웍과 트랜스포머를 섞은 모형
     """
     print("\n" + "="*60)
     print("Example 7: Hybrid CNN-Transformer Architecture")
@@ -258,7 +258,7 @@ def example_7_hybrid_architecture():
 
 def example_8_key_differences():
     """
-    보기 8: 합성곱 신경망과 비전 트랜스포머의 핵심 차이
+    보기 8: 컨볼루션 뉴럴 넷트웍과 비전 트랜스포머의 핵심 차이
     """
     print("\n" + "="*60)
     print("Example 8: CNN vs ViT - Key Differences")
@@ -313,9 +313,9 @@ if __name__ == "__main__":
 
 예제 1은 무작위 Tiny 모델과 이미지에서 (1,10) 로짓을 계산한다. 소프트맥스 최댓값은 실제 클래스 정확도나 보정된 신뢰도를 뜻하지 않는다. 예제 2·6의 계수·출력 모양 비교에도 학습·정확도·속도 측정은 없다.
 
-예제 3의 패치 토큰은 정수의 이산 토큰 ID가 아니라 실수 특징 벡터다. 16×16 RGB 패치는 256개의 픽셀 위치, 768개의 채널 값을 갖는다. 패치 투영은 이를 특징 공간에 매핑한다. 예제 4는 어텐션 모듈이 학습 모드라 드롭아웃도 켜져 있고 의미 관계를 학습한 결과가 아니다.
+예제 3의 패치 토큰은 정수의 이산 토큰 ID가 아니라 실수 피처 벡터다. 16×16 RGB 패치는 256개의 픽셀 위치, 768개의 채널 값을 갖는다. 패치 투영은 이를 피처 공간에 매핑한다. 예제 4는 어텐션 모듈이 학습 모드라 드롭아웃도 켜져 있고 의미 관계를 학습한 결과가 아니다.
 
-**전이 설정의 한계:** 예제 5는 create_vit_base로 새 모델을 생성하며 사전 학습 가중치를 불러오지 않는다. patch_embed와 blocks만 동결해 cls_token·pos_embed·최종 norm은 계속 학습 가능하다. 따라서 “분류기만 학습”도 실제 동작과 다르다. 동결과 eval 전환은 별개의 설정이다.
+**전이 설정의 한계:** 예제 5는 create_vit_base로 새 모델을 생성하며 사전 학습 웨이트를 불러오지 않는다. patch_embed와 blocks만 동결해 cls_token·pos_embed·최종 norm은 계속 학습 가능하다. 따라서 “분류기만 학습”도 실제 동작과 다르다. 동결과 eval 전환은 별개의 설정이다.
 
 예제 7의 메시지는 HybridCNNViT의 실제 구조와 다르다. 현재 외부 클래스는 224→14 해상도, 기본 192채널, 패치 196개에 CLS 하나를 붙이며 CLS 출력으로 분류한다. 메시지의 28×28×384·784토큰·전역 평균은 이 구현에 해당하지 않는다. CNN 특성이면 데이터 효율이 더 좋다는 주장도 이 예제에서 평가하지 않는다.
 
@@ -331,7 +331,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
 </div>
 
 ??? success "연습문제 1 풀이"
-    팩터리는 무작위 모델을 만들고 head를 교체할 뿐 가중치를 로드하지 않는다. 동결한 patch_embed·blocks 외에 CLS·위치 표·최종 norm도 requires_grad=True다. 실제 전이 학습에는 호환 체크포인트·전처리를 불러오고 갱신할 계수 목록을 확인해야 한다.
+    팩터리는 무작위 모델을 만들고 head를 교체할 뿐 웨이트를 로드하지 않는다. 동결한 patch_embed·blocks 외에 CLS·위치 표·최종 norm도 requires_grad=True다. 실제 전이 학습에는 호환 체크포인트·전처리를 불러오고 갱신할 계수 목록을 확인해야 한다.
 
 ---
 
@@ -343,7 +343,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
 </div>
 
 ??? success "연습문제 2 풀이"
-    패치 벡터는 실수 특징이며 어휘의 정수 ID가 아니다. 무작위 모델·입력은 모양과 계산 규약을 보여 줄 뿐 의미를 학습한 결과가 아니다. 전역 연결 가능성과 실제로 유용한 전역 관계를 학습하는 것도 구분한다.
+    패치 벡터는 실수 피처가며 어휘의 정수 ID가 아니다. 무작위 모델·입력은 모양과 계산 규약을 보여 줄 뿐 의미를 학습한 결과가 아니다. 전역 연결 가능성과 실제로 유용한 전역 관계를 학습하는 것도 구분한다.
 
 ---
 
@@ -384,7 +384,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 손실이나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

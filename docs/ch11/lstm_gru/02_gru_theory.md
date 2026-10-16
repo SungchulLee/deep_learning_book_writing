@@ -1,6 +1,6 @@
 # GRU 이론
 
-NumPy로 GRU의 순전파를 구현하고 리셋·업데이트 게이트의 역할을 살펴본다. 별도의 셀 상태 없이 이전 은닉 상태와 후보를 결합한다. 코드는 게이트 동작과 매개변수 수를 시연하며 학습이나 정확도 비교를 수행하지 않는다.
+NumPy로 GRU의 순전파를 구현하고 리셋·업데이트 게이트의 역할을 살펴본다. 별도의 셀 상태 없이 이전 은닉 상태와 후보를 결합한다. 코드는 게이트 동작과 파라메터 수를 시연하며 학습이나 정확도 비교를 수행하지 않는다.
 
 ## 1. 코드
 
@@ -25,13 +25,13 @@ Hidden State:  h_t = (1 - z_t) ⊙ h_{t-1} + z_t ⊙ h̃_t
 여기서 각 기호는 다음과 같다.
 - σ는 시그모이드 함수이다
 - ⊙는 성분별 곱이다
-- W는 가중치 행렬이다
-- b는 편향 벡터이다
+- W는 웨이트 행렬이다
+- b는 바이어스 벡터이다
 
 LSTM과의 핵심 차이:
 - 문이 3개가 아니라 2개이다 (출력 문이 없다)
 - 세포 상태를 따로 두지 않는다
-- 매개변수가 적다 (학습이 빠르다)
+- 파라메터가 적다 (학습이 빠르다)
 - 많은 과제에서 성능이 비슷하다
 """
 
@@ -48,36 +48,36 @@ class GRUCell:
     
     def __init__(self, input_size, hidden_size):
         """
-        GRU 세포의 매개변수를 초기화한다.
+        GRU 세포의 파라메터를 초기화한다.
         
         인수:
-            input_size: 입력 특징의 차원
+            input_size: 입력 피처의 차원
             hidden_size: 숨은 상태의 차원
         """
         self.input_size = input_size
         self.hidden_size = hidden_size
         
-        # 자비에르 초기화로 가중치 초기화
+        # 자비에르 초기화로 웨이트 초기화
         scale = 1.0 / np.sqrt(input_size + hidden_size)
         
-        # 재설정 문의 가중치
+        # 재설정 문의 웨이트
         self.W_r = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_r = np.zeros((hidden_size, 1))
         
-        # 갱신 문의 가중치
+        # 갱신 문의 웨이트
         self.W_z = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_z = np.zeros((hidden_size, 1))
         
-        # 후보 숨은 상태의 가중치
+        # 후보 숨은 상태의 웨이트
         self.W_h = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_h = np.zeros((hidden_size, 1))
         
     def sigmoid(self, x):
-        """시그모이드 활성화 함수."""
+        """시그모이드 엑티베이션 함수."""
         return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
     
     def tanh(self, x):
-        """쌍곡탄젠트 활성화 함수."""
+        """쌍곡탄젠트 엑티베이션 함수."""
         return np.tanh(x)
     
     def forward(self, x, h_prev):
@@ -121,16 +121,16 @@ class GRU:
     
     def __init__(self, input_size, hidden_size, output_size):
         """
-        GRU 신경망을 초기화한다.
+        GRU 뉴럴 넷트웍을 초기화한다.
         
         인수:
-            input_size: 입력 특징의 차원
+            input_size: 입력 피처의 차원
             hidden_size: 숨은 상태의 차원
             output_size: 출력의 차원
         """
         self.cell = GRUCell(input_size, hidden_size)
         
-        # 출력층의 가중치
+        # 출력 레이어의 웨이트
         self.W_y = np.random.randn(output_size, hidden_size) * 0.01
         self.b_y = np.zeros((output_size, 1))
         
@@ -177,7 +177,7 @@ def demonstrate_gru_gates():
     sequence_length = 20
     inputs = [np.random.randn(input_size, 1) for _ in range(sequence_length)]
     
-    # 문의 활성값 좇기
+    # 문의 엑티베이션 좇기
     reset_gates = []
     update_gates = []
     hidden_states = []
@@ -201,7 +201,7 @@ def demonstrate_gru_gates():
         candidates.append(h_tilde.mean())
         hidden_states.append(h.mean())
     
-    # 문의 활성값 그려 보기
+    # 문의 엑티베이션 그려 보기
     plt.figure(figsize=(12, 8))
     
     plt.subplot(2, 2, 1)
@@ -270,7 +270,7 @@ def compare_gate_mechanics():
 
 
 def parameter_comparison():
-    """LSTM과 GRU의 매개변수 수를 견준다."""
+    """LSTM과 GRU의 파라메터 수를 견준다."""
     print("\n" + "=" * 60)
     print("LSTM vs GRU Parameter Comparison")
     print("=" * 60)
@@ -278,10 +278,10 @@ def parameter_comparison():
     input_size = 100
     hidden_size = 200
     
-    # LSTM의 매개변수
+    # LSTM의 파라메터
     lstm_params = 4 * (hidden_size * (input_size + hidden_size) + hidden_size)
     
-    # GRU의 매개변수
+    # GRU의 파라메터
     gru_params = 3 * (hidden_size * (input_size + hidden_size) + hidden_size)
     
     reduction = (1 - gru_params / lstm_params) * 100
@@ -399,11 +399,11 @@ GRU demonstrations complete!
 
 이 구현은 $h_t=(1-z_t)\odot h_{t-1}+z_t\odot\tilde h_t$를 사용한다. 따라서 z가 작으면 이전 상태를 유지하고 크면 후보를 더 반영한다. 문헌과 라이브러리에 따라 z의 보존·갱신 계수를 반대로 정의하므로 이름만으로 의미를 판단하면 안 된다.
 
-리셋 게이트는 후보 계산에 들어가는 이전 상태에 먼저 적용된다. PyTorch GRU는 후보의 순환 선형 변환 뒤에 리셋을 적용하는 방식이며, 일반적으로 두 연산은 같지 않다. 가중치 이름과 크기만 맞춘다고 이 NumPy 구현이 내장 GRU와 일치하지는 않는다.
+리셋 게이트는 후보 계산에 들어가는 이전 상태에 먼저 적용된다. PyTorch GRU는 후보의 순환 선형 변환 뒤에 리셋을 적용하는 방식이며, 일반적으로 두 연산은 같지 않다. 웨이트 이름과 크기만 맞춘다고 이 NumPy 구현이 내장 GRU와 일치하지는 않는다.
 
 GRU 클래스는 호출마다 상태를 0으로 시작하고 선형 출력과 은닉 상태 목록을 반환한다. 캐시는 저장하지만 역전파와 최적화는 없다. 게이트 평균 곡선은 무작위 순전파의 관찰이며 학습된 장기 기억을 보여 주지 않는다.
 
-매개변수 비교는 각 계산 묶음에 편향 하나를 두는 규약이다. x=100,h=200이면 LSTM은 240800개, GRU는 180600개로 GRU가 25% 적다. 출력층은 제외한다. 매개변수가 적다는 사실만으로 실제 학습 시간이 줄거나 과적합이 덜하다고 보장할 수 없다.
+파라메터 비교는 각 계산 묶음에 바이어스 하나를 두는 규약이다. x=100,h=200이면 LSTM은 240800개, GRU는 180600개로 GRU가 25% 적다. 출력 레이어는 제외한다. 파라메터가 적다는 사실만으로 실제 학습 시간이 줄거나 과적합이 덜하다고 보장할 수 없다.
 
 ## 연습문제
 
@@ -434,12 +434,12 @@ GRU 클래스는 호출마다 상태를 0으로 시작하고 선형 출력과 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 NumPy 셀과 PyTorch 기본 GRU의 매개변수 수가 다른 이유를 설명하라.
+이 NumPy 셀과 PyTorch 기본 GRU의 파라메터 수가 다른 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    NumPy 구현은 $3h(x+h+1)$개로 계산 묶음마다 편향 하나다. PyTorch 기본 셀은 입력·순환 경로의 편향을 각각 두어 $3h(x+h+2)$개다. 후보의 리셋 적용 위치도 다르므로 편향 개수만 같게 해서는 계산이 일치하지 않는다.
+    NumPy 구현은 $3h(x+h+1)$개로 계산 묶음마다 바이어스 하나다. PyTorch 기본 셀은 입력·순환 경로의 바이어스를 각각 두어 $3h(x+h+2)$개다. 후보의 리셋 적용 위치도 다르므로 바이어스 개수만 같게 해서는 계산이 일치하지 않는다.
 
 ---
 
@@ -468,8 +468,8 @@ GRU 클래스는 호출마다 상태를 0으로 시작하고 선형 출력과 �
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 손실이나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 
-GRU 식은 업데이트 계수의 정의와 리셋 적용 위치까지 확인해야 한다. 이 예제의 NumPy 순전파와 PyTorch 내장 GRU는 같은 계산이라고 가정할 수 없다. 매개변수 수와 실제 성능도 별도로 비교한다.
+GRU 식은 업데이트 계수의 정의와 리셋 적용 위치까지 확인해야 한다. 이 예제의 NumPy 순전파와 PyTorch 내장 GRU는 같은 계산이라고 가정할 수 없다. 파라메터 수와 실제 성능도 별도로 비교한다.

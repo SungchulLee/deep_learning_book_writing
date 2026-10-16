@@ -1,10 +1,10 @@
 # FCOS: 앵커 없이 위치별로 예측하는 객체 탐지
 
-FCOS는 특징 맵의 각 위치에서 클래스와 경계 상자의 네 변까지 거리를 예측하는 단일 단계 탐지기다. 미리 정한 너비·높이의 앵커 집합은 사용하지 않지만, 특징 stride·위치 좌표·대상 크기 범위·양성 할당 규칙은 필요하다. [원 논문](https://arxiv.org/abs/1904.01355)의 anchor-free라는 표현이 하이퍼파라미터나 NMS가 없다는 뜻은 아니다.
+FCOS는 피처 맵의 각 위치에서 클래스와 경계 상자의 네 변까지 거리를 예측하는 단일 단계 탐지기다. 미리 정한 너비·높이의 앵커 집합은 사용하지 않지만, 피처 stride·위치 좌표·대상 크기 범위·양성 할당 규칙은 필요하다. [원 논문](https://arxiv.org/abs/1904.01355)의 anchor-free라는 표현이 하이퍼파라미터나 NMS가 없다는 뜻은 아니다.
 
 ## 1. 거리 표현과 양성 위치
 
-이미지 좌표 (x,y)에서 왼쪽·위·오른쪽·아래 거리 l,t,r,b를 예측하면 경계 상자는 (x−l,y−t,x+r,y+b)다. 특징 격자 좌표를 이미지 좌표로 옮기는 stride와 중심 오프셋을 정하고, 거리가 이미지 픽셀 단위인지 stride로 정규화한 값인지 맞춰야 한다.
+이미지 좌표 (x,y)에서 왼쪽·위·오른쪽·아래 거리 l,t,r,b를 예측하면 경계 상자는 (x−l,y−t,x+r,y+b)다. 피처 격자 좌표를 이미지 좌표로 옮기는 stride와 중심 오프셋을 정하고, 거리가 이미지 픽셀 단위인지 stride로 정규화한 값인지 맞춰야 한다.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -29,11 +29,11 @@ FCOS는 특징 맵의 각 위치에서 클래스와 경계 상자의 네 변까�
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-정답 상자 내부라는 조건만으로 모든 할당이 결정되지는 않는다. 특징 단계별 회귀 거리 범위와 여러 객체가 겹칠 때의 선택 규칙이 필요하다. 중심 주변만 양성으로 쓰는 center sampling도 구현별 선택이다. 배경과 무시할 위치의 레이블을 별도로 정의한다.
+정답 상자 내부라는 조건만으로 모든 할당이 결정되지는 않는다. 피처 단계별 회귀 거리 범위와 여러 객체가 겹칠 때의 선택 규칙이 필요하다. 중심 주변만 양성으로 쓰는 center sampling도 구현별 선택이다. 배경과 무시할 위치의 레이블을 별도로 정의한다.
 
 ## 2. 분류·회귀·centerness head
 
-입력 특징 목록의 각 원소가 B×C×H×W이면 아래 head는 B×K×H×W 클래스 로짓, B×4×H×W 거리 값, B×1×H×W centerness 로짓을 목록으로 반환한다. 분류·회귀 tower는 모든 단계에서 가중치를 공유한다. `GroupNorm(32,C)`는 C가 32로 나누어져야 하며 선언된 scale이 다섯 개라 입력 특징은 최대 다섯 단계다. 필요한 torch·nn·F·math import도 별도로 준비해야 한다.
+입력 피처 목록의 각 원소가 B×C×H×W이면 아래 head는 B×K×H×W 클래스 로짓, B×4×H×W 거리 값, B×1×H×W centerness 로짓을 목록으로 반환한다. 분류·회귀 tower는 모든 단계에서 웨이트를 공유한다. `GroupNorm(32,C)`는 C가 32로 나누어져야 하며 선언된 scale이 다섯 개라 입력 피처는 최대 다섯 단계다. 필요한 torch·nn·F·math import도 별도로 준비해야 한다.
 
 ```python
 class FCOSHead(nn.Module):
@@ -51,7 +51,7 @@ class FCOSHead(nn.Module):
         
         self.num_classes = num_classes
         
-        # 갈래 매기기 가지
+        # 클래스 매기기 가지
         cls_tower = []
         for _ in range(num_convs):
             cls_tower.append(nn.Conv2d(in_channels, in_channels, 3, padding=1))
@@ -75,14 +75,14 @@ class FCOSHead(nn.Module):
         # FPN 켜마다 배울 수 있는 잣수
         self.scales = nn.ModuleList([nn.Conv2d(1, 1, 1) for _ in range(5)])
         
-        # 초점 손실을 위한 치우침 첫자리매김
+        # 초점 로스를 위한 치우침 첫자리매김
         bias_value = -math.log((1 - prior_prob) / prior_prob)
         nn.init.constant_(self.cls_logits.bias, bias_value)
     
     def forward(self, features: list) -> tuple:
         """
         인수:
-            features: FPN에서 온 특징 지도의 목록
+            features: FPN에서 온 피처 지도의 목록
             
         반환값:
             cls_scores: 켜마다의 (B, num_classes, H, W) 목록
@@ -106,7 +106,7 @@ class FCOSHead(nn.Module):
             bbox_pred = F.relu(bbox_pred) * self.scales[i](torch.ones(1, 1, 1, 1, device=feature.device))
             bbox_preds.append(bbox_pred)
             
-            # 가운데다움(되돌리기 특징에서 어림)
+            # 가운데다움(되돌리기 피처에서 어림)
             centerness = self.centerness(reg_feat)
             centernesses.append(centerness)
         
@@ -138,7 +138,7 @@ def compute_centerness(
     return centerness
 ```
 
-코드 주석에는 exp가 적혀 있지만 실제 회귀는 ReLU 뒤에 학습 가능한 scale을 곱한다. scale은 1×1 합성곱을 1에 적용한 가중치+편향으로, 양수 제약이 없다. 따라서 최종 거리가 항상 비음수라고 보장할 수 없으며 원 논문의 양수 거리 매개변수화와 동일하지 않다. 분류 bias 초기화는 prior_prob에 대응하는 초기 sigmoid 값을 만들며 0<prior_prob<1이 필요하다.
+코드 주석에는 exp가 적혀 있지만 실제 회귀는 ReLU 뒤에 학습 가능한 scale을 곱한다. scale은 1×1 컨볼루션을 1에 적용한 웨이트+바이어스로, 양수 제약이 없다. 따라서 최종 거리가 항상 비음수라고 보장할 수 없으며 원 논문의 양수 거리 파라메터화와 동일하지 않다. 분류 bias 초기화는 prior_prob에 대응하는 초기 sigmoid 값을 만들며 0<prior_prob<1이 필요하다.
 
 양성 위치의 centerness 목표는 다음과 같다.
 
@@ -146,13 +146,13 @@ $$c^*=\sqrt{\frac{\min(l,r)}{\max(l,r)}\frac{\min(t,b)}{\max(t,b)}}.$$
 
 상자 중심이면 1이고 경계 쪽에서 작아진다. 이는 기하학적 목표이지 상자가 정답과 갖는 IoU 그 자체가 아니다. 음수 거리나 상자 밖 위치에는 이 식을 그대로 적용하지 않는다. 코드의 ε 때문에 정확한 중심에서도 계산값이 1보다 조금 작을 수 있다. 추론에서는 예측 centerness와 클래스 점수를 정한 규칙으로 결합하고 NMS를 적용한다.
 
-## 3. 손실과 목표 텐서의 조건
+## 3. 로스와 목표 텐서의 조건
 
-일반적인 목적은 분류 focal loss, 양성 위치의 상자 회귀 손실, centerness BCE의 합이다. 계수·정규화·회귀 가중 방식은 구현에 따라 명시해야 한다. 아래 코드는 세 손실을 같은 계수로 합하며 양성 수로 나눈다.
+일반적인 목적은 분류 focal loss, 양성 위치의 상자 회귀 로스, centerness BCE의 합이다. 계수·정규화·회귀 가중 방식은 구현에 따라 명시해야 한다. 아래 코드는 세 로스를 같은 계수로 합하며 양성 수로 나눈다.
 
 ```python
 class FCOSLoss(nn.Module):
-    """FCOS 손실 함수."""
+    """FCOS 로스 함수."""
     
     def __init__(self, num_classes: int):
         super().__init__()
@@ -165,7 +165,7 @@ class FCOSLoss(nn.Module):
         centernesses: list,
         targets: dict
     ) -> dict:
-        """FCOS 손실을 셈한다."""
+        """FCOS 로스를 셈한다."""
         
         # 어림 펴기
         all_cls_scores = torch.cat([
@@ -190,7 +190,7 @@ class FCOSLoss(nn.Module):
         pos_mask = labels > 0
         num_pos = pos_mask.sum().float()
         
-        # 갈래 매기기 손실(초점 손실)
+        # 클래스 매기기 로스(초점 로스)
         cls_loss = sigmoid_focal_loss(
             all_cls_scores,
             labels,
@@ -198,14 +198,14 @@ class FCOSLoss(nn.Module):
         ) / num_pos
         
         if pos_mask.sum() > 0:
-            # 되돌리기 손실(겹침 비 손실)
+            # 되돌리기 로스(겹침 비 로스)
             reg_loss = iou_loss(
                 all_bbox_preds[pos_mask],
                 bbox_targets[pos_mask],
                 reduction='sum'
             ) / num_pos
             
-            # 가운데다움 손실(두 갈래 엇갈린 엔트로피)
+            # 가운데다움 로스(두 클래스 엇갈린 엔트로피)
             centerness_loss = F.binary_cross_entropy_with_logits(
                 all_centernesses[pos_mask],
                 centerness_targets[pos_mask],
@@ -223,9 +223,9 @@ class FCOSLoss(nn.Module):
         }
 ```
 
-이 손실은 미리 할당한 `targets`를 요구하며 할당 과정 자체는 없다. 특징 단계→배치→공간 순서로 펼친 예측과 같은 순서로 목표를 정렬해야 한다. `labels>0`은 배경 0, 양성 클래스 1 이상을 가정한다. 하지만 일반적인 sigmoid focal loss는 N×K 로짓과 같은 모양의 이진 클래스 목표를 받는다. 정의되지 않은 `sigmoid_focal_loss`가 1차원 클래스 ID를 어떻게 처리하는지 없으므로, torchvision 함수를 그대로 대입하면 완성되는 코드가 아니다. 양성 마스크용 ID와 분류용 one-hot 목표를 구분해야 한다.
+이 로스는 미리 할당한 `targets`를 요구하며 할당 과정 자체는 없다. 피처 단계→배치→공간 순서로 펼친 예측과 같은 순서로 목표를 정렬해야 한다. `labels>0`은 배경 0, 양성 클래스 1 이상을 가정한다. 하지만 일반적인 sigmoid focal loss는 N×K 로짓과 같은 모양의 이진 클래스 목표를 받는다. 정의되지 않은 `sigmoid_focal_loss`가 1차원 클래스 ID를 어떻게 처리하는지 없으므로, torchvision 함수를 그대로 대입하면 완성되는 코드가 아니다. 양성 마스크용 ID와 분류용 one-hot 목표를 구분해야 한다.
 
-양성이 없을 때 회귀·centerness는 0으로 처리하지만 분류 손실은 여전히 num_pos=0으로 나누므로 문제가 남는다. 유효한 정규화 규칙이 필요하다. `iou_loss`도 별도 정의가 없고 거리 표현을 직접 받는지, 좌표로 디코딩한 상자를 받는지 정해야 한다. 이 예제를 완성된 학습기로 설명하지 않는다.
+양성이 없을 때 회귀·centerness는 0으로 처리하지만 분류 로스는 여전히 num_pos=0으로 나누므로 문제가 남는다. 유효한 정규화 규칙이 필요하다. `iou_loss`도 별도 정의가 없고 거리 표현을 직접 받는지, 좌표로 디코딩한 상자를 받는지 정해야 한다. 이 예제를 완성된 학습기로 설명하지 않는다.
 
 ## 4. 앵커 기반 방식과 비교
 
@@ -310,7 +310,7 @@ FCOSLoss의 양성 없는 배치와 분류 목표 모양을 점검하라.
 
 ## 정리하며
 
-FCOS는 앵커 크기 집합 대신 위치별 네 거리와 centerness로 탐지한다. 좌표·거리 단위, 양성 할당, scale의 부호, 목표 텐서 순서·모양과 양성 없는 배치 처리가 실제 구현의 핵심이다. 현재 코드는 head와 손실의 골격이며 완성된 탐지 파이프라인은 아니다.
+FCOS는 앵커 크기 집합 대신 위치별 네 거리와 centerness로 탐지한다. 좌표·거리 단위, 양성 할당, scale의 부호, 목표 텐서 순서·모양과 양성 없는 배치 처리가 실제 구현의 핵심이다. 현재 코드는 head와 로스의 골격이며 완성된 탐지 파이프라인은 아니다.
 
 **참고 문헌**
 

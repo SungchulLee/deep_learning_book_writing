@@ -25,7 +25,7 @@ x̂₀를 사후평균 식의 x₀ 자리에 대입하면 오른쪽 평균식이
 
 자주 사용하는 고정 분산은 β̃ₜ와 βₜ다. 전자는 x₀까지 조건으로 준 사후분산이고 후자는 전방전이 분산이다. β̃ₜ≤βₜ이지만 이 둘이 임의의 데이터 분포에서 최적 주변 역전이 분산의 보편적인 하한·상한이라는 뜻은 아니다. 코드의 fixed_lower와 fixed_upper는 이 두 선택을 가리키는 이름이다.
 
-[Improved DDPM](https://arxiv.org/abs/2102.09672)은 log σ²를 log β̃와 log β의 조합으로 예측하고 단순 손실과 변분 항을 결합한다. 예측값은 구현에 따라 위치·채널별일 수 있어 항상 시간마다 스칼라 하나로 제한되는 것은 아니다. 이 페이지의 DDPMSampler는 **두 고정 분산만 지원**하며 learned를 지정하면 오류가 난다.
+[Improved DDPM](https://arxiv.org/abs/2102.09672)은 log σ²를 log β̃와 log β의 조합으로 예측하고 단순 로스와 변분 항을 결합한다. 예측값은 구현에 따라 위치·채널별일 수 있어 항상 시간마다 스칼라 하나로 제한되는 것은 아니다. 이 페이지의 DDPMSampler는 **두 고정 분산만 지원**하며 learned를 지정하면 오류가 난다.
 
 수식에서 마지막 전이는 t=1→0이다. 구현의 시간 인덱스는 0부터 시작하므로 t=0인 호출에서 추가 노이즈를 넣지 않는다. β̃₁=0과 맞는 관례다. β 분산 선택에서도 마지막은 평균을 반환하도록 정의한다. 이것이 가능한 모든 생성 모델의 최종 확률분포가 결정적이라는 주장은 아니다.
 
@@ -86,17 +86,17 @@ class DDPMSampler:
         device: torch.device = torch.device("cpu"),
     ):
         """
-        매개변수
+        파라메터
         ----------
         model : nn.Module
-            익힌 잡음 헤아리기 신경망 ε_θ(x_t, t) 또는
+            익힌 잡음 헤아리기 뉴럴 넷트웍 ε_θ(x_t, t) 또는
             조건 있는 모델의 ε_θ(x_t, t, c).
         n_timesteps : int
             확산 걸음 수 T.
         beta_start, beta_end : float
             잡음 차례표의 끝점.
         beta_schedule : str
-            짜임 갈래: 'linear' 또는 'cosine'.
+            짜임 클래스: 'linear' 또는 'cosine'.
         variance_type : str
             'fixed_lower'(β̃_t), 'fixed_upper'(β_t), 'learned' 가운데 하나.
         clip_denoised : bool
@@ -201,14 +201,14 @@ class DDPMSampler:
         """
         거꾸로 한 걸음: x_{t-1} ~ p_θ(x_{t-1} | x_t)에서 표본을 뽑는다.
 
-        매개변수
+        파라메터
         ----------
         x_t : Tensor of shape (B, C, H, W) or (B, D)
             지금의 잡음 섞인 표본.
         t : int
             지금 때 걸음.
         condition : Tensor, optional
-            조건 앎(갈래 이름표, 글 임베딩 등).
+            조건 앎(클래스 이름표, 글 임베딩 등).
 
         반환값
         -------
@@ -250,7 +250,7 @@ class DDPMSampler:
         """
         조상 뽑기로 표본을 만든다.
 
-        매개변수
+        파라메터
         ----------
         shape : tuple
             만들 표본의 꼴. 예컨대 (B, C, H, W).
@@ -303,14 +303,14 @@ class DDPMSampler:
 
         점수를 고친다: ∇ log p(x_t | y) = ∇ log p(x_t) + s · ∇ log p(y | x_t)
 
-        매개변수
+        파라메터
         ----------
         shape : tuple
             만들 표본의 꼴.
         classifier : nn.Module
             Noise-aware classifier p(y | x_t, t).
         class_label : int
-            목표 갈래 어깨수.
+            목표 클래스 어깨수.
         guidance_scale : float
             분류기 이끌기의 세기(s).
         show_progress : bool
@@ -334,7 +334,7 @@ class DDPMSampler:
             batch_size = x.shape[0]
             t_tensor = torch.full((batch_size,), t, device=self.device, dtype=torch.long)
 
-            # 분류기 기울기를 셈한다
+            # 분류기 그래디언트를 셈한다
             x_in = x.detach().requires_grad_(True)
             with torch.enable_grad():
                 log_probs = torch.log_softmax(classifier(x_in, t_tensor), dim=-1)
@@ -371,12 +371,12 @@ class DDPMSampler:
         조건 있는 예측과 조건 없는 예측을 합친다.
             ε̃ = ε_θ(x_t, t, ∅) + s · (ε_θ(x_t, t, c) − ε_θ(x_t, t, ∅))
 
-        매개변수
+        파라메터
         ----------
         shape : tuple
             만들 표본의 꼴.
         condition : Tensor
-            조건 신호(갈래 이름표, 글 임베딩 등).
+            조건 신호(클래스 이름표, 글 임베딩 등).
         guidance_scale : float
             이끎 세기 s. 1보다 크면 조건 분포가 뾰족해진다.
         show_progress : bool
@@ -426,12 +426,12 @@ sample은 eval과 no_grad로 실행하며 이전 학습 모드로 되돌리지 �
 
 ## 5. 분류기 가이던스와 CFG
 
-분류기 가이던스는 노이즈가 섞인 xₜ에서 클래스 로그확률의 입력 기울기를 구한다. 스코어와 노이즈 예측의 관계를 이용하면 다음과 같다.
+분류기 가이던스는 노이즈가 섞인 xₜ에서 클래스 로그확률의 입력 그래디언트를 구한다. 스코어와 노이즈 예측의 관계를 이용하면 다음과 같다.
 
 $$\epsilon_{\mathrm{guided}}=\epsilon_\theta-
  s\sqrt{1-\bar\alpha_t}\nabla_{x_t}\log p_\phi(y\mid x_t,t)$$
 
-분류기도 시간별 노이즈 입력을 처리하도록 학습되어 있어야 한다. 전체 샘플링은 no_grad로 실행하지만 분류기 입력 기울기를 구하는 부분만 enable_grad로 켠다. 이 코드에서는 위 노이즈 예측을 통해 평균을 바꾸며, 자르기가 없을 때 평균 변화는 sβₜ/√αₜ에 분류기 기울기를 곱한 값이다. 선택한 σ²에 기울기를 곱하는 다른 평균 이동 공식과 항상 같지는 않다.
+분류기도 시간별 노이즈 입력을 처리하도록 학습되어 있어야 한다. 전체 샘플링은 no_grad로 실행하지만 분류기 입력 그래디언트를 구하는 부분만 enable_grad로 켠다. 이 코드에서는 위 노이즈 예측을 통해 평균을 바꾸며, 자르기가 없을 때 평균 변화는 sβₜ/√αₜ에 분류기 그래디언트를 곱한 값이다. 선택한 σ²에 그래디언트를 곱하는 다른 평균 이동 공식과 항상 같지는 않다.
 
 Classifier-Free Guidance는 같은 모델의 무조건·조건부 예측을 결합한다.
 
@@ -450,7 +450,7 @@ def visualize_trajectory(
     """
     표본을 만들고 중간 x_t과 x̂_0 헤아림을 갈무리한다.
 
-    매개변수
+    파라메터
     ----------
     sampler : DDPMSampler
     shape : tuple
@@ -595,7 +595,7 @@ DDPM 평균만 반복하면 결정적 DDIM과 같은가?
 
 ## 정리하며
 
-DDPM은 노이즈 예측으로 역전이 평균을 구성하고 선택한 분산으로 샘플링한다. 시간 인덱스와 마지막 단계, 자르기로 달라지는 평균을 확인한다. 가이던스의 null 조건과 입력 기울기, 경로 기록의 추가 호출, 실제로 사용되는 난수 경로를 구분해야 한다.
+DDPM은 노이즈 예측으로 역전이 평균을 구성하고 선택한 분산으로 샘플링한다. 시간 인덱스와 마지막 단계, 자르기로 달라지는 평균을 확인한다. 가이던스의 null 조건과 입력 그래디언트, 경로 기록의 추가 호출, 실제로 사용되는 난수 경로를 구분해야 한다.
 
 **참고 문헌**
 

@@ -39,7 +39,7 @@ def train_polynomial_models(X_train, y_train, X_test, y_test, degrees):
     results = {}
     
     for degree in degrees:
-        # 다항 특징을 만든다
+        # 다항 피처를 만든다
         poly_features = PolynomialFeatures(degree=degree, include_bias=False)
         X_train_poly = poly_features.fit_transform(X_train)
         X_test_poly = poly_features.transform(X_test)

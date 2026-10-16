@@ -1,6 +1,6 @@
 # 일반화된 제로샷 학습
 
-일반화된 제로샷 학습(GZSL)은 학습 클래스와 미학습 클래스를 모두 후보로 두고 예측한다. 학습 클래스에 대한 높은 점수 때문에 미학습 클래스를 놓칠 수 있으므로, 두 그룹의 정확도와 균형을 함께 평가한다. 점수 보정, 게이팅, 특징 생성과 전이적 학습의 역할을 구분한다.
+일반화된 제로샷 학습(GZSL)은 학습 클래스와 미학습 클래스를 모두 후보로 두고 예측한다. 학습 클래스에 대한 높은 점수 때문에 미학습 클래스를 놓칠 수 있으므로, 두 그룹의 정확도와 균형을 함께 평가한다. 점수 보정, 게이팅, 피처 생성과 전이적 학습의 역할을 구분한다.
 
 ## 1. 문제 정식화
 
@@ -8,9 +8,9 @@
 
 기존 ZSL은 미학습 클래스 $\mathcal Y^u$만 후보로 두고, GZSL은 $\mathcal Y^s\cup\mathcal Y^u$에서 예측한다. 두 집합은 겹치지 않으며 모든 후보 클래스의 의미 표현을 제공한다. GZSL도 후보 밖의 임의 클래스를 자동으로 처리하는 오픈셋 인식과는 구별한다.
 
-### 학습 클래스 편향
+### 학습 클래스 바이어스
 
-학습 클래스의 손실로만 학습하면 그 클래스의 점수가 상대적으로 높아질 수 있다. 미학습 클래스 정답이 학습 클래스로 잘못 예측되는 비율과 각 그룹의 정확도를 확인한다. 학습 클래스 정확도가 높고 미학습 클래스 정확도가 낮다는 사실만으로 모든 오차가 이 편향 때문이라고 단정할 수는 없다.
+학습 클래스의 로스로만 학습하면 그 클래스의 점수가 상대적으로 높아질 수 있다. 미학습 클래스 정답이 학습 클래스로 잘못 예측되는 비율과 각 그룹의 정확도를 확인한다. 학습 클래스 정확도가 높고 미학습 클래스 정확도가 낮다는 사실만으로 모든 오차가 이 바이어스 때문이라고 단정할 수는 없다.
 
 ## 2. 평가 지표
 
@@ -26,7 +26,7 @@ A_u도 미학습 클래스에서 같은 방식으로 계산한다. 아래 코드
 
 $$H=\frac{2A_sA_u}{A_s+A_u}$$
 
-어느 한쪽이 낮으면 H도 낮아지므로 두 그룹의 균형을 드러낸다. 둘 다 0일 때는 H=0으로 정의한다. H만 제시하지 말고 A_s와 A_u도 함께 보고한다. 실제 적용의 클래스 빈도나 오차 비용은 이 균등 가중치와 다를 수 있다.
+어느 한쪽이 낮으면 H도 낮아지므로 두 그룹의 균형을 드러낸다. 둘 다 0일 때는 H=0으로 정의한다. H만 제시하지 말고 A_s와 A_u도 함께 보고한다. 실제 적용의 클래스 빈도나 오차 비용은 이 균등 웨이트와 다를 수 있다.
 
 ### 학습·미학습 정확도 곡선의 면적
 
@@ -103,7 +103,7 @@ $$\text{score}^{calib}_c = \begin{cases}
 \text{score}_c + \gamma & (c \in \mathcal{Y}^u)
 \end{cases}$$
 
-여기서 $\gamma$은 검증 데이터로 최적화한 보정 매개변수이다.
+여기서 $\gamma$은 검증 데이터로 최적화한 보정 파라메터이다.
 
 ```python
 def calibrated_prediction(scores_seen, scores_unseen, calibration):
@@ -327,7 +327,7 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
     문을 갖춘 GZSL 모델을 익힌다.
     
     참고: 문을 익히려면 못 본 부류 표본이 조금 필요하며,
-    대개 검증 쪼갬이나 지어낸 특징에서 얻는다.
+    대개 검증 쪼갬이나 지어낸 피처에서 얻는다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
@@ -342,7 +342,7 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
         total_loss = 0
         
         for batch_x, batch_y in train_loader:
-            # 어울림 손실(순위)
+            # 어울림 로스(순위)
             pos_emb = torch.stack([
                 torch.tensor(class_embeddings[y], dtype=torch.float32)
                 for y in batch_y
@@ -357,11 +357,11 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
             
             ranking_loss = torch.clamp(0.2 - pos_score + neg_score, min=0).mean()
             
-            # 문 손실(학습 표본은 모두 본 부류 영역에서 온다)
+            # 문 로스(학습 표본은 모두 본 부류 영역에서 온다)
             gate_pred = model.predict_gate(batch_x)
             gate_loss = F.binary_cross_entropy(gate_pred, torch.zeros_like(gate_pred))
             
-            # 결합된 손실
+            # 결합된 로스
             loss = ranking_loss + 0.5 * gate_loss
             
             optimizer.zero_grad()
@@ -380,20 +380,20 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
 
 ### 개념
 
-의미 벡터와 잠재 잡음을 조건으로 미학습 클래스의 시각 특징을 생성하고, 실제 학습 클래스 특징과 합쳐 분류기를 학습할 수 있다. 생성기는 학습 클래스 자료에서 배운 관계를 새 의미 벡터로 일반화해야 하므로 생성 표본이 실제 분포를 보장하지는 않는다.
+의미 벡터와 잠재 잡음을 조건으로 미학습 클래스의 시각 피처를 생성하고, 실제 학습 클래스 피처와 합쳐 분류기를 학습할 수 있다. 생성기는 학습 클래스 자료에서 배운 관계를 새 의미 벡터로 일반화해야 하므로 생성 표본이 실제 분포를 보장하지는 않는다.
 
 $$G: \mathcal{S} \times \mathcal{Z} \rightarrow \mathcal{V}$$
 
 여기서 $\mathcal{Z}$은 잡음 분포이다.
 
-### VAE로 특징 지어내기
+### VAE로 피처 지어내기
 
-FeatureVAE는 시각 특징과 의미 벡터에서 잠재 분포를 추정하고 조건부 복원을 학습한다. 코드의 MSE는 전체 원소 평균, KL은 배치당 잠재 차원 합이므로 특징·잠재 차원에 따라 상대 스케일이 달라진다. 생성용 잡음과 의미 벡터를 CPU에 만들기 때문에 모델과 장치를 맞춰야 한다. 생성 후 최종 GZSL 분류기를 학습하는 단계는 포함되지 않는다.
+FeatureVAE는 시각 피처와 의미 벡터에서 잠재 분포를 추정하고 조건부 복원을 학습한다. 코드의 MSE는 전체 원소 평균, KL은 배치당 잠재 차원 합이므로 피처·잠재 차원에 따라 상대 스케일이 달라진다. 생성용 잡음과 의미 벡터를 CPU에 만들기 때문에 모델과 장치를 맞춰야 한다. 생성 후 최종 GZSL 분류기를 학습하는 단계는 포함되지 않는다.
 
 ```python
 class FeatureVAE(nn.Module):
     """
-    뜻 묻힘에서 시각 특징을 지어내는 VAE.
+    뜻 묻힘에서 시각 피처를 지어내는 VAE.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, latent_dim: int = 64):
@@ -439,13 +439,13 @@ class FeatureVAE(nn.Module):
         return recon, mu, logvar
     
     def generate(self, semantic, n_samples=1):
-        """주어진 뜻 묻힘의 시각 특징을 지어낸다."""
+        """주어진 뜻 묻힘의 시각 피처를 지어낸다."""
         z = torch.randn(n_samples, self.fc_mu.out_features)
         semantic_expanded = semantic.unsqueeze(0).expand(n_samples, -1)
         return self.decode(z, semantic_expanded)
 
 def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
-    """특징 VAE를 익힌다."""
+    """피처 VAE를 익힌다."""
     optimizer = torch.optim.Adam(vae.parameters(), lr=0.001)
     
     for epoch in range(epochs):
@@ -460,7 +460,7 @@ def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
             
             recon, mu, logvar = vae(batch_v, batch_s)
             
-            # 되살림 손실
+            # 되살림 로스
             recon_loss = F.mse_loss(recon, batch_v)
             
             # KL 벌어짐
@@ -480,7 +480,7 @@ def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
 
 def generate_unseen_features(vae, class_embeddings, unseen_classes, 
                               n_per_class=100):
-    """못 본 부류의 특징을 지어낸다."""
+    """못 본 부류의 피처를 지어낸다."""
     vae.eval()
     
     X_gen = []
@@ -607,8 +607,8 @@ A_s=0.8, A_u=0.2일 때 산술 평균과 조화 평균을 계산하라.
 </div>
 
 ??? success "연습문제 4 풀이"
-    그 손실은 모든 입력에 학습 클래스 그룹을 선택하도록 유도한다. 새 그룹을 구별하는 감독 신호가 없으므로 게이팅 설명의 목표와 맞지 않는다. 검증용 가상 미학습 클래스나 적절한 생성·이상 탐지 목표 등을 설계해 따로 평가해야 한다.
+    그 로스는 모든 입력에 학습 클래스 그룹을 선택하도록 유도한다. 새 그룹을 구별하는 감독 신호가 없으므로 게이팅 설명의 목표와 맞지 않는다. 검증용 가상 미학습 클래스나 적절한 생성·이상 탐지 목표 등을 설계해 따로 평가해야 한다.
 
 ## 정리하며
 
-GZSL은 학습·미학습 클래스를 함께 예측하므로 그룹별 성능과 점수 편향을 평가한다. 매크로·마이크로 정확도를 구분하고 보정 계수는 독립적인 검증 데이터에서 선택한다. 게이팅·생성·전이적 방법은 필요한 학습 신호와 데이터 사용 조건이 서로 다르다.
+GZSL은 학습·미학습 클래스를 함께 예측하므로 그룹별 성능과 점수 바이어스를 평가한다. 매크로·마이크로 정확도를 구분하고 보정 계수는 독립적인 검증 데이터에서 선택한다. 게이팅·생성·전이적 방법은 필요한 학습 신호와 데이터 사용 조건이 서로 다르다.

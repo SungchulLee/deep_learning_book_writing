@@ -10,20 +10,20 @@
 
 - [적대적 강건성 입문](foundations/introduction.md) -- 적대적 샘플을 찾아낸 이야기, 그것이 있는 까닭에 대한 여러 짐작, 딥러닝에 걸리는 바
 - [위협 모델](foundations/threat_models.md) -- 화이트박스, 블랙박스, 참 세상에 걸쳐 겨루는 이의 앎, 힘, 목표를 꼴로 적기
-- [강건성 정의](foundations/definitions.md) -- 점마다의 강건성, 가장 작은 적대적 섭동, 다시 쓸 수 있는 PyTorch 공격 밑 갈래
+- [강건성 정의](foundations/definitions.md) -- 점마다의 강건성, 가장 작은 적대적 섭동, 다시 쓸 수 있는 PyTorch 공격 밑 클래스
 - [섭동 유형](foundations/perturbations.md) -- L-무한, L-2, L-1 노름의 제약과 그 꼴, 그리고 되비추는 계산
 
 ---
 
 ## 2. 화이트박스 공격
 
-모델의 매개변수와 구조를 온전히 아는 채로 하는 기울기 기반의 공격.
+모델의 파라메터와 구조를 온전히 아는 채로 하는 그래디언트 기반의 공격.
 
-- [FGSM](white_box/fgsm.md) -- 선형 짐작에서 비롯한, 한 걸음짜리 기초 기울기 공격
-- [되비춘 기울기 내림(PGD)](white_box/pgd.md) -- 강건성을 따지는 사실상의 잣대가 된 여러 걸음 되돌이 공격
+- [FGSM](white_box/fgsm.md) -- 선형 짐작에서 비롯한, 한 걸음짜리 기초 그래디언트 공격
+- [되비춘 그래디언트 내림(PGD)](white_box/pgd.md) -- 강건성을 따지는 사실상의 잣대가 된 여러 걸음 회귀 공격
 - [DeepFool](white_box/deepfool.md) -- 가장 가까운 결정 경계를 넘는 가장 작은 섭동을 찾는 꼴 기초의 공격
 - [Carlini-Wagner(C&W) 공격](white_box/cw_attack.md) -- 적대적 샘플 만들기를 제약 없는 최소화로 다시 쓴 공격
-- [AutoAttack](white_box/autoattack.md) -- 하이퍼파라미터를 맞추지 않고도 강건성을 미덥게 따지는 매개변수 없는 앙상블 공격
+- [AutoAttack](white_box/autoattack.md) -- 하이퍼파라미터를 맞추지 않고도 강건성을 미덥게 따지는 파라메터 없는 앙상블 공격
 
 ---
 
@@ -32,8 +32,8 @@
 모델 속을 곧바로 보지 못한 채 물음의 되받음이나 전이만으로 하는 공격.
 
 - [전이 기반 공격](black_box/transfer.md) -- 적대적 섭동이 모델을 넘나들며 전이되는 것을 쓰는 물음 없는 공격
-- [쿼리 기반 공격](black_box/query_based.md) -- 스코어 기반과 판단 기초의 갈래를 지닌, 모델에 물어 가며 되돌이하는 공격
-- [점수 기반 공격](black_box/score_based.md) -- 모델 속을 보지 않고 출력 낌새 분포로 기울기를 어림하기
+- [쿼리 기반 공격](black_box/query_based.md) -- 스코어 기반과 판단 기초의 클래스를 지닌, 모델에 물어 가며 회귀하는 공격
+- [점수 기반 공격](black_box/score_based.md) -- 모델 속을 보지 않고 출력 확률 분포로 그래디언트를 어림하기
 - [결정 기반 공격](black_box/decision_based.md) -- 굳은 레이블만 얻는 가장 빡빡한 블랙박스 자리에서의 공격
 
 ---
@@ -43,7 +43,7 @@
 참 자리에 내놓아도 살아남는 적대적 섭동.
 
 - [적대적 패치](physical/patches.md) -- 참 세상에서 분류기를 속이는, 그 자리에 몰린 찍어 낼 수 있는 섭동
-- [3차원 적대적 공격](physical/3d_attacks.md) -- 보는 자리를 바꿔도 맞서는, 물체의 꼴·특징·빛에 준 섭동
+- [3차원 적대적 공격](physical/3d_attacks.md) -- 보는 자리를 바꿔도 맞서는, 물체의 꼴·피처·빛에 준 섭동
 - [실제 환경에서의 강건성](physical/real_world.md) -- 바뀜에 걸친 바람(EOT)으로 셈틀과 참 세상의 틈 메우기
 
 ---
@@ -54,7 +54,7 @@
 
 - [여느 적대적 학습](adversarial_training/standard.md) -- 적대적 공격에 가장 잘 듣는 방어인 PGD 기초의 든든하게 하기
 - [TRADES](adversarial_training/trades.md) -- 클린 정확도와 맞섬의 강건성 사이를 이론에 닿게 맞바꾸기
-- [Free Adversarial Training](adversarial_training/free_at.md) -- 기울기를 되쓰며 여느 학습에 가까운 값으로 맞먹는 강건성 이루기
+- [Free Adversarial Training](adversarial_training/free_at.md) -- 그래디언트를 되쓰며 여느 학습에 가까운 값으로 맞먹는 강건성 이루기
 - [Fast Adversarial Training](adversarial_training/fast_at.md) -- 아무렇게나 첫자리를 잡아 무너지듯 지나치게 맞추는 것을 막는 한 걸음 FGSM 학습
 - [MART](adversarial_training/mart.md) -- 잘못 가른 보기를 헤아려 어려운 보기에 방어의 힘을 모으는 학습
 
@@ -67,7 +67,7 @@
 - [아무렇게나 매끄럽게 하기](certified/randomized_smoothing.md) -- 가우스 잡음을 고르게 하여 어떤 분류기든 강건성 인증을 지니게 하기
 - [구간 경계 전파(IBP)](certified/ibp.md) -- 네트워크 켜를 지나며 사이 테두리를 퍼뜨려 L-무한 강건성 밝히기
 - [CROWN](certified/crown.md) -- 선형으로 눅여 IBP보다 촘촘한 테두리를 주는 볼록 완화 기초의 밝히기
-- [립시츠 제약 신경망](certified/lipschitz.md) -- 네트워크가 얼마나 예민한지를 립시츠 값으로 옭아매어 강건성 밝히기
+- [립시츠 제약 뉴럴 넷트웍](certified/lipschitz.md) -- 네트워크가 얼마나 예민한지를 립시츠 값으로 옭아매어 강건성 밝히기
 
 ---
 
@@ -85,7 +85,7 @@
 
 맞섬의 강건성을 솔직히 따지는 좋은 버릇.
 
-- [적응적 공격과 기울기 마스킹](evaluation/adaptive.md) -- 참 강건성 대신 기울기를 가리는 방어를 짚어내고 넘어서기
+- [적응적 공격과 그래디언트 마스킹](evaluation/adaptive.md) -- 참 강건성 대신 그래디언트를 가리는 방어를 짚어내고 넘어서기
 - [평가와 벤치마크](evaluation/benchmarks.md) -- 오토어택과 RobustBench을 아우른 잣대 잡힌 따짐 절차
 - [인증 정확도](evaluation/certified_accuracy.md) -- 공격의 세기와 상관없이 증명되는 강건성의 아래끝
 

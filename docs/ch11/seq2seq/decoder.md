@@ -27,7 +27,7 @@ class BasicDecoder(nn.Module):
         output_size: 출력 어휘의 크기
         embedding_dim: 낱말 임베딩의 차원
         hidden_size: 숨은 상태의 크기
-        num_layers: 순환 층의 수
+        num_layers: 순환 레이어의 수
         dropout: 드롭아웃 확률
         rnn_type: RNN의 종류 ('LSTM' 또는 'GRU')
     """
@@ -42,13 +42,13 @@ class BasicDecoder(nn.Module):
         self.num_layers = num_layers
         self.rnn_type = rnn_type
         
-        # 임베딩 층
+        # 임베딩 레이어
         self.embedding = nn.Embedding(output_size, embedding_dim)
         
         # 드롭아웃
         self.dropout = nn.Dropout(dropout)
         
-        # RNN 층
+        # RNN 레이어
         if rnn_type == 'LSTM':
             self.rnn = nn.LSTM(
                 embedding_dim,
@@ -68,7 +68,7 @@ class BasicDecoder(nn.Module):
         else:
             raise ValueError(f"Unknown RNN type: {rnn_type}")
         
-        # 출력층
+        # 출력 레이어
         self.fc_out = nn.Linear(hidden_size, output_size)
         
     def forward(self, input_token, hidden, cell=None):
@@ -111,7 +111,7 @@ class AttentionDecoder(nn.Module):
         embedding_dim: 낱말 임베딩의 차원
         hidden_size: 디코더 숨은 상태의 크기
         encoder_hidden_size: 인코더 숨은 상태의 크기
-        num_layers: 순환 층의 수
+        num_layers: 순환 레이어의 수
         dropout: 드롭아웃 확률
         rnn_type: RNN의 종류 ('LSTM' 또는 'GRU')
     """
@@ -127,7 +127,7 @@ class AttentionDecoder(nn.Module):
         self.num_layers = num_layers
         self.rnn_type = rnn_type
         
-        # 임베딩 층
+        # 임베딩 레이어
         self.embedding = nn.Embedding(output_size, embedding_dim)
         
         # 드롭아웃
@@ -136,7 +136,7 @@ class AttentionDecoder(nn.Module):
         # 어텐션 장치
         self.attention = BahdanauAttention(hidden_size, encoder_hidden_size)
         
-        # RNN 층 (입력은 임베딩과 문맥 벡터)
+        # RNN 레이어 (입력은 임베딩과 문맥 벡터)
         rnn_input_size = embedding_dim + encoder_hidden_size
         
         if rnn_type == 'LSTM':
@@ -158,7 +158,7 @@ class AttentionDecoder(nn.Module):
         else:
             raise ValueError(f"Unknown RNN type: {rnn_type}")
         
-        # 출력층
+        # 출력 레이어
         self.fc_out = nn.Linear(hidden_size + encoder_hidden_size + embedding_dim, output_size)
         
     def forward(self, input_token, hidden, encoder_outputs, cell=None, mask=None):
@@ -176,14 +176,14 @@ class AttentionDecoder(nn.Module):
             output: 출력 예측 (배치 크기, output_size)
             hidden: 갱신된 숨은 상태
             cell: 갱신된 세포 상태 (LSTM에만 있다)
-            attention_weights: 어텐션 가중치 (배치 크기, src_len)
+            attention_weights: 어텐션 웨이트 (배치 크기, src_len)
         """
         # 입력 토큰 임베딩
         embedded = self.embedding(input_token)  # (배치 크기, 1, embedding_dim)
         embedded = self.dropout(embedded)
         
         # 어텐션 계산
-        # 어텐션에 맨 위 층의 숨은 상태 쓰기
+        # 어텐션에 맨 위 레이어의 숨은 상태 쓰기
         query = hidden[-1].unsqueeze(1) if hidden.dim() == 3 else hidden.unsqueeze(1)
         context, attention_weights = self.attention(query, encoder_outputs, mask)
         
@@ -228,7 +228,7 @@ class BahdanauAttention(nn.Module):
         
     def forward(self, query, keys, mask=None):
         """
-        어텐션 가중치와 문맥 벡터를 계산한다
+        어텐션 웨이트와 문맥 벡터를 계산한다
         
         인수:
             query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
@@ -237,7 +237,7 @@ class BahdanauAttention(nn.Module):
             
         반환값:
             context: 문맥 벡터 (배치 크기, 1, encoder_hidden_size)
-            attention_weights: 어텐션 가중치 (배치 크기, 1, src_len)
+            attention_weights: 어텐션 웨이트 (배치 크기, 1, src_len)
         """
         # 어텐션 점수 계산
         # query: (배치, 1, dec_hidden)
@@ -254,7 +254,7 @@ class BahdanauAttention(nn.Module):
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # 어텐션 가중치 계산
+        # 어텐션 웨이트 계산
         attention_weights = F.softmax(scores, dim=1).unsqueeze(1)  # (배치, 1, src_len)
         
         # 문맥 벡터 계산
@@ -286,7 +286,7 @@ class LuongAttention(nn.Module):
         
     def forward(self, query, keys, mask=None):
         """
-        어텐션 가중치와 문맥 벡터를 계산한다
+        어텐션 웨이트와 문맥 벡터를 계산한다
         
         인수:
             query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
@@ -295,7 +295,7 @@ class LuongAttention(nn.Module):
             
         반환값:
             context: 문맥 벡터 (배치 크기, 1, encoder_hidden_size)
-            attention_weights: 어텐션 가중치 (배치 크기, 1, src_len)
+            attention_weights: 어텐션 웨이트 (배치 크기, 1, src_len)
         """
         if self.attention_type == 'dot':
             # 단순 내적
@@ -318,7 +318,7 @@ class LuongAttention(nn.Module):
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # 어텐션 가중치 계산
+        # 어텐션 웨이트 계산
         attention_weights = F.softmax(scores, dim=1).unsqueeze(1)  # (배치, 1, src_len)
         
         # 문맥 벡터 계산
@@ -375,30 +375,30 @@ Attention weights shape: torch.Size([32, 20])
 
 ## 2. 논의
 
-한 단계의 토큰 입력은 $(B,1)$의 long ID다. 기본 디코더는 임베딩과 순환층을 거쳐 $(B,V)$의 로짓과 새 상태를 반환한다. LSTM에는 은닉·셀 상태가 모두 필요하고 GRU의 셀 반환값은 None이다. 여러 토큰을 넣으면 squeeze(1)이 시간 축을 제거하지 못하므로 문서화된 한 단계 호출과 구분해야 한다.
+한 단계의 토큰 입력은 $(B,1)$의 long ID다. 기본 디코더는 임베딩과 순환 레이어를 거쳐 $(B,V)$의 로짓과 새 상태를 반환한다. LSTM에는 은닉·셀 상태가 모두 필요하고 GRU의 셀 반환값은 None이다. 여러 토큰을 넣으면 squeeze(1)이 시간 축을 제거하지 못하므로 문서화된 한 단계 호출과 구분해야 한다.
 
-AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttention을 호출한다. 문맥은 $(B,1,H_e)$이고 이를 토큰 임베딩과 함께 순환층에 넣는다. 출력층은 새 순환 출력·문맥·임베딩을 이어 붙여 로짓을 만든다. LuongAttention 클래스가 존재해도 기본 AttentionDecoder에 자동으로 사용되는 것은 아니다.
+AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttention을 호출한다. 문맥은 $(B,1,H_e)$이고 이를 토큰 임베딩과 함께 순환 레이어에 넣는다. 출력 레이어는 새 순환 출력·문맥·임베딩을 이어 붙여 로짓을 만든다. LuongAttention 클래스가 존재해도 기본 AttentionDecoder에 자동으로 사용되는 것은 아니다.
 
-마스크는 유효 위치가 1 또는 True라는 규약이다. 모든 입력 위치가 가려지면 -inf 점수의 소프트맥스에서 NaN이 생길 수 있으므로 빈 입력 처리가 필요하다. Luong dot 점수는 쿼리와 키 특징 차원이 같아야 하고 general은 투영으로 차원을 맞춘다. 무작위 입력의 출력 형태는 번역 품질을 검증하지 않는다.
+마스크는 유효 위치가 1 또는 True라는 규약이다. 모든 입력 위치가 가려지면 -inf 점수의 소프트맥스에서 NaN이 생길 수 있으므로 빈 입력 처리가 필요하다. Luong dot 점수는 쿼리와 키 피처 차원이 같아야 하고 general은 투영으로 차원을 맞춘다. 무작위 입력의 출력 형태는 번역 품질을 검증하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-어휘 V, 임베딩 E, 은닉 H, 층수 L인 기본 LSTM 디코더의 매개변수를 계산하는 식을 구하라.
+어휘 V, 임베딩 E, 은닉 H, 레이어수 L인 기본 LSTM 디코더의 파라메터를 계산하는 식을 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    임베딩 VE, 첫 순환층 $4H(E+H+2)$, 추가 각 층 $4H(2H+2)$, 출력층 VH+V를 합한다. 총 $VE+4H(E+H+2)+(L-1)4H(2H+2)+VH+V$다. 기본 두 편향을 포함한다.
+    임베딩 VE, 첫 순환 레이어 $4H(E+H+2)$, 추가 각 레이어 $4H(2H+2)$, 출력 레이어 VH+V를 합한다. 총 $VE+4H(E+H+2)+(L-1)4H(2H+2)+VH+V$다. 기본 두 바이어스를 포함한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-어텐션 가중치에 드롭아웃을 적용할 때 마스크·정규화와 평가 모드를 설명하라.
+어텐션 웨이트에 드롭아웃을 적용할 때 마스크·정규화와 평가 모드를 설명하라.
 
 </div>
 
@@ -415,7 +415,7 @@ AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttentio
 </div>
 
 ??? success "연습문제 3 풀이"
-    디코더의 각 위치는 S개의 인코더 위치를 참조하므로 가중치 수는 전체 T단계에 대해 TS다. 입력에 대한 셀프 어텐션의 S²와 같지 않다. 시간 비용에는 점수 함수의 차원과 투영, 순환층의 계산도 포함한다.
+    디코더의 각 위치는 S개의 인코더 위치를 참조하므로 웨이트 수는 전체 T단계에 대해 TS다. 입력에 대한 셀프 어텐션의 S²와 같지 않다. 시간 비용에는 점수 함수의 차원과 투영, 순환 레이어의 계산도 포함한다.
 
 ---
 
@@ -433,7 +433,7 @@ AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttentio
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

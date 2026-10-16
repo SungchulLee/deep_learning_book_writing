@@ -8,9 +8,9 @@
 """
 09_batch_normalization.py - 안정되고 빠른 학습
 
-배치 정규화는 층의 입력을 정규화하여 다음을 가져온다:
+배치 정규화는 레이어의 입력을 정규화하여 다음을 가져온다:
 - 더 빠른 학습
-- 더 높은 학습률 사용 가능
+- 더 높은 러닝레이트 사용 가능
 - 초기화에 덜 민감함
 - 정칙화 구실을 함
 
@@ -52,15 +52,15 @@ class BNNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.fc1 = nn.Linear(784, 256)
-        # 인자는 정규화할 특징의 수, 곧 앞 층의 출력 크기다. 여기서
-        # 학습되는 것은 특징마다 하나씩인 gamma와 beta 둘뿐이라,
-        # 아래에서 찍히는 매개변수 수는 2*(256+128)=768만 늘어난다.
+        # 인자는 정규화할 피처의 수, 곧 앞 레이어의 출력 크기다. 여기서
+        # 학습되는 것은 피처마다 하나씩인 gamma와 beta 둘뿐이라,
+        # 아래에서 찍히는 파라메터 수는 2*(256+128)=768만 늘어난다.
         # 이동 평균과 이동 분산도 함께 저장되지만 그쪽은 학습되는
-        # 매개변수가 아니라 버퍼라 이 셈에 들지 않는다
+        # 파라메터가 아니라 버퍼라 이 셈에 들지 않는다
         self.bn1 = nn.BatchNorm1d(256)
         self.fc2 = nn.Linear(256, 128)
         self.bn2 = nn.BatchNorm1d(128)
-        # 마지막 층 뒤에는 정규화를 걸지 않는다. 로짓을 평균 0으로
+        # 마지막 레이어 뒤에는 정규화를 걸지 않는다. 로짓을 평균 0으로
         # 맞추어 버리면 클래스별 점수의 절대 위치가 사라진다
         self.fc3 = nn.Linear(128, 10)
         
@@ -70,8 +70,8 @@ class BNNet(nn.Module):
         # 선형 → 정규화 → 활성화 순서다. 정규화가 활성화 앞에 오면
         # ReLU에 들어가는 값이 0 언저리에 모이므로, 절반쯤은 살고
         # 절반쯤은 죽어 신호가 한쪽으로 쏠리지 않는다.
-        # 이 위치라면 fc1의 편향은 있으나 마나다. 바로 뒤에서 평균을
-        # 빼 버리기 때문이며, 그래서 실무에서는 정규화 앞 층에
+        # 이 위치라면 fc1의 바이어스는 있으나 마나다. 바로 뒤에서 평균을
+        # 빼 버리기 때문이며, 그래서 실무에서는 정규화 앞 레이어에
         # bias=False를 주기도 한다
         x = self.bn1(x)  # 활성화 앞의 배치 정규화
         x = torch.relu(x)
@@ -89,14 +89,14 @@ print("HOW BATCH NORMALIZATION WORKS")
 print("="*70)
 print("""
 미니배치마다:
-1. 층 입력의 평균과 분산을 계산한다
+1. 레이어 입력의 평균과 분산을 계산한다
 2. 정규화: x_norm = (x - 평균) / sqrt(분산 + ε)
 3. 크기 조절과 이동: y = γ * x_norm + β
-   여기서 γ와 β는 학습되는 매개변수이다
+   여기서 γ와 β는 학습되는 파라메터이다
 
 좋은 점:
 ✓ 내부 공변량 이동을 줄인다
-✓ 더 큰 학습률을 쓸 수 있다(학습이 10배 빨라진다)
+✓ 더 큰 러닝레이트를 쓸 수 있다(학습이 10배 빨라진다)
 ✓ 초기화에 덜 민감하다
 ✓ 정칙화 노릇을 한다(배치 통계에서 오는 작은 잡음)
 ✓ 때로는 드롭아웃을 대신할 수 있다
@@ -111,9 +111,9 @@ PLACEMENT:
   (둘 다 되지만 앞의 것이 더 흔하다)
 
 PARAMETERS:
-- 입력: 정규화할 특징의 수
-- 완전 연결층: num_features = output_dim
-- 합성곱층: num_features = num_channels
+- 입력: 정규화할 피처의 수
+- 완전 연결 레이어: num_features = output_dim
+- 컨볼루션 레이어: num_features = num_channels
 
 중요한 점:
 ⚠ batch_size > 1이어야 한다(표본이 여럿 필요하다)
@@ -125,18 +125,18 @@ print("\n" + "="*70)
 print("BATCH NORMALIZATION VARIANTS")
 print("="*70)
 print("""
-BatchNorm1d: 완전 연결층용 (batch, features)
-BatchNorm2d: 합성곱층용 (batch, channels, height, width)
+BatchNorm1d: 완전 연결 레이어용 (batch, features)
+BatchNorm2d: 컨볼루션 레이어용 (batch, channels, height, width)
 BatchNorm3d: 3차원 데이터용 (batch, channels, depth, height, width)
 
-LayerNorm: 특징 방향으로 정규화한다(트랜스포머에서 쓴다)
+LayerNorm: 피처 방향으로 정규화한다(트랜스포머에서 쓴다)
 InstanceNorm: 표본마다 따로 정규화한다
-GroupNorm: 층 정규화와 인스턴스 정규화의 중간형
+GroupNorm: 레이어 정규화와 인스턴스 정규화의 중간형
 """)
 
 # 배치 정규화의 효과 시각화
 def visualize_batch_norm():
-    # 배치 정규화 전후의 층 출력 모의실험
+    # 배치 정규화 전후의 레이어 출력 모의실험
     data = torch.randn(1000, 1) * 5 + 10  # 평균=10, 표준편차=5
     
     bn = nn.BatchNorm1d(1)
@@ -148,7 +148,7 @@ def visualize_batch_norm():
     # 그대로 지나간다. 그러면 아래 "After" 히스토그램이 "Before"와
     # 똑같이 그려져 아무것도 보여 주지 못한다.
     # 이동 통계는 학습을 거치며 쌓이는 값이라, 한 번도 학습하지 않은
-    # 층에는 쓸 만한 값이 들어 있지 않다
+    # 레이어에는 쓸 만한 값이 들어 있지 않다
     bn.train()  # 이 배치의 통계 쓰기
     data_normalized = bn(data)
     
@@ -205,14 +205,14 @@ HOW BATCH NORMALIZATION WORKS
 ======================================================================
 
 미니배치마다:
-1. 층 입력의 평균과 분산을 계산한다
+1. 레이어 입력의 평균과 분산을 계산한다
 2. 정규화: x_norm = (x - 평균) / sqrt(분산 + ε)
 3. 크기 조절과 이동: y = γ * x_norm + β
-   여기서 γ와 β는 학습되는 매개변수이다
+   여기서 γ와 β는 학습되는 파라메터이다
 
 좋은 점:
 ✓ 내부 공변량 이동을 줄인다
-✓ 더 큰 학습률을 쓸 수 있다(학습이 10배 빨라진다)
+✓ 더 큰 러닝레이트를 쓸 수 있다(학습이 10배 빨라진다)
 ✓ 초기화에 덜 민감하다
 ✓ 정칙화 노릇을 한다(배치 통계에서 오는 작은 잡음)
 ✓ 때로는 드롭아웃을 대신할 수 있다
@@ -227,9 +227,9 @@ PLACEMENT:
   (둘 다 되지만 앞의 것이 더 흔하다)
 
 PARAMETERS:
-- 입력: 정규화할 특징의 수
-- 완전 연결층: num_features = output_dim
-- 합성곱층: num_features = num_channels
+- 입력: 정규화할 피처의 수
+- 완전 연결 레이어: num_features = output_dim
+- 컨볼루션 레이어: num_features = num_channels
 
 중요한 점:
 ⚠ batch_size > 1이어야 한다(표본이 여럿 필요하다)
@@ -241,13 +241,13 @@ PARAMETERS:
 BATCH NORMALIZATION VARIANTS
 ======================================================================
 
-BatchNorm1d: 완전 연결층용 (batch, features)
-BatchNorm2d: 합성곱층용 (batch, channels, height, width)
+BatchNorm1d: 완전 연결 레이어용 (batch, features)
+BatchNorm2d: 컨볼루션 레이어용 (batch, channels, height, width)
 BatchNorm3d: 3차원 데이터용 (batch, channels, depth, height, width)
 
-LayerNorm: 특징 방향으로 정규화한다(트랜스포머에서 쓴다)
+LayerNorm: 피처 방향으로 정규화한다(트랜스포머에서 쓴다)
 InstanceNorm: 표본마다 따로 정규화한다
-GroupNorm: 층 정규화와 인스턴스 정규화의 중간형
+GroupNorm: 레이어 정규화와 인스턴스 정규화의 중간형
 
 Visualization saved!
 
@@ -260,21 +260,21 @@ EXERCISES:
 
 ## 2. 논의
 
-`BNNet`은 선형층 뒤, ReLU 앞에 BatchNorm1d를 배치한다. 각 특징의 배치 통계로 정규화한 뒤 학습 가능한 배율과 이동을 적용한다. 정규화 직후라도 epsilon과 아핀 변환 때문에 출력 분산이 항상 정확히 1은 아니다.
+`BNNet`은 선형 레이어 뒤, ReLU 앞에 BatchNorm1d를 배치한다. 각 피처의 배치 통계로 정규화한 뒤 학습 가능한 배율과 이동을 적용한다. 정규화 직후라도 epsilon과 선형 변환 때문에 출력 분산이 항상 정확히 1은 아니다.
 
-배치 정규화의 weight와 bias는 학습 매개변수이고 running_mean과 running_var는 버퍼이다. 기본 설정에서는 학습과 평가에 쓰는 통계량이 달라지므로 모드 전환이 중요하다.
+배치 정규화의 weight와 bias는 학습 파라메터이고 running_mean과 running_var는 버퍼이다. 기본 설정에서는 학습과 평가에 쓰는 통계량이 달라지므로 모드 전환이 중요하다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-NoBNNet과 배치 정규화를 추가한 모델의 학습 매개변수 수를 비교하라.
+NoBNNet과 배치 정규화를 추가한 모델의 학습 파라메터 수를 비교하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    NoBNNet은 235146개이다. BNNet은 256, 128차원의 배율·이동 계수 768개가 더해져 235914개이다. 이동 통계량 버퍼는 학습 매개변수 수에 포함하지 않는다.
+    NoBNNet은 235146개이다. BNNet은 256, 128차원의 배율·이동 계수 768개가 더해져 235914개이다. 이동 통계량 버퍼는 학습 파라메터 수에 포함하지 않는다.
 
 ---
 
@@ -286,7 +286,7 @@ NoBNNet과 배치 정규화를 추가한 모델의 학습 매개변수 수를 �
 </div>
 
 ??? success "연습문제 2 풀이"
-    이미지를 784차원으로 펼친 후 각 선형층의 입력·출력 특징 수를 확인한다. BatchNorm1d는 `(B, C)`에서 특징 C별 배치 통계를 사용한다. 학습 시 특징당 통계량을 얻을 값이 하나뿐이면 정상적인 배치 통계를 계산할 수 없다.
+    이미지를 784차원으로 펼친 후 각 선형 레이어의 입력·출력 피처 수를 확인한다. BatchNorm1d는 `(B, C)`에서 피처 C별 배치 통계를 사용한다. 학습 시 피처당 통계량을 얻을 값이 하나뿐이면 정상적인 배치 통계를 계산할 수 없다.
 
 ---
 
@@ -316,7 +316,7 @@ NoBNNet과 배치 정규화를 추가한 모델의 학습 매개변수 수를 �
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

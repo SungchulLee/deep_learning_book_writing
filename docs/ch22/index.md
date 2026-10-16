@@ -8,8 +8,8 @@
 
 - [n-그램 언어 모델](language_modeling/ngram.md)과 [빈도 모델 기초](language_modeling/tutorial_01_ngram_basics.md): 문맥·종료 사건과 미관측 조합
 - [확률 평활화](language_modeling/tutorial_02_ngram_smoothing.md)와 [n-그램 생성](language_modeling/tutorial_03_text_generation_ngrams.md): 정규화·보간·후보 선택
-- [신경 언어 모델](language_modeling/neural_lm.md): [순방향 모델](language_modeling/tutorial_04_feedforward_lm.md), [RNN](language_modeling/tutorial_05_rnn_language_model.md), [LSTM](language_modeling/tutorial_06_lstm_language_model.md), [트랜스포머](language_modeling/tutorial_07_transformer_lm.md)
-- [사전 학습 모델 파인튜닝](language_modeling/tutorial_08_pretrained_lm.md)과 [처음부터 GPT 사전 학습](language_modeling/pretrain_gpt_from_scratch.md): 가중치 초기화·자료 구성·학습의 범위
+- [뉴럴 언어 모델](language_modeling/neural_lm.md): [순방향 모델](language_modeling/tutorial_04_feedforward_lm.md), [RNN](language_modeling/tutorial_05_rnn_language_model.md), [LSTM](language_modeling/tutorial_06_lstm_language_model.md), [트랜스포머](language_modeling/tutorial_07_transformer_lm.md)
+- [사전 학습 모델 파인튜닝](language_modeling/tutorial_08_pretrained_lm.md)과 [처음부터 GPT 사전 학습](language_modeling/pretrain_gpt_from_scratch.md): 웨이트 초기화·자료 구성·학습의 범위
 - [샘플링 전략](language_modeling/sampling_strategies.md), [조건부 생성](language_modeling/tutorial_09_conditional_generation.md), [언어 모델 평가](language_modeling/tutorial_10_lm_evaluation.md)
 - [wav2vec 2.0](language_modeling/10_wav2vec.md): 음성 표현의 자기지도 목적과 축약 구조
 
@@ -18,7 +18,7 @@
 개체의 구간·유형을 찾고 단어와 subword의 레이블을 정렬한다. 토큰 정확도와 개체 구간 F1은 서로 다른 지표다.
 
 - [개체명 인식 기초](sequence_labeling/ner_fundamentals.md), [개체 유형](sequence_labeling/entity_types.md), [BIO 레이블](sequence_labeling/bio_tagging.md)
-- [기초 예제](sequence_labeling/01_ner_basics.md), [IOB 검토](sequence_labeling/02_iob_tagging.md), [규칙](sequence_labeling/03_rule_based_ner.md), [사전](sequence_labeling/04_dictionary_ner.md), [특징 추출](sequence_labeling/05_feature_extraction.md)
+- [기초 예제](sequence_labeling/01_ner_basics.md), [IOB 검토](sequence_labeling/02_iob_tagging.md), [규칙](sequence_labeling/03_rule_based_ner.md), [사전](sequence_labeling/04_dictionary_ner.md), [피처 추출](sequence_labeling/05_feature_extraction.md)
 - [CRF](sequence_labeling/crf.md)와 [CRF 예제](sequence_labeling/06_crf_ner.md), [BiLSTM](sequence_labeling/bilstm_ner.md), [BiLSTM-CRF 구조](sequence_labeling/10_bilstm_crf_ner.md), [트랜스포머 구조](sequence_labeling/11_transformer_ner.md)
 - [평가 원칙](sequence_labeling/ner_evaluation.md), [평가 예제](sequence_labeling/07_evaluation_metrics.md), [데이터셋 구성](sequence_labeling/08_dataset_creation.md)
 - [파이프라인 골격](sequence_labeling/15_production_ner.md)과 [통합 시연](sequence_labeling/demo_complete_ner.md): 실제 구현과 미구현 부분 구분
@@ -46,7 +46,7 @@
 
 - [트랜스포머 기계 번역](machine_translation/transformer_mt.md): 인과·교차 어텐션과 번역 평가
 - [추출형 질의응답](question_answering/extractive_qa.md): 유효 답 구간·답 없음·긴 문맥
-- [LSA와 LDA 토픽 모델링](topic_modeling/topic_modeling_lda_lsa.md): 저차원 성분·확률 모형·신경 잠재 표현
+- [LSA와 LDA 토픽 모델링](topic_modeling/topic_modeling_lda_lsa.md): 저차원 성분·확률 모형·뉴럴 잠재 표현
 
 ## 정리하며
 

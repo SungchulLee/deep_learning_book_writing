@@ -4,9 +4,9 @@
 
 ## 1. 정규화 위치와 RMSNorm
 
-post-norm은 LayerNorm(x+Sublayer(x)), pre-norm은 x+Sublayer(LayerNorm(x)) 형태다. pre-norm은 잔차 경로의 기울기 전달에 도움이 될 수 있지만 모든 설정에서 최적이라는 뜻은 아니다. GPT-2 이후의 pre-norm을 원래 트랜스포머의 post-norm과 혼동하지 않는다.
+post-norm은 LayerNorm(x+Sublayer(x)), pre-norm은 x+Sublayer(LayerNorm(x)) 형태다. pre-norm은 잔차 경로의 그래디언트 전달에 도움이 될 수 있지만 모든 설정에서 최적이라는 뜻은 아니다. GPT-2 이후의 pre-norm을 원래 트랜스포머의 post-norm과 혼동하지 않는다.
 
-[RMSNorm](https://arxiv.org/abs/1910.07467)은 평균을 빼지 않고 마지막 특징 축의 제곱평균으로 스케일을 조절한다.
+[RMSNorm](https://arxiv.org/abs/1910.07467)은 평균을 빼지 않고 마지막 피처 축의 제곱평균으로 스케일을 조절한다.
 
 $$\operatorname{RMSNorm}(x)=\gamma\odot\frac{x}{\sqrt{d^{-1}\sum_i x_i^2+\epsilon}}.$$
 
@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 
 class RMSNorm(nn.Module):
-    """제곱평균제곱근 층 정규화."""
+    """제곱평균제곱근 레이어 정규화."""
     
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
@@ -29,7 +29,7 @@ class RMSNorm(nn.Module):
         return x_normed * self.weight
 ```
 
-현재 구현의 학습 매개변수는 d개의 γ이며 편향은 없다. 평균 0을 보장하는 정규화가 아니고 저정밀 x²의 overflow나 누적 dtype도 검토해야 한다. 단순한 연산이라는 이점은 있지만 ‘항상 15% 빠르다’는 고정 속도 향상은 없다. 실제 커널·dtype·모양에서 비교해야 한다.
+현재 구현의 학습 파라메터는 d개의 γ이며 바이어스는 없다. 평균 0을 보장하는 정규화가 아니고 저정밀 x²의 overflow나 누적 dtype도 검토해야 한다. 단순한 연산이라는 이점은 있지만 ‘항상 15% 빠르다’는 고정 속도 향상은 없다. 실제 커널·dtype·모양에서 비교해야 한다.
 
 ## 2. SwiGLU와 FFN 폭
 
@@ -37,7 +37,7 @@ class RMSNorm(nn.Module):
 
 ```python
 class SwiGLU(nn.Module):
-    """앞먹임 그물을 위한 SwiGLU 활성화."""
+    """피드포워드 넷트웍을 위한 SwiGLU 활성화."""
     
     def __init__(self, dim: int, hidden_dim: int = None, bias: bool = False):
         super().__init__()
@@ -54,7 +54,7 @@ class SwiGLU(nn.Module):
         return self.w2(nn.functional.silu(self.w1(x)) * self.w3(x))
 ```
 
-편향을 제외하면 중간 차원 m의 두 행렬 FFN은 2dm개, 세 행렬 SwiGLU는 3dm개다. 공정하게 비교하려면 폭과 전체 매개변수·계산 예산을 맞춘다. m≈8d/3이면 폭 4d의 일반 FFN과 비슷한 가중치 수지만 코드가 m을 256의 배수로 올림하므로 정확한 수는 달라진다. GELU·SwiGLU에 고정된 1%·2% 성능 향상을 붙일 수는 없다.
+바이어스를 제외하면 중간 차원 m의 두 행렬 FFN은 2dm개, 세 행렬 SwiGLU는 3dm개다. 공정하게 비교하려면 폭과 전체 파라메터·계산 예산을 맞춘다. m≈8d/3이면 폭 4d의 일반 FFN과 비슷한 웨이트 수지만 코드가 m을 256의 배수로 올림하므로 정확한 수는 달라진다. GELU·SwiGLU에 고정된 1%·2% 성능 향상을 붙일 수는 없다.
 
 ## 3. RoPE의 회전과 상대 위치
 
@@ -205,7 +205,7 @@ class GroupedQueryAttention(nn.Module):
 
 모델 차원 d는 쿼리 head 수 H로 나누어져야 하며 H는 KV head 수 H_kv로 나누어져야 한다. H_kv=H면 MHA, H_kv=1이면 MQA다. 이 코드는 두 어텐션 모두 인과·padding 마스크와 KV cache가 없어 전체 입력을 양방향으로 본다. 그대로 자기회귀 언어 모델에 사용하면 미래 정보가 누출된다.
 
-길이 T·배치 B·층 수 L·head 차원 d_h에서 KV 원소 수는 2LBTH_kv d_h다. 실제 바이트는 dtype당 바이트를 곱한다. MHA 대비 H_kv/H 비율로 저장량을 줄일 수 있지만 GQA 코드의 repeat_interleave는 계산 시 head를 다시 복제한다. 캐시를 작은 head 수로 실제 저장하는 구현과 구분해야 한다. 품질·속도 우열은 학습·실행 조건에 달려 있다.
+길이 T·배치 B·레이어 수 L·head 차원 d_h에서 KV 원소 수는 2LBTH_kv d_h다. 실제 바이트는 dtype당 바이트를 곱한다. MHA 대비 H_kv/H 비율로 저장량을 줄일 수 있지만 GQA 코드의 repeat_interleave는 계산 시 head를 다시 복제한다. 캐시를 작은 head 수로 실제 저장하는 구현과 구분해야 한다. 품질·속도 우열은 학습·실행 조건에 달려 있다.
 
 ## 5. 슬라이딩 윈도 어텐션
 
@@ -255,7 +255,7 @@ class SlidingWindowAttention(nn.Module):
 
 현재 마스크는 i−window_size부터 i까지를 포함하므로 최대 window_size+1개 위치를 허용한다. 허용 위치의 값 1에 −∞ 차단을 더하는 형태라 모든 허용 점수에 공통 1이 추가되지만 소프트맥스에는 영향을 주지 않는다.
 
-그러나 scores 자체를 B×H×T×T의 밀집 행렬로 만들므로 이 코드는 O(TW)의 희소 메모리·계산을 달성하지 않는다. 윈도 연산 전용 커널이나 필요한 위치만 구성하는 구현이 있어야 한다. 층 수를 늘리면 정보 경로가 더 멀리 갈 수 있지만 고정 깊이에서 임의 길이 전체 문맥을 항상 참조하는 것은 아니다.
+그러나 scores 자체를 B×H×T×T의 밀집 행렬로 만들므로 이 코드는 O(TW)의 희소 메모리·계산을 달성하지 않는다. 윈도 연산 전용 커널이나 필요한 위치만 구성하는 구현이 있어야 한다. 레이어 수를 늘리면 정보 경로가 더 멀리 갈 수 있지만 고정 깊이에서 임의 길이 전체 문맥을 항상 참조하는 것은 아니다.
 
 ## 6. 블록 연결과 구현 범위
 
@@ -280,7 +280,7 @@ class LLaMABlock(nn.Module):
         # 무리 지은 물음 어텐션
         self.attention = GroupedQueryAttention(dim, num_heads, num_kv_heads)
         
-        # SwiGLU 앞먹임 그물
+        # SwiGLU 피드포워드 넷트웍
         self.ffn = SwiGLU(dim, int(dim * ffn_dim_multiplier))
         
         # 돌림 자리 묻힘
@@ -314,13 +314,13 @@ LLaMABlock은 두 pre-norm 잔차 경로와 GQA·SwiGLU의 연결 의도를 보�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-bias 없는 중간 폭 m의 일반 FFN과 SwiGLU 매개변수 수를 비교하라.
+bias 없는 중간 폭 m의 일반 FFN과 SwiGLU 파라메터 수를 비교하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
 
-    일반 FFN은 d→m→d의 두 행렬로 2dm개다. SwiGLU는 두 d→m 사영과 한 m→d 출력으로 3dm개다. 같은 가중치 수를 위해 일반 FFN의 폭 4d에 대해 SwiGLU 폭을 약 8d/3로 둘 수 있지만 코드의 256 배수 올림을 반영해야 실제 수가 나온다.
+    일반 FFN은 d→m→d의 두 행렬로 2dm개다. SwiGLU는 두 d→m 사영과 한 m→d 출력으로 3dm개다. 같은 웨이트 수를 위해 일반 FFN의 폭 4d에 대해 SwiGLU 폭을 약 8d/3로 둘 수 있지만 코드의 256 배수 올림을 반영해야 실제 수가 나온다.
 
 
 
@@ -335,7 +335,7 @@ GQA에서 H=32, H_kv=8일 때 이론적인 KV 저장량과 현재 repeat_interle
 
 ??? success "연습문제 2 풀이"
 
-    같은 배치·길이·층·head 차원·dtype에서 작은 KV 캐시의 저장량은 MHA의 8/32=1/4다. 그러나 코드가 계산 전에 KV를 32개 head로 복제하므로 중간 텐서는 커진다. 실제 캐시도 구현하지 않아 저장량 감소를 측정한 결과는 아니다. 어텐션 점수의 T×T 메모리도 별도다.
+    같은 배치·길이·레이어·head 차원·dtype에서 작은 KV 캐시의 저장량은 MHA의 8/32=1/4다. 그러나 코드가 계산 전에 KV를 32개 head로 복제하므로 중간 텐서는 커진다. 실제 캐시도 구현하지 않아 저장량 감소를 측정한 결과는 아니다. 어텐션 점수의 T×T 메모리도 별도다.
 
 
 
@@ -371,7 +371,7 @@ GQA에서 H=32, H_kv=8일 때 이론적인 KV 저장량과 현재 repeat_interle
 
 ## 정리하며
 
-정규화·게이트 FFN·RoPE·KV head 공유·국소 어텐션은 서로 다른 구조 선택이다. 매개변수·캐시·밀집 중간 텐서 비용을 구분하고 실제 연결·마스크·차원과 평가로 효과를 확인해야 한다.
+정규화·게이트 FFN·RoPE·KV head 공유·국소 어텐션은 서로 다른 구조 선택이다. 파라메터·캐시·밀집 중간 텐서 비용을 구분하고 실제 연결·마스크·차원과 평가로 효과를 확인해야 한다.
 
 **참고 문헌**
 

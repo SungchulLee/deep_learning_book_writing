@@ -19,12 +19,12 @@ FILE: 10_advanced_applications.py
 
 수학 바탕:
     조건 있는 만들어 내기:
-    y가 조건(보기: 갈래 이름표)일 때 s_θ(x, y) = ∇log p(x|y)을 배운다.
+    y가 조건(보기: 클래스 이름표)일 때 s_θ(x, y) = ∇log p(x|y)을 배운다.
     
     분류기 이끎:
     s(x|y) = s(x) + ∇log p(y|x)
     
-    여기서 둘째 항이 바라는 갈래 쪽으로 이끈다.
+    여기서 둘째 항이 바라는 클래스 쪽으로 이끈다.
     
     INPAINTING:
     덮개 M과 본 화소 x_obs가 주어질 때 다음을 풀어라.
@@ -43,15 +43,15 @@ import numpy as np
 
 
 class ConditionalScoreNetwork(nn.Module):
-    """갈래 이름표를 조건으로 삼는 점수 신경망."""
+    """클래스 이름표를 조건으로 삼는 점수 뉴럴 넷트웍."""
     
     def __init__(self, data_dim=2, n_classes=10, hidden_dim=128):
         super().__init__()
         
-        # 갈래 임베딩
+        # 클래스 임베딩
         self.class_embed = nn.Embedding(n_classes, hidden_dim)
         
-        # 점수 신경망
+        # 점수 뉴럴 넷트웍
         self.net = nn.Sequential(
             nn.Linear(data_dim + hidden_dim, hidden_dim),
             nn.SiLU(),
@@ -66,7 +66,7 @@ class ConditionalScoreNetwork(nn.Module):
         
         인수:
             x: 자료 점, 꼴 (N, D)
-            y: 갈래 이름표, 꼴 (N,)
+            y: 클래스 이름표, 꼴 (N,)
         """
         y_emb = self.class_embed(y)
         inp = torch.cat([x, y_emb], dim=-1)
@@ -78,7 +78,7 @@ def inpaint_with_scores(model, x_obs, mask, n_steps=1000, step_size=0.01):
     점수 바탕 방법을 쓴 그림 안 그리기.
     
     전략:
-    1. p(x)에서 표본을 뽑으려고 랑주뱅 움직임을 돌린다
+    1. p(x)에서 표본을 뽑으려고 랑주뱅 액션을 돌린다
     2. 걸음마다 본 화소에 맞도록 쏜다
     
     인수:
@@ -113,7 +113,7 @@ def demo_conditional_generation():
     print("Conditional Score-Based Generation")
     print("=" * 80)
     
-    # 인공 조건 자료: 갈래에 따라 다른 정규 분포
+    # 인공 조건 자료: 클래스에 따라 다른 정규 분포
     n_classes = 3
     samples_per_class = 300
     
@@ -121,7 +121,7 @@ def demo_conditional_generation():
     labels = []
     
     for c in range(n_classes):
-        # 갈래마다 평균이 다르다
+        # 클래스마다 평균이 다르다
         mean = torch.tensor([c * 2.0, 0.0])
         samples = torch.randn(samples_per_class, 2) * 0.5 + mean
         data.append(samples)
@@ -138,7 +138,7 @@ def demo_conditional_generation():
     
     print("\nTraining conditional score model...")
     for epoch in range(2000):
-        # 단순한 잡음 없애는 점수 맞추기 손실
+        # 단순한 잡음 없애는 점수 맞추기 로스
         noise = torch.randn_like(data) * 0.5
         noisy_data = data + noise
         
@@ -209,7 +209,7 @@ Generated samples - Class 2: torch.Size([100, 2])
 
 `ConditionalScoreNetwork`는 정수 레이블 y를 128차원 임베딩으로 바꾸고 2차원 데이터와 연결한다. 입력 경로는 B×2와 B×128→B×130→B×128→B×128→B×2다. 레이블은 길이 B의 정수 인덱스이며 모델의 클래스 범위 안에 있어야 한다. 클래스 조건만 받고 노이즈 수준이나 시간 조건은 받지 않는다.
 
-데모는 평균 (0,0), (2,0), (4,0), 공분산 0.25I인 가우시안에서 클래스당 300개씩 총 900개 표본을 만든다. 클래스 수는 3으로 지정한다. 학습은 표준편차 0.5의 추가 노이즈 η를 더하고 −η/0.5²를 회귀한다. 손실은 두 좌표 제곱오차의 합을 표본 사이에서 평균 내며 Adam 학습률 0.001로 전체 배치를 2,000번 갱신한다.
+데모는 평균 (0,0), (2,0), (4,0), 공분산 0.25I인 가우시안에서 클래스당 300개씩 총 900개 표본을 만든다. 클래스 수는 3으로 지정한다. 학습은 표준편차 0.5의 추가 노이즈 η를 더하고 −η/0.5²를 회귀한다. 로스는 두 좌표 제곱오차의 합을 표본 사이에서 평균 내며 Adam 러닝레이트 0.001로 전체 배치를 2,000번 갱신한다.
 
 모집단의 조건별 목표는 원본 p(x|y)가 아니라 **노이즈 주변 pσ(x̃|y)**의 스코어다. 이 가우시안 예에서는 평활화 공분산이 (0.25+0.25)I=0.5I이므로 참 주변 스코어는 $s(x,y)=-2(x-\mu_y)$다. 유한 데이터·학습에서는 그 근사 오차가 남는다.
 
@@ -231,7 +231,7 @@ $$x\leftarrow x+0.01s_\theta(x,y)+0.1\xi$$
 
 함수는 `model(x.flatten(), torch.tensor([0.0]))`를 호출한다. 그러나 위 클래스는 B×data_dim 데이터와 정수 클래스 인덱스를 기대한다. 모든 좌표를 하나로 평탄화한 벡터와 float 레이블은 이 인터페이스와 맞지 않으며 CUDA 장치도 일치하지 않을 수 있다. 따라서 위 모델에 바로 연결되는 완성된 이미지 인페인팅 구현이 아니다.
 
-이론적으로 정해진 관측 좌표 아래 정확한 결합 스코어의 미관측 성분을 사용하면 조건부 랑주뱅 접근을 구성할 수 있다. 실제 이미지 모델에서는 노이즈 시간, 관측 잡음 모형과 제약 처리를 맞춰야 하고 고정 보폭·스코어 오차·혼합 문제도 남는다. 이 짧은 함수가 그 조건을 모두 구현한다고 보아서는 안 된다.
+이론적으로 정해진 관측 좌표 아래 정확한 결합 스코어의 미관측 성분을 사용하면 조건부 랑주뱅 접근을 구성할 수 있다. 실제 이미지 모델에서는 노이즈 시간, 관측 잡음 모형과 제약 처리를 맞춰야 하고 고정 스트라이드·스코어 오차·혼합 문제도 남는다. 이 짧은 함수가 그 조건을 모두 구현한다고 보아서는 안 된다.
 
 ## 연습문제
 

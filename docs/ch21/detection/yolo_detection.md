@@ -78,7 +78,7 @@
         img = Image.new('RGB', size, color=(240, 240, 240))
         draw = ImageDraw.Draw(img)
 
-        # 미리 정해 둔 물체 갈래
+        # 미리 정해 둔 물체 클래스
         object_types = [
             {'shape': 'rectangle', 'color': (255, 100, 100), 'label': 'red_box'},
             {'shape': 'ellipse', 'color': (100, 100, 255), 'label': 'blue_circle'},
@@ -129,11 +129,11 @@
     # ============================================================================
     """
     YOLOv8에는 여러 크기가 있다:
-    - yolov8n(나노): 가장 빠르고 작다(매개변수 320만)
-    - yolov8s(소형): 균형(매개변수 1120만)
-    - yolov8m(중형): 좋은 정확도(매개변수 2590만)
-    - yolov8l(대형): 더 나은 정확도(매개변수 4370만)
-    - yolov8x(초대형): 가장 좋은 정확도(매개변수 6820만)
+    - yolov8n(나노): 가장 빠르고 작다(파라메터 320만)
+    - yolov8s(소형): 균형(파라메터 1120만)
+    - yolov8m(중형): 좋은 정확도(파라메터 2590만)
+    - yolov8l(대형): 더 나은 정확도(파라메터 4370만)
+    - yolov8x(초대형): 가장 좋은 정확도(파라메터 6820만)
 
     빠르기를 위해 yolov8n으로 시작한다.
     """
@@ -170,14 +170,14 @@
     YOLO는 알아냄마다 다음을 내놓는다:
     - 두름 상자: [x_최소, y_최소, x_최대, y_최대]
     - 믿음도: 0과 1 사이의 실수
-    - 갈래: 정수 갈래 번호
-    - 갈래 이름: 글자 이름표
+    - 클래스: 정수 클래스 번호
+    - 클래스 이름: 글자 이름표
 
     결과 개체에는 다음이 들어 있다:
     - boxes: 모든 두름 상자
-    - names: 갈래 이름 대응(사전)
+    - names: 클래스 이름 대응(사전)
     - conf: 믿음도 점수
-    - cls: 갈래 번호
+    - cls: 클래스 번호
     """
 
     print("Step 3: Running Detection and Understanding Output")
@@ -217,28 +217,28 @@
     print()
 
     # ============================================================================
-    # 4단계: COCO 갈래 훑어보기
+    # 4단계: COCO 클래스 훑어보기
     # ============================================================================
     """
-    YOLOv8은 갈래 80개의 COCO 자료 뭉치로 미리 익혀져 있다.
-    어떤 갈래를 알아낼 수 있는지 보자.
+    YOLOv8은 클래스 80개의 COCO 자료 뭉치로 미리 익혀져 있다.
+    어떤 클래스를 알아낼 수 있는지 보자.
     """
 
     print("Step 4: COCO Dataset Classes")
     print("-" * 70)
 
-    # 갈래 이름 얻기
+    # 클래스 이름 얻기
     class_names = result.names
     print(f"Total classes: {len(class_names)}")
     print(f"\nSample of COCO classes:")
 
-    # 흔한 갈래 몇 개 보이기
+    # 흔한 클래스 몇 개 보이기
     common_classes = [0, 1, 2, 3, 15, 16, 17, 18]  # person, bicycle, car 등
     for class_id in common_classes:
         print(f"  ID {class_id:2d}: {class_names[class_id]}")
 
     print(f"\nFull class list:")
-    # 모든 갈래를 칸으로 찍기
+    # 모든 클래스를 칸으로 찍기
     class_list = [f"{i:2d}:{name}" for i, name in class_names.items()]
     for i in range(0, len(class_list), 4):
         print("  " + "  ".join(class_list[i:i+4]))
@@ -246,19 +246,19 @@
     print()
 
     # ============================================================================
-    # 5단계: 믿음도 문턱값을 둔 알아내기
+    # 5단계: 믿음도 임계값을 둔 알아내기
     # ============================================================================
     """
-    매개변수로 알아내기의 몸짓을 다스릴 수 있다:
-    - conf: 믿음도 문턱값(붙박이 0.25)
-    - iou: NMS의 겹침 비 문턱값(붙박이 0.45)
-    - classes: 알아낼 특정 갈래
+    파라메터로 알아내기의 몸짓을 다스릴 수 있다:
+    - conf: 믿음도 임계값(붙박이 0.25)
+    - iou: NMS의 겹침 비 임계값(붙박이 0.45)
+    - classes: 알아낼 특정 클래스
     """
 
     print("Step 5: Detection with Different Thresholds")
     print("-" * 70)
 
-    # 믿음도 문턱값을 달리해 시험
+    # 믿음도 임계값을 달리해 시험
     thresholds = [0.25, 0.5, 0.7]
 
     for conf_thresh in thresholds:
@@ -292,7 +292,7 @@
         # 알아냄 얻기
         boxes = result.boxes
 
-        # 갈래마다 빛깔 정하기
+        # 클래스마다 빛깔 정하기
         colors = plt.cm.tab20(np.linspace(0, 1, len(result.names)))
 
         for box in boxes:
@@ -302,7 +302,7 @@
             cls = int(box.cls[0].cpu().numpy())
             class_name = result.names[cls]
 
-            # 이 갈래의 빛깔 얻기
+            # 이 클래스의 빛깔 얻기
             color = colors[cls % len(colors)]
 
             # 네모 그리기
@@ -356,7 +356,7 @@
     YOLOv8 모델 크기를 견준다:
     - 빠르기(미룸 시간)
     - 정확도(알아낸 물체)
-    - 모델 크기(매개변수)
+    - 모델 크기(파라메터)
     """
 
     print("Step 7: Comparing YOLO Model Sizes")
@@ -439,22 +439,22 @@
     # ============================================================================
     """
     YOLOv8은 여러 앞선 기능을 받쳐 준다:
-    - 갈래 거르기
+    - 클래스 거르기
     - 관심 자리(ROI)
-    - 맞춤 믿음도/겹침 비 문턱값
+    - 맞춤 믿음도/겹침 비 임계값
     - 미룸 동안의 그림 불리기
     """
 
     print("Step 9: Advanced YOLO Features")
     print("-" * 70)
 
-    # 기능 1: 특정 갈래만 알아내기
+    # 기능 1: 특정 클래스만 알아내기
     print("Feature 1: Detect specific classes only")
     print("  Detecting only persons, cars, and dogs (classes 0, 2, 15)...")
     results = model(test_img, classes=[0, 2, 15], verbose=False)
     print(f"  Detections: {len(results[0].boxes)}")
 
-    # 기능 2: 맞춤 문턱값
+    # 기능 2: 맞춤 임계값
     print("\nFeature 2: Custom confidence and IoU thresholds")
     results_strict = model(test_img, conf=0.7, iou=0.3, verbose=False)
     print(f"  High confidence (0.7): {len(results_strict[0].boxes)} detections")
@@ -580,7 +580,7 @@ Install with: pip install ultralytics
 
 ## 2. 입력 이미지와 클래스의 의미
 
-각 이미지에는 빨간 사각형·파란 타원·초록 사각형을 그린다. 그림을 그릴 때 기록한 red_box·blue_circle·green_box는 COCO 가중치가 학습한 클래스 이름이 아니다. 객체가 탐지되지 않아도 이 모델이 그 도형 클래스를 학습하지 못했다는 실험으로 해석하지 않는다. 반대로 도형을 다른 COCO 객체로 탐지한 수를 정확도로 삼을 수도 없다.
+각 이미지에는 빨간 사각형·파란 타원·초록 사각형을 그린다. 그림을 그릴 때 기록한 red_box·blue_circle·green_box는 COCO 웨이트가 학습한 클래스 이름이 아니다. 객체가 탐지되지 않아도 이 모델이 그 도형 클래스를 학습하지 못했다는 실험으로 해석하지 않는다. 반대로 도형을 다른 COCO 객체로 탐지한 수를 정확도로 삼을 수도 없다.
 
 `create_test_image`의 좌표 난수 범위는 너비·높이가 충분히 큰 이미지를 가정한다. 임의의 작은 크기를 넣으면 난수 범위가 유효하지 않을 수 있다. 입력은 이 예제에서 RGB PIL 이미지이며 NumPy·Tensor 입력의 채널 순서·범위는 별도의 API 계약을 따른다. torchvision 입력과 모든 영상 라이브러리의 BGR/RGB 관례가 같다고 가정하지 않는다.
 
@@ -608,7 +608,7 @@ conf는 낮은 점수 후보를 거르는 기준이고 iou는 NMS에서 겹친 �
 
 ## 6. 예제 파일의 실행 범위
 
-설치되지 않았을 때 ‘Installing’ 메시지를 내지만 실제 설치 명령은 실행하지 않는다. 가중치 로드에는 다운로드가 필요할 수 있다. 예제 호출과 그림 저장은 최상위에 있어 import만 해도 수행되고, 마지막 main 조건문의 pass가 이를 막지 않는다. 읽기·검토 작업에서는 기존 출력과 코드를 설명하면 충분하며 재실행할 필요는 없다.
+설치되지 않았을 때 ‘Installing’ 메시지를 내지만 실제 설치 명령은 실행하지 않는다. 웨이트 로드에는 다운로드가 필요할 수 있다. 예제 호출과 그림 저장은 최상위에 있어 import만 해도 수행되고, 마지막 main 조건문의 pass가 이를 막지 않는다. 읽기·검토 작업에서는 기존 출력과 코드를 설명하면 충분하며 재실행할 필요는 없다.
 
 ## 연습문제
 
@@ -636,7 +636,7 @@ boxes.xywh의 앞 두 값과 클래스 [0,2,15]의 의미를 설명하라.
 
 ??? success "연습문제 2 풀이"
 
-    xywh의 앞 두 값은 중심 좌표다. COCO 기본 가중치에서 [0,2,15]는 person·car·cat이며 dog는 16이다. 모델이 달라지면 names를 기준으로 확인한다. 점수·클래스·상자 배열의 행 순서도 같아야 한다.
+    xywh의 앞 두 값은 중심 좌표다. COCO 기본 웨이트에서 [0,2,15]는 person·car·cat이며 dog는 16이다. 모델이 달라지면 names를 기준으로 확인한다. 점수·클래스·상자 배열의 행 순서도 같아야 한다.
 
 
 

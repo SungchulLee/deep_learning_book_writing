@@ -1,6 +1,6 @@
 # PyTorch Autograd 기초
 
-스칼라 함수의 미분부터 단일 가중치의 학습까지 autograd의 기본 흐름을 연결한다. 경사 누적과 추적 제어도 함께 살펴본다.
+스칼라 함수의 미분부터 단일 웨이트의 학습까지 autograd의 기본 흐름을 연결한다. 경사 누적과 추적 제어도 함께 살펴본다.
 
 ## 1. 코드
 
@@ -22,7 +22,7 @@
 
 PREREQUISITES:
 - 보기 01(직접 하는 경사 하강법)을 마쳤을 것
-- 기울기를 기본으로 이해하고 있을 것
+- 그래디언트를 기본으로 이해하고 있을 것
 
 ================================================================================
 """
@@ -104,7 +104,7 @@ PyTorch가 셈 그래프를 세운다.
 y.backward()을 부르면
 - PyTorch가 이 그래프를 거꾸로 훑는다
 - 사슬 법칙을 절로 건다
-- x.grad에 기울기를 쌓는다
+- x.grad에 그래디언트를 쌓는다
 """)
 
 # ============================================================================
@@ -122,7 +122,7 @@ print("\nProblem: Fit y = w*x to find w ≈ 2")
 print(f"Training data: X = {X.numpy()}")
 print(f"               y = {y.numpy()}")
 
-# 경사 추적을 켜고 가중치 초기화
+# 경사 추적을 켜고 웨이트 초기화
 w = torch.tensor(0.0, requires_grad=True)
 print(f"\nInitial weight: w = {w.item():.3f}")
 
@@ -144,7 +144,7 @@ for epoch in range(n_epochs):
     # 1단계: 순전파
     y_pred = w * X
     
-    # 2단계: 손실 계산
+    # 2단계: 로스 계산
     loss = torch.mean((y_pred - y) ** 2)
     
     # 3단계: 역전파 - 경사를 자동으로 계산한다!
@@ -154,7 +154,7 @@ for epoch in range(n_epochs):
     
     loss.backward()  # This computes dL/dw automatically!
     
-    # 4단계: 가중치 갱신
+    # 4단계: 웨이트 갱신
     # 중요: 이 연산이 추적되지 않도록 torch.no_grad()를 쓴다
     with torch.no_grad():
         w -= learning_rate * w.grad
@@ -180,7 +180,7 @@ print("PART 5: MANUAL vs AUTOGRAD COMPARISON")
 print("="*80)
 
 print("""
-직접 계산하는 기울기(보기 01에서):
+직접 계산하는 그래디언트(보기 01에서):
 -----------------------------------
 def compute_gradient(x, y_true, y_pred):
     # 직접 유도한 식: dL/dw = mean(2 * x * (y_pred - y_true))
@@ -190,18 +190,18 @@ def compute_gradient(x, y_true, y_pred):
 자동 미분(이 보기):
 ------------------------
 loss = torch.mean((y_pred - y) ** 2)
-loss.backward()  # 모든 기울기를 절로 계산한다!
+loss.backward()  # 모든 그래디언트를 절로 계산한다!
 gradient = w.grad  # PyTorch가 대신 채워 준다
 
 자동 미분의 이점:
 ✓ 직접 미적분할 것이 없다
 ✓ 복잡한 모델도 절로 다룬다
 ✓ 벌레가 적다(도함수 실수가 없다)
-✓ 효율적인 짜보기
+✓ 효율적인 구현
 ✓ 모델 구조를 고치기 쉽다
 
 직접 할 때:
-• 기울기를 배우거나 이해할 때
+• 그래디언트를 배우거나 이해할 때
 • 단순한 학습 보기
 • 아주 남다른 셈
 """)
@@ -230,7 +230,7 @@ y2.backward()
 print(f"After 2nd backward: x.grad = {x.grad.item()}")  # Should be 27
 
 print("""
-종요롭다: 역전파 앞에는 늘 기울기를 0으로 만들어라!
+종요롭다: 역전파 앞에는 늘 그래디언트를 0으로 만들어라!
     if w.grad is not None:
         w.grad.zero_()
     loss.backward()
@@ -258,8 +258,8 @@ with torch.no_grad():
 
 print("""
 쓰임새:
-- detach(): 기울기 없이 값만 쓰고 싶을 때
-- no_grad(): 추론이나 매개변수 고치기에
+- detach(): 그래디언트 없이 값만 쓰고 싶을 때
+- no_grad(): 추론이나 파라메터 고치기에
 - 둘 다 쓸데없는 그래프 세우기를 막는다(기억 자리를 아낀다!)
 """)
 
@@ -272,7 +272,7 @@ print("="*80)
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
-# 그림 1: 손실 수렴
+# 그림 1: 로스 수렴
 axes[0].plot(loss_history, 'b-', linewidth=2)
 axes[0].set_xlabel('Epoch', fontsize=12)
 axes[0].set_ylabel('Loss', fontsize=12)
@@ -280,7 +280,7 @@ axes[0].set_title('Loss Convergence (PyTorch Autograd)', fontsize=14, fontweight
 axes[0].grid(True, alpha=0.3)
 axes[0].set_yscale('log')
 
-# 그림 2: 가중치 수렴
+# 그림 2: 웨이트 수렴
 axes[1].plot(weight_history, 'g-', linewidth=2)
 axes[1].axhline(y=2.0, color='r', linestyle='--', linewidth=2, label='Target (2.0)')
 axes[1].set_xlabel('Epoch', fontsize=12)
@@ -305,15 +305,15 @@ print("""
 다음 함수에 경사 하강법을 짜 보아라.
 
 1. Quadratic: y = ax² + bx + c
-   - 매개변수 셋 a, b, c을 쓴다(모두 requires_grad=True)
+   - 파라메터 셋 a, b, c을 쓴다(모두 requires_grad=True)
    - 데이터에 맞춘다: x=[1,2,3,4], y=[3,8,15,24]
 
 2. 비선형: y = a*sin(b*x) + c
    - 잡음 섞인 데이터에 사인 물결을 맞춘다
-   - 학습률을 이리저리 바꾸어 보아라
+   - 러닝레이트를 이리저리 바꾸어 보아라
 
 3. Multi-dimensional: z = ax + by + c
-   - 입력 특징 2개(x, y)
+   - 입력 피처 2개(x, y)
    - 3 parameters (a, b, c)
 """)
 
@@ -324,23 +324,23 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. 자동 미분은 직접 하는 기울기 셈을 없앤다
-   - 매개변수에 requires_grad=True를 둔다
+1. 자동 미분은 직접 하는 그래디언트 셈을 없앤다
+   - 파라메터에 requires_grad=True를 둔다
    - 셈을 거쳐 셈 그래프를 세운다
-   - .backward()을 불러 모든 기울기를 계산한다
+   - .backward()을 불러 모든 그래디언트를 계산한다
 
-2. 역전파 앞에는 늘 기울기를 0으로 만들어라
-   - 기울기는 기본으로 쌓인다
+2. 역전파 앞에는 늘 그래디언트를 0으로 만들어라
+   - 그래디언트는 기본으로 쌓인다
    - 이렇게 쓴다: w.grad.zero_()이나 optimizer.zero_grad()
 
-3. 매개변수를 고칠 때는 torch.no_grad()을 써라
+3. 파라메터를 고칠 때는 torch.no_grad()을 써라
    - 미분할 필요 없는 셈을 좇지 않게 한다
    - 추론(시험/예측)에 꼭 필요하다
    - 기억 자리와 셈을 아낀다
 
-4. 잎 텐서가 기울기를 담는다
+4. 잎 텐서가 그래디언트를 담는다
    - requires_grad=True로 만든 텐서만 그렇다
-   - 가운데 텐서는 기본으로 기울기를 담지 않는다
+   - 가운데 텐서는 기본으로 그래디언트를 담지 않는다
 
 5. 셈 그래프는 그때그때 세워진다
    - 순전파에서 세워진다
@@ -416,7 +416,7 @@ if __name__ == "__main__":
     y.backward()을 부르면
     - PyTorch가 이 그래프를 거꾸로 훑는다
     - 사슬 법칙을 절로 건다
-    - x.grad에 기울기를 쌓는다
+    - x.grad에 그래디언트를 쌓는다
 
 
     ================================================================================
@@ -453,7 +453,7 @@ if __name__ == "__main__":
     PART 5: MANUAL vs AUTOGRAD COMPARISON
     ================================================================================
 
-    직접 계산하는 기울기(보기 01에서):
+    직접 계산하는 그래디언트(보기 01에서):
     -----------------------------------
     def compute_gradient(x, y_true, y_pred):
         # 직접 유도한 식: dL/dw = mean(2 * x * (y_pred - y_true))
@@ -463,18 +463,18 @@ if __name__ == "__main__":
     자동 미분(이 보기):
     ------------------------
     loss = torch.mean((y_pred - y) ** 2)
-    loss.backward()  # 모든 기울기를 절로 계산한다!
+    loss.backward()  # 모든 그래디언트를 절로 계산한다!
     gradient = w.grad  # PyTorch가 대신 채워 준다
 
     자동 미분의 이점:
     ✓ 직접 미적분할 것이 없다
     ✓ 복잡한 모델도 절로 다룬다
     ✓ 벌레가 적다(도함수 실수가 없다)
-    ✓ 효율적인 짜보기
+    ✓ 효율적인 구현
     ✓ 모델 구조를 고치기 쉽다
 
     직접 할 때:
-    • 기울기를 배우거나 이해할 때
+    • 그래디언트를 배우거나 이해할 때
     • 단순한 학습 보기
     • 아주 남다른 셈
 
@@ -488,7 +488,7 @@ if __name__ == "__main__":
     After 1st backward: x.grad = 6.0
     After 2nd backward: x.grad = 27.0
 
-    종요롭다: 역전파 앞에는 늘 기울기를 0으로 만들어라!
+    종요롭다: 역전파 앞에는 늘 그래디언트를 0으로 만들어라!
         if w.grad is not None:
             w.grad.zero_()
         loss.backward()
@@ -504,8 +504,8 @@ if __name__ == "__main__":
     Inside no_grad, z.requires_grad: False
 
     쓰임새:
-    - detach(): 기울기 없이 값만 쓰고 싶을 때
-    - no_grad(): 추론이나 매개변수 고치기에
+    - detach(): 그래디언트 없이 값만 쓰고 싶을 때
+    - no_grad(): 추론이나 파라메터 고치기에
     - 둘 다 쓸데없는 그래프 세우기를 막는다(기억 자리를 아낀다!)
 
 
@@ -524,15 +524,15 @@ if __name__ == "__main__":
     다음 함수에 경사 하강법을 짜 보아라.
 
     1. Quadratic: y = ax² + bx + c
-       - 매개변수 셋 a, b, c을 쓴다(모두 requires_grad=True)
+       - 파라메터 셋 a, b, c을 쓴다(모두 requires_grad=True)
        - 데이터에 맞춘다: x=[1,2,3,4], y=[3,8,15,24]
 
     2. 비선형: y = a*sin(b*x) + c
        - 잡음 섞인 데이터에 사인 물결을 맞춘다
-       - 학습률을 이리저리 바꾸어 보아라
+       - 러닝레이트를 이리저리 바꾸어 보아라
 
     3. Multi-dimensional: z = ax + by + c
-       - 입력 특징 2개(x, y)
+       - 입력 피처 2개(x, y)
        - 3 parameters (a, b, c)
 
 
@@ -540,23 +540,23 @@ if __name__ == "__main__":
     KEY TAKEAWAYS
     ================================================================================
 
-    1. 자동 미분은 직접 하는 기울기 셈을 없앤다
-       - 매개변수에 requires_grad=True를 둔다
+    1. 자동 미분은 직접 하는 그래디언트 셈을 없앤다
+       - 파라메터에 requires_grad=True를 둔다
        - 셈을 거쳐 셈 그래프를 세운다
-       - .backward()을 불러 모든 기울기를 계산한다
+       - .backward()을 불러 모든 그래디언트를 계산한다
 
-    2. 역전파 앞에는 늘 기울기를 0으로 만들어라
-       - 기울기는 기본으로 쌓인다
+    2. 역전파 앞에는 늘 그래디언트를 0으로 만들어라
+       - 그래디언트는 기본으로 쌓인다
        - 이렇게 쓴다: w.grad.zero_()이나 optimizer.zero_grad()
 
-    3. 매개변수를 고칠 때는 torch.no_grad()을 써라
+    3. 파라메터를 고칠 때는 torch.no_grad()을 써라
        - 미분할 필요 없는 셈을 좇지 않게 한다
        - 추론(시험/예측)에 꼭 필요하다
        - 기억 자리와 셈을 아낀다
 
-    4. 잎 텐서가 기울기를 담는다
+    4. 잎 텐서가 그래디언트를 담는다
        - requires_grad=True로 만든 텐서만 그렇다
-       - 가운데 텐서는 기본으로 기울기를 담지 않는다
+       - 가운데 텐서는 기본으로 그래디언트를 담지 않는다
 
     5. 셈 그래프는 그때그때 세워진다
        - 순전파에서 세워진다
@@ -582,11 +582,11 @@ $y=3x^2+2x+1$의 도함수는 $6x+2$이므로 $x=2$에서 경사는 14다. `requ
 
 ### NumPy 학습 루프에서 바뀌는 부분
 
-$y=2x$ 데이터에 대한 모델 $\hat y=wx$와 평균제곱오차는 앞 예제와 같다. 직접 작성했던 경사 식을 `loss.backward()`로 대체하지만, 경사 초기화와 파라미터 업데이트는 여전히 명시적으로 수행한다. `no_grad()` 안에서 값을 바꾼 뒤 다음 반복에서 손실을 새로 계산한다.
+$y=2x$ 데이터에 대한 모델 $\hat y=wx$와 평균제곱오차는 앞 예제와 같다. 직접 작성했던 경사 식을 `loss.backward()`로 대체하지만, 경사 초기화와 파라미터 업데이트는 여전히 명시적으로 수행한다. `no_grad()` 안에서 값을 바꾼 뒤 다음 반복에서 로스를 새로 계산한다.
 
 ### 누적과 분리를 구분하기
 
-서로 다른 손실을 역전파해도 같은 잎 텐서의 `.grad`에는 결과가 더해진다. `detach()`는 기존 결과의 연결을 끊고, `no_grad()`는 블록 안 연산을 기록하지 않는다. 둘 다 이미 저장한 경사를 자동으로 지우지는 않는다. `detach()`는 원본과 저장 공간을 공유하므로 독립적인 기록이 필요하면 복사도 고려한다.
+서로 다른 로스를 역전파해도 같은 잎 텐서의 `.grad`에는 결과가 더해진다. `detach()`는 기존 결과의 연결을 끊고, `no_grad()`는 블록 안 연산을 기록하지 않는다. 둘 다 이미 저장한 경사를 자동으로 지우지는 않는다. `detach()`는 원본과 저장 공간을 공유하므로 독립적인 기록이 필요하면 복사도 고려한다.
 
 ## 연습문제
 
@@ -613,7 +613,7 @@ $y=2x$ 데이터에 대한 모델 $\hat y=wx$와 평균제곱오차는 앞 예�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-제곱합처럼 저장된 중간값이 필요한 손실에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+제곱합처럼 저장된 중간값이 필요한 로스에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
 
 </div>
 
@@ -626,7 +626,7 @@ $y=2x$ 데이터에 대한 모델 $\hat y=wx$와 평균제곱오차는 앞 예�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 
@@ -645,4 +645,4 @@ $y=2x$ 데이터에 대한 모델 $\hat y=wx$와 평균제곱오차는 앞 예�
 
 ## 정리하며
 
-autograd는 미분 계산을 자동화한다. 손실의 의미와 경사 초기화, 업데이트 시점은 사용자가 학습 목적에 맞춰 정해야 한다.
+autograd는 미분 계산을 자동화한다. 로스의 의미와 경사 초기화, 업데이트 시점은 사용자가 학습 목적에 맞춰 정해야 한다.

@@ -1,6 +1,6 @@
 # 사전 학습 트랜스포머의 토큰 분류 head
 
-이 템플릿은 사전 학습 인코더에서 토큰 특징을 얻고 새 선형 층으로 NER 태그 로짓을 만든다. BERT의 언어 사전 학습과 NER head의 지도 학습은 다르다. 아래 코드는 새 head의 학습·정답 정렬·평가를 구현하지 않으므로 생성 직후의 태그를 의미 있는 NER 결과로 해석하면 안 된다.
+이 템플릿은 사전 학습 인코더에서 토큰 피처를 얻고 새 선형 레이어로 NER 태그 로짓을 만든다. BERT의 언어 사전 학습과 NER head의 지도 학습은 다르다. 아래 코드는 새 head의 학습·정답 정렬·평가를 구현하지 않으므로 생성 직후의 태그를 의미 있는 NER 결과로 해석하면 안 된다.
 
 ## 1. 코드
 
@@ -14,9 +14,9 @@
 핵심 개념:
 - 미리 익힌 변환기 곱게 다듬기
 - 아래낱말 토막내기 다루기
-- 토막 갈래 매기기
+- 토막 클래스 매기기
 
-지은이: 배움 목적
+지은이: 러닝 목적
 날짜: 2025
 """
 
@@ -64,7 +64,7 @@ class TransformerNER(nn.Module):
     
     def forward(self, input_ids, attention_mask=None):
         """
-        앞먹임.
+        피드포워드.
         
         인수:
             input_ids: [batch_size, seq_len]
@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
 기본 모델 이름은 bert-base-cased이고9개 레이블을 출력하도록 선언한다. 그러나 PER·ORG·LOC·MISC의BIO9개처럼 구체적인 id2label 매핑은 없다. 같은9클래스라도 순서·의미가 다르면 모델·정답·출력 해석이 맞지 않는다. tokenizer는 사전 학습 모델과 같은 이름에서 로드하지만 forward는 텍스트가 아니라 정수 input_ids와 attention_mask를 받는다.
 
-출력 특징은 B×L×H이고 dropout 뒤 선형 head는 B×L×K 로짓을 반환한다. 기본 BERT의 H768에서 새 head는(768+1)×9=6921개 매개변수다. 전체 수는 로드한 인코더와 head를 합하며 모델 이름·설정이 바뀌면 달라진다. 여기서 사전 학습 가중치를 다운로드·실행할 필요는 없다.
+출력 피처는 B×L×H이고 dropout 뒤 선형 head는 B×L×K 로짓을 반환한다. 기본 BERT의 H768에서 새 head는(768+1)×9=6921개 파라메터다. 전체 수는 로드한 인코더와 head를 합하며 모델 이름·설정이 바뀌면 달라진다. 여기서 사전 학습 웨이트를 다운로드·실행할 필요는 없다.
 
 현재 import에는 List·Dict만 있고 predict의 반환 annotation에 사용하는 **Tuple이 없다**. 지연 annotation을 켜지 않은 일반 Python 환경에서는 클래스 정의 중 NameError가 날 수 있어 이 파일을 그대로 실행 가능한 템플릿으로 설명하지 않는다. 실제 반환도 `(토큰 문자열,정수 예측 ID)`의 목록이라 `Tuple[str,str]` 선언과 의미가 다르다.
 
@@ -142,26 +142,26 @@ truncation=True는 모델 한도를 넘는 텍스트를 자를 수 있다. 긴 �
 
 predict는 no_grad를 쓰지만 eval로 전환하지 않는다. 모델이 train 모드이면 인코더와 새 head의 dropout이 남는다. 생성된 토큰 텐서는 CPU이며 모델을 CUDA·MPS로 옮긴 경우 입력도 같은 장치에 맞춰야 한다. no_grad는 평가 모드나 장치 이동을 대신하지 않는다.
 
-이 클래스의 dropout0.1은 인코더 출력 뒤 특징 dropout이다. 내부 softmax attention 가중치 dropout을 새로 추가한 것이 아니다. 기존 사전 학습 인코더의 attention 설정과 학습 head의 정규화를 구분한다. 어떤 dropout도 자동으로 attention을 균등하게 하거나 NER 정확도를 보장하지 않는다.
+이 클래스의 dropout0.1은 인코더 출력 뒤 피처 dropout이다. 내부 softmax attention 웨이트 dropout을 새로 추가한 것이 아니다. 기존 사전 학습 인코더의 attention 설정과 학습 head의 정규화를 구분한다. 어떤 dropout도 자동으로 attention을 균등하게 하거나 NER 정확도를 보장하지 않는다.
 
 ## 5. 학습과 비교의 범위
 
-토큰별 로짓에는 단일 레이블 교차 엔트로피 등을 연결할 수 있지만 이 코드에는 labels·손실·최적화가 없다. 사전 학습과 파인튜닝·평가 자료를 구분하고 정확 span 평가를 사용한다. 층 수를 임의로 바꾸는 것은 사전 학습 인코더의 구조·가중치 호환성 문제를 포함하므로 generic ModuleList 반복만으로 처리할 수 없다.
+토큰별 로짓에는 단일 레이블 교차 엔트로피 등을 연결할 수 있지만 이 코드에는 labels·로스·최적화가 없다. 사전 학습과 파인튜닝·평가 자료를 구분하고 정확 span 평가를 사용한다. 레이어 수를 임의로 바꾸는 것은 사전 학습 인코더의 구조·웨이트 호환성 문제를 포함하므로 generic ModuleList 반복만으로 처리할 수 없다.
 
-길이L의 dense attention 쌍별 연산은 O(L²H), projection은 O(LH²)이며 전체 인코더의 MLP·층 수와 구현도 비용에 영향을 준다. 토큰 수·관찰 문서 범위·padding·사전 학습 조건을 맞춰 다른 NER 구조와 비교한다.
+길이L의 dense attention 쌍별 연산은 O(L²H), projection은 O(LH²)이며 전체 인코더의 MLP·레이어 수와 구현도 비용에 영향을 준다. 토큰 수·관찰 문서 범위·padding·사전 학습 조건을 맞춰 다른 NER 구조와 비교한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 BERT hidden_size768·num_labels9에서 새 분류 head의 매개변수를 계산하라.
+기본 BERT hidden_size768·num_labels9에서 새 분류 head의 파라메터를 계산하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
 
-    가중치768×9와 bias9를 합해6921개다. 전체 모델 수는 사전 학습 인코더의 매개변수를 추가해야 한다. 모델 이름·설정에 따라 달라지며 tokenizer는 신경망 매개변수가 아니다.
+    웨이트768×9와 bias9를 합해6921개다. 전체 모델 수는 사전 학습 인코더의 파라메터를 추가해야 한다. 모델 이름·설정에 따라 달라지며 tokenizer는 뉴럴 넷트웍 파라메터가 아니다.
 
 
 
@@ -170,13 +170,13 @@ predict는 no_grad를 쓰지만 eval로 전환하지 않는다. 모델이 train 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-코드의 dropout이 attention 가중치에 적용되는가? predict가 항상 결정적인가?
+코드의 dropout이 attention 웨이트에 적용되는가? predict가 항상 결정적인가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
 
-    현재 dropout은 인코더 출력 특징 뒤에 있다. predict의 no_grad는 eval 전환이 아니어서 train 모드이면 dropout이 남을 수 있다. 내부 attention dropout과 특징 dropout의 위치를 구분한다.
+    현재 dropout은 인코더 출력 피처 뒤에 있다. predict의 no_grad는 eval 전환이 아니어서 train 모드이면 dropout이 남을 수 있다. 내부 attention dropout과 피처 dropout의 위치를 구분한다.
 
 
 
@@ -206,7 +206,7 @@ predict의 토큰·정수 ID 목록을 곧바로 개체 span으로 볼 수 없�
 
 ??? success "연습문제 4 풀이"
 
-    YourBlock이 정의되어 있지 않으며 인코더의 hidden 크기·층 구조·가중치 이름·사전 학습 호환성을 맞춰야 한다. 라이브러리 설정과 모델 로드 정책을 정하고 새 구조를 평가해야 한다. 단순 모듈 등록이 사전 학습·NER 학습을 자동 완성하지 않는다.
+    YourBlock이 정의되어 있지 않으며 인코더의 hidden 크기·레이어 구조·웨이트 이름·사전 학습 호환성을 맞춰야 한다. 라이브러리 설정과 모델 로드 폴리시를 정하고 새 구조를 평가해야 한다. 단순 모듈 등록이 사전 학습·NER 학습을 자동 완성하지 않는다.
 
     ```python
     self.layers = nn.ModuleList()
@@ -217,4 +217,4 @@ predict의 토큰·정수 ID 목록을 곧바로 개체 span으로 볼 수 없�
 
 ## 정리하며
 
-사전 학습 인코더의 토큰 특징과 새 NER head는 서로 다른 학습 단계다. 현재 템플릿의 import·타입·장치·모드 한계와 특수 토큰·서브워드·잘림을 확인하고, 태그 매핑·손실·원문 span 평가를 연결해야 한다.
+사전 학습 인코더의 토큰 피처와 새 NER head는 서로 다른 학습 단계다. 현재 템플릿의 import·타입·장치·모드 한계와 특수 토큰·서브워드·잘림을 확인하고, 태그 매핑·로스·원문 span 평가를 연결해야 한다.

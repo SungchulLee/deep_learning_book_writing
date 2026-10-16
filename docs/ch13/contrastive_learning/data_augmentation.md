@@ -53,7 +53,7 @@ class SimCLRAugmentation:
             image_size: 마지막 그림 크기
             s: 색 뒤틀기의 세기
         """
-        # 색 흔들기 매개변수
+        # 색 흔들기 파라메터
         color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
 
         self.transform = transforms.Compose([
@@ -352,7 +352,7 @@ MAEAugmentation은 자르기·뒤집기·정규화 뒤 텐서 하나를 반환�
 
 RandomResizedCrop의 scale은 원본 면적의 비율이며 한 변 길이의 비율이 아니다. aspect ratio와 이미지 크기 조건 때문에 최종 뷰의 의미·중첩이 보장되지는 않는다. 작은 물체가 크롭 밖으로 빠지거나 색이 중요한 정답을 색 변화가 지울 수도 있다. 분야와 목표에 맞는 변화를 선택한다.
 
-MultiCropAugmentation은 기본 두 전역 224와 여섯 국소 int(224×0.4)=89 해상도의 텐서를 반환한다. 서로 크기가 달라 전부 하나의 텐서로 바로 stack할 수 없다. 고정 위치 표 ViT에 넣으려면 해상도·패치 격자를 처리해야 하며 이 코드만으로 DINO의 교사·학생 손실이 완성되지 않는다. main의 단색 PIL 이미지와 “passed” 메시지는 증강 품질·학습 성공 평가가 아니다. Python·NumPy·PyTorch 난수가 섞여 있어 재현 시 모두 관리해야 한다.
+MultiCropAugmentation은 기본 두 전역 224와 여섯 국소 int(224×0.4)=89 해상도의 텐서를 반환한다. 서로 크기가 달라 전부 하나의 텐서로 바로 stack할 수 없다. 고정 위치 표 ViT에 넣으려면 해상도·패치 격자를 처리해야 하며 이 코드만으로 DINO의 교사·학생 로스가 완성되지 않는다. main의 단색 PIL 이미지와 “passed” 메시지는 증강 품질·학습 성공 평가가 아니다. Python·NumPy·PyTorch 난수가 섞여 있어 재현 시 모두 관리해야 한다.
 
 ## 연습문제
 

@@ -1,6 +1,6 @@
 # 제한 볼츠만 기계(RBM)
 
-일반 볼츠만 기계의 추론을 단순화하려면 연결 구조를 제한할 수 있다. RBM은 가시층과 은닉층 사이에만 연결을 두어, 한 층을 고정했을 때 다른 층의 각 단위가 조건부 독립이 되게 한다. 이 성질은 병렬 블록 깁스 갱신을 가능하게 하지만 전체 정규화 상수를 쉽게 만들어 주지는 않는다.
+일반 볼츠만 기계의 추론을 단순화하려면 연결 구조를 제한할 수 있다. RBM은 가시레이어와 은닉 레이어 사이에만 연결을 두어, 한 레이어를 고정했을 때 다른 레이어의 각 단위가 조건부 독립이 되게 한다. 이 성질은 병렬 블록 깁스 갱신을 가능하게 하지만 전체 정규화 상수를 쉽게 만들어 주지는 않는다.
 
 ## 1. 이분 그래프와 변수 관례
 
@@ -11,7 +11,7 @@ Visible Layer (v):    ○  ○  ○  ○  ○  ○
 Hidden Layer (h):        ○       ○       ○
 ```
 
-가시변수 vᵢ와 은닉변수 hⱼ는 0 또는 1을 사용한다. 이 페이지에서는 **코드에 맞추어 W의 모양을 n_h×n_v**로 둔다. 가시 편향은 a, 은닉 편향은 b이며 온도는 1이다.
+가시변수 vᵢ와 은닉변수 hⱼ는 0 또는 1을 사용한다. 이 페이지에서는 **코드에 맞추어 W의 모양을 n_h×n_v**로 둔다. 가시 바이어스는 a, 은닉 바이어스는 b이며 온도는 1이다.
 
 $$E(v,h)=-a^Tv-b^Th-h^TWv$$
 
@@ -19,7 +19,7 @@ $$E(v,h)=-a^Tv-b^Th-h^TWv$$
 
 ## 2. 조건부 확률의 인수분해
 
-v를 고정하면 에너지는 hⱼ별 선형 항으로 나뉜다. 각 0·1 선택의 비정규화 가중치는 1과 exp(bⱼ+ΣᵢWⱼᵢvᵢ)이므로 다음을 얻는다.
+v를 고정하면 에너지는 hⱼ별 선형 항으로 나뉜다. 각 0·1 선택의 비정규화 웨이트는 1과 exp(bⱼ+ΣᵢWⱼᵢvᵢ)이므로 다음을 얻는다.
 
 $$p(h_j=1\mid v)=\operatorname{sigmoid}\left(b_j+\sum_iW_{ji}v_i\right)$$
 
@@ -27,7 +27,7 @@ $$p(h_j=1\mid v)=\operatorname{sigmoid}\left(b_j+\sum_iW_{ji}v_i\right)$$
 
 $$p(v_i=1\mid h)=\operatorname{sigmoid}\left(a_i+\sum_jW_{ji}h_j\right)$$
 
-주어진 반대 층 안에서 각 단위가 독립이므로 한 층 전체를 동시에 뽑을 수 있다. 그러나 주변분포 p(v)의 가시 단위들이 서로 독립이라는 뜻은 아니다. 은닉변수를 합하면 가시 단위 사이의 의존성을 표현할 수 있다.
+주어진 반대 레이어 안에서 각 단위가 독립이므로 한 레이어 전체를 동시에 뽑을 수 있다. 그러나 주변분포 p(v)의 가시 단위들이 서로 독립이라는 뜻은 아니다. 은닉변수를 합하면 가시 단위 사이의 의존성을 표현할 수 있다.
 
 ## 3. 구현과 텐서 모양
 
@@ -48,7 +48,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     구조: 드러난 단위와 숨은 단위 사이의 이음만 있는 두 쪽 그래프.
     익히기: 견줌 갈림(CD-k)
     
-    매개변수
+    파라메터
     ----------
     n_visible : int
         드러난 단위의 개수
@@ -57,7 +57,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     k : int
         CD-k에서 깁스 걸음의 수(기본값 1)
     learning_rate : float
-        매개변수 고침의 배움 빠르기
+        파라메터 고침의 러닝 빠르기
     """
     
     def __init__(self, 
@@ -72,7 +72,7 @@ class RestrictedBoltzmannMachine(nn.Module):
         self.k = k
         self.lr = learning_rate
         
-        # 매개변수
+        # 파라메터
         self.W = nn.Parameter(torch.randn(n_hidden, n_visible) * 0.01)
         self.a = nn.Parameter(torch.zeros(n_visible))   # visible bias
         self.b = nn.Parameter(torch.zeros(n_hidden))    # hidden bias
@@ -135,7 +135,7 @@ class RestrictedBoltzmannMachine(nn.Module):
         
         negative_grad = torch.matmul(hk.t(), vk) / batch_size
         
-        # 매개변수 갱신
+        # 파라메터 갱신
         self.W.data += self.lr * (positive_grad - negative_grad)
         self.a.data += self.lr * (v0 - vk).mean(dim=0)
         self.b.data += self.lr * (prob_h0 - hk).mean(dim=0)
@@ -149,7 +149,7 @@ class RestrictedBoltzmannMachine(nn.Module):
         return prob_v
 ```
 
-입력 v는 B×n_v, 은닉 확률·샘플은 B×n_h다. F.linear(v,W,b)는 vWᵀ+b를 계산한다. 가시 복원에는 Wᵀ를 가중치로 넘겨 hW+a를 계산한다. 에너지와 자유 에너지는 각 관측치의 길이 B 벡터를 반환한다.
+입력 v는 B×n_v, 은닉 확률·샘플은 B×n_h다. F.linear(v,W,b)는 vWᵀ+b를 계산한다. 가시 복원에는 Wᵀ를 웨이트로 넘겨 hW+a를 계산한다. 에너지와 자유 에너지는 각 관측치의 길이 B 벡터를 반환한다.
 
 free_energy는 은닉 상태를 정확히 합한 다음 식을 사용한다.
 
@@ -159,13 +159,13 @@ $$F(v)=-a^Tv-\sum_j\operatorname{softplus}\left(b_j+\sum_iW_{ji}v_i\right)$$
 
 ## 4. CD-k의 업데이트
 
-관측 v에서 시작해 h|v와 v|h를 k번 교대로 뽑고, 데이터의 충분통계에서 짧은 사슬의 충분통계를 뺀다. 정확한 우도 기울기의 negative phase는 평형 모델 분포를 요구하지만 CD-k는 일반적으로 거기에 도달하지 않은 분포를 사용한다.
+관측 v에서 시작해 h|v와 v|h를 k번 교대로 뽑고, 데이터의 충분통계에서 짧은 사슬의 충분통계를 뺀다. 정확한 우도 그래디언트의 negative phase는 평형 모델 분포를 요구하지만 CD-k는 일반적으로 거기에 도달하지 않은 분포를 사용한다.
 
 코드의 positive phase는 은닉 확률을 사용해 prob_h0ᵀv0/B를 계산한다. negative phase는 마지막 **은닉 샘플 hk**를 사용해 hkᵀvk/B를 계산한다. 마지막 은닉 확률로 대체하는 다른 구현과 표본 분산이 다를 수 있다. a와 b도 데이터·사슬 평균 차이로 직접 갱신한다.
 
-nn.Parameter를 사용하지만 optimizer와 backward를 호출하는 학습 루프는 아니다. .data에 학습률을 곱한 통계 차이를 더한다. 자동 미분 문맥을 끄지는 않아 중간 연산의 그래프가 불필요하게 만들어질 수 있다. k는 1 이상의 정수여야 하지만 함수가 검사하지 않는다. k=0이면 negative phase에 초기 은닉 샘플을 사용하는 다른 계산이 된다.
+nn.Parameter를 사용하지만 optimizer와 backward를 호출하는 학습 루프는 아니다. .data에 러닝레이트를 곱한 통계 차이를 더한다. 자동 미분 문맥을 끄지는 않아 중간 연산의 그래프가 불필요하게 만들어질 수 있다. k는 1 이상의 정수여야 하지만 함수가 검사하지 않는다. k=0이면 negative phase에 초기 은닉 샘플을 사용하는 다른 계산이 된다.
 
-CD는 유한 k에서 편향된 우도 기울기 근사다. 데이터 시작이 모든 모드를 탐색한다는 보장이나 k=1이면 언제나 충분하다는 결론은 없다. 적절한 고정 모델 사슬에서 k→∞의 수렴을 말할 수 있어도 유한 k의 편향이 매 단계 단조롭게 줄거나, 학습 중 persistent chain이 자동으로 평형을 유지하는 것은 아니다.
+CD는 유한 k에서 바이어스된 우도 그래디언트 근사다. 데이터 시작이 모든 모드를 탐색한다는 보장이나 k=1이면 언제나 충분하다는 결론은 없다. 적절한 고정 모델 사슬에서 k→∞의 수렴을 말할 수 있어도 유한 k의 바이어스가 매 단계 단조롭게 줄거나, 학습 중 persistent chain이 자동으로 평형을 유지하는 것은 아니다.
 
 ## 5. 재구성과 생성 평가
 
@@ -195,7 +195,7 @@ reconstruct는 은닉 상태를 **한 번 샘플링**하고 가시 확률을 반
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-CD-k의 negative phase가 정확한 우도 기울기의 모델 기댓값과 일반적으로 다른 이유를 설명하라.
+CD-k의 negative phase가 정확한 우도 그래디언트의 모델 기댓값과 일반적으로 다른 이유를 설명하라.
 
 </div>
 
@@ -210,13 +210,13 @@ CD-k의 negative phase가 정확한 우도 기울기의 모델 기댓값과 일�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-가우스 가시변수를 사용하는 RBM의 조건부분포와 파라미터 기울기를 유도하라. σᵢ=exp(ρᵢ)>0으로 두고 에너지를 Σᵢ(vᵢ−aᵢ)²/(2σᵢ²)−bᵀh−Σᵢⱼ(vᵢ/σᵢ)Wⱼᵢhⱼ로 정하라.
+가우스 가시변수를 사용하는 RBM의 조건부분포와 파라미터 그래디언트를 유도하라. σᵢ=exp(ρᵢ)>0으로 두고 에너지를 Σᵢ(vᵢ−aᵢ)²/(2σᵢ²)−bᵀh−Σᵢⱼ(vᵢ/σᵢ)Wⱼᵢhⱼ로 정하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
 
-    vᵢ의 제곱을 완성하면 vᵢ|h∼N(aᵢ+σᵢΣⱼWⱼᵢhⱼ,σᵢ²)다. hⱼ|v의 성공확률은 sigmoid(bⱼ+ΣᵢWⱼᵢvᵢ/σᵢ)다. 일반식 ∇log p(v)=E_model[∇E]−E_{h|v}[∇E]를 사용한다. Wⱼᵢ의 기울기는 (vᵢ/σᵢ)hⱼ의 positive phase 평균에서 모델 평균을 뺀 값이고, aᵢ는 (vᵢ−aᵢ)/σᵢ²의 같은 차이, bⱼ는 hⱼ의 같은 차이다. ρᵢ에 대해서는 Aᵢ=(vᵢ−aᵢ)²/σᵢ²−(vᵢ/σᵢ)ΣⱼWⱼᵢhⱼ를 정의하면 E_positive[Aᵢ]−E_model[Aᵢ]다. 로그 우도를 최대화하려면 이 기울기 방향으로 더하며, NLL을 최소화할 때는 반대 부호를 쓴다. 이 조건부 평균은 별도 자유 모수가 아니라 a·σ·W와 h의 함수다. 여기의 Bernoulli 클래스에는 이 가우스 샘플링이 구현되어 있지 않다.
+    vᵢ의 제곱을 완성하면 vᵢ|h∼N(aᵢ+σᵢΣⱼWⱼᵢhⱼ,σᵢ²)다. hⱼ|v의 성공확률은 sigmoid(bⱼ+ΣᵢWⱼᵢvᵢ/σᵢ)다. 일반식 ∇log p(v)=E_model[∇E]−E_{h|v}[∇E]를 사용한다. Wⱼᵢ의 그래디언트는 (vᵢ/σᵢ)hⱼ의 positive phase 평균에서 모델 평균을 뺀 값이고, aᵢ는 (vᵢ−aᵢ)/σᵢ²의 같은 차이, bⱼ는 hⱼ의 같은 차이다. ρᵢ에 대해서는 Aᵢ=(vᵢ−aᵢ)²/σᵢ²−(vᵢ/σᵢ)ΣⱼWⱼᵢhⱼ를 정의하면 E_positive[Aᵢ]−E_model[Aᵢ]다. 로그 우도를 최대화하려면 이 그래디언트 방향으로 더하며, NLL을 최소화할 때는 반대 부호를 쓴다. 이 조건부 평균은 별도 자유 모수가 아니라 a·σ·W와 h의 함수다. 여기의 Bernoulli 클래스에는 이 가우스 샘플링이 구현되어 있지 않다.
 
 
 
@@ -231,13 +231,13 @@ CD-k의 negative phase가 정확한 우도 기울기의 모델 기댓값과 일�
 
 ??? success "연습문제 4 풀이"
 
-    Z=Σ_vΣ_h exp(−E)=Σ_v exp(−F(v))다. F(v)는 쉽게 계산해도 가시 상태 전체는 2^n_v개다. 은닉 쪽을 대신 열거해 더 작은 층을 사용할 수도 있지만 일반적으로 작은 쪽도 크면 지수적 계산이 남는다. 조건부 추론의 단순함과 전체 정규화의 단순함을 구분한다.
+    Z=Σ_vΣ_h exp(−E)=Σ_v exp(−F(v))다. F(v)는 쉽게 계산해도 가시 상태 전체는 2^n_v개다. 은닉 쪽을 대신 열거해 더 작은 레이어를 사용할 수도 있지만 일반적으로 작은 쪽도 크면 지수적 계산이 남는다. 조건부 추론의 단순함과 전체 정규화의 단순함을 구분한다.
 
 
 
 ## 정리하며
 
-RBM은 이분 그래프로 조건부 독립성과 닫힌 형태의 가시 자유 에너지를 얻는다. 코드의 W 방향과 확률·샘플의 사용 위치를 맞추어 읽고, CD 통계 업데이트와 정확한 우도 기울기, 재구성과 평형 생성을 구분한다.
+RBM은 이분 그래프로 조건부 독립성과 닫힌 형태의 가시 자유 에너지를 얻는다. 코드의 W 방향과 확률·샘플의 사용 위치를 맞추어 읽고, CD 통계 업데이트와 정확한 우도 그래디언트, 재구성과 평형 생성을 구분한다.
 
 **참고 문헌**
 

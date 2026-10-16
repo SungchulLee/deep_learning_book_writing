@@ -39,14 +39,14 @@
             인수:
                 num_features: 채널의 수 (C)
                 eps: 수치 안정성을 위한 작은 상수
-                affine: True이면 gamma와 beta 매개변수를 배운다
+                affine: True이면 gamma와 beta 파라메터를 배운다
             """
             self.num_features = num_features
             self.eps = eps
             self.affine = affine
 
             if self.affine:
-                # 채널마다의 학습 가능한 매개변수
+                # 채널마다의 학습 가능한 파라메터
                 self.gamma = np.ones((1, num_features, 1, 1))
                 self.beta = np.zeros((1, num_features, 1, 1))
 
@@ -66,7 +66,7 @@
             # 않고, 표본 하나의 채널 하나 안에서만 통계를 낸다.
             # 네 정규화가 갈리는 지점이 바로 이 축의 선택이다.
             #   배치 정규화: (0, 2, 3) — 배치를 가로질러 채널마다
-            #   층 정규화:   (1, 2, 3) — 표본마다 채널을 통틀어
+            #   레이어 정규화:   (1, 2, 3) — 표본마다 채널을 통틀어
             #   인스턴스:    (2, 3)    — 표본마다 채널마다 따로
             #   그룹 정규화: 채널을 몇 묶음으로 나눈 중간형
             # 이미지 하나의 한 채널이 지닌 평균과 분산은 대체로 그 그림의
@@ -78,7 +78,7 @@
             # 정규화
             x_normalized = (x - mean) / np.sqrt(var + self.eps)
 
-            # 켜져 있으면 아핀 변환 적용
+            # 켜져 있으면 선형 변환 적용
             if self.affine:
                 x_normalized = self.gamma * x_normalized + self.beta
 
@@ -87,7 +87,7 @@
 
     class StyleTransferNetwork(nn.Module):
         """
-        사례 정규화를 쓰는 양식 전이 신경망.
+        사례 정규화를 쓰는 양식 전이 뉴럴 넷트웍.
         사례 정규화는 사례별 대비 정보를 없애 양식 전이를 더 효과적으로 만들므로
         양식 전이에서 매우 중요하다.
         """
@@ -100,8 +100,8 @@
                 nn.Conv2d(3, 32, kernel_size=9, stride=1, padding=4),
                 # affine=True를 명시해야 gamma와 beta를 배운다.
                 # nn.InstanceNorm2d의 기본값은 False라 그냥 두면 정규화만 하고
-                # 되돌릴 손잡이가 없다. 배치 정규화와 층 정규화는 기본값이
-                # True이므로 이 층만 다르다는 점을 기억해 두어야 한다.
+                # 되돌릴 손잡이가 없다. 배치 정규화와 레이어 정규화는 기본값이
+                # True이므로 이 레이어만 다르다는 점을 기억해 두어야 한다.
                 # 화풍 옮기기에서는 이 gamma와 beta가 곧 "입힐 화풍"의
                 # 통계 노릇을 하므로 더욱 중요하다
                 nn.InstanceNorm2d(32, affine=True),
@@ -180,7 +180,7 @@
         def __init__(self, input_channels=3, output_channels=3, ngf=64):
             super(GeneratorWithInstanceNorm, self).__init__()
 
-            # 첫 합성곱
+            # 첫 컨볼루션
             model = [
                 nn.Conv2d(input_channels, ngf, kernel_size=7, padding=3),
                 nn.InstanceNorm2d(ngf),
@@ -212,7 +212,7 @@
                     nn.ReLU(inplace=True)
                 ]
 
-            # 출력층
+            # 출력 레이어
             model += [
                 nn.Conv2d(ngf, output_channels, kernel_size=7, padding=3),
                 nn.Tanh()
@@ -277,7 +277,7 @@
 
     def compare_all_normalizations():
         """
-        배치 정규화, 층 정규화, 사례 정규화를 나란히 비교한다.
+        배치 정규화, 레이어 정규화, 사례 정규화를 나란히 비교한다.
         """
         print("\n" + "=" * 60)
         print("Comparing All Normalization Methods")
@@ -296,7 +296,7 @@
         bn.eval()
         x_bn = bn(x)
 
-        # 층 정규화 (각 N에 대해 C, H, W로 정규화)
+        # 레이어 정규화 (각 N에 대해 C, H, W로 정규화)
         ln = nn.LayerNorm([3, 4, 4])
         x_ln = ln(x)
 
@@ -339,7 +339,7 @@
         방법            | 정규화 대상 축  | 쓰임새
         ----------------|-----------------|----------------------------------
         배치 정규화     | N, H, W         | CNN, 큰 배치
-        층 정규화       | C, H, W         | RNN, 트랜스포머, 작은 배치
+        레이어 정규화       | C, H, W         | RNN, 트랜스포머, 작은 배치
         사례 정규화     | H, W            | 양식 전이, GAN
         그룹 정규화     | (H, W, C/G)     | 작은 배치, 배치 정규화가 안 통할 때
         """
@@ -484,7 +484,7 @@
         방법            | 정규화 대상 축  | 쓰임새
         ----------------|-----------------|----------------------------------
         배치 정규화     | N, H, W         | CNN, 큰 배치
-        층 정규화       | C, H, W         | RNN, 트랜스포머, 작은 배치
+        레이어 정규화       | C, H, W         | RNN, 트랜스포머, 작은 배치
         사례 정규화     | H, W            | 양식 전이, GAN
         그룹 정규화     | (H, W, C/G)     | 작은 배치, 배치 정규화가 안 통할 때
         
@@ -529,7 +529,7 @@
 
 NumPy 구현은 기본 affine=True이고 PyTorch InstanceNorm2d의 기본은 affine=False이므로 비교할 때 설정을 맞춘다. PyTorch는 기본적으로 이동 통계량을 추적하지 않아 학습과 평가 모두 현재 표본의 통계를 사용한다.
 
-StyleTransferNetwork와 GeneratorWithInstanceNorm은 별도의 구조 예이다. ResidualBlock은 그 안에서 재사용되지만, NumPy 클래스와 세 모듈을 모두 하나의 파이프라인으로 연결하는 것은 아니다. 스타일 손실이나 GAN의 전체 학습 과정까지 제공하는 예제로 해석하지 않는다.
+StyleTransferNetwork와 GeneratorWithInstanceNorm은 별도의 구조 예이다. ResidualBlock은 그 안에서 재사용되지만, NumPy 클래스와 세 모듈을 모두 하나의 파이프라인으로 연결하는 것은 아니다. 스타일 로스나 GAN의 전체 학습 과정까지 제공하는 예제로 해석하지 않는다.
 
 ## 연습문제
 
@@ -541,7 +541,7 @@ StyleTransferNetwork와 GeneratorWithInstanceNorm은 별도의 구조 예이다.
 </div>
 
 ??? success "연습문제 1 풀이"
-    keepdims=True인 평균과 분산은 `(4, 3, 1, 1)`이다. affine=True의 배율·이동은 `(1, 3, 1, 1)`이며 출력은 `(4, 3, 64, 64)`이다. 정규화 자체는 합성곱이나 풀링을 수행하지 않는다.
+    keepdims=True인 평균과 분산은 `(4, 3, 1, 1)`이다. affine=True의 배율·이동은 `(1, 3, 1, 1)`이며 출력은 `(4, 3, 64, 64)`이다. 정규화 자체는 컨볼루션이나 풀링을 수행하지 않는다.
 
 ---
 
@@ -583,7 +583,7 @@ RGB 64×64 입력에 NumPy 정규화를 적용하려면 무엇을 지정해야 �
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

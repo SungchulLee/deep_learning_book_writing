@@ -12,7 +12,7 @@
 Covers:
 - 기본 줄이기: sum, prod, mean, std, var
 - 최소/최대 셈: min, max, argmin, argmax, aminmax
-- dim 매개변수로 차원별 줄이기
+- dim 파라메터로 차원별 줄이기
 - 차원을 지키는 keepdim
 - 분위수와 백분위수
 - 노름: norm, dist
@@ -97,7 +97,7 @@ def main():
     print("var:", x.var().item())
     print("Relation: var = std²:", x.var().item(), "≈", (x.std() ** 2).item())
     
-    # 불편 추정량과 편향 추정량
+    # 불편 추정량과 바이어스 추정량
     print("\nBiased (default, Bessel correction):")
     print("  std(correction=1):", x.std(correction=1).item())
     print("Unbiased:")

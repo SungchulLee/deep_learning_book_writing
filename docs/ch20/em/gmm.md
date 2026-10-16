@@ -1,16 +1,16 @@
 # 가우시안 혼합 모델
 
-가우시안 혼합 모델(GMM)은 여러 가우스 밀도의 가중합으로 데이터의 분포를 나타낸다. 각 관측이 어느 성분에서 나왔는지는 잠재변수로 두고, EM에서는 그 성분에 속할 사후확률을 이용해 매개변수를 갱신한다. 밀도 추정과 소프트 군집화에 사용할 수 있지만 성분이 실제 원인이나 고유한 집단에 대응한다고 보장되지는 않는다.
+가우시안 혼합 모델(GMM)은 여러 가우스 밀도의 가중합으로 데이터의 분포를 나타낸다. 각 관측이 어느 성분에서 나왔는지는 잠재변수로 두고, EM에서는 그 성분에 속할 사후확률을 이용해 파라메터를 갱신한다. 밀도 추정과 소프트 군집화에 사용할 수 있지만 성분이 실제 원인이나 고유한 집단에 대응한다고 보장되지는 않는다.
 
-## 1. 모델과 매개변수
+## 1. 모델과 파라메터
 
 d차원 관측 xᵢ의 생성 과정을 zᵢ∼Categorical(π), xᵢ|zᵢ=k∼N(μₖ,Σₖ)로 정의한다. πₖ≥0, ∑ₖπₖ=1이고 각 Σₖ는 양의 정부호다.
 
 $$p(x_i,z_i=k)=\pi_k\mathcal N(x_i;\mu_k,\Sigma_k),\qquad p(x_i)=\sum_{k=1}^K\pi_k\mathcal N(x_i;\mu_k,\Sigma_k).$$
 
-일반적인 내부 매개변수에서 자유도는 다음과 같다. 대칭 공분산은 d²개가 아니라 d(d+1)/2개의 자유도를 갖는다.
+일반적인 내부 파라메터에서 자유도는 다음과 같다. 대칭 공분산은 d²개가 아니라 d(d+1)/2개의 자유도를 갖는다.
 
-| 공분산 구조 | 제약 | 전체 매개변수 수 |
+| 공분산 구조 | 제약 | 전체 파라메터 수 |
 |---|---|---|
 | 전 공분산 | 성분별 Σₖ | Kd+Kd(d+1)/2+K−1 |
 | 대각 공분산 | 성분별 대각행렬 | 2Kd+K−1 |
@@ -23,7 +23,7 @@ $$p(x_i,z_i=k)=\pi_k\mathcal N(x_i;\mu_k,\Sigma_k),\qquad p(x_i)=\sum_{k=1}^K\pi
 
 독립 관측의 로그 우도는 ℓ(θ)=∑ᵢlog∑ₖπₖN(xᵢ;μₖ,Σₖ)다. 이는 일반적으로 비오목하지만 미분 가능한 유효 영역에서는 직접 경사 최적화도 가능하다. EM은 숨은 라벨을 도입해 계산하기 쉬운 기댓값 완전 데이터 로그 우도를 사용한다.
 
-현재 매개변수에서 책임도와 유효 표본 수는 다음과 같다.
+현재 파라메터에서 책임도와 유효 표본 수는 다음과 같다.
 
 $$r_{ik}=\frac{\pi_k\mathcal N(x_i;\mu_k,\Sigma_k)}{\sum_j\pi_j\mathcal N(x_i;\mu_j,\Sigma_j)},\qquad N_k=\sum_i r_{ik}.$$
 
@@ -37,7 +37,7 @@ $$r_{ik}=\frac{\pi_k\mathcal N(x_i;\mu_k,\Sigma_k)}{\sum_j\pi_j\mathcal N(x_i;\m
 
 $$\mu_k^{new}=\frac{\sum_i r_{ik}x_i}{N_k},\qquad \Sigma_k^{new}=\frac{\sum_i r_{ik}(x_i-\mu_k^{new})(x_i-\mu_k^{new})^\top}{N_k}.$$
 
-공분산은 새 평균을 중심으로 계산한다. Nₖ>0이어야 하며, 가중 중심화 데이터의 랭크가 d보다 작으면 전 공분산 해는 특이하다. Nₖ는 실수 가중치의 합이므로 단순히 Nₖ와 d+1을 비교하는 것만으로 랭크를 판정할 수 없다.
+공분산은 새 평균을 중심으로 계산한다. Nₖ>0이어야 하며, 가중 중심화 데이터의 랭크가 d보다 작으면 전 공분산 해는 특이하다. Nₖ는 실수 웨이트의 합이므로 단순히 Nₖ와 d+1을 비교하는 것만으로 랭크를 판정할 수 없다.
 
 아래는 표준 EM의 반복 구조다. 실제 구현의 정규화와 종료 규칙은 별도로 확인한다.
 
@@ -52,7 +52,7 @@ Output: Parameters θ = {π, μ, Σ}
    For each i, k:
        γ_ik ← π_k N(x_i | μ_k, Σ_k) / Σ_j π_j N(x_i | μ_j, Σ_j)
    
-   # M 걸음: 매개변수 새로 고치기
+   # M 걸음: 파라메터 새로 고치기
    For each k:
        N_k ← Σ_i γ_ik
        π_k ← N_k / N
@@ -77,11 +77,11 @@ Output: Parameters θ = {π, μ, Σ}
 
 ## 5. 성분 수 선택
 
-성분 수와 공분산 구조는 적합도와 복잡도를 함께 비교한다. 매개변수 수를 p, 적합 로그 우도를 ℓ̂이라 하면 통상적인 기준은 다음과 같다.
+성분 수와 공분산 구조는 적합도와 복잡도를 함께 비교한다. 파라메터 수를 p, 적합 로그 우도를 ℓ̂이라 하면 통상적인 기준은 다음과 같다.
 
 $$\mathrm{AIC}=-2\hat\ell+2p,\qquad \mathrm{BIC}=-2\hat\ell+p\log N.$$
 
-두 기준 모두 작은 값을 선호한다. N>e²일 때 BIC의 단위 매개변수당 벌점이 AIC보다 크다. 그러나 혼합 모델에는 비식별성·중복 성분·경계 등의 특이성이 있어 정규 모델의 점근 이론을 그대로 적용할 수 없다. BIC를 정확한 로그 주변우도나 참 K의 보장으로 읽지 않는다.
+두 기준 모두 작은 값을 선호한다. N>e²일 때 BIC의 단위 파라메터당 벌점이 AIC보다 크다. 그러나 혼합 모델에는 비식별성·중복 성분·경계 등의 특이성이 있어 정규 모델의 점근 이론을 그대로 적용할 수 없다. BIC를 정확한 로그 주변우도나 참 K의 보장으로 읽지 않는다.
 
 군집 분리까지 고려하는 흔한 ICL 근사는 H=−∑ᵢₖrᵢₖlog rᵢₖ라 할 때 ICL≈BIC+2H다. 배정이 불확실하면 벌점이 커지므로 밀도 추정에 좋은 K와 명확한 군집을 만드는 K가 다를 수 있다.
 
@@ -110,7 +110,7 @@ best_K = K_values[argmin(bic_scores)]
 
 비중의 Dirichlet 사전에서 모든 αₖ>1이면 내부 MAP 해의 장벽 역할을 할 수 있다. αₖ=1은 균일 사전이며 αₖ<1은 오히려 경계의 희소한 비중을 선호할 수 있으므로 ‘Dirichlet이면 빈 성분을 막는다’고 일반화하지 않는다.
 
-공분산 사전의 매개변수화도 명시해야 한다. 예를 들어 고정된 μₖ에 대해 역위샤트 사전 밀도를 |Σ|⁻⁽ν₀⁺ᵈ⁺¹⁾ᐟ²exp[−tr(Ψ₀Σ⁻¹)/2]로 정의하면, 가중 산포 Sₖ=∑ᵢrᵢₖ(xᵢ−μₖ)(xᵢ−μₖ)ᵀ를 사용한 조건부 MAP는 다음과 같다.
+공분산 사전의 파라메터화도 명시해야 한다. 예를 들어 고정된 μₖ에 대해 역위샤트 사전 밀도를 |Σ|⁻⁽ν₀⁺ᵈ⁺¹⁾ᐟ²exp[−tr(Ψ₀Σ⁻¹)/2]로 정의하면, 가중 산포 Sₖ=∑ᵢrᵢₖ(xᵢ−μₖ)(xᵢ−μₖ)ᵀ를 사용한 조건부 MAP는 다음과 같다.
 
 $$\Sigma_k^{MAP}=\frac{\Psi_0+S_k}{\nu_0+N_k+d+1}.$$
 
@@ -122,7 +122,7 @@ $$\Sigma_k^{MAP}=\frac{\Psi_0+S_k}{\nu_0+N_k+d+1}.$$
 
 초기 평균은 무작위로 고른 관측점에서 시작해 Lloyd 반복을 10회 수행하며 k-means++가 아니다. `_initialize_covariances`는 전달받은 군집 배정을 사용하지 않고 전체 데이터의 분산으로 초기화한다. 비중에 사용하는 배정은 마지막 중심 갱신 전의 값이다.
 
-`fit`의 `ll`은 M 단계 전 E 단계에서 계산된다. 최대 반복 수에 도달하면 저장 매개변수는 마지막 M 단계 이후인데 비교에 쓰는 우도는 이전 값일 수 있다. 따라서 `lower_bound_`를 최종 매개변수의 재평가 우도나 별도로 계산한 ELBO로 해석하면 안 된다. `converged_`와 `n_iter_`도 초기화별·최선 결과별로 일관되게 저장하지 않아 선택된 모델의 메타데이터라고 단정할 수 없다.
+`fit`의 `ll`은 M 단계 전 E 단계에서 계산된다. 최대 반복 수에 도달하면 저장 파라메터는 마지막 M 단계 이후인데 비교에 쓰는 우도는 이전 값일 수 있다. 따라서 `lower_bound_`를 최종 파라메터의 재평가 우도나 별도로 계산한 ELBO로 해석하면 안 된다. `converged_`와 `n_iter_`도 초기화별·최선 결과별로 일관되게 저장하지 않아 선택된 모델의 메타데이터라고 단정할 수 없다.
 
 Nₖ에 작은 상수를 더하고 N으로 나누므로 비중의 합이 정확히 1인 갱신도 아니다. 밀도 평가와 샘플링에서 공분산에 `reg_covar * I`를 더하지만 저장된 공분산 갱신은 그 유효 공분산을 정확히 최대화하는 방식이 아니다. Cholesky 실패 뒤 일반 역행렬을 쓰는 분기는 잘못된 공분산을 양의 정부호로 고쳐 주지 않는다.
 
@@ -138,7 +138,7 @@ class GaussianMixtureModel:
     """
     온전한 EM 구현을 갖춘 가우스 섞음 모형.
     
-    여러 공분산 갈래와 벌주기를 받쳐 준다.
+    여러 공분산 클래스와 벌주기를 받쳐 준다.
     """
     
     def __init__(
@@ -177,7 +177,7 @@ class GaussianMixtureModel:
         if random_state is not None:
             torch.manual_seed(random_state)
         
-        # 매개변수(fit에서 첫값을 잡는다)
+        # 파라메터(fit에서 첫값을 잡는다)
         self.weights_ = None      # (K,)
         self.means_ = None        # (K, d)
         self.covariances_ = None  # 꼴은 covariance_type에 달렸다
@@ -188,7 +188,7 @@ class GaussianMixtureModel:
         self.lower_bound_ = float('-inf')
         
     def _initialize_parameters(self, X: torch.Tensor):
-        """가우스 섞음 모형의 매개변수 첫값 잡기."""
+        """가우스 섞음 모형의 파라메터 첫값 잡기."""
         N, d = X.shape
         
         if self.init_method == 'kmeans':
@@ -211,7 +211,7 @@ class GaussianMixtureModel:
             # k 평균 무리로 공분산 첫값 잡기
             self._initialize_covariances(X, assignments)
             
-            # 가중치 초기화
+            # 웨이트 초기화
             self.weights_ = torch.bincount(
                 assignments, minlength=self.K
             ).float() / N
@@ -313,13 +313,13 @@ class GaussianMixtureModel:
         return torch.exp(log_resp), log_likelihood
     
     def _m_step(self, X: torch.Tensor, responsibilities: torch.Tensor):
-        """M 걸음: 맡음 몫이 주어졌을 때 매개변수 새로 고치기."""
+        """M 걸음: 맡음 몫이 주어졌을 때 파라메터 새로 고치기."""
         N = X.shape[0]
         
         # 실효 횟수
         N_k = responsibilities.sum(dim=0) + 1e-10  # (K,)
         
-        # 가중치를 갱신한다
+        # 웨이트를 갱신한다
         self.weights_ = N_k / N
         
         # 평균을 갱신한다
@@ -411,7 +411,7 @@ class GaussianMixtureModel:
                     else [c.clone() for c in self.covariances_]
                 )
         
-        # 가장 좋은 매개변수 되돌리기
+        # 가장 좋은 파라메터 되돌리기
         self.weights_, self.means_, self.covariances_ = best_params
         self.lower_bound_ = best_ll
         
@@ -437,7 +437,7 @@ class GaussianMixtureModel:
         N = X.shape[0]
         _, ll = self._e_step(X)
         
-        # 매개변수 개수 세기
+        # 파라메터 개수 세기
         if self.covariance_type == 'full':
             n_params = self.K * (1 + self.d + self.d * (self.d + 1) / 2) - 1
         elif self.covariance_type == 'diagonal':
@@ -497,14 +497,14 @@ class GaussianMixtureModel:
 
 $$F_R(q)=\sum_k\pi_k\Phi\left(\frac{q-\mu_k}{\sigma_k}\right).$$
 
-연속 수익률에서 손실 L=−R의 신뢰수준 c에 대한 분위수는 VaR_c(L)=−F_R⁻¹(1−c)다. 부호와 꼬리 확률의 정의를 일관되게 사용한다. 자산 특징의 군집화 역시 특징의 스케일·기간·추정 불확실성에 영향을 받으며 군집 라벨 자체가 투자 판단을 정해 주지는 않는다.
+연속 수익률에서 로스 L=−R의 신뢰수준 c에 대한 분위수는 VaR_c(L)=−F_R⁻¹(1−c)다. 부호와 꼬리 확률의 정의를 일관되게 사용한다. 자산 피처의 군집화 역시 피처의 스케일·기간·추정 불확실성에 영향을 받으며 군집 라벨 자체가 투자 판단을 정해 주지는 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-전 공분산과 공유 공분산 GMM의 매개변수 수를 계산하라.
+전 공분산과 공유 공분산 GMM의 파라메터 수를 계산하라.
 
 </div>
 
@@ -545,8 +545,8 @@ $$F_R(q)=\sum_k\pi_k\Phi\left(\frac{q-\mu_k}{\sigma_k}\right).$$
 </div>
 
 ??? success "연습문제 4 풀이"
-    E 단계에서 ll을 계산한 뒤 M 단계를 수행하고 최대 반복 수로 종료하면, 최종 매개변수는 바뀌었지만 ll은 이전 값이다. 다중 초기화의 비교와 저장된 lower_bound_도 이 영향을 받을 수 있으므로 최종 매개변수에서 우도를 재평가해야 일관된 비교가 된다.
+    E 단계에서 ll을 계산한 뒤 M 단계를 수행하고 최대 반복 수로 종료하면, 최종 파라메터는 바뀌었지만 ll은 이전 값이다. 다중 초기화의 비교와 저장된 lower_bound_도 이 영향을 받을 수 있으므로 최종 파라메터에서 우도를 재평가해야 일관된 비교가 된다.
 
 ## 정리하며
 
-GMM의 EM은 책임도를 계산한 뒤 가중 최대 우도 추정으로 매개변수를 갱신한다. 공분산 구조·초기화·특이점 제어와 평가 기준을 함께 고려하고, 혼합 모델의 비식별성과 예제 구현의 한계를 구분한다. 혼합분포의 분위수는 혼합 CDF에서 구한다.
+GMM의 EM은 책임도를 계산한 뒤 가중 최대 우도 추정으로 파라메터를 갱신한다. 공분산 구조·초기화·특이점 제어와 평가 기준을 함께 고려하고, 혼합 모델의 비식별성과 예제 구현의 한계를 구분한다. 혼합분포의 분위수는 혼합 CDF에서 구한다.

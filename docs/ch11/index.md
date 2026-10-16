@@ -12,26 +12,26 @@
 - [네거티브 샘플링](embeddings/02_negative_sampling.md): 일부 음성 예제를 이용하는 이진 분류 목적 함수
 - [GloVe](embeddings/glove_embedding.md): 단어 동시 출현 통계를 이용한 임베딩
 - [사전 학습 임베딩](embeddings/03_pretrained_embeddings.md), [분석](embeddings/04_embedding_analysis.md), [시각화](embeddings/04_embedding_visualization.md)
-- [손실 함수 비교](embeddings/01_loss_comparison.md): 다음 단어 예측에서 교차 엔트로피와 음의 로그 우도의 관계
+- [로스 함수 비교](embeddings/01_loss_comparison.md): 다음 단어 예측에서 교차 엔트로피와 음의 로그 우도의 관계
 
-## 2. 순환 신경망
+## 2. 순환 뉴럴 넷트웍
 
-RNN은 이전 시점의 은닉 상태와 현재 입력을 결합해 다음 은닉 상태를 계산한다. 같은 매개변수를 여러 시점에 공유하며 순차 정보를 처리한다.
+RNN은 이전 시점의 은닉 상태와 현재 입력을 결합해 다음 은닉 상태를 계산한다. 같은 파라메터를 여러 시점에 공유하며 순차 정보를 처리한다.
 
 - [시퀀스 데이터의 기초](rnn/01_sequence_basics.md), [텍스트 전처리](rnn/02_text_preprocessing.md), [시계열 데이터](rnn/03_time_series_basics.md)
 - [RNN의 기초](rnn/rnn_fundamentals.md)와 [기본 RNN](rnn/vanilla_rnn.md)
-- [시간 역전파(BPTT)](rnn/bptt.md)와 [기울기 소실](rnn/vanishing_gradients.md): 긴 시퀀스의 학습이 어려운 이유
+- [시간 역전파(BPTT)](rnn/bptt.md)와 [그래디언트 소실](rnn/vanishing_gradients.md): 긴 시퀀스의 학습이 어려운 이유
 - [양방향 RNN](rnn/07_bidirectional_rnn.md): 앞뒤 문맥을 함께 활용하는 구조
 - [언어 모델](rnn/language_models.md)과 [텍스트 생성](rnn/10_text_generation.md)
 
 ## 3. LSTM과 GRU
 
-LSTM과 GRU는 게이트로 정보의 유지와 갱신을 조절한다. 기본 RNN의 장기 의존성 학습을 돕지만, 모든 데이터에서 기울기 소실이나 학습 실패를 없애는 것은 아니다.
+LSTM과 GRU는 게이트로 정보의 유지와 갱신을 조절한다. 기본 RNN의 장기 의존성 학습을 돕지만, 모든 데이터에서 그래디언트 소실이나 학습 실패를 없애는 것은 아니다.
 
 - [LSTM 구조](lstm_gru/lstm_architecture.md): 입력 게이트, 망각 게이트, 출력 게이트와 셀 상태
-- [셀 상태와 기울기 흐름](lstm_gru/cell_state.md), [Peephole 연결](lstm_gru/peephole.md)
+- [셀 상태와 그래디언트 흐름](lstm_gru/cell_state.md), [Peephole 연결](lstm_gru/peephole.md)
 - [GRU 구조](lstm_gru/gru_architecture.md): 업데이트 게이트와 리셋 게이트
-- [GRU와 LSTM 비교](lstm_gru/gru_vs_lstm.md): 구조, 매개변수 수, 선택 기준
+- [GRU와 LSTM 비교](lstm_gru/gru_vs_lstm.md): 구조, 파라메터 수, 선택 기준
 - [LSTM 감성 분류](rnn/05_lstm_sentiment.md)와 [GRU 시계열 예측](rnn/06_gru_time_series.md)
 
 ## 4. Seq2Seq 모델
@@ -45,7 +45,7 @@ Seq2Seq는 입력 시퀀스를 인코딩한 뒤 디코더로 출력 시퀀스를
 
 ## 5. 어텐션
 
-어텐션은 쿼리와 키의 관련도로 가중치를 구하고, 그 가중치로 값을 결합한다. 디코더가 입력의 여러 위치를 참조하게 하거나, 같은 시퀀스 안의 위치 사이에서 정보를 교환하게 한다.
+어텐션은 쿼리와 키의 관련도로 웨이트를 구하고, 그 웨이트로 값을 결합한다. 디코더가 입력의 여러 위치를 참조하게 하거나, 같은 시퀀스 안의 위치 사이에서 정보를 교환하게 한다.
 
 - [어텐션의 기초](attention/attention_fundamentals.md)
 - [스케일 내적 어텐션](attention/scaled_dot_product.md): 내적 점수의 크기를 조절하는 이유

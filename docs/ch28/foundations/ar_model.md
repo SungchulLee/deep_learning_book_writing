@@ -6,7 +6,7 @@
 
 ```python
 """
-시계열을 위한 자기 되돌이 모델
+시계열을 위한 자기 회귀 모델
 
 이 단원은 PyTorch로 단순한 AR(p) 모델을 짠다.
 모델은 지난 p개 값을 바탕으로 시계열의 다음 값을 헤아리는 법을 배운다.
@@ -24,12 +24,12 @@ from typing import Optional
 
 class ARModel(nn.Module):
     """
-    시계열 헤아리기를 위한 자기 되돌이 모델 AR(p).
+    시계열 헤아리기를 위한 자기 회귀 모델 AR(p).
     
-    이는 다음을 헤아리는 단순한 선형 자기 되돌이 모델이다.
+    이는 다음을 헤아리는 단순한 선형 자기 회귀 모델이다.
     X_t = c + φ₁*X_{t-1} + φ₂*X_{t-2} + ... + φₚ*X_{t-p}
     
-    신경망 말로 하면 이는 깨움 함수가 없는 선형 층일 뿐이다.
+    뉴럴 넷트웍 말로 하면 이는 깨움 함수가 없는 선형 레이어일 뿐이다.
     
     구조:
         들임: [배치 크기, 차례 길이] - 지난 p개 값
@@ -38,16 +38,16 @@ class ARModel(nn.Module):
     
     def __init__(self, order: int):
         """
-        자기 되돌이 모델을 첫자리매김한다.
+        자기 회귀 모델을 첫자리매김한다.
         
         인수:
-            order: 자기 되돌이 모델의 차수 p(지난 값을 몇 개 쓸지)
+            order: 자기 회귀 모델의 차수 p(지난 값을 몇 개 쓸지)
         """
         super(ARModel, self).__init__()
         
         self.order = order
         
-        # 선형 층: 계수 φ₁, φ₂, ..., φₚ과 상수 c을 배운다
+        # 선형 레이어: 계수 φ₁, φ₂, ..., φₚ과 상수 c을 배운다
         # 들임 차원: 차수(지난 값 p개)
         # 내놓기 차원: 1(다음 값)
         # bias=True는 상수항 c을 배운다는 뜻이다
@@ -55,7 +55,7 @@ class ARModel(nn.Module):
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        앞먹임: 지난 값으로 다음 값을 헤아린다.
+        피드포워드: 지난 값으로 다음 값을 헤아린다.
         
         인수:
             x: 꼴 [배치 크기, order]인 들임 텐서
@@ -70,14 +70,14 @@ class ARModel(nn.Module):
     
     def get_coefficients(self) -> dict:
         """
-        배운 자기 되돌이 계수를 뽑아낸다.
+        배운 자기 회귀 계수를 뽑아낸다.
         
         반환값:
             다음을 담은 사전:
                 - 'coefficients': 배운 φ 값 [φ₁, φ₂, ..., φₚ]
                 - 'constant': 배운 상수항 c
         """
-        # 선형 층에서 무게와 치우침을 얻는다
+        # 선형 레이어에서 무게와 치우침을 얻는다
         weights = self.linear.weight.data.cpu().numpy().flatten()
         bias = self.linear.bias.data.cpu().numpy()[0]
         
@@ -90,7 +90,7 @@ class ARModel(nn.Module):
                         initial_sequence: torch.Tensor, 
                         n_steps: int) -> np.ndarray:
         """
-        앞날 헤아림을 자기 되돌이로 만든다.
+        앞날 헤아림을 자기 회귀로 만든다.
         
         이 함수는 다음으로 앞날 여러 걸음을 헤아린다.
         1. 아는 지난 값으로 다음 값을 헤아린다
@@ -113,7 +113,7 @@ class ARModel(nn.Module):
         # 지금 차례(미끄러지는 창)
         current_seq = initial_sequence.clone().unsqueeze(0)  # 배치 차원을 더한다
         
-        with torch.no_grad():  # 기울기 셈이 필요 없다
+        with torch.no_grad():  # 그래디언트 셈이 필요 없다
             for _ in range(n_steps):
                 # 다음 값을 헤아린다
                 pred = self.forward(current_seq)
@@ -128,46 +128,46 @@ class ARModel(nn.Module):
 
 class NeuralARModel(nn.Module):
     """
-    신경 자기 되돌이 모델 - AR(p)의 비선형 넓힘.
+    뉴럴 자기 회귀 모델 - AR(p)의 비선형 넓힘.
     
-    단순한 선형 모델 대신 작은 신경망을 써서
+    단순한 선형 모델 대신 작은 뉴럴 넷트웍을 써서
     시계열의 비선형 관계를 담는다.
     
     구조:
-        들임 -> 숨은 층(ReLU) -> 숨은 층(ReLU) -> 내놓기
+        들임 -> 숨은 레이어(ReLU) -> 숨은 레이어(ReLU) -> 내놓기
     """
     
     def __init__(self, 
                  order: int, 
                  hidden_size: int = 64):
         """
-        신경 자기 되돌이 모델을 첫자리매김한다.
+        뉴럴 자기 회귀 모델을 첫자리매김한다.
         
         인수:
             order: 들임으로 쓸 지난 값의 수
-            hidden_size: 숨은 층의 신경 세포 수
+            hidden_size: 숨은 레이어의 뉴런 수
         """
         super(NeuralARModel, self).__init__()
         
         self.order = order
         
-        # 여러 층 신경망
+        # 여러 레이어 뉴럴 넷트웍
         self.network = nn.Sequential(
-            # 첫 번째 은닉층
+            # 첫 번째 은닉 레이어
             nn.Linear(order, hidden_size),
             nn.ReLU(),
             
-            # 두 번째 은닉층
+            # 두 번째 은닉 레이어
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
             
-            # 출력층
+            # 출력 레이어
             nn.Linear(hidden_size, 1)
         )
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        신경망을 지나는 앞먹임.
+        뉴럴 넷트웍을 지나는 피드포워드.
         
         인수:
             x: 꼴 [배치 크기, order]인 들임 텐서
@@ -181,9 +181,9 @@ class NeuralARModel(nn.Module):
                         initial_sequence: torch.Tensor, 
                         n_steps: int) -> np.ndarray:
         """
-        앞날 헤아림을 자기 되돌이로 만든다.
+        앞날 헤아림을 자기 회귀로 만든다.
         
-        ARModel.predict_sequence()과 같되 신경망을 쓴다.
+        ARModel.predict_sequence()과 같되 뉴럴 넷트웍을 쓴다.
         
         인수:
             initial_sequence: 출발 값
@@ -207,7 +207,7 @@ class NeuralARModel(nn.Module):
 
 if __name__ == "__main__":
     """
-    보여 주기: 흉내 자료로 자기 되돌이 모델을 시험한다
+    보여 주기: 흉내 자료로 자기 회귀 모델을 시험한다
     """
     
     # 임시 데이터 만들기
@@ -221,7 +221,7 @@ if __name__ == "__main__":
     print("Testing Linear AR Model")
     print("=" * 60)
     
-    # 선형 자기 되돌이 모델을 첫자리매김한다
+    # 선형 자기 회귀 모델을 첫자리매김한다
     model = ARModel(order=order)
     
     # 순전파
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     print("Testing Neural AR Model")
     print("=" * 60)
     
-    # 신경 자기 되돌이 모델을 첫자리매김한다
+    # 뉴럴 자기 회귀 모델을 첫자리매김한다
     neural_model = NeuralARModel(order=order, hidden_size=32)
     
     # 순전파
@@ -251,14 +251,14 @@ if __name__ == "__main__":
     print(f"Input shape: {X.shape}")
     print(f"Output shape: {predictions.shape}")
     
-    # 매개변수 개수 세기
+    # 파라메터 개수 세기
     n_params = sum(p.numel() for p in neural_model.parameters())
     print(f"Number of parameters: {n_params}")
     
     print("\n✓ Both models working correctly!")
 ```
 
-두 forward의 입력은 `(B,p)`, 출력은 `(B,1)`이다. 데이터 창을 오래된 값부터 `[x_(t−p),…,x_(t−1)]`로 만들었다면 선형 가중치도 이 순서에 대응한다. 전통적인 AR 식 x_t=c+φ₁x_(t−1)+…+φ_px_(t−p)+ε_t의 계수와 비교하려면 가중치 순서를 뒤집어야 한다.
+두 forward의 입력은 `(B,p)`, 출력은 `(B,1)`이다. 데이터 창을 오래된 값부터 `[x_(t−p),…,x_(t−1)]`로 만들었다면 선형 웨이트도 이 순서에 대응한다. 전통적인 AR 식 x_t=c+φ₁x_(t−1)+…+φ_px_(t−p)+ε_t의 계수와 비교하려면 웨이트 순서를 뒤집어야 한다.
 
 **기존 출력 기록:**
 
@@ -292,7 +292,7 @@ predict_sequence는 길이 p의 1차원 초기 창을 `(1,p)`로 바꾸고, 예�
 
 이 경로는 확률적 AR 모형의 여러 미래 표본이나 예측 구간이 아니다. 선형·평균 0 혁신 모형에서는 재귀 평균이 조건부 평균과 연결되지만 비선형 모형에서는 평균을 반복 대입한 값이 일반적으로 여러 스텝 조건부 평균과 같지 않다. 불확실성 예측에는 조건부 잡음 모형과 그에 맞는 롤아웃이 필요하다.
 
-초기 창의 길이·순서·장치·자료형을 모델과 맞춰야 한다. 현재 코드는 단일 시계열 경로를 가정하며 배치 경로의 동시 예측은 별도 설계다. 음수 n_steps도 명시적으로 거부하지 않으므로 호출부에서 정책을 정한다.
+초기 창의 길이·순서·장치·자료형을 모델과 맞춰야 한다. 현재 코드는 단일 시계열 경로를 가정하며 배치 경로의 동시 예측은 별도 설계다. 음수 n_steps도 명시적으로 거부하지 않으므로 호출부에서 폴리시를 정한다.
 
 ## 3. 안정성과 평가
 
@@ -311,7 +311,7 @@ predict_sequence는 길이 p의 1차원 초기 창을 `(1,p)`로 바꾸고, 예�
 
 ??? success "연습문제 1 풀이"
 
-    ARModel에는 기본 order 값이 없으며 p를 지정해야 한다. 가중치 p개와 편향 1개로 p+1개다. NeuralARModel의 은닉 폭 h에서는 첫 층 ph+h, 둘째 h²+h, 마지막 h+1로 합은 ph+h²+3h+1이다. 실행 예 p=5,h=32에서는 선형 6개, 비선형 1,281개다. 클래스 기본 은닉 64를 쓰면 p=5에서 4,609개다.
+    ARModel에는 기본 order 값이 없으며 p를 지정해야 한다. 웨이트 p개와 바이어스 1개로 p+1개다. NeuralARModel의 은닉 폭 h에서는 첫 레이어 ph+h, 둘째 h²+h, 마지막 h+1로 합은 ph+h²+3h+1이다. 실행 예 p=5,h=32에서는 선형 6개, 비선형 1,281개다. 클래스 기본 은닉 64를 쓰면 p=5에서 4,609개다.
 
 
 
@@ -341,7 +341,7 @@ forward와 predict_sequence의 서로 다른 입력 계약을 설명하라.
 
 ??? success "연습문제 3 풀이"
 
-    학습의 실제 관측 창과 달리 재귀 예측에서는 예측값이 새 입력에 들어가 오차가 전파된다. 선형 모델의 불안정한 계수나 비선형 모델의 학습 범위 밖 반응이 이를 키울 수 있다. 한 스텝·여러 스텝 시간 검증, 계수의 지연 순서와 선형 안정성, 입력 스케일을 함께 점검한다. 모델 용량·정규화·다중 스텝 목적을 바꾸는 방법은 목적에 맞게 검증해야 하며 기울기 클리핑 하나가 장기 안정성을 보장하지는 않는다.
+    학습의 실제 관측 창과 달리 재귀 예측에서는 예측값이 새 입력에 들어가 오차가 전파된다. 선형 모델의 불안정한 계수나 비선형 모델의 학습 범위 밖 반응이 이를 키울 수 있다. 한 스텝·여러 스텝 시간 검증, 계수의 지연 순서와 선형 안정성, 입력 스케일을 함께 점검한다. 모델 용량·정규화·다중 스텝 목적을 바꾸는 방법은 목적에 맞게 검증해야 하며 그래디언트 클리핑 하나가 장기 안정성을 보장하지는 않는다.
 
 
 
@@ -350,13 +350,13 @@ forward와 predict_sequence의 서로 다른 입력 계약을 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-깊이 확장은 어느 모델에 적용하며 선형 층만 쌓으면 무엇이 달라지는가?
+깊이 확장은 어느 모델에 적용하며 선형 레이어만 쌓으면 무엇이 달라지는가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
 
-    비선형 NeuralARModel의 은닉 블록 수를 설정하는 것이 자연스럽다. p차원 입력과 1차원 출력을 유지하고 은닉 층 사이에 비선형성을 둔다. 편향을 포함한 선형 층만 합성하면 여전히 하나의 아핀 함수라 원래 선형 AR보다 함수 계열이 넓어지지 않는다. 아래 ModuleList는 등록 골격이며 YourBlock 구현·차원·forward 순회가 필요하다. 기존 ARModel에 num_layers 인수는 없으므로 이름만 넘기는 예시는 동작하지 않는다.
+    비선형 NeuralARModel의 은닉 블록 수를 설정하는 것이 자연스럽다. p차원 입력과 1차원 출력을 유지하고 은닉 레이어 사이에 비선형성을 둔다. 바이어스를 포함한 선형 레이어만 합성하면 여전히 하나의 아핀 함수라 원래 선형 AR보다 함수 계열이 넓어지지 않는다. 아래 ModuleList는 등록 골격이며 YourBlock 구현·차원·forward 순회가 필요하다. 기존 ARModel에 num_layers 인수는 없으므로 이름만 넘기는 예시는 동작하지 않는다.
 
     ```python
     self.layers = nn.ModuleList()
@@ -367,4 +367,4 @@ forward와 predict_sequence의 서로 다른 입력 계약을 설명하라.
 
 ## 정리하며
 
-선형 AR과 신경망 AR은 최근 관측 창을 받는 대안적인 점 예측기다. 계수 순서·입력 모양과 재귀 롤아웃의 의미를 확인하고 확률 표본·불확실성 예측과 구분한다. 한 스텝 오차와 장기 안정성도 별도로 평가해야 한다.
+선형 AR과 뉴럴 넷트웍 AR은 최근 관측 창을 받는 대안적인 점 예측기다. 계수 순서·입력 모양과 재귀 롤아웃의 의미를 확인하고 확률 표본·불확실성 예측과 구분한다. 한 스텝 오차와 장기 안정성도 별도로 평가해야 한다.

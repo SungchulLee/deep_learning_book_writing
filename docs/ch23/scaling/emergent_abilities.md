@@ -6,7 +6,7 @@
 
 [Wei 등(2022)](https://arxiv.org/abs/2206.07682)은 언어 모델의 여러 능력에서 작은 규모의 결과로 예측하기 어려운 변화를 논의했다. [Schaeffer 등(2023)](https://arxiv.org/abs/2304.15004)은 불연속적·비선형 지표와 적은 측정 지점이 일부 급격한 변화를 만들 수 있음을 분석했다. 후자가 모든 능력의 미래 변화가 완전히 예측 가능하다고 증명한 것은 아니다.
 
-모델 크기만이 아니라 자료·학습 계산·토크나이저·후속 학습·프롬프트·시도 횟수·정답 판정이 결과를 바꾼다. ‘계산은 100억, 추론은 1000억에서 출현’ 같은 고정 문턱을 모든 모델 계열에 적용할 수 없다. 작은 모델은 항상 무작위이고 큰 모델은 항상 시범을 따른다는 이분법도 맞지 않는다.
+모델 크기만이 아니라 자료·학습 계산·토크나이저·후속 학습·프롬프트·시도 횟수·정답 판정이 결과를 바꾼다. ‘계산은 100억, 추론은 1000억에서 출현’ 같은 고정 임계를 모든 모델 계열에 적용할 수 없다. 작은 모델은 항상 무작위이고 큰 모델은 항상 시범을 따른다는 이분법도 맞지 않는다.
 
 ## 2. 기존 개념 예시의 범위
 
@@ -22,7 +22,7 @@ GPT-2 (1.5B): Random
 GPT-3 (175B): "positive" (correct)
 ```
 
-이 예시는 ICL의 아이디어를 보여 주는 기존 도식이며 GPT-2·GPT-3의 통제된 실측이 아니다. 가중치 갱신 없이 시범에 조건을 건다는 뜻과 특정 모델이 반드시 오답·정답을 낸다는 주장을 구분한다.
+이 예시는 ICL의 아이디어를 보여 주는 기존 도식이며 GPT-2·GPT-3의 통제된 실측이 아니다. 웨이트 갱신 없이 시범에 조건을 건다는 뜻과 특정 모델이 반드시 오답·정답을 낸다는 주장을 구분한다.
 
 ```
 Question: "Roger has 5 tennis balls. He buys 2 cans of 3 balls each. 
@@ -55,7 +55,7 @@ def emergence_curve(scale, critical_scale, sharpness=1.0):
     """떠오르는 능력을 S자 상전이로 나타낸다."""
     return 1 / (1 + np.exp(-sharpness * (np.log10(scale) - np.log10(critical_scale))))
 
-scales = np.logspace(8, 12, 100)  # 매개변수 1억에서 1조까지
+scales = np.logspace(8, 12, 100)  # 파라메터 1억에서 1조까지
 
 plt.figure(figsize=(10, 6))
 for task, s_c, beta in [
@@ -73,7 +73,7 @@ plt.legend()
 plt.grid(True, alpha=0.3)
 ```
 
-emergence_curve는 log10(scale)에 대한 매끄러운 sigmoid다. critical_scale에서 0.5가 되고 sharpness는 기울기를 바꾸지만 유한한 값에서 수학적 불연속은 없다. 그래프의 과제 이름·임계 크기는 사용자가 정한 값이며 실제 모델을 학습·평가해 추정한 결과가 아니다. 이 편집에서는 해당 그림을 실행·재생성하지 않는다.
+emergence_curve는 log10(scale)에 대한 매끄러운 sigmoid다. critical_scale에서 0.5가 되고 sharpness는 그래디언트를 바꾸지만 유한한 값에서 수학적 불연속은 없다. 그래프의 과제 이름·임계 크기는 사용자가 정한 값이며 실제 모델을 학습·평가해 추정한 결과가 아니다. 이 편집에서는 해당 그림을 실행·재생성하지 않는다.
 
 ```python
 def smooth_capability(scale, alpha=0.3):
@@ -106,11 +106,11 @@ def capability_forecast_uncertainty(
     """
     능력 내다보기의 불확실함을 어림한다.
     
-    떠오름 문턱이 될 만한 곳을 넘을 때 불확실함이 커진다.
+    떠오름 임계가 될 만한 곳을 넘을 때 불확실함이 커진다.
     """
     scale_ratio = target_scale / current_scale
     
-    # 범위 안에서 떠오름 문턱이 될 만한 곳을 살핀다
+    # 범위 안에서 떠오름 임계가 될 만한 곳을 살핀다
     potential_emergences = [
         t for t in known_emergent_thresholds 
         if current_scale < t <= target_scale
@@ -123,7 +123,7 @@ def capability_forecast_uncertainty(
     }
 ```
 
-capability_forecast_uncertainty는 주어진 임계값 목록에서 현재·목표 규모 사이의 원소 수를 센다. 새로운 문턱을 발견하거나 확률을 추정하지 않는다. ‘low’·‘moderate’는 고정 규칙이며 보정된 예측 신뢰도가 아니다. 양수 규모·중복 임계값·역방향 비교의 정책도 필요하다.
+capability_forecast_uncertainty는 주어진 임계값 목록에서 현재·목표 규모 사이의 원소 수를 센다. 새로운 임계를 발견하거나 확률을 추정하지 않는다. ‘low’·‘moderate’는 고정 규칙이며 보정된 예측 신뢰도가 아니다. 양수 규모·중복 임계값·역방향 비교의 폴리시도 필요하다.
 
 ```python
 def emergence_score(
@@ -138,7 +138,7 @@ def emergence_score(
     
     인수:
         performances: 규모마다의 일 성능
-        scales: 모델 규모(매개변수)
+        scales: 모델 규모(파라메터)
         random_baseline: 아무렇게나 찍었을 때의 성능
         
     반환값:
@@ -161,7 +161,7 @@ def emergence_score(
     return np.std(derivatives) / np.mean(np.abs(derivatives))
 ```
 
-emergence_score는 log10 규모 간 차분 기울기의 변동을 평균 절댓값으로 나눈 임의 진단량이다. 큰 값이 ‘참된 창발성’을 입증하지 않으며 모델 수·간격·노이즈에 민감하다. 감소·비단조 곡선에서도 커질 수 있다. 최소 두 개 이상의 길이가 맞는 관측, 양수이며 중복 없는 규모와 유효한 baseline을 요구한다.
+emergence_score는 log10 규모 간 차분 그래디언트의 변동을 평균 절댓값으로 나눈 임의 진단량이다. 큰 값이 ‘참된 창발성’을 입증하지 않으며 모델 수·간격·노이즈에 민감하다. 감소·비단조 곡선에서도 커질 수 있다. 최소 두 개 이상의 길이가 맞는 관측, 양수이며 중복 없는 규모와 유효한 baseline을 요구한다.
 
 ## 5. 여러 지표의 일치와 한계
 
@@ -171,7 +171,7 @@ def evaluate_emergence_robustness(
     scales: list
 ) -> dict:
     """
-    같은 능력을 여러 잣대로 값매김한다.
+    같은 능력을 여러 잣대로 밸류한다.
     
     모든 잣대가 떠오름을 보이면 → 참일 가능성이 크다
     따로 떨어진 잣대만 떠오름을 보이면 → 헛것일 가능성이 크다
@@ -202,7 +202,7 @@ def evaluate_emergence_robustness(
 
 동일 모델 계열·자료·학습 예산 관계와 평가 조건을 기록하고 중간 규모·여러 시드를 포함한다. 정확 일치, 부분 점수, 정답 로그확률·보정과 오류 유형을 함께 살핀다. 가능한 경우 작은 규모에서 만든 예측을 미리 고정하고 더 큰 규모의 독립 결과로 검증한다.
 
-안전과 능력 평가는 변화가 확실히 나타난 뒤에만 시작할 필요는 없다. 작은 모델·부분 성공·도구 사용·다른 프롬프트 조건에서도 실패와 잠재 능력을 조사할 수 있다. ‘아직 없는 능력은 전혀 시험할 수 없다’거나 특정 파라미터 문턱에 도달해야만 자원의 가치가 생긴다고 단정하지 않는다.
+안전과 능력 평가는 변화가 확실히 나타난 뒤에만 시작할 필요는 없다. 작은 모델·부분 성공·도구 사용·다른 프롬프트 조건에서도 실패와 잠재 능력을 조사할 수 있다. ‘아직 없는 능력은 전혀 시험할 수 없다’거나 특정 파라미터 임계에 도달해야만 자원의 밸류가 생긴다고 단정하지 않는다.
 
 ## 연습문제
 
@@ -224,13 +224,13 @@ def evaluate_emergence_robustness(
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-emergence_curve 그래프가 실제 능력 문턱의 증거가 아닌 이유를 설명하라.
+emergence_curve 그래프가 실제 능력 임계의 증거가 아닌 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
 
-    과제별 critical_scale과 sharpness를 사람이 정한 연속 sigmoid다. 모델의 실제 측정값·적합이나 통계 검정이 없다. log10 규모의 형태와 0.5 지점을 설명할 수는 있지만 모든 모델의 계산·CoT 문턱을 알려 주지는 않는다.
+    과제별 critical_scale과 sharpness를 사람이 정한 연속 sigmoid다. 모델의 실제 측정값·적합이나 통계 검정이 없다. log10 규모의 형태와 0.5 지점을 설명할 수는 있지만 모든 모델의 계산·CoT 임계를 알려 주지는 않는다.
 
 
 

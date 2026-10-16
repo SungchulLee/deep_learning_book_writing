@@ -1,6 +1,6 @@
 # REINFORCE 알고리즘
 
-REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수로 나타낸 정책을 배우는, 기초가 되는 몬테카를로 정책 경사 알고리즘이다. 온전한 에피소드를 모으고 깎은 리턴을 셈한 뒤, 보상이 높은 행동의 낌새를 올리는 쪽으로 정책 매개변수를 고친다. 이 구현은 맹탕 REINFORCE, 앞으로의 보상으로 분산을 줄이는 재주, 리턴 고르게 하기, 배치 고침을 다루며, 다듬을 때마다 따로 떨어진 다스리기와 이어진 다스리기 과제에서 학습이 어떻게 더 든든해지는지 보인다.
+REINFORCE는 어림 쌓인 리워드를 곧바로 가장 좋게 하여 파라메터로 나타낸 폴리시를 배우는, 기초가 되는 몬테카를로 폴리시 경사 알고리즘이다. 온전한 에피소드를 모으고 깎은 리턴을 셈한 뒤, 리워드가 높은 액션의 확률을 올리는 쪽으로 폴리시 파라메터를 고친다. 이 구현은 맹탕 REINFORCE, 앞으로의 리워드로 분산을 줄이는 재주, 리턴 고르게 하기, 배치 고침을 다루며, 다듬을 때마다 따로 떨어진 다스리기와 이어진 다스리기 과제에서 학습이 어떻게 더 든든해지는지 보인다.
 
 ## 1. 코드
 
@@ -10,9 +10,9 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
     """
     34.1.3장: REINFORCE 알고리즘
     =====================================
-    여러 갈래를 갖춘 온전한 REINFORCE 구현:
+    여러 클래스를 갖춘 온전한 REINFORCE 구현:
     - 맹탕 REINFORCE
-    - 앞으로의 보상을 쓰는 REINFORCE
+    - 앞으로의 리워드를 쓰는 REINFORCE
     - 돌아옴 고르게 하기를 쓰는 REINFORCE
     - CartPole과 이어진 다스리기에서 익히기
     """
@@ -32,11 +32,11 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
 
 
     # ---------------------------------------------------------------------------
-    # 방침 그물
+    # 폴리시 넷트웍
     # ---------------------------------------------------------------------------
 
     class DiscretePolicyNetwork(nn.Module):
-        """따로 떨어진 움직임을 위한 방침 그물."""
+        """따로 떨어진 액션을 위한 폴리시 넷트웍."""
 
         def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
             super().__init__()
@@ -54,7 +54,7 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
 
 
     class ContinuousPolicyNetwork(nn.Module):
-        """이어진 움직임을 위한 방침 그물."""
+        """이어진 액션을 위한 폴리시 넷트웍."""
 
         def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
             super().__init__()
@@ -75,25 +75,25 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
 
 
     # ---------------------------------------------------------------------------
-    # REINFORCE 부림꾼
+    # REINFORCE 에이전트
     # ---------------------------------------------------------------------------
 
     class REINFORCE:
         """
-        REINFORCE 방침 기울기 부림꾼.
+        REINFORCE 폴리시 그래디언트 에이전트.
 
-        매개변수
+        파라메터
         ----------
         env : gym.Env
             Gymnasium 둘레.
         lr : float
-            배움률.
+            러닝레이트.
         gamma : float
             깎기 인자.
         hidden_dim : int
             숨은 켜의 크기.
         use_reward_to_go : bool
-            True이면 까닭 매김(앞으로의 보상)을 쓴다. 아니면 온 돌아옴을 쓴다.
+            True이면 까닭 매김(앞으로의 리워드)을 쓴다. 아니면 온 돌아옴을 쓴다.
         normalize_returns : bool
             True이면 돌아옴을 평균 0, 흩어짐 1로 고르게 한다.
         entropy_coef : float
@@ -116,7 +116,7 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
             self.normalize_returns = normalize_returns
             self.entropy_coef = entropy_coef
 
-            # 움직임 공간 갈래를 알아낸다
+            # 액션 공간 클래스를 알아낸다
             obs_dim = env.observation_space.shape[0]
             self.continuous = isinstance(env.action_space, gym.spaces.Box)
 
@@ -130,7 +130,7 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
             self.optimizer = optim.Adam(self.policy.parameters(), lr=lr)
 
         def select_action(self, obs: np.ndarray) -> Tuple[np.ndarray, torch.Tensor, torch.Tensor]:
-            """지금 방침에서 움직임을 고른다."""
+            """지금 폴리시에서 액션을 고른다."""
             obs_t = torch.FloatTensor(obs).unsqueeze(0)
             dist = self.policy(obs_t)
             action = dist.sample()
@@ -147,7 +147,7 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
         def compute_returns(self, rewards: List[float]) -> torch.Tensor:
             """깎은 돌아옴을 셈한다."""
             if self.use_reward_to_go:
-                # 앞으로의 보상: G_t = r_t + γ·r_{t+1} + γ²·r_{t+2} + ...
+                # 앞으로의 리워드: G_t = r_t + γ·r_{t+1} + γ²·r_{t+2} + ...
                 returns = []
                 G = 0.0
                 for r in reversed(rewards):
@@ -187,22 +187,22 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
             """REINFORCE 고침을 한 번 벌인다."""
             returns = self.compute_returns(rewards)
 
-            # 로그 낌새와 엔트로피를 쌓는다
+            # 로그 확률과 엔트로피를 쌓는다
             log_probs_t = torch.stack(log_probs).squeeze()
             entropies_t = torch.stack(entropies).squeeze()
 
-            # 방침 기울기 손실: -E[log π(a|s) · G_t]
+            # 폴리시 그래디언트 로스: -E[log π(a|s) · G_t]
             policy_loss = -(log_probs_t * returns).mean()
 
             # 살펴보기를 위한 엔트로피 덤
             entropy_loss = -entropies_t.mean()
 
-            # 온 손실
+            # 온 로스
             loss = policy_loss + self.entropy_coef * entropy_loss
 
             self.optimizer.zero_grad()
             loss.backward()
-            # 든든함을 위한 기울기 자르기
+            # 든든함을 위한 그래디언트 자르기
             nn.utils.clip_grad_norm_(self.policy.parameters(), max_norm=0.5)
             self.optimizer.step()
 
@@ -215,21 +215,21 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
             solved_reward: Optional[float] = None,
         ) -> List[float]:
             """
-            REINFORCE로 부림꾼을 익힌다.
+            REINFORCE로 에이전트를 익힌다.
 
-            매개변수
+            파라메터
             ----------
             n_episodes : int
                 익힘 에피소드의 개수.
             print_interval : int
                 나아감을 얼마나 자주 찍을지.
             solved_reward : float, 고를 수 있음
-                주어지면 평균 보상이 이를 넘을 때 익힘을 멈춘다.
+                주어지면 평균 리워드가 이를 넘을 때 익힘을 멈춘다.
 
             돌려주는 값
             -------
             episode_rewards : float의 목록
-                보상 내력.
+                리워드 내력.
             """
             episode_rewards = []
             recent_rewards = deque(maxlen=100)
@@ -266,8 +266,8 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
         """
         흩어짐을 줄이려 배치로 고치는 REINFORCE.
 
-        기울기 고침을 벌이기 앞서 에피소드 여럿을 모아 배치에 걸쳐
-        기울기를 고르게 한다.
+        그래디언트 고침을 벌이기 앞서 에피소드 여럿을 모아 배치에 걸쳐
+        그래디언트를 고르게 한다.
         """
 
         def __init__(self, *args, batch_size: int = 10, **kwargs):
@@ -313,7 +313,7 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
                 if self.normalize_returns:
                     all_returns = (all_returns - all_returns.mean()) / (all_returns.std() + 1e-8)
 
-                # 기울기 고침 한 번
+                # 그래디언트 고침 한 번
                 policy_loss = -(all_log_probs * all_returns).mean()
                 entropy_loss = -all_entropies.mean()
                 loss = policy_loss + self.entropy_coef * entropy_loss
@@ -390,7 +390,7 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
 
 
     def compare_variants():
-        """CartPole에서 REINFORCE 갈래들을 견준다."""
+        """CartPole에서 REINFORCE 클래스들을 견준다."""
         print("\n" + "=" * 60)
         print("Comparing REINFORCE Variants")
         print("=" * 60)
@@ -436,45 +436,45 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
 
 이 구현은 REINFORCE 알고리즘의 한가운데 논리를 담은 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 써 보인다. 그 출력을 살피면 매개변수 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
+보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 써 보인다. 그 출력을 살피면 파라메터 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 배치 계산, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 배치 계산, GPU 빠르게 하기, 더 야무진 파라메터 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌리고 중요한 출력 재기를 적어라. 매개변수 하나(학습률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
+보여 주기 코드를 돌리고 중요한 출력 재기를 적어라. 파라메터 하나(러닝레이트, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 구조 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 학습률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 파라메터만 구조 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 러닝레이트는 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 파라메터의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 구현에서 중요한 구조 공정성이 맡은 몫을 풀어라. 왜 그런 활성화 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
+이 구현에서 중요한 구조 공정성이 맡은 몫을 풀어라. 왜 그런 엑티베이션 함수, 고르게 하기 꾀, 로스 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 공정성은 정책 경사 기초에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 입력에서 기울기가 사라지는 것을 막는다. 손실 함수는 과제 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 최적화 지형이 바뀌어 성능이 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+    이 구조 공정성은 폴리시 경사 기초에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 입력에서 그래디언트가 사라지는 것을 막는다. 로스 함수는 과제 클래스에 맞추어 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 오차). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 로스) 최적화 지형이 바뀌어 성능이 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 데이터셋, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 성능에 미친 바를 따져라.
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 데이터셋, 다른 문제 클래스, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 성능에 미친 바를 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    절로 떠오르는 넓히기 하나는 정규화(드롭아웃, 가중치 삭임)나 더 야무진 구조(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 데이터로 학습된 뒤 앞뒤의 재기를 비교하여라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
+    절로 떠오르는 넓히기 하나는 정규화(드롭아웃, 웨이트 삭임)나 더 야무진 구조(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 데이터로 학습된 뒤 앞뒤의 재기를 비교하여라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
 
 ## 정리하며
 
@@ -482,4 +482,4 @@ REINFORCE는 어림 쌓인 보상을 곧바로 가장 좋게 하여 매개변수
 
 이 구현은 REINFORCE 알고리즘의 한가운데 논리를 담은 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE` 클래스를 축으로 삼는다.
 
-핵심 갈래는 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE`, `BatchREINFORCE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `DiscretePolicyNetwork`, `ContinuousPolicyNetwork`, `REINFORCE`, `BatchREINFORCE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

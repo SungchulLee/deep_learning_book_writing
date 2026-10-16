@@ -1,4 +1,4 @@
-# 교차 엔트로피 손실
+# 교차 엔트로피 로스
 
 ---
 
@@ -6,15 +6,15 @@
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
-- 최대가능도 추정의 원리에서 교차 엔트로피 손실 유도하기
+- 최대가능도 추정의 원리에서 교차 엔트로피 로스 유도하기
 - 교차 엔트로피의 정보 이론적 해석 이해하기
 - 다중 클래스 분류에서 NLL과 교차 엔트로피가 동등함을 증명하기
 - KL 발산을 교차 엔트로피 최적화와 연결하기
-- 모델 매개변수에 대한 교차 엔트로피 손실의 경사를 완전히 유도하기
+- 모델 파라메터에 대한 교차 엔트로피 로스의 경사를 완전히 유도하기
 - 로짓에 대한 경사 공식 $\nabla_\mathbf{z}\mathcal{L} = \hat{\boldsymbol{\pi}} - \mathbf{y}$을 PyTorch로 확인하기
 
 !!! note "함께 볼 것"
-    교차 엔트로피는 **8.4절 소프트맥스 회귀**에도 등장한다. 거기서는 소프트맥스 분류기의 자연스러운 손실로 유도하고 PyTorch의 세 인터페이스(`nn.CrossEntropyLoss`, `F.cross_entropy`, `nn.NLLLoss`)를 쓴 N-그램 언어 모델로 보여준다. 이 절은 더 폭넓게 다룬다. 정보 이론적 토대, 행렬 형태를 포함한 전체 배치 경사 유도, NumPy로 바닥부터 만드는 구현, 그리고 Focal Loss과의 관계를 살펴본다.
+    교차 엔트로피는 **8.4절 소프트맥스 회귀**에도 등장한다. 거기서는 소프트맥스 분류기의 자연스러운 로스로 유도하고 PyTorch의 세 인터페이스(`nn.CrossEntropyLoss`, `F.cross_entropy`, `nn.NLLLoss`)를 쓴 N-그램 언어 모델로 보여준다. 이 절은 더 폭넓게 다룬다. 정보 이론적 토대, 행렬 형태를 포함한 전체 배치 경사 유도, NumPy로 바닥부터 만드는 구현, 그리고 Focal Loss과의 관계를 살펴본다.
 
 ---
 
@@ -26,7 +26,7 @@
 
 - **데이터:** $y^{(i)} \in \{1, \ldots, K\}$인 $\mathcal{D} = \{(\mathbf{x}^{(i)}, y^{(i)})\}_{i=1}^{N}$
 - **모델:** 확률 $\hat{\pi}_k^{(i)} = P(Y = k \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta})$을 예측한다
-- **목표:** 관측된 데이터의 우도를 최대로 만드는 매개변수 $\boldsymbol{\theta}$을 찾는다
+- **목표:** 관측된 데이터의 우도를 최대로 만드는 파라메터 $\boldsymbol{\theta}$을 찾는다
 
 ### 우도 함수
 
@@ -46,7 +46,7 @@ $$\ell(\boldsymbol{\theta}) = \log \mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}
 
 ### 음의 로그우도 (NLL)
 
-보통 손실 함수는 최소화하므로 **음의 로그우도**를 다음과 같이 정의한다.
+보통 로스 함수는 최소화하므로 **음의 로그우도**를 다음과 같이 정의한다.
 
 $$\text{NLL}(\boldsymbol{\theta}) = -\ell(\boldsymbol{\theta}) = -\sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \hat{\pi}_k^{(i)}$$
 
@@ -98,7 +98,7 @@ $$\boxed{\text{Cross-Entropy Loss} = \frac{1}{N} \text{NLL} = -\frac{1}{N} \sum_
 |-------------|----------------|
 | 통계적 | 최대가능도 추정 |
 | 정보 이론적 | 부호화의 비효율을 최소화 |
-| 최적화 | 로짓에 대해 볼록함. 일반 신경망의 매개변수에 대해서는 비볼록일 수 있음 |
+| 최적화 | 로짓에 대해 볼록함. 일반 뉴럴 넷트웍의 파라메터에 대해서는 비볼록일 수 있음 |
 | 실무적 | 경험적으로 잘 작동한다 |
 
 ---
@@ -129,7 +129,7 @@ $$H(\mathbf{y}, \hat{\boldsymbol{\pi}}) = D_{KL}(\mathbf{y} \| \hat{\boldsymbol{
 
 ## 6. 기하학적 해석
 
-참 클래스가 $c$인 표본 하나에 대해 교차 엔트로피 손실은 다음과 같다.
+참 클래스가 $c$인 표본 하나에 대해 교차 엔트로피 로스는 다음과 같다.
 
 $$\mathcal{L} = -\log \hat{\pi}_c$$
 
@@ -168,7 +168,7 @@ Loss ↑
 
 ### 소프트맥스 회귀 모델
 
-클래스가 $K$개이고 입력 특징이 $\mathbf{x} \in \mathbb{R}^D$인 다중 클래스 분류에서 다음과 같다.
+클래스가 $K$개이고 입력 피처가 $\mathbf{x} \in \mathbb{R}^D$인 다중 클래스 분류에서 다음과 같다.
 
 **로짓 (선형 점수):**
 
@@ -178,9 +178,9 @@ $$z_k = \mathbf{w}_k^T \mathbf{x} + b_k = \sum_{d=1}^{D} w_{kd} x_d + b_k$$
 
 $$\hat{\pi}_k = \sigma(\mathbf{z})_k = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}$$
 
-**매개변수:** $\mathbf{W} \in \mathbb{R}^{K \times D}$이고 $\mathbf{b} \in \mathbb{R}^K$인 $\boldsymbol{\theta} = \{\mathbf{W}, \mathbf{b}\}$이다.
+**파라메터:** $\mathbf{W} \in \mathbb{R}^{K \times D}$이고 $\mathbf{b} \in \mathbb{R}^K$인 $\boldsymbol{\theta} = \{\mathbf{W}, \mathbf{b}\}$이다.
 
-참 클래스가 $c$인(원핫으로는 $\mathbf{y}$) 표본 하나에 대한 **손실 함수**는 다음과 같다.
+참 클래스가 $c$인(원핫으로는 $\mathbf{y}$) 표본 하나에 대한 **로스 함수**는 다음과 같다.
 
 $$\mathcal{L} = -\log \hat{\pi}_c = -\sum_{k=1}^{K} y_k \log \hat{\pi}_k$$
 
@@ -220,7 +220,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{z}} = \hat{\boldsymbol{\pi
 - $\hat{\pi}_c \approx 0$이면(틀린 예측) 경사가 크다 (큰 갱신)
 - 경사가 예측을 참 레이블 쪽으로 "민다"
 
-### 2단계: 가중치에 대한 경사
+### 2단계: 웨이트에 대한 경사
 
 $z_k = \sum_d w_{kd} x_d + b_k$에 연쇄 법칙을 쓰면 다음과 같다.
 
@@ -232,7 +232,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{W}} = (\hat{\boldsymbol{\p
 
 여기서 $(\hat{\boldsymbol{\pi}} - \mathbf{y}) \in \mathbb{R}^K$이고 $\mathbf{x} \in \mathbb{R}^D$이므로 $\frac{\partial \mathcal{L}}{\partial \mathbf{W}} \in \mathbb{R}^{K \times D}$이다.
 
-### 3단계: 편향에 대한 경사
+### 3단계: 바이어스에 대한 경사
 
 $$\frac{\partial \mathcal{L}}{\partial b_k} = \frac{\partial \mathcal{L}}{\partial z_k} \cdot \frac{\partial z_k}{\partial b_k} = (\hat{\pi}_k - y_k) \cdot 1$$
 
@@ -242,7 +242,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \hat{\boldsymbol{\pi
 
 ## 8. 배치 경사 계산
 
-표본 $N$개의 배치 $\{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^{N}$이 주어졌을 때 전체 손실은 다음과 같다.
+표본 $N$개의 배치 $\{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^{N}$이 주어졌을 때 전체 로스는 다음과 같다.
 
 $$\mathcal{L}_{\text{total}} = \frac{1}{N} \sum_{i=1}^{N} \mathcal{L}^{(i)}$$
 
@@ -264,7 +264,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \frac{1}{N} (\hat{\m
 
 **경사의 방향:** 참 클래스의 경사는 음수여서 로짓을 올리고, 다른 클래스의 경사는 양수여서 로짓을 내린다. 그 결과 참 클래스와 나머지 사이의 간격이 벌어진다.
 
-**로짓 경사의 유계성:** 원핫 목표를 쓰는 표본 하나에 대해 $\|\nabla_\mathbf{z}\mathcal{L}\|_2\leq\sqrt{2}$이다. 가중치 경사에는 입력 크기가, 깊은 신경망의 경사에는 앞선 층의 야코비안이 곱해지므로 이 부등식만으로 전체 학습의 안정성을 보장할 수 없다.
+**로짓 경사의 유계성:** 원핫 목표를 쓰는 표본 하나에 대해 $\|\nabla_\mathbf{z}\mathcal{L}\|_2\leq\sqrt{2}$이다. 웨이트 경사에는 입력 크기가, 깊은 뉴럴 넷트웍의 경사에는 앞선 레이어의 야코비안이 곱해지므로 이 부등식만으로 전체 학습의 안정성을 보장할 수 없다.
 
 ---
 
@@ -278,7 +278,7 @@ $$\text{BCE} = -\frac{1}{N} \sum_{i=1}^{N} \left[ y^{(i)} \log \hat{p}^{(i)} + (
 
 ### 가중 교차 엔트로피
 
-클래스 불균형이나 오분류 비용을 반영하기 위해 클래스별 가중치를 줄 수 있다. 아래 식은 표본 수로 나눈 한 가지 정의이다. 클래스 인덱스 목표를 쓰는 PyTorch `CrossEntropyLoss(weight=..., reduction="mean")`은 유효한 표본의 정답 클래스 가중치 합으로 나누므로 분모가 다를 수 있다.
+클래스 불균형이나 오분류 비용을 반영하기 위해 클래스별 웨이트를 줄 수 있다. 아래 식은 표본 수로 나눈 한 가지 정의이다. 클래스 인덱스 목표를 쓰는 PyTorch `CrossEntropyLoss(weight=..., reduction="mean")`은 유효한 표본의 정답 클래스 웨이트 합으로 나누므로 분모가 다를 수 있다.
 
 $$\text{Weighted CE} = -\frac{1}{N} \sum_{i=1}^{N} w_{y^{(i)}} \log \hat{\pi}_{y^{(i)}}^{(i)}$$
 
@@ -299,13 +299,13 @@ $$\tilde{y}_k = \begin{cases}
 
 $$\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$$
 
-여기서 $\gamma > 0$은 초점 매개변수이고 $\alpha_t$은 가중 인수이다.
+여기서 $\gamma > 0$은 초점 파라메터이고 $\alpha_t$은 가중 인수이다.
 
 ---
 
 ## 10. L2 정규화를 더하면
 
-### 정규화된 손실
+### 정규화된 로스
 
 $$\mathcal{L}_{\text{reg}} = \mathcal{L}_{CE} + \frac{\lambda}{2} \|\mathbf{W}\|_F^2$$
 
@@ -353,7 +353,7 @@ CrossEntropyLoss: 0.3854
 ```python
 def cross_entropy_manual(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     """
-    교차 엔트로피 손실을 직접 구현한 것.
+    교차 엔트로피 로스를 직접 구현한 것.
 
     CE = -mean(log(softmax(logits))[true_class])
        = mean(-log_softmax(logits)[true_class])
@@ -402,10 +402,10 @@ Decomposed: 0.385362
 Direct CE:  0.385362
 ```
 
-### PyTorch의 손실 변형들
+### PyTorch의 로스 변형들
 
 ```python
-# 클래스 가중치를 쓰는 경우 (불균형 데이터용)
+# 클래스 웨이트를 쓰는 경우 (불균형 데이터용)
 class_weights = torch.tensor([1.0, 2.0, 3.0])
 weighted_ce = nn.CrossEntropyLoss(weight=class_weights)
 
@@ -415,16 +415,16 @@ smooth_ce = nn.CrossEntropyLoss(label_smoothing=0.1)
 # 특정 레이블을 무시하는 경우 (예: 채움값)
 ignore_ce = nn.CrossEntropyLoss(ignore_index=-100)
 
-# 초점 손실 (직접 구현)
+# 초점 로스 (직접 구현)
 def focal_loss(logits, targets, alpha=1.0, gamma=2.0):
     """
-    촘촘한 물체 알아내기를 위한 초점 손실.
+    촘촘한 물체 알아내기를 위한 초점 로스.
 
     Args:
         logits: 모델의 날것 출력
         targets: 참값 클래스 번호
-        alpha: 가중치 값
-        gamma: 초점 매개변수
+        alpha: 웨이트 값
+        gamma: 초점 파라메터
     """
     ce_loss = F.cross_entropy(logits, targets, reduction='none')
     pt = torch.exp(-ce_loss)  # pt = probability of true class
@@ -437,7 +437,7 @@ def focal_loss(logits, targets, alpha=1.0, gamma=2.0):
 ```python
 def verify_gradient_derivation():
     """
-    우리가 해석으로 얻은 기울기가 PyTorch 자동 미분과 맞는지 평가한다.
+    우리가 해석으로 얻은 그래디언트가 PyTorch 자동 미분과 맞는지 평가한다.
     """
     torch.manual_seed(42)
 
@@ -454,7 +454,7 @@ def verify_gradient_derivation():
     logits = X @ W.T + b  # (N, K)
     probs = F.softmax(logits, dim=1)
 
-    # 손실 (교차 엔트로피)
+    # 로스 (교차 엔트로피)
     loss = F.cross_entropy(logits, y)
 
     # Autograd의 역전파
@@ -492,7 +492,7 @@ Gradients match: True
 ```python
 def visualize_gradient_flow():
     """
-    소프트맥스 + 교차 엔트로피를 지나 기울기가 어떻게 흐르는지 보인다.
+    소프트맥스 + 교차 엔트로피를 지나 그래디언트가 어떻게 흐르는지 보인다.
     """
     torch.manual_seed(42)
 
@@ -551,7 +551,7 @@ import numpy as np
 class SoftmaxRegressionNumPy:
     """
     밑바닥부터 짠 소프트맥스 회귀.
-    이끌어 낸 기울기를 코드로 보인다.
+    이끌어 낸 그래디언트를 코드로 보인다.
     """
 
     def __init__(self, input_dim: int, num_classes: int):
@@ -571,14 +571,14 @@ class SoftmaxRegressionNumPy:
         return self.probs
 
     def compute_loss(self, probs: np.ndarray, y: np.ndarray) -> float:
-        """교차 엔트로피 손실을 계산한다."""
+        """교차 엔트로피 로스를 계산한다."""
         N = len(y)
         correct_log_probs = -np.log(probs[np.arange(N), y] + 1e-10)
         return np.mean(correct_log_probs)
 
     def backward(self, X: np.ndarray, y: np.ndarray) -> tuple:
         """
-        역전파: 기울기를 계산한다.
+        역전파: 그래디언트를 계산한다.
 
         핵심 통찰: ∂L/∂z = π - y(원핫)
         """
@@ -591,10 +591,10 @@ class SoftmaxRegressionNumPy:
         # 로짓에 대한 경사: dL/dz = π - y
         dz = self.probs - y_onehot  # (N, K)
 
-        # 가중치에 대한 경사: dL/dW = (1/N) * dz^T @ X
+        # 웨이트에 대한 경사: dL/dW = (1/N) * dz^T @ X
         dW = (1/N) * dz.T @ X  # (K, D)
 
-        # 편향에 대한 경사: dL/db = (1/N) * sum(dz)
+        # 바이어스에 대한 경사: dL/db = (1/N) * sum(dz)
         db = (1/N) * np.sum(dz, axis=0)  # (K,)
 
         return dW, db
@@ -652,7 +652,7 @@ class SoftmaxRegressionNumPy:
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$K$개 클래스 분류 문제에서 로짓(소프트맥스 이전의 값)에 대한 교차 엔트로피 손실의 경사를 유도하라.
+$K$개 클래스 분류 문제에서 로짓(소프트맥스 이전의 값)에 대한 교차 엔트로피 로스의 경사를 유도하라.
 
 </div>
 
@@ -708,7 +708,7 @@ $-\log(\text{softmax}(z)_k)$을 곧바로 계산할 때 생기는 수치적 안�
 
 ### 근본이 되는 식들
 
-**교차 엔트로피 손실:**
+**교차 엔트로피 로스:**
 
 $$\boxed{\mathcal{L}_{CE} = -\frac{1}{N} \sum_{i=1}^{N} \log \hat{\pi}_{y^{(i)}}^{(i)} = -\frac{1}{N} \sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \hat{\pi}_k^{(i)}}$$
 
@@ -723,8 +723,8 @@ $$\text{Cross-Entropy} = \frac{1}{N} \text{NLL} = H(\mathbf{p}, \mathbf{q}) = H(
 | 양 | 표본 하나 | 배치 (표본 $N$개) |
 |----------|--------------|---------------------|
 | 로짓에 대해 | $\hat{\boldsymbol{\pi}} - \mathbf{y}$ | — |
-| 가중치에 대해 | $(\hat{\boldsymbol{\pi}} - \mathbf{y})\mathbf{x}^T$ | $\frac{1}{N}(\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{X}$ |
-| 편향에 대해 | $\hat{\boldsymbol{\pi}} - \mathbf{y}$ | $\frac{1}{N}\mathbf{1}^T(\hat{\mathbf{P}} - \mathbf{Y})$ |
+| 웨이트에 대해 | $(\hat{\boldsymbol{\pi}} - \mathbf{y})\mathbf{x}^T$ | $\frac{1}{N}(\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{X}$ |
+| 바이어스에 대해 | $\hat{\boldsymbol{\pi}} - \mathbf{y}$ | $\frac{1}{N}\mathbf{1}^T(\hat{\mathbf{P}} - \mathbf{Y})$ |
 
 ### 핵심 통찰
 

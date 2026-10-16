@@ -1,6 +1,6 @@
-# 신경망 MLE
+# 뉴럴 넷트웍 MLE
 
-평균만 예측하는 회귀 신경망과 평균·분산을 함께 예측하는 이분산 신경망을 비교한다. 두 모델은 결합된 부품이 아니라 서로 다른 조건부 분포 가정을 비교하는 대안이다.
+평균만 예측하는 회귀 뉴럴 넷트웍과 평균·분산을 함께 예측하는 이분산 뉴럴 넷트웍을 비교한다. 두 모델은 결합된 부품이 아니라 서로 다른 조건부 분포 가정을 비교하는 대안이다.
 
 ## 1. 코드
 
@@ -10,23 +10,23 @@
     #!/usr/bin/env python3
     """
     ================================================================================
-    신경망 최대가능도 — 최대가능도로 하는 깊은 학습
+    뉴럴 넷트웍 최대가능도 — 최대가능도로 하는 깊은 학습
     ================================================================================
 
     어려움: ⭐⭐⭐ 앞선(3단계)
 
     학습 목표:
-    - 신경망이 최대가능도를 어떻게 쓰는지 이해한다
-    - 손실 함수와 가능도 사이의 이음을 본다
-    - 최대가능도 바탕 맞춤 손실을 짠다
+    - 뉴럴 넷트웍이 최대가능도를 어떻게 쓰는지 이해한다
+    - 로스 함수와 가능도 사이의 이음을 본다
+    - 최대가능도 바탕 맞춤 로스를 짠다
     - 이분산 회귀(불확실성 예측)를 배운다
 
-    핵심 통찰: 신경망 학습이 곧 최대가능도 어림이다!
+    핵심 통찰: 뉴럴 넷트웍 학습이 곧 최대가능도 어림이다!
 
     여느 회귀:
     - 망이 예측한다: ŷ = f(x; θ)
     - 가정: σ이 붙박인 y ~ N(ŷ, σ²)
-    - 최대가능도 목표: Σ(y - ŷ)²을 가장 작게 한다(MSE 손실)
+    - 최대가능도 목표: Σ(y - ŷ)²을 가장 작게 한다(MSE 로스)
 
     이분산 회귀:
     - 망이 평균과 분산을 모두 예측한다: (μ̂, σ̂²) = f(x; θ)
@@ -82,7 +82,7 @@
 
 
     class StandardNN(nn.Module):
-        """평균만 예측하는 표준 신경망"""
+        """평균만 예측하는 표준 뉴럴 넷트웍"""
 
         def __init__(self, hidden_size=50):
             super().__init__()
@@ -100,7 +100,7 @@
 
     class HeteroscedasticNN(nn.Module):
         """
-        평균과 분산을 함께 예측하는 신경망.
+        평균과 분산을 함께 예측하는 뉴럴 넷트웍.
 
         이것이 이분산 회귀의 최대가능도 길이다!
         """
@@ -108,7 +108,7 @@
         def __init__(self, hidden_size=50):
             super().__init__()
 
-            # 공유되는 은닉층
+            # 공유되는 은닉 레이어
             self.shared = nn.Sequential(
                 nn.Linear(1, hidden_size),
                 nn.ReLU(),
@@ -136,7 +136,7 @@
 
     def gaussian_nll_loss(y_true, y_pred_mean, y_pred_logvar):
         """
-        가우스 음의 로그 가능도 손실.
+        가우스 음의 로그 가능도 로스.
 
         이것이 이분산 회귀의 최대가능도 목표다!
 
@@ -155,7 +155,7 @@
 
 
     def train_standard_nn(x_train, y_train, epochs=1000, lr=0.01):
-        """MSE 손실로 표준 신경망을 학습시킨다"""
+        """MSE 로스로 표준 뉴럴 넷트웍을 학습시킨다"""
 
         model = StandardNN(hidden_size=50)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -182,7 +182,7 @@
 
 
     def train_heteroscedastic_nn(x_train, y_train, epochs=1000, lr=0.01):
-        """사용자 정의 MLE 손실로 이분산 신경망을 학습시킨다"""
+        """사용자 정의 MLE 로스로 이분산 뉴럴 넷트웍을 학습시킨다"""
 
         model = HeteroscedasticNN(hidden_size=50)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -228,7 +228,7 @@
         x_test_np = x_test.detach().numpy().flatten()
 
         # ================================================================
-        # 그림 1: 표준 신경망의 예측
+        # 그림 1: 표준 뉴럴 넷트웍의 예측
         # ================================================================
         ax1 = plt.subplot(2, 3, 1)
 
@@ -248,7 +248,7 @@
         ax1.grid(True, alpha=0.3)
 
         # ================================================================
-        # 그림 2: 불확실성을 함께 낸 이분산 신경망
+        # 그림 2: 불확실성을 함께 낸 이분산 뉴럴 넷트웍
         # ================================================================
         ax2 = plt.subplot(2, 3, 2)
 
@@ -405,12 +405,12 @@
         print(f"   • Training samples: {len(x_train)}")
         print(f"   • Noise varies with x (heteroscedastic)")
 
-        # 표준 신경망을 학습시킨다
+        # 표준 뉴럴 넷트웍을 학습시킨다
         print("\n🔵 Training Standard NN (MSE Loss)...")
         print("-" * 80)
         model_standard, history_standard = train_standard_nn(x_train, y_train, epochs=1000, lr=0.01)
 
-        # 이분산 신경망을 학습시킨다
+        # 이분산 뉴럴 넷트웍을 학습시킨다
         print("\n🔴 Training Heteroscedastic NN (MLE Loss)...")
         print("-" * 80)
         model_hetero, history_hetero = train_heteroscedastic_nn(x_train, y_train, epochs=1000, lr=0.01)
@@ -471,7 +471,7 @@
        - 스튜던트 t 잡음: 튄값에 든든하다
        - 가능도 함수를 견준다
 
-    3. 어려움: 베이즈 신경망
+    3. 어려움: 베이즈 뉴럴 넷트웍
        - 불확실성 어림을 위해 드롭아웃을 더한다
        - 몬테카를로 드롭아웃: 순전파를 여러 번 한다
        - 앎의 불확실성과 타고난 불확실성을 견준다
@@ -558,7 +558,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 
 ### 서로 다른 출력과 목적
 
-`StandardNN`은 평균 하나를 출력하고 MSE를 최소화한다. `HeteroscedasticNN`은 공유 특징에서 평균과 로그 분산을 각각 출력하며 가우스 NLL을 최소화한다. 입력에 따라 잡음이 커지는 합성 데이터에서 두 모델의 차이를 살펴본다.
+`StandardNN`은 평균 하나를 출력하고 MSE를 최소화한다. `HeteroscedasticNN`은 공유 피처에서 평균과 로그 분산을 각각 출력하며 가우스 NLL을 최소화한다. 입력에 따라 잡음이 커지는 합성 데이터에서 두 모델의 차이를 살펴본다.
 
 ### 로그 분산의 역할
 
@@ -568,7 +568,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 
 평균 주위의 표준편차 띠는 가정한 데이터 잡음의 크기를 나타낸다. 이는 평균 추정값의 신뢰구간이나 모든 모델 불확실성을 포함한 구간과 다르다. 학습 데이터의 표준화 잔차만으로 새 데이터의 보정을 확정할 수는 없다.
 
-제공 코드의 표준 모델 NLL은 상수 항과 분산 1을 사용하고, 이분산 모델의 손실은 같은 상수 항을 생략한다. 두 숫자를 그대로 비교해 우열을 결론내리면 안 된다. 동일한 상수, 감소 방식과 평가 데이터에서 NLL을 맞춰 비교해야 한다.
+제공 코드의 표준 모델 NLL은 상수 항과 분산 1을 사용하고, 이분산 모델의 로스는 같은 상수 항을 생략한다. 두 숫자를 그대로 비교해 우열을 결론내리면 안 된다. 동일한 상수, 감소 방식과 평가 데이터에서 NLL을 맞춰 비교해야 한다.
 
 ## 연습문제
 
@@ -592,7 +592,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 </div>
 
 ??? success "연습문제 2 풀이"
-    두 모델의 정규분포 상수 항과 합·평균 방식, 분산 가정을 일치시키고 같은 독립 검증 데이터에서 계산한다. 서로 다른 상수를 생략한 손실 숫자나 학습 손실만으로 모델 우열을 판단하지 않는다.
+    두 모델의 정규분포 상수 항과 합·평균 방식, 분산 가정을 일치시키고 같은 독립 검증 데이터에서 계산한다. 서로 다른 상수를 생략한 로스 숫자나 학습 로스만으로 모델 우열을 판단하지 않는다.
 
 ---
 
@@ -611,19 +611,19 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 개수를 설정할 수 있도록 `StandardNN`를 확장하라. `__init__`에 `num_layers` 매개변수를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+레이어나 블록의 개수를 설정할 수 있도록 `StandardNN`를 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    고정되어 있던 레이어들을 다음으로 바꾼다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 매개변수를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = StandardNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 파라메터를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = StandardNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 
-신경망 MLE의 해석은 출력 분포와 손실의 정의에 달려 있다. 예측 분산의 의미를 확인하고, 지표를 비교할 때는 상수 항과 평가 조건을 일치시킨다.
+뉴럴 넷트웍 MLE의 해석은 출력 분포와 로스의 정의에 달려 있다. 예측 분산의 의미를 확인하고, 지표를 비교할 때는 상수 항과 평가 조건을 일치시킨다.

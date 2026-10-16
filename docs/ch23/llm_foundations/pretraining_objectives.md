@@ -9,7 +9,7 @@
 $$P_\theta(x_{1:n})=\prod_{t=1}^n P_\theta(x_t\mid x_{<t}),\qquad
 \mathcal L_{\mathrm{CLM}}=-\sum_t\log P_\theta(x_t\mid x_{<t}).$$
 
-첫 토큰의 시작 조건과 실제 손실에 포함할 위치를 정의해야 한다. 디코더 전용 구조에서 흔히 사용하지만 구조만으로 목적이 고정되는 것은 아니다. FIM처럼 순서를 바꾼 학습 자료도 인과적인 다음 토큰 예측에 사용할 수 있다.
+첫 토큰의 시작 조건과 실제 로스에 포함할 위치를 정의해야 한다. 디코더 전용 구조에서 흔히 사용하지만 구조만으로 목적이 고정되는 것은 아니다. FIM처럼 순서를 바꾼 학습 자료도 인과적인 다음 토큰 예측에 사용할 수 있다.
 
 ```python
 import torch
@@ -73,7 +73,7 @@ class CausalLMHead(nn.Module):
 
 def causal_lm_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     """
-    홀로 서는 인과 말 나타내기 손실.
+    홀로 서는 인과 말 나타내기 로스.
     
     인수:
         logits: [배치, 차례 길이, 낱말 곳간 크기]
@@ -90,7 +90,7 @@ def causal_lm_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     )
 ```
 
-head는 이미 계산된 은닉 표현을 어휘 로짓으로 바꾸고 입력과 같은 정렬의 labels를 한 칸 이동해 손실을 계산한다. encoder나 인과 마스크 자체를 적용하는 모듈은 아니다. 이미 이동한 목표를 다시 전달하면 두 번 이동하므로 호출 계약을 맞춘다. −100은 손실 제외 ID이며 유효 목표가 하나도 없는 경우도 처리해야 한다.
+head는 이미 계산된 은닉 표현을 어휘 로짓으로 바꾸고 입력과 같은 정렬의 labels를 한 칸 이동해 로스를 계산한다. encoder나 인과 마스크 자체를 적용하는 모듈은 아니다. 이미 이동한 목표를 다시 전달하면 두 번 이동하므로 호출 계약을 맞춘다. −100은 로스 제외 ID이며 유효 목표가 하나도 없는 경우도 처리해야 한다.
 
 ## 2. 마스킹 언어 모델링
 
@@ -120,7 +120,7 @@ def bert_masking(
     - 10%는 그대로 둔다
     """
     masked_tokens = tokens.copy()
-    labels = [-100] * len(tokens)  # -100 = 손실에서 무시한다
+    labels = [-100] * len(tokens)  # -100 = 로스에서 무시한다
     
     for i in range(len(tokens)):
         if random.random() < mask_prob:
@@ -165,7 +165,7 @@ def create_mlm_batch(
     # 가릴 번호를 뽑는다
     masked_indices = torch.bernoulli(probability_matrix).bool()
     
-    # 가린 토막에서만 손실을 셈한다
+    # 가린 토막에서만 로스를 셈한다
     labels[~masked_indices] = -100
     
     # 80% -> [MASK]
@@ -186,9 +186,9 @@ def create_mlm_batch(
     return input_ids, labels
 ```
 
-bert_masking은 특수 토큰을 제외하지 않는다. create_mlm_batch는 special_token_ids를 주면 해당 위치를 선택에서 제외하지만 입력 텐서를 직접 수정한다. 확률·난수 텐서는 CPU에 생성하므로 GPU 입력에 그대로 쓸 수 없고, 무작위 대체 토큰에 특수 ID가 들어갈 수도 있다. 목표가 하나도 선택되지 않은 배치의 손실도 정의해야 한다.
+bert_masking은 특수 토큰을 제외하지 않는다. create_mlm_batch는 special_token_ids를 주면 해당 위치를 선택에서 제외하지만 입력 텐서를 직접 수정한다. 확률·난수 텐서는 CPU에 생성하므로 GPU 입력에 그대로 쓸 수 없고, 무작위 대체 토큰에 특수 ID가 들어갈 수도 있다. 목표가 하나도 선택되지 않은 배치의 로스도 정의해야 한다.
 
-손실을 선택 위치에서만 계산하더라도 주변 입력 표현과 공유 매개변수에는 역전파가 흐른다. ‘15%만 기울기를 받는다’와 ‘15%를 직접 복원 목표로 삼는다’는 다르다. MLM은 인과 문장 우도와 같지 않으며 생성에는 목적에 맞는 별도 절차가 필요하다.
+로스를 선택 위치에서만 계산하더라도 주변 입력 표현과 공유 파라메터에는 역전파가 흐른다. ‘15%만 그래디언트를 받는다’와 ‘15%를 직접 복원 목표로 삼는다’는 다르다. MLM은 인과 문장 우도와 같지 않으며 생성에는 목적에 맞는 별도 절차가 필요하다.
 
 ## 3. 구간 손상과 복원
 
@@ -199,7 +199,7 @@ Input:  "The quick brown [X] the lazy dog"
 Target: "[X] fox jumps over"
 ```
 
-BART의 text infilling은 같은 MASK로 손상하고 원문 전체를 복원하는 구성이므로 T5의 구간별 sentinel 목표와 동일하지 않다. 손실은 손상 입력에 조건을 건 목표 시퀀스의 음의 자기회귀 로그우도다.
+BART의 text infilling은 같은 MASK로 손상하고 원문 전체를 복원하는 구성이므로 T5의 구간별 sentinel 목표와 동일하지 않다. 로스는 손상 입력에 조건을 건 목표 시퀀스의 음의 자기회귀 로그우도다.
 
 ```python
 import numpy as np
@@ -310,14 +310,14 @@ Target: [100, 13, 14, 15, 101]
 
 ## 4. Prefix 언어 모델링
 
-prefix LM은 제공된 prefix 내부에 양방향 어텐션을 허용하고 suffix는 prefix와 이전 suffix 토큰만 본다. 손실은 보통 suffix에 계산한다.
+prefix LM은 제공된 prefix 내부에 양방향 어텐션을 허용하고 suffix는 prefix와 이전 suffix 토큰만 본다. 로스는 보통 suffix에 계산한다.
 
 ```
 Prefix (bidirectional): "Translate English to French:"
 Generation (causal):    " Le chat est sur le tapis"
 ```
 
-이는 prefix에 양방향 어텐션을 적용하는 **마스크·목표**다. encoder–decoder 구조의 T5 전체를 그대로 prefix LM의 정의로 삼거나, 매개변수 효율 튜닝인 prefix tuning과 혼동하지 않는다.
+이는 prefix에 양방향 어텐션을 적용하는 **마스크·목표**다. encoder–decoder 구조의 T5 전체를 그대로 prefix LM의 정의로 삼거나, 파라메터 효율 튜닝인 prefix tuning과 혼동하지 않는다.
 
 ```python
 def prefix_lm_mask(seq_len: int, prefix_len: int) -> torch.Tensor:
@@ -433,13 +433,13 @@ class ELECTRA(nn.Module):
 
 현재 코드는 generator에 주는 input_ids와 corrupted를 비교해 disc_labels를 만든다. input_ids가 MASK를 포함한 교란 입력이라면 원문과의 비교가 아니므로 판별기 정답이 잘못된다. 반대로 원문을 그대로 주면 생성기의 마스킹 예측 입력이 아니다. 원문·교란 입력·선택 위치를 분리해야 한다.
 
-판별기는 위치별 단일 로짓을 반환해야 하고 generator는 어휘 로짓을 반환해야 한다. attention·padding 마스크, 유효 손실 위치와 선택된 목표가 없는 경우는 별도로 처리해야 한다. 기본 disc_weight=50은 예시 가중치이며 모든 데이터·손실 집계에서 최적이라는 뜻은 아니다. 샘플링 토큰에는 일반적인 역전파가 없고 코드도 no_grad로 분리한다.
+판별기는 위치별 단일 로짓을 반환해야 하고 generator는 어휘 로짓을 반환해야 한다. attention·padding 마스크, 유효 로스 위치와 선택된 목표가 없는 경우는 별도로 처리해야 한다. 기본 disc_weight=50은 예시 웨이트이며 모든 데이터·로스 집계에서 최적이라는 뜻은 아니다. 샘플링 토큰에는 일반적인 역전파가 없고 코드도 no_grad로 분리한다.
 
 ## 6. 손상 목표의 혼합과 UL2
 
 문장 순서 섞기·토큰 삭제·텍스트 회전 등으로 원문 복원을 학습할 수 있다. BART의 텍스트 회전은 회전량 숫자를 맞히는 분류가 아니라 손상된 순서에서 원문을 복원하는 목적이다. 어떤 정보가 입력에 남고 어떤 목표를 예측하는지 구분해야 한다.
 
-[UL2](https://arxiv.org/abs/2205.05131)는 서로 다른 손상 정도와 순차 복원 등의 목적을 혼합한다. 다음 R·S·X 설정과 혼합 가중치는 개념을 단순화한 예이며 전체 논문 설정을 재현한 구현은 아니다.
+[UL2](https://arxiv.org/abs/2205.05131)는 서로 다른 손상 정도와 순차 복원 등의 목적을 혼합한다. 다음 R·S·X 설정과 혼합 웨이트는 개념을 단순화한 예이며 전체 논문 설정을 재현한 구현은 아니다.
 
 ```python
 from dataclasses import dataclass
@@ -487,7 +487,7 @@ def ul2_transform(
         input_tokens = [mode_token_ids['S']] + tokens[:split_point]
         target_tokens = tokens[split_point:]
     else:
-        # R이나 X: 매개변수를 달리한 구간 망가뜨리기
+        # R이나 X: 파라메터를 달리한 구간 망가뜨리기
         corrupted, target = span_corruption(
             tokens,
             sentinel_start_id,
@@ -566,7 +566,7 @@ def effective_tokens_per_example(
     """
     차례마다의 실효 익히기 신호를 셈한다.
     
-    모든 목표가 토막마다 기울기 신호를 주지는 않는다.
+    모든 목표가 토막마다 그래디언트 신호를 주지는 않는다.
     """
     if objective == 'CLM':
         # 첫 토막만 빼고 모든 토막이 신호를 준다
@@ -601,7 +601,7 @@ def training_equivalence(clm_tokens: int, mlm_mask_rate: float = 0.15) -> dict:
     }
 ```
 
-이 함수들은 직접 손실 위치 수를 거칠게 세는 예다. CLM의 이동된 목표, MLM의 기대 선택 수, ELECTRA의 이진 판별은 난이도·정보량·연산이 서로 다르다. 구간 복원 목표에는 sentinel 등 추가 토큰도 들어간다. 1/0.15≈6.67배 위치가 필요하다는 계산을 같은 품질·FLOPs·학습시간의 필요 비율로 해석하지 않는다.
+이 함수들은 직접 로스 위치 수를 거칠게 세는 예다. CLM의 이동된 목표, MLM의 기대 선택 수, ELECTRA의 이진 판별은 난이도·정보량·연산이 서로 다르다. 구간 복원 목표에는 sentinel 등 추가 토큰도 들어간다. 1/0.15≈6.67배 위치가 필요하다는 계산을 같은 품질·FLOPs·학습시간의 필요 비율로 해석하지 않는다.
 
 목표 비교는 같은 자료·구조·계산 예산·전이 평가에서 수행해야 한다. 사전 학습만으로 채팅 지시 준수·사실성·안전성이 완성되지는 않으며 데이터 구성과 후속 학습·평가도 함께 필요하다.
 
@@ -625,13 +625,13 @@ def training_equivalence(clm_tokens: int, mlm_mask_rate: float = 0.15) -> dict:
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-MLM의 80/10/10과 손실 위치 15%가 무엇을 뜻하는지 설명하라.
+MLM의 80/10/10과 로스 위치 15%가 무엇을 뜻하는지 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
 
-    적격 위치 중 선택된 약 15%가 원래 토큰의 복원 목표다. 그 선택 위치의 80%는 MASK, 10%는 무작위, 10%는 그대로 입력한다. 손실은 선택 위치에서 계산하지만 주변 입력 표현·공유 매개변수에도 경사가 흐른다. 특수 토큰 제외와 목표가 없는 배치도 별도로 처리한다.
+    적격 위치 중 선택된 약 15%가 원래 토큰의 복원 목표다. 그 선택 위치의 80%는 MASK, 10%는 무작위, 10%는 그대로 입력한다. 로스는 선택 위치에서 계산하지만 주변 입력 표현·공유 파라메터에도 경사가 흐른다. 특수 토큰 제외와 목표가 없는 배치도 별도로 처리한다.
 
 
 
@@ -646,7 +646,7 @@ MLM의 80/10/10과 손실 위치 15%가 무엇을 뜻하는지 설명하라.
 
 ??? success "연습문제 3 풀이"
 
-    생성기에는 교란 입력을 줘야 하지만 판별기의 정답은 생성 후 토큰과 원문을 비교해야 한다. 코드처럼 교란 input_ids와 비교하면 MASK를 원문 토큰으로 복원해도 바뀐 것으로 표시할 수 있다. 원문과 같게 샘플링된 토큰은 원래 토큰으로 취급하며 padding은 손실에서 제외해야 한다.
+    생성기에는 교란 입력을 줘야 하지만 판별기의 정답은 생성 후 토큰과 원문을 비교해야 한다. 코드처럼 교란 input_ids와 비교하면 MASK를 원문 토큰으로 복원해도 바뀐 것으로 표시할 수 있다. 원문과 같게 샘플링된 토큰은 원래 토큰으로 취급하며 padding은 로스에서 제외해야 한다.
 
 
 
@@ -667,7 +667,7 @@ T5 구간 복원·prefix LM·FIM이 입력과 목표를 구성하는 방식을 �
 
 ## 정리하며
 
-사전 학습 목표는 입력 교란·가시 문맥·예측 위치의 조합이다. 직접 손실 토큰 수를 학습 효율과 동일시하지 않고, 각 부분 구현의 마스크·원문 정답·특수 토큰과 평가 조건을 확인해야 한다.
+사전 학습 목표는 입력 교란·가시 문맥·예측 위치의 조합이다. 직접 로스 토큰 수를 학습 효율과 동일시하지 않고, 각 부분 구현의 마스크·원문 정답·특수 토큰과 평가 조건을 확인해야 한다.
 
 **참고 문헌**
 

@@ -253,7 +253,7 @@ def main():
     copy2 = a[indices]
     print("Integer array indexing is copy:", a.untyped_storage().data_ptr() != copy2.untyped_storage().data_ptr())
     
-    # 보폭 슬라이싱 → 뷰
+    # 스트라이드 슬라이싱 → 뷰
     view2 = a[::2, ::2]
     print("Step slicing is view:", a.untyped_storage().data_ptr() == view2.untyped_storage().data_ptr())
 
@@ -273,7 +273,7 @@ def main():
 
     # -------------------------------------------------------------------------
     header("Practical example: data filtering")
-    # 특징과 레이블을 가진 데이터셋
+    # 피처와 레이블을 가진 데이터셋
     data = torch.randn(100, 5)      # 100 samples, 5 features
     labels = torch.randint(0, 3, (100,))  # 3 classes
     
@@ -282,7 +282,7 @@ def main():
     class_1_data = data[class_1_mask]
     print(f"Total samples: {len(data)}, Class 1 samples: {len(class_1_data)}")
     
-    # 첫 번째 특징이 0보다 큰 표본 선택
+    # 첫 번째 피처가 0보다 큰 표본 선택
     feature_mask = data[:, 0] > 0
     filtered_data = data[feature_mask]
     print(f"Samples with feature[0] > 0: {len(filtered_data)}")

@@ -6,10 +6,10 @@
 
 ```python
 """
-층 정규화의 구현과 예제
+레이어 정규화의 구현과 예제
 ================================================
 
-층 정규화는 특징 차원에 걸쳐 입력을 정규화한다.
+레이어 정규화는 피처 차원에 걸쳐 입력을 정규화한다.
 배치 정규화와 달리 배치 크기에 기대지 않아 RNN이나 작은 배치에 좋다.
 
 논문: "Layer Normalization" (Ba, Kiros & Hinton, 2016)
@@ -27,14 +27,14 @@ import torch.nn.functional as F
 
 class LayerNormNumPy:
     """
-    NumPy로 바닥부터 구현한 층 정규화.
-    배치 차원이 아니라 특징 차원에 걸쳐 정규화한다.
+    NumPy로 바닥부터 구현한 레이어 정규화.
+    배치 차원이 아니라 피처 차원에 걸쳐 정규화한다.
     """
     
     def __init__(self, normalized_shape, eps=1e-5):
         """
         인수:
-            normalized_shape: 정규화할 특징의 모양
+            normalized_shape: 정규화할 피처의 모양
             eps: 수치 안정성을 위한 작은 상수
         """
         if isinstance(normalized_shape, int):
@@ -43,13 +43,13 @@ class LayerNormNumPy:
         self.normalized_shape = normalized_shape
         self.eps = eps
         
-        # 학습 가능한 매개변수
-        self.gamma = np.ones(normalized_shape)  # 배율 매개변수
-        self.beta = np.zeros(normalized_shape)  # 이동 매개변수
+        # 학습 가능한 파라메터
+        self.gamma = np.ones(normalized_shape)  # 배율 파라메터
+        self.beta = np.zeros(normalized_shape)  # 이동 파라메터
         
     def forward(self, x):
         """
-        층 정규화의 순전파.
+        레이어 정규화의 순전파.
         
         인수:
             x: 모양이 (batch_size, *normalized_shape)인 입력
@@ -60,7 +60,7 @@ class LayerNormNumPy:
         # 마지막 len(normalized_shape)개 차원에 대해 평균과 분산 계산.
         # 뒤에서부터 세므로 배치 축은 결코 들어가지 않는다. 이것이
         # 배치 정규화와 갈리는 핵심이다. 배치 정규화는 배치 축을 따라
-        # 통계를 내어 표본들이 서로 영향을 주지만, 층 정규화는 표본
+        # 통계를 내어 표본들이 서로 영향을 주지만, 레이어 정규화는 표본
         # 하나 안에서만 통계를 내므로 옆에 어떤 표본이 있든 결과가 같다.
         # 그래서 배치 크기가 1이어도 되고, 학습과 추론의 동작이 같아
         # 이동 통계를 따로 둘 필요도 없다
@@ -74,7 +74,7 @@ class LayerNormNumPy:
         
         # 배율 조정과 이동.
         # 정규화가 평균 0, 분산 1을 강요하는데 그것이 늘 좋은 것은
-        # 아니므로, 신경망이 그 제약을 되돌릴 수 있게 손잡이를 준다.
+        # 아니므로, 뉴럴 넷트웍이 그 제약을 되돌릴 수 있게 손잡이를 준다.
         # gamma=1, beta=0에서 시작해 필요한 만큼만 배우며,
         # 극단적으로는 원래 분포를 그대로 되살릴 수도 있다.
         # RMSNorm에 beta가 없는 것은 애초에 평균을 빼지 않아
@@ -86,8 +86,8 @@ class LayerNormNumPy:
 
 class RNNWithLayerNorm(nn.Module):
     """
-    층 정규화를 갖춘 RNN 셀.
-    층 정규화는 RNN에 특히 쓸모 있다.
+    레이어 정규화를 갖춘 RNN 셀.
+    레이어 정규화는 RNN에 특히 쓸모 있다.
     """
     
     def __init__(self, input_size, hidden_size):
@@ -99,12 +99,12 @@ class RNNWithLayerNorm(nn.Module):
         self.W_ih = nn.Linear(input_size, hidden_size, bias=False)
         self.W_hh = nn.Linear(hidden_size, hidden_size, bias=False)
         
-        # 층 정규화.
-        # 순환 신경망이 층 정규화가 태어난 자리다. 배치 정규화를 여기
+        # 레이어 정규화.
+        # 순환 뉴럴 넷트웍이 레이어 정규화가 태어난 자리다. 배치 정규화를 여기
         # 쓰려면 시각마다 따로 통계를 두어야 하는데, 길이가 다른 계열이
-        # 섞이면 감당이 되지 않는다. 층 정규화는 시각마다 그 표본
+        # 섞이면 감당이 되지 않는다. 레이어 정규화는 시각마다 그 표본
         # 하나만 보므로 그런 문제가 없다.
-        # 정규화 층 하나를 모든 시각에 돌려 쓴다는 점도 눈여겨보라.
+        # 정규화 레이어 하나를 모든 시각에 돌려 쓴다는 점도 눈여겨보라.
         # 학습되는 것은 gamma와 beta뿐이고 이동 통계가 없어서 가능하다
         self.ln = nn.LayerNorm(hidden_size)
         
@@ -129,13 +129,13 @@ class RNNWithLayerNorm(nn.Module):
             x_t = x[:, t, :]
             
             # 새 은닉 상태 계산.
-            # 두 Linear 모두 bias=False인데, 바로 뒤 층 정규화가 평균을
-            # 빼 버려 편향이 할 일이 없기 때문이다. beta가 그 몫을 한다
+            # 두 Linear 모두 bias=False인데, 바로 뒤 레이어 정규화가 평균을
+            # 빼 버려 바이어스가 할 일이 없기 때문이다. beta가 그 몫을 한다
             hidden = self.W_ih(x_t) + self.W_hh(hidden)
             
-            # 층 정규화 적용.
-            # 활성화 앞이라는 자리가 중요하다. 순환 신경망은 같은
-            # 가중치를 시각마다 되풀이해 곱하므로 은닉 상태의 크기가
+            # 레이어 정규화 적용.
+            # 활성화 앞이라는 자리가 중요하다. 순환 뉴럴 넷트웍은 같은
+            # 웨이트를 시각마다 되풀이해 곱하므로 은닉 상태의 크기가
             # 계열이 길어질수록 부풀거나 사그라들기 쉬운데, 매 시각
             # 크기를 다시 맞추어 주면 그 폭주를 막을 수 있다
             hidden = self.ln(hidden)
@@ -152,7 +152,7 @@ class RNNWithLayerNorm(nn.Module):
 
 class TransformerBlockWithLayerNorm(nn.Module):
     """
-    층 정규화를 쓰는 간략한 트랜스포머 블록.
+    레이어 정규화를 쓰는 간략한 트랜스포머 블록.
     이것이 트랜스포머의 표준 정규화이다.
     """
     
@@ -162,12 +162,12 @@ class TransformerBlockWithLayerNorm(nn.Module):
         # 다중 머리 어텐션
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         
-        # 순방향 신경망
+        # 순방향 뉴럴 넷트웍
         self.linear1 = nn.Linear(d_model, dim_feedforward)
         self.dropout = nn.Dropout(dropout)
         self.linear2 = nn.Linear(dim_feedforward, d_model)
         
-        # 층 정규화 (사례 2개)
+        # 레이어 정규화 (사례 2개)
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
         
@@ -182,13 +182,13 @@ class TransformerBlockWithLayerNorm(nn.Module):
         반환값:
             입력과 같은 모양의 출력
         """
-        # 잔차 연결과 층 정규화를 갖춘 자기 어텐션
+        # 잔차 연결과 레이어 정규화를 갖춘 자기 어텐션
         x2 = self.self_attn(x, x, x, attn_mask=attn_mask,
                            key_padding_mask=key_padding_mask)[0]
         x = x + self.dropout1(x2)
         x = self.norm1(x)
         
-        # 잔차 연결과 층 정규화를 갖춘 순방향 신경망
+        # 잔차 연결과 레이어 정규화를 갖춘 순방향 뉴럴 넷트웍
         x2 = self.linear2(self.dropout(F.relu(self.linear1(x))))
         x = x + self.dropout2(x2)
         x = self.norm2(x)
@@ -198,7 +198,7 @@ class TransformerBlockWithLayerNorm(nn.Module):
 
 class SimpleNetworkWithLayerNorm(nn.Module):
     """
-    층 정규화를 갖춘 간단한 순방향 신경망.
+    레이어 정규화를 갖춘 간단한 순방향 뉴럴 넷트웍.
     """
     
     def __init__(self, input_size=784, hidden_size=256, num_classes=10):
@@ -231,7 +231,7 @@ class SimpleNetworkWithLayerNorm(nn.Module):
 
 def demonstrate_layer_norm():
     """
-    층 정규화가 어떻게 작동하는지 보인다.
+    레이어 정규화가 어떻게 작동하는지 보인다.
     """
     print("=" * 60)
     print("Layer Normalization Demonstration")
@@ -243,7 +243,7 @@ def demonstrate_layer_norm():
     batch_size = 4
     num_features = 5
     
-    # 표본마다 척도가 다른 특징을 갖는다
+    # 표본마다 척도가 다른 피처를 갖는다
     x = np.array([
         [1.0, 2.0, 3.0, 4.0, 5.0],      # 표본 1
         [10.0, 20.0, 30.0, 40.0, 50.0],  # 표본 2 (척도가 크다)
@@ -256,7 +256,7 @@ def demonstrate_layer_norm():
     print(f"\nMean per sample: {np.mean(x, axis=1)}")
     print(f"Std per sample:  {np.std(x, axis=1)}")
     
-    # 층 정규화 적용
+    # 레이어 정규화 적용
     ln = LayerNormNumPy(num_features)
     x_normalized = ln.forward(x)
     
@@ -274,7 +274,7 @@ def demonstrate_layer_norm():
 
 def compare_batchnorm_layernorm():
     """
-    배치 정규화와 층 정규화를 비교한다.
+    배치 정규화와 레이어 정규화를 비교한다.
     """
     print("\n" + "=" * 60)
     print("Batch Norm vs Layer Norm Comparison")
@@ -284,7 +284,7 @@ def compare_batchnorm_layernorm():
     torch.manual_seed(42)
     
     # 예시 데이터 만들기
-    x = torch.randn(8, 10)  # 표본 8개, 특징 10개
+    x = torch.randn(8, 10)  # 표본 8개, 피처 10개
     
     print("\nOriginal data shape:", x.shape)
     print("Original data:\n", x[:2])  # 처음 표본 2개 보이기
@@ -294,7 +294,7 @@ def compare_batchnorm_layernorm():
     bn.eval()  # 이동 통계를 쓰지 않으려고 평가 모드를 쓴다
     x_bn = bn(x)
     
-    # 층 정규화
+    # 레이어 정규화
     ln = nn.LayerNorm(10)
     x_ln = ln(x)
     
@@ -326,7 +326,7 @@ def compare_batchnorm_layernorm():
 
 def demonstrate_small_batch_problem():
     """
-    왜 작은 배치에서 층 정규화가 나은지 보인다.
+    왜 작은 배치에서 레이어 정규화가 나은지 보인다.
     """
     print("\n" + "=" * 60)
     print("Small Batch Problem")
@@ -344,7 +344,7 @@ def demonstrate_small_batch_problem():
     bn = nn.BatchNorm1d(10)
     bn.train()
     
-    # 층 정규화
+    # 레이어 정규화
     ln = nn.LayerNorm(10)
     
     print("\nWith Batch Normalization:")
@@ -480,9 +480,9 @@ When to use Layer Normalization:
 
 ## 2. 논의
 
-LayerNormNumPy는 normalized_shape에 해당하는 마지막 축에서 평균·분산을 계산한다. gamma와 beta도 그 모양을 가지지만 NumPy 배열이므로 PyTorch의 자동 미분 매개변수는 아니다.
+LayerNormNumPy는 normalized_shape에 해당하는 마지막 축에서 평균·분산을 계산한다. gamma와 beta도 그 모양을 가지지만 NumPy 배열이므로 PyTorch의 자동 미분 파라메터는 아니다.
 
-RNN 예제는 각 시점의 은닉 특징을 정규화한다. 트랜스포머 예제는 기본 MultiheadAttention의 `(시퀀스, 배치, 특징)` 순서를 사용하고, 잔차 합 뒤에 레이어 정규화를 적용하는 post-norm 구조이다.
+RNN 예제는 각 시점의 은닉 피처를 정규화한다. 트랜스포머 예제는 기본 MultiheadAttention의 `(시퀀스, 배치, 피처)` 순서를 사용하고, 잔차 합 뒤에 레이어 정규화를 적용하는 post-norm 구조이다.
 
 레이어 정규화는 현재 표본의 통계량을 학습과 평가에서 모두 사용한다. 기본적으로 이동 평균·분산을 누적하지 않으며, 배치가 작아도 같은 표본의 정규화 통계가 다른 표본에 의존하지 않는다. 모델의 드롭아웃 같은 다른 연산은 여전히 모드에 따라 달라진다.
 
@@ -496,7 +496,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 </div>
 
 ??? success "연습문제 1 풀이"
-    gamma와 beta에 각각 $D$개, 합계 $2D$개가 있다. PyTorch에서는 기본 설정에서 학습 매개변수로 등록되지만 NumPy 시연에서는 일반 배열이다. 배치 정규화의 running_mean·running_var와 같은 이동 통계량은 없다.
+    gamma와 beta에 각각 $D$개, 합계 $2D$개가 있다. PyTorch에서는 기본 설정에서 학습 파라메터로 등록되지만 NumPy 시연에서는 일반 배열이다. 배치 정규화의 running_mean·running_var와 같은 이동 통계량은 없다.
 
 ---
 
@@ -508,7 +508,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 </div>
 
 ??? success "연습문제 2 풀이"
-    각 시점과 표본마다 마지막 D개 특징에서 평균과 분산을 구한다. 시간 T나 배치 B 전체를 섞지 않는다. normalized_shape를 바꾸면 정규화 축과 아핀 계수의 모양도 달라진다.
+    각 시점과 표본마다 마지막 D개 피처에서 평균과 분산을 구한다. 시간 T나 배치 B 전체를 섞지 않는다. normalized_shape를 바꾸면 정규화 축과 아핀 계수의 모양도 달라진다.
 
 ---
 
@@ -520,7 +520,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 </div>
 
 ??? success "연습문제 3 풀이"
-    본문은 하위층 출력과 잔차를 더한 뒤 정규화한다. pre-norm은 하위층의 입력을 먼저 정규화하고 그 출력을 잔차에 더한다. 정규화 위치를 바꾸는 것은 단순한 문법 차이가 아니며 경사 경로도 달라진다.
+    본문은 하위레이어 출력과 잔차를 더한 뒤 정규화한다. pre-norm은 하위레이어의 입력을 먼저 정규화하고 그 출력을 잔차에 더한다. 정규화 위치를 바꾸는 것은 단순한 문법 차이가 아니며 경사 경로도 달라진다.
 
 ---
 
@@ -538,8 +538,8 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-레이어 정규화는 배치가 아닌 지정 특징 축을 사용한다. 정규화 축, 아핀 계수의 모양, 잔차 합 전후의 위치를 구분하면 MLP와 시퀀스 모델의 구현을 읽기 쉽다.
+레이어 정규화는 배치가 아닌 지정 피처 축을 사용한다. 정규화 축, 아핀 계수의 모양, 잔차 합 전후의 위치를 구분하면 MLP와 시퀀스 모델의 구현을 읽기 쉽다.

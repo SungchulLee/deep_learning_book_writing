@@ -7,7 +7,7 @@
 ```python
 """
 비전 트랜스포머(ViT) 구현
-이미지 분류에서 합성곱 신경망과 트랜스포머를 잇는다
+이미지 분류에서 컨볼루션 뉴럴 넷트웍과 트랜스포머를 잇는다
 """
 
 import torch
@@ -23,7 +23,7 @@ from typing import Tuple
 class PatchEmbedding(nn.Module):
     """
     그림을 조각으로 바꾸고 임베딩으로 사영한다.
-    합성곱 신경망 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
+    컨볼루션 뉴럴 넷트웍 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
     """
     def __init__(self, img_size: int = 224, patch_size: int = 16, 
                  in_channels: int = 3, embed_dim: int = 768):
@@ -32,7 +32,7 @@ class PatchEmbedding(nn.Module):
         self.patch_size = patch_size
         self.n_patches = (img_size // patch_size) ** 2
         
-        # 편 조각의 선형 사영 (합성곱 신경망의 합성곱과 비슷하다)
+        # 편 조각의 선형 사영 (컨볼루션 뉴럴 넷트웍의 컨볼루션과 비슷하다)
         self.proj = nn.Conv2d(in_channels, embed_dim, 
                              kernel_size=patch_size, stride=patch_size)
         
@@ -96,8 +96,8 @@ class MultiHeadAttention(nn.Module):
 
 class MLP(nn.Module):
     """
-    트랜스포머 블록에서 쓰는 순전파 신경망.
-    비선형성과 특징 변환을 준다.
+    트랜스포머 블록에서 쓰는 순전파 뉴럴 넷트웍.
+    비선형성과 피처 변환을 준다.
     """
     def __init__(self, embed_dim: int = 768, mlp_ratio: int = 4, dropout: float = 0.1):
         super().__init__()
@@ -143,7 +143,7 @@ class VisionTransformer(nn.Module):
     핵심 혁신:
     1. 그림을 조각의 수열로 다룬다
     2. (본디 자연어 처리에서 온) 트랜스포머 인코더를 이미지 분류에 쓴다
-    3. 합성곱 신경망 방식의 입력 처리와 트랜스포머 구조를 잇는다
+    3. 컨볼루션 뉴럴 넷트웍 방식의 입력 처리와 트랜스포머 구조를 잇는다
     """
     def __init__(self, 
                  img_size: int = 224,
@@ -157,7 +157,7 @@ class VisionTransformer(nn.Module):
                  dropout: float = 0.1):
         super().__init__()
         
-        # 조각 임베딩 층 (그림에서 토큰으로 잇는 다리)
+        # 조각 임베딩 레이어 (그림에서 토큰으로 잇는 다리)
         self.patch_embed = PatchEmbedding(img_size, patch_size, in_channels, embed_dim)
         n_patches = self.patch_embed.n_patches
         
@@ -178,7 +178,7 @@ class VisionTransformer(nn.Module):
         self.norm = nn.LayerNorm(embed_dim)
         self.head = nn.Linear(embed_dim, n_classes)
         
-        # 가중치 초기화
+        # 웨이트 초기화
         nn.init.trunc_normal_(self.cls_token, std=0.02)
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
         self.apply(self._init_weights)
@@ -225,7 +225,7 @@ class VisionTransformer(nn.Module):
 
 
 def create_vit_tiny(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Tiny: 매개변수 500만"""
+    """ViT-Tiny: 파라메터 500만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=192, 
         depth=12, n_heads=3, n_classes=n_classes
@@ -233,7 +233,7 @@ def create_vit_tiny(n_classes: int = 1000) -> VisionTransformer:
 
 
 def create_vit_small(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Small: 매개변수 2200만"""
+    """ViT-Small: 파라메터 2200만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=384,
         depth=12, n_heads=6, n_classes=n_classes
@@ -241,7 +241,7 @@ def create_vit_small(n_classes: int = 1000) -> VisionTransformer:
 
 
 def create_vit_base(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Base: 매개변수 8600만"""
+    """ViT-Base: 파라메터 8600만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=768,
         depth=12, n_heads=12, n_classes=n_classes
@@ -249,7 +249,7 @@ def create_vit_base(n_classes: int = 1000) -> VisionTransformer:
 
 
 def create_vit_large(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Large: 매개변수 3억 700만"""
+    """ViT-Large: 파라메터 3억 700만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=1024,
         depth=24, n_heads=16, n_classes=n_classes
@@ -276,7 +276,7 @@ Number of parameters: 85,806,346
 
 ## 2. 논의
 
-기본 패치 16과 224 해상도에서 196개 패치에 CLS를 더해 197개 토큰을 사용한다. MultiHeadAttention은 $(B,N,E)$를 $(B,H,N,E/H)$로 나누고 점수·가중합 뒤 원래 특징 차원으로 합친다. E는 H로 나누어떨어져야 한다.
+기본 패치 16과 224 해상도에서 196개 패치에 CLS를 더해 197개 토큰을 사용한다. MultiHeadAttention은 $(B,N,E)$를 $(B,H,N,E/H)$로 나누고 점수·가중합 뒤 원래 피처 차원으로 합친다. E는 H로 나누어떨어져야 한다.
 
 TransformerBlock은 입력을 정규화한 뒤 어텐션·MLP를 실행하고 잔차를 더하는 Pre-LN이다. 스택 끝에도 LayerNorm을 적용한다. 어텐션 확률·출력과 MLP 등에 드롭아웃이 있어 학습·평가 모드를 구분한다. 클래스 다섯 개의 역할은 PatchEmbedding, MultiHeadAttention, MLP, TransformerBlock과 VisionTransformer다.
 
@@ -287,7 +287,7 @@ TransformerBlock은 입력을 정규화한 뒤 어텐션·MLP를 실행하고 �
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-main의 패치·CLS·최종 출력 모양과 매개변수 수를 설명하라.
+main의 패치·CLS·최종 출력 모양과 파라메터 수를 설명하라.
 
 </div>
 
@@ -304,19 +304,19 @@ RGB 64×64, 패치 16으로 구성하려면 무엇을 맞춰야 하는가?
 </div>
 
 ??? success "연습문제 2 풀이"
-    in_channels는 기본값이 이미 3이다. VisionTransformer(img_size=64,patch_size=16)로 구성하면 16패치와 CLS 하나가 된다. 기존 224 모델의 위치 표는 맞지 않으므로 재초기화·보간과 미세 조정 조건을 정해야 한다. 풀링·평탄 분류층의 크기를 바꾸는 CNN 문제가 아니다.
+    in_channels는 기본값이 이미 3이다. VisionTransformer(img_size=64,patch_size=16)로 구성하면 16패치와 CLS 하나가 된다. 기존 224 모델의 위치 표는 맞지 않으므로 재초기화·보간과 미세 조정 조건을 정해야 한다. 풀링·평탄 분류 레이어의 크기를 바꾸는 CNN 문제가 아니다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-패치 크기를 줄일 때 어텐션과 다른 층의 비용은 어떻게 달라지는가?
+패치 크기를 줄일 때 어텐션과 다른 레이어의 비용은 어떻게 달라지는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    양 축의 패치 수가 두 배씩이면 토큰은 대략 네 배, 전체 점수·가중합은 대략 열여섯 배다. 투영·MLP는 토큰 수에 선형이므로 약 네 배다. CLS와 경계·배치·특징 차원을 반영해 실제 비용을 비교한다.
+    양 축의 패치 수가 두 배씩이면 토큰은 대략 네 배, 전체 점수·가중합은 대략 열여섯 배다. 투영·MLP는 토큰 수에 선형이므로 약 네 배다. CLS와 경계·배치·피처 차원을 반영해 실제 비용을 비교한다.
 
 ---
 
@@ -334,7 +334,7 @@ RGB 64×64, 패치 16으로 구성하려면 무엇을 맞춰야 하는가?
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

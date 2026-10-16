@@ -1,6 +1,6 @@
 # 프로토타입 네트워크
 
-프로토타입 네트워크는 서포트 표본의 임베딩을 클래스별로 평균 내고, 쿼리를 가장 가까운 평균에 배정한다. 에피소드마다 새 분류 기준을 계산하므로 테스트 클래스마다 별도의 출력층을 학습할 필요가 없다. Snell 등의 「Prototypical Networks for Few-shot Learning」(2017)에 기반한 간단한 예제다.
+프로토타입 네트워크는 서포트 표본의 임베딩을 클래스별로 평균 내고, 쿼리를 가장 가까운 평균에 배정한다. 에피소드마다 새 분류 기준을 계산하므로 테스트 클래스마다 별도의 출력 레이어를 학습할 필요가 없다. Snell 등의 「Prototypical Networks for Few-shot Learning」(2017)에 기반한 간단한 예제다.
 
 ## 1. 코드
 
@@ -26,7 +26,7 @@ import torch.nn.functional as F
 
 class ConvEncoder(nn.Module):
     """
-    그림을 묻는 단순한 4층 합성곱 인코더.
+    그림을 묻는 단순한 4레이어 컨볼루션 인코더.
     소수 예시 학습 논문에서 흔히 쓴다.
     """
     def __init__(self, input_channels=1, hidden_dim=64, output_dim=64):
@@ -54,10 +54,10 @@ class ConvEncoder(nn.Module):
 
 class PrototypicalNetwork(nn.Module):
     """
-    N-갈래 K-예시 분류를 위한 원형 망.
+    N-클래스 K-예시 분류를 위한 원형 망.
     
     인수:
-        encoder: 입력을 특징 공간에 묻는 신경망
+        encoder: 입력을 피처 공간에 묻는 뉴럴 넷트웍
     """
     def __init__(self, encoder):
         super(PrototypicalNetwork, self).__init__()
@@ -137,7 +137,7 @@ def train_step(model, support, support_labels, query, query_labels, optimizer):
     # 순전파
     logits = model(support, support_labels, query)
     
-    # 손실을 계산한다
+    # 로스를 계산한다
     loss = F.cross_entropy(logits, query_labels)
     
     # 역전파
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     encoder = ConvEncoder(input_channels=1, hidden_dim=64, output_dim=64)
     model = PrototypicalNetwork(encoder)
     
-    # 5-갈래 1-예시 과제 보기
+    # 5-클래스 1-예시 과제 보기
     n_way = 5
     k_shot = 1
     n_query = 15
@@ -201,7 +201,7 @@ Loss: 5.0646, Accuracy: 0.2667
 
 ## 2. 논의
 
-클래스 $c$의 서포트 집합을 $S_c$라 하면 프로토타입은 $p_c=|S_c|^{-1}\sum_{x\in S_c}f_\theta(x)$다. 쿼리 $q$의 로짓은 $-\|f_\theta(q)-p_c\|^2$이며, 클래스 축 소프트맥스로 확률을 얻는다. 학습 중에는 쿼리 손실의 경사가 쿼리 임베딩과 서포트 평균을 거쳐 인코더에 전달된다.
+클래스 $c$의 서포트 집합을 $S_c$라 하면 프로토타입은 $p_c=|S_c|^{-1}\sum_{x\in S_c}f_\theta(x)$다. 쿼리 $q$의 로짓은 $-\|f_\theta(q)-p_c\|^2$이며, 클래스 축 소프트맥스로 확률을 얻는다. 학습 중에는 쿼리 로스의 경사가 쿼리 임베딩과 서포트 평균을 거쳐 인코더에 전달된다.
 
 코드는 고유 라벨의 개수를 센 다음 0부터 순회한다. 따라서 에피소드 라벨은 빈 클래스 없이 0부터 N−1까지 다시 매겨야 한다. 예를 들어 원래 라벨 3과 8을 그대로 전달하면 빈 집합의 평균을 계산하게 된다. 예제의 쿼리 15개는 클래스당 15개가 아니라 에피소드 전체 개수다.
 
@@ -217,7 +217,7 @@ Loss: 5.0646, Accuracy: 0.2667
 </div>
 
 ??? success "연습문제 1 풀이"
-    블록 출력은 (4,64,14,14), (4,64,7,7), (4,64,3,3), (4,64,1,1)이며 평탄화하면 (4,64)다. 각 블록의 패딩된 합성곱은 공간 크기를 유지하고 MaxPool2d(2)가 소수점을 버리며 절반으로 줄인다.
+    블록 출력은 (4,64,14,14), (4,64,7,7), (4,64,3,3), (4,64,1,1)이며 평탄화하면 (4,64)다. 각 블록의 패딩된 컨볼루션은 공간 크기를 유지하고 MaxPool2d(2)가 소수점을 버리며 절반으로 줄인다.
 
 ---
 
@@ -229,7 +229,7 @@ Loss: 5.0646, Accuracy: 0.2667
 </div>
 
 ??? success "연습문제 2 풀이"
-    input_channels=3으로 생성하면 첫 합성곱이 RGB를 받는다. 네 번 풀링하면 4×4가 되므로 출력은 (B,1024)다. 이 인코더에는 선형층이 없으므로 in_features를 고칠 필요가 없다. 서포트와 쿼리의 입력 크기는 같아야 한다.
+    input_channels=3으로 생성하면 첫 컨볼루션이 RGB를 받는다. 네 번 풀링하면 4×4가 되므로 출력은 (B,1024)다. 이 인코더에는 선형 레이어가 없으므로 in_features를 고칠 필요가 없다. 서포트와 쿼리의 입력 크기는 같아야 한다.
 
 ---
 
@@ -259,7 +259,7 @@ Loss: 5.0646, Accuracy: 0.2667
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

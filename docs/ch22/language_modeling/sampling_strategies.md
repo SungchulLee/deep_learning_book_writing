@@ -102,11 +102,11 @@ def top_k_sample(
     """
     logits = logits / temperature
     
-    # k번째로 큰 값(문턱값) 찾기
+    # k번째로 큰 값(임계값) 찾기
     top_k_values, _ = torch.topk(logits, k, dim=-1)
     threshold = top_k_values[:, -1, None]  # [batch, 1]
     
-    # 문턱값 아래 토막을 0으로 만들기
+    # 임계값 아래 토막을 0으로 만들기
     logits = torch.where(logits >= threshold, logits, filter_value)
     
     probs = F.softmax(logits, dim=-1)
@@ -129,7 +129,7 @@ def nucleus_sample(
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
-        p: 쌓인 확률 문턱값
+        p: 쌓인 확률 임계값
         temperature: 온도 맞추기(거르기 앞에 쓴다)
         min_tokens_to_keep: 늘 이만큼의 토막은 남긴다
         
@@ -144,7 +144,7 @@ def nucleus_sample(
     cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
     
     # 자름점 찾기: 쌓인 확률이 p을 넘는 첫 자리
-    # 문턱값을 넘는 토막을 남기려 오른쪽으로 밀기
+    # 임계값을 넘는 토막을 남기려 오른쪽으로 밀기
     sorted_indices_to_remove = cumulative_probs > p
     sorted_indices_to_remove[..., min_tokens_to_keep:] = sorted_indices_to_remove[..., :-min_tokens_to_keep].clone()
     sorted_indices_to_remove[..., :min_tokens_to_keep] = False
@@ -230,11 +230,11 @@ def min_p_sample(
     logits = logits / temperature
     probs = F.softmax(logits, dim=-1)
     
-    # 최대 확률에 바탕한 그때그때의 문턱값
+    # 최대 확률에 바탕한 그때그때의 임계값
     max_prob = probs.max(dim=-1, keepdim=True).values
     threshold = p_min * max_prob
     
-    # 문턱값 아래 토막 가리기
+    # 임계값 아래 토막 가리기
     mask = probs < threshold
     logits = logits.masked_fill(mask, float('-inf'))
     
@@ -259,7 +259,7 @@ def typical_sample(
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
-        p: 전형 모음의 쌓인 확률 문턱값
+        p: 전형 모음의 쌓인 확률 임계값
         temperature: 온도 맞추기
         
     반환값:
@@ -312,12 +312,12 @@ def eta_sample(
     temperature: float = 1.0
 ) -> torch.Tensor:
     """
-    에타 표집: 엔트로피에 바탕한 알맞게 맞추는 문턱값.
+    에타 표집: 엔트로피에 바탕한 알맞게 맞추는 임계값.
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
-        epsilon: 바탕 문턱값 매개변수
-        fallback_p: 에타 거르기가 토막을 모두 없앴을 때 쓸 상위 p 문턱값
+        epsilon: 바탕 임계값 파라메터
+        fallback_p: 에타 거르기가 토막을 모두 없앴을 때 쓸 상위 p 임계값
         temperature: 온도 맞추기
         
     반환값:
@@ -330,13 +330,13 @@ def eta_sample(
     # 엔트로피 셈하기
     entropy = -(probs * log_probs).sum(dim=-1, keepdim=True)
     
-    # 알맞게 맞추는 문턱값 에타 셈하기
+    # 알맞게 맞추는 임계값 에타 셈하기
     eta = torch.minimum(
         torch.tensor(epsilon),
         torch.sqrt(torch.tensor(epsilon)) * torch.exp(-entropy)
     )
     
-    # 문턱값 아래 토막 거르기
+    # 임계값 아래 토막 거르기
     mask = probs < eta
     filtered_logits = logits.masked_fill(mask, float('-inf'))
     
@@ -362,7 +362,7 @@ fallback_p는 이 예제의 방어 분기다. 어떤 배치 행이라도 후보�
 def mirostat_v2_sample(
     logits: torch.Tensor,
     tau: float = 5.0,       # 목표 놀라움
-    eta: float = 0.1,       # 배움 비율
+    eta: float = 0.1,       # 러닝 비율
     mu: float = None        # 지금의 놀라움 어림값(상태)
 ) -> tuple[torch.Tensor, float]:
     """
@@ -371,7 +371,7 @@ def mirostat_v2_sample(
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
         tau: 목표 놀라움(목표 헷갈림도의 밑 2 로그)
-        eta: 놀라움 좇기의 배움 비율
+        eta: 놀라움 좇기의 러닝 비율
         mu: 지금의 놀라움 어림값(2*tau로 첫자리매김)
         
     반환값:
@@ -389,14 +389,14 @@ def mirostat_v2_sample(
     sorted_surprisals = -sorted_log_probs
     
     # 쌓인 값이 목표에 이르는 k 찾기
-    # mu를 그때그때의 문턱값으로 쓰기
+    # mu를 그때그때의 임계값으로 쓰기
     cumsum_probs = torch.cumsum(sorted_probs, dim=-1)
     
-    # 미로스탯-2: mu에서 이끌어 낸 확률 문턱값에서 잘라 내기
+    # 미로스탯-2: mu에서 이끌어 낸 확률 임계값에서 잘라 내기
     # k = 남길 토막의 개수
     prob_threshold = torch.exp2(torch.tensor(-mu))
     
-    # 확률이 문턱값 이상인 토막 남기기
+    # 확률이 임계값 이상인 토막 남기기
     mask = sorted_probs >= prob_threshold
     if mask.sum() == 0:
         mask[..., 0] = True  # 적어도 상위 토막 하나는 남기기
@@ -655,7 +655,7 @@ def diverse_beam_search(
     max_length: int = 50
 ) -> list[list[tuple[float, list[int]]]]:
     """
-    여러 갈래 빔 찾기: 배치 찾기로 여러 갈래의 가설 만들기.
+    여러 클래스 빔 찾기: 배치 찾기로 여러 클래스의 가설 만들기.
     
     인수:
         model: 말 모델
@@ -678,7 +678,7 @@ def diverse_beam_search(
             for _, seq in prev_group:
                 previous_group_tokens.extend(seq[len(input_ids[0]):])
         
-        # 여러 갈래임 벌주기를 곁들인 빔 찾기 돌리기
+        # 여러 클래스임 벌주기를 곁들인 빔 찾기 돌리기
         group_beams = beam_search_with_penalty(
             model, input_ids, num_beams, max_length,
             penalty_tokens=set(previous_group_tokens),
@@ -694,7 +694,7 @@ diverse_beam_search는 정의되지 않은 beam_search_with_penalty에 의존한
 
 ## 9. Contrastive search의 표현 비교
 
-Contrastive search는 상위 후보의 모델 확률과, 후보를 이어 붙여 얻은 **문맥화 hidden 표현**이 이전 표현과 갖는 유사도를 함께 고려한다. 단순 토큰 embedding의 사전적 의미 차이를 최대화하는 규칙은 아니다. 가중치와 top-k를 정하고 어떤 과거 위치를 비교하는지 명시한다.
+Contrastive search는 상위 후보의 모델 확률과, 후보를 이어 붙여 얻은 **문맥화 hidden 표현**이 이전 표현과 갖는 유사도를 함께 고려한다. 단순 토큰 embedding의 사전적 의미 차이를 최대화하는 규칙은 아니다. 웨이트와 top-k를 정하고 어떤 과거 위치를 비교하는지 명시한다.
 
 ```python
 def contrastive_search(
@@ -736,7 +736,7 @@ def contrastive_search(
         best_token = top_indices[0].item()  # 붙박이는 상위 1
         
         for prob, token_id in zip(top_probs.tolist(), top_indices.tolist()):
-            # 앞먹임으로 후보의 숨은 상태 얻기
+            # 피드포워드로 후보의 숨은 상태 얻기
             candidate_input = torch.cat(
                 [generated, torch.tensor([[token_id]], device=generated.device)],
                 dim=-1
@@ -849,7 +849,7 @@ def speculative_decode(
     return accepted_tensor, len(accepted)
 ```
 
-위 코드는 거절 분기에서 target_probs에서 **같은 target softmax를 다시 빼** 차이가 항상0이 된다. q 전체 분포를 저장하지도 않아 필요한 잔여 분포를 구하지 못한다. 거절 시 대체 토큰 없이 끝나 아무 토큰도 반환하지 않을 수 있고, 모두 수락한 뒤의 추가 토큰도 없다. 따라서 이 구현에 분포 보존·품질 무손실 보장을 적용할 수 없다. q 분모의 ε도 정확 수락비와는 다른 수치 근사다.
+위 코드는 거절 분기에서 target_probs에서 **같은 target softmax를 다시 빼** 차이가 항상0이 된다. q 전체 분포를 저장하지도 않아 필요한 잔여 분포를 구하지 못한다. 거절 시 대체 토큰 없이 끝나 아무 토큰도 반환하지 않을 수 있고, 모두 수락한 뒤의 추가 토큰도 없다. 따라서 이 구현에 분포 보존·품질 무로스 보장을 적용할 수 없다. q 분모의 ε도 정확 수락비와는 다른 수치 근사다.
 
 모든 단계의 조건부 수락률을 상수 α로 근사하고 거절 시 대체1개·전부 수락 시 추가1개를 내는 알고리즘이라면1회 평균 출력 수는 Σ_{i=0}^γ α^i=(1−α^(γ+1))/(1−α)다. α=1에서는 γ+1의 극한을 쓴다. 단순 평균 수락률만으로 항상 각 prefix 확률이 α^i가 되는 것은 아니며, 이 식은 대체·추가가 없는 위 코드의 반환 수식이 아니다. 실제 속도는 두 모델·검증·cache·장치·배치·거절률에 달렸다.
 
@@ -863,7 +863,7 @@ def classifier_free_guidance(
     uncond_input_ids: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
     """
-    로짓에 갈래 매개 없는 이끌기 쓰기.
+    로짓에 클래스 매개 없는 이끌기 쓰기.
     
     인수:
         model: 말 모델
@@ -932,9 +932,9 @@ class TextGenerator:
             max_new_tokens: 만들 토큰의 최대 개수
             temperature: 표집 온도
             top_k: 상위 k 거르기(0이면 끔)
-            top_p: 알갱이 표집 문턱값(1.0이면 끔)
-            min_p: 최소 p 표집 문턱값(0.0이면 끔)
-            typical_p: 전형 표집 문턱값(1.0이면 끔)
+            top_p: 알갱이 표집 임계값(1.0이면 끔)
+            min_p: 최소 p 표집 임계값(0.0이면 끔)
+            typical_p: 전형 표집 임계값(1.0이면 끔)
             repetition_penalty: 되풀이된 토막에 곱하는 벌
             frequency_penalty: 토막이 나올 때마다 더하는 벌
             presence_penalty: 토막이 있으면 더하는 벌

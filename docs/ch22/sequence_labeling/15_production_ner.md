@@ -11,14 +11,14 @@
 
 실전에 펼칠 준비가 된 온전한 이름 알아보기 물길.
 
-특징:
+피처:
 - 앞손질
 - 여러 모델 받치기
 - 뒷손질
 - 어긋남 다루기
 - 기록 남기기
 
-지은이: 배움 목적
+지은이: 러닝 목적
 날짜: 2025
 """
 
@@ -39,13 +39,13 @@ class ProductionNERPipeline:
         물길 첫자리매김.
         
         인수:
-            model_name: 쓸 모델 갈래(transformer, bilstm, crf, rule-based)
+            model_name: 쓸 모델 클래스(transformer, bilstm, crf, rule-based)
         """
         self.model_name = model_name
         self.logger = self._setup_logger()
         self.model = None
         
-        # 갈래에 따라 모델 첫자리매김
+        # 클래스에 따라 모델 첫자리매김
         self._initialize_model()
     
     def _setup_logger(self) -> logging.Logger:
@@ -174,7 +174,7 @@ Processing time: 0.000s
 
 preprocess는 공백·탭·줄바꿈을 공백 하나로 합친다. 모델을 나중에 추가하면 이 변형된 문자열의 offset이 원문과 달라질 수 있다. 반환 text는 원문인데 processed_text나 offset 매핑은 반환하지 않으므로 전처리 좌표를 그대로 넣으면 잘못된 원문 span이 될 수 있다. 원문을 유지하거나 명시적인 인덱스 대응을 보관해야 한다.
 
-빈 문자열·문서 길이·지원 언어·비정상 입력과 tokenizer의 잘림 정책도 정해야 한다. 이것은 고정 이미지 텐서 모양을 검사하는 문제와 다르다. 실제 모델 출력과 유형·범위·점수의 유효성도 연결 단계에서 검증한다.
+빈 문자열·문서 길이·지원 언어·비정상 입력과 tokenizer의 잘림 폴리시도 정해야 한다. 이것은 고정 이미지 텐서 모양을 검사하는 문제와 다르다. 실제 모델 출력과 유형·범위·점수의 유효성도 연결 단계에서 검증한다.
 
 ## 4. 중복·점수 필터의 의미
 
@@ -231,7 +231,7 @@ _setup_logger는 이름이 같은 전역 logger에 새 handler를 매번 추가�
 
 ??? success "연습문제 3 풀이"
 
-    첫0.2만 남기고 뒤0.9를 중복으로 버린 다음0.2도 임계값에서 제거한다. 최대 점수 선택이나 필터 순서를 명시해야 한다. 점수가 없는 항목의 기본1.0 처리도 별도 정책이다.
+    첫0.2만 남기고 뒤0.9를 중복으로 버린 다음0.2도 임계값에서 제거한다. 최대 점수 선택이나 필터 순서를 명시해야 한다. 점수가 없는 항목의 기본1.0 처리도 별도 폴리시다.
 
 
 
@@ -246,7 +246,7 @@ _setup_logger는 이름이 같은 전역 logger에 새 handler를 매번 추가�
 
 ??? success "연습문제 4 풀이"
 
-    이 클래스는 PyTorch 모델 forward·parameters·역전파를 제공하지 않는다. 아래 미정의 입력도 완성 시험이 아니다. 실제 모델 연결 여부·원문 offset·중복/점수 정책·빈 입력·반복 logger 초기화·성공/오류 응답 스키마를 확인하는 명세가 필요하다.
+    이 클래스는 PyTorch 모델 forward·parameters·역전파를 제공하지 않는다. 아래 미정의 입력도 완성 시험이 아니다. 실제 모델 연결 여부·원문 offset·중복/점수 폴리시·빈 입력·반복 logger 초기화·성공/오류 응답 스키마를 확인하는 명세가 필요하다.
 
     ```python
     def test_productionnerpipeline():

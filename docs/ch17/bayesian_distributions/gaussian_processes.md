@@ -14,7 +14,7 @@ GP는 임의의 유한한 입력 집합에서 함수 값 벡터가 결합 가우
 
 $$f\sim\mathcal{GP}(m,k),\qquad f(X)\sim N(m(X),K),\quad K_{ij}=k(x_i,x_j)$$
 
-유효한 커널은 모든 유한 입력 집합에 대해 대칭 양의 준정부호 행렬을 만들어야 한다. 비모수라는 말이 커널·잡음 등에 하이퍼파라미터가 없다는 뜻은 아니다. 선형 커널의 GP처럼 유한 차원 가중치 모형과 동등한 경우도 있다.
+유효한 커널은 모든 유한 입력 집합에 대해 대칭 양의 준정부호 행렬을 만들어야 한다. 비모수라는 말이 커널·잡음 등에 하이퍼파라미터가 없다는 뜻은 아니다. 선형 커널의 GP처럼 유한 차원 웨이트 모형과 동등한 경우도 있다.
 
 ## 3. 커널 함수
 
@@ -111,9 +111,9 @@ import torch
 
 class GaussianProcessRegressor:
     """
-    RBF 알맹이를 쓴 가우스 과정 회귀.
+    RBF 커널을 쓴 가우스 과정 회귀.
     
-    웃매개변수는 주변 가능도를 최대로 만들어 맞춘다.
+    웃파라메터는 주변 가능도를 최대로 만들어 맞춘다.
     """
     
     def __init__(self, length_scale: float = 1.0, signal_var: float = 1.0, 
@@ -126,7 +126,7 @@ class GaussianProcessRegressor:
             [torch.log(torch.tensor(noise_var))], requires_grad=True)
     
     def rbf_kernel(self, X1, X2):
-        """RBF 알맹이 행렬을 셈한다."""
+        """RBF 커널 행렬을 셈한다."""
         ell = torch.exp(self.log_length_scale)
         sf2 = torch.exp(self.log_signal_var)
         
@@ -146,7 +146,7 @@ class GaussianProcessRegressor:
         return lml
     
     def fit(self, X, y, n_iter=100, lr=0.1):
-        """주변 가능도로 웃매개변수를 맞춘다."""
+        """주변 가능도로 웃파라메터를 맞춘다."""
         self.X_train = X
         self.y_train = y
         

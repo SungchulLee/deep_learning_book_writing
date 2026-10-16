@@ -16,7 +16,7 @@
 ## 3. 학습
 
 - [구조 학습](pgm_learning/02_structure_learning.md): 독립성 기반 뼈대 추정, BIC 점수 탐색과 마르코프 동치
-- [PGM의 EM 알고리즘](pgm_learning/em_for_pgms.md): 기대 충분통계량, 매개변수 최적화와 단조성의 조건
+- [PGM의 EM 알고리즘](pgm_learning/em_for_pgms.md): 기대 충분통계량, 파라메터 최적화와 단조성의 조건
 
 ## 정리하며
 

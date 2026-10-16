@@ -12,9 +12,9 @@
 
 - [샴 네트워크 예제](few_shot/siamese_network.md): 공유 인코더와 거리 학습
 - [프로토타입 네트워크 예제](few_shot/prototypical_networks.md): 서포트 평균과 쿼리 거리
-- [매칭 네트워크](few_shot/matching_networks.md): 개별 서포트의 유사도 가중치와 라벨 합산
+- [매칭 네트워크](few_shot/matching_networks.md): 개별 서포트의 유사도 웨이트와 라벨 합산
 - [퓨샷 트랜스포머](few_shot/few_shot_transformer.md): 표본 간 문맥과 집합 요약
-- [샴 네트워크 상세](metric_learning/siamese.md): 손실, 쌍 샘플링과 원샷 분류
+- [샴 네트워크 상세](metric_learning/siamese.md): 로스, 쌍 샘플링과 원샷 분류
 - [프로토타입 네트워크 상세](metric_learning/prototypical.md): 평균의 수학적 성질과 확장
 
 ## 3. 메타 학습과 최적화
@@ -29,7 +29,7 @@
 - [제로샷 학습의 기초](zero_shot/zero_shot_overview.md): 학습·미학습 클래스와 의미 정보
 - [속성 기반 방법](zero_shot/attribute_based.md): DAP·IAP의 전이 경로
 - [의미 임베딩 방법](zero_shot/embedding_based.md): 텍스트 벡터, 호환성 학습과 ConSE
-- [제로샷 분류](zero_shot/classification.md): 시각·의미 투영과 비교 손실
+- [제로샷 분류](zero_shot/classification.md): 시각·의미 투영과 비교 로스
 - [일반화된 제로샷 학습](zero_shot/generalized.md): 전체 후보 클래스 예측과 점수 보정
 
 ## 정리하며

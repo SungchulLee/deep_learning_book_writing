@@ -1,6 +1,6 @@
 # Retrace
 
-Retrace은 여러 걸음 때 차이 학습하기의 벗어난 정책 바로잡기 방법으로, 다른 정책이 모은 데이터에서 안전하고 분산이 작은 리턴 어림을 준다. 잘라 낸 중요도 샘플링 비 $c_i = \lambda \min(1, \pi/\mu)$을 써서 행동 정책이 과녁 정책에서 크게 벗어나면 추적을 저절로 끊는다. 이로써 행동 정책과 상관없이 올바른 가치 함수로 수렴이 보장되어 경험 리플레이와 나눠 하는 학습 자리에 특히 쓸모 있다.
+Retrace은 여러 걸음 때 차이 학습하기의 벗어난 폴리시 바로잡기 방법으로, 다른 폴리시가 모은 데이터에서 안전하고 분산이 작은 리턴 어림을 준다. 잘라 낸 중요도 샘플링 비 $c_i = \lambda \min(1, \pi/\mu)$을 써서 액션 폴리시가 타깃 폴리시에서 크게 벗어나면 추적을 저절로 끊는다. 이로써 액션 폴리시와 상관없이 올바른 밸류 함수로 수렴이 보장되어 경험 리플레이와 나눠 하는 학습 자리에 특히 쓸모 있다.
 
 ## 1. 코드
 
@@ -9,7 +9,7 @@ Retrace은 여러 걸음 때 차이 학습하기의 벗어난 정책 바로잡�
 35.3.2 Retrace(λ)
 ==================
 
-리트레이스(λ)로 방침 밖을 바로잡은 여러 걸음 돌아옴.
+리트레이스(λ)로 폴리시 밖을 바로잡은 여러 걸음 돌아옴.
 """
 
 import torch
@@ -32,20 +32,20 @@ def compute_retrace_targets(
     gamma: float = 0.99,
     lambda_: float = 0.95,
 ) -> torch.Tensor:
-    """자취 하나의 리트레이스(λ) 과녁을 셈한다.
+    """자취 하나의 리트레이스(λ) 타깃을 셈한다.
     
     인수:
         q_values: 때 걸음마다 (s_t, a_t)에서의 Q 값
         next_q_max: 때 걸음마다의 max_a' Q(s_{t+1}, a')
-        rewards: 때 걸음마다의 보상
+        rewards: 때 걸음마다의 리워드
         dones: 끝남 깃발(1.0이면 끝났다)
-        target_policy_probs: 과녁(이제) 방침 아래의 π(a_t | s_t)
-        behavior_policy_probs: 행동(자료) 방침 아래의 μ(a_t | s_t)
+        target_policy_probs: 타깃(이제) 폴리시 아래의 π(a_t | s_t)
+        behavior_policy_probs: 액션(자료) 폴리시 아래의 μ(a_t | s_t)
         gamma: 깎기 인수
         lambda_: 리트레이스 람다 값
         
     반환값:
-        리트레이스 과녁, 꼴 (T,)
+        리트레이스 타깃, 꼴 (T,)
     """
     T = len(rewards)
     
@@ -56,7 +56,7 @@ def compute_retrace_targets(
     # 때 차이 어긋남: δ_t = r_t + γ * max_a Q(s_{t+1}, a) - Q(s_t, a_t)
     td_errors = rewards + (1 - dones) * gamma * next_q_max - q_values
     
-    # 리트레이스 과녁을 거꾸로 셈
+    # 리트레이스 타깃을 거꾸로 셈
     targets = torch.zeros(T)
     # Q^ret(s_t, a_t) = Q(s_t, a_t) + Σ_{k=t}^{T-1} γ^{k-t} (Π c_i) δ_k
     
@@ -81,11 +81,11 @@ def compute_retrace_batch(
     gamma: float = 0.99,
     lambda_: float = 0.95,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    """자취 배치의 리트레이스 과녁을 셈한다.
+    """자취 배치의 리트레이스 타깃을 셈한다.
     
     인수:
-        q_online: 온라인 Q 그물
-        q_target: 과녁 Q 그물
+        q_online: 온라인 Q 넷트웍
+        q_target: 타깃 Q 넷트웍
         trajectories: states, actions, rewards, next_states, dones,
                       behavior_probs 열쇠를 지닌 사전의 목록
         gamma: 깎기
@@ -109,7 +109,7 @@ def compute_retrace_batch(
             q_vals = q_target(states).gather(1, actions.unsqueeze(1)).squeeze(1)
             next_q_max = q_target(next_states).max(dim=1)[0]
             
-            # 과녁 방침: 온라인 그물에 대해 욕심쟁이
+            # 타깃 폴리시: 온라인 넷트웍에 대해 욕심쟁이
             online_actions = q_online(states).argmax(dim=1)
             target_probs = (online_actions == actions).float()
         
@@ -118,7 +118,7 @@ def compute_retrace_batch(
             target_probs, behavior_probs, gamma, lambda_
         )
         
-        # 손실 셈을 위해 온라인 Q 값을 얻음
+        # 로스 셈을 위해 온라인 Q 값을 얻음
         online_q = q_online(states).gather(1, actions.unsqueeze(1)).squeeze(1)
         
         all_q.append(online_q)
@@ -132,7 +132,7 @@ def compute_retrace_batch(
 # ---------------------------------------------------------------------------
 
 class TrajectoryBuffer:
-    """리트레이스 갈래 알고리즘을 위해 온전한 자취를 갈무리한다."""
+    """리트레이스 클래스 알고리즘을 위해 온전한 자취를 갈무리한다."""
     
     def __init__(self, max_trajectories: int = 1000):
         self.max_size = max_trajectories
@@ -169,7 +169,7 @@ def demo_retrace():
     print("Retrace(λ) Demo")
     print("=" * 60)
 
-    # --- 리트레이스 과녁 셈 ---
+    # --- 리트레이스 타깃 셈 ---
     print("\n--- Retrace Target Computation ---")
     T = 8
     q_vals = torch.randn(T) * 2 + 5
@@ -192,12 +192,12 @@ def demo_retrace():
     eps = 0.1
     n_actions = 4
     
-    # 욕심쟁이 움직임
+    # 욕심쟁이 액션
     mu_greedy = 1 - eps + eps / n_actions
     c_greedy = 0.95 * min(1.0, 1.0 / mu_greedy)
     print(f"    Greedy action: μ={mu_greedy:.3f}, π=1.0, c=λ·min(1,π/μ)={c_greedy:.3f}")
     
-    # 욕심쟁이 아닌 움직임
+    # 욕심쟁이 아닌 액션
     mu_random = eps / n_actions
     c_random = 0.95 * min(1.0, 0.0 / mu_random)
     print(f"    Non-greedy:    μ={mu_random:.3f}, π=0.0, c=λ·min(1,π/μ)={c_random:.3f}")
@@ -221,7 +221,7 @@ def demo_retrace():
     rewards = torch.ones(T)
     dones = torch.zeros(T)
     
-    # 방침 밖 흉내: 어떤 움직임은 욕심쟁이가 아니었음
+    # 폴리시 밖 흉내: 어떤 액션은 욕심쟁이가 아니었음
     target_probs = torch.tensor([1, 1, 0, 1, 1, 0, 0, 1, 1, 1], dtype=torch.float32)
     behavior_probs = torch.ones(T) * 0.3
     
@@ -287,52 +287,52 @@ Retrace demo complete!
 
 ## 2. 논의
 
-이 짜기는 Retrace의 핵심 논리를 감싼 `TrajectoryBuffer` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
+이 짜기는 Retrace의 핵심 논리를 감싼 `TrajectoryBuffer` 클래스를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
-보여 주기 함수는 핵심 행동을 도드라지게 하는 만든 데이터에서 이 조각들의 실제 쓰임을 보인다. 내놓기를 살펴보면 윗매개변수를 어떻게 고르고 문제를 어떻게 차리느냐에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
+보여 주기 함수는 핵심 액션을 도드라지게 하는 만든 데이터에서 이 조각들의 실제 쓰임을 보인다. 내놓기를 살펴보면 윗파라메터를 어떻게 고르고 문제를 어떻게 차리느냐에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗파라메터 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗매개변수 하나(학습률, 숨은 차원, 층 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
+보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗파라메터 하나(러닝레이트, 숨은 차원, 레이어 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗매개변수를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 학습률은 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗매개변수의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
+    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗파라메터를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 러닝레이트는 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗파라메터의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 손실 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
+이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 로스 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 고르기는 여러 걸음 학습에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 기울기가 사라지는 것을 피한다. 손실 함수는 일의 갈래에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 손실) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
+    이 구조 고르기는 여러 걸음 학습에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 그래디언트가 사라지는 것을 피한다. 로스 함수는 일의 클래스에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 로스) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 특징 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
+더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 피처 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 가중치 줄임)나 더 정교한 구조(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 웨이트 줄임)나 더 정교한 구조(레이어 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
 
 ## 정리하며
 
 **다룬 것** — Retrace
 
-이 짜기는 Retrace의 핵심 논리를 감싼 `TrajectoryBuffer` 갈래를 한가운데 둔다.
+이 짜기는 Retrace의 핵심 논리를 감싼 `TrajectoryBuffer` 클래스를 한가운데 둔다.
 
-핵심 갈래는 `TrajectoryBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `TrajectoryBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

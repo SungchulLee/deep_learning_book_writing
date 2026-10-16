@@ -1,5 +1,5 @@
 # SWAG: Stochastic Weight Averaging Gaussian
-**SWAG(확률 가중치 고르기 가우시안)**은 SGD 되돌이의 자취에 가우시안 분포를 맞추어 신경망에서 베이즈 추론을 단순하고 크게 늘릴 수 있게 이룬다. 이 일 끝난 뒤 방법은 여느 학습 동안 모은 자만으로 가중치 사후분포의 평균과 공분산을 함께 담는다.
+**SWAG(확률 웨이트 고르기 가우시안)**은 SGD 회귀의 자취에 가우시안 분포를 맞추어 뉴럴 넷트웍에서 베이즈 추론을 단순하고 크게 늘릴 수 있게 이룬다. 이 일 끝난 뒤 방법은 여느 학습 동안 모은 자만으로 웨이트 사후분포의 평균과 공분산을 함께 담는다.
 
 ---
 
@@ -7,7 +7,7 @@
 
 ### 학습과 베이즈 추론 사이의 틈
 
-여느 신경망 학습은 점 근사 $\hat{\theta}$을 낸다.
+여느 뉴럴 넷트웍 학습은 점 근사 $\hat{\theta}$을 낸다.
 
 $$
 \hat{\theta} = \arg\min_\theta \mathcal{L}(\theta; \mathcal{D})
@@ -17,19 +17,19 @@ $$
 
 **SWAG의 깨침**: 모여 가는 언저리의 SGD 자취는 넌지시 사후분포의 터를 둘러본다. 이 자취를 따라 자를 모으면 학습 절차를 바꾸지 않고도 사후분포를 추정할 수 있다.
 
-### 확률 가중치 고르기(SWA) 기초
+### 확률 웨이트 고르기(SWA) 기초
 
-**SWA**(이즈마일로프 등, 2018)은 가중치를 고르게 하여 두루 미침을 낫게 한다.
+**SWA**(이즈마일로프 등, 2018)은 웨이트를 고르게 하여 두루 미침을 낫게 한다.
 
 $$
 \bar{\theta}_{\text{SWA}} = \frac{1}{T} \sum_{t=1}^T \theta_t
 $$
 
-여기서 $\theta_t$은 돌림 또는 붙박인 학습률로 학습된 마지막 $T$판의 가중치다.
+여기서 $\theta_t$은 돌림 또는 붙박인 러닝레이트로 학습된 마지막 $T$판의 웨이트다.
 
-**핵심 살핌**: SWA 가중치는 손실 터에서 더 판판하고 너른 자리에 놓여 두루 미침이 나아진다.
+**핵심 살핌**: SWA 웨이트는 로스 터에서 더 판판하고 너른 자리에 놓여 두루 미침이 나아진다.
 
-**SWAG는 SWA을 넓혀** 평균뿐 아니라 가중치 자취의 퍼짐까지 담는다.
+**SWAG는 SWA을 넓혀** 평균뿐 아니라 웨이트 자취의 스프레드까지 담는다.
 
 ---
 
@@ -112,12 +112,12 @@ $\frac{1}{\sqrt{2}}$ 값은 대각 몫과 낮은 자리 몫을 모을 때 잣대
 ```
 알고리즘: SWAG 익힘
 ────────────────────────
-들임: 미리 익힌 그물 θ₀, 배움 비율 짜임, 
+들임: 미리 익힌 넷트웍 θ₀, 러닝 비율 짜임, 
        모으는 잦기 c, 자리 K
-날임: SWAG 매개변수 (θ̄, Σ_diag, D)
+날임: SWAG 파라메터 (θ̄, Σ_diag, D)
 
 1. 첫자리: θ̄ = 0, θ̄² = 0, D = [], n = 0
-2. 배움 비율을 SWA 짜임(붙박이 또는 돌림)으로 둔다
+2. 러닝 비율을 SWA 짜임(붙박이 또는 돌림)으로 둔다
 3. 몸풀기 뒤의 판마다:
    a. SGD으로 c번 되돌아 익힌다
    b. 달리는 자를 고친다:
@@ -131,7 +131,7 @@ $\frac{1}{\sqrt{2}}$ 값은 대각 몫과 낮은 자리 몫을 모을 때 잣대
 5. (θ̄, Σ_diag, D)을 돌려준다
 ```
 
-### 학습률 구조
+### 러닝레이트 구조
 
 **돌림 구조**(즐겨 씀):
 
@@ -139,7 +139,7 @@ $$
 \alpha_t = \alpha_{\min} + \frac{1}{2}(\alpha_{\max} - \alpha_{\min})\left(1 + \cos\left(\frac{\pi \cdot \text{mod}(t, c)}{c}\right)\right)
 $$
 
-학습률이 낮은 돌림의 끝에서 표본을 모은다.
+러닝레이트가 낮은 돌림의 끝에서 표본을 모은다.
 
 **붙박인 구조**:
 
@@ -151,12 +151,12 @@ $$
 
 ### 하이퍼파라미터
 
-| 매개변수 | 흔한 값 | 풀이 |
+| 파라메터 | 흔한 값 | 풀이 |
 |-----------|---------------|-------------|
 | SWA 비롯 | 학습의 75% | 언제부터 모을지 |
 | 모으는 잦기 $c$ | 1판 | 자를 얼마나 자주 고칠지 |
 | 낮은 자리 $K$ | 20 | 벗어남 벡터의 수 |
-| 학습률 | 0.01~0.05 | SWA 학습률 |
+| 러닝레이트 | 0.01~0.05 | SWA 러닝레이트 |
 
 ---
 
@@ -164,7 +164,7 @@ $$
 
 ### 몬테카를로 적분
 
-시험 입력 $x^*$이 주어지면 가중치 차림 $S$개를 뽑는다.
+시험 입력 $x^*$이 주어지면 웨이트 차림 $S$개를 뽑는다.
 
 $$
 \theta^{(s)} \sim q(\theta) = \mathcal{N}(\bar{\theta}, \Sigma_{\text{SWAG}})
@@ -184,7 +184,7 @@ $$
 
 ### 분류에서는
 
-소프트맥스 낌새를 평균한다.
+소프트맥스 확률을 평균한다.
 
 $$
 p(y = c \mid x^*, \mathcal{D}) \approx \frac{1}{S} \sum_{s=1}^S \text{softmax}(f_{\theta^{(s)}}(x^*))_c
@@ -222,17 +222,17 @@ $$
 
 SWAG는 이 둘러봄의 가장자리 자를 담는다.
 
-### 손실 터로 본 눈
+### 로스 터로 본 눈
 
 SWAG는 SWA 풀이 언저리의 "골"에서 표본을 뽑는다.
 
-- 대각은 매개변수마다의 분산을 담는다
+- 대각은 파라메터마다의 분산을 담는다
 - 낮은 자리는 바뀜의 으뜸 방향을 담는다
 - 둘이 함께 그 자리 사후분포의 꼴을 추정한다
 
 ---
 
-## 6. SWAG의 갈래
+## 6. SWAG의 클래스
 
 ### SWAG-대각
 
@@ -243,7 +243,7 @@ $$
 $$
 
 **나은 점**: 더 단순하고 자리를 덜 쓴다
-**아쉬운 점**: 가중치 사이의 얽힘을 놓친다
+**아쉬운 점**: 웨이트 사이의 얽힘을 놓친다
 
 ### 여럿 SWAG
 
@@ -257,9 +257,9 @@ $$
 
 ### 배치 잣대 잡기가 있는 SWAG
 
-**어려움**: 배치 잣대 잡기의 자는 가중치뿐 아니라 배치에도 매인다.
+**어려움**: 배치 잣대 잡기의 자는 웨이트뿐 아니라 배치에도 매인다.
 
-**풀이**: 가중치를 뽑은 뒤, 따지기 앞서 학습 데이터로 앞으로 걸음을 한 번 돌려 배치 잣대 잡기의 달리는 자를 고친다.
+**풀이**: 웨이트를 뽑은 뒤, 따지기 앞서 학습 데이터로 앞으로 걸음을 한 번 돌려 배치 잣대 잡기의 달리는 자를 고친다.
 
 ---
 
@@ -295,7 +295,7 @@ class SWAG:
         Parameters
         ----------
         n_params : int
-            모형 매개변수의 수
+            모형 파라메터의 수
         max_rank : int
             낮은 자리 함께 바뀜 몫의 가장 큰 자리
         var_clamp : float
@@ -313,12 +313,12 @@ class SWAG:
     
     def update(self, params: np.ndarray):
         """
-        새 매개변수로 SWAG 자를 고친다.
+        새 파라메터로 SWAG 자를 고친다.
         
         Parameters
         ----------
         params : (n_params,) 꼴의 ndarray
-            이제의 모형 매개변수
+            이제의 모형 파라메터
         """
         params = np.asarray(params).flatten()
         assert len(params) == self.n_params
@@ -362,7 +362,7 @@ class SWAG:
         Returns
         -------
         (n_params,) 꼴의 ndarray
-            뽑은 매개변수
+            뽑은 파라메터
         """
         # 대각 몫에서 뽑는다
         z1 = np.random.randn(self.n_params)
@@ -390,7 +390,7 @@ class SWAG:
     
     def sample_many(self, n_samples: int, scale: float = 1.0) -> np.ndarray:
         """
-        매개변수 벡터를 여럿 뽑는다.
+        파라메터 벡터를 여럿 뽑는다.
         
         Parameters
         ----------
@@ -402,7 +402,7 @@ class SWAG:
         Returns
         -------
         (n_samples, n_params) 꼴의 ndarray
-            뽑은 매개변수
+            뽑은 파라메터
         """
         return np.array([self.sample(scale) for _ in range(n_samples)])
     
@@ -424,7 +424,7 @@ class SWAG:
 
 class SWAGTrainer:
     """
-    돌림 배움 비율을 쓰는 SWAG 익힘개.
+    돌림 러닝 비율을 쓰는 SWAG 익힘개.
     """
     
     def __init__(
@@ -440,13 +440,13 @@ class SWAGTrainer:
         Parameters
         ----------
         model : object
-            get_params()과 set_params() 방법을 지닌 신경 그물
+            get_params()과 set_params() 방법을 지닌 뉴럴 넷트웍
         swag : SWAG
             자를 모을 SWAG 물체
         lr_init : float
-            처음(가장 큰) 배움 비율
+            처음(가장 큰) 러닝 비율
         lr_min : float
-            가장 작은 배움 비율
+            가장 작은 러닝 비율
         cycle_length : int
             돌림 하나의 판 수
         swa_start : int
@@ -460,7 +460,7 @@ class SWAGTrainer:
         self.swa_start = swa_start
     
     def get_lr(self, epoch: int) -> float:
-        """돌림 배움 비율 짜임."""
+        """돌림 러닝 비율 짜임."""
         if epoch < self.swa_start:
             # 곧은 몸풀기 또는 붙박이
             return self.lr_init
@@ -497,7 +497,7 @@ class SWAGTrainer:
             X_batch = X[batch_idx]
             y_batch = y[batch_idx]
             
-            # 기울기와 잃음을 셈한다(모형마다 다름)
+            # 그래디언트와 잃음을 셈한다(모형마다 다름)
             loss, grads = self.model.compute_gradients(X_batch, y_batch)
             losses.append(loss)
             
@@ -506,7 +506,7 @@ class SWAGTrainer:
             new_params = params - lr * grads
             self.model.set_params(new_params)
         
-        # 돌림 끝(배움 비율이 낮을 때) SWAG를 고친다
+        # 돌림 끝(러닝 비율이 낮을 때) SWAG를 고친다
         if epoch >= self.swa_start:
             cycle_epoch = (epoch - self.swa_start) % self.cycle_length
             if cycle_epoch == self.cycle_length - 1:
@@ -527,7 +527,7 @@ def swag_predict(
     Parameters
     ----------
     model : object
-        set_params()과 predict() 방법을 지닌 신경 그물
+        set_params()과 predict() 방법을 지닌 뉴럴 넷트웍
     swag : SWAG
         맞춰 놓은 SWAG 물체
     X : ndarray
@@ -570,7 +570,7 @@ def swag_predict(
 # =============================================================================
 
 def demo_swag():
-    """단순한 되돌이 문제에서 SWAG를 보여 준다."""
+    """단순한 회귀 문제에서 SWAG를 보여 준다."""
     
     print("=" * 60)
     print("SWAG 보여 주기")
@@ -606,7 +606,7 @@ def demo_swag():
             self.params = params.copy()
         
         def predict(self, X):
-            # 매개변수를 풀고 앞으로 걸음
+            # 파라메터를 풀고 앞으로 걸음
             idx = 0
             h = X
             for i in range(len(self.layers) - 1):
@@ -621,7 +621,7 @@ def demo_swag():
             return h
         
         def compute_gradients(self, X, y):
-            # 단순하게 수로 셈하는 기울기
+            # 단순하게 수로 셈하는 그래디언트
             pred = self.predict(X)
             loss = np.mean((pred - y) ** 2)
             
@@ -640,7 +640,7 @@ def demo_swag():
     # 모형을 만든다
     model = SimpleMLP([1, 30, 30, 1])
     n_params = len(model.get_params())
-    print(f"모형 매개변수: {n_params}")
+    print(f"모형 파라메터: {n_params}")
     
     # SWAG를 만든다
     swag = SWAG(n_params, max_rank=20)
@@ -655,7 +655,7 @@ def demo_swag():
     # SWAG 모으기 도막
     print("SWAG 자를 모으는 중...")
     for epoch in range(30):
-        # 돌림 배움 비율
+        # 돌림 러닝 비율
         t = (epoch % 5) / 5
         lr = 0.001 + 0.009 * (1 + np.cos(np.pi * t)) / 2
         
@@ -693,7 +693,7 @@ SWAG 보여 주기
 ============================================================
 
 익힘 자료: 100점
-모형 매개변수: 1021
+모형 파라메터: 1021
 
 미리 익히는 중...
 SWAG 자를 모으는 중...
@@ -734,7 +734,7 @@ SWAG 자를 모으는 중...
 | 특성 | SWAG | VI(되돌아가며 베이즈) |
 |--------|------|------------------------|
 | 학습 | 일 끝난 뒤 | 처음부터 |
-| 매개변수 | 밑 모델과 같음 | 2배(평균 + 분산) |
+| 파라메터 | 밑 모델과 같음 | 2배(평균 + 분산) |
 | 근사 | 겪어 본 가우시안 | 평균장 가우시안 |
 | 크게 늘리기 | 아주 좋음 | 좋음 |
 
@@ -760,7 +760,7 @@ SWAG 자를 모으는 중...
 ### 짜기 요령
 
 1. **여느 대로 사전 학습된이다**: 먼저 좋은 풀이를 얻는다
-2. **돌림 학습률을 쓴다**: 붙박이보다 더 잘 둘러본다
+2. **돌림 러닝레이트를 쓴다**: 붙박이보다 더 잘 둘러본다
 3. **표본을 넉넉히 모은다**: 공분산이 든든하려면 적어도 10~20개
 4. **배치 잣대 잡기를 다룬다**: 뽑은 뒤 달리는 자를 고친다
 5. **잣대 값 맞추기**: 1.0에서 비롯해 캘리브레이션을 보고 손본다
@@ -779,12 +779,12 @@ SWAG 자를 모으는 중...
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-ReLU 활성화와 가우시안 가중치 사전분포를 지닌 두 켜 신경망에서, 이 마디에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
+ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 넷트웍에서, 이 마디에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    가중치가 $W_1, W_2$이고 가우시안 사전분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 사후분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 근사 방법은 다룰 수 있는 꼴을 낸다. 변분 추론이면 가중치마다 서로 독립인 가우시안 사후분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 근사이면 사후분포가 MAP 추정을 가운데로 삼고 공분산이 헤세 행렬의 역인 가우시안 하나이며, MC 드롭아웃이면 사후분포가 드롭아웃 마스크 분포로 넌지시 세워진다. 근사마다 참 사후분포 모습의 서로 다른 특성을 담는다. $\square$
+    웨이트가 $W_1, W_2$이고 가우시안 사전분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 사후분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 근사 방법은 다룰 수 있는 꼴을 낸다. 변분 추론이면 웨이트마다 서로 독립인 가우시안 사후분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 근사이면 사후분포가 MAP 추정을 가운데로 삼고 공분산이 헤세 행렬의 역인 가우시안 하나이며, MC 드롭아웃이면 사후분포가 드롭아웃 마스크 분포로 넌지시 세워진다. 근사마다 참 사후분포 모습의 서로 다른 특성을 담는다. $\square$
 
 ---
 
@@ -803,12 +803,12 @@ ReLU 활성화와 가우시안 가중치 사전분포를 지닌 두 켜 신경�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-베이즈 신경망의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+베이즈 뉴럴 넷트웍의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    추론 분산은 온 분산 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 우연적 몫은 데이터를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 인식적 몫은 매개변수의 불확실성을 드러내며 사후분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 우연적 불확실성만 남는다. 이 쪼갬은 데이터를 더 모아야 할 때(인식적 불확실성이 클 때)와 우연적 잡음을 받아들여야 할 때(우연적 불확실성이 클 때)를 가르는 데 중요하다. $\square$
+    추론 분산은 온 분산 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 우연적 몫은 데이터를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 인식적 몫은 파라메터의 불확실성을 드러내며 사후분포가 참 파라메터 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 우연적 불확실성만 남는다. 이 쪼갬은 데이터를 더 모아야 할 때(인식적 불확실성이 클 때)와 우연적 잡음을 받아들여야 할 때(우연적 불확실성이 클 때)를 가르는 데 중요하다. $\square$
 
 ---
 

@@ -1,12 +1,12 @@
-# 1차원 합성곱
+# 1차원 컨볼루션
 
-1차원 합성곱은 시퀀스의 한 축을 따라 같은 커널을 공유해 국소 특징을 계산한다. 시계열·음향·텍스트 등에 사용할 수 있으며, 다채널 입력과 인과 패딩, 팽창률을 조합해 시간 합성곱 신경망(TCN)을 구성한다.
+1차원 컨볼루션은 시퀀스의 한 축을 따라 같은 커널을 공유해 국소 피처를 계산한다. 시계열·음향·텍스트 등에 사용할 수 있으며, 다채널 입력과 인과 패딩, 팽창률을 조합해 시간 컨볼루션 뉴럴 넷트웍(TCN)을 구성한다.
 
-합성곱이라는 이름과 달리 nn.Conv1d는 커널을 뒤집지 않는 상호상관을 계산한다. 수식과 역전파를 해석할 때에는 수학적 합성곱의 정의와 구분한다.
+컨볼루션이라는 이름과 달리 nn.Conv1d는 커널을 뒤집지 않는 상호상관을 계산한다. 수식과 역전파를 해석할 때에는 수학적 컨볼루션의 정의와 구분한다.
 
 ## 1. 수학적 정식화
 
-### 단일 채널 1차원 합성곱
+### 단일 채널 1차원 컨볼루션
 
 1차원 입력 $\mathbf{x} \in \mathbb{R}^{n}$과 커널 $\mathbf{w} \in \mathbb{R}^{k}$에 대해 다음과 같다.
 
@@ -14,17 +14,17 @@ $$y[i] = \sum_{j=0}^{k-1} x[i + j] \cdot w[j]$$
 
 (패딩가 없을 때) 출력 크기는 $n - k + 1$이다.
 
-!!! warning "합성곱이라 부르지만 커널을 뒤집지 않는다"
-    위 식은 엄밀히 말하면 합성곱이 아니라 **상호상관**이다. 참된 합성곱이라면
+!!! warning "컨볼루션이라 부르지만 커널을 뒤집지 않는다"
+    위 식은 엄밀히 말하면 컨볼루션이 아니라 **상호상관**이다. 참된 컨볼루션이라면
     커널을 뒤집어 $y[i] = \sum_{j=0}^{k-1} x[i+j] \cdot w[k-1-j]$로 적어야 한다.
     부호가 뒤집힌 커널에서는 이 차이가 곧바로 드러난다. 아래 보기의
     $\mathbf{w} = [1, 0, -1]$을 뒤집으면 $[-1, 0, 1]$이 되어 출력이
     $[-2, -2, -2]$가 아니라 $[2, 2, 2]$가 된다.
 
     `nn.Conv1d`도, 이 페이지의 모든 식도 뒤집지 않는 쪽을 쓴다. 커널을 학습으로 얻는
-    이상 뒤집기란 매개변수를 다시 이름 붙이는 일에 지나지 않기 때문이다. 다만
+    이상 뒤집기란 파라메터를 다시 이름 붙이는 일에 지나지 않기 때문이다. 다만
     수식을 손으로 옮겨 적을 때는 어느 쪽인지 반드시 정해 두어야 한다 —
-    [합성곱](convolution.md)에서 두 연산을 나란히 놓고 다룬다.
+    [컨볼루션](convolution.md)에서 두 연산을 나란히 놓고 다룬다.
 
 ### 예
 
@@ -46,7 +46,7 @@ Output: [-2, -2, -2]
 
 $$Y[o, i] = \sum_{c=0}^{C_{in}-1} \sum_{j=0}^{k-1} X[c, i+j] \cdot W[o, c, j] + b[o]$$
 
-가중치 텐서의 모양은 $W \in \mathbb{R}^{C_{out} \times C_{in} \times k}$이다.
+웨이트 텐서의 모양은 $W \in \mathbb{R}^{C_{out} \times C_{in} \times k}$이다.
 
 ---
 
@@ -65,12 +65,12 @@ import torch.nn as nn
 conv1d = nn.Conv1d(
     in_channels=8,        # 입력 채널의 수
     out_channels=32,      # 출력 채널(필터)의 수
-    kernel_size=5,        # 합성곱 핵의 크기
-    stride=1,             # 합성곱의 보폭
+    kernel_size=5,        # 컨볼루션 커널의 크기
+    stride=1,             # 컨볼루션의 스트라이드
     padding=2,            # 양쪽에 더하는 0 덧대기
-    dilation=1,           # 핵 원소 사이의 간격
+    dilation=1,           # 커널 원소 사이의 간격
     groups=1,             # 막힌 연결의 수
-    bias=True,            # 학습 가능한 편향 더하기
+    bias=True,            # 학습 가능한 바이어스 더하기
     padding_mode='zeros'  # 'zeros', 'reflect', 'replicate', 'circular'
 )
 print(conv1d)
@@ -95,14 +95,14 @@ Conv1d(8, 32, kernel_size=(5,), stride=(1,), padding=(2,))
 import torch
 import torch.nn as nn
 
-# 1차원 합성곱 예제
+# 1차원 컨볼루션 예제
 # 입력: (배치 크기, 입력 채널, 길이)
 x = torch.tensor([[[1., 2., 3., 4., 5.]]])  # 모양: (1, 1, 5)
 
-# 1차원 합성곱 층 만들기: 입력 채널 1개, 출력 채널 1개, 핵 크기 3
+# 1차원 컨볼루션 레이어 만들기: 입력 채널 1개, 출력 채널 1개, 커널 크기 3
 conv1d = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=3, bias=False)
 
-# 가중치를 [1, 0, -1]로 직접 지정 (모서리 검출 핵)
+# 웨이트를 [1, 0, -1]로 직접 지정 (모서리 검출 커널)
 with torch.no_grad():
     conv1d.weight = nn.Parameter(torch.tensor([[[1., 0., -1.]]]))
 
@@ -120,19 +120,19 @@ Output shape: torch.Size([1, 1, 3])
 Output: tensor([[[-2., -2., -2.]]], grad_fn=<ConvolutionBackward0>)
 ```
 
-가중치를 직접 지정했으므로 이 출력은 1절의 손 계산과 정확히 같다. 커널을 뒤집는
-참된 합성곱이었다면 $[2, 2, 2]$가 나왔을 자리이다.
+웨이트를 직접 지정했으므로 이 출력은 1절의 손 계산과 정확히 같다. 커널을 뒤집는
+참된 컨볼루션이었다면 $[2, 2, 2]$가 나왔을 자리이다.
 
 ### 다채널 예제
 
 ```python
 torch.manual_seed(0)
 
-# 특징 8개(예: OHLCV와 지표), 길이 100인 시계열
+# 피처 8개(예: OHLCV와 지표), 길이 100인 시계열
 batch_size = 32
 x = torch.randn(batch_size, 8, 100)  # (N, C_in, L)
 
-# 핵 크기 5로 시간 특징 32개 뽑기
+# 커널 크기 5로 시간 피처 32개 뽑기
 conv = nn.Conv1d(in_channels=8, out_channels=32, kernel_size=5, padding=2)
 
 output = conv(x)
@@ -153,9 +153,9 @@ Parameters: 1,312
 
 ---
 
-## 3. 행렬 곱으로 본 1차원 합성곱
+## 3. 행렬 곱으로 본 1차원 컨볼루션
 
-1차원 합성곱을 창을 미끄러뜨리는 것으로 보는 관점은 **퇴플리츠 행렬**을 곱하는 것으로도 나타낼 수 있다. 입력 $\mathbf{x} = [x_0, x_1, x_2, x_3, x_4]^\top$과 커널 $\mathbf{k} = [k_0, k_1, k_2]^\top$에 대해 다음과 같다.
+1차원 컨볼루션을 창을 미끄러뜨리는 것으로 보는 관점은 **퇴플리츠 행렬**을 곱하는 것으로도 나타낼 수 있다. 입력 $\mathbf{x} = [x_0, x_1, x_2, x_3, x_4]^\top$과 커널 $\mathbf{k} = [k_0, k_1, k_2]^\top$에 대해 다음과 같다.
 
 $$\mathbf{y} = \mathbf{T}\mathbf{x} = \begin{bmatrix}
 k_0 & k_1 & k_2 & 0 & 0 \\
@@ -170,9 +170,9 @@ $i$번째 행이 $i$번째 열부터 $k_0, k_1, k_2$를 늘어놓는다는 점�
 
 이 행렬은 희소하고 대각선을 따라 값이 반복되는 구조를 갖는다. 이를 활용하면 행렬의 모든 원소를 저장하지 않고 커널만 저장할 수 있다. 속도 차이는 입력 크기와 구현에 따라 달라진다.
 
-### $\mathbf{T}^\top$으로 본 전치 합성곱
+### $\mathbf{T}^\top$으로 본 전치 컨볼루션
 
-입력에 대한 합성곱의 기울기는 $\mathbf{T}^\top$을 곱하는 것에 해당하며, 이것이 **전치 합성곱**이다([전치 합성곱](transposed_conv.md) 참고).
+입력에 대한 컨볼루션의 기울기는 $\mathbf{T}^\top$을 곱하는 것에 해당하며, 이것이 **전치 컨볼루션**이다([전치 컨볼루션](transposed_conv.md) 참고).
 
 $$\mathbf{T}^\top = \begin{bmatrix}
 k_0 & 0 & 0 \\
@@ -182,7 +182,7 @@ k_2 & k_1 & k_0 \\
 0 & 0 & k_2
 \end{bmatrix}$$
 
-이 예의 전치 연산은 길이 3인 벡터를 길이 5로 보낸다. 원래 입력을 복원하는 역행렬은 아니며, 보폭 1에서도 경계 규약에 따라 길이가 늘어날 수 있다.
+이 예의 전치 연산은 길이 3인 벡터를 길이 5로 보낸다. 원래 입력을 복원하는 역행렬은 아니며, 스트라이드 1에서도 경계 규약에 따라 길이가 늘어날 수 있다.
 
 ```python
 import torch
@@ -198,11 +198,11 @@ w = torch.randn(1, 1, 3)
 y = torch.nn.functional.conv1d(x, w)
 # y의 모양은 (1, 1, 3)
 
-# 역전파가 x에 대한 기울기를 준다
+# 역전파가 x에 대한 그래디언트를 준다
 grad_output = torch.randn(1, 1, 3)
 y.backward(grad_output)
 
-# 이는 전치 합성곱과 같다
+# 이는 전치 컨볼루션과 같다
 grad_manual = torch.nn.functional.conv_transpose1d(grad_output, w)
 print(f"Gradient match: {torch.allclose(x.grad, grad_manual, atol=1e-5)}")
 ```
@@ -215,27 +215,27 @@ Gradient match: True
 
 ---
 
-## 4. 1차원 합성곱의 역전파
+## 4. 1차원 컨볼루션의 역전파
 
 ### 순전파
 
 $$y_i = \sum_{j=0}^{k-1} x_{i+j} \cdot w_j$$
 
-### 입력에 대한 기울기
+### 입력에 대한 그래디언트
 
 $$\frac{\partial L}{\partial x_i} = \sum_{j=\max(0, i-k+1)}^{\min(i, n-k)} \frac{\partial L}{\partial y_j} \cdot w_{i-j}$$
 
-$w$의 첨자가 $i - j$라는 점이 요점이다. 이는 출력 기울기와 커널의 **full 합성곱**이지, 뒤집은 커널과의 합성곱이 아니다.
+$w$의 첨자가 $i - j$라는 점이 요점이다. 이는 출력 그래디언트와 커널의 **full 컨볼루션**이지, 뒤집은 커널과의 컨볼루션이 아니다.
 
 $$\frac{\partial L}{\partial \mathbf{x}} = \frac{\partial L}{\partial \mathbf{y}} *_{\text{full}} \mathbf{w} = \text{pad}_{k-1}\!\left(\frac{\partial L}{\partial \mathbf{y}}\right) \star \text{flip}(\mathbf{w})$$
 
-여기서 $*_{\text{full}}$은 full 합성곱, $\star$은 상호상관이다. 뒤집기는 **식이 아니라 구현에서** 나온다 — 합성곱을 상호상관 고리로 계산하려면 커널을 뒤집어야 하므로, 아래 코드가 `w_flip`을 쓴다. 두 자리 모두에서 뒤집으면 부호가 어긋나고, 그 오차는 기울기 확인을 통과하지 못한다.
+여기서 $*_{\text{full}}$은 full 컨볼루션, $\star$은 상호상관이다. 뒤집기는 **식이 아니라 구현에서** 나온다 — 컨볼루션을 상호상관 고리로 계산하려면 커널을 뒤집어야 하므로, 아래 코드가 `w_flip`을 쓴다. 두 자리 모두에서 뒤집으면 부호가 어긋나고, 그 오차는 그래디언트 확인을 통과하지 못한다.
 
-### 커널에 대한 기울기
+### 커널에 대한 그래디언트
 
 $$\frac{\partial L}{\partial w_j} = \sum_{i} \frac{\partial L}{\partial y_i} \cdot x_{i+j}$$
 
-이는 입력과 출력 기울기의 **상호상관**이다.
+이는 입력과 출력 그래디언트의 **상호상관**이다.
 
 ### NumPy 구현
 
@@ -243,7 +243,7 @@ $$\frac{\partial L}{\partial w_j} = \sum_{i} \frac{\partial L}{\partial y_i} \cd
 import numpy as np
 
 def conv1d_forward(x, w):
-    """1차원 합성곱(상호상관) 순전파."""
+    """1차원 컨볼루션(상호상관) 순전파."""
     n, k = len(x), len(w)
     out_len = n - k + 1
     y = np.zeros(out_len)
@@ -253,31 +253,31 @@ def conv1d_forward(x, w):
 
 def conv1d_backward(x, w, grad_output):
     """
-    1차원 합성곱 역전파.
+    1차원 컨볼루션 역전파.
 
     반환값:
-        grad_x: 입력에 대한 기울기 (dL/dx)
-        grad_w: 가중치에 대한 기울기 (dL/dw)
+        grad_x: 입력에 대한 그래디언트 (dL/dx)
+        grad_w: 웨이트에 대한 그래디언트 (dL/dw)
     """
     n, k = len(x), len(w)
     out_len = len(grad_output)
 
-    # 입력에 대한 기울기: grad_output과 w의 온전한 합성곱.
-    # 상호상관 고리로 계산하므로 여기서 핵을 뒤집는다.
+    # 입력에 대한 그래디언트: grad_output과 w의 온전한 컨볼루션.
+    # 상호상관 고리로 계산하므로 여기서 커널을 뒤집는다.
     grad_x = np.zeros(n)
     w_flip = w[::-1]
     grad_padded = np.pad(grad_output, (k-1, k-1), mode='constant')
     for i in range(n):
         grad_x[i] = np.sum(grad_padded[i:i+k] * w_flip)
 
-    # 가중치에 대한 기울기: 입력과 grad_output의 상관
+    # 웨이트에 대한 그래디언트: 입력과 grad_output의 상관
     grad_w = np.zeros(k)
     for j in range(k):
         grad_w[j] = np.sum(x[j:j+out_len] * grad_output)
 
     return grad_x, grad_w
 
-# 수치적 기울기 확인
+# 수치적 그래디언트 확인
 np.random.seed(42)
 x = np.random.randn(8)
 w = np.random.randn(3)
@@ -301,8 +301,8 @@ print("Analytical grad_w:", grad_w)
 print("Numerical grad_w: ", grad_w_numerical)
 print("Match:", np.allclose(grad_w, grad_w_numerical))
 
-# grad_x가 어느 쪽 합성곱인지도 확인한다.
-# np.convolve는 참된 합성곱이므로 핵을 뒤집어 받지 않는다.
+# grad_x가 어느 쪽 컨볼루션인지도 확인한다.
+# np.convolve는 참된 컨볼루션이므로 커널을 뒤집어 받지 않는다.
 print("grad_x == full conv(dL/dy, w):", np.allclose(grad_x, np.convolve(grad_output, w)))
 print("grad_x == full conv(dL/dy, flip(w)):",
       np.allclose(grad_x, np.convolve(grad_output, w[::-1])))
@@ -318,13 +318,13 @@ grad_x == full conv(dL/dy, w): True
 grad_x == full conv(dL/dy, flip(w)): False
 ```
 
-출력 기울기와 원래 커널의 full 합성곱이 입력 기울기와 일치하는지 비교한다. 상호상관으로 구현할 때에는 커널을 뒤집지만 수학적 합성곱 식에 다시 뒤집기를 넣으면 다른 연산이 된다.
+출력 그래디언트와 원래 커널의 full 컨볼루션이 입력 그래디언트와 일치하는지 비교한다. 상호상관으로 구현할 때에는 커널을 뒤집지만 수학적 컨볼루션 식에 다시 뒤집기를 넣으면 다른 연산이 된다.
 
 ---
 
-## 5. 인과 합성곱
+## 5. 인과 컨볼루션
 
-많은 시계열 응용에서 모델은 미래를 들여다보아서는 안 된다. 시각 $t$의 출력은 시각이 $t$ 이하인 입력에만 기대야 한다. 이를 위해 **인과 합성곱**이 필요하다.
+많은 시계열 응용에서 모델은 미래를 들여다보아서는 안 된다. 시각 $t$의 출력은 시각이 $t$ 이하인 입력에만 기대야 한다. 이를 위해 **인과 컨볼루션**이 필요하다.
 
 ### 왼쪽에만 패딩
 
@@ -337,7 +337,7 @@ import torch.nn.functional as F
 
 class CausalConv1d(nn.Module):
     """
-    인과적 1차원 합성곱: 시각 t의 출력은 시각이 t 이하인 입력에만 기댄다.
+    인과적 1차원 컨볼루션: 시각 t의 출력은 시각이 t 이하인 입력에만 기댄다.
 
     왼쪽에만 덧대고 뒤쪽 원소를 잘라 내어 이룬다.
     """
@@ -380,13 +380,13 @@ First changed output index: 5
 
 출력 길이만으로 인과성을 판단할 수 없다. 이 예제는 시각 5부터 입력을 바꾼 뒤 그보다 앞선 출력이 바뀌지 않는지 확인한다. 한 입력에 대한 수치 비교는 점검이며, 일반적인 인과성은 각 출력이 참조하는 인덱스가 현재 이하라는 구조로 설명해야 한다.
 
-### 팽창 인과 합성곱 (WaveNet 방식)
+### 팽창 인과 컨볼루션 (WaveNet 방식)
 
-팽창률을 지수적으로 키우며 인과 합성곱을 쌓으면 인과성을 지키면서도 아주 넓은 수용 영역을 얻는다.
+팽창률을 지수적으로 키우며 인과 컨볼루션을 쌓으면 인과성을 지키면서도 아주 넓은 리셉티브 필드를 얻는다.
 
 ```python
 class DilatedCausalConv1d(nn.Module):
-    """순차열 모형을 위한 팽창 인과 합성곱."""
+    """순차열 모형을 위한 팽창 인과 컨볼루션."""
     def __init__(self, in_channels, out_channels, kernel_size, dilation):
         super().__init__()
         self.padding = (kernel_size - 1) * dilation
@@ -407,7 +407,7 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
         layers.append(DilatedCausalConv1d(channels, channels, kernel_size, dilation))
     return nn.Sequential(*layers)
 
-# 수용 영역은 층마다 d * (K - 1)씩 늘어난다. 값으로 적지 말고 세어 보자.
+# 리셉티브 필드는 레이어마다 d * (K - 1)씩 늘어난다. 값으로 적지 말고 세어 보자.
 kernel_size, num_layers = 2, 10
 stack = build_wavenet_stack(64, kernel_size=kernel_size, num_layers=num_layers)
 
@@ -427,13 +427,13 @@ Total layers: 10, Receptive field: 1024 samples
 At 16kHz audio: 0.064s of context
 ```
 
-이 예제는 커널 크기 2, 보폭 1과 팽창률 $1,2,\ldots,512$를 사용하므로 이론적 수용 영역은 $1+\sum_{i=0}^{9}2^i=1024$이다. 팽창률을 지수적으로 늘렸기 때문에 층 수에 대해 지수적으로 커진다. 고정된 채널 수에서 매개변수 수는 층 수에 비례하며, 연산량은 시퀀스 길이에도 의존한다.
+이 예제는 커널 크기 2, 스트라이드 1과 팽창률 $1,2,\ldots,512$를 사용하므로 이론적 리셉티브 필드는 $1+\sum_{i=0}^{9}2^i=1024$이다. 팽창률을 지수적으로 늘렸기 때문에 레이어 수에 대해 지수적으로 커진다. 고정된 채널 수에서 파라메터 수는 레이어 수에 비례하며, 연산량은 시퀀스 길이에도 의존한다.
 
 ---
 
-## 6. 시간 합성곱 신경망 (TCN)
+## 6. 시간 컨볼루션 뉴럴 넷트웍 (TCN)
 
-TCN은 인과 합성곱, 팽창, 잔차 연결을 엮어 널리 쓸 수 있는 시퀀스 모델을 만든다.
+TCN은 인과 컨볼루션, 팽창, 잔차 연결을 엮어 널리 쓸 수 있는 시퀀스 모델을 만든다.
 
 ```python
 import torch
@@ -441,11 +441,11 @@ import torch.nn as nn
 
 class TCNBlock(nn.Module):
     """
-    시간 합성곱 신경망 블록.
+    시간 컨볼루션 뉴럴 넷트웍 블록.
 
     다음을 엮는다:
-    - 팽창 인과 합성곱 **둘** (수용 영역 계산에서 자주 놓치는 대목이다)
-    - 가중치 정규화
+    - 팽창 인과 컨볼루션 **둘** (리셉티브 필드 계산에서 자주 놓치는 대목이다)
+    - 웨이트 정규화
     - ReLU 활성화
     - 규제를 위한 드롭아웃
     - 잔차 연결
@@ -467,18 +467,18 @@ class TCNBlock(nn.Module):
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
 
-        # 잔차 연결 (채널이 바뀌면 1×1 합성곱)
+        # 잔차 연결 (채널이 바뀌면 1×1 컨볼루션)
         self.residual = (nn.Conv1d(in_channels, out_channels, 1)
                         if in_channels != out_channels else nn.Identity())
 
     def forward(self, x):
-        # 첫 합성곱 블록
+        # 첫 컨볼루션 블록
         out = self.conv1(x)
         out = out[:, :, :-self.padding]  # 인과적으로 잘라내기
         out = self.relu(out)
         out = self.dropout(out)
 
-        # 둘째 합성곱 블록 — 팽창률이 같으므로 수용 영역이 한 번 더 늘어난다
+        # 둘째 컨볼루션 블록 — 팽창률이 같으므로 리셉티브 필드가 한 번 더 늘어난다
         out = self.conv2(out)
         out = out[:, :, :-self.padding]  # 인과적으로 잘라내기
         out = self.relu(out)
@@ -488,7 +488,7 @@ class TCNBlock(nn.Module):
         return self.relu(out + self.residual(x))
 
 class TCN(nn.Module):
-    """완전한 시간 합성곱 신경망."""
+    """완전한 시간 컨볼루션 뉴럴 넷트웍."""
     def __init__(self, input_channels, hidden_channels, output_size,
                  kernel_size=3, num_layers=6, dropout=0.2):
         super().__init__()
@@ -511,23 +511,23 @@ class TCN(nn.Module):
 
 torch.manual_seed(0)
 
-# 예: 특징 8개짜리 가격 이력에서 다음 시점의 수익률 예측
+# 예: 피처 8개짜리 가격 이력에서 다음 시점의 수익률 예측
 kernel_size, num_layers = 3, 8
 model = TCN(input_channels=8, hidden_channels=64, output_size=1,
             kernel_size=kernel_size, num_layers=num_layers)
 
-x = torch.randn(32, 8, 256)  # 표본 32개, 특징 8개, 시각 256개
+x = torch.randn(32, 8, 256)  # 표본 32개, 피처 8개, 시각 256개
 pred = model(x)
 print(f"Input: {x.shape}, Prediction: {pred.shape}")  # [32, 1]
 
-# 수용 영역: 블록마다 팽창 합성곱이 둘이므로 (K-1)*d 가 블록마다 두 번 더해진다.
+# 리셉티브 필드: 블록마다 팽창 컨볼루션이 둘이므로 (K-1)*d 가 블록마다 두 번 더해진다.
 # RF = 1 + 2 * sum_{i=0}^{7} 2^i * (3-1) = 1 + 4 * 255 = 1021
 convs_per_block = 2
 receptive_field = 1 + convs_per_block * sum(
     2 ** i * (kernel_size - 1) for i in range(num_layers))
 print(f"Receptive field (formula): {receptive_field} time steps")
 
-# 식을 믿지 말고 재 본다. 마지막 출력에 기울기를 흘려 0이 아닌 입력 자리를 센다.
+# 식을 믿지 말고 재 본다. 마지막 출력에 그래디언트를 흘려 0이 아닌 입력 자리를 센다.
 model.eval()
 probe = torch.zeros(1, 8, 2048, requires_grad=True)
 model.network(probe)[0, :, -1].sum().backward()
@@ -543,16 +543,16 @@ Receptive field (formula): 1021 time steps
 Receptive field (measured): 1021 time steps
 ```
 
-!!! warning "TCN 블록에는 합성곱이 두 개 있다"
-    같은 팽창률의 합성곱이 블록마다 두 번 있으므로, 커널 3·블록 8개의 이론적 수용 영역은 $1+2(3-1)\sum_{i=0}^{7}2^i=1021$이다. 블록당 하나만 세면 511로 잘못 계산한다.
+!!! warning "TCN 블록에는 컨볼루션이 두 개 있다"
+    같은 팽창률의 컨볼루션이 블록마다 두 번 있으므로, 커널 3·블록 8개의 이론적 리셉티브 필드는 $1+2(3-1)\sum_{i=0}^{7}2^i=1021$이다. 블록당 하나만 세면 511로 잘못 계산한다.
 
-    기울기가 0이 아닌 위치를 조사하는 예제는 해당 초기 가중치와 입력에서 실제로 영향을 준 위치를 확인한다. ReLU 비활성화, 상쇄와 수치적 언더플로 때문에 일반적으로 이론적 수용 영역 전체가 검출된다고 보장할 수 없다. 입력 길이가 256이면 이론적 범위 중 존재하는 과거 입력은 최대 256개이고 나머지는 패딩이다. 추가 층은 존재하는 과거 범위를 더 넓힐 수 없지만 표현 자체는 바꿀 수 있다.
+    기울기가 0이 아닌 위치를 조사하는 예제는 해당 초기 웨이트와 입력에서 실제로 영향을 준 위치를 확인한다. ReLU 비활성화, 상쇄와 수치적 언더플로 때문에 일반적으로 이론적 리셉티브 필드 전체가 검출된다고 보장할 수 없다. 입력 길이가 256이면 이론적 범위 중 존재하는 과거 입력은 최대 256개이고 나머지는 패딩이다. 추가 레이어는 존재하는 과거 범위를 더 넓힐 수 없지만 표현 자체는 바꿀 수 있다.
 
 ---
 
-## 7. 금융 시계열을 위한 1차원 합성곱
+## 7. 금융 시계열을 위한 1차원 컨볼루션
 
-### 가격 데이터에서 특징 샘플링
+### 가격 데이터에서 피처 샘플링
 
 ```python
 import torch
@@ -561,7 +561,7 @@ import torch.nn as nn
 class FinancialFeatureExtractor(nn.Module):
     """
     금융 시계열에서 여러 시간 지평의 무늬를 뽑아내는
-    여러 규모의 1차원 합성곱.
+    여러 규모의 1차원 컨볼루션.
     """
     def __init__(self, input_features, hidden_dim=64):
         super().__init__()
@@ -590,10 +590,10 @@ class FinancialFeatureExtractor(nn.Module):
     def forward(self, x):
         """
         인수:
-            x: (배치, 특징, 시각)
+            x: (배치, 피처, 시각)
                예: features = [시가, 고가, 저가, 종가, 거래량, 수익률, …]
         반환값:
-            여러 규모의 특징: (배치, 3*hidden_dim, 시각)
+            여러 규모의 피처: (배치, 3*hidden_dim, 시각)
         """
         short = self.short_conv(x)
         medium = self.medium_conv(x)
@@ -605,7 +605,7 @@ torch.manual_seed(0)
 
 # 사용 예
 extractor = FinancialFeatureExtractor(input_features=6, hidden_dim=32)
-# 특징 6개: OHLCV와 수익률, 거래일 252일
+# 피처 6개: OHLCV와 수익률, 거래일 252일
 x = torch.randn(16, 6, 252)
 features = extractor(x)
 print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
@@ -617,7 +617,7 @@ print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
 Multi-scale features: torch.Size([16, 96, 252])
 ```
 
-세 갈래는 홀수 커널 크기 k에 대해 양쪽 패딩을 $(k-1)/2$로 두어 길이 252를 유지한다. 따라서 채널 축으로 결합하면 $3\times32=96$채널이 된다. 각 시각의 출력은 같은 창 안의 이후 시각도 참조하므로 시각별 온라인 예측에는 인과적이지 않다. 다만 관측이 끝난 과거 창 전체를 사용해 창 이후를 예측하는 경우에는 대칭 합성곱 자체가 미래 데이터 누출을 뜻하지 않는다. 예측 시점에 무엇이 관측되었는지를 기준으로 판단한다.
+세 클래스는 홀수 커널 크기 k에 대해 양쪽 패딩을 $(k-1)/2$로 두어 길이 252를 유지한다. 따라서 채널 축으로 결합하면 $3\times32=96$채널이 된다. 각 시각의 출력은 같은 창 안의 이후 시각도 참조하므로 시각별 온라인 예측에는 인과적이지 않다. 다만 관측이 끝난 과거 창 전체를 사용해 창 이후를 예측하는 경우에는 대칭 컨볼루션 자체가 미래 데이터 누출을 뜻하지 않는다. 예측 시점에 무엇이 관측되었는지를 기준으로 판단한다.
 
 ---
 
@@ -630,18 +630,18 @@ Multi-scale features: torch.Size([16, 96, 252])
 | 커널이 미끄러지는 방향 | 1차원 (시간/위치) | 2차원 (높이 × 너비) |
 | 흔한 커널 크기 | 3, 5, 7, 21 | 3×3, 5×5, 7×7 |
 | 응용 예 | 음향, 자연어 처리, 금융 | 이미지, 영상 프레임, 변동성 곡면 |
-| 매개변수 수 (편향 제외) | $C_{out} \times C_{in} \times K$ | $C_{out} \times C_{in} \times K^2$ |
+| 파라메터 수 (바이어스 제외) | $C_{out} \times C_{in} \times K$ | $C_{out} \times C_{in} \times K^2$ |
 
 ---
 
 ## 9. 핵심 정리
 
 1. **Conv1d**는 모양이 $(N, C, L)$인 시퀀스를 다루며 시간 차원을 따라 커널을 미끄러뜨린다. 이름과 달리 커널을 뒤집지 않는 **상호상관**이다
-2. **인과 합성곱**(왼쪽 패딩 뒤 잘라내기)은 출력이 과거와 현재의 입력에만 기대게 한다. 길이가 보존된다는 사실만으로는 인과성이 증명되지 않으니 미래를 흔들어 확인하라
-3. **팽창률을 지수적으로 늘려 인과 합성곱을 쌓으면** 이론적 수용 영역이 지수적으로 넓어진다. 커널 크기 2인 팽창 합성곱 10층이면 수용 영역이 1024가 된다
-4. **TCN**은 팽창 인과 합성곱과 잔차 연결을 결합한다. 블록당 두 합성곱의 기여를 각각 세면 커널 3·블록 8에서 수용 영역은 1021이다.
-5. 커널 크기가 서로 다른 **여러 규모의 합성곱**은 서로 다른 시간 지평의 무늬를 붙잡는다
-6. 1차원 합성곱의 **역전파**는 출력 기울기와 커널의 full 합성곱(= 전치 합성곱)이다. 커널을 뒤집는 것은 그 합성곱을 상호상관으로 **구현할 때**이지 식 자체가 아니다
+2. **인과 컨볼루션**(왼쪽 패딩 뒤 잘라내기)은 출력이 과거와 현재의 입력에만 기대게 한다. 길이가 보존된다는 사실만으로는 인과성이 증명되지 않으니 미래를 흔들어 확인하라
+3. **팽창률을 지수적으로 늘려 인과 컨볼루션을 쌓으면** 이론적 리셉티브 필드가 지수적으로 넓어진다. 커널 크기 2인 팽창 컨볼루션 10레이어이면 리셉티브 필드가 1024가 된다
+4. **TCN**은 팽창 인과 컨볼루션과 잔차 연결을 결합한다. 블록당 두 컨볼루션의 기여를 각각 세면 커널 3·블록 8에서 리셉티브 필드는 1021이다.
+5. 커널 크기가 서로 다른 **여러 규모의 컨볼루션**은 서로 다른 시간 지평의 무늬를 붙잡는다
+6. 1차원 컨볼루션의 **역전파**는 출력 그래디언트와 커널의 full 컨볼루션(= 전치 컨볼루션)이다. 커널을 뒤집는 것은 그 컨볼루션을 상호상관으로 **구현할 때**이지 식 자체가 아니다
 
 ---
 
@@ -650,7 +650,7 @@ Multi-scale features: torch.Size([16, 96, 252])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-1차원 합성곱이 데이터 구조에 적합한 사례 세 가지를 설명하라.
+1차원 컨볼루션이 데이터 구조에 적합한 사례 세 가지를 설명하라.
 
 </div>
 
@@ -662,7 +662,7 @@ Multi-scale features: torch.Size([16, 96, 252])
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff easy" title="쉬움"></span>
-입력 길이가 100, 커널 크기가 5, 보폭이 2, 패딩가 1인 1차원 합성곱의 출력 길이를 계산하라.
+입력 길이가 100, 커널 크기가 5, 스트라이드가 2, 패딩가 1인 1차원 컨볼루션의 출력 길이를 계산하라.
 
 </div>
 
@@ -681,7 +681,7 @@ Multi-scale features: torch.Size([16, 96, 252])
 </div>
 
 ??? success "연습문제 3 풀이"
-    `AdaptiveAvgPool1d(1)`은 허용되는 입력 길이가 바뀌어도 출력의 길이 축을 1로 만든다. 그러나 하나의 배치 텐서에 서로 다른 길이를 그대로 쌓을 수 있다는 뜻은 아니다. 패딩을 쓴다면 합성곱과 풀링에서 패딩 값의 영향을 어떻게 처리할지 정해야 한다.
+    `AdaptiveAvgPool1d(1)`은 허용되는 입력 길이가 바뀌어도 출력의 길이 축을 1로 만든다. 그러나 하나의 배치 텐서에 서로 다른 길이를 그대로 쌓을 수 있다는 뜻은 아니다. 패딩을 쓴다면 컨볼루션과 풀링에서 패딩 값의 영향을 어떻게 처리할지 정해야 한다.
 
     ```python
     import torch
@@ -708,26 +708,26 @@ Multi-scale features: torch.Size([16, 96, 252])
     Parameters: 10821
     ```
 
-    매개변수를 손으로 세면 $(1 \cdot 32 \cdot 5 + 32) + (32 \cdot 64 \cdot 5 + 64) + (64 \cdot 5 + 5) = 192 + 10304 + 325 = 10821$로 맞는다. 길이 300은 어디에도 들어가지 않는다.
+    파라메터를 손으로 세면 $(1 \cdot 32 \cdot 5 + 32) + (32 \cdot 64 \cdot 5 + 64) + (64 \cdot 5 + 5) = 192 + 10304 + 325 = 10821$로 맞는다. 길이 300은 어디에도 들어가지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-Conv1d의 출력을 평탄화한 것과 같은 크기의 출력을 내는 완전 연결층의 가중치 수를 비교하라.
+Conv1d의 출력을 평탄화한 것과 같은 크기의 출력을 내는 완전 연결 레이어의 웨이트 수를 비교하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    입력이 $LC_{in}$차원이고 출력이 $L_{out}C_{out}$차원이면 완전 연결층의 가중치는 $LC_{in}L_{out}C_{out}$개이다. groups=1인 Conv1d의 가중치는 $kC_{in}C_{out}$개이므로 편향을 제외한 비는 $LL_{out}/k$이다. 완전 연결층의 출력이 위치 없이 $C_{out}$개뿐이면 비가 $L/k$이지만 출력 크기가 다른 비교이다.
+    입력이 $LC_{in}$차원이고 출력이 $L_{out}C_{out}$차원이면 완전 연결 레이어의 웨이트는 $LC_{in}L_{out}C_{out}$개이다. groups=1인 Conv1d의 웨이트는 $kC_{in}C_{out}$개이므로 바이어스를 제외한 비는 $LL_{out}/k$이다. 완전 연결 레이어의 출력이 위치 없이 $C_{out}$개뿐이면 비가 $L/k$이지만 출력 크기가 다른 비교이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 5.** <span class="diff med" title="중간"></span>
-보폭 1인 CausalConv1d의 최종 출력 길이를 구하고 인과성을 인덱스로 설명하라.
+스트라이드 1인 CausalConv1d의 최종 출력 길이를 구하고 인과성을 인덱스로 설명하라.
 
 </div>
 
@@ -739,18 +739,18 @@ Conv1d의 출력을 평탄화한 것과 같은 크기의 출력을 내는 완전
 <div class="drillbox" markdown>
 
 **연습문제 6.** <span class="diff hard" title="어려움"></span>
-블록마다 같은 팽창률의 합성곱을 두 개 쓰고 팽창률을 2의 거듭제곱으로 늘리는 TCN의 이론적 수용 영역을 구하라.
+블록마다 같은 팽창률의 컨볼루션을 두 개 쓰고 팽창률을 2의 거듭제곱으로 늘리는 TCN의 이론적 리셉티브 필드를 구하라.
 
 </div>
 
 ??? success "연습문제 6 풀이"
-    보폭 1인 합성곱 하나가 $d(k-1)$을 더하므로 L개 블록의 이론적 수용 영역은 $1+2(k-1)\sum_{i=0}^{L-1}2^i=1+2(k-1)(2^L-1)$이다. $k=3,L=8$이면 1021이고 블록당 하나만 세면 511이다. 비선형 모델에서 한 입력의 0이 아닌 기울기 범위가 언제나 이 값과 같아야 하는 것은 아니다.
+    스트라이드 1인 컨볼루션 하나가 $d(k-1)$을 더하므로 L개 블록의 이론적 리셉티브 필드는 $1+2(k-1)\sum_{i=0}^{L-1}2^i=1+2(k-1)(2^L-1)$이다. $k=3,L=8$이면 1021이고 블록당 하나만 세면 511이다. 비선형 모델에서 한 입력의 0이 아닌 그래디언트 범위가 언제나 이 값과 같아야 하는 것은 아니다.
 
 ---
 
 ## 정리하며
 
-Conv1d는 주로 $(N,C_{in},L)$ 입력에 상호상관을 적용한다. 출력 길이는 보폭·패딩·팽창률로 정해진다. 인과성은 길이 보존이 아니라 참조하는 시간 인덱스로 판단하고, 이론적 수용 영역과 특정 입력에서의 실제 기울기 범위를 구분한다. [합성곱](convolution.md), [팽창 합성곱](dilated_convolutions.md)과 [수용 영역](receptive_field.md)에서 관련 계산을 이어 간다.
+Conv1d는 주로 $(N,C_{in},L)$ 입력에 상호상관을 적용한다. 출력 길이는 스트라이드·패딩·팽창률로 정해진다. 인과성은 길이 보존이 아니라 참조하는 시간 인덱스로 판단하고, 이론적 리셉티브 필드와 특정 입력에서의 실제 그래디언트 범위를 구분한다. [컨볼루션](convolution.md), [팽창 컨볼루션](dilated_convolutions.md)과 [리셉티브 필드](receptive_field.md)에서 관련 계산을 이어 간다.
 
 **참고 문헌**
 

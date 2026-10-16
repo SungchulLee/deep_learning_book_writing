@@ -1,31 +1,31 @@
 # 14장: 자기 지도 학습
 
-자기 지도 학습은 입력 데이터에서 예측·일치·복원 목표를 구성해 표현을 배운다. 과제별 레이블 없이 사전 학습할 수 있지만 데이터·증강·목표 설계의 가정은 남는다. 학습 손실과 실제 다운스트림 품질을 구분하며 대조 학습, 마스크 복원과 교사·학생 방식을 살펴본다.
+자기 지도 학습은 입력 데이터에서 예측·일치·복원 목표를 구성해 표현을 배운다. 과제별 레이블 없이 사전 학습할 수 있지만 데이터·증강·목표 설계의 가정은 남는다. 학습 로스와 실제 다운스트림 품질을 구분하며 대조 학습, 마스크 복원과 교사·학생 방식을 살펴본다.
 
 ## 1. 대조 학습
 
 같은 입력의 증강 뷰를 양성으로 두고 다른 후보와 구분하는 표현을 학습한다. 배치 후보와 큐, 온도·투영 공간의 역할을 구분한다.
 
-- [SimCLR](contrastive_learning/contrastive_simclr.md): 배치 안 두 뷰와 NT-Xent 손실
-- [MoCo](contrastive_learning/contrastive_moco.md): 모멘텀 인코더·특징 큐와 버전별 차이
+- [SimCLR](contrastive_learning/contrastive_simclr.md): 배치 안 두 뷰와 NT-Xent 로스
+- [MoCo](contrastive_learning/contrastive_moco.md): 모멘텀 인코더·피처 큐와 버전별 차이
 - [데이터 증강](contrastive_learning/data_augmentation.md): 뷰의 의미·해상도·반환 규약
 
 ## 2. 마스크 복원
 
 일부 입력을 감추고 제거된 내용을 예측한다. 양성·음성을 구분하는 대조 학습과는 다른 목표다.
 
-- [MAE](contrastive_learning/mae_vision_transformer.md): 보이는 패치 인코더, 순서 복원과 가린 위치 손실
+- [MAE](contrastive_learning/mae_vision_transformer.md): 보이는 패치 인코더, 순서 복원과 가린 위치 로스
 
 ## 3. 증류와 EMA 교사
 
 이미 학습한 모델의 출력으로 학생을 지도하는 증류와, 학습 중 학생 계수를 평균하는 EMA 목표를 구분한다. 지식 증류 전체가 레이블 없는 자기 지도 방식인 것은 아니다.
 
-- [지식 증류의 기초](self_distillation/distillation_basics.md): 온도·KL 방향·손실 가중치
+- [지식 증류의 기초](self_distillation/distillation_basics.md): 온도·KL 방향·로스 웨이트
 - [EMA 교사](self_distillation/ema_teacher.md): 초기화·시간 평균·경사 분리·버퍼 처리
 
 ## 4. 표현 평가
 
-동결한 특징의 선형 분류·최근접 이웃·검색과 전체 미세 조정은 서로 다른 평가다. 원문·증강 사본과 검색 자기 항목이 평가에 섞이지 않게 하고, 레이블·데이터 분할·분류기 학습 예산을 명시한다. 소규모 무작위 순전파나 낮은 사전 학습 손실만으로 좋은 표현을 입증할 수 없다.
+동결한 피처의 선형 분류·최근접 이웃·검색과 전체 미세 조정은 서로 다른 평가다. 원문·증강 사본과 검색 자기 항목이 평가에 섞이지 않게 하고, 레이블·데이터 분할·분류기 학습 예산을 명시한다. 소규모 무작위 순전파나 낮은 사전 학습 로스만으로 좋은 표현을 입증할 수 없다.
 
 ## 정리하며
 

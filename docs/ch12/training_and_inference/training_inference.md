@@ -36,7 +36,7 @@ $$
 \end{aligned}
 $$
 
-### 손실 계산
+### 로스 계산
 
 다음 식은 EOS를 제외한 목표 위치의 음의 로그 확률 합이다. 실제 구현에서는 EOS도 유효 목표에 포함하고 PAD를 제외하며, 유효 토큰 평균인지 합인지 집계 규칙을 명시한다.
 
@@ -46,14 +46,14 @@ $$
 
 여기서 $P_\theta(y_t \mid y_{<t}, x)$은 앞선 목표 토큰 $y_{<t}$과 원문 시퀀스 $x$ 전체를 조건으로 하여 위치 $t$의 올바른 토큰 $y_t$에 모델이 매긴 확률이다.
 
-위치마다 디코더는 어휘 전체에 대한 확률 분포를 낸다. 교차 엔트로피 손실은 모델이 올바른 다음 토큰에 낮은 확률을 매기면 벌을 준다.
+위치마다 디코더는 어휘 전체에 대한 확률 분포를 낸다. 교차 엔트로피 로스는 모델이 올바른 다음 토큰에 낮은 확률을 매기면 벌을 준다.
 
 ### 임베딩 학습
 
-단어 임베딩은 대개 트랜스포머의 나머지와 함께 학습한다. 임베딩 층은 무작위로 초기화하고 역전파로 갱신한다. 흔한 방식이 셋 있다.
+단어 임베딩은 대개 트랜스포머의 나머지와 함께 학습한다. 임베딩 레이어는 무작위로 초기화하고 역전파로 갱신한다. 흔한 방식이 셋 있다.
 
 1. **맨바닥부터 학습**: 무작위 초기화. 임베딩이 학습 중에 과제에 맞는 표현을 배운다.
-2. **사전 학습 가중치 사용**: 같은 어휘·토큰화·차원을 갖는 임베딩이나 모델 체크포인트를 불러와 갱신하거나 동결한다. 문맥 임베딩은 문장과 위치마다 달라 단일 고정 어휘 테이블과 동일하게 직접 복사할 수는 없다.
+2. **사전 학습 웨이트 사용**: 같은 어휘·토큰화·차원을 갖는 임베딩이나 모델 체크포인트를 불러와 갱신하거나 동결한다. 문맥 임베딩은 문장과 위치마다 달라 단일 고정 어휘 테이블과 동일하게 직접 복사할 수는 없다.
 
 ---
 
@@ -61,7 +61,7 @@ $$
 
 아래 train_step은 tgt에 BOS·목표 토큰·EOS가 포함된 구성을 가정한다. 모델이 src/tgt_key_padding_mask와 memory_key_padding_mask를 받고 어휘 로짓을 반환해야 한다. 앞의 불완전한 Transformer 클래스와 인터페이스가 다르며 이 페이지 뒤의 TransformerSeq2Seq와 연결해 읽는다.
 
-패딩 마스크의 True는 차단이다. 손실 함수의 ignore_index는 tgt_pad_idx와 맞춰야 하며 mask를 전달하는 것만으로 PAD 정답이 제외되지는 않는다. train_epoch는 배치 평균 손실을 단순 평균하므로 유효 목표 길이·배치 크기가 다르면 전체 토큰 평균과 다르다. 빈 로더·유효 정답이 없는 배치도 별도 처리한다.
+패딩 마스크의 True는 차단이다. 로스 함수의 ignore_index는 tgt_pad_idx와 맞춰야 하며 mask를 전달하는 것만으로 PAD 정답이 제외되지는 않는다. train_epoch는 배치 평균 로스를 단순 평균하므로 유효 목표 길이·배치 크기가 다르면 전체 토큰 평균과 다르다. 빈 로더·유효 정답이 없는 배치도 별도 처리한다.
 
 ```python
 import torch
@@ -104,14 +104,14 @@ def train_step(model, optimizer, criterion, src, tgt, src_pad_idx=0, tgt_pad_idx
     인수:
         model: 트랜스포머 모형
         optimizer: 최적화기 객체
-        criterion: 손실 함수(CrossEntropyLoss)
+        criterion: 로스 함수(CrossEntropyLoss)
         src: 원문 토큰 [batch_size, src_len]
         tgt: 목표 수열 전체 [batch_size, tgt_len]
         src_pad_idx: 원문의 채움 색인
         tgt_pad_idx: 목표문의 채움 색인
     
     반환값:
-        loss: 스칼라 손실 값
+        loss: 스칼라 로스 값
     """
     model.train()
     
@@ -137,14 +137,14 @@ def train_step(model, optimizer, criterion, src, tgt, src_pad_idx=0, tgt_pad_idx
         memory_key_padding_mask=src_pad_mask
     )
     
-    # 손실을 셈한다 (교차 엔트로피를 위해 편다)
+    # 로스를 셈한다 (교차 엔트로피를 위해 편다)
     vocab_size = output.size(-1)
     loss = criterion(
         output.reshape(-1, vocab_size),               # [batch_size * (tgt_len-1), vocab_size]
         tgt_labels.reshape(-1)                        # [batch_size * (tgt_len-1)]
     )
     
-    # 역전파와 매개변수 갱신
+    # 역전파와 파라메터 갱신
     loss.backward()
     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
     optimizer.step()
@@ -159,11 +159,11 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
         model: 트랜스포머 모형
         dataloader: (src, tgt) 배치를 내보내는 DataLoader
         optimizer: 최적화기 객체
-        criterion: 손실 함수
+        criterion: 로스 함수
         device: torch.device
     
     반환값:
-        average_loss: 모든 배치에 걸친 평균 손실
+        average_loss: 모든 배치에 걸친 평균 로스
     """
     model.train()
     total_loss = 0.0
@@ -318,7 +318,7 @@ def translate(
 |--------|----------|-----------|
 | **인코더 입력** | 원문 시퀀스 $x$ | 원문 시퀀스 $x$ |
 | **디코더 입력** | 오른쪽으로 민 참값 $y_{\text{shifted}}$ | 앞서 만든 토큰 $\hat{y}_{<t}$ |
-| **목표가 필요한가** | 그렇다 (손실 계산에) | 아니다 |
+| **목표가 필요한가** | 그렇다 (로스 계산에) | 아니다 |
 | **병렬성** | 온전함 (모든 자리를 한꺼번에 계산한다) | 차례대로 (단계마다 토큰 하나) |
 | **방식** | 티처 포싱 | 자기 회귀 (탐욕, 빔, 샘플링) |
 | **인과 마스크** | 앞을 엿보지 못하게 학습 중에 적용한다 | 생성 단계마다 적용한다 |
@@ -328,9 +328,9 @@ def translate(
 
 ## 5. 학습 루프 예제
 
-아래 TransformerSeq2Seq는 PyTorch 인코더·디코더와 목표 시프트·마스크를 연결한다. 다만 main은 무작위 원문·목표를 독립적으로 생성하며 BOS·EOS 구성이나 실제 번역 관계가 없다. 보존된 손실 출력은 번역 성능 평가가 아니다. 검증 분할·모델 선택·번역 평가도 포함하지 않는다.
+아래 TransformerSeq2Seq는 PyTorch 인코더·디코더와 목표 시프트·마스크를 연결한다. 다만 main은 무작위 원문·목표를 독립적으로 생성하며 BOS·EOS 구성이나 실제 번역 관계가 없다. 보존된 로스 출력은 번역 성능 평가가 아니다. 검증 분할·모델 선택·번역 평가도 포함하지 않는다.
 
-사인·코사인 표는 짝수 특징 차원과 max_len 이내의 입력을 가정한다. 모델 forward와 decode의 마스크 인수가 다르므로 학습·생성 호출 규약을 구분한다.
+사인·코사인 표는 짝수 피처 차원과 max_len 이내의 입력을 가정한다. 모델 forward와 decode의 마스크 인수가 다르므로 학습·생성 호출 규약을 구분한다.
 
 ```python
 import math
@@ -359,7 +359,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 class TransformerSeq2Seq(nn.Module):
-    """임베딩 층과 출력 층을 갖춘 nn.Transformer의 감싸개."""
+    """임베딩 레이어와 출력 레이어를 갖춘 nn.Transformer의 감싸개."""
     
     def __init__(
         self,
@@ -380,7 +380,7 @@ class TransformerSeq2Seq(nn.Module):
         self.tgt_embed = nn.Embedding(tgt_vocab_size, d_model)
         self.pos_encoder = PositionalEncoding(d_model, dropout)
         
-        # 트랜스포머 알맹이
+        # 트랜스포머 커널
         self.transformer = nn.Transformer(
             d_model=d_model,
             nhead=nhead,
@@ -414,7 +414,7 @@ class TransformerSeq2Seq(nn.Module):
     def forward(self, src, tgt, src_mask=None, tgt_mask=None,
                 src_key_padding_mask=None, tgt_key_padding_mask=None,
                 memory_key_padding_mask=None):
-        """온전한 앞먹임."""
+        """온전한 피드포워드."""
         src_emb = self.src_embed(src) * math.sqrt(self.d_model)
         tgt_emb = self.tgt_embed(tgt) * math.sqrt(self.d_model)
         src_emb = self.pos_encoder(src_emb)
@@ -443,7 +443,7 @@ def build_transformer(
     """
     사비에르 초기화를 쓴 트랜스포머 모형을 세운다.
     
-    임베딩 층과 출력 사영을 갖춘 TransformerSeq2Seq를 돌려준다.
+    임베딩 레이어와 출력 사영을 갖춘 TransformerSeq2Seq를 돌려준다.
     """
     model = TransformerSeq2Seq(
         src_vocab_size, tgt_vocab_size,
@@ -463,7 +463,7 @@ def build_transformer(
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    # 초매개변수
+    # 초파라메터
     src_vocab_size = 5000
     tgt_vocab_size = 5000
     d_model = 256
@@ -536,7 +536,7 @@ $$
 
 ```python
 class LabelSmoothingLoss(nn.Module):
-    """레이블 평활화를 쓰는 교차 엔트로피 손실."""
+    """레이블 평활화를 쓰는 교차 엔트로피 로스."""
     
     def __init__(self, vocab_size: int, smoothing: float = 0.1, pad_idx: int = 0):
         super().__init__()
@@ -560,7 +560,7 @@ class LabelSmoothingLoss(nn.Module):
         non_pad_mask = target != self.pad_idx                # [N]
         smooth_target[~non_pad_mask] = 0.0
         
-        # KL 발산 손실
+        # KL 발산 로스
         loss = -(smooth_target * log_probs).sum(dim=-1)      # [N]
         loss = loss[non_pad_mask].mean()
         
@@ -574,7 +574,7 @@ class LabelSmoothingLoss(nn.Module):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-Seq2Seq 학습에서 데이터·목표 정렬·마스크·손실을 연결해 설명하라.
+Seq2Seq 학습에서 데이터·목표 정렬·마스크·로스를 연결해 설명하라.
 
 </div>
 
@@ -591,7 +591,7 @@ KV 캐시가 한 단계와 전체 생성에 주는 비용 차이를 설명하라
 </div>
 
 ??? success "연습문제 2 풀이"
-    이전 층별 K·V를 저장해 새 토큰의 투영·계산만 추가한다. 길이 t의 한 쿼리 어텐션은 특징 차원 고정 시 O(t), 전체 n개 생성은 어텐션만 O(n²)다. 캐시 메모리도 길이에 선형으로 늘며 원문·목표 위치와 패딩 규약을 맞춰야 한다. 이 페이지 greedy_decode는 캐시를 실제로 사용하지 않는다.
+    이전 레이어별 K·V를 저장해 새 토큰의 투영·계산만 추가한다. 길이 t의 한 쿼리 어텐션은 피처 차원 고정 시 O(t), 전체 n개 생성은 어텐션만 O(n²)다. 캐시 메모리도 길이에 선형으로 늘며 원문·목표 위치와 패딩 규약을 맞춰야 한다. 이 페이지 greedy_decode는 캐시를 실제로 사용하지 않는다.
 
 ---
 
@@ -615,7 +615,7 @@ KV 캐시가 한 단계와 전체 생성에 주는 비용 차이를 설명하라
 </div>
 
 ??? success "연습문제 4 풀이"
-    model·input_ids·vocab_size·optimizer·scheduler와 F는 외부에 정의되어야 한다. 모델은 미래 접근을 차단한 로짓을 반환하고 PAD 정답을 손실에서 제외해야 한다. 조각은 함수 시작의 경사 초기화를 보여 주지 않으므로 이전 배치의 경사가 남지 않게 해야 하며, 모델이 내부 시프트하는 API라면 외부 시프트와 중복하지 않는다.
+    model·input_ids·vocab_size·optimizer·scheduler와 F는 외부에 정의되어야 한다. 모델은 미래 접근을 차단한 로짓을 반환하고 PAD 정답을 로스에서 제외해야 한다. 조각은 함수 시작의 경사 초기화를 보여 주지 않으므로 이전 배치의 경사가 남지 않게 해야 하며, 모델이 내부 시프트하는 API라면 외부 시프트와 중복하지 않는다.
 
     ```python
     logits = model(input_ids[:, :-1])  # 다음 토큰을 맞힌다
@@ -630,7 +630,7 @@ KV 캐시가 한 단계와 전체 생성에 주는 비용 차이를 설명하라
 
 ## 정리하며
 
-티처 포싱 학습은 정답 입력·목표 시프트와 인과 마스크를 함께 사용한다. 생성은 선택 토큰을 입력에 이어 붙이며 배치·캐시·종료 규약을 따로 설계한다. 무작위 데이터 학습 루프와 번역 품질을 구분하고, 스무딩 식과 손실의 PAD·평균 처리도 일치시킨다.
+티처 포싱 학습은 정답 입력·목표 시프트와 인과 마스크를 함께 사용한다. 생성은 선택 토큰을 입력에 이어 붙이며 배치·캐시·종료 규약을 따로 설계한다. 무작위 데이터 학습 루프와 번역 품질을 구분하고, 스무딩 식과 로스의 PAD·평균 처리도 일치시킨다.
 
 **참고 문헌**
 

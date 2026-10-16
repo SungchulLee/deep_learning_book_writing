@@ -146,7 +146,7 @@ def stride_sampling(video: torch.Tensor, stride: int) -> torch.Tensor:
     return video[::stride]
 ```
 
-stride_sampling은 0번부터 양의 s 간격으로 선택한다. 영상 전체를 일정 수로 압축하는 uniform과 달리 출력 프레임 수가 원본 길이에 따라 달라진다. 큰 stride는 빠른 움직임을 놓칠 수 있으며 s=0·음수 등 허용 범위를 검증해야 한다.
+stride_sampling은 0번부터 양의 s 간격으로 선택한다. 영상 전체를 일정 수로 압축하는 uniform과 달리 출력 프레임 수가 원본 길이에 따라 달라진다. 큰 stride는 빠른 액션을 놓칠 수 있으며 s=0·음수 등 허용 범위를 검증해야 한다.
 
 ## 4. 여러 clip과 무작위 프레임
 
@@ -287,7 +287,7 @@ def resize_video(video: torch.Tensor,
     
     인수:
         video: 들임 텐서 (T, C, H, W)
-        target_size: (과녁 높이, 과녁 너비)
+        target_size: (타깃 높이, 타깃 너비)
         
     반환값:
         크기를 바꾼 텐서 (T, C, target_h, target_w)
@@ -343,7 +343,7 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
 
 표시할 때 정규화 값을 바로 0~1로 clamp하면 색이 달라질 수 있으므로 필요하면 먼저 역정규화한다. 위 함수는 num_frames=1이면 단일 Axes를 반복하려 해 오류가 날 수 있고, 빈 영상도 검증하지 않는다. 그림 출력은 프레임 선택을 이해하는 자료이며 학습·정확도 평가는 아니다.
 
-이후 [3D 합성곱](02_3d_convolution.md), [Two-Stream](two_stream.md), [SlowFast](slowfast.md)에 연결할 때 각 모델의 축 순서·입력 범위·샘플링 계약을 다시 확인한다. 같은 전처리 이름이라도 다른 절의 짧은 영상 처리·장치 이동 구현이 같다는 보장은 없다.
+이후 [3D 컨볼루션](02_3d_convolution.md), [Two-Stream](two_stream.md), [SlowFast](slowfast.md)에 연결할 때 각 모델의 축 순서·입력 범위·샘플링 계약을 다시 확인한다. 같은 전처리 이름이라도 다른 절의 짧은 영상 처리·장치 이동 구현이 같다는 보장은 없다.
 
 ## 연습문제
 

@@ -84,7 +84,7 @@ M = np.diag(1.0 / np.var(warmup_samples, axis=0))
 
 ### 가우스 혼합
 
-완전한 베이즈 깁스에는 성분 매개변수의 조건부 사후에서도 무작위로 생성해야 한다. 아래 gmm_gibbs는 μ·Σ를 표본 평균·공분산으로 대입하고 적은 성분에는 0·I를 넣는다. 이 단계는 지정한 사전의 조건부 사후 생성이 아니므로 일반적인 베이즈 GMM 깁스 표본으로 소개할 수 없다. 라벨 교환·빈 성분·특이 공분산도 별도로 다룬다.
+완전한 베이즈 깁스에는 성분 파라메터의 조건부 사후에서도 무작위로 생성해야 한다. 아래 gmm_gibbs는 μ·Σ를 표본 평균·공분산으로 대입하고 적은 성분에는 0·I를 넣는다. 이 단계는 지정한 사전의 조건부 사후 생성이 아니므로 일반적인 베이즈 GMM 깁스 표본으로 소개할 수 없다. 라벨 교환·빈 성분·특이 공분산도 별도로 다룬다.
 
 ### 계층·희소 모형
 
@@ -189,7 +189,7 @@ def gmm_gibbs(X, K, n_samples):
 # y_ij ~ N(mu + tau * eta_j, sigma^2)
 
 def hierarchical_hmc_noncentered(y, groups, n_samples):
-    """층 모형을 위한, 가운데를 벗긴 매개변수화."""
+    """레이어 모형을 위한, 가운데를 벗긴 파라메터화."""
     J = len(np.unique(groups))
     
     def log_prob(params):
@@ -223,8 +223,8 @@ AdaptiveMCMC는 adapt_schedule 인수를 저장·사용하지 않고 adapt=True�
 ```python
 def metropolis_within_gibbs(current, conditionals, mh_params):
     """
-    conditionals: 매개변수 이름을 표집 함수로 잇는 사전
-    mh_params: 매개변수 이름을 MH 제안 매개변수로 잇는 사전
+    conditionals: 파라메터 이름을 표집 함수로 잇는 사전
+    mh_params: 파라메터 이름을 MH 제안 파라메터로 잇는 사전
     """
     for param in current.keys():
         if param in conditionals:
@@ -238,7 +238,7 @@ def metropolis_within_gibbs(current, conditionals, mh_params):
 ```
 ```python
 def identify_blocks(correlation_matrix, threshold=0.5):
-    """서로 얽힌 매개변수의 덩어리 가려내기."""
+    """서로 얽힌 파라메터의 덩어리 가려내기."""
     import networkx as nx
     
     G = nx.Graph()
@@ -341,7 +341,7 @@ EM+부트스트랩은 모형에 따른 점추정·빈도적 재표본 절차로 
 
 2. 선형 회귀 코드의 σ² 사전은 무엇인가? 조건부 IG(n/2,RSS/2)는 p(σ²)∝1/σ²와 독립 가우스 β 사전에 대응하며 사후 적절성이 필요하다.
 
-3. gmm_gibbs가 성분 매개변수 사후를 생성하는가? 평균·공분산을 경험값으로 대입하므로 일반적인 베이즈 깁스가 아니다.
+3. gmm_gibbs가 성분 파라메터 사후를 생성하는가? 평균·공분산을 경험값으로 대입하므로 일반적인 베이즈 깁스가 아니다.
 
 4. 상관 그래프의 연결성분 안에서 모든 쌍의 상관이 큰가? 경로로 연결되었을 뿐이므로 아니다. 블록 비용과 실제 의존성도 확인한다.
 

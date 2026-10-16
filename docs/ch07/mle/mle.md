@@ -3,7 +3,7 @@
 최대가능도 추정(MLE)은 관측 데이터를 고정하고, 그 데이터의 우도를 가장 크게 만드는 파라미터를 찾는 방법이다. 이산 데이터에서는 확률질량, 연속 데이터에서는 확률밀도를 비교한다. 추정량의 통계적 성질과 실제 최적화 알고리즘의 성능은 구분해야 한다.
 
 !!! note "딥러닝에서 MLE가 중요한 이유"
-    평균제곱오차와 교차 엔트로피 같은 대표적인 손실은 분포 가정 아래에서 음의 로그우도와 연결된다. MLE는 이러한 손실의 의미를 설명하지만 모든 학습 목적을 포괄하지는 않는다.
+    평균제곱오차와 교차 엔트로피 같은 대표적인 로스는 분포 가정 아래에서 음의 로그우도와 연결된다. MLE는 이러한 로스의 의미를 설명하지만 모든 학습 목적을 포괄하지는 않는다.
 
 ---
 
@@ -13,11 +13,11 @@
 
 동전을 100번 던져 앞면이 70번 나왔다고 하자. 앞면이 나올 확률로 가장 그럴듯한 추정값은 무엇인가? 직관적으로 0.70이라고 답할 것이다. MLE는 바로 이 직관을 수학적으로 정식화한 것이다.
 
-MLE는 이렇게 묻는다. **"내 관측이 주어졌을 때, 어떤 매개변수 값이 이 관측을 가장 그럴듯하게 만들었을까?"**
+MLE는 이렇게 묻는다. **"내 관측이 주어졌을 때, 어떤 파라메터 값이 이 관측을 가장 그럴듯하게 만들었을까?"**
 
 ### 형식적 정의
 
-$\mathbf{X} = \{x_1, x_2, \ldots, x_n\}$을 미지의 매개변수 $\theta$을 갖는 확률분포에서 나온 $n$개의 독립적인 관측이라 하자. **우도 함수**는 다음과 같이 정의된다.
+$\mathbf{X} = \{x_1, x_2, \ldots, x_n\}$을 미지의 파라메터 $\theta$을 갖는 확률분포에서 나온 $n$개의 독립적인 관측이라 하자. **우도 함수**는 다음과 같이 정의된다.
 
 $$
 L(\theta | \mathbf{X}) = p(\mathbf{X} | \theta) = \prod_{i=1}^{n} p(x_i | \theta)
@@ -50,13 +50,13 @@ $$
 
 ### 우도 함수
 
-모수 모델 $p(x|\theta)$에서 우도 함수는 데이터를 고정된 것으로, 매개변수를 변수로 취급한다.
+모수 모델 $p(x|\theta)$에서 우도 함수는 데이터를 고정된 것으로, 파라메터를 변수로 취급한다.
 
 $$
 L: \Theta \to \mathbb{R}^+, \quad \theta \mapsto \prod_{i=1}^{n} p(x_i | \theta)
 $$
 
-여기서 $\Theta$은 매개변수 공간이다. 유념할 핵심 성질은 다음과 같다. 우도는 $\theta$에 대한 확률분포가 아니며, $\int L(\theta | \mathbf{X}) d\theta$은 일반적으로 1이 아니다. 우도는 서로 다른 매개변수 값들의 상대적인 우도를 알려 준다.
+여기서 $\Theta$은 파라메터 공간이다. 유념할 핵심 성질은 다음과 같다. 우도는 $\theta$에 대한 확률분포가 아니며, $\int L(\theta | \mathbf{X}) d\theta$은 일반적으로 1이 아니다. 우도는 서로 다른 파라메터 값들의 상대적인 우도를 알려 준다.
 
 ### MLE 찾기
 
@@ -75,7 +75,7 @@ $$
 s(\theta) = \nabla_\theta \ell(\theta | \mathbf{X}) = \sum_{i=1}^{n} \nabla_\theta \log p(x_i | \theta)
 $$
 
-정칙 조건 아래에서 참 매개변수에서의 점수의 기댓값은 0이다.
+정칙 조건 아래에서 참 파라메터에서의 점수의 기댓값은 0이다.
 
 $$
 \mathbb{E}[s(\theta_0)] = 0
@@ -87,7 +87,7 @@ $$
 
 가장 단순한 경우, 즉 베르누이 분포의 성공 확률 $p$을 추정하는 문제에서 MLE를 유도해 보자.
 
-**설정**: 모델은 $X \sim \text{Bernoulli}(p)$, 데이터는 각 $x_i \in \{0, 1\}$인 $\mathbf{X} = \{x_1, \ldots, x_n\}$, 매개변수는 $p \in [0, 1]$이다.
+**설정**: 모델은 $X \sim \text{Bernoulli}(p)$, 데이터는 각 $x_i \in \{0, 1\}$인 $\mathbf{X} = \{x_1, \ldots, x_n\}$, 파라메터는 $p \in [0, 1]$이다.
 
 **1단계 — 우도.** 관측 하나에 대해 $p(x_i | p) = p^{x_i}(1-p)^{1-x_i}$이다. (독립을 가정하고) 모든 관측에 대해서는 다음과 같다.
 
@@ -167,8 +167,8 @@ $$
 \hat{\mu} = \bar{x}, \quad \hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^{n}(x_i - \bar{x})^2
 $$
 
-!!! warning "편향된 분산 추정량"
-    분산의 MLE는 **편향되어 있다**. $\mathbb{E}[\hat{\sigma}^2] = \frac{n-1}{n}\sigma^2 < \sigma^2$이다. 불편 추정량은 분모에 $n-1$을 쓴다. 다만 MLE는 일치성을 가지므로 $n \to \infty$일 때 편향이 사라진다.
+!!! warning "바이어스된 분산 추정량"
+    분산의 MLE는 **바이어스되어 있다**. $\mathbb{E}[\hat{\sigma}^2] = \frac{n-1}{n}\sigma^2 < \sigma^2$이다. 불편 추정량은 분모에 $n-1$을 쓴다. 다만 MLE는 일치성을 가지므로 $n \to \infty$일 때 바이어스가 사라진다.
 
 **지수분포** $X \sim \text{Exponential}(\lambda)$ — 확률밀도함수가 $p(x|\lambda) = \lambda e^{-\lambda x}$일 때 다음과 같다.
 
@@ -183,9 +183,9 @@ $$
 $$
 
 !!! note "정칙이 아닌 MLE"
-    균등분포는 지지집합이 매개변수에 의존하므로 "정칙이 아닌" 경우이다. MLE는 존재하지만 통상적인 정칙 조건을 만족하지 않는다(예: 피셔 정보가 표준적인 방식으로는 잘 정의되지 않는다).
+    균등분포는 지지집합이 파라메터에 의존하므로 "정칙이 아닌" 경우이다. MLE는 존재하지만 통상적인 정칙 조건을 만족하지 않는다(예: 피셔 정보가 표준적인 방식으로는 잘 정의되지 않는다).
 
-**감마분포** $X \sim \text{Gamma}(\alpha, \beta)$ — 두 매개변수 모두에 대한 해석적 해는 없다. $\alpha$이 주어졌을 때 $\beta$은 $\hat{\beta} = \alpha / \bar{x}$이다. $\alpha$은 수치적으로 푼다.
+**감마분포** $X \sim \text{Gamma}(\alpha, \beta)$ — 두 파라메터 모두에 대한 해석적 해는 없다. $\alpha$이 주어졌을 때 $\beta$은 $\hat{\beta} = \alpha / \bar{x}$이다. $\alpha$은 수치적으로 푼다.
 
 $$
 \log \alpha - \psi(\alpha) = \log \bar{x} - \overline{\log x}
@@ -201,7 +201,7 @@ $$
 
 ### 요약 표
 
-| 분포 | 매개변수 | MLE 추정량 |
+| 분포 | 파라메터 | MLE 추정량 |
 |-------------|------------|---------------|
 | 베르누이 | $p$ | $\hat{p} = \bar{x}$ |
 | 이항 | $p$ ($n$이 주어짐) | $\hat{p} = \bar{x}/n$ |
@@ -215,7 +215,7 @@ $$
 
 ### 되풀이되는 형태 알아보기
 
-MLE 유도에서 되풀이되는 형태에 주목하라. 위치 매개변수에는 표본평균이 자주 나타나고, MLE는 충분통계량을 통해서만 데이터에 의존하며, 확률 벡터의 제약은 라그랑주 승수로 다루고, 비율 매개변수의 MLE는 흔히 $1/\bar{x}$의 꼴을 갖는다.
+MLE 유도에서 되풀이되는 형태에 주목하라. 위치 파라메터에는 표본평균이 자주 나타나고, MLE는 충분통계량을 통해서만 데이터에 의존하며, 확률 벡터의 제약은 라그랑주 승수로 다루고, 비율 파라메터의 MLE는 흔히 $1/\bar{x}$의 꼴을 갖는다.
 
 ---
 
@@ -239,7 +239,7 @@ $$
 
 ### 직관적인 해석
 
-피셔 정보가 크다는 것은 로그우도가 $\theta$ 주변에서 날카로운 봉우리를 이룬다는 뜻이다. $\theta$이 조금만 바뀌어도 우도가 크게 달라지므로 데이터가 $\theta$에 대해 많은 정보를 준다. 피셔 정보가 작다는 것은 로그우도가 평평하다는 뜻이며, 데이터가 서로 다른 매개변수 값을 잘 구별하지 못한다.
+피셔 정보가 크다는 것은 로그우도가 $\theta$ 주변에서 날카로운 봉우리를 이룬다는 뜻이다. $\theta$이 조금만 바뀌어도 우도가 크게 달라지므로 데이터가 $\theta$에 대해 많은 정보를 준다. 피셔 정보가 작다는 것은 로그우도가 평평하다는 뜻이며, 데이터가 서로 다른 파라메터 값을 잘 구별하지 못한다.
 
 ### 흔한 분포들의 피셔 정보
 
@@ -259,7 +259,7 @@ $$
 
 ### 피셔 정보 행렬
 
-매개변수 벡터 $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)^T$에 대해 **피셔 정보 행렬**은 다음과 같다.
+파라메터 벡터 $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)^T$에 대해 **피셔 정보 행렬**은 다음과 같다.
 
 $$
 \mathbf{I}(\boldsymbol{\theta})_{ij} = -\mathbb{E}\left[\frac{\partial^2 \log p}{\partial \theta_i \partial \theta_j}\right]
@@ -280,7 +280,7 @@ $$
 
 **가법성.** i.i.d. 관측 $n$개에 대해 $I_n(\theta) = n \cdot I(\theta)$이다. 데이터가 많을수록 추정이 정밀해진다.
 
-**재매개화.** $\eta = g(\theta)$이 일대일 변환이면 $I_\eta(\eta) = I_\theta(\theta) \cdot (d\theta/d\eta)^2$이다. 매개변수가 여럿이면 $\mathbf{J}$을 야코비안 행렬이라 할 때 $\mathbf{I}_\eta = \mathbf{J}^T \mathbf{I}_\theta \mathbf{J}$이다.
+**재매개화.** $\eta = g(\theta)$이 일대일 변환이면 $I_\eta(\eta) = I_\theta(\theta) \cdot (d\theta/d\eta)^2$이다. 파라메터가 여럿이면 $\mathbf{J}$을 야코비안 행렬이라 할 때 $\mathbf{I}_\eta = \mathbf{J}^T \mathbf{I}_\theta \mathbf{J}$이다.
 
 ### 크라메르–라오 하한
 
@@ -298,13 +298,13 @@ i.i.d. 표본이 $n$개이면 하한은 $\text{Var}(\hat{\theta}) \geq 1/(nI(\th
 
 ### 관측 피셔 정보와 기대 피셔 정보
 
-**기대** 피셔 정보 $I(\theta) = -\mathbb{E}[\partial^2 \ell / \partial \theta^2]$은 참 매개변수에서 계산하며 이론적 분석에 쓴다. **관측** 피셔 정보 $J(\hat{\theta}) = -\partial^2 \ell / \partial \theta^2 \big|_{\theta = \hat{\theta}}$은 MLE에서 계산하며 실무에서 신뢰구간을 구할 때 쓴다.
+**기대** 피셔 정보 $I(\theta) = -\mathbb{E}[\partial^2 \ell / \partial \theta^2]$은 참 파라메터에서 계산하며 이론적 분석에 쓴다. **관측** 피셔 정보 $J(\hat{\theta}) = -\partial^2 \ell / \partial \theta^2 \big|_{\theta = \hat{\theta}}$은 MLE에서 계산하며 실무에서 신뢰구간을 구할 때 쓴다.
 
 ---
 
 ## 6. MLE의 점근적 성질
 
-정칙적인 고정 차원 모델에서는 표본이 커질 때 MLE의 일치성과 점근 정규성을 유도할 수 있다. 파라미터 수가 표본 수와 함께 커지거나 모델이 식별되지 않는 신경망에 이 결과를 그대로 적용할 수는 없다.
+정칙적인 고정 차원 모델에서는 표본이 커질 때 MLE의 일치성과 점근 정규성을 유도할 수 있다. 파라미터 수가 표본 수와 함께 커지거나 모델이 식별되지 않는 뉴럴 넷트웍에 이 결과를 그대로 적용할 수는 없다.
 
 !!! abstract "핵심 점근적 성질"
     정칙 조건 아래에서 $n \to \infty$일 때 다음이 성립한다.
@@ -322,10 +322,10 @@ i.i.d. 표본이 $n$개이면 하한은 $\text{Var}(\hat{\theta}) \geq 1/(nI(\th
 2. **공통 지지집합**: $p(x|\theta)$의 지지집합이 $\theta$에 의존하지 않는다
 3. **미분 가능성**: $\log p(x|\theta)$이 $\theta$에 대해 세 번 미분 가능하다
 4. **유계인 도함수**: 삼계도함수가 적분 가능한 함수로 유계이다
-5. **열린 매개변수 공간**: 참 매개변수 $\theta_0$이 $\Theta$의 내부에 있다
+5. **열린 파라메터 공간**: 참 파라메터 $\theta_0$이 $\Theta$의 내부에 있다
 
 !!! warning "정칙성이 깨질 때"
-    중요한 분포들 중 일부는 이 조건을 어긴다. 균등분포 $[0, \theta]$(지지집합이 $\theta$에 의존), 혼합 모델(국소 최댓값이 여럿), 경계 사례(매개변수가 $\Theta$의 경계에 있음) 등이다.
+    중요한 분포들 중 일부는 이 조건을 어긴다. 균등분포 $[0, \theta]$(지지집합이 $\theta$에 의존), 혼합 모델(국소 최댓값이 여럿), 경계 사례(파라메터가 $\Theta$의 경계에 있음) 등이다.
 
 ### 일치성
 
@@ -353,7 +353,7 @@ $$
     4. **큰 수의 법칙에 의해**: $s'(\tilde{\theta})/n \xrightarrow{p} -I(\theta_0)$
     5. **슬러츠키 정리에 의해**: 그 비는 $\mathcal{N}(0, I(\theta_0)^{-1})$으로 수렴한다
 
-매개변수 벡터의 경우 $\sqrt{n}(\hat{\boldsymbol{\theta}}_n - \boldsymbol{\theta}_0) \xrightarrow{d} \mathcal{N}(\mathbf{0}, \mathbf{I}(\boldsymbol{\theta}_0)^{-1})$이다.
+파라메터 벡터의 경우 $\sqrt{n}(\hat{\boldsymbol{\theta}}_n - \boldsymbol{\theta}_0) \xrightarrow{d} \mathcal{N}(\mathbf{0}, \mathbf{I}(\boldsymbol{\theta}_0)^{-1})$이다.
 
 ### 효율성
 
@@ -369,8 +369,8 @@ $$
 
 $\hat{\theta}$이 $\theta$의 MLE이면 임의의 함수 $g$에 대해 $\widehat{g(\theta)} = g(\hat{\theta})$이다. 예를 들어 $\mu$의 MLE가 $\bar{x}$이면 $e^\mu$의 MLE는 $e^{\bar{x}}$이다.
 
-!!! warning "불변성에서 오는 편향"
-    불변성은 편리하지만, $\hat{\theta}$이 불편이더라도 $g(\hat{\theta})$은 편향될 수 있다. 예를 들어 $\hat{\sigma}^2 = \frac{1}{n}\sum(x_i - \bar{x})^2$은 MLE인데도 편향되어 있다.
+!!! warning "불변성에서 오는 바이어스"
+    불변성은 편리하지만, $\hat{\theta}$이 불편이더라도 $g(\hat{\theta})$은 바이어스될 수 있다. 예를 들어 $\hat{\sigma}^2 = \frac{1}{n}\sum(x_i - \bar{x})^2$은 MLE인데도 바이어스되어 있다.
 
 ### 수렴 속도
 
@@ -390,22 +390,22 @@ $$
 
 ## 7. 딥러닝과의 관계
 
-MLE와 딥러닝 손실 함수의 관계는 근본적이다.
+MLE와 딥러닝 로스 함수의 관계는 근본적이다.
 
 $$
 \text{Loss}(\theta) = -\ell(\theta | \mathbf{X}) = -\log L(\theta | \mathbf{X})
 $$
 
-즉 손실 최소화 = 우도 최대화이고, 손실에 대한 경사 하강 = 로그우도에 대한 경사 상승이며, 교차 엔트로피 손실 = 분류에서의 음의 로그우도, MSE 손실 = 가우스 회귀에서의 음의 로그우도이다.
+즉 로스 최소화 = 우도 최대화이고, 로스에 대한 경사 하강 = 로그우도에 대한 경사 상승이며, 교차 엔트로피 로스 = 분류에서의 음의 로그우도, MSE 로스 = 가우스 회귀에서의 음의 로그우도이다.
 
 !!! warning "딥러닝과의 연결"
-    교차 엔트로피나 MSE를 최소화하여 신경망을 학습시킬 때 당신은 최대가능도 추정을 하고 있는 것이다. 유일한 차이는 모델 $p(y|x, \theta)$이 신경망으로 매개화되어 있다는 점뿐이다.
+    교차 엔트로피나 MSE를 최소화하여 뉴럴 넷트웍을 학습시킬 때 당신은 최대가능도 추정을 하고 있는 것이다. 유일한 차이는 모델 $p(y|x, \theta)$이 뉴럴 넷트웍으로 매개화되어 있다는 점뿐이다.
 
-딥러닝에서 MLE 해석은 학습 목표를 설명하지만, 고전적 점근 정리가 대규모 신경망의 일반화나 불확실성 보정을 자동으로 보장하지는 않는다. 유한 표본, 모델 오지정, 과파라미터화와 최적화 오차를 별도로 고려해야 한다.
+딥러닝에서 MLE 해석은 학습 목표를 설명하지만, 고전적 점근 정리가 대규모 뉴럴 넷트웍의 일반화나 불확실성 보정을 자동으로 보장하지는 않는다. 유한 표본, 모델 오지정, 과파라미터화와 최적화 오차를 별도로 고려해야 한다.
 
 ### 최적화에서의 응용
 
-**자연 경사 하강법**은 피셔 정보 행렬을 써서 매개변수 공간의 기하를 고려한다.
+**자연 경사 하강법**은 피셔 정보 행렬을 써서 파라메터 공간의 기하를 고려한다.
 
 $$
 \theta \leftarrow \theta - \alpha \mathbf{I}(\theta)^{-1} \nabla_\theta L
@@ -452,7 +452,7 @@ def gradient_based_mle(data: torch.Tensor,
     최대가능도와 최적화 사이의 이음을 보인다.
     이것이 깊은 학습 전체를 받친다.
     """
-    # 매개변수를 초기화한다 (제약 없는 최적화를 위한 시그모이드 매개화)
+    # 파라메터를 초기화한다 (제약 없는 최적화를 위한 시그모이드 매개화)
     logit_p = torch.tensor(0.0, requires_grad=True)
     optimizer = torch.optim.Adam([logit_p], lr=lr)
     
@@ -497,7 +497,7 @@ Gradient-based MLE: 0.6700
 
 ```python
 def bernoulli_mle(data: torch.Tensor) -> float:
-    """베르누이 매개변수 p의 MLE."""
+    """베르누이 파라메터 p의 MLE."""
     return data.mean().item()
 
 def categorical_mle(data: torch.Tensor, num_categories: int) -> torch.Tensor:
@@ -506,21 +506,21 @@ def categorical_mle(data: torch.Tensor, num_categories: int) -> torch.Tensor:
     return counts / counts.sum()
 
 def poisson_mle(data: torch.Tensor) -> float:
-    """포아송 비율 매개변수 λ의 MLE."""
+    """포아송 비율 파라메터 λ의 MLE."""
     return data.float().mean().item()
 
 def normal_mle(data: torch.Tensor) -> tuple:
-    """정규분포의 MLE (분산 추정량은 편향되어 있다)."""
+    """정규분포의 MLE (분산 추정량은 바이어스되어 있다)."""
     mu_hat = data.mean()
     sigma_hat = data.std(unbiased=False)
     return mu_hat.item(), sigma_hat.item()
 
 def exponential_mle(data: torch.Tensor) -> float:
-    """지수분포 비율 매개변수 λ의 MLE."""
+    """지수분포 비율 파라메터 λ의 MLE."""
     return 1.0 / data.mean().item()
 
 def uniform_mle(data: torch.Tensor) -> tuple:
-    """균등분포 매개변수의 MLE."""
+    """균등분포 파라메터의 MLE."""
     return data.min().item(), data.max().item()
 
 def multivariate_normal_mle(data: torch.Tensor) -> tuple:
@@ -541,7 +541,7 @@ def gradient_mle(data: torch.Tensor,
                  lr: float = 0.01,
                  n_iter: int = 1000) -> dict:
     """
-    PyTorch 자동 미분을 쓰는 두루 쓰는 기울기 바탕 최대가능도.
+    PyTorch 자동 미분을 쓰는 두루 쓰는 그래디언트 바탕 최대가능도.
     
     닫힌 꼴 최대가능도가 없는 분포나 학습 목적에 쓴다.
     """
@@ -712,7 +712,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-관측 $n$개 중 성공이 $k$번일 때 베르누이 분포의 매개변수 $p$에 대한 MLE를 유도하라.
+관측 $n$개 중 성공이 $k$번일 때 베르누이 분포의 파라메터 $p$에 대한 MLE를 유도하라.
 
 </div>
 
@@ -730,7 +730,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-정규분포의 분산에 대한 MLE $\hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^n(x_i - \bar{x})^2$이 편향되어 있음을 증명하고, 편향을 명시적으로 계산하라.
+정규분포의 분산에 대한 MLE $\hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^n(x_i - \bar{x})^2$이 바이어스되어 있음을 증명하고, 바이어스를 명시적으로 계산하라.
 
 </div>
 
@@ -745,7 +745,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
     \mathbb{E}[\hat{\sigma}^2] = \frac{1}{n}[n(\sigma^2+\mu^2) - n(\sigma^2/n + \mu^2)] = \frac{n-1}{n}\sigma^2
     $$
 
-    편향은 $\mathbb{E}[\hat{\sigma}^2] - \sigma^2 = -\sigma^2/n$이며 $n \to \infty$일 때 사라진다. 불편 추정량은 분모에 $n-1$을 쓴다.
+    바이어스는 $\mathbb{E}[\hat{\sigma}^2] - \sigma^2 = -\sigma^2/n$이며 $n \to \infty$일 때 사라진다. 불편 추정량은 분모에 $n-1$을 쓴다.
 
 ---
 

@@ -6,15 +6,15 @@
 
 ```python
 """
-초매개변수 조율을 위한 무작위 탐색
+초파라메터 조율을 위한 무작위 탐색
 
-무작위 탐색은 분포에서 매개변수 값을 무작위로 뽑는다.
+무작위 탐색은 분포에서 파라메터 값을 무작위로 뽑는다.
 모든 조합을 시도하지 않고 정해진 수만큼 설정을 뽑는다.
 
 장점:
-- 매개변수 공간이 크면 격자 탐색보다 효율적이다
-- 더 다양한 매개변수 조합을 살펴볼 수 있다
-- 격자 탐색보다 좋은 매개변수를 더 빨리 찾는 일이 많다
+- 파라메터 공간이 크면 격자 탐색보다 효율적이다
+- 더 다양한 파라메터 조합을 살펴볼 수 있다
+- 격자 탐색보다 좋은 파라메터를 더 빨리 찾는 일이 많다
 - 연속 분포를 쓸 수 있다
 
 단점:
@@ -60,8 +60,8 @@ def random_search_random_forest():
     # 데이터를 불러온다
     X_train, X_test, y_train, y_test = load_sample_dataset('wine')
     
-    # 매개변수 분포 정의
-    # 참고: 연속 매개변수에는 scipy.stats의 분포를 쓴다
+    # 파라메터 분포 정의
+    # 참고: 연속 파라메터에는 scipy.stats의 분포를 쓴다
     param_distributions = {
         'n_estimators': randint(50, 500),  # 50부터 499까지의 무작위 정수
         'max_depth': [None, 10, 20, 30, 40, 50],
@@ -119,7 +119,7 @@ def random_search_random_forest():
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
     
-    # 상위 5개 매개변수 조합 보이기
+    # 상위 5개 파라메터 조합 보이기
     import pandas as pd
     results_df = pd.DataFrame(random_search.cv_results_)
     results_df = results_df.sort_values('rank_test_score')
@@ -146,7 +146,7 @@ def random_search_gradient_boosting():
     # 데이터를 불러온다
     X_train, X_test, y_train, y_test = load_sample_dataset('synthetic')
     
-    # 매개변수 분포 정의
+    # 파라메터 분포 정의
     param_distributions = {
         'n_estimators': randint(50, 300),
         'learning_rate': uniform(0.01, 0.3),  # 0.01부터 0.31까지 균등분포
@@ -218,7 +218,7 @@ def compare_n_iter():
     # 데이터를 불러온다
     X_train, X_test, y_train, y_test = load_sample_dataset('iris')
     
-    # 매개변수 분포 정의
+    # 파라메터 분포 정의
     param_distributions = {
         'n_estimators': randint(50, 300),
         'max_depth': [None, 10, 20, 30],
@@ -284,7 +284,7 @@ def random_vs_grid_comparison():
     # 데이터를 불러온다
     X_train, X_test, y_train, y_test = load_sample_dataset('wine')
     
-    # 적당한 크기의 매개변수 공간 정의
+    # 적당한 크기의 파라메터 공간 정의
     param_grid = {
         'n_estimators': [50, 100, 200, 300],
         'max_depth': [None, 10, 20, 30],
@@ -613,7 +613,7 @@ if __name__ == "__main__":
 
 RandomizedSearchCV의 n_iter는 후보 평가 수를 정한다. 모든 후보가 목록이면 복원 없이 조합을 뽑는 방식이고, 분포를 포함하면 샘플링 규약이 달라질 수 있으므로 재현성과 중복을 확인한다.
 
-scipy.stats.randint는 이산 분포이고 uniform은 연속 분포이다. 학습률처럼 여러 자릿수에 걸친 양의 값은 로그 스케일 분포를 검토할 수 있지만, 본문의 일부 learning_rate 탐색은 선형 uniform을 사용한다. 분포가 어떤 범위에 예산을 쓰는지 읽어야 한다.
+scipy.stats.randint는 이산 분포이고 uniform은 연속 분포이다. 러닝레이트처럼 여러 자릿수에 걸친 양의 값은 로그 스케일 분포를 검토할 수 있지만, 본문의 일부 learning_rate 탐색은 선형 uniform을 사용한다. 분포가 어떤 범위에 예산을 쓰는지 읽어야 한다.
 
 격자보다 후보 수가 적다고 항상 더 빨리 좋은 값을 찾는 것은 아니다. 적합 비용과 탐색 범위·지표·예산이 같은지 확인한다. n_iter별 테스트 점수를 보며 횟수를 선택하면 테스트도 선택 과정에 참여한다.
 

@@ -1,6 +1,6 @@
 # 의미 임베딩 방법
 
-의미 임베딩은 클래스 이름이나 설명을 텍스트에서 학습한 벡터로 나타낸다. 클래스별 속성 표시 비용을 줄일 수 있지만, 언어에서 가까운 개념이 이미지에서도 잘 구분되는 것은 아니다. 시각 특징과의 호환성 학습 및 ConSE의 확률 가중 평균을 비교한다.
+의미 임베딩은 클래스 이름이나 설명을 텍스트에서 학습한 벡터로 나타낸다. 클래스별 속성 표시 비용을 줄일 수 있지만, 언어에서 가까운 개념이 이미지에서도 잘 구분되는 것은 아니다. 시각 피처와의 호환성 학습 및 ConSE의 확률 가중 평균을 비교한다.
 
 ## 1. 속성에서 임베딩으로
 
@@ -137,7 +137,7 @@ def visualize_semantic_structure(class_names, word_vectors):
 
 ### 문제 정의
 
-시각 특징과 의미 임베딩 사이의 호환성 함수를 배운다.
+시각 피처와 의미 임베딩 사이의 호환성 함수를 배운다.
 
 $$F: \mathcal{V} \times \mathcal{S} \rightarrow \mathbb{R}$$
 
@@ -161,7 +161,7 @@ $$f_s(\mathbf{s}) \in \mathcal{V}$$
 
 $$f_v(\mathbf{v}), f_s(\mathbf{s}) \in \mathcal{E}$$
 
-### 순위 손실
+### 순위 로스
 
 회귀 대신 순위 매기기를 써서 맞는 클래스가 더 높은 점수를 받게 한다.
 
@@ -180,7 +180,7 @@ class VisualSemanticEmbedding(nn.Module):
     """
     ZSL을 위한 시각-뜻 묻힘 모델.
     
-    시각 특징을 뜻 묻힘 공간으로 쏘아 넣는다.
+    시각 피처를 뜻 묻힘 공간으로 쏘아 넣는다.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
@@ -200,7 +200,7 @@ class VisualSemanticEmbedding(nn.Module):
         )
     
     def encode_visual(self, v):
-        """시각 특징을 부호로 바꾼다."""
+        """시각 피처를 부호로 바꾼다."""
         return F.normalize(self.visual_encoder(v), dim=1)
     
     def encode_semantic(self, s):
@@ -217,10 +217,10 @@ class VisualSemanticEmbedding(nn.Module):
     
     def forward(self, v, s_positive, s_negative):
         """
-        순위 손실 셈을 위한 앞먹임.
+        순위 로스 셈을 위한 피드포워드.
         
         인수:
-            v: 시각 특징 (batch_size, visual_dim)
+            v: 시각 피처 (batch_size, visual_dim)
             s_positive: 맞는 부류의 묻힘 (batch_size, semantic_dim)
             s_negative: 틀린 부류의 묻힘 (batch_size, semantic_dim)
         
@@ -238,7 +238,7 @@ class VisualSemanticEmbedding(nn.Module):
 
 class RankingLoss(nn.Module):
     """
-    어울림 학습을 위한 여백 기반 순위 손실.
+    어울림 학습을 위한 여백 기반 순위 로스.
     """
     
     def __init__(self, margin: float = 0.2):
@@ -247,9 +247,9 @@ class RankingLoss(nn.Module):
     
     def forward(self, pos_score, neg_score):
         """
-        순위 손실을 셈한다.
+        순위 로스를 셈한다.
         
-        손실 = max(0, margin + neg_score - pos_score)
+        로스 = max(0, margin + neg_score - pos_score)
         """
         loss = torch.clamp(self.margin + neg_score - pos_score, min=0)
         return loss.mean()
@@ -375,7 +375,7 @@ class ConSE(nn.Module):
         ConSE으로 못 본 부류를 맞힌다.
         
         인수:
-            x: 시각 특징 (batch_size, visual_dim)
+            x: 시각 피처 (batch_size, visual_dim)
             seen_classes: 본 부류 이름 목록
             unseen_classes: 못 본 부류 이름 목록
             class_embeddings: 부류 이름을 묻힘으로 옮기는 사전
@@ -473,7 +473,7 @@ ConSE의 성능은 기존 분류기의 예측과 의미 공간의 클래스 배�
 
 ### 성능 비교
 
-compare_methods는 y_train 대신 표본 순번을 라벨로 넣으므로 원래 클래스 매핑이 사라진다. 이 상태로 학습 결과를 비교할 수 없다. y_test도 미학습 클래스의 로컬 인덱스에 맞춰야 한다. 올바른 라벨과 같은 분할·특징·학습 예산을 사용한 비교가 필요하다.
+compare_methods는 y_train 대신 표본 순번을 라벨로 넣으므로 원래 클래스 매핑이 사라진다. 이 상태로 학습 결과를 비교할 수 없다. y_test도 미학습 클래스의 로컬 인덱스에 맞춰야 한다. 올바른 라벨과 같은 분할·피처·학습 예산을 사용한 비교가 필요하다.
 
 ```python
 def compare_methods(X_train, y_train, X_test, y_test,
@@ -553,7 +553,7 @@ def compare_methods(X_train, y_train, X_test, y_test,
 
 $$\mathbf{s}_c = \frac{1}{|words_c|} \sum_{w \in words_c} \mathbf{v}_w$$
 
-**2. 가중 평균 내기**(TF-IDF 가중치):
+**2. 가중 평균 내기**(TF-IDF 웨이트):
 
 $$\mathbf{s}_c = \sum_{w \in words_c} \text{tfidf}(w) \cdot \mathbf{v}_w$$
 
@@ -594,14 +594,14 @@ def get_bert_embedding(class_name, tokenizer, model):
 </div>
 
 ??? success "연습문제 1 풀이"
-    이미지 특징과 같은 의미 좌표계에 정렬되어야 한다. 별도의 투영 학습이나 공동 사전 학습된 인코더가 필요하다. 텍스트 벡터는 클래스 설명을 제공하지만 입력 이미지와의 대응을 자동으로 만들지는 않는다.
+    이미지 피처와 같은 의미 좌표계에 정렬되어야 한다. 별도의 투영 학습이나 공동 사전 학습된 인코더가 필요하다. 텍스트 벡터는 클래스 설명을 제공하지만 입력 이미지와의 대응을 자동으로 만들지는 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-ConSE의 상위 T개 가중치가 볼록 결합을 이루는 이유를 설명하라.
+ConSE의 상위 T개 웨이트가 볼록 결합을 이루는 이유를 설명하라.
 
 </div>
 

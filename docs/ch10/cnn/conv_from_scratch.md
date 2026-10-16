@@ -1,33 +1,33 @@
-# 밑바닥부터 만드는 합성곱
+# 밑바닥부터 만드는 컨볼루션
 
-NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 구현하고 PyTorch 결과와 비교한다. 코드의 범위는 보폭·팽창률 1, 홀수 길이의 1차원 필터와 홀수 크기의 정사각 2차원 필터를 사용한 같은 크기 패딩이다. 편향이나 그룹 합성곱 등은 구현하지 않는다.
+NumPy 반복문으로 상호상관의 순전파와 입력·필터 그래디언트를 구현하고 PyTorch 결과와 비교한다. 코드의 범위는 스트라이드·팽창률 1, 홀수 길이의 1차원 필터와 홀수 크기의 정사각 2차원 필터를 사용한 같은 크기 패딩이다. 바이어스나 그룹 컨볼루션 등은 구현하지 않는다.
 
-딥러닝에서 합성곱이라고 부르는 상호상관은 필터를 뒤집지 않는다. 입력 기울기는 이에 대응하는 전치 연산이며, 같은 상호상관 반복문을 재사용할 때는 필터 뒤집기와 경계 인덱스를 맞춰야 한다.
+딥러닝에서 컨볼루션이라고 부르는 상호상관은 필터를 뒤집지 않는다. 입력 그래디언트는 이에 대응하는 전치 연산이며, 같은 상호상관 반복문을 재사용할 때는 필터 뒤집기와 경계 인덱스를 맞춰야 한다.
 
 ## 1. 코드
 
 ??? note "코드 (629줄)"
 
     ```python
-    """밑바닥부터 만드는 합성곱."""
+    """밑바닥부터 만드는 컨볼루션."""
     # ---
-    # title: "밑바닥부터 만드는 합성곱 연산"
-    # description: "NumPy로 구현한 1차원·2차원 합성곱의 순전파와 역전파,
-    #               다채널 지원, 기울기 확인, PyTorch로 검증"
+    # title: "밑바닥부터 만드는 컨볼루션 연산"
+    # description: "NumPy로 구현한 1차원·2차원 컨볼루션의 순전파와 역전파,
+    #               다채널 지원, 그래디언트 확인, PyTorch로 검증"
     # ---
     #
-    # 구현 수준에서 합성곱을 이해하는 일은 직접 구조를 설계하고
-    # 기울기 문제의 벌레를 잡는 데 꼭 필요하다. 이 스크립트는
-    # 합성곱 연산을 밑바닥부터 만든다:
+    # 구현 수준에서 컨볼루션을 이해하는 일은 직접 구조를 설계하고
+    # 그래디언트 문제의 벌레를 잡는 데 꼭 필요하다. 이 스크립트는
+    # 컨볼루션 연산을 밑바닥부터 만든다:
     #
-    #   1부 – 1차원 합성곱: 순전파, 입력 기울기, 매개변수 기울기
-    #   2부 – 배치를 쓰는 1차원 합성곱
-    #   3부 – 2차원 합성곱: 순전파와 역전파
-    #   4부 – 다채널 2차원 합성곱 (배치 × 채널 × H × W)
-    #   5부 – 수치적 기울기 확인
+    #   1부 – 1차원 컨볼루션: 순전파, 입력 그래디언트, 파라메터 그래디언트
+    #   2부 – 배치를 쓰는 1차원 컨볼루션
+    #   3부 – 2차원 컨볼루션: 순전파와 역전파
+    #   4부 – 다채널 2차원 컨볼루션 (배치 × 채널 × H × W)
+    #   5부 – 수치적 그래디언트 확인
     #   6부 – PyTorch nn.functional.conv2d와 견주어 검증
     #
-    # 여기서 만드는 연산은 딥러닝이 "합성곱"이라 부르는 것, 곧 필터를
+    # 여기서 만드는 연산은 딥러닝이 "컨볼루션"이라 부르는 것, 곧 필터를
     # 뒤집지 않는 상관(cross-correlation)이다. F.conv2d도 같은 것을 계산하므로
     # 6부의 견주기가 성립한다.
     #
@@ -47,7 +47,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     # =====================================================================
-    # 1부 – 1차원 합성곱 (표본 하나)
+    # 1부 – 1차원 컨볼루션 (표본 하나)
     # =====================================================================
     def _pad_1d(inp: ndarray, num: int) -> ndarray:
         """1차원 배열의 양쪽에 0을 덧댄다."""
@@ -56,7 +56,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     def conv_1d(inp: ndarray, param: ndarray) -> ndarray:
-        """출력 크기가 같아지도록 덧댄 1차원 합성곱.
+        """출력 크기가 같아지도록 덧댄 1차원 컨볼루션.
 
         out[o] = Σ_p param[p] · inp[o + p − mid],  mid = len(param) // 2
 
@@ -80,7 +80,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
     def _input_grad_1d(inp: ndarray, param: ndarray,
                        output_grad: ndarray = None) -> ndarray:
-        """1차원 합성곱의 입력에 대한 손실의 기울기.
+        """1차원 컨볼루션의 입력에 대한 로스의 그래디언트.
 
         핵심: inp[i]는 out[i−mid] … out[i+mid]에 param[mid+i−o]를 곱해
         들어가므로
@@ -88,7 +88,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
             input_grad[i] = Σ_p param[p] · output_grad[i + mid − p]
 
         이다. 순전파와 같은 상관 연산을 쓰되 필터를 180° 뒤집어 넣는 것과
-        같다. (뒤집은 상관 = 뒤집지 않은 진짜 합성곱이다.)
+        같다. (뒤집은 상관 = 뒤집지 않은 진짜 컨볼루션이다.)
         """
         param_len = param.shape[0]
         param_mid = param_len // 2
@@ -111,13 +111,13 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
     def _param_grad_1d(inp: ndarray, param: ndarray,
                        output_grad: ndarray = None) -> ndarray:
-        """1차원 합성곱의 필터에 대한 손실의 기울기.
+        """1차원 컨볼루션의 필터에 대한 로스의 그래디언트.
 
-        핵심: param[p]는 모든 출력 자리에 쓰이므로 기울기는 그 전부의 합이다.
+        핵심: param[p]는 모든 출력 자리에 쓰이므로 그래디언트는 그 전부의 합이다.
 
             param_grad[p] = Σ_o inp_pad[o + p] · output_grad[o]
 
-        곧 덧댄 입력과 출력 기울기의 상관이다.
+        곧 덧댄 입력과 출력 그래디언트의 상관이다.
         """
         param_len = param.shape[0]
         param_mid = param_len // 2
@@ -152,7 +152,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     # =====================================================================
-    # 2부 – 배치를 쓰는 1차원 합성곱
+    # 2부 – 배치를 쓰는 1차원 컨볼루션
     # =====================================================================
     def _pad_1d_batch(inp: ndarray, num: int) -> ndarray:
         """배치 [batch, length]의 표본마다 덧댄다."""
@@ -160,12 +160,12 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     def conv_1d_batch(inp: ndarray, param: ndarray) -> ndarray:
-        """배치 [batch, length]에 대한 1차원 합성곱."""
+        """배치 [batch, length]에 대한 1차원 컨볼루션."""
         return np.stack([conv_1d(obs, param) for obs in inp])
 
 
     def input_grad_1d_batch(inp: ndarray, param: ndarray) -> ndarray:
-        """배치 1차원 합성곱의 입력 기울기."""
+        """배치 1차원 컨볼루션의 입력 그래디언트."""
         out = conv_1d_batch(inp, param)
         out_grad = np.ones_like(out)
         grads = [_input_grad_1d(inp[i], param, out_grad[i])
@@ -174,7 +174,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     def param_grad_1d_batch(inp: ndarray, param: ndarray) -> ndarray:
-        """배치 1차원 합성곱의 매개변수 기울기 (배치에 대해 합)."""
+        """배치 1차원 컨볼루션의 파라메터 그래디언트 (배치에 대해 합)."""
         output_grad = np.ones_like(inp, dtype=float)
         # 덧대는 폭은 필터에서 끌어내야 한다. 여기에 1을 박아 두면
         # 길이가 3인 필터에서만 맞고, 길이 5부터는 IndexError로 터진다.
@@ -206,7 +206,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     # =====================================================================
-    # 3부 – 2차원 합성곱 (단일 채널, 배치)
+    # 3부 – 2차원 컨볼루션 (단일 채널, 배치)
     # =====================================================================
     def _pad_2d_obs(inp: ndarray, num: int) -> ndarray:
         """2차원 배열의 네 면에 0을 덧댄다."""
@@ -221,7 +221,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     def _compute_output_obs_2d(obs: ndarray, param: ndarray) -> ndarray:
-        """관측값 하나에 대한 2차원 합성곱 순전파.
+        """관측값 하나에 대한 2차원 컨볼루션 순전파.
 
         인수:
             obs:   [H, W]
@@ -243,15 +243,15 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     def _compute_output_2d(img_batch: ndarray, param: ndarray) -> ndarray:
-        """배치 [batch, H, W]에 대한 2차원 합성곱 순전파."""
+        """배치 [batch, H, W]에 대한 2차원 컨볼루션 순전파."""
         return np.stack([_compute_output_obs_2d(obs, param) for obs in img_batch])
 
 
     def _compute_grads_obs_2d(input_obs: ndarray, output_grad_obs: ndarray,
                               param: ndarray) -> ndarray:
-        """2차원 관측값 하나의 입력 기울기.
+        """2차원 관측값 하나의 입력 그래디언트.
 
-        1차원과 같다. 필터를 두 축 모두에서 뒤집어 덧댄 출력 기울기와
+        1차원과 같다. 필터를 두 축 모두에서 뒤집어 덧댄 출력 그래디언트와
         상관을 취한다.
         """
         param_size = param.shape[0]
@@ -272,7 +272,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
     def _compute_grads_2d(inp: ndarray, output_grad: ndarray,
                           param: ndarray) -> ndarray:
-        """2차원 관측값 배치의 입력 기울기."""
+        """2차원 관측값 배치의 입력 그래디언트."""
         return np.stack([
             _compute_grads_obs_2d(inp[i], output_grad[i], param)
             for i in range(output_grad.shape[0])
@@ -281,7 +281,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
     def _param_grad_2d(inp: ndarray, output_grad: ndarray,
                        param: ndarray) -> ndarray:
-        """배치 2차원 합성곱의 매개변수(필터) 기울기."""
+        """배치 2차원 컨볼루션의 파라메터(필터) 그래디언트."""
         param_size = param.shape[0]
         inp_pad = _pad_2d(inp, param_size // 2)
         param_grad = np.zeros_like(param, dtype=float)
@@ -316,7 +316,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     # =====================================================================
-    # 4부 – 다채널 2차원 합성곱
+    # 4부 – 다채널 2차원 컨볼루션
     # =====================================================================
     def _pad_2d_channel(inp: ndarray, num: int) -> ndarray:
         """[C, H, W]의 채널마다 덧댄다."""
@@ -329,7 +329,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     def conv2d_forward(inp: ndarray, param: ndarray) -> ndarray:
-        """온전한 다채널 2차원 합성곱 순전파.
+        """온전한 다채널 2차원 컨볼루션 순전파.
 
         인수:
             inp:   [batch, in_channels, H, W]
@@ -366,7 +366,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
     def conv2d_input_grad(inp: ndarray, output_grad: ndarray,
                           param: ndarray) -> ndarray:
-        """다채널 2차원 합성곱의 입력 기울기.
+        """다채널 2차원 컨볼루션의 입력 그래디언트.
 
         인수:
             inp:         [batch, in_channels, H, W]
@@ -404,7 +404,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
     def conv2d_param_grad(inp: ndarray, output_grad: ndarray,
                           param: ndarray) -> ndarray:
-        """다채널 2차원 합성곱의 매개변수 기울기.
+        """다채널 2차원 컨볼루션의 파라메터 그래디언트.
 
         인수:
             inp:         [batch, in_channels, H, W]
@@ -461,10 +461,10 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
 
     # =====================================================================
-    # 5부 – 수치적 기울기 확인
+    # 5부 – 수치적 그래디언트 확인
     # =====================================================================
     def numerical_grad_check(forward_fn, x, idx, eps=1e-5):
-        """특정 색인에서 유한 차분으로 기울기를 확인한다."""
+        """특정 색인에서 유한 차분으로 그래디언트를 확인한다."""
         x_plus = x.copy()
         x_plus.flat[idx] += eps
         x_minus = x.copy()
@@ -477,12 +477,12 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
         print("Part 5: Numerical Gradient Checking")
         print("=" * 60)
 
-        # --- 1차원 기울기 확인 ---
+        # --- 1차원 그래디언트 확인 ---
         np.random.seed(42)
         inp_1d = np.random.randn(5)
         par_1d = np.random.randn(3)
 
-        # 입력 기울기 확인
+        # 입력 그래디언트 확인
         for idx in range(5):
             numerical = numerical_grad_check(
                 lambda x: conv_1d(x, par_1d).sum(), inp_1d, idx
@@ -490,7 +490,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
             analytical = _input_grad_1d(inp_1d, par_1d)[idx]
             assert abs(numerical - analytical) < 1e-7, f"1D input grad mismatch at {idx}"
 
-        # 매개변수 기울기 확인
+        # 파라메터 그래디언트 확인
         for idx in range(3):
             numerical = numerical_grad_check(
                 lambda p: conv_1d(inp_1d, p).sum(), par_1d, idx
@@ -500,12 +500,12 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
         print("  ✓ 1D convolution gradients pass numerical check")
 
-        # --- 2차원 기울기 확인 (단일 채널) ---
+        # --- 2차원 그래디언트 확인 (단일 채널) ---
         np.random.seed(42)
         imgs = np.random.randn(2, 6, 6)
         filt = np.random.randn(3, 3)
 
-        # 무작위 자리에서 입력 기울기 확인
+        # 무작위 자리에서 입력 그래디언트 확인
         test_idx = 25  # imgs(원소 72개)에 대한 평평한 색인
         numerical = numerical_grad_check(
             lambda x: _compute_output_2d(x.reshape(2, 6, 6), filt).sum(),
@@ -514,7 +514,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
         analytical = _compute_grads_2d(imgs, np.ones_like(imgs), filt).ravel()[test_idx]
         assert abs(numerical - analytical) < 1e-6, "2D input grad mismatch"
 
-        # 무작위 자리에서 매개변수 기울기 확인
+        # 무작위 자리에서 파라메터 그래디언트 확인
         test_idx_p = 4  # filt(원소 9개)의 한가운데
         numerical = numerical_grad_check(
             lambda p: _compute_output_2d(imgs, p.reshape(3, 3)).sum(),
@@ -525,12 +525,12 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
 
         print("  ✓ 2D convolution gradients pass numerical check")
 
-        # --- 다채널 기울기 확인 ---
+        # --- 다채널 그래디언트 확인 ---
         np.random.seed(42)
         imgs_small = np.random.randn(2, 2, 6, 6)
         param_small = np.random.randn(2, 3, 3, 3)
 
-        # 입력 기울기 확인
+        # 입력 그래디언트 확인
         test_idx = 50  # imgs_small(원소 144개)에 대한 평평한 색인
         numerical = numerical_grad_check(
             lambda x: conv2d_forward(x.reshape(2, 2, 6, 6), param_small).sum(),
@@ -541,7 +541,7 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
         ).ravel()[test_idx]
         assert abs(numerical - analytical) < 1e-5, "Multi-channel input grad mismatch"
 
-        # 매개변수 기울기 확인
+        # 파라메터 그래디언트 확인
         test_idx_p = 20  # param_small(원소 54개)에 대한 평평한 색인
         numerical = numerical_grad_check(
             lambda p: conv2d_forward(imgs_small, p.reshape(2, 3, 3, 3)).sum(),
@@ -575,8 +575,8 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
             W_np = np.random.randn(2, 3, 3, 3).astype(np.float64)  # in, out, fH, fW
             W_pt_format = W_np.transpose(1, 0, 2, 3)  # out, in, fH, fW
 
-            # 출력 기울기를 1로만 두면 덧댄 자리의 실수가 가려질 수 있으므로
-            # 무작위 출력 기울기로도 함께 견준다.
+            # 출력 그래디언트를 1로만 두면 덧댄 자리의 실수가 가려질 수 있으므로
+            # 무작위 출력 그래디언트로도 함께 견준다.
             G_np = np.random.randn(2, 3, 8, 8).astype(np.float64)
 
             # PyTorch 순전파
@@ -593,19 +593,19 @@ NumPy 반복문으로 상호상관의 순전파와 입력·필터 기울기를 �
             out_diff = np.abs(out_pt.detach().numpy() - out_ours).max()
             print(f"  Forward pass max |diff|: {out_diff:.2e}")
 
-            # 입력 기울기 견주기
+            # 입력 그래디언트 견주기
             in_grad_ours = conv2d_input_grad(X_np, np.ones_like(out_ours), W_np)
             in_grad_diff = np.abs(X_pt.grad.numpy() - in_grad_ours).max()
             print(f"  Input grad max |diff|:   {in_grad_diff:.2e}")
 
-            # 매개변수 기울기 견주기
+            # 파라메터 그래디언트 견주기
             param_grad_ours = conv2d_param_grad(X_np, np.ones_like(out_ours), W_np)
             # 견주려고 다시 전치
             param_grad_ours_pt = param_grad_ours.transpose(1, 0, 2, 3)
             param_grad_diff = np.abs(W_pt.grad.numpy() - param_grad_ours_pt).max()
             print(f"  Param grad max |diff|:   {param_grad_diff:.2e}")
 
-            # 무작위 출력 기울기로 다시 견주기
+            # 무작위 출력 그래디언트로 다시 견주기
             X_pt2 = torch.tensor(X_np, requires_grad=True)
             W_pt2 = torch.tensor(W_pt_format, requires_grad=True)
             (F.conv2d(X_pt2, W_pt2, padding=1) * torch.tensor(G_np)).sum().backward()
@@ -708,11 +708,11 @@ Done.
 
 ### 순전파: 세 개의 인덱스
 
-필터 길이를 $K=2m+1$로 두고 양쪽에 m개씩 0 패딩하면 보폭 1에서 길이를 유지한다. 패딩 범위 밖 입력은 0으로 해석하고 1차원 순전파를 다음과 같이 쓴다.
+필터 길이를 $K=2m+1$로 두고 양쪽에 m개씩 0 패딩하면 스트라이드 1에서 길이를 유지한다. 패딩 범위 밖 입력은 0으로 해석하고 1차원 순전파를 다음과 같이 쓴다.
 
 $$y[o] = \sum_{p=0}^{K-1} w[p]\, x[o + p - m]$$
 
-이다. 코드의 `out[o] += param[p] * inp_pad[o + p]`가 바로 이 식인데, `inp_pad`가 이미 $m$만큼 밀려 있으므로 `inp_pad[o + p]`가 $x[o+p-m]$을 가리킨다. 인덱스의 부호가 뒤집히지 않는다는 점이 중요하다. 만약 $x[o - p + m]$이었다면 그것은 진짜 합성곱이고, `F.conv1d`와 어긋난다.
+이다. 코드의 `out[o] += param[p] * inp_pad[o + p]`가 바로 이 식인데, `inp_pad`가 이미 $m$만큼 밀려 있으므로 `inp_pad[o + p]`가 $x[o+p-m]$을 가리킨다. 인덱스의 부호가 뒤집히지 않는다는 점이 중요하다. 만약 $x[o - p + m]$이었다면 그것은 진짜 컨볼루션이고, `F.conv1d`와 어긋난다.
 
 다채널 2차원 구현은 같은 위치별 합을 배치·입력 채널·출력 채널로 확장한다. 여기의 필터 배열 순서는 $(C_{in},C_{out},K,K)$이며, PyTorch Conv2d의 $(C_{out},C_{in},K,K)$와 다르므로 비교할 때 첫 두 축을 바꾼다.
 
@@ -722,29 +722,29 @@ $$y[b, c_{\text{out}}, h, v] = \sum_{c_{\text{in}}} \sum_{p_h=0}^{K-1} \sum_{p_w
 
 ### 역전파: 같은 식을 두 번 다르게 읽기
 
-$y[o]$가 $w[p]\,x[o+p-m]$의 합이라는 사실 하나에서 두 기울기가 모두 나온다. $x[i]$를 고정하고 그것이 들어간 출력 자리를 모으면 $o = i + m - p$이므로
+$y[o]$가 $w[p]\,x[o+p-m]$의 합이라는 사실 하나에서 두 그래디언트가 모두 나온다. $x[i]$를 고정하고 그것이 들어간 출력 자리를 모으면 $o = i + m - p$이므로
 
 $$\frac{\partial L}{\partial x[i]} = \sum_{p=0}^{K-1} w[p]\, \frac{\partial L}{\partial y[i + m - p]}$$
 
-이 식에서 p의 부호가 순전파와 반대이다. 홀수 K와 대칭 패딩이라는 현재 조건에서는 필터를 뒤집어 같은 상호상관을 수행하는 식으로 바꿀 수 있다. 보폭·팽창률이나 패딩 규약을 바꾸면 이 인덱스 대응도 다시 유도해야 한다.
+이 식에서 p의 부호가 순전파와 반대이다. 홀수 K와 대칭 패딩이라는 현재 조건에서는 필터를 뒤집어 같은 상호상관을 수행하는 식으로 바꿀 수 있다. 스트라이드·팽창률이나 패딩 규약을 바꾸면 이 인덱스 대응도 다시 유도해야 한다.
 
 반대로 $w[p]$를 고정하고 그것이 쓰인 자리를 모으면 뒤집기가 없다.
 
 $$\frac{\partial L}{\partial w[p]} = \sum_{o} x[o + p - m]\, \frac{\partial L}{\partial y[o]}$$
 
-필터의 원소는 모든 출력 자리에 그대로 재사용되므로, 그 기울기는 패딩한 입력과 출력 기울기의 상관을 통째로 더한 값이다. 1부 시연에서 $x = [1,2,3,4,5]$, $w=[1,1,1]$, $L = \sum_o y[o]$일 때 나오는 `[10. 15. 14.]`가 그 결과다. 세 값이 서로 다른 것은 덧댄 0 때문이다 — $w[0]$은 오른쪽 끝의 5를 한 번도 만나지 못하고, $w[2]$는 왼쪽 끝의 1을 만나지 못한다.
+필터의 원소는 모든 출력 자리에 그대로 재사용되므로, 그 그래디언트는 패딩한 입력과 출력 그래디언트의 상관을 통째로 더한 값이다. 1부 시연에서 $x = [1,2,3,4,5]$, $w=[1,1,1]$, $L = \sum_o y[o]$일 때 나오는 `[10. 15. 14.]`가 그 결과다. 세 값이 서로 다른 것은 덧댄 0 때문이다 — $w[0]$은 오른쪽 끝의 5를 한 번도 만나지 못하고, $w[2]$는 왼쪽 끝의 1을 만나지 못한다.
 
-같은 까닭으로 입력 기울기가 `[2. 3. 3. 3. 2.]`가 된다. 가운데 원소는 출력 세 자리에 들어가지만 양 끝은 두 자리에만 들어간다.
+같은 까닭으로 입력 그래디언트가 `[2. 3. 3. 3. 2.]`가 된다. 가운데 원소는 출력 세 자리에 들어가지만 양 끝은 두 자리에만 들어간다.
 
 ### 맞는지 어떻게 아는가
 
-인덱스나 축 순서를 잘못 써도 숫자와 모양이 그럴듯할 수 있으므로 순전파의 기준 구현 비교와 기울기 점검을 구분한다. 아래 결과는 문서에 기록된 특정 입력·자료형에서의 검증 예이며 모든 모양과 입력의 올바름을 증명하지 않는다.
+인덱스나 축 순서를 잘못 써도 숫자와 모양이 그럴듯할 수 있으므로 순전파의 기준 구현 비교와 그래디언트 점검을 구분한다. 아래 결과는 문서에 기록된 특정 입력·자료형에서의 검증 예이며 모든 모양과 입력의 올바름을 증명하지 않는다.
 
-- **5부, 수치적 기울기 점검**: 구현된 순전파의 중심 차분과 해석적 기울기를 비교한다. 의도한 순전파 자체가 틀려도 그 구현의 도함수를 일관되게 계산했다면 통과할 수 있다. 차분 간격과 자료형에 따른 절삭·반올림 오차도 고려한다.
-- **6부, PyTorch와 비교**: 입력·필터 축과 패딩 규약을 맞춰 순전파와 기울기를 비교한다. 기록된 작은 잔차는 비교한 예제에서의 수치적 일치를 뒷받침한다. 모든 자료형과 경계 조건에서 같은 허용 오차를 사용할 수 있는 것은 아니다.
+- **5부, 수치적 그래디언트 점검**: 구현된 순전파의 중심 차분과 해석적 그래디언트를 비교한다. 의도한 순전파 자체가 틀려도 그 구현의 도함수를 일관되게 계산했다면 통과할 수 있다. 차분 간격과 자료형에 따른 절삭·반올림 오차도 고려한다.
+- **6부, PyTorch와 비교**: 입력·필터 축과 패딩 규약을 맞춰 순전파와 그래디언트를 비교한다. 기록된 작은 잔차는 비교한 예제에서의 수치적 일치를 뒷받침한다. 모든 자료형과 경계 조건에서 같은 허용 오차를 사용할 수 있는 것은 아니다.
 
-!!! note "출력 기울기의 선택"
-    출력 기울기를 모두 1로 두는 경우와 임의의 값을 주는 경우를 함께 비교하면 더 다양한 인덱스 오류를 드러낼 수 있다. 큰 잔차가 있으면 축 순서·패딩·필터 뒤집기와 자료형을 점검하며 오차의 크기만으로 원인을 하나로 확정하지 않는다.
+!!! note "출력 그래디언트의 선택"
+    출력 그래디언트를 모두 1로 두는 경우와 임의의 값을 주는 경우를 함께 비교하면 더 다양한 인덱스 오류를 드러낼 수 있다. 큰 잔차가 있으면 축 순서·패딩·필터 뒤집기와 자료형을 점검하며 오차의 크기만으로 원인을 하나로 확정하지 않는다.
 
 ### 조용히 틀리는 두 자리
 
@@ -771,7 +771,7 @@ $x = [1, 2, 3, 4, 5]$, $w = [1, 1, 1]$, 양쪽에 0을 하나씩 덧댄 경우�
 
     $$\frac{\partial L}{\partial x} = [2, 3, 3, 3, 2]$$
 
-    이다. 매개변수 쪽은 $\partial L / \partial w[p] = \sum_{o=0}^{4} x_{\text{pad}}[o+p]$이므로
+    이다. 파라메터 쪽은 $\partial L / \partial w[p] = \sum_{o=0}^{4} x_{\text{pad}}[o+p]$이므로
 
     $$\frac{\partial L}{\partial w} = [0{+}1{+}2{+}3{+}4,\; 1{+}2{+}3{+}4{+}5,\; 2{+}3{+}4{+}5{+}0] = [10, 15, 14]$$
 
@@ -793,7 +793,7 @@ $x = [1, 2, 3, 4, 5]$, $w = [1, 1, 1]$, 양쪽에 0을 하나씩 덧댄 경우�
     IndexError: index 9 is out of bounds for axis 0 with size 9
     ```
 
-    해당 잘못된 구현은 인덱스 9를 처음 읽을 때 IndexError를 낸다. 홀수 필터 K=5의 올바른 패딩은 2이며 길이는 11이 되어 최대 인덱스 10을 포함한다. 아래 기록값은 해당 입력의 필터 기울기이며 다른 입력에서도 같은 숫자가 나오는 것은 아니다.
+    해당 잘못된 구현은 인덱스 9를 처음 읽을 때 IndexError를 낸다. 홀수 필터 K=5의 올바른 패딩은 2이며 길이는 11이 되어 최대 인덱스 10을 포함한다. 아래 기록값은 해당 입력의 필터 그래디언트이며 다른 입력에서도 같은 숫자가 나오는 것은 아니다.
 
     예외가 발생하면 원인 추적이 쉬울 수 있지만 조용한 오류와 예외 모두 수정과 검증이 필요하다. 다음 문제는 모양만 잘못되는 입력을 다룬다.
 
@@ -819,15 +819,15 @@ $$\frac{\partial L}{\partial x[i]} = \sum_{p} w[p]\, \frac{\partial L}{\partial 
 
     $$\frac{\partial L}{\partial x[i]} = \sum_{p=0}^{K-1} w[p]\, \frac{\partial L}{\partial y[i + m - p]}$$
 
-    를 얻는다(범위를 벗어나는 $y$ 자리는 0으로 본다 — 코드가 출력 기울기를 $m$만큼 덧대는 것이 이것이다).
+    를 얻는다(범위를 벗어나는 $y$ 자리는 0으로 본다 — 코드가 출력 그래디언트를 $m$만큼 덧대는 것이 이것이다).
 
     뒤집은 필터 $\tilde{w}[p] = w[K - 1 - p]$를 두고 이 식에 $p \mapsto K - 1 - p$를 넣으면
 
     $$\frac{\partial L}{\partial x[i]} = \sum_{p} \tilde{w}[p]\, \frac{\partial L}{\partial y[i + m - (K-1-p)]} = \sum_{p} \tilde{w}[p]\, \frac{\partial L}{\partial y[i + p - m]}$$
 
-    이 되는데($K - 1 - m = m$을 썼다), 오른쪽은 $x$ 자리에 $\partial L / \partial y$를, $w$ 자리에 $\tilde{w}$를 넣은 순전파 식 그 자체다. 곧 입력 기울기는 **출력 기울기에 뒤집은 필터로 같은 상호상관 연산을 적용한 것**이다. 코드의 `output_pad[o + param_len - f - 1]`가 이 뒤집기를 인덱스에서 바로 수행한다.
+    이 되는데($K - 1 - m = m$을 썼다), 오른쪽은 $x$ 자리에 $\partial L / \partial y$를, $w$ 자리에 $\tilde{w}$를 넣은 순전파 식 그 자체다. 곧 입력 그래디언트는 **출력 그래디언트에 뒤집은 필터로 같은 상호상관 연산을 적용한 것**이다. 코드의 `output_pad[o + param_len - f - 1]`가 이 뒤집기를 인덱스에서 바로 수행한다.
 
-    바꾸어 말하면, 뒤집은 필터와의 상관은 뒤집지 않은 필터와의 **진짜 합성곱**이다. 순전파가 상관이고 역전파가 합성곱인 이 쌍대성이 합성곱 층의 구조를 이룬다. $\square$
+    바꾸어 말하면, 뒤집은 필터와의 상관은 뒤집지 않은 필터와의 **진짜 컨볼루션**이다. 순전파가 상관이고 역전파가 컨볼루션인 이 쌍대성이 컨볼루션 레이어의 구조를 이룬다. $\square$
 
 ---
 
@@ -839,9 +839,9 @@ $$\frac{\partial L}{\partial x[i]} = \sum_{p} w[p]\, \frac{\partial L}{\partial 
 </div>
 
 ??? success "연습문제 4 풀이"
-    출력 버퍼가 `np.zeros((1, 4, 6, 6))`으로 잡히고 너비 반복문도 6까지만 돌므로, 오류 없이 모양 `(1, 4, 6, 6)`인 배열이 나온다. 마지막 세 열이 통째로 사라지는데 남은 6열의 값은 모두 맞으므로, 눈으로 보아서는 정상적인 특징 맵와 구별되지 않는다. 반면 `F.conv2d(X, W_pt, padding=1)`는 `(1, 4, 6, 9)`를 낸다.
+    출력 버퍼가 `np.zeros((1, 4, 6, 6))`으로 잡히고 너비 반복문도 6까지만 돌므로, 오류 없이 모양 `(1, 4, 6, 6)`인 배열이 나온다. 마지막 세 열이 통째로 사라지는데 남은 6열의 값은 모두 맞으므로, 눈으로 보아서는 정상적인 피처 맵와 구별되지 않는다. 반면 `F.conv2d(X, W_pt, padding=1)`는 `(1, 4, 6, 9)`를 낸다.
 
-    이 결함이 연습문제 2보다 나쁜 까닭은 **터지지 않기 때문**이다. `IndexError`는 곧바로 눈에 띄고 스택 추적이 범인을 가리키지만, 조용히 잘린 특징 맵는 그대로 다음 층으로 흘러가 몇 층 뒤 `view`나 선형층의 `in_features`에서야 어긋난다. 그때쯤이면 원인이 여기라는 단서가 남아 있지 않다. 더 나쁘게는, 모든 층이 정사각 입력만 다루는 신경망에서는 끝까지 터지지 않고 학습까지 되면서 비정사각 입력에서만 틀린다.
+    이 결함이 연습문제 2보다 나쁜 까닭은 **터지지 않기 때문**이다. `IndexError`는 곧바로 눈에 띄고 스택 추적이 범인을 가리키지만, 조용히 잘린 피처 맵는 그대로 다음 레이어로 흘러가 몇 레이어 뒤 `view`나 선형 레이어의 `in_features`에서야 어긋난다. 그때쯤이면 원인이 여기라는 단서가 남아 있지 않다. 더 나쁘게는, 모든 레이어가 정사각 입력만 다루는 뉴럴 넷트웍에서는 끝까지 터지지 않고 학습까지 되면서 비정사각 입력에서만 틀린다.
 
     정사각이 아닌 입력을 한 번 통과시켜 모양만 견주면 잡힌다.
 
@@ -851,8 +851,8 @@ $$\frac{\partial L}{\partial x[i]} = \sum_{p} w[p]\, \frac{\partial L}{\partial 
     assert conv2d_forward(X, W).shape == (1, 4, 6, 9)
     ```
 
-    축 길이를 다르게 선택한 입력은 축 교환이나 잘못된 길이 참조를 드러내는 데 유용하다. 그러나 모든 오류가 모양으로 드러나는 것은 아니므로 출력값과 기울기도 비교한다. 최소 길이, 경계, 입력·출력 채널 수가 다른 경우와 여러 필터 크기도 점검 대상으로 둔다.
+    축 길이를 다르게 선택한 입력은 축 교환이나 잘못된 길이 참조를 드러내는 데 유용하다. 그러나 모든 오류가 모양으로 드러나는 것은 아니므로 출력값과 그래디언트도 비교한다. 최소 길이, 경계, 입력·출력 채널 수가 다른 경우와 여러 필터 크기도 점검 대상으로 둔다.
 
 ## 정리하며
 
-상호상관의 순전파에서 입력·필터 인덱스를 각각 고정하면 두 기울기를 유도할 수 있다. 비교 시 필터 축과 패딩 규약을 맞추고 중심 차분 점검과 기준 구현의 순전파 비교를 함께 사용한다. 제시된 예제의 작은 잔차와 올바른 모양은 검증 자료이며 구현 범위 밖의 동작을 보장하지 않는다.
+상호상관의 순전파에서 입력·필터 인덱스를 각각 고정하면 두 그래디언트를 유도할 수 있다. 비교 시 필터 축과 패딩 규약을 맞추고 중심 차분 점검과 기준 구현의 순전파 비교를 함께 사용한다. 제시된 예제의 작은 잔차와 올바른 모양은 검증 자료이며 구현 범위 밖의 동작을 보장하지 않는다.

@@ -218,12 +218,12 @@ def main():
 
     # -------------------------------------------------------------------------
     header("Practical pattern: feature concatenation")
-    # 서로 다른 특징 추출기
+    # 서로 다른 피처 추출기
     text_features = torch.randn(32, 512)   # Text embeddings
     image_features = torch.randn(32, 2048) # Image features
     meta_features = torch.randn(32, 64)    # Metadata
     
-    # 모든 특징을 이어 붙인다
+    # 모든 피처를 이어 붙인다
     combined = torch.cat([text_features, image_features, meta_features], dim=1)
     print("Text features:", text_features.shape)
     print("Image features:", image_features.shape)
@@ -267,10 +267,10 @@ def main():
     # 7일간의 일별 측정값
     measurements = []
     for day in range(7):
-        # 하루당: 24시간 × 특징
+        # 하루당: 24시간 × 피처
         measurements.append(torch.randn(24, 5))
     
-    # (일, 시간, 특징)으로 쌓기
+    # (일, 시간, 피처)으로 쌓기
     time_series = torch.stack(measurements, dim=0)
     print("Daily measurements:", measurements[0].shape)
     print("Time series:", time_series.shape)  # (7, 24, 5)

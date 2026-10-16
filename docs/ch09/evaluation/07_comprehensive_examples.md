@@ -75,7 +75,7 @@ class Example1_BinaryClassification:
         print(f"Training set: {len(X_train)} samples")
         print(f"Test set: {len(X_test)} samples")
         
-        # 특징의 척도 조정
+        # 피처의 척도 조정
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
@@ -231,7 +231,7 @@ class Example3_Regression:
     """
     예제: 집값 예측 (회귀)
     
-    문제: 특징으로 집값 예측하기
+    문제: 피처로 집값 예측하기
     """
     
     @staticmethod
@@ -264,7 +264,7 @@ class Example3_Regression:
             X, y, test_size=0.2, random_state=42
         )
         
-        # 특징의 척도 조정
+        # 피처의 척도 조정
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)

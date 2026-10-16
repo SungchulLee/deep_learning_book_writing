@@ -1,13 +1,13 @@
-# Linear 가중치 관례
+# Linear 웨이트 관례
 
-수학식에서 가중치를 어느 쪽에 곱하는지와 PyTorch가 가중치를 저장하는 방향을 구별한다. `nn.Linear`의 입출력 모양을 알면 전치 실수를 줄일 수 있다.
+수학식에서 웨이트를 어느 쪽에 곱하는지와 PyTorch가 웨이트를 저장하는 방향을 구별한다. `nn.Linear`의 입출력 모양을 알면 전치 실수를 줄일 수 있다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 """
-PyTorch nn.Linear의 가중치 관례와 같은 꼴들.
+PyTorch nn.Linear의 웨이트 관례와 같은 꼴들.
 
 핵심:
 - nn.Linear(in_features, out_features)이 담는 것:
@@ -18,10 +18,10 @@ PyTorch nn.Linear의 가중치 관례와 같은 꼴들.
   여기서 x.shape == (batch, in_features), out.shape == (batch, out_features)
 
 We verify:
-- 편향이 있을 때와 없을 때의 꼴과 같음
+- 바이어스가 있을 때와 없을 때의 꼴과 같음
 - weight.T은 보기일 뿐(베끼지 않는다)이며 필요하면 .contiguous()을 쓴다
-- 자동 미분 기울기의 꼴
-- 가중치의 줄을 잘라 보며 "한 줄 = 출력 뉴런 하나"라는 느낌 잡기
+- 자동 미분 그래디언트의 꼴
+- 웨이트의 줄을 잘라 보며 "한 줄 = 출력 뉴런 하나"라는 느낌 잡기
 """
 
 import torch
@@ -74,11 +74,11 @@ def main():
 
     # -------------------------------------------------------------------------
     header("Autograd shapes: grads wrt W and b")
-    # 역전파할 수 있도록 간단한 스칼라 손실
+    # 역전파할 수 있도록 간단한 스칼라 로스
     x_req = x.clone().requires_grad_(True)  # data as leaf (normally requires_grad=False)
     out = F.linear(x_req, W, b)
     loss = out.sum()
-    # 매개변수의 경사 초기화
+    # 파라메터의 경사 초기화
     lin.zero_grad(set_to_none=True)
     loss.backward()
     print("W.grad.shape:", W.grad.shape, "| b.grad.shape:", b.grad.shape)
@@ -86,7 +86,7 @@ def main():
 
     # -------------------------------------------------------------------------
     header("Row = one output neuron (intuition)")
-    # 각 출력 단위 k는 가중치 행 W[k](들어오는 가중치)와 편향 b[k]를 쓴다
+    # 각 출력 단위 k는 웨이트 행 W[k](들어오는 웨이트)와 바이어스 b[k]를 쓴다
     # 예제 하나 x[i]에 대해 output[k] ≈ x[i] @ W[k].T + b[k]
     i, k = 0, 1
     manual_k = x[i] @ W[k].t() + b[k]
@@ -184,9 +184,9 @@ Done
 
 ## 2. 논의
 
-`nn.Linear(in_features, out_features)`의 가중치 모양은 `(out_features, in_features)`다. 입력의 마지막 축이 `in_features`이면 출력의 마지막 축은 `out_features`가 된다.
+`nn.Linear(in_features, out_features)`의 웨이트 모양은 `(out_features, in_features)`다. 입력의 마지막 축이 `in_features`이면 출력의 마지막 축은 `out_features`가 된다.
 
-배치의 표본을 행으로 두면 계산은 $Y=XW^\top+b$다. 한 표본을 열벡터로 적는 수학식 $y=Wx+b$와 같은 연산이며 모순이 아니다. 편향은 각 출력 특징에 하나씩 있으므로 매개변수 수는 $d_{out}d_{in}+d_{out}$이다.
+배치의 표본을 행으로 두면 계산은 $Y=XW^\top+b$다. 한 표본을 열벡터로 적는 수학식 $y=Wx+b$와 같은 연산이며 모순이 아니다. 바이어스는 각 출력 피처에 하나씩 있으므로 파라메터 수는 $d_{out}d_{in}+d_{out}$이다.
 
 ## 연습문제
 
@@ -213,7 +213,7 @@ Done
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-제곱합처럼 저장된 중간값이 필요한 손실에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+제곱합처럼 저장된 중간값이 필요한 로스에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
 
 </div>
 
@@ -226,7 +226,7 @@ Done
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 
@@ -245,4 +245,4 @@ Done
 
 ## 정리하며
 
-수학식에서 가중치를 어느 쪽에 곱하는지와 PyTorch가 가중치를 저장하는 방향을 구별한다. `nn.Linear`의 입출력 모양을 알면 전치 실수를 줄일 수 있다.
+수학식에서 웨이트를 어느 쪽에 곱하는지와 PyTorch가 웨이트를 저장하는 방향을 구별한다. `nn.Linear`의 입출력 모양을 알면 전치 실수를 줄일 수 있다.

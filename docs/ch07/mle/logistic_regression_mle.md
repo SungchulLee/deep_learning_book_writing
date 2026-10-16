@@ -15,11 +15,11 @@
 
 학습 목표:
 - 로지스틱 회귀를 최대가능도로 이해한다
-- 둘 교차 엔트로피 손실과의 이음을 본다
+- 둘 교차 엔트로피 로스과의 이음을 본다
 - PyTorch로 분류를 짠다
 - 시그모이드 함수와 로그 승산을 배운다
 
-문제: 둘 분류 — 특징 x에서 y ∈ {0, 1}을 예측한다
+문제: 둘 분류 — 피처 x에서 y ∈ {0, 1}을 예측한다
 
 모델: P(y=1 | x) = σ(w^T x + b) = 1 / (1 + exp(-(w^T x + b)))
 
@@ -31,7 +31,7 @@ Likelihood: L(w, b) = ∏ P(y_i | x_i, w, b)
 
 로그 가능도: ℓ(w, b) = Σ [y_i log(σ(w^T x_i + b)) + (1-y_i) log(1 - σ(w^T x_i + b))]
 
-이는 둘 교차 엔트로피 손실을 가장 작게 하는 것과 같다!
+이는 둘 교차 엔트로피 로스를 가장 작게 하는 것과 같다!
 
 핵심 통찰: 교차 엔트로피 = 음의 로그 가능도
 
@@ -115,12 +115,12 @@ class LogisticRegressionModel(nn.Module):
 
 
 def train_logistic_regression(X, y, learning_rate=0.1, n_epochs=1000):
-    """MLE(교차 엔트로피 손실)으로 로지스틱 회귀를 학습시킨다"""
+    """MLE(교차 엔트로피 로스)으로 로지스틱 회귀를 학습시킨다"""
     
     input_dim = X.shape[1]
     model = LogisticRegressionModel(input_dim)
     
-    # 손실 함수: 이진 교차 엔트로피 (음의 로그가능도와 같다)
+    # 로스 함수: 이진 교차 엔트로피 (음의 로그가능도와 같다)
     criterion = nn.BCELoss()
     
     # 최적화기
@@ -192,11 +192,11 @@ def visualize_results(X, y, model, history):
     ax1.grid(True, alpha=0.3)
     
     # ================================================================
-    # 그림 2: 손실의 수렴 (로그가능도)
+    # 그림 2: 로스의 수렴 (로그가능도)
     # ================================================================
     ax2 = plt.subplot(2, 3, 2)
     
-    # 손실을 로그가능도로 바꾼다 (loss = -log_lik / n)
+    # 로스를 로그가능도로 바꾼다 (loss = -log_lik / n)
     log_likelihood = [-loss * len(X) for loss in history['loss']]
     
     ax2.plot(log_likelihood, 'b-', linewidth=2)
@@ -344,7 +344,7 @@ def main():
     print(f"   • Final Log-Likelihood: {log_lik.item():.2f}")
     print(f"   • Final Loss (BCE): {history['loss'][-1]:.4f}")
     
-    # 모델 매개변수를 보여준다
+    # 모델 파라메터를 보여준다
     print(f"\n   Model Parameters:")
     print(f"   • Weight w: {model.linear.weight.data.numpy().flatten()}")
     print(f"   • Bias b: {model.linear.bias.data.item():.4f}")
@@ -374,18 +374,18 @@ def main():
    - 분류 테두리를 그림으로 본다
 
 2. 보통: 정칙화한 로지스틱 회귀
-   - L2 정칙화를 더한다: 손실 + λ||w||²
+   - L2 정칙화를 더한다: 로스 + λ||w||²
    - 이는 정규 앞확률을 쓴 최대사후와 같다!
    - 정칙화한 것과 안 한 것을 견준다
 
-3. 어려움: 특징 만들기
-   - 다항 특징을 더한다(x₁², x₁x₂, x₂²)
+3. 어려움: 피처 만들기
+   - 다항 피처를 더한다(x₁², x₁x₂, x₂²)
    - 비선형 분류 테두리를 만든다
-   - 선형 특징과 견준다
+   - 선형 피처와 견준다
 
 4. 어려움: 치우친 클래스
    - 클래스 비가 10:1인 데이터를 만든다
-   - 가중치 실은 손실 함수를 써 본다
+   - 웨이트 실은 로스 함수를 써 본다
    - 정밀도, 재현율, F1으로 평가한다
 
 5. 어려움: 확률로 읽기
@@ -452,15 +452,15 @@ LOGISTIC REGRESSION MLE - Binary Classification
 
 ### 로짓에서 확률로
 
-모델은 $z=x^\top w+b$, $p=\sigma(z)$를 계산한다. 입력 특징이 두 개이므로 가중치 두 개와 편향 하나, 총 세 개의 학습 파라미터가 있다. 출력 확률을 0.5와 비교하면 선형 결정 경계를 얻는다.
+모델은 $z=x^\top w+b$, $p=\sigma(z)$를 계산한다. 입력 피처가 두 개이므로 웨이트 두 개와 바이어스 하나, 총 세 개의 학습 파라미터가 있다. 출력 확률을 0.5와 비교하면 선형 결정 경계를 얻는다.
 
-### 손실과 우도 비교
+### 로스와 우도 비교
 
 코드는 확률 출력에 `BCELoss`를 적용한다. 같은 확률과 감소 방식에서 BCE의 합은 베르누이 음의 로그우도다. 별도 로그우도 함수가 로그 안에 작은 상수를 더하면 원래 우도와 수치적으로 완전히 같은 함수는 아니다. 큰 로짓을 다룰 때는 로짓을 직접 받는 `BCEWithLogitsLoss`가 안정적인 대안이다.
 
 ### 최적해와 평가의 해석
 
-선형 점수의 로지스틱 손실은 파라미터에 대해 볼록하지만, 완전히 선형 분리되는 표본에서는 유한한 비정규화 MLE가 존재하지 않을 수 있다. 정확도가 높아진 뒤에도 가중치 크기가 계속 커질 수 있으므로 분류 정확도만으로 파라미터 수렴을 판단하지 않는다. 예제의 혼동 행렬과 지표는 사용한 학습 데이터의 성능이며 독립 테스트 성능이 아니다.
+선형 점수의 로지스틱 로스는 파라미터에 대해 볼록하지만, 완전히 선형 분리되는 표본에서는 유한한 비정규화 MLE가 존재하지 않을 수 있다. 정확도가 높아진 뒤에도 웨이트 크기가 계속 커질 수 있으므로 분류 정확도만으로 파라미터 수렴을 판단하지 않는다. 예제의 혼동 행렬과 지표는 사용한 학습 데이터의 성능이며 독립 테스트 성능이 아니다.
 
 ## 연습문제
 
@@ -472,7 +472,7 @@ LOGISTIC REGRESSION MLE - Binary Classification
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 특징 두 개에서 출력 하나를 만드는 선형 계층이므로 가중치 2개와 편향 1개, 총 3개다. 시그모이드에는 학습 파라미터가 없다.
+    입력 피처 두 개에서 출력 하나를 만드는 선형 계층이므로 웨이트 2개와 바이어스 1개, 총 3개다. 시그모이드에는 학습 파라미터가 없다.
 
 ---
 
@@ -484,7 +484,7 @@ LOGISTIC REGRESSION MLE - Binary Classification
 </div>
 
 ??? success "연습문제 2 풀이"
-    같은 초기 가중치와 데이터 분할, 배치 순서, 평가 기준을 사용한다. 각 옵티마이저에 적합한 학습률을 탐색하고 여러 시드의 변동도 비교한다. Adam이 항상 빠르거나 일반화가 더 좋다고 미리 결론내리지 않는다.
+    같은 초기 웨이트와 데이터 분할, 배치 순서, 평가 기준을 사용한다. 각 옵티마이저에 적합한 러닝레이트를 탐색하고 여러 시드의 변동도 비교한다. Adam이 항상 빠르거나 일반화가 더 좋다고 미리 결론내리지 않는다.
 
 ---
 
@@ -496,25 +496,25 @@ LOGISTIC REGRESSION MLE - Binary Classification
 </div>
 
 ??? success "연습문제 3 풀이"
-    완전 분리에서는 정확도가 같아도 유한한 MLE 없이 가중치가 계속 커질 수 있다. 불균형에서는 다수 클래스만 예측해도 정확도가 높을 수 있다. 가중치 노름과 손실, 정밀도·재현율과 별도 검증 성능을 함께 확인한다.
+    완전 분리에서는 정확도가 같아도 유한한 MLE 없이 웨이트가 계속 커질 수 있다. 불균형에서는 다수 클래스만 예측해도 정확도가 높을 수 있다. 웨이트 노름과 로스, 정밀도·재현율과 별도 검증 성능을 함께 확인한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층이나 블록의 개수를 설정할 수 있도록 `LogisticRegressionModel`를 확장하라. `__init__`에 `num_layers` 매개변수를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 층 2개, 4개, 8개로 시험하라.
+레이어나 블록의 개수를 설정할 수 있도록 `LogisticRegressionModel`를 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    고정되어 있던 층들을 다음으로 바꾼다.
+    고정되어 있던 레이어들을 다음으로 바꾼다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 매개변수를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = LogisticRegressionModel(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 파라메터를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = LogisticRegressionModel(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 

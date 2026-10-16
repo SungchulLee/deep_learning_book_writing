@@ -9,7 +9,7 @@
 이 절을 마치면 다음을 할 수 있게 된다.
 
 - 로지스틱 회귀에 정규화가 왜 필요한지 이해하기
-- 정규화된 손실 함수(L2, L1, 엘라스틱 넷)와 그 경사 유도하기
+- 정규화된 로스 함수(L2, L1, 엘라스틱 넷)와 그 경사 유도하기
 - 정규화의 기하학적 해석과 베이즈적 해석 설명하기
 - PyTorch로 실전에 쓸 수 있는 완전한 로지스틱 회귀 파이프라인 구현하기
 - 정규화된 로지스틱 회귀를 실제 데이터셋에 적용하고 제대로 평가하기
@@ -20,7 +20,7 @@
 
 ### 완전 분리 문제
 
-학습 데이터가 **선형 분리 가능**하면 로지스틱 회귀의 최대가능도 추정값이 존재하지 않는다. 모델이 예측을 더 확신에 차게 만들어 언제나 우도를 높일 수 있으므로 최적 매개변수가 $\|\boldsymbol{\beta}\| \to \infty$으로 발산한다.
+학습 데이터가 **선형 분리 가능**하면 로지스틱 회귀의 최대가능도 추정값이 존재하지 않는다. 모델이 예측을 더 확신에 차게 만들어 언제나 우도를 높일 수 있으므로 최적 파라메터가 $\|\boldsymbol{\beta}\| \to \infty$으로 발산한다.
 
 수학적으로, ($y_i \in \{-1, +1\}$ 부호화를 쓸 때) 모든 $i$에 대해 $y_i(\mathbf{x}_i^\top \boldsymbol{\beta}^*) > 0$인 $\boldsymbol{\beta}^*$이 존재한다면, $c \to \infty$으로 $\boldsymbol{\beta}^* \to c\boldsymbol{\beta}^*$처럼 배율을 키울 때 모든 예측이 확실성 쪽으로 몰리고 로그우도가 (상한인) 0에 다가가지만 결코 도달하지는 못한다.
 
@@ -28,8 +28,8 @@
 
 완전 분리가 아니어도 다음 경우에 로지스틱 회귀는 과적합할 수 있다.
 
-- 특징의 수 $d$이 $n$에 비해 클 때
-- 특징들이 강하게 상관되어 있을 때 (다중공선성)
+- 피처의 수 $d$이 $n$에 비해 클 때
+- 피처들이 강하게 상관되어 있을 때 (다중공선성)
 - 모델이 학습 데이터의 잡음을 외울 때
 
 정규화는 $\|\boldsymbol{\beta}\|$을 제약하여 지나치게 확신에 찬 예측을 막고 일반화를 개선한다.
@@ -40,7 +40,7 @@
 
 ### 정규화된 목적 함수
 
-L2 정규화는 가중치의 L2 노름 제곱에 패널티를 더한다.
+L2 정규화는 웨이트의 L2 노름 제곱에 패널티를 더한다.
 
 $$
 \mathcal{L}_{\text{ridge}}(\boldsymbol{\beta}) = -\frac{1}{n}\sum_{i=1}^{n} \left[ y_i \log p_i + (1-y_i) \log(1-p_i) \right] + \frac{\lambda}{2}\|\boldsymbol{\beta}_{1:d}\|_2^2
@@ -58,11 +58,11 @@ $$
 
 ### 결정 경계에 미치는 영향
 
-L2는 가중치 크기를 제어해 과도한 확신을 줄이는 데 도움이 될 수 있다. 그러나 파라미터 방향과 절편도 변하므로 모든 확률이 일률적으로 0.5에 가까워지거나 보정이 반드시 개선되는 것은 아니다. 검증 데이터에서 확인한다.
+L2는 웨이트 크기를 제어해 과도한 확신을 줄이는 데 도움이 될 수 있다. 그러나 파라미터 방향과 절편도 변하므로 모든 확률이 일률적으로 0.5에 가까워지거나 보정이 반드시 개선되는 것은 아니다. 검증 데이터에서 확인한다.
 
 ### 베이즈적 해석
 
-L2 정규화는 가중치에 **가우스 사전분포**를 주는 것과 같다.
+L2 정규화는 웨이트에 **가우스 사전분포**를 주는 것과 같다.
 
 $$
 \boldsymbol{\beta} \sim \mathcal{N}(\mathbf{0}, \sigma_\beta^2 \mathbf{I}), \quad \text{where } \lambda = \frac{1}{n\sigma_\beta^2}
@@ -74,7 +74,7 @@ $$
 \boldsymbol{\beta}_{\text{MAP}} = \arg\max_{\boldsymbol{\beta}} \left[ \log P(\mathcal{D}|\boldsymbol{\beta}) + \log P(\boldsymbol{\beta}) \right]
 $$
 
-앞의 목적은 평균 BCE이므로 고정 사전분포와 연결할 때 로그 사전 항도 $n$으로 나눈다. 절편을 제외한 가중치 $w$의 로그 사전은 $-\|w\|^2/(2\sigma_\beta^2)+C$이며, 평균 목적의 L2 계수는 $\lambda=1/(n\sigma_\beta^2)$다.
+앞의 목적은 평균 BCE이므로 고정 사전분포와 연결할 때 로그 사전 항도 $n$으로 나눈다. 절편을 제외한 웨이트 $w$의 로그 사전은 $-\|w\|^2/(2\sigma_\beta^2)+C$이며, 평균 목적의 L2 계수는 $\lambda=1/(n\sigma_\beta^2)$다.
 
 ---
 
@@ -90,13 +90,13 @@ $$
 
 ### 희소성을 유도하는 성질
 
-L2와의 핵심 차이는 L1 정규화가 **희소한** 해를 낸다는 점이다. 많은 계수가 정확히 0으로 밀려난다. 그래서 L1 정규화는 일종의 **자동 특징 선택**이 된다.
+L2와의 핵심 차이는 L1 정규화가 **희소한** 해를 낸다는 점이다. 많은 계수가 정확히 0으로 밀려난다. 그래서 L1 정규화는 일종의 **자동 피처 선택**이 된다.
 
-기하학적으로 L1 제약 집합 $\|\boldsymbol{\beta}\|_1 \leq t$은 마름모(교차다포체)이다. 손실 등고선은 좌표 하나 이상이 정확히 0인 꼭짓점에서 이 마름모와 만날 가능성이 더 높다.
+기하학적으로 L1 제약 집합 $\|\boldsymbol{\beta}\|_1 \leq t$은 마름모(교차다포체)이다. 로스 등고선은 좌표 하나 이상이 정확히 0인 꼭짓점에서 이 마름모와 만날 가능성이 더 높다.
 
 ### 베이즈적 해석
 
-L1 정규화는 가중치에 대한 **라플라스 사전분포**에 대응한다.
+L1 정규화는 웨이트에 대한 **라플라스 사전분포**에 대응한다.
 
 $$
 P(\beta_j) = \frac{\lambda}{2}\exp(-\lambda|\beta_j|)
@@ -116,7 +116,7 @@ $$
 \mathcal{L}_{\text{elastic}}(\boldsymbol{\beta}) = \text{BCE} + \lambda_1 \|\boldsymbol{\beta}_{1:d}\|_1 + \frac{\lambda_2}{2}\|\boldsymbol{\beta}_{1:d}\|_2^2
 $$
 
-또는 동등하게, 혼합 매개변수 $\alpha \in [0, 1]$을 써서 다음과 같이 쓴다.
+또는 동등하게, 혼합 파라메터 $\alpha \in [0, 1]$을 써서 다음과 같이 쓴다.
 
 $$
 \mathcal{L}_{\text{elastic}}(\boldsymbol{\beta}) = \text{BCE} + \lambda \left[\alpha \|\boldsymbol{\beta}_{1:d}\|_1 + \frac{1-\alpha}{2}\|\boldsymbol{\beta}_{1:d}\|_2^2\right]
@@ -126,9 +126,9 @@ $$
 
 | 방법 | 쓰는 때 |
 |--------|-------------|
-| L2 (릿지) | 적당히 중요한 특징이 많을 때, 상관된 특징이 있을 때 |
-| L1 (라쏘) | 정말 중요한 특징이 적을 때, 특징 선택이 필요할 때 |
-| 엘라스틱 넷 | 상관된 특징이 있으면서 희소성도 필요할 때, 상관된 특징의 무리가 있을 때 |
+| L2 (릿지) | 적당히 중요한 피처가 많을 때, 상관된 피처가 있을 때 |
+| L1 (라쏘) | 정말 중요한 피처가 적을 때, 피처 선택이 필요할 때 |
+| 엘라스틱 넷 | 상관된 피처가 있으면서 희소성도 필요할 때, 상관된 피처의 무리가 있을 때 |
 
 ### 정규화 요약
 
@@ -144,10 +144,10 @@ $$
 
 ```python
 """
-정칙화한 로지스틱 회귀 — 온전한 짜보기
+정칙화한 로지스틱 회귀 — 온전한 구현
 ==========================================================
 
-참으로 굴릴 수 있는 짜보기이며 다음을 다룬다.
+참으로 굴릴 수 있는 구현이며 다음을 다룬다.
 - weight_decay로 하는 L2 정칙화
 - 직접 벌을 주는 L1 정칙화
 - 엘라스틱넷 정칙화
@@ -191,7 +191,7 @@ class BinaryClassificationDataset(Dataset):
     표준화를 비롯한 데이터 미리 다듬기를 다룬다.
 
     Args:
-        X: 모양이 (n_samples, n_features)인 특징 행렬
+        X: 모양이 (n_samples, n_features)인 피처 행렬
         y: 모양이 (n_samples,)이고 값이 {0, 1}인 레이블
         scaler: 미리 맞춘 StandardScaler(골라 쓴다)
         fit_scaler: 스케일러를 맞출지 여부(학습 데이터에는 True)
@@ -233,7 +233,7 @@ def prepare_data(
     batch_size: int = 32,
     random_state: int = 42,
 ) -> Dict:
-    """층화 분할로 학습/검증/시험 DataLoader를 준비한다."""
+    """레이어화 분할로 학습/검증/시험 DataLoader를 준비한다."""
     X_temp, X_test, y_temp, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y
     )
@@ -280,7 +280,7 @@ class LogisticRegression(nn.Module):
     forward() 대신 logits()을 불러라.
 
     Args:
-        n_features: 입력 특징의 수
+        n_features: 입력 피처의 수
     """
 
     def __init__(self, n_features: int):
@@ -304,11 +304,11 @@ class LogisticRegression(nn.Module):
             return (self.forward(x) >= threshold).float()
 
     def l1_penalty(self) -> torch.Tensor:
-        """가중치에 대한 L1 벌점을 계산한다 (편향은 제외)."""
+        """웨이트에 대한 L1 벌점을 계산한다 (바이어스는 제외)."""
         return self.linear.weight.abs().sum()
 
     def l2_penalty(self) -> torch.Tensor:
-        """가중치에 대한 L2 벌점을 계산한다 (편향은 제외)."""
+        """웨이트에 대한 L2 벌점을 계산한다 (바이어스는 제외)."""
         return (self.linear.weight ** 2).sum()
 
 # ============================================================================
@@ -330,7 +330,7 @@ def train_model(
     L1/L2 정칙화를 골라 쓰며 로지스틱 회귀를 익힌다.
 
     L2 정칙화는 최적화기의 weight_decay로 건다.
-    L1 정칙화는 손실에 직접 벌 마디를 더해 건다.
+    L1 정칙화는 로스에 직접 벌 마디를 더해 건다.
     엘라스틱넷을 쓰려면 l1_lambda > 0과 l2_lambda > 0을 함께 둔다.
 
     Args:
@@ -338,7 +338,7 @@ def train_model(
         train_loader: 학습 DataLoader
         val_loader: 검증 DataLoader
         num_epochs: 가장 많은 학습 에폭 수
-        learning_rate: 학습률
+        learning_rate: 러닝레이트
         l1_lambda: L1 정칙화 세기
         l2_lambda: L2 정칙화 세기(weight_decay)
         patience: 조기 종료 참을성
@@ -523,7 +523,7 @@ for cfg in configs:
     metrics = evaluate_model(model, data_dict["test_loader"])
     print_evaluation_report(metrics)
 
-    # 가중치 통계량을 저장한다
+    # 웨이트 통계량을 저장한다
     weights = model.linear.weight.data.numpy().flatten()
     results[cfg["name"]] = {
         "metrics": metrics,
@@ -598,7 +598,7 @@ ax.set_title("Validation Loss Across Regularization Types")
 ax.legend(fontsize=8)
 ax.grid(True, alpha=0.3)
 
-# 그림 2: 가중치 분포
+# 그림 2: 웨이트 분포
 ax = axes[0, 1]
 for i, (name, r) in enumerate(results.items()):
     ax.hist(r["weights"], bins=20, alpha=0.5, label=name)
@@ -609,7 +609,7 @@ ax.set_title("Weight Distributions by Regularization")
 ax.legend(fontsize=8)
 ax.grid(True, alpha=0.3)
 
-# 그림 3: λ 조율 — AUC와 가중치 노름
+# 그림 3: λ 조율 — AUC와 웨이트 노름
 ax = axes[1, 0]
 lam_vals = [r["lambda"] for r in tuning_results]
 aucs = [r["test_auc"] for r in tuning_results]
@@ -627,7 +627,7 @@ ax2.set_ylabel("Weight Norm ||β||₂", color="r")
 ax2.tick_params(axis="y", labelcolor="r")
 ax.set_title("Effect of L2 Regularization Strength")
 
-# 그림 4: 희소성 비교를 위해 정렬한 가중치 절댓값
+# 그림 4: 희소성 비교를 위해 정렬한 웨이트 절댓값
 ax = axes[1, 1]
 for name, r in results.items():
     sorted_abs = np.sort(np.abs(r["weights"]))[::-1]
@@ -752,9 +752,9 @@ print("\n✓ Results visualization saved!")
 | 사례 | 이유 |
 |----------|--------|
 | `DataLoader` 사용 | 효율적인 배치 묶기, 뒤섞기, 다중 처리 |
-| 특징 표준화 | 더 빠른 수렴, 특정 특징의 지배 방지 |
-| 층화 분할 | 클래스 분포를 보존한다 |
-| 세 갈래 분할 | 학습·선택·최종 평가의 역할을 분리한다 |
+| 피처 표준화 | 더 빠른 수렴, 특정 피처의 지배 방지 |
+| 레이어화 분할 | 클래스 분포를 보존한다 |
+| 세 클래스 분할 | 학습·선택·최종 평가의 역할을 분리한다 |
 
 ### 모델 설계
 
@@ -762,7 +762,7 @@ print("\n✓ Results visualization saved!")
 |----------|--------|
 | `nn.Module` 하위 클래스 | 깔끔하고 재사용 가능하며 PyTorch 생태계와 잘 맞는다 |
 | `BCEWithLogitsLoss` | 수치적 안정성 |
-| Xavier 초기화 | 학습의 움직임에 도움이 된다 |
+| Xavier 초기화 | 학습의 액션에 도움이 된다 |
 
 ### 학습
 
@@ -779,7 +779,7 @@ print("\n✓ Results visualization saved!")
 |----------|--------|
 | 여러 지표 | 불균형 데이터에서는 정확도만으로는 부족하다 |
 | 혼동 행렬 | 오류의 종류를 파악한다 |
-| AUC-ROC | 문턱값과 무관한 성능 척도 |
+| AUC-ROC | 임계값과 무관한 성능 척도 |
 
 ---
 
@@ -869,12 +869,12 @@ L1 정규화의 근접 연산자(소프트 임곗값 처리)를 유도하고 그
 
 | 개념 | 공식 | 핵심 통찰 |
 |---------|---------|-------------|
-| L2 패널티 | $\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2$ | 모든 가중치를 줄인다; 가우스 사전분포 |
+| L2 패널티 | $\frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2$ | 모든 웨이트를 줄인다; 가우스 사전분포 |
 | L1 패널티 | $\lambda\|\boldsymbol{\beta}\|_1$ | 희소성을 만든다; 라플라스 사전분포 |
 | 엘라스틱 넷 | $\lambda[\alpha\|\boldsymbol{\beta}\|_1 + \frac{1-\alpha}{2}\|\boldsymbol{\beta}\|_2^2]$ | 무리 짓기 + 희소성 |
-| L2 경사 | $\lambda\boldsymbol{\beta}$ | 가중치 감쇠 |
+| L2 경사 | $\lambda\boldsymbol{\beta}$ | 웨이트 감쇠 |
 | L1 부분경사 | $\lambda\operatorname{sign}(\boldsymbol{\beta})$ | 0 쪽으로 일정하게 민다 |
 | PyTorch의 L2 | 옵티마이저의 `weight_decay` | 내장되어 있고 효율적이다 |
-| PyTorch의 L1 | 손실에 패널티를 직접 더한다 | 명시적으로 추가해야 한다 |
+| PyTorch의 L1 | 로스에 패널티를 직접 더한다 | 명시적으로 추가해야 한다 |
 
 정규화의 의미는 패널티 대상, 합·평균 배율과 수치 알고리즘에 달려 있다. 유한한 패널티 해의 존재, 희소성, 일반화와 최적화 수렴은 각각의 조건을 확인해야 한다.

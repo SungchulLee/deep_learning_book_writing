@@ -10,8 +10,8 @@
 """
 35.4.2장: 내림폭 다스리기
 ==================================
-자리 크기 잣대기, 회로 차단기, 매인 방침 가장 좋게 하기를
-곁들인, 내림폭을 살피는 힘 북돋우는 배움.
+자리 크기 잣대기, 회로 차단기, 매인 폴리시 가장 좋게 하기를
+곁들인, 내림폭을 살피는 힘 북돋우는 러닝.
 """
 
 import numpy as np
@@ -123,7 +123,7 @@ class CircuitBreaker:
 
 
 class DrawdownConstrainedPolicy(nn.Module):
-    """내림폭 상태를 덧붙인 방침 그물."""
+    """내림폭 상태를 덧붙인 폴리시 넷트웍."""
 
     def __init__(self, base_state_dim: int, num_assets: int, hidden_dim: int = 128):
         super().__init__()
@@ -149,7 +149,7 @@ class DrawdownConstrainedPolicy(nn.Module):
 
 
 class DrawdownRewardWrapper:
-    """바탕 보상에 내림폭 벌을 더하는 감싸개."""
+    """바탕 리워드에 내림폭 벌을 더하는 감싸개."""
 
     def __init__(self, config: DrawdownConfig):
         self.config = config
@@ -165,7 +165,7 @@ class DrawdownRewardWrapper:
         dd_info = self.tracker.update(portfolio_value)
         dd = dd_info["drawdown"]
 
-        # 문턱을 넘어선 몫에 제곱 벌
+        # 임계를 넘어선 몫에 제곱 벌
         penalty = 0.0
         if dd > self.config.warning_threshold:
             excess = dd - self.config.warning_threshold
@@ -229,7 +229,7 @@ def demo_drawdown_control():
         scale = scaler.compute_scale(dd)
         print(f"  DD={dd*100:5.1f}% -> scale={scale:.3f}")
 
-    # 방침 그물
+    # 폴리시 넷트웍
     print("\n--- Drawdown-Constrained Policy ---")
     policy = DrawdownConstrainedPolicy(base_state_dim=20, num_assets=5)
     params = sum(p.numel() for p in policy.parameters())
@@ -464,28 +464,28 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 위험 다루기 구조를 함께 이룬다. 갈래마다 남다른 조각을 감싸므로 코드가 조각조각 나뉘어 늘리기 쉽다. `forward` 방법이 파이토치가 저절로 미분할 때 쓰는 계산 그래프를 정한다.
+이 짜기는 클래스 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 위험 다루기 구조를 함께 이룬다. 클래스마다 남다른 조각을 감싸므로 코드가 조각조각 나뉘어 늘리기 쉽다. `forward` 방법이 파이토치가 저절로 미분할 때 쓰는 계산 그래프를 정한다.
 
-여기서 보인 결은 더 얽힌 자리로 자연스럽게 넓어진다. 매개변수와 구조 갈래와 데이터셋을 바꿔 가며 해 보면 이해가 깊어지고 계량 금융 과제에 대한 실제 감이 쌓인다.
+여기서 보인 결은 더 얽힌 자리로 자연스럽게 넓어진다. 파라메터와 구조 클래스와 데이터셋을 바꿔 가며 해 보면 이해가 깊어지고 계량 금융 과제에 대한 실제 감이 쌓인다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫 값으로 만든 `DrawdownConfig`에서 배우는 매개변수의 온 개수를 계산하여라. 무게와 편향을 모두 넣어 켜마다 나누어 적어라.
+기본 첫 값으로 만든 `DrawdownConfig`에서 배우는 파라메터의 온 개수를 계산하여라. 무게와 바이어스를 모두 넣어 켜마다 나누어 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)`마다 무게 매개변수가 `in_features * out_features`개, 편향 매개변수가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 무게가 `in_c * out_c * k * k`개, 편향이 `out_c`개다. `nn.Embedding(num, dim)`은 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
+    `nn.Linear(in_features, out_features)`마다 무게 파라메터가 `in_features * out_features`개, 바이어스 파라메터가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 무게가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-으뜸 함수나 갈래에 입력이 바라는 꼴과 자료형인지 살피는 검사를 더하라. 옳지 않은 입력에는 알기 쉬운 잘못 알림을 내어라.
+으뜸 함수나 클래스에 입력이 바라는 꼴과 자료형인지 살피는 검사를 더하라. 옳지 않은 입력에는 알기 쉬운 잘못 알림을 내어라.
 
 </div>
 
@@ -502,14 +502,14 @@ if __name__ == "__main__":
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔한 어그러짐은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 노름을 지켜보아(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기) 짚어 낸다. 기울기 자르기, 더 나은 첫 값 매기기(자비에/카이밍), 구조 바꾸기(남는 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 손실은 줄어드는데 살피기 손실이 늘면 짚어 낸다. 정규화(드롭아웃, 무게 삭임, 데이터 늘리기)나 모델 그릇 줄이기로 고친다. 학습 재기와 살피기 재기를 늘 함께 지켜보아 이런 걸림돌을 일찍 잡아야 한다.
+    흔한 어그러짐은 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 노름을 지켜보아(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기) 짚어 낸다. 그래디언트 자르기, 더 나은 첫 값 매기기(자비에/카이밍), 구조 바꾸기(남는 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 살피기 로스가 늘면 짚어 낸다. 정규화(드롭아웃, 무게 삭임, 데이터 늘리기)나 모델 그릇 줄이기로 고친다. 학습 재기와 살피기 재기를 늘 함께 지켜보아 이런 걸림돌을 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`DrawdownConfig`을 켜나 덩이의 개수를 마음대로 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이가 들쭉날쭉한 구조를 만들어라. 켜 2, 4, 8개로 시험해 보라.
+`DrawdownConfig`을 켜나 덩이의 개수를 마음대로 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 파라메터를 더하고 `nn.ModuleList`으로 깊이가 들쭉날쭉한 구조를 만들어라. 켜 2, 4, 8개로 시험해 보라.
 
 </div>
 
@@ -520,12 +520,12 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 되돌이한다. `for layer in self.layers: x = layer(x)`. (그냥 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 파이토치가 온 매개변수를 최적화에 등록한다. 시험: `for n in [2, 4, 8]: model = DrawdownConfig(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 방법에서 회귀한다. `for layer in self.layers: x = layer(x)`. (그냥 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 파이토치가 온 파라메터를 최적화에 등록한다. 시험: `for n in [2, 4, 8]: model = DrawdownConfig(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 
 **다룬 것** — 낙폭
 
-이 짜기는 갈래 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 위험 다루기 구조를 함께 이룬다.
+이 짜기는 클래스 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 위험 다루기 구조를 함께 이룬다.
 
-핵심 갈래는 `DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

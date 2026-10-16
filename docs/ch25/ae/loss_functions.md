@@ -1,22 +1,22 @@
-# 오토인코더의 손실 함수
+# 오토인코더의 로스 함수
 
-오토인코더의 손실은 복원에서 무엇을 정확히 맞출지와 코드에 어떤 제약을 줄지를 정한다. MSE·BCE·MAE는 서로 다른 복원 목표이며, 희소성·수축·디노이징은 추가 학습 제약이다. 손실 이름만으로 표현의 의미·일반화·생성 품질이 보장되지는 않는다.
+오토인코더의 로스는 복원에서 무엇을 정확히 맞출지와 코드에 어떤 제약을 줄지를 정한다. MSE·BCE·MAE는 서로 다른 복원 목표이며, 희소성·수축·디노이징은 추가 학습 제약이다. 로스 이름만으로 표현의 의미·일반화·생성 품질이 보장되지는 않는다.
 
-## 1. 재구성 손실과 평균 축
+## 1. 재구성 로스와 평균 축
 
-배치 B개와 특징 d개에 대해 원소별 MSE는 Σ_{i,j}(x_ij−x̂_ij)²/(Bd)다. 표본별 제곱 거리 평균은 분모가 B라 d배 크다. `reduction='sum'`은 두 축을 모두 더하므로 기본 `mean`과는 **Bd배** 차이다. 같은 배치에서 순수 SGD만 비교하면 손실 상수배를 학습률로 상쇄할 수 있지만 Adam·클리핑·다른 패널티까지 포함하면 단순한 학습률 등가가 일반적으로 성립하지 않는다.
+배치 B개와 피처 d개에 대해 원소별 MSE는 Σ_{i,j}(x_ij−x̂_ij)²/(Bd)다. 표본별 제곱 거리 평균은 분모가 B라 d배 크다. `reduction='sum'`은 두 축을 모두 더하므로 기본 `mean`과는 **Bd배** 차이다. 같은 배치에서 순수 SGD만 비교하면 로스 상수배를 러닝레이트로 상쇄할 수 있지만 Adam·클리핑·다른 패널티까지 포함하면 단순한 러닝레이트 등가가 일반적으로 성립하지 않는다.
 
-| 손실 | 원소별 형태 | 해석과 조건 |
+| 로스 | 원소별 형태 | 해석과 조건 |
 |---|---|---|
 | MSE | (x−x̂)² | 큰 오차에 이차 벌점, 이상적 복원은 조건부 평균 |
 | MAE/L1 | 절댓값 오차 | 선형 벌점, 이상적 복원은 조건부 중앙값 |
 | BCE | −x log p−(1−x)log(1−p) | p와 소프트 표적 x가 [0,1], 이진 관측에서는 베르누이 음의 로그우도 |
 
-MSE는 고정 분산 가우시안 관측, MAE는 고정 스케일 라플라스 관측으로 확률적으로 해석할 수 있다. 손실을 사용하려면 실제 데이터가 반드시 그 잡음 모형이어야 한다는 뜻은 아니다. BCE 확률에는 Sigmoid 같은 범위 제한이 필요하지만 `BCEWithLogitsLoss`는 로짓을 직접 받아 수치적으로 안정된 결합을 수행한다.
+MSE는 고정 분산 가우시안 관측, MAE는 고정 스케일 라플라스 관측으로 확률적으로 해석할 수 있다. 로스를 사용하려면 실제 데이터가 반드시 그 잡음 모형이어야 한다는 뜻은 아니다. BCE 확률에는 Sigmoid 같은 범위 제한이 필요하지만 `BCEWithLogitsLoss`는 로짓을 직접 받아 수치적으로 안정된 결합을 수행한다.
 
 회색 픽셀이 [0,1]이라는 이유만으로 실제 베르누이 관측이 되는 것은 아니다. BCE와 MSE의 조건부 최적 출력이 같은 평균이 될 수 있어 “BCE는 항상 선명하고 MSE는 항상 흐리다”는 구분은 맞지 않는다. MSE의 출력 미분은 2(p−x)로 일정하지 않고 MAE는 0이 아닌 잔차에서 부호에 따라 일정하다. BCE의 로짓 미분은 p−x다.
 
-## 2. 손실·병목 비교 코드 읽기
+## 2. 로스·병목 비교 코드 읽기
 
 ```python
 import torch
@@ -62,7 +62,7 @@ class AutoencoderWithAnalysis(nn.Module):
         return self.decode(z), z
 
 def compare_loss_functions(model_class, train_loader, test_loader, device):
-    """여러 다시 세우기 손실 함수를 견준다."""
+    """여러 다시 세우기 로스 함수를 견준다."""
     
     losses = {
         'MSE': nn.MSELoss(),
@@ -110,7 +110,7 @@ def compare_loss_functions(model_class, train_loader, test_loader, device):
     return results
 ```
 
-`compare_loss_functions`는 각 목적에 새 무작위 모델을 만들고 10에포크 학습한 뒤 테스트 로더 첫 배치의 **처음 열 장**을 복원한다. 테스트 전체 MSE·MAE를 계산하지 않는다. 각 목적의 학습 손실값 자체를 직접 순위화할 수 없고 초기값도 다르다. `train_loader`, `test_loader`와 장치를 준비해 호출해야 실제 실행된다.
+`compare_loss_functions`는 각 목적에 새 무작위 모델을 만들고 10에포크 학습한 뒤 테스트 로더 첫 배치의 **처음 열 장**을 복원한다. 테스트 전체 MSE·MAE를 계산하지 않는다. 각 목적의 학습 로스값 자체를 직접 순위화할 수 없고 초기값도 다르다. `train_loader`, `test_loader`와 장치를 준비해 호출해야 실제 실행된다.
 
 ```python
 def find_optimal_latent_dim(train_loader, test_loader, device, 
@@ -151,24 +151,24 @@ def find_optimal_latent_dim(train_loader, test_loader, device,
     return results
 ```
 
-`find_optimal_latent_dim`은 차원별 MSE 학습·평가를 제공하지만 배치별 평균 손실을 단순 평균한다. 마지막 배치 크기가 다르면 전체 픽셀 가중 MSE와 다르다. 차원을 고르는 데 사용한 데이터를 이름만 테스트로 두어도 독립 최종 테스트가 되지는 않는다. 검증 데이터에서 선택하고 최종 보류 구간을 따로 평가한다.
+`find_optimal_latent_dim`은 차원별 MSE 학습·평가를 제공하지만 배치별 평균 로스를 단순 평균한다. 마지막 배치 크기가 다르면 전체 픽셀 가중 MSE와 다르다. 차원을 고르는 데 사용한 데이터를 이름만 테스트로 두어도 독립 최종 테스트가 되지는 않는다. 검증 데이터에서 선택하고 최종 보류 구간을 따로 평가한다.
 
 ## 3. 희소성: 작은 값과 낮은 활성 빈도
 
-활성화 h의 L1 패널티는 절댓값의 합 또는 평균을 줄인다. 정확한 0의 개수 제한이나 의미 있는 특징 분리를 강제하는 것은 아니다. 비정규화 디코더가 코드 축소를 큰 가중치로 보상할 수도 있어 가중치 크기·구조와 함께 해석한다.
+활성화 h의 L1 패널티는 절댓값의 합 또는 평균을 줄인다. 정확한 0의 개수 제한이나 의미 있는 피처 분리를 강제하는 것은 아니다. 비정규화 디코더가 코드 축소를 큰 웨이트로 리워드할 수도 있어 웨이트 크기·구조와 함께 해석한다.
 
 베르누이 KL 희소성은 0<ρ<1과 평균 활성화 ρ̂_j에 다음 패널티를 사용한다.
 
 $$\Omega_{KL}=\sum_j\left[\rho\log\frac\rho{\hat\rho_j}+(1-\rho)\log\frac{1-\rho}{1-\hat\rho_j}\right].$$
 
-ρ̂_j는 [0,1] 범위의 활성화를 평균한 값이어야 한다. 예를 들어 Sigmoid 코드에서 사용할 수 있지만 Sigmoid만이 유일한 방법은 아니다. 평균 활성화 0.05가 정확히 5%의 표본에서만 켜짐을 뜻하지 않는다. 모든 표본에서 0.05여도 같은 평균이다. 목표와의 KL 최소화도 전체 재구성 손실과의 절충 때문에 정확히 달성되거나 죽은 단위가 사라진다고 보장할 수 없다.
+ρ̂_j는 [0,1] 범위의 활성화를 평균한 값이어야 한다. 예를 들어 Sigmoid 코드에서 사용할 수 있지만 Sigmoid만이 유일한 방법은 아니다. 평균 활성화 0.05가 정확히 5%의 표본에서만 켜짐을 뜻하지 않는다. 모든 표본에서 0.05여도 같은 평균이다. 목표와의 KL 최소화도 전체 재구성 로스과의 절충 때문에 정확히 달성되거나 죽은 단위가 사라진다고 보장할 수 없다.
 
 ```python
 class SparseAutoencoder_L1(nn.Module):
     """
     숨은 활성화에 L1 벌주기를 쓴 성긴 오토인코더.
     
-    손실 = 다시 세우기 손실 + λ × L1(숨은 활성화)
+    로스 = 다시 세우기 로스 + λ × L1(숨은 활성화)
     
     L1 벌주기가 숨은 활성화 여럿을 딱 0이 되도록 이끈다.
     """
@@ -214,7 +214,7 @@ class SparseAutoencoder_KL(nn.Module):
     """
     KL 벌어짐 성김 제약을 쓴 성긴 오토인코더.
     
-    신경 세포마다의 평균 활성화가 목표 성김 수준 ρ(예컨대 0.05)에
+    뉴런마다의 평균 활성화가 목표 성김 수준 ρ(예컨대 0.05)에
     가깝도록 옭아맨다.
     """
     
@@ -249,20 +249,20 @@ def kl_divergence_loss(latent: torch.Tensor, rho: float = 0.05) -> torch.Tensor:
     """
     KL 벌어짐 성김 벌주기를 셈한다.
     
-    신경 세포 j마다 평균 활성화가 ρ̂ⱼ ≈ ρ이기를 바란다.
+    뉴런 j마다 평균 활성화가 ρ̂ⱼ ≈ ρ이기를 바란다.
     
     KL(ρ || ρ̂ⱼ) = ρ log(ρ/ρ̂ⱼ) + (1-ρ) log((1-ρ)/(1-ρ̂ⱼ))
     
     ρ̂ⱼ = ρ일 때 가장 작다.
     """
-    # 배치에 걸친 신경 세포마다의 평균 활성화
+    # 배치에 걸친 뉴런마다의 평균 활성화
     rho_hat = torch.mean(latent, dim=0)
     
     # log(0)을 피한다
     eps = 1e-8
     rho_hat = torch.clamp(rho_hat, eps, 1 - eps)
     
-    # 신경 세포마다의 KL 벌어짐
+    # 뉴런마다의 KL 벌어짐
     kl = rho * torch.log(rho / rho_hat) + \
          (1 - rho) * torch.log((1 - rho) / (1 - rho_hat))
     
@@ -275,7 +275,7 @@ def train_sparse_autoencoder(
     """
     성긴 오토인코더를 한 바퀴 익힌다.
     
-    전체 손실 = 다시 세우기 손실 + 성김 벌주기
+    전체 로스 = 다시 세우기 로스 + 성김 벌주기
     """
     model.train()
     
@@ -294,7 +294,7 @@ def train_sparse_autoencoder(
         # 순전파
         reconstructed, latent = model(images)
         
-        # 되살림 손실
+        # 되살림 로스
         recon_loss = recon_criterion(reconstructed, images)
         
         # 성김 벌주기
@@ -303,7 +303,7 @@ def train_sparse_autoencoder(
         elif sparsity_type == 'kl':
             sparsity_loss = kl_divergence_loss(latent, rho)
         
-        # 전체 손실
+        # 전체 로스
         total_loss = recon_loss + sparsity_weight * sparsity_loss
         
         # 역전파
@@ -320,7 +320,7 @@ def train_sparse_autoencoder(
             sparsity_loss_sum / num_batches)
 ```
 
-`l1_loss`는 배치·코드 전체의 **평균**, KL은 코드 축의 **합**이라 같은 `sparsity_weight`가 같은 정규화 강도를 뜻하지 않는다. KL 평균은 현재 미니배치에서 구하므로 전체 데이터 평균의 목적과 확률적 추정도 구분한다. clamp는 극단값을 제한하지만 낮은 정밀도에서 ε와 1−ε가 표현되는지 확인해야 한다. 알 수 없는 `sparsity_type`에는 손실이 정의되지 않는다.
+`l1_loss`는 배치·코드 전체의 **평균**, KL은 코드 축의 **합**이라 같은 `sparsity_weight`가 같은 정규화 강도를 뜻하지 않는다. KL 평균은 현재 미니배치에서 구하므로 전체 데이터 평균의 목적과 확률적 추정도 구분한다. clamp는 극단값을 제한하지만 낮은 정밀도에서 ε와 1−ε가 표현되는지 확인해야 한다. 알 수 없는 `sparsity_type`에는 로스가 정의되지 않는다.
 
 ```python
 def analyze_sparsity(model, test_loader, device, num_samples=1000):
@@ -339,14 +339,14 @@ def analyze_sparsity(model, test_loader, device, num_samples=1000):
     
     all_activations = np.concatenate(all_activations, axis=0)[:num_samples]
     
-    # 활성화 > 문턱을 "깨어 있음"이라 한다
+    # 활성화 > 임계를 "깨어 있음"이라 한다
     threshold = 0.1
     active = all_activations > threshold
     
-    # 표본별 성김: 표본마다 깨어 있는 신경 세포의 평균 몫
+    # 표본별 성김: 표본마다 깨어 있는 뉴런의 평균 몫
     population_sparsity = np.mean(np.mean(active, axis=1))
     
-    # 평생 성김: 신경 세포마다 그것을 깨우는 표본의 몫
+    # 평생 성김: 뉴런마다 그것을 깨우는 표본의 몫
     lifetime_sparsity = np.mean(active, axis=0)
     
     return population_sparsity, lifetime_sparsity
@@ -419,7 +419,7 @@ def compute_jacobian_penalty(model, x):
     jacobian_norm_sq = 0.0
     
     for i in range(z.shape[1]):
-        # x에 대한 z_i의 기울기
+        # x에 대한 z_i의 그래디언트
         grad_outputs = torch.zeros_like(z)
         grad_outputs[:, i] = 1.0
         
@@ -443,7 +443,7 @@ def train_contractive_autoencoder(
     """
     오그리는 오토인코더를 익힌다.
     
-    손실 = 다시 세우기 + λ × ||J_f||_F^2
+    로스 = 다시 세우기 + λ × ||J_f||_F^2
     """
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     recon_criterion = nn.MSELoss()
@@ -465,13 +465,13 @@ def train_contractive_autoencoder(
             # 순전파
             recon, z = model(images)
             
-            # 되살림 손실
+            # 되살림 로스
             recon_loss = recon_criterion(recon, images)
             
             # 오그림 벌주기
             contractive_loss = compute_jacobian_penalty(model, images)
             
-            # 전체 손실
+            # 전체 로스
             total_loss = recon_loss + lambda_contractive * contractive_loss
             
             # 역전파
@@ -497,9 +497,9 @@ def train_contractive_autoencoder(
 
 복원은 모든 원소 평균 MSE, 야코비안은 전체 입력·코드 제곱합의 표본 평균이다. 차원과 정규화 강도를 함께 기록한다. 모델을 장치로 옮기는 코드는 이 함수 안에 없고 실제로 학습 함수를 호출하는 부분도 없다.
 
-## 5. 디노이징과 수축은 같은 손실이 아니다
+## 5. 디노이징과 수축은 같은 로스가 아니다
 
-DAE는 입력을 오염시키고 깨끗한 표적을 복원한다. 작은 가우시안 잡음 ε의 제곱 복원 손실을 전개할 때 미분되는 함수는 일반적으로 **전체 재구성 r=g∘f**다. 충분히 매끄러운 r에서 2차 항에는 ||J_r||_F²뿐 아니라 복원 잔차와 r의 2차 미분이 곱해진 항도 포함된다. 잔차가 작다는 등의 추가 가정 없이 이를 곧바로 σ²||J_f||_F²로 바꿀 수 없다.
+DAE는 입력을 오염시키고 깨끗한 표적을 복원한다. 작은 가우시안 잡음 ε의 제곱 복원 로스를 전개할 때 미분되는 함수는 일반적으로 **전체 재구성 r=g∘f**다. 충분히 매끄러운 r에서 2차 항에는 ||J_r||_F²뿐 아니라 복원 잔차와 r의 2차 미분이 곱해진 항도 포함된다. 잔차가 작다는 등의 추가 가정 없이 이를 곧바로 σ²||J_f||_F²로 바꿀 수 없다.
 
 따라서 DAE가 인코더 CAE 패널티의 정확한 몬테카를로 계산이라는 설명은 일반적으로 틀리다. 오염에 대한 복원 안정성과 인코더의 직접적인 민감도 제약이라는 차이를 유지한다.
 
@@ -552,9 +552,9 @@ def train_regularized_autoencoder(
     noise_factor=0.1             # 잡음 없애기의 잡음 수준
 ):
     """
-    모든 벌주기 갈래를 받치는 아우른 익히기 함수.
+    모든 벌주기 클래스를 받치는 아우른 익히기 함수.
     
-    전체 손실 = 다시 세우기 손실 + reg_weight × 벌주기 항
+    전체 로스 = 다시 세우기 로스 + reg_weight × 벌주기 항
     """
     model.train()
     
@@ -579,7 +579,7 @@ def train_regularized_autoencoder(
         # 순전파
         reconstructed, latent = model(input_images)
         
-        # 다시 세우기 손실(늘 깨끗한 그림에 대해)
+        # 다시 세우기 로스(늘 깨끗한 그림에 대해)
         recon_loss = recon_criterion(reconstructed, images)
         
         # 벌주기 항
@@ -592,7 +592,7 @@ def train_regularized_autoencoder(
         else:
             reg_loss = torch.tensor(0.0, device=device)
         
-        # 전체 손실
+        # 전체 로스
         total_loss = recon_loss + reg_weight * reg_loss
         
         total_loss.backward()
@@ -613,9 +613,9 @@ def train_regularized_autoencoder(
 ```python
 def visualize_learned_features(model, num_features=64):
     """
-    하나만 뜨거운 숨은 벡터를 풀어 배운 특징을 그려 본다.
+    하나만 뜨거운 숨은 벡터를 풀어 배운 피처를 그려 본다.
     
-    성긴 오토인코더에서는 특징이 흔히 더 풀이하기 쉬우며
+    성긴 오토인코더에서는 피처가 흔히 더 풀이하기 쉬우며
     국소한 결을 보인다.
     """
     model.eval()
@@ -628,7 +628,7 @@ def visualize_learned_features(model, num_features=64):
         for i in range(num_features):
             # 하나만 뜨거운 벡터를 만든다
             latent = torch.zeros(1, latent_dim)
-            latent[0, i] = 1.0  # 신경 세포 i만 깨운다
+            latent[0, i] = 1.0  # 뉴런 i만 깨운다
             
             # 그림 공간으로 푼다
             feature = model.decoder(latent)
@@ -648,7 +648,7 @@ def visualize_learned_features(model, num_features=64):
     plt.show()
 ```
 
-`visualize_learned_features`는 코드의 표준 기저 e_i를 디코딩한다. 비선형 디코더에서는 이를 선형 기저나 독립 특징으로 부를 수 없다. g(0)의 바이어스 효과도 섞인다. 학습 코드가 실제로 그런 위치를 방문했는지 확인해야 한다. 텐서를 CPU에 만들기 때문에 장치·dtype을 모델에 맞추어야 하고 출력 784차원, num_features>0을 가정한다. 한 그림이면 `axes`가 스칼라라 `.flatten()`이 실패할 수 있다.
+`visualize_learned_features`는 코드의 표준 기저 e_i를 디코딩한다. 비선형 디코더에서는 이를 선형 기저나 독립 피처로 부를 수 없다. g(0)의 바이어스 효과도 섞인다. 학습 코드가 실제로 그런 위치를 방문했는지 확인해야 한다. 텐서를 CPU에 만들기 때문에 장치·dtype을 모델에 맞추어야 하고 출력 784차원, num_features>0을 가정한다. 한 그림이면 `axes`가 스칼라라 `.flatten()`이 실패할 수 있다.
 
 ## 연습문제
 
@@ -656,13 +656,13 @@ def visualize_learned_features(model, num_features=64):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-MNIST에서 BCE·MSE·MAE 중 어떤 손실이 좋은지 비교하는 절차를 설명하라.
+MNIST에서 BCE·MSE·MAE 중 어떤 로스가 좋은지 비교하는 절차를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
 
-    같은 구조·전처리·초기값 조건과 각 손실에 적절한 학습 설정을 사용한다. 독립 검증에서 공통 MSE·MAE와 시각적 품질을 평가한다. 현재 비교 함수는 테스트 전체 수치가 아니라 열 장 복원만 반환한다. 고정 성능표나 BCE 우위를 이 코드의 결과로 가정하지 않는다. MAE가 조건부 중앙값을 선호해도 항상 검은 그림이 최적이라는 뜻은 아니다.
+    같은 구조·전처리·초기값 조건과 각 로스에 적절한 학습 설정을 사용한다. 독립 검증에서 공통 MSE·MAE와 시각적 품질을 평가한다. 현재 비교 함수는 테스트 전체 수치가 아니라 열 장 복원만 반환한다. 고정 성능표나 BCE 우위를 이 코드의 결과로 가정하지 않는다. MAE가 조건부 중앙값을 선호해도 항상 검은 그림이 최적이라는 뜻은 아니다.
 
 
 
@@ -671,13 +671,13 @@ MNIST에서 BCE·MSE·MAE 중 어떤 손실이 좋은지 비교하는 절차를 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-B×784 데이터에서 sum과 mean 손실의 비율과 다른 패널티와 결합할 때의 의미를 구하라.
+B×784 데이터에서 sum과 mean 로스의 비율과 다른 패널티와 결합할 때의 의미를 구하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
 
-    모든 원소를 합하면 기본 mean의 B×784배다. sum을 B로 나눈 표본별 픽셀 합은 원소 평균의 784배다. 어떤 축을 정규화했는지 명시한다. SGD 상수배 보정과 달리 Adam·클리핑·가중치 감쇠·다른 손실이 함께 있으면 학습률만 같은 비율로 바꾸어 완전히 같은 학습이 된다고 보장할 수 없다.
+    모든 원소를 합하면 기본 mean의 B×784배다. sum을 B로 나눈 표본별 픽셀 합은 원소 평균의 784배다. 어떤 축을 정규화했는지 명시한다. SGD 상수배 보정과 달리 Adam·클리핑·웨이트 감쇠·다른 로스가 함께 있으면 러닝레이트만 같은 비율로 바꾸어 완전히 같은 학습이 된다고 보장할 수 없다.
 
 
 
@@ -692,7 +692,7 @@ MAE와 MSE의 최적 복원과 그래디언트 차이를 설명하라.
 
 ??? success "연습문제 3 풀이"
 
-    이상적 제곱 손실 복원은 조건부 평균, 절댓값 손실 복원은 조건부 중앙값이다. MSE의 출력 미분은 잔차에 비례하고 MAE는 0이 아닌 곳에서 부호에 따라 일정하다. 이 성질은 이상값 영향과 불확실한 복원에 영향을 주지만 MAE가 항상 선명하거나 MSE보다 우수하다는 보장은 아니다.
+    이상적 제곱 로스 복원은 조건부 평균, 절댓값 로스 복원은 조건부 중앙값이다. MSE의 출력 미분은 잔차에 비례하고 MAE는 0이 아닌 곳에서 부호에 따라 일정하다. 이 성질은 이상값 영향과 불확실한 복원에 영향을 주지만 MAE가 항상 선명하거나 MSE보다 우수하다는 보장은 아니다.
 
 
 
@@ -722,7 +722,7 @@ L1과 베르누이 KL 활성화 패널티의 목표와 합산 차이를 설명�
 
 ??? success "연습문제 5 풀이"
 
-    L1은 활성화 절댓값을 줄이고 KL은 단위별 평균을 목표 ρ에 맞추려 한다. 평균 ρ만으로 표본별 활성 빈도나 정확한 0의 비율이 정해지지 않는다. 이 코드의 L1은 평균, KL은 코드별 합이라 강도를 직접 비교할 수 없다. KL도 전체 손실의 최적화에서 목표를 정확히 맞추거나 단위 비활성화를 완전히 막는 것은 아니다.
+    L1은 활성화 절댓값을 줄이고 KL은 단위별 평균을 목표 ρ에 맞추려 한다. 평균 ρ만으로 표본별 활성 빈도나 정확한 0의 비율이 정해지지 않는다. 이 코드의 L1은 평균, KL은 코드별 합이라 강도를 직접 비교할 수 없다. KL도 전체 로스의 최적화에서 목표를 정확히 맞추거나 단위 비활성화를 완전히 막는 것은 아니다.
 
 
 
@@ -761,13 +761,13 @@ CAE 패널티가 작게 만드는 양과 구현의 합산 축을 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 8.** <span class="diff hard" title="어려움"></span>
-수축 패널티와 복원 손실이 함께 있으면 유용한 모든 방향이 반드시 보존되는가?
+수축 패널티와 복원 로스가 함께 있으면 유용한 모든 방향이 반드시 보존되는가?
 
 </div>
 
 ??? success "연습문제 8 풀이"
 
-    아니다. 두 목표가 절충되지만 어떤 방향이 유용한지 자동으로 식별하는 정리는 아니다. 너무 강하면 복원이나 구별 능력을 약화할 수 있고 코드 축소를 디코더 확대가 보상할 수도 있다. 야코비안 스펙트럼, 복원과 후속 태스크를 함께 검증한다.
+    아니다. 두 목표가 절충되지만 어떤 방향이 유용한지 자동으로 식별하는 정리는 아니다. 너무 강하면 복원이나 구별 능력을 약화할 수 있고 코드 축소를 디코더 확대가 리워드할 수도 있다. 야코비안 스펙트럼, 복원과 후속 태스크를 함께 검증한다.
 
 
 
@@ -776,7 +776,7 @@ CAE 패널티가 작게 만드는 양과 구현의 합산 축을 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 9.** <span class="diff med" title="중간"></span>
-작은 입력 잡음의 DAE 손실을 인코더 야코비안 패널티와 그대로 같다고 할 수 있는가?
+작은 입력 잡음의 DAE 로스를 인코더 야코비안 패널티와 그대로 같다고 할 수 있는가?
 
 </div>
 
@@ -803,4 +803,4 @@ CAE 패널티가 작게 만드는 양과 구현의 합산 축을 설명하라.
 
 ## 정리하며
 
-복원 손실은 데이터와 평가 목표에 맞추고 합·평균의 축을 일관되게 정한다. L1·활성화 KL·수축·디노이징은 서로 다른 제약이며 같은 강도나 효과를 뜻하지 않는다. 코드의 측정 범위와 야코비안·점수 해석 조건을 확인하고 표현 품질과 생성 성능을 따로 평가한다.
+복원 로스는 데이터와 평가 목표에 맞추고 합·평균의 축을 일관되게 정한다. L1·활성화 KL·수축·디노이징은 서로 다른 제약이며 같은 강도나 효과를 뜻하지 않는다. 코드의 측정 범위와 야코비안·점수 해석 조건을 확인하고 표현 품질과 생성 성능을 따로 평가한다.

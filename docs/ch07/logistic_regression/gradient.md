@@ -1,6 +1,6 @@
 # 경사 계산
 
-로지스틱 BCE의 경사는 예측 확률과 정답의 차이에 특징을 곱한 형태다. 이 식과 헤세 행렬을 유도하고, 볼록성이 보장하는 것과 보장하지 않는 것을 확인한다.
+로지스틱 BCE의 경사는 예측 확률과 정답의 차이에 피처를 곱한 형태다. 이 식과 헤세 행렬을 유도하고, 볼록성이 보장하는 것과 보장하지 않는 것을 확인한다.
 
 ---
 
@@ -8,9 +8,9 @@
 
 이 절을 마치면 다음을 할 수 있게 된다.
 
-- 모델 매개변수에 대한 BCE 손실의 경사 유도하기
+- 모델 파라메터에 대한 BCE 로스의 경사 유도하기
 - 로지스틱 회귀의 경사를 간단하게 만드는 우아한 상쇄 이해하기
-- 헤세 행렬을 유도하고 손실의 볼록성 증명하기
+- 헤세 행렬을 유도하고 로스의 볼록성 증명하기
 - 이차 최적화로서의 뉴턴 방법과 IRLS 알고리즘 이해하기
 - 경사 하강법, 뉴턴 방법, IRLS를 구현하고 비교하기
 
@@ -18,7 +18,7 @@
 
 ## 2. 최적화 문제
 
-우리는 BCE 손실을 최소화하는 매개변수 $\boldsymbol{\beta}$을 찾고자 한다.
+우리는 BCE 로스를 최소화하는 파라메터 $\boldsymbol{\beta}$을 찾고자 한다.
 
 $$
 \mathcal{L}(\boldsymbol{\beta}) = -\frac{1}{n}\sum_{i=1}^{n} \left[ y_i \log(\sigma(z_i)) + (1-y_i) \log(1-\sigma(z_i)) \right]
@@ -32,7 +32,7 @@ $$
 
 ### 1단계: 연쇄 법칙 준비
 
-표본 하나 $i$가 손실에 기여하는 몫은 다음과 같다.
+표본 하나 $i$가 로스에 기여하는 몫은 다음과 같다.
 
 $$
 \ell_i = -y_i \log(p_i) - (1-y_i) \log(1-p_i)
@@ -44,7 +44,7 @@ $$
 \frac{\partial \ell_i}{\partial \boldsymbol{\beta}} = \frac{\partial \ell_i}{\partial p_i} \cdot \frac{\partial p_i}{\partial z_i} \cdot \frac{\partial z_i}{\partial \boldsymbol{\beta}}
 $$
 
-### 2단계: 확률에 대한 손실의 도함수
+### 2단계: 확률에 대한 로스의 도함수
 
 $$
 \frac{\partial \ell_i}{\partial p_i} = -\frac{y_i}{p_i} + \frac{1-y_i}{1-p_i} = \frac{-y_i(1-p_i) + (1-y_i)p_i}{p_i(1-p_i)} = \frac{p_i - y_i}{p_i(1-p_i)}
@@ -84,9 +84,9 @@ $$
 
 ## 4. 전체 경사
 
-### 평균 손실에 대해
+### 평균 로스에 대해
 
-평균 BCE 손실의 경사는 다음과 같다.
+평균 BCE 로스의 경사는 다음과 같다.
 
 $$
 \nabla_{\boldsymbol{\beta}} \mathcal{L} = \frac{1}{n}\sum_{i=1}^{n} (\sigma(\mathbf{x}_i^\top \boldsymbol{\beta}) - y_i)\mathbf{x}_i
@@ -100,7 +100,7 @@ $$
 \boxed{\nabla_{\boldsymbol{\beta}} \mathcal{L} = \frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})}
 $$
 
-이 우아한 형태는 **오차로 가중된 특징**이다. 각 표본의 특징 벡터 $\mathbf{x}_i$에 예측 오차 $(p_i - y_i)$이 곱해진다.
+이 우아한 형태는 **오차로 가중된 피처**이다. 각 표본의 피처 벡터 $\mathbf{x}_i$에 예측 오차 $(p_i - y_i)$이 곱해진다.
 
 ### 선형 회귀와의 비교
 
@@ -129,7 +129,7 @@ $(p_i - y_i)$ 항이 **예측 오차**이다.
 ### 경사의 성질
 
 1. **유계인 오차**: $p \in (0, 1)$이고 $y \in \{0, 1\}$이므로 오차는 유계이다. $|p - y| < 1$
-2. **특징의 규모가 중요하다**: 큰 특징 → 큰 경사 → 학습이 불안정해질 수 있다
+2. **피처의 규모가 중요하다**: 큰 피처 → 큰 경사 → 학습이 불안정해질 수 있다
 3. **최적점 근처에서 경사가 사라진다**: $p \approx y$이면 경사가 작다
 
 ---
@@ -172,13 +172,13 @@ $$
 
 ### 전체 헤세 행렬
 
-여기서는 합 손실 $S=n\mathcal L$의 헤세 행렬 $H_S$를 $\mathbf H$로 표기한다. 평균 손실의 헤세 행렬은 $H_S/n$이다. 경사와 헤세의 배율을 일치시켜야 하며, 뉴턴 업데이트에서는 같은 배율이 상쇄된다.
+여기서는 합 로스 $S=n\mathcal L$의 헤세 행렬 $H_S$를 $\mathbf H$로 표기한다. 평균 로스의 헤세 행렬은 $H_S/n$이다. 경사와 헤세의 배율을 일치시켜야 하며, 뉴턴 업데이트에서는 같은 배율이 상쇄된다.
 
 $$
 \mathbf{H} = \nabla^2_{\boldsymbol{\beta}} S = \sum_{i=1}^{n} p_i(1-p_i) \, \mathbf{x}_i \mathbf{x}_i^{\top}
 $$
 
-대각 가중치 행렬 $\mathbf{B} = \operatorname{diag}(p_1(1-p_1), \ldots, p_n(1-p_n))$을 정의하자. 그러면 다음이 성립한다.
+대각 웨이트 행렬 $\mathbf{B} = \operatorname{diag}(p_1(1-p_1), \ldots, p_n(1-p_n))$을 정의하자. 그러면 다음이 성립한다.
 
 $$
 \boxed{\mathbf{H} = \mathbf{X}^{\top} \mathbf{B} \mathbf{X}}
@@ -198,7 +198,7 @@ $$
 \mathbf{v}^{\top} \mathbf{H} \mathbf{v} \geq 0 \quad \forall \, \mathbf{v}
 $$
 
-따라서 $\mathbf{H}$은 **양의 준정부호**이며, 이는 음의 로그우도가 **볼록**함을 뜻한다. $\mathbf{X}$이 열 전체 랭크를 가지면 헤세 행렬이 엄격히 양의 정부호가 되어 손실이 엄격히 볼록해지고, 유한한 최솟값이 존재한다면 유일하다. 완전히 분리되는 데이터에서는 열 전체 랭크여도 유한 MLE가 없을 수 있다.
+따라서 $\mathbf{H}$은 **양의 준정부호**이며, 이는 음의 로그우도가 **볼록**함을 뜻한다. $\mathbf{X}$이 열 전체 랭크를 가지면 헤세 행렬이 엄격히 양의 정부호가 되어 로스가 엄격히 볼록해지고, 유한한 최솟값이 존재한다면 유일하다. 완전히 분리되는 데이터에서는 열 전체 랭크여도 유한 MLE가 없을 수 있다.
 
 ---
 
@@ -206,7 +206,7 @@ $$
 
 ### 갱신 규칙
 
-이하 뉴턴 식의 경사와 헤세 행렬은 모두 합 손실에서 계산한다. 뉴턴 방법은 곡률을 이용해 방향을 정하지만, 선형계를 풀 수 있는 조건과 감쇠·선 탐색을 함께 고려해야 한다. 이차 수렴은 유한한 비퇴화 최적점 근처 등 추가 조건에서 성립한다.
+이하 뉴턴 식의 경사와 헤세 행렬은 모두 합 로스에서 계산한다. 뉴턴 방법은 곡률을 이용해 방향을 정하지만, 선형계를 풀 수 있는 조건과 감쇠·선 탐색을 함께 고려해야 한다. 이차 수렴은 유한한 비퇴화 최적점 근처 등 추가 조건에서 성립한다.
 
 $$
 \boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \mathbf{H}^{-1} \mathbf{g}
@@ -225,7 +225,7 @@ $$
 | 갱신 | $\boldsymbol{\beta} - \eta \mathbf{g}$ | $\boldsymbol{\beta} - \mathbf{H}^{-1}\mathbf{g}$ |
 | 수렴 속도 | 선형 | 이차 (최적점 근처에서) |
 | 단계당 비용 | $O(nd)$ | $O(nd^2 + d^3)$ |
-| 하이퍼파라미터 | 학습률 $\eta$ | 없음 (또는 감쇠 인수) |
+| 하이퍼파라미터 | 러닝레이트 $\eta$ | 없음 (또는 감쇠 인수) |
 | 메모리 | $O(d)$ | 헤세 행렬에 $O(d^2)$ |
 
 뉴턴 방법은 훨씬 적은 반복으로 수렴하지만, 헤세 행렬 계산과 행렬 역변환 때문에 반복마다 비용이 더 크다.
@@ -279,17 +279,17 @@ $$
 매 반복마다 다음과 같은 가중 최소제곱 문제를 푼다.
 
 - **반응** $\mathbf{z}$은 비선형 모델을 선형화한 것이다
-- **가중치** $\mathbf{B}$은 현재 매개변수 아래에서 각 관측의 분산을 반영한다
+- **웨이트** $\mathbf{B}$은 현재 파라메터 아래에서 각 관측의 분산을 반영한다
 - $\mathbf{z}$과 $\mathbf{B}$은 모두 $\boldsymbol{\beta}^{(t)}$에 의존하므로 반복마다 다시 계산해야 한다
 
-가중치 행렬 $\mathbf{B}$이 매 단계 바뀌므로 이 절차를 **반복 재가중 최소제곱(IRLS)**이라 부른다.
+웨이트 행렬 $\mathbf{B}$이 매 단계 바뀌므로 이 절차를 **반복 재가중 최소제곱(IRLS)**이라 부른다.
 
 ### IRLS 알고리즘
 
 1. $\boldsymbol{\beta}^{(0)}$을 초기화한다 (예: 0)
 2. 수렴할 때까지 **반복한다**.
     - 예측을 계산한다: $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}^{(t)})$
-    - 가중치를 계산한다: $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$
+    - 웨이트를 계산한다: $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$
     - 작업 반응을 계산한다: $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$
     - 푼다: $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$
 3. $\boldsymbol{\beta}^{(t+1)}$을 반환한다
@@ -320,11 +320,11 @@ $$
 
 ```python
 """
-로지스틱 회귀의 기울기, 헤세, IRLS
+로지스틱 회귀의 그래디언트, 헤세, IRLS
 =====================================================
 
 Demonstrates:
-- 직접 하는 기울기 셈과 자동 미분과의 견줌
+- 직접 하는 그래디언트 셈과 자동 미분과의 견줌
 - 헤세 셈과 양의 준정부호 따져 보기
 - 이차로 모여드는 뉴턴 방법
 - IRLS 알고리즘과 뉴턴 방법과의 같음
@@ -454,7 +454,7 @@ X_test = torch.FloatTensor(scaler.transform(X_test))
 y_train = torch.FloatTensor(y_train).reshape(-1, 1)
 y_test = torch.FloatTensor(y_test).reshape(-1, 1)
 
-# 편향 열을 추가한다
+# 바이어스 열을 추가한다
 X_train = torch.cat([torch.ones(len(X_train), 1), X_train], dim=1)
 X_test = torch.cat([torch.ones(len(X_test), 1), X_test], dim=1)
 
@@ -658,7 +658,7 @@ Max difference: 1.27e+01
 </div>
 
 ??? success "연습문제 2 풀이"
-    $\mu_i = e^{\mathbf{x}_i^\top\boldsymbol{\beta}}$(로그 연결)인 포아송의 경우, $\text{Var}(y_i) = \mu_i$이고 $\frac{d\mu}{d\eta} = \mu$이므로 가중치 행렬은 $\mathbf{B} = \text{diag}(\mu_1, \ldots, \mu_n)$이다.
+    $\mu_i = e^{\mathbf{x}_i^\top\boldsymbol{\beta}}$(로그 연결)인 포아송의 경우, $\text{Var}(y_i) = \mu_i$이고 $\frac{d\mu}{d\eta} = \mu$이므로 웨이트 행렬은 $\mathbf{B} = \text{diag}(\mu_1, \ldots, \mu_n)$이다.
 
     작업 반응은 $z_i = \mathbf{x}_i^\top\boldsymbol{\beta} + \frac{y_i - \mu_i}{\mu_i}$이다.
 
@@ -682,7 +682,7 @@ Max difference: 1.27e+01
 ??? success "연습문제 3 풀이"
     예측이 맞고 확신에 차 있으면 $\sigma(z) \approx y$이므로 잔차 $\sigma(z) - y \approx 0$이 되고 경사가 사라진다. 잘 분류된 점에서는 이것이 바람직하다.
 
-    깊은 신경망의 경사는 활성화 도함수와 가중치 행렬의 곱을 포함한다. 시그모이드 국소 도함수는 최대 1/4여서 포화가 경사 소실에 기여할 수 있지만, 가중치 노름을 제외한 채 전체 경사가 항상 $(1/4)^L$ 이하라고 단정할 수는 없다. 틀렸는데 확신한 단일 로짓 BCE의 경사는 오히려 큰 잔차를 갖는다는 점도 구분한다.
+    깊은 뉴럴 넷트웍의 경사는 활성화 도함수와 웨이트 행렬의 곱을 포함한다. 시그모이드 국소 도함수는 최대 1/4여서 포화가 경사 소실에 기여할 수 있지만, 웨이트 노름을 제외한 채 전체 경사가 항상 $(1/4)^L$ 이하라고 단정할 수는 없다. 틀렸는데 확신한 단일 로짓 BCE의 경사는 오히려 큰 잔차를 갖는다는 점도 구분한다.
 
 ---
 
@@ -731,7 +731,7 @@ Max difference: 1.27e+01
 | 배치 경사 | $\frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})$ |
 | 핵심 상쇄 | $\frac{p-y}{p(1-p)} \cdot p(1-p) = p - y$ |
 | 헤세 행렬 | $\mathbf{H} = \mathbf{X}^{\top}\mathbf{B}\mathbf{X}$ |
-| 가중치 행렬 | $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$ |
+| 웨이트 행렬 | $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$ |
 | 뉴턴 갱신 | $\boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \mathbf{H}^{-1}\mathbf{g}$ |
 | IRLS 갱신 | $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$ |
 | 작업 반응 | $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$ |

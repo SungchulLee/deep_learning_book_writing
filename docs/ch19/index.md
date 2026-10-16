@@ -14,14 +14,14 @@
 ## 2. 몬테카를로 적분과 중요도 샘플링
 
 - [몬테카를로 적분](monte_carlo/integration.md): 적률 조건·표준오차·분산 감소
-- [ESS의 두 의미](monte_carlo/ess.md): 가중치 집중도와 함수별 자기상관 진단
+- [ESS의 두 의미](monte_carlo/ess.md): 웨이트 집중도와 함수별 자기상관 진단
 - [중요도 샘플링 기초](monte_carlo/importance_sampling/fundamentals.md): 표준 IS와 지지집합·분산 조건
 - [자기정규화 IS](monte_carlo/importance_sampling/self_normalized.md): 미지 상수를 소거하는 비율 추정
-- [가중치 ESS](monte_carlo/importance_sampling/ess.md): 집중도 지표와 함수별 오차의 한계
+- [웨이트 ESS](monte_carlo/importance_sampling/ess.md): 집중도 지표와 함수별 오차의 한계
 - [제안분포 설계](monte_carlo/importance_sampling/proposal_design.md): 관심 적분·모드·꼬리와 적응
 - [연습 예제](monte_carlo/exercises.md): 추정량·사전 변경·희귀 사건 비교
 
-표준 IS의 불편성과 SNIS의 일반적인 유한 표본 편향을 구분한다. 관측한 ESS가 높아도 미탐색 영역이나 특정 함수의 정확도가 보장되는 것은 아니다.
+표준 IS의 불편성과 SNIS의 일반적인 유한 표본 바이어스를 구분한다. 관측한 ESS가 높아도 미탐색 영역이나 특정 함수의 정확도가 보장되는 것은 아니다.
 
 ## 3. MCMC와 HMC
 
@@ -42,7 +42,7 @@
 ## 4. 랑주뱅과 스코어 기반 방법
 
 - [랑주뱅 기초](langevin/fundamentals.md): 스코어·확산과 연속 목표의 정상성
-- [ULA와 SGLD](langevin/ula.md): 이산 편향·확률 경사·손실 배율
+- [ULA와 SGLD](langevin/ula.md): 이산 바이어스·확률 경사·로스 배율
 - [MALA](langevin/mala.md): 비대칭 가우스 제안의 MH 보정
 - [스코어 매칭과 확산](langevin/score_and_diffusion.md): 노이즈 조건부 회귀·역시간 과정
 
@@ -66,7 +66,7 @@ SA는 최적화를 위한 과정이며 냉각 궤적 전체를 원래 사후의 
 - [ABC-MCMC](abc/abc_mcmc.md): 보조 시뮬레이션을 포함한 MH
 - [ABC-SMC](abc/abc_smc.md): 입자 제안·허용오차·중요도 가중
 
-ABC의 허용오차를 줄이는 것과 요약의 정보 손실을 없애는 것은 다른 문제다. 작은 허용오차의 한계는 일반적으로 요약을 조건으로 한 사후이며 충분성 등의 조건이 있어야 원자료 사후와 연결된다.
+ABC의 허용오차를 줄이는 것과 요약의 정보 로스를 없애는 것은 다른 문제다. 작은 허용오차의 한계는 일반적으로 요약을 조건으로 한 사후이며 충분성 등의 조건이 있어야 원자료 사후와 연결된다.
 
 ## 7. 방법 비교와 선택
 

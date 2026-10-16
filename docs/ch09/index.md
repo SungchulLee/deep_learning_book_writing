@@ -18,17 +18,17 @@
 
 ## 3. 학습 루프와 기록
 
-[MNIST 전체 학습](training/01_complete_mnist_training.md)과 [TensorBoard 기록](training/tensorboard_mnist_commented.md)을 통해 순전파, 손실, 역전파와 갱신을 연결한다. [실전 학습 요령](training/training_recipes.md)에서는 초기 점검, 혼합 정밀도와 메모리·처리량을 다룬다.
+[MNIST 전체 학습](training/01_complete_mnist_training.md)과 [TensorBoard 기록](training/tensorboard_mnist_commented.md)을 통해 순전파, 로스, 역전파와 갱신을 연결한다. [실전 학습 요령](training/training_recipes.md)에서는 초기 점검, 혼합 정밀도와 메모리·처리량을 다룬다.
 
-## 4. 손실과 옵티마이저
+## 4. 로스와 옵티마이저
 
-출력 형식과 목표에 맞는 [손실 선택](loss/loss_selection.md)이 먼저이다. [후버 손실](loss/huber_loss.md), [Focal Loss](loss/focal_loss.md)와 [사용자 정의 손실](loss/01_custom_loss_functions.md)을 살펴보고 각 가정과 집계 방식을 비교한다.
+출력 형식과 목표에 맞는 [로스 선택](loss/loss_selection.md)이 먼저이다. [후버 로스](loss/huber_loss.md), [Focal Loss](loss/focal_loss.md)와 [사용자 정의 로스](loss/01_custom_loss_functions.md)을 살펴보고 각 가정과 집계 방식을 비교한다.
 
-옵티마이저는 손실에서 계산한 경사를 사용해 갱신한다. [모멘텀](optimizers/momentum.md), [네스테로프](optimizers/nesterov.md), [Adagrad](optimizers/adagrad.md), [Adadelta](optimizers/adadelta.md), [RMSprop](optimizers/rmsprop.md), [Adam](optimizers/adam.md), [AdamW](optimizers/adamw.md), [LAMB](optimizers/lamb.md)의 상태와 갱신 차이를 이해한다. 어느 방법의 우열도 학습률과 평가 조건에서 분리해 판단할 수는 없다.
+옵티마이저는 로스에서 계산한 경사를 사용해 갱신한다. [모멘텀](optimizers/momentum.md), [네스테로프](optimizers/nesterov.md), [Adagrad](optimizers/adagrad.md), [Adadelta](optimizers/adadelta.md), [RMSprop](optimizers/rmsprop.md), [Adam](optimizers/adam.md), [AdamW](optimizers/adamw.md), [LAMB](optimizers/lamb.md)의 상태와 갱신 차이를 이해한다. 어느 방법의 우열도 러닝레이트와 평가 조건에서 분리해 판단할 수는 없다.
 
-## 5. 학습률과 과적합
+## 5. 러닝레이트와 과적합
 
-[워밍업](schedulers/lr_warmup.md)과 [순환 학습률](schedulers/cyclical_lr.md)은 갱신의 시간별 스케일을 바꾼다. 호출 단위와 스케줄러 상태를 확인한다. [편향–분산](overfitting/bias_variance_tradeoff.md), [학습 곡선](overfitting/learning_curves_demo.md), [과적합·과소적합](overfitting/overfitting_underfitting_demo.md)을 함께 보며 학습 부족과 일반화 문제를 구분한다.
+[워밍업](schedulers/lr_warmup.md)과 [순환 러닝레이트](schedulers/cyclical_lr.md)은 갱신의 시간별 스케일을 바꾼다. 호출 단위와 스케줄러 상태를 확인한다. [편향–분산](overfitting/bias_variance_tradeoff.md), [학습 곡선](overfitting/learning_curves_demo.md), [과적합·과소적합](overfitting/overfitting_underfitting_demo.md)을 함께 보며 학습 부족과 일반화 문제를 구분한다.
 
 ## 6. 평가와 하이퍼파라미터 선택
 

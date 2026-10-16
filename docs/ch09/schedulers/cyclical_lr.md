@@ -1,15 +1,15 @@
-# 순환 학습률
+# 순환 러닝레이트
 
-순환 학습률은 학습률을 주기적으로 높이고 낮추는 일정이다. 이 페이지는 삼각형 CLR, 1cycle과 코사인 재시작을 직접 계산하는 교육용 클래스를 비교한다.
+순환 러닝레이트는 러닝레이트를 주기적으로 높이고 낮추는 일정이다. 이 페이지는 삼각형 CLR, 1cycle과 코사인 재시작을 직접 계산하는 교육용 클래스를 비교한다.
 
 ## 1. 코드
 
 ```python
 """
-순환 학습률 구현
+순환 러닝레이트 구현
 
-이 모듈은 신경망 학습을 위한 여러 순환 학습률 전략을 제공하며, 원래 CLR
-논문의 구현과 1cycle 정책을 포함한다.
+이 모듈은 뉴럴 넷트웍 학습을 위한 여러 순환 러닝레이트 전략을 제공하며, 원래 CLR
+논문의 구현과 1cycle 폴리시를 포함한다.
 
 """
 
@@ -23,7 +23,7 @@ from typing import Optional, Literal
 
 class CyclicLR:
     """
-    Leslie Smith가 제안한 순환 학습률(CLR).
+    Leslie Smith가 제안한 순환 러닝레이트(CLR).
     
     참고: "Cyclical Learning Rates for Training Neural Networks"
     https://arxiv.org/abs/1506.01186
@@ -39,8 +39,8 @@ class CyclicLR:
     ):
         """
         인수:
-            base_lr: 학습률의 아래 경계
-            max_lr: 학습률의 위 경계
+            base_lr: 러닝레이트의 아래 경계
+            max_lr: 러닝레이트의 위 경계
             step_size: 반주기의 학습 단계 수
             mode: {triangular, triangular2, exp_range} 가운데 하나
             gamma: exp_range 모드의 감쇠 상수
@@ -52,7 +52,7 @@ class CyclicLR:
         self.gamma = gamma
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 학습률을 얻는다."""
+        """주어진 단계의 러닝레이트를 얻는다."""
         cycle = math.floor(1 + step / (2 * self.step_size))
         x = abs(step / self.step_size - 2 * cycle + 1)
         
@@ -71,11 +71,11 @@ class CyclicLR:
 
 class OneCycleLR:
     """
-    Leslie Smith의 1cycle 학습률 정책.
+    Leslie Smith의 1cycle 러닝레이트 폴리시.
     
     다음으로 이루어진다:
-    1. 워밍업: 학습률이 initial_lr에서 max_lr까지 오른다
-    2. 어닐링: 학습률이 max_lr에서 final_lr까지 내려간다
+    1. 워밍업: 러닝레이트가 initial_lr에서 max_lr까지 오른다
+    2. 어닐링: 러닝레이트가 max_lr에서 final_lr까지 내려간다
     
     참고: "Super-Convergence: Very Fast Training of Neural Networks"
     https://arxiv.org/abs/1708.07120
@@ -92,11 +92,11 @@ class OneCycleLR:
     ):
         """
         인수:
-            max_lr: 최고 학습률
+            max_lr: 최고 러닝레이트
             total_steps: 전체 학습 단계 수
-            pct_start: 주기 가운데 학습률을 올리는 데 쓰는 비율
-            div_factor: 처음 학습률 = max_lr / div_factor
-            final_div_factor: 마지막 학습률 = max_lr / final_div_factor
+            pct_start: 주기 가운데 러닝레이트를 올리는 데 쓰는 비율
+            div_factor: 처음 러닝레이트 = max_lr / div_factor
+            final_div_factor: 마지막 러닝레이트 = max_lr / final_div_factor
             anneal_strategy: 'cos' 또는 'linear' 어닐링
         """
         self.max_lr = max_lr
@@ -110,7 +110,7 @@ class OneCycleLR:
         self.step_down = total_steps - self.step_up
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 학습률을 얻는다."""
+        """주어진 단계의 러닝레이트를 얻는다."""
         if step < self.step_up:
             # 올라가는 국면
             progress = step / self.step_up
@@ -145,8 +145,8 @@ class CosineAnnealingWarmRestarts:
     ):
         """
         인수:
-            max_lr: 최대 학습률
-            min_lr: 최소 학습률
+            max_lr: 최대 러닝레이트
+            min_lr: 최소 러닝레이트
             t_0: 첫 재시작까지의 단계 수
             t_mult: 재시작마다 주기의 길이를 늘리는 인수
         """
@@ -156,7 +156,7 @@ class CosineAnnealingWarmRestarts:
         self.t_mult = t_mult
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 학습률을 얻는다."""
+        """주어진 단계의 러닝레이트를 얻는다."""
         # 지금 몇 번째 주기인지 찾기
         t_cur = step
         t_i = self.t_0
@@ -175,8 +175,8 @@ class CosineAnnealingWarmRestarts:
 
 class ExponentialCyclicLR:
     """
-    지수 순환 학습률.
-    학습률이 지수 곡선을 그리며 base_lr과 max_lr 사이를 오간다.
+    지수 순환 러닝레이트.
+    러닝레이트가 지수 곡선을 그리며 base_lr과 max_lr 사이를 오간다.
     """
     
     def __init__(
@@ -188,8 +188,8 @@ class ExponentialCyclicLR:
     ):
         """
         인수:
-            base_lr: 최소 학습률
-            max_lr: 최대 학습률
+            base_lr: 최소 러닝레이트
+            max_lr: 최대 러닝레이트
             cycle_length: 한 주기의 단계 수
             decay_rate: 주기마다 max_lr을 줄이는 인수
         """
@@ -199,7 +199,7 @@ class ExponentialCyclicLR:
         self.decay_rate = decay_rate
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 학습률을 얻는다."""
+        """주어진 단계의 러닝레이트를 얻는다."""
         cycle = step // self.cycle_length
         step_in_cycle = step % self.cycle_length
         
@@ -223,7 +223,7 @@ class ExponentialCyclicLR:
 
 def plot_cyclical_schedules(total_steps: int = 10000):
     """
-    여러 순환 학습률 일정을 그린다.
+    여러 순환 러닝레이트 일정을 그린다.
     matplotlib이 필요하다.
     """
     try:
@@ -316,18 +316,18 @@ Plot saved to cyclical_schedules.png
 
 ## 2. 논의
 
-삼각형 CLR에서 step_size는 반주기이며 한 주기는 2×step_size이다. triangular2는 주기마다 최대 진폭을 절반으로 줄이고, exp_range는 진폭에 $\gamma^{\mathrm{step}}$을 곱한다. 학습률을 높이는 구간은 탐색과 정규화 효과에 영향을 줄 수 있지만 안장점이나 국소 최솟값에서 벗어나는 것을 보장하지 않는다.
+삼각형 CLR에서 step_size는 반주기이며 한 주기는 2×step_size이다. triangular2는 주기마다 최대 진폭을 절반으로 줄이고, exp_range는 진폭에 $\gamma^{\mathrm{step}}$을 곱한다. 러닝레이트를 높이는 구간은 탐색과 정규화 효과에 영향을 줄 수 있지만 안장점이나 국소 최솟값에서 벗어나는 것을 보장하지 않는다.
 
-여기의 클래스들은 PyTorch 스케줄러와 이름이 같아도 별도의 구현이다. get_lr(step)은 숫자를 반환할 뿐 옵티마이저를 수정하지 않는다. OneCycleLR은 상승 구간에서 항상 선형 보간하며 하강 구간에서만 anneal_strategy를 적용한다. 마지막 학습률도 max_lr/final_div_factor로 정하므로 PyTorch OneCycleLR의 인수 의미와 동일하다고 가정하면 안 된다. 모멘텀의 역방향 스케줄링도 구현하지 않는다.
+여기의 클래스들은 PyTorch 스케줄러와 이름이 같아도 별도의 구현이다. get_lr(step)은 숫자를 반환할 뿐 옵티마이저를 수정하지 않는다. OneCycleLR은 상승 구간에서 항상 선형 보간하며 하강 구간에서만 anneal_strategy를 적용한다. 마지막 러닝레이트도 max_lr/final_div_factor로 정하므로 PyTorch OneCycleLR의 인수 의미와 동일하다고 가정하면 안 된다. 모멘텀의 역방향 스케줄링도 구현하지 않는다.
 
-코사인 재시작은 주기가 끝나면 학습률을 다시 최댓값으로 올린다. 가중치나 옵티마이저 상태를 초기화한다는 뜻은 아니다. t_0는 양수, t_mult는 1 이상인 정수로 사용해야 반복문이 정상적으로 진행된다. 그 밖의 구현도 양수인 구간 길이와 유효한 단계 범위를 가정한다. ExponentialCyclicLR은 주기가 길어져 current_max_lr가 base_lr 아래로 내려가면 이름과 달리 상·하한이 뒤집힐 수 있다. 그래프는 일정의 모양만 보여 주며 실제 학습 속도의 비교가 아니다.
+코사인 재시작은 주기가 끝나면 러닝레이트를 다시 최댓값으로 올린다. 웨이트나 옵티마이저 상태를 초기화한다는 뜻은 아니다. t_0는 양수, t_mult는 1 이상인 정수로 사용해야 반복문이 정상적으로 진행된다. 그 밖의 구현도 양수인 구간 길이와 유효한 단계 범위를 가정한다. ExponentialCyclicLR은 주기가 길어져 current_max_lr가 base_lr 아래로 내려가면 이름과 달리 상·하한이 뒤집힐 수 있다. 그래프는 일정의 모양만 보여 주며 실제 학습 속도의 비교가 아니다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-base_lr=0.001, max_lr=0.01, step_size=100인 triangular 정책에서 step 0, 100, 200의 값을 구하라.
+base_lr=0.001, max_lr=0.01, step_size=100인 triangular 폴리시에서 step 0, 100, 200의 값을 구하라.
 
 </div>
 
@@ -340,12 +340,12 @@ base_lr=0.001, max_lr=0.01, step_size=100인 triangular 정책에서 step 0, 100
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-직접 구현한 get_lr를 호출하기만 하면 옵티마이저 학습률이 바뀌는가?
+직접 구현한 get_lr를 호출하기만 하면 옵티마이저 러닝레이트가 바뀌는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    아니다. 반환값을 실제 옵티마이저의 각 param_group 학습률에 연결해야 한다. 단계 단위가 에포크인지 갱신인지도 학습 루프에서 일관되게 정한다.
+    아니다. 반환값을 실제 옵티마이저의 각 param_group 러닝레이트에 연결해야 한다. 단계 단위가 에포크인지 갱신인지도 학습 루프에서 일관되게 정한다.
 
 ---
 
@@ -362,4 +362,4 @@ base_lr=0.001, max_lr=0.01, step_size=100인 triangular 정책에서 step 0, 100
 
 ## 정리하며
 
-일정의 구간과 끝값, 호출 단위를 명시해야 순환 학습률을 정확히 적용할 수 있다. 교육용 구현과 라이브러리 구현을 구분하고 성능 효과는 별도의 학습 실험으로 판단한다.
+일정의 구간과 끝값, 호출 단위를 명시해야 순환 러닝레이트를 정확히 적용할 수 있다. 교육용 구현과 라이브러리 구현을 구분하고 성능 효과는 별도의 학습 실험으로 판단한다.

@@ -1,6 +1,6 @@
-# 34장: 그래프 신경망
+# 34장: 그래프 뉴럴 넷트웍
 
-그래프 신경망(GNN)은 노드 특징과 연결 구조를 함께 이용해 표현을 학습한다. 그래프의 방향·가중치·중복 엣지, 메시지의 집계 방식, 노드에서 그래프 전체로 정보를 모으는 방법이 계산과 표현력에 영향을 준다. 이 장에서는 수학적 조건과 보존된 코드의 실제 동작을 함께 살펴본다.
+그래프 뉴럴 넷트웍(GNN)은 노드 피처와 연결 구조를 함께 이용해 표현을 학습한다. 그래프의 방향·웨이트·중복 엣지, 메시지의 집계 방식, 노드에서 그래프 전체로 정보를 모으는 방법이 계산과 표현력에 영향을 준다. 이 장에서는 수학적 조건과 보존된 코드의 실제 동작을 함께 살펴본다.
 
 ## 1. 그래프 기초
 
@@ -16,7 +16,7 @@
 
 ## 4. 공간 기반 방법
 
-[GCN](convolutions/gcn.md)은 자기 루프와 차수 정규화를, [GraphSAGE](convolutions/graphsage.md)는 이웃 샘플링과 집계를 사용한다. [GAT](convolutions/gat.md)는 이웃별 어텐션을, [GIN](convolutions/gin.md)은 다중집합 집계의 구별 능력을 다룬다. 표현력 정리는 특징·함수·집계의 가정 아래 해석하며, 모델 이름만으로 실제 데이터 성능을 순위화하지 않는다.
+[GCN](convolutions/gcn.md)은 자기 루프와 차수 정규화를, [GraphSAGE](convolutions/graphsage.md)는 이웃 샘플링과 집계를 사용한다. [GAT](convolutions/gat.md)는 이웃별 어텐션을, [GIN](convolutions/gin.md)은 다중집합 집계의 구별 능력을 다룬다. 표현력 정리는 피처·함수·집계의 가정 아래 해석하며, 모델 이름만으로 실제 데이터 성능을 순위화하지 않는다.
 
 ## 5. 깊이와 확장 구조
 
@@ -30,13 +30,13 @@
 
 ## 7. 노드와 링크 과제
 
-[노드 분류](node_link/node_classification.md)는 일부 레이블과 전체 구조·특징을 사용하는 전이적 학습이다. [링크 예측](node_link/link_prediction.md)은 인코더·디코더, 음성 샘플링과 평가 엣지의 누출 방지를 다룬다. [노드 임베딩](node_link/node_embedding.md)은 랜덤 워크 문맥을 학습하고, [커뮤니티 탐지](node_link/community_detection.md)는 임베딩과 K-means로 합성 블록 구조를 복원한다.
+[노드 분류](node_link/node_classification.md)는 일부 레이블과 전체 구조·피처를 사용하는 전이적 학습이다. [링크 예측](node_link/link_prediction.md)은 인코더·디코더, 음성 샘플링과 평가 엣지의 누출 방지를 다룬다. [노드 임베딩](node_link/node_embedding.md)은 랜덤 워크 문맥을 학습하고, [커뮤니티 탐지](node_link/community_detection.md)는 임베딩과 K-means로 합성 블록 구조를 복원한다.
 
 ## 8. 응용 예제의 범위
 
-[분자 특성 예측](applications/molecular.md)과 [약물–표적 예측](applications/drug_discovery.md)은 합성 특징·목표로 계산 구조를 보여 준다. [소셜 네트워크 분석](applications/social_networks.md)은 합성 계정 그룹 분류다. 출력된 손실·정확도는 실제 화학·계정 데이터의 검증을 대신하지 않는다.
+[분자 특성 예측](applications/molecular.md)과 [약물–표적 예측](applications/drug_discovery.md)은 합성 피처·목표로 계산 구조를 보여 준다. [소셜 네트워크 분석](applications/social_networks.md)은 합성 계정 그룹 분류다. 출력된 로스·정확도는 실제 화학·계정 데이터의 검증을 대신하지 않는다.
 
-[추천 시스템](applications/recommendation.md)은 LightGCN의 전파와 BPR 학습을, [지식 그래프 완성](applications/knowledge_graphs.md)은 메시지 패싱 없이 TransE 테이블의 점수·순위 계산을 살펴본다. 학습 손실과 홀드아웃 성능, 관측 정보와 미관측 정답을 구분한다.
+[추천 시스템](applications/recommendation.md)은 LightGCN의 전파와 BPR 학습을, [지식 그래프 완성](applications/knowledge_graphs.md)은 메시지 패싱 없이 TransE 테이블의 점수·순위 계산을 살펴본다. 학습 로스와 홀드아웃 성능, 관측 정보와 미관측 정답을 구분한다.
 
 ## 정리하며
 

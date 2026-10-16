@@ -21,9 +21,9 @@ true_w, true_b = 2.0, 1.0                          # 되찾아야 할 참값
 noise = torch.randn(n_samples, 1, device=device) * 0.5
 y = true_w * X + true_b + noise
 
-# ── 2. 매개변수를 손으로 만든다 ─────────────────────────────────────
+# ── 2. 파라메터를 손으로 만든다 ─────────────────────────────────────
 # requires_grad를 켜지 않는다. 이 예제의 요점이 autograd 없이
-# 기울기를 손으로 셈해 보는 것이기 때문이다
+# 그래디언트를 손으로 셈해 보는 것이기 때문이다
 w = torch.randn(1, 1, device=device)   # (1,1): X @ w 가 되도록 행렬 꼴
 b = torch.zeros(1, 1, device=device)
 
@@ -33,7 +33,7 @@ def forward(X, w, b):
     return X @ w + b
 
 def compute_loss(y_true, y_pred):
-    # 평균제곱오차. n으로 나누므로 표본 수가 달라져도 손실의 자가 같다
+    # 평균제곱오차. n으로 나누므로 표본 수가 달라져도 로스의 자가 같다
     n = y_true.shape[0]
     return (1 / n) * torch.sum((y_true - y_pred) ** 2)
 
@@ -42,7 +42,7 @@ def compute_gradients(X, y_true, y_pred):
     #   dL/dw = (2/n) * X^T (y_pred - y_true)
     #   dL/db = (2/n) * sum(y_pred - y_true)
     # 잔차의 부호에 주의한다. (y_pred - y_true)이지 그 반대가 아니다.
-    # 뒤집으면 손실이 커지는 쪽으로 올라간다
+    # 뒤집으면 로스가 커지는 쪽으로 올라간다
     n = y_true.shape[0]
     dw = (2 / n) * X.T @ (y_pred - y_true)
     db = (2 / n) * torch.sum(y_pred - y_true)
@@ -61,10 +61,10 @@ for epoch in range(n_epochs):
     dw, db = compute_gradients(X, y, y_pred)
 
     # no_grad가 굳이 필요하지는 않다(requires_grad를 켜지 않았으므로).
-    # 그래도 두는 까닭은 매개변수 갱신을 그래프 밖에서 한다는 버릇을
+    # 그래도 두는 까닭은 파라메터 갱신을 그래프 밖에서 한다는 버릇을
     # 들이기 위해서다. autograd를 쓰는 다음 예제에서는 이것이 필수가 된다
     with torch.no_grad():
-        w -= learning_rate * dw   # 기울기 반대 방향으로
+        w -= learning_rate * dw   # 그래디언트 반대 방향으로
         b -= learning_rate * db
 
 print(f"True values:    w = {true_w:.4f}, b = {true_b:.4f}")
@@ -80,9 +80,9 @@ Learned values: w = 2.0336, b = 0.7309
 
 ## 2. 논의
 
-NumPy에서 PyTorch로 넘어가는 일은 거의 문법 차원에 그친다. `np.random.randn`은 `torch.randn`이 되고, `np.sum`은 `torch.sum`이 되며, 배열 인덱싱은 똑같이 동작한다. 새로 더해지는 것은 장치 지정(`device=device`)과, 원소가 하나인 텐서에서 파이썬 스칼라를 꺼내는 `.item()` 메서드이다. 한 연산에 들어가는 모든 텐서는 같은 장치에 있어야 하므로 데이터와 매개변수를 같은 `device` 객체 위에 만든다.
+NumPy에서 PyTorch로 넘어가는 일은 거의 문법 차원에 그친다. `np.random.randn`은 `torch.randn`이 되고, `np.sum`은 `torch.sum`이 되며, 배열 인덱싱은 똑같이 동작한다. 새로 더해지는 것은 장치 지정(`device=device`)과, 원소가 하나인 텐서에서 파이썬 스칼라를 꺼내는 `.item()` 메서드이다. 한 연산에 들어가는 모든 텐서는 같은 장치에 있어야 하므로 데이터와 파라메터를 같은 `device` 객체 위에 만든다.
 
-`torch.no_grad()`는 블록 안에서 경사 기록을 끈다. 이 예제의 매개변수는 `requires_grad=False`이므로 갱신에 원래 계산 그래프가 생기지 않는다. 뒤에서 학습 가능한 잎 텐서를 직접 제자리 갱신할 때는 경사 기록을 끄는 것이 필요하며, 그렇지 않으면 자동 미분의 제자리 연산 제약으로 오류가 날 수 있다.
+`torch.no_grad()`는 블록 안에서 경사 기록을 끈다. 이 예제의 파라메터는 `requires_grad=False`이므로 갱신에 원래 계산 그래프가 생기지 않는다. 뒤에서 학습 가능한 잎 텐서를 직접 제자리 갱신할 때는 경사 기록을 끄는 것이 필요하며, 그렇지 않으면 자동 미분의 제자리 연산 제약으로 오류가 날 수 있다.
 
 PyTorch와 NumPy는 비슷한 연산을 제공하지만 자료형 변환, 장치, 메모리 공유와 API에 차이가 있다. NumPy 배열의 모든 기능을 그대로 포함하는 상위집합으로 생각하기보다, 배열 연산과 자동 미분을 지원하는 별도의 도구로 이해한다.
 
@@ -91,7 +91,7 @@ PyTorch와 NumPy는 비슷한 연산을 제공하지만 자료형 변환, 장치
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-결과를 다시 NumPy로 바꾸어 정확성을 확인하라. 학습 후 `w`와 `b`를 CPU로 옮기고 NumPy 배열로 바꾼 뒤 이미 아는 참값과 비교하라. 각 매개변수의 백분율 오차를 계산하라.
+결과를 다시 NumPy로 바꾸어 정확성을 확인하라. 학습 후 `w`와 `b`를 CPU로 옮기고 NumPy 배열로 바꾼 뒤 이미 아는 참값과 비교하라. 각 파라메터의 백분율 오차를 계산하라.
 
 </div>
 
@@ -104,7 +104,7 @@ PyTorch와 NumPy는 비슷한 연산을 제공하지만 자료형 변환, 장치
     print(f"Weight error: {w_error:.2f}%")
     print(f"Bias error: {b_error:.2f}%")
     ```
-    매개변수의 참값과 학습값을 비교하되, 잡음과 유한한 반복 때문에 오차가 특정 비율 이하라고 보장할 수는 없다. 경사를 추적하는 텐서를 NumPy로 바꿀 때는 일반적으로 `detach().cpu().numpy()`를 사용한다.
+    파라메터의 참값과 학습값을 비교하되, 잡음과 유한한 반복 때문에 오차가 특정 비율 이하라고 보장할 수는 없다. 경사를 추적하는 텐서를 NumPy로 바꿀 때는 일반적으로 `detach().cpu().numpy()`를 사용한다.
 
 ---
 
@@ -151,7 +151,7 @@ PyTorch와 NumPy는 비슷한 연산을 제공하지만 자료형 변환, 장치
         elapsed = time.time() - start
         print(f"{dev}: {elapsed:.3f}s")
     ```
-    GPU의 비동기 실행 때문에 시간 측정의 시작과 끝에서 동기화가 필요하다. 아래 예시 측정 코드에 동기화가 없다면 순수 계산 시간을 정확히 비교하기 어렵다. 워밍업과 데이터 전송 포함 여부를 명시하고, 표본 수뿐 아니라 특징 차원·장치·배치 크기를 함께 기록한다. 보편적인 손익분기 표본 수는 없다.
+    GPU의 비동기 실행 때문에 시간 측정의 시작과 끝에서 동기화가 필요하다. 아래 예시 측정 코드에 동기화가 없다면 순수 계산 시간을 정확히 비교하기 어렵다. 워밍업과 데이터 전송 포함 여부를 명시하고, 표본 수뿐 아니라 피처 차원·장치·배치 크기를 함께 기록한다. 보편적인 손익분기 표본 수는 없다.
 
 ## 정리하며
 

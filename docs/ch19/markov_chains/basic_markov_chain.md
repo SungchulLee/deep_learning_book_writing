@@ -55,7 +55,7 @@ class BasicMarkovChain:
         """
         마르코프 사슬 첫값 잡기.
         
-        매개변수:
+        파라메터:
             states (list): 상태의 이름(이를테면 ['A', 'B', 'C'])
             transition_matrix (np.ndarray): 옮김 확률 행렬 P
                                           여기서 P[i][j] = P(X_{n+1}=j | X_n=i)
@@ -120,7 +120,7 @@ class BasicMarkovChain:
         """
         마르코프 사슬을 n걸음 흉내내기.
         
-        매개변수:
+        파라메터:
             n_steps (int): 흉내낼 걸음 수
             initial_state (int or str): 시작 상태(번호나 이름)
         
@@ -150,7 +150,7 @@ class BasicMarkovChain:
         """
         몬테카를로 흉내내기로 n걸음 뒤의 상태 분포 어림하기.
         
-        매개변수:
+        파라메터:
             n_steps (int): 뗄 걸음 수
             n_simulations (int): 돌릴 흉내내기의 횟수
         
@@ -283,7 +283,7 @@ def visualize_state_sequence(sequence, title="Markov Chain State Sequence"):
     """
     시간에 따른 상태 늘어놓음 그려 보기.
     
-    매개변수:
+    파라메터:
         sequence (list): 상태 이름의 목록
         title (str): 그림의 제목
     """
@@ -481,13 +481,13 @@ simulate와 get_state_distribution에 필요한 입력·반환 규약을 정리�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-아래 보존된 신경망 형태의 시험 조각이 BasicMarkovChain에 적합한지 비판하고, 필요한 점검을 설명하라.
+아래 보존된 뉴럴 넷트웍 형태의 시험 조각이 BasicMarkovChain에 적합한지 비판하고, 필요한 점검을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
 
-    클래스는 호출 가능한 신경망이나 parameters·backward 인터페이스를 제공하지 않는다. 따라서 이 조각은 실행 가능한 마르코프 사슬 검증이 아니다. 실제 점검은 전이행렬의 유효성, n=0에서 초기 상태 하나, 경로 길이 n+1, 허용된 상태만의 출력과 초기화 규약을 다뤄야 한다. 확률 빈도는 유한 표본의 변동을 고려해 평가한다.
+    클래스는 호출 가능한 뉴럴 넷트웍이나 parameters·backward 인터페이스를 제공하지 않는다. 따라서 이 조각은 실행 가능한 마르코프 사슬 검증이 아니다. 실제 점검은 전이행렬의 유효성, n=0에서 초기 상태 하나, 경로 길이 n+1, 허용된 상태만의 출력과 초기화 규약을 다뤄야 한다. 확률 빈도는 유한 표본의 변동을 고려해 평가한다.
 
     ```python
     def test_basicmarkovchain():
@@ -509,4 +509,4 @@ simulate와 get_state_distribution에 필요한 입력·반환 규약을 정리�
 
 ## 정리하며
 
-유한 마르코프 사슬은 현재 상태별 전이확률로 경로를 생성한다. n단계 시점 분포와 단일 경로의 장기 빈도를 구분하고, 기약성·비주기성·초기화 규약에 따라 결과를 해석한다. 보존된 일반 신경망 시험 조각은 이 클래스의 인터페이스에 맞지 않는다.
+유한 마르코프 사슬은 현재 상태별 전이확률로 경로를 생성한다. n단계 시점 분포와 단일 경로의 장기 빈도를 구분하고, 기약성·비주기성·초기화 규약에 따라 결과를 해석한다. 보존된 일반 뉴럴 넷트웍 시험 조각은 이 클래스의 인터페이스에 맞지 않는다.

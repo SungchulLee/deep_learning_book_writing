@@ -1,6 +1,6 @@
 # nn 모듈로 만드는 선형 회귀
 
-`nn.Module` 클래스는 모델을 정의하기 위한 PyTorch의 표준 추상화이며, `nn.Linear`는 완전 연결 층의 내장 구현을 제공한다. 여기에 `torch.optim`의 옵티마이저를 결합하면 PyTorch 생태계 전반의 관례를 따르는 깔끔하고 확장 가능한 코드가 된다. 이 튜토리얼은 임의로 복잡한 구조에도 그대로 적용되는 PyTorch의 관용적 학습 루프를 보여준다.
+`nn.Module` 클래스는 모델을 정의하기 위한 PyTorch의 표준 추상화이며, `nn.Linear`는 완전 연결 레이어의 내장 구현을 제공한다. 여기에 `torch.optim`의 옵티마이저를 결합하면 PyTorch 생태계 전반의 관례를 따르는 깔끔하고 확장 가능한 코드가 된다. 이 튜토리얼은 임의로 복잡한 구조에도 그대로 적용되는 PyTorch의 관용적 학습 루프를 보여준다.
 
 ## 1. 코드
 
@@ -19,7 +19,7 @@
 
     다루는 것:
         - 모델을 위한 nn.Module 클래스
-        - nn.Linear 층
+        - nn.Linear 레이어
         - 최적화기(torch.optim.SGD)
         - 더 깔끔하고 잘 늘어나는 코드
 
@@ -28,8 +28,8 @@
 
     학습 목표:
         - nn.Module으로 맞춤 모델을 만든다
-        - 붙박이 층(nn.Linear)을 쓴다
-        - 매개변수 고치기에 최적화기를 쓴다
+        - 붙박이 레이어(nn.Linear)을 쓴다
+        - 파라메터 고치기에 최적화기를 쓴다
         - PyTorch의 좋은 버릇을 따른다
 
     걸리는 때: 20분쯤
@@ -84,13 +84,13 @@
             모델의 초기화한다
 
             Args:
-                input_dim: 입력 특징의 수
-                output_dim: 출력 특징의 수
+                input_dim: 입력 피처의 수
+                output_dim: 출력 피처의 수
             """
             # 언제나 부모 생성자를 먼저 호출한다
             super(LinearRegressionModel, self).__init__()
 
-            # 층을 정의한다
+            # 레이어를 정의한다
             # nn.Linear(in_features, out_features)
             # 이렇게 하면 y = X @ W.T + b가 된다
             # 여기서 W의 모양은 (out_features, in_features)이다
@@ -118,17 +118,17 @@
         print(f"  {name}: shape={param.shape}, requires_grad={param.requires_grad}")
 
     # ============================================================================
-    # 3부: 손실과 최적화기 정의
+    # 3부: 로스와 최적화기 정의
     # ============================================================================
     print("\n" + "=" * 70)
     print("PART 3: DEFINE LOSS AND OPTIMIZER")
     print("=" * 70)
 
-    # 손실 함수
+    # 로스 함수
     criterion = nn.MSELoss()  # Mean Squared Error
     print(f"Loss function: {criterion}")
 
-    # 최적화기 - 매개변수 갱신을 자동으로 처리한다!
+    # 최적화기 - 파라메터 갱신을 자동으로 처리한다!
     learning_rate = 0.01
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     print(f"Optimizer: {optimizer}")
@@ -136,8 +136,8 @@
 
     print("""
     최적화기를 쓰는 핵심 이점:
-    1. 모델의 매개변수를 모두 절로 고친다
-    2. 직접 매개변수를 고칠 일이 없다
+    1. 모델의 파라메터를 모두 절로 고친다
+    2. 직접 파라메터를 고칠 일이 없다
     3. 최적화기를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
     4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
     """)
@@ -252,7 +252,7 @@
 
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-    # 손실 곡선
+    # 로스 곡선
     axes[0, 0].plot(loss_history, linewidth=2, color='blue')
     axes[0, 0].set_xlabel('Epoch')
     axes[0, 0].set_ylabel('Loss')
@@ -260,7 +260,7 @@
     axes[0, 0].grid(True, alpha=0.3)
     axes[0, 0].set_yscale('log')
 
-    # 매개변수의 변화
+    # 파라메터의 변화
     axes[0, 1].plot(w_history, label='w', linewidth=2)
     axes[0, 1].axhline(y=TRUE_W, color='r', linestyle='--', label=f'True w={TRUE_W}')
     axes[0, 1].plot(b_history, label='b', linewidth=2)
@@ -289,13 +289,13 @@
     학습 루프가 나아온 길:
 
     튜토리얼 02(넘파이):
-      - 직접 쓰는 기울기 식
-      - 직접 하는 매개변수 고치기
+      - 직접 쓰는 그래디언트 식
+      - 직접 하는 파라메터 고치기
       - 코드 40줄쯤
 
     튜토리얼 03(직접 하는 PyTorch):
       - 텐서 셈
-      - 직접 하는 기울기
+      - 직접 하는 그래디언트
       - 직접 하는 고치기
 
     튜토리얼 04(자동 미분):
@@ -342,18 +342,18 @@
 
     핵심 조각:
     1. nn.Module: 모든 모델의 밑 클래스
-    2. nn.Linear: 붙박이 선형 층
-    3. optimizer: 매개변수 고치기를 다룬다
-    4. criterion: 손실 함수
+    2. nn.Linear: 붙박이 선형 레이어
+    3. optimizer: 파라메터 고치기를 다룬다
+    4. criterion: 로스 함수
 
     Advantages:
     ✓ 깔끔하고 읽기 좋은 코드
     ✓ 복잡한 모델으로 넓히기 쉽다
-    ✓ 매개변수를 절로 다룬다
+    ✓ 파라메터를 절로 다룬다
     ✓ 모델을 저장하고 불러오기 쉽다
     ✓ GPU을 받친다(.to('cuda')만 더하면 된다)
 
-    다음: 튜토리얼 06 - 여러 입력 특징!
+    다음: 튜토리얼 06 - 여러 입력 피처!
     """)
 
 
@@ -406,8 +406,8 @@
     Learning rate: 0.01
 
     최적화기를 쓰는 핵심 이점:
-    1. 모델의 매개변수를 모두 절로 고친다
-    2. 직접 매개변수를 고칠 일이 없다
+    1. 모델의 파라메터를 모두 절로 고친다
+    2. 직접 파라메터를 고칠 일이 없다
     3. 최적화기를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
     4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
 
@@ -492,18 +492,18 @@
 
     핵심 조각:
     1. nn.Module: 모든 모델의 밑 클래스
-    2. nn.Linear: 붙박이 선형 층
-    3. optimizer: 매개변수 고치기를 다룬다
-    4. criterion: 손실 함수
+    2. nn.Linear: 붙박이 선형 레이어
+    3. optimizer: 파라메터 고치기를 다룬다
+    4. criterion: 로스 함수
 
     Advantages:
     ✓ 깔끔하고 읽기 좋은 코드
     ✓ 복잡한 모델으로 넓히기 쉽다
-    ✓ 매개변수를 절로 다룬다
+    ✓ 파라메터를 절로 다룬다
     ✓ 모델을 저장하고 불러오기 쉽다
     ✓ GPU을 받친다(.to('cuda')만 더하면 된다)
 
-    다음: 튜토리얼 06 - 여러 입력 특징!
+    다음: 튜토리얼 06 - 여러 입력 피처!
 
     ```
 
@@ -512,16 +512,16 @@
 
 `nn.Module`은 등록된 파라미터와 하위 모듈을 관리한다. `parameters()`는 동결된 파라미터도 포함하므로 학습 대상 여부는 `requires_grad`와 옵티마이저 구성을 함께 확인한다. `train()`과 `eval()`은 일부 계층의 동작을 전환하며 autograd를 끄지는 않는다. `state_dict()`는 등록된 파라미터와 영속 버퍼의 상태를 반환하고, 파일 저장은 `torch.save()`가 담당한다.
 
-학습 루프는 네 줄짜리 패턴이 된다. `y_pred = model(X)`, `loss = criterion(y_pred, y)`, `optimizer.zero_grad(); loss.backward()`, `optimizer.step()`이다. 각 줄은 순전파, 손실 계산, 경사 계산, 매개변수 갱신이라는 분명한 역할을 맡으며, 이 패턴은 모델이 아무리 복잡해져도 바뀌지 않는다. 이 패턴을 익히는 것이 PyTorch를 능숙하게 쓰기 위한 가장 중요한 한 걸음이다.
+학습 루프는 네 줄짜리 패턴이 된다. `y_pred = model(X)`, `loss = criterion(y_pred, y)`, `optimizer.zero_grad(); loss.backward()`, `optimizer.step()`이다. 각 줄은 순전파, 로스 계산, 경사 계산, 파라메터 갱신이라는 분명한 역할을 맡으며, 이 패턴은 모델이 아무리 복잡해져도 바뀌지 않는다. 이 패턴을 익히는 것이 PyTorch를 능숙하게 쓰기 위한 가장 중요한 한 걸음이다.
 
-옵티마이저를 바꾸는 일은 간단하다. `torch.optim.SGD`를 `torch.optim.Adam`이나 다른 옵티마이저로 바꾸어 기본 학습 흐름을 유지할 수 있다. 다만 학습률과 가중치 감쇠 등 인수의 의미를 다시 확인해야 하며, closure가 필요한 옵티마이저처럼 호출 방식이 다른 경우도 있다. 이런 모듈성은 모델(계산을 정의), 기준(목적을 정의), 옵티마이저(갱신 규칙을 정의) 사이의 깔끔한 분리에서 곧바로 따라 나온다. 같은 분리 덕분에 여러 손실 함수, 학습률 스케줄, 정규화 전략을 손쉽게 실험할 수 있다.
+옵티마이저를 바꾸는 일은 간단하다. `torch.optim.SGD`를 `torch.optim.Adam`이나 다른 옵티마이저로 바꾸어 기본 학습 흐름을 유지할 수 있다. 다만 러닝레이트와 웨이트 감쇠 등 인수의 의미를 다시 확인해야 하며, closure가 필요한 옵티마이저처럼 호출 방식이 다른 경우도 있다. 이런 모듈성은 모델(계산을 정의), 기준(목적을 정의), 옵티마이저(갱신 규칙을 정의) 사이의 깔끔한 분리에서 곧바로 따라 나온다. 같은 분리 덕분에 여러 로스 함수, 러닝레이트 스케줄, 정규화 전략을 손쉽게 실험할 수 있다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`model.named_parameters()`로 모델의 이름 붙은 매개변수를 모두 출력하고, 가중치와 편향의 모양이 입력 1개·출력 1개인 선형 층에서 기대하는 것과 일치하는지 확인하라.
+`model.named_parameters()`로 모델의 이름 붙은 파라메터를 모두 출력하고, 웨이트와 바이어스의 모양이 입력 1개·출력 1개인 선형 레이어에서 기대하는 것과 일치하는지 확인하라.
 
 </div>
 
@@ -542,7 +542,7 @@
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-`nn.MSELoss()`를 평균절대오차(MAE)를 계산하는 사용자 정의 손실 함수로 대체하라. 모델을 학습시키고 MSE 버전과 수렴을 비교하라.
+`nn.MSELoss()`를 평균절대오차(MAE)를 계산하는 사용자 정의 로스 함수로 대체하라. 모델을 학습시키고 MSE 버전과 수렴을 비교하라.
 
 </div>
 
@@ -613,4 +613,4 @@
 
 ## 정리하며
 
-모듈은 파라미터와 상태를 관리하고 옵티마이저는 업데이트 규칙을 담당한다. 모델, 손실과 옵티마이저를 바꿀 때도 입력 조건과 스케일을 확인한다.
+모듈은 파라미터와 상태를 관리하고 옵티마이저는 업데이트 규칙을 담당한다. 모델, 로스와 옵티마이저를 바꿀 때도 입력 조건과 스케일을 확인한다.

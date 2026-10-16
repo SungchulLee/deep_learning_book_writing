@@ -1,6 +1,6 @@
 # SAC 구현
 
-Soft Actor-Critic(SAC)는 이어진 다스리기에서 앞서가는 벗어난 정책 알고리즘으로, 가장 큰 엔트로피 강화학습과 Actor-Critic 구조를 엮는다. SAC은 어림 리턴과 정책 엔트로피를 함께 가장 크게 하여, 쌍둥이 Q 네트워크와 다시 매개변수 매기기로 뽑는 눌러 담은 가우스 정책, 저절로 벼리는 온도로 든든한 학습을 지키면서 살펴보기를 북돋운다. 서비스 품질의 이 구현은 SAC의 한가운데 조각을 모두 Pendulum 둘레에서 보이고, 저절로 벼리는 엔트로피 온도와 붙박인 온도를 견준다.
+Soft Actor-Critic(SAC)는 이어진 다스리기에서 앞서가는 벗어난 폴리시 알고리즘으로, 가장 큰 엔트로피 강화학습과 Actor-Critic 구조를 엮는다. SAC은 어림 리턴과 폴리시 엔트로피를 함께 가장 크게 하여, 쌍둥이 Q 네트워크와 다시 파라메터 매기기로 뽑는 눌러 담은 가우스 폴리시, 저절로 벼리는 온도로 든든한 학습을 지키면서 살펴보기를 북돋운다. 서비스 품질의 이 구현은 SAC의 한가운데 조각을 모두 Pendulum 둘레에서 보이고, 저절로 벼리는 엔트로피 온도와 붙박인 온도를 견준다.
 
 ## 1. 코드
 
@@ -8,7 +8,7 @@ Soft Actor-Critic(SAC)는 이어진 다스리기에서 앞서가는 벗어난 �
 """
 34.4.4장: SAC 온전한 구현
 =============================================
-저절로 벼리는 온도, 눌러 담은 가우스 방침, 쌍둥이 비평가를
+저절로 벼리는 온도, 눌러 담은 가우스 폴리시, 쌍둥이 크리틱을
 갖춘 서비스 품질의 SAC.
 """
 
@@ -54,11 +54,11 @@ class ReplayBuffer:
 
 
 # ---------------------------------------------------------------------------
-# 그물
+# 넷트웍
 # ---------------------------------------------------------------------------
 
 class SquashedGaussianActor(nn.Module):
-    """눌러 담은 가우스 방침을 쓰는 SAC 확률 행위자."""
+    """눌러 담은 가우스 폴리시를 쓰는 SAC 확률 액터."""
     
     def __init__(self, obs_dim, act_dim, hidden=256, max_action=1.0):
         super().__init__()
@@ -78,19 +78,19 @@ class SquashedGaussianActor(nn.Module):
     
     def sample(self, obs):
         """
-        다시 매개변수 매기기로 움직임을 뽑고 로그 낌새를 셈한다.
+        다시 파라메터 매기기로 액션을 뽑고 로그 확률을 셈한다.
         
-        돌려주는 값: 움직임, 로그 낌새, 평균 움직임
+        돌려주는 값: 액션, 로그 확률, 평균 액션
         """
         mu, log_std = self.forward(obs)
         std = log_std.exp()
         dist = Normal(mu, std)
         
-        # 다시 매개변수 매긴 뽑기
+        # 다시 파라메터 매긴 뽑기
         u = dist.rsample()
         action = torch.tanh(u) * self.max_action
         
-        # tanh 바로잡기를 곁들인 로그 낌새
+        # tanh 바로잡기를 곁들인 로그 확률
         # log π(a|s) = log N(u; μ, σ) - Σ log(1 - tanh²(u))
         log_prob = dist.log_prob(u)
         log_prob -= torch.log(1 - (action / self.max_action).pow(2) + EPS)
@@ -102,7 +102,7 @@ class SquashedGaussianActor(nn.Module):
 
 
 class TwinQCritic(nn.Module):
-    """SAC를 위한 쌍둥이 Q 그물."""
+    """SAC를 위한 쌍둥이 Q 넷트웍."""
     
     def __init__(self, obs_dim, act_dim, hidden=256):
         super().__init__()
@@ -123,25 +123,25 @@ class TwinQCritic(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# SAC 부림꾼
+# SAC 에이전트
 # ---------------------------------------------------------------------------
 
 class SAC:
     """
-    저절로 벼리는 엔트로피를 갖춘 부드러운 행위자-비평가.
+    저절로 벼리는 엔트로피를 갖춘 부드러운 액터-크리틱.
     
-    매개변수
+    파라메터
     ----------
     env : gym.Env
-        이어진 움직임 둘레.
+        이어진 액션 둘레.
     lr : float
-        온 그물의 배움률.
+        온 넷트웍의 러닝레이트.
     gamma : float
         깎기 인자.
     tau : float
-        부드러운 과녁 고침 계수.
+        부드러운 타깃 고침 계수.
     alpha_lr : float
-        온도의 배움률.
+        온도의 러닝레이트.
     init_alpha : float
         온도의 첫 값.
     buffer_size : int
@@ -179,11 +179,11 @@ class SAC:
         act_dim = env.action_space.shape[0]
         max_action = float(env.action_space.high[0])
         
-        # 행위자
+        # 액터
         self.actor = SquashedGaussianActor(obs_dim, act_dim, hidden_dim, max_action)
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=lr)
         
-        # 쌍둥이 비평가
+        # 쌍둥이 크리틱
         self.critic = TwinQCritic(obs_dim, act_dim, hidden_dim)
         self.critic_target = TwinQCritic(obs_dim, act_dim, hidden_dim)
         self.critic_target.load_state_dict(self.critic.state_dict())
@@ -218,7 +218,7 @@ class SAC:
         
         s, a, r, s2, d = self.buffer.sample(self.batch_size)
         
-        # === 비평가 고침 ===
+        # === 크리틱 고침 ===
         with torch.no_grad():
             next_a, next_log_prob, _ = self.actor.sample(s2)
             target_q1, target_q2 = self.critic_target(s2, next_a)
@@ -232,7 +232,7 @@ class SAC:
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        # === 행위자 고침 ===
+        # === 액터 고침 ===
         new_a, log_prob, _ = self.actor.sample(s)
         q1_new, q2_new = self.critic(s, new_a)
         q_new = torch.min(q1_new, q2_new)
@@ -255,7 +255,7 @@ class SAC:
             self.alpha = self.log_alpha.exp().item()
             alpha_loss = alpha_loss.item()
         
-        # 과녁을 부드럽게 고친다
+        # 타깃을 부드럽게 고친다
         self._soft_update()
         
         return {
@@ -369,45 +369,45 @@ if __name__ == "__main__":
 
 이 구현은 SAC 온전한 구현의 한가운데 논리를 담은 `ReplayBuffer`, `SquashedGaussianActor`, `TwinQCritic` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 써 보인다. 그 출력을 살피면 매개변수 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
+보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 써 보인다. 그 출력을 살피면 파라메터 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 배치 계산, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 배치 계산, GPU 빠르게 하기, 더 야무진 파라메터 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌리고 중요한 출력 재기를 적어라. 매개변수 하나(학습률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
+보여 주기 코드를 돌리고 중요한 출력 재기를 적어라. 파라메터 하나(러닝레이트, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 구조 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 학습률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 파라메터만 구조 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 러닝레이트는 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 파라메터의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 구현에서 중요한 구조 공정성이 맡은 몫을 풀어라. 왜 그런 활성화 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
+이 구현에서 중요한 구조 공정성이 맡은 몫을 풀어라. 왜 그런 엑티베이션 함수, 고르게 하기 꾀, 로스 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 공정성은 벗어난 정책 방법에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 입력에서 기울기가 사라지는 것을 막는다. 손실 함수는 과제 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 최적화 지형이 바뀌어 성능이 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+    이 구조 공정성은 벗어난 폴리시 방법에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 입력에서 그래디언트가 사라지는 것을 막는다. 로스 함수는 과제 클래스에 맞추어 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 오차). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 로스) 최적화 지형이 바뀌어 성능이 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 데이터셋, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 성능에 미친 바를 따져라.
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 데이터셋, 다른 문제 클래스, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 성능에 미친 바를 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    절로 떠오르는 넓히기 하나는 정규화(드롭아웃, 가중치 삭임)나 더 야무진 구조(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 데이터로 학습된 뒤 앞뒤의 재기를 비교하여라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
+    절로 떠오르는 넓히기 하나는 정규화(드롭아웃, 웨이트 삭임)나 더 야무진 구조(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 데이터로 학습된 뒤 앞뒤의 재기를 비교하여라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
 
 ## 정리하며
 
@@ -415,4 +415,4 @@ if __name__ == "__main__":
 
 이 구현은 SAC 온전한 구현의 한가운데 논리를 담은 `ReplayBuffer`, `SquashedGaussianActor`, `TwinQCritic` 클래스를 축으로 삼는다.
 
-핵심 갈래는 `ReplayBuffer`, `SquashedGaussianActor`, `TwinQCritic`, `SAC`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `ReplayBuffer`, `SquashedGaussianActor`, `TwinQCritic`, `SAC`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

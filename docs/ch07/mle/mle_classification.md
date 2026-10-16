@@ -1,12 +1,12 @@
 # 분류에서의 MLE
 
-분류의 손실 함수는 이산 확률분포의 음의 로그우도이다. **이진 교차 엔트로피는 베르누이 모델의 NLL**이고 **범주형 교차 엔트로피는 범주형 모델의 NLL**이다. 이 절은 이 관계를 정확히 밝히고, 소프트맥스와 시그모이드 함수가 MLE의 틀에서 어떻게 자연스럽게 나오는지 보여준다.
+분류의 로스 함수는 이산 확률분포의 음의 로그우도이다. **이진 교차 엔트로피는 베르누이 모델의 NLL**이고 **범주형 교차 엔트로피는 범주형 모델의 NLL**이다. 이 절은 이 관계를 정확히 밝히고, 소프트맥스와 시그모이드 함수가 MLE의 틀에서 어떻게 자연스럽게 나오는지 보여준다.
 
 !!! success "핵심 통찰"
 
     $$\text{Cross-Entropy Loss} = \text{Negative Log-Likelihood of Categorical Distribution}$$
     
-    교차 엔트로피 손실로 분류기를 학습시킬 때 당신은 범주형 우도 아래에서 최대가능도 추정을 하고 있는 것이다.
+    교차 엔트로피 로스로 분류기를 학습시킬 때 당신은 범주형 우도 아래에서 최대가능도 추정을 하고 있는 것이다.
 
 ---
 
@@ -36,7 +36,7 @@ $$
 -\log p(y | x, \theta) = -y \log \hat{p} - (1-y) \log(1 - \hat{p})
 $$
 
-데이터셋에 걸쳐 평균하면 **이진 교차 엔트로피(BCE)** 손실을 얻는다.
+데이터셋에 걸쳐 평균하면 **이진 교차 엔트로피(BCE)** 로스를 얻는다.
 
 $$
 \boxed{\mathcal{L}_{\text{BCE}} = -\frac{1}{n}\sum_{i=1}^{n}\left[y_i \log \hat{p}_i + (1-y_i)\log(1-\hat{p}_i)\right]}
@@ -94,7 +94,7 @@ $$
 -\log p(\mathbf{y} | x, \theta) = -\sum_{k=1}^{K} y_k \log \hat{p}_k
 $$
 
-$c_i$이 정답 클래스인 하드 레이블에서는 이것이 $-\log \hat{p}_{c_i}$으로 간단해진다. **범주형 교차 엔트로피** 손실은 다음과 같다.
+$c_i$이 정답 클래스인 하드 레이블에서는 이것이 $-\log \hat{p}_{c_i}$으로 간단해진다. **범주형 교차 엔트로피** 로스는 다음과 같다.
 
 $$
 \boxed{\mathcal{L}_{\text{CE}} = -\frac{1}{n}\sum_{i=1}^{n} \log \hat{p}_{i, c_i}}
@@ -118,7 +118,7 @@ $$
 \log \text{softmax}(z)_k = z_k - \log\sum_{j=1}^{K} e^{z_j} = z_k - \left(m + \log\sum_{j=1}^{K} e^{z_j - m}\right)
 $$
 
-여기서 $m = \max_j z_j$이다. PyTorch의 `nn.CrossEntropyLoss`은 로그 소프트맥스와 NLL 손실을 수치적으로 안정한 하나의 연산으로 합친다.
+여기서 $m = \max_j z_j$이다. PyTorch의 `nn.CrossEntropyLoss`은 로그 소프트맥스와 NLL 로스를 수치적으로 안정한 하나의 연산으로 합친다.
 
 ---
 
@@ -132,7 +132,7 @@ $$
 y_k^{\text{smooth}} = (1 - \epsilon) \cdot y_k + \frac{\epsilon}{K}
 $$
 
-여기서 $\epsilon$은 평활화 매개변수이다(보통 0.1).
+여기서 $\epsilon$은 평활화 파라메터이다(보통 0.1).
 
 ### MLE의 관점에서의 해석
 
@@ -148,7 +148,7 @@ $$
 p(\mathbf{y} | x, \theta) = \prod_{k=1}^{K} \hat{p}_k^{y_k}(1 - \hat{p}_k)^{1-y_k}
 $$
 
-손실은 독립인 BCE 손실 $K$개의 합이다.
+로스는 독립인 BCE 로스 $K$개의 합이다.
 
 $$
 \mathcal{L}_{\text{multi-label}} = -\frac{1}{nK}\sum_{i=1}^{n}\sum_{k=1}^{K}\left[y_{ik}\log\hat{p}_{ik} + (1-y_{ik})\log(1-\hat{p}_{ik})\right]
@@ -301,14 +301,14 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 
     $\gamma = 0$이면 $(1-p_t)^0 = 1$이므로 $\text{FL} = -\alpha_t \log(p_t)$이 되어 가중 교차 엔트로피가 된다. $\alpha_t = 1$이면 정확히 표준 교차 엔트로피이다.
 
-    인수 $(1-p_t)^\gamma$은 잘 분류된 예($p_t$이 1에 가까운 경우)의 비중을 낮추어, 손실이 어렵고 잘못 분류된 예에 집중하게 만든다.
+    인수 $(1-p_t)^\gamma$은 잘 분류된 예($p_t$이 1에 가까운 경우)의 비중을 낮추어, 로스가 어렵고 잘못 분류된 예에 집중하게 만든다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-10개 클래스 문제에서 매개변수 $\epsilon = 0.1$인 레이블 스무딩를 구현하고, 신뢰도 그림으로 하드 레이블과 보정 정도를 비교하라.
+10개 클래스 문제에서 파라메터 $\epsilon = 0.1$인 레이블 스무딩를 구현하고, 신뢰도 그림으로 하드 레이블과 보정 정도를 비교하라.
 
 </div>
 
@@ -327,7 +327,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
         smooth = -log_probs.mean(dim=-1)
         return ((1 - epsilon) * nll + epsilon * smooth).mean()
     ```
-    제시한 코드는 평활화한 손실을 계산하는 부분이다. 보정 정도를 비교하려면 같은 조건에서 두 모델을 학습하고 독립 검증셋의 예측 확률과 실제 정답 빈도로 신뢰도 다이어그램을 추가해야 한다. 보정 개선을 미리 결론내리지 않는다.
+    제시한 코드는 평활화한 로스를 계산하는 부분이다. 보정 정도를 비교하려면 같은 조건에서 두 모델을 학습하고 독립 검증셋의 예측 확률과 실제 정답 빈도로 신뢰도 다이어그램을 추가해야 한다. 보정 개선을 미리 결론내리지 않는다.
 
 ---
 
@@ -352,16 +352,16 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-누적 연결 확률을 사용하여 순서를 존중하는 순서형 분류(평점 1--5)의 손실 함수를 설계하라.
+누적 연결 확률을 사용하여 순서를 존중하는 순서형 분류(평점 1--5)의 로스 함수를 설계하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    누적 확률을 모델링한다. 문턱값 $\theta_1 < \theta_2 < \cdots < \theta_{K-1}$에 대해 $P(Y \leq k | x) = \sigma(\theta_k - f(x))$이다.
+    누적 확률을 모델링한다. 임계값 $\theta_1 < \theta_2 < \cdots < \theta_{K-1}$에 대해 $P(Y \leq k | x) = \sigma(\theta_k - f(x))$이다.
 
     클래스 확률: $P(Y = k) = P(Y \leq k) - P(Y \leq k-1)$이다.
 
-    NLL 손실은 다음과 같다.
+    NLL 로스는 다음과 같다.
 
     ```python
     def ordinal_loss(logit, thresholds, target):
@@ -372,11 +372,11 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
                           1 - cumprobs[-1:]])
         return -torch.log(probs[target] + 1e-8)
     ```
-    이웃한 클래스가 문턱값 경계를 공유하므로 순서성이 존중된다.
+    이웃한 클래스가 임계값 경계를 공유하므로 순서성이 존중된다.
 
 ## 정리하며
 
-BCE와 다중 클래스 교차 엔트로피는 서로 다른 조건부 분포에서 유도된다. 서로 배타적인 클래스에는 소프트맥스, 독립 베르누이 출력으로 모델링하는 다중 레이블에는 시그모이드를 사용하며 각 손실의 로짓·확률 입력 조건을 확인한다.
+BCE와 다중 클래스 교차 엔트로피는 서로 다른 조건부 분포에서 유도된다. 서로 배타적인 클래스에는 소프트맥스, 독립 베르누이 출력으로 모델링하는 다중 레이블에는 시그모이드를 사용하며 각 로스의 로짓·확률 입력 조건을 확인한다.
 
 **참고 문헌**
 

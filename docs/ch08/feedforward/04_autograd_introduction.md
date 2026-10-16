@@ -1,6 +1,6 @@
 # Autograd 소개
 
-Autograd는 순전파에서 기록한 연산에 연쇄 법칙을 적용해 경사를 계산한다. 이 예제는 간단한 스칼라 미분을 확인한 뒤 수동 역전파를 `backward()`로 대체한다. `backward()`는 경사를 계산하며, 매개변수를 갱신하지는 않는다.
+Autograd는 순전파에서 기록한 연산에 연쇄 법칙을 적용해 경사를 계산한다. 이 예제는 간단한 스칼라 미분을 확인한 뒤 수동 역전파를 `backward()`로 대체한다. `backward()`는 경사를 계산하며, 파라메터를 갱신하지는 않는다.
 
 ## 1. 코드
 
@@ -28,7 +28,7 @@ z = 3 * a**2 + 2 * b
 z.backward()
 print(f"dz/da = {a.grad.item()}, dz/db = {b.grad.item()}")
 
-# 자동 미분을 쓰는 신경망
+# 자동 미분을 쓰는 뉴럴 넷트웍
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 n_samples = 200
 
@@ -50,7 +50,7 @@ X, y = X.to(device), y.to(device)
 # 앞 절(03)과 같은 문제를 같은 구조로 푼다. 다른 것은 requires_grad를
 # 켰다는 점 하나이고, 그 대가로 backward 함수를 손으로 쓰지 않아도 된다.
 # 주의: 앞 절과 달리 He 초기화(sqrt(2/fan_in) 곱하기)가 빠져 있다.
-# 층이 둘뿐이라 큰 탈은 없지만, 깊어지면 이 차이가 드러난다
+# 레이어가 둘뿐이라 큰 탈은 없지만, 깊어지면 이 차이가 드러난다
 w1 = torch.randn(2, 8, device=device, requires_grad=True)
 b1 = torch.zeros(1, 8, device=device, requires_grad=True)
 w2 = torch.randn(8, 1, device=device, requires_grad=True)
@@ -73,7 +73,7 @@ def compute_loss(y_true, y_pred):
 
 learning_rate = 0.1
 for epoch in range(1000):
-    # 기울기는 덮어쓰기가 아니라 누적이므로 걸음마다 지워야 한다.
+    # 그래디언트는 덮어쓰기가 아니라 누적이므로 걸음마다 지워야 한다.
     # 이 네 줄이 곧 optimizer.zero_grad()가 하는 일이다.
     # 첫 걸음에서는 아직 .grad가 없어 None이라, 검사가 필요하다
     if w1.grad is not None:
@@ -115,7 +115,7 @@ Final Accuracy: 100.00%
 
 ## 2. 논의
 
-계산 그래프는 순전파 중에 동적으로 만들어진다. 경사 기록이 켜져 있고 미분 가능한 연산의 입력에 `requires_grad=True`인 텐서가 있으면 그 연산과 입력을 기록하는 노드를 그래프에 만든다. 손실에 `.backward()`를 호출하면 PyTorch가 이 그래프를 출력에서 입력 쪽으로 훑으며 각 노드에서 연쇄 법칙을 적용해 경사를 계산한다. 이 경사들은 잎 텐서(매개변수)의 `.grad` 속성에 누적된다.
+계산 그래프는 순전파 중에 동적으로 만들어진다. 경사 기록이 켜져 있고 미분 가능한 연산의 입력에 `requires_grad=True`인 텐서가 있으면 그 연산과 입력을 기록하는 노드를 그래프에 만든다. 로스에 `.backward()`를 호출하면 PyTorch가 이 그래프를 출력에서 입력 쪽으로 훑으며 각 노드에서 연쇄 법칙을 적용해 경사를 계산한다. 이 경사들은 잎 텐서(파라메터)의 `.grad` 속성에 누적된다.
 
 경사 누적은 중요한 세부 사항이다. 기본적으로 `.backward()`는 기존 경사를 덮어쓰지 않고 거기에 더한다. 매 역전파 전에 `.zero_()`를 호출해야 하는 이유가 여기 있다. 0으로 만들지 않으면 앞선 반복의 경사가 쌓여 잘못된 갱신으로 이어진다. 이런 동작이 있는 것은 경사 누적이 더 큰 배치 크기를 흉내 내거나 특정 최적화 알고리즘을 구현하는 데 유용하기 때문이다.
 
@@ -173,7 +173,7 @@ autograd로 점 $(2, 3)$에서 $f(x, y) = x^2 y + y^3$의 경사를 계산하라
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-직접 하던 매개변수 갱신을 `torch.optim.SGD`로 대체하라. 옵티마이저를 만들고, 경사를 손수 0으로 만들고 빼던 것을 `optimizer.zero_grad()`와 `optimizer.step()`으로 바꿔라.
+직접 하던 파라메터 갱신을 `torch.optim.SGD`로 대체하라. 옵티마이저를 만들고, 경사를 손수 0으로 만들고 빼던 것을 `optimizer.zero_grad()`와 `optimizer.step()`으로 바꿔라.
 
 </div>
 
@@ -193,4 +193,4 @@ autograd로 점 $(2, 3)$에서 $f(x, y) = x^2 y + y^3$의 경사를 계산하라
 
 ## 정리하며
 
-Autograd가 기록한 계산 그래프에서 `backward()`를 호출하면 경사가 잎 텐서의 `.grad`에 누적된다. 경사 초기화, 역전파, 매개변수 갱신을 구분하고 직접 제자리 갱신에는 `no_grad()`를 사용한다.
+Autograd가 기록한 계산 그래프에서 `backward()`를 호출하면 경사가 잎 텐서의 `.grad`에 누적된다. 경사 초기화, 역전파, 파라메터 갱신을 구분하고 직접 제자리 갱신에는 `no_grad()`를 사용한다.

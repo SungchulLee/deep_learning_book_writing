@@ -1,6 +1,6 @@
 # 매칭 네트워크
 
-매칭 네트워크는 쿼리와 각 서포트 표본의 유사도를 계산한 뒤, 그 가중치로 서포트 라벨을 합산한다. 클래스별 평균을 먼저 만드는 프로토타입 방식과 달리 개별 표본이 예측에 기여한다. Vinyals 등의 「Matching Networks for One Shot Learning」(2016)에서 제안한 아이디어를 단순화한 구현이다.
+매칭 네트워크는 쿼리와 각 서포트 표본의 유사도를 계산한 뒤, 그 웨이트로 서포트 라벨을 합산한다. 클래스별 평균을 먼저 만드는 프로토타입 방식과 달리 개별 표본이 예측에 기여한다. Vinyals 등의 「Matching Networks for One Shot Learning」(2016)에서 제안한 아이디어를 단순화한 구현이다.
 
 ## 1. 코드
 
@@ -148,7 +148,7 @@ def train_matching_network(model, support, support_labels, query, query_labels, 
     # 예측을 얻는다
     predictions = model(support, support_labels, query)
     
-    # 손실을 셈한다(부드러운 목표를 쓰는 교차 엔트로피)
+    # 로스를 셈한다(부드러운 목표를 쓰는 교차 엔트로피)
     query_labels_one_hot = F.one_hot(query_labels, predictions.shape[1]).float()
     loss = F.binary_cross_entropy(predictions, query_labels_one_hot)
     
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     encoder = SimpleEncoder(input_channels=1, hidden_dim=64, output_dim=64)
     model = MatchingNetwork(encoder)
     
-    # 5-갈래 5-예시 과제 보기
+    # 5-클래스 5-예시 과제 보기
     n_way = 5
     k_shot = 5
     n_query = 15
@@ -226,7 +226,7 @@ Predicted classes: tensor([4, 2, 2, 3, 2, 4, 1, 4, 2, 2, 4, 2, 2, 2, 1])
 
 이 구현은 use_full_context_embeddings 값을 저장하지만 실제 계산에 사용하지 않는다. AttentionEncoder도 주 예제에서 호출되지 않는다. 따라서 양방향 LSTM으로 서포트 문맥을 반영하는 원 논문의 전체 모델로 해석할 수 없다. 주 예제의 SimpleEncoder는 세 번 풀링하여 28×28을 3×3으로 줄이고 576차원 임베딩을 만든다.
 
-학습 함수는 원핫 정답과 예측 확률의 이진 교차 엔트로피를 사용한다. 단일 라벨 다중 클래스 분류의 일반적인 음의 로그 우도와는 다른 목적함수다. 주석의 대안처럼 확률을 CrossEntropyLoss에 직접 넣으면 다시 log-softmax가 적용되므로 같은 손실이 되지 않는다. 확률을 이용한 음의 로그 우도는 정답 클래스 확률의 로그로 계산한다. 인덱스 라벨은 0부터 연속적으로 매기고, 원핫 입력은 열 개수가 클래스 수임을 확인한다. 무작위 입력의 출력 예시는 실제 인식 정확도가 아니다.
+학습 함수는 원핫 정답과 예측 확률의 이진 교차 엔트로피를 사용한다. 단일 라벨 다중 클래스 분류의 일반적인 음의 로그 우도와는 다른 목적함수다. 주석의 대안처럼 확률을 CrossEntropyLoss에 직접 넣으면 다시 log-softmax가 적용되므로 같은 로스가 되지 않는다. 확률을 이용한 음의 로그 우도는 정답 클래스 확률의 로그로 계산한다. 인덱스 라벨은 0부터 연속적으로 매기고, 원핫 입력은 열 개수가 클래스 수임을 확인한다. 무작위 입력의 출력 예시는 실제 인식 정확도가 아니다.
 
 ## 연습문제
 
@@ -238,7 +238,7 @@ AttentionEncoder에 (4,10,input_dim)을 넣었을 때 LSTM과 최종 출력의 �
 </div>
 
 ??? success "연습문제 1 풀이"
-    양방향 LSTM 출력은 (4,10,2×hidden_dim)이다. 마지막 시간 위치를 선택한 뒤 선형층을 적용하므로 (4,output_dim)이 된다. 합성곱이나 풀링은 없다. 양방향 LSTM의 마지막 위치 출력은 두 방향의 최종 은닉 상태를 이어 붙인 것과 일반적으로 다르다.
+    양방향 LSTM 출력은 (4,10,2×hidden_dim)이다. 마지막 시간 위치를 선택한 뒤 선형 레이어를 적용하므로 (4,output_dim)이 된다. 컨볼루션이나 풀링은 없다. 양방향 LSTM의 마지막 위치 출력은 두 방향의 최종 은닉 상태를 이어 붙인 것과 일반적으로 다르다.
 
 ---
 
@@ -250,7 +250,7 @@ SimpleEncoder가 64×64 RGB 이미지를 받도록 설정하면 최종 임베딩
 </div>
 
 ??? success "연습문제 2 풀이"
-    input_channels=3으로 생성한다. 세 번 풀링하면 64→32→16→8이므로 output_dim=64일 때 평탄화 출력은 4096차원이다. 선형 출력층은 없으며 AttentionEncoder의 입력 규약과 혼동하지 않는다.
+    input_channels=3으로 생성한다. 세 번 풀링하면 64→32→16→8이므로 output_dim=64일 때 평탄화 출력은 4096차원이다. 선형 출력 레이어는 없으며 AttentionEncoder의 입력 규약과 혼동하지 않는다.
 
 ---
 
@@ -280,8 +280,8 @@ SimpleEncoder가 64×64 RGB 이미지를 받도록 설정하면 최종 임베딩
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-개별 서포트와의 코사인 유사도를 확률 가중치로 바꾸고 라벨을 합산한다. 현재 코드는 전체 문맥 임베딩을 구현하지 않으며, 확률 출력과 손실 함수의 규약을 구분해야 한다.
+개별 서포트와의 코사인 유사도를 확률 웨이트로 바꾸고 라벨을 합산한다. 현재 코드는 전체 문맥 임베딩을 구현하지 않으며, 확률 출력과 로스 함수의 규약을 구분해야 한다.

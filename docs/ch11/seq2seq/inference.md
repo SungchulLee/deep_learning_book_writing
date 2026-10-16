@@ -99,7 +99,7 @@ class Seq2SeqInference:
             
         반환값:
             translation: 번역된 텍스트
-            attention_weights: 어텐션 가중치 (있을 때)
+            attention_weights: 어텐션 웨이트 (있을 때)
         """
         self.model.eval()
         
@@ -220,12 +220,12 @@ class Seq2SeqInference:
     
     def visualize_attention(self, src_text, translation, attention_weights):
         """
-        어텐션 가중치 그려 보기
+        어텐션 웨이트 그려 보기
         
         인수:
             src_text: 원본 텍스트
             translation: 번역된 텍스트
-            attention_weights: 어텐션 가중치 텐서
+            attention_weights: 어텐션 웨이트 텐서
         """
         try:
             import matplotlib.pyplot as plt
@@ -398,7 +398,7 @@ BLEU score: 0.0000
 
 탐욕 디코딩은 model.generate에 위임한다. encoder 속성만으로 `(output,attention)` 반환을 가정하므로 기본 Seq2Seq처럼 텐서만 반환하는 모델에는 맞지 않는다. 빔 탐색은 해당 메서드가 있는 모델만 사용할 수 있다. translate_batch는 실제 배치 연산이 아니라 문장별 순차 호출이다.
 
-타깃 복원은 첫 EOS에서 중단하고 PAD·SOS를 제외한다. 시각화는 이 복원된 토큰 수로 어텐션 행을 자르므로 생성 단계와의 대응, 학습·추론 토큰화가 같은지 확인해야 한다. 가중치는 관련성의 계산 계수이며 인과적인 중요도 자체는 아니다.
+타깃 복원은 첫 EOS에서 중단하고 PAD·SOS를 제외한다. 시각화는 이 복원된 토큰 수로 어텐션 행을 자르므로 생성 단계와의 대응, 학습·추론 토큰화가 같은지 확인해야 한다. 웨이트는 관련성의 계산 계수이며 인과적인 중요도 자체는 아니다.
 
 BLEU 구현에는 중요한 한계가 있다. n-그램 정밀도의 분모에 전체 발생 수가 아니라 서로 다른 n-그램 종류 수를 사용하므로, 반복되는 일치가 있으면 정밀도가 1을 넘을 수도 있다. 표준 clipped precision의 분모는 후보 n-그램 발생 수의 합이어야 한다. 빈 가설은 brevity penalty에서 0 나눗셈이 생긴다. 짧은 문장은 높은 차수 n-그램이 없어 기본 4-그램 점수가 0이 될 수 있다. 이 함수의 수치를 표준 코퍼스 BLEU로 보고해서는 안 된다.
 
@@ -465,7 +465,7 @@ greedy, beam과 translate_batch의 역할을 구분하라.
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 손실이나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

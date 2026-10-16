@@ -85,7 +85,7 @@ class HMC:
         인수:
             log_prob: (상수배를 빼고) log π(x)을 돌려주는 함수
             grad_log_prob: ∇ log π(x)을 돌려주는 함수
-            dim: 과녁 분포의 차원
+            dim: 타깃 분포의 차원
             epsilon: 개구리뜀 걸음 크기
             L: 개구리뜀 걸음 수
             M: 질량 행렬(기본값: 항등 행렬)
@@ -168,7 +168,7 @@ class HMC:
     
     def sample(self, x0, n_samples, n_warmup=1000):
         """
-        과녁 분포에서 표본 만들기.
+        타깃 분포에서 표본 만들기.
         
         인수:
             x0: 첫 자리
@@ -199,7 +199,7 @@ class HMC:
 ```python
 import numpy as np
 
-# 과녁: 상관이 있는 2차원 가우스
+# 타깃: 상관이 있는 2차원 가우스
 mu = np.array([0, 0])
 Sigma = np.array([[1, 0.8], [0.8, 1]])
 Sigma_inv = np.linalg.inv(Sigma)

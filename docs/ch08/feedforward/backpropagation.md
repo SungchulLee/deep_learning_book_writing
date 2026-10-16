@@ -7,8 +7,8 @@
 !!! abstract "배울 내용"
 
     - 다변수 연쇄 법칙에서 역전파 알고리즘을 단계별로 유도하기
-    - 매 단계의 차원을 명시하며 2층 신경망의 경사를 손으로 계산하기
-    - $L$층 신경망에 대한 일반적인 역전파 점화식 진술하기
+    - 매 단계의 차원을 명시하며 2레이어 뉴럴 넷트웍의 경사를 손으로 계산하기
+    - $L$레이어 뉴럴 넷트웍에 대한 일반적인 역전파 점화식 진술하기
     - 역전파를 계산 그래프 위의 역방향 자동 미분으로 이해하기
     - 역전파를 파이썬으로 직접 구현하고 PyTorch autograd와 대조하여 확인하기
     - 계산 복잡도 분석하기: 순전파와 역전파의 비용이 같은 차수임을 확인한다
@@ -22,15 +22,15 @@
 | 순전파 (9.2절) | 각 연산의 미분에 필요한 중간값을 이용한다 |
 | 연쇄 법칙 (다변수 미적분) | 경사 전파의 수학적 토대 |
 | 행렬 미적분 (야코비안 행렬) | 행렬 식의 경사 |
-| 활성화 함수의 도함수 | 활성화마다 고유한 경사 공식이 있다 |
+| 엑티베이션 함수의 도함수 | 활성화마다 고유한 경사 공식이 있다 |
 
 ---
 
 ## 3. 개요
 
-**역전파**(오차의 역방향 전파)는 신경망의 모든 매개변수에 대한 손실 함수의 경사를 효율적으로 계산하는 알고리즘이다. Rumelhart, Hinton, Williams(1986)가 널리 알렸으며 지금도 신경망 학습의 일꾼으로 남아 있다.
+**역전파**(오차의 역방향 전파)는 뉴럴 넷트웍의 모든 파라메터에 대한 로스 함수의 경사를 효율적으로 계산하는 알고리즘이다. Rumelhart, Hinton, Williams(1986)가 널리 알렸으며 지금도 뉴럴 넷트웍 학습의 일꾼으로 남아 있다.
 
-핵심 통찰은 이것이다. 연쇄 법칙을 (출력에서 입력 쪽으로) **거꾸로** 적용하고 중간 결과를 재사용함으로써, 역전파는 모든 매개변수의 경사를 $O(|\boldsymbol{\theta}|)$ 시간에 계산한다. 순전파 한 번과 같은 차수이다.
+핵심 통찰은 이것이다. 연쇄 법칙을 (출력에서 입력 쪽으로) **거꾸로** 적용하고 중간 결과를 재사용함으로써, 역전파는 모든 파라메터의 경사를 $O(|\boldsymbol{\theta}|)$ 시간에 계산한다. 순전파 한 번과 같은 차수이다.
 
 ---
 
@@ -38,9 +38,9 @@
 
 **주어진 것:**
 
-- 층이 $L$개이고 매개변수가 $\boldsymbol{\theta} = \{(\mathbf{W}^{[l]}, \mathbf{b}^{[l]})\}_{l=1}^L$인 신경망
+- 레이어가 $L$개이고 파라메터가 $\boldsymbol{\theta} = \{(\mathbf{W}^{[l]}, \mathbf{b}^{[l]})\}_{l=1}^L$인 뉴럴 넷트웍
 - 학습 표본 $(\mathbf{x}, \mathbf{y})$
-- $\hat{\mathbf{y}} = f(\mathbf{x}; \boldsymbol{\theta})$일 때의 손실 함수 $\mathcal{L}(\hat{\mathbf{y}}, \mathbf{y})$
+- $\hat{\mathbf{y}} = f(\mathbf{x}; \boldsymbol{\theta})$일 때의 로스 함수 $\mathcal{L}(\hat{\mathbf{y}}, \mathbf{y})$
 
 **목표:** 다음 경사를 계산하는 것이다.
 
@@ -48,7 +48,7 @@ $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{W}^{[l]}} \in \mathbb{R}^{n^{[l]} \times n^{[l-1]}} \quad \text{and} \quad \frac{\partial \mathcal{L}}{\partial \mathbf{b}^{[l]}} \in \mathbb{R}^{n^{[l]}}
 $$
 
-이를 모든 층 $l = 1, \ldots, L$에 대해 구하여 경사 하강법이 다음과 같이 갱신할 수 있게 한다.
+이를 모든 레이어 $l = 1, \ldots, L$에 대해 구하여 경사 하강법이 다음과 같이 갱신할 수 있게 한다.
 
 $$
 \mathbf{W}^{[l]} \leftarrow \mathbf{W}^{[l]} - \eta \frac{\partial \mathcal{L}}{\partial \mathbf{W}^{[l]}}, \qquad \mathbf{b}^{[l]} \leftarrow \mathbf{b}^{[l]} - \eta \frac{\partial \mathcal{L}}{\partial \mathbf{b}^{[l]}}
@@ -80,9 +80,9 @@ $$
 \nabla_\mathbf{x} \mathcal{L} = \mathbf{J}_\mathbf{g}^\top \nabla_\mathbf{g} \mathcal{L}
 $$
 
-### 깊은 신경망에서의 연쇄 법칙
+### 깊은 뉴럴 넷트웍에서의 연쇄 법칙
 
-합성 $f = f_L \circ f_{L-1} \circ \cdots \circ f_1$에서 층 $l$의 입력에 대한 $\mathcal{L}$의 경사는 야코비안 행렬들의 곱을 포함한다.
+합성 $f = f_L \circ f_{L-1} \circ \cdots \circ f_1$에서 레이어 $l$의 입력에 대한 $\mathcal{L}$의 경사는 야코비안 행렬들의 곱을 포함한다.
 
 $$
 \nabla_{\mathbf{a}^{[l-1]}} \mathcal{L} = \mathbf{J}_{f_l}^\top \, \mathbf{J}_{f_{l+1}}^\top \cdots \mathbf{J}_{f_L}^\top \, \nabla_{\hat{\mathbf{y}}} \mathcal{L}
@@ -92,11 +92,11 @@ $$
 
 ---
 
-## 6. 완전한 유도: 2층 신경망
+## 6. 완전한 유도: 2레이어 뉴럴 넷트웍
 
-일반적인 경우를 진술하기 전에 직관을 쌓기 위해 2층 신경망의 모든 경사를 명시적으로 유도한다.
+일반적인 경우를 진술하기 전에 직관을 쌓기 위해 2레이어 뉴럴 넷트웍의 모든 경사를 명시적으로 유도한다.
 
-### 신경망 설정
+### 뉴럴 넷트웍 설정
 
 $$
 \begin{aligned}
@@ -107,7 +107,7 @@ z^{[2]} &= \mathbf{W}^{[2]} \mathbf{a}^{[1]} + b^{[2]} & & \in \mathbb{R} \\
 \end{aligned}
 $$
 
-시그모이드 출력과 이진 교차 엔트로피 손실을 쓰면 다음과 같다.
+시그모이드 출력과 이진 교차 엔트로피 로스를 쓰면 다음과 같다.
 
 $$
 \mathcal{L} = -\left[y \log \hat{y} + (1 - y) \log(1 - \hat{y})\right]
@@ -130,7 +130,7 @@ $$
 !!! note "시그모이드와 BCE의 상쇄"
     결과 $\delta^{[2]} = \hat{y} - y$은 놀랄 만큼 단순하다. 오차 신호가 그저 예측 오차이다. 이 조합에서는 시그모이드 도함수의 인수가 BCE의 분모와 상쇄된다. 소프트맥스와 범주형 교차 엔트로피에서도 같은 상쇄가 일어난다. $\delta_i^{[L]} = \hat{y}_i - y_i$이다.
 
-### 3단계: 2층 매개변수의 경사
+### 3단계: 2레이어 파라메터의 경사
 
 $z^{[2]} = \mathbf{W}^{[2]} \mathbf{a}^{[1]} + b^{[2]}$에서 다음을 얻는다.
 
@@ -142,25 +142,25 @@ $$
 \frac{\partial \mathcal{L}}{\partial b^{[2]}} = \delta^{[2]} \in \mathbb{R}
 $$
 
-**해석:** 가중치의 경사는 오차 신호와 입력 활성화의 외적이다. 활성화가 큰 입력($a^{[1]}_j$이 큼)과 오차가 큰 뉴런($\delta^{[2]}$이 큼)을 잇는 가중치가 가장 큰 경사 갱신을 받는다.
+**해석:** 웨이트의 경사는 오차 신호와 입력 활성화의 외적이다. 활성화가 큰 입력($a^{[1]}_j$이 큼)과 오차가 큰 뉴런($\delta^{[2]}$이 큼)을 잇는 웨이트가 가장 큰 경사 갱신을 받는다.
 
-### 4단계: 은닉층으로 거슬러 전파하기
+### 4단계: 은닉 레이어로 거슬러 전파하기
 
-오차가 1층에 닿으려면 $\mathbf{W}^{[2]}$을 거슬러 흘러야 한다.
+오차가 1레이어에 닿으려면 $\mathbf{W}^{[2]}$을 거슬러 흘러야 한다.
 
 $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{a}^{[1]}} = \left(\mathbf{W}^{[2]}\right)^\top \delta^{[2]} \in \mathbb{R}^{n^{[1]}}
 $$
 
-그다음 활성화 함수 $\mathbf{a}^{[1]} = \sigma(\mathbf{z}^{[1]})$을 지나면 다음과 같다.
+그다음 엑티베이션 함수 $\mathbf{a}^{[1]} = \sigma(\mathbf{z}^{[1]})$을 지나면 다음과 같다.
 
 $$
 \boldsymbol{\delta}^{[1]} \equiv \frac{\partial \mathcal{L}}{\partial \mathbf{z}^{[1]}} = \frac{\partial \mathcal{L}}{\partial \mathbf{a}^{[1]}} \odot \sigma'(\mathbf{z}^{[1]}) = \left(\mathbf{W}^{[2]}\right)^\top \delta^{[2]} \odot \sigma'(\mathbf{z}^{[1]}) \in \mathbb{R}^{n^{[1]}}
 $$
 
-여기서 $\odot$은 원소별(아다마르) 곱을 뜻한다. 활성화 함수가 각 성분에 독립적으로 적용되므로 원소별 곱이 나온다.
+여기서 $\odot$은 원소별(아다마르) 곱을 뜻한다. 엑티베이션 함수가 각 성분에 독립적으로 적용되므로 원소별 곱이 나온다.
 
-### 5단계: 1층 매개변수의 경사
+### 5단계: 1레이어 파라메터의 경사
 
 $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{W}^{[1]}} = \boldsymbol{\delta}^{[1]} \mathbf{x}^\top \in \mathbb{R}^{n^{[1]} \times n^{[0]}}
@@ -196,9 +196,9 @@ $$
 \boldsymbol{\delta}^{[L]} = \frac{\partial \mathcal{L}}{\partial \mathbf{a}^{[L]}} \odot (\sigma^{[L]})'(\mathbf{z}^{[L]})
 $$
 
-위 원소별 곱 공식은 활성화가 각 성분에 독립적으로 적용될 때의 식이다. 소프트맥스처럼 성분이 서로 연결되면 전체 야코비안의 전치를 곱해야 한다. 흔히 쓰는 손실과 활성화를 함께 미분하면 다음과 같이 정리된다.
+위 원소별 곱 공식은 활성화가 각 성분에 독립적으로 적용될 때의 식이다. 소프트맥스처럼 성분이 서로 연결되면 전체 야코비안의 전치를 곱해야 한다. 흔히 쓰는 로스와 활성화를 함께 미분하면 다음과 같이 정리된다.
 
-| 출력 활성화 + 손실 | $\boldsymbol{\delta}^{[L]}$ |
+| 출력 활성화 + 로스 | $\boldsymbol{\delta}^{[L]}$ |
 |---|---|
 | 시그모이드 + BCE | $\hat{\mathbf{y}} - \mathbf{y}$ |
 | 소프트맥스 + 범주형 교차 엔트로피 | $\hat{\mathbf{y}} - \mathbf{y}$ |
@@ -216,18 +216,18 @@ $$
 }
 $$
 
-위 점화식은 원소별 활성화를 쓰는 완전 연결 신경망에 해당한다. 마지막 줄은 $l\geq2$인 은닉층에 적용한다. 입력 경사는 $(\mathbf{W}^{[1]})^\top\boldsymbol{\delta}^{[1]}$이며 입력층의 활성화 도함수를 따로 곱하지 않는다. 각 층은 위 층에서 온 오차 신호 $\boldsymbol{\delta}^{[l]}$을 받아 매개변수의 경사를 계산하고(앞의 두 식) 오차를 뒤로 넘긴다(세 번째 식).
+위 점화식은 원소별 활성화를 쓰는 완전 연결 뉴럴 넷트웍에 해당한다. 마지막 줄은 $l\geq2$인 은닉 레이어에 적용한다. 입력 경사는 $(\mathbf{W}^{[1]})^\top\boldsymbol{\delta}^{[1]}$이며 입력 레이어의 활성화 도함수를 따로 곱하지 않는다. 각 레이어는 위 레이어에서 온 오차 신호 $\boldsymbol{\delta}^{[l]}$을 받아 파라메터의 경사를 계산하고(앞의 두 식) 오차를 뒤로 넘긴다(세 번째 식).
 
 ---
 
-## 8. 활성화 함수의 도함수
+## 8. 엑티베이션 함수의 도함수
 
 | 활성화 | $\sigma(z)$ | $\sigma'(z)$ | 비고 |
 |---|---|---|---|
 | ReLU | $\max(0, z)$ | $\mathbf{1}_{z > 0}$ | 경사가 정확히 0이거나 1이다. $z = 0$에서는 정의되지 않으며 관례상 0으로 둔다 |
 | 시그모이드 | $\frac{1}{1+e^{-z}}$ | $\sigma(z)(1 - \sigma(z))$ | 최대 도함수가 $z = 0$에서 $0.25$이며 경사 소실을 일으킨다 |
 | Tanh | $\frac{e^z - e^{-z}}{e^z + e^{-z}}$ | $1 - \tanh^2(z)$ | 최대 도함수가 $z = 0$에서 $1$이며 시그모이드보다 소실이 덜하다 |
-| Leaky ReLU | $\max(\alpha z, z)$ | $\begin{cases} 1 & z > 0 \\ \alpha & z \leq 0 \end{cases}$ | 음수 영역에서도 국소 도함수가 0이 아니다. 전체 신경망의 경사 소실을 막는다는 뜻은 아니다 |
+| Leaky ReLU | $\max(\alpha z, z)$ | $\begin{cases} 1 & z > 0 \\ \alpha & z \leq 0 \end{cases}$ | 음수 영역에서도 국소 도함수가 0이 아니다. 전체 뉴럴 넷트웍의 경사 소실을 막는다는 뜻은 아니다 |
 
 ---
 
@@ -263,20 +263,20 @@ def forward(X, W1, b1, W2, b2):
 
 def backward(y, cache, W2):
     """
-    2층 신경망의 역전파를 직접 계산한다.
+    2레이어 뉴럴 넷트웍의 역전파를 직접 계산한다.
     
-    기울기 dW1, db1, dW2, db2를 돌려준다
+    그래디언트 dW1, db1, dW2, db2를 돌려준다
     """
     X, z1, a1, a2 = cache['X'], cache['z1'], cache['a1'], cache['a2']
     B = X.shape[0]
     
-    # ── 출력층: 시그모이드 + BCE → δ² = a² - y ──
+    # ── 출력 레이어: 시그모이드 + BCE → δ² = a² - y ──
     delta2 = a2 - y                                     # (B, 1)
     
     dW2 = (1/B) * a1.T @ delta2                         # (hidden, 1)
     db2 = (1/B) * delta2.sum(dim=0, keepdim=True)       # (1, 1)
     
-    # ── 은닉층: W2를 거쳐 역전파한 뒤 ReLU ──
+    # ── 은닉 레이어: W2를 거쳐 역전파한 뒤 ReLU ──
     delta1 = (delta2 @ W2.T) * (z1 > 0).float()        # (B, hidden)
     
     dW1 = (1/B) * X.T @ delta1                          # (input, hidden)
@@ -302,7 +302,7 @@ for epoch in range(1000):
     # 순전파
     y_pred, cache = forward(X, W1, b1, W2, b2)
     
-    # 손실 (BCE)
+    # 로스 (BCE)
     eps = 1e-7
     yp = y_pred.clamp(eps, 1 - eps)
     loss = -(y * yp.log() + (1 - y) * (1 - yp).log()).mean()
@@ -346,10 +346,10 @@ class SimpleNet(nn.Module):
         return torch.sigmoid(self.fc2(torch.relu(self.fc1(x))))
 
 def numerical_gradient(model, X, y, criterion, param, eps=1e-5):
-    """검증을 위한 중심차분 수치 기울기."""
+    """검증을 위한 중심차분 수치 그래디언트."""
     # 역전파가 맞는지 확인하는 표준 방법이다. 미분의 정의로 되돌아가
-    # 매개변수를 하나씩 아주 조금 흔들어 손실이 얼마나 달라지는지 잰다.
-    # 느리지만(매개변수마다 순전파 2번) 역전파와 완전히 독립이라
+    # 파라메터를 하나씩 아주 조금 흔들어 로스가 얼마나 달라지는지 잰다.
+    # 느리지만(파라메터마다 순전파 2번) 역전파와 완전히 독립이라
     # 두 값이 맞으면 서로를 검증해 준다.
     grad = torch.zeros_like(param.data)
     # view(-1)은 사본이 아니라 같은 메모리를 가리킨다. 그래서 flat[i]에
@@ -382,10 +382,10 @@ X = torch.randn(20, 2)
 y = torch.randint(0, 2, (20, 1)).float()
 criterion = nn.BCELoss()
 
-# 자동 미분 기울기.
-# 수치 기울기를 재기 "전에" 한 번만 셈해 둔다. 뒤에서 매개변수를
+# 자동 미분 그래디언트.
+# 수치 그래디언트를 재기 "전에" 한 번만 셈해 둔다. 뒤에서 파라메터를
 # 흔들며 순전파를 여러 번 하므로, 그 뒤에 backward를 부르면
-# 흔들린 상태의 기울기를 재게 된다
+# 흔들린 상태의 그래디언트를 재게 된다
 model.zero_grad()
 loss = criterion(model(X), y)
 loss.backward()
@@ -397,7 +397,7 @@ for name, param in model.named_parameters():
     num_grad = numerical_gradient(model, X, y, criterion, param)
     bp_grad = param.grad
 
-    # 절대 오차가 아니라 상대 오차를 본다. 기울기의 크기가 층마다
+    # 절대 오차가 아니라 상대 오차를 본다. 그래디언트의 크기가 레이어마다
     # 몇 자릿수씩 다르므로 절대값으로는 견줄 수 없다.
     # 분모의 1e-8은 기울기가 0에 가까울 때 0으로 나누는 것을 막는다.
     # 보통 1e-5 아래면 맞다고 보고, 1e-2 위면 역전파에 버그가 있다
@@ -428,13 +428,13 @@ Gradient Verification (backprop vs. numerical):
 
 ### 순전파와 역전파의 비용
 
-| 방향 | 층당 지배적인 연산 | 층당 비용 |
+| 방향 | 레이어당 지배적인 연산 | 레이어당 비용 |
 |------|------------------------------|----------------|
 | 순전파 | $\mathbf{z}^{[l]} = \mathbf{W}^{[l]} \mathbf{a}^{[l-1]} + \mathbf{b}^{[l]}$ | $O(n^{[l]} \cdot n^{[l-1]})$ |
-| 역전파 (매개변수 경사) | $\frac{\partial \mathcal{L}}{\partial \mathbf{W}^{[l]}} = \boldsymbol{\delta}^{[l]} (\mathbf{a}^{[l-1]})^\top$ | $O(n^{[l]} \cdot n^{[l-1]})$ |
+| 역전파 (파라메터 경사) | $\frac{\partial \mathcal{L}}{\partial \mathbf{W}^{[l]}} = \boldsymbol{\delta}^{[l]} (\mathbf{a}^{[l-1]})^\top$ | $O(n^{[l]} \cdot n^{[l-1]})$ |
 | 역전파 (오차 전파) | $\boldsymbol{\delta}^{[l-1]} = (\mathbf{W}^{[l]})^\top \boldsymbol{\delta}^{[l]}$ | $O(n^{[l]} \cdot n^{[l-1]})$ |
 
-층당 역전파의 총비용은 순전파의 약 $2\times$이다(행렬 곱이 하나가 아니라 둘이다). 신경망 전체에 대해서는 다음과 같다.
+레이어당 역전파의 총비용은 순전파의 약 $2\times$이다(행렬 곱이 하나가 아니라 둘이다). 뉴럴 넷트웍 전체에 대해서는 다음과 같다.
 
 $$
 T_{\text{backward}} \approx 2 \cdot T_{\text{forward}} = O(|\boldsymbol{\theta}|)
@@ -459,7 +459,7 @@ $$
 PyTorch는 기본적으로 경사를 누적한다(몇몇 고급 기법에는 유용하지만 초심자에게는 함정이다).
 
 ```python
-# ✗ 기울기가 반복마다 쌓인다
+# ✗ 그래디언트가 반복마다 쌓인다
 for epoch in range(100):
     loss = criterion(model(X), y)
     loss.backward()       # 기존 .grad에 더해진다!
@@ -467,7 +467,7 @@ for epoch in range(100):
 
 # ✓ 역전파 전에 매번 0으로 초기화한다
 for epoch in range(100):
-    optimizer.zero_grad()  # 이전 기울기 지우기
+    optimizer.zero_grad()  # 이전 그래디언트 지우기
     loss = criterion(model(X), y)
     loss.backward()
     optimizer.step()
@@ -488,11 +488,11 @@ x = x + 1       # 새 텐서, 그래프는 유지된다
 ### 3. 떼어내지 말아야 할 때 떼어내기
 
 ```python
-# ✗ .detach()는 기울기 흐름을 끊는다
-hidden = encoder(x).detach()   # 인코더가 기울기를 전혀 받지 못한다!
+# ✗ .detach()는 그래디언트 흐름을 끊는다
+hidden = encoder(x).detach()   # 인코더가 그래디언트를 전혀 받지 못한다!
 output = decoder(hidden)
 
-# ✓ 기울기가 흐르게 둔다
+# ✓ 그래디언트가 흐르게 둔다
 hidden = encoder(x)
 output = decoder(hidden)        # 인코더가 역전파로 갱신된다
 ```
@@ -505,11 +505,11 @@ output = decoder(hidden)        # 인코더가 역전파로 갱신된다
 
     1. **역전파**는 연쇄 법칙을 역순으로 체계적으로 적용하는 것이다
     2. 이 알고리즘은 출력에서 입력 쪽으로 오차 신호 $\boldsymbol{\delta}^{[l]}$을 계산하며, 다음이 성립한다.
-        - $\frac{\partial \mathcal{L}}{\partial \mathbf{W}^{[l]}} = \boldsymbol{\delta}^{[l]} (\mathbf{a}^{[l-1]})^\top$ — 가중치의 경사는 오차와 입력의 외적이다
-        - $\frac{\partial \mathcal{L}}{\partial \mathbf{b}^{[l]}} = \boldsymbol{\delta}^{[l]}$ — 편향의 경사는 오차 신호와 같다
+        - $\frac{\partial \mathcal{L}}{\partial \mathbf{W}^{[l]}} = \boldsymbol{\delta}^{[l]} (\mathbf{a}^{[l-1]})^\top$ — 웨이트의 경사는 오차와 입력의 외적이다
+        - $\frac{\partial \mathcal{L}}{\partial \mathbf{b}^{[l]}} = \boldsymbol{\delta}^{[l]}$ — 바이어스의 경사는 오차 신호와 같다
         - $\boldsymbol{\delta}^{[l-1]} = (\mathbf{W}^{[l]})^\top \boldsymbol{\delta}^{[l]} \odot \sigma'(\mathbf{z}^{[l-1]})$ — 오차가 뒤로 전파된다
-    3. 완전 연결 층의 지배적인 연산을 세면 역전파 비용은 순전파의 약 두 배이다. 실제 비율은 연산과 구현에 따라 달라진다
-    4. **활성화 저장 공간** 외에도 매개변수, 경사, 옵티마이저 상태가 전체 학습 메모리에 포함된다
+    3. 완전 연결 레이어의 지배적인 연산을 세면 역전파 비용은 순전파의 약 두 배이다. 실제 비율은 연산과 구현에 따라 달라진다
+    4. **활성화 저장 공간** 외에도 파라메터, 경사, 옵티마이저 상태가 전체 학습 메모리에 포함된다
     5. 중심차분을 통한 **수치적 확인**으로 경사가 옳은지 검증한다
     6. **PyTorch의 autograd**는 계산 그래프를 통해 역전파를 자동으로 구현한다
 
@@ -520,12 +520,12 @@ output = decoder(hidden)        # 인코더가 역전파로 갱신된다
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-MSE 손실을 쓰는 단층 신경망 $y = \sigma(Wx + b)$의 역전파 갱신을 유도하라.
+MSE 로스를 쓰는 단층 뉴럴 넷트웍 $y = \sigma(Wx + b)$의 역전파 갱신을 유도하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    손실: $L = \frac{1}{2}(y - t)^2$이다. $\frac{\partial L}{\partial y} = y - t$이다. $z = Wx+b$일 때 $\frac{\partial y}{\partial z} = \sigma'(z)$이다. $\frac{\partial L}{\partial W} = \frac{\partial L}{\partial y}\sigma'(z)x^\top = (y-t)\sigma'(z)x^\top$이고 $\frac{\partial L}{\partial b} = (y-t)\sigma'(z)$이다.
+    로스: $L = \frac{1}{2}(y - t)^2$이다. $\frac{\partial L}{\partial y} = y - t$이다. $z = Wx+b$일 때 $\frac{\partial y}{\partial z} = \sigma'(z)$이다. $\frac{\partial L}{\partial W} = \frac{\partial L}{\partial y}\sigma'(z)x^\top = (y-t)\sigma'(z)x^\top$이고 $\frac{\partial L}{\partial b} = (y-t)\sigma'(z)$이다.
 
 ---
 
@@ -537,19 +537,19 @@ MSE 손실을 쓰는 단층 신경망 $y = \sigma(Wx + b)$의 역전파 갱신�
 </div>
 
 ??? success "연습문제 2 풀이"
-    수치 미분은 유한차분 $(f(x+h)-f(x))/h$을 쓰며 근사적이고 매개변수가 $n$개이면 전체 경사를 구하는 데 대략 $O(n)$번의 함수 평가가 필요하다. 기호 미분은 식을 대수적으로 조작하여 정확하지만 식의 크기가 폭발할 수 있다. 자동 미분은 기본 연산의 도함수와 연쇄 법칙을 사용한다. 유한차분의 절단 오차는 없지만 부동소수점 반올림 오차와 미분 불가능점의 구현 관례는 남는다. PyTorch는 역방향 자동 미분을 쓴다.
+    수치 미분은 유한차분 $(f(x+h)-f(x))/h$을 쓰며 근사적이고 파라메터가 $n$개이면 전체 경사를 구하는 데 대략 $O(n)$번의 함수 평가가 필요하다. 기호 미분은 식을 대수적으로 조작하여 정확하지만 식의 크기가 폭발할 수 있다. 자동 미분은 기본 연산의 도함수와 연쇄 법칙을 사용한다. 유한차분의 절단 오차는 없지만 부동소수점 반올림 오차와 미분 불가능점의 구현 관례는 남는다. PyTorch는 역방향 자동 미분을 쓴다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff easy" title="쉬움"></span>
-신경망에서 순방향 자동 미분보다 역방향 자동 미분(역전파)을 선호하는 이유는 무엇인가?
+뉴럴 넷트웍에서 순방향 자동 미분보다 역방향 자동 미분(역전파)을 선호하는 이유는 무엇인가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    역방향은 한 번의 역전파로 모든 $i$에 대해 $\partial L/\partial w_i$을 계산한다(스칼라 손실에서 통과 횟수가 $O(1)$이다). 순방향은 한 번에 모든 출력에 대해 $\partial y_j/\partial w$을 계산하지만 매개변수가 $n$개면 $n$번을 지나야 한다. 신경망은 매개변수가 많고 손실은 스칼라 하나이므로 역방향이 유리하다.
+    역방향은 한 번의 역전파로 모든 $i$에 대해 $\partial L/\partial w_i$을 계산한다(스칼라 로스에서 통과 횟수가 $O(1)$이다). 순방향은 한 번에 모든 출력에 대해 $\partial y_j/\partial w$을 계산하지만 파라메터가 $n$개면 $n$번을 지나야 한다. 뉴럴 넷트웍은 파라메터가 많고 로스는 스칼라 하나이므로 역방향이 유리하다.
 
 ---
 
@@ -573,7 +573,7 @@ MSE 손실을 쓰는 단층 신경망 $y = \sigma(Wx + b)$의 역전파 갱신�
 
 ## 정리하며
 
-역전파는 스칼라 손실의 경사를 계산 그래프의 역순으로 전달한다. 완전 연결 층의 가중치 경사는 오차 신호와 입력 활성화의 외적이고, 앞 층으로는 가중치의 전치를 통해 경사가 전달된다. 원소별 활성화와 소프트맥스의 미분을 구분하고, 배치 평균의 배율을 한 번만 적용해야 한다. 역전파는 경사를 계산하며 실제 매개변수 갱신은 옵티마이저가 수행한다.
+역전파는 스칼라 로스의 경사를 계산 그래프의 역순으로 전달한다. 완전 연결 레이어의 웨이트 경사는 오차 신호와 입력 활성화의 외적이고, 앞 레이어로는 웨이트의 전치를 통해 경사가 전달된다. 원소별 활성화와 소프트맥스의 미분을 구분하고, 배치 평균의 배율을 한 번만 적용해야 한다. 역전파는 경사를 계산하며 실제 파라메터 갱신은 옵티마이저가 수행한다.
 
 **참고 문헌**
 

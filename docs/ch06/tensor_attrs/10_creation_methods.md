@@ -168,7 +168,7 @@ def main():
 
     # -------------------------------------------------------------------------
     header("torch.multinomial: sample from multinomial distribution")
-    # 확률 가중치(합이 1일 필요는 없다)
+    # 확률 웨이트(합이 1일 필요는 없다)
     weights = torch.tensor([1., 2., 3., 4.])  # Higher numbers = more likely
     samples = torch.multinomial(weights, num_samples=10, replacement=True)
     print("Weights:", weights)

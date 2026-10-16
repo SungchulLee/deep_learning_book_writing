@@ -1,8 +1,8 @@
-# 편향 완화
+# 바이어스 완화
 
-딥러닝의 편향 눅이기 재주. 머신러닝 모델의 편향을 줄이는 여러 길.
+딥러닝의 바이어스 눅이기 재주. 머신러닝 모델의 바이어스를 줄이는 여러 길.
 
-머신러닝 구조에서 공정성을 지키는 일은 윤리로도 마땅하고 참으로도 걸린 문제다. 이 꾸러미는 딥러닝 모델의 편향을 알아내고, 재고, 눅이는 재주를 보이며, 이론의 공정성 잣대를 손에 잡히는 코드로 이어 준다.
+머신러닝 구조에서 공정성을 지키는 일은 윤리로도 마땅하고 참으로도 걸린 문제다. 이 꾸러미는 딥러닝 모델의 바이어스를 알아내고, 재고, 눅이는 재주를 보이며, 이론의 공정성 잣대를 손에 잡히는 코드로 이어 준다.
 
 ## 1. 코드
 
@@ -10,8 +10,8 @@
 
     ```python
     """
-    깊은 배움의 치우침 눅이기 재주
-    기계 배움 모형의 치우침을 줄이는 여러 길.
+    깊은 러닝의 치우침 눅이기 재주
+    기계 러닝 모형의 치우침을 줄이는 여러 길.
     """
 
     import numpy as np
@@ -58,16 +58,16 @@
             attr_values = np.unique(sensitive_attr)
             label_values = np.unique(y)
 
-            # 바라는 낌새와 본 낌새를 셈한다
+            # 바라는 확률과 본 확률을 셈한다
             n = len(y)
 
             for attr_val in attr_values:
                 for label_val in label_values:
-                    # 본 낌새
+                    # 본 확률
                     mask = (sensitive_attr == attr_val) & (y == label_val)
                     p_observed = np.sum(mask) / n
 
-                    # 바라는 낌새(서로 남남이라고 여긴다)
+                    # 바라는 확률(서로 남남이라고 여긴다)
                     p_attr = np.sum(sensitive_attr == attr_val) / n
                     p_label = np.sum(y == label_val) / n
                     p_expected = p_attr * p_label
@@ -156,7 +156,7 @@
             y_train: 익힘 이름표
             sensitive_train: 예민한 됨됨이
             epochs: 익힘 시대의 수
-            learning_rate: 배움 빠르기
+            learning_rate: 러닝 빠르기
             adversary_weight: 맞수 잃음의 짐
 
         Returns:
@@ -269,17 +269,17 @@
 
     class ThresholdOptimization:
         """
-        뒤에 다듬어 눅이기: 판단 문턱을 가장 좋게 한다.
+        뒤에 다듬어 눅이기: 판단 임계를 가장 좋게 한다.
 
-        무리마다 다른 가름 문턱을 써서 고름 매임을 채운다.
+        무리마다 다른 가름 임계를 써서 고름 매임을 채운다.
         """
 
         def __init__(self, fairness_constraint: str = 'demographic_parity'):
             """
-            문턱 다듬개의 첫자리를 잡는다.
+            임계 다듬개의 첫자리를 잡는다.
 
             Args:
-                fairness_constraint: 고름 매임의 갈래
+                fairness_constraint: 고름 매임의 클래스
                     ('demographic_parity', 'equal_opportunity', 'equalized_odds')
             """
             self.fairness_constraint = fairness_constraint
@@ -293,16 +293,16 @@
             num_thresholds: int = 100
         ) -> Dict[int, float]:
             """
-            무리마다 가장 좋은 문턱을 찾는다.
+            무리마다 가장 좋은 임계를 찾는다.
 
             Args:
                 y_true: 참 이름표
-                y_pred_proba: 미루어 본 낌새
+                y_pred_proba: 미루어 본 확률
                 sensitive_attr: 예민한 됨됨이
-                num_thresholds: 해 볼 문턱의 수
+                num_thresholds: 해 볼 임계의 수
 
             Returns:
-                무리를 가장 좋은 문턱에 이어 주는 사전
+                무리를 가장 좋은 임계에 이어 주는 사전
             """
             groups = np.unique(sensitive_attr)
             thresholds_to_try = np.linspace(0, 1, num_thresholds)
@@ -310,12 +310,12 @@
             best_thresholds = {}
             best_fairness = float('inf')
 
-            # 온 문턱 어우름을 격자로 훑는다
+            # 온 임계 어우름을 격자로 훑는다
             for t0 in thresholds_to_try:
                 for t1 in thresholds_to_try:
                     thresholds = {groups[0]: t0, groups[1]: t1}
 
-                    # 문턱을 건다
+                    # 임계를 건다
                     y_pred = np.zeros_like(y_pred_proba)
                     for group, threshold in thresholds.items():
                         mask = sensitive_attr == group
@@ -368,10 +368,10 @@
             sensitive_attr: np.ndarray
         ) -> np.ndarray:
             """
-            다듬은 문턱으로 미루어 본다.
+            다듬은 임계로 미루어 본다.
 
             Args:
-                y_pred_proba: 미루어 본 낌새
+                y_pred_proba: 미루어 본 확률
                 sensitive_attr: 예민한 됨됨이
 
             Returns:
@@ -414,15 +414,15 @@
         print(f"표본 짐을 셈했다. 고른 짐: {np.mean(weights):.4f}")
         print(f"짐 너비: [{np.min(weights):.4f}, {np.max(weights):.4f}]")
 
-        # 2. 문턱 다듬기
-        print("\n2. 문턱 다듬기")
+        # 2. 임계 다듬기
+        print("\n2. 임계 다듬기")
         print("-" * 60)
         y_pred_proba = np.random.rand(n_samples)
         threshold_opt = ThresholdOptimization(fairness_constraint='demographic_parity')
         optimal_thresholds = threshold_opt.optimize_thresholds(
             y, y_pred_proba, sensitive_attr, num_thresholds=20
         )
-        print(f"가장 좋은 문턱: {optimal_thresholds}")
+        print(f"가장 좋은 임계: {optimal_thresholds}")
 
         print("\n눅이기 재주의 첫자리를 잘 잡았다!")
 
@@ -444,63 +444,63 @@
 표본 짐을 셈했다. 고른 짐: 1.0000
 짐 너비: [0.7141, 1.6633]
 
-2. 문턱 다듬기
+2. 임계 다듬기
 ------------------------------------------------------------
-가장 좋은 문턱: {0: 0.0, 1: 0.0}
+가장 좋은 임계: {0: 0.0, 1: 0.0}
 
 눅이기 재주의 첫자리를 잘 잡았다!
 ```
 
 ## 2. 논의
 
-이 짜보기는 함께 어우러져 온전한 딥러닝 구조를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다. 클래스마다 따로 떨어진 조각을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 저절로 미분하는 데 쓰는 계산 그래프를 세운다.
+이 구현은 함께 어우러져 온전한 딥러닝 구조를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다. 클래스마다 따로 떨어진 조각을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 저절로 미분하는 데 쓰는 계산 그래프를 세운다.
 
-학습 돌기는 여느 PyTorch 결을 따른다. 앞으로 걸음으로 추론을 계산하고, 손실을 계산하고, 되짚기로 기울기를 계산하고, 가장 좋게 하는 개로 매개변수를 고친다. 시대마다 자를 좇으면 모여 가는 결이 드러나고 덜 맞추기나 지나치게 맞추기 같은 탈을 짚어내기 좋다.
+학습 돌기는 여느 PyTorch 결을 따른다. 앞으로 걸음으로 추론을 계산하고, 로스를 계산하고, 되짚기로 그래디언트를 계산하고, 가장 좋게 하는 개로 파라메터를 고친다. 시대마다 자를 좇으면 모여 가는 결이 드러나고 덜 맞추기나 지나치게 맞추기 같은 탈을 짚어내기 좋다.
 
-여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 갈래, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 머신러닝 과제에 대한 감이 몸에 붙는다.
+여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 클래스, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 머신러닝 과제에 대한 감이 몸에 붙는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-맡긴 첫자리 잡기로 만든 `ReweighingMitigation`에서 배울 수 있는 매개변수의 온 수를 계산하여라. 짐과 편향을 아울러 켜마다 나누어 세어라.
+맡긴 첫자리 잡기로 만든 `ReweighingMitigation`에서 배울 수 있는 파라메터의 온 수를 계산하여라. 짐과 바이어스를 아울러 켜마다 나누어 세어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)`마다 짐 매개변수가 `in_features * out_features`개, 편향 매개변수가 `out_features`개다(`bias=False`이 아니라면). `nn.Conv2d(in_c, out_c, k)`마다 짐 매개변수가 `in_c * out_c * k * k`개, 편향 매개변수가 `out_c`개다. `nn.Embedding(num, dim)`이면 매개변수가 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
+    `nn.Linear(in_features, out_features)`마다 짐 파라메터가 `in_features * out_features`개, 바이어스 파라메터가 `out_features`개다(`bias=False`이 아니라면). `nn.Conv2d(in_c, out_c, k)`마다 짐 파라메터가 `in_c * out_c * k * k`개, 바이어스 파라메터가 `out_c`개다. `nn.Embedding(num, dim)`이면 파라메터가 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-가장 좋게 하는 개를 Adam(`torch.optim.Adam`에 `lr=0.001`)으로 갈음하고 본디 것과 학습이 모여 가는 결을 비교하여라. 둘의 손실 곡선을 한 그림에 그려라.
+가장 좋게 하는 개를 Adam(`torch.optim.Adam`에 `lr=0.001`)으로 갈음하고 본디 것과 학습이 모여 가는 결을 비교하여라. 둘의 로스 곡선을 한 그림에 그려라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    가장 좋게 하는 개를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 갈음한다. Adam은 매개변수마다 맞춰 가는 학습률과 밀림 어림을 지니므로 앞선 시대에 흔히 더 빨리 모인다. Adam의 손실 곡선은 첫 몇 시대에 더 가파르게 떨어지지만 가장 좋은 자리 언저리에서 밀림을 곁들인 SGD보다 조금 더 흔들릴 수 있다. 고르게 견주려면 아무렇게나 하는 시드와 시대 수를 같게 하고 둘 다 돌려라.
+    가장 좋게 하는 개를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 갈음한다. Adam은 파라메터마다 맞춰 가는 러닝레이트와 밀림 어림을 지니므로 앞선 시대에 흔히 더 빨리 모인다. Adam의 로스 곡선은 첫 몇 시대에 더 가파르게 떨어지지만 가장 좋은 자리 언저리에서 밀림을 곁들인 SGD보다 조금 더 흔들릴 수 있다. 고르게 견주려면 아무렇게나 하는 시드와 시대 수를 같게 하고 둘 다 돌려라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 짜보기가 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 손실은 줄어드는데 살핌 손실이 오르면 짚어낸다. 정규화(드롭아웃, 짐 줄이기, 데이터 늘리기)나 모델 크기 줄이기로 고친다. 학습과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+    흔히 무너지는 결은 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 그래디언트 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 살핌 로스가 오르면 짚어낸다. 정규화(드롭아웃, 짐 줄이기, 데이터 늘리기)나 모델 크기 줄이기로 고친다. 학습과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`ReweighingMitigation`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`ReweighingMitigation`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 파라메터를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -511,12 +511,12 @@
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서는 `for layer in self.layers: x = layer(x)`으로 돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 최적화에 올린다. 시험은 이렇게 한다. `for n in [2, 4, 8]: model = ReweighingMitigation(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 방법에서는 `for layer in self.layers: x = layer(x)`으로 돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 파라메터를 최적화에 올린다. 시험은 이렇게 한다. `for n in [2, 4, 8]: model = ReweighingMitigation(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 
-**다룬 것** — 편향 눅이기
+**다룬 것** — 바이어스 눅이기
 
-이 짜보기는 함께 어우러져 온전한 딥러닝 구조를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다.
+이 구현은 함께 어우러져 온전한 딥러닝 구조를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다.
 
-핵심 갈래는 `ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

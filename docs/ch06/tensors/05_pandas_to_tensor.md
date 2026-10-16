@@ -161,7 +161,7 @@ torch.tensor(s.values, dtype=torch.float32)      # 텐서로 만들 때 맞춘�
 torch.tensor(s.to_numpy(dtype="float32"))        # 넘파이에서 맞춘다
 ```
 
-**결측값은 조용히 지나간다.** `NaN`이 섞인 `Series`는 오류 없이 텐서가 되고, `nan`이 그대로 들어앉는다. `nan`이 손실의 합이나 평균에 포함되면 결과도 `nan`이 될 수 있어 원인이 뒤늦게 드러난다. **텐서로 바꾸기 전에** `isna().any()`로 확인하거나 `fillna()`/`dropna()`로 처리해야 한다. 텐서에는 DataFrame의 열 이름이 자동으로 보존되지 않으므로 변환할 열과 순서도 함께 기록한다.
+**결측값은 조용히 지나간다.** `NaN`이 섞인 `Series`는 오류 없이 텐서가 되고, `nan`이 그대로 들어앉는다. `nan`이 로스의 합이나 평균에 포함되면 결과도 `nan`이 될 수 있어 원인이 뒤늦게 드러난다. **텐서로 바꾸기 전에** `isna().any()`로 확인하거나 `fillna()`/`dropna()`로 처리해야 한다. 텐서에는 DataFrame의 열 이름이 자동으로 보존되지 않으므로 변환할 열과 순서도 함께 기록한다.
 
 !!! warning "대문자 `Int64`는 `int64`와 다르다"
     pandas에는 결측값을 담을 수 있는 자료형이 따로 있다. `dtype="Int64"`(대문자 I)가 그것인데, 이때 `.values`는 NumPy 배열이 아니라 `IntegerArray`를 돌려주고 `torch.tensor`는 `RuntimeError: Could not infer dtype of NAType`을 낸다. 소문자 `int64`와 글자 하나 차이라 알아채기 어렵다. `.to_numpy(dtype="float64", na_value=np.nan)`처럼 결측값을 무엇으로 바꿀지 밝혀 주어야 넘어간다.
@@ -189,7 +189,7 @@ torch.tensor(s.to_numpy(dtype="float32"))        # 넘파이에서 맞춘다
     ```
 
     pandas의 실수는 `float64`이고 그것이 그대로 넘어온다. 그런데 `nn.Linear` 같은
-    층은 `float32` 가중치로 만들어지므로, `float64` 입력을 넣으면 자료형이 맞지
+    레이어는 `float32` 웨이트로 만들어지므로, `float64` 입력을 넣으면 자료형이 맞지
     않는다는 오류가 난다. 고치는 두 길은 어디서 맞추느냐의 차이뿐이다.
 
     ```python
@@ -247,13 +247,13 @@ df2 = pd.DataFrame({"a": [1, 2, 3],   "b": ["x", "y", "z"]})
 
     `df1`은 오류가 없다. 정수 열이 실수로 올라가 `float64` 하나로 담긴다. **이쪽이 더
     위험하다.** `a`를 클래스 라벨로 쓰려 했다면 지금 실수가 되어 있는데 아무도 알려
-    주지 않는다. 라벨을 실수로 넘기면 손실 함수가 자료형 오류를 내거나, 더 나쁘게는
-    회귀 손실이 조용히 계산된다.
+    주지 않는다. 라벨을 실수로 넘기면 로스 함수가 자료형 오류를 내거나, 더 나쁘게는
+    회귀 로스가 조용히 계산된다.
 
     열마다 자료형이 다르면 **열을 따로 꺼낸다.**
 
     ```python
-    x = torch.tensor(df1["b"].values, dtype=torch.float32)   # 특징
+    x = torch.tensor(df1["b"].values, dtype=torch.float32)   # 피처
     y = torch.tensor(df1["a"].values)                        # 라벨 — int64로 남는다
     print(x.dtype, y.dtype)
     ```
@@ -288,7 +288,7 @@ s2 = pd.Series([1, 2, None], dtype="Int64")      # 대문자 I
     print("s1 ->", t1, torch.isnan(t1).tolist())
 
     s2 = pd.Series([1, 2, None], dtype="Int64")
-    print("s2.values 갈래:", type(s2.values).__name__)
+    print("s2.values 클래스:", type(s2.values).__name__)
     try:
         torch.tensor(s2.values)
     except RuntimeError as e:
@@ -297,7 +297,7 @@ s2 = pd.Series([1, 2, None], dtype="Int64")      # 대문자 I
 
     ```
     s1 -> tensor([1., nan, 3.], dtype=torch.float64) [False, True, False]
-    s2.values 갈래: IntegerArray
+    s2.values 클래스: IntegerArray
     s2 -> RuntimeError - Could not infer dtype of NAType
     ```
 
@@ -316,7 +316,7 @@ s2 = pd.Series([1, 2, None], dtype="Int64")      # 대문자 I
     ```
 
     **`s1`이 더 위험하다.** 아무 말 없이 `nan`을 담은 텐서를 내놓기 때문이다. 그 뒤로
-    `nan`과 더하거나 곱한 모든 값이 `nan`이 되므로 손실이 `nan`으로 바뀌는데, 그때는
+    `nan`과 더하거나 곱한 모든 값이 `nan`이 되므로 로스가 `nan`으로 바뀌는데, 그때는
     이미 어느 열에서 비롯했는지 알 수 없다. 텐서가 된 뒤에는 열 이름이 남아 있지
     않다.
 
@@ -335,8 +335,8 @@ s2 = pd.Series([1, 2, None], dtype="Int64")      # 대문자 I
 pandas에서 텐서로 가는 길은 NumPy를 지난다. `.values`로 배열을 꺼내고 그것을 감싸므로, 앞 쪽의 복사·공유 규칙이 그대로 적용된다. pandas 쪽에서 새로 생기는 어려움은 셋이다.
 
 - **열마다 자료형이 다르다.** `.values`는 프레임 전체를 담을 하나를 골라야 한다. 정수와 실수가 섞이면 `float64`로 올라가고(조용히), 문자열이 섞이면 `object`가 되어 `TypeError`가 난다(시끄럽게). 자료형이 다른 열은 **따로 꺼낸다.**
-- **이 예시에서 추론한 실수 자료형은 `float64`다. 명시적으로 다른 자료형을 사용할 수도 있다.** 기본 설정에서 만든 실수 가중치는 보통 `float32`이므로 `dtype=torch.float32`나 `to_numpy(dtype="float32")`로 미리 맞춘다.
-- **결측값은 조용히 지나간다.** `NaN`은 오류 없이 텐서에 들어앉아 뒤에 가서 손실을 `nan`으로 바꾼다. 확인은 텐서가 되기 전, 열 이름이 아직 남아 있을 때 한다.
+- **이 예시에서 추론한 실수 자료형은 `float64`다. 명시적으로 다른 자료형을 사용할 수도 있다.** 기본 설정에서 만든 실수 웨이트는 보통 `float32`이므로 `dtype=torch.float32`나 `to_numpy(dtype="float32")`로 미리 맞춘다.
+- **결측값은 조용히 지나간다.** `NaN`은 오류 없이 텐서에 들어앉아 뒤에 가서 로스를 `nan`으로 바꾼다. 확인은 텐서가 되기 전, 열 이름이 아직 남아 있을 때 한다.
 
 대문자 `Int64`는 소문자 `int64`와 다른 자료형이고, 이쪽은 오류를 내 준다.
 

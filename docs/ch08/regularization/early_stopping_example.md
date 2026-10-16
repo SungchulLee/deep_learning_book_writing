@@ -1,6 +1,6 @@
 # 조기 종료 예제
 
-고정 횟수 학습과 검증 손실 기반 조기 종료를 비교한다. 검증으로 종료 시점을 선택하고 별도 테스트셋에서 평가한다.
+고정 횟수 학습과 검증 로스 기반 조기 종료를 비교한다. 검증으로 종료 시점을 선택하고 별도 테스트셋에서 평가한다.
 
 ## 1. 코드
 
@@ -29,7 +29,7 @@ from sklearn.metrics import roc_auc_score
 
 
 def create_model(input_dim):
-    """신경망 모델을 만든다."""
+    """뉴럴 넷트웍 모델을 만든다."""
     # 마지막에 시그모이드를 붙이지 않는다. 아래에서 쓰는
     # BCEWithLogitsLoss가 시그모이드를 안에 품고 있기 때문이다
     return nn.Sequential(
@@ -44,7 +44,7 @@ def create_model(input_dim):
 
 
 class EarlyStopping:
-    """검증 손실이 나아지지 않으면 학습을 멈춘다.
+    """검증 로스가 나아지지 않으면 학습을 멈춘다.
 
     학습 루프에서 에포크마다 이 객체에 물어보고, True가 돌아오면 멈춘다.
     """
@@ -65,7 +65,7 @@ class EarlyStopping:
             if self.restore_best_weights:
                 # deepcopy가 필요하다. state_dict()는 살아 있는 파라미터
                 # 텐서를 그대로 가리키므로, 그냥 담아 두면 다음 step()이
-                # 그 텐서를 덮어써 "가장 좋았던 가중치"가 현재 가중치를
+                # 그 텐서를 덮어써 "가장 좋았던 웨이트"가 현재 웨이트를
                 # 따라 계속 바뀌어 버린다
                 self.best_weights = copy.deepcopy(model.state_dict())
             return False
@@ -76,15 +76,15 @@ class EarlyStopping:
         return self.counter >= self.patience
 
     def restore(self, model):
-        """가장 좋았던 가중치로 되돌린다."""
+        """가장 좋았던 웨이트로 되돌린다."""
         # 학습이 인내를 다 채우지 못하고 에포크 수를 소진해 끝났더라도
-        # 부르는 쪽에서 이것을 불러 주어야 최선의 가중치를 되찾는다
+        # 부르는 쪽에서 이것을 불러 주어야 최선의 웨이트를 되찾는다
         if self.restore_best_weights and self.best_weights is not None:
             model.load_state_dict(self.best_weights)
 
 
 def run_epoch(model, loader, criterion, optimizer=None):
-    """한 에포크를 돌고 (손실, 정확도)를 돌려준다."""
+    """한 에포크를 돌고 (로스, 정확도)를 돌려준다."""
     # optimizer를 주었는지로 학습과 평가를 가른다. 모드 전환을
     # 빠뜨리면 드롭아웃이나 배치 정규화가 있는 모델에서 평가가 틀어진다
     model.train() if optimizer is not None else model.eval()
@@ -122,7 +122,7 @@ def train_without_early_stopping(X_train, y_train, X_val, y_val, epochs=200):
     optimizer = optim.Adam(model.parameters())
 
     history = {'loss': [], 'accuracy': [], 'val_loss': [], 'val_accuracy': []}
-    # 200 에포크를 끝까지 돈다. 검증 손실이 돌아선 뒤에도 계속 학습하므로
+    # 200 에포크를 끝까지 돈다. 검증 로스가 돌아선 뒤에도 계속 학습하므로
     # 아래 조기 종료 판본과 견주면 과적합이 눈에 들어온다
     for _ in range(epochs):
         tl, ta = run_epoch(model, train_loader, criterion, optimizer)
@@ -155,8 +155,8 @@ def train_with_early_stopping(X_train, y_train, X_val, y_val,
         history['val_accuracy'].append(va)
 
         # 이력을 기록한 "뒤"에 묻는다. 앞에서 물으면 멈추는 에포크의
-        # 손실이 history에서 빠진다.
-        # 감시하는 것은 학습 손실이 아니라 검증 손실이다. 학습 손실은
+        # 로스가 history에서 빠진다.
+        # 감시하는 것은 학습 로스가 아니라 검증 로스다. 학습 로스는
         # 과적합이 시작된 뒤에도 계속 내려가 멈출 때를 알려 주지 못한다
         if early_stop(vl, model):
             print(f"  Stopped early at epoch {epoch + 1}")
@@ -166,7 +166,7 @@ def train_with_early_stopping(X_train, y_train, X_val, y_val,
 
 
 def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=200):
-    """학습률 감소와 검사점 저장을 함께 쓰는 학습."""
+    """러닝레이트 감소와 검사점 저장을 함께 쓰는 학습."""
     print("Training with ADVANCED early stopping (multiple callbacks)...")
     torch.manual_seed(42)
     model = create_model(X_train.shape[1])
@@ -174,9 +174,9 @@ def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=20
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters())
 
-    # 인내 값이 15와 5로 다른 것이 이 조합의 핵심이다. 학습률 감소가
+    # 인내 값이 15와 5로 다른 것이 이 조합의 핵심이다. 러닝레이트 감소가
     # 5에서 먼저 걸려 모델에게 한 번 더 기회를 주고, 그래도 나아지지
-    # 않으면 15에서 조기 종료가 걸린다. 두 값을 거꾸로 두면 학습률을
+    # 않으면 15에서 조기 종료가 걸린다. 두 값을 거꾸로 두면 러닝레이트를
     # 낮춰 보기도 전에 학습이 끝나 버린다
     early_stop = EarlyStopping(patience=15, restore_best_weights=True)
     # ReduceLROnPlateau는 PyTorch에 내장된 스케줄러다. 코사인 감소처럼
@@ -196,13 +196,13 @@ def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=20
         history['val_loss'].append(vl)
         history['val_accuracy'].append(va)
 
-        # 스케줄러는 검증 손실을 보고 판단하므로 그 값을 넘겨 준다
+        # 스케줄러는 검증 로스를 보고 판단하므로 그 값을 넘겨 준다
         scheduler.step(vl)
 
-        # 검사점 저장. 정확도가 가장 높았던 순간의 가중치를 따로 담아 둔다.
-        # 주의: 이쪽은 정확도를 보는데 위의 조기 종료는 손실을 본다.
+        # 검사점 저장. 정확도가 가장 높았던 순간의 웨이트를 따로 담아 둔다.
+        # 주의: 이쪽은 정확도를 보는데 위의 조기 종료는 로스를 본다.
         # 두 지표의 최고점이 같은 에포크라는 보장이 없으므로, 여기 담긴
-        # best_state와 아래에서 복원되는 가중치가 서로 다를 수 있다.
+        # best_state와 아래에서 복원되는 웨이트가 서로 다를 수 있다.
         # 이 함수는 조기 종료가 고른 쪽을 돌려주며, best_state는 견주어
         # 볼 수 있도록 남겨 둔 것이다. 둘 중 어느 것을 쓸지는 정해 두어야
         # 하며, 정확도로 고르고 싶다면 마지막에 이것을 실어야 한다
@@ -219,14 +219,14 @@ def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=20
 
 
 def evaluate(model, X, y):
-    """(손실, 정확도, AUC)를 돌려준다."""
+    """(로스, 정확도, AUC)를 돌려준다."""
     model.eval()
     with torch.no_grad():
         logits = model(X)
         loss = nn.BCEWithLogitsLoss()(logits, y).item()
         probs = torch.sigmoid(logits)
         accuracy = ((logits > 0).float() == y).float().mean().item()
-    # AUC는 문턱값을 하나로 정하지 않고 모든 문턱값에 걸친 성능을 재므로,
+    # AUC는 임계값을 하나로 정하지 않고 모든 임계값에 걸친 성능을 재므로,
     # 확률이 필요하다. 그래서 여기서만 시그모이드를 통과시킨다
     auc = roc_auc_score(y.numpy().ravel(), probs.numpy().ravel())
     return loss, accuracy, auc
@@ -432,7 +432,7 @@ EarlyStopping은 이전 에포크보다 좋아졌는지가 아니라 저장한 b
 
 최선 상태는 deepcopy로 별도 저장한다. restore를 호출해야 그 상태로 돌아가며, 단순히 루프에서 break하는 것만으로 복원이 되지는 않는다. min_delta를 넘지 않은 작은 개선은 저장 기준상 개선으로 취급되지 않을 수 있다.
 
-데이터는 학습·검증·테스트로 분리하고 scaler는 학습 입력으로만 맞춘다. 검증 지표는 선택에 사용되므로 마지막 테스트 결과와 역할이 다르다. 스케줄러와 조합할 때는 학습률 변경 후 회복할 시간을 patience가 허용하는지도 살핀다.
+데이터는 학습·검증·테스트로 분리하고 scaler는 학습 입력으로만 맞춘다. 검증 지표는 선택에 사용되므로 마지막 테스트 결과와 역할이 다르다. 스케줄러와 조합할 때는 러닝레이트 변경 후 회복할 시간을 patience가 허용하는지도 살핀다.
 
 ## 연습문제
 
@@ -497,7 +497,7 @@ best_score=0.50, min_delta=0.01일 때 0.495는 개선으로 인정되는가?
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 손실이나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

@@ -37,7 +37,7 @@ class EventExtractor(nn.Module):
     def forward(self, input_ids, attention_mask, trigger_idx=None):
         h = self.encoder(input_ids, attention_mask=attention_mask).last_hidden_state
 
-        # 방아쇠 찾기: 토막마다 갈래 매기기
+        # 방아쇠 찾기: 토막마다 클래스 매기기
         trigger_logits = self.trigger_classifier(h)  # (B, L, num_event_types)
 
         # 딸린 것 뽑기: 방아쇠 자리에 조건을 건다
@@ -53,7 +53,7 @@ class EventExtractor(nn.Module):
 
 encoder 출력은 B×T×H, trigger_logits는 B×T×num_event_types다. trigger_idx를 제공하면 배치 항목마다 한 트리거 토큰을 골라 모든 위치에 결합하고 B×T×num_roles를 반환한다. trigger_idx가 없으면 인자 로짓은 None이다. 자동으로 트리거를 골라 모든 사건을 추출하는 시스템은 아니다.
 
-hidden_dim은 불러온 encoder의 실제 hidden size와 같아야 한다. trigger_idx는 배치별 유효 정수 위치이며 장치도 맞춰야 한다. 구간 구성·subword 정렬·특수 토큰 및 padding 손실 제외·학습 손실·추론은 구현되어 있지 않다. attention_mask를 encoder에 전달하는 것만으로 분류 손실의 padding이 제외되지는 않는다.
+hidden_dim은 불러온 encoder의 실제 hidden size와 같아야 한다. trigger_idx는 배치별 유효 정수 위치이며 장치도 맞춰야 한다. 구간 구성·subword 정렬·특수 토큰 및 padding 로스 제외·학습 로스·추론은 구현되어 있지 않다. attention_mask를 encoder에 전달하는 것만으로 분류 로스의 padding이 제외되지는 않는다.
 
 ## 4. 문서 수준 사건과 유형 설계
 
@@ -86,7 +86,7 @@ hidden_dim은 불러온 encoder의 실제 hidden size와 같아야 한다. trigg
 
 ??? success "연습문제 1 풀이"
 
-    ‘A사가 B사를 인수했다’에서 인수 표현은 트리거, 인수는 사건 유형, A사와 B사는 각각 인수자·대상 역할의 인자다. 같은 회사 이름이라도 사건에서 맡는 역할은 다를 수 있다. 트리거·인자의 구간과 실제 사건 상태는 주석 정책에 맞춰 기록한다.
+    ‘A사가 B사를 인수했다’에서 인수 표현은 트리거, 인수는 사건 유형, A사와 B사는 각각 인수자·대상 역할의 인자다. 같은 회사 이름이라도 사건에서 맡는 역할은 다를 수 있다. 트리거·인자의 구간과 실제 사건 상태는 주석 폴리시에 맞춰 기록한다.
 
 
 
@@ -101,7 +101,7 @@ EventExtractor가 trigger_idx 없이 반환하는 값과 배치당 여러 트리
 
 ??? success "연습문제 2 풀이"
 
-    트리거 토큰별 로짓과 None을 반환한다. 인자 head를 사용하려면 각 후보 트리거를 선택해 조건화하고 사건별 인자를 모아야 한다. 현재 trigger_idx는 배치 항목마다 하나의 위치만 고르므로 모든 트리거·인자 관계를 한 번에 구성하지 않는다. 손실·학습·구간 디코딩도 별도로 필요하다.
+    트리거 토큰별 로짓과 None을 반환한다. 인자 head를 사용하려면 각 후보 트리거를 선택해 조건화하고 사건별 인자를 모아야 한다. 현재 trigger_idx는 배치 항목마다 하나의 위치만 고르므로 모든 트리거·인자 관계를 한 번에 구성하지 않는다. 로스·학습·구간 디코딩도 별도로 필요하다.
 
 
 

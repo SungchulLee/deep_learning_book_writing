@@ -17,9 +17,9 @@
     간단한 순방향 구조에 안성맞춤이다!
 
     nn.Sequential을 쓸 때:
-        ✓ 간단한 순방향 신경망
+        ✓ 간단한 순방향 뉴럴 넷트웍
         ✓ 빠른 시제품 만들기
-        ✓ 선형층을 쌓은 구조
+        ✓ 선형 레이어를 쌓은 구조
         ✗ 복잡하게 갈라지는 구조
         ✗ 여러 입력/출력
         ✗ 사용자 정의 순전파 논리
@@ -52,14 +52,14 @@
     print("PART 1: Building a Simple Sequential Model")
     print("=" * 80)
 
-    # PyTorch에서 신경망을 만드는 가장 간단한 방법이다!
-    # 각 층이 지정한 순서대로 차례차례 적용된다
+    # PyTorch에서 뉴럴 넷트웍을 만드는 가장 간단한 방법이다!
+    # 각 레이어가 지정한 순서대로 차례차례 적용된다
     simple_model = nn.Sequential(
-        nn.Linear(784, 256),    # 입력층: 784 → 256
+        nn.Linear(784, 256),    # 입력 레이어: 784 → 256
         nn.ReLU(),              # 활성화
-        nn.Linear(256, 128),    # 은닉층: 256 → 128
+        nn.Linear(256, 128),    # 은닉 레이어: 256 → 128
         nn.ReLU(),              # 활성화
-        nn.Linear(128, 10)      # 출력층: 128 → 10
+        nn.Linear(128, 10)      # 출력 레이어: 128 → 10
     )
 
     print("Simple Sequential Model:")
@@ -67,25 +67,25 @@
     print(f"\nTotal parameters: {sum(p.numel() for p in simple_model.parameters()):,}")
 
     # ================================================================================
-    # 2부: 이름 붙인 층을 쓰는 Sequential
+    # 2부: 이름 붙인 레이어를 쓰는 Sequential
     # ================================================================================
     print("\n" + "=" * 80)
     print("PART 2: Sequential with Named Layers")
     print("=" * 80)
 
-    # 층에 이름을 붙이면 디버깅과 이해에 도움이 된다
-    # 나중에 특정 층에 접근하고 싶을 때 편리하다
+    # 레이어에 이름을 붙이면 디버깅과 이해에 도움이 된다
+    # 나중에 특정 레이어에 접근하고 싶을 때 편리하다
     # nn.Sequential은 모듈을 죽 늘어놓거나 OrderedDict 하나를 받는다.
     # ('이름', 모듈) 짝을 그냥 나열하면 TypeError가 난다.
     named_model = nn.Sequential(OrderedDict([
         ('flatten', nn.Flatten()),              # 입력 펼치기
-        ('fc1', nn.Linear(784, 256)),           # 첫 완전 연결층
+        ('fc1', nn.Linear(784, 256)),           # 첫 완전 연결 레이어
         ('relu1', nn.ReLU()),                   # 첫 활성화
         ('dropout1', nn.Dropout(0.2)),          # 정칙화를 위한 드롭아웃
-        ('fc2', nn.Linear(256, 128)),           # 둘째 완전 연결층
+        ('fc2', nn.Linear(256, 128)),           # 둘째 완전 연결 레이어
         ('relu2', nn.ReLU()),                   # 둘째 활성화
         ('dropout2', nn.Dropout(0.2)),          # 드롭아웃 한 번 더
-        ('fc3', nn.Linear(128, 10))             # 출력층
+        ('fc3', nn.Linear(128, 10))             # 출력 레이어
     ]))
 
     print("Named Sequential Model:")
@@ -162,7 +162,7 @@
     # 학습에는 간단한 모델을 쓴다
     model = simple_model.to(device)
 
-    # 손실과 최적화기
+    # 로스와 최적화기
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -269,29 +269,29 @@
     print("PART 6: Accessing Sequential Model Components")
     print("=" * 80)
 
-    # 인덱스로 층에 접근할 수 있다
+    # 인덱스로 레이어에 접근할 수 있다
     print("First layer of simple_model:")
     print(simple_model[0])
 
     print("\nThird layer (second ReLU):")
     print(simple_model[3])
 
-    # 층을 훑어볼 수 있다
+    # 레이어를 훑어볼 수 있다
     print("\nAll layers:")
     for idx, layer in enumerate(simple_model):
         print(f"  Layer {idx}: {layer.__class__.__name__}")
 
     # Sequential 모델을 잘라 낼 수 있다
     print("\nFirst 3 layers:")
-    feature_extractor = simple_model[:3]  # 처음 세 층을 얻는다
+    feature_extractor = simple_model[:3]  # 처음 세 레이어를 얻는다
     print(feature_extractor)
 
     # Sequential 모델을 고칠 수 있다
     print("\nModifying model by adding a new layer:")
     extended_model = nn.Sequential(
-        *simple_model,  # 기존 층 펼치기
+        *simple_model,  # 기존 레이어 펼치기
         nn.ReLU(),      # 활성화 하나 더 추가
-        nn.Linear(10, 5)  # 마지막 층 추가
+        nn.Linear(10, 5)  # 마지막 레이어 추가
     )
     print(f"Original output size: 10")
     print(f"Extended output size: 5")
@@ -305,7 +305,7 @@
 
     fig, ((ax1, ax2)) = plt.subplots(1, 2, figsize=(14, 5))
 
-    # 손실을 그린다
+    # 로스를 그린다
     ax1.plot(train_losses, 'b-', label='Train Loss', linewidth=2)
     ax1.plot(test_losses, 'r-', label='Test Loss', linewidth=2)
     ax1.set_xlabel('Epoch', fontsize=12)
@@ -342,7 +342,7 @@
        - 맞춤 nn.Module보다 군더더기가 적다
 
     2. Sequential을 쓰는 세 가지 방법:
-       - 단순: 층을 순서대로 넘기기만 한다
+       - 단순: 레이어를 순서대로 넘기기만 한다
        - 이름 붙이기: 디버깅을 돕도록 튜플을 쓴다
        - 모듈화: 다시 쓸 수 있는 블록을 조립한다
 
@@ -364,7 +364,7 @@
        - 순회: for layer in model
 
     언제 쓰는가:
-      - 층을 단순히 쌓을 때는 Sequential을 쓴다
+      - 레이어를 단순히 쌓을 때는 Sequential을 쓴다
       - 복잡한 구조에는 맞춤 Module을 쓴다
     """)
 
@@ -375,16 +375,16 @@
     print("EXERCISES TO TRY")
     print("=" * 80)
     print("""
-    1. Sequential로 5~6층짜리 더 깊은 모델을 만들어 보라
-    2. 층 사이에 배치 정규화를 넣어 보라
+    1. Sequential로 5~6레이어짜리 더 깊은 모델을 만들어 보라
+    2. 레이어 사이에 배치 정규화를 넣어 보라
     3. 드롭아웃 비율을 달리하여 실험해 보라
-    4. "넓은" 신경망(층마다 뉴런이 많다)과 "깊은" 신경망(층이 많다)을 만들어 견주어 보라
+    4. "넓은" 뉴럴 넷트웍(레이어마다 뉴런이 많다)과 "깊은" 뉴럴 넷트웍(레이어가 많다)을 만들어 견주어 보라
     5. 설정 목록으로 Sequential 모델을 만들어 내는 함수를 짜 보라
-    6. 자르기로 중간 특징을 뽑아 보라
-    7. 여러 활성화 함수(LeakyReLU, ELU 등)를 써 보라
+    6. 자르기로 중간 피처를 뽑아 보라
+    7. 여러 엑티베이션 함수(LeakyReLU, ELU 등)를 써 보라
     8. Sequential 모델의 앙상블을 만들어 보라
-    9. 첫 층의 가중치를 시각화해 보라
-    10. 층을 없애는 방식으로 모델 가지치기를 구현해 보라
+    9. 첫 레이어의 웨이트를 시각화해 보라
+    10. 레이어를 없애는 방식으로 모델 가지치기를 구현해 보라
     """)
 
 
@@ -516,7 +516,7 @@
        - 맞춤 nn.Module보다 군더더기가 적다
 
     2. Sequential을 쓰는 세 가지 방법:
-       - 단순: 층을 순서대로 넘기기만 한다
+       - 단순: 레이어를 순서대로 넘기기만 한다
        - 이름 붙이기: 디버깅을 돕도록 튜플을 쓴다
        - 모듈화: 다시 쓸 수 있는 블록을 조립한다
 
@@ -538,30 +538,30 @@
        - 순회: for layer in model
 
     언제 쓰는가:
-      - 층을 단순히 쌓을 때는 Sequential을 쓴다
+      - 레이어를 단순히 쌓을 때는 Sequential을 쓴다
       - 복잡한 구조에는 맞춤 Module을 쓴다
 
     ================================================================================
     EXERCISES TO TRY
     ================================================================================
 
-    1. Sequential로 5~6층짜리 더 깊은 모델을 만들어 보라
-    2. 층 사이에 배치 정규화를 넣어 보라
+    1. Sequential로 5~6레이어짜리 더 깊은 모델을 만들어 보라
+    2. 레이어 사이에 배치 정규화를 넣어 보라
     3. 드롭아웃 비율을 달리하여 실험해 보라
-    4. "넓은" 신경망(층마다 뉴런이 많다)과 "깊은" 신경망(층이 많다)을 만들어 견주어 보라
+    4. "넓은" 뉴럴 넷트웍(레이어마다 뉴런이 많다)과 "깊은" 뉴럴 넷트웍(레이어가 많다)을 만들어 견주어 보라
     5. 설정 목록으로 Sequential 모델을 만들어 내는 함수를 짜 보라
-    6. 자르기로 중간 특징을 뽑아 보라
-    7. 여러 활성화 함수(LeakyReLU, ELU 등)를 써 보라
+    6. 자르기로 중간 피처를 뽑아 보라
+    7. 여러 엑티베이션 함수(LeakyReLU, ELU 등)를 써 보라
     8. Sequential 모델의 앙상블을 만들어 보라
-    9. 첫 층의 가중치를 시각화해 보라
-    10. 층을 없애는 방식으로 모델 가지치기를 구현해 보라
+    9. 첫 레이어의 웨이트를 시각화해 보라
+    10. 레이어를 없애는 방식으로 모델 가지치기를 구현해 보라
 
     ```
 
 
 ## 2. 논의
 
-`simple_model`, `named_model`, `modular_model`은 구성 방식과 너비·드롭아웃이 서로 다른 모델이다. 이름을 붙이거나 블록을 재사용한다고 계산이 자동으로 같아지는 것은 아니다. 동일성을 비교하려면 층과 상태를 맞춰야 한다.
+`simple_model`, `named_model`, `modular_model`은 구성 방식과 너비·드롭아웃이 서로 다른 모델이다. 이름을 붙이거나 블록을 재사용한다고 계산이 자동으로 같아지는 것은 아니다. 동일성을 비교하려면 레이어와 상태를 맞춰야 한다.
 
 평탄화가 모델 안에 있는지 학습 루프에 있는지 확인한다. `nn.Linear`는 마지막 축에 작용하므로 28×28 이미지를 784차원으로 바꾸는 책임이 어디에 있는지가 중요하다.
 
@@ -577,43 +577,43 @@
 </div>
 
 ??? success "연습문제 1 풀이"
-    이전 경사에 현재 경사가 더해진다. 매개변수가 매번 바뀌므로 누적값이 현재 경사에 단계 수를 곱한 값과 같지는 않다. 의도적인 누적이라면 손실의 스케일과 갱신 주기를 함께 설계한다.
+    이전 경사에 현재 경사가 더해진다. 파라메터가 매번 바뀌므로 누적값이 현재 경사에 단계 수를 곱한 값과 같지는 않다. 의도적인 누적이라면 로스의 스케일과 갱신 주기를 함께 설계한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-기본 모델과 이름을 붙인 모델의 매개변수 수가 같아도 출력이 달라질 수 있는 이유를 설명하라.
+기본 모델과 이름을 붙인 모델의 파라메터 수가 같아도 출력이 달라질 수 있는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    독립적으로 초기화되어 가중치가 다르고, 이름을 붙인 모델에는 드롭아웃이 있다. 평가 모드에서 같은 가중치를 옮기고 같은 전처리를 적용해야 해당 차이를 분리해 비교할 수 있다.
+    독립적으로 초기화되어 웨이트가 다르고, 이름을 붙인 모델에는 드롭아웃이 있다. 평가 모드에서 같은 웨이트를 옮기고 같은 전처리를 적용해야 해당 차이를 분리해 비교할 수 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-기존 모델에 새 층을 붙일 때 모듈 공유에 주의해야 하는 이유를 설명하라.
+기존 모델에 새 레이어를 붙일 때 모듈 공유에 주의해야 하는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    기존 모듈 객체를 새 Sequential에 넣으면 같은 가중치를 공유할 수 있다. 새 모델을 학습할 때 원래 모델의 상태도 바뀔 수 있으므로 독립 비교에는 별도 모델과 복사한 상태를 사용한다.
+    기존 모듈 객체를 새 Sequential에 넣으면 같은 웨이트를 공유할 수 있다. 새 모델을 학습할 때 원래 모델의 상태도 바뀔 수 있으므로 독립 비교에는 별도 모델과 복사한 상태를 사용한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-조기 종료를 구현하라. 매 에포크 후 검증 손실을 추적하고, 10 에포크 연속으로 개선이 없으면 학습을 멈춘다. 가장 좋은 모델 가중치를 저장하고 복원하라.
+조기 종료를 구현하라. 매 에포크 후 검증 로스를 추적하고, 10 에포크 연속으로 개선이 없으면 학습을 멈춘다. 가장 좋은 모델 웨이트를 저장하고 복원하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    인내 횟수 카운터와 최저 손실 추적기를 추가한다.
+    인내 횟수 카운터와 최저 로스 추적기를 추가한다.
     ```python
     best_loss = float('inf')
     patience_counter = 0
@@ -636,4 +636,4 @@
 
 ## 정리하며
 
-`Sequential`은 실행 순서를 간결하게 표현한다. 입력 평탄화, 층의 차원과 모듈 공유 여부를 확인하고, 분기나 복수 출력에는 사용자 정의 모듈을 고려한다.
+`Sequential`은 실행 순서를 간결하게 표현한다. 입력 평탄화, 레이어의 차원과 모듈 공유 여부를 확인하고, 분기나 복수 출력에는 사용자 정의 모듈을 고려한다.

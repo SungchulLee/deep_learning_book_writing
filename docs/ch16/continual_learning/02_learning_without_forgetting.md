@@ -1,6 +1,6 @@
 # Split MNIST의 LwF
 
-새 과제 입력에서 이전 모델의 출력 분포를 맞추는 LwF 예제다. 각 과제 학습 후 모델을 고정 교사로 복사하고 다음 과제의 지도 손실에 출력 증류를 더한다. 과거 원본 데이터의 재학습과는 다른 보존 방식이다.
+새 과제 입력에서 이전 모델의 출력 분포를 맞추는 LwF 예제다. 각 과제 학습 후 모델을 고정 교사로 복사하고 다음 과제의 지도 로스에 출력 증류를 더한다. 과거 원본 데이터의 재학습과는 다른 보존 방식이다.
 
 ## 1. 코드
 
@@ -17,20 +17,20 @@
 
     학습 목표:
     1. 이어 배우기를 위한 앎 증류를 이해한다
-    2. 부드러운 목표를 쓰는 LWF 손실을 구현한다
+    2. 부드러운 목표를 쓰는 LWF 로스를 구현한다
     3. 새 과제 배우기와 옛 앎 지키기의 균형을 잡는다
     4. 부드러운 목표를 위한 온도 눈금을 배운다
 
     수학적 바탕:
-    LWF 손실은 다음을 합친다.
+    LWF 로스는 다음을 합친다.
 
     L_total = L_new + λ * L_distill
 
     여기서 각 기호는 다음과 같다.
-    - L_new: 새 과제의 교차 엔트로피 손실
-    - L_distill: 옛 과제의 예측을 지키는 증류 손실
+    - L_new: 새 과제의 교차 엔트로피 로스
+    - L_distill: 옛 과제의 예측을 지키는 증류 로스
 
-    증류 손실:
+    증류 로스:
     L_distill = KL(softmax(z_old/T) || softmax(z_new/T))
 
     여기서 각 기호는 다음과 같다.
@@ -71,11 +71,11 @@
         LWF 전략:
         1. 새 과제를 배우기 전에 지금 모델의 사본을 담아 둔다
         2. 새 과제를 익히는 동안 다음을 한다.
-           a. 지금 모델로 새 데이터를 앞먹임한다
-           b. 옛 모델(얼린 것)으로 새 데이터를 앞먹임한다
-           c. 옛 모델의 예측에 맞추도록 증류 손실을 셈한다
-           d. 새 과제의 손실을 셈한다
-           e. 합친 손실을 거꾸로 퍼뜨린다
+           a. 지금 모델로 새 데이터를 피드포워드한다
+           b. 옛 모델(얼린 것)으로 새 데이터를 피드포워드한다
+           c. 옛 모델의 예측에 맞추도록 증류 로스를 셈한다
+           d. 새 과제의 로스를 셈한다
+           e. 합친 로스를 거꾸로 퍼뜨린다
 
         핵심 통찰: 옛 모델의 부드러운 예측에는 앞선 과제에 대한 앎이
         담겨 있다. 새 과제 데이터에서 이 예측에 맞추면
@@ -83,11 +83,11 @@
 
         이점:
         - 앞선 보기를 담아 두지 않는다(사생활을 지킨다)
-        - 어떤 신경망 구조에서도 굴러간다
+        - 어떤 뉴럴 넷트웍 구조에서도 굴러간다
         - 셈이 효율적이다
 
         한계:
-        - 배치마다 앞먹임을 두 번 돌려야 한다
+        - 배치마다 피드포워드를 두 번 돌려야 한다
         - 새 과제의 데이터가 옛 과제와 아주 다르면 힘겨울 수 있다
         """
 
@@ -101,15 +101,15 @@
             LWF 학습기를 초기화한다.
 
             인수:
-                model: 신경망 모델
+                model: 뉴럴 넷트웍 모델
                 device: 학습에 쓸 장치
-                distill_lambda: 증류 손실의 무게
+                distill_lambda: 증류 로스의 무게
                                값이 클수록 옛 앎을 더 많이 지킨다
                                흔한 범위: [0.5, 5.0]
                 temperature: 확률 분포를 부드럽게 하는 온도
                             온도가 높을수록 분포가 부드럽다
                             흔한 범위: [1.0, 4.0]
-                learning_rate: 최적화기의 학습률
+                learning_rate: 최적화기의 러닝레이트
             """
             self.model = model
             self.device = device
@@ -131,9 +131,9 @@
                              old_logits: torch.Tensor,
                              temperature: float) -> torch.Tensor:
             """
-            앎 증류 손실을 셈한다.
+            앎 증류 로스를 셈한다.
 
-            증류 손실은 다음 둘 사이의 KL 벌어짐이다.
+            증류 로스는 다음 둘 사이의 KL 벌어짐이다.
             - 옛 모델의 부드러운 예측(스승)
             - 새 모델의 부드러운 예측(제자)
 
@@ -154,7 +154,7 @@
                 temperature: 눈금을 위한 온도
 
             반환값:
-                증류 손실(스칼라)
+                증류 로스(스칼라)
             """
             # 온도 눈금을 씌우고 로그 확률을 셈한다
             # log_softmax_T(z) = log(exp(z/T) / Σ exp(z/T))
@@ -183,7 +183,7 @@
             """
             LWF을 곁들여 과제 하나로 익힌다.
 
-            과제 τ > 0의 손실 함수:
+            과제 τ > 0의 로스 함수:
             L = L_new + λ * L_distill
 
             과제 0(첫 과제)에는 증류가 없다.
@@ -195,7 +195,7 @@
                 epochs: 학습 에포크 수
 
             반환값:
-                시대마다의 손실 목록
+                시대마다의 로스 목록
             """
             optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
@@ -227,28 +227,28 @@
 
                     optimizer.zero_grad()
 
-                    # ===== 지금 모델로 앞먹임 =====
+                    # ===== 지금 모델로 피드포워드 =====
                     new_logits = self.model(data)
 
-                    # ===== 새 과제의 손실 =====
+                    # ===== 새 과제의 로스 =====
                     new_loss = self.criterion(new_logits, target)
 
-                    # ===== 증류 손실 =====
+                    # ===== 증류 로스 =====
                     distill_loss = torch.tensor(0.0).to(self.device)
 
                     if self.old_model is not None:
-                        # 옛 모델로 앞먹임한다(얼려 둔 채)
+                        # 옛 모델로 피드포워드한다(얼려 둔 채)
                         with torch.no_grad():
                             old_logits = self.old_model(data)
 
-                        # 증류 손실을 셈한다
+                        # 증류 로스를 셈한다
                         distill_loss = self.distillation_loss(
                             new_logits=new_logits,
                             old_logits=old_logits,
                             temperature=self.temperature
                         )
 
-                    # ===== 합친 손실 =====
+                    # ===== 합친 로스 =====
                     total_loss = new_loss + self.distill_lambda * distill_loss
 
                     # 역전파
@@ -300,7 +300,7 @@
             self.old_model.to(self.device)
             self.old_model.eval()
 
-            # 매개변수를 얼린다(기울기를 셈할 필요가 없다)
+            # 파라메터를 얼린다(그래디언트를 셈할 필요가 없다)
             for param in self.old_model.parameters():
                 param.requires_grad = False
 
@@ -338,10 +338,10 @@
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5):
             """
-            LWF을 쓰는 이어 배우기의 주 되돌이.
+            LWF을 쓰는 이어 배우기의 주 회귀.
 
             과제마다의 절차:
-            1. 증류 손실을 곁들여 익힌다(첫 과제가 아니면)
+            1. 증류 로스를 곁들여 익힌다(첫 과제가 아니면)
             2. 다음 과제를 위해 옛 모델을 고친다
             3. 모든 과제에서 평가한다
             """
@@ -423,7 +423,7 @@
     def create_simple_model(input_size: int = 784,
                            hidden_size: int = 256,
                            num_classes: int = 2) -> nn.Module:
-        """단순한 앞먹임 망을 만든다."""
+        """단순한 피드포워드 망을 만든다."""
         return nn.Sequential(
             nn.Flatten(),
             nn.Linear(input_size, hidden_size),
@@ -500,7 +500,7 @@
                     f'{val:.1f}%', ha='center',
                     va='bottom' if val >= 0 else 'top', fontsize=9)
 
-        # 그림 3: 배움 정확도와 마지막 정확도
+        # 그림 3: 러닝 정확도와 마지막 정확도
         ax3 = axes[2]
         learning_accs = np.diag(lwf_metrics['accuracy_matrix'])
         final_accs = lwf_metrics['accuracy_matrix'][:, -1]
@@ -543,7 +543,7 @@
         epochs_per_task = 5
         batch_size = 128
         learning_rate = 0.001
-        distill_lambda = 1.0  # 증류 손실의 무게
+        distill_lambda = 1.0  # 증류 로스의 무게
         temperature = 2.0     # 부드러운 목표의 온도
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -796,23 +796,23 @@
 
 ## 2. 논의
 
-첫 과제는 교사가 없으므로 지도 손실만 쓴다. 이후에는 이전 과제 종료 시 복사해 고정한 old_model을 평가 모드·no_grad로 실행한다. 학생의 로그 소프트맥스와 교사 확률로 KL(교사‖학생)을 계산하고 T² 및 distill_lambda를 곱한다. 교사에 역전파하지 않아도 저장과 순전파 비용은 남는다.
+첫 과제는 교사가 없으므로 지도 로스만 쓴다. 이후에는 이전 과제 종료 시 복사해 고정한 old_model을 평가 모드·no_grad로 실행한다. 학생의 로그 소프트맥스와 교사 확률로 KL(교사‖학생)을 계산하고 T² 및 distill_lambda를 곱한다. 교사에 역전파하지 않아도 저장과 순전파 비용은 남는다.
 
 모든 과제는 두 숫자를 로컬 라벨 0·1로 바꾸고 같은 2개 출력 전체를 증류한다. 과제별 기존 클래스 헤드를 따로 보존하거나 전체 10개 클래스 출력으로 확장하는 구현은 아니다. 새 입력에서 이전 예측을 제한하는 것이 과거 입력 전체의 함수를 유지하는 보장은 아니며 새 지도 목표와 충돌할 수도 있다.
 
-temperature는 양수여야 하고 T=1에서도 교사 목표는 일반적으로 확률 분포다. 계수·온도·학습률은 과거와 현재의 검증 성능으로 선택한다. 정확도는 백분율, BWT와 과제별 변화는 퍼센트포인트이며 음수가 성능 하락이다. 저장된 모델도 정보를 포함할 수 있어 원본 미저장을 개인정보 보호 보장으로 읽지 않는다.
+temperature는 양수여야 하고 T=1에서도 교사 목표는 일반적으로 확률 분포다. 계수·온도·러닝레이트는 과거와 현재의 검증 성능으로 선택한다. 정확도는 백분율, BWT와 과제별 변화는 퍼센트포인트이며 음수가 성능 하락이다. 저장된 모델도 정보를 포함할 수 있어 원본 미저장을 개인정보 보호 보장으로 읽지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-교사는 언제 갱신되고 첫 과제의 증류 손실은 얼마인가?
+교사는 언제 갱신되고 첫 과제의 증류 로스는 얼마인가?
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    과제 학습을 마친 뒤 학생을 deepcopy해 다음 과제의 교사로 만든다. 첫 과제에는 old_model이 없어 증류 손실은 0이다. 새 과제를 학습하는 동안 교사를 함께 갱신하지 않는다.
+    과제 학습을 마친 뒤 학생을 deepcopy해 다음 과제의 교사로 만든다. 첫 과제에는 old_model이 없어 증류 로스는 0이다. 새 과제를 학습하는 동안 교사를 함께 갱신하지 않는다.
 
 ---
 
@@ -831,7 +831,7 @@ temperature는 양수여야 하고 T=1에서도 교사 목표는 일반적으로
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-새 입력에서 교사 손실이 작으면 이전 테스트 정확도도 반드시 유지되는가?
+새 입력에서 교사 로스가 작으면 이전 테스트 정확도도 반드시 유지되는가?
 
 </div>
 
@@ -867,7 +867,7 @@ temperature는 양수여야 하고 T=1에서도 교사 목표는 일반적으로
             model.load_state_dict(best_state)
             break
     ```
-    현재 과제만의 검증 손실로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 테스트셋은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
+    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 테스트셋은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
 
 ## 정리하며
 

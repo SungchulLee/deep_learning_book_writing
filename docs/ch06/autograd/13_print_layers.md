@@ -5,7 +5,7 @@
 ## 1. 코드
 
 ```python
-"""층을 찍어 본다."""
+"""레이어를 찍어 본다."""
 import torch.nn as nn
 
 # ========================================================================
@@ -20,8 +20,8 @@ def main():
         nn.Linear(3, 1)   # index 2
     )
     # PyTorch의 nn.Linear(in_features, out_features)는 다음을 저장한다:
-    #   • 가중치: (out_features, in_features)
-    #   • 편향  : (out_features,)
+    #   • 웨이트: (out_features, in_features)
+    #   • 바이어스  : (out_features,)
     # 순전파가 계산한다: output = input @ weight.T + bias
 
     # 0) Sequential이라면 인덱스로 나열하는 것이 가장 빠르다
@@ -43,7 +43,7 @@ def main():
         print(f"{name or '<root>'}: {layer}")
     print()
 
-    # 3) 필요한 정보만: Linear의 가중치/편향 모양
+    # 3) 필요한 정보만: Linear의 웨이트/바이어스 모양
     print("== Linear shapes ==")
     for name, layer in model.named_modules():
         if isinstance(layer, nn.Linear):
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
 ### Linear의 파라미터 모양
 
-`nn.Linear(in_features, out_features)`의 가중치 모양은 $(\text{out\_features},\text{in\_features})$이다. 예제의 두 선형 계층은 각각 $(3,5)$, $(1,3)$ 가중치를 가진다. 배치 입력은 $XW^\top+b$로 변환되므로, 입력 마지막 차원이 `in_features`와 일치해야 한다.
+`nn.Linear(in_features, out_features)`의 웨이트 모양은 $(\text{out\_features},\text{in\_features})$이다. 예제의 두 선형 계층은 각각 $(3,5)$, $(1,3)$ 웨이트를 가진다. 배치 입력은 $XW^\top+b$로 변환되므로, 입력 마지막 차원이 `in_features`와 일치해야 한다.
 
 ReLU처럼 학습할 파라미터가 없는 모듈도 구조에 포함된다. 계층 목록과 파라미터 목록은 같은 개념이 아니며, 중첩 모델을 점검할 때 둘을 함께 확인하면 모양 오류를 찾는 데 도움이 된다.
 
@@ -150,4 +150,4 @@ $(2, 3)$ 행렬과 $(3, 4)$ 행렬의 곱을 `@`, `torch.mm()`, `torch.matmul()`
 
 ## 정리하며
 
-직접 자식은 `named_children()`, 중첩 구조는 `named_modules()`, 학습 파라미터는 `named_parameters()`로 살펴본다. 선형 계층의 가중치 축 순서도 함께 확인한다.
+직접 자식은 `named_children()`, 중첩 구조는 `named_modules()`, 학습 파라미터는 `named_parameters()`로 살펴본다. 선형 계층의 웨이트 축 순서도 함께 확인한다.

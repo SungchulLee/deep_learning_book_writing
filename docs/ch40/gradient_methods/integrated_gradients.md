@@ -1,44 +1,44 @@
 # Integrated Gradients
 
-**Integrated Gradients(IG)**는 맨 기울기 기반 길이 지닌 기초 걸림돌을 다루는, 이치에 닿는 기여도 분석 방법이다. 그 자리의 예민함만 주는 단순한 기울기와 달리, Integrated Gradients는 **밑금에서 입력으로 가는 길을 따라 기울기를 쌓아** 몫을 계산한다.
+**Integrated Gradients(IG)**는 맨 그래디언트 기반 길이 지닌 기초 걸림돌을 다루는, 이치에 닿는 기여도 분석 방법이다. 그 자리의 예민함만 주는 단순한 그래디언트와 달리, Integrated Gradients는 **밑금에서 입력으로 가는 길을 따라 그래디언트를 쌓아** 몫을 계산한다.
 
-순다라라잔, 탈리, 얀(2017)이 **예민함**과 **짜기에 흔들리지 않음**을 채우는 기여도 분석 방법을 만들겠다는 또렷한 뜻으로 들여왔다. 이 둘은 맨 기울기가 채우지 못하는 성능이다. 바라는 이론 공리 여럿을 한꺼번에 채우는, 널리 쓰이는 하나뿐인 방법으로 이름이 높다.
+순다라라잔, 탈리, 얀(2017)이 **예민함**과 **짜기에 흔들리지 않음**을 채우는 기여도 분석 방법을 만들겠다는 또렷한 뜻으로 들여왔다. 이 둘은 맨 그래디언트가 채우지 못하는 성능이다. 바라는 이론 공리 여럿을 한꺼번에 채우는, 널리 쓰이는 하나뿐인 방법으로 이름이 높다.
 
 ---
 
 ## 1. 왜 있어야 하는가
 
-### 맨 기울기의 탈
+### 맨 그래디언트의 탈
 
 단순한 ReLU 네트워크 $f(x) = \max(0, x - 1)$을 생각하자.
 
-- $x = 2$이면 $f(2) = 1$, $\nabla f(2) = 1$(기울기가 있다)
+- $x = 2$이면 $f(2) = 1$, $\nabla f(2) = 1$(그래디언트가 있다)
 - $x = 0$이면 $f(0) = 0$, $\nabla f(0) = 0$(기울기가 0이다)
 
 이제 기여도 분석 물음을 던지자. **"왜 $f(2) = 1$인가?"**
 
 맨 기울기는 $x$의 중요함이 1이라 한다. 그런데 밑금을 $x' = 0$으로 잡으면 어떨까?
 
-차이 $f(2) - f(0) = 1 - 0 = 1$은 온전히 입력에 돌려야 하는데, 기울기만으로는 온 이바지를 담지 못한다. 기울기는 그 입력 자리에서의 **그 자리 예민함**만 잴 뿐이다.
+차이 $f(2) - f(0) = 1 - 0 = 1$은 온전히 입력에 돌려야 하는데, 그래디언트만으로는 온 이바지를 담지 못한다. 그래디언트는 그 입력 자리에서의 **그 자리 예민함**만 잴 뿐이다.
 
-**더 중요하게는**: $x = 0.5$(문턱 바로 아래)이면 $f(0.5) = 0$이고 $\nabla f(0.5) = 0$이다. 입력 값이 내놓기가 0인지 아닌지를 곧바로 가르는데도 기울기는 이 입력의 중요함이 0이라고 우긴다!
+**더 중요하게는**: $x = 0.5$(임계 바로 아래)이면 $f(0.5) = 0$이고 $\nabla f(0.5) = 0$이다. 입력 값이 내놓기가 0인지 아닌지를 곧바로 가르는데도 그래디언트는 이 입력의 중요함이 0이라고 우긴다!
 
 ### 잦아듦 문제
 
-ReLU, 시그모이드, tanh 활성화를 쓰는 신경망에는 기울기가 0이거나 0에 가까운 자리(잦아듦)가 있다. 그런 자리에서는
+ReLU, 시그모이드, tanh 활성화를 쓰는 뉴럴 넷트웍에는 기울기가 0이거나 0에 가까운 자리(잦아듦)가 있다. 그런 자리에서는
 
-- 맨 기울기가 그 특징의 중요함이 0이라고 한다
-- 그런데도 그 특징이 내놓기를 또렷이 흔든다
+- 맨 그래디언트가 그 피처의 중요함이 0이라고 한다
+- 그런데도 그 피처가 내놓기를 또렷이 흔든다
 
 ### 길 따라 쌓아 푸는 길
 
-Integrated Gradients는 밑금에서 입력까지의 **온 길**을 따라 기울기를 적분해 이를 푼다.
+Integrated Gradients는 밑금에서 입력까지의 **온 길**을 따라 그래디언트를 적분해 이를 푼다.
 
 $$
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
 $$
 
-사이 잡는 길을 따라 기울기 소식을 모두 쌓으므로 잦아든 자리를 지나면서도 이바지를 담아낸다.
+사이 잡는 길을 따라 그래디언트 소식을 모두 쌓으므로 잦아든 자리를 지나면서도 이바지를 담아낸다.
 
 ---
 
@@ -46,7 +46,7 @@ $$
 
 ### 길 적분 세움새
 
-입력 $\mathbf{x} \in \mathbb{R}^n$, 밑금 $\mathbf{x}' \in \mathbb{R}^n$, 모델 $f: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 특징 $i$의 Integrated Gradients 몫은 이렇다.
+입력 $\mathbf{x} \in \mathbb{R}^n$, 밑금 $\mathbf{x}' \in \mathbb{R}^n$, 모델 $f: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 피처 $i$의 Integrated Gradients 몫은 이렇다.
 
 $$
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
@@ -56,8 +56,8 @@ $$
 
 - $\mathbf{x}'$은 밑금(비교 자리, 흔히 0이나 흐린 그림)
 - $\alpha \in [0, 1]$은 $\mathbf{x}'$에서 $\mathbf{x}$으로 가는 곧은 길을 매긴다
-- $\frac{\partial f}{\partial x_i}$은 $i$번째 입력 특징에 대한 기울기
-- $(x_i - x'_i)$은 특징 $i$이 얼마나 멀리 갔는지로 Integrated Gradients의 잣대를 잡는다
+- $\frac{\partial f}{\partial x_i}$은 $i$번째 입력 피처에 대한 그래디언트
+- $(x_i - x'_i)$은 피처 $i$이 얼마나 멀리 갔는지로 Integrated Gradients의 잣대를 잡는다
 
 ### 길 매기기
 
@@ -70,7 +70,7 @@ $$
 - $\alpha = 0$이면 $\gamma(0) = \mathbf{x}'$(밑금)
 - $\alpha = 1$이면 $\gamma(1) = \mathbf{x}$(입력)
 
-이 길 위의 자리마다 기울기를 계산한다. 적분이 이 기울기들을 쌓되, 특징마다 밑금에서 입력까지 간 만큼으로 가중치를 싣는다.
+이 길 위의 자리마다 그래디언트를 계산한다. 적분이 이 그래디언트들을 쌓되, 피처마다 밑금에서 입력까지 간 만큼으로 웨이트를 싣는다.
 
 ### 리만 합 어림
 
@@ -90,11 +90,11 @@ Integrated Gradients는 순다라라잔 외가 어떤 기여도 분석 방법이
 
 ### 공리 1: 예민함
 
-**말하면**: 입력과 밑금이 특징 하나에서만 다르고 모델의 내놓기가 다르면, 그 특징은 0이 아닌 몫을 받아야 한다.
+**말하면**: 입력과 밑금이 피처 하나에서만 다르고 모델의 내놓기가 다르면, 그 피처는 0이 아닌 몫을 받아야 한다.
 
 **엄밀히**: $f(\mathbf{x}) \neq f(\mathbf{x}')$이고 $x_i \neq x'_i$이며 $j \neq i$마다 $x_j = x'_j$이면 $\text{IG}_i(\mathbf{x}) \neq 0$이다.
 
-**맨 기울기가 왜 어기는가**: $x = 2$, $x' = 0$인 $f(x) = \text{ReLU}(x - 1)$을 보자. $x = 0.5$에서 따지면 (문턱 아래이므로) 기울기가 0이지만, $x$은 내놓기에 또렷이 걸린다.
+**맨 그래디언트가 왜 어기는가**: $x = 2$, $x' = 0$인 $f(x) = \text{ReLU}(x - 1)$을 보자. $x = 0.5$에서 따지면 (임계 아래이므로) 기울기가 0이지만, $x$은 내놓기에 또렷이 걸린다.
 
 **IG는 왜 채우는가**: 길을 따라 적분하므로 끝점에서 0이더라도 기울기가 0이 *아닌* 자리를 담아낸다.
 
@@ -110,7 +110,7 @@ Integrated Gradients는 순다라라잔 외가 어떤 기여도 분석 방법이
 
 ### 따라 나오는 성능: 온전함
 
-정의에서 따라 나오는 중요한 특징과가 **온전함**(또는 **효율**) 성능이다.
+정의에서 따라 나오는 중요한 피처와가 **온전함**(또는 **효율**) 성능이다.
 
 $$
 \sum_{i=1}^{n} \text{IG}_i(\mathbf{x}) = f(\mathbf{x}) - f(\mathbf{x}')
@@ -130,7 +130,7 @@ $$
 
 ---
 
-## 4. PyTorch 짜보기
+## 4. PyTorch 구현
 
 ### 함수로 짜기
 
@@ -149,14 +149,14 @@ def compute_integrated_gradients(
     steps: int = 50
 ) -> torch.Tensor:
     """
-    쌓은 기울기 몫을 셈한다.
+    쌓은 그래디언트 몫을 셈한다.
 
     Args:
-        model: 따지는 결로 놓인 신경 그물
+        model: 따지는 결로 놓인 뉴럴 넷트웍
         image_tensor: 들임 그림 [1, C, H, W]
-        target_class: 겨눈 갈래 번호
+        target_class: 겨눈 클래스 번호
         device: 셈하는 장치
-        baseline_type: 밑금의 갈래('zeros', 'blur', 'random', 'mean')
+        baseline_type: 밑금의 클래스('zeros', 'blur', 'random', 'mean')
         steps: 사이를 잡는 걸음 수(많을수록 더 맞다)
 
     Returns:
@@ -171,7 +171,7 @@ def compute_integrated_gradients(
     # 들임과 밑금의 차이
     delta = image_tensor - baseline  # (x - x')
 
-    # 길을 따라 기울기를 쌓는다
+    # 길을 따라 그래디언트를 쌓는다
     accumulated_gradients = torch.zeros_like(image_tensor)
 
     for step in range(1, steps + 1):
@@ -193,7 +193,7 @@ def compute_integrated_gradients(
         # 쌓는다: 이 사이 자리에서의 ∂f/∂x
         accumulated_gradients += interpolated.grad
 
-    # 기울기를 고르게 한다(리만 합 어림)
+    # 그래디언트를 고르게 한다(리만 합 어림)
     avg_gradients = accumulated_gradients / steps  # (1/m) Σ_k ∇f
 
     # 들임 차이로 잣대를 잡는다: (x - x') * avg_gradients
@@ -211,7 +211,7 @@ def create_baseline(
     device: torch.device
 ) -> torch.Tensor:
     """
-    쌓은 기울기에 쓸 밑금을 만든다.
+    쌓은 그래디언트에 쓸 밑금을 만든다.
 
     Args:
         image_tensor: 들임 그림
@@ -245,7 +245,7 @@ def create_baseline(
         baseline = torch.ones_like(image_tensor) * 0.5
 
     else:
-        raise ValueError(f"모르는 밑금 갈래: {baseline_type}")
+        raise ValueError(f"모르는 밑금 클래스: {baseline_type}")
 
     return baseline.to(device)
 ```
@@ -255,7 +255,7 @@ def create_baseline(
 ```python
 class IntegratedGradients:
     """
-    쌓은 기울기 몫 매기기 방법.
+    쌓은 그래디언트 몫 매기기 방법.
 
     살펴볼 거리: Sundararajan et al., "Axiomatic Attribution for 
     Deep Networks"(ICML 2017)
@@ -277,12 +277,12 @@ class IntegratedGradients:
         return_convergence_delta: bool = False
     ) -> torch.Tensor:
         """
-        쌓은 기울기 몫을 셈한다.
+        쌓은 그래디언트 몫을 셈한다.
 
         Args:
             input_tensor: (1, *들임 차원) 꼴 들임 텐서
             baseline: 꼴이 같은 밑금 텐서. None이면 0을 쓴다.
-            target_class: 몫을 매길 겨눈 갈래. None이면 argmax을 쓴다.
+            target_class: 몫을 매길 겨눈 클래스. None이면 argmax을 쓴다.
             n_steps: 적분 걸음 수(많을수록 더 맞다)
             return_convergence_delta: True이면 어림 어긋남도 내놓는다
 
@@ -296,7 +296,7 @@ class IntegratedGradients:
         if baseline is None:
             baseline = torch.zeros_like(input_tensor)
 
-        # 겨눈 갈래를 정한다
+        # 겨눈 클래스를 정한다
         if target_class is None:
             with torch.no_grad():
                 output = self.model(input_tensor)
@@ -318,23 +318,23 @@ class IntegratedGradients:
         # 모든 걸음을 한꺼번에 앞으로 보낸다(배치)
         outputs = self.model(scaled_inputs)
 
-        # 겨눈 갈래 점수를 뽑는다
+        # 겨눈 클래스 점수를 뽑는다
         target_scores = outputs[:, target_class]
 
         # 되짚기 걸음
         self.model.zero_grad()
 
-        # 기울기를 셈한다
+        # 그래디언트를 셈한다
         grads = torch.autograd.grad(
             outputs=target_scores.sum(),
             inputs=scaled_inputs,
             create_graph=False
         )[0]
 
-        # 걸음에 걸쳐 기울기를 고르게 한다
+        # 걸음에 걸쳐 그래디언트를 고르게 한다
         avg_grads = grads.mean(dim=0, keepdim=True)
 
-        # 쌓은 기울기 = (들임 - 밑금) * 고른 기울기
+        # 쌓은 그래디언트 = (들임 - 밑금) * 고른 그래디언트
         attributions = diff * avg_grads
 
         if return_convergence_delta:
@@ -359,10 +359,10 @@ class IntegratedGradients:
         noise_level: float = 0.1
     ) -> torch.Tensor:
         """
-        잡음에 든든한 쌓은 기울기(기댓값 기울기)를 셈한다.
+        잡음에 든든한 쌓은 그래디언트(기댓값 그래디언트)를 셈한다.
 
         잡음 섞은 밑금 여럿에 걸쳐 IG를 고르게 해 더 든든한 몫을 낸다.
-        이는 SHAP의 기댓값 기울기 세움새와 이어진다.
+        이는 SHAP의 기댓값 그래디언트 세움새와 이어진다.
         """
         attributions = torch.zeros_like(input_tensor)
 
@@ -383,7 +383,7 @@ class IntegratedGradients:
         return attributions / n_samples
 ```
 
-### 배치로 다듬은 짜보기
+### 배치로 다듬은 구현
 
 잘 들게 하려고 사이 걸음 여럿을 한 배치로 다룬다.
 
@@ -398,7 +398,7 @@ def compute_integrated_gradients_batched(
     batch_size: int = 10
 ) -> torch.Tensor:
     """
-    배치로 다듬은 쌓은 기울기 셈.
+    배치로 다듬은 쌓은 그래디언트 셈.
 
     배치마다 사이 걸음 여럿을 다루어 잘 들게 한다.
     모든 걸음을 한꺼번에 다루는 것보다 GPU 기억을 덜 쓴다.
@@ -427,14 +427,14 @@ def compute_integrated_gradients_batched(
         # 배치를 앞으로 보낸다
         outputs = model(interpolated_batch)  # [batch_size, num_classes]
 
-        # 기울기를 셈하려고 겨눈 점수를 더한다
+        # 그래디언트를 셈하려고 겨눈 점수를 더한다
         target_scores = outputs[:, target_class].sum()
 
         # 되짚기 걸음
         model.zero_grad()
         target_scores.backward()
 
-        # 기울기를 쌓는다(배치 축으로 더한다)
+        # 그래디언트를 쌓는다(배치 축으로 더한다)
         accumulated_gradients += interpolated_batch.grad.sum(dim=0, keepdim=True)
 
     # 고르게 하고 잣대를 잡는다
@@ -473,7 +473,7 @@ def compare_baselines(
     device: torch.device,
     baselines: list = ['zeros', 'blur', 'random', 'mean']
 ):
-    """밑금을 달리한 쌓은 기울기를 견준다."""
+    """밑금을 달리한 쌓은 그래디언트를 견준다."""
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(2, len(baselines) + 1, figsize=(4 * (len(baselines) + 1), 8))
@@ -515,8 +515,8 @@ def compare_baselines(
 |--------|---------------------|-----------|
 | 그림(RGB) | 0(검정) | 눈에 보이는 소식이 없음 |
 | 글(쏘아 넣기) | 채움 단어의 쏘아 넣기 | 치우친 데 없는 단어 |
-| 표 데이터 | 학습 데이터의 평균 | 고른 특징 값 |
-| 때 열 | 0이나 지난날의 평균 | 밑금 움직임 층 |
+| 표 데이터 | 학습 데이터의 평균 | 고른 피처 값 |
+| 때 열 | 0이나 지난날의 평균 | 밑금 액션 레이어 |
 | 소리 | 고요(0) | 소리가 없음 |
 
 ---
@@ -603,7 +603,7 @@ def analyze_steps_convergence(
     plt.plot(step_counts, errors, 'bo-', linewidth=2, markersize=8)
     plt.xlabel('걸음 수', fontsize=12)
     plt.ylabel('견준 온전함 어긋남', fontsize=12)
-    plt.title('쌓은 기울기가 모여 가는 모습', fontsize=14)
+    plt.title('쌓은 그래디언트가 모여 가는 모습', fontsize=14)
     plt.yscale('log')
     plt.grid(True, alpha=0.3)
     plt.show()
@@ -633,10 +633,10 @@ import matplotlib.pyplot as plt
 def visualize_integrated_gradients(
     image: np.ndarray,
     attribution: np.ndarray,
-    title: str = "쌓은 기울기"
+    title: str = "쌓은 그래디언트"
 ):
     """
-    쌓은 기울기 몫을 그린다.
+    쌓은 그래디언트 몫을 그린다.
 
     Args:
         image: [0, 1] 너비의 본디 그림 [H, W, 3]
@@ -682,7 +682,7 @@ def visualize_integrated_gradients(
 
 ## 9. 금융 응용
 
-### 표 데이터의 특징 기여도 분석
+### 표 데이터의 피처 기여도 분석
 
 ```python
 def ig_for_tabular(
@@ -694,13 +694,13 @@ def ig_for_tabular(
     device: torch.device = None
 ):
     """
-    표로 된 금융 자료에 쌓은 기울기를 건다.
+    표로 된 금융 자료에 쌓은 그래디언트를 건다.
 
     Args:
         model: 신용 무릅씀이나 돌아옴을 미루어 보는 모형
         features: 들임 결 텐서 [1, n_features]
         feature_names: 결 이름 목록
-        target_class: 겨눈 갈래(가름일 때)
+        target_class: 겨눈 클래스(가름일 때)
         baseline_type: 'zero'나 'mean'
 
     Returns:
@@ -756,13 +756,13 @@ def ig_for_time_series(
     n_steps: int = 100
 ):
     """
-    금융 때 열에 쌓은 기울기를 건다.
+    금융 때 열에 쌓은 그래디언트를 건다.
 
     Args:
         model: 열 모형(LSTM, 변환기 등)
         sequence: 들임 열 (배치, 열 길이, 결)이나 (배치, 열 길이)
         baseline: 밑금 열(맡긴 값: 0)
-        target_class: 가름 모형의 겨눈 갈래
+        target_class: 가름 모형의 겨눈 클래스
 
     Returns:
         어느 때 걸음이 중요한지 보이는 때 몫
@@ -807,8 +807,8 @@ def ig_for_time_series(
 
 | 방법 | 온전함 | 예민함 | 짜기에 흔들리지 않음 | 계산 |
 |--------|:------------:|:-----------:|:----------------:|:-----------:|
-| 맨 기울기 | ✗ | ✗ | ✓ | 빠름 |
-| 기울기 × 입력 | ✗ | ✗ | ✓ | 빠름 |
+| 맨 그래디언트 | ✗ | ✗ | ✓ | 빠름 |
+| 그래디언트 × 입력 | ✗ | ✗ | ✓ | 빠름 |
 | Integrated Gradients | ✓ | ✓ | ✓ | 가운데 |
 | DeepLIFT | ✓ | ✓ | ✗ | 빠름 |
 | SHAP(정확) | ✓ | ✓ | ✓ | 느림 |
@@ -816,7 +816,7 @@ def ig_for_time_series(
 
 ### 참으로 쓸 때 비교
 
-| 특징 | 맨 기울기 | Integrated Gradients |
+| 피처 | 맨 그래디언트 | Integrated Gradients |
 |--------|-----------------|---------------------|
 | 계산 | 앞으로-되짚기 한 번 | 여러 번(걸음 m번) |
 | 예민함 공리 | ❌ 어김 | ✅ 채움 |
@@ -829,7 +829,7 @@ def ig_for_time_series(
 
 **IG + SmoothGrad:** 잡음 섞은 입력에 걸쳐 IG를 고르게 해 더 매끄러운 그림을 얻는다
 ```python
-# 매끄럽게 한 쌓은 기울기
+# 매끄럽게 한 쌓은 그래디언트
 smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 ```
 
@@ -845,19 +845,19 @@ smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 
 **눅이는 길:**
 
-- 밑금을 여럿 써서 고르게 한다(기댓값 기울기 / SHAP)
+- 밑금을 여럿 써서 고르게 한다(기댓값 그래디언트 / SHAP)
 - 그 밭에 알맞은 밑금을 쓴다
 - 논문에 고른 밑금을 적는다
 
 ### 2. 계산 비용
 
-앞으로-되짚기를 $m$번(흔히 50~200) 해야 하므로 맨 기울기보다 훨씬 느리다.
+앞으로-되짚기를 $m$번(흔히 50~200) 해야 하므로 맨 그래디언트보다 훨씬 느리다.
 
 **눅이는 길:**
 
 - 배치로 계산한다
 - 둘러볼 때는 걸음을 적게 잡는다
-- 모여 가는 특징을 보고 일찍 멈춘다
+- 모여 가는 피처를 보고 일찍 멈춘다
 
 ### 3. 길 고르기
 
@@ -887,7 +887,7 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 
 5. 그림이 크거나 풀이를 많이 해야 하면 **배치 계산을 헤아린다**
 
-6. 밑금이 아리송하면 **밑금에 걸쳐 고르게 한다**(기댓값 기울기)
+6. 밑금이 아리송하면 **밑금에 걸쳐 고르게 한다**(기댓값 그래디언트)
 
 7. 다시 해 볼 수 있도록 **밑금과 걸음 수를 적는다**
 
@@ -898,36 +898,36 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 마디에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 층 신경망에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 마디에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    가중치가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 입력 특징마다 몫을 내놓는다. $x = [1, 1]$(갈래 0)이면 두 특징 모두 음수 분류에 이바지한다. 몫 값은 방법마다 다르다. 기울기 기반 방법은 $\partial f / \partial x_i$을 계산하고, 흔들어 보는 방법은 특징을 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
+    웨이트가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 입력 피처마다 몫을 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 분류에 이바지한다. 몫 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 흔들어 보는 방법은 피처를 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 특징 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
+이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 피처 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 기울기 방법은 온전함을 채우지 못한다(기울기는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 특징이 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
+이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 피처가 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    절차는 이렇다. (1) 시험 그림마다 특징 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 특징을 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 특징을 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -939,11 +939,11 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 </div>
 
 ??? success "연습문제 4 풀이"
-    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 특징의 중요함을 짚을 수 있으나, 든든함(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 특징을 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
+    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 든든함(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
 
 ## 정리하며
 
-Integrated Gradients는 밑금에서 입력으로 가는 길을 따라 기울기를 적분해 **이치에 닿고 공리에 뿌리내린 기여도 분석**을 준다.
+Integrated Gradients는 밑금에서 입력으로 가는 길을 따라 그래디언트를 적분해 **이치에 닿고 공리에 뿌리내린 기여도 분석**을 준다.
 
 ### 핵심 식
 
@@ -955,14 +955,14 @@ $$
 
 | 성능 | 밝힘 |
 |----------|-------------|
-| **예민함** | 내놓기를 흔드는 특징에 0이 아닌 몫을 준다 |
+| **예민함** | 내놓기를 흔드는 피처에 0이 아닌 몫을 준다 |
 | **짜기에 흔들리지 않음** | 함수가 같으면 몫도 같다 |
 | **온전함** | $\sum_i \text{IG}_i = f(\mathbf{x}) - f(\mathbf{x}')$ |
 
 ### 알맞은 자리
 
 - 엄밀하고 이론에 뿌리내린 기여도 분석
-- 맨 기울기가 무너지는 자리(잦아듦, ReLU 네트워크)
+- 맨 그래디언트가 무너지는 자리(잦아듦, ReLU 네트워크)
 - 온전함 성능이 중요할 때
 - 이치에 닿는 풀이를 바라는 규정이나 감사 자리
 - 서로 다른 모델의 몫을 고르게 견줄 때

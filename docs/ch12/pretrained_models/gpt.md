@@ -1,10 +1,10 @@
 # GPT: 생성 사전 학습 트랜스포머
 
-GPT 계열은 인과 셀프 어텐션으로 앞선 문맥을 읽고 다음 토큰을 예측하는 디코더 전용 언어 모델이다. 이 절에서는 역사적 모델의 특징, 학습 목표와 생성 구현을 살펴본다. 같은 GPT 이름이라도 모델별 구조·데이터·후처리와 공개된 정보가 다르다.
+GPT 계열은 인과 셀프 어텐션으로 앞선 문맥을 읽고 다음 토큰을 예측하는 디코더 전용 언어 모델이다. 이 절에서는 역사적 모델의 피처, 학습 목표와 생성 구현을 살펴본다. 같은 GPT 이름이라도 모델별 구조·데이터·후처리와 공개된 정보가 다르다.
 
 ## 1. GPT의 흐름
 
-| 모델 | 발표 당시의 대표 특징 | 비교 범위 |
+| 모델 | 발표 당시의 대표 피처 | 비교 범위 |
 |---|---|---|
 | GPT-1, 2018 | 약 117M 계수, BooksCorpus 사전 학습·미세 조정 | 초기 전이 학습 실험 |
 | GPT-2, 2019 | 최대 약 1.5B, WebText | 모델 크기별 체크포인트를 구분 |
@@ -32,7 +32,7 @@ $$
 
 ### 모델 설정 (GPT-2)
 
-| GPT-2 크기 | 층 | 헤드 | 모델 차원 | 대표 공개 체크포인트의 계수 수 |
+| GPT-2 크기 | 레이어 | 헤드 | 모델 차원 | 대표 공개 체크포인트의 계수 수 |
 |---|---|---|---|---|
 | Small | 12 | 12 | 768 | 약 124M |
 | Medium | 24 | 16 | 1024 | 약 355M |
@@ -63,11 +63,11 @@ $$
 
 ## 4. PyTorch 구현
 
-이 GPTModel은 Pre-LN, 학습 절대 위치와 입력·출력 어휘 가중치 공유를 사용한다. labels를 내부에서 한 토큰 이동하므로 외부에서 다시 시프트하지 않는다. PAD 정답은 -100으로 제외해야 하지만 어텐션 패딩 마스크 인수는 없다. 길이 1 또는 모두 제외한 정답의 평균 손실도 별도 처리해야 한다.
+이 GPTModel은 Pre-LN, 학습 절대 위치와 입력·출력 어휘 웨이트 공유를 사용한다. labels를 내부에서 한 토큰 이동하므로 외부에서 다시 시프트하지 않는다. PAD 정답은 -100으로 제외해야 하지만 어텐션 패딩 마스크 인수는 없다. 길이 1 또는 모두 제외한 정답의 평균 로스도 별도 처리해야 한다.
 
-캐시는 층별 과거 K·V를 저장하고 위치 ID에 과거 길이를 반영한다. 캐시 전체 길이는 고정 위치 표·인과 마스크의 n_positions 이내여야 한다. generate는 no_grad를 사용하지만 eval로 바꾸지 않아 호출자가 평가 모드를 설정해야 한다. EOS 종료와 길이 초과 처리는 없고 temperature>0, 1≤top_k≤어휘 크기, 0<top_p≤1 조건을 가정한다.
+캐시는 레이어별 과거 K·V를 저장하고 위치 ID에 과거 길이를 반영한다. 캐시 전체 길이는 고정 위치 표·인과 마스크의 n_positions 이내여야 한다. generate는 no_grad를 사용하지만 eval로 바꾸지 않아 호출자가 평가 모드를 설정해야 한다. EOS 종료와 길이 초과 처리는 없고 temperature>0, 1≤top_k≤어휘 크기, 0<top_p≤1 조건을 가정한다.
 
-main은 무작위 모델·토큰의 모양을 확인한다. 보존된 손실과 생성 길이는 언어 품질 평가가 아니다. 아래 별도 GPTGenerator와 반환 인터페이스도 다르다.
+main은 무작위 모델·토큰의 모양을 확인한다. 보존된 로스와 생성 길이는 언어 품질 평가가 아니다. 아래 별도 GPTGenerator와 반환 인터페이스도 다르다.
 
 ```python
 import torch
@@ -132,7 +132,7 @@ class CausalSelfAttention(nn.Module):
         layer_past: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
-        """KV 캐시를 선택으로 쓰는 앞먹임."""
+        """KV 캐시를 선택으로 쓰는 피드포워드."""
         batch_size, seq_len, _ = x.shape
         
         # Q, K, V를 셈한다
@@ -194,7 +194,7 @@ class GPTBlock(nn.Module):
         layer_past: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
-        """앞 정규화 구조의 앞먹임."""
+        """앞 정규화 구조의 피드포워드."""
         attn_output, present = self.attn(self.ln_1(x), layer_past, use_cache)
         x = x + attn_output
         x = x + self.mlp(self.ln_2(x))
@@ -215,10 +215,10 @@ class GPTModel(nn.Module):
         # 트랜스포머 블록
         self.h = nn.ModuleList([GPTBlock(config) for _ in range(config.n_layer)])
         
-        # 마지막 층 정규화
+        # 마지막 레이어 정규화
         self.ln_f = nn.LayerNorm(config.n_embd, eps=config.layer_norm_epsilon)
         
-        # 언어 모형 머리 (가중치를 묶었다)
+        # 언어 모형 머리 (웨이트를 묶었다)
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.lm_head.weight = self.wte.weight
         
@@ -240,7 +240,7 @@ class GPTModel(nn.Module):
         use_cache: bool = False,
         labels: Optional[torch.Tensor] = None
     ) -> Dict[str, torch.Tensor]:
-        """앞먹임."""
+        """피드포워드."""
         device = input_ids.device
         batch_size, seq_len = input_ids.shape
         
@@ -391,7 +391,7 @@ Parameters: 124,439,808
 
 ## 5. 맥락 내 학습
 
-맥락 내 학습은 가중치를 갱신하지 않고 프롬프트의 지시·예시를 이용해 과제를 수행하는 방식이다. GPT-3 연구는 이를 여러 규모와 과제에서 체계적으로 평가했다. 프롬프트에 예시가 있다고 정확한 규칙 적용이 보장되지는 않는다.
+맥락 내 학습은 웨이트를 갱신하지 않고 프롬프트의 지시·예시를 이용해 과제를 수행하는 방식이다. GPT-3 연구는 이를 여러 규모와 과제에서 체계적으로 평가했다. 프롬프트에 예시가 있다고 정확한 규칙 적용이 보장되지는 않는다.
 
 ### 제로샷
 ```
@@ -411,7 +411,7 @@ cheese =>
 
 ## 6. 스케일링 법칙
 
-스케일링 법칙은 특정 데이터·모델 계열에서 관찰한 손실과 모델 크기·학습 토큰·계산량의 관계를 근사한다. 매개변수만 늘리면 모든 과제의 품질이나 표본 효율이 보장된다는 법칙은 아니다.
+스케일링 법칙은 특정 데이터·모델 계열에서 관찰한 로스와 모델 크기·학습 토큰·계산량의 관계를 근사한다. 파라메터만 늘리면 모든 과제의 품질이나 표본 효율이 보장된다는 법칙은 아니다.
 
 친칠라 연구는 고정된 학습 계산량 안에서 계수 수 N과 학습 토큰 D를 함께 배분하는 문제를 다룬다. 흔히 인용하는 근사 비율은 다음 방향이다.
 
@@ -419,7 +419,7 @@ $$
 D\approx20N
 $$
 
-즉 매개변수당 약 20개 학습 토큰이지 그 반대가 아니다. 이 수는 연구의 실험 범위에서 얻은 학습 계산 최적화의 근사이며 데이터 품질·추론 비용·재학습 예산에 따라 적절한 비율은 달라질 수 있다.
+즉 파라메터당 약 20개 학습 토큰이지 그 반대가 아니다. 이 수는 연구의 실험 범위에서 얻은 학습 계산 최적화의 근사이며 데이터 품질·추론 비용·재학습 예산에 따라 적절한 비율은 달라질 수 있다.
 
 친칠라의 70B 모델·1.4T 토큰 실험은 Gopher와 학습 계산량을 맞춘 비교다. 이를 GPT-3의 계산 예산에 대한 직접적인 수치 대입으로 바꾸어 해석하지 않는다. [친칠라 원 논문](https://arxiv.org/abs/2203.15556)을 참고한다.
 
@@ -427,11 +427,11 @@ $$
 
 규모 증가에 따라 일부 과제 점수가 급격히 오르는 관찰을 창발 능력이라고 부른다. 특정 계수 수를 넘으면 추론·코드·지시 수행이 반드시 나타나는 보편적 경계가 있는 것은 아니다. 데이터·프롬프트·추가 학습도 함께 영향을 준다.
 
-정확 일치 같은 불연속 지표에서는 매끄러운 토큰별 개선도 급격한 점수 변화처럼 보일 수 있다. 연속적인 손실·부분 점수와 통계적 불확실성을 함께 비교해야 한다. 이 해석상의 쟁점은 [평가 지표와 창발에 관한 연구](https://arxiv.org/abs/2304.15004)를 참고한다.
+정확 일치 같은 불연속 지표에서는 매끄러운 토큰별 개선도 급격한 점수 변화처럼 보일 수 있다. 연속적인 로스·부분 점수와 통계적 불확실성을 함께 비교해야 한다. 이 해석상의 쟁점은 [평가 지표와 창발에 관한 연구](https://arxiv.org/abs/2304.15004)를 참고한다.
 
 ## 8. GPT에서 ChatGPT로: 정렬
 
-초기의 InstructGPT 연구는 지도 미세 조정(SFT), 인간 선호로 학습한 보상 모델과 PPO 기반 RLHF를 연결했다. 보상 점수만 무제한 높이는 것이 아니라 기준 정책에서 지나치게 벗어나지 않도록 제약하는 과정도 포함한다.
+초기의 InstructGPT 연구는 지도 미세 조정(SFT), 인간 선호로 학습한 리워드 모델과 PPO 기반 RLHF를 연결했다. 리워드 점수만 무제한 높이는 것이 아니라 기준 폴리시에서 지나치게 벗어나지 않도록 제약하는 과정도 포함한다.
 
 이는 후속 학습의 한 사례이며 모든 대화 모델이나 이후 ChatGPT 버전의 전체 학습법을 확정하는 설명은 아니다. 선호 최적화가 사실성·안전성·지시 준수를 완벽하게 보장하지도 않는다.
 
@@ -492,7 +492,7 @@ class GPTGenerator:
             max_new_tokens: 만들 토큰의 최대 개수
             temperature: 표본 추출의 온도 (높을수록 더 무작위)
             top_k: 상위 k개 토큰에서 뽑는다
-            top_p: 핵 표집의 문턱값
+            top_p: 핵 표집의 임계값
             repetition_penalty: 토큰을 되풀이할 때의 벌점
             stop_tokens: 생성을 멈추는 토큰 번호
         """
@@ -524,7 +524,7 @@ class GPTGenerator:
                 indices_to_remove = logits < torch.topk(logits, top_k)[0][..., -1, None]
                 logits[indices_to_remove] = float('-inf')
             
-            # 상위 p(핵) 거르기를 적용한다
+            # 상위 p(커널) 거르기를 적용한다
             if top_p is not None:
                 sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -609,7 +609,7 @@ class GPTGenerator:
         for _ in range(max_new_tokens):
             outputs = self.model(generated, output_hidden_states=True)
             logits = outputs.logits[:, -1, :]
-            hidden = outputs.hidden_states[-1][:, -1, :]  # 마지막 층, 마지막 토큰
+            hidden = outputs.hidden_states[-1][:, -1, :]  # 마지막 레이어, 마지막 토큰
             
             # 상위 k개 후보를 얻는다
             top_probs, top_indices = torch.topk(F.softmax(logits, dim=-1), k)
@@ -853,11 +853,11 @@ GPT의 다음 토큰 목표와 BERT의 MLM을 비교하라.
 </div>
 
 ??? success "연습문제 4 풀이"
-    일부 과제 점수가 규모에 따라 급격히 변한다는 관찰을 가리킨다. 불연속 지표나 작은 표본에서도 그런 형태가 생길 수 있어 연속 손실·부분 점수와 불확실성을 함께 본다. 특정 계수 수를 능력 발현의 보편적인 문턱으로 제시해서는 안 된다.
+    일부 과제 점수가 규모에 따라 급격히 변한다는 관찰을 가리킨다. 불연속 지표나 작은 표본에서도 그런 형태가 생길 수 있어 연속 로스·부분 점수와 불확실성을 함께 본다. 특정 계수 수를 능력 발현의 보편적인 임계로 제시해서는 안 된다.
 
 ## 정리하며
 
-GPT의 인과 목표, 가중치 공유·KV 캐시와 토큰 선택 규칙을 연결한다. 모델의 역사적 보고와 현재 제품 사양, 학습 계산 최적화와 일반적인 능력 보장을 구분한다. 생성 코드는 반환 형식·장치·모드·종료 조건과 필터의 실제 동작을 확인해야 한다.
+GPT의 인과 목표, 웨이트 공유·KV 캐시와 토큰 선택 규칙을 연결한다. 모델의 역사적 보고와 현재 제품 사양, 학습 계산 최적화와 일반적인 능력 보장을 구분한다. 생성 코드는 반환 형식·장치·모드·종료 조건과 필터의 실제 동작을 확인해야 한다.
 
 **참고 문헌**
 

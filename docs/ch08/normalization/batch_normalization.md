@@ -10,7 +10,7 @@
 ================================================
 
 배치 정규화는 배치 차원에 걸쳐 입력을 정규화한다.
-학습을 빠르게 하고 더 높은 학습률을 쓸 수 있게 해 준다.
+학습을 빠르게 하고 더 높은 러닝레이트를 쓸 수 있게 해 준다.
 
 논문: "Batch Normalization: Accelerating Deep Network Training by
        내부 공변량 이동 줄이기"(Ioffe & Szegedy, 2015)
@@ -35,7 +35,7 @@ class BatchNorm1dNumPy:
     def __init__(self, num_features, eps=1e-5, momentum=0.1):
         """
         인수:
-            num_features: 특징/채널의 수
+            num_features: 피처/채널의 수
             eps: 수치 안정성을 위한 작은 상수
             momentum: 이동 통계를 위한 모멘텀
         """
@@ -43,9 +43,9 @@ class BatchNorm1dNumPy:
         self.eps = eps
         self.momentum = momentum
         
-        # 학습 가능한 매개변수
-        self.gamma = np.ones(num_features)  # 배율 매개변수
-        self.beta = np.zeros(num_features)  # 이동 매개변수
+        # 학습 가능한 파라메터
+        self.gamma = np.ones(num_features)  # 배율 파라메터
+        self.beta = np.zeros(num_features)  # 이동 파라메터
         
         # 이동 통계 (추론용)
         self.running_mean = np.zeros(num_features)
@@ -86,7 +86,7 @@ class BatchNorm1dNumPy:
 
 class SimpleNetworkWithBatchNorm(nn.Module):
     """
-    PyTorch의 BatchNorm 층을 쓰는 신경망 예제.
+    PyTorch의 BatchNorm 레이어를 쓰는 뉴럴 넷트웍 예제.
     """
     
     def __init__(self, input_size=784, hidden_size=256, num_classes=10):
@@ -120,22 +120,22 @@ class SimpleNetworkWithBatchNorm(nn.Module):
 
 class ConvNetWithBatchNorm(nn.Module):
     """
-    배치 정규화를 갖춘 합성곱 신경망.
-    합성곱 층에 BatchNorm2d를 쓴다.
+    배치 정규화를 갖춘 컨볼루션 뉴럴 넷트웍.
+    컨볼루션 레이어에 BatchNorm2d를 쓴다.
     """
     
     def __init__(self, num_classes=10):
         super(ConvNetWithBatchNorm, self).__init__()
         
-        # 합성곱 블록 1
+        # 컨볼루션 블록 1
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
         self.bn1 = nn.BatchNorm2d(64)
         
-        # 합성곱 블록 2
+        # 컨볼루션 블록 2
         self.conv2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.bn2 = nn.BatchNorm2d(128)
         
-        # 합성곱 블록 3
+        # 컨볼루션 블록 3
         self.conv3 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         self.bn3 = nn.BatchNorm2d(256)
         
@@ -181,13 +181,13 @@ def demonstrate_batch_norm():
     batch_size = 32
     num_features = 5
     
-    # 특징 1: 작은 값
+    # 피처 1: 작은 값
     feature1 = np.random.randn(batch_size, 1) * 0.1
-    # 특징 2: 큰 값
+    # 피처 2: 큰 값
     feature2 = np.random.randn(batch_size, 1) * 100
-    # 특징 3: 중간 값
+    # 피처 3: 중간 값
     feature3 = np.random.randn(batch_size, 1) * 10
-    # 특징 4~5: 보통 값
+    # 피처 4~5: 보통 값
     feature4 = np.random.randn(batch_size, 1)
     feature5 = np.random.randn(batch_size, 1)
     
@@ -224,7 +224,7 @@ def compare_with_without_batchnorm():
     # 임시 데이터 만들기
     x = torch.randn(64, 784)
     
-    # 배치 정규화가 없는 신경망
+    # 배치 정규화가 없는 뉴럴 넷트웍
     net_without = nn.Sequential(
         nn.Linear(784, 256),
         nn.ReLU(),
@@ -233,7 +233,7 @@ def compare_with_without_batchnorm():
         nn.Linear(256, 10)
     )
     
-    # 배치 정규화가 있는 신경망
+    # 배치 정규화가 있는 뉴럴 넷트웍
     net_with = nn.Sequential(
         nn.Linear(784, 256),
         nn.BatchNorm1d(256),
@@ -322,11 +322,11 @@ Additional Notes:
 
 ## 2. 논의
 
-NumPy 구현은 `(B, C)`의 배치 축에서 평균과 분산을 구하고 특징별 gamma와 beta를 적용한다. 이 클래스는 nn.Module이 아니며, 자동 미분이나 매개변수 갱신을 제공하지 않는 순전파 시연이다.
+NumPy 구현은 `(B, C)`의 배치 축에서 평균과 분산을 구하고 피처별 gamma와 beta를 적용한다. 이 클래스는 nn.Module이 아니며, 자동 미분이나 파라메터 갱신을 제공하지 않는 순전파 시연이다.
 
 PyTorch BatchNorm1d는 벡터에서 배치 축을, BatchNorm2d는 채널별 배치·공간 축을 함께 사용한다. 기본 설정의 평가에서는 누적된 이동 통계량을 사용하므로 학습과 동작이 다르다.
 
-NumPy 코드의 running_var는 분모 B인 배치 분산을 그대로 누적한다. PyTorch는 학습 출력에는 편향 분산 추정량을 쓰지만 이동 분산 갱신에는 불편추정량을 사용하므로 두 구현의 평가 출력이 항상 일치하지 않는다. [공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html)의 규약을 구분한다.
+NumPy 코드의 running_var는 분모 B인 배치 분산을 그대로 누적한다. PyTorch는 학습 출력에는 바이어스 분산 추정량을 쓰지만 이동 분산 갱신에는 불편추정량을 사용하므로 두 구현의 평가 출력이 항상 일치하지 않는다. [공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html)의 규약을 구분한다.
 
 ## 연습문제
 
@@ -338,19 +338,19 @@ NumPy 구현의 `(4, C)` 입력에서 통계량과 출력 모양을 구하라.
 </div>
 
 ??? success "연습문제 1 풀이"
-    평균과 분산, gamma와 beta는 `(C,)`이고 배치에 브로드캐스팅된다. 출력은 `(4, C)`이며 합성곱이나 풀링은 수행하지 않는다.
+    평균과 분산, gamma와 beta는 `(C,)`이고 배치에 브로드캐스팅된다. 출력은 `(4, C)`이며 컨볼루션이나 풀링은 수행하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-ConvNetWithBatchNorm의 입력을 32×32에서 64×64로 바꾸면 마지막 선형층에 어떤 수정이 필요한가?
+ConvNetWithBatchNorm의 입력을 32×32에서 64×64로 바꾸면 마지막 선형 레이어에 어떤 수정이 필요한가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    세 합성곱은 크기를 유지하고 세 번의 풀링이 각각 절반으로 줄이므로 32 입력은 4×4, 64 입력은 8×8이 된다. 마지막 선형층 입력은 256×8×8로 바꾸어야 한다. RGB 채널 수는 이미 3이다.
+    세 컨볼루션은 크기를 유지하고 세 번의 풀링이 각각 절반으로 줄이므로 32 입력은 4×4, 64 입력은 8×8이 된다. 마지막 선형 레이어 입력은 256×8×8로 바꾸어야 한다. RGB 채널 수는 이미 3이다.
 
 ---
 
@@ -380,7 +380,7 @@ NumPy 구현과 PyTorch의 이동 분산이 다른 이유를 설명하라.
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

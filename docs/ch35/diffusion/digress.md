@@ -1,16 +1,16 @@
 # DiGress: 그래프 생성을 위한 이산 디노이징 확산
 
-DiGress(Vignac et al., 2023)은 갈래로 나뉜 노드와 엣지의 갈래에서 잡소리를 한꺼번에 없애 그래프를 만드는 띄엄띄엄 확산 모델이다. 이어진 값으로 느슨히 하는 길과 달리 DiGress은 갈래 확산 과정을 써서 띄엄띄엄한 그래프 구조에서 그대로 돈다. 잡소리 없애는 네트워크로 그래프 트랜스포머를 쓰고 그래프에 맞게 설계한 잡소리 모델을 내놓아, 만들기 품질을 높이는 빨아들이는 상태와 주변 분포를 담는다. DiGress은 분자와 일반 그래프 생성 잣대에서 가장 앞선 결과를 낸다.
+DiGress(Vignac et al., 2023)은 클래스로 나뉜 노드와 엣지의 클래스에서 잡소리를 한꺼번에 없애 그래프를 만드는 띄엄띄엄 확산 모델이다. 이어진 값으로 느슨히 하는 길과 달리 DiGress은 클래스 확산 과정을 써서 띄엄띄엄한 그래프 구조에서 그대로 돈다. 잡소리 없애는 네트워크로 그래프 트랜스포머를 쓰고 그래프에 맞게 설계한 잡소리 모델을 내놓아, 만들기 품질을 높이는 빨아들이는 상태와 주변 분포를 담는다. DiGress은 분자와 일반 그래프 생성 잣대에서 가장 앞선 결과를 낸다.
 
 ---
 
 ## 1. 그래프 위의 띄엄띄엄 확산
 
-DiGress에서 그래프는 $\mathcal{G} = (\mathbf{X}, \mathbf{E})$으로 나타내며, $\mathbf{X} \in \{0, \ldots, a\}^n$은 갈래 노드 갈래($a$개 갈래에 "없음" 갈래 하나)이고 $\mathbf{E} \in \{0, \ldots, b\}^{n \times n}$은 갈래 엣지 갈래($b$개 갈래에 "엣지 없음")이다.
+DiGress에서 그래프는 $\mathcal{G} = (\mathbf{X}, \mathbf{E})$으로 나타내며, $\mathbf{X} \in \{0, \ldots, a\}^n$은 클래스 노드 클래스($a$개 클래스에 "없음" 클래스 하나)이고 $\mathbf{E} \in \{0, \ldots, b\}^{n \times n}$은 클래스 엣지 클래스($b$개 클래스에 "엣지 없음")이다.
 
 ### 앞으로 가는 과정
 
-노드 갈래 $X_i$과 엣지 갈래 $E_{ij}$마다 갈래 마르코프 사슬을 따라 따로 옮겨 간다:
+노드 클래스 $X_i$과 엣지 클래스 $E_{ij}$마다 클래스 마르코프 사슬을 따라 따로 옮겨 간다:
 
 $$
 q(X_i^{(t)} \mid X_i^{(t-1)}) = \text{Cat}(X_i^{(t)}; \mathbf{Q}_t^X \cdot \text{onehot}(X_i^{(t-1)}))
@@ -34,13 +34,13 @@ $$
 
 DiGress은 잡소리 모델 둘을 내놓는다:
 
-**고른 잡소리.** 옮김이 갈래를 고른 분포 쪽으로 고르게 흐트러뜨린다:
+**고른 잡소리.** 옮김이 클래스를 고른 분포 쪽으로 고르게 흐트러뜨린다:
 
 $$
 \mathbf{Q}_t = (1 - \beta_t) \mathbf{I} + \beta_t \frac{\mathbf{1}\mathbf{1}^\top}{K}
 $$
 
-여기서 $K$은 갈래 수다. $t = T$에서는 모든 갈래가 똑같이 나올 법하다.
+여기서 $K$은 클래스 수다. $t = T$에서는 모든 클래스가 똑같이 나올 법하다.
 
 **주변 잡소리.** 학습 데이터의 주변 분포 쪽으로 옮겨 간다:
 
@@ -48,7 +48,7 @@ $$
 \mathbf{Q}_t = (1 - \beta_t) \mathbf{I} + \beta_t \mathbf{1} \mathbf{m}^\top
 $$
 
-여기서 $\mathbf{m}$은 갈래에 대해 겪어 얻은 주변 확률이다. 이는 $t = T$의 사전 분포를 고른 분포가 아니라 데이터의 주변 분포에 모아, 큰 $t$의 잡소리 섞인 분포가 이미 올바른 갈래 잦음을 비추므로 잡소리 없애기를 쉽게 한다.
+여기서 $\mathbf{m}$은 클래스에 대해 겪어 얻은 주변 확률이다. 이는 $t = T$의 사전 분포를 고른 분포가 아니라 데이터의 주변 분포에 모아, 큰 $t$의 잡소리 섞인 분포가 이미 올바른 클래스 잦음을 비추므로 잡소리 없애기를 쉽게 한다.
 
 ### 거꾸로 가는 과정
 
@@ -68,7 +68,7 @@ $$
 
 ## 2. 그래프 트랜스포머 잡소리 없애개
 
-잡소리 없애는 네트워크는 잡소리 섞인 그래프와 때 걸음을 다루어 깨끗한 그래프를 헤아리는 그래프 트랜스포머다. 층마다 노드와 엣지의 나타냄을 함께 고친다:
+잡소리 없애는 네트워크는 잡소리 섞인 그래프와 때 걸음을 다루어 깨끗한 그래프를 헤아리는 그래프 트랜스포머다. 레이어마다 노드와 엣지의 나타냄을 함께 고친다:
 
 **노드 고치기:**
 
@@ -82,13 +82,13 @@ $$
 \mathbf{e}_{ij}^{(\ell+1)} = \mathbf{e}_{ij}^{(\ell)} + \text{MLP}^{(\ell)}([\mathbf{h}_i^{(\ell+1)} \| \mathbf{h}_j^{(\ell+1)} \| \mathbf{e}_{ij}^{(\ell)}])
 $$
 
-어텐션 구조는 엣지 특징을 어텐션 가중치에 담는다:
+어텐션 구조는 엣지 피처를 어텐션 웨이트에 담는다:
 
 $$
 \alpha_{ij}^{(\ell)} = \frac{(\mathbf{W}_Q \mathbf{h}_i)^\top (\mathbf{W}_K \mathbf{h}_j) + (\mathbf{W}_E \mathbf{e}_{ij})^\top \mathbf{w}_a}{\sqrt{d_k}}
 $$
 
-내놓기 머리가 노드와 엣지 갈래에 대한 로짓을 헤아린다:
+내놓기 머리가 노드와 엣지 클래스에 대한 로짓을 헤아린다:
 
 $$
 \hat{p}(X_i^{(0)} \mid \mathcal{G}_t) = \text{softmax}(\text{MLP}_X(\mathbf{h}_i^{(L)}))
@@ -100,7 +100,7 @@ $$
 
 ---
 
-## 3. 학습 손실
+## 3. 학습 로스
 
 띄엄띄엄 확산의 변분 아래 가둠은 걸음마다의 쿨백-라이블러 어긋남으로 쪼개진다:
 
@@ -108,7 +108,7 @@ $$
 \mathcal{L}_{\text{VLB}} = \sum_{t=1}^{T} \mathbb{E}_{q(\mathcal{G}_t \mid \mathcal{G}_0)} \left[ D_{\text{KL}}(q(\mathcal{G}_{t-1} \mid \mathcal{G}_t, \mathcal{G}_0) \| p_\theta(\mathcal{G}_{t-1} \mid \mathcal{G}_t)) \right]
 $$
 
-실제로 DiGress은 헤아린 깨끗한 갈래와 참 갈래 사이의 더 단순한 교차 엔트로피 손실을 쓴다:
+실제로 DiGress은 헤아린 깨끗한 클래스와 참 클래스 사이의 더 단순한 교차 엔트로피 로스를 쓴다:
 
 $$
 \mathcal{L}_{\text{CE}} = \mathbb{E}_{t, \mathcal{G}_0, \mathcal{G}_t} \left[ -\sum_i \log \hat{p}_\theta(X_i^{(0)} \mid \mathcal{G}_t) - \sum_{i<j} \log \hat{p}_\theta(E_{ij}^{(0)} \mid \mathcal{G}_t) \right]
@@ -128,7 +128,7 @@ import torch.nn.functional as F
 import math
 
 class CategoricalDiffusion:
-    """마디와 변의 갈래 확산 과정."""
+    """마디와 변의 클래스 확산 과정."""
 
     def __init__(
         self,
@@ -187,8 +187,8 @@ class CategoricalDiffusion:
         때 걸음 t의 잡소리 섞인 그래프를 뽑는다.
         
         인수:
-            x_0: (B, n) 정수 마디 갈래
-            e_0: (B, n, n) 정수 변 갈래
+            x_0: (B, n) 정수 마디 클래스
+            e_0: (B, n, n) 정수 변 클래스
             t: (B,) 때 걸음
         """
         B, n = x_0.shape
@@ -202,12 +202,12 @@ class CategoricalDiffusion:
             Q_x = self.Q_bar_X[tb].to(device)
             Q_e = self.Q_bar_E[tb].to(device)
 
-            # 잡소리 섞인 마디 갈래를 뽑는다
+            # 잡소리 섞인 마디 클래스를 뽑는다
             x_onehot = F.one_hot(x_0[b], self.num_node_cls).float()
             x_probs = x_onehot @ Q_x  # (n, num_node_cls)
             x_t[b] = torch.multinomial(x_probs, 1).squeeze(-1)
 
-            # 잡소리 섞인 변 갈래를 뽑는다
+            # 잡소리 섞인 변 클래스를 뽑는다
             e_onehot = F.one_hot(e_0[b], self.num_edge_cls).float()
             e_flat = e_onehot.view(-1, self.num_edge_cls)
             e_probs = e_flat @ Q_e
@@ -244,7 +244,7 @@ class CategoricalDiffusion:
         return posterior_unnorm / (posterior_unnorm.sum() + 1e-8)
 
 class DiGressTransformerLayer(nn.Module):
-    """마디와 변의 나타냄을 함께 고치는 트랜스포머 층."""
+    """마디와 변의 나타냄을 함께 고치는 트랜스포머 레이어."""
 
     def __init__(self, hidden_dim: int, num_heads: int = 4):
         super().__init__()
@@ -276,8 +276,8 @@ class DiGressTransformerLayer(nn.Module):
     def forward(self, h, e, t_emb):
         """
         인수:
-            h: (B, n, d) 마디 특징
-            e: (B, n, n, d) 변 특징
+            h: (B, n, d) 마디 피처
+            e: (B, n, n, d) 변 피처
             t_emb: (B, d) 때 임베딩
         """
         B, n, d = h.shape
@@ -309,7 +309,7 @@ class DiGressTransformerLayer(nn.Module):
         return h, e
 
 class DiGressDenoiser(nn.Module):
-    """온전한 DiGress 잡소리 없애기 그물."""
+    """온전한 DiGress 잡소리 없애기 넷트웍."""
 
     def __init__(
         self,
@@ -341,8 +341,8 @@ class DiGressDenoiser(nn.Module):
         잡소리 섞인 그래프에서 깨끗한 그래프를 헤아린다.
         
         인수:
-            x_t: (B, n) 잡소리 섞인 마디 갈래
-            e_t: (B, n, n) 잡소리 섞인 변 갈래
+            x_t: (B, n) 잡소리 섞인 마디 클래스
+            e_t: (B, n, n) 잡소리 섞인 변 클래스
             t: (B,) 때 걸음
             
         반환값:
@@ -380,7 +380,7 @@ if __name__ == "__main__":
     e_0 = torch.triu(e_0, diagonal=1)
     e_0 = e_0 + e_0.transpose(1, 2)
 
-    # 갈래 확산
+    # 클래스 확산
     node_marg = torch.tensor([0.6, 0.3, 0.1])
     edge_marg = torch.tensor([0.7, 0.2, 0.1])
     diffusion = CategoricalDiffusion(
@@ -419,7 +419,7 @@ if __name__ == "__main__":
 
         x_logits, e_logits = denoiser(x_t, e_t, t)
 
-        # 교차 엔트로피 손실
+        # 교차 엔트로피 로스
         loss_x = F.cross_entropy(x_logits.view(-1, n_node_cls), x_0.view(-1))
         idx = torch.triu_indices(max_n, max_n, offset=1)
         loss_e = F.cross_entropy(
@@ -472,7 +472,7 @@ Done. DiGress training framework operational.
 </div>
 
 ??? success "연습문제 1 풀이"
-    노드 $n$개의 그래프는 서로 다른 인접 행렬 $n!$개로 나타낼 수 있다(노드 레이블의 자리바꿈마다 하나). $n = 10$이면 같은 뜻의 나타냄이 $10! = 3{,}628{,}800$개다. 짓는 모델은 다음 가운데 하나를 해야 한다. (1) 이 겹침을 줄이려 표준 차례를 배운다, (2) 자리바꿈에 안 바뀌는 손실 함수를 쓴다(보기로 그래프 짝짓기), (3) 본디 안 바뀌는 나타냄에서 돈다(보기로 스펙트럼 특징). 그림 만들기는 픽셀에 붙박인 자리 차례가 있어 이 문제를 겪지 않는다. $\square$
+    노드 $n$개의 그래프는 서로 다른 인접 행렬 $n!$개로 나타낼 수 있다(노드 레이블의 자리바꿈마다 하나). $n = 10$이면 같은 뜻의 나타냄이 $10! = 3{,}628{,}800$개다. 짓는 모델은 다음 가운데 하나를 해야 한다. (1) 이 겹침을 줄이려 표준 차례를 배운다, (2) 자리바꿈에 안 바뀌는 로스 함수를 쓴다(보기로 그래프 짝짓기), (3) 본디 안 바뀌는 나타냄에서 돈다(보기로 스펙트럼 피처). 그림 만들기는 픽셀에 붙박인 자리 차례가 있어 이 문제를 겪지 않는다. $\square$
 
 ---
 
@@ -484,7 +484,7 @@ Done. DiGress training framework operational.
 </div>
 
 ??? success "연습문제 2 풀이"
-    자기회귀 방법은 노드와 엣지를 차례로 만들어 걸음마다 그 자리 매임(보기로 원자가)을 자연스럽게 지키지만, 이웃 결정이 늘어나 $O(n^2)$으로 커진다. 한 번에 만들기 방법은 인접 행렬 전체를 한꺼번에 만들어 나란한 계산에는 더 잘 커지지만 띄엄띄엄한 구조와 온 자리 매임에 애를 먹는다. 자기회귀 방법은 작은 크기($n < 100$)에서 대개 더 좋은 그래프를 내지만 큰 그래프에서는 느려진다. 자리바꿈에 안 바뀌는 손실을 쓰는 한 번에 만들기 방법은 더 빠르지만 짝짓기 문제를 조심스레 다루어야 한다. $\square$
+    자기회귀 방법은 노드와 엣지를 차례로 만들어 걸음마다 그 자리 매임(보기로 원자가)을 자연스럽게 지키지만, 이웃 결정이 늘어나 $O(n^2)$으로 커진다. 한 번에 만들기 방법은 인접 행렬 전체를 한꺼번에 만들어 나란한 계산에는 더 잘 커지지만 띄엄띄엄한 구조와 온 자리 매임에 애를 먹는다. 자기회귀 방법은 작은 크기($n < 100$)에서 대개 더 좋은 그래프를 내지만 큰 그래프에서는 느려진다. 자리바꿈에 안 바뀌는 로스를 쓰는 한 번에 만들기 방법은 더 빠르지만 짝짓기 문제를 조심스레 다루어야 한다. $\square$
 
 ---
 
@@ -508,8 +508,8 @@ Done. DiGress training framework operational.
 </div>
 
 ??? success "연습문제 4 풀이"
-    분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 학습 집합에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 최적화 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
+    분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 학습 집합에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 최적화 -- 바란 타깃 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
 
 ## 정리하며
 
-이 절에서는 그래프 위의 띄엄띄엄 확산, 그래프 트랜스포머 잡소리 없애개, 학습 손실, 짜기: DiGress의 핵심 조각을 살펴보았다.
+이 절에서는 그래프 위의 띄엄띄엄 확산, 그래프 트랜스포머 잡소리 없애개, 학습 로스, 짜기: DiGress의 핵심 조각을 살펴보았다.

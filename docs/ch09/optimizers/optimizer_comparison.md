@@ -1,6 +1,6 @@
 # 기준 함수에서 옵티마이저 비교
 
-직접 구현한 Adam, RMSprop, Adagrad를 네 가지 2변수 목적함수에서 비교한다. 초기점, 학습률, 반복 횟수와 잡음 조건이 결과에 어떻게 영향을 주는지 읽는 예제이다.
+직접 구현한 Adam, RMSprop, Adagrad를 네 가지 2변수 목적함수에서 비교한다. 초기점, 러닝레이트, 반복 횟수와 잡음 조건이 결과에 어떻게 영향을 주는지 읽는 예제이다.
 
 ## 1. 코드
 
@@ -9,7 +9,7 @@
 최적화기 비교: Adam, RMSprop, AdaGrad
 ================================================
 
-이 스크립트는 여러 최적화 문제에서 적응형 학습률 최적화기 세 가지를 견주어
+이 스크립트는 여러 최적화 문제에서 적응형 러닝레이트 최적화기 세 가지를 견주어
 저마다의 강점과 차이를 보인다.
 """
 
@@ -39,7 +39,7 @@ def test_simple_quadratic():
     print("Starting point: x=10, y=10")
     print()
     
-    # 최적화기마다 매개변수 초기화
+    # 최적화기마다 파라메터 초기화
     params_adam = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_rmsprop = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_adagrad = {'x': np.array([10.0]), 'y': np.array([10.0])}
@@ -58,7 +58,7 @@ def test_simple_quadratic():
         grads_rmsprop = {'x': 2 * params_rmsprop['x'], 'y': 2 * params_rmsprop['y']}
         grads_adagrad = {'x': 2 * params_adagrad['x'], 'y': 2 * params_adagrad['y']}
         
-        # 매개변수 갱신
+        # 파라메터 갱신
         params_adam = adam.update(params_adam, grads_adam)
         params_rmsprop = rmsprop.update(params_rmsprop, grads_rmsprop)
         params_adagrad = adagrad.update(params_adagrad, grads_adagrad)
@@ -77,7 +77,7 @@ def test_simple_quadratic():
 
 def test_ill_conditioned():
     """
-    기울기의 척도가 서로 다른, 조건이 나쁜 문제에서 시험한다.
+    그래디언트의 척도가 서로 다른, 조건이 나쁜 문제에서 시험한다.
     f(x, y) = 100*x^2 + y^2 최소화
     """
     print("=" * 80)
@@ -88,7 +88,7 @@ def test_ill_conditioned():
     print("(x direction has much larger gradients than y direction)")
     print()
     
-    # 매개변수를 초기화한다
+    # 파라메터를 초기화한다
     params_adam = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_rmsprop = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_adagrad = {'x': np.array([10.0]), 'y': np.array([10.0])}
@@ -102,12 +102,12 @@ def test_ill_conditioned():
     print("-" * 80)
     
     for i in range(100):
-        # 기울기 계산: df/dx = 200x, df/dy = 2y
+        # 그래디언트 계산: df/dx = 200x, df/dy = 2y
         grads_adam = {'x': 200 * params_adam['x'], 'y': 2 * params_adam['y']}
         grads_rmsprop = {'x': 200 * params_rmsprop['x'], 'y': 2 * params_rmsprop['y']}
         grads_adagrad = {'x': 200 * params_adagrad['x'], 'y': 2 * params_adagrad['y']}
         
-        # 매개변수 갱신
+        # 파라메터 갱신
         params_adam = adam.update(params_adam, grads_adam)
         params_rmsprop = rmsprop.update(params_rmsprop, grads_rmsprop)
         params_adagrad = adagrad.update(params_adagrad, grads_adagrad)
@@ -126,8 +126,8 @@ def test_ill_conditioned():
 
 def test_noisy_gradients():
     """
-    잡음이 섞인 기울기로 시험하여 최적화기마다 얼마나 견고한지 본다.
-    기울기에 잡음을 더한 채로 f(x, y) = x^2 + y^2 최소화
+    잡음이 섞인 그래디언트로 시험하여 최적화기마다 얼마나 견고한지 본다.
+    그래디언트에 잡음을 더한 채로 f(x, y) = x^2 + y^2 최소화
     """
     print("=" * 80)
     print("TEST 3: Noisy Gradients")
@@ -138,7 +138,7 @@ def test_noisy_gradients():
     
     np.random.seed(42)
     
-    # 매개변수를 초기화한다
+    # 파라메터를 초기화한다
     params_adam = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_rmsprop = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_adagrad = {'x': np.array([10.0]), 'y': np.array([10.0])}
@@ -152,7 +152,7 @@ def test_noisy_gradients():
     print("-" * 80)
     
     for i in range(100):
-        # 잡음을 섞어 기울기 계산
+        # 잡음을 섞어 그래디언트 계산
         noise_x = np.random.randn() * 0.5
         noise_y = np.random.randn() * 0.5
         
@@ -169,7 +169,7 @@ def test_noisy_gradients():
             'y': 2 * params_adagrad['y'] + noise_y
         }
         
-        # 매개변수 갱신
+        # 파라메터 갱신
         params_adam = adam.update(params_adam, grads_adam)
         params_rmsprop = rmsprop.update(params_rmsprop, grads_rmsprop)
         params_adagrad = adagrad.update(params_adagrad, grads_adagrad)
@@ -199,7 +199,7 @@ def test_rosenbrock():
     print("Starting point: x=-1, y=-1")
     print()
     
-    # 매개변수를 초기화한다
+    # 파라메터를 초기화한다
     params_adam = {'x': np.array([-1.0]), 'y': np.array([-1.0])}
     params_rmsprop = {'x': np.array([-1.0]), 'y': np.array([-1.0])}
     params_adagrad = {'x': np.array([-1.0]), 'y': np.array([-1.0])}
@@ -213,7 +213,7 @@ def test_rosenbrock():
     print("-" * 80)
     
     for i in range(1000):
-        # 로젠브록 함수의 기울기 계산
+        # 로젠브록 함수의 그래디언트 계산
         # df/dx = -2(1-x) - 400x(y - x^2)
         # df/dy = 200(y - x^2)
         
@@ -230,7 +230,7 @@ def test_rosenbrock():
         grads_rmsprop = {'x': grad_x_rmsprop, 'y': grad_y_rmsprop}
         grads_adagrad = {'x': grad_x_adagrad, 'y': grad_y_adagrad}
         
-        # 매개변수 갱신
+        # 파라메터 갱신
         params_adam = adam.update(params_adam, grads_adam)
         params_rmsprop = rmsprop.update(params_rmsprop, grads_rmsprop)
         params_adagrad = adagrad.update(params_adagrad, grads_adagrad)
@@ -423,11 +423,11 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이차 함수 $x^2+y^2$와 조건수가 큰 함수 $100x^2+y^2$는 좌표별 스케일 차이를 비교하는 기준이다. 후자의 헤시안 고윳값은 200과 2로 조건수는 100이다. 적응형 방법은 각 좌표의 기울기 이력에 따라 갱신을 조절하지만, 이 비교 코드에는 기본 SGD가 포함되어 있지 않다.
+이차 함수 $x^2+y^2$와 조건수가 큰 함수 $100x^2+y^2$는 좌표별 스케일 차이를 비교하는 기준이다. 후자의 헤시안 고윳값은 200과 2로 조건수는 100이다. 적응형 방법은 각 좌표의 그래디언트 이력에 따라 갱신을 조절하지만, 이 비교 코드에는 기본 SGD가 포함되어 있지 않다.
 
-잡음 예제에서는 매 단계 뽑은 같은 noise_x와 noise_y를 세 방법에 더한다. 잡음 실현은 공유하지만 매개변수가 서로 달라지므로 잡음을 더하기 전의 기울기는 같지 않다. 한 시드의 손실값만으로 잡음에 대한 견고함의 순위를 확정할 수 없다.
+잡음 예제에서는 매 단계 뽑은 같은 noise_x와 noise_y를 세 방법에 더한다. 잡음 실현은 공유하지만 파라메터가 서로 달라지므로 잡음을 더하기 전의 그래디언트는 같지 않다. 한 시드의 로스값만으로 잡음에 대한 견고함의 순위를 확정할 수 없다.
 
-로젠브록 함수의 전역 최솟값은 (1, 1)에서 0이다. 좁고 굽은 골짜기가 있어 유한한 반복 후의 값은 초기점과 설정에 민감하다. 코드에서는 Adagrad의 학습률이 다른 두 방법의 10배이며 반복 예산도 함수마다 다르다. 출력에 있는 일괄적인 우위 설명은 이 설정의 관찰로 한정하며, 더 넓은 문제군에서의 보장으로 읽지 않는다.
+로젠브록 함수의 전역 최솟값은 (1, 1)에서 0이다. 좁고 굽은 골짜기가 있어 유한한 반복 후의 값은 초기점과 설정에 민감하다. 코드에서는 Adagrad의 러닝레이트가 다른 두 방법의 10배이며 반복 예산도 함수마다 다르다. 출력에 있는 일괄적인 우위 설명은 이 설정의 관찰로 한정하며, 더 넓은 문제군에서의 보장으로 읽지 않는다.
 
 ## 연습문제
 
@@ -447,12 +447,12 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-세 방법에 같은 잡음을 더하면 같은 기울기를 입력하는 비교인가?
+세 방법에 같은 잡음을 더하면 같은 그래디언트를 입력하는 비교인가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    아니다. 같은 단계에도 각 방법의 현재 매개변수가 달라 참 기울기는 다르다. 공유한 것은 더해지는 잡음이며, 이는 잡음 조건의 차이를 줄이기 위한 통제이다.
+    아니다. 같은 단계에도 각 방법의 현재 파라메터가 달라 참 그래디언트는 다르다. 공유한 것은 더해지는 잡음이며, 이는 잡음 조건의 차이를 줄이기 위한 통제이다.
 
 ---
 
@@ -465,8 +465,8 @@ if __name__ == "__main__":
 </div>
 
 ??? success "연습문제 3 풀이"
-    방법별 학습률 탐색 범위와 예산을 명시하고 여러 초기점·잡음 시드에서 비교한다. 최종 함수값뿐 아니라 목표값 도달까지의 기울기 평가 횟수도 보고한다. 한 함수에서 고른 설정을 다른 함수의 최적 설정으로 가정하지 않는다.
+    방법별 러닝레이트 탐색 범위와 예산을 명시하고 여러 초기점·잡음 시드에서 비교한다. 최종 함수값뿐 아니라 목표값 도달까지의 그래디언트 평가 횟수도 보고한다. 한 함수에서 고른 설정을 다른 함수의 최적 설정으로 가정하지 않는다.
 
 ## 정리하며
 
-기준 함수는 갱신의 특징을 드러내지만 보편적인 순위를 정하지 않는다. 동일한 초기점과 잡음 조건, 방법별 조율 예산과 반복 횟수를 함께 제시해야 결과를 해석할 수 있다.
+기준 함수는 갱신의 피처를 드러내지만 보편적인 순위를 정하지 않는다. 동일한 초기점과 잡음 조건, 방법별 조율 예산과 반복 횟수를 함께 제시해야 결과를 해석할 수 있다.

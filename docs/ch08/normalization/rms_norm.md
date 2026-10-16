@@ -6,7 +6,7 @@ RMSNorm은 입력 평균을 빼지 않고 RMS(root mean square)를 이용해 스
 
 ## 1. 수학적 정식화
 
-### 표준 층 정규화 (되짚어 보기)
+### 표준 레이어 정규화 (되짚어 보기)
 
 입력 $\mathbf{x} \in \mathbb{R}^n$에 대해 다음과 같다.
 
@@ -24,9 +24,9 @@ $$\text{RMSNorm}(\mathbf{x}) = \gamma\odot\frac{\mathbf{x}}{\sqrt{\frac1n\sum_i 
 
 여기서 각 기호는 다음과 같다.
 
-- $\gamma \in \mathbb{R}^n$은 학습 가능한 배율 매개변수이다
+- $\gamma \in \mathbb{R}^n$은 학습 가능한 배율 파라메터이다
 - $\epsilon$은 수치적 안정성을 위한 작은 상수이다
-- (설계상) 편향 항 $\beta$이 없고 평균을 빼지도 않는다
+- (설계상) 바이어스 항 $\beta$이 없고 평균을 빼지도 않는다
 
 ### 핵심 차이
 
@@ -34,7 +34,7 @@ $$\text{RMSNorm}(\mathbf{x}) = \gamma\odot\frac{\mathbf{x}}{\sqrt{\frac1n\sum_i 
 |-----------|-----------|---------|
 | 평균 빼기 | 있음 | **없음** |
 | 분산 정규화 | 있음 | 대신 RMS를 쓴다 |
-| 학습 가능한 편향 | 있음 ($\beta$) | **없음** |
+| 학습 가능한 바이어스 | 있음 ($\beta$) | **없음** |
 | 점근적 계산 복잡도 | $O(n)$ | $O(n)$ |
 
 ---
@@ -49,7 +49,7 @@ import torch.nn as nn
 
 class RMSNorm(nn.Module):
     """
-    제곱평균제곱근 층 정규화.
+    제곱평균제곱근 레이어 정규화.
     
     평균을 빼지 않고 RMS 값으로 입력을 정규화한다.
     LLaMA, Mistral, Gemma를 비롯한 최신 대규모 언어 모델에서 쓰인다.
@@ -64,7 +64,7 @@ class RMSNorm(nn.Module):
         super().__init__()
         
         self.eps = eps
-        # 층 정규화와 달리 학습되는 매개변수가 weight 하나뿐이다.
+        # 레이어 정규화와 달리 학습되는 파라메터가 weight 하나뿐이다.
         # 평균을 빼지 않으므로 되돌릴 이동도 없어 bias(beta)가 없다.
         # 1로 시작해 처음에는 정규화한 값을 그대로 통과시킨다
         self.weight = nn.Parameter(torch.ones(dim))
@@ -72,12 +72,12 @@ class RMSNorm(nn.Module):
     def _norm(self, x):
         """RMS 정규화를 계산한다."""
         # RMS 계산: sqrt(mean(x^2))
-        # 층 정규화와 갈리는 지점이 여기다. 층 정규화는 평균을 빼고
+        # 레이어 정규화와 갈리는 지점이 여기다. 레이어 정규화는 평균을 빼고
         # 표준편차로 나누지만, RMSNorm은 평균을 빼지 않고 제곱평균의
         # 제곱근으로만 나눈다. 곧 크기만 맞추고 중심은 건드리지 않는다.
         # 평균을 구하는 한 번의 훑기가 빠지므로 더 빠르고, 실제로
         # 성능이 떨어지지 않는다는 것이 RMSNorm 논문의 관찰이다.
-        # dim=-1은 마지막 축, 곧 특징 축이다. 표본마다 따로 정규화하므로
+        # dim=-1은 마지막 축, 곧 피처 축이다. 표본마다 따로 정규화하므로
         # 배치 크기와 무관하고 추론에서도 학습과 똑같이 동작한다.
         # eps가 제곱근 "안"에 있다는 점에 주의하라. 밖에 두는 구현도
         # 있는데 값이 미세하게 달라진다
@@ -126,7 +126,7 @@ class LayerNormBaseline(nn.Module):
 
     RMSNorm과 견주기 위한 기준이다. 두 가지가 다르다.
       (1) LayerNorm은 평균을 빼서 중심을 옮기지만 RMSNorm은 옮기지 않는다.
-      (2) LayerNorm은 편향(bias)을 두지만 RMSNorm은 두지 않는다.
+      (2) LayerNorm은 바이어스(bias)을 두지만 RMSNorm은 두지 않는다.
     """
 
     def __init__(self, dim, eps=1e-6):
@@ -164,7 +164,7 @@ class LayerNormBaseline(nn.Module):
 
 $$\text{RMSNorm}(a \cdot \mathbf{x}) = \text{sign}(a) \cdot \text{RMSNorm}(\mathbf{x})$$
 
-이 성질은 입력 스케일에 덜 민감한 변환을 설명하지만, 전체 신경망의 경사나 학습 안정성을 단독으로 보장하지는 않는다.
+이 성질은 입력 스케일에 덜 민감한 변환을 설명하지만, 전체 뉴럴 넷트웍의 경사나 학습 안정성을 단독으로 보장하지는 않는다.
 
 ### 실험적 증거
 
@@ -198,7 +198,7 @@ def compare_normalization_effects():
         # 출력의 평균을 나란히 찍는 것이 이 비교의 요점이다.
         # LayerNorm의 평균은 어떤 입력에서도 0에 가깝게 나오지만,
         # RMSNorm은 입력이 밀려 있으면 출력도 밀린 채로 남는다.
-        # 그런데도 트랜스포머에서 잘 도는 까닭은, 학습된 가중치가
+        # 그런데도 트랜스포머에서 잘 도는 까닭은, 학습된 웨이트가
         # 그 밀림을 흡수할 수 있어 중심 맞추기가 굳이 필요 없기 때문이다
         print(f"\n{name} input (mean={x.mean():.2f}, std={x.std():.2f}):")
         print(f"  LayerNorm: mean={ln_out.mean():.4f}, std={ln_out.std():.4f}")
@@ -247,7 +247,7 @@ $$\frac{\partial\mathcal{L}}{\partial x_i}=\frac{\gamma_i g_i}{r}-\frac{x_i}{nr^
 
 ```python
 class RMSNormWithGradientAnalysis(torch.autograd.Function):
-    """분석을 위해 기울기를 명시적으로 계산하는 RMSNorm."""
+    """분석을 위해 그래디언트를 명시적으로 계산하는 RMSNorm."""
     
     @staticmethod
     def forward(ctx, x, weight, eps):
@@ -266,14 +266,14 @@ class RMSNormWithGradientAnalysis(torch.autograd.Function):
         
         n = x.shape[-1]
         
-        # 가중치에 대한 기울기
+        # 웨이트에 대한 그래디언트
         x_norm = x / rms
         grad_weight = (grad_output * x_norm).sum(dim=tuple(range(grad_output.dim()-1)))
         
-        # x에 대한 기울기
+        # x에 대한 그래디언트
         grad_x_norm = grad_output * weight
         
-        # RMSNorm의 기울기 (LayerNorm보다 간단하다)
+        # RMSNorm의 그래디언트 (LayerNorm보다 간단하다)
         grad_x = grad_x_norm / rms
         grad_x = grad_x - x_norm * (grad_x_norm * x_norm).mean(dim=-1, keepdim=True)
         
@@ -363,7 +363,7 @@ class LLaMABlock(nn.Module):
         # 어텐션 (그룹 질의 어텐션)
         self.attention = GroupedQueryAttention(dim, n_heads, n_kv_heads)
         
-        # 순방향 신경망 (SwiGLU)
+        # 순방향 뉴럴 넷트웍 (SwiGLU)
         self.feed_forward = SwiGLU(dim, ffn_dim)
     
     def forward(self, x, freqs_cis=None, mask=None):
@@ -372,7 +372,7 @@ class LLaMABlock(nn.Module):
         # 트랜스포머는 x + Attention(x)를 먼저 하고 그 결과를
         # 정규화했다(사후 정규화). 사전 정규화가 이긴 까닭은 잔차
         # 경로에 정규화가 끼어들지 않아 x가 그대로 흐르고, 그 덕에
-        # 아주 깊은 모델에서도 기울기가 살아남기 때문이다.
+        # 아주 깊은 모델에서도 그래디언트가 살아남기 때문이다.
         # 사후 정규화 모델이 학습 초반에 워밍업 없이는 발산하곤 하는
         # 문제도 이것으로 크게 줄었다
         h = x + self.attention(
@@ -380,31 +380,31 @@ class LLaMABlock(nn.Module):
             freqs_cis=freqs_cis,
             mask=mask
         )
-        # 두 부분 층이 같은 꼴을 되풀이한다. 정규화 → 부분 층 → 잔차 덧셈.
+        # 두 부분 레이어가 같은 꼴을 되풀이한다. 정규화 → 부분 레이어 → 잔차 덧셈.
         # ffn_norm이 x가 아니라 h를 받는다는 점에 주의하라. 앞선
         # 어텐션의 결과 위에서 이어 간다
         out = h + self.feed_forward(self.ffn_norm(h))
         return out
 
 class SwiGLU(nn.Module):
-    """LLaMA에서 쓰는 SwiGLU 순방향 신경망."""
+    """LLaMA에서 쓰는 SwiGLU 순방향 뉴럴 넷트웍."""
     
     def __init__(self, dim, hidden_dim):
         super().__init__()
         
-        # 보통의 순방향 신경망은 행렬이 둘인데 여기는 셋이다. w1과 w3가
+        # 보통의 순방향 뉴럴 넷트웍은 행렬이 둘인데 여기는 셋이다. w1과 w3가
         # 같은 입력을 나란히 받아 하나는 활성화를 거치고 하나는 문
-        # 노릇을 한다. 그래서 같은 매개변수 수를 맞추려면 hidden_dim을
+        # 노릇을 한다. 그래서 같은 파라메터 수를 맞추려면 hidden_dim을
         # 3분의 2쯤으로 잡는다.
         # bias=False는 LLaMA 계열의 관례다. 바로 앞에 RMSNorm이 있어
-        # 편향이 할 일이 거의 없고, 매개변수와 셈을 아낀다
+        # 바이어스가 할 일이 거의 없고, 파라메터와 셈을 아낀다
         self.w1 = nn.Linear(dim, hidden_dim, bias=False)
         self.w2 = nn.Linear(hidden_dim, dim, bias=False)
         self.w3 = nn.Linear(dim, hidden_dim, bias=False)
     
     def forward(self, x):
         # silu(w1(x))가 문이고 w3(x)가 통과시킬 값이다. 원소별로 곱하므로
-        # 어느 성분을 얼마나 흘려보낼지를 신경망이 스스로 정한다.
+        # 어느 성분을 얼마나 흘려보낼지를 뉴럴 넷트웍이 스스로 정한다.
         # ReLU 하나를 쓰는 것보다 표현력이 좋다는 것이 SwiGLU의 요지다
         return self.w2(nn.functional.silu(self.w1(x)) * self.w3(x))
 
@@ -461,7 +461,7 @@ class GroupedQueryAttention(nn.Module):
 
 ### RMSNorm을 사용하는 간략한 언어 모델
 
-아래는 정규화 위치를 보여 주는 구조 예이다. RoPE 보조 함수는 별도로 정의해야 하며, 자기회귀 학습에는 미래 토큰을 가리는 인과 마스크도 전달해야 한다. 본문의 `forward`는 그 마스크를 구성하지 않는다. 또한 클래스별 편향은 소프트맥스 확률을 바꿀 수 있으므로, 출력층의 `bias=False`는 소프트맥스가 편향을 없애 주기 때문이 아니라 해당 구조의 선택이다.
+아래는 정규화 위치를 보여 주는 구조 예이다. RoPE 보조 함수는 별도로 정의해야 하며, 자기회귀 학습에는 미래 토큰을 가리는 인과 마스크도 전달해야 한다. 본문의 `forward`는 그 마스크를 구성하지 않는다. 또한 클래스별 바이어스는 소프트맥스 확률을 바꿀 수 있으므로, 출력 레이어의 `bias=False`는 소프트맥스가 바이어스를 없애 주기 때문이 아니라 해당 구조의 선택이다.
 
 ```python
 class LLaMA(nn.Module):
@@ -475,7 +475,7 @@ class LLaMA(nn.Module):
         self.tok_embeddings = nn.Embedding(vocab_size, dim)
 
         # 같은 꼴의 블록을 n_layers번 쌓는다. 파이썬 리스트가 아니라
-        # ModuleList를 써야 안에 든 매개변수가 model.parameters()에 잡힌다
+        # ModuleList를 써야 안에 든 파라메터가 model.parameters()에 잡힌다
         self.layers = nn.ModuleList([
             LLaMABlock(dim, n_heads, n_kv_heads, ffn_dim, norm_eps)
             for _ in range(n_layers)
@@ -486,12 +486,12 @@ class LLaMA(nn.Module):
         # 블록을 나온 값은 아직 정규화되지 않았다. 그래서 여기서 한 번 더 건다
         self.norm = RMSNorm(dim, eps=norm_eps)
 
-        # bias=False: 어휘가 수만 개라 편향만으로도 매개변수가 크게 늘고,
-        # 뒤에 소프트맥스가 오므로 갈래마다의 상수는 확률을 거의 바꾸지 못한다
+        # bias=False: 어휘가 수만 개라 바이어스만으로도 파라메터가 크게 늘고,
+        # 뒤에 소프트맥스가 오므로 클래스마다의 상수는 확률을 거의 바꾸지 못한다
         self.output = nn.Linear(dim, vocab_size, bias=False)
 
         # 회전 임베딩(RoPE)의 회전각을 미리 셈해 둔다. 위치에만 달린 값이라
-        # 학습되지 않으므로 한 번 만들어 두고 모든 층이 나눠 쓴다.
+        # 학습되지 않으므로 한 번 만들어 두고 모든 레이어가 나눠 쓴다.
         # dim // n_heads: RoPE는 머리마다 따로 걸리므로 머리 하나의 차원이 필요하다
         self.freqs_cis = precompute_freqs_cis(dim // n_heads, max_seq_len)
 
@@ -551,9 +551,9 @@ def comprehensive_comparison():
     print(f"  Output std:  {rms_out.std():.4f}")
     print(f"  Per-token mean std: {rms_out.mean(dim=-1).std():.6f}")
 
-    # 매개변수 개수. LayerNorm은 감마와 베타 둘이라 2*dim,
+    # 파라메터 개수. LayerNorm은 감마와 베타 둘이라 2*dim,
     # RMSNorm은 감마만 있어 dim이다. 값 자체는 크지 않지만,
-    # RMSNorm이 실제로 버는 것은 매개변수가 아니라 평균을 셈하고 빼는
+    # RMSNorm이 실제로 버는 것은 파라메터가 아니라 평균을 셈하고 빼는
     # 연산이 사라진 데서 오는 속도다
     print(f"\nParameter count:")
     print(f"  LayerNorm: {sum(p.numel() for p in ln.parameters())}")
@@ -593,7 +593,7 @@ Parameter count:
 
 ✅ **대형 언어 모델** (LLaMA, Mistral, Gemma)  
 ✅ **계산 효율이 중요할 때**  
-✅ **아주 깊은 신경망** (정규화 층이 많을 때)  
+✅ **아주 깊은 뉴럴 넷트웍** (정규화 레이어가 많을 때)  
 ✅ **선정규화 구조**  
 ✅ **평균 중심화가 결정적이지 않을 때**
 
@@ -627,7 +627,7 @@ RMSNorm과 레이어 정규화의 점근적 복잡도와 실제 속도 차이를
 </div>
 
 ??? success "연습문제 2 풀이"
-    둘 다 특징 수 d에 대해 O(d)이다. RMSNorm은 평균 빼기와 기본 편향 항을 생략하지만 실제 메모리 읽기와 축약·융합 방식에 따라 속도가 달라진다. 단순히 연산 단계를 세어 일정 비율의 속도 향상을 보장할 수 없다.
+    둘 다 피처 수 d에 대해 O(d)이다. RMSNorm은 평균 빼기와 기본 바이어스 항을 생략하지만 실제 메모리 읽기와 축약·융합 방식에 따라 속도가 달라진다. 단순히 연산 단계를 세어 일정 비율의 속도 향상을 보장할 수 없다.
 
 ---
 
@@ -660,7 +660,7 @@ RMSNorm을 PyTorch로 구현하고 공식과 일치하는지 확인하라.
 </div>
 
 ??? success "연습문제 4 풀이"
-    평균을 제거하는지와 매개변수 구성이 달라져 같은 가중치에서 함수가 바뀐다. 따라서 별도의 학습과 검증 없이 동등한 변환으로 볼 수 없다. 원래 구조와 체크포인트의 규약을 유지하거나 교체 효과를 검증해야 한다.
+    평균을 제거하는지와 파라메터 구성이 달라져 같은 웨이트에서 함수가 바뀐다. 따라서 별도의 학습과 검증 없이 동등한 변환으로 볼 수 없다. 원래 구조와 체크포인트의 규약을 유지하거나 교체 효과를 검증해야 한다.
 
 ## 정리하며
 

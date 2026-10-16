@@ -1,6 +1,6 @@
 # 배치 제약 Q 학습(BCQ)
 
-배치 제약 Q 학습은 오프라인 데이터셋이 잘 받쳐 주는 행동만 고르도록 정책을 매어 오프라인 강화학습의 바깥으로 늘려 짚는 어긋남 문제를 다룬다. 행동 본뜨기 모델을 익혀 데이터 분포를 어림하고 Q 학습 동안 분포 밖 행동을 걸러, Q 함수가 본 적 없는 상태-행동 짝에 잘못 높은 값을 매기는 것을 막는다. 이 짜기는 CartPole에서 매임 문턱을 손볼 수 있는 띄엄띄엄 BCQ을 보여 준다.
+배치 제약 Q 학습은 오프라인 데이터셋이 잘 받쳐 주는 액션만 고르도록 폴리시를 매어 오프라인 강화학습의 바깥으로 늘려 짚는 어긋남 문제를 다룬다. 액션 본뜨기 모델을 익혀 데이터 분포를 어림하고 Q 학습 동안 분포 밖 액션을 걸러, Q 함수가 본 적 없는 상태-액션 짝에 잘못 높은 값을 매기는 것을 막는다. 이 짜기는 CartPole에서 매임 임계를 손볼 수 있는 띄엄띄엄 BCQ을 보여 준다.
 
 ## 1. 코드
 
@@ -9,7 +9,7 @@
 35.5.3 배치로 옭아맨 Q 배우기(BCQ)
 ===========================================
 
-움직임 본뜨기 매임을 지닌 조각난 BCQ.
+액션 본뜨기 매임을 지닌 조각난 BCQ.
 """
 
 import torch
@@ -34,7 +34,7 @@ class QNetwork(nn.Module):
 
 
 class BehaviorModel(nn.Module):
-    """행동 본뜨기 모델: 자료 묶음에서 P(a|s)를 어림한다."""
+    """액션 본뜨기 모델: 자료 묶음에서 P(a|s)를 어림한다."""
     def __init__(self, sd, ad, h=128):
         super().__init__()
         self.net = nn.Sequential(nn.Linear(sd, h), nn.ReLU(),
@@ -47,7 +47,7 @@ class BehaviorModel(nn.Module):
 
 
 class DiscreteBCQAgent:
-    """조각난 움직임 자리를 위한 BCQ."""
+    """조각난 액션 자리를 위한 BCQ."""
 
     def __init__(self, state_dim, action_dim, lr_q=3e-4, lr_bc=1e-3,
                  gamma=0.99, threshold=0.3, target_freq=200):
@@ -56,20 +56,20 @@ class DiscreteBCQAgent:
         self.action_dim = action_dim
         self.target_freq = target_freq
 
-        # Q 그물
+        # Q 넷트웍
         self.online = QNetwork(state_dim, action_dim)
         self.target = QNetwork(state_dim, action_dim)
         self.target.load_state_dict(self.online.state_dict())
         self.q_opt = optim.Adam(self.online.parameters(), lr=lr_q)
 
-        # 움직임 본
+        # 액션 본
         self.bc_model = BehaviorModel(state_dim, action_dim)
         self.bc_opt = optim.Adam(self.bc_model.parameters(), lr=lr_bc)
 
         self.update_count = 0
 
     def train_behavior_model(self, states, actions, n_steps=3000, batch_size=256):
-        """움직임 본뜨기 본을 미리 익힌다."""
+        """액션 본뜨기 본을 미리 익힌다."""
         n = len(actions)
         losses = []
         for step in range(n_steps):
@@ -83,18 +83,18 @@ class DiscreteBCQAgent:
         return losses
 
     def _filter_actions(self, states: torch.Tensor) -> torch.Tensor:
-        """움직임 본의 문턱을 바탕으로 움직임 가리개를 만든다."""
+        """액션 본의 임계를 바탕으로 액션 가리개를 만든다."""
         with torch.no_grad():
             probs = self.bc_model(states)  # (batch, action_dim)
             max_probs = probs.max(dim=1, keepdim=True)[0]
             mask = (probs / max_probs >= self.threshold).float()
-            # 적어도 움직임 하나는 허락되게 함
+            # 적어도 액션 하나는 허락되게 함
             mask[mask.sum(1) == 0] = 1.0
         return mask
 
     def train_q_step(self, states, actions, rewards, next_states, dones,
                      batch_size=256) -> Dict[str, float]:
-        """BCQ 움직임 거르기를 하는 Q 배움 한 걸음."""
+        """BCQ 액션 거르기를 하는 Q 러닝 한 걸음."""
         n = len(rewards)
         idx = np.random.randint(0, n, batch_size)
         s = torch.FloatTensor(states[idx])
@@ -106,11 +106,11 @@ class DiscreteBCQAgent:
         # 지금 Q
         q = self.online(s).gather(1, a.unsqueeze(1)).squeeze(1)
 
-        # BCQ 과녁: 분포 안의 움직임만 살핌
+        # BCQ 타깃: 분포 안의 액션만 살핌
         with torch.no_grad():
             next_q = self.target(ns)
             mask = self._filter_actions(ns)
-            # 걸러진 움직임의 Q를 -inf로 둠
+            # 걸러진 액션의 Q를 -inf로 둠
             next_q_masked = next_q * mask + (1 - mask) * (-1e8)
             best_next_q = next_q_masked.max(dim=1)[0]
             targets = r + (1 - d) * self.gamma * best_next_q
@@ -187,11 +187,11 @@ def demo_bcq():
         random.seed(42); np.random.seed(42); torch.manual_seed(42)
         agent = DiscreteBCQAgent(sd, ad, threshold=tau)
 
-        # 움직임 본 미리 익히기
+        # 액션 본 미리 익히기
         bc_losses = agent.train_behavior_model(data['states'], data['actions'], n_steps=2000)
         print(f"\n  τ={tau}: BC loss = {np.mean(bc_losses[-100:]):.4f}")
 
-        # Q 그물 익히기
+        # Q 넷트웍 익히기
         for step in range(5000):
             agent.train_q_step(data['states'], data['actions'], data['rewards'],
                                data['next_states'], data['dones'])
@@ -215,52 +215,52 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜기는 BCQ의 핵심 논리를 감싼 `QNetwork`, `BehaviorModel`, `DiscreteBCQAgent` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
+이 짜기는 BCQ의 핵심 논리를 감싼 `QNetwork`, `BehaviorModel`, `DiscreteBCQAgent` 클래스를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
 보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 쓰는 모습을 보인다. 내놓기를 살피면 하이퍼파라미터 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗파라메터 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗매개변수 하나(학습률, 숨은 차원, 층 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
+보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗파라메터 하나(러닝레이트, 숨은 차원, 레이어 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗매개변수를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 학습률은 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗매개변수의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
+    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗파라메터를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 러닝레이트는 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗파라메터의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 손실 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
+이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 로스 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 고르기는 오프라인 강화학습에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 기울기가 사라지는 것을 피한다. 손실 함수는 일의 갈래에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 손실) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
+    이 구조 고르기는 오프라인 강화학습에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 그래디언트가 사라지는 것을 피한다. 로스 함수는 일의 클래스에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 로스) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 특징 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
+더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 피처 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 가중치 줄임)나 더 정교한 구조(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 웨이트 줄임)나 더 정교한 구조(레이어 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
 
 ## 정리하며
 
 **다룬 것** — 배치 제약 Q 학습(BCQ)
 
-이 짜기는 BCQ의 핵심 논리를 감싼 `QNetwork`, `BehaviorModel`, `DiscreteBCQAgent` 갈래를 한가운데 둔다.
+이 짜기는 BCQ의 핵심 논리를 감싼 `QNetwork`, `BehaviorModel`, `DiscreteBCQAgent` 클래스를 한가운데 둔다.
 
-핵심 갈래는 `QNetwork`, `BehaviorModel`, `DiscreteBCQAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `QNetwork`, `BehaviorModel`, `DiscreteBCQAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

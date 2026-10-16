@@ -53,7 +53,7 @@ Inference y.requires_grad (expect False): False
 
 선형 계층의 파라미터와 입력이 경사를 요구하더라도 `torch.no_grad()` 안에서 계산한 출력은 일반적으로 추적되지 않는다. 이 설정은 파라미터나 입력의 `requires_grad`를 바꾸지 않는다.
 
-예상과 달리 경사가 없으면 손실의 `requires_grad`와 `grad_fn`, 대상 텐서의 `is_leaf`, 중간의 `detach()`나 NumPy 변환 여부를 차례로 점검한다. 비잎 텐서의 `.grad`가 `None`인 것만으로 미분 경로가 끊겼다고 판단하지 않는다.
+예상과 달리 경사가 없으면 로스의 `requires_grad`와 `grad_fn`, 대상 텐서의 `is_leaf`, 중간의 `detach()`나 NumPy 변환 여부를 차례로 점검한다. 비잎 텐서의 `.grad`가 `None`인 것만으로 미분 경로가 끊겼다고 판단하지 않는다.
 
 ## 연습문제
 
@@ -80,7 +80,7 @@ Inference y.requires_grad (expect False): False
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-예상과 달리 손실의 `requires_grad`가 `False`라면 어떤 경로를 점검할 것인가?
+예상과 달리 로스의 `requires_grad`가 `False`라면 어떤 경로를 점검할 것인가?
 
 </div>
 

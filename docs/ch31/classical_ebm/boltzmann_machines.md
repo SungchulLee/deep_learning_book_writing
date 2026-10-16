@@ -1,10 +1,10 @@
 # 볼츠만 기계와 이진 깁스 샘플링
 
-홉필드 신경망은 국소장을 따라 상태를 갱신해 기억을 검색한다. 볼츠만 기계는 단일 상태를 찾는 대신 확률적 갱신으로 상태 분포를 표현한다. 이때 에너지에 사용하는 이진 변수의 부호 관례와 조건부 확률이 일치해야 한다. 이 페이지의 구현에는 그 둘 사이에 온도 계수 차이가 있다.
+홉필드 뉴럴 넷트웍은 국소장을 따라 상태를 갱신해 기억을 검색한다. 볼츠만 기계는 단일 상태를 찾는 대신 확률적 갱신으로 상태 분포를 표현한다. 이때 에너지에 사용하는 이진 변수의 부호 관례와 조건부 확률이 일치해야 한다. 이 페이지의 구현에는 그 둘 사이에 온도 계수 차이가 있다.
 
 ## 1. 스핀 에너지와 조건부 확률
 
-스핀 sᵢ∈{−1,+1}, 대칭 W와 대각 원소 0을 사용한다. 편향을 θᵢ라 하면 다음과 같다.
+스핀 sᵢ∈{−1,+1}, 대칭 W와 대각 원소 0을 사용한다. 바이어스를 θᵢ라 하면 다음과 같다.
 
 $$E(s)=-\frac12s^TWs-\theta^Ts,
 \qquad h_i=\sum_jW_{ij}s_j+\theta_i$$
@@ -13,7 +13,7 @@ $$E(s)=-\frac12s^TWs-\theta^Ts,
 
 $$P(s_i=+1\mid s_{-i})=\operatorname{sigmoid}(2h_i/T)$$
 
-반면 0·1 변수 b 자체에 E(b)=−0.5bᵀWb−aᵀb를 정의하면 sigmoid((ΣWᵢⱼbⱼ+aᵢ)/T)가 나온다. **같은 W·편향을 그대로 두고 변수 표현만 바꾸면 같은 에너지 모델이 되지 않는다.**
+반면 0·1 변수 b 자체에 E(b)=−0.5bᵀWb−aᵀb를 정의하면 sigmoid((ΣWᵢⱼbⱼ+aᵢ)/T)가 나온다. **같은 W·바이어스를 그대로 두고 변수 표현만 바꾸면 같은 에너지 모델이 되지 않는다.**
 
 ## 2. 구현과 보존된 비교 출력
 
@@ -29,17 +29,17 @@ class BoltzmannMachine(nn.Module):
     """
     확률 이진 단위를 가진 일반 볼츠만 기계.
     
-    홉필드 신경망과 달리 볼츠만 기계는 확률 고침을 쓴다
+    홉필드 뉴럴 넷트웍과 달리 볼츠만 기계는 확률 고침을 쓴다
     그리고 평형에서 볼츠만 분포에서 뽑을 수 있다.
     
-    매개변수
+    파라메터
     ----------
     n_visible : int
         드러난 단위의 개수
     n_hidden : int
-        숨은 알갱이의 수(0이면 숨은 층이 없다)
+        숨은 알갱이의 수(0이면 숨은 레이어가 없다)
     temperature : float
-        마구잡이를 다스리는 온도 매개변수
+        마구잡이를 다스리는 온도 파라메터
     """
     
     def __init__(self, 
@@ -66,7 +66,7 @@ class BoltzmannMachine(nn.Module):
         """
         Compute energy E(s) = -½ sᵀWs - θᵀs
         
-        매개변수
+        파라메터
         ----------
         state : torch.Tensor
             Binary state in {0, 1}^n or {-1, +1}^n
@@ -131,7 +131,7 @@ class BoltzmannMachine(nn.Module):
         """
         깁스 뽑기로 표본을 만든다.
         
-        매개변수
+        파라메터
         ----------
         n_steps : int
             깁스 훑기 횟수
@@ -165,7 +165,7 @@ class BoltzmannMachine(nn.Module):
         """
         마르코프 사슬 몬테카를로로 평형 분포를 어림한다.
         
-        매개변수
+        파라메터
         ----------
         n_samples : int
             모을 표본의 개수
@@ -213,7 +213,7 @@ class BoltzmannMachine(nn.Module):
 
 def compare_deterministic_vs_stochastic():
     """
-    홉필드(정해진)와 볼츠만(확률) 움직임을 견준다.
+    홉필드(정해진)와 볼츠만(확률) 액션을 견준다.
     """
     print("="*70)
     print("DETERMINISTIC VS STOCHASTIC DYNAMICS")
@@ -236,7 +236,7 @@ def compare_deterministic_vs_stochastic():
     print(f"Target pattern: {pattern.numpy().astype(int)}")
     print(f"Noisy input:    {noisy.numpy().astype(int)}")
     
-    # 정해진 움직임
+    # 정해진 액션
     print("\n" + "-"*50)
     print("DETERMINISTIC (Hopfield-style)")
     state_det = noisy.clone()
@@ -261,7 +261,7 @@ def compare_deterministic_vs_stochastic():
     print(f"Converged to: {state_det.numpy().astype(int)}")
     print(f"Iterations: {len(det_trajectory) - 1}")
     
-    # 확률 움직임
+    # 확률 액션
     print("\n" + "-"*50)
     print("STOCHASTIC (Boltzmann)")
     
@@ -385,7 +385,7 @@ def verify_equilibrium_distribution():
     print("VERIFYING EQUILIBRIUM DISTRIBUTION")
     print("="*70)
     
-    # 늘어놓기를 위한 작은 신경망
+    # 늘어놓기를 위한 작은 뉴럴 넷트웍
     n_units = 4
     bm = BoltzmannMachine(n_visible=n_units, temperature=1.0)
     
@@ -518,7 +518,7 @@ burn-in과 thinning을 지정해도 독립 표본이나 혼합 완료를 보장�
 ```python
 def analyze_temperature_effects():
     """
-    온도가 뽑기 움직임에 어떤 영향을 주는지 살핀다.
+    온도가 뽑기 액션에 어떤 영향을 주는지 살핀다.
     """
     n_units = 6
     base_bm = BoltzmannMachine(n_visible=n_units, temperature=1.0)
@@ -593,18 +593,18 @@ Observations:
 
 ## 6. 은닉변수와 학습 원리
 
-가시변수 v와 은닉변수 h를 합쳐 s라 두면 대칭 결합 에너지를 그대로 적용할 수 있다. 같은 층 결합의 행렬식에는 1/2 계수가 들어가고 두 층 사이 항은 한 번만 센다. 주어진 v에서 은닉변수를 합해 자유 에너지를 정의한다.
+가시변수 v와 은닉변수 h를 합쳐 s라 두면 대칭 결합 에너지를 그대로 적용할 수 있다. 같은 레이어 결합의 행렬식에는 1/2 계수가 들어가고 두 레이어 사이 항은 한 번만 센다. 주어진 v에서 은닉변수를 합해 자유 에너지를 정의한다.
 
 $$F_T(v)=-T\log\sum_h e^{-E(v,h)/T},\qquad
 p(v)=e^{-F_T(v)/T}/Z$$
 
-독립적인 대칭 결합 Wᵢⱼ(i<j)의 로그 우도 기울기는 다음 통계 차이다.
+독립적인 대칭 결합 Wᵢⱼ(i<j)의 로그 우도 그래디언트는 다음 통계 차이다.
 
 $$\frac{\partial\log p(v)}{\partial W_{ij}}
 =\frac1T\left(\mathbb E[s_i s_j\mid v]
 -\mathbb E_p[s_i s_j]\right)$$
 
-첫 항은 관측값을 고정한 positive phase이고 둘째는 모델 전체의 negative phase다. 일반 볼츠만 기계는 두 항의 추론이 모두 어려울 수 있다. [RBM](rbm.md)은 같은 층 연결을 제거해 조건부분포의 계산을 단순화하지만 정규화 상수 전체가 자동으로 쉬워지는 것은 아니다.
+첫 항은 관측값을 고정한 positive phase이고 둘째는 모델 전체의 negative phase다. 일반 볼츠만 기계는 두 항의 추론이 모두 어려울 수 있다. [RBM](rbm.md)은 같은 레이어 연결을 제거해 조건부분포의 계산을 단순화하지만 정규화 상수 전체가 자동으로 쉬워지는 것은 아니다.
 
 ## 연습문제
 

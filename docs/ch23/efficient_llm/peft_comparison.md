@@ -1,10 +1,10 @@
 # 파라미터 효율적 파인튜닝 비교
 
-PEFT는 전체 가중치를 갱신하는 대신 일부 매개변수나 작은 추가 모듈로 모델을 적응시킨다. LoRA·양자화 기반 LoRA·학습 prefix·병목 어댑터는 서로 다른 계산 경로를 사용한다. 학습 가능한 매개변수가 적다는 사실과 전체 학습 메모리·추론 속도·품질은 구분해야 한다.
+PEFT는 전체 웨이트를 갱신하는 대신 일부 파라메터나 작은 추가 모듈로 모델을 적응시킨다. LoRA·양자화 기반 LoRA·학습 prefix·병목 어댑터는 서로 다른 계산 경로를 사용한다. 학습 가능한 파라메터가 적다는 사실과 전체 학습 메모리·추론 속도·품질은 구분해야 한다.
 
 ## 1. LoRA의 갱신과 적용
 
-열벡터 표기에서 W'=W₀+(α/r)BA이고 A는 다운, B는 업 프로젝션이다. 학습 가중치는 r(d_in+d_out)개지만 동결 기반도 저장한다. 코드의 행벡터 구현은 A·B의 모양이 전치 관례이며 병합 시 곱을 전치한다.
+열벡터 표기에서 W'=W₀+(α/r)BA이고 A는 다운, B는 업 프로젝션이다. 학습 웨이트는 r(d_in+d_out)개지만 동결 기반도 저장한다. 코드의 행벡터 구현은 A·B의 모양이 전치 관례이며 병합 시 곱을 전치한다.
 
 ```python
 import torch
@@ -15,9 +15,9 @@ import math
 
 class LoRALayer(nn.Module):
     """
-    LoRA(낮은 계수 맞추기) 층.
+    LoRA(낮은 계수 맞추기) 레이어.
     
-    이미 있는 선형 층을 감싸고 익힐 수 있는 낮은 계수 행렬을 더한다.
+    이미 있는 선형 레이어를 감싸고 익힐 수 있는 낮은 계수 행렬을 더한다.
     본디 무게는 얼리고 A와 B만 익힌다.
     """
     
@@ -53,10 +53,10 @@ class LoRALayer(nn.Module):
         self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 본디 앞먹임(얼림)
+        # 본디 피드포워드(얼림)
         original_out = self.original(x)
         
-        # LoRA 앞먹임
+        # LoRA 피드포워드
         # x @ A @ B * 잣수
         lora_out = self.dropout(x) @ self.lora_A @ self.lora_B * self.scaling
         
@@ -64,7 +64,7 @@ class LoRALayer(nn.Module):
     
     def merge_weights(self) -> nn.Linear:
         """
-        미룸을 위해 LoRA 무게를 본디 층에 합친다.
+        미룸을 위해 LoRA 무게를 본디 레이어에 합친다.
         
         군더더기 없는 여느 nn.Linear를 돌려준다.
         """
@@ -111,7 +111,7 @@ def apply_lora(
         config: LoRA 자리매김
         
     반환값:
-        LoRA 층을 적용한 모델
+        LoRA 레이어를 적용한 모델
     """
     for name, module in model.named_modules():
         # 이 모듈에 LoRA를 적용할지 살핀다
@@ -126,7 +126,7 @@ def apply_lora(
                     parent = model
                     child_name = name
                 
-                # LoRA 층으로 바꾼다
+                # LoRA 레이어로 바꾼다
                 lora_layer = LoRALayer(
                     module,
                     rank=config.rank,
@@ -139,7 +139,7 @@ def apply_lora(
     return model
 
 def get_lora_params(model: nn.Module) -> list:
-    """가장 좋게 하기에 쓸 LoRA 매개변수만 얻는다."""
+    """가장 좋게 하기에 쓸 LoRA 파라메터만 얻는다."""
     lora_params = []
     for name, param in model.named_parameters():
         if 'lora_' in name:
@@ -147,7 +147,7 @@ def get_lora_params(model: nn.Module) -> list:
     return lora_params
 
 def count_parameters(model: nn.Module) -> dict:
-    """익힐 수 있는 매개변수와 전체 매개변수를 센다."""
+    """익힐 수 있는 파라메터와 전체 파라메터를 센다."""
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
     return {
@@ -157,7 +157,7 @@ def count_parameters(model: nn.Module) -> dict:
     }
 ```
 
-이 적용 함수는 이름 부분 문자열이 맞는 Linear만 감싸고 그 층만 동결한다. 모델의 나머지 requires_grad를 끄는 기능은 없으며 모델별 이름·결합 QKV·장치·dtype을 확인해야 한다. α/r가 같아도 랭크와 초기화가 달라지면 갱신·최적화가 자동으로 동등해지는 것은 아니다.
+이 적용 함수는 이름 부분 문자열이 맞는 Linear만 감싸고 그 레이어만 동결한다. 모델의 나머지 requires_grad를 끄는 기능은 없으며 모델별 이름·결합 QKV·장치·dtype을 확인해야 한다. α/r가 같아도 랭크와 초기화가 달라지면 갱신·최적화가 자동으로 동등해지는 것은 아니다.
 
 merge_weights는 새 Linear를 반환하지만 원 모델의 래퍼를 자동 교체하지 않는다. dropout이 꺼진 선형 갱신에서 동등성을 확인해야 하며 bias.data는 원 텐서와 저장소를 공유할 수 있다. 실제 병합 상태·저장과 dtype을 검토해야 한다.
 
@@ -172,13 +172,13 @@ from typing import Tuple
 
 class NF4Linear(nn.Module):
     """
-    간추린 NF4(4비트 정규 실수) 양자화 선형 층.
+    간추린 NF4(4비트 정규 실수) 양자화 선형 레이어.
     
     참고: 이는 본보기 짜기이다. 실전에서는 bitsandbytes 같은
     가장 좋게 다듬은 꾸러미를 써야 한다.
     """
     
-    # NF4 양자화 층계(N(0,1) 분포에 맞춰 고름)
+    # NF4 양자화 레이어계(N(0,1) 분포에 맞춰 고름)
     NF4_LEVELS = torch.tensor([
         -1.0, -0.6962, -0.5251, -0.3949, -0.2844, -0.1848, -0.0911, 0.0,
         0.0796, 0.1609, 0.2461, 0.3379, 0.4407, 0.5626, 0.7230, 1.0
@@ -235,14 +235,14 @@ class NF4Linear(nn.Module):
         weight_blocks = weight_flat.reshape(num_blocks, self.block_size)
         weight_normalized = weight_blocks / (scales.unsqueeze(1) + 1e-8)
         
-        # 가장 가까운 NF4 층계를 찾는다
+        # 가장 가까운 NF4 레이어계를 찾는다
         distances = (weight_normalized.unsqueeze(-1) - self.NF4_LEVELS.to(weight.device)).abs()
         indices = distances.argmin(dim=-1)
         
         return indices.to(torch.uint8)
     
     def _dequantize(self) -> torch.Tensor:
-        """앞먹임을 위해 무게의 양자화를 되돌린다."""
+        """피드포워드를 위해 무게의 양자화를 되돌린다."""
         # 번호로 NF4 값을 얻는다
         weight_nf4 = self.NF4_LEVELS.to(self.weight_quantized.device)[self.weight_quantized.long()]
         
@@ -298,19 +298,19 @@ class QLoRALayer(nn.Module):
         self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 양자화한 앞먹임(그때그때 되돌린다)
+        # 양자화한 피드포워드(그때그때 되돌린다)
         base_out = self.quantized(x)
         
-        # bfloat16으로 하는 LoRA 앞먹임
+        # bfloat16으로 하는 LoRA 피드포워드
         x_bf16 = x.to(torch.bfloat16)
         lora_out = (self.dropout(x_bf16) @ self.lora_A @ self.lora_B * self.scaling)
         
         return base_out + lora_out.to(base_out.dtype)
 ```
 
-현재 NF4Linear는 16개 수준 중 가까운 인덱스를 고르지만 두 4비트 값을 한 바이트에 pack하지 않는다. 인덱스를 uint8 하나씩 저장하므로 실제 가중치 코드 저장은 토큰당이 아니라 **가중치당 8비트**이며 scale 저장도 추가된다. 이 구현을 곧바로 4비트 메모리 감소의 실증이라고 할 수 없다.
+현재 NF4Linear는 16개 수준 중 가까운 인덱스를 고르지만 두 4비트 값을 한 바이트에 pack하지 않는다. 인덱스를 uint8 하나씩 저장하므로 실제 웨이트 코드 저장은 토큰당이 아니라 **웨이트당 8비트**이며 scale 저장도 추가된다. 이 구현을 곧바로 4비트 메모리 감소의 실증이라고 할 수 없다.
 
-forward마다 전체 가중치를 복원하며 double quantization·paged optimizer·최적화된 양자화 커널은 없다. bias는 새 trainable Parameter이고 LoRA 행렬은 BF16 CPU에 생성되므로 기반·입력과 장치·dtype을 맞춰야 한다. 양자화 저장 비트 수와 전체 학습 peak memory를 구분한다. 이 부품만으로 논문의 전체 QLoRA 학습이 재현되지는 않는다.
+forward마다 전체 웨이트를 복원하며 double quantization·paged optimizer·최적화된 양자화 커널은 없다. bias는 새 trainable Parameter이고 LoRA 행렬은 BF16 CPU에 생성되므로 기반·입력과 장치·dtype을 맞춰야 한다. 양자화 저장 비트 수와 전체 학습 peak memory를 구분한다. 이 부품만으로 논문의 전체 QLoRA 학습이 재현되지는 않는다.
 
 ## 3. Prefix의 학습 값과 연결
 
@@ -319,7 +319,7 @@ class PrefixTuning(nn.Module):
     """
     앞가지 다듬기: 들임 앞에 붙는 이어진 시킴말을 배운다.
     
-    따로 떨어진 시킴말 토막 대신, 어텐션 층마다 열쇠-값 짝 앞에 붙는
+    따로 떨어진 시킴말 토막 대신, 어텐션 레이어마다 열쇠-값 짝 앞에 붙는
     이어진 묻힘을 배운다.
     """
     
@@ -336,13 +336,13 @@ class PrefixTuning(nn.Module):
         self.num_layers = num_layers
         self.prefix_length = prefix_length
         
-        # 전체 크기: 층 수 * 2(열쇠 + 값) * 머리 수 * 머리 차원
+        # 전체 크기: 레이어 수 * 2(열쇠 + 값) * 머리 수 * 머리 차원
         prefix_size = num_layers * 2 * num_heads * head_dim
         
         # 배울 수 있는 앞가지 묻힘
         self.prefix_embedding = nn.Embedding(prefix_length, hidden_dim)
         
-        # 온전한 앞가지 크기로 쏘는 여러 층 인식개(안정을 위해)
+        # 온전한 앞가지 크기로 쏘는 여러 레이어 인식개(안정을 위해)
         self.prefix_mlp = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.Tanh(),
@@ -358,7 +358,7 @@ class PrefixTuning(nn.Module):
         
         반환값:
             (앞가지 열쇠, 앞가지 값)의 짝. 저마다 꼴은
-            [배치, 층 수, 머리 수, 앞가지 길이, 머리 차원]
+            [배치, 레이어 수, 머리 수, 앞가지 길이, 머리 차원]
         """
         # 앞가지 번호를 얻는다
         prefix_ids = torch.arange(self.prefix_length, device=self.prefix_embedding.weight.device)
@@ -368,7 +368,7 @@ class PrefixTuning(nn.Module):
         prefix = self.prefix_embedding(prefix_ids)  # [배치, 앞가지 길이, 숨은]
         prefix = self.prefix_mlp(prefix)  # [배치, 앞가지 길이, 앞가지 크기]
         
-        # [배치, 앞가지 길이, 층 수, 2, 머리 수, 머리 차원] 꼴로 바꾼다
+        # [배치, 앞가지 길이, 레이어 수, 2, 머리 수, 머리 차원] 꼴로 바꾼다
         prefix = prefix.view(
             batch_size,
             self.prefix_length,
@@ -378,17 +378,17 @@ class PrefixTuning(nn.Module):
             self.head_dim
         )
         
-        # [배치, 층 수, 머리 수, 앞가지 길이, 머리 차원] 꼴로 다시 늘어놓는다
-        prefix = prefix.permute(0, 2, 4, 1, 5, 3)  # 층과 머리 차원을 옮긴다
+        # [배치, 레이어 수, 머리 수, 앞가지 길이, 머리 차원] 꼴로 다시 늘어놓는다
+        prefix = prefix.permute(0, 2, 4, 1, 5, 3)  # 레이어와 머리 차원을 옮긴다
         
-        prefix_keys = prefix[..., 0]    # [배치, 층, 머리, 앞가지 길이, 머리 차원]
-        prefix_values = prefix[..., 1]  # [배치, 층, 머리, 앞가지 길이, 머리 차원]
+        prefix_keys = prefix[..., 0]    # [배치, 레이어, 머리, 앞가지 길이, 머리 차원]
+        prefix_values = prefix[..., 1]  # [배치, 레이어, 머리, 앞가지 길이, 머리 차원]
         
         return prefix_keys, prefix_values
 
 class PrefixAttention(nn.Module):
     """
-    앞가지 다듬기를 쓰도록 고친 어텐션 층.
+    앞가지 다듬기를 쓰도록 고친 어텐션 레이어.
     """
     
     def __init__(self, original_attention: nn.Module, prefix_length: int):
@@ -408,7 +408,7 @@ class PrefixAttention(nn.Module):
         attention_mask: torch.Tensor = None
     ):
         """
-        열쇠와 값 앞에 앞가지를 붙여 앞먹임한다.
+        열쇠와 값 앞에 앞가지를 붙여 피드포워드한다.
         """
         # 숨은 상태에서 Q, K, V를 셈한다
         # (짜기는 어텐션 구조에 따라 다르다)
@@ -431,7 +431,7 @@ class PrefixAttention(nn.Module):
         pass  # 온전한 짜기는 모델 구조에 따라 다르다
 ```
 
-PrefixTuning은 MLP로 층별 K·V를 만든다. 이는 입력 임베딩에만 벡터를 붙이는 prompt tuning과 다르다. 학습 매개변수에는 embedding·MLP도 포함하므로 생성한 KV 값의 수만 세면 안 된다.
+PrefixTuning은 MLP로 레이어별 K·V를 만든다. 이는 입력 임베딩에만 벡터를 붙이는 prompt tuning과 다르다. 학습 파라메터에는 embedding·MLP도 포함하므로 생성한 KV 값의 수만 세면 안 된다.
 
 이 페이지의 PrefixAttention.forward는 마스크 일부를 구성한 뒤 pass로 끝나므로 None을 반환한다. 기존 어텐션에 prefix를 실제로 연결하는 완성 구현이 아니다. 기반 모델의 cache·head·마스크·위치 계약은 별도로 필요하다.
 
@@ -442,7 +442,7 @@ class Adapter(nn.Module):
     """
     맞춤개 모듈: 내림 쏘기 → 비선형 → 올림 쏘기 + 남는 이음.
     
-    어텐션이나 앞먹임 그물 밑층 뒤에 끼운다.
+    어텐션이나 피드포워드 넷트웍 밑레이어 뒤에 끼운다.
     """
     
     def __init__(
@@ -476,7 +476,7 @@ class AdapterTransformerBlock(nn.Module):
     맞춤개를 끼운 변환기 덩이.
     
     구조:
-        x → 어텐션 → 맞춤개 → 층 고르게 맞추기 → 앞먹임 그물 → 맞춤개 → 층 고르게 맞추기 → 내놓기
+        x → 어텐션 → 맞춤개 → 레이어 고르게 맞추기 → 피드포워드 넷트웍 → 맞춤개 → 레이어 고르게 맞추기 → 내놓기
     """
     
     def __init__(
@@ -495,7 +495,7 @@ class AdapterTransformerBlock(nn.Module):
         # 덩이에서 숨은 크기를 알아낸다
         hidden_size = self._get_hidden_size(original_block)
         
-        # 어텐션과 앞먹임 그물 뒤에 맞춤개를 더한다
+        # 어텐션과 피드포워드 넷트웍 뒤에 맞춤개를 더한다
         self.adapter_attn = Adapter(hidden_size, bottleneck_size)
         self.adapter_ffn = Adapter(hidden_size, bottleneck_size)
     
@@ -519,7 +519,7 @@ class AdapterTransformerBlock(nn.Module):
         hidden_states = hidden_states + attn_output
         hidden_states = self.original.ln_1(hidden_states)
         
-        # 순전파 신경망
+        # 순전파 뉴럴 넷트웍
         ffn_output = self.original.mlp(hidden_states)
         ffn_output = self.adapter_ffn(ffn_output)  # 맞춤개를 적용한다
         
@@ -535,20 +535,20 @@ def add_adapters(model: nn.Module, bottleneck_size: int = 64) -> nn.Module:
     pass
 ```
 
-이 Adapter는 업 프로젝션 가중치·편향을 0으로 초기화하므로 시작할 때 정확히 x를 반환한다. 작은 난수로 초기화한 다른 예제와 다르다. 비선형 어댑터는 일반적으로 기반 선형 행렬 하나에 합칠 수 없다.
+이 Adapter는 업 프로젝션 웨이트·바이어스를 0으로 초기화하므로 시작할 때 정확히 x를 반환한다. 작은 난수로 초기화한 다른 예제와 다르다. 비선형 어댑터는 일반적으로 기반 선형 행렬 하나에 합칠 수 없다.
 
 AdapterTransformerBlock은 original.attention·ln_1·mlp·ln_2가 존재한다고 가정하고 고정 순서의 잔차·정규화를 수행한다. 실제 모델의 속성·반환값·pre/post-norm 계약과 다르면 호환되지 않는다. 첫 Linear의 out_features만으로 hidden size를 추정하면 결합 QKV·중간 FFN 폭을 잘못 선택할 수 있다. add_adapters도 pass여서 실제 삽입을 구현하지 않는다.
 
-## 5. 매개변수·메모리·추론 비교
+## 5. 파라메터·메모리·추론 비교
 
 | 방법 | 주로 학습하는 것 | 기반 외 추론 계산 |
 |------|-------------------|-------------------|
-| LoRA | 적용한 층의 저랭크 갱신 | 선형 병합 조건이 맞으면 제거 가능 |
-| QLoRA | 양자화 동결 기반의 LoRA | 양자화·복원·커널과 병합 정책에 의존 |
-| Prefix tuning | 층별 KV 또는 생성 모듈 | prefix 참조와 추가 KV |
-| 어댑터 | 추가 비선형 병목 | 추가 층 계산 |
+| LoRA | 적용한 레이어의 저랭크 갱신 | 선형 병합 조건이 맞으면 제거 가능 |
+| QLoRA | 양자화 동결 기반의 LoRA | 양자화·복원·커널과 병합 폴리시에 의존 |
+| Prefix tuning | 레이어별 KV 또는 생성 모듈 | prefix 참조와 추가 KV |
+| 어댑터 | 추가 비선형 병목 | 추가 레이어 계산 |
 
-전체 메모리에는 기반 가중치·학습 경사·옵티마이저 상태·활성화·임시 버퍼·cache와 분산 정책을 포함한다. 예를 들어 70억 BF16 기반만 약 14GB이므로 양자화나 offload 없이 전체 LoRA 학습이 항상 8GB라는 표는 성립하지 않는다. 비트 수·batch·길이·학습 가능한 부분과 측정 환경을 명시해야 한다.
+전체 메모리에는 기반 웨이트·학습 경사·옵티마이저 상태·활성화·임시 버퍼·cache와 분산 폴리시를 포함한다. 예를 들어 70억 BF16 기반만 약 14GB이므로 양자화나 offload 없이 전체 LoRA 학습이 항상 8GB라는 표는 성립하지 않는다. 비트 수·batch·길이·학습 가능한 부분과 측정 환경을 명시해야 한다.
 
 ```
 Quality
@@ -582,8 +582,8 @@ Quality
 작은 추가 체크포인트·과제 교체·배포 병합·메모리 제한 등 목표를 정하고 동일 품질 기준 아래 측정한다. 특정 GPU 용량과 파라미터 수만으로 어떤 학습도 반드시 가능하다고 보장하지 않는다. [LoRA](lora.md), [어댑터](adapters.md), [prefix tuning](prefix_tuning.md)의 구현 계약도 함께 확인한다.
 
 ```python
-# 기억 공간 효율을 가장 크게 하려는 QLoRA + 기울기 되짚기
-# 어텐션에는 LoRA + 여러 층 인식개에는 맞춤개
+# 기억 공간 효율을 가장 크게 하려는 QLoRA + 그래디언트 되짚기
+# 어텐션에는 LoRA + 여러 레이어 인식개에는 맞춤개
 # 더 큰 담이를 위한 앞가지 다듬기 + LoRA
 ```
 
@@ -594,13 +594,13 @@ Quality
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-적은 학습 매개변수와 적은 총메모리가 같은 뜻이 아닌 이유를 설명하라.
+적은 학습 파라메터와 적은 총메모리가 같은 뜻이 아닌 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
 
-    동결 기반 가중치도 저장하며 입력·중간 활성화·경사 전달·임시 버퍼가 남는다. 학습 부분의 옵티마이저·경사는 줄 수 있지만 dtype·길이·batch·분할 정책에 따라 전체 peak memory가 달라진다. 기반만 14GB인 BF16 70억 모델을 양자화 없이 총 8GB에 학습한다고 단정할 수 없다.
+    동결 기반 웨이트도 저장하며 입력·중간 활성화·경사 전달·임시 버퍼가 남는다. 학습 부분의 옵티마이저·경사는 줄 수 있지만 dtype·길이·batch·분할 폴리시에 따라 전체 peak memory가 달라진다. 기반만 14GB인 BF16 70억 모델을 양자화 없이 총 8GB에 학습한다고 단정할 수 없다.
 
 
 
@@ -615,7 +615,7 @@ NF4Linear의 uint8 인덱스가 4비트 packing과 다른 점을 설명하라.
 
 ??? success "연습문제 2 풀이"
 
-    16가지 수준은 4비트로 표현할 수 있지만 현재는 인덱스 하나당 uint8 한 바이트를 저장한다. 실제 4비트 저장은 두 인덱스를 한 바이트에 넣는 등의 packing과 복원 구현이 필요하다. scale·bias·활성화와 매번 전체 가중치 복원 비용도 더해진다.
+    16가지 수준은 4비트로 표현할 수 있지만 현재는 인덱스 하나당 uint8 한 바이트를 저장한다. 실제 4비트 저장은 두 인덱스를 한 바이트에 넣는 등의 packing과 복원 구현이 필요하다. scale·bias·활성화와 매번 전체 웨이트 복원 비용도 더해진다.
 
 
 
@@ -630,7 +630,7 @@ NF4Linear의 uint8 인덱스가 4비트 packing과 다른 점을 설명하라.
 
 ??? success "연습문제 3 풀이"
 
-    PrefixAttention.forward와 add_adapters가 pass여서 실제 연결이 없다. 어댑터 블록은 특정 속성·정규화 순서를 가정하고 첫 Linear 폭으로 hidden size를 추정한다. 모델의 cache·층 반환·mask·위치·차원을 확인하지 않으면 범용 삽입 함수가 되지 않는다.
+    PrefixAttention.forward와 add_adapters가 pass여서 실제 연결이 없다. 어댑터 블록은 특정 속성·정규화 순서를 가정하고 첫 Linear 폭으로 hidden size를 추정한다. 모델의 cache·레이어 반환·mask·위치·차원을 확인하지 않으면 범용 삽입 함수가 되지 않는다.
 
 
 
@@ -645,7 +645,7 @@ NF4Linear의 uint8 인덱스가 4비트 packing과 다른 점을 설명하라.
 
 ??? success "연습문제 4 풀이"
 
-    같은 기반·분할·입출력 길이·품질 기준과 튜닝 예산을 사용한다. 학습 매개변수·peak memory·시간·추론 지연·체크포인트/과제 교체 비용을 별도 측정한다. 단일 도식이나 고정 추천표를 일반적인 품질 순위로 사용하지 않는다.
+    같은 기반·분할·입출력 길이·품질 기준과 튜닝 예산을 사용한다. 학습 파라메터·peak memory·시간·추론 지연·체크포인트/과제 교체 비용을 별도 측정한다. 단일 도식이나 고정 추천표를 일반적인 품질 순위로 사용하지 않는다.
 
 
 

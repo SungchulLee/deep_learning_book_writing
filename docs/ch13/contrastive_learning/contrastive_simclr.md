@@ -1,6 +1,6 @@
 # 대조 학습 SimCLR
 
-SimCLR는 같은 이미지에서 만든 두 증강 뷰를 양성 쌍으로 두고, 배치의 다른 이미지 뷰와 구분하도록 표현을 학습한다. 인코더·투영 헤드와 NT-Xent 손실의 역할을 나누어 살펴본다. 큰 배치는 음성 수를 늘리는 선택이며 사용 가능성을 정하는 절대 조건은 아니다.
+SimCLR는 같은 이미지에서 만든 두 증강 뷰를 양성 쌍으로 두고, 배치의 다른 이미지 뷰와 구분하도록 표현을 학습한다. 인코더·투영 헤드와 NT-Xent 로스의 역할을 나누어 살펴본다. 큰 배치는 음성 수를 늘리는 선택이며 사용 가능성을 정하는 절대 조건은 아니다.
 
 ## 1. 코드
 
@@ -55,7 +55,7 @@ class SimCLR(nn.Module):
         else:
             raise ValueError(f"Unknown model: {base_model}")
 
-        # 마지막 분류 층을 없앤다
+        # 마지막 분류 레이어를 없앤다
         self.encoder.fc = nn.Identity()
 
         # 사영 머리를 더한다
@@ -66,7 +66,7 @@ class SimCLR(nn.Module):
         )
 
     def forward(self, x):
-        # 특징을 뽑는다
+        # 피처를 뽑는다
         features = self.encoder(x)
         # 대조 공간으로 사영한다
         projections = self.projection_head(features)
@@ -75,8 +75,8 @@ class SimCLR(nn.Module):
 
 class NTXentLoss(nn.Module):
     """
-    정규화 온도 조정 교차 엔트로피 손실 (NT-Xent)
-    SimCLR가 쓰는 대조 손실 함수
+    정규화 온도 조정 교차 엔트로피 로스 (NT-Xent)
+    SimCLR가 쓰는 대조 로스 함수
     """
     def __init__(self, temperature=0.5):
         super().__init__()
@@ -115,7 +115,7 @@ class NTXentLoss(nn.Module):
         # 온도 조정을 적용한다
         similarity_matrix = similarity_matrix / self.temperature
 
-        # 교차 엔트로피 손실을 셈한다
+        # 교차 엔트로피 로스를 셈한다
         loss = F.cross_entropy(similarity_matrix, labels)
 
         return loss
@@ -138,11 +138,11 @@ def train_step(model, optimizer, criterion, batch_views, device):
     view1, view2 = batch_views
     view1, view2 = view1.to(device), view2.to(device)
 
-    # 두 시야를 모두 앞먹임한다
+    # 두 시야를 모두 피드포워드한다
     _, projections1 = model(view1)
     _, projections2 = model(view2)
 
-    # 대조 손실을 셈한다
+    # 대조 로스를 셈한다
     loss = criterion(projections1, projections2)
 
     # 역전파
@@ -154,7 +154,7 @@ def train_step(model, optimizer, criterion, batch_views, device):
 
 def extract_features(model, dataloader, device):
     """
-    학습된 SimCLR 인코더로 특징을 뽑는다
+    학습된 SimCLR 인코더로 피처를 뽑는다
     아래쪽 과제에 쓸모 있다
     """
     model.eval()
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     # 모형을 시작한다
     model = SimCLR(base_model='resnet50', projection_dim=128).to(device)
 
-    # 손실과 최적화기를 시작한다
+    # 로스와 최적화기를 시작한다
     criterion = NTXentLoss(temperature=0.5)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
@@ -215,13 +215,13 @@ Loss value: 4.1416
 
 ## 2. 논의
 
-SimCLR는 ResNet의 최종 fc를 Identity로 바꾸고 인코더 특징 h와 투영 헤드 출력 z를 함께 반환한다. 기본 ResNet-50의 특징은 2048, 투영은 128차원이다. ResNet-18은 특징 512를 사용한다. 체크포인트를 읽지 않아 무작위 초기화 모델이다. 코드의 pretrained=False 표기는 사용한 torchvision 버전의 인터페이스와 함께 확인한다.
+SimCLR는 ResNet의 최종 fc를 Identity로 바꾸고 인코더 피처 h와 투영 헤드 출력 z를 함께 반환한다. 기본 ResNet-50의 피처는 2048, 투영은 128차원이다. ResNet-18은 피처 512를 사용한다. 체크포인트를 읽지 않아 무작위 초기화 모델이다. 코드의 pretrained=False 표기는 사용한 torchvision 버전의 인터페이스와 함께 확인한다.
 
 NTXentLoss는 두 뷰의 배치 순서가 같다고 가정한다. 각 뷰를 정규화한 뒤 2N×2N 유사도를 만들고 대각선만 제외한다. 각 앵커의 후보는 양성 1개와 음성 2N−2개다. 서로 다른 이미지라도 같은 의미 클래스를 가질 수 있으므로 음성이 반드시 의미적으로 다른 대상은 아니다.
 
-온도는 양성만이 아니라 모든 후보 유사도 로짓을 나눈다. 낮으면 가장 큰 유사도 후보에 집중하며 그것이 잘못된 음성일 수도 있다. temperature>0과 두 뷰의 같은 배치 크기·특징 차원을 확인한다. N=1이면 음성이 없어 손실이 0인 퇴화된 문제가 된다. 행렬과 브로드캐스트 유사도 계산은 큰 배치에서 메모리를 사용한다.
+온도는 양성만이 아니라 모든 후보 유사도 로짓을 나눈다. 낮으면 가장 큰 유사도 후보에 집중하며 그것이 잘못된 음성일 수도 있다. temperature>0과 두 뷰의 같은 배치 크기·피처 차원을 확인한다. N=1이면 음성이 없어 로스가 0인 퇴화된 문제가 된다. 행렬과 브로드캐스트 유사도 계산은 큰 배치에서 메모리를 사용한다.
 
-투영 헤드는 대조 목표와 다운스트림 특징을 분리하는 데 도움이 될 수 있다. 원 연구에서 인코더 h를 선형 평가에 사용했지만 모든 과제에서 h가 z보다 우수하거나 특정 정보를 반드시 버린다고 단정하지 않는다. main의 두 뷰는 같은 이미지의 증강이 아니라 독립 난수 텐서이며 학습 갱신도 호출하지 않아 의미 있는 대조 학습 결과가 아니다.
+투영 헤드는 대조 목표와 다운스트림 피처를 분리하는 데 도움이 될 수 있다. 원 연구에서 인코더 h를 선형 평가에 사용했지만 모든 과제에서 h가 z보다 우수하거나 특정 정보를 반드시 버린다고 단정하지 않는다. main의 두 뷰는 같은 이미지의 증강이 아니라 독립 난수 텐서이며 학습 갱신도 호출하지 않아 의미 있는 대조 학습 결과가 아니다.
 
 ## 연습문제
 
@@ -240,12 +240,12 @@ N=256과 N=32인 두 뷰 배치에서 앵커별 양성·음성 수를 계산하�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-사전 학습 후 투영 헤드 앞 특징을 사용하는 이유와 검증 조건을 설명하라.
+사전 학습 후 투영 헤드 앞 피처를 사용하는 이유와 검증 조건을 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    투영 공간은 증강 뷰를 일치시키는 목표에 맞게 학습되므로 그 앞 특징이 다운스트림 과제에 더 유용할 수 있다. 이는 실험적 설계이며 색·위치 정보가 정확히 어느 층에서 얼마나 사라지는지는 확인이 필요하다. 같은 평가 분할·분류기 예산에서 h와 z를 비교한다.
+    투영 공간은 증강 뷰를 일치시키는 목표에 맞게 학습되므로 그 앞 피처가 다운스트림 과제에 더 유용할 수 있다. 이는 실험적 설계이며 색·위치 정보가 정확히 어느 레이어에서 얼마나 사라지는지는 확인이 필요하다. 같은 평가 분할·분류기 예산에서 h와 z를 비교한다.
 
 ---
 
@@ -260,14 +260,14 @@ N=256과 N=32인 두 뷰 배치에서 앵커별 양성·음성 수를 계산하�
     ```python
     @torch.no_grad()
     def topk_retrieval_accuracy(model, query_loader, db_loader, device, k=5):
-        """SimCLR 인코더의 특징으로 상위 k 검색 정확도를 셈한다."""
+        """SimCLR 인코더의 피처로 상위 k 검색 정확도를 셈한다."""
         model.eval()
 
-        # 질의 특징과 이름표를 뽑는다
+        # 질의 피처와 이름표를 뽑는다
         q_features, q_labels = extract_features(model, query_loader, device)
         q_features = F.normalize(q_features, dim=1)
 
-        # 데이터베이스 특징과 이름표를 뽑는다
+        # 데이터베이스 피처와 이름표를 뽑는다
         db_features, db_labels = extract_features(model, db_loader, device)
         db_features = F.normalize(db_features, dim=1)
 
@@ -292,4 +292,4 @@ N=256과 N=32인 두 뷰 배치에서 앵커별 양성·음성 수를 계산하�
 
 ## 정리하며
 
-같은 이미지의 두 증강 뷰, 배치 후보와 투영 공간의 손실을 연결한다. 온도·배치 크기의 효과를 고정 성능 법칙으로 해석하지 않고, 무작위 순전파와 실제 표현 학습·독립 검색 평가를 구분한다.
+같은 이미지의 두 증강 뷰, 배치 후보와 투영 공간의 로스를 연결한다. 온도·배치 크기의 효과를 고정 성능 법칙으로 해석하지 않고, 무작위 순전파와 실제 표현 학습·독립 검색 평가를 구분한다.

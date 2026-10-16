@@ -1,6 +1,6 @@
 # BERT: 트랜스포머 기반 양방향 인코더 표현
 
-BERT는 모든 인코더 층에서 양방향 문맥을 활용하도록 사전 학습한 언어 표현 모델이다. 마스크 언어 모델링(MLM)으로 일부 토큰을 복원하고, 원래 모델은 다음 문장 예측(NSP)도 함께 학습했다. 구조·학습 목표와 실제 체크포인트를 구분해 살펴본다.
+BERT는 모든 인코더 레이어에서 양방향 문맥을 활용하도록 사전 학습한 언어 표현 모델이다. 마스크 언어 모델링(MLM)으로 일부 토큰을 복원하고, 원래 모델은 다음 문장 예측(NSP)도 함께 학습했다. 구조·학습 목표와 실제 체크포인트를 구분해 살펴본다.
 
 ## 1. 핵심 혁신
 
@@ -25,7 +25,7 @@ BERT는 앞선 전이 학습 연구를 이어, 사전 학습한 양방향 인코
 
 ## 2. 구조
 
-BERT는 여러 층의 트랜스포머 인코더를 쓴다.
+BERT는 여러 레이어의 트랜스포머 인코더를 쓴다.
 
 $$
 \text{BERT} = \text{TransformerEncoder}^L
@@ -33,7 +33,7 @@ $$
 
 ### 모델의 크기
 
-| 모델 | 층 (L) | 은닉 차원 (H) | 헤드 (A) | 매개변수 |
+| 모델 | 레이어 (L) | 은닉 차원 (H) | 헤드 (A) | 파라메터 |
 |-------|------------|------------|-----------|------------|
 | BERT-Base | 12 | 768 | 12 | 110M |
 | BERT-Large | 24 | 1024 | 16 | 340M |
@@ -73,7 +73,7 @@ $$
 \mathcal{L}_{\text{MLM}} = -\sum_{i \in \mathcal{M}} \log P_\theta(x_i\mid\widetilde{\mathbf{x}})
 $$
 
-여기서 $\mathcal{M}$은 예측 대상으로 고른 위치이며 $\widetilde{\mathbf{x}}$는 80-10-10 규칙으로 손상한 입력이다. 손실을 합으로 쓸지 대상 토큰 평균으로 쓸지도 학습 설정에서 정한다.
+여기서 $\mathcal{M}$은 예측 대상으로 고른 위치이며 $\widetilde{\mathbf{x}}$는 80-10-10 규칙으로 손상한 입력이다. 로스를 합으로 쓸지 대상 토큰 평균으로 쓸지도 학습 설정에서 정한다.
 
 **입력 손상 방식 (80-10-10 규칙):**
 
@@ -95,7 +95,7 @@ $$
 
 ### MLM의 독립 가정
 
-일반적인 MLM 손실은 같은 손상 입력에서 각 대상 위치의 정답 로그 확률을 별도로 더한다. 다음 곱은 그 학습 목표의 해석이며 실제 토큰들이 언어적으로 독립이라는 주장이 아니다.
+일반적인 MLM 로스는 같은 손상 입력에서 각 대상 위치의 정답 로그 확률을 별도로 더한다. 다음 곱은 그 학습 목표의 해석이며 실제 토큰들이 언어적으로 독립이라는 주장이 아니다.
 
 $$
 P(\mathbf{x}_{\mathcal{M}}\mid\widetilde{\mathbf{x}}) \approx \prod_{i \in \mathcal{M}} P_\theta(x_i\mid\widetilde{\mathbf{x}})
@@ -103,7 +103,7 @@ $$
 
 같은 손상 입력을 처리하는 은닉 표현들은 셀프 어텐션으로 서로 상호작용한다. 다만 여러 정답 토큰을 순서대로 조건에 추가하는 자기 회귀 결합 확률을 직접 학습하는 것과는 다르다. MLM의 토큰 확률을 그대로 곱해 일반 언어 모델의 시퀀스 확률이나 퍼플렉시티로 해석해서는 안 된다.
 
-### 합친 손실
+### 합친 로스
 
 $$
 \mathcal{L} = \mathcal{L}_{\text{MLM}} + \mathcal{L}_{\text{NSP}}
@@ -114,7 +114,7 @@ $$
 원래 BERT는 BooksCorpus와 영어 위키백과를 이용해 사전 학습했다. 논문은 배치 256개로 100만 단계를 사용하고 처음 90% 단계는 길이 128, 나머지는 길이 512를 사용했다고 설명한다. 모든 배치가 항상 512토큰이었던 것은 아니다. 세부 설정은 [원 논문의 학습 절차](https://arxiv.org/html/1810.04805v2)를 참고한다.
 
 - **배치와 길이**: 시퀀스 256개이며 학습 단계에 따라 최대 길이가 달랐다.
-- **옵티마이저**: Adam과 워밍업·선형 학습률 감쇠를 사용했다.
+- **옵티마이저**: Adam과 워밍업·선형 러닝레이트 감쇠를 사용했다.
 - **어휘**: 체크포인트의 WordPiece 어휘와 대소문자 처리 규칙을 함께 확인한다.
 - **학습 비용**: 논문의 하드웨어·설정에 대한 보고이며 현재 구현의 실행 시간으로 일반화하지 않는다.
 
@@ -124,9 +124,9 @@ $$
 
 다음 사용자 정의 BertModel은 무작위로 초기화된다. main의 입력·레이블도 무작위이므로 출력 모양과 계수 수는 구조 확인용이며 사전 학습·분류 품질의 결과가 아니다.
 
-attention_mask는 (B,L)에서 1이 유효, 0이 패딩이고 내부에서는 점수에 더하는 -10000 편향으로 바꾼다. 유한한 편향은 모든 키가 패딩인 행을 안전하게 0으로 만드는 정책이 아니다. 반환 어텐션은 드롭아웃 이후라 학습 중 행 합이 항상 1인 것도 아니다.
+attention_mask는 (B,L)에서 1이 유효, 0이 패딩이고 내부에서는 점수에 더하는 -10000 바이어스로 바꾼다. 유한한 바이어스는 모든 키가 패딩인 행을 안전하게 0으로 만드는 폴리시가 아니다. 반환 어텐션은 드롭아웃 이후라 학습 중 행 합이 항상 1인 것도 아니다.
 
-BertForMaskedLM은 입력 임베딩과 어휘 투영 가중치를 공유하지만 원래 MLM의 중간 dense·GELU·LayerNorm을 생략한다. labels는 선택한 예측 위치만 유효 ID로 두고 나머지는 -100으로 표시해야 한다. BertModel의 풀러는 MLM 로짓 계산에 사용하지 않으므로 MLM 손실만으로는 학습되지 않는다. 모든 labels가 제외되면 평균 손실의 유효 분모가 없다.
+BertForMaskedLM은 입력 임베딩과 어휘 투영 웨이트를 공유하지만 원래 MLM의 중간 dense·GELU·LayerNorm을 생략한다. labels는 선택한 예측 위치만 유효 ID로 두고 나머지는 -100으로 표시해야 한다. BertModel의 풀러는 MLM 로짓 계산에 사용하지 않으므로 MLM 로스만으로는 학습되지 않는다. 모든 labels가 제외되면 평균 로스의 유효 분모가 없다.
 
 ```python
 import torch
@@ -136,7 +136,7 @@ import math
 from typing import Optional, Tuple, Dict
 
 class BertEmbeddings(nn.Module):
-    """BERT 임베딩 층: 토큰 + 구간 + 자리"""
+    """BERT 임베딩 레이어: 토큰 + 구간 + 자리"""
     
     def __init__(
         self,
@@ -186,7 +186,7 @@ class BertEmbeddings(nn.Module):
             self.segment_embeddings(token_type_ids)
         )
         
-        # 층 정규화와 드롭아웃
+        # 레이어 정규화와 드롭아웃
         embeddings = self.layer_norm(embeddings)
         embeddings = self.dropout(embeddings)
         
@@ -260,7 +260,7 @@ class BertSelfAttention(nn.Module):
         return context_layer, None
 
 class BertLayer(nn.Module):
-    """BERT 인코더 층 하나."""
+    """BERT 인코더 레이어 하나."""
     
     def __init__(
         self,
@@ -292,7 +292,7 @@ class BertLayer(nn.Module):
         attention_mask: Optional[torch.Tensor] = None,
         output_attentions: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        """BERT 층을 지나는 앞먹임."""
+        """BERT 레이어를 지나는 피드포워드."""
         
         # 자기 주의
         attn_output, attn_weights = self.attention(
@@ -341,7 +341,7 @@ class BertEncoder(nn.Module):
         output_attentions: bool = False,
         output_hidden_states: bool = False
     ) -> Dict[str, torch.Tensor]:
-        """모든 인코더 층을 지나는 앞먹임."""
+        """모든 인코더 레이어를 지나는 피드포워드."""
         
         all_hidden_states = [] if output_hidden_states else None
         all_attentions = [] if output_attentions else None
@@ -429,7 +429,7 @@ class BertModel(nn.Module):
         output_hidden_states: bool = False
     ) -> Dict[str, torch.Tensor]:
         """
-        앞먹임.
+        피드포워드.
         
         인수:
             input_ids: 토큰 번호 [batch_size, seq_len]
@@ -437,7 +437,7 @@ class BertModel(nn.Module):
             token_type_ids: 구간 번호 [batch_size, seq_len]
             position_ids: 자리 번호 [batch_size, seq_len]
         """
-        # 주의 층을 위한 주의 가림을 만든다
+        # 주의 레이어를 위한 주의 가림을 만든다
         if attention_mask is not None:
             # [batch, seq]를 [batch, 1, 1, seq]로 바꾼다
             # 0은 -inf로, 1은 0으로
@@ -480,7 +480,7 @@ class BertForMaskedLM(nn.Module):
         self.bert = BertModel(**config)
         self.cls = nn.Linear(config['hidden_size'], config['vocab_size'])
         
-        # 임베딩과 가중치를 묶는다
+        # 임베딩과 웨이트를 묶는다
         self.cls.weight = self.bert.embeddings.token_embeddings.weight
     
     def forward(
@@ -490,7 +490,7 @@ class BertForMaskedLM(nn.Module):
         token_type_ids: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None
     ) -> Dict[str, torch.Tensor]:
-        """가린 언어 모형 손실을 셈하는 앞먹임."""
+        """가린 언어 모형 로스를 셈하는 피드포워드."""
         
         outputs = self.bert(
             input_ids=input_ids,
@@ -501,7 +501,7 @@ class BertForMaskedLM(nn.Module):
         # 가린 언어 모형 예측
         prediction_scores = self.cls(outputs['last_hidden_state'])
         
-        # 이름표가 있으면 손실을 셈한다
+        # 이름표가 있으면 로스를 셈한다
         loss = None
         if labels is not None:
             loss = F.cross_entropy(
@@ -534,7 +534,7 @@ class BertForSequenceClassification(nn.Module):
         token_type_ids: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None
     ) -> Dict[str, torch.Tensor]:
-        """분류 손실을 셈하는 앞먹임."""
+        """분류 로스를 셈하는 피드포워드."""
         
         outputs = self.bert(
             input_ids=input_ids,
@@ -547,7 +547,7 @@ class BertForSequenceClassification(nn.Module):
         pooled_output = self.dropout(pooled_output)
         logits = self.classifier(pooled_output)
         
-        # 손실을 계산한다
+        # 로스를 계산한다
         loss = None
         if labels is not None:
             if self.num_labels == 1:
@@ -601,7 +601,7 @@ if __name__ == "__main__":
     print(f"Last hidden state shape: {outputs['last_hidden_state'].shape}")
     print(f"Pooler output shape: {outputs['pooler_output'].shape}")
     
-    # 매개변수 개수 세기
+    # 파라메터 개수 세기
     total_params = sum(p.numel() for p in model.parameters())
     print(f"\nTotal parameters: {total_params:,}")
     
@@ -634,7 +634,7 @@ Classification loss: 0.5852
 
 ## 5. 다운스트림 과제를 위한 미세 조정
 
-아래 세 래퍼는 hidden_size=768을 고정하므로 다른 폭의 인코더에는 출력층도 맞춰야 한다. 제공한 BertModel에 학습 가중치를 읽는 코드는 없으며, 이미 사전 학습한 객체를 넘기지 않는 한 미세 조정이 아니다. NER에는 서브워드·특수 토큰·PAD의 라벨 정렬이, 추출형 QA에는 질문·PAD 제외와 유효한 답 구간 선택이 필요하다.
+아래 세 래퍼는 hidden_size=768을 고정하므로 다른 폭의 인코더에는 출력 레이어도 맞춰야 한다. 제공한 BertModel에 학습 웨이트를 읽는 코드는 없으며, 이미 사전 학습한 객체를 넘기지 않는 한 미세 조정이 아니다. NER에는 서브워드·특수 토큰·PAD의 라벨 정렬이, 추출형 QA에는 질문·PAD 제외와 유효한 답 구간 선택이 필요하다.
 
 ### 텍스트 분류
 
@@ -692,7 +692,7 @@ class BertQA(nn.Module):
 | 모델 | 대표 변화 | 비교 시 확인할 점 |
 |---|---|---|
 | RoBERTa | NSP 제외, 동적 마스킹·학습 조건 변경 | 목표 외의 데이터·계산도 달라짐 |
-| ALBERT | 임베딩 분해·층 간 공유·문장 순서 예측 | 설정별 계수 수와 실제 연산량은 별개 |
+| ALBERT | 임베딩 분해·레이어 간 공유·문장 순서 예측 | 설정별 계수 수와 실제 연산량은 별개 |
 | DistilBERT | 지식 증류와 축소된 인코더 | 품질·속도 비율은 과제와 장치별로 비교 |
 | ELECTRA | 교체 토큰 판별 | 생성기·판별기의 학습 비용을 함께 고려 |
 | DeBERTa | 내용·위치를 분리한 어텐션 | 모델 버전과 학습 목표를 구분 |
@@ -708,11 +708,11 @@ class BertQA(nn.Module):
 
 이 절은 별도의 Hugging Face 예제다. BertModel 이름을 다시 가져오므로 앞의 사용자 정의 클래스와 구분한다. from_pretrained는 실제 체크포인트를 읽고 새 분류 헤드는 별도로 초기화한다.
 
-train_classifier는 워밍업 없이 처음 학습률부터 선형 감쇠한다. 손실은 배치 평균들의 단순 평균이며, 반환값은 마지막 모델로서 저장한 최고 검증 F1 모델을 다시 불러오지 않는다. 검증 F1이 초기 best_f1=0을 넘지 않으면 체크포인트가 저장되지 않을 수도 있다.
+train_classifier는 워밍업 없이 처음 러닝레이트부터 선형 감쇠한다. 로스는 배치 평균들의 단순 평균이며, 반환값은 마지막 모델로서 저장한 최고 검증 F1 모델을 다시 불러오지 않는다. 검증 F1이 초기 best_f1=0을 넘지 않으면 체크포인트가 저장되지 않을 수도 있다.
 
-freeze_bert는 경사 갱신만 막는다. model.train()을 호출하면 인코더의 드롭아웃도 켜져 고정 특징을 매번 동일하게 만드는 설정은 아니다. predict의 기본 device는 CPU인데 학습은 CUDA를 선택할 수 있어 모델과 입력 장치를 맞춰야 한다. 추론 토큰화의 길이도 학습 max_length=128과 일관되게 지정한다.
+freeze_bert는 경사 갱신만 막는다. model.train()을 호출하면 인코더의 드롭아웃도 켜져 고정 피처를 매번 동일하게 만드는 설정은 아니다. predict의 기본 device는 CPU인데 학습은 CUDA를 선택할 수 있어 모델과 입력 장치를 맞춰야 한다. 추론 토큰화의 길이도 학습 max_length=128과 일관되게 지정한다.
 
-BertClassifierWithPooling의 cls는 원시 첫 위치 출력으로 pooler_output과 다르다. concat은 마지막 네 층이 있어야 선언한 4배 폭과 맞고, max는 은닉 텐서를 제자리 변경한다. 지원하지 않는 pooling 이름이나 전부 PAD인 입력은 별도 검증이 필요하다. train_multilabel은 손실과 예측을 계산할 뿐 optimizer 갱신을 수행하지 않는다.
+BertClassifierWithPooling의 cls는 원시 첫 위치 출력으로 pooler_output과 다르다. concat은 마지막 네 레이어가 있어야 선언한 4배 폭과 맞고, max는 은닉 텐서를 제자리 변경한다. 지원하지 않는 pooling 이름이나 전부 PAD인 입력은 별도 검증이 필요하다. train_multilabel은 로스와 예측을 계산할 뿐 optimizer 갱신을 수행하지 않는다.
 
 ### 분류를 위한 구조
 
@@ -761,7 +761,7 @@ class BertClassifier(nn.Module):
     
     def forward(self, input_ids, attention_mask, token_type_ids=None):
         """
-        앞먹임.
+        피드포워드.
         
         인수:
             input_ids: [batch, seq_len]
@@ -919,7 +919,7 @@ class BertClassifierWithPooling(nn.Module):
         
         hidden_size = self.bert.config.hidden_size
         if pooling == 'concat':
-            hidden_size *= 4  # 마지막 네 층
+            hidden_size *= 4  # 마지막 네 레이어
         
         self.classifier = nn.Sequential(
             nn.Dropout(0.1),
@@ -953,7 +953,7 @@ class BertClassifierWithPooling(nn.Module):
             pooled = token_embeddings.max(dim=1)[0]
         
         elif self.pooling == 'concat':
-            # 마지막 네 층의 [CLS]를 이어 붙인다
+            # 마지막 네 레이어의 [CLS]를 이어 붙인다
             hidden_states = outputs.hidden_states
             pooled = torch.cat([h[:, 0] for h in hidden_states[-4:]], dim=-1)
         
@@ -1026,7 +1026,7 @@ if __name__ == "__main__":
 
 ### 좋은 방법
 
-학습률·배치 크기·길이·에포크·워밍업·가중치 감쇠는 데이터와 모델에 따라 검증셋에서 선택한다. 코드의 소규모 4개 학습·2개 검증 문장으로 일반적인 성능을 판단할 수 없고, 최종 평가는 별도 테스트셋에서 수행한다. 특정 범위를 모든 과제의 충분조건으로 제시하지 않는다.
+러닝레이트·배치 크기·길이·에포크·워밍업·웨이트 감쇠는 데이터와 모델에 따라 검증셋에서 선택한다. 코드의 소규모 4개 학습·2개 검증 문장으로 일반적인 성능을 판단할 수 없고, 최종 평가는 별도 테스트셋에서 수행한다. 특정 범위를 모든 과제의 충분조건으로 제시하지 않는다.
 
 ### 핵심 내용
 
@@ -1035,7 +1035,7 @@ BERT 분류는 다음으로 이루어진다.
 1. [CLS]와 [SEP]을 넣어 입력을 토큰으로 나눈다
 2. [CLS] 표현을 꺼낸다
 3. 분류 헤드를 적용한다
-4. 교차 엔트로피 손실로 미세 조정한다
+4. 교차 엔트로피 로스로 미세 조정한다
 
 ### 참고 문헌
 
@@ -1073,12 +1073,12 @@ BERT와 인과 언어 모델이 볼 수 있는 문맥과 학습 목표를 비교
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 페이지 BertModel 기본 설정의 매개변수 수를 구성별로 계산하라.
+이 페이지 BertModel 기본 설정의 파라메터 수를 구성별로 계산하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    임베딩·그 LayerNorm은 23,837,184개, 인코더 블록 하나는 7,087,872개로 12층은 85,054,464개, 풀러는 590,592개다. 합은 109,482,240개다. 별도의 MLM·NSP·분류 헤드는 포함하지 않는다. BERT-Base의 약 110M 표기는 이러한 구성·반올림 기준과 함께 읽는다.
+    임베딩·그 LayerNorm은 23,837,184개, 인코더 블록 하나는 7,087,872개로 12레이어는 85,054,464개, 풀러는 590,592개다. 합은 109,482,240개다. 별도의 MLM·NSP·분류 헤드는 포함하지 않는다. BERT-Base의 약 110M 표기는 이러한 구성·반올림 기준과 함께 읽는다.
 
 ---
 

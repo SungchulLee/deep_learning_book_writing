@@ -1,8 +1,8 @@
 # ALBERT
 
-ALBERT은 2019년 글 "ALBERT: A Lite BERT for Self-supervised Learning of Language Representations"에서 나왔다. 1) 나눈 담음 매기기: 단어 담음 차수(E)를 숨은 차수(H)보다 작게 두고 단어 -> E으로 담은 뒤 E -> H으로 되비춘다 2) 켜를 넘나드는 매개변수 나눠 쓰기: 같은 트랜스포머 켜의 짐을 모든 켜에서 되쓴다 3) 월 차례 추론(SOP)(흔히 NSP과 비교하여 이야기된다).
+ALBERT은 2019년 글 "ALBERT: A Lite BERT for Self-supervised Learning of Language Representations"에서 나왔다. 1) 나눈 담음 매기기: 단어 담음 차수(E)를 숨은 차수(H)보다 작게 두고 단어 -> E으로 담은 뒤 E -> H으로 되비춘다 2) 켜를 넘나드는 파라메터 나눠 쓰기: 같은 트랜스포머 켜의 짐을 모든 켜에서 되쓴다 3) 월 차례 추론(SOP)(흔히 NSP과 비교하여 이야기된다).
 
-여기 짜보기는 ALBERT을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 ALBERT을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -10,18 +10,18 @@ ALBERT은 2019년 글 "ALBERT: A Lite BERT for Self-supervised Learning of Langu
 #!/usr/bin/env python3
 """
 ALBERT - 가벼운 BERT
-글: "ALBERT: 말 드러냄을 스스로 이끌며 배우기 위한 가벼운 BERT" (2019)
+글: "ALBERT: 말 리프리젠테이션을 스스로 이끌며 배우기 위한 가벼운 BERT" (2019)
 지은이: 전중 란 외
 핵심 깨침:
   1) 나눈 담음 매기기:
        낱말 담음 차수(E)를 숨은 차수(H)보다 작게 둔다
        담기: 낱말 -> E, 그다음 E -> H으로 되비춘다
-  2) 켜를 넘나드는 매개변수 나눠 쓰기:
+  2) 켜를 넘나드는 파라메터 나눠 쓰기:
        같은 변환기 켜의 짐을 모든 켜에서 되쓴다
   3) 월 차례 미루어 보기(SOP)(흔히 NSP과 견주어 이야기된다)
 
 두루마리: appendix/transformers/albert.py
-눈여겨볼 것: 나눈 담음과 나누어 쓰는 켜를 보이는, 배우기 위한 짜보기다.
+눈여겨볼 것: 나눈 담음과 나누어 쓰는 켜를 보이는, 배우기 위한 구현이다.
 """
 
 import torch
@@ -70,7 +70,7 @@ class ALBERT(nn.Module):
         if attention_mask is not None:
             src_key_padding_mask = ~attention_mask.bool()
 
-        # 같은 덩이를 여러 번 되쓴다(매개변수 나눠 쓰기)
+        # 같은 덩이를 여러 번 되쓴다(파라메터 나눠 쓰기)
         for _ in range(self.num_layers):
             x = self.shared_block(x, src_key_padding_mask=src_key_padding_mask)
 
@@ -95,7 +95,7 @@ logits: torch.Size([2, 9, 1000])
 
 ## 2. 논의
 
-이 짜보기는 갈래 2개(`SharedTransformerBlock`, `ALBERT`)를 매기고, 이들이 어울려 온전한 트랜스포머 구조를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 계산 그림을 매긴다.
+이 구현은 클래스 2개(`SharedTransformerBlock`, `ALBERT`)를 매기고, 이들이 어울려 온전한 트랜스포머 구조를 이룬다. 클래스마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 계산 그림을 매긴다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 증강 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -104,12 +104,12 @@ logits: torch.Size([2, 9, 1000])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫자리로 잡은 `SharedTransformerBlock`의 배울 수 있는 매개변수를 모두 세어라. 짐과 편향을 아울러 켜마다 나누어 적어라.
+기본 첫자리로 잡은 `SharedTransformerBlock`의 배울 수 있는 파라메터를 모두 세어라. 짐과 바이어스를 아울러 켜마다 나누어 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)`마다 짐 매개변수가 `in_features * out_features`개이고 편향이 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 짐이 `in_c * out_c * k * k`개, 편향이 `out_c`개다. `nn.Embedding(num, dim)`은 매개변수가 `num * dim`개다. 켜를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 따져 볼 수 있다.
+    `nn.Linear(in_features, out_features)`마다 짐 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 짐이 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 켜를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 따져 볼 수 있다.
 
 ---
 
@@ -121,7 +121,7 @@ logits: torch.Size([2, 9, 1000])
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 짐 얼마를 아무렇게나 0으로 만들어, 모델이 단어끼리의 어떤 사이에만 기대는 것을 막는다. 그래서 모델이 어텐션을 더 고루 나누고 더 든든한 드러냄을 배우게 되는데, 이는 여느 드롭아웃이 신경 낱자리끼리 함께 길드는 것을 막는 것과 같다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 짐 얼마를 아무렇게나 0으로 만들어, 모델이 단어끼리의 어떤 사이에만 기대는 것을 막는다. 그래서 모델이 어텐션을 더 고루 나누고 더 든든한 리프리젠테이션을 배우게 되는데, 이는 여느 드롭아웃이 뉴럴 유닛끼리 함께 길드는 것을 막는 것과 같다.
 
 ---
 
@@ -140,7 +140,7 @@ logits: torch.Size([2, 9, 1000])
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`SharedTransformerBlock`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`SharedTransformerBlock`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 파라메터를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -151,12 +151,12 @@ logits: torch.Size([2, 9, 1000])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 매개변수를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = SharedTransformerBlock(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = SharedTransformerBlock(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
 
 ## 정리하며
 
 **다룬 것** — ALBERT
 
-이 짜보기는 갈래 2개(`SharedTransformerBlock`, `ALBERT`)를 매기고, 이들이 어울려 온전한 트랜스포머 구조를 이룬다.
+이 구현은 클래스 2개(`SharedTransformerBlock`, `ALBERT`)를 매기고, 이들이 어울려 온전한 트랜스포머 구조를 이룬다.
 
-핵심 갈래는 `SharedTransformerBlock`, `ALBERT`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `SharedTransformerBlock`, `ALBERT`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

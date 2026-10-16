@@ -1,10 +1,10 @@
 # YOLO: 격자 예측에서 다중 해상도 탐지까지
 
-YOLO는 이미지 전체에서 객체의 위치와 클래스를 예측하는 단일 단계 탐지 계열이다. 최초 YOLO와 후속 구현은 출력 표현·학습 목표·backbone이 다르므로 하나의 격자 공식이나 손실을 모든 버전에 적용하면 안 된다. 이 절은 YOLOv1·v3·Ultralytics YOLOv8을 중심으로 각 코드의 범위를 구분한다.
+YOLO는 이미지 전체에서 객체의 위치와 클래스를 예측하는 단일 단계 탐지 계열이다. 최초 YOLO와 후속 구현은 출력 표현·학습 목표·backbone이 다르므로 하나의 격자 공식이나 로스를 모든 버전에 적용하면 안 된다. 이 절은 YOLOv1·v3·Ultralytics YOLOv8을 중심으로 각 코드의 범위를 구분한다.
 
-## 1. 단일 단계 탐지와 이미지 특징
+## 1. 단일 단계 탐지와 이미지 피처
 
-[최초 YOLO](https://arxiv.org/abs/1506.02640)는 이미지 전체의 특징에서 상자와 클래스를 함께 예측했다. 아래 도식의 S×S×(5B+C)는 **YOLOv1의 출력 형식**이다. 후속 앵커 기반·앵커 없는 head의 공통 형식은 아니다. 네트워크 출력 이후에도 좌표 변환·점수 필터·중복 억제 등 후처리가 필요하다.
+[최초 YOLO](https://arxiv.org/abs/1506.02640)는 이미지 전체의 피처에서 상자와 클래스를 함께 예측했다. 아래 도식의 S×S×(5B+C)는 **YOLOv1의 출력 형식**이다. 후속 앵커 기반·앵커 없는 head의 공통 형식은 아니다. 네트워크 출력 이후에도 좌표 변환·점수 필터·중복 억제 등 후처리가 필요하다.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -32,7 +32,7 @@ YOLO는 이미지 전체에서 객체의 위치와 클래스를 예측하는 단
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-두 단계 탐지기도 backbone에서 전체 이미지 특징을 만들고 제안 영역별 특징을 사용한다. ‘YOLO는 전체를 보고 Faster R-CNN은 제안만 본다’는 대비는 정확하지 않다. 단일 단계는 별도 영역 제안·영역별 head를 두지 않는다는 구조상의 차이다. 속도와 작은 객체 성능·오탐률은 모델·해상도·학습·하드웨어에 따라 비교한다.
+두 단계 탐지기도 backbone에서 전체 이미지 피처를 만들고 제안 영역별 피처를 사용한다. ‘YOLO는 전체를 보고 Faster R-CNN은 제안만 본다’는 대비는 정확하지 않다. 단일 단계는 별도 영역 제안·영역별 head를 두지 않는다는 구조상의 차이다. 속도와 작은 객체 성능·오탐률은 모델·해상도·학습·하드웨어에 따라 비교한다.
 
 ## 2. YOLOv1의 격자와 좌표
 
@@ -158,7 +158,7 @@ class YOLOv3Head(nn.Module):
     ):
         super().__init__()
         
-        # 닻마다 어림: 자리표 4 + 물체다움 1 + 갈래 수
+        # 닻마다 어림: 자리표 4 + 물체다움 1 + 클래스 수
         out_channels = num_anchors * (5 + num_classes)
         
         self.conv = nn.Sequential(
@@ -187,7 +187,7 @@ class YOLOv3Head(nn.Module):
 
 입력 B×C×H×W에서 head는 B×A×H×W×(5+K)를 반환한다. 기본 A=3,K=80이면 마지막 차원 85다. 이 값은 raw 예측이므로 앵커·stride·격자와 함께 디코딩하고 objectness·클래스를 해석해야 한다.
 
-YOLOv4 이후에는 CSP 계열 특징, 피라미드 연결·학습 기법·추론 구조 재매개변수화 등 다양한 설계가 제시되었다. YOLO라는 이름을 공유해도 개발 주체와 계보·정의가 모두 같지는 않다. 번호만으로 모든 이전 버전의 엄밀한 상위 집합이나 성능 순서를 뜻하지 않는다.
+YOLOv4 이후에는 CSP 계열 피처, 피라미드 연결·학습 기법·추론 구조 리파라메리제이션 등 다양한 설계가 제시되었다. YOLO라는 이름을 공유해도 개발 주체와 계보·정의가 모두 같지는 않다. 번호만으로 모든 이전 버전의 엄밀한 상위 집합이나 성능 순서를 뜻하지 않는다.
 
 다음은 2023년에 공개된 Ultralytics YOLOv8 사용 예다. YOLOv8을 ‘최신 세대’라고 고정해 설명하지 않는다. 이 코드는 추론뿐 아니라 학습과 파일 내보내기도 수행하므로 읽을 때 각 호출의 목적을 구분한다.
 
@@ -208,9 +208,9 @@ model.train(data='coco.yaml', epochs=100, imgsz=640)
 model.export(format='onnx')
 ```
 
-## 4. YOLOv8 특징 결합과 분리 head
+## 4. YOLOv8 피처 결합과 분리 head
 
-YOLOv8의 구체적인 층은 [공식 모델 설정](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/models/v8/yolov8.yaml)을 기준으로 확인한다. C2f·SPPF 및 여러 해상도의 특징 연결을 사용한다. 아래 기존 도식의 `Stem (Focus)`와 640 입력에서 P3=40·P4=20·P5=10 표기는 실제 YOLOv8 설정을 정확히 나타내지 않는다. 통상 stride8·16·32 탐지 특징은 640 입력에서 80·40·20이다. 도식은 CSP·다중 단계의 개념 그림으로만 읽는다.
+YOLOv8의 구체적인 레이어는 [공식 모델 설정](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/models/v8/yolov8.yaml)을 기준으로 확인한다. C2f·SPPF 및 여러 해상도의 피처 연결을 사용한다. 아래 기존 도식의 `Stem (Focus)`와 640 입력에서 P3=40·P4=20·P5=10 표기는 실제 YOLOv8 설정을 정확히 나타내지 않는다. 통상 stride8·16·32 탐지 피처는 640 입력에서 80·40·20이다. 도식은 CSP·다중 단계의 개념 그림으로만 읽는다.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -248,12 +248,12 @@ YOLOv8의 구체적인 층은 [공식 모델 설정](https://raw.githubuserconte
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-아래 `PANNeck`은 상위 특징의 업샘플링·더하기와 아래 방향의 다운샘플링·연결을 보여 주는 단순 모듈이다. 실제 YOLOv8 neck의 모든 블록을 재현하지 않는다. 입력 특징은 고해상도부터 저해상도 순서이며 두 배씩 크기가 맞아야 한다. 홀수 크기에서는 scale_factor=2 업샘플과 stride2 결과가 맞지 않을 수 있고, 목록 길이가 채널 설정과 같아야 한다.
+아래 `PANNeck`은 상위 피처의 업샘플링·더하기와 아래 방향의 다운샘플링·연결을 보여 주는 단순 모듈이다. 실제 YOLOv8 neck의 모든 블록을 재현하지 않는다. 입력 피처는 고해상도부터 저해상도 순서이며 두 배씩 크기가 맞아야 한다. 홀수 크기에서는 scale_factor=2 업샘플과 stride2 결과가 맞지 않을 수 있고, 목록 길이가 채널 설정과 같아야 한다.
 
 ```python
 class PANNeck(nn.Module):
     """
-    여러 잣수 특징을 녹여 붙이는 경로 모으기 그물 목.
+    여러 잣수 피처를 녹여 붙이는 경로 모으기 넷트웍 목.
     """
     def __init__(self, in_channels_list, out_channels):
         super().__init__()
@@ -270,7 +270,7 @@ class PANNeck(nn.Module):
             for _ in range(len(in_channels_list) - 1)
         ])
         
-        # 녹여 붙이는 누비기
+        # 녹여 붙이는 컨볼루션
         self.fusion_convs = nn.ModuleList([
             nn.Conv2d(out_channels * 2, out_channels, 3, padding=1)
             for _ in range(len(in_channels_list) - 1)
@@ -279,10 +279,10 @@ class PANNeck(nn.Module):
     def forward(self, features):
         """
         인수:
-            features: 특징 지도의 목록 [P3, P4, P5]
+            features: 피처 지도의 목록 [P3, P4, P5]
             
         반환값:
-            잣수마다 녹여 붙인 특징의 목록
+            잣수마다 녹여 붙인 피처의 목록
         """
         # 옆 이음
         laterals = [conv(f) for conv, f in zip(self.lateral_convs, features)]
@@ -309,7 +309,7 @@ class PANNeck(nn.Module):
 ```python
 class YOLOv8Head(nn.Module):
     """
-    갈래 매기기와 되돌리기를 떼어 놓은 닻 없는 알아내기 머리.
+    클래스 매기기와 되돌리기를 떼어 놓은 닻 없는 알아내기 머리.
     """
     def __init__(
         self,
@@ -322,7 +322,7 @@ class YOLOv8Head(nn.Module):
         self.num_classes = num_classes
         self.reg_max = reg_max
         
-        # 갈래 매기기 가지
+        # 클래스 매기기 가지
         self.cls_conv = nn.Sequential(
             nn.Conv2d(in_channels, in_channels, 3, padding=1),
             nn.BatchNorm2d(in_channels),
@@ -342,7 +342,7 @@ class YOLOv8Head(nn.Module):
             nn.BatchNorm2d(in_channels),
             nn.SiLU(inplace=True),
         )
-        # 분포 초점 손실: 4 × reg_max개의 값을 어림
+        # 분포 초점 로스: 4 × reg_max개의 값을 어림
         self.reg_pred = nn.Conv2d(in_channels, 4 * reg_max, 1)
     
     def forward(self, x):
@@ -360,7 +360,7 @@ class YOLOv8Head(nn.Module):
         return cls_out, reg_out
 ```
 
-## 5. 버전별 손실을 구분하기
+## 5. 버전별 로스를 구분하기
 
 YOLOv1의 제곱 오차 목적은 책임 있는 상자의 중심·제곱근 크기, confidence와 칸별 클래스 확률에 대한 항으로 구성된다. 후속 버전이 모두 같은 MSE를 쓰는 것은 아니다. 아래는 v1을 설명하기 위한 축약 구현이다.
 
@@ -377,16 +377,16 @@ def yolo_loss(
     lambda_noobj: float = 0.5
 ) -> torch.Tensor:
     """
-    YOLOv1 방식의 손실 함수.
+    YOLOv1 방식의 로스 함수.
     
     인수:
         predictions: (batch, S, S, B*5 + C)
         targets: [x, y, w, h, obj, classes...]를 담은 (batch, S, S, 5 + C)
-        num_classes: 갈래의 개수 C
+        num_classes: 클래스의 개수 C
         num_boxes: 칸마다의 상자 개수 B
         
     반환값:
-        전체 손실
+        전체 로스
     """
     batch_size, S, _, _ = predictions.shape
     
@@ -418,7 +418,7 @@ def yolo_loss(
     ious = torch.stack(ious, dim=-1)  # (batch, S, S, B)
     best_box = ious.argmax(dim=-1)  # (batch, S, S)
     
-    # 자리표 손실(맡은 어림개만)
+    # 자리표 로스(맡은 어림개만)
     coord_loss = 0
     for b in range(num_boxes):
         responsible = (best_box == b) & obj_mask
@@ -426,10 +426,10 @@ def yolo_loss(
             pred = pred_boxes[b][responsible]
             target = target_box[responsible]
             
-            # xy 손실
+            # xy 로스
             coord_loss += F.mse_loss(pred[:, :2], target[:, :2], reduction='sum')
             
-            # 너비·높이 손실(잣수에 안 바뀌도록 제곱근)
+            # 너비·높이 로스(잣수에 안 바뀌도록 제곱근)
             coord_loss += F.mse_loss(
                 torch.sqrt(pred[:, 2:4].abs() + 1e-6),
                 torch.sqrt(target[:, 2:4].abs() + 1e-6),
@@ -438,7 +438,7 @@ def yolo_loss(
     
     coord_loss *= lambda_coord
     
-    # 믿음도 손실
+    # 믿음도 로스
     conf_loss = 0
     for b in range(num_boxes):
         responsible = (best_box == b) & obj_mask
@@ -459,7 +459,7 @@ def yolo_loss(
                 reduction='sum'
             )
     
-    # 갈래 매기기 손실
+    # 클래스 매기기 로스
     if obj_mask.sum() > 0:
         cls_loss = F.mse_loss(
             pred_classes[obj_mask],
@@ -469,15 +469,15 @@ def yolo_loss(
     else:
         cls_loss = 0
     
-    # 배치 크기로 고르게 맞춘 전체 손실
+    # 배치 크기로 고르게 맞춘 전체 로스
     total_loss = (coord_loss + conf_loss + cls_loss) / batch_size
     
     return total_loss
 ```
 
-`compute_iou`가 정의되어 있지 않다. 입력 좌표가 칸 상대 중심·전체 상대 크기라면 같은 표현을 올바르게 xyxy로 변환해 IoU를 계산해야 한다. 책임 상자는 정답과의 IoU로 정하고 양성 칸의 공유 클래스 손실을 계산한다. 다만 코드의 음성 confidence 항은 배경 칸에만 적용되어 객체가 있는 칸의 비책임 상자는 제외한다. 원래 목적의 비책임 예측 처리와 구분한다. IoU를 confidence의 목표로 쓸 때도 이를 detach하지 않으면 상자 좌표 쪽으로 경사가 흐를 수 있다. 절댓값 안의 제곱근은 잘못된 음수 크기를 유효하게 만드는 모델 제약이 아니다.
+`compute_iou`가 정의되어 있지 않다. 입력 좌표가 칸 상대 중심·전체 상대 크기라면 같은 표현을 올바르게 xyxy로 변환해 IoU를 계산해야 한다. 책임 상자는 정답과의 IoU로 정하고 양성 칸의 공유 클래스 로스를 계산한다. 다만 코드의 음성 confidence 항은 배경 칸에만 적용되어 객체가 있는 칸의 비책임 상자는 제외한다. 원래 목적의 비책임 예측 처리와 구분한다. IoU를 confidence의 목표로 쓸 때도 이를 detach하지 않으면 상자 좌표 쪽으로 경사가 흐를 수 있다. 절댓값 안의 제곱근은 잘못된 음수 크기를 유효하게 만드는 모델 제약이 아니다.
 
-다음 `modern_yolo_loss`는 CIoU·objectness BCE·클래스 BCE의 합을 보여 주는 **일반적인 골격**이다. `compute_ciou` 정의, 양성 할당·마스크, 정규화와 가중치 설계가 필요하다. 모든 입력 상자에 평균을 내므로 호출자가 유효한 회귀 대상을 골라야 한다.
+다음 `modern_yolo_loss`는 CIoU·objectness BCE·클래스 BCE의 합을 보여 주는 **일반적인 골격**이다. `compute_ciou` 정의, 양성 할당·마스크, 정규화와 웨이트 설계가 필요하다. 모든 입력 상자에 평균을 내므로 호출자가 유효한 회귀 대상을 골라야 한다.
 
 ```python
 def modern_yolo_loss(
@@ -492,18 +492,18 @@ def modern_yolo_loss(
     cls_weight: float = 0.5
 ) -> dict:
     """
-    CIoU와 두 갈래 엇갈린 엔트로피를 쓴 요즘 YOLO 손실.
+    CIoU와 두 클래스 엇갈린 엔트로피를 쓴 요즘 YOLO 로스.
     """
-    # 상자 손실(CIoU)
+    # 상자 로스(CIoU)
     ciou = compute_ciou(pred_boxes, target_boxes)
     box_loss = (1 - ciou).mean()
     
-    # 물체다움 손실(로짓을 쓴 두 갈래 엇갈린 엔트로피)
+    # 물체다움 로스(로짓을 쓴 두 클래스 엇갈린 엔트로피)
     obj_loss = F.binary_cross_entropy_with_logits(
         pred_obj, target_obj, reduction='mean'
     )
     
-    # 갈래 매기기 손실(로짓을 쓴 두 갈래 엇갈린 엔트로피)
+    # 클래스 매기기 로스(로짓을 쓴 두 클래스 엇갈린 엔트로피)
     cls_loss = F.binary_cross_entropy_with_logits(
         pred_cls, target_cls, reduction='mean'
     )
@@ -522,11 +522,11 @@ def modern_yolo_loss(
     }
 ```
 
-이 함수는 별도의 objectness를 출력하지 않는 위 YOLOv8Head와 그대로 연결되지 않는다. YOLOv8 계열 학습의 거리 분포 손실(DFL)·목표 할당도 없다. 공식 학습 경로는 [손실 구현](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/utils/loss.py)을 참고하며, 모든 후속 버전이 focal loss나 같은 objectness 항을 기본으로 쓴다고 설명하지 않는다.
+이 함수는 별도의 objectness를 출력하지 않는 위 YOLOv8Head와 그대로 연결되지 않는다. YOLOv8 계열 학습의 거리 분포 로스(DFL)·목표 할당도 없다. 공식 학습 경로는 [로스 구현](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/utils/loss.py)을 참고하며, 모든 후속 버전이 focal loss나 같은 objectness 항을 기본으로 쓴다고 설명하지 않는다.
 
 ## 6. 사전 학습 모델의 추론·파인튜닝
 
-아래는 여러 모델 크기를 로드해 추론 결과를 읽는 예다. 모델 파일·이미지 경로·지원 장치와 패키지 버전이 필요하고 가중치를 처음 받을 때 다운로드가 생길 수 있다. 모델별 반복 로드는 메모리를 사용하므로 다섯 크기를 모두 로드해야만 추론할 수 있는 것은 아니다.
+아래는 여러 모델 크기를 로드해 추론 결과를 읽는 예다. 모델 파일·이미지 경로·지원 장치와 패키지 버전이 필요하고 웨이트를 처음 받을 때 다운로드가 생길 수 있다. 모델별 반복 로드는 메모리를 사용하므로 다섯 크기를 모두 로드해야만 추론할 수 있는 것은 아니다.
 
 ```python
 from ultralytics import YOLO
@@ -557,15 +557,15 @@ results = model_nano(['img1.jpg', 'img2.jpg', 'img3.jpg'])
 # 고름을 준 미룸
 results = model_nano(
     'image.jpg',
-    conf=0.25,        # 믿음도 문턱값
-    iou=0.45,         # NMS 겹침 비 문턱값
+    conf=0.25,        # 믿음도 임계값
+    iou=0.45,         # NMS 겹침 비 임계값
     max_det=300,      # 최대 알아냄 수
-    classes=[0, 2],   # 갈래 거르기(person, car)
+    classes=[0, 2],   # 클래스 거르기(person, car)
     device='cuda:0'
 )
 ```
 
-학습·검증·내보내기는 서로 다른 작업이다. train은 가중치를 바꾸고 파일을 저장하며 val의 지표는 지정된 검증 분할에 대한 값이다. 검증에 반복 사용한 자료를 독립 최종 시험 결과로 보고하지 않는다.
+학습·검증·내보내기는 서로 다른 작업이다. train은 웨이트를 바꾸고 파일을 저장하며 val의 지표는 지정된 검증 분할에 대한 값이다. 검증에 반복 사용한 자료를 독립 최종 시험 결과로 보고하지 않는다.
 
 ```python
 from ultralytics import YOLO
@@ -609,7 +609,7 @@ train: images/train
 val: images/val
 test: images/test  # 있어도 되고 없어도 됨
 
-nc: 3  # 갈래 수
+nc: 3  # 클래스 수
 names: ['class1', 'class2', 'class3']
 ```
 
@@ -640,7 +640,7 @@ YOLOv1의 7×7×30과 YOLOv3 head의 B×3×H×W×85가 다른 이유를 설명�
 
 ??? success "연습문제 1 풀이"
 
-    v1은 칸마다 상자 2개의 다섯 값과 칸이 공유하는 클래스 20개를 출력한다. v3 head는 앵커마다 좌표·objectness·클래스 80개를 출력한다. 같은 디코더나 손실을 모양만 바꿔 재사용할 수 없다.
+    v1은 칸마다 상자 2개의 다섯 값과 칸이 공유하는 클래스 20개를 출력한다. v3 head는 앵커마다 좌표·objectness·클래스 80개를 출력한다. 같은 디코더나 로스를 모양만 바꿔 재사용할 수 없다.
 
 
 
@@ -702,13 +702,13 @@ YOLOv8Head의 기본 회귀 64채널과 objectness 출력 여부를 설명하라
 
 ??? success "연습문제 4 풀이"
 
-    stride8·16·32이면 특징 크기는 80·40·20이다. 기존 도식의 40·20·10 및 Focus 표기를 실제 YOLOv8 설정으로 사용하지 않는다. A100 TensorRT의 모델 추론 지연시간을 T4나 전체 애플리케이션 지연시간으로 바꿔 인용할 수 없다.
+    stride8·16·32이면 피처 크기는 80·40·20이다. 기존 도식의 40·20·10 및 Focus 표기를 실제 YOLOv8 설정으로 사용하지 않는다. A100 TensorRT의 모델 추론 지연시간을 T4나 전체 애플리케이션 지연시간으로 바꿔 인용할 수 없다.
 
 
 
 ## 정리하며
 
-YOLO의 버전별 좌표·클래스·거리 분포 표현과 손실을 구분해야 한다. 이 절의 head·neck·손실 조각은 전체 모델의 재현이 아니며, 기존 도식·export 인수의 한계도 설명과 함께 읽는다. 모델 선택과 성능 보고에는 데이터·장치·입력·후처리 조건을 명시한다.
+YOLO의 버전별 좌표·클래스·거리 분포 표현과 로스를 구분해야 한다. 이 절의 head·neck·로스 조각은 전체 모델의 재현이 아니며, 기존 도식·export 인수의 한계도 설명과 함께 읽는다. 모델 선택과 성능 보고에는 데이터·장치·입력·후처리 조건을 명시한다.
 
 **참고 문헌**
 

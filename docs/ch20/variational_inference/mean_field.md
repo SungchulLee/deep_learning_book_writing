@@ -56,7 +56,7 @@ $$\log q_j^*(\theta_j)=E_{q_{-j}}[\log p(D,\theta)]+C,$$
 
 $$q_j^*(\theta_j)=\frac{\exp\{E_{q_{-j}}[\log p(D,\theta)]\}}{\int\exp\{E_{q_{-j}}[\log p(D,\theta)]\}\,d\theta_j}.$$
 
-분모가 유한한 양수이고 필요한 기댓값이 정의되어야 한다. 이는 최적 인자의 함수 형태를 주는 일반식이지 항상 해석적으로 적분할 수 있는 닫힌 해는 아니다. qⱼ 자체를 더 좁은 매개변수족으로 제한하면 이 식이 그 족 밖에 있을 수도 있다.
+분모가 유한한 양수이고 필요한 기댓값이 정의되어야 한다. 이는 최적 인자의 함수 형태를 주는 일반식이지 항상 해석적으로 적분할 수 있는 닫힌 해는 아니다. qⱼ 자체를 더 좁은 파라메터족으로 제한하면 이 식이 그 족 밖에 있을 수도 있다.
 
 ## 4. CAVI의 반복과 보장
 
@@ -130,14 +130,14 @@ class MeanFieldGaussianCAVI:
     def __init__(self, alpha_0: float = 1.0, beta_0: float = 1.0,
                  mu_0: float = 0.0, lambda_0: float = 1.0):
         """
-        앞확률의 웃매개변수로 첫값 잡기.
+        앞확률의 웃파라메터로 첫값 잡기.
         """
         self.alpha_0 = alpha_0
         self.beta_0 = beta_0
         self.mu_0 = mu_0
         self.lambda_0 = lambda_0
         
-        # 변분 매개변수(앞확률로 첫값을 잡는다)
+        # 변분 파라메터(앞확률로 첫값을 잡는다)
         self.alpha_n = alpha_0
         self.beta_n = beta_0
         self.mu_n = mu_0
@@ -165,7 +165,7 @@ class MeanFieldGaussianCAVI:
     
     def update_q_mu(self, data: torch.Tensor) -> None:
         """
-        q(μ)의 변분 매개변수 새로 고치기.
+        q(μ)의 변분 파라메터 새로 고치기.
         
         q*(μ) ∝ exp{E_q(τ)[log p(x,μ,τ)]}
         """
@@ -180,16 +180,16 @@ class MeanFieldGaussianCAVI:
     
     def update_q_tau(self, data: torch.Tensor) -> None:
         """
-        q(τ)의 변분 매개변수 새로 고치기.
+        q(τ)의 변분 파라메터 새로 고치기.
         
         q*(τ) ∝ exp{E_q(μ)[log p(x,μ,τ)]}
         """
         n = len(data)
         
-        # 꼴 매개변수
+        # 꼴 파라메터
         self.alpha_n = self.alpha_0 + (n + 1) / 2
         
-        # 비율 매개변수
+        # 비율 파라메터
         # E[(μ - μ₀)²] = (E[μ] - μ₀)² + Var[μ]
         E_mu_minus_mu0_sq = (self.E_mu - self.mu_0)**2 + self.Var_mu
         
@@ -318,7 +318,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.set_title('(a) ELBO Convergence', fontsize=12, fontweight='bold')
     ax.grid(True, alpha=0.3)
     
-    # 그림 2: 평균 매개변수의 모임
+    # 그림 2: 평균 파라메터의 모임
     ax = axes[0, 1]
     ax.plot(history['E_mu'], 'b-', linewidth=2, label='E[μ]')
     if true_mu is not None:
@@ -331,7 +331,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 3: 정밀도 매개변수의 모임
+    # 그림 3: 정밀도 파라메터의 모임
     ax = axes[0, 2]
     ax.plot(history['E_tau'], 'b-', linewidth=2, label='E[τ]')
     if true_tau is not None:
@@ -461,7 +461,7 @@ Final estimates:
 
 ## 6. 지수족의 좌표 갱신
 
-완전조건부분포가 같은 지수족의 고정 충분통계량을 공유하는 경우 p(θⱼ|θ₋ⱼ,D)∝h(θⱼ)exp{ηⱼ(θ₋ⱼ,D)ᵀT(θⱼ)}이고, 최적 인자의 자연매개변수는 E_q₋ⱼ[ηⱼ]다. 이 기댓값이 유효한 자연매개변수 영역에 있어야 한다.
+완전조건부분포가 같은 지수족의 고정 충분통계량을 공유하는 경우 p(θⱼ|θ₋ⱼ,D)∝h(θⱼ)exp{ηⱼ(θ₋ⱼ,D)ᵀT(θⱼ)}이고, 최적 인자의 자연파라메터는 E_q₋ⱼ[ηⱼ]다. 이 기댓값이 유효한 자연파라메터 영역에 있어야 한다.
 
 가우스에서는 평균 자체보다 정밀도와 정밀도로 가중한 평균을 갱신한다. 범주분포의 로그 비중에는 E[log πₖ]가 들어가며 log E[πₖ]와 다르다. 예를 들어 π∼Dir(α)이면 E[log πₖ]=ψ(αₖ)−ψ(∑ⱼαⱼ)다. ‘기댓값 확률의 로그’를 대입하면 일반적인 CAVI 식과 달라진다.
 
@@ -507,7 +507,7 @@ $$N_k=\sum_i r_{ik},\qquad\alpha_k=\alpha_0+N_k,$$
 
 $$s_k^2=(\sigma_0^{-2}+N_k\sigma^{-2})^{-1},\qquad m_k=s_k^2\left(\mu_0\sigma_0^{-2}+\sigma^{-2}\sum_i r_{ik}x_i\right).$$
 
-책임도는 관측마다 정규화한다. 평균의 불확실성 sₖ²가 배정식에 들어가며 EM의 점 추정 평균만 대입하는 식과 다르다. 전역 매개변수의 분포를 추정하지만 전체 결합 사후를 정확히 복원하는 것은 아니다.
+책임도는 관측마다 정규화한다. 평균의 불확실성 sₖ²가 배정식에 들어가며 EM의 점 추정 평균만 대입하는 식과 다르다. 전역 파라메터의 분포를 추정하지만 전체 결합 사후를 정확히 복원하는 것은 아니다.
 
 ## 8. GMM 구현과 ELBO의 한계
 
@@ -562,15 +562,15 @@ class GMMCavi:
         self.sigma_0 = sigma_0
         self.sigma = sigma
         
-        # 변분 매개변수(자료로 첫값을 잡는다)
+        # 변분 파라메터(자료로 첫값을 잡는다)
         self.r = None       # N x K 맡음 몫 행렬
-        self.alpha = None   # 디리클레 매개변수 K개
+        self.alpha = None   # 디리클레 파라메터 K개
         self.m = None       # 성분 평균 K개
         self.s2 = None      # 성분 흩어짐 K개
     
     def initialize(self, data: torch.Tensor, init_method: str = 'kmeans'):
         """
-        변분 매개변수 첫값 잡기.
+        변분 파라메터 첫값 잡기.
         """
         N = len(data)
         
@@ -587,7 +587,7 @@ class GMMCavi:
             dists = torch.cdist(data.unsqueeze(1), centers.unsqueeze(0).unsqueeze(2))
             self.r = F.softmax(-dists.squeeze() / self.sigma**2, dim=1)
         
-        # 맡음 몫에 따라 다른 매개변수 첫값 잡기
+        # 맡음 몫에 따라 다른 파라메터 첫값 잡기
         self._update_q_pi()
         self._update_q_mu(data)
     
@@ -798,7 +798,7 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 5: 디리클레 매개변수
+    # 그림 5: 디리클레 파라메터
     ax = axes[1, 1]
     alpha_history = torch.stack(history['alpha'])
     for k in range(model.K):
@@ -893,7 +893,7 @@ Final estimates:
 
 위의 일변량·알려진 관측 분산 GMM에서는 책임도와 가중합 계산에 반복당 O(NK), 책임도 저장에 O(NK)가 필요하다. 다변량 전 공분산이나 비켤레 모델에도 이 비용을 그대로 적용할 수는 없다. EM과 비슷한 계산 규모라는 말도 같은 모델과 연산을 비교할 때만 의미가 있다.
 
-평균장은 간단한 기준 근사와 큰 모델의 계산에 유용할 수 있다. 강한 상관·다봉성·꼬리 확률이 중요한 경우에는 블록 구조, 재매개변수화, 더 유연한 근사나 다른 추론 결과와 비교한다. 분포족의 독립성 때문에 생기는 근사 오차와 최적화가 충분하지 않아 생기는 오차를 나누어 평가한다.
+평균장은 간단한 기준 근사와 큰 모델의 계산에 유용할 수 있다. 강한 상관·다봉성·꼬리 확률이 중요한 경우에는 블록 구조, 리파라메리제이션, 더 유연한 근사나 다른 추론 결과와 비교한다. 분포족의 독립성 때문에 생기는 근사 오차와 최적화가 충분하지 않아 생기는 오차를 나누어 평가한다.
 
 ## 연습문제
 
@@ -911,7 +911,7 @@ Final estimates:
 
 ### 연습 4: 베이즈 선형 회귀
 
-가중치와 잡음 정밀도의 사전분포를 명시하고, 가중치 블록과 정밀도 블록을 독립으로 둔 CAVI 식을 유도하라. 가중치 블록 안의 공분산을 유지하는 경우와 좌표별로 분리하는 경우를 구분하라.
+웨이트와 잡음 정밀도의 사전분포를 명시하고, 웨이트 블록과 정밀도 블록을 독립으로 둔 CAVI 식을 유도하라. 웨이트 블록 안의 공분산을 유지하는 경우와 좌표별로 분리하는 경우를 구분하라.
 
 ### 연습 5: GMM 엔트로피
 
@@ -923,7 +923,7 @@ Dirichlet의 로그 밀도에서 엔트로피를 유도해 예제의 로그 베�
 
 ## 정리하며
 
-평균장 VI는 블록 독립 근사를 사용하고 CAVI는 다른 인자를 고정한 기댓값 로그 결합밀도로 각 인자를 갱신한다. 정확한 좌표 갱신의 ELBO 비감소성과 전체 매개변수 수렴을 구분한다. 상관된 가우스의 최적 역방향 KL 근사는 주변분산을 그대로 복사하지 않으며, 구현에서는 갱신식뿐 아니라 엔트로피와 목적값도 확인해야 한다.
+평균장 VI는 블록 독립 근사를 사용하고 CAVI는 다른 인자를 고정한 기댓값 로그 결합밀도로 각 인자를 갱신한다. 정확한 좌표 갱신의 ELBO 비감소성과 전체 파라메터 수렴을 구분한다. 상관된 가우스의 최적 역방향 KL 근사는 주변분산을 그대로 복사하지 않으며, 구현에서는 갱신식뿐 아니라 엔트로피와 목적값도 확인해야 한다.
 
 **참고 문헌**
 

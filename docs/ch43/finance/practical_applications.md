@@ -1,6 +1,6 @@
 # 모델 불확실성의 실전 응용
 
-불확실성 재기는 추론을 점 근사에서 낌새 분포로 바꾸어 여러 손에 잡히는 쓰임을 이룬다. 이 마디는 서비스 구조에서 불확실성이 가장 크게 힘을 쓰는 자리를 다룬다.
+불확실성 재기는 추론을 점 근사에서 확률 분포로 바꾸어 여러 손에 잡히는 쓰임을 이룬다. 이 마디는 서비스 구조에서 불확실성이 가장 크게 힘을 쓰는 자리를 다룬다.
 
 ---
 
@@ -38,7 +38,7 @@ $$\mathbf{x}^* = \arg\max_{\mathbf{x}} I(y; \mathbf{w}|\mathbf{x}, \mathcal{D}) 
 
     class ActiveLearner:
         """
-        아리송함으로 보기를 고르는 살아 있는 배움 구조.
+        아리송함으로 보기를 고르는 살아 있는 러닝 구조.
 
         흐름:
         1. 이름표가 달린 작은 꾸러미로 모형을 익힌다
@@ -65,7 +65,7 @@ $$\mathbf{x}^* = \arg\max_{\mathbf{x}} I(y; \mathbf{w}|\mathbf{x}, \mathcal{D}) 
             보기를 고르는 얻기 점수를 셈한다.
 
             Args:
-                probs: 평균 미루어 본 낌새 (N, K)
+                probs: 평균 미루어 본 확률 (N, K)
                 all_probs: BALD에 쓸 모둠/MC 미루어 봄 모두 (M, N, K)
 
             Returns:
@@ -78,7 +78,7 @@ $$\mathbf{x}^* = \arg\max_{\mathbf{x}} I(y; \mathbf{w}|\mathbf{x}, \mathcal{D}) 
                 scores = -torch.sum(probs * torch.log(probs + epsilon), dim=-1)
 
             elif self.acquisition == 'variance':
-                # 흩어짐(가장 큰 낌새의 아리송함)
+                # 흩어짐(가장 큰 확률의 아리송함)
                 scores = 1 - probs.max(dim=-1)[0]
 
             elif self.acquisition == 'bald':
@@ -160,9 +160,9 @@ $$\mathbf{x}^* = \arg\max_{\mathbf{x}} I(y; \mathbf{w}|\mathbf{x}, \mathcal{D}) 
                                         query_size: int = 50,
                                         acquisition: str = 'entropy') -> dict:
         """
-        살아 있는 배움 해 봄을 온전히 돌린다.
+        살아 있는 러닝 해 봄을 온전히 돌린다.
 
-        이름표 수에 따른 맞음의 배움 굽이를 돌려준다.
+        이름표 수에 따른 맞음의 러닝 굽이를 돌려준다.
         """
         # 처음에 아무렇게나 고른 이름표 꾸러미
         all_indices = np.arange(len(train_dataset))
@@ -293,8 +293,8 @@ $$\mathbf{x}^* = \arg\max_{\mathbf{x}} I(y; \mathbf{w}|\mathbf{x}, \mathcal{D}) 
 
 입력 모두에 대해 예측하는 대신, 불확실성이 크면 추론을 물린다.
 
-- **받음**: 불확실성 < 문턱 → 예측한이다
-- **물림**: 불확실성 ≥ 문턱 → 삼간다(사람이 살피게 한다)
+- **받음**: 불확실성 < 임계 → 예측한이다
+- **물림**: 불확실성 ≥ 임계 → 삼간다(사람이 살피게 한다)
 
 ### 위험과 덮음의 트레이드오프
 
@@ -311,16 +311,16 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
     ```python
     class SelectivePredictor:
         """
-        아리송함 문턱을 쓰는 골라 미루어 보기.
+        아리송함 임계를 쓰는 골라 미루어 보기.
 
-        맞바꿈: 문턱이 높을수록 맞음은 오르나 덮음은 준다
+        맞바꿈: 임계가 높을수록 맞음은 오르나 덮음은 준다
         """
 
         def __init__(self, model: nn.Module, threshold: float = 0.5):
             """
             Args:
                 model: 아리송함을 어림하는 모형
-                threshold: 물리는 아리송함 문턱
+                threshold: 물리는 아리송함 임계
             """
             self.model = model
             self.threshold = threshold
@@ -404,7 +404,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
                                 target_accuracy: float = 0.95,
                                 n_mc_samples: int = 50) -> Tuple[float, dict]:
         """
-        과녁 맞음을 이루면서 덮음이 가장 큰 문턱을 찾는다.
+        타깃 맞음을 이루면서 덮음이 가장 큰 임계를 찾는다.
         """
         # 미루어 봄과 아리송함을 모두 모은다
         all_preds = []
@@ -435,7 +435,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
 
         correct = (preds == labels)
 
-        # 문턱을 두 쪽으로 갈라 찾는다
+        # 임계를 두 쪽으로 갈라 찾는다
         thresholds = torch.linspace(uncertainty.min(), uncertainty.max(), 100)
 
         best_threshold = 0.0
@@ -575,7 +575,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
         idx_95 = np.argmin(np.abs(tpr - 0.95))
         fpr_at_95_tpr = fpr[idx_95]
 
-        # 가장 좋은 문턱에서의 알아내기 맞음
+        # 가장 좋은 임계에서의 알아내기 맞음
         optimal_idx = np.argmax(tpr - fpr)
         optimal_threshold = thresholds[optimal_idx]
         predictions = (all_uncertainty > optimal_threshold).astype(int)
@@ -666,7 +666,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
 | 쓰임 | 즐겨 쓸 길 |
 |-------------|----------------|
 | 살아 있는 학습 | 성능은 BALD, 단순함은 엔트로피 |
-| 골라 추론 | 따짐 꾸러미로 문턱을 맞추고 덮음을 지켜본다 |
+| 골라 추론 | 따짐 꾸러미로 임계를 맞추고 덮음을 지켜본다 |
 | 분포 외 알아내기 | 불확실성을 다른 신호(되살림 어긋남 따위)와 함께 쓴다 |
 | 서비스 | 불확실성 분포를 적어 두고 옮겨감이 보이면 알린다 |
 
@@ -676,7 +676,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
 
 1. **살아 있는 학습 비교**: CIFAR-10에서 아무렇게나, 엔트로피, BALD 얻기 함수를 비교하여라. 학습 굽이를 그려라.
 
-2. **골라 추론**: MNIST에서 맞음 99%을 이루는 문턱을 찾아라. 덮음은 얼마인가?
+2. **골라 추론**: MNIST에서 맞음 99%을 이루는 임계를 찾아라. 덮음은 얼마인가?
 
 3. **분포 외 알아내기**: CIFAR-10으로 익히고 SVHN으로 시험하여라. 불확실성이 둘을 얼마나 잘 갈라내는가?
 

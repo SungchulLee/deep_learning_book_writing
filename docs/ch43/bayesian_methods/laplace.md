@@ -1,5 +1,5 @@
-# 신경망의 라플라스 근사
-**라플라스 근사**는 MAP(가장 큰 사후분포) 근사를 가운데로 삼는 가우시안 분포를 맞추어 베이즈 추론을 단순하게 일 끝난 뒤 이룬다. 이 오래된 재주를 신경망에 쓰면 네트워크를 다시 익히지 않고도 계산으로 다룰 수 있는 불확실성 근사를 얻는다.
+# 뉴럴 넷트웍의 라플라스 근사
+**라플라스 근사**는 MAP(가장 큰 사후분포) 근사를 가운데로 삼는 가우시안 분포를 맞추어 베이즈 추론을 단순하게 일 끝난 뒤 이룬다. 이 오래된 재주를 뉴럴 넷트웍에 쓰면 네트워크를 다시 익히지 않고도 계산으로 다룰 수 있는 불확실성 근사를 얻는다.
 
 ---
 
@@ -7,7 +7,7 @@
 
 ### 일 끝난 뒤 방법이 끌리는 까닭
 
-여느 방법(SGD, Adam)으로 신경망을 익혔다. 이제 불확실성 근사가 있어야 한다. 고를 수 있는 길은 이렇다.
+여느 방법(SGD, Adam)으로 뉴럴 넷트웍을 익혔다. 이제 불확실성 근사가 있어야 한다. 고를 수 있는 길은 이렇다.
 
 1. **베이즈 방법으로 다시 학습**(VI, MCMC) — 비싸고 새로 익혀야 한다
 2. **시험할 때 드롭아웃 쓰기**(MC 드롭아웃) — 싸지만 구조에 드롭아웃이 있어야 한다
@@ -26,8 +26,8 @@ $$
 
 여기서
 
-- $\hat{\theta}_{\text{MAP}}$은 학습된 네트워크의 가중치
-- $\Sigma = H^{-1}$은 MAP에서의 손실의 헤세 행렬의 역
+- $\hat{\theta}_{\text{MAP}}$은 학습된 네트워크의 웨이트
+- $\Sigma = H^{-1}$은 MAP에서의 로스의 헤세 행렬의 역
 
 ---
 
@@ -65,7 +65,7 @@ $$
 
 ### 헤세 행렬
 
-음수 로그 우도 손실 $\mathcal{L}(\theta) = -\log p(\mathcal{D} \mid \theta)$과 가우시안 사전분포를 지닌 신경망에서
+음수 로그 우도 로스 $\mathcal{L}(\theta) = -\log p(\mathcal{D} \mid \theta)$과 가우시안 사전분포를 지닌 뉴럴 넷트웍에서
 
 $$
 H = \nabla^2 \mathcal{L}(\theta)\big|_{\hat{\theta}} + \frac{1}{\sigma_0^2} I
@@ -73,8 +73,8 @@ $$
 
 **몫**:
 
-- **우도 헤세 행렬**: 손실 지형의 굽음
-- **사전분포 몫**: 정규화(가중치 줄이기 $\lambda = 1/\sigma_0^2$에 맞물린다)
+- **우도 헤세 행렬**: 로스 지형의 굽음
+- **사전분포 몫**: 정규화(웨이트 줄이기 $\lambda = 1/\sigma_0^2$에 맞물린다)
 
 ### 넓힌 가우시안-뉴턴(GGN)
 
@@ -86,10 +86,10 @@ $$
 
 여기서
 
-- $J = \nabla_\theta f_\theta(X)$은 매개변수에 대한 네트워크 출력의 야코비안 행렬
-- $\nabla^2 \mathcal{L}_{\text{out}}$은 네트워크 출력에 대한 손실의 헤세 행렬
+- $J = \nabla_\theta f_\theta(X)$은 파라메터에 대한 네트워크 출력의 야코비안 행렬
+- $\nabla^2 \mathcal{L}_{\text{out}}$은 네트워크 출력에 대한 로스의 헤세 행렬
 
-**MSE 손실에서는**: GGN이 피셔 소식 행렬과 같다.
+**MSE 로스에서는**: GGN이 피셔 소식 행렬과 같다.
 
 **나은 점**: 언제나 양으로 반쯤 굳고, 흔히 근사가 좋다.
 
@@ -99,7 +99,7 @@ $$
 
 ### 크게 늘리기의 어려움
 
-매개변수가 $d$개인 네트워크에서
+파라메터가 $d$개인 네트워크에서
 
 - **온전한 헤세 행렬**: 자리 $O(d^2)$, 역 계산 $O(d^3)$
 - 요즘 네트워크: $d = 10^6$에서 $10^9$
@@ -108,7 +108,7 @@ $$
 
 ### 대각 근사
 
-매개변수끼리 남남이라고 본다.
+파라메터끼리 남남이라고 본다.
 
 $$
 \Sigma = \text{diag}(\sigma_1^2, \ldots, \sigma_d^2) \quad \text{where} \quad \sigma_i^2 = 1/H_{ii}
@@ -116,11 +116,11 @@ $$
 
 **계산**: 헤세 행렬의 대각만 있으면 되므로 잘 추정할 수 있다.
 
-**한계**: 매개변수 사이의 얽힘을 놓친다.
+**한계**: 파라메터 사이의 얽힘을 놓친다.
 
 ### 크로네커로 쪼갠 굽음 근사(KFAC)
 
-가중치 행렬이 $W^{(l)} \in \mathbb{R}^{n_{l-1} \times n_l}$인 켜 $l$에서
+웨이트 행렬이 $W^{(l)} \in \mathbb{R}^{n_{l-1} \times n_l}$인 켜 $l$에서
 
 $$
 \boxed{H^{(l)} \approx A^{(l)} \otimes G^{(l)}}
@@ -129,7 +129,7 @@ $$
 여기서
 
 - $A^{(l)} = \frac{1}{N}\sum_{n=1}^N a_n^{(l-1)} (a_n^{(l-1)})^\top$ — 입력 활성화의 공분산
-- $G^{(l)} = \frac{1}{N}\sum_{n=1}^N g_n^{(l)} (g_n^{(l)})^\top$ — 출력 기울기의 공분산
+- $G^{(l)} = \frac{1}{N}\sum_{n=1}^N g_n^{(l)} (g_n^{(l)})^\top$ — 출력 그래디언트의 공분산
 
 **핵심 특성**: 크로네커 곱의 역은 잘 셈된다.
 
@@ -178,16 +178,16 @@ $$
 
 **까닭**:
 
-- 앞 켜는 특성(드러냄)을 배운다
-- 마지막 켜가 끝의 분류/되돌이를 한다
+- 앞 켜는 특성(리프리젠테이션)을 배운다
+- 마지막 켜가 끝의 분류/회귀를 한다
 - 추론의 불확실성은 거의 마지막 켜에서 온다
 
 ### 짜기
 
 1. 네트워크를 여느 대로 학습된이다
 2. 마지막 켜만 빼고 모두 얼린다
-3. 마지막 켜 가중치에 대해서만 헤세 행렬을 계산한다
-4. 훨씬 작다: 매개변수가 $d_L = n_{L-1} \times n_L + n_L$개
+3. 마지막 켜 웨이트에 대해서만 헤세 행렬을 계산한다
+4. 훨씬 작다: 파라메터가 $d_L = n_{L-1} \times n_L + n_L$개
 
 ### 예측하는 분포
 
@@ -215,7 +215,7 @@ $$
 
 ## 5. 추론
 
-### 되돌이에서는
+### 회귀에서는
 
 가우시안 우도 $p(y \mid f, \sigma^2)$에서
 
@@ -263,7 +263,7 @@ $$
 
 ```python
 """
-신경 그물의 라플라스 어림
+뉴럴 넷트웍의 라플라스 어림
 
 MAP 어림 자리에 가우스를 맞추어 일 끝난 뒤에
 아리송함을 재기.
@@ -316,7 +316,7 @@ class LaplaceMLP:
         return np.concatenate(params)
     
     def _unpack_params(self, params: np.ndarray):
-        """편 매개변수 벡터를 짐 행렬로 푼다."""
+        """편 파라메터 벡터를 짐 행렬로 푼다."""
         weights = []
         idx = 0
         for i in range(len(self.layer_sizes) - 1):
@@ -355,12 +355,12 @@ class LaplaceMLP:
         X : (N, input_dim) 꼴의 ndarray
             들임 자료
         params : ndarray, 골라 씀
-            쓸 매개변수(기본값: self.params)
+            쓸 파라메터(기본값: self.params)
         
         Returns
         -------
         (N, output_dim) 꼴의 ndarray
-            그물 날임
+            넷트웍 날임
         """
         if params is None:
             params = self.params
@@ -397,7 +397,7 @@ class LaplaceMLP:
     
     def _compute_jacobian(self, X: np.ndarray) -> np.ndarray:
         """
-        매개변수에 대한 그물 날임의 야코비 행렬을 셈한다.
+        파라메터에 대한 넷트웍 날임의 야코비 행렬을 셈한다.
         
         Returns
         -------
@@ -485,7 +485,7 @@ class LaplaceMLP:
         X : ndarray
             익힘 들임
         y : ndarray
-            익힘 과녁
+            익힘 타깃
         hessian_type : str
             'diagonal' 또는 'full'(GGN)
         """
@@ -540,7 +540,7 @@ class LaplaceMLP:
             # 몬테카를로 표본 뽑기
             predictions = []
             for _ in range(n_samples):
-                # 매개변수를 뽑는다
+                # 파라메터를 뽑는다
                 params = np.random.multivariate_normal(
                     self.params, self.covariance
                 )
@@ -592,7 +592,7 @@ class LastLayerLaplace:
         self.n_outputs = n_outputs
         self.prior_precision = prior_precision
         
-        # 마지막 켜 매개변수: W (n_features x n_outputs) + b (n_outputs)
+        # 마지막 켜 파라메터: W (n_features x n_outputs) + b (n_outputs)
         self.W = np.zeros((n_features, n_outputs))
         self.b = np.zeros(n_outputs)
         
@@ -624,7 +624,7 @@ class LastLayerLaplace:
         phi = self.feature_extractor(X)
         
         for _ in range(n_iter):
-            # MSE의 기울기
+            # MSE의 그래디언트
             pred = phi @ self.W + self.b
             error = pred - y
             
@@ -703,11 +703,11 @@ def demo_laplace():
     # MLP을 만들고 익힌다
     model = LaplaceMLP([1, 30, 30, 1], activation='tanh', prior_precision=0.1)
     
-    # 기울기 내림으로 익힌다
-    print("그물을 익히는 중...")
+    # 그래디언트 내림으로 익힌다
+    print("넷트웍을 익히는 중...")
     lr = 0.1
     for epoch in range(200):
-        # 기울기를 수로 셈한다
+        # 그래디언트를 수로 셈한다
         grads = np.zeros_like(model.params)
         eps = 1e-5
         for i in range(len(model.params)):
@@ -783,7 +783,7 @@ def demo_last_layer_laplace():
     X_test = np.linspace(-6, 6, 100).reshape(-1, 1)
     mean, std = model.predict(X_test)
     
-    print(f"\n마지막 켜 라플라스(매개변수 {model.n_params}개뿐)")
+    print(f"\n마지막 켜 라플라스(파라메터 {model.n_params}개뿐)")
     print(f"  익힘 자리 안의 평균 표준편차: {np.mean(std[np.abs(X_test) < 4]):.4f}")
     print(f"  밖의 평균 표준편차: {np.mean(std[np.abs(X_test) > 4]):.4f}")
     
@@ -802,7 +802,7 @@ if __name__ == "__main__":
 ============================================================
 
 익힘 자료: 50점
-그물을 익히는 중...
+넷트웍을 익히는 중...
 마지막 익힘 잃음: 0.0830
 
 라플라스 어림을 맞추는 중(대각)...
@@ -821,7 +821,7 @@ if __name__ == "__main__":
 마지막 켜 라플라스 보여 주기
 ============================================================
 
-마지막 켜 라플라스(매개변수 51개뿐)
+마지막 켜 라플라스(파라메터 51개뿐)
   익힘 자리 안의 평균 표준편차: 0.5707
   밖의 평균 표준편차: 1.1842
 ```
@@ -843,7 +843,7 @@ if __name__ == "__main__":
 
 **사전분포의 촘촘함**($\lambda = 1/\sigma_0^2$):
 
-- 익힐 때 쓴 가중치 줄이기에 맞물린다
+- 익힐 때 쓴 웨이트 줄이기에 맞물린다
 - 클수록 → 정규화가 세고 사후분포가 좁아진다
 - 남겨 둔 데이터로 엇갈려 따진다
 
@@ -870,12 +870,12 @@ $T > 1$이면 불확실성이 커지고 $T < 1$이면 작아진다.
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-ReLU 활성화와 가우시안 가중치 사전분포를 지닌 두 켜 신경망에서, 이 마디에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
+ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 넷트웍에서, 이 마디에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    가중치가 $W_1, W_2$이고 가우시안 사전분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 사후분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 근사 방법은 다룰 수 있는 꼴을 낸다. 변분 추론이면 가중치마다 서로 독립인 가우시안 사후분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 근사이면 사후분포가 MAP 추정을 가운데로 삼고 공분산이 헤세 행렬의 역인 가우시안 하나이며, MC 드롭아웃이면 사후분포가 드롭아웃 마스크 분포로 넌지시 세워진다. 근사마다 참 사후분포 모습의 서로 다른 특성을 담는다. $\square$
+    웨이트가 $W_1, W_2$이고 가우시안 사전분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 사후분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 근사 방법은 다룰 수 있는 꼴을 낸다. 변분 추론이면 웨이트마다 서로 독립인 가우시안 사후분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 근사이면 사후분포가 MAP 추정을 가운데로 삼고 공분산이 헤세 행렬의 역인 가우시안 하나이며, MC 드롭아웃이면 사후분포가 드롭아웃 마스크 분포로 넌지시 세워진다. 근사마다 참 사후분포 모습의 서로 다른 특성을 담는다. $\square$
 
 ---
 
@@ -894,12 +894,12 @@ ReLU 활성화와 가우시안 가중치 사전분포를 지닌 두 켜 신경�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-베이즈 신경망의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+베이즈 뉴럴 넷트웍의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    추론 분산은 온 분산 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 우연적 몫은 데이터를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 인식적 몫은 매개변수의 불확실성을 드러내며 사후분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 우연적 불확실성만 남는다. 이 쪼갬은 데이터를 더 모아야 할 때(인식적 불확실성이 클 때)와 우연적 잡음을 받아들여야 할 때(우연적 불확실성이 클 때)를 가르는 데 중요하다. $\square$
+    추론 분산은 온 분산 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 우연적 몫은 데이터를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 인식적 몫은 파라메터의 불확실성을 드러내며 사후분포가 참 파라메터 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 우연적 불확실성만 남는다. 이 쪼갬은 데이터를 더 모아야 할 때(인식적 불확실성이 클 때)와 우연적 잡음을 받아들여야 할 때(우연적 불확실성이 클 때)를 가르는 데 중요하다. $\square$
 
 ---
 
@@ -951,7 +951,7 @@ $$
 | **SWAG** | 가우시안을 맞추되 자취에서 얻는다 |
 | **변이** | 라플라스는 VI의 남다른 한 자리다 |
 | **앙상블** | 라플라스와 함께 쓸 수 있다 |
-| **피셔 소식** | 어떤 손실에서는 GGN ≈ 피셔다 |
+| **피셔 소식** | 어떤 로스에서는 GGN ≈ 피셔다 |
 
 ### 핵심 살펴볼 거리
 

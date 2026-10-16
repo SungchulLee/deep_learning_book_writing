@@ -1,10 +1,10 @@
 # 상각 변분 추론
 
-상각 변분 추론(amortized variational inference)은 여러 관측에 공통인 추론 함수를 학습해 사후 근사의 계산을 공유한다. 학습에 비용을 들이는 대신 새 관측의 변분 매개변수를 순전파로 빠르게 얻는다. 계산을 공유하는 방식과 각 근사분포의 표현력은 별개의 선택이다.
+상각 변분 추론(amortized variational inference)은 여러 관측에 공통인 추론 함수를 학습해 사후 근사의 계산을 공유한다. 학습에 비용을 들이는 대신 새 관측의 변분 파라메터를 순전파로 빠르게 얻는다. 계산을 공유하는 방식과 각 근사분포의 표현력은 별개의 선택이다.
 
 ## 1. 개별 최적화에서 공유 추론으로
 
-생성모델의 θ를 고정하고 관측 x의 잠재변수 사후를 q_λ(z)로 근사하자. 개별 추론은 λ★(x)∈argmax_λ Lₓ(λ;θ)를 구한다. 상각 추론은 λ=f_ψ(x)를 학습해 관측마다 최적화를 반복하는 비용을 줄인다. 인코더의 매개변수 ψ와 관측별 분포의 매개변수 λ를 구분한다.
+생성모델의 θ를 고정하고 관측 x의 잠재변수 사후를 q_λ(z)로 근사하자. 개별 추론은 λ★(x)∈argmax_λ Lₓ(λ;θ)를 구한다. 상각 추론은 λ=f_ψ(x)를 학습해 관측마다 최적화를 반복하는 비용을 줄인다. 인코더의 파라메터 ψ와 관측별 분포의 파라메터 λ를 구분한다.
 
 모든 VI가 관측별 독립 최적화 문제로 분해되는 것은 아니다. 여기서는 조건부로 분리되는 지역 잠재변수와 고정된 전역 모델을 기준으로 비교한다. 새 관측에도 인코더를 적용할 수 있지만 훈련 분포 밖에서의 정확성이나 일반화가 자동으로 보장되지는 않는다.
 
@@ -20,9 +20,9 @@ $$\log p_\theta(x)-L_x(f_\psi(x);\theta)=\underbrace{\log p_\theta(x)-L_x^\star}
 
 ## 3. VAE의 생성모델과 추론모델
 
-VAE는 z∼p(z), x|z∼p_θ(x|z)의 생성모델과 q_ψ(z|x)의 인코더를 함께 학습한다. 인코더는 정확한 사후 p_θ(z|x)를 근사하며, 디코더는 잠재값에서 관측 **분포의 매개변수**를 출력한다.
+VAE는 z∼p(z), x|z∼p_θ(x|z)의 생성모델과 q_ψ(z|x)의 인코더를 함께 학습한다. 인코더는 정확한 사후 p_θ(z|x)를 근사하며, 디코더는 잠재값에서 관측 **분포의 파라메터**를 출력한다.
 
-대각 가우스 인코더는 q_ψ(z|x)=N(μ_ψ(x),diag σ_ψ²(x))다. 신경망이 여러 층이어도 이 조건부 근사는 블록 간 상관을 갖는 전 공분산 가우스가 되는 것은 아니다. 표준정규 사전에 대한 KL은 다음과 같다.
+대각 가우스 인코더는 q_ψ(z|x)=N(μ_ψ(x),diag σ_ψ²(x))다. 뉴럴 넷트웍이 여러 레이어이어도 이 조건부 근사는 블록 간 상관을 갖는 전 공분산 가우스가 되는 것은 아니다. 표준정규 사전에 대한 KL은 다음과 같다.
 
 $$D_{\mathrm{KL}}(q_\psi\Vert p)=\frac12\sum_j\left[\mu_j^2+\sigma_j^2-1-\log\sigma_j^2\right].$$
 
@@ -32,15 +32,15 @@ $$L_x=E_{q_\psi(z|x)}[\log p_\theta(x|z)]-D_{\mathrm{KL}}(q_\psi(z|x)\Vert p(z))
 
 ε∼N(0,I), z=μ+exp(log σ²/2)⊙ε로 표본을 생성하면 인코더와 디코더까지 경로별 경사를 계산할 수 있다. 확률적 경사 갱신은 유한 반복마다 목적이 단조롭게 증가하는 알고리즘은 아니다.
 
-## 4. 예제 손실과 생성 표본의 의미
+## 4. 예제 로스와 생성 표본의 의미
 
-아래 구현은 재구성 제곱오차를 특징 차원에서 합하고 배치 크기로 나눈 뒤, 같은 관측당 단위의 KL을 더한다. β=1일 때 가우스 관측분산 σ_x²=1/2를 고정한 음의 ELBO와 **관측 정규화 상수만큼** 차이가 난다. 표준편차 1의 가우스 우도를 의도한다면 제곱오차 계수 1/2와 단위가 달라진다. 생략한 상수를 복원하지 않은 절대 손실을 로그 증거와 직접 비교하지 않는다.
+아래 구현은 재구성 제곱오차를 피처 차원에서 합하고 배치 크기로 나눈 뒤, 같은 관측당 단위의 KL을 더한다. β=1일 때 가우스 관측분산 σ_x²=1/2를 고정한 음의 ELBO와 **관측 정규화 상수만큼** 차이가 난다. 표준편차 1의 가우스 우도를 의도한다면 제곱오차 계수 1/2와 단위가 달라진다. 생략한 상수를 복원하지 않은 절대 로스를 로그 증거와 직접 비교하지 않는다.
 
 `sample`은 z를 사전에서 뽑아 디코더 출력을 반환한다. 디코더가 가우스 평균을 출력한다면 이는 생성 평균의 표본이며, 관측 잡음까지 포함한 p_θ(x)의 완전한 표본은 아니다. `reconstruct`도 디코더에 잠재 평균을 넣는 결정론적 재구성으로, 비선형 디코더의 사후 예측 평균 E_q[p_θ의 평균]과 일반적으로 다르다.
 
-`measure_amortization_gap`은 생성모델을 갱신하지 않고 지역 μ·logvar를 유한 회수 최적화한다. 그러나 각 목적값에 몬테카를로 잡음이 있고 마지막 `loss`는 마지막 갱신 전 값이다. ‘optimal ELBO’는 참 최적값이 아니며 추정 차이가 음수가 될 수도 있다. 디코더 매개변수의 경사는 누적될 수 있으나 지역 옵티마이저가 그 매개변수를 갱신하는 것은 아니다.
+`measure_amortization_gap`은 생성모델을 갱신하지 않고 지역 μ·logvar를 유한 회수 최적화한다. 그러나 각 목적값에 몬테카를로 잡음이 있고 마지막 `loss`는 마지막 갱신 전 값이다. ‘optimal ELBO’는 참 최적값이 아니며 추정 차이가 음수가 될 수도 있다. 디코더 파라메터의 경사는 누적될 수 있으나 지역 옵티마이저가 그 파라메터를 갱신하는 것은 아니다.
 
-배치별 평균 손실을 다시 단순 평균하므로 마지막 배치 크기가 다르면 전체 관측당 평균과 다를 수 있다. 시각화는 최소 두 잠재 차원을 전제하고, 입력 장치·모델 장치의 일치도 필요하다. 다음 코드와 출력은 재실행하지 않고 유지했다.
+배치별 평균 로스를 다시 단순 평균하므로 마지막 배치 크기가 다르면 전체 관측당 평균과 다를 수 있다. 시각화는 최소 두 잠재 차원을 전제하고, 입력 장치·모델 장치의 일치도 필요하다. 다음 코드와 출력은 재실행하지 않고 유지했다.
 
 ```python
 import torch
@@ -54,15 +54,15 @@ import numpy as np
 
 class Encoder(nn.Module):
     """
-    VAE 인코더: 들임 x을 변분 매개변수 (μ, log σ²)로 잇는다.
+    VAE 인코더: 들임 x을 변분 파라메터 (μ, log σ²)로 잇는다.
     
-    구조: x -> [숨은 층] -> (μ, log σ²)
+    구조: x -> [숨은 레이어] -> (μ, log σ²)
     """
     
     def __init__(self, input_dim: int, hidden_dims: list, latent_dim: int):
         super().__init__()
         
-        # 인코더 층 세우기
+        # 인코더 레이어 세우기
         layers = []
         prev_dim = input_dim
         for h_dim in hidden_dims:
@@ -74,13 +74,13 @@ class Encoder(nn.Module):
         
         self.encoder = nn.Sequential(*layers)
         
-        # 평균과 로그 흩어짐을 내는 층
+        # 평균과 로그 흩어짐을 내는 레이어
         self.fc_mu = nn.Linear(prev_dim, latent_dim)
         self.fc_logvar = nn.Linear(prev_dim, latent_dim)
     
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        x을 변분 매개변수로 부호화하기.
+        x을 변분 파라메터로 부호화하기.
         
         반환값:
             mu: q(z|x)의 평균
@@ -93,15 +93,15 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     """
-    VAE 디코더: 숨은 z을 되살림 매개변수로 잇는다.
+    VAE 디코더: 숨은 z을 되살림 파라메터로 잇는다.
     
-    구조: z -> [숨은 층] -> x_recon
+    구조: z -> [숨은 레이어] -> x_recon
     """
     
     def __init__(self, latent_dim: int, hidden_dims: list, output_dim: int):
         super().__init__()
         
-        # 디코더 층 세우기
+        # 디코더 레이어 세우기
         layers = []
         prev_dim = latent_dim
         for h_dim in reversed(hidden_dims):
@@ -111,7 +111,7 @@ class Decoder(nn.Module):
             ])
             prev_dim = h_dim
         
-        # 출력층
+        # 출력 레이어
         layers.append(nn.Linear(prev_dim, output_dim))
         
         self.decoder = nn.Sequential(*layers)
@@ -138,7 +138,7 @@ class VAE(nn.Module):
         self.decoder = Decoder(latent_dim, hidden_dims, input_dim)
     
     def encode(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        """들임을 변분 매개변수로 부호화하기."""
+        """들임을 변분 파라메터로 부호화하기."""
         return self.encoder(x)
     
     def decode(self, z: torch.Tensor) -> torch.Tensor:
@@ -147,7 +147,7 @@ class VAE(nn.Module):
     
     def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         """
-        매개변수 바꾸기 재주: z = μ + σ ⊙ ε
+        파라메터 바꾸기 재주: z = μ + σ ⊙ ε
         """
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
@@ -155,7 +155,7 @@ class VAE(nn.Module):
     
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        온전한 앞먹임.
+        온전한 피드포워드.
         
         반환값:
             x_recon: 되살린 들임
@@ -171,7 +171,7 @@ class VAE(nn.Module):
              mu: torch.Tensor, logvar: torch.Tensor,
              beta: float = 1.0) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        VAE 손실 = -ELBO = 되살림 손실 + β * KL 벌어짐 셈하기
+        VAE 로스 = -ELBO = 되살림 로스 + β * KL 벌어짐 셈하기
         
         인수:
             x: 들임 자료
@@ -181,11 +181,11 @@ class VAE(nn.Module):
             beta: KL 항의 무게(β-VAE)
         
         반환값:
-            loss: 전체 손실
+            loss: 전체 로스
             recon_loss: 되살림 항
             kl_loss: KL 벌어짐 항
         """
-        # 되살림 손실(음의 로그 가능도)
+        # 되살림 로스(음의 로그 가능도)
         # 이어진 자료에는 평균 제곱 오차를 쓴다(가우스 가능도)
         recon_loss = F.mse_loss(x_recon, x, reduction='sum') / x.size(0)
         
@@ -193,7 +193,7 @@ class VAE(nn.Module):
         # = -0.5 * Σ(1 + log(σ²) - μ² - σ²)
         kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) / x.size(0)
         
-        # 전체 손실
+        # 전체 로스
         loss = recon_loss + beta * kl_loss
         
         return loss, recon_loss, kl_loss
@@ -242,7 +242,7 @@ def train_vae(model: VAE, train_loader: DataLoader,
             # 순전파
             x_recon, mu, logvar = model(x)
             
-            # 손실을 계산한다
+            # 로스를 계산한다
             loss, recon_loss, kl_loss = model.loss(x, x_recon, mu, logvar, beta)
             
             # 역전파
@@ -288,14 +288,14 @@ def measure_amortization_gap(model: VAE, x: torch.Tensor,
     for _ in range(n_opt_steps):
         optimizer.zero_grad()
         
-        # 최적화한 매개변수로 z 표집
+        # 최적화한 파라메터로 z 표집
         std = torch.exp(0.5 * logvar_opt)
         z = mu_opt + std * torch.randn_like(std)
         
         # 디코딩
         x_recon = model.decode(z)
         
-        # 손실
+        # 로스
         recon_loss = F.mse_loss(x_recon, x, reduction='sum')
         kl_loss = -0.5 * torch.sum(1 + logvar_opt - mu_opt.pow(2) - logvar_opt.exp())
         loss = recon_loss + kl_loss
@@ -499,7 +499,7 @@ $$L(x,c)=E_{q_\psi(z|x,c)}[\log p_\theta(x|z,c)]-D_{\mathrm{KL}}(q_\psi(z|x,c)\V
 
 ## 6. 지역 보정과 반복 추론
 
-인코더의 출력을 초기값으로 지역 변분 매개변수를 더 최적화하면 유한 계산 예산에서 상각 오차를 줄일 수 있다. 같은 θ·목적을 고정하고 실제 개선을 확보해야 하며, 임의의 Adam 반복이 매번 개선한다는 보장은 없다. 반복 인코더는 현재 근사나 경사 정보를 입력받아 갱신을 학습하는 다른 방식이다.
+인코더의 출력을 초기값으로 지역 변분 파라메터를 더 최적화하면 유한 계산 예산에서 상각 오차를 줄일 수 있다. 같은 θ·목적을 고정하고 실제 개선을 확보해야 하며, 임의의 Adam 반복이 매번 개선한다는 보장은 없다. 반복 인코더는 현재 근사나 경사 정보를 입력받아 갱신을 학습하는 다른 방식이다.
 
 아래 코드는 지역 보정의 의도를 보여 주지만 그대로 완성된 구현은 아니다. `mu.clone().requires_grad_(True)`는 원래 인코더 출력의 계산 그래프를 유지하므로 일반적인 Adam이 요구하는 leaf 텐서가 아니다. 독립적인 지역 최적화에는 분리한 leaf 변수가 필요하다. `compute_loss`도 외부 정의이며, 디코더·인코더의 학습 경로와 고정 여부를 명시해야 한다.
 
@@ -507,10 +507,10 @@ $$L(x,c)=E_{q_\psi(z|x,c)}[\log p_\theta(x|z,c)]-D_{\mathrm{KL}}(q_\psi(z|x,c)\V
 
 ```python
 def semi_amortized_inference(model, x, n_refine_steps=10):
-    # 나눠 갚아 얻은 첫 매개변수 가져오기
+    # 나눠 갚아 얻은 첫 파라메터 가져오기
     mu, logvar = model.encode(x)
     
-    # 기울기 내리기로 다듬기
+    # 그래디언트 내리기로 다듬기
     mu = mu.clone().requires_grad_(True)
     logvar = logvar.clone().requires_grad_(True)
     
@@ -540,9 +540,9 @@ def semi_amortized_inference(model, x, n_refine_steps=10):
 
 고정 θ에서 로그 주변우도와 상각 ELBO의 차이를 근사 차이와 상각 차이로 분해하라. 인코더를 크게 만드는 것과 변분분포족을 확장하는 것의 역할을 구분하라.
 
-### 연습 2: VAE 손실의 단위
+### 연습 2: VAE 로스의 단위
 
-관측 가우스 분산을 σ_x²로 둘 때 제곱오차 앞 계수와 정규화 상수를 쓰라. 특징별 합·관측별 평균을 특징까지 평균하는 손실로 바꾸면 KL과의 상대 가중치가 어떻게 달라지는가?
+관측 가우스 분산을 σ_x²로 둘 때 제곱오차 앞 계수와 정규화 상수를 쓰라. 피처별 합·관측별 평균을 피처까지 평균하는 로스로 바꾸면 KL과의 상대 웨이트가 어떻게 달라지는가?
 
 ### 연습 3: 조건부 생성
 
@@ -554,7 +554,7 @@ CVAE의 학습과 생성에서 사용할 수 있는 입력을 구분하라. 생�
 
 ## 정리하며
 
-상각 추론은 공유 인코더로 관측별 추론 비용을 줄인다. 고정된 생성모델과 분포족에서 근사 차이와 상각 차이를 구분하고, 지역 보정의 유한·확률적 결과를 참 최적값으로 해석하지 않는다. VAE의 손실 단위와 디코더의 확률적 의미도 함께 명시한다.
+상각 추론은 공유 인코더로 관측별 추론 비용을 줄인다. 고정된 생성모델과 분포족에서 근사 차이와 상각 차이를 구분하고, 지역 보정의 유한·확률적 결과를 참 최적값으로 해석하지 않는다. VAE의 로스 단위와 디코더의 확률적 의미도 함께 명시한다.
 
 **참고 문헌**
 

@@ -1,8 +1,8 @@
 # LSTM 구조
 
-LSTM은 셀 상태와 게이트를 이용해 기본 RNN의 장기 의존성 학습을 돕는 순환 신경망이다. 기울기 소실을 완전히 제거하는 구조는 아니며, 현재 흔히 사용하는 형태에는 초기 LSTM 이후 도입된 망각 게이트가 포함된다.
+LSTM은 셀 상태와 게이트를 이용해 기본 RNN의 장기 의존성 학습을 돕는 순환 뉴럴 넷트웍이다. 그래디언트 소실을 완전히 제거하는 구조는 아니며, 현재 흔히 사용하는 형태에는 초기 LSTM 이후 도입된 망각 게이트가 포함된다.
 
-셀 상태에는 이전 값을 성분별로 보존하고 새 값을 더하는 경로가 있다. 게이트는 이 경로의 보존·갱신 비율을 학습한다. 어느 길이까지 정보를 유지하는지는 과제와 매개변수에 따라 달라지며 수백·수천 시점을 보장하지 않는다.
+셀 상태에는 이전 값을 성분별로 보존하고 새 값을 더하는 경로가 있다. 게이트는 이 경로의 보존·갱신 비율을 학습한다. 어느 길이까지 정보를 유지하는지는 과제와 파라메터에 따라 달라지며 수백·수천 시점을 보장하지 않는다.
 
 **구조의 핵심 착상:** LSTM은 상태 벡터 두 개를 지닌다.
 
@@ -17,19 +17,19 @@ LSTM은 셀 상태와 게이트를 이용해 기본 RNN의 장기 의존성 학�
 
 ---
 
-## 1. 기울기 소실 문제
+## 1. 그래디언트 소실 문제
 
 기본 tanh RNN에서 $J_k=\operatorname{diag}(1-h_k^2)W_{hh}$라 두면 다음과 같다.
 
 $$\frac{\partial h_t}{\partial h_0}=J_tJ_{t-1}\cdots J_1$$
 
-마지막 손실의 열벡터 기울기는 이 곱의 전치로 앞쪽 상태에 전달된다. 각 야코비안의 노름이 공통 상수 $q<1$ 이하이면 장거리 기여는 지수적으로 줄어든다. 반면 순환 행렬의 최대 특잇값이 1보다 크다는 사실만으로 실제 기울기 폭발이 보장되는 것은 아니다.
+마지막 로스의 열벡터 그래디언트는 이 곱의 전치로 앞쪽 상태에 전달된다. 각 야코비안의 노름이 공통 상수 $q<1$ 이하이면 장거리 기여는 지수적으로 줄어든다. 반면 순환 행렬의 최대 특잇값이 1보다 크다는 사실만으로 실제 그래디언트 폭발이 보장되는 것은 아니다.
 
 LSTM의 셀 상태는 다음처럼 갱신된다.
 
 $$c_t=f_t\odot c_{t-1}+i_t\odot\tilde c_t$$
 
-게이트와 후보를 고정한 직접 경로의 야코비안은 $\operatorname{diag}(f_t)$다. 이 경로에는 기본 RNN처럼 매 시점 순환 행렬과 tanh 도함수를 반드시 곱하는 과정이 없다. 망각 게이트가 1에 가까우면 전달을 유지하기 쉬워진다. 다만 전체 미분에는 은닉 상태를 거쳐 게이트와 후보에 영향을 주는 경로도 포함되므로, 전체 기울기가 망각 게이트의 곱과 항상 같지는 않다. 1보다 작은 값의 곱은 긴 시간에 걸쳐 여전히 줄어들 수 있다.
+게이트와 후보를 고정한 직접 경로의 야코비안은 $\operatorname{diag}(f_t)$다. 이 경로에는 기본 RNN처럼 매 시점 순환 행렬과 tanh 도함수를 반드시 곱하는 과정이 없다. 망각 게이트가 1에 가까우면 전달을 유지하기 쉬워진다. 다만 전체 미분에는 은닉 상태를 거쳐 게이트와 후보에 영향을 주는 경로도 포함되므로, 전체 그래디언트가 망각 게이트의 곱과 항상 같지는 않다. 1보다 작은 값의 곱은 긴 시간에 걸쳐 여전히 줄어들 수 있다.
 
 ## 2. LSTM 셀의 구조
 
@@ -69,13 +69,13 @@ $$h_t = o_t \odot \tanh(c_t)$$
 
 - $\sigma$은 시그모이드 함수 $\sigma(x) = \frac{1}{1 + e^{-x}}$이다
 - $\odot$은 성분별(아다마르) 곱을 뜻한다
-- $[h_{t-1}, x_t]$은 특징 차원을 따라 이어 붙인 것을 뜻한다
-- $W_f, W_i, W_c, W_o \in \mathbb{R}^{n \times (n+d)}$은 가중치 행렬이다
-- $b_f, b_i, b_c, b_o \in \mathbb{R}^{n}$은 편향 벡터이다
+- $[h_{t-1}, x_t]$은 피처 차원을 따라 이어 붙인 것을 뜻한다
+- $W_f, W_i, W_c, W_o \in \mathbb{R}^{n \times (n+d)}$은 웨이트 행렬이다
+- $b_f, b_i, b_c, b_o \in \mathbb{R}^{n}$은 바이어스 벡터이다
 
 ### 왜 하필 이 비선형인가
 
-활성화 함수의 선택에는 뜻이 있다.
+엑티베이션 함수의 선택에는 뜻이 있다.
 
 | 부품 | 활성화 | 범위 | 근거 |
 |-----------|------------|-------|-----------|
@@ -130,14 +130,14 @@ c_t ──[tanh]──[×o_t]── h_t ──→ output
 | $h_{t-1}, h_t$ | $(n,)$ | 은닉 상태 |
 | $c_{t-1}, c_t$ | $(n,)$ | 셀 상태 |
 | $[h_{t-1}, x_t]$ | $(n+d,)$ | 이어 붙인 입력 |
-| $W_f, W_i, W_c, W_o$ | $(n, n+d)$ | 가중치 행렬 |
-| $b_f, b_i, b_c, b_o$ | $(n,)$ | 편향 벡터 |
-| $f_t, i_t, o_t$ | $(n,)$ | 문의 활성값 |
+| $W_f, W_i, W_c, W_o$ | $(n, n+d)$ | 웨이트 행렬 |
+| $b_f, b_i, b_c, b_o$ | $(n,)$ | 바이어스 벡터 |
+| $f_t, i_t, o_t$ | $(n,)$ | 문의 엑티베이션 |
 | $\tilde{c}_t$ | $(n,)$ | 셀 후보 |
 
-### 매개변수의 수
+### 파라메터의 수
 
-**매개변수 총수:**
+**파라메터 총수:**
 
 $$\text{Parameters} = 4 \times [n \times (n + d) + n] = 4n^2 + 4nd + 4n = 4n(n + d + 1)$$
 
@@ -147,16 +147,16 @@ $$\text{Parameters} = 4 \times 256 \times (256 + 100 + 1) = 4 \times 256 \times 
 
 ### 다른 구조와 비교
 
-| 구조 | 매개변수 | RNN에 대한 비 |
+| 구조 | 파라메터 | RNN에 대한 비 |
 |--------------|------------|-----------------|
 | 기본 RNN | $n^2 + nd + n$ | 1배 |
 | GRU | $3(n^2 + nd + n)$ | 3배 |
 | LSTM | $4(n^2 + nd + n)$ | 4배 |
 
-이 식과 표는 네 계산 묶음마다 편향 하나를 두는 규약이다. PyTorch 기본 LSTM은 입력·순환 편향을 따로 두므로 단일 층·방향의 매개변수는 `4n(n+d+2)`개다. 예시 d=100,n=256에서는 366592개이며, 위 식의 365568개와 구분해야 한다. 셀 후보를 포함한 네 계산 묶음을 게이트 네 개라고 부르는 것은 부정확하다.
+이 식과 표는 네 계산 묶음마다 바이어스 하나를 두는 규약이다. PyTorch 기본 LSTM은 입력·순환 바이어스를 따로 두므로 단일 레이어·방향의 파라메터는 `4n(n+d+2)`개다. 예시 d=100,n=256에서는 366592개이며, 위 식의 365568개와 구분해야 한다. 셀 후보를 포함한 네 계산 묶음을 게이트 네 개라고 부르는 것은 부정확하다.
 
 !!! tip "계산의 트레이드오프"
-    같은 입력·은닉 차원과 편향 규약에서 LSTM의 순환 부분은 기본 RNN의 4배다. 성능 향상이나 더 작은 은닉 차원으로의 대체 가능성은 과제에서 확인해야 하며, 모델 전체나 실행 시간의 4배를 뜻하지는 않는다.
+    같은 입력·은닉 차원과 바이어스 규약에서 LSTM의 순환 부분은 기본 RNN의 4배다. 성능 향상이나 더 작은 은닉 차원으로의 대체 가능성은 과제에서 확인해야 하며, 모델 전체나 실행 시간의 4배를 뜻하지는 않는다.
 
 ---
 
@@ -171,9 +171,9 @@ import numpy as np
 
 class LSTMCell(nn.Module):
     """
-    배움을 위해 손수 만든 LSTM 세포 구현.
+    러닝을 위해 손수 만든 LSTM 세포 구현.
     
-    계산 효율을 위해 가중치 행렬을 합쳐 표준 LSTM 식을 구현한다.
+    계산 효율을 위해 웨이트 행렬을 합쳐 표준 LSTM 식을 구현한다.
     
     """
     
@@ -182,10 +182,10 @@ class LSTMCell(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         
-        # 효율을 위해 가중치를 합침: [W_i, W_f, W_c, W_o]를 쌓았다
+        # 효율을 위해 웨이트를 합침: [W_i, W_f, W_c, W_o]를 쌓았다
         # 그러면 모든 문을 행렬 곱 한 번으로 계산할 수 있다
-        # 모양: 입력 가중치는 (4 * hidden_size, input_size)
-        # 모양: 숨은 가중치는 (4 * hidden_size, hidden_size)
+        # 모양: 입력 웨이트는 (4 * hidden_size, input_size)
+        # 모양: 숨은 웨이트는 (4 * hidden_size, hidden_size)
         self.weight_ih = nn.Parameter(
             torch.randn(4 * hidden_size, input_size) / np.sqrt(input_size)
         )
@@ -194,20 +194,20 @@ class LSTMCell(nn.Module):
         )
         self.bias = nn.Parameter(torch.zeros(4 * hidden_size))
         
-        # 망각 문의 편향을 1로 초기화 (기울기의 흐름에 매우 중요)
+        # 망각 문의 바이어스를 1로 초기화 (그래디언트의 흐름에 매우 중요)
         self._init_forget_gate_bias()
     
     def _init_forget_gate_bias(self):
         """
-        망각 문의 편향을 1로 초기화한다.
+        망각 문의 바이어스를 1로 초기화한다.
         
         그러면 학습 초반에 모델이 기본적으로 기억하게 되어, 무엇을 잊어야
-        할지 배우기 전에 기울기가 일찍 사라지는 것을 막는다.
+        할지 배우기 전에 그래디언트가 일찍 사라지는 것을 막는다.
         
         """
         with torch.no_grad():
             # 문의 순서: [입력, 망각, 세포, 출력]
-            # 망각 문의 편향은 두 번째 사분면에 있다
+            # 망각 문의 바이어스는 두 번째 사분면에 있다
             n = self.hidden_size
             self.bias[n:2*n].fill_(1.0)
     
@@ -260,9 +260,9 @@ class LSTMCell(nn.Module):
 
 class LSTM(nn.Module):
     """
-    순차열을 처리하는 온전한 LSTM 층.
+    순차열을 처리하는 온전한 LSTM 레이어.
     
-    여러 층을 쌓는 것을 지원하며 뒤따르는 처리를 위해 모든 숨은 상태를
+    여러 레이어를 쌓는 것을 지원하며 뒤따르는 처리를 위해 모든 숨은 상태를
     돌려준다.
     """
     
@@ -278,14 +278,14 @@ class LSTM(nn.Module):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         
-        # 층마다 세포 만들기
-        # 첫 층은 input_size를, 뒤 층은 hidden_size를 받는다
+        # 레이어마다 세포 만들기
+        # 첫 레이어는 input_size를, 뒤 레이어는 hidden_size를 받는다
         self.cells = nn.ModuleList([
             LSTMCell(input_size if i == 0 else hidden_size, hidden_size)
             for i in range(num_layers)
         ])
         
-        # 층 사이의 드롭아웃 (마지막 층 뒤에는 없다)
+        # 레이어 사이의 드롭아웃 (마지막 레이어 뒤에는 없다)
         self.dropout = nn.Dropout(dropout) if dropout > 0 else None
     
     def forward(
@@ -303,12 +303,12 @@ class LSTM(nn.Module):
                    - c_0: (num_layers, 배치 크기, hidden_size)
         
         반환값:
-            output: 맨 위 층의 모든 숨은 상태 (배치 크기, seq_len, hidden_size)
-            (h_n, c_n): 모든 층의 마지막 상태이며 입력 상태와 모양이 같다
+            output: 맨 위 레이어의 모든 숨은 상태 (배치 크기, seq_len, hidden_size)
+            (h_n, c_n): 모든 레이어의 마지막 상태이며 입력 상태와 모양이 같다
         """
         batch_size, seq_len, _ = x.size()
         
-        # 모든 층의 상태 초기화
+        # 모든 레이어의 상태 초기화
         if state is None:
             h = [torch.zeros(batch_size, self.hidden_size, device=x.device) 
                  for _ in range(self.num_layers)]
@@ -323,18 +323,18 @@ class LSTM(nn.Module):
         for t in range(seq_len):
             layer_input = x[:, t, :]
             
-            # 층마다 통과
+            # 레이어마다 통과
             for layer_idx, cell in enumerate(self.cells):
                 h[layer_idx], c[layer_idx] = cell(
                     layer_input, (h[layer_idx], c[layer_idx])
                 )
                 layer_input = h[layer_idx]
                 
-                # 층 사이에 드롭아웃 적용 (마지막 층 뒤에는 없다)
+                # 레이어 사이에 드롭아웃 적용 (마지막 레이어 뒤에는 없다)
                 if self.dropout is not None and layer_idx < self.num_layers - 1:
                     layer_input = self.dropout(layer_input)
             
-            outputs.append(h[-1])  # 맨 위 층의 출력 모으기
+            outputs.append(h[-1])  # 맨 위 레이어의 출력 모으기
         
         # 출력과 상태 쌓기
         output = torch.stack(outputs, dim=1)  # (배치, seq_len, hidden)
@@ -346,7 +346,7 @@ class LSTM(nn.Module):
 
 ### PyTorch와 비교하여 확인하기
 
-직접 구현은 편향 하나를 쓰므로 내장 모듈의 두 편향 합을 맞춰 비교한다. 아래 검증 함수는 정의되어 있지만 호출은 주석 처리되어 있다. 단일 층·드롭아웃 없는 순전파 비교이며, 모든 설정과 역전파의 동등성을 검증하는 코드는 아니다.
+직접 구현은 바이어스 하나를 쓰므로 내장 모듈의 두 바이어스 합을 맞춰 비교한다. 아래 검증 함수는 정의되어 있지만 호출은 주석 처리되어 있다. 단일 레이어·드롭아웃 없는 순전파 비교이며, 모든 설정과 역전파의 동등성을 검증하는 코드는 아니다.
 
 ```python
 def verify_implementation():
@@ -361,13 +361,13 @@ def verify_implementation():
     # PyTorch의 구현
     torch_lstm = nn.LSTM(input_size, hidden_size, num_layers=1, batch_first=True)
     
-    # 가중치 옮기기 (순서가 다른 점을 감안)
+    # 웨이트 옮기기 (순서가 다른 점을 감안)
     with torch.no_grad():
         # PyTorch는 문의 순서를 [i, f, g, o]로 두며 우리도 같게 쓴다
         torch_lstm.weight_ih_l0.copy_(our_lstm.cells[0].weight_ih)
         torch_lstm.weight_hh_l0.copy_(our_lstm.cells[0].weight_hh)
         torch_lstm.bias_ih_l0.copy_(our_lstm.cells[0].bias)
-        torch_lstm.bias_hh_l0.zero_()  # 우리는 편향을 합치고 PyTorch는 나눈다
+        torch_lstm.bias_hh_l0.zero_()  # 우리는 바이어스를 합치고 PyTorch는 나눈다
     
     # 시험 입력
     x = torch.randn(batch_size, seq_len, input_size)
@@ -392,13 +392,13 @@ def verify_implementation():
 import torch
 import torch.nn as nn
 
-# LSTM 층 만들기
+# LSTM 레이어 만들기
 lstm = nn.LSTM(
-    input_size=100,      # 입력 특징의 차원
+    input_size=100,      # 입력 피처의 차원
     hidden_size=256,     # 숨은 상태와 세포 상태의 차원
-    num_layers=2,        # 쌓은 LSTM 층의 수
-    batch_first=True,    # 입력의 모양: (배치, seq, 특징)
-    dropout=0.3,         # 층 사이의 드롭아웃 (num_layers > 1일 때만)
+    num_layers=2,        # 쌓은 LSTM 레이어의 수
+    batch_first=True,    # 입력의 모양: (배치, seq, 피처)
+    dropout=0.3,         # 레이어 사이의 드롭아웃 (num_layers > 1일 때만)
     bidirectional=False  # 순방향만 처리
 )
 
@@ -409,12 +409,12 @@ x = torch.randn(32, 50, 100)
 output, (h_n, c_n) = lstm(x)
 
 print(f"Output shape: {output.shape}")     # (32, 50, 256)
-print(f"Final hidden: {h_n.shape}")        # (2, 32, 256) — 층마다 하나
-print(f"Final cell: {c_n.shape}")          # (2, 32, 256) — 층마다 하나
+print(f"Final hidden: {h_n.shape}")        # (2, 32, 256) — 레이어마다 하나
+print(f"Final cell: {c_n.shape}")          # (2, 32, 256) — 레이어마다 하나
 
 # 뒤따르는 과제를 위해 출력에 접근
 last_output = output[:, -1, :]    # 마지막 시각: (32, 256)
-last_hidden = h_n[-1]             # 마지막 층의 숨은 상태: (32, 256)
+last_hidden = h_n[-1]             # 마지막 레이어의 숨은 상태: (32, 256)
 # 참고: 단방향 LSTM에서는 last_output == last_hidden이다
 ```
 
@@ -486,7 +486,7 @@ class LSTMClassifier(nn.Module):
         
         # 분류에 마지막 숨은 상태 쓰기
         # h_n의 모양: (num_layers, 배치, hidden_size)
-        # 마지막 층의 숨은 상태 가져오기
+        # 마지막 레이어의 숨은 상태 가져오기
         final_hidden = h_n[-1]  # (배치, hidden_size)
         final_hidden = self.dropout(final_hidden)
         
@@ -513,7 +513,7 @@ probs = torch.softmax(logits, dim=-1)
 
 ### 시퀀스 생성 (언어 모델)
 
-가중치 공유는 임베딩과 은닉 차원이 같을 때만 적용된다. 아래 `generate`는 프롬프트 전체를 처리한 후 마지막 프롬프트 토큰을 다시 입력하므로 첫 생성 분포가 의도한 문맥과 다르다. 올바른 순서는 프롬프트의 마지막 로짓에서 첫 새 토큰을 고르고, 이후 선택한 새 토큰을 한 번씩 입력하는 것이다. 빈 프롬프트, 양수 온도와 top_k 범위, 종료 토큰 처리도 별도로 필요하다.
+웨이트 공유는 임베딩과 은닉 차원이 같을 때만 적용된다. 아래 `generate`는 프롬프트 전체를 처리한 후 마지막 프롬프트 토큰을 다시 입력하므로 첫 생성 분포가 의도한 문맥과 다르다. 올바른 순서는 프롬프트의 마지막 로짓에서 첫 새 토큰을 고르고, 이후 선택한 새 토큰을 한 번씩 입력하는 것이다. 빈 프롬프트, 양수 온도와 top_k 범위, 종료 토큰 처리도 별도로 필요하다.
 
 ```python
 class LSTMLanguageModel(nn.Module):
@@ -551,7 +551,7 @@ class LSTMLanguageModel(nn.Module):
         # 숨은 상태를 어휘로 사영
         self.fc = nn.Linear(hidden_size, vocab_size)
         
-        # 선택적으로 임베딩과 출력 가중치를 묶기
+        # 선택적으로 임베딩과 출력 웨이트를 묶기
         if tie_weights and embed_dim == hidden_size:
             self.fc.weight = self.embedding.weight
     
@@ -648,10 +648,10 @@ class LSTMForecaster(nn.Module):
     
     def __init__(
         self,
-        input_size: int,     # 입력 특징의 수
+        input_size: int,     # 입력 피처의 수
         hidden_size: int,
         num_layers: int,
-        output_size: int,    # 출력 특징의 수
+        output_size: int,    # 출력 피처의 수
         horizon: int = 1,    # 예측 지평 (앞을 내다보는 걸음 수)
         dropout: float = 0.2
     ):
@@ -690,7 +690,7 @@ class LSTMForecaster(nn.Module):
         
         return predictions
 
-# 예: 지난 20걸음으로 특징 3개의 다음 5걸음 예측
+# 예: 지난 20걸음으로 피처 3개의 다음 5걸음 예측
 model = LSTMForecaster(
     input_size=3,
     hidden_size=128,
@@ -699,7 +699,7 @@ model = LSTMForecaster(
     horizon=5
 )
 
-x = torch.randn(32, 20, 3)  # 표본 32개, 시각 20개, 특징 3개
+x = torch.randn(32, 20, 3)  # 표본 32개, 시각 20개, 피처 3개
 predictions = model(x)       # (32, 5, 3)
 ```
 
@@ -707,59 +707,59 @@ predictions = model(x)       # (32, 5, 3)
 
 ## 8. 초기화와 학습의 모범 관행
 
-### 가중치 초기화
+### 웨이트 초기화
 
 ```python
 def init_lstm_weights(lstm: nn.LSTM):
     """
-    모범 관행에 따라 LSTM의 가중치를 초기화한다.
+    모범 관행에 따라 LSTM의 웨이트를 초기화한다.
     
-    - 입력에서 숨은 상태로 가는 가중치: 자비에르(글로럿) 균등
-    - 숨은 상태끼리의 가중치: 직교 (기울기의 노름을 지킨다)
-    - 편향: 0, 다만 망각 문의 편향은 1
+    - 입력에서 숨은 상태로 가는 웨이트: 자비에르(글로럿) 균등
+    - 숨은 상태끼리의 웨이트: 직교 (그래디언트의 노름을 지킨다)
+    - 바이어스: 0, 다만 망각 문의 바이어스는 1
     """
     for name, param in lstm.named_parameters():
         if 'weight_ih' in name:
-            # 입력에서 숨은 상태로 가는 가중치: 자비에르 균등
+            # 입력에서 숨은 상태로 가는 웨이트: 자비에르 균등
             nn.init.xavier_uniform_(param)
         elif 'weight_hh' in name:
-            # 숨은 상태끼리의 가중치: 직교
-            # 그러면 순환을 지나도 기울기의 크기가 지켜진다
+            # 숨은 상태끼리의 웨이트: 직교
+            # 그러면 순환을 지나도 그래디언트의 크기가 지켜진다
             nn.init.orthogonal_(param)
         elif 'bias' in name:
-            # 편향: 대체로 0
+            # 바이어스: 대체로 0
             nn.init.zeros_(param)
-            # 다만 망각 문의 편향은 1로 둔다
+            # 다만 망각 문의 바이어스는 1로 둔다
             n = param.size(0) // 4
             param.data[n:2*n].fill_(1.0)
 ```
 
-### 망각 게이트의 편향을 왜 1로 두는가
+### 망각 게이트의 바이어스를 왜 1로 두는가
 
-게이트의 활성화 전 값이 0 부근이면 시그모이드 출력은 0.5 부근이다. 망각 게이트의 유효 편향을 양수로 두면 초기 보존 계수를 키울 수 있다. 하지만 무작위 입력·가중치가 항상 작은 값이라는 가정이나 모든 셀이 절반의 정보를 잊는다는 해석은 성립하지 않는다.
+게이트의 활성화 전 값이 0 부근이면 시그모이드 출력은 0.5 부근이다. 망각 게이트의 유효 바이어스를 양수로 두면 초기 보존 계수를 키울 수 있다. 하지만 무작위 입력·웨이트가 항상 작은 값이라는 가정이나 모든 셀이 절반의 정보를 잊는다는 해석은 성립하지 않는다.
 
 $b_f = 1$으로 두면 망각 게이트 시그모이드의 입력이 치우쳐 다음과 같이 된다.
 
 $$f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + 1) \approx \sigma(1) \approx 0.73$$
 
-이 근사는 가중 입력이 0 부근일 때 유효하다. 위 초기화 함수는 PyTorch의 두 편향 모두에서 망각 부분을 1로 채우므로 유효 편향은 2다. 이 경우 0 입력 근사값은 sigmoid(2) 약 0.881이며 위 sigmoid(1) 예시와 다르다. 또한 쌓인 순환 가중치 전체를 직교 초기화하는 것은 각 게이트 블록을 각각 직교 초기화하는 것과 다르며 전체 기울기를 보장하지 않는다.
+이 근사는 가중 입력이 0 부근일 때 유효하다. 위 초기화 함수는 PyTorch의 두 바이어스 모두에서 망각 부분을 1로 채우므로 유효 바이어스는 2다. 이 경우 0 입력 근사값은 sigmoid(2) 약 0.881이며 위 sigmoid(1) 예시와 다르다. 또한 쌓인 순환 웨이트 전체를 직교 초기화하는 것은 각 게이트 블록을 각각 직교 초기화하는 것과 다르며 전체 그래디언트를 보장하지 않는다.
 
-### 기울기 자르기
+### 그래디언트 자르기
 
 ```python
-# 학습 중에는 폭발을 막으려고 기울기를 자른다
+# 학습 중에는 폭발을 막으려고 그래디언트를 자른다
 optimizer.zero_grad()
 loss.backward()
 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
 optimizer.step()
 ```
 
-LSTM은 기울기 소실을 다루지만 특히 학습 초반에는 기울기 폭발을 겪을 수 있다. 기울기 자르기가 표준 관행이다.
+LSTM은 그래디언트 소실을 다루지만 특히 학습 초반에는 그래디언트 폭발을 겪을 수 있다. 그래디언트 자르기가 표준 관행이다.
 
-### 학습률 스케줄링
+### 러닝레이트 스케줄링
 
 ```python
-# 검증 손실이 정체되면 학습률을 줄인다
+# 검증 로스가 정체되면 러닝레이트를 줄인다
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, 
     mode='min', 
@@ -781,7 +781,7 @@ scheduler.step(val_loss)
 
 $$c_t = f_t \odot c_{t-1} + (1 - f_t) \odot \tilde{c}_t$$
 
-이렇게 하면 매개변수가 줄고 이전 값과 후보에 대한 성분별 계수의 합이 1이라는 제약이 걸린다. 벡터의 노름이나 정보량이 보존된다는 뜻은 아니다.
+이렇게 하면 파라메터가 줄고 이전 값과 후보에 대한 성분별 계수의 합이 1이라는 제약이 걸린다. 벡터의 노름이나 정보량이 보존된다는 뜻은 아니다.
 
 ### GRU (게이트가 있는 순환 단위)
 
@@ -799,7 +799,7 @@ $$\tilde{h}_t = \tanh(W_h \cdot [r_t \odot h_{t-1}, x_t])$$
 
 $$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$$
 
-**트레이드오프:** 매개변수가 적고(4배가 아니라 3배) 많은 과제에서 성능이 비슷하지만 기억을 다스리는 유연함은 덜하다.
+**트레이드오프:** 파라메터가 적고(4배가 아니라 3배) 많은 과제에서 성능이 비슷하지만 기억을 다스리는 유연함은 덜하다.
 
 ---
 
@@ -813,11 +813,11 @@ GRU, 1차원 CNN이나 트랜스포머와 비교할 때는 데이터, 필요한 
 
 ### 증상과 점검
 
-손실 정체, 같은 출력과 장거리 성능 저하는 데이터·타깃, 손실 규약, 초기화와 학습률 등 여러 원인이 가능하다. 특정 증상만으로 원인을 확정하지 말고 입력 범위와 분할, 유한한 손실·기울기와 길이별 검증 성능을 확인한다.
+로스 정체, 같은 출력과 장거리 성능 저하는 데이터·타깃, 로스 규약, 초기화와 러닝레이트 등 여러 원인이 가능하다. 특정 증상만으로 원인을 확정하지 말고 입력 범위와 분할, 유한한 로스·그래디언트와 길이별 검증 성능을 확인한다.
 
 ### 진단 코드
 
-아래 함수는 `torch.no_grad()` 안에서 backward를 호출하므로 의도한 기울기 검사를 수행할 수 없다. `model.train()`은 기울기 기록을 다시 켜지 않는다. 기록이 켜진 문맥에서 모델 반환값과 손실을 맞추고 기존 기울기를 초기화해야 한다. 평가 모드 복원도 필요하다.
+아래 함수는 `torch.no_grad()` 안에서 backward를 호출하므로 의도한 그래디언트 검사를 수행할 수 없다. `model.train()`은 그래디언트 기록을 다시 켜지 않는다. 기록이 켜진 문맥에서 모델 반환값과 로스를 맞추고 기존 그래디언트를 초기화해야 한다. 평가 모드 복원도 필요하다.
 
 ```python
 def diagnose_lstm(model, dataloader, device):
@@ -829,7 +829,7 @@ def diagnose_lstm(model, dataloader, device):
             x, y = batch
             x = x.to(device)
             
-            # 기울기의 크기 확인
+            # 그래디언트의 크기 확인
             model.train()
             output, _ = model(x)
             loss = output.sum()
@@ -867,40 +867,40 @@ LSTM의 식을 적고 각 문의 구실을 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-셀 상태의 직접 경로와 전체 기울기의 차이를 설명하라.
+셀 상태의 직접 경로와 전체 그래디언트의 차이를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    게이트·후보를 고정한 직접 경로는 $\operatorname{diag}(f_t)$다. 시간에 따른 직접 경로에는 그 대각 행렬들이 곱해진다. 전체 미분에는 이전 은닉 상태가 게이트와 후보에 미치는 경로도 있으므로 이 곱만으로 전체 기울기를 설명할 수 없다. 망각 값이 1에 가까워도 장거리 전달은 과제에서 확인해야 한다.
+    게이트·후보를 고정한 직접 경로는 $\operatorname{diag}(f_t)$다. 시간에 따른 직접 경로에는 그 대각 행렬들이 곱해진다. 전체 미분에는 이전 은닉 상태가 게이트와 후보에 미치는 경로도 있으므로 이 곱만으로 전체 그래디언트를 설명할 수 없다. 망각 값이 1에 가까워도 장거리 전달은 과제에서 확인해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff easy" title="쉬움"></span>
-입력 차원 300, 은닉 차원 512인 LSTM 셀의 매개변수 수를 편향 규약별로 구하라.
+입력 차원 300, 은닉 차원 512인 LSTM 셀의 파라메터 수를 바이어스 규약별로 구하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    계산 묶음마다 편향 하나면 $4\times512\times(300+512+1)=1665024$개다. PyTorch 기본처럼 입력·순환 편향을 각각 두면 $4\times512\times814=1667072$개다. 후보를 포함한 네 묶음이며 출력층과 임베딩은 제외한다.
+    계산 묶음마다 바이어스 하나면 $4\times512\times(300+512+1)=1665024$개다. PyTorch 기본처럼 입력·순환 바이어스를 각각 두면 $4\times512\times814=1667072$개다. 후보를 포함한 네 묶음이며 출력 레이어와 임베딩은 제외한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-망각 게이트의 양수 편향 초기화가 하는 일과 코드에서 두 편향을 설정할 때의 주의점을 설명하라.
+망각 게이트의 양수 바이어스 초기화가 하는 일과 코드에서 두 바이어스를 설정할 때의 주의점을 설명하라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    가중 입력이 0 부근일 때 유효 편향 1은 보존 계수를 sigmoid(1) 약 0.731로 만든다. 이는 초기 보존을 돕는 선택이지 기울기나 정보 유지를 보장하지 않는다. 내장 LSTM의 두 편향에 각각 1을 넣으면 합은 2가 되므로 하나에만 넣거나 합이 원하는 값이 되도록 나눠야 한다.
+    가중 입력이 0 부근일 때 유효 바이어스 1은 보존 계수를 sigmoid(1) 약 0.731로 만든다. 이는 초기 보존을 돕는 선택이지 그래디언트나 정보 유지를 보장하지 않는다. 내장 LSTM의 두 바이어스에 각각 1을 넣으면 합은 2가 되므로 하나에만 넣거나 합이 원하는 값이 되도록 나눠야 한다.
 
 ## 정리하며
 
-LSTM은 셀 상태와 세 게이트로 보존·갱신·출력을 조절한다. 직접 셀 경로의 이점과 전체 기울기의 보장은 구분해야 한다. 내장 구현과 비교할 때 편향의 합과 상태 형태를 맞추고, 생성·패딩·진단 코드의 제약을 함께 확인한다.
+LSTM은 셀 상태와 세 게이트로 보존·갱신·출력을 조절한다. 직접 셀 경로의 이점과 전체 그래디언트의 보장은 구분해야 한다. 내장 구현과 비교할 때 바이어스의 합과 상태 형태를 맞추고, 생성·패딩·진단 코드의 제약을 함께 확인한다.
 
 **참고 문헌**
 

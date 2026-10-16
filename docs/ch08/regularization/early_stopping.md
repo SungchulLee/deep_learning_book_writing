@@ -10,19 +10,19 @@
 
 학습 중에 모델은 대체로 예측 가능한 경로를 따른다.
 
-1. **초기 단계**: 학습 손실과 검증 손실이 모두 빠르게 줄어든다
-2. **학습 단계**: 학습 손실은 계속 줄지만 검증 손실은 더 느리게 준다
-3. **과적합 단계**: 학습 손실은 줄지만 검증 손실은 늘어난다
+1. **초기 단계**: 학습 로스와 검증 로스가 모두 빠르게 줄어든다
+2. **학습 단계**: 학습 로스는 계속 줄지만 검증 로스는 더 느리게 준다
+3. **과적합 단계**: 학습 로스는 줄지만 검증 로스는 늘어난다
 
-이 세 단계는 전형적인 설명일 뿐 모든 학습 곡선이 이 순서를 따르지는 않는다. 검증 지표가 흔들리거나 학습률 감소 뒤 다시 좋아질 수 있으므로 patience와 스케줄을 함께 설계한다.
+이 세 단계는 전형적인 설명일 뿐 모든 학습 곡선이 이 순서를 따르지는 않는다. 검증 지표가 흔들리거나 러닝레이트 감소 뒤 다시 좋아질 수 있으므로 patience와 스케줄을 함께 설계한다.
 
 ### 암묵적 정규화
 
 조기 종료는 다음을 통해 암묵적 정규화 장치로 작동한다.
 
 - 최적화 반복 횟수를 제한하여 모델의 복잡도를 제한한다
-- 가중치가 극단적인 값에 이르는 것을 막는다
-- 모델을 초기화에 더 가까운 매개변수 공간의 영역에 머무르게 한다
+- 웨이트가 극단적인 값에 이르는 것을 막는다
+- 모델을 초기화에 더 가까운 파라메터 공간의 영역에 머무르게 한다
 
 선형 최소제곱에서는 반복을 일찍 멈추는 것이 고유방향별 축소로 해석된다. 릿지와 유사한 효과가 있지만 하나의 고정 강도를 쓰는 릿지와 일반적으로 같은 해는 아니다.
 
@@ -32,13 +32,13 @@
 
 ### 검증에 기반한 종료 기준
 
-에포크 $t$에서의 검증 손실을 $\mathcal{L}_{\text{val}}^{(t)}$이라 하자. 기본 종료 기준은 다음과 같다.
+에포크 $t$에서의 검증 로스를 $\mathcal{L}_{\text{val}}^{(t)}$이라 하자. 기본 종료 기준은 다음과 같다.
 
 $$
 \text{Stop if no sufficient improvement over the best monitored value for }k\text{ evaluations}
 $$
 
-여기서 $k$은 **대기 횟수(patience)** 매개변수이다.
+여기서 $k$은 **대기 횟수(patience)** 파라메터이다.
 
 ### 최적 모델의 선택
 
@@ -48,17 +48,17 @@ $$
 t^* = \arg\min_{t \leq T} \mathcal{L}_{\text{val}}^{(t)}
 $$
 
-마지막 매개변수 $\theta^{(T)}$이 아니라 매개변수 $\theta^{(t^*)}$을 돌려준다.
+마지막 파라메터 $\theta^{(T)}$이 아니라 파라메터 $\theta^{(t^*)}$을 돌려준다.
 
 ### 일반화 한계의 관점
 
-학습 길이 제한의 정규화 효과를 선형 모형에서 분석하면 다음 규모의 릿지 강도와 비교할 수 있다. 이는 정확한 등식이나 일반 신경망에 적용되는 공식이 아니다.
+학습 길이 제한의 정규화 효과를 선형 모형에서 분석하면 다음 규모의 릿지 강도와 비교할 수 있다. 이는 정확한 등식이나 일반 뉴럴 넷트웍에 적용되는 공식이 아니다.
 
 $$
 \lambda_{\text{eff}} \approx \frac{1}{\eta t}
 $$
 
-여기서 $\eta$은 학습률이다.
+여기서 $\eta$은 러닝레이트다.
 
 ---
 
@@ -74,13 +74,13 @@ import copy
 
 class EarlyStopping:
     """
-    검증 손실이 더 나아지지 않으면 학습을 멈추는 조기 종료.
+    검증 로스가 더 나아지지 않으면 학습을 멈추는 조기 종료.
     
     인수:
         patience: 마지막 개선 뒤 기다릴 에포크 수
         min_delta: 개선으로 볼 최소 변화량
-        mode: 손실이면 'min'(작을수록 좋다), 정확도면 'max'
-        restore_best_weights: 가장 좋았던 가중치로 되돌릴지 여부
+        mode: 로스이면 'min'(작을수록 좋다), 정확도면 'max'
+        restore_best_weights: 가장 좋았던 웨이트로 되돌릴지 여부
     """
     
     def __init__(
@@ -146,7 +146,7 @@ class EarlyStopping:
                 # deepcopy가 반드시 필요하다. state_dict()는 살아 있는
                 # 파라미터 텐서를 그대로 가리키므로, 그냥 담아 두면
                 # 다음 optimizer.step()이 그 텐서를 덮어써 "가장 좋았던
-                # 가중치"가 현재 가중치를 따라 계속 바뀌어 버린다
+                # 웨이트"가 현재 웨이트를 따라 계속 바뀌어 버린다
                 self.best_weights = copy.deepcopy(model.state_dict())
         else:
             self.counter += 1
@@ -154,7 +154,7 @@ class EarlyStopping:
                 self.early_stop = True
                 # 되돌리기는 이 지점에서만 일어난다. 인내가 다 차기 전에
                 # 에포크 수를 다 써서 학습 루프가 끝나면 이 줄을 지나가지
-                # 못하므로, 모델은 마지막 에포크의 가중치를 그대로 지닌
+                # 못하므로, 모델은 마지막 에포크의 웨이트를 그대로 지닌
                 # 채 남는다. 루프가 끝난 뒤 best_weights를 직접
                 # load_state_dict 해 주어야 안전하다
                 if self.restore_best_weights and self.best_weights is not None:
@@ -192,14 +192,14 @@ def train_with_early_stopping(
     조기 종료와 함께 모델을 학습시킨다.
     
     인수:
-        model: 신경망
+        model: 뉴럴 넷트웍
         train_loader: 학습 데이터 로더
         val_loader: 검증 데이터 로더
-        criterion: 손실 함수
+        criterion: 로스 함수
         optimizer: 최적화기
         max_epochs: 최대 학습 에포크 수
         patience: 조기 종료의 인내
-        min_delta: 개선으로 볼 최소 문턱값
+        min_delta: 개선으로 볼 최소 임계값
         verbose: 진행 상황 출력 여부
         
     반환값:
@@ -230,7 +230,7 @@ def train_with_early_stopping(
             optimizer.step()
             
             # 배치 크기를 곱해 두었다가 아래에서 표본 수로 나눈다.
-            # 배치별 손실을 그냥 평균 내면 마지막 짧은 배치가 앞의
+            # 배치별 로스를 그냥 평균 내면 마지막 짧은 배치가 앞의
             # 꽉 찬 배치들과 같은 무게를 얻어 값이 살짝 어긋난다
             train_loss += loss.item() * X_batch.size(0)
             # max(1)은 (최댓값, 위치)를 돌려주는데 필요한 것은 위치뿐이다.
@@ -243,9 +243,9 @@ def train_with_early_stopping(
         train_acc = train_correct / train_total
         
         # 검증 단계.
-        # 조기 종료가 보는 것은 학습 손실이 아니라 이 검증 손실이다.
-        # 학습 손실은 과적합이 시작된 뒤에도 계속 내려가므로 멈출 때를
-        # 알려 주지 못한다. 검증 손실이 돌아서는 지점이 신호다
+        # 조기 종료가 보는 것은 학습 로스가 아니라 이 검증 로스다.
+        # 학습 로스는 과적합이 시작된 뒤에도 계속 내려가므로 멈출 때를
+        # 알려 주지 못한다. 검증 로스가 돌아서는 지점이 신호다
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
         
@@ -274,10 +274,10 @@ def train_with_early_stopping(
         
         # 조기 종료 여부를 확인한다.
         # 이력을 기록한 "뒤"에 부르는 순서가 맞다. 앞에서 부르면 멈추는
-        # 에포크의 손실이 history에 빠진다.
-        # 주의: 이 if가 참이 될 때만 가장 좋았던 가중치가 복원된다.
+        # 에포크의 로스가 history에 빠진다.
+        # 주의: 이 if가 참이 될 때만 가장 좋았던 웨이트가 복원된다.
         # max_epochs를 다 쓰고 반복문이 끝나면 model은 마지막 에포크의
-        # 가중치를 지닌 채 반환된다
+        # 웨이트를 지닌 채 반환된다
         if early_stopping(val_loss, model, epoch):
             if verbose:
                 print(f"Early stopping at epoch {epoch+1}")
@@ -309,12 +309,12 @@ class MultiMetricEarlyStopping:
             metrics_config: 지표 이름을 'min' 또는 'max'에 대응시키는 사전
                            예: {'val_loss': 'min', 'val_acc': 'max'}
             patience: 지표마다의 인내
-            restore_best_weights: 가장 좋았던 가중치로 되돌릴지 여부
+            restore_best_weights: 가장 좋았던 웨이트로 되돌릴지 여부
         """
         self.patience = patience
         self.restore_best_weights = restore_best_weights
         
-        # 지표마다 최고 기록과 인내 계수를 따로 둔다. 손실은 내려가야
+        # 지표마다 최고 기록과 인내 계수를 따로 둔다. 로스는 내려가야
         # 좋고 정확도는 올라가야 좋으니 한 벌로는 셀 수 없다.
         # 앞의 EarlyStopping과 달리 min_delta가 없다는 점에 주의하라.
         # 아주 미세한 개선도 개선으로 세므로 더 늦게 멈춘다
@@ -355,8 +355,8 @@ class MultiMetricEarlyStopping:
             else:
                 self.counters[name] += 1
         
-        # 주의: 하나라도 나아지면 저장한다. 그래서 여기 담기는 가중치는
-        # "모든 지표가 가장 좋았던" 순간이 아니다. 검증 손실은 나빠졌는데
+        # 주의: 하나라도 나아지면 저장한다. 그래서 여기 담기는 웨이트는
+        # "모든 지표가 가장 좋았던" 순간이 아니다. 검증 로스는 나빠졌는데
         # 정확도만 소수점 아래로 올라간 에포크도 갱신을 부른다.
         # 어느 한 지표를 주 지표로 삼고 싶다면 그 지표가 나아졌을 때만
         # 저장하도록 조건을 좁혀야 한다
@@ -378,12 +378,12 @@ class MultiMetricEarlyStopping:
         return all_exceeded
 ```
 
-### 학습률 스케줄링과 함께 쓰는 조기 종료
+### 러닝레이트 스케줄링과 함께 쓰는 조기 종료
 
 ```python
 class EarlyStoppingWithLRScheduler:
     """
-    조기 종료와 정체 시 학습률 감소를 결합한다.
+    조기 종료와 정체 시 러닝레이트 감소를 결합한다.
     """
     
     def __init__(
@@ -404,10 +404,10 @@ class EarlyStoppingWithLRScheduler:
         
         self.best_score = None
         self.best_weights = None
-        # 계수를 둘 둔다. counter는 멈출 때를, lr_counter는 학습률을
-        # 줄일 때를 센다. 아래에서 학습률을 줄인 뒤 lr_counter만 0으로
+        # 계수를 둘 둔다. counter는 멈출 때를, lr_counter는 러닝레이트를
+        # 줄일 때를 센다. 아래에서 러닝레이트를 줄인 뒤 lr_counter만 0으로
         # 되돌리고 counter는 그대로 두는 것이 요점이다. 그래서 인내가
-        # 다 차기까지 학습률을 여러 번(20/5이므로 최대 네 번) 줄여
+        # 다 차기까지 러닝레이트를 여러 번(20/5이므로 최대 네 번) 줄여
         # 볼 수 있다. 둘 다 되돌리면 학습이 영영 끝나지 않는다
         self.counter = 0
         self.lr_counter = 0
@@ -420,7 +420,7 @@ class EarlyStoppingWithLRScheduler:
             return False
         
         # 앞의 EarlyStopping과 달리 mode 인자가 없다. 부등호가 <로
-        # 박혀 있어 "작을수록 좋은" 지표, 곧 손실 전용이다.
+        # 박혀 있어 "작을수록 좋은" 지표, 곧 로스 전용이다.
         # 정확도를 넘기면 개선을 영영 못 알아채고 첫 인내에 멈춘다
         if score < self.best_score - self.min_delta:
             self.best_score = score
@@ -431,10 +431,10 @@ class EarlyStoppingWithLRScheduler:
             self.counter += 1
             self.lr_counter += 1
             
-            # 정체되면 학습률을 줄인다
+            # 정체되면 러닝레이트를 줄인다
             if self.lr_counter >= self.lr_patience:
                 # 주의: 읽기는 첫 배치에서만 하고 쓰기는 모든 배치에 한다.
-                # 배치마다 다른 학습률을 준 경우(층별로 학습률을 달리하는
+                # 배치마다 다른 러닝레이트를 준 경우(레이어별로 러닝레이트를 달리하는
                 # 미세 조정 등) 여기서 전부 같은 값으로 뭉개진다.
                 # 배치마다 제 값을 절반으로 줄이려면 아래 반복문 안에서
                 # param_group['lr']을 각각 읽어 고쳐야 한다
@@ -529,20 +529,20 @@ def analyze_optimal_patience(history: dict, test_patience_values: list):
 
 | 지표 | 쓸 때 |
 |--------|-------------|
-| 검증 손실 | 해당 검증 분포에서의 오차를 추정한다 |
+| 검증 로스 | 해당 검증 분포에서의 오차를 추정한다 |
 | 검증 정확도 | 정확도가 주된 목표일 때 |
 | F1 점수 | 불균형 분류일 때 |
 | 사용자 정의 지표 | 분야에 특화된 요구가 있을 때 |
 
 ### 최소 개선폭 고르기
 
-`min_delta` 매개변수는 무엇을 개선으로 볼지 정한다.
+`min_delta` 파라메터는 무엇을 개선으로 볼지 정한다.
 
 ```python
-# 손실값이 대략 0.1~1.0인 보통의 경우
+# 로스값이 대략 0.1~1.0인 보통의 경우
 min_delta = 1e-4  # 기본값
 
-# 손실값이 아주 작은 경우 (< 0.01)
+# 로스값이 아주 작은 경우 (< 0.01)
 min_delta = 1e-5
 
 # 검증 지표에 잡음이 많은 경우
@@ -561,13 +561,13 @@ $$
 w_t=\sum_{s=0}^{t-1}(I-\eta X^\top X)^s\eta X^\top y
 $$
 
-적절한 고정 학습률에서 수렴하면 최소 노름 최소제곱 해를 얻는다. $X$가 열 전계수이면 $(X^\top X)^{-1}X^\top y$이다. 양의 강도를 쓰는 릿지 해로 수렴하는 것은 아니다.
+적절한 고정 러닝레이트에서 수렴하면 최소 노름 최소제곱 해를 얻는다. $X$가 열 전계수이면 $(X^\top X)^{-1}X^\top y$이다. 양의 강도를 쓰는 릿지 해로 수렴하는 것은 아니다.
 
 고윳값 $\mu>0$ 방향에서 조기 종료의 축소 인자는 $1-(1-\eta\mu)^t$이고 릿지의 인자는 $\mu/(\mu+a)$이다. 형태는 유사하지만 서로 같지 않으므로 $a\approx1/(\eta t)$는 규모를 비교하는 근사로 읽는다. MSE의 평균이나 상수배를 바꾸면 $\eta$에 해당하는 배율도 달라진다.
 
 ### 검증 선택의 한계
 
-검증셋에서 고른 시점은 잡음이 섞인 추정에 따른 선택이다. 학습 횟수에 따른 편향·분산의 단조 변화나 최적 테스트 성능을 보장하지 않는다. 검증셋에 반복적으로 맞추는 효과를 고려하고, 최종 평가는 독립 테스트셋에서 수행한다.
+검증셋에서 고른 시점은 잡음이 섞인 추정에 따른 선택이다. 학습 횟수에 따른 바이어스·분산의 단조 변화나 최적 테스트 성능을 보장하지 않는다. 검증셋에 반복적으로 맞추는 효과를 고려하고, 최종 평가는 독립 테스트셋에서 수행한다.
 
 ## 6. 실무 지침
 
@@ -588,7 +588,7 @@ def recommended_training_setup(model, train_loader, val_loader):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
     
-    # 학습률 스케줄러
+    # 러닝레이트 스케줄러
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.5, patience=5, verbose=True
     )
@@ -687,15 +687,15 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
     # 코드 안의 인덱스는 0부터이므로 아래에서 best_epoch에 1을 더한다
     epochs = range(1, len(history['train_loss']) + 1)
 
-    # ── 왼쪽: 손실 곡선 ─────────────────────────────────────────────
-    # 훈련과 검증을 반드시 함께 그린다. 검증 손실만 보면 왜 나빠지는지
-    # 알 수 없는데, 훈련 손실이 계속 내려가는 동안 검증이 올라가면
+    # ── 왼쪽: 로스 곡선 ─────────────────────────────────────────────
+    # 훈련과 검증을 반드시 함께 그린다. 검증 로스만 보면 왜 나빠지는지
+    # 알 수 없는데, 훈련 로스가 계속 내려가는 동안 검증이 올라가면
     # 그것이 과적합의 그림이다
     axes[0].plot(epochs, history['train_loss'], label='Train Loss')
     axes[0].plot(epochs, history['val_loss'], label='Val Loss')
 
     # 세로 점선이 되돌릴 지점이다. 조기 종료가 걸린 곳이 아니라
-    # 검증 손실이 가장 낮았던 곳을 표시해야 한다. 둘 사이의 간격이
+    # 검증 로스가 가장 낮았던 곳을 표시해야 한다. 둘 사이의 간격이
     # 참을성만큼 벌어져 있는 것이 정상이다
     axes[0].axvline(best_epoch + 1, color='r', linestyle='--', 
                     label=f'Best Epoch ({best_epoch + 1})')
@@ -706,7 +706,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
     axes[0].grid(True, alpha=0.3)
 
     # ── 오른쪽: 정확도 곡선(이력에 있을 때만) ───────────────────────
-    # 손실과 정확도의 최적 지점이 어긋나는 일이 흔하다. 손실은
+    # 로스와 정확도의 최적 지점이 어긋나는 일이 흔하다. 로스는
     # 확신의 정도까지 재지만 정확도는 맞고 틀림만 세기 때문이다.
     # 어느 쪽으로 조기 종료를 걸지는 실제로 무엇을 중히 여기는지에 달렸다
     if 'train_acc' in history:
@@ -732,7 +732,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 
 1. **검증 집합을 쓰지 않기**: 조기 종료에는 따로 떼어 둔 데이터가 필요하다
 2. **인내가 너무 작음**: 정상적인 요동 중에 멈춘다
-3. **최적 가중치를 되돌리지 않기**: 최적 가중치 대신 마지막 가중치를 쓴다
+3. **최적 웨이트를 되돌리지 않기**: 최적 웨이트 대신 마지막 웨이트를 쓴다
 4. **지표를 무시하기**: 과제에 맞지 않는 지표를 쓴다
 5. **데이터 유출**: 검증 집합이 학습 데이터에 오염된다
 
@@ -743,12 +743,12 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-조기 종료가 모델의 매개변수 수를 바꾸지 않아도 정규화로 볼 수 있는 이유를 설명하라.
+조기 종료가 모델의 파라메터 수를 바꾸지 않아도 정규화로 볼 수 있는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    학습 알고리즘이 도달할 해와 학습 길이를 제한하므로 같은 구조에서 다른 추정량을 선택한다. 선형 모형의 초기 반복은 일부 고유방향을 덜 적합하는 필터로 해석할 수 있다. 반복 횟수만으로 모든 모델의 가중치 노름을 제한하거나 릿지와 정확히 동등해지는 것은 아니다.
+    학습 알고리즘이 도달할 해와 학습 길이를 제한하므로 같은 구조에서 다른 추정량을 선택한다. 선형 모형의 초기 반복은 일부 고유방향을 덜 적합하는 필터로 해석할 수 있다. 반복 횟수만으로 모든 모델의 웨이트 노름을 제한하거나 릿지와 정확히 동등해지는 것은 아니다.
 
 ---
 
@@ -780,7 +780,7 @@ PyTorch 학습 루프에서 patience를 갖는 조기 종료를 구현하라.
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff easy" title="쉬움"></span>
-검증 손실이 한 번 증가했다고 즉시 종료하지 않는 이유는 무엇인가?
+검증 로스가 한 번 증가했다고 즉시 종료하지 않는 이유는 무엇인가?
 
 </div>
 
@@ -797,7 +797,7 @@ PyTorch 학습 루프에서 patience를 갖는 조기 종료를 구현하라.
 </div>
 
 ??? success "연습문제 4 풀이"
-    선형 최소제곱에서도 두 방법의 고유방향별 축소 인자가 다르다. 비선형 모델에서는 초기값, 학습률 스케줄과 옵티마이저가 학습 궤적에 영향을 준다. 같은 검증 예산에서 종료 시점과 패널티 강도를 각각 선택해 비교해야 한다.
+    선형 최소제곱에서도 두 방법의 고유방향별 축소 인자가 다르다. 비선형 모델에서는 초기값, 러닝레이트 스케줄과 옵티마이저가 학습 궤적에 영향을 준다. 같은 검증 예산에서 종료 시점과 패널티 강도를 각각 선택해 비교해야 한다.
 
 ## 정리하며
 

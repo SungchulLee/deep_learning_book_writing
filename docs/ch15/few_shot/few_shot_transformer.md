@@ -1,6 +1,6 @@
 # 퓨샷 트랜스포머
 
-서포트와 쿼리의 특징을 하나의 시퀀스로 묶어 트랜스포머로 변환한 뒤 클래스별 유사도로 분류하는 예제다. 별도의 SetTransformer는 서포트 집합 전체를 하나의 벡터로 요약한다. 두 모델의 출력과 순서 의존성을 구분해 읽는다.
+서포트와 쿼리의 피처를 하나의 시퀀스로 묶어 트랜스포머로 변환한 뒤 클래스별 유사도로 분류하는 예제다. 별도의 SetTransformer는 서포트 집합 전체를 하나의 벡터로 요약한다. 두 모델의 출력과 순서 의존성을 구분해 읽는다.
 
 ## 1. 코드
 
@@ -193,7 +193,7 @@ class MultiheadAttentionBlock(nn.Module):
         attn_out, _ = self.attention(query, key_value, key_value)
         query = self.layer_norm(query + attn_out)
         
-        # 순전파 신경망
+        # 순전파 뉴럴 넷트웍
         ffn_out = self.ffn(query)
         query = self.layer_norm2(query + ffn_out)
         
@@ -210,7 +210,7 @@ def train_transformer_fewshot(model, support, support_labels, query, query_label
     # 순전파
     logits = model(support, support_labels, query)
     
-    # 손실을 계산한다
+    # 로스를 계산한다
     loss = F.cross_entropy(logits, query_labels)
     
     # 역전파
@@ -240,7 +240,7 @@ if __name__ == "__main__":
         num_layers=num_layers
     )
     
-    # 5-갈래 5-예시 과제 보기
+    # 5-클래스 5-예시 과제 보기
     n_way = 5
     k_shot = 5
     n_query = 15
@@ -278,7 +278,7 @@ Set embedding shape: torch.Size([1, 128])
 
 ## 2. 논의
 
-입력 서포트 $(M,D)$와 쿼리 $(Q,D)$를 연결해 $(1,M+Q,d)$로 변환한다. 위치 표현과 트랜스포머를 적용한 뒤 각 쿼리와 클래스별 서포트의 코사인 유사도를 평균 내어 $(Q,N)$ 로짓을 만든다. classifier 선형층은 선언되어 있지만 forward에서 쓰이지 않으므로 이 손실로 학습되지 않는다. 라벨은 0부터 N−1까지 연속적이고 모든 클래스에 서포트가 있어야 한다.
+입력 서포트 $(M,D)$와 쿼리 $(Q,D)$를 연결해 $(1,M+Q,d)$로 변환한다. 위치 표현과 트랜스포머를 적용한 뒤 각 쿼리와 클래스별 서포트의 코사인 유사도를 평균 내어 $(Q,N)$ 로짓을 만든다. classifier 선형 레이어는 선언되어 있지만 forward에서 쓰이지 않으므로 이 로스로 학습되지 않는다. 라벨은 0부터 N−1까지 연속적이고 모든 클래스에 서포트가 있어야 한다.
 
 어텐션 마스크가 없으므로 한 쿼리의 표현은 다른 쿼리에도 의존한다. 이는 쿼리 집합을 함께 활용하는 전이적(transductive) 평가에 해당한다. 쿼리 라벨을 입력하지는 않지만 쿼리를 하나씩 처리하는 평가와 조건이 다르다. 위치 표현도 있으므로 서포트 순서를 바꾸면 결과가 달라질 수 있다. 클래스별로 정렬한 순서가 불필요한 단서가 되는지도 점검한다. 기본 위치 버퍼는 총 100개 표본까지만 지원한다.
 
@@ -289,12 +289,12 @@ SetTransformer는 유도점 32개가 입력 집합에 어텐션하고, 그 결�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-PositionalEncoding의 학습 매개변수와 버퍼를 구분하고 입력 조건을 설명하라.
+PositionalEncoding의 학습 파라메터와 버퍼를 구분하고 입력 조건을 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    사인·코사인 위치 표는 register_buffer로 등록되므로 학습 매개변수는 0개다. 모델 이동과 state_dict 저장에는 포함된다. 이 구현은 짝수 d_model을 가정하며 시퀀스 길이는 max_len 이하여야 한다. 트랜스포머에는 별도로 d_model이 nhead로 나누어떨어져야 하는 조건이 있다.
+    사인·코사인 위치 표는 register_buffer로 등록되므로 학습 파라메터는 0개다. 모델 이동과 state_dict 저장에는 포함된다. 이 구현은 짝수 d_model을 가정하며 시퀀스 길이는 max_len 이하여야 한다. 트랜스포머에는 별도로 d_model이 nhead로 나누어떨어져야 하는 조건이 있다.
 
 ---
 
@@ -306,7 +306,7 @@ PositionalEncoding의 학습 매개변수와 버퍼를 구분하고 입력 조�
 </div>
 
 ??? success "연습문제 2 풀이"
-    TransformerFewShotClassifier의 TransformerEncoderLayer는 dropout=0.1로 생성되어 어텐션 드롭아웃을 포함한다. MultiheadAttentionBlock의 nn.MultiheadAttention은 기본값 0을 사용하므로 생성자에 dropout을 지정할 수 있다. 반환된 어텐션 가중치에 나중에 드롭아웃을 적용해도 이미 계산된 attn_out에는 반영되지 않는다. 드롭아웃이 항상 더 균등한 어텐션을 만든다는 보장은 없다.
+    TransformerFewShotClassifier의 TransformerEncoderLayer는 dropout=0.1로 생성되어 어텐션 드롭아웃을 포함한다. MultiheadAttentionBlock의 nn.MultiheadAttention은 기본값 0을 사용하므로 생성자에 dropout을 지정할 수 있다. 반환된 어텐션 웨이트에 나중에 드롭아웃을 적용해도 이미 계산된 attn_out에는 반영되지 않는다. 드롭아웃이 항상 더 균등한 어텐션을 만든다는 보장은 없다.
 
 ---
 
@@ -336,8 +336,8 @@ PositionalEncoding의 학습 매개변수와 버퍼를 구분하고 입력 조�
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-표본을 함께 처리하는 트랜스포머 분류기와 집합 요약기는 서로 다른 출력을 만든다. 위치·쿼리 문맥에 따른 순서 및 평가 조건, 미사용 분류층과 최대 길이를 확인한다.
+표본을 함께 처리하는 트랜스포머 분류기와 집합 요약기는 서로 다른 출력을 만든다. 위치·쿼리 문맥에 따른 순서 및 평가 조건, 미사용 분류 레이어와 최대 길이를 확인한다.

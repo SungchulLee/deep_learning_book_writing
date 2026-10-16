@@ -75,7 +75,7 @@ $$
 
 ### 부분 정보를 통한 정규화
 
-원래 내용의 일부만 보이는 이미지를 보여 줌으로써 컷믹스는 모델이 어느 한 공간 영역에 의존하지 못하게 하고 더 전체적인 특징 학습을 이끈다.
+원래 내용의 일부만 보이는 이미지를 보여 줌으로써 컷믹스는 모델이 어느 한 공간 영역에 의존하지 못하게 하고 더 전체적인 피처 학습을 이끈다.
 
 ---
 
@@ -133,7 +133,7 @@ def cutmix_data(x: torch.Tensor, y: torch.Tensor,
     인수:
         x: 입력 배치, 모양 (batch_size, C, H, W)
         y: 레이블(클래스 인덱스), 모양 (batch_size,)
-        alpha: 베타분포의 매개변수
+        alpha: 베타분포의 파라메터
         
     반환값:
         x_cutmix: 증강된 이미지
@@ -173,15 +173,15 @@ def cutmix_data(x: torch.Tensor, y: torch.Tensor,
     lam = 1 - ((x2 - x1) * (y2 - y1)) / (H * W)
 
     # 이름표는 섞지 않고 둘 다 그대로 돌려준다. 섞는 일은 아래
-    # cutmix_criterion이 손실 쪽에서 맡는다
+    # cutmix_criterion이 로스 쪽에서 맡는다
     y_a, y_b = y, y[index]
     return x_cutmix, y_a, y_b, lam
 
 def cutmix_criterion(criterion: nn.Module, pred: torch.Tensor,
                      y_a: torch.Tensor, y_b: torch.Tensor,
                      lam: float) -> torch.Tensor:
-    """컷믹스 손실을 가중 결합으로 계산한다."""
-    # 섞인 이름표를 만들어 넣는 대신, 딱딱한 이름표 둘로 손실을 두 번
+    """컷믹스 로스를 가중 결합으로 계산한다."""
+    # 섞인 이름표를 만들어 넣는 대신, 딱딱한 이름표 둘로 로스를 두 번
     # 재어 가중 평균한다. 교차 엔트로피가 목표 분포에 대해 선형이라
     # 두 방식의 값이 같기 때문이다. 이렇게 하면 원-핫 벡터를 만들지 않고
     # 클래스 인덱스를 그대로 쓸 수 있어 편하다.
@@ -212,10 +212,10 @@ def train_with_cutmix(
         model: CNN 모델
         train_loader: 학습 데이터
         val_loader: 검증 데이터
-        alpha: 컷믹스를 위한 베타분포의 매개변수
+        alpha: 컷믹스를 위한 베타분포의 파라메터
         cutmix_prob: 배치마다 컷믹스를 적용할 확률
         epochs: 학습 에포크 수
-        lr: 학습률
+        lr: 러닝레이트
         
     반환값:
         학습 이력
@@ -250,14 +250,14 @@ def train_with_cutmix(
             optimizer.step()
             train_loss += loss.item()
         
-        # 스케줄러는 에포크마다 한 번 부른다. 배치마다 부르면 학습률이
+        # 스케줄러는 에포크마다 한 번 부른다. 배치마다 부르면 러닝레이트가
         # 예정보다 훨씬 빨리 0으로 떨어진다
         scheduler.step()
         
         # 검증 (컷믹스 없음).
         # 증강은 학습에만 건다. 그래서 train_loss와 val_loss는 성격이
-        # 달라, 섞인 이미지의 손실과 깨끗한 이미지의 손실을 견주는 셈이다.
-        # 컷믹스가 잘 들으면 학습 손실이 검증 손실보다 높게 나올 수도
+        # 달라, 섞인 이미지의 로스와 깨끗한 이미지의 로스를 견주는 셈이다.
+        # 컷믹스가 잘 들으면 학습 로스가 검증 로스보다 높게 나올 수도
         # 있는데, 이는 이상이 아니다
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
@@ -345,14 +345,14 @@ def multi_cutmix(x, y, n_patches=4, alpha=1.0):
         x: 입력 배치 (B, C, H, W)
         y: 레이블 (B,)
         n_patches: 격자 칸의 수 (완전제곱수여야 한다)
-        alpha: 혼합 매개변수
+        alpha: 혼합 파라메터
         
     반환값:
         증강된 배치와 부드러운 레이블 벡터
     """
     B, C, H, W = x.shape
-    # 배치에 나타난 가장 큰 레이블로 갈래 수를 짐작한다. 배치에 없는
-    # 갈래가 있으면 이 값이 실제보다 작아지므로, 실무에서는 인자로 받는 편이 낫다
+    # 배치에 나타난 가장 큰 레이블로 클래스 수를 짐작한다. 배치에 없는
+    # 클래스가 있으면 이 값이 실제보다 작아지므로, 실무에서는 인자로 받는 편이 낫다
     num_classes = y.max().item() + 1
     grid_size = int(np.sqrt(n_patches))   # 4개면 2x2 격자
 
@@ -367,7 +367,7 @@ def multi_cutmix(x, y, n_patches=4, alpha=1.0):
     for gi in range(grid_size):
         for gj in range(grid_size):
             # 칸마다 새로 뒤섞는다. 칸이 저마다 다른 이미지에서 오므로
-            # 한 장에 여러 갈래가 섞이고, 그래서 "다중" 컷믹스다
+            # 한 장에 여러 클래스가 섞이고, 그래서 "다중" 컷믹스다
             index = torch.randperm(B, device=x.device)
 
             h_start = gi * patch_h
@@ -395,13 +395,13 @@ def multi_cutmix(x, y, n_patches=4, alpha=1.0):
             soft_labels += weight * patch_labels
 
     # 넓이 몫을 모두 더하면 1이므로 soft_labels의 각 행도 합이 1이 된다.
-    # 곧 확률분포이며, 손실은 이 부드러운 목표에 대한 교차 엔트로피로 셈한다
+    # 곧 확률분포이며, 로스는 이 부드러운 목표에 대한 교차 엔트로피로 셈한다
     return x_mixed, soft_labels
 ```
 
 ### 현저도로 이끄는 컷믹스
 
-기울기 기반 현저도를 써서 가장 중요한 곳에 절단 영역을 놓는다.
+그래디언트 기반 현저도를 써서 가장 중요한 곳에 절단 영역을 놓는다.
 
 ```python
 def saliency_cutmix(model, x, y, alpha=1.0):
@@ -412,18 +412,18 @@ def saliency_cutmix(model, x, y, alpha=1.0):
     참고: Uddin 등, "SaliencyMix" (2020)
     """
     model.eval()
-    # 가중치가 아니라 입력에 대해 미분한다. 그래서 requires_grad를
+    # 웨이트가 아니라 입력에 대해 미분한다. 그래서 requires_grad를
     # 파라미터가 아닌 입력 텐서에 켠다
     x_sal = x.clone().requires_grad_(True)
     
     # 현저도 계산.
-    # 손실을 입력으로 미분한 크기가 곧 "이 화소를 조금 바꾸면 판단이
+    # 로스를 입력으로 미분한 크기가 곧 "이 화소를 조금 바꾸면 판단이
     # 얼마나 흔들리는가"이다. 값이 큰 자리가 모델이 보고 있는 자리다
     outputs = model(x_sal)
     loss = nn.CrossEntropyLoss()(outputs, y)
-    # 주의: 이 backward는 모델 파라미터에도 기울기를 쌓는다. 학습 루프
-    # 안에서 optimizer.zero_grad() 뒤에 이 함수를 부르면 그 기울기가
-    # 남아 진짜 학습 기울기에 더해진다. 이 함수를 부른 뒤에
+    # 주의: 이 backward는 모델 파라미터에도 그래디언트를 쌓는다. 학습 루프
+    # 안에서 optimizer.zero_grad() 뒤에 이 함수를 부르면 그 그래디언트가
+    # 남아 진짜 학습 그래디언트에 더해진다. 이 함수를 부른 뒤에
     # zero_grad()를 다시 불러 주어야 안전하다
     loss.backward()
     
@@ -448,7 +448,7 @@ def saliency_cutmix(model, x, y, alpha=1.0):
     # 두드러진 자리가 다르기 때문이다
     for b in range(B):
         # 붙일 쪽이 아니라 가져올 쪽(index[b])의 현저도를 본다.
-        # 알맹이가 든 조각을 오려 와야 이름표를 섞는 뜻이 산다.
+        # 커널이 든 조각을 오려 와야 이름표를 섞는 뜻이 산다.
         # 무작위 상자는 배경만 오려 와 이름표만 흐려 놓을 때가 있다
         sal = saliency[index[b]]
         # 가장 두드러진 중심점 찾기.
@@ -469,9 +469,9 @@ def saliency_cutmix(model, x, y, alpha=1.0):
     x_cutmix = x.clone()
     # 상자가 표본마다 다르니 lam도 표본마다 다르다.
     # 주의: 그래서 이 함수가 돌려주는 lam은 스칼라가 아니라 (B,) 텐서이며,
-    # 위의 cutmix_criterion에 그대로 넘길 수 없다. 표본별 가중치를 쓰려면
-    # reduction='none'으로 손실을 표본마다 받아 lam을 곱한 뒤
-    # 평균 내는 손실 함수가 따로 필요하다
+    # 위의 cutmix_criterion에 그대로 넘길 수 없다. 표본별 웨이트를 쓰려면
+    # reduction='none'으로 로스를 표본마다 받아 lam을 곱한 뒤
+    # 평균 내는 로스 함수가 따로 필요하다
     lam_actual = torch.zeros(B, device=x.device)
     
     for b in range(B):
@@ -545,7 +545,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 ### 하이퍼파라미터 선택
 
-| 매개변수 | 권장값 | 비고 |
+| 파라메터 | 권장값 | 비고 |
 |-----------|-------------|-------|
 | $\alpha$ | 1.0 | 컷믹스의 표준값. $\text{Beta}(1,1)$은 Uniform[0,1] |
 | `cutmix_prob` | 0.5 – 1.0 | 믹스업과 함께 쓸 때는 0.5 |

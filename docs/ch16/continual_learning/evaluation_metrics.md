@@ -37,7 +37,7 @@ def evaluate_continual_learning(model, test_loaders, train_loaders,
     이어 배우기의 표준 평가 절차.
     
     인수:
-        model: 신경망 모델
+        model: 뉴럴 넷트웍 모델
         test_loaders: 과제마다의 시험 DataLoader 목록
         train_loaders: 과제마다의 학습 DataLoader 목록
         train_fn: 과제 하나로 익히는 함수
@@ -190,13 +190,13 @@ $$
 ```python
 def learning_accuracy(accuracy_matrix):
     """
-    평균 배움 정확도를 셈한다(대각선의 평균).
+    평균 러닝 정확도를 셈한다(대각선의 평균).
     
     인수:
         accuracy_matrix: T x T 정확도 행렬
     
     반환값:
-        평균 배움 정확도(백분율)
+        평균 러닝 정확도(백분율)
     """
     return np.mean(np.diag(accuracy_matrix))
 ```
@@ -428,7 +428,7 @@ class ContinualLearningMetrics:
                     ax1.text(j, i, f'{self.accuracy_matrix[i,j]:.0f}',
                             ha='center', va='center', fontsize=9)
         
-        # 2. 배움 정확도와 마지막 정확도
+        # 2. 러닝 정확도와 마지막 정확도
         ax2 = axes[0, 1]
         x = np.arange(self.T)
         width = 0.35
@@ -618,7 +618,7 @@ A 행렬의 행·열과 미관측 셀을 설명하라.
 </div>
 
 ??? success "연습문제 3 풀이"
-    데이터 분할과 순서, 출력 공간, 과제 ID 제공 여부, 학습률 선택과 표본 노출 예산을 맞춘다. 과거 표본·생성기·교사 모델·통계 저장도 모두 자원에 포함한다. 테스트 성능으로 하이퍼파라미터를 선택하지 않는다.
+    데이터 분할과 순서, 출력 공간, 과제 ID 제공 여부, 러닝레이트 선택과 표본 노출 예산을 맞춘다. 과거 표본·생성기·교사 모델·통계 저장도 모두 자원에 포함한다. 테스트 성능으로 하이퍼파라미터를 선택하지 않는다.
 
 ---
 

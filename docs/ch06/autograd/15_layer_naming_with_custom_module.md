@@ -5,7 +5,7 @@
 ## 1. 코드
 
 ```python
-"""맞춤 단원으로 층에 이름 붙이기."""
+"""맞춤 단원으로 레이어에 이름 붙이기."""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -125,7 +125,7 @@ head.bias            requires_grad=True  grad_is_None=False
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 

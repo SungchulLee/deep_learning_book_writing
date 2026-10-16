@@ -6,10 +6,10 @@
 
 ```python
 """
-35.1.3 과녁 그물
+35.1.3 타깃 넷트웍
 ======================
 
-딱딱한 과녁 그물 고치기와 부드러운 고치기, 그리고 그것이
+딱딱한 타깃 넷트웍 고치기와 부드러운 고치기, 그리고 그것이
 익히기의 안정에 미치는 영향을 보인다.
 """
 
@@ -31,7 +31,7 @@ Transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'
 
 
 # ---------------------------------------------------------------------------
-# Q 그물
+# Q 넷트웍
 # ---------------------------------------------------------------------------
 
 class QNetwork(nn.Module):
@@ -73,11 +73,11 @@ class ReplayBuffer:
 
 
 # ---------------------------------------------------------------------------
-# 과녁 그물 고치기 함수
+# 타깃 넷트웍 고치기 함수
 # ---------------------------------------------------------------------------
 
 def hard_update(target_net: nn.Module, online_net: nn.Module):
-    """딱딱한 고치기: 온라인의 모든 값을 과녁으로 옮겨 적는다."""
+    """딱딱한 고치기: 온라인의 모든 값을 타깃으로 옮겨 적는다."""
     target_net.load_state_dict(online_net.state_dict())
 
 
@@ -88,7 +88,7 @@ def soft_update(target_net: nn.Module, online_net: nn.Module, tau: float = 0.005
 
 
 def compute_parameter_distance(net1: nn.Module, net2: nn.Module) -> float:
-    """두 그물의 매개변수 사이 L2 거리."""
+    """두 넷트웍의 파라메터 사이 L2 거리."""
     dist = 0.0
     for p1, p2 in zip(net1.parameters(), net2.parameters()):
         dist += (p1 - p2).pow(2).sum().item()
@@ -96,11 +96,11 @@ def compute_parameter_distance(net1: nn.Module, net2: nn.Module) -> float:
 
 
 # ---------------------------------------------------------------------------
-# 과녁 고치기 셈속을 고를 수 있는 DQN 부림꾼
+# 타깃 고치기 셈속을 고를 수 있는 DQN 에이전트
 # ---------------------------------------------------------------------------
 
 class DQNAgent:
-    """딱딱한 고치기와 부드러운 고치기를 모두 받치는 DQN 부림꾼."""
+    """딱딱한 고치기와 부드러운 고치기를 모두 받치는 DQN 에이전트."""
 
     def __init__(self, state_dim: int, action_dim: int,
                  lr: float = 1e-3, gamma: float = 0.99,
@@ -118,11 +118,11 @@ class DQNAgent:
         self.hard_update_freq = hard_update_freq
         self.tau = tau
 
-        # 그물
+        # 넷트웍
         self.online_net = QNetwork(state_dim, action_dim)
         self.target_net = QNetwork(state_dim, action_dim)
         hard_update(self.target_net, self.online_net)
-        self.target_net.eval()  # 과녁 그물은 익히지 않음
+        self.target_net.eval()  # 타깃 넷트웍은 익히지 않음
 
         self.optimizer = optim.Adam(self.online_net.parameters(), lr=lr)
         self.buffer = ReplayBuffer(buffer_capacity)
@@ -164,10 +164,10 @@ class DQNAgent:
         # 지금 Q 값
         q_values = self.online_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
 
-        # 과녁 Q 값
+        # 타깃 Q 값
         with torch.no_grad():
             if self.update_mode == 'none':
-                # 과녁 그물 없음 — 과녁에 온라인 그물을 씀
+                # 타깃 넷트웍 없음 — 타깃에 온라인 넷트웍을 씀
                 next_q = self.online_net(next_states).max(dim=1)[0]
             else:
                 next_q = self.target_net(next_states).max(dim=1)[0]
@@ -177,7 +177,7 @@ class DQNAgent:
 
         self.optimizer.zero_grad()
         loss.backward()
-        # 안정성을 위한 기울기 자르기
+        # 안정성을 위한 그래디언트 자르기
         nn.utils.clip_grad_norm_(self.online_net.parameters(), 10.0)
         self.optimizer.step()
 
@@ -185,7 +185,7 @@ class DQNAgent:
         loss_val = loss.item()
         self.losses.append(loss_val)
 
-        # 과녁 그물 고치기
+        # 타깃 넷트웍 고치기
         if self.update_mode == 'hard' and self.update_count % self.hard_update_freq == 0:
             hard_update(self.target_net, self.online_net)
         elif self.update_mode == 'soft':
@@ -204,7 +204,7 @@ class DQNAgent:
 
 def train_agent(agent: DQNAgent, env_name: str = 'CartPole-v1',
                 n_episodes: int = 300, min_buffer: int = 500) -> List[float]:
-    """DQN 부림꾼을 익히고 마당 보상을 돌려준다."""
+    """DQN 에이전트를 익히고 마당 리워드를 돌려준다."""
     env = gym.make(env_name)
     rewards_history = []
 
@@ -230,11 +230,11 @@ def train_agent(agent: DQNAgent, env_name: str = 'CartPole-v1',
 
 
 # ---------------------------------------------------------------------------
-# 보이기: 과녁 고치기 셈속 견주기
+# 보이기: 타깃 고치기 셈속 견주기
 # ---------------------------------------------------------------------------
 
 def demo_target_networks():
-    """서로 다른 과녁 그물 셈속으로 익히기를 견준다."""
+    """서로 다른 타깃 넷트웍 셈속으로 익히기를 견준다."""
     print("=" * 60)
     print("Target Networks Demo")
     print("=" * 60)
@@ -305,7 +305,7 @@ def demo_target_networks():
     net_b = QNetwork(4, 2)
     hard_update(net_b, net_a)
 
-    # net_a에 기울기 걸음 10번 흉내
+    # net_a에 그래디언트 걸음 10번 흉내
     optimizer = optim.Adam(net_a.parameters(), lr=0.01)
     for _ in range(10):
         dummy_loss = net_a(torch.randn(16, 4)).sum()
@@ -338,52 +338,52 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜기는 타깃 네트워크의 핵심 논리를 감싼 `QNetwork`, `ReplayBuffer`, `DQNAgent` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
+이 짜기는 타깃 네트워크의 핵심 논리를 감싼 `QNetwork`, `ReplayBuffer`, `DQNAgent` 클래스를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
 보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 쓰는 모습을 보인다. 내놓기를 살피면 하이퍼파라미터 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗파라메터 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗매개변수 하나(학습률, 숨은 차원, 층 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
+보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗파라메터 하나(러닝레이트, 숨은 차원, 레이어 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗매개변수를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 학습률은 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗매개변수의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
+    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗파라메터를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 러닝레이트는 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗파라메터의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 손실 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
+이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 로스 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 고르기는 DQN에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 기울기가 사라지는 것을 피한다. 손실 함수는 일의 갈래에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 손실) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
+    이 구조 고르기는 DQN에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 그래디언트가 사라지는 것을 피한다. 로스 함수는 일의 클래스에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 로스) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 특징 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
+더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 피처 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 가중치 줄임)나 더 정교한 구조(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 웨이트 줄임)나 더 정교한 구조(레이어 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
 
 ## 정리하며
 
 **다룬 것** — 타깃 네트워크
 
-이 짜기는 타깃 네트워크의 핵심 논리를 감싼 `QNetwork`, `ReplayBuffer`, `DQNAgent` 갈래를 한가운데 둔다.
+이 짜기는 타깃 네트워크의 핵심 논리를 감싼 `QNetwork`, `ReplayBuffer`, `DQNAgent` 클래스를 한가운데 둔다.
 
-핵심 갈래는 `QNetwork`, `ReplayBuffer`, `DQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `QNetwork`, `ReplayBuffer`, `DQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

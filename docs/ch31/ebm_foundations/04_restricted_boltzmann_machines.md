@@ -9,8 +9,8 @@
 제한 볼츠만 기계: 쓸모 있는 에너지 바탕 모델
 ==========================================================
 
-제한 볼츠만 기계는 에너지 바탕 배움의 가장 성공한 실제 쓰임새이다.
-이어짐을 보이는 층과 숨은 층 사이로만 옭아맨다(두 쪽 그래프),
+제한 볼츠만 기계는 에너지 바탕 러닝의 가장 성공한 실제 쓰임새이다.
+이어짐을 보이는 레이어와 숨은 레이어 사이로만 옭아맨다(두 쪽 그래프),
 맞댐 벌어짐으로 익히기를 다룰 만하게 만든다.
 
 학습 목표:
@@ -18,7 +18,7 @@
 1. 제한 볼츠만 기계의 구조와 에너지 함수를 이해한다
 2. 맞댐 벌어짐(CD-k) 알고리즘을 짠다
 3. 참 자료(MNIST)로 제한 볼츠만 기계를 익힌다
-4. 배운 특징을 그려 본다
+4. 배운 피처를 그려 본다
 5. 제한 볼츠만 기계를 되짓기와 만들어 내기에 쓴다
 
 핵심 개념:
@@ -26,7 +26,7 @@
 - 두 쪽 그래프: v끼리나 h끼리의 이음이 없다
 - Energy: E(v,h) = -aᵀv - bᵀh - vᵀWh
 - Conditionals factor: P(h|v) = ∏ P(hⱼ|v), P(v|h) = ∏ P(vᵢ|h)
-- 맞댐 벌어짐: 어림 기울기
+- 맞댐 벌어짐: 어림 그래디언트
 - 덩이 깁스 뽑기
 
 걸리는 시간: 90~120분
@@ -56,7 +56,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     제한 볼츠만 기계는 다음을 지닌 두 쪽 방향 없는 그림 모델이다.
     - Visible layer v ∈ {0,1}ⁿ
     - Hidden layer h ∈ {0,1}ᵐ
-    - 같은 층 안의 이음이 없다
+    - 같은 레이어 안의 이음이 없다
     
     Energy function:
     E(v,h) = -aᵀv - bᵀh - vᵀWh
@@ -71,7 +71,7 @@ class RestrictedBoltzmannMachine(nn.Module):
         self.n_hidden = n_hidden
         self.k = k  # CD-k steps
         
-        # 매개변수를 초기화한다
+        # 파라메터를 초기화한다
         self.W = nn.Parameter(torch.randn(n_hidden, n_visible) * 0.01)
         self.a = nn.Parameter(torch.zeros(n_visible))  # visible bias
         self.b = nn.Parameter(torch.zeros(n_hidden))   # hidden bias
@@ -110,7 +110,7 @@ class RestrictedBoltzmannMachine(nn.Module):
         """
         맞댐 벌어짐 k걸음(CD-k) 익히기.
         
-        어림한 기울기: ∇L ≈ E_data[vh] - E_model_k[vh]
+        어림한 그래디언트: ∇L ≈ E_data[vh] - E_model_k[vh]
         """
         batch_size = v0.shape[0]
         
@@ -123,11 +123,11 @@ class RestrictedBoltzmannMachine(nn.Module):
             _, vk = self.sample_visible(hk)
             _, hk = self.sample_hidden(vk)
         
-        # 양의 기울기와 음의 기울기를 셈한다
+        # 양의 그래디언트와 음의 그래디언트를 셈한다
         positive_grad = torch.matmul(ph0.t(), v0)
         negative_grad = torch.matmul(hk.t(), vk)
         
-        # 매개변수 갱신
+        # 파라메터 갱신
         self.W.data += self.lr * (positive_grad - negative_grad) / batch_size
         self.a.data += self.lr * (v0 - vk).mean(dim=0)
         self.b.data += self.lr * (ph0 - hk).mean(dim=0)
@@ -254,17 +254,17 @@ Next: 05_contrastive_divergence.py
 
 ToTensor 뒤 x>0.5를 적용해 픽셀을 0 또는 1로 만든다. 이는 픽셀 값에 비례한 확률로 Bernoulli 샘플을 뽑는 전처리와 다르다. 28×28 이미지를 784차원으로 펼치고 숫자 라벨은 사용하지 않는다.
 
-가시 784개, 은닉 256개이며 W는 **256×784**다. 입력 B×784에 Wᵀ를 곱해 B×256 은닉 확률을 계산한다. 역방향에는 은닉 샘플에 W를 곱해 B×784 가시 확률을 만든다. 편향까지 포함한 파라미터 수는 201,744개다.
+가시 784개, 은닉 256개이며 W는 **256×784**다. 입력 B×784에 Wᵀ를 곱해 B×256 은닉 확률을 계산한다. 역방향에는 은닉 샘플에 W를 곱해 B×784 가시 확률을 만든다. 바이어스까지 포함한 파라미터 수는 201,744개다.
 
 이 방향에서 에너지는 E(v,h)=−aᵀv−bᵀh−hᵀWv다. W가 n_v×n_h인 교재 표기와 비교할 때 전치 위치를 바꾸어야 한다. 확률 출력과 실제 이진 샘플은 각각 다른 반환값이다.
 
 ## 3. CD-1 통계 갱신
 
-데이터 v₀에서 은닉 확률 ph₀와 샘플 h₀를 만들고, 가시·은닉 조건부 샘플링을 한 번씩 수행한다. positive phase는 ph₀ᵀv₀, negative phase는 hₖᵀvₖ를 사용한다. 두 통계 차이를 배치 크기로 나누고 학습률 0.01을 곱해 W에 직접 더한다. 편향도 평균 차이로 갱신한다.
+데이터 v₀에서 은닉 확률 ph₀와 샘플 h₀를 만들고, 가시·은닉 조건부 샘플링을 한 번씩 수행한다. positive phase는 ph₀ᵀv₀, negative phase는 hₖᵀvₖ를 사용한다. 두 통계 차이를 배치 크기로 나누고 러닝레이트 0.01을 곱해 W에 직접 더한다. 바이어스도 평균 차이로 갱신한다.
 
-파라미터는 nn.Parameter지만 .data를 직접 갱신하며 optimizer나 backward를 사용하지 않는다. 반환하는 손실은 이미지별 제곱 오차 합의 평균이다. 이진 입력·샘플에서 값은 평균 해밍 거리이며 이미지당 0~784 범위다. 정확한 NLL이나 좌표당 평균 MSE와 같은 값이 아니다.
+파라미터는 nn.Parameter지만 .data를 직접 갱신하며 optimizer나 backward를 사용하지 않는다. 반환하는 로스는 이미지별 제곱 오차 합의 평균이다. 이진 입력·샘플에서 값은 평균 해밍 거리이며 이미지당 0~784 범위다. 정확한 NLL이나 좌표당 평균 MSE와 같은 값이 아니다.
 
-CD-1은 짧은 데이터 시작 사슬의 통계를 사용한다. 사슬이 모델 평형에 도달했다고 가정할 수 없으므로 일반적으로 정확한 최대 우도 기울기의 편향된 근사다. 학습이 유용할 수 있다는 사실과 편향·혼합 문제가 사라진다는 주장은 구분한다.
+CD-1은 짧은 데이터 시작 사슬의 통계를 사용한다. 사슬이 모델 평형에 도달했다고 가정할 수 없으므로 일반적으로 정확한 최대 우도 그래디언트의 바이어스된 근사다. 학습이 유용할 수 있다는 사실과 바이어스·혼합 문제가 사라진다는 주장은 구분한다.
 
 ## 4. 에포크 평균과 구현상의 제한
 
@@ -321,7 +321,7 @@ W=[[1,−1,0,1],[0,1,1,−1]], a=b=0인 RBM에서 v=(1,0,1,0)의 자유 에너�
 
 ??? success "연습문제 3 풀이"
 
-    k=5이면 매 업데이트에 다섯 번 전이하고 이전 가시 사슬을 재사용한다. 단, 배치 크기가 달라지면 현재 데이터로 사슬을 다시 초기화한다. 배치 64의 MNIST에서 마지막 32개와 다음 에포크 첫 64개에서 연속성이 끊기므로 항상 같은 입자를 유지하는 구현은 아니다. persistent_chain은 buffer로 등록되지 않아 모델의 장치 이동·상태 저장에 자동 포함되지 않는다. 반환값은 데이터 v0와 독립적인 장기 사슬 vk 사이의 차이여서 입력별 재구성 품질이나 NLL이 아니다. persistent chain도 파라미터 변화에 비해 충분히 혼합해야 하며 더 좋은 기울기를 자동으로 보장하지 않는다.
+    k=5이면 매 업데이트에 다섯 번 전이하고 이전 가시 사슬을 재사용한다. 단, 배치 크기가 달라지면 현재 데이터로 사슬을 다시 초기화한다. 배치 64의 MNIST에서 마지막 32개와 다음 에포크 첫 64개에서 연속성이 끊기므로 항상 같은 입자를 유지하는 구현은 아니다. persistent_chain은 buffer로 등록되지 않아 모델의 장치 이동·상태 저장에 자동 포함되지 않는다. 반환값은 데이터 v0와 독립적인 장기 사슬 vk 사이의 차이여서 입력별 재구성 품질이나 NLL이 아니다. persistent chain도 파라미터 변화에 비해 충분히 혼합해야 하며 더 좋은 그래디언트를 자동으로 보장하지 않는다.
 
     ```python
     class PersistentRBM(RestrictedBoltzmannMachine):

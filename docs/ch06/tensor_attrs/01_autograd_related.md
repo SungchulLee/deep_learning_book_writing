@@ -1,19 +1,19 @@
 # Autograd 관련 속성
 
-기울기가 필요한 텐서라도 `.grad`가 항상 채워지는 것은 아니다. `requires_grad`·`is_leaf`·`grad_fn`으로 추적 여부와 그래프의 위치를 구별한다.
+그래디언트가 필요한 텐서라도 `.grad`가 항상 채워지는 것은 아니다. `requires_grad`·`is_leaf`·`grad_fn`으로 추적 여부와 그래프의 위치를 구별한다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 """
-자동 미분에 마음을 둔 텐서의 속성과 움직임.
+자동 미분에 마음을 둔 텐서의 속성과 액션.
 
 Covers:
 - requires_grad / is_leaf / grad_fn
 - 홑값과 홑값 아닌 것에 대한 .backward()(gradient 인자를 주는 벡터-야코비 곱)
-- 기울기 쌓기와 지우기(p.grad.zero_과 opt.zero_grad 견주기)
-- 안전하게 매개변수를 고치는 torch.no_grad()
+- 그래디언트 쌓기와 지우기(p.grad.zero_과 opt.zero_grad 견주기)
+- 안전하게 파라메터를 고치는 torch.no_grad()
 - 같은 그래프에서 여러 번 뒤로 걷기 위한 retain_graph=True
 """
 
@@ -134,9 +134,9 @@ a.grad (accumulated from two backward passes): tensor([ 4.,  8., 12.])
 
 ## 2. 논의
 
-`requires_grad`는 이후 연산을 추적할지 결정하는 속성이고, `grad_fn`은 그 텐서를 만든 미분 연산을 가리킨다. 사용자가 직접 만든 학습 매개변수는 보통 잎 텐서이며 `grad_fn`이 없다.
+`requires_grad`는 이후 연산을 추적할지 결정하는 속성이고, `grad_fn`은 그 텐서를 만든 미분 연산을 가리킨다. 사용자가 직접 만든 학습 파라메터는 보통 잎 텐서이며 `grad_fn`이 없다.
 
-역전파에서 기본적으로 `.grad`가 누적되는 것은 기울기를 요구하는 잎 텐서다. 비잎 텐서의 중간 기울기를 보려면 `retain_grad()`를 사용한다. `retain_grad`와 그래프 재사용을 위한 `retain_graph`는 다른 기능이다.
+역전파에서 기본적으로 `.grad`가 누적되는 것은 그래디언트를 요구하는 잎 텐서다. 비잎 텐서의 중간 그래디언트를 보려면 `retain_grad()`를 사용한다. `retain_grad`와 그래프 재사용을 위한 `retain_graph`는 다른 기능이다.
 
 ## 연습문제
 
@@ -163,7 +163,7 @@ a.grad (accumulated from two backward passes): tensor([ 4.,  8., 12.])
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-제곱합처럼 저장된 중간값이 필요한 손실에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+제곱합처럼 저장된 중간값이 필요한 로스에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
 
 </div>
 
@@ -176,7 +176,7 @@ a.grad (accumulated from two backward passes): tensor([ 4.,  8., 12.])
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 
@@ -195,4 +195,4 @@ a.grad (accumulated from two backward passes): tensor([ 4.,  8., 12.])
 
 ## 정리하며
 
-기울기가 필요한 텐서라도 `.grad`가 항상 채워지는 것은 아니다. `requires_grad`·`is_leaf`·`grad_fn`으로 추적 여부와 그래프의 위치를 구별한다.
+그래디언트가 필요한 텐서라도 `.grad`가 항상 채워지는 것은 아니다. `requires_grad`·`is_leaf`·`grad_fn`으로 추적 여부와 그래프의 위치를 구별한다.

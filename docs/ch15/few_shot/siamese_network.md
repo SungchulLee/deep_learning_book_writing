@@ -1,6 +1,6 @@
 # 샴 네트워크
 
-샴 네트워크는 가중치를 공유하는 인코더로 두 입력을 임베딩하고, 같은 클래스는 가깝게 다른 클래스는 멀게 배치하도록 학습한다. 여기서는 대조 손실과 트리플렛 손실, 서포트의 최근접 이웃을 이용하는 원샷 분류를 살펴본다.
+샴 네트워크는 웨이트를 공유하는 인코더로 두 입력을 임베딩하고, 같은 클래스는 가깝게 다른 클래스는 멀게 배치하도록 학습한다. 여기서는 대조 로스와 트리플렛 로스, 서포트의 최근접 이웃을 이용하는 원샷 분류를 살펴본다.
 
 ## 1. 코드
 
@@ -9,7 +9,7 @@
 한 예시 학습을 위한 샴 망
 
 샴 망은 보기 쌍 사이의 닮음 재기를 배운다.
-가중치를 나누어 쓰는 쌍둥이 망으로 입력을 묻은 다음
+웨이트를 나누어 쓰는 쌍둥이 망으로 입력을 묻은 다음
 묻힘 사이의 닮음을 셈한다.
 """
 
@@ -51,7 +51,7 @@ class SiameseEncoder(nn.Module):
         )
         
         self.fc = nn.Sequential(
-            # 마지막 엮음 켜의 자리 크기는 들임 크기에 따라 달라진다.
+            # 마지막 컨볼루션 켜의 자리 크기는 들임 크기에 따라 달라진다.
             # 1x1로 모아 두면 아래 선형 켜의 들임 수가 언제나 맞는다.
             nn.AdaptiveAvgPool2d(1),
             nn.Flatten(),
@@ -98,16 +98,16 @@ class SiameseNetwork(nn.Module):
         닮음 점수를 맞힌다(0 = 다름, 1 = 같음).
         """
         distance = self.forward(x1, x2)
-        # 거리를 닮음으로 바꾸는 마지막 층을 더한다
+        # 거리를 닮음으로 바꾸는 마지막 레이어를 더한다
         similarity = torch.sigmoid(distance.sum(dim=1))
         return similarity
 
 
 class ContrastiveLoss(nn.Module):
     """
-    샴 망을 익히는 대조 손실.
+    샴 망을 익히는 대조 로스.
     
-    손실 = (1-Y) * 0.5 * D^2 + Y * 0.5 * max(margin - D, 0)^2
+    로스 = (1-Y) * 0.5 * D^2 + Y * 0.5 * max(margin - D, 0)^2
     
     여기서 닮은 쌍이면 Y=0, 닮지 않은 쌍이면 Y=1이고,
     D은 묻힘 사이의 유클리드 거리이다.
@@ -129,9 +129,9 @@ class ContrastiveLoss(nn.Module):
 
 class TripletLoss(nn.Module):
     """
-    세쌍 손실: 닻을 양의 보기 쪽으로 끌고 음의 보기에서 밀어낸다.
+    세쌍 로스: 닻을 양의 보기 쪽으로 끌고 음의 보기에서 밀어낸다.
     
-    손실 = max(d(anchor, positive) - d(anchor, negative) + margin, 0)
+    로스 = max(d(anchor, positive) - d(anchor, negative) + margin, 0)
     """
     def __init__(self, margin=1.0):
         super(TripletLoss, self).__init__()
@@ -153,7 +153,7 @@ class TripletLoss(nn.Module):
 
 def train_siamese(model, x1, x2, labels, optimizer, criterion):
     """
-    대조 손실을 쓰는 샴 망의 학습 걸음.
+    대조 로스를 쓰는 샴 망의 학습 걸음.
     
     인수:
         x1, x2: 입력 쌍
@@ -169,7 +169,7 @@ def train_siamese(model, x1, x2, labels, optimizer, criterion):
     # 유클리드 거리를 셈한다
     distance = F.pairwise_distance(emb1, emb2)
     
-    # 손실을 계산한다
+    # 로스를 계산한다
     loss = criterion(distance, labels)
     
     loss.backward()
@@ -227,13 +227,13 @@ if __name__ == "__main__":
     encoder = SiameseEncoder(input_channels=1, hidden_dim=64, embedding_dim=128)
     model = SiameseNetwork(encoder)
     
-    # 대조 손실로 익히기
+    # 대조 로스로 익히기
     criterion = ContrastiveLoss(margin=1.0)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
     # 학습 배치 보기
     batch_size = 32
-    # Koch의 샴 그물은 105x105 Omniglot 그림을 바탕으로 한다
+    # Koch의 샴 넷트웍은 105x105 Omniglot 그림을 바탕으로 한다
     x1 = torch.randn(batch_size, 1, 105, 105)
     x2 = torch.randn(batch_size, 1, 105, 105)
     labels = torch.randint(0, 2, (batch_size,)).float()  # 0=닮음, 1=닮지 않음
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     predictions = one_shot_classification(model, support_set, support_labels, query)
     print(f"Predictions: {predictions}")
     
-    # 대안: 세쌍 손실로 익히기
+    # 대안: 세쌍 로스로 익히기
     triplet_criterion = TripletLoss(margin=1.0)
     anchor = torch.randn(batch_size, 1, 105, 105)
     positive = torch.randn(batch_size, 1, 105, 105)
@@ -275,23 +275,23 @@ Triplet loss: 1.0038
 
 ## 2. 논의
 
-학습 함수는 두 임베딩의 유클리드 거리 $d$를 계산한다. 이 코드의 라벨 규약은 0=같은 클래스, 1=다른 클래스이며 대조 손실은 $(1-y)d^2+y\max(m-d,0)^2$다. 다른 클래스 쌍은 거리가 마진 이상이면 손실이 0이 된다. 트리플렛 손실은 $\max(d(a,p)-d(a,n)+m,0)$이며, 여기서는 제곱 거리가 아닌 거리를 사용한다.
+학습 함수는 두 임베딩의 유클리드 거리 $d$를 계산한다. 이 코드의 라벨 규약은 0=같은 클래스, 1=다른 클래스이며 대조 로스는 $(1-y)d^2+y\max(m-d,0)^2$다. 다른 클래스 쌍은 거리가 마진 이상이면 로스가 0이 된다. 트리플렛 로스는 $\max(d(a,p)-d(a,n)+m,0)$이며, 여기서는 제곱 거리가 아닌 거리를 사용한다.
 
 SiameseNetwork.forward는 스칼라 거리 대신 성분별 절댓값 차이를 반환한다. predict_similarity는 그 합에 sigmoid를 적용하므로 차이가 클수록 값이 커지고 최소값도 0.5다. 이름과 달리 같은 클래스일 확률로 해석할 수 없다. 학습 함수와 원샷 분류 함수는 이 메서드를 사용하지 않고 인코더의 유클리드 거리를 직접 계산한다.
 
-주 예제는 105×105 흑백 입력에 맞춰져 있다. 큰 커널의 패딩 없는 합성곱 때문에 64×64 입력은 중간에 공간 크기가 부족해진다. 원샷 분류는 각 쿼리에서 가장 가까운 서포트의 라벨을 고르며, 여러 샷을 넣으면 클래스 평균이 아닌 표본 최근접 이웃 분류가 된다. 무작위 쌍과 무작위 라벨의 한 번 갱신으로 실제 유사도 학습 성능을 판단할 수는 없다.
+주 예제는 105×105 흑백 입력에 맞춰져 있다. 큰 커널의 패딩 없는 컨볼루션 때문에 64×64 입력은 중간에 공간 크기가 부족해진다. 원샷 분류는 각 쿼리에서 가장 가까운 서포트의 라벨을 고르며, 여러 샷을 넣으면 클래스 평균이 아닌 표본 최근접 이웃 분류가 된다. 무작위 쌍과 무작위 라벨의 한 번 갱신으로 실제 유사도 학습 성능을 판단할 수는 없다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-입력 (4,1,105,105)의 합성곱·풀링 출력과 최종 임베딩 모양을 추적하라.
+입력 (4,1,105,105)의 컨볼루션·풀링 출력과 최종 임베딩 모양을 추적하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    공간 크기는 105→96→48→42→21→18→9→6이다. 합성곱 출력 채널은 차례로 64,128,128,256이며 마지막 특징맵은 (4,256,6,6)이다. 적응형 평균 풀링과 평탄화를 거쳐 (4,256), 선형층과 sigmoid를 거쳐 (4,128)이 된다.
+    공간 크기는 105→96→48→42→21→18→9→6이다. 컨볼루션 출력 채널은 차례로 64,128,128,256이며 마지막 피처 맵은 (4,256,6,6)이다. 적응형 평균 풀링과 평탄화를 거쳐 (4,256), 선형 레이어와 sigmoid를 거쳐 (4,128)이 된다.
 
 ---
 
@@ -303,14 +303,14 @@ input_channels=3만 바꾸어 64×64 RGB 입력을 처리할 수 있는지 설�
 </div>
 
 ??? success "연습문제 2 풀이"
-    공간 크기는 64→55→27→21→10→7→3까지 줄어든 뒤 마지막 4×4 합성곱을 적용할 수 없다. 채널 변경 외에 커널·패딩·풀링 또는 입력 크기를 재설계해야 한다. 뒤의 적응형 풀링은 이미 발생한 합성곱 크기 오류를 해결하지 못한다.
+    공간 크기는 64→55→27→21→10→7→3까지 줄어든 뒤 마지막 4×4 컨볼루션을 적용할 수 없다. 채널 변경 외에 커널·패딩·풀링 또는 입력 크기를 재설계해야 한다. 뒤의 적응형 풀링은 이미 발생한 컨볼루션 크기 오류를 해결하지 못한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 클래스 쌍과 다른 클래스 쌍의 대조 손실을 d=0.2, margin=1에서 계산하라.
+같은 클래스 쌍과 다른 클래스 쌍의 대조 로스를 d=0.2, margin=1에서 계산하라.
 
 </div>
 
@@ -333,7 +333,7 @@ input_channels=3만 바꾸어 64×64 RGB 입력을 처리할 수 있는지 설�
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

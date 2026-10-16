@@ -1,6 +1,6 @@
 # 엘라스틱 넷 정규화
 
-엘라스틱 넷은 L1(라쏘)과 L2(릿지) 정규화를 결합하여 두 방식의 장점을 모두 물려받는다. 라쏘처럼 희소한 모델을 이끌면서도 릿지 회귀의 안정성을 유지하므로 상관된 특징을 다룰 때 특히 효과적이다.
+엘라스틱 넷은 L1(라쏘)과 L2(릿지) 정규화를 결합하여 두 방식의 장점을 모두 물려받는다. 라쏘처럼 희소한 모델을 이끌면서도 릿지 회귀의 안정성을 유지하므로 상관된 피처를 다룰 때 특히 효과적이다.
 
 ---
 
@@ -16,7 +16,7 @@ $$
 
 여기서 각 기호는 다음과 같다.
 
-- $\alpha \in [0, 1]$은 혼합 매개변수이다
+- $\alpha \in [0, 1]$은 혼합 파라메터이다
 - $\alpha = 1$이면 순수한 L1(라쏘)이 된다
 - $\alpha = 0$이면 순수한 L2(릿지)가 된다
 - $0 < \alpha < 1$이면 엘라스틱 넷이 된다
@@ -29,7 +29,7 @@ $$
 \mathcal{L}_{\text{ElasticNet}}(w) = \frac{1}{2m} \|Xw - y\|_2^2 + \lambda \left( \alpha \|w\|_1 + \frac{1 - \alpha}{2} \|w\|_2^2 \right)
 $$
 
-이는 별도의 정규화 매개변수로 다시 쓸 수 있다.
+이는 별도의 정규화 파라메터로 다시 쓸 수 있다.
 
 $$
 \mathcal{L}(w) = \frac{1}{2m} \|Xw - y\|_2^2 + \lambda_1 \|w\|_1 + \lambda_2 \|w\|_2^2
@@ -37,15 +37,15 @@ $$
 
 여기서 $\lambda_1 = \lambda \alpha$이고 $\lambda_2 = \lambda (1 - \alpha) / 2$이다.
 
-### 기울기
+### 그래디언트
 
-아래 식은 0에서 sign(0)=0을 선택한 부분기울기 표현이다. 전체 부분미분 집합은 0에서 구간을 포함한다.
+아래 식은 0에서 sign(0)=0을 선택한 부분그래디언트 표현이다. 전체 부분미분 집합은 0에서 구간을 포함한다.
 
 $$
 \nabla_w \mathcal{L} = \frac{1}{m} X^T(Xw - y) + \lambda \alpha \cdot \text{sign}(w) + \lambda(1 - \alpha) w
 $$
 
-L1 항에서 오는 영에서의 미분 불가능성은 그대로 남으므로 부분기울기 방법이나 근접 최적화가 필요하다.
+L1 항에서 오는 영에서의 미분 불가능성은 그대로 남으므로 부분그래디언트 방법이나 근접 최적화가 필요하다.
 
 ---
 
@@ -53,23 +53,23 @@ L1 항에서 오는 영에서의 미분 불가능성은 그대로 남으므로 �
 
 ### 순수한 L1(라쏘)의 한계
 
-1. **상관된 특징**: 비슷한 특징 사이의 선택이 불안정할 수 있다
+1. **상관된 피처**: 비슷한 피처 사이의 선택이 불안정할 수 있다
 2. **표본 수와 선택 수**: 일반 위치 등 조건에서는 비영 계수 수에 표본 수 제한이 나타난다. 모든 비유일해에 같은 제한이 적용되지는 않는다
-3. **불안정성**: 데이터가 조금만 바뀌어도 특징 선택이 뒤집힐 수 있다
+3. **불안정성**: 데이터가 조금만 바뀌어도 피처 선택이 뒤집힐 수 있다
 
 ### 순수한 L2(릿지)의 한계
 
 1. **희소성**: 정확한 0을 직접 유도하는 패널티는 아니다
-2. **특징 선택 없음**: 관련 없는 특징을 가려내지 못한다
+2. **피처 선택 없음**: 관련 없는 피처를 가려내지 못한다
 3. **해석 가능성**: 조밀한 모델은 해석하기 더 어렵다
 
 ### 엘라스틱 넷의 해결책
 
 엘라스틱 넷은 다음으로 이 문제들을 다룬다.
 
-1. **그룹 선택**: 상관된 특징의 무리를 함께 고르거나 함께 버리는 경향이 있다
-2. **포화 없음**: $n$개보다 많은 특징을 고를 수 있다
-3. **안정성**: L2 성분이 상관된 특징 사이의 선택을 안정시킨다
+1. **그룹 선택**: 상관된 피처의 무리를 함께 고르거나 함께 버리는 경향이 있다
+2. **포화 없음**: $n$개보다 많은 피처를 고를 수 있다
+3. **안정성**: L2 성분이 상관된 피처 사이의 선택을 안정시킨다
 
 ---
 
@@ -93,7 +93,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def plot_elastic_net_constraint(alphas=[0.0, 0.3, 0.7, 1.0]):
-    """혼합 매개변수에 따른 엘라스틱 넷의 제약 영역을 시각화한다."""
+    """혼합 파라메터에 따른 엘라스틱 넷의 제약 영역을 시각화한다."""
     fig, axes = plt.subplots(1, 4, figsize=(14, 3.5))
     
     theta = np.linspace(0, 2*np.pi, 1000)
@@ -148,9 +148,9 @@ def elastic_net_penalty(model: nn.Module, lambda_reg: float,
     엘라스틱 넷 정칙화의 벌점을 계산한다.
     
     인수:
-        model: 신경망 모델
+        model: 뉴럴 넷트웍 모델
         lambda_reg: 전체 정칙화의 강도
-        alpha: 혼합 매개변수 (0이면 능선, 1이면 라쏘)
+        alpha: 혼합 파라메터 (0이면 능선, 1이면 라쏘)
         
     반환값:
         엘라스틱 넷의 벌점 항
@@ -164,20 +164,20 @@ def elastic_net_penalty(model: nn.Module, lambda_reg: float,
         # += 대신 = a + b로 썼다. 여기서는 +=로 써도 역전파가 되지만,
         # 제자리 연산은 덮어쓴 값을 역전파가 필요로 할 때 오류를 내므로
         # 누적에는 이 형태를 습관으로 두는 편이 안전하다.
-        # 주의: model.parameters()는 편향도 함께 훑는다. 보통 편향에는
-        # 벌점을 주지 않는다. 편향은 과적합의 원인이 아니고, 눌러 두면
-        # 모델이 출력의 중심을 옮기지 못하기 때문이다. 가중치만 고르려면
+        # 주의: model.parameters()는 바이어스도 함께 훑는다. 보통 바이어스에는
+        # 벌점을 주지 않는다. 바이어스는 과적합의 원인이 아니고, 눌러 두면
+        # 모델이 출력의 중심을 옮기지 못하기 때문이다. 웨이트만 고르려면
         # named_parameters()로 이름에 'bias'가 든 것을 걸러 내야 한다
         l1_penalty = l1_penalty + torch.sum(torch.abs(param))
         l2_penalty = l2_penalty + torch.sum(param ** 2)
     
     # alpha가 L1과 L2 사이를 오가는 손잡이다. alpha=1이면 라쏘,
     # alpha=0이면 능선이 된다. L2 쪽의 1/2은 미분하면 나오는 2와
-    # 지워지라고 붙인 것이라, 기울기가 그냥 (1-alpha)*param이 된다
+    # 지워지라고 붙인 것이라, 그래디언트가 그냥 (1-alpha)*param이 된다
     return lambda_reg * (alpha * l1_penalty + (1 - alpha) / 2 * l2_penalty)
 
 class ElasticNetRegularizedModel(nn.Module):
-    """엘라스틱 넷 정칙화를 쓰는 신경망."""
+    """엘라스틱 넷 정칙화를 쓰는 뉴럴 넷트웍."""
     
     def __init__(self, input_dim, hidden_dims, output_dim, 
                  lambda_reg=0.01, alpha=0.5):
@@ -185,9 +185,9 @@ class ElasticNetRegularizedModel(nn.Module):
         self.lambda_reg = lambda_reg
         self.alpha = alpha
         
-        # 신경망 만들기
+        # 뉴럴 넷트웍 만들기
         layers = []
-        # prev_dim이 층과 층을 잇는 고리다. 한 층의 출력 크기가 다음 층의
+        # prev_dim이 레이어와 레이어를 잇는 고리다. 한 레이어의 출력 크기가 다음 레이어의
         # 입력 크기가 되므로, 매번 갱신해 주어야 모양이 맞아떨어진다
         prev_dim = input_dim
         for hidden_dim in hidden_dims:
@@ -196,7 +196,7 @@ class ElasticNetRegularizedModel(nn.Module):
                 nn.ReLU()
             ])
             prev_dim = hidden_dim
-        # 마지막 층에는 ReLU를 붙이지 않는다. 붙이면 출력이 음수를
+        # 마지막 레이어에는 ReLU를 붙이지 않는다. 붙이면 출력이 음수를
         # 낼 수 없어 회귀에도 분류에도 쓸 수 없게 된다
         layers.append(nn.Linear(prev_dim, output_dim))
         
@@ -213,13 +213,13 @@ class ElasticNetRegularizedModel(nn.Module):
                                    (1 - self.alpha) / 2 * l2_norm)
     
     def get_sparsity(self, threshold=1e-6):
-        """영에 가까운 가중치의 비율을 계산한다."""
-        # 문턱값이 필요한 까닭은, 경사 하강으로는 가중치가 정확히 0에
+        """영에 가까운 웨이트의 비율을 계산한다."""
+        # 임계값이 필요한 까닭은, 경사 하강으로는 웨이트가 정확히 0에
         # 닿는 일이 거의 없기 때문이다. 좌표 하강이나 근접 연산자를 쓰는
-        # 진짜 라쏘와 달리, L1 벌점을 손실에 더해 미분하는 이 방식은
+        # 진짜 라쏘와 달리, L1 벌점을 로스에 더해 미분하는 이 방식은
         # 0 근처로 밀어붙일 뿐 0에 못박지는 못한다.
         # 그래서 여기서 재는 것은 "정확히 0"이 아니라 "0에 가까운" 비율이며,
-        # 값은 문턱값을 무엇으로 잡느냐에 따라 달라진다
+        # 값은 임계값을 무엇으로 잡느냐에 따라 달라진다
         total = 0
         zeros = 0
         for param in self.parameters():
@@ -246,7 +246,7 @@ def train_elastic_net_model(
         train_loader: 학습 데이터
         val_loader: 검증 데이터
         epochs: 에포크 수
-        lr: 학습률
+        lr: 러닝레이트
         
     반환값:
         학습 이력
@@ -271,10 +271,10 @@ def train_elastic_net_model(
             penalty = model.get_elastic_net_penalty()
             total_loss = mse_loss + penalty
             # 역전파는 total_loss로, 기록은 mse_loss로 한다. 벌점을 뺀
-            # 값이라야 lambda_reg가 다른 실험끼리 손실 곡선을 견줄 수 있다.
+            # 값이라야 lambda_reg가 다른 실험끼리 로스 곡선을 견줄 수 있다.
             # 주의: 이 방식은 Adam으로 벌점을 미분해 내려가는 것이라,
-            # 아래 근접 최적화기와 달리 가중치가 정확히 0에 닿지 않는다.
-            # history의 sparsity가 문턱값에 기대는 까닭이 여기 있다
+            # 아래 근접 최적화기와 달리 웨이트가 정확히 0에 닿지 않는다.
+            # history의 sparsity가 임계값에 기대는 까닭이 여기 있다
             
             total_loss.backward()
             optimizer.step()
@@ -310,34 +310,34 @@ def proximal_elastic_net(w: torch.Tensor, lambda_reg: float,
     """
     엘라스틱 넷의 근접 연산자.
     
-    엘라스틱 넷의 근접 연산자는 연성 문턱화 뒤에
+    엘라스틱 넷의 근접 연산자는 연성 임계화 뒤에
     (L2 성분 때문에) 배율을 조정하는 것이다.
     
     인수:
-        w: 가중치 텐서
+        w: 웨이트 텐서
         lambda_reg: 정칙화의 강도
-        alpha: 혼합 매개변수
-        lr: 학습률
+        alpha: 혼합 파라메터
+        lr: 러닝레이트
         
     반환값:
-        근접 단계를 거친 뒤의 가중치
+        근접 단계를 거친 뒤의 웨이트
     """
     # 두 벌점이 서로 다른 방식으로 작용한다는 점이 여기서 드러난다.
-    # L1은 빼기(문턱화)로 작용해 작은 값을 0에 못박고,
+    # L1은 빼기(임계화)로 작용해 작은 값을 0에 못박고,
     # L2는 나누기(수축)로 작용해 모든 값을 고르게 줄인다.
-    # L1 문턱값
+    # L1 임계값
     l1_threshold = lambda_reg * alpha * lr
     
     # L2 배율 인수
-    # 1보다 작은 수라 곱하면 가중치가 줄어든다. 아무리 줄여도 0이
-    # 되지는 않으므로, 희소성은 오로지 위의 문턱화가 만든다
+    # 1보다 작은 수라 곱하면 웨이트가 줄어든다. 아무리 줄여도 0이
+    # 되지는 않으므로, 희소성은 오로지 위의 임계화가 만든다
     l2_scale = 1.0 / (1.0 + lambda_reg * (1 - alpha) * lr)
     
-    # 연성 문턱화 뒤 배율 조정
-    # 순서가 정해져 있다. 문턱화를 먼저 하고 수축을 나중에 해야
+    # 연성 임계화 뒤 배율 조정
+    # 순서가 정해져 있다. 임계화를 먼저 하고 수축을 나중에 해야
     # 엘라스틱 넷의 근접 연산자와 정확히 맞는다.
     # 확인해 보면, alpha=1이면 l2_scale이 1이 되어 순수 라쏘의 연산자가
-    # 되고, alpha=0이면 문턱값이 0이 되어 순수 능선의 수축만 남는다
+    # 되고, alpha=0이면 임계값이 0이 되어 순수 능선의 수축만 남는다
     soft_thresh = torch.sign(w) * torch.clamp(torch.abs(w) - l1_threshold, min=0)
     return l2_scale * soft_thresh
 
@@ -355,7 +355,7 @@ class ProximalElasticNetOptimizer:
         with torch.no_grad():
             for param in self.model.parameters():
                 if param.grad is not None:
-                    # 기울기 단계 (매끄러운 손실 부분에 대해)
+                    # 그래디언트 단계 (매끄러운 로스 부분에 대해)
                     param.data -= self.lr * param.grad
                     # 근접 단계 (엘라스틱 넷 벌점에 대해)
                     param.data = proximal_elastic_net(
@@ -383,7 +383,7 @@ def elastic_net_analysis(X, y, l1_ratios=None, alphas=None):
     교차 검증을 곁들인 엘라스틱 넷의 종합 분석.
     
     인수:
-        X: 특징 행렬
+        X: 피처 행렬
         y: 목표 벡터
         l1_ratios: 시도해 볼 L1 비율 값 (이 책의 표기로는 alpha)
         alphas: 시도해 볼 정칙화의 강도
@@ -391,7 +391,7 @@ def elastic_net_analysis(X, y, l1_ratios=None, alphas=None):
     반환값:
         가장 좋은 모델과 분석 결과
     """
-    # 특징을 표준화한다
+    # 피처를 표준화한다
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
@@ -400,7 +400,7 @@ def elastic_net_analysis(X, y, l1_ratios=None, alphas=None):
     if alphas is None:
         alphas = np.logspace(-4, 1, 50)
     
-    # 두 매개변수 모두에 대한 교차 검증
+    # 두 파라메터 모두에 대한 교차 검증
     elastic_cv = ElasticNetCV(
         l1_ratio=l1_ratios,
         alphas=alphas,
@@ -413,7 +413,7 @@ def elastic_net_analysis(X, y, l1_ratios=None, alphas=None):
     # 결과
     # 정확히 0인지를 그대로 견준다. sklearn은 좌표 하강으로 풀어
     # 계수를 진짜 0으로 만들기 때문이다. 앞의 PyTorch 판에서는
-    # 이 비교가 통하지 않아 문턱값을 두어야 했다
+    # 이 비교가 통하지 않아 임계값을 두어야 했다
     n_nonzero = np.sum(elastic_cv.coef_ != 0)
     
     print("Elastic Net CV Results:")
@@ -444,7 +444,7 @@ def compare_regularization_methods(X, y, alpha_values):
         lasso_nonzero = np.sum(lasso.coef_ != 0)
         
         # 능선.
-        # 여기만 문턱값 1e-6을 쓰고 나머지 둘은 != 0을 쓴다는 점이
+        # 여기만 임계값 1e-6을 쓰고 나머지 둘은 != 0을 쓴다는 점이
         # 이 비교의 핵심이다. 능선은 계수를 0으로 만들지 못하므로
         # != 0으로 세면 언제나 전부 살아 있다고 나온다. 이 비대칭이
         # 곧 "L2는 줄이고 L1은 고른다"는 말의 실물이다
@@ -484,7 +484,7 @@ from sklearn.linear_model import ElasticNet
 
 def grid_search_elastic_net(X, y):
     """
-    엘라스틱 넷의 두 초매개변수에 대한 격자 탐색.
+    엘라스틱 넷의 두 초파라메터에 대한 격자 탐색.
     """
     # 주의: 이름이 위의 직접 구현과 어긋난다. sklearn에서 alpha는 전체
     # 강도(위의 lambda_reg)이고, 혼합 비율은 l1_ratio(위의 alpha)다.
@@ -513,7 +513,7 @@ def grid_search_elastic_net(X, y):
     )
     # 주의: X를 그대로 넣는다. 아래 elastic_net_analysis가 StandardScaler를
     # 거치는 것과 다르다. 엘라스틱 넷의 벌점은 계수의 크기를 보므로,
-    # 특징의 눈금이 제각각이면 여기서 고른 alpha는 믿을 것이 못 된다.
+    # 피처의 눈금이 제각각이면 여기서 고른 alpha는 믿을 것이 못 된다.
     # 부르는 쪽에서 표준화를 마친 X를 넘겨주어야 한다
     grid_search.fit(X, y)
     
@@ -531,14 +531,14 @@ def plot_elastic_net_path(X, y, l1_ratio=0.5, eps=1e-3):
     엘라스틱 넷의 정칙화 경로를 그린다.
     
     인수:
-        X: 특징 행렬
+        X: 피처 행렬
         y: 목표 벡터
-        l1_ratio: 고정된 혼합 매개변수
+        l1_ratio: 고정된 혼합 파라메터
         eps: 경로의 길이
     """
     # 주석은 표준화라 하지만 실제로는 중심화만 한다. 표준편차로 나누는
-    # 단계가 빠져 있어 특징들의 눈금이 그대로 남는다. 앞의 라쏘 경로가
-    # X.std(axis=0)로 나누는 것과 다르며, 눈금이 큰 특징일수록 계수가
+    # 단계가 빠져 있어 피처들의 눈금이 그대로 남는다. 앞의 라쏘 경로가
+    # X.std(axis=0)로 나누는 것과 다르며, 눈금이 큰 피처일수록 계수가
     # 작게 나와 경로에서 먼저 0으로 떨어지는 것처럼 보인다
     X_centered = X - X.mean(axis=0)
     # y의 중심화는 절편을 따로 다루지 않아도 되게 해 준다
@@ -571,9 +571,9 @@ def plot_elastic_net_path(X, y, l1_ratio=0.5, eps=1e-3):
 
 ## 7. 이론적 성질
 
-### 상관된 특징의 그룹 효과
+### 상관된 피처의 그룹 효과
 
-양의 상관이 강한 특징은 비슷한 계수를 갖는 경향이 있다. 열을 중심화하고 $\|x_i\|_2^2=m$으로 맞춘 뒤, 같은 부호인 비영 계수 두 개와 $\lambda(1-\alpha)>0$을 가정하자. 잔차 $r=y-Xw$에 대한 최적 조건의 차이를 취하면 다음을 얻는다.
+양의 상관이 강한 피처는 비슷한 계수를 갖는 경향이 있다. 열을 중심화하고 $\|x_i\|_2^2=m$으로 맞춘 뒤, 같은 부호인 비영 계수 두 개와 $\lambda(1-\alpha)>0$을 가정하자. 잔차 $r=y-Xw$에 대한 최적 조건의 차이를 취하면 다음을 얻는다.
 
 $$
 \lambda(1-\alpha)(w_i-w_j)=\frac{(x_i-x_j)^\top r}{m}
@@ -585,9 +585,9 @@ $$
 |w_i-w_j|\leq\frac{\|r\|_2}{\lambda(1-\alpha)}\sqrt{\frac{2(1-\rho)}m}
 $$
 
-이 경향이 모든 상관 특징을 반드시 선택한다는 뜻은 아니다. 완전히 같은 열을 표준화하고 양의 L2 항을 쓰면 대칭성과 해의 유일성으로 같은 계수를 얻는다.
+이 경향이 모든 상관 피처를 반드시 선택한다는 뜻은 아니다. 완전히 같은 열을 표준화하고 양의 L2 항을 쓰면 대칭성과 해의 유일성으로 같은 계수를 얻는다.
 
-### 유일성과 특징 선택
+### 유일성과 피처 선택
 
 위의 선형 최소제곱 문제에서 $\lambda>0$, $\alpha<1$이면 모든 계수에 양의 L2 패널티가 있어 해가 유일하다. 라쏘는 계수가 여러 해를 가질 수 있지만 일반 위치 등 조건에서 유일할 수도 있다. 표본 수보다 많은 비영 계수를 갖는 라쏘의 비유일해도 가능하므로 단순한 표본 수 제한은 조건을 붙여 읽어야 한다.
 
@@ -595,25 +595,25 @@ $$
 
 ## 8. 실무 지침
 
-### 혼합 매개변수 α 고르기
+### 혼합 파라메터 α 고르기
 
 | 상황 | 권장 α |
 |----------|---------------|
-| 강한 특징 선택이 필요할 때 | 0.9 - 0.99 |
+| 강한 피처 선택이 필요할 때 | 0.9 - 0.99 |
 | 적당한 희소성 | 0.5 - 0.7 |
 | 약간의 희소성과 함께 안정성 | 0.1 - 0.3 |
-| 강하게 상관된 특징 | 0.1 - 0.5 |
+| 강하게 상관된 피처 | 0.1 - 0.5 |
 
 ### 엘라스틱 넷을 쓸 때
 
-1. **상관된 특징**: 특징의 무리가 서로 상관되어 있고 그룹 선택을 원할 때
+1. **상관된 피처**: 피처의 무리가 서로 상관되어 있고 그룹 선택을 원할 때
 2. **높은 차원**: $p >> n$이어서 라쏘가 포화할 때
-3. **안정성이 필요할 때**: 순수한 희소성보다 일관된 특징 선택이 더 중요할 때
+3. **안정성이 필요할 때**: 순수한 희소성보다 일관된 피처 선택이 더 중요할 때
 4. **L1과 L2 중 무엇이 나을지 모를 때**: 어느 정규화가 더 좋은지 확신이 없을 때
 
 ### 비교 요약
 
-| 방법 | 희소성 | 안정성 | 상관된 특징 | 유일한 해 |
+| 방법 | 희소성 | 안정성 | 상관된 피처 | 유일한 해 |
 |--------|----------|-----------|---------------------|-----------------|
 | L1 (라쏘) | 높음 | 낮음 | 임의 선택 | 언제나 그렇지는 않음 |
 | L2 (릿지) | 없음 | 높음 | 동등한 가중 | 그렇다 |
@@ -623,21 +623,21 @@ $$
 
 ## 9. 응용
 
-### 상관된 특징의 그룹 선택
+### 상관된 피처의 그룹 선택
 
 ```python
 def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
     """
-    특징의 배치를 존중하는 특징 선택.
+    피처의 배치를 존중하는 피처 선택.
     
     인수:
-        X: 특징 행렬
+        X: 피처 행렬
         y: 목푯값
-        feature_groups: 배치 이름을 특징 인덱스에 대응시키는 사전
+        feature_groups: 배치 이름을 피처 인덱스에 대응시키는 사전
         alpha: 엘라스틱 넷의 l1_ratio
         
     반환값:
-        선택된 특징 배치와 모델
+        선택된 피처 배치와 모델
     """
     from sklearn.linear_model import ElasticNetCV
     from sklearn.preprocessing import StandardScaler
@@ -686,7 +686,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-엘라스틱 넷의 패널티를 쓰고, 혼합 매개변수 $\alpha$이 L1과 L2의 균형을 어떻게 조절하는지 설명하라.
+엘라스틱 넷의 패널티를 쓰고, 혼합 파라메터 $\alpha$이 L1과 L2의 균형을 어떻게 조절하는지 설명하라.
 
 </div>
 
@@ -734,11 +734,11 @@ $\lambda[\alpha\|w\|_1+(1-\alpha)\|w\|_2^2/2]$의 근접 연산자를 유도하�
 </div>
 
 ??? success "연습문제 4 풀이"
-    각 좌표의 최적 조건은 $0\in(1+\lambda(1-\alpha))w-v+\lambda\alpha\partial|w|$이다. 따라서 $\operatorname{prox}(v)=S_{\lambda\alpha}(v)/(1+\lambda(1-\alpha))$이다. 먼저 나누고 문턱을 적용하려면 문턱도 같은 분모로 나눠야 한다. 앞의 해설처럼 배율만 줄이고 원래 문턱을 그대로 쓰면 다른 연산이 된다.
+    각 좌표의 최적 조건은 $0\in(1+\lambda(1-\alpha))w-v+\lambda\alpha\partial|w|$이다. 따라서 $\operatorname{prox}(v)=S_{\lambda\alpha}(v)/(1+\lambda(1-\alpha))$이다. 먼저 나누고 임계를 적용하려면 임계도 같은 분모로 나눠야 한다. 앞의 해설처럼 배율만 줄이고 원래 임계를 그대로 쓰면 다른 연산이 된다.
 
 ## 정리하며
 
-엘라스틱 넷은 L1의 희소성 경향과 L2의 안정성을 조절한다. 선형 문제에서 양의 L2 성분은 유일성을 주지만, 모든 상관 특징의 선택이나 오라클 성질을 보장하지는 않는다. 혼합 비율과 전체 강도는 전처리를 포함한 검증 절차에서 선택한다.
+엘라스틱 넷은 L1의 희소성 경향과 L2의 안정성을 조절한다. 선형 문제에서 양의 L2 성분은 유일성을 주지만, 모든 상관 피처의 선택이나 오라클 성질을 보장하지는 않는다. 혼합 비율과 전체 강도는 전처리를 포함한 검증 절차에서 선택한다.
 
 **참고 문헌**
 

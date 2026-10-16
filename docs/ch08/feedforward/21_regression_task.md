@@ -52,7 +52,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# 특징 정규화 (회귀에서 중요하다!)
+# 피처 정규화 (회귀에서 중요하다!)
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
@@ -61,7 +61,7 @@ X_test = scaler.transform(X_test)
 X_train = torch.FloatTensor(X_train)
 # reshape(-1, 1)이 반드시 필요하다. 모델의 출력이 (N, 1)인데 목표가
 # (N,)이면 MSELoss가 오류를 내지 않고 방송을 해 버려, (N, N) 크기의
-# 차이 행렬을 만들고 그 평균을 손실로 내놓는다. 값이 조용히 틀리므로
+# 차이 행렬을 만들고 그 평균을 로스로 내놓는다. 값이 조용히 틀리므로
 # 알아채기 어렵다. 분류에서 쓰는 LongTensor 인덱스와 달리 회귀의
 # 목표는 실수이고 모양까지 맞추어 주어야 한다.
 # 목표를 표준화하지 않은 점도 눈여겨보라. 집값이 10만 달러 단위라
@@ -79,7 +79,7 @@ print("Regression Model")
 print("="*80)
 
 class RegressionNet(nn.Module):
-    """회귀를 위한 신경망."""
+    """회귀를 위한 뉴럴 넷트웍."""
     
     def __init__(self, input_size):
         super().__init__()
@@ -92,7 +92,7 @@ class RegressionNet(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.2),
             
-            # 이 층 뒤에는 드롭아웃이 없다. 폭이 16까지 좁아진 데다
+            # 이 레이어 뒤에는 드롭아웃이 없다. 폭이 16까지 좁아진 데다
             # 출력이 바로 뒤라, 여기서 뉴런을 끄면 예측이 크게 흔들린다
             nn.Linear(32, 16),
             nn.ReLU(),
@@ -108,8 +108,8 @@ class RegressionNet(nn.Module):
 
 model = RegressionNet(X_train.shape[1])
 
-# 회귀를 위한 MSE 손실.
-# 교차 엔트로피는 확률 분포를 견주는 손실이라 여기에 쓸 수 없다.
+# 회귀를 위한 MSE 로스.
+# 교차 엔트로피는 확률 분포를 견주는 로스라 여기에 쓸 수 없다.
 # MSE는 오차를 제곱하므로 크게 빗나간 표본에 훨씬 큰 벌점을 준다.
 # 이상치가 많은 데이터라면 그 성질이 독이 되므로, 오차에 비례하는
 # L1Loss나 둘을 섞은 SmoothL1Loss를 쓰기도 한다
@@ -173,7 +173,7 @@ print(f"Test RMSE: ${test_rmse*100000:.2f}")
 # 시각화
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(14, 10))
 
-# 학습 손실
+# 학습 로스
 ax1.plot(losses, linewidth=2)
 ax1.set_xlabel('Epoch')
 ax1.set_ylabel('Loss (MSE)')
@@ -214,13 +214,13 @@ print("\n" + "="*80)
 print("KEY POINTS FOR REGRESSION")
 print("="*80)
 print("""
-회귀의 특징:
+회귀의 피처:
 ✓ MSELoss나 L1Loss를 쓴다(교차 엔트로피가 아니다!)
-✓ 출력 뉴런 하나(활성화 함수 없음)
-✓ 입력 특징을 정규화하거나 표준화하라
+✓ 출력 뉴런 하나(엑티베이션 함수 없음)
+✓ 입력 피처를 정규화하거나 표준화하라
 ✓ RMSE, MAE, R² 점수로 평가하라
 
-손실 함수:
+로스 함수:
 - MSELoss: 큰 오차에 더 큰 벌점을 준다
 - L1Loss: 이상치에 더 강건하다
 - SmoothL1Loss: 혼합형 접근
@@ -232,7 +232,7 @@ METRICS:
 - R²: Coefficient of determination (0-1)
 
 TIPS:
-- 회귀에서는 늘 특징을 정규화하라
+- 회귀에서는 늘 피처를 정규화하라
 - 데이터에 이상치가 있는지 확인하라
 - 예측과 실제를 견주어 시각화하라
 - 잔차의 분포를 분석하라
@@ -288,13 +288,13 @@ Plots saved!
 KEY POINTS FOR REGRESSION
 ================================================================================
 
-회귀의 특징:
+회귀의 피처:
 ✓ MSELoss나 L1Loss를 쓴다(교차 엔트로피가 아니다!)
-✓ 출력 뉴런 하나(활성화 함수 없음)
-✓ 입력 특징을 정규화하거나 표준화하라
+✓ 출력 뉴런 하나(엑티베이션 함수 없음)
+✓ 입력 피처를 정규화하거나 표준화하라
 ✓ RMSE, MAE, R² 점수로 평가하라
 
-손실 함수:
+로스 함수:
 - MSELoss: 큰 오차에 더 큰 벌점을 준다
 - L1Loss: 이상치에 더 강건하다
 - SmoothL1Loss: 혼합형 접근
@@ -306,7 +306,7 @@ METRICS:
 - R²: Coefficient of determination (0-1)
 
 TIPS:
-- 회귀에서는 늘 특징을 정규화하라
+- 회귀에서는 늘 피처를 정규화하라
 - 데이터에 이상치가 있는지 확인하라
 - 예측과 실제를 견주어 시각화하라
 - 잔차의 분포를 분석하라
@@ -315,9 +315,9 @@ TIPS:
 
 ## 2. 논의
 
-RegressionNet은 8→64→32→16→1 구조이며 마지막 층 뒤에 시그모이드가 없다. 목표값의 가능한 범위를 모델 출력에서 강제로 제한하지 않는 회귀 설계이다.
+RegressionNet은 8→64→32→16→1 구조이며 마지막 레이어 뒤에 시그모이드가 없다. 목표값의 가능한 범위를 모델 출력에서 강제로 제한하지 않는 회귀 설계이다.
 
-StandardScaler는 학습 입력에 fit하고 테스트 입력에는 transform만 수행한다. 복원한 모델을 사용할 때도 같은 scaler가 필요하다. 모델 가중치만으로 원래 입력의 전처리가 복원되지는 않는다.
+StandardScaler는 학습 입력에 fit하고 테스트 입력에는 transform만 수행한다. 복원한 모델을 사용할 때도 같은 scaler가 필요하다. 모델 웨이트만으로 원래 입력의 전처리가 복원되지는 않는다.
 
 MSE는 목표 단위의 제곱이고 RMSE와 MAE는 목표와 같은 단위이다. 이 데이터의 금액 환산은 데이터셋 목표의 단위를 반영한 것이다. 무작위 분할의 성능을 다른 시기나 지역에 대한 예측 성능으로 바로 일반화하지 않는다.
 
@@ -326,12 +326,12 @@ MSE는 목표 단위의 제곱이고 RMSE와 MAE는 목표와 같은 단위이�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-입력 특징이 8개일 때 RegressionNet의 매개변수 수를 구하라.
+입력 피처가 8개일 때 RegressionNet의 파라메터 수를 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    각 층은 576, 2080, 528, 17개이므로 총 3201개이다. 드롭아웃과 ReLU는 학습 가능한 계수를 추가하지 않는다.
+    각 레이어는 576, 2080, 528, 17개이므로 총 3201개이다. 드롭아웃과 ReLU는 학습 가능한 계수를 추가하지 않는다.
 
 ---
 
@@ -373,7 +373,7 @@ RMSE와 R²를 함께 볼 이유를 설명하라.
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

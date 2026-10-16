@@ -52,7 +52,7 @@ $$A \in \mathbb{R}^{C \times M}$$
 
 ### 개념
 
-DAP는 이미지 특징에서 각 속성이 존재할 확률을 예측한다. 여러 속성의 확률을 곱해 클래스 점수를 계산하는 과정에서 조건부 독립 근사를 사용한다. 인코더를 공유하는 여러 출력 헤드를 공동 학습할 수도 있으므로 속성마다 별도 모델을 학습해야 하는 것은 아니다.
+DAP는 이미지 피처에서 각 속성이 존재할 확률을 예측한다. 여러 속성의 확률을 곱해 클래스 점수를 계산하는 과정에서 조건부 독립 근사를 사용한다. 인코더를 공유하는 여러 출력 헤드를 공동 학습할 수도 있으므로 속성마다 별도 모델을 학습해야 하는 것은 아니다.
 
 ### 속성 예측과 클래스 점수
 
@@ -90,7 +90,7 @@ class DirectAttributePrediction(nn.Module):
         
         self.n_attributes = n_attributes
         
-        # 함께 쓰는 특징 뽑개
+        # 함께 쓰는 피처 뽑개
         self.feature_extractor = nn.Sequential(
             nn.Linear(visual_dim, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
@@ -112,7 +112,7 @@ class DirectAttributePrediction(nn.Module):
         속성 확률을 맞힌다.
         
         인수:
-            x: 꼴이 (batch_size, visual_dim)인 시각 특징
+            x: 꼴이 (batch_size, visual_dim)인 시각 피처
         
         반환값:
             꼴이 (batch_size, n_attributes)인 속성 확률
@@ -130,7 +130,7 @@ class DirectAttributePrediction(nn.Module):
         DAP으로 부류를 맞힌다.
         
         인수:
-            x: 시각 특징 (batch_size, visual_dim)
+            x: 시각 피처 (batch_size, visual_dim)
             class_attributes: 부류 이름을 속성 벡터로 옮기는 사전
             class_names: 후보 부류 이름 목록
         
@@ -162,7 +162,7 @@ class DirectAttributePrediction(nn.Module):
 
 def train_dap_model(model, train_loader, class_attributes, epochs=50, lr=0.001):
     """
-    이진 교차 엔트로피 손실로 DAP 모델을 익힌다.
+    이진 교차 엔트로피 로스로 DAP 모델을 익힌다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.BCELoss()
@@ -253,7 +253,7 @@ class IndirectAttributePrediction(nn.Module):
         IAP으로 못 본 부류를 맞힌다.
         
         인수:
-            x: 시각 특징 (batch_size, visual_dim)
+            x: 시각 피처 (batch_size, visual_dim)
             seen_classes: 본 부류 이름 목록
             unseen_classes: 못 본 부류 이름 목록
             class_attributes: 부류 이름을 속성 벡터로 옮기는 사전
@@ -293,7 +293,7 @@ class IndirectAttributePrediction(nn.Module):
 
 def train_iap_model(model, train_loader, seen_classes, epochs=50, lr=0.001):
     """
-    본 부류에서 교차 엔트로피 손실로 IAP 모델을 익힌다.
+    본 부류에서 교차 엔트로피 로스로 IAP 모델을 익힌다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
@@ -397,7 +397,7 @@ def compare_dap_iap(X_train, y_train, X_test, y_test,
 
 ### 속성 설계 원칙
 
-클래스를 구분하는 데 유용하고 입력에서 관측 가능한 속성을 선택한다. 줄무늬나 색은 직접적인 시각 단서가 될 수 있지만 서식지나 식성은 이미지 한 장에서 바로 확인하기 어려울 수 있다. 클래스 수준의 배경 지식과 이미지에서 보이는 특징을 구분한다.
+클래스를 구분하는 데 유용하고 입력에서 관측 가능한 속성을 선택한다. 줄무늬나 색은 직접적인 시각 단서가 될 수 있지만 서식지나 식성은 이미지 한 장에서 바로 확인하기 어려울 수 있다. 클래스 수준의 배경 지식과 이미지에서 보이는 피처를 구분한다.
 
 속성의 상관관계, 누락과 라벨 일관성을 확인한다. 같은 클래스 속성이라도 자세나 가림에 따라 관측 가능성이 달라질 수 있다. 정량적 품질 평가는 학습·검증 분할 안에서 수행한다.
 
@@ -478,7 +478,7 @@ DAP의 확률 곱과 로그 점수의 관계를 설명하라.
 </div>
 
 ??? success "연습문제 3 풀이"
-    코드는 특징 추출기를 공유하고 여러 속성의 BCE를 함께 최적화한다. 헤드가 분리되어도 공유 특징을 통해 학습이 연결된다. 속성 확률을 곱하는 단계의 조건부 독립 근사와 매개변수 공유 여부는 다른 개념이다.
+    코드는 피처 추출기를 공유하고 여러 속성의 BCE를 함께 최적화한다. 헤드가 분리되어도 공유 피처를 통해 학습이 연결된다. 속성 확률을 곱하는 단계의 조건부 독립 근사와 파라메터 공유 여부는 다른 개념이다.
 
 ---
 

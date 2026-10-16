@@ -2,7 +2,7 @@
 
 03: SmoothGrad - Saliency Map의 잡음 줄이기. 밝힘:
 
-신경망이 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 기울기 기반 풀이 재주를 보이며, 네트워크의 움직임을 눈으로 보고 수로 재게 해 준다.
+뉴럴 넷트웍이 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
@@ -14,9 +14,9 @@
 어려움: 낮음
 
 밝힘:
-SmoothGrad은 들임에 잡음을 섞은 것들에서 셈한 기울기를 고르게 해
+SmoothGrad은 들임에 잡음을 섞은 것들에서 셈한 그래디언트를 고르게 해
 두드러짐 그림의 눈에 띄는 잡음을 줄인다. 잡음을 더해 고르게 하면
-날카롭고 흔들리는 기울기가 서로 지워지고 뜻있는 신호만 남는다.
+날카롭고 흔들리는 그래디언트가 서로 지워지고 뜻있는 신호만 남는다.
 
 수학 밑바탕:
     SmoothGrad(x) = (1/n) Σᵢ₌₁ⁿ |∂y_c/∂(x + N(0, σ²))|
@@ -24,9 +24,9 @@ SmoothGrad은 들임에 잡음을 섞은 것들에서 셈한 기울기를 고르
 여기서:
 - n: 잡음 섞은 표본의 수
 - N(0, σ²): 잣대 벗어남이 σ인 가우스 잡음
-- 고르게 하기가 기울기 잡음을 눅인다
+- 고르게 하기가 그래디언트 잡음을 눅인다
 
-으뜸 매개변수:
+으뜸 파라메터:
 - n (num_samples): 표본이 많을수록 매끄럽지만 느리다(흔히 20~50)
 - σ (noise_level): 잡음의 크기를 다스린다(흔히 들임 자의 0.1~0.2)
 
@@ -57,19 +57,19 @@ def compute_smoothgrad(
     알고리즘:
     1. i = 1에서 n까지:
        a. 들임에 가우스 잡음을 더한다: x_noisy = x + N(0, σ²)
-       b. 기울기를 셈한다: gᵢ = |∂y_c/∂x_noisy|
-    2. 기울기를 고르게 한다: SmoothGrad = (1/n) Σᵢ gᵢ
+       b. 그래디언트를 셈한다: gᵢ = |∂y_c/∂x_noisy|
+    2. 그래디언트를 고르게 한다: SmoothGrad = (1/n) Σᵢ gᵢ
 
     왜 듣는가:
-    - 날카롭고 흔들리는 기울기는 잡음에 따라 아무렇게나 달라진다
-    - 뜻있는 기울기는 한결같이 남는다
+    - 날카롭고 흔들리는 그래디언트는 잡음에 따라 아무렇게나 달라진다
+    - 뜻있는 그래디언트는 한결같이 남는다
     - 고르게 하기가 잡음을 지우고 신호를 남긴다
-    - 기계 배움의 모둠 방법과 결이 같다
+    - 기계 러닝의 모둠 방법과 결이 같다
 
     Args:
         model: 미리 익힌 모형
         image_tensor: 들임 그림 [1, 3, H, W]
-        target_class: 겨눈 갈래 번호
+        target_class: 겨눈 클래스 번호
         device: 셈하는 장치
         num_samples: 잡음 섞은 표본의 수
         noise_level: 가우스 잡음의 잣대 벗어남(들임 자에 대한 몫)
@@ -80,7 +80,7 @@ def compute_smoothgrad(
     model.eval()
     image_tensor = image_tensor.to(device)
 
-    # 기울기를 쌓아 둘 곳
+    # 그래디언트를 쌓아 둘 곳
     accumulated_gradients = torch.zeros_like(image_tensor)
 
     # 잡음의 잣대 벗어남을 셈한다
@@ -101,10 +101,10 @@ def compute_smoothgrad(
         model.zero_grad()
         target_score.backward()
 
-        # 기울기를 쌓는다
+        # 그래디언트를 쌓는다
         accumulated_gradients += noisy_image.grad
 
-    # 기울기를 고르게 한다
+    # 그래디언트를 고르게 한다
     mean_gradients = accumulated_gradients / num_samples
 
     # 절댓값을 잡고 통로를 가로질러 모은다
@@ -115,9 +115,9 @@ def compute_smoothgrad(
 
 
 def example_1_smoothgrad_vs_vanilla():
-    """SmoothGrad과 맨 기울기를 견준다."""
+    """SmoothGrad과 맨 그래디언트를 견준다."""
     print("\n" + "="*60)
-    print("보기 1: SmoothGrad 대 맨 기울기")
+    print("보기 1: SmoothGrad 대 맨 그래디언트")
     print("="*60)
 
     device = get_device()
@@ -133,10 +133,10 @@ def example_1_smoothgrad_vs_vanilla():
         output = model(image_tensor.to(device))
         target_class = output.argmax(dim=1).item()
 
-    print(f"\n겨눈 갈래: {target_class}")
-    print("맨 기울기를 셈한다...")
+    print(f"\n겨눈 클래스: {target_class}")
+    print("맨 그래디언트를 셈한다...")
 
-    # 맨 기울기
+    # 맨 그래디언트
     image_vanilla = preprocess_image(test_image, requires_grad=True)
     output = model(image_vanilla.to(device))
     output[0, target_class].backward()
@@ -154,7 +154,7 @@ def example_1_smoothgrad_vs_vanilla():
     visualize_multiple_saliencies(
         image_tensor,
         {
-            '맨 기울기\n(잡음 많음)': vanilla,
+            '맨 그래디언트\n(잡음 많음)': vanilla,
             'SmoothGrad\n(깨끗함)': smoothgrad
         },
         save_path='outputs/03_smoothgrad_comparison.png'
@@ -166,7 +166,7 @@ def example_1_smoothgrad_vs_vanilla():
 def example_2_parameter_sensitivity():
     """num_samples과 noise_level이 미치는 힘을 살핀다."""
     print("\n" + "="*60)
-    print("보기 2: 매개변수에 대한 예민함")
+    print("보기 2: 파라메터에 대한 예민함")
     print("="*60)
 
     device = get_device()
@@ -179,7 +179,7 @@ def example_2_parameter_sensitivity():
         output = model(image_tensor.to(device))
         target_class = output.argmax(dim=1).item()
 
-    # 매개변수를 달리해 시험한다
+    # 파라메터를 달리해 시험한다
     configs = [
         (10, 0.10, "n=10, σ=0.10"),
         (25, 0.15, "n=25, σ=0.15"),
@@ -220,9 +220,9 @@ def main():
         print("핵심:")
         print("1. SmoothGrad은 고르게 해서 눈에 띄는 잡음을 줄인다")
         print("2. 잡음을 더했는데 되레 잡음이 준다!")
-        print("3. 매개변수: n=20~50, σ=0.10~0.20")
+        print("3. 파라메터: n=20~50, σ=0.10~0.20")
         print("4. 셈이 비싸다(앞으로/되짚기를 n번 한다)")
-        print("\n다음: 꾸러미 04 - 쌓은 기울기")
+        print("\n다음: 꾸러미 04 - 쌓은 그래디언트")
         print("="*70)
     except Exception as e:
         print(f"어긋남: {e}")
@@ -239,35 +239,35 @@ if __name__ == "__main__":
 ======================================================================
 
 ============================================================
-보기 1: SmoothGrad 대 맨 기울기
+보기 1: SmoothGrad 대 맨 그래디언트
 ============================================================
 어긋남: name 'get_device' is not defined
 ```
 
 ## 2. 논의
 
-이 짜보기는 깔끔하고 읽기 쉬운 PyTorch 코드로 기울기 기반 풀이의 핵심이 되는 생각을 보여 준다. 조각으로 나눈 구조 덕에 부분마다 따로 살피고 다른 일이나 데이터에 맞추어 고치기 쉽다.
+이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 그래디언트 기반 풀이의 핵심이 되는 생각을 보여 준다. 조각으로 나눈 구조 덕에 부분마다 따로 살피고 다른 일이나 데이터에 맞추어 고치기 쉽다.
 
-여기서 보인 특징은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 갈래, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 모델 해석에 대한 감이 몸에 붙는다.
+여기서 보인 피처는 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 클래스, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 모델 해석에 대한 감이 몸에 붙는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 기울기 기반 풀이에 알맞은지 밝혀라.
+코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 그래디언트 기반 풀이에 알맞은지 밝혀라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    설계 판단은 짜보기마다 다르나 흔히 이런 것이 있다. (1) 활성화 함수 고르기 -- ReLU 갈래는 기울기가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 기울기가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력의 꼴과 데이터 갈래가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
+입력의 꼴과 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
 
 </div>
 
@@ -279,19 +279,19 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 짜보기가 무너질 만한 특징 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔히 무너지는 특징은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 층마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 손실은 줄어드는데 살핌 손실이 오르면 짚어낸다. 정규화(드롭아웃, 가중치 줄이기, 데이터 늘리기)나 모델 크기 줄이기로 고친다. 학습과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+    흔히 무너지는 피처는 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 적기). 그래디언트 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 살핌 로스가 오르면 짚어낸다. 정규화(드롭아웃, 웨이트 줄이기, 데이터 늘리기)나 모델 크기 줄이기로 고친다. 학습과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-03: SmoothGrad 짜보기를 살피는 두루 갖춘 시험 함수를 써라. 빈 입력, 원소 하나짜리 입력, 아주 큰 입력, 그리고 끝자락 값(0, 아주 큰 수)이 든 입력 같은 가장자리 자리를 시험하여라.
+03: SmoothGrad 구현을 살피는 두루 갖춘 시험 함수를 써라. 빈 입력, 원소 하나짜리 입력, 아주 큰 입력, 그리고 끝자락 값(0, 아주 큰 수)이 든 입력 같은 가장자리 자리를 시험하여라.
 
 </div>
 
@@ -307,18 +307,18 @@ if __name__ == "__main__":
         # 큰 값(넘침을 살핀다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 기울기 흐름
+        # 그래디언트 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    구조가 끝에서 끝까지 학습을 받치는지 알려면 기울기 흐름을 시험하는 것이 특히 중요하다.
+    구조가 끝에서 끝까지 학습을 받치는지 알려면 그래디언트 흐름을 시험하는 것이 특히 중요하다.
 
 ## 정리하며
 
 **다룬 것** — 03: SmoothGrad
 
-이 짜보기는 깔끔하고 읽기 쉬운 PyTorch 코드로 기울기 기반 풀이의 핵심이 되는 생각을 보여 준다.
+이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 그래디언트 기반 풀이의 핵심이 되는 생각을 보여 준다.
 
 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -2,7 +2,7 @@
 
 양방향 LSTM은 각 토큰에서 왼쪽·오른쪽 문맥을 결합한다. 직함·동사·이름의 다른 부분이 개체의 유형과 경계를 판단하는 단서가 될 수 있지만, 특정 동사 하나가 조직임을 확정하지는 않는다. The New York Times처럼 전체 언급을 판단할 때 내부의 New York만 별도 장소로 태깅할지는 데이터 지침에 달렸다.
 
-## 1. 문맥 특징과 출력 로짓
+## 1. 문맥 피처와 출력 로짓
 
 ```
 Word: "Apple"  "Inc"  "announced"  "profits"
@@ -19,7 +19,7 @@ Word: "Apple"  "Inc"  "announced"  "profits"
       B-ORG    I-ORG      O           O
 ```
 
-방향별 은닉 크기가 d이면 두 방향을 연결한 표현은2d차원이다. LSTM은 은닉·셀 상태를 각각 갱신하므로 h_t=LSTM(x_t,h_{t−1}) 표기는 셀 상태를 생략한 약식이다. 연결 특징을 선형 변환해 K개 태그 로짓을 만든다. 양방향은 뒤 토큰도 사용해 전체 문장 NER에 적합할 수 있지만 미래 입력이 없는 온라인 과제에는 그대로 적용할 수 없다.
+방향별 은닉 크기가 d이면 두 방향을 연결한 표현은2d차원이다. LSTM은 은닉·셀 상태를 각각 갱신하므로 h_t=LSTM(x_t,h_{t−1}) 표기는 셀 상태를 생략한 약식이다. 연결 피처를 선형 변환해 K개 태그 로짓을 만든다. 양방향은 뒤 토큰도 사용해 전체 문장 NER에 적합할 수 있지만 미래 입력이 없는 온라인 과제에는 그대로 적용할 수 없다.
 
 ## 2. 기본 BiLSTMNER
 
@@ -91,7 +91,7 @@ class BiLSTMNER(nn.Module):
         # 분류
         logits = self.classifier(lstm_out)
         
-        # 이름표가 있으면 손실을 셈한다
+        # 이름표가 있으면 로스를 셈한다
         loss = None
         if labels is not None:
             loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
@@ -112,9 +112,9 @@ class BiLSTMNER(nn.Module):
 
 mask가 있으면 유효 길이로 pack한다. 양의 길이·오른쪽 연속 패딩을 가정하며 unpack은 배치의 최대 유효 길이로 줄어들 수 있다. labels가 원래 고정 패딩 길이를 유지하면 펼친 logits와 원소 수가 달라 CE에서 실패할 수 있다. total_length 또는 목표·마스크 정렬 규칙이 필요하다.
 
-손실은−100 레이블만 무시한다. attention_mask만0으로 두고 패딩 labels를O로 채우면 CE에서 자동으로 제외되지 않는다. 모든 레이블이−100일 때 평균의 유효 분모도 고려해야 한다. predict는 no_grad를 쓰지만 eval로 전환하지 않아 호출자가 학습 모드이면 dropout이 남는다. 반환 argmax에는 패딩 위치를 제거하는 별도 절차도 없다.
+로스는−100 레이블만 무시한다. attention_mask만0으로 두고 패딩 labels를O로 채우면 CE에서 자동으로 제외되지 않는다. 모든 레이블이−100일 때 평균의 유효 분모도 고려해야 한다. predict는 no_grad를 쓰지만 eval로 전환하지 않아 호출자가 학습 모드이면 dropout이 남는다. 반환 argmax에는 패딩 위치를 제거하는 별도 절차도 없다.
 
-## 3. 문자 특징을 결합하는 모델
+## 3. 문자 피처를 결합하는 모델
 
 ```python
 class CharLSTM(nn.Module):
@@ -229,15 +229,15 @@ class BiLSTMCharNER(nn.Module):
 
 CharLSTM은 B×L×M 문자 ID를 단어별 시퀀스로 펼쳐 방향별 최종 은닉을 연결한다. 기본 char_hidden_dim50이면 단어마다50차원이고 단어 임베딩100과 합쳐150차원의 입력이 된다. char_hidden_dim도 홀수이면 실제 출력2 floor(H/2)와 선언한 입력 차원이 달라질 수 있다.
 
-문자 길이 packing·mask가 없으므로 짧은 단어의 padding 문자도 LSTM 상태 갱신에 참여한다. embedding의 padding_idx0이 padding을0벡터로 만들어도 recurrent bias·은닉 갱신이 멈추는 것은 아니다. 전부 padding인 단어도 최종 특징이 항상0이 아니다.
+문자 길이 packing·mask가 없으므로 짧은 단어의 padding 문자도 LSTM 상태 갱신에 참여한다. embedding의 padding_idx0이 padding을0벡터로 만들어도 recurrent bias·은닉 갱신이 멈추는 것은 아니다. 전부 padding인 단어도 최종 피처가 항상0이 아니다.
 
-BiLSTMCharNER는 attention_mask를 인수로 받지만 실제 단어 LSTM의 packing·특징·손실 마스크에 사용하지 않는다. 단어 embedding에도 padding_idx가 없다. 양방향 문맥이 패딩 길이에 영향을 받을 수 있어 입력 mask가 있다는 사실만으로 패딩 처리가 완성되었다고 설명하면 안 된다. 문자 특징은 접두·접미·철자 패턴을 학습할 수 있지만 규칙을 자동으로 정확히 인식하거나 모든 희귀 개체를 해결하지는 않는다.
+BiLSTMCharNER는 attention_mask를 인수로 받지만 실제 단어 LSTM의 packing·피처·로스 마스크에 사용하지 않는다. 단어 embedding에도 padding_idx가 없다. 양방향 문맥이 패딩 길이에 영향을 받을 수 있어 입력 mask가 있다는 사실만으로 패딩 처리가 완성되었다고 설명하면 안 된다. 문자 피처는 접두·접미·철자 패턴을 학습할 수 있지만 규칙을 자동으로 정확히 인식하거나 모든 희귀 개체를 해결하지는 않는다.
 
 ## 4. BiLSTMCRF의 학습·디코딩 구분
 
 ```python
 class BiLSTMCRF(nn.Module):
-    """이름 알아보기를 위해 CRF 층을 얹은 두 방향 LSTM."""
+    """이름 알아보기를 위해 CRF 레이어를 얹은 두 방향 LSTM."""
     
     def __init__(
         self,
@@ -261,7 +261,7 @@ class BiLSTMCRF(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.hidden2tag = nn.Linear(hidden_dim, num_tags)
         
-        # CRF 층(넘어가기를 배운다)
+        # CRF 레이어(넘어가기를 배운다)
         self.transitions = nn.Parameter(torch.randn(num_tags, num_tags))
         self.start_transitions = nn.Parameter(torch.randn(num_tags))
         self.end_transitions = nn.Parameter(torch.randn(num_tags))
@@ -277,7 +277,7 @@ class BiLSTMCRF(nn.Module):
     def forward(self, input_ids, attention_mask, labels):
         emissions = self._get_emissions(input_ids, attention_mask)
         
-        # CRF 앞먹임: 로그 나눔 함수와 참값 점수 셈하기
+        # CRF 피드포워드: 로그 나눔 함수와 참값 점수 셈하기
         gold_score = self._score_sentence(emissions, labels, attention_mask)
         partition = self._forward_algorithm(emissions, attention_mask)
         
@@ -376,7 +376,7 @@ decode는 eval·no_grad를 자체 적용하지 않으며 BIO 강제 제약도 �
 
 BiLSTM과 트랜스포머의 데이터 요구·속도·정확도를 하나의 고정 순위로 정할 수 없다. 사전 학습 규모·모델 크기·시퀀스 길이·장치·배치·토큰화·도메인이 영향을 준다. 무작위 BiLSTM과 대규모 사전 학습 인코더를 비교하면 구조뿐 아니라 사전 학습의 효과도 섞인다.
 
-문자 특징·dropout·경사 clipping·CRF·임베딩 초기화는 선택 가능한 설계다. 검증 자료에서 목적에 맞게 선택하고 최고 checkpoint와 독립 평가를 사용한다. 이 페이지는 구조 조각을 제공할 뿐 여러 모델을 학습한 통제 실험 결과를 제공하지 않는다.
+문자 피처·dropout·경사 clipping·CRF·임베딩 초기화는 선택 가능한 설계다. 검증 자료에서 목적에 맞게 선택하고 최고 checkpoint와 독립 평가를 사용한다. 이 페이지는 구조 조각을 제공할 뿐 여러 모델을 학습한 통제 실험 결과를 제공하지 않는다.
 
 ## 연습문제
 
@@ -404,7 +404,7 @@ hidden_dim=255와 char_hidden_dim=51을 그대로 넣을 때 생길 수 있는 �
 
 ??? success "연습문제 2 풀이"
 
-    pad_packed_sequence가 배치의 최대 유효 길이로 반환하지만 labels는 원래 패딩 길이를 유지할 수 있다. CE는 펼친 원소 수가 같아야 하므로 total_length 또는 목표 정렬이 필요하다. −100 손실 마스크와 입력 packing도 서로 다른 기능이다.
+    pad_packed_sequence가 배치의 최대 유효 길이로 반환하지만 labels는 원래 패딩 길이를 유지할 수 있다. CE는 펼친 원소 수가 같아야 하므로 total_length 또는 목표 정렬이 필요하다. −100 로스 마스크와 입력 packing도 서로 다른 기능이다.
 
 
 
@@ -440,4 +440,4 @@ hidden_dim=255와 char_hidden_dim=51을 그대로 넣을 때 생길 수 있는 �
 
 ## 정리하며
 
-BiLSTM은 양방향 문맥을 만들고 문자 특징·CRF와 결합할 수 있다. 그러나 차원·packing·목표 마스크·모드와 전이 방향이 맞아야 의미 있는 모델이 된다. 현재 코드의 패딩·디코딩 한계와 실제 학습·평가 범위를 구분한다.
+BiLSTM은 양방향 문맥을 만들고 문자 피처·CRF와 결합할 수 있다. 그러나 차원·packing·목표 마스크·모드와 전이 방향이 맞아야 의미 있는 모델이 된다. 현재 코드의 패딩·디코딩 한계와 실제 학습·평가 범위를 구분한다.

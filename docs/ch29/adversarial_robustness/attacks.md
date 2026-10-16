@@ -10,7 +10,7 @@
 - L2 제약은 전체 유클리드 크기를 제한한다.
 - 이른바 L0 값은 바뀐 성분 수를 센다. 엄밀한 노름은 아니며 RGB 성분 수와 픽셀 위치 수도 다르다.
 
-화이트박스 공격은 모델과 기울기에 접근한다. 블랙박스 공격은 출력 질의나 대리 모델에서의 전이를 사용할 수 있다. 질의 예산, 반환 정보, 접근 가능한 모델과 전처리를 명시한다. 데이터 오염은 학습 단계의 개입이고 여기의 입력 공격은 추론 단계의 개입이므로 구분한다.
+화이트박스 공격은 모델과 그래디언트에 접근한다. 블랙박스 공격은 출력 질의나 대리 모델에서의 전이를 사용할 수 있다. 질의 예산, 반환 정보, 접근 가능한 모델과 전처리를 명시한다. 데이터 오염은 학습 단계의 개입이고 여기의 입력 공격은 추론 단계의 개입이므로 구분한다.
 
 ## 2. 섭동을 출력하는 생성기
 
@@ -57,7 +57,7 @@ class AdversarialGenerator(nn.Module):
 
 이 네트워크는 입력 이미지를 받아 tanh로 제한한 섭동에 ε를 곱한다. 입력이 0~1이고 ε≥0이면 최종 clipping 후의 실제 섭동도 L∞≤ε를 만족한다. 반환하는 perturbation은 clipping **전** 값이므로 실제 x_adv−x와 다를 수 있다. 두 번의 stride 2 축소와 확대는 높이·너비가 4의 배수일 때 원래 크기를 복원한다.
 
-코드에는 공격 목적함수나 생성기 학습, GAN 판별기 학습이 없다. 구조만으로 공격이 성공하거나 자연스러운 이미지를 만든다고 할 수 없다. 일반 GAN의 생성기 갱신과 입력 공격은 미분 가능한 모델을 통해 기울기를 얻는다는 공통점이 있지만, 최적화 변수와 목표 분포는 다르다.
+코드에는 공격 목적함수나 생성기 학습, GAN 판별기 학습이 없다. 구조만으로 공격이 성공하거나 자연스러운 이미지를 만든다고 할 수 없다. 일반 GAN의 생성기 갱신과 입력 공격은 미분 가능한 모델을 통해 그래디언트를 얻는다는 공통점이 있지만, 최적화 변수와 목표 분포는 다르다.
 
 ## 3. 공격 평가의 분모
 
@@ -71,7 +71,7 @@ def evaluate_attack(model, x_clean, x_adv, y_true, y_target=None):
         x_clean: 깨끗한 그림
         x_adv: 맞겨루기 그림
         y_true: 참 레이블
-        y_target: 과녁 이름표(과녁 공격에 쓴다)
+        y_target: 타깃 이름표(타깃 공격에 쓴다)
     
     반환값:
         공격 잣대 사전
@@ -160,7 +160,7 @@ def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_a
         y_true: 참 이름표
         y_pred_clean: 깨끗한 그림의 헤아림
         y_pred_adv: 맞겨루기 그림의 헤아림
-        class_names: 갈래 이름 목록(있으면)
+        class_names: 클래스 이름 목록(있으면)
         amplify: 눈에 띄게 흔들림을 키우는 갑절
     """
     # 흔들림을 셈한다
@@ -181,7 +181,7 @@ def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_a
         adv_img = adv_img.squeeze(-1)
         pert_display = pert_display.squeeze(-1)
     
-    # 갈래 이름 얻기
+    # 클래스 이름 얻기
     if class_names is None:
         true_name = str(y_true)
         clean_name = str(y_pred_clean)
@@ -214,11 +214,11 @@ def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_a
     plt.show()
 ```
 
-시각화는 한 이미지 C×H×W를 가정하며 CPU NumPy 변환 전에 기울기 추적에서 분리되어 있어야 한다. 섭동은 0.5 중심으로 확대하고 잘라 표시하므로 원래 크기의 입력 변화와 구분한다. 흑백 표시 눈금을 지정하지 않은 점도 비교 시 고려한다.
+시각화는 한 이미지 C×H×W를 가정하며 CPU NumPy 변환 전에 그래디언트 추적에서 분리되어 있어야 한다. 섭동은 0.5 중심으로 확대하고 잘라 표시하므로 원래 크기의 입력 변화와 구분한다. 흑백 표시 눈금을 지정하지 않은 점도 비교 시 고려한다.
 
 ```python
 class SimpleCNN(nn.Module):
-    """공격 표적으로 쓰는 MNIST 가르기용 단순한 겹말기 신경망."""
+    """공격 표적으로 쓰는 MNIST 가르기용 단순한 겹말기 뉴럴 넷트웍."""
     
     def __init__(self):
         super().__init__()
@@ -277,15 +277,15 @@ def train_target_model(model, train_loader, epochs=5, lr=0.001, device='cpu'):
     return model
 ```
 
-대상 CNN은 1×28×28→32×28×28→32×14×14→64×14×14→64×7×7→3136→128→10 로짓 순서다. 교차 엔트로피 손실에 로짓을 직접 전달한다. 이 보조 학습 함수는 일반 분류 학습이며 적대적 학습은 수행하지 않는다.
+대상 CNN은 1×28×28→32×28×28→32×14×14→64×14×14→64×7×7→3136→128→10 로짓 순서다. 교차 엔트로피 로스에 로짓을 직접 전달한다. 이 보조 학습 함수는 일반 분류 학습이며 적대적 학습은 수행하지 않는다.
 
 ## 5. FGSM의 일차 근사
 
-입력 손실의 기울기를 $g=\nabla_x\ell(f(x),y)$라 하자. 일차 근사 손실 증가 $g^T\delta$를 L∞≤ε에서 최대화하는 해는 $\delta=\epsilon\operatorname{sign}(g)$다. 따라서 비표적 FGSM은 다음과 같다.
+입력 로스의 그래디언트를 $g=\nabla_x\ell(f(x),y)$라 하자. 일차 근사 로스 증가 $g^T\delta$를 L∞≤ε에서 최대화하는 해는 $\delta=\epsilon\operatorname{sign}(g)$다. 따라서 비표적 FGSM은 다음과 같다.
 
 $$x^{adv}=\operatorname{clip}_{[0,1]}\big(x+\epsilon\operatorname{sign}(g)\big)$$
 
-이는 원래 비선형 손실의 전역 최적 공격이 아니라 **일차 근사 문제**의 해다. 0인 기울기 성분이나 clipping이 있으면 모든 좌표가 꼭 ±ε만큼 바뀌는 것도 아니다. [FGSM 논문](https://arxiv.org/abs/1412.6572)의 선형성 설명과 실제 네트워크의 비선형 동작을 구분한다.
+이는 원래 비선형 로스의 전역 최적 공격이 아니라 **일차 근사 문제**의 해다. 0인 그래디언트 성분이나 clipping이 있으면 모든 좌표가 꼭 ±ε만큼 바뀌는 것도 아니다. [FGSM 논문](https://arxiv.org/abs/1412.6572)의 선형성 설명과 실제 네트워크의 비선형 동작을 구분한다.
 
 ```python
 import torch
@@ -309,18 +309,18 @@ def fgsm_attack(model, images, labels, epsilon, criterion=None):
     if criterion is None:
         criterion = nn.CrossEntropyLoss()
     
-    # 그림이 기울기를 요구하게 한다
+    # 그림이 그래디언트를 요구하게 한다
     images = images.clone().detach().requires_grad_(True)
     
     # 순전파
     outputs = model(images)
     loss = criterion(outputs, labels)
     
-    # 기울기를 얻으려 뒤먹임한다
+    # 그래디언트를 얻으려 뒤먹임한다
     model.zero_grad()
     loss.backward()
     
-    # 기울기 부호를 얻는다
+    # 그래디언트 부호를 얻는다
     grad_sign = images.grad.data.sign()
     
     # 흔들림을 만든다
@@ -335,14 +335,14 @@ def fgsm_attack(model, images, labels, epsilon, criterion=None):
     return adversarial_images.detach(), perturbation.detach()
 
 class FGSMAttack:
-    """기능을 더한 FGSM 공격 감싸개 갈래."""
+    """기능을 더한 FGSM 공격 감싸개 클래스."""
     
     def __init__(self, model, epsilon=0.1, criterion=None, device='cpu'):
         """
         인수:
             model: 공격할 표적 모델
             epsilon: 흔들림의 한계
-            criterion: 손실 함수
+            criterion: 로스 함수
             device: 공격을 돌릴 기기
         """
         self.model = model
@@ -366,7 +366,7 @@ class FGSMAttack:
         
         self.model.eval()
         
-        # 그림에 기울기 셈하기를 켠다
+        # 그림에 그래디언트 셈하기를 켠다
         images.requires_grad = True
         
         # 순전파
@@ -432,17 +432,17 @@ class FGSMAttack:
         }
 ```
 
-함수형 `fgsm_attack`은 입력 복사본에서 기울기를 구하지만 모델 모드는 바꾸지 않는다. 반환 perturbation은 clipping 전 값이다. 클래스형 공격은 eval을 사용하되 이전 모드를 복원하지 않고, 입력을 복제·분리하지도 않아 입력이 leaf 텐서인지와 기존 .grad 상태에 주의해야 한다. 두 방식 모두 backward로 모델 파라미터의 기울기도 계산하지만 optimizer.step을 호출하지 않아 파라미터를 업데이트하지는 않는다. 공격을 생성하는 구간 전체를 no_grad로 감싸면 필요한 입력 기울기를 구할 수 없다.
+함수형 `fgsm_attack`은 입력 복사본에서 그래디언트를 구하지만 모델 모드는 바꾸지 않는다. 반환 perturbation은 clipping 전 값이다. 클래스형 공격은 eval을 사용하되 이전 모드를 복원하지 않고, 입력을 복제·분리하지도 않아 입력이 leaf 텐서인지와 기존 .grad 상태에 주의해야 한다. 두 방식 모두 backward로 모델 파라미터의 그래디언트도 계산하지만 optimizer.step을 호출하지 않아 파라미터를 업데이트하지는 않는다. 공격을 생성하는 구간 전체를 no_grad로 감싸면 필요한 입력 그래디언트를 구할 수 없다.
 
 `FGSMAttack.evaluate`의 `(clean_correct-adv_correct)/clean_correct`는 정확도 감소를 나눈 값이다. 원래 오분류를 공격 후 맞힌 표본이 있으면 위에서 정의한 조건부 성공률과 달라진다. 빈 평가나 clean_correct=0도 처리하지 않는다.
 
 ```python
 def untargeted_fgsm(model, images, labels, epsilon):
     """
-    목표 없는 FGSM: 아무 잘못 가르기나 일으키려 손실을 가장 크게 한다.
+    목표 없는 FGSM: 아무 잘못 가르기나 일으키려 로스를 가장 크게 한다.
     
-    흔들림은 손실이 늘어나는 방향으로 움직여
-    헤아림을 참 갈래에서 밀어낸다.
+    흔들림은 로스가 늘어나는 방향으로 움직여
+    헤아림을 참 클래스에서 밀어낸다.
     """
     criterion = nn.CrossEntropyLoss()
     
@@ -454,7 +454,7 @@ def untargeted_fgsm(model, images, labels, epsilon):
     model.zero_grad()
     loss.backward()
     
-    # 손실이 늘어나는 방향으로 간다(양의 기울기 방향)
+    # 로스가 늘어나는 방향으로 간다(양의 그래디언트 방향)
     perturbation = epsilon * images.grad.data.sign()
     
     adv_images = torch.clamp(images + perturbation, 0, 1)
@@ -465,10 +465,10 @@ def untargeted_fgsm(model, images, labels, epsilon):
 ```python
 def targeted_fgsm(model, images, target_labels, epsilon):
     """
-    목표 있는 FGSM: 목표 갈래의 손실을 가장 작게 한다.
+    목표 있는 FGSM: 목표 클래스의 로스를 가장 작게 한다.
     
-    흔들림은 손실이 줄어드는 방향으로 움직인다
-    과녁 갈래에 대해 기울기를 구해 헤아림을 그쪽으로 끌어당긴다.
+    흔들림은 로스가 줄어드는 방향으로 움직인다
+    타깃 클래스에 대해 그래디언트를 구해 헤아림을 그쪽으로 끌어당긴다.
     """
     criterion = nn.CrossEntropyLoss()
     
@@ -480,8 +480,8 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     model.zero_grad()
     loss.backward()
     
-    # 손실이 줄어드는 방향으로 간다(음의 기울기 방향)
-    # 이는 헤아림을 목표 갈래 쪽으로 민다
+    # 로스가 줄어드는 방향으로 간다(음의 그래디언트 방향)
+    # 이는 헤아림을 목표 클래스 쪽으로 민다
     perturbation = -epsilon * images.grad.data.sign()
     
     adv_images = torch.clamp(images + perturbation, 0, 1)
@@ -495,7 +495,7 @@ def run_targeted_attack(model, dataloader, target_class, epsilon, device='cpu'):
     인수:
         model: 겨눌 분류기
         dataloader: 시험 자료
-        target_class: 그림을 잘못 가를 갈래
+        target_class: 그림을 잘못 가를 클래스
         epsilon: 흔들림의 크기
         device: 돌릴 장치
     
@@ -548,7 +548,7 @@ import torchvision
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
-# 단순한 겹말기 신경망을 뜻매김한다
+# 단순한 겹말기 뉴럴 넷트웍을 뜻매김한다
 class SimpleCNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -715,13 +715,13 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     """
     목표 있는 FGSM 공격.
     
-    잃음을 가장 크게 하는 대신(참 갈래에서 밀어내는 대신)
-    잃음을 가장 작게 한다(과녁 갈래로 끌어당긴다).
+    잃음을 가장 크게 하는 대신(참 클래스에서 밀어내는 대신)
+    잃음을 가장 작게 한다(타깃 클래스로 끌어당긴다).
     
     인수:
         model: 겨눌 분류기
         images: 들임 그림
-        target_labels: 바라는 목표 갈래
+        target_labels: 바라는 목표 클래스
         epsilon: 흔들림의 크기
     
     반환값:
@@ -729,7 +729,7 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     """
     criterion = nn.CrossEntropyLoss()
     
-    # 베끼고 기울기를 켠다
+    # 베끼고 그래디언트를 켠다
     images = images.clone().detach().requires_grad_(True)
     
     # 순전파
@@ -740,7 +740,7 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     model.zero_grad()
     loss.backward()
     
-    # 음의 기울기 방향으로 간다(목표 쪽으로 손실을 가장 작게 한다)
+    # 음의 그래디언트 방향으로 간다(목표 쪽으로 로스를 가장 작게 한다)
     perturbation = -epsilon * images.grad.data.sign()
     
     # 맞겨루기 보기를 만든다
@@ -754,14 +754,14 @@ def targeted_fgsm(model, images, target_labels, epsilon):
 ```python
 def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
     """
-    과녁을 둔 기본 되풀이 방법(되풀이 FGSM).
+    타깃을 둔 기본 되풀이 방법(되풀이 FGSM).
     
-    목표 갈래 쪽으로 작은 걸음을 여러 번 내딛는다.
+    목표 클래스 쪽으로 작은 걸음을 여러 번 내딛는다.
     
     인수:
         model: 겨눌 분류기
         images: 들임 그림
-        target_labels: 바라는 목표 갈래
+        target_labels: 바라는 목표 클래스
         epsilon: 가장 큰 온 흔들림(L_inf 한계)
         alpha: 되풀이마다 걸음 크기
         num_iter: 되풀이 횟수
@@ -793,7 +793,7 @@ def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
     return adv_images
 ```
 
-표적 BIM은 목표 손실을 줄이는 부호 방향으로 α만큼 이동한 뒤 원본의 ε 상자와 유효 입력 범위로 되돌린다. 반복 중 원본을 고정하며 입력이 유효 범위 안에 있어야 두 clipping이 의도한 제약을 준다.
+표적 BIM은 목표 로스를 줄이는 부호 방향으로 α만큼 이동한 뒤 원본의 ε 상자와 유효 입력 범위로 되돌린다. 반복 중 원본을 고정하며 입력이 유효 범위 안에 있어야 두 clipping이 의도한 제약을 준다.
 
 ```python
 def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter, 
@@ -804,7 +804,7 @@ def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter,
     인수:
         model: 겨눌 분류기
         images: 들임 그림
-        target_labels: 바라는 목표 갈래
+        target_labels: 바라는 목표 클래스
         epsilon: 가장 큰 흔들림(L_inf)
         alpha: 걸음 크기
         num_iter: 되풀이 횟수
@@ -831,7 +831,7 @@ def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter,
         model.zero_grad()
         loss.backward()
         
-        # 기울기 내려가기(목표 쪽으로 손실을 가장 작게 한다)
+        # 그래디언트 내려가기(목표 쪽으로 로스를 가장 작게 한다)
         adv_images = adv_images - alpha * adv_images.grad.sign()
         
         # 엡실론 공으로 쏜다
@@ -853,7 +853,7 @@ class TargetedPGDAttack:
         self.device = device
     
     def attack(self, images, target_labels):
-        """특정 갈래를 겨눈 맞겨루기 보기를 만든다."""
+        """특정 클래스를 겨눈 맞겨루기 보기를 만든다."""
         images = images.to(self.device)
         target_labels = target_labels.to(self.device)
         
@@ -870,7 +870,7 @@ class TargetedPGDAttack:
         
         인수:
             dataloader: 시험 자료
-            target_class: 겨눌 갈래
+            target_class: 겨눌 클래스
             max_samples: 따질 최대 표본 수
         
         반환값:
@@ -933,16 +933,16 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
     
     Minimizes: ||δ||_2 + c * max(Z(x+δ)_t - max_{j≠t} Z(x+δ)_j, -κ)
     
-    여기서 Z은 로짓, t은 목표 갈래, κ은 자신도 여유이다.
+    여기서 Z은 로짓, t은 목표 클래스, κ은 자신도 여유이다.
     
     인수:
         model: 겨눌 분류기
         images: 들임 그림
-        target_labels: 목표 갈래
-        c: 자신도 매개변수
+        target_labels: 목표 클래스
+        c: 자신도 파라메터
         kappa: 자신도 여유
         num_iter: 가장 좋게 하기 되풀이 횟수
-        lr: 학습률
+        lr: 러닝레이트
         device: 기기
     
     반환값:
@@ -970,7 +970,7 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
         # 로짓을 얻는다
         logits = model(adv_images)
         
-        # C&W 손실: 목표 갈래의 로짓을 가장 크게 한다
+        # C&W 로스: 목표 클래스의 로짓을 가장 크게 한다
         # f(x') = max(max{Z(x')_j : j ≠ t} - Z(x')_t, -κ)
         target_logits = logits.gather(1, target_labels.view(-1, 1)).squeeze()
         
@@ -982,7 +982,7 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
         # f 함수
         f_loss = torch.clamp(max_other_logits - target_logits + kappa, min=0)
         
-        # 전체 손실
+        # 전체 로스
         loss = l2_dist.sum() + c * f_loss.sum()
         
         optimizer.zero_grad()
@@ -1006,13 +1006,13 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
 
 코드는 $x^{adv}=(\tanh w+1)/2$로 범위를 제한하고 제곱 L2 거리와 목표 로짓 마진 벌점의 합을 최소화한다. [C&W 논문](https://arxiv.org/abs/1608.04644)의 아이디어를 단순화한 구현이며 전역 최소 섭동을 보장하지 않는다. c에 대한 탐색이 없고 w=0, 즉 회색 이미지에서 시작한다. 명시적인 L∞≤ε 제약도 없다.
 
-κ는 마진 목표에 영향을 주지만 저장 시에는 argmax가 목표인지 여부만 확인한다. 따라서 저장된 성공 샘플이 κ 마진까지 만족한다고 보장할 수 없다. 성공하지 못한 표본은 원본으로 남으며 성공 마스크는 따로 반환하지 않는다. 모델을 eval로 전환하거나 모델 파라미터의 누적 기울기를 초기화하는 기능도 이 함수에는 없다.
+κ는 마진 목표에 영향을 주지만 저장 시에는 argmax가 목표인지 여부만 확인한다. 따라서 저장된 성공 샘플이 κ 마진까지 만족한다고 보장할 수 없다. 성공하지 못한 표본은 원본으로 남으며 성공 마스크는 따로 반환하지 않는다. 모델을 eval로 전환하거나 모델 파라미터의 누적 그래디언트를 초기화하는 기능도 이 함수에는 없다.
 
 ## 9. 목표 클래스 선택
 
 ```python
 def random_target(true_labels, num_classes):
-    """참 갈래와 다른 아무 목표를 고른다."""
+    """참 클래스와 다른 아무 목표를 고른다."""
     targets = torch.randint(0, num_classes, true_labels.shape)
     # 목표가 참 이름표와 다르게 한다
     same_mask = targets == true_labels
@@ -1024,7 +1024,7 @@ def random_target(true_labels, num_classes):
 
 ```python
 def least_likely_target(model, images):
-    """모델이 가장 자신 없어 하는 갈래를 고른다."""
+    """모델이 가장 자신 없어 하는 클래스를 고른다."""
     with torch.no_grad():
         logits = model(images)
         return logits.argmin(dim=1)
@@ -1034,10 +1034,10 @@ def least_likely_target(model, images):
 
 ```python
 def most_confusing_target(model, images, true_labels):
-    """모델이 둘째로 자신 있어 하는 갈래를 고른다."""
+    """모델이 둘째로 자신 있어 하는 클래스를 고른다."""
     with torch.no_grad():
         logits = model(images)
-        # 참 갈래 로짓을 -inf로 둔다
+        # 참 클래스 로짓을 -inf로 둔다
         logits.scatter_(1, true_labels.view(-1, 1), -float('inf'))
         return logits.argmax(dim=1)
 ```
@@ -1053,7 +1053,7 @@ import torchvision
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
-# 겹말기 신경망 뜻매김(앞과 같다)
+# 겹말기 뉴럴 넷트웍 뜻매김(앞과 같다)
 class SimpleCNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -1187,20 +1187,20 @@ Testing Targeted Attacks:
 
 ε는 원래 픽셀 단위와 전처리에 맞춰 해석한다. 8/255나 0.3 같은 값도 데이터와 위협 모델에 따른 실험 조건이며, 크면 거의 100% 성공하거나 작으면 눈에 보이지 않는다는 보편적 보장은 없다. 표적 공격은 가능한 실패 중 특정 클래스 도달을 요구하지만 실제 위험의 크기는 응용과 실패 비용에 달려 있다.
 
-공격이 찾은 오분류는 취약성의 증거지만 공격 실패는 허용 집합 안에 오분류가 없다는 증명이 아니다. 기울기 가림과 최적화 실패를 검토하고 필요한 경우 재시작·다른 공격·방어를 고려한 평가를 사용한다. 적대적 학습의 계산비용과 깨끗한 데이터 정확도에 대한 영향도 구현·데이터·목적함수에 따라 평가해야 하며 일정한 배수나 필연적 성능 저하로 단정하지 않는다.
+공격이 찾은 오분류는 취약성의 증거지만 공격 실패는 허용 집합 안에 오분류가 없다는 증명이 아니다. 그래디언트 가림과 최적화 실패를 검토하고 필요한 경우 재시작·다른 공격·방어를 고려한 평가를 사용한다. 적대적 학습의 계산비용과 깨끗한 데이터 정확도에 대한 영향도 구현·데이터·목적함수에 따라 평가해야 하며 일정한 배수나 필연적 성능 저하로 단정하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-L∞ 제약에서 일차 근사 손실을 최대화하는 섭동을 유도하라.
+L∞ 제약에서 일차 근사 로스를 최대화하는 섭동을 유도하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
 
-    기울기 g를 고정하면 목적함수는 Σgᵢδᵢ다. 각 좌표에서 |δᵢ|≤ε 아래 gᵢ와 같은 부호의 끝점을 택하면 최대가 되므로 δᵢ=ε sign(gᵢ)다. gᵢ=0이면 그 좌표의 모든 허용값이 같은 목적값을 준다. 원래 비선형 손실의 전역 최대해라는 뜻은 아니다.
+    그래디언트 g를 고정하면 목적함수는 Σgᵢδᵢ다. 각 좌표에서 |δᵢ|≤ε 아래 gᵢ와 같은 부호의 끝점을 택하면 최대가 되므로 δᵢ=ε sign(gᵢ)다. gᵢ=0이면 그 좌표의 모든 허용값이 같은 목적값을 준다. 원래 비선형 로스의 전역 최대해라는 뜻은 아니다.
 
 
 
@@ -1276,7 +1276,7 @@ GAN 생성기 갱신과 입력 공격에서 최적화 변수는 각각 무엇인
 
 ??? success "연습문제 5 풀이"
 
-    입력 공격은 대상 모델을 고정하고 입력 또는 섭동을 바꾼다. GAN은 판별기를 통과한 기울기로 생성기 파라미터를 바꾸며 잠재 분포에서 나온 출력 전체를 학습한다. 미분 가능한 상대 모델을 이용한다는 공통점만으로 두 문제의 균형·수렴 성질이 같다고 할 수 없다.
+    입력 공격은 대상 모델을 고정하고 입력 또는 섭동을 바꾼다. GAN은 판별기를 통과한 그래디언트로 생성기 파라미터를 바꾸며 잠재 분포에서 나온 출력 전체를 학습한다. 미분 가능한 상대 모델을 이용한다는 공통점만으로 두 문제의 균형·수렴 성질이 같다고 할 수 없다.
 
 
 
@@ -1291,7 +1291,7 @@ GAN 생성기 갱신과 입력 공격에서 최적화 변수는 각각 무엇인
 
 ??? success "연습문제 6 풀이"
 
-    x.grad가 올바른 레이블 손실에 대해 계산되어 있고 x가 0~1 범위이며 ε≥0이어야 한다. clipping 후의 실제 섭동은 x_adv−x로 확인한다. 노름 제약이 작아도 사람이 변화를 못 느낀다는 보장은 없으며 공격 한 번의 실패가 강건성 인증은 아니다.
+    x.grad가 올바른 레이블 로스에 대해 계산되어 있고 x가 0~1 범위이며 ε≥0이어야 한다. clipping 후의 실제 섭동은 x_adv−x로 확인한다. 노름 제약이 작아도 사람이 변화를 못 느낀다는 보장은 없으며 공격 한 번의 실패가 강건성 인증은 아니다.
 
     ```python
     x_adv = (x + eps * x.grad.sign()).clamp(0, 1)
@@ -1318,13 +1318,13 @@ GAN 생성기 갱신과 입력 공격에서 최적화 변수는 각각 무엇인
 <div class="drillbox" markdown>
 
 **연습문제 8.** <span class="diff med" title="중간"></span>
-고차원에서 작은 좌표별 변화가 큰 손실 변화를 줄 수 있는 이유를 설명하라.
+고차원에서 작은 좌표별 변화가 큰 로스 변화를 줄 수 있는 이유를 설명하라.
 
 </div>
 
 ??? success "연습문제 8 풀이"
 
-    선형화한 손실에서 FGSM의 증가량은 εΣ|gᵢ|=ε‖g‖₁이다. 여러 좌표의 영향이 같은 방향으로 합쳐질 수 있다. 이는 유용한 설명이지만 모든 적대적 예제의 유일한 원인이라는 정리는 아니다. 데이터 특징, 결정 경계와 전처리도 영향을 주며 강건성과 깨끗한 정확도의 관계도 조건에 따라 다르다.
+    선형화한 로스에서 FGSM의 증가량은 εΣ|gᵢ|=ε‖g‖₁이다. 여러 좌표의 영향이 같은 방향으로 합쳐질 수 있다. 이는 유용한 설명이지만 모든 적대적 예제의 유일한 원인이라는 정리는 아니다. 데이터 피처, 결정 경계와 전처리도 영향을 주며 강건성과 깨끗한 정확도의 관계도 조건에 따라 다르다.
 
 
 
@@ -1354,7 +1354,7 @@ PGD 적대적 학습의 계산비용과 강건성을 고정된 배수·순위로
 
 ??? success "연습문제 10 풀이"
 
-    내부 공격의 여러 입력 기울기 계산과 외부 파라미터 갱신이 필요해 일반 학습보다 비용이 커질 수 있다. 실제 시간은 네트워크, 배치, 기울기 계산·재사용과 공격 설정에 달려 있다. 공격 횟수 증가가 곧 같은 비율의 실행시간이나 모든 위협에 대한 방어를 보장하지 않는다. 학습에 사용한 공격과 별도의 평가 조건에서 확인해야 한다.
+    내부 공격의 여러 입력 그래디언트 계산과 외부 파라미터 갱신이 필요해 일반 학습보다 비용이 커질 수 있다. 실제 시간은 네트워크, 배치, 그래디언트 계산·재사용과 공격 설정에 달려 있다. 공격 횟수 증가가 곧 같은 비율의 실행시간이나 모든 위협에 대한 방어를 보장하지 않는다. 학습에 사용한 공격과 별도의 평가 조건에서 확인해야 한다.
 
 
 

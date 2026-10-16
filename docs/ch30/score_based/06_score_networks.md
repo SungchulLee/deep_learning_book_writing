@@ -12,13 +12,13 @@ FILE: 06_score_networks.py
 미리 알 것: 04_denoising_score_matching.py
 
 학습 목표:
-    1. 잘 듣는 점수 신경망 구조를 짠다
-    2. 잡음 조건 점수 신경망을 짠다
+    1. 잘 듣는 점수 뉴럴 넷트웍 구조를 짠다
+    2. 잡음 조건 점수 뉴럴 넷트웍을 짠다
     3. 고르게 맞추기와 깨움 고르기를 이해한다
     4. 점수 나타내기의 가장 좋은 방식을 배운다
 
 수학 바탕:
-    점수 신경망은 ∇log p(x)을 나타내는 벡터 마당을 내놓아야 한다.
+    점수 뉴럴 넷트웍은 ∇log p(x)을 나타내는 벡터 마당을 내놓아야 한다.
     
     설계에서 살필 핵심:
     1. 마지막 활성화가 없다(내놓음이 어떤 실수든 될 수 있다)
@@ -37,7 +37,7 @@ import torch.nn as nn
 
 class NoiseConditionalScoreNetwork(nn.Module):
     """
-    잡음 수준을 조건으로 삼는 점수 신경망.
+    잡음 수준을 조건으로 삼는 점수 뉴럴 넷트웍.
     
     구조: s_θ(x, σ)이 분포 p_σ(x)의 점수를 내놓는다.
     이는 여러 잣수의 점수 나타내기에 결정적이다.
@@ -50,7 +50,7 @@ class NoiseConditionalScoreNetwork(nn.Module):
         # 잡음 수준 부호화(사인 꼴 자리 부호화)
         self.sigma_encoding_dim = sigma_encoding_dim
         
-        # 으뜸 신경망
+        # 으뜸 뉴럴 넷트웍
         layers = []
         input_dim = data_dim + sigma_encoding_dim
         
@@ -80,7 +80,7 @@ class NoiseConditionalScoreNetwork(nn.Module):
     
     def forward(self, x, sigma):
         """
-        잡음 수준을 조건으로 삼은 앞먹임.
+        잡음 수준을 조건으로 삼은 피드포워드.
         
         인수:
             x: 자료 점, 꼴 (N, D)
@@ -100,12 +100,12 @@ class NoiseConditionalScoreNetwork(nn.Module):
         # 자료와 이어 붙인다
         x_cond = torch.cat([x, sigma_emb], dim=-1)
         
-        # 그물에 통과시키기
+        # 넷트웍에 통과시키기
         return self.network(x_cond)
 
 
 class ResidualBlock(nn.Module):
-    """더 깊은 점수 신경망을 위한 남은 덩이."""
+    """더 깊은 점수 뉴럴 넷트웍을 위한 남은 덩이."""
     
     def __init__(self, dim, dropout=0.1):
         super().__init__()
@@ -124,7 +124,7 @@ class ResidualBlock(nn.Module):
 
 
 class DeepScoreNetwork(nn.Module):
-    """남은 이음을 갖춘 깊은 점수 신경망."""
+    """남은 이음을 갖춘 깊은 점수 뉴럴 넷트웍."""
     
     def __init__(self, data_dim=2, hidden_dim=128, n_blocks=4):
         super().__init__()
@@ -143,23 +143,23 @@ class DeepScoreNetwork(nn.Module):
 
 
 def demo_architectures():
-    """여러 점수 신경망 구조를 견준다."""
+    """여러 점수 뉴럴 넷트웍 구조를 견준다."""
     print("Score Network Architectures Demo")
     print("=" * 80)
     
     x = torch.randn(32, 2)
     
-    # 기본 신경망을 시험한다
+    # 기본 뉴럴 넷트웍을 시험한다
     basic_net = nn.Sequential(
         nn.Linear(2, 64), nn.ReLU(),
         nn.Linear(64, 64), nn.ReLU(),
         nn.Linear(64, 2)
     )
     
-    # 잡음 조건 신경망을 시험한다
+    # 잡음 조건 뉴럴 넷트웍을 시험한다
     cond_net = NoiseConditionalScoreNetwork(data_dim=2)
     
-    # 깊은 신경망을 시험한다
+    # 깊은 뉴럴 넷트웍을 시험한다
     deep_net = DeepScoreNetwork(data_dim=2, hidden_dim=64, n_blocks=3)
     
     print("\nArchitecture comparison:")
@@ -211,13 +211,13 @@ Deep: torch.Size([32, 2])
 
 ## 3. GroupNorm과 폭의 조건
 
-조건 MLP는 각 선형층 뒤에 GroupNorm과 SiLU를 적용한다. B×H 입력에서는 각 표본의 H개 특징을 그룹으로 나누어 정규화하며, 배치 통계를 누적하는 BatchNorm과 다르다. 그렇다고 정규화가 목표 스코어를 자동으로 만들어 주는 것은 아니다.
+조건 MLP는 각 선형 레이어 뒤에 GroupNorm과 SiLU를 적용한다. B×H 입력에서는 각 표본의 H개 피처를 그룹으로 나누어 정규화하며, 배치 통계를 누적하는 BatchNorm과 다르다. 그렇다고 정규화가 목표 스코어를 자동으로 만들어 주는 것은 아니다.
 
 그룹 수를 min(8,H//8)로 정하므로 H<8이면 그룹 수가 0이 되고, 더 큰 H에서도 그룹 수가 H의 약수여야 한다. 예를 들어 H=70에서는 8개 그룹으로 나눌 수 없다. 기본 폭 128은 이 조건을 만족한다. 폭을 바꿀 때는 Linear 차원뿐 아니라 정규화의 나눗셈 조건도 확인한다.
 
 ## 4. 잔차 네트워크
 
-`ResidualBlock`은 Linear→GroupNorm→SiLU→Dropout→Linear→GroupNorm 뒤에 입력을 더하고 SiLU를 적용한다. 입력과 출력 폭이 같아야 하며 GroupNorm(8,dim)은 폭이 8의 배수여야 한다. 잔차 연결을 둔다고 기울기 문제나 학습 실패가 모두 사라지는 것은 아니다.
+`ResidualBlock`은 Linear→GroupNorm→SiLU→Dropout→Linear→GroupNorm 뒤에 입력을 더하고 SiLU를 적용한다. 입력과 출력 폭이 같아야 하며 GroupNorm(8,dim)은 폭이 8의 배수여야 한다. 잔차 연결을 둔다고 그래디언트 문제나 학습 실패가 모두 사라지는 것은 아니다.
 
 `DeepScoreNetwork`는 데이터 투영, 잔차 블록들, 출력 투영으로 구성된다. **σ나 시간 조건은 받지 않는다**. 따라서 기본 형태는 하나의 목표 스코어를 나타내며 조건 MLP를 단순히 깊게 만든 완전한 대체물은 아니다.
 
@@ -225,9 +225,9 @@ Deep: torch.Size([32, 2])
 
 ## 5. 출력 모양과 검증의 범위
 
-데모의 입력은 32×2이고 세 출력도 모두 32×2다. 이는 코드가 해당 모양의 입력을 처리한다는 검사일 뿐 올바른 스코어를 학습했음을 보여 주지 않는다. 학습 데이터, DSM·SSM 손실, 최적화 루프와 노이즈 스케줄은 없다.
+데모의 입력은 32×2이고 세 출력도 모두 32×2다. 이는 코드가 해당 모양의 입력을 처리한다는 검사일 뿐 올바른 스코어를 학습했음을 보여 주지 않는다. 학습 데이터, DSM·SSM 로스, 최적화 루프와 노이즈 스케줄은 없다.
 
-스코어 추정에서는 출력 차원 외에도 대상 분포·노이즈 조건, 입력 미분의 존재와 계산비용, 모델 모드와 장치를 확인한다. 임의의 벡터장이 항상 어떤 정규화 가능한 밀도의 기울기인 것도 아니다. 구조 선택의 효과는 같은 학습·평가 조건에서 별도로 확인해야 한다.
+스코어 추정에서는 출력 차원 외에도 대상 분포·노이즈 조건, 입력 미분의 존재와 계산비용, 모델 모드와 장치를 확인한다. 임의의 벡터장이 항상 어떤 정규화 가능한 밀도의 그래디언트인 것도 아니다. 구조 선택의 효과는 같은 학습·평가 조건에서 별도로 확인해야 한다.
 
 ## 연습문제
 
@@ -240,7 +240,7 @@ Deep: torch.Size([32, 2])
 
 ??? success "연습문제 1 풀이"
 
-    σ 임베딩은 32×32이고 입력과 연결하면 32×34다. 은닉층 3개는 각각 32×128, 마지막 출력은 32×2다. 길이 32의 σ 벡터를 쓰면 입력과 같은 장치에 있어야 한다.
+    σ 임베딩은 32×32이고 입력과 연결하면 32×34다. 은닉 레이어 3개는 각각 32×128, 마지막 출력은 32×2다. 길이 32의 σ 벡터를 쓰면 입력과 같은 장치에 있어야 한다.
 
 
 

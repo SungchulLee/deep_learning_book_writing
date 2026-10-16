@@ -33,7 +33,7 @@ def main():
         print("Shape mismatch as expected:", e)
 
     # (b) 올바른 v 모양.
-    # 여기서는 출력에 균등한 가중치를 주는 v를 고른다(시연을 위해서일 뿐이다).
+    # 여기서는 출력에 균등한 웨이트를 주는 v를 고른다(시연을 위해서일 뿐이다).
     v = torch.ones_like(y) / y.numel()
     # 역전파는 벡터-야코비 곱 v^T * J를 계산한다
     y.backward(v)

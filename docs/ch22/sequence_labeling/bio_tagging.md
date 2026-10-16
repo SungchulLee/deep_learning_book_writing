@@ -51,7 +51,7 @@ class TagInfo:
     
     @classmethod
     def parse(cls, tag: str) -> 'TagInfo':
-        """이름표 글자열을 앞가지와 것 갈래로 뜯어 읽기."""
+        """이름표 글자열을 앞가지와 것 클래스로 뜯어 읽기."""
         if tag == 'O':
             return cls(prefix='O', entity_type=None)
         
@@ -75,7 +75,7 @@ class TagValidator:
         IOB2 이름표 차례 확인하기.
         
         규칙:
-        1. I-TYPE 앞에는 같은 갈래의 B-TYPE이나 I-TYPE이 와야 한다
+        1. I-TYPE 앞에는 같은 클래스의 B-TYPE이나 I-TYPE이 와야 한다
         2. B-TYPE은 아무 이름표 뒤에나 올 수 있다
         3. O는 아무 이름표 뒤에나 올 수 있다
         
@@ -97,7 +97,7 @@ class TagValidator:
             if info.prefix not in ('B', 'I'):
                 return False, f"Position {i}: Invalid prefix '{info.prefix}' for IOB2"
             
-            # I- 이름표 앞에는 같은 갈래의 B-나 I-가 와야 한다
+            # I- 이름표 앞에는 같은 클래스의 B-나 I-가 와야 한다
             if info.prefix == 'I':
                 if i == 0:
                     return False, f"Position {i}: I-{info.entity_type} cannot start sequence"
@@ -119,9 +119,9 @@ class TagValidator:
         BIOES 이름표 차례 확인하기.
         
         규칙:
-        1. B- 뒤에는 같은 갈래의 I-나 E-가 와야 한다
-        2. I- 앞에는 같은 갈래의 B-나 I-가, 뒤에는 I-나 E-가 와야 한다
-        3. E- 앞에는 같은 갈래의 B-나 I-가 와야 한다
+        1. B- 뒤에는 같은 클래스의 I-나 E-가 와야 한다
+        2. I- 앞에는 같은 클래스의 B-나 I-가, 뒤에는 I-나 E-가 와야 한다
+        3. E- 앞에는 같은 클래스의 B-나 I-가 와야 한다
         4. S-는 토막 하나로 온전한 것을 나타낸다
         
         인수:
@@ -343,7 +343,7 @@ IOB2→BIOES 변환은 다음 태그를 보고 한 토큰 개체를 S로, 마지
 
 `tags_to_entities`는 토큰·태그 길이가 같아야 하며 반환 start·end는0부터 시작하는 **토큰 단위 반열린 구간 [start,end)**다. 문자 offset은 아니다. 문자열을 공백으로 join하므로 원문의 공백·구두점 배치를 복원하지도 않는다. 한국어·서브워드에서 원문 복원이 필요하면 원문 offset을 보관한다.
 
-초기 I 태그는 열린 개체가 없어 무시되고, 열린 개체 뒤의 다른 유형 I 태그도 유형 확인 없이 같은 개체에 붙을 수 있다. scheme=IOB라고 해도 IOB1 처리를 따로 하지 않는다. 유효성 검사와 엄격 거부·오류 교정 정책을 먼저 정의해야 하며, 추출 결과가 그럴듯하다는 이유로 잘못된 태그를 정상으로 취급하면 안 된다.
+초기 I 태그는 열린 개체가 없어 무시되고, 열린 개체 뒤의 다른 유형 I 태그도 유형 확인 없이 같은 개체에 붙을 수 있다. scheme=IOB라고 해도 IOB1 처리를 따로 하지 않는다. 유효성 검사와 엄격 거부·오류 교정 폴리시를 먼저 정의해야 하며, 추출 결과가 그럴듯하다는 이유로 잘못된 태그를 정상으로 취급하면 안 된다.
 
 ## 4. CRF의 전이 마스크
 
@@ -353,7 +353,7 @@ def build_transition_mask(
     scheme: TagScheme = TagScheme.IOB2
 ) -> torch.Tensor:
     """
-    CRF 층의 넘어가기 마스크 세우기.
+    CRF 레이어의 넘어가기 마스크 세우기.
     
     마스크는 올바른 넘어가기에 0, 올바르지 않은 것에 -inf를 준다.
     
@@ -370,7 +370,7 @@ def build_transition_mask(
     # 모든 넘어가기를 올바른 것으로 두고 첫자리매김
     mask = torch.zeros(num_labels, num_labels)
     
-    # 것 갈래 뽑기
+    # 것 클래스 뽑기
     entity_types = set()
     for label in label_to_idx:
         if label != 'O':
@@ -422,7 +422,7 @@ def _is_valid_transition(
         return True
     
     else:  # BIOES
-        # I나 E 앞에는 같은 갈래의 B나 I가 와야 한다
+        # I나 E 앞에는 같은 클래스의 B나 I가 와야 한다
         if to_info.prefix in ('I', 'E'):
             return (from_info.prefix in ('B', 'I') and 
                     from_info.entity_type == to_info.entity_type)
@@ -468,7 +468,7 @@ def align_labels_to_subwords(
                 subword_labels.append(label)
             else:
                 if label_first_subword_only:
-                    # 첫째가 아닌 아래낱말은 특별 이름표를 받는다(손실에서 무시)
+                    # 첫째가 아닌 아래낱말은 특별 이름표를 받는다(로스에서 무시)
                     subword_labels.append('[IGNORE]')
                 else:
                     # 이어지는 아래낱말에 I- 이름표 퍼뜨리기
@@ -480,9 +480,9 @@ def align_labels_to_subwords(
     return subword_labels
 ```
 
-첫 서브워드만 지도하는 정책은 뒤 조각과 특수 토큰을 loss의 ignore_index로 처리한다. 모든 조각을 지도하면 IOB2의 B-X 뒤 조각은 I-X로 바꾸는 등의 규칙이 필요하다. 두 정책의 단어별 가중치도 달라질 수 있다. BIOES의 S·E를 모든 조각에 그대로 복제하면 유효한 경계 표현이 되지 않으므로 체계별 재부호화가 필요하다.
+첫 서브워드만 지도하는 폴리시는 뒤 조각과 특수 토큰을 loss의 ignore_index로 처리한다. 모든 조각을 지도하면 IOB2의 B-X 뒤 조각은 I-X로 바꾸는 등의 규칙이 필요하다. 두 폴리시의 단어별 웨이트도 달라질 수 있다. BIOES의 S·E를 모든 조각에 그대로 복제하면 유효한 경계 표현이 되지 않으므로 체계별 재부호화가 필요하다.
 
-위 함수는 `[IGNORE]`라는 문자열을 반환할 뿐 실제 손실의 정수 ignore_index로 바꾸지 않는다. 또 word_to_subword_map의 실제 인덱스를 출력 배치에 사용하지 않고 조각 수만큼 순서대로 append한다. 특수 토큰·잘린 단어·순서가 다른 매핑·빈 매핑을 포함한 전체 tokenizer 출력에 자동 정렬되는 함수가 아니다. word_ids·offset 등 실제 토큰화 결과와 함께 목표 배열을 구성해야 한다.
+위 함수는 `[IGNORE]`라는 문자열을 반환할 뿐 실제 로스의 정수 ignore_index로 바꾸지 않는다. 또 word_to_subword_map의 실제 인덱스를 출력 배치에 사용하지 않고 조각 수만큼 순서대로 append한다. 특수 토큰·잘린 단어·순서가 다른 매핑·빈 매핑을 포함한 전체 tokenizer 출력에 자동 정렬되는 함수가 아니다. word_ids·offset 등 실제 토큰화 결과와 함께 목표 배열을 구성해야 한다.
 
 ## 6. 표시·평가와 체계 선택
 
@@ -596,7 +596,7 @@ tags_to_entities의 start·end와 무효 I 태그 처리의 한계를 설명하�
 
 ??? success "연습문제 3 풀이"
 
-    start·end는 토큰 인덱스의 반열린 구간이며 문자 offset이 아니다. 초기 I는 무시될 수 있고 열린 개체 뒤 다른 유형 I도 붙일 수 있어 먼저 유효성 검사·교정 정책을 적용해야 한다. 공백 join은 원문 복원을 보장하지 않는다.
+    start·end는 토큰 인덱스의 반열린 구간이며 문자 offset이 아니다. 초기 I는 무시될 수 있고 열린 개체 뒤 다른 유형 I도 붙일 수 있어 먼저 유효성 검사·교정 폴리시를 적용해야 한다. 공백 join은 원문 복원을 보장하지 않는다.
 
 
 

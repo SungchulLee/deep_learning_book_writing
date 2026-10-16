@@ -6,7 +6,7 @@
 
 ```python
 """
-34.6.4장: 힘 북돋우는 배움 벌레잡기
+34.6.4장: 힘 북돋우는 러닝 벌레잡기
 ==================================================
 짚어 내는 도구, 건강 살피기, 지켜보기 도구.
 """
@@ -18,7 +18,7 @@ from collections import deque
 from typing import Dict, List, Optional
 # 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
 # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다.
-# 꾸며 낸 배움 자취는 numpy로 뽑으므로 numpy 씨앗도 함께 고정한다
+# 꾸며 낸 러닝 자취는 numpy로 뽑으므로 numpy 씨앗도 함께 고정한다
 torch.manual_seed(0)
 np.random.seed(0)
 
@@ -29,7 +29,7 @@ np.random.seed(0)
 
 class RLDiagnostics:
     """
-    힘 북돋우는 배움 익힘을 두루 짚어 내는 것.
+    힘 북돋우는 러닝 익힘을 두루 짚어 내는 것.
     종요로운 건강 재기를 좇고 알린다.
     """
     
@@ -75,7 +75,7 @@ class RLDiagnostics:
             if all(e < 0.01 for e in recent_entropy):
                 alerts.append("⚠️ ENTROPY COLLAPSE: Policy may be stuck (entropy near 0)")
         
-        # 기울기 노름 살피기
+        # 그래디언트 노름 살피기
         if len(self.metrics["grad_norm"]) >= 10:
             recent_grads = list(self.metrics["grad_norm"])[-10:]
             if any(np.isnan(g) or np.isinf(g) for g in recent_grads):
@@ -103,7 +103,7 @@ class RLDiagnostics:
         if ev < 0:
             alerts.append("⚠️ NEGATIVE EXPLAINED VARIANCE: Value function worse than mean prediction")
         
-        # 배움이 나아가는지
+        # 러닝이 나아가는지
         if len(self.metrics["episode_rewards"]) >= self.window:
             rewards = list(self.metrics["episode_rewards"])
             first_half = np.mean(rewards[:len(rewards)//2])
@@ -143,7 +143,7 @@ class RLDiagnostics:
 
 
 def check_gradient_flow(model: nn.Module) -> Dict[str, float]:
-    """온 켜를 지나는 기울기 흐름을 살핀다."""
+    """온 켜를 지나는 그래디언트 흐름을 살핀다."""
     grad_info = {}
     for name, param in model.named_parameters():
         if param.grad is not None:
@@ -157,16 +157,16 @@ def check_gradient_flow(model: nn.Module) -> Dict[str, float]:
 
 
 def verify_loss_sign():
-    """방침 기울기를 위해 손실을 옳게 지었는지 살핀다."""
+    """폴리시 그래디언트를 위해 로스를 옳게 지었는지 살핀다."""
     print("=" * 60)
     print("Loss Sign Verification")
     print("=" * 60)
     
-    # 방침 기울기: E[log_prob * advantage]을 가장 크게 한다
-    # 가장 작게 할 손실로는: L = -E[log_prob * advantage]
+    # 폴리시 그래디언트: E[log_prob * advantage]을 가장 크게 한다
+    # 가장 작게 할 로스로는: L = -E[log_prob * advantage]
     
     log_prob = torch.tensor(-1.5, requires_grad=True)
-    advantage = torch.tensor(2.0)  # 0보다 큼: 좋은 움직임
+    advantage = torch.tensor(2.0)  # 0보다 큼: 좋은 액션
     
     # 옳음: 음의 부호(음수를 가장 작게 한다)
     correct_loss = -(log_prob * advantage)
@@ -177,7 +177,7 @@ def verify_loss_sign():
     print(f"  Direction: {'Increase' if log_prob.grad.item() < 0 else 'Decrease'} log_prob ✓")
     
     log_prob2 = torch.tensor(-1.5, requires_grad=True)
-    advantage2 = torch.tensor(-1.0)  # 0보다 작음: 나쁜 움직임
+    advantage2 = torch.tensor(-1.0)  # 0보다 작음: 나쁜 액션
     
     correct_loss2 = -(log_prob2 * advantage2)
     correct_loss2.backward()
@@ -297,45 +297,45 @@ ALERTS:
 
 이 구현은 강화학습 디버깅의 한가운데 논리를 담은 `RLDiagnostics` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-보여 주기 함수는 이 조각들을 중요한 거동이 드러나는 지어낸 데이터에 실제로 써 보인다. 그 출력을 살피면 매개변수 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
+보여 주기 함수는 이 조각들을 중요한 거동이 드러나는 지어낸 데이터에 실제로 써 보인다. 그 출력을 살피면 파라메터 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 배치 계산, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 배치 계산, GPU 빠르게 하기, 더 야무진 파라메터 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌리고 중요한 출력 재기를 적어라. 매개변수 하나(학습률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
+보여 주기 코드를 돌리고 중요한 출력 재기를 적어라. 파라메터 하나(러닝레이트, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 구조 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 학습률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 파라메터만 구조 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 러닝레이트는 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 파라메터의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 구현에서 중요한 구조 공정성이 맡은 몫을 풀어라. 왜 그런 활성화 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
+이 구현에서 중요한 구조 공정성이 맡은 몫을 풀어라. 왜 그런 엑티베이션 함수, 고르게 하기 꾀, 로스 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 공정성은 실제 강화학습 재주에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 입력에서 기울기가 사라지는 것을 막는다. 손실 함수는 과제 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 최적화 지형이 바뀌어 성능이 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+    이 구조 공정성은 실제 강화학습 재주에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 입력에서 그래디언트가 사라지는 것을 막는다. 로스 함수는 과제 클래스에 맞추어 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 오차). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 로스) 최적화 지형이 바뀌어 성능이 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 데이터셋, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 성능에 미친 바를 따져라.
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 데이터셋, 다른 문제 클래스, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 성능에 미친 바를 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    절로 떠오르는 넓히기 하나는 정규화(드롭아웃, 가중치 삭임)나 더 야무진 구조(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 데이터로 학습된 뒤 앞뒤의 재기를 비교하여라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
+    절로 떠오르는 넓히기 하나는 정규화(드롭아웃, 웨이트 삭임)나 더 야무진 구조(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 데이터로 학습된 뒤 앞뒤의 재기를 비교하여라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
 
 ## 정리하며
 
@@ -343,4 +343,4 @@ ALERTS:
 
 이 구현은 강화학습 디버깅의 한가운데 논리를 담은 `RLDiagnostics` 클래스를 축으로 삼는다.
 
-핵심 갈래는 `RLDiagnostics`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `RLDiagnostics`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

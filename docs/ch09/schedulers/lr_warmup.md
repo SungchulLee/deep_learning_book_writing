@@ -1,14 +1,14 @@
-# 학습률 워밍업
+# 러닝레이트 워밍업
 
-학습률 워밍업은 초기 갱신에 작은 학습률을 사용하고 목표값까지 점진적으로 올리는 방법이다. 선형·지수·코사인 보간과 워밍업 뒤의 코사인 감쇠를 직접 구현한다.
+러닝레이트 워밍업은 초기 갱신에 작은 러닝레이트를 사용하고 목표값까지 점진적으로 올리는 방법이다. 선형·지수·코사인 보간과 워밍업 뒤의 코사인 감쇠를 직접 구현한다.
 
 ## 1. 코드
 
 ```python
 """
-학습률 워밍업 구현
+러닝레이트 워밍업 구현
 
-이 모듈은 심층 신경망 학습에 흔히 쓰이는 여러 학습률 워밍업 전략을
+이 모듈은 심층 뉴럴 넷트웍 학습에 흔히 쓰이는 여러 러닝레이트 워밍업 전략을
 제공한다.
 """
 
@@ -22,21 +22,21 @@ from typing import Optional
 
 class LinearWarmup:
     """
-    선형 학습률 워밍업.
-    warmup_steps 동안 학습률을 0에서 base_lr까지 선형으로 올린다.
+    선형 러닝레이트 워밍업.
+    warmup_steps 동안 러닝레이트를 0에서 base_lr까지 선형으로 올린다.
     """
     
     def __init__(self, base_lr: float, warmup_steps: int):
         """
         인수:
-            base_lr: 워밍업 뒤의 목표 학습률
+            base_lr: 워밍업 뒤의 목표 러닝레이트
             warmup_steps: 워밍업 구간의 단계 수
         """
         self.base_lr = base_lr
         self.warmup_steps = warmup_steps
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 학습률을 얻는다."""
+        """주어진 단계의 러닝레이트를 얻는다."""
         if step < self.warmup_steps:
             return self.base_lr * (step + 1) / self.warmup_steps
         return self.base_lr
@@ -44,23 +44,23 @@ class LinearWarmup:
 
 class ExponentialWarmup:
     """
-    지수 학습률 워밍업.
-    학습률을 start_lr에서 base_lr까지 지수적으로 올린다.
+    지수 러닝레이트 워밍업.
+    러닝레이트를 start_lr에서 base_lr까지 지수적으로 올린다.
     """
     
     def __init__(self, base_lr: float, warmup_steps: int, start_lr: float = 1e-7):
         """
         인수:
-            base_lr: 워밍업 뒤의 목표 학습률
+            base_lr: 워밍업 뒤의 목표 러닝레이트
             warmup_steps: 워밍업 구간의 단계 수
-            start_lr: 처음 학습률 (아주 작아야 한다)
+            start_lr: 처음 러닝레이트 (아주 작아야 한다)
         """
         self.base_lr = base_lr
         self.warmup_steps = warmup_steps
         self.start_lr = start_lr
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 학습률을 얻는다."""
+        """주어진 단계의 러닝레이트를 얻는다."""
         if step < self.warmup_steps:
             # 지수 보간
             factor = (step + 1) / self.warmup_steps
@@ -70,21 +70,21 @@ class ExponentialWarmup:
 
 class CosineWarmup:
     """
-    코사인 학습률 워밍업.
-    코사인 곡선을 따라 학습률을 매끄럽게 올린다.
+    코사인 러닝레이트 워밍업.
+    코사인 곡선을 따라 러닝레이트를 매끄럽게 올린다.
     """
     
     def __init__(self, base_lr: float, warmup_steps: int):
         """
         인수:
-            base_lr: 워밍업 뒤의 목표 학습률
+            base_lr: 워밍업 뒤의 목표 러닝레이트
             warmup_steps: 워밍업 구간의 단계 수
         """
         self.base_lr = base_lr
         self.warmup_steps = warmup_steps
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 학습률을 얻는다."""
+        """주어진 단계의 러닝레이트를 얻는다."""
         if step < self.warmup_steps:
             # 0에서 base_lr까지 코사인 보간
             progress = (step + 1) / self.warmup_steps
@@ -94,7 +94,7 @@ class CosineWarmup:
 
 class WarmupWithDecay:
     """
-    워밍업과 학습률 감쇠를 결합한다.
+    워밍업과 러닝레이트 감쇠를 결합한다.
     선형으로 워밍업한 뒤 코사인 감쇠를 적용한다.
     """
     
@@ -107,10 +107,10 @@ class WarmupWithDecay:
     ):
         """
         인수:
-            base_lr: 워밍업 뒤의 최고 학습률
+            base_lr: 워밍업 뒤의 최고 러닝레이트
             warmup_steps: 워밍업 구간의 단계 수
             total_steps: 전체 학습 단계 수
-            min_lr: 학습이 끝날 때의 최소 학습률
+            min_lr: 학습이 끝날 때의 최소 러닝레이트
         """
         self.base_lr = base_lr
         self.warmup_steps = warmup_steps
@@ -118,7 +118,7 @@ class WarmupWithDecay:
         self.min_lr = min_lr
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 학습률을 얻는다."""
+        """주어진 단계의 러닝레이트를 얻는다."""
         if step < self.warmup_steps:
             # 선형 워밍업
             return self.base_lr * (step + 1) / self.warmup_steps
@@ -231,7 +231,7 @@ Plot saved to warmup_schedules.png
 
 ## 2. 논의
 
-워밍업은 초반의 큰 갱신을 완화할 수 있지만 기울기 폭발을 반드시 막거나 모든 모델의 학습을 개선하는 방법은 아니다. 필요한 길이와 목표 학습률은 모델 초기화, 옵티마이저, 배치 크기와 전체 갱신 예산에 따라 달라진다.
+워밍업은 초반의 큰 갱신을 완화할 수 있지만 그래디언트 폭발을 반드시 막거나 모든 모델의 학습을 개선하는 방법은 아니다. 필요한 길이와 목표 러닝레이트는 모델 초기화, 옵티마이저, 배치 크기와 전체 갱신 예산에 따라 달라진다.
 
 이 구현은 0부터 세는 step에 대해 (step+1)/warmup_steps를 사용한다. 따라서 LinearWarmup의 첫 값은 0이 아니라 base_lr/warmup_steps이다. 지수 워밍업도 첫 값이 start_lr보다 크며, 양수인 시작값과 목표값 사이를 기하적으로 보간한다. 코사인 워밍업은 같은 진행률에 반코사인 함수를 적용한다.
 

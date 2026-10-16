@@ -6,13 +6,13 @@
 
 - [사전 학습 목표](llm_foundations/pretraining_objectives.md): 인과 언어 모델링, 마스킹과 잡음 제거, 목표별 입력·정답 구성
 - [평가 지표](llm_foundations/evaluation_metrics.md): 퍼플렉서티, 태스크 평가, 생성 품질과 사람·모델 평가의 한계
-- [어려움과 한계](llm_foundations/challenges.md): 긴 문맥, 사실성, 편향과 개인정보, 외부 도구를 사용하는 시스템의 신뢰 경계
+- [어려움과 한계](llm_foundations/challenges.md): 긴 문맥, 사실성, 바이어스와 개인정보, 외부 도구를 사용하는 시스템의 신뢰 경계
 
 ## 2. 모델 구조와 규모
 
 - [구조의 주요 변화](architectures/architectures.md): RMSNorm, SwiGLU, RoPE, MQA·GQA와 슬라이딩 윈도 어텐션
 - [GPT 계열](architectures/gpt_series.md): 공개 논문을 바탕으로 살펴보는 학습 방식과 구조의 변화
-- [스케일링 법칙](scaling/scaling_overview.md): 손실, 파라미터 수, 데이터 양과 계산 예산의 경험적 관계
+- [스케일링 법칙](scaling/scaling_overview.md): 로스, 파라미터 수, 데이터 양과 계산 예산의 경험적 관계
 - [모델 크기와 데이터의 트레이드오프](scaling/model_vs_data.md): 학습·추론 비용과 반복 데이터의 효과
 - [창발적 능력](scaling/emergent_abilities.md): 규모에 따른 성능 변화와 평가 지표가 만드는 불연속성
 
@@ -26,7 +26,7 @@
 
 ## 4. 파라미터 효율적 파인튜닝
 
-- [LoRA](efficient_llm/lora.md): 저랭크 가중치 업데이트와 병합, 양자화 기반 파인튜닝
+- [LoRA](efficient_llm/lora.md): 저랭크 웨이트 업데이트와 병합, 양자화 기반 파인튜닝
 - [어댑터](efficient_llm/adapters.md): 직렬·병렬 병목 모듈과 여러 태스크의 적응 모듈 관리
 - [Prefix Tuning](efficient_llm/prefix_tuning.md): 학습 가능한 KV 접두부와 입력 프롬프트 튜닝의 차이
 - [PEFT 방법 비교](efficient_llm/peft_comparison.md): 학습 파라미터, 실행 메모리와 추론 비용의 비교
@@ -41,7 +41,7 @@
 - [양자화 인지 학습](inference/04_quantization_aware_training.md): fake quantization 학습과 정수 모델 변환의 차이
 - [구조적 가지치기](inference/05_structured_pruning.md): 필터 선택과 연결된 계층의 재구성
 - [압축 방법 결합](inference/06_combined_compression.md): 교사 학습, 마스킹과 학생 증류를 연결하는 예제
-- [Hugging Face 증류와 벤치마크](inference/07_hf_distillation_benchmark.md): 맞춤 손실과 품질·저장 공간·지연 시간 측정
+- [Hugging Face 증류와 벤치마크](inference/07_hf_distillation_benchmark.md): 맞춤 로스와 품질·저장 공간·지연 시간 측정
 
 ## 6. 모델 정렬
 

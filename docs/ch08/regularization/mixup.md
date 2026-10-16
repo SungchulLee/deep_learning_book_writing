@@ -55,13 +55,13 @@ $\alpha$는 0을 포함한 증강 없는 기준과 여러 양수 후보를 검�
 
 ### 레이블의 표현
 
-분류 레이블은 확률 벡터로 섞을 수 있다. 원핫 벡터를 실제로 만들지 않고 두 클래스 인덱스에 대한 교차 엔트로피를 가중합해도 같은 손실을 계산할 수 있다.
+분류 레이블은 확률 벡터로 섞을 수 있다. 원핫 벡터를 실제로 만들지 않고 두 클래스 인덱스에 대한 교차 엔트로피를 가중합해도 같은 로스를 계산할 수 있다.
 
 $$
 y_i = e_{c_i} \in \mathbb{R}^K, \quad \tilde{y} = \lambda \, e_{c_i} + (1-\lambda) \, e_{c_j}
 $$
 
-그런 다음 교차 엔트로피로 이 부드러운 목표에 대한 손실을 계산한다.
+그런 다음 교차 엔트로피로 이 부드러운 목표에 대한 로스를 계산한다.
 
 $$
 \ell(\tilde{y}, p) = -\sum_{k=1}^{K} \tilde{y}_k \log p_k = -\lambda \log p_{c_i} - (1-\lambda) \log p_{c_j}
@@ -73,23 +73,23 @@ $$
 
 ### 선형 보간이라는 사전 지식
 
-믹스업은 모델이 학습 예 사이에서 근사적으로 선형으로 행동해야 한다는 사전 지식을 강제한다.
+믹스업은 모델이 학습 예 사이에서 근사적으로 선형으로 액션해야 한다는 사전 지식을 강제한다.
 
 $$
 f(\lambda x_i + (1-\lambda) x_j) \approx \lambda f(x_i) + (1-\lambda) f(x_j)
 $$
 
-이는 강하지만 이로운 귀납 편향으로, 결정 경계를 더 매끄럽게 하고 학습 점 사이의 진동을 줄인다.
+이는 강하지만 이로운 귀납 바이어스로, 결정 경계를 더 매끄럽게 하고 학습 점 사이의 진동을 줄인다.
 
 ### 정규화 효과
 
-믹스업은 개별 학습 예를 외우는 모델의 능력을 줄여 정규화 장치로 작동한다. 신경망은 의미 있는 보간을 뒷받침하는 표현을 배워야 하며, 이는 더 단순하고 더 잘 일반화되는 특징을 선호하게 만든다.
+믹스업은 개별 학습 예를 외우는 모델의 능력을 줄여 정규화 장치로 작동한다. 뉴럴 넷트웍은 의미 있는 보간을 뒷받침하는 표현을 배워야 하며, 이는 더 단순하고 더 잘 일반화되는 피처를 선호하게 만든다.
 
 ### 보정의 개선
 
 부드러운 목표가 과신을 줄여 보정을 개선하는 경우가 있지만, 예측 확률의 보정은 데이터 분포와 스무딩 강도에 따라 달라진다. 별도의 검증 지표로 확인해야 한다.
 
-### 기울기 분석
+### 그래디언트 분석
 
 믹스업은 보간 구간에서의 반응과 입력 민감도에 영향을 줄 수 있다. 그렇다고 모든 입력의 야코비안 노름에 동일한 상한을 강제하는 패널티와 정확히 같은 것은 아니다. 보정과 민감도에 대한 실험 결과를 그 조건 안에서 해석한다.
 
@@ -112,7 +112,7 @@ def mixup_data(x: torch.Tensor, y: torch.Tensor,
     인수:
         x: 입력 배치, 모양 (batch_size, ...)
         y: 레이블(클래스 인덱스), 모양 (batch_size,)
-        alpha: 베타분포의 매개변수. 클수록 더 많이 섞인다.
+        alpha: 베타분포의 파라메터. 클수록 더 많이 섞인다.
         
     반환값:
         mixed_x: 섞인 입력
@@ -138,7 +138,7 @@ def mixup_data(x: torch.Tensor, y: torch.Tensor,
     mixed_x = lam * x + (1 - lam) * x[index]
     # 레이블은 섞지 않고 두 벌을 그대로 돌려준다. 분류에서는 y가
     # 클래스 번호(정수)라 lam*y_a + (1-lam)*y_b 가 뜻이 없기 때문이다.
-    # 대신 아래 mixup_criterion에서 손실을 그 비율로 섞는다
+    # 대신 아래 mixup_criterion에서 로스를 그 비율로 섞는다
     y_a, y_b = y, y[index]
 
     return mixed_x, y_a, y_b, lam
@@ -147,22 +147,22 @@ def mixup_criterion(criterion: nn.Module, pred: torch.Tensor,
                     y_a: torch.Tensor, y_b: torch.Tensor,
                     lam: float) -> torch.Tensor:
     """
-    믹스업 손실을 두 표준 손실의 가중 결합으로 계산한다.
+    믹스업 로스를 두 표준 로스의 가중 결합으로 계산한다.
     
     인수:
-        criterion: 바탕이 되는 손실 함수 (예: CrossEntropyLoss)
+        criterion: 바탕이 되는 로스 함수 (예: CrossEntropyLoss)
         pred: 모델의 예측
         y_a: 첫째 레이블 집합
         y_b: 둘째 레이블 집합
         lam: 혼합 계수
     """
-    # 손실을 섞는 것이 레이블을 섞는 것과 같아지는 까닭.
+    # 로스를 섞는 것이 레이블을 섞는 것과 같아지는 까닭.
     # 교차 엔트로피는 레이블에 대해 선형이므로
     #   CE(pred, lam*y_a + (1-lam)*y_b) = lam*CE(pred, y_a) + (1-lam)*CE(pred, y_b)
     # 가 성립한다. 그래서 원-핫을 만들어 섞지 않고도 같은 결과를 얻는다.
     #
-    # 주의: 이 등식은 교차 엔트로피처럼 레이블에 선형인 손실에서만
-    # 성립한다. 초점 손실이나 다른 비선형 손실에는 그대로 쓸 수 없다
+    # 주의: 이 등식은 교차 엔트로피처럼 레이블에 선형인 로스에서만
+    # 성립한다. 초점 로스나 다른 비선형 로스에는 그대로 쓸 수 없다
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 ```
 
@@ -184,12 +184,12 @@ def train_with_mixup(
     믹스업 증강으로 모델을 학습시킨다.
     
     인수:
-        model: 신경망
+        model: 뉴럴 넷트웍
         train_loader: 학습 데이터
         val_loader: 검증 데이터
         alpha: 믹스업 보간의 세기
         epochs: 학습 에포크 수
-        lr: 학습률
+        lr: 러닝레이트
         
     반환값:
         학습 이력
@@ -219,7 +219,7 @@ def train_with_mixup(
             
             loss.backward()
             optimizer.step()
-            # 이 손실은 섞인 이름표에 대한 값이라 아래 검증 손실과
+            # 이 로스는 섞인 이름표에 대한 값이라 아래 검증 로스와
             # 같은 자로 잰 값이 아니다. 두 곡선을 겹쳐 그리면 안 된다
             train_loss += loss.item()
         
@@ -256,12 +256,12 @@ def train_with_mixup(
 
 ### 매니폴드 믹스업
 
-매니폴드 믹스업은 입력 공간에서 섞는 대신 무작위로 고른 층의 은닉 표현에 보간을 적용한다.
+매니폴드 믹스업은 입력 공간에서 섞는 대신 무작위로 고른 레이어의 은닉 표현에 보간을 적용한다.
 
 ```python
 class ManifoldMixupModel(nn.Module):
     """
-    무작위 은닉층에서 다양체 믹스업을 지원하는 모델.
+    무작위 은닉 레이어에서 다양체 믹스업을 지원하는 모델.
     
     참고: Verma 등, "Manifold Mixup: Better Representations by
                은닉 상태 사이 메우기"(ICML 2019)
@@ -270,7 +270,7 @@ class ManifoldMixupModel(nn.Module):
     def __init__(self, input_dim, hidden_dims, output_dim):
         super().__init__()
         
-        # 인덱싱을 위해 층을 목록으로 만든다
+        # 인덱싱을 위해 레이어를 목록으로 만든다
         self.layers = nn.ModuleList()
         prev_dim = input_dim
         for hidden_dim in hidden_dims:
@@ -287,14 +287,14 @@ class ManifoldMixupModel(nn.Module):
         
         인수:
             x: 입력 텐서
-            mixup_layer: 믹스업을 적용할 층의 인덱스 (None이면 믹스업 없음)
+            mixup_layer: 믹스업을 적용할 레이어의 인덱스 (None이면 믹스업 없음)
             lam: 혼합 계수
             index: 배치에 대한 순열 인덱스
         """
         for i, layer in enumerate(self.layers):
             x = layer(x)
             
-            # 고른 층에서 믹스업 적용
+            # 고른 레이어에서 믹스업 적용
             if mixup_layer is not None and i == mixup_layer:
                 x = lam * x + (1 - lam) * x[index]
         
@@ -305,7 +305,7 @@ def train_step_manifold_mixup(model, X_batch, y_batch, criterion,
     """다양체 믹스업을 쓰는 학습 단계 하나."""
     optimizer.zero_grad()
     
-    # 섞을 층을 무작위로 고르기
+    # 섞을 레이어를 무작위로 고르기
     n_layers = len(model.layers)
     mixup_layer = np.random.randint(0, n_layers + 1)  # +1은 입력 공간을 포함한다
     
@@ -321,7 +321,7 @@ def train_step_manifold_mixup(model, X_batch, y_batch, criterion,
         mixed_x = lam * X_batch + (1 - lam) * X_batch[index]
         outputs = model(mixed_x)
     else:
-        # 은닉층에서의 믹스업
+        # 은닉 레이어에서의 믹스업
         outputs = model(X_batch, mixup_layer=mixup_layer - 1, 
                        lam=lam, index=index)
     
@@ -345,7 +345,7 @@ class BatchMixup:
     def __init__(self, alpha=0.2, strategy='random'):
         """
         인수:
-            alpha: 베타분포의 매개변수
+            alpha: 베타분포의 파라메터
             strategy: 짝짓기 전략 — 'random', 'cross_class', 'same_class'
         """
         self.alpha = alpha
@@ -448,7 +448,7 @@ def mixup_regression(x, y, alpha=0.2):
     mixed_x = lam * x + (1 - lam) * x[index]
     mixed_y = lam * y + (1 - lam) * y[index]
 
-    # 분류에서는 레이블이 원-핫이라 손실 쪽에서 lam으로 나누어 셈해야 하지만,
+    # 분류에서는 레이블이 원-핫이라 로스 쪽에서 lam으로 나누어 셈해야 하지만,
     # 회귀는 목푯값이 이미 연속이므로 이렇게 곧바로 섞으면 끝난다
     return mixed_x, mixed_y
 ```
@@ -459,7 +459,7 @@ def mixup_regression(x, y, alpha=0.2):
 
 ### 믹스업 + 레이블 스무딩
 
-둘 다 부드러운 목표를 만든다. 함께 쓸 때에는 레이블 스무딩 매개변수를 줄인다.
+둘 다 부드러운 목표를 만든다. 함께 쓸 때에는 레이블 스무딩 파라메터를 줄인다.
 
 ```python
 def mixup_with_label_smoothing(model, x, y, alpha=0.2, epsilon=0.05):
@@ -486,7 +486,7 @@ def mixup_with_label_smoothing(model, x, y, alpha=0.2, epsilon=0.05):
     # 추가 레이블 평활화 적용
     soft_targets = (1 - epsilon) * soft_targets + epsilon / num_classes
     
-    # 손실을 계산한다
+    # 로스를 계산한다
     logits = model(mixed_x)
     log_probs = torch.log_softmax(logits, dim=-1)
     loss = -(soft_targets * log_probs).sum(dim=-1).mean()
@@ -515,7 +515,7 @@ def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0,
 
 ### 하이퍼파라미터 선택
 
-| 매개변수 | 권장 범위 | 비고 |
+| 파라메터 | 권장 범위 | 비고 |
 |-----------|------------------|-------|
 | $\alpha$ (CIFAR-10) | 0.2 – 1.0 | 데이터셋이 작을수록 크게 |
 | $\alpha$ (ImageNet) | 0.1 – 0.4 | 0.2가 표준 |
@@ -584,7 +584,7 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 </div>
 
 ??? success "연습문제 3 풀이"
-    표준적인 ERM은 경험적 분포(학습 점에 놓인 점질량)에 대한 위험을 최소화한다. 믹스업은 점질량을 '근방'(쌍의 볼록 결합)으로 바꾸어 경험적 분포를 매끄럽게 한다. 이는 학습 점 사이에서 선형적인 행동을 이끌어 학습된 함수의 복잡도를 줄인다.
+    표준적인 ERM은 경험적 분포(학습 점에 놓인 점질량)에 대한 위험을 최소화한다. 믹스업은 점질량을 '근방'(쌍의 볼록 결합)으로 바꾸어 경험적 분포를 매끄럽게 한다. 이는 학습 점 사이에서 선형적인 액션을 이끌어 학습된 함수의 복잡도를 줄인다.
 
 ---
 
@@ -600,7 +600,7 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 
 ## 정리하며
 
-믹스업은 혼합된 입력에 혼합 목표를 대응시킨다. 교차 엔트로피는 두 클래스 손실의 가중합으로도 계산할 수 있다. 보간 가정과 증강 강도를 검증하고 원본 데이터의 평가와 혼합 입력 실험을 구분한다.
+믹스업은 혼합된 입력에 혼합 목표를 대응시킨다. 교차 엔트로피는 두 클래스 로스의 가중합으로도 계산할 수 있다. 보간 가정과 증강 강도를 검증하고 원본 데이터의 평가와 혼합 입력 실험을 구분한다.
 
 **참고 문헌**
 

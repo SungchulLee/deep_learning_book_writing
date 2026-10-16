@@ -90,7 +90,7 @@ function BuildTree(x, v, direction, depth, ε):
         
         return x', v', x', v', x', valid, valid
     else:
-        # 되돌이: 왼쪽 부분 나무 세우기
+        # 회귀: 왼쪽 부분 나무 세우기
         x⁻, v⁻, x⁺, v⁺, x', n', s' = BuildTree(x, v, direction, depth-1, ε)
         
         if s' == 1:
@@ -206,7 +206,7 @@ class NUTS:
             return (x_new, v_new, x_new, v_new, x_new, 
                     log_weight, valid, divergent, 1)
         else:
-            # 되돌이
+            # 회귀
             (x_minus, v_minus, x_plus, v_plus, x_prime,
              log_weight, valid, divergent, n_steps) = \
                 self.build_tree(x, v, direction, depth - 1, H0)

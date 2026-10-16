@@ -238,7 +238,7 @@ Ragged list error: expected sequence of length 2 at dim 1 (got 3)
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-`torch.tensor([[1, 2], [3, 4, 5]])`는 오류를 낸다. 오류의 갈래와 메시지를 적고, **모양이란 무엇인가**에 비추어 왜 이것이 고칠 수 없는 요구인지 설명하라. 그리고 이 데이터를 다루는 두 가지 길을 코드로 보여라.
+`torch.tensor([[1, 2], [3, 4, 5]])`는 오류를 낸다. 오류의 클래스와 메시지를 적고, **모양이란 무엇인가**에 비추어 왜 이것이 고칠 수 없는 요구인지 설명하라. 그리고 이 데이터를 다루는 두 가지 길을 코드로 보여라.
 
 </div>
 

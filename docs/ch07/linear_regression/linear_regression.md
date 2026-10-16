@@ -1,6 +1,6 @@
 # 선형 회귀
 
-선형 회귀는 입력 특징과 연속적인 목표 변수 사이의 관계를 선형 함수로 모델링하는,
+선형 회귀는 입력 피처와 연속적인 목표 변수 사이의 관계를 선형 함수로 모델링하는,
 지도 학습의 가장 기본이 되는 알고리즘이다. **닫힌 형태**의 해(정규 방정식)와
 **반복적**인 해(경사 하강법)를 모두 갖고 있어, 기계 학습에서 최적화를 이해하는
 출발점으로 더없이 알맞다.
@@ -14,17 +14,17 @@
 
 ### 1.1 단변량의 경우
 
-입력 특징이 하나인 $x$에 대해 모델은 다음과 같다.
+입력 피처가 하나인 $x$에 대해 모델은 다음과 같다.
 
 $$
 \hat{y} = wx + b
 $$
 
-여기서 $w$는 **가중치**(기울기), $b$는 **편향**(절편)이다.
+여기서 $w$는 **웨이트**(그래디언트), $b$는 **바이어스**(절편)이다.
 
-### 1.2 여러 입력 특징의 경우
+### 1.2 여러 입력 피처의 경우
 
-$p$개의 입력 특징 $\mathbf{x} = [x_1, x_2, \ldots, x_p]^\top$에 대해 모델은
+$p$개의 입력 피처 $\mathbf{x} = [x_1, x_2, \ldots, x_p]^\top$에 대해 모델은
 다음과 같이 일반화된다.
 
 $$
@@ -40,9 +40,9 @@ $$
 \hat{\mathbf{y}} = \mathbf{X}\mathbf{w} + b\mathbf{1}
 $$
 
-### 1.3 간결한 표기 (편향 흡수)
+### 1.3 간결한 표기 (바이어스 흡수)
 
-특징 벡터에 상수 1을 덧붙이면 편향이 매개변수 벡터 안으로 흡수된다.
+피처 벡터에 상수 1을 덧붙이면 바이어스가 파라메터 벡터 안으로 흡수된다.
 
 $$
 \tilde{\mathbf{x}} = [1,\; x_1,\; \ldots,\; x_p]^\top,
@@ -59,7 +59,7 @@ $$
 \hat{\mathbf{y}} = \mathbf{X}\boldsymbol{\theta}
 $$
 
-닫힌 형태의 유도에는 이 간결한 표기를 쓰고, PyTorch가 `nn.Linear`로 편향을 자동
+닫힌 형태의 유도에는 이 간결한 표기를 쓰고, PyTorch가 `nn.Linear`로 바이어스를 자동
 처리해 주는 경사 하강법 구현에서는 $(\mathbf{w}, b)$를 분리한 표기로 바꾼다.
 
 ---
@@ -122,13 +122,13 @@ $$
 
 OLS 추정량이 **최량 선형 불편 추정량**(BLUE)이 되려면 다음 가정들이 성립해야 한다.
 
-### 3.1 매개변수에 대한 선형성
+### 3.1 파라메터에 대한 선형성
 
 $$
 E[y \mid \mathbf{x}] = \mathbf{w}^\top \mathbf{x} + b
 $$
 
-*매개변수*에 대해 선형이기만 하면 모델에 (다항 항 같은) 비선형 *특징*이 들어가도 된다.
+*파라메터*에 대해 선형이기만 하면 모델에 (다항 항 같은) 비선형 *피처*이 들어가도 된다.
 
 ### 3.2 엄격한 외생성
 
@@ -136,7 +136,7 @@ $$
 E[\epsilon \mid \mathbf{X}] = \mathbf{0}
 $$
 
-특징이 오차항과 상관되지 않아야 한다. 누락 변수 편향도, 특징의 측정 오차도 없어야 한다.
+피처가 오차항과 상관되지 않아야 한다. 누락 변수 바이어스도, 피처의 측정 오차도 없어야 한다.
 
 ### 3.3 등분산성
 
@@ -164,7 +164,7 @@ $$
 $$
 
 $\mathbf{X}^\top\mathbf{X}$이 가역임을 보장하며, 완전한 다중공선성이 있으면 위반된다.
-다중공선성에 가까우면 수치적 불안정과 매개변수 분산의 팽창이 일어난다.
+다중공선성에 가까우면 수치적 불안정과 파라메터 분산의 팽창이 일어난다.
 
 ---
 
@@ -178,7 +178,7 @@ $$
 = \frac{1}{n}\sum_{i=1}^{n}(y_i - wx_i - b)^2
 $$
 
-### 4.1 최적 매개변수
+### 4.1 최적 파라메터
 
 편도함수를 0으로 두면 다음을 얻는다.
 
@@ -206,7 +206,7 @@ $$
 w^* = \rho\,\frac{s_y}{s_x}
 $$
 
-즉 최적의 기울기는 상관계수에 표준편차의 비를 곱한 것이다. 새로운 점 $x_*$에 대한
+즉 최적의 그래디언트는 상관계수에 표준편차의 비를 곱한 것이다. 새로운 점 $x_*$에 대한
 예측은 다음과 같다.
 
 $$
@@ -215,7 +215,7 @@ $$
 
 ### 4.3 결정계수
 
-편향을 포함한 OLS를 적합한 동일 학습 표본에서는 $R^2$가 다음을 만족한다. 정답 분산이 양수라고 가정한다.
+바이어스를 포함한 OLS를 적합한 동일 학습 표본에서는 $R^2$가 다음을 만족한다. 정답 분산이 양수라고 가정한다.
 
 $$
 R^2 = 1 - \frac{\text{SS}_{\text{res}}}{\text{SS}_{\text{tot}}} = \rho^2
@@ -248,7 +248,7 @@ import numpy as np
 def simple_linear_regression(x: np.ndarray, y: np.ndarray):
     """상관계수 형태의 공식으로 y = w*x + b를 적합시킨다.
 
-    매개변수
+    파라메터
     --------
     x, y : 모양이 (n,)인 1차원 배열
 
@@ -274,8 +274,8 @@ def simple_linear_regression(x: np.ndarray, y: np.ndarray):
 
 ## 5. 스칼라 형태에서 행렬 형태로
 
-편향 열을 포함한 $\mathbf{X} = [\mathbf{1} \mid \mathbf{x}] \in \mathbb{R}^{n \times 2}$과
-매개변수 벡터 $\boldsymbol{\theta} = (b, w)^\top$으로 모델을 쓰면, 최적성 조건
+바이어스 열을 포함한 $\mathbf{X} = [\mathbf{1} \mid \mathbf{x}] \in \mathbb{R}^{n \times 2}$과
+파라메터 벡터 $\boldsymbol{\theta} = (b, w)^\top$으로 모델을 쓰면, 최적성 조건
 $\nabla_{\boldsymbol{\theta}} \mathcal{L} = \mathbf{0}$에서 **정규 방정식**이 나온다.
 
 $$
@@ -304,7 +304,7 @@ $$
 \hat{\mathbf{Y}} \in \mathbb{R}^{n \times q}
 $$
 
-손실은 프로베니우스 노름 MSE이다.
+로스는 프로베니우스 노름 MSE이다.
 
 $$
 \mathcal{L}
@@ -323,7 +323,7 @@ $\mathbf{B}^*$의 각 열은 그 목표에 대한 단일 출력 해이다. 출�
 공유하므로 서로 **분리**되기 때문이다.
 
 !!! info "다중 출력이 도움이 될 때"
-    공유 제약 없이 출력별 제곱오차를 더하는 선형 모델은 목적이 열별로 분리되므로 출력의 통계적 독립성 없이도 따로 적합한 것과 같다. 다중 출력 신경망의 공유 은닉층처럼 파라미터 제약을 추가하면 학습 과제들이 서로 영향을 줄 수 있다.
+    공유 제약 없이 출력별 제곱오차를 더하는 선형 모델은 목적이 열별로 분리되므로 출력의 통계적 독립성 없이도 따로 적합한 것과 같다. 다중 출력 뉴럴 넷트웍의 공유 은닉 레이어처럼 파라미터 제약을 추가하면 학습 과제들이 서로 영향을 줄 수 있다.
 
 ### PyTorch: `nn.Linear(p, q)`
 
@@ -340,7 +340,7 @@ W_true = torch.tensor([[2.0, -1.0], [0.5, 1.5], [-0.3, 0.8]])
 b_true = torch.tensor([1.0, -2.0])
 Y = X @ W_true + b_true + 0.2 * torch.randn(n, q)
 
-model = nn.Linear(p, q)   # 가중치 모양: (q, p) = (2, 3)
+model = nn.Linear(p, q)   # 웨이트 모양: (q, p) = (2, 3)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 loader = DataLoader(TensorDataset(X, Y), batch_size=32, shuffle=True)
 
@@ -356,10 +356,10 @@ for epoch in range(200):
 
 ## 7. 데이터 요건
 
-### 7.1 특징 스케일링
+### 7.1 피처 스케일링
 
-경사 기반 최적화를 쓸 때 선형 회귀는 특징의 규모에 민감하다. 표준화
-($z = (x - \mu) / \sigma$)를 하면 특징의 척도 차이에서 오는 최적화의 어려움을 줄일 수 있다. 상관과 조건수까지 모두 같아지거나 경사 기여가 동등해지는 것은 아니다.
+경사 기반 최적화를 쓸 때 선형 회귀는 피처의 규모에 민감하다. 표준화
+($z = (x - \mu) / \sigma$)를 하면 피처의 척도 차이에서 오는 최적화의 어려움을 줄일 수 있다. 상관과 조건수까지 모두 같아지거나 경사 기여가 동등해지는 것은 아니다.
 
 ```python
 from sklearn.preprocessing import StandardScaler
@@ -370,7 +370,7 @@ X_test_scaled = scaler.transform(X_test)  # 학습 데이터의 통계량을 쓴
 ```
 
 !!! warning "정규화된 모델"
-    릿지·라쏘·엘라스틱 넷은 계수의 크기에 패널티를 주므로 특징의 단위에 영향을 받는다. 효과가 비슷해도 척도가 큰 특징은 작은 계수로 표현되어 상대적으로 약한 패널티를 받을 수 있다. 비교 가능한 기준이 필요하면 학습 데이터에서 스케일을 정하되, 특징 단위를 의도적으로 유지하는 선택도 가능하다.
+    릿지·라쏘·엘라스틱 넷은 계수의 크기에 패널티를 주므로 피처의 단위에 영향을 받는다. 효과가 비슷해도 척도가 큰 피처는 작은 계수로 표현되어 상대적으로 약한 패널티를 받을 수 있다. 비교 가능한 기준이 필요하면 학습 데이터에서 스케일을 정하되, 피처 단위를 의도적으로 유지하는 선택도 가능하다.
 
 ### 7.2 PyTorch에서의 텐서 모양
 
@@ -424,7 +424,7 @@ def plot_residual_diagnostics(y_true, y_pred):
 |------|---------|
 | [해석적 해](closed_form.md) | 벡터 미적분 예비 지식, 정규 방정식, 기하학적 해석, QR/SVD 해법 |
 | [경사 하강법을 이용한 해](gd_solution.md) | MSE–NLL 관계, 배치/미니배치/SGD, autograd, `nn.Linear` 파이프라인 |
-| [다항 특징](polynomial_features.md) | 비선형 특징 사상, 편향–분산 절충, 교차 검증 |
+| [다항 피처](polynomial_features.md) | 비선형 피처 사상, 편향–분산 절충, 교차 검증 |
 | [릿지 회귀](ridge_regression.md) | $\ell_2$ 정규화, 베이즈적 해석, 축소의 기하 |
 | [라쏘 회귀](lasso_regression.md) | $\ell_1$ 정규화, 희소성, 엘라스틱 넷, 좌표 하강법 |
 
@@ -443,7 +443,7 @@ $$R_{\mathrm{WMT}}-R_f=\alpha+\beta(R_{\mathrm{SPY}}-R_f)+\varepsilon$$
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-MSE 손실 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mathbf{w}$에 대한 경사를 유도하라.
+MSE 로스 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mathbf{w}$에 대한 경사를 유도하라.
 
 </div>
 
@@ -464,19 +464,19 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 </div>
 
 ??? success "연습문제 2 풀이"
-    가우스 잡음 아래에서 $p(y|\mathbf{x}, \mathbf{w}) = \mathcal{N}(\mathbf{w}^\top\mathbf{x}, \sigma^2)$이다. 음의 로그우도(NLL)는 $-\log p(\mathbf{y}|\mathbf{X},\mathbf{w}) = \frac{N}{2}\log(2\pi\sigma^2) + \frac{1}{2\sigma^2}\|\mathbf{Xw}-\mathbf{y}\|^2$이다. NLL을 최소화하는 것은 MSE를 최소화하는 것과 같으므로, MSE 손실은 가우스 잡음 아래의 MLE에 대응한다.
+    가우스 잡음 아래에서 $p(y|\mathbf{x}, \mathbf{w}) = \mathcal{N}(\mathbf{w}^\top\mathbf{x}, \sigma^2)$이다. 음의 로그우도(NLL)는 $-\log p(\mathbf{y}|\mathbf{X},\mathbf{w}) = \frac{N}{2}\log(2\pi\sigma^2) + \frac{1}{2\sigma^2}\|\mathbf{Xw}-\mathbf{y}\|^2$이다. NLL을 최소화하는 것은 MSE를 최소화하는 것과 같으므로, MSE 로스는 가우스 잡음 아래의 MLE에 대응한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-특징들이 완전히 상관되어 있을 때(다중공선성) 선형 회귀에는 무슨 일이 일어나는가? 이것이 정규 방정식에 어떤 영향을 주는가?
+피처들이 완전히 상관되어 있을 때(다중공선성) 선형 회귀에는 무슨 일이 일어나는가? 이것이 정규 방정식에 어떤 영향을 주는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    특징들이 완전히 상관되어 있으면 $\mathbf{X}^\top\mathbf{X}$이 특이(랭크 부족)해지고, 정규 방정식 $\mathbf{X}^\top\mathbf{X}\mathbf{w} = \mathbf{X}^\top\mathbf{y}$은 무한히 많은 해를 갖는다. $\mathbf{X}^\top\mathbf{X}$의 조건수가 무한대가 되어 수치적 해가 불안정해진다. 정규화(릿지/라쏘)가 이를 해결한다.
+    피처들이 완전히 상관되어 있으면 $\mathbf{X}^\top\mathbf{X}$이 특이(랭크 부족)해지고, 정규 방정식 $\mathbf{X}^\top\mathbf{X}\mathbf{w} = \mathbf{X}^\top\mathbf{y}$은 무한히 많은 해를 갖는다. $\mathbf{X}^\top\mathbf{X}$의 조건수가 무한대가 되어 수치적 해가 불안정해진다. 정규화(릿지/라쏘)가 이를 해결한다.
 
 ---
 

@@ -68,7 +68,7 @@
             """
             무작위 걸음 첫값 잡기.
 
-            매개변수:
+            파라메터:
                 p (float): 오른쪽으로 걸을 확률([0,1] 안이어야 한다)
                 initial_position (int): 시작 자리
 
@@ -111,7 +111,7 @@
             """
             무작위 걸음 n걸음 흉내내기.
 
-            매개변수:
+            파라메터:
                 n_steps (int): 뗄 걸음 수
                 initial_position (int): 시작 자리(되돌릴 때)
 
@@ -136,7 +136,7 @@
             """
             n걸음 뒤의 이론상 기댓값 자리 셈하기.
 
-            매개변수:
+            파라메터:
                 n_steps (int): 걸음 수
 
             반환값:
@@ -156,7 +156,7 @@
             """
             n걸음 뒤의 이론상 흩어짐 셈하기.
 
-            매개변수:
+            파라메터:
                 n_steps (int): 걸음 수
 
             반환값:
@@ -179,8 +179,8 @@
             """
             걸음이 target_position에 처음 닿는 때 찾기.
 
-            매개변수:
-                target_position (int): 닿을 과녁
+            파라메터:
+                target_position (int): 닿을 타깃
                 max_steps (int): 시도할 최대 걸음 수
 
             반환값:
@@ -188,7 +188,7 @@
 
             수학 메모:
             첫 지나감 시간 T = min{n ≥ 0 : X_n = target}
-            대칭 걸음에서는 어떤 과녁에 대해서도 E[T]이 유한하다.
+            대칭 걸음에서는 어떤 타깃에 대해서도 E[T]이 유한하다.
             """
             self.current_position = self.initial_position
 
@@ -197,7 +197,7 @@
                     return step
                 self.step()
 
-            return None  # max_steps 안에 과녁에 닿지 못함
+            return None  # max_steps 안에 타깃에 닿지 못함
 
 
     class RandomWalk2D:
@@ -215,7 +215,7 @@
             """
             2차원 무작위 걸음 첫값 잡기.
 
-            매개변수:
+            파라메터:
                 initial_position (tuple): 시작 (x, y) 좌표
             """
             self.initial_position = np.array(initial_position)
@@ -256,7 +256,7 @@
             """
             2차원 무작위 걸음 n걸음 흉내내기.
 
-            매개변수:
+            파라메터:
                 n_steps (int): 걸음 수
 
             반환값:
@@ -402,7 +402,7 @@
         """
         보기 4: 2차원 무작위 걸음.
 
-        2차원 공간의 무작위 움직임을 살펴본다.
+        2차원 공간의 무작위 액션을 살펴본다.
         """
         print("\n" + "=" * 70)
         print("Example 4: Two-Dimensional Random Walk")
@@ -717,7 +717,7 @@ RandomWalk1D.simulate는 새 초기 위치를 지정하지 않으면 경로를 �
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-아래 신경망 시험 조각이 두 랜덤 워크 클래스에 맞는지 설명하라.
+아래 뉴럴 넷트웍 시험 조각이 두 랜덤 워크 클래스에 맞는지 설명하라.
 
 </div>
 
@@ -745,4 +745,4 @@ RandomWalk1D.simulate는 새 초기 위치를 지정하지 않으면 경로를 �
 
 ## 정리하며
 
-랜덤 워크의 평균·분산은 증가량에서 계산한다. 경로 이어가기와 재초기화, 유한 제한 안의 도달과 무조건 기대 시간, 평균거리와 제곱거리의 기댓값을 구분한다. 보존된 예제의 2차원 거리 근사와 일반 신경망 시험 조각에는 설명한 한계가 있다.
+랜덤 워크의 평균·분산은 증가량에서 계산한다. 경로 이어가기와 재초기화, 유한 제한 안의 도달과 무조건 기대 시간, 평균거리와 제곱거리의 기댓값을 구분한다. 보존된 예제의 2차원 거리 근사와 일반 뉴럴 넷트웍 시험 조각에는 설명한 한계가 있다.

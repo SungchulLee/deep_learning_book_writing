@@ -9,26 +9,26 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
     ```python
     """
     영상 이해 — 가운데 수준
-    파일 05: 두 갈래 그물 — 자리 갈래와 때 갈래 녹여 붙이기
+    파일 05: 두 클래스 넷트웍 — 자리 클래스와 때 클래스 녹여 붙이기
 
-    이 파일은 몸짓 알아보기를 위한 두 갈래 구조를 다룬다:
-    - 겉모습 앎을 위한 자리 갈래(RGB 틀)
-    - 움직임 앎을 위한 때 갈래(빛 흐름)
+    이 파일은 몸짓 알아보기를 위한 두 클래스 구조를 다룬다:
+    - 겉모습 앎을 위한 자리 클래스(RGB 틀)
+    - 액션 앎을 위한 때 클래스(빛 흐름)
     - 늦은 녹여 붙이기 전략
-    - 처음의 두 갈래 누비기 신경망 짜기
+    - 처음의 두 클래스 컨볼루션 뉴럴 넷트웍 짜기
 
     수학적 바탕:
-    두 갈래 구조:
+    두 클래스 구조:
         틀이 {I_1, ..., I_T}이고 빛 흐름이 {F_1, ..., F_{T-1}}인 영상 V에 대해:
 
-        자리 갈래: f_s(I_t) → p_자리
-        때 갈래: f_t(F_t) → p_때
+        자리 클래스: f_s(I_t) → p_자리
+        때 클래스: f_t(F_t) → p_때
 
         마지막 어림: p = α·p_자리 + (1-α)·p_때
 
         여기서 α는 녹여 붙이기 무게(보통 0.5)
 
-    핵심 눈썰미: 겉모습과 움직임은 서로 채워 주는 실마리이다!
+    핵심 눈썰미: 겉모습과 액션은 서로 채워 주는 실마리이다!
         - 자리: 어떤 물체/장면이 있는가
         - 때: 어떻게 움직이는가
     """
@@ -49,19 +49,19 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 
     #=============================================================================
-    # 1부: 자리 갈래(겉모습)
+    # 1부: 자리 클래스(겉모습)
     #=============================================================================
 
     class SpatialStream(nn.Module):
         """
-        겉모습 앎을 위한 자리 갈래 누비기 신경망.
+        겉모습 앎을 위한 자리 클래스 컨볼루션 뉴럴 넷트웍.
 
         RGB 틀 하나를 다뤄 다음을 담아낸다:
         - 물체가 무엇인지
         - 장면의 앎
         - 자세와 겉모습
 
-        보통의 2차원 누비기 신경망(보기로 ResNet, VGG)을 쓴다
+        보통의 2차원 컨볼루션 뉴럴 넷트웍(보기로 ResNet, VGG)을 쓴다
         """
 
         def __init__(self, 
@@ -69,10 +69,10 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      pretrained: bool = True,
                      dropout: float = 0.5):
             """
-            자리 갈래를 첫자리매김한다.
+            자리 클래스를 첫자리매김한다.
 
             인수:
-                num_classes: 몸짓 갈래의 개수
+                num_classes: 몸짓 클래스의 개수
                 pretrained: ImageNet에서 미리 익힌 무게를 쓸지 여부
                 dropout: 드롭아웃 확률
             """
@@ -82,11 +82,11 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
             # 들임: RGB 틀 하나 (B, 3, H, W)
             resnet = models.resnet50(pretrained=pretrained)
 
-            # 마지막 온전히 이은 층 없애기
+            # 마지막 온전히 이은 레이어 없애기
             self.features = nn.Sequential(*list(resnet.children())[:-1])
 
-            # 몸짓을 위한 맞춤 갈래 매개
-            # ResNet-50은 2048차원 특징을 내놓는다
+            # 몸짓을 위한 맞춤 클래스 매개
+            # ResNet-50은 2048차원 피처를 내놓는다
             self.classifier = nn.Sequential(
                 nn.Dropout(p=dropout),
                 nn.Linear(2048, num_classes)
@@ -94,13 +94,13 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
             """
-            자리 갈래를 지나는 앞먹임.
+            자리 클래스를 지나는 피드포워드.
 
             인수:
                 x: RGB 틀 (B, 3, H, W) — 틀 하나 또는 (B, T, 3, H, W) 배치
 
             반환값:
-                갈래 점수 (B, num_classes)
+                클래스 점수 (B, num_classes)
 
             유의: 영상은 틀을 여럿 뽑아 어림을 고루낼 수 있다
             """
@@ -113,7 +113,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                 batch_mode = False
                 B = x.shape[0]
 
-            # 특징을 뽑는다
+            # 피처를 뽑는다
             features = self.features(x)  # (B*T, 2048, 1, 1) 또는 (B, 2048, 1, 1)
             features = features.flatten(start_dim=1)  # (B*T, 2048)
 
@@ -128,17 +128,17 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 
     #=============================================================================
-    # 2부: 때 갈래(움직임)
+    # 2부: 때 클래스(액션)
     #=============================================================================
 
     class TemporalStream(nn.Module):
         """
-        움직임 앎을 위한 때 갈래 누비기 신경망.
+        액션 앎을 위한 때 클래스 컨볼루션 뉴럴 넷트웍.
 
         빛 흐름을 다뤄 다음을 담아낸다:
-        - 움직임 무늬
+        - 액션 무늬
         - 빠르기와 방향
-        - 때에 걸친 움직임
+        - 때에 걸친 액션
 
         들임: 잇단 빛 흐름 마당 L개의 쌓기
         """
@@ -148,10 +148,10 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      flow_length: int = 10,
                      dropout: float = 0.5):
             """
-            때 갈래를 첫자리매김한다.
+            때 클래스를 첫자리매김한다.
 
             인수:
-                num_classes: 몸짓 갈래의 개수
+                num_classes: 몸짓 클래스의 개수
                 flow_length: 쌓을 흐름 마당의 개수(L)
                 dropout: 드롭아웃 확률
             """
@@ -166,7 +166,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
             # 들임 채널을 달리해 고친 ResNet
             resnet = models.resnet50(pretrained=False)
 
-            # 2*L 채널을 받도록 첫 누비기 층 갈음
+            # 2*L 채널을 받도록 첫 컨볼루션 레이어 갈음
             self.conv1 = nn.Conv2d(
                 input_channels,  # 3 대신 2*L채널
                 64,
@@ -176,7 +176,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                 bias=False
             )
 
-            # 남은 층 베끼기
+            # 남은 레이어 베끼기
             self.bn1 = resnet.bn1
             self.relu = resnet.relu
             self.maxpool = resnet.maxpool
@@ -194,7 +194,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
         def forward(self, flow: torch.Tensor) -> torch.Tensor:
             """
-            때 갈래를 지나는 앞먹임.
+            때 클래스를 지나는 피드포워드.
 
             인수:
                 flow: 빛 흐름 쌓기 (B, 2*L, H, W)
@@ -202,9 +202,9 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                       잇단 흐름 L개를 쌓는다
 
             반환값:
-                갈래 점수 (B, num_classes)
+                클래스 점수 (B, num_classes)
             """
-            # 그물에 통과시키기
+            # 넷트웍에 통과시키기
             x = self.conv1(flow)
             x = self.bn1(x)
             x = self.relu(x)
@@ -225,14 +225,14 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 
     #=============================================================================
-    # 3부: 두 갈래 녹여 붙이기
+    # 3부: 두 클래스 녹여 붙이기
     #=============================================================================
 
     class TwoStreamNetwork(nn.Module):
         """
-        녹여 붙이기를 갖춘 온전한 두 갈래 그물.
+        녹여 붙이기를 갖춘 온전한 두 클래스 넷트웍.
 
-        몸짓 알아보기를 위해 자리 갈래와 때 갈래를 아우른다.
+        몸짓 알아보기를 위해 자리 클래스와 때 클래스를 아우른다.
 
         녹여 붙이기 전략:
             1. 늦은 녹여 붙이기(고루내기): p = (p_자리 + p_때) / 2
@@ -245,10 +245,10 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      flow_length: int = 10,
                      fusion_type: str = 'average'):
             """
-            두 갈래 그물을 첫자리매김한다.
+            두 클래스 넷트웍을 첫자리매김한다.
 
             인수:
-                num_classes: 몸짓 갈래의 개수
+                num_classes: 몸짓 클래스의 개수
                 flow_length: 빛 흐름 마당의 개수
                 fusion_type: 'average', 'weighted', 또는 'learned'
             """
@@ -256,18 +256,18 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
             self.fusion_type = fusion_type
 
-            # 자리 갈래와 때 갈래
+            # 자리 클래스와 때 클래스
             self.spatial_stream = SpatialStream(num_classes=num_classes)
             self.temporal_stream = TemporalStream(
                 num_classes=num_classes,
                 flow_length=flow_length
             )
 
-            # 무게를 준 녹여 붙이기 매개변수
+            # 무게를 준 녹여 붙이기 파라메터
             if fusion_type == 'weighted':
                 self.fusion_weight = nn.Parameter(torch.tensor(0.5))
 
-            # 배운 녹여 붙이기 그물
+            # 배운 녹여 붙이기 넷트웍
             elif fusion_type == 'learned':
                 self.fusion_net = nn.Sequential(
                     nn.Linear(num_classes * 2, 512),
@@ -281,18 +281,18 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                     flow: torch.Tensor,
                     return_separate: bool = False) -> torch.Tensor:
             """
-            두 갈래 그물을 지나는 앞먹임.
+            두 클래스 넷트웍을 지나는 피드포워드.
 
             인수:
                 rgb: RGB 틀 (B, 3, H, W) 또는 (B, T, 3, H, W)
                 flow: 빛 흐름 쌓기 (B, 2*L, H, W)
-                return_separate: 갈래별 내놓음을 돌려줄지 여부
+                return_separate: 클래스별 내놓음을 돌려줄지 여부
 
             반환값:
-                녹여 붙인 갈래 점수 (B, num_classes)
+                녹여 붙인 클래스 점수 (B, num_classes)
                 return_separate=True이면 (녹여 붙임, 자리, 때) 튜플
             """
-            # 두 갈래에서 어림 얻기
+            # 두 클래스에서 어림 얻기
             spatial_logits = self.spatial_stream(rgb)
             temporal_logits = self.temporal_stream(flow)
 
@@ -361,7 +361,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                 next_gray,
                 None,
                 pyr_scale=0.5,  # 피라미드 잣수
-                levels=3,        # 피라미드 층 수
+                levels=3,        # 피라미드 레이어 수
                 winsize=15,      # 창 크기
                 iterations=3,    # 피라미드 켜마다의 되풀이 횟수
                 poly_n=5,        # 다항식 펼침 차수
@@ -427,7 +427,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
     def demonstrate_two_stream():
         """
-        두 갈래 그물 구조와 녹여 붙이기를 보여 준다.
+        두 클래스 넷트웍 구조와 녹여 붙이기를 보여 준다.
         """
         print("\n" + "="*80)
         print("TWO-STREAM NETWORK DEMONSTRATION")
@@ -461,7 +461,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                 fusion_type=fusion_type
             )
 
-            # 매개변수 개수 세기
+            # 파라메터 개수 세기
             params = sum(p.numel() for p in model.parameters())
             print(f"   Total parameters: {params:,}")
 
@@ -503,37 +503,37 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
         print("KEY TAKEAWAYS")
         print("="*80)
         print("""
-        1. 두 갈래 구조:
-           - 자리 갈래: 겉모습을 위해 RGB를 다룬다
-           - 때 갈래: 움직임을 위해 빛 흐름을 다룬다
+        1. 두 클래스 구조:
+           - 자리 클래스: 겉모습을 위해 RGB를 다룬다
+           - 때 클래스: 액션을 위해 빛 흐름을 다룬다
            - 서로 채워 주는 앎 → 더 나은 성능
 
         2. 빛 흐름:
-           - 틀 사이의 움직임 앎을 담아낸다
-           - (u, v) 성분이 가로와 세로 움직임을 담는다
+           - 틀 사이의 액션 앎을 담아낸다
+           - (u, v) 성분이 가로와 세로 액션을 담는다
            - 파르네베크: 다항식 펼침을 쓴 촘촘한 빛 흐름
 
         3. 녹여 붙이기 전략:
            - 고루내기: 단순하지만 잘 된다(무게가 같음)
            - 무게: 배울 수 있는 녹여 붙이기 무게 α
-           - 배움: 다층 퍼셉트론이 가장 좋은 아우름을 배운다
+           - 러닝: 다층 퍼셉트론이 가장 좋은 아우름을 배운다
 
         4. 성능에서 얻은 눈썰미:
-           - 두 갈래 >> RGB 한 갈래(지난 결과들)
+           - 두 클래스 >> RGB 한 클래스(지난 결과들)
            - 몸짓 알아보기에서 정확도 약 10~15% 나아짐
-           - 때 갈래는 누비기 신경망이 틀 하나에서 얻지 못하는 것을 담아낸다
+           - 때 클래스는 컨볼루션 뉴럴 넷트웍이 틀 하나에서 얻지 못하는 것을 담아낸다
 
         5. 실전에서 헤아릴 점:
            - 빛 흐름은 셈하기에 값이 비싸다
            - 흐름을 미리 셈해 두어야 한다
-           - 모델 둘 → 매개변수와 셈이 2배
-           - 요즘의 대안: 3차원 누비기 신경망, 영상 변환기
+           - 모델 둘 → 파라메터와 셈이 2배
+           - 요즘의 대안: 3차원 컨볼루션 뉴럴 넷트웍, 영상 변환기
         """)
 
 
     def main():
         """
-        두 갈래 그물의 주된 보임.
+        두 클래스 넷트웍의 주된 보임.
         """
         print(__doc__)
 
@@ -552,13 +552,13 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 ## 2. RGB 가지와 프레임별 예측
 
-`SpatialStream`은 ImageNet 사전 학습 ResNet-50의 분류 층을 제거하고 새 K클래스 head를 붙인다. backbone을 사전 학습했다는 사실과 새 행동 분류 head가 학습되었다는 것은 다르다. 가중치의 RGB 정규화·입력 분포를 맞춰야 하며 `pretrained`는 과거 API 형식이므로 설치 버전과 호환성을 확인한다.
+`SpatialStream`은 ImageNet 사전 학습 ResNet-50의 분류 레이어를 제거하고 새 K클래스 head를 붙인다. backbone을 사전 학습했다는 사실과 새 액션 분류 head가 학습되었다는 것은 다르다. 웨이트의 RGB 정규화·입력 분포를 맞춰야 하며 `pretrained`는 과거 API 형식이므로 설치 버전과 호환성을 확인한다.
 
-4차원 입력은 B×3×H×W이고, 5차원은 **B×T×3×H×W**다. 프레임별 2048차원 특징에서 로짓을 만든 뒤 시간 평균을 낸다. Conv3d의 B×C×T×H×W와 축 순서가 다르다. 이 평균은 시간 순서에 민감한 모형이 아니므로 프레임을 재배열해도 eval 모드의 결과는 같다. 학습 중 BN·dropout과 같은 확률적·배치 효과는 따로 고려한다.
+4차원 입력은 B×3×H×W이고, 5차원은 **B×T×3×H×W**다. 프레임별 2048차원 피처에서 로짓을 만든 뒤 시간 평균을 낸다. Conv3d의 B×C×T×H×W와 축 순서가 다르다. 이 평균은 시간 순서에 민감한 모형이 아니므로 프레임을 재배열해도 eval 모드의 결과는 같다. 학습 중 BN·dropout과 같은 확률적·배치 효과는 따로 고려한다.
 
 ## 3. 흐름 스택과 시간 가지
 
-L개의 연속 프레임 쌍의 수평·수직 flow를 연결하면 B×2L×H×W다. 기본 L=10이면 20채널을 받아야 하며 원본은 적어도 11프레임이 필요하다. `TemporalStream`은 첫 합성곱을 이 채널 수에 맞추고, ResNet 본체도 pretrained=False로 시작한다. RGB와 달리 시간 가지는 사전 학습 가중치를 사용하지 않는다.
+L개의 연속 프레임 쌍의 수평·수직 flow를 연결하면 B×2L×H×W다. 기본 L=10이면 20채널을 받아야 하며 원본은 적어도 11프레임이 필요하다. `TemporalStream`은 첫 컨볼루션을 이 채널 수에 맞추고, ResNet 본체도 pretrained=False로 시작한다. RGB와 달리 시간 가지는 사전 학습 웨이트를 사용하지 않는다.
 
 `extract_flow_stack`은 BTCHW의 처음 L개 쌍만 사용하고 뒤 프레임은 사용하지 않는다. 각 프레임을 CPU NumPy로 옮겨 Farnebäck를 계산한 뒤 flow를 CPU float32 텐서로 반환한다. 이 과정은 원래 RGB에 대한 미분 가능한 경로가 아니며 GPU 모델에 넣으려면 장치도 맞춰야 한다. 입력이 requires_grad이면 detach 없이 .numpy()를 호출하는 문제도 남는다.
 
@@ -572,9 +572,9 @@ flow 계산 함수는 0~1 RGB 또는 grayscale을 가정해 255를 곱한다. �
 
 ## 5. 시연 결과와 실제 비용
 
-시연은 무작위 RGB·flow 입력에 새 행동 head의 출력을 계산할 뿐 행동 인식 학습이나 검증을 하지 않는다. 실제 프레임의 flow도 추출하지 않는다. 따라서 top3 값이나 요약 문구의 10~15% 개선을 이 코드의 실험 결과로 인용할 수 없다. 세 fusion 모델도 각각 새로 초기화되어 결합 방식만 통제한 성능 비교가 아니다.
+시연은 무작위 RGB·flow 입력에 새 액션 head의 출력을 계산할 뿐 액션 인식 학습이나 검증을 하지 않는다. 실제 프레임의 flow도 추출하지 않는다. 따라서 top3 값이나 요약 문구의 10~15% 개선을 이 코드의 실험 결과로 인용할 수 없다. 세 fusion 모델도 각각 새로 초기화되어 결합 방식만 통제한 성능 비교가 아니다.
 
-두 가지 backbone과 추가 head·flow 계산 때문에 비용이 늘지만 모든 설정에서 정확히 두 배는 아니다. 시간 가지의 입력 채널과 결합 방식도 매개변수 수를 바꾼다. flow를 미리 저장하면 학습 시 추정 비용을 줄일 수 있으나 저장·전처리·배포 비용은 남는다. RGB·flow 시간 구간과 crop 좌표의 정렬도 필수다.
+두 가지 backbone과 추가 head·flow 계산 때문에 비용이 늘지만 모든 설정에서 정확히 두 배는 아니다. 시간 가지의 입력 채널과 결합 방식도 파라메터 수를 바꾼다. flow를 미리 저장하면 학습 시 추정 비용을 줄일 수 있으나 저장·전처리·배포 비용은 남는다. RGB·flow 시간 구간과 crop 좌표의 정렬도 필수다.
 
 ## 연습문제
 
@@ -587,7 +587,7 @@ flow 계산 함수는 0~1 RGB 또는 grayscale을 가정해 255를 곱한다. �
 
 ??? success "연습문제 1 풀이"
 
-    ResNet-50 stem 합성곱 뒤4×64×32×32, 최대 풀링 뒤4×64×16×16, 단계별4×256×16×16·4×512×8×8·4×1024×4×4·4×2048×2×2다. 전역 풀링 후4×2048을 새 선형 head에 넣어 기본4×400 로짓을 얻는다.
+    ResNet-50 stem 컨볼루션 뒤4×64×32×32, 최대 풀링 뒤4×64×16×16, 단계별4×256×16×16·4×512×8×8·4×1024×4×4·4×2048×2×2다. 전역 풀링 후4×2048을 새 선형 head에 넣어 기본4×400 로짓을 얻는다.
 
 
 
@@ -617,7 +617,7 @@ weighted fusion이 처음부터 두 가지를 반씩 반영하는가? 확률 평
 
 ??? success "연습문제 3 풀이"
 
-    초기 매개변수가0.5라 sigmoid0.5≈0.622이 RGB 로짓의 가중치다. 로짓 가중 평균 뒤 softmax는 확률 가중 평균과 다르다. 반반 로짓 결합에는 α=0.5에 대응하는 매개변수0이 필요하다.
+    초기 파라메터가0.5라 sigmoid0.5≈0.622이 RGB 로짓의 웨이트다. 로짓 가중 평균 뒤 softmax는 확률 가중 평균과 다르다. 반반 로짓 결합에는 α=0.5에 대응하는 파라메터0이 필요하다.
 
 
 
@@ -632,7 +632,7 @@ weighted fusion이 처음부터 두 가지를 반씩 반영하는가? 확률 평
 
 ??? success "연습문제 4 풀이"
 
-    YourBlock 정의와 각 backbone 채널·stride를 맞추는 것 외에 흐름 스택의 순서·RGB 구간 정렬·입력 정규화·분류 학습이 필요하다. RGB 시간 평균만으로 순서 모델링이 추가되지는 않는다. 무작위 입력의 모양 확인은 행동 인식 평가가 아니다.
+    YourBlock 정의와 각 backbone 채널·stride를 맞추는 것 외에 흐름 스택의 순서·RGB 구간 정렬·입력 정규화·분류 학습이 필요하다. RGB 시간 평균만으로 순서 모델링이 추가되지는 않는다. 무작위 입력의 모양 확인은 액션 인식 평가가 아니다.
 
     ```python
     self.layers = nn.ModuleList()

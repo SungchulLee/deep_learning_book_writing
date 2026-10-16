@@ -1,6 +1,6 @@
 # 인코더
 
-입력 토큰열을 위치별 표현과 최종 상태로 바꾸는 인코더 예제다. BasicEncoder는 LSTM·GRU 중 하나를 사용하고 ConvEncoder는 1차원 합성곱을 사용한다. 두 클래스는 대안이며 함께 연결되어 하나의 모델을 이루지는 않는다.
+입력 토큰열을 위치별 표현과 최종 상태로 바꾸는 인코더 예제다. BasicEncoder는 LSTM·GRU 중 하나를 사용하고 ConvEncoder는 1차원 컨볼루션을 사용한다. 두 클래스는 대안이며 함께 연결되어 하나의 모델을 이루지는 않는다.
 
 ## 1. 코드
 
@@ -26,7 +26,7 @@ class BasicEncoder(nn.Module):
         input_size: 입력 어휘의 크기
         embedding_dim: 낱말 임베딩의 차원
         hidden_size: 숨은 상태의 크기
-        num_layers: 순환 층의 수
+        num_layers: 순환 레이어의 수
         dropout: 드롭아웃 확률
         bidirectional: 양방향 RNN을 쓸지 여부
         rnn_type: RNN의 종류 ('LSTM' 또는 'GRU')
@@ -43,13 +43,13 @@ class BasicEncoder(nn.Module):
         self.bidirectional = bidirectional
         self.rnn_type = rnn_type
         
-        # 임베딩 층
+        # 임베딩 레이어
         self.embedding = nn.Embedding(input_size, embedding_dim)
         
-        # 드롭아웃 층
+        # 드롭아웃 레이어
         self.dropout = nn.Dropout(dropout)
         
-        # RNN 층
+        # RNN 레이어
         if rnn_type == 'LSTM':
             self.rnn = nn.LSTM(
                 embedding_dim,
@@ -130,8 +130,8 @@ class BasicEncoder(nn.Module):
 
 class ConvEncoder(nn.Module):
     """
-    Seq2Seq 모델을 위한 합성곱 인코더
-    순차열 부호화에 1차원 합성곱을 쓴다
+    Seq2Seq 모델을 위한 컨볼루션 인코더
+    순차열 부호화에 1차원 컨볼루션을 쓴다
     """
     
     def __init__(self, input_size, embedding_dim, hidden_size, 
@@ -141,7 +141,7 @@ class ConvEncoder(nn.Module):
         self.embedding = nn.Embedding(input_size, embedding_dim)
         self.dropout = nn.Dropout(dropout)
         
-        # 합성곱 층
+        # 컨볼루션 레이어
         conv_layers = []
         in_channels = embedding_dim
         
@@ -157,7 +157,7 @@ class ConvEncoder(nn.Module):
         
     def forward(self, input_seq):
         """
-        합성곱 인코더를 지나는 순전파
+        컨볼루션 인코더를 지나는 순전파
         
         인수:
             input_seq: 입력 순차열 (배치 크기, seq_len)
@@ -170,7 +170,7 @@ class ConvEncoder(nn.Module):
         embedded = self.dropout(embedded)
         embedded = embedded.transpose(1, 2)  # (배치, embed_dim, seq_len)
         
-        # 합성곱 적용
+        # 컨볼루션 적용
         outputs = self.conv_layers(embedded)  # (배치, hidden_size, seq_len)
         outputs = outputs.transpose(1, 2)  # (배치, seq_len, hidden_size)
         
@@ -223,9 +223,9 @@ Cell shape: torch.Size([2, 32, 1024])
 
 BasicEncoder는 $(B,S)$의 정수 ID를 임베딩한다. 실제 길이를 주면 pack_padded_sequence로 패딩을 제외해 순환 계산하고 다시 텐서로 푼다. 길이는 양수이고 입력 길이 이하여야 한다. 풀 때 total_length를 지정하지 않아 출력 길이는 배치의 실제 최대 길이가 되며 원래 패딩 폭과 다를 수 있다.
 
-양방향 출력은 특징 축에 두 방향이 이미 이어져 있다. 최종 은닉·셀 상태도 층별로 두 방향을 이어 붙여 $(L,B,2H)$로 바꾼다. 기본 내장 모듈의 $(2L,B,H)$와 다른 반환 규약이므로 디코더에 전달할 때 맞춰야 한다. GRU에서는 셀 상태가 None이다.
+양방향 출력은 피처 축에 두 방향이 이미 이어져 있다. 최종 은닉·셀 상태도 레이어별로 두 방향을 이어 붙여 $(L,B,2H)$로 바꾼다. 기본 내장 모듈의 $(2L,B,H)$와 다른 반환 규약이므로 디코더에 전달할 때 맞춰야 한다. GRU에서는 셀 상태가 None이다.
 
-ConvEncoder는 임베딩 축을 채널로 바꾸어 Conv1d를 적용한다. 기본 홀수 커널에서는 길이가 유지되지만 짝수 커널과 padding=k//2에서는 층마다 길이가 하나 늘 수 있다. 최종 상태를 반환하지 않아 순환 디코더의 초기 상태를 별도로 구성해야 한다. 길이 마스크도 받지 않으므로 PAD가 유효 위치의 합성곱 결과에 영향을 줄 수 있다.
+ConvEncoder는 임베딩 축을 채널로 바꾸어 Conv1d를 적용한다. 기본 홀수 커널에서는 길이가 유지되지만 짝수 커널과 padding=k//2에서는 레이어마다 길이가 하나 늘 수 있다. 최종 상태를 반환하지 않아 순환 디코더의 초기 상태를 별도로 구성해야 한다. 길이 마스크도 받지 않으므로 PAD가 유효 위치의 컨볼루션 결과에 영향을 줄 수 있다.
 
 ## 연습문제
 
@@ -249,7 +249,7 @@ packed 출력과 원래 패딩 폭이 다르면 후속 어텐션에서 무엇을
 </div>
 
 ??? success "연습문제 2 풀이"
-    어텐션 마스크의 길이와 인코더 출력의 위치 수를 맞춰야 한다. 풀 때 원래 전체 길이를 지정하거나 실제 출력 폭에 맞춰 마스크를 구성한다. 양방향 상태의 특징 차원과 디코더 차원도 확인한다.
+    어텐션 마스크의 길이와 인코더 출력의 위치 수를 맞춰야 한다. 풀 때 원래 전체 길이를 지정하거나 실제 출력 폭에 맞춰 마스크를 구성한다. 양방향 상태의 피처 차원과 디코더 차원도 확인한다.
 
 ---
 
@@ -261,7 +261,7 @@ ConvEncoder를 BasicEncoder 대신 사용할 때 필요한 연결 설계를 설�
 </div>
 
 ??? success "연습문제 3 풀이"
-    위치별 출력의 특징 차원을 디코더·어텐션에 맞춘다. 반환 은닉·셀 상태가 None이므로 풀링·투영이나 별도 초기 상태를 설계한다. 패딩 마스크와 합성곱의 가장자리·길이 변화를 함께 처리한다.
+    위치별 출력의 피처 차원을 디코더·어텐션에 맞춘다. 반환 은닉·셀 상태가 None이므로 풀링·투영이나 별도 초기 상태를 설계한다. 패딩 마스크와 컨볼루션의 가장자리·길이 변화를 함께 처리한다.
 
 ---
 
@@ -279,7 +279,7 @@ ConvEncoder를 BasicEncoder 대신 사용할 때 필요한 연결 설계를 설�
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

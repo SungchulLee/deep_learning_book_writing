@@ -6,16 +6,16 @@
 
 ```python
 """
-초매개변수 조율을 위한 베이즈 최적화
+초파라메터 조율을 위한 베이즈 최적화
 
-베이즈 최적화는 확률 모형으로 최적의 초매개변수를 찾는 탐색을 이끈다.
+베이즈 최적화는 확률 모형으로 최적의 초파라메터를 찾는 탐색을 이끈다.
 목적 함수의 대리 모델을 세우고 그것으로 다음에 어디를 뽑을지 정한다.
 
 
 장점:
 - 평가가 비쌀 때 무작위 탐색보다 효율적이다
 - 앞선 반복에서 배운다
-- 더 적은 평가로 더 좋은 매개변수를 찾을 수 있다
+- 더 적은 평가로 더 좋은 파라메터를 찾을 수 있다
 - 잡음이 있는 목적 함수를 잘 다룬다
 
 단점:
@@ -24,7 +24,7 @@
 - 국소 최적에 갇힐 수 있다
 - 추가 라이브러리가 필요하다 (예: Optuna, scikit-optimize)
 
-이 예제는 요즘의 초매개변수 최적화 틀인 Optuna를 쓴다.
+이 예제는 요즘의 초파라메터 최적화 틀인 Optuna를 쓴다.
 """
 
 import numpy as np
@@ -71,16 +71,16 @@ def bayesian_optimization_rf():
         """
         Optuna가 최적화할 목적 함수
         
-        매개변수:
+        파라메터:
         -----------
         trial : optuna.Trial
-            매개변수 값을 제안하는 시도 객체
+            파라메터 값을 제안하는 시도 객체
             
         반환값:
         --------
         float : 최대로 하려는 교차 검증 점수
         """
-        # 초매개변수 제안
+        # 초파라메터 제안
         params = {
             'n_estimators': trial.suggest_int('n_estimators', 50, 500),
             'max_depth': trial.suggest_int('max_depth', 3, 50),
@@ -116,11 +116,11 @@ def bayesian_optimization_rf():
     study.optimize(objective, n_trials=n_trials, callbacks=[callback], show_progress_bar=False)
     search_time = time.time() - start_time
     
-    # 가장 좋은 매개변수 얻기
+    # 가장 좋은 파라메터 얻기
     best_params = study.best_params
     best_score = study.best_value
     
-    # 가장 좋은 매개변수로 최종 모델 학습
+    # 가장 좋은 파라메터로 최종 모델 학습
     best_rf = RandomForestClassifier(**best_params, random_state=42, n_jobs=-1)
     best_rf.fit(X_train, y_train)
     test_score = best_rf.score(X_test, y_test)
@@ -153,7 +153,7 @@ def bayesian_optimization_rf():
         fig = plot_optimization_history(study)
         fig.show()
         
-        # 매개변수 중요도 그리기
+        # 파라메터 중요도 그리기
         fig = plot_param_importances(study)
         fig.show()
         

@@ -1,10 +1,10 @@
-# 어댑터 층
+# 어댑터 레이어
 
-[어댑터](https://arxiv.org/abs/1902.00751)는 사전 학습 모델의 표현에 작은 학습 모듈을 추가하는 파라미터 효율적 전이 방법이다. 기반을 공유하면서 과제별 추가 가중치를 저장할 수 있다. 삽입 위치·학습 범위·추론 비용은 구현에 따라 다르며, 작은 모듈을 선언하는 것만으로 기반 동결이나 과제 수행이 완성되지는 않는다.
+[어댑터](https://arxiv.org/abs/1902.00751)는 사전 학습 모델의 표현에 작은 학습 모듈을 추가하는 파라미터 효율적 전이 방법이다. 기반을 공유하면서 과제별 추가 웨이트를 저장할 수 있다. 삽입 위치·학습 범위·추론 비용은 구현에 따라 다르며, 작은 모듈을 선언하는 것만으로 기반 동결이나 과제 수행이 완성되지는 않는다.
 
 ## 1. 병목과 잔차
 
-차원 d의 입력을 병목 r로 줄이고 비선형 변환 후 d로 복원해 입력에 더한다. 편향을 포함한 한 어댑터의 매개변수는 2dr+r+d다. 층마다 두 개씩 L층에 넣으면 2L(2dr+r+d)지만 head·정규화 추가 학습은 별도로 센다.
+차원 d의 입력을 병목 r로 줄이고 비선형 변환 후 d로 복원해 입력에 더한다. 바이어스를 포함한 한 어댑터의 파라메터는 2dr+r+d다. 레이어마다 두 개씩 L레이어에 넣으면 2L(2dr+r+d)지만 head·정규화 추가 학습은 별도로 센다.
 
 ```python
 import torch
@@ -18,7 +18,7 @@ class Adapter(nn.Module):
     인수:
         input_dim: 들임/내놓기 차원(모델의 숨은 크기)
         bottleneck_dim: 병목 차원(보통 64~256)
-        activation: 활성화 함수
+        activation: 엑티베이션 함수
         init_scale: 내놓기 쏘기 첫자리매김의 잣수
     """
     
@@ -65,7 +65,7 @@ class Adapter(nn.Module):
         nn.init.zeros_(self.up_proj.bias)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """잔차 이음을 쓴 앞먹임."""
+        """잔차 이음을 쓴 피드포워드."""
         down = self.down_proj(x)
         activated = self.activation(down)
         activated = self.dropout(activated)
@@ -100,10 +100,10 @@ d=768, r=64이면 한 모듈 99,136개, L=12에 두 개씩이면 2,379,264개다
 ```python
 class SerialAdapterTransformerLayer(nn.Module):
     """
-    밑층마다 뒤에 맞춤개를 잇달아 둔 변환기 층.
+    밑레이어마다 뒤에 맞춤개를 잇달아 둔 변환기 레이어.
     
     구조:
-        x → 어텐션 → 맞춤개 → 더하고 고르게 → 앞먹임 그물 → 맞춤개 → 더하고 고르게
+        x → 어텐션 → 맞춤개 → 더하고 고르게 → 피드포워드 넷트웍 → 맞춤개 → 더하고 고르게
     """
     
     def __init__(
@@ -145,7 +145,7 @@ class SerialAdapterTransformerLayer(nn.Module):
         attn_out = self.adapter_attn(attn_out)
         x = self.norm1(x + self.dropout(attn_out))
         
-        # 앞먹임 그물 + 맞춤개
+        # 피드포워드 넷트웍 + 맞춤개
         ffn_out = self.ffn(x)
         ffn_out = self.adapter_ffn(ffn_out)
         x = self.norm2(x + ffn_out)
@@ -153,7 +153,7 @@ class SerialAdapterTransformerLayer(nn.Module):
         return x
 ```
 
-SerialAdapterTransformerLayer는 어텐션·FFN의 출력에 어댑터를 적용하고 외부 잔차·LayerNorm으로 연결한다. 새로운 트랜스포머 층을 만드는 예이며 기존 사전 학습 가중치를 이식하거나 기반을 동결하지 않는다. 원 논문의 모든 세부·학습 정책을 그대로 재현하는 클래스도 아니다.
+SerialAdapterTransformerLayer는 어텐션·FFN의 출력에 어댑터를 적용하고 외부 잔차·LayerNorm으로 연결한다. 새로운 트랜스포머 레이어를 만드는 예이며 기존 사전 학습 웨이트를 이식하거나 기반을 동결하지 않는다. 원 논문의 모든 세부·학습 폴리시를 그대로 재현하는 클래스도 아니다.
 
 attention_mask는 nn.MultiheadAttention의 key_padding_mask로 전달하므로 bool True가 무시할 위치다. Hugging Face의 1=유효 토큰 마스크를 그대로 넘기는 계약과 다르다. 인과 마스크가 없어 양방향 인코더 형태이며 자기회귀 모델에 그대로 쓰면 미래 토큰을 볼 수 있다.
 
@@ -162,9 +162,9 @@ attention_mask는 nn.MultiheadAttention의 key_padding_mask로 전달하므로 b
 ```python
 class ParallelAdapterTransformerLayer(nn.Module):
     """
-    나란한 맞춤개를 둔 변환기 층.
+    나란한 맞춤개를 둔 변환기 레이어.
     
-    맞춤개가 밑층 뒤가 아니라 밑층과 나란히 돈다.
+    맞춤개가 밑레이어 뒤가 아니라 밑레이어와 나란히 돈다.
     """
     
     def __init__(
@@ -207,7 +207,7 @@ class ParallelAdapterTransformerLayer(nn.Module):
         adapter_out = self.adapter_attn(x) - x  # 남는 이음을 뺀다
         x = self.norm1(x + self.dropout(attn_out) + self.adapter_scale * adapter_out)
         
-        # 나란히: 맞춤개와 앞먹임 그물이 모두 x를 받는다
+        # 나란히: 맞춤개와 피드포워드 넷트웍이 모두 x를 받는다
         ffn_out = self.ffn(x)
         adapter_out = self.adapter_ffn(x) - x
         x = self.norm2(x + ffn_out + self.adapter_scale * adapter_out)
@@ -215,11 +215,11 @@ class ParallelAdapterTransformerLayer(nn.Module):
         return x
 ```
 
-ParallelAdapterTransformerLayer는 서브층과 나란히 입력에 대한 어댑터 갱신을 계산한다. Adapter 자체가 입력 잔차를 포함하므로 adapter(x)−x를 사용해 갱신만 더한다. 직렬과 병렬은 적용하는 표현·계산 경로가 다르며 어느 쪽이 항상 빠르거나 정확하다고 단정하지 않는다. 실제 효과는 삽입 위치·병목·드롭아웃·실행 환경에서 비교한다.
+ParallelAdapterTransformerLayer는 서브레이어와 나란히 입력에 대한 어댑터 갱신을 계산한다. Adapter 자체가 입력 잔차를 포함하므로 adapter(x)−x를 사용해 갱신만 더한다. 직렬과 병렬은 적용하는 표현·계산 경로가 다르며 어느 쪽이 항상 빠르거나 정확하다고 단정하지 않는다. 실제 효과는 삽입 위치·병목·드롭아웃·실행 환경에서 비교한다.
 
 ## 4. 여러 어댑터의 결합
 
-[AdapterFusion](https://aclanthology.org/2021.eacl-main.39/)은 여러 과제로 학습한 어댑터의 정보를 결합하는 접근이다. 다음 코드는 입력별 어댑터 갱신에 어텐션 가중치를 주는 단순화된 모듈이다.
+[AdapterFusion](https://aclanthology.org/2021.eacl-main.39/)은 여러 과제로 학습한 어댑터의 정보를 결합하는 접근이다. 다음 코드는 입력별 어댑터 갱신에 어텐션 웨이트를 주는 단순화된 모듈이다.
 
 ```python
 class AdapterFusion(nn.Module):
@@ -280,7 +280,7 @@ class AdapterFusion(nn.Module):
 
 어댑터들은 동결하고 query·key·value 사영과 temperature를 학습한다. 하지만 requires_grad=False는 dropout을 eval로 바꾸지 않으므로 고정 어댑터도 train 모드에서 무작위 출력을 낼 수 있다. temperature는 제약 없는 Parameter여서 0이나 음수가 될 수 있고 빈 어댑터 목록도 처리하지 않는다.
 
-가중치의 소프트맥스 합이 1이어도 value 사영과 bias를 거친 결과가 원래 입력과 같다는 보장은 없다. 모든 어댑터 갱신이 0이어도 value bias가 남을 수 있다. 기반·과제 어댑터·fusion의 학습 단계와 모드를 실제로 분리해야 한다.
+웨이트의 소프트맥스 합이 1이어도 value 사영과 bias를 거친 결과가 원래 입력과 같다는 보장은 없다. 모든 어댑터 갱신이 0이어도 value bias가 남을 수 있다. 기반·과제 어댑터·fusion의 학습 단계와 모드를 실제로 분리해야 한다.
 
 ## 5. 과제별 모듈 선택
 
@@ -333,9 +333,9 @@ class MultiTaskAdapterModel(nn.Module):
         return self.adapters[task](hidden)
 ```
 
-MultiTaskAdapterModel은 기반 출력 뒤에 과제별 어댑터 하나를 붙인다. 모든 트랜스포머 층 내부에 과제별 어댑터를 삽입하는 모델이 아니다. base_model(x)가 바로 텐서를 반환한다고 가정하므로 Hugging Face 출력 객체에는 그대로 맞지 않는다. 과제별 분류 head·손실도 없다.
+MultiTaskAdapterModel은 기반 출력 뒤에 과제별 어댑터 하나를 붙인다. 모든 트랜스포머 레이어 내부에 과제별 어댑터를 삽입하는 모델이 아니다. base_model(x)가 바로 텐서를 반환한다고 가정하므로 Hugging Face 출력 객체에는 그대로 맞지 않는다. 과제별 분류 head·로스도 없다.
 
-set_task는 과제별 requires_grad를 바꾸지만 forward(task=...)만 호출하면 그 전환을 수행하지 않는다. 현재 활성 과제와 실제 경사 대상이 다를 수 있어 학습·선택을 일치시켜야 한다. 기반 가중치를 동결해도 train 모드의 dropout과 상태 버퍼 갱신까지 막는 것은 아니다.
+set_task는 과제별 requires_grad를 바꾸지만 forward(task=...)만 호출하면 그 전환을 수행하지 않는다. 현재 활성 과제와 실제 경사 대상이 다를 수 있어 학습·선택을 일치시켜야 한다. 기반 웨이트를 동결해도 train 모드의 dropout과 상태 버퍼 갱신까지 막는 것은 아니다.
 
 ## 6. 학습 함수와 저장 범위
 
@@ -363,7 +363,7 @@ def train_with_adapters(
         for batch in train_loader:
             batch = {k: v.to(device) for k, v in batch.items()}
             
-            # 바탕 + 맞춤개를 지나 앞먹임한다
+            # 바탕 + 맞춤개를 지나 피드포워드한다
             with torch.no_grad():
                 hidden = base_model(**batch).last_hidden_state
             output = adapter(hidden)
@@ -391,22 +391,22 @@ def load_adapter(adapter: nn.Module, path: str):
 
 train_with_adapters는 기반의 마지막 표현을 no_grad로 얻고 그 뒤 어댑터만 학습하려는 예다. compute_loss가 정의되지 않았고 과제 head도 없어 완성된 학습 함수가 아니다. 기반 모델의 장치·eval 모드 설정도 없고 batch 전체에 labels를 포함해 넘기므로 encoder의 지원 인자와 맞지 않을 수 있다.
 
-이런 마지막 어댑터는 기반 전체 no_grad로 학습할 수 있지만 중간 층에 학습 모듈을 삽입한 모델은 뒤쪽 기반 연산을 통해 경사를 전달해야 한다. 동결과 계산 그래프 제외를 혼동하지 않는다. 빈 loader·손실 집계·검증·최적 체크포인트와 재개 상태도 별도로 구성해야 한다.
+이런 마지막 어댑터는 기반 전체 no_grad로 학습할 수 있지만 중간 레이어에 학습 모듈을 삽입한 모델은 뒤쪽 기반 연산을 통해 경사를 전달해야 한다. 동결과 계산 그래프 제외를 혼동하지 않는다. 빈 loader·로스 집계·검증·최적 체크포인트와 재개 상태도 별도로 구성해야 한다.
 
 저장 함수는 어댑터의 state_dict만 기록한다. 기반 버전·차원·활성화·삽입 위치·head·레이블과 기타 설정은 별도로 보존해야 한다. 기존 코드의 학습·저장 함수를 이번 편집에서 실행하지 않았다.
 
 ## 7. 비용과 방법 선택
 
-어댑터는 비선형 층을 추가하므로 일반적으로 단일 기반 행렬에 합칠 수 없다. LoRA는 조건이 맞는 선형 갱신을 병합할 수 있고 prefix 방식은 어텐션의 추가 문맥을 사용한다. 매개변수 비율·추론 지연·전체 학습 메모리는 구조·길이·배치·dtype에 따라 달라진다.
+어댑터는 비선형 레이어를 추가하므로 일반적으로 단일 기반 행렬에 합칠 수 없다. LoRA는 조건이 맞는 선형 갱신을 병합할 수 있고 prefix 방식은 어텐션의 추가 문맥을 사용한다. 파라메터 비율·추론 지연·전체 학습 메모리는 구조·길이·배치·dtype에 따라 달라진다.
 
-병목·위치·학습률의 고정 추천표보다 실제 추가 매개변수와 품질·지연·과제 교체 비용을 같은 조건에서 비교한다. 어댑터가 많아지면 저장·버전·로딩과 과제별 평가도 관리해야 한다. 어떤 방법도 모든 과제에서 전체 파인튜닝과 같은 품질을 보장하지 않는다.
+병목·위치·러닝레이트의 고정 추천표보다 실제 추가 파라메터와 품질·지연·과제 교체 비용을 같은 조건에서 비교한다. 어댑터가 많아지면 저장·버전·로딩과 과제별 평가도 관리해야 한다. 어떤 방법도 모든 과제에서 전체 파인튜닝과 같은 품질을 보장하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-d=768, r=64인 어댑터와 12층에 두 개씩 넣은 경우의 추가 매개변수를 계산하라.
+d=768, r=64인 어댑터와 12레이어에 두 개씩 넣은 경우의 추가 파라메터를 계산하라.
 
 </div>
 
@@ -427,7 +427,7 @@ d=768, r=64인 어댑터와 12층에 두 개씩 넣은 경우의 추가 매개�
 
 ??? success "연습문제 2 풀이"
 
-    직렬은 서브층 출력에 어댑터를 적용하고 병렬은 서브층과 같은 입력에서 갱신을 계산해 더한다. Adapter가 x를 포함해 반환하므로 병렬에서는 adapter(x)−x로 갱신만 추출한다. 단순히 둘을 바꾸어도 같은 함수라는 보장은 없으며 실제 연결·모드·마스크를 확인해야 한다.
+    직렬은 서브레이어 출력에 어댑터를 적용하고 병렬은 서브레이어와 같은 입력에서 갱신을 계산해 더한다. Adapter가 x를 포함해 반환하므로 병렬에서는 adapter(x)−x로 갱신만 추출한다. 단순히 둘을 바꾸어도 같은 함수라는 보장은 없으며 실제 연결·모드·마스크를 확인해야 한다.
 
 
 
@@ -442,7 +442,7 @@ d=768, r=64인 어댑터와 12층에 두 개씩 넣은 경우의 추가 매개�
 
 ??? success "연습문제 3 풀이"
 
-    requires_grad=False는 매개변수 경사 학습을 막지만 dropout의 난수 동작이나 일부 모듈의 버퍼 갱신을 끄지 않는다. eval 모드는 별도다. temperature도 제약 없이 학습하면 0 나눗셈이나 음수 스케일이 가능하므로 유효한 양수 매개변수화·검증을 설계해야 한다.
+    requires_grad=False는 파라메터 경사 학습을 막지만 dropout의 난수 동작이나 일부 모듈의 버퍼 갱신을 끄지 않는다. eval 모드는 별도다. temperature도 제약 없이 학습하면 0 나눗셈이나 음수 스케일이 가능하므로 유효한 양수 파라메터화·검증을 설계해야 한다.
 
 
 
@@ -457,7 +457,7 @@ train_with_adapters가 완성된 과제별 파인튜닝 함수가 아닌 이유�
 
 ??? success "연습문제 4 풀이"
 
-    손실 함수·head가 없고 기반의 장치·입력 키·모드와 검증이 구성되어 있지 않다. 마지막 표현 뒤 어댑터와 중간 삽입 방식의 경사 경로도 다르다. state_dict 외에 기반·삽입·레이블 설정을 함께 보존해야 재현 가능한 과제 모델이 된다.
+    로스 함수·head가 없고 기반의 장치·입력 키·모드와 검증이 구성되어 있지 않다. 마지막 표현 뒤 어댑터와 중간 삽입 방식의 경사 경로도 다르다. state_dict 외에 기반·삽입·레이블 설정을 함께 보존해야 재현 가능한 과제 모델이 된다.
 
 
 

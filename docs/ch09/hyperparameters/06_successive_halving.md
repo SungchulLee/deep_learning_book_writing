@@ -6,18 +6,18 @@
 
 ```python
 """
-초매개변수 최적화를 위한 연속 반감법과 하이퍼밴드
+초파라메터 최적화를 위한 연속 반감법과 하이퍼밴드
 
-이 모듈은 요즘의 초매개변수 최적화 알고리즘 두 가지를 구현한다:
+이 모듈은 요즘의 초파라메터 최적화 알고리즘 두 가지를 구현한다:
 1. 연속 반감법: 적은 예산으로 많은 설정을 학습시키고 나쁜 것부터 차례로
    떨어뜨리며 살아남은 설정에 예산을 늘려 준다.
-2. 하이퍼밴드: 절충 매개변수를 달리하며 연속 반감법을 돌려 탐색과 활용의
+2. 하이퍼밴드: 절충 파라메터를 달리하며 연속 반감법을 돌려 탐색과 활용의
    균형을 맞춘다.
 
 이 알고리즘들은 가망 없는 설정을 일찍 버리므로 무작위 탐색이나 격자 탐색보다
 효율적이다.
 
-교육 목적: 10장 - 학습 파이프라인 (초매개변수 조율)
+교육 목적: 10장 - 학습 파이프라인 (초파라메터 조율)
 """
 
 import math
@@ -47,7 +47,7 @@ class SimpleMLPConfig:
 
 
 class SimpleMLP(nn.Module):
-    """분류를 위한 간단한 2층 MLP."""
+    """분류를 위한 간단한 2레이어 MLP."""
     def __init__(self, input_dim: int = 20, hidden_dim: int = 64, output_dim: int = 2):
         super().__init__()
         self.net = nn.Sequential(
@@ -68,13 +68,13 @@ def create_synthetic_data(n_samples: int = 1000, input_dim: int = 20, num_classe
 
     인수:
         n_samples: 표본의 총수
-        input_dim: 특징의 차원
+        input_dim: 피처의 차원
         num_classes: 출력 클래스의 수
 
     반환값:
         학습 집합과 검증 집합의 DataLoader
     """
-    # 무작위 특징과 레이블 생성
+    # 무작위 피처와 레이블 생성
     X = torch.randn(n_samples, input_dim)
     y = torch.randint(0, num_classes, (n_samples,))
 
@@ -99,7 +99,7 @@ def train_config_for_budget(
     주어진 설정으로 정해진 에포크 수만큼 모델을 학습시킨다.
 
     인수:
-        config: 학습률, 배치 크기 등을 담은 설정
+        config: 러닝레이트, 배치 크기 등을 담은 설정
         X_train, y_train: 학습 데이터
         X_val, y_val: 검증 데이터
         epochs: 학습할 에포크 수
@@ -234,7 +234,7 @@ class SuccessiveHalvingScheduler:
 
 class Hyperband:
     """
-    하이퍼밴드: 절충 매개변수를 달리하며 연속 반감법을 돌린다.
+    하이퍼밴드: 절충 파라메터를 달리하며 연속 반감법을 돌린다.
 
     하이퍼밴드는 R(최대 예산)과 n(처음 설정의 수)의 쌍을 달리한 여러 브래킷에서
     연속 반감법을 돌린다. 이로써 다음의 균형을 맞춘다:
@@ -278,14 +278,14 @@ class Hyperband:
         best_config = None
         best_acc = 0.0
 
-        # 연속 반감법의 브래킷을 훑기 (s 매개변수)
+        # 연속 반감법의 브래킷을 훑기 (s 파라메터)
         for s in range(self.s_max, -1, -1):
             if verbose:
                 print(f"\n{'='*60}")
                 print(f"Hyperband Bracket s={s}")
                 print(f"{'='*60}")
 
-            # 브래킷별 매개변수 계산
+            # 브래킷별 파라메터 계산
             n = math.ceil((self.B / self.R) * (self.s_max + 1) / (s + 1))
             r_min = self.R / (self.eta ** s)
 
@@ -314,7 +314,7 @@ class Hyperband:
 def main():
     """
     시연: 합성 데이터에 연속 반감법과 하이퍼밴드를 돌린다.
-    이 알고리즘들이 좋은 초매개변수를 효율적으로 찾는 모습을 보인다.
+    이 알고리즘들이 좋은 초파라메터를 효율적으로 찾는 모습을 보인다.
     """
     print("Deep Learning Hyperparameter Optimization: Successive Halving & Hyperband")
     print("=" * 70)
@@ -441,7 +441,7 @@ Hyperband best: Config(lr=1.00e-04, bs=32, id=116739) with accuracy 0.5417
 
 ## 2. 논의
 
-이 구현은 각 단계마다 train_config_for_budget에서 새 모델을 생성한다. 앞 단계의 가중치와 옵티마이저를 이어서 학습하는 방식이 아니라 예산만 늘려 처음부터 재학습한다. 최후 후보도 r_max 예산으로 새로 학습해 최종 점수를 얻는다.
+이 구현은 각 단계마다 train_config_for_budget에서 새 모델을 생성한다. 앞 단계의 웨이트와 옵티마이저를 이어서 학습하는 방식이 아니라 예산만 늘려 처음부터 재학습한다. 최후 후보도 r_max 예산으로 새로 학습해 최종 점수를 얻는다.
 
 후보 유지 수는 int(n/eta)로 내림하고 최소 하나를 남긴다. eta=2일 때 절반이고 일반 eta에서는 비율이 다르다. 문서의 ceil 설명과 코드의 내림은 같지 않다. eta가 1 이하이거나 초기 후보가 비어 있는 경우처럼 진행이 유효하지 않은 설정도 검사해야 한다.
 
@@ -483,7 +483,7 @@ Hyperband best: Config(lr=1.00e-04, bs=32, id=116739) with accuracy 0.5417
 </div>
 
 ??? success "연습문제 3 풀이"
-    워밍업이나 작은 학습률 때문에 늦게 좋아지는 후보는 초기 평가에서 탈락할 수 있다. 최소 예산과 단계 계수를 검증하고 동일한 충분한 예산의 기준 결과와 비교한다.
+    워밍업이나 작은 러닝레이트 때문에 늦게 좋아지는 후보는 초기 평가에서 탈락할 수 있다. 최소 예산과 단계 계수를 검증하고 동일한 충분한 예산의 기준 결과와 비교한다.
 
 ## 정리하며
 

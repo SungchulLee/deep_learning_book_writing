@@ -5,7 +5,7 @@
 ## 1. 코드
 
 ```python
-"""언제 기울기 좇기를 멈출까."""
+"""언제 그래디언트 좇기를 멈출까."""
 import torch
 
 # ========================================================================
@@ -22,7 +22,7 @@ def main():
 
     # 어떤 상황에서는 torch.no_grad()로 경사 추적을 멈추고 싶다:
     #   - 추론/평가 중: 경사가 필요 없으므로 메모리와 계산을 아낀다
-    #   - 매개변수 갱신 중: 예를 들어 w -= lr * w.grad는 추적되면 안 된다
+    #   - 파라메터 갱신 중: 예를 들어 w -= lr * w.grad는 추적되면 안 된다
     #   - 이후 경사에 기여하지 않기를 명시적으로 바라는 모든 연산에 대해
     print("Typical places to STOP tracking:")
     print("- Inference/evaluation forward pass")
@@ -93,7 +93,7 @@ Typical places to STOP tracking:
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 

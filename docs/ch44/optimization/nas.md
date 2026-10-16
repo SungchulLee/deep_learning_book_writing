@@ -1,16 +1,16 @@
-# 신경망 아키텍처 탐색
+# 뉴럴 넷트웍 아키텍처 탐색
 
 ---
 
 ## 1. 두루 보기
 
-신경망 아키텍처 탐색(NAS)은 신경망 구조를 꾸미는 일을 저절로 하게 하여, 손으로 하던 구조 다듬기를 알고리즘의 최적화로 갈음한다. NAS은 사람이 꾸민 네트워크보다 잘 드는 구조를 찾아내는 일이 잦아, 모델 눌러 담기와 내놓기 다듬기의 든든한 연장이 된다.
+뉴럴 넷트웍 아키텍처 탐색(NAS)은 뉴럴 넷트웍 구조를 꾸미는 일을 저절로 하게 하여, 손으로 하던 구조 다듬기를 알고리즘의 최적화로 갈음한다. NAS은 사람이 꾸민 네트워크보다 잘 드는 구조를 찾아내는 일이 잦아, 모델 눌러 담기와 내놓기 다듬기의 든든한 연장이 된다.
 
 ---
 
 ## 2. 왜 하는가
 
-손으로 꾸민 구조에는 켜의 수, 켜의 너비, 알갱이 크기, 건너뛰는 이음, 활성화 함수, 잣대 잡기 꾀 같은 헤아릴 수 없이 많은 공정성이 든다. NAS은 이 밭을 짜임새 있게 둘러보며 맞음, 늦음, 모델 크기 같은 목표에 맞게 다듬은 구조를 찾는다.
+손으로 꾸민 구조에는 켜의 수, 켜의 너비, 알갱이 크기, 건너뛰는 이음, 엑티베이션 함수, 잣대 잡기 꾀 같은 헤아릴 수 없이 많은 공정성이 든다. NAS은 이 밭을 짜임새 있게 둘러보며 맞음, 늦음, 모델 크기 같은 목표에 맞게 다듬은 구조를 찾는다.
 
 ---
 
@@ -58,20 +58,20 @@
 
     ```python
     class SearchCell(nn.Module):
-        """미분할 수 있는 구조 매개변수를 지닌 NAS 칸."""
+        """미분할 수 있는 구조 파라메터를 지닌 NAS 칸."""
 
         def __init__(self, channels: int, operations: Dict):
             super().__init__()
             self.ops = nn.ModuleDict({
                 name: op_fn(channels) for name, op_fn in operations.items()
             })
-            # 구조 매개변수(배울 수 있다)
+            # 구조 파라메터(배울 수 있다)
             self.alphas = nn.Parameter(
                 torch.randn(len(operations)) * 0.01
             )
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
-            # 구조 매개변수에 소프트맥스
+            # 구조 파라메터에 소프트맥스
             weights = torch.softmax(self.alphas, dim=0)
 
             # 모든 셈의 짐 준 합
@@ -113,11 +113,11 @@
             return self.classifier(x)
 
         def architecture_parameters(self):
-            """따로 가장 좋게 할 구조 매개변수를 돌려준다."""
+            """따로 가장 좋게 할 구조 파라메터를 돌려준다."""
             return [cell.alphas for cell in self.cells]
 
         def weight_parameters(self):
-            """짐 매개변수를 돌려준다(구조 매개변수는 뺀다)."""
+            """짐 파라메터를 돌려준다(구조 파라메터는 뺀다)."""
             arch_params = set(id(p) for p in self.architecture_parameters())
             return [p for p in self.parameters() if id(p) not in arch_params]
 
@@ -196,7 +196,7 @@
 
 ## 6. 두루 보기
 
-낮은 자리 쪼개기는 짐 행렬을 더 작은 행렬들의 곱으로 갈라 신경망을 눌러 담는다. 학습된 짐 행렬은 참으로 쓰이는 자리가 낮은 일이 잦다는 살핌을 쓴 것이다. 이로써 모델이 드러내는 힘은 거의 지키면서 담는 자리와 계산 비용을 함께 줄인다.
+낮은 자리 쪼개기는 짐 행렬을 더 작은 행렬들의 곱으로 갈라 뉴럴 넷트웍을 눌러 담는다. 학습된 짐 행렬은 참으로 쓰이는 자리가 낮은 일이 잦다는 살핌을 쓴 것이다. 이로써 모델이 드러내는 힘은 거의 지키면서 담는 자리와 계산 비용을 함께 줄인다.
 
 ---
 
@@ -214,10 +214,10 @@ $$\mathbf{W} \approx \mathbf{U}\mathbf{V}^T$$
 - $\mathbf{V} \in \mathbb{R}^{n \times r}$
 - $r \ll \min(m, n)$은 자리
 
-**매개변수 줄어듦:**
+**파라메터 줄어듦:**
 
-- 본디: 매개변수 $m \times n$개
-- 쪼갠 뒤: 매개변수 $m \times r + n \times r = r(m + n)$개
+- 본디: 파라메터 $m \times n$개
+- 쪼갠 뒤: 파라메터 $m \times r + n \times r = r(m + n)$개
 - 줄어드는 값: $\frac{mn}{r(m+n)}$
 
 ### 특잇값 분해(SVD)
@@ -250,7 +250,7 @@ $$\|\mathbf{W} - \mathbf{W}_k\|_F = \sqrt{\sum_{i=k+1}^{r} \sigma_i^2}$$
 
 ### 눌러 담은 비교
 
-**본디 자리:** 매개변수 $mn$개
+**본디 자리:** 파라메터 $mn$개
 
 **쪼갠 뒤 자리:** $mk + k + kn = k(m + n + 1) \approx k(m + n)$
 
@@ -262,9 +262,9 @@ $$\rho = \frac{mn}{k(m + n)}$$
 
 **보기:** $\mathbf{W} \in \mathbb{R}^{1024 \times 1024}$에서
 
-- 본디: 매개변수 1,048,576개
-- $k = 64$이면: 매개변수 131,136개(8배 눌러 담음)
-- $k = 128$이면: 매개변수 262,272개(4배 눌러 담음)
+- 본디: 파라메터 1,048,576개
+- $k = 64$이면: 파라메터 131,136개(8배 눌러 담음)
+- $k = 128$이면: 파라메터 262,272개(4배 눌러 담음)
 
 ---
 
@@ -286,7 +286,7 @@ $$\rho = \frac{mn}{k(m + n)}$$
 
         Args:
             weight: 쪼갤 짐 행렬 (m x n)
-            rank: 쪼갤 과녁 자리
+            rank: 쪼갤 타깃 자리
 
         Returns:
             U, V: weight ≈ U @ V.T이 되는 쪼갠 행렬
@@ -294,7 +294,7 @@ $$\rho = \frac{mn}{k(m + n)}$$
         # SVD를 한다
         U, S, Vh = torch.linalg.svd(weight, full_matrices=False)
 
-        # 과녁 자리로 잘라 낸다
+        # 타깃 자리로 잘라 낸다
         U_r = U[:, :rank]
         S_r = S[:rank]
         V_r = Vh[:rank, :]
@@ -410,7 +410,7 @@ $$\rho = \frac{mn}{k(m + n)}$$
 
         Args:
             layer: 쪼갤 선형 켜
-            rank: 어림할 과녁 자리
+            rank: 어림할 타깃 자리
 
         Returns:
             output = second(first(x))이 되는 선형 켜 둘(first, second)
@@ -443,20 +443,20 @@ $$\rho = \frac{mn}{k(m + n)}$$
 
 ---
 
-## 9. 엮음 켜 쪼개기
+## 9. 컨볼루션 켜 쪼개기
 
-### 자리로 쪼개기(가를 수 있는 엮음)
+### 자리로 쪼개기(가를 수 있는 컨볼루션)
 
-$k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
+$k \times k$ 컨볼루션을 $1 \times k$과 $k \times 1$ 컨볼루션으로 쪼갠다.
 
 ??? note "코드 6 (36줄)"
 
     ```python
     class SeparableConv2d(nn.Module):
         """
-        자리로 가를 수 있는 엮음.
+        자리로 가를 수 있는 컨볼루션.
 
-        k×k 엮음을 1×k 다음 k×1으로 갈음한다.
+        k×k 컨볼루션을 1×k 다음 k×1으로 갈음한다.
 
         본디: O(C_in × C_out × k × k × H × W)
         가른 뒤: O(C_in × C_out × 2k × H × W)
@@ -466,7 +466,7 @@ $k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
                      stride: int = 1, padding: int = 0, bias: bool = True):
             super().__init__()
 
-            # 1×k 엮음
+            # 1×k 컨볼루션
             self.conv_h = nn.Conv2d(
                 in_channels, out_channels, 
                 kernel_size=(1, kernel_size),
@@ -475,7 +475,7 @@ $k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
                 bias=False
             )
 
-            # k×1 엮음
+            # k×1 컨볼루션
             self.conv_v = nn.Conv2d(
                 out_channels, out_channels,
                 kernel_size=(kernel_size, 1),
@@ -491,19 +491,19 @@ $k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
     ```
 
 
-### 깊이별로 가른 엮음(MobileNet 결)
+### 깊이별로 가른 컨볼루션(MobileNet 결)
 
-자리 섞기와 갈래 섞기를 나눈다.
+자리 섞기와 클래스 섞기를 나눈다.
 
 ??? note "코드 7 (49줄)"
 
     ```python
     class DepthwiseSeparableConv2d(nn.Module):
         """
-        깊이별로 가른 엮음(MobileNet 결).
+        깊이별로 가른 컨볼루션(MobileNet 결).
 
-        1. 깊이별: 들임 갈래마다 k×k 거르개 하나
-        2. 점별: 갈래를 섞는 1×1 엮음
+        1. 깊이별: 들임 클래스마다 k×k 거르개 하나
+        2. 점별: 클래스를 섞는 1×1 컨볼루션
 
         셈 줄어듦: C_out이 크면 k²/(k² + C_out) ≈ 1/k²
         """
@@ -512,17 +512,17 @@ $k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
                      stride: int = 1, padding: int = 0, bias: bool = True):
             super().__init__()
 
-            # 깊이별 엮음(groups=in_channels)
+            # 깊이별 컨볼루션(groups=in_channels)
             self.depthwise = nn.Conv2d(
                 in_channels, in_channels,
                 kernel_size=kernel_size,
                 stride=stride,
                 padding=padding,
-                groups=in_channels,  # 핵심: 갈래마다 따로 거르개
+                groups=in_channels,  # 핵심: 클래스마다 따로 거르개
                 bias=False
             )
 
-            # 점별 엮음(1×1)
+            # 점별 컨볼루션(1×1)
             self.pointwise = nn.Conv2d(
                 in_channels, out_channels,
                 kernel_size=1,
@@ -534,7 +534,7 @@ $k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
             x = self.pointwise(x)
             return x
 
-    # 매개변수를 견준다
+    # 파라메터를 견준다
     def compare_conv_variants():
         in_ch, out_ch, kernel = 64, 128, 3
 
@@ -544,13 +544,13 @@ $k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
         std_params = sum(p.numel() for p in standard.parameters())
         sep_params = sum(p.numel() for p in separable.parameters())
 
-        print(f"여느 엮음: 매개변수 {std_params:,}개")
-        print(f"깊이별로 가른 엮음: 매개변수 {sep_params:,}개")
+        print(f"여느 컨볼루션: 파라메터 {std_params:,}개")
+        print(f"깊이별로 가른 컨볼루션: 파라메터 {sep_params:,}개")
         print(f"줄어듦: {std_params/sep_params:.1f}배")
     ```
 
 
-### 갈래별 SVD 쪼개기
+### 클래스별 SVD 쪼개기
 
 ??? note "코드 8 (44줄)"
 
@@ -558,7 +558,7 @@ $k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
     def decompose_conv_channel(conv: nn.Conv2d,
                                rank: int) -> nn.Sequential:
         """
-        갈래별 쪼개기로 Conv2d을 쪼갠다.
+        클래스별 쪼개기로 Conv2d을 쪼갠다.
 
         본디: k×k 알갱이로 C_in -> C_out
         쪼갠 뒤:
@@ -578,7 +578,7 @@ $k \times k$ 엮음을 $1 \times k$과 $k \times 1$ 엮음으로 쪼갠다.
         S_k = S[:rank]
         Vh_k = Vh[:rank, :]  # (rank, C_in * k_h * k_w)
 
-        # 쪼갠 엮음을 만든다
+        # 쪼갠 컨볼루션을 만든다
         conv1 = nn.Conv2d(
             conv.in_channels, rank,
             kernel_size=conv.kernel_size,
@@ -613,12 +613,12 @@ $$\mathcal{K} \approx \mathcal{G} \times_1 \mathbf{U}^{(1)} \times_2 \mathbf{U}^
     ```python
     class TuckerConv2d(nn.Module):
         """
-        엮음 켜의 터커 쪼개기.
+        컨볼루션 켜의 터커 쪼개기.
 
         C_in × C_out × k × k을 다음으로 쪼갠다:
-        1. 1×1 엮음: C_in → r_in(들임 갈래를 눌러 담는다)
-        2. r_in × r_out × k × k 엮음(더 작은 알맹이)
-        3. 1×1 엮음: r_out → C_out(날임 갈래를 넓힌다)
+        1. 1×1 컨볼루션: C_in → r_in(들임 클래스를 눌러 담는다)
+        2. r_in × r_out × k × k 컨볼루션(더 작은 커널)
+        3. 1×1 컨볼루션: r_out → C_out(날임 클래스를 넓힌다)
         """
 
         def __init__(self, in_channels: int, out_channels: int, kernel_size: int,
@@ -626,16 +626,16 @@ $$\mathcal{K} \approx \mathcal{G} \times_1 \mathbf{U}^{(1)} \times_2 \mathbf{U}^
                      padding: int = 0, bias: bool = True):
             super().__init__()
 
-            # 들임 갈래를 눌러 담는다
+            # 들임 클래스를 눌러 담는다
             self.compress = nn.Conv2d(in_channels, rank_in, 1, bias=False)
 
-            # 알맹이 엮음(자리를 줄임)
+            # 커널 컨볼루션(자리를 줄임)
             self.core = nn.Conv2d(
                 rank_in, rank_out, kernel_size,
                 stride=stride, padding=padding, bias=False
             )
 
-            # 날임 갈래를 넓힌다
+            # 날임 클래스를 넓힌다
             self.expand = nn.Conv2d(rank_out, out_channels, 1, bias=bias)
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -649,10 +649,10 @@ $$\mathcal{K} \approx \mathcal{G} \times_1 \mathbf{U}^{(1)} \times_2 \mathbf{U}^
         """
         tensorly으로 하는 Conv2d 켜의 터커 쪼개기.
 
-        엮음 셋으로 쪼갠다:
-        1. 1x1 엮음: C_in -> rank[1]
-        2. kxk 엮음: rank[1] -> rank[0]
-        3. 1x1 엮음: rank[0] -> C_out
+        컨볼루션 셋으로 쪼갠다:
+        1. 1x1 컨볼루션: C_in -> rank[1]
+        2. kxk 컨볼루션: rank[1] -> rank[0]
+        3. 1x1 컨볼루션: rank[0] -> C_out
         """
         try:
             import tensorly as tl
@@ -709,7 +709,7 @@ $$\mathcal{K} \approx \mathcal{G} \times_1 \mathbf{U}^{(1)} \times_2 \mathbf{U}^
         total_energy = (S ** 2).sum()
         cumulative_energy = (S ** 2).cumsum(0) / total_energy
 
-        # 문턱을 이루는 자리를 찾는다
+        # 임계를 이루는 자리를 찾는다
         rank = (cumulative_energy < energy_threshold).sum().item() + 1
 
         return rank
@@ -726,7 +726,7 @@ $$\mathcal{K} \approx \mathcal{G} \times_1 \mathbf{U}^{(1)} \times_2 \mathbf{U}^
         total_energy = (S ** 2).sum()
         cumulative_energy = (S ** 2).cumsum() / total_energy
 
-        # 힘 문턱마다의 자리를 찾는다
+        # 힘 임계마다의 자리를 찾는다
         thresholds = [0.9, 0.95, 0.99, 0.999]
         ranks_for_threshold = {}
         for thresh in thresholds:
@@ -829,7 +829,7 @@ $$\mathcal{K} \approx \mathcal{G} \times_1 \mathbf{U}^{(1)} \times_2 \mathbf{U}^
         """
         for name, module in model.named_children():
             if isinstance(module, nn.Linear):
-                # 과녁 자리를 셈한다
+                # 타깃 자리를 셈한다
                 full_rank = min(module.weight.shape)
                 target_rank = max(min_rank, int(full_rank * rank_ratio))
 
@@ -965,7 +965,7 @@ $$y = Wx + BAx$$
                 self.original.weight.data += delta_W
 
         def get_trainable_params(self) -> int:
-            """배울 수 있는 매개변수의 수를 돌려준다."""
+            """배울 수 있는 파라메터의 수를 돌려준다."""
             return self.lora_A.numel() + self.lora_B.numel()
 
     def apply_lora(model: nn.Module, rank: int = 8, alpha: float = 16,
@@ -977,7 +977,7 @@ $$y = Wx + BAx$$
             model: 고칠 모형
             rank: LoRA 자리
             alpha: 잣대 값
-            target_modules: 과녁으로 삼을 배치 이름의 목록(None = 모든 Linear)
+            target_modules: 타깃으로 삼을 배치 이름의 목록(None = 모든 Linear)
 
         Returns:
             LoRA을 건 모형
@@ -991,7 +991,7 @@ $$y = Wx + BAx$$
         return model
 
     def count_lora_params(model: nn.Module) -> Dict[str, int]:
-        """LoRA 모형에서 배우는 매개변수와 얼린 매개변수를 센다."""
+        """LoRA 모형에서 배우는 파라메터와 얼린 파라메터를 센다."""
         trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
         frozen = sum(p.numel() for p in model.parameters() if not p.requires_grad)
 
@@ -1021,15 +1021,15 @@ $$y = Wx + BAx$$
 
 **잘 맞는 자리:**
 
-- 매개변수가 많은 큰 온통 이은 켜
-- 갈래가 많은 엮음 켜
+- 파라메터가 많은 큰 온통 이은 켜
+- 클래스가 많은 컨볼루션 켜
 - 짐 분포가 본디 자리가 낮은 켜
 - 곱게 맞추는 자리(LoRA)
 
 **잘 맞지 않는 자리:**
 
 - 작은 켜(덤으로 드는 값이 아낀 것보다 클 수 있다)
-- 1×1 엮음(이미 잘 든다)
+- 1×1 컨볼루션(이미 잘 든다)
 - 첫 켜와 마지막 켜(맞음에 걸리는 일이 잦다)
 
 ### 덤으로 드는 계산
@@ -1067,7 +1067,7 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
 | 쳐내기 → 수 줄이기 | 서로 돕는다 | 성긴 짐은 분포가 좁다 |
 | 수 줄이기 → 쳐내기 | 그저 그렇거나 나쁘다 | 수 줄인 짐은 크기로 줄 세우기 어렵다 |
 | 앎 옮기기 → 쳐내기 | 서로 돕는다 | 제자 구조를 성김에 맞게 꾸민다 |
-| 앎 옮기기 → 수 줄이기 | 서로 돕는다 | 앎 옮기기가 수 줄이기의 손실을 메운다 |
+| 앎 옮기기 → 수 줄이기 | 서로 돕는다 | 앎 옮기기가 수 줄이기의 로스를 메운다 |
 | 낮은 자리 → 수 줄이기 | 서로 돕는다 | 쪼갠 켜는 분포가 더 단순한 일이 잦다 |
 
 ### 가장 좋은 차례
@@ -1311,10 +1311,10 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
             """짜임새 있는(거르개) 쳐내기를 건다."""
             import torch.nn.utils.prune as prune
 
-            # 과녁 성김을 이룰 몫을 셈한다
+            # 타깃 성김을 이룰 몫을 셈한다
             amount = self.config.target_sparsity
 
-            # 엮음 켜에 짜임새 있는 쳐내기를 건다
+            # 컨볼루션 켜에 짜임새 있는 쳐내기를 건다
             for name, module in model.named_modules():
                 if isinstance(module, nn.Conv2d):
                     prune.ln_structured(module, name='weight', amount=amount, n=1, dim=0)
@@ -1657,12 +1657,12 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 마디에서 다룬 다듬기 재주들을 맞음 손실, 추론 빨라짐, 짜기의 번거로움으로 비교하여 트레이드오프를 밝혀라.
+이 마디에서 다룬 다듬기 재주들을 맞음 로스, 추론 빨라짐, 짜기의 번거로움으로 비교하여 트레이드오프를 밝혀라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    재주마다 트레이드오프의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 손실이 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 손실은 1~3%이다. 앎 옮기기는 구조 자체의 추론 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 손실은 1~5%이다. 신경망 아키텍처 탐색은 가장 좋은 구조를 찾아 주지만 찾는 데 엄청난 계산이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 손실이 어긋남의 값에 매인다. $\square$
+    재주마다 트레이드오프의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 로스가 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 로스는 1~3%이다. 앎 옮기기는 구조 자체의 추론 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 로스는 1~5%이다. 뉴럴 넷트웍 아키텍처 탐색은 가장 좋은 구조를 찾아 주지만 찾는 데 엄청난 계산이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 로스가 어긋남의 값에 매인다. $\square$
 
 ---
 
@@ -1681,12 +1681,12 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-내놓은 모델의 데이터 옮겨감, 뜻 옮겨감, 성능 떨어짐을 짚어내는 서비스 지켜보기 구조를 꾸며라. 자와 알림 문턱을 밝혀라.
+내놓은 모델의 데이터 옮겨감, 뜻 옮겨감, 성능 떨어짐을 짚어내는 서비스 지켜보기 구조를 꾸며라. 자와 알림 임계를 밝혀라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    세 켜를 지켜본다. (1) 데이터 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 입력 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 추론 분포의 옮겨감과 (얻을 수 있으면) 참 레이블 분포를 좇는다. 추론의 평균이 밑금 동안에서 표준편차 2배 넘게 옮겨가면 알린다. (3) 모델 떨어짐: 굴러가는 창으로 살아 있는 맞음과 손실을 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
+    세 켜를 지켜본다. (1) 데이터 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 입력 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 추론 분포의 옮겨감과 (얻을 수 있으면) 참 레이블 분포를 좇는다. 추론의 평균이 밑금 동안에서 표준편차 2배 넘게 옮겨가면 알린다. (3) 모델 떨어짐: 굴러가는 창으로 살아 있는 맞음과 로스를 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
 
 ---
 
@@ -1698,16 +1698,16 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
 </div>
 
 ??? success "연습문제 4 풀이"
-    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 구조는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 추론). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 배치 추론은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
+    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 구조는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 추론). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 커널에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 배치 추론은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
 
 ## 정리하며
 
 낮은 자리 쪼개기는 모델 크기와 계산을 줄인다.
 
 1. **SVD 쪼개기**: 가장 좋은 어림이며 학습 뒤 눌러 담기에 좋다
-2. **자리로 가르기**: 엮음을 자리로 쪼갠다(1×k과 k×1)
+2. **자리로 가르기**: 컨볼루션을 자리로 쪼갠다(1×k과 k×1)
 3. **깊이별로 가르기**: 잘 드는 구조의 여느 길이다(MobileNet)
-4. **터커 쪼개기**: 갈래와 자리를 함께 줄인다
+4. **터커 쪼개기**: 클래스와 자리를 함께 줄인다
 5. **LoRA**: 사전 학습된 큰 모델을 잘 드는 값으로 곱게 맞춘다
 
 핵심으로 즐겨 쓸 길:

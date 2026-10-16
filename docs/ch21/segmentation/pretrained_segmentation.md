@@ -1,6 +1,6 @@
 # 사전 학습 모델을 이용한 이미지 분할
 
-이 예제는 ImageNet 사전 학습 ResNet-50 인코더를 사용하는 DeepLabV3+를 PASCAL VOC2012 시맨틱 분할에 파인튜닝한다. 사전 학습된 분할 모델을 그대로 평가하는 것과 달리 decoder와 분할 head를 새 과제에서 학습한다. 데이터 전처리·무시 레이블·차등 학습률과 지표의 집계 방식을 함께 확인한다.
+이 예제는 ImageNet 사전 학습 ResNet-50 인코더를 사용하는 DeepLabV3+를 PASCAL VOC2012 시맨틱 분할에 파인튜닝한다. 사전 학습된 분할 모델을 그대로 평가하는 것과 달리 decoder와 분할 head를 새 과제에서 학습한다. 데이터 전처리·무시 레이블·차등 러닝레이트와 지표의 집계 방식을 함께 확인한다.
 
 ## 1. 코드
 
@@ -19,9 +19,9 @@
     - 나누기를 위한 옮겨 배우기
     - 미리 익힌 인코더(ResNet, EfficientNet)
     - DeepLabV3+ 구조
-    - 여러 갈래 나누기(갈래 21개)
+    - 여러 분류(클래스 21개)
     - 실제 자료 뭉치 다루기
-    - 앞선 값매김 잣대(평균 겹침 비)
+    - 앞선 밸류 잣대(평균 겹침 비)
 
     지은이: PyTorch Semantic Segmentation Tutorial
     날짜: 2025
@@ -64,14 +64,14 @@
     PASCAL VOC에는 다음이 들어 있다:
     - 익힘 그림 1,464장
     - 검증 그림 1,449장
-    - 갈래 21개(물체 갈래 20개 + 뒷바탕)
+    - 클래스 21개(물체 클래스 20개 + 뒷바탕)
 
-    갈래: background, aeroplane, bicycle, bird, boat, bottle, bus, car,
+    클래스: background, aeroplane, bicycle, bird, boat, bottle, bus, car,
              고양이, 의자, 소, 식탁, 개, 말, 오토바이, 사람,
              화분, 양, 소파, 기차, 텔레비전과 모니터
     """
 
-    # 그려 보기용 VOC 빛깔판(갈래마다의 RGB 값)
+    # 그려 보기용 VOC 빛깔판(클래스마다의 RGB 값)
     VOC_COLORMAP = [
         [0, 0, 0],        # 뒷바탕
         [128, 0, 0],      # aeroplane
@@ -186,9 +186,9 @@
     구조 고름:
     - Unet: 건너뛰는 이음을 갖춘 고전 U-넷
     - UnetPlusPlus: 겹겹이 든 건너뛰는 이음을 갖춘 나아진 U-넷
-    - DeepLabV3+: 구멍 뚫린 누비기와 ASPP를 쓴 가장 앞선 것
-    - FPN: 특징 피라미드 그물
-    - PSPNet: 피라미드 장면 뜯어 읽기 그물
+    - DeepLabV3+: 구멍 뚫린 컨볼루션과 ASPP를 쓴 가장 앞선 것
+    - FPN: 피처 피라미드 넷트웍
+    - PSPNet: 피라미드 장면 뜯어 읽기 넷트웍
 
     인코더 고름:
     - resnet18, resnet34, resnet50, resnet101
@@ -204,7 +204,7 @@
         encoder_name="resnet50",           # 인코더 고르기(resnet50, efficientnet-b0 등)
         encoder_weights="imagenet",         # ImageNet에서 미리 익힌 무게 쓰기
         in_channels=3,                      # 들임 채널(RGB)
-        classes=21,                         # 내놓는 갈래(VOC는 21개)
+        classes=21,                         # 내놓는 클래스(VOC는 21개)
     )
 
     model = model.to(device)
@@ -223,43 +223,43 @@
     print("  Output: 21-class segmentation")
 
     # ============================================================================
-    # 4단계: 손실 함수
+    # 4단계: 로스 함수
     # ============================================================================
     """
-    여러 갈래 나누기에는 다음을 갖춘 CrossEntropyLoss를 쓴다:
+    여러 분류에는 다음을 갖춘 CrossEntropyLoss를 쓴다:
     - ignore_index=255: VOC는 테두리/불확실 화소에 255를 쓴다
-    - 치우친 갈래를 위한, 있어도 되는 갈래 무게
+    - 치우친 클래스를 위한, 있어도 되는 클래스 무게
 
-    다른 손실:
-    - 다이스 손실: 치우친 갈래에 더 낫다
-    - 초점 손실: 어려운 보기에 초점을 둔다
+    다른 로스:
+    - 다이스 로스: 치우친 클래스에 더 낫다
+    - 초점 로스: 어려운 보기에 초점을 둔다
     - 아우름: 엇갈린 엔트로피 + 다이스
     """
 
-    # 여러 갈래 나누기를 위한 CrossEntropyLoss
+    # 여러 분류를 위한 CrossEntropyLoss
     criterion = nn.CrossEntropyLoss(ignore_index=255)  # VOC는 테두리에 255를 쓴다
 
-    # 대안: smp의 다이스 손실 쓰기
+    # 대안: smp의 다이스 로스 쓰기
     # criterion = smp.losses.DiceLoss(mode='multiclass', ignore_index=255)
 
-    # 또는 아우른 손실
+    # 또는 아우른 로스
     # criterion = smp.losses.DiceLoss(mode='multiclass') + nn.CrossEntropyLoss()
 
     print("\nLoss function: CrossEntropyLoss (ignore boundary pixels)")
 
     # ============================================================================
-    # 5단계: 층마다 배움 비율이 다른 가장 좋게 하개
+    # 5단계: 레이어마다 러닝 비율이 다른 가장 좋게 하개
     # ============================================================================
     """
-    옮겨 배우기에는 배움 비율을 달리 쓴다:
-    - 인코더(미리 익힘): 작은 배움 비율(0.0001) — 조심스레 곱게 다듬는다
-    - 디코더(마구잡이 첫자리매김): 큰 배움 비율(0.001) — 더 많이 배워야 한다
+    옮겨 배우기에는 러닝 비율을 달리 쓴다:
+    - 인코더(미리 익힘): 작은 러닝 비율(0.0001) — 조심스레 곱게 다듬는다
+    - 디코더(마구잡이 첫자리매김): 큰 러닝 비율(0.001) — 더 많이 배워야 한다
 
-    이를 "층마다 다른 배움 비율"이라 하며
+    이를 "레이어마다 다른 러닝 비율"이라 하며
     나누기에서 옮겨 배우기를 잘하는 데 결정적이다.
     """
 
-    # 인코더와 디코더의 매개변수 나누기
+    # 인코더와 디코더의 파라메터 나누기
     encoder_params = []
     decoder_params = []
 
@@ -269,13 +269,13 @@
         else:
             decoder_params.append(param)
 
-    # 배움 비율이 다른 가장 좋게 하개 만들기
+    # 러닝 비율이 다른 가장 좋게 하개 만들기
     optimizer = optim.Adam([
-        {'params': encoder_params, 'lr': 0.0001},   # 미리 익힌 인코더에는 작은 배움 비율
-        {'params': decoder_params, 'lr': 0.001},    # 디코더에는 더 큰 배움 비율
+        {'params': encoder_params, 'lr': 0.0001},   # 미리 익힌 인코더에는 작은 러닝 비율
+        {'params': decoder_params, 'lr': 0.001},    # 디코더에는 더 큰 러닝 비율
     ])
 
-    # 학습률 스케줄러
+    # 러닝레이트 스케줄러
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
         mode='max',      # 평균 겹침 비를 가장 크게
@@ -289,41 +289,41 @@
     print(f"  Decoder LR: 0.001 (random init, learn)")
 
     # ============================================================================
-    # 6단계: 값매김 잣대
+    # 6단계: 밸류 잣대
     # ============================================================================
     """
-    여러 갈래 나누기에는 다음을 쓴다:
-    1. mIoU(평균 겹침 비): 모든 갈래에 걸친 겹침 비의 평균
-    2. 갈래별 겹침 비: 갈래마다의 겹침 비
-    3. 화소 정확도: 전체 화소 갈래 매기기 정확도
+    여러 분류에는 다음을 쓴다:
+    1. mIoU(평균 겹침 비): 모든 클래스에 걸친 겹침 비의 평균
+    2. 클래스별 겹침 비: 클래스마다의 겹침 비
+    3. 화소 정확도: 전체 화소 클래스 매기기 정확도
 
     평균 겹침 비는 나누기 잣대 시험의 표준 잣대이다.
     """
 
     def calculate_miou(pred, target, num_classes=21, ignore_index=255):
         """
-        여러 갈래 나누기의 평균 겹침 비를 셈한다.
+        여러 분류의 평균 겹침 비를 셈한다.
 
         인수:
             pred: 꼴이 (batch, num_classes, H, W)인 어림
             target: 꼴이 (batch, H, W)인 참값
-            num_classes: 갈래의 개수
+            num_classes: 클래스의 개수
             ignore_index: 무시할 번호(테두리)
 
         반환값:
-            miou: 모든 갈래에 걸친 평균 겹침 비
-            iou_per_class: 갈래마다의 겹침 비
+            miou: 모든 클래스에 걸친 평균 겹침 비
+            iou_per_class: 클래스마다의 겹침 비
         """
         with torch.no_grad():
-            # 어림한 갈래 얻기
+            # 어림한 클래스 얻기
             pred_class = torch.argmax(pred, dim=1)  # (batch, H, W)
 
             # 겹침 비 갈무리 첫자리매김
             iou_per_class = []
 
-            # 갈래마다 겹침 비 셈하기
+            # 클래스마다 겹침 비 셈하기
             for cls in range(num_classes):
-                # 지금 갈래의 두 갈래 마스크 만들기
+                # 지금 클래스의 두 클래스 마스크 만들기
                 pred_mask = (pred_class == cls)
                 target_mask = (target == cls)
 
@@ -338,13 +338,13 @@
 
                 # 겹침 비 셈하기(0으로 나누기 피하기)
                 if union == 0:
-                    iou = float('nan')  # 그 갈래가 없음
+                    iou = float('nan')  # 그 클래스가 없음
                 else:
                     iou = (intersection / union).item()
 
                 iou_per_class.append(iou)
 
-            # 평균 겹침 비 셈하기(없는 갈래의 NaN은 무시)
+            # 평균 겹침 비 셈하기(없는 클래스의 NaN은 무시)
             valid_ious = [iou for iou in iou_per_class if not np.isnan(iou)]
             miou = np.mean(valid_ious) if valid_ious else 0.0
 
@@ -403,7 +403,7 @@
         model.eval()
         running_loss = 0.0
         running_miou = 0.0
-        all_ious = [[] for _ in range(21)]  # 갈래별 겹침 비 갈무리
+        all_ious = [[] for _ in range(21)]  # 클래스별 겹침 비 갈무리
 
         with torch.no_grad():
             pbar = tqdm(loader, desc='Validation')
@@ -418,7 +418,7 @@
                 # 지표를 계산한다
                 miou, iou_per_class = calculate_miou(outputs, masks)
 
-                # 갈래별 겹침 비 갈무리
+                # 클래스별 겹침 비 갈무리
                 for cls, iou in enumerate(iou_per_class):
                     if not np.isnan(iou):
                         all_ious[cls].append(iou)
@@ -436,7 +436,7 @@
         avg_loss = running_loss / len(loader)
         avg_miou = running_miou / len(loader)
 
-        # 갈래마다 평균 겹침 비 셈하기
+        # 클래스마다 평균 겹침 비 셈하기
         avg_iou_per_class = [np.mean(ious) if ious else 0.0 for ious in all_ious]
 
         return avg_loss, avg_miou, avg_iou_per_class
@@ -450,7 +450,7 @@
         """모델의 어림을 그려 본다."""
         model.eval()
 
-        # VOC 갈래 이름
+        # VOC 클래스 이름
         class_names = ['background', 'aeroplane', 'bicycle', 'bird', 'boat',
                        'bottle', 'bus', 'car', 'cat', 'chair', 'cow',
                        'dining table', 'dog', 'horse', 'motorbike', 'person',
@@ -540,7 +540,7 @@
         print(f"  Train - Loss: {train_loss:.4f}, mIoU: {train_miou:.4f}")
         print(f"  Val   - Loss: {val_loss:.4f}, mIoU: {val_miou:.4f}")
 
-        # 학습률 스케줄링
+        # 러닝레이트 스케줄링
         scheduler.step(val_miou)
 
         # 최고 성능 모델 저장
@@ -549,7 +549,7 @@
             torch.save(model.state_dict(), 'best_pretrained_segmentation.pth')
             print(f"  ✓ New best mIoU! Model saved.")
 
-        # 5세대마다 갈래별 겹침 비 찍기
+        # 5세대마다 클래스별 겹침 비 찍기
         if (epoch + 1) % 5 == 0:
             print("\n  Per-class IoU:")
             class_names = ['background', 'aeroplane', 'bicycle', 'bird', 'boat',
@@ -567,7 +567,7 @@
     print(f"{'='*70}\n")
 
     # ============================================================================
-    # 11단계: 마지막 값매김
+    # 11단계: 마지막 밸류
     # ============================================================================
 
     # 가장 좋은 모델을 불러온다
@@ -580,7 +580,7 @@
     )
     print(f"\nFinal Validation mIoU: {val_miou:.4f}")
 
-    # 갈래별 자세한 결과 찍기
+    # 클래스별 자세한 결과 찍기
     print("\nPer-class IoU:")
     print("-" * 70)
     class_names = ['background', 'aeroplane', 'bicycle', 'bird', 'boat',
@@ -635,11 +635,11 @@ VOC2012의 기본 segmentation train·val은 각각1,464장과1,449장이다. �
 
 이미지는512×512로 resize하고 ImageNet 평균·표준편차로 정규화한다. 마스크는 최근접 보간과 PILToTensor로 정수 클래스 ID를 보존한 뒤 long H×W로 반환한다. 마스크에 이미지처럼 /255 정규화를 적용하면 클래스가 훼손된다. 현재는 두 경로 모두 결정적인 같은 크기 resize라 좌표가 대응하지만, 무작위 crop·회전을 추가하려면 같은 난수를 이미지·마스크에 공유해야 한다. 종횡비를 고정 크기로 변형하는 효과도 평가의 일부다.
 
-### 사전 학습 범위와 학습률
+### 사전 학습 범위와 러닝레이트
 
-`encoder_weights='imagenet'`는 인코더의 사전 학습 가중치를 지정한다. 이 설정만으로 VOC에 이미 학습된 decoder·21클래스 head가 제공되는 것은 아니다. 기본 활성화 없는 모델의 출력은 N×21×H×W 로짓이며 CE는 N×H×W의 클래스 레이블과 연결한다. 필요 시 데이터와 가중치 다운로드가 발생할 수 있으나 이번 편집에서는 실행하지 않았다. 정의는 [사용 라이브러리의 모델 설명](https://smp.readthedocs.io/en/v0.3.0/_modules/segmentation_models_pytorch/decoders/deeplabv3/model.html)을 해당 설치 버전과 대조한다.
+`encoder_weights='imagenet'`는 인코더의 사전 학습 웨이트를 지정한다. 이 설정만으로 VOC에 이미 학습된 decoder·21클래스 head가 제공되는 것은 아니다. 기본 활성화 없는 모델의 출력은 N×21×H×W 로짓이며 CE는 N×H×W의 클래스 레이블과 연결한다. 필요 시 데이터와 웨이트 다운로드가 발생할 수 있으나 이번 편집에서는 실행하지 않았다. 정의는 [사용 라이브러리의 모델 설명](https://smp.readthedocs.io/en/v0.3.0/_modules/segmentation_models_pytorch/decoders/deeplabv3/model.html)을 해당 설치 버전과 대조한다.
 
-코드는 이름에 encoder가 포함된 파라미터의 학습률을0.0001, 나머지를0.001로 나눈다. 이는 인코더를 동결한 것이 아니며 `model.train()`은 BN의 이동 통계도 갱신한다. 차등 학습률은 전이학습의 한 선택이며 항상 단일 학습률보다 낫거나 이런 비율이 필수인 것은 아니다. 파라미터 이름에 의존하는 그룹 구분이 실제 의도한 모든 파라미터를 포함하는지도 확인해야 한다.
+코드는 이름에 encoder가 포함된 파라미터의 러닝레이트를0.0001, 나머지를0.001로 나눈다. 이는 인코더를 동결한 것이 아니며 `model.train()`은 BN의 이동 통계도 갱신한다. 차등 러닝레이트는 전이학습의 한 선택이며 항상 단일 러닝레이트보다 낫거나 이런 비율이 필수인 것은 아니다. 파라미터 이름에 의존하는 그룹 구분이 실제 의도한 모든 파라미터를 포함하는지도 확인해야 한다.
 
 ### mIoU 집계의 실제 의미
 
@@ -651,7 +651,7 @@ VOC2012의 기본 segmentation train·val은 각각1,464장과1,449장이다. �
 
 ### 검증 선택과 체크포인트
 
-검증 mIoU로 scheduler와 최선 가중치를 선택하고, 마지막에도 같은 검증셋을 평가한다. 이는 선택에 사용하지 않은 독립 테스트 성능이 아니다. `best_miou=0`에서 엄격한 개선만 저장하므로 새 체크포인트가 없을 때 고정 파일 로드가 실패하거나 이전 실행의 파일을 읽을 수 있다. 기본 루프에는 조기 종료가 없으며 연습의 예제는 별도 골격이다.
+검증 mIoU로 scheduler와 최선 웨이트를 선택하고, 마지막에도 같은 검증셋을 평가한다. 이는 선택에 사용하지 않은 독립 테스트 성능이 아니다. `best_miou=0`에서 엄격한 개선만 저장하므로 새 체크포인트가 없을 때 고정 파일 로드가 실패하거나 이전 실행의 파일을 읽을 수 있다. 기본 루프에는 조기 종료가 없으며 연습의 예제는 별도 골격이다.
 
 연습의 `model.state_dict().copy()`는 얕은 사전 복사라 텐서 저장소가 후속 학습과 공유될 수 있다. 최선 시점의 값을 실제로 보존하려면 깊은 복사·텐서 복제 또는 저장 파일처럼 독립적인 snapshot이 필요하다. 루프 마지막에도 최선 상태를 복원하는 규칙과 개선이 없는 초기·NaN 지표의 처리도 정해야 한다.
 
@@ -671,19 +671,19 @@ VOC2012의 기본 segmentation train·val은 각각1,464장과1,449장이다. �
 </div>
 
 ??? success "연습문제 1 풀이"
-    동결하지 않았다. encoder 파라미터도 작은 학습률로 Adam에 등록되고 BN 통계도 학습 모드에서 변한다. zero_grad를 생략하면 이전 경사가 누적되어 의도한 배치별 갱신과 달라진다. 변화하는 파라미터와 Adam 상태가 있어 단순히 학습률에 단계 수를 곱한 것과 동일하지는 않다. 의도적인 경사 누적은 손실 배율과 초기화 시점을 따로 설계한다.
+    동결하지 않았다. encoder 파라미터도 작은 러닝레이트로 Adam에 등록되고 BN 통계도 학습 모드에서 변한다. zero_grad를 생략하면 이전 경사가 누적되어 의도한 배치별 갱신과 달라진다. 변화하는 파라미터와 Adam 상태가 있어 단순히 러닝레이트에 단계 수를 곱한 것과 동일하지는 않다. 의도적인 경사 누적은 로스 배율과 초기화 시점을 따로 설계한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-현재 두 학습률 그룹을 단일 Adam 학습률로 바꾼 비교에서 통제할 조건을 설명하라.
+현재 두 러닝레이트 그룹을 단일 Adam 러닝레이트로 바꾼 비교에서 통제할 조건을 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    기존 코드도 Adam이며 encoder0.0001·나머지0.001의 두 그룹을 사용한다. 모두0.001로 바꾸는 것은 옵티마이저 종류뿐 아니라 encoder의 배율을 바꾸는 실험이다. 같은 사전 학습 초기값·데이터 순서·학습 예산을 맞추고 학습률 후보와 검증 선택을 구분해 비교해야 한다.
+    기존 코드도 Adam이며 encoder0.0001·나머지0.001의 두 그룹을 사용한다. 모두0.001로 바꾸는 것은 옵티마이저 종류뿐 아니라 encoder의 배율을 바꾸는 실험이다. 같은 사전 학습 초기값·데이터 순서·학습 예산을 맞추고 러닝레이트 후보와 검증 선택을 구분해 비교해야 한다.
 
 ---
 
@@ -702,7 +702,7 @@ VOC2012의 기본 segmentation train·val은 각각1,464장과1,449장이다. �
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 조기 종료 골격이 최선 가중치를 정확히 보존·복원하는지 검토하라.
+아래 조기 종료 골격이 최선 웨이트를 정확히 보존·복원하는지 검토하라.
 
 </div>
 
@@ -732,4 +732,4 @@ VOC2012의 기본 segmentation train·val은 각각1,464장과1,449장이다. �
 
 ## 정리하며
 
-사전 학습 인코더의 파인튜닝은 라벨·전처리·학습률을 새 과제에 맞추는 과정이다. 배치 mIoU와 전체 데이터 지표, 검증 선택과 독립 테스트를 구분하고, 최선 체크포인트를 실제로 독립 보존하는지 확인한다.
+사전 학습 인코더의 파인튜닝은 라벨·전처리·러닝레이트를 새 과제에 맞추는 과정이다. 배치 mIoU와 전체 데이터 지표, 검증 선택과 독립 테스트를 구분하고, 최선 체크포인트를 실제로 독립 보존하는지 확인한다.

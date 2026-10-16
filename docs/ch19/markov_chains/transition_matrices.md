@@ -53,7 +53,7 @@
             """
             옮김 행렬로 분석기 첫값 잡기.
 
-            매개변수:
+            파라메터:
                 transition_matrix (np.ndarray or list): 옮김 확률 행렬
                 state_names (list): 상태의 이름(없어도 된다)
             """
@@ -94,7 +94,7 @@
             """
             n걸음 옮김 행렬 P^n 셈하기.
 
-            매개변수:
+            파라메터:
                 n (int): 걸음 수
 
             반환값:
@@ -118,9 +118,9 @@
             """
             initial_state에서 n걸음 뒤에 target_state에 있을 확률 셈하기.
 
-            매개변수:
+            파라메터:
                 initial_state (int or str): 시작 상태
-                target_state (int or str): 과녁 상태
+                target_state (int or str): 타깃 상태
                 n (int): 걸음 수
 
             반환값:
@@ -148,7 +148,7 @@
             """
             n걸음 뒤의 상태 확률 분포 셈하기.
 
-            매개변수:
+            파라메터:
                 initial_distribution (np.ndarray): 첫 확률 분포 π_0
                 n (int): 걸음 수
 
@@ -178,7 +178,7 @@
             """
             n → ∞일 때 P^n이 모이는지 살피기.
 
-            매개변수:
+            파라메터:
                 max_steps (int): 살필 최대 걸음 수
                 tolerance (float): 모임 너그러움
 
@@ -221,7 +221,7 @@
             """
             n걸음 동안 확률이 어떻게 흘러가는지 그려 보기.
 
-            매개변수:
+            파라메터:
                 initial_state (int or str): 시작 상태
                 max_steps (int): 그려 볼 최대 걸음 수
             """
@@ -682,7 +682,7 @@ Pⁿ⁺¹−Pⁿ이 작으면 정상분포에 가깝다는 결론이 항상 성�
 
 ??? success "연습문제 4 풀이"
 
-    아래 조각은 신경망 호출·경사·parameters를 가정하므로 이 클래스에 맞지 않는다. 적절한 정적 점검 사례는 P⁰=I, P¹=P, 작은 행렬의 P²와 수계산 일치, 유효 초기분포의 합·비음성 보존 및 주기 행렬의 진동이다. 여기서는 조각을 수정하거나 실행하지 않는다.
+    아래 조각은 뉴럴 넷트웍 호출·경사·parameters를 가정하므로 이 클래스에 맞지 않는다. 적절한 정적 점검 사례는 P⁰=I, P¹=P, 작은 행렬의 P²와 수계산 일치, 유효 초기분포의 합·비음성 보존 및 주기 행렬의 진동이다. 여기서는 조각을 수정하거나 실행하지 않는다.
 
     ```python
     def test_transitionmatrixanalyzer():

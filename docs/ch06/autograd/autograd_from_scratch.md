@@ -23,7 +23,7 @@
     #   3부 – 뺄셈, 나눗셈, 거듭제곱으로 확장
     #   4부 – TensorWithGrad: numpy를 이용한 벡터화된 자동 미분
     #   5부 – PyTorch autograd와 대조 검증
-    #   6부 – 우리 엔진으로 작은 신경망 만들기
+    #   6부 – 우리 엔진으로 작은 뉴럴 넷트웍 만들기
     #
     # 출처 각색: O'Reilly "Deep Learning from Scratch" 6장
 
@@ -54,7 +54,7 @@
 
         인스턴스마다 다음을 담는다.
           - num:         홑값
-          - grad:        쌓인 기울기(.backward()이 채운다)
+          - grad:        쌓인 그래디언트(.backward()이 채운다)
           - depends_on:  어버이 NumberWithGrad 객체의 목록
           - creation_op: 이 마디를 만든 셈을 가리키는 글자열 표
         """
@@ -127,7 +127,7 @@
         # ── 역전파 ───────────────────────────────────────────────────────
 
         def backward(self, backward_grad: Optional[float] = None) -> None:
-            """셈 그래프를 따라 기울기를 되부르며 퍼뜨린다.
+            """셈 그래프를 따라 그래디언트를 되부르며 퍼뜨린다.
 
             사슬 법칙을 쓴다:  dL/dx = dL/dy * dy/dx
             여기서 y은 이 마디의 값이고 x은 어버이의 값이다.
@@ -249,9 +249,9 @@
         """방송으로 늘어난 축을 되접어 grad를 shape에 맞춘다.
 
         numpy는 (4, 4) + (1, 4)처럼 모양이 다른 배열을 자동으로 늘려 더한다.
-        순전파에서 늘어난 만큼, 역전파에서는 그 축을 따라 기울기를 더해
+        순전파에서 늘어난 만큼, 역전파에서는 그 축을 따라 그래디언트를 더해
         원래 모양으로 되돌려야 한다. 이것을 빠뜨리면 치우침 b가 (1, 4)인데
-        기울기는 (4, 4)로 나와 b -= lr * b.grad에서 오류가 난다.
+        그래디언트는 (4, 4)로 나와 b -= lr * b.grad에서 오류가 난다.
         실제 자동 미분 엔진이 모두 이 되접기를 안에 품고 있다.
         """
         # 순전파에서 앞쪽에 축이 새로 생긴 경우: 그 축을 모두 더해 없앤다
@@ -371,7 +371,7 @@
                 self.depends_on[0].backward(self.grad * s * (1 - s))
 
 
-    # 시연: 선형 층  y = X @ W + b, loss = sum(y)
+    # 시연: 선형 레이어  y = X @ W + b, loss = sum(y)
     np.random.seed(42)
     X = TensorWithGrad(np.random.randn(4, 3))
     W = TensorWithGrad(np.random.randn(3, 2))
@@ -415,7 +415,7 @@
         print(f"    Match: {abs(x_pt.grad.item() - x_ours.grad) < 1e-10}")
         print()
 
-        # --- 텐서 검사: 선형 층 ---
+        # --- 텐서 검사: 선형 레이어 ---
         np.random.seed(42)
         X_np = np.random.randn(4, 3)
         W_np = np.random.randn(3, 2)
@@ -473,7 +473,7 @@
 
 
     # =====================================================================
-    # 6부 – 우리 autograd 엔진으로 만드는 작은 신경망
+    # 6부 – 우리 autograd 엔진으로 만드는 작은 뉴럴 넷트웍
     # =====================================================================
     print("=" * 60)
     print("Part 6: Training a tiny NN with our autograd")
@@ -485,7 +485,7 @@
     X_data = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float64)
     y_data = np.array([[0], [1], [1], [0]], dtype=np.float64)
 
-    # 가중치 초기화(2층 신경망: 2 → 4 → 1)
+    # 웨이트 초기화(2레이어 뉴럴 넷트웍: 2 → 4 → 1)
     W1_data = np.random.randn(2, 4) * 0.5
     b1_data = np.zeros((1, 4))
     W2_data = np.random.randn(4, 1) * 0.5
@@ -509,7 +509,7 @@
         out = h_act.matmul(W2) + b2    # output pre-activation
         pred = out.sigmoid()            # output activation
 
-        # MSE 손실 = sum((pred - y)^2) / n
+        # MSE 로스 = sum((pred - y)^2) / n
         diff = pred + (y * TensorWithGrad(np.full_like(y_data, -1.0)))
         sq = diff * diff
         loss = sq.sum()
@@ -632,7 +632,7 @@ Done.
 
 ### 텐서 연산으로 확장하기
 
-`TensorWithGrad`는 배열 단위로 같은 원리를 적용한다. 이 예제의 이차원 행렬 곱 $Y=XW$에서 상위 경사를 $G$라 하면 입력 경사는 $GW^\top$, 가중치 경사는 $X^\top G$다. 브로드캐스팅한 덧셈의 역전파에서는 확장된 축을 합쳐 원래 입력 모양으로 되돌려야 하며, `unbroadcast()`가 이를 담당한다. 여기의 행렬 곱 미분은 일반적인 모든 차원과 배치 형태를 지원하는 구현은 아니다.
+`TensorWithGrad`는 배열 단위로 같은 원리를 적용한다. 이 예제의 이차원 행렬 곱 $Y=XW$에서 상위 경사를 $G$라 하면 입력 경사는 $GW^\top$, 웨이트 경사는 $X^\top G$다. 브로드캐스팅한 덧셈의 역전파에서는 확장된 축을 합쳐 원래 입력 모양으로 되돌려야 하며, `unbroadcast()`가 이를 담당한다. 여기의 행렬 곱 미분은 일반적인 모든 차원과 배치 형태를 지원하는 구현은 아니다.
 
 ### 교육용 구현의 한계
 
@@ -678,7 +678,7 @@ Done.
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 

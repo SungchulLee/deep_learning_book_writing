@@ -1,6 +1,6 @@
 # ONNX 내보내기
 
-ONNX는 모델의 계산 그래프와 매개변수를 표현하는 교환 형식이다. 이 예제는 평가 모드의 합성곱 모델을 내보내고, 형식 검사와 ONNX Runtime 출력 비교를 구분해 보여 준다.
+ONNX는 모델의 계산 그래프와 파라메터를 표현하는 교환 형식이다. 이 예제는 평가 모드의 컨볼루션 모델을 내보내고, 형식 검사와 ONNX Runtime 출력 비교를 구분해 보여 준다.
 
 ## 1. 코드
 
@@ -51,7 +51,7 @@ print("=" * 70)
 class ConvNet(nn.Module):
     """
     MNIST 방식 분류를 위한 간단한 CNN.
-    ONNX 내보내기를 위해 여러 종류의 층을 보인다.
+    ONNX 내보내기를 위해 여러 종류의 레이어를 보인다.
     """
     def __init__(self):
         super(ConvNet, self).__init__()
@@ -98,7 +98,7 @@ torch.onnx.export(
     model,                          # 내보낼 모델
     dummy_input,                    # 예시 입력 텐서
     onnx_path,                      # 출력 파일 경로
-    export_params=True,             # 학습된 매개변수 저장
+    export_params=True,             # 학습된 파라메터 저장
     opset_version=11,               # ONNX 판본
     do_constant_folding=True,       # 상수 접기 최적화
     input_names=['input'],          # 입력 텐서의 이름
@@ -184,7 +184,7 @@ onnx.checker는 모델의 형식적 일관성을 검사하며 원래 모델과�
 </div>
 
 ??? success "연습문제 1 풀이"
-    아니다. 해당 축의 동적 지정과 모델 연산의 지원이 별도로 필요하다. 고정된 완전 연결층 입력 차원 같은 제약도 만족해야 한다.
+    아니다. 해당 축의 동적 지정과 모델 연산의 지원이 별도로 필요하다. 고정된 완전 연결 레이어 입력 차원 같은 제약도 만족해야 한다.
 
 ---
 

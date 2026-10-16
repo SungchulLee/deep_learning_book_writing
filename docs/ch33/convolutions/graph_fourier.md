@@ -7,7 +7,7 @@
 ```python
 """
 29.3.2: 그래프 푸리에 변환
-그래프 푸리에 바꿈 짜기, 스펙트럼 엮음, 파세발 정리.
+그래프 푸리에 바꿈 짜기, 스펙트럼 컨볼루션, 파세발 정리.
 """
 
 import numpy as np
@@ -135,7 +135,7 @@ def demo_learnable_spectral_filter():
     eigenvalues, U, L = compute_gft_basis(A)
     n = A.shape[0]
 
-    # 과녁: 무리 이름표
+    # 타깃: 무리 이름표
     labels = np.array([0 if G.nodes[i].get('club', '') == 'Mr. Hi' else 1
                         for i in range(n)], dtype=float)
 
@@ -143,7 +143,7 @@ def demo_learnable_spectral_filter():
     np.random.seed(42)
     signal = labels + np.random.randn(n) * 0.5
 
-    # 기울기 내려가기로 theta 배우기
+    # 그래디언트 내려가기로 theta 배우기
     theta = np.random.randn(n) * 0.1
     lr = 0.01
 
@@ -152,7 +152,7 @@ def demo_learnable_spectral_filter():
         error = filtered - labels
         loss = np.mean(error**2)
 
-        # 기울기: d_loss/d_theta
+        # 그래디언트: d_loss/d_theta
         f_hat = U.T @ signal
         grad = 2 * (U.T @ error) * f_hat / n
         theta -= lr * grad
@@ -238,9 +238,9 @@ Visualization saved to graph_fourier.png
 
 ## 2. 기저 계산과 입력 가정
 
-compute_gft_basis는 D=diag(A의 행합), L=D−A를 만든 뒤 eigh로 직교 고유기저 U를 구한다. 표준 그래프 주파수 해석은 **대칭·비음수 가중치**에 맞는 코드다. 방향 A를 그대로 넣으면 L은 일반적으로 대칭이 아니며 eigh를 사용하는 가정이 깨진다. 입력 모양·대칭·가중치 검사는 함수에 없다.
+compute_gft_basis는 D=diag(A의 행합), L=D−A를 만든 뒤 eigh로 직교 고유기저 U를 구한다. 표준 그래프 주파수 해석은 **대칭·비음수 웨이트**에 맞는 코드다. 방향 A를 그대로 넣으면 L은 일반적으로 대칭이 아니며 eigh를 사용하는 가정이 깨진다. 입력 모양·대칭·웨이트 검사는 함수에 없다.
 
-GFT와 역변환은 f̂=Uᵀf, f=Uf̂다. 아래 데모는 길이 n의 실수 벡터를 사용한다. 신호의 노드 순서는 A의 행 순서와 같아야 한다. NetworkX adjacency_matrix의 기본 가중치 키는 weight이며 [Karate Club 그래프](https://networkx.org/documentation/stable/reference/generated/networkx.generators.social.karate_club_graph.html)는 엣지 가중치를 갖는다. 따라서 해당 데모는 기본적으로 **가중 그래프 라플라스**를 사용한다.
+GFT와 역변환은 f̂=Uᵀf, f=Uf̂다. 아래 데모는 길이 n의 실수 벡터를 사용한다. 신호의 노드 순서는 A의 행 순서와 같아야 한다. NetworkX adjacency_matrix의 기본 웨이트 키는 weight이며 [Karate Club 그래프](https://networkx.org/documentation/stable/reference/generated/networkx.generators.social.karate_club_graph.html)는 엣지 웨이트를 갖는다. 따라서 해당 데모는 기본적으로 **가중 그래프 라플라스**를 사용한다.
 
 ## 3. 신호 에너지와 주파수 구간
 
@@ -250,7 +250,7 @@ demo_gft는 경로 그래프의 신호를 변환하고 앞·뒤 고유모드 구
 
 0 신호에서는 total_energy=0으로 비율이 정의되지 않는다. 첫 demo의 Random 신호는 해당 함수 이전에 NumPy 시드를 설정하지 않아 뒤 데모와 같은 재현성 조건도 아니다.
 
-## 4. 두 신호 합성곱과 연산자 필터의 차이
+## 4. 두 신호 컨볼루션과 연산자 필터의 차이
 
 spectral_convolution은 선택한 U에서 f̂와 ĝ를 원소별 곱하고 역변환한다. 이 정의는 해당 **기저 관례에 의존**한다. 고유벡터의 부호를 바꾸면 두 변환 계수의 부호는 서로 약분되지만 마지막 역변환의 기저 부호가 남아, 결과가 바뀔 수 있다. 반복 고유값의 회전에도 주의해야 한다.
 
@@ -266,12 +266,12 @@ $$f_{\mathrm{out}}=U\operatorname{diag}(\theta)U^Tf$$
 
 demo_learnable_spectral_filter는 모든 노드의 club 레이블에 노이즈를 더한 값을 입력으로 쓰고, **같은 모든 레이블을 목표로** MSE를200회 갱신한다. 따라서 알려진 신호의 잡음을 줄이는 학습 예이며, 레이블이 없는 노드를 예측하는 독립 테스트 정확도를 제공하지 않는다.
 
-고정 f와 y에서 L=||Udiag(θ)Uᵀf−y||²/n의 기울기는 다음과 같다.
+고정 f와 y에서 L=||Udiag(θ)Uᵀf−y||²/n의 그래디언트는 다음과 같다.
 
 $$\frac{\partial L}{\partial\theta_k}=
 \frac2n\bigl(U^T(f_{\mathrm{out}}-y)\bigr)_k\hat f_k$$
 
-코드의 수동 업데이트는 이 기울기를 사용한다. 각 f̂ₖ≠0인 모드의 제한 없는 최적값은 θₖ*=ŷₖ/f̂ₖ이며 음수·1 초과도 가능하다. 따라서 출력에 비교한 exp(−λₖ)가 이 회귀의 “이상적인” 최적 필터라는 근거는 없다. f̂ₖ가0이면 해당 모드의 목표 성분을 이 입력 필터로 만들 수 없다.
+코드의 수동 업데이트는 이 그래디언트를 사용한다. 각 f̂ₖ≠0인 모드의 제한 없는 최적값은 θₖ*=ŷₖ/f̂ₖ이며 음수·1 초과도 가능하다. 따라서 출력에 비교한 exp(−λₖ)가 이 회귀의 “이상적인” 최적 필터라는 근거는 없다. f̂ₖ가0이면 해당 모드의 목표 성분을 이 입력 필터로 만들 수 없다.
 
 ## 6. 그림과 규모의 제한
 
@@ -299,7 +299,7 @@ GFT가 노름을 보존하는 이유를 증명하고0 신호의 에너지 비율
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-고유벡터 부호 변경에서 두 신호 합성곱과 Udiag(g(λ))Uᵀ 필터의 차이를 설명하라.
+고유벡터 부호 변경에서 두 신호 컨볼루션과 Udiag(g(λ))Uᵀ 필터의 차이를 설명하라.
 
 </div>
 
@@ -326,4 +326,4 @@ GFT가 노름을 보존하는 이유를 증명하고0 신호의 에너지 비율
 
 ## 정리하며
 
-GFT는 라플라스 기저의 좌표변환이며 노드 순서·가중치·기저 관례를 맞춰야 한다. 부호에 민감한 두 신호 합성곱과 고유값 함수 필터를 구분하고, 전체 레이블 신호 회귀를 독립 분류 평가로 해석하지 않는다.
+GFT는 라플라스 기저의 좌표변환이며 노드 순서·웨이트·기저 관례를 맞춰야 한다. 부호에 민감한 두 신호 컨볼루션과 고유값 함수 필터를 구분하고, 전체 레이블 신호 회귀를 독립 분류 평가로 해석하지 않는다.

@@ -1,6 +1,6 @@
 # 재구성과 뷰
 
-모양을 바꾸는 일은 대개 숫자를 옮기지 않는다. 저장소는 그대로 두고 "몇 칸씩 건너뛰며 읽을까"만 고치면 되기 때문이다. 그런데 그렇게 할 수 **없는** 경우가 있고, 그때 `view`와 `reshape`가 서로 다르게 행동한다. 이 절에서는 그 갈림길을 본다.
+모양을 바꾸는 일은 대개 숫자를 옮기지 않는다. 저장소는 그대로 두고 "몇 칸씩 건너뛰며 읽을까"만 고치면 되기 때문이다. 그런데 그렇게 할 수 **없는** 경우가 있고, 그때 `view`와 `reshape`가 서로 다르게 액션한다. 이 절에서는 그 갈림길을 본다.
 
 ## 1. 코드
 
@@ -289,14 +289,14 @@ def main():
     batch_vectors = torch.randn(batch_size, feature_dim)
     print(f"Batch of vectors: {batch_vectors.shape}")  # torch.Size([64, 128])
     
-    # 패턴 2: 완전연결 층을 위해 이미지 펼치기
+    # 패턴 2: 완전연결 레이어를 위해 이미지 펼치기
     # 이미지: (배치, 채널, 높이, 너비)
     images = torch.randn(32, 3, 28, 28)
     flat_images = images.reshape(32, -1)  # (32, 3*28*28) = (32, 2352)
     print(f"Flattened images: {flat_images.shape}")
     
-    # 패턴 3: 합성곱을 위한 재구성
-    # 완전연결 출력 → 합성곱 입력
+    # 패턴 3: 컨볼루션을 위한 재구성
+    # 완전연결 출력 → 컨볼루션 입력
     fc_output = torch.randn(16, 512)  # 16 samples, 512 features
     conv_input = fc_output.reshape(16, 512, 1, 1)  # Add spatial dimensions
     print(f"Conv input shape: {conv_input.shape}")
@@ -764,7 +764,7 @@ NCHW를 NHWC로 바꾸는 일이 둘의 차이를 잘 보여 준다. `permute(0,
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-합성곱의 출력처럼 모양이 `(N, 3, 1, 1)`인 텐서를 `(N, 3)`으로 줄이려 한다. `x.squeeze()`로 적고 `N = 4`와 `N = 1`에서 각각 모양을 확인하라. 왜 이것이 **배치 크기에 따라 달라지는 버그**가 되는지 설명하고, 안전하게 적는 두 가지 방법을 보여라.
+컨볼루션의 출력처럼 모양이 `(N, 3, 1, 1)`인 텐서를 `(N, 3)`으로 줄이려 한다. `x.squeeze()`로 적고 `N = 4`와 `N = 1`에서 각각 모양을 확인하라. 왜 이것이 **배치 크기에 따라 달라지는 버그**가 되는지 설명하고, 안전하게 적는 두 가지 방법을 보여라.
 
 </div>
 

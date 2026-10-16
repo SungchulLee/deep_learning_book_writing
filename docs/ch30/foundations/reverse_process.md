@@ -46,7 +46,7 @@ $$\widehat x_0=\frac{x_t-\sqrt{1-\bar\alpha_t}\epsilon_\theta(x_t,t)}{\sqrt{\bar
 $$\mu_\theta(x_t,t)=\frac1{\sqrt{\alpha_t}}
 \left(x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}\epsilon_\theta(x_t,t)\right)$$
 
-원본 예측을 clipping하면 더는 같은 단순 대입식과 동일하지 않을 수 있다. 학습에서 선택한 예측·손실·분산 관례를 생성에도 일치시킨다.
+원본 예측을 clipping하면 더는 같은 단순 대입식과 동일하지 않을 수 있다. 학습에서 선택한 예측·로스·분산 관례를 생성에도 일치시킨다.
 
 v 예측이라는 다른 파라미터화에서는 $a_t=\sqrt{\bar\alpha_t}$, $b_t=\sqrt{1-\bar\alpha_t}$로 두고 $v=a_t\epsilon-b_tx_0$를 정의한다. 그러면 $\widehat x_0=a_tx_t-b_tv_\theta$, $\widehat\epsilon=b_tx_t+a_tv_\theta$로 변환한다. 이는 두 예측을 임의로 보간하는 것이 아니라 정해진 선형 좌표 변환이다.
 

@@ -207,7 +207,7 @@ torch.allclose(torch.tensor([1.0]), torch.tensor([1.00001]))    # False
     torch.allclose(n, n, equal_nan=True)   # True
     ```
 
-    같은 객체를 두 번 넣었는데 "다르다"고 하는 계산이다. 그러므로 **텐서가 같은지 보는 검사는 `nan`이 끼면 늘 실패한다.** 저장했다 불러온 가중치를 비교하는 검사가 까닭 없이 깨지면 `nan`을 의심한다. `allclose` 또는 `isclose`에 `equal_nan=True`를 주면 `nan` 자리끼리는 같다고 본다.
+    같은 객체를 두 번 넣었는데 "다르다"고 하는 계산이다. 그러므로 **텐서가 같은지 보는 검사는 `nan`이 끼면 늘 실패한다.** 저장했다 불러온 웨이트를 비교하는 검사가 까닭 없이 깨지면 `nan`을 의심한다. `allclose` 또는 `isclose`에 `equal_nan=True`를 주면 `nan` 자리끼리는 같다고 본다.
 
     `nan`을 찾으려면 `==`가 아니라 `torch.isnan`을 쓴다. `t == float('nan')`은 늘 전부 `False`다.
 
@@ -274,7 +274,7 @@ values, preds = logits.max(dim=1)      # preds 가 예측 라벨이다
 
     `nan` 쪽은 IEEE 754가 그렇게 정했기 때문이다. `nan`은 **어떤 값과도, 자기 자신과도**
     같지 않다. 같은 객체를 두 번 넣었는데 "다르다"는 답이 나오는 까닭이고, 그래서
-    가중치를 비교하는 검사가 `nan` 하나 때문에 까닭 없이 깨진다. `allclose` 또는 `isclose`에 `equal_nan=True`를 주면
+    웨이트를 비교하는 검사가 `nan` 하나 때문에 까닭 없이 깨진다. `allclose` 또는 `isclose`에 `equal_nan=True`를 주면
     `nan` 자리끼리는 같다고 본다.
 
     덧붙여 `nan`을 **찾을** 때 `==`는 쓸 수 없다. `t == float('nan')`은 늘 전부
@@ -399,6 +399,6 @@ values, preds = logits.max(dim=1)      # preds 가 예측 라벨이다
 - **`torch.equal`** — 텐서 하나에 불리언 하나. **모양까지** 같아야 한다. 그래서 `(x == y).all()`과 다르다.
 - **`torch.allclose`** — 얼마나 가까우면 같다고 볼지 정한다. 기본값 `rtol=1e-5`는 생각보다 빡빡해서 여섯째 자리에서 갈린다.
 
-실수를 견줄 때는 `allclose`를 쓴다. 그리고 **`nan`은 자기 자신과도 같지 않다** — 세 함수가 모두 `False`를 준다. 가중치를 비교하는 검사가 까닭 없이 깨지면 `nan`을 의심하고, 찾을 때는 `==`가 아니라 `torch.isnan`을 쓴다.
+실수를 견줄 때는 `allclose`를 쓴다. 그리고 **`nan`은 자기 자신과도 같지 않다** — 세 함수가 모두 `False`를 준다. 웨이트를 비교하는 검사가 까닭 없이 깨지면 `nan`을 의심하고, 찾을 때는 `==`가 아니라 `torch.isnan`을 쓴다.
 
 `torch.max`는 둘째 인수에 따라 세 가지 일을 한다. 정수면 차원으로 읽어 **값과 자리를 묶어** 돌려주고, 텐서면 원소별로 견준다. 원소별로 견줄 뜻이라면 한 가지 일만 하는 `torch.maximum`이 분명하다.

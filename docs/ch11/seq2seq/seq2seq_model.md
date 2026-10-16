@@ -175,13 +175,13 @@
 
             반환값:
                 outputs: 시각마다의 예측 (배치 크기, trg_len, output_size)
-                attentions: 시각마다의 어텐션 가중치 (배치 크기, trg_len, src_len)
+                attentions: 시각마다의 어텐션 웨이트 (배치 크기, trg_len, src_len)
             """
             batch_size = src.shape[0]
             trg_len = trg.shape[1]
             trg_vocab_size = self.decoder.output_size
 
-            # 출력과 어텐션 가중치를 담을 텐서
+            # 출력과 어텐션 웨이트를 담을 텐서
             outputs = torch.zeros(batch_size, trg_len, trg_vocab_size).to(self.device)
             attentions = torch.zeros(batch_size, trg_len, src.shape[1]).to(self.device)
 
@@ -201,7 +201,7 @@
                     decoder_input, hidden, encoder_outputs, cell, mask
                 )
 
-                # 예측과 어텐션 가중치 담기
+                # 예측과 어텐션 웨이트 담기
                 outputs[:, t] = output
                 attentions[:, t] = attention_weights
 
@@ -229,7 +229,7 @@
 
             반환값:
                 generated: 만들어진 순차열 (배치 크기, seq_len)
-                all_attentions: 걸음마다의 어텐션 가중치 (배치 크기, seq_len, src_len)
+                all_attentions: 걸음마다의 어텐션 웨이트 (배치 크기, seq_len, src_len)
             """
             self.eval()
 
@@ -255,7 +255,7 @@
                         decoder_input, hidden, encoder_outputs, cell, mask
                     )
 
-                    # 어텐션 가중치 담기
+                    # 어텐션 웨이트 담기
                     all_attentions.append(attention_weights.unsqueeze(1))
 
                     # 예측한 토큰 얻기
@@ -361,7 +361,7 @@
         # 사용 예
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        # 초매개변수
+        # 초파라메터
         input_vocab_size = 10000
         output_vocab_size = 10000
         embedding_dim = 256
@@ -426,9 +426,9 @@ Total parameters: 57,565,969
 
 ## 2. 논의
 
-두 클래스는 대안 모델이다. forward는 trg의 첫 토큰을 시작 입력으로 삼아 위치 1부터 예측을 저장한다. outputs[:,0]은 0으로 남으므로 손실에서 첫 위치를 제외해야 한다. teacher_forcing_ratio의 난수 선택은 단계별로 한 번 이루어져 배치 전체에 공통 적용된다. Python random을 사용하므로 torch 시드만으로 선택 순서가 고정되지 않는다.
+두 클래스는 대안 모델이다. forward는 trg의 첫 토큰을 시작 입력으로 삼아 위치 1부터 예측을 저장한다. outputs[:,0]은 0으로 남으므로 로스에서 첫 위치를 제외해야 한다. teacher_forcing_ratio의 난수 선택은 단계별로 한 번 이루어져 배치 전체에 공통 적용된다. Python random을 사용하므로 torch 시드만으로 선택 순서가 고정되지 않는다.
 
-어텐션 마스크는 src가 pad_idx와 다른지로 만든다. 길이 패킹 후 인코더 출력 폭이 원래 src 폭보다 짧아지면 마스크·어텐션 저장 텐서와 크기가 맞지 않을 수 있다. 양방향 상태가 이미 이어 붙여져 반환되므로 디코더의 층수·은닉 차원도 맞춰야 한다. ConvEncoder처럼 초기 상태를 반환하지 않는 인코더를 바로 대체할 수는 없다.
+어텐션 마스크는 src가 pad_idx와 다른지로 만든다. 길이 패킹 후 인코더 출력 폭이 원래 src 폭보다 짧아지면 마스크·어텐션 저장 텐서와 크기가 맞지 않을 수 있다. 양방향 상태가 이미 이어 붙여져 반환되므로 디코더의 레이어수·은닉 차원도 맞춰야 한다. ConvEncoder처럼 초기 상태를 반환하지 않는 인코더를 바로 대체할 수는 없다.
 
 generate는 탐욕 선택을 쓰고 모든 표본이 EOS를 한 번 이상 생성하면 멈춘다. 먼저 끝난 표본도 계속 생성하므로 그 표본의 첫 EOS 뒤는 평가에서 제외해야 한다. 반환에는 SOS가 포함되며 max_len은 추가 생성 횟수다. 호출 후 평가 모드를 유지한다.
 
@@ -441,7 +441,7 @@ beam_search는 배치 1을 가정하며 빔 너비가 어휘 크기를 넘지 �
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-forward에서 타깃 첫 위치와 이후 손실 위치를 어떻게 맞춰야 하는가?
+forward에서 타깃 첫 위치와 이후 로스 위치를 어떻게 맞춰야 하는가?
 
 </div>
 
@@ -488,7 +488,7 @@ forward에서 타깃 첫 위치와 이후 손실 위치를 어떻게 맞춰야 �
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

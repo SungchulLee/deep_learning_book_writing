@@ -8,39 +8,39 @@
 
 ### 인코더 스택
 
-인코더는 같은 구조의 층 N개를 쌓는다. 원 논문의 기본 구성은 6개이며, 일반적으로 서로 다른 층의 가중치는 공유하지 않는다. 각 층에는 셀프 어텐션과 위치별 피드포워드가 있다.
+인코더는 같은 구조의 레이어 N개를 쌓는다. 원 논문의 기본 구성은 6개이며, 일반적으로 서로 다른 레이어의 웨이트는 공유하지 않는다. 각 레이어에는 셀프 어텐션과 위치별 피드포워드가 있다.
 
-**하위 층 1 — 멀티헤드 셀프 어텐션:**
+**하위 레이어 1 — 멀티헤드 셀프 어텐션:**
 
 $$\mathbf{Z} = \text{LayerNorm}(\mathbf{X} + \text{MultiHead}(\mathbf{X}, \mathbf{X}, \mathbf{X}))$$
 
 패딩 등 마스크가 제외한 위치를 빼고 각 토큰이 원문 전체를 참조할 수 있다. “양방향”은 패딩 마스크도 없다는 뜻이 아니다.
 
-**하위 층 2 — 자리별 피드포워드 신경망:**
+**하위 레이어 2 — 자리별 피드포워드 뉴럴 넷트웍:**
 
 $$\text{FFN}(\mathbf{z}) = \text{ReLU}(\mathbf{z}\mathbf{W}_1 + \mathbf{b}_1)\mathbf{W}_2 + \mathbf{b}_2$$
 
 $$\mathbf{H} = \text{LayerNorm}(\mathbf{Z} + \text{FFN}(\mathbf{Z}))$$
 
-피드포워드 신경망은 위치마다 똑같이 따로 적용된다. 자리끼리의 주고받음 없이 토큰별 비선형 능력을 더한다.
+피드포워드 뉴럴 넷트웍은 위치마다 똑같이 따로 적용된다. 자리끼리의 주고받음 없이 토큰별 비선형 능력을 더한다.
 
 ### 디코더 스택
 
-원래 인코더·디코더 구조의 디코더는 같은 구조의 층을 쌓되 층별 가중치는 독립이다. 각 층에는 다음 세 하위 층이 있다.
+원래 인코더·디코더 구조의 디코더는 같은 구조의 레이어를 쌓되 레이어별 웨이트는 독립이다. 각 레이어에는 다음 세 하위 레이어가 있다.
 
-**하위 층 1 — 마스크 셀프 어텐션:**
+**하위 레이어 1 — 마스크 셀프 어텐션:**
 
 $$\mathbf{Y}' = \text{LayerNorm}(\mathbf{Y} + \text{MaskedMultiHead}(\mathbf{Y}, \mathbf{Y}, \mathbf{Y}))$$
 
 인과 마스크가 앞으로의 자리에 주의하지 못하게 막아 자기 회귀 성질을 지킨다.
 
-**하위 층 2 — 크로스 어텐션:**
+**하위 레이어 2 — 크로스 어텐션:**
 
 $$\mathbf{Y}'' = \text{LayerNorm}(\mathbf{Y}' + \text{MultiHead}(\mathbf{Y}', \mathbf{M}, \mathbf{M}))$$
 
 쿼리는 디코더에서 오고 키와 값은 인코더의 출력 $\mathbf{M}$에서 온다. 이것이 인코더와 디코더를 잇는 다리이다.
 
-**하위 층 3 — 피드포워드 신경망:**
+**하위 레이어 3 — 피드포워드 뉴럴 넷트웍:**
 
 $$\mathbf{Y}''' = \text{LayerNorm}(\mathbf{Y}'' + \text{FFN}(\mathbf{Y}''))$$
 
@@ -78,19 +78,19 @@ Source tokens          Target tokens (shifted right)
                           Output probs
 ```
 
-### 잔차 연결과 층 정규화
+### 잔차 연결과 레이어 정규화
 
-트랜스포머의 하위 층마다 잔차 연결을 쓴 뒤 층 정규화를 한다. 이 설계 선택은 학습의 안정성에 매우 중요하다.
+트랜스포머의 하위 레이어마다 잔차 연결을 쓴 뒤 레이어 정규화를 한다. 이 설계 선택은 학습의 안정성에 매우 중요하다.
 
 $$\text{output} = \text{LayerNorm}(\mathbf{x} + \text{Sublayer}(\mathbf{x}))$$
 
-**Post-LN**(원래 논문): 위에서 보인 대로 잔차를 더한 뒤 층 정규화를 한다.
+**Post-LN**(원래 논문): 위에서 보인 대로 잔차를 더한 뒤 레이어 정규화를 한다.
 
-**Pre-LN**(요즘 방식): 하위 층에 들어가기 전에 층 정규화를 한다. 깊은 모델에서 더 안정적임이 밝혀졌다.
+**Pre-LN**(요즘 방식): 하위 레이어에 들어가기 전에 레이어 정규화를 한다. 깊은 모델에서 더 안정적임이 밝혀졌다.
 
 $$\text{output} = \mathbf{x} + \text{Sublayer}(\text{LayerNorm}(\mathbf{x}))$$
 
-Pre-LN은 항등 잔차 경로가 정규화 바깥에 남는다. 깊은 모델의 학습에 유리할 수 있지만 워밍업 불필요나 기울기 크기 보존, 최종 성능 우위를 보장하는 것은 아니다.
+Pre-LN은 항등 잔차 경로가 정규화 바깥에 남는다. 깊은 모델의 학습에 유리할 수 있지만 워밍업 불필요나 그래디언트 크기 보존, 최종 성능 우위를 보장하는 것은 아니다.
 
 ---
 
@@ -100,7 +100,7 @@ Pre-LN은 항등 잔차 경로가 정규화 바깥에 남는다. 깊은 모델�
 
 **어텐션**: 모든 자리가 모든 자리를 본다(양방향)
 
-인코더만 쓰는 구조는 디코더를 아주 없앤다. 모델은 입력을 양방향 셀프 어텐션 층 스택로 처리하여 토큰마다 맥락이 담긴 표현을 낸다.
+인코더만 쓰는 구조는 디코더를 아주 없앤다. 모델은 입력을 양방향 셀프 어텐션 레이어 스택로 처리하여 토큰마다 맥락이 담긴 표현을 낸다.
 
 ```python
 class EncoderOnly(nn.Module):
@@ -146,7 +146,7 @@ class DecoderOnly(nn.Module):
 
 **쓰임새**: 글 생성, 대화, 코드, 맥락 안 학습
 
-**사전 학습**: 인과 언어 모델링(CLM)은 앞선 토큰을 조건으로 다음 토큰을 예측한다. 각 유효 위치에 손실을 줄 수 있지만 다른 목표보다 항상 데이터 효율이 좋다는 뜻은 아니다.
+**사전 학습**: 인과 언어 모델링(CLM)은 앞선 토큰을 조건으로 다음 토큰을 예측한다. 각 유효 위치에 로스를 줄 수 있지만 다른 목표보다 항상 데이터 효율이 좋다는 뜻은 아니다.
 
 **코드의 범위**: 아래처럼 nn.TransformerEncoder에 인과 마스크를 주면 디코더 전용 블록을 구성하는 출발점이 된다. 다만 이 짧은 구현에는 위치 표현과 패딩 처리가 없고, 고정 마스크의 길이는 2048이다. 이 코드가 GPT의 전체 구조·사전 학습을 재현하는 것은 아니다.
 
@@ -196,25 +196,25 @@ class EncoderDecoder(nn.Module):
 | 기본 출력 | 문맥별 토큰 표현 | 다음 토큰 로짓 | 원문 조건부 다음 토큰 로짓 |
 | 교차 어텐션 | 기본 구성에 없음 | 기본 구성에 없음 | 디코더가 인코더 메모리를 읽음 |
 | 생성 시 캐시 | 적용 방법에 따라 다름 | 셀프 어텐션 K·V | 셀프 K·V와 원문에서 투영한 교차 K·V |
-| 매개변수 수 | 층·너비·어휘·헤드 구성에 따라 결정 | 같은 기준으로 계산 | 교차 어텐션과 별도 스택 비용 포함 |
+| 파라메터 수 | 레이어·너비·어휘·헤드 구성에 따라 결정 | 같은 기준으로 계산 | 교차 어텐션과 별도 스택 비용 포함 |
 
 ### 핵심 트레이드오프
 
 **문맥 접근**: 인코더의 각 토큰 표현은 원문의 앞뒤를 볼 수 있다. 디코더 전용 모델의 현재 출력은 과거 입력과 프롬프트 전체를 활용할 수 있어 생성 외의 분류·추론 과제에도 쓸 수 있다. 인코더·디코더는 원문을 양방향으로 처리하면서 목표문을 순차적으로 생성한다.
 
-**매개변수 수**: 인코더와 디코더를 각각 N층씩 두면 단일 N층 스택보다 계수가 늘지만 정확히 두 배는 아니다. 교차 어텐션·출력층·어휘 공유 여부도 포함해야 한다. 전체 매개변수와 학습·생성 비용을 같은 예산에서 비교한다.
+**파라메터 수**: 인코더와 디코더를 각각 N레이어씩 두면 단일 N레이어 스택보다 계수가 늘지만 정확히 두 배는 아니다. 교차 어텐션·출력 레이어·어휘 공유 여부도 포함해야 한다. 전체 파라메터와 학습·생성 비용을 같은 예산에서 비교한다.
 
-**학습 목표**: 구조는 사용할 수 있는 문맥을 정하고, 손실은 그 문맥에서 무엇을 예측할지 정한다. 대표 목표가 구조와 잘 맞더라도 한 구조에 오직 한 가지 목표만 가능한 것은 아니다.
+**학습 목표**: 구조는 사용할 수 있는 문맥을 정하고, 로스는 그 문맥에서 무엇을 예측할지 정한다. 대표 목표가 구조와 잘 맞더라도 한 구조에 오직 한 가지 목표만 가능한 것은 아니다.
 
 **추론 효율**: 디코더의 자기 회귀 캐시는 출력 길이에 따라 커진다. 인코더·디코더에서는 원문을 인코딩하고 교차 어텐션의 원문 K·V를 한 번 계산해 재사용할 수 있다. 어느 구조가 빠른지는 원문·목표 길이, 캐시·투영 구현과 장치에 따라 달라진다.
 
-### 피드포워드 신경망의 몫
+### 피드포워드 뉴럴 넷트웍의 몫
 
-세 구조의 위치별 피드포워드 층은 토큰마다 같은 비선형 변환을 적용한다. 이를 키·값 메모리에 비유하는 분석이 있지만, 모든 사실 지식이 이 층에만 저장되거나 검색 결과가 언제나 정확하다는 뜻은 아니다.
+세 구조의 위치별 피드포워드 레이어는 토큰마다 같은 비선형 변환을 적용한다. 이를 키·값 메모리에 비유하는 분석이 있지만, 모든 사실 지식이 이 레이어에만 저장되거나 검색 결과가 언제나 정확하다는 뜻은 아니다.
 
 $$\text{FFN}(\mathbf{x}) = f(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2$$
 
-여기서 $W_1\in\mathbb{R}^{d\times d_{ff}}$, $W_2\in\mathbb{R}^{d_{ff}\times d}$다. $d_{ff}=4d$이면 주요 가중치는 $8d^2$개로, 표준 Q·K·V·출력 투영의 $4d^2$개에 비해 약 두 배다. 편향과 게이트형 FFN 등 변형은 별도로 센다.
+여기서 $W_1\in\mathbb{R}^{d\times d_{ff}}$, $W_2\in\mathbb{R}^{d_{ff}\times d}$다. $d_{ff}=4d$이면 주요 웨이트는 $8d^2$개로, 표준 Q·K·V·출력 투영의 $4d^2$개에 비해 약 두 배다. 바이어스와 게이트형 FFN 등 변형은 별도로 센다.
 
 ---
 
@@ -236,15 +236,15 @@ $$\text{FFN}(\mathbf{x}) = f(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2$$
 
 상세 예제의 입력 attention_mask는 1이 유효, 0이 패딩이며 내부 key_padding_mask는 True가 차단이다. 모든 키가 패딩이면 소프트맥스에서 NaN이 발생할 수 있다. 패딩 쿼리의 출력까지 자동으로 0으로 만들지는 않는다.
 
-Pre-LN의 all_hidden_states는 최종 정규화 전의 마지막 블록 출력까지 담지만 last_hidden_state에는 최종 정규화가 적용된다. 두 값을 곧바로 같다고 비교하면 안 된다. 어텐션 가중치는 드롭아웃 이후이므로 학습 모드의 행 합은 항상 1이 아니다. 예제의 108,890,112개는 학습 전 구조의 계수 수다.
+Pre-LN의 all_hidden_states는 최종 정규화 전의 마지막 블록 출력까지 담지만 last_hidden_state에는 최종 정규화가 적용된다. 두 값을 곧바로 같다고 비교하면 안 된다. 어텐션 웨이트는 드롭아웃 이후이므로 학습 모드의 행 합은 항상 1이 아니다. 예제의 108,890,112개는 학습 전 구조의 계수 수다.
 
 ### 훑어보기
 
-트랜스포머 인코더 블록은 BERT 같은 인코더 기반 구조의 근본 되는 구조 단위이다. 블록마다 셀프 어텐션과 피드포워드 층으로 입력을 바꾸어, 시퀀스의 길이는 지키면서 표현을 다듬는다.
+트랜스포머 인코더 블록은 BERT 같은 인코더 기반 구조의 근본 되는 구조 단위이다. 블록마다 셀프 어텐션과 피드포워드 레이어로 입력을 바꾸어, 시퀀스의 길이는 지키면서 표현을 다듬는다.
 
 ### 구조
 
-인코더 블록마다 잔차 연결과 층 정규화를 갖춘 하위 층 둘로 이루어진다.
+인코더 블록마다 잔차 연결과 레이어 정규화를 갖춘 하위 레이어 둘로 이루어진다.
 
 $$
 \begin{aligned}
@@ -256,9 +256,9 @@ $$
 ### 부품 나누어 보기
 
 1. **멀티헤드 셀프 어텐션**: 모든 자리 사이의 의존을 잡아낸다
-2. **피드포워드 신경망**: 넓혔다 줄이는 자리별 변환
-3. **잔차 연결**: 깊은 신경망에서 기울기가 흐르게 한다
-4. **층 정규화**: 학습을 안정되게 한다
+2. **피드포워드 뉴럴 넷트웍**: 넓혔다 줄이는 자리별 변환
+3. **잔차 연결**: 깊은 뉴럴 넷트웍에서 그래디언트가 흐르게 한다
+4. **레이어 정규화**: 학습을 안정되게 한다
 
 ### 인코더의 멀티헤드 셀프 어텐션
 
@@ -290,13 +290,13 @@ $$
 
 그 결과 $X \in \mathbb{R}^{n \times d_{\text{model}}}$은 (임베딩에서 온) 뜻과 위치 정보를 함께 지닌다.
 
-**4단계 — Q, K, V로의 선형 투영**: 서로 다른 가중치 행렬 셋이 $X$을 쿼리, 키, 값 공간으로 투영한다.
+**4단계 — Q, K, V로의 선형 투영**: 서로 다른 웨이트 행렬 셋이 $X$을 쿼리, 키, 값 공간으로 투영한다.
 
 $$
 Q = XW^Q, \quad K = XW^K, \quad V = XW^V
 $$
 
-여기서 $W^Q, W^K, W^V \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이다. 이 투영은 (표준 정식화에서 편향 항이 없는) 선형이며, 무엇을 찾을지(쿼리), 무엇을 내세울지(키), 어떤 정보를 줄지(값)에 대해 모델이 저마다 다른 표현을 배우게 한다.
+여기서 $W^Q, W^K, W^V \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이다. 이 투영은 (표준 정식화에서 바이어스 항이 없는) 선형이며, 무엇을 찾을지(쿼리), 무엇을 내세울지(키), 어떤 정보를 줄지(값)에 대해 모델이 저마다 다른 표현을 배우게 한다.
 
 **5단계 — 여러 헤드로 나누기**: $Q$, $K$, $V$ 각각을 마지막 차원을 따라 헤드 $h$개로 나누며 헤드마다 차원은 $d_k = d_{\text{model}} / h$이다.
 
@@ -310,7 +310,7 @@ $$
 \text{head}_i = \text{softmax}\left(\frac{Q_i K_i^T}{\sqrt{d_k}}\right) V_i
 $$
 
-$\sqrt{d_k}$으로 나누는 것은 내적의 크기가 너무 커져 소프트맥스가 기울기가 매우 작은 영역으로 밀려나는 일을 막는다.
+$\sqrt{d_k}$으로 나누는 것은 내적의 크기가 너무 커져 소프트맥스가 그래디언트가 매우 작은 영역으로 밀려나는 일을 막는다.
 
 **7단계 — 이어 붙이고 투영하기**: 헤드들의 출력을 이어 붙이고 선형으로 투영한다.
 
@@ -318,10 +318,10 @@ $$
 \text{MultiHead}(X) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h) W^O
 $$
 
-여기서 $W^O \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이다(역시 표준 정식화에서 편향 항이 없다). 출력은 입력과 같은 꼴 $\mathbb{R}^{n \times d_{\text{model}}}$이다.
+여기서 $W^O \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이다(역시 표준 정식화에서 바이어스 항이 없다). 출력은 입력과 같은 꼴 $\mathbb{R}^{n \times d_{\text{model}}}$이다.
 
-!!! note "수식의 편향 생략과 실제 구현"
-    설명 수식에서 Q·K·V와 출력 투영의 편향을 생략할 수 있다. 이것이 모든 구현에서 편향이 불필요하다는 증명은 아니다. 이 페이지의 사용자 정의 코드와 PyTorch nn.MultiheadAttention 기본값은 편향을 사용한다. bias=False는 투영 편향을 없애는 설정이며 그 자체로 원 논문의 모든 학습·구조 조건을 재현하지는 않는다.
+!!! note "수식의 바이어스 생략과 실제 구현"
+    설명 수식에서 Q·K·V와 출력 투영의 바이어스를 생략할 수 있다. 이것이 모든 구현에서 바이어스가 불필요하다는 증명은 아니다. 이 페이지의 사용자 정의 코드와 PyTorch nn.MultiheadAttention 기본값은 바이어스를 사용한다. bias=False는 투영 바이어스를 없애는 설정이며 그 자체로 원 논문의 모든 학습·구조 조건을 재현하지는 않는다.
 
 ### 멀티헤드 정식화
 
@@ -335,9 +335,9 @@ $$
 \text{head}_i = \text{Attention}(XW_i^Q, XW_i^K, XW_i^V)
 $$
 
-### 피드포워드 신경망
+### 피드포워드 뉴럴 넷트웍
 
-자리별 피드포워드 신경망은 위치마다 따로 같은 변환을 적용한다.
+자리별 피드포워드 뉴럴 넷트웍은 위치마다 따로 같은 변환을 적용한다.
 
 $$
 \text{FFN}(x) = \text{ReLU}(xW_1 + b_1)W_2 + b_2
@@ -351,10 +351,10 @@ $$
 
 ### 차원 넓히기
 
-피드포워드 신경망은 대개 숨은 차원을 4배로 넓힌다.
+피드포워드 뉴럴 넷트웍은 대개 숨은 차원을 4배로 넓힌다.
 
 - 입력: $d_{\text{model}}$
-- 은닉층: $d_{ff} = 4 \times d_{\text{model}}$
+- 은닉 레이어: $d_{ff} = 4 \times d_{\text{model}}$
 - 출력: $d_{\text{model}}$
 
 ### Pre-LN와 Post-LN
@@ -371,7 +371,7 @@ $$
 \mathbf{X}' = \mathbf{X} + \text{SubLayer}(\text{LayerNorm}(\mathbf{X}))
 $$
 
-Pre-LN은 깊은 모델에서 안정적인 학습에 도움이 될 수 있다. 실제 워밍업 필요성은 학습률·초기화·최적화 설정에 따라 판단한다.
+Pre-LN은 깊은 모델에서 안정적인 학습에 도움이 될 수 있다. 실제 워밍업 필요성은 러닝레이트·초기화·최적화 설정에 따라 판단한다.
 
 ### 파이토치 구현
 
@@ -401,7 +401,7 @@ class MultiHeadSelfAttention(nn.Module):
             d_model: 모형 차원
             num_heads: 주의 머리의 수
             dropout: 드롭아웃 확률
-            bias: 선형 사영에 편향을 둘지 여부
+            bias: 선형 사영에 바이어스를 둘지 여부
         """
         super().__init__()
         
@@ -429,17 +429,17 @@ class MultiHeadSelfAttention(nn.Module):
         return_attention: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        앞먹임.
+        피드포워드.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
             key_padding_mask: 채움 토큰을 위한 가림 [batch_size, seq_len]
                 가릴 자리(채움)가 True
-            return_attention: 어텐션 가중치를 돌려줄지 여부
+            return_attention: 어텐션 웨이트를 돌려줄지 여부
             
         반환값:
             output: 바뀐 텐서 [batch_size, seq_len, d_model]
-            attention_weights: 선택으로 돌려주는 주의 가중치 [batch_size, num_heads, seq_len, seq_len]
+            attention_weights: 선택으로 돌려주는 주의 웨이트 [batch_size, num_heads, seq_len, seq_len]
         """
         batch_size, seq_len, _ = x.shape
         
@@ -479,7 +479,7 @@ class MultiHeadSelfAttention(nn.Module):
 
 class PositionWiseFeedForward(nn.Module):
     """
-    자리별 순전파 신경망.
+    자리별 순전파 뉴럴 넷트웍.
     
     FFN(x) = activation(xW1 + b1)W2 + b2
     """
@@ -496,7 +496,7 @@ class PositionWiseFeedForward(nn.Module):
             d_model: 모형 차원
             d_ff: 순전파의 숨은 차원
             dropout: 드롭아웃 확률
-            activation: 활성화 함수('relu' 또는 'gelu')
+            activation: 엑티베이션 함수('relu' 또는 'gelu')
         """
         super().__init__()
         
@@ -513,7 +513,7 @@ class PositionWiseFeedForward(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        앞먹임.
+        피드포워드.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
@@ -533,8 +533,8 @@ class TransformerEncoderBlock(nn.Module):
     트랜스포머 인코더 블록 하나.
     
     다음으로 이루어진다:
-    1. 다중 머리 자기 주의 + 잔차 + 층 정규화
-    2. 자리별 순전파 + 잔차 + 층 정규화
+    1. 다중 머리 자기 주의 + 잔차 + 레이어 정규화
+    2. 자리별 순전파 + 잔차 + 레이어 정규화
     """
     
     def __init__(
@@ -552,7 +552,7 @@ class TransformerEncoderBlock(nn.Module):
             num_heads: 주의 머리의 수
             d_ff: 순전파의 숨은 차원
             dropout: 드롭아웃 확률
-            activation: 순전파의 활성화 함수
+            activation: 순전파의 엑티베이션 함수
             pre_norm: 앞 정규화(True)를 쓸지 뒤 정규화(False)를 쓸지
         """
         super().__init__()
@@ -566,7 +566,7 @@ class TransformerEncoderBlock(nn.Module):
             dropout=dropout
         )
         
-        # 순방향 신경망
+        # 순방향 뉴럴 넷트웍
         self.feed_forward = PositionWiseFeedForward(
             d_model=d_model,
             d_ff=d_ff,
@@ -574,7 +574,7 @@ class TransformerEncoderBlock(nn.Module):
             activation=activation
         )
         
-        # 층 정규화
+        # 레이어 정규화
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
         
@@ -588,19 +588,19 @@ class TransformerEncoderBlock(nn.Module):
         return_attention: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        앞먹임.
+        피드포워드.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
             key_padding_mask: 채움 가림 [batch_size, seq_len]
-            return_attention: 어텐션 가중치를 돌려줄지 여부
+            return_attention: 어텐션 웨이트를 돌려줄지 여부
             
         반환값:
             output: 바뀐 텐서 [batch_size, seq_len, d_model]
-            attention_weights: 선택으로 돌려주는 주의 가중치
+            attention_weights: 선택으로 돌려주는 주의 웨이트
         """
         if self.pre_norm:
-            # 앞 정규화: 아래 층 앞에서 층 정규화
+            # 앞 정규화: 아래 레이어 앞에서 레이어 정규화
             # 주의 블록
             residual = x
             x = self.norm1(x)
@@ -615,7 +615,7 @@ class TransformerEncoderBlock(nn.Module):
             ff_output = self.feed_forward(x)
             x = residual + self.dropout(ff_output)
         else:
-            # 뒤 정규화: 아래 층 뒤에서 층 정규화
+            # 뒤 정규화: 아래 레이어 뒤에서 레이어 정규화
             # 주의 블록
             attn_output, attn_weights = self.self_attention(
                 x, key_padding_mask, return_attention
@@ -636,7 +636,7 @@ class TransformerEncoder(nn.Module):
     1. 토큰 임베딩
     2. 위치 인코딩
     3. 인코더 블록 N개의 더미
-    4. 선택으로 두는 마지막 층 정규화(앞 정규화를 위해)
+    4. 선택으로 두는 마지막 레이어 정규화(앞 정규화를 위해)
     """
     
     def __init__(
@@ -660,7 +660,7 @@ class TransformerEncoder(nn.Module):
             d_ff: 순전파의 숨은 차원
             max_len: 순차열의 최대 길이
             dropout: 드롭아웃 확률
-            activation: 순전파의 활성화 함수
+            activation: 순전파의 엑티베이션 함수
             pre_norm: 앞 정규화 구조를 쓸지 여부
         """
         super().__init__()
@@ -690,17 +690,17 @@ class TransformerEncoder(nn.Module):
             for _ in range(num_layers)
         ])
         
-        # 마지막 층 정규화 (앞 정규화 구조를 위해)
+        # 마지막 레이어 정규화 (앞 정규화 구조를 위해)
         if pre_norm:
             self.final_norm = nn.LayerNorm(d_model)
         else:
             self.final_norm = None
         
-        # 가중치 초기화
+        # 웨이트 초기화
         self._init_weights()
     
     def _init_weights(self):
-        """가중치를 초기화한다."""
+        """웨이트를 초기화한다."""
         nn.init.normal_(self.token_embedding.weight, mean=0.0, std=0.02)
         nn.init.normal_(self.position_embedding.weight, mean=0.0, std=0.02)
     
@@ -711,18 +711,18 @@ class TransformerEncoder(nn.Module):
         return_all_hidden_states: bool = False
     ) -> dict:
         """
-        앞먹임.
+        피드포워드.
         
         인수:
             input_ids: 토큰 번호 [batch_size, seq_len]
             attention_mask: 주의 가림 [batch_size, seq_len]
                 실제 토큰은 1, 채움은 0
-            return_all_hidden_states: 모든 층의 출력을 돌려줄지 여부
+            return_all_hidden_states: 모든 레이어의 출력을 돌려줄지 여부
             
         반환값:
             다음을 담은 사전:
                 - last_hidden_state: 마지막 인코더 출력
-                - all_hidden_states: 선택으로 돌려주는 모든 층의 출력 목록
+                - all_hidden_states: 선택으로 돌려주는 모든 레이어의 출력 목록
         """
         batch_size, seq_len = input_ids.shape
         
@@ -746,7 +746,7 @@ class TransformerEncoder(nn.Module):
         else:
             key_padding_mask = None
         
-        # 인코더 층을 통과시킨다
+        # 인코더 레이어를 통과시킨다
         all_hidden_states = [x] if return_all_hidden_states else None
         
         for layer in self.layers:
@@ -754,7 +754,7 @@ class TransformerEncoder(nn.Module):
             if return_all_hidden_states:
                 all_hidden_states.append(x)
         
-        # 마지막 층 정규화
+        # 마지막 레이어 정규화
         if self.final_norm is not None:
             x = self.final_norm(x)
         
@@ -800,7 +800,7 @@ if __name__ == "__main__":
     print(f"Output shape: {outputs['last_hidden_state'].shape}")
     print(f"Number of hidden states: {len(outputs['all_hidden_states'])}")
     
-    # 매개변수 개수 세기
+    # 파라메터 개수 세기
     total_params = sum(p.numel() for p in encoder.parameters())
     trainable_params = sum(p.numel() for p in encoder.parameters() if p.requires_grad)
     print(f"\nTotal parameters: {total_params:,}")
@@ -837,11 +837,11 @@ Block output shape: torch.Size([4, 32, 512])
 Attention shape: torch.Size([4, 8, 32, 32])
 ```
 
-### 기울기 흐름 분석
+### 그래디언트 흐름 분석
 
 ### 잔차 연결의 이점
 
-잔차가 없으면 기울기가 하위 층을 모두 거쳐 흘러야 한다.
+잔차가 없으면 그래디언트가 하위 레이어를 모두 거쳐 흘러야 한다.
 
 $$
 \nabla_{x^{(0)}}\mathcal{L}=J_0^T J_1^T\cdots J_{L-1}^T\nabla_{x^{(L)}}\mathcal{L}
@@ -852,9 +852,9 @@ $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}^{(0)}} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}^{(L)}} + \text{other terms}
 $$
 
-### 층 정규화의 효과
+### 레이어 정규화의 효과
 
-층 정규화는 특징 차원에 걸쳐 정규화한다.
+레이어 정규화는 피처 차원에 걸쳐 정규화한다.
 
 $$
 \text{LayerNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x} - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
@@ -865,11 +865,11 @@ $$
 - $\mu = \frac{1}{d} \sum_{i=1}^{d} x_i$
 - $\sigma^2 = \frac{1}{d} \sum_{i=1}^{d} (x_i - \mu)^2$
 
-정규화는 표현의 스케일을 조절한다. 잔차와 함께 학습을 돕지만 모든 층의 기울기 크기가 같게 유지되는 것은 아니다.
+정규화는 표현의 스케일을 조절한다. 잔차와 함께 학습을 돕지만 모든 레이어의 그래디언트 크기가 같게 유지되는 것은 아니다.
 
 ### 계산 복잡도
 
-### 층마다의 복잡도
+### 레이어마다의 복잡도
 
 시퀀스 길이 $n$, 모델 차원 $d$, 순전파 차원 $d_{ff}$에 대해 다음과 같다.
 
@@ -880,11 +880,11 @@ $$
 | 피드포워드 | $O(ndd_{ff})$ | $O(nd_{ff})$ |
 | LayerNorm | $O(nd)$ | $O(nd)$ |
 
-배치 크기와 학습용 저장·가중치 메모리는 생략했다. 점수 행렬 전체를 저장하지 않는 커널은 메모리 비용이 다르다.
+배치 크기와 학습용 저장·웨이트 메모리는 생략했다. 점수 행렬 전체를 저장하지 않는 커널은 메모리 비용이 다르다.
 
 ### 인코더 전체의 복잡도
 
-층이 $L$개일 때 다음과 같다.
+레이어가 $L$개일 때 다음과 같다.
 
 $$
 \text{Time: } O(L(n^2d+nd^2+ndd_{ff}))
@@ -901,9 +901,9 @@ $$
 트랜스포머 인코더 블록은 모듈 방식의 강력한 구조 단위로 다음을 한다.
 
 1. **전역 의존을 잡아낸다**: 셀프 어텐션이 모든 자리를 잇는다
-2. **비선형 변환을 적용한다**: 피드포워드 신경망이 표현 능력을 더한다
-3. **기울기 흐름을 지킨다**: 잔차가 깊은 구조를 가능케 한다
-4. **학습을 안정되게 한다**: 층 정규화가 활성을 다스린다
+2. **비선형 변환을 적용한다**: 피드포워드 뉴럴 넷트웍이 표현 능력을 더한다
+3. **그래디언트 흐름을 지킨다**: 잔차가 깊은 구조를 가능케 한다
+4. **학습을 안정되게 한다**: 레이어 정규화가 활성을 다스린다
 
 인코더 블록을 이해하는 것은 BERT나 RoBERTa 같은 모델과 인코더 기반 구조를 구현하는 데 꼭 필요하다.
 
@@ -918,9 +918,9 @@ $$
 
 ## 9. 디코더 블록 깊이 들여다보기
 
-상세 TransformerDecoder는 교차 어텐션이 없는 디코더 전용 모델이다. labels는 내부에서 한 토큰 시프트하며, attention_mask만으로 패딩 정답을 손실에서 제외하지는 않는다. 제외할 labels는 -100으로 표시해야 한다. 길이가 1이면 시프트 후 유효 정답이 없어 평균 손실이 정의되지 않을 수 있다.
+상세 TransformerDecoder는 교차 어텐션이 없는 디코더 전용 모델이다. labels는 내부에서 한 토큰 시프트하며, attention_mask만으로 패딩 정답을 로스에서 제외하지는 않는다. 제외할 labels는 -100으로 표시해야 한다. 길이가 1이면 시프트 후 유효 정답이 없어 평균 로스가 정의되지 않을 수 있다.
 
-generate는 no_grad를 사용하지만 eval 모드로 전환하지 않는다. 예제 그대로라면 드롭아웃이 켜져 있다. EOS 종료·길이 초과 처리·패딩 마스크 전달과 KV 캐시가 없으므로 매번 전체 접두를 재계산한다. temperature>0, 1≤top_k≤어휘 크기와 0<top_p≤1 조건도 호출자가 확인해야 한다. 예제의 무작위 토큰 손실·생성 길이는 언어 품질 평가가 아니다.
+generate는 no_grad를 사용하지만 eval 모드로 전환하지 않는다. 예제 그대로라면 드롭아웃이 켜져 있다. EOS 종료·길이 초과 처리·패딩 마스크 전달과 KV 캐시가 없으므로 매번 전체 접두를 재계산한다. temperature>0, 1≤top_k≤어휘 크기와 0<top_p≤1 조건도 호출자가 확인해야 한다. 예제의 무작위 토큰 로스·생성 길이는 언어 품질 평가가 아니다.
 
 ### 훑어보기
 
@@ -930,7 +930,7 @@ generate는 no_grad를 사용하지만 eval 모드로 전환하지 않는다. �
 
 ### 온전한 인코더-디코더 (원래 트랜스포머)
 
-원래 디코더는 하위 층이 셋이다.
+원래 디코더는 하위 레이어가 셋이다.
 
 $$
 \begin{aligned}
@@ -942,7 +942,7 @@ $$
 
 ### 디코더만 (GPT 방식)
 
-요즘 언어 모델은 하위 층이 둘인 디코더 전용 구조를 쓴다.
+요즘 언어 모델은 하위 레이어가 둘인 디코더 전용 구조를 쓴다.
 
 $$
 \begin{aligned}
@@ -1047,12 +1047,12 @@ class CausalSelfAttention(nn.Module):
         return_attention: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        인과 가림을 쓰는 앞먹임.
+        인과 가림을 쓰는 피드포워드.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
             key_padding_mask: 채움 가림 [batch_size, seq_len]
-            return_attention: 어텐션 가중치를 돌려줄지 여부
+            return_attention: 어텐션 웨이트를 돌려줄지 여부
         """
         batch_size, seq_len, _ = x.shape
         
@@ -1096,8 +1096,8 @@ class TransformerDecoderBlock(nn.Module):
     트랜스포머 디코더 블록 하나(GPT 방식).
     
     다음으로 이루어진다:
-    1. 가린 자기 주의 + 잔차 + 층 정규화
-    2. 순전파 신경망 + 잔차 + 층 정규화
+    1. 가린 자기 주의 + 잔차 + 레이어 정규화
+    2. 순전파 뉴럴 넷트웍 + 잔차 + 레이어 정규화
     """
     
     def __init__(
@@ -1123,7 +1123,7 @@ class TransformerDecoderBlock(nn.Module):
         )
         self.norm1 = nn.LayerNorm(d_model)
         
-        # 순방향 신경망
+        # 순방향 뉴럴 넷트웍
         self.feed_forward = nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.GELU() if activation == 'gelu' else nn.ReLU(),
@@ -1140,9 +1140,9 @@ class TransformerDecoderBlock(nn.Module):
         x: torch.Tensor,
         key_padding_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """앞먹임."""
+        """피드포워드."""
         if self.pre_norm:
-            # 앞 정규화: 아래 층 앞에서 층 정규화
+            # 앞 정규화: 아래 레이어 앞에서 레이어 정규화
             residual = x
             x = self.norm1(x)
             attn_out, _ = self.self_attention(x, key_padding_mask)
@@ -1153,7 +1153,7 @@ class TransformerDecoderBlock(nn.Module):
             ff_out = self.feed_forward(x)
             x = residual + ff_out
         else:
-            # 뒤 정규화: 아래 층 뒤에서 층 정규화
+            # 뒤 정규화: 아래 레이어 뒤에서 레이어 정규화
             attn_out, _ = self.self_attention(x, key_padding_mask)
             x = self.norm1(x + self.dropout(attn_out))
             
@@ -1204,17 +1204,17 @@ class TransformerDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         
-        # 마지막 층 정규화 (앞 정규화를 위해)
+        # 마지막 레이어 정규화 (앞 정규화를 위해)
         self.final_norm = nn.LayerNorm(d_model) if pre_norm else None
         
-        # 출력 사영 (임베딩과 가중치 묶기)
+        # 출력 사영 (임베딩과 웨이트 묶기)
         self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
         self.lm_head.weight = self.token_embedding.weight
         
         self._init_weights()
     
     def _init_weights(self):
-        """가중치를 초기화한다."""
+        """웨이트를 초기화한다."""
         nn.init.normal_(self.token_embedding.weight, mean=0.0, std=0.02)
         nn.init.normal_(self.position_embedding.weight, mean=0.0, std=0.02)
     
@@ -1225,12 +1225,12 @@ class TransformerDecoder(nn.Module):
         labels: Optional[torch.Tensor] = None
     ) -> dict:
         """
-        앞먹임.
+        피드포워드.
         
         인수:
             input_ids: 토큰 번호 [batch_size, seq_len]
             attention_mask: 주의 가림 [batch_size, seq_len]
-            labels: 언어 모형 손실을 위한 이름표 [batch_size, seq_len]
+            labels: 언어 모형 로스를 위한 이름표 [batch_size, seq_len]
         """
         batch_size, seq_len = input_ids.shape
         device = input_ids.device
@@ -1245,7 +1245,7 @@ class TransformerDecoder(nn.Module):
         # 채움 가림
         key_padding_mask = (attention_mask == 0) if attention_mask is not None else None
         
-        # 디코더 층을 통과시킨다
+        # 디코더 레이어를 통과시킨다
         for layer in self.layers:
             x = layer(x, key_padding_mask=key_padding_mask)
         
@@ -1256,7 +1256,7 @@ class TransformerDecoder(nn.Module):
         # 언어 모형 머리
         logits = self.lm_head(x)
         
-        # 이름표가 있으면 손실을 셈한다
+        # 이름표가 있으면 로스를 셈한다
         loss = None
         if labels is not None:
             shift_logits = logits[..., :-1, :].contiguous()
@@ -1295,7 +1295,7 @@ class TransformerDecoder(nn.Module):
                     logits
                 )
             
-            # 상위 p(핵) 거르기를 적용한다
+            # 상위 p(커널) 거르기를 적용한다
             if top_p is not None:
                 sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -1344,7 +1344,7 @@ if __name__ == "__main__":
     generated = model.generate(prompt, max_new_tokens=20, temperature=0.8, top_k=50)
     print(f"Generated shape: {generated.shape}")
     
-    # 매개변수
+    # 파라메터
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total parameters: {total_params:,}")
 ```
@@ -1384,7 +1384,7 @@ class CausalSelfAttentionWithCache(nn.Module):
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
-        KV 캐시를 선택으로 쓰는 앞먹임.
+        KV 캐시를 선택으로 쓰는 피드포워드.
         
         인수:
             x: 입력 [batch, seq_len, d_model], 캐시를 쓰면 [batch, 1, d_model]
@@ -1444,7 +1444,7 @@ $$
 \text{Complexity} = O(T \cdot (C + T) \cdot d)
 $$
 
-위 식은 프롬프트의 최초 처리와 투영·피드포워드·출력층을 제외한 어텐션 생성 비용의 상한 비교다. C를 고정하면 T가 커질 때 캐시 없이 O(T³), 캐시를 사용하면 O(T²)다. 한 단계 비용을 전체 생성 비용과 혼동하지 않는다.
+위 식은 프롬프트의 최초 처리와 투영·피드포워드·출력 레이어를 제외한 어텐션 생성 비용의 상한 비교다. C를 고정하면 T가 커질 때 캐시 없이 O(T³), 캐시를 사용하면 O(T²)다. 한 단계 비용을 전체 생성 비용과 혼동하지 않는다.
 
 ### 디코더와 인코더 비교
 
@@ -1501,12 +1501,12 @@ $$
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-원문 길이 m, 목표 길이 n인 모델의 명시적 어텐션 가중치 저장 비용을 설명하라.
+원문 길이 m, 목표 길이 n인 모델의 명시적 어텐션 웨이트 저장 비용을 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    배치·헤드·층 수를 고정하면 인코더 $O(m^2)$, 디코더 $O(n^2)$, 교차 어텐션 $O(mn)$이다. 합은 $O(m^2+n^2+mn)$이며 토큰 활성·FFN·매개변수·역전파 저장은 별도다. 메모리 효율 커널은 모든 가중치를 직접 저장하지 않을 수 있다.
+    배치·헤드·레이어 수를 고정하면 인코더 $O(m^2)$, 디코더 $O(n^2)$, 교차 어텐션 $O(mn)$이다. 합은 $O(m^2+n^2+mn)$이며 토큰 활성·FFN·파라메터·역전파 저장은 별도다. 메모리 효율 커널은 모든 웨이트를 직접 저장하지 않을 수 있다.
 
 ---
 
@@ -1518,7 +1518,7 @@ $$
 </div>
 
 ??? success "연습문제 4 풀이"
-    nn.MultiheadAttention의 기본 batch_first=False이므로 입력은 (목표 길이,B,d), 메모리는 (원문 길이,B,d)다. 반환값은 출력과 어텐션 가중치의 튜플이다. 이 래퍼는 원문 패딩 마스크를 받지 않으므로 패딩을 포함한 배치에는 인터페이스 확장이 필요하다.
+    nn.MultiheadAttention의 기본 batch_first=False이므로 입력은 (목표 길이,B,d), 메모리는 (원문 길이,B,d)다. 반환값은 출력과 어텐션 웨이트의 튜플이다. 이 래퍼는 원문 패딩 마스크를 받지 않으므로 패딩을 포함한 배치에는 인터페이스 확장이 필요하다.
 
     ```python
     class CrossAttention(nn.Module):

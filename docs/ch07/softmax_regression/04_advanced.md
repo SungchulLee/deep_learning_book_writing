@@ -16,10 +16,10 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     학습 목표:
       - 소프트맥스 회귀를 밑바닥부터 짠다(넘파이)
       - 앞선 정칙화 기법(L2, 드롭아웃, 배치 정규화)
-      - 학습률 짜기
+      - 러닝레이트 짜기
       - 조기 종료
-      - 기울기 절단
-      - 맞춤 손실 함수와 자
+      - 그래디언트 절단
+      - 맞춤 로스 함수와 자
 
     소요 시간: 60~90분
     ===============================================================================
@@ -62,12 +62,12 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
             소프트맥스 회귀 모델의 초기화한다.
 
             Args:
-                input_dim: 입력 특징의 수
+                input_dim: 입력 피처의 수
                 num_classes: 출력 클래스의 수
-                lr: 학습률
-                reg_lambda: L2 정칙화 매개변수
+                lr: 러닝레이트
+                reg_lambda: L2 정칙화 파라메터
             """
-            # 가중치와 편향을 작은 무작위 값으로 초기화한다
+            # 웨이트와 바이어스를 작은 무작위 값으로 초기화한다
             self.W = np.random.randn(input_dim, num_classes) * 0.01
             self.b = np.zeros((1, num_classes))
             self.lr = lr
@@ -94,7 +94,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
             순전파: 클래스 확률을 계산한다.
 
             Args:
-                X: 모양이 (batch_size, input_dim)인 입력 특징
+                X: 모양이 (batch_size, input_dim)인 입력 피처
 
             Returns:
                 모양이 (batch_size, num_classes)인 확률
@@ -105,24 +105,24 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
         def compute_loss(self, X, y):
             """
-            L2 정칙화를 곁들인 교차 엔트로피 손실을 계산한다.
+            L2 정칙화를 곁들인 교차 엔트로피 로스를 계산한다.
 
             Args:
-                X: 입력 특징
+                X: 입력 피처
                 y: 참 레이블(클래스 번호)
 
             Returns:
-                평균 손실 값
+                평균 로스 값
             """
             m = X.shape[0]  # Number of samples
             probs = self.forward(X)
 
-            # 교차 엔트로피 손실
+            # 교차 엔트로피 로스
             # 표본마다 참 클래스의 확률을 얻는다
             correct_logprobs = -np.log(probs[range(m), y] + 1e-10)
             data_loss = np.sum(correct_logprobs) / m
 
-            # L2 정칙화 손실
+            # L2 정칙화 로스
             reg_loss = 0.5 * self.reg_lambda * np.sum(self.W * self.W)
 
             total_loss = data_loss + reg_loss
@@ -130,22 +130,22 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
         def backward(self, X, y):
             """
-            역전파: 기울기를 계산한다.
+            역전파: 그래디언트를 계산한다.
 
             Args:
-                X: 입력 특징
+                X: 입력 피처
                 y: 참 레이블
             """
             m = X.shape[0]
             probs = self.forward(X)
 
-            # 로짓에 대한 손실의 경사를 계산한다
+            # 로짓에 대한 로스의 경사를 계산한다
             # 핵심 통찰이다: d(loss)/d(logits) = (probs - one_hot_labels) / m
             dlogits = probs.copy()
             dlogits[range(m), y] -= 1  # Subtract 1 from true class probabilities
             dlogits /= m
 
-            # 가중치와 편향에 대한 경사를 계산한다
+            # 웨이트와 바이어스에 대한 경사를 계산한다
             dW = np.dot(X.T, dlogits) + self.reg_lambda * self.W  # Add L2 gradient
             db = np.sum(dlogits, axis=0, keepdims=True)
 
@@ -156,17 +156,17 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
             경사 하강법을 한 걸음 한다.
 
             Args:
-                X: 학습 특징
+                X: 학습 피처
                 y: 학습 레이블
             """
             # 경사를 계산한다
             dW, db = self.backward(X, y)
 
-            # 가중치를 갱신한다
+            # 웨이트를 갱신한다
             self.W -= self.lr * dW
             self.b -= self.lr * db
 
-            # 손실을 계산하여 저장한다
+            # 로스를 계산하여 저장한다
             loss = self.compute_loss(X, y)
             self.loss_history.append(loss)
 
@@ -177,7 +177,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
             클래스 레이블을 예측한다.
 
             Args:
-                X: 입력 특징
+                X: 입력 피처
 
             Returns:
                 예측한 클래스 번호
@@ -190,7 +190,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
             정확도를 계산한다.
 
             Args:
-                X: 입력 특징
+                X: 입력 피처
                 y: 참 레이블
 
             Returns:
@@ -247,18 +247,18 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     """
     배치 정규화:
     -------------------
-    - 층마다 입력의 정규화한다
+    - 레이어마다 입력의 정규화한다
     - 학습을 든든하게 한다
-    - 학습률을 더 크게 쓸 수 있다
+    - 러닝레이트를 더 크게 쓸 수 있다
     - 정칙화 노릇을 한다
     - 안쪽 함께 바뀜의 옮겨감을 줄인다
     """
 
     class AdvancedClassifier(nn.Module):
         """
-        배치 정규화를 곁들인 신경망.
+        배치 정규화를 곁들인 뉴럴 넷트웍.
 
-        배치 정규화는 층의 입력을 맞추어 다음을 이룬다.
+        배치 정규화는 레이어의 입력을 맞추어 다음을 이룬다.
         1. 학습을 빠르게 한다
         2. 초기화에 덜 흔들린다
         3. 정칙화 노릇을 한다
@@ -270,19 +270,19 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
             self.use_batchnorm = use_batchnorm
 
-            # 첫 번째 층
+            # 첫 번째 레이어
             self.fc1 = nn.Linear(input_size, hidden_size1)
             self.bn1 = nn.BatchNorm1d(hidden_size1) if use_batchnorm else nn.Identity()
             self.relu1 = nn.ReLU()
             self.dropout1 = nn.Dropout(dropout_rate)
 
-            # 두 번째 층
+            # 두 번째 레이어
             self.fc2 = nn.Linear(hidden_size1, hidden_size2)
             self.bn2 = nn.BatchNorm1d(hidden_size2) if use_batchnorm else nn.Identity()
             self.relu2 = nn.ReLU()
             self.dropout2 = nn.Dropout(dropout_rate)
 
-            # 출력층
+            # 출력 레이어
             self.fc3 = nn.Linear(hidden_size2, num_classes)
 
         def forward(self, x):
@@ -358,37 +358,37 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
 
     # =============================================================================
-    # 3부: 학습률 일정 조절
+    # 3부: 러닝레이트 일정 조절
     # =============================================================================
     print("\n" + "=" * 80)
     print("PART 3: Learning Rate Scheduling")
     print("=" * 80)
 
     """
-    학습률 짜기:
+    러닝레이트 짜기:
     ------------------------
-    붙박인 학습률을 쓰는 대신 다음을 할 수 있다.
-    - 처음에 빠르게 배우도록 큰 학습률로 비롯한다
+    붙박인 러닝레이트를 쓰는 대신 다음을 할 수 있다.
+    - 처음에 빠르게 배우도록 큰 러닝레이트로 비롯한다
     - 곱게 다듬으려고 차츰 줄인다
     - 여러 전략을 쓴다: 계단 잦아들기, 지수, 코사인 따위
     """
 
     class LRSchedulerDemo:
-        """여러 학습률 일정을 보여준다."""
+        """여러 러닝레이트 일정을 보여준다."""
 
         @staticmethod
         def step_lr_schedule(initial_lr, epoch, step_size=30, gamma=0.1):
             """
-            계단 잦아들기: step_size 에폭마다 학습률을 gamma배로 줄인다.
+            계단 잦아들기: step_size 에폭마다 러닝레이트를 gamma배로 줄인다.
 
-            보기: 학습률 = 0.1 → 0.01 → 0.001(gamma=0.1, step_size=30이면)
+            보기: 러닝레이트 = 0.1 → 0.01 → 0.001(gamma=0.1, step_size=30이면)
             """
             return initial_lr * (gamma ** (epoch // step_size))
 
         @staticmethod
         def exponential_schedule(initial_lr, epoch, gamma=0.95):
             """
-            지수 잦아들기: 학습률 = initial_lr * gamma^epoch
+            지수 잦아들기: 러닝레이트 = initial_lr * gamma^epoch
 
             매끄럽고 이어지게 잦아든다.
             """
@@ -397,7 +397,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
         @staticmethod
         def cosine_schedule(initial_lr, epoch, total_epochs):
             """
-            코사인 달구기: 학습률가 코사인 굽이를 따른다.
+            코사인 달구기: 러닝레이트가 코사인 굽이를 따른다.
 
             크게 비롯해 매끄럽게 줄어든다. 요즘 학습에서 널리 쓴다.
             """
@@ -428,13 +428,13 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     # plt.show()
 
 
-    # 학습률 일정을 적용해 학습한다
+    # 러닝레이트 일정을 적용해 학습한다
     print("\nTraining with StepLR scheduler...")
     model_scheduled = AdvancedClassifier(20, 64, 32, 3, use_batchnorm=True)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model_scheduled.parameters(), lr=0.01)
 
-    # 스케줄러를 만든다: 20 에폭마다 학습률에 0.1을 곱한다
+    # 스케줄러를 만든다: 20 에폭마다 러닝레이트에 0.1을 곱한다
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
 
     num_epochs = 60
@@ -452,7 +452,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
         # 스케줄러를 한 단계 진행시킨다
         scheduler.step()
 
-        # 학습률을 추적한다
+        # 러닝레이트를 추적한다
         current_lr = optimizer.param_groups[0]['lr']
         lr_history.append(current_lr)
 
@@ -472,13 +472,13 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     """
     조기 종료:
     --------------
-    검증 손실이 더 나아지지 않으면 학습을 멈춘다.
+    검증 로스가 더 나아지지 않으면 학습을 멈춘다.
     과적합을 막고 때를 아낀다.
     """
 
     class EarlyStopping:
         """
-        검증 손실이 더 나아지지 않으면 학습을 멈추는 조기 종료.
+        검증 로스가 더 나아지지 않으면 학습을 멈추는 조기 종료.
         """
 
         def __init__(self, patience=5, min_delta=0.001, verbose=True):
@@ -501,7 +501,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
             학습을 멈춰야 할지 살핀다.
 
             Args:
-                val_loss: 이제 검증 손실
+                val_loss: 이제 검증 로스
                 model: 이제 모델(가장 좋은 판을 저장하려고)
 
             Returns:
@@ -592,19 +592,19 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     print("=" * 80)
 
     """
-    기울기 절단:
+    그래디언트 절단:
     -----------------
-    기울기의 크기를 제한하어 터지는 것을 막는다.
-    학습을 든든하게 하며 특히 되도는 신경망과 LSTM에 쓸모 있다.
+    그래디언트의 크기를 제한하어 터지는 것을 막는다.
+    학습을 든든하게 하며 특히 되도는 뉴럴 넷트웍과 LSTM에 쓸모 있다.
     """
 
     def train_with_gradient_clipping(model, train_loader, criterion, optimizer,
                                     max_norm=1.0, num_epochs=10):
         """
-        기울기 절단을 곁들여 모델을 익힌다.
+        그래디언트 절단을 곁들여 모델을 익힌다.
 
         Args:
-            max_norm: 기울기의 가장 큰 노름
+            max_norm: 그래디언트의 가장 큰 노름
         """
         print(f"Training with gradient clipping (max_norm={max_norm})...")
 
@@ -642,7 +642,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
 
     # =============================================================================
-    # 6부: 사용자 정의 손실 함수 - 레이블 평활화
+    # 6부: 사용자 정의 로스 함수 - 레이블 평활화
     # =============================================================================
     print("\n" + "=" * 80)
     print("PART 6: Label Smoothing")
@@ -651,7 +651,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     """
     레이블 스무딩:
     ---------------
-    딱딱한 과녁(0이나 1) 대신 부드러운 과녁을 쓴다.
+    딱딱한 타깃(0이나 1) 대신 부드러운 타깃을 쓴다.
     보기: [0, 1, 0] 대신 [0.05, 0.9, 0.05]을 쓴다
 
     Benefits:
@@ -662,14 +662,14 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
     class LabelSmoothingCrossEntropy(nn.Module):
         """
-        레이블 스무딩을 곁들인 교차 엔트로피 손실.
+        레이블 스무딩을 곁들인 교차 엔트로피 로스.
         """
 
         def __init__(self, num_classes, smoothing=0.1):
             """
             Args:
                 num_classes: 클래스의 수
-                smoothing: 매끄럽게 하기 매개변수(0이면 안 함, 1이면 고르게)
+                smoothing: 매끄럽게 하기 파라메터(0이면 안 함, 1이면 고르게)
             """
             super().__init__()
             self.num_classes = num_classes
@@ -678,7 +678,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
         def forward(self, predictions, targets):
             """
-            레이블 스무딩 손실을 계산한다.
+            레이블 스무딩 로스를 계산한다.
 
             Args:
                 predictions: 모델 로짓 (batch_size, num_classes)
@@ -695,7 +695,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
                 # 참 클래스에 더 높은 확률을 준다
                 smooth_targets.scatter_(1, targets.unsqueeze(1), self.confidence)
 
-            # 손실을 계산한다
+            # 로스를 계산한다
             loss = torch.sum(-smooth_targets * log_probs, dim=1)
             return loss.mean()
 
@@ -745,44 +745,44 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     print("""
     ✅ 넘파이로 소프트맥스 회귀를 밑바닥부터 짰다
     ✅ 학습을 든든하게 하려고 배치 정규화를 썼다
-    ✅ 학습률 짜기 전략을 걸었다
+    ✅ 러닝레이트 짜기 전략을 걸었다
     ✅ 과적합을 막으려고 조기 종료를 짰다
-    ✅ 학습을 든든하게 하려고 기울기 절단을 썼다
+    ✅ 학습을 든든하게 하려고 그래디언트 절단을 썼다
     ✅ 정칙화 기법로 레이블 스무딩을 살펴보았다
 
     앞선 기법 간추림:
     ---------------------------
     1. 배치 정규화
-       - 층의 입력을 맞춘다
+       - 레이어의 입력을 맞춘다
        - 학습을 빠르게 한다
        - 정칙화 노릇을 한다
 
-    2. 학습률 짜기
-       - 계단 잦아들기: 사이를 두고 학습률을 떨어뜨린다
+    2. 러닝레이트 짜기
+       - 계단 잦아들기: 사이를 두고 러닝레이트를 떨어뜨린다
        - 지수: 매끄럽게 이어지는 잦아들기
        - 코사인: 코사인 굽이를 따른다
 
     3. 조기 종료
-       - 검증 손실을 지켜보아라
+       - 검증 로스를 지켜보아라
        - 나아짐이 없으면 멈춘다
        - 가장 좋은 모델을 저장한다
 
-    4. 기울기 절단
-       - 기울기가 터지는 것을 막는다
-       - 기울기의 크기를 옭아맨다
+    4. 그래디언트 절단
+       - 그래디언트가 터지는 것을 막는다
+       - 그래디언트의 크기를 옭아맨다
        - 든든함을 높인다
 
     5. 레이블 스무딩
-       - 딱딱한 과녁 대신 부드러운 과녁
+       - 딱딱한 타깃 대신 부드러운 타깃
        - 지나친 자신을 막는다
        - 일반화이 더 낫다
 
     가장 좋은 버릇:
     --------------
     • 더 깊은 망에는 배치 정규화를 쓴다
-    • 학습률을 크게 비롯해 차츰 낮춘다
+    • 러닝레이트를 크게 비롯해 차츰 낮춘다
     • 검증 배치와 함께 늘 조기 종료를 쓴다
-    • 되도는 신경망이나 흔들리는 학습에서는 기울기를 자른다
+    • 되도는 뉴럴 넷트웍이나 흔들리는 학습에서는 그래디언트를 자른다
     • 일반화를 높이려면 레이블 스무딩을 살펴본다
 
     다음 걸음:
@@ -998,44 +998,44 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
     ✅ 넘파이로 소프트맥스 회귀를 밑바닥부터 짰다
     ✅ 학습을 든든하게 하려고 배치 정규화를 썼다
-    ✅ 학습률 짜기 전략을 걸었다
+    ✅ 러닝레이트 짜기 전략을 걸었다
     ✅ 과적합을 막으려고 조기 종료를 짰다
-    ✅ 학습을 든든하게 하려고 기울기 절단을 썼다
+    ✅ 학습을 든든하게 하려고 그래디언트 절단을 썼다
     ✅ 정칙화 기법로 레이블 스무딩을 살펴보았다
 
     앞선 기법 간추림:
     ---------------------------
     1. 배치 정규화
-       - 층의 입력을 맞춘다
+       - 레이어의 입력을 맞춘다
        - 학습을 빠르게 한다
        - 정칙화 노릇을 한다
 
-    2. 학습률 짜기
-       - 계단 잦아들기: 사이를 두고 학습률을 떨어뜨린다
+    2. 러닝레이트 짜기
+       - 계단 잦아들기: 사이를 두고 러닝레이트를 떨어뜨린다
        - 지수: 매끄럽게 이어지는 잦아들기
        - 코사인: 코사인 굽이를 따른다
 
     3. 조기 종료
-       - 검증 손실을 지켜보아라
+       - 검증 로스를 지켜보아라
        - 나아짐이 없으면 멈춘다
        - 가장 좋은 모델을 저장한다
 
-    4. 기울기 절단
-       - 기울기가 터지는 것을 막는다
-       - 기울기의 크기를 옭아맨다
+    4. 그래디언트 절단
+       - 그래디언트가 터지는 것을 막는다
+       - 그래디언트의 크기를 옭아맨다
        - 든든함을 높인다
 
     5. 레이블 스무딩
-       - 딱딱한 과녁 대신 부드러운 과녁
+       - 딱딱한 타깃 대신 부드러운 타깃
        - 지나친 자신을 막는다
        - 일반화이 더 낫다
 
     가장 좋은 버릇:
     --------------
     • 더 깊은 망에는 배치 정규화를 쓴다
-    • 학습률을 크게 비롯해 차츰 낮춘다
+    • 러닝레이트를 크게 비롯해 차츰 낮춘다
     • 검증 배치와 함께 늘 조기 종료를 쓴다
-    • 되도는 신경망이나 흔들리는 학습에서는 기울기를 자른다
+    • 되도는 뉴럴 넷트웍이나 흔들리는 학습에서는 그래디언트를 자른다
     • 일반화를 높이려면 레이블 스무딩을 살펴본다
 
     다음 걸음:
@@ -1053,11 +1053,11 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
 ### 수동 미분과 비선형 모델
 
-`SoftmaxRegressionNumPy`는 가중치와 편향을 NumPy 배열로 관리하며 경사를 직접 계산한다. `AdvancedClassifier`는 은닉층을 가진 PyTorch 모델이다. 두 클래스는 같은 모델의 필수 부품이 아니라 서로 다른 구현과 표현력을 보여주는 예제다.
+`SoftmaxRegressionNumPy`는 웨이트와 바이어스를 NumPy 배열로 관리하며 경사를 직접 계산한다. `AdvancedClassifier`는 은닉 레이어를 가진 PyTorch 모델이다. 두 클래스는 같은 모델의 필수 부품이 아니라 서로 다른 구현과 표현력을 보여주는 예제다.
 
 ### 학습 제어의 구분
 
-스케줄러는 학습률을 시간이나 지표에 따라 바꾸고, 클리핑은 계산된 경사의 노름을 제한한다. 조기 종료는 검증 기준으로 반복을 중단하며, 레이블 스무딩은 목표 분포 자체를 바꾼다. 어느 방법도 수렴이나 일반화 개선을 무조건 보장하지 않는다.
+스케줄러는 러닝레이트를 시간이나 지표에 따라 바꾸고, 클리핑은 계산된 경사의 노름을 제한한다. 조기 종료는 검증 기준으로 반복을 중단하며, 레이블 스무딩은 목표 분포 자체를 바꾼다. 어느 방법도 수렴이나 일반화 개선을 무조건 보장하지 않는다.
 
 ### 체크포인트의 실제 보존
 
@@ -1073,19 +1073,19 @@ NumPy 선형 소프트맥스 모델의 파라미터 수를 어떻게 계산하�
 </div>
 
 ??? success "연습문제 1 풀이"
-    입력 $D$개, 클래스 $K$개이면 가중치 $DK$개와 편향 $K$개, 총 $K(D+1)$개다. NumPy 클래스는 nn.Module이 아니므로 `.parameters()`로 자동 등록된 목록을 얻는 구조가 아니다. 배열의 모양과 원소 수로 직접 확인한다.
+    입력 $D$개, 클래스 $K$개이면 웨이트 $DK$개와 바이어스 $K$개, 총 $K(D+1)$개다. NumPy 클래스는 nn.Module이 아니므로 `.parameters()`로 자동 등록된 목록을 얻는 구조가 아니다. 배열의 모양과 원소 수로 직접 확인한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-옵티마이저를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 옵티마이저와 학습 수렴을 비교하라. 두 손실 곡선을 같은 그래프에 그려라.
+옵티마이저를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 옵티마이저와 학습 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    옵티마이저를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 경사와 경사 제곱의 이동 평균으로 성분별 업데이트를 조정한다. 어느 옵티마이저가 더 빨리 수렴하는지는 문제와 학습률에 달려 있다. 같은 초기 가중치와 데이터 순서, 평가 기준을 사용하고 각 학습률을 조정해 비교한다. 여러 시드의 변동과 검증 성능도 확인한다.
+    옵티마이저를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 경사와 경사 제곱의 이동 평균으로 성분별 업데이트를 조정한다. 어느 옵티마이저가 더 빨리 수렴하는지는 문제와 러닝레이트에 달려 있다. 같은 초기 웨이트와 데이터 순서, 평가 기준을 사용하고 각 러닝레이트를 조정해 비교한다. 여러 시드의 변동과 검증 성능도 확인한다.
 
 ---
 
@@ -1115,8 +1115,8 @@ NumPy 선형 소프트맥스 모델의 파라미터 수를 어떻게 계산하�
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    PyTorch 모델 클래스를 별도로 정의하고 생성자·forward·출력 모양을 함께 맞춰야 한다. NumPy 클래스나 DatasetManager에 ModuleList를 붙인다고 자동으로 모델이 바뀌지 않는다. 비선형 은닉층을 추가하면 원래 단일 선형 소프트맥스 회귀와 다른 가설 공간이 된다.
+    PyTorch 모델 클래스를 별도로 정의하고 생성자·forward·출력 모양을 함께 맞춰야 한다. NumPy 클래스나 DatasetManager에 ModuleList를 붙인다고 자동으로 모델이 바뀌지 않는다. 비선형 은닉 레이어를 추가하면 원래 단일 선형 소프트맥스 회귀와 다른 가설 공간이 된다.
 
 ## 정리하며
 
-학습률 조절, 클리핑, 중단과 목표 스무딩은 서로 다른 기능이다. 비교 목적과 검증 기준을 정하고 체크포인트가 실제로 독립 저장되는지 확인한다.
+러닝레이트 조절, 클리핑, 중단과 목표 스무딩은 서로 다른 기능이다. 비교 목적과 검증 기준을 정하고 체크포인트가 실제로 독립 저장되는지 확인한다.

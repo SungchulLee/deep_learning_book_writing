@@ -190,7 +190,7 @@ def main():
     print("Step 4: Creating Model")
     print("=" * 60)
     
-    # 모델의 초매개변수
+    # 모델의 초파라메터
     ENC_EMB_DIM = 128
     DEC_EMB_DIM = 128
     HID_DIM = 256
@@ -223,7 +223,7 @@ def main():
     # seq2seq 모델 만들기
     model = Seq2SeqAttention(encoder, decoder, device, PAD_IDX).to(device)
     
-    # 가중치 초기화
+    # 웨이트 초기화
     initialize_weights(model)
     
     print(f"Model created with {count_parameters(model):,} trainable parameters")
@@ -238,7 +238,7 @@ def main():
     N_EPOCHS = 20
     CLIP = 1.0
     
-    # 최적화기와 손실 함수 만들기
+    # 최적화기와 로스 함수 만들기
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
     
@@ -329,7 +329,7 @@ if __name__ == "__main__":
 
 현재 ParallelDataset은 정수 목록을 반환하지만 collate_fn은 pad_sequence에 텐서 목록을 전달하는 것을 기대한다. 따라서 이 두 모듈을 그대로 연결하면 배치 구성 단계에서 맞지 않는다. 데이터셋이나 collate 단계에서 long 텐서로 변환하는 계약이 필요하다.
 
-양방향 인코더의 최종 상태는 2H로 이어 붙여지므로 디코더도 그 특징 크기에 맞춰 설정한다. 학습은 검증 최고 체크포인트를 저장하지만 이 예제는 이를 다시 불러오지 않고 마지막 모델로 테스트한다. 최고 검증 모델의 성능으로 보고해서는 안 된다.
+양방향 인코더의 최종 상태는 2H로 이어 붙여지므로 디코더도 그 피처 크기에 맞춰 설정한다. 학습은 검증 최고 체크포인트를 저장하지만 이 예제는 이를 다시 불러오지 않고 마지막 모델로 테스트한다. 최고 검증 모델의 성능으로 보고해서는 안 된다.
 
 학습 토큰화는 구두점을 분리하지만 추론은 소문자·공백만 사용해 불일치한다. BLEU 도구에는 n-그램 분모 오류가 있고, 참조·출력의 대소문자·구두점 처리도 맞추지 않는다. 문장 BLEU를 평균한 값은 코퍼스 BLEU와 다르다. 따라서 이 코드에 보고되는 점수를 표준 번역 성능으로 사용하면 안 된다.
 
@@ -396,7 +396,7 @@ ParallelDataset과 collate_fn 사이의 불일치를 설명하라.
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 손실이나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

@@ -8,7 +8,7 @@
 """FinBERT 마음결."""
 # ---
 # title: "FinBERT: 금융 마음결 살피기"
-# description: "주식 마음결 갈래 매기기를 위해 FinBERT를 곱게 다듬기,
+# description: "주식 마음결 클래스 매기기를 위해 FinBERT를 곱게 다듬기,
 #               StockTwits 자료 — 금융 자연어 다루기에 맞춘 BERT"
 # ---
 #
@@ -19,7 +19,7 @@
 #   1부 – HuggingFace Hub에서 FinBERT 읽어 들이기
 #   2부 – 미리 익힌 마음결 머리로 영 발 미룸
 #   3부 – StockTwits 자료로 FinBERT 곱게 다듬기(PyTorch)
-#   4부 – 값매김과 종목별 살피기
+#   4부 – 밸류와 종목별 살피기
 #   5부 – FinBERT, 일반 BERT, 낱말집 바탕 견주기
 #
 # 바탕: O'Reilly "Practical NLP" 10장
@@ -114,7 +114,7 @@ print("=" * 60)
 #   2. 어텐션 마스크를 만든다
 #   3. 익힘/검증으로 나눈다
 #   4. AdamW와 한 줄 몸풀기로 곱게 다듬는다
-#   5. 세대마다 값매김한다
+#   5. 세대마다 밸류한다
 
 print("  Creating synthetic StockTwits-like data for demonstration...")
 
@@ -156,7 +156,7 @@ print(f"  Dataset: {len(texts)} examples ({sum(labels)} bullish, {len(labels)-su
 torch.manual_seed(42)
 
 # 보이려고 단순한 낱말 곳간 바탕 부호화를 쓴다
-# 그리고 작은 변환기 비슷한 갈래 매개를 익힌다
+# 그리고 작은 변환기 비슷한 클래스 매개를 익힌다
 MAX_LEN = 64
 VOCAB_SIZE = 5000
 EMBED_DIM = 128
@@ -214,7 +214,7 @@ def simple_tokenize(texts, max_len=64, vocab_size=5000):
         tokens = text.lower().split()[:max_len]
         # 붙박이 hash() 를 쓰면 안 된다. 파이썬은 글자열 해시에 프로세스마다
         # 다른 소금을 섞으므로, 씨앗을 아무리 고정해도 토막마다 붙는 번호가
-        # 돌릴 때마다 달라진다 — 여기 실린 손실값이 다시 나오지 않는 까닭이
+        # 돌릴 때마다 달라진다 — 여기 실린 로스값이 다시 나오지 않는 까닭이
         # 그것이었다. crc32 는 어디서 돌려도 같은 값을 준다
         ids = [(zlib.crc32(t.encode()) % (vocab_size - 1)) + 1 for t in tokens]
         mask = [1] * len(ids)
@@ -279,7 +279,7 @@ for epoch in range(8):
 
 
 # =====================================================================
-# 4부 – 값매김과 종목별 살피기
+# 4부 – 밸류와 종목별 살피기
 # =====================================================================
 print("\n" + "=" * 60)
 print("Part 4: Evaluation & Per-Stock Breakdown")
@@ -340,7 +340,7 @@ print("""
   )
   trainer.train()
 
-  # 종목별 값매김
+  # 종목별 밸류
   for symbol in ["FB", "AMZN", "GOOGL"]:
       subset = df[df["symbol"] == symbol]
       preds = trainer.predict(Dataset.from_pandas(subset))
@@ -386,9 +386,9 @@ print("""
   금융 자연어 다루기의 쓰임새:
   - 실적 발표 마음결 좇기
   - 초과 수익을 위한 뉴스 마음결
-  - 사회 그물(StockTwits/Reddit) 마음결 점수 매기기
+  - 사회 넷트웍(StockTwits/Reddit) 마음결 점수 매기기
   - SEC 보고서의 어조 살피기
-  - 분석 보고서 갈래 매기기
+  - 분석 보고서 클래스 매기기
 """)
 
 print("Done.")
@@ -519,7 +519,7 @@ if __name__ == "__main__":
       )
       trainer.train()
 
-      # 종목별 값매김
+      # 종목별 밸류
       for symbol in ["FB", "AMZN", "GOOGL"]:
           subset = df[df["symbol"] == symbol]
           preds = trainer.predict(Dataset.from_pandas(subset))
@@ -559,9 +559,9 @@ if __name__ == "__main__":
       금융 자연어 다루기의 쓰임새:
       - 실적 발표 마음결 좇기
       - 초과 수익을 위한 뉴스 마음결
-      - 사회 그물(StockTwits/Reddit) 마음결 점수 매기기
+      - 사회 넷트웍(StockTwits/Reddit) 마음결 점수 매기기
       - SEC 보고서의 어조 살피기
-      - 분석 보고서 갈래 매기기
+      - 분석 보고서 클래스 매기기
 
     Done.
     ```
@@ -576,11 +576,11 @@ ProsusAI 체크포인트의 레이블은 0=positive, 1=negative, 2=neutral이다
 
 ## 3. 실제 학습하는 작은 모델
 
-SimpleFinancialClassifier는 CRC32 해시 단어 ID와 학습 가능한 위치 임베딩, 두 트랜스포머 인코더 층, 마스크 평균과 이진 head를 사용한다. 사전 학습 가중치를 가져오지 않는 모델이며 FinBERT의 축약 체크포인트가 아니다. 해시 충돌로 서로 다른 단어가 같은 ID를 가질 수 있고 문장 길이는 64로 잘린다.
+SimpleFinancialClassifier는 CRC32 해시 단어 ID와 학습 가능한 위치 임베딩, 두 트랜스포머 인코더 레이어, 마스크 평균과 이진 head를 사용한다. 사전 학습 웨이트를 가져오지 않는 모델이며 FinBERT의 축약 체크포인트가 아니다. 해시 충돌로 서로 다른 단어가 같은 ID를 가질 수 있고 문장 길이는 64로 잘린다.
 
 padding_idx=0인 임베딩과 src_key_padding_mask, 평균의 attention_mask는 각각 입력·어텐션·pooling에서 다른 역할을 한다. 위치 ID는 max_len 범위 안이어야 하며 모든 토큰이 padding인 입력은 평균 분모를 clamp하는 것만으로 encoder의 전부 마스킹된 계산까지 안전해지지 않는다.
 
-학습은 AdamW와 클리핑으로 8에포크 수행하도록 작성되어 있다. 출력 손실은 배치 평균을 다시 평균한 값으로 마지막 배치 크기에 따라 전체 표본 가중 평균과 다를 수 있다. 이 편집에서는 해당 학습이나 출력을 다시 실행하지 않았다.
+학습은 AdamW와 클리핑으로 8에포크 수행하도록 작성되어 있다. 출력 로스는 배치 평균을 다시 평균한 값으로 마지막 배치 크기에 따라 전체 표본 가중 평균과 다를 수 있다. 이 편집에서는 해당 학습이나 출력을 다시 실행하지 않았다.
 
 ## 4. 중복 문장과 검증의 한계
 
@@ -599,13 +599,13 @@ padding_idx=0인 임베딩과 src_key_padding_mask, 평균의 attention_mask는 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-본문 설정의 SimpleFinancialClassifier 매개변수 수를 계산하고 FinBERT와 구분하라.
+본문 설정의 SimpleFinancialClassifier 파라메터 수를 계산하고 FinBERT와 구분하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
 
-    단어 임베딩 5,000×128=640,000개, 위치 임베딩 64×128=8,192개다. encoder 층마다 어텐션 66,048개, FFN 65,920개, 두 LayerNorm 512개로 132,480개이며 두 층은 264,960개다. 분류 head 128×2+2=258개를 더해 총 913,410개다. 무작위 초기화 모델이며 사전 학습한 FinBERT의 매개변수 수가 아니다.
+    단어 임베딩 5,000×128=640,000개, 위치 임베딩 64×128=8,192개다. encoder 레이어마다 어텐션 66,048개, FFN 65,920개, 두 LayerNorm 512개로 132,480개이며 두 레이어는 264,960개다. 분류 head 128×2+2=258개를 더해 총 913,410개다. 무작위 초기화 모델이며 사전 학습한 FinBERT의 파라메터 수가 아니다.
 
 
 
@@ -635,7 +635,7 @@ FinBERT의 3클래스 레이블과 합성 이진 레이블이 다른 이유 및 
 
 ??? success "연습문제 3 풀이"
 
-    체크포인트는 0=positive, 1=negative, 2=neutral이고 합성 모델은 0=bearish, 1=bullish다. 번호를 그대로 옮기면 의미가 뒤집히거나 중립 처리가 사라진다. 이진 과제로 바꿀 때는 출력 크기·새 head 학습·레이블 매핑과 중립 자료의 포함/제외 정책을 명시해야 한다.
+    체크포인트는 0=positive, 1=negative, 2=neutral이고 합성 모델은 0=bearish, 1=bullish다. 번호를 그대로 옮기면 의미가 뒤집히거나 중립 처리가 사라진다. 이진 과제로 바꿀 때는 출력 크기·새 head 학습·레이블 매핑과 중립 자료의 포함/제외 폴리시를 명시해야 한다.
 
 
 
@@ -650,7 +650,7 @@ FinBERT의 3클래스 레이블과 합성 이진 레이블이 다른 이유 및 
 
 ??? success "연습문제 4 풀이"
 
-    YourBlock·dim은 정의되지 않았고 현재 생성자는 num_layers를 받지 않는다. 실제 깊이는 TransformerEncoder 생성의 num_layers=2에 고정되어 있다. 깊이를 인자로 노출하면 연결·초기화·학습 설정과 매개변수 증가를 함께 검토해야 한다. ModuleList는 모듈 등록 도구일 뿐 그 자체로 forward나 파인튜닝을 완성하지 않는다.
+    YourBlock·dim은 정의되지 않았고 현재 생성자는 num_layers를 받지 않는다. 실제 깊이는 TransformerEncoder 생성의 num_layers=2에 고정되어 있다. 깊이를 인자로 노출하면 연결·초기화·학습 설정과 파라메터 증가를 함께 검토해야 한다. ModuleList는 모듈 등록 도구일 뿐 그 자체로 forward나 파인튜닝을 완성하지 않는다.
 
     ```python
     self.layers = nn.ModuleList()

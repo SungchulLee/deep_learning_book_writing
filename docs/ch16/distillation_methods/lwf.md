@@ -1,6 +1,6 @@
 # Learning without Forgetting(LwF)
 
-Learning without Forgetting(LwF)은 새 과제 입력에서 이전 모델의 예측을 유지하도록 증류하는 지속 학습 방법이다. 이전 원본 표본을 다시 사용하지 않고 새 지도 손실과 이전 출력의 증류 손실을 함께 최적화한다. 다만 새 입력에서의 출력 유지가 과거 데이터 전체의 성능 보장을 뜻하지는 않는다.
+Learning without Forgetting(LwF)은 새 과제 입력에서 이전 모델의 예측을 유지하도록 증류하는 지속 학습 방법이다. 이전 원본 표본을 다시 사용하지 않고 새 지도 로스와 이전 출력의 증류 로스를 함께 최적화한다. 다만 새 입력에서의 출력 유지가 과거 데이터 전체의 성능 보장을 뜻하지는 않는다.
 
 ## 1. 이론적 기초
 
@@ -14,9 +14,9 @@ $$p_T(c\mid x)=\frac{\exp(z_c(x)/T)}{\sum_j\exp(z_j(x)/T)},\qquad T>0$$
 
 T가 커지면 고정 로짓의 확률 분포가 더 완만해진다. T=1도 일반적인 소프트맥스 확률이며 원핫 정답처럼 항상 딱딱한 목표가 되는 것은 아니다.
 
-## 2. LwF의 손실 함수
+## 2. LwF의 로스 함수
 
-새 과제의 지도 손실과 이전 출력에 대한 증류를 합산한다.
+새 과제의 지도 로스와 이전 출력에 대한 증류를 합산한다.
 
 $$L=L_{\mathrm{task}}+\lambda T^2\operatorname{KL}(p_{\mathrm{old},T}(x)\|p_{\mathrm{new},T}(x))$$
 
@@ -47,7 +47,7 @@ class LwFLearner:
     LwF은 다음으로 잊음을 막는다.
     1. 새 과제를 익히기 전에 모델의 출력을 적어 둔다
     2. 앎 증류로 옛 출력에 맞춘다
-    3. 증류 손실과 새 과제의 손실을 합친다
+    3. 증류 로스와 새 과제의 로스를 합친다
     
     참고: Li & Hoiem, "Learning Without Forgetting," TPAMI 2017
     """
@@ -62,12 +62,12 @@ class LwFLearner:
         LwF 학습기를 초기화한다.
         
         인수:
-            model: 신경망 모델
+            model: 뉴럴 넷트웍 모델
             device: 셈할 장치
-            distill_lambda: 증류 손실의 무게
+            distill_lambda: 증류 로스의 무게
             temperature: 부드러운 목표의 온도
                         클수록 분포가 부드럽다
-            learning_rate: 최적화기의 학습률
+            learning_rate: 최적화기의 러닝레이트
         """
         self.model = model
         self.device = device
@@ -86,7 +86,7 @@ class LwFLearner:
                           new_logits: torch.Tensor,
                           old_logits: torch.Tensor) -> torch.Tensor:
         """
-        앎 증류 손실을 셈한다.
+        앎 증류 로스를 셈한다.
         
         부드러운 확률 분포 사이의 KL 벌어짐을 쓴다.
         L_distill = T² × KL(softmax(z_old/T) || softmax(z_new/T))
@@ -96,7 +96,7 @@ class LwFLearner:
             old_logits: 옛 (얼린) 모델의 로짓
         
         반환값:
-            증류 손실(스칼라)
+            증류 로스(스칼라)
         """
         T = self.temperature
         
@@ -108,7 +108,7 @@ class LwFLearner:
         # 참고: F.kl_div은 첫 인자로 로그 확률을 받는다
         loss = F.kl_div(new_log_probs, old_probs, reduction='batchmean')
         
-        # 기울기의 크기를 지키려고 T²을 곱한다
+        # 그래디언트의 크기를 지키려고 T²을 곱한다
         return loss * (T ** 2)
     
     def save_old_model(self):
@@ -121,7 +121,7 @@ class LwFLearner:
             self.old_model = copy.deepcopy(self.model)
             self.old_model.eval()
             
-            # 모든 매개변수 얼리기
+            # 모든 파라메터 얼리기
             for param in self.old_model.parameters():
                 param.requires_grad = False
             
@@ -159,13 +159,13 @@ class LwFLearner:
                 
                 optimizer.zero_grad()
                 
-                # 지금 모델로 앞먹임한다
+                # 지금 모델로 피드포워드한다
                 output = self.model(data)
                 
-                # 과제마다의 손실(교차 엔트로피)
+                # 과제마다의 로스(교차 엔트로피)
                 task_loss = self.criterion(output, target)
                 
-                # 증류 손실(옛 모델이 있을 때)
+                # 증류 로스(옛 모델이 있을 때)
                 distill_loss = torch.tensor(0.0, device=self.device)
                 
                 if self.old_model is not None:
@@ -174,20 +174,20 @@ class LwFLearner:
                     
                     distill_loss = self.distillation_loss(output, old_output)
                 
-                # 결합된 손실
+                # 결합된 로스
                 total_loss = task_loss + self.distill_lambda * distill_loss
                 
                 # 역전파
                 total_loss.backward()
                 optimizer.step()
                 
-                # 손실을 좇는다
+                # 로스를 좇는다
                 epoch_losses['total'] += total_loss.item()
                 epoch_losses['task'] += task_loss.item()
                 epoch_losses['distill'] += distill_loss.item()
                 num_batches += 1
             
-            # 손실을 평균 낸다
+            # 로스를 평균 낸다
             for key in epoch_losses:
                 losses[key].append(epoch_losses[key] / num_batches)
             
@@ -303,7 +303,7 @@ def analyze_temperature(train_loaders, test_loaders, device):
 
 ### 증류 계수
 
-λ=0이면 증류 없이 새 과제를 학습한다. 큰 값은 이전 출력에 더 강한 제약을 주어 새 학습을 제한할 수 있다. 효과는 출력 클래스 수·손실 정규화·온도와 함께 달라지므로 λ=0.5~1 같은 고정 범위를 보편적으로 권하지 않는다.
+λ=0이면 증류 없이 새 과제를 학습한다. 큰 값은 이전 출력에 더 강한 제약을 주어 새 학습을 제한할 수 있다. 효과는 출력 클래스 수·로스 정규화·온도와 함께 달라지므로 λ=0.5~1 같은 고정 범위를 보편적으로 권하지 않는다.
 
 ---
 
@@ -317,14 +317,14 @@ def analyze_temperature(train_loaders, test_loaders, device):
 
 ### 여러 머리 구조를 쓰는 LwF
 
-과제별 헤드가 있는 구조의 시작 부분이다. 아래 하위 클래스는 nn.Module이 아닌 학습기 래퍼를 상속하며, 기존 train_on_task는 self.model만 호출하므로 새 forward나 task_heads를 사용하지 않는다. 헤드 추가·옵티마이저 등록·이전 헤드의 교사 저장과 평가 선택을 연결해야 완성된다. 더미 입력의 크기와 특징 차원도 모델에 맞춰야 한다.
+과제별 헤드가 있는 구조의 시작 부분이다. 아래 하위 클래스는 nn.Module이 아닌 학습기 래퍼를 상속하며, 기존 train_on_task는 self.model만 호출하므로 새 forward나 task_heads를 사용하지 않는다. 헤드 추가·옵티마이저 등록·이전 헤드의 교사 저장과 평가 선택을 연결해야 완성된다. 더미 입력의 크기와 피처 차원도 모델에 맞춰야 한다.
 
 ```python
 class MultiHeadLwFLearner(LwFLearner):
     """
     과제마다 출력 머리를 두는 LwF.
     
-    특징 뽑개는 함께 쓰고 과제마다 제 출력 층을 갖는다.
+    피처 뽑개는 함께 쓰고 과제마다 제 출력 레이어를 갖는다.
     증류는 머리마다 적용한다.
     """
     
@@ -335,7 +335,7 @@ class MultiHeadLwFLearner(LwFLearner):
         self.num_classes_per_task = num_classes_per_task
         self.task_heads = nn.ModuleList()
         
-        # 특징 차원을 얻는다
+        # 피처 차원을 얻는다
         with torch.no_grad():
             dummy = torch.randn(1, 1, 28, 28).to(device)
             feat_dim = feature_extractor(dummy).shape[1]
@@ -349,7 +349,7 @@ class MultiHeadLwFLearner(LwFLearner):
         self.task_heads.append(head)
     
     def forward(self, x, task_id=None):
-        """과제를 지정할 수 있는 앞먹임."""
+        """과제를 지정할 수 있는 피드포워드."""
         features = self.feature_extractor(x)
         
         if task_id is not None:
@@ -359,14 +359,14 @@ class MultiHeadLwFLearner(LwFLearner):
             return [head(features) for head in self.task_heads]
 ```
 
-### 특징 증류를 곁들인 LwF
+### 피처 증류를 곁들인 LwF
 
-아래 FeatureLwF는 특징 사전과 비교 함수만 선언한다. 특징 추출 훅을 등록하거나 train_on_task에 특징 손실을 더하지 않으므로 그대로는 특징 증류가 적용되지 않는다. 교사 특징은 분리하고 학생 특징은 미분 경로를 유지하도록 연결해야 한다.
+아래 FeatureLwF는 피처 사전과 비교 함수만 선언한다. 피처 추출 훅을 등록하거나 train_on_task에 피처 로스를 더하지 않으므로 그대로는 피처 증류가 적용되지 않는다. 교사 피처는 분리하고 학생 피처는 미분 경로를 유지하도록 연결해야 한다.
 
 ```python
 class FeatureLwF(LwFLearner):
     """
-    중간 특징 증류를 곁들인 LwF.
+    중간 피처 증류를 곁들인 LwF.
     
     출력뿐 아니라 중간 표현까지 옛 모델과 닮도록
     옥죈다.
@@ -376,12 +376,12 @@ class FeatureLwF(LwFLearner):
         super().__init__(model, device, **kwargs)
         self.feature_lambda = feature_lambda
         
-        # 중간 특징을 잡아내도록 갈고리를 건다
+        # 중간 피처를 잡아내도록 갈고리를 건다
         self.features = {}
         self.old_features = {}
     
     def feature_distillation_loss(self, new_features, old_features):
-        """중간 특징 사이의 평균제곱오차 손실을 셈한다."""
+        """중간 피처 사이의 평균제곱오차 로스를 셈한다."""
         loss = 0.0
         for name in new_features:
             if name in old_features:
@@ -396,7 +396,7 @@ class FeatureLwF(LwFLearner):
 | 방법 | 보존에 사용하는 정보 | 주요 비용 |
 |---|---|---|
 | LwF | 새 입력에 대한 이전 모델 출력 | 교사 모델 저장과 순전파 |
-| EWC | 이전 가중치와 중요도 | 중요도 추정·저장 및 벌점 |
+| EWC | 이전 웨이트와 중요도 | 중요도 추정·저장 및 벌점 |
 | 경험 리플레이 | 저장한 과거 표본 | 버퍼와 추가 표본 학습 |
 
 LwF의 추가 저장은 모델 크기에 비례하지만 출력 헤드가 늘면 모델 자체도 커질 수 있다. EWC도 온라인 병합인지 과제별 저장인지에 따라 비용이 다르다. 이전 원본 미저장이 곧 개인정보 보호를 보장하거나 정확도의 우열을 결정하지는 않는다.
@@ -409,9 +409,9 @@ Split MNIST의 정확도·BWT는 출력 공간과 라벨 재매핑, 클래스 �
 
 ## 9. 실용적인 고려
 
-LwF를 적용하려면 교사·학생의 출력 의미와 입력 전처리가 대응해야 한다. 교사를 고정한 평가 모드에서 실행하고, 학생 학습 모드·새 지도 손실과 증류 손실의 스케일을 확인한다.
+LwF를 적용하려면 교사·학생의 출력 의미와 입력 전처리가 대응해야 한다. 교사를 고정한 평가 모드에서 실행하고, 학생 학습 모드·새 지도 로스와 증류 로스의 스케일을 확인한다.
 
-온도·증류 계수·학습률은 독립적인 검증 과제에서 선택한다. 모델 선택에 쓸 이전 과제 검증 데이터를 접근할 수 있는지 명시하며, 그 데이터를 증류에 사용하면 새 입력만 쓰는 기본 설정과 구분한다.
+온도·증류 계수·러닝레이트는 독립적인 검증 과제에서 선택한다. 모델 선택에 쓸 이전 과제 검증 데이터를 접근할 수 있는지 명시하며, 그 데이터를 증류에 사용하면 새 입력만 쓰는 기본 설정과 구분한다.
 
 ## 연습문제
 
@@ -423,7 +423,7 @@ LwF에서 교사가 제공하는 목표와 새 지도 정답의 차이를 설명
 </div>
 
 ??? success "연습문제 1 풀이"
-    새 정답은 현재 과제의 예측을 학습시킨다. 교사 출력은 같은 입력에 대한 이전 모델의 확률을 유지시키는 신호이며 실제 이전 과제 정답을 대신 관측한 것은 아니다. 두 손실은 다른 목적을 가지므로 계수를 검증한다.
+    새 정답은 현재 과제의 예측을 학습시킨다. 교사 출력은 같은 입력에 대한 이전 모델의 확률을 유지시키는 신호이며 실제 이전 과제 정답을 대신 관측한 것은 아니다. 두 로스는 다른 목적을 가지므로 계수를 검증한다.
 
 ---
 
@@ -435,7 +435,7 @@ LwF에서 교사가 제공하는 목표와 새 지도 정답의 차이를 설명
 </div>
 
 ??? success "연습문제 2 풀이"
-    교사 역전파 그래프를 저장하지 않아 그 비용은 줄지만 교사 매개변수 저장과 순전파 계산은 남는다. 학생은 과제·증류 손실을 미분해야 한다. 출력 캐시를 쓰면 저장 입력·증강 조건이 일치해야 한다.
+    교사 역전파 그래프를 저장하지 않아 그 비용은 줄지만 교사 파라메터 저장과 순전파 계산은 남는다. 학생은 과제·증류 로스를 미분해야 한다. 출력 캐시를 쓰면 저장 입력·증강 조건이 일치해야 한다.
 
 ---
 
@@ -447,23 +447,23 @@ MultiHeadLwFLearner에 헤드를 추가하면 기본 학습 루프가 자동 학
 </div>
 
 ??? success "연습문제 3 풀이"
-    아니다. 상속한 루프는 self.model인 특징 추출기를 호출하고 그 매개변수만 옵티마이저에 등록한다. task_heads를 통과하는 예측·지도 손실과 이전 헤드 증류, 헤드 매개변수 등록 및 평가 경로를 함께 구현해야 한다.
+    아니다. 상속한 루프는 self.model인 피처 추출기를 호출하고 그 파라메터만 옵티마이저에 등록한다. task_heads를 통과하는 예측·지도 로스와 이전 헤드 증류, 헤드 파라메터 등록 및 평가 경로를 함께 구현해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-FeatureLwF의 손실 함수를 정의하기만 하면 특징 증류가 적용되는가?
+FeatureLwF의 로스 함수를 정의하기만 하면 피처 증류가 적용되는가?
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    학습 루프에서 실제 학생·교사 특징을 수집하고 손실을 호출해 total_loss에 더해야 한다. 현재 코드는 그 연결이 없다. 교사 특징은 고정 타깃으로 분리하고 학생 특징은 학습 가능한 경로에 연결한다.
+    학습 루프에서 실제 학생·교사 피처를 수집하고 로스를 호출해 total_loss에 더해야 한다. 현재 코드는 그 연결이 없다. 교사 피처는 고정 타깃으로 분리하고 학생 피처는 학습 가능한 경로에 연결한다.
 
 ## 정리하며
 
-LwF는 새 입력에서 이전 모델의 출력을 맞추는 함수 수준의 제약이다. 과거 원본을 저장하지 않는 설정이지만 보존 효과는 입력 분포와 출력 대응에 의존한다. 단일 출력 기본 구현과 아직 학습 루프에 연결되지 않은 다중 헤드·특징 증류 변형을 구분한다.
+LwF는 새 입력에서 이전 모델의 출력을 맞추는 함수 수준의 제약이다. 과거 원본을 저장하지 않는 설정이지만 보존 효과는 입력 분포와 출력 대응에 의존한다. 단일 출력 기본 구현과 아직 학습 루프에 연결되지 않은 다중 헤드·피처 증류 변형을 구분한다.
 
 **참고 문헌**
 

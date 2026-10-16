@@ -1,8 +1,8 @@
-# 재매개변수화와 블랙박스 변분 추론
+# 리파라메리제이션과 블랙박스 변분 추론
 
-블랙박스 변분 추론은 모델별 좌표 갱신을 유도하는 대신 몬테카를로 경사로 ELBO를 최적화한다. 점수함수 추정과 재매개변수화는 서로 다른 미분 경로를 이용한다. 표본화·로그 밀도 평가·정칙성·유한 분산 등의 조건이 필요하므로 ‘어떤 모델에도 자동으로 적용된다’는 표현은 지나치게 넓다.
+블랙박스 변분 추론은 모델별 좌표 갱신을 유도하는 대신 몬테카를로 경사로 ELBO를 최적화한다. 점수함수 추정과 리파라메리제이션은 서로 다른 미분 경로를 이용한다. 표본화·로그 밀도 평가·정칙성·유한 분산 등의 조건이 필요하므로 ‘어떤 모델에도 자동으로 적용된다’는 표현은 지나치게 넓다.
 
-## 1. 분포와 피적분함수의 매개변수 의존성
+## 1. 분포와 피적분함수의 파라메터 의존성
 
 L(φ)=E_qφ[f_φ(θ)], f_φ=log p(D,θ)−log q_φ(θ)라 하자. 모델 p는 여기서 φ와 독립이라고 가정한다. 지지집합이 고정되고 미분과 적분을 교환할 수 있으면 다음과 같다.
 
@@ -12,13 +12,13 @@ $$\nabla_\phi L=E_{q_\phi}[f_\phi\nabla_\phi\log q_\phi+\nabla_\phi f_\phi].$$
 
 $$\nabla_\phi L=E_{q_\phi}[(\log p(D,\theta)-\log q_\phi(\theta))\nabla_\phi\log q_\phi(\theta)].$$
 
-일반적인 매개변수 의존 함수 f_φ에 대해 명시적 미분 항을 처음부터 생략하면 안 된다. 이동하는 지지집합이나 비정칙 밀도에서는 경계 항이 생기거나 점수의 평균이 0이라는 논증이 실패할 수 있다.
+일반적인 파라메터 의존 함수 f_φ에 대해 명시적 미분 항을 처음부터 생략하면 안 된다. 이동하는 지지집합이나 비정칙 밀도에서는 경계 항이 생기거나 점수의 평균이 0이라는 논증이 실패할 수 있다.
 
 ## 2. 점수함수 경사 추정
 
 θˢ∼q_φ를 독립 생성해 위 기대의 표본 평균을 계산한다. 이 방법은 연속·이산 변수 모두에 사용할 수 있고 θ에 대한 모델의 경사가 꼭 필요하지 않다. 대신 로그 결합밀도, q의 로그 밀도와 φ에 대한 점수를 평가할 수 있어야 한다. 기대 경사가 존재해도 추정 분산은 무한할 수 있다.
 
-대각 가우스 q=N(μ,diag σ²)의 점수는 s_μ=(θ−μ)/σ², s_logσ=(θ−μ)²/σ²−1이다. 점수함수 손실을 자동미분으로 구성할 때 θ는 점수 미분에서 고정 표본이고, 곱해 주는 학습 신호도 해당 경사에 맞게 분리해야 한다. 재매개변수화된 θ를 그대로 따라 미분하면 의도한 점수함수 추정과 다른 경로가 섞일 수 있다.
+대각 가우스 q=N(μ,diag σ²)의 점수는 s_μ=(θ−μ)/σ², s_logσ=(θ−μ)²/σ²−1이다. 점수함수 로스를 자동미분으로 구성할 때 θ는 점수 미분에서 고정 표본이고, 곱해 주는 학습 신호도 해당 경사에 맞게 분리해야 한다. 리파라메리제이션된 θ를 그대로 따라 미분하면 의도한 점수함수 추정과 다른 경로가 섞일 수 있다.
 
 ## 3. 기준선과 제어변량
 
@@ -28,11 +28,11 @@ $$\nabla L=E[(f_\phi-b)s_\phi].$$
 
 벡터 경사 추정의 전체 분산, 즉 공분산 행렬의 trace를 최소화하는 상수는 분모가 양수이고 기대가 유한할 때 b★=E[f_φ∥s_φ∥²]/E[∥s_φ∥²]다. 단순 이동평균은 실용적인 근사지만 이 최적 가중 기준선과 반드시 같지는 않다.
 
-일반적인 표본 의존 c(θ)를 빼면 E[c(θ)s_φ]를 다시 더해야 한다. 이를 E[c]E[s_φ]=0으로 바꾸면 일반적으로 편향이 생긴다. 같은 표본 묶음의 평균으로 기준선을 만들어 각 표본에 빼는 경우에도 의존성 때문에 편향이 생길 수 있어 이전 묶음의 기준선이나 leave-one-out 등의 구성을 검토한다.
+일반적인 표본 의존 c(θ)를 빼면 E[c(θ)s_φ]를 다시 더해야 한다. 이를 E[c]E[s_φ]=0으로 바꾸면 일반적으로 바이어스가 생긴다. 같은 표본 묶음의 평균으로 기준선을 만들어 각 표본에 빼는 경우에도 의존성 때문에 바이어스가 생길 수 있어 이전 묶음의 기준선이나 leave-one-out 등의 구성을 검토한다.
 
 Rao–Blackwell화는 경사 추정량의 일부 변수를 조건부로 적분해 기대를 유지하고 분산을 줄인다. 실제 경사 추정량의 조건부 기대를 사용해야 하며, f만 임의로 평균낸 뒤 원래 점수를 곱하는 것으로 항상 같은 결과가 되지는 않는다.
 
-## 4. 재매개변수화 경사
+## 4. 리파라메리제이션 경사
 
 φ와 무관한 ε∼p₀와 θ=g_φ(ε)로 표본을 표현하면 다음 경로별 경사를 사용할 수 있다.
 
@@ -40,7 +40,7 @@ $$\nabla_\phi L=E_{p_0}[\nabla_\phi f_\phi(g_\phi(\epsilon))].$$
 
 오른쪽 미분에는 θ를 통한 경로와 f_φ의 명시적 의존성이 모두 포함된다. g와 목적함수의 적절한 미분 가능성 및 교환 조건이 필요하다. 가우스는 θ=μ+σ⊙ε, 로그정규는 θ=exp(μ+σ⊙ε), ε∼N(0,I)를 쓸 수 있다. 전 공분산 가우스에서는 θ=μ+Lε, Σ=LLᵀ다.
 
-연속 누적분포의 역함수 θ=F_φ⁻¹(u), u∼Uniform(0,1)도 가능한 구성이다. 다만 역함수를 수치적으로 구할 수 있다는 사실과 안정적으로 미분할 수 있다는 사실은 다르다. Gamma(α,β)를 ε∼Gamma(α,1), θ=ε/β로 쓰면 **β에 대한** 경로는 분리되지만 ε가 α에 의존하므로 shape α의 미분까지 해결한 것은 아니다. 암시적 재매개변수화 등 추가 방법이 필요할 수 있다.
+연속 누적분포의 역함수 θ=F_φ⁻¹(u), u∼Uniform(0,1)도 가능한 구성이다. 다만 역함수를 수치적으로 구할 수 있다는 사실과 안정적으로 미분할 수 있다는 사실은 다르다. Gamma(α,β)를 ε∼Gamma(α,1), θ=ε/β로 쓰면 **β에 대한** 경로는 분리되지만 ε가 α에 의존하므로 shape α의 미분까지 해결한 것은 아니다. 암시적 리파라메리제이션 등 추가 방법이 필요할 수 있다.
 
 경로별 추정은 많은 연속 모델에서 분산이 작고 자동미분과 잘 맞지만 점수함수보다 항상 작은 분산·빠른 수렴을 보장하지는 않는다. 이산 변수의 보통의 표본 경로는 미분에 적합하지 않아 정확한 합산, 점수함수 또는 연속 완화 등을 사용하며, 완화는 원래 이산 목적과의 차이를 만든다.
 
@@ -60,7 +60,7 @@ import numpy as np
 
 class ScoreFunctionVI:
     """
-    점수 함수(REINFORCE) 기울기 어림꼴을 쓴 깜깜이 변분 추론.
+    점수 함수(REINFORCE) 그래디언트 어림꼴을 쓴 깜깜이 변분 추론.
     
     다음을 할 수 있는 아무 분포 q_φ에나 통한다:
     1. θ ~ q_φ 표집
@@ -76,7 +76,7 @@ class ScoreFunctionVI:
         self.log_joint = log_joint
         self.dim = dim
         
-        # 가우스 q(θ) = N(μ, diag(σ²))의 변분 매개변수
+        # 가우스 q(θ) = N(μ, diag(σ²))의 변분 파라메터
         self.mu = nn.Parameter(torch.zeros(dim))
         self.log_sigma = nn.Parameter(torch.zeros(dim))
     
@@ -97,7 +97,7 @@ class ScoreFunctionVI:
     def score_function_gradient(self, n_samples: int = 100,
                                 baseline: float = 0.0) -> Tuple[torch.Tensor, float]:
         """
-        기준선을 붙인 점수 함수 어림꼴로 기울기 셈하기.
+        기준선을 붙인 점수 함수 어림꼴로 그래디언트 셈하기.
         
         ∇_φ ELBO ≈ (1/S) Σ (f(θ⁽ˢ⁾) - b) ∇_φ log q_φ(θ⁽ˢ⁾)
         
@@ -114,7 +114,7 @@ class ScoreFunctionVI:
         # ELBO 어림값
         elbo = f.mean().item()
         
-        # 점수 함수 기울기
+        # 점수 함수 그래디언트
         # 표본마다 ∇_φ log q_φ(θ)을 셈해야 한다
         # 가우스에서: ∇_μ log q = (θ - μ)/σ², ∇_log_σ log q = ((θ-μ)²/σ² - 1)
         
@@ -124,7 +124,7 @@ class ScoreFunctionVI:
         if self.log_sigma.grad is not None:
             self.log_sigma.grad.zero_()
         
-        # 표본마다 기울기 셈하기(효율은 낮지만 또렷하다)
+        # 표본마다 그래디언트 셈하기(효율은 낮지만 또렷하다)
         grad_mu = torch.zeros_like(self.mu)
         grad_log_sigma = torch.zeros_like(self.log_sigma)
         
@@ -147,7 +147,7 @@ class ScoreFunctionVI:
             lr: float = 0.01, use_baseline: bool = True,
             verbose: bool = True) -> Dict:
         """
-        점수 함수 기울기로 최적화하기.
+        점수 함수 그래디언트로 최적화하기.
         """
         optimizer = torch.optim.Adam([self.mu, self.log_sigma], lr=lr)
         
@@ -157,7 +157,7 @@ class ScoreFunctionVI:
         for i in range(n_iterations):
             optimizer.zero_grad()
             
-            # 기울기 셈하기
+            # 그래디언트 셈하기
             (grad_mu, grad_log_sigma), elbo = self.score_function_gradient(
                 n_samples, baseline if use_baseline else 0.0
             )
@@ -166,7 +166,7 @@ class ScoreFunctionVI:
             if use_baseline:
                 baseline = 0.9 * baseline + 0.1 * elbo
             
-            # 기울기 정하기(최적화기가 최소화하므로 음수)
+            # 그래디언트 정하기(최적화기가 최소화하므로 음수)
             self.mu.grad = -grad_mu
             self.log_sigma.grad = -grad_log_sigma
             
@@ -185,7 +185,7 @@ class ScoreFunctionVI:
 
 class ReparameterizedVI:
     """
-    매개변수 바꾸기 재주를 쓴 깜깜이 변분 추론.
+    파라메터 바꾸기 재주를 쓴 깜깜이 변분 추론.
     
     이어진 q에서는 점수 함수 어림꼴보다 흩어짐이 훨씬 작다.
     """
@@ -199,7 +199,7 @@ class ReparameterizedVI:
         self.log_joint = log_joint
         self.dim = dim
         
-        # 변분 매개변수
+        # 변분 파라메터
         self.mu = nn.Parameter(torch.zeros(dim))
         self.log_sigma = nn.Parameter(torch.zeros(dim))
     
@@ -209,7 +209,7 @@ class ReparameterizedVI:
     
     def elbo(self, n_samples: int = 100) -> torch.Tensor:
         """
-        매개변수 바꾸기로 ELBO 셈하기.
+        파라메터 바꾸기로 ELBO 셈하기.
         
         θ = μ + σ ⊙ ε,  ε ~ N(0, I)
         
@@ -218,7 +218,7 @@ class ReparameterizedVI:
         # 바탕 분포에서 표집
         epsilon = torch.randn(n_samples, self.dim)
         
-        # 매개변수 바꾸기
+        # 파라메터 바꾸기
         theta = self.mu + self.sigma * epsilon
         
         # 로그 결합 확률 셈하기
@@ -233,7 +233,7 @@ class ReparameterizedVI:
     def fit(self, n_iterations: int = 1000, n_samples: int = 10,
             lr: float = 0.01, verbose: bool = True) -> Dict:
         """
-        매개변수 바꾸기 기울기로 최적화하기.
+        파라메터 바꾸기 그래디언트로 최적화하기.
         
         메모: 점수 함수보다 표본이 훨씬 적게 든다!
         """
@@ -244,10 +244,10 @@ class ReparameterizedVI:
         for i in range(n_iterations):
             optimizer.zero_grad()
             
-            # ELBO 셈하기(기울기가 매개변수 바꾸기를 지나 흐른다)
+            # ELBO 셈하기(그래디언트가 파라메터 바꾸기를 지나 흐른다)
             elbo = self.elbo(n_samples)
             
-            # 기울기 오르기(ELBO의 음수를 가장 작게 하기)
+            # 그래디언트 오르기(ELBO의 음수를 가장 작게 하기)
             loss = -elbo
             loss.backward()
             optimizer.step()
@@ -264,9 +264,9 @@ class ReparameterizedVI:
         return history
 
 def compare_estimators():
-    """점수 함수 어림꼴과 매개변수 바꾸기 어림꼴 견주기."""
+    """점수 함수 어림꼴과 파라메터 바꾸기 어림꼴 견주기."""
     
-    # 단순한 과녁: 가우스 평균의 뒤확률
+    # 단순한 타깃: 가우스 평균의 뒤확률
     # 앞확률: θ ~ N(0, 1)
     # 가능도: x_i ~ N(θ, 1), 관측 평균 = 2.0
     
@@ -300,7 +300,7 @@ def compare_estimators():
     results['score'] = vi_score.fit(n_iterations=500, n_samples=100, 
                                     lr=0.01, verbose=True)
     
-    # 매개변수 바꾸기(표본이 적게 든다)
+    # 파라메터 바꾸기(표본이 적게 든다)
     print("\n--- Reparameterization Trick ---")
     vi_reparam = ReparameterizedVI(log_joint, dim=1)
     results['reparam'] = vi_reparam.fit(n_iterations=500, n_samples=10,
@@ -365,7 +365,7 @@ def compare_estimators():
     ax.plot(theta_range.numpy(), score_pdf.numpy(), '--', linewidth=2,
             label=f'Score (μ={mu_s:.3f}, σ={sigma_s:.3f})')
     
-    # 매개변수 바꾸기 결과
+    # 파라메터 바꾸기 결과
     mu_r = results['reparam']['mu'][-1].item()
     sigma_r = results['reparam']['sigma'][-1].item()
     reparam_pdf = dist.Normal(mu_r, sigma_r).log_prob(theta_range).exp()
@@ -411,7 +411,7 @@ Iter  500: ELBO = -29.5348, μ = [1.953634], σ = [0.24334748]
 
 ## 6. 자동미분 변분 추론
 
-ADVI는 제약을 없앤 연속 좌표에서 가우스 근사를 사용하고 재매개변수화 경사를 계산한다. 평균장과 전 공분산 가우스 등의 선택이 있으며, 미분 가능한 연속 모델이라는 적용 범위와 수치적 제약을 가진다. 이산 잠재변수가 그대로 남거나 적절한 변환·미분이 없는 모델에 무조건 적용할 수는 없다.
+ADVI는 제약을 없앤 연속 좌표에서 가우스 근사를 사용하고 리파라메리제이션 경사를 계산한다. 평균장과 전 공분산 가우스 등의 선택이 있으며, 미분 가능한 연속 모델이라는 적용 범위와 수치적 제약을 가진다. 이산 잠재변수가 그대로 남거나 적절한 변환·미분이 없는 모델에 무조건 적용할 수는 없다.
 
 θ=h(ζ)가 같은 차원의 가역 미분변환이면 변환 좌표에서의 결합밀도는 다음과 같다.
 
@@ -423,7 +423,7 @@ $$\log p_\zeta(D,\zeta)=\log p_\theta(D,h(\zeta))+\log|\det Dh(\zeta)|.$$
 
 ## 연습문제
 
-### 연습 1: 매개변수 의존성
+### 연습 1: 파라메터 의존성
 
 일반적인 E_qφ[f_φ]의 경사를 유도하고, ELBO에서 명시적 미분 항이 기댓값 아래 사라지는 조건을 설명하라. 지지집합이 움직이는 Uniform(0,φ)에서는 어떤 주의가 필요한가?
 
@@ -441,7 +441,7 @@ $$\log p_\zeta(D,\zeta)=\log p_\theta(D,h(\zeta))+\log|\det Dh(\zeta)|.$$
 
 ## 정리하며
 
-점수함수와 경로별 추정은 ELBO의 매개변수 의존성을 서로 다른 방식으로 처리한다. 정칙성, 기준선의 독립성, 제어변량의 보정과 변환밀도의 야코비안을 확인해야 한다. 추정 분산은 고정된 매개변수에서 같은 계산 기준으로 비교한다.
+점수함수와 경로별 추정은 ELBO의 파라메터 의존성을 서로 다른 방식으로 처리한다. 정칙성, 기준선의 독립성, 제어변량의 보정과 변환밀도의 야코비안을 확인해야 한다. 추정 분산은 고정된 파라메터에서 같은 계산 기준으로 비교한다.
 
 **참고 문헌**
 

@@ -6,9 +6,9 @@
 
 ```python
 """
-글자 수준 자기 되돌이 말 모델
+글자 수준 자기 회귀 말 모델
 
-이 단원은 글자 하나씩 글을 만들어 내는 신경 자기 되돌이 모델을 짠다.
+이 단원은 글자 하나씩 글을 만들어 내는 뉴럴 자기 회귀 모델을 짠다.
 곧 글자마다 앞선 글자를 바탕으로 헤아린다.
 차례의 앞선 모든 글자를 바탕으로 한다.
 """
@@ -26,11 +26,11 @@ from typing import Optional, Tuple
 
 class CharRNN(nn.Module):
     """
-    글 만들어 내기를 위한 글자 수준 되돌이 신경망.
+    글 만들어 내기를 위한 글자 수준 회귀 뉴럴 넷트웍.
     
-    이는 다음과 같은 자기 되돌이 모델이다.
+    이는 다음과 같은 자기 회귀 모델이다.
     1. 글자의 차례를 들임으로 받는다
-    2. 되돌이 신경망(긴 짧은 기억)으로 다룬다
+    2. 회귀 뉴럴 넷트웍(긴 짧은 기억)으로 다룬다
     3. 다음 글자를 헤아린다
     
     구조:
@@ -43,13 +43,13 @@ class CharRNN(nn.Module):
                  hidden_dim: int = 128,
                  n_layers: int = 2):
         """
-        글자 되돌이 신경망을 첫자리매김한다.
+        글자 회귀 뉴럴 넷트웍을 첫자리매김한다.
         
         인수:
             vocab_size: 낱말 속 서로 다른 글자의 수
             embedding_dim: 글자 임베딩의 차원
             hidden_dim: 긴 짧은 기억의 숨은 낱개 수
-            n_layers: 긴 짧은 기억 층의 수
+            n_layers: 긴 짧은 기억 레이어의 수
         """
         super(CharRNN, self).__init__()
         
@@ -57,21 +57,21 @@ class CharRNN(nn.Module):
         self.hidden_dim = hidden_dim
         self.n_layers = n_layers
         
-        # 임베딩 층: 글자 어깨수를 빽빽한 벡터로 바꾼다
+        # 임베딩 레이어: 글자 어깨수를 빽빽한 벡터로 바꾼다
         # 글자마다 배울 수 있는 임베딩 벡터를 갖는다
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         
         # 긴 짧은 기억: 임베딩의 차례를 다룬다
-        # batch_first=True는 들임 꼴이 [배치, 차례, 특징]이라는 뜻이다
+        # batch_first=True는 들임 꼴이 [배치, 차례, 피처]이라는 뜻이다
         self.lstm = nn.LSTM(
             embedding_dim, 
             hidden_dim, 
             n_layers,
             batch_first=True,
-            dropout=0.2 if n_layers > 1 else 0  # 긴 짧은 기억 층 사이의 떨구기
+            dropout=0.2 if n_layers > 1 else 0  # 긴 짧은 기억 레이어 사이의 떨구기
         )
         
-        # 내놓기 층: 긴 짧은 기억의 숨은 상태를 낱말 점수로 옮긴다
+        # 내놓기 레이어: 긴 짧은 기억의 숨은 상태를 낱말 점수로 옮긴다
         self.fc = nn.Linear(hidden_dim, vocab_size)
         
     def forward(self, 
@@ -79,12 +79,12 @@ class CharRNN(nn.Module):
                 hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
                ) -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """
-        모델을 지나는 앞먹임.
+        모델을 지나는 피드포워드.
         
         인수:
             x: 꼴 [배치 크기, 차례 길이]인 들임 텐서
                글자 어깨수를 담는다
-            hidden: 앞선 앞먹임에서 온 숨은 상태(있으면)
+            hidden: 앞선 피드포워드에서 온 숨은 상태(있으면)
                     긴 짧은 기억을 위한 (h_0, c_0) 짝
                     
         반환값:
@@ -124,7 +124,7 @@ class CharRNN(nn.Module):
         """
         자기 회귀로 글을 짓는다.
         
-        이것이 자기 되돌이 만들어 내기의 핵심 과정이다.
+        이것이 자기 회귀 만들어 내기의 핵심 과정이다.
         1. 씨앗 차례에서 시작한다
         2. 다음 글자를 헤아린다
         3. 헤아린 값을 차례에 덧붙인다
@@ -175,7 +175,7 @@ class SimpleCharTransformer(nn.Module):
     """
     글자 수준 말 나타내기를 위한 단순한 변환기.
     
-    이는 되돌이 대신 셀프 어텐션을 쓰는 더 요즘다운 되돌이 신경망의 대안이다.
+    이는 회귀 대신 셀프 어텐션을 쓰는 더 요즘다운 회귀 뉴럴 넷트웍의 대안이다.
     변환기는 GPT 같은 모델의 바탕 구조이다.
     GPT 같은 모델.
     """
@@ -193,7 +193,7 @@ class SimpleCharTransformer(nn.Module):
             vocab_size: 서로 다른 글자의 수
             embedding_dim: 임베딩의 차원(n_heads으로 나누어떨어져야 한다)
             n_heads: 어텐션 머리의 수
-            n_layers: 변환기 층의 수
+            n_layers: 변환기 레이어의 수
             max_seq_length: 최대 차례 길이(자리 부호화용)
         """
         super(SimpleCharTransformer, self).__init__()
@@ -208,7 +208,7 @@ class SimpleCharTransformer(nn.Module):
         # 변환기에는 본디 차례가 없으므로 자리 앎을 더한다
         self.position_embedding = nn.Embedding(max_seq_length, embedding_dim)
         
-        # 변환기 인코더 층
+        # 변환기 인코더 레이어
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embedding_dim,
             nhead=n_heads,
@@ -218,12 +218,12 @@ class SimpleCharTransformer(nn.Module):
         )
         self.transformer = nn.TransformerEncoder(encoder_layer, n_layers)
         
-        # 출력층
+        # 출력 레이어
         self.fc = nn.Linear(embedding_dim, vocab_size)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        변환기를 지나는 앞먹임.
+        변환기를 지나는 피드포워드.
         
         인수:
             x: 들임 텐서 [배치 크기, 차례 길이]
@@ -244,7 +244,7 @@ class SimpleCharTransformer(nn.Module):
         x = token_emb + pos_emb
         
         # 인과 가림막을 만든다: 자리마다 앞 자리만 볼 수 있다
-        # 이는 자기 되돌이로 나타내는 데 결정적이다!
+        # 이는 자기 회귀로 나타내는 데 결정적이다!
         mask = torch.triu(torch.ones(seq_length, seq_length, device=x.device), diagonal=1)
         mask = mask.bool()
         
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     보여 주기: 흉내 자료로 모델을 시험한다
     """
     
-    # 초매개변수
+    # 초파라메터
     vocab_size = 50  # 서로 다른 글자 50개
     batch_size = 16
     seq_length = 20
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     # 모형을 시작한다
     rnn_model = CharRNN(vocab_size, embedding_dim=32, hidden_dim=64, n_layers=2)
     
-    # 매개변수 개수 세기
+    # 파라메터 개수 세기
     n_params = sum(p.numel() for p in rnn_model.parameters())
     print(f"Number of parameters: {n_params:,}")
     
@@ -320,7 +320,7 @@ if __name__ == "__main__":
 
 입력은 어휘 범위 안의 int64 ID `(B,T)`다. T는 1 이상이어야 한다. LSTM은 임베딩 `(B,T,E)`를 순환 처리하고 마지막 위치를 선형 분류한다. 반환값은 logits와 `(h,c)` 상태이며 각 상태 모양은 `(n_layers,B,H)`다. 상태를 전달하지 않으면 새 창을 기본 초기 상태에서 처리한다.
 
-Transformer는 토큰 임베딩에 학습 가능한 위치 임베딩을 더하고 상삼각 bool 마스크로 미래 위치를 차단한다. 여기의 mask=True는 해당 attention 연결을 금지한다. embedding_dim은 n_heads로 나누어져야 하고 T≤max_seq_length여야 한다. 모든 위치의 특징을 계산하지만 마지막 위치의 logits만 반환하며 별도 generate 메서드는 없다.
+Transformer는 토큰 임베딩에 학습 가능한 위치 임베딩을 더하고 상삼각 bool 마스크로 미래 위치를 차단한다. 여기의 mask=True는 해당 attention 연결을 금지한다. embedding_dim은 n_heads로 나누어져야 하고 T≤max_seq_length여야 한다. 모든 위치의 피처를 계산하지만 마지막 위치의 logits만 반환하며 별도 generate 메서드는 없다.
 
 **기존 출력 기록:**
 
@@ -345,7 +345,7 @@ Output shape: torch.Size([16, 50])
 ✓ Both models working correctly!
 ```
 
-실행 예는 무작위 ID와 무작위 가중치의 모양 확인이다. LSTM 생성 시 길이 10의 시드에 20개를 추가해 총 30개를 반환하지만 생성 품질을 검증하는 실험은 아니다. 출력의 “working correctly” 문구는 아래 생성 상태 재사용 문제까지 확인한 증거가 아니다.
+실행 예는 무작위 ID와 무작위 웨이트의 모양 확인이다. LSTM 생성 시 길이 10의 시드에 20개를 추가해 총 30개를 반환하지만 생성 품질을 검증하는 실험은 아니다. 출력의 “working correctly” 문구는 아래 생성 상태 재사용 문제까지 확인한 증거가 아니다.
 
 ## 2. LSTM 생성 상태의 중복 처리
 
@@ -357,7 +357,7 @@ Output shape: torch.Size([16, 50])
 
 ## 3. 정규화와 계산비용
 
-LSTM은 층 수가 2 이상일 때 층 사이 dropout=0.2를 사용한다. 마지막 층의 모든 출력이나 순환 상태에 동일하게 dropout을 거는 설계와 다르다. TransformerEncoderLayer는 dropout=0.1을 설정하므로 attention·후속 경로의 내장 드롭아웃을 이미 포함한다. 평가 모드에서 드롭아웃은 비활성화된다.
+LSTM은 레이어 수가 2 이상일 때 레이어 사이 dropout=0.2를 사용한다. 마지막 레이어의 모든 출력이나 순환 상태에 동일하게 dropout을 거는 설계와 다르다. TransformerEncoderLayer는 dropout=0.1을 설정하므로 attention·후속 경로의 내장 드롭아웃을 이미 포함한다. 평가 모드에서 드롭아웃은 비활성화된다.
 
 인과적 마스크가 있어도 Transformer의 주어진 문맥 계산은 여러 위치에서 병렬 처리할 수 있다. LSTM은 시간축 상태 의존성이 남는다. 표준 dense attention의 곱셈 비용은 O(T²E), projection과 feed-forward에는 O(TE²)도 들며 어휘 분류 비용은 별도다. 실제 메모리와 속도는 배치·헤드·커널·자료형에 영향을 받는다. 이 작은 모델에서 구조만으로 성능 우열을 단정할 수 없다.
 
@@ -372,7 +372,7 @@ CharRNN의 파라미터 수를 계산하라.
 
 ??? success "연습문제 1 풀이"
 
-    어휘 V, 임베딩 E, 은닉 H, 층 수 L에서 임베딩은 VE, 첫 LSTM 층은 4H(E+H+2), 후속 각 층은 4H(2H+2), 출력은 HV+V다. PyTorch LSTM에는 입력·순환 편향이 각각 있어 +2가 들어간다. 실행 예 V=50,E=32,H=64,L=2이면 63,218개다. 기본 E=64,H=128,L=2에서는 231,424+193V개다. vocab_size는 반드시 지정하며 기본값이 없다.
+    어휘 V, 임베딩 E, 은닉 H, 레이어 수 L에서 임베딩은 VE, 첫 LSTM 레이어는 4H(E+H+2), 후속 각 레이어는 4H(2H+2), 출력은 HV+V다. PyTorch LSTM에는 입력·순환 바이어스가 각각 있어 +2가 들어간다. 실행 예 V=50,E=32,H=64,L=2이면 63,218개다. 기본 E=64,H=128,L=2에서는 231,424+193V개다. vocab_size는 반드시 지정하며 기본값이 없다.
 
 
 
@@ -387,7 +387,7 @@ CharRNN의 파라미터 수를 계산하라.
 
 ??? success "연습문제 2 풀이"
 
-    TransformerEncoderLayer(dropout=0.1)은 내장 attention 드롭아웃을 이미 설정한다. 별도 층을 무조건 더하면 중복 적용일 수 있다. 소프트맥스 뒤 드롭아웃은 일부 가중치를 0으로 하고 남은 값을 보정해 기대값을 유지하지만 각 실행의 행 합이 반드시 1인 것은 아니다. 특정 연결에 대한 의존을 줄이는 정규화일 수 있어도 더 균일한 attention이나 성능 개선을 보장하지 않는다. LSTM의 층간 드롭아웃과도 구분한다.
+    TransformerEncoderLayer(dropout=0.1)은 내장 attention 드롭아웃을 이미 설정한다. 별도 레이어를 무조건 더하면 중복 적용일 수 있다. 소프트맥스 뒤 드롭아웃은 일부 웨이트를 0으로 하고 남은 값을 보정해 기대값을 유지하지만 각 실행의 행 합이 반드시 1인 것은 아니다. 특정 연결에 대한 의존을 줄이는 정규화일 수 있어도 더 균일한 attention이나 성능 개선을 보장하지 않는다. LSTM의 레이어간 드롭아웃과도 구분한다.
 
 
 
@@ -402,7 +402,7 @@ Transformer의 문맥 길이 한계와 attention 비용을 구분하라.
 
 ??? success "연습문제 3 풀이"
 
-    본문에는 최대 길이 100의 위치 임베딩 표가 있어 T>100이면 계산비용 이전에 인덱스 범위 문제가 생긴다. 표를 늘리면 길이 범위를 확장할 수 있지만 학습·일반화는 별도다. Dense attention은 O(T²E), 선형 projection·feed-forward는 O(TE²)의 계산이 들며 단순 attention 가중치 저장은 헤드별 T²에 비례한다. 일부 최적화 커널은 전체 행렬 저장을 피하지만 dense 곱셈의 의존 구조 자체를 희소 attention으로 바꾸는 것과는 다르다.
+    본문에는 최대 길이 100의 위치 임베딩 표가 있어 T>100이면 계산비용 이전에 인덱스 범위 문제가 생긴다. 표를 늘리면 길이 범위를 확장할 수 있지만 학습·일반화는 별도다. Dense attention은 O(T²E), 선형 projection·feed-forward는 O(TE²)의 계산이 들며 단순 attention 웨이트 저장은 헤드별 T²에 비례한다. 일부 최적화 커널은 전체 행렬 저장을 피하지만 dense 곱셈의 의존 구조 자체를 희소 attention으로 바꾸는 것과는 다르다.
 
 
 
@@ -411,7 +411,7 @@ Transformer의 문맥 길이 한계와 attention 비용을 구분하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-층 수를 비교하려면 어느 인수를 사용하며 생성 버그와 어떤 관계가 있는가?
+레이어 수를 비교하려면 어느 인수를 사용하며 생성 버그와 어떤 관계가 있는가?
 
 </div>
 

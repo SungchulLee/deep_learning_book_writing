@@ -1,15 +1,15 @@
 # Noisy Networks
 
-Noisy Networks은 DQN 좋게 하기의 중요한 개념이다. 배우는 살펴보기를 위한 NoisyLinear 층과 NoisyNet Q 네트워크를 다룬다. 이 짜기는 얽힌 핵심 알고리즘과 자료 구조를 손으로 만져 보게 하며 이론 기초와 실제로 펼칠 때 살필 것을 함께 보여 준다.
+Noisy Networks은 DQN 좋게 하기의 중요한 개념이다. 배우는 살펴보기를 위한 NoisyLinear 레이어와 NoisyNet Q 네트워크를 다룬다. 이 짜기는 얽힌 핵심 알고리즘과 자료 구조를 손으로 만져 보게 하며 이론 기초와 실제로 펼칠 때 살필 것을 함께 보여 준다.
 
 ## 1. 코드
 
 ```python
 """
-35.2.4 시끄러운 그물
+35.2.4 노이지 넷트웍
 ======================
 
-익힌 살펴보기를 위한 NoisyLinear 켜와 시끄러운 그물 Q 그물.
+익힌 살펴보기를 위한 NoisyLinear 켜와 노이지 넷트웍 Q 넷트웍.
 """
 
 import torch
@@ -27,11 +27,11 @@ import math
 
 
 # ---------------------------------------------------------------------------
-# 시끄러운 선형 켜(인수분해 가우스)
+# 노이지 선형 켜(인수분해 가우스)
 # ---------------------------------------------------------------------------
 
 class NoisyLinear(nn.Module):
-    """인수분해 가우스 시끄러운 그물 선형 켜.
+    """인수분해 가우스 노이지 넷트웍 선형 켜.
     
     y = (mu_w + sigma_w * eps_w) @ x + (mu_b + sigma_b * eps_b)
     여기서 eps는 eps_ij = f(eps_i) * f(eps_j), f(x) = sign(x)*sqrt(|x|)로 인수분해된다
@@ -42,7 +42,7 @@ class NoisyLinear(nn.Module):
         self.in_features = in_features
         self.out_features = out_features
 
-        # 학습 가능한 매개변수
+        # 학습 가능한 파라메터
         self.mu_weight = nn.Parameter(torch.empty(out_features, in_features))
         self.sigma_weight = nn.Parameter(torch.empty(out_features, in_features))
         self.mu_bias = nn.Parameter(torch.empty(out_features))
@@ -94,7 +94,7 @@ class NoisyLinear(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# 홀로선 가우스 시끄러운 선형(견주기용)
+# 홀로선 가우스 노이지 선형(견주기용)
 # ---------------------------------------------------------------------------
 
 class IndependentNoisyLinear(nn.Module):
@@ -136,18 +136,18 @@ class IndependentNoisyLinear(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# 시끄러운 그물 Q 그물
+# 노이지 넷트웍 Q 넷트웍
 # ---------------------------------------------------------------------------
 
 class NoisyQNetwork(nn.Module):
-    """살펴보기를 위해 NoisyLinear 켜를 쓴 Q 그물."""
+    """살펴보기를 위해 NoisyLinear 켜를 쓴 Q 넷트웍."""
 
     def __init__(self, state_dim: int, action_dim: int, hidden_dim: int = 128,
                  sigma_init: float = 0.5):
         super().__init__()
         self.feature = nn.Sequential(
             nn.Linear(state_dim, hidden_dim), nn.ReLU())
-        # 마지막 켜를 시끄러운 켜로 바꿈
+        # 마지막 켜를 노이지 켜로 바꿈
         self.noisy1 = NoisyLinear(hidden_dim, hidden_dim, sigma_init)
         self.noisy2 = NoisyLinear(hidden_dim, action_dim, sigma_init)
 
@@ -213,7 +213,7 @@ def demo_noisy_networks():
     print(f"  Output variance across noise samples: {outputs.var(dim=0).mean():.4f}")
     print(f"  Sigma magnitude: {noisy.noise_magnitude:.4f}")
 
-    # --- 시끄러운 그물로 익히기(엡실론 욕심쟁이 없음) ---
+    # --- 노이지 넷트웍으로 익히기(엡실론 욕심쟁이 없음) ---
     print("\n--- NoisyNet DQN Training ---")
     random.seed(42); np.random.seed(42); torch.manual_seed(42)
 
@@ -287,52 +287,52 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜기는 Noisy Networks의 핵심 논리를 감싼 `NoisyLinear`, `IndependentNoisyLinear`, `NoisyQNetwork` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
+이 짜기는 Noisy Networks의 핵심 논리를 감싼 `NoisyLinear`, `IndependentNoisyLinear`, `NoisyQNetwork` 클래스를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
 보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 쓰는 모습을 보인다. 내놓기를 살피면 하이퍼파라미터 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗파라메터 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗매개변수 하나(학습률, 숨은 차원, 층 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
+보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗파라메터 하나(러닝레이트, 숨은 차원, 레이어 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗매개변수를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 학습률은 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗매개변수의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
+    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗파라메터를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 러닝레이트는 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗파라메터의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 손실 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
+이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 로스 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 고르기는 DQN 좋게 하기에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 기울기가 사라지는 것을 피한다. 손실 함수는 일의 갈래에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 손실) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
+    이 구조 고르기는 DQN 좋게 하기에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 그래디언트가 사라지는 것을 피한다. 로스 함수는 일의 클래스에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 로스) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 특징 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
+더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 피처 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 가중치 줄임)나 더 정교한 구조(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 웨이트 줄임)나 더 정교한 구조(레이어 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
 
 ## 정리하며
 
 **다룬 것** — Noisy Networks
 
-이 짜기는 Noisy Networks의 핵심 논리를 감싼 `NoisyLinear`, `IndependentNoisyLinear`, `NoisyQNetwork` 갈래를 한가운데 둔다.
+이 짜기는 Noisy Networks의 핵심 논리를 감싼 `NoisyLinear`, `IndependentNoisyLinear`, `NoisyQNetwork` 클래스를 한가운데 둔다.
 
-핵심 갈래는 `NoisyLinear`, `IndependentNoisyLinear`, `NoisyQNetwork`, `ReplayBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `NoisyLinear`, `IndependentNoisyLinear`, `NoisyQNetwork`, `ReplayBuffer`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

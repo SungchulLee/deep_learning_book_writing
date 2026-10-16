@@ -1,6 +1,6 @@
 # DQN 짜기
 
-실제로 쓸 수 있는 온전한 DQN 짜기는 경험 리플레이, 타깃 네트워크, 기울기 자르기, 구조 있는 따지기를 하나의 학습 흐름으로 모은다. 이 짜기는 손실, Q 값, 기울기 크기의 두루 기록하기, 욕심쟁이 정책으로 하는 때때로의 따지기, 되풀이할 수 있도록 모델 되짚기 표시를 담는다. 후버 손실과 여느 하이퍼파라미터를 모두 갖추고 CartPole-v1에서 온전한 학습 고리를 보여 준다.
+실제로 쓸 수 있는 온전한 DQN 짜기는 경험 리플레이, 타깃 네트워크, 그래디언트 자르기, 구조 있는 따지기를 하나의 학습 흐름으로 모은다. 이 짜기는 로스, Q 값, 그래디언트 크기의 두루 기록하기, 욕심쟁이 폴리시로 하는 때때로의 따지기, 되풀이할 수 있도록 모델 되짚기 표시를 담는다. 후버 로스와 여느 하이퍼파라미터를 모두 갖추고 CartPole-v1에서 온전한 학습 고리를 보여 준다.
 
 ## 1. 코드
 
@@ -73,7 +73,7 @@
 
 
     # ---------------------------------------------------------------------------
-    # Q 그물
+    # Q 넷트웍
     # ---------------------------------------------------------------------------
 
     class QNetwork(nn.Module):
@@ -99,14 +99,14 @@
 
 
     # ---------------------------------------------------------------------------
-    # 온전한 DQN 부림꾼
+    # 온전한 DQN 에이전트
     # ---------------------------------------------------------------------------
 
     class DQNAgent:
-        """겪음 되돌려 보기, 과녁 그물, 기록을 갖춘 온전한 DQN 부림꾼."""
+        """겪음 되돌려 보기, 타깃 넷트웍, 기록을 갖춘 온전한 DQN 에이전트."""
 
         def __init__(self, state_dim: int, action_dim: int,
-                     # 그물
+                     # 넷트웍
                      hidden_dims: Tuple[int, ...] = (128, 128),
                      # 학습
                      lr: float = 1e-3,
@@ -115,7 +115,7 @@
                      # 되돌려 보기 버퍼
                      buffer_capacity: int = 50000,
                      min_buffer_size: int = 1000,
-                     # 과녁 그물
+                     # 타깃 넷트웍
                      target_update_freq: int = 200,
                      # 살펴보기
                      eps_start: float = 1.0,
@@ -140,13 +140,13 @@
             self.eps_end = eps_end
             self.eps_decay_steps = eps_decay_steps
 
-            # 그물
+            # 넷트웍
             self.online_net = QNetwork(state_dim, action_dim, hidden_dims).to(device)
             self.target_net = QNetwork(state_dim, action_dim, hidden_dims).to(device)
             self.target_net.load_state_dict(self.online_net.state_dict())
             self.target_net.eval()
 
-            # 다듬개와 손실
+            # 다듬개와 로스
             self.optimizer = optim.Adam(self.online_net.parameters(), lr=lr)
             if loss_fn == 'huber':
                 self.loss_fn = nn.SmoothL1Loss()
@@ -185,7 +185,7 @@
             self.total_steps += 1
 
         def train_step(self) -> Optional[float]:
-            """익히기 한 걸음을 한다. 손실을 돌려주되 버퍼가 너무 작으면 None을 돌려준다."""
+            """익히기 한 걸음을 한다. 로스를 돌려주되 버퍼가 너무 작으면 None을 돌려준다."""
             if len(self.buffer) < self.min_buffer_size:
                 return None
 
@@ -196,28 +196,28 @@
             next_states = next_states.to(self.device)
             dones = dones.to(self.device)
 
-            # 고른 움직임의 지금 Q 값
+            # 고른 액션의 지금 Q 값
             q_values = self.online_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
 
-            # 과녁 Q 값
+            # 타깃 Q 값
             with torch.no_grad():
                 next_q = self.target_net(next_states).max(dim=1)[0]
                 targets = rewards + (1 - dones) * self.gamma * next_q
 
-            # 손실
+            # 로스
             loss = self.loss_fn(q_values, targets)
 
             # 최적화
             self.optimizer.zero_grad()
             loss.backward()
 
-            # 기울기 자르기
+            # 그래디언트 자르기
             grad_norm = nn.utils.clip_grad_norm_(self.online_net.parameters(), self.grad_clip)
 
             self.optimizer.step()
             self.update_count += 1
 
-            # 과녁 그물 고치기
+            # 타깃 넷트웍 고치기
             if self.update_count % self.target_update_freq == 0:
                 self.target_net.load_state_dict(self.online_net.state_dict())
 
@@ -231,7 +231,7 @@
             return loss_val
 
         def evaluate(self, env, n_episodes: int = 10) -> Dict[str, float]:
-            """욕심쟁이 방침(ε=0)으로 따진다."""
+            """욕심쟁이 폴리시(ε=0)으로 따진다."""
             returns = []
             lengths = []
             for _ in range(n_episodes):
@@ -283,7 +283,7 @@
                   eval_episodes: int = 10,
                   seed: int = 42,
                   **agent_kwargs) -> Tuple[DQNAgent, Dict]:
-        """값 매기기를 포함한 온전한 DQN 익히기 되돌이."""
+        """값 매기기를 포함한 온전한 DQN 익히기 회귀."""
 
         # 모든 씨앗 정하기
         random.seed(seed)
@@ -420,52 +420,52 @@
 
 ## 2. 논의
 
-이 짜기는 핵심 논리를 감싼 `ReplayBuffer`, `QNetwork`, `DQNAgent` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
+이 짜기는 핵심 논리를 감싼 `ReplayBuffer`, `QNetwork`, `DQNAgent` 클래스를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
 보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 쓰는 모습을 보인다. 내놓기를 살피면 하이퍼파라미터 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗파라메터 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗매개변수 하나(학습률, 숨은 차원, 층 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
+보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗파라메터 하나(러닝레이트, 숨은 차원, 레이어 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗매개변수를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 학습률은 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗매개변수의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
+    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗파라메터를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 러닝레이트는 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗파라메터의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 손실 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
+이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 로스 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 고르기는 DQN에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 기울기가 사라지는 것을 피한다. 손실 함수는 일의 갈래에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 손실) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
+    이 구조 고르기는 DQN에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 그래디언트가 사라지는 것을 피한다. 로스 함수는 일의 클래스에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 로스) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 특징 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
+더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 피처 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 가중치 줄임)나 더 정교한 구조(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 웨이트 줄임)나 더 정교한 구조(레이어 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
 
 ## 정리하며
 
 **다룬 것** — DQN 짜기
 
-이 짜기는 핵심 논리를 감싼 `ReplayBuffer`, `QNetwork`, `DQNAgent` 갈래를 한가운데 둔다.
+이 짜기는 핵심 논리를 감싼 `ReplayBuffer`, `QNetwork`, `DQNAgent` 클래스를 한가운데 둔다.
 
-핵심 갈래는 `ReplayBuffer`, `QNetwork`, `DQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `ReplayBuffer`, `QNetwork`, `DQNAgent`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

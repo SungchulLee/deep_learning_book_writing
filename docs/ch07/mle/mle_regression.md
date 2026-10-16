@@ -1,9 +1,9 @@
 # 회귀에서의 MLE
 
-회귀의 대표적인 손실은 조건부 분포를 가정하면 음의 로그우도에서 유도할 수 있다. 고정 분산 가우스 모델은 MSE, 고정 척도 라플라스 모델은 MAE와 연결된다. 평균과 분산을 함께 예측하면 입력에 따른 잡음의 크기도 모델링할 수 있다.
+회귀의 대표적인 로스는 조건부 분포를 가정하면 음의 로그우도에서 유도할 수 있다. 고정 분산 가우스 모델은 MSE, 고정 척도 라플라스 모델은 MAE와 연결된다. 평균과 분산을 함께 예측하면 입력에 따른 잡음의 크기도 모델링할 수 있다.
 
 !!! success "핵심 통찰"
-    MSE 손실로 신경망을 학습시킬 때 당신은 목표값이 모델의 예측을 중심으로 하는 정규분포를 따른다는 가정 아래에서 MLE를 수행하고 있는 것이다.
+    MSE 로스로 뉴럴 넷트웍을 학습시킬 때 당신은 목표값이 모델의 예측을 중심으로 하는 정규분포를 따른다는 가정 아래에서 MLE를 수행하고 있는 것이다.
 
 ---
 
@@ -17,7 +17,7 @@ $$
 y | x \sim \mathcal{N}(f_\theta(x), \sigma^2)
 $$
 
-여기서 $f_\theta(x)$은 모델의 예측(예: 신경망의 출력)이고 $\sigma^2$은 고정된 잡음 분산이다.
+여기서 $f_\theta(x)$은 모델의 예측(예: 뉴럴 넷트웍의 출력)이고 $\sigma^2$은 고정된 잡음 분산이다.
 
 ### 유도
 
@@ -67,7 +67,7 @@ $$
 \nabla_\theta \mathcal{L}_{\text{NLL}} = \frac{1}{n\sigma^2}\sum_{i=1}^{n}(f_\theta(x_i) - y_i)\nabla_\theta f_\theta(x_i)
 $$
 
-두 경사는 상수 배 관계이므로 최소화하는 파라미터는 같다. 단순 경사 하강법에서 이동 경로까지 같게 하려면 학습률도 그 배율에 맞춰 조정해야 한다. 같은 학습률에서 모든 옵티마이저가 같은 궤적을 따르는 것은 아니다.
+두 경사는 상수 배 관계이므로 최소화하는 파라미터는 같다. 단순 경사 하강법에서 이동 경로까지 같게 하려면 러닝레이트도 그 배율에 맞춰 조정해야 한다. 같은 러닝레이트에서 모든 옵티마이저가 같은 궤적을 따르는 것은 아니다.
 
 ---
 
@@ -128,9 +128,9 @@ $$
 y | x \sim \mathcal{N}(\mu_\theta(x), \sigma_\theta(x)^2)
 $$
 
-신경망은 출력 갈래를 둘 가진다. 하나는 $\mu_\theta(x)$을, 다른 하나는 (수치적 안정성을 위한 로그 분산) $\log \sigma_\theta(x)^2$을 낸다.
+뉴럴 넷트웍은 출력 클래스를 둘 가진다. 하나는 $\mu_\theta(x)$을, 다른 하나는 (수치적 안정성을 위한 로그 분산) $\log \sigma_\theta(x)^2$을 낸다.
 
-### 손실 함수
+### 로스 함수
 
 이분산 가우스 회귀의 **음의 로그우도**는 다음과 같다.
 
@@ -226,7 +226,7 @@ def mae_vs_mse_robustness():
 
 ```python
 class HeteroscedasticNet(nn.Module):
-    """평균과 로그 분산을 함께 예측하는 신경망."""
+    """평균과 로그 분산을 함께 예측하는 뉴럴 넷트웍."""
     
     def __init__(self, input_dim: int, hidden_dim: int = 64):
         super().__init__()
@@ -304,7 +304,7 @@ def train_regression_mle_perspective():
         nn.Linear(32, 1)
     )
     
-    # MSE 손실 = 가우스 NLL (상수를 제외하면)
+    # MSE 로스 = 가우스 NLL (상수를 제외하면)
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     
@@ -335,12 +335,12 @@ def train_regression_mle_perspective():
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-후버 손실이 0 근처에서는 가우스, 꼬리에서는 라플라스인 분포 아래의 MLE에 대응함을 보여라. 밀도를 명시적으로 유도하라.
+후버 로스가 0 근처에서는 가우스, 꼬리에서는 라플라스인 분포 아래의 MLE에 대응함을 보여라. 밀도를 명시적으로 유도하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    후버 손실은 $L_\delta(r) = \begin{cases} \frac{1}{2}r^2 & |r| \leq \delta \\ \delta|r| - \frac{1}{2}\delta^2 & |r| > \delta \end{cases}$이다.
+    후버 로스는 $L_\delta(r) = \begin{cases} \frac{1}{2}r^2 & |r| \leq \delta \\ \delta|r| - \frac{1}{2}\delta^2 & |r| > \delta \end{cases}$이다.
 
     대응하는 밀도는 $p(r) \propto e^{-L_\delta(r)}$이다.
 
@@ -348,14 +348,14 @@ def train_regression_mle_perspective():
     p(r) \propto \begin{cases} e^{-r^2/2} & |r| \leq \delta \\ e^{-\delta|r| + \delta^2/2} & |r| > \delta \end{cases}
     $$
 
-    중심부는 가우스형, 꼬리는 라플라스형인 하나의 조각별 밀도이며 두 분포의 혼합밀도와는 다르다. $\delta>0$를 고정하면 정규화 상수는 $Z_\delta=\sqrt{2\pi}\,[2\Phi(\delta)-1]+2e^{-\delta^2/2}/\delta$다. 따라서 $p(r)=e^{-L_\delta(r)}/Z_\delta$이며, $\Phi$는 표준정규 누적분포함수다. $\delta$나 척도까지 학습한다면 정규화 상수의 변화도 손실에 포함해야 한다.
+    중심부는 가우스형, 꼬리는 라플라스형인 하나의 조각별 밀도이며 두 분포의 혼합밀도와는 다르다. $\delta>0$를 고정하면 정규화 상수는 $Z_\delta=\sqrt{2\pi}\,[2\Phi(\delta)-1]+2e^{-\delta^2/2}/\delta$다. 따라서 $p(r)=e^{-L_\delta(r)}/Z_\delta$이며, $\Phi$는 표준정규 누적분포함수다. $\delta$나 척도까지 학습한다면 정규화 상수의 변화도 로스에 포함해야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함수를 유도하라.
+$y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 로스 함수를 유도하라.
 
 </div>
 
@@ -385,7 +385,7 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함�
 </div>
 
 ??? success "연습문제 3 풀이"
-    $d$차원 출력에 대해 $\Sigma = LL^\top$으로 매개화한다. 여기서 $L$은 대각 성분이 양수인 하삼각행렬(촐레스키 인자)이다. 신경망은 다음을 예측한다.
+    $d$차원 출력에 대해 $\Sigma = LL^\top$으로 매개화한다. 여기서 $L$은 대각 성분이 양수인 하삼각행렬(촐레스키 인자)이다. 뉴럴 넷트웍은 다음을 예측한다.
 
     - 평균 $\mu \in \mathbb{R}^d$: 출력 $d$개
     - 촐레스키 인자 $L$: 출력 $d(d+1)/2$개(하삼각 성분). 양수를 보장하기 위해 대각 성분은 softplus를 통과시킨다
@@ -403,7 +403,7 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 손실 함�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-이상치가 0%, 5%, 10%, 20%인 데이터에서 MSE, MAE, 후버 손실을 비교하는 모의실험을 구현하라. 각각에 대해 매개변수 복원 정확도를 보고하라.
+이상치가 0%, 5%, 10%, 20%인 데이터에서 MSE, MAE, 후버 로스를 비교하는 모의실험을 구현하라. 각각에 대해 파라메터 복원 정확도를 보고하라.
 
 </div>
 

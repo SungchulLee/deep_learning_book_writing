@@ -69,7 +69,7 @@
             """
             흡수 사슬 첫값 잡기.
 
-            매개변수:
+            파라메터:
                 transition_matrix (np.ndarray): 옮김 행렬
                 state_names (list): 상태 이름(없어도 된다)
             """
@@ -680,7 +680,7 @@ $$\operatorname{Var}(T)=(2N-I)t-t\odot t$$
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-아래 신경망 형태 시험 조각을 흡수 사슬 분석에 적용할 수 있는가?
+아래 뉴럴 넷트웍 형태 시험 조각을 흡수 사슬 분석에 적용할 수 있는가?
 
 </div>
 

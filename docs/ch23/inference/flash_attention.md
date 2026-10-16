@@ -210,7 +210,7 @@ class FlashAttention(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        플래시 어텐션을 쓰는 앞먹임.
+        플래시 어텐션을 쓰는 피드포워드.
         
         인수:
             x: 입력 [batch, seq_len, d_model]
@@ -278,7 +278,7 @@ class FlashAttentionWithKVCache(nn.Module):
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
-        열쇠-값 곳간을 곁들일 수도 있는 앞먹임.
+        열쇠-값 곳간을 곁들일 수도 있는 피드포워드.
         """
         batch_size, seq_len, _ = x.shape
         

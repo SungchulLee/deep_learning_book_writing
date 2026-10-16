@@ -85,7 +85,7 @@ $$D_{\text{KL}}(p(x,y) \| q(x,y)) = D_{\text{KL}}(p(x) \| q(x)) + D_{\text{KL}}(
 
 $$H(P, Q) = H(P) + D_{\text{KL}}(P \| Q)$$
 
-여기서 $H(P) = -\sum_k P(k)\log P(k)$은 $P$의 엔트로피이다. $H(P)$은 $Q$에 대해 상수이므로 교차 엔트로피 $H(P, Q)$을 최소화하는 것은 $D_{\text{KL}}(P \| Q)$을 최소화하는 것과 같다. 분류의 목표로서 교차 엔트로피 손실과 KL 최소화를 바꿔 쓸 수 있는 이유가 여기 있다.
+여기서 $H(P) = -\sum_k P(k)\log P(k)$은 $P$의 엔트로피이다. $H(P)$은 $Q$에 대해 상수이므로 교차 엔트로피 $H(P, Q)$을 최소화하는 것은 $D_{\text{KL}}(P \| Q)$을 최소화하는 것과 같다. 분류의 목표로서 교차 엔트로피 로스와 KL 최소화를 바꿔 쓸 수 있는 이유가 여기 있다.
 
 ---
 
@@ -127,7 +127,7 @@ $D_{\text{KL}}(f_{\theta_0} \| f_\theta)$을 $\theta = \theta_0$ 주변에서 �
 
 $$D_{\text{KL}}(f_{\theta_0} \| f_\theta) \approx \frac{1}{2}(\theta - \theta_0)^T\, \mathbf{I}(\theta_0)\, (\theta - \theta_0)$$
 
-모형이 충분히 매끄럽고 지지집합이 매개변수에 따라 바뀌지 않는 등의 정규성 조건 아래, $\mathbf{I}(\theta_0)$은 피셔 정보 행렬이다. 양의 정부호이면 이 이차형식이 국소 계량을 정의한다. 매개변수가 식별되지 않으면 행렬이 특이할 수 있으므로 역행렬을 바로 사용할 수 없다. 이 관점은 자연 경사와 KL 제약을 쓰는 최적화의 바탕이 된다.
+모형이 충분히 매끄럽고 지지집합이 파라메터에 따라 바뀌지 않는 등의 정규성 조건 아래, $\mathbf{I}(\theta_0)$은 피셔 정보 행렬이다. 양의 정부호이면 이 이차형식이 국소 계량을 정의한다. 파라메터가 식별되지 않으면 행렬이 특이할 수 있으므로 역행렬을 바로 사용할 수 없다. 이 관점은 자연 경사와 KL 제약을 쓰는 최적화의 바탕이 된다.
 
 ---
 
@@ -161,7 +161,7 @@ $$D_{\text{KL}}(q \| p) = -\frac{1}{2}\sum_{j=1}^{d}\!\left(1 + \log\sigma_j^2 -
 
 ## 9. VAE에서의 응용
 
-변분 오토인코더에서 손실은 복원 오차와 KL 정규화를 결합한다. ELBO 분해에서 출발한다.
+변분 오토인코더에서 로스는 복원 오차와 KL 정규화를 결합한다. ELBO 분해에서 출발한다.
 
 $$\log p(x) = \underbrace{\mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{\text{KL}}(q_\phi(z|x) \| p(z))}_{\mathcal{L}_{\text{ELBO}}} + D_{\text{KL}}(q_\phi(z|x) \| p_\theta(z|x))$$
 
@@ -171,7 +171,7 @@ $$\mathcal{L}_{\text{VAE}} = \underbrace{\mathbb{E}_{z \sim q_\phi(z|x)}[-\log p
 
 ### KL과 복원 사이의 절충
 
-$\beta$-VAE는 KL 항에 가중치를 도입한다. $\mathcal{L} = \mathcal{L}_{\text{recon}} + \beta \cdot D_{\text{KL}}$이다.
+$\beta$-VAE는 KL 항에 웨이트를 도입한다. $\mathcal{L} = \mathcal{L}_{\text{recon}} + \beta \cdot D_{\text{KL}}$이다.
 
 | KL 값 | 의미 | 효과 |
 |----------|---------|--------|
@@ -214,9 +214,9 @@ def kl_divergence(mu: torch.Tensor, logvar: torch.Tensor,
 ```
 
 !!! tip "왜 로그 분산인가?"
-    인코더가 $\sigma^2$ 대신 $\log\sigma^2$을 내는 것은 수치적 안정성 때문이다. `logvar`는 어떤 실수든 될 수 있고(신경망의 출력으로 알맞다), `exp(logvar)`는 언제나 양수이며(분산으로 알맞다), `log(sigma^2) = logvar`는 작은 수의 로그를 취하는 일을 피하게 해 준다.
+    인코더가 $\sigma^2$ 대신 $\log\sigma^2$을 내는 것은 수치적 안정성 때문이다. `logvar`는 어떤 실수든 될 수 있고(뉴럴 넷트웍의 출력으로 알맞다), `exp(logvar)`는 언제나 양수이며(분산으로 알맞다), `log(sigma^2) = logvar`는 작은 수의 로그를 취하는 일을 피하게 해 준다.
 
-### 전체 VAE 손실
+### 전체 VAE 로스
 
 ```python
 import torch.nn.functional as F
@@ -224,14 +224,14 @@ import torch.nn.functional as F
 def vae_loss(recon_x: torch.Tensor, x: torch.Tensor,
              mu: torch.Tensor, logvar: torch.Tensor,
              beta: float = 1.0) -> tuple:
-    """완전한 VAE 손실: 복원 + beta * KL.
+    """완전한 VAE 로스: 복원 + beta * KL.
 
     Args:
         recon_x: 되살린 데이터, 모양 (batch_size, data_dim).
         x: 본디 데이터, 모양 (batch_size, data_dim).
         mu: 인코더 평균, 모양 (batch_size, latent_dim).
         logvar: 인코더 로그 분산, 모양 (batch_size, latent_dim).
-        beta: KL 가중치(베타 VAE).
+        beta: KL 웨이트(베타 VAE).
 
     Returns:
         (total_loss, recon_loss, kl_loss) 튜플.
@@ -254,7 +254,7 @@ def kl_free_bits(mu, logvar, free_bits=0.1):
     return kl_per_dim.sum(dim=1)
 ```
 
-**KL 가중치 스케줄링(KL annealing).** 학습 중에 KL 가중치를 점차 키운다.
+**KL 웨이트 스케줄링(KL annealing).** 학습 중에 KL 웨이트를 점차 키운다.
 
 ```python
 def get_beta(epoch, warmup_epochs=10, max_beta=1.0):

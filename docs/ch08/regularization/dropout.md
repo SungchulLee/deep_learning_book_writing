@@ -1,6 +1,6 @@
 # 드롭아웃
 
-드롭아웃은 학습 중에 뉴런 활성화의 일부를 무작위로 0으로 만드는 정규화 기법이다. 이는 뉴런의 공적응을 막고, 다른 뉴런들의 여러 무작위 부분집합과 함께 쓸 때에도 쓸모 있는 더 견고한 특징을 배우도록 신경망을 이끈다.
+드롭아웃은 학습 중에 뉴런 활성화의 일부를 무작위로 0으로 만드는 정규화 기법이다. 이는 뉴런의 공적응을 막고, 다른 뉴런들의 여러 무작위 부분집합과 함께 쓸 때에도 쓸모 있는 더 견고한 피처를 배우도록 뉴럴 넷트웍을 이끈다.
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### 기본적인 드롭아웃 연산
 
-학습 중에 활성화 벡터가 $h \in \mathbb{R}^d$이고 드롭아웃 확률이 $p$인 층에 대해 다음과 같다.
+학습 중에 활성화 벡터가 $h \in \mathbb{R}^d$이고 드롭아웃 확률이 $p$인 레이어에 대해 다음과 같다.
 
 $$
 \tilde{h}_i = \begin{cases}
@@ -35,7 +35,7 @@ $$
 
 ### 드롭아웃을 쓰는 순전파
 
-가중치가 $W$, 편향이 $b$, 활성화가 $\sigma$인 순방향 층에 대해 다음과 같다.
+웨이트가 $W$, 바이어스가 $b$, 활성화가 $\sigma$인 순방향 레이어에 대해 다음과 같다.
 
 **학습 시:**
 
@@ -57,11 +57,11 @@ $$
 
 ### 앙상블로서의 해석
 
-마스크마다 서로 다른 연결 패턴을 사용하므로, 가중치를 공유하는 여러 부분 모델을 학습하는 앙상블 관점으로 이해할 수 있다. 다만 독립 모델을 각각 학습한 앙상블과 같지는 않다. 비선형 신경망에서는 평가 모드의 한 번의 출력이 마스크별 예측 평균과 정확히 일치하지도 않는다.
+마스크마다 서로 다른 연결 패턴을 사용하므로, 웨이트를 공유하는 여러 부분 모델을 학습하는 앙상블 관점으로 이해할 수 있다. 다만 독립 모델을 각각 학습한 앙상블과 같지는 않다. 비선형 뉴럴 넷트웍에서는 평가 모드의 한 번의 출력이 마스크별 예측 평균과 정확히 일치하지도 않는다.
 
-- 단위가 $d$개인 신경망에는 가능한 드롭아웃 마스크가 $2^d$개 있다
-- 학습의 각 단계는 이 앙상블에서 부분 신경망 하나를 뽑는다
-- 평가 모드의 전체 신경망은 계산이 저렴한 결정적 대안이며, 일반적으로 마스크 예측의 정확한 산술평균은 아니다
+- 단위가 $d$개인 뉴럴 넷트웍에는 가능한 드롭아웃 마스크가 $2^d$개 있다
+- 학습의 각 단계는 이 앙상블에서 부분 뉴럴 넷트웍 하나를 뽑는다
+- 평가 모드의 전체 뉴럴 넷트웍은 계산이 저렴한 결정적 대안이며, 일반적으로 마스크 예측의 정확한 산술평균은 아니다
 
 ### 베이즈적 해석
 
@@ -77,7 +77,7 @@ $$
 
 ### 잡음 주입의 관점
 
-드롭아웃은 신경망에 곱셈적 잡음을 넣는다.
+드롭아웃은 뉴럴 넷트웍에 곱셈적 잡음을 넣는다.
 
 $$
 \tilde{h} = h \odot \epsilon, \quad \epsilon_i \sim \begin{cases}
@@ -99,7 +99,7 @@ import torch
 import torch.nn as nn
 
 class NetworkWithDropout(nn.Module):
-    """드롭아웃 층을 갖춘 표준 신경망."""
+    """드롭아웃 레이어를 갖춘 표준 뉴럴 넷트웍."""
     
     def __init__(self, input_dim, hidden_dims, output_dim, dropout_rate=0.5):
         super().__init__()
@@ -119,7 +119,7 @@ class NetworkWithDropout(nn.Module):
             ])
             prev_dim = hidden_dim
         
-        # 출력층 뒤에는 드롭아웃을 걸지 않는다. 로짓을 무작위로
+        # 출력 레이어 뒤에는 드롭아웃을 걸지 않는다. 로짓을 무작위로
         # 지우면 그 표본의 예측 자체가 망가지기 때문이다.
         # 드롭아웃은 은닉 표현에만 건다
         layers.append(nn.Linear(prev_dim, output_dim))
@@ -165,13 +165,13 @@ class CustomDropout(nn.Module):
 # 1차원 드롭아웃 - 순차열용 (채널 전체를 떨어뜨린다)
 dropout_1d = nn.Dropout1d(p=0.5)  # 입력: (batch, 채널, 길이)
 
-# 2차원 공간 드롭아웃 - 이미지용 (특징 맵 전체를 떨어뜨린다)
+# 2차원 공간 드롭아웃 - 이미지용 (피처 맵 전체를 떨어뜨린다)
 dropout_2d = nn.Dropout2d(p=0.5)  # 입력: (batch, 채널, H, W)
 
 # 3차원 공간 드롭아웃 - 비디오/3차원 데이터용
 dropout_3d = nn.Dropout3d(p=0.5)  # 입력: (batch, 채널, D, H, W)
 
-# 알파 드롭아웃 - SELU 활성화용 (자기 정규화 신경망)
+# 알파 드롭아웃 - SELU 활성화용 (자기 정규화 뉴럴 넷트웍)
 alpha_dropout = nn.AlphaDropout(p=0.5)
 ```
 
@@ -217,7 +217,7 @@ class MCDropoutModel(nn.Module):
         # train() 이 배치 정규화의 이동 통계까지 갱신해 버리기 때문이다.
         # 그런 경우에는 드롭아웃 모듈만 골라 train()으로 되돌려야 한다.
         predictions = []
-        with torch.no_grad():   # 기울기는 필요 없다. 순전파만 100번 한다
+        with torch.no_grad():   # 그래디언트는 필요 없다. 순전파만 100번 한다
             for _ in range(n_samples):
                 pred = self(x)   # 매번 다른 마스크가 뽑혀 답이 조금씩 다르다
                 predictions.append(pred)
@@ -258,7 +258,7 @@ def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
         train_loss, train_correct, train_total = 0, 0, 0
 
         for X_batch, y_batch in train_loader:
-            optimizer.zero_grad()   # 지난 배치의 기울기를 지운다
+            optimizer.zero_grad()   # 지난 배치의 그래디언트를 지운다
             outputs = model(X_batch)
             loss = criterion(outputs, y_batch)
             loss.backward()
@@ -280,8 +280,8 @@ def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
 
-        # no_grad는 eval()과 다른 일을 한다. eval()은 층의 동작을 바꾸고
-        # no_grad는 기울기 추적을 끈다. 둘 다 필요하다
+        # no_grad는 eval()과 다른 일을 한다. eval()은 레이어의 동작을 바꾸고
+        # no_grad는 그래디언트 추적을 끈다. 둘 다 필요하다
         with torch.no_grad():
             for X_batch, y_batch in val_loader:
                 outputs = model(X_batch)
@@ -292,7 +292,7 @@ def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
                 val_total += y_batch.size(0)
                 val_correct += predicted.eq(y_batch).sum().item()
 
-        # 손실은 배치 수로, 정확도는 표본 수로 나눈다. 손실이 이미
+        # 로스는 배치 수로, 정확도는 표본 수로 나눈다. 로스가 이미
         # 배치 안에서 평균이 나 있기 때문이다. 마지막 배치가 작으면
         # 이 평균은 정확한 표본 평균이 아니라 살짝 치우친 값이다
         history['train_loss'].append(train_loss / len(train_loader))
@@ -300,7 +300,7 @@ def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
         history['train_acc'].append(train_correct / train_total)
         history['val_acc'].append(val_correct / val_total)
 
-    # 드롭아웃이 걸린 모델에서는 학습 손실이 검증 손실보다 높게 나오는
+    # 드롭아웃이 걸린 모델에서는 학습 로스가 검증 로스보다 높게 나오는
     # 일이 흔하다. 학습 때만 유닛이 꺼져 있기 때문이며, 고장이 아니다
     return history
 ```
@@ -311,26 +311,26 @@ def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
 
 ### 드롭커넥트
 
-드롭커넥트는 활성화 전체가 아니라 개별 *가중치*를 무작위로 0으로 만들어 드롭아웃을 일반화한다. 전체 수학적 정식화, 구현, 표준 드롭아웃과의 비교는 **[드롭커넥트](dropconnect.md)**를 보라.
+드롭커넥트는 활성화 전체가 아니라 개별 *웨이트*를 무작위로 0으로 만들어 드롭아웃을 일반화한다. 전체 수학적 정식화, 구현, 표준 드롭아웃과의 비교는 **[드롭커넥트](dropconnect.md)**를 보라.
 
 ### CNN을 위한 공간 드롭아웃
 
 ```python
 class CNNWithSpatialDropout(nn.Module):
-    """공간 드롭아웃을 쓰는 CNN (특징 맵 전체를 떨어뜨린다)."""
+    """공간 드롭아웃을 쓰는 CNN (피처 맵 전체를 떨어뜨린다)."""
     
     def __init__(self, dropout_rate=0.3):
         super().__init__()
         self.features = nn.Sequential(
-            # padding=1 이면 3x3 합성곱이 크기를 그대로 유지한다
+            # padding=1 이면 3x3 컨볼루션이 크기를 그대로 유지한다
             nn.Conv2d(1, 32, 3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2),   # 28x28 -> 14x14
 
-            # Dropout2d는 화소 하나가 아니라 채널(특징 맵) 하나를 통째로 끈다.
-            # 합성곱 출력은 이웃 화소끼리 값이 거의 같아서, 보통의 드롭아웃으로
+            # Dropout2d는 화소 하나가 아니라 채널(피처 맵) 하나를 통째로 끈다.
+            # 컨볼루션 출력은 이웃 화소끼리 값이 거의 같아서, 보통의 드롭아웃으로
             # 화소 몇 개를 꺼도 옆 화소가 그 정보를 그대로 들고 있어 효과가 없다.
-            # 채널째 꺼야 비로소 "그 특징을 못 보게 하는" 일이 된다
+            # 채널째 꺼야 비로소 "그 피처를 못 보게 하는" 일이 된다
             nn.Dropout2d(p=dropout_rate),
 
             nn.Conv2d(32, 64, 3, padding=1),
@@ -342,7 +342,7 @@ class CNNWithSpatialDropout(nn.Module):
             # 64채널 x 7 x 7 을 편 것이 입력 차원이다
             nn.Linear(64 * 7 * 7, 128),
             nn.ReLU(),
-            # 여기서는 보통의 Dropout을 쓴다. 완전연결층의 유닛들은
+            # 여기서는 보통의 Dropout을 쓴다. 완전연결 레이어의 유닛들은
             # 서로 이웃해 있지 않아 값이 겹치지 않으므로, 하나씩 꺼도 효과가 있다
             nn.Dropout(p=dropout_rate),
             nn.Linear(128, 10)
@@ -365,12 +365,12 @@ class TransformerBlockWithDropout(nn.Module):
     def __init__(self, d_model, n_heads, d_ff, dropout=0.1):
         super().__init__()
         # 트랜스포머에는 드롭아웃이 들어가는 자리가 세 곳이다.
-        #   (1) 어텐션 가중치 위 — MultiheadAttention의 dropout 인자
+        #   (1) 어텐션 웨이트 위 — MultiheadAttention의 dropout 인자
         #   (2) 피드포워드 안쪽 — 아래 Sequential의 Dropout
-        #   (3) 두 하위층의 출력 — dropout1, dropout2
+        #   (3) 두 하위레이어의 출력 — dropout1, dropout2
         # 셋 다 비율이 같을 필요는 없지만 보통 하나로 맞춘다.
 
-        # (1) 소프트맥스를 지난 어텐션 가중치 일부를 끈다.
+        # (1) 소프트맥스를 지난 어텐션 웨이트 일부를 끈다.
         # 특정 토큰 하나에만 기대는 것을 막는다
         self.attention = nn.MultiheadAttention(d_model, n_heads, dropout=dropout)
 
@@ -378,13 +378,13 @@ class TransformerBlockWithDropout(nn.Module):
             nn.Linear(d_model, d_ff),   # 보통 d_ff = 4 * d_model 로 넓혔다가
             nn.ReLU(),
             nn.Dropout(dropout),        # (2) 넓어진 자리에서 끈다.
-                                        # 매개변수가 가장 많이 몰린 곳이라 효과가 크다
+                                        # 파라메터가 가장 많이 몰린 곳이라 효과가 크다
             nn.Linear(d_ff, d_model)    # 다시 원래 차원으로 좁힌다
         )
 
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
-        # (3) 잔차로 더해지기 직전에 거는 드롭아웃. 하위층마다 따로 둔다
+        # (3) 잔차로 더해지기 직전에 거는 드롭아웃. 하위레이어마다 따로 둔다
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
 
@@ -393,7 +393,7 @@ class TransformerBlockWithDropout(nn.Module):
         attn_out, _ = self.attention(x, x, x, attn_mask=mask)
 
         # 순서가 요점이다. 드롭아웃은 잔차로 더하기 "전"에 걸어야 한다.
-        # 더한 뒤에 걸면 우회로(x)까지 끊겨 깊은 망에서 기울기가 흐르지 못한다.
+        # 더한 뒤에 걸면 우회로(x)까지 끊겨 깊은 망에서 그래디언트가 흐르지 못한다.
         # 여기서는 정규화가 더하기 뒤에 오는 post-norm 방식을 쓴다
         x = self.norm1(x + self.dropout1(attn_out))
 
@@ -410,22 +410,22 @@ class TransformerBlockWithDropout(nn.Module):
 
 | 구조 | 위치 | 대표적인 비율 |
 |--------------|----------|--------------|
-| 완전 연결 | 은닉층 | 0.5 |
-| CNN | 합성곱 층 뒤 | 0.2 - 0.3 |
-| CNN | 마지막 완전 연결층 앞 | 0.5 |
-| RNN/LSTM | 층 사이 | 0.2 - 0.5 |
+| 완전 연결 | 은닉 레이어 | 0.5 |
+| CNN | 컨볼루션 레이어 뒤 | 0.2 - 0.3 |
+| CNN | 마지막 완전 연결 레이어 앞 | 0.5 |
+| RNN/LSTM | 레이어 사이 | 0.2 - 0.5 |
 | 트랜스포머 | 어텐션/FFN | 0.1 |
 
 ### 드롭아웃을 쓸 때
 
-1. 매개변수가 많은 **큰 신경망**
+1. 파라메터가 많은 **큰 뉴럴 넷트웍**
 2. **학습 데이터가 적을 때**
 3. **뚜렷한 과적합** (학습 성능이 검증 성능보다 훨씬 좋을 때)
-4. **밀집층** (합성곱 층보다 효과가 크다)
+4. **밀집레이어** (컨볼루션 레이어보다 효과가 크다)
 
 ### 효과와 강도를 다시 검토할 때
 
-1. **아주 작은 신경망** — 성능을 해칠 수 있다
+1. **아주 작은 뉴럴 넷트웍** — 성능을 해칠 수 있다
 2. **배치 정규화와 함께 쓸 때** — 드롭아웃 비율을 낮게 쓴다
 3. **데이터가 충분할 때** — 필요 없을 수 있다
 4. **이미 강한 증강을 쓰고 있을 때**
@@ -433,8 +433,8 @@ class TransformerBlockWithDropout(nn.Module):
 ### 흔한 실수
 
 1. **모드 전환을 잊기**: 언제나 `model.train()`과 `model.eval()`을 쓰라
-2. **출력의 규약**: 분류 로짓이나 확률 뒤에 무작위 마스크를 적용하면 손실의 의미가 달라질 수 있다. 마지막 선형층 앞의 은닉 특징에는 드롭아웃을 사용할 수 있다
-3. **어디서나 같은 비율**: 층마다 다른 비율이 필요할 수 있다
+2. **출력의 규약**: 분류 로짓이나 확률 뒤에 무작위 마스크를 적용하면 로스의 의미가 달라질 수 있다. 마지막 선형 레이어 앞의 은닉 피처에는 드롭아웃을 사용할 수 있다
+3. **어디서나 같은 비율**: 레이어마다 다른 비율이 필요할 수 있다
 4. **비율이 너무 높음**: 0.2~0.3에서 시작하고 필요하면 올린다
 
 ---
@@ -443,12 +443,12 @@ class TransformerBlockWithDropout(nn.Module):
 
 ```python
 class RegularizedNetwork(nn.Module):
-    """드롭아웃에 배치 정규화와 가중치 감쇠를 결합한 신경망."""
+    """드롭아웃에 배치 정규화와 웨이트 감쇠를 결합한 뉴럴 넷트웍."""
     
     def __init__(self, input_dim, hidden_dim, output_dim, dropout_rate=0.3):
         super().__init__()
-        # 층 안의 순서가 Linear -> BatchNorm -> ReLU -> Dropout 인 것이 요점이다.
-        #   BatchNorm이 Linear 바로 뒤: 활성화 함수에 들어가기 전에 자를 맞춰야
+        # 레이어 안의 순서가 Linear -> BatchNorm -> ReLU -> Dropout 인 것이 요점이다.
+        #   BatchNorm이 Linear 바로 뒤: 엑티베이션 함수에 들어가기 전에 자를 맞춰야
         #     ReLU가 한쪽으로 치우쳐 죽는 것을 막는다.
         #   Dropout이 맨 뒤: BatchNorm 앞에 두면 꺼진 유닛까지 섞여 배치 통계가
         #     흔들리고, 그러면 추론 때 쓰는 이동 통계가 훈련 때와 어긋난다.
@@ -463,8 +463,8 @@ class RegularizedNetwork(nn.Module):
             nn.ReLU(),
             nn.Dropout(dropout_rate),
 
-            # 마지막 층에는 정규화도 드롭아웃도 두지 않는다.
-            # 출력은 갈래별 로짓이므로 손대면 예측 자체가 망가진다
+            # 마지막 레이어에는 정규화도 드롭아웃도 두지 않는다.
+            # 출력은 클래스별 로짓이므로 손대면 예측 자체가 망가진다
             nn.Linear(hidden_dim, output_dim)
         )
 
@@ -472,12 +472,12 @@ class RegularizedNetwork(nn.Module):
         return self.network(x)
 
 # ── 정칙화 세 가지를 함께 건다 ──────────────────────────────────────
-# 드롭아웃은 활성을, 배치 정규화는 층 입력의 분포를, 가중치 감쇠는
-# 가중치의 크기를 다스린다. 막는 곳이 서로 달라 겹쳐 써도 괜찮다.
+# 드롭아웃은 활성을, 배치 정규화는 레이어 입력의 분포를, 웨이트 감쇠는
+# 웨이트의 크기를 다스린다. 막는 곳이 서로 달라 겹쳐 써도 괜찮다.
 model = RegularizedNetwork(784, 256, 10)
 
-# Adam이 아니라 AdamW를 쓴다. Adam에서는 weight_decay가 기울기에 더해져
-# 적응적 학습률에 나눠지므로 실제 감쇠 세기가 매개변수마다 달라진다.
+# Adam이 아니라 AdamW를 쓴다. Adam에서는 weight_decay가 그래디언트에 더해져
+# 적응적 러닝레이트에 나눠지므로 실제 감쇠 세기가 파라메터마다 달라진다.
 # AdamW는 갱신 단계에서 따로 빼므로 의도한 세기가 그대로 걸린다
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 ```
@@ -494,7 +494,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 </div>
 
 ??? success "연습문제 1 풀이"
-    일반 마스킹은 $\tilde h_i=m_i h_i$이므로 기댓값이 $(1-p)h_i$이다. inverted dropout은 $\tilde h_i=m_i h_i/(1-p)$로 학습 중 배율을 조절해 기댓값이 $h_i$가 된다. PyTorch의 일반 드롭아웃은 후자이며 평가 중에는 항등으로 동작한다. 비선형층 전체의 출력 기댓값까지 일치한다는 뜻은 아니다.
+    일반 마스킹은 $\tilde h_i=m_i h_i$이므로 기댓값이 $(1-p)h_i$이다. inverted dropout은 $\tilde h_i=m_i h_i/(1-p)$로 학습 중 배율을 조절해 기댓값이 $h_i$가 된다. PyTorch의 일반 드롭아웃은 후자이며 평가 중에는 항등으로 동작한다. 비선형 레이어 전체의 출력 기댓값까지 일치한다는 뜻은 아니다.
 
 ---
 
@@ -524,7 +524,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 </div>
 
 ??? success "연습문제 3 풀이"
-    마스크마다 부분 모델이 정해지고 모든 모델이 가중치를 공유한다. 가능한 마스크가 $2^d$개라는 사실이 그만큼의 독립 모델을 완전히 학습했다는 뜻은 아니다. 비선형 연산 때문에 마스크를 평균낸 층으로 계산한 출력과 각 마스크의 출력 평균은 일반적으로 다르다.
+    마스크마다 부분 모델이 정해지고 모든 모델이 웨이트를 공유한다. 가능한 마스크가 $2^d$개라는 사실이 그만큼의 독립 모델을 완전히 학습했다는 뜻은 아니다. 비선형 연산 때문에 마스크를 평균낸 레이어로 계산한 출력과 각 마스크의 출력 평균은 일반적으로 다르다.
 
 ---
 
@@ -536,11 +536,11 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 </div>
 
 ??? success "연습문제 4 풀이"
-    과제, 데이터량, 다른 정규화, 정규화 층과의 상호작용이 모두 영향을 준다. 0을 포함한 몇 가지 확률을 같은 검증 조건에서 비교하고, 과소적합과 학습·평가 모드의 차이를 살펴 선택한다. 넓은 층이라는 이유만으로 높은 확률이 항상 적절한 것은 아니다.
+    과제, 데이터량, 다른 정규화, 정규화 레이어과의 상호작용이 모두 영향을 준다. 0을 포함한 몇 가지 확률을 같은 검증 조건에서 비교하고, 과소적합과 학습·평가 모드의 차이를 살펴 선택한다. 넓은 레이어라는 이유만으로 높은 확률이 항상 적절한 것은 아니다.
 
 ## 정리하며
 
-드롭아웃은 학습 중 활성화에 무작위 마스크를 적용한다. inverted dropout은 고정 활성화의 기댓값을 보존하지만 전체 비선형 예측의 평균까지 보존하지는 않는다. 일반 평가에서는 끄고, MC 추론에서는 필요한 마스킹 모듈만 켜 다른 층의 상태가 바뀌지 않게 한다.
+드롭아웃은 학습 중 활성화에 무작위 마스크를 적용한다. inverted dropout은 고정 활성화의 기댓값을 보존하지만 전체 비선형 예측의 평균까지 보존하지는 않는다. 일반 평가에서는 끄고, MC 추론에서는 필요한 마스킹 모듈만 켜 다른 레이어의 상태가 바뀌지 않게 한다.
 
 **참고 문헌**
 

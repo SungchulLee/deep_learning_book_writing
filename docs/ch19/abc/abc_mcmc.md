@@ -68,7 +68,7 @@ def abc_mcmc(theta_init, prior_logpdf, simulator, summary_fn, y_obs,
     ABC-MCMC 알고리즘.
     
     인수:
-        theta_init: 첫 매개변수 값
+        theta_init: 첫 파라메터 값
         prior_logpdf: 함수 theta -> log p(theta)
         simulator: 함수 theta -> x
         summary_fn: 함수 x -> 간추린 통계량
@@ -181,7 +181,7 @@ MCMC는 prior 제안보다 좁은 유효 영역에 집중할 수 있지만 자�
 
 ## 6. 실용적인 고려
 
-랜덤 워크 공분산은 매개변수 스케일과 지지집합에 맞춰 조정한다. 2.4²/d는 일부 점근 결과의 참고값이며 ABC 채택 요인이 추가된 상황의 보편적 최적 공식은 아니다. 잘 설계한 독립 제안도 가능하고 사전과 같을 때와 일반 독립 사후 근사 제안을 구분한다.
+랜덤 워크 공분산은 파라메터 스케일과 지지집합에 맞춰 조정한다. 2.4²/d는 일부 점근 결과의 참고값이며 ABC 채택 요인이 추가된 상황의 보편적 최적 공식은 아니다. 잘 설계한 독립 제안도 가능하고 사전과 같을 때와 일반 독립 사후 근사 제안을 구분한다.
 
 ε를 늘리거나 요약을 바꾸면 수치 설정만이 아니라 ABC 목표 자체가 달라진다. 제안 조정과 목표 근사 수준 변경을 따로 보고한다. tune_proposal_scale은 사용자가 정의한 래퍼 함수 인터페이스를 가정한다.
 
@@ -253,7 +253,7 @@ def abc_mcmc_multiple_sims(theta, simulator, summary_fn, s_obs,
 ```python
 def gibbs_abc(theta, blocks, simulators, summary_fns, s_obs, 
               distance_fns, epsilons, proposals):
-    """매개변수 덩어리를 새로 고치는 깁스 방식 ABC-MCMC."""
+    """파라메터 덩어리를 새로 고치는 깁스 방식 ABC-MCMC."""
     for i, block in enumerate(blocks):
         # 덩어리 i의 새 값 내놓기
         theta_prop = theta.copy()
@@ -275,7 +275,7 @@ def gibbs_abc(theta, blocks, simulators, summary_fns, s_obs,
 
 예제는 잠재 log variance의 정상 AR(1)과 y_t=exp(h_t/2)η_t를 시뮬레이션한다. 초기식에는 |φ|<1, σ>0가 필요하다. prior는 μ∈(−2,2), φ∈(0.8,0.999), σ∈(0.01,0.5)의 균등 범위다.
 
-log(y²+10⁻⁸)의 평균·분산과 여러 자기상관·절대수익 요약은 편리한 특징이지만 일반적으로 충분 통계량은 아니다. 작은 상수는 log 0을 피하면서 관측 변환도 바꾼다. 이 조각은 관측·요약 생성까지만 있고 실제 proposal·ε·abc_mcmc 실행은 연결하지 않는다. 실제 금융 자료의 성능을 검증한 예제도 아니다.
+log(y²+10⁻⁸)의 평균·분산과 여러 자기상관·절대수익 요약은 편리한 피처가지만 일반적으로 충분 통계량은 아니다. 작은 상수는 log 0을 피하면서 관측 변환도 바꾼다. 이 조각은 관측·요약 생성까지만 있고 실제 proposal·ε·abc_mcmc 실행은 연결하지 않는다. 실제 금융 자료의 성능을 검증한 예제도 아니다.
 
 ```python
 import numpy as np
@@ -328,7 +328,7 @@ def sv_prior_logpdf(theta):
     return 0  # 고른 앞확률
 
 # ABC-MCMC 돌리기
-y_obs = sv_simulator([0.0, 0.95, 0.2])  # 참 매개변수
+y_obs = sv_simulator([0.0, 0.95, 0.2])  # 참 파라메터
 s_obs = sv_summaries(y_obs)
 
 # 첫 점을 찾고 사슬 돌리기...

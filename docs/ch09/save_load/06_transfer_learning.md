@@ -1,6 +1,6 @@
 # 전이 학습
 
-사전 학습 모델의 분류기 교체, 학습할 매개변수 선택과 상태 사전의 부분 복원을 설명한다. 예제의 실제 초기화와 학습 범위를 확인하며 전이 학습의 구성 방식을 읽는다.
+사전 학습 모델의 분류기 교체, 학습할 파라메터 선택과 상태 사전의 부분 복원을 설명한다. 예제의 실제 초기화와 학습 범위를 확인하며 전이 학습의 구성 방식을 읽는다.
 
 ## 1. 코드
 
@@ -16,7 +16,7 @@
 
 주제:
 - 미리 학습된 모델 불러오기
-- 층 얼리고 녹이기
+- 레이어 얼리고 녹이기
 - 미세 조정한 모델 저장하기
 - 상태 사전 부분적으로 불러오기
 """
@@ -46,7 +46,7 @@ print("\nLoading ResNet18 with pre-trained weights...")
 model = models.resnet18(pretrained=False)  # 시연을 위해 False로 둔다
 print("Model loaded")
 
-# 매개변수의 수 확인
+# 파라메터의 수 확인
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Total parameters: {total_params:,}")
 
@@ -58,18 +58,18 @@ print("\n" + "=" * 70)
 print("MODIFYING MODEL FOR TRANSFER LEARNING")
 print("=" * 70)
 
-# 마지막 층의 입력 특징 수 얻기
+# 마지막 레이어의 입력 피처 수 얻기
 num_features = model.fc.in_features
 print(f"\nOriginal classifier input features: {num_features}")
 print(f"Original classifier output classes: {model.fc.out_features}")
 
-# 새 과제에 맞게 마지막 층 바꾸기 (예: 1000개 대신 10개 클래스)
+# 새 과제에 맞게 마지막 레이어 바꾸기 (예: 1000개 대신 10개 클래스)
 num_classes = 10
 model.fc = nn.Linear(num_features, num_classes)
 print(f"\nNew classifier output classes: {num_classes}")
 
 # ============================================================
-# 층 얼리기
+# 레이어 얼리기
 # ============================================================
 
 print("\n" + "=" * 70)
@@ -78,15 +78,15 @@ print("=" * 70)
 
 print("\nFreezing all layers except final classifier...")
 
-# 모든 매개변수 얼리기
+# 모든 파라메터 얼리기
 for param in model.parameters():
     param.requires_grad = False
 
-# 마지막 층 녹이기
+# 마지막 레이어 녹이기
 for param in model.fc.parameters():
     param.requires_grad = True
 
-# 학습 가능한 매개변수 세기
+# 학습 가능한 파라메터 세기
 trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"Trainable parameters: {trainable_params:,}")
 print(f"Frozen parameters: {total_params - trainable_params:,}")
@@ -99,7 +99,7 @@ print("\n" + "=" * 70)
 print("SAVING FINE-TUNED MODEL")
 print("=" * 70)
 
-# 학습 가능한 매개변수에만 최적화기 만들기
+# 학습 가능한 파라메터에만 최적화기 만들기
 optimizer = torch.optim.Adam(
     filter(lambda p: p.requires_grad, model.parameters()),
     lr=0.001
@@ -144,7 +144,7 @@ model.load_state_dict(checkpoint['model_state_dict'])
 print("\nModel state loaded")
 
 # 얼리기를 먼저 되살린다.
-# 저장할 때의 최적화기는 '학습할 매개변수'만 들고 있었으므로, 같은 배치로
+# 저장할 때의 최적화기는 '학습할 파라메터'만 들고 있었으므로, 같은 배치로
 # 다시 만들어야 상태를 받을 수 있다. 얼리기를 나중에 하면 배치 크기가 어긋나
 # ValueError: loaded state dict contains a parameter group that doesn't match
 # 가 난다.
@@ -155,7 +155,7 @@ if checkpoint.get('frozen_layers', False):
         param.requires_grad = True
     print("Layer freezing applied")
 
-# 최적화기 다시 만들기 — 저장할 때와 똑같이 학습할 매개변수만 준다
+# 최적화기 다시 만들기 — 저장할 때와 똑같이 학습할 파라메터만 준다
 optimizer = torch.optim.Adam(
     filter(lambda p: p.requires_grad, model.parameters())
 )
@@ -179,13 +179,13 @@ full_state = model.state_dict()
 new_model = models.resnet18(pretrained=False)
 new_model.fc = nn.Linear(num_features, num_classes)
 
-# 합성곱 층만 불러오기 (분류기는 제외)
+# 컨볼루션 레이어만 불러오기 (분류기는 제외)
 pretrained_dict = {k: v for k, v in full_state.items() if 'fc' not in k}
 
 # 현재 상태 얻기
 model_dict = new_model.state_dict()
 
-# 미리 학습된 가중치로 갱신
+# 미리 학습된 웨이트로 갱신
 model_dict.update(pretrained_dict)
 
 # 새 상태 사전 불러오기
@@ -336,11 +336,11 @@ Key Takeaways:
 
 ## 2. 논의
 
-코드는 모든 ResNet-18 생성에서 pretrained=False를 사용한다. 따라서 출력 문구와 달리 사전 학습된 특징을 불러오지 않으며, 실제 데이터로 미세 조정하는 학습 루프도 없다. 전이 학습의 성능 실험이 아니라 분류기 교체·동결·저장과 복원 방식의 시연이다.
+코드는 모든 ResNet-18 생성에서 pretrained=False를 사용한다. 따라서 출력 문구와 달리 사전 학습된 피처를 불러오지 않으며, 실제 데이터로 미세 조정하는 학습 루프도 없다. 전이 학습의 성능 실험이 아니라 분류기 교체·동결·저장과 복원 방식의 시연이다.
 
-512차원 특징을 10개 클래스로 보내는 새 분류기에는 512×10+10=5130개의 학습 매개변수가 있다. 다른 매개변수의 requires_grad를 False로 해도 BatchNorm의 이동 통계 버퍼까지 동결되지는 않는다. 실제 학습에서는 백본의 모드와 전처리, 사용할 사전 학습 가중치의 입력 규약도 함께 정해야 한다.
+512차원 피처를 10개 클래스로 보내는 새 분류기에는 512×10+10=5130개의 학습 파라메터가 있다. 다른 파라메터의 requires_grad를 False로 해도 BatchNorm의 이동 통계 버퍼까지 동결되지는 않는다. 실제 학습에서는 백본의 모드와 전처리, 사용할 사전 학습 웨이트의 입력 규약도 함께 정해야 한다.
 
-strict=False는 누락되거나 추가된 키를 허용하지만 같은 키의 텐서 모양 불일치를 무시하지 않는다. 코드처럼 호환되는 모양을 걸러 내고 반환된 누락·추가 키를 확인한다. 키에서 fc라는 부분 문자열을 제외하는 방법은 이 모델의 이름에 의존한다. 단계적으로 동결을 해제한다면 새 매개변수가 옵티마이저 그룹에 실제로 포함되는지도 확인해야 한다.
+strict=False는 누락되거나 추가된 키를 허용하지만 같은 키의 텐서 모양 불일치를 무시하지 않는다. 코드처럼 호환되는 모양을 걸러 내고 반환된 누락·추가 키를 확인한다. 키에서 fc라는 부분 문자열을 제외하는 방법은 이 모델의 이름에 의존한다. 단계적으로 동결을 해제한다면 새 파라메터가 옵티마이저 그룹에 실제로 포함되는지도 확인해야 한다.
 
 ## 연습문제
 
@@ -360,7 +360,7 @@ strict=False는 누락되거나 추가된 키를 허용하지만 같은 키의 �
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-strict=False이면 1000클래스 분류기 가중치를 10클래스 분류기에 그대로 넣을 수 있는가?
+strict=False이면 1000클래스 분류기 웨이트를 10클래스 분류기에 그대로 넣을 수 있는가?
 
 </div>
 
@@ -378,8 +378,8 @@ requires_grad=False로 백본을 동결한 뒤에도 BatchNorm 상태가 달라�
 </div>
 
 ??? success "연습문제 3 풀이"
-    학습 모드에서는 이동 평균·분산 버퍼가 갱신될 수 있다. 기울기 동결과 모드 설정을 구분하고 의도한 통계 사용 방식에 맞춰 설정한다.
+    학습 모드에서는 이동 평균·분산 버퍼가 갱신될 수 있다. 그래디언트 동결과 모드 설정을 구분하고 의도한 통계 사용 방식에 맞춰 설정한다.
 
 ## 정리하며
 
-전이 학습에서는 사전 학습 가중치 사용 여부, 분류기 차원과 동결 범위를 명확히 한다. 부분 복원의 키 허용과 모양 호환성은 별도 조건이다.
+전이 학습에서는 사전 학습 웨이트 사용 여부, 분류기 차원과 동결 범위를 명확히 한다. 부분 복원의 키 허용과 모양 호환성은 별도 조건이다.

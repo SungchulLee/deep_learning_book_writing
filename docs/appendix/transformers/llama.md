@@ -2,7 +2,7 @@
 
 LLaMA은 2023년 글 "LLaMA: Open and Efficient Foundation Language Models"에서 나왔다.
 
-여기 짜보기는 LLaMA을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 LLaMA을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -15,11 +15,11 @@ LLaMA - 메타 AI의 큰 말 모형
 핵심 깨침(크게 보아):
   - 디코더만 있는 변환기(GPT 결)
   - 켜 잣대 잡기 대신 RMSNorm
-  - SwiGLU 앞먹임
+  - SwiGLU 피드포워드
   - 배운 붙박이 자리 대신 도는 자리 담기(RoPE)
 
 두루마리: appendix/transformers/llama.py
-눈여겨볼 것: RMSNorm + SwiGLU + 앞만 보는 어텐션에 마음을 둔, 주석을 단 배우기용 짜보기다.
+눈여겨볼 것: RMSNorm + SwiGLU + 앞만 보는 어텐션에 마음을 둔, 주석을 단 배우기용 구현이다.
       잘 다듬은 LLaMA이 아니라 읽기 쉬운 본이다.
 """
 
@@ -51,11 +51,11 @@ class RMSNorm(nn.Module):
 
 class SwiGLU(nn.Module):
     """
-    SwiGLU 앞먹임(요즘 큰 말 모형에서 널리 쓴다):
+    SwiGLU 피드포워드(요즘 큰 말 모형에서 널리 쓴다):
 
       FF(x) = (SiLU(xW1) * (xW3)) W2
 
-    여느 GELU 앞먹임과 견주면 이 문 구조가 됨됨이와 잘 듦을 흔히 올린다.
+    여느 GELU 피드포워드와 견주면 이 문 구조가 됨됨이와 잘 듦을 흔히 올린다.
     """
     def __init__(self, dim: int, hidden_dim: int):
         super().__init__()
@@ -115,7 +115,7 @@ class LLaMABlock(nn.Module):
       - RMSNorm
       - 앞만 보는 셀프 어텐션
       - RMSNorm
-      - SwiGLU 앞먹임
+      - SwiGLU 피드포워드
       - 나머지 이음
     """
     def __init__(self, dim: int, nhead: int, ff_hidden: int):
@@ -171,7 +171,7 @@ logits: torch.Size([2, 12, 1000])
 
 ## 2. 논의
 
-이 짜보기는 갈래 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`, and 1 more)를 매기고, 이들이 어울려 온전한 트랜스포머 구조를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 계산 그림을 매긴다.
+이 구현은 클래스 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`, and 1 more)를 매기고, 이들이 어울려 온전한 트랜스포머 구조를 이룬다. 클래스마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 계산 그림을 매긴다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 증강 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -180,12 +180,12 @@ logits: torch.Size([2, 12, 1000])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫자리로 잡은 `RMSNorm`의 배울 수 있는 매개변수를 모두 세어라. 짐과 편향을 아울러 켜마다 나누어 적어라.
+기본 첫자리로 잡은 `RMSNorm`의 배울 수 있는 파라메터를 모두 세어라. 짐과 바이어스를 아울러 켜마다 나누어 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    `nn.Linear(in_features, out_features)`마다 짐 매개변수가 `in_features * out_features`개이고 편향이 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 짐이 `in_c * out_c * k * k`개, 편향이 `out_c`개다. `nn.Embedding(num, dim)`은 매개변수가 `num * dim`개다. 켜를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 따져 볼 수 있다.
+    `nn.Linear(in_features, out_features)`마다 짐 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 짐이 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 켜를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 따져 볼 수 있다.
 
 ---
 
@@ -197,7 +197,7 @@ logits: torch.Size([2, 12, 1000])
 </div>
 
 ??? success "연습문제 2 풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 짐 얼마를 아무렇게나 0으로 만들어, 모델이 단어끼리의 어떤 사이에만 기대는 것을 막는다. 그래서 모델이 어텐션을 더 고루 나누고 더 든든한 드러냄을 배우게 되는데, 이는 여느 드롭아웃이 신경 낱자리끼리 함께 길드는 것을 막는 것과 같다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 짐 얼마를 아무렇게나 0으로 만들어, 모델이 단어끼리의 어떤 사이에만 기대는 것을 막는다. 그래서 모델이 어텐션을 더 고루 나누고 더 든든한 리프리젠테이션을 배우게 되는데, 이는 여느 드롭아웃이 뉴럴 유닛끼리 함께 길드는 것을 막는 것과 같다.
 
 ---
 
@@ -216,7 +216,7 @@ logits: torch.Size([2, 12, 1000])
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`RMSNorm`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`RMSNorm`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 파라메터를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -227,12 +227,12 @@ logits: torch.Size([2, 12, 1000])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 매개변수를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = RMSNorm(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = RMSNorm(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
 
 ## 정리하며
 
 **다룬 것** — LLaMA
 
-이 짜보기는 갈래 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`, and 1 more)를 매기고, 이들이 어울려 온전한 트랜스포머 구조를 이룬다.
+이 구현은 클래스 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`, and 1 more)를 매기고, 이들이 어울려 온전한 트랜스포머 구조를 이룬다.
 
-핵심 갈래는 `RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

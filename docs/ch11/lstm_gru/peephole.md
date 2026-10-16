@@ -1,6 +1,6 @@
 # Peephole 연결
 
-표준 LSTM의 문은 이전 은닉 상태 $h_{t-1}$과 지금 입력 $x_t$으로 활성값을 계산한다. 그런데 그러면 문이 정작 자기가 다스려야 할 기억인 셀 상태 $c_{t-1}$을 곧바로 볼 수 없다. Gers와 Schmidhuber(2000)가 내놓은 **Peephole 연결**은 문이 셀 상태에 곧바로 닿게 하여 이 한계를 푼다.
+표준 LSTM의 문은 이전 은닉 상태 $h_{t-1}$과 지금 입력 $x_t$으로 엑티베이션을 계산한다. 그런데 그러면 문이 정작 자기가 다스려야 할 기억인 셀 상태 $c_{t-1}$을 곧바로 볼 수 없다. Gers와 Schmidhuber(2000)가 내놓은 **Peephole 연결**은 문이 셀 상태에 곧바로 닿게 하여 이 한계를 푼다.
 
 ---
 
@@ -50,23 +50,23 @@ $$o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + \mathbf{w_o \odot c_t} + b_o)$$
 
 $$h_t = o_t \odot \tanh(c_t)$$
 
-여기서 $w_f, w_i, w_o \in \mathbb{R}^n$은 (온전한 행렬이 아니라) **대각** peephole 가중치 벡터이다.
+여기서 $w_f, w_i, w_o \in \mathbb{R}^n$은 (온전한 행렬이 아니라) **대각** peephole 웨이트 벡터이다.
 
-!!! note "왜 대각 가중치인가"
-    Peephole 연결은 온전한 행렬 곱($W \cdot c$)이 아니라 성분별 곱($w \odot c$)을 쓴다. 곧 문의 차원마다 그에 대응하는 세포 차원만 본다. 이 대각 제약 덕분에 늘어나는 매개변수가 $3n$개로 적게 유지되면서도 문이 "제" 셀 상태 값을 살필 수 있다.
+!!! note "왜 대각 웨이트인가"
+    Peephole 연결은 온전한 행렬 곱($W \cdot c$)이 아니라 성분별 곱($w \odot c$)을 쓴다. 곧 문의 차원마다 그에 대응하는 세포 차원만 본다. 이 대각 제약 덕분에 늘어나는 파라메터가 $3n$개로 적게 유지되면서도 문이 "제" 셀 상태 값을 살필 수 있다.
 
 ---
 
-## 3. 매개변수 수에 미치는 영향
+## 3. 파라메터 수에 미치는 영향
 
 | 부품 | 표준 LSTM | peephole LSTM |
 |-----------|---------------|---------------|
-| 가중치 행렬 | $4n(n+d)$ | $4n(n+d)$ |
-| 편향 | $4n$ | $4n$ |
+| 웨이트 행렬 | $4n(n+d)$ | $4n(n+d)$ |
+| 바이어스 | $4n$ | $4n$ |
 | peephole 벡터 | — | $3n$ |
 | **합계** | $4n(n+d+1)$ | $4n(n+d+1) + 3n$ |
 
-흔한 은닉 차원($n = 256$)에서 peephole는 매개변수를 $3 \times 256 = 768$개만 더한다. 전체 $4 \times 256 \times (256 + d + 1)$에 견주면 무시할 만하다.
+흔한 은닉 차원($n = 256$)에서 peephole는 파라메터를 $3 \times 256 = 768$개만 더한다. 전체 $4 \times 256 \times (256 + d + 1)$에 견주면 무시할 만하다.
 
 ---
 
@@ -83,19 +83,19 @@ class PeepholeLSTMCell(nn.Module):
         super().__init__()
         self.hidden_size = hidden_size
         
-        # 표준 가중치
+        # 표준 웨이트
         combined_size = input_size + hidden_size
         self.W_f = nn.Linear(combined_size, hidden_size)
         self.W_i = nn.Linear(combined_size, hidden_size)
         self.W_c = nn.Linear(combined_size, hidden_size)
         self.W_o = nn.Linear(combined_size, hidden_size)
         
-        # 엿보기 가중치 (대각이라 그냥 벡터이다)
+        # 엿보기 웨이트 (대각이라 그냥 벡터이다)
         self.p_f = nn.Parameter(torch.randn(hidden_size) * 0.1)
         self.p_i = nn.Parameter(torch.randn(hidden_size) * 0.1)
         self.p_o = nn.Parameter(torch.randn(hidden_size) * 0.1)
         
-        # 망각 편향을 1로 초기화
+        # 망각 바이어스를 1로 초기화
         nn.init.constant_(self.W_f.bias, 1.0)
     
     def forward(
@@ -138,7 +138,7 @@ class PeepholeLSTMCell(nn.Module):
         return h, (h, c)
 
 class PeepholeLSTM(nn.Module):
-    """순차열을 처리하는 온전한 엿보기 LSTM 층."""
+    """순차열을 처리하는 온전한 엿보기 LSTM 레이어."""
     
     def __init__(self, input_size: int, hidden_size: int, 
                  num_layers: int = 1, dropout: float = 0.0):
@@ -159,11 +159,11 @@ class PeepholeLSTM(nn.Module):
         """
         인수:
             x: 입력 순차열 (배치 크기, seq_len, input_size)
-            states: 모든 층의 처음 (h_0, c_0)
+            states: 모든 레이어의 처음 (h_0, c_0)
         
         반환값:
-            output: 맨 위 층의 숨은 상태 (배치 크기, seq_len, hidden_size)
-            (h_n, c_n): 모든 층의 마지막 상태
+            output: 맨 위 레이어의 숨은 상태 (배치 크기, seq_len, hidden_size)
+            (h_n, c_n): 모든 레이어의 마지막 상태
         """
         batch_size, seq_len, _ = x.size()
         
@@ -204,11 +204,11 @@ class PeepholeLSTM(nn.Module):
 
 Peephole은 게이트가 셀 상태의 크기를 직접 참조하게 하므로 타이밍이나 계수처럼 수치 상태가 중요한 과제의 후보가 될 수 있다. 그렇다고 표준 LSTM보다 항상 정확하거나 특정 과제에서 반드시 유리한 것은 아니다.
 
-같은 데이터와 초기 조건, 학습 예산에서 peephole 유무를 비교한다. 추가 매개변수는 적더라도 게이트의 피드백 경로가 바뀌므로 최적화와 일반화는 별도로 평가해야 한다. 연구 결과는 해당 데이터와 설정의 범위에서 해석한다.
+같은 데이터와 초기 조건, 학습 예산에서 peephole 유무를 비교한다. 추가 파라메터는 적더라도 게이트의 피드백 경로가 바뀌므로 최적화와 일반화는 별도로 평가해야 한다. 연구 결과는 해당 데이터와 설정의 범위에서 해석한다.
 
-## 6. 기울기 흐름에 미치는 영향
+## 6. 그래디언트 흐름에 미치는 영향
 
-Peephole 연결은 셀 상태를 지나는 기울기 경로를 더한다.
+Peephole 연결은 셀 상태를 지나는 그래디언트 경로를 더한다.
 
 $$\left.\frac{\partial f_t}{\partial c_{t-1}}\right|_{h_{t-1}\ \mathrm{fixed}} = \operatorname{diag}(f_t\odot(1-f_t))\operatorname{diag}(w_f)$$
 
@@ -226,7 +226,7 @@ Peephole 연결에서 각 게이트가 어느 셀 상태를 참조하는지 설�
 </div>
 
 ??? success "연습문제 1 풀이"
-    망각·입력 게이트에는 각각 $w_f\odot c_{t-1}$와 $w_i\odot c_{t-1}$를 더한다. 출력 게이트에는 갱신된 $c_t$로 만든 $w_o\odot c_t$를 더한다. 나머지 입력·은닉 선형 변환과 편향은 유지한다. 성분별 연결이면 추가 매개변수는 $3h$개다.
+    망각·입력 게이트에는 각각 $w_f\odot c_{t-1}$와 $w_i\odot c_{t-1}$를 더한다. 출력 게이트에는 갱신된 $c_t$로 만든 $w_o\odot c_t$를 더한다. 나머지 입력·은닉 선형 변환과 바이어스는 유지한다. 성분별 연결이면 추가 파라메터는 $3h$개다.
 
 ---
 
@@ -245,12 +245,12 @@ Peephole 연결이 유용할 수 있는 이유와 검증할 항목을 설명하�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-대각 peephole이 추가하는 매개변수와 상대 증가율을 구하라.
+대각 peephole이 추가하는 파라메터와 상대 증가율을 구하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    은닉 크기 h이면 $3h$개다. 편향 하나인 기본 셀의 $4h(h+x+1)$개에 대한 증가율은 $3/[4(h+x+1)]$이다. h=512,x=300이면 추가 1536개로 약 0.0923%다. 입력 차원과 기본 편향 규약을 명시해야 정확한 비율을 말할 수 있다.
+    은닉 크기 h이면 $3h$개다. 바이어스 하나인 기본 셀의 $4h(h+x+1)$개에 대한 증가율은 $3/[4(h+x+1)]$이다. h=512,x=300이면 추가 1536개로 약 0.0923%다. 입력 차원과 기본 바이어스 규약을 명시해야 정확한 비율을 말할 수 있다.
 
 ---
 
@@ -283,7 +283,7 @@ Peephole 연결이 있는 LSTM 세포를 PyTorch로 구현하라.
 
 ## 정리하며
 
-Peephole은 셀 상태에서 게이트로 직접 연결을 더한다. 망각·입력 게이트는 이전 셀 상태, 출력 게이트는 새 셀 상태를 참조한다. 성분별 추가 가중치는 3h개이며, 효과와 최적화의 변화는 실제 과제에서 비교해야 한다.
+Peephole은 셀 상태에서 게이트로 직접 연결을 더한다. 망각·입력 게이트는 이전 셀 상태, 출력 게이트는 새 셀 상태를 참조한다. 성분별 추가 웨이트는 3h개이며, 효과와 최적화의 변화는 실제 과제에서 비교해야 한다.
 
 **참고 문헌**
 

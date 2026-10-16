@@ -1,5 +1,5 @@
-# 베이즈 신경망 사후분포 추론
-**사후분포 추론**은 베이즈 신경망에서 계산으로 부딪히는 가장 큰 어려움이다. 사전분포 $p(\theta)$과 우도 $p(\mathcal{D} \mid \theta)$이 주어지면 사후분포 $p(\theta \mid \mathcal{D})$을 찾는다. 신경망에서는 이 사후분포를 다룰 수 없으므로, 샘플링(MCMC)에서 최적화(변분 추론), 넌지시 하는 근사(드롭아웃, 앙상블)에 이르는 근사 방법이 있어야 한다.
+# 베이즈 뉴럴 넷트웍 사후분포 추론
+**사후분포 추론**은 베이즈 뉴럴 넷트웍에서 계산으로 부딪히는 가장 큰 어려움이다. 사전분포 $p(\theta)$과 우도 $p(\mathcal{D} \mid \theta)$이 주어지면 사후분포 $p(\theta \mid \mathcal{D})$을 찾는다. 뉴럴 넷트웍에서는 이 사후분포를 다룰 수 없으므로, 샘플링(MCMC)에서 최적화(변분 추론), 넌지시 하는 근사(드롭아웃, 앙상블)에 이르는 근사 방법이 있어야 한다.
 
 ---
 
@@ -7,7 +7,7 @@
 
 ### 사후분포
 
-베이즈 정리에 따르면 네트워크 가중치에 대한 사후분포는 이렇다.
+베이즈 정리에 따르면 네트워크 웨이트에 대한 사후분포는 이렇다.
 
 $$
 \boxed{p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})}}
@@ -21,9 +21,9 @@ $$
 
 ### 정확한 추론을 다룰 수 없는 까닭
 
-**1. 고차원**: 요즘 네트워크의 매개변수는 $d = 10^6$에서 $10^9$이다
+**1. 고차원**: 요즘 네트워크의 파라메터는 $d = 10^6$에서 $10^9$이다
 
-**2. 짝이 맞지 않음**: 신경망의 우도는 여느 사전분포와 짝이 맞지 않는다.
+**2. 짝이 맞지 않음**: 뉴럴 넷트웍의 우도는 여느 사전분포와 짝이 맞지 않는다.
 
 $$
 p(y \mid x, \theta) = \mathcal{N}(y \mid f_\theta(x), \sigma^2)
@@ -39,15 +39,15 @@ $$
 
 **4. 여러 봉우리**: 사후분포의 터에는 다음 까닭으로 봉우리가 많다.
 
-- 가중치 공간의 순열 대칭(자리 바꾸기, 잣대 바꾸기)
+- 웨이트 공간의 순열 대칭(자리 바꾸기, 잣대 바꾸기)
 - 좋은 풀이가 여럿임
-- 손실 지형이 얽힘
+- 로스 지형이 얽힘
 
 ### 추론 방법에 바라는 것
 
 | 특성 | 풀이 |
 |----------|-------------|
-| **크게 늘리기** | 매개변수 수백만 개를 다룬다 |
+| **크게 늘리기** | 파라메터 수백만 개를 다룬다 |
 | **맞음** | 사후분포의 꼴을 미덥게 담는다 |
 | **불확실성** | 눈금이 잘 맞은 불확실성을 낸다 |
 | **잘 듦** | 셈하는 때가 알맞다 |
@@ -59,15 +59,15 @@ $$
 
 ## 2. 추론 방법 두루 보기
 
-### 갈래 나누기
+### 분류
 
 ```
 뒷분포 미루어 봄 방법
 ├── 표본 뽑기 방법(MCMC)
 │   ├── 메트로폴리스-헤이스팅스
 │   ├── 해밀턴 몬테카를로(HMC)
-│   ├── 확률 기울기 MCMC
-│   │   ├── SGLD(랑주뱅 움직임)
+│   ├── 확률 그래디언트 MCMC
+│   │   ├── SGLD(랑주뱅 액션)
 │   │   ├── SGHMC(해밀턴)
 │   │   └── SGFS(피셔 점수 매기기)
 │   └── 모둠 방법
@@ -121,19 +121,19 @@ $$
 **알고리즘**:
 
 1. $\theta' \sim q(\theta' \mid \theta^{(t)})$을 내놓는다
-2. 받을 낌새를 계산한다.
+2. 받을 확률을 계산한다.
 
 $$
 \alpha = \min\left(1, \frac{p(\theta' \mid \mathcal{D}) \, q(\theta^{(t)} \mid \theta')}{p(\theta^{(t)} \mid \mathcal{D}) \, q(\theta' \mid \theta^{(t)})}\right)
 $$
 
-3. 낌새 $\alpha$으로 받는다: $\theta^{(t+1)} = \theta'$ 또는 $\theta^{(t+1)} = \theta^{(t)}$
+3. 확률 $\alpha$으로 받는다: $\theta^{(t+1)} = \theta'$ 또는 $\theta^{(t+1)} = \theta^{(t)}$
 
-**신경망에서는**: 아무렇게나 걷는 내놓기($q(\theta' \mid \theta) = \mathcal{N}(\theta, \epsilon^2 I)$)는 차수가 높으면 잘 듣지 않는다.
+**뉴럴 넷트웍에서는**: 아무렇게나 걷는 내놓기($q(\theta' \mid \theta) = \mathcal{N}(\theta, \epsilon^2 I)$)는 차수가 높으면 잘 듣지 않는다.
 
 ### 해밀토니안 몬테카를로(HMC)
 
-HMC는 기울기 소식을 써서 앎에 바탕한 내놓기를 한다.
+HMC는 그래디언트 소식을 써서 앎에 바탕한 내놓기를 한다.
 
 **덧댄 구조**: 밀어 나감 $\rho$을 들여 해밀턴 값을 매긴다.
 
@@ -169,15 +169,15 @@ $$
 
 **나은 점**: 사후분포를 잘 둘러보고 표본끼리 덜 얽힌다.
 
-**신경망에서의 어려움**: 온전한 기울기 계산이 있어야 한다(큰 데이터 꾸러미에서는 비싸다).
+**뉴럴 넷트웍에서의 어려움**: 온전한 그래디언트 계산이 있어야 한다(큰 데이터 꾸러미에서는 비싸다).
 
 ---
 
-## 4. 확률 기울기 MCMC
+## 4. 확률 그래디언트 MCMC
 
 ### 왜 하는가
 
-온 배치 기울기는 비싸다. 확률 기울기 MCMC는 잔 배치 기울기를 쓴다.
+온 배치 그래디언트는 비싸다. 확률 그래디언트 MCMC는 잔 배치 그래디언트를 쓴다.
 
 $$
 \nabla_\theta \log p(\theta \mid \mathcal{D}) \approx \nabla_\theta \log p(\theta) + \frac{N}{|B|} \sum_{i \in B} \nabla_\theta \log p(y_i \mid x_i, \theta)
@@ -185,7 +185,7 @@ $$
 
 여기서 $B$은 크기가 $|B|$인 잔 배치다.
 
-### 확률 기울기 랑주뱅 동역학(SGLD)
+### 확률 그래디언트 랑주뱅 동역학(SGLD)
 
 **고치는 규칙**:
 
@@ -209,7 +209,7 @@ $$
 \theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \left[ \nabla_\theta \log p(\theta^{(t)}) + \frac{N}{|B|} \sum_{i \in B} \nabla_\theta \log p(y_i \mid x_i, \theta^{(t)}) \right] + \eta_t
 $$
 
-### 확률 기울기 해밀토니안 몬테카를로(SGHMC)
+### 확률 그래디언트 해밀토니안 몬테카를로(SGHMC)
 
 더 잘 둘러보도록 SGLD에 밀어 나감을 더한다.
 
@@ -241,7 +241,7 @@ $$
 
 ### 돌림 SGLD
 
-그 자리 봉우리를 벗어나도록 돌림 학습률을 쓴다.
+그 자리 봉우리를 벗어나도록 돌림 러닝레이트를 쓴다.
 
 $$
 \epsilon_t = \epsilon_0 \left( \cos\left(\frac{\pi \, \text{mod}(t, T_{\text{cycle}})}{T_{\text{cycle}}}\right) + 1 \right) / 2
@@ -292,7 +292,7 @@ $$
 
 **크로네커로 쪼갠 것(KFAC)**:
 
-가중치가 $W^{(l)}$인 켜 $l$에서
+웨이트가 $W^{(l)}$인 켜 $l$에서
 
 $$
 H^{(l)} \approx A^{(l)} \otimes G^{(l)}
@@ -301,7 +301,7 @@ $$
 여기서
 
 - $A^{(l)} = \mathbb{E}[a^{(l-1)} (a^{(l-1)})^\top]$(입력 활성화)
-- $G^{(l)} = \mathbb{E}[g^{(l)} (g^{(l)})^\top]$(출력 기울기)
+- $G^{(l)} = \mathbb{E}[g^{(l)} (g^{(l)})^\top]$(출력 그래디언트)
 
 **역**:
 
@@ -327,7 +327,7 @@ $$
 
 ### 예측하는 분포
 
-가우시안 우도를 쓰는 되돌이에서
+가우시안 우도를 쓰는 회귀에서
 
 $$
 p(y^* \mid x^*, \mathcal{D}) = \int p(y^* \mid x^*, \theta) \, q(\theta) \, d\theta
@@ -387,17 +387,17 @@ $$
 q_\phi(\theta) = \prod_{i=1}^d \mathcal{N}(\theta_i \mid \mu_i, \sigma_i^2)
 $$
 
-매개변수: $\phi = \{\mu_i, \sigma_i\}_{i=1}^d$(양이 되게 하려면 $\log \sigma_i$).
+파라메터: $\phi = \{\mu_i, \sigma_i\}_{i=1}^d$(양이 되게 하려면 $\log \sigma_i$).
 
-### 매개변수 다시 잡기 재주
+### 파라메터 다시 잡기 재주
 
-확률 샘플링을 지나 기울기를 셈하려면
+확률 샘플링을 지나 그래디언트를 셈하려면
 
 $$
 \theta = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
 $$
 
-**ELBO의 기울기**:
+**ELBO의 그래디언트**:
 
 $$
 \nabla_\phi \mathcal{L} = \nabla_\phi \mathbb{E}_{\epsilon}[\log p(\mathcal{D} \mid \mu + \sigma \odot \epsilon)] - \nabla_\phi \text{KL}(q_\phi \| p)
@@ -419,7 +419,7 @@ $$
 
 1. $\epsilon \sim \mathcal{N}(0, I)$을 뽑는다
 2. $\theta = \mu + \log(1 + e^\rho) \odot \epsilon$을 계산한다($\sigma$에 소프트플러스)
-3. 손실을 계산한다: $\mathcal{L} = \log q_\phi(\theta) - \log p(\theta) - \log p(\mathcal{D} \mid \theta)$
+3. 로스를 계산한다: $\mathcal{L} = \log q_\phi(\theta) - \log p(\theta) - \log p(\mathcal{D} \mid \theta)$
 4. 되돌아가며 $\phi = \{\mu, \rho\}$을 고친다
 
 **잔 배치 ELBO**:
@@ -432,7 +432,7 @@ $$
 
 **전체 공분산**: $q(\theta) = \mathcal{N}(\mu, \Sigma)$
 
-- 매개변수가 $O(d^2)$개 — 흔히 다룰 수 없다
+- 파라메터가 $O(d^2)$개 — 흔히 다룰 수 없다
 
 **낮은 자리 더하기 대각**:
 
@@ -480,7 +480,7 @@ $$
 - 자리와 추론 값이 $M$배
 - 제대로 된 베이즈 방법은 아니다
 
-### 확률 가중치 고르기 가우시안(SWAG)
+### 확률 웨이트 고르기 가우시안(SWAG)
 
 SGD으로 익히는 동안 자를 모은다.
 
@@ -545,7 +545,7 @@ $$
 **변분 추론을 쓸 때**:
 
 - 크게 늘릴 수 있는 학습이 있어야 할 때
-- 그럴듯한 변이 갈래를 정할 수 있을 때
+- 그럴듯한 변이 클래스를 정할 수 있을 때
 - 하이퍼파라미터를 맞출 뜻이 있을 때
 
 **앙상블을 쓸 때**:
@@ -564,14 +564,14 @@ $$
 
 **SGLD**:
 
-- 학습률 구조(가장 중요하다)
+- 러닝레이트 구조(가장 중요하다)
 - 워밍업 동안
 - 솎아 내는 틈
 
 **변분 추론**:
 
 - 사전분포의 분산 $\sigma_0^2$
-- KL 가중치(워밍업 구조)
+- KL 웨이트(워밍업 구조)
 - MC 표본의 수
 
 **라플라스**:
@@ -607,10 +607,10 @@ $$
 
 ```python
 """
-베이즈 신경 그물의 뒷분포 미루어 봄
+베이즈 뉴럴 넷트웍의 뒷분포 미루어 봄
 
 이 배치는 여러 뒷분포 미루어 봄 방법을 짜 놓았다:
-- 확률 기울기 랑주뱅 움직임(SGLD)
+- 확률 그래디언트 랑주뱅 액션(SGLD)
 - 라플라스 어림
 - 평균 마당 변이 미루어 봄
 - 깊은 모둠
@@ -626,11 +626,11 @@ from abc import ABC, abstractmethod
 import warnings
 
 # =============================================================================
-# 밑 갈래
+# 밑 클래스
 # =============================================================================
 
 class BayesianInference(ABC):
-    """베이즈 미루어 봄 방법의 뼈대 갈래."""
+    """베이즈 미루어 봄 방법의 뼈대 클래스."""
     
     @abstractmethod
     def fit(self, X: np.ndarray, y: np.ndarray):
@@ -656,11 +656,11 @@ class BayesianInference(ABC):
         pass
 
 # =============================================================================
-# 단순 신경 그물
+# 단순 뉴럴 넷트웍
 # =============================================================================
 
 class SimpleNN:
-    """보여 주기용 단순 신경 그물."""
+    """보여 주기용 단순 뉴럴 넷트웍."""
     
     def __init__(
         self,
@@ -725,7 +725,7 @@ class SimpleNN:
         return weights
     
     def n_params(self) -> int:
-        """온 매개변수의 수."""
+        """온 파라메터의 수."""
         total = 0
         for i in range(self.n_layers):
             total += self.layer_sizes[i] * self.layer_sizes[i + 1]  # W
@@ -733,12 +733,12 @@ class SimpleNN:
         return total
 
 # =============================================================================
-# 확률 기울기 랑주뱅 움직임(SGLD)
+# 확률 그래디언트 랑주뱅 액션(SGLD)
 # =============================================================================
 
 class SGLD(BayesianInference):
     """
-    뒷분포 표본을 뽑는 확률 기울기 랑주뱅 움직임.
+    뒷분포 표본을 뽑는 확률 그래디언트 랑주뱅 액션.
     
     Update: θ_{t+1} = θ_t + (ε_t/2) * ∇log p(θ|D) + η_t
     여기서 η_t ~ N(0, ε_t * I)
@@ -760,19 +760,19 @@ class SGLD(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            신경 그물 구조
+            뉴럴 넷트웍 구조
         prior_std : float
             짐의 앞선 분포 표준편차
         noise_std : float
             살핌 잡음의 표준편차
         lr_init : float
-            처음 배움 비율
+            처음 러닝 비율
         lr_decay : float
-            배움 비율 줄이기 지수((0.5, 1]에 들어야 한다)
+            러닝 비율 줄이기 지수((0.5, 1]에 들어야 한다)
         n_iterations : int
-            온 되돌이 횟수
+            온 회귀 횟수
         burn_in : int
-            몸풀기 되돌이 횟수
+            몸풀기 회귀 횟수
         thinning : int
             thinning번째 표본마다 남긴다
         batch_size : int
@@ -791,11 +791,11 @@ class SGLD(BayesianInference):
         self.samples = []
     
     def _learning_rate(self, t: int) -> float:
-        """되돌이 t에서의 배움 비율을 셈한다."""
+        """회귀 t에서의 러닝 비율을 셈한다."""
         return self.lr_init / (1 + t) ** self.lr_decay
     
     def _log_prior_grad(self, theta: np.ndarray) -> np.ndarray:
-        """로그 앞선 분포의 기울기(가우스)."""
+        """로그 앞선 분포의 그래디언트(가우스)."""
         return -theta / (self.prior_std ** 2)
     
     def _log_likelihood_grad(
@@ -806,13 +806,13 @@ class SGLD(BayesianInference):
         N: int
     ) -> np.ndarray:
         """
-        로그 그럴듯함의 기울기(잔 배치에 맞게 잣대를 맞춤).
+        로그 그럴듯함의 그래디언트(잔 배치에 맞게 잣대를 맞춤).
         단순하게 수로 미분해 셈한다.
         """
         weights = self.network.unflatten_weights(theta)
         pred = self.network.forward(X, weights)
         
-        # 수로 셈하는 기울기
+        # 수로 셈하는 그래디언트
         eps = 1e-5
         grad = np.zeros_like(theta)
         
@@ -827,7 +827,7 @@ class SGLD(BayesianInference):
             weights_minus = self.network.unflatten_weights(theta_minus)
             pred_minus = self.network.forward(X, weights_minus)
             
-            # 로그 그럴듯함의 기울기 = -1/(2σ²) * d/dθ ||y - f(x,θ)||²
+            # 로그 그럴듯함의 그래디언트 = -1/(2σ²) * d/dθ ||y - f(x,θ)||²
             ll_plus = -0.5 * np.sum((y - pred_plus)**2) / (self.noise_std**2)
             ll_minus = -0.5 * np.sum((y - pred_minus)**2) / (self.noise_std**2)
             
@@ -853,10 +853,10 @@ class SGLD(BayesianInference):
             X_batch = X[idx]
             y_batch = y[idx]
             
-            # 배움 비율
+            # 러닝 비율
             lr = self._learning_rate(t)
             
-            # 기울기를 셈한다
+            # 그래디언트를 셈한다
             grad_prior = self._log_prior_grad(theta)
             grad_likelihood = self._log_likelihood_grad(X_batch, y_batch, theta, N)
             grad = grad_prior + grad_likelihood
@@ -929,15 +929,15 @@ class LaplaceApproximation(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            신경 그물 구조
+            뉴럴 넷트웍 구조
         prior_std : float
             앞선 분포의 표준편차
         noise_std : float
             살핌 잡음의 표준편차
         n_iterations : int
-            MAP을 찾는 가장 좋게 하기 되돌이 횟수
+            MAP을 찾는 가장 좋게 하기 회귀 횟수
         lr : float
-            MAP 가장 좋게 하기의 배움 비율
+            MAP 가장 좋게 하기의 러닝 비율
         """
         self.network = network
         self.prior_std = prior_std
@@ -975,7 +975,7 @@ class LaplaceApproximation(BayesianInference):
         y: np.ndarray,
         eps: float = 1e-5
     ) -> np.ndarray:
-        """기울기를 수로 셈한다."""
+        """그래디언트를 수로 셈한다."""
         grad = np.zeros_like(theta)
         
         for i in range(len(theta)):
@@ -1075,7 +1075,7 @@ class LaplaceApproximation(BayesianInference):
 
 class MeanFieldVI(BayesianInference):
     """
-    베이즈 신경 그물을 위한 평균 마당 변이 미루어 봄.
+    베이즈 뉴럴 넷트웍을 위한 평균 마당 변이 미루어 봄.
     
     뒷분포를 곱으로 가른 가우스로 어림한다:
     q(θ) = ∏_i N(θ_i | μ_i, σ_i²)
@@ -1095,17 +1095,17 @@ class MeanFieldVI(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            신경 그물 구조
+            뉴럴 넷트웍 구조
         prior_std : float
             앞선 분포의 표준편차
         noise_std : float
             살핌 잡음의 표준편차
         n_iterations : int
-            가장 좋게 하기 되돌이 횟수
+            가장 좋게 하기 회귀 횟수
         lr : float
-            배움 비율
+            러닝 비율
         n_mc_samples : int
-            기울기를 어림할 MC 표본의 수
+            그래디언트를 어림할 MC 표본의 수
         kl_weight : float
             KL 항의 짐(KL을 천천히 올리기용)
         """
@@ -1121,7 +1121,7 @@ class MeanFieldVI(BayesianInference):
         self.log_sigma = None
     
     def _sample_weights(self) -> np.ndarray:
-        """매개변수 다시 잡기 재주로 짐을 뽑는다."""
+        """파라메터 다시 잡기 재주로 짐을 뽑는다."""
         eps = np.random.randn(len(self.mu))
         sigma = np.exp(self.log_sigma)
         return self.mu + sigma * eps
@@ -1142,7 +1142,7 @@ class MeanFieldVI(BayesianInference):
         N: int
     ) -> Tuple[float, np.ndarray, np.ndarray]:
         """
-        ELBO와 기울기를 셈한다.
+        ELBO와 그래디언트를 셈한다.
         
         Returns
         -------
@@ -1171,11 +1171,11 @@ class MeanFieldVI(BayesianInference):
             ll = -0.5 * np.sum((y - pred)**2) / (self.noise_std**2)
             total_ll += ll
             
-            # 단순하게 수로 셈하는 기울기
+            # 단순하게 수로 셈하는 그래디언트
             delta = 1e-5
             
             for i in range(len(self.mu)):
-                # mu에 대한 기울기
+                # mu에 대한 그래디언트
                 theta_plus = theta.copy()
                 theta_plus[i] += delta
                 weights_plus = self.network.unflatten_weights(theta_plus)
@@ -1184,7 +1184,7 @@ class MeanFieldVI(BayesianInference):
                 
                 grad_mu_ll[i] += (ll_plus - ll) / delta
                 
-                # log_sigma에 대한 기울기(매개변수 다시 잡기를 지나)
+                # log_sigma에 대한 그래디언트(파라메터 다시 잡기를 지나)
                 # d/d(log σ) = d/dθ * dθ/d(log σ) = d/dθ * σ * ε
                 grad_log_sigma_ll[i] += (ll_plus - ll) / delta * sigma[i] * eps[i]
         
@@ -1198,7 +1198,7 @@ class MeanFieldVI(BayesianInference):
         grad_mu_ll *= scale
         grad_log_sigma_ll *= scale
         
-        # KL 갈림과 기울기
+        # KL 갈림과 그래디언트
         kl = self._kl_divergence()
         sigma = np.exp(self.log_sigma)
         grad_mu_kl = self.mu / (self.prior_std**2)
@@ -1212,23 +1212,23 @@ class MeanFieldVI(BayesianInference):
         return elbo, grad_mu, grad_log_sigma
     
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """변이 매개변수를 가장 좋게 한다."""
+        """변이 파라메터를 가장 좋게 한다."""
         N = len(X)
         n_params = self.network.n_params()
         
-        # 변이 매개변수의 첫자리를 잡는다
+        # 변이 파라메터의 첫자리를 잡는다
         self.mu = np.random.randn(n_params) * 0.1
         self.log_sigma = np.ones(n_params) * np.log(0.1)
         
         self.elbo_history = []
         
         for t in range(self.n_iterations):
-            # ELBO와 기울기를 셈한다
+            # ELBO와 그래디언트를 셈한다
             elbo, grad_mu, grad_log_sigma = self._elbo(X, y, N)
             
             # 고친다
             self.mu += self.lr * grad_mu
-            self.log_sigma += self.lr * 0.1 * grad_log_sigma  # 흩어짐에는 더 작은 배움 비율
+            self.log_sigma += self.lr * 0.1 * grad_log_sigma  # 흩어짐에는 더 작은 러닝 비율
             
             self.elbo_history.append(elbo)
             
@@ -1268,7 +1268,7 @@ class DeepEnsemble(BayesianInference):
     """
     아리송함을 어림하는 깊은 모둠.
     
-    첫값을 달리해 그물 M개를 서로 남남으로 익힌다.
+    첫값을 달리해 넷트웍 M개를 서로 남남으로 익힌다.
     """
     
     def __init__(
@@ -1283,15 +1283,15 @@ class DeepEnsemble(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            신경 그물 구조
+            뉴럴 넷트웍 구조
         n_members : int
-            모둠 갈래의 수
+            모둠 클래스의 수
         noise_std : float
             살핌 잡음의 표준편차
         n_iterations : int
-            갈래마다의 익힘 되돌이 횟수
+            클래스마다의 익힘 회귀 횟수
         lr : float
-            배움 비율
+            러닝 비율
         """
         self.network = network
         self.n_members = n_members
@@ -1307,14 +1307,14 @@ class DeepEnsemble(BayesianInference):
         y: np.ndarray,
         seed: int
     ) -> np.ndarray:
-        """모둠 갈래 하나를 익힌다."""
+        """모둠 클래스 하나를 익힌다."""
         np.random.seed(seed)
         
         weights = self.network.init_weights()
         theta = self.network.flatten_weights(weights)
         
         for t in range(self.n_iterations):
-            # 기울기를 셈한다(수로)
+            # 그래디언트를 셈한다(수로)
             grad = self._numerical_gradient(theta, X, y)
             theta = theta - self.lr * grad
         
@@ -1327,7 +1327,7 @@ class DeepEnsemble(BayesianInference):
         y: np.ndarray,
         eps: float = 1e-5
     ) -> np.ndarray:
-        """MSE의 기울기를 수로 셈한다."""
+        """MSE의 그래디언트를 수로 셈한다."""
         grad = np.zeros_like(theta)
         
         weights = self.network.unflatten_weights(theta)
@@ -1347,14 +1347,14 @@ class DeepEnsemble(BayesianInference):
         return grad
     
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """모둠 갈래를 모두 익힌다."""
+        """모둠 클래스를 모두 익힌다."""
         self.members = []
         
         for m in range(self.n_members):
             theta = self._train_member(X, y, seed=m * 42)
             self.members.append(theta)
         
-        print(f"모둠: 갈래 {self.n_members}개를 익혔다")
+        print(f"모둠: 클래스 {self.n_members}개를 익혔다")
     
     def predict(
         self,
@@ -1476,9 +1476,9 @@ def demo_inference_methods():
     print(f"\n익힘 자료: {N}점")
     print(f"참 함수: sin(x)")
     
-    # 그물을 만든다
+    # 넷트웍을 만든다
     network = SimpleNN([1, 20, 1], activation='tanh')
-    print(f"그물: {network.layer_sizes}, 매개변수 {network.n_params()}개")
+    print(f"넷트웍: {network.layer_sizes}, 파라메터 {network.n_params()}개")
     
     # 여러 방법을 익힌다
     methods = {}
@@ -1517,7 +1517,7 @@ def demo_sgld():
     """SGLD 표본 뽑기를 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("확률 기울기 랑주뱅 움직임")
+    print("확률 그래디언트 랑주뱅 액션")
     print("=" * 70)
     
     np.random.seed(42)
@@ -1529,7 +1529,7 @@ def demo_sgld():
     
     network = SimpleNN([1, 10, 1], activation='tanh')
     
-    print(f"\n매개변수 {network.n_params()}개로 SGLD를 돌리는 중...")
+    print(f"\n파라메터 {network.n_params()}개로 SGLD를 돌리는 중...")
     
     sgld = SGLD(
         network,
@@ -1568,11 +1568,11 @@ def demo_variational_inference():
     X_train = np.random.uniform(-3, 3, N).reshape(-1, 1)
     y_train = np.sin(X_train) + np.random.normal(0, 0.2, (N, 1))
     
-    # VI을 빠르게 하려고 작은 그물
+    # VI을 빠르게 하려고 작은 넷트웍
     network = SimpleNN([1, 10, 1], activation='tanh')
     
-    print(f"\n매개변수 {network.n_params()}개로 VI을 돌리는 중...")
-    print("(수로 셈하는 기울기 탓에 좀 걸릴 수 있다)")
+    print(f"\n파라메터 {network.n_params()}개로 VI을 돌리는 중...")
+    print("(수로 셈하는 그래디언트 탓에 좀 걸릴 수 있다)")
     
     vi = MeanFieldVI(
         network,
@@ -1609,13 +1609,13 @@ if __name__ == "__main__":
 
 익힘 자료: 20점
 참 함수: sin(x)
-그물: [1, 20, 1], 매개변수 61개
+넷트웍: [1, 20, 1], 파라메터 61개
 
 --- 라플라스 어림 ---
 라플라스: MAP을 찾고 뒷분포 흩어짐을 셈했다
 
 --- 깊은 모둠 ---
-모둠: 갈래 5개를 익혔다
+모둠: 클래스 5개를 익혔다
 
 --- 따지기 ---
 방법                   NLL     RMSE    덮음90%
@@ -1624,10 +1624,10 @@ Laplace          219.130 6142289553577.813    1.50%
 Ensemble           5.349    0.710   58.50%
 
 ======================================================================
-확률 기울기 랑주뱅 움직임
+확률 그래디언트 랑주뱅 액션
 ======================================================================
 
-매개변수 31개로 SGLD를 돌리는 중...
+파라메터 31개로 SGLD를 돌리는 중...
 SGLD: 표본 300개를 모았다
 
 모은 표본: 300
@@ -1637,8 +1637,8 @@ SGLD: 표본 300개를 모았다
 평균 마당 변이 미루어 봄
 ======================================================================
 
-매개변수 31개로 VI을 돌리는 중...
-(수로 셈하는 기울기 탓에 좀 걸릴 수 있다)
+파라메터 31개로 VI을 돌리는 중...
+(수로 셈하는 그래디언트 탓에 좀 걸릴 수 있다)
 VI: 가장 좋게 하기를 마쳤다, 마지막 ELBO = nan
 
 뒷분포 자:
@@ -1654,12 +1654,12 @@ VI: 가장 좋게 하기를 마쳤다, 마지막 ELBO = nan
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-ReLU 활성화와 가우시안 가중치 사전분포를 지닌 두 켜 신경망에서, 이 마디에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
+ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 넷트웍에서, 이 마디에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    가중치가 $W_1, W_2$이고 가우시안 사전분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 사후분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 근사 방법은 다룰 수 있는 꼴을 낸다. 변분 추론이면 가중치마다 서로 독립인 가우시안 사후분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 근사이면 사후분포가 MAP 추정을 가운데로 삼고 공분산이 헤세 행렬의 역인 가우시안 하나이며, MC 드롭아웃이면 사후분포가 드롭아웃 마스크 분포로 넌지시 세워진다. 근사마다 참 사후분포 모습의 서로 다른 특성을 담는다. $\square$
+    웨이트가 $W_1, W_2$이고 가우시안 사전분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 사후분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 근사 방법은 다룰 수 있는 꼴을 낸다. 변분 추론이면 웨이트마다 서로 독립인 가우시안 사후분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 근사이면 사후분포가 MAP 추정을 가운데로 삼고 공분산이 헤세 행렬의 역인 가우시안 하나이며, MC 드롭아웃이면 사후분포가 드롭아웃 마스크 분포로 넌지시 세워진다. 근사마다 참 사후분포 모습의 서로 다른 특성을 담는다. $\square$
 
 ---
 
@@ -1678,12 +1678,12 @@ ReLU 활성화와 가우시안 가중치 사전분포를 지닌 두 켜 신경�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-베이즈 신경망의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+베이즈 뉴럴 넷트웍의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    추론 분산은 온 분산 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 우연적 몫은 데이터를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 인식적 몫은 매개변수의 불확실성을 드러내며 사후분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 우연적 불확실성만 남는다. 이 쪼갬은 데이터를 더 모아야 할 때(인식적 불확실성이 클 때)와 우연적 잡음을 받아들여야 할 때(우연적 불확실성이 클 때)를 가르는 데 중요하다. $\square$
+    추론 분산은 온 분산 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 우연적 몫은 데이터를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 인식적 몫은 파라메터의 불확실성을 드러내며 사후분포가 참 파라메터 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 우연적 불확실성만 남는다. 이 쪼갬은 데이터를 더 모아야 할 때(인식적 불확실성이 클 때)와 우연적 잡음을 받아들여야 할 때(우연적 불확실성이 클 때)를 가르는 데 중요하다. $\square$
 
 ---
 
@@ -1760,10 +1760,10 @@ $$
 
 | 이야기 | 장 | 이어짐 |
 |-------|---------|------------|
-| 사전분포 정하기 | 43장: 가중치의 사전분포 | 사후분포의 입력 |
+| 사전분포 정하기 | 43장: 웨이트의 사전분포 | 사후분포의 입력 |
 | 불확실성 | 43장: 불확실성 | 사후분포가 쪼갬을 이룬다 |
 | MC 드롭아웃 | 43장: MC 드롭아웃 | 넌지시 하는 변분 추론 |
-| 변분 베이즈 신경망 | 43장: 변분 베이즈 신경망 | VI을 자세히 다룸 |
+| 변분 베이즈 뉴럴 넷트웍 | 43장: 변분 베이즈 뉴럴 넷트웍 | VI을 자세히 다룸 |
 | 모델 비교 | 43장: 소식 잣대 | 주변 우도 |
 
 ### 핵심 살펴볼 거리

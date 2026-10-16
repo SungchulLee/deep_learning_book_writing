@@ -14,14 +14,14 @@ T=1은 선택한 에너지 단위의 기준일 뿐 모든 응용에서 특별히
 
 β_i=1/T_i, E_i=E(x_i)일 때 상태 교환의 로그비는 (β_i−β_j)(E_i−E_j)다. 아래 parallel_tempering_step은 에너지 차이를 반대로 써 이 비의 부호가 뒤집혀 있으므로 의도한 곱 목표의 교환 규칙으로 해석할 수 없다. metropolis_step·np도 외부 정의가 필요하다.
 
-Annealed importance sampling은 정확한 쉬운 초기분포와 중간 미정규화 밀도 γ_t, 각 정규화 목표를 보존하는 전이를 결합한다. 가중치는 경로에 맞춰 ∏γ_t(x_{t−1})/γ_{t−1}(x_{t−1})로 구성한다. 정규화된 p_t와 미지 정규화 상수비를 혼용하지 않는다. 적절한 조건에서 상수비를 추정할 수 있지만 모든 경로가 직접 IS보다 작은 분산을 보장하지는 않는다. [AIS 원 논문](https://arxiv.org/abs/physics/9803008)을 참고한다.
+Annealed importance sampling은 정확한 쉬운 초기분포와 중간 미정규화 밀도 γ_t, 각 정규화 목표를 보존하는 전이를 결합한다. 웨이트는 경로에 맞춰 ∏γ_t(x_{t−1})/γ_{t−1}(x_{t−1})로 구성한다. 정규화된 p_t와 미지 정규화 상수비를 혼용하지 않는다. 적절한 조건에서 상수비를 추정할 수 있지만 모든 경로가 직접 IS보다 작은 분산을 보장하지는 않는다. [AIS 원 논문](https://arxiv.org/abs/physics/9803008)을 참고한다.
 
 ```python
 def parallel_tempering_step(chains, temperatures, E):
     """병렬 온도 다루기의 한 걸음."""
     n_chains = len(chains)
     
-    # 온도마다의 가까운 움직임
+    # 온도마다의 가까운 액션
     for i in range(n_chains):
         chains[i] = metropolis_step(chains[i], E, temperatures[i])
     
@@ -40,7 +40,7 @@ def parallel_tempering_step(chains, temperatures, E):
 
 고정 T에서 dX=−∇Edt+√(2T)dW는 exp(−E/T)를 목표로 한다. 시간 단위를 바꾸면 dX=−∇E/Tdt+√2dW도 같은 정상 목표를 가질 수 있다. 따라서 온도를 드리프트로 표현하면 언제나 틀리다는 설명은 아니다.
 
-이산 근사 X′=X−h∇E+√(2hT)η에는 유한 스텝 편향·안정성 조건이 남는다. T→0의 고정 시간 극한은 경사 흐름과 연결되지만 비볼록 전역 최적을 자동으로 보장하지 않는다. T→∞에서는 잡음이 커지지만 시간·공간 재조정 없이 하나의 유한 계수 브라운 운동으로 수렴한다고 표현하지 않는다.
+이산 근사 X′=X−h∇E+√(2hT)η에는 유한 스텝 바이어스·안정성 조건이 남는다. T→0의 고정 시간 극한은 경사 흐름과 연결되지만 비볼록 전역 최적을 자동으로 보장하지 않는다. T→∞에서는 잡음이 커지지만 시간·공간 재조정 없이 하나의 유한 계수 브라운 운동으로 수렴한다고 표현하지 않는다.
 
 ## 4. 확산 모델에서의 온도
 
@@ -50,7 +50,7 @@ def parallel_tempering_step(chains, temperatures, E):
 
 생성 잡음을 cσ_t로 조절하는 휴리스틱은 가능하지만 최종 분포를 정확히 π^(1/T)로 만든다고 보장하지 않는다. σ_t^(1/T)라는 식은 온도 0에서 정의되지 않고 단위와 크기에 따라 방향도 달라져 보편적인 온도 공식으로 쓰지 않는다. DDIM의 결정적 극한은 평균·전이식 전체를 맞춘 별도 샘플러이며 임의 DDPM 역잡음만 0으로 놓는 것과 동일시하지 않는다.
 
-## 5. 신경망에서의 온도
+## 5. 뉴럴 넷트웍에서의 온도
 
 유한 로짓 z_i에서 softmax_T(z)_i=exp(z_i/T)/∑exp(z_j/T)다. T→∞는 균등, T→0은 최대 로짓 집합에 균등 집중하며 유일 최대일 때 one-hot이 된다. 양의 T는 클래스 argmax 순서를 바꾸지 않는다.
 
@@ -64,11 +64,11 @@ def distillation_loss(student_logits, teacher_logits, labels, T=4.0, alpha=0.5):
     soft_targets = F.softmax(teacher_logits / T, dim=1)
     soft_student = F.log_softmax(student_logits / T, dim=1)
     
-    # 앎 내리기 손실(힌턴을 따라 T^2으로 크기 맞춤)
+    # 앎 내리기 로스(힌턴을 따라 T^2으로 크기 맞춤)
     distill_loss = F.kl_div(soft_student, soft_targets, 
                             reduction='batchmean') * T * T
     
-    # 딱 잘라 붙인 이름표의 손실
+    # 딱 잘라 붙인 이름표의 로스
     hard_loss = F.cross_entropy(student_logits, labels)
     
     return alpha * distill_loss + (1 - alpha) * hard_loss
@@ -76,13 +76,13 @@ def distillation_loss(student_logits, teacher_logits, labels, T=4.0, alpha=0.5):
 
 ## 6. 강화 학습에서의 온도
 
-유한 행동에서 고정 Q(s,a)에 대해 엔트로피 정규화된 선택은 분포 π를 최적화한다.
+유한 액션에서 고정 Q(s,a)에 대해 엔트로피 정규화된 선택은 분포 π를 최적화한다.
 
 $$V(s)=\max_\pi\{E_{a\sim\pi}Q(s,a)+T H(\pi(\cdot|s))\}=T\log\sum_a\exp(Q(s,a)/T).$$
 
-해는 π*(a|s)∝exp(Q(s,a)/T)다. 단일 행동의 max 안에 그 행동의 −Tlog π만 넣는 원래 식과 다르다. 실제 soft Bellman에는 할인·보상·상태 전이와 미래 soft value를 일관되게 정의해야 한다.
+해는 π*(a|s)∝exp(Q(s,a)/T)다. 단일 액션의 max 안에 그 액션의 −Tlog π만 넣는 원래 식과 다르다. 실제 soft Bellman에는 할인·리워드·상태 전이와 미래 soft value를 일관되게 정의해야 한다.
 
-SAC의 엔트로피 계수 α는 보상과 엔트로피의 상대 가중이다. 목표 엔트로피에 대한 적응을 사용할 수 있지만 학습 성공이나 모든 행동 탐색의 보증은 아니다. 연속 행동에서는 밀도·미분 엔트로피와 적분 가능성도 확인한다.
+SAC의 엔트로피 계수 α는 리워드와 엔트로피의 상대 가중이다. 목표 엔트로피에 대한 적응을 사용할 수 있지만 학습 성공이나 모든 액션 탐색의 보증은 아니다. 연속 액션에서는 밀도·미분 엔트로피와 적분 가능성도 확인한다.
 
 ## 7. 최적화에서의 온도
 
@@ -92,7 +92,7 @@ SAC의 엔트로피 계수 α는 보상과 엔트로피의 상대 가중이다. 
 
 ## 8. 정확한 대응과 비유의 경계
 
-볼츠만 분포·유한 softmax·고정 Q의 최대엔트로피 정책에는 지수 가중과 엔트로피 변분 원리가 직접 대응한다. 최적수송에는 주변 제약, 확산 생성에는 시간별 오염·역과정이 추가되어 같은 수식 하나로 모두 환원되지는 않는다.
+볼츠만 분포·유한 softmax·고정 Q의 최대엔트로피 폴리시에는 지수 가중과 엔트로피 변분 원리가 직접 대응한다. 최적수송에는 주변 제약, 확산 생성에는 시간별 오염·역과정이 추가되어 같은 수식 하나로 모두 환원되지는 않는다.
 
 아래 p_wrong=softmax(z)^(1/T)는 합이 1이 아닐 수 있다. 하지만 이 벡터를 다시 합으로 나누면 정확히 softmax(z/T)와 같다. 거듭제곱 자체가 틀렸다기보다 재정규화가 빠진 조각이다. T와 정규화 상수는 비교 목적에 맞게 처리한다.
 
@@ -145,12 +145,12 @@ softmax 확률에 1/T 거듭제곱을 취하는 방식은 항상 틀린가?
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-엔트로피 정책의 soft value를 무엇에 대해 최적화하는가?
+엔트로피 폴리시의 soft value를 무엇에 대해 최적화하는가?
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    단일 행동이 아니라 행동분포 π에 대해 E_πQ+T H(π)를 최대화한다. 유한 행동의 값은 T log∑exp(Q/T)다.
+    단일 액션이 아니라 액션분포 π에 대해 E_πQ+T H(π)를 최대화한다. 유한 액션의 값은 T log∑exp(Q/T)다.
 
 ---
 

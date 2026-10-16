@@ -11,9 +11,9 @@ AutoML은 전처리와 모델·하이퍼파라미터 선택의 일부를 자동�
     AutoML - 자동화된 기계학습
 
     AutoML은 다음을 포함한 기계학습 파이프라인 전체를 자동화한다:
-    - 특징 전처리
+    - 피처 전처리
     - 모델 선택
-    - 초매개변수 조율
+    - 초파라메터 조율
     - 앙상블 구성
 
     널리 쓰이는 AutoML 라이브러리:
@@ -68,7 +68,7 @@ AutoML은 전처리와 모델·하이퍼파라미터 선택의 일부를 자동�
         # 데이터를 불러온다
         X_train, X_test, y_train, y_test = load_sample_dataset('wine')
 
-        # 매개변수 선택지와 함께 후보 모델 정의
+        # 파라메터 선택지와 함께 후보 모델 정의
         models = {
             'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42),
             'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, random_state=42),
@@ -148,7 +148,7 @@ AutoML은 전처리와 모델·하이퍼파라미터 선택의 일부를 자동�
 
     def automl_with_hyperparameter_tuning():
         """
-        모델마다 초매개변수 조율까지 포함하는 더 발전된 AutoML
+        모델마다 초파라메터 조율까지 포함하는 더 발전된 AutoML
         """
         print("\n" + "="*60)
         print("AUTOML WITH HYPERPARAMETER TUNING")
@@ -160,7 +160,7 @@ AutoML은 전처리와 모델·하이퍼파라미터 선택의 일부를 자동�
         # 데이터를 불러온다
         X_train, X_test, y_train, y_test = load_sample_dataset('synthetic')
 
-        # 매개변수 분포와 함께 모델 정의
+        # 파라메터 분포와 함께 모델 정의
         model_configs = {
             'Random Forest': {
                 'model': RandomForestClassifier(random_state=42),
@@ -202,7 +202,7 @@ AutoML은 전처리와 모델·하이퍼파라미터 선택의 일부를 자동�
                 ('model', config['model'])
             ])
 
-            # 초매개변수에 대한 무작위 탐색
+            # 초파라메터에 대한 무작위 탐색
             random_search = RandomizedSearchCV(
                 pipeline,
                 config['params'],
@@ -616,7 +616,7 @@ AutoML은 전처리와 모델·하이퍼파라미터 선택의 일부를 자동�
 
 간단한 AutoML은 후보 모델을 같은 교차 검증 기준에서 비교한다. 파이프라인에 scaler를 포함하면 각 폴드 학습 부분에서 전처리를 맞출 수 있다. 모든 후보에 표준화가 반드시 필요한 것은 아니지만 데이터 누출을 막는 구조는 유지해야 한다.
 
-모델 선택과 하이퍼파라미터 탐색을 함께 하면 후보 수와 비용이 커진다. 자동화가 데이터 의미, 분할·지표·누출 검증까지 대신하는 것은 아니다. 최선 점수의 선택 편향도 남는다.
+모델 선택과 하이퍼파라미터 탐색을 함께 하면 후보 수와 비용이 커진다. 자동화가 데이터 의미, 분할·지표·누출 검증까지 대신하는 것은 아니다. 최선 점수의 선택 바이어스도 남는다.
 
 soft voting은 클래스별 확률을 평균낸다. 클래스 순서와 확률 추정의 품질이 맞아야 하며, 오차가 충분히 다르지 않거나 나쁜 모델이 포함되면 개별 모델보다 나쁠 수 있다. TPOT 예제는 해당 버전의 API와 별도 의존성이 필요하다.
 
@@ -643,7 +643,7 @@ soft voting의 입력과 결과를 해석할 때 필요한 조건을 제시하�
 </div>
 
 ??? success "연습문제 2 풀이"
-    각 모델의 클래스 순서와 predict_proba 출력을 맞춘다. 확률 보정과 가중치 선택도 검증하고 평균이 자동으로 좋은 확률이나 정확도를 보장한다고 보지 않는다.
+    각 모델의 클래스 순서와 predict_proba 출력을 맞춘다. 확률 보정과 웨이트 선택도 검증하고 평균이 자동으로 좋은 확률이나 정확도를 보장한다고 보지 않는다.
 
 ---
 

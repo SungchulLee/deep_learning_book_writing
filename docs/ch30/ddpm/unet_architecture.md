@@ -1,6 +1,6 @@
 # 확산 모델을 위한 U-Net 구조
 
-확산의 노이즈 예측기는 관측 이미지와 시간 조건을 받아 같은 공간 크기의 텐서를 출력한다. U-Net은 축소 경로에서 넓은 범위의 특징을 만들고 확대 경로에서 같은 해상도의 특징을 다시 결합하는 구조다. 이 페이지의 SimpleUNet과 일반 UNet은 서로 다른 구현이며, 후자의 순방향 순서에는 기본 설정에서도 차원이 맞지 않는 문제가 있다.
+확산의 노이즈 예측기는 관측 이미지와 시간 조건을 받아 같은 공간 크기의 텐서를 출력한다. U-Net은 축소 경로에서 넓은 범위의 피처를 만들고 확대 경로에서 같은 해상도의 피처를 다시 결합하는 구조다. 이 페이지의 SimpleUNet과 일반 UNet은 서로 다른 구현이며, 후자의 순방향 순서에는 기본 설정에서도 차원이 맞지 않는 문제가 있다.
 
 ## 1. 코드
 
@@ -57,7 +57,7 @@ class ResidualBlock(nn.Module):
         """
         residual = self.residual_conv(x)
         
-        # 첫 누비기
+        # 첫 컨볼루션
         x = self.norm1(x)
         x = F.silu(x)
         x = self.conv1(x)
@@ -66,7 +66,7 @@ class ResidualBlock(nn.Module):
         time_emb = self.time_mlp(time_emb)
         x = x + time_emb[:, :, None, None]  # 공간 차원으로 퍼뜨린다
         
-        # 두 번째 누비기
+        # 두 번째 컨볼루션
         x = self.norm2(x)
         x = F.silu(x)
         x = self.conv2(x)
@@ -124,7 +124,7 @@ class AttentionBlock(nn.Module):
 
 
 class Downsample(nn.Module):
-    """겹말기를 쓴 줄이기 층."""
+    """겹말기를 쓴 줄이기 레이어."""
     
     def __init__(self, channels: int):
         super().__init__()
@@ -135,7 +135,7 @@ class Downsample(nn.Module):
 
 
 class Upsample(nn.Module):
-    """자리 바꾼 겹말기를 쓴 키우기 층."""
+    """자리 바꾼 겹말기를 쓴 키우기 레이어."""
     
     def __init__(self, channels: int):
         super().__init__()
@@ -149,7 +149,7 @@ class UNet(nn.Module):
     """
     확산 모델을 위한 U-Net 구조.
     
-    그물은 다음을 지닌다.
+    넷트웍은 다음을 지닌다.
     - 줄이기를 갖춘 인코더 길
     - 어텐션을 갖춘 병목
     - 키우기와 건너뛰기 이음을 갖춘 디코더 길
@@ -170,7 +170,7 @@ class UNet(nn.Module):
             in_channels: 들임 채널의 개수
             out_channels: 내놓는 채널의 개수
             base_channels: 바탕 채널 수
-            channel_multipliers: 해상도 층마다 채널 갑절
+            channel_multipliers: 해상도 레이어마다 채널 갑절
             num_res_blocks: 해상도마다 남은 덩이의 수
             attention_resolutions: 어텐션을 쓸 해상도
             dropout: 드롭아웃 확률
@@ -189,7 +189,7 @@ class UNet(nn.Module):
             nn.Linear(time_emb_dim, time_emb_dim),
         )
         
-        # 첫 합성곱
+        # 첫 컨볼루션
         self.conv_in = nn.Conv2d(in_channels, base_channels, kernel_size=3, padding=1)
         
         # 인코더
@@ -208,7 +208,7 @@ class UNet(nn.Module):
                 now_channels = out_ch
                 channels.append(now_channels)
             
-            # 마지막 층만 빼고 줄이기를 더한다
+            # 마지막 레이어만 빼고 줄이기를 더한다
             if i != len(channel_multipliers) - 1:
                 self.downsamples.append(Downsample(now_channels))
                 channels.append(now_channels)
@@ -234,7 +234,7 @@ class UNet(nn.Module):
                 self.decoder_blocks.append(block)
                 now_channels = out_ch
             
-            # 마지막 층만 빼고 키우기를 더한다
+            # 마지막 레이어만 빼고 키우기를 더한다
             if i != len(channel_multipliers) - 1:
                 self.upsamples.append(Upsample(now_channels))
         
@@ -247,7 +247,7 @@ class UNet(nn.Module):
     
     def forward(self, x: torch.Tensor, time: torch.Tensor) -> torch.Tensor:
         """
-        U-Net을 지나는 앞먹임.
+        U-Net을 지나는 피드포워드.
         
         인수:
             x: 잡음 섞인 들임, 꼴 (batch, in_channels, height, width)
@@ -259,7 +259,7 @@ class UNet(nn.Module):
         # 때 임베딩
         time_emb = self.time_embedding(time)
         
-        # 첫 합성곱
+        # 첫 컨볼루션
         x = self.conv_in(x)
         
         # 인코더
@@ -378,14 +378,14 @@ if __name__ == "__main__":
     out = model(x, t)
     print(f"UNet output shape: {out.shape}")
     
-    # 매개변수 개수 세기
+    # 파라메터 개수 세기
     params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters: {params:,}")
 ```
 
 ## 2. 시간 조건 잔차 블록
 
-ResidualBlock은 GroupNorm→SiLU→3×3 합성곱 뒤에 시간 임베딩의 선형 투영을 더한다. 다시 정규화·활성화·합성곱을 적용하고 입력의 Identity 또는 1×1 투영을 더한다. 공간 크기는 유지하며 시간 조건은 출력 채널 수만큼 만든 뒤 높이·너비에 브로드캐스팅한다.
+ResidualBlock은 GroupNorm→SiLU→3×3 컨볼루션 뒤에 시간 임베딩의 선형 투영을 더한다. 다시 정규화·활성화·컨볼루션을 적용하고 입력의 Identity 또는 1×1 투영을 더한다. 공간 크기는 유지하며 시간 조건은 출력 채널 수만큼 만든 뒤 높이·너비에 브로드캐스팅한다.
 
 이 시간 주입은 다른 페이지의 scale·shift 방식과 달리 **덧셈 방식**이다. GroupNorm의 입력·출력 채널은 그룹 수 8로 나누어져야 한다. 기본 채널 폭은 조건을 만족하지만 임의의 폭을 지원하는 것은 아니다.
 
@@ -393,7 +393,7 @@ SinusoidalPositionEmbedding은 diffusion_utils에서 가져온다. 실제 반환
 
 ## 3. 공간 어텐션
 
-AttentionBlock은 B×C×H×W를 헤드별 위치 시퀀스로 바꾸어 q·k·v를 계산한다. 위치 수 N=HW, 헤드 폭 Ch=C/heads이면 q·k·v는 B×heads×N×Ch다. 가중치 행렬은 B×heads×N×N이고 Ch의 제곱근으로 스케일한 뒤 softmax를 적용한다.
+AttentionBlock은 B×C×H×W를 헤드별 위치 시퀀스로 바꾸어 q·k·v를 계산한다. 위치 수 N=HW, 헤드 폭 Ch=C/heads이면 q·k·v는 B×heads×N×Ch다. 웨이트 행렬은 B×heads×N×N이고 Ch의 제곱근으로 스케일한 뒤 softmax를 적용한다.
 
 출력은 원래 이미지 모양으로 복원하고 1×1 투영 뒤 입력에 더한다. C는 헤드 수와 8로 나누어져야 한다. 어텐션은 위치 사이 상호작용을 제공하지만 메모리는 N²에 민감하므로 큰 해상도·배치에서 비용을 확인해야 한다.
 
@@ -401,7 +401,7 @@ AttentionBlock은 B×C×H×W를 헤드별 위치 시퀀스로 바꾸어 q·k·v�
 
 main이 먼저 만드는 SimpleUNet은 공간 연산을 잔차 블록 사이에 배치한다. base_channels=32에서 다음과 같다.
 
-| 특징 | 모양 |
+| 피처 | 모양 |
 |---|---|
 | conv1 | B×32×28×28 |
 | res1의 x2 | B×64×28×28 |
@@ -412,7 +412,7 @@ main이 먼저 만드는 SimpleUNet은 공간 연산을 잔차 블록 사이에 
 | x2 연결 후 res5 | B×32×28×28 |
 | 최종 출력 | B×1×28×28 |
 
-up1·up2는 전치 합성곱으로 공간을 두 배 키운다. SimpleUNet에는 AttentionBlock이 없으며 생성기 손실이나 샘플링 함수도 없다. 다른 이미지 크기에서는 두 번의 올림 축소와 두 배 확대가 skip 크기와 맞는지 확인해야 한다.
+up1·up2는 전치 컨볼루션으로 공간을 두 배 키운다. SimpleUNet에는 AttentionBlock이 없으며 생성기 로스나 샘플링 함수도 없다. 다른 이미지 크기에서는 두 번의 올림 축소와 두 배 확대가 skip 크기와 맞는지 확인해야 한다.
 
 ## 5. 일반 UNet의 실행 순서 불일치
 
@@ -426,7 +426,7 @@ main의 base_channels=32와 배수 (1,2,4,8)에서는 잔차 블록들을 모두
 
 ## 6. 구조 확인과 학습 검증의 차이
 
-데모는 임의의 4×1×28×28 입력과 시간으로 순방향을 호출할 뿐 데이터셋·노이즈 손실·optimizer·생성 평가를 갖추지 않는다. SimpleUNet의 출력 모양이 맞아도 올바른 노이즈 예측을 학습했다는 뜻은 아니다. 일반 UNet은 위에서 설명한 채널 문제를 먼저 갖고 있다.
+데모는 임의의 4×1×28×28 입력과 시간으로 순방향을 호출할 뿐 데이터셋·노이즈 로스·optimizer·생성 평가를 갖추지 않는다. SimpleUNet의 출력 모양이 맞아도 올바른 노이즈 예측을 학습했다는 뜻은 아니다. 일반 UNet은 위에서 설명한 채널 문제를 먼저 갖고 있다.
 
 이 코드 블록은 보존하며 실행·모델 학습이나 그림 재생성은 수행하지 않는다. 학습 파이프라인으로 연결할 때는 사용하려는 클래스, 입력 크기, 예측 대상과 시간·장치·정규화 조건을 명시해야 한다. 구조의 이름이나 파라미터 수로 생성 품질을 평가할 수는 없다.
 
@@ -456,7 +456,7 @@ SimpleUNet에서 첫 번째 skip 연결과 두 번째 skip 연결의 모양을 �
 
 ??? success "연습문제 2 풀이"
 
-    생성자는 첫 수준의 32채널 downsample을 만들지만 forward는 모든 잔차 블록부터 실행해 256채널 특징을 전달한다. 공간 축소를 수준 사이에 배치하도록 설계된 채널 목록과 실행 순서가 다르다. 디코더의 모든 확대를 뒤로 미룬 순서도 함께 검토해야 한다.
+    생성자는 첫 수준의 32채널 downsample을 만들지만 forward는 모든 잔차 블록부터 실행해 256채널 피처를 전달한다. 공간 축소를 수준 사이에 배치하도록 설계된 채널 목록과 실행 순서가 다르다. 디코더의 모든 확대를 뒤로 미룬 순서도 함께 검토해야 한다.
 
 
 

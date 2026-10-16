@@ -1,10 +1,10 @@
-# Saliency Map과 기본 기울기
+# Saliency Map과 기본 그래디언트
 
-**Saliency Map**은 신경망의 추론에 입력의 어느 데가 가장 중요한지 드러내는 그림 그리기 재주다. 뿌리를 보면 현저성 방법은 기초가 되는 물음에 답한다. *"모델은 이 판단을 내리는 데 어떤 입력 특징에 기대는가?"*
+**Saliency Map**은 뉴럴 넷트웍의 추론에 입력의 어느 데가 가장 중요한지 드러내는 그림 그리기 재주다. 뿌리를 보면 현저성 방법은 기초가 되는 물음에 답한다. *"모델은 이 판단을 내리는 데 어떤 입력 피처에 기대는가?"*
 
-가장 단순하고 가장 기초가 되는 길은 **맨 기울기**를 쓰는 것이다. 곧 모델의 내놓기를 입력으로 미분한다. 기초 생각은 곧다. **어떤 픽셀 값을 바꾸었을 때 추론이 크게 달라지면 그 픽셀이 중요하다.**
+가장 단순하고 가장 기초가 되는 길은 **맨 그래디언트**를 쓰는 것이다. 곧 모델의 내놓기를 입력으로 미분한다. 기초 생각은 곧다. **어떤 픽셀 값을 바꾸었을 때 추론이 크게 달라지면 그 픽셀이 중요하다.**
 
-이 장은 기울기 기반 현저성 방법의 수학 기초, 짜기의 자세한 것, 그리고 참으로 쓸 때 헤아릴 것을 들여온다. 단순하고 손에 잡히지만, 맨 기울기를 아는 일은 더 촘촘한 풀이 방법의 개념 기초가 되므로 꼭 있어야 한다.
+이 장은 그래디언트 기반 현저성 방법의 수학 기초, 짜기의 자세한 것, 그리고 참으로 쓸 때 헤아릴 것을 들여온다. 단순하고 손에 잡히지만, 맨 그래디언트를 아는 일은 더 촘촘한 풀이 방법의 개념 기초가 되므로 꼭 있어야 한다.
 
 ---
 
@@ -12,7 +12,7 @@
 
 ### 정의
 
-분류 함수 $f: \mathbb{R}^{n} \rightarrow \mathbb{R}^{C}$($n$차원 입력을 $C$개 클래스 점수로 옮긴다)가 주어졌을 때, 갈래 $c$과 입력 $\mathbf{x}$에 대한 Saliency Map은 이렇다.
+분류 함수 $f: \mathbb{R}^{n} \rightarrow \mathbb{R}^{C}$($n$차원 입력을 $C$개 클래스 점수로 옮긴다)가 주어졌을 때, 클래스 $c$과 입력 $\mathbf{x}$에 대한 Saliency Map은 이렇다.
 
 $$
 S_c(\mathbf{x}) = \left| \frac{\partial f_c(\mathbf{x})}{\partial \mathbf{x}} \right|
@@ -20,18 +20,18 @@ $$
 
 여기서 $|\cdot|$은 원소마다의 절댓값이다.
 
-### 예민함을 재는 자로서의 기울기
+### 예민함을 재는 자로서의 그래디언트
 
-기울기 $\frac{\partial f_c}{\partial x_i}$은 입력 특징 $x_i$을 아주 조금 바꿀 때 클래스 점수 $f_c$이 얼마나 흔들리는지, 곧 **예민함**을 잰다.
+그래디언트 $\frac{\partial f_c}{\partial x_i}$은 입력 피처 $x_i$을 아주 조금 바꿀 때 클래스 점수 $f_c$이 얼마나 흔들리는지, 곧 **예민함**을 잰다.
 
-- **기울기 크기가 크다** → 이 특징을 조금만 바꿔도 추론이 크게 달라진다
-- **기울기 크기가 작다** → 이 특징은 그 자리에서 추론에 거의 미치지 않는다
-- **기울기가 양수** → 이 특징을 올리면 클래스 점수가 오른다
-- **기울기가 음수** → 이 특징을 올리면 클래스 점수가 내린다
+- **그래디언트 크기가 크다** → 이 피처를 조금만 바꿔도 추론이 크게 달라진다
+- **그래디언트 크기가 작다** → 이 피처는 그 자리에서 추론에 거의 미치지 않는다
+- **그래디언트가 양수** → 이 피처를 올리면 클래스 점수가 오른다
+- **그래디언트가 음수** → 이 피처를 올리면 클래스 점수가 내린다
 
 ### 테일러 전개로 읽기
 
-기울기 기반 현저성은 일차 테일러 전개로 자연스레 읽을 수 있다. 작은 섭동 $\boldsymbol{\epsilon}$에 대해
+그래디언트 기반 현저성은 일차 테일러 전개로 자연스레 읽을 수 있다. 작은 섭동 $\boldsymbol{\epsilon}$에 대해
 
 $$
 f_c(\mathbf{x} + \boldsymbol{\epsilon}) \approx f_c(\mathbf{x}) + \boldsymbol{\epsilon}^\top \nabla_{\mathbf{x}} f_c(\mathbf{x})
@@ -39,14 +39,14 @@ $$
 
 여기서 다음이 드러난다.
 
-1. 픽셀 $i$에서 **기울기 크기가 크다**는 것은 $x_i$을 조금 바꿀 때 $y_c$이 크게 달라진다는 뜻이다
-2. **기울기의 방향**은 픽셀 값을 올릴 때 클래스 점수가 오르는지 내리는지를 알린다
-3. **절댓값 기울기**는 방향과 상관없이 예민함을 담는다
-4. 기울기는 내놓기를 가장 크게 바꾸는 **섭동의 방향**을 알려 준다
+1. 픽셀 $i$에서 **그래디언트 크기가 크다**는 것은 $x_i$을 조금 바꿀 때 $y_c$이 크게 달라진다는 뜻이다
+2. **그래디언트의 방향**은 픽셀 값을 올릴 때 클래스 점수가 오르는지 내리는지를 알린다
+3. **절댓값 그래디언트**는 방향과 상관없이 예민함을 담는다
+4. 그래디언트는 내놓기를 가장 크게 바꾸는 **섭동의 방향**을 알려 준다
 
 ### 여러 통로 모으기
 
-꼴이 $(3, H, W)$인 RGB 그림이면 모든 통로에 대해 기울기를 계산하고 모은다.
+꼴이 $(3, H, W)$인 RGB 그림이면 모든 통로에 대해 그래디언트를 계산하고 모은다.
 
 $$
 \mathbf{G} = \frac{\partial y_c}{\partial \mathbf{x}} \in \mathbb{R}^{3 \times H \times W}
@@ -54,18 +54,18 @@ $$
 
 흔히 쓰는 모으기 꾀는 이렇다.
 
-| 방법 | 꼴 | 특징 |
+| 방법 | 꼴 | 피처 |
 |--------|---------|-----------------|
 | **가장 큼** | $S_{i,j} = \max_{k \in \{R,G,B\}} \|G_{k,i,j}\|$ | 어느 통로에서든 중요한 픽셀을 짚는다 |
 | **평균** | $S_{i,j} = \frac{1}{3} \sum_{k} \|G_{k,i,j}\|$ | 통로에 걸쳐 중요함을 고르게 한다 |
-| **L2 크기** | $S_{i,j} = \sqrt{\sum_{k} G_{k,i,j}^2}$ | 기울기 벡터의 유클리드 크기 |
+| **L2 크기** | $S_{i,j} = \sqrt{\sum_{k} G_{k,i,j}^2}$ | 그래디언트 벡터의 유클리드 크기 |
 | **합** | $S_{i,j} = \sum_{k} \|G_{k,i,j}\|$ | 절댓값 예민함의 온 합 |
 
 ---
 
-## 2. PyTorch 짜보기
+## 2. PyTorch 구현
 
-### 기본 맨 기울기 현저성
+### 기본 맨 그래디언트 현저성
 
 ```python
 import torch
@@ -80,12 +80,12 @@ def compute_saliency_map(
     device: torch.device = None
 ) -> np.ndarray:
     """
-    맨 기울기 두드러짐 그림을 셈한다.
+    맨 그래디언트 두드러짐 그림을 셈한다.
 
     Args:
-        model: 따지는 결로 놓인 신경 그물 모형
+        model: 따지는 결로 놓인 뉴럴 넷트웍 모형
         input_tensor: (1, C, H, W) 꼴 들임 텐서
-        target_class: 겨눈 갈래 번호(None이면 미루어 본 갈래를 쓴다)
+        target_class: 겨눈 클래스 번호(None이면 미루어 본 클래스를 쓴다)
         device: 셈하는 장치
 
     Returns:
@@ -94,14 +94,14 @@ def compute_saliency_map(
     if device is None:
         device = next(model.parameters()).device
 
-    # 들임에 기울기 셈을 켠다
+    # 들임에 그래디언트 셈을 켠다
     input_tensor = input_tensor.clone().to(device).requires_grad_(True)
 
     # 앞으로 걸음
     model.eval()
     output = model(input_tensor)
 
-    # 겨눈 갈래를 정한다
+    # 겨눈 클래스를 정한다
     if target_class is None:
         target_class = output.argmax(dim=1).item()
 
@@ -109,7 +109,7 @@ def compute_saliency_map(
     model.zero_grad()
     output[0, target_class].backward()
 
-    # 들임에 대한 기울기를 집는다
+    # 들임에 대한 그래디언트를 집는다
     saliency = input_tensor.grad.data.abs()
 
     # 빛깔 통로를 가로질러 가장 큰 것을 잡는다
@@ -125,12 +125,12 @@ def compute_vanilla_gradient_saliency(
     device: torch.device
 ) -> torch.Tensor:
     """
-    맨 기울기 두드러짐 그림을 셈한다(텐서를 내놓는다).
+    맨 그래디언트 두드러짐 그림을 셈한다(텐서를 내놓는다).
 
     Args:
-        model: 따지는 결로 놓인 미리 익힌 신경 그물
+        model: 따지는 결로 놓인 미리 익힌 뉴럴 넷트웍
         image_tensor: 들임 그림 [1, 3, H, W]
-        target_class: 두드러짐을 셈할 갈래 번호
+        target_class: 두드러짐을 셈할 클래스 번호
         device: 셈하는 장치(CPU/GPU)
 
     Returns:
@@ -139,20 +139,20 @@ def compute_vanilla_gradient_saliency(
     model.eval()
     image_tensor = image_tensor.to(device)
 
-    # 기울기가 들임까지 흐르게 한다
+    # 그래디언트가 들임까지 흐르게 한다
     if image_tensor.grad is not None:
         image_tensor.grad.zero_()
 
     # 앞으로 걸음
     output = model(image_tensor)  # [1, num_classes]
 
-    # 겨눈 갈래 점수를 고른다
+    # 겨눈 클래스 점수를 고른다
     target_score = output[0, target_class]
 
     # 되짚기 걸음
     target_score.backward()
 
-    # 기울기를 집고 절댓값을 잡는다
+    # 그래디언트를 집고 절댓값을 잡는다
     gradients = image_tensor.grad  # [1, 3, H, W]
     abs_gradients = torch.abs(gradients)
 
@@ -174,8 +174,8 @@ def compute_signed_saliency(
     양수와 음수 이바지를 보이는 부호 있는 두드러짐을 셈한다.
 
     Returns:
-        positive_saliency: 올리면 갈래 점수를 올리는 결
-        negative_saliency: 올리면 갈래 점수를 내리는 결
+        positive_saliency: 올리면 클래스 점수를 올리는 결
+        negative_saliency: 올리면 클래스 점수를 내리는 결
     """
     input_tensor = input_tensor.clone().requires_grad_(True)
 
@@ -190,7 +190,7 @@ def compute_signed_saliency(
 
     gradient = input_tensor.grad.data
 
-    # 양수 기울기와 음수 기울기를 가른다
+    # 양수 그래디언트와 음수 그래디언트를 가른다
     positive = gradient.clamp(min=0)
     negative = gradient.clamp(max=0).abs()
 
@@ -201,12 +201,12 @@ def compute_signed_saliency(
     return positive_saliency, negative_saliency
 ```
 
-### 기울기 × 입력
+### 그래디언트 × 입력
 
-기울기에 입력 값을 곱하면 **있으면서** **중요한** 특징을 짚어 기여도 분석을 또렷하게 할 수 있다.
+그래디언트에 입력 값을 곱하면 **있으면서** **중요한** 피처를 짚어 기여도 분석을 또렷하게 할 수 있다.
 
 $$
-\text{기울기} \times \text{들임} = \mathbf{x} \odot \frac{\partial f_c}{\partial \mathbf{x}}
+\text{그래디언트} \times \text{들임} = \mathbf{x} \odot \frac{\partial f_c}{\partial \mathbf{x}}
 $$
 
 ```python
@@ -216,9 +216,9 @@ def gradient_times_input(
     target_class: int = None
 ) -> np.ndarray:
     """
-    기울기 × 들임 두드러짐을 셈한다.
+    그래디언트 × 들임 두드러짐을 셈한다.
 
-    기울기에 들임 값으로 짐을 실어, 있으면서 중요한 결이
+    그래디언트에 들임 값으로 짐을 실어, 있으면서 중요한 결이
     무엇인지 보인다.
     """
     input_tensor = input_tensor.clone().requires_grad_(True)
@@ -232,7 +232,7 @@ def gradient_times_input(
     model.zero_grad()
     output[0, target_class].backward()
 
-    # 기울기 × 들임
+    # 그래디언트 × 들임
     grad_input = input_tensor.grad.data * input_tensor.data
 
     # 절댓값을 잡고 통로를 가로질러 가장 큰 것
@@ -241,7 +241,7 @@ def gradient_times_input(
     return saliency
 ```
 
-### 모으기 갈래 모두
+### 모으기 클래스 모두
 
 ```python
 def compute_all_aggregations(
@@ -250,7 +250,7 @@ def compute_all_aggregations(
     target_class: int,
     device: torch.device
 ) -> dict:
-    """기울기 모으기 방법을 견준다."""
+    """그래디언트 모으기 방법을 견준다."""
     model.eval()
     input_tensor = input_tensor.clone().to(device).requires_grad_(True)
 
@@ -310,7 +310,7 @@ with torch.no_grad():
     pred_class = output.argmax(dim=1).item()
     confidence = torch.softmax(output, dim=1)[0, pred_class].item()
 
-print(f"미루어 본 갈래: {pred_class}, 자신함: {confidence:.2%}")
+print(f"미루어 본 클래스: {pred_class}, 자신함: {confidence:.2%}")
 
 # 여러 두드러짐 그림을 셈한다
 saliency = compute_saliency_map(model, image_tensor, pred_class, device)
@@ -412,8 +412,8 @@ def visualize_signed_saliency(
     """
     양수 두드러짐과 음수 두드러짐을 따로 그린다.
 
-    - 빨강: 올리면 갈래 점수를 올리는 결
-    - 파랑: 올리면 갈래 점수를 내리는 결
+    - 빨강: 올리면 클래스 점수를 올리는 결
+    - 파랑: 올리면 클래스 점수를 내리는 결
     """
     fig, axes = plt.subplots(1, 4, figsize=(20, 5))
 
@@ -442,9 +442,9 @@ def visualize_signed_saliency(
     return fig
 ```
 
-### 여러 갈래 비교
+### 여러 클래스 비교
 
-핵심 깨침은 Saliency Map이 **갈래마다 다르다**는 것이다. 겨눈 갈래가 다르면 그림의 다른 자리를 짚을 수 있다.
+핵심 깨침은 Saliency Map이 **클래스마다 다르다**는 것이다. 겨눈 클래스가 다르면 그림의 다른 자리를 짚을 수 있다.
 
 ```python
 def compare_class_saliencies(
@@ -455,9 +455,9 @@ def compare_class_saliencies(
     device: torch.device = None
 ) -> dict:
     """
-    여러 겨눈 갈래의 두드러짐 그림을 셈해 견준다.
+    여러 겨눈 클래스의 두드러짐 그림을 셈해 견준다.
 
-    갈래가 다르면 다른 자리를 짚는다는 것을 보인다.
+    클래스가 다르면 다른 자리를 짚는다는 것을 보인다.
     """
     if device is None:
         device = next(model.parameters()).device
@@ -470,12 +470,12 @@ def compare_class_saliencies(
 
         saliency = compute_saliency_map(model, img_copy, class_idx, device)
 
-        name = class_names[i] if class_names else f"갈래 {class_idx}"
+        name = class_names[i] if class_names else f"클래스 {class_idx}"
         saliencies[name] = saliency
 
     return saliencies
 
-# 보기: 앞선 3개 미루어 본 갈래를 견준다
+# 보기: 앞선 3개 미루어 본 클래스를 견준다
 with torch.no_grad():
     output = model(image_tensor.to(device))
     top_classes = output[0].topk(3).indices.tolist()
@@ -487,11 +487,11 @@ saliencies = compare_class_saliencies(model, image_tensor, top_classes, device=d
 
 ## 5. 셈속으로 살피기
 
-현저성 값의 퍼짐을 알면 진단에 도움이 된다.
+현저성 값의 스프레드를 알면 진단에 도움이 된다.
 
 ```python
 def analyze_saliency_statistics(saliency: np.ndarray) -> dict:
-    """두드러짐 퍼짐에 대한 셈속을 두루 셈한다."""
+    """두드러짐 스프레드에 대한 셈속을 두루 셈한다."""
     s = saliency.flatten()
 
     stats = {
@@ -515,7 +515,7 @@ def analyze_saliency_statistics(saliency: np.ndarray) -> dict:
 
 | 자 | 읽는 법 |
 |--------|----------------|
-| 성김이 큼(80% 넘음) | 몇몇 픽셀이 판친다. 자리를 뜻있게 짚었을 낌새 |
+| 성김이 큼(80% 넘음) | 몇몇 픽셀이 판친다. 자리를 뜻있게 짚었을 확률 |
 | 가장 큼/평균 비가 작음 | 중요함이 퍼져 있고 모델이 온 세상 소식을 쓴다 |
 | 분산이 큼 | 자리를 세게 짚고 기초를 누른다 |
 | p99/p95 사이가 큼 | 끝자락 값이 몇 개 있다. 자국이 아닌지 살펴라 |
@@ -526,11 +526,11 @@ def analyze_saliency_statistics(saliency: np.ndarray) -> dict:
 
 ### 1. 눈에 띄는 잡음
 
-맨 기울기 Saliency Map은 **잡음이 많기로** 이름났다. 까닭은 이렇다.
+맨 그래디언트 Saliency Map은 **잡음이 많기로** 이름났다. 까닭은 이렇다.
 
-1. **높은 잦기에 예민함**: 신경망은 립시츠 상수가 커서 입력이 조금만 달라져도 기울기가 흔들린다
-2. **잦아듦**: ReLU 활성화가 기울기 터에 끊긴 데를 만든다
-3. **매끄럽지 않음**: 기울기는 그 자리의 예민함을 담을 뿐 온 세상 중요함을 담지 않는다
+1. **높은 잦기에 예민함**: 뉴럴 넷트웍은 립시츠 상수가 커서 입력이 조금만 달라져도 그래디언트가 흔들린다
+2. **잦아듦**: ReLU 활성화가 그래디언트 터에 끊긴 데를 만든다
+3. **매끄럽지 않음**: 그래디언트는 그 자리의 예민함을 담을 뿐 온 세상 중요함을 담지 않는다
 
 ```python
 def demonstrate_noise():
@@ -545,10 +545,10 @@ def demonstrate_noise():
 
     # 아무 들임에도 두드러짐이 흩어져 보이는 일이 잦다
     print(f"0이 아닌 그림점: {(saliency > 0.01 * saliency.max()).sum()}")
-    print(f"이는 기울기 바탕 두드러짐에 잡음이 있음을 알린다")
+    print(f"이는 그래디언트 바탕 두드러짐에 잡음이 있음을 알린다")
 ```
 
-### 2. 기울기 잦아듦
+### 2. 그래디언트 잦아듦
 
 잦아드는 비선형(시그모이드, tanh)이나 ReLU 네트워크에서는
 
@@ -556,17 +556,17 @@ $$
 \frac{\partial \text{ReLU}(x)}{\partial x} = \begin{cases} 1 & x > 0 \\ 0 & x \leq 0 \end{cases}
 $$
 
-활성화가 "죽은" 자리에 있으면 입력이 아무리 중요해도 기울기가 0이 된다. 자신함이 아주 큰 추론에서는 소프트맥스 기울기도 아주 작아진다.
+활성화가 "죽은" 자리에 있으면 입력이 아무리 중요해도 기울기가 0이 된다. 자신함이 아주 큰 추론에서는 소프트맥스 그래디언트도 아주 작아진다.
 
-**푸는 길:** 기울기를 셈할 때 소프트맥스 뒤의 낌새가 아니라 날 로짓(소프트맥스 앞의 점수)을 쓴다.
+**푸는 길:** 그래디언트를 셈할 때 소프트맥스 뒤의 확률이 아니라 날 로짓(소프트맥스 앞의 점수)을 쓴다.
 
-### 3. 갈래를 잘 가려내지 못함
+### 3. 클래스를 잘 가려내지 못함
 
-기울기를 정한 갈래에 대해 셈하는데도, 맨 현저성은 갈래가 달라도 비슷한 자리를 짚는 일이 잦다.
+그래디언트를 정한 클래스에 대해 셈하는데도, 맨 현저성은 클래스가 달라도 비슷한 자리를 짚는 일이 잦다.
 
 ```python
 def class_discrimination_test(model, input_tensor, device):
-    """갈래마다의 두드러짐 그림을 견준다."""
+    """클래스마다의 두드러짐 그림을 견준다."""
     with torch.no_grad():
         output = model(input_tensor.to(device))
         _, top_classes = output.topk(5)
@@ -577,8 +577,8 @@ def class_discrimination_test(model, input_tensor, device):
             model, input_tensor, cls.item(), device
         )
 
-    # 앞선 켜의 기울기를 모든 갈래가 함께 쓰므로
-    # 갈래마다의 두드러짐이 꽤 비슷해 보일 때가 많다
+    # 앞선 켜의 그래디언트를 모든 클래스가 함께 쓰므로
+    # 클래스마다의 두드러짐이 꽤 비슷해 보일 때가 많다
     return saliencies
 ```
 
@@ -609,7 +609,7 @@ def sensitivity_test(model, input_tensor, device, noise_scale=0.01):
 
 ## 7. SmoothGrad: 잡음 줄이기
 
-SmoothGrad은 입력에 잡음을 섞은 것들에 걸쳐 기울기를 고르게 해 잡음 문제를 다룬다.
+SmoothGrad은 입력에 잡음을 섞은 것들에 걸쳐 그래디언트를 고르게 해 잡음 문제를 다룬다.
 
 $$
 \hat{S}_c(\mathbf{x}) = \frac{1}{N} \sum_{i=1}^{N} \left| \frac{\partial f_c(\mathbf{x} + \mathcal{N}(0, \sigma^2))}{\partial \mathbf{x}} \right|
@@ -628,9 +628,9 @@ def smoothgrad(
     SmoothGrad 두드러짐 그림을 셈한다.
 
     Args:
-        model: 신경 그물
+        model: 뉴럴 넷트웍
         input_tensor: 들임 텐서
-        target_class: 겨눈 갈래
+        target_class: 겨눈 클래스
         n_samples: 잡음 표본의 수
         noise_level: 잡음의 잣대 벗어남(들임 너비에 대한 몫)
         device: 셈하는 장치
@@ -664,7 +664,7 @@ def smoothgrad(
         model.zero_grad()
         output[0, target_class].backward()
 
-        # 기울기를 쌓는다
+        # 그래디언트를 쌓는다
         accumulated_grad += noisy_input.grad.data.abs()
 
     # 고르게 한다
@@ -698,7 +698,7 @@ def time_series_saliency(
     Args:
         model: 열 모형(LSTM, 변환기 등)
         sequence: 들임 열 [1, 열 길이, 결]이나 [1, 열 길이]
-        target_class: 가름 모형의 겨눈 갈래
+        target_class: 가름 모형의 겨눈 클래스
 
     Returns:
         때 축에 걸친 두드러짐
@@ -726,7 +726,7 @@ def time_series_saliency(
     return saliency
 ```
 
-### 표 데이터의 특징 중요함
+### 표 데이터의 피처 중요함
 
 표로 된 금융 데이터(신용 위험, 거래 신호 등)에는
 
@@ -738,13 +738,13 @@ def tabular_saliency(
     target_class: int = None
 ) -> np.ndarray:
     """
-    기울기로 결 중요함을 셈하고 그린다.
+    그래디언트로 결 중요함을 셈하고 그린다.
 
     Args:
-        model: 가름이나 되돌이 모형
+        model: 가름이나 회귀 모형
         features: 결 텐서 [1, n_features]
         feature_names: 결 이름 목록
-        target_class: 겨눈 갈래(가름일 때)
+        target_class: 겨눈 클래스(가름일 때)
 
     Returns:
         결마다의 중요함 점수
@@ -767,7 +767,7 @@ def tabular_saliency(
     # 중요함으로 줄 세운다
     sorted_idx = np.argsort(importance)[::-1]
 
-    print("결 중요함(기울기 크기로):")
+    print("결 중요함(그래디언트 크기로):")
     print("-" * 50)
     for i in sorted_idx[:10]:
         print(f"{feature_names[i]:30s}: {importance[i]:.6f}")
@@ -779,36 +779,36 @@ def tabular_saliency(
 
 ## 9. 다른 방법과의 이어짐
 
-맨 기울기는 더 촘촘한 방법의 기초가 된다.
+맨 그래디언트는 더 촘촘한 방법의 기초가 된다.
 
 | 방법 | 고침 | 다루는 것 |
 |--------|--------------|-----------|
-| **기울기 × 입력** | 입력 값을 곱한다 | 특징을 또렷하게 한다 |
+| **그래디언트 × 입력** | 입력 값을 곱한다 | 피처를 또렷하게 한다 |
 | **SmoothGrad** | 잡음 표본에 걸쳐 고르게 한다 | 잡음을 줄인다 |
 | **Integrated Gradients** | 밑금에서 오는 길을 따라 적분한다 | 공리를 채운다 |
 | **이끈 되짚기** | ReLU 되짚기 걸음을 고친다 | 그림이 깨끗해진다 |
-| **Grad-CAM** | 특징 그림의 기울기를 쓴다 | 갈래를 가려낸다 |
+| **Grad-CAM** | 피처 그림의 그래디언트를 쓴다 | 클래스를 가려낸다 |
 
 ### 비교 표
 
 | 방법 | 나은 점 | 못한 점 |
 |--------|------|------|
-| 맨 기울기 | 단순하고 빠르며 기초가 된다 | 잡음이 많고 갈래를 잘 못 가려낸다 |
-| 기울기 × 입력 | 특징이 더 또렷하다 | 여전히 잡음이 많다 |
+| 맨 그래디언트 | 단순하고 빠르며 기초가 된다 | 잡음이 많고 클래스를 잘 못 가려낸다 |
+| 그래디언트 × 입력 | 피처가 더 또렷하다 | 여전히 잡음이 많다 |
 | SmoothGrad | 잡음이 준다 | 계산이 비싸다 |
-| Grad-CAM | 깨끗하고 갈래를 가려낸다 | 특징이 성기다 |
+| Grad-CAM | 깨끗하고 클래스를 가려낸다 | 피처가 성기다 |
 | Integrated Gradients | 이론 보장이 있다 | 느리고 밑금에 매인다 |
 
 ---
 
 ## 10. 참으로 쓸 때 이르는 말
 
-### 맨 기울기를 쓸 때
+### 맨 그래디언트를 쓸 때
 
 **알맞은 자리:**
 
 - 빠른 디버깅과 제정신인지 살피기
-- 기울기 흐름 알아보기
+- 그래디언트 흐름 알아보기
 - 다른 방법과 견줄 밑금
 - 가르치기 몫
 - 처음 둘러보기
@@ -818,15 +818,15 @@ def tabular_saliency(
 - 논문에 실을 그림(잡음이 너무 많다)
 - 서비스에서의 풀이하기(더 매끄러운 방법을 쓰라)
 - 걸린 것이 큰 판단(다른 증거와 아울러 쓰라)
-- 갈래를 가려내는 풀이(Grad-CAM을 쓰라)
+- 클래스를 가려내는 풀이(Grad-CAM을 쓰라)
 
 ### 짜기 살핌 목록
 
-1. ✅ **모델을 따지는 특징로**: `model.eval()`으로 한결같이 돌게 한다
-2. ✅ **입력에 기울기를 켠다**: `image_tensor.requires_grad = True`
-3. ✅ **남은 기울기를 지운다**: 되짚기 앞에 `model.zero_grad()`
-4. ✅ **알맞은 갈래를 쓴다**: 예측한 갈래나 눈여겨보는 갈래
-5. ✅ **소프트맥스가 아니라 로짓을 쓴다**: 기울기 잦아듦을 피한다
+1. ✅ **모델을 따지는 피처로**: `model.eval()`으로 한결같이 돌게 한다
+2. ✅ **입력에 그래디언트를 켠다**: `image_tensor.requires_grad = True`
+3. ✅ **남은 그래디언트를 지운다**: 되짚기 앞에 `model.zero_grad()`
+4. ✅ **알맞은 클래스를 쓴다**: 예측한 클래스나 눈여겨보는 클래스
+5. ✅ **소프트맥스가 아니라 로짓을 쓴다**: 그래디언트 잦아듦을 피한다
 6. ✅ **그리려고 고르게 한다**: $[0, 1]$으로 잣대를 잡는다
 7. ✅ **텐서를 베낀다**: 견줄 때는 되짚기마다 새 텐서를 쓴다
 
@@ -837,36 +837,36 @@ def tabular_saliency(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 마디에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 층 신경망에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 마디에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    가중치가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 입력 특징마다 몫을 내놓는다. $x = [1, 1]$(갈래 0)이면 두 특징 모두 음수 분류에 이바지한다. 몫 값은 방법마다 다르다. 기울기 기반 방법은 $\partial f / \partial x_i$을 계산하고, 흔들어 보는 방법은 특징을 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
+    웨이트가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 입력 피처마다 몫을 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 분류에 이바지한다. 몫 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 흔들어 보는 방법은 피처를 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 특징 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
+이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 피처 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 기울기 방법은 온전함을 채우지 못한다(기울기는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 특징이 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
+이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 피처가 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    절차는 이렇다. (1) 시험 그림마다 특징 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 특징을 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 특징을 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -878,11 +878,11 @@ def tabular_saliency(
 </div>
 
 ??? success "연습문제 4 풀이"
-    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 특징의 중요함을 짚을 수 있으나, 든든함(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 특징을 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
+    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 든든함(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
 
 ## 정리하며
 
-맨 기울기 현저성은 기울기 기반 풀이 방법을 알아 가는 개념 기초를 준다. 단순하고 손에 잡히지만, 눈에 띄는 잡음과 갈래를 가려내지 못하는 탓에 참으로 쓸모는 좁다. 뒤따르는 방법들이 이 기초 위에서 더 깨끗하고 뜻있는 기여도 분석을 낸다.
+맨 그래디언트 현저성은 그래디언트 기반 풀이 방법을 알아 가는 개념 기초를 준다. 단순하고 손에 잡히지만, 눈에 띄는 잡음과 클래스를 가려내지 못하는 탓에 참으로 쓸모는 좁다. 뒤따르는 방법들이 이 기초 위에서 더 깨끗하고 뜻있는 기여도 분석을 낸다.
 
 ### 핵심 식
 
@@ -898,7 +898,7 @@ $$
 S_{i,j} = \max_{k} |G_{k,i,j}| \quad \text{또는} \quad \sqrt{\sum_k G_{k,i,j}^2}
 $$
 
-**기울기 × 입력:**
+**그래디언트 × 입력:**
 
 $$
 S(\mathbf{x}) = \left| \mathbf{x} \odot \frac{\partial f_c(\mathbf{x})}{\partial \mathbf{x}} \right|
@@ -912,9 +912,9 @@ $$
 
 ### 핵심
 
-1. **기울기는 그 자리의 예민함을 잰다**. 온 세상 중요함이 아니다
+1. **그래디언트는 그 자리의 예민함을 잰다**. 온 세상 중요함이 아니다
 2. 네트워크가 매끄럽지 않으므로 **잡음이 따라붙는다**
-3. 앞선 층을 함께 쓰므로 **갈래를 가려내는 힘이 약하다**
+3. 앞선 레이어를 함께 쓰므로 **클래스를 가려내는 힘이 약하다**
 4. **모으는 길이 여럿** 있고 가장 큰 것 고르기가 가장 흔하다
 5. Integrated Gradients, SmoothGrad 같은 **앞선 방법의 기초가 된다**
 

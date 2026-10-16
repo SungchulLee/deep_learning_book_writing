@@ -139,9 +139,9 @@ def batch_iou(
 
 평가에서 예측과 정답을 매칭하는 IoU 임계값, NMS에서 후보끼리 비교하는 IoU 임계값, 후보를 거르는 신뢰도 임계값은 목적이 다르다. 0.5나 0.75를 쓰는 평가가 있어도 특정 IoU 구간만으로 객체의 동일성이나 탐지의 품질을 보편적으로 판정할 수는 없다.
 
-## 2. 상자 회귀 손실의 변형
+## 2. 상자 회귀 로스의 변형
 
-보통 IoU 손실은 1−IoU다. 서로 떨어져 겹치지 않는 구간에서는 IoU가 계속 0이므로 상자를 움직일 방향을 주지 못한다. GIoU는 두 상자를 감싸는 최소 축 정렬 상자 C를 이용한다.
+보통 IoU 로스는 1−IoU다. 서로 떨어져 겹치지 않는 구간에서는 IoU가 계속 0이므로 상자를 움직일 방향을 주지 못한다. GIoU는 두 상자를 감싸는 최소 축 정렬 상자 C를 이용한다.
 
 $$\operatorname{GIoU}=\operatorname{IoU}-\frac{|C|-|A\cup B|}{|C|}.$$
 
@@ -195,7 +195,7 @@ def generalized_box_iou(
     return giou
 ```
 
-GIoU는 감싸는 영역에서 비어 있는 면적을 벌점으로 주며 범위는 −1~1이다. 다만 모든 상황에서 유용한 기울기를 보장하지는 않는다. 한 상자가 다른 상자 안에 있으면 C가 합집합과 같아 GIoU=IoU이고, 두 상자가 일치하지 않아도 이 등식이 성립한다.
+GIoU는 감싸는 영역에서 비어 있는 면적을 벌점으로 주며 범위는 −1~1이다. 다만 모든 상황에서 유용한 그래디언트를 보장하지는 않는다. 한 상자가 다른 상자 안에 있으면 C가 합집합과 같아 GIoU=IoU이고, 두 상자가 일치하지 않아도 이 등식이 성립한다.
 
 DIoU는 중심 거리, CIoU는 여기에 가로세로비 차이를 반영한다. 중심 거리 ρ와 C의 대각선 길이 c에 대해 다음과 같다.
 
@@ -277,7 +277,7 @@ def complete_box_iou(
     return ciou
 ```
 
-위 구현은 `alpha`를 `no_grad` 안에서 계산한다. 따라서 α를 상수로 취급한 기울기를 사용하며, 표시한 CIoU 수식 전체를 그대로 미분한 결과와는 다르다. 양의 너비·높이와 적절한 dtype도 필요하다.
+위 구현은 `alpha`를 `no_grad` 안에서 계산한다. 따라서 α를 상수로 취급한 그래디언트를 사용하며, 표시한 CIoU 수식 전체를 그대로 미분한 결과와는 다르다. 양의 너비·높이와 적절한 dtype도 필요하다.
 
 ## 3. NMS로 중복 후보 정리하기
 
@@ -321,13 +321,13 @@ def nms(
     """
     알아낸 상자에 최대가 아닌 것 누르기를 한다.
     
-    이것은 배움을 위한 순수 파이썬 짜기이다.
+    이것은 러닝을 위한 순수 파이썬 짜기이다.
     실전에서는 C++로 다듬은 torchvision.ops.nms를 쓴다.
     
     인수:
         boxes: xyxy 꼴의 (N, 4) 두름 상자
         scores: (N,) 믿음도 점수
-        iou_threshold: 누르기용 겹침 비 문턱값
+        iou_threshold: 누르기용 겹침 비 임계값
         
     반환값:
         남길 상자의 번호
@@ -361,7 +361,7 @@ def nms(
         
         ious = box_iou(current_box, remaining_boxes).squeeze(0)
         
-        # 겹침 비가 문턱값 아래인 상자 남기기
+        # 겹침 비가 임계값 아래인 상자 남기기
         mask = ious < iou_threshold
         sorted_indices = remaining_indices[mask]
     
@@ -374,20 +374,20 @@ def batched_nms(
     iou_threshold: float = 0.5
 ) -> torch.Tensor:
     """
-    갈래마다 따로 NMS를 한다.
+    클래스마다 따로 NMS를 한다.
     
-    갈래가 다른 상자끼리는 서로 누르지 않는다.
+    클래스가 다른 상자끼리는 서로 누르지 않는다.
     
     인수:
         boxes: (N, 4) 두름 상자
         scores: (N,) 믿음도 점수
-        labels: (N,) 갈래 이름표
-        iou_threshold: 겹침 비 문턱값
+        labels: (N,) 클래스 이름표
+        iou_threshold: 겹침 비 임계값
         
     반환값:
         남길 상자의 번호
     """
-    # 갈래끼리 누르지 않도록 갈래별로 상자를 밀기
+    # 클래스끼리 누르지 않도록 클래스별로 상자를 밀기
     max_coord = boxes.max()
     offsets = labels.float() * (max_coord + 1)
     boxes_for_nms = boxes + offsets[:, None]
@@ -405,7 +405,7 @@ import torchvision.ops as ops
 # 보통의 NMS
 keep_indices = ops.nms(boxes, scores, iou_threshold=0.5)
 
-# 배치 NMS(갈래마다)
+# 배치 NMS(클래스마다)
 keep_indices = ops.batched_nms(boxes, scores, labels, iou_threshold=0.5)
 
 # 결과 거르기
@@ -442,9 +442,9 @@ def soft_nms(
     인수:
         boxes: xyxy 꼴의 (N, 4) 두름 상자
         scores: (N,) 믿음도 점수
-        iou_threshold: 선형 방식의 겹침 비 문턱값
+        iou_threshold: 선형 방식의 겹침 비 임계값
         score_threshold: 남길 최소 점수
-        sigma: 가우스 줄임 매개변수
+        sigma: 가우스 줄임 파라메터
         method: 'linear' 또는 'gaussian'
         
     반환값:
@@ -517,7 +517,7 @@ def diou_nms(
     인수:
         boxes: xyxy 꼴의 (N, 4) 두름 상자
         scores: (N,) 믿음도 점수
-        iou_threshold: 누르기용 DIoU 문턱값
+        iou_threshold: 누르기용 DIoU 임계값
         beta: DIoU의 지수(가운데점 거리 무게를 다스린다)
         
     반환값:
@@ -603,8 +603,8 @@ def detection_postprocess(
     
     인수:
         predictions: 'boxes', 'scores', 'labels' 텐서를 담은 사전
-        conf_threshold: 거르기용 믿음도 문턱값
-        nms_threshold: NMS의 겹침 비 문턱값
+        conf_threshold: 거르기용 믿음도 임계값
+        nms_threshold: NMS의 겹침 비 임계값
         max_detections: 돌려줄 알아냄의 최대 개수
         
     반환값:
@@ -614,7 +614,7 @@ def detection_postprocess(
     scores = predictions['scores']
     labels = predictions['labels']
     
-    # 1단계: 믿음도 문턱값 두기
+    # 1단계: 믿음도 임계값 두기
     conf_mask = scores >= conf_threshold
     boxes = boxes[conf_mask]
     scores = scores[conf_mask]
@@ -627,7 +627,7 @@ def detection_postprocess(
             'labels': torch.empty(0, dtype=torch.long, device=labels.device)
         }
     
-    # 2단계: 갈래별 NMS
+    # 2단계: 클래스별 NMS
     keep = ops.batched_nms(boxes, scores, labels, nms_threshold)
     
     # 3단계: 알아냄 수 제한
@@ -650,7 +650,7 @@ CUDA 사용은 장치 지원과 데이터 위치에 달렸다. 적은 후보를 
 boxes = boxes.cuda()
 scores = scores.cuda()
 
-# torchvision의 NMS는 CUDA 알맹이를 저절로 쓴다
+# torchvision의 NMS는 CUDA 커널을 저절로 쓴다
 keep = ops.nms(boxes, scores, iou_threshold=0.5)
 ```
 
@@ -693,7 +693,7 @@ IoU가 0인 경우와 1인 경우를 양의 면적 상자에 대해 설명하라
 
 ??? success "연습문제 2 풀이"
 
-    포함 관계이면 최소 외접 상자 C가 합집합과 같아 GIoU의 면적 벌점이 0이다. DIoU는 중심 거리의 제곱을 C의 대각선 제곱으로 나눈 항을 빼므로 포함 관계에서도 중심이 다르면 다른 점수를 줄 수 있다. 어느 손실이 항상 더 빠른 학습을 보장하는 것은 아니다.
+    포함 관계이면 최소 외접 상자 C가 합집합과 같아 GIoU의 면적 벌점이 0이다. DIoU는 중심 거리의 제곱을 C의 대각선 제곱으로 나눈 항을 빼므로 포함 관계에서도 중심이 다르면 다른 점수를 줄 수 있다. 어느 로스가 항상 더 빠른 학습을 보장하는 것은 아니다.
 
 
 

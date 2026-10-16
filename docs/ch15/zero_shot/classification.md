@@ -1,12 +1,12 @@
 # 제로샷 분류
 
-시각·의미 임베딩 분류기는 이미지 특징과 클래스 설명을 비교할 수 있도록 투영을 학습한다. DeViSE의 순위 학습 아이디어, 쌍선형 점수와 두 인코더 구조를 살펴본다. 제시한 코드는 개념을 확장한 예제이며 각 원 논문의 구조를 그대로 재현하지는 않는다.
+시각·의미 임베딩 분류기는 이미지 피처와 클래스 설명을 비교할 수 있도록 투영을 학습한다. DeViSE의 순위 학습 아이디어, 쌍선형 점수와 두 인코더 구조를 살펴본다. 제시한 코드는 개념을 확장한 예제이며 각 원 논문의 구조를 그대로 재현하지는 않는다.
 
 ## 1. DeViSE: 깊은 시각-의미 임베딩
 
 ### 구조 훑어보기
 
-DeViSE(Frome 외, 2013)는 CNN 시각 특징을 의미 임베딩 공간으로 투영하는 법을 배운다.
+DeViSE(Frome 외, 2013)는 CNN 시각 피처를 의미 임베딩 공간으로 투영하는 법을 배운다.
 
 $$M: \mathbb{R}^{d_v} \rightarrow \mathbb{R}^{d_s}$$
 
@@ -16,31 +16,31 @@ $$M \cdot \mathbf{v}(\text{이미지}) \approx \mathbf{s}(\text{클래스 이름
 
 ### 부품
 
-**시각 인코더**: 이미지에서 특징을 추출한다. 원 DeViSE는 당시의 CNN을 사용했으며, 아래 구현은 이미 추출한 특징을 입력받는다. 백본의 동결·미세 조정은 별도로 정해야 한다.
+**시각 인코더**: 이미지에서 피처를 추출한다. 원 DeViSE는 당시의 CNN을 사용했으며, 아래 구현은 이미 추출한 피처를 입력받는다. 백본의 동결·미세 조정은 별도로 정해야 한다.
 
-- 끝에서 두 번째 층에서 특징을 뽑는다
+- 끝에서 두 번째 레이어에서 피처를 뽑는다
 - 학습 중에 얼리거나 미세 조정한다
 
 **투영하는 망**: 배운 변환
 
 - 선형 또는 비선형 옮김
-- 시각 특징을 의미 공간으로 투영하는다
+- 시각 피처를 의미 공간으로 투영하는다
 
 **의미 임베딩**: 미리 학습된 단어 벡터
 
 - Word2Vec, GloVe 또는 FastText
 - 학습 중에는 (대개) 고정로 둔다
 
-### 손실 함수
+### 로스 함수
 
-DeViSE는 마진 기반 순위 손실을 쓴다.
+DeViSE는 마진 기반 순위 로스를 쓴다.
 
 $$\mathcal{L} = \sum_{(\mathbf{x}, y)} \sum_{j \neq y} \max(0, \gamma - \mathbf{s}_y^\top \hat{\mathbf{v}} + \mathbf{s}_j^\top \hat{\mathbf{v}})$$
 
 여기서 각 기호는 다음과 같다.
 
 - $\hat{\mathbf{v}} = M \cdot \phi(\mathbf{x})$은 투영한 시각 임베딩이다
-- $\gamma$은 마진 매개변수이다
+- $\gamma$은 마진 파라메터이다
 - $j \neq y$에 대한 합은 음의 보기를 뽑아 어림할 수 있다
 
 ### PyTorch 구현
@@ -56,7 +56,7 @@ class DeViSE(nn.Module):
     """
     깊은 시각-뜻 묻힘 모델(DeViSE).
     
-    CNN 특징을 낱말 묻힘 공간으로 쏘아 넣는다.
+    CNN 피처를 낱말 묻힘 공간으로 쏘아 넣는다.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
@@ -85,7 +85,7 @@ class DeViSE(nn.Module):
         self.temperature = nn.Parameter(torch.ones(1))
     
     def project_visual(self, visual_features):
-        """시각 특징을 묻힘 공간으로 쏘아 넣는다."""
+        """시각 피처를 묻힘 공간으로 쏘아 넣는다."""
         projected = self.visual_projection(visual_features)
         return F.normalize(projected, p=2, dim=1)
     
@@ -96,7 +96,7 @@ class DeViSE(nn.Module):
     
     def forward(self, visual_features, semantic_pos, semantic_neg=None):
         """
-        학습용 앞먹임.
+        학습용 피드포워드.
         """
         v_proj = self.project_visual(visual_features)
         s_pos_proj = self.project_semantic(semantic_pos)
@@ -111,7 +111,7 @@ class DeViSE(nn.Module):
         return pos_score
     
     def predict(self, visual_features, class_embeddings, class_names):
-        """시각 특징의 부류를 맞힌다."""
+        """시각 피처의 부류를 맞힌다."""
         self.eval()
         
         with torch.no_grad():
@@ -140,11 +140,11 @@ class DeViSE(nn.Module):
 
 $$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
 
-여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 배운 가중치 행렬이다.
+여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 배운 웨이트 행렬이다.
 
 ### 저랭크 분해
 
-저랭크 분해로 매개변수를 줄인다.
+저랭크 분해로 파라메터를 줄인다.
 
 $$W = U V^\top$$
 
@@ -208,9 +208,9 @@ class BilinearCompatibility(nn.Module):
 
 ---
 
-## 3. 손실 함수
+## 3. 로스 함수
 
-### 마진 순위 손실
+### 마진 순위 로스
 
 ```python
 class RankingLoss(nn.Module):
@@ -223,7 +223,7 @@ class RankingLoss(nn.Module):
         return loss.mean()
 ```
 
-### 트리플렛 손실
+### 트리플렛 로스
 
 ```python
 class TripletLoss(nn.Module):
@@ -238,13 +238,13 @@ class TripletLoss(nn.Module):
         return loss.mean()
 ```
 
-### InfoNCE와 대조 손실
+### InfoNCE와 대조 로스
 
 행 i의 이미지와 열 i의 의미 벡터가 양성인 동일 크기 배치를 가정한다. 같은 클래스 설명이 여러 번 나오면 다른 열의 같은 설명도 음성으로 취급되어 목표가 충돌할 수 있다. 온도는 양수여야 한다.
 
 ```python
 def info_nce_loss(visual_emb, semantic_emb, temperature=0.07):
-    """대조 학습을 위한 InfoNCE 손실."""
+    """대조 학습을 위한 InfoNCE 로스."""
     v_norm = F.normalize(visual_emb, dim=1)
     s_norm = F.normalize(semantic_emb, dim=1)
     
@@ -263,11 +263,11 @@ def info_nce_loss(visual_emb, semantic_emb, temperature=0.07):
 
 ### 교차 모달 어텐션
 
-2차원 시각 입력을 길이 1의 키·값으로 바꾸면 소프트맥스의 가중치는 항상 1이다. 평가 모드에서 출력은 의미 쿼리와 무관하게 시각 값의 변환이 되므로 이 경우 의미별 정교한 정렬을 학습한다고 설명할 수 없다. 여러 시각 토큰을 제공하면 어텐션으로 선택할 수 있다.
+2차원 시각 입력을 길이 1의 키·값으로 바꾸면 소프트맥스의 웨이트는 항상 1이다. 평가 모드에서 출력은 의미 쿼리와 무관하게 시각 값의 변환이 되므로 이 경우 의미별 정교한 정렬을 학습한다고 설명할 수 없다. 여러 시각 토큰을 제공하면 어텐션으로 선택할 수 있다.
 
 ```python
 class CrossModalAttention(nn.Module):
-    """시각과 뜻을 맞추기 위한 갈래를 넘나드는 주의."""
+    """시각과 뜻을 맞추기 위한 클래스를 넘나드는 주의."""
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
                  hidden_dim: int = 256, n_heads: int = 8):
@@ -365,7 +365,7 @@ def hard_negative_mining(model, visual, positive_idx, all_embeddings, seen_class
     return all_embeddings[hard_neg_indices]
 ```
 
-### 학습률 스케줄링
+### 러닝레이트 스케줄링
 
 0<warmup_epochs<num_epochs를 가정하는 코사인 스케줄 예시다. 반복 단위를 에포크로 정하고 scheduler.step 호출 위치를 일치시킨다. 시작 계수는 0이며, 명시한 학습 기간을 넘겨 호출하면 코사인 값이 다시 커질 수 있다.
 
@@ -389,24 +389,24 @@ def cosine_warmup_scheduler(optimizer, num_epochs, warmup_epochs=10):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-순위 손실이 0이 되는 조건을 설명하라.
+순위 로스가 0이 되는 조건을 설명하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    양성 점수가 음성 점수보다 마진 이상 크면 해당 항이 0이다. 모든 클래스의 점수를 확률로 정규화할 필요는 없다. 음성 샘플링을 사용하면 전체 음성에 대한 손실과 추정 방식이 달라질 수 있다.
+    양성 점수가 음성 점수보다 마진 이상 크면 해당 항이 0이다. 모든 클래스의 점수를 확률로 정규화할 필요는 없다. 음성 샘플링을 사용하면 전체 음성에 대한 로스와 추정 방식이 달라질 수 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-W=UVᵀ 분해의 차원과 매개변수 절감을 설명하라.
+W=UVᵀ 분해의 차원과 파라메터 절감을 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    U가 d_v×r, V가 d_s×r이면 공통 r차원 공간의 내적으로 쌍선형 점수를 계산한다. 매개변수 수는 d_v×d_s에서 r(d_v+d_s)로 바뀐다. 비선형 MLP를 넣으면 일반적으로 같은 고정 W의 분해로 해석할 수 없다.
+    U가 d_v×r, V가 d_s×r이면 공통 r차원 공간의 내적으로 쌍선형 점수를 계산한다. 파라메터 수는 d_v×d_s에서 r(d_v+d_s)로 바뀐다. 비선형 MLP를 넣으면 일반적으로 같은 고정 W의 분해로 해석할 수 없다.
 
 ---
 
@@ -430,8 +430,8 @@ W=UVᵀ 분해의 차원과 매개변수 절감을 설명하라.
 </div>
 
 ??? success "연습문제 4 풀이"
-    키가 하나면 어텐션 가중치가 1이므로 값의 가중합은 쿼리와 무관하다. 이 코드에는 의미 쿼리의 잔차 경로도 없으므로 평가 모드의 점수는 의미 입력을 구분하지 못한다. 여러 시각 토큰 또는 별도의 의미 결합 경로가 필요하다.
+    키가 하나면 어텐션 웨이트가 1이므로 값의 가중합은 쿼리와 무관하다. 이 코드에는 의미 쿼리의 잔차 경로도 없으므로 평가 모드의 점수는 의미 입력을 구분하지 못한다. 여러 시각 토큰 또는 별도의 의미 결합 경로가 필요하다.
 
 ## 정리하며
 
-시각·의미 정렬은 투영 구조와 순위·대조 손실로 학습한다. 대응 쌍 점수와 전체 클래스 점수 행렬을 구분하고, 의미 정보가 실제 출력에 영향을 주는지 확인한다. 사전 학습·입력 순서·장치와 음성 표본의 정의도 평가에 포함한다.
+시각·의미 정렬은 투영 구조와 순위·대조 로스로 학습한다. 대응 쌍 점수와 전체 클래스 점수 행렬을 구분하고, 의미 정보가 실제 출력에 영향을 주는지 확인한다. 사전 학습·입력 순서·장치와 음성 표본의 정의도 평가에 포함한다.

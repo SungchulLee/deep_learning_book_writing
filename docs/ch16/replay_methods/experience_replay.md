@@ -1,16 +1,16 @@
 # 경험 리플레이
 
-경험 리플레이는 과거 표본을 버퍼에 저장하고 새 데이터 학습 중 다시 사용하는 지속 학습 방법이다. 과거 손실을 직접 학습 목표에 포함하지만, 유한 버퍼의 대표성과 샘플링·손실 가중치에 따라 보존 효과가 달라진다. 이 페이지는 버퍼 전략과 보존된 학습기의 실제 동작을 구분한다.
+경험 리플레이는 과거 표본을 버퍼에 저장하고 새 데이터 학습 중 다시 사용하는 지속 학습 방법이다. 과거 로스를 직접 학습 목표에 포함하지만, 유한 버퍼의 대표성과 샘플링·로스 웨이트에 따라 보존 효과가 달라진다. 이 페이지는 버퍼 전략과 보존된 학습기의 실제 동작을 구분한다.
 
 ## 1. 이론적 기초
 
-### 현재 손실과 과거 손실
+### 현재 로스와 과거 로스
 
-현재 데이터와 버퍼에서 손실을 각각 추정해 결합한다.
+현재 데이터와 버퍼에서 로스를 각각 추정해 결합한다.
 
 $$L=L_{\mathrm{current}}+\beta L_{\mathrm{memory}}$$
 
-버퍼의 표본 분포, 샘플링 확률과 β가 과거 데이터에 주는 가중치를 결정한다. 과제별 균등 평균과 전체 표본별 평균도 서로 다르다.
+버퍼의 표본 분포, 샘플링 확률과 β가 과거 데이터에 주는 웨이트를 결정한다. 과제별 균등 평균과 전체 표본별 평균도 서로 다르다.
 
 ### 공동 학습과의 관계
 
@@ -138,7 +138,7 @@ class ClassBalancedBuffer:
 
 이 학습기는 앞의 ReservoirBuffer나 ClassBalancedBuffer를 사용하지 않고 자체 리스트를 관리한다. 과제 종료에 examples_per_task개를 고른 뒤 용량을 넘으면 앞부분을 제거하므로 오래된 과제가 먼저 사라지는 방식이다. memory_size=0에서는 [-0:]가 전체 리스트를 뜻하므로 버퍼를 비우지 못한다. 양의 용량·표본 수를 검증해야 한다.
 
-replay_batch_ratio는 현재 배치 수에 대한 추가 리플레이 표본 수의 비율이다. 0.5이면 현재 B개와 과거 B/2개를 별도로 계산하므로 최종 데이터의 절반이 과거라는 뜻은 아니다. 두 손실을 각각 평균 내고 같은 가중치로 더해 손실 기여도는 표본 수 비율과도 다르다.
+replay_batch_ratio는 현재 배치 수에 대한 추가 리플레이 표본 수의 비율이다. 0.5이면 현재 B개와 과거 B/2개를 별도로 계산하므로 최종 데이터의 절반이 과거라는 뜻은 아니다. 두 로스를 각각 평균 내고 같은 웨이트로 더해 로스 기여도는 표본 수 비율과도 다르다.
 
 모든 과제 데이터를 한 번 cat하여 버퍼 표본을 고르므로 버퍼 용량보다 큰 임시 메모리가 필요하다. 저장하는 텐서는 로더의 변환이 적용된 값이며 리플레이 때 새 증강을 자동 수행하지 않는다. 모델 장치 이동과 현재·과거 라벨의 의미도 호출자가 맞춰야 한다.
 
@@ -157,7 +157,7 @@ class ExperienceReplayLearner:
     전략:
     1. 앞선 보기를 담은 기억 버퍼를 지닌다
     2. 익히는 동안 지금 과제의 데이터와 되살린 표본을 섞는다
-    3. 합친 손실이 새 과제를 배우면서도 잊음을 막는다
+    3. 합친 로스가 새 과제를 배우면서도 잊음을 막는다
     """
     
     def __init__(self,
@@ -171,12 +171,12 @@ class ExperienceReplayLearner:
         되살리기 학습기를 초기화한다.
         
         인수:
-            model: 신경망 모델
+            model: 뉴럴 넷트웍 모델
             device: 셈할 장치
             memory_size: 기억 버퍼의 전체 용량
             examples_per_task: 과제마다 담아 둘 보기 수
             replay_batch_ratio: 배치에서 되살린 것의 비율
-            learning_rate: 최적화기의 학습률
+            learning_rate: 최적화기의 러닝레이트
         """
         self.model = model
         self.device = device
@@ -269,11 +269,11 @@ class ExperienceReplayLearner:
                 
                 optimizer.zero_grad()
                 
-                # 지금 과제의 손실
+                # 지금 과제의 로스
                 output = self.model(data)
                 current_loss = self.criterion(output, target)
                 
-                # 되살리기 손실
+                # 되살리기 로스
                 replay_loss = torch.tensor(0.0, device=self.device)
                 replay_size = int(batch_size * self.replay_batch_ratio)
                 
@@ -285,20 +285,20 @@ class ExperienceReplayLearner:
                     replay_output = self.model(replay_data)
                     replay_loss = self.criterion(replay_output, replay_labels)
                 
-                # 결합된 손실
+                # 결합된 로스
                 total_loss = current_loss + replay_loss
                 
                 # 되돌리고 최적화한다
                 total_loss.backward()
                 optimizer.step()
                 
-                # 손실을 좇는다
+                # 로스를 좇는다
                 epoch_losses['total'] += total_loss.item()
                 epoch_losses['current'] += current_loss.item()
                 epoch_losses['replay'] += replay_loss.item()
                 num_batches += 1
             
-            # 손실을 평균 낸다
+            # 로스를 평균 낸다
             for key in epoch_losses:
                 losses[key].append(epoch_losses[key] / num_batches)
             
@@ -386,7 +386,7 @@ class ExperienceReplayLearner:
 
 ```python
 def analyze_memory_parameters(train_loaders, test_loaders, device):
-    """기억 매개변수의 영향을 뜯어본다."""
+    """기억 파라메터의 영향을 뜯어본다."""
     
     configs = [
         {'memory_size': 500, 'examples_per_task': 100},
@@ -421,17 +421,17 @@ def analyze_memory_parameters(train_loaders, test_loaders, device):
 
 ## 5. 표본 선택의 변형
 
-### 기울기 크기 기반 선택
+### 그래디언트 크기 기반 선택
 
 GradientBasedBuffer는 표본별 경사 노름 제곱이 큰 표본을 고른다. 경사 간 방향의 다양성을 최적화하지는 않는다. 버퍼가 가득 차면 새 표본을 교체하지 않고 gradients 목록도 쓰지 않는다. F 임포트와 모델 모드가 필요하며, 이 계산은 기존 학습 경사를 지우고 새 경사를 남기므로 학습 갱신과 분리해야 한다.
 
 ```python
 class GradientBasedBuffer:
     """
-    기울기 정보를 바탕으로 보기를 고른다.
+    그래디언트 정보를 바탕으로 보기를 고른다.
     
-    기울기가 크거나 서로 다른 보기에 우선순위를 주는데,
-    학습에 알맹이가 가장 많기 때문이다.
+    그래디언트가 크거나 서로 다른 보기에 우선순위를 주는데,
+    학습에 커널이 가장 많기 때문이다.
     """
     
     def __init__(self, model, max_size, device):
@@ -442,7 +442,7 @@ class GradientBasedBuffer:
         self.gradients = []
     
     def compute_gradient_score(self, example, label):
-        """보기 하나의 기울기 크기를 셈한다."""
+        """보기 하나의 그래디언트 크기를 셈한다."""
         self.model.zero_grad()
         example = example.unsqueeze(0).to(self.device)
         label = torch.tensor([label], device=self.device)
@@ -451,7 +451,7 @@ class GradientBasedBuffer:
         loss = F.cross_entropy(output, label)
         loss.backward()
         
-        # 기울기 제곱의 합
+        # 그래디언트 제곱의 합
         score = sum(p.grad.norm().item() ** 2 
                    for p in self.model.parameters() 
                    if p.grad is not None)
@@ -459,13 +459,13 @@ class GradientBasedBuffer:
         return score
     
     def add_task(self, examples, labels, num_select):
-        """기울기 점수로 우선순위를 매겨 보기를 더한다."""
+        """그래디언트 점수로 우선순위를 매겨 보기를 더한다."""
         scores = []
         for i in range(len(examples)):
             score = self.compute_gradient_score(examples[i], labels[i].item())
             scores.append((score, i))
         
-        # 기울기 기준으로 위 보기를 고른다
+        # 그래디언트 기준으로 위 보기를 고른다
         scores.sort(reverse=True)
         selected = [scores[i][1] for i in range(min(num_select, len(scores)))]
         
@@ -474,21 +474,21 @@ class GradientBasedBuffer:
                 self.buffer.append((examples[idx].clone(), labels[idx].item()))
 ```
 
-### 손실 기반 선택
+### 로스 기반 선택
 
-손실이 큰 표본을 선택하지만 라벨 오류나 이상치에 집중할 수 있다. 이 함수는 평가 모드로 바꾼 뒤 원래 모드를 복원하지 않으므로 이후 학습에서 다시 train()을 호출해야 한다. 입력·라벨의 장치와 선택 인덱스도 일치시킨다.
+로스가 큰 표본을 선택하지만 라벨 오류나 이상치에 집중할 수 있다. 이 함수는 평가 모드로 바꾼 뒤 원래 모드를 복원하지 않으므로 이후 학습에서 다시 train()을 호출해야 한다. 입력·라벨의 장치와 선택 인덱스도 일치시킨다.
 
 ```python
 class LossBasedBuffer:
     """
-    손실 값을 바탕으로 보기를 고른다.
+    로스 값을 바탕으로 보기를 고른다.
     
-    어려운 보기(손실이 큰 것)가 판단 경계를 지키는 데
+    어려운 보기(로스가 큰 것)가 판단 경계를 지키는 데
     더 값질 수 있다.
     """
     
     def select_by_loss(self, examples, labels, model, num_select, device):
-        """손실이 가장 큰 보기를 고른다."""
+        """로스가 가장 큰 보기를 고른다."""
         model.eval()
         
         with torch.no_grad():
@@ -496,7 +496,7 @@ class LossBasedBuffer:
             losses = F.cross_entropy(outputs, labels.to(device), 
                                     reduction='none')
         
-        # 손실이 가장 큰 보기를 고른다
+        # 로스가 가장 큰 보기를 고른다
         _, indices = torch.topk(losses, min(num_select, len(losses)))
         
         return examples[indices.cpu()], labels[indices.cpu()]
@@ -506,7 +506,7 @@ class LossBasedBuffer:
 
 ## 6. 다른 방법과의 비교
 
-리플레이는 과거 입력·정답을 저장해 다시 학습하고, EWC는 중요도와 기준 가중치로 이동에 벌점을 준다. 두 방식은 조합할 수 있다. EWC의 메모리도 과제별 저장인지 병합인지에 따라 달라진다.
+리플레이는 과거 입력·정답을 저장해 다시 학습하고, EWC는 중요도와 기준 웨이트로 이동에 벌점을 준다. 두 방식은 조합할 수 있다. EWC의 메모리도 과제별 저장인지 병합인지에 따라 달라진다.
 
 원본 표본 보관 여부는 데이터 관리 조건에 영향을 주지만 모델·통계도 정보 노출 가능성이 있어 단순한 개인정보 보호 순위를 정하지 않는다. 고정된 Split MNIST 정확도 표 대신 같은 출력 공간·데이터 순서·학습 예산에서 새 학습과 이전 유지 성능을 비교한다.
 
@@ -514,7 +514,7 @@ class LossBasedBuffer:
 
 버퍼의 갱신 시점과 분포를 명시한다. 과제 종료 갱신은 경계가 주어진 설정이며, 매 표본 갱신은 스트림 설정에 맞게 별도로 정의할 수 있다.
 
-현재와 과거의 샘플링 비율, 손실 계수와 실제 표본 노출량을 구분해 기록한다. 동일한 전역 라벨 규약을 유지하고 데이터 증강을 재적용할지, 이미 변환한 입력을 저장할지 정한다. 테스트 데이터는 버퍼에 넣지 않고 모델 선택은 독립적인 검증셋에서 수행한다.
+현재와 과거의 샘플링 비율, 로스 계수와 실제 표본 노출량을 구분해 기록한다. 동일한 전역 라벨 규약을 유지하고 데이터 증강을 재적용할지, 이미 변환한 입력을 저장할지 정한다. 테스트 데이터는 버퍼에 넣지 않고 모델 선택은 독립적인 검증셋에서 수행한다.
 
 ## 연습문제
 
@@ -526,19 +526,19 @@ class LossBasedBuffer:
 </div>
 
 ??? success "연습문제 1 풀이"
-    아니다. 샘플링 비율과 손실 가중치, 표본 노출 수와 최적화 경로가 같아야 목적·결과를 비교할 수 있다. 전체 과거 자료를 보관해도 현재 자료를 과도하게 학습하면 분포 가중치가 달라진다.
+    아니다. 샘플링 비율과 로스 웨이트, 표본 노출 수와 최적화 경로가 같아야 목적·결과를 비교할 수 있다. 전체 과거 자료를 보관해도 현재 자료를 과도하게 학습하면 분포 웨이트가 달라진다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff easy" title="쉬움"></span>
-현재 배치 B=100, replay_batch_ratio=0.5일 때 표본 수와 손실 가중치를 설명하라.
+현재 배치 B=100, replay_batch_ratio=0.5일 때 표본 수와 로스 웨이트를 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    충분한 버퍼가 있으면 현재 100개와 과거 50개를 별도로 사용한다. 과거는 표본의 1/3이지만 코드의 두 평균 손실은 계수 1로 합산되므로 평균 목표에서 같은 비중이다. 현재·과거 표본별 가중치는 같지 않다.
+    충분한 버퍼가 있으면 현재 100개와 과거 50개를 별도로 사용한다. 과거는 표본의 1/3이지만 코드의 두 평균 로스는 계수 1로 합산되므로 평균 목표에서 같은 비중이다. 현재·과거 표본별 웨이트는 같지 않다.
 
 ---
 
@@ -566,7 +566,7 @@ class LossBasedBuffer:
 
 ## 정리하며
 
-경험 리플레이는 과거 표본을 다시 학습해 보존을 돕는다. 버퍼 갱신·샘플링 분포와 평균 손실 가중치를 명시하고, 자체 리스트 구현을 저수지·클래스 균형 전략과 구분한다. 저장 용량뿐 아니라 임시 데이터 수집과 추가 학습 비용도 함께 계산한다.
+경험 리플레이는 과거 표본을 다시 학습해 보존을 돕는다. 버퍼 갱신·샘플링 분포와 평균 로스 웨이트를 명시하고, 자체 리스트 구현을 저수지·클래스 균형 전략과 구분한다. 저장 용량뿐 아니라 임시 데이터 수집과 추가 학습 비용도 함께 계산한다.
 
 **참고 문헌**
 

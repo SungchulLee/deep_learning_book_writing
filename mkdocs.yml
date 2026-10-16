@@ -80,13 +80,13 @@ nav:
         - 선형 모델: ch03/linear_softmax/01_linear_model.md
         - 소프트맥스: ch03/linear_softmax/02_softmax.md
         - 최대가능도 추정: ch03/linear_softmax/03_mle.md
-        - 교차 엔트로피 손실: ch03/linear_softmax/04_cross_entropy.md
+        - 교차 엔트로피 로스: ch03/linear_softmax/04_cross_entropy.md
         - 경사 하강법: ch03/linear_softmax/05_gradient_descent.md
         - 구현과 결과: ch03/linear_softmax/06_implementation.md
       - 3.3 다층 퍼셉트론:
         - MNIST 다층 퍼셉트론: ch03/mnist/03_mlp.md
-      - 3.4 합성곱 신경망:
-        - MNIST 합성곱 신경망: ch03/mnist/04_cnn.md
+      - 3.4 컨볼루션 뉴럴 넷트웍:
+        - MNIST 컨볼루션 뉴럴 넷트웍: ch03/mnist/04_cnn.md
     - 4 CIFAR-10으로 다시 보는 분류:
       - 장 개요: ch04/index.md
       - "4.1 MNIST와 CIFAR-10 비교":
@@ -96,15 +96,15 @@ nav:
       - "4.3 지식 증류":
         - "앙상블 지식 증류": ch04/07_distillation.md
       - "4.4 네트워크 깊이":
-        - "3×3 합성곱과 네트워크 깊이": ch04/02_depth.md
+        - "3×3 컨볼루션과 네트워크 깊이": ch04/02_depth.md
       - 4.5 데이터 증강:
         - "데이터 증강을 통한 성능 개선": ch04/04_augmentation.md
       - "4.6 전이 학습":
-        - "VGG16 — 3×3 합성곱의 반복": ch04/03_vgg16_transfer.md
-        - "Inception — 다중 스케일 합성곱": ch04/09_transfer_inception.md
+        - "VGG16 — 3×3 컨볼루션의 반복": ch04/03_vgg16_transfer.md
+        - "Inception — 다중 스케일 컨볼루션": ch04/09_transfer_inception.md
         - "ResNet — 잔차 연결": ch04/08_transfer_resnet.md
-        - "DenseNet — 특징 맵 연결": ch04/13_transfer_densenet.md
-        - "MobileNet — 깊이별 분리 합성곱": ch04/10_transfer_mobilenet.md
+        - "DenseNet — 피처 맵 연결": ch04/13_transfer_densenet.md
+        - "MobileNet — 깊이별 분리 컨볼루션": ch04/10_transfer_mobilenet.md
         - "EfficientNet — 깊이·너비·해상도의 복합 스케일링": ch04/11_transfer_efficientnet.md
         - "ConvNeXt — 트랜스포머 설계를 반영한 CNN": ch04/14_transfer_convnext.md
         - "ViT — 비전 트랜스포머": ch04/12_transfer_vit.md
@@ -135,11 +135,11 @@ nav:
       - "6.1 단어 빈도 기반 분류":
         - "최근접 중심 분류기": imdb/01_counting.md
       - "6.2 선형 분류":
-        - "선형 분류기의 가중치 학습": imdb/02_linear.md
+        - "선형 분류기의 웨이트 학습": imdb/02_linear.md
       - 6.3 임베딩:
         - "임베딩 학습": imdb/03_embedding.md
         - "사전 학습 임베딩": imdb/03_frozen.md
-      - "6.4 순환 신경망":
+      - "6.4 순환 뉴럴 넷트웍":
         - LSTM: imdb/04_lstm.md
       - "6.5 셀프 어텐션":
         - 셀프 어텐션: imdb/05_attention.md
@@ -166,7 +166,7 @@ nav:
         - 텐서 비교: ch06/tensors/17_tensor_comparison.md
         - 야코비안과 고차 미분: ch06/tensors/19_gradient_computation.md
         - 사용자 정의 함수: ch06/tensors/20_custom_functions.md
-        - 간단한 신경망: ch06/tensors/21_simple_neural_network.md
+        - 간단한 뉴럴 넷트웍: ch06/tensors/21_simple_neural_network.md
         - 최적화 기초: ch06/tensors/22_optimization_basics.md
         - GPU 연산: ch06/tensors/23_gpu_operations.md
         - 혼합 정밀도: ch06/tensors/24_mixed_precision.md
@@ -180,7 +180,7 @@ nav:
         - 데이터 관련 속성: ch06/tensor_attrs/02_data_related.md
         - "형상, 자료형, 장치": ch06/tensor_attrs/03_shape_dtype_device.md
         - 메모리와 저장소: ch06/tensor_attrs/04_memory_and_storage.md
-        - Linear 가중치 관례: ch06/tensor_attrs/05_linear_weight_convention.md
+        - Linear 웨이트 관례: ch06/tensor_attrs/05_linear_weight_convention.md
         - cat 시각화: ch06/tensor_attrs/06_cat_visualization.md
         - 제자리 연산과 autograd 제약: ch06/tensor_attrs/07_inplace_operations.md
         - 불리언 마스킹과 where: ch06/tensor_attrs/09_indexing_masking.md
@@ -203,10 +203,10 @@ nav:
         - with torch.no_grad(): ch06/autograd/10_with_torch_no_grad.md
         - 최적화기 방식의 갱신: ch06/autograd/11_optimizer_like_updates.md
         - NumPy로 변환하기: ch06/autograd/12_converting_to_numpy.md
-        - 층 출력하기: ch06/autograd/13_print_layers.md
-        - OrderedDict를 이용한 층 이름 짓기: ch06/autograd/14_layer_naming_with_ordereddict.md
-        - 사용자 정의 Module을 이용한 층 이름 짓기: ch06/autograd/15_layer_naming_with_custom_module.md
-        - 매개변수 동결과 해제: ch06/autograd/16_freeze_and_unfreeze_parameters.md
+        - 레이어 출력하기: ch06/autograd/13_print_layers.md
+        - OrderedDict를 이용한 레이어 이름 짓기: ch06/autograd/14_layer_naming_with_ordereddict.md
+        - 사용자 정의 Module을 이용한 레이어 이름 짓기: ch06/autograd/15_layer_naming_with_custom_module.md
+        - 파라메터 동결과 해제: ch06/autograd/16_freeze_and_unfreeze_parameters.md
         - 함정과 점검 사항: ch06/autograd/17_pitfalls_and_sanity_checks.md
         - 경사를 0으로 만드는 세 가지 방법: ch06/autograd/18_three_ways_to_zero_gradients.md
         - 큰 배치를 위한 경사 누적: ch06/autograd/19_gradient_accumulation_for_large_batches.md
@@ -221,13 +221,13 @@ nav:
         - Autograd 바닥부터 만들기: ch06/autograd/autograd_from_scratch.md
       - 7.4 경사 하강법:
         - 최급상승 방향으로서의 경사: ch06/gradient_descent/steepest_direction.md
-        - 학습률과 이동 폭: ch06/gradient_descent/learning_rate.md
+        - 러닝레이트와 이동 폭: ch06/gradient_descent/learning_rate.md
         - 볼록 최적화와 비볼록 최적화: ch06/gradient_descent/convex_nonconvex.md
         - 배치, 미니배치, 확률적 경사 하강법: ch06/gradient_descent/batch_minibatch_sgd.md
         - NumPy로 직접 구현하는 경사 하강법: ch06/gradient_descent/01_manual_gradient_numpy.md
         - 배치와 미니배치 SGD: ch06/gradient_descent/01_batch_vs_minibatch_sgd.md
         - Adam 최적화기: ch06/gradient_descent/01_adam_optimizer.md
-        - MNIST 신경망: ch06/gradient_descent/01_neural_network_mnist.md
+        - MNIST 뉴럴 넷트웍: ch06/gradient_descent/01_neural_network_mnist.md
         - PyTorch Autograd 기초: ch06/gradient_descent/02_pytorch_autograd_basics.md
         - 간단한 선형 회귀: ch06/gradient_descent/03_simple_linear_regression.md
         - 경사 하강법 시각화: ch06/gradient_descent/04_visualizing_gradient_descent.md
@@ -242,7 +242,7 @@ nav:
         - 정규분포 MLE: ch07/mle/normal_distribution_mle.md
         - 로지스틱 회귀 MLE: ch07/mle/logistic_regression_mle.md
         - "가우시안 혼합 EM": ch07/mle/mixture_of_gaussians_em.md
-        - 신경망 MLE: ch07/mle/neural_network_mle.md
+        - 뉴럴 넷트웍 MLE: ch07/mle/neural_network_mle.md
       - 8.2 선형 회귀:
         - PyTorch 기초: ch07/linear_regression/01_pytorch_basics.md
         - NumPy로 만드는 선형 회귀: ch07/linear_regression/02_linear_regression_numpy.md
@@ -265,7 +265,7 @@ nav:
         - 최소한의 PyTorch: ch07/linear_regression/minimal_torch.md
         - 다중 출력: ch07/linear_regression/multiple_outputs.md
         - 정규 방정식: ch07/linear_regression/normal_equation.md
-        - 다항 특징: ch07/linear_regression/polynomial_features.md
+        - 다항 피처: ch07/linear_regression/polynomial_features.md
         - 릿지 회귀: ch07/linear_regression/ridge_regression.md
         - SPY에 대한 WMT 회귀: ch07/linear_regression/wmt_on_spy.md
       - 8.3 로지스틱 회귀:
@@ -292,56 +292,56 @@ nav:
         - 소프트맥스 회귀의 한계: ch07/softmax_regression/02_limits.md
         - 심화: ch07/softmax_regression/04_advanced.md
         - 종합 프로젝트: ch07/softmax_regression/05_comprehensive.md
-      - 8.5 손실 함수:
-        - 교차 엔트로피 손실: ch07/loss/cross_entropy.md
+      - 8.5 로스 함수:
+        - 교차 엔트로피 로스: ch07/loss/cross_entropy.md
         - "쿨백–라이블러 발산": ch07/loss/kl_divergence.md
-        - L2 손실 (평균 제곱 오차): ch07/loss/l2_loss.md
+        - L2 로스 (평균 제곱 오차): ch07/loss/l2_loss.md
   - "II 핵심 아키텍처":
-    - 9 신경망의 구성 요소:
+    - 9 뉴럴 넷트웍의 구성 요소:
       - 장 개요: ch08/index.md
-      - 9.1 활성화 함수:
+      - 9.1 엑티베이션 함수:
         - 지수 선형 단위 (ELU): ch08/activations/elu.md
         - 다중 클래스 분류: ch08/activations/06_multiclass_classification.md
-        - 활성화 함수를 쓰는 회귀: ch08/activations/07_regression_with_activations.md
-        - 활성화 함수 비교: ch08/activations/09_activation_comparison.md
-      - 9.2 순방향 신경망:
+        - 엑티베이션 함수를 쓰는 회귀: ch08/activations/07_regression_with_activations.md
+        - 엑티베이션 함수 비교: ch08/activations/09_activation_comparison.md
+      - 9.2 순방향 뉴럴 넷트웍:
         - 다층 퍼셉트론의 구조: ch08/feedforward/mlp_architecture.md
         - 보편 근사: ch08/feedforward/universal_approximation.md
         - 깊이와 너비: ch08/feedforward/depth_vs_width.md
         - 순전파: ch08/feedforward/forward_pass.md
         - 역전파: ch08/feedforward/backpropagation.md
-        - 기울기 흐름: ch08/feedforward/gradient_flow.md
+        - 그래디언트 흐름: ch08/feedforward/gradient_flow.md
         - NumPy로 만드는 선형 회귀: ch08/feedforward/01_linear_regression_numpy.md
         - PyTorch로 만드는 선형 회귀: ch08/feedforward/02_linear_regression_pytorch.md
-        - 직접 계산하는 간단한 신경망: ch08/feedforward/03_simple_nn_manual.md
+        - 직접 계산하는 간단한 뉴럴 넷트웍: ch08/feedforward/03_simple_nn_manual.md
         - Autograd 소개: ch08/feedforward/04_autograd_introduction.md
         - 간단한 퍼셉트론: ch08/feedforward/05_simple_perceptron.md
-        - 2층 신경망: ch08/feedforward/06_two_layer_network.md
+        - 2레이어 뉴럴 넷트웍: ch08/feedforward/06_two_layer_network.md
         - nn 모듈과 최적화기: ch08/feedforward/07_nn_module_and_optimizers.md
         - MNIST 분류 상세: ch08/feedforward/09_mnist_classification_detailed.md
         - Sequential 쓰기: ch08/feedforward/10_using_sequential.md
         - 사용자 정의 모듈: ch08/feedforward/11_custom_module.md
-        - 활성화 함수: ch08/feedforward/12_activation_functions.md
-        - 손실 함수: ch08/feedforward/13_loss_functions.md
+        - 엑티베이션 함수: ch08/feedforward/12_activation_functions.md
+        - 로스 함수: ch08/feedforward/13_loss_functions.md
         - 드롭아웃 정칙화: ch08/feedforward/14_dropout_regularization.md
         - 정칙화 기법 상세: ch08/feedforward/15_regularization_techniques_detailed.md
         - 배치 정규화: ch08/feedforward/16_batch_normalization.md
         - 배치 정규화 상세: ch08/feedforward/17_batch_normalization_detailed.md
-        - 학습률 스케줄링: ch08/feedforward/18_learning_rate_scheduling.md
-        - 가중치 초기화: ch08/feedforward/19_weight_initialization.md
+        - 러닝레이트 스케줄링: ch08/feedforward/18_learning_rate_scheduling.md
+        - 웨이트 초기화: ch08/feedforward/19_weight_initialization.md
         - CIFAR-10 분류기: ch08/feedforward/20_cifar10_classifier.md
         - 회귀 과제: ch08/feedforward/21_regression_task.md
-        - 다중 출력 신경망: ch08/feedforward/22_multi_output_network.md
-        - 깊은 신경망: ch08/feedforward/23_deep_network.md
+        - 다중 출력 뉴럴 넷트웍: ch08/feedforward/22_multi_output_network.md
+        - 깊은 뉴럴 넷트웍: ch08/feedforward/23_deep_network.md
         - 캡슐넷: ch08/feedforward/49_capsule_net.md
-      - 9.3 가중치 초기화:
-        - 가중치 초기화: ch08/weight_initialization/weight_initialization.md
+      - 9.3 웨이트 초기화:
+        - 웨이트 초기화: ch08/weight_initialization/weight_initialization.md
         - He 초기화: ch08/weight_initialization/he_init.md
-      - 9.4 정규화 층:
-        - RMSNorm (제곱평균제곱근 층 정규화): ch08/normalization/rms_norm.md
+      - 9.4 정규화 레이어:
+        - RMSNorm (제곱평균제곱근 레이어 정규화): ch08/normalization/rms_norm.md
         - 배치 정규화: ch08/normalization/batch_normalization.md
         - "인스턴스 정규화": ch08/normalization/instance_normalization.md
-        - 층 정규화: ch08/normalization/layer_normalization.md
+        - 레이어 정규화: ch08/normalization/layer_normalization.md
         - 정규화 비교: ch08/normalization/normalization_comparison.md
       - 9.5 정칙화:
         - 정칙화 개요: ch08/regularization/regularization_overview.md
@@ -384,15 +384,15 @@ nav:
         - 실전 학습 요령: ch09/training/training_recipes.md
         - TensorBoard MNIST 주석본: ch09/training/tensorboard_mnist_commented.md
         - 완전한 MNIST 학습: ch09/training/01_complete_mnist_training.md
-      - 10.5 고급 손실 함수:
-        - 손실 함수 소개: ch09/loss/01_intro_to_loss_functions.md
-        - 회귀 손실의 비교: ch09/loss/02_regression_losses_comparison.md
+      - 10.5 고급 로스 함수:
+        - 로스 함수 소개: ch09/loss/01_intro_to_loss_functions.md
+        - 회귀 로스의 비교: ch09/loss/02_regression_losses_comparison.md
         - 최적화기 소개: ch09/loss/03_intro_to_optimizers.md
-        - 분류 손실: ch09/loss/04_classification_losses.md
-        - 후버 손실: ch09/loss/huber_loss.md
+        - 분류 로스: ch09/loss/04_classification_losses.md
+        - 후버 로스: ch09/loss/huber_loss.md
         - "Focal Loss": ch09/loss/focal_loss.md
-        - 사용자 정의 손실 함수: ch09/loss/01_custom_loss_functions.md
-        - 손실 함수의 선택: ch09/loss/loss_selection.md
+        - 사용자 정의 로스 함수: ch09/loss/01_custom_loss_functions.md
+        - 로스 함수의 선택: ch09/loss/loss_selection.md
       - 10.6 최적화기:
         - 모멘텀을 쓰는 확률적 경사 하강법: ch09/optimizers/momentum.md
         - 네스테로프 모멘텀: ch09/optimizers/nesterov.md
@@ -402,16 +402,16 @@ nav:
         - Adam: ch09/optimizers/adam.md
         - AdamW: ch09/optimizers/adamw.md
         - LAMB: ch09/optimizers/lamb.md
-        - 신경망 학습에서 최적화기 비교: ch09/optimizers/01_optimizer_comparison.md
-        - 학습률 스케줄러: ch09/optimizers/02_learning_rate_schedulers.md
-        - 기울기 관리: ch09/optimizers/03_gradient_management.md
+        - 뉴럴 넷트웍 학습에서 최적화기 비교: ch09/optimizers/01_optimizer_comparison.md
+        - 러닝레이트 스케줄러: ch09/optimizers/02_learning_rate_schedulers.md
+        - 그래디언트 관리: ch09/optimizers/03_gradient_management.md
         - Adagrad 실습: ch09/optimizers/adagrad_optimizer.md
         - Adam 실습: ch09/optimizers/adam_optimizer.md
         - 기준 함수에서 최적화기 비교: ch09/optimizers/optimizer_comparison.md
         - RMSprop 실습: ch09/optimizers/rmsprop_optimizer.md
-      - 10.7 학습률 스케줄러:
-        - 순환 학습률: ch09/schedulers/cyclical_lr.md
-        - 학습률 워밍업: ch09/schedulers/lr_warmup.md
+      - 10.7 러닝레이트 스케줄러:
+        - 순환 러닝레이트: ch09/schedulers/cyclical_lr.md
+        - 러닝레이트 워밍업: ch09/schedulers/lr_warmup.md
       - 10.8 과적합과 일반화:
         - 편향-분산 절충: ch09/overfitting/bias_variance_tradeoff.md
         - 학습 곡선 시연: ch09/overfitting/learning_curves_demo.md
@@ -442,16 +442,16 @@ nav:
         - TorchScript 내보내기: ch09/save_load/05_torchscript_export.md
         - 전이 학습: ch09/save_load/06_transfer_learning.md
         - 분산 학습: ch09/save_load/07_distributed_training.md
-    - 11 합성곱 신경망:
+    - 11 컨볼루션 뉴럴 넷트웍:
       - 장 개요: ch10/index.md
-      - 11.1 합성곱 신경망:
-        - 합성곱 연산: ch10/cnn/convolution.md
-        - 특징 맵: ch10/cnn/feature_maps.md
-        - 수용 영역: ch10/cnn/receptive_field.md
-        - 1차원 합성곱: ch10/cnn/conv1d.md
-        - 깊이별 분리 합성곱: ch10/cnn/depthwise_separable.md
-        - 팽창 합성곱: ch10/cnn/dilated_convolutions.md
-        - 전치 합성곱: ch10/cnn/transposed_conv.md
+      - 11.1 컨볼루션 뉴럴 넷트웍:
+        - 컨볼루션 연산: ch10/cnn/convolution.md
+        - 피처 맵: ch10/cnn/feature_maps.md
+        - 리셉티브 필드: ch10/cnn/receptive_field.md
+        - 1차원 컨볼루션: ch10/cnn/conv1d.md
+        - 깊이별 분리 컨볼루션: ch10/cnn/depthwise_separable.md
+        - 팽창 컨볼루션: ch10/cnn/dilated_convolutions.md
+        - 전치 컨볼루션: ch10/cnn/transposed_conv.md
         - MNIST 데이터셋: ch10/cnn/01_mnist_dataset.md
         - Fashion-MNIST 데이터셋: ch10/cnn/02_fashion_mnist_dataset.md
         - CIFAR-10 데이터셋: ch10/cnn/03_cifar10_dataset.md
@@ -460,7 +460,7 @@ nav:
         - CIFAR-10 심화: ch10/cnn/07_cifar10_advanced.md
         - 이진 분류: ch10/cnn/08_binary_classification.md
         - CNN 유틸리티: ch10/cnn/cnn_utils.md
-        - 밑바닥부터 만드는 합성곱: ch10/cnn/conv_from_scratch.md
+        - 밑바닥부터 만드는 컨볼루션: ch10/cnn/conv_from_scratch.md
       - 11.2 잔차 연결:
         - 기본 잔차 블록: ch10/residual/01_basic_residual_block.md
         - ResNet 구현: ch10/residual/02_resnet_implementation.md
@@ -468,15 +468,15 @@ nav:
         - 실전 예제: ch10/residual/06_practical_example.md
         - 항등 사상: ch10/residual/identity_mapping.md
       - 11.3 CNN에서 ViT로:
-        - 합성곱 신경망에서 트랜스포머로: ch10/vit/cnn_to_vit_bridge.md
+        - 컨볼루션 뉴럴 넷트웍에서 트랜스포머로: ch10/vit/cnn_to_vit_bridge.md
         - "Squeeze-and-Excitation": ch10/vit/squeeze_excitation.md
-        - 비국소 신경망: ch10/vit/non_local.md
+        - 비국소 뉴럴 넷트웍: ch10/vit/non_local.md
     - "12 시퀀스 모델":
       - 장 개요: ch11/index.md
       - "12.1 단어 임베딩":
         - GloVe 임베딩: ch11/embeddings/glove_embedding.md
         - 간단한 임베딩: ch11/embeddings/01_simple_embeddings.md
-        - 손실 함수 비교: ch11/embeddings/01_loss_comparison.md
+        - 로스 함수 비교: ch11/embeddings/01_loss_comparison.md
         - Word2Vec 전체: ch11/embeddings/01_word2vec_full.md
         - N-그램 교차 엔트로피: ch11/embeddings/02_ngram_cross_entropy.md
         - CBOW 모델: ch11/embeddings/02_cbow_model.md
@@ -484,14 +484,14 @@ nav:
         - N-그램 함수형 API: ch11/embeddings/03_ngram_functional.md
         - Skip-gram 모델: ch11/embeddings/03_skipgram_model.md
         - 사전 학습 임베딩: ch11/embeddings/03_pretrained_embeddings.md
-        - N-그램 NLL 손실: ch11/embeddings/04_ngram_nll_loss.md
+        - N-그램 NLL 로스: ch11/embeddings/04_ngram_nll_loss.md
         - 임베딩 분석: ch11/embeddings/04_embedding_analysis.md
         - 임베딩 시각화: ch11/embeddings/04_embedding_visualization.md
-      - 12.2 순환 신경망:
-        - 순환 신경망의 기초: ch11/rnn/rnn_fundamentals.md
+      - 12.2 순환 뉴럴 넷트웍:
+        - 순환 뉴럴 넷트웍의 기초: ch11/rnn/rnn_fundamentals.md
         - 기본 RNN: ch11/rnn/vanilla_rnn.md
         - "시간 역전파(BPTT)": ch11/rnn/bptt.md
-        - 기울기 소실: ch11/rnn/vanishing_gradients.md
+        - 그래디언트 소실: ch11/rnn/vanishing_gradients.md
         - "언어 모델": ch11/rnn/language_models.md
         - "시퀀스 기초": ch11/rnn/01_sequence_basics.md
         - 텍스트 전처리: ch11/rnn/02_text_preprocessing.md
@@ -541,7 +541,7 @@ nav:
         - 위치 인코딩: ch12/transformer_architecture/positional_encoding.md
         - "인코더-디코더 구조": ch12/transformer_architecture/encoder_decoder.md
         - "마스킹 어텐션": ch12/transformer_architecture/masked_attention.md
-        - 트랜스포머의 층 정규화: ch12/transformer_architecture/layer_norm.md
+        - 트랜스포머의 레이어 정규화: ch12/transformer_architecture/layer_norm.md
         - "어텐션 메커니즘": ch12/transformer_architecture/attention_mechanisms.md
         - 어텐션을 쓰는 Seq2Seq: ch12/transformer_architecture/seq2seq_with_attention.md
         - 번역 학습: ch12/transformer_architecture/train_translation.md
@@ -573,8 +573,8 @@ nav:
         - "제로샷·퓨샷 텍스트 분류": ch12/pretrained_models/zero_shot_text_classification.md
       - 13.3 학습과 추론:
         - 속도 성능 시험: ch12/training_and_inference/benchmark_speed.md
-        - 합성곱 신경망 기준선: ch12/training_and_inference/cnn_baseline.md
-        - 순환 신경망 기준선: ch12/training_and_inference/rnn_baseline.md
+        - 컨볼루션 뉴럴 넷트웍 기준선: ch12/training_and_inference/cnn_baseline.md
+        - 순환 뉴럴 넷트웍 기준선: ch12/training_and_inference/rnn_baseline.md
         - 트랜스포머 모델: ch12/training_and_inference/transformer_model.md
         - 학습과 추론: ch12/training_and_inference/training_inference.md
         - 학습 최적화: ch12/training_and_inference/training_optimization.md
@@ -582,11 +582,11 @@ nav:
         - "ViT 개요": ch12/transformers_vision/vit.md
         - 이미지를 위한 위치 임베딩: ch12/transformers_vision/position_embeddings.md
         - 스윈 트랜스포머: ch12/transformers_vision/swin.md
-        - 합성곱 신경망과 ViT의 비교: ch12/transformers_vision/cnn_vs_vit.md
+        - 컨볼루션 뉴럴 넷트웍과 ViT의 비교: ch12/transformers_vision/cnn_vs_vit.md
         - 패치 임베딩: ch12/transformers_vision/patch_embedding.md
         - 이미지 분류 학습: ch12/transformers_vision/train_image_classification.md
         - 비전 트랜스포머: ch12/transformers_vision/vision_transformer.md
-        - 합성곱 신경망과 ViT: ch12/transformers_vision/cnn_vs_vit.md
+        - 컨볼루션 뉴럴 넷트웍과 ViT: ch12/transformers_vision/cnn_vs_vit.md
         - 예제: ch12/transformers_vision/examples.md
         - ViT 학습: ch12/transformers_vision/train_vit.md
         - 시각화: ch12/transformers_vision/visualizations.md
@@ -615,11 +615,11 @@ nav:
       - 26.1 오토인코더:
         - 오토인코더: ch25/ae/48_autoencoder.md
         - 오토인코더 모듈: ch25/architecture/autoencoder.md
-        - 손실 함수: ch25/ae/loss_functions.md
+        - 로스 함수: ch25/ae/loss_functions.md
         - "재구성 분석": ch25/ae/reconstruction_analysis.md
       - "26.2 아키텍처":
         - "완전 연결 오토인코더": ch25/architecture/01_ae_fully_connected.md
-        - "합성곱 오토인코더": ch25/architecture/02_ae_cnn.md
+        - "컨볼루션 오토인코더": ch25/architecture/02_ae_cnn.md
         - "디노이징 오토인코더": ch25/architecture/03_ae_denoising.md
         - "수축 오토인코더": ch25/variants/contractive.md
       - 26.3 주성분 분석에서 오토인코더로:
@@ -638,8 +638,8 @@ nav:
         - 변분 오토인코더: ch26/architecture/47_vae.md
         - 베타 변분 오토인코더: ch26/architecture/beta_vae.md
         - 조건부 변분 오토인코더: ch26/architecture/conditional_vae.md
-        - "합성곱 조건부 VAE": ch26/architecture/conv_cvae.md
-        - "합성곱 VAE": ch26/architecture/conv_vae.md
+        - "컨볼루션 조건부 VAE": ch26/architecture/conv_cvae.md
+        - "컨볼루션 VAE": ch26/architecture/conv_vae.md
         - 변분 오토인코더 모듈: ch26/architecture/vae.md
       - "27.3 학습":
         - "Free Bits": ch26/training/free_bits.md
@@ -650,7 +650,7 @@ nav:
     - "28 정규화 흐름(Normalizing Flows)":
       - "장 개요": ch27/index.md
       - "28.1 정규화 흐름 아키텍처":
-        - "RealNVP과 커플링 층": ch27/flow_architectures/realnvp.md
+        - "RealNVP과 커플링 레이어": ch27/flow_architectures/realnvp.md
         - "MNIST 정규화 흐름 예제": ch27/flow_architectures/example_mnist_flows.md
         - "정규화 흐름 유틸리티": ch27/flow_architectures/flow_utils.md
     - "29 자기회귀 모델":
@@ -668,14 +668,14 @@ nav:
       - "29.3 확률분포의 인수분해":
         - "확률분포의 인수분해": ch28/factorization/factorization.md
       - 29.4 WaveNet:
-        - "WaveNet 팽창 합성곱": ch28/wavenet/01_wavenet_basic.md
+        - "WaveNet 팽창 컨볼루션": ch28/wavenet/01_wavenet_basic.md
         - "WaveNet 게이트 잔차 블록": ch28/wavenet/02_wavenet_gated.md
       - "29.5 트랜스포머 자기회귀 모델":
         - "트랜스포머": ch28/transformers/transformers.md
       - "29.6 학습":
         - "Teacher Forcing": ch28/training/teacher_forcing.md
         - "Scheduled Sampling": ch28/training/scheduled_sampling.md
-    - "30 생성적 적대 신경망(GAN)":
+    - "30 생성적 적대 뉴럴 넷트웍(GAN)":
       - "장 개요": ch29/index.md
       - "30.1 GAN 기초":
         - "적대적 학습": ch29/gan_foundations/adversarial.md
@@ -687,8 +687,8 @@ nav:
         - "2차원 GAN 예제": ch29/gan_architectures/example_2d_gan.md
         - MNIST DCGAN 보기: ch29/gan_architectures/example_mnist_dcgan.md
         - "GAN 유틸리티": ch29/gan_architectures/gan_utils.md
-      - "30.3 GAN 손실 함수":
-        - "기본 GAN 손실 함수": ch29/gan_losses/original.md
+      - "30.3 GAN 로스 함수":
+        - "기본 GAN 로스 함수": ch29/gan_losses/original.md
       - "30.4 GAN 평가":
         - 인셉션 점수: ch29/gan_evaluation/inception_score.md
         - 프레셰 인셉션 거리: ch29/gan_evaluation/fid.md
@@ -711,7 +711,7 @@ nav:
         - "Sliced Score Matching": ch30/score_based/sliced_score_matching.md
         - "스코어 매칭 이론": ch30/score_based/02_score_matching_theory.md
         - "랑주뱅 동역학": ch30/score_based/03_langevin_dynamics.md
-        - 랑주뱅 움직임 2: ch30/score_based/03_langevin_dynamics_2.md
+        - 랑주뱅 액션 2: ch30/score_based/03_langevin_dynamics_2.md
         - "Denoising Score Matching 구현": ch30/score_based/04_implementing_dsm_practical.md
         - "Denoising Score Matching": ch30/score_based/04_denoising_score_matching.md
         - "Sliced Score Matching": ch30/score_based/05_sliced_score_matching.md
@@ -757,12 +757,12 @@ nav:
         - 제한 볼츠만 기계: ch31/ebm_foundations/04_restricted_boltzmann_machines.md
         - "Contrastive Divergence": ch31/ebm_foundations/05_contrastive_divergence.md
         - "스코어 매칭": ch31/ebm_foundations/06_score_matching.md
-        - "신경망 에너지 기초 모델": ch31/ebm_foundations/07_neural_ebms.md
+        - "뉴럴 넷트웍 에너지 기초 모델": ch31/ebm_foundations/07_neural_ebms.md
         - "협력 학습": ch31/ebm_foundations/08_cooperative_training.md
         - "에너지 기초 모델의 응용": ch31/ebm_foundations/09_ebm_applications.md
         - "고급 에너지 기초 모델 주제": ch31/ebm_foundations/10_advanced_ebm_topics.md
       - "32.2 고전적 에너지 기반 모델":
-        - 홉필드 신경망: ch31/classical_ebm/hopfield.md
+        - 홉필드 뉴럴 넷트웍: ch31/classical_ebm/hopfield.md
         - 볼츠만 기계: ch31/classical_ebm/boltzmann_machines.md
         - 제한 볼츠만 기계: ch31/classical_ebm/rbm.md
       - "32.3 현대적 에너지 기반 모델":
@@ -822,14 +822,14 @@ nav:
         - "파국적 망각 시연": ch16/continual_learning/01_catastrophic_forgetting_demo.md
         - "단순 순차 학습": ch16/continual_learning/01_naive_sequential_learning.md
         - "단순 경험 리플레이": ch16/continual_learning/01_simple_experience_replay.md
-        - "탄성 가중치 통합(EWC)": ch16/continual_learning/02_elastic_weight_consolidation.md
+        - "탄성 웨이트 통합(EWC)": ch16/continual_learning/02_elastic_weight_consolidation.md
         - "Learning without Forgetting(LwF)": ch16/continual_learning/02_learning_without_forgetting.md
         - "종합 비교": ch16/continual_learning/03_comprehensive_comparison.md
         - "파국적 망각": ch16/continual_learning/catastrophic_forgetting.md
         - 평가 지표: ch16/continual_learning/evaluation_metrics.md
       - "17.2 정칙화 기반 방법":
         - "정칙화 기반 방법 개요": ch16/regularization_methods/overview.md
-        - "탄성 가중치 통합(EWC)": ch16/regularization_methods/ewc.md
+        - "탄성 웨이트 통합(EWC)": ch16/regularization_methods/ewc.md
         - "온라인 EWC": ch16/regularization_methods/online_ewc.md
         - "방법 비교": ch16/regularization_methods/comparison.md
       - "17.3 리플레이 기반 방법":
@@ -840,7 +840,7 @@ nav:
         - "Supermask": ch16/architecture_methods/supermask.md
       - 17.5 증류 방법:
         - "Learning without Forgetting(LwF)": ch16/distillation_methods/lwf.md
-        - 특징 증류: ch16/distillation_methods/feature_distillation.md
+        - 피처 증류: ch16/distillation_methods/feature_distillation.md
         - "방법 비교": ch16/distillation_methods/comparison.md
   - "V 확률적 방법":
     - "18 베이즈 추론 기초":
@@ -869,7 +869,7 @@ nav:
         - 가설 검정: ch17/model_comparison/hypothesis_testing.md
       - "18.5 금융 응용":
         - 베이즈 포트폴리오: ch17/finance/portfolio.md
-        - "매개변수 불확실성": ch17/finance/parameter_uncertainty.md
+        - "파라메터 불확실성": ch17/finance/parameter_uncertainty.md
         - "시장 국면 탐지": ch17/finance/regime.md
     - "19 확률 그래프 모델":
       - "장 개요": ch18/index.md
@@ -961,16 +961,16 @@ nav:
         - "증거 하한(ELBO)": ch20/variational_inference/elbo.md
         - 평균장: ch20/variational_inference/mean_field.md
         - "Amortized Variational Inference": ch20/variational_inference/amortized.md
-        - "재매개변수화": ch20/variational_inference/reparameterization.md
+        - "리파라메리제이션": ch20/variational_inference/reparameterization.md
         - 연습 01 기본 변분 추론: ch20/variational_inference/exercise_01_basic_vi.md
       - 21.2 EM 알고리즘:
         - "EM 알고리즘 기초": ch20/em/foundations.md
         - "E 단계와 M 단계": ch20/em/e_step_m_step.md
         - "EM을 이용한 가우시안 혼합 모델": ch20/em/gmm.md
         - "EM 알고리즘 변형": ch20/em/variants.md
-      - 21.3 베이즈 신경망:
-        - "베이즈 신경망의 기초": ch20/bnn/fundamentals.md
-        - "가중치 불확실성": ch20/bnn/weight_uncertainty.md
+      - 21.3 베이즈 뉴럴 넷트웍:
+        - "베이즈 뉴럴 넷트웍의 기초": ch20/bnn/fundamentals.md
+        - "웨이트 불확실성": ch20/bnn/weight_uncertainty.md
         - "Bayes by Backprop": ch20/bnn/bayes_by_backprop.md
         - "사전분포 선택": ch20/bnn/prior_selection.md
   - "VI 컴퓨터 비전과 자연어 처리":
@@ -1038,13 +1038,13 @@ nav:
         - "Two-Stream 네트워크": ch21/video/two_stream.md
         - "SlowFast": ch21/video/slowfast.md
         - 영상 기초: ch21/video/01_video_basics.md
-        - "3차원 합성곱": ch21/video/02_3d_convolution.md
+        - "3차원 컨볼루션": ch21/video/02_3d_convolution.md
         - "간단한 비디오 분류기": ch21/video/03_simple_video_classifier.md
         - "비디오 데이터 증강": ch21/video/04_data_augmentation_video.md
         - "Two-Stream 네트워크": ch21/video/05_two_stream_network.md
         - "옵티컬 플로우": ch21/video/06_optical_flow.md
         - 영상 CNN-LSTM: ch21/video/07_cnn_lstm_video.md
-        - "행동 인식": ch21/video/08_action_recognition.md
+        - "액션 인식": ch21/video/08_action_recognition.md
         - "시간 어텐션": ch21/video/09_temporal_attention.md
         - "SlowFast 네트워크": ch21/video/10_slowfast_network.md
         - "비디오 트랜스포머": ch21/video/11_video_transformer.md
@@ -1053,13 +1053,13 @@ nav:
       - 장 개요: ch22/index.md
       - "23.1 언어 모델링":
         - n-그램 모델: ch22/language_modeling/ngram.md
-        - "신경망 언어 모델": ch22/language_modeling/neural_lm.md
+        - "뉴럴 넷트웍 언어 모델": ch22/language_modeling/neural_lm.md
         - "샘플링 전략": ch22/language_modeling/sampling_strategies.md
         - Wav2Vec: ch22/language_modeling/10_wav2vec.md
         - "튜토리얼 01 n-그램 기초": ch22/language_modeling/tutorial_01_ngram_basics.md
         - "튜토리얼 02 n-그램 평활화": ch22/language_modeling/tutorial_02_ngram_smoothing.md
         - "튜토리얼 03 n-그램 텍스트 생성": ch22/language_modeling/tutorial_03_text_generation_ngrams.md
-        - "튜토리얼 04 순방향 신경망 언어 모델": ch22/language_modeling/tutorial_04_feedforward_lm.md
+        - "튜토리얼 04 순방향 뉴럴 넷트웍 언어 모델": ch22/language_modeling/tutorial_04_feedforward_lm.md
         - "튜토리얼 05 RNN 언어 모델": ch22/language_modeling/tutorial_05_rnn_language_model.md
         - "튜토리얼 06 LSTM 언어 모델": ch22/language_modeling/tutorial_06_lstm_language_model.md
         - "튜토리얼 07 트랜스포머 언어 모델": ch22/language_modeling/tutorial_07_transformer_lm.md
@@ -1078,7 +1078,7 @@ nav:
         - "IOB 태깅": ch22/sequence_labeling/02_iob_tagging.md
         - "규칙 기반 개체명 인식": ch22/sequence_labeling/03_rule_based_ner.md
         - "사전 기반 개체명 인식": ch22/sequence_labeling/04_dictionary_ner.md
-        - "특징 추출": ch22/sequence_labeling/05_feature_extraction.md
+        - "피처 추출": ch22/sequence_labeling/05_feature_extraction.md
         - "CRF 개체명 인식": ch22/sequence_labeling/06_crf_ner.md
         - "평가 지표": ch22/sequence_labeling/07_evaluation_metrics.md
         - "개체명 인식 종합 데모": ch22/sequence_labeling/demo_complete_ner.md
@@ -1140,19 +1140,19 @@ nav:
       - "24.9 모델 정렬(Alignment)":
         - "학습 파이프라인": ch23/alignment/training_pipeline.md
   - "VII 고급 아키텍처":
-    - "33 신경 상미분방정식(Neural ODE)":
+    - "33 뉴럴 상미분방정식(Neural ODE)":
       - "장 개요": ch32/index.md
       - "33.1 기초":
         - "상미분방정식 기초": ch32/neural_ode_foundations/fundamentals.md
         - 수치 솔버: ch32/neural_ode_foundations/numerical_solvers.md
-        - "신경 상미분방정식(Neural ODE)": ch32/neural_ode_foundations/50_neural_ode.md
+        - "뉴럴 상미분방정식(Neural ODE)": ch32/neural_ode_foundations/50_neural_ode.md
       - "33.2 고급 주제":
         - "시계열을 위한 Latent ODE": ch32/advanced/latent_odes.md
       - "33.3 평가":
         - "솔버 선택 가이드": ch32/evaluation/solver_selection.md
       - "33.4 금융 응용":
         - "기간구조 동역학": ch32/finance_applications/term_structure.md
-    - 34 그래프 신경망:
+    - 34 그래프 뉴럴 넷트웍:
       - "장 개요": ch33/index.md
       - "34.1 그래프 기초":
         - "그래프 기초": ch33/foundations/graph_basics.md
@@ -1161,18 +1161,18 @@ nav:
         - 그래프의 성질: ch33/foundations/graph_properties.md
       - "34.2 메시지 패싱":
         - "업데이트 함수": ch33/message_passing/update.md
-        - "메시지 패싱 신경망(MPNN)": ch33/message_passing/mpnn.md
+        - "메시지 패싱 뉴럴 넷트웍(MPNN)": ch33/message_passing/mpnn.md
       - 34.3 스펙트럼 방법:
         - 스펙트럼 그래프 이론: ch33/convolutions/spectral_theory.md
         - 그래프 푸리에 변환: ch33/convolutions/graph_fourier.md
         - ChebNet: ch33/convolutions/chebnet.md
       - "34.4 공간 기반 방법":
-        - "그래프 합성곱 신경망(GCN)": ch33/convolutions/gcn.md
+        - "그래프 컨볼루션 뉴럴 넷트웍(GCN)": ch33/convolutions/gcn.md
         - GraphSAGE: ch33/convolutions/graphsage.md
-        - 그래프 어텐션 신경망: ch33/convolutions/gat.md
-        - "그래프 동형 신경망(GIN)": ch33/convolutions/gin.md
-      - "34.5 고급 그래프 신경망 방법":
-        - "심층 그래프 신경망": ch33/advanced/deep_gnns.md
+        - 그래프 어텐션 뉴럴 넷트웍: ch33/convolutions/gat.md
+        - "그래프 동형 뉴럴 넷트웍(GIN)": ch33/convolutions/gin.md
+      - "34.5 고급 그래프 뉴럴 넷트웍 방법":
+        - "심층 그래프 뉴럴 넷트웍": ch33/advanced/deep_gnns.md
         - "과도한 평활화(Over-smoothing)": ch33/advanced/over_smoothing.md
         - "Jumping Knowledge": ch33/advanced/jumping_knowledge.md
         - 그래프 트랜스포머: ch33/advanced/graph_transformers.md
@@ -1190,7 +1190,7 @@ nav:
         - "링크 예측": ch33/node_link/link_prediction.md
         - "노드 임베딩": ch33/node_link/node_embedding.md
         - "커뮤니티 탐지": ch33/node_link/community_detection.md
-      - "34.8 그래프 신경망의 응용":
+      - "34.8 그래프 뉴럴 넷트웍의 응용":
         - "분자 특성 예측": ch33/applications/molecular.md
         - "신약 개발": ch33/applications/drug_discovery.md
         - "소셜 네트워크 분석": ch33/applications/social_networks.md
@@ -1201,7 +1201,7 @@ nav:
       - "35.1 기초":
         - "행렬 분해": ch34/foundations/matrix_factorization.md
         - "암묵적 피드백과 명시적 피드백": ch34/foundations/implicit_explicit.md
-      - 35.2 신경망 방법:
+      - 35.2 뉴럴 넷트웍 방법:
         - "오토인코더 기반 추천 시스템": ch34/neural_methods/autoencoder_recsys.md
         - "어텐션 기반 추천 시스템": ch34/neural_methods/attention_recsys.md
       - "35.3 금융 응용":
@@ -1229,22 +1229,22 @@ nav:
       - 36.5 금융:
         - "거래 네트워크": ch35/finance/transactions.md
   - "VIII 강화학습":
-    - "37 강화학습 기초와 가치 함수":
+    - "37 강화학습 기초와 밸류 함수":
       - "장 개요": ch36/index.md
       - "37.1 소개":
-        - 보상 가설: ch36/introduction/reward_hypothesis.md
+        - 리워드 가설: ch36/introduction/reward_hypothesis.md
       - 37.2 마르코프 결정 과정:
         - "할인율": ch36/mdp/discount.md
-      - "37.3 가치 함수":
-        - "상태 가치 함수": ch36/value_functions/state_value.md
-        - "행동 가치 함수": ch36/value_functions/action_value.md
+      - "37.3 밸류 함수":
+        - "상태 밸류 함수": ch36/value_functions/state_value.md
+        - "액션 밸류 함수": ch36/value_functions/action_value.md
         - 벨먼 방정식: ch36/value_functions/bellman.md
       - "37.4 동적 계획법":
-        - "정책 반복": ch36/dynamic_programming/policy_iteration.md
+        - "폴리시 반복": ch36/dynamic_programming/policy_iteration.md
       - "37.5 n-step 방법":
         - TD(λ): ch36/n_step/td_lambda.md
         - "자격 추적(Eligibility Traces)": ch36/n_step/eligibility_traces.md
-    - "38 가치 기반 방법":
+    - "38 밸류 기반 방법":
       - "장 개요": ch37/index.md
       - "38.1 DQN":
         - "DQN 기초": ch37/dqn/fundamentals.md
@@ -1263,7 +1263,7 @@ nav:
         - "n-step 리턴": ch37/multi_step/n_step_returns.md
         - "Retrace": ch37/multi_step/retrace.md
         - "V-trace": ch37/multi_step/v_trace.md
-      - "38.4 연속 행동 공간":
+      - "38.4 연속 액션 공간":
         - "정규화 어드밴티지 함수(NAF)": ch37/continuous/naf.md
         - QT-Opt: ch37/continuous/qt_opt.md
       - "38.5 오프라인 강화학습":
@@ -1278,12 +1278,12 @@ nav:
       - "38.7 금융 응용":
         - 주문 처리: ch37/finance/order_execution.md
         - "시장 조성(Market Making)": ch37/finance/market_making.md
-        - "이산 행동 기반 거래": ch37/finance/discrete_trading.md
-    - "39 정책 기반 방법":
+        - "이산 액션 기반 거래": ch37/finance/discrete_trading.md
+    - "39 폴리시 기반 방법":
       - "장 개요": ch38/index.md
-      - "39.1 정책 경사 기초":
-        - "정책 매개변수화": ch38/foundations/parameterization.md
-        - "정책 경사 정리": ch38/foundations/pg_theorem.md
+      - "39.1 폴리시 경사 기초":
+        - "폴리시 파라메터화": ch38/foundations/parameterization.md
+        - "폴리시 경사 정리": ch38/foundations/pg_theorem.md
         - REINFORCE: ch38/foundations/reinforce.md
         - "베이스라인": ch38/foundations/baselines.md
       - "39.2 Actor-Critic":
@@ -1293,7 +1293,7 @@ nav:
         - "일반화 어드밴티지 추정(GAE)": ch38/actor_critic/gae.md
       - "39.3 신뢰 영역 방법":
         - "TRPO": ch38/trust_region/trpo.md
-        - "자연 정책 경사(NPG)": ch38/trust_region/npg.md
+        - "자연 폴리시 경사(NPG)": ch38/trust_region/npg.md
         - "PPO": ch38/trust_region/ppo.md
         - "PPO 구현": ch38/trust_region/ppo_implementation.md
       - "39.4 오프폴리시 Actor-Critic":
@@ -1307,24 +1307,24 @@ nav:
         - "멀티에이전트 강화학습": ch38/advanced/multi_agent.md
         - "모델 기반 강화학습": ch38/advanced/model_based.md
       - "39.6 실전 고려사항":
-        - "보상 셰이핑": ch38/practical/reward_shaping.md
-        - "행동 공간": ch38/practical/action_spaces.md
+        - "리워드 셰이핑": ch38/practical/reward_shaping.md
+        - "액션 공간": ch38/practical/action_spaces.md
         - "관측 정규화": ch38/practical/normalization.md
         - "강화학습 디버깅": ch38/practical/debugging.md
       - "39.7 금융 응용":
         - "포트폴리오 최적화": ch38/finance/portfolio.md
-        - "연속 행동 기반 거래": ch38/finance/continuous_trading.md
+        - "연속 액션 기반 거래": ch38/finance/continuous_trading.md
         - "위험 민감 강화학습": ch38/finance/risk_sensitive.md
     - "40 퀀트 금융 응용":
       - 장 개요: ch39/index.md
       - "40.1 환경":
-        - "행동 공간": ch39/environments/actions.md
-        - "보상 설계": ch39/environments/rewards.md
+        - "액션 공간": ch39/environments/actions.md
+        - "리워드 설계": ch39/environments/rewards.md
         - "시장 시뮬레이션": ch39/environments/simulation.md
         - "상태 표현": ch39/environments/state.md
       - "40.2 위험 관리":
         - "낙폭(Drawdown)": ch39/risk/drawdown.md
-        - "위험 조정 보상": ch39/risk/rewards.md
+        - "위험 조정 리워드": ch39/risk/rewards.md
         - "VaR 제약": ch39/risk/var_constraints.md
       - "40.3 백테스팅":
         - "백테스팅 프레임워크": ch39/backtesting/framework.md
@@ -1348,8 +1348,8 @@ nav:
         - "모델 해석 입문": ch40/foundations/introduction.md
         - "해석 방법 분류": ch40/foundations/taxonomy.md
         - "해석 방법 평가": ch40/foundations/evaluation.md
-      - "41.2 기울기 기반 방법":
-        - "Saliency Map과 기본 기울기": ch40/gradient_methods/saliency_maps.md
+      - "41.2 그래디언트 기반 방법":
+        - "Saliency Map과 기본 그래디언트": ch40/gradient_methods/saliency_maps.md
         - Grad-CAM: ch40/gradient_methods/gradcam.md
         - Grad-CAM++: ch40/gradient_methods/gradcam_plusplus.md
         - "Integrated Gradients": ch40/gradient_methods/integrated_gradients.md
@@ -1367,15 +1367,15 @@ nav:
         - "고급 기법": ch40/gradient_methods/09_advanced_techniques.md
       - "41.3 어텐션 시각화":
         - "어텐션 패턴 분석": ch40/attention_viz/pattern_analysis.md
-        - "중간층 크로스 어텐션": ch40/attention_viz/06_intermediate_cross_attention.md
+        - "중간레이어 크로스 어텐션": ch40/attention_viz/06_intermediate_cross_attention.md
         - "ViT 어텐션 심화": ch40/attention_viz/07_advanced_vit_attention.md
         - "어텐션 흐름 분석 심화": ch40/attention_viz/08_advanced_attention_flow.md
-        - "기울기 기반 어텐션 심화": ch40/attention_viz/09_advanced_gradient_attention.md
-      - "41.4 특징 기여도 분석":
+        - "그래디언트 기반 어텐션 심화": ch40/attention_viz/09_advanced_gradient_attention.md
+      - "41.4 피처 기여도 분석":
         - "Kernel SHAP": ch40/feature_attribution/kernel_shap.md
         - "Deep SHAP": ch40/feature_attribution/deep_shap.md
         - "Tree SHAP": ch40/feature_attribution/tree_shap.md
-        - "특징 간 상호작용": ch40/feature_attribution/interactions.md
+        - "피처 간 상호작용": ch40/feature_attribution/interactions.md
       - "41.5 개념 기반 방법":
         - "개념 활성화 벡터(CAV)": ch40/concept_methods/cav.md
         - "TCAV: 개념 활성화 벡터를 이용한 평가": ch40/concept_methods/tcav.md
@@ -1383,7 +1383,7 @@ nav:
         - "해석을 위한 프로토타입 네트워크": ch40/concept_methods/prototypes.md
       - "41.6 모델별 해석 방법":
         - "CNN 시각화와 분해 방법": ch40/model_specific/cnn_visualization.md
-        - "특징 역변환(Feature Inversion)": ch40/model_specific/feature_inversion.md
+        - "피처 역변환(Feature Inversion)": ch40/model_specific/feature_inversion.md
         - "트랜스포머 프로빙": ch40/model_specific/transformer_probing.md
         - "GNN 해석 방법": ch40/model_specific/gnn_explanation.md
       - "41.7 평가":
@@ -1436,14 +1436,14 @@ nav:
         - "랜덤 평활화와 강건성 인증": ch42/certified/randomized_smoothing.md
         - "구간 경계 전파(IBP)": ch42/certified/ibp.md
         - CROWN: ch42/certified/crown.md
-        - "립시츠 제약 신경망": ch42/certified/lipschitz.md
+        - "립시츠 제약 뉴럴 넷트웍": ch42/certified/lipschitz.md
       - "43.7 탐지 방법":
         - "통계적 적대적 샘플 탐지": ch42/detection/statistical.md
         - "Feature Squeezing": ch42/detection/feature_squeezing.md
         - "입력 변환 기반 방어": ch42/detection/input_transform.md
       - "43.8 평가":
         - "평가와 벤치마크": ch42/evaluation/benchmarks.md
-        - "적응적 공격과 기울기 마스킹": ch42/evaluation/adaptive.md
+        - "적응적 공격과 그래디언트 마스킹": ch42/evaluation/adaptive.md
         - "인증 정확도": ch42/evaluation/certified_accuracy.md
       - "43.9 금융 응용":
         - "사기 탐지 모델의 강건성": ch42/finance/fraud.md
@@ -1456,15 +1456,15 @@ nav:
         - "몬테카를로 드롭아웃의 표본 수렴": ch43/mc_dropout/convergence.md
         - "MC 드롭아웃 비율 선택": ch43/mc_dropout/dropout_rate.md
       - 44.2 베이즈 방법:
-        - "신경망 가중치 사전분포": ch43/bayesian_methods/priors.md
-        - "베이즈 신경망 사후분포 추론": ch43/bayesian_methods/posterior.md
-        - "변분 베이즈 신경망": ch43/bayesian_methods/variational_bnn.md
-        - "베이즈 신경망의 MCMC 방법": ch43/bayesian_methods/mcmc_bnn.md
-        - "신경망의 라플라스 근사": ch43/bayesian_methods/laplace.md
+        - "뉴럴 넷트웍 웨이트 사전분포": ch43/bayesian_methods/priors.md
+        - "베이즈 뉴럴 넷트웍 사후분포 추론": ch43/bayesian_methods/posterior.md
+        - "변분 베이즈 뉴럴 넷트웍": ch43/bayesian_methods/variational_bnn.md
+        - "베이즈 뉴럴 넷트웍의 MCMC 방법": ch43/bayesian_methods/mcmc_bnn.md
+        - "뉴럴 넷트웍의 라플라스 근사": ch43/bayesian_methods/laplace.md
         - "SWAG: Stochastic Weight Averaging Gaussian": ch43/bayesian_methods/swag.md
         - "MC 드롭아웃: 근사 베이즈 추론": ch43/bayesian_methods/mc_dropout_connection.md
       - "44.3 평가":
-        - "신경망 불확실성 정량화": ch43/evaluation/uncertainty_quantification.md
+        - "뉴럴 넷트웍 불확실성 정량화": ch43/evaluation/uncertainty_quantification.md
       - "44.4 금융 응용":
         - "모델 불확실성의 실전 응용": ch43/finance/practical_applications.md
   - "X 실전과 배포":
@@ -1473,7 +1473,7 @@ nav:
       - "45.1 모델 최적화":
         - "양자화": ch44/optimization/quantization.md
         - "지식 증류": ch44/optimization/distillation.md
-        - "신경망 아키텍처 탐색(NAS)": ch44/optimization/nas.md
+        - "뉴럴 넷트웍 아키텍처 탐색(NAS)": ch44/optimization/nas.md
   - "부록 - 모델 구현":
     - "A1 CNN 아키텍처":
       - LeNet: appendix/cnn/lenet.md
@@ -1506,7 +1506,7 @@ nav:
       - MAE: appendix/vit/mae.md
       - CLIP: appendix/vit/clip.md
     - "A3 이미지 분할 모델":
-      - "완전 합성곱 신경망(FCN)": appendix/segmentation/fcn.md
+      - "완전 컨볼루션 뉴럴 넷트웍(FCN)": appendix/segmentation/fcn.md
       - DeepLab v3+: appendix/segmentation/deeplabv3.md
       - PSPNet: appendix/segmentation/pspnet.md
       - Mask R-CNN: appendix/segmentation/mask_rcnn.md
@@ -1546,13 +1546,13 @@ nav:
       - Stable Diffusion: appendix/generative/stable_diffusion.md
       - RealNVP: appendix/generative/realnvp.md
       - Glow: appendix/generative/glow.md
-      - 신경 ODE: appendix/generative/neural_ode.md
-    - "A8 그래프 신경망":
-      - "그래프 합성곱 신경망(GCN)": appendix/gnn/gcn.md
-      - "그래프 어텐션 신경망(GAT)": appendix/gnn/gat.md
+      - 뉴럴 ODE: appendix/generative/neural_ode.md
+    - "A8 그래프 뉴럴 넷트웍":
+      - "그래프 컨볼루션 뉴럴 넷트웍(GCN)": appendix/gnn/gcn.md
+      - "그래프 어텐션 뉴럴 넷트웍(GAT)": appendix/gnn/gat.md
       - GraphSAGE: appendix/gnn/graphsage.md
-      - "그래프 동형 신경망(GIN)": appendix/gnn/gin.md
-      - "메시지 패싱 신경망(MPNN)": appendix/gnn/mpnn.md
+      - "그래프 동형 뉴럴 넷트웍(GIN)": appendix/gnn/gin.md
+      - "메시지 패싱 뉴럴 넷트웍(MPNN)": appendix/gnn/mpnn.md
     - "A9 강화학습":
       - "DQN": appendix/rl/dqn.md
       - "Double DQN": appendix/rl/double_dqn.md
@@ -1563,9 +1563,9 @@ nav:
       - TD3: appendix/rl/td3.md
     - "A10 공통 구성 요소와 유틸리티":
       - "어텐션 메커니즘": appendix/utils/attention.md
-      - "정규화 층": appendix/utils/normalization.md
-      - "활성화 함수": appendix/utils/activations.md
+      - "정규화 레이어": appendix/utils/normalization.md
+      - "엑티베이션 함수": appendix/utils/activations.md
       - "위치 인코딩": appendix/utils/positional.md
-      - "손실 함수": appendix/utils/losses.md
-      - "학습률 스케줄러": appendix/utils/schedulers.md
+      - "로스 함수": appendix/utils/losses.md
+      - "러닝레이트 스케줄러": appendix/utils/schedulers.md
       - "데이터 증강": appendix/utils/augmentation.md

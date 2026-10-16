@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument('--num-layers', type=int, default=1)
     parser.add_argument('--dropout', type=float, default=0.5)
     
-    # 순차열 매개변수
+    # 순차열 파라메터
     parser.add_argument('--sequence-length', type=int, default=50)
     parser.add_argument('--embedding-dim', type=int, default=100)
     
@@ -186,7 +186,7 @@ def train_epoch(model, dataloader, criterion, optimizer, device, clip=None):
         loss = criterion(output, target)
         loss.backward()
         
-        # 기울기 폭발을 막으려고 기울기 자르기
+        # 그래디언트 폭발을 막으려고 그래디언트 자르기
         if clip:
             torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
         
@@ -286,7 +286,7 @@ def plot_training_curves(train_losses, val_losses, train_accs=None, val_accs=Non
     if train_accs is None:
         axes = [axes]
     
-    # 손실 그래프
+    # 로스 그래프
     axes[0].plot(train_losses, label='Train Loss')
     axes[0].plot(val_losses, label='Val Loss')
     axes[0].set_xlabel('Epoch')
@@ -354,11 +354,11 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-`SimpleRNN`은 연속 특징의 마지막 시점으로 분류 로짓과 은닉 상태의 튜플을 반환한다. `LSTMClassifier`와 `BiLSTM`은 토큰 ID를 임베딩하고 분류 로짓만 반환한다. `GRUPredictor`는 연속 특징으로부터 마지막 시점의 예측을 반환한다. `Vocabulary`는 신경망이 아닌 단어 사전이다.
+`SimpleRNN`은 연속 피처의 마지막 시점으로 분류 로짓과 은닉 상태의 튜플을 반환한다. `LSTMClassifier`와 `BiLSTM`은 토큰 ID를 임베딩하고 분류 로짓만 반환한다. `GRUPredictor`는 연속 피처로부터 마지막 시점의 예측을 반환한다. `Vocabulary`는 뉴럴 넷트웍이 아닌 단어 사전이다.
 
 `train_epoch`와 `evaluate`는 모델 반환값을 텐서로 가정한다. 따라서 튜플을 반환하는 SimpleRNN에는 그대로 사용할 수 없고 로짓을 분리해야 한다. 출력 차원이 2 이상이면 argmax 정확도를 계산하므로 여러 회귀 타깃이나 길이별 출력에는 적합한 지표가 아니다. 단일 이진 로짓에는 정확도가 0으로 보고될 수 있으므로 출력에 맞춘 평가가 필요하다.
 
-손실은 배치 손실의 단순 평균이다. 마지막 배치가 작으면 표본 평균과 다르며 빈 로더에서는 0으로 나누게 된다. `evaluate`는 평가 모드를 유지하므로 이후 학습에서는 다시 train 모드를 설정해야 한다. 모델들은 길이 정보를 받지 않아 패딩 위치도 처리한다.
+로스는 배치 로스의 단순 평균이다. 마지막 배치가 작으면 표본 평균과 다르며 빈 로더에서는 0으로 나누게 된다. `evaluate`는 평가 모드를 유지하므로 이후 학습에서는 다시 train 모드를 설정해야 한다. 모델들은 길이 정보를 받지 않아 패딩 위치도 처리한다.
 
 저장 함수는 모델 state_dict와 선택적인 어휘 객체를 저장한다. 구조 인수와 전처리 규칙, 옵티마이저·스케줄러 상태와 난수 상태는 따로 관리해야 한다. 사용자 정의 Vocabulary 객체를 저장하면 최신 PyTorch의 기본 weights_only 로드에서 허용되지 않을 수 있다. 사전 데이터를 기본 자료형으로 저장하는 방식과 신뢰할 수 있는 객체 복원을 구분한다.
 
@@ -369,12 +369,12 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-입력 차원 x, 은닉 차원 h, 출력 차원 o, 순환 층수 L인 SimpleRNN의 매개변수 수를 구하라.
+입력 차원 x, 은닉 차원 h, 출력 차원 o, 순환 레이어수 L인 SimpleRNN의 파라메터 수를 구하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    첫 순환층은 $h(x+h)+2h$개다. 추가 층은 각각 $2h^2+2h$개이고 출력층은 $oh+o$개다. 따라서 합계는 $h(x+h)+2h+(L-1)(2h^2+2h)+oh+o$다. 시퀀스 길이에 비례해 매개변수가 늘지는 않는다.
+    첫 순환 레이어는 $h(x+h)+2h$개다. 추가 레이어는 각각 $2h^2+2h$개이고 출력 레이어는 $oh+o$개다. 따라서 합계는 $h(x+h)+2h+(L-1)(2h^2+2h)+oh+o$다. 시퀀스 길이에 비례해 파라메터가 늘지는 않는다.
 
 ---
 
@@ -386,19 +386,19 @@ if __name__ == "__main__":
 </div>
 
 ??? success "연습문제 2 풀이"
-    SimpleRNN의 튜플에서 로짓을 분리해야 한다. 분류의 정수 클래스와 회귀의 실수 타깃을 구분하고 손실에 맞는 모양을 확인한다. 출력 열 수가 여러 개라는 사실만으로 분류 정확도를 계산해서는 안 된다. 길이와 패딩도 별도 처리한다.
+    SimpleRNN의 튜플에서 로짓을 분리해야 한다. 분류의 정수 클래스와 회귀의 실수 타깃을 구분하고 로스에 맞는 모양을 확인한다. 출력 열 수가 여러 개라는 사실만으로 분류 정확도를 계산해서는 안 된다. 길이와 패딩도 별도 처리한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 입력·은닉 크기의 기본 LSTM과 GRU에서 편향을 포함한 셀 매개변수 수를 비교하라.
+같은 입력·은닉 크기의 기본 LSTM과 GRU에서 바이어스를 포함한 셀 파라메터 수를 비교하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    PyTorch의 bias=True, 단일 층·방향, 투영 없는 설정에서는 LSTM이 $4h(x+h+2)$개, GRU가 $3h(x+h+2)$개다. 두 편향 벡터를 포함한 계산이며 임베딩과 출력층은 제외한다. LSTM의 네 계산 묶음은 세 게이트와 셀 후보다.
+    PyTorch의 bias=True, 단일 레이어·방향, 투영 없는 설정에서는 LSTM이 $4h(x+h+2)$개, GRU가 $3h(x+h+2)$개다. 두 바이어스 벡터를 포함한 계산이며 임베딩과 출력 레이어는 제외한다. LSTM의 네 계산 묶음은 세 게이트와 셀 후보다.
 
 ---
 
@@ -416,8 +416,8 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력층과 출력층은 과제의 차원을 유지하고, 은닉층 사이에 필요한 비선형성을 넣어야 한다. 선형층만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-공통 유틸리티는 반환 형식, 입력과 타깃의 형태, 손실과 지표가 맞을 때 재사용할 수 있다. 이 페이지의 모델별 차이와 저장·복원의 범위를 확인한 뒤 연결해야 한다.
+공통 유틸리티는 반환 형식, 입력과 타깃의 형태, 로스와 지표가 맞을 때 재사용할 수 있다. 이 페이지의 모델별 차이와 저장·복원의 범위를 확인한 뒤 연결해야 한다.

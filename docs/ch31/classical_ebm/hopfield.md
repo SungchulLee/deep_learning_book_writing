@@ -1,10 +1,10 @@
-# 홉필드 신경망과 연상 기억
+# 홉필드 뉴럴 넷트웍과 연상 기억
 
-연상 기억은 손상된 입력에서 저장한 패턴을 되찾는 문제다. 고전 홉필드 신경망은 패턴 주변에 낮은 에너지 상태를 만들고 단위를 하나씩 갱신해 안정 상태를 찾는다. 저장한 패턴이 반드시 모두 안정하거나 모든 손상을 복구할 수 있는 것은 아니므로 수렴과 올바른 검색을 구분해야 한다.
+연상 기억은 손상된 입력에서 저장한 패턴을 되찾는 문제다. 고전 홉필드 뉴럴 넷트웍은 패턴 주변에 낮은 에너지 상태를 만들고 단위를 하나씩 갱신해 안정 상태를 찾는다. 저장한 패턴이 반드시 모두 안정하거나 모든 손상을 복구할 수 있는 것은 아니므로 수렴과 올바른 검색을 구분해야 한다.
 
 ## 1. 구조와 에너지
 
-N개 상태 sᵢ∈{−1,+1}, 대칭 가중치 Wᵢⱼ=Wⱼᵢ와 Wᵢᵢ=0을 사용한다. 편향 θ를 포함한 에너지는 다음과 같다.
+N개 상태 sᵢ∈{−1,+1}, 대칭 웨이트 Wᵢⱼ=Wⱼᵢ와 Wᵢᵢ=0을 사용한다. 바이어스 θ를 포함한 에너지는 다음과 같다.
 
 $$E(s)=-\frac12s^TWs-\theta^Ts$$
 
@@ -30,15 +30,15 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
     class HopfieldNetwork(nn.Module):
         """
-        제각기 고침을 쓰는 이진 홉필드 신경망.
+        제각기 고침을 쓰는 이진 홉필드 뉴럴 넷트웍.
 
         에너지 가장 작게 하기로 이어 떠올림 기억을 짠다.
         무늬는 에너지 함수의 그 자리 최솟값으로 담긴다.
 
-        매개변수
+        파라메터
         ----------
         n_neurons : int
-            신경망의 신경 세포 개수
+            뉴럴 넷트웍의 뉴런 개수
         """
 
         def __init__(self, n_neurons: int):
@@ -48,7 +48,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
             # 무게 행렬(맞섬, 스스로 이음 없음)
             self.register_buffer('W', torch.zeros(n_neurons, n_neurons))
 
-            # 문턱(치우침)
+            # 임계(치우침)
             self.register_buffer('theta', torch.zeros(n_neurons))
 
             # 되찾는 동안 에너지를 좇기 위해
@@ -56,13 +56,13 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
         def train_hebbian(self, patterns: torch.Tensor) -> None:
             """
-            헤브 배움 규칙으로 무늬를 담는다.
+            헤브 러닝 규칙으로 무늬를 담는다.
 
             "함께 터지는 뉴런은 함께 이어진다"
 
             w_ij = (1/P) Σₚ xᵢᵖ xⱼᵖ  for i ≠ j
 
-            매개변수
+            파라메터
             ----------
             patterns : torch.Tensor
                 꼴 (n_patterns, n_neurons), 값은 {-1, +1}
@@ -87,11 +87,11 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
         def energy(self, state: torch.Tensor) -> torch.Tensor:
             """
-            신경망 상태의 에너지를 셈한다.
+            뉴럴 넷트웍 상태의 에너지를 셈한다.
 
             E(s) = -½ sᵀWs - θᵀs
 
-            매개변수
+            파라메터
             ----------
             state : torch.Tensor
                 꼴 (n_neurons,) 또는 (batch, n_neurons)
@@ -114,7 +114,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
         def local_field(self, state: torch.Tensor) -> torch.Tensor:
             """
-            모든 신경 세포의 그 자리 마당을 셈한다.
+            모든 뉴런의 그 자리 마당을 셈한다.
 
             h_i = Σⱼ w_ij s_j + θ_i
             """
@@ -122,7 +122,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
         def update_neuron(self, state: torch.Tensor, neuron_idx: int) -> torch.Tensor:
             """
-            신경 세포 하나를 제각기 고친다.
+            뉴런 하나를 제각기 고친다.
 
             s_i ← sign(h_i)
 
@@ -131,7 +131,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
             new_state = state.clone()
             h_i = self.local_field(state)[neuron_idx]
 
-            # 문턱 깨움
+            # 임계 깨움
             if h_i > 0:
                 new_state[neuron_idx] = 1.0
             elif h_i < 0:
@@ -149,7 +149,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
             모일 때까지 제각기 고친다.
 
-            매개변수
+            파라메터
             ----------
             initial_state : torch.Tensor
                 처음 상태(망가진 무늬)
@@ -174,7 +174,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
             for iteration in range(max_iterations):
                 old_state = state.clone()
 
-                # 아무 차례로 신경 세포를 고친다
+                # 아무 차례로 뉴런을 고친다
                 update_order = torch.randperm(self.n_neurons)
 
                 for neuron_idx in update_order:
@@ -203,9 +203,9 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
     def demonstrate_hopfield_retrieval():
         """
-        홉필드 신경망으로 무늬 담기와 되찾기를 보여 준다.
+        홉필드 뉴럴 넷트웍으로 무늬 담기와 되찾기를 보여 준다.
         """
-        # 단순한 5x5 무늬를 만든다(신경 세포 25개로 편다)
+        # 단순한 5x5 무늬를 만든다(뉴런 25개로 편다)
         pattern_A = torch.tensor([
             [-1, +1, +1, +1, -1],
             [+1, -1, -1, -1, +1],
@@ -224,7 +224,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
         patterns = torch.stack([pattern_A, pattern_B])
 
-        # 신경망을 만들어 익힌다
+        # 뉴럴 넷트웍을 만들어 익힌다
         network = HopfieldNetwork(n_neurons=25)
         network.train_hebbian(patterns)
 
@@ -303,7 +303,7 @@ Overlap with pattern A: 1.000
 Overlap with pattern B: 0.520
 ```
 
-코드는 P개 패턴 ξ의 외적 합을 P로 나누고 대각을 0으로 만든다. 흔한 1/N 정규화와 다르다. 편향이 0이면 양의 상수 배수는 갱신 부호를 바꾸지 않지만 에너지 크기와 양의 온도 확률분포는 바꾼다. 서로 다른 패턴 수에서 에너지 크기를 그대로 비교하는 데 주의한다.
+코드는 P개 패턴 ξ의 외적 합을 P로 나누고 대각을 0으로 만든다. 흔한 1/N 정규화와 다르다. 바이어스가 0이면 양의 상수 배수는 갱신 부호를 바꾸지 않지만 에너지 크기와 양의 온도 확률분포는 바꾼다. 서로 다른 패턴 수에서 에너지 크기를 그대로 비교하는 데 주의한다.
 
 첫 데모는 25개 뉴런에 두 5×5 패턴을 저장하고 A의 5개 비트를 뒤집어 검색한다. retrieve의 한 iteration은 무작위 순서로 전체 뉴런을 한 번 갱신한 sweep이다. 에너지 이력도 뉴런마다가 아니라 sweep마다 기록한다. 갱신 규칙은 결정적이어도 순서가 무작위이므로 가능한 경로와 최종 basin은 달라질 수 있다.
 
@@ -311,7 +311,7 @@ Overlap with pattern B: 0.520
 
 ## 3. 중첩도와 저장 용량
 
-패턴 ξ와 상태 s의 중첩도 m=N⁻¹Σsᵢξᵢ는 1−2d_H(s,ξ)/N이다. m=1이면 완전 일치, m=−1이면 완전 반전이다. [고전 용량 분석](https://doi.org/10.1103/PhysRevLett.55.1530)은 큰 N, 무작위 비편향 패턴과 특정 검색 기준에서 선형 규모의 임계 부하를 다룬다. 흔히 인용하는 약 0.14N은 그 조건의 결과이며 임의 패턴의 완전 복구 보장이 아니다.
+패턴 ξ와 상태 s의 중첩도 m=N⁻¹Σsᵢξᵢ는 1−2d_H(s,ξ)/N이다. m=1이면 완전 일치, m=−1이면 완전 반전이다. [고전 용량 분석](https://doi.org/10.1103/PhysRevLett.55.1530)은 큰 N, 무작위 비바이어스 패턴과 특정 검색 기준에서 선형 규모의 임계 부하를 다룬다. 흔히 인용하는 약 0.14N은 그 조건의 결과이며 임의 패턴의 완전 복구 보장이 아니다.
 
 ??? note "무작위 패턴 수에 따른 검색 실험"
 
@@ -322,10 +322,10 @@ Overlap with pattern B: 0.520
         """
         무늬 개수가 늘 때 되찾기 성능이 어떻게 나빠지는지 살핀다.
 
-        매개변수
+        파라메터
         ----------
         n_neurons : int
-            신경망 크기
+            뉴럴 넷트웍 크기
         max_patterns : int
             시험할 최대 무늬 개수
         n_trials : int
@@ -345,7 +345,7 @@ Overlap with pattern B: 0.520
                 # 아무 무늬를 만든다
                 patterns = torch.sign(torch.randn(n_patterns, n_neurons))
 
-                # 신경망을 익힌다
+                # 뉴럴 넷트웍을 익힌다
                 network = HopfieldNetwork(n_neurons)
                 network.train_hebbian(patterns)
 
@@ -575,7 +575,7 @@ Overlap with pattern B: 0.520
 
 ## 4. 저장하지 않은 안정 상태
 
-서로 간섭하는 패턴은 의도하지 않은 고정점을 만들 수 있다. 예를 들어 여러 패턴 합의 부호를 취한 혼합 상태가 안정할 수 있지만 모든 합이 안정한 것은 아니다. 편향이 0이면 E(s)=E(−s)이므로 저장 패턴의 반전도 대칭적으로 등장한다.
+서로 간섭하는 패턴은 의도하지 않은 고정점을 만들 수 있다. 예를 들어 여러 패턴 합의 부호를 취한 혼합 상태가 안정할 수 있지만 모든 합이 안정한 것은 아니다. 바이어스가 0이면 E(s)=E(−s)이므로 저장 패턴의 반전도 대칭적으로 등장한다.
 
 ??? note "임의 초기점에서 후보 상태 찾기"
 
@@ -617,7 +617,7 @@ Overlap with pattern B: 0.520
         return spurious
     ```
 
-find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다. 따라서 거의 일치하거나 반전된 상태를 같은 것으로 취급하며, 정확한 전체 고정점 열거가 아니다. 100개의 무작위 초기점에서 발견하지 못했다고 해당 상태가 없다는 뜻도 아니다. 편향이 있으면 반전 대칭을 당연히 가정할 수 없다.
+find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다. 따라서 거의 일치하거나 반전된 상태를 같은 것으로 취급하며, 정확한 전체 고정점 열거가 아니다. 100개의 무작위 초기점에서 발견하지 못했다고 해당 상태가 없다는 뜻도 아니다. 바이어스가 있으면 반전 대칭을 당연히 가정할 수 없다.
 
 ## 5. 작은 상태 공간의 열거
 
@@ -626,7 +626,7 @@ find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다
     ```python
     def visualize_energy_landscape():
         """
-        작은 홉필드 신경망의 에너지 풍경을 그려 본다.
+        작은 홉필드 뉴럴 넷트웍의 에너지 풍경을 그려 본다.
         """
         n_neurons = 6
 
@@ -635,7 +635,7 @@ find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다
         p2 = torch.tensor([-1, -1, 1, 1, 1, -1], dtype=torch.float32)
         patterns = torch.stack([p1, p2])
 
-        # 신경망을 익힌다
+        # 뉴럴 넷트웍을 익힌다
         network = HopfieldNetwork(n_neurons)
         network.train_hebbian(patterns)
 
@@ -746,7 +746,7 @@ $$q'=M^T\operatorname{softmax}(\beta Mq)$$
     ```python
     class ModernHopfield(nn.Module):
         """
-        이어진 상태와 지수 담이를 가진 요즘 홉필드 신경망.
+        이어진 상태와 지수 담이를 가진 요즘 홉필드 뉴럴 넷트웍.
 
         Ramsauer 외, "Hopfield Networks is All You Need"(2021)를 바탕으로 한다
         """
@@ -819,7 +819,7 @@ N=100에서 overlap>0.9를 만족하는 최대 해밍 오차는 몇 개인가?
 
 ## 정리하며
 
-홉필드 신경망의 비동기 갱신은 대칭 에너지의 감소로 설명할 수 있다. 고정점 수렴과 기억 복구를 구분하고 중첩도·용량·허위 기억의 판정 조건을 명시한다. 연속 softmax 검색과의 연결도 구현 범위와 연구 가정을 함께 읽는다.
+홉필드 뉴럴 넷트웍의 비동기 갱신은 대칭 에너지의 감소로 설명할 수 있다. 고정점 수렴과 기억 복구를 구분하고 중첩도·용량·허위 기억의 판정 조건을 명시한다. 연속 softmax 검색과의 연결도 구현 범위와 연구 가정을 함께 읽는다.
 
 **참고 문헌**
 

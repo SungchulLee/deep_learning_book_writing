@@ -90,7 +90,7 @@ RegNet의 방법론은 후보 모델을 표집해 실제로 학습·평가한 �
 
 아래 본체는 stem 뒤 64채널 블록 두 개만 사용하며 한 단계의 유효한 분류 골격이다. 전체 RegNet의 다단계 폭 생성·병목 비율·그룹 폭 조정이나 RegNetY의 SE를 구현하지 않는다. 연습 코드는 임의 단계 폭을 출력할 뿐 모델을 구성하지도 학습하지도 않는다. 코드와 출력의 규모를 공개 RegNet 모델의 결과로 해석하지 않는다.
 
-정식 매개변수화와 설계 공간의 실험은 [원 논문](https://openaccess.thecvf.com/content_CVPR_2020/html/Radosavovic_Designing_Network_Design_Spaces_CVPR_2020_paper.html)을 참고한다.
+정식 파라메터화와 설계 공간의 실험은 [원 논문](https://openaccess.thecvf.com/content_CVPR_2020/html/Radosavovic_Designing_Network_Design_Spaces_CVPR_2020_paper.html)을 참고한다.
 
 ## 연습문제
 

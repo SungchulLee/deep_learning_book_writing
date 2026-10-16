@@ -1,6 +1,6 @@
 # 시퀀스 레이블링을 위한 조건부 랜덤 필드
 
-선형 사슬 조건부 랜덤 필드(CRF)는 입력 X가 주어졌을 때 레이블 열 Y의 조건부 분포를 모델링한다. 신경 인코더의 위치별 점수와 인접 레이블 전이 점수를 합해 전체 열을 정규화한다. 점수는 실수값의 잠재 함수이며 그 자체가 확률·우도인 것은 아니다. CRF를 붙이는 것만으로 BIO 규칙이 자동 강제되지는 않는다.
+선형 사슬 조건부 랜덤 필드(CRF)는 입력 X가 주어졌을 때 레이블 열 Y의 조건부 분포를 모델링한다. 뉴럴 인코더의 위치별 점수와 인접 레이블 전이 점수를 합해 전체 열을 정규화한다. 점수는 실수값의 잠재 함수이며 그 자체가 확률·우도인 것은 아니다. CRF를 붙이는 것만으로 BIO 규칙이 자동 강제되지는 않는다.
 
 ## 1. 시퀀스 점수와 전이 방향
 
@@ -26,7 +26,7 @@ $$\log Z(X)=\operatorname{logsumexp}_{b}[\alpha_n(b)+e_b].$$
 
 logsumexp는 큰 값의 지수 overflow 등을 피하도록 안정적으로 계산한다. 전체 경로가 금지된 경우처럼 모든 입력이−∞이면 별도의 유효 경로 처리가 필요하다. 복잡도는 O(nK²)이고 순방향 값만 갱신하면 O(K) 상태를 유지할 수 있다. 실제 배치·자동미분 중간 텐서·Viterbi 역추적 저장량은 따로 계산한다.
 
-정답 Y*의 음의 로그우도는 L=log Z−S(X,Y*)다. 제약과 점수가 같은 정상화된 분포이면0이상이다. emission 경사는 주변확률−정답 지시값이며 전이 경사는 해당 전이의 기대 횟수−관측 횟수다. 전체 시퀀스 손실의 평균과 토큰 수로 나누는 평균은 서로 다른 가중 방식이다.
+정답 Y*의 음의 로그우도는 L=log Z−S(X,Y*)다. 제약과 점수가 같은 정상화된 분포이면0이상이다. emission 경사는 주변확률−정답 지시값이며 전이 경사는 해당 전이의 기대 횟수−관측 횟수다. 전체 시퀀스 로스의 평균과 토큰 수로 나누는 평균은 서로 다른 가중 방식이다.
 
 ## 3. Viterbi와 코드의 방향 불일치
 
@@ -39,11 +39,11 @@ from typing import List, Tuple, Optional
 
 class CRF(nn.Module):
     """
-    차례 이름표 붙이기를 위한 조건부 무작위 마당 층.
+    차례 이름표 붙이기를 위한 조건부 무작위 마당 레이어.
     
     여기 짠 것이 받치는 것:
     - 덧대기를 곁들인 배치 셈하기
-    - 수치를 든든하게 하는 로그 자리 앞먹임 알고리즘
+    - 수치를 든든하게 하는 로그 자리 피드포워드 알고리즘
     - 미룸을 위한 비터비 풀기
     - 가리기로 거는 넘어가기 제약
     """
@@ -55,12 +55,12 @@ class CRF(nn.Module):
         pad_tag_id: Optional[int] = None
     ):
         """
-        CRF 층 첫자리매김.
+        CRF 레이어 첫자리매김.
         
         인수:
             num_tags: 이름표의 개수(START와 END를 쓰면 함께)
             batch_first: True이면 들임이 (batch, seq, features)이다
-            pad_tag_id: 덧대기용 이름표 번호(손실에서 뺀다)
+            pad_tag_id: 덧대기용 이름표 번호(로스에서 뺀다)
         """
         super().__init__()
         
@@ -79,7 +79,7 @@ class CRF(nn.Module):
         self._reset_parameters()
     
     def _reset_parameters(self):
-        """매개변수를 고른 분포로 첫자리매김."""
+        """파라메터를 고른 분포로 첫자리매김."""
         nn.init.uniform_(self.transitions, -0.1, 0.1)
         nn.init.uniform_(self.start_transitions, -0.1, 0.1)
         nn.init.uniform_(self.end_transitions, -0.1, 0.1)
@@ -92,7 +92,7 @@ class CRF(nn.Module):
         reduction: str = 'mean'
     ) -> torch.Tensor:
         """
-        음의 로그 가능도 손실 셈하기.
+        음의 로그 가능도 로스 셈하기.
         
         인수:
             emissions: 내보냄 점수 (batch, seq_len, num_tags)
@@ -101,7 +101,7 @@ class CRF(nn.Module):
             reduction: 'none', 'mean', 또는 'sum'
             
         반환값:
-            손실 값(reduction에 따라 홑값이거나 표본마다)
+            로스 값(reduction에 따라 홑값이거나 표본마다)
         """
         if not self.batch_first:
             emissions = emissions.transpose(0, 1)
@@ -180,7 +180,7 @@ class CRF(nn.Module):
         mask: torch.Tensor
     ) -> torch.Tensor:
         """
-        앞먹임 알고리즘으로 로그 나눔 함수 셈하기.
+        피드포워드 알고리즘으로 로그 나눔 함수 셈하기.
         
         인수:
             emissions: (batch, seq_len, num_tags)
@@ -365,7 +365,7 @@ class BiLSTMCRF(nn.Module):
         # LSTM의 내놓음을 이름표 공간으로 내리쬐기
         self.hidden2tag = nn.Linear(hidden_dim, num_tags)
         
-        # CRF 층
+        # CRF 레이어
         self.crf = CRF(num_tags, batch_first=True, pad_tag_id=pad_tag_id)
     
     def _get_emissions(
@@ -411,7 +411,7 @@ class BiLSTMCRF(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        익히기용 손실 셈하기.
+        익히기용 로스 셈하기.
         
         인수:
             input_ids: (batch, seq_len)
@@ -419,7 +419,7 @@ class BiLSTMCRF(nn.Module):
             attention_mask: (batch, seq_len)
             
         반환값:
-            음의 로그 가능도 손실
+            음의 로그 가능도 로스
         """
         emissions = self._get_emissions(input_ids, attention_mask)
         
@@ -458,7 +458,7 @@ from transformers import AutoModel
 
 class TransformerCRF(nn.Module):
     """
-    이름 알아보기를 위해 CRF 층을 얹은 변환기(BERT/RoBERTa).
+    이름 알아보기를 위해 CRF 레이어를 얹은 변환기(BERT/RoBERTa).
     """
     
     def __init__(
@@ -505,7 +505,7 @@ class TransformerCRF(nn.Module):
         attention_mask: torch.Tensor,
         labels: torch.Tensor
     ) -> torch.Tensor:
-        """CRF 손실 셈하기."""
+        """CRF 로스 셈하기."""
         emissions = self._get_emissions(input_ids, attention_mask)
         loss = self.crf(emissions, labels, mask=attention_mask.bool())
         return loss
@@ -520,9 +520,9 @@ class TransformerCRF(nn.Module):
         return self.crf.decode(emissions, mask=attention_mask.bool())
 ```
 
-TransformerCRF는 사전 학습 인코더의 각 토큰 특징에서 태그 점수를 만든다. 특수 토큰·서브워드 목표를 실제 CRF 태그 열에 어떻게 정렬할지 정해야 한다. Transformer의 attention_mask를 그대로 CRF mask로 쓰면 `[CLS]`·`[SEP]`도 보통 유효 위치가 된다. 뒤 서브워드를−100으로 무시하는 CE 관례를 이 CRF에 그대로 쓸 수 없다. 유효 단어를 모아 연속 열로 만들거나 그에 맞는 별도 설계가 필요하다.
+TransformerCRF는 사전 학습 인코더의 각 토큰 피처에서 태그 점수를 만든다. 특수 토큰·서브워드 목표를 실제 CRF 태그 열에 어떻게 정렬할지 정해야 한다. Transformer의 attention_mask를 그대로 CRF mask로 쓰면 `[CLS]`·`[SEP]`도 보통 유효 위치가 된다. 뒤 서브워드를−100으로 무시하는 CE 관례를 이 CRF에 그대로 쓸 수 없다. 유효 단어를 모아 연속 열로 만들거나 그에 맞는 별도 설계가 필요하다.
 
-freeze_encoder는 인코더 매개변수의 경사를 끌 뿐 model.train()에서 dropout을 자동 고정하지는 않는다. 사전 학습 토큰화·입력과 학습하려는 태그 집합의 계약을 함께 확인한다.
+freeze_encoder는 인코더 파라메터의 경사를 끌 뿐 model.train()에서 dropout을 자동 고정하지는 않는다. 사전 학습 토큰화·입력과 학습하려는 태그 집합의 계약을 함께 확인한다.
 
 ## 5. IOB2 제약의 적용
 
@@ -538,7 +538,7 @@ def apply_iob2_constraints(
     올바르지 않은 넘어가기는 큰 음수 점수를 받는다.
     
     인수:
-        crf: 고칠 CRF 층
+        crf: 고칠 CRF 레이어
         tag_to_idx: 이름표 이름에서 번호로의 대응
         penalty: 올바르지 않은 넘어가기의 점수
     """
@@ -602,7 +602,7 @@ def train_ner_model(
             loss = model(input_ids, labels, attention_mask)
             loss.backward()
             
-            # 안정성을 위한 기울기 자르기
+            # 안정성을 위한 그래디언트 자르기
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             
             optimizer.step()
@@ -654,16 +654,16 @@ def train_ner_model(
 
 루프의 `model(input_ids,labels,attention_mask)`는 BiLSTMCRF의 인수 순서다. TransformerCRF는 `(input_ids,attention_mask,labels)`라 같은 호출을 쓰면 두 텐서가 뒤바뀐다. 키워드 인수나 공통 인터페이스가 필요하며 모델 자체의 장치도 호출 전에 맞춰야 한다.
 
-scheduler는 배치마다 인수 없이 step하므로 배치 단위 정책을 가정한다. epoch 단위나 검증 지표를 요구하는 스케줄러와 그대로 호환되는 범용 루프는 아니다. 출력 손실도 단순 배치 평균이어서 마지막 작은 배치가 다른 가중을 받을 수 있다.
+scheduler는 배치마다 인수 없이 step하므로 배치 단위 폴리시를 가정한다. epoch 단위나 검증 지표를 요구하는 스케줄러와 그대로 호환되는 범용 루프는 아니다. 출력 로스도 단순 배치 평균이어서 마지막 작은 배치가 다른 가중을 받을 수 있다.
 
-`compute_entity_f1`은 정의되어 있지 않다. 태그 ID를 문자열·span으로 바꾸는 매핑, 특수·패딩 위치와 무효 태그 정책을 포함한 정확 span 평가가 별도로 필요하다. best_f1이0에서 시작하므로 개선이 없으면 파일을 저장하지 않고, 저장한 최고 모델을 끝에 복원하지도 않는다. 검증을 재사용한 최고 점수와 독립 시험 성능을 구분한다.
+`compute_entity_f1`은 정의되어 있지 않다. 태그 ID를 문자열·span으로 바꾸는 매핑, 특수·패딩 위치와 무효 태그 폴리시를 포함한 정확 span 평가가 별도로 필요하다. best_f1이0에서 시작하므로 개선이 없으면 파일을 저장하지 않고, 저장한 최고 모델을 끝에 복원하지도 않는다. 검증을 재사용한 최고 점수와 독립 시험 성능을 구분한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 코드에서 CRF NLL이 올바른 정규화 확률의 손실이 아닐 수 있는 이유를 설명하라.
+이 코드에서 CRF NLL이 올바른 정규화 확률의 로스가 아닐 수 있는 이유를 설명하라.
 
 </div>
 
@@ -699,7 +699,7 @@ apply_iob2_constraints의 유한 점수 대입은 영구적인 강제 제약인�
 
 ??? success "연습문제 3 풀이"
 
-    아니다. −10000은 유한값이고 학습 가능한 가중치라 갱신될 수 있다. 코드의 전이 방향도 partition과 반대다. 올바른 관례에서 학습·정답·디코딩에 지속적으로 같은 금지 경로를 적용해야 한다.
+    아니다. −10000은 유한값이고 학습 가능한 웨이트라 갱신될 수 있다. 코드의 전이 방향도 partition과 반대다. 올바른 관례에서 학습·정답·디코딩에 지속적으로 같은 금지 경로를 적용해야 한다.
 
 
 
@@ -720,7 +720,7 @@ apply_iob2_constraints의 유한 점수 대입은 영구적인 강제 제약인�
 
 ## 정리하며
 
-CRF는 같은 시퀀스 점수로 정답·정규화·Viterbi를 계산해야 한다. 현재 구현의 전이 방향 불일치와 마스크·패딩·모델 인수 계약은 학습 결과의 의미에 직접 영향을 준다. 유효 BIO 제약과 신경 인코더의 문맥 처리를 구분하고 정확 span 평가를 연결한다.
+CRF는 같은 시퀀스 점수로 정답·정규화·Viterbi를 계산해야 한다. 현재 구현의 전이 방향 불일치와 마스크·패딩·모델 인수 계약은 학습 결과의 의미에 직접 영향을 준다. 유효 BIO 제약과 뉴럴 인코더의 문맥 처리를 구분하고 정확 span 평가를 연결한다.
 
 **참고 문헌**
 

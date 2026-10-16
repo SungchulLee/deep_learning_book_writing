@@ -1,6 +1,6 @@
 # GAN 학습·평가 유틸리티
 
-GAN 보조 함수는 초기화,손실,표본 표시와 체크포인트의 반복 작업을 묶는다. 그러나 모든 생성기 출력 범위·장치·잠재 입력 형태가 같지는 않다. 유틸리티 이름보다 실제 가정과 학습 상태에 미치는 영향을 먼저 확인해야 한다.
+GAN 보조 함수는 초기화,로스,표본 표시와 체크포인트의 반복 작업을 묶는다. 그러나 모든 생성기 출력 범위·장치·잠재 입력 형태가 같지는 않다. 유틸리티 이름보다 실제 가정과 학습 상태에 미치는 영향을 먼저 확인해야 한다.
 
 ## 1. 도구 구현
 
@@ -25,10 +25,10 @@ from typing import Tuple, List
 
 def weights_init(m):
     """
-    DCGAN 논문의 권고를 따라 신경망 무게를 첫자리매김한다.
+    DCGAN 논문의 권고를 따라 뉴럴 넷트웍 무게를 첫자리매김한다.
     
-    Conv와 ConvTranspose 층: 평균=0, 표준편차=0.02
-    배치 정규화 층: 무게=1, 치우침=0
+    Conv와 ConvTranspose 레이어: 평균=0, 표준편차=0.02
+    배치 정규화 레이어: 무게=1, 치우침=0
     """
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
@@ -44,7 +44,7 @@ def save_samples(generator: nn.Module, epoch: int, device: str,
     생성기에서 보기 그림을 만들어 갈무리한다.
     
     인수:
-        generator: 생성기 신경망
+        generator: 생성기 뉴럴 넷트웍
         epoch: 현재 에포크 번호
         device: 돌릴 장치
         fixed_noise: 한결같은 그림을 위한 붙박이 잡음
@@ -80,11 +80,11 @@ def save_samples(generator: nn.Module, epoch: int, device: str,
 def plot_training_progress(g_losses: List[float], d_losses: List[float],
                           filename: str = 'training_progress.png'):
     """
-    생성기와 판별기의 손실 곡선을 그린다.
+    생성기와 판별기의 로스 곡선을 그린다.
     
     인수:
-        g_losses: 생성기 손실 목록
-        d_losses: 판별기 손실 목록
+        g_losses: 생성기 로스 목록
+        d_losses: 판별기 로스 목록
         filename: 내놓을 파일 이름
     """
     plt.figure(figsize=(10, 5))
@@ -108,9 +108,9 @@ def plot_discriminator_outputs(discriminator: nn.Module, real_data: torch.Tensor
     실제 자료와 가짜 자료에 대한 판별기 내놓기의 히스토그램을 그린다.
     
     인수:
-        discriminator: 판별기 신경망
+        discriminator: 판별기 뉴럴 넷트웍
         real_data: 실제 자료 표본
-        generator: 생성기 신경망
+        generator: 생성기 뉴럴 넷트웍
         noise: 가짜 표본을 만들 잡음
         device: 돌릴 장치
         filename: 내놓을 파일 이름
@@ -152,7 +152,7 @@ def interpolate_latent(generator: nn.Module, z1: torch.Tensor, z2: torch.Tensor,
     숨은 벡터 둘 사이를 메워 만든다.
     
     인수:
-        generator: 생성기 신경망
+        generator: 생성기 뉴럴 넷트웍
         z1: 첫째 숨은 벡터
         z2: 둘째 숨은 벡터
         steps: 사이 메우기 걸음 수
@@ -198,7 +198,7 @@ def generate_latent_grid(generator: nn.Module, latent_dim: int = 100,
     숨은 차원 둘을 바꾸어 표본 격자를 만든다.
     
     인수:
-        generator: 생성기 신경망
+        generator: 생성기 뉴럴 넷트웍
         latent_dim: 숨은 공간의 차원
         grid_size: 격자의 크기(grid_size x grid_size)
         device: 돌릴 장치
@@ -244,13 +244,13 @@ def generate_latent_grid(generator: nn.Module, latent_dim: int = 100,
 
 
 class GANLosses:
-    """여러 맞겨루기 생성기 손실 함수 모음."""
+    """여러 맞겨루기 생성기 로스 함수 모음."""
     
     @staticmethod
     def vanilla_gan_loss(d_real: torch.Tensor, d_fake: torch.Tensor,
                         mode: str = 'discriminator') -> torch.Tensor:
         """
-        본디 GAN 잃음(두 갈래 엇갈린 엔트로피).
+        본디 GAN 잃음(두 클래스 엇갈린 엔트로피).
         
         인수:
             d_real: 실제 자료에 대한 판별기 내놓기
@@ -258,7 +258,7 @@ class GANLosses:
             mode: 'discriminator'이나 'generator'
         
         반환값:
-            손실 값
+            로스 값
         """
         criterion = nn.BCELoss()
         
@@ -278,13 +278,13 @@ class GANLosses:
     @staticmethod
     def nonsaturating_loss(d_fake: torch.Tensor) -> torch.Tensor:
         """
-        포화하지 않는 생성기 손실.
+        포화하지 않는 생성기 로스.
         
         인수:
             d_fake: 가짜 자료에 대한 판별기 내놓기
         
         반환값:
-            생성기 손실
+            생성기 로스
         """
         return -torch.mean(torch.log(d_fake + 1e-8))
     
@@ -292,15 +292,15 @@ class GANLosses:
     def wasserstein_loss(d_real: torch.Tensor, d_fake: torch.Tensor,
                         mode: str = 'discriminator') -> torch.Tensor:
         """
-        바서슈타인 맞겨루기 생성기 손실.
+        바서슈타인 맞겨루기 생성기 로스.
         
         인수:
-            d_real: 참 자료에 대한 판별기(비평가)의 내놓음
-            d_fake: 가짜 자료에 대한 판별기(비평가)의 내놓음
+            d_real: 참 자료에 대한 판별기(크리틱)의 내놓음
+            d_fake: 가짜 자료에 대한 판별기(크리틱)의 내놓음
             mode: 'discriminator'이나 'generator'
         
         반환값:
-            손실 값
+            로스 값
         """
         if mode == 'discriminator':
             return -(torch.mean(d_real) - torch.mean(d_fake))
@@ -341,17 +341,17 @@ def calculate_gradient_penalty(discriminator: nn.Module, real_data: torch.Tensor
                                fake_data: torch.Tensor, device: str,
                                lambda_gp: float = 10.0) -> torch.Tensor:
     """
-    WGAN-GP의 기울기 벌점을 셈한다.
+    WGAN-GP의 그래디언트 벌점을 셈한다.
     
     인수:
-        discriminator: 판별기 신경망
+        discriminator: 판별기 뉴럴 넷트웍
         real_data: 실제 자료 표본
         fake_data: 만든 가짜 표본
         device: 돌릴 장치
-        lambda_gp: 기울기 벌점 계수
+        lambda_gp: 그래디언트 벌점 계수
     
     반환값:
-        기울기 벌점 손실
+        그래디언트 벌점 로스
     """
     batch_size = real_data.size(0)
     
@@ -364,7 +364,7 @@ def calculate_gradient_penalty(discriminator: nn.Module, real_data: torch.Tensor
     # 판별기 내놓기를 얻는다
     d_interpolates = discriminator(interpolates)
     
-    # 기울기를 셈한다
+    # 그래디언트를 셈한다
     gradients = torch.autograd.grad(
         outputs=d_interpolates,
         inputs=interpolates,
@@ -373,7 +373,7 @@ def calculate_gradient_penalty(discriminator: nn.Module, real_data: torch.Tensor
         retain_graph=True,
     )[0]
     
-    # 기울기를 펼친다
+    # 그래디언트를 펼친다
     gradients = gradients.view(batch_size, -1)
     
     # 벌점을 셈한다
@@ -390,8 +390,8 @@ def save_checkpoint(generator: nn.Module, discriminator: nn.Module,
     모델 되짚기 지점을 갈무리한다.
     
     인수:
-        generator: 생성기 신경망
-        discriminator: 판별기 신경망
+        generator: 생성기 뉴럴 넷트웍
+        discriminator: 판별기 뉴럴 넷트웍
         g_optimizer: 생성기 가장 좋게 하개
         d_optimizer: 판별기 가장 좋게 하개
         epoch: 현재 에포크
@@ -413,8 +413,8 @@ def load_checkpoint(generator: nn.Module, discriminator: nn.Module,
     모델 되짚기 지점을 불러온다.
     
     인수:
-        generator: 생성기 신경망
-        discriminator: 판별기 신경망
+        generator: 생성기 뉴럴 넷트웍
+        discriminator: 판별기 뉴럴 넷트웍
         g_optimizer: 생성기 가장 좋게 하개
         d_optimizer: 판별기 가장 좋게 하개
         filename: 되짚을 자리 파일 이름
@@ -440,21 +440,21 @@ if __name__ == "__main__":
     pass
 ```
 
-weights_init는 클래스 이름에 Conv가 있는 층의 가중치를 N(0,0.02²),BatchNorm의 스케일을 N(1,0.02²),편향을 0으로 초기화한다. Linear나 Conv 편향은 여기서 초기화하지 않는다. 해당 속성을 갖춘 기본 affine 정규화 층을 가정하며 모든 모듈에 무조건 적용 가능한 함수는 아니다. 이 초기화가 붕괴·기울기 문제를 자동 방지하지도 않는다.
+weights_init는 클래스 이름에 Conv가 있는 레이어의 웨이트를 N(0,0.02²),BatchNorm의 스케일을 N(1,0.02²),바이어스를 0으로 초기화한다. Linear나 Conv 바이어스는 여기서 초기화하지 않는다. 해당 속성을 갖춘 기본 affine 정규화 레이어를 가정하며 모든 모듈에 무조건 적용 가능한 함수는 아니다. 이 초기화가 붕괴·그래디언트 문제를 자동 방지하지도 않는다.
 
 ## 2. 표시 함수와 모델 상태
 
-save_samples·interpolate_latent·generate_latent_grid는 출력이 −1~1이라는 가정으로 (x+1)/2를 적용한다. 이미 0~1을 반환하는 G에는 잘못된 표시 변환이다. 평가 특징의 입력 정규화와 표시 범위 변환은 별도 계약으로 둔다.
+save_samples·interpolate_latent·generate_latent_grid는 출력이 −1~1이라는 가정으로 (x+1)/2를 적용한다. 이미 0~1을 반환하는 G에는 잘못된 표시 변환이다. 평가 피처의 입력 정규화와 표시 범위 변환은 별도 계약으로 둔다.
 
 표시 함수는 eval·no_grad를 적용하지만 종료할 때 원래 모드를 복원하지 않고 무조건 train으로 바꾼다. 평가 중 호출한 모델의 상태가 달라질 수 있고 예외 발생 때 모드 복구도 보장하지 않는다. device 인수가 있어도 모델·fixed_noise·실제 자료를 자동으로 이동하지 않는 경로가 있으므로 호출자가 맞춰야 한다.
 
 interpolate_latent는 두 끝점의 선형 보간이다. 단계 수가 양수이고 끝점 배치·잠재 모양·장치·자료형이 같아야 한다. 끝점이 배치 여러 행이면 그리드의 배치·단계 배치 순서도 따로 해석한다. generate_latent_grid는 첫 두 좌표를 바꾸면서 **나머지 좌표도 매 칸 새 잡음으로 뽑는다**. 따라서 두 축만 통제한 순수한 단면 그림이 아니다. latent_dim≥2와 G의 벡터 잠재 입력 계약이 필요하다.
 
-## 3. 손실 이름과 실제 목적
+## 3. 로스 이름과 실제 목적
 
-GANLosses.vanilla_gan_loss의 D 모드는 실제·생성 평균 BCE의 합이다. G 모드는 실제 레이블 1의 BCE라서 이미 **비포화** 손실이다. 별도 nonsaturating_loss도 같은 확률 목적에 작은 ε를 더한 로그 구현이다. 따라서 이 두 함수를 원래 minimax 대 비포화의 서로 다른 손실로 비교하면 안 된다. 지원하지 않는 mode 문자열에는 오류 대신 None을 반환하는 점도 호출부에서 주의한다.
+GANLosses.vanilla_gan_loss의 D 모드는 실제·생성 평균 BCE의 합이다. G 모드는 실제 레이블 1의 BCE라서 이미 **비포화** 로스다. 별도 nonsaturating_loss도 같은 확률 목적에 작은 ε를 더한 로그 구현이다. 따라서 이 두 함수를 원래 minimax 대 비포화의 서로 다른 로스로 비교하면 안 된다. 지원하지 않는 mode 문자열에는 오류 대신 None을 반환하는 점도 호출부에서 주의한다.
 
-확률 BCE에는 0~1의 D 출력이 필요하다. Wasserstein 모드는 실수 critic의 평균 차이와 생성 점수 목적이며 Sigmoid 확률 BCE와 다른 계약이다. Lipschitz 제어·critic 최적화가 함수 안에 자동 포함되지는 않는다. 수치적으로 안정적인 logits 목적과 원래·비포화 부호는 [손실 절](../gan_losses/original.md)을 따른다.
+확률 BCE에는 0~1의 D 출력이 필요하다. Wasserstein 모드는 실수 critic의 평균 차이와 생성 점수 목적이며 Sigmoid 확률 BCE와 다른 계약이다. Lipschitz 제어·critic 최적화가 함수 안에 자동 포함되지는 않는다. 수치적으로 안정적인 logits 목적과 원래·비포화 부호는 [로스 절](../gan_losses/original.md)을 따른다.
 
 label_smoothing은 labels×(1−s)+s/2다. s=0.1이면 1→0.95,0→0.05로 **양쪽**을 가운데로 옮긴다. 실제 타깃만 0.9로 만드는 one-sided 방식과 다르다. s의 범위를 정하고 실제 적용한 타깃을 기록해야 한다. add_noise_to_inputs는 제한 없는 가우시안 잡음을 더하므로 원래 자료 범위를 넘을 수 있고 이것이 항상 학습에 유리한 것은 아니다.
 
@@ -462,26 +462,26 @@ label_smoothing은 labels×(1−s)+s/2다. s=0.1이면 1→0.95,0→0.05로 **�
 
 calculate_gradient_penalty는 alpha `(B,1,1,1)`로 이미지 `(B,C,H,W)`를 표본별 보간하고 비배치 축을 펼쳐 L2 노름을 계산한다. 이 alpha를 2차원 벡터 자료에 그대로 쓰면 원치 않는 broadcast·표본 혼합이 생길 수 있다. 실제·생성 자료의 모양·device·자료형을 맞춰야 한다.
 
-반환값에는 **이미 lambda_gp가 곱해져 있다**. 호출부에서 다시 같은 계수를 곱하지 않도록 한다. 샘플 간 독립적인 critic 출력이라는 조건도 필요하며 BatchNorm처럼 표본을 섞는 연산에서는 출력 합의 입력 기울기와 표본별 노름을 구분해야 한다. 생성기 쪽 그래프를 분리할지도 호출부가 정한다. 보간점의 소프트 벌점은 전역 1-Lipschitz의 엄밀한 강제가 아니다.
+반환값에는 **이미 lambda_gp가 곱해져 있다**. 호출부에서 다시 같은 계수를 곱하지 않도록 한다. 샘플 간 독립적인 critic 출력이라는 조건도 필요하며 BatchNorm처럼 표본을 섞는 연산에서는 출력 합의 입력 그래디언트와 표본별 노름을 구분해야 한다. 생성기 쪽 그래프를 분리할지도 호출부가 정한다. 보간점의 소프트 벌점은 전역 1-Lipschitz의 엄밀한 강제가 아니다.
 
 ## 5. 기록·복원과 평가 범위
 
 save_checkpoint는 두 모델·두 optimizer·에포크를 저장한다. 모델 state_dict에는 등록된 BatchNorm 버퍼도 포함되지만 구조·전처리·잠재 분포·난수 상태·데이터 순서 전체는 없다. 같은 구조를 만든 뒤 로드해야 하고 정확한 학습 재현에는 추가 상태가 필요하다. 파일 저장이 매 에포크 기록이나 최적 모델 선택을 자동 구현하는 것은 아니다.
 
-D·G 손실과 판별 출력 히스토그램은 현재 분류·게임 동작의 진단 자료다. D 평균 0.5가 내시 균형이나 좋은 생성의 충분조건은 아니다. 품질·다양성과 독립 평가를 함께 보며 이 페이지는 실제 학습·성능·그림 결과를 새로 제시하지 않는다.
+D·G 로스와 판별 출력 히스토그램은 현재 분류·게임 동작의 진단 자료다. D 평균 0.5가 내시 균형이나 좋은 생성의 충분조건은 아니다. 품질·다양성과 독립 평가를 함께 보며 이 페이지는 실제 학습·성능·그림 결과를 새로 제시하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-이 유틸리티의 vanilla G 손실과 nonsaturating_loss는 어떤 관계인가?
+이 유틸리티의 vanilla G 로스와 nonsaturating_loss는 어떤 관계인가?
 
 </div>
 
 ??? success "연습문제 1 풀이"
 
-    둘 다 −log D(fake)를 최소화하는 비포화 확률 목적이다. 후자는 로그 안에 ε를 더해 수치·미분이 약간 달라진다. 원래 minimax G는 음의 BCE(D(fake),0)로 별도 정의해야 한다. Wasserstein 비교에는 실수 critic과 Lipschitz 처리도 포함한다. 각 손실 이름만으로 안정성 순위를 정하지 말고 동일 평가·튜닝 예산에서 품질·다양성·비용을 비교한다.
+    둘 다 −log D(fake)를 최소화하는 비포화 확률 목적이다. 후자는 로그 안에 ε를 더해 수치·미분이 약간 달라진다. 원래 minimax G는 음의 BCE(D(fake),0)로 별도 정의해야 한다. Wasserstein 비교에는 실수 critic과 Lipschitz 처리도 포함한다. 각 로스 이름만으로 안정성 순위를 정하지 말고 동일 평가·튜닝 예산에서 품질·다양성·비용을 비교한다.
 
 
 
@@ -496,7 +496,7 @@ Gradient penalty가 전역 1-Lipschitz를 강제하지 않는 이유를 설명�
 
 ??? success "연습문제 2 풀이"
 
-    유한한 실제·생성 보간점에서 λ(||∇c||−1)²를 벌할 뿐 모든 입력의 기울기 노름≤1을 검사하지 않는다. 무작위 α는 선택한 표본 쌍 사이 위치를 정하며 이 쌍이 반드시 최적 수송 결합은 아니다. 이미지용 모양·표본별 기울기·λ 중복 적용도 맞춰야 한다. 이 벌점이 엄밀한 전역 보장이나 모든 critic의 최적 표현을 주지는 않는다.
+    유한한 실제·생성 보간점에서 λ(||∇c||−1)²를 벌할 뿐 모든 입력의 그래디언트 노름≤1을 검사하지 않는다. 무작위 α는 선택한 표본 쌍 사이 위치를 정하며 이 쌍이 반드시 최적 수송 결합은 아니다. 이미지용 모양·표본별 그래디언트·λ 중복 적용도 맞춰야 한다. 이 벌점이 엄밀한 전역 보장이나 모든 critic의 최적 표현을 주지는 않는다.
 
 
 
@@ -534,7 +534,7 @@ Gradient penalty가 전역 1-Lipschitz를 강제하지 않는 이유를 설명�
 
 ??? success "연습문제 4 풀이"
 
-    G의 실제 출력 단위에 맞게 0~1 표시 변환을 하고 같은 vmin·vmax·색상 정책을 쓴다. raw 픽셀을 보려면 nearest 같은 보간을 정하며 확대 표시와 원래 샘플 해상도를 밝힌다. 아래 make_grid는 생략 부호·미정 grid와 반환값이 없어 완성된 함수가 아니다. 동일 이름으로 정의하면 import한 torchvision make_grid를 가릴 수도 있다. 각 이미지 자동 대비 조절은 비교를 왜곡할 수 있어 명시적으로 관리한다.
+    G의 실제 출력 단위에 맞게 0~1 표시 변환을 하고 같은 vmin·vmax·색상 폴리시를 쓴다. raw 픽셀을 보려면 nearest 같은 보간을 정하며 확대 표시와 원래 샘플 해상도를 밝힌다. 아래 make_grid는 생략 부호·미정 grid와 반환값이 없어 완성된 함수가 아니다. 동일 이름으로 정의하면 import한 torchvision make_grid를 가릴 수도 있다. 각 이미지 자동 대비 조절은 비교를 왜곡할 수 있어 명시적으로 관리한다.
 
     ```python
     def make_grid(imgs, nrow=8):
@@ -584,7 +584,7 @@ FixedNoise 예시가 본문 표시 함수보다 개선하는 상태 관리와 �
 
 ??? success "연습문제 6 풀이"
 
-    손실·D(real)·D(fake)·학습률·업데이트 횟수·평가 설정을 함께 기록한다. 아래는 사전 기록 골격이며 변수들은 호출부에서 정의해야 한다. D 평균이 0.5여도 약한 판별기·값 상쇄가 가능하고 1·0으로 분리되어도 모든 목적에서 G 기울기가 사라지는 것은 아니다. FID·IS·클래스 엔트로피도 각각 한계가 있어 표본·다양성·검증 목적을 함께 해석한다.
+    로스·D(real)·D(fake)·러닝레이트·업데이트 횟수·평가 설정을 함께 기록한다. 아래는 사전 기록 골격이며 변수들은 호출부에서 정의해야 한다. D 평균이 0.5여도 약한 판별기·값 상쇄가 가능하고 1·0으로 분리되어도 모든 목적에서 G 그래디언트가 사라지는 것은 아니다. FID·IS·클래스 엔트로피도 각각 한계가 있어 표본·다양성·검증 목적을 함께 해석한다.
 
     ```python
     history = []
@@ -633,7 +633,7 @@ FixedNoise 예시가 본문 표시 함수보다 개선하는 상태 관리와 �
 
 ??? success "연습문제 8 풀이"
 
-    반환값 fid·is_·entropy는 ...인 Ellipsis이고 ref·net도 실제 특징 계산에 사용되지 않는다. g.k도 본문 DCGANGenerator의 latent_dim과 다른 속성 계약이다. 난수 분리·eval·finally 복원 구조는 유용하지만 실제 샘플링·범위 변환·특징·통계·평가 지표를 구현해야 한다. 모델의 자료형·장치·잠재 모양도 맞춰야 하며 함수 이름만으로 숫자 평가가 완료되지는 않는다.
+    반환값 fid·is_·entropy는 ...인 Ellipsis이고 ref·net도 실제 피처 계산에 사용되지 않는다. g.k도 본문 DCGANGenerator의 latent_dim과 다른 속성 계약이다. 난수 분리·eval·finally 복원 구조는 유용하지만 실제 샘플링·범위 변환·피처·통계·평가 지표를 구현해야 한다. 모델의 자료형·장치·잠재 모양도 맞춰야 하며 함수 이름만으로 숫자 평가가 완료되지는 않는다.
 
     ```python
     @torch.no_grad()
@@ -661,7 +661,7 @@ FixedNoise 예시가 본문 표시 함수보다 개선하는 상태 관리와 �
 
 ??? success "연습문제 9 풀이"
 
-    같은 특징 통계의 FID가 수치 허용오차 안에서 0에 가까운지,균형 원핫 예측의 전체 배치 IS가 클래스 수인지,격자 모양·범위와 고정 잡음 재현을 확인할 수 있다. 분할 IS에서는 각 분할의 클래스 균형도 영향을 준다. 아래 저장·복원 비교는 같은 구조·장치·모드·버퍼·잡음에서 해야 하며 train 모드 상태 변화·dropout이 있으면 출력 일치 검사가 달라진다. 참 자료의 FID·IS에 모든 파이프라인이 따라야 할 보편적인 고정 숫자는 없다.
+    같은 피처 통계의 FID가 수치 허용오차 안에서 0에 가까운지,균형 원핫 예측의 전체 배치 IS가 클래스 수인지,격자 모양·범위와 고정 잡음 재현을 확인할 수 있다. 분할 IS에서는 각 분할의 클래스 균형도 영향을 준다. 아래 저장·복원 비교는 같은 구조·장치·모드·버퍼·잡음에서 해야 하며 train 모드 상태 변화·dropout이 있으면 출력 일치 검사가 달라진다. 참 자료의 FID·IS에 모든 파이프라인이 따라야 할 보편적인 고정 숫자는 없다.
 
     ```python
     z = torch.randn(4, k)
@@ -683,7 +683,7 @@ FixedNoise 예시가 본문 표시 함수보다 개선하는 상태 관리와 �
 
 ??? success "연습문제 10 풀이"
 
-    Python·NumPy·PyTorch 초기화 전에 필요한 시드를 설정하고 DataLoader·worker·평가용 생성기의 상태도 관리한다. 아래 set_seed에는 random import가 추가로 필요하다. 같은 시드만으로 서로 다른 버전·하드웨어·비결정 연산의 동일 결과를 보장하지는 않는다. 모델 생성 뒤 시드를 설정해도 이미 만들어진 가중치가 바뀌지는 않는다. 평가의 난수 스트림을 분리하면 평가 빈도 변경이 학습 난수 소비를 바꾸는 일부 영향을 줄일 수 있다.
+    Python·NumPy·PyTorch 초기화 전에 필요한 시드를 설정하고 DataLoader·worker·평가용 생성기의 상태도 관리한다. 아래 set_seed에는 random import가 추가로 필요하다. 같은 시드만으로 서로 다른 버전·하드웨어·비결정 연산의 동일 결과를 보장하지는 않는다. 모델 생성 뒤 시드를 설정해도 이미 만들어진 웨이트가 바뀌지는 않는다. 평가의 난수 스트림을 분리하면 평가 빈도 변경이 학습 난수 소비를 바꾸는 일부 영향을 줄일 수 있다.
 
     ```python
     def set_seed(seed=42):
@@ -702,4 +702,4 @@ FixedNoise 예시가 본문 표시 함수보다 개선하는 상태 관리와 �
 
 ## 정리하며
 
-GAN 유틸리티의 출력 범위·잠재 모양·모델 모드와 손실 이름의 실제 의미를 확인한다. 이 코드의 vanilla G는 비포화 목적,라벨 스무딩은 양쪽 0.95·0.05 변환이며 이미지 GP에는 계수가 이미 포함된다. 평가 골격·저장 상태와 완성된 검증 절차를 구분해야 한다.
+GAN 유틸리티의 출력 범위·잠재 모양·모델 모드와 로스 이름의 실제 의미를 확인한다. 이 코드의 vanilla G는 비포화 목적,라벨 스무딩은 양쪽 0.95·0.05 변환이며 이미지 GP에는 계수가 이미 포함된다. 평가 골격·저장 상태와 완성된 검증 절차를 구분해야 한다.

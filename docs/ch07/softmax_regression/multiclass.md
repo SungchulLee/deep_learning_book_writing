@@ -103,7 +103,7 @@ $$\log P(\mathbf{y} \mid \boldsymbol{\pi}) = \sum_{k=1}^{K} y_k \log \pi_k$$
 
 $$\mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \pi_k^{(i)}$$
 
-여기서 $\pi_k^{(i)} = P(Y = k \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta})$은 모델 매개변수 $\boldsymbol{\theta}$을 통해 입력에 의존한다.
+여기서 $\pi_k^{(i)} = P(Y = k \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta})$은 모델 파라메터 $\boldsymbol{\theta}$을 통해 입력에 의존한다.
 
 ---
 
@@ -134,11 +134,11 @@ $$\mathbf{x} \;\xrightarrow{\;\mathbf{W},\, \mathbf{b}\;}\; \mathbf{z} = \mathbf
 
 여기서 각 기호는 다음과 같다.
 
-- $\mathbf{W} \in \mathbb{R}^{K \times D}$은 가중치 행렬이다
-- $\mathbf{b} \in \mathbb{R}^K$은 편향 벡터이다
+- $\mathbf{W} \in \mathbb{R}^{K \times D}$은 웨이트 행렬이다
+- $\mathbf{b} \in \mathbb{R}^K$은 바이어스 벡터이다
 - $\mathbf{z} \in \mathbb{R}^K$은 로짓(확률 변환 전 점수)이다
 - $\hat{\boldsymbol{\pi}} \in \Delta^{K-1}$은 확률 단체 위의 예측 확률이다
-- $\mathcal{L}$은 교차 엔트로피 손실이다
+- $\mathcal{L}$은 교차 엔트로피 로스다
 
 ---
 
@@ -304,14 +304,14 @@ Loss with indices: 0.3854
 
 1. **레이블 스무딩:** 딱딱한 목표 대신 부드러운 목표를 쓸 때
 2. **지식 증류:** 교사 모델의 확률 분포를 맞출 때
-3. **사용자 정의 손실 함수:** 명시적인 확률 목표가 필요할 때
+3. **사용자 정의 로스 함수:** 명시적인 확률 목표가 필요할 때
 4. **시각화:** 모델의 예측을 살펴볼 때
 
 ```python
 class LabelSmoothingLoss(nn.Module):
     """
-    레이블 스무딩을 곁들인 교차 엔트로피 손실.
-    속으로는 원핫으로 매긴 과녁이 있어야 한다.
+    레이블 스무딩을 곁들인 교차 엔트로피 로스.
+    속으로는 원핫으로 매긴 타깃이 있어야 한다.
     """
     def __init__(self, num_classes: int, smoothing: float = 0.1):
         super().__init__()
@@ -390,7 +390,7 @@ Class counts: [5037 2996 1967]
 </div>
 
 ??? success "연습문제 1 풀이"
-    어떤 정규화 상수에 대해 $\log p(y=k|\mathbf{x}) = \mathbf{w}_k^\top\mathbf{x} + c$이라 가정하자. 그러면 $p(y=k|\mathbf{x}) = \frac{e^{\mathbf{w}_k^\top\mathbf{x}}}{\sum_{j=1}^K e^{\mathbf{w}_j^\top\mathbf{x}}}$이며, 이것이 소프트맥스 함수이다. 이는 자연 매개변수가 $\eta_k = \mathbf{w}_k^\top\mathbf{x}$인 범주형 분포의 지수족 형태에서 따라 나온다.
+    어떤 정규화 상수에 대해 $\log p(y=k|\mathbf{x}) = \mathbf{w}_k^\top\mathbf{x} + c$이라 가정하자. 그러면 $p(y=k|\mathbf{x}) = \frac{e^{\mathbf{w}_k^\top\mathbf{x}}}{\sum_{j=1}^K e^{\mathbf{w}_j^\top\mathbf{x}}}$이며, 이것이 소프트맥스 함수이다. 이는 자연 파라메터가 $\eta_k = \mathbf{w}_k^\top\mathbf{x}$인 범주형 분포의 지수족 형태에서 따라 나온다.
 
 ---
 
@@ -467,7 +467,7 @@ Class counts: [5037 2996 1967]
 | 원핫 만들기 | `F.one_hot(labels, num_classes)` |
 | 확률 꺼내기 | `probs.gather(1, labels.unsqueeze(1))` |
 | 범주형에서 샘플링 | `torch.multinomial(probs, n)` |
-| 교차 엔트로피 손실 | `nn.CrossEntropyLoss()` (인덱스 또는 확률 목표) |
+| 교차 엔트로피 로스 | `nn.CrossEntropyLoss()` (인덱스 또는 확률 목표) |
 
 ### 흔히 빠지는 함정
 

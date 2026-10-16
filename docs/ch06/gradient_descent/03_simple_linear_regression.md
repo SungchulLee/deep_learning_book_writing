@@ -1,6 +1,6 @@
 # PyTorch로 학습하는 선형 회귀
 
-잡음이 있는 일차원 데이터에 가중치와 절편을 가진 회귀 모델을 적합한다. 학습 곡선뿐 아니라 잔차와 회귀 지표의 의미도 확인한다.
+잡음이 있는 일차원 데이터에 웨이트와 절편을 가진 회귀 모델을 적합한다. 학습 곡선뿐 아니라 잔차와 회귀 지표의 의미도 확인한다.
 
 ## 1. 코드
 
@@ -75,7 +75,7 @@ class LinearRegressionModel(nn.Module):
     
     이것이 PyTorch에서 모델을 매기는 방식이다.
     Benefits:
-    - 매개변수를 절로 다룬다
+    - 파라메터를 절로 다룬다
     - 넓히기 쉽다
     - PyTorch 최적화기와 맞물린다
     - 깔끔하고 짜임새 있는 코드
@@ -83,16 +83,16 @@ class LinearRegressionModel(nn.Module):
     
     def __init__(self, input_dim, output_dim):
         """
-        모델 매개변수의 초기화한다
+        모델 파라메터의 초기화한다
         
         Args:
-            input_dim: 입력 특징의 수
+            input_dim: 입력 피처의 수
             output_dim: 출력 값의 수
         """
         super(LinearRegressionModel, self).__init__()
         
-        # 선형 층 정의: y = wx + b
-        # 이것이 requires_grad=True인 가중치(w)와 편향(b)을 만든다
+        # 선형 레이어 정의: y = wx + b
+        # 이것이 requires_grad=True인 웨이트(w)와 바이어스(b)을 만든다
         self.linear = nn.Linear(input_dim, output_dim)
         
         print(f"Created linear layer: {input_dim} inputs → {output_dim} outputs")
@@ -118,19 +118,19 @@ model = LinearRegressionModel(input_dim, output_dim)
 print(f"\nModel architecture:")
 print(model)
 
-# 초기 매개변수 출력
+# 초기 파라메터 출력
 print(f"\nInitial parameters:")
 for name, param in model.named_parameters():
     print(f"  {name}: {param.data.numpy().flatten()}")
 
 # ============================================================================
-# 3부: 손실 함수와 최적화기 정의
+# 3부: 로스 함수와 최적화기 정의
 # ============================================================================
 print("\n" + "="*80)
 print("PART 3: LOSS FUNCTION & OPTIMIZER")
 print("="*80)
 
-# 손실 함수: 평균제곱오차
+# 로스 함수: 평균제곱오차
 criterion = nn.MSELoss()
 print("Loss function: MSE (Mean Squared Error)")
 print("  L = (1/N) * Σ(y_pred - y_true)²")
@@ -163,7 +163,7 @@ for epoch in range(n_epochs):
     # 1. 순전파
     y_pred = model(X)
     
-    # 2. 손실 계산
+    # 2. 로스 계산
     loss = criterion(y_pred, y)
     
     # 3. 경사 초기화(중요!)
@@ -172,10 +172,10 @@ for epoch in range(n_epochs):
     # 4. 역전파(경사 계산)
     loss.backward()
     
-    # 5. 매개변수 갱신
+    # 5. 파라메터 갱신
     optimizer.step()
     
-    # 그림을 그리기 위해 손실을 저장
+    # 그림을 그리기 위해 로스를 저장
     loss_history.append(loss.item())
     
     # 진행 상황 출력
@@ -193,7 +193,7 @@ print("\n" + "="*80)
 print("PART 5: EVALUATION")
 print("="*80)
 
-# 최종 매개변수 얻기
+# 최종 파라메터 얻기
 final_weight = model.linear.weight.item()
 final_bias = model.linear.bias.item()
 
@@ -225,7 +225,7 @@ print("="*80)
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 
-# 그림 1: 학습 손실
+# 그림 1: 학습 로스
 axes[0].plot(loss_history, 'b-', linewidth=2)
 axes[0].set_xlabel('Epoch', fontsize=12)
 axes[0].set_ylabel('Loss (MSE)', fontsize=12)
@@ -305,19 +305,19 @@ print("="*80)
 print("""
 1. nn.Module이 모델을 매기는 여느 방식이다
    - nn.Module을 물려받는다
-   - __init__()에서 층을 매긴다
+   - __init__()에서 레이어를 매긴다
    - forward() 방법을 짠다
 
 2. 학습 루프에는 여느 걸음 다섯이 있다.
    1. 순전파:      y_pred = model(X)
-   2. 손실 계산:      loss = criterion(y_pred, y)
+   2. 로스 계산:      loss = criterion(y_pred, y)
    3. 기울기 0으로:    optimizer.zero_grad()
    4. 역전파:     loss.backward()
-   5. 매개변수 고치기: optimizer.step()
+   5. 파라메터 고치기: optimizer.step()
 
 3. 따질 때는 model.eval()과 torch.no_grad()을 써라
-   - 어떤 층(드롭아웃, 배치 정규화)을 끈다
-   - 기울기를 좇지 않아 기억 자리를 아낀다
+   - 어떤 레이어(드롭아웃, 배치 정규화)을 끈다
+   - 그래디언트를 좇지 않아 기억 자리를 아낀다
 
 4. 여러 자를 쓰면 더 잘 따질 수 있다
    - MSE: 큰 오차를 더 크게 벌한다
@@ -336,7 +336,7 @@ print("\n" + "="*80)
 print("EXPERIMENTS TO TRY")
 print("="*80)
 print("""
-1. 여러 학습률:
+1. 여러 러닝레이트:
    - Try lr = 0.001, 0.1, 0.5
    - 모여드는 속도와 든든함을 살펴보아라
 
@@ -462,19 +462,19 @@ if __name__ == "__main__":
 
     1. nn.Module이 모델을 매기는 여느 방식이다
        - nn.Module을 물려받는다
-       - __init__()에서 층을 매긴다
+       - __init__()에서 레이어를 매긴다
        - forward() 방법을 짠다
 
     2. 학습 루프에는 여느 걸음 다섯이 있다.
        1. 순전파:      y_pred = model(X)
-       2. 손실 계산:      loss = criterion(y_pred, y)
+       2. 로스 계산:      loss = criterion(y_pred, y)
        3. 기울기 0으로:    optimizer.zero_grad()
        4. 역전파:     loss.backward()
-       5. 매개변수 고치기: optimizer.step()
+       5. 파라메터 고치기: optimizer.step()
 
     3. 따질 때는 model.eval()과 torch.no_grad()을 써라
-       - 어떤 층(드롭아웃, 배치 정규화)을 끈다
-       - 기울기를 좇지 않아 기억 자리를 아낀다
+       - 어떤 레이어(드롭아웃, 배치 정규화)을 끈다
+       - 그래디언트를 좇지 않아 기억 자리를 아낀다
 
     4. 여러 자를 쓰면 더 잘 따질 수 있다
        - MSE: 큰 오차를 더 크게 벌한다
@@ -490,7 +490,7 @@ if __name__ == "__main__":
     EXPERIMENTS TO TRY
     ================================================================================
 
-    1. 여러 학습률:
+    1. 여러 러닝레이트:
        - Try lr = 0.001, 0.1, 0.5
        - 모여드는 속도와 든든함을 살펴보아라
 
@@ -518,13 +518,13 @@ if __name__ == "__main__":
 
 ### 모델과 데이터의 모양
 
-데이터 생성 규칙은 $y=3x+2+\epsilon$이며 `nn.Linear(1, 1)`이 기울기와 절편을 학습한다. 입력, 정답, 예측은 모두 $(N,1)$이다. 평균제곱오차를 최소화하는 표본의 해는 잡음 때문에 생성 규칙의 계수와 정확히 같지 않을 수 있다.
+데이터 생성 규칙은 $y=3x+2+\epsilon$이며 `nn.Linear(1, 1)`이 그래디언트와 절편을 학습한다. 입력, 정답, 예측은 모두 $(N,1)$이다. 평균제곱오차를 최소화하는 표본의 해는 잡음 때문에 생성 규칙의 계수와 정확히 같지 않을 수 있다.
 
 ### 학습과 지표
 
-전체 데이터를 사용해 한 에포크에 한 번 SGD 업데이트를 수행한다. 출력의 손실은 업데이트 전, 가중치와 절편은 업데이트 후 값이다. 마지막에 다시 계산한 MSE와 RMSE, MAE, $R^2$는 최종 파라미터의 지표다. RMSE와 MAE는 정답과 같은 단위를 가지며 MSE는 단위를 제곱한 값이다.
+전체 데이터를 사용해 한 에포크에 한 번 SGD 업데이트를 수행한다. 출력의 로스는 업데이트 전, 웨이트와 절편은 업데이트 후 값이다. 마지막에 다시 계산한 MSE와 RMSE, MAE, $R^2$는 최종 파라미터의 지표다. RMSE와 MAE는 정답과 같은 단위를 가지며 MSE는 단위를 제곱한 값이다.
 
-잔차 그래프는 입력 구간별 편향이나 오차 구조를 살펴보는 데 사용한다. 이 예제의 지표는 학습에 사용한 데이터에서 계산하므로 별도 테스트 성능으로 해석하지 않는다. 몇 개의 입력을 생성 규칙과 비교하는 출력 역시 독립적인 테스트셋 평가를 대신하지 않는다.
+잔차 그래프는 입력 구간별 바이어스나 오차 구조를 살펴보는 데 사용한다. 이 예제의 지표는 학습에 사용한 데이터에서 계산하므로 별도 테스트 성능으로 해석하지 않는다. 몇 개의 입력을 생성 규칙과 비교하는 출력 역시 독립적인 테스트셋 평가를 대신하지 않는다.
 
 ## 연습문제
 
@@ -551,7 +551,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-제곱합처럼 저장된 중간값이 필요한 손실에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+제곱합처럼 저장된 중간값이 필요한 로스에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
 
 </div>
 
@@ -564,7 +564,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 
@@ -583,4 +583,4 @@ if __name__ == "__main__":
 
 ## 정리하며
 
-회귀 결과는 계수, 손실 곡선, 잔차, 평가 지표를 함께 읽는다. 표본 추정값과 생성 규칙, 학습 성능과 새 데이터 성능을 구분한다.
+회귀 결과는 계수, 로스 곡선, 잔차, 평가 지표를 함께 읽는다. 표본 추정값과 생성 규칙, 학습 성능과 새 데이터 성능을 구분한다.

@@ -1,5 +1,5 @@
-# 변분 베이즈 신경망
-**변분 베이즈 신경망**(변이 BNN)은 다룰 수 없는 베이즈 추론 문제를 최적화 문제로 바꾸어 근사 사후분포 추론을 이치에 닿게 이룬다. 모델 증거 아래끝(ELBO)을 가장 크게 하여 네트워크 가중치에 대한 다룰 수 있는 근사 분포를 배우고, 딥러닝에서 크게 늘릴 수 있는 불확실성 재기를 이룬다.
+# 변분 베이즈 뉴럴 넷트웍
+**변분 베이즈 뉴럴 넷트웍**(변이 BNN)은 다룰 수 없는 베이즈 추론 문제를 최적화 문제로 바꾸어 근사 사후분포 추론을 이치에 닿게 이룬다. 모델 증거 아래끝(ELBO)을 가장 크게 하여 네트워크 웨이트에 대한 다룰 수 있는 근사 분포를 배우고, 딥러닝에서 크게 늘릴 수 있는 불확실성 재기를 이룬다.
 
 ---
 
@@ -7,7 +7,7 @@
 
 ### 사후분포 추론의 어려움
 
-신경망 가중치에 대한 참 사후분포는 다룰 수 없다.
+뉴럴 넷트웍 웨이트에 대한 참 사후분포는 다룰 수 없다.
 
 $$
 p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})}
@@ -16,7 +16,7 @@ $$
 **어려움**:
 
 - 모델 증거 $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) p(\theta) d\theta$에는 닫힌 형태가 없다
-- 매개변수 밭의 차수가 높다(매개변수 $10^6$~$10^9$개)
+- 파라메터 밭의 차수가 높다(파라메터 $10^6$~$10^9$개)
 - 사후분포의 터가 얽히고 봉우리가 여럿이다
 - MCMC 방법은 큰 네트워크에 너무 더디다
 
@@ -28,7 +28,7 @@ $$
 p(\theta \mid \mathcal{D}) \approx q_\phi(\theta)
 $$
 
-여기서 $q_\phi(\theta)$은 매개변수 $\phi$을 지닌 다룰 수 있는 갈래(가우시안 따위)에서 온다.
+여기서 $q_\phi(\theta)$은 파라메터 $\phi$을 지닌 다룰 수 있는 클래스(가우시안 따위)에서 온다.
 
 **최적화 목표**: KL 갈림을 가장 작게 하는 $\phi$을 찾는다.
 
@@ -41,7 +41,7 @@ $$
 | 나은 점 | 풀이 |
 |-----------|-------------|
 | **크게 늘리기** | 추론을 최적화로 바꾼다 |
-| **너그러움** | 근사 갈래를 고를 수 있다 |
+| **너그러움** | 근사 클래스를 고를 수 있다 |
 | **잘 듦** | 확률로 최적화에 잘 맞는다 |
 | **어울림** | 여느 딥러닝 연장과 함께 쓴다 |
 
@@ -92,21 +92,21 @@ $$
 
 $\text{KL} \geq 0$이므로 ELBO를 가장 크게 하는 일은 사후분포에 대한 KL을 가장 작게 하는 일과 같다.
 
-### 손실 함수로서의 ELBO
+### 로스 함수로서의 ELBO
 
-신경망을 익힐 때는 음수 ELBO를 가장 작게 한다.
+뉴럴 넷트웍을 익힐 때는 음수 ELBO를 가장 작게 한다.
 
 $$
 \boxed{\mathcal{L}_{\text{VI}}(\phi) = -\mathbb{E}_{q_\phi(\theta)}[\log p(\mathcal{D} \mid \theta)] + \text{KL}(q_\phi(\theta) \| p(\theta))}
 $$
 
-가우시안 우도를 쓰는 되돌이에서
+가우시안 우도를 쓰는 회귀에서
 
 $$
 \mathcal{L}_{\text{VI}}(\phi) = \frac{1}{2\sigma^2} \mathbb{E}_{q_\phi}\left[\sum_{i=1}^N (y_i - f_\theta(x_i))^2\right] + \text{KL}(q_\phi \| p)
 $$
 
-갈래 우도를 쓰는 분류에서
+클래스 우도를 쓰는 분류에서
 
 $$
 \mathcal{L}_{\text{VI}}(\phi) = -\mathbb{E}_{q_\phi}\left[\sum_{i=1}^N \sum_c y_{ic} \log \text{softmax}(f_\theta(x_i))_c\right] + \text{KL}(q_\phi \| p)
@@ -124,7 +124,7 @@ $$
 q_\phi(\theta) = \prod_{j=1}^d q_{\phi_j}(\theta_j)
 $$
 
-매개변수마다 독립적인 제 분포를 지닌다.
+파라메터마다 독립적인 제 분포를 지닌다.
 
 ### 가우시안 평균장
 
@@ -134,9 +134,9 @@ $$
 \boxed{q_\phi(\theta) = \prod_{j=1}^d \mathcal{N}(\theta_j \mid \mu_j, \sigma_j^2)}
 $$
 
-**변이 매개변수**: $\phi = \{(\mu_j, \sigma_j)\}_{j=1}^d$
+**변이 파라메터**: $\phi = \{(\mu_j, \sigma_j)\}_{j=1}^d$
 
-**온 매개변수**: $2d$(본디 네트워크의 두 배)
+**온 파라메터**: $2d$(본디 네트워크의 두 배)
 
 ### 가우시안 분포의 KL 갈림
 
@@ -146,7 +146,7 @@ $$
 \text{KL}(q_\phi \| p) = \frac{1}{2} \sum_{j=1}^d \left[ \frac{\mu_j^2 + \sigma_j^2}{\sigma_p^2} - 1 - \log \frac{\sigma_j^2}{\sigma_p^2} \right]
 $$
 
-**매개변수마다의 KL**:
+**파라메터마다의 KL**:
 
 $$
 \text{KL}(\mathcal{N}(\mu, \sigma^2) \| \mathcal{N}(0, \sigma_p^2)) = \frac{\mu^2 + \sigma^2}{2\sigma_p^2} - \frac{1}{2} - \log \frac{\sigma}{\sigma_p}
@@ -154,9 +154,9 @@ $$
 
 ### 평균장의 한계
 
-**남남임 가정**: 가중치끼리의 얽힘을 놓친다
+**남남임 가정**: 웨이트끼리의 얽힘을 놓친다
 
-- 가중치끼리 주고받음을 담지 못한다
+- 웨이트끼리 주고받음을 담지 못한다
 - 불확실성을 낮게 볼 수 있다
 - 사후분포의 공분산이 대각이다
 
@@ -167,9 +167,9 @@ $$
 
 ---
 
-## 4. 매개변수 다시 잡기 재주
+## 4. 파라메터 다시 잡기 재주
 
-### 기울기 문제
+### 그래디언트 문제
 
 ELBO를 가장 좋게 하려면 다음이 있어야 한다.
 
@@ -179,7 +179,7 @@ $$
 
 **어려움**: 바람이 $\phi$에 매인 $q_\phi$에 대한 것이다.
 
-### 매개변수 다시 잡기 풀이
+### 파라메터 다시 잡기 풀이
 
 **핵심 깨침**: $\theta$을 $\phi$과 잡음의 붙박인 함수로 적는다.
 
@@ -193,9 +193,9 @@ $$
 \mathbb{E}_{q_\phi(\theta)}[f(\theta)] = \mathbb{E}_{\epsilon \sim \mathcal{N}(0,I)}[f(\mu + \sigma \odot \epsilon)]
 $$
 
-### 기울기 계산
+### 그래디언트 계산
 
-기울기는 이렇게 된다.
+그래디언트는 이렇게 된다.
 
 $$
 \nabla_\phi \mathbb{E}_{q_\phi}[f(\theta)] = \mathbb{E}_{\epsilon}\left[\nabla_\phi f(\mu + \sigma \odot \epsilon)\right]
@@ -209,9 +209,9 @@ $$
 
 ### 참으로 짜기
 
-**양이 되게 하는 매개변수 잡기**: $\sigma = \log(1 + e^\rho)$이 되는 $\rho$을 쓴다(소프트플러스)
+**양이 되게 하는 파라메터 잡기**: $\sigma = \log(1 + e^\rho)$이 되는 $\rho$을 쓴다(소프트플러스)
 
-**기울기 흐름**:
+**그래디언트 흐름**:
 
 $$
 \frac{\partial \mathcal{L}}{\partial \mu} = \frac{\partial \mathcal{L}}{\partial \theta}, \quad \frac{\partial \mathcal{L}}{\partial \rho} = \frac{\partial \mathcal{L}}{\partial \theta} \cdot \epsilon \cdot \frac{e^\rho}{1 + e^\rho}
@@ -228,8 +228,8 @@ $$
 **알고리즘: 되돌아가며 베이즈**
 
 ```
-들임: 자료 꾸러미 D, 앞선 분포 p(θ), 그물 구조
-날임: 변이 매개변수 φ = {μ, ρ}
+들임: 자료 꾸러미 D, 앞선 분포 p(θ), 넷트웍 구조
+날임: 변이 파라메터 φ = {μ, ρ}
 
 μ, ρ의 첫자리를 아무렇게나 잡는다
 판마다:
@@ -239,7 +239,7 @@ $$
         3. 잃음을 셈한다:
            L = -log p(B|θ) + (1/M) * KL(q_φ || p)
            여기서 M = 잔 배치의 수
-        4. 기울기 ∇_μ L, ∇_ρ L을 셈한다
+        4. 그래디언트 ∇_μ L, ∇_ρ L을 셈한다
         5. μ ← μ - α ∇_μ L으로 고친다
         6. ρ ← ρ - α ∇_ρ L으로 고친다
 ```
@@ -252,9 +252,9 @@ $$
 \mathcal{L}(\phi) \approx \frac{N}{|B|} \sum_{i \in B} \log p(y_i \mid x_i, \theta) - \text{KL}(q_\phi \| p)
 $$
 
-**KL 가중치 주기**: KL 항은 잔 배치마다 한 번 계산하고 $1/M$으로 잣대를 맞춘다. 여기서 $M$은 잔 배치의 수다.
+**KL 웨이트 주기**: KL 항은 잔 배치마다 한 번 계산하고 $1/M$으로 잣대를 맞춘다. 여기서 $M$은 잔 배치의 수다.
 
-### 가중치의 불확실성
+### 웨이트의 불확실성
 
 학습된 변이 분포는 다음을 준다.
 
@@ -264,17 +264,17 @@ $$
 
 **풀이**:
 
-- $\mu_{ij}$: 가장 그럴듯한 가중치 값
-- $\sigma_{ij}$: 가중치 값의 불확실성
+- $\mu_{ij}$: 가장 그럴듯한 웨이트 값
+- $\sigma_{ij}$: 웨이트 값의 불확실성
 - $\sigma$이 크면 → 불확실성이 크고 → 추론을 덜 자신한다
 
 ---
 
-## 6. 그 자리 매개변수 다시 잡기 재주
+## 6. 그 자리 파라메터 다시 잡기 재주
 
 ### 왜 하는가
 
-여느 매개변수 다시 잡기는 가중치를 뽑는다.
+여느 파라메터 다시 잡기는 웨이트를 뽑는다.
 
 $$
 W = \mu_W + \sigma_W \odot \epsilon_W
@@ -286,9 +286,9 @@ $$
 a = Wx
 $$
 
-**문제**: 네트워크가 너르면 기울기 근사의 분산이 크다.
+**문제**: 네트워크가 너르면 그래디언트 근사의 분산이 크다.
 
-### 그 자리 매개변수 다시 잡기
+### 그 자리 파라메터 다시 잡기
 
 **핵심 깨침**: 선형 켜에서는 활성화를 곧바로 뽑는다.
 
@@ -300,7 +300,7 @@ $$
 a \sim \mathcal{N}(\mu_W x, (\sigma_W^2 \odot x^2) \mathbf{1})
 $$
 
-**활성화 켜에서 매개변수를 다시 잡는다**:
+**활성화 켜에서 파라메터를 다시 잡는다**:
 
 $$
 a = \mu_W x + \sqrt{\sigma_W^2 \odot x^2} \odot \epsilon_a
@@ -312,21 +312,21 @@ $$
 
 | 특성 | 여느 것 | 그 자리 |
 |--------|----------|-------|
-| 잡음의 차수 | $d$(가중치) | $n$(활성화) |
-| 기울기 분산 | 크다 | 작다 |
+| 잡음의 차수 | $d$(웨이트) | $n$(활성화) |
+| 그래디언트 분산 | 크다 | 작다 |
 | 계산 비용 | 같다 | 같다 |
-| 얽힘 | 가중치끼리 얽힌다 | 활성화끼리 남남이다 |
+| 얽힘 | 웨이트끼리 얽힌다 | 활성화끼리 남남이다 |
 
 ### 짜기
 
-가중치 행렬이 $W \in \mathbb{R}^{m \times n}$인 켜에서
+웨이트 행렬이 $W \in \mathbb{R}^{m \times n}$인 켜에서
 
 ```python
-# 여느 매개변수 다시 잡기
+# 여느 파라메터 다시 잡기
 W = mu_W + sigma_W * eps_W  # eps_W: (m, n)
 a = W @ x                    # a: (n,)
 
-# 그 자리 매개변수 다시 잡기
+# 그 자리 파라메터 다시 잡기
 a_mu = mu_W @ x                           # (n,)
 a_var = (sigma_W**2) @ (x**2)            # (n,)
 a = a_mu + sqrt(a_var) * eps_a           # eps_a: (n,)
@@ -362,7 +362,7 @@ $$
 
 **문제**: 학습 초에 KL 항이 힘을 크게 써서 $q$이 사전분포로 주저앉을 수 있다.
 
-**풀이**: KL 가중치를 차츰 올린다.
+**풀이**: KL 웨이트를 차츰 올린다.
 
 $$
 \mathcal{L}_t(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \beta_t \cdot \text{KL}(q_\phi \| p)
@@ -398,9 +398,9 @@ $$
 q(\theta) = \mathcal{N}(\mu, \Sigma)
 $$
 
-**매개변수**: $d + d(d+1)/2$(평균 + 아래 세모 촐레스키)
+**파라메터**: $d + d(d+1)/2$(평균 + 아래 세모 촐레스키)
 
-**문제**: 매개변수 $O(d^2)$개와 계산 $O(d^3)$ — 큰 네트워크에서는 다룰 수 없다.
+**문제**: 파라메터 $O(d^2)$개와 계산 $O(d^3)$ — 큰 네트워크에서는 다룰 수 없다.
 
 ### 낮은 자리 근사
 
@@ -412,13 +412,13 @@ $$
 
 여기서 $D$은 대각이고 $V \in \mathbb{R}^{d \times r}$이며 $r \ll d$이다.
 
-**매개변수**: $d + dr$
+**파라메터**: $d + dr$
 
 **샘플링**: $\theta = \mu + D^{1/2}\epsilon_1 + V\epsilon_2$이고 여기서 $\epsilon_1 \in \mathbb{R}^d$, $\epsilon_2 \in \mathbb{R}^r$이다.
 
 ### 행렬 변수 가우시안
 
-가중치 행렬 $W \in \mathbb{R}^{m \times n}$에서
+웨이트 행렬 $W \in \mathbb{R}^{m \times n}$에서
 
 $$
 q(W) = \mathcal{MN}(M, U, V)
@@ -426,7 +426,7 @@ $$
 
 여기서 $U \in \mathbb{R}^{m \times m}$이고 $V \in \mathbb{R}^{n \times n}$이다.
 
-**매개변수**: $mn + m^2 + n^2$($mn(mn+1)/2$보다 훨씬 적다)
+**파라메터**: $mn + m^2 + n^2$($mn(mn+1)/2$보다 훨씬 적다)
 
 ### 정규화 흐름
 
@@ -447,7 +447,7 @@ $$
 - **판판한 흐름**: $f(z) = z + u \cdot \tanh(w^\top z + b)$
 - **살 흐름**: $f(z) = z + \beta h(\alpha, r)(z - z_0)$
 - **RealNVP**: 야코비안 행렬을 다룰 수 있는 짝 켜
-- **IAF**: 역 제 되돌이 흐름
+- **IAF**: 역 제 회귀 흐름
 
 ---
 
@@ -473,14 +473,14 @@ $$
 
 - $\sigma_p = 1$에서 비롯한다
 - 따짐 성능을 보고 맞춘다
-- 절로 맞추려면 층진 사전분포를 헤아린다
+- 절로 맞추려면 레이어진 사전분포를 헤아린다
 
 ### 첫자리 잡기
 
 **평균의 첫자리**: 
 
 - 여느 첫자리 잡기(자비에, 허)
-- 또는 사전 학습된 가중치
+- 또는 사전 학습된 웨이트
 
 **분산의 첫자리**:
 
@@ -489,7 +489,7 @@ $$
 
 ### 몬테카를로 표본의 수
 
-**학습**: 흔히 표본 $S = 1$이면 넉넉하다(치우치지 않은 기울기)
+**학습**: 흔히 표본 $S = 1$이면 넉넉하다(치우치지 않은 그래디언트)
 
 **따지기**: 추론이 든든하도록 표본을 더 쓴다($S = 10$~$100$)
 
@@ -497,9 +497,9 @@ $$
 
 ### 더 드는 계산
 
-| 몫 | 여느 신경망 대비 값 |
+| 몫 | 여느 뉴럴 넷트웍 대비 값 |
 |-----------|---------------------|
-| 매개변수 | 2배(평균 + 분산) |
+| 파라메터 | 2배(평균 + 분산) |
 | 앞으로 걸음 | 약 1배(그 자리 다시 잡기를 쓰면) |
 | 되돌아 걸음 | 약 1.5배 |
 | 기억 | 2배 |
@@ -507,7 +507,7 @@ $$
 
 ---
 
-## 10. 변분 추론의 갈래
+## 10. 변분 추론의 클래스
 
 ### 곱하는 정규화 흐름(MNF)
 
@@ -519,9 +519,9 @@ $$
 
 여기서 $q(\theta \mid z)$은 가우시안이고 $q(z)$은 정규화 흐름이다.
 
-### 잡음 섞은 제 기울기(NNG)
+### 잡음 섞은 제 그래디언트(NNG)
 
-더 잘 가장 좋게 하려고 잡음을 섞은 제 기울기를 쓴다.
+더 잘 가장 좋게 하려고 잡음을 섞은 제 그래디언트를 쓴다.
 
 $$
 \theta_{t+1} = \theta_t - \alpha F^{-1} (\nabla \mathcal{L} + \epsilon)
@@ -531,7 +531,7 @@ $$
 
 ### 살아 있는 변이 가우시안-뉴턴(VOGN)
 
-제 기울기 변분 추론의 근사:
+제 그래디언트 변분 추론의 근사:
 
 $$
 \mu_{t+1} = \mu_t - \alpha \Sigma_t \nabla_\mu \mathcal{L}
@@ -553,7 +553,7 @@ $$
 
 - 사전분포를 풀이하기 쉽다
 - 함수 밭에서 불확실성이 낫다
-- 가중치 공간의 뒤틀림을 비껴간다
+- 웨이트 공간의 뒤틀림을 비껴간다
 
 ---
 
@@ -561,10 +561,10 @@ $$
 
 ```python
 """
-변이 베이즈 신경 그물
+변이 베이즈 뉴럴 넷트웍
 
-이 배치는 신경 그물의 변이 미루어 봄을 온전히 짜 놓았다.
-되돌아가며 베이즈, 그 자리 매개변수 다시 잡기, KL 천천히 올리기,
+이 배치는 뉴럴 넷트웍의 변이 미루어 봄을 온전히 짜 놓았다.
+되돌아가며 베이즈, 그 자리 파라메터 다시 잡기, KL 천천히 올리기,
 그리고 여러 뒷분포 어림이 들어 있다.
 """
 
@@ -581,7 +581,7 @@ from abc import ABC, abstractmethod
 # =============================================================================
 
 class VariationalLayer(ABC):
-    """변이 켜의 뼈대 갈래."""
+    """변이 켜의 뼈대 클래스."""
     
     @abstractmethod
     def forward(self, x: np.ndarray, sample: bool = True) -> np.ndarray:
@@ -595,12 +595,12 @@ class VariationalLayer(ABC):
     
     @abstractmethod
     def get_params(self) -> Dict[str, np.ndarray]:
-        """변이 매개변수를 얻는다."""
+        """변이 파라메터를 얻는다."""
         pass
     
     @abstractmethod
     def set_params(self, params: Dict[str, np.ndarray]):
-        """변이 매개변수를 얹는다."""
+        """변이 파라메터를 얹는다."""
         pass
 
 class VariationalLinear(VariationalLayer):
@@ -631,14 +631,14 @@ class VariationalLinear(VariationalLayer):
         init_sigma : float
             뒷분포의 첫 표준편차
         use_local_reparam : bool
-            그 자리 매개변수 다시 잡기 재주를 쓴다
+            그 자리 파라메터 다시 잡기 재주를 쓴다
         """
         self.in_features = in_features
         self.out_features = out_features
         self.prior_sigma = prior_sigma
         self.use_local_reparam = use_local_reparam
         
-        # 변이 매개변수의 첫자리를 잡는다
+        # 변이 파라메터의 첫자리를 잡는다
         # 짐의 평균: 자비에 첫자리 잡기
         self.mu_W = np.random.randn(in_features, out_features) * np.sqrt(2.0 / in_features)
         # 짐의 로그 흩어짐(rho으로 매긴다: sigma = softplus(rho))
@@ -648,7 +648,7 @@ class VariationalLinear(VariationalLayer):
         self.mu_b = np.zeros(out_features)
         self.rho_b = np.full(out_features, np.log(np.exp(init_sigma) - 1))
         
-        # 기울기 셈에 쓰려고 마지막에 뽑은 짐을 담는다
+        # 그래디언트 셈에 쓰려고 마지막에 뽑은 짐을 담는다
         self.last_eps_W = None
         self.last_eps_b = None
     
@@ -683,7 +683,7 @@ class VariationalLinear(VariationalLayer):
             return x @ self.mu_W + self.mu_b
         
         if self.use_local_reparam:
-            # 그 자리 매개변수 다시 잡기: 살림을 곧바로 뽑는다
+            # 그 자리 파라메터 다시 잡기: 살림을 곧바로 뽑는다
             # a ~ N(x @ mu_W + mu_b, x^2 @ sigma_W^2 + sigma_b^2)
             
             mu_a = x @ self.mu_W + self.mu_b
@@ -693,7 +693,7 @@ class VariationalLinear(VariationalLayer):
             return mu_a + np.sqrt(var_a + 1e-8) * eps_a
         
         else:
-            # 여느 매개변수 다시 잡기: 짐을 뽑는다
+            # 여느 파라메터 다시 잡기: 짐을 뽑는다
             self.last_eps_W = np.random.randn(*self.mu_W.shape)
             self.last_eps_b = np.random.randn(*self.mu_b.shape)
             
@@ -730,7 +730,7 @@ class VariationalLinear(VariationalLayer):
         return kl_W + kl_b
     
     def get_params(self) -> Dict[str, np.ndarray]:
-        """변이 매개변수를 얻는다."""
+        """변이 파라메터를 얻는다."""
         return {
             'mu_W': self.mu_W.copy(),
             'rho_W': self.rho_W.copy(),
@@ -739,18 +739,18 @@ class VariationalLinear(VariationalLayer):
         }
     
     def set_params(self, params: Dict[str, np.ndarray]):
-        """변이 매개변수를 얹는다."""
+        """변이 파라메터를 얹는다."""
         self.mu_W = params['mu_W'].copy()
         self.rho_W = params['rho_W'].copy()
         self.mu_b = params['mu_b'].copy()
         self.rho_b = params['rho_b'].copy()
     
     def n_params(self) -> int:
-        """변이 매개변수의 수."""
+        """변이 파라메터의 수."""
         return 2 * (self.in_features * self.out_features + self.out_features)
 
 # =============================================================================
-# 변이 신경 그물
+# 변이 뉴럴 넷트웍
 # =============================================================================
 
 class VariationalMLP:
@@ -780,7 +780,7 @@ class VariationalMLP:
         activation : str
             'relu' 또는 'tanh'
         use_local_reparam : bool
-            그 자리 매개변수 다시 잡기를 쓴다
+            그 자리 파라메터 다시 잡기를 쓴다
         """
         self.layer_sizes = layer_sizes
         self.prior_sigma = prior_sigma
@@ -847,7 +847,7 @@ class VariationalMLP:
         return mean, std
     
     def n_variational_params(self) -> int:
-        """변이 매개변수의 온 수."""
+        """변이 파라메터의 온 수."""
         return sum(layer.n_params() for layer in self.layers)
 
 # =============================================================================
@@ -871,15 +871,15 @@ class BayesByBackprop:
         Parameters
         ----------
         model : VariationalMLP
-            변이 신경 그물
+            변이 뉴럴 넷트웍
         likelihood_sigma : float
             살핌 잡음의 표준편차
         kl_weight : float
             KL 항의 짐(천천히 올리기용)
         lr : float
-            배움 비율
+            러닝 비율
         lr_decay : float
-            판마다의 배움 비율 줄이기
+            판마다의 러닝 비율 줄이기
         """
         self.model = model
         self.likelihood_sigma = likelihood_sigma
@@ -935,7 +935,7 @@ class BayesByBackprop:
         eps: float = 1e-5
     ) -> List[Dict[str, np.ndarray]]:
         """
-        기울기를 수로 셈한다(단순하게).
+        그래디언트를 수로 셈한다(단순하게).
         
         참으로는 절로 미분하기를 쓴다.
         """
@@ -985,10 +985,10 @@ class BayesByBackprop:
         loss, nll, kl : float
             잃음의 몫
         """
-        # 기울기를 셈한다
+        # 그래디언트를 셈한다
         gradients = self.compute_gradients(X, y, n_total)
         
-        # 매개변수를 고친다
+        # 파라메터를 고친다
         for layer, grads in zip(self.model.layers, gradients):
             params = layer.get_params()
             for param_name in params:
@@ -1027,7 +1027,7 @@ class BayesByBackprop:
             if kl_annealing:
                 self.kl_weight = min(1.0, epoch / annealing_epochs)
             
-            # 배움 비율 줄이기
+            # 러닝 비율 줄이기
             current_lr = self.lr * (1 - self.lr_decay) ** epoch
             
             # 자료를 뒤섞는다
@@ -1115,7 +1115,7 @@ class ScaleMixturePrior:
         self.sigma2 = sigma2
     
     def log_prob(self, w: np.ndarray) -> float:
-        """로그 낌새를 셈한다."""
+        """로그 확률을 셈한다."""
         log_p1 = stats.norm.logpdf(w, 0, self.sigma1)
         log_p2 = stats.norm.logpdf(w, 0, self.sigma2)
         
@@ -1143,7 +1143,7 @@ class VariationalLinearMixturePrior(VariationalLayer):
         self.out_features = out_features
         self.prior = prior
         
-        # 변이 매개변수의 첫자리를 잡는다
+        # 변이 파라메터의 첫자리를 잡는다
         self.mu_W = np.random.randn(in_features, out_features) * np.sqrt(2.0 / in_features)
         self.rho_W = np.full((in_features, out_features), np.log(np.exp(init_sigma) - 1))
         self.mu_b = np.zeros(out_features)
@@ -1336,7 +1336,7 @@ def demo_variational_bnn():
     """변이 BNN 익히기를 보여 준다."""
     
     print("=" * 70)
-    print("변이 베이즈 신경 그물")
+    print("변이 베이즈 뉴럴 넷트웍")
     print("=" * 70)
     
     np.random.seed(42)
@@ -1362,7 +1362,7 @@ def demo_variational_bnn():
     )
     
     print(f"모형: {model.layer_sizes}")
-    print(f"변이 매개변수: {model.n_variational_params()}")
+    print(f"변이 파라메터: {model.n_variational_params()}")
     
     # 익힌다
     trainer = BayesByBackprop(
@@ -1422,10 +1422,10 @@ def demo_kl_annealing():
     print("\nKL을 천천히 올리면 익힘 초에 뒷분포가 주저앉는 것을 막는다.")
 
 def demo_local_reparameterization():
-    """여느 매개변수 다시 잡기와 그 자리 다시 잡기를 견준다."""
+    """여느 파라메터 다시 잡기와 그 자리 다시 잡기를 견준다."""
     
     print("\n" + "=" * 70)
-    print("그 자리 매개변수 다시 잡기 재주")
+    print("그 자리 파라메터 다시 잡기 재주")
     print("=" * 70)
     
     np.random.seed(42)
@@ -1434,7 +1434,7 @@ def demo_local_reparameterization():
     layer_standard = VariationalLinear(10, 5, use_local_reparam=False)
     layer_local = VariationalLinear(10, 5, use_local_reparam=True)
     
-    # 매개변수를 베낀다
+    # 파라메터를 베낀다
     layer_local.mu_W = layer_standard.mu_W.copy()
     layer_local.rho_W = layer_standard.rho_W.copy()
     layer_local.mu_b = layer_standard.mu_b.copy()
@@ -1456,7 +1456,7 @@ def demo_local_reparameterization():
     print(f"  그 자리   - 표준편차:  {np.std(outputs_local, axis=0)[:3]}")
     
     print("\n*** 그 자리 다시 잡기도 같은 분포를 준다")
-    print("*** 다만 기울기 흩어짐이 더 작다")
+    print("*** 다만 그래디언트 흩어짐이 더 작다")
 
 def demo_uncertainty_quality():
     """변이 BNN의 아리송함 결을 보여 준다."""
@@ -1515,13 +1515,13 @@ if __name__ == "__main__":
 
 ```
 ======================================================================
-변이 베이즈 신경 그물
+변이 베이즈 뉴럴 넷트웍
 ======================================================================
 
 익힘 자료: 50점
 시험 자료: 200점
 모형: [1, 20, 20, 1]
-변이 매개변수: 962
+변이 파라메터: 962
 
 익히는 중(좀 걸릴 수 있다)...
 0판: 잃음=nan, NLL=inf, KL=nan
@@ -1541,7 +1541,7 @@ KL 천천히 올리는 짜임
 KL을 천천히 올리면 익힘 초에 뒷분포가 주저앉는 것을 막는다.
 
 ======================================================================
-그 자리 매개변수 다시 잡기 재주
+그 자리 파라메터 다시 잡기 재주
 ======================================================================
 
 날임의 자(비슷해야 한다):
@@ -1551,7 +1551,7 @@ KL을 천천히 올리면 익힘 초에 뒷분포가 주저앉는 것을 막는�
   그 자리   - 표준편차:  [0.29015879 0.27977214 0.27965379]
 
 *** 그 자리 다시 잡기도 같은 분포를 준다
-*** 다만 기울기 흩어짐이 더 작다
+*** 다만 그래디언트 흩어짐이 더 작다
 
 ======================================================================
 아리송함의 됨됨이
@@ -1573,12 +1573,12 @@ KL을 천천히 올리면 익힘 초에 뒷분포가 주저앉는 것을 막는�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-ReLU 활성화와 가우시안 가중치 사전분포를 지닌 두 켜 신경망에서, 이 마디에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
+ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 넷트웍에서, 이 마디에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    가중치가 $W_1, W_2$이고 가우시안 사전분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 사후분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 근사 방법은 다룰 수 있는 꼴을 낸다. 변분 추론이면 가중치마다 서로 독립인 가우시안 사후분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 근사이면 사후분포가 MAP 추정을 가운데로 삼고 공분산이 헤세 행렬의 역인 가우시안 하나이며, MC 드롭아웃이면 사후분포가 드롭아웃 마스크 분포로 넌지시 세워진다. 근사마다 참 사후분포 모습의 서로 다른 특성을 담는다. $\square$
+    웨이트가 $W_1, W_2$이고 가우시안 사전분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 사후분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 근사 방법은 다룰 수 있는 꼴을 낸다. 변분 추론이면 웨이트마다 서로 독립인 가우시안 사후분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 근사이면 사후분포가 MAP 추정을 가운데로 삼고 공분산이 헤세 행렬의 역인 가우시안 하나이며, MC 드롭아웃이면 사후분포가 드롭아웃 마스크 분포로 넌지시 세워진다. 근사마다 참 사후분포 모습의 서로 다른 특성을 담는다. $\square$
 
 ---
 
@@ -1597,12 +1597,12 @@ ReLU 활성화와 가우시안 가중치 사전분포를 지닌 두 켜 신경�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-베이즈 신경망의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+베이즈 뉴럴 넷트웍의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    추론 분산은 온 분산 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 우연적 몫은 데이터를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 인식적 몫은 매개변수의 불확실성을 드러내며 사후분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 우연적 불확실성만 남는다. 이 쪼갬은 데이터를 더 모아야 할 때(인식적 불확실성이 클 때)와 우연적 잡음을 받아들여야 할 때(우연적 불확실성이 클 때)를 가르는 데 중요하다. $\square$
+    추론 분산은 온 분산 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 우연적 몫은 데이터를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 인식적 몫은 파라메터의 불확실성을 드러내며 사후분포가 참 파라메터 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 우연적 불확실성만 남는다. 이 쪼갬은 데이터를 더 모아야 할 때(인식적 불확실성이 클 때)와 우연적 잡음을 받아들여야 할 때(우연적 불확실성이 클 때)를 가르는 데 중요하다. $\square$
 
 ---
 
@@ -1632,7 +1632,7 @@ $$
 \mathcal{L}(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \text{KL}(q_\phi \| p)
 $$
 
-**매개변수 다시 잡기 재주**:
+**파라메터 다시 잡기 재주**:
 
 $$
 \theta = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
@@ -1643,14 +1643,14 @@ $$
 | 몫 | 식 |
 |-----------|---------|
 | **사후분포** | $q(\theta) = \prod_j \mathcal{N}(\theta_j \mid \mu_j, \sigma_j^2)$ |
-| **매개변수** | $\phi = \{\mu, \rho\}$이고 $\sigma = \text{softplus}(\rho)$ |
+| **파라메터** | $\phi = \{\mu, \rho\}$이고 $\sigma = \text{softplus}(\rho)$ |
 | **사전분포에 대한 KL** | $\frac{1}{2}\sum_j \left[\frac{\mu_j^2 + \sigma_j^2}{\sigma_p^2} - 1 - \log\frac{\sigma_j^2}{\sigma_p^2}\right]$ |
 
 ### 되돌아가며 베이즈 알고리즘
 
 1. Sample $\epsilon \sim \mathcal{N}(0, I)$
 2. $\theta = \mu + \text{softplus}(\rho) \odot \epsilon$을 계산한다
-3. 손실을 계산한다: $\mathcal{L} = \text{NLL}(\theta) + \beta \cdot \text{KL}(q \| p)$
+3. 로스를 계산한다: $\mathcal{L} = \text{NLL}(\theta) + \beta \cdot \text{KL}(q \| p)$
 4. 되돌아가며 $\mu, \rho$을 고친다
 
 ### 참으로 헤아릴 것
@@ -1659,14 +1659,14 @@ $$
 |--------|----------------|
 | **사전분포** | $\sigma_p = 1.0$(따짐 꾸러미로 맞춘다) |
 | **첫 분산** | $\sigma_{\text{init}} = 0.01$~$0.1$ |
-| **MC 표본(학습)** | 1(치우치지 않은 기울기) |
+| **MC 표본(학습)** | 1(치우치지 않은 그래디언트) |
 | **MC 표본(시험)** | 30~100 |
 | **KL 천천히 올리기** | 20~50판에 걸쳐 곧게 워밍업 |
-| **학습률** | 0.001~0.01 |
+| **러닝레이트** | 0.001~0.01 |
 
 ### 평균장을 넘어
 
-| 방법 | 드러냄 | 값 |
+| 방법 | 리프리젠테이션 | 값 |
 |--------|---------------|------|
 | 평균장 | 낮음 | $O(d)$ |
 | 낮은 자리 | 가운데 | $O(dr)$ |
@@ -1686,7 +1686,7 @@ $$
 
 | 이야기 | 장 | 이어짐 |
 |-------|---------|------------|
-| 사전분포 정하기 | 43장: 가중치의 사전분포 | KL 항 속의 사전분포 |
+| 사전분포 정하기 | 43장: 웨이트의 사전분포 | KL 항 속의 사전분포 |
 | 불확실성 | 43장: 불확실성 | 사후분포가 쪼갬을 이룬다 |
 | MC 드롭아웃 | 43장: MC 드롭아웃 | 넌지시 하는 VI 갈음 |
 | 사후분포 추론 | 43장: 사후분포 추론 | 추론 방법으로서의 VI |

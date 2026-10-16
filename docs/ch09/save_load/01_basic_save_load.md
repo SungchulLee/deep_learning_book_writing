@@ -19,8 +19,8 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     핵심 개념:
     1. torch.save() - pickle으로 파이썬 객체를 디스크에 저장한다
     2. torch.load() - 저장한 객체를 디스크에서 불러온다
-    3. state_dict() - 모델의 매개변수를 담은 순서 있는 사전
-    4. load_state_dict() - 매개변수를 모델에 넣는다
+    3. state_dict() - 모델의 파라메터를 담은 순서 있는 사전
+    4. load_state_dict() - 파라메터를 모델에 넣는다
 
     출처: Patrick Loeber의 PyTorch 튜토리얼에 바탕을 둠
     자세한 주석과 설명을 덧붙였다
@@ -49,10 +49,10 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     2. torch.load(path)
        - 저장한 객체를 메모리로 다시 불러온다
        - 저장했던 바로 그 객체를 돌려준다
-       - map_location 매개변수로 장치를 지정할 수 있다
+       - map_location 파라메터로 장치를 지정할 수 있다
 
     3. model.load_state_dict(state_dict)
-       - 상태 사전에서 모델의 매개변수를 불러온다
+       - 상태 사전에서 모델의 파라메터를 불러온다
        - 더 유연하며 대부분의 경우에 권장된다
        - 모델의 구조를 따로 정의할 수 있게 해 준다
     """
@@ -84,7 +84,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     방법 2: 상태 사전만 저장하기 (권장)
     -----------------------------------------------
     장점:
-      - 파일이 더 작다 (가중치만 담고 구조는 담지 않는다)
+      - 파일이 더 작다 (웨이트만 담고 구조는 담지 않는다)
       - 더 유연하고 옮겨 쓰기 좋다
       - 버전 관리에 더 알맞다
       - 다른 모델 구조에도 불러올 수 있다
@@ -107,26 +107,26 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
 
     class Model(nn.Module):
         """
-        시연을 위한 간단한 신경망.
+        시연을 위한 간단한 뉴럴 넷트웍.
 
         구조:
-        - 선형층 하나
+        - 선형 레이어 하나
         - 시그모이드 활성화
         - 이진 분류에 알맞다
 
         인수:
-            n_input_features (int): 입력 특징의 수
+            n_input_features (int): 입력 피처의 수
         """
 
         def __init__(self, n_input_features):
             super(Model, self).__init__()
-            # 선형층 하나 초기화
+            # 선형 레이어 하나 초기화
             # n_input_features -> 출력 1개로 보낸다 (이진 분류)
             self.linear = nn.Linear(n_input_features, 1)
 
         def forward(self, x):
             """
-            신경망을 통과하는 순전파
+            뉴럴 넷트웍을 통과하는 순전파
 
             인수:
                 x: 모양이 (batch_size, n_input_features)인 입력 텐서
@@ -152,20 +152,20 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     # 모델 인스턴스 만들기
     model = Model(n_input_features=6)
 
-    # 처음 모델 매개변수 보이기
+    # 처음 모델 파라메터 보이기
     print("\n📊 Initial Model Parameters:")
     for name, param in model.named_parameters():
         print(f"{name}: shape {param.shape}")
         print(f"  Values: {param.data.flatten()[:5]}...")  # 처음 값 5개 보이기
 
     # 실제로는 여기서 모델을 학습시킬 것이다
-    # 시연이므로 무작위로 초기화된 가중치를 쓴다
+    # 시연이므로 무작위로 초기화된 웨이트를 쓴다
     print("\n🔧 (In production: Train your model here)")
 
     # 저장할 파일 경로 정하기
     FILE = "model_complete.pth"
 
-    # 저장: 모델 전체 (구조 + 매개변수)
+    # 저장: 모델 전체 (구조 + 파라메터)
     print(f"\n💾 Saving entire model to '{FILE}'...")
     torch.save(model, FILE)
     print(f"✅ Model saved successfully!")
@@ -180,7 +180,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     loaded_model.eval()
     print("✅ Model loaded successfully!")
 
-    # 매개변수가 같은지 확인
+    # 파라메터가 같은지 확인
     print("\n🔍 Verifying Loaded Model Parameters:")
     for name, param in loaded_model.named_parameters():
         print(f"{name}: shape {param.shape}")
@@ -277,8 +277,8 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     1. 모델의 상태 사전
     2. 최적화기의 상태 사전
     3. 현재 에포크 번호
-    4. 학습 손실 이력
-    5. 학습률 일정의 상태
+    4. 학습 로스 이력
+    5. 러닝레이트 일정의 상태
     6. 난수 생성기의 상태 (재현성을 위해)
     """
 
@@ -299,9 +299,9 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     # 빠짐없는 검사점 사전 만들기
     checkpoint = {
         "epoch": 90,                          # 현재 에포크 번호
-        "model_state": model.state_dict(),     # 모델의 매개변수
+        "model_state": model.state_dict(),     # 모델의 파라메터
         "optim_state": optimizer.state_dict(), # 최적화기의 상태 (모멘텀 등)
-        "loss": 0.123,                         # 선택: 현재 손실
+        "loss": 0.123,                         # 선택: 현재 로스
         "accuracy": 0.95,                      # 선택: 현재 정확도
     }
 
@@ -324,7 +324,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
 
     # 1단계: 모델과 최적화기 다시 만들기
     model = Model(n_input_features=6)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0)  # 학습률이 되살아난다
+    optimizer = torch.optim.SGD(model.parameters(), lr=0)  # 러닝레이트가 되살아난다
 
     # 2단계: 검사점 불러오기
     checkpoint = torch.load(FILE)
@@ -335,7 +335,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     # 4단계: 최적화기의 상태 되살리기
     optimizer.load_state_dict(checkpoint['optim_state'])
 
-    # 5단계: 그 밖의 학습 매개변수 되살리기
+    # 5단계: 그 밖의 학습 파라메터 되살리기
     epoch = checkpoint['epoch']
     loss = checkpoint.get('loss', None)  # 선택적인 키에는 .get()을 쓴다
     accuracy = checkpoint.get('accuracy', None)
@@ -470,10 +470,10 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     --------
     1. 실서비스에서는 .state_dict() 방식으로 모델을 저장하라
     2. 추론 앞에서 늘 model.eval()을 부르라
-    3. 데이터 손실을 막으려면 학습 중에 체크포인트를 저장하라
+    3. 데이터 로스를 막으려면 학습 중에 체크포인트를 저장하라
     4. 버전과 에폭 정보를 담은 뜻 있는 파일 이름을 써라
        예: 'model_epoch50_acc0.95.pth'
-    5. 체크포인트와 함께 초매개변수를 저장하라
+    5. 체크포인트와 함께 초파라메터를 저장하라
     6. 다른 장치로 불러올 때는 map_location을 써라
     7. 옛 체크포인트를 지우기 전에 불러온 모델이 도는지 확인하라
 
@@ -710,10 +710,10 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     --------
     1. 실서비스에서는 .state_dict() 방식으로 모델을 저장하라
     2. 추론 앞에서 늘 model.eval()을 부르라
-    3. 데이터 손실을 막으려면 학습 중에 체크포인트를 저장하라
+    3. 데이터 로스를 막으려면 학습 중에 체크포인트를 저장하라
     4. 버전과 에폭 정보를 담은 뜻 있는 파일 이름을 써라
        예: 'model_epoch50_acc0.95.pth'
-    5. 체크포인트와 함께 초매개변수를 저장하라
+    5. 체크포인트와 함께 초파라메터를 저장하라
     6. 다른 장치로 불러올 때는 map_location을 써라
     7. 옛 체크포인트를 지우기 전에 불러온 모델이 도는지 확인하라
 
@@ -771,7 +771,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
 
 전체 모델 저장은 클래스 정의 자체를 독립적인 프로그램으로 묶는 방식이 아니다. pickle이 클래스의 모듈 경로 등에 의존하므로 복원 환경에서 호환되는 정의가 필요하다. 또한 PyTorch 2.6부터 pickle_module을 별도로 지정하지 않은 torch.load는 weights_only=True를 기본으로 사용한다. 이 페이지의 전체 객체를 인수 없이 읽는 예제는 이런 버전에서 그대로 동작하지 않을 수 있다. 전체 객체 복원이 필요할 때의 weights_only=False는 신뢰하는 파일에 한해서만 고려한다. [직렬화 문서](https://docs.pytorch.org/docs/stable/notes/serialization)를 함께 확인한다.
 
-state_dict에는 매개변수와 영속 버퍼가 담기며 모델의 파이썬 구조나 입력 전처리는 포함하지 않는다. 복원할 모델을 먼저 만들고 키와 텐서 모양을 맞춰 load_state_dict에 전달한다. map_location은 저장된 텐서의 장치 매핑을 지정하며, 입력과 모델을 같은 장치로 옮기는 작업까지 대신하지는 않는다.
+state_dict에는 파라메터와 영속 버퍼가 담기며 모델의 파이썬 구조나 입력 전처리는 포함하지 않는다. 복원할 모델을 먼저 만들고 키와 텐서 모양을 맞춰 load_state_dict에 전달한다. map_location은 저장된 텐서의 장치 매핑을 지정하며, 입력과 모델을 같은 장치로 옮기는 작업까지 대신하지는 않는다.
 
 학습 재개에는 옵티마이저의 모멘텀·모멘트, 스케줄러, 혼합 정밀도 스케일러와 반복 위치 등이 추가로 필요할 수 있다. 정확한 경로 재현에는 난수 상태와 데이터 순서도 고려한다. state_dict()는 텐서 참조를 담는 얕은 복사이므로, 메모리에 최적 상태를 보관할 때는 deepcopy나 실제 직렬화가 필요하다. 평가 모드와 자동 미분 비활성화는 불러오기와 별도로 설정한다.
 
@@ -785,7 +785,7 @@ state_dict에는 모델 구조도 들어 있는가?
 </div>
 
 ??? success "연습문제 1 풀이"
-    일반적인 nn.Module의 state_dict는 매개변수와 영속 버퍼를 담고 모델의 생성자·forward나 전처리 코드는 담지 않는다. 호환되는 구조를 먼저 만들어야 한다.
+    일반적인 nn.Module의 state_dict는 파라메터와 영속 버퍼를 담고 모델의 생성자·forward나 전처리 코드는 담지 않는다. 호환되는 구조를 먼저 만들어야 한다.
 
 ---
 
@@ -793,7 +793,7 @@ state_dict에는 모델 구조도 들어 있는가?
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-best_state=model.state_dict()만으로 최적 가중치를 메모리에 보관하면 어떤 문제가 생기는가?
+best_state=model.state_dict()만으로 최적 웨이트를 메모리에 보관하면 어떤 문제가 생기는가?
 
 </div>
 

@@ -5,7 +5,7 @@
 ## 1. 코드
 
 ```python
-"""OrderedDict으로 층에 이름 붙이기."""
+"""OrderedDict으로 레이어에 이름 붙이기."""
 from collections import OrderedDict
 import torch
 import torch.nn as nn
@@ -17,7 +17,7 @@ import torch.nn.functional as F
 
 def freeze_encoder(model: nn.Sequential):
     """
-    Sequential에서 이름을 드러내 놓고 붙인 'encoder' 선형 층을 얼린다.
+    Sequential에서 이름을 드러내 놓고 붙인 'encoder' 선형 레이어를 얼린다.
     'encoder.weight'과 'encoder.bias'이 걸린다.
     """
     for name, p in model.named_parameters():
@@ -35,7 +35,7 @@ def grad_status(model: nn.Module, title="Grad status"):
     print()
 
 def main():
-    # 층에 이름을 붙이려면 OrderedDict를 쓴다
+    # 레이어에 이름을 붙이려면 OrderedDict를 쓴다
     model = nn.Sequential(OrderedDict([
         ("encoder", nn.Linear(5, 3)),
         ("act",     nn.ReLU()),
@@ -150,7 +150,7 @@ head.bias            requires_grad=True  grad_is_None=False
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 손실을 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
 
 </div>
 

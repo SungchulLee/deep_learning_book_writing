@@ -6,15 +6,15 @@
 
 ```python
 """
-초매개변수 조율을 위한 격자 탐색
+초파라메터 조율을 위한 격자 탐색
 
-격자 탐색은 지정한 매개변수 격자를 남김없이 훑는다.
-가능한 모든 매개변수 조합을 시도한다.
+격자 탐색은 지정한 파라메터 격자를 남김없이 훑는다.
+가능한 모든 파라메터 조합을 시도한다.
 
 장점:
 - 격자 안에서 가장 좋은 조합을 찾는 것을 보장한다
 - 이해하고 구현하기 쉽다
-- 작은 매개변수 공간에 알맞다
+- 작은 파라메터 공간에 알맞다
 
 단점:
 - 격자가 크면 계산 비용이 크다
@@ -47,7 +47,7 @@ def grid_search_random_forest():
     # 데이터를 불러온다
     X_train, X_test, y_train, y_test = load_sample_dataset('wine')
     
-    # 매개변수 격자 정의
+    # 파라메터 격자 정의
     param_grid = {
         'n_estimators': [50, 100, 200],
         'max_depth': [None, 10, 20, 30],
@@ -97,7 +97,7 @@ def grid_search_random_forest():
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
     
-    # 매개변수 중요도 그리기
+    # 파라메터 중요도 그리기
     plot_parameter_importance(grid_search.cv_results_, 'n_estimators')
     plot_parameter_importance(grid_search.cv_results_, 'max_depth')
     
@@ -115,7 +115,7 @@ def grid_search_svm():
     # 데이터를 불러온다
     X_train, X_test, y_train, y_test = load_sample_dataset('iris')
     
-    # SVM을 위한 매개변수 격자 정의
+    # SVM을 위한 파라메터 격자 정의
     param_grid = {
         'C': [0.1, 1, 10, 100],
         'gamma': ['scale', 'auto', 0.001, 0.01, 0.1],
@@ -162,7 +162,7 @@ def grid_search_svm():
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
     
-    # 매개변수 중요도 그리기
+    # 파라메터 중요도 그리기
     plot_parameter_importance(grid_search.cv_results_, 'C')
     plot_parameter_importance(grid_search.cv_results_, 'gamma')
     
@@ -183,14 +183,14 @@ def nested_grid_search():
     # 데이터를 불러온다
     X_train, X_test, y_train, y_test = load_sample_dataset('synthetic')
     
-    # 매개변수 격자 정의
+    # 파라메터 격자 정의
     param_grid = {
         'n_estimators': [50, 100, 200],
         'max_depth': [10, 20, None],
         'min_samples_split': [2, 5]
     }
     
-    # 초매개변수 조율을 위한 안쪽 교차 검증
+    # 초파라메터 조율을 위한 안쪽 교차 검증
     inner_cv = GridSearchCV(
         estimator=RandomForestClassifier(random_state=42),
         param_grid=param_grid,

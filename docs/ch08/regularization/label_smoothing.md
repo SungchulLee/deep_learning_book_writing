@@ -18,7 +18,7 @@ $$
 y_i^{\text{smooth}} = \begin{cases} 1-\varepsilon+\varepsilon/K & \text{if } i=k \\ \varepsilon/K & \text{if } i\neq k \end{cases}
 $$
 
-여기서 $\varepsilon \in [0, 1)$은 스무딩 매개변수이다. 동등하게 다음과 같이 쓴다.
+여기서 $\varepsilon \in [0, 1)$은 스무딩 파라메터이다. 동등하게 다음과 같이 쓴다.
 
 $$
 y^{\text{smooth}} = (1 - \varepsilon) \, y^{\text{hard}} + \frac{\varepsilon}{K} \, \mathbf{1}
@@ -28,7 +28,7 @@ $$
 
 ### 레이블 스무딩을 쓰는 교차 엔트로피
 
-원핫 목표를 쓰는 표준 교차 엔트로피 손실은 다음과 같다.
+원핫 목표를 쓰는 표준 교차 엔트로피 로스는 다음과 같다.
 
 $$
 \mathcal{L}_{\text{CE}} = -\sum_{i=1}^{K} y_i^{\text{hard}} \log p_i = -\log p_k
@@ -50,23 +50,23 @@ $$
 
 ### KL 발산으로서의 해석
 
-레이블 스무딩 손실은 다음과 동등하다.
+레이블 스무딩 로스는 다음과 동등하다.
 
 $$
 \mathcal{L}_{\text{LS}} = (1 - \varepsilon) \, H(y^{\text{hard}}, p) + \varepsilon \, H(u, p)
 $$
 
-여기서 $H(\cdot, \cdot)$은 교차 엔트로피를, $u = \frac{1}{K} \mathbf{1}$은 균등분포를 뜻한다. $H(u, p) = \log K + D_{\text{KL}}(u \| p)$이므로 레이블 스무딩 손실을 최소화하면 모델 출력과 균등분포 사이의 KL 발산에 패널티를 주게 되고, 이는 로짓이 한없이 커지는 것을 막는다.
+여기서 $H(\cdot, \cdot)$은 교차 엔트로피를, $u = \frac{1}{K} \mathbf{1}$은 균등분포를 뜻한다. $H(u, p) = \log K + D_{\text{KL}}(u \| p)$이므로 레이블 스무딩 로스를 최소화하면 모델 출력과 균등분포 사이의 KL 발산에 패널티를 주게 되고, 이는 로짓이 한없이 커지는 것을 막는다.
 
 ### 로짓에 미치는 영향
 
-레이블 스무딩이 없으면 교차 엔트로피 손실은 옳은 클래스의 로짓 $z_k$을 다른 로짓에 비교하여 $\infty$으로 몰아간다. 레이블 스무딩을 쓰면 최적의 로짓 배치는 다음을 만족한다.
+레이블 스무딩이 없으면 교차 엔트로피 로스는 옳은 클래스의 로짓 $z_k$을 다른 로짓에 비교하여 $\infty$으로 몰아간다. 레이블 스무딩을 쓰면 최적의 로짓 배치는 다음을 만족한다.
 
 $$
 z_k - z_j = \log\frac{1-\varepsilon+\varepsilon/K}{\varepsilon/K} \quad \text{for all } j \neq k
 $$
 
-이 식은 표본 하나의 목표를 제약 없이 정확히 맞출 수 있고 epsilon이 양수일 때의 최적 로짓 **차이**이다. 모든 로짓에 같은 상수를 더해도 확률은 같으므로 개별 로짓의 절댓값을 유계로 만드는 것은 아니다. 공유 매개변수로 여러 표본을 맞추는 실제 모델이 이 관계를 모든 입력에서 만족할 필요도 없다.
+이 식은 표본 하나의 목표를 제약 없이 정확히 맞출 수 있고 epsilon이 양수일 때의 최적 로짓 **차이**이다. 모든 로짓에 같은 상수를 더해도 확률은 같으므로 개별 로짓의 절댓값을 유계로 만드는 것은 아니다. 공유 파라메터로 여러 표본을 맞추는 실제 모델이 이 관계를 모든 입력에서 만족할 필요도 없다.
 
 ---
 
@@ -78,11 +78,11 @@ $$
 
 ### 개선된 보정
 
-확률 보정은 같은 확신도 구간의 예측이 실제 빈도와 얼마나 맞는지를 다룬다. 스무딩이 과신을 줄여 보정을 개선하는 경우도 있지만, 과도한 스무딩은 과소확신을 만들 수 있다. 독립 검증 데이터에서 ECE와 로그손실 등을 함께 살펴 판단한다.
+확률 보정은 같은 확신도 구간의 예측이 실제 빈도와 얼마나 맞는지를 다룬다. 스무딩이 과신을 줄여 보정을 개선하는 경우도 있지만, 과도한 스무딩은 과소확신을 만들 수 있다. 독립 검증 데이터에서 ECE와 로그로스 등을 함께 살펴 판단한다.
 
 ### 로짓 크기의 암묵적 정규화
 
-균등분포와의 교차 엔트로피 항은 극단적인 확률 분포에 비용을 준다. 출력층의 가중치 노름을 직접 벌점으로 주는 L2와 같지는 않으며, 로짓의 공통 이동에는 영향을 주지 않는다.
+균등분포와의 교차 엔트로피 항은 극단적인 확률 분포에 비용을 준다. 출력 레이어의 웨이트 노름을 직접 벌점으로 주는 L2와 같지는 않으며, 로짓의 공통 이동에는 영향을 주지 않는다.
 
 ### 표현에 대한 군집 효과
 
@@ -113,10 +113,10 @@ loss = criterion(logits, targets)  # 목푯값은 클래스 인덱스이다 (Lon
 ```python
 class LabelSmoothingCrossEntropy(nn.Module):
     """
-    레이블 평활화를 쓰는 교차 엔트로피 손실.
+    레이블 평활화를 쓰는 교차 엔트로피 로스.
     
     인수:
-        epsilon: [0, 1) 안의 평활화 매개변수. 기본값: 0.1.
+        epsilon: [0, 1) 안의 평활화 파라메터. 기본값: 0.1.
         reduction: 'mean', 'sum', 또는 'none'.
     """
     
@@ -132,7 +132,7 @@ class LabelSmoothingCrossEntropy(nn.Module):
             targets: 클래스 인덱스, 모양 (batch_size,)
             
         반환값:
-            레이블 평활화된 교차 엔트로피 손실
+            레이블 평활화된 교차 엔트로피 로스
         """
         num_classes = logits.size(-1)
         log_probs = torch.log_softmax(logits, dim=-1)
@@ -149,11 +149,11 @@ class LabelSmoothingCrossEntropy(nn.Module):
         # 있어 모델이 어느 한 클래스에 확률을 몰아주지 못한다
         smooth_loss = -log_probs.mean(dim=-1)
         
-        # 결합된 손실
+        # 결합된 로스
         # 목표 분포를 (1-eps)*원핫 + eps*균등으로 섞어 교차 엔트로피를
         # 재는 것과 같다. 교차 엔트로피가 목표 분포에 대해 선형이라
-        # 이렇게 손실 둘의 가중합으로 갈라 쓸 수 있다.
-        # 여기서 완벽히 맞혀도 손실이 0으로 내려가지 않는 이유가 나온다.
+        # 이렇게 로스 둘의 가중합으로 갈라 쓸 수 있다.
+        # 여기서 완벽히 맞혀도 로스가 0으로 내려가지 않는 이유가 나온다.
         # 균등 항이 하한을 남기며, 그 값은 eps와 클래스 수가 정한다
         loss = (1 - self.epsilon) * nll_loss + self.epsilon * smooth_loss
         
@@ -171,7 +171,7 @@ class LabelSmoothingCrossEntropy(nn.Module):
 ```python
 class SoftTargetCrossEntropy(nn.Module):
     """
-    부드러운 목표 분포를 받는 교차 엔트로피 손실.
+    부드러운 목표 분포를 받는 교차 엔트로피 로스.
     
     원-핫 목표와 부드러운 목표를 모두 지원한다. 필요하면 부드러운 목표 위에
     레이블 평활화를 더 얹을 수도 있다.
@@ -223,12 +223,12 @@ def train_with_label_smoothing(
     레이블 평활화로 모델을 학습시킨다.
     
     인수:
-        model: 분류 신경망
+        model: 분류 뉴럴 넷트웍
         train_loader: 학습 데이터
         val_loader: 검증 데이터
-        epsilon: 레이블 평활화 매개변수
+        epsilon: 레이블 평활화 파라메터
         epochs: 학습 에포크 수
-        lr: 학습률
+        lr: 러닝레이트
         
     반환값:
         학습 이력
@@ -272,10 +272,10 @@ def train_with_label_smoothing(
         with torch.no_grad():
             for X_batch, y_batch in val_loader:
                 outputs = model(X_batch)
-                # 평활화 없는 교차 엔트로피를 쓴다. 평활화된 손실은
+                # 평활화 없는 교차 엔트로피를 쓴다. 평활화된 로스는
                 # 정답을 완벽히 맞혀도 0으로 내려가지 않고 하한이 epsilon에
                 # 따라 달라지므로, epsilon이 다른 실험끼리 견줄 수 없다.
-                # 그래서 학습 손실과 검증 손실도 서로 다른 함수의 값이며
+                # 그래서 학습 로스와 검증 로스도 서로 다른 함수의 값이며
                 # 한 그래프에 겹쳐 그리면 안 된다
                 loss = nn.CrossEntropyLoss()(outputs, y_batch)  # 공정한 비교를 위한 딱딱한 교차 엔트로피
                 
@@ -369,7 +369,7 @@ def evaluate_calibration(model, data_loader, device='cpu'):
             # 모델이 로짓을 내므로 여기서 소프트맥스를 걸어 확률로 만든다.
             # 학습 때는 CrossEntropyLoss가 안에서 걸어 주므로 필요 없었다
             probs = torch.softmax(outputs, dim=-1)
-            # 가장 큰 확률과 그 자리를 함께 얻는다. ECE는 "고른 갈래에
+            # 가장 큰 확률과 그 자리를 함께 얻는다. ECE는 "고른 클래스에
             # 대한 확신도"를 보므로 최댓값만 쓴다
             max_probs, predicted = probs.max(1)
 
@@ -439,13 +439,13 @@ model = TransformerClassifier(
 )
 
 # label_smoothing=0.1: 정답에 1.0 대신 0.9를 주고 나머지 0.1을
-# 다른 갈래에 고루 나눈다. 모델이 어떤 갈래에 확률 1을 주려면 로짓이
+# 다른 클래스에 고루 나눈다. 모델이 어떤 클래스에 확률 1을 주려면 로짓이
 # 무한대로 뻗어야 하는데, 그 지나친 자신감을 막는 장치다.
-# 갈래가 1000개처럼 많고 레이블에 잡음이 섞였을 때 특히 값이 있다
+# 클래스가 1000개처럼 많고 레이블에 잡음이 섞였을 때 특히 값이 있다
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
-# 트랜스포머에는 Adam이 아니라 AdamW를 쓴다. 가중치 감쇠가
-# 적응적 학습률에 나눠지지 않고 의도한 세기 그대로 걸리기 때문이다
+# 트랜스포머에는 Adam이 아니라 AdamW를 쓴다. 웨이트 감쇠가
+# 적응적 러닝레이트에 나눠지지 않고 의도한 세기 그대로 걸리기 때문이다
 optimizer = optim.AdamW(model.parameters(), lr=3e-4, weight_decay=0.01)
 ```
 
@@ -497,7 +497,7 @@ def combined_augmentation_training_step(
         targets_b = torch.zeros(images.size(0), num_classes, device=images.device)
         targets_b.scatter_(1, labels[index].unsqueeze(1), 1.0)
         
-        # 앞의 믹스업 페이지는 손실 두 개를 가중합했지만, 여기서는
+        # 앞의 믹스업 페이지는 로스 두 개를 가중합했지만, 여기서는
         # 목표 분포 자체를 섞는다. 교차 엔트로피가 목표에 대해
         # 선형이라 두 방식의 값은 같다. 목표를 만들어 두면 그 위에
         # 평활화를 한 번 더 얹을 수 있어 이쪽을 골랐다.
@@ -555,12 +555,12 @@ def combined_augmentation_training_step(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-레이블 스무딩의 목표 분포와 그것이 교차 엔트로피 손실에 미치는 영향을 유도하라.
+레이블 스무딩의 목표 분포와 그것이 교차 엔트로피 로스에 미치는 영향을 유도하라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    스무딩된 목표는 $y'_k = (1-\epsilon)y_k + \epsilon/K$이다. 참 클래스 $c$에 대해서는 $y'_c = 1 - \epsilon + \epsilon/K = 1 - \epsilon(K-1)/K$이고, 다른 클래스에 대해서는 $y'_k = \epsilon/K$이다. 손실은 표준 교차 엔트로피와 균등 교차 엔트로피의 혼합이 된다.
+    스무딩된 목표는 $y'_k = (1-\epsilon)y_k + \epsilon/K$이다. 참 클래스 $c$에 대해서는 $y'_c = 1 - \epsilon + \epsilon/K = 1 - \epsilon(K-1)/K$이고, 다른 클래스에 대해서는 $y'_k = \epsilon/K$이다. 로스는 표준 교차 엔트로피와 균등 교차 엔트로피의 혼합이 된다.
 
 ---
 
@@ -579,7 +579,7 @@ def combined_augmentation_training_step(
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-내장 `label_smoothing` 매개변수를 쓰지 않고 PyTorch에서 레이블 스무딩을 구현하라.
+내장 `label_smoothing` 파라메터를 쓰지 않고 PyTorch에서 레이블 스무딩을 구현하라.
 
 </div>
 
@@ -607,7 +607,7 @@ def combined_augmentation_training_step(
 
 ## 정리하며
 
-균등 혼합 스무딩은 $y^{smooth}=(1-\varepsilon)y+\varepsilon u$를 사용하며, 손실도 두 목표의 교차 엔트로피 혼합으로 분해된다. 이 관례와 오답 클래스만 섞는 관례를 구분한다. 예측의 과신과 로짓 차이에 영향을 주지만 정확도·보정·증류 성능의 개선은 검증해야 한다.
+균등 혼합 스무딩은 $y^{smooth}=(1-\varepsilon)y+\varepsilon u$를 사용하며, 로스도 두 목표의 교차 엔트로피 혼합으로 분해된다. 이 관례와 오답 클래스만 섞는 관례를 구분한다. 예측의 과신과 로짓 차이에 영향을 주지만 정확도·보정·증류 성능의 개선은 검증해야 한다.
 
 **참고 문헌**
 

@@ -14,7 +14,7 @@ $$p_X(x)=p_Z(g^{-1}(x))\left|\det Dg^{-1}(x)\right|.$$
 
 ## 2. 읽기 순서
 
-- [RealNVP와 아핀 커플링 층](flow_architectures/realnvp.md): 삼각 야코비안, 교대 마스크와 양방향 계산
+- [RealNVP와 아핀 커플링 레이어](flow_architectures/realnvp.md): 삼각 야코비안, 교대 마스크와 양방향 계산
 - [정규화 흐름의 공통 도구](flow_architectures/flow_utils.md): 기저 분포·합성·아핀·planar 예제와 학습·시각화 계약
 - [MNIST 정규화 흐름 예제](flow_architectures/example_mnist_flows.md): 커플링 학습, 이미지 연속화와 bits/dim 해석
 
@@ -22,7 +22,7 @@ $$p_X(x)=p_Z(g^{-1}(x))\left|\det Dg^{-1}(x)\right|.$$
 
 ## 3. 우도와 생성 결과를 평가하는 기준
 
-연속 밀도와 정수 이미지의 확률 질량은 다르다. Dequantization·전처리 야코비안·픽셀 구간 보정을 맞춰야 bits/dim을 비교할 수 있다. 또한 학습 중 현재 배치 통계로 정규화하는 연산은 고정 통계의 가역 아핀 변환과 다른 계산이다. 각 절에서 제공 코드의 한계를 설명한다.
+연속 밀도와 정수 이미지의 확률 질량은 다르다. Dequantization·전처리 야코비안·픽셀 구간 보정을 맞춰야 bits/dim을 비교할 수 있다. 또한 학습 중 현재 배치 통계로 정규화하는 연산은 고정 통계의 가역 선형 변환과 다른 계산이다. 각 절에서 제공 코드의 한계를 설명한다.
 
 검증 로그밀도, 사전 표본의 품질·다양성, 계산비용을 각각 평가한다. 출력 clipping은 생성 후처리로 분포를 바꾸므로 원래 흐름 표본과 구분하고, 체크포인트에는 구조·전처리·평가 설정도 기록해야 한다.
 

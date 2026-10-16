@@ -1,6 +1,6 @@
 # Classifier-Free Guidance(CFG)
 
-조건부 확산 모델의 예측을 강화하는 한 방법은 조건부 예측과 무조건 예측의 차이를 확대하는 것이다. [Classifier-Free Guidance](https://arxiv.org/abs/2207.12598)는 별도 분류기의 입력 기울기를 계산하는 대신 두 노이즈 예측을 결합한다. 가이던스 계수의 관례와 학습 때 사용한 무조건 표현을 일치시키는 것이 중요하다.
+조건부 확산 모델의 예측을 강화하는 한 방법은 조건부 예측과 무조건 예측의 차이를 확대하는 것이다. [Classifier-Free Guidance](https://arxiv.org/abs/2207.12598)는 별도 분류기의 입력 그래디언트를 계산하는 대신 두 노이즈 예측을 결합한다. 가이던스 계수의 관례와 학습 때 사용한 무조건 표현을 일치시키는 것이 중요하다.
 
 ## 1. 하나의 계수 관례로 쓰기
 
@@ -24,7 +24,7 @@ $$s_c-s_{\varnothing}=\nabla_{x_t}\log p(c\mid x_t)$$
 $$\nabla_{x_t}\log p(c\mid x_t)=
 -\frac{\epsilon_c-\epsilon_{\varnothing}}{\sqrt{1-\bar\alpha_t}}$$
 
-이는 정확한 스코어의 관계이며 학습된 두 예측에는 근사 오차가 있다. 분류기 가이던스는 실제 분류기에서 입력 기울기를 구하지만 CFG는 예측 차이를 사용한다. 별도 분류기를 없애는 대신 조건부·무조건 예측 능력을 준비해야 한다.
+이는 정확한 스코어의 관계이며 학습된 두 예측에는 근사 오차가 있다. 분류기 가이던스는 실제 분류기에서 입력 그래디언트를 구하지만 CFG는 예측 차이를 사용한다. 별도 분류기를 없애는 대신 조건부·무조건 예측 능력을 준비해야 한다.
 
 ## 3. 조건 드롭아웃으로 학습하기
 
@@ -97,7 +97,7 @@ class CFGSampler:
             t_batch = torch.full((shape[0],), t, device=device)
             
             # 두 헤아림을 모두 셈한다
-            # 고르기 1: 앞먹임 두 번
+            # 고르기 1: 피드포워드 두 번
             eps_uncond = self.model(x, t_batch, null_condition)
             eps_cond = self.model(x, t_batch, condition)
             
@@ -172,7 +172,7 @@ t=0이면 alpha_bar_prev를 Python 실수 1.0으로 놓고 torch.sqrt에 넘기�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-조건부·무조건 노이즈 예측 차이로 분류기 로그확률의 기울기를 나타내라.
+조건부·무조건 노이즈 예측 차이로 분류기 로그확률의 그래디언트를 나타내라.
 
 </div>
 

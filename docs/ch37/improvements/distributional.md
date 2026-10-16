@@ -1,15 +1,15 @@
 # 분포적 강화학습
 
-분포 강화학습은 기댓값만이 아니라 리턴의 온 분포를 나타낸다. C51 알고리즘은 리턴 분포를 붙박인 원자 수렴에 대한 갈래 분포로 나타내고, QR-DQN은 분위 회귀로 리턴 분포의 분위 함수를 배운다. 리턴에 본디 있는 확률성을 담아 분포 방법은 더 풍부한 학습 신호를 주며 흔히 여느 가치 기반 길보다 나은 성능을 낸다.
+분포 강화학습은 기댓값만이 아니라 리턴의 온 분포를 나타낸다. C51 알고리즘은 리턴 분포를 붙박인 원자 수렴에 대한 클래스 분포로 나타내고, QR-DQN은 분위 회귀로 리턴 분포의 분위 함수를 배운다. 리턴에 본디 있는 확률성을 담아 분포 방법은 더 풍부한 학습 신호를 주며 흔히 여느 밸류 기반 길보다 나은 성능을 낸다.
 
 ## 1. 코드
 
 ```python
 """
-35.2.5 분포 힘 북돋우는 배움
+35.2.5 분포 힘 북돋우는 러닝
 ==========================
 
-C51(갈래 DQN)과 QR-DQN 짜기.
+C51(클래스 DQN)과 QR-DQN 짜기.
 """
 
 import torch
@@ -44,11 +44,11 @@ class ReplayBuffer:
 
 
 # ---------------------------------------------------------------------------
-# C51: 갈래 DQN
+# C51: 클래스 DQN
 # ---------------------------------------------------------------------------
 
 class C51Network(nn.Module):
-    """C51 그물: 돌아옴 알갱이 위의 확률 분포를 내놓는다."""
+    """C51 넷트웍: 돌아옴 알갱이 위의 확률 분포를 내놓는다."""
 
     def __init__(self, state_dim: int, action_dim: int, n_atoms: int = 51,
                  v_min: float = -10.0, v_max: float = 10.0, hidden_dim: int = 128):
@@ -80,7 +80,7 @@ class C51Network(nn.Module):
 def c51_projection(target_net: C51Network, next_states: torch.Tensor,
                    rewards: torch.Tensor, dones: torch.Tensor,
                    gamma: float) -> torch.Tensor:
-    """과녁 분포를 고정된 알갱이 받침에 쏘아 내린다."""
+    """타깃 분포를 고정된 알갱이 받침에 쏘아 내린다."""
     batch_size = next_states.size(0)
     n_atoms = target_net.n_atoms
     atoms = target_net.atoms
@@ -89,7 +89,7 @@ def c51_projection(target_net: C51Network, next_states: torch.Tensor,
     delta_z = target_net.delta_z
 
     with torch.no_grad():
-        # 가장 좋은 움직임의 과녁 분포를 얻음
+        # 가장 좋은 액션의 타깃 분포를 얻음
         next_q = target_net.q_values(next_states)
         best_actions = next_q.argmax(dim=1)
         next_log_probs = target_net(next_states)
@@ -118,7 +118,7 @@ def c51_projection(target_net: C51Network, next_states: torch.Tensor,
 
 def c51_loss(online_net: C51Network, target_net: C51Network,
              states, actions, rewards, next_states, dones, gamma=0.99):
-    """C51 어긋 엔트로피 손실."""
+    """C51 어긋 엔트로피 로스."""
     target_dist = c51_projection(target_net, next_states, rewards, dones, gamma)
     log_probs = online_net(states)
     idx = actions.unsqueeze(1).unsqueeze(2).expand(-1, -1, online_net.n_atoms)
@@ -128,11 +128,11 @@ def c51_loss(online_net: C51Network, target_net: C51Network,
 
 
 # ---------------------------------------------------------------------------
-# QR-DQN: 분위 되돌이 DQN
+# QR-DQN: 분위 회귀 DQN
 # ---------------------------------------------------------------------------
 
 class QRDQNNetwork(nn.Module):
-    """분위 되돌이 DQN: 분위 값을 내놓는다."""
+    """분위 회귀 DQN: 분위 값을 내놓는다."""
 
     def __init__(self, state_dim: int, action_dim: int, n_quantiles: int = 51,
                  hidden_dim: int = 128):
@@ -159,17 +159,17 @@ class QRDQNNetwork(nn.Module):
 
 def quantile_huber_loss(quantiles: torch.Tensor, target_quantiles: torch.Tensor,
                         taus: torch.Tensor, kappa: float = 1.0) -> torch.Tensor:
-    """QR-DQN을 위한 분위 후버 손실.
+    """QR-DQN을 위한 분위 후버 로스.
     
     quantiles: (batch, n_quantiles) — 미리 잡은 값
-    target_quantiles: (batch, n_quantiles) — 과녁
+    target_quantiles: (batch, n_quantiles) — 타깃
     taus: (n_quantiles,) — 분위 몫
     """
     n = quantiles.size(1)
     # 짝별 때 차이 어긋남: (batch, n, n)
     td_errors = target_quantiles.unsqueeze(1) - quantiles.unsqueeze(2)
 
-    # 후버 손실
+    # 후버 로스
     huber = torch.where(td_errors.abs() <= kappa,
                         0.5 * td_errors.pow(2),
                         kappa * (td_errors.abs() - 0.5 * kappa))
@@ -278,52 +278,52 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 짜기는 분포 방법의 핵심 논리를 감싼 `ReplayBuffer`, `C51Network`, `QRDQNNetwork` 갈래를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
+이 짜기는 분포 방법의 핵심 논리를 감싼 `ReplayBuffer`, `C51Network`, `QRDQNNetwork` 클래스를 한가운데 둔다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 떼어 놓는 조각 짜기를 따른다.
 
 보여 주기 함수는 이 조각들을 여느 강화학습 잣대에 실제로 쓰는 모습을 보인다. 내놓기를 살피면 하이퍼파라미터 공정성과 문제 구조에 따라 알고리즘의 성능이 어떻게 달라지는지 볼 수 있다.
 
-실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗매개변수 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
+실제 관점에서 이 짜기는 순수한 성능보다 또렷함을 앞세운다. 실제로 쓰는 구조는 보통 배치 계산, GPU 빠르게 하기, 더 정교한 윗파라메터 맞추기 같은 개선을 더한다. 그럼에도 여기 보인 핵심 알고리즘 생각은 큰 규모의 쓰임새로 곧바로 옮겨 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗매개변수 하나(학습률, 숨은 차원, 층 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
+보여 주기 코드를 돌려 핵심 내놓기 잣대를 적어라. 윗파라메터 하나(러닝레이트, 숨은 차원, 레이어 개수 같은 것)를 고치고 결과가 어떻게 바뀌는지 적어라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗매개변수를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 학습률은 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗매개변수의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
+    보여 주기를 돌린 뒤 나머지를 붙박아 두고 고른 윗파라메터를 차근히 바꾼다. 보기로 숨은 차원을 두 배로 하면 보통 나타냄 담이가 늘지만 계산 시간이 커진다. 러닝레이트는 단조롭지 않은 영향을 준다. 너무 작으면 느리게 모이고 너무 크면 흔들린다. 고른 윗파라메터의 서로 다른 값을 적어도 셋 잡아 구체적인 수를 적어 두라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 손실 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
+이 짜기에서 핵심 구조 고르기의 몫을 밝혀라. 왜 그 깨움 함수, 고르게 맞추기 셈속, 로스 함수를 쓰는가? 다른 것으로 바꾸면 어떻게 되는가?
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 고르기는 DQN 좋게 하기에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 기울기가 사라지는 것을 피한다. 손실 함수는 일의 갈래에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 손실) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
+    이 구조 고르기는 DQN 좋게 하기에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 그래디언트가 사라지는 것을 피한다. 로스 함수는 일의 클래스에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 로스) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 특징 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
+더 어려운 상황을 다루도록 짜기를 넓혀라. 더 큰 데이터셋, 다른 문제 변형, 피처 하나 더하기 가운데 하나이다. 고침을 적고 성능에 미친 영향을 따져라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 가중치 줄임)나 더 정교한 구조(층 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
+    자연스러운 넓힘 하나는 규칙 세우기(떨구기, 웨이트 줄임)나 더 정교한 구조(레이어 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓힘을 짜고 같은 데이터로 학습된 뒤 앞뒤의 잣대를 비교하여라. 이 넓힘은 본디 알고리즘과 고침의 이론 까닭을 모두 이해했음을 보여야 한다.
 
 ## 정리하며
 
 **다룬 것** — 분포 강화학습
 
-이 짜기는 분포 방법의 핵심 논리를 감싼 `ReplayBuffer`, `C51Network`, `QRDQNNetwork` 갈래를 한가운데 둔다.
+이 짜기는 분포 방법의 핵심 논리를 감싼 `ReplayBuffer`, `C51Network`, `QRDQNNetwork` 클래스를 한가운데 둔다.
 
-핵심 갈래는 `ReplayBuffer`, `C51Network`, `QRDQNNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `ReplayBuffer`, `C51Network`, `QRDQNNetwork`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

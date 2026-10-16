@@ -1,6 +1,6 @@
 # 대조 학습 MoCo
 
-MoCo(Momentum Contrast)는 EMA로 갱신하는 키 인코더와 과거 특징 큐를 사용해 대조 학습의 후보 집합을 구성한다. 큐 크기와 현재 배치 크기를 분리할 수 있지만 모델·큐·점수와 학습 활성의 비용은 남는다. 아래 구현과 원래 MoCo 버전들의 차이도 함께 살펴본다.
+MoCo(Momentum Contrast)는 EMA로 갱신하는 키 인코더와 과거 피처 큐를 사용해 대조 학습의 후보 집합을 구성한다. 큐 크기와 현재 배치 크기를 분리할 수 있지만 모델·큐·점수와 학습 활성의 비용은 남는다. 아래 구현과 원래 MoCo 버전들의 차이도 함께 살펴본다.
 
 ## 1. 코드
 
@@ -29,7 +29,7 @@ class MoCo(nn.Module):
 
     인수:
         base_encoder: 등뼈 구조
-        dim: 특징 차원
+        dim: 피처 차원
         K: 큐 크기
         m: 관성 계수
         T: 온도
@@ -51,7 +51,7 @@ class MoCo(nn.Module):
         else:
             raise ValueError(f"Unknown encoder: {base_encoder}")
 
-        # 완전 연결 층을 사영 머리로 바꾼다
+        # 완전 연결 레이어를 사영 머리로 바꾼다
         self.encoder_q.fc = nn.Sequential(
             nn.Linear(feature_dim, feature_dim),
             nn.ReLU(),
@@ -121,7 +121,7 @@ class MoCo(nn.Module):
 
     def forward(self, im_q, im_k):
         """
-        앞먹임
+        피드포워드
 
         인수:
             im_q: 질의 그림 (batch_size, 3, H, W)
@@ -131,11 +131,11 @@ class MoCo(nn.Module):
             logits: (batch_size, 1 + K)
             labels: (batch_size,)
         """
-        # 질의 특징을 셈한다
+        # 질의 피처를 셈한다
         q = self.encoder_q(im_q)
         q = F.normalize(q, dim=1)
 
-        # 열쇠 특징을 셈한다
+        # 열쇠 피처를 셈한다
         with torch.no_grad():
             # 관성 인코더를 갱신한다
             self._momentum_update_key_encoder()
@@ -190,7 +190,7 @@ def train_step_moco(model, optimizer, batch_views, device):
     # 순전파
     logits, labels = model(im_q, im_k)
 
-    # 손실(교차 엔트로피)을 셈한다
+    # 로스(교차 엔트로피)을 셈한다
     loss = F.cross_entropy(logits, labels)
 
     # 역전파
@@ -220,7 +220,7 @@ class MoCoV3(nn.Module):
 
         self.encoder = backbone
 
-        # 사영 머리 (3층 다층 퍼셉트론)
+        # 사영 머리 (3레이어 다층 퍼셉트론)
         self.projector = nn.Sequential(
             nn.Linear(feature_dim, mlp_dim),
             nn.BatchNorm1d(mlp_dim),
@@ -242,8 +242,8 @@ class MoCoV3(nn.Module):
 
     def forward(self, x1, x2):
         """
-        MoCo v3의 앞먹임
-        관성 인코더 없이 대칭 손실을 쓴다
+        MoCo v3의 피드포워드
+        관성 인코더 없이 대칭 로스를 쓴다
         """
         # 두 시야를 모두 부호화한다
         f1 = self.encoder(x1)
@@ -257,14 +257,14 @@ class MoCoV3(nn.Module):
         p1 = self.predictor(z1)
         p2 = self.predictor(z2)
 
-        # 대칭 손실을 셈한다
+        # 대칭 로스를 셈한다
         loss = self.contrastive_loss(p1, z2) / 2 + self.contrastive_loss(p2, z1) / 2
 
         return loss
 
     def contrastive_loss(self, q, k):
         """
-        MoCo v3의 대조 손실
+        MoCo v3의 대조 로스
         """
         # 정규화
         q = F.normalize(q, dim=1)
@@ -327,15 +327,15 @@ Loss: 3.5362
 
 ## 2. 논의
 
-MoCo 클래스는 역전파로 학습하는 쿼리 인코더와 초기 복사한 키 인코더를 갖는다. 키 계수는 $\theta_k\leftarrow m\theta_k+(1-m)\theta_q$로 갱신하고 키는 no_grad에서 계산한다. 큐는 (d,K)의 정규화한 특징 버퍼와 포인터를 저장한다. 로짓은 양성 하나와 큐 K개를 붙인 (B,K+1), 정답은 모두 0이다.
+MoCo 클래스는 역전파로 학습하는 쿼리 인코더와 초기 복사한 키 인코더를 갖는다. 키 계수는 $\theta_k\leftarrow m\theta_k+(1-m)\theta_q$로 갱신하고 키는 no_grad에서 계산한다. 큐는 (d,K)의 정규화한 피처 버퍼와 포인터를 저장한다. 로짓은 양성 하나와 큐 K개를 붙인 (B,K+1), 정답은 모두 0이다.
 
-EMA는 매개변수만 갱신하고 BatchNorm 이동 통계 버퍼는 별도로 다뤄진다. no_grad·requires_grad=False만으로 평가 모드가 되는 것은 아니다. _batch_shuffle_ddp라는 이름과 달리 이 코드는 로컬 배치만 섞고 분산 all-gather를 하지 않는다. 같은 장치 안에서 순서만 바꾸어도 BatchNorm의 배치 통계는 같아 원래 분산 ShuffleBN의 역할을 재현하지 못한다.
+EMA는 파라메터만 갱신하고 BatchNorm 이동 통계 버퍼는 별도로 다뤄진다. no_grad·requires_grad=False만으로 평가 모드가 되는 것은 아니다. _batch_shuffle_ddp라는 이름과 달리 이 코드는 로컬 배치만 섞고 분산 all-gather를 하지 않는다. 같은 장치 안에서 순서만 바꾸어도 BatchNorm의 배치 통계는 같아 원래 분산 ShuffleBN의 역할을 재현하지 못한다.
 
 forward가 평가 모드에서도 EMA와 큐를 변경한다. 순전파를 한 번 확인하는 호출도 상태에 영향을 준다. 큐는 초기 난수로 시작하고 K보다 큰 배치를 넣는 일반적인 순환 삽입은 처리하지 않는다. K>0, 0≤m≤1, T>0과 배치·장치 규약을 확인한다. 큐의 다른 항목도 같은 의미의 이미지일 수 있어 거짓 음성이 존재한다.
 
 **MoCo v3와의 차이:** 원래 MoCo v3는 큐를 쓰지 않지만 모멘텀 인코더를 유지하고 배치 안 대조 목표를 사용한다. 이 페이지 MoCoV3는 모멘텀 목표 인코더도 stop-gradient도 없고 양쪽 가지에 경사를 전달한다. 따라서 예측 헤드가 있다는 사실만으로 원래 v3나 BYOL·SimSiam과 동등하지 않다. [공식 MoCo v3 구현](https://github.com/facebookresearch/moco-v3/blob/main/moco/builder.py)을 참고한다.
 
-main은 독립 난수 이미지의 로짓·손실을 계산할 뿐, 같은 이미지의 증강·최적화·독립 평가를 포함하지 않는다. BatchNorm1d가 있는 v3는 학습 모드의 배치 1에서도 별도 제약을 갖는다.
+main은 독립 난수 이미지의 로짓·로스를 계산할 뿐, 같은 이미지의 증강·최적화·독립 평가를 포함하지 않는다. BatchNorm1d가 있는 v3는 학습 모드의 배치 1에서도 별도 제약을 갖는다.
 
 ## 연습문제
 
@@ -347,19 +347,19 @@ K=65536, d=128의 FP32 큐와 같은 개수의 FP32 RGB 224×224 이미지 저�
 </div>
 
 ??? success "연습문제 1 풀이"
-    큐는 33,554,432바이트=32MiB(약 33.55MB)다. 이미지는 39,460,012,032바이트=36.75GiB(약 39.46GB)이며 비율은 1176배다. MB와 MiB를 섞어 비율을 구하지 않는다. 이는 특징·이미지 원시 저장 비교이며 인코더·경사·큐 로짓 등의 메모리는 별도다.
+    큐는 33,554,432바이트=32MiB(약 33.55MB)다. 이미지는 39,460,012,032바이트=36.75GiB(약 39.46GB)이며 비율은 1176배다. MB와 MiB를 섞어 비율을 구하지 않는다. 이는 피처·이미지 원시 저장 비교이며 인코더·경사·큐 로짓 등의 메모리는 별도다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-EMA 계수 m과 큐 특징의 시간적 일관성 사이의 절충을 설명하라.
+EMA 계수 m과 큐 피처의 시간적 일관성 사이의 절충을 설명하라.
 
 </div>
 
 ??? success "연습문제 2 풀이"
-    m이 1에 가까우면 키 계수가 천천히 변해 과거 특징과의 변화가 완만해질 수 있지만 쿼리의 변화 반영도 늦어진다. m=0은 현재 쿼리 계수를 복사하고 m=1은 초기 키 계수를 유지한다. 0.999가 모든 큐·학습률에서 최적이거나 m=0.5가 항상 실패하는 것은 아니다. BatchNorm 버퍼와 큐 나이도 함께 고려한다.
+    m이 1에 가까우면 키 계수가 천천히 변해 과거 피처와의 변화가 완만해질 수 있지만 쿼리의 변화 반영도 늦어진다. m=0은 현재 쿼리 계수를 복사하고 m=1은 초기 키 계수를 유지한다. 0.999가 모든 큐·러닝레이트에서 최적이거나 m=0.5가 항상 실패하는 것은 아니다. BatchNorm 버퍼와 큐 나이도 함께 고려한다.
 
 ---
 

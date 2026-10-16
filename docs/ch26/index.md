@@ -4,25 +4,25 @@ VAE는 잠재 사전과 확률 디코더로 생성 모형을 정의하고, 인�
 
 ## 1. 모형과 KL의 이해
 
-- [VAE의 기본 원리](architecture/47_vae.md): 잠재 모형, ELBO와 재매개변수화의 연결
+- [VAE의 기본 원리](architecture/47_vae.md): 잠재 모형, ELBO와 리파라메리제이션의 연결
 - [KL 항의 의미와 계산](theory/kl_term.md): 사전 KL과 사후 간격, 가우시안 공식과 정보 분해
 - [인코더 네트워크](architecture/encoder.md): 평균·로그분산 예측과 상각 추론
 - [사전 분포 선택](architecture/prior.md): 표준정규·혼합 사전과 집계 사후의 관계
 
 ## 2. 모듈과 변형
 
-- [완전 연결 VAE](architecture/vae.md): 입력·출력, 손실 합산과 생성 메서드
-- [합성곱 VAE](architecture/conv_vae.md): 이미지 특징과 고정 해상도 구조
-- [β-VAE](architecture/beta_vae.md): KL 가중치, 표현 분리와 평가의 한계
+- [완전 연결 VAE](architecture/vae.md): 입력·출력, 로스 합산과 생성 메서드
+- [컨볼루션 VAE](architecture/conv_vae.md): 이미지 피처와 고정 해상도 구조
+- [β-VAE](architecture/beta_vae.md): KL 웨이트, 표현 분리와 평가의 한계
 - [조건부 VAE](architecture/conditional_vae.md): 클래스 조건과 조건부 ELBO
-- [합성곱 조건부 VAE](architecture/conv_cvae.md): 공간 임베딩과 디코더 조건 연결
+- [컨볼루션 조건부 VAE](architecture/conv_cvae.md): 공간 임베딩과 디코더 조건 연결
 
 β를 조절하거나 조건을 추가해도 의미 요인 분리·스타일 보존·생성 품질 개선이 자동으로 보장되지는 않는다. 구조와 목표가 실제로 무엇을 제약하는지 확인하고 별도의 평가로 검증한다.
 
 ## 3. 학습과 생성 평가
 
-- [VAE 학습 절차](training/train_vae.md): 배치 합 손실, 검증과 체크포인트
-- [β-VAE 학습](training/train_beta_vae.md): 가중치 적용과 설정 간 공통 평가
+- [VAE 학습 절차](training/train_vae.md): 배치 합 로스, 검증과 체크포인트
+- [β-VAE 학습](training/train_beta_vae.md): 웨이트 적용과 설정 간 공통 평가
 - [조건부 VAE 학습](training/train_cvae.md): 레이블 계약과 클래스별 진단
 - [Free Bits](training/free_bits.md): 작은 KL에 대한 비용 완화와 실제 KL 기록
 - [체크포인트 복원과 샘플 생성](training/generate_samples.md): 사전 생성·보간·잠재 축 탐색의 구분

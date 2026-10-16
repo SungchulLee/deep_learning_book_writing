@@ -2,7 +2,7 @@
 
 06: 이끈 되짚기 밝힘:
 
-신경망이 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 기울기 기반 풀이 재주를 보이며, 네트워크의 움직임을 눈으로 보고 수로 재게 해 준다.
+뉴럴 넷트웍이 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
@@ -14,14 +14,14 @@
 어려움: 가운데
 
 밝힘:
-이끈 되짚기는 ReLU 켜를 지나는 되짚기 걸음을 고쳐 양수 기울기만
-퍼뜨린다. 음수 기울기를 눌러 더 또렷하고 깨끗한 그림을 낸다.
+이끈 되짚기는 ReLU 켜를 지나는 되짚기 걸음을 고쳐 양수 그래디언트만
+퍼뜨린다. 음수 그래디언트를 눌러 더 또렷하고 깨끗한 그림을 낸다.
 
 고침:
 여느 ReLU 되짚기: ∂L/∂x = (∂L/∂y) · 1(x > 0)
 이끈 ReLU 되짚기: ∂L/∂x = (∂L/∂y) · 1(x > 0) · 1(∂L/∂y > 0)
 
-덧붙은 조건: 양수 기울기만 되짚는다
+덧붙은 조건: 양수 그래디언트만 되짚는다
 
 지은이: 가르치기 몫
 """
@@ -41,7 +41,7 @@ class GuidedBackpropReLU(nn.Module):
         return F.relu(x)
 
     def backward(self, grad_output):
-        # 양수 살아남을 지나는 양수 기울기만 되짚는다
+        # 양수 살아남을 지나는 양수 그래디언트만 되짚는다
         return grad_output.clamp(min=0) * (self.output > 0).float()
 
 
@@ -73,15 +73,15 @@ def compute_guided_backprop(model, image_tensor, target_class, device):
 
 
 def example_1_guided_vs_vanilla():
-    """이끈 되짚기와 맨 기울기를 견준다."""
+    """이끈 되짚기와 맨 그래디언트를 견준다."""
     print("\n" + "="*60)
-    print("보기 1: 이끈 되짚기 대 맨 기울기")
+    print("보기 1: 이끈 되짚기 대 맨 그래디언트")
     print("="*60)
 
     device = get_device()
     create_output_dir('outputs')
 
-    # 모형 둘: 하나는 맨 기울기, 하나는 이끈 되짚기
+    # 모형 둘: 하나는 맨 그래디언트, 하나는 이끈 되짚기
     model_vanilla = load_pretrained_model('resnet50', device)
     model_guided = load_pretrained_model('resnet50', device)
 
@@ -98,8 +98,8 @@ def example_1_guided_vs_vanilla():
         output = model_vanilla(image_tensor.to(device))
         target_class = output.argmax(dim=1).item()
 
-    # 맨 기울기
-    print("맨 기울기를 셈한다...")
+    # 맨 그래디언트
+    print("맨 그래디언트를 셈한다...")
     image_vanilla = preprocess_image(test_image, requires_grad=True)
     output = model_vanilla(image_vanilla.to(device))
     output[0, target_class].backward()
@@ -120,7 +120,7 @@ def main():
         print("\n" + "="*70)
         print("핵심:")
         print("1. ReLU 되짚기 걸음을 고친다")
-        print("2. 양수 기울기만 퍼뜨린다")
+        print("2. 양수 그래디언트만 퍼뜨린다")
         print("3. 더 또렷하고 깨끗한 그림을 낸다")
         print("4. 짜려면 손수 만든 갈고리가 있어야 한다")
         print("\n다음: 꾸러미 07 - 이끈 Grad-CAM")
@@ -140,35 +140,35 @@ if __name__ == "__main__":
 ======================================================================
 
 ============================================================
-보기 1: 이끈 되짚기 대 맨 기울기
+보기 1: 이끈 되짚기 대 맨 그래디언트
 ============================================================
 어긋남: name 'get_device' is not defined
 ```
 
 ## 2. 논의
 
-`GuidedBackpropReLU` 클래스는 PyTorch의 `nn.Module` 사이틀로 모델 구조를 감싼다. `forward` 방법이 계산 그래프를 세우므로 PyTorch의 autograd가 익히는 동안 기울기 계산을 알아서 다룬다. 이렇게 조각으로 나눈 설계 덕에 부분마다 고치거나 더 큰 흐름에 끼워 넣기 쉽다.
+`GuidedBackpropReLU` 클래스는 PyTorch의 `nn.Module` 사이틀로 모델 구조를 감싼다. `forward` 방법이 계산 그래프를 세우므로 PyTorch의 autograd가 익히는 동안 그래디언트 계산을 알아서 다룬다. 이렇게 조각으로 나눈 설계 덕에 부분마다 고치거나 더 큰 흐름에 끼워 넣기 쉽다.
 
-여기서 보인 특징은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 갈래, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 모델 해석에 대한 감이 몸에 붙는다.
+여기서 보인 피처는 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 클래스, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 모델 해석에 대한 감이 몸에 붙는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 기울기 기반 풀이에 알맞은지 밝혀라.
+코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 그래디언트 기반 풀이에 알맞은지 밝혀라.
 
 </div>
 
 ??? success "연습문제 1 풀이"
-    설계 판단은 짜보기마다 다르나 흔히 이런 것이 있다. (1) 활성화 함수 고르기 -- ReLU 갈래는 기울기가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 기울기가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력의 꼴과 데이터 갈래가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
+입력의 꼴과 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
 
 </div>
 
@@ -180,30 +180,30 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 짜보기가 무너질 만한 특징 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    흔히 무너지는 특징은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 층마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 손실은 줄어드는데 살핌 손실이 오르면 짚어낸다. 정규화(드롭아웃, 가중치 줄이기, 데이터 늘리기)나 모델 크기 줄이기로 고친다. 학습과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+    흔히 무너지는 피처는 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 적기). 그래디언트 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 살핌 로스가 오르면 짚어낸다. 정규화(드롭아웃, 웨이트 줄이기, 데이터 늘리기)나 모델 크기 줄이기로 고친다. 학습과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`GuidedBackpropReLU`을 층나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 짜라. 층 2개, 4개, 8개로 시험하여라.
+`GuidedBackpropReLU`을 레이어나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 파라메터를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 짜라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
 ??? success "연습문제 4 풀이"
-    못 박아 둔 층을 이렇게 갈음한다.
+    못 박아 둔 레이어를 이렇게 갈음한다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서는 `for layer in self.layers: x = layer(x)`으로 돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 최적화에 올린다. 시험은 이렇게 한다. `for n in [2, 4, 8]: model = GuidedBackpropReLU(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 방법에서는 `for layer in self.layers: x = layer(x)`으로 돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 파라메터를 최적화에 올린다. 시험은 이렇게 한다. `for n in [2, 4, 8]: model = GuidedBackpropReLU(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 
@@ -211,4 +211,4 @@ if __name__ == "__main__":
 
 `GuidedBackpropReLU` 클래스는 PyTorch의 `nn.Module` 사이틀로 모델 구조를 감싼다.
 
-핵심 갈래는 `GuidedBackpropReLU`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `GuidedBackpropReLU`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

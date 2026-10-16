@@ -1,6 +1,6 @@
 # GraphVAE
 
-GraphVAE(Simonovsky & Komodakis, 2018)은 변분 오토인코더 틀을 한 번에 만드는 그래프 생성에 쓴다. 인코더는 그래프 신경망으로 그래프를 숨은 분포로 옮기고, 디코더는 뽑은 숨은 벡터에서 인접 행렬 전체와 노드 특징을 되짓는다. 핵심 새로움은 (1) 표준 차례 없이 자리바꿈에 안 바뀜을 다루는 그래프 짝짓기 손실과 (2) 그래프 위상과 노드·엣지 속성을 한꺼번에 만드는 확률 디코더다.
+GraphVAE(Simonovsky & Komodakis, 2018)은 변분 오토인코더 틀을 한 번에 만드는 그래프 생성에 쓴다. 인코더는 그래프 뉴럴 넷트웍으로 그래프를 숨은 분포로 옮기고, 디코더는 뽑은 숨은 벡터에서 인접 행렬 전체와 노드 피처를 되짓는다. 핵심 새로움은 (1) 표준 차례 없이 자리바꿈에 안 바뀜을 다루는 그래프 짝짓기 로스와 (2) 그래프 위상과 노드·엣지 속성을 한꺼번에 만드는 확률 디코더다.
 
 ---
 
@@ -8,7 +8,7 @@ GraphVAE(Simonovsky & Komodakis, 2018)은 변분 오토인코더 틀을 한 번�
 
 ### 인코더
 
-인코더는 입력 그래프 $\mathcal{G} = (\mathbf{A}, \mathbf{X})$을 잠재공간의 가우스 사후 분포로 옮긴다. 그래프 신경망이 노드 임베딩을 계산하고 이를 그래프 켜의 나타냄으로 모은다:
+인코더는 입력 그래프 $\mathcal{G} = (\mathbf{A}, \mathbf{X})$을 잠재공간의 가우스 사후 분포로 옮긴다. 그래프 뉴럴 넷트웍이 노드 임베딩을 계산하고 이를 그래프 켜의 나타냄으로 모은다:
 
 $$
 \mathbf{H} = \text{GNN}_{\text{enc}}(\mathbf{A}, \mathbf{X}) \in \mathbb{R}^{n \times d_h}
@@ -44,7 +44,7 @@ $$
 \hat{\mathbf{A}} = \sigma(\text{MLP}_{\text{edge}}(\mathbf{z})) \in [0,1]^{n_{\max} \times n_{\max}}
 $$
 
-**노드 특징.** 노드마다 헤아린 특징:
+**노드 피처.** 노드마다 헤아린 피처:
 
 $$
 \hat{\mathbf{X}} = \text{MLP}_{\text{feat}}(\mathbf{z}) \in \mathbb{R}^{n_{\max} \times d_x}
@@ -52,9 +52,9 @@ $$
 
 ---
 
-## 2. 그래프 짝짓기 손실
+## 2. 그래프 짝짓기 로스
 
-GraphVAE의 한가운데 이바지는 드러난 그래프 짝짓기로 자리바꿈에 안 바뀜을 다루는 것이다. 헤아린 그래프 $\hat{\mathcal{G}}$과 과녁 그래프 $\mathcal{G}^*$이 주어지면 최대 가중치 두 쪽 짝짓기 문제를 풀어 가장 좋은 자리바꿈 $\pi^*$을 찾는다.
+GraphVAE의 한가운데 이바지는 드러난 그래프 짝짓기로 자리바꿈에 안 바뀜을 다루는 것이다. 헤아린 그래프 $\hat{\mathcal{G}}$과 타깃 그래프 $\mathcal{G}^*$이 주어지면 최대 웨이트 두 쪽 짝짓기 문제를 풀어 가장 좋은 자리바꿈 $\pi^*$을 찾는다.
 
 노드 닮음 행렬 $\mathbf{S} \in \mathbb{R}^{n_{\max} \times n_{\max}}$을 뜻매김한다:
 
@@ -62,7 +62,7 @@ $$
 S_{ij} = \mathbf{1}[\hat{m}_i > 0.5] \cdot \mathbf{1}[j \leq n^*] \cdot \left( \lambda_x \cdot \text{sim}(\hat{\mathbf{x}}_i, \mathbf{x}_j^*) + \lambda_e \cdot \text{sim}(\hat{\mathbf{a}}_i, \mathbf{a}_j^*) \right)
 $$
 
-여기서 $\hat{\mathbf{a}}_i$과 $\mathbf{a}_j^*$은 각각 헤아린 인접 행렬의 $i$번째 줄과 과녁 인접 행렬의 $j$번째 줄이다. 가장 좋은 짝짓기는 다음과 같다:
+여기서 $\hat{\mathbf{a}}_i$과 $\mathbf{a}_j^*$은 각각 헤아린 인접 행렬의 $i$번째 줄과 타깃 인접 행렬의 $j$번째 줄이다. 가장 좋은 짝짓기는 다음과 같다:
 
 $$
 \pi^* = \arg\max_{\pi} \sum_{i} S_{i, \pi(i)}
@@ -74,7 +74,7 @@ $$
 
 ## 3. 증거 아래 가둠 목표
 
-학습 손실은 그래프 짝짓기 되짓기 항을 가진 증거 아래 가둠이다:
+학습 로스는 그래프 짝짓기 되짓기 항을 가진 증거 아래 가둠이다:
 
 $$
 \mathcal{L} = \underbrace{-\mathbb{E}_{q_\phi(\mathbf{z} \mid \mathcal{G})} \left[ \log p_\theta(\mathcal{G} \mid \mathbf{z}) \right]}_{\text{reconstruction}} + \underbrace{D_{\text{KL}}(q_\phi(\mathbf{z} \mid \mathcal{G}) \| p(\mathbf{z}))}_{\text{regularization}}
@@ -86,7 +86,7 @@ $$
 \log p_\theta(\mathcal{G} \mid \mathbf{z}) = \underbrace{\sum_{i} \log p(\text{node}_i \mid \mathbf{z})}_{\text{node existence}} + \underbrace{\sum_{i<j} \log p(A_{ij} \mid \mathbf{z})}_{\text{edge reconstruction}} + \underbrace{\sum_{i} \log p(\mathbf{x}_i \mid \mathbf{z})}_{\text{feature reconstruction}}
 $$
 
-항마다 짝짓기 걸음에서 자리를 맞춘 과녁을 쓴다.
+항마다 짝짓기 걸음에서 자리를 맞춘 타깃을 쓴다.
 
 ---
 
@@ -96,7 +96,7 @@ $$
 
 **독립이라는 여김.** 디코더는 $\mathbf{z}$이 주어지면 엣지마다 따로 헤아려 엣지 사이의 매임을 무시한다. 이 때문에 그 자리 구조가 어긋나는 그래프가 나올 수 있다.
 
-**사후 분포 무너짐.** 여느 변분 오토인코더처럼 모델이 잠재변수를 무시하고 평균처럼 보이는 그래프를 낼 수 있다. 디코더가 너무 세거나 쿨백-라이블러의 $\beta$ 가중치가 너무 클 때 특히 그렇다.
+**사후 분포 무너짐.** 여느 변분 오토인코더처럼 모델이 잠재변수를 무시하고 평균처럼 보이는 그래프를 낼 수 있다. 디코더가 너무 세거나 쿨백-라이블러의 $\beta$ 웨이트가 너무 클 때 특히 그렇다.
 
 ---
 
@@ -119,7 +119,7 @@ from scipy.optimize import linear_sum_assignment
 import numpy as np
 
 class GraphEncoder(nn.Module):
-    """GraphVAE의 그래프 신경망 바탕 그래프 인코더."""
+    """GraphVAE의 그래프 뉴럴 넷트웍 바탕 그래프 인코더."""
 
     def __init__(
         self,
@@ -149,7 +149,7 @@ class GraphEncoder(nn.Module):
         """
         인수:
             adj: (B, n, n) 이웃 행렬
-            x: (B, n, d) 마디 특징
+            x: (B, n, d) 마디 피처
             node_mask: (B, n) 올바른 마디의 두 값 가리개
         """
         h = self.input_proj(x)  # (B, n, hidden)
@@ -168,7 +168,7 @@ class GraphEncoder(nn.Module):
         return mu, logvar
 
 class GraphDecoder(nn.Module):
-    """이웃 행렬, 특징, 마디 가리개를 만드는 디코더."""
+    """이웃 행렬, 피처, 마디 가리개를 만드는 디코더."""
 
     def __init__(
         self,
@@ -195,7 +195,7 @@ class GraphDecoder(nn.Module):
         # 마디가 있는지 머리
         self.node_head = nn.Linear(hidden_dim, max_nodes)
 
-        # 마디 특징 머리
+        # 마디 피처 머리
         self.feat_head = nn.Linear(hidden_dim, max_nodes * node_feature_dim)
         self.node_feature_dim = node_feature_dim
 
@@ -222,14 +222,14 @@ class GraphDecoder(nn.Module):
         # 마디 가리개
         node_prob = torch.sigmoid(self.node_head(h))
 
-        # 마디 특징
+        # 마디 피처
         node_feat = self.feat_head(h).view(B, n, self.node_feature_dim)
 
         return adj, node_prob, node_feat
 
 class GraphVAE(nn.Module):
     """
-    그래프 짝짓기 손실을 갖춘 온전한 GraphVAE 모델.
+    그래프 짝짓기 로스를 갖춘 온전한 GraphVAE 모델.
     """
 
     def __init__(
@@ -303,7 +303,7 @@ class GraphVAE(nn.Module):
         
         인수:
             adj: (B, n, n) 채운 이웃 행렬
-            x: (B, n, d) 채운 마디 특징
+            x: (B, n, d) 채운 마디 피처
             node_mask: (B, n) 올바른 마디 표시
         """
         B = adj.size(0)
@@ -330,11 +330,11 @@ class GraphVAE(nn.Module):
                 adj_pred[b], adj[b], node_pred[b], n_actual
             )
 
-            # 자리 맞춘 과녁
+            # 자리 맞춘 타깃
             adj_aligned = adj[b][perm][:, perm]
             mask_aligned = node_mask[b][perm]
 
-            # 변 되짓기 손실
+            # 변 되짓기 로스
             idx = torch.triu_indices(self.max_nodes, self.max_nodes, offset=1)
             edge_pred = adj_pred[b][idx[0], idx[1]]
             edge_target = adj_aligned[idx[0], idx[1]]
@@ -344,7 +344,7 @@ class GraphVAE(nn.Module):
                 reduction="mean",
             )
 
-            # 마디가 있는지 손실
+            # 마디가 있는지 로스
             recon_loss = recon_loss + F.binary_cross_entropy(
                 node_pred[b].clamp(1e-6, 1 - 1e-6),
                 mask_aligned,
@@ -545,7 +545,7 @@ Step 4: 8 nodes, 0 edges, density=0.000
 </div>
 
 ??? success "연습문제 1 풀이"
-    노드 $n$개의 그래프는 서로 다른 인접 행렬 $n!$개로 나타낼 수 있다(노드 레이블의 자리바꿈마다 하나). $n = 10$이면 같은 뜻의 나타냄이 $10! = 3{,}628{,}800$개다. 짓는 모델은 다음 가운데 하나를 해야 한다. (1) 이 겹침을 줄이려 표준 차례를 배운다, (2) 자리바꿈에 안 바뀌는 손실 함수를 쓴다(보기로 그래프 짝짓기), (3) 본디 안 바뀌는 나타냄에서 돈다(보기로 스펙트럼 특징). 그림 만들기는 픽셀에 붙박인 자리 차례가 있어 이 문제를 겪지 않는다. $\square$
+    노드 $n$개의 그래프는 서로 다른 인접 행렬 $n!$개로 나타낼 수 있다(노드 레이블의 자리바꿈마다 하나). $n = 10$이면 같은 뜻의 나타냄이 $10! = 3{,}628{,}800$개다. 짓는 모델은 다음 가운데 하나를 해야 한다. (1) 이 겹침을 줄이려 표준 차례를 배운다, (2) 자리바꿈에 안 바뀌는 로스 함수를 쓴다(보기로 그래프 짝짓기), (3) 본디 안 바뀌는 나타냄에서 돈다(보기로 스펙트럼 피처). 그림 만들기는 픽셀에 붙박인 자리 차례가 있어 이 문제를 겪지 않는다. $\square$
 
 ---
 
@@ -557,7 +557,7 @@ Step 4: 8 nodes, 0 edges, density=0.000
 </div>
 
 ??? success "연습문제 2 풀이"
-    자기회귀 방법은 노드와 엣지를 차례로 만들어 걸음마다 그 자리 매임(보기로 원자가)을 자연스럽게 지키지만, 이웃 결정이 늘어나 $O(n^2)$으로 커진다. 한 번에 만들기 방법은 인접 행렬 전체를 한꺼번에 만들어 나란한 계산에는 더 잘 커지지만 띄엄띄엄한 구조와 온 자리 매임에 애를 먹는다. 자기회귀 방법은 작은 크기($n < 100$)에서 대개 더 좋은 그래프를 내지만 큰 그래프에서는 느려진다. 자리바꿈에 안 바뀌는 손실을 쓰는 한 번에 만들기 방법은 더 빠르지만 짝짓기 문제를 조심스레 다루어야 한다. $\square$
+    자기회귀 방법은 노드와 엣지를 차례로 만들어 걸음마다 그 자리 매임(보기로 원자가)을 자연스럽게 지키지만, 이웃 결정이 늘어나 $O(n^2)$으로 커진다. 한 번에 만들기 방법은 인접 행렬 전체를 한꺼번에 만들어 나란한 계산에는 더 잘 커지지만 띄엄띄엄한 구조와 온 자리 매임에 애를 먹는다. 자기회귀 방법은 작은 크기($n < 100$)에서 대개 더 좋은 그래프를 내지만 큰 그래프에서는 느려진다. 자리바꿈에 안 바뀌는 로스를 쓰는 한 번에 만들기 방법은 더 빠르지만 짝짓기 문제를 조심스레 다루어야 한다. $\square$
 
 ---
 
@@ -581,8 +581,8 @@ Step 4: 8 nodes, 0 edges, density=0.000
 </div>
 
 ??? success "연습문제 4 풀이"
-    분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 학습 집합에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 최적화 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
+    분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 학습 집합에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 최적화 -- 바란 타깃 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$
 
 ## 정리하며
 
-이 절에서는 구조, 그래프 짝짓기 손실, 증거 아래 가둠 목표, 한계를 살펴보았다.
+이 절에서는 구조, 그래프 짝짓기 로스, 증거 아래 가둠 목표, 한계를 살펴보았다.

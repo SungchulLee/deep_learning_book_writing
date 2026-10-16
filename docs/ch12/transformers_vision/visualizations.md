@@ -7,7 +7,7 @@
 ```python
 """
 비전 트랜스포머를 위한 시각화 도구
-비전 트랜스포머가 합성곱 신경망과 어떻게 다르게 그림을 처리하는지 이해하도록 돕는다
+비전 트랜스포머가 컨볼루션 뉴럴 넷트웍과 어떻게 다르게 그림을 처리하는지 이해하도록 돕는다
 """
 
 import torch
@@ -37,10 +37,10 @@ class AttentionVisualizer:
         self._register_hooks()
     
     def _register_hooks(self):
-        """주의 가중치를 붙잡으려고 앞먹임 후크를 등록한다"""
+        """주의 웨이트를 붙잡으려고 피드포워드 후크를 등록한다"""
         
         def hook_fn(module, input, output):
-            # MultiHeadAttention에서 주의 가중치를 붙잡는다
+            # MultiHeadAttention에서 주의 웨이트를 붙잡는다
             if hasattr(module, 'attn'):
                 self.attention_maps.append(module.attn.detach().cpu())
         
@@ -59,7 +59,7 @@ class AttentionVisualizer:
         인수:
             image: (1, 3, H, W) 텐서
         반환값:
-            층마다의 주의 지도 목록
+            레이어마다의 주의 지도 목록
         """
         self.attention_maps = []
         self.model.eval()
@@ -79,7 +79,7 @@ class AttentionVisualizer:
         
         인수:
             image: 입력 그림 텐서 (1, 3, H, W)
-            layer_idx: 어느 트랜스포머 층을 그릴지
+            layer_idx: 어느 트랜스포머 레이어를 그릴지
             head_idx: 어느 주의 머리를 그릴지(None이면 모두 평균)
             save_path: 그림을 저장할 경로
         """
@@ -90,7 +90,7 @@ class AttentionVisualizer:
             print("No attention maps captured!")
             return
         
-        # 층을 고른다
+        # 레이어를 고른다
         attn = attn_maps[layer_idx]  # (batch, heads, seq_len, seq_len)
         
         # 따로 정하지 않으면 머리에 걸쳐 평균 낸다
@@ -187,15 +187,15 @@ def visualize_patch_embedding(image: torch.Tensor,
 
 def compare_receptive_fields():
     """
-    합성곱 신경망과 비전 트랜스포머가 받는 영역의 차이를 그려 본다.
+    컨볼루션 뉴럴 넷트웍과 비전 트랜스포머가 받는 영역의 차이를 그려 본다.
     """
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
-    # 합성곱 신경망이 받는 영역
+    # 컨볼루션 뉴럴 넷트웍이 받는 영역
     axes[0].set_xlim(0, 10)
     axes[0].set_ylim(0, 10)
     
-    # 위계를 이루는 수용 영역을 그린다
+    # 위계를 이루는 리셉티브 필드를 그린다
     colors = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral']
     sizes = [8, 6, 4, 2]
     
@@ -279,14 +279,14 @@ def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
 
 def plot_training_comparison(cnn_history: dict, vit_history: dict):
     """
-    합성곱 신경망과 비전 트랜스포머를 견주는 학습 곡선을 그린다.
+    컨볼루션 뉴럴 넷트웍과 비전 트랜스포머를 견주는 학습 곡선을 그린다.
     """
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     
     epochs_cnn = range(1, len(cnn_history['train_loss']) + 1)
     epochs_vit = range(1, len(vit_history['train_loss']) + 1)
     
-    # 학습 손실
+    # 학습 로스
     axes[0, 0].plot(epochs_cnn, cnn_history['train_loss'], 'b-', label='CNN')
     axes[0, 0].plot(epochs_vit, vit_history['train_loss'], 'r-', label='ViT')
     axes[0, 0].set_xlabel('Epoch')
@@ -295,7 +295,7 @@ def plot_training_comparison(cnn_history: dict, vit_history: dict):
     axes[0, 0].legend()
     axes[0, 0].grid(True, alpha=0.3)
     
-    # 검증 손실
+    # 검증 로스
     axes[0, 1].plot(epochs_cnn, cnn_history['val_loss'], 'b-', label='CNN')
     axes[0, 1].plot(epochs_vit, vit_history['val_loss'], 'r-', label='ViT')
     axes[0, 1].set_xlabel('Epoch')
@@ -344,9 +344,9 @@ if __name__ == "__main__":
 
 훅 핸들을 저장·제거하지 않아 같은 모델에 시각화 객체를 반복 생성하면 훅이 누적될 수 있다. 실제 확률을 반환하거나 저장하는 명시적 인터페이스와 장치·detach·훅 수명 관리가 필요하다. 기본 장치 CUDA의 사용 가능 여부도 확인한다.
 
-패치 격자 함수는 픽셀 영역의 경계를 그릴 뿐 학습한 패치 임베딩 벡터를 표시하지 않는다. visualize_positional_encoding은 torch.randn으로 새 표를 생성하므로 “Learned”라는 그림 제목과 달리 학습 모델의 위치 표를 추출하지 않는다. compare_receptive_fields도 계산 그래프에서 측정한 수용 영역이 아니라 도식이며 CNN의 뒤 층 원이 작게 그려져 깊이별 실제 수용 영역으로 해석할 수 없다.
+패치 격자 함수는 픽셀 영역의 경계를 그릴 뿐 학습한 패치 임베딩 벡터를 표시하지 않는다. visualize_positional_encoding은 torch.randn으로 새 표를 생성하므로 “Learned”라는 그림 제목과 달리 학습 모델의 위치 표를 추출하지 않는다. compare_receptive_fields도 계산 그래프에서 측정한 리셉티브 필드가 아니라 도식이며 CNN의 뒤 레이어 원이 작게 그려져 깊이별 실제 리셉티브 필드로 해석할 수 없다.
 
-이미지와 어텐션의 min-max 정규화는 상수 입력에서 분모가 0이 된다. 어텐션은 배치 첫 이미지·CLS 하나·정사각 패치 격자를 가정한다. 학습 이력은 키별 길이·정확도 단위와 같은 분할·손실 집계인지 확인해야 비교할 수 있다.
+이미지와 어텐션의 min-max 정규화는 상수 입력에서 분모가 0이 된다. 어텐션은 배치 첫 이미지·CLS 하나·정사각 패치 격자를 가정한다. 학습 이력은 키별 길이·정확도 단위와 같은 분할·로스 집계인지 확인해야 비교할 수 있다.
 
 ## 연습문제
 
@@ -358,7 +358,7 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 </div>
 
 ??? success "연습문제 1 풀이"
-    훅이 기대하는 모듈 속성 m.attn이 없고 실제 확률은 forward 지역 변수다. 훅 출력은 모듈 최종 특징이지 자동으로 확률 행렬이 되는 것도 아니다. 따라서 속성·반환 규약을 맞추고 None을 검증해야 한다.
+    훅이 기대하는 모듈 속성 m.attn이 없고 실제 확률은 forward 지역 변수다. 훅 출력은 모듈 최종 피처가지 자동으로 확률 행렬이 되는 것도 아니다. 따라서 속성·반환 규약을 맞추고 None을 검증해야 한다.
 
 ---
 
@@ -411,7 +411,7 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 손실이나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

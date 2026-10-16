@@ -26,7 +26,7 @@ class EpisodicDataset(Dataset):
     """
     소수 예시 학습용 에피소드를 만들어 내는 데이터셋.
     
-    에피소드마다 받침 집합과 물음 집합을 갖춘 N-갈래 K-예시 과제이다.
+    에피소드마다 받침 집합과 물음 집합을 갖춘 N-클래스 K-예시 과제이다.
     """
     def __init__(self, data, labels, n_way, k_shot, n_query, n_episodes):
         """
@@ -134,8 +134,8 @@ class MiniImageNetLoader:
         else:  # 시험
             n_classes = 20
 
-        # 갈래마다 k_shot + n_query 보다 넉넉히 두어야 에피소드를 뽑을 수 있다.
-        # 표본 수를 먼저 못박고 이름표를 randint로 뿌리면, 어떤 갈래는 모자라서
+        # 클래스마다 k_shot + n_query 보다 넉넉히 두어야 에피소드를 뽑을 수 있다.
+        # 표본 수를 먼저 못박고 이름표를 randint로 뿌리면, 어떤 클래스는 모자라서
         # "Cannot take a larger sample than population" 이 난다.
         per_class = k_shot + n_query + 5
         n_samples = n_classes * per_class
@@ -171,8 +171,8 @@ class OmniglotLoader:
         Omniglot용 에피소드 데이터 로더를 만든다.
         """
         # 데이터를 불러온다(보기용 흉내)
-        # 참 Omniglot은 갈래가 1200개이지만, 흉내 자료로 그만큼 만들면
-        # 쓸데없이 커진다. 갈래 수를 줄이고 갈래마다 넉넉히 둔다.
+        # 참 Omniglot은 클래스가 1200개이지만, 흉내 자료로 그만큼 만들면
+        # 쓸데없이 커진다. 클래스 수를 줄이고 클래스마다 넉넉히 둔다.
         if split == 'train':
             n_classes = 60   # 참 바탕 집합은 1200개이다
         else:
@@ -248,11 +248,11 @@ if __name__ == "__main__":
     
     # 흉내 데이터(28x28 흑백 그림)
     data = torch.randn(n_samples, 1, 28, 28)
-    # randint로 이름표를 뿌리면 갈래마다 개수가 들쭉날쭉해져서, 어떤 갈래는
-    # k_shot + n_query 보다 적어진다. 갈래마다 똑같이 나누어 준다.
+    # randint로 이름표를 뿌리면 클래스마다 개수가 들쭉날쭉해져서, 어떤 클래스는
+    # k_shot + n_query 보다 적어진다. 클래스마다 똑같이 나누어 준다.
     labels = torch.arange(n_classes).repeat_interleave(n_samples // n_classes)
     
-    # 에피소드 데이터셋을 만든다(5-갈래 1-예시)
+    # 에피소드 데이터셋을 만든다(5-클래스 1-예시)
     dataset = EpisodicDataset(
         data=data,
         labels=labels,
@@ -326,7 +326,7 @@ EpisodicDataset은 N개 클래스를 중복 없이 선택하고 클래스별 K+Q
 
 이미지 입력에서 서포트는 $(NK,C,H,W)$, 쿼리는 $(NQ,C,H,W)$다. DataLoader의 batch_size=B는 이미지가 아닌 에피소드 수를 뜻해 각각 $(B,NK,C,H,W)$와 $(B,NQ,C,H,W)$가 된다. 모델이 한 에피소드만 받는지 메타 배치를 받는지 확인해야 한다.
 
-n_way≤클래스 수, 각 클래스 표본≥K+Q와 양의 N·K·Q를 먼저 검증한다. __getitem__은 idx를 무시하고 새 난수를 뽑으므로 같은 인덱스도 다른 과제가 된다. shuffle=True만으로 고정 에피소드 재현이 되지 않으며 NumPy·PyTorch 난수와 워커 정책을 함께 관리한다.
+n_way≤클래스 수, 각 클래스 표본≥K+Q와 양의 N·K·Q를 먼저 검증한다. __getitem__은 idx를 무시하고 새 난수를 뽑으므로 같은 인덱스도 다른 과제가 된다. shuffle=True만으로 고정 에피소드 재현이 되지 않으며 NumPy·PyTorch 난수와 워커 폴리시를 함께 관리한다.
 
 MiniImageNetLoader의 data_path는 사용되지 않고 split 이름도 train·val 외에는 모두 테스트 크기로 처리한다. OmniglotLoader도 60·20개의 난수 클래스를 만들 뿐 원래 데이터셋·클래스 분할을 구현하지 않는다. create_episode는 부족한 표본·클래스에서 슬라이스가 조용히 짧아져 데이터와 선언한 레이블 수가 달라질 수 있다. 데이터 생성과 실제 벤치마크 로딩을 구분한다.
 
@@ -364,7 +364,7 @@ MiniImageNetLoader의 data_path는 사용되지 않고 split 이름도 train·va
 </div>
 
 ??? success "연습문제 3 풀이"
-    아니다. 경로에서 파일·분할을 읽지 않고 무작위 특징·레이블을 만든다. 실제 데이터와 클래스 분할·전처리·에피소드 시드가 필요하다. 출력 모양을 확인해도 표현의 적응 성능이나 벤치마크 정확도를 검증한 것은 아니다.
+    아니다. 경로에서 파일·분할을 읽지 않고 무작위 피처·레이블을 만든다. 실제 데이터와 클래스 분할·전처리·에피소드 시드가 필요하다. 출력 모양을 확인해도 표현의 적응 성능이나 벤치마크 정확도를 검증한 것은 아니다.
 
 ---
 
@@ -393,7 +393,7 @@ MiniImageNetLoader의 data_path는 사용되지 않고 split 이름도 train·va
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 손실이나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

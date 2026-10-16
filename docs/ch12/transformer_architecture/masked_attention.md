@@ -1,6 +1,6 @@
 # 마스크 셀프 어텐션
 
-인과 마스크는 각 위치가 미래 입력 토큰을 참조하지 못하게 한다. 이를 통해 다음 토큰 예측을 학습할 때 여러 위치의 손실을 병렬로 계산할 수 있다. 패딩 마스크와 결합할 때는 마스크의 True가 허용인지 차단인지 먼저 확인한다.
+인과 마스크는 각 위치가 미래 입력 토큰을 참조하지 못하게 한다. 이를 통해 다음 토큰 예측을 학습할 때 여러 위치의 로스를 병렬로 계산할 수 있다. 패딩 마스크와 결합할 때는 마스크의 True가 허용인지 차단인지 먼저 확인한다.
 
 ## 1. 인과성이라는 요구
 
@@ -38,7 +38,7 @@ $$
 M_{ij} = \begin{cases} 0 & \text{if } j \leq i \text{ (can attend)} \\ -\infty & \text{if } j > i \text{ (masked)} \end{cases}
 $$
 
-### 어텐션 가중치에 미치는 영향
+### 어텐션 웨이트에 미치는 영향
 
 $-\infty$ 마스크과 함께 소프트맥스를 적용하면 다음과 같다.
 
@@ -46,7 +46,7 @@ $$
 \text{softmax}(-\infty) = 0
 $$
 
-같은 행에 적어도 하나의 유한한 점수가 있을 때 -inf인 위치의 가중치는 0이다. 모든 키가 가려진 행은 일반 소프트맥스에서 NaN이 될 수 있다. 위 식은 단일 스칼라에 소프트맥스를 적용한다는 뜻이 아니라 벡터 안의 마스킹된 성분을 나타낸다.
+같은 행에 적어도 하나의 유한한 점수가 있을 때 -inf인 위치의 웨이트는 0이다. 모든 키가 가려진 행은 일반 소프트맥스에서 NaN이 될 수 있다. 위 식은 단일 스칼라에 소프트맥스를 적용한다는 뜻이 아니라 벡터 안의 마스킹된 성분을 나타낸다.
 
 $$
 \alpha_{ij} = \begin{cases} \frac{\exp(s_{ij})}{\sum_{k \leq i} \exp(s_{ik})} & \text{if } j \leq i \\ 0 & \text{if } j > i \end{cases}
@@ -106,7 +106,7 @@ Position 4  │ ✓ │ ✓ │ ✓ │ ✓ │ ✗ │
 
 이 클래스의 불리언 마스크는 True가 차단을 뜻한다. 입력은 (B,L,E), padding_mask는 (B,L)이고 저장된 max_len 이내여야 한다. 패딩 마스크는 키 위치만 제외하며 패딩 쿼리의 출력을 자동으로 0으로 만들지 않는다.
 
-모든 키가 가려진 행의 NaN 가중치를 0으로 치환하지만 출력 투영의 편향 때문에 최종 출력이 반드시 0인 것은 아니다. 반환 가중치는 드롭아웃 뒤 값이어서 학습 모드에서는 행 합이 정확히 1이 아닐 수 있다. 예제의 행 합 출력도 이 조건으로 읽는다.
+모든 키가 가려진 행의 NaN 웨이트를 0으로 치환하지만 출력 투영의 바이어스 때문에 최종 출력이 반드시 0인 것은 아니다. 반환 웨이트는 드롭아웃 뒤 값이어서 학습 모드에서는 행 합이 정확히 1이 아닐 수 있다. 예제의 행 합 출력도 이 조건으로 읽는다.
 
 ```python
 import torch
@@ -188,13 +188,13 @@ class MaskedSelfAttention(nn.Module):
         return_attention: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        인과 가림을 쓰는 앞먹임.
+        인과 가림을 쓰는 피드포워드.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
             padding_mask: 선택으로 주는 채움 가림 [batch_size, seq_len]
                 가릴 자리(채움 토큰)가 True
-            return_attention: 어텐션 가중치를 돌려줄지 여부
+            return_attention: 어텐션 웨이트를 돌려줄지 여부
             
         반환값:
             output: 바뀐 텐서 [batch_size, seq_len, d_model]
@@ -258,7 +258,7 @@ def visualize_causal_attention(seq_len: int = 10):
     import matplotlib.pyplot as plt
     import numpy as np
     
-    # 보기용 주의 가중치를 만든다 (허락된 자리 안에서 고르게)
+    # 보기용 주의 웨이트를 만든다 (허락된 자리 안에서 고르게)
     mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
     attention = torch.ones(seq_len, seq_len)
     attention = attention.masked_fill(mask, 0.0)
@@ -317,7 +317,7 @@ if __name__ == "__main__":
     print(f"Output shape: {output.shape}")
     print(f"Attention weights shape: {attn_weights.shape}")
     
-    # 인과성을 확인한다: 주의 가중치가 아래 삼각이어야 한다
+    # 인과성을 확인한다: 주의 웨이트가 아래 삼각이어야 한다
     # 위 삼각(대각선 제외)이 모두 0인지 살핀다
     for b in range(batch_size):
         for h in range(num_heads):
@@ -533,7 +533,7 @@ for t in range(max_tokens):
     generated_tokens = torch.cat([generated_tokens, next_token], dim=1)
 ```
 
-아래 추론 조각은 매번 전체 generated_tokens를 모델에 넘기며 KV 캐시를 실제로 사용하지 않는다. 캐시 구현은 각 층의 과거 K·V를 저장하고 새 쿼리와 결합해야 한다. 캐시 길이를 반영한 위치 ID와 인과 마스크 정렬도 필요하다.
+아래 추론 조각은 매번 전체 generated_tokens를 모델에 넘기며 KV 캐시를 실제로 사용하지 않는다. 캐시 구현은 각 레이어의 과거 K·V를 저장하고 새 쿼리와 결합해야 한다. 캐시 길이를 반영한 위치 ID와 인과 마스크 정렬도 필요하다.
 
 ---
 
@@ -576,7 +576,7 @@ for t in range(max_tokens):
 </div>
 
 ??? success "연습문제 3 풀이"
-    둘 다 True가 차단이라면 OR로 합칠 수 있다. True가 허용인 API에는 그대로 넘길 수 없다. 패딩 키 제외와 패딩 쿼리의 출력·손실 제외도 구분하고, 한 행의 모든 키가 가려질 때의 처리 규칙을 정한다.
+    둘 다 True가 차단이라면 OR로 합칠 수 있다. True가 허용인 API에는 그대로 넘길 수 없다. 패딩 키 제외와 패딩 쿼리의 출력·로스 제외도 구분하고, 한 행의 모든 키가 가려질 때의 처리 규칙을 정한다.
 
 ---
 
@@ -588,7 +588,7 @@ KV 캐시가 줄이는 연산과 추가로 사용하는 저장 공간을 설명�
 </div>
 
 ??? success "연습문제 4 풀이"
-    과거 위치의 K·V와 블록 출력을 다시 계산하는 일을 줄이고 새 쿼리로 과거 키 전체에 어텐션한다. 헤드 수·특징 차원 등을 고정하면 단계 t의 어텐션 내적·가중합은 O(t), 캐시 저장은 O(t)다. 전체 길이 n의 생성 동안 어텐션 합계는 O(n²)이며 토큰 투영·피드포워드·어휘 출력의 비용은 별도다. 캐시는 생성 전체를 상수 시간으로 만들지 않는다.
+    과거 위치의 K·V와 블록 출력을 다시 계산하는 일을 줄이고 새 쿼리로 과거 키 전체에 어텐션한다. 헤드 수·피처 차원 등을 고정하면 단계 t의 어텐션 내적·가중합은 O(t), 캐시 저장은 O(t)다. 전체 길이 n의 생성 동안 어텐션 합계는 O(n²)이며 토큰 투영·피드포워드·어휘 출력의 비용은 별도다. 캐시는 생성 전체를 상수 시간으로 만들지 않는다.
 
 ## 정리하며
 
