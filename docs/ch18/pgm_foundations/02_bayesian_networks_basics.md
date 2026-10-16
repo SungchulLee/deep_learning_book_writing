@@ -32,7 +32,7 @@
         P(X1, ..., Xn) = ∏ P(Xi | Parents(Xi))
 
     지은이: 교육용 ML 팀
-    수준: 첫걸음
+    수준: 첫스텝
     미리 볼 것: 01_pgm_fundamentals.py
     """
 
@@ -73,7 +73,7 @@
                      cardinalities: Dict[str, int],
                      table: Optional[np.ndarray] = None):
             """
-            CPT의 첫걸음을 잡는다.
+            CPT의 첫스텝을 잡는다.
 
             인수:
                 variable: 변수의 이름(이를테면 'Rain')
@@ -81,7 +81,7 @@
                 cardinalities: 모든 변수의 가짓수 사전
                 table: 있어도 되고 없어도 되는 CPT 값. 꼴은
                        (*어버이_가짓수, 변수_가짓수)이어야 한다
-                       None이면 고른 분포로 첫걸음을 잡는다
+                       None이면 고른 분포로 첫스텝을 잡는다
 
             보기:
                 # P(Rain | Cloudy)의 CPT
@@ -105,7 +105,7 @@
             shape = tuple(parent_cards + [var_card])
 
             if table is None:
-                # 고른 분포로 첫걸음 잡기
+                # 고른 분포로 첫스텝 잡기
                 self.table = np.ones(shape) / var_card
             else:
                 self.table = np.array(table)
@@ -256,7 +256,7 @@
         """
 
         def __init__(self):
-            """빈 베이즈 망의 첫걸음을 잡는다."""
+            """빈 베이즈 망의 첫스텝을 잡는다."""
             self.graph = nx.DiGraph()
             self.cpts: Dict[str, ConditionalProbabilityTable] = {}
             self.cardinalities: Dict[str, int] = {}

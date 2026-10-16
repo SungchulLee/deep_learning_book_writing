@@ -42,9 +42,9 @@ $$P_{ij} = P(X_{n+1} = j \mid X_n = i)$$
 
 ## 2. 전이확률과 전이 행렬
 
-### 한 걸음 전이확률
+### 한 스텝 전이확률
 
-상태 $i$에서 상태 $j$로의 **한 걸음 전이확률**은 다음과 같다:
+상태 $i$에서 상태 $j$로의 **한 스텝 전이확률**은 다음과 같다:
 
 $$P_{ij} = P(X_{n+1} = j \mid X_n = i)$$
 
@@ -78,11 +78,11 @@ P_{N-1,0} & P_{N-1,1} & \cdots & P_{N-1,N-1}
 
 ---
 
-## 3. n 걸음 전이확률
+## 3. n 스텝 전이확률
 
 ### 정의
 
-**$n$ 걸음 전이확률**은 상태 $i$에서 꼭 $n$ 걸음에 상태 $j$에 닿을 확률이다:
+**$n$ 스텝 전이확률**은 상태 $i$에서 꼭 $n$ 스텝에 상태 $j$에 닿을 확률이다:
 
 $$P^{(n)}_{ij} = P(X_{n+m} = j \mid X_m = i)$$
 
@@ -90,7 +90,7 @@ $$P^{(n)}_{ij} = P(X_{n+m} = j \mid X_m = i)$$
 
 ### 행렬의 거듭제곱
 
-**정리.** $n$ 걸음 전이확률은 전이 행렬의 $n$제곱으로 주어진다:
+**정리.** $n$ 스텝 전이확률은 전이 행렬의 $n$제곱으로 주어진다:
 
 $$P^{(n)}_{ij} = (P^n)_{ij}$$
 
@@ -102,7 +102,7 @@ $$P^{(n)}_{ij} = \sum_{k \in S} P^{(n-1)}_{ik} P_{kj}$$
 
 이것이 바로 $P^{(n-1)}$과 $P$에 쓴 행렬 곱하기의 정의이다. 귀납으로 $P^{(n)} = P^n$이다. $\square$
 
-이 결과는 몹시 쓸모 있다. 곧 여러 걸음 동역학이 모두 $P$의 거듭제곱에 담겨 있다.
+이 결과는 몹시 쓸모 있다. 곧 여러 스텝 동역학이 모두 $P$의 거듭제곱에 담겨 있다.
 
 ---
 
@@ -120,7 +120,7 @@ $$P^{m+n} = P^m \cdot P^n$$
 
 ### 해석
 
-상태 $i$에서 $m + n$ 걸음에 상태 $j$로 가려면 사슬이 때 $m$에 어떤 가운데 상태 $k$을 지나야 한다. Chapman-콜모고로프 방정식은 $(m+n)$ 걸음 전이을 다음과 같이 쪼갠다:
+상태 $i$에서 $m + n$ 스텝에 상태 $j$로 가려면 사슬이 때 $m$에 어떤 가운데 상태 $k$을 지나야 한다. Chapman-콜모고로프 방정식은 $(m+n)$ 스텝 전이을 다음과 같이 쪼갠다:
 
 $$\underbrace{i \xrightarrow{m \text{ steps}} k}_{\text{probability } P^{(m)}_{ik}} \xrightarrow{n \text{ steps}} \underbrace{j}_{\text{probability } P^{(n)}_{kj}}$$
 
@@ -226,7 +226,7 @@ class MarkovChain:
 
     def step(self, current_state: int) -> int:
         """
-        한 걸음 밟기: X_n = current_state일 때 X_{n+1} 표집.
+        한 스텝 밟기: X_n = current_state일 때 X_{n+1} 표집.
 
         인수:
             current_state: 지금 상태의 번호
@@ -244,7 +244,7 @@ class MarkovChain:
         initial_distribution: Optional[torch.Tensor] = None
     ) -> List[int]:
         """
-        마르코프 사슬을 n걸음 흉내내기.
+        마르코프 사슬을 n스텝 흉내내기.
 
         인수:
             n_steps: 옮김의 횟수
@@ -305,7 +305,7 @@ CPU에서 새 배열·항등행렬을 생성하는 부분이 있으므로 장치
 ```python
 class TransitionMatrixAnalyzer:
     """
-    옮김 행렬을 살피고 여러 걸음 옮김 확률을
+    옮김 행렬을 살피고 여러 스텝 옮김 확률을
     셈하는 도구.
     """
 
@@ -331,7 +331,7 @@ class TransitionMatrixAnalyzer:
 
     def n_step_matrix(self, n: int) -> torch.Tensor:
         """
-        n걸음 옮김 행렬 P^n 셈하기.
+        n스텝 옮김 행렬 P^n 셈하기.
 
         P^n[i,j] = P(X_n = j | X_0 = i)
         """
@@ -438,7 +438,7 @@ P = torch.tensor([
 
 analyzer = TransitionMatrixAnalyzer(P, state_names=states)
 
-# 여러 걸음 옮김 확률
+# 여러 스텝 옮김 확률
 print("Weather Model: Multi-Step Transition Probabilities")
 print("=" * 60)
 
@@ -610,7 +610,7 @@ MCMC는 목표분포를 불변으로 유지하는 전이 커널을 구성한다.
 
 2. **고윳값 한계.** 행 확률 행렬의 모든 고윳값 $\lambda$가 $|\lambda| \leq 1$을 만족함을 보여라. (*힌트*: 게르슈고린 원 정리를 써라.)
 
-3. **판 놀이.** 자리 6개의 둥근 판에서 말이 같은 확률로 1~3칸 앞으로 나아가는 단순한 판 놀이의 마르코프 사슬을 만들어라. 10 걸음 전이 행렬을 계산하고 행마다 고른 분포에 가까워지는지 확인하여라.
+3. **판 놀이.** 자리 6개의 둥근 판에서 말이 같은 확률로 1~3칸 앞으로 나아가는 단순한 판 놀이의 마르코프 사슬을 만들어라. 10 스텝 전이 행렬을 계산하고 행마다 고른 분포에 가까워지는지 확인하여라.
 
 4. **Chapman-콜모고로프 확인.** 위 날씨 모델에서 $P^{(3)}_{0,2}$(맑음에서 시작해 사흘 뒤 비 올 확률)을 $P^3$으로 곧바로, 그리고 $m=1, n=2$인 Chapman-콜모고로프 방정식으로 손수 계산하여라. 둘이 맞는지 확인하여라.
 

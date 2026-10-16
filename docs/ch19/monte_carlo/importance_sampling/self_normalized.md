@@ -90,24 +90,24 @@ def self_normalized_importance_sampling(h_function, unnormalized_log_target,
     - w̄ᵢ = w̃ᵢ / Σⱼw̃ⱼ(고르게 한 무게, 합이 1)
     - θᵢ ~ q(θ)
     """
-    # 걸음 1: 제안에서 표집
+    # 스텝 1: 제안에서 표집
     samples = proposal_dist.sample((n_samples,))
     
-    # 걸음 2: 고르게 하지 않은 로그 무게 셈하기
+    # 스텝 2: 고르게 하지 않은 로그 무게 셈하기
     # log w̃(θ) = log γ(θ) - log q(θ)
     log_gamma = unnormalized_log_target(samples)
     log_q = proposal_dist.log_prob(samples)
     log_unnorm_weights = log_gamma - log_q
     
-    # 걸음 3: 무게 고르게 하기(수치 안정을 위해 log-sum-exp 사용)
+    # 스텝 3: 무게 고르게 하기(수치 안정을 위해 log-sum-exp 사용)
     log_sum_weights = torch.logsumexp(log_unnorm_weights, dim=0)
     log_norm_weights = log_unnorm_weights - log_sum_weights
     norm_weights = torch.exp(log_norm_weights)
     
-    # 걸음 4: 함수 값 매기기
+    # 스텝 4: 함수 값 매기기
     h_values = h_function(samples)
     
-    # 걸음 5: SNIS 어림값 셈하기: Σᵢ w̄ᵢ h(θᵢ)
+    # 스텝 5: SNIS 어림값 셈하기: Σᵢ w̄ᵢ h(θᵢ)
     estimate = torch.sum(norm_weights * h_values)
     
     if return_diagnostics:

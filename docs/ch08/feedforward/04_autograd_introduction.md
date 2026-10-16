@@ -73,9 +73,9 @@ def compute_loss(y_true, y_pred):
 
 learning_rate = 0.1
 for epoch in range(1000):
-    # 그래디언트는 덮어쓰기가 아니라 누적이므로 걸음마다 지워야 한다.
+    # 그래디언트는 덮어쓰기가 아니라 누적이므로 스텝마다 지워야 한다.
     # 이 네 줄이 곧 optimizer.zero_grad()가 하는 일이다.
-    # 첫 걸음에서는 아직 .grad가 없어 None이라, 검사가 필요하다
+    # 첫 스텝에서는 아직 .grad가 없어 None이라, 검사가 필요하다
     if w1.grad is not None:
         w1.grad.zero_()
         b1.grad.zero_()

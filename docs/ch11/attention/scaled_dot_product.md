@@ -14,7 +14,7 @@
 
 $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}$$
 
-### 한 걸음씩 계산하기
+### 한 스텝씩 계산하기
 
 **1단계: 날 어텐션 점수 계산**
 

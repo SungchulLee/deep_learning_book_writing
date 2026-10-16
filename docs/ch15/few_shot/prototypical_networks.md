@@ -129,7 +129,7 @@ class PrototypicalNetwork(nn.Module):
 
 def train_step(model, support, support_labels, query, query_labels, optimizer):
     """
-    원형 망의 학습 걸음 하나.
+    원형 망의 학습 스텝 하나.
     """
     model.train()
     optimizer.zero_grad()

@@ -22,7 +22,7 @@ $$
 
 여기서 $\mathbf{Q}_t^X \in \mathbb{R}^{(a+1) \times (a+1)}$과 $\mathbf{Q}_t^E \in \mathbb{R}^{(b+1) \times (b+1)}$은 전이 행렬이다.
 
-$t$걸음 주변 분포는 다음과 같다:
+$t$스텝 주변 분포는 다음과 같다:
 
 $$
 q(\mathcal{G}_t \mid \mathcal{G}_0) = \prod_{i} \text{Cat}(X_i^{(t)}; \bar{\mathbf{Q}}_t^X \cdot \text{onehot}(X_i^{(0)})) \prod_{i<j} \text{Cat}(E_{ij}^{(t)}; \bar{\mathbf{Q}}_t^E \cdot \text{onehot}(E_{ij}^{(0)}))
@@ -52,7 +52,7 @@ $$
 
 ### 거꾸로 가는 과정
 
-거꾸로 가는 걸음은 베이즈 규칙으로 사후 분포를 계산한다:
+거꾸로 가는 스텝은 베이즈 규칙으로 사후 분포를 계산한다:
 
 $$
 q(\mathcal{G}_{t-1} \mid \mathcal{G}_t, \mathcal{G}_0) \propto q(\mathcal{G}_t \mid \mathcal{G}_{t-1}) \cdot q(\mathcal{G}_{t-1} \mid \mathcal{G}_0)
@@ -68,7 +68,7 @@ $$
 
 ## 2. 그래프 트랜스포머 잡소리 없애개
 
-잡소리 없애는 네트워크는 잡소리 섞인 그래프와 때 걸음을 다루어 깨끗한 그래프를 헤아리는 그래프 트랜스포머다. 레이어마다 노드와 엣지의 나타냄을 함께 고친다:
+잡소리 없애는 네트워크는 잡소리 섞인 그래프와 때 스텝을 다루어 깨끗한 그래프를 헤아리는 그래프 트랜스포머다. 레이어마다 노드와 엣지의 나타냄을 함께 고친다:
 
 **노드 고치기:**
 
@@ -102,7 +102,7 @@ $$
 
 ## 3. 학습 로스
 
-띄엄띄엄 확산의 변분 아래 가둠은 걸음마다의 쿨백-라이블러 어긋남으로 쪼개진다:
+띄엄띄엄 확산의 변분 아래 가둠은 스텝마다의 쿨백-라이블러 어긋남으로 쪼개진다:
 
 $$
 \mathcal{L}_{\text{VLB}} = \sum_{t=1}^{T} \mathbb{E}_{q(\mathcal{G}_t \mid \mathcal{G}_0)} \left[ D_{\text{KL}}(q(\mathcal{G}_{t-1} \mid \mathcal{G}_t, \mathcal{G}_0) \| p_\theta(\mathcal{G}_{t-1} \mid \mathcal{G}_t)) \right]
@@ -184,12 +184,12 @@ class CategoricalDiffusion:
         t: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        때 걸음 t의 잡소리 섞인 그래프를 뽑는다.
+        때 스텝 t의 잡소리 섞인 그래프를 뽑는다.
         
         인수:
             x_0: (B, n) 정수 마디 클래스
             e_0: (B, n, n) 정수 변 클래스
-            t: (B,) 때 걸음
+            t: (B,) 때 스텝
         """
         B, n = x_0.shape
         device = x_0.device
@@ -227,7 +227,7 @@ class CategoricalDiffusion:
         인수:
             x_t: one-hot (K,)
             x_0_pred: 예측한 분포 (K,)
-            t: 지금 때 걸음
+            t: 지금 때 스텝
         """
         if t == 0:
             return x_0_pred
@@ -343,7 +343,7 @@ class DiGressDenoiser(nn.Module):
         인수:
             x_t: (B, n) 잡소리 섞인 마디 클래스
             e_t: (B, n, n) 잡소리 섞인 변 클래스
-            t: (B,) 때 걸음
+            t: (B,) 때 스텝
             
         반환값:
             x_logits: (B, n, num_node_cls)
@@ -484,7 +484,7 @@ Done. DiGress training framework operational.
 </div>
 
 ??? success "연습문제 2 풀이"
-    자기회귀 방법은 노드와 엣지를 차례로 만들어 걸음마다 그 자리 매임(보기로 원자가)을 자연스럽게 지키지만, 이웃 결정이 늘어나 $O(n^2)$으로 커진다. 한 번에 만들기 방법은 인접 행렬 전체를 한꺼번에 만들어 나란한 계산에는 더 잘 커지지만 띄엄띄엄한 구조와 온 자리 매임에 애를 먹는다. 자기회귀 방법은 작은 크기($n < 100$)에서 대개 더 좋은 그래프를 내지만 큰 그래프에서는 느려진다. 자리바꿈에 안 바뀌는 로스를 쓰는 한 번에 만들기 방법은 더 빠르지만 짝짓기 문제를 조심스레 다루어야 한다. $\square$
+    자기회귀 방법은 노드와 엣지를 차례로 만들어 스텝마다 그 자리 매임(보기로 원자가)을 자연스럽게 지키지만, 이웃 결정이 늘어나 $O(n^2)$으로 커진다. 한 번에 만들기 방법은 인접 행렬 전체를 한꺼번에 만들어 나란한 계산에는 더 잘 커지지만 띄엄띄엄한 구조와 온 자리 매임에 애를 먹는다. 자기회귀 방법은 작은 크기($n < 100$)에서 대개 더 좋은 그래프를 내지만 큰 그래프에서는 느려진다. 자리바꿈에 안 바뀌는 로스를 쓰는 한 번에 만들기 방법은 더 빠르지만 짝짓기 문제를 조심스레 다루어야 한다. $\square$
 
 ---
 

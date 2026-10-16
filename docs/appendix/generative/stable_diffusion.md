@@ -2,7 +2,7 @@
 
 Stable Diffusion은 2022년 글 "High-Resolution Image Synthesis with Latent Diffusion Models"에서 나왔다. - *숨은 밭*에서의 번짐 - 크로스 어텐션으로 텍스트를 조건으로 삼는다.
 
-여기 구현은 Stable Diffusion을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 Stable Diffusion을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 

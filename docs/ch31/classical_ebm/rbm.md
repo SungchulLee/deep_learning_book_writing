@@ -55,7 +55,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     n_hidden : int
         숨은 단위의 개수
     k : int
-        CD-k에서 깁스 걸음의 수(기본값 1)
+        CD-k에서 깁스 스텝의 수(기본값 1)
     learning_rate : float
         파라메터 고침의 러닝 빠르기
     """
@@ -119,7 +119,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     
     def contrastive_divergence(self, v0: torch.Tensor) -> float:
         """
-        맞댐 벌어짐 CD-k 익히기 걸음.
+        맞댐 벌어짐 CD-k 익히기 스텝.
         """
         batch_size = v0.shape[0]
         
@@ -127,7 +127,7 @@ class RestrictedBoltzmannMachine(nn.Module):
         prob_h0, h0 = self.sample_hidden(v0)
         positive_grad = torch.matmul(prob_h0.t(), v0) / batch_size
         
-        # 음의 국면(깁스 k걸음)
+        # 음의 국면(깁스 k스텝)
         vk, hk = v0, h0
         for _ in range(self.k):
             _, vk = self.sample_visible(hk)

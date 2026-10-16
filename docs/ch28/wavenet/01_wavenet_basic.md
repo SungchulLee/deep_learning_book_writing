@@ -76,7 +76,7 @@ class SimpleDilatedStack(nn.Module):
 
 # ─── 자료 만들기 ───────────────────────────────────────────────────────────
 def generate_time_series(batch_size, n_steps):
-    """여러 걸음 앞을 헤아리는 단순한 목표를 만든다."""
+    """여러 스텝 앞을 헤아리는 단순한 목표를 만든다."""
     freq1, freq2 = np.random.uniform(0.1, 0.5, (2, batch_size, 1))
     offsets1, offsets2 = np.random.uniform(0, 2 * np.pi, (2, batch_size, 1))
     time = np.linspace(0, 1, n_steps + 10).reshape(1, -1)
@@ -120,7 +120,7 @@ for epoch in range(1, epochs + 1):
         idx = perm[i : i + batch_size]
         xb, yb = X_train[idx].to(device), Y_train[idx].to(device)
         pred = model(xb)
-        # 마지막 때 걸음 10개만 견준다(모델이 채널 10개를 내놓는다)
+        # 마지막 때 스텝 10개만 견준다(모델이 채널 10개를 내놓는다)
         loss = loss_fn(pred[:, :, -10:], yb[:, :, -10:].expand_as(pred[:, :, -10:]))
         optimizer.zero_grad()
         loss.backward()

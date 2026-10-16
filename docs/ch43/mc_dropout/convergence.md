@@ -4,7 +4,7 @@
 
 ## 1. 두루 보기
 
-MC 드롭아웃 불확실성 근사의 성능은 앞으로 걸음 횟수 $T$에 크게 매인다. 이 글은 엄밀한 수렴 살피기, 참으로 쓸 테두리, 표본 수 고르기 길잡이를 준다.
+MC 드롭아웃 불확실성 근사의 성능은 앞으로 스텝 횟수 $T$에 크게 매인다. 이 글은 엄밀한 수렴 살피기, 참으로 쓸 테두리, 표본 수 고르기 길잡이를 준다.
 
 ---
 
@@ -446,7 +446,7 @@ def estimate_optimal_batch_samples(
         model: MC 드롭아웃 모형
         x: 본보기가 되는 들임
         target_time_ms: 밀리초 단위 때 예산
-        warmup_runs: 몸풀기 앞으로 걸음 횟수
+        warmup_runs: 몸풀기 앞으로 스텝 횟수
         
     Returns:
         즐겨 쓸 MC 표본 수
@@ -461,7 +461,7 @@ def estimate_optimal_batch_samples(
         for _ in range(warmup_runs):
             _ = model(x)
     
-    # 앞으로 걸음 하나의 때를 잰다
+    # 앞으로 스텝 하나의 때를 잰다
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     

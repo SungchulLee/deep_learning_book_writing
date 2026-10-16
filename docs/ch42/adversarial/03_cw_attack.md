@@ -1,6 +1,6 @@
 # C&W 공격
 
-62.3 배치: 칼리니 & 와그너(C&W) 공격 - 가운데 걸음. 이 배치는 가장 센 공격의 하나인 칼리니 & 와그너(C&W) 공격을 짜 놓았다
+62.3 배치: 칼리니 & 와그너(C&W) 공격 - 가운데 스텝. 이 배치는 가장 센 공격의 하나인 칼리니 & 와그너(C&W) 공격을 짜 놓았다
 
 적대적 강건성은 안전이 걸린 자리에 뉴럴 넷트웍을 내놓을 때 중요한 걱정거리다. 이 구현은 작은 섭동이 어떻게 모델을 속이는지, 방어는 어떻게 지을 수 있는지 보이며 적대적 강건성의 깨침을 드러낸다.
 
@@ -10,7 +10,7 @@
 
     ```python
     """
-    62.3 배치: 칼리니 & 와그너(C&W) 치기 - 가운데 걸음
+    62.3 배치: 칼리니 & 와그너(C&W) 치기 - 가운데 스텝
 
     이 배치는 가장 센 다듬기 바탕의 맞서는 치기 가운데 하나인 칼리니 & 와그너(C&W)
     치기를 짜 놓았다. C&W은 맞서는 보기 만들기를 옭아맴 없는 다듬기 문제로
@@ -170,7 +170,7 @@
         max_iter : int
             가장 많은 다듬기 회귀
         binary_search_steps : int
-            c을 두 쪽 갈라 찾는 걸음 수
+            c을 두 쪽 갈라 찾는 스텝 수
         """
 
         def __init__(
@@ -211,8 +211,8 @@
                 흔한 값: 100(빠름), 1000(여느 것), 10000(꼼꼼함)
             binary_search_steps : int, 기본값=9
                 c을 두 쪽 갈라 찾는 회귀 횟수
-                걸음이 많을수록 c은 좋아지고 느려진다
-                걸음마다 온 다듬기 때가 곱절이 된다
+                스텝이 많을수록 c은 좋아지고 느려진다
+                스텝마다 온 다듬기 때가 곱절이 된다
             initial_const : float, 기본값=1e-3
                 두 쪽 갈라 찾기에서 c의 첫 값
                 가장 작은 흔듦을 찾으려 작게 비롯한다
@@ -246,7 +246,7 @@
             print(f"  카파 (κ): {self.kappa}")
             print(f"  러닝 비율: {self.learning_rate}")
             print(f"  가장 많은 회귀: {self.max_iter}")
-            print(f"  두 쪽 갈라 찾는 걸음: {self.binary_search_steps}")
+            print(f"  두 쪽 갈라 찾는 스텝: {self.binary_search_steps}")
             print(f"  일찍 그만두기: {self.abort_early}")
 
         def _arctanh(self, x: torch.Tensor) -> torch.Tensor:
@@ -466,7 +466,7 @@
                 # c은 흔듦 크기와 치기 먹힘의 맞바꿈을 다룬다
                 loss = torch.sum(l2_loss + c_value * f_loss)
 
-                # 다듬기 한 걸음
+                # 다듬기 한 스텝
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -553,12 +553,12 @@
             c_low = torch.zeros(batch_size, device=self.device)
             c_high = torch.full((batch_size,), 1e10, device=self.device)
 
-            # 두 쪽 갈라 찾는 걸음에 걸쳐 가장 좋은 맞서는 보기를 좇는다
+            # 두 쪽 갈라 찾는 스텝에 걸쳐 가장 좋은 맞서는 보기를 좇는다
             best_adv = images.clone()
             best_l2 = torch.full((batch_size,), float('inf'), device=self.device)
 
             if verbose:
-                print(f"\n걸음 {self.binary_search_steps}번으로 두 쪽 갈라 찾기를 비롯한다")
+                print(f"\n스텝 {self.binary_search_steps}번으로 두 쪽 갈라 찾기를 비롯한다")
 
             # c을 두 쪽 갈라 찾는다
             for search_step in range(self.binary_search_steps):
@@ -738,7 +738,7 @@ C&W 치기를 보여 준다.
 </div>
 
 ??? success "연습문제 1 풀이"
-    `optimizer.zero_grad()`이 없으면 PyTorch가 새 그래디언트를 이미 있는 `.grad` 텐서에 갈음하지 않고 더하므로 그래디언트가 회귀마다 쌓인다. 이는 사실상 러닝레이트에 쌓인 걸음 수를 곱하는 계산이라 다듬기가 점점 크고 들쭉날쭉한 걸음을 밟게 된다. 학습 로스는 매끄럽게 모이는 대신 크게 출렁이거나 터진다. 고치기는 쉽다. `loss.backward()`을 부르기 앞서 늘 그래디언트를 0으로 만든다.
+    `optimizer.zero_grad()`이 없으면 PyTorch가 새 그래디언트를 이미 있는 `.grad` 텐서에 갈음하지 않고 더하므로 그래디언트가 회귀마다 쌓인다. 이는 사실상 러닝레이트에 쌓인 스텝 수를 곱하는 계산이라 다듬기가 점점 크고 들쭉날쭉한 스텝을 밟게 된다. 학습 로스는 매끄럽게 모이는 대신 크게 출렁이거나 터진다. 고치기는 쉽다. `loss.backward()`을 부르기 앞서 늘 그래디언트를 0으로 만든다.
 
 ---
 
@@ -780,7 +780,7 @@ C&W 치기를 보여 준다.
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 익힘 걸음 ...
+        # ... 익힘 스텝 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss

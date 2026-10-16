@@ -9,7 +9,7 @@
 확산 모델을 위한 U-Net 구조
 
 이 단원은 확산 모델에 흔히 쓰는 U-Net 구조를 짠다.
-U-Net은 잡음 섞인 그림과 때 걸음 임베딩을 들임으로 받아 잡음을 헤아린다.
+U-Net은 잡음 섞인 그림과 때 스텝 임베딩을 들임으로 받아 잡음을 헤아린다.
 """
 
 import torch
@@ -153,7 +153,7 @@ class UNet(nn.Module):
     - 줄이기를 갖춘 인코더 길
     - 어텐션을 갖춘 병목
     - 키우기와 건너뛰기 이음을 갖춘 디코더 길
-    - 때 걸음을 조건으로 삼는 때 임베딩
+    - 때 스텝을 조건으로 삼는 때 임베딩
     """
     
     def __init__(self, 
@@ -251,7 +251,7 @@ class UNet(nn.Module):
         
         인수:
             x: 잡음 섞인 들임, 꼴 (batch, in_channels, height, width)
-            time: 때 걸음, 꼴 (batch,)
+            time: 때 스텝, 꼴 (batch,)
         
         반환값:
             예측한 잡음, 꼴 (batch, out_channels, height, width)

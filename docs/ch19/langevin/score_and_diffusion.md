@@ -206,7 +206,7 @@ def sample_annealed_langevin(model, sigmas, n_steps=100):
         epsilon = 0.1 * (sigma / sigmas[-1]) ** 2
         
         for _ in range(n_steps):
-            # 랑주뱅 걸음
+            # 랑주뱅 스텝
             score = model(x, torch.tensor(sigma))
             x = x + epsilon * score + torch.sqrt(2 * epsilon) * torch.randn_like(x)
     

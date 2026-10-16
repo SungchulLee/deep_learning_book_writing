@@ -172,7 +172,7 @@ class GenerationStrategies:
                    length_penalty=1.0, vocab=None):
         """
         빔 찾기 풀기.
-        걸음마다 beam_width개의 가설을 지닌다.
+        스텝마다 beam_width개의 가설을 지닌다.
         """
         model.eval()
         batch_size = input_ids.size(0)

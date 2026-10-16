@@ -78,7 +78,7 @@ class DDIMSampler:
         self.T = T
     
     def get_timestep_sequence(self, num_steps):
-        """고르게 벌린 때 걸음 부분 차례를 만든다."""
+        """고르게 벌린 때 스텝 부분 차례를 만든다."""
         step_size = self.T // num_steps
         return list(range(0, self.T, step_size))[::-1]  # 내림 차례
     
@@ -90,13 +90,13 @@ class DDIMSampler:
         인수:
             shape: 내놓기 꼴(배치, 채널, 높이, 너비)
             device: 토치 장치
-            num_steps: 뽑기 걸음 수
+            num_steps: 뽑기 스텝 수
             eta: 마구잡이 정도(0이면 정해진 대로, 1이면 DDPM처럼)
         
         반환값:
             만든 표본
         """
-        # 때 걸음 부분 차례를 얻는다
+        # 때 스텝 부분 차례를 얻는다
         timesteps = self.get_timestep_sequence(num_steps)
         
         # 잡음에서 시작한다

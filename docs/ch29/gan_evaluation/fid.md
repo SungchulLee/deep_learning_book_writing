@@ -229,7 +229,7 @@ class FIDCalculator:
         mean_term = np.dot(diff, diff)
         
         # 2. 행렬 제곱근: (Σ₁Σ₂)^{1/2}
-        # 이것이 셈이 비싼 걸음이다
+        # 이것이 셈이 비싼 스텝이다
         
         # 함께 흩어짐의 곱
         product = sigma1 @ sigma2

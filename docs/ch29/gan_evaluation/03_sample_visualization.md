@@ -178,7 +178,7 @@ class LatentSpaceInterpolation:
         인수:
             z1: 처음 숨은 벡터 [latent_dim]
             z2: 끝 숨은 벡터 [latent_dim]
-            num_steps: 사이 끼움 걸음 수
+            num_steps: 사이 끼움 스텝 수
         
         반환값:
             사이를 메운 숨은 벡터 [num_steps, latent_dim]
@@ -189,18 +189,18 @@ class LatentSpaceInterpolation:
         where t = [0, 1/(n-1), 2/(n-1), ..., 1]
         """
         # 사이 메우기 무게를 만든다
-        # 꼴: [걸음 수]
+        # 꼴: [스텝 수]
         t = torch.linspace(0, 1, num_steps)
         
         # 퍼뜨리기를 위해 차원을 늘린다
         # z1, z2: [숨은 차원] -> [1, 숨은 차원]
-        # t: [걸음 수] -> [걸음 수, 1]
+        # t: [스텝 수] -> [스텝 수, 1]
         t = t.unsqueeze(1)
         z1 = z1.unsqueeze(0)
         z2 = z2.unsqueeze(0)
         
         # 메운다: z(t) = (1-t) * z1 + t * z2
-        # 꼴: [걸음 수, 숨은 차원]
+        # 꼴: [스텝 수, 숨은 차원]
         z_interp = (1 - t) * z1 + t * z2
         
         return z_interp
@@ -227,7 +227,7 @@ class LatentSpaceInterpolation:
         인수:
             z1: 처음 숨은 벡터 [latent_dim]
             z2: 끝 숨은 벡터 [latent_dim]
-            num_steps: 사이 끼움 걸음 수
+            num_steps: 사이 끼움 스텝 수
         
         반환값:
             사이를 메운 숨은 벡터 [num_steps, latent_dim]
@@ -274,7 +274,7 @@ class LatentSpaceInterpolation:
             decoder: 디코더 뉴럴 넷트웍
             z1: 시작 숨은 부호
             z2: 끝 숨은 부호
-            num_steps: 사이 끼움 걸음 수
+            num_steps: 사이 끼움 스텝 수
             use_slerp: 선형 대신 공 모양 사이 메우기를 쓴다
             save_path: 갈무리할 길(있으면)
         """

@@ -81,7 +81,7 @@ class TRADESTrainer:
     epsilon : float
         흔듦 예산
     alpha : float
-        x_adv을 만들 PGD 걸음 크기
+        x_adv을 만들 PGD 스텝 크기
     num_iter : int
         x_adv을 만들 PGD 회귀
     """
@@ -160,7 +160,7 @@ class TRADESTrainer:
         for x, y in pbar:
             x, y = x.to(self.device), y.to(self.device)
             
-            # 맑은 앞으로 걸음
+            # 맑은 앞으로 스텝
             logits_clean = self.model(x)
             loss_natural = F.cross_entropy(logits_clean, y)
             
@@ -240,7 +240,7 @@ CIFAR-10에서 $\varepsilon = 8/255$일 때의 피처와다.
 </div>
 
 ??? success "연습문제 2 풀이"
-    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 마디의 방법을 걸면 피처와는 재주에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
+    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 스텝 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 마디의 방법을 걸면 피처와는 재주에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
 
 ---
 

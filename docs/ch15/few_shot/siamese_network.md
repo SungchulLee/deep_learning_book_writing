@@ -153,7 +153,7 @@ class TripletLoss(nn.Module):
 
 def train_siamese(model, x1, x2, labels, optimizer, criterion):
     """
-    대조 로스를 쓰는 샴 망의 학습 걸음.
+    대조 로스를 쓰는 샴 망의 학습 스텝.
     
     인수:
         x1, x2: 입력 쌍

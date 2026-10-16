@@ -1147,7 +1147,7 @@ See: data_overwhelming_prior.png
 
 ??? success "풀이"
 
-    참값 $\theta^\star$ 로 베르누이 표본을 길게 만들고 `sequential_beta_binomial` 을 돌려 $(\alpha_t,\beta_t)$ 의 흐름을 얻은 뒤, 각 걸음의 사후평균 $\alpha_t/(\alpha_t+\beta_t)$ 와 표준편차를 그린다.
+    참값 $\theta^\star$ 로 베르누이 표본을 길게 만들고 `sequential_beta_binomial` 을 돌려 $(\alpha_t,\beta_t)$ 의 흐름을 얻은 뒤, 각 스텝의 사후평균 $\alpha_t/(\alpha_t+\beta_t)$ 와 표준편차를 그린다.
 
     고정된 양의 베타 사전 파라메터와 독립 베르누이 관측, 내부 참값 0<θ⋆<1을 가정하면 사후평균이 참값에 수렴하고 사후 표준편차는 대략 t의 제곱근에 반비례한다. 한 시뮬레이션 경로에서 오차가 매 단계 감소하는 것은 아니며 경계 참값에서는 같은 정규 근사를 그대로 적용하지 않는다.
 

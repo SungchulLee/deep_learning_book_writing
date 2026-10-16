@@ -32,13 +32,13 @@ class SimpleUNet(nn.Module):
 
     def forward(self, x, t):
         # x: 때 t의 잡음 섞인 그림
-        # t: 때 걸음(0 → T)
+        # t: 때 스텝(0 → T)
 
-        # 안정을 위해 때 걸음을 조금 고르게 맞춘다
+        # 안정을 위해 때 스텝을 조금 고르게 맞춘다
         t_embed = t[:, None, None, None].float() / 1000.0
 
         # 아주 순진한 때 조건 주기:
-        # 어느 때 걸음인지 알려 주려 들임에 t_embed을 더한다
+        # 어느 때 스텝인지 알려 주려 들임에 t_embed을 더한다
         h = F.relu(self.conv1(x) + t_embed)
         h = F.relu(self.conv2(h))
         return self.conv3(h)  # x_t에 더한 잡음을 헤아린다
@@ -48,18 +48,18 @@ class SimpleUNet(nn.Module):
 # 2️⃣ 확산 과정 도구
 # ==========================================
 # 확산 모델에서는 그림 x₀에 정규 잡음을 차츰 더한다.
-# 잡음 차례표는 걸음마다 잡음을 얼마나 더할지 정하는 "β"(베타)가 다스린다.
+# 잡음 차례표는 스텝마다 잡음을 얼마나 더할지 정하는 "β"(베타)가 다스린다.
 
 def get_beta_schedule(T, start=1e-4, end=0.02):
     """
     선형 베타 차례표를 만든다: 작은 잡음에서 큰 잡음으로.
-    T: 온 때 걸음 수.
+    T: 온 때 스텝 수.
     """
     return torch.linspace(start, end, T)
 
 def forward_diffusion_sample(x0, t, beta, device):
     """
-    깨끗한 그림 x₀이 주어질 때 때 걸음 t의 잡음 섞인 판 x_t을 돌려준다.
+    깨끗한 그림 x₀이 주어질 때 때 스텝 t의 잡음 섞인 판 x_t을 돌려준다.
 
     x_t = sqrt(α̂_t) * x₀ + sqrt(1 - α̂_t) * ε
     여기서 ε ~ N(0, 1)
@@ -74,7 +74,7 @@ def forward_diffusion_sample(x0, t, beta, device):
 # 3️⃣ 익히기 되풀이
 # ==========================================
 device = "cuda" if torch.cuda.is_available() else "cpu"
-T = 300  # 때 걸음 수
+T = 300  # 때 스텝 수
 betas = get_beta_schedule(T).to(device)
 
 model = SimpleUNet().to(device)
@@ -85,11 +85,11 @@ transform = transforms.Compose([transforms.ToTensor()])
 dataset = torchvision.datasets.MNIST(root="./data", train=True, download=True, transform=transform)
 dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
 
-# 익히기: 걸음마다 그림에 더한 잡음을 헤아린다
+# 익히기: 스텝마다 그림에 더한 잡음을 헤아린다
 for epoch in range(3):  # 보여 주려 짧게 익히기
     for x, _ in tqdm.tqdm(dataloader):
         x = x.to(device)
-        # 배치의 그림마다 때 걸음을 마구잡이로 고른다
+        # 배치의 그림마다 때 스텝을 마구잡이로 고른다
         t = torch.randint(0, T, (x.size(0),), device=device).long()
 
         # 때 t에서 x₀의 잡음 섞인 판을 만든다
@@ -123,14 +123,14 @@ def sample(model, T, betas, size, device):
     # 순수 정규 잡음에서 시작한다
     x = torch.randn(size).to(device)
 
-    # 때 걸음을 거슬러 되풀이한다
+    # 때 스텝을 거슬러 되풀이한다
     for t in reversed(range(T)):
-        z = torch.randn_like(x) if t > 0 else 0  # 마지막 걸음만 빼고 아무 잡음
+        z = torch.randn_like(x) if t > 0 else 0  # 마지막 스텝만 빼고 아무 잡음
         beta_t = betas[t]
         alpha_t = 1 - beta_t
         alpha_hat_t = torch.cumprod(1 - betas, dim=0)[t]
 
-        # 이 걸음의 잡음을 헤아린다
+        # 이 스텝의 잡음을 헤아린다
         eps_theta = model(x, torch.tensor([t]*x.size(0), device=device))
 
         # DDPM 뒤 공식:

@@ -306,7 +306,7 @@ class QuantizableModel(nn.Module):
         """
         수 줄이기가 잘 되도록 Conv-BN-ReLU 이음을 녹여 붙인다.
         
-        녹여 붙이면 가운데의 수 줄이기/되돌리기 걸음을 건너뛰어
+        녹여 붙이면 가운데의 수 줄이기/되돌리기 스텝을 건너뛰어
         수 줄이기 어긋남이 줄어든다.
         """
         torch.quantization.fuse_modules(
@@ -368,11 +368,11 @@ def apply_static_quantization(model: nn.Module,
 
 **잘 맞는 자리**: 붙박인 수 줄이기로 맞음이 받아들일 수 없을 만큼 떨어질 때.
 
-**앞으로 걸음:**
+**앞으로 스텝:**
 
 $$\hat{x} = \text{FakeQuant}(x) = s \cdot \text{round}\left(\frac{\text{clamp}(x, x_{\min}, x_{\max})}{s}\right)$$
 
-**되돌아 걸음(곧장 지나가는 어림개):**
+**되돌아 스텝(곧장 지나가는 어림개):**
 
 $$\frac{\partial \mathcal{L}}{\partial x} \approx \frac{\partial \mathcal{L}}{\partial \hat{x}} \cdot \mathbf{1}[x_{\min} \leq x \leq x_{\max}]$$
 
@@ -919,7 +919,7 @@ def debug_quantization_error(original: nn.Module,
                 make_hook(activations_quant, name)
             ))
     
-    # 앞으로 걸음
+    # 앞으로 스텝
     with torch.no_grad():
         _ = original(sample_input)
         _ = quantized(sample_input)

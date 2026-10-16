@@ -83,8 +83,8 @@ $$L_V = \max\left[(V_\theta - V_\text{타깃})^2, (V_\text{자름} - V_\text{타
 
 옳게 만들면 PPO는 다음을 이룬다.
 
-- **CartPole-v1**: 10만 걸음 안에 풂(리워드 약 500)
-- **LunarLander-v2**: 약 50만 걸음에 풂(리워드 약 200)
+- **CartPole-v1**: 10만 스텝 안에 풂(리워드 약 500)
+- **LunarLander-v2**: 약 50만 스텝에 풂(리워드 약 200)
 - **아타리(Breakout)**: 약 1000만 컷에 400점 이상
 
 ---

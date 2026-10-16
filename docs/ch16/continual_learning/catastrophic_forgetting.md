@@ -34,7 +34,7 @@ $$
 
 ### 새 과제 갱신의 영향
 
-걸음마다의 그래디언트 갱신은 다음과 같다.
+스텝마다의 그래디언트 갱신은 다음과 같다.
 
 $$
 \theta_{t+1} = \theta_t - \eta \nabla_\theta \mathcal{L}_\tau(\theta_t)

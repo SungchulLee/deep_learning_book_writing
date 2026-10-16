@@ -48,11 +48,11 @@ Output: Parameters θ = {π, μ, Σ}
 1. Initialize parameters θ⁽⁰⁾
 2. Repeat until convergence:
    
-   # E 걸음: 맡음 몫 셈하기
+   # E 스텝: 맡음 몫 셈하기
    For each i, k:
        γ_ik ← π_k N(x_i | μ_k, Σ_k) / Σ_j π_j N(x_i | μ_j, Σ_j)
    
-   # M 걸음: 파라메터 새로 고치기
+   # M 스텝: 파라메터 새로 고치기
    For each k:
        N_k ← Σ_i γ_ik
        π_k ← N_k / N
@@ -289,7 +289,7 @@ class GaussianMixtureModel:
     
     def _e_step(self, X: torch.Tensor) -> Tuple[torch.Tensor, float]:
         """
-        E 걸음: 맡음 몫과 로그 가능도 셈하기.
+        E 스텝: 맡음 몫과 로그 가능도 셈하기.
         
         반환값:
             responsibilities: (N, K) 텐서
@@ -313,7 +313,7 @@ class GaussianMixtureModel:
         return torch.exp(log_resp), log_likelihood
     
     def _m_step(self, X: torch.Tensor, responsibilities: torch.Tensor):
-        """M 걸음: 맡음 몫이 주어졌을 때 파라메터 새로 고치기."""
+        """M 스텝: 맡음 몫이 주어졌을 때 파라메터 새로 고치기."""
         N = X.shape[0]
         
         # 실효 횟수
@@ -384,7 +384,7 @@ class GaussianMixtureModel:
             prev_ll = float('-inf')
             
             for iteration in range(self.max_iter):
-                # E 걸음
+                # E 스텝
                 responsibilities, ll = self._e_step(X)
                 
                 # 모임 살피기
@@ -396,7 +396,7 @@ class GaussianMixtureModel:
                 if verbose and iteration % 10 == 0:
                     print(f"Init {init+1}, Iter {iteration}: LL = {ll:.4f}")
                 
-                # M 걸음
+                # M 스텝
                 self._m_step(X, responsibilities)
                 
                 prev_ll = ll

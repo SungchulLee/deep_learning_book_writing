@@ -18,7 +18,7 @@ $$H(\theta, \mathbf{r}) = U(\theta) + K(\mathbf{r})$$
 
 여기서 $U(\theta) = -\log p(\theta | \mathcal{D})$은 감춘 힘(음수 로그 사후분포)이고 $K(\mathbf{r}) = \frac{1}{2}\mathbf{r}^T M^{-1} \mathbf{r}$은 액션의 힘이다.
 
-Leapfrog 적분기는 반걸음을 번갈아 밟는다.
+Leapfrog 적분기는 반스텝을 번갈아 밟는다.
 
 $$\mathbf{r}_{t+\epsilon/2} = \mathbf{r}_t - \frac{\epsilon}{2} \nabla_\theta U(\theta_t)$$
 
@@ -83,7 +83,7 @@ class HamiltonianMonteCarlo:
     
     def step(self) -> Tuple[bool, float]:
         """
-        HMC 한 걸음: 개구리뜀 적분 + 메트로폴리스 받기/물리기.
+        HMC 한 스텝: 개구리뜀 적분 + 메트로폴리스 받기/물리기.
         
         Returns:
             accepted: 내놓은 값을 받았는지
@@ -111,7 +111,7 @@ class HamiltonianMonteCarlo:
             grad = self._compute_gradient()
             momentum = momentum - self.step_size * grad
         
-        # 마지막 반걸음
+        # 마지막 반스텝
         params = self._flatten_params() + self.step_size * momentum
         self._unflatten_params(params)
         grad = self._compute_gradient()

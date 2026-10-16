@@ -39,7 +39,7 @@
 
     지은이: 교육용 ML 팀
     수준: 중간
-    미리 볼 것: 첫걸음 수준의 01-04
+    미리 볼 것: 첫스텝 수준의 01-04
     """
 
     import numpy as np
@@ -69,7 +69,7 @@
                      cardinalities: Dict[str, int],
                      values: Optional[np.ndarray] = None):
             """
-            인자의 첫걸음을 잡는다.
+            인자의 첫스텝을 잡는다.
 
             인수:
                 variables: 이 인자에 든 변수 이름의 목록
@@ -245,7 +245,7 @@
 
         def __init__(self, bn):
             """
-            변수 없애기의 첫걸음을 잡는다.
+            변수 없애기의 첫스텝을 잡는다.
 
             인수:
                 bn: BayesianNetwork 사례
@@ -344,33 +344,33 @@
                        if evidence else ")"))
                 print("-" * 60)
 
-            # 걸음 1: CPT에서 첫 인자 만들기
+            # 스텝 1: CPT에서 첫 인자 만들기
             factors = self._create_factors_from_cpts()
 
             if verbose:
                 print(f"\nStep 1: Created {len(factors)} initial factors from CPTs")
 
-            # 걸음 2: 증거로 인자 줄이기
+            # 스텝 2: 증거로 인자 줄이기
             if evidence:
                 factors = [f.reduce(evidence) for f in factors]
                 if verbose:
                     print(f"Step 2: Reduced factors with evidence {evidence}")
 
-            # 걸음 3: 없앨 변수 정하기
+            # 스텝 3: 없앨 변수 정하기
             all_vars = set(self.bn.graph.nodes())
             variables_to_eliminate = all_vars - set(query_vars) - set(evidence.keys())
 
             if verbose:
                 print(f"Step 3: Variables to eliminate: {sorted(variables_to_eliminate)}")
 
-            # 걸음 4: 없애는 차례 고르기
+            # 스텝 4: 없애는 차례 고르기
             if elimination_order is None:
                 elimination_order = self._choose_elimination_order(variables_to_eliminate)
 
             if verbose:
                 print(f"Step 4: Elimination order: {elimination_order}")
 
-            # 걸음 5: 변수를 하나씩 없애기
+            # 스텝 5: 변수를 하나씩 없애기
             if verbose:
                 print(f"\nStep 5: Eliminating variables...")
 
@@ -405,7 +405,7 @@
                 else:
                     factors = other_factors
 
-            # 걸음 6: 남은 인자 곱하기
+            # 스텝 6: 남은 인자 곱하기
             if verbose:
                 print(f"\nStep 6: Multiplying {len(factors)} remaining factors...")
 
@@ -413,7 +413,7 @@
             for f in factors[1:]:
                 result_factor = result_factor.multiply(f)
 
-            # 걸음 7: 고르게 하기
+            # 스텝 7: 고르게 하기
             result_factor = result_factor.normalize()
 
             if verbose:

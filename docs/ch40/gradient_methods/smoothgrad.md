@@ -108,11 +108,11 @@ def compute_smoothgrad(
         noisy_input = image_tensor + noise
         noisy_input.requires_grad_(True)
 
-        # 앞으로 걸음
+        # 앞으로 스텝
         output = model(noisy_input)
         target_score = output[0, target_class]
 
-        # 되짚기 걸음
+        # 되짚기 스텝
         model.zero_grad()
         target_score.backward()
 
@@ -161,13 +161,13 @@ def compute_smoothgrad_batched(
         noisy_batch = batch + noise
         noisy_batch.requires_grad_(True)
 
-        # 앞으로 걸음
+        # 앞으로 스텝
         outputs = model(noisy_batch)  # [batch_size, num_classes]
 
         # 배치 그래디언트를 얻으려고 겨눈 점수를 더한다
         target_scores = outputs[:, target_class].sum()
 
-        # 되짚기 걸음
+        # 되짚기 스텝
         model.zero_grad()
         target_scores.backward()
 

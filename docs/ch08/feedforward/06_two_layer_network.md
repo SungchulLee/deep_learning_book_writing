@@ -45,7 +45,7 @@ model = TwoLayerNet(2, 4, 1)
 # 수치적으로 더 안정적이라 실무에서는 보통 그쪽을 쓴다
 criterion = nn.BCELoss()
 
-# 러닝레이트 0.1은 꽤 크지만, 표본이 4개뿐이라 이 정도라야 5000걸음 안에 수렴한다
+# 러닝레이트 0.1은 꽤 크지만, 표본이 4개뿐이라 이 정도라야 5000스텝 안에 수렴한다
 optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
 
 for epoch in range(5000):
@@ -53,7 +53,7 @@ for epoch in range(5000):
     loss = criterion(outputs, y)    # 얼마나 틀렸는지
     optimizer.zero_grad()           # 지난 그래디언트를 지우고
     loss.backward()                 # 역전파
-    optimizer.step()                # 한 걸음 옮긴다
+    optimizer.step()                # 한 스텝 옮긴다
 
 model.eval()   # 평가 결로 바꾼다(여기서는 드롭아웃이 없어 차이가 없지만 버릇을 들인다)
 with torch.no_grad():   # 그래디언트가 필요 없으므로 추적을 끈다

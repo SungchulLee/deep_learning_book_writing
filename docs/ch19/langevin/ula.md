@@ -69,7 +69,7 @@ class SGLD:
             if p.grad is None:
                 continue
             
-            # 그래디언트 걸음(자료 가능도와 weight_decay로 넣은 앞확률 포함)
+            # 그래디언트 스텝(자료 가능도와 weight_decay로 넣은 앞확률 포함)
             d_p = p.grad.data
             if self.weight_decay > 0:
                 d_p = d_p + self.weight_decay * p.data
@@ -103,7 +103,7 @@ def sgld_sample(model, dataloader, n_samples=100, burnin=1000,
             loss = torch.nn.functional.mse_loss(model(x_batch), y_batch)
             loss.backward()
             optimizer.step()
-            break  # 걸음마다 배치 하나
+            break  # 스텝마다 배치 하나
         
         if step >= burnin and (step - burnin) % thin == 0:
             samples.append({
@@ -152,7 +152,7 @@ def ula(score_fn, x0, n_steps, epsilon):
         score_fn: x [batch, dim] → 점수 [batch, dim]으로 잇는다.
         x0: 첫 상태 [batch, dim].
         n_steps: 되풀이 횟수.
-        epsilon: 걸음 크기.
+        epsilon: 스텝 크기.
 
     반환값:
         되풀이 n_steps번 뒤의 표본 [batch, dim].

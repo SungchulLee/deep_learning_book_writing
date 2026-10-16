@@ -92,7 +92,7 @@ class DDPMSampler:
             익힌 잡음 헤아리기 뉴럴 넷트웍 ε_θ(x_t, t) 또는
             조건 있는 모델의 ε_θ(x_t, t, c).
         n_timesteps : int
-            확산 걸음 수 T.
+            확산 스텝 수 T.
         beta_start, beta_end : float
             잡음 차례표의 끝점.
         beta_schedule : str
@@ -155,7 +155,7 @@ class DDPMSampler:
         ).to(device)
 
     # ------------------------------------------------------------------
-    # 핵심 뽑기 걸음
+    # 핵심 뽑기 스텝
     # ------------------------------------------------------------------
     def predict_x0(
         self,
@@ -182,7 +182,7 @@ class DDPMSampler:
         return self.posterior_mean_coef1[t] * x0_pred + self.posterior_mean_coef2[t] * x_t
 
     def get_variance(self, t: int) -> torch.Tensor:
-        """뒤 걸음의 σ_t²을 돌려준다."""
+        """뒤 스텝의 σ_t²을 돌려준다."""
         if self.variance_type == "fixed_lower":
             return self.posterior_variance[t]
         elif self.variance_type == "fixed_upper":
@@ -199,14 +199,14 @@ class DDPMSampler:
         condition: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """
-        거꾸로 한 걸음: x_{t-1} ~ p_θ(x_{t-1} | x_t)에서 표본을 뽑는다.
+        거꾸로 한 스텝: x_{t-1} ~ p_θ(x_{t-1} | x_t)에서 표본을 뽑는다.
 
         파라메터
         ----------
         x_t : Tensor of shape (B, C, H, W) or (B, D)
             지금의 잡음 섞인 표본.
         t : int
-            지금 때 걸음.
+            지금 때 스텝.
         condition : Tensor, optional
             조건 앎(클래스 이름표, 글 임베딩 등).
 
@@ -233,7 +233,7 @@ class DDPMSampler:
             sigma = self.get_variance(t).sqrt()
             return mean + sigma * noise
         else:
-            return mean  # 마지막 걸음에는 잡음이 없다
+            return mean  # 마지막 스텝에는 잡음이 없다
 
     # ------------------------------------------------------------------
     # 온전한 뽑기 되풀이
@@ -259,7 +259,7 @@ class DDPMSampler:
         return_trajectory : bool
             True이면 일정한 사이마다 중간 x_t도 돌려준다.
         trajectory_interval : int
-            이만큼의 걸음마다 자취를 갈무리한다.
+            이만큼의 스텝마다 자취를 갈무리한다.
         show_progress : bool
             tqdm 나아감 막대를 보인다.
 
@@ -456,7 +456,7 @@ def visualize_trajectory(
     shape : tuple
         표본 꼴. 예컨대 (4, 3, 64, 64).
     save_steps : 정수의 목록
-        갈무리할 때 걸음. 기본은 고르게 벌린 것이다.
+        갈무리할 때 스텝. 기본은 고르게 벌린 것이다.
 
     반환값
     -------
@@ -484,7 +484,7 @@ def visualize_trajectory(
                 "x0_pred": x0_pred.cpu().clone(),
             })
 
-        # 뒤 걸음을 내딛는다
+        # 뒤 스텝을 내딛는다
         with torch.no_grad():
             x = sampler.p_sample(x, t)
 

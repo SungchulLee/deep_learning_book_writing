@@ -128,7 +128,7 @@ def example_with_real_image(image_path: str):
     # Grad-CAM의 첫자리를 잡는다
     gradcam = GradCAM(model, target_layer)
 
-    # 앞으로 걸음으로 미루어 봄을 얻는다
+    # 앞으로 스텝으로 미루어 봄을 얻는다
     with torch.no_grad():
         output = model(input_tensor)
         pred_class = output.argmax(dim=1).item()

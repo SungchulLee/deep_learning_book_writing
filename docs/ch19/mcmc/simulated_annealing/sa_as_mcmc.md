@@ -60,7 +60,7 @@ def adaptive_sa(E, x0, T0, target_accept=0.4):
     x = x0
     
     for t in range(max_iter):
-        # 메트로폴리스 걸음
+        # 메트로폴리스 스텝
         x_new = propose(x)
         accept = np.random.rand() < min(1, np.exp(-(E(x_new) - E(x)) / T))
         if accept:

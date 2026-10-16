@@ -15,7 +15,7 @@ PREREQUISITES: 01_score_functions_basics.py, 02_score_matching_theory.py
     1. 랑주뱅 마르코프 사슬 몬테카를로 뽑기를 이해한다
     2. 점수 바탕 뽑기 알고리즘을 짠다
     3. 뽑기 자취를 그려 본다
-    4. 걸음 크기와 잡음의 몫을 이해한다
+    4. 스텝 크기와 잡음의 몫을 이해한다
 
 수학 바탕:
     랑주뱅 액션은 그래디언트를 써서 분포에서 뽑는 마르코프 사슬 몬테카를로 알고리즘이다.
@@ -44,8 +44,8 @@ def langevin_sampling(score_fn, x_init, n_steps=1000, step_size=0.01):
     인수:
         score_fn: ∇log p(x)를 셈하는 함수
         x_init: 첫 자리, 꼴 (n_samples, dim)
-        n_steps: 랑주뱅 걸음 수
-        step_size: 걸음 크기 ε
+        n_steps: 랑주뱅 스텝 수
+        step_size: 스텝 크기 ε
     
     반환값:
         samples: 마지막 표본, 꼴 (n_samples, dim)

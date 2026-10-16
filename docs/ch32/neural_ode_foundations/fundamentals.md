@@ -107,7 +107,7 @@ def lotka_volterra(state: torch.Tensor, t: float,
 ```python
 def euler_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
     """
-    앞으로 오일러 방법의 한 걸음.
+    앞으로 오일러 방법의 한 스텝.
     
     수학으로 나타내기:
         y_{n+1} = y_n + dt * f(y_n, t_n)
@@ -118,7 +118,7 @@ def euler_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
         f: ODE function dy/dt = f(y, t)
         y: 지금 상태
         t: 지금 때
-        dt: 때 걸음 크기
+        dt: 때 스텝 크기
         
     반환값:
         Next state y_{n+1}
@@ -133,7 +133,7 @@ def euler_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
         f: 상미분 방정식 함수
         y0: 첫 상태 (batch_size, dim)
         t_span: (처음 때, 끝 때)
-        dt: 때 걸음
+        dt: 때 스텝
         
     반환값:
         t_values: 때 점
@@ -167,7 +167,7 @@ def euler_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
 ```python
 def rk4_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
     """
-    4차 룽게-쿠타 방법의 한 걸음.
+    4차 룽게-쿠타 방법의 한 스텝.
     
     Local error: O(dt^5)
     Global error: O(dt^4)
@@ -176,7 +176,7 @@ def rk4_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
         f: 상미분 방정식 함수
         y: 지금 상태
         t: 지금 때
-        dt: 때 걸음
+        dt: 때 스텝
         
     반환값:
         다음 상태
@@ -213,7 +213,7 @@ from torchdiffeq import odeint
 # torchdiffeq의 맞추어 가는 솔버를 쓴다
 def integrate_adaptive(f, y0, t_eval, method='dopri5', rtol=1e-7, atol=1e-9):
     """
-    맞추어 가는 걸음 크기 다스리기로 상미분 방정식을 적분한다.
+    맞추어 가는 스텝 크기 다스리기로 상미분 방정식을 적분한다.
     
     인수:
         f: 상미분 방정식 함수(torchdiffeq은 (t, y) 차례로 받아야 한다)
@@ -317,7 +317,7 @@ def plot_trajectories(f, initial_conditions, t_span, dt=0.01, ax=None):
         f: 상미분 방정식 함수
         initial_conditions: (y1_0, y2_0) 짝의 목록
         t_span: 적분 구간
-        dt: 때 걸음
+        dt: 때 스텝
         ax: Matplotlib 축
     """
     if ax is None:
@@ -459,7 +459,7 @@ y = odeint(func, y0, t, method='dopri5',
            rtol=1e-7,    # Relative tolerance (default 1e-7)
            atol=1e-9)    # Absolute tolerance (default 1e-9)
 
-# 붙박이 걸음 방법에는 step_size가 필요하다
+# 붙박이 스텝 방법에는 step_size가 필요하다
 y = odeint(func, y0, t, method='euler',
            options={'step_size': 0.1})
 ```

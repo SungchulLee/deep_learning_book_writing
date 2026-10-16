@@ -56,7 +56,7 @@
     판마다:
         잔 배치 (x, y)마다:
             1. 맞서는 보기를 만든다:
-               x_adv = PGD(x, y, ε, α, K)  [K걸음 PGD]
+               x_adv = PGD(x, y, ε, α, K)  [K스텝 PGD]
 
             2. 맞서는 보기의 잃음을 셈한다:
                L_adv = L(θ, x_adv, y)
@@ -72,11 +72,11 @@
        - 든든함의 켜를 정한다
        - 흔함: CIFAR-10에서 ε = 8/255 ≈ 0.031
 
-    2. **K(PGD 걸음)**: PGD 회귀 횟수
-       - 걸음이 많을수록 익힘 때의 치기가 세다
+    2. **K(PGD 스텝)**: PGD 회귀 횟수
+       - 스텝이 많을수록 익힘 때의 치기가 세다
        - 흔함: K = 10(익힘), K = 20(따짐)
 
-    3. **α(걸음 크기)**: PGD 걸음 크기
+    3. **α(스텝 크기)**: PGD 스텝 크기
        - 흔히 α = 2ε/K 또는 α = 2.5ε/K
 
     맞서며 익히기의 클래스:
@@ -97,7 +97,7 @@
        - 잘못 가른 것에는 북돋운 엇갈린 엔트로피, 옳게 가른 것에는 KL 갈림
 
     4. **빠른 맞서며 익히기**(웡 등, 2020):
-       - 잘 들도록 한 걸음 FGSM을 쓴다
+       - 잘 들도록 한 스텝 FGSM을 쓴다
        - 훨씬 빠르나 조금 덜 든든하다
 
     5. **값싼 맞서며 익히기**(샤파히 등, 2019):
@@ -154,7 +154,7 @@
 
             min_θ E_{(x,y)}[ max_{||δ||≤ε} L(θ, x + δ, y) ]
 
-        안쪽 가장 크게 하기를 K걸음 PGD으로 어림한다:
+        안쪽 가장 크게 하기를 K스텝 PGD으로 어림한다:
 
             x_adv = PGD(x, y, ε, α, K)
             θ ← θ - η∇_θ L(θ, x_adv, y)
@@ -166,7 +166,7 @@
         epsilon : float
             흔듦 예산
         alpha : float
-            PGD 걸음 크기
+            PGD 스텝 크기
         num_iter : int
             PGD 회귀 횟수
         """
@@ -192,7 +192,7 @@
                 맞서며 익히기의 흔듦 예산
                 여느 값: CIFAR-10에서 ε = 8/255 ≈ 0.031
             alpha : float, 기본값=0.007
-                익히는 동안의 PGD 걸음 크기
+                익히는 동안의 PGD 스텝 크기
                 흔히 α = 2ε/K이고 K은 num_iter이다
             num_iter : int, 기본값=10
                 익히는 동안의 PGD 회귀 횟수
@@ -278,19 +278,19 @@
                 # 맞서는 그림을 셈한다
                 adv_images = images + delta
 
-                # 앞으로 걸음
+                # 앞으로 스텝
                 outputs = self.model(adv_images)
 
                 # 잃음을 셈한다
                 loss = self.loss_fn(outputs, labels)
 
-                # 되돌아 걸음
+                # 되돌아 스텝
                 self.model.zero_grad()
                 if delta.grad is not None:
                     delta.grad.zero_()
                 loss.backward()
 
-                # 그래디언트 오름 걸음
+                # 그래디언트 오름 스텝
                 if self.norm == 'linf':
                     delta_grad = delta.grad.detach()
                     delta = delta + self.alpha * torch.sign(delta_grad)
@@ -386,11 +386,11 @@
                 # 맞서는 보기를 만든다
                 adv_images = self._generate_adversarial_examples(images, labels)
 
-                # 맞서는 보기로 앞으로 걸음
+                # 맞서는 보기로 앞으로 스텝
                 outputs = self.model(adv_images)
                 loss = self.loss_fn(outputs, labels)
 
-                # 되돌아 걸음과 다듬기
+                # 되돌아 스텝과 다듬기
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -574,7 +574,7 @@
                     weight_decay=5e-4
                 )
 
-            # 기본 짜임개: 여러 걸음 러닝 비율 줄이기
+            # 기본 짜임개: 여러 스텝 러닝 비율 줄이기
             if scheduler is None:
                 scheduler = optim.lr_scheduler.MultiStepLR(
                     optimizer,
@@ -593,7 +593,7 @@
             best_robust_acc = 0.0
 
             print(f"\n{epochs}판 동안 맞서며 익히기를 비롯한다")
-            print(f"ε={self.epsilon}, PGD 걸음={self.num_iter}으로 익힌다")
+            print(f"ε={self.epsilon}, PGD 스텝={self.num_iter}으로 익힌다")
             print("=" * 60)
 
             for epoch in range(1, epochs + 1):
@@ -705,14 +705,14 @@
                 images = images.to(self.device)
                 labels = labels.to(self.device)
 
-                # 맑은 보기로 앞으로 걸음
+                # 맑은 보기로 앞으로 스텝
                 logits_clean = self.model(images)
                 loss_natural = F.cross_entropy(logits_clean, labels)
 
                 # 맞서는 보기를 만든다
                 adv_images = self._generate_adversarial_examples(images, labels)
 
-                # 맞서는 보기로 앞으로 걸음
+                # 맞서는 보기로 앞으로 스텝
                 logits_adv = self.model(adv_images)
 
                 # 맑은 미루어 봄과 맞서는 미루어 봄의 KL 갈림
@@ -726,7 +726,7 @@
                 # 온 TRADES 잃음
                 loss = loss_natural + self.beta * loss_robust
 
-                # 다듬기 한 걸음
+                # 다듬기 한 스텝
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -796,7 +796,7 @@
 </div>
 
 ??? success "연습문제 1 풀이"
-    `optimizer.zero_grad()`이 없으면 PyTorch가 새 그래디언트를 이미 있는 `.grad` 텐서에 갈음하지 않고 더하므로 그래디언트가 회귀마다 쌓인다. 이는 사실상 러닝레이트에 쌓인 걸음 수를 곱하는 계산이라 다듬기가 점점 크고 들쭉날쭉한 걸음을 밟게 된다. 학습 로스는 매끄럽게 모이는 대신 크게 출렁이거나 터진다. 고치기는 쉽다. `loss.backward()`을 부르기 앞서 늘 그래디언트를 0으로 만든다.
+    `optimizer.zero_grad()`이 없으면 PyTorch가 새 그래디언트를 이미 있는 `.grad` 텐서에 갈음하지 않고 더하므로 그래디언트가 회귀마다 쌓인다. 이는 사실상 러닝레이트에 쌓인 스텝 수를 곱하는 계산이라 다듬기가 점점 크고 들쭉날쭉한 스텝을 밟게 된다. 학습 로스는 매끄럽게 모이는 대신 크게 출렁이거나 터진다. 고치기는 쉽다. `loss.backward()`을 부르기 앞서 늘 그래디언트를 0으로 만든다.
 
 ---
 
@@ -838,7 +838,7 @@
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 익힘 걸음 ...
+        # ... 익힘 스텝 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss

@@ -2,7 +2,7 @@
 
 Dueling DQN은 2016년 글 "Dueling Network Architectures for Deep Reinforcement Learning"에서 나왔다. - V(s)과 A(s,a)을 따로 배운 뒤 Q(s,a)으로 아우른다 - 값이 비슷한 액션이 많을 때 도움이 된다.
 
-여기 구현은 Dueling DQN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 Dueling DQN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 

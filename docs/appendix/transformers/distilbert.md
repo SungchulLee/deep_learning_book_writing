@@ -2,7 +2,7 @@
 
 DistilBERT은 2019년 글 "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter"에서 나왔다. - 앎 옮기기: 더 큰 스승에 맞추도록 더 작은 제자 트랜스포머를 학습된이다 - 흔히 켜는 적고 숨은 크기는 비슷하다.
 
-여기 구현은 DistilBERT을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 DistilBERT을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 

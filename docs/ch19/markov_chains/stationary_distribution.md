@@ -158,7 +158,7 @@
             오래 돌리는 흉내내기로 어림하기.
 
             파라메터:
-                n_steps (int): 흉내내기 걸음 수
+                n_steps (int): 흉내내기 스텝 수
                 initial_state (int): 시작 상태
 
             반환값:

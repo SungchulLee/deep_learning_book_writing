@@ -101,7 +101,7 @@ AdamW의 갱신 규칙을 구현하고 Adam과 어디가 다른지 보여라.
     # AdamW: 웨이트 감쇠는 따로 적용된다
     for p in model.parameters():
         p.data *= (1 - lr * weight_decay)  # 분리된 웨이트 감쇠
-        p.data -= lr * m_hat / (v_hat.sqrt() + eps)  # Adam의 걸음
+        p.data -= lr * m_hat / (v_hat.sqrt() + eps)  # Adam의 스텝
     ```
 
 ---

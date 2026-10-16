@@ -202,7 +202,7 @@ class MultiheadAttentionBlock(nn.Module):
 
 def train_transformer_fewshot(model, support, support_labels, query, query_labels, optimizer):
     """
-    트랜스포머 소수 예시 모델의 학습 걸음.
+    트랜스포머 소수 예시 모델의 학습 스텝.
     """
     model.train()
     optimizer.zero_grad()

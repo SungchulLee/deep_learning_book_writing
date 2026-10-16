@@ -2,7 +2,7 @@
 
 A2C / A3C - 이득 움직이는 이-따지는 이 글:
 
-여기 구현은 A2C / A3C을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 A2C / A3C을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -63,7 +63,7 @@ def a2c_loss(logits, values, actions, returns, entropy_coef=0.01, value_coef=0.5
       logits:  (B, A) 폴리시 로짓
       values:  (B,) 따지는 이의 V(s)
       actions: (B,) 한 액션
-      returns: (B,) 겪어 본 되받음(n 걸음 따위)
+      returns: (B,) 겪어 본 되받음(n 스텝 따위)
 
     이득:
       adv = returns - values

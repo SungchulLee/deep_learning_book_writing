@@ -183,7 +183,7 @@ def reverse_sde_sampling(model, sde, shape, n_steps=1000):
             # 점수 셈하기
             score = model(x, t_tensor)
             
-            # 뒤 확률 미분 방정식 걸음
+            # 뒤 확률 미분 방정식 스텝
             drift = f - (g ** 2) * score
             diffusion = g
             

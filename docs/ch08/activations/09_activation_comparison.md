@@ -84,8 +84,8 @@ def train_and_evaluate(model, X_train, y_train, X_test, y_test,
 
     for epoch in range(epochs):
         # 미니배치를 나누지 않고 학습 집합 800개를 한꺼번에 넣는다.
-        # 그래서 에포크 하나가 곧 경사 하강 한 걸음이다. 150 에포크는
-        # 150 걸음일 뿐이므로, 여기서 재는 "수렴 속도"는 미니배치
+        # 그래서 에포크 하나가 곧 경사 하강 한 스텝이다. 150 에포크는
+        # 150 스텝일 뿐이므로, 여기서 재는 "수렴 속도"는 미니배치
         # 학습에서의 수렴 속도와 다를 수 있다
         model.train()
         optimizer.zero_grad()

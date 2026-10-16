@@ -244,7 +244,7 @@ import torch.nn as nn
 def monitor_gradients(model: nn.Module) -> dict[str, dict]:
     """역전파 뒤에 그래디언트 통계를 모은다."""
     # 반드시 loss.backward() 뒤, optimizer.step() 앞에서 불러야 한다.
-    # step()이 끝나면 그래디언트가 다음 걸음을 위해 지워지기 때문이다.
+    # step()이 끝나면 그래디언트가 다음 스텝을 위해 지워지기 때문이다.
     stats = {}
     for name, param in model.named_parameters():
         # grad가 None인 경우가 있다. 아직 역전파를 하지 않았거나,

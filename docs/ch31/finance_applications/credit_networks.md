@@ -430,7 +430,7 @@ def train_credit_network(model, default_history, n_epochs=100, lr=0.01):
             # 맞댐 벌어짐 그래디언트
             loss = pos_fe - neg_fe
             
-            # 손으로 하는 그래디언트 걸음(맞춤 뽑기를 쓰기 때문이다)
+            # 손으로 하는 그래디언트 스텝(맞춤 뽑기를 쓰기 때문이다)
             loss.backward()
             with torch.no_grad():
                 for param in model.parameters():

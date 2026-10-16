@@ -2,7 +2,7 @@
 
 CycleGAN은 2017년 글 "Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks"에서 나왔다. - 생성기 둘(A→B, B→A) - 돌이 한결같음 로스가 되돌릴 수 있음을 다그친다.
 
-여기 구현은 CycleGAN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 CycleGAN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 

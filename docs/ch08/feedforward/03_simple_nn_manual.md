@@ -110,7 +110,7 @@ def backward(X, y_true, y_pred, cache, w2):
 learning_rate = 0.1
 for epoch in range(1000):
     # 200개를 통째로 넣는 전배치 경사 하강이다. 미니배치가 없으므로
-    # 에포크 하나가 곧 한 걸음이다
+    # 에포크 하나가 곧 한 스텝이다
     y_pred, cache = forward(X, w1, b1, w2, b2)
     loss = compute_loss(y, y_pred)
     dw1, db1, dw2, db2 = backward(X, y, y_pred, cache, w2)

@@ -327,7 +327,7 @@ def main():
     print("\nGenerating a single image step-by-step...")
     print("Watch how the image is filled pixel by pixel!")
     
-    # 그림 하나를 만들며 중간 걸음을 보인다
+    # 그림 하나를 만들며 중간 스텝을 보인다
     model.eval()
     height, width = 28, 28
     

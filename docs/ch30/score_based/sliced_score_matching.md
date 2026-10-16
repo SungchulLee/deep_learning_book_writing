@@ -174,7 +174,7 @@ class SlicedScoreMatchingTrainer:
         self.projection_type = projection_type
         
     def train_step(self, x: torch.Tensor) -> dict:
-        """익히기 걸음 하나."""
+        """익히기 스텝 하나."""
         self.score_net.train()
         self.optimizer.zero_grad()
         

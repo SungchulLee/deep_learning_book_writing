@@ -123,7 +123,7 @@ class DCGAN_MNIST:
     
     def train_discriminator(self, real_images: torch.Tensor) -> float:
         """
-        판별기를 한 걸음 익힌다.
+        판별기를 한 스텝 익힌다.
         
         인수:
             real_images: 실제 그림 배치
@@ -158,7 +158,7 @@ class DCGAN_MNIST:
     
     def train_generator(self) -> float:
         """
-        생성기를 한 걸음 익힌다.
+        생성기를 한 스텝 익힌다.
         
         반환값:
             생성기 로스
@@ -187,7 +187,7 @@ class DCGAN_MNIST:
         인수:
             n_epochs: 익히기 바퀴 수
             save_interval: N바퀴마다 표본을 갈무리한다
-            d_steps: 생성기 한 걸음마다 판별기 걸음 수
+            d_steps: 생성기 한 스텝마다 판별기 스텝 수
         """
         dataloader = self.get_dataloader()
         

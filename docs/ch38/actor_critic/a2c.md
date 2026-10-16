@@ -10,7 +10,7 @@
     """
     34.2.2장: 이점 액터-크리틱(A2C)
     =============================================
-    벡터 둘레, n걸음 돌아옴, 액터-크리틱을 함께 익히는
+    벡터 둘레, n스텝 돌아옴, 액터-크리틱을 함께 익히는
     온전한 A2C 구현.
     """
 
@@ -75,7 +75,7 @@
         """
         쉬운 발맞춘 벡터 둘레.
 
-        둘레 N개를 나란히 돌리며 발맞추어 걸음을 옮긴다.
+        둘레 N개를 나란히 돌리며 발맞추어 스텝을 옮긴다.
         """
 
         def __init__(self, env_id: str, n_envs: int, seed: int = 0):
@@ -150,7 +150,7 @@
         max_grad_norm : float
             자르기를 위한 그래디언트 노름의 최댓값.
         use_gae : bool
-            GAE를 쓸지(True) n걸음 돌아옴을 쓸지(False).
+            GAE를 쓸지(True) n스텝 돌아옴을 쓸지(False).
         gae_lambda : float
             GAE 람다 파라메터.
         """
@@ -270,7 +270,7 @@
 
                 returns = advantages + values
             else:
-                # n걸음 돌아옴(여느 A2C)
+                # n스텝 돌아옴(여느 A2C)
                 returns = np.zeros_like(rewards)
                 R = last_value
                 for t in reversed(range(self.n_steps)):

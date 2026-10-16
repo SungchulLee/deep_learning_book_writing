@@ -193,7 +193,7 @@ class HiddenMarkovModel:
         log_likelihoods = []
 
         for iteration in range(max_iter):
-            # E 걸음
+            # E 스텝
             alpha, ll = self.forward_algorithm(observations)
             beta = self.backward_algorithm(observations)
             log_likelihoods.append(ll)
@@ -213,7 +213,7 @@ class HiddenMarkovModel:
                 )
                 xi[t] = numerator / numerator.sum()
 
-            # M 걸음
+            # M 스텝
             self.pi = gamma[0]
             self.A = xi.sum(dim=0) / gamma[:-1].sum(dim=0).unsqueeze(1)
 

@@ -109,7 +109,7 @@ MALA·HMC의 큰 스텝·비유한 경사·급변 곡률을 점검한다. 긴 HM
 
 ```python
 def rwm_acceptance_vs_dimension(sigma_fixed=0.1):
-    """걸음 크기를 붙박았을 때 무작위 걸음 메트로폴리스가 무너짐을 보이기."""
+    """스텝 크기를 붙박았을 때 무작위 스텝 메트로폴리스가 무너짐을 보이기."""
     dimensions = [10, 50, 100, 500, 1000]
     
     for d in dimensions:

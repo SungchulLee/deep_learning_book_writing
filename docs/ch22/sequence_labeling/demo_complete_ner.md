@@ -158,7 +158,7 @@ def demo_architectures():
 
 
 def print_summary():
-    """간추림과 다음 걸음 찍기."""
+    """간추림과 다음 스텝 찍기."""
     print("\n\n" + "="*70)
     print("SUMMARY: NER APPROACH COMPARISON")
     print("="*70)

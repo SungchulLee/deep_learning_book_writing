@@ -364,7 +364,7 @@ class DropConnectConv2d(nn.Module):
         if self.training and self.p > 0:
             # 웨이트와 같은 모양으로 확률 (1-p) 를 채운 뒤 베르누이로 뽑는다.
             # 결과는 살릴 자리가 1, 끌 자리가 0인 마스크다.
-            # 마스크를 매 순전파마다 새로 뽑으므로 걸음마다 다른 부분망이 된다
+            # 마스크를 매 순전파마다 새로 뽑으므로 스텝마다 다른 부분망이 된다
             mask = torch.bernoulli(
                 torch.full_like(self.conv.weight, 1 - self.p)
             )

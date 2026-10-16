@@ -27,7 +27,7 @@ def shares(a: torch.Tensor, b: torch.Tensor) -> bool:
       달라진다. 쪽에 실어 두어도 읽는 이가 다시 얻을 수 없는 수이므로 싣지 않는다.
     • 여기서 가르치려는 것은 번지 값이 아니라 **두 텐서가 같은 저장소를 쓰는가**이다.
       그 견줌은 어디서 돌리든 늘 같은 답이 나온다. 그래서 번지 대신 견줌을 찍는다.
-    • 두 텐서가 *같은* 저장소를 나눠 쓰면 모양이나 걸음이 달라도 이 값이 True이다.
+    • 두 텐서가 *같은* 저장소를 나눠 쓰면 모양이나 스텝이 달라도 이 값이 True이다.
     """
     return a.untyped_storage().data_ptr() == b.untyped_storage().data_ptr()
 

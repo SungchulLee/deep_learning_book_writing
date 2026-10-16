@@ -452,7 +452,7 @@ def apply_repetition_penalty(
     음수 로짓은 벌주기를 곱한다(확률도 줄어든다).
     
     인수:
-        logits: 지금 걸음의 로짓 [batch, vocab]
+        logits: 지금 스텝의 로짓 [batch, vocab]
         generated_ids: 앞서 만든 토막 번호 [batch, seq_len]
         penalty: 벌주기 인자(> 1이면 말리고, < 1이면 북돋운다)
         
@@ -487,7 +487,7 @@ def apply_frequency_presence_penalty(
     잦기 벌주기와 있음 벌주기 쓰기(더하기, OpenAI 방식).
     
     인수:
-        logits: 지금 걸음의 로짓 [batch, vocab]
+        logits: 지금 스텝의 로짓 [batch, vocab]
         generated_ids: 앞서 만든 토막 번호 [batch, seq_len]
         frequency_penalty: 나올 때마다의 벌
         presence_penalty: 하나라도 있으면 주는 일정한 벌
@@ -527,7 +527,7 @@ def apply_no_repeat_ngram(
     이미 나온 n-그램이 다시 나오지 못하게 막기.
     
     인수:
-        logits: 지금 걸음의 로짓 [vocab]
+        logits: 지금 스텝의 로짓 [vocab]
         generated_ids: 앞서 만든 토막 번호(목록)
         n: 막을 n-그램의 크기
         

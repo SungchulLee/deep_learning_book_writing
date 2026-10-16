@@ -11,7 +11,7 @@
     # ============================================================
     # 클래스 조건 DDPM(CIFAR-10) — PyTorch, 주석을 잘 단 코드
     # - 남은 덩이와 (쓸 수 있는) 어텐션을 갖춘 U-Net
-    # - 사인 꼴 때 걸음 임베딩
+    # - 사인 꼴 때 스텝 임베딩
     # - 이름표 조건 주기(때 임베딩에 임베딩을 더함)
     # - 이름표 떨구기로 분류기 없는 이끌기를 쓸 수 있음
     # ============================================================
@@ -34,7 +34,7 @@
     BATCH_SIZE = 128
     LR = 2e-4
     EPOCHS = 5
-    T = 1000                 # 옛부터의 DDPM은 1000걸음을 쓴다
+    T = 1000                 # 옛부터의 DDPM은 1000스텝을 쓴다
     BASE_CH = 64             # 모델 너비. 품질을 위해 늘린다(예컨대 96/128)
     ATTN_RES = {16}          # 이 공간 크기에서 어텐션을 쓴다. 끄려면 set()
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -67,7 +67,7 @@
         return out
 
     # ==========================================
-    # 2) 사인 꼴 때 걸음 임베딩
+    # 2) 사인 꼴 때 스텝 임베딩
     # ==========================================
     class SinusoidalPosEmb(nn.Module):
         def __init__(self, dim):
@@ -75,7 +75,7 @@
             self.dim = dim
 
         def forward(self, t):
-            # t: [B] 정수 때 걸음
+            # t: [B] 정수 때 스텝
             device = t.device
             half = self.dim // 2
             t = t.float()[:, None]              # [B,1]
@@ -310,7 +310,7 @@
 
         def loss(self, x0, y):
             """
-            이름표 y을 조건으로 삼아 아무 때 걸음 t에서 잡음을 헤아린다.
+            이름표 y을 조건으로 삼아 아무 때 스텝 t에서 잡음을 헤아린다.
             분류기 없는 이끌기를 켜면 배치의 일부에서 y을 NULL_CLASS_ID로 아무렇게나 바꾼다.
             """
             b = x0.shape[0]
@@ -331,7 +331,7 @@
         def p_mean_var(self, x_t, t, y, y_null=None, cfg_scale=1.0):
             """
             p(x_{t-1}|x_t)의 평균과 흩어짐을 셈한다.
-            cfg_scale>1이면 CFG를 얻으려고 앞으로 걸음을 두 번 한다(조건 있음과 빈 조건).
+            cfg_scale>1이면 CFG를 얻으려고 앞으로 스텝을 두 번 한다(조건 있음과 빈 조건).
             """
             betas_t = extract(self.betas, t, x_t.shape)
             sqrt_one_minus_alphas_cumprod_t = extract(self.sqrt_one_minus_alphas_cumprod, t, x_t.shape)

@@ -294,7 +294,7 @@ def train_student_with_distillation(student: nn.Module,
             with torch.no_grad():
                 teacher_logits = teacher(data)
             
-            # 제자의 앞으로 걸음
+            # 제자의 앞으로 스텝
             optimizer.zero_grad()
             student_logits = student(data)
             
@@ -682,7 +682,7 @@ class SelfDistillation(nn.Module):
                    indices: torch.Tensor,
                    optimizer: torch.optim.Optimizer) -> Dict[str, float]:
         """
-        스스로 앎 옮기기의 익힘 한 걸음.
+        스스로 앎 옮기기의 익힘 한 스텝.
         """
         self.model.train()
         
@@ -845,7 +845,7 @@ class OnlineDistillation(nn.Module):
                 data: torch.Tensor,
                 labels: torch.Tensor) -> Tuple[List[torch.Tensor], Dict[str, float]]:
         """
-        서로 배우며 모형 모두의 앞으로 걸음.
+        서로 배우며 모형 모두의 앞으로 스텝.
         """
         logits_list = [model(data) for model in self.models]
         
@@ -884,7 +884,7 @@ class OnlineDistillation(nn.Module):
 큰 스승 → 가운데 모형 → 작은 제자
 ```
 
-걸음마다가 가장 작은 모델로 곧바로 옮기는 것보다 쉽다.
+스텝마다가 가장 작은 모델로 곧바로 옮기는 것보다 쉽다.
 
 ```python
 def progressive_distillation(teachers: List[nn.Module],

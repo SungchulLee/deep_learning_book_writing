@@ -124,11 +124,11 @@ latent_dim은 함수 인수가 아니라 외부 변수이며 z는 CPU에서 만�
     ```python
     def cooperative_training_step(energy_net, generator, data_batch, 
                                    opt_E, opt_G, n_langevin=10, lr_langevin=0.01):
-        # 걸음 1: 생성기에서 처음 표본을 만든다
+        # 스텝 1: 생성기에서 처음 표본을 만든다
         z = torch.randn(data_batch.size(0), latent_dim)
         gen_samples = generator(z).detach()
         
-        # 걸음 2: 랑주뱅 액션으로 다듬는다
+        # 스텝 2: 랑주뱅 액션으로 다듬는다
         refined = gen_samples.clone().requires_grad_(True)
         for _ in range(n_langevin):
             energy = energy_net(refined).sum()
@@ -136,7 +136,7 @@ latent_dim은 함수 인수가 아니라 외부 변수이며 z는 CPU에서 만�
             refined = refined - lr_langevin * grad + (2*lr_langevin)**0.5 * torch.randn_like(refined)
             refined = refined.detach().requires_grad_(True)
         
-        # 걸음 3: 에너지 바탕 모델을 고친다
+        # 스텝 3: 에너지 바탕 모델을 고친다
         pos_energy = energy_net(data_batch).mean()
         neg_energy = energy_net(refined.detach()).mean()
         loss_E = pos_energy - neg_energy
@@ -144,7 +144,7 @@ latent_dim은 함수 인수가 아니라 외부 변수이며 z는 CPU에서 만�
         loss_E.backward()
         opt_E.step()
         
-        # 걸음 4: 생성기를 고친다(다듬은 표본에서 배운다)
+        # 스텝 4: 생성기를 고친다(다듬은 표본에서 배운다)
         gen_samples = generator(z)
         loss_G = ((gen_samples - refined.detach())**2).mean()
         opt_G.zero_grad()

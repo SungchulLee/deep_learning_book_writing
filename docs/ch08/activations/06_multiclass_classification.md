@@ -62,7 +62,7 @@ def train_multiclass(model, X_train, y_train, X_test, y_test, epochs=200, lr=0.0
 
     for epoch in range(epochs):
         # 여기서도 미니배치를 나누지 않고 480개를 통째로 넣는다.
-        # 에포크 하나가 경사 하강 한 걸음이다
+        # 에포크 하나가 경사 하강 한 스텝이다
         model.train()
         optimizer.zero_grad()
         logits = model(X_train)

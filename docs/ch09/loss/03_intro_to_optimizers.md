@@ -104,7 +104,7 @@ print("-" * 80)
 criterion = nn.MSELoss()
 
 # 최적화기 - 로스를 줄이도록 파라메터를 갱신한다
-# 러닝레이트(lr)은 갱신 걸음의 크기를 조절한다
+# 러닝레이트(lr)은 갱신 스텝의 크기를 조절한다
 learning_rate = 0.01
 optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 

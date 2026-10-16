@@ -436,12 +436,12 @@
       눌러 담기 견줌 물길:
       ─────────────────────────────────
 
-      1걸음: 바탕 모델을 익힌다
+      스텝1: 바탕 모델을 익힌다
         teacher = AutoModelForSequenceClassification.from_pretrained(
             "bert-base-uncased", num_labels=6)
         # ... 자료 묶음으로 곱게 다듬는다 ...
 
-      2걸음: 더 작은 제자에게 내린다
+      스텝2: 더 작은 제자에게 내린다
         student = AutoModelForSequenceClassification.from_pretrained(
             "distilbert-base-uncased", num_labels=6)
         trainer = DistillationTrainer(
@@ -455,7 +455,7 @@
         )
         trainer.train()
 
-      3걸음: 제자를 양자화한다(그때그때 양자화)
+      스텝3: 제자를 양자화한다(그때그때 양자화)
         import torch.quantization as quant
         quantized_student = quant.quantize_dynamic(
             student,
@@ -463,11 +463,11 @@
             dtype=torch.qint8,
         )
 
-      4걸음: ONNX로 내보낸다
+      스텝4: ONNX로 내보낸다
         torch.onnx.export(student, dummy_input, "student.onnx", ...)
         onnx_pipe = OnnxPipeline("student.onnx", tokenizer, id2label)
 
-      5걸음: 모든 판의 잣대를 잰다
+      스텝5: 모든 판의 잣대를 잰다
         configs = {
             "Baseline":   teacher_pipeline,
             "Distilled":  student_pipeline,

@@ -314,7 +314,7 @@ class PatchMerging(nn.Module):
     위계를 이루는 피처 지도를 위한 조각 합치기 레이어.
     
     공간 해상도를 절반으로 줄이고 통로를 두 배로 늘린다.
-    컨볼루션 뉴럴 넷트웍의 걸음 있는 컨볼루션과 비슷하다.
+    컨볼루션 뉴럴 넷트웍의 스텝 있는 컨볼루션과 비슷하다.
     """
     def __init__(self, input_resolution: tuple, dim: int):
         super().__init__()

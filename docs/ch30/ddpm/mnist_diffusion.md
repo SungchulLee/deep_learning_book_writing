@@ -46,7 +46,7 @@ class MNISTDiffusion:
                  device: str = None):
         """
         인수:
-            timesteps: 확산 때 걸음 수
+            timesteps: 확산 때 스텝 수
             batch_size: 익히기 배치 크기
             learning_rate: 최적화기의 러닝레이트
             device: 익힐 장치('cuda' 또는 'cpu')
@@ -143,7 +143,7 @@ class MNISTDiffusion:
         for images, _ in pbar:
             images = images.to(self.device)
             
-            # 아무 때 걸음을 뽑는다
+            # 아무 때 스텝을 뽑는다
             t = torch.randint(
                 0, self.timesteps,
                 (images.shape[0],),

@@ -109,7 +109,7 @@ class DiscreteDistribution:
                  cardinalities: Dict[str, int],
                  values: Optional[torch.Tensor] = None):
         """
-        이산 확률 분포의 첫걸음을 잡는다.
+        이산 확률 분포의 첫스텝을 잡는다.
         
         인수:
             variables: 차례대로 늘어놓은 변수 이름의 목록

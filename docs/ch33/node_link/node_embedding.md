@@ -54,7 +54,7 @@ def demo():
     print("=" * 60); print("Node Embedding"); print("=" * 60)
     np.random.seed(42); torch.manual_seed(42)
     G = nx.karate_club_graph(); n = G.number_of_nodes()
-    # 걸음 만들기
+    # 스텝 만들기
     walks = []
     for _ in range(10):
         for node in range(n):

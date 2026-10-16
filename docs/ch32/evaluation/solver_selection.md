@@ -39,8 +39,8 @@
    - Non-stiff: Use explicit method (RK4 or DOP853)
 
 3. 빠르기와 정확도 가운데 무엇이 먼저인가?
-   - 빠르기가 결정적: 붙박이 걸음과 헐거운 허용 오차의 RK4
-   - 정확도가 결정적: 맞추어 가는 걸음의 DOP853
+   - 빠르기가 결정적: 붙박이 스텝과 헐거운 허용 오차의 RK4
+   - 정확도가 결정적: 맞추어 가는 스텝의 DOP853
    - Both: DOP853 (adaptive step balances both)
 
 4. 익히기에 미분할 수 있어야 하는가?
@@ -75,7 +75,7 @@ Reason: Handles stiffness; standard choice in scientific computing
 ```
 쓰기: 딸림 상미분 방정식 + DOP853
 Tolerance: 1e-4 to 1e-3 (loosen for faster training)
-되짚을 자리: 10~20걸음마다
+되짚을 자리: 10~20스텝마다
 ```
 
 이 네 블록은 기존 설정 예시이지 모든 작업의 권장값이나 측정 결과가 아니다. 특히 적응형 명시적 방법은 강성이 사라지지 않는 한 작은 안정 스텝을 계속 요구할 수 있다. 단지 정확도가 높다는 이유로 DOP853을 모든 뉴럴 ODE의 기본값으로 고정하지 않는다.

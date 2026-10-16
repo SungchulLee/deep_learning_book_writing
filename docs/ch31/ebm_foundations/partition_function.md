@@ -193,7 +193,7 @@ def annealed_importance_sampling(energy_fn, dim, n_chains=100,
     n_intermediate : int
         중간 분포의 개수
     n_gibbs : int
-        중간 분포마다 깁스 걸음 수
+        중간 분포마다 깁스 스텝 수
     
     반환값
     -------

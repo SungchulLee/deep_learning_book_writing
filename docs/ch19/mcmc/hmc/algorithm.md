@@ -10,22 +10,22 @@ HMC의 한 전이는 운동량 생성, 고정된 수치 궤적과 에너지 차�
 
 ```
 for t = 1 to N:
-    # 걸음 1: 운동량 표집
+    # 스텝 1: 운동량 표집
     v ~ Normal(0, M)
     
-    # 걸음 2: 첫 해밀턴 함수 값 셈하기
+    # 스텝 2: 첫 해밀턴 함수 값 셈하기
     H_current = U(x⁽ᵗ⁻¹⁾) + ½ vᵀ M⁻¹ v
     
-    # 걸음 3: 개구리뜀 적분
+    # 스텝 3: 개구리뜀 적분
     x_prop, v_prop = Leapfrog(x⁽ᵗ⁻¹⁾, v, ε, L)
     
-    # 걸음 4: 운동량 부호 뒤집기(되돌릴 수 있게)
+    # 스텝 4: 운동량 부호 뒤집기(되돌릴 수 있게)
     v_prop = -v_prop
     
-    # 걸음 5: 제안의 해밀턴 함수 값 셈하기
+    # 스텝 5: 제안의 해밀턴 함수 값 셈하기
     H_prop = U(x_prop) + ½ v_propᵀ M⁻¹ v_prop
     
-    # 걸음 6: 메트로폴리스-헤이스팅스 받아들임
+    # 스텝 6: 메트로폴리스-헤이스팅스 받아들임
     α = min(1, exp(H_current - H_prop))
     u ~ Uniform(0, 1)
     
@@ -35,7 +35,7 @@ for t = 1 to N:
         x⁽ᵗ⁾ = x⁽ᵗ⁻¹⁾    # 물리침
 ```
 
-## 2. 걸음마다 자세히
+## 2. 스텝마다 자세히
 
 운동량을 완전히 재생성하면 현재 위치가 목표를 따르는 경우 결합 상태가 π(x)N(p;0,M)를 따른다. 새 운동량은 에너지 면을 바꿀 기회를 주지만 에르고드성을 자동으로 보장하지는 않는다.
 
@@ -86,8 +86,8 @@ class HMC:
             log_prob: (상수배를 빼고) log π(x)을 돌려주는 함수
             grad_log_prob: ∇ log π(x)을 돌려주는 함수
             dim: 타깃 분포의 차원
-            epsilon: 개구리뜀 걸음 크기
-            L: 개구리뜀 걸음 수
+            epsilon: 개구리뜀 스텝 크기
+            L: 개구리뜀 스텝 수
             M: 질량 행렬(기본값: 항등 행렬)
         """
         self.log_prob = log_prob
@@ -116,22 +116,22 @@ class HMC:
         return U + K
     
     def leapfrog(self, x, v):
-        """개구리뜀 L걸음 밟기."""
+        """개구리뜀 L스텝 밟기."""
         x = x.copy()
         v = v.copy()
         
-        # 운동량의 반 걸음
+        # 운동량의 반 스텝
         v = v + (self.epsilon / 2) * self.grad_log_prob(x)
         
-        # 온 걸음
+        # 온 스텝
         for _ in range(self.L - 1):
             x = x + self.epsilon * self.M_inv @ v
             v = v + self.epsilon * self.grad_log_prob(x)
         
-        # 마지막 자리 걸음
+        # 마지막 자리 스텝
         x = x + self.epsilon * self.M_inv @ v
         
-        # 운동량의 마지막 반 걸음
+        # 운동량의 마지막 반 스텝
         v = v + (self.epsilon / 2) * self.grad_log_prob(x)
         
         return x, v

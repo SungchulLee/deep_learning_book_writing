@@ -178,7 +178,7 @@ def train_score_model_mnist(model, dataloader, n_timesteps=1000, epochs=10):
     
     for epoch in range(epochs):
         for images, _ in dataloader:
-            # 아무 때 걸음
+            # 아무 때 스텝
             t = torch.randint(0, n_timesteps, (images.shape[0],))
             
             # 잡음 더하기
@@ -222,7 +222,7 @@ def generate_images(model, n_samples=64, n_timesteps=1000):
         beta_t = betas[t]
         x = (1 / alpha_t.sqrt()) * (x - beta_t / (1 - alpha_bar_t).sqrt() * predicted_noise)
         
-        # 잡음을 더한다(마지막 걸음만 빼고)
+        # 잡음을 더한다(마지막 스텝만 빼고)
         if t > 0:
             x = x + beta_t.sqrt() * torch.randn_like(x)
     
@@ -246,10 +246,10 @@ print("""
 - 배치 크기 맞추기
 
 뽑기 빠르기:
-- 표준: 걸음 1000개(그림 한 장에 10초쯤)
-- DDIM: 걸음 50개(그림 한 장에 0.5초쯤)
-- DPM-Solver: 걸음 20개(그림 한 장에 0.2초쯤)
-- 한결같음 모델: 걸음 한 개!(앞으로 다룰 이야기)
+- 표준: 스텝 1000개(그림 한 장에 10초쯤)
+- DDIM: 스텝 50개(그림 한 장에 0.5초쯤)
+- DPM-Solver: 스텝 20개(그림 한 장에 0.2초쯤)
+- 한결같음 모델: 스텝 한 개!(앞으로 다룰 이야기)
 
 품질 자:
 - FID(프레셰 인셉션 거리)
@@ -340,7 +340,7 @@ if __name__ == "__main__":
         
         for epoch in range(epochs):
             for images, _ in dataloader:
-                # 아무 때 걸음
+                # 아무 때 스텝
                 t = torch.randint(0, n_timesteps, (images.shape[0],))
                 
                 # 잡음 더하기
@@ -384,7 +384,7 @@ if __name__ == "__main__":
             beta_t = betas[t]
             x = (1 / alpha_t.sqrt()) * (x - beta_t / (1 - alpha_bar_t).sqrt() * predicted_noise)
             
-            # 잡음을 더한다(마지막 걸음만 빼고)
+            # 잡음을 더한다(마지막 스텝만 빼고)
             if t > 0:
                 x = x + beta_t.sqrt() * torch.randn_like(x)
         
@@ -405,10 +405,10 @@ if __name__ == "__main__":
     - 배치 크기 맞추기
 
     뽑기 빠르기:
-    - 표준: 걸음 1000개(그림 한 장에 10초쯤)
-    - DDIM: 걸음 50개(그림 한 장에 0.5초쯤)
-    - DPM-Solver: 걸음 20개(그림 한 장에 0.2초쯤)
-    - 한결같음 모델: 걸음 한 개!(앞으로 다룰 이야기)
+    - 표준: 스텝 1000개(그림 한 장에 10초쯤)
+    - DDIM: 스텝 50개(그림 한 장에 0.5초쯤)
+    - DPM-Solver: 스텝 20개(그림 한 장에 0.2초쯤)
+    - 한결같음 모델: 스텝 한 개!(앞으로 다룰 이야기)
 
     품질 자:
     - FID(프레셰 인셉션 거리)

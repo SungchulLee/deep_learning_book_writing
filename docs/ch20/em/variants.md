@@ -66,10 +66,10 @@ def mcem_iteration(X, theta, n_samples, sampler):
     반환값:
         새로 고친 theta
     """
-    # E 걸음: 뒤확률에서 표집
+    # E 스텝: 뒤확률에서 표집
     Z_samples = [sampler(X, theta) for _ in range(n_samples)]
     
-    # M 걸음: 어림한 Q을 가장 크게 하기
+    # M 스텝: 어림한 Q을 가장 크게 하기
     def neg_Q(new_theta):
         return -sum(
             complete_log_likelihood(X, Z, new_theta) 
@@ -116,7 +116,7 @@ GMM에서는 성분별 배정 비중 Sₖ, 가중 일차 적률 Tₖ, **원점 �
 def online_em_step(batch, theta, sufficient_stats, learning_rate):
     """흐름 속 EM에서 작은 배치 하나 다루기."""
     
-    # 배치에 대한 E 걸음
+    # 배치에 대한 E 스텝
     gamma = compute_responsibilities(batch, theta)
     
     # 배치의 충분 통계량 셈하기
@@ -129,7 +129,7 @@ def online_em_step(batch, theta, sufficient_stats, learning_rate):
     sufficient_stats['T'] = (1 - learning_rate) * sufficient_stats['T'] + learning_rate * batch_T * N_total / len(batch)
     sufficient_stats['V'] = (1 - learning_rate) * sufficient_stats['V'] + learning_rate * batch_V * N_total / len(batch)
     
-    # 충분 통계량으로 하는 M 걸음
+    # 충분 통계량으로 하는 M 스텝
     theta['pi'] = sufficient_stats['S'] / sufficient_stats['S'].sum()
     theta['mu'] = sufficient_stats['T'] / sufficient_stats['S'].unsqueeze(1)
     theta['Sigma'] = sufficient_stats['V'] / sufficient_stats['S'].unsqueeze(1).unsqueeze(2)
@@ -229,7 +229,7 @@ class VariationalGMM:
         self.W_ = torch.stack([torch.eye(d) for _ in range(self.K)])
         
     def _compute_responsibilities(self, X: torch.Tensor) -> torch.Tensor:
-        """변분 E 걸음: 기댓값 맡음 몫 셈하기."""
+        """변분 E 스텝: 기댓값 맡음 몫 셈하기."""
         N = X.shape[0]
         
         # 기댓값 로그 섞음 무게: E[log π_k]
@@ -258,7 +258,7 @@ class VariationalGMM:
         return torch.exp(log_rho - log_rho_norm)
     
     def _update_parameters(self, X: torch.Tensor, r: torch.Tensor):
-        """변분 M 걸음: 변분 파라메터 새로 고치기."""
+        """변분 M 스텝: 변분 파라메터 새로 고치기."""
         N = X.shape[0]
         
         # 충분 통계량
@@ -321,10 +321,10 @@ class VariationalGMM:
         prev_elbo = float('-inf')
         
         for iteration in range(max_iter):
-            # 변분 E 걸음
+            # 변분 E 스텝
             r = self._compute_responsibilities(X)
             
-            # M 걸음
+            # M 스텝
             self._update_parameters(X, r)
             
             # ELBO 셈하기

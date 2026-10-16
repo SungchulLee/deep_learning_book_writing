@@ -58,7 +58,7 @@ print("""
 앞으로 가는 흐름: x_0 → x_1 → ... → x_T(잡음을 더한다)
 거꾸로 가는 흐름: x_T ← ... ← x_1 ← x_0(잡음을 지운다)
 
-걸음마다 알맞은 잡음 수준의 점수를 쓴다!
+스텝마다 알맞은 잡음 수준의 점수를 쓴다!
 이것이 바로 확산 모델의 틀이다!
 """)
 
@@ -140,8 +140,8 @@ def annealed_langevin_sampling(model, sigmas, n_samples=500, n_steps_per_sigma=1
     trajectory = []
     
     for sigma_idx, sigma in enumerate(sigmas):
-        # 이 잡음 수준에서의 랑주뱅 걸음
-        epsilon = 2 * (sigma ** 2) / (sigmas[-1] ** 2) * 0.01  # 맞추어 가는 걸음 크기
+        # 이 잡음 수준에서의 랑주뱅 스텝
+        epsilon = 2 * (sigma ** 2) / (sigmas[-1] ** 2) * 0.01  # 맞추어 가는 스텝 크기
         
         for step in range(n_steps_per_sigma):
             with torch.no_grad():
@@ -197,7 +197,7 @@ print("""
 ---------------------
 - 등비 수열: σ_i = σ_max * (σ_min/σ_max)^(i/L)
 - 레이어가 많을수록 옮겨감이 매끄럽지만 뽑기가 느리다
-- 맞추어 가는 걸음 크기: ε_i ∝ σ_i²
+- 맞추어 가는 스텝 크기: ε_i ∝ σ_i²
 
 DDPM과의 이음:
 -----------------
@@ -238,7 +238,7 @@ MODULE 07: Noise Conditional Score Networks
 앞으로 가는 흐름: x_0 → x_1 → ... → x_T(잡음을 더한다)
 거꾸로 가는 흐름: x_T ← ... ← x_1 ← x_0(잡음을 지운다)
 
-걸음마다 알맞은 잡음 수준의 점수를 쓴다!
+스텝마다 알맞은 잡음 수준의 점수를 쓴다!
 이것이 바로 확산 모델의 틀이다!
 
 Training NCSN with 10 noise levels...
@@ -273,7 +273,7 @@ Generating samples via annealed Langevin dynamics...
 ---------------------
 - 등비 수열: σ_i = σ_max * (σ_min/σ_max)^(i/L)
 - 레이어가 많을수록 옮겨감이 매끄럽지만 뽑기가 느리다
-- 맞추어 가는 걸음 크기: ε_i ∝ σ_i²
+- 맞추어 가는 스텝 크기: ε_i ∝ σ_i²
 
 DDPM과의 이음:
 -----------------

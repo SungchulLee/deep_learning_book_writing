@@ -305,7 +305,7 @@ def demo_target_networks():
     net_b = QNetwork(4, 2)
     hard_update(net_b, net_a)
 
-    # net_a에 그래디언트 걸음 10번 흉내
+    # net_a에 그래디언트 스텝 10번 흉내
     optimizer = optim.Adam(net_a.parameters(), lr=0.01)
     for _ in range(10):
         dummy_loss = net_a(torch.randn(16, 4)).sum()

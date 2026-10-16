@@ -58,7 +58,7 @@ def collect_trajectory(
     log_probs : Tensor의 목록
         벌인 액션의 로그 확률.
     rewards : float의 목록
-        걸음마다 받은 리워드.
+        스텝마다 받은 리워드.
     states : ndarray의 목록
         들른 상태.
     """
@@ -291,7 +291,7 @@ def compare_estimator_variance():
 # ---------------------------------------------------------------------------
 
 def demonstrate_gradient_computation():
-    """폴리시 그래디언트를 걸음마다 셈해 보인다."""
+    """폴리시 그래디언트를 스텝마다 셈해 보인다."""
     print("\n" + "=" * 60)
     print("Step-by-Step Policy Gradient Computation")
     print("=" * 60)
@@ -312,7 +312,7 @@ def demonstrate_gradient_computation():
     print(f"Total reward: {sum(rewards):.1f}")
     print(f"Discounted return G_0: {returns[0]:.4f}")
     
-    # 앞쪽 몇 걸음을 보인다
+    # 앞쪽 몇 스텝을 보인다
     print(f"\n{'Step':>4} {'Reward':>8} {'G_t':>10} {'log π':>10}")
     print("-" * 36)
     for t in range(min(10, T)):
@@ -374,7 +374,7 @@ def demonstrate_surrogate_loss():
     print(f"Batch size: {batch_size}")
     print(f"Surrogate loss: {surrogate_loss.item():.6f}")
     
-    # 여느 그래디언트 내림 걸음
+    # 여느 그래디언트 내림 스텝
     optimizer.zero_grad()
     surrogate_loss.backward()
     

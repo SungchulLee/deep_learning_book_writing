@@ -102,13 +102,13 @@ stable_accept_prob는 T를 양의 min_T로 하한 처리하고 아주 작은 오
 temperatures = [100, 80, 60, 40, 20, 10, 5, 2, 1, 0.5, 0.1]
 for T in temperatures:
     for _ in range(steps_per_temp):
-        # 온도 T에서의 메트로폴리스 걸음
+        # 온도 T에서의 메트로폴리스 스텝
         pass
 ```
 ```python
 for t in range(max_iter):
     T = schedule(t)
-    # 온도 T에서의 메트로폴리스 걸음
+    # 온도 T에서의 메트로폴리스 스텝
 ```
 ```python
 def vectorized_sa(E, x0_batch, schedule, n_steps):

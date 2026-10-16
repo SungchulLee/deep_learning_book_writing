@@ -2,7 +2,7 @@
 
 두 방향 RNN / GRU / LSTM - 이음을 두 방향으로 다루기. 핵심 깨침: RNN 하나는 앞으로(t=1..T), 다른 하나는 뒤로(t=T..1) 돌린다,
 
-여기 구현은 Bidirectional RNN / GRU / LSTM을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 Bidirectional RNN / GRU / LSTM을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -52,7 +52,7 @@ class BidirectionalRNN(nn.Module):
       - 앞으로 가는 숨은 상태 h_f (왼쪽 -> 오른쪽)
       - 뒤로 가는 숨은 상태 h_b (오른쪽 -> 왼쪽)
 
-    때 걸음 t마다:
+    때 스텝 t마다:
       앞으로:  h_f[t] = f(x[t], h_f[t-1])
       뒤로: h_b[t] = f(x[t], h_b[t+1])   (때를 거꾸로 돌며 셈한다)
 
@@ -86,14 +86,14 @@ class BidirectionalRNN(nn.Module):
         h_f = torch.zeros(B, self.hidden_size, device=device) if h0_f is None else h0_f
         h_b = torch.zeros(B, self.hidden_size, device=device) if h0_b is None else h0_b
 
-        # ---- 앞으로 걸음 (t = 0..T-1) ----
+        # ---- 앞으로 스텝 (t = 0..T-1) ----
         forward_states = []
         for t in range(T):
             x_t = x[:, t, :]               # (B, input)
             h_f = self.cell_f(x_t, h_f)    # update forward hidden
             forward_states.append(h_f)     # store h_f[t]
 
-        # ---- 뒤로 걸음 (t = T-1..0) ----
+        # ---- 뒤로 스텝 (t = T-1..0) ----
         backward_states_reversed = []
         for t in reversed(range(T)):
             x_t = x[:, t, :]               # (B, input)
@@ -103,7 +103,7 @@ class BidirectionalRNN(nn.Module):
         # 뒤로 간 목록을 되뒤집어 때 차례 0..T-1에 맞춘다
         backward_states = list(reversed(backward_states_reversed))
 
-        # ---- 때 걸음마다 앞으로/뒤로 상태를 아우른다 ----
+        # ---- 때 스텝마다 앞으로/뒤로 상태를 아우른다 ----
         y_steps = []
         for t in range(T):
             hf_t = forward_states[t]       # (B, hidden)

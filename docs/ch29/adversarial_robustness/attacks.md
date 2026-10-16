@@ -377,7 +377,7 @@ class FGSMAttack:
         self.model.zero_grad()
         loss.backward()
         
-        # FGSM 걸음
+        # FGSM 스텝
         grad_sign = images.grad.data.sign()
         perturbed_images = images + self.epsilon * grad_sign
         perturbed_images = torch.clamp(perturbed_images, 0, 1)
@@ -756,14 +756,14 @@ def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
     """
     타깃을 둔 기본 되풀이 방법(되풀이 FGSM).
     
-    목표 클래스 쪽으로 작은 걸음을 여러 번 내딛는다.
+    목표 클래스 쪽으로 작은 스텝을 여러 번 내딛는다.
     
     인수:
         model: 겨눌 분류기
         images: 들임 그림
         target_labels: 바라는 목표 클래스
         epsilon: 가장 큰 온 흔들림(L_inf 한계)
-        alpha: 되풀이마다 걸음 크기
+        alpha: 되풀이마다 스텝 크기
         num_iter: 되풀이 횟수
     
     반환값:
@@ -783,7 +783,7 @@ def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
         model.zero_grad()
         loss.backward()
         
-        # 목표 쪽으로 작은 걸음
+        # 목표 쪽으로 작은 스텝
         adv_images = adv_images - alpha * adv_images.grad.sign()
         
         # 본디 둘레의 엡실론 공으로 도로 쏜다
@@ -806,7 +806,7 @@ def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter,
         images: 들임 그림
         target_labels: 바라는 목표 클래스
         epsilon: 가장 큰 흔들림(L_inf)
-        alpha: 걸음 크기
+        alpha: 스텝 크기
         num_iter: 되풀이 횟수
         random_start: 엡실론 공 안의 아무 점에서 시작할지 여부
     

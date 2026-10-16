@@ -1,6 +1,6 @@
 # Retrace
 
-Retrace은 여러 걸음 때 차이 학습하기의 벗어난 폴리시 바로잡기 방법으로, 다른 폴리시가 모은 데이터에서 안전하고 분산이 작은 리턴 어림을 준다. 잘라 낸 중요도 샘플링 비 $c_i = \lambda \min(1, \pi/\mu)$을 써서 액션 폴리시가 타깃 폴리시에서 크게 벗어나면 추적을 저절로 끊는다. 이로써 액션 폴리시와 상관없이 올바른 밸류 함수로 수렴이 보장되어 경험 리플레이와 나눠 하는 학습 자리에 특히 쓸모 있다.
+Retrace은 여러 스텝 때 차이 학습하기의 벗어난 폴리시 바로잡기 방법으로, 다른 폴리시가 모은 데이터에서 안전하고 분산이 작은 리턴 어림을 준다. 잘라 낸 중요도 샘플링 비 $c_i = \lambda \min(1, \pi/\mu)$을 써서 액션 폴리시가 타깃 폴리시에서 크게 벗어나면 추적을 저절로 끊는다. 이로써 액션 폴리시와 상관없이 올바른 밸류 함수로 수렴이 보장되어 경험 리플레이와 나눠 하는 학습 자리에 특히 쓸모 있다.
 
 ## 1. 코드
 
@@ -9,7 +9,7 @@ Retrace은 여러 걸음 때 차이 학습하기의 벗어난 폴리시 바로�
 35.3.2 Retrace(λ)
 ==================
 
-리트레이스(λ)로 폴리시 밖을 바로잡은 여러 걸음 돌아옴.
+리트레이스(λ)로 폴리시 밖을 바로잡은 여러 스텝 돌아옴.
 """
 
 import torch
@@ -35,9 +35,9 @@ def compute_retrace_targets(
     """자취 하나의 리트레이스(λ) 타깃을 셈한다.
     
     인수:
-        q_values: 때 걸음마다 (s_t, a_t)에서의 Q 값
-        next_q_max: 때 걸음마다의 max_a' Q(s_{t+1}, a')
-        rewards: 때 걸음마다의 리워드
+        q_values: 때 스텝마다 (s_t, a_t)에서의 Q 값
+        next_q_max: 때 스텝마다의 max_a' Q(s_{t+1}, a')
+        rewards: 때 스텝마다의 리워드
         dones: 끝남 깃발(1.0이면 끝났다)
         target_policy_probs: 타깃(이제) 폴리시 아래의 π(a_t | s_t)
         behavior_policy_probs: 액션(자료) 폴리시 아래의 μ(a_t | s_t)
@@ -213,7 +213,7 @@ def demo_retrace():
             print(f"    λ={lam}, P(greedy)={greedy_frac}: "
                   f"expected trace = {expected_len:.1f} steps")
     
-    # --- n걸음과 견주기 ---
+    # --- n스텝과 견주기 ---
     print("\n--- Retrace vs N-step (with off-policy data) ---")
     T = 10
     q_vals = torch.ones(T) * 5.0
@@ -228,7 +228,7 @@ def demo_retrace():
     retrace_targets = compute_retrace_targets(
         q_vals, next_q_max, rewards, dones, target_probs, behavior_probs)
     
-    # n걸음(바로잡기 없음)
+    # n스텝(바로잡기 없음)
     nstep_targets = compute_retrace_targets(
         q_vals, next_q_max, rewards, dones,
         torch.ones(T), torch.ones(T))  # c_i = λ 늘
@@ -315,7 +315,7 @@ Retrace demo complete!
 </div>
 
 ??? success "연습문제 2 풀이"
-    이 구조 고르기는 여러 걸음 학습에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 그래디언트가 사라지는 것을 피한다. 로스 함수는 일의 클래스에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 로스) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
+    이 구조 고르기는 여러 스텝 학습에서 자리 잡은 가장 좋은 방식을 따른다. 보기로 ReLU 깨움은 비선형을 주면서 양의 입력에서 그래디언트가 사라지는 것을 피한다. 로스 함수는 일의 클래스에 맞게 고른다(분류에는 교차 엔트로피, 회귀에는 평균 제곱 어긋남). 다른 것으로 바꾸면(보기로 시그모이드 깨움, L1 로스) 최적화의 풍경이 바뀌어 성능이 나빠질 수 있지만 어떤 상황에서는 바꿈이 이로울 수도 있다.
 
 ---
 

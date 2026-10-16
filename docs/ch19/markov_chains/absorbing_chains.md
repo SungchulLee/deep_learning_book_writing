@@ -44,7 +44,7 @@
     핵심 양:
     - 바탕 행렬: N = (I - Q)^{-1}
     - N[i][j] = i에서 시작해 지나가는 상태 j에 들르는 기댓값 횟수
-    - 흡수까지의 기댓값 걸음 수: t = N × 1(1로 채운 열벡터)
+    - 흡수까지의 기댓값 스텝 수: t = N × 1(1로 채운 열벡터)
     - 흡수 확률: B = N × R
     """
 
@@ -151,16 +151,16 @@
 
         def expected_steps_to_absorption(self):
             """
-            상태마다 흡수까지의 기댓값 걸음 수 셈하기.
+            상태마다 흡수까지의 기댓값 스텝 수 셈하기.
 
             반환값:
-                dict: 지나가는 상태마다의 기댓값 걸음 수
+                dict: 지나가는 상태마다의 기댓값 스텝 수
 
             수학 공식:
             t = N × 1(여기서 1은 1로 채운 열벡터)
 
             해석:
-            t[i] = 지나가는 상태 i에서 시작해 흡수까지의 기댓값 걸음 수
+            t[i] = 지나가는 상태 i에서 시작해 흡수까지의 기댓값 스텝 수
             """
             if not hasattr(self, 'N'):
                 self.fundamental_matrix()
@@ -206,14 +206,14 @@
 
         def variance_steps_to_absorption(self):
             """
-            흡수까지 걸음 수의 흩어짐 셈하기.
+            흡수까지 스텝 수의 흩어짐 셈하기.
 
             반환값:
                 dict: 지나가는 상태마다의 흩어짐
 
             수학 공식:
             Var[T_i] = (2N - I) × t - t²
-            여기서 t은 기댓값 걸음 수 벡터이다
+            여기서 t은 기댓값 스텝 수 벡터이다
             """
             if not hasattr(self, 'N'):
                 self.fundamental_matrix()
@@ -274,7 +274,7 @@
             row = " ".join(f"{N[i,j]:8.4f}" for j in range(len(chain.transient_names)))
             print(f"{name:8s} {row}")
 
-        # 흡수까지의 기댓값 걸음 수
+        # 흡수까지의 기댓값 스텝 수
         print("\n" + "-" * 70)
         print("Expected Steps to Absorption:")
         expected_steps = chain.expected_steps_to_absorption()

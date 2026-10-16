@@ -142,7 +142,7 @@ class BayesianLogisticRegression:
             S = sigma * (1 - sigma)
             H = X.T @ (S.unsqueeze(1) * X) + self.alpha * torch.eye(D, dtype=torch.float64)
             
-            # 뉴턴 걸음
+            # 뉴턴 스텝
             delta = torch.linalg.solve(H, grad)
             w = w + delta
             
@@ -240,7 +240,7 @@ H를 음의 로그 사후 헤시안으로 정의하면 뉴턴 갱신의 부호�
     # 구현은 주제에 따라 달라진다.
     # 켤레 모형: 닫힌 꼴 뒤확률 새로 고치기.
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
-    # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
+    # 핵심 스텝: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
     ```
 
 ## 정리하며

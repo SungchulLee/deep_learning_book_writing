@@ -216,26 +216,26 @@ def importance_sampling(h_function, target_log_pdf, proposal_dist,
     
     여기서 w(θ) = π(θ)/q(θ)이고 θᵢ ~ q(θ)이다
     """
-    # 걸음 1: 제안 q(θ)에서 표본 뽑기
+    # 스텝 1: 제안 q(θ)에서 표본 뽑기
     samples = proposal_dist.sample((n_samples,))
     
-    # 걸음 2: 로그 밀도 값 매기기
+    # 스텝 2: 로그 밀도 값 매기기
     log_target = target_log_pdf(samples)
     log_proposal = proposal_dist.log_prob(samples)
     
-    # 걸음 3: 중요도 무게 셈하기(안정을 위해 로그 공간에서)
+    # 스텝 3: 중요도 무게 셈하기(안정을 위해 로그 공간에서)
     # w(θ) = π(θ)/q(θ)  →  log w(θ) = log π(θ) - log q(θ)
     log_weights = log_target - log_proposal
     weights = torch.exp(log_weights)
     
-    # 걸음 4: 표본 점에서 함수 h 값 매기기
+    # 스텝 4: 표본 점에서 함수 h 값 매기기
     h_values = h_function(samples)
     
-    # 걸음 5: 중요도 표집 어림값 셈하기: (1/n) Σᵢ h(θᵢ) w(θᵢ)
+    # 스텝 5: 중요도 표집 어림값 셈하기: (1/n) Σᵢ h(θᵢ) w(θᵢ)
     weighted_h = h_values * weights
     estimate = torch.mean(weighted_h)
     
-    # 걸음 6: 표준 오차 어림하기
+    # 스텝 6: 표준 오차 어림하기
     variance = torch.var(weighted_h, unbiased=True)
     se = torch.sqrt(variance / n_samples)
     

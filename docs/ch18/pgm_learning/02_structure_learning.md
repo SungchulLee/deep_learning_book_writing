@@ -39,7 +39,7 @@
 
     지은이: 교육용 ML 팀
     수준: 나아간 단계
-    미리 볼 것: 첫걸음과 중간 수준의 모든 모듈
+    미리 볼 것: 첫스텝과 중간 수준의 모든 모듈
     """
 
     import numpy as np
@@ -156,7 +156,7 @@
 
         def __init__(self, alpha: float = 0.05):
             """
-            PC 알고리즘의 첫걸음을 잡는다.
+            PC 알고리즘의 첫스텝을 잡는다.
 
             인수:
                 alpha: 독립 검정의 유의수준
@@ -181,7 +181,7 @@
             print(f"Variables: {variables}")
             print("-" * 70)
 
-            # 걸음 1: 완전 무방향 그래프에서 시작
+            # 스텝 1: 완전 무방향 그래프에서 시작
             graph = nx.Graph()
             graph.add_nodes_from(variables)
             for i in range(n):
@@ -190,7 +190,7 @@
 
             print(f"\nStep 1: Started with complete graph ({graph.number_of_edges()} edges)")
 
-            # 걸음 2: 조건부 독립에 따라 변 지우기
+            # 스텝 2: 조건부 독립에 따라 변 지우기
             # 조건 배치의 크기를 늘려 가며 검정하기
             separating_sets = {}  # 나중을 위해 가름 집합을 담아 둔다
 
@@ -248,7 +248,7 @@
 
         def __init__(self, data: pd.DataFrame):
             """
-            점수 기반 배우기의 첫걸음을 잡는다.
+            점수 기반 배우기의 첫스텝을 잡는다.
 
             인수:
                 data: 학습 자료
@@ -339,7 +339,7 @@
 
             언덕 오르기:
             1. 빈 그래프(또는 무작위 그래프)에서 시작한다
-            2. 걸음마다 변 하나짜리 손질을 모두 해 본다
+            2. 스텝마다 변 하나짜리 손질을 모두 해 본다
             3. 점수를 가장 많이 올리는 손질을 한다
             4. 더 나아질 수 없으면 멈춘다
 

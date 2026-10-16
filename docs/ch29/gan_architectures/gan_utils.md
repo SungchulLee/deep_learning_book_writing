@@ -155,7 +155,7 @@ def interpolate_latent(generator: nn.Module, z1: torch.Tensor, z2: torch.Tensor,
         generator: 생성기 뉴럴 넷트웍
         z1: 첫째 숨은 벡터
         z2: 둘째 숨은 벡터
-        steps: 사이 메우기 걸음 수
+        steps: 사이 메우기 스텝 수
         device: 돌릴 장치
         filename: 내놓을 파일 이름
     """

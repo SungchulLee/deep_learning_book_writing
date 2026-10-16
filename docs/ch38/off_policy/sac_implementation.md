@@ -149,7 +149,7 @@ class SAC:
     batch_size : int
         익힘 작은 배치 크기.
     warmup_steps : int
-        익히기 앞서 벌이는 아무 살펴보기 걸음.
+        익히기 앞서 벌이는 아무 살펴보기 스텝.
     auto_alpha : bool
         온도를 저절로 벼릴지 여부.
     """

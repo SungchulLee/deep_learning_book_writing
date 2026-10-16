@@ -374,7 +374,7 @@ def proximal_l1(weights: torch.Tensor, lambda_l1: float,
     # 식을 뜯어보면, 부호는 그대로 두고 크기에서 threshold만큼을 빼되
     # 음수가 되면 0에서 멈춘다. |w| <= threshold인 웨이트는 모두 0으로
     # 떨어지고, 살아남은 웨이트도 threshold만큼 0 쪽으로 당겨진다.
-    # 임계가 lambda * lr인 까닭은 한 걸음에 벌점이 미치는 크기가
+    # 임계가 lambda * lr인 까닭은 한 스텝에 벌점이 미치는 크기가
     # 그만큼이기 때문이다
     threshold = lambda_l1 * lr
     return torch.sign(weights) * torch.clamp(torch.abs(weights) - threshold, min=0)
@@ -392,7 +392,7 @@ class ProximalL1Optimizer:
         with torch.no_grad():
             for param in self.model.parameters():
                 if param.grad is not None:
-                    # 두 걸음을 나누어 밟는 것이 근접 경사 하강법의 요체다.
+                    # 두 스텝을 나누어 밟는 것이 근접 경사 하강법의 요체다.
                     # 먼저 벌점을 뺀 로스만으로 보통의 경사 하강을 하고,
                     # 그다음 벌점을 임계화라는 별도의 연산으로 적용한다.
                     # |w|는 0에서 미분할 수 없으므로 벌점을 그래디언트에

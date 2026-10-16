@@ -44,7 +44,7 @@ class BayesianRegimeDetector:
     
     def update(self, r_t: float) -> torch.Tensor:
         """새 수익률 관측이 주어졌을 때 국면 확률을 새로 고친다."""
-        # 예측 걸음
+        # 예측 스텝
         predicted = self.A.T @ self.filtered_prob
         
         # 국면마다의 가능도
@@ -52,7 +52,7 @@ class BayesianRegimeDetector:
             -0.5 * ((r_t - self.mu) / self.sigma) ** 2
         ) / self.sigma
         
-        # 새로 고치기 걸음
+        # 새로 고치기 스텝
         unnormalized = likelihood * predicted
         self.filtered_prob = unnormalized / unnormalized.sum()
         
@@ -267,7 +267,7 @@ class BayesianSignalTracker:
     # 구현은 주제에 따라 달라진다.
     # 켤레 모형: 닫힌 꼴 뒤확률 새로 고치기.
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
-    # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
+    # 핵심 스텝: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
     ```
 
 ## 정리하며

@@ -155,7 +155,7 @@ REINFORCE는 어림 쌓인 리워드를 곧바로 가장 좋게 하여 파라메
                     returns.insert(0, G)
                 returns = torch.tensor(returns, dtype=torch.float32)
             else:
-                # 온 자취 돌아옴: 모든 때 걸음에 R(τ)로 무게를 준다
+                # 온 자취 돌아옴: 모든 때 스텝에 R(τ)로 무게를 준다
                 R = sum(self.gamma ** t * r for t, r in enumerate(rewards))
                 returns = torch.full((len(rewards),), R, dtype=torch.float32)
 

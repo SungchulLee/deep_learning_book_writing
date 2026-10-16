@@ -229,7 +229,7 @@
 
             반환값:
                 generated: 만들어진 순차열 (배치 크기, seq_len)
-                all_attentions: 걸음마다의 어텐션 웨이트 (배치 크기, seq_len, src_len)
+                all_attentions: 스텝마다의 어텐션 웨이트 (배치 크기, seq_len, src_len)
             """
             self.eval()
 

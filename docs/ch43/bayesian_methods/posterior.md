@@ -147,7 +147,7 @@ $$
 \frac{d\theta}{dt} = M^{-1} \rho, \quad \frac{d\rho}{dt} = \nabla_\theta \log p(\theta \mid \mathcal{D})
 $$
 
-**Leapfrog 적분기**(걸음 크기 $\epsilon$으로 $L$걸음):
+**Leapfrog 적분기**(스텝 크기 $\epsilon$으로 $L$스텝):
 
 $$
 \rho^{(t+1/2)} = \rho^{(t)} + \frac{\epsilon}{2} \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D})
@@ -164,7 +164,7 @@ $$
 **HMC 알고리즘**:
 
 1. 밀어 나감을 뽑는다: $\rho \sim \mathcal{N}(0, M)$
-2. Leapfrog을 $L$걸음 돌린다
+2. Leapfrog을 $L$스텝 돌린다
 3. 메트로폴리스 바로잡기로 받거나 물린다
 
 **나은 점**: 사후분포를 잘 둘러보고 표본끼리 덜 얽힌다.
@@ -193,9 +193,9 @@ $$
 \boxed{\theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D}) + \eta_t, \quad \eta_t \sim \mathcal{N}(0, \epsilon_t I)}
 $$
 
-**핵심 깨침**: 걸음 크기가 $\epsilon_t \to 0$으로 줄면 메트로폴리스 받기 걸음을 건너뛸 수 있다.
+**핵심 깨침**: 스텝 크기가 $\epsilon_t \to 0$으로 줄면 메트로폴리스 받기 스텝을 건너뛸 수 있다.
 
-**걸음 크기 구조**: 다음을 채워야 한다.
+**스텝 크기 구조**: 다음을 채워야 한다.
 
 $$
 \sum_{t=1}^\infty \epsilon_t = \infty, \quad \sum_{t=1}^\infty \epsilon_t^2 < \infty
@@ -247,7 +247,7 @@ $$
 \epsilon_t = \epsilon_0 \left( \cos\left(\frac{\pi \, \text{mod}(t, T_{\text{cycle}})}{T_{\text{cycle}}}\right) + 1 \right) / 2
 $$
 
-걸음 크기가 작아지는 돌림의 끝에서 표본을 모은다.
+스텝 크기가 작아지는 돌림의 끝에서 표본을 모은다.
 
 ---
 
@@ -695,7 +695,7 @@ class SimpleNN:
         X: np.ndarray,
         weights: Dict[str, np.ndarray]
     ) -> np.ndarray:
-        """앞으로 걸음."""
+        """앞으로 스텝."""
         h = X
         for i in range(self.n_layers):
             h = h @ weights[f'W{i}'] + weights[f'b{i}']
@@ -1163,7 +1163,7 @@ class MeanFieldVI(BayesianInference):
             sigma = np.exp(self.log_sigma)
             theta = self.mu + sigma * eps
             
-            # 앞으로 걸음
+            # 앞으로 스텝
             weights = self.network.unflatten_weights(theta)
             pred = self.network.forward(X, weights)
             

@@ -106,7 +106,7 @@ class CharRNN(nn.Module):
         # hidden: (h_n, c_n) - 마지막 숨은 상태와 칸 상태
         lstm_out, hidden = self.lstm(embedded, hidden)
         
-        # 3. 헤아리기에 마지막 때 걸음만 쓴다
+        # 3. 헤아리기에 마지막 때 스텝만 쓴다
         # 차례 다음에 오는 글자를 헤아리려 한다
         # 꼴: [배치, 숨은 차원]
         last_output = lstm_out[:, -1, :]
@@ -128,7 +128,7 @@ class CharRNN(nn.Module):
         1. 씨앗 차례에서 시작한다
         2. 다음 글자를 헤아린다
         3. 헤아린 값을 차례에 덧붙인다
-        4. 걸음 2-3을 되풀이한다
+        4. 스텝 2-3을 되풀이한다
         
         인수:
             start_sequence: 글자 어깨수의 씨앗 차례 [sequence_length]

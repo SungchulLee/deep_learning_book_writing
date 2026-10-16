@@ -140,8 +140,8 @@ def anneal_langevin_sampling(model, sigmas, n_samples=100, n_steps_per_sigma=100
         model: 익힌 잡음 조건 점수 뉴럴 넷트웍 모델
         sigmas: 잡음 짜임(줄어드는 차례), 보기: [10, 1, 0.1, 0.01]
         n_samples: 만들 표본의 개수
-        n_steps_per_sigma: 잡음 수준마다 랑주뱅 걸음 수
-        step_size_ratio: σ²에 대한 걸음 크기의 몫
+        n_steps_per_sigma: 잡음 수준마다 랑주뱅 스텝 수
+        step_size_ratio: σ²에 대한 스텝 크기의 몫
     
     반환값:
         samples: 마지막 표본, 꼴 (n_samples, dim)
@@ -161,7 +161,7 @@ def anneal_langevin_sampling(model, sigmas, n_samples=100, n_steps_per_sigma=100
                 # 지금 잡음 수준의 점수를 셈한다
                 score = model(x, sigma)
                 
-                # 랑주뱅 걸음
+                # 랑주뱅 스텝
                 noise = torch.randn_like(x)
                 x = x + (step_size / 2) * score + np.sqrt(step_size) * noise
             

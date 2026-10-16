@@ -106,7 +106,7 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 # =============================================================================
 
 for epoch in range(num_epochs):
-    running_loss = 0.0      # 200걸음마다 찍고 0으로 되돌리는 값
+    running_loss = 0.0      # 200스텝마다 찍고 0으로 되돌리는 값
     epoch_loss = 0.0        # 세대 전체를 더하는 값
     for i, (images, labels) in enumerate(train_loader):
         images, labels = images.to(device), labels.to(device)
@@ -117,9 +117,9 @@ for epoch in range(num_epochs):
         optimizer.step()
         running_loss += loss.item()
         epoch_loss += loss.item()
-        # 한 세대가 782걸음이므로 200, 400, 600 에서 세 줄만 찍힌다. 남은 182걸음은
+        # 한 세대가 782스텝이므로 200, 400, 600 에서 세 줄만 찍힌다. 남은 182스텝은
         # running_loss 에 쌓였다가 다음 세대 첫머리에서 버려지므로, 세대마다 뒤쪽
-        # 23.3%는 이 세 줄에 들어오지 않는다. 그래서 그 182걸음까지 포함한 세대
+        # 23.3%는 이 세 줄에 들어오지 않는다. 그래서 그 182스텝까지 포함한 세대
         # 전체의 평균을 epoch_loss 로 따로 찍는다.
         if (i + 1) % 200 == 0:
             print(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{len(train_loader)}], '
@@ -221,7 +221,7 @@ $$-\ln \frac{1}{10} = \ln 10 \approx 2.3026$$
 
 클래스별 재현율을 보면 여덟 클래스가 0%이고 개구리 980장과 고양이 90장을 맞힌다. 전체 정확도 10.70%만으로는 이런 불균형한 오류를 알 수 없다. 다만 정답을 맞힌 클래스의 분포만으로 모든 예측 레이블의 분포를 복원할 수는 없으므로 혼동 행렬과 예측 클래스 빈도도 확인한다.
 
-### 2.2 걸음이 모자란 것인가, 용량이 모자란 것인가
+### 2.2 스텝이 모자란 것인가, 용량이 모자란 것인가
 
 낮은 정확도의 원인은 모델 표현력, 러닝레이트·옵티마이저·기간, 전처리와 구현 등 여러 가지이다. 한 번의 결과를 모델 용량의 상한으로 해석하지 않고 조건을 하나씩 바꾸는 비교로 가능한 원인을 좁힌다.
 

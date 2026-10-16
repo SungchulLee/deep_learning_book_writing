@@ -122,9 +122,9 @@ $$
 들임: 그림 I, CNN 모형 f, 겨눈 클래스 c, 겨눈 켜 l
 내놓기: 열 그림 L_GradCAM
 
-1. 앞으로 걸음: 켜 l의 결 그림 A^k을 셈한다
-2. 앞으로 걸음: 클래스 점수 y^c을 셈한다
-3. 되짚기 걸음: 그래디언트 ∂y^c/∂A^k을 셈한다
+1. 앞으로 스텝: 켜 l의 결 그림 A^k을 셈한다
+2. 앞으로 스텝: 클래스 점수 y^c을 셈한다
+3. 되짚기 스텝: 그래디언트 ∂y^c/∂A^k을 셈한다
 4. 결 그림 k마다:
    α_k^c = 온세상고르게모으기(∂y^c/∂A^k)
 5. 짐 실은 아우름을 셈한다:
@@ -169,11 +169,11 @@ class GradCAM:
         self.target_layer.register_full_backward_hook(self._save_gradient)
 
     def _save_activation(self, module, input, output):
-        """앞으로 걸음의 살아남을 붙드는 갈고리."""
+        """앞으로 스텝의 살아남을 붙드는 갈고리."""
         self.activations = output.detach()
 
     def _save_gradient(self, module, grad_input, grad_output):
-        """되짚기 걸음의 그래디언트를 붙드는 갈고리."""
+        """되짚기 스텝의 그래디언트를 붙드는 갈고리."""
         self.gradients = grad_output[0].detach()
 
     def __call__(
@@ -199,7 +199,7 @@ class GradCAM:
         self.model.eval()
         image_tensor = image_tensor.to(device)
 
-        # 앞으로 걸음 - 앞으로 갈고리를 당긴다
+        # 앞으로 스텝 - 앞으로 갈고리를 당긴다
         output = self.model(image_tensor)
 
         # 겨눈 클래스를 정한다
@@ -209,7 +209,7 @@ class GradCAM:
         # 겨눈 클래스의 점수를 집는다
         target_score = output[0, target_class]
 
-        # 되짚기 걸음 - 되짚기 갈고리를 당긴다
+        # 되짚기 스텝 - 되짚기 갈고리를 당긴다
         self.model.zero_grad()
         target_score.backward()
 

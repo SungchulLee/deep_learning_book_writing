@@ -105,9 +105,9 @@ $$
 들임: 그림 I, CNN 모형 f, 겨눈 클래스 c, 겨눈 켜 l
 내놓기: 열 그림 L_GradCAM++
 
-1. 앞으로 걸음: 켜 l의 살아남 A^k을 셈한다
-2. 앞으로 걸음: 클래스 점수 y^c(또는 소프트맥스 S^c)을 셈한다
-3. 되짚기 걸음: 그래디언트 g = ∂y^c/∂A^k을 셈한다
+1. 앞으로 스텝: 켜 l의 살아남 A^k을 셈한다
+2. 앞으로 스텝: 클래스 점수 y^c(또는 소프트맥스 S^c)을 셈한다
+3. 되짚기 스텝: 그래디언트 g = ∂y^c/∂A^k을 셈한다
 4. 그래디언트의 거듭제곱을 셈한다:
    g² = g ⊙ g (원소마다의 제곱)
    g³ = g ⊙ g ⊙ g (원소마다의 세제곱)
@@ -162,7 +162,7 @@ class GradCAMPlusPlus:
         self._register_hooks()
 
     def _register_hooks(self):
-        """겨눈 켜에 앞으로 걸음과 되짚기 갈고리를 건다."""
+        """겨눈 켜에 앞으로 스텝과 되짚기 갈고리를 건다."""
 
         def forward_hook(module, input, output):
             self.activations = output.detach()
@@ -196,7 +196,7 @@ class GradCAMPlusPlus:
         self.model.eval()
         input_tensor = input_tensor.to(device)
 
-        # 앞으로 걸음
+        # 앞으로 스텝
         output = self.model(input_tensor)
 
         # 겨눈 클래스를 정한다
@@ -206,7 +206,7 @@ class GradCAMPlusPlus:
         # 그래디언트가 더 잘 굴러가도록 소프트맥스 점수를 쓴다
         score = F.softmax(output, dim=1)[0, target_class]
 
-        # 되짚기 걸음
+        # 되짚기 스텝
         self.model.zero_grad()
         score.backward(retain_graph=True)
 

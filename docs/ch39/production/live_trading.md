@@ -235,7 +235,7 @@ def demo_live_trading():
 
         result = system.run_step(prices_dict)
         if step % 3 == 0:
-            print(f"\n걸음 {step}: 몫={np.round(result['weights'], 3)}")
+            print(f"\n스텝 {step}: 몫={np.round(result['weights'], 3)}")
 
     print(f"\n마지막 주문 수: {len(system.order_manager.orders)}")
     print(f"결 곳간의 종목: {list(system.feature_store.feature_cache.keys())}")
@@ -255,13 +255,13 @@ if __name__ == "__main__":
 종목: ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'META']
 첫 밑천: $1,000,000
 
-걸음 0: 몫=[0.2 0.2 0.2 0.2 0.2]
+스텝 0: 몫=[0.2 0.2 0.2 0.2 0.2]
 
-걸음 3: 몫=[0.2 0.2 0.2 0.2 0.2]
+스텝 3: 몫=[0.2 0.2 0.2 0.2 0.2]
 
-걸음 6: 몫=[0.2 0.2 0.2 0.2 0.2]
+스텝 6: 몫=[0.2 0.2 0.2 0.2 0.2]
 
-걸음 9: 몫=[0.2 0.2 0.2 0.2 0.2]
+스텝 9: 몫=[0.2 0.2 0.2 0.2 0.2]
 
 마지막 주문 수: 5
 결 곳간의 종목: ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'META']

@@ -10,7 +10,7 @@
 텐서의 기억 자리 구조와 보기/베끼기 액션.
 
 Covers:
-- transpose()/permute()의 보기, 걸음 바뀜, .contiguous()
+- transpose()/permute()의 보기, 스텝 바뀜, .contiguous()
 - view()와 reshape()과 clone() 견주기
 - expand()과 repeat() 견주기
 - 간단한 gather()/scatter_() 맛보기(자리 번호로 옮기기)

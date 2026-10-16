@@ -108,7 +108,7 @@ class RestrictedBoltzmannMachine(nn.Module):
     
     def contrastive_divergence(self, v0):
         """
-        맞댐 벌어짐 k걸음(CD-k) 익히기.
+        맞댐 벌어짐 k스텝(CD-k) 익히기.
         
         어림한 그래디언트: ∇L ≈ E_data[vh] - E_model_k[vh]
         """
@@ -117,7 +117,7 @@ class RestrictedBoltzmannMachine(nn.Module):
         # 양의 국면: 자료에서 뽑는다
         ph0, h0 = self.sample_hidden(v0)
         
-        # 음의 국면: 깁스 뽑기 k걸음
+        # 음의 국면: 깁스 뽑기 k스텝
         vk, hk = v0, h0
         for _ in range(self.k):
             _, vk = self.sample_visible(hk)

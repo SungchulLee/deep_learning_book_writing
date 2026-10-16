@@ -2,7 +2,7 @@
 
 담긴 것:
 
-여기 구현은 Learning Rate Schedulers을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 Learning Rate Schedulers을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -16,7 +16,7 @@
   - ReduceLROnPlateau(PyTorch 붙박이 적바림)
 
 두루마리: appendix/utils/schedulers.py
-눈여겨볼 것: 걸음을 받아 러닝 빠르기 곱값을 돌려주는 배우기용 짜개다.
+눈여겨볼 것: 스텝을 받아 러닝 빠르기 곱값을 돌려주는 배우기용 짜개다.
 """
 
 import math
@@ -34,7 +34,7 @@ def warmup_cosine_lr(step, warmup_steps, total_steps, base_lr):
     - 그다음 base_lr에서 0까지 코사인으로 잦아든다
 
     돌려주는 것:
-      이제 걸음의 러닝 빠르기
+      이제 스텝의 러닝 빠르기
     """
     if step < warmup_steps:
         return base_lr * (step / max(1, warmup_steps))

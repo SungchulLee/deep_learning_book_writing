@@ -582,7 +582,7 @@ def comprehensive_attention_analysis(
     input_ids = inputs['input_ids'].to(device)
     tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
 
-    # 어텐션을 곁들인 앞으로 걸음
+    # 어텐션을 곁들인 앞으로 스텝
     model.eval()
     with torch.no_grad():
         outputs = model(**{k: v.to(device) for k, v in inputs.items()},

@@ -1,8 +1,8 @@
 # MPNN
 
-MPNN은 2017년 글 "Neural Message Passing for Quantum Chemistry"에서 나왔다. - *알림* 함수와 *고침* 함수를 따로 둔다 - T 걸음 동안 거듭 퍼뜨린다: m_i^{t+1} = sum_{j in N(i)} M(h_i^t, h_j^t, e_{ij}) h_i^{t+1} = U(h_i^t, m_i^{t+1}).
+MPNN은 2017년 글 "Neural Message Passing for Quantum Chemistry"에서 나왔다. - *알림* 함수와 *고침* 함수를 따로 둔다 - T 스텝 동안 거듭 퍼뜨린다: m_i^{t+1} = sum_{j in N(i)} M(h_i^t, h_j^t, e_{ij}) h_i^{t+1} = U(h_i^t, m_i^{t+1}).
 
-여기 구현은 MPNN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 MPNN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -14,7 +14,7 @@ MPNN - 메시지 패싱 뉴럴 넷트웍(두루 쓰는 틀)
 지은이: 저스틴 길머 외
 핵심 깨침:
   - *알림* 함수와 *고침* 함수를 따로 둔다
-  - T 걸음 동안 거듭 퍼뜨린다:
+  - T 스텝 동안 거듭 퍼뜨린다:
       m_i^{t+1} = sum_{j in N(i)} M(h_i^t, h_j^t, e_{ij})
       h_i^{t+1} = U(h_i^t, m_i^{t+1})
 
@@ -77,7 +77,7 @@ class MPNN(nn.Module):
       E: (N, N, edge_dim) 이음 결(골라 쓴다. None이면 0을 쓴다)
 
     날임:
-      H: (N, node_dim) T 걸음 뒤 고쳐진 마디 리프리젠테이션
+      H: (N, node_dim) T 스텝 뒤 고쳐진 마디 리프리젠테이션
     """
     def __init__(self, node_dim: int, edge_dim: int = 0, msg_dim: int = 64, T: int = 3):
         super().__init__()

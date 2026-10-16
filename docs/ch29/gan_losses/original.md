@@ -216,7 +216,7 @@ class NonSaturatingGANLossManual:
 ```python
 def train_step_nonsaturating(G, D, real_data, latent_dim, 
                              g_optimizer, d_optimizer, device):
-    """포화하지 않는 로스를 쓴 익히기 걸음."""
+    """포화하지 않는 로스를 쓴 익히기 스텝."""
     
     loss_fn = NonSaturatingGANLoss()
     batch_size = real_data.size(0)

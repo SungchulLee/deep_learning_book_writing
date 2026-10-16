@@ -88,7 +88,7 @@ GRN은 보기 트랜스포머에는 잘 듣는 가린 오토인코더 사전 학
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-GRN 켜에 꼴이 $(B, H, W, D)$인 입력 텐서가 들어올 때 걸음마다 $G_x$과 $N_x$의 꼴을 밝혀라.
+GRN 켜에 꼴이 $(B, H, W, D)$인 입력 텐서가 들어올 때 스텝마다 $G_x$과 $N_x$의 꼴을 밝혀라.
 
 </div>
 

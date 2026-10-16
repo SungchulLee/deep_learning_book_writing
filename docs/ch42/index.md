@@ -19,8 +19,8 @@
 
 모델의 파라메터와 구조를 온전히 아는 채로 하는 그래디언트 기반의 공격.
 
-- [FGSM](white_box/fgsm.md) -- 선형 짐작에서 비롯한, 한 걸음짜리 기초 그래디언트 공격
-- [되비춘 그래디언트 내림(PGD)](white_box/pgd.md) -- 강건성을 따지는 사실상의 잣대가 된 여러 걸음 회귀 공격
+- [FGSM](white_box/fgsm.md) -- 선형 짐작에서 비롯한, 한 스텝짜리 기초 그래디언트 공격
+- [되비춘 그래디언트 내림(PGD)](white_box/pgd.md) -- 강건성을 따지는 사실상의 잣대가 된 여러 스텝 회귀 공격
 - [DeepFool](white_box/deepfool.md) -- 가장 가까운 결정 경계를 넘는 가장 작은 섭동을 찾는 꼴 기초의 공격
 - [Carlini-Wagner(C&W) 공격](white_box/cw_attack.md) -- 적대적 샘플 만들기를 제약 없는 최소화로 다시 쓴 공격
 - [AutoAttack](white_box/autoattack.md) -- 하이퍼파라미터를 맞추지 않고도 강건성을 미덥게 따지는 파라메터 없는 앙상블 공격
@@ -55,7 +55,7 @@
 - [여느 적대적 학습](adversarial_training/standard.md) -- 적대적 공격에 가장 잘 듣는 방어인 PGD 기초의 든든하게 하기
 - [TRADES](adversarial_training/trades.md) -- 클린 정확도와 맞섬의 강건성 사이를 이론에 닿게 맞바꾸기
 - [Free Adversarial Training](adversarial_training/free_at.md) -- 그래디언트를 되쓰며 여느 학습에 가까운 값으로 맞먹는 강건성 이루기
-- [Fast Adversarial Training](adversarial_training/fast_at.md) -- 아무렇게나 첫자리를 잡아 무너지듯 지나치게 맞추는 것을 막는 한 걸음 FGSM 학습
+- [Fast Adversarial Training](adversarial_training/fast_at.md) -- 아무렇게나 첫자리를 잡아 무너지듯 지나치게 맞추는 것을 막는 한 스텝 FGSM 학습
 - [MART](adversarial_training/mart.md) -- 잘못 가른 보기를 헤아려 어려운 보기에 방어의 힘을 모으는 학습
 
 ---

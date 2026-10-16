@@ -1054,7 +1054,7 @@ class SimpleMLP:
         x: np.ndarray,
         weights: Dict[str, np.ndarray]
     ) -> np.ndarray:
-        """주어진 짐으로 앞으로 걸음."""
+        """주어진 짐으로 앞으로 스텝."""
         h = x
         n_layers = len(self.layer_sizes) - 1
         
@@ -1114,7 +1114,7 @@ def prior_predictive_check(
         else:
             weights = {name: prior.sample(shape) for name, shape in shapes.items()}
         
-        # 앞으로 걸음
+        # 앞으로 스텝
         y = model.forward(x_test, weights)
         predictions.append(y)
     

@@ -37,7 +37,7 @@ $$\phi \leftarrow \phi - \alpha_\phi \nabla_\phi (V_\phi(s_t) - G_t)^2$$
 |--------|-----------|--------------|
 | 분산 | 큼(몬테카를로) | 작음(부트스트랩) |
 | 바이어스 | 치우치지 않음 | 바이어스(밸류 함수 잘못) |
-| 고치는 잦기 | 에피소드 끝 | 걸음마다(잇달아) |
+| 고치는 잦기 | 에피소드 끝 | 스텝마다(잇달아) |
 | 샘플링 효율 | 낮음 | 더 높음 |
 | 모이는 빠르기 | 더딤 | 더 빠름 |
 
@@ -47,10 +47,10 @@ $$\phi \leftarrow \phi - \alpha_\phi \nabla_\phi (V_\phi(s_t) - G_t)^2$$
 
 ## 3. 잇단 Actor-Critic
 
-가장 쉬운 Actor-Critic은 때 걸음마다 고친다.
+가장 쉬운 Actor-Critic은 때 스텝마다 고친다.
 
 ```
-걸음 t마다:
+스텝 t마다:
     액션 a_t ~ π_θ(·|s_t)을 벌인다
     r_t, s_{t+1}을 본다
     δ_t = r_t + γ V_φ(s_{t+1}) - V_φ(s_t)       # 때 차이 잘못
@@ -58,7 +58,7 @@ $$\phi \leftarrow \phi - \alpha_\phi \nabla_\phi (V_\phi(s_t) - G_t)^2$$
     φ ← φ + α_φ · δ_t · ∇_φ V_φ(s_t)              # 크리틱 고침
 ```
 
-때 차이 잘못 $\delta_t$이 한 걸음 어드밴티지 어림 노릇을 한다.
+때 차이 잘못 $\delta_t$이 한 스텝 어드밴티지 어림 노릇을 한다.
 
 ---
 
@@ -76,7 +76,7 @@ $$\phi \leftarrow \phi - \alpha_\phi \nabla_\phi (V_\phi(s_t) - G_t)^2$$
 크리틱 타깃을 어떻게 고르느냐가 편향-분산에 미친다.
 
 - **TD(0)**: $y_t = r_t + \gamma V_\phi(s_{t+1})$ -- 분산이 작고 바이어스가 큼
-- **N걸음**: $y_t = \sum_{k=0}^{n-1} \gamma^k r_{t+k} + \gamma^n V_\phi(s_{t+n})$ -- 그 사이
+- **N스텝**: $y_t = \sum_{k=0}^{n-1} \gamma^k r_{t+k} + \gamma^n V_\phi(s_{t+n})$ -- 그 사이
 - **몬테카를로**: $y_t = G_t = \sum_{k=t}^{T} \gamma^{k-t} r_k$ -- 편향이 없고 분산이 큼
 - **GAE**: n-step 리턴을 지수로 웨이트 주어 섞은 것(36.2.4절)
 

@@ -21,7 +21,7 @@
 
 **붉은 깃발:**
 
-1. **한 걸음 공격이 회귀 공격보다 잘 먹힌다**: FGSM > PGD이면 수상하다
+1. **한 스텝 공격이 회귀 공격보다 잘 먹힌다**: FGSM > PGD이면 수상하다
 2. **블랙박스 공격이 화이트박스보다 잘 먹힌다**: 전이되는 공격 > 곧바로 공격
 3. **마디 없는 공격이 안 먹힌다**: $\varepsilon$을 키워도 더 먹히지 않는다
 4. **아무 잡음이 공격과 맞먹는다**: 그래디언트가 쓸모 있는 신호를 못 준다
@@ -101,7 +101,7 @@ def check_gradient_masking(model, x, y, epsilon=8/255):
 
 APGD은 여느 PGD을 다음으로 낫게 한다.
 
-**맞추어 가는 걸음 크기:**
+**맞추어 가는 스텝 크기:**
 
 $$
 \alpha^{(t+1)} = \begin{cases}
@@ -116,7 +116,7 @@ $$
 \mathbf{z}^{(t+1)} = \rho \cdot \mathbf{z}^{(t)} + \nabla_\mathbf{x} \mathcal{L}
 $$
 
-**찰칵 자리로 되돌리기:** 걸음 크기가 줄면 가장 좋은 점으로 되돌린다.
+**찰칵 자리로 되돌리기:** 스텝 크기가 줄면 가장 좋은 점으로 되돌린다.
 
 ### DLR 로스
 
@@ -213,7 +213,7 @@ print(f"맑음: {clean_acc:.2%}, 든든함: {robust_acc:.2%}")
 
 ## 4. 두루 갖춘 따짐 절차
 
-### 1걸음: 기초 살피기
+### 스텝1: 기초 살피기
 
 ```python
 def basic_evaluation(model, test_loader, epsilon=8/255):
@@ -238,7 +238,7 @@ def basic_evaluation(model, test_loader, epsilon=8/255):
     return results
 ```
 
-### 2걸음: 그래디언트 가리기 살피기
+### 스텝2: 그래디언트 가리기 살피기
 
 ```python
 def gradient_masking_check(model, x, y, epsilon=8/255):
@@ -247,7 +247,7 @@ def gradient_masking_check(model, x, y, epsilon=8/255):
     return check_gradient_masking(model, x, y, epsilon)
 ```
 
-### 3걸음: 오토어택 따짐
+### 스텝3: 오토어택 따짐
 
 ```python
 def autoattack_evaluation(model, x, y, epsilon=8/255):
@@ -264,7 +264,7 @@ def autoattack_evaluation(model, x, y, epsilon=8/255):
     return robust_acc
 ```
 
-### 4걸음: 여러 위협 모델
+### 스텝4: 여러 위협 모델
 
 ```python
 def multi_threat_evaluation(model, test_loader):
@@ -329,7 +329,7 @@ def multi_threat_evaluation(model, test_loader):
 
 1. **맞추어 오는 공격**: 그 방어에 맞춘 공격을 꾸민다
 2. **여러 번 다시 비롯하기**: 아무 첫자리를 쓴다
-3. **걸음 크기 맞추기**: 로스 터에 맞춘다
+3. **스텝 크기 맞추기**: 로스 터에 맞춘다
 4. **로스 함수 고르기**: 엇갈린 엔트로피, DLR, 틈 로스
 5. **그래디언트 어림**: 미분할 수 없는 방어에
 
@@ -447,7 +447,7 @@ def full_robustness_evaluation(
 </div>
 
 ??? success "연습문제 2 풀이"
-    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 마디의 방법을 걸면 피처와는 재주에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
+    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 스텝 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 마디의 방법을 걸면 피처와는 재주에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
 
 ---
 

@@ -10,7 +10,7 @@
     """
     02_self_normalized_IS.py
 
-    첫걸음 단계: 스스로 고르게 하는 중요도 표집
+    첫스텝 단계: 스스로 고르게 하는 중요도 표집
 
     이 단원은 스스로 고르게 하는 중요도 표집을 소개한다. 이는
     이는 뒤확률의 고르게 하는 상수를 모르는 베이즈 추론에 꼭 필요하다.
@@ -86,19 +86,19 @@
         3. 무게 고르게 하기: wᵢ = w̃ᵢ / Σⱼw̃ⱼ
         4. 어림하기: Ê[h(θ)] = Σᵢ wᵢh(θᵢ)
         """
-        # 걸음 1: 제안에서 표본 뽑기
+        # 스텝 1: 제안에서 표본 뽑기
         samples = proposal_dist.rvs(size=n_samples)
 
-        # 걸음 2: 고르게 하지 않은 타깃 γ(θ) 값 매기기
+        # 스텝 2: 고르게 하지 않은 타깃 γ(θ) 값 매기기
         gamma_values = unnormalized_target(samples)
 
-        # 걸음 3: 제안 밀도 q(θ) 값 매기기
+        # 스텝 3: 제안 밀도 q(θ) 값 매기기
         q_values = proposal_dist.pdf(samples)
 
-        # 걸음 4: 고르게 하지 않은 무게 w̃ᵢ = γ(θᵢ)/q(θᵢ) 셈하기
+        # 스텝 4: 고르게 하지 않은 무게 w̃ᵢ = γ(θᵢ)/q(θᵢ) 셈하기
         unnormalized_weights = gamma_values / (q_values + 1e-300)
 
-        # 걸음 5: 무게 고르게 하기
+        # 스텝 5: 무게 고르게 하기
         # wᵢ = w̃ᵢ / Σⱼw̃ⱼ
         # 무게를 그대로 더하면, 타깃 값이 모두 0에 가깝게 가라앉았을 때
         # 합이 0이 되어 0/0 = NaN 이 된다. 가장 큰 무게로 먼저 나누면
@@ -113,10 +113,10 @@
                 unnormalized_weights, 1.0 / len(unnormalized_weights))
         weight_sum = np.sum(unnormalized_weights)
 
-        # 걸음 6: 표본 점에서 함수 h 값 매기기
+        # 스텝 6: 표본 점에서 함수 h 값 매기기
         h_values = h_function(samples)
 
-        # 걸음 7: 스스로 고르게 한 어림값 셈하기
+        # 스텝 7: 스스로 고르게 한 어림값 셈하기
         # Ê[h(θ)] = Σᵢ wᵢh(θᵢ)
         estimate = np.sum(normalized_weights * h_values)
 

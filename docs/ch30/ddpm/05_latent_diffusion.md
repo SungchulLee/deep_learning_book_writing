@@ -257,7 +257,7 @@
             with torch.no_grad():
                 z0 = self.vae.encode(x0)
 
-            # 아무 때 걸음을 뽑는다
+            # 아무 때 스텝을 뽑는다
             b = z0.shape[0]
             t = torch.randint(0, self.timesteps, (b,), device=DEVICE).long()
 
@@ -283,7 +283,7 @@
                 # 잡음을 헤아린다
                 noise_pred = self.unet(z, t)
 
-                # 잡음 없애기 걸음
+                # 잡음 없애기 스텝
                 alpha_t = extract(self.alphas_cumprod, t, z.shape)
                 alpha_prev = extract(self.alphas_cumprod, t - 1, z.shape) if step > 0 else 1.0
                 beta_t = extract(self.betas, t, z.shape)

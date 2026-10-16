@@ -43,7 +43,7 @@ class AttentionVisualizer:
 
     def register_hooks(self, layer_names: Optional[List[str]] = None):
         """
-        어텐션 짐을 붙들려고 앞으로 걸음 갈고리를 건다.
+        어텐션 짐을 붙들려고 앞으로 스텝 갈고리를 건다.
 
         Args:
             layer_names: 갈고리를 걸 켜 이름 목록. None이면 모든 어텐션 켜에 건다.

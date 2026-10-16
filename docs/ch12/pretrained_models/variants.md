@@ -293,7 +293,7 @@ Position 5 attends to: [2, 3, 4, 5, 6, 7, 8]
 
 **설계 근거**: 국소 관계를 우선 처리하며 여러 레이어·전역 토큰 등으로 먼 정보를 연결할 수 있다. 먼 토큰이 항상 중요하지 않다고 가정하는 것은 아니다.
 
-### 2. 팽창(걸음 있는) 주의
+### 2. 팽창(스텝 있는) 주의
 
 정해진 간격의 자리에 주의하여 전역 어텐션 없이도 먼 거리를 아우른다.
 
@@ -423,12 +423,12 @@ def create_dilated_attention_mask(
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    팽창(걸음 있는) 주의 가림을 만든다.
+    팽창(스텝 있는) 주의 가림을 만든다.
     
     인수:
         seq_len: 수열 길이
         window_size: 주의할 자리의 개수
-        dilation: 주의하는 자리 사이의 걸음
+        dilation: 주의하는 자리 사이의 스텝
         device: 텐서를 둘 장치
     """
     rows = torch.arange(seq_len, device=device).unsqueeze(1)

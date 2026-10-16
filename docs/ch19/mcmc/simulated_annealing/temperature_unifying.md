@@ -18,7 +18,7 @@ Annealed importance sampling은 정확한 쉬운 초기분포와 중간 미정�
 
 ```python
 def parallel_tempering_step(chains, temperatures, E):
-    """병렬 온도 다루기의 한 걸음."""
+    """병렬 온도 다루기의 한 스텝."""
     n_chains = len(chains)
     
     # 온도마다의 가까운 액션

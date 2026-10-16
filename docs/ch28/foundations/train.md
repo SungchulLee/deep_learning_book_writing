@@ -129,7 +129,7 @@ def visualize_results(data: np.ndarray,
         y_test: 시험 목표 값
         sequence_length: 들임 차례의 길이
         train_size: 익히기 표본의 수
-        n_forecast: 앞날로 내다볼 걸음의 수
+        n_forecast: 앞날로 내다볼 스텝의 수
         title: 그림의 제목
     """
     fig, axes = plt.subplots(2, 1, figsize=(14, 8))

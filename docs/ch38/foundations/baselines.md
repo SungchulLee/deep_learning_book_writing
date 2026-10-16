@@ -253,13 +253,13 @@
 
 
     def compute_td_advantages(rewards, values, next_values, dones, gamma=0.99):
-        """한 걸음 때 차이 이점: A_t = r_t + γV(s_{t+1}) - V(s_t)."""
+        """한 스텝 때 차이 이점: A_t = r_t + γV(s_{t+1}) - V(s_t)."""
         td_targets = torch.tensor(rewards) + gamma * next_values * (1 - torch.tensor(dones, dtype=torch.float32))
         return td_targets - values
 
 
     def compute_nstep_advantages(rewards, values, next_values, dones, gamma=0.99, n=5):
-        """n걸음 때 차이 이점 어림."""
+        """n스텝 때 차이 이점 어림."""
         T = len(rewards)
         advantages = torch.zeros(T)
 

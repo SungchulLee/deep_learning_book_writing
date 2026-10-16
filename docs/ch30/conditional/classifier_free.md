@@ -111,13 +111,13 @@ class CFGSampler:
             # 이끌기를 쓴다
             eps_guided = eps_uncond + self.w * (eps_cond - eps_uncond)
             
-            # DDIM 걸음
+            # DDIM 스텝
             x = self.ddim_step(x, eps_guided, t)
         
         return x
     
     def ddim_step(self, x, eps, t):
-        """DDIM 고침 걸음 하나."""
+        """DDIM 고침 스텝 하나."""
         alpha_bar_t = self.schedule.alpha_bars[t]
         alpha_bar_prev = self.schedule.alpha_bars[t-1] if t > 0 else 1.0
         

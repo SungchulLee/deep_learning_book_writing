@@ -89,7 +89,7 @@ $$\mathbf{c} = f_{\text{encoder}}(x_1, x_2, \ldots, x_T)$$
 
 ### 어텐션이라는 해법
 
-Bahdanau 등(2014)은 디코더가 걸음마다 서로 다른 인코더 자리에 "주목"하게 하자고 제안했다.
+Bahdanau 등(2014)은 디코더가 스텝마다 서로 다른 인코더 자리에 "주목"하게 하자고 제안했다.
 
 $$\mathbf{c}_t = \sum_{i=1}^{T} \alpha_{ti} \mathbf{h}_i$$
 
@@ -131,7 +131,7 @@ $$\mathbf{Q} = \mathbf{X}\mathbf{W}_Q, \quad \mathbf{K} = \mathbf{X}\mathbf{W}_K
 
 $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)\mathbf{V}$$
 
-**한 걸음씩 보면 다음과 같다.**
+**한 스텝씩 보면 다음과 같다.**
 
 1. **점수 계산**: $\mathbf{S} = \mathbf{Q}\mathbf{K}^\top$ — 성분 $S_{ij}$은 자리 $i$의 쿼리와 자리 $j$의 키가 얼마나 맞는지를 잰다
 2. **배율 조정**: $\mathbf{S} / \sqrt{d_k}$ — 차원이 커질 때 내적이 커지는 것을 막아 소프트맥스의 포화를 피한다

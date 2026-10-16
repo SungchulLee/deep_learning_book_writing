@@ -355,7 +355,7 @@ train_epochs(model, df_train, df_val, epochs=15, lr=0.001) # 3단계: 매끄럽�
 
 ### 온 배치 학습과 작은 배치 학습
 
-이 짜기는 **온 배치** 그래디언트 내려가기를 쓴다(걸음마다 학습 데이터 전체). MovieLens-Small(학습 매김 약 8만 개)에서는 할 만하지만 더 큰 데이터셋에서는 작은 배치 학습로 바꾸어야 한다:
+이 짜기는 **온 배치** 그래디언트 내려가기를 쓴다(스텝마다 학습 데이터 전체). MovieLens-Small(학습 매김 약 8만 개)에서는 할 만하지만 더 큰 데이터셋에서는 작은 배치 학습로 바꾸어야 한다:
 
 ```python
 from torch.utils.data import DataLoader, TensorDataset

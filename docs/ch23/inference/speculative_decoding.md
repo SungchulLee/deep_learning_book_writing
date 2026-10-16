@@ -27,15 +27,15 @@ Input: Target model p, Draft model q, Prompt x₀, Draft length K
 Output: Generated sequence
 
 while not done:
-    # 1걸음: 밑그림 마디
+    # 스텝1: 밑그림 마디
     for i = 1 to K:
         Sample x̃ᵢ ~ q(· | x₀, x̃₁, ..., x̃ᵢ₋₁)
         Store q(x̃ᵢ | ...)
     
-    # 2걸음: 확인 마디(피드포워드 한 번)
+    # 스텝2: 확인 마디(피드포워드 한 번)
     Compute p(x̃₁ | x₀), p(x̃₂ | x₀, x̃₁), ..., p(x̃ₖ | x₀, ..., x̃ₖ₋₁)
     
-    # 3걸음: 받아들이기/물리치기
+    # 스텝3: 받아들이기/물리치기
     n = 0  # 받아들인 토막 수
     for i = 1 to K:
         r ~ Uniform(0, 1)
@@ -71,7 +71,7 @@ from dataclasses import dataclass
 
 @dataclass
 class SpeculativeOutput:
-    """미리 짚어 풀기 한 걸음이 내놓는 것."""
+    """미리 짚어 풀기 한 스텝이 내놓는 것."""
     tokens: torch.Tensor
     num_accepted: int
     num_drafted: int
@@ -107,14 +107,14 @@ class SpeculativeDecoder:
         draft_cache: Optional[Tuple] = None
     ) -> Tuple[SpeculativeOutput, Optional[Tuple], Optional[Tuple]]:
         """
-        미리 짚어 풀기의 한 걸음.
+        미리 짚어 풀기의 한 스텝.
         
         받아들인 토막과 새로 고친 곳간을 돌려준다.
         """
         device = input_ids.device
         batch_size = input_ids.size(0)
         
-        # 1걸음: 밑그림 토막 K개를 만든다
+        # 스텝1: 밑그림 토막 K개를 만든다
         draft_tokens = []
         draft_probs = []
         current_ids = input_ids
@@ -133,7 +133,7 @@ class SpeculativeDecoder:
         draft_tokens = torch.cat(draft_tokens, dim=1)  # [배치, K]
         draft_probs = torch.cat(draft_probs, dim=1)    # [배치, K]
         
-        # 2걸음: 목표 모델로 K개 토막을 모두 나란히 확인한다
+        # 스텝2: 목표 모델로 K개 토막을 모두 나란히 확인한다
         verify_ids = torch.cat([input_ids, draft_tokens], dim=1)
         target_logits, target_cache = self.target(verify_ids, past_caches=target_cache)
         
@@ -141,7 +141,7 @@ class SpeculativeDecoder:
         # target_logits[:, -K-1:-1, :]는 밑그림 토막마다 그 앞자리에 맞닿는다
         target_probs = F.softmax(target_logits[:, -self.K-1:, :] / self.temperature, dim=-1)
         
-        # 3걸음: 알맞은 번호 매기기로 받아들이거나 물리친다
+        # 스텝3: 알맞은 번호 매기기로 받아들이거나 물리친다
         accepted_tokens = []
         num_accepted = 0
         

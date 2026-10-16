@@ -212,7 +212,7 @@ class ConvConditionalVAE(nn.Module):
             z: 고정한 숨은 부호 [1, 숨은 차원]
             class1: 시작 클래스
             class2: 끝 클래스
-            num_steps: 사이 끼움 걸음 수
+            num_steps: 사이 끼움 스텝 수
             
         반환값:
             interpolations: 사이 끼움한 표본

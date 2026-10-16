@@ -82,7 +82,7 @@ function NUTS(x₀, ε, M):
 ```
 function BuildTree(x, v, direction, depth, ε):
     if depth == 0:
-        # 바닥 경우: 개구리뜀 한 걸음
+        # 바닥 경우: 개구리뜀 한 스텝
         x', v' = Leapfrog(x, v, direction * ε)
         
         # 에너지 살피기
@@ -192,7 +192,7 @@ class NUTS:
     
     def build_tree(self, x, v, direction, depth, H0):
         if depth == 0:
-            # 바닥 경우: 개구리뜀 한 걸음
+            # 바닥 경우: 개구리뜀 한 스텝
             x_new, v_new = self.leapfrog(x, v, direction)
             H_new = self.hamiltonian(x_new, v_new)
             
@@ -353,7 +353,7 @@ NUTS는 고정 L을 정하는 부담을 줄이지만 트리 구축·후보 선�
 ```python
 def adapt_step_size(epsilon, accept_stat, target=0.8, 
                     gamma=0.05, t0=10, kappa=0.75, iteration=None):
-    # 걸음 크기 맞추기를 위한 쌍대 평균내기
+    # 스텝 크기 맞추기를 위한 쌍대 평균내기
     # (간추린 판)
     if accept_stat > target:
         return epsilon * 1.02

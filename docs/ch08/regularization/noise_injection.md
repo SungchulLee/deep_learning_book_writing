@@ -170,7 +170,7 @@ class NoisyLinear(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # 드롭아웃이 활성을 끄는 데 견주어, 여기서는 웨이트 자체를 흔든다.
-        # 매 걸음 조금씩 다른 웨이트로 학습하는 셈이라, 로스 지형에서
+        # 매 스텝 조금씩 다른 웨이트로 학습하는 셈이라, 로스 지형에서
         # 좁고 뾰족한 골짜기 대신 넓고 평평한 골짜기를 찾게 된다.
         # 평평한 최소점이 일반화가 낫다는 것이 이 기법의 근거다
         if self.training and self.noise_std > 0:
@@ -185,7 +185,7 @@ class NoisyLinear(nn.Module):
             else:
                 noisy_bias = None
 
-            # nn.Linear 대신 functional.linear를 쓰는 까닭은, 매 걸음
+            # nn.Linear 대신 functional.linear를 쓰는 까닭은, 매 스텝
             # 달라지는 웨이트를 인자로 곧바로 넘겨야 하기 때문이다
             return nn.functional.linear(x, noisy_weight, noisy_bias)
 
@@ -224,7 +224,7 @@ class GradientNoiseCallback:
         
         # 부르는 자리가 정해져 있다. loss.backward() "뒤", optimizer.step()
         # "앞"이다. 앞서 부르면 아직 그래디언트가 없어 아무 일도 하지 않고,
-        # 뒤에 부르면 이미 갱신이 끝난 뒤라 잡음이 다음 걸음으로 밀린다
+        # 뒤에 부르면 이미 갱신이 끝난 뒤라 잡음이 다음 스텝으로 밀린다
         with torch.no_grad():
             for param in model.parameters():
                 # 학습에 참여하지 않은 파라미터는 grad가 None이다.
@@ -319,8 +319,8 @@ class ScheduledNoise(nn.Module):
         # 줄여 세밀하게 수렴시킨다. 러닝레이트 스케줄과 같은 발상이다
         self.initial_std = initial_std   # 시작할 때의 잡음 크기
         self.final_std = final_std       # 끝에서의 잡음 크기
-        self.decay_steps = decay_steps   # 몇 걸음에 걸쳐 줄일 것인가
-        self.current_step = 0            # 지금까지 지난 걸음 수
+        self.decay_steps = decay_steps   # 몇 스텝에 걸쳐 줄일 것인가
+        self.current_step = 0            # 지금까지 지난 스텝 수
 
     @property
     def current_std(self) -> float:
@@ -341,7 +341,7 @@ class ScheduledNoise(nn.Module):
             # randn_like: x와 모양·자료형·장치가 같은 표준정규 잡음을 만든다
             noise = torch.randn_like(x) * self.current_std
 
-            # 걸음 세기를 forward 안에서 한다. 옵티마이저와 따로 놀지 않게
+            # 스텝 세기를 forward 안에서 한다. 옵티마이저와 따로 놀지 않게
             # 하려면 학습 루프에서 명시적으로 올려 주는 편이 더 안전하지만,
             # 이 방식은 레이어를 꽂기만 하면 되어 손이 덜 간다
             self.current_step += 1

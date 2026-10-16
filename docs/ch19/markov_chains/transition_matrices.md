@@ -19,14 +19,14 @@
 
     학습 목표:
     - 옮김 행렬을 수학으로 이해하기
-    - 여러 걸음 옮김 확률 셈하기
+    - 여러 스텝 옮김 확률 셈하기
     - 행렬 거듭제곱 P^n 살피기
     - 시간 n에서의 상태 확률 셈하기
 
     수학적 바탕:
     - 옮김 행렬 P: P[i][j] = P(X_{n+1} = j | X_n = i)
     - 채프먼-콜모고로프 방정식: P^(n) = P^n(행렬 거듭제곱)
-    - n걸음 옮김 확률: P^(n)[i][j] = P(X_n = j | X_0 = i)
+    - n스텝 옮김 확률: P^(n)[i][j] = P(X_n = j | X_0 = i)
     - 상태 분포의 흘러감: π_n = π_0 × P^n
     """
 
@@ -92,10 +92,10 @@
 
         def n_step_transition_matrix(self, n):
             """
-            n걸음 옮김 행렬 P^n 셈하기.
+            n스텝 옮김 행렬 P^n 셈하기.
 
             파라메터:
-                n (int): 걸음 수
+                n (int): 스텝 수
 
             반환값:
                 np.ndarray: P^n[i][j] = P(X_n = j | X_0 = i)인 P^n
@@ -116,12 +116,12 @@
 
         def probability_after_n_steps(self, initial_state, target_state, n):
             """
-            initial_state에서 n걸음 뒤에 target_state에 있을 확률 셈하기.
+            initial_state에서 n스텝 뒤에 target_state에 있을 확률 셈하기.
 
             파라메터:
                 initial_state (int or str): 시작 상태
                 target_state (int or str): 타깃 상태
-                n (int): 걸음 수
+                n (int): 스텝 수
 
             반환값:
                 float: P(X_n = target | X_0 = initial)
@@ -146,18 +146,18 @@
 
         def state_distribution_after_n_steps(self, initial_distribution, n):
             """
-            n걸음 뒤의 상태 확률 분포 셈하기.
+            n스텝 뒤의 상태 확률 분포 셈하기.
 
             파라메터:
                 initial_distribution (np.ndarray): 첫 확률 분포 π_0
-                n (int): 걸음 수
+                n (int): 스텝 수
 
             반환값:
                 np.ndarray: π_n = π_0 × P^n인 분포 π_n
 
             수학적 바탕:
             π_0이 첫 상태 확률을 나타내는 행벡터이면,
-            n걸음 뒤의 분포는 다음과 같다:
+            n스텝 뒤의 분포는 다음과 같다:
             π_n = π_0 × P^n
 
             성분별로: π_n[j] = Σ_i π_0[i] × P^n[i][j]
@@ -179,7 +179,7 @@
             n → ∞일 때 P^n이 모이는지 살피기.
 
             파라메터:
-                max_steps (int): 살필 최대 걸음 수
+                max_steps (int): 살필 최대 스텝 수
                 tolerance (float): 모임 너그러움
 
             반환값:
@@ -219,18 +219,18 @@
 
         def visualize_n_step_probabilities(self, initial_state, max_steps=50):
             """
-            n걸음 동안 확률이 어떻게 흘러가는지 그려 보기.
+            n스텝 동안 확률이 어떻게 흘러가는지 그려 보기.
 
             파라메터:
                 initial_state (int or str): 시작 상태
-                max_steps (int): 그려 볼 최대 걸음 수
+                max_steps (int): 그려 볼 최대 스텝 수
             """
             if isinstance(initial_state, str):
                 i = self.state_names.index(initial_state)
             else:
                 i = initial_state
 
-            # 걸음마다 확률 셈하기
+            # 스텝마다 확률 셈하기
             probabilities = np.zeros((max_steps + 1, self.n_states))
             probabilities[0, i] = 1.0  # 확률 1로 initial_state에서 시작
 
@@ -261,7 +261,7 @@
 
     def example_two_step_computation():
         """
-        보기 1: 2걸음 옮김 확률을 손수 그리고 행렬 거듭제곱으로 셈하기.
+        보기 1: 스텝2 옮김 확률을 손수 그리고 행렬 거듭제곱으로 셈하기.
 
         채프먼-콜모고로프 방정식을 보인다.
         """
@@ -330,7 +330,7 @@
         π_0 = np.array([1/3, 1/3, 1/3])
         print(f"π_0 = {π_0}")
 
-        # 여러 걸음에 대한 분포 셈하기
+        # 여러 스텝에 대한 분포 셈하기
         steps_to_show = [1, 2, 5, 10, 20, 50]
 
         print("\nDistribution evolution:")
@@ -409,9 +409,9 @@
 
     def example_specific_probabilities():
         """
-        보기 4: 정해진 n걸음 옮김 확률 셈하기.
+        보기 4: 정해진 n스텝 옮김 확률 셈하기.
 
-        다음과 같은 물음에 답한다: "상태 A에서 시작해 10걸음 뒤에
+        다음과 같은 물음에 답한다: "상태 A에서 시작해 10스텝 뒤에
         상태 B에 있을 확률은 얼마인가?"
         """
         print("\n" + "=" * 70)

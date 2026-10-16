@@ -10,7 +10,7 @@ MAML(model-agnostic meta-learning)은 적은 서포트 데이터로 몇 번 갱�
 
 참고: Finn 외, "Model-Agnostic Meta-Learning for Fast Adaptation" (2017)
 
-핵심 생각: 그래디언트 걸음 몇 번만으로 새 과제에 재빨리 맞추어 갈 수 있게 하는
+핵심 생각: 그래디언트 스텝 몇 번만으로 새 과제에 재빨리 맞추어 갈 수 있게 하는
 초기화를 배운다.
 """
 
@@ -61,7 +61,7 @@ class MAML:
         model: 뉴럴 넷트웍 모델
         inner_lr: 안쪽 회귀(과제 맞춤)의 러닝레이트
         meta_lr: 바깥 회귀(메타 갱신)의 러닝레이트
-        num_inner_steps: 안쪽 회귀의 그래디언트 걸음 수
+        num_inner_steps: 안쪽 회귀의 그래디언트 스텝 수
     """
     def __init__(self, model, inner_lr=0.01, meta_lr=0.001, num_inner_steps=5):
         self.model = model
@@ -107,7 +107,7 @@ class MAML:
     
     def meta_train_step(self, tasks):
         """
-        과제 배치에 대해 메타 학습 걸음을 한 번 밟는다.
+        과제 배치에 대해 메타 학습 스텝을 한 번 밟는다.
         
         인수:
             tasks: (support_x, support_y, query_x, query_y) 짝의 목록
@@ -128,7 +128,7 @@ class MAML:
             
             # 이 과제의 정확도를 셈한다.
             # 맞추는 일 자체에는 그래디언트가 있어야 하므로 no_grad 안에서 돌 수
-            # 없다. 대신 걸음마다 결과를 떼어 내어 메타 그래프가 자라지 않게 한다.
+            # 없다. 대신 스텝마다 결과를 떼어 내어 메타 그래프가 자라지 않게 한다.
             params = OrderedDict(self.model.named_parameters())
             for step in range(self.num_inner_steps):
                 support_logits = self.model(support_x, params)
@@ -173,7 +173,7 @@ class MAML:
             support_loss = F.cross_entropy(support_logits, support_y)
             
             grads = torch.autograd.grad(support_loss, params.values())
-            # 다음 걸음에서 또 그래디언트를 구해야 하므로 requires_grad를 살려 둔다
+            # 다음 스텝에서 또 그래디언트를 구해야 하므로 requires_grad를 살려 둔다
             params = OrderedDict(
                 (name, (param - self.inner_lr * grad).detach().requires_grad_(True))
                 for ((name, param), grad) in zip(params.items(), grads)
@@ -225,7 +225,7 @@ if __name__ == "__main__":
         query_y = torch.randint(0, n_way, (n_query,))
         tasks.append((support_x, support_y, query_x, query_y))
     
-    # 메타 학습 걸음
+    # 메타 학습 스텝
     meta_loss, meta_acc = maml.meta_train_step(tasks)
     print(f"Meta-Loss: {meta_loss:.4f}, Meta-Accuracy: {meta_acc:.4f}")
     

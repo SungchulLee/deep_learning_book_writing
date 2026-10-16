@@ -29,7 +29,7 @@
                                   = Σ_{Y} P(X, E, Y) / Σ_{X,Y} P(X, E, Y)
 
     지은이: 교육용 ML 팀
-    수준: 첫걸음
+    수준: 첫스텝
     미리 볼 것: 01_pgm_fundamentals.py, 02_bayesian_networks_basics.py
     """
 
@@ -70,7 +70,7 @@
 
         def __init__(self, bn: BayesianNetwork):
             """
-            추론 엔진의 첫걸음을 잡는다.
+            추론 엔진의 첫스텝을 잡는다.
 
             인수:
                 bn: 추론할 베이즈 망
@@ -123,7 +123,7 @@
             print(f"Evidence variables: {list(evidence.keys())}")
             print(f"Hidden variables: {hidden_vars}")
 
-            # 결과 사전 첫걸음 잡기
+            # 결과 사전 첫스텝 잡기
             result = defaultdict(float)
 
             # 가짓수 얻기
@@ -264,7 +264,7 @@
         """
 
         def __init__(self, bn: BayesianNetwork):
-            """물리치기 표집의 첫걸음을 잡는다."""
+            """물리치기 표집의 첫스텝을 잡는다."""
             self.bn = bn
 
         def query(self,

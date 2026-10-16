@@ -122,7 +122,7 @@ class FIDCalculator:
         mean_diff_squared = np.dot(diff, diff)
         
         # 2. 행렬 제곱근을 셈한다: (Σ₁Σ₂)^{1/2}
-        # 이것이 셈이 가장 비싼 걸음이다
+        # 이것이 셈이 가장 비싼 스텝이다
         
         # 행렬 곱: Σ₁ @ Σ₂
         # 꼴: [d, d] @ [d, d] = [d, d]

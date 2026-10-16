@@ -8,7 +8,7 @@
 
 $$V_\pi(s) = \sum_a \pi(a|s) \left[R(s,a) + \gamma \sum_{s'} P(s'|s,a) V_\pi(s')\right]$$
 
-걸음마다 펼치면:
+스텝마다 펼치면:
 
 1. 에이전트가 상태 $s$에 있다
 2. 확률 $\pi(a|s)$으로 액션 $a$을 고른다
@@ -118,7 +118,7 @@ $$= \sum_a \pi(a|s) \sum_{s'} P(s'|s,a) \left[R(s,a,s') + \gamma \mathbb{E}_\pi[
 
 $$= \sum_a \pi(a|s) \sum_{s'} P(s'|s,a) \left[R(s,a,s') + \gamma V_\pi(s')\right]$$
 
-핵심 걸음은 **마르코프 성질**을 쓴다: $\mathbb{E}_\pi[G_{t+1} | S_{t+1} = s'] = V_\pi(s')$.
+핵심 스텝은 **마르코프 성질**을 쓴다: $\mathbb{E}_\pi[G_{t+1} | S_{t+1} = s'] = V_\pi(s')$.
 
 ---
 

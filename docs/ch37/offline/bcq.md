@@ -94,7 +94,7 @@ class DiscreteBCQAgent:
 
     def train_q_step(self, states, actions, rewards, next_states, dones,
                      batch_size=256) -> Dict[str, float]:
-        """BCQ 액션 거르기를 하는 Q 러닝 한 걸음."""
+        """BCQ 액션 거르기를 하는 Q 러닝 한 스텝."""
         n = len(rewards)
         idx = np.random.randint(0, n, batch_size)
         s = torch.FloatTensor(states[idx])

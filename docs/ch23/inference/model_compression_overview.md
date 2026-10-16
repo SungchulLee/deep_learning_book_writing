@@ -118,9 +118,9 @@ L_soft = KL_divergence(p_teacher ‖ p_student) × T²   (앞자리가 교사다
 ├── requirements.txt                   # 딸린 꾸러미
 ├── utils.py                           # 함께 쓰는 도구
 │
-├── 01_quantization_basics.py         # 첫걸음: 익힌 뒤 양자화
-├── 02_pruning_basics.py               # 첫걸음: 크기 바탕 가지치기
-├── 03_knowledge_distillation.py       # 첫걸음: 기본 앎 내리기
+├── 01_quantization_basics.py         # 첫스텝: 익힌 뒤 양자화
+├── 02_pruning_basics.py               # 첫스텝: 크기 바탕 가지치기
+├── 03_knowledge_distillation.py       # 첫스텝: 기본 앎 내리기
 │
 ├── 04_quantization_aware_training.py  # 가운데: 양자화를 헤아린 익히기
 ├── 05_structured_pruning.py           # 가운데: 거르개/채널 가지치기
@@ -172,7 +172,7 @@ efficiency = accuracy / (latency × model_size)
 # 딸린 꾸러미를 깐다
 pip install -r requirements.txt
 
-# 첫걸음 보기를 돌린다
+# 첫스텝 보기를 돌린다
 python 01_quantization_basics.py
 python 02_pruning_basics.py
 python 03_knowledge_distillation.py

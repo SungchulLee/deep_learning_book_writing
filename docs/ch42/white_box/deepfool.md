@@ -71,7 +71,7 @@ $$
 2. $f(\mathbf{x}^{(t)}) = f(\mathbf{x})$이고 $t < T$인 동안:
     - 클래스 $k \neq y$마다 $\mathbf{w}_k' = \nabla_\mathbf{x} Z_k - \nabla_\mathbf{x} Z_y$과 $f_k' = Z_k - Z_y$을 계산한다
     - 가장 가까운 금을 찾는다: $\hat{k} = \arg\min_{k \neq y} \frac{|f_k'|}{\|\mathbf{w}_k'\|_2}$
-    - 걸음을 계산한다: $\boldsymbol{\delta}^{(t)} = \frac{|f_{\hat{k}}'|}{\|\mathbf{w}_{\hat{k}}'\|_2^2} \mathbf{w}_{\hat{k}}'$
+    - 스텝을 계산한다: $\boldsymbol{\delta}^{(t)} = \frac{|f_{\hat{k}}'|}{\|\mathbf{w}_{\hat{k}}'\|_2^2} \mathbf{w}_{\hat{k}}'$
     - 고친다: $\mathbf{x}^{(t+1)} = \mathbf{x}^{(t)} + (1 + \eta) \boldsymbol{\delta}^{(t)}$
     - 쌓는다: $\hat{\boldsymbol{\delta}} \leftarrow \hat{\boldsymbol{\delta}} + (1 + \eta) \boldsymbol{\delta}^{(t)}$
 3. $\hat{\boldsymbol{\delta}}$을 돌려준다
@@ -330,7 +330,7 @@ class DeepFool:
 </div>
 
 ??? success "연습문제 2 풀이"
-    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 마디의 방법을 걸면 피처와는 재주에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
+    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 스텝 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 마디의 방법을 걸면 피처와는 재주에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
 
 ---
 

@@ -93,11 +93,11 @@ def compute_smoothgrad(
         noisy_image = image_tensor + noise
         noisy_image.requires_grad = True
 
-        # 앞으로 걸음
+        # 앞으로 스텝
         output = model(noisy_image)
         target_score = output[0, target_class]
 
-        # 되짚기 걸음
+        # 되짚기 스텝
         model.zero_grad()
         target_score.backward()
 

@@ -62,7 +62,7 @@ $$q(y|x)=N\left(y;x+\frac{\epsilon^2}{2}\nabla\log\pi(x),\epsilon^2I\right).$$
 
 $$a(\ell)=2\Phi(-\ell\sqrt I/2),\qquad h(\ell)=\ell^2a(\ell).$$
 
-최적값은 ℓ√I≈2.38이다. 표준정규 성분처럼 I=1일 때만 ℓ≈2.38이며 효율은 걸음 길이가 아니라 제곱 길이와 수락률의 곱에 연결된다. 해당 MALA 점근 이론은 ε∝d⁻¹/⁶와 약 0.574를 준다. 서로 다른 최적 수락률을 알고리즘의 절대 성능 순위로 읽지 않는다. 자세한 조건은 [Roberts·Rosenthal의 MALA 논문](https://rss.onlinelibrary.wiley.com/doi/abs/10.1111/1467-9868.00123)을 참고한다.
+최적값은 ℓ√I≈2.38이다. 표준정규 성분처럼 I=1일 때만 ℓ≈2.38이며 효율은 스텝 길이가 아니라 제곱 길이와 수락률의 곱에 연결된다. 해당 MALA 점근 이론은 ε∝d⁻¹/⁶와 약 0.574를 준다. 서로 다른 최적 수락률을 알고리즘의 절대 성능 순위로 읽지 않는다. 자세한 조건은 [Roberts·Rosenthal의 MALA 논문](https://rss.onlinelibrary.wiley.com/doi/abs/10.1111/1467-9868.00123)을 참고한다.
 
 ## 8. 반복 수와 계산비용의 스케일링
 
@@ -79,9 +79,9 @@ $$a(\ell)=2\Phi(-\ell\sqrt I/2),\qquad h(\ell)=\ell^2a(\ell).$$
 ```python
 def adapt_step_size(sigma, acceptance_rate, target_rate=0.234):
     if acceptance_rate > target_rate:
-        sigma *= 1.1  # 걸음 크기 키우기
+        sigma *= 1.1  # 스텝 크기 키우기
     else:
-        sigma *= 0.9  # 걸음 크기 줄이기
+        sigma *= 0.9  # 스텝 크기 줄이기
     return sigma
 ```
 

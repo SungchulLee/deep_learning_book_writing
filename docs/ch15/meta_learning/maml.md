@@ -44,13 +44,13 @@ $$\frac{\partial \theta'_i}{\partial \theta} = I - \alpha \nabla^2_\theta \mathc
 
 ### 그래디언트 계산
 
-안쪽 걸음이 하나일 때 메타 그래디언트는 다음과 같다.
+안쪽 스텝이 하나일 때 메타 그래디언트는 다음과 같다.
 
 $$\nabla_\theta L_{Q_i}(\theta'_i)=(I-\alpha H_{S_i})^\top\nabla_{\theta'_i}L_{Q_i}(\theta'_i)$$
 
 여기서 H_S는 적응 전 웨이트에서 계산한 서포트 로스의 헤시안이다. 열벡터 경사 규약에 맞춰 야코비안의 전치를 곱한다. 여러 내부 단계에서는 각 갱신의 야코비안을 연쇄적으로 통과한다.
 
-안쪽 걸음이 여럿이면 계산이 더 복잡해지지만, 맞춤 자취를 거슬러 되돌려 퍼뜨린다는 같은 원리를 따른다.
+안쪽 스텝이 여럿이면 계산이 더 복잡해지지만, 맞춤 자취를 거슬러 되돌려 퍼뜨린다는 같은 원리를 따른다.
 
 ### 1차 근사 FOMAML
 
@@ -219,7 +219,7 @@ class MAML:
             model: 메타 학습할 모델
             inner_lr: 안쪽 회귀(과제 맞춤)의 러닝레이트
             meta_lr: 바깥 회귀(메타 갱신)의 러닝레이트
-            inner_steps: 안쪽 회귀의 그래디언트 걸음 수
+            inner_steps: 안쪽 회귀의 그래디언트 스텝 수
             first_order: True이면 FOMAML을 쓴다(이차 항을 무시한다)
         """
         self.model = model
@@ -281,7 +281,7 @@ class MAML:
         tasks: List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]]
     ) -> Tuple[float, float]:
         """
-        과제 배치에 대해 메타 학습 걸음을 한 번 밟는다.
+        과제 배치에 대해 메타 학습 스텝을 한 번 밟는다.
         
         인수:
             tasks: (support_x, support_y, query_x, query_y) 짝의 목록
@@ -338,7 +338,7 @@ class MAML:
         인수:
             support_x, support_y: 맞춤에 쓸 받침 집합
             query_x, query_y: 평가에 쓸 물음 집합
-            inner_steps: 맞춤 걸음 수를 갈아 끼운다
+            inner_steps: 맞춤 스텝 수를 갈아 끼운다
         
         반환값:
             물음 집합에서의 로스와 정확도
@@ -530,7 +530,7 @@ def train_maml(
                 query_y.to(device)
             ))
         
-        # 메타 학습 걸음
+        # 메타 학습 스텝
         loss, acc = maml.meta_train_step(tasks)
         
         if (iteration + 1) % eval_interval == 0:
@@ -741,7 +741,7 @@ from torch.utils.checkpoint import checkpoint
 
 def inner_loop_checkpointed(self, support_x, support_y, params):
     def adaptation_step(params_flat, support_x, support_y):
-        # 편 것을 되돌리고 한 걸음 밟는다
+        # 편 것을 되돌리고 한 스텝 밟는다
         ...
     
     for step in range(self.inner_steps):

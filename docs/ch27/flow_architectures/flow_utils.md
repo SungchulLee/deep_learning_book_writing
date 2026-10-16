@@ -512,14 +512,14 @@
                 >>> log_probs = model.log_prob(generated)
                 >>> # log_probs이 클수록 품질이 좋다
             """
-            # 걸음 1: 자료를 숨은 공간으로 바꾼다
+            # 스텝 1: 자료를 숨은 공간으로 바꾼다
             # 그러면 z과 변수 바꿈 바로잡기를 얻는다
             z, log_det = self.inverse(x)
 
-            # 걸음 2: 바탕 분포에서 확률을 따진다
+            # 스텝 2: 바탕 분포에서 확률을 따진다
             log_pz = self.base_dist.log_prob(z)
 
-            # 걸음 3: 변수 바꿈 식을 쓴다
+            # 스텝 3: 변수 바꿈 식을 쓴다
             # log p(x) = log p(z) + log|det(∂z/∂x)|
             return log_pz + log_det
 
@@ -556,10 +556,10 @@
                 - 다양하다(모두 같지 않다)
                 - 모델에서 로그 확률이 높다
             """
-            # 걸음 1: 단순한 바탕 분포에서 뽑는다
+            # 스텝 1: 단순한 바탕 분포에서 뽑는다
             z = self.base_dist.sample(n_samples, device=device)
 
-            # 걸음 2: 흐름을 모두 지나 바꾼다
+            # 스텝 2: 흐름을 모두 지나 바꾼다
             # 뽑기에는 필요 없으므로 log_det을 버린다
             x, _ = self.forward(z)
 
@@ -806,17 +806,17 @@
                 - tanh이 값을 가둔다
                 - log(0)을 피하려 작은 엡실론(1e-8)을 더한다
             """
-            # 걸음 1: 선형 쏘기 w^T z + b을 셈한다
+            # 스텝 1: 선형 쏘기 w^T z + b을 셈한다
             # 표본마다: 무게 벡터와의 점곱에 치우침을 더한다
             # 꼴: (배치 크기, 차원) × (차원,) → (배치 크기, 1)
             linear = torch.sum(self.weight * z, dim=-1, keepdim=True) + self.bias
 
-            # 걸음 2: 바꿈을 쓴다
+            # 스텝 2: 바꿈을 쓴다
             # f(z) = z + u × tanh(w^T z + b)
             # keepdim=True이라야 퍼뜨리기가 옳게 된다
             x = z + self.u * torch.tanh(linear)
 
-            # 걸음 3: 야코비 행렬식을 셈한다
+            # 스텝 3: 야코비 행렬식을 셈한다
             # 여기가 까다로운 곳이다!
 
             # tanh의 미분: d/dx tanh(x) = 1 - tanh²(x)
@@ -930,13 +930,13 @@
 
         # 효율을 위해 그래디언트 계산 끄기
         with torch.no_grad():
-            # 걸음 1: 바탕 정규 분포에서 뽑는다
+            # 스텝 1: 바탕 정규 분포에서 뽑는다
             z = flow_model.base_dist.sample(n_points)
 
-            # 걸음 2: 흐름을 지나 바꾼다
+            # 스텝 2: 흐름을 지나 바꾼다
             x, _ = flow_model.forward(z)
 
-            # 걸음 3: 그리려 CPU로 옮긴다(GPU에 있으면)
+            # 스텝 3: 그리려 CPU로 옮긴다(GPU에 있으면)
             z = z.cpu().numpy()
             x = x.cpu().numpy()
 
@@ -1030,19 +1030,19 @@
         # 밸류 방식으로 둔다
         flow_model.eval()
 
-        # 걸음 1: 공간 전체를 덮는 점 격자를 만든다
+        # 스텝 1: 공간 전체를 덮는 점 격자를 만든다
         x = np.linspace(xlim[0], xlim[1], n_grid)
         y = np.linspace(ylim[0], ylim[1], n_grid)
         X, Y = np.meshgrid(x, y)  # 2차원 격자를 만든다
 
-        # 걸음 2: 격자를 (x, y) 점 목록으로 펼친다
+        # 스텝 2: 격자를 (x, y) 점 목록으로 펼친다
         # 꼴: (n_grid*n_grid, 2)
         points = torch.tensor(
             np.stack([X.flatten(), Y.flatten()], axis=1), 
             dtype=torch.float32
         )
 
-        # 걸음 3: 격자 점마다 로그 확률을 셈한다
+        # 스텝 3: 격자 점마다 로그 확률을 셈한다
         with torch.no_grad():
             log_prob = flow_model.log_prob(points)
 
@@ -1050,10 +1050,10 @@
             # prob = exp(log_prob)
             prob = torch.exp(log_prob).cpu().numpy()
 
-        # 걸음 4: 그리려 격자 꼴로 되돌린다
+        # 스텝 4: 그리려 격자 꼴로 되돌린다
         prob = prob.reshape(n_grid, n_grid)
 
-        # 걸음 5: 채운 등고선 그림을 만든다
+        # 스텝 5: 채운 등고선 그림을 만든다
         plt.figure(figsize=(8, 7))
 
         # contourf이 매끄러운 색 자리를 만든다
@@ -1303,7 +1303,7 @@
 
 
     # ============================================================================
-    # 단원 간추리기와 다음 걸음
+    # 단원 간추리기와 다음 스텝
     # ============================================================================
     """
     축하한다! 바탕 벽돌을 모두 마쳤다!
@@ -1317,7 +1317,7 @@
     ✓ 2차원 흐름을 그려 보는 연장
     ✓ 최대 가능도 익히기 물길
 
-    다음 걸음:
+    다음 스텝:
     1. 더 힘 있는 바꿈을 보려면 coupling_flows.py을 익혀라
        - 짝지음 레이어(RealNVP)
        - 배치 고르게 맞추기 흐름

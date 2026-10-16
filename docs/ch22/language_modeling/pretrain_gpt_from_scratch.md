@@ -413,11 +413,11 @@ EOS를 사이에 넣어도 문서 간 어텐션이 자동으로 차단되지는 
     import math
     
     def lr_schedule(t, warmup_steps, total_steps):
-        """걸음 t의 러닝 비율 곱셈수 셈하기.
+        """스텝 t의 러닝 비율 곱셈수 셈하기.
         
         인수:
-            t: 지금 걸음
-            warmup_steps: 몸풀기 걸음의 개수
+            t: 지금 스텝
+            warmup_steps: 몸풀기 스텝의 개수
             total_steps: 전체 학습 단계 수
             
         반환값:

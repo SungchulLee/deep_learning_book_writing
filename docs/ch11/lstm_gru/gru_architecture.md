@@ -367,7 +367,7 @@ class GRUClassifier(nn.Module):
 
 ```python
 class GRUForecaster(nn.Module):
-    """여러 걸음을 내다보는 시계열 예측을 위한 GRU."""
+    """여러 스텝을 내다보는 시계열 예측을 위한 GRU."""
     
     def __init__(self, input_size, hidden_size, num_layers, 
                  output_size, horizon=1, dropout=0.2):
@@ -383,7 +383,7 @@ class GRUForecaster(nn.Module):
         predictions = self.fc(h_n[-1])
         return predictions.view(-1, self.horizon, self.output_size)
 
-# 예: 지난 20걸음으로 피처 3개의 다음 5걸음 예측
+# 예: 지난 20스텝으로 피처 3개의 다음 스텝5 예측
 model = GRUForecaster(input_size=3, hidden_size=128, num_layers=2,
                       output_size=3, horizon=5)
 

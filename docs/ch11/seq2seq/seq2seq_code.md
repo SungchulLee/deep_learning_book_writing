@@ -51,7 +51,7 @@ $$\mathbf{e}_t = \text{Embed}(x_t) \in \mathbb{R}^H$$
 
 $$\mathbf{h}_t^{enc} = \text{GRU}(\mathbf{e}_t, \mathbf{h}_{t-1}^{enc}) \in \mathbb{R}^H$$
 
-**어텐션.** 디코더의 $t$번째 걸음에서 바다나우 덧셈 어텐션은 갱신 전 디코더 상태 $\mathbf{s}_{t-1}$와 인코더 상태 $\mathbf{h}_j^{enc}$ 사이의 정렬 점수를 계산한다.
+**어텐션.** 디코더의 $t$번째 스텝에서 바다나우 덧셈 어텐션은 갱신 전 디코더 상태 $\mathbf{s}_{t-1}$와 인코더 상태 $\mathbf{h}_j^{enc}$ 사이의 정렬 점수를 계산한다.
 
 $$\text{score}(\mathbf{s}_{t-1}, \mathbf{h}_j) = \mathbf{v}_a^T \tanh(\mathbf{W}_a \mathbf{s}_{t-1} + \mathbf{U}_a \mathbf{h}_j)$$
 
@@ -59,7 +59,7 @@ $$\alpha_{t,j} = \frac{\exp(\text{score}(\mathbf{s}_{t-1}, \mathbf{h}_j))}{\sum_
 
 $$\mathbf{c}_t = \sum_{j=1}^{T} \alpha_{t,j} \, \mathbf{h}_j^{enc}$$
 
-**디코더.** 걸음마다 디코더는 임베딩한 이전 토큰과 어텐션 문맥을 이어 붙여 GRU에 넣는다.
+**디코더.** 스텝마다 디코더는 임베딩한 이전 토큰과 어텐션 문맥을 이어 붙여 GRU에 넣는다.
 
 $$\mathbf{s}_t = \text{GRU}([\text{Embed}(y_{t-1}); \mathbf{c}_t], \mathbf{s}_{t-1})$$
 
@@ -166,7 +166,7 @@ class EncoderRNN(nn.Module):
         return all_hidden, hidden
 ```
 
-(시퀀스 전체를 한 번에 처리하지 않고) 한 걸음씩 도는 반복문을 쓴 것은 이해를 돕기 위해서이다. 시각마다 은닉 상태가 어떻게 달라지는지 뚜렷이 드러난다. 실전 코드에서는 시퀀스 전체를 `self.gru`에 한 번에 넘기는 편이 효율적이다.
+(시퀀스 전체를 한 번에 처리하지 않고) 한 스텝씩 도는 반복문을 쓴 것은 이해를 돕기 위해서이다. 시각마다 은닉 상태가 어떻게 달라지는지 뚜렷이 드러난다. 실전 코드에서는 시퀀스 전체를 `self.gru`에 한 번에 넘기는 편이 효율적이다.
 
 ### 바다나우 어텐션
 
@@ -285,7 +285,7 @@ def train_epoch(dataloader, encoder, decoder, enc_opt, dec_opt, criterion):
 
 ### 탐욕 디코딩
 
-추론할 때 디코더는 티처 포싱 없이 돌며 걸음마다 확률이 가장 높은 토큰을 고른다.
+추론할 때 디코더는 티처 포싱 없이 돌며 스텝마다 확률이 가장 높은 토큰을 고른다.
 
 ```python
 def evaluate_sentence(encoder, decoder, sentence, input_lang, output_lang):
@@ -312,7 +312,7 @@ def evaluate_sentence(encoder, decoder, sentence, input_lang, output_lang):
 
 ### 어텐션 시각화
 
-어텐션 웨이트 행렬 $\boldsymbol{\alpha} \in \mathbb{R}^{T' \times T}$은 디코더가 생성 걸음마다 어떤 원본 토큰에 주목하는지 드러낸다. 이 행렬을 열지도로 그리면 모델의 정렬 거동을 해석할 수 있는 증거가 된다.
+어텐션 웨이트 행렬 $\boldsymbol{\alpha} \in \mathbb{R}^{T' \times T}$은 디코더가 생성 스텝마다 어떤 원본 토큰에 주목하는지 드러낸다. 이 행렬을 열지도로 그리면 모델의 정렬 거동을 해석할 수 있는 증거가 된다.
 
 ```python
 def show_attention(input_sentence, output_words, attentions):
@@ -385,7 +385,7 @@ Example pair: ['je suis pret .', 'i m ready .']
 ----|
 | `HIDDEN_SIZE` | 128 | 인코더와 디코더 모두의 GRU 숨은 차원 |
 | `BATCH_SIZE` | 32 | 학습 미니배치 크기 |
-| `TEACHER_FORCING_RATIO` | 0.5 | 디코더 걸음마다 정답을 쓸 확률 |
+| `TEACHER_FORCING_RATIO` | 0.5 | 디코더 스텝마다 정답을 쓸 확률 |
 | `MAX_LENGTH` | 10 | 문장의 최대 길이(토큰). 더 긴 쌍은 걸러 낸다 |
 | `lr` | 0.001 | Adam 러닝레이트 |
 | `n_epochs` | 80 | 학습 세대 수 |
@@ -402,7 +402,7 @@ Example pair: ['je suis pret .', 'i m ready .']
 - **단어 임베딩 (12.1절)**: 인코더와 디코더 모두 토큰 색인을 조밀한 벡터로 보내는 학습된 `nn.Embedding` 레이어를 쓴다. 이 임베딩은 사전 학습 벡터를 쓰지 않고 나머지 모델과 함께 학습한다.
 - **RNN과 은닉 상태 (12.2절)**: 인코더와 디코더의 GRU 세포가 순차 정보를 쌓는 은닉 상태를 지니며, RNN 절의 순환식을 그대로 구현한다.
 - **LSTM과 GRU의 문 (12.3절)**: GRU의 갱신 문과 재설정 문이 시퀀스에 걸쳐 기억을 골라 지키게 해 주어, 이런 번역 시퀀스에서 기본 RNN을 괴롭혔을 그래디언트 소실을 누그러뜨린다.
-- **바다나우 어텐션 (12.5절)**: 덧셈 어텐션 메커니즘이 고정된 문맥 벡터의 정보 병목을 없애, 디코더가 생성 걸음마다 쓸모 있는 인코더 상태에 물어볼 수 있게 한다.
+- **바다나우 어텐션 (12.5절)**: 덧셈 어텐션 메커니즘이 고정된 문맥 벡터의 정보 병목을 없애, 디코더가 생성 스텝마다 쓸모 있는 인코더 상태에 물어볼 수 있게 한다.
 - **인코더-디코더 틀 (12.4절)**: 전체 구조가 어텐션으로 보강한 문맥 벡터와 함께 인코더-디코더 틀을 실현한다.
 - **티처 포싱 (12.4절)**: 학습은 수렴 속도와 노출 바이어스의 균형을 잡으려고 확률적인 티처 포싱를 쓴다.
 

@@ -30,7 +30,7 @@
     - 조건부 독립: P(X,Y|Z) = P(X|Z)P(Y|Z)
 
     지은이: 교육용 ML 팀
-    수준: 첫걸음
+    수준: 첫스텝
     미리 알아야 할 것: 기본 확률 이론
     """
 
@@ -63,7 +63,7 @@
                      cardinalities: Dict[str, int],
                      values: Optional[np.ndarray] = None):
             """
-            확률 분포의 첫걸음을 잡는다.
+            확률 분포의 첫스텝을 잡는다.
 
             인수:
                 variables: 변수 이름의 목록(이를테면 ['X', 'Y', 'Z'])
@@ -85,7 +85,7 @@
             shape = tuple(cardinalities[var] for var in variables)
 
             if values is None:
-                # 고른 분포로 첫걸음 잡기
+                # 고른 분포로 첫스텝 잡기
                 total_size = np.prod(shape)
                 self.values = np.ones(shape) / total_size
             else:
@@ -310,7 +310,7 @@
         """
 
         def __init__(self):
-            """빈 방향 그래프의 첫걸음을 잡는다."""
+            """빈 방향 그래프의 첫스텝을 잡는다."""
             self.graph = nx.DiGraph()
 
         def add_node(self, node: str):

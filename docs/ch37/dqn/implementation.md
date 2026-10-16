@@ -185,7 +185,7 @@
             self.total_steps += 1
 
         def train_step(self) -> Optional[float]:
-            """익히기 한 걸음을 한다. 로스를 돌려주되 버퍼가 너무 작으면 None을 돌려준다."""
+            """익히기 한 스텝을 한다. 로스를 돌려주되 버퍼가 너무 작으면 None을 돌려준다."""
             if len(self.buffer) < self.min_buffer_size:
                 return None
 

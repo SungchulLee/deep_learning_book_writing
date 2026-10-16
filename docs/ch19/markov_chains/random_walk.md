@@ -10,7 +10,7 @@
     """
     random_walk.py (단원 03)
 
-    무작위 걸음 흉내내기
+    무작위 스텝 흉내내기
     =======================
 
     Location: 06_markov_chain/01_fundamentals/
@@ -18,26 +18,26 @@
     걸리는 시간: 3-4시간
 
     학습 목표:
-    - 마르코프 사슬로서 무작위 걸음 이해하기
-    - 1차원과 2차원 무작위 걸음 구현하기
+    - 마르코프 사슬로서 무작위 스텝 이해하기
+    - 1차원과 2차원 무작위 스텝 구현하기
     - 성질 살피기: 기댓값 자리, 흩어짐
     - 경계 조건과 첫 지나감 시간 살피기
 
     수학적 바탕:
-    무작위 걸음은 무작위 방향의 걸음으로 이루어진 길이다.
+    무작위 스텝은 무작위 방향의 스텝으로 이루어진 길이다.
     이는 다음을 만족하는 마르코프 사슬의 특별한 경우이다:
     - 상태는 자리이다(정수나 좌표)
     - 옮김은 지금 자리에만 달렸다
 
-    1차원 대칭 무작위 걸음에서:
+    1차원 대칭 무작위 스텝에서:
     - P(X_{n+1} = X_n + 1) = p
     - P(X_{n+1} = X_n - 1) = 1-p
-    - p = 0.5이면 단순한 대칭 무작위 걸음이다
+    - p = 0.5이면 단순한 대칭 무작위 스텝이다
 
     핵심 성질:
-    - 치우친 걸음에서는 E[X_n] = X_0 + n(2p-1)
+    - 치우친 스텝에서는 E[X_n] = X_0 + n(2p-1)
     - Var[X_n] = 4np(1-p)
-    - 대칭 걸음에서는 E[X_n] = X_0, Var[X_n] = n
+    - 대칭 스텝에서는 E[X_n] = X_0, Var[X_n] = n
     """
 
     import numpy as np
@@ -55,7 +55,7 @@
 
     class RandomWalk1D:
         """
-        정수 위의 1차원 무작위 걸음.
+        정수 위의 1차원 무작위 스텝.
 
         수학 모형:
         X_n = X_0 + Σ_{i=1}^n ξ_i
@@ -66,14 +66,14 @@
 
         def __init__(self, p=0.5, initial_position=0):
             """
-            무작위 걸음 첫값 잡기.
+            무작위 스텝 첫값 잡기.
 
             파라메터:
                 p (float): 오른쪽으로 걸을 확률([0,1] 안이어야 한다)
                 initial_position (int): 시작 자리
 
             수학 메모:
-            - p = 0.5: 대칭(치우치지 않은) 무작위 걸음
+            - p = 0.5: 대칭(치우치지 않은) 무작위 스텝
             - p > 0.5: 오른쪽으로 쏠린다
             - p < 0.5: 왼쪽으로 쏠린다
             """
@@ -87,7 +87,7 @@
 
         def step(self):
             """
-            무작위 걸음의 한 걸음 떼기.
+            무작위 스텝의 한 스텝 떼기.
 
             반환값:
                 int: 새 자리
@@ -96,7 +96,7 @@
             확률 p으로 오른쪽(+1)으로 움직인다
             확률 1-p으로 왼쪽(-1)으로 움직인다
             """
-            # 걸음 만들기: 확률 p으로 +1, 확률 1-p으로 -1
+            # 스텝 만들기: 확률 p으로 +1, 확률 1-p으로 -1
             if np.random.random() < self.p:
                 step_size = 1
             else:
@@ -109,16 +109,16 @@
 
         def simulate(self, n_steps, initial_position=None):
             """
-            무작위 걸음 n걸음 흉내내기.
+            무작위 스텝 n스텝 흉내내기.
 
             파라메터:
-                n_steps (int): 뗄 걸음 수
+                n_steps (int): 뗄 스텝 수
                 initial_position (int): 시작 자리(되돌릴 때)
 
             반환값:
                 list: 자리의 늘어놓음
 
-            통계의 성질(대칭 걸음, p=0.5):
+            통계의 성질(대칭 스텝, p=0.5):
             - E[X_n] = X_0(기댓값 쏠림 없음)
             - Var[X_n] = n(흩어짐이 시간에 비례해 자란다)
             - Std[X_n] = √n(표준편차가 제곱근으로 자란다)
@@ -134,10 +134,10 @@
 
         def expected_position(self, n_steps):
             """
-            n걸음 뒤의 이론상 기댓값 자리 셈하기.
+            n스텝 뒤의 이론상 기댓값 자리 셈하기.
 
             파라메터:
-                n_steps (int): 걸음 수
+                n_steps (int): 스텝 수
 
             반환값:
                 float: 기댓값 자리 E[X_n]
@@ -146,7 +146,7 @@
             E[X_n] = X_0 + n(2p - 1)
 
             이끌어 내기:
-            걸음마다 확률 p으로 +1, 확률 1-p으로 -1을 보탠다
+            스텝마다 확률 p으로 +1, 확률 1-p으로 -1을 보탠다
             E[ξ_i] = (+1)×p + (-1)×(1-p) = 2p - 1
             E[X_n] = E[X_0 + Σξ_i] = X_0 + n×E[ξ_i] = X_0 + n(2p-1)
             """
@@ -154,10 +154,10 @@
 
         def variance(self, n_steps):
             """
-            n걸음 뒤의 이론상 흩어짐 셈하기.
+            n스텝 뒤의 이론상 흩어짐 셈하기.
 
             파라메터:
-                n_steps (int): 걸음 수
+                n_steps (int): 스텝 수
 
             반환값:
                 float: 흩어짐 Var[X_n]
@@ -165,7 +165,7 @@
             수학 공식:
             Var[X_n] = 4np(1-p)
 
-            대칭 걸음에서는(p=0.5) Var[X_n] = n
+            대칭 스텝에서는(p=0.5) Var[X_n] = n
 
             이끌어 내기:
             Var[ξ_i] = E[ξ_i²] - (E[ξ_i])²
@@ -177,18 +177,18 @@
 
         def first_passage_time(self, target_position, max_steps=10000):
             """
-            걸음이 target_position에 처음 닿는 때 찾기.
+            스텝이 target_position에 처음 닿는 때 찾기.
 
             파라메터:
                 target_position (int): 닿을 타깃
-                max_steps (int): 시도할 최대 걸음 수
+                max_steps (int): 시도할 최대 스텝 수
 
             반환값:
                 int or None: 첫 지나감 시간, 닿지 못하면 None
 
             수학 메모:
             첫 지나감 시간 T = min{n ≥ 0 : X_n = target}
-            대칭 걸음에서는 어떤 타깃에 대해서도 E[T]이 유한하다.
+            대칭 스텝에서는 어떤 타깃에 대해서도 E[T]이 유한하다.
             """
             self.current_position = self.initial_position
 
@@ -202,18 +202,18 @@
 
     class RandomWalk2D:
         """
-        정수 격자 Z² 위의 2차원 무작위 걸음.
+        정수 격자 Z² 위의 2차원 무작위 스텝.
 
         수학 모형:
         (X_n, Y_n) = (X_0, Y_0) + Σ_{i=1}^n (ξ_i, η_i)
 
-        대칭 걸음에서:
+        대칭 스텝에서:
         P(오른쪽) = P(왼쪽) = P(위) = P(아래) = 1/4
         """
 
         def __init__(self, initial_position=(0, 0)):
             """
-            2차원 무작위 걸음 첫값 잡기.
+            2차원 무작위 스텝 첫값 잡기.
 
             파라메터:
                 initial_position (tuple): 시작 (x, y) 좌표
@@ -224,7 +224,7 @@
 
         def step(self):
             """
-            무작위 사방 가운데 한 방향으로 한 걸음 떼기.
+            무작위 사방 가운데 한 방향으로 한 스텝 떼기.
 
             반환값:
                 np.ndarray: 새 자리 (x, y)
@@ -254,10 +254,10 @@
 
         def simulate(self, n_steps):
             """
-            2차원 무작위 걸음 n걸음 흉내내기.
+            2차원 무작위 스텝 n스텝 흉내내기.
 
             파라메터:
-                n_steps (int): 걸음 수
+                n_steps (int): 스텝 수
 
             반환값:
                 list: (x, y) 자리의 목록
@@ -286,7 +286,7 @@
 
     def example_symmetric_walk():
         """
-        보기 1: 대칭 무작위 걸음(p = 0.5).
+        보기 1: 대칭 무작위 스텝(p = 0.5).
 
         기댓값 쏠림이 0이고 흩어짐이 자람을 보인다.
         """
@@ -294,7 +294,7 @@
         print("Example 1: Symmetric Random Walk (p = 0.5)")
         print("=" * 70)
 
-        # 대칭 걸음 만들기
+        # 대칭 스텝 만들기
         walk = RandomWalk1D(p=0.5, initial_position=0)
 
         # 한 번의 실현
@@ -329,7 +329,7 @@
 
     def example_biased_walk():
         """
-        보기 2: 치우친 무작위 걸음(p ≠ 0.5).
+        보기 2: 치우친 무작위 스텝(p ≠ 0.5).
 
         기댓값 방향으로 쏠림을 보인다.
         """
@@ -337,7 +337,7 @@
         print("Example 2: Biased Random Walk (p = 0.6)")
         print("=" * 70)
 
-        # 치우친 걸음 만들기
+        # 치우친 스텝 만들기
         p = 0.6
         walk = RandomWalk1D(p=p, initial_position=0)
 
@@ -400,7 +400,7 @@
 
     def example_2d_walk():
         """
-        보기 4: 2차원 무작위 걸음.
+        보기 4: 2차원 무작위 스텝.
 
         2차원 공간의 무작위 액션을 살펴본다.
         """
@@ -408,7 +408,7 @@
         print("Example 4: Two-Dimensional Random Walk")
         print("=" * 70)
 
-        # 2차원 걸음 하나
+        # 2차원 스텝 하나
         walk = RandomWalk2D(initial_position=(0, 0))
         path = walk.simulate(n_steps=1000)
 
@@ -438,16 +438,16 @@
 
     def visualize_random_walks():
         """
-        무작위 걸음의 그림 만들기.
+        무작위 스텝의 그림 만들기.
         """
         print("\n" + "=" * 70)
         print("Creating Visualizations")
         print("=" * 70)
 
-        # 1차원 걸음 견주기
+        # 1차원 스텝 견주기
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-        # 작은 그림 1: 대칭 걸음 여럿
+        # 작은 그림 1: 대칭 스텝 여럿
         ax = axes[0, 0]
         for i in range(10):
             walk = RandomWalk1D(p=0.5)
@@ -460,7 +460,7 @@
         ax.set_title('10 Symmetric Random Walks (p=0.5)', fontsize=12)
         ax.grid(True, alpha=0.3)
 
-        # 작은 그림 2: 치우친 걸음
+        # 작은 그림 2: 치우친 스텝
         ax = axes[0, 1]
         for p_val, color in [(0.3, 'blue'), (0.5, 'green'), (0.7, 'red')]:
             walk = RandomWalk1D(p=p_val)
@@ -474,7 +474,7 @@
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-        # 작은 그림 3: 2차원 걸음
+        # 작은 그림 3: 2차원 스텝
         ax = axes[1, 0]
         walk_2d = RandomWalk2D()
         path_2d = walk_2d.simulate(500)
@@ -527,7 +527,7 @@
 
     def main():
         """
-        무작위 걸음 보기 모두 돌리기.
+        무작위 스텝 보기 모두 돌리기.
         """
         print("RANDOM WALK SIMULATIONS")
         print("=======================\n")

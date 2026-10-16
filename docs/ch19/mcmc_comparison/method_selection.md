@@ -51,7 +51,7 @@ scan_order = np.random.permutation(d)  # 되풀이마다
 blocks = [[0, 1, 2], [3, 4, 5], ...]  # 서로 얽힌 변수 묶기
 ```
 ```python
-# 첫 걸음 크기
+# 첫 스텝 크기
 epsilon = 1.0 / d**(1/6)
 
 # 받아들임 57%쯤을 목표로 맞추기
@@ -228,10 +228,10 @@ def metropolis_within_gibbs(current, conditionals, mh_params):
     """
     for param in current.keys():
         if param in conditionals:
-            # 깁스 걸음
+            # 깁스 스텝
             current[param] = conditionals[param](current)
         else:
-            # 메트로폴리스 걸음
+            # 메트로폴리스 스텝
             current[param] = mh_step(current, param, mh_params[param])
     
     return current

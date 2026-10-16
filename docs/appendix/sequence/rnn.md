@@ -2,7 +2,7 @@
 
 맨 RNN - 되도는 뉴럴 넷트웍(엘만 RNN). 옛 깨침: 때를 따라 차례로 고쳐지는 은닉 상태를 지닌다.
 
-여기 구현은 Vanilla RNN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 Vanilla RNN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -29,7 +29,7 @@ import torch.nn as nn
 
 class RNNCell(nn.Module):
     """
-    맨 RNN 칸 하나(때 걸음 하나).
+    맨 RNN 칸 하나(때 스텝 하나).
 
     꼴:
       x_t     : (B, input_size)
@@ -82,13 +82,13 @@ class RNN(nn.Module):
 
         outputs = []
         for t in range(T):
-            # 때 걸음 t의 들임을 가져온다
+            # 때 스텝 t의 들임을 가져온다
             x_t = x[:, t, :]               # (B, input_size)
 
             # RNN 칸으로 숨은 상태를 고친다
             h_t = self.cell(x_t, h_t)      # (B, hidden_size)
 
-            # 이 때 걸음의 숨은 상태를 담아 둔다
+            # 이 때 스텝의 숨은 상태를 담아 둔다
             outputs.append(h_t)
 
         # 때에 걸친 숨은 상태를 쌓아 텐서 하나로 만든다
@@ -97,7 +97,7 @@ class RNN(nn.Module):
 
 
 if __name__ == "__main__":
-    # 얼른 해 보는 맛보기 살핌: 앞으로 걸음을 돌리고 꼴을 찍는다
+    # 얼른 해 보는 맛보기 살핌: 앞으로 스텝을 돌리고 꼴을 찍는다
     model = RNN(input_size=8, hidden_size=16)
     x = torch.randn(2, 5, 8)     # (B=2, T=5, input=8)
     y, hT = model(x)

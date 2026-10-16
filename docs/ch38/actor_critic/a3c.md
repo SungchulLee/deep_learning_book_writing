@@ -145,7 +145,7 @@
             # 제 모형을 온 세상 모형에 맞춘다
             local_model.load_state_dict(global_model.state_dict())
 
-            # n걸음 굴림을 모은다
+            # n스텝 굴림을 모은다
             states, actions, rewards, dones = [], [], [], []
             log_probs, values, entropies = [], [], []
 

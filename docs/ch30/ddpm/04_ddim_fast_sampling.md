@@ -8,7 +8,7 @@ DDIM은 DDPM과 같은 노이즈 예측 학습을 사용하면서 다른 생성 
 """DDIM 빠른 뽑기."""
 # ==========================================
 # DDIM(잡음 없애는 은근한 확산 모델)
-# - 더 빠른 뽑기: 1000 대신 50걸음
+# - 더 빠른 뽑기: 1000 대신 50스텝
 # - 정해진 뽑기(아무 잡음 없음)
 # - Song 외, 2021
 # ==========================================
@@ -30,8 +30,8 @@ IMG_SIZE = 32 if DATASET == "CIFAR10" else 28
 BATCH_SIZE = 128
 LR = 2e-4
 EPOCHS = 5
-T = 1000              # 익히기 걸음
-DDIM_STEPS = 50       # 뽑기 걸음(훨씬 빠르다!)
+T = 1000              # 익히기 스텝
+DDIM_STEPS = 50       # 뽑기 스텝(훨씬 빠르다!)
 DDIM_ETA = 0.0        # 0=정해짐, 1=DDPM 같은 확률
 BASE_CH = 64
 ATTN_RES = {16}
@@ -245,8 +245,8 @@ class UNet(nn.Module):
 # ==========================================
 class DDIM(nn.Module):
     """
-    DDIM: 걸음을 줄여 정해진 뽑기를 할 수 있게 한다.
-    핵심 통찰: 뽑는 동안 때 걸음을 건너뛸 수 있다!
+    DDIM: 스텝을 줄여 정해진 뽑기를 할 수 있게 한다.
+    핵심 통찰: 뽑는 동안 때 스텝을 건너뛸 수 있다!
     """
     def __init__(self, model, timesteps=T):
         super().__init__()
@@ -286,7 +286,7 @@ class DDIM(nn.Module):
     def ddim_sample(self, n, ddim_steps=DDIM_STEPS, eta=DDIM_ETA,
                     img_channels=IN_CHANNELS, img_size=IMG_SIZE):
         """
-        DDIM 뽑기: 더 빨리 만들려 때 걸음의 일부만 쓴다.
+        DDIM 뽑기: 더 빨리 만들려 때 스텝의 일부만 쓴다.
         
         eta: 확률성을 다스린다
             - eta=0: 정해진 대로(같은 씨앗 → 같은 그림)
@@ -294,8 +294,8 @@ class DDIM(nn.Module):
         """
         self.model.eval()
         
-        # 때 걸음의 부분 차례를 만든다
-        # 1000걸음을 다 쓰지 않고 ddim_steps(예컨대 50)만 쓴다
+        # 때 스텝의 부분 차례를 만든다
+        # 1000스텝을 다 쓰지 않고 ddim_steps(예컨대 50)만 쓴다
         c = self.timesteps // ddim_steps
         ddim_timesteps = torch.arange(0, self.timesteps, c, device=DEVICE).long()
         ddim_timesteps_prev = torch.cat([torch.tensor([0], device=DEVICE), ddim_timesteps[:-1]])

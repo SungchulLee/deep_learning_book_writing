@@ -97,7 +97,7 @@ def compute_saliency_map(
     # 들임에 그래디언트 셈을 켠다
     input_tensor = input_tensor.clone().to(device).requires_grad_(True)
 
-    # 앞으로 걸음
+    # 앞으로 스텝
     model.eval()
     output = model(input_tensor)
 
@@ -105,7 +105,7 @@ def compute_saliency_map(
     if target_class is None:
         target_class = output.argmax(dim=1).item()
 
-    # 되짚기 걸음: ∂y_c/∂x을 셈한다
+    # 되짚기 스텝: ∂y_c/∂x을 셈한다
     model.zero_grad()
     output[0, target_class].backward()
 
@@ -143,13 +143,13 @@ def compute_vanilla_gradient_saliency(
     if image_tensor.grad is not None:
         image_tensor.grad.zero_()
 
-    # 앞으로 걸음
+    # 앞으로 스텝
     output = model(image_tensor)  # [1, num_classes]
 
     # 겨눈 클래스 점수를 고른다
     target_score = output[0, target_class]
 
-    # 되짚기 걸음
+    # 되짚기 스텝
     target_score.backward()
 
     # 그래디언트를 집고 절댓값을 잡는다
@@ -682,7 +682,7 @@ def smoothgrad(
 
 ### 때 열 현저성
 
-차례로 놓인 금융 데이터에서는 현저성이 어느 때 걸음이 중요한지 드러낸다.
+차례로 놓인 금융 데이터에서는 현저성이 어느 때 스텝이 중요한지 드러낸다.
 
 ```python
 def time_series_saliency(
@@ -786,7 +786,7 @@ def tabular_saliency(
 | **그래디언트 × 입력** | 입력 값을 곱한다 | 피처를 또렷하게 한다 |
 | **SmoothGrad** | 잡음 표본에 걸쳐 고르게 한다 | 잡음을 줄인다 |
 | **Integrated Gradients** | 밑금에서 오는 길을 따라 적분한다 | 공리를 채운다 |
-| **이끈 되짚기** | ReLU 되짚기 걸음을 고친다 | 그림이 깨끗해진다 |
+| **이끈 되짚기** | ReLU 되짚기 스텝을 고친다 | 그림이 깨끗해진다 |
 | **Grad-CAM** | 피처 그림의 그래디언트를 쓴다 | 클래스를 가려낸다 |
 
 ### 비교 표

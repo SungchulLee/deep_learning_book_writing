@@ -161,7 +161,7 @@ $$-\log p_\theta(x)=-\sum_i\log p_\theta(x_i|x_{<i}).$$
 ```python
 def train_step(model, optimizer, batch):
     """
-    스승 밀어 넣기로 하는 익히기 걸음 하나.
+    스승 밀어 넣기로 하는 익히기 스텝 하나.
     
     모델은 자리마다 참 앞 토큰을 본다.
     """

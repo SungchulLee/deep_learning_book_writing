@@ -55,7 +55,7 @@ class MALA:
     log_prob : callable
         log π̃(θ)을 셈한다. autograd를 받쳐야 한다.
     step_size : float
-        랑주뱅 걸음 크기 ε
+        랑주뱅 스텝 크기 ε
     """
     
     def __init__(self, log_prob, step_size=0.1):
@@ -147,7 +147,7 @@ def mala_batch(log_prob_fn, score_fn, x0, n_steps, epsilon):
         score_fn: x [batch, dim] → ∇ log π(x) [batch, dim]으로 잇는다.
         x0: 첫 상태 [batch, dim].
         n_steps: 되풀이 횟수.
-        epsilon: 걸음 크기.
+        epsilon: 스텝 크기.
 
     반환값:
         samples: 마지막 표본 [batch, dim].

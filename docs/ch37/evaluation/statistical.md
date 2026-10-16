@@ -88,7 +88,7 @@ def bonferroni_correction(p_values: List[float]) -> List[float]:
 
 
 def holm_bonferroni(p_values: List[float]) -> List[float]:
-    """홀름-본페로니 걸음 내림 바로잡기."""
+    """홀름-본페로니 스텝 내림 바로잡기."""
     n = len(p_values)
     sorted_idx = np.argsort(p_values)
     adjusted = np.zeros(n)

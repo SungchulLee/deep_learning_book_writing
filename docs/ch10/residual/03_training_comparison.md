@@ -10,7 +10,7 @@
 
 $$G_l(x) = \mathrm{BN}_2\!\left(W_2\,\sigma\!\left(\mathrm{BN}_1(W_1 x)\right)\right)$$
 
-이다. 두 네트워크는 이 $G_l$ 을 똑같이 쓰고 마지막 한 걸음만 다르다.
+이다. 두 네트워크는 이 $G_l$ 을 똑같이 쓰고 마지막 한 스텝만 다르다.
 
 $$\begin{aligned}
 \text{평범한 블록:}\quad & x_{l+1} = \sigma\!\left(G_l(x_l)\right) \\

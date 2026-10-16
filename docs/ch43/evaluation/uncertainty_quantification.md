@@ -933,7 +933,7 @@ class SimpleHeteroscedasticNetwork:
     
     def forward(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
-        앞으로 걸음.
+        앞으로 스텝.
         
         Returns
         -------

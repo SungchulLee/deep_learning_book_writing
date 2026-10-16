@@ -171,7 +171,7 @@ def main():
     print("Training Complete!")
     print("="*70)
     print("""
-    다음 걸음:
+    다음 스텝:
     1. 참 MNIST 데이터셋으로 해 보아라(torchvision.datasets.MNIST)
     2. 여러 구조를 이리저리 바꾸어 보아라
     3. 데이터 불리기를 더하여라
@@ -243,7 +243,7 @@ Confidence: 0.1115
 Training Complete!
 ======================================================================
 
-    다음 걸음:
+    다음 스텝:
     1. 참 MNIST 데이터셋으로 해 보아라(torchvision.datasets.MNIST)
     2. 여러 구조를 이리저리 바꾸어 보아라
     3. 데이터 불리기를 더하여라

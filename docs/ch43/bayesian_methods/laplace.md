@@ -348,7 +348,7 @@ class LaplaceMLP:
     
     def forward(self, X: np.ndarray, params: Optional[np.ndarray] = None) -> np.ndarray:
         """
-        앞으로 걸음.
+        앞으로 스텝.
         
         Parameters
         ----------

@@ -50,7 +50,7 @@ def train_regression(model, X, y, epochs=300, lr=0.01):
         model.train()
         optimizer.zero_grad()
         # 배치로 나누지 않고 500개를 한꺼번에 쓴다(전체 배치 경사 하강).
-        # 표본이 적어 가능하며, 걸음마다의 그래디언트가 흔들리지 않는다
+        # 표본이 적어 가능하며, 스텝마다의 그래디언트가 흔들리지 않는다
         predictions = model(X)
         loss = criterion(predictions, y)
         loss.backward()

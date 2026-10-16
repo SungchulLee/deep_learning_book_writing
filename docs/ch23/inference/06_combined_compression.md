@@ -292,7 +292,7 @@ def print_compression_summary(results):
        ✓ 짐이 걸린 상태에서 기억 공간 씀씀이를 살핀다
        ✓ 다양한 시험 배치에서 정확도를 확인한다
     
-    5. 다음 걸음:
+    5. 다음 스텝:
        - 펼치기를 위해 ONNX로 내보낸다
        - TensorRT/CoreML로 가장 좋게 다듬는다
        - 목표 기기에서 성능을 살핀다

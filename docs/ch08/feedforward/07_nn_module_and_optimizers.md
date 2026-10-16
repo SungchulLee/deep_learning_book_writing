@@ -141,7 +141,7 @@ Adam을 SGD(러닝레이트 0.1, 운동량 0.9)로 바꿔라. 1000 에포크에 
         # torch.manual_seed(42)를 넣어야 한다
         model = SimpleNet(2, 16, 1).to(device)
         # 러닝레이트가 다르다는 점에 주의하라. Adam은 0.01, SGD는 0.1이다.
-        # Adam이 적률로 걸음 크기를 스스로 조절하므로 더 작은 값을 쓴다
+        # Adam이 적률로 스텝 크기를 스스로 조절하므로 더 작은 값을 쓴다
         optimizer = opt_cls(model.parameters(), **kwargs)
         losses = []
         for epoch in range(1000):

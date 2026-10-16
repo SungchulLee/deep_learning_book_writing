@@ -303,7 +303,7 @@ def visualize_gradient_flow(model, x):
     rnn = nn.RNN(input_size, hidden_size, batch_first=True)
     loss = criterion(rnn(x)[0], targets)
     loss.backward()  # 모든 시각을 지나는 온전한 BPTT
-    # 잘라 낸 BPTT: k걸음마다 숨은 상태를 떼어 낸다
+    # 잘라 낸 BPTT: k스텝마다 숨은 상태를 떼어 낸다
     ```
 
     아래 코드는 backward 호출만 보여 주며 수치 검증은 수행하지 않는다. 정의된 입력과 로스를 사용하고, 작은 배정밀도 텐서에서 자동 미분 결과를 중앙 유한 차분이나 gradcheck와 비교해야 한다. 각 사용 위치가 공유 파라메터 하나에 기여하도록 구성하고 로스의 합·평균 배율도 맞춘다.

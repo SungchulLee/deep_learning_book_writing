@@ -124,7 +124,7 @@
 
         def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
             """
-            앞으로 걸음.
+            앞으로 스텝.
 
             Args:
                 x: 들임 결
@@ -253,7 +253,7 @@
 
         def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
             """
-            앞으로 걸음.
+            앞으로 스텝.
 
             Args:
                 x: 들임 결
@@ -455,7 +455,7 @@
 
 이 구현은 함께 어우러져 온전한 딥러닝 구조를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다. 클래스마다 따로 떨어진 조각을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 저절로 미분하는 데 쓰는 계산 그래프를 세운다.
 
-학습 돌기는 여느 PyTorch 결을 따른다. 앞으로 걸음으로 추론을 계산하고, 로스를 계산하고, 되짚기로 그래디언트를 계산하고, 가장 좋게 하는 개로 파라메터를 고친다. 시대마다 자를 좇으면 모여 가는 결이 드러나고 덜 맞추기나 지나치게 맞추기 같은 탈을 짚어내기 좋다.
+학습 돌기는 여느 PyTorch 결을 따른다. 앞으로 스텝으로 추론을 계산하고, 로스를 계산하고, 되짚기로 그래디언트를 계산하고, 가장 좋게 하는 개로 파라메터를 고친다. 시대마다 자를 좇으면 모여 가는 결이 드러나고 덜 맞추기나 지나치게 맞추기 같은 탈을 짚어내기 좋다.
 
 여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 클래스, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 머신러닝 과제에 대한 감이 몸에 붙는다.
 

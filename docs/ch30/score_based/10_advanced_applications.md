@@ -79,14 +79,14 @@ def inpaint_with_scores(model, x_obs, mask, n_steps=1000, step_size=0.01):
     
     전략:
     1. p(x)에서 표본을 뽑으려고 랑주뱅 액션을 돌린다
-    2. 걸음마다 본 화소에 맞도록 쏜다
+    2. 스텝마다 본 화소에 맞도록 쏜다
     
     인수:
         model: 점수 모델
         x_obs: 본 화소, 꼴 (H, W, C)
         mask: 두 값 덮개, 1이면 본 것, 0이면 모르는 것, 꼴 (H, W, C)
-        n_steps: 뽑기 걸음 수
-        step_size: 랑주뱅 걸음 크기
+        n_steps: 뽑기 스텝 수
+        step_size: 랑주뱅 스텝 크기
     
     반환값:
         x: 안을 그린 그림

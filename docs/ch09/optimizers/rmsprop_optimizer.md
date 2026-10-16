@@ -36,7 +36,7 @@ class RMSprop:
     파라메터:
     -----------
     learning_rate : float, 기본값=0.001
-        파라메터 갱신의 걸음 크기
+        파라메터 갱신의 스텝 크기
     rho : float, 기본값=0.9
         그래디언트 제곱의 이동 평균에 대한 감쇠율
     epsilon : float, 기본값=1e-8

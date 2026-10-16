@@ -14,7 +14,7 @@ $$-\log p_\theta(x_2,\ldots,x_T|x_1)
 ## 2. 구현과 반환 형식
 
 ```python
-"""자기 회귀 모델의 스승 밀어 넣기 익히기 걸음."""
+"""자기 회귀 모델의 스승 밀어 넣기 익히기 스텝."""
 import torch.nn.functional as F
 
 def teacher_forced_loss(model, x, vocab_size):

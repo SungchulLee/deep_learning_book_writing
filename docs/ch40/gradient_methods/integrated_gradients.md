@@ -74,7 +74,7 @@ $$
 
 ### 리만 합 어림
 
-참으로는 걸음 $m$개의 리만 합으로 적분을 어림한다.
+참으로는 스텝 $m$개의 리만 합으로 적분을 어림한다.
 
 $$
 \text{IG}_i(\mathbf{x}) \approx (x_i - x'_i) \times \frac{1}{m} \sum_{k=1}^{m} \frac{\partial f\left(\mathbf{x}' + \frac{k}{m}(\mathbf{x} - \mathbf{x}')\right)}{\partial x_i}
@@ -157,7 +157,7 @@ def compute_integrated_gradients(
         target_class: 겨눈 클래스 번호
         device: 셈하는 장치
         baseline_type: 밑금의 클래스('zeros', 'blur', 'random', 'mean')
-        steps: 사이를 잡는 걸음 수(많을수록 더 맞다)
+        steps: 사이를 잡는 스텝 수(많을수록 더 맞다)
 
     Returns:
         몫 그림 [1, H, W]
@@ -182,11 +182,11 @@ def compute_integrated_gradients(
         interpolated = baseline + alpha * delta
         interpolated = interpolated.clone().detach().requires_grad_(True)
 
-        # 앞으로 걸음
+        # 앞으로 스텝
         output = model(interpolated)
         target_score = output[0, target_class]
 
-        # 되짚기 걸음
+        # 되짚기 스텝
         model.zero_grad()
         target_score.backward()
 
@@ -283,7 +283,7 @@ class IntegratedGradients:
             input_tensor: (1, *들임 차원) 꼴 들임 텐서
             baseline: 꼴이 같은 밑금 텐서. None이면 0을 쓴다.
             target_class: 몫을 매길 겨눈 클래스. None이면 argmax을 쓴다.
-            n_steps: 적분 걸음 수(많을수록 더 맞다)
+            n_steps: 적분 스텝 수(많을수록 더 맞다)
             return_convergence_delta: True이면 어림 어긋남도 내놓는다
 
         Returns:
@@ -305,7 +305,7 @@ class IntegratedGradients:
         # 차이를 셈한다
         diff = input_tensor - baseline
 
-        # 사이 걸음을 만든다: k = 1, ..., m에 대해 α_k = k/m
+        # 사이 스텝을 만든다: k = 1, ..., m에 대해 α_k = k/m
         scaled_inputs = [
             baseline + (float(i) / n_steps) * diff 
             for i in range(1, n_steps + 1)
@@ -315,13 +315,13 @@ class IntegratedGradients:
         scaled_inputs = torch.cat(scaled_inputs, dim=0)
         scaled_inputs.requires_grad_(True)
 
-        # 모든 걸음을 한꺼번에 앞으로 보낸다(배치)
+        # 모든 스텝을 한꺼번에 앞으로 보낸다(배치)
         outputs = self.model(scaled_inputs)
 
         # 겨눈 클래스 점수를 뽑는다
         target_scores = outputs[:, target_class]
 
-        # 되짚기 걸음
+        # 되짚기 스텝
         self.model.zero_grad()
 
         # 그래디언트를 셈한다
@@ -331,7 +331,7 @@ class IntegratedGradients:
             create_graph=False
         )[0]
 
-        # 걸음에 걸쳐 그래디언트를 고르게 한다
+        # 스텝에 걸쳐 그래디언트를 고르게 한다
         avg_grads = grads.mean(dim=0, keepdim=True)
 
         # 쌓은 그래디언트 = (들임 - 밑금) * 고른 그래디언트
@@ -385,7 +385,7 @@ class IntegratedGradients:
 
 ### 배치로 다듬은 구현
 
-잘 들게 하려고 사이 걸음 여럿을 한 배치로 다룬다.
+잘 들게 하려고 사이 스텝 여럿을 한 배치로 다룬다.
 
 ```python
 def compute_integrated_gradients_batched(
@@ -400,8 +400,8 @@ def compute_integrated_gradients_batched(
     """
     배치로 다듬은 쌓은 그래디언트 셈.
 
-    배치마다 사이 걸음 여럿을 다루어 잘 들게 한다.
-    모든 걸음을 한꺼번에 다루는 것보다 GPU 기억을 덜 쓴다.
+    배치마다 사이 스텝 여럿을 다루어 잘 들게 한다.
+    모든 스텝을 한꺼번에 다루는 것보다 GPU 기억을 덜 쓴다.
     """
     model.eval()
     image_tensor = image_tensor.to(device)
@@ -430,7 +430,7 @@ def compute_integrated_gradients_batched(
         # 그래디언트를 셈하려고 겨눈 점수를 더한다
         target_scores = outputs[:, target_class].sum()
 
-        # 되짚기 걸음
+        # 되짚기 스텝
         model.zero_grad()
         target_scores.backward()
 
@@ -574,9 +574,9 @@ def verify_completeness(
 
 ---
 
-## 7. 걸음 수 살피기
+## 7. 스텝 수 살피기
 
-적분 걸음의 수가 어림의 맞음을 가른다.
+적분 스텝의 수가 어림의 맞음을 가른다.
 
 ```python
 def analyze_steps_convergence(
@@ -586,7 +586,7 @@ def analyze_steps_convergence(
     device: torch.device,
     step_counts: list = [5, 10, 20, 50, 100, 200, 500]
 ):
-    """걸음이 늘수록 몫이 어떻게 모이는지 살핀다."""
+    """스텝이 늘수록 몫이 어떻게 모이는지 살핀다."""
     import matplotlib.pyplot as plt
 
     errors = []
@@ -596,12 +596,12 @@ def analyze_steps_convergence(
             model, image_tensor, target_class, device, steps=steps
         )
         errors.append(result['relative_error'])
-        print(f"걸음: {steps:4d}, 견준 어긋남: {result['relative_error']:.6f}")
+        print(f"스텝: {steps:4d}, 견준 어긋남: {result['relative_error']:.6f}")
 
     # 모여 가는 모습을 그린다
     plt.figure(figsize=(10, 6))
     plt.plot(step_counts, errors, 'bo-', linewidth=2, markersize=8)
-    plt.xlabel('걸음 수', fontsize=12)
+    plt.xlabel('스텝 수', fontsize=12)
     plt.ylabel('견준 온전함 어긋남', fontsize=12)
     plt.title('쌓은 그래디언트가 모여 가는 모습', fontsize=14)
     plt.yscale('log')
@@ -613,7 +613,7 @@ def analyze_steps_convergence(
 
 ### 이르는 말
 
-| 걸음 | 쓰일 자리 | 흔한 어긋남 |
+| 스텝 | 쓰일 자리 | 흔한 어긋남 |
 |-------|----------|---------------|
 | 20~30 | 빠르게 둘러보기, 디버깅 | ~5~10% |
 | 50 | 여느 쓰임, 넉넉한 맞음 | ~1~5% |
@@ -765,7 +765,7 @@ def ig_for_time_series(
         target_class: 가름 모형의 겨눈 클래스
 
     Returns:
-        어느 때 걸음이 중요한지 보이는 때 몫
+        어느 때 스텝이 중요한지 보이는 때 몫
     """
     import matplotlib.pyplot as plt
 
@@ -778,7 +778,7 @@ def ig_for_time_series(
     # 몫을 셈한다
     attributions = ig.attribute(sequence, baseline, target_class, n_steps=n_steps)
 
-    # 때 걸음마다 결이 여럿이면 결 축으로 더한다
+    # 때 스텝마다 결이 여럿이면 결 축으로 더한다
     if attributions.dim() == 3:
         temporal_attr = attributions.abs().sum(dim=-1).squeeze()
     else:
@@ -789,9 +789,9 @@ def ig_for_time_series(
 
     plt.figure(figsize=(14, 4))
     plt.bar(range(len(temporal_attr_np)), temporal_attr_np, color='steelblue')
-    plt.xlabel('때 걸음 (가장 오래됨 → 가장 최근)', fontsize=12)
+    plt.xlabel('때 스텝 (가장 오래됨 → 가장 최근)', fontsize=12)
     plt.ylabel('몫', fontsize=12)
-    plt.title('때 몫 매기기: 어느 때 걸음이 미루어 봄을 흔드는가?', fontsize=14)
+    plt.title('때 몫 매기기: 어느 때 스텝이 미루어 봄을 흔드는가?', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
@@ -818,7 +818,7 @@ def ig_for_time_series(
 
 | 피처 | 맨 그래디언트 | Integrated Gradients |
 |--------|-----------------|---------------------|
-| 계산 | 앞으로-되짚기 한 번 | 여러 번(걸음 m번) |
+| 계산 | 앞으로-되짚기 한 번 | 여러 번(스텝 m번) |
 | 예민함 공리 | ❌ 어김 | ✅ 채움 |
 | 온전함 | ❌ 보장 없음 | ✅ 꼭 맞음(어림 안에서) |
 | 잦아듦 다루기 | ❌ 나쁨 | ✅ 좋음 |
@@ -856,7 +856,7 @@ smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 **눅이는 길:**
 
 - 배치로 계산한다
-- 둘러볼 때는 걸음을 적게 잡는다
+- 둘러볼 때는 스텝을 적게 잡는다
 - 모여 가는 피처를 보고 일찍 멈춘다
 
 ### 3. 길 고르기
@@ -879,7 +879,7 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 
 1. 그림에는 **0 밑금에서 시작한다**. 단순하고 대개 잘 듣는다
 
-2. 여느 살핌에는 **걸음 50**을 쓰고, 엄밀한 일에는 100 넘게 올린다
+2. 여느 살핌에는 **스텝 50**을 쓰고, 엄밀한 일에는 100 넘게 올린다
 
 3. 계산이 맞는지 보려면 **온전함을 살핀다**(어긋남 5% 아래)
 
@@ -889,7 +889,7 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 
 6. 밑금이 아리송하면 **밑금에 걸쳐 고르게 한다**(기댓값 그래디언트)
 
-7. 다시 해 볼 수 있도록 **밑금과 걸음 수를 적는다**
+7. 다시 해 볼 수 있도록 **밑금과 스텝 수를 적는다**
 
 ---
 

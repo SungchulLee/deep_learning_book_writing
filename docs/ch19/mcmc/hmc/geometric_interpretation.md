@@ -109,7 +109,7 @@ def plot_phase_portrait(U, grad_U, x_range, v_range, n_traj=10):
         x_curr, v_curr = x0, v0
         
         for _ in range(200):
-            # 개구리뜀 걸음
+            # 개구리뜀 스텝
             v_curr = v_curr - 0.05 * grad_U(x_curr)
             x_curr = x_curr + 0.1 * v_curr
             v_curr = v_curr - 0.05 * grad_U(x_curr)

@@ -140,7 +140,7 @@ def cosine_distance(x, y):
 
 def train_matching_network(model, support, support_labels, query, query_labels, optimizer):
     """
-    맞춤 망의 학습 걸음.
+    맞춤 망의 학습 스텝.
     """
     model.train()
     optimizer.zero_grad()

@@ -1,6 +1,6 @@
 # Guided Backpropagation
 
-**이끈 되짚기**는 그래디언트가 ReLU 엑티베이션 함수를 거꾸로 지나는 길을 고쳐 피처가 곱고 또렷한 Saliency Map을 내는 그림 그리기 재주다. 여느 되짚기와 달리, 이끈 되짚기는 앞으로 걸음에서 깨어 있던 뉴런을 지나는 양수 그래디언트만 퍼뜨린다.
+**이끈 되짚기**는 그래디언트가 ReLU 엑티베이션 함수를 거꾸로 지나는 길을 고쳐 피처가 곱고 또렷한 Saliency Map을 내는 그림 그리기 재주다. 여느 되짚기와 달리, 이끈 되짚기는 앞으로 스텝에서 깨어 있던 뉴런을 지나는 양수 그래디언트만 퍼뜨린다.
 
 슈프링엔베르크 외(2015)가 들여온 이 방법은 추론에 걸린 잔 피처를 짚어 주는, 보기 좋고 촘촘한 그림을 낸다.
 
@@ -8,17 +8,17 @@
 
 ## 1. 수학 기초
 
-### 여느 ReLU 되짚기 걸음
+### 여느 ReLU 되짚기 스텝
 
 ReLU 레이어를 지나는 여느 되짚기에서는
 
-**앞으로 걸음:**
+**앞으로 스텝:**
 
 $$
 y = \text{ReLU}(x) = \max(0, x)
 $$
 
-**여느 되짚기 걸음:**
+**여느 되짚기 스텝:**
 
 $$
 \frac{\partial L}{\partial x} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0]
@@ -72,7 +72,7 @@ class GuidedBackpropagation:
         self._register_hooks()
 
     def _register_hooks(self):
-        """ReLU 앞으로 걸음을 이끈 클래스로 갈음한다."""
+        """ReLU 앞으로 스텝을 이끈 클래스로 갈음한다."""
         def guided_relu_hook(module, grad_in, grad_out):
             return (torch.clamp(grad_in[0], min=0),)
 

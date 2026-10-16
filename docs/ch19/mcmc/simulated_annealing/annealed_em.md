@@ -40,10 +40,10 @@ Initialize θ randomly
 
 for β in [β₁, β₂, ..., βₘ]:
     repeat until convergence:
-        # 담금질한 E 걸음
+        # 담금질한 E 스텝
         q_β(Z) ∝ p(X, Z | θ)^β
         
-        # M 걸음(그대로)
+        # M 스텝(그대로)
         θ = argmax_θ E_q[log p(X, Z | θ)]
     
 return θ
@@ -78,7 +78,7 @@ def annealed_e_step(X, pi, mu, Sigma, beta):
 ```
 ```python
 def m_step(X, resp):
-    """맡음 몫을 쓰는 표준 M 걸음."""
+    """맡음 몫을 쓰는 표준 M 스텝."""
     N, D = X.shape
     K = resp.shape[1]
     
@@ -109,10 +109,10 @@ def annealed_em_gmm(X, K, betas=[0.1, 0.2, 0.4, 0.6, 0.8, 1.0],
     for beta in betas:
         prev_ll = -np.inf
         for iteration in range(max_iter):
-            # 담금질한 E 걸음
+            # 담금질한 E 스텝
             resp = annealed_e_step(X, pi, mu, Sigma, beta)
             
-            # M 걸음
+            # M 스텝
             pi, mu, Sigma = m_step(X, resp)
             
             # 모임 살피기

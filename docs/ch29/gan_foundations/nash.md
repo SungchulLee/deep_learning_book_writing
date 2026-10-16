@@ -29,16 +29,16 @@ import torch
 
 def ideal_gan_training(G, D, data_loader, n_iterations):
     """
-    담이가 끝없고 걸음마다 가장 좋게 고친다고 보는
+    담이가 끝없고 스텝마다 가장 좋게 고친다고 보는
     이상적인 맞겨루기 생성기 익히기.
     """
     for i in range(n_iterations):
-        # 걸음 1: D을 가장 좋은 자리까지 고친다(실제로는 어림한다)
-        for _ in range(k_d):  # 판별기 걸음 k_d번
+        # 스텝 1: D을 가장 좋은 자리까지 고친다(실제로는 어림한다)
+        for _ in range(k_d):  # 판별기 스텝 k_d번
             d_loss = compute_d_loss(D, G, data_loader)
             update_discriminator(D, d_loss)
         
-        # 걸음 2: G을 고친다
+        # 스텝 2: G을 고친다
         g_loss = compute_g_loss(G, D)
         update_generator(G, g_loss)
     
@@ -134,7 +134,7 @@ def analyze_local_dynamics(V_gg, V_gd, V_dd):
 
 ```python
 def train_with_multiple_d_steps(G, D, data, n_d_steps=5):
-    """생성기 한 걸음마다 판별기를 여러 걸음 익힌다."""
+    """생성기 한 스텝마다 판별기를 여러 스텝 익힌다."""
     
     for _ in range(n_d_steps):
         # D을 고친다

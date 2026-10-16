@@ -12,7 +12,7 @@ basic_markov_chain.py (단원 01)
 ==============================
 
 Location: 06_markov_chain/01_fundamentals/
-난이도: ⭐ 첫걸음
+난이도: ⭐ 첫스텝
 예상 시간: 2~3시간
 
 학습 목표:
@@ -97,7 +97,7 @@ class BasicMarkovChain:
     
     def step(self):
         """
-        마르코프 사슬의 한 걸음 밟기.
+        마르코프 사슬의 한 스텝 밟기.
         
         반환값:
             str: 새 상태의 이름
@@ -118,10 +118,10 @@ class BasicMarkovChain:
     
     def simulate(self, n_steps, initial_state=None):
         """
-        마르코프 사슬을 n걸음 흉내내기.
+        마르코프 사슬을 n스텝 흉내내기.
         
         파라메터:
-            n_steps (int): 흉내낼 걸음 수
+            n_steps (int): 흉내낼 스텝 수
             initial_state (int or str): 시작 상태(번호나 이름)
         
         반환값:
@@ -140,7 +140,7 @@ class BasicMarkovChain:
         # 상태 늘어놓음 기록하기
         state_sequence = [self.states[self.current_state]]
         
-        # n걸음 흉내내기
+        # n스텝 흉내내기
         for _ in range(n_steps):
             state_sequence.append(self.step())
         
@@ -148,10 +148,10 @@ class BasicMarkovChain:
     
     def get_state_distribution(self, n_steps, n_simulations=10000):
         """
-        몬테카를로 흉내내기로 n걸음 뒤의 상태 분포 어림하기.
+        몬테카를로 흉내내기로 n스텝 뒤의 상태 분포 어림하기.
         
         파라메터:
-            n_steps (int): 뗄 걸음 수
+            n_steps (int): 뗄 스텝 수
             n_simulations (int): 돌릴 흉내내기의 횟수
         
         반환값:
@@ -159,7 +159,7 @@ class BasicMarkovChain:
         
         수학적 바탕:
         π_0이 첫 분포이고 P이 옮김 행렬이면,
-        n걸음 뒤의 분포는 π_n = π_0 * P^n이다
+        n스텝 뒤의 분포는 π_n = π_0 * P^n이다
         
         흉내내기를 많이 돌리고 세어 이를 어림한다.
         """

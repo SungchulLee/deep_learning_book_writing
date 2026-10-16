@@ -2,7 +2,7 @@
 
 LSTM은 1997년 글 "Long Short-Term Memory"에서 나왔다. 이음 속 멀리 떨어진 매임을 담는 문 구조를 쓴다.
 
-여기 구현은 LSTM을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 걸음에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 LSTM을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -43,10 +43,10 @@ class LSTMModel(nn.Module):
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
         c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
         
-        # LSTM 앞으로 걸음
+        # LSTM 앞으로 스텝
         out, _ = self.lstm(x, (h0, c0))
         
-        # 마지막 때 걸음의 숨은 상태를 푼다
+        # 마지막 때 스텝의 숨은 상태를 푼다
         out = self.fc(out[:, -1, :])
         return out
 

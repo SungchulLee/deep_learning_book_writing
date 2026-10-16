@@ -65,7 +65,7 @@ def compute_integrated_gradients(
 
     Args:
         baseline: 'zeros', 'blur', 'random' 가운데 하나
-        steps: 사이를 잡는 걸음 수(많을수록 더 맞다)
+        steps: 사이를 잡는 스텝 수(많을수록 더 맞다)
     """
     model.eval()
     image_tensor = image_tensor.to(device)
@@ -95,11 +95,11 @@ def compute_integrated_gradients(
         interpolated = baseline_tensor + alpha * (image_tensor - baseline_tensor)
         interpolated.requires_grad = True
 
-        # 앞으로 걸음
+        # 앞으로 스텝
         output = model(interpolated)
         target_score = output[0, target_class]
 
-        # 되짚기 걸음
+        # 되짚기 스텝
         model.zero_grad()
         target_score.backward()
 
@@ -187,7 +187,7 @@ def main():
         print("핵심:")
         print("1. IG는 예민함과 짜기에 흔들리지 않음을 채운다")
         print("2. 밑금을 어떻게 고르느냐가 중요하다(대개 0이 좋다)")
-        print("3. 걸음이 많을수록 더 맞다(흔히 30~50)")
+        print("3. 스텝이 많을수록 더 맞다(흔히 30~50)")
         print("4. 셈이 비싸지만 이론이 든든하다")
         print("\n다음: 꾸러미 05 - Grad-CAM")
         print("="*70)

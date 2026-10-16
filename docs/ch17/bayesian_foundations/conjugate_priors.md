@@ -120,7 +120,7 @@ $$
         """이진 자료를 위한 베타-이항 켤레 모형."""
 
         def __init__(self, alpha=1, beta=1):
-            """Beta(alpha, beta) 앞확률로 첫걸음을 잡는다."""
+            """Beta(alpha, beta) 앞확률로 첫스텝을 잡는다."""
             self.prior_alpha = alpha
             self.prior_beta = beta
             self.posterior_alpha = alpha
@@ -291,7 +291,7 @@ $$
         """세기 자료를 위한 감마-푸아송 켤레 모형."""
 
         def __init__(self, alpha=1, beta=1):
-            """Gamma(alpha, beta) 앞확률로 첫걸음을 잡는다."""
+            """Gamma(alpha, beta) 앞확률로 첫스텝을 잡는다."""
             self.prior_alpha = alpha
             self.prior_beta = beta
             self.posterior_alpha = alpha
@@ -376,7 +376,7 @@ $$
         """정규-정규 켤레 모형(흩어짐을 아는 경우)."""
 
         def __init__(self, prior_mean=0, prior_std=1, known_std=1):
-            """N(prior_mean, prior_std^2) 앞확률로 첫걸음을 잡는다."""
+            """N(prior_mean, prior_std^2) 앞확률로 첫스텝을 잡는다."""
             self.prior_mean = prior_mean
             self.prior_std = prior_std
             self.known_std = known_std

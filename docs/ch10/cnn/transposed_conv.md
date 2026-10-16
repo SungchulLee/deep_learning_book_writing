@@ -116,7 +116,7 @@ Input (2×2):       Insert zeros (3×3):      Pad (5×5):           Convolve wit
 
 이 도식은 5×5에 3×3 valid 연산을 적용해 3×3을 얻는 경우이다. 같은 설정에서 output_padding=1을 주면 출력 크기는 4×4가 된다. 끝에 0 행과 열을 단순히 붙이는 연산은 아니다.
 
-세 걸음이 정말 `conv_transpose2d`와 같은 값을 내는지 손으로 만들어 비교하여 보자.
+세 스텝이 정말 `conv_transpose2d`와 같은 값을 내는지 손으로 만들어 비교하여 보자.
 
 ```python
 import torch
@@ -126,7 +126,7 @@ torch.manual_seed(0)
 
 
 def transposed_by_hand(x, w, stride, padding):
-    """0 끼워 넣기 → 덧대기 → 보통 컨볼루션, 세 걸음으로 손수 만든 전치 컨볼루션."""
+    """0 끼워 넣기 → 덧대기 → 보통 컨볼루션, 세 스텝으로 손수 만든 전치 컨볼루션."""
     i, k = x.shape[-1], w.shape[-1]
 
     # 1. 원소 사이에 0을 stride - 1개씩 끼워 넣는다

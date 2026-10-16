@@ -22,7 +22,7 @@ from mnist_diffusion import MNISTDiffusion
 def main():
     # 설정
     config = {
-        'timesteps': 1000,       # 확산 걸음 수
+        'timesteps': 1000,       # 확산 스텝 수
         'batch_size': 128,       # 익히기 배치 크기
         'learning_rate': 2e-4,   # 러닝 비율
         'epochs': 100,           # 익히기 바퀴 수

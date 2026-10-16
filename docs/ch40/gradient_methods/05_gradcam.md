@@ -64,11 +64,11 @@ class GradCAM:
         self.target_layer.register_backward_hook(self.save_gradient)
 
     def save_activation(self, module, input, output):
-        """앞으로 걸음의 살아남을 갈무리한다."""
+        """앞으로 스텝의 살아남을 갈무리한다."""
         self.activations = output.detach()
 
     def save_gradient(self, module, grad_input, grad_output):
-        """되짚기 걸음의 그래디언트를 갈무리한다."""
+        """되짚기 스텝의 그래디언트를 갈무리한다."""
         self.gradients = grad_output[0].detach()
 
     def __call__(self, image_tensor, target_class, device):
@@ -81,11 +81,11 @@ class GradCAM:
         self.model.eval()
         image_tensor = image_tensor.to(device)
 
-        # 앞으로 걸음
+        # 앞으로 스텝
         output = self.model(image_tensor)
         target_score = output[0, target_class]
 
-        # 되짚기 걸음
+        # 되짚기 스텝
         self.model.zero_grad()
         target_score.backward()
 

@@ -247,7 +247,7 @@ class NaturalPolicyGradient:
         )
         natural_grad = conjugate_gradient(fvp_fn, pg, self.cg_iters)
         
-        # 쿨백-라이블러 매임에 바탕을 둔 걸음 크기: α = sqrt(2δ / g^T F^{-1} g)
+        # 쿨백-라이블러 매임에 바탕을 둔 스텝 크기: α = sqrt(2δ / g^T F^{-1} g)
         sFs = pg.dot(natural_grad)
         if sFs <= 0:
             return 0.0

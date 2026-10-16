@@ -92,7 +92,7 @@ class GaussianMixtureEM:
         
     def e_step(self, X: torch.Tensor) -> torch.Tensor:
         """
-        E 걸음: 맡음 몫 셈하기.
+        E 스텝: 맡음 몫 셈하기.
         
         인수:
             X: 꼴이 (N, d)인 자료 텐서
@@ -116,7 +116,7 @@ class GaussianMixtureEM:
     
     def m_step(self, X: torch.Tensor, gamma: torch.Tensor):
         """
-        M 걸음: 파라메터 새로 고치기.
+        M 스텝: 파라메터 새로 고치기.
         
         인수:
             X: 꼴이 (N, d)인 자료 텐서
@@ -167,10 +167,10 @@ class GaussianMixtureEM:
         prev_ll = float('-inf')
         
         for iteration in range(max_iters):
-            # E 걸음
+            # E 스텝
             gamma = self.e_step(X)
             
-            # M 걸음
+            # M 스텝
             self.m_step(X, gamma)
             
             # 모임 살피기
@@ -271,10 +271,10 @@ Log-likelihood ℓ(θ)
 ```
 Initialize θ⁽⁰⁾
 repeat until convergence:
-    # E 걸음: 뒤확률 셈하기
+    # E 스텝: 뒤확률 셈하기
     q(Z) ← p(Z | X, θ⁽ᵗ⁾)
     
-    # M 걸음: 기댓값 완전 자료 로그 가능도를 가장 크게 하기
+    # M 스텝: 기댓값 완전 자료 로그 가능도를 가장 크게 하기
     θ⁽ᵗ⁺¹⁾ ← argmax_θ E_q[log p(X, Z | θ)]
     
     t ← t + 1

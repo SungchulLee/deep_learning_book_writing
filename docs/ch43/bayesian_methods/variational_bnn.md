@@ -500,8 +500,8 @@ $$
 | 몫 | 여느 뉴럴 넷트웍 대비 값 |
 |-----------|---------------------|
 | 파라메터 | 2배(평균 + 분산) |
-| 앞으로 걸음 | 약 1배(그 자리 다시 잡기를 쓰면) |
-| 되돌아 걸음 | 약 1.5배 |
+| 앞으로 스텝 | 약 1배(그 자리 다시 잡기를 쓰면) |
+| 되돌아 스텝 | 약 1.5배 |
 | 기억 | 2배 |
 | 추론 | S배(표본 S개일 때) |
 
@@ -585,7 +585,7 @@ class VariationalLayer(ABC):
     
     @abstractmethod
     def forward(self, x: np.ndarray, sample: bool = True) -> np.ndarray:
-        """골라 뽑기를 곁들인 앞으로 걸음."""
+        """골라 뽑기를 곁들인 앞으로 스텝."""
         pass
     
     @abstractmethod
@@ -664,7 +664,7 @@ class VariationalLinear(VariationalLayer):
     
     def forward(self, x: np.ndarray, sample: bool = True) -> np.ndarray:
         """
-        앞으로 걸음.
+        앞으로 스텝.
         
         Parameters
         ----------
@@ -679,7 +679,7 @@ class VariationalLinear(VariationalLayer):
             날임
         """
         if not sample:
-            # 붙박인 앞으로 걸음(평균을 쓴다)
+            # 붙박인 앞으로 스텝(평균을 쓴다)
             return x @ self.mu_W + self.mu_b
         
         if self.use_local_reparam:
@@ -807,7 +807,7 @@ class VariationalMLP:
             self.layers.append(layer)
     
     def forward(self, x: np.ndarray, sample: bool = True) -> np.ndarray:
-        """켜를 모두 지나는 앞으로 걸음."""
+        """켜를 모두 지나는 앞으로 스텝."""
         h = x
         for i, layer in enumerate(self.layers):
             h = layer.forward(h, sample=sample)
@@ -978,7 +978,7 @@ class BayesByBackprop:
         n_total: int
     ) -> Tuple[float, float, float]:
         """
-        익힘 한 걸음.
+        익힘 한 스텝.
         
         Returns
         -------
@@ -1443,7 +1443,7 @@ def demo_local_reparameterization():
     # 시험 들임
     x = np.random.randn(1, 10)
     
-    # 앞으로 걸음 여러 번
+    # 앞으로 스텝 여러 번
     n_samples = 1000
     
     outputs_standard = np.array([layer_standard.forward(x).flatten() for _ in range(n_samples)])

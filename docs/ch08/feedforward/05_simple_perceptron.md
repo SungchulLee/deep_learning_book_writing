@@ -32,10 +32,10 @@ for epoch in range(100):
     predictions = model(X)              # 순전파: 지금 웨이트로 예측한다
     loss = loss_fn(predictions, y)      # 얼마나 틀렸는지 잰다
 
-    optimizer.zero_grad()               # 지난 걸음의 그래디언트를 지운다.
+    optimizer.zero_grad()               # 지난 스텝의 그래디언트를 지운다.
                                         # 빼먹으면 그래디언트가 누적되어 발산한다
     loss.backward()                     # 역전파: 로스를 w와 b로 미분한다
-    optimizer.step()                    # 그래디언트 반대 방향으로 한 걸음 옮긴다
+    optimizer.step()                    # 그래디언트 반대 방향으로 한 스텝 옮긴다
 
     loss_history.append(loss.item())    # item()으로 그래프에서 떼어 낸 수만 담는다.
                                         # 텐서째 담으면 계산 그래프가 쌓여 메모리가 샌다

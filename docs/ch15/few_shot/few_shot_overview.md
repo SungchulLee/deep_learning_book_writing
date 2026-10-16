@@ -90,7 +90,7 @@ $$p(y = c | x, \mathcal{S}) = \frac{\exp(-d(f_\theta(x), \mu_c))}{\sum_{c'} \exp
 
 $$\theta' = \theta - \alpha \nabla_\theta \mathcal{L}_{\mathcal{S}}(\theta)$$
 
-모델은 그래디언트 걸음 몇 번으로 재빨리 맞추어 갈 수 있게 하는 초기화 $\theta$을 배운다.
+모델은 그래디언트 스텝 몇 번으로 재빨리 맞추어 갈 수 있게 하는 초기화 $\theta$을 배운다.
 
 **주요 방법**: MAML, Reptile, Meta-SGD, FOMAML
 

@@ -117,7 +117,7 @@ class GRUCell:
 
 
 class GRU:
-    """여러 걸음을 다루는 GRU 구현."""
+    """여러 스텝을 다루는 GRU 구현."""
     
     def __init__(self, input_size, hidden_size, output_size):
         """

@@ -36,7 +36,7 @@ class GradientAttentionAnalyzer:
         파라메터:
         ----------
         n_steps : int
-            쌓은 그래디언트의 사이 잡는 걸음 수
+            쌓은 그래디언트의 사이 잡는 스텝 수
         """
         self.n_steps = n_steps
 
@@ -90,7 +90,7 @@ class GradientAttentionAnalyzer:
             # 그래디언트를 켠다
             interpolated.requires_grad = True
 
-            # 앞으로 걸음
+            # 앞으로 스텝
             outputs = model(interpolated, output_attentions=True)
 
             # 어텐션을 집고 그래디언트를 셈한다

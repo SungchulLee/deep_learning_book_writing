@@ -652,7 +652,7 @@ class LSTMForecaster(nn.Module):
         hidden_size: int,
         num_layers: int,
         output_size: int,    # 출력 피처의 수
-        horizon: int = 1,    # 예측 지평 (앞을 내다보는 걸음 수)
+        horizon: int = 1,    # 예측 지평 (앞을 내다보는 스텝 수)
         dropout: float = 0.2
     ):
         super().__init__()
@@ -667,7 +667,7 @@ class LSTMForecaster(nn.Module):
             dropout=dropout if num_layers > 1 else 0
         )
         
-        # 예측 지평의 모든 걸음을 한꺼번에 예측
+        # 예측 지평의 모든 스텝을 한꺼번에 예측
         self.fc = nn.Linear(hidden_size, output_size * horizon)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -684,13 +684,13 @@ class LSTMForecaster(nn.Module):
         # 예측에 마지막 숨은 상태 쓰기
         final_hidden = h_n[-1]  # (배치, hidden_size)
         
-        # 모든 걸음 예측
+        # 모든 스텝 예측
         predictions = self.fc(final_hidden)  # (배치, output_size * horizon)
         predictions = predictions.view(-1, self.horizon, self.output_size)
         
         return predictions
 
-# 예: 지난 20걸음으로 피처 3개의 다음 5걸음 예측
+# 예: 지난 20스텝으로 피처 3개의 다음 스텝5 예측
 model = LSTMForecaster(
     input_size=3,
     hidden_size=128,

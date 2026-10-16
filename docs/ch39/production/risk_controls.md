@@ -239,7 +239,7 @@ def demo_risk_controls():
 
         action = result["action"]
         if action != RiskAction.PASS:
-            print(f"  걸음 {step}: [{action.value}] "
+            print(f"  스텝 {step}: [{action.value}] "
                   f"{result.get('reason', '')} "
                   f"vol_scale={result.get('vol_scale', 'N/A')}")
 
@@ -274,54 +274,54 @@ if __name__ == "__main__":
 ======================================================================
 
 --- 무릅씀 다스리개를 얹은 흉내내기 ---
-  걸음 2: [halt] 갈아치움 위끝: 2.4곱절 vol_scale=N/A
-  걸음 3: [halt] 갈아치움 위끝: 3.3곱절 vol_scale=N/A
-  걸음 4: [halt] 갈아치움 위끝: 4.4곱절 vol_scale=N/A
-  걸음 5: [halt] 갈아치움 위끝: 5.6곱절 vol_scale=N/A
-  걸음 6: [halt] 갈아치움 위끝: 6.8곱절 vol_scale=N/A
-  걸음 7: [halt] 갈아치움 위끝: 7.8곱절 vol_scale=N/A
-  걸음 8: [halt] 갈아치움 위끝: 9.0곱절 vol_scale=N/A
-  걸음 9: [halt] 갈아치움 위끝: 10.2곱절 vol_scale=N/A
-  걸음 10: [halt] 갈아치움 위끝: 11.5곱절 vol_scale=N/A
-  걸음 11: [halt] 갈아치움 위끝: 12.6곱절 vol_scale=N/A
-  걸음 12: [halt] 갈아치움 위끝: 13.7곱절 vol_scale=N/A
-  걸음 13: [halt] 갈아치움 위끝: 14.8곱절 vol_scale=N/A
-  걸음 14: [halt] 갈아치움 위끝: 15.4곱절 vol_scale=N/A
-  걸음 15: [halt] 갈아치움 위끝: 16.3곱절 vol_scale=N/A
-  걸음 16: [halt] 갈아치움 위끝: 16.9곱절 vol_scale=N/A
-  걸음 17: [halt] 갈아치움 위끝: 17.9곱절 vol_scale=N/A
-  걸음 18: [halt] 갈아치움 위끝: 18.6곱절 vol_scale=N/A
-  걸음 19: [halt] 갈아치움 위끝: 19.6곱절 vol_scale=N/A
-  걸음 20: [halt] 갈아치움 위끝: 20.6곱절 vol_scale=N/A
-  걸음 21: [halt] 갈아치움 위끝: 21.7곱절 vol_scale=N/A
-  걸음 22: [halt] 갈아치움 위끝: 22.6곱절 vol_scale=N/A
-  걸음 23: [halt] 갈아치움 위끝: 23.4곱절 vol_scale=N/A
-  걸음 24: [flatten] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 25: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 26: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 27: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 28: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 29: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 30: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 31: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 32: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 33: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 34: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 35: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 36: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 37: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 38: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 39: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 40: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 41: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 42: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 43: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 44: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 45: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 46: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 47: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 48: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
-  걸음 49: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 2: [halt] 갈아치움 위끝: 2.4곱절 vol_scale=N/A
+  스텝 3: [halt] 갈아치움 위끝: 3.3곱절 vol_scale=N/A
+  스텝 4: [halt] 갈아치움 위끝: 4.4곱절 vol_scale=N/A
+  스텝 5: [halt] 갈아치움 위끝: 5.6곱절 vol_scale=N/A
+  스텝 6: [halt] 갈아치움 위끝: 6.8곱절 vol_scale=N/A
+  스텝 7: [halt] 갈아치움 위끝: 7.8곱절 vol_scale=N/A
+  스텝 8: [halt] 갈아치움 위끝: 9.0곱절 vol_scale=N/A
+  스텝 9: [halt] 갈아치움 위끝: 10.2곱절 vol_scale=N/A
+  스텝 10: [halt] 갈아치움 위끝: 11.5곱절 vol_scale=N/A
+  스텝 11: [halt] 갈아치움 위끝: 12.6곱절 vol_scale=N/A
+  스텝 12: [halt] 갈아치움 위끝: 13.7곱절 vol_scale=N/A
+  스텝 13: [halt] 갈아치움 위끝: 14.8곱절 vol_scale=N/A
+  스텝 14: [halt] 갈아치움 위끝: 15.4곱절 vol_scale=N/A
+  스텝 15: [halt] 갈아치움 위끝: 16.3곱절 vol_scale=N/A
+  스텝 16: [halt] 갈아치움 위끝: 16.9곱절 vol_scale=N/A
+  스텝 17: [halt] 갈아치움 위끝: 17.9곱절 vol_scale=N/A
+  스텝 18: [halt] 갈아치움 위끝: 18.6곱절 vol_scale=N/A
+  스텝 19: [halt] 갈아치움 위끝: 19.6곱절 vol_scale=N/A
+  스텝 20: [halt] 갈아치움 위끝: 20.6곱절 vol_scale=N/A
+  스텝 21: [halt] 갈아치움 위끝: 21.7곱절 vol_scale=N/A
+  스텝 22: [halt] 갈아치움 위끝: 22.6곱절 vol_scale=N/A
+  스텝 23: [halt] 갈아치움 위끝: 23.4곱절 vol_scale=N/A
+  스텝 24: [flatten] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 25: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 26: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 27: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 28: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 29: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 30: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 31: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 32: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 33: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 34: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 35: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 36: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 37: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 38: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 39: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 40: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 41: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 42: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 43: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 44: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 45: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 46: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 47: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 48: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
+  스텝 49: [halt] 오늘 잃음 위끝: -3.0% vol_scale=N/A
 
 죽임 스위치가 당겨졌는가: True
 까닭: 오늘 잃음 위끝: -3.0%
