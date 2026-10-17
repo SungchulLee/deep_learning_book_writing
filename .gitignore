@@ -26,3 +26,7 @@ __pycache__/
 /*.pth
 /*.png
 experiments/ch04_10ep/
+
+# 시험지와 풀이. 이 저장소는 공개되어 있으므로 올라가면 그대로 유출이다.
+# 폴더 이름만으로는 git을 막지 못한다 — `git add -A` 한 번이면 스테이징된다.
+exam_papers_do_not_push/

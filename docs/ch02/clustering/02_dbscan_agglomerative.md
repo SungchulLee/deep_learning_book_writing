@@ -257,10 +257,13 @@ DBSCAN은 군집을 더 성긴 영역으로 둘러싸인 조밀한 점들의 영
     실루엣은 이렇게 나온다.
 
     ```
-    n_clusters=2: 0.5782     n_clusters=6: 0.6317
-    n_clusters=3: 0.7092     n_clusters=7: 0.5735
-    n_clusters=4: 0.6999     n_clusters=8: 0.5677
-    n_clusters=5: 0.6246
+    n_clusters=2: silhouette=0.5782
+    n_clusters=3: silhouette=0.7092
+    n_clusters=4: silhouette=0.6999
+    n_clusters=5: silhouette=0.6246
+    n_clusters=6: silhouette=0.6317
+    n_clusters=7: silhouette=0.5735
+    n_clusters=8: silhouette=0.5677
     ```
 
     **참 군집 수가 4인데 꼭대기는 3이다.** 다만 4와의 차이가 0.009로 아주 작다.

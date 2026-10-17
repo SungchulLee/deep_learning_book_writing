@@ -38,7 +38,7 @@ $$
 웨이트 벡터 $\boldsymbol{\beta}_{1:d} = [\beta_1, \ldots, \beta_d]$과 절편 $\beta_0$이 결정 경계를 완전히 결정한다.
 
 - 웨이트 벡터 $\boldsymbol{\beta}_{1:d}$은 결정 경계에 **수직**(법선)이다
-- 절편 $\beta_0$은 원점으로부터의 **바이어스**을 조절한다
+- 절편 $\beta_0$은 원점으로부터의 **바이어스**를 조절한다
 - 크기 $\|\boldsymbol{\beta}\|$은 확률 전이가 얼마나 **가파른지**를 조절한다
 
 **$\boldsymbol{\beta}_{1:d}$은 왜 경계에 수직인가?** 경계 위의 두 점 $\mathbf{x}^{(a)}$과 $\mathbf{x}^{(b)}$을 생각하자. 둘 다 $\beta_0 + \boldsymbol{\beta}_{1:d}^\top \mathbf{x} = 0$을 만족하므로 다음이 성립한다.

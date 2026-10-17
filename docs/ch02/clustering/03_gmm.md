@@ -224,10 +224,38 @@ GMM은 데이터 분포를 $K$개 가우시안 성분의 가중합 $p(\mathbf{x}
         margin = sorted_probs[0] - sorted_probs[1]
         print(f"Point {i}: best component={best}, "
               f"top prob={sorted_probs[0]:.4f}, margin={margin:.4f}")
-
-    # 차이가 작다는 것은 그 점이 두 성분 사이의 경계 근처에 있어
-    # 모델이 어느 군집에 속하는지 확신하지 못한다는 뜻이다.
     ```
+
+    ```
+    Point 0: best component=0, top prob=1.0000, margin=1.0000
+    Point 1: best component=0, top prob=1.0000, margin=1.0000
+    Point 2: best component=0, top prob=0.9985, margin=0.9973
+    Point 3: best component=0, top prob=1.0000, margin=1.0000
+    Point 4: best component=0, top prob=0.9975, margin=0.9951
+    Point 5: best component=0, top prob=0.9809, margin=0.9619
+    Point 6: best component=0, top prob=0.9038, margin=0.8081
+    Point 7: best component=0, top prob=0.9995, margin=0.9991
+    Point 8: best component=0, top prob=0.9337, margin=0.8674
+    Point 9: best component=0, top prob=0.8397, margin=0.6795
+    ```
+
+    차이가 작다는 것은 그 점이 두 성분 사이의 경계 근처에 있어 모델이 어느 군집에 속하는지 확신하지 못한다는 뜻이다. **그런데 처음 열 점에는 그런 점이 하나도 없다.** 가장 작은 마진이 0.6795이고 열 점 모두 성분 0에 확신을 가지고 붙는다.
+
+    까닭은 데이터를 쌓은 차례에 있다. `np.vstack([X1, X2, X3])`에서 앞의 300개가 모두 `X1`이므로, "처음 열 개"는 한 덩이에서만 뽑은 것이다. 경계를 보려면 다른 데를 보아야 한다.
+
+    ```python
+    margins = np.sort(probs, axis=1)[:, ::-1]
+    margins = margins[:, 0] - margins[:, 1]
+    print(f"최소 마진: 점 {margins.argmin()}, {margins.min():.4f}")
+    print(f"마진 0.5 미만: {(margins < 0.5).sum()}개 / {len(X)}개")
+    ```
+
+    ```
+    최소 마진: 점 580, 0.0857
+    마진 0.5 미만: 15개 / 750개
+    ```
+
+    750개 가운데 경계에 걸친 점은 **15개뿐**이고 가장 헷갈리는 점 580조차 top 확률이 0.5428이다. 세 덩이가 꽤 잘 갈라져 있다는 뜻이며, 이것이 GMM의 부드러운 배정이 K-평균의 딱 떨어지는 배정과 **이 데이터에서는** 크게 다르지 않은 까닭이다. 부드러운 배정의 값어치는 덩이가 겹칠 때 드러난다.
 
 ---
 
@@ -292,6 +320,16 @@ GMM 기반 이상 탐지 시스템을 구현하라. 데이터셋에 GMM을 적�
     detected = (scores_anomaly < threshold).sum()
     print(f"Detected {detected}/{len(anomalies)} uniform points as anomalies")
     ```
+
+    ```
+    Detected 44/50 uniform points as anomalies
+    ```
+
+    임계는 정상 데이터 로그우도의 5백분위이므로 $-4.6704$다. 두 가지를 함께 읽어야 한다.
+
+    **놓친 여섯 개는 잘못이 아니다.** 균등 분포로 뿌린 점이라도 세 덩이가 놓인 자리에 떨어지면 정상 데이터와 구별할 길이 없다. 이상치를 "분포 바깥의 점"으로 정의한 이상, 안쪽에 떨어진 것은 원리적으로 못 잡는다.
+
+    **임계를 5백분위로 잡았다는 것은 거짓양성을 5%로 **고른** 것이다.** 실제로 정상 750개 가운데 38개(5.1%)가 함께 걸린다. 탐지율 88%는 이 거짓양성률을 치르고 산 값이며, 임계를 낮추면 38개가 줄지만 44개도 함께 준다. 이 맞바꿈을 한 수로 줄이지 말고 두 수를 늘 함께 적어야 한다.
 
 ## 정리하며
 

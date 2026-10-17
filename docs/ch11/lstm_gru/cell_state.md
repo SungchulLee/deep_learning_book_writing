@@ -279,7 +279,7 @@ def comprehensive_gradient_comparison():
 
 ### 조건 1: 망각 게이트의 포화
 
-망각 게이트이 (세게 잊으려고) 0에 가까운 값을 내는 법을 배우면 그래디언트의 고속도로가 막힌다.
+망각 게이트가 (세게 잊으려고) 0에 가까운 값을 내는 법을 배우면 그래디언트의 고속도로가 막힌다.
 
 $$f_t \approx 0 \implies \frac{\partial c_t}{\partial c_{t-1}} \approx 0$$
 
@@ -338,9 +338,9 @@ def demonstrate_long_sequence_decay():
 
 어떤 과제에서는 중요한 그래디언트 신호가 곧바른 셀 상태 경로가 아니라 (문을 거치는) 간접 경로로 흐른다. 그 간접 경로가 사라지면 셀 상태의 그래디언트가 멀쩡해도 학습이 나빠진다.
 
-### 조건 4: 출력 게이트이 막을 때
+### 조건 4: 출력 게이트가 막을 때
 
-출력 게이트이 $o_t \approx 0$이면 로스에서 오는 그래디언트가 셀 상태에 닿기 어렵다.
+출력 게이트가 $o_t \approx 0$이면 로스에서 오는 그래디언트가 셀 상태에 닿기 어렵다.
 
 $$\frac{\partial h_t}{\partial c_t} = o_t \odot \tanh'(c_t) \approx 0$$
 
