@@ -25,33 +25,74 @@ MNIST 손글씨 숫자를 분류하는 가장 단순한 방법은 이렇다. 클
 
 ## 2. 수학적 배경
 
-클래스 $k$의 학습 표본 집합을 $\mathcal{D}_k$라 하면 템플릿은 그 평균이다.
+<div class="defn" markdown>
+
+### 정의 1. 템플릿과 최근접 템플릿 분류기 { .dfn }
+
+클래스 $k$의 학습 표본 집합을 $\mathcal{D}_k$라 할 때, 그 평균
 
 $$
 \overline{x}_k = \frac{1}{|\mathcal{D}_k|} \sum_{x \in \mathcal{D}_k} x
+\qquad (k = 0, 1, \ldots, 9)
 $$
 
-분류는 제곱 거리를 최소화하는 클래스를 고르는 것이다.
+를 클래스 $k$의 **템플릿**이라 한다. 새 그림 $x \in \mathbb{R}^{784}$를 **제곱 거리가 가장 가까운 템플릿의 클래스**로 보내는 규칙
 
 $$
-\widehat{y} = \operatorname*{arg\,min}_{k \in \{0,\ldots,9\}} \lVert x - \overline{x}_k \rVert^2
+\widehat{y}(x) = \operatorname*{arg\,min}_{k \in \{0,\ldots,9\}} \lVert x - \overline{x}_k \rVert^2
 $$
 
-### 사실은 선형 분류기이다
+을 **최근접 템플릿 분류기**라 한다. 여기에는 학습할 것이 없다 — 템플릿은 자료를 한 번 훑어 평균을 낸 것으로 정해진다.
 
-제곱을 전개하면 이 규칙의 정체가 드러난다.
+</div>
+
+<div class="thmbox" markdown>
+
+### 정리 1. 최근접 템플릿 분류기는 선형 분류기다 { .thm }
+
+정의 1의 $\widehat{y}$는
 
 $$
-\lVert x - \overline{x}_k \rVert^2 = \lVert x \rVert^2 - 2\,x^{\top}\overline{x}_k + \lVert \overline{x}_k \rVert^2
+w_k = \overline{x}_k,
+\qquad
+b_k = -\tfrac{1}{2}\lVert \overline{x}_k \rVert^2
 $$
 
-첫 항 $\lVert x \rVert^2$은 $k$와 무관하므로 어느 클래스를 고르든 똑같이 더해진다. 곧 최소화 문제에서는 지워도 된다. 남은 두 항의 부호를 뒤집으면 최대화 문제가 된다.
+로 둔 선형 분류기 $\displaystyle \operatorname*{arg\,max}_k \left( x^{\top} w_k + b_k \right)$와 **모든 $x$에서 같은 클래스를 내놓는다.**
 
-$$
-\widehat{y} = \operatorname*{arg\,max}_{k} \left( x^{\top}\overline{x}_k - \frac{1}{2}\lVert \overline{x}_k \rVert^2 \right)
-$$
+</div>
 
-이는 웨이트 $w_k = \overline{x}_k$, 바이어스 $b_k = -\tfrac{1}{2}\lVert \overline{x}_k \rVert^2$인 선형 분류기와 정확히 같다. 곧 템플릿 학습은 **웨이트를 경사 하강법으로 학습하는 대신 클래스 평균으로 고정해 둔 선형 레이어** 하나인 계산이다. $\square$
+??? proof "증명"
+
+    제곱을 전개한다.
+
+    $$
+    \lVert x - \overline{x}_k \rVert^2
+      = \lVert x \rVert^2 - 2\,x^{\top}\overline{x}_k + \lVert \overline{x}_k \rVert^2
+    $$
+
+    첫 항 $\lVert x \rVert^2$은 $k$를 담고 있지 않다. 곧 어느 클래스를 고르든 **똑같이 더해지는 상수**이므로, 더하거나 빼도 $\operatorname{arg\,min}$이 가리키는 자리가 움직이지 않는다. 값은 달라지지만 **최솟값의 위치**는 그대로다. 그 항을 떼면
+
+    $$
+    \widehat{y}(x)
+      = \operatorname*{arg\,min}_k \left( -2\,x^{\top}\overline{x}_k + \lVert \overline{x}_k \rVert^2 \right)
+    $$
+
+    이다. 이제 양쪽에 $-\tfrac{1}{2}$을 곱한다. **음수를 곱하므로 최소가 최대로 뒤집힌다.**
+
+    $$
+    \widehat{y}(x)
+      = \operatorname*{arg\,max}_k \left( x^{\top}\overline{x}_k - \tfrac{1}{2}\lVert \overline{x}_k \rVert^2 \right)
+    $$
+
+    $w_k = \overline{x}_k$, $b_k = -\tfrac{1}{2}\lVert \overline{x}_k \rVert^2$로 두면 괄호 안이 정확히 $x^{\top} w_k + b_k$다. $\square$
+
+곧 템플릿 학습은 **웨이트를 경사 하강법으로 학습하는 대신 클래스 평균으로 못박아 둔 선형 레이어** 하나다. 꼴이 선형 분류기와 같고 다른 것은 계수를 정하는 방법뿐이다.
+
+!!! note "바이어스는 자유롭지 않다"
+    $b_k$가 $w_k$로 **결정된다**는 점이 보통의 선형 레이어와 다르다. `nn.Linear(784, 10)`은 7,850개를 서로 무관하게 움직이지만, 여기서는 $b_k = -\tfrac{1}{2}\lVert w_k \rVert^2$이라 독립적으로 고를 수 있는 것이 7,840개뿐이다. 이 차이가 연습문제 1에서 세는 수의 뜻을 가른다.
+
+    또 $\lVert \overline{x}_k \rVert^2$이 클래스마다 다르므로 $b_k$는 **클래스마다 다른 벌점**이 된다. 템플릿이 밝을수록 더 깎인다. 연습문제 2가 이 값을 직접 재고, 4절이 그것이 낳는 치우침을 본다.
 
 이 사실이 82.03%의 성격을 말해 준다. 이 값은 "클래스 평균으로 계수를 정한 선형 분류기"가 픽셀 공간에서 얻는 성능이며, 여기서 더 올라가려면 웨이트를 학습하거나(로지스틱 회귀) 공간 자체를 바꾸어야 한다(컨볼루션 뉴럴 넷트웍).
 

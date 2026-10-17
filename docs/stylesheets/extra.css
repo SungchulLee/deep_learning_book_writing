@@ -69,6 +69,22 @@
     color: inherit;
 }
 
+/* 정의도 같은 까닭으로 제목(h3)으로 적는다 — 기호를 어디서 세웠는지 목차에서
+   바로 찾아갈 수 있어야 하기 때문이다. 클래스 이름을 .defn 으로 두면 정의
+   상자 스타일이 제목에도 걸려 테두리가 생기므로 .dfn 을 따로 쓴다.
+   상자 안에서는 위쪽 여백을 줄인다. */
+.md-typeset h3.dfn {
+    font-size: 1em;
+    font-weight: 700;
+    line-height: 1.6;
+    letter-spacing: normal;
+    margin: 0.6rem 0;
+    color: inherit;
+}
+
+.md-typeset .thmbox > h3.thm:first-child,
+.md-typeset .defn > h3.dfn:first-child { margin-top: 0.6rem; }
+
 /* 정리의 주장을 두르는 상자 — 증명과 같은 보라이다. 바로 아래 붙는
    ??? proof "증명" 과 한 덩어리로 읽히도록 간격을 좁힌다. */
 .md-typeset .thmbox {

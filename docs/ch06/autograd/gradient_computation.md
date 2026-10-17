@@ -18,31 +18,51 @@ PyTorch의 autograd 엔진은 딥러닝에서 자동 미분의 토대이다. 텐
 
 ## 2. 수학적 기초
 
-### 연쇄 법칙
+<div class="defn" markdown>
 
-자동 미분은 연쇄 법칙을 체계적으로 적용한다. 합성 함수 $y = f(g(x))$에 대해 다음과 같다.
+### 정의 1. 야코비안 행렬 { .dfn }
 
-$$\frac{dy}{dx} = \frac{dy}{dg} \cdot \frac{dg}{dx}$$
+미분 가능한 $f : \mathbb{R}^n \to \mathbb{R}^m$에 대해 모든 1차 편도함수를 모은 행렬
 
-연산의 수열 $x \rightarrow z_1 \rightarrow z_2 \rightarrow \cdots \rightarrow z_n \rightarrow y$에 대해서는 다음과 같다.
-
-$$\frac{dy}{dx} = \frac{dy}{dz_n} \cdot \frac{dz_n}{dz_{n-1}} \cdot \ldots \cdot \frac{dz_2}{dz_1} \cdot \frac{dz_1}{dx}$$
-
-이 행렬 곱들을 계산하는 **순서** 가 자동 미분의 모드를 결정한다.
-
-### 야코비안 행렬
-
-함수 $f: \mathbb{R}^n \rightarrow \mathbb{R}^m$에 대해 **야코비안** 은 모든 1차 편도함수를 모은 행렬이다.
-
-$$J = \frac{\partial f}{\partial x} = \begin{bmatrix}
-\frac{\partial f_1}{\partial x_1} & \cdots & \frac{\partial f_1}{\partial x_n} \\
+$$
+J_f(x) = \frac{\partial f}{\partial x} = \begin{bmatrix}
+\dfrac{\partial f_1}{\partial x_1} & \cdots & \dfrac{\partial f_1}{\partial x_n} \\
 \vdots & \ddots & \vdots \\
-\frac{\partial f_m}{\partial x_1} & \cdots & \frac{\partial f_m}{\partial x_n}
-\end{bmatrix} \in \mathbb{R}^{m \times n}$$
+\dfrac{\partial f_m}{\partial x_1} & \cdots & \dfrac{\partial f_m}{\partial x_n}
+\end{bmatrix} \in \mathbb{R}^{m \times n}
+$$
 
-합성 $y = f_L \circ f_{L-1} \circ \cdots \circ f_1(x)$에 대해 전체 야코비안은 다음과 같다.
+을 $f$의 **야코비안**이라 한다. $(i,j)$칸은 $j$번째 입력을 조금 흔들었을 때 $i$번째 출력이 얼마나 따라 움직이는지다.
 
-$$J = J_L \cdot J_{L-1} \cdot \ldots \cdot J_1$$
+</div>
+
+<div class="thmbox" markdown>
+
+### 정리 1. 연쇄 법칙 — 합성의 야코비안은 야코비안의 곱이다 { .thm }
+
+$y = f_L \circ f_{L-1} \circ \cdots \circ f_1(x)$이고 각 $f_\ell$이 미분 가능하면
+
+$$
+J = J_L \, J_{L-1} \cdots J_1
+$$
+
+이다. 여기서 $J_\ell$은 $f_\ell$을 그 자리의 입력 $z_{\ell-1}$에서 잰 야코비안이다.
+
+</div>
+
+??? proof "증명"
+
+    $L = 2$에서 보이면 나머지는 귀납이다. $z = f_1(x)$, $y = f_2(z)$라 하고 성분으로 적는다. 다변수 연쇄 법칙에서
+
+    $$
+    \frac{\partial y_i}{\partial x_j} = \sum_{k} \frac{\partial y_i}{\partial z_k}\,\frac{\partial z_k}{\partial x_j}
+    $$
+
+    이다. 오른쪽은 $(i,k)$칸이 $\partial y_i / \partial z_k$인 행렬과 $(k,j)$칸이 $\partial z_k / \partial x_j$인 행렬의 **곱의 $(i,j)$칸**과 정확히 같은 꼴이다. 곧 $J = J_2 J_1$이다.
+
+    $L-1$개까지 성립한다고 하면 $g = f_{L-1}\circ\cdots\circ f_1$에 대해 $J_g = J_{L-1}\cdots J_1$이고, 위의 두 겹 결과를 $f_L$과 $g$에 쓰면 $J = J_L J_g = J_L J_{L-1} \cdots J_1$이다. $\square$
+
+**곱하는 차례가 자동 미분의 모드를 가른다.** 행렬 곱은 결합법칙이 성립하므로 $J_L(J_{L-1}(\cdots J_1))$로 묶든 $((J_L J_{L-1})\cdots)J_1$로 묶든 **결과는 같다.** 그러나 드는 비용이 다르다. 오른쪽부터 묶는 것이 전진 모드, 왼쪽부터 묶는 것이 후진 모드이며, 로스처럼 출력이 스칼라 하나인 경우($m = 1$) 후진 모드가 훨씬 싸다. 딥러닝이 역전파를 쓰는 까닭이 이것이다.
 
 ---
 

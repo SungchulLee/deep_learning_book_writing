@@ -6,41 +6,90 @@
 
 ## 1. 수학적 기초
 
-### 행렬 곱으로 본 컨볼루션
+<div class="defn" markdown>
 
-전치 컨볼루션을 이해하려면 먼저 표준 컨볼루션을 행렬 곱으로 나타내야 한다. 1차원 입력 $\mathbf{x} \in \mathbb{R}^5$과 커널 $\mathbf{k} = [k_0, k_1, k_2]$에 대해 유효 컨볼루션 $\mathbf{y} = \mathbf{C}\mathbf{x}$은 다음을 쓴다.
+### 정의 1. 컨볼루션 행렬과 전치 컨볼루션 { .dfn }
 
-$$\mathbf{C} = \begin{bmatrix}
+웨이트와 스트라이드·경계 규약을 정하면 컨볼루션은 **선형 사상**이므로 행렬 하나로 적을 수 있다. 1차원 입력 $\mathbf{x} \in \mathbb{R}^5$과 커널 $\mathbf{k} = [k_0, k_1, k_2]$의 스트라이드 1 valid 상호상관 $\mathbf{y} = \mathbf{C}\mathbf{x}$에서
+
+$$
+\mathbf{C} = \begin{bmatrix}
 k_0 & k_1 & k_2 & 0 & 0 \\
 0 & k_0 & k_1 & k_2 & 0 \\
 0 & 0 & k_0 & k_1 & k_2
-\end{bmatrix}$$
+\end{bmatrix} \in \mathbb{R}^{3 \times 5}
+$$
 
-이는 스트라이드 1의 valid 상호상관으로 $\mathbb{R}^5\to\mathbb{R}^3$에 대응한다. 경계가 줄어든 것이며 스트라이드에 의한 부분표집과는 구분한다.
+을 **컨볼루션 행렬**이라 한다($\mathbb{R}^5 \to \mathbb{R}^3$, 경계에서 줄어든 것이며 스트라이드에 의한 부분표집과는 구분한다). 같은 웨이트로 만든 $\mathbf{C}^\top$을 쓰는 연산
 
-### 전치한 연산
-
-**전치 컨볼루션**은 $\mathbf{C}^\top$을 쓴다.
-
-$$\mathbf{C}^\top = \begin{bmatrix}
+$$
+\mathbf{C}^\top = \begin{bmatrix}
 k_0 & 0 & 0 \\
 k_1 & k_0 & 0 \\
 k_2 & k_1 & k_0 \\
 0 & k_2 & k_1 \\
 0 & 0 & k_2
-\end{bmatrix}$$
+\end{bmatrix} \in \mathbb{R}^{5 \times 3}
+$$
 
-이는 $\mathbb{R}^3 \to \mathbb{R}^5$으로 보낸다(업샘플링). 커널의 웨이트는 같지만 이어지는 방식이 뒤집힌다.
+을 **전치 컨볼루션**이라 한다. $\mathbb{R}^3 \to \mathbb{R}^5$으로 보내므로 업샘플링이며, 웨이트는 같고 이어지는 방식만 뒤집힌다.
 
-$\mathbf{C}$는 $3 \times 5$ 행렬이라 애초에 역행렬을 가질 수 없고, $\mathbf{C}^\top \mathbf{C}$도 계수(rank)가 최대 3인 $5 \times 5$ 행렬이라 항등행렬이 아니다. 그러니 $\mathbf{C}^\top$을 곱하는 것은 $\mathbf{C}$를 되돌리는 일이 아니다.
+</div>
 
-### 핵심 착상: 컨볼루션의 그래디언트
+<div class="thmbox" markdown>
 
-웨이트와 스트라이드·경계 규약이 정해진 컨볼루션의 선형 부분을 C로 나타내면 입력 그래디언트는 다음과 같다. 독립적으로 만든 ConvTranspose 레이어가 임의의 웨이트와 바이어스를 가지면 특정 Conv 레이어의 정확한 입력 그래디언트 연산과 자동으로 같아지는 것은 아니다.
+### 정리 1. 전치 컨볼루션은 컨볼루션의 역이 아니다 { .thm }
 
-$$\frac{\partial L}{\partial \mathbf{x}} = \mathbf{C}^\top \frac{\partial L}{\partial \mathbf{y}}$$
+어떤 커널 $\mathbf{k}$에 대해서도
 
-그래서 역전파에서 전치 컨볼루션이 자연스럽게 나타난다. 아래 코드는 이것을 확인한 뒤, 이어서 같은 커널로 되돌려 보아 **크기는 돌아와도 값은 돌아오지 않는다**는 것까지 잰다.
+$$
+\mathbf{C}^\top \mathbf{C} \ne I_5
+$$
+
+이다. 곧 **모양은 $\mathbb{R}^5$으로 돌아와도 값은 돌아오지 않는다.**
+
+</div>
+
+??? proof "증명"
+
+    $\mathbf{C}$가 $3 \times 5$이므로 $\operatorname{rank}(\mathbf{C}) \le 3$이다. 행렬 곱의 계수는 두 인수의 계수를 넘지 못하므로
+
+    $$
+    \operatorname{rank}(\mathbf{C}^\top \mathbf{C}) \le \operatorname{rank}(\mathbf{C}) \le 3
+    $$
+
+    인데 $I_5$의 계수는 5다. $3 < 5$이므로 둘은 같을 수 없다. $\square$
+
+    차원만으로 끝나는 논증이라 **커널 값과 무관**하다. $\mathbf{C}$는 정사각이 아니어서 애초에 역행렬을 가질 수 없고, 다섯 수를 세 수로 줄이는 사상이 잃어버린 2차원은 어떤 커널로도 되살릴 수 없다.
+
+<div class="thmbox" markdown>
+
+### 정리 2. 컨볼루션의 입력 그래디언트가 곧 전치 컨볼루션이다 { .thm }
+
+$\mathbf{y} = \mathbf{C}\mathbf{x}$이고 $L$이 $\mathbf{y}$의 함수이면
+
+$$
+\frac{\partial L}{\partial \mathbf{x}} = \mathbf{C}^\top \frac{\partial L}{\partial \mathbf{y}}
+$$
+
+이다. 전치 컨볼루션은 억지로 끌어온 연산이 아니라 **컨볼루션을 역전파할 때 저절로 나오는 것**이다.
+
+</div>
+
+??? proof "증명"
+
+    성분으로 적는다. $y_i = \sum_j C_{ij} x_j$이므로 $\partial y_i / \partial x_j = C_{ij}$이고, 연쇄 법칙에서
+
+    $$
+    \frac{\partial L}{\partial x_j}
+      = \sum_i \frac{\partial L}{\partial y_i}\,\frac{\partial y_i}{\partial x_j}
+      = \sum_i C_{ij}\,\frac{\partial L}{\partial y_i}
+      = \sum_i (\mathbf{C}^\top)_{ji}\,\frac{\partial L}{\partial y_i}
+    $$
+
+    이다. 오른쪽은 $\mathbf{C}^\top (\partial L/\partial \mathbf{y})$의 $j$번째 성분이다. $\square$
+
+다만 따로 만든 `ConvTranspose` 레이어가 제 웨이트와 바이어스를 가지면, 특정 `Conv` 레이어의 입력 그래디언트 연산과 **자동으로 같아지지는 않는다.** 같아지려면 웨이트를 공유해야 한다. 아래 코드는 이것을 확인한 뒤, 이어서 같은 커널로 되돌려 보아 **크기는 돌아와도 값은 돌아오지 않는다**는 것까지 잰다.
 
 ```python
 import torch
