@@ -207,7 +207,7 @@ def random_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
     return video[indices]
 ```
 
-random_sampling은 복원 추출한 인덱스를 정렬한다. 중복 없는 부분집합이나 연속 구간 선택이 아니다. 실제 프레임 순서를 유지해도 인접 표본의 간격은 불규칙하며 같은 프레임이 반복될 수 있다. 학습 증강과 평가의 고정 샘플링 규칙을 구분한다.
+random_sampling은 복원 추출한 인덱스를 정렬한다. 중복 없는 부분집합이나 연속 구간 선택이 아니다. 실제 프레임 순서를 유지해도 인접 표본의 간격은 불규칙하며 같은 프레임이 반복될 수 있다. 학습 어그멘테이션과 평가의 고정 샘플링 규칙을 구분한다.
 
 ## 5. 정규화·crop·resize
 

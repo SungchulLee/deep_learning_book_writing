@@ -97,8 +97,8 @@ nav:
         - "앙상블 지식 증류": ch04/07_distillation.md
       - "4.4 네트워크 깊이":
         - "3×3 컨볼루션과 네트워크 깊이": ch04/02_depth.md
-      - 4.5 데이터 증강:
-        - "데이터 증강을 통한 성능 개선": ch04/04_augmentation.md
+      - 4.5 데이터 어그멘테이션:
+        - "데이터 어그멘테이션을 통한 성능 개선": ch04/04_augmentation.md
       - "4.6 전이 학습":
         - "VGG16 — 3×3 컨볼루션의 반복": ch04/03_vgg16_transfer.md
         - "Inception — 다중 스케일 컨볼루션": ch04/09_transfer_inception.md
@@ -350,7 +350,7 @@ nav:
         - 엘라스틱 넷: ch08/regularization/elastic_net.md
         - 드롭아웃: ch08/regularization/dropout.md
         - 드롭커넥트: ch08/regularization/dropconnect.md
-        - 데이터 증강: ch08/regularization/data_augmentation.md
+        - 데이터 어그멘테이션: ch08/regularization/data_augmentation.md
         - 레이블 평활화: ch08/regularization/label_smoothing.md
         - 믹스업: ch08/regularization/mixup.md
         - 컷믹스: ch08/regularization/cutmix.md
@@ -366,7 +366,7 @@ nav:
         - 정확성: ch09/foundations/correctness.md
         - 효율성: ch09/foundations/efficiency.md
       - 10.2 데이터셋:
-        - 자연어 데이터 증강: ch09/datasets/nlp_augmentation.md
+        - 자연어 데이터 어그멘테이션: ch09/datasets/nlp_augmentation.md
         - Snorkel을 쓰는 약지도 학습: ch09/datasets/weak_supervision_snorkel.md
         - 반복자 방식 최소 예제: ch09/datasets/11_iterable_style_minimal.md
         - CIFAR-10: ch09/datasets/cifar10.md
@@ -776,7 +776,7 @@ nav:
       - 14.1 대조 학습:
         - 대조 학습 MoCo: ch13/contrastive_learning/contrastive_moco.md
         - 대조 학습 SimCLR: ch13/contrastive_learning/contrastive_simclr.md
-        - 데이터 증강: ch13/contrastive_learning/data_augmentation.md
+        - 데이터 어그멘테이션: ch13/contrastive_learning/data_augmentation.md
         - MAE 비전 트랜스포머: ch13/contrastive_learning/mae_vision_transformer.md
       - 14.2 자기 증류:
         - 지식 증류의 기초: ch13/self_distillation/distillation_basics.md
@@ -1040,7 +1040,7 @@ nav:
         - 영상 기초: ch21/video/01_video_basics.md
         - "3차원 컨볼루션": ch21/video/02_3d_convolution.md
         - "간단한 비디오 분류기": ch21/video/03_simple_video_classifier.md
-        - "비디오 데이터 증강": ch21/video/04_data_augmentation_video.md
+        - "비디오 데이터 어그멘테이션": ch21/video/04_data_augmentation_video.md
         - "Two-Stream 네트워크": ch21/video/05_two_stream_network.md
         - "옵티컬 플로우": ch21/video/06_optical_flow.md
         - 영상 CNN-LSTM: ch21/video/07_cnn_lstm_video.md
@@ -1568,4 +1568,4 @@ nav:
       - "위치 인코딩": appendix/utils/positional.md
       - "로스 함수": appendix/utils/losses.md
       - "러닝레이트 스케줄러": appendix/utils/schedulers.md
-      - "데이터 증강": appendix/utils/augmentation.md
+      - "데이터 어그멘테이션": appendix/utils/augmentation.md

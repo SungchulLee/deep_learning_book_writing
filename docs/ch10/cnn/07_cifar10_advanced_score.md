@@ -136,12 +136,14 @@ Notes
   none was measured for it.
 
 Cross-page problems found but NOT fixed here (this run was scoped to one file)
-- `docs/ch10/index.md` line 34 advertises this page as "증강과 정칙화로 그 성능을
-  끌어올리기". The page applies neither augmentation nor any regularisation beyond
-  the two `Dropout` layers the basic page also lacks, and it does not raise the
-  accuracy at all. The index line needs rewriting.
-- `docs/ch10/cnn/06_cifar10_basic.md` publishes **no output block**, so its
-  60~70% (stated three times: lead, 논의, and implicitly in 연습문제 2's
-  "약 63%에서 68~72%로") is unmeasured. It is also now contradicted by the only
-  measured CIFAR-10 number in the section, this page's 54.82%. That page needs a
-  real run, or the range needs to be marked as unmeasured.
+— both have since been resolved; verified and closed on a later pass.
+
+- RESOLVED. `docs/ch10/index.md` advertised this page as "증강과 정칙화로 그
+  성능을 끌어올리기" while the page did neither. The index line was rewritten and
+  now reads "여러 컨볼루션 레이어와 러닝레이트 일정으로 학습하기" (index.md:32),
+  which the page does do. The page itself also gained real augmentation since —
+  `RandomCrop(32, padding=4)` and `RandomHorizontalFlip()` at lines 1392–1393 —
+  so neither half of the complaint still holds.
+- RESOLVED. `docs/ch10/cnn/06_cifar10_basic.md` published no output block and
+  asserted an unmeasured 60~70%. It now carries seven output blocks, and the
+  60~70% and "약 63%" claims are gone from the page entirely.

@@ -46,7 +46,7 @@
 - [드롭아웃](regularization/dropout.md)과 [드롭커넥트](regularization/dropconnect.md)
 - [조기 종료](regularization/early_stopping.md)
 - [L1](regularization/l1_regularization.md), [L2](regularization/l2_regularization.md), [엘라스틱 넷](regularization/elastic_net.md)
-- [데이터 증강](regularization/data_augmentation.md)과 [레이블 스무딩](regularization/label_smoothing.md)
+- [데이터 어그멘테이션](regularization/data_augmentation.md)과 [레이블 스무딩](regularization/label_smoothing.md)
 - [믹스업](regularization/mixup.md), [컷믹스](regularization/cutmix.md), [컷아웃](regularization/cutout.md)
 - [잡음 주입](regularization/noise_injection.md)
 

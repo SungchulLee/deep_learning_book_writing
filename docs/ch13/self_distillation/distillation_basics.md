@@ -129,7 +129,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 
 - [EMA 교사](ema_teacher.md): 시간 평균 계수로 목표를 구성하는 방식
 - [MoCo](../contrastive_learning/contrastive_moco.md): EMA와 피처 큐를 결합한 대조 학습
-- [SimCLR](../contrastive_learning/contrastive_simclr.md): 배치 안의 증강 뷰 대조
+- [SimCLR](../contrastive_learning/contrastive_simclr.md): 배치 안의 어그멘테이션 뷰 대조
 
 ## 연습문제
 

@@ -208,7 +208,7 @@ class MemoryEfficientDataset(Dataset):
 
 
 # =============================================================================
-# 4부: 예제 3 - 증강을 적용한 데이터셋
+# 4부: 예제 3 - 어그멘테이션을 적용한 데이터셋
 # =============================================================================
 
 print("\n" + "="*80)
@@ -233,13 +233,13 @@ class AugmentedDataset(Dataset):
         features = self.X[idx].clone()
         target = self.y[idx]
         
-        # 학습 중에 증강을 적용한다
+        # 학습 중에 어그멘테이션을 적용한다
         if self.augment:
             # 가우스 잡음을 더한다
             noise = torch.randn_like(features) * self.noise_std
             features = features + noise
             
-            # 다른 증강을 더할 수도 있다:
+            # 다른 어그멘테이션을 더할 수도 있다:
             # - 무작위 배율 조정
             # - 무작위 피처 드롭아웃
             # - 등등
@@ -247,7 +247,7 @@ class AugmentedDataset(Dataset):
         return features, target
 
 
-# 증강을 보여준다
+# 어그멘테이션을 보여준다
 print("\nDemonstrating augmentation...")
 X_sample = np.random.randn(100, 5)
 y_sample = np.random.randint(0, 2, 100)
@@ -255,7 +255,7 @@ y_sample = np.random.randint(0, 2, 100)
 aug_dataset = AugmentedDataset(X_sample, y_sample, augment=True, noise_std=0.1)
 no_aug_dataset = AugmentedDataset(X_sample, y_sample, augment=False)
 
-# 증강한 경우와 하지 않은 경우의 같은 표본을 얻는다
+# 어그멘테이션한 경우와 하지 않은 경우의 같은 표본을 얻는다
 orig_features, _ = no_aug_dataset[0]
 aug_features, _ = aug_dataset[0]
 
@@ -552,9 +552,9 @@ if __name__ == "__main__":
 
 CSV 구현은 데이터를 미리 읽고, 파일 기반 구현은 표본에 접근할 때 파일을 읽는다. 지연 로딩은 메모리 사용을 줄일 수 있지만 디스크 I/O와 작업자 관리 비용이 생긴다. 파일마다 같은 모양과 자료형을 반환해야 배치를 구성할 수 있다.
 
-### 증강과 원본 보존
+### 어그멘테이션과 원본 보존
 
-`AugmentedDataset`은 피처를 복사한 뒤 잡음을 더해 원본을 덮어쓰지 않는다. 잡음을 더해도 정답이 유지된다는 가정이 타당한지 확인하고, 평가용 데이터에는 훈련용 확률적 증강을 그대로 적용하지 않는다. Dataset 자체를 학습 파라미터를 가진 `nn.Module`로 취급하면 안 된다.
+`AugmentedDataset`은 피처를 복사한 뒤 잡음을 더해 원본을 덮어쓰지 않는다. 잡음을 더해도 정답이 유지된다는 가정이 타당한지 확인하고, 평가용 데이터에는 훈련용 확률적 어그멘테이션을 그대로 적용하지 않는다. Dataset 자체를 학습 파라미터를 가진 `nn.Module`로 취급하면 안 된다.
 
 ## 연습문제
 
@@ -585,12 +585,12 @@ Dataset 구현과 `nn.Module` 모델의 차이를 설명하라. `CustomDataset` 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-파일 기반 데이터셋과 확률적 증강에서 발생할 수 있는 문제를 설명하라.
+파일 기반 데이터셋과 확률적 어그멘테이션에서 발생할 수 있는 문제를 설명하라.
 
 </div>
 
 ??? success "연습문제 3 풀이"
-    파일 간 피처 수·정답 위치가 다르면 배치가 틀어질 수 있다. 잡음을 더한 피처가 원래 정답을 유지하는지 확인하고 평가셋에는 의도하지 않은 증강을 적용하지 않는다. 원본 텐서의 제자리 수정도 피한다.
+    파일 간 피처 수·정답 위치가 다르면 배치가 틀어질 수 있다. 잡음을 더한 피처가 원래 정답을 유지하는지 확인하고 평가셋에는 의도하지 않은 어그멘테이션을 적용하지 않는다. 원본 텐서의 제자리 수정도 피한다.
 
 ---
 
@@ -612,4 +612,4 @@ Dataset 구현과 `nn.Module` 모델의 차이를 설명하라. `CustomDataset` 
 
 ## 정리하며
 
-Dataset은 표본 접근을, 모델은 예측 계산을 담당한다. 피처·정답의 정렬과 모양, 증강의 타당성을 데이터 경계에서 확인한다.
+Dataset은 표본 접근을, 모델은 예측 계산을 담당한다. 피처·정답의 정렬과 모양, 어그멘테이션의 타당성을 데이터 경계에서 확인한다.

@@ -112,7 +112,7 @@ def main():
         
         def __getitem__(self, idx):
             img = self.data[idx]
-            # 간단한 증강: 무작위 뒤집기
+            # 간단한 어그멘테이션: 무작위 뒤집기
             if torch.rand(1) > 0.5:
                 img = torch.flip(img, dims=[2])  # Horizontal flip
             return img, self.labels[idx]

@@ -13,7 +13,7 @@
 - [TensorDataset](datasets/dataset_from_tensor.md)과 [IterableDataset 안내](datasets/11_iterable_style_minimal.md)
 - [MNIST](datasets/mnist.md), [FashionMNIST](datasets/fashion_mnist.md), [CIFAR-10](datasets/cifar10.md)
 - [얼굴 랜드마크](datasets/face_landmarks.md)와 [Hymenoptera 전이 학습](datasets/hymenoptera.md)
-- [텍스트 증강](datasets/nlp_augmentation.md)과 [약지도 학습](datasets/weak_supervision_snorkel.md)
+- [텍스트 어그멘테이션](datasets/nlp_augmentation.md)과 [약지도 학습](datasets/weak_supervision_snorkel.md)
 - [균형 샘플링](dataloaders/balanced_dataloader.md), [변환](dataloaders/dataloader_transforms.md), [배치 시각화](dataloaders/draw_batch_images.md)
 
 ## 3. 학습 루프와 기록
