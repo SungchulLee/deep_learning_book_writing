@@ -20,6 +20,8 @@ $$
 
 을 대신 쓴다. 가설 공간 $\mathcal{F}$ 위에서 $\hat R_n$ 을 최소화하는 절차를 **경험위험 최소화**(ERM)라 한다.
 
+<div class="thmbox" markdown>
+
 ### 정리 1. 제곱오차의 최적 예측기 — 조건부 평균 { .thm }
 
 $L(y,\hat y) = (y-\hat y)^2$ 이면 $\mathbb{E}[Y^2]<\infty$이면 모든 가측 함수 가운데 위험을 최소화하는 것은 조건부 평균이다.
@@ -27,6 +29,8 @@ $L(y,\hat y) = (y-\hat y)^2$ 이면 $\mathbb{E}[Y^2]<\infty$이면 모든 가측
 $$
 f^*(\mathbf{x}) = \mathbb{E}[Y \mid \mathbf{X}=\mathbf{x}]
 $$
+
+</div>
 
 ??? proof "증명"
 
@@ -44,6 +48,8 @@ $$
 !!! note "쓰임새"
     회귀 뉴럴 넷트웍을 제곱오차로 학습시킨다는 것은 곧 **조건부 평균을 어림한다**는 뜻이다. 목표 분포가 크게 기울어 있으면 평균이 대표값 노릇을 못하므로, 중앙값을 겨냥하는 절대오차나 분위수 로스를 대신 써야 한다.
 
+<div class="thmbox" markdown>
+
 ### 정리 2. 0–1 로스의 최적 예측기 — 베이즈 분류기 { .thm }
 
 $\mathcal{Y}=\{1,\dots,K\}$ 이고 $L(y,\hat y)=\mathbf{1}\{y\ne\hat y\}$ 이면 위험을 최소화하는 것은
@@ -53,6 +59,8 @@ f^*(\mathbf{x}) = \arg\max_k \; P(Y=k \mid \mathbf{X}=\mathbf{x})
 $$
 
 이며, 이때의 위험 $R(f^*)$ 를 **베이즈 오차**라 한다.
+
+</div>
 
 ??? proof "증명"
 
@@ -82,6 +90,8 @@ $$
 
 지도학습의 근본적인 긴장은 하나의 항등식에 담긴다.
 
+<div class="thmbox" markdown>
+
 ### 정리 3. 편향–분산 분해 — 오차는 세 조각으로 갈린다 { .thm }
 
 $Y = f^*(\mathbf{X}) + \varepsilon$ 이고 $\mathbb{E}[\varepsilon]=0$, $\operatorname{Var}(\varepsilon)=\sigma^2$ 이며 $\varepsilon$ 이 $\mathbf{X}$ 와 독립이라 하자. 훈련 데이터에 따라 달라지는 추정기 $\hat f$ 에 대해 고정된 점 $\mathbf{x}_0$ 에서
@@ -94,6 +104,8 @@ $$
 $$
 
 이 성립한다.
+
+</div>
 
 ??? proof "증명"
 
@@ -136,6 +148,8 @@ $$
 | 독립적인 지도 신호 | 표본마다 제 학습 신호를 들고 오며 시간에 걸친 공로 배분이 없다 |
 | 정직한 평가 | 떼어 둔 시험 집합이 일반화 오차의 불편추정값을 준다 |
 
+<div class="thmbox" markdown>
+
 ### 정리 4. 시험 오차의 불편성 — 떼어 둔 데이터는 정직하다 { .thm }
 
 $\hat f$ 가 훈련 데이터 $\mathcal{D}_n$ 만으로 정해지고 시험 표본 $(\mathbf{X}',Y')$ 이 $\mathcal{D}_n$ 과 독립이며 같은 분포를 따르면
@@ -145,6 +159,8 @@ $$
 $$
 
 이다. 곧 시험 오차는 $R(\hat f)$ 의 불편추정값이다.
+
+</div>
 
 ??? proof "증명"
 

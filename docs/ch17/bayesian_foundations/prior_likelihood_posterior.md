@@ -13,6 +13,8 @@
 - **사후분포** $p(\theta\mid D)$: 관측 데이터를 반영한 파라메터의 분포다.
 - **주변 우도** $p(D)$: 우도를 사전분포에 대해 평균한 값이며 증거라고도 한다.
 
+<div class="thmbox" markdown>
+
 ### 정리 1. 베이즈 정리 — 사후분포는 우도와 사전분포의 곱에 비례한다 { .thm }
 
 $0<p(D)<∞$이면 다음이 성립한다. 이산형 파라메터에서는 적분을 합으로 바꾼다.
@@ -30,6 +32,8 @@ p(\theta \mid D) \;\propto\; p(D \mid \theta)\,p(\theta)
 $$
 
 이다.
+
+</div>
 
 ??? proof "증명"
 
@@ -64,6 +68,8 @@ $$
 | 약한 정보의 예 | Beta(2,2) | 이 모형에서는 0·1 근처를 완화한다. 영향은 데이터 양에 달려 있다. |
 | 집중된 사전분포의 예 | Beta(10,10) | θ≈0.5라는 상대적으로 강한 가정을 반영한다. |
 
+<div class="thmbox" markdown>
+
 ### 정리 2. 사전예측분포 — 관측 전의 데이터 분포 { .thm }
 
 데이터를 보기 전에 어떤 데이터가 나올지 묻는 분포는 우도를 사전분포로 평균 낸 것이며, 이는 곧 증거이다.
@@ -79,6 +85,8 @@ p(k) = \binom{n}{k}\,\frac{B(\alpha+k,\ \beta+n-k)}{B(\alpha,\beta)}
 $$
 
 이다. 여기서 $B$ 는 베타 함수이다.
+
+</div>
 
 ??? proof "증명"
 
@@ -135,6 +143,8 @@ $$
 
 이다. 우도는 θ에 대한 확률밀도로 정의되지 않으므로 θ에 대한 적분이 1일 필요가 없다. 데이터 공간에 대한 정규화와 파라메터 공간에 대한 정규화는 다르다.
 
+<div class="thmbox" markdown>
+
 ### 정리 3. 인수분해 정리 — 충분 통계량이 우도를 요약한다 { .thm }
 
 공통 지배측도 아래 밀도를 갖는 통계 모형에서, 통계량 $T(D)$에 대해 음이 아닌 함수 $g,h$가 있어
@@ -148,6 +158,8 @@ $$
 $$
 p(\theta \mid D) \;\propto\; g\bigl(T(D), \theta\bigr)\, p(\theta)
 $$
+
+</div>
 
 ??? proof "증명"
 
@@ -200,6 +212,8 @@ $$
 
 $p(D) = \int p(D\mid\theta)p(\theta)\,d\theta$ 를 **증거** 또는 **주변 우도**라 한다. 사후분포를 정규화하는 상수이면서, 동시에 그 모델이 데이터를 얼마나 잘 설명하는지를 나타내는 값이다.
 
+<div class="thmbox" markdown>
+
 ### 정리 4. 증거의 두 얼굴 — 정규화 상수이자 모델 비교의 자 { .thm }
 
 두 모델 $M_1, M_2$ 에 대해 베이즈 인자를
@@ -213,6 +227,8 @@ $$
 $$
 \frac{p(M_1 \mid D)}{p(M_2 \mid D)} = \text{BF}_{12}\cdot\frac{p(M_1)}{p(M_2)}
 $$
+
+</div>
 
 ??? proof "증명"
 
@@ -283,6 +299,8 @@ def posterior_continuous(theta_grid, prior, likelihood, normalize=True):
 
 이항 우도와 베타 사전분포를 결합하면 사후분포가 다시 베타가 된다. 켤레성이 주는 가장 단순하고 중요한 보기다.
 
+<div class="thmbox" markdown>
+
 ### 정리 5. 베타-이항 켤레성 — 사전분포는 유사 관측으로 더해진다 { .thm }
 
 α,β>0이고 n번의 조건부 독립 시행 중 k번 성공을 관측하면 사후분포는
@@ -298,6 +316,8 @@ $$
 = \frac{\alpha+\beta}{\alpha+\beta+n}\cdot\frac{\alpha}{\alpha+\beta}
 \;+\; \frac{n}{\alpha+\beta+n}\cdot\frac{k}{n}
 $$
+
+</div>
 
 ??? proof "증명"
 
@@ -410,6 +430,8 @@ def compare_priors(n_heads, n_tails):
 
 ## 6. 정규-정규 켤레 모델
 
+<div class="thmbox" markdown>
+
 ### 정리 6. 정밀도로 가중한 평균 — 정밀도는 더해진다 { .thm }
 
 $x_1,\dots,x_n$이 μ를 조건으로 독립인 $\mathcal{N}(\mu,\sigma^2)$ 관측이고 $\sigma$ 를 알고 사전분포가 $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$ 이면 사후분포는 정규이고, 정밀도 $\tau = 1/\sigma^2$ 로 적을 때
@@ -421,6 +443,8 @@ $$
 $$
 
 이다. 곧 **정밀도는 더해지고, 평균은 정밀도로 가중한 평균이 된다**.
+
+</div>
 
 ??? proof "증명"
 
@@ -494,6 +518,8 @@ def normal_normal_inference(data, prior_mean, prior_std, known_std):
 
 ## 7. 순차 갱신과 점근적 성질
 
+<div class="thmbox" markdown>
+
 ### 정리 7. 순차 갱신의 순서 무관성 — 한꺼번에 갱신한 것과 같다 { .thm }
 
 관측이 $\theta$ 가 주어졌을 때 서로 독립이면, 데이터를 하나씩 넣으며 사후분포를 거듭 고쳐도 마지막 결과는 모두를 한꺼번에 넣은 것과 같고, 넣는 **순서에도 달리지 않는다**.
@@ -502,6 +528,8 @@ $$
 p(\theta \mid x_1, x_2) \;\propto\; p(x_2 \mid \theta)\,p(\theta \mid x_1)
 \;\propto\; p(x_1\mid\theta)\,p(x_2\mid\theta)\,p(\theta)
 $$
+
+</div>
 
 ??? proof "증명"
 

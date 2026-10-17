@@ -16,6 +16,8 @@ $$
 
 첫째는 사전확률을 아랑곳하지 않고 우도만 보고, 둘째는 사후확률의 **최빈값**을, 셋째는 사후확률의 **평균**을 본다.
 
+<div class="thmbox" markdown>
+
 ### 정리 1. 세 가지 점 추정값 — 로스 함수가 추정량을 고른다 { .thm }
 
 사전분포와 우도가 정해졌을 때 다음 관계를 구분한다.
@@ -23,6 +25,8 @@ $$
 1. 허용 영역 전체에서 사전밀도가 일정하면 그 영역에서 MAP와 MLE의 최대점 집합이 같다.
 2. 이산 파라메터의 0-1 로스에서는 사후질량이 가장 큰 값이 베이즈 결정이다. 연속분포에서는 정확히 맞히는 0-1 로스가 모든 점에 같은 기대 로스를 주므로 이 설명을 그대로 쓸 수 없다.
 3. 사후 2차 모멘트가 유한한 제곱 오차 로스에서는 사후평균이 기대 로스를 최소화한다.
+
+</div>
 
 ??? proof "증명"
 
@@ -60,6 +64,8 @@ $$
 
 우도 $p(D \mid \theta)$ 에 대해 사전확률 $p(\theta)$ 와 사후확률 $p(\theta \mid D)$ 가 같은 분포족에 들면 그 사전확률을 **켤레 사전분포**라 한다. 이항 우도의 켤레 사전분포는 베타 분포이다.
 
+<div class="thmbox" markdown>
+
 ### 정리 2. 베타-이항의 닫힌 형태 — 사전확률은 유사 관측으로 더해진다 { .thm }
 
 사전확률이 $\text{Beta}(\alpha, \beta)$ 이고 데이터가 앞면 $k$ 번, 뒷면 $n-k$ 번이면 사후확률은 $\text{Beta}(\alpha + k,\; \beta + n - k)$ 이고, $\alpha + k > 1$ 이며 $\beta + n - k > 1$ 일 때 다음이 성립한다.
@@ -69,6 +75,8 @@ $$
 \hat{\theta}_{\text{MLE}} = \frac{k}{n}, \qquad
 \hat{\theta}_{\text{Mean}} = \frac{\alpha + k}{\alpha + \beta + n}
 $$
+
+</div>
 
 ??? proof "증명"
 
@@ -149,6 +157,8 @@ def map_vs_mle_beta_binomial(n_heads, n_tails, prior_alpha=1, prior_beta=1):
 
 켤레가 아닌 모형에서는 닫힌 형태의 MAP가 없을 수 있다. 정규화 상수를 몰라도 로그우도와 로그 사전밀도의 합을 최적화할 수 있지만 전역 최대점의 존재·유일성과 수치 알고리즘의 수렴은 별도 문제다.
 
+<div class="thmbox" markdown>
+
 ### 정리 3. 최대 사후확률의 최적화 꼴 — 로그우도와 로그 사전밀도의 합 { .thm }
 
 증거 $p(D)$ 는 $\theta$ 에 달리지 않으므로 다음이 성립한다.
@@ -158,6 +168,8 @@ $$
 = \underset{\theta}{\arg\max} \left[ \log p(D \mid \theta) + \log p(\theta) \right]
 = \underset{\theta}{\arg\min} \left[ -\log p(D \mid \theta) - \log p(\theta) \right]
 $$
+
+</div>
 
 ??? proof "증명"
 
@@ -235,6 +247,8 @@ def map_normal_unknown_mean_variance(data, prior_mean_mu=0, prior_std_mu=10,
 
 정리 3의 최적화 꼴을 다시 보면 $-\log p(\theta)$ 가 벌 항의 자리에 그대로 앉아 있다. 이것이 정규화와 베이즈를 잇는 다리다.
 
+<div class="thmbox" markdown>
+
 ### 정리 4. 가우시안·라플라스 사전분포와 정규화 { .thm }
 
 선형 회귀에서 계수마다 서로 독립인 사전확률을 두면 다음이 성립한다.
@@ -250,6 +264,8 @@ $$
 $$
 \hat{\beta}_{\text{Lasso}} = \underset{\beta}{\arg\min} \left[ \|y - X\beta\|_2^2 + \lambda \|\beta\|_1 \right]
 $$
+
+</div>
 
 ??? proof "증명"
 
@@ -322,6 +338,8 @@ def demonstrate_map_regularization(n_samples=50, noise_std=1.0):
 
 최대 사후확률과 사후확률의 평균은 늘 다른 값이 아니다. 언제 같고 언제 갈리는지는 사후확률의 모양이 정한다.
 
+<div class="thmbox" markdown>
+
 ### 정리 5. 최빈값과 평균의 갈림 — 대칭이면 일치한다 { .thm }
 
 사후분포가 c를 중심으로 대칭이고 고유한 최빈점이 c에 있으며 평균이 존재하면 두 값은 c로 일치한다. 제곱 로스의 최소화 해석에는 유한한 2차 모멘트도 필요하다. Cauchy처럼 대칭 단봉이어도 평균이 없는 분포가 있다.
@@ -331,6 +349,8 @@ $$
 $$
 
 이다. 비대칭이면 두 값이 달라질 수 있지만 반드시 달라져야 하는 것은 아니다.
+
+</div>
 
 ??? proof "증명"
 

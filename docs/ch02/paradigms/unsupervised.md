@@ -14,6 +14,8 @@
 
 지도학습과 달리 참값에 기초를 둔 로스가 없으므로, 평가는 분야 지식과 뒤따르는 쓰임새에 기댄다.
 
+<div class="thmbox" markdown>
+
 ### 정리 1. K-평균의 목적함수 감소와 종료 { .thm }
 
 군집 내 제곱합
@@ -23,6 +25,8 @@ J(C, \boldsymbol\mu) = \sum_{j=1}^k \sum_{\mathbf{x}\in C_j} \|\mathbf{x}-\bolds
 $$
 
 에 대해 배정 단계와 갱신 단계를 번갈아 수행하면 $J$는 증가하지 않는다. 군집이 비어 있지 않고 거리 동률을 일관되게 처리하며, 배정이 바뀔 때 목적함수가 엄격히 감소하는 조건에서는 유한 단계에 종료한다. 실제 구현은 빈 군집 처리, 허용 오차, 최대 반복 수도 지정한다.
+
+</div>
 
 ??? proof "증명"
 
@@ -51,6 +55,8 @@ $$
 
 중심을 옮긴 데이터 행렬 $\mathbf{X}\in\mathbb{R}^{n\times p}$ 의 표본 공분산을 $\mathbf{S} = \tfrac1n\mathbf{X}^\top\mathbf{X}$ 라 하자. $\|\mathbf{w}\|=1$ 인 방향 가운데 사영 분산 $\mathbf{w}^\top\mathbf{S}\mathbf{w}$ 를 가장 크게 하는 것을 **첫째 주성분**이라 한다.
 
+<div class="thmbox" markdown>
+
 ### 정리 2. 주성분은 고유벡터 — 분산 최대 방향의 정체 { .thm }
 
 $\mathbf{S}$ 의 고윳값을 $\lambda_1\ge\lambda_2\ge\cdots\ge\lambda_p\ge 0$, 대응하는 정규직교 고유벡터를 $\mathbf{v}_1,\dots,\mathbf{v}_p$ 라 하면
@@ -62,6 +68,8 @@ $$
 $$
 
 이다.
+
+</div>
 
 ??? proof "증명"
 
@@ -94,6 +102,8 @@ $$
 
 지도학습에는 참값이 있어 위험을 곧바로 잴 수 있었다. 비지도학습에는 그것이 없다.
 
+<div class="thmbox" markdown>
+
 ### 정리 3. 군집 수를 목적함수로 고를 수 없다 — $J$ 는 $k$ 에 대해 단조 감소한다 { .thm }
 
 $J_k$ 를 군집 수가 $k$ 일 때의 군집 내 제곱합의 전역 최솟값이라 하면
@@ -103,6 +113,8 @@ J_1 \ge J_2 \ge \cdots \ge J_n = 0
 $$
 
 이다. 따라서 $J$ 를 가장 작게 하는 $k$ 를 고르면 언제나 $k=n$ 이 뽑힌다.
+
+</div>
 
 ??? proof "증명"
 
