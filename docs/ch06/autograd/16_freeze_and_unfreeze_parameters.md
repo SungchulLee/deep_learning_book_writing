@@ -116,7 +116,7 @@ After unfreeze
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -136,7 +136,7 @@ After unfreeze
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     기존 `.grad`가 남아 있으면 옵티마이저가 이를 사용해 업데이트할 수 있으므로 지우거나 대상에서 제외한다. 동결 해제 시에는 옵티마이저에 포함되어 있는지도 확인한다. BatchNorm·Dropout 같은 계층의 학습·평가 모드는 별도로 정한다.
 
 ---
@@ -149,7 +149,7 @@ After unfreeze
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

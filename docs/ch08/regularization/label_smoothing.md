@@ -559,7 +559,7 @@ def combined_augmentation_training_step(
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     스무딩된 목표는 $y'_k = (1-\epsilon)y_k + \epsilon/K$이다. 참 클래스 $c$에 대해서는 $y'_c = 1 - \epsilon + \epsilon/K = 1 - \epsilon(K-1)/K$이고, 다른 클래스에 대해서는 $y'_k = \epsilon/K$이다. 로스는 표준 교차 엔트로피와 균등 교차 엔트로피의 혼합이 된다.
 
 ---
@@ -571,7 +571,7 @@ def combined_augmentation_training_step(
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     보정은 확신도와 실제 정답 빈도의 관계이다. 확신도를 낮추는 효과가 기존 과신을 줄일 수 있지만 이미 보정된 예측을 과소확신으로 만들 수도 있다. 평가 분포, 지표와 스무딩 강도에 따라 달라진다.
 
 ---
@@ -583,7 +583,7 @@ def combined_augmentation_training_step(
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     def label_smoothing_loss(logits, targets, epsilon=0.1):
         K = logits.size(-1)
@@ -602,7 +602,7 @@ def combined_augmentation_training_step(
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     이미 확률 목표나 믹스업을 사용하면 목표가 추가로 부드러워진다. 확률 보정이 중요한 과제, 불균형 데이터와 지식 증류에서는 각 지표에 다른 영향을 줄 수 있다. 일괄 금지보다 스무딩 없는 기준과 같은 검증 조건에서 비교한다.
 
 ## 정리하며

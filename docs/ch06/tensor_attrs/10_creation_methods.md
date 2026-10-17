@@ -563,7 +563,7 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     arr = np.array([1.0, 2.0, 3.0])
@@ -582,7 +582,7 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     지원되는 NumPy 배열에서 요청한 자료형과 CPU 장치가 같으면 저장소를 공유한다. 읽기 전용 배열도 공유할 수 있지만 쓰기는 정의되지 않는다. 음수 스트라이드는 자동 복사가 아니라 오류가 날 수 있어 명시적 복사가 필요하다.
 
 ---
@@ -595,7 +595,7 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     x = torch.randn(3, requires_grad=True)
     # x.numpy()  # 오류: 경사가 필요한 텐서에는 numpy()를 호출할 수 없다

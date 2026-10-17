@@ -130,7 +130,7 @@ autograd로 점 $(2, 3)$에서 $f(x, y) = x^2 y + y^3$의 경사를 계산하라
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     x = torch.tensor(2.0, requires_grad=True)
     y = torch.tensor(3.0, requires_grad=True)
@@ -150,7 +150,7 @@ autograd로 점 $(2, 3)$에서 $f(x, y) = x^2 y + y^3$의 경사를 계산하라
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     x = torch.tensor(3.0, requires_grad=True)
     y1 = x ** 2
@@ -177,7 +177,7 @@ autograd로 점 $(2, 3)$에서 $f(x, y) = x^2 y + y^3$의 경사를 계산하라
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     params = [w1, b1, w2, b2]
     optimizer = torch.optim.SGD(params, lr=0.1)

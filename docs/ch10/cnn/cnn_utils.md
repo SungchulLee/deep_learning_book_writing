@@ -355,7 +355,7 @@ train은 시작할 때 train()을, compute_accuracy는 eval()을 호출한다. �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     컨볼루션은 커널 3에 `padding=1`이라 크기를 바꾸지 않는다. 출력 크기가
 
     $$H_{\text{out}} = H + 2 \times 1 - 3 + 1 = H$$
@@ -390,7 +390,7 @@ train은 시작할 때 train()을, compute_accuracy는 eval()을 호출한다. �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     CIFAR-10이 돌아온다. `load_data`는 `if cifar10:` 가지를 먼저 보고 그 안에서 CIFAR-10 두 집합을 만든 뒤 함수를 빠져나가므로, `fashion_mnist`는 읽히지도 않는다.
 
     ```python
@@ -423,7 +423,7 @@ load_data에 사용자 지정 평균·표준편차를 받는 인터페이스를 
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     def load_data(train_kwargs, test_kwargs, fashion_mnist=False, cifar10=False,
                   mean=None, std=None):
@@ -468,7 +468,7 @@ train을 두 번 호출할 때 옵티마이저·스케줄러 객체를 유지하
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     같은 객체를 유지하면 옵티마이저 모멘텀·모멘트와 스케줄러 진행 상태를 이어 간다. 새 옵티마이저를 lr=0.01로 만들면 러닝레이트와 그 상태를 초기화한다. 그러나 기존 옵티마이저에 스케줄러만 새로 만든다고 항상 러닝레이트가 0.01로 복구되는 것은 아니다. 현재 param_group의 lr과 initial_lr, 스케줄러 종류·초기화에 따라 달라진다. 스케줄러가 실제 갱신에 쓰는 옵티마이저를 참조하는지 확인하고 정확한 재개에는 둘의 state_dict와 반복 위치를 복원한다.
 
 ---
@@ -480,7 +480,7 @@ train을 두 번 호출할 때 옵티마이저·스케줄러 객체를 유지하
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
     ```python
     def compute_per_class_accuracy(model, test_loader, device, classes=None):
         model.eval()

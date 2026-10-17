@@ -357,7 +357,7 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     훅이 기대하는 모듈 속성 m.attn이 없고 실제 확률은 forward 지역 변수다. 훅 출력은 모듈 최종 피처가지 자동으로 확률 행렬이 되는 것도 아니다. 따라서 속성·반환 규약을 맞추고 None을 검증해야 한다.
 
 ---
@@ -369,7 +369,7 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     해당 함수는 새 난수 표를 만들어 그리므로 학습된 공간 패턴을 검증하지 않는다. 실제 model.pos_embed를 분리해 같은 격자 순서로 분석하고 0 노름·상수 값을 처리해야 한다. 유사도만으로 분류 성능을 판정하지 않는다.
 
 ---
@@ -381,7 +381,7 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     상수 이미지의 min-max 분모, CLS를 뺀 패치 수의 정사각 조건, 반환된 None·CPU/GPU 텐서와 numpy 변환을 확인한다. 훅 핸들을 제거하고 그림 객체를 닫는 수명 관리도 필요하다. 시각화 함수에 학습용 경사가 항상 있어야 한다는 가정은 적절하지 않다.
 
 ---
@@ -393,7 +393,7 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
     ```python
     def test_attentionvisualizer():

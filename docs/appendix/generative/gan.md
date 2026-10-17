@@ -161,7 +161,7 @@ Discriminator Parameters: 533,505
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     `nn.Linear(in_features, out_features)`마다 짐 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 짐이 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 켜를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 따져 볼 수 있다.
 
 ---
@@ -173,7 +173,7 @@ Discriminator Parameters: 533,505
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     다듬개를 짓는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 갈음한다. Adam은 파라메터마다 맞추어 가는 러닝레이트와 여세 어림을 지니므로 이른 판에서 대체로 더 빨리 모여든다. Adam의 로스 굽이는 흔히 첫 몇 판에서 더 가파르게 떨어지지만, 마무리 값 언저리에서는 여세를 쓰는 SGD보다 조금 더 흔들릴 수 있다. 고르게 견주려면 둘을 같은 시드와 같은 판 수로 돌려라.
 
 ---
@@ -185,7 +185,7 @@ Discriminator Parameters: 533,505
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     흔히 무너지는 결은 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 그래디언트 자르기, 더 나은 첫자리 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 잣대 잡기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 따짐 로스가 오르면 짚어낸다. 다독임(드롭아웃, 짐 줄이기, 데이터 어그멘테이션)이나 모델 크기 줄이기로 고친다. 학습과 따짐 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
@@ -197,7 +197,7 @@ Discriminator Parameters: 533,505
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     박아 넣은 켜를 다음으로 갈음한다.
     ```python
     self.layers = nn.ModuleList()

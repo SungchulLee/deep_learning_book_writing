@@ -496,7 +496,7 @@ Epoch 100: Loss = 0.8418
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     배치 경사 하강법: 1000개 표본 전체로 경사 계산 1회, 파라메터 갱신 1회.
 
     미니배치 경사 하강법($B=32$): $\lceil 1000/32 \rceil = 32$회 경사 계산, 32회 파라메터 갱신.
@@ -514,7 +514,7 @@ Epoch 100: Loss = 0.8418
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     표본 $i$에 대해 $g_i = \nabla_\theta \ell(x_i, \theta)$라 하자. 미니배치 경사는 $i_j$가 균등하게 추출될 때 $\hat{g} = \frac{1}{B}\sum_{j=1}^B g_{i_j}$이다.
 
     $\mathbb{E}[\hat{g}] = \frac{1}{B}\sum_{j=1}^B \mathbb{E}[g_{i_j}] = \frac{1}{B} \cdot B \cdot \frac{1}{N}\sum_{i=1}^N g_i = \bar{g}$이며 이것이 전체 배치 경사이다.
@@ -530,7 +530,7 @@ Epoch 100: Loss = 0.8418
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -557,7 +557,7 @@ Epoch 100: Loss = 0.8418
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     고정한 파라미터에서 미니배치 경사는 $\hat g=\bar g+\epsilon$으로 표현할 수 있다. 전체 경사가 0이어도 개별 배치 경사가 0이 아니면 업데이트가 발생해 주변으로 이동할 수 있다. 다만 잡음의 방향과 크기, 러닝레이트, 로스 장벽에 따라 탈출 여부가 달라진다. 평평한 해가 항상 일반화에 더 좋다거나, 전체 배치 방법이 모든 뾰족한 최솟값에 갇힌다고 단정할 수는 없다.
 
 ## 정리하며

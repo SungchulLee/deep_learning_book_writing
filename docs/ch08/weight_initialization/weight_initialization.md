@@ -297,7 +297,7 @@ class PricingNetwork(nn.Module):
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     동일한 뉴런들이 같은 입력에 같은 출력을 내고 같은 경사를 받으면 표현이 분화되지 않을 수 있다. 무작위 초기화는 이 대칭을 깬다. 다만 ReLU의 0 입력 출력과 시그모이드의 0 입력 출력은 각각 0과 0.5로 다르다. 선형 회귀는 계수 0에서 경사 하강법을 시작할 수 있고, 잔차 블록의 마지막 레이어 일부를 0으로 두는 방법도 있으므로 모든 0 초기화가 학습 불가능한 것은 아니다.
 
 ---
@@ -309,7 +309,7 @@ Xavier(Glorot) 초기화 $W \sim \mathcal{U}(-\sqrt{6/(n_{\text{in}}+n_{\text{ou
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     분산을 보존하려면 $\text{Var}(y) = n_{\text{in}} \cdot \text{Var}(w) \cdot \text{Var}(x)$이다. $\text{Var}(y) = \text{Var}(x)$으로 두면 $\text{Var}(w) = 1/n_{\text{in}}$이다. 팬인과 팬아웃의 평균을 분모에 두어 절충하면 $\text{Var}(w) = 2/(n_{\text{in}}+n_{\text{out}})$이다. 균등분포 $[-a, a]$에서는 $\text{Var} = a^2/3$이므로 $a = \sqrt{6/(n_{\text{in}}+n_{\text{out}})}$을 얻는다.
 
 ---
@@ -321,7 +321,7 @@ Xavier(Glorot) 초기화 $W \sim \mathcal{U}(-\sqrt{6/(n_{\text{in}}+n_{\text{ou
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     너무 크면 활성화가 (시그모이드/tanh에서) 포화하거나 (ReLU에서) 폭발하고, 경사가 사라지거나 폭발하며, 학습이 발산한다. 너무 작으면 활성화가 0으로 주저앉고 경사가 사라져 학습이 아주 느리거나 아예 되지 않는다. 알맞은 초기화는 레이어에 걸쳐 활성화와 경사의 크기를 유지한다.
 
 ---
@@ -333,7 +333,7 @@ Xavier와 He 초기화를 PyTorch로 구현하고 10레이어 뉴럴 넷트웍�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     for m in model.modules():
         if isinstance(m, nn.Linear):

@@ -183,7 +183,7 @@ Saved: normal_equation.png
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     from sklearn.datasets import make_regression
@@ -211,7 +211,7 @@ MSE의 경사를 0으로 두어 정규 방정식을 유도하고 해의 유일�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $L=\|y-X\theta\|^2/n$의 경사는 $2X^\top(X\theta-y)/n$이다. 이를 0으로 두면 $X^\top X\theta=X^\top y$를 얻는다. $X$가 열 전체 랭크이면 역행렬 식으로 유일한 해를 얻는다. 그렇지 않으면 정규 방정식은 여전히 최소제곱 조건이지만 파라미터 해는 유일하지 않으며 최소 노름 해에는 의사역행렬을 사용할 수 있다.
 
 ---
@@ -223,7 +223,7 @@ $n = 1000$이고 $p \in \{10, 100, 500\}$인 데이터셋에 대해 정규 방�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import numpy as np, time
     from sklearn.datasets import make_regression

@@ -293,7 +293,7 @@ PositionalEncoding의 학습 파라메터와 버퍼를 구분하고 입력 조�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     사인·코사인 위치 표는 register_buffer로 등록되므로 학습 파라메터는 0개다. 모델 이동과 state_dict 저장에는 포함된다. 이 구현은 짝수 d_model을 가정하며 시퀀스 길이는 max_len 이하여야 한다. 트랜스포머에는 별도로 d_model이 nhead로 나누어떨어져야 하는 조건이 있다.
 
 ---
@@ -305,7 +305,7 @@ PositionalEncoding의 학습 파라메터와 버퍼를 구분하고 입력 조�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     TransformerFewShotClassifier의 TransformerEncoderLayer는 dropout=0.1로 생성되어 어텐션 드롭아웃을 포함한다. MultiheadAttentionBlock의 nn.MultiheadAttention은 기본값 0을 사용하므로 생성자에 dropout을 지정할 수 있다. 반환된 어텐션 웨이트에 나중에 드롭아웃을 적용해도 이미 계산된 attn_out에는 반영되지 않는다. 드롭아웃이 항상 더 균등한 어텐션을 만든다는 보장은 없다.
 
 ---
@@ -317,7 +317,7 @@ PositionalEncoding의 학습 파라메터와 버퍼를 구분하고 입력 조�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     일반 셀프 어텐션의 쌍별 계산은 O(L²d)다. 유도점 수를 I라 하면 이 SetTransformer의 두 어텐션은 O(IMd+I²d)다. 선형 투영과 FFN 비용은 별도다. I를 고정하면 입력 집합 길이에 대한 쌍별 계산은 선형으로 늘지만, 집합을 I개 표현으로 압축하는 설계가 과제에 적절한지는 평가해야 한다.
 
 ---
@@ -329,7 +329,7 @@ PositionalEncoding의 학습 파라메터와 버퍼를 구분하고 입력 조�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()

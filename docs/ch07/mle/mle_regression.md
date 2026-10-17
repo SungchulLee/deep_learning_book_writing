@@ -339,7 +339,7 @@ def train_regression_mle_perspective():
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     후버 로스는 $L_\delta(r) = \begin{cases} \frac{1}{2}r^2 & |r| \leq \delta \\ \delta|r| - \frac{1}{2}\delta^2 & |r| > \delta \end{cases}$이다.
 
     대응하는 밀도는 $p(r) \propto e^{-L_\delta(r)}$이다.
@@ -359,7 +359,7 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 로스 함�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     포아송 확률질량함수는 $\lambda = \exp(f_\theta(x))$일 때 $P(y|\lambda) = \frac{\lambda^y e^{-\lambda}}{y!}$이다.
 
     NLL: $-\log P(y|x) = -y\log\lambda + \lambda + \log(y!) = -y \cdot f_\theta(x) + e^{f_\theta(x)} + \log(y!)$이다.
@@ -384,7 +384,7 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 로스 함�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     $d$차원 출력에 대해 $\Sigma = LL^\top$으로 매개화한다. 여기서 $L$은 대각 성분이 양수인 하삼각행렬(촐레스키 인자)이다. 뉴럴 넷트웍은 다음을 예측한다.
 
     - 평균 $\mu \in \mathbb{R}^d$: 출력 $d$개
@@ -407,7 +407,7 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 로스 함�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch, torch.nn as nn
 

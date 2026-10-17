@@ -688,7 +688,7 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $v(p) = p(1-p) = p - p^2$이라 하자. $v'(p) = 1 - 2p = 0$에서 $p = 0.5$이고, $v''(p) = -2 < 0$이므로 최댓값임이 확인된다. 최대 분산은 $v(0.5) = 0.25$이다.
 
     베르누이 조건부 분산은 0.5에서 가장 크다. 그러나 로스의 로짓 경사는 $p-y$이므로, 틀렸는데 확신한 예측에서는 경사 크기가 1에 가까워질 수 있다. 분산과 로스 경사의 크기를 같은 것으로 해석하지 않는다.
@@ -702,7 +702,7 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $q(y|x)$을 참 조건부 분포, $p_\theta(y|x)$을 모델이라 하자. 기대 로그우도는 다음과 같다.
 
     $$
@@ -720,7 +720,7 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     지수족 형태로 쓴 베르누이 확률질량함수는 $p(y|\eta) = \exp(\eta y - \log(1+e^\eta))$이며, 여기서 $\eta = \log\frac{p}{1-p}$이 자연 파라메터이다. 정준 연결은 평균 $\mu = p$을 자연 파라메터 $\eta$으로 보낸다. 베르누이의 경우 이는 로짓 함수 $g(\mu) = \log\frac{\mu}{1-\mu}$이다.
 
     정준 연결에서는 스코어 방정식이 간단해진다. 다만 유일한 유한 MLE를 얻으려면 설계 행렬의 랭크와 분리 가능성 등 조건도 필요하며, 정준 연결 자체가 이를 보장하지는 않는다.
@@ -734,7 +734,7 @@ Epoch 200: Log-Likelihood =  -47.341, NLL Loss = 0.5918, Accuracy = 0.6375
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.distributions as dist

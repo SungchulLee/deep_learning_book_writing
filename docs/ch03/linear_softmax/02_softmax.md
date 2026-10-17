@@ -430,7 +430,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $e^1 = 2.718$, $e^2 = 7.389$, $e^3 = 20.086$이고 합이 $30.193$이므로
 
     $$p = \left[\frac{2.718}{30.193},\ \frac{7.389}{30.193},\ \frac{20.086}{30.193}\right]
@@ -457,7 +457,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     지수함수가 단조 증가이고 분모가 모든 $k$에 공통이므로, $y_k$의 순서와 $p_k$의
     순서가 같다. 따라서
 
@@ -484,7 +484,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     **오류가 나지 않는다.** 그것이 이 실수의 고약한 점이다.
 
     `nn.CrossEntropyLoss`는 안에서 `log_softmax`를 적용한다. 모델이 이미 소프트맥스를
@@ -517,7 +517,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     z = torch.tensor([1.0, 2.0, 3.0])
     print((F.softmax(z, 0) - F.softmax(z + 100, 0)).abs().max())
@@ -547,7 +547,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
     ```python
     big = torch.tensor([1000.0, 1001.0, 1002.0])
     print(big.exp() / big.exp().sum())    # tensor([nan, nan, nan])
@@ -581,7 +581,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 6 풀이"
+??? success "풀이"
     엔트로피는 $H = -\sum_k p_k \log p_k$로 분포가 얼마나 퍼져 있는지를 잰다.
 
     | $T$ | 0.5 | 1 | 2 | 10 |
@@ -613,7 +613,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 7 풀이"
+??? success "풀이"
     로짓이 $[z_0, z_1]$일 때
 
     $$p_0 = \frac{e^{z_0}}{e^{z_0} + e^{z_1}}
@@ -648,7 +648,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 8 풀이"
+??? success "풀이"
     ```python
     probs = F.softmax(model(X_test), dim=1)
     conf, pred = probs.max(dim=1)
@@ -686,7 +686,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 9 풀이"
+??? success "풀이"
     **증명.** 어떤 $(A, b)$가 주는 로짓을 $y$라 하자. 모든 성분에서 $y_0$을 빼면
     $y' = y - y_0 \mathbf{1}$이고 $y'_0 = 0$이다. 연습문제 4에 따라
     $\text{softmax}(y') = \text{softmax}(y)$이다.
@@ -732,7 +732,7 @@ print(f"    SGD  : {sgd_ok[-1]:.2f}% -> {sgd_bad[-1]:.2f}%  ({sgd_bad[-1]-sgd_ok
 
 </div>
 
-??? success "연습문제 10 풀이"
+??? success "풀이"
     $p_i = e^{y_i} / S$, $S = \sum_k e^{y_k}$로 두고 두 경우를 나눈다.
 
     $i = j$일 때, 곱의 미분으로

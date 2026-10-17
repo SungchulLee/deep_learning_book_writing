@@ -207,7 +207,7 @@ print("학습이 고른 나쁜 쪽 낱말:", ", ".join(vocab[i] for i in np.args
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     **아니다. 담을 수 있는 것의 범위가 다르다.**
 
     스텝1의 40,000개는 **두 중심의 좌표**다. 모두 0 이상이다. 단어를 세어 평균을 냈으므로 음수가 나올 수 없다.
@@ -225,7 +225,7 @@ print("학습이 고른 나쁜 쪽 낱말:", ", ".join(vocab[i] for i in np.args
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     **단어 주머니로는 정말 같다.** 두 문장에 나오는 단어가 같고 횟수도 같으므로 세기 벡터가 한 칸도 다르지 않다.
 
     그러므로 이 모델은 둘을 **원리적으로** 가를 수 없다. 더 오래 학습하거나 단어를 더 많이 넣어도 안 된다. 두 입력이 같은 벡터이면 같은 출력이 나온다.
@@ -245,7 +245,7 @@ print("학습이 고른 나쁜 쪽 낱말:", ", ".join(vocab[i] for i in np.args
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     POS = {"great","excellent","wonderful","best","love","perfect",
            "amazing","well","beautiful","loved","highly","favorite"}

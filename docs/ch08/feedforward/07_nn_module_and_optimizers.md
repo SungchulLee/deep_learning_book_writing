@@ -109,7 +109,7 @@ Adam은 경사의 1차·2차 적률 추정값으로 갱신을 조절한다. SGD�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     torch.save(model.state_dict(), 'model.pth')
     loaded_model = SimpleNet(2, 16, 1).to(device)
@@ -130,7 +130,7 @@ Adam을 SGD(러닝레이트 0.1, 운동량 0.9)로 바꿔라. 1000 에포크에 
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     for opt_name, opt_cls, kwargs in [('Adam', optim.Adam, {'lr': 0.01}),
                                        ('SGD', optim.SGD, {'lr': 0.1, 'momentum': 0.9})]:
@@ -165,7 +165,7 @@ Adam을 SGD(러닝레이트 0.1, 운동량 0.9)로 바꿔라. 1000 에포크에 
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     for name, param in model.named_parameters():
         print(f"{name}: {param.shape}, {param.numel()} params")

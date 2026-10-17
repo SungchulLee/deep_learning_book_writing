@@ -161,7 +161,7 @@ ReLU의 양수 도함수는 1이지만 전체 뉴럴 넷트웍의 경사 소실�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     `ComparisonNetwork`에 레이어 두 개를 더한다.
     ```python
     class DeeperNetwork(nn.Module):
@@ -197,7 +197,7 @@ ReLU의 양수 도함수는 1이지만 전체 뉴럴 넷트웍의 경사 소실�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     시그모이드 함수는 $\sigma(x) = \frac{1}{1 + e^{-x}}$이다. 그 도함수는 다음과 같다.
 
     $$
@@ -219,7 +219,7 @@ ReLU의 양수 도함수는 1이지만 전체 뉴럴 넷트웍의 경사 소실�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class Mish(nn.Module):
         def forward(self, x):

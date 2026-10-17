@@ -545,7 +545,7 @@ Comparing naive vs stable sigmoid for extreme values:
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $\sigma'(z) = \sigma(z)(1-\sigma(z))$이다. 이는 $p = \sigma(z) \in (0,1)$일 때의 곱 $p(1-p)$이다.
 
     산술-기하 평균 부등식에 의해 $p(1-p) \leq \left(\frac{p + (1-p)}{2}\right)^2 = \frac{1}{4}$이며, 등호는 $p = 1/2$일 때 성립한다.
@@ -561,7 +561,7 @@ Comparing naive vs stable sigmoid for extreme values:
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $$
     \sigma(-z) = \frac{1}{1+e^{-(-z)}} = \frac{1}{1+e^z} = \frac{e^{-z}}{e^{-z}(1+e^z)} = \frac{e^{-z}}{e^{-z}+1} = 1 - \frac{1}{1+e^{-z}} = 1 - \sigma(z)
     $$
@@ -577,7 +577,7 @@ Comparing naive vs stable sigmoid for extreme values:
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     한 단위 증가에 대한 오즈비는 $\text{OR} = e^{\beta_1} = e^{0.7} \approx 2.014$이다. 한 해가 더해질 때마다 양성 결과의 오즈가 대략 두 배가 된다.
 
     5년이 늘어나면 $\text{OR}_5 = e^{5 \times 0.7} = e^{3.5} \approx 33.1$이다. 오즈비는 곱해지므로($(e^{0.7})^5 = e^{3.5}$) 5년에 걸쳐 오즈가 약 33배로 늘어난다.
@@ -591,7 +591,7 @@ Comparing naive vs stable sigmoid for extreme values:
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch
 

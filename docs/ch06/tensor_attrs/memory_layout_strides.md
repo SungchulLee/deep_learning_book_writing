@@ -758,7 +758,7 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     모양 $(d_0, d_1, d_2) = (2, 3, 4)$에 대해 행 우선 순서의 스트라이드는 다음과 같다.
 
     - 0번 차원의 스트라이드: $d_1 \times d_2 = 3 \times 4 = 12$
@@ -782,7 +782,7 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
     t = torch.randn(3, 4)
@@ -801,7 +801,7 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     a = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
@@ -823,7 +823,7 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch, time
 

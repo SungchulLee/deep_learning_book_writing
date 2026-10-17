@@ -649,7 +649,7 @@ Done.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -669,7 +669,7 @@ Done.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     첫 번째 방문에서 `b.grad=1`을 부모로 전달한다. 두 번째 방문에서는 새 기여 1이 아니라 누적값 2를 다시 부모로 전달한다. 따라서 $a$에 $3+6=9$가 쌓여 참값 6과 다르다. 역위상 순서로 처리하거나 새 경사만 전달하는 설계가 필요하다.
 
 ---
@@ -682,7 +682,7 @@ Done.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

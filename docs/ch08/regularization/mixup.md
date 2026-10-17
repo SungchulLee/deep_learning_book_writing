@@ -550,7 +550,7 @@ def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0,
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     믹스업은 가상의 학습 예를 만든다. $\lambda \sim \text{Beta}(\alpha, \alpha)$일 때 $\tilde{x} = \lambda x_i + (1-\lambda)x_j$, $\tilde{y} = \lambda y_i + (1-\lambda)y_j$이다. 베타분포는 대칭이며 $\alpha$으로 조절된다. $\alpha \to 0$이면 섞이지 않고, $\alpha = 1$이면 균등하며, $\alpha \to \infty$이면 언제나 반반으로 섞인다.
 
 ---
@@ -562,7 +562,7 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     def mixup_data(x, y, alpha=0.2):
         lam = torch.distributions.Beta(alpha, alpha).sample()
@@ -583,7 +583,7 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     표준적인 ERM은 경험적 분포(학습 점에 놓인 점질량)에 대한 위험을 최소화한다. 믹스업은 점질량을 '근방'(쌍의 볼록 결합)으로 바꾸어 경험적 분포를 매끄럽게 한다. 이는 학습 점 사이에서 선형적인 액션을 이끌어 학습된 함수의 복잡도를 줄인다.
 
 ---
@@ -595,7 +595,7 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     입력 믹스업은 입력 전체를 보간하고, 컷믹스는 공간 조각을 붙여 실제 면적 비율로 목표를 섞는다. 매니폴드 믹스업은 중간 표현을 보간한다. 검출·분할에는 분류 레이블 가중합을 그대로 적용하지 말고 상자나 픽셀 목표의 변환 규칙을 설계해야 한다. 특정 방식의 보편적 우열은 없다.
 
 ## 정리하며

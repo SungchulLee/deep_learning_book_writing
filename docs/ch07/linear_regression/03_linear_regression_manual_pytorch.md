@@ -546,7 +546,7 @@ NumPy로 만든 선형 회귀 구현을 PyTorch 텐서로 옮기는 데는 놀�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     import numpy as np
@@ -583,7 +583,7 @@ autograd를 쓸 때 파라메터 갱신 중에 `torch.no_grad()`를 쓰는 핵�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     autograd를 쓸 때(`requires_grad=True`)는 추적되는 텐서에 대한 모든 산술 연산이 계산 그래프에 기록된다. `torch.no_grad()`가 없으면 파라메터 갱신 `w -= lr * grad_w`가 그래프의 일부로 기록되어 오류가 나거나 의도치 않게 메모리가 늘어난다. 경사를 직접 계산하는 이 튜토리얼에서는 텐서에 `requires_grad=True`가 없으므로 그래프가 만들어지지 않고 컨텍스트 관리자도 필요하지 않다. 다음 절에서 autograd를 도입하면 업데이트 연산을 추적에서 제외하는 처리가 필요해진다.
 
 ---
@@ -595,7 +595,7 @@ autograd를 쓸 때 파라메터 갱신 중에 `torch.no_grad()`를 쓰는 핵�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch, numpy as np
     np.random.seed(42)

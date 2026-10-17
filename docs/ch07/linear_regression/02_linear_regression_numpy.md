@@ -159,7 +159,7 @@ Final Results:
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     import matplotlib.pyplot as plt
@@ -199,7 +199,7 @@ Final Results:
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $L = \frac{1}{n}\sum_{i=1}^n (y_i - wx_i - b)^2$이라 하자. $e_i = y_i - wx_i - b$로 두면 $L = \frac{1}{n}\sum e_i^2$이다.
 
     연쇄 법칙에 의해 다음과 같다.
@@ -225,7 +225,7 @@ Final Results:
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     import matplotlib.pyplot as plt

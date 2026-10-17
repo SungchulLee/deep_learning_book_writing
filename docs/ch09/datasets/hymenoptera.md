@@ -429,7 +429,7 @@ requires_grad=False는 계수 경사를 막지만 train 모드의 배치 정규�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $512\times2+2=1026$개이다. 백본 웨이트는 등록되어 있어도 requires_grad=False이면 학습 가능한 수에서는 제외한다.
 
 ---
@@ -442,7 +442,7 @@ requires_grad=False는 계수 경사를 막지만 train 모드의 배치 정규�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     train 모드의 BatchNorm은 running_mean·running_var 등의 버퍼를 갱신할 수 있다. 계수의 경사 설정과 모듈의 학습·평가 모드는 다른 제어이다.
 
 ---
@@ -455,7 +455,7 @@ ImageFolder로 만든 두 분할의 클래스 대응을 확인해야 하는 이�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     폴더 이름으로 class_to_idx가 정해진다. 분할에 일부 클래스가 빠지거나 이름이 다르면 인덱스 대응이 달라질 수 있으므로 학습·검증과 복원 후에 같은 사전을 사용해야 한다.
 
 ## 정리하며

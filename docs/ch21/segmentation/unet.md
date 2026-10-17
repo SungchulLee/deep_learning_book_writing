@@ -701,7 +701,7 @@ class MemoryEfficientUNet(UNet):
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     원 도식은 padding 없는 컨볼루션과 crop 스킵으로 출력이 줄어드는 예다. 이 코드는 padding=1과 BN으로 컨볼루션 공간을 유지하고 업샘플 뒤 padding으로 정렬한다. 원 도식의572→388 크기를 현재 코드의 출력 규칙으로 적용하면 안 된다.
 
 ---
@@ -713,7 +713,7 @@ class MemoryEfficientUNet(UNet):
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     factor=2로 병목은512채널인데 첫 DecoderBlock은 in_channels=1024로 생성된다. bilinear 업샘플 뒤 1×1이1024입력을 기대해512입력과 맞지 않는다. 공간 padding은 이 오류를 고치지 못한다. 전치 컨볼루션 경로와 같은 폭 계산을 자동으로 공유할 수는 없다.
 
 ---
@@ -725,7 +725,7 @@ class MemoryEfficientUNet(UNet):
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     BCE는 N×1×H×W 로짓과 같은 형태의 float0/1 마스크를 사용한다. 두 클래스 CE는 N×2×H×W 로짓과 N×H×W의 정수0/1 레이블을 사용한다. 기본 num_classes=2와 BCE 루프는 별도 조정 없이 같은 설정이 아니다. sigmoid/softmax를 logits 로스에 중복 적용하지 않는다.
 
 ---
@@ -737,7 +737,7 @@ class MemoryEfficientUNet(UNet):
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     각 배치의 교집합/분모 비율을 평균하면 배치가 동일 웨이트를 받는다. 전체 Dice는 교집합과 분모를 모두 누적한 비율이므로 객체·배치 크기에 따라 웨이트가 달라진다. 임계값·빈 마스크 규칙과 집계 단위를 명시해야 한다.
 
 ## 정리하며

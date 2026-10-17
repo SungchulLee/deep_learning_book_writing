@@ -88,7 +88,7 @@ head는 편향이 없지만 token_emb와 웨이트를 공유하지 않는다. �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     model = GPT()
     x = torch.randint(0, 50257, (2, 64))  # batch=2, seq_len=64
@@ -106,7 +106,7 @@ head는 편향이 없지만 token_emb와 웨이트를 공유하지 않는다. �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     GPT는 163,037,184개, 단순 BERT는 131,563,058개다. 둘 다 입력·출력 어휘 웨이트가 별도이므로 어휘 수 차이가 두 행렬에 영향을 준다. 위치 테이블 길이, 구간 임베딩, NSP 머리, 최종 정규화도 다르다. 단순한 구조 이름만으로 계수 차이를 설명하거나 같은 예산의 성능 비교로 해석해서는 안 된다.
 
 ---
@@ -118,7 +118,7 @@ head는 편향이 없지만 token_emb와 웨이트를 공유하지 않는다. �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     def generate(self, prompt, max_new_tokens=50):
         self.eval()

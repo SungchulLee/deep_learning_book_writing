@@ -189,7 +189,7 @@ StepLR 등은 정한 호출 주기에 따라 갱신한다. ReduceLROnPlateau는 
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     아니다. 그래프는 수동 계산한 일정의 모양이다. 실제 동작을 확인하려면 독립 옵티마이저와 스케줄러를 구성해 호출 횟수별 러닝레이트를 기록하고 수동 식과 비교해야 한다.
 
 ---
@@ -201,7 +201,7 @@ ReduceLROnPlateau가 StepLR와 다른 입력을 요구하는 이유를 설명하
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     StepLR는 호출 횟수를 기준으로 줄이고 ReduceLROnPlateau는 지정한 지표의 개선 여부를 기준으로 줄인다. 검증 로스를 줄이는 설정이라면 매 평가 후 그 로스를 전달한다.
 
 ---
@@ -213,7 +213,7 @@ ReduceLROnPlateau가 StepLR와 다른 입력을 요구하는 이유를 설명하
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     아니다. 초기 러닝레이트, 감쇠 시점, 전체 예산과 데이터에 따라 달라진다. 고정 러닝레이트 기준 모델과 같은 선택 예산에서 비교한다.
 
 ---
@@ -225,7 +225,7 @@ ReduceLROnPlateau가 StepLR와 다른 입력을 요구하는 이유를 설명하
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     인내 횟수 카운터와 최저 로스 추적기를 추가한다.
     ```python
     best_loss = float('inf')

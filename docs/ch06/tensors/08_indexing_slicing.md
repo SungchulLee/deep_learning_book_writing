@@ -530,7 +530,7 @@ a[1:3]      a[::2]      a[a > 2]      a[torch.tensor([0, 2])]
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -571,7 +571,7 @@ b = torch.arange(6.); b[b > 2] = -1
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -617,7 +617,7 @@ b = torch.arange(6.);                b[b > 2][0] = -1.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

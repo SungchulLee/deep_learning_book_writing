@@ -665,7 +665,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     a = torch.randn(3, 1, 5)
@@ -685,7 +685,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     마지막 차원이 4와 5인데 서로 같지도 않고 1도 아니다. 해결 1: 벡터를 열에 맞도록 바꾼다. 예를 들어 $(4,)$ 벡터를 쓴다. 해결 2: 벡터를 $(5, 1)$로 바꾸고 행렬을 $(5, 4)$로 바꾸어 올바른 축을 따라 브로드캐스팅이 되게 한다.
 
 ---
@@ -698,7 +698,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     a = torch.tensor([1., 2., 3.]).unsqueeze(1)  # (3, 1)
     b = torch.tensor([4., 5.]).unsqueeze(0)       # (1, 2)

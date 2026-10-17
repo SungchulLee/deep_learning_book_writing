@@ -66,7 +66,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     인코더가 입력을 상태로 요약하고 디코더는 그 상태와 이전 토큰으로 한 단계씩 생성한다. 출력은 종료 토큰이나 길이 제한까지 계속될 수 있어 입력 길이와 일대일 대응하지 않는다.
 
 ---
@@ -78,7 +78,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     티처 포싱은 이전 정답을 사용한다. 추론은 이전 예측을 사용하므로 오류가 다음 단계의 입력에도 영향을 준다. 학습 로스와 실제 생성 결과의 차이를 해석할 때 이 조건을 고려해야 한다.
 
 ---
@@ -90,7 +90,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     최대 생성 길이 등의 종료 조건을 둔다. 종료 토큰을 학습 목표에 포함했는지, 잘림이나 패딩 처리로 사라지지 않았는지도 점검한다. 길이 제한에 도달한 생성은 자연스럽게 종료한 출력과 구분한다.
 
 ---
@@ -102,7 +102,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
     ```python
     def test_tutorial 08():

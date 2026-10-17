@@ -95,7 +95,7 @@ Final w.requires_grad (still True, updates not tracked): True
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -115,7 +115,7 @@ Final w.requires_grad (still True, updates not tracked): True
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     경사가 $2w$이므로 새 값은 $w-0.1(2w)=0.8w$다. 예제는 이 연산을 `no_grad()` 안에서 수행한다. `w.requires_grad`는 유지되므로 다음 로스는 다시 미분할 수 있다.
 
 ---
@@ -128,7 +128,7 @@ Final w.requires_grad (still True, updates not tracked): True
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

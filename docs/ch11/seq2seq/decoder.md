@@ -390,7 +390,7 @@ AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttentio
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     임베딩 VE, 첫 순환 레이어 $4H(E+H+2)$, 추가 각 레이어 $4H(2H+2)$, 출력 레이어 VH+V를 합한다. 총 $VE+4H(E+H+2)+(L-1)4H(2H+2)+VH+V$다. 기본 두 바이어스를 포함한다.
 
 ---
@@ -402,7 +402,7 @@ AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttentio
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     먼저 유효 위치만 소프트맥스로 정규화하고 그 뒤 드롭아웃을 적용할 수 있다. 학습 중 합이 매번 1인 것은 아니며 유지된 값은 재스케일된다. 평가에서는 드롭아웃을 끈다. 패딩 마스크를 대신하거나 균등한 주의를 보장하는 기법은 아니다.
 
 ---
@@ -414,7 +414,7 @@ AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttentio
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     디코더의 각 위치는 S개의 인코더 위치를 참조하므로 웨이트 수는 전체 T단계에 대해 TS다. 입력에 대한 셀프 어텐션의 S²와 같지 않다. 시간 비용에는 점수 함수의 차원과 투영, 순환 레이어의 계산도 포함한다.
 
 ---
@@ -426,7 +426,7 @@ AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttentio
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()

@@ -225,7 +225,7 @@ $$\eta_t=\frac{\eta_0}{2}\left(1+\cos\frac{\pi t}{T_{\max}}\right)$$
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     배치 입력은 B×2, 두 은닉 레이어는 B×128, 최종 출력은 B×2다. LayerNorm 하나는 128개 스케일과 128개 바이어스를 가져 두 개 합계 512개다. 선형 레이어 17,154개와 합쳐 전체 17,666개다.
 
@@ -240,7 +240,7 @@ $$\eta_t=\frac{\eta_0}{2}\left(1+\cos\frac{\pi t}{T_{\max}}\right)$$
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     오차 eᵢ=sθ(x̃ᵢ)+ξᵢ/σ에 대해 그래디언트는 (2/(Bd))ΣJθsθ(x̃ᵢ)ᵀeᵢ다. loss.backward 뒤 clip_grad_norm을 호출하고 optimizer.step을 수행한다. 클리핑은 파라미터 그래디언트의 노름을 제한하며 입력 스코어 자체의 노름이나 업데이트 크기를 같은 값으로 고정하지 않는다.
 
@@ -255,7 +255,7 @@ $$\eta_t=\frac{\eta_0}{2}\left(1+\cos\frac{\pi t}{T_{\max}}\right)$$
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     아니다. scheduler는 optimizer의 러닝레이트만 바꾸며 train_dsm의 σ는 전 에포크에서 고정된다. 여러 노이즈 수준의 스코어를 학습하려면 그 수준의 데이터·목표와 모델 조건 입력을 별도로 설계해야 한다. 두 스케줄을 이름만으로 혼동하지 않는다.
 

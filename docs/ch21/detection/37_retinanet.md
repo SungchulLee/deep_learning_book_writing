@@ -116,7 +116,7 @@ $$\operatorname{FL}(p_t)=-\alpha_t(1-p_t)^\gamma\log p_t.$$
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     피처는 4×256×16×16, 분류는 4×720×16×16, 회귀는 4×36×16×16이다. 반환값은 사전이고 classifications와 regressions는 각각 텐서 하나를 담은 목록이다. 공간 위치마다 9개 앵커를 가정한다.
 
@@ -131,7 +131,7 @@ $$\operatorname{FL}(p_t)=-\alpha_t(1-p_t)^\gamma\log p_t.$$
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     서로 다른 해상도의 backbone 단계도, 상위 피처를 업샘플링해 하위 피처와 결합하는 경로도 없다. 단일 RGB 텐서를 받는 현재 FPN의 이름만으로 다중 스케일 출력이라고 판단하면 안 된다. 실제 피라미드는 각 단계의 채널·stride·정렬을 정의해야 한다.
 
@@ -146,7 +146,7 @@ $$\operatorname{FL}(p_t)=-\alpha_t(1-p_t)^\gamma\log p_t.$$
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     γ=0은 α 가중 교차 엔트로피다. γ>0이면 p_t가 1에 가까운 쉬운 예제에서 (1−p_t)^γ가 작아져 상대 기여가 줄어든다. α·γ와 앵커 정규화의 영향은 구분하며 어떤 데이터에서도 항상 더 정확한 로스라는 보장은 없다.
 
@@ -161,7 +161,7 @@ $$\operatorname{FL}(p_t)=-\alpha_t(1-p_t)^\gamma\log p_t.$$
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     YourBlock은 실제 정의가 필요한 자리 표시자다. 순차 블록 등록만으로 top-down·lateral 연결이 생기지 않는다. 여러 backbone 피처, 채널 정렬, 업샘플링과 결합을 명시하고 각 출력에 공유 예측 subnet을 적용해야 한다. 단계별 앵커와 목표 매칭도 함께 설계한다.
 

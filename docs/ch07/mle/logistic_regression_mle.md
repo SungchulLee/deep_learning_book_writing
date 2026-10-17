@@ -471,7 +471,7 @@ LOGISTIC REGRESSION MLE - Binary Classification
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     입력 피처 두 개에서 출력 하나를 만드는 선형 계층이므로 웨이트 2개와 바이어스 1개, 총 3개다. 시그모이드에는 학습 파라미터가 없다.
 
 ---
@@ -483,7 +483,7 @@ LOGISTIC REGRESSION MLE - Binary Classification
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     같은 초기 웨이트와 데이터 분할, 배치 순서, 평가 기준을 사용한다. 각 옵티마이저에 적합한 러닝레이트를 탐색하고 여러 시드의 변동도 비교한다. Adam이 항상 빠르거나 일반화가 더 좋다고 미리 결론내리지 않는다.
 
 ---
@@ -495,7 +495,7 @@ LOGISTIC REGRESSION MLE - Binary Classification
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     완전 분리에서는 정확도가 같아도 유한한 MLE 없이 웨이트가 계속 커질 수 있다. 불균형에서는 다수 클래스만 예측해도 정확도가 높을 수 있다. 웨이트 노름과 로스, 정밀도·재현율과 별도 검증 성능을 함께 확인한다.
 
 ---
@@ -507,7 +507,7 @@ LOGISTIC REGRESSION MLE - Binary Classification
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     고정되어 있던 레이어들을 다음으로 바꾼다.
     ```python
     self.layers = nn.ModuleList()

@@ -391,7 +391,7 @@ copy  = base.clone()
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -427,7 +427,7 @@ copy  = base.clone()
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -490,7 +490,7 @@ w = torch.tensor([1., 2.], requires_grad=True); w[0] = 5.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

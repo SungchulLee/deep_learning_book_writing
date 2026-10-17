@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     배치 우선 텐서를 기본 시퀀스 우선 어텐션에 전달하는 오류가 있어도 같은 모양의 출력이 나올 수 있다. 축을 맞춘 후 다른 표본 변화가 현재 표본의 예측에 영향을 주지 않는지, 미래 토큰 변경이 과거 위치 출력에 영향을 주지 않는지 평가 모드에서 확인해야 한다. 현재 예제는 마스크도 생략한다.
 
     ```python
@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     별도 원문 인코더의 출력을 읽는 구조라면 디코더 쿼리와 원문 키·값의 교차 어텐션을 연결할 수 있다. 아래는 모듈 선언 조각일 뿐이다. forward에서 원문 메모리와 패딩 마스크를 받아 교차 어텐션을 실행하고 잔차·정규화를 연결해야 한다. 디코더 전용 모델이 프롬프트를 읽는 데 교차 어텐션이 반드시 필요한 것은 아니다.
     ```python
     self.cross_attention = nn.MultiheadAttention(d_model, num_heads, dropout=dropout)
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class PreNormDecoderBlock(nn.Module):
         def __init__(self, d_model, num_heads, d_ff, dropout=0.1):

@@ -690,7 +690,7 @@ stride 샘플링은 양의 간격을 가정한다. 고정 fps에서 stride s로 
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     색상 순서와 0~255/0~1 범위를 확인한 뒤 축을 B×C×T×H×W로 배치한다. 이 loader의 텐서 메서드는 T×C×H×W이므로 배치 추가와 시간·채널 순서 정렬이 필요하다. 단순 view로 축을 바꾸면 원소 의미가 달라진다.
 
@@ -705,7 +705,7 @@ stride 샘플링은 양의 간격을 가정한다. 고정 fps에서 stride s로 
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     아니다. uniform sampling은 중복 선택으로 요청 수를 만들 수 있지만 load_video_to_tensor는 원본보다 많은 요청을 채우지 않는다. dense sampling도 짧으면 원본 하나를 반환한다. 빈 입력·양의 요청 수·패딩 또는 반복 폴리시를 명시해야 한다.
 
@@ -720,7 +720,7 @@ stride 샘플링은 양의 간격을 가정한다. 고정 fps에서 stride s로 
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     cv2.normalize의 min-max 정규화에서 모든 크기가 같으면 상대 대비가 없어 밝기를 0으로 만들 수 있다. 검은 그림이 반드시 실제 이동량 0을 뜻하지 않는다. 절대 크기를 비교하려면 공통 표시 스케일이 필요하다.
 
@@ -735,7 +735,7 @@ stride 샘플링은 양의 간격을 가정한다. 고정 fps에서 stride s로 
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     VideoLoader는 nn.Module이 아니고 __call__·parameters·학습 경로가 없다. 아래 미정의 입력과 backward 검사는 이 클래스 계약에 맞지 않는다. 읽기 실패·fps=0·실제 프레임 수·RGB 변환·짧은 영상·샘플링 중복·crop 범위와 텐서 축 순서를 확인하는 명세가 적절하다. 기존 조각은 완성된 시험이 아니다.
 

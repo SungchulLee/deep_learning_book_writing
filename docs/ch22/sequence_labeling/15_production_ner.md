@@ -199,7 +199,7 @@ _setup_logger는 이름이 같은 전역 logger에 새 handler를 매번 추가�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     model은None으로 남고 추론 호출이 없다. entities를 빈 목록으로 직접 만들기 때문에 결과가0개다. 로그는 해당 문자열을 출력했다는 뜻이며 모델 초기화나 정확도의 증거가 아니다.
 
@@ -214,7 +214,7 @@ _setup_logger는 이름이 같은 전역 logger에 새 handler를 매번 추가�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     여러 공백·줄바꿈이 줄어 processed_text와 원문의 인덱스가 달라질 수 있다. 원문을 보존하거나 offset 대응을 저장해 예측을 되돌려야 한다. 현재 반환에는 이 매핑이 없다.
 
@@ -229,7 +229,7 @@ _setup_logger는 이름이 같은 전역 logger에 새 handler를 매번 추가�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     첫0.2만 남기고 뒤0.9를 중복으로 버린 다음0.2도 임계값에서 제거한다. 최대 점수 선택이나 필터 순서를 명시해야 한다. 점수가 없는 항목의 기본1.0 처리도 별도 폴리시다.
 
@@ -244,7 +244,7 @@ _setup_logger는 이름이 같은 전역 logger에 새 handler를 매번 추가�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     이 클래스는 PyTorch 모델 forward·parameters·역전파를 제공하지 않는다. 아래 미정의 입력도 완성 시험이 아니다. 실제 모델 연결 여부·원문 offset·중복/점수 폴리시·빈 입력·반복 logger 초기화·성공/오류 응답 스키마를 확인하는 명세가 필요하다.
 

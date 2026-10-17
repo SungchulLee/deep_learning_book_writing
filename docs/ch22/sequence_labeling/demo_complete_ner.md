@@ -398,7 +398,7 @@ demo_architectures는 BiLSTM-CRF·트랜스포머 구조를 **출력할 뿐 생�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     규칙·사전·피처 추출·토큰 지표를 다른 모듈에서 호출한다. BiLSTM-CRF·트랜스포머는 설명 문자열만 출력하며 학습하지 않는다. 완료 메시지도 예외 처리된 데모의 성공을 보장하지 않는다.
 
@@ -413,7 +413,7 @@ demo_architectures는 BiLSTM-CRF·트랜스포머 구조를 **출력할 뿐 생�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     패키지 import 경로와 실제 모듈, 원문 offset·유형·토큰 순서와 태그 길이를 맞춘다. 추출 개수와 정답 평가, 토큰·span 지표를 구분한다. 고정 영상 텐서 shape 검사로 확인할 수 있는 인터페이스가 아니다.
 
@@ -428,7 +428,7 @@ demo_architectures는 BiLSTM-CRF·트랜스포머 구조를 **출력할 뿐 생�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     비O 토큰은TP3·FP0·FN1이라P1·R0.75·F1=6/7≈0.857이다. 정확 개체는 사람 하나만 맞고 조직의 짧은 예측과 누락 정답이 있어TP1·FP1·FN1, F1=0.5다. 부분 토큰 정답은 정확 span의 부분 점수가 아니다.
 
@@ -443,7 +443,7 @@ demo_architectures는 BiLSTM-CRF·트랜스포머 구조를 **출력할 뿐 생�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     공백이 있는 식별자와 정의되지 않은 Demo Complete NER·입력 때문에 실행 가능한 시험이 아니다. 이 파일 자체는 뉴럴 넷트웍이 아니므로 backward·parameters 검사가 맞지 않는다. import 실패·단계별 결과·원문 offset·태그 길이·정확한 지표와 예외 후 완료 메시지를 명세로 확인해야 한다.
 

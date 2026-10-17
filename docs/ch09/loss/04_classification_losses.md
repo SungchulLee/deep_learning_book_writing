@@ -626,7 +626,7 @@ BCELoss는 확률, BCEWithLogitsLoss는 로짓을 받는다. 후자는 시그모
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     BCEWithLogitsLoss는 로짓을 받아 시그모이드와 BCE를 결합하고 BCELoss는 이미 계산한 확률을 받는다. 두 번 적용하지 않도록 출력 레이어와 함께 선택한다.
 
 ---
@@ -639,7 +639,7 @@ BCELoss는 확률, BCEWithLogitsLoss는 로짓을 받는다. 후자는 시그모
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     로짓 `(B, K)`에서 인덱스는 `(B,)` long이고, 확률 목표는 `(B, K)`의 부동소수점 텐서이다. 각 확률 목표가 유효한 분포인지 사용자가 확인해야 한다.
 
 ---
@@ -652,7 +652,7 @@ BCELoss는 확률, BCEWithLogitsLoss는 로짓을 받는다. 후자는 시그모
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     같은 임계값의 클래스 예측이어도 확률의 크기는 다를 수 있다. 로스는 확신도와 정답의 관계를 반영하므로 정확도 하나와 같지 않다.
 
 ## 정리하며

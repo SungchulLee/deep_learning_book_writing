@@ -271,7 +271,7 @@ With outlier:
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     후버 로스는 $L_\delta(r) = \begin{cases} \frac{1}{2}r^2 & |r| \leq \delta \\ \delta|r| - \frac{1}{2}\delta^2 & |r| > \delta \end{cases}$이다. 잔차가 작으면($|r| \leq \delta$) MSE처럼 이차이고, 잔차가 크면 MAE처럼 선형이다. 전환은 매끄럽다($|r| = \delta$에서 일계도함수가 연속이다).
 
 ---
@@ -283,7 +283,7 @@ With outlier:
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     def huber_loss(pred, target, delta=1.0):
         r = pred - target
@@ -301,7 +301,7 @@ With outlier:
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     고정된 $\delta>0$에 대해 $p(r)=\exp[-L_\delta(r)]/Z_\delta$처럼 정규화 상수를 포함한 밀도를 정의할 수 있다. 중심의 지수는 이차이고 꼬리는 절댓값에 비례하지만 정규·라플라스 **혼합분포**는 아니다. 스케일이나 전환점까지 추정한다면 정규화 상수의 의존성도 로스에 포함해야 한다.
 
 ---
@@ -313,7 +313,7 @@ $\delta$의 선택은 바이어스와 견고성의 절충에 어떤 영향을 �
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     $\delta$이 크면 MSE처럼 움직인다(효율적이지만 이상점에 민감하다). $\delta$이 작으면 MAE처럼 움직인다(견고하지만 정규 잡음에서는 덜 효율적이다). 대표적인 기본값은 $\delta = 1.0$이다. 교차 검증이나 보통 잔차의 척도가 선택을 이끌어야 한다.
 
 ## 정리하며

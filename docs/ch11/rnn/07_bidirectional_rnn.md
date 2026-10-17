@@ -66,7 +66,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     두 방향을 이어 붙이면 128이다. 이를 분류 레이어에 넣을 때 입력 차원도 맞춰야 한다. 두 방향을 합산하는 별도 설계를 하면 결과 차원은 달라진다.
 
 ---
@@ -78,7 +78,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     예측 시점까지 관측한 입력 창만 사용한다면 그 창을 양방향으로 인코딩할 수 있다. 목표 시점 이후의 값이나 아직 도착하지 않은 입력을 포함하면 안 된다. 온라인 위치별 예측에서 전체 미래 문맥을 사용하는 것과 구분한다.
 
 ---
@@ -90,7 +90,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     정방향의 마지막 위치는 입력 전체를 거친 상태지만, 그 위치의 역방향 출력은 역방향 계산의 시작 쪽에 해당한다. 양쪽 전체 요약을 원하면 반환된 최종 상태에서 레이어와 방향을 구분해 선택해야 한다.
 
 ---
@@ -102,7 +102,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
     ```python
     def test_tutorial 07():

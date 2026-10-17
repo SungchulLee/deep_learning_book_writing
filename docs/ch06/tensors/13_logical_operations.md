@@ -217,7 +217,7 @@ torch.isclose(..., 2.0)             # True
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -260,7 +260,7 @@ torch.isclose(..., 2.0)             # True
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -308,7 +308,7 @@ torch.isclose(..., 2.0)             # True
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

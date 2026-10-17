@@ -66,7 +66,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $v_0=0$이면 $v_t=\sum_{i=1}^t\mu^{t-i}g_i$이다. 일관된 경사가 누적되고 반대 방향 성분이 상쇄될 수 있다. 특정 이차 문제와 조율 조건에서는 가속을 분석할 수 있지만 임의의 비볼록 로스에서 일정한 속도 향상을 보장하지 않는다.
 
 ---
@@ -78,7 +78,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $v_t=(1-\mu^t)g/(1-\mu)$이고 극한 갱신은 $-\eta g/(1-\mu)$이다. 현재 경사가 변하면 속도는 과거의 합이므로 단일 실효 러닝레이트로 모든 좌표와 시점을 설명할 수 없다.
 
 ---
@@ -90,7 +90,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     고전 모멘텀은 현재점의 경사를 이용하고 네스테로프는 적절히 재표현한 미리 보기의 경사를 이용한다. 매끄러운 볼록 함수의 가속 이론은 러닝레이트와 시간에 따른 모멘텀 규칙을 포함한다. 고정 momentum=0.9를 설정했다고 모든 목적함수에 O(1/t²)가 보장되지는 않는다.
 
 ---
@@ -102,7 +102,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     v = {p: torch.zeros_like(p) for p in model.parameters()}
     for p in model.parameters():

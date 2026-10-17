@@ -514,7 +514,7 @@
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     동일 크기 배치 네 개를 한 갱신에 반영하면 128표본이다. 각 경계에서 정확히 평균·초기화해야 하며 Integrated Gradients 설명 기법과는 관계없다. BatchNorm 통계·드롭아웃·마지막 그룹·연산 순서 차이가 있고 실제 처리 시간도 장치·커널에 따라 달라진다. 8GB에서 배치 32가 반드시 들어간다는 보장도 없다.
 
 ---
@@ -526,7 +526,7 @@ CosineAnnealingWarmRestarts와 ReduceLROnPlateau의 진행 기준을 비교하�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     전자는 호출에 대응한 주기에서 러닝레이트를 코사인으로 바꾸며 T_0는 첫 주기, T_mult는 다음 주기의 배수다. 후자는 전달한 검증 지표의 개선 규칙에 따라 감소한다. 주기 단위는 step 호출 방식에 달려 있고 재시작은 웨이트·옵티마이저 상태 초기화를 뜻하지 않는다. 어느 쪽의 품질이 항상 좋거나 국소 최솟값 탈출이 보장되는 것은 아니다. 현재 코드에서는 옵티마이저 교체 후 스케줄 연결부터 수정해야 한다.
 
 ---
@@ -538,7 +538,7 @@ CosineAnnealingWarmRestarts와 ReduceLROnPlateau의 진행 기준을 비교하�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     def ensemble_evaluate(models, loader, device):
         """소프트맥스 출력을 평균 내어 모델 앙상블을 평가한다."""

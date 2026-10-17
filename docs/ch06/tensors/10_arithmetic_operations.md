@@ -600,7 +600,7 @@ torch.tensor([127], dtype=torch.int8) + 1    # tensor([-128])
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -634,7 +634,7 @@ torch.tensor([127], dtype=torch.int8) + 1    # tensor([-128])
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -695,7 +695,7 @@ torch.tensor([127], dtype=torch.int8) + 1    # tensor([-128])
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

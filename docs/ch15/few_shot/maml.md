@@ -262,7 +262,7 @@ inner_loop의 create_graph=True는 경사 계산 자체의 그래프를 보존�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     첫 레이어는 784×128+128=100,480개, 둘째 레이어는 128×128+128=16,512개, 출력 레이어는 128×5+5=645개다. 합계는 117,637개이며 ReLU에는 학습 파라메터가 없다. 생성자에는 기본 차원값이 없으므로 사용 예의 설정을 기준으로 한다.
 
 ---
@@ -274,7 +274,7 @@ inner_loop의 create_graph=True는 경사 계산 자체의 그래프를 보존�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     입력은 (표본 수, input_dim)의 실수 텐서이며 모델과 장치·자료형이 호환되어야 한다. 라벨은 표본 수와 같은 길이의 정수이며 0 이상 output_dim 미만이어야 한다. 서포트와 쿼리의 클래스 매핑을 일치시키고 두 집합의 표본을 분리한다. 빈 과제 목록은 평균에서 0으로 나누므로 허용하지 않는다.
 
 ---
@@ -286,7 +286,7 @@ inner_loop의 create_graph=True는 경사 계산 자체의 그래프를 보존�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     정확한 메타 경사는 $(I-\alpha H_S)^\top\nabla_{\theta'}L_Q(\theta')$이며 $H_S$는 서포트 로스의 헤시안이다. 1차 MAML은 헤시안 항을 생략한다. 코드의 inner_loop는 create_graph=True로 정확한 경로를 유지하며, 정확도 계산에서 detach하는 것과 혼동해서는 안 된다.
 
 ---
@@ -298,7 +298,7 @@ inner_loop의 create_graph=True는 경사 계산 자체의 그래프를 보존�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()

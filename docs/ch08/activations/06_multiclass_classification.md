@@ -130,7 +130,7 @@ ReLU 은닉 레이어는 비선형 표현을 추가한다. 예측 클래스만 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     데이터 생성 호출과 모델 인스턴스 생성을 다음으로 바꾼다.
     ```python
     X_train, y_train, X_test, y_test = generate_multiclass_data(
@@ -160,7 +160,7 @@ CrossEntropyLoss가 클래스 인덱스와 확률 목표를 받는 두 모드를
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     `(N, C)` 로짓에 인덱스 목표를 사용하면 `(N,)` long 텐서를 전달한다. 확률 목표는 로짓과 같은 `(N, C)` 모양의 부동소수점 텐서로 전달한다. 각 행이 유효한 분포여야 하며 정수 원핫 텐서를 그대로 넣는 방식과 다르다. 아래 코드는 확률 목표의 교차 엔트로피를 직접 계산하는 표현이다.
     ```python
     log_probs = torch.log_softmax(logits, dim=1)
@@ -176,7 +176,7 @@ CrossEntropyLoss가 클래스 인덱스와 확률 목표를 받는 두 모드를
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     `CrossEntropyLoss` 앞에 소프트맥스를 추가하면 소프트맥스가 두 번(한 번은 명시적으로, 한 번은 로스 함수 안에서) 적용된다. forward 메서드를 다음과 같이 고친다.
     ```python
     def forward(self, x):

@@ -150,7 +150,7 @@ $$\operatorname{Var}(\widehat{CV})=\frac1{k^2}\left[\sum_i\operatorname{Var}(L_i
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     점추정(예: 정확도 = 92%)은 수 하나를 준다. 신뢰구간(예: 92% ± 1.5%)은 불확실성을 수치로 나타낸다. 시험 표본이 $n$개일 때 정확도 $p$의 95% 신뢰구간은 대략 $p \pm 1.96\sqrt{p(1-p)/n}$이다. 구간 없이 점추정만 보고하면 오해를 부를 수 있다.
 
 ---
@@ -162,7 +162,7 @@ $$\operatorname{Var}(\widehat{CV})=\frac1{k^2}\left[\sum_i\operatorname{Var}(L_i
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     def bootstrap_compare(scores_a, scores_b, n_bootstrap=10000):
         n = len(scores_a)
@@ -184,7 +184,7 @@ $$\operatorname{Var}(\widehat{CV})=\frac1{k^2}\left[\sum_i\operatorname{Var}(L_i
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     아니다. 학습 데이터를 공유하므로 폴드 로스는 상관될 수 있다. 전체 분산에는 폴드 간 공분산이 들어간다. 교차 검증은 분할에 대한 평가를 넓히지만 데이터 의존성과 모델 선택 효과를 반영해야 하며, 선택 성능에는 중첩 검증이나 독립 테스트가 필요할 수 있다.
 
 ---
@@ -196,7 +196,7 @@ $$\operatorname{Var}(\widehat{CV})=\frac1{k^2}\left[\sum_i\operatorname{Var}(L_i
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     한 모델만 맞힌 두 종류의 불일치 표본 수를 사용해 오류 확률의 차이를 검정한다. 같은 표본의 예측이라는 대응 구조를 보존한다. 불일치 수가 적으면 정확 검정을 고려하며, 시계열·군집 표본이나 테스트셋을 이용한 모델 선택에서는 추가 가정과 처리가 필요하다.
 
 ## 정리하며

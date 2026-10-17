@@ -297,7 +297,7 @@ This can cause AdaGrad to stop learning prematurely in some cases.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     초기 캐시가 0이면 새 캐시는 4이고 갱신량은 2/(2+epsilon)이다. epsilon을 무시하면 약 1이다. 표시용 전역 러닝레이트 자체와 그래디언트에 곱하는 계수를 구분한다.
 
 ---
@@ -310,7 +310,7 @@ This can cause AdaGrad to stop learning prematurely in some cases.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     그래디언트 제곱의 추가분이 0이므로 캐시는 그대로이고 갱신량도 0이다. 사용하지 않은 동안 캐시가 줄어들거나 초기화되지는 않는다.
 
 ---
@@ -323,7 +323,7 @@ This can cause AdaGrad to stop learning prematurely in some cases.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     cache에 이전 문제의 누적합이 남는다. 새 문제에서는 새 객체를 만들거나 상태를 명시적으로 초기화해야 한다. 배열의 키·모양·부동소수점 자료형도 일치시킨다.
 
 ## 정리하며

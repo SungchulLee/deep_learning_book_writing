@@ -261,7 +261,7 @@ def visualize_gradient_flow(model, x):
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     전체 BPTT는 처리한 전체 시퀀스의 계산 그래프를 통해 역전파한다. 절단 BPTT는 상태 값은 다음 청크로 전달하되 경계에서 그래프를 끊는다. 메모리를 줄이는 대신 경계를 넘는 로스 기여를 생략하므로 전체 BPTT와 같은 그래디언트는 아니다.
 
 ---
@@ -273,7 +273,7 @@ def visualize_gradient_flow(model, x):
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $g_t=q_t+J_{t+1}^{\top}g_{t+1}$를 역순으로 계산하고 $\delta_t=g_t\odot(1-h_t^2)$를 구한다. 웨이트 기울기는 $\sum_t\delta_t h_{t-1}^{\top}$다. 여기서 각 항은 해당 시점에서 웨이트를 사용한 직접 기여이고, 미래 로스의 영향은 이미 $g_t$에 포함되어 있다. 상태의 전체 미분을 다시 합하면 중복 계산할 수 있다.
 
 ---
@@ -285,7 +285,7 @@ def visualize_gradient_flow(model, x):
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     배치 크기와 다른 차원을 고정하면 은닉 상태 저장량은 각각 $O(TH)$와 $O(kH)$다. 청크 처리도 전체 시퀀스 길이 T를 줄이는 것은 아니며 역전파를 연결하는 구간을 줄인다. 체크포인팅은 중간값을 다시 계산하여 다른 메모리·계산 절충을 만든다.
 
 ---
@@ -297,7 +297,7 @@ def visualize_gradient_flow(model, x):
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     # PyTorch는 동적 그래프로 BPTT를 알아서 처리한다
     rnn = nn.RNN(input_size, hidden_size, batch_first=True)

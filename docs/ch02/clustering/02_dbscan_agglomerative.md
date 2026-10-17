@@ -164,7 +164,7 @@ DBSCAN은 군집을 더 성긴 영역으로 둘러싸인 조밀한 점들의 영
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     from sklearn.cluster import DBSCAN
@@ -206,7 +206,7 @@ DBSCAN은 군집을 더 성긴 영역으로 둘러싸인 조밀한 점들의 영
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     **Ward 연결** 은 군집 내 총분산의 증가가 최소가 되도록 군집을 병합한다. 조밀하고 크기가 비슷한 군집을 만드는 경향이 있으며, 군집이 대략 구형이고 크기가 비슷할 때 가장 좋다. 예를 들어 구매 액션의 분산이 비슷한 고객 그룹을 세분화할 때 적합하다.
 
     **완전 연결**(최대 거리)은 두 군집 사이에서 가장 먼 점 쌍을 사용한다. 군집의 지름을 작게 유지하는 경향이 있다. 최대 거리를 사용하므로 이상치가 병합 순서에 영향을 줄 수 있다. 잘 분리된 군집을 원하고 길게 늘어진 그룹이 쪼개지는 것을 감수할 수 있을 때 적합하다.
@@ -224,7 +224,7 @@ DBSCAN은 군집을 더 성긴 영역으로 둘러싸인 조밀한 점들의 영
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     from sklearn.cluster import AgglomerativeClustering

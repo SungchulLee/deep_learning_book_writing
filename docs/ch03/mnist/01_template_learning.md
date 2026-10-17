@@ -241,7 +241,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     템플릿 한 장이 $28 \times 28 = 784$개이고 클래스가 열이므로 웨이트는 $7{,}840$개,
     바이어스는 클래스마다 하나씩 $10$개다. 합쳐서 **$7{,}850$개**이다.
 
@@ -260,7 +260,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     norms = (average_images.reshape(10, -1) ** 2).sum(dim=1)
     for k in range(10):
@@ -284,7 +284,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     brightness = average_images.reshape(10, -1).mean(dim=1)
     print(brightness.argmax().item(), brightness.argmin().item())   # 0 1
@@ -304,7 +304,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     템플릿을 펼쳐서 웨이트에, 그 노름의 절반에 음수를 붙여 바이어스에 넣는다.
     ```python
     import torch.nn as nn
@@ -332,7 +332,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
     클래스마다 맞은 수와 전체 수를 따로 센다.
     ```python
     correct_per = torch.zeros(10)
@@ -370,7 +370,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 6 풀이"
+??? success "풀이"
     픽셀마다 중앙값을 구하려면 클래스별 이미지를 모두 쌓아 두어야 한다.
     ```python
     by_digit = [[] for _ in range(10)]
@@ -394,7 +394,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 7 풀이"
+??? success "풀이"
     클래스마다 앞의 $n$장만 모아 평균을 낸다.
     ```python
     def build_templates(n_per_class):
@@ -428,7 +428,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 8 풀이"
+??? success "풀이"
     ```python
     flat = average_images.reshape(10, -1)
     scores = images.reshape(len(images), -1) @ flat.T      # 바이어스 없이
@@ -452,7 +452,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 9 풀이"
+??? success "풀이"
     ```python
     import torch.nn.functional as F
     x = F.normalize(images.reshape(len(images), -1), dim=1)
@@ -479,7 +479,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 10 풀이"
+??? success "풀이"
     ```python
     shifted = torch.roll(images, shifts=1, dims=3)   # (배치, 1, 28, 28)의 너비 축
     ```
@@ -503,7 +503,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 11 풀이"
+??? success "풀이"
     ```python
     # 시험 자료로 템플릿을 만든 뒤 같은 시험 자료로 평가한다 — 해서는 안 되는 일이다
     ```
@@ -524,7 +524,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 12 풀이"
+??? success "풀이"
     3과 5의 템플릿만 만들어 둘 중 가까운 쪽을 고른다. 정확도는 **87.75%**로,
     열 클래스일 때의 82.03%보다 높다.
 
@@ -545,7 +545,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 13 풀이"
+??? success "풀이"
     경계는 두 점수가 같아지는 자리이다.
 
     $$\lVert x - \overline{x}_i \rVert^2 = \lVert x - \overline{x}_j \rVert^2$$
@@ -576,7 +576,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 14 풀이"
+??? success "풀이"
     $p(x \mid y=k) = \mathcal{N}(x; \mu_k, \sigma^2 I)$이고 $p(y=k)$가 모두 같다면,
     사후확률의 로그는 다음과 같다.
 
@@ -604,7 +604,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 15 풀이"
+??? success "풀이"
     각 이미지의 질량 중심을 구해 한가운데로 옮긴 뒤 템플릿을 다시 만든다.
 
     ```python
@@ -642,7 +642,7 @@ Test accuracy: 82.03%
 
 </div>
 
-??? success "연습문제 16 풀이"
+??? success "풀이"
     ```python
     from sklearn.cluster import KMeans
     centres, owner = [], []

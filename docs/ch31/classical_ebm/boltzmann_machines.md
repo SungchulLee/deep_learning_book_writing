@@ -616,7 +616,7 @@ $$\frac{\partial\log p(v)}{\partial W_{ij}}
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     단위 i와 관련된 에너지는 −sᵢhᵢ다. +1과 −1의 에너지 차이는 −2hᵢ이므로 확률비가 exp(2hᵢ/T)가 되고 정규화하면 sigmoid(2hᵢ/T)다. sigmoid(hᵢ/T)는 같은 에너지에서 온도 2T의 조건부다.
 
 ---
@@ -629,7 +629,7 @@ $$\frac{\partial\log p(v)}{\partial W_{ij}}
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     먼저 조건부 확률과 목표 에너지의 온도·변수 관례를 맞춰야 한다. 현재 구현에는 계수 2 차이가 있어 사슬 길이만 늘려 해결되지 않는다. 그다음에 초기화·burn-in·자기상관과 표본 오차를 점검한다.
 
 ---
@@ -642,7 +642,7 @@ n_hidden을 늘리는 것만으로 관측 데이터의 볼츠만 기계 학습�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     아니다. 전체 상태 차원은 커지지만 데이터 고정 positive phase, 모델 negative phase와 파라미터 업데이트가 없다. W와 theta도 buffer다. 은닉변수에 대한 조건부 추론과 관측 주변 우도의 학습 절차가 별도로 필요하다.
 
 ## 정리하며

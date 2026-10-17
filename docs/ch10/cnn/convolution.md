@@ -661,7 +661,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn.functional as F
@@ -693,7 +693,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     출력 채널마다 입력 채널당 $3 \times 3$ 커널 하나와 바이어스 하나가 있다.
 
     필터당 파라메터: $3 \times 3 \times 3 = 27$(웨이트) $+ 1$(바이어스) $= 28$.
@@ -711,7 +711,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     $(T_ax)[i]=x[i-a]$로 두면 $((T_ax)\star h)[i]=\sum_jx[i+j-a]h[j]=(x\star h)[i-a]=T_a(x\star h)[i]$이다. 유한한 이미지에서는 경계와 자르기 방식에 따라 이 등식의 적용 범위가 달라지며, 스트라이드가 있으면 격자에 정렬되는 이동만 대응할 수 있다.
 
 ---
@@ -723,7 +723,7 @@ $$\frac{\partial L}{\partial b_k} = \sum_{i,j} \frac{\partial L}{\partial Y_{k,i
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     상호상관은 $y[i]=\sum_jx[i+j]h[j]$로 계산하고 같은 정렬의 컨볼루션은 커널의 인덱스를 뒤집어 적용한다. 커널이 중심을 기준으로 대칭이고 출력의 정렬·경계 규약도 같으면 두 결과가 같다. 학습 가능한 커널의 뒤집기는 리파라메리제이션할 수 있지만 고정 필터나 역전파 식에서는 정의를 명시해야 한다.
 
 ---

@@ -193,7 +193,7 @@ t8.grad (expected 5.0): 5.0
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -228,7 +228,7 @@ torch.full((), 7)        torch.full((), 7.7)
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -265,7 +265,7 @@ torch.full((), 7)        torch.full((), 7.7)
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

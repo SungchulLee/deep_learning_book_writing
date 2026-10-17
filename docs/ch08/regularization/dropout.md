@@ -493,7 +493,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     일반 마스킹은 $\tilde h_i=m_i h_i$이므로 기댓값이 $(1-p)h_i$이다. inverted dropout은 $\tilde h_i=m_i h_i/(1-p)$로 학습 중 배율을 조절해 기댓값이 $h_i$가 된다. PyTorch의 일반 드롭아웃은 후자이며 평가 중에는 항등으로 동작한다. 비선형 레이어 전체의 출력 기댓값까지 일치한다는 뜻은 아니다.
 
 ---
@@ -505,7 +505,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     def inverted_dropout(x, p=0.5, training=True):
         if not training:
@@ -523,7 +523,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     마스크마다 부분 모델이 정해지고 모든 모델이 웨이트를 공유한다. 가능한 마스크가 $2^d$개라는 사실이 그만큼의 독립 모델을 완전히 학습했다는 뜻은 아니다. 비선형 연산 때문에 마스크를 평균낸 레이어로 계산한 출력과 각 마스크의 출력 평균은 일반적으로 다르다.
 
 ---
@@ -535,7 +535,7 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     과제, 데이터량, 다른 정규화, 정규화 레이어과의 상호작용이 모두 영향을 준다. 0을 포함한 몇 가지 확률을 같은 검증 조건에서 비교하고, 과소적합과 학습·평가 모드의 차이를 살펴 선택한다. 넓은 레이어라는 이유만으로 높은 확률이 항상 적절한 것은 아니다.
 
 ## 정리하며

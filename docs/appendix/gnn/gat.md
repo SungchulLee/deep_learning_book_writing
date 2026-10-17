@@ -123,7 +123,7 @@ logits: torch.Size([4, 3])
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     `nn.Linear(in_features, out_features)`마다 짐 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 짐이 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 켜를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 따져 볼 수 있다.
 
 ---
@@ -135,7 +135,7 @@ logits: torch.Size([4, 3])
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 짐 얼마를 아무렇게나 0으로 만들어, 모델이 단어끼리의 어떤 사이에만 기대는 것을 막는다. 그래서 모델이 어텐션을 더 고루 나누고 더 든든한 리프리젠테이션을 배우게 되는데, 이는 여느 드롭아웃이 뉴럴 유닛끼리 함께 길드는 것을 막는 것과 같다.
 
 ---
@@ -147,7 +147,7 @@ logits: torch.Size([4, 3])
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     여느 셀프 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때는 $O(n^2 d)$, 어텐션 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 단어에 대한 성긴 두루 어텐션을 아울러 쓴다. Linformer는 키와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 입력에서 잘 들게 한다.
 
 ---
@@ -159,7 +159,7 @@ logits: torch.Size([4, 3])
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     박아 넣은 켜를 다음으로 갈음한다.
     ```python
     self.layers = nn.ModuleList()

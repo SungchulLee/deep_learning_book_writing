@@ -64,7 +64,7 @@ CNN: 2.786s for 100 forward passes
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import matplotlib.pyplot as plt
 
@@ -104,7 +104,7 @@ CNN: 2.786s for 100 forward passes
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -137,7 +137,7 @@ CNN: 2.786s for 100 forward passes
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     for name, model in models.items():
         model = model.to(device).eval()

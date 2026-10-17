@@ -236,7 +236,7 @@ generate_from_pretrained는 eval·no_grad를 사용하고 temperature·top-k·to
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     사전 학습 웨이트를 전체 갱신하며 LoRA·어댑터를 추가하지 않는다. 문서별 truncation·고정 길이 padding을 사용하고 모든 텐서를 미리 저장한다. labels는 입력 ID를 복사하지만 padding을 −100으로 바꾸지 않아 로스 제외가 누락되어 있다. 이 선택들은 각각 갱신 범위·문맥/메모리·학습 목표에 영향을 준다.
 
@@ -251,7 +251,7 @@ attention_mask와 labels의 −100이 각각 무엇을 제어하며 PAD=EOS일 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     attention_mask는 어텐션에서 무시할 입력 위치를 지정하고 labels의 −100은 로스에서 제외할 목표 위치를 지정한다. 같은 기능이 아니다. PAD와 EOS가 같은 ID여도 padding 위치만 attention_mask로 식별해 제외하고 실제 종료 토큰의 목표는 남겨야 한다. 현재 코드에는 별도 어텐션 드롭아웃을 추가하는 것이 아니라 이 데이터·로스 계약을 먼저 확인해야 한다.
 
@@ -266,7 +266,7 @@ attention_mask와 labels의 −100이 각각 무엇을 제어하며 PAD=EOS일 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     학습에 쓰지 않은 문서를 동일한 토크나이저·문맥 길이·경계 규칙으로 평가한다. padding과 제외 목표를 뺀 음의 로그우도 합을 실제 예측 토큰 수로 나눈 뒤 지수화한다. 배치별 평균을 단순 평균하면 길이가 다른 배치의 웨이트가 달라질 수 있다. 생성의 유창성·관련성·사실성은 별도 기준으로 평가한다.
 
@@ -281,7 +281,7 @@ attention_mask와 labels의 −100이 각각 무엇을 제어하며 PAD=EOS일 �
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     TextDataset은 nn.Module이 아니므로 model(x)·parameters·backward를 적용하는 대상이 아니다. 아래 함수의 입력과 expected_shape도 자리표시자라 완성된 테스트가 아니다. 확인할 계약은 len과 인덱스 접근, 정수 ID와 어휘 범위, 각 항목의 길이, attention_mask와 padding 목표의 대응, truncation·빈 문서·길이 1 처리다. 실제 학습·경사 검증은 별도의 언어 모델과 로스에 대해 설계해야 한다.
 

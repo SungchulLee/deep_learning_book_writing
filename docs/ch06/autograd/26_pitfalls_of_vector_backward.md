@@ -85,7 +85,7 @@ After zero_(), x.grad: tensor([0., 0., 0., 0.])
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     I = torch.eye(4)
     D = torch.diag(torch.tensor([1., 2., 3., 4.]))
@@ -102,7 +102,7 @@ After zero_(), x.grad: tensor([0., 0., 0., 0.])
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     `torch.zeros()`는 0으로 초기화한다. `torch.empty()`의 값은 일반적으로 초기화되지 않으므로 읽기 전에 사용할 모든 원소를 채워야 한다. 초기화 비용을 줄일 수 있지만 실제 성능 차이는 작업에 따라 다르며, 결정론적 실행의 설정에 따라 미정의 값 사용을 막기 위한 채움이 수행될 수도 있다.
 
 ---
@@ -115,7 +115,7 @@ After zero_(), x.grad: tensor([0., 0., 0., 0.])
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch, math
     x = torch.linspace(-math.pi, math.pi, 100)

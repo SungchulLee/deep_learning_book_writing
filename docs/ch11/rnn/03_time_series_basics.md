@@ -66,7 +66,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     시작 위치는 0부터 87까지이므로 $100-12=88$개다. 미래 여러 시점을 한꺼번에 예측하거나 창의 이동 간격을 바꾸면 개수도 달라진다.
 
 ---
@@ -78,7 +78,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     시간순으로 구간을 나누고 평균·표준편차 등 전처리 통계는 학습 구간에서 추정한다. 각 입력 피처가 예측 시점에 실제로 이용 가능한지 확인한다. 겹치는 창 때문에 같은 목표나 미래 정보가 분할 사이에 섞이지 않도록 구성한다.
 
 ---
@@ -90,7 +90,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     직전 관측값을 그대로 예측하거나, 알려진 계절 주기의 같은 위치 값을 예측하는 모델을 쓸 수 있다. 같은 예측 시점과 기간, 지표로 비교해야 한다. 학습 로스 감소만으로 기준 모델보다 낫다고 판단하지 않는다.
 
 ---
@@ -102,7 +102,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
     ```python
     def test_tutorial 03():

@@ -112,7 +112,7 @@ TUTORIAL 1: Introduction to Word Embeddings
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     emb = nn.Embedding(1000, 100)
     v42 = emb(torch.tensor([42]))
@@ -138,7 +138,7 @@ TUTORIAL 1: Introduction to Word Embeddings
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     임베딩에서 인덱스 $i$를 찾는 일은 자리 $i$에 1이 있는 원핫 벡터 $e_i$에 대해 $e_i^\top W$를 계산하는 것과 같다. 이 행렬 곱이 $W$의 $i$번째 행을 골라낸다.
     
     ```python
@@ -166,7 +166,7 @@ TUTORIAL 1: Introduction to Word Embeddings
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     def find_neighbors(word_idx, embedding_layer, k=5):
         word_vec = embedding_layer.weight[word_idx]

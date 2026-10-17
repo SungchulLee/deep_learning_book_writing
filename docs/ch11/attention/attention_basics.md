@@ -258,7 +258,7 @@ ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     날 내적은 $q \cdot k_1 = 1$, $q \cdot k_2 = 1$, $q \cdot k_3 = 0$이다. $1/\sqrt{d_k} = 1/\sqrt{4} = 0.5$을 곱하면 점수가 $[0.5, 0.5, 0]$이다. 소프트맥스를 적용하면 다음과 같다.
 
     $$
@@ -276,7 +276,7 @@ ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $d_k$이 크면 내적 $q \cdot k = \sum_{i=1}^{d_k} q_i k_i$의 분산이 커지기 쉽다. $q_i$과 $k_i$이 평균 0, 분산 1인 서로 독립인 확률 변수라면 $\text{Var}(q \cdot k) = d_k$이다. 곧 $d_k$이 크면 내적의 크기도 아주 커질 수 있다. 이런 큰 값을 소프트맥스에 넣으면 함수가 포화하여 확률의 거의 전부를 가장 큰 점수에 몰아주고 원핫에 가까운 어텐션 웨이트를 낸다. 그 영역에서는 소프트맥스의 그래디언트가 아주 작아져(그래디언트 소실) 모델이 학습하기 어렵다. $\sqrt{d_k}$으로 나누면 내적의 분산이 다시 1 언저리로 정규화되어 소프트맥스의 입력이 그래디언트가 잘 흐르는 범위에 머문다.
 
 ---
@@ -288,7 +288,7 @@ ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class MultiHeadAdditiveAttention(nn.Module):
         def __init__(self, query_dim, key_dim, hidden_dim, num_heads):

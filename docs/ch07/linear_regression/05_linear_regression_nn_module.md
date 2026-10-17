@@ -525,7 +525,7 @@
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch.nn as nn
     
@@ -546,7 +546,7 @@
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -582,7 +582,7 @@
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn

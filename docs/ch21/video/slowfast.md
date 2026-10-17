@@ -349,7 +349,7 @@ Fast 비용은 일부 채널-채널 컨볼루션에서 대략 αβ²에 비례�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     Slow stem64채널과 Fast8→lateral16채널을 연결하면80이다. 첫 Slow stage는64입력을 기대하므로 맞지 않는다. lateral을 포함한 입력 채널을 stage 설계에 반영해야 한다. 그 전에 미정의 _forward_stem 호출도 해결되어야 한다.
 
@@ -364,7 +364,7 @@ Fast32프레임·α8에서 첫 시간 정렬과 다음 stage의 문제를 설명
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     입력 Slow길이는4다. Fast길이32를 lateral stride8로 줄이면4가 될 수 있지만 다음 Fast stage는시간을2배줄이고 Slow는유지한다. 같은 stride8lateral을 계속 쓰면2대4로 어긋날 수 있다. 누적 stride를 단계마다 추적해야 한다.
 
@@ -379,7 +379,7 @@ Fast32프레임·α8에서 첫 시간 정렬과 다음 stage의 문제를 설명
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     아니다. 같은 기본 블록과3·4·6·3반복을 사용하고 α만 다르다. bottleneck 구조·stage깊이·샘플링 간격의 구현을 확인해야 하며 이름과 논문 정확도를 직접 연결하지 않는다.
 
@@ -394,7 +394,7 @@ Fast32프레임·α8에서 첫 시간 정렬과 다음 stage의 문제를 설명
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     196epoch중34epochwarm-up 뒤162번cosine step을 하지만 T_max196이다. 따라서 cosine최솟값까지 도달하는196step일정이 아니다. 검증·체크포인트와 지표 계산도 없어 학습 완료만으로 논문 정확도를 주장할 수 없다.
 

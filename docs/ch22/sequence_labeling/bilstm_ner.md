@@ -387,7 +387,7 @@ hidden_dim=255와 char_hidden_dim=51을 그대로 넣을 때 생길 수 있는 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     방향별 바닥 나눗셈 때문에 실제 연결 차원은254와50이다. 그러나 선형 또는 다음 LSTM은255·51로 선언한 값을 기대해 맞지 않을 수 있다. 양방향 연결 차원을 일관되게 정의해야 한다.
 
@@ -402,7 +402,7 @@ hidden_dim=255와 char_hidden_dim=51을 그대로 넣을 때 생길 수 있는 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     pad_packed_sequence가 배치의 최대 유효 길이로 반환하지만 labels는 원래 패딩 길이를 유지할 수 있다. CE는 펼친 원소 수가 같아야 하므로 total_length 또는 목표 정렬이 필요하다. −100 로스 마스크와 입력 packing도 서로 다른 기능이다.
 
@@ -417,7 +417,7 @@ hidden_dim=255와 char_hidden_dim=51을 그대로 넣을 때 생길 수 있는 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     패딩 0 벡터도 LSTM의 상태 갱신을 멈추지 않고 문자 길이를 pack하지 않는다. 문자 결합 모델은 attention_mask를 사용하지 않아 단어 패딩도 읽는다. 각 단계의 유효 길이·목표 마스크를 실제로 연결해야 한다.
 
@@ -432,7 +432,7 @@ hidden_dim=255와 char_hidden_dim=51을 그대로 넣을 때 생길 수 있는 �
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     정답·forward는 [next,prev]로 일치하지만 Viterbi는 [prev,next]로 계산한다. 비대칭 전이면 학습한 분포의 최적 경로를 구하지 않는다. 방향을 통일하고 eval·no_grad와 BIO 제약도 필요에 맞게 적용해야 한다.
 

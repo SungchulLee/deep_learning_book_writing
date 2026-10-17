@@ -94,7 +94,7 @@ $(2, 3)$ 행렬과 $(3, 4)$ 행렬의 곱을 `@`, `torch.mm()`, `torch.matmul()`
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     A = torch.randn(2, 3)
     B = torch.randn(3, 4)
@@ -114,7 +114,7 @@ $(2, 3)$ 행렬과 $(3, 4)$ 행렬의 곱을 `@`, `torch.mm()`, `torch.matmul()`
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     원소별 곱은 대응하는 원소끼리 곱한다. 같은 모양의 행렬 $A, B$에 대해 $(A * B)_{ij} = A_{ij} B_{ij}$이다. 행렬 곱은 안쪽 차원에 대해 더한다. $(A @ B)_{ij} = \sum_k A_{ik} B_{kj}$이다. $A = B = [[1,2],[3,4]]$일 때 원소별 곱은 $[[1,4],[9,16]]$을, 행렬 곱은 $[[7,10],[15,22]]$을 준다.
 
 ---
@@ -127,7 +127,7 @@ $(2, 3)$ 행렬과 $(3, 4)$ 행렬의 곱을 `@`, `torch.mm()`, `torch.matmul()`
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     A = torch.randn(10, 4, 4)
     traces = torch.einsum('bii->b', A)

@@ -447,7 +447,7 @@ MSE 로스 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mat
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $$
     \nabla_\mathbf{w} L = \frac{1}{N}\mathbf{X}^\top(\mathbf{Xw} - \mathbf{y})
     $$
@@ -463,7 +463,7 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     가우스 잡음 아래에서 $p(y|\mathbf{x}, \mathbf{w}) = \mathcal{N}(\mathbf{w}^\top\mathbf{x}, \sigma^2)$이다. 음의 로그우도(NLL)는 $-\log p(\mathbf{y}|\mathbf{X},\mathbf{w}) = \frac{N}{2}\log(2\pi\sigma^2) + \frac{1}{2\sigma^2}\|\mathbf{Xw}-\mathbf{y}\|^2$이다. NLL을 최소화하는 것은 MSE를 최소화하는 것과 같으므로, MSE 로스는 가우스 잡음 아래의 MLE에 대응한다.
 
 ---
@@ -475,7 +475,7 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     피처들이 완전히 상관되어 있으면 $\mathbf{X}^\top\mathbf{X}$이 특이(랭크 부족)해지고, 정규 방정식 $\mathbf{X}^\top\mathbf{X}\mathbf{w} = \mathbf{X}^\top\mathbf{y}$은 무한히 많은 해를 갖는다. $\mathbf{X}^\top\mathbf{X}$의 조건수가 무한대가 되어 수치적 해가 불안정해진다. 정규화(릿지/라쏘)가 이를 해결한다.
 
 ---
@@ -487,7 +487,7 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch
     w = torch.randn(1, requires_grad=True)

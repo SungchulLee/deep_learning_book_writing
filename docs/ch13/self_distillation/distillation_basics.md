@@ -140,7 +140,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     CE는 실제 정답, KL은 온도로 변환한 교사 분포를 목표로 한다. T²는 높은 온도에서 달라지는 경사 스케일을 보정하는 관례다. alpha는 둘의 비중을 정하며 T·alpha·로스 집계를 검증해야 한다. KL의 첫 분포가 교사인 방향도 확인한다.
 
 ---
@@ -152,7 +152,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     비정답 클래스 사이의 상대 확률과 표본별 불확실성을 제공할 수 있다. 그러나 그 관계가 교사의 바이어스·오류일 수도 있어 정보가 많다는 사실이 항상 도움이 된다는 뜻은 아니다. 같은 클래스 순서·입력 분포에서 학생 품질을 평가해야 한다.
 
 ---
@@ -164,7 +164,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     F는 torch.nn.functional로 별도 가져와야 한다. kl_div의 입력은 학생 log 확률, target은 교사 확률이라 KL(교사||학생)이다. 함수가 교사 로짓을 detach하거나 eval로 만들지는 않으므로 호출자가 목표 경사를 분리해야 한다. batchmean은 (B,C) 분류를 가정하며 시퀀스 입력이라면 유효 토큰·패딩별 평균을 다시 정해야 한다.
 
     ```python
@@ -186,7 +186,7 @@ $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     교사 오류·분포 차이·클래스 대응 오류, 학생 용량·부적절한 온도·혼합 비율과 학습 예산이 원인이 될 수 있다. 교사가 더 작거나 정확도가 낮다는 이유만으로 도움을 원천 부정할 수도 없다. 같은 데이터·튜닝 예산에서 정답만 학습한 학생과 독립 평가한다.
 
 ## 정리하며

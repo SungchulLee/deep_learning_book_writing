@@ -432,7 +432,7 @@ $R^2=1-\text{SSE}/\text{SST}$는 정답이 상수가 아닐 때 평균 예측을
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     피처의 척도 차이가 크면 로스의 조건수가 나빠져 단일 러닝레이트로 수렴시키기 어려울 수 있다. 표준화는 이를 완화할 수 있지만 필수 수학 조건은 아니다. 다른 러닝레이트, 적절한 전처리나 해법으로도 학습할 수 있으며 실제 비교에서는 러닝레이트까지 조정해야 한다.
 
 ---
@@ -444,7 +444,7 @@ $R^2=1-\text{SSE}/\text{SST}$는 정답이 상수가 아닐 때 평균 예측을
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     weights = model.linear.weight.detach().numpy().flatten()
@@ -465,7 +465,7 @@ Adam 옵티마이저를 SGD로 바꾸고, 200 에포크 안에 비슷한 $R^2$�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     # 전형적인 결과: lr=0.01인 SGD는 매끄럽게 수렴하지만 Adam보다 느리다.
     # lr=0.1인 SGD는 진동할 수 있다. Adam은 파라메터마다 러닝레이트를 조절하므로

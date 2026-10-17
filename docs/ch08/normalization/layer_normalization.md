@@ -495,7 +495,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     gamma와 beta에 각각 $D$개, 합계 $2D$개가 있다. PyTorch에서는 기본 설정에서 학습 파라메터로 등록되지만 NumPy 시연에서는 일반 배열이다. 배치 정규화의 running_mean·running_var와 같은 이동 통계량은 없다.
 
 ---
@@ -507,7 +507,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     각 시점과 표본마다 마지막 D개 피처에서 평균과 분산을 구한다. 시간 T나 배치 B 전체를 섞지 않는다. normalized_shape를 바꾸면 정규화 축과 아핀 계수의 모양도 달라진다.
 
 ---
@@ -519,7 +519,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     본문은 하위레이어 출력과 잔차를 더한 뒤 정규화한다. pre-norm은 하위레이어의 입력을 먼저 정규화하고 그 출력을 잔차에 더한다. 정규화 위치를 바꾸는 것은 단순한 문법 차이가 아니며 경사 경로도 달라진다.
 
 ---
@@ -531,7 +531,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()

@@ -224,7 +224,7 @@ torch.linalg.cholesky(torch.tensor([[1., 2.], [2., 1.]]))
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -268,7 +268,7 @@ torch.linalg.cholesky(torch.tensor([[1., 2.], [2., 1.]]))
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -308,7 +308,7 @@ torch.linalg.cholesky(torch.tensor([[1., 2.], [2., 1.]]))
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

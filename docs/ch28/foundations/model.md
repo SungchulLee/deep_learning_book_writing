@@ -370,7 +370,7 @@ CharRNN의 파라미터 수를 계산하라.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     어휘 V, 임베딩 E, 은닉 H, 레이어 수 L에서 임베딩은 VE, 첫 LSTM 레이어는 4H(E+H+2), 후속 각 레이어는 4H(2H+2), 출력은 HV+V다. PyTorch LSTM에는 입력·순환 바이어스가 각각 있어 +2가 들어간다. 실행 예 V=50,E=32,H=64,L=2이면 63,218개다. 기본 E=64,H=128,L=2에서는 231,424+193V개다. vocab_size는 반드시 지정하며 기본값이 없다.
 
@@ -385,7 +385,7 @@ CharRNN의 파라미터 수를 계산하라.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     TransformerEncoderLayer(dropout=0.1)은 내장 attention 드롭아웃을 이미 설정한다. 별도 레이어를 무조건 더하면 중복 적용일 수 있다. 소프트맥스 뒤 드롭아웃은 일부 웨이트를 0으로 하고 남은 값을 보정해 기대값을 유지하지만 각 실행의 행 합이 반드시 1인 것은 아니다. 특정 연결에 대한 의존을 줄이는 정규화일 수 있어도 더 균일한 attention이나 성능 개선을 보장하지 않는다. LSTM의 레이어간 드롭아웃과도 구분한다.
 
@@ -400,7 +400,7 @@ Transformer의 문맥 길이 한계와 attention 비용을 구분하라.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     본문에는 최대 길이 100의 위치 임베딩 표가 있어 T>100이면 계산비용 이전에 인덱스 범위 문제가 생긴다. 표를 늘리면 길이 범위를 확장할 수 있지만 학습·일반화는 별도다. Dense attention은 O(T²E), 선형 projection·feed-forward는 O(TE²)의 계산이 들며 단순 attention 웨이트 저장은 헤드별 T²에 비례한다. 일부 최적화 커널은 전체 행렬 저장을 피하지만 dense 곱셈의 의존 구조 자체를 희소 attention으로 바꾸는 것과는 다르다.
 
@@ -415,7 +415,7 @@ Transformer의 문맥 길이 한계와 attention 비용을 구분하라.
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     CharRNN과 Transformer 모두 이미 n_layers 인수가 있다. 새 num_layers를 추가하지 않고 기존 인수로 깊이를 바꿀 수 있다. nn.LSTM과 nn.TransformerEncoder는 내부 모듈 파라미터를 등록하므로 아래 ModuleList 골격을 다시 붙일 필요는 없다. YourBlock은 정의되지 않은 예시다. 깊이를 바꾸어도 전체 접두사와 hidden을 중복 처리하는 generate 계약 문제는 해결되지 않는다. 구조 모양·파라미터 수와 생성 상태 관리를 따로 검토해야 한다.
 

@@ -540,7 +540,7 @@ StyleTransferNetwork와 GeneratorWithInstanceNorm은 별도의 구조 예이다.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     keepdims=True인 평균과 분산은 `(4, 3, 1, 1)`이다. affine=True의 배율·이동은 `(1, 3, 1, 1)`이며 출력은 `(4, 3, 64, 64)`이다. 정규화 자체는 컨볼루션이나 풀링을 수행하지 않는다.
 
 ---
@@ -552,7 +552,7 @@ RGB 64×64 입력에 NumPy 정규화를 적용하려면 무엇을 지정해야 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     num_features를 3으로 두고 NCHW NumPy 배열을 forward에 전달한다. PyTorch 텐서나 모델 호출·parameters 인터페이스를 기대하면 안 된다. 스타일 변환 모델은 이미 입력 채널이 3이며 정규화 클래스와 별도 구조이다.
 
 ---
@@ -564,7 +564,7 @@ RGB 64×64 입력에 NumPy 정규화를 적용하려면 무엇을 지정해야 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     학습 중 통계 축은 이 경우 같아질 수 있다. 하지만 기본 affine와 이동 통계량 추적 설정, 평가 시 통계량이 다르므로 일반적으로 같은 연산이라고 할 수 없다. 모든 관련 설정을 맞춰야 수치 비교가 가능하다.
 
 ---
@@ -576,7 +576,7 @@ RGB 64×64 입력에 NumPy 정규화를 적용하려면 무엇을 지정해야 �
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()

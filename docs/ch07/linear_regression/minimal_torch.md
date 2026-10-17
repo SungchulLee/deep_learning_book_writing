@@ -160,7 +160,7 @@ Saved: minimal_torch.png
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     torch.manual_seed(42)
@@ -191,7 +191,7 @@ Saved: minimal_torch.png
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     아니다. 바이어스 열을 포함한 설계 행렬이 열 전체 랭크여야 최소제곱 파라미터가 유일하다. 랭크가 부족하면 같은 예측을 주는 여러 최적 파라미터가 있어 초기값의 영공간 성분이 남을 수 있다. 적절한 고정 러닝레이트에서 로스와 파라미터 수렴의 조건을 구분한다.
 
 ---
@@ -203,7 +203,7 @@ Saved: minimal_torch.png
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     torch.manual_seed(42)

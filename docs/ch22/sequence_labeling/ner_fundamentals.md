@@ -228,7 +228,7 @@ Barack Obama visited New York City에 IOB2 태그를 붙이고 span 단위를 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     B-PER I-PER O B-LOC I-LOC I-LOC다. 토큰 구간은 [0,2)와[3,6)이며 원문 문자 offset과 다르다. 같은 유형의 다른 개체가 붙어 있어도 새B로 경계를 나눈다.
 
@@ -243,7 +243,7 @@ Barack Obama visited New York City에 IOB2 태그를 붙이고 span 단위를 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     softmax head는 주어진 입력에서 토큰별 레이블 확률을 분해하지만 입력 인코더는 전체 문맥을 볼 수 있다. CRF는 태그 열을 공동 정규화하고 전이 점수를 사용한다. 유효 BIO를 강제하려면 시작·종료·금지 전이 제약을 별도로 적용해야 한다.
 
@@ -258,7 +258,7 @@ Entity.overlaps에서 self=[10,20), other=[0,5)의 현재 반환값과 올바른
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     현재는 동일한 방향의 분리 조건을 두 번 써 True를 반환할 수 있지만 두 구간은 겹치지 않는다. self.start<other.end와 other.start<self.end가 모두 참이어야 한다. 접촉하는 끝점만으로는 반열린 구간이 겹치지 않는다.
 
@@ -273,7 +273,7 @@ attention_mask가 있으면 패딩 O 레이블이 로스에서 자동 제외되�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     아니다. 모델의 입력 attention 처리와 로스의 유효 위치 마스크는 별개다. CE ignore_index나 CRF 마스크 등으로 실제 연결해야 한다. 토큰·레이블 길이와 잘림 경계·미등록 레이블의 O 치환도 검사해야 한다.
 

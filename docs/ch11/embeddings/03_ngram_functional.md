@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     logits = torch.tensor([[2.0, 5.0, 1.0], [1.0, 3.0, 2.0]])
     targets = torch.tensor([1, 2])
@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     배치 정규화는 이동 평균·분산 버퍼와 학습 모드를 관리한다. 드롭아웃은 학습 여부를 관리하며 함수형 호출에서는 `training=self.training` 등을 전달해야 한다. 선형 레이어나 컨볼루션은 웨이트·바이어스의 등록과 초기화가 필요하다. 함수형 구현도 가능하므로 모듈 사용이 반드시 필요한 것은 아니다.
 
 ---
@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     model = ngr.NGramLanguageModeler()
     optimizer = optim.SGD(model.parameters(), lr=0.01)

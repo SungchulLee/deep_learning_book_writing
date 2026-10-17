@@ -144,7 +144,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     자리 $i$의 단어마다 문맥은 거리 2 안의 단어들(자기 자신은 빼고)이다.
 
     | 표적 | 문맥 |
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     평균은 순서를 구분하지 않는 $d$차원 벡터이고, 이어 붙이기는 위치가 구별되는 $2wd$차원 벡터다. 바이어스를 포함한 출력 선형 레이어의 파라메터는 각각 $dV+V$, $2wdV+V$개다. 가변 길이 문맥을 이어 붙이려면 패딩 등 길이를 맞추는 규칙이 필요하다. 평균도 패딩을 쓰면 패딩을 제외한 합과 개수로 계산해야 한다.
 
 ---
@@ -182,7 +182,7 @@ CBOW 모델이 단순 평균 대신 가중 평균을 쓰도록 고쳐, 표적에
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class WeightedCBOW(nn.Module):
         def __init__(self, vocab_size, embedding_dim, window_size):

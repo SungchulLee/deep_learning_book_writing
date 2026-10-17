@@ -217,7 +217,7 @@ loss.grad_fn: <SumBackward0 object at 0x117cd7130>
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -237,7 +237,7 @@ loss.grad_fn: <SumBackward0 object at 0x117cd7130>
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     비잎 텐서는 역전파에 참여해도 기본적으로 `.grad`를 보관하지 않는다. 역전파 전에 해당 텐서에 `retain_grad()`를 호출하면 중간 경사를 저장할 수 있다. 이는 그래프 재사용을 위한 `retain_graph=True`와 다르다.
 
 ---
@@ -250,7 +250,7 @@ loss.grad_fn: <SumBackward0 object at 0x117cd7130>
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

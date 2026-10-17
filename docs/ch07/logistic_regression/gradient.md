@@ -639,7 +639,7 @@ Max difference: 1.27e+01
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     데이터가 선형 분리 가능하면 모든 $i$에 대해 $(2y_i-1)\mathbf{x}_i^\top\boldsymbol{\beta} > 0$인 $\boldsymbol{\beta}$이 존재한다. 로그우도는 다음과 같다.
 
     $$
@@ -657,7 +657,7 @@ Max difference: 1.27e+01
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $\mu_i = e^{\mathbf{x}_i^\top\boldsymbol{\beta}}$(로그 연결)인 포아송의 경우, $\text{Var}(y_i) = \mu_i$이고 $\frac{d\mu}{d\eta} = \mu$이므로 웨이트 행렬은 $\mathbf{B} = \text{diag}(\mu_1, \ldots, \mu_n)$이다.
 
     작업 반응은 $z_i = \mathbf{x}_i^\top\boldsymbol{\beta} + \frac{y_i - \mu_i}{\mu_i}$이다.
@@ -679,7 +679,7 @@ Max difference: 1.27e+01
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     예측이 맞고 확신에 차 있으면 $\sigma(z) \approx y$이므로 잔차 $\sigma(z) - y \approx 0$이 되고 경사가 사라진다. 잘 분류된 점에서는 이것이 바람직하다.
 
     깊은 뉴럴 넷트웍의 경사는 활성화 도함수와 웨이트 행렬의 곱을 포함한다. 시그모이드 국소 도함수는 최대 1/4여서 포화가 경사 소실에 기여할 수 있지만, 웨이트 노름을 제외한 채 전체 경사가 항상 $(1/4)^L$ 이하라고 단정할 수는 없다. 틀렸는데 확신한 단일 로짓 BCE의 경사는 오히려 큰 잔차를 갖는다는 점도 구분한다.
@@ -693,7 +693,7 @@ Max difference: 1.27e+01
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch
 

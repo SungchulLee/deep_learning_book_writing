@@ -271,7 +271,7 @@ Saved: wmt_on_spy.png
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     계산한 표본 베타와 추정 오차를 비교한다. 특정 업종의 베타가 항상 높거나 WMT가 항상 특정 구간이라는 결론은 내리지 않는다. 시장 공분산과 시장 분산의 비율이라는 정의에 따라 해석하고 기간에 대한 민감도도 확인한다.
 
 ---
@@ -283,7 +283,7 @@ OLS 회귀 이론의 표준오차 공식을 사용하여 베타 추정치에 대
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     
@@ -317,7 +317,7 @@ OLS 회귀 이론의 표준오차 공식을 사용하여 베타 추정치에 대
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     

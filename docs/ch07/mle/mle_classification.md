@@ -292,7 +292,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     정답 클래스 확률 $p_t$에 대한 표준 교차 엔트로피는 $\text{CE}(p_t) = -\log(p_t)$이다. Focal Loss은 여기에 조절 인수를 더한다.
 
     $$
@@ -312,7 +312,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     레이블 스무딩를 쓰면 목표 분포가 $y_k' = (1-\epsilon)y_k + \epsilon/K$이 된다. 여기서 $K$은 클래스의 개수이다.
 
     ```python
@@ -338,7 +338,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     경험적 분포 $q$에서 모델 $p_\theta$으로의 KL 발산은 다음과 같다.
 
     $$
@@ -356,7 +356,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     누적 확률을 모델링한다. 임계값 $\theta_1 < \theta_2 < \cdots < \theta_{K-1}$에 대해 $P(Y \leq k | x) = \sigma(\theta_k - f(x))$이다.
 
     클래스 확률: $P(Y = k) = P(Y \leq k) - P(Y \leq k-1)$이다.

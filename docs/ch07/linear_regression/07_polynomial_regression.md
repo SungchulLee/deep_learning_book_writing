@@ -435,7 +435,7 @@ $[-\pi, \pi]$ 위에서 $y = \sin(x) + \epsilon$으로부터 데이터를 생성
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch, numpy as np
     import torch.nn as nn
@@ -466,7 +466,7 @@ $[-\pi, \pi]$ 위에서 $y = \sin(x) + \epsilon$으로부터 데이터를 생성
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     일반적인 10차 다항식에는 독립 계수 11개가 있어 비선형 패턴과 일부 잡음을 표현할 수 있다. 다만 임의 개수의 관측을 모두 보간할 수 있는 것은 아니다. 과도한 유연성, 피처의 큰 척도와 수치적 불안정성이 검증 오차를 키울 수 있다. 룽게 현상은 특정 보간 설정의 현상이므로 모든 과적합과 같은 이름으로 부르지 않는다.
 
 ---
@@ -478,7 +478,7 @@ $[-\pi, \pi]$ 위에서 $y = \sin(x) + \epsilon$으로부터 데이터를 생성
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch, numpy as np
     import torch.nn as nn

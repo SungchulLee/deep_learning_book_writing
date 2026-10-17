@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     model = RNNBaseline(input_dim=64, hidden_dim=256, num_layers=2)
     params = sum(p.numel() for p in model.parameters())
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     class BiRNNBaseline(nn.Module):
         def __init__(self, input_dim, hidden_dim=256, num_layers=2, num_classes=10):
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class AttentiveRNN(nn.Module):
         def __init__(self, input_dim, hidden_dim=256, num_layers=2, num_classes=10):

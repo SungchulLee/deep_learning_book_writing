@@ -317,7 +317,7 @@ KL 발산은 기대 로그밀도비이며 비음수이지만 비대칭이다. �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $p_i>0$인 곳에서 $q_i=0$이면 KL은 무한대이므로 결론이 성립한다. 나머지 경우 옌센 부등식으로 $D_{\mathrm{KL}}(p\|q)\geq-\log\sum_{i:p_i>0}q_i\geq0$이다. 등호가 되려면 $q_i/p_i$가 $p$의 지지집합에서 상수이고 그 밖의 $q$ 질량은 0이어야 하므로 $p=q$이다.
 
 ---
@@ -329,7 +329,7 @@ $p=\operatorname{Bernoulli}(0.3)$과 $q=\operatorname{Bernoulli}(0.7)$의 양방
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     첫 쌍은 성공과 실패 확률이 서로 바뀌어 양방향 모두 $0.4\log(7/3)\approx0.339$나트이다. 같다고 해서 KL이 대칭인 것은 아니다. $q=\operatorname{Bernoulli}(0.6)$이면 $D(p\|q)=0.3\log(0.3/0.6)+0.7\log(0.7/0.4)\approx0.184$, $D(q\|p)=0.6\log(0.6/0.3)+0.4\log(0.4/0.7)\approx0.192$로 다르다.
 
 ---
@@ -341,7 +341,7 @@ $p=\operatorname{Bernoulli}(0.3)$과 $q=\operatorname{Bernoulli}(0.7)$의 양방
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     로그밀도비는 $\log(\sigma_2/\sigma_1)+(x-\mu_2)^2/(2\sigma_2^2)-(x-\mu_1)^2/(2\sigma_1^2)$이다. $p$ 아래에서 두 제곱항의 기대값은 각각 $\sigma_1^2+(\mu_1-\mu_2)^2$와 $\sigma_1^2$이다. 대입하면 $D(p\|q)=\log(\sigma_2/\sigma_1)+[\sigma_1^2+(\mu_1-\mu_2)^2]/(2\sigma_2^2)-1/2$를 얻는다.
 
 ---
@@ -353,7 +353,7 @@ $p=\operatorname{Bernoulli}(0.3)$과 $q=\operatorname{Bernoulli}(0.7)$의 양방
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     이 경향은 다봉 목표를 단봉 정규분포 등 제한된 분포족으로 근사할 때 잘 드러난다. 순방향은 목표의 질량을 빠뜨리는 비용을, 역방향은 목표 밀도가 낮은 곳에 근사 질량을 두는 비용을 강조한다. 충분히 표현력 있는 분포족에서 전역 최적화를 할 수 있다면 양쪽 모두 $q=p$가 최적이다. 따라서 KL 방향만으로 특정 분산이나 단일 모드 선택을 보장할 수 없다.
 
 ## 정리하며

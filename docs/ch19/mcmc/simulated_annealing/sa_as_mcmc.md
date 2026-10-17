@@ -110,7 +110,7 @@ def multi_start_sa(E, n_restarts, schedule, max_iter):
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     아니다. μ_t는 이전 모든 커널의 곱으로 정해지고 온도도 바뀐다. 불변성은 해당 고정 커널에 π_t를 입력했을 때 보존된다는 뜻이다.
 
 ---
@@ -122,7 +122,7 @@ def multi_start_sa(E, n_restarts, schedule, max_iter):
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     전자는 초기분포 차이를 잊는 성질이고 후자는 실제 분포가 최적 집합에 질량을 모으는 성질이다. 공통 극한의 존재·모양도 별도다.
 
 ---
@@ -134,7 +134,7 @@ def multi_start_sa(E, n_restarts, schedule, max_iter):
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     대칭 제안의 ΔE=0도 확률 1로 수락하므로 고정 증가 분포에서는 P(ΔE≤0)가 남는다. 실제 실행은 그 증가 분포 자체가 바뀔 수 있다.
 
 ---
@@ -146,7 +146,7 @@ k번 재시작하면 실패확률이 항상 (1−p)^k인가?
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     같은 성공확률 p를 가진 독립 실행이라는 조건에서 성립한다. 상관된 초기화·난수나 서로 다른 예산에서는 단순 식을 그대로 적용하지 않는다.
 
 ## 정리하며

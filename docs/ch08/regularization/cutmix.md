@@ -579,7 +579,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     베타 표본 $\lambda_0$에서 너비와 높이를 정해도, 정수화와 이미지 경계의 잘림 때문에 실제 패치 넓이가 $(1-\lambda_0)WH$와 달라진다. 레이블에는 실제 유효 면적을 계산한 $\lambda=1-A_{patch}/(WH)$를 사용한다.
 
 ---
@@ -591,7 +591,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     def cutmix(x, y, alpha=1.0):
         lam = torch.distributions.Beta(alpha, alpha).sample()
@@ -618,7 +618,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     컷아웃은 일부 정보를 가려도 원래 레이블이 유효하다고 가정한다. 컷믹스는 다른 표본의 패치를 붙이고 면적 비율로 두 레이블을 섞는다. 가정이 서로 다르며 데이터와 과제에 따라 효과가 달라져 보편적인 우열은 없다.
 
 ---
@@ -630,7 +630,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     작은 패치가 객체 전체를 담을 수도 있고 큰 패치가 배경만 담을 수도 있다. 따라서 면적 레이블은 약한 학습 규칙이며 정확한 객체 비율이 아니다. 위치 파악이나 가림 강건성이 개선되는지는 해당 평가 지표로 확인해야 한다.
 
 ## 정리하며

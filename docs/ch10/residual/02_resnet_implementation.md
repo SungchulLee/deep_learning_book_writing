@@ -740,7 +740,7 @@ ResNet-18과 ResNet-50에서 출력 클래스를 1000개에서 10개로 줄이�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     줄어드는 것은 `fc` 하나뿐이다. `nn.Linear(in_features, num_classes)`는 `in_features` $\times$ `num_classes`개의 웨이트와 `num_classes`개의 바이어스를 갖는다. 클래스가 1000개에서 10개로 줄면 990줄이 사라지므로 990 $\times$ `in_features` $+ \; 990$개가 준다. `fc`의 입력 차원은 $512 \times \text{expansion}$이므로 ResNet-18은 512, ResNet-50은 2048이다.
 
     - ResNet-18: $990 \times 512 + 990 = 506{,}880 + 990 = 507{,}870$
@@ -766,7 +766,7 @@ ResNet-50의 `layer1`은 스트라이드가 1인데도 첫 블록에 투영 지�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     `layer1`에 들어올 때 `self.in_channels`는 스템가 내놓는 64다. 그런데 병목 블록의 출력 채널은 `out_channels * expansion` $= 64 \times 4 = 256$이다. 스트라이드가 1이라 공간 크기는 맞지만 채널 수가 64와 256으로 어긋나므로 더할 수가 없다.
 
     채널 조건을 빼면 `layer1`의 첫 블록이 `downsample=None`이 되어 다음이 난다.
@@ -787,7 +787,7 @@ ResNet-50의 `layer1`은 스트라이드가 1인데도 첫 블록에 투영 지�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     `_make_layer`를 블록마다 투영을 만들도록 바꾼다(첫 블록만 스트라이드를 받는다).
 
     ```python
@@ -825,7 +825,7 @@ ResNet-50의 `layer1`은 스트라이드가 1인데도 첫 블록에 투영 지�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 예의 배치와 평가 조건에서는 AdaptiveAvgPool2d가 마지막 공간 크기를 1×1로 만들어 분류기 차원을 맞춘다. 그러나 모든 작은 입력과 학습 모드에서 동작을 보장하는 것은 아니다. 예를 들어 학습 모드 BatchNorm에서 채널당 관측값이 하나뿐인 배치는 오류를 낼 수 있다.
 
     ```
@@ -851,7 +851,7 @@ ResNet-50의 `layer1`은 스트라이드가 1인데도 첫 블록에 투영 지�
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
     **기본 블록.** 폭 $4C$에서 3×3 컨볼루션 두 개와 배치 정규화 두 개를 쓰므로, 앞 페이지의 식 $18C'^2 + 4C'$에 $C' = 4C$를 넣어
 
     $$18(4C)^2 + 4(4C) = 288C^2 + 16C$$
@@ -882,7 +882,7 @@ ResNet-50의 `layer1`은 스트라이드가 1인데도 첫 블록에 투영 지�
 
 </div>
 
-??? success "연습문제 6 풀이"
+??? success "풀이"
     `Bottleneck`을 물려받아 두 컨볼루션만 바꿔 끼운다.
 
     ```python

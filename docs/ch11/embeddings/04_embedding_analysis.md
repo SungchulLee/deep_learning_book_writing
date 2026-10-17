@@ -42,7 +42,7 @@ Embedding Analysis - See visualization tutorial for similar concepts
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     현재 코드는 안내 문자열만 출력한다. 임베딩 행렬, 단어와 인덱스의 대응, 유사도 함수, 자기 자신과 OOV 처리 규칙이 추가로 필요하다. 순환 레이어나 분석 모델이 있다고 가정할 수 없다.
 
 ---
@@ -54,7 +54,7 @@ Embedding Analysis - See visualization tutorial for similar concepts
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     행렬은 $(V,d)$의 유한한 실수 값이어야 한다. 사전의 인덱스가 유효 범위에 있고 각 행의 단어와 일치하는지 확인한다. 코사인 유사도에서는 영벡터를 별도로 처리한다. 조회에 사용하는 ID는 정수이며, 벡터 행렬의 자료형과 구분한다.
 
 ---
@@ -66,7 +66,7 @@ Embedding Analysis - See visualization tutorial for similar concepts
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     차원 축소 과정에서 이웃 관계가 변할 수 있다. 원래 공간의 코사인 유사도나 선택한 거리로 다시 확인하고, 시각화 설정에 따른 차이를 살펴본다. 그림의 군집만으로 학습 성공이나 실패를 확정하지 않는다.
 
 ---
@@ -78,7 +78,7 @@ Embedding Analysis - See visualization tutorial for similar concepts
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
     ```python
     def test_embedding analysis():

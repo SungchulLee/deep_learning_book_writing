@@ -224,7 +224,7 @@ CUSUM(쌓인 합) 알아내개는 잣대 평균에서 벗어난 만큼을 쌓아
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     def detect_regime(returns, vol_window=60, trend_window=20):
         vol = np.std(returns[-vol_window:])
@@ -250,7 +250,7 @@ CUSUM(쌓인 합) 알아내개는 잣대 평균에서 벗어난 만큼을 쌓아
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     붙박인 굴러가는 창은 창 안의 온 눈금에 같은 무게를, 밖에는 0을 매기므로 옛 데이터가 떨어져 나갈 때 끊김이 생긴다. 지수 무게 주기는 매끄럽게 삭이는 무게 $w_t = \alpha(1-\alpha)^t$을 매겨 튐 없이 천천히 넘어간다.
 
     지수 이동 평균의 실제 샘플링 크기는 대략 $N_{\text{실제}} = 2/\alpha - 1$이다. $\alpha = 0.05$이면 $N_{\text{실제}} \approx 39$개다. 곧 지수 이동 평균이 대략 39일 굴러가는 창처럼 움직이되 넘어감이 더 매끄럽다. $\alpha$이 작으면 더 매끄럽고(실제 창이 넓고) 크면 바뀜에 더 빨리 답한다.
@@ -265,7 +265,7 @@ CUSUM(쌓인 합) 알아내개는 잣대 평균에서 벗어난 만큼을 쌓아
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class AdaptiveStrategyPolicy:
         def __init__(self, num_assets, switch_threshold=0.005):

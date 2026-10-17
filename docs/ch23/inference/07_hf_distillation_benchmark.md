@@ -734,7 +734,7 @@ PerformanceBenchmark와 SimpleTeacher·SimpleStudent의 역할을 구분하고 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     PerformanceBenchmark는 측정용 일반 클래스라 자체 학습 파라미터가 없다. 교사는 (20×128+128)+(128×128+128)+(128×5+5)=19845개다. 학생은 (20×32+32)+(32×5+5)=837개다. 개수 비율은 약 23.71배이며 실제 저장 바이트 비율과는 다르다.
 
@@ -749,7 +749,7 @@ PerformanceBenchmark와 SimpleTeacher·SimpleStudent의 역할을 구분하고 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     클래스 인덱스 의미가 다르면 서로 다른 레이블의 확률을 맞추게 된다. 토크나이저나 입력 키가 호환되지 않으면 같은 사전을 두 모델에 전달할 수 없다. 장치가 다르면 순전파도 실패할 수 있다. 교사·학생이 같은 태스크의 같은 표본과 클래스 순서를 처리하는지 확인해야 한다.
 
@@ -764,7 +764,7 @@ OnnxPipeline을 PerformanceBenchmark에 그대로 넣을 때 발생할 호환성
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     래퍼에 model이 없어 크기 측정의 model.save_pretrained 호출이 실패한다. 정수 레이블 정확도 경로의 model.config.label2id도 사용할 수 없다. ONNX 아티팩트 크기를 따로 측정하고 레이블 매핑을 공통 인터페이스로 제공해야 한다. tokenizer 설정과 ONNX 입력 이름·dtype도 동일한 전처리 조건에 맞춘다.
 
@@ -779,7 +779,7 @@ OnnxPipeline을 PerformanceBenchmark에 그대로 넣을 때 발생할 호환성
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     아래 ModuleList는 뉴럴 넷트웍 모듈을 등록하는 골격이며 YourBlock이 정의되지 않았다. PerformanceBenchmark 자체에는 깊이가 없다. 깊이가 다른 학생 nn.Module을 별도로 만들고 같은 초기값 조건의 비증류·증류 쌍을 비교한다. 학습·검증·테스트 데이터를 나누고 여러 시드, 학습 예산, 동일 전처리와 장치 조건에서 품질·실제 파일 크기·지연 시간을 보고한다.
 

@@ -188,7 +188,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     judge = 98.83
     rows = [("PCA-64", 97.81), ("AE_Linear-64", 97.80),

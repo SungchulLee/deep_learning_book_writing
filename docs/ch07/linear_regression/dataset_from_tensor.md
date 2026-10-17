@@ -219,7 +219,7 @@ Saved: dataset_from_tensor.png
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     출력 1개인 크기 $B$ 배치에서는 합 경사가 평균 경사의 $B$배이므로, 모멘텀·감쇠 없는 SGD에서는 러닝레이트를 $B$로 나누면 같은 이동을 얻는다. 마지막 배치 크기가 다르면 그에 맞춰야 한다. 출력이 여러 개면 전체 원소 수가 분모이며 Adam 등에서도 같은 단순 대응이 항상 성립하는 것은 아니다. 보고용 로스의 집계 방식도 바꿔야 한다.
 
 ---
@@ -231,7 +231,7 @@ Saved: dataset_from_tensor.png
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -272,7 +272,7 @@ Saved: dataset_from_tensor.png
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn

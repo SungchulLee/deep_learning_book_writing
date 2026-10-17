@@ -330,7 +330,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     팩터리는 무작위 모델을 만들고 head를 교체할 뿐 웨이트를 로드하지 않는다. 동결한 patch_embed·blocks 외에 CLS·위치 표·최종 norm도 requires_grad=True다. 실제 전이 학습에는 호환 체크포인트·전처리를 불러오고 갱신할 계수 목록을 확인해야 한다.
 
 ---
@@ -342,7 +342,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     패치 벡터는 실수 피처가며 어휘의 정수 ID가 아니다. 무작위 모델·입력은 모양과 계산 규약을 보여 줄 뿐 의미를 학습한 결과가 아니다. 전역 연결 가능성과 실제로 유용한 전역 관계를 학습하는 것도 구분한다.
 
 ---
@@ -354,7 +354,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     메시지는 28×28=784개를 말하지만 외부 클래스는 네 번 stride=2로 224→14가 되어 196패치와 CLS 하나를 쓴다. 기본 폭은 192이며 분류는 CLS다. 출력 로그의 설명을 실제 계산 그래프와 대조해야 한다.
 
 ---
@@ -366,7 +366,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
     ```python
     def test_examples():

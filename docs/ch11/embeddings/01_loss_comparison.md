@@ -108,7 +108,7 @@ Training three models with different loss functions...
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     logits = torch.tensor([[2.0, 1.0, 0.1]])
     target = torch.tensor([0])
@@ -132,7 +132,7 @@ Training three models with different loss functions...
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     `F.softmax` 자체도 큰 로짓에 대해 안정적인 계산을 사용한다. 여기서 문제는 매우 작은 확률이 먼저 0으로 언더플로된 뒤 `torch.log(0)`이 $-\infty$가 될 수 있다는 점이다. 아래의 유한한 로짓 예제에서 작은 클래스 확률에 이 문제가 생긴다.
     
     ```python
@@ -154,7 +154,7 @@ Training three models with different loss functions...
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     model4 = ngr.NGramLanguageModeler()
     loss_fn4 = nn.CrossEntropyLoss(label_smoothing=0.1)

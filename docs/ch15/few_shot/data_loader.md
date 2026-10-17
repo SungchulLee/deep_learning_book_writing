@@ -339,7 +339,7 @@ MiniImageNetLoader의 data_path는 사용되지 않고 split 이름도 train·va
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     한 에피소드는 서포트 (5,3,84,84), 레이블 (5,), 쿼리 (75,3,84,84), 레이블 (75,)다. 배치 4이면 각각 앞에 4축이 붙는다. 레이블 0~4는 각 과제에서 독립적인 클래스 대응이다.
 
 ---
@@ -351,7 +351,7 @@ MiniImageNetLoader의 data_path는 사용되지 않고 split 이름도 train·va
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     각 원래 인덱스의 교집합이 없고 클래스당 K+Q개가 충분한지 확인한다. 중복 이미지·어그멘테이션 사본이 다른 인덱스여도 의미상 같은 자료일 수 있어 분할 단계에서도 관리한다. create_episode의 슬라이스는 부족해도 요청 수를 자동 보장하지 않는다.
 
 ---
@@ -363,7 +363,7 @@ MiniImageNetLoader의 data_path는 사용되지 않고 split 이름도 train·va
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     아니다. 경로에서 파일·분할을 읽지 않고 무작위 피처·레이블을 만든다. 실제 데이터와 클래스 분할·전처리·에피소드 시드가 필요하다. 출력 모양을 확인해도 표현의 적응 성능이나 벤치마크 정확도를 검증한 것은 아니다.
 
 ---
@@ -375,7 +375,7 @@ MiniImageNetLoader의 data_path는 사용되지 않고 split 이름도 train·va
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
     ```python
     def test_episodicdataset():

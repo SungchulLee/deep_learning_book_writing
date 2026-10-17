@@ -171,7 +171,7 @@ Saved: gradient_descent_torch.png
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     from torch.utils.data import TensorDataset, DataLoader
@@ -210,7 +210,7 @@ Saved: gradient_descent_torch.png
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     아니다. `grad_w`, `grad_b`를 매 반복 새 값으로 대입하므로 이전 경사가 자동 누적되지 않는다. autograd의 `.grad`는 기본적으로 누적되므로 별도 초기화가 필요하다. 초기화를 빠뜨리면 의도한 규칙이 달라지지만 경사가 항상 커지거나 반드시 발산한다고 말할 수는 없다.
 
 ---
@@ -222,7 +222,7 @@ Saved: gradient_descent_torch.png
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch, time
     from torch.utils.data import TensorDataset, DataLoader

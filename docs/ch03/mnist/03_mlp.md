@@ -1313,7 +1313,7 @@ with torch.no_grad():
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     for name, p in model.named_parameters():
         print(f"{name:12s} {tuple(p.shape)}  {p.numel():>7,}")
@@ -1340,7 +1340,7 @@ ReLU를 식으로 적고 도함수를 구하라. $z = 0$에서 미분할 수 있
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $$\mathrm{ReLU}(z) = \max(0, z), \qquad
       \mathrm{ReLU}'(z) = \begin{cases} 1 & z > 0 \\ 0 & z < 0 \end{cases}$$
 
@@ -1369,7 +1369,7 @@ ReLU를 식으로 적고 도함수를 구하라. $z = 0$에서 미분할 수 있
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     1절에서 보았듯 활성화가 없으면 두 레이어가 하나로 합쳐진다.
 
     $$y = (x W_1 + b_1) W_2 + b_2 = x \underbrace{(W_1 W_2)}_{W'} + \underbrace{(b_1 W_2 + b_2)}_{b'}$$
@@ -1395,7 +1395,7 @@ ReLU를 식으로 적고 도함수를 구하라. $z = 0$에서 미분할 수 있
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     W1, b1 = model[1].weight.detach(), model[1].bias.detach()
     W2, b2 = model[2].weight.detach(), model[2].bias.detach()
@@ -1432,7 +1432,7 @@ ReLU를 식으로 적고 도함수를 구하라. $z = 0$에서 미분할 수 있
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
     ```python
     print(torch.linalg.matrix_rank(Wp))          # 10
     print((torch.linalg.svdvals(Wp) > 1e-4).sum())   # 10
@@ -1461,7 +1461,7 @@ ReLU 자리에 시그모이드와 tanh를 넣어 보고, 활성화가 아예 없
 
 </div>
 
-??? success "연습문제 6 풀이"
+??? success "풀이"
     | 활성화 | 없음 | 시그모이드 | tanh | ReLU |
     |---|---|---|---|---|
     | 시험 정확도 | 92.11% | 95.78% | **97.10%** | **97.06%** |
@@ -1487,7 +1487,7 @@ ReLU 자리에 시그모이드와 tanh를 넣어 보고, 활성화가 아예 없
 
 </div>
 
-??? success "연습문제 7 풀이"
+??? success "풀이"
     | 너비 | 16 | 32 | 64 | 128 | 256 | 512 | 1024 |
     |---|---|---|---|---|---|---|---|
     | 파라메터 | 12,730 | 25,450 | 50,890 | 101,770 | 203,530 | 407,050 | 814,090 |
@@ -1514,7 +1514,7 @@ ReLU 자리에 시그모이드와 tanh를 넣어 보고, 활성화가 아예 없
 
 </div>
 
-??? success "연습문제 8 풀이"
+??? success "풀이"
     | 은닉 레이어 수 | 1 | 2 | 3 |
     |---|---|---|---|
     | 시험 정확도 | 97.14% | 97.19% | **97.02%** |
@@ -1541,7 +1541,7 @@ ReLU 자리에 시그모이드와 tanh를 넣어 보고, 활성화가 아예 없
 
 </div>
 
-??? success "연습문제 9 풀이"
+??? success "풀이"
     ```python
     with torch.no_grad():
         h = torch.relu(model[1](X_test.flatten(1)))
@@ -1572,7 +1572,7 @@ ReLU 자리에 시그모이드와 tanh를 넣어 보고, 활성화가 아예 없
 
 </div>
 
-??? success "연습문제 10 풀이"
+??? success "풀이"
     | 모델 | 파라메터 | 표현할 수 있는 함수 | 정확도 |
     |---|---|---|---|
     | 단층 선형 | 7,850 | $784 \to 10$ 아핀 전체 | **92.34%** |
@@ -1607,7 +1607,7 @@ ReLU 자리에 시그모이드와 tanh를 넣어 보고, 활성화가 아예 없
 
 </div>
 
-??? success "연습문제 11 풀이"
+??? success "풀이"
     **예측.** $W' = W_2 W_1$에서 은닉 너비를 $h$라 하면
 
     $$\mathrm{rank}(W') \le \min(h, 10)$$
@@ -1646,7 +1646,7 @@ ReLU 자리에 시그모이드와 tanh를 넣어 보고, 활성화가 아예 없
 
 </div>
 
-??? success "연습문제 12 풀이"
+??? success "풀이"
     | 은닉 너비 | 2 | 5 | 10 | 128 |
     |---|---|---|---|---|
     | 활성화 없음 | **68.46%** | 89.56% | 92.40% | 92.11% |
@@ -1681,7 +1681,7 @@ ReLU 자리에 시그모이드와 tanh를 넣어 보고, 활성화가 아예 없
 
 </div>
 
-??? success "연습문제 13 풀이"
+??? success "풀이"
     스칼라 두 개로 줄여도 곱셈 구조는 그대로 남는다. 목표를 $w_1 w_2 = 1$이라 하고
     로스를 다음과 같이 두자.
 
@@ -1730,7 +1730,7 @@ ReLU 자리에 시그모이드와 tanh를 넣어 보고, 활성화가 아예 없
 
 </div>
 
-??? success "연습문제 14 풀이"
+??? success "풀이"
     정리를 먼저 정확히 적어 두자. 대략 이렇다. $K \subset \mathbb{R}^n$이 컴팩트 집합이고 $f: K \to \mathbb{R}$이 연속이며 활성화 $\sigma$가 연속이고 다항식이 아니면,
     임의의 $\varepsilon > 0$에 대해 은닉 레이어 하나를 가진 뉴럴 넷트웍 $g$가 있어
 
@@ -1768,7 +1768,7 @@ $\tanh(x) = 2\sigma(2x) - 1$임을 보여라. 안쪽의 2를 빠뜨려 $2\sigma(
 
 </div>
 
-??? success "연습문제 15 풀이"
+??? success "풀이"
     **유도.** $\sigma(x) = 1/(1 + e^{-x})$이므로
 
     $$2\sigma(2x) - 1 = \frac{2}{1 + e^{-2x}} - 1
@@ -1820,7 +1820,7 @@ $\tanh(x) = 2\sigma(2x) - 1$임을 보여라. 안쪽의 2를 빠뜨려 $2\sigma(
 
 </div>
 
-??? success "연습문제 16 풀이"
+??? success "풀이"
     **예측.** 역전파는 레이어마다의 도함수를 곱해 내려간다(3절). 시그모이드 레이어 $k$개를
     지나면 그 곱에 $\sigma'$이 $k$번 들어가고 $\sigma' \le 1/4$이므로, 활성화가
     기여하는 몫은
@@ -1884,7 +1884,7 @@ $\tanh(x) = 2\sigma(2x) - 1$임을 보여라. 안쪽의 2를 빠뜨려 $2\sigma(
 
 </div>
 
-??? success "연습문제 17 풀이"
+??? success "풀이"
     파이썬에서 `obj(...)`는 `type(obj).__call__(obj, ...)`이다. `nn.Module`이 그
     `__call__`을 정의해 두었고, 그 안에서 우리가 쓴 `forward`를 부른다.
 
@@ -1922,7 +1922,7 @@ $\tanh(x) = 2\sigma(2x) - 1$임을 보여라. 안쪽의 2를 빠뜨려 $2\sigma(
 
 </div>
 
-??? success "연습문제 18 풀이"
+??? success "풀이"
     `loss`는 값 하나짜리 텐서이지만 **자기를 만든 계산 그래프를 손에 쥐고 있다.**
     `.item()`은 값만 꺼내 그 연결을 끊는다. 빼먹으면 배치마다의 그래프가 모두
     살아남아 서로 이어진다.
@@ -1965,7 +1965,7 @@ $\tanh(x) = 2\sigma(2x) - 1$임을 보여라. 안쪽의 2를 빠뜨려 $2\sigma(
 
 </div>
 
-??? success "연습문제 19 풀이"
+??? success "풀이"
     **유한 차분.** 파라메터 하나 $\theta_i$의 편미분을 어림하려면
 
     $$\frac{\partial \,\text{loss}}{\partial \theta_i} \approx
@@ -2019,7 +2019,7 @@ $\tanh(x) = 2\sigma(2x) - 1$임을 보여라. 안쪽의 2를 빠뜨려 $2\sigma(
 
 </div>
 
-??? success "연습문제 20 풀이"
+??? success "풀이"
     `torch.autograd.functional.jacobian`이 야코비 행렬을 실제로 만들어 준다.
     784 → 128 레이어에 시그모이드를 붙이고 배치 32장으로 재었다.
 

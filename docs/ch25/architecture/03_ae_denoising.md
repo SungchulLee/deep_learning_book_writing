@@ -127,7 +127,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     같은 깨끗한 보류 표본에 각 잡음 유형·세기를 정의해 같은 오염 실현값으로 모델들을 비교한다. 입력 자체의 오차와 복원 오차, 절대 PSNR과 개선량을 함께 기록한다. 표준편차와 오염 확률을 같은 수치라고 같은 난도로 보지 않는다. 일반화 순위는 측정해야 하며 가우시안이 항상 가장 우수하다고 정하지 않는다.
 
@@ -142,7 +142,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     모델 재학습이나 잡음 생성·복원·PSNR 계산이 없고 improvement도 정의되지 않았다. 세기별 고정 모델 평가와 세기별 재학습은 다른 실험이다. 어느 값에서 알아볼 수 없게 되는지는 데이터·모델·평가 기준에 따라 정해야 한다.
 
@@ -162,7 +162,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     고해상도 피처를 전달해 세부 복원에 도움을 줄 수 있지만 잡음도 전달될 수 있다. 채널·공간 모양과 파라미터 비용을 맞추고 같은 오염·표적과 학습 예산에서 검증한다. 특정 1~3 dB 개선은 구현·데이터에 대한 측정 없이는 주장할 수 없다.
 
@@ -177,7 +177,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     일반 AE와 DAE 각각에 깨끗한 입력과 같은 오염 입력을 넣고 모두 깨끗한 원본을 기준으로 평가한다. 두 모델의 구조·학습 예산·데이터 분할을 맞춘다. 각자가 학습한 조건에서 반드시 이긴다는 법칙은 없고 입력 오염의 변화와 품질을 함께 본다.
 
@@ -192,7 +192,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
 
     오염 입력을 그대로 출력하면 원본과 차이가 남아 로스를 받는다. 따라서 원본의 조건부 구조를 이용하는 복원이 유리할 수 있다. 하지만 오염이 아주 약하거나 모델·데이터가 제한되면 항등에 가까울 수 있어 의미 있는 피처를 반드시 배운다고 결론 내리지 않는다.
 
@@ -207,7 +207,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 6 풀이"
+??? success "풀이"
 
     이 코드는 픽셀을 확률 p로 0으로 만들고 남은 값을 유지한다. 일반 nn.Dropout은 학습 때 남은 값을 1/(1−p)로 스케일하고 평가 때 항등으로 동작한다. 오염 연산과 은닉 정규화의 목적을 구분한다. 여기 masking도 깨끗한 전체 이미지를 복원하며 가린 부분만 평가하는 다른 목표와는 다르다.
 
@@ -222,7 +222,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 7 풀이"
+??? success "풀이"
 
     사용 조건을 대표하는 오염과 검증 데이터에서 복원·후속 태스크를 평가한다. 너무 약하면 입력과 표적 차이가 작고 너무 강하면 원본의 조건부 불확실성이 커질 수 있다. 사람이 알아볼 수 있다는 주관적 기준이나 고정 sigma만으로 최선이 정해지지는 않는다.
 
@@ -237,7 +237,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 8 풀이"
+??? success "풀이"
 
     새로 뽑으면 더 넓은 오염 실현값을 경험해 특정 쌍의 암기를 줄일 수 있지만 항상 필수는 아니다. 고정된 다수 오염 쌍도 유효한 학습 데이터이고 평가에서는 고정 잡음이 공정한 비교에 유용하다. 표본 수와 다양성, 재현성과 과적합을 함께 고려한다.
 
@@ -252,7 +252,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 9 풀이"
+??? success "풀이"
 
     유형·세기·신호 의존성과 클리핑·범위가 다른지 평가한다. 정확히 같아야만 작동하는 것은 아니지만 분포 차이가 성능을 바꿀 수 있다. 여러 세기·유형을 섞거나 잡음 수준을 조건으로 줄 수 있으나 새 조건의 일반화를 별도로 검증한다.
 
@@ -267,7 +267,7 @@ $$\mathbb E[x|\tilde x]=\tilde x+\sigma^2\nabla_{\tilde x}\log p_\sigma(\tilde x
 
 </div>
 
-??? success "연습문제 10 풀이"
+??? success "풀이"
 
     제곱 오차의 이상적인 복원은 조건부 평균이고, 클리핑 없는 가우시안 오염에서는 트위디 식으로 평활 밀도의 점수와 연결된다. 현재 코드는 클리핑된 입력, BCE와 유한 모델을 사용하므로 같은 점수식을 그대로 보장하지 않는다. 생성에는 적절한 확률 모형·여러 잡음 수준과 샘플링 과정도 필요하다.
 

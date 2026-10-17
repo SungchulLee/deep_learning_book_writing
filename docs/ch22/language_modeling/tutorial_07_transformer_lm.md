@@ -289,7 +289,7 @@ PositionalEncoding의 학습 가능한 파라메터 수와 저장된 버퍼 크�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     학습 가능한 파라메터는 0개다. pe는 1×max_len×d_model의 버퍼이므로 max_len·d_model개의 값을 저장한다. d_model과 max_len을 생성자에 제공해야 하므로 인자 없는 기본 생성은 없다. 드롭아웃이나 Linear·Conv2d 파라메터를 이 위치 인코딩에 합산하지 않는다.
 
@@ -304,7 +304,7 @@ PositionalEncoding의 학습 가능한 파라메터 수와 저장된 버퍼 크�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     nn.TransformerDecoderLayer에 전달한 dropout은 내부 어텐션과 관련 드롭아웃 구성에 사용된다. 별도 self.attn_dropout을 바깥 클래스에 선언하는 것만으로 내부 웨이트에 연결되지는 않는다. 어텐션 확률에 드롭아웃을 적용하면 일부 값이 0이 되고 나머지는 재조정되므로 매 시행의 합이 반드시 1인 것은 아니다. 드롭아웃은 정규화 선택이며 미래 memory를 차단하는 인과 마스크의 대체가 아니다.
 
@@ -319,7 +319,7 @@ PositionalEncoding의 학습 가능한 파라메터 수와 저장된 버퍼 크�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     밀집 토큰 간 계산은 O(T²d)이고 사영에는 O(Td²)가 든다. 창 폭 w의 국소 어텐션은 해당 부분이 O(Twd)이며 전역 토큰을 추가하면 그 비용도 더한다. 길이 축을 k차원으로 줄이는 저차원 방식은 해당 상호작용을 O(Tkd)로 줄일 수 있다. 실제 메모리는 head 수·배치·역전파·중간 행렬을 저장하는 구현에 달려 있다. 효율 개선과 원래 연산의 근사·연결 구조 변경을 구분하고 품질을 평가해야 한다.
 
@@ -334,7 +334,7 @@ PositionalEncoding의 학습 가능한 파라메터 수와 저장된 버퍼 크�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     현재 깊이는 TransformerLanguageModel의 num_layers로 TransformerDecoder에 전달한다. PositionalEncoding에는 반복할 블록이 없다. 아래 YourBlock과 dim은 정의되지 않은 자리표시자이므로 완성된 확장 코드가 아니다. 직접 블록을 쌓는 별도 구현에서는 ModuleList로 등록하고 forward에서 순서대로 호출해야 한다. 단순 Python 리스트에 담은 모듈은 자동 등록되지 않지만 ModuleList에 넣는 것만으로 forward 계산이 자동 구성되는 것도 아니다.
 

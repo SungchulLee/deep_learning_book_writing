@@ -64,7 +64,7 @@ Inference y.requires_grad (expect False): False
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     일반적인 추적 문맥에서는 `a`에 대한 미분 경로를 기록하므로 결과도 경사를 추적한다. `b`에는 기본적으로 경사를 저장하지 않는다.
 
 <div class="drillbox" markdown>
@@ -74,7 +74,7 @@ Inference y.requires_grad (expect False): False
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     그렇지 않다. 비잎 텐서는 기본적으로 경사를 보관하지 않는다. `grad_fn`과 추적 경로를 점검하고, 중간 경사가 필요하면 역전파 전에 `retain_grad()`를 호출한다.
 
 <div class="drillbox" markdown>
@@ -84,7 +84,7 @@ Inference y.requires_grad (expect False): False
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     `no_grad()` 구간, `detach()`, NumPy 변환, 텐서로 다시 감싸는 연산, 모든 입력의 추적 설정을 확인한다. 값을 계산한 것과 원래 미분 경로가 유지된 것은 별개다.
 
 ## 정리하며

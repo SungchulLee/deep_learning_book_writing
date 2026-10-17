@@ -292,7 +292,7 @@ $p_t$에 대한 도함수와 로짓에 대한 도함수를 구분해 Focal Loss�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $\partial FL/\partial p_t=\alpha_t\gamma(1-p_t)^{\gamma-1}\log p_t-\alpha_t(1-p_t)^\gamma/p_t$이다. 여기에 $(2y-1)p_t(1-p_t)$를 곱하면 본문의 로짓 경사를 얻는다. 잘 맞힌 예에서 경사는 더 빠르게 작아지지만, 큰 로스의 원인이 레이블 오류라면 그 표본을 상대적으로 강조할 위험도 있다.
 
 ---
@@ -304,7 +304,7 @@ Focal Loss을 쓰는 물체 검출에서 $\gamma$과 $\alpha$은 보통 어떤 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     RetinaNet 논문(Lin 등, 2017)의 기본값은 $\gamma = 2$과 $\alpha = 0.25$이다. $\gamma = 2$이 좋은 균형을 준다. 쉬운 예($p_t > 0.5$)의 비중이 $4$배 넘게 낮아진다. $\alpha$은 양성 클래스와 음성 클래스의 균형을 맞춘다.
 
 ---
@@ -316,7 +316,7 @@ Focal Loss을 PyTorch로 구현하고, 불균형한 데이터셋에서 표준 BC
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     def focal_loss(logits, targets, gamma=2.0, alpha=0.25):
         bce = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
@@ -334,7 +334,7 @@ Focal Loss를 사용할 때 교차 엔트로피 기준과 비교해야 할 한�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     어려운 예에는 중요한 소수 표본뿐 아니라 오표기·모호한 표본도 포함된다. 감마와 클래스 웨이트는 검증해야 하고, 순위·임계값 성능과 확률 보정도 함께 평가한다. 클래스 비율만으로 사용 여부나 보편적 우열을 정하지 않는다.
 
 ## 정리하며

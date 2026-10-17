@@ -99,7 +99,7 @@ NumPy에서 수행한 연산은 PyTorch의 계산 그래프에 기록되지 않�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     original = torch.tensor([1., 2., 3.], requires_grad=True)
     cloned = original.clone()
@@ -119,7 +119,7 @@ NumPy에서 수행한 연산은 PyTorch의 계산 그래프에 기록되지 않�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     `clone()`만 쓰면 데이터는 복사하지만 autograd 그래프 연결은 유지된다. `detach()`만 쓰면 저장소는 공유하되 그래프에서 떨어져 나온다. `detach().clone()`은 그래프 연결이 없는 독립적인 복사본을 준다. 학습에 영향을 주지 않으면서 기록, 비교, 직렬화를 위한 스냅숏을 만들 때 적합하다.
 
 ---
@@ -132,7 +132,7 @@ NumPy에서 수행한 연산은 PyTorch의 계산 그래프에 기록되지 않�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     x = torch.tensor([1., 2., 3., 4., 5.])
     s = x[1:4]  # 뷰

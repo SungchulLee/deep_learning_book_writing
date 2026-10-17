@@ -505,7 +505,7 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     결정 경계는 초평면 $\beta_0 + \beta_1 x_1 + \cdots + \beta_d x_d = 0$, 즉 $\boldsymbol{\beta}_{1:d}^\top \mathbf{x} = -\beta_0$이다. 원점에서 초평면 $\mathbf{w}^\top\mathbf{x} = b$까지의 거리는 $|b|/\|\mathbf{w}\|$이다.
 
     따라서 거리는 $|-\beta_0|/\|\boldsymbol{\beta}_{1:d}\| = |\beta_0|/\|\boldsymbol{\beta}_{1:d}\|$이다.
@@ -521,7 +521,7 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $\text{BCE} = -y\log\sigma(z) - (1-y)\log(1-\sigma(z))$에서 출발한다.
 
     $\log\sigma(z) = -\log(1+e^{-z})$이고 $\log(1-\sigma(z)) = -z - \log(1+e^{-z})$임에 유의하라.
@@ -541,7 +541,7 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     import matplotlib.pyplot as plt
@@ -579,7 +579,7 @@ Final loss (BCEWithLogitsLoss): 0.344025
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn

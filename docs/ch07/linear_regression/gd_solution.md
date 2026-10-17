@@ -487,7 +487,7 @@ model2.eval()
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     w = torch.zeros(d, requires_grad=True)
@@ -510,7 +510,7 @@ model2.eval()
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     같은 초기값과 데이터, 로스의 평균 기준을 사용한다. 에포크 수뿐 아니라 업데이트 횟수와 처리 시간도 보고한다. 표본·배치 로스는 서로 다른 파라미터에서 계산한 값이므로 일정 시점에 같은 전체 데이터에서 다시 평가하면 비교하기 쉽다. 어느 방식이 항상 빠른지는 미리 정할 수 없다.
 
 ---
@@ -522,7 +522,7 @@ model2.eval()
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     단계 $t$에서 경사는 $\mathbf{g}_t = \mathbf{A}\mathbf{w}_t - \mathbf{b}$이다. 최적 이동 폭은 $\eta$에 대해 $L(\mathbf{w}_t - \eta\mathbf{g}_t)$를 최소화한다.
 
     $$
@@ -540,7 +540,7 @@ PyTorch 추상화의 네 단계로 경사 하강법을 구현하라. (1) 경사 
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     4단계(가장 높은 추상화):
     ```python
     model = torch.nn.Linear(d, 1)

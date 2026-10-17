@@ -473,7 +473,7 @@ prefix 길이·MLP 폭·러닝레이트를 늘리면 언제나 품질이 좋아�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     MHA 직접 KV는 2lLd다. 현재 MLP는 lh+h²+h+hF+F이며 F=2Ld다. L=24,d=1024,l=10,h=512면 직접 값은 491,520개지만 MLP는 25,482,752개다. 생성된 KV 저장량과 학습 모듈 파라메터 수는 같지 않다.
 
@@ -488,7 +488,7 @@ prefix tuning·prompt tuning·prefix 언어 모델링을 구분하라.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     prefix tuning은 주로 레이어별 KV 조건, prompt tuning은 입력 임베딩의 가상 벡터를 학습한다. prefix 언어 모델링은 prefix 내부 양방향·suffix 인과 어텐션과 목표를 정하는 사전 학습 방식이다. 이름이 비슷해도 무엇이 학습되고 어느 위치에서 로스를 계산하는지가 다르다.
 
@@ -503,7 +503,7 @@ PromptTuning에서 T 길이 labels를 그대로 넘길 때의 문제를 설명�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     입력 임베딩 앞에 l개를 붙여 출력 위치는 l+T가 되므로 목표도 정렬해야 한다. 가상 위치를 제외하도록 −100 목표를 붙이는 등 기반 모델의 내부 shift와 일치하는 구성이 필요하다. 현재 forward에는 이 처리가 없으며 _init_from_text도 미구현이다.
 
@@ -518,7 +518,7 @@ train_prefix_tuning이 완성된 범용 인코더·디코더 학습 예제가 �
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     cache tuple·head·위치·마스크 지원은 모델별로 다르고 현재 함수는 검증 loader도 사용하지 않는다. 목표·입력 계약, 동결과 dropout 모드, 검증·저장·재개를 별도로 구성해야 한다. 구조 이름만으로 모든 기반 모델에 같은 방식으로 연결할 수는 없다.
 

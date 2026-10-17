@@ -146,7 +146,7 @@ NLI 기반 파이프라인은 입력을 전제, 후보 레이블을 넣은 템�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     from transformers import pipeline
     zs = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
@@ -168,7 +168,7 @@ NLI 기반 파이프라인은 입력을 전제, 후보 레이블을 넣은 템�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     from collections import Counter
 
@@ -190,7 +190,7 @@ NLI 기반 파이프라인은 입력을 전제, 후보 레이블을 넣은 템�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     original = "The big company reported good quarterly results"
     for i in range(5):

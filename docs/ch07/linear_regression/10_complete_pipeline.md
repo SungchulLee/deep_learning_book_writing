@@ -722,7 +722,7 @@
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     # Config 클래스에서 다음과 같이 설정한다:
     # hidden_sizes = [64, 32]
@@ -741,7 +741,7 @@
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     지정한 지표의 개선 여부와 `patience`, `threshold` 등 설정을 기준으로 러닝레이트를 줄인다. 정체가 큰 이동 폭에서 비롯된 경우 도움이 될 수 있지만 모델 부족이나 데이터 문제까지 해결하지는 않는다. 로스 감소나 더 좋은 최적해를 항상 보장하지 않는다.
 
 ---
@@ -753,7 +753,7 @@
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     from sklearn.model_selection import KFold

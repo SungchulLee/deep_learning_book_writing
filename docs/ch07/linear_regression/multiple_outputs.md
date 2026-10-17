@@ -213,7 +213,7 @@ Saved: multiple_outputs.png
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -250,7 +250,7 @@ Saved: multiple_outputs.png
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     PyTorch는 웨이트 행렬을 `(out_features, in_features)` = $(q, p)$로 저장하는데, 이는 수학적 관례의 전치이다. 순전파는 `x @ weight.T + bias`를 계산하며, 이는 $W = \text{weight}^T$가 $(p, q)$일 때 $XW + b$와 같다. 이런 저장 방식에서는 웨이트 행렬의 각 행이 출력 뉴런 하나의 웨이트를 나타내므로 웨이트 초기화와 점검에 편리하다. `nn.Linear`가 전치를 내부에서 처리하므로 사용자가 이를 신경 쓸 일은 대개 없다.
 
 ---
@@ -262,7 +262,7 @@ L2 정규화(`weight_decay=0.01`)로 다중 출력 모델을 학습시키고 학
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn

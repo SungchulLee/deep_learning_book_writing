@@ -414,7 +414,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -434,7 +434,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     그럴 필요는 없다. 유한 표본의 잡음 때문에 표본 MSE를 최소화하는 계수는 생성 규칙의 계수와 다를 수 있다. 잔차와 별도 데이터의 성능을 함께 살펴야 하며 학습 로스 0을 수렴의 필수 조건으로 삼지 않는다.
 
 ---
@@ -447,7 +447,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

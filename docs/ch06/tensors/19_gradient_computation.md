@@ -230,7 +230,7 @@ $y = x^3$의 1차·2차 미분을 $x = 3$에서 autograd로 구하라. `create_g
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -274,7 +274,7 @@ $y = x^3$의 1차·2차 미분을 $x = 3$에서 autograd로 구하라. `create_g
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -324,7 +324,7 @@ $y = x^3$의 1차·2차 미분을 $x = 3$에서 autograd로 구하라. `create_g
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     from torch.autograd import gradcheck

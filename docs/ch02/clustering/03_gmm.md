@@ -204,7 +204,7 @@ GMM은 데이터 분포를 $K$개 가우시안 성분의 가중합 $p(\mathbf{x}
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     from sklearn.mixture import GaussianMixture
@@ -266,7 +266,7 @@ GMM 모델 선택에서 BIC와 AIC의 차이를 설명하라. BIC가 AIC보다 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     BIC와 AIC 모두 과적합을 막기 위해 모델 복잡도에 패널티를 주지만 패널티의 강도가 다르다. AIC는 파라메터 개수를 $p$라 할 때 $2p$의 패널티를 더하고, BIC는 데이터 점 개수를 $n$이라 할 때 $p \ln n$을 더한다. $n \geq 8$인 데이터셋이라면 BIC의 패널티가 AIC의 패널티를 넘어서므로, BIC가 성분이 적은 단순한 모델을 선호하게 된다.
 
     BIC는 점근적으로 일관적이다. 즉 참 모델의 포함과 필요한 정규성 조건 등이 성립하면 표본이 증가할 때 올바른 모델을 선택할 가능성이 커진다. 혼합 모델에는 식별성과 특이성 문제가 있어 이런 설명을 조건 없이 적용해서는 안 된다. 반면 AIC는 점근적으로 효율적이어서 예측 오차를 최소화하는 모델을 선택한다. "참된" 군집 개수를 찾는 것이 아니라 밀도 추정이나 예측이 목표일 때, 또는 BIC의 패널티가 지나치게 보수적일 수 있는 작은 데이터셋을 다룰 때 AIC를 선호할 수 있다.
@@ -280,7 +280,7 @@ GMM 기반 이상 탐지 시스템을 구현하라. 데이터셋에 GMM을 적�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     import matplotlib.pyplot as plt

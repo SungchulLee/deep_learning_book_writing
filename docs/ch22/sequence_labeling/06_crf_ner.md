@@ -160,7 +160,7 @@ all_possible_transitions=True가 BIO 유효성을 강제하는가?
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     아니다. 관측되지 않은 태그 쌍도 학습 전이 후보에 포함하는 설정이다. 금지 BIO 경로의 강제 제약과는 다르며 레이블 유효성과 디코딩 폴리시를 별도로 정해야 한다.
 
@@ -175,7 +175,7 @@ all_possible_transitions=True가 BIO 유효성을 강제하는가?
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     문장 수, 각 문장의 토큰·태그 수와 순서, 유형·태그 체계가 일치해야 한다. 피처 사전 목록도 같은 토큰 순서여야 한다. 모델은 float32 이미지 배치가 아니라 문자열 문장과 태그 목록을 받는다.
 
@@ -190,7 +190,7 @@ all_possible_transitions=True가 BIO 유효성을 강제하는가?
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     학습 문장이 하나뿐이고 테스트 정답·span 지표·검증 분할이 없다. max_iterations는 상한이며 수렴 증거가 아니다. metrics import와 예측 출력만으로 성능이 측정되지는 않는다.
 
@@ -205,7 +205,7 @@ all_possible_transitions=True가 BIO 유효성을 강제하는가?
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     CRF_NER는 train·predict를 제공하며 PyTorch forward·parameters·backward를 구현하지 않는다. 아래 미정의 입력도 완성 시험이 아니다. 문장·태그 정렬, 피처 타입·경계, 학습 유형·빈 입력 폴리시·예측 길이와 유효 태그를 확인하는 명세가 필요하다.
 

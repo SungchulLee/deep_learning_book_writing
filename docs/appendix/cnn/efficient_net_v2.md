@@ -73,7 +73,7 @@ EfficientNetV2은 어디에나 SiLU(Swish) 활성화를 쓰는데, 여러 자리
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     MBConv에서는 (1) $1 \times 1$ 넓힘: $32 \times 128 \times 56 \times 56 \approx 12.8M$번. (2) $3 \times 3$ 깊이별: $128 \times 9 \times 56 \times 56 \approx 3.6M$번. (3) $1 \times 1$ 되비춤: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 29.2M$번이다. 녹여 붙인 MBConv에서는 (1) $3 \times 3$ 여느 컨볼루션: $32 \times 128 \times 9 \times 56 \times 56 \approx 115.6M$번. (2) $1 \times 1$ 되비춤: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 128.4M$번이다. 녹여 붙인 MBConv은 계산이 약 4.4배 많지만 쇠 붙임새를 더 잘 써서 GPU에서는 벽시계 때가 더 빠른 일이 잦다.
 
 ---
@@ -85,7 +85,7 @@ EfficientNetV2은 어디에나 SiLU(Swish) 활성화를 쓰는데, 여러 자리
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     EfficientNet 모델은 깊이, 너비, 결을 함께 손보는 복합 스케일링을 쓴다. 그 구조는 여러 결에서 두루 듣도록 꾸며졌다. 차근차근 학습하기는 이를 써서 낮은 결(다룰 낱그림점이 적어 회귀가 빠름)에서 비롯해 차츰 온 결로 올린다. 네트워크 구조가 결을 가리지 않으므로 낮은 결에서 배운 결이 자연스레 옮아간다. ResNet은 구조의 가정이 붙박여 결이 바뀌면 성능이 더 흔들린다. 게다가 차근차근 학습하기의 다독임 구조(낮은 결에는 여린 불리기, 높은 결에는 센 불리기)은 모델이 불린 작은 그림에 지나치게 맞춰지는 것을 막는데, 결을 붙박고 익히는 ResNet에는 덜 걸리는 탈이다.
 
 ---
@@ -97,7 +97,7 @@ EfficientNetV2은 어디에나 SiLU(Swish) 활성화를 쓰는데, 여러 자리
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class FusedMBConvSE(nn.Module):
         def __init__(self, in_ch, out_ch, expand_ratio=4, se_ratio=0.25):

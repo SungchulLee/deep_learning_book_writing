@@ -726,7 +726,7 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504  ( 3.98x,  4.00x)
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     **웨이트.** 표준 컨볼루션은 출력 채널마다 $C_{\text{in}} \times K \times K$짜리 필터를 하나씩 가지므로 웨이트가 $K^2 \cdot C_{\text{in}} \cdot C_{\text{out}}$개다. 깊이별 단계는 입력 채널마다 $K \times K$ 필터 하나씩이므로 $K^2 \cdot C_{\text{in}}$개, 점별 단계는 $1 \times 1$ 필터를 $C_{\text{out}}$개 쓰되 각각 $C_{\text{in}}$개의 입력을 받으므로 $C_{\text{in}} \cdot C_{\text{out}}$개다. 합쳐서 $C_{\text{in}}(K^2 + C_{\text{out}})$개다.
 
     **MAC 횟수.** 출력 자리 $H' \times W'$마다 위 웨이트를 한 번씩 쓰므로, 두 경우 모두 웨이트 수에 $H'W'$을 곱한 값이다. 표준은 $K^2 C_{\text{in}} C_{\text{out}} H' W'$, 깊이별 분리는 $C_{\text{in}}(K^2 + C_{\text{out}}) H' W'$이다.
@@ -748,7 +748,7 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504  ( 3.98x,  4.00x)
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -790,7 +790,7 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504  ( 3.98x,  4.00x)
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     깊이별 컨볼루션은 입력 채널마다 공간 필터링을 수행하고 점별 컨볼루션은 채널을 혼합한다. 채널 배수 1이고 중간 비선형성이 없는 두 단계를 합치면 유효 커널은 $W_{o,c,m,n}=P_{o,c}D_{c,m,n}$로 제한된다. 점별 혼합이 있어도 임의의 표준 커널의 자유도가 모두 복원되지는 않는다. MobileNetV2는 확장·깊이별·선형 투영을 결합하고 EfficientNet의 MBConv도 이에 기반하되 SE 등의 구성을 더한다.
 
 ---
@@ -802,7 +802,7 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504  ( 3.98x,  4.00x)
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     깊이별 분리 컨볼루션은 파라메터와 계산에서 효율적이지만, 깊이별 단계가 채널을 섞지 않으므로 모델의 용량이 줄어들 수 있다. 다음 경우에는 표준 컨볼루션이 낫다.
 
     1. 모델의 용량이 중요하고 계산이 병목이 아닐 때

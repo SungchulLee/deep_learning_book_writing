@@ -190,7 +190,7 @@ $$
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -223,7 +223,7 @@ $$
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -268,7 +268,7 @@ torch.arange(1, 1.3, 0.1)      # 몇 개?
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

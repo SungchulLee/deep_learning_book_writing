@@ -331,7 +331,7 @@ base_lr=0.001, max_lr=0.01, step_size=100인 triangular 폴리시에서 step 0, 
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     각각 0.001, 0.01, 0.001이다. step_size는 전체 주기가 아니라 최솟값에서 최댓값까지의 단계 수이다.
 
 ---
@@ -344,7 +344,7 @@ base_lr=0.001, max_lr=0.01, step_size=100인 triangular 폴리시에서 step 0, 
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     아니다. 반환값을 실제 옵티마이저의 각 param_group 러닝레이트에 연결해야 한다. 단계 단위가 에포크인지 갱신인지도 학습 루프에서 일관되게 정한다.
 
 ---
@@ -357,7 +357,7 @@ base_lr=0.001, max_lr=0.01, step_size=100인 triangular 폴리시에서 step 0, 
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     initial_lr는 0.0004이고 final_lr는 0.000001이다. 이 코드의 final_lr는 max_lr를 기준으로 계산한다. 같은 이름의 라이브러리 인수도 이런 의미라고 추정하지 말고 해당 정의를 확인한다.
 
 ## 정리하며

@@ -281,7 +281,7 @@ After 1st backward: x2.grad = tensor([4.])
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -301,7 +301,7 @@ After 1st backward: x2.grad = tensor([4.])
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     필요하지 않다. `.grad`의 누적과 그래프 보존은 별개다. 각 로스를 새로 계산했다면 각각의 그래프로 역전파할 수 있다. 다만 두 로스가 역전파에 필요한 중간 결과를 공유한다면 별도의 보존 여부를 검토해야 한다.
 
 ---
@@ -314,7 +314,7 @@ After 1st backward: x2.grad = tensor([4.])
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

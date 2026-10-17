@@ -119,7 +119,7 @@ d=512, d_ff=2048인 EncoderLayer의 파라메터 수를 계산하라.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     어텐션 투영 1,050,624개, 피드포워드 2,099,712개, 두 LayerNorm 2,048개로 총 3,152,384개다. 드롭아웃·ReLU는 학습 파라메터를 추가하지 않는다.
 
 ---
@@ -131,7 +131,7 @@ d=512, d_ff=2048인 EncoderLayer의 파라메터 수를 계산하라.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     Q·K 성분이 서로 독립이고 평균 0·분산 1이면 내적의 분산은 $d_k$여서 스케일 뒤 1이 된다. 실제 학습된 피처는 이 가정을 정확히 따르지 않을 수 있다. 스케일은 초기 점수 포화를 줄이는 근거이며 모든 모델의 그래디언트·수렴을 보장하지 않는다.
 
 ---
@@ -143,7 +143,7 @@ d=512, d_ff=2048인 EncoderLayer의 파라메터 수를 계산하라.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class DecoderLayer(nn.Module):
         def __init__(self, d_model=512, num_heads=8, d_ff=2048, dropout=0.1):

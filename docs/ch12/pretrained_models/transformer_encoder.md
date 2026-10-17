@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     그렇지 않다. 배치 우선 (4,30,512)가 기본 시퀀스 우선 어텐션에 전달되어 축 해석이 뒤바뀐다. 제시한 (4,30) 마스크도 내부 기대 모양과 다르다. 아래 코드는 그 문제를 드러내는 검토 대상이며 완성된 검증 예제가 아니다.
 
     ```python
@@ -110,7 +110,7 @@ nn.MultiheadAttention의 key_padding_mask와 attn_mask를 비교하라.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     배치 우선 여부와 무관하게 key_padding_mask는 (B,S)이며 불리언 True는 해당 키를 제외한다. attn_mask는 (L,S) 또는 (B×H,L,S)로 쿼리·키 쌍을 제한한다. 불리언끼리는 차단 위치를 합칠 수 있고 실수 마스크는 점수에 더하는 값이다. 둘을 함께 쓸 때는 자료형 규약을 맞춘다. 키 마스크만으로 패딩 쿼리의 로스를 제외하지는 않는다.
 
 ---
@@ -122,7 +122,7 @@ nn.MultiheadAttention의 key_padding_mask와 attn_mask를 비교하라.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import math
 

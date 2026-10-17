@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     풀링 없이 stride=1인 커널 3 세 개면 3→5→7이다. 실제 순서 conv3→pool2→conv3→pool2→conv3에서는 리셉티브 필드 r과 간격 j가 (3,1)→(4,2)→(8,2)→(10,4)→(18,4)가 된다. 단순히 7×4=28로 계산할 수 없다. 마지막 전역 평균은 이 국소 피처들을 전체 길이에 걸쳐 집계한다.
 
 ---
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     self.conv_layers = nn.Sequential(
         nn.Conv1d(input_channels, 64, kernel_size=3, padding=1),
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     self.conv_layers = nn.Sequential(
         nn.Conv1d(input_channels, 64, kernel_size=3, padding=1),

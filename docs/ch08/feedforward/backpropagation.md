@@ -524,7 +524,7 @@ MSE 로스를 쓰는 단층 뉴럴 넷트웍 $y = \sigma(Wx + b)$의 역전파 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     로스: $L = \frac{1}{2}(y - t)^2$이다. $\frac{\partial L}{\partial y} = y - t$이다. $z = Wx+b$일 때 $\frac{\partial y}{\partial z} = \sigma'(z)$이다. $\frac{\partial L}{\partial W} = \frac{\partial L}{\partial y}\sigma'(z)x^\top = (y-t)\sigma'(z)x^\top$이고 $\frac{\partial L}{\partial b} = (y-t)\sigma'(z)$이다.
 
 ---
@@ -536,7 +536,7 @@ MSE 로스를 쓰는 단층 뉴럴 넷트웍 $y = \sigma(Wx + b)$의 역전파 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     수치 미분은 유한차분 $(f(x+h)-f(x))/h$을 쓰며 근사적이고 파라메터가 $n$개이면 전체 경사를 구하는 데 대략 $O(n)$번의 함수 평가가 필요하다. 기호 미분은 식을 대수적으로 조작하여 정확하지만 식의 크기가 폭발할 수 있다. 자동 미분은 기본 연산의 도함수와 연쇄 법칙을 사용한다. 유한차분의 절단 오차는 없지만 부동소수점 반올림 오차와 미분 불가능점의 구현 관례는 남는다. PyTorch는 역방향 자동 미분을 쓴다.
 
 ---
@@ -548,7 +548,7 @@ MSE 로스를 쓰는 단층 뉴럴 넷트웍 $y = \sigma(Wx + b)$의 역전파 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     역방향은 한 번의 역전파로 모든 $i$에 대해 $\partial L/\partial w_i$을 계산한다(스칼라 로스에서 통과 횟수가 $O(1)$이다). 순방향은 한 번에 모든 출력에 대해 $\partial y_j/\partial w$을 계산하지만 파라메터가 $n$개면 $n$번을 지나야 한다. 뉴럴 넷트웍은 파라메터가 많고 로스는 스칼라 하나이므로 역방향이 유리하다.
 
 ---
@@ -560,7 +560,7 @@ MSE 로스를 쓰는 단층 뉴럴 넷트웍 $y = \sigma(Wx + b)$의 역전파 �
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     def grad_check(f, x, eps=1e-5):
         grad = torch.zeros_like(x)

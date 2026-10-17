@@ -468,7 +468,7 @@
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     `nn.Linear(in_features, out_features)`마다 짐 파라메터가 `in_features * out_features`개, 바이어스 파라메터가 `out_features`개다(`bias=False`이 아니라면). `nn.Conv2d(in_c, out_c, k)`마다 짐 파라메터가 `in_c * out_c * k * k`개, 바이어스 파라메터가 `out_c`개다. `nn.Embedding(num, dim)`이면 파라메터가 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
 
 ---
@@ -480,7 +480,7 @@
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     가장 좋게 하는 개를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 갈음한다. Adam은 파라메터마다 맞춰 가는 러닝레이트와 밀림 어림을 지니므로 앞선 시대에 흔히 더 빨리 모인다. Adam의 로스 곡선은 첫 몇 시대에 더 가파르게 떨어지지만 가장 좋은 자리 언저리에서 밀림을 곁들인 SGD보다 조금 더 흔들릴 수 있다. 고르게 견주려면 아무렇게나 하는 시드와 시대 수를 같게 하고 둘 다 돌려라.
 
 ---
@@ -492,7 +492,7 @@
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     흔히 무너지는 결은 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 그래디언트 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 살핌 로스가 오르면 짚어낸다. 정규화(드롭아웃, 짐 줄이기, 데이터 늘리기)나 모델 크기 줄이기로 고친다. 학습과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
@@ -504,7 +504,7 @@
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     못 박아 둔 켜를 이렇게 갈음한다.
     ```python
     self.layers = nn.ModuleList()

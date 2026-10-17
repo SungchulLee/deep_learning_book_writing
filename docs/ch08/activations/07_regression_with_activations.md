@@ -90,7 +90,7 @@ Final Loss: 0.070942
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     criterion = nn.L1Loss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -112,7 +112,7 @@ Final Loss: 0.070942
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     시그모이드 출력을 쓰면 모델은 $(0, 1)$ 범위의 값만 예측할 수 있는데, 목표 $\sin(x)$은 $-1$에서 $1$까지 걸쳐 있다. 모델은 출력의 경계에서 포화하고 음수 값은 아예 표현하지 못한다. 모델 구조가 근본적으로 목표 함수를 표현할 수 없으므로 로스는 높은 값에서 정체된다. 이는 출력 활성화가 목표의 값 범위과 맞아야 하는 이유를 보여준다.
 
 ---
@@ -124,7 +124,7 @@ Final Loss: 0.070942
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     # 데이터를 생성한다
     X = np.linspace(-5, 5, 200).reshape(-1, 1)

@@ -175,7 +175,7 @@ OLS는 희소성을 강제하지 않고, 릿지는 계수의 L2 크기를 억제
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     from sklearn.linear_model import BayesianRidge
     from sklearn.pipeline import Pipeline
@@ -199,7 +199,7 @@ LassoCV의 계산상 이점과, 선택한 교차 검증 점수를 최종 성능�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     정규화 경로에서 이전 해를 활용하는 웜스타트로 여러 alpha를 효율적으로 비교할 수 있다. 하지만 같은 교차 검증 점수로 alpha를 고른 뒤 그 최솟값을 보고하면 선택에 따른 낙관 바이어스가 생길 수 있다. 독립 테스트셋이나 중첩 교차 검증을 사용한다. 엄밀한 내부 폴드 전처리에는 전체 Pipeline을 교차 검증 안에 넣어야 하며, StandardScaler 뒤의 LassoCV만으로는 스케일러가 내부 각 폴드마다 다시 적합되지 않는다.
 
 ---
@@ -211,7 +211,7 @@ LassoCV의 계산상 이점과, 선택한 교차 검증 점수를 최종 성능�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     from sklearn.datasets import make_regression
     from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet

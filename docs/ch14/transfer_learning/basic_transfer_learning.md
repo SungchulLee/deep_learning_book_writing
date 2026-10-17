@@ -302,7 +302,7 @@ ResNet18의 모든 계수를 requires_grad=False로 둔 뒤 fc를 512→10으로
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     train_transform = transforms.Compose([
         transforms.Resize(256),
@@ -324,7 +324,7 @@ ResNet18의 모든 계수를 requires_grad=False로 둔 뒤 fc를 512→10으로
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ResNet18은 전체 11,181,642개 중 5,130개로 약 0.0459%, ResNet50은 전체 23,528,522개 중 20,490개로 약 0.0871%다. 1000클래스 원래 전체 수를 분모로 두면 현재 모델의 비율이 아니다. 학습 비율이 작아도 전체 추론 계수·연산은 남으며 큰 모델의 전이가 항상 유리하다는 결론은 아니다.
 
 ---
@@ -336,7 +336,7 @@ ResNet18의 모든 계수를 requires_grad=False로 둔 뒤 fc를 512→10으로
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     from sklearn.manifold import TSNE
     import matplotlib.pyplot as plt

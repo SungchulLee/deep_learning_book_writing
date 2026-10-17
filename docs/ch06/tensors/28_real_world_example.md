@@ -271,7 +271,7 @@ SGD 대신 Adam 옵티마이저를 쓰도록 코드를 수정하라. 100 에포�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # Adam은 적응적 러닝레이트와 모멘텀 덕분에 보통 SGD보다
@@ -289,7 +289,7 @@ SGD 대신 Adam 옵티마이저를 쓰도록 코드를 수정하라. 100 에포�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     업데이트 사이에 경사를 초기화하지 않으면 서로 다른 파라미터에서 계산한 이전 경사까지 누적된다. 따라서 현재 로스의 경사만 사용하는 학습 규칙과 달라지고, 진동이나 발산을 일으킬 수 있다. 경사끼리 상쇄될 수도 있으므로 크기가 항상 증가하거나 반드시 발산하는 것은 아니다. 의도적인 경사 누적에서는 정해진 여러 마이크로배치를 처리한 뒤 한 번 업데이트하고 경사를 초기화한다.
 
 ---
@@ -302,7 +302,7 @@ SGD 대신 Adam 옵티마이저를 쓰도록 코드를 수정하라. 100 에포�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
     # weight_decay는 로스에 L2 벌점항 lambda * ||w||^2을 더한다.

@@ -119,7 +119,7 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     전개하면 $\ell = (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})^\top(\mathbf{y} - \mathbf{X}\boldsymbol{\beta}) = \mathbf{y}^\top\mathbf{y} - 2\boldsymbol{\beta}^\top\mathbf{X}^\top\mathbf{y} + \boldsymbol{\beta}^\top\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta}$이다. 경사를 구하면 $\nabla_{\boldsymbol{\beta}}\ell = -2\mathbf{X}^\top\mathbf{y} + 2\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta}$이다. 0으로 두면 $\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta} = \mathbf{X}^\top\mathbf{y}$이다. $\mathbf{X}^\top\mathbf{X}$가 가역이면 $\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$이다. $\square$
 
 ---
@@ -131,7 +131,7 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     릿지 회귀는 $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha\|\boldsymbol{\beta}\|^2$을 최소화한다. 닫힌 형태 해는 $\hat{\boldsymbol{\beta}}_{\text{ridge}} = (\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$이다. 기하학적으로 릿지는 $\boldsymbol{\beta}$가 $\ell_2$ 공 안에 있도록 제약한다. $\alpha \to 0$이면 릿지는 OLS(정칙화 없음)로 수렴한다. $\alpha \to \infty$이면 패널티가 지배하여 $\hat{\boldsymbol{\beta}} \to \mathbf{0}$이 되고 절편을 정칙화하지 않고 따로 추정하면 모델은 $\mathbf{y}$의 평균을 예측한다. 절편까지 함께 정칙화하면 이 결론은 달라질 수 있다. $\alpha\mathbf{I}$를 더하면 $\mathbf{X}^\top\mathbf{X}$가 특이행렬이어도 가역성이 보장된다.
 
 ---
@@ -143,7 +143,7 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     L2 정칙화 로스는 $\ell_{\text{reg}} = \ell(\boldsymbol{\beta}) + \frac{\alpha}{2}\|\boldsymbol{\beta}\|^2$이다. 그 경사는 $\nabla \ell_{\text{reg}} = \nabla \ell + \alpha \boldsymbol{\beta}$이다. SGD 갱신은 $\boldsymbol{\beta} \leftarrow \boldsymbol{\beta} - \eta(\nabla \ell + \alpha \boldsymbol{\beta}) = (1 - \eta\alpha)\boldsymbol{\beta} - \eta \nabla \ell$이다. 계수 $\lambda$인 웨이트 감쇠는 $\boldsymbol{\beta} \leftarrow (1 - \eta\lambda)\boldsymbol{\beta} - \eta \nabla \ell$을 준다. $\alpha = \lambda$일 때 둘은 동일하다. 참고: 이 동등성은 SGD에서는 정확히 성립하지만 Adam에서는 그렇지 않다. Adam에서는 분리된 웨이트 감쇠(AdamW)가 L2 정칙화와 다르다. $\square$
 
 ---
@@ -155,7 +155,7 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     정규방정식은 $(100 \times 100)$ 행렬인 $\mathbf{X}^\top\mathbf{X}$의 역행렬을 필요로 한다. 표본이 $n = 50$개뿐이므로 $\text{rank}(\mathbf{X}) \leq 50 < 100$이고 따라서 $\mathbf{X}^\top\mathbf{X}$는 특이행렬(비가역)이다. 해결책: (1) **릿지 회귀**: $\alpha\mathbf{I}$를 더하면 임의의 $\alpha > 0$에 대해 $(\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})$가 가역이 된다. (2) **의사역행렬**: SVD로 최소 노름 최소제곱해를 구한다. (3) **PCA/피처 선택**: 학습 데이터로 차원을 줄인 뒤 적합한다. 차원을 줄였더라도 남은 열들이 선형 독립인지 확인해야 한다.
 
 ---
@@ -167,7 +167,7 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
     단일 레이어: 웨이트 $784 \times 10 = 7{,}840$개, 바이어스 $10$개. 총 $7{,}850$개. 2레이어: 첫 레이어 $784 \times 128 + 128 = 100{,}480$개, 둘째 레이어 $128 \times 10 + 10 = 1{,}290$개. 총 $101{,}770$개. 2레이어 뉴럴 넷트웍은 파라메터가 $\approx 13\times$ 많지만 (레이어 사이에 ReLU를 두면) 비선형 결정 경계를 학습할 수 있는 반면, 단일 레이어는 선형 경계로 제한된다. 대부분의 실제 문제에서는 이 추가 용량이 파라메터 비용을 치를 만한 밸류가 있다.
 
 ## 정리하며

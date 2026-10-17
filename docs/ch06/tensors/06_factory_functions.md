@@ -374,7 +374,7 @@ torch.randint(0, 5, (3,))       torch.full((3,), 7)      torch.full((3,), 7.0)
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -407,7 +407,7 @@ torch.randint(0, 5, (3,))       torch.full((3,), 7)      torch.full((3,), 7.0)
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -452,7 +452,7 @@ b = torch.empty(1000)
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

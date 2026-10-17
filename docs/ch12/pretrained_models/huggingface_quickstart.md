@@ -141,7 +141,7 @@ GPT-2 생성은 확률 샘플링이라 결과가 달라질 수 있다. max_new_t
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     from transformers import pipeline
     zs = pipeline("zero-shot-classification")
@@ -163,7 +163,7 @@ padding=True와 padding="max_length"의 길이·절단 규칙을 구분하라.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     True는 보통 현재 배치의 가장 긴 입력까지 패딩한다. max_length는 지정한 길이나 모델 최대 길이를 사용한다. 패딩만으로 긴 입력을 자르지는 않으므로 truncation을 별도로 지정한다. 동적 패딩은 짧은 배치의 계산을 줄일 수 있고 고정 크기는 일부 컴파일·배치 구성에 편리하다. 어느 쪽이 빠른지는 실제 길이 분포와 커널에 따라 다르다.
 
 ---
@@ -175,7 +175,7 @@ padding=True와 padding="max_length"의 길이·절단 규칙을 구분하라.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     from transformers import get_scheduler
 

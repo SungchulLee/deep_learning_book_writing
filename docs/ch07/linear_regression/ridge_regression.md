@@ -398,7 +398,7 @@ ax.grid(True, alpha=0.3)
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     릿지의 목적 함수는 $L = \|\mathbf{Xw}-\mathbf{y}\|^2 + \lambda\|\mathbf{w}\|^2$이다. $\nabla_\mathbf{w} L = 2\mathbf{X}^\top(\mathbf{Xw}-\mathbf{y}) + 2\lambda\mathbf{w} = 0$으로 두면 $(\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I})\mathbf{w} = \mathbf{X}^\top\mathbf{y}$을 얻는다.
 
     $\lambda > 0$이므로 $\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I}$은 언제나 양의 정부호이고(모든 고윳값이 $\geq \lambda > 0$), 따라서 가역성과 해의 유일성이 보장된다.
@@ -412,7 +412,7 @@ ax.grid(True, alpha=0.3)
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     MAP: $\hat{\mathbf{w}} = \arg\max_\mathbf{w} p(\mathbf{w}|\mathbf{y}) \propto p(\mathbf{y}|\mathbf{w})p(\mathbf{w})$.
 
     $\log p(\mathbf{y}|\mathbf{w}) + \log p(\mathbf{w}) = -\frac{1}{2\sigma^2}\|\mathbf{y}-\mathbf{Xw}\|^2 - \frac{\lambda}{2\sigma^2}\|\mathbf{w}\|^2 + \text{const}$.
@@ -428,7 +428,7 @@ ax.grid(True, alpha=0.3)
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch, numpy as np, matplotlib.pyplot as plt
     lambdas = np.logspace(-3, 3, 50)
@@ -450,7 +450,7 @@ ax.grid(True, alpha=0.3)
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     정규화 강도가 0에 가까우면 최소제곱 해로 접근하며 랭크가 부족하면 최소 노름 해와 연결된다. 강도가 무한대로 가면 패널티 대상 웨이트는 0에 접근한다. 절편을 제외했다면 학습 표본평균 예측이 남고 그 평균의 표본 변동도 남는다. 바이어스가 언제나 “최대”가 된다는 일반 법칙은 없으며 검증 데이터로 오차를 비교해 강도를 선택한다.
 
 ## 정리하며

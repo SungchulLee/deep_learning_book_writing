@@ -219,7 +219,7 @@ Steve의 word_shape·short_word_shape와 최대 접두·접미 길이를 설명�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     word_shape는 Xxxxx, 축약은 Xx다. 접두·접미 반복은 최대4문자라 prefix_4는 stev, suffix_4는 teve가 된다. 실제 형태소를 찾아 분할하는 연산은 아니다.
 
@@ -234,7 +234,7 @@ Steve의 word_shape·short_word_shape와 최대 접두·접미 길이를 설명�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     문자열·bool·정수 혼합 사전이고 문장 경계에서는 문맥 키가 적어질 수 있어 맞지 않는다. 입력 문자열 목록·유효 index·문맥 범위와 모델 라이브러리가 받는 피처 타입을 검사해야 한다.
 
@@ -249,7 +249,7 @@ Steve의 word_shape·short_word_shape와 최대 접두·접미 길이를 설명�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     한글에는 영문 같은 대소문자 구분이 없어 많은 글자가 c로 모일 수 있다. 철자 형태만으로 구별하지 못하므로 언어에 맞는 토큰·문자·문맥·사전 신호를 별도로 설계하고 평가한다. gazetteers는 현재 사용되지 않는다.
 
@@ -264,7 +264,7 @@ Steve의 word_shape·short_word_shape와 최대 접두·접미 길이를 설명�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     FeatureExtractor는 nn.Module이 아니고 forward·parameters·역전파가 없다. 아래 미정의 입력의 뉴럴 넷트웍 검사는 완성 시험이 아니다. 첫·끝·한 토큰 문장, 빈 토큰·유효하지 않은 index, 문맥 창·Unicode·접두 길이와 반환 피처 타입을 명세로 확인한다.
 

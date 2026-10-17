@@ -94,7 +94,7 @@ Final loss: 0.2601
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     for lr in [0.001, 0.01, 0.1]:
         # 러닝레이트마다 웨이트를 새로 뽑는다. 이어 쓰면 두 번째 러닝레이트가
@@ -129,7 +129,7 @@ MSE 로스에 대한 경사 $\frac{\partial L}{\partial w}$을 제일원리에�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     MSE 로스에서 출발한다.
 
     $$
@@ -153,7 +153,7 @@ MSE 로스에 대한 경사 $\frac{\partial L}{\partial w}$을 제일원리에�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     n_samples = 200
     X = np.random.randn(n_samples, 3)

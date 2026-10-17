@@ -179,7 +179,7 @@ $$\hat{\boldsymbol\theta}^{\mathrm{JS}}=\boldsymbol a+\left(1-\frac{(p-2)\sigma^
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     수축 비율은 (α+β)/(n_i+α+β)이며 타수가 증가하면 감소한다. 중심으로부터의 절대 이동량은 이 비율과 관측 타율·사전평균 차이의 곱이다.
 
 ---
@@ -191,7 +191,7 @@ $$\hat{\boldsymbol\theta}^{\mathrm{JS}}=\boldsymbol a+\left(1-\frac{(p-2)\sigma^
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     선수 간 참 확률의 변동과 각 선수 타율의 이항 표본 잡음을 혼동한다. 특히 타수가 적거나 다르면 잡음 기여가 크거나 다르므로 각 타수를 반영한 추정이 필요하다.
 
 ---
@@ -203,7 +203,7 @@ $$\hat{\boldsymbol\theta}^{\mathrm{JS}}=\boldsymbol a+\left(1-\frac{(p-2)\sigma^
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     아니다. 독립 정규 관측·알려진 공통 분산과 차원 조건 아래 총 제곱 오차의 반복 표본 기댓값을 비교하는 결과다. 각 좌표나 개별 표본의 오차 개선을 보장하지 않으며 베타-이항 문제에 그대로 적용할 수도 없다.
 
 ---
@@ -215,7 +215,7 @@ $$\hat{\boldsymbol\theta}^{\mathrm{JS}}=\boldsymbol a+\left(1-\frac{(p-2)\sigma^
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     관측 수·형태·범위를 검증하고 잡음을 반영한 하이퍼파라미터 추정법을 정한다. 추정값의 유효성과 경계해를 확인하고, 구간을 제시한다면 하이퍼파라미터 불확실성을 어떻게 다루는지 명시한다. 임포트만으로는 추론이나 검증이 수행되지 않는다.
 
     ```python

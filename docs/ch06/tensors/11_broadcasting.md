@@ -642,7 +642,7 @@ assert pred.shape == tgt.shape, (pred.shape, tgt.shape)
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     오른쪽에 맞추어 세운다.
 
     ```text
@@ -687,7 +687,7 @@ assert pred.shape == tgt.shape, (pred.shape, tgt.shape)
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -746,7 +746,7 @@ centered = x - x.mean(1)
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn.functional as F

@@ -537,7 +537,7 @@ autograd가 앞 튜토리얼의 직접 계산 공식과 같은 경사를 내는�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     torch.manual_seed(42)
@@ -571,7 +571,7 @@ autograd가 앞 튜토리얼의 직접 계산 공식과 같은 경사를 내는�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
     x = torch.tensor([3.0], requires_grad=True)
@@ -600,7 +600,7 @@ autograd가 앞 튜토리얼의 직접 계산 공식과 같은 경사를 내는�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     torch.manual_seed(42)

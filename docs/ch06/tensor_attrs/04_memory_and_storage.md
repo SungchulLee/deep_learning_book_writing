@@ -161,7 +161,7 @@ Done
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     x = torch.arange(24)
     x_3d = x.reshape(2, 3, 4)
@@ -180,7 +180,7 @@ Done
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     전치는 저장소를 공유하면서 축과 스트라이드를 바꾼다. 전치 후에도 요청한 모양이 스트라이드와 호환되면 `view`가 가능하지만, 예시의 평탄화는 불가능하다. `reshape`는 필요한 경우 복사하며 `contiguous()`는 요청한 메모리 형식으로 연속된 결과를 준다.
 
 ---
@@ -193,7 +193,7 @@ NCHW 형식의 모양 $(32, 3, 224, 224)$인 이미지 배치가 주어졌을 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     images = torch.randn(32, 3, 224, 224)
     nhwc = images.permute(0, 2, 3, 1)  # (32, 224, 224, 3)

@@ -82,7 +82,7 @@ After block → z.requires_grad (expect True): True
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     `x.requires_grad=True`이고 다른 설정을 바꾸지 않았다면 일반적인 제곱 연산의 결과는 차례로 `True`, `False`, `True`다. 입력 텐서 자체의 추적 설정은 변하지 않는다.
 
 <div class="drillbox" markdown>
@@ -92,7 +92,7 @@ After block → z.requires_grad (expect True): True
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     아니다. `requires_grad` 인수를 지원하는 팩토리 함수나 파라미터 생성에는 예외가 있다. 새 객체에 명시한 설정을 확인해야 한다.
 
 <div class="drillbox" markdown>
@@ -102,7 +102,7 @@ After block → z.requires_grad (expect True): True
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     `eval()`은 일부 계층의 동작을 평가 방식으로 바꾸고, `no_grad()`는 역전파용 기록을 끈다. 두 기능은 서로를 대신하지 않는다.
 
 ## 정리하며

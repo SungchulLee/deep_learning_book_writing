@@ -251,7 +251,7 @@ Number of features in overfit model: 16
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     학습은 계수 적합, 검증은 설정 선택, 테스트는 선택 후 평가에 쓴다. 모든 전처리도 학습 분할 안에서 맞추고 선택 과정에 테스트 정보를 사용하지 않는다.
 
 ---
@@ -264,7 +264,7 @@ Number of features in overfit model: 16
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     그 차이는 과적합의 단서지만 분포·표본 난이도·모드 차이도 원인일 수 있다. 같은 평가 조건과 분할의 독립성을 먼저 확인한다.
 
 ---
@@ -277,7 +277,7 @@ Number of features in overfit model: 16
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     교차 검증 점수로 많은 후보를 선택하면 최선 점수에 선택 바이어스가 들어갈 수 있다. 중첩 검증이나 별도 테스트셋으로 선택 절차 전체의 성능을 평가한다.
 
 ## 정리하며

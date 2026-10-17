@@ -96,7 +96,7 @@ head.bias            requires_grad=True  grad_is_None=False
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -116,7 +116,7 @@ head.bias            requires_grad=True  grad_is_None=False
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     속성으로 할당한 하위 모듈은 파라미터 조회, 장치 이동과 상태 저장의 구조에 포함된다. `forward()`는 입력이 어떤 계산을 거쳐 출력으로 가는지 정한다. 등록만 했다고 모든 모듈이 순전파에서 자동 실행되는 것은 아니다.
 
 ---
@@ -129,7 +129,7 @@ head.bias            requires_grad=True  grad_is_None=False
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

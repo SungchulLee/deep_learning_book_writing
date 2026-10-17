@@ -468,7 +468,7 @@ autograd는 기록이 켜진 상태에서 경사를 요구하는 입력에 대�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     x = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0], requires_grad=True)
     y = (x ** 3 + 2 * x).sum()  # sum to get a scalar for backward
@@ -487,7 +487,7 @@ autograd는 기록이 켜진 상태에서 경사를 요구하는 입력에 대�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     파라메터 갱신 `x -= lr * x.grad`는 `requires_grad=True`인 텐서에 대한 제자리 산술 연산이다. `torch.no_grad()`가 없으면 PyTorch가 이 뺄셈을 계산 그래프에 기록하려 하는데, 그래프에 속한 잎 변수를 제자리에서 수정하는 것은 (이전에 계산한 경사를 무효화하므로) 허용되지 않아 오류가 난다. 갱신을 `torch.no_grad()`로 감싸면 PyTorch가 이를 그래프 밖의 평범한 수치 연산으로 취급한다. 갱신 규칙은 우리가 미분하려는 함수의 일부가 아니므로 이것이 올바른 의미이다.
 
 ---
@@ -499,7 +499,7 @@ autograd는 기록이 켜진 상태에서 경사를 요구하는 입력에 대�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     x = torch.tensor([0.0, 0.0], requires_grad=True)
     lr = 0.1

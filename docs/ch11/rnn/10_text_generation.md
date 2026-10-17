@@ -66,7 +66,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     각 위치에서 그 다음 토큰을 맞히도록 정렬하기 위해서다. 입력 x의 처음부터 끝에서 한 칸 앞까지와 정답 x의 두 번째부터 끝까지를 짝지을 수 있다. 문장 경계와 패딩 위치는 별도로 처리한다.
 
 ---
@@ -78,7 +78,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     아니다. 선택 확률이 고르게 되어 다양성이 늘 수 있지만 낮은 확률의 부적절한 토큰도 더 자주 선택될 수 있다. 용도와 평가 기준에 맞춰 정한다.
 
 ---
@@ -90,7 +90,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     종료 토큰이나 최대 길이에 도달하면 멈춘다. 서로 독립적인 생성 요청은 은닉 상태를 초기화하고, 같은 요청을 이어갈 때만 상태를 재사용한다. 추론에서는 평가 모드와 그래디언트 기록 중지를 각각 설정한다.
 
 ---
@@ -102,7 +102,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
     ```python
     def test_tutorial 10():

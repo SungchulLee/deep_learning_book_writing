@@ -318,7 +318,7 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     (a) $\nabla f = (2xy,\; x^2 + 3y^2)^\top$.
 
     (b) $\nabla f = (ye^{xy},\; xe^{xy},\; \cos z)^\top$.
@@ -334,7 +334,7 @@ $f(x,y) = x^2 + 4y^2$에 대해 점 $(2, 1)$에서 $\nabla f$가 등위곡선 $f
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $(2,1)$에서 $f = 4 + 4 = 8$이다. 등위곡선은 $x^2 + 4y^2 = 8$이다. 곡선 위를 $\mathbf{r}(t) = (x(t), y(t))$로 매개화하면 $2x x' + 8y y' = 0$이다. $(2,1)$에서의 접벡터는 $4x' + 8y' = 0$, 즉 $x' = -2y'$을 만족한다. 접벡터 하나는 $(-2, 1)$이다.
 
     경사는 $\nabla f = (2x, 8y) = (4, 8)$이다. 내적은 $(-2)(4) + (1)(8) = 0$이다. 내적이 0이므로 $\nabla f$는 접벡터에 수직이며 직교성이 확인된다. $\square$
@@ -348,7 +348,7 @@ $(1, 1)$에서 $f(x,y) = x^2 - xy + y^2$에 대해 경사를 계산하고, 방�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     $\nabla f = (2x - y,\; -x + 2y)$이다. $(1,1)$에서 $\nabla f = (1, 1)$이다.
 
     방향 $\mathbf{u} = (1,0)$의 방향도함수는 $D_\mathbf{u} f = \nabla f \cdot \mathbf{u} = 1$이다.
@@ -364,7 +364,7 @@ $w_1 = 0.5, w_2 = -0.3, x_1 = 2, x_2 = 3, y = 1$에서 PyTorch autograd를 사�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch
 

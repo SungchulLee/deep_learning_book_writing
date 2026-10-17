@@ -688,7 +688,7 @@ NCHW를 NHWC로 바꾸는 일이 둘의 차이를 잘 보여 준다. `permute(0,
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -727,7 +727,7 @@ NCHW를 NHWC로 바꾸는 일이 둘의 차이를 잘 보여 준다. `permute(0,
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -768,7 +768,7 @@ NCHW를 NHWC로 바꾸는 일이 둘의 차이를 잘 보여 준다. `permute(0,
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

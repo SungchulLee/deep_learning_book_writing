@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     model = TransformerForComparison(input_dim=64)
     x = torch.randn(32, 100, 64)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     위치 슬라이스가 범위 밖을 읽는 것이 아니라 길이 100에 멈춰 임베딩과 더할 때 모양이 맞지 않는다. 표를 늘리면 새 위치 계수는 별도 초기화·학습이 필요하다. 고정 사인·코사인 수식으로 바꾸어도 모델에 더하는 코드와 저장·장치를 연결해야 하며, 긴 입력 품질을 보장하지 않는다. 아래는 math·seq_len·d_model 등이 외부에 있는 위치 표 생성 조각이지 완성된 모델 수정이 아니다.
 
        ```python
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class TransformerWithCLS(nn.Module):
         def __init__(self, input_dim, d_model=256, num_heads=8,

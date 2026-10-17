@@ -440,7 +440,7 @@ class DeepHedgingNetwork(nn.Module):
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     대칭 입력에서 $\mathbb{E}[\operatorname{ReLU}(z)^2]=\mathbb{E}[z^2]/2$이다. 평균 0의 웨이트가 독립이면 다음 레이어의 활성화 전 분산은 $n_{\mathrm{in}}\operatorname{Var}(W)\mathbb{E}[\operatorname{ReLU}(z)^2]$이다. 이전 레이어의 활성화 전 분산과 같게 두면 $n_{\mathrm{in}}\operatorname{Var}(W)/2=1$을 얻는다. ReLU 출력의 분산이 정확히 절반이라고 가정할 필요는 없다.
 
 ---
@@ -452,7 +452,7 @@ class DeepHedgingNetwork(nn.Module):
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     팬인과 팬아웃이 같으면 Xavier 분산은 $1/n$, He 분산은 $2/n$이다. 대칭성·독립성 근사 아래 Xavier는 다음 레이어의 활성화 전 분산을 약 절반으로 줄이고 He는 유지하도록 설계된다. 정규화 레이어, 잔차 연결과 학습 이후의 분포 변화가 있으면 이 예측이 달라질 수 있으므로 Xavier가 항상 학습에 실패한다고 단정할 수 없다.
 
 ---
@@ -464,7 +464,7 @@ class DeepHedgingNetwork(nn.Module):
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     # fan_in (기본값): 순전파의 분산을 보존한다
     nn.init.kaiming_normal_(w, mode='fan_in', nonlinearity='relu')
@@ -482,7 +482,7 @@ class DeepHedgingNetwork(nn.Module):
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     웨이트의 분포와 실제 분산, 입력 스케일, 레이어별 활성화의 평균·분산·2차 적률, 0인 활성화 비율, 경사 노름을 기록한다. 같은 구조·데이터 분할·학습 예산에서 여러 시드로 비교한다. 균등분포 자체가 문제인 것은 아니므로 초기 범위를 명시한다. He 초기화의 분산 유지 예측과 실제 학습 성능은 따로 평가한다.
 
 ## 정리하며

@@ -317,7 +317,7 @@ def loss_function_comparison():
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     음이항분포의 확률질량함수는 $P(y|r,p) = \binom{y+r-1}{y} p^r (1-p)^y$이다.
 
     평균 $\mu = r(1-p)/p$과 산포 $r$으로 다시 매개화한다. NLL은 다음과 같다.
@@ -337,7 +337,7 @@ def loss_function_comparison():
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     Gal과 Ghahramani(2016)는 특정 사전분포, 변분족과 근사를 사용해 드롭아웃 학습을 변분 추론과 연결한다. 이는 임의의 드롭아웃 구현이 정확한 사후추론이라는 뜻은 아니다. 다음 식은 근사 웨이트를 표본화하는 구성을 나타낸다.
 
     $$
@@ -355,7 +355,7 @@ def loss_function_comparison():
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     폰 미제스 밀도는 각 $\theta \in [-\pi, \pi]$에 대해 $p(\theta|\mu,\kappa) = \frac{e^{\kappa\cos(\theta-\mu)}}{2\pi I_0(\kappa)}$이다.
 
     NLL은 다음과 같다.
@@ -381,7 +381,7 @@ def loss_function_comparison():
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch, torch.nn as nn
 

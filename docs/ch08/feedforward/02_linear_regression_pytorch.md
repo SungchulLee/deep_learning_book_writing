@@ -95,7 +95,7 @@ PyTorch와 NumPy는 비슷한 연산을 제공하지만 자료형 변환, 장치
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     w_np = w.cpu().numpy()
     b_np = b.cpu().numpy()
@@ -115,7 +115,7 @@ PyTorch와 NumPy는 비슷한 연산을 제공하지만 자료형 변환, 장치
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     PyTorch는 "Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu."와 같은 메시지와 함께 `RuntimeError`를 낸다. GPU 메모리와 CPU 메모리가 물리적으로 분리된 주소 공간이기 때문이다. 데이터는 `.to(device)`, `.cpu()`, `.cuda()`를 써서 명시적으로 옮겨야 한다. 자동으로 옮겨 준다면 비용이 클 수 있는 메모리 복사가 감춰지므로, PyTorch는 성능 특성이 투명하게 드러나도록 명시적인 장치 관리를 요구한다.
 
 ---
@@ -127,7 +127,7 @@ PyTorch와 NumPy는 비슷한 연산을 제공하지만 자료형 변환, 장치
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import time
 

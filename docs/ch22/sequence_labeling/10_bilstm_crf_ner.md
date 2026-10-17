@@ -145,7 +145,7 @@ transitions는 K×K 학습 가능한 파라메터로 등록하지만 forward에�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     embedding은100000개, 방향별 LSTM은80800개씩이라161600개, 선형은200×10+10=2010개, 전이는100개다. 합계263710개이며 전이는 등록되었지만 forward에서 사용하지 않는다.
 
@@ -160,7 +160,7 @@ transitions는 K×K 학습 가능한 파라메터로 등록하지만 forward에�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     입력은 유효 어휘 범위의 B×L 정수 ID이고 반환은 B×L×K 실수 emission이다. 패딩·길이 mask는 현재 없고 마지막 두 태그의 특별한 의미도 외부 매핑이 필요하다. 영상형 float32 입력 검사는 맞지 않는다.
 
@@ -175,7 +175,7 @@ transitions는 K×K 학습 가능한 파라메터로 등록하지만 forward에�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     LSTM은4DH+4H²+8H, GRU는3DH+3H²+6H다. 같은 조건이면 GRU가3/4이지만 양방향·레이어별 입력·projection이 달라지면 다시 계산해야 한다. 파라메터 비율이 성능·지연시간 비율은 아니다.
 
@@ -190,7 +190,7 @@ transitions는 K×K 학습 가능한 파라메터로 등록하지만 forward에�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     YourBlock 정의와 레이어별 입출력·양방향 연결 차원을 정해야 한다. 전이·partition·정답 로스·Viterbi·마스크가 별도로 필요하다. ModuleList는 모듈 등록 도구이며 사용하지 않은 transitions를 자동으로 계산 경로에 연결하지 않는다.
 

@@ -116,7 +116,7 @@ max |full - right|: 5.960464477539063e-08
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -136,7 +136,7 @@ max |full - right|: 5.960464477539063e-08
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     전체 평균 로스는 두 배치 평균의 절반이므로 나누지 않고 더한 경사는 전체 경사의 두 배다. 각 로스를 2로 나누면 같은 스케일이 된다. 배치 크기가 다르면 실제 평균 대상 원소 수로 가중해야 한다.
 
 ---
@@ -149,7 +149,7 @@ max |full - right|: 5.960464477539063e-08
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

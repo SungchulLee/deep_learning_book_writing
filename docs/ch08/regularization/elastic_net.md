@@ -690,7 +690,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     엘라스틱 넷은 $\alpha \in [0,1]$에 대해 $\Omega(w) = \alpha\|w\|_1 + \frac{1-\alpha}{2}\|w\|_2^2$이다. $\alpha = 1$이면 순수한 라쏘(L1), $\alpha = 0$이면 순수한 릿지(L2)이다. 중간 값은 희소성(L1)과 그룹 선택(L2)을 결합한다.
 
 ---
@@ -702,7 +702,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     두 계수를 바꿔도 데이터 적합과 L1 패널티는 같다. 양의 L2 항이 있는 선형 목적은 강하게 볼록해 해가 유일하므로 교환한 해와 원래 해가 같아야 한다. 따라서 두 계수는 같다. 둘 다 0일 수 있으므로 반드시 선택된다는 뜻은 아니다.
 
 ---
@@ -714,7 +714,7 @@ PyTorch 학습 루프에서 엘라스틱 넷 정규화를 구현하라.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     alpha = 0.5  # 혼합 비율
     lam = 0.01   # 전체 강도
@@ -733,7 +733,7 @@ $\lambda[\alpha\|w\|_1+(1-\alpha)\|w\|_2^2/2]$의 근접 연산자를 유도하�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     각 좌표의 최적 조건은 $0\in(1+\lambda(1-\alpha))w-v+\lambda\alpha\partial|w|$이다. 따라서 $\operatorname{prox}(v)=S_{\lambda\alpha}(v)/(1+\lambda(1-\alpha))$이다. 먼저 나누고 임계를 적용하려면 임계도 같은 분모로 나눠야 한다. 앞의 해설처럼 배율만 줄이고 원래 임계를 그대로 쓰면 다른 연산이 된다.
 
 ## 정리하며

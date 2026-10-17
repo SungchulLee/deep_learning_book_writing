@@ -79,7 +79,7 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     `nn.Linear(in_features, out_features)`마다 짐 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 짐이 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 켜를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 따져 볼 수 있다.
 
 ---
@@ -91,7 +91,7 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 꼴을 살피려면 중요한 차수를 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
 
 ---
@@ -103,7 +103,7 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     LSTM에는 문이 넷(입력, 잊음, 칸, 출력) 있고 저마다 입력과 은닉 상태의 짐 행렬을 지니므로 파라메터는 $4 \times (x \cdot h + h \cdot h + h) = 4(xh + h^2 + h)$개다. GRU에는 문이 셋(되돌림, 고침, 새것) 있어 $3 \times (x \cdot h + h \cdot h + h) = 3(xh + h^2 + h)$개다. GRU은 문이 넷이 아니라 셋이고 칸 상태와 은닉 상태를 하나로 묶으므로 LSTM의 75%이다. 참으로는 파라메터가 적어도 GRU이 LSTM과 엇비슷하게 잘 듣는 일이 잦다.
 
 ---
@@ -115,7 +115,7 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     박아 넣은 켜를 다음으로 갈음한다.
     ```python
     self.layers = nn.ModuleList()

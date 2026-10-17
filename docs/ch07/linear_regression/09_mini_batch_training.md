@@ -526,7 +526,7 @@ DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     from torch.utils.data import Dataset, DataLoader
@@ -558,7 +558,7 @@ DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     학습 데이터를 매 에포크마다 뒤섞으면 (예를 들어 표본이 클래스 이름순으로 정렬되어 있을 때) 모델이 표본의 순서에서 허위 패턴을 배우지 않게 된다. 또한 옵티마이저가 순환에 갇히는 것을 막는 데도 도움이 된다. 반면 시험 데이터는 파라메터를 갱신하는 데가 아니라 평가에만 쓰이므로 뒤섞을 필요가 없고, 매번 예측 순서가 바뀌어 디버깅이 어려워질 수도 있다.
 
 ---
@@ -570,7 +570,7 @@ DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch, time
     import torch.nn as nn

@@ -107,7 +107,7 @@ greedy CTC는 위치별 argmax의 연속 반복을 합친 뒤 blank를 제거하
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     스테레오는 B×2×L을 입력하며 첫 컨볼루션의 웨이트가512×1×10개 더 생겨5120개 증가한다. 세 GroupNorm의 γ·β와 뒤 컨볼루션은 같다. 모노 FeatureEncoder는1581056개, 스테레오는1586176개다. 전체 Wav2Vec2에 쓰려면 feature_extractor도 실제 교체해야 한다.
 
@@ -144,7 +144,7 @@ greedy CTC는 위치별 argmax의 연속 반복을 합친 뒤 blank를 제거하
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     대조 목적은 마스킹한 문맥에서 올바른 잠재 목표와 다른 후보를 구별한다. 코드의 quantizer는 문맥 출력의 선형 레이어고 이산 codebook이나 목표 선택·로스가 없어 그 학습을 구현하지 않는다. 대조 목적이 모든 복원 목적보다 우월하거나 화자·잡음을 완전히 제거한다고 단정할 수 없다.
 
@@ -159,7 +159,7 @@ greedy CTC는 위치별 argmax의 연속 반복을 합친 뒤 blank를 제거하
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     기본 어휘는 알파벳26개·공백·apostrophe·UNK·blank의30개이며 blank ID는29다. decode는 연속 동일 ID를 합치고 blank를 제거하되 blank 뒤 반복은 다시 남긴다. vocab_size를 바꾸어도 문자열 목록은 고정되어 있어 따로 맞춰야 한다. CTC 학습·입력 길이별 padding 제거는 없고, 새 head와 무작위 입력의 출력은 실제 전사 성능이 아니다.
 

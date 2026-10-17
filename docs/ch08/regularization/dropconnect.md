@@ -500,7 +500,7 @@ def train_with_dropconnect(
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $W\in\mathbb{R}^{d_{out}\times d_{in}}$에서 입력 드롭아웃은 $d_{in}$개 마스크를 각 출력 행에 공유하여 $W\operatorname{diag}(m)x$를 만든다. 드롭커넥트는 웨이트 원소별로 $d_{out}d_{in}$개 마스크를 사용한다. 역배율 방식이라면 둘 다 유지 확률로 나눈다. 표본 간 마스크 공유 여부도 별도로 정해야 한다.
 
 ---
@@ -512,7 +512,7 @@ def train_with_dropconnect(
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     class DropConnect(nn.Module):
         def __init__(self, layer, p=0.5):
@@ -535,7 +535,7 @@ def train_with_dropconnect(
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     드롭커넥트 예제의 마스크는 웨이트 모양 $d_{out}\times d_{in}$이고 배치 전체에서 공유된다. 표본별 입력 드롭아웃은 $B\times d_{in}$ 크기의 마스크를 사용할 수 있다. 비용은 웨이트 수뿐 아니라 배치 크기와 공유 방식에 달려 있으므로 모든 설정에서 어느 쪽이 더 비싸다고 단정하지 않는다.
 
 ---
@@ -547,7 +547,7 @@ def train_with_dropconnect(
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아니다. 마스크 개수는 연결 패턴의 수이며 독립적으로 학습한 모델의 수나 성능 보장이 아니다. 확률, 구조, 공유 방식과 학습 데이터가 함께 영향을 주므로 같은 검증 예산에서 비교해야 한다.
 
 ## 정리하며

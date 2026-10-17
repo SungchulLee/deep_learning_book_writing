@@ -565,7 +565,7 @@ Dataset 구현과 `nn.Module` 모델의 차이를 설명하라. `CustomDataset` 
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     Dataset은 데이터 접근 인터페이스이며 그 자체가 학습 계층은 아니다. 예제의 별도 로지스틱 모델은 입력 피처 수가 $d$일 때 웨이트 $d$개와 바이어스 1개를 가진다. 데이터셋 길이는 학습 파라미터 수와 다르다.
 
 ---
@@ -577,7 +577,7 @@ Dataset 구현과 `nn.Module` 모델의 차이를 설명하라. `CustomDataset` 
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     옵티마이저를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 경사와 경사 제곱의 이동 평균으로 성분별 업데이트를 조정한다. 어느 옵티마이저가 더 빨리 수렴하는지는 문제와 러닝레이트에 달려 있다. 같은 초기 웨이트와 데이터 순서, 평가 기준을 사용하고 각 러닝레이트를 조정해 비교한다. 여러 시드의 변동과 검증 성능도 확인한다.
 
 ---
@@ -589,7 +589,7 @@ Dataset 구현과 `nn.Module` 모델의 차이를 설명하라. `CustomDataset` 
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     파일 간 피처 수·정답 위치가 다르면 배치가 틀어질 수 있다. 잡음을 더한 피처가 원래 정답을 유지하는지 확인하고 평가셋에는 의도하지 않은 어그멘테이션을 적용하지 않는다. 원본 텐서의 제자리 수정도 피한다.
 
 ---
@@ -601,7 +601,7 @@ Dataset 구현과 `nn.Module` 모델의 차이를 설명하라. `CustomDataset` 
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 코드는 일반적인 ModuleList 구성 패턴의 일부이며 이 페이지 클래스의 완성된 대체 구현은 아니다.
     ```python
     self.layers = nn.ModuleList()

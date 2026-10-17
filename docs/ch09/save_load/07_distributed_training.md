@@ -428,7 +428,7 @@ model.module.state_dict()와 model.state_dict()는 언제 키가 달라지는가
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     DataParallel이나 DDP처럼 module 아래에 원래 모델을 둔 감싸개에서는 바깥 state_dict에 module. 접두사가 붙는다. 내부 모델의 state_dict를 저장하면 그 감싸개 접두사를 피할 수 있다.
 
 ---
@@ -441,7 +441,7 @@ model.module.state_dict()와 model.state_dict()는 언제 키가 달라지는가
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     모든 원래 키가 추가 키로, 대상 키가 누락 키로 처리되어 학습된 값이 실제로 복원되지 않을 수 있다. 키를 올바르게 정렬하고 반환된 불일치 정보를 확인해야 한다.
 
 ---
@@ -454,7 +454,7 @@ model.module.state_dict()와 model.state_dict()는 언제 키가 달라지는가
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     지정한 rank에서만 저장하고, 다른 프로세스가 그 파일을 읽는 시점에는 필요한 동기화를 둔다. 복원 시 각 rank의 장치 매핑과 이어갈 학습 상태도 따로 처리한다.
 
 ## 정리하며

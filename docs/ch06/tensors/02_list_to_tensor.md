@@ -178,7 +178,7 @@ Ragged list error: expected sequence of length 2 at dim 1 (got 3)
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -209,7 +209,7 @@ Ragged list error: expected sequence of length 2 at dim 1 (got 3)
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -242,7 +242,7 @@ Ragged list error: expected sequence of length 2 at dim 1 (got 3)
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

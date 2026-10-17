@@ -246,7 +246,7 @@ base_lr=0.001, warmup_steps=1000인 LinearWarmup에서 step 0과 999의 값은 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     step 0에서는 0.000001이고 step 999에서는 0.001이다. 0부터 시작한다는 주석은 연속적인 보간의 개념 설명이며 실제 첫 호출의 반환값은 양수이다.
 
 ---
@@ -259,7 +259,7 @@ base_lr=0.001, warmup_steps=1000인 LinearWarmup에서 step 0과 999의 값은 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     안 된다. base_lr/start_lr를 계산하므로 0으로 나누게 된다. 기하 보간에는 양수인 시작값과 목표값이 필요하다.
 
 ---
@@ -272,7 +272,7 @@ base_lr=0.001, warmup_steps=1000인 LinearWarmup에서 step 0과 999의 값은 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     의도한 길이가 옵티마이저 갱신 횟수인지 처리 표본 수인지 먼저 정한다. 갱신 기준이면 실제 optimizer.step()마다 단계를 증가시킨다. 같은 미니배치 수를 사용해도 누적 횟수가 바뀌면 갱신 수는 달라진다.
 
 ## 정리하며

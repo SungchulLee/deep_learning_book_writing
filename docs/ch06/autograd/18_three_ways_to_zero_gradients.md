@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     일반적인 PyTorch 옵티마이저는 `.grad=None`인 파라미터를 건너뛴다. 반면 0인 경사는 업데이트 대상이 될 수 있으며, 모멘텀이나 웨이트 감쇠에 의해 값이 바뀔 수 있다. 두 초기화 방식은 이 차이까지 고려해 선택한다.
 
 ---
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

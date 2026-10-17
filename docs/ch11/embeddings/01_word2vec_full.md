@@ -44,7 +44,7 @@ Word2Vec Full Implementation - Combines CBOW (Tutorial 02_intermediate/02) and S
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -97,7 +97,7 @@ CBOW와 Skip-gram의 학습 단위가 어떻게 다른지 설명하고, 드문 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     CBOW는 여러 문맥 단어를 결합한 예제 하나에서 중심 단어를 예측한다. Skip-gram은 중심·문맥 쌍 각각을 학습 예제로 쓴다. 중심 단어 한 번의 등장으로 여러 쌍을 만들 수 있지만 독립적인 정보가 그만큼 늘어나는 것은 아니다. 드문 단어의 품질은 문맥의 다양성, 잡음 분포와 학습량에도 달려 있으므로 모든 데이터에서 Skip-gram이 우세하다고 단정하지 않는다.
 
 ---
@@ -109,7 +109,7 @@ CBOW와 Skip-gram의 학습 단위가 어떻게 다른지 설명하고, 드문 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class SkipGramNS(nn.Module):
         def __init__(self, vocab_size, emb_dim):

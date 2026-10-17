@@ -409,7 +409,7 @@ verdict: the gap is larger than the spread
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     스템의 컨볼루션은 `bias=False` 이므로 $3 \times 16 \times 3 \times 3 = 432$개이고, 배치 정규화는 $\gamma$ 와 $\beta$ 를 채널마다 하나씩 가지므로 $2 \times 16 = 32$개다. `MaxPool2d` 는 파라메터가 없다.
 
     블록 하나는 `bias=False` 인 $16 \to 16$ 컨볼루션 둘과 배치 정규화 둘이다.
@@ -431,7 +431,7 @@ $32 \times 32$ 입력이 블록에 닿을 때까지의 공간 크기를 따라�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     컨볼루션의 출력 크기는 $\left\lfloor (H + 2p - k)/s \right\rfloor + 1$ 이다.
 
     - 스템의 컨볼루션($k = 3$, $p = 1$, $s = 2$): $\lfloor (32 + 2 - 3)/2 \rfloor + 1 = 15 + 1 = 16$
@@ -458,7 +458,7 @@ residual = ConvStack(True)
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     두 모델을 시드 고정 후 차례로 생성하면 난수 상태가 진행되어 초기 웨이트가 달라진다. 다만 38010개 파라메터 전부가 난수로 초기화되는 것은 아니다. BatchNorm의 스케일·바이어스와 같은 상수 초기화도 있으며 난수 소비량을 파라메터 수와 동일시하지 않는다.
 
     그렇게 견주면 마지막 정확도의 차이는 "잔차 연결의 효과"가 아니라 "잔차 연결의 효과 + 서로 다른 초기값의 효과"다. 뒤엣것이 얼마나 큰지는 이 예제의 출력이 직접 말해 준다 — 같은 구조라도 시드만 바꾸면 검증 정확도가 몇 점씩 움직인다. 초기값 차이를 섞어 넣으면 그만큼의 잡음을 결론으로 읽게 된다.
@@ -474,7 +474,7 @@ residual = ConvStack(True)
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     표는 각 블록 conv1.weight의 그래디언트 노름과 전체 파라메터 그래디언트 노름이다. 선택된 레이어들의 로스 민감도 비교에는 사용할 수 있지만 엑티베이션 그래디언트가 블록 사이에서 얼마나 감쇠했는지를 직접 나타내지 않는다. 그래디언트 소실·폭발을 판단하려면 측정 대상과 스케일을 정하고 깊이·상류 그래디언트·초기화와 입력 조건을 함께 비교해야 한다.
 
 ---
@@ -490,7 +490,7 @@ $$\frac{\partial x_{l+1}}{\partial x_l} = D_l\left(G_l'(x_l) + I\right)$$
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
     $u_l = G_l(x_l) + x_l$ 이라 두면 $x_{l+1} = \sigma(u_l)$ 이다. 연쇄 법칙으로
 
     $$\frac{\partial x_{l+1}}{\partial x_l} = \frac{\partial \sigma(u_l)}{\partial u_l} \cdot \frac{\partial u_l}{\partial x_l}$$

@@ -88,7 +88,7 @@ PatchEmbedding은 커널과 스트라이드를 patch_size로 둔 Conv2d로 겹�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     패치 수는 24×24=576개, [CLS] 포함 길이는 577개다. 아래 코드는 새 모델을 생성하므로 기존 학습 웨이트를 옮기지 않는다.
     ```python
     model = VisionTransformer(img_size=384, patch_size=16, num_classes=10)
@@ -107,7 +107,7 @@ PatchEmbedding은 커널과 스트라이드를 patch_size로 둔 Conv2d로 겹�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     [CLS]는 로스를 통해 정보를 모으는 역할을 학습하고 평균 풀링은 마지막 패치 표현들을 평균한다. 후자에서도 각 패치가 이미 어텐션으로 다른 패치 정보를 읽을 수 있으므로 중요도를 학습할 수 없다고 단정해서는 안 된다. 같은 학습 조건에서 선택하며 [CLS]를 평균에 포함할지도 명시한다.
 
 ---
@@ -119,7 +119,7 @@ PatchEmbedding은 커널과 스트라이드를 patch_size로 둔 Conv2d로 겹�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class OverlappingPatchEmbedding(nn.Module):
         def __init__(self, img_size=224, patch_size=16, stride=12,

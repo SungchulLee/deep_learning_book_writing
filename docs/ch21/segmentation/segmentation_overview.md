@@ -308,7 +308,7 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     시맨틱 분할은 두 객체를 같은 클래스 레이블로 표시하고 ID를 구분하지 않는다. 인스턴스 분할은 객체별 마스크를 구분한다. 파놉틱 분할은 모든 유효 픽셀의 클래스와 thing 객체의 ID를 함께 표현하고 stuff 영역도 포함한다.
 
 ---
@@ -320,7 +320,7 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     업샘플링은 해상도를 키우고 스킵은 높은 해상도에서 얻은 피처를 제공한다. 로스된 정보를 반드시 복원하는 것은 아니다. 연결은 배치·공간 크기를 맞추고 채널은 합하며, 원소별 덧셈은 채널까지 같아야 한다. 풀링한 홀수 크기는 명시적 정렬이 필요할 수 있다.
 
 ---
@@ -332,7 +332,7 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     평가 Dice는 임계값 또는 argmax로 만든 클래스 영역의 겹침이다. soft Dice는 확률의 곱·합을 사용하는 미분 가능한 대리 목적이다. 클래스별 평균·배경 포함·빈 마스크 규칙에 따라 값과 웨이트가 달라져 자동으로 동일한 클래스 웨이트를 준다고 볼 수 없다.
 
 ---
@@ -344,7 +344,7 @@ RoIAlign이 필요한 문제와 픽셀 전체의 시맨틱 분할을 구분하�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     Mask R-CNN은 제안된 객체 영역마다 마스크를 예측하고 RoIAlign으로 해당 피처를 연속 좌표에서 표본화한다. 시맨틱 분할은 영상 전체의 픽셀 클래스를 예측하며 RoI가 필수는 아니다. RoIAlign의 보간은 좌표 반올림의 오차를 줄이지만 모든 마스크의 정밀도나 고정된 AP 향상을 보장하지 않는다.
 
 ## 정리하며

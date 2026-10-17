@@ -282,7 +282,7 @@ confidence=1.0은 정확 사전 일치의 고정값이다. 이름이 문맥에�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     text.split()은 California.의 마침표를 남기므로 사전 문자열 California와 정확히 같지 않다. 대소문자를 무시하는 설정이 구두점·토큰화 차이까지 해결하지는 않는다.
 
@@ -297,7 +297,7 @@ Apple이 두 번 등장할 때 현재 text.find 방식은 어떤 문제가 있�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     각 후보의 현재 토큰 위치를 사용하지 않고 항상 첫 부분 문자열 위치를 찾는다. 두 언급이 같은 span이 되어 겹침 제거로 하나만 남을 수 있다. 토큰별 원문 offset을 유지해야 한다.
 
@@ -312,7 +312,7 @@ confidence=1.0과 SequenceMatcher import를 각각 어떻게 해석해야 하는
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     confidence는 사전 일치의 고정값일 뿐 문맥 유형의 정답 확률이 아니다. SequenceMatcher는 호출하지 않아 fuzzy matching도 구현되지 않았다. 오탈자·별칭·다의어 처리는 별도 설계다.
 
@@ -327,7 +327,7 @@ confidence=1.0과 SequenceMatcher import를 각각 어떻게 해석해야 하는
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     EntityDictionary는 문자열 집합이며 forward·parameters·학습 경로가 없다. 미정의 입력·backward를 쓴 조각은 완성 시험이 아니다. 대소문자·구두점·반복 언급·공백 변형·최대 5단어·유형 충돌·겹침 폴리시와 빈 입력을 확인하는 명세가 필요하다.
 

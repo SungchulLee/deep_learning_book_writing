@@ -716,7 +716,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     우도는 $L(p) = \prod_{i=1}^n p^{x_i}(1-p)^{1-x_i} = p^k(1-p)^{n-k}$이다.
 
     로그우도: $\ell(p) = k\log p + (n-k)\log(1-p)$.
@@ -734,7 +734,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $$
     \mathbb{E}[\hat{\sigma}^2] = \mathbb{E}\left[\frac{1}{n}\sum(x_i - \bar{x})^2\right] = \frac{1}{n}\mathbb{E}\left[\sum x_i^2 - n\bar{x}^2\right]
     $$
@@ -756,7 +756,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     로그우도는 $\ell(\mu) = -n\log(2b) - \frac{1}{b}\sum_{i=1}^n |x_i - \mu|$이다.
 
     $\ell$을 최대화하는 것은 절대 편차의 합 $\sum|x_i - \mu|$을 최소화하는 것과 같다. 열경사는 $\frac{\partial}{\partial\mu}\sum|x_i-\mu| = -\sum\text{sign}(x_i - \mu)$이다.
@@ -772,7 +772,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     점수 함수: $s(p) = \frac{x}{p} - \frac{1-x}{1-p}$.
 
     피셔 정보: $I(p) = \mathbb{E}[s(p)^2] = \mathbb{E}\left[\left(\frac{x-p}{p(1-p)}\right)^2\right] = \frac{\text{Var}(x)}{[p(1-p)]^2} = \frac{1}{p(1-p)}$.

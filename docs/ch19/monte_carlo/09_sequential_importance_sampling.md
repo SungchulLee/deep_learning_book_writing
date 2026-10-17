@@ -729,7 +729,7 @@ credible_interval은 입자값을 정렬하고 그 순서의 누적 웨이트에
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     초기 log w=log p−log q에 관측별 log p(y_t|θ)를 더하고 공통 log-sum-exp를 뺀다. 조건부 독립성과 정적인 θ라는 모형 가정을 사용한다.
 
@@ -744,7 +744,7 @@ update와 credible_interval의 입력 조건은 무엇인가?
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     입자를 먼저 초기화하고 likelihood_fn은 각 θ·관측에 로그우도를 반환해야 한다. 입자 수는 양수, 구간 질량 alpha는 0과 1 사이이며 로그 웨이트가 모두 −∞인 경우를 처리해야 한다.
 
@@ -759,7 +759,7 @@ update와 credible_interval의 입력 조건은 무엇인가?
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     웨이트만 균등해진다. 복제 입자는 같고 새 영역은 탐색하지 못하므로 독립 정보 N개가 생긴 것이 아니다. 고유 입자 수와 함수별 오차도 살펴야 한다.
 
@@ -774,7 +774,7 @@ update와 credible_interval의 입력 조건은 무엇인가?
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     같은 자료의 배치·순차 로그우도 웨이트 일치, 해석적 정규 사후, 정렬된 가중 분위수와 재표집 전후 웨이트·입자 중복을 확인한다. 아래 model(x)·backward 인터페이스는 이 클래스에 없다.
 

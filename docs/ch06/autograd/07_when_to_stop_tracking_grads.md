@@ -64,7 +64,7 @@ Typical places to STOP tracking:
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -84,7 +84,7 @@ Typical places to STOP tracking:
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     입력에 대한 미분이 필요하면 해당 경로의 추적을 유지해야 하므로 `no_grad()`로 감싸지 않는다. `model.eval()`은 Dropout과 BatchNorm 등의 평가 동작을 선택하며, autograd를 끄지는 않는다. 따라서 평가 모드에서도 입력 경사를 구할 수 있다.
 
 ---
@@ -97,7 +97,7 @@ Typical places to STOP tracking:
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

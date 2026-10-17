@@ -695,7 +695,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     보통 컨볼루션과 전치 컨볼루션은 크기를 서로 반대로 옮긴다. 헷갈리지 않도록 보통 컨볼루션 쪽 이름을 따로 두자. 보통 컨볼루션이 크기 $n$을 크기 $m$으로 보낸다고 하면
 
     $$m = \left\lfloor \frac{n + 2p - k}{s} \right\rfloor + 1$$
@@ -721,7 +721,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     커널이 스트라이드로 나누어떨어지지 않으면 내부 출력 위치별 겹침 횟수가 달라질 수 있다. 배수인 커널을 사용하면 이 기하학적 원인을 줄일 수 있으나 학습 웨이트에 따른 주기적 패턴은 남을 수 있다. 보간 뒤 컨볼루션이나 PixelShuffle도 비교할 수 있지만 모든 아티팩트를 항상 없애는 방법은 아니다.
 
 ---
@@ -733,7 +733,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -785,7 +785,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     디코더 뉴럴 넷트웍에서 쓰인다. U-Net(분할), 오토인코더, GAN(생성기의 업샘플링), 초해상도 뉴럴 넷트웍이 그 예이다. 고정된 업샘플링 방법의 학습 가능한 짝으로, 뉴럴 넷트웍이 알맞은 업샘플링 필터를 배우게 해 준다.
 
 ---

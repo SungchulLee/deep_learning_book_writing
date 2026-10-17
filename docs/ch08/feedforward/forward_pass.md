@@ -562,7 +562,7 @@ plt.show()
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     $\mathbf{h}_1 = \text{ReLU}(W_1\mathbf{x} + b_1) = \text{ReLU}([1, -1]) = [1, 0]$이다. 출력: $W_2\mathbf{h}_1 + b_2 = 1(1) + 1(0) = 1$.
 
 ---
@@ -574,7 +574,7 @@ plt.show()
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     각 레이어가 행렬-벡터 곱 $O(d^2)$과 활성화 $O(d)$을 수행한다. 합계는 $O(Ld^2)$이다.
 
 ---
@@ -586,7 +586,7 @@ plt.show()
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     def forward(x, weights, biases):
@@ -604,7 +604,7 @@ plt.show()
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     일반적인 평가에서는 `model.eval()`로 드롭아웃을 꺼 반복 예측의 변동을 줄인다. PyTorch의 inverted dropout은 학습 중 살아남은 활성화를 $1/(1-p)$배하고 평가 중에는 항등 함수로 동작하므로, 추론 때 웨이트를 다시 조정하지 않는다. MC dropout처럼 불확실성을 추정하려고 추론 중에도 드롭아웃을 사용하는 방법이 있으므로 모든 추론이 결정적이어야 하는 것은 아니다.
 
 ## 정리하며

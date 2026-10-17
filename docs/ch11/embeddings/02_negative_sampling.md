@@ -44,7 +44,7 @@ Negative Sampling - Advanced optimization technique for large vocabularies
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     전체 소프트맥스는 50,000개, 네거티브 샘플링은 양성 1개와 음성 10개로 11개 점수를 계산한다. 점수 개수의 비는 약 $4545$다. 이는 실행 시간 비율이 아니다. 행렬 연산 효율, 샘플링, 메모리와 학습 목표가 다르므로 같은 품질에 도달하는 시간은 별도로 비교해야 한다.
 
 ---
@@ -56,7 +56,7 @@ Negative Sampling - Advanced optimization technique for large vocabularies
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     정규화 상수는 비율에서 상쇄되므로 원래 비율 $5000$이 $5000^{3/4}\approx594.6$으로 줄어든다. 균등 분포에서는 비율이 1이다. 드문 단어가 흔한 단어에 비해 상대적으로 더 자주 뽑히지만, 개별 단어의 절대 확률 증가 배수는 전체 어휘의 정규화 상수도 알아야 계산할 수 있다.
 
 ---
@@ -68,7 +68,7 @@ Negative Sampling - Advanced optimization technique for large vocabularies
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn

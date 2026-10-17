@@ -202,7 +202,7 @@ Saved: gradient_descent_numpy.png
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     from sklearn.datasets import make_regression
@@ -233,7 +233,7 @@ Saved: gradient_descent_numpy.png
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     아니다. 명시적 역행렬을 피하는 이점은 있지만 $X^\top X$를 만들며 조건수가 제곱되는 문제는 남는다. 원래 설계 행렬에 QR·SVD 기반 최소제곱 해법을 적용하면 이를 피할 수 있다. 두 방법 모두 부동소수점 계산이므로 정확한 실수 해와는 수치 오차가 있을 수 있다.
 
 ---
@@ -245,7 +245,7 @@ Saved: gradient_descent_numpy.png
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import numpy as np
     from sklearn.datasets import make_regression

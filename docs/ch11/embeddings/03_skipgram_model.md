@@ -60,7 +60,7 @@ Refer to 02_cbow_model.py and reverse the architecture!
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -97,7 +97,7 @@ Refer to 02_cbow_model.py and reverse the architecture!
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     Skip-gram 쌍 (가운데 -> 문맥):
 
     | 가운데 | 문맥 단어 |
@@ -122,7 +122,7 @@ Refer to 02_cbow_model.py and reverse the architecture!
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class SkipGramDualEmb(nn.Module):
         def __init__(self, vocab_size, embedding_dim):

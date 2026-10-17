@@ -253,7 +253,7 @@ ToTensor는 HWC 이미지를 CHW로 전치하지만 torchvision ToTensor처럼 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     각 점 $(x,y)$를 $(2x,3y)$로 옮긴다. 이미지의 높이·너비 순서와 좌표의 x·y 순서를 혼동하지 않는다.
 
 ---
@@ -266,7 +266,7 @@ ToTensor는 HWC 이미지를 CHW로 전치하지만 torchvision ToTensor처럼 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     좌표는 $(x-10,y-20)$이다. 새 이미지 범위 밖의 점을 단순히 올바른 내부 좌표로 간주하면 안 된다. 제외·가림 표시 등 과제의 규칙이 필요하다.
 
 ---
@@ -279,7 +279,7 @@ ToTensor는 HWC 이미지를 CHW로 전치하지만 torchvision ToTensor처럼 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     torch.from_numpy는 원본 배열의 dtype을 반영한다. resize나 좌표 처리에서 float64가 만들어질 수 있으므로 모델의 자료형과 맞추고 픽셀 스케일도 확인한다.
 
 ## 정리하며

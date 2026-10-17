@@ -74,7 +74,7 @@ nn.TransformerEncoder는 batch_first=True로 연결되어 각 표본의 토큰�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     model_12 = BERT(n_layers=12)
     model_6 = BERT(n_layers=6)
@@ -95,7 +95,7 @@ nn.TransformerEncoder는 batch_first=True로 연결되어 각 표본의 토큰�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     아니다. 기본 BERT는 두 구간을 사용한다. 세 번째는 이 코드가 임의로 추가한 행으로, 특정 데이터에서 구간 ID 2를 사용해야 그 용도의 학습 신호가 생긴다. 질문·지문이 있다고 자동으로 세 구간 표현이 필요한 것도 아니다.
 
 ---
@@ -107,7 +107,7 @@ nn.TransformerEncoder는 batch_first=True로 연결되어 각 표본의 토큰�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class BERTWithDropout(nn.Module):
         def __init__(self, vocab_size=30000, d_model=768, n_layers=12, heads=12, dropout=0.1):

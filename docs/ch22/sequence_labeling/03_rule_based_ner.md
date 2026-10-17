@@ -787,7 +787,7 @@ get_entity_context는 entity.start를 사용하지 않고 공백 분리한 단�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     모든 패턴을 IGNORECASE로 컴파일하므로 그렇지 않다. 소문자 두 단어도 이름 패턴에 맞을 수 있어 대문자 기반 사람 인식으로 설명하면 안 된다. 언어·문맥과 별도 평가가 필요하다.
 
@@ -802,7 +802,7 @@ get_entity_context는 entity.start를 사용하지 않고 공백 분리한 단�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     word boundary는 단어 문자와 비단어 문자 사이를 검사한다. 공백과 달러 기호, 퍼센트 기호와 공백은 둘 다 비단어여서 해당 위치에 경계가 없을 수 있다. 실제 기호·구두점·문장 경계를 고려한 패턴 계약이 필요하다.
 
@@ -817,7 +817,7 @@ get_entity_context는 entity.start를 사용하지 않고 공백 분리한 단�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     문맥 함수는 offset이 아니라 같은 단어 열의 첫 등장을 찾아 두 언급을 혼동할 수 있다. confidence도 우선순위 산식일 뿐 확률이 아니고 priority=10에서는 정의되지 않는다. 원문 위치와 점수의 의미를 분리해야 한다.
 
@@ -832,7 +832,7 @@ get_entity_context는 entity.start를 사용하지 않고 공백 분리한 단�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     Rule은 데이터와 컴파일된 패턴을 보관하며 뉴럴 넷트웍 forward·parameters가 없다. 아래 미정의 입력·backward 검사는 실행 가능한 시험이 아니다. 소문자 일반 구절·기호 경계·반복 언급·중첩 우선순위·유효하지 않은 정규식·빈 문자열 등을 명세로 확인하는 것이 적절하다.
 

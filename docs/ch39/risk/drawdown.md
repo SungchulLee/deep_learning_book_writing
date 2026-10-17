@@ -477,7 +477,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     `nn.Linear(in_features, out_features)`마다 무게 파라메터가 `in_features * out_features`개, 바이어스 파라메터가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 무게가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 `num * dim`개다. 온 켜에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
 
 ---
@@ -489,7 +489,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     `forward` 방법(또는 걸맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살피기를 더한다. 꼴을 살필 때에는 중요한 차원을 짚는다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알기 쉬운 잘못 알림은 디버깅을 크게 빠르게 하고 코드를 되쓰기 좋게 만든다.
 
 ---
@@ -501,7 +501,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     흔한 어그러짐은 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 노름을 지켜보아(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기) 짚어 낸다. 그래디언트 자르기, 더 나은 첫 값 매기기(자비에/카이밍), 구조 바꾸기(남는 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 살피기 로스가 늘면 짚어 낸다. 정규화(드롭아웃, 무게 삭임, 데이터 늘리기)나 모델 그릇 줄이기로 고친다. 학습 재기와 살피기 재기를 늘 함께 지켜보아 이런 걸림돌을 일찍 잡아야 한다.
 
 ---
@@ -513,7 +513,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     못 박은 켜를 다음으로 갈음한다.
     ```python
     self.layers = nn.ModuleList()

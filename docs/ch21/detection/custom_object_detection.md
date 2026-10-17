@@ -166,7 +166,7 @@ Install ultralytics: pip install ultralytics
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     색이 클래스와 완전히 연결되어 색상만으로 예측하는 지름길이 가능하다. 색을 독립적으로 바꾸고 배경·크기·가림을 다양화한 평가와 실제 자료의 별도 시험이 있어야 모양과 일반화에 대한 주장을 확인할 수 있다.
 
@@ -181,7 +181,7 @@ Install ultralytics: pip install ultralytics
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     클래스 ID는 names 순서의 0~2이고 네 좌표는 유한한 정규화 cxcywh다. 너비·높이는 양수이고 이미지·레이블 파일 이름이 대응해야 한다. nc와 names 길이, 분할 경로의 존재·독립성도 확인한다. YOLO의 외부 결과 객체에 B×C×H×W assert를 무조건 적용하는 검사는 맞지 않는다.
 
@@ -196,7 +196,7 @@ Install ultralytics: pip install ultralytics
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     기존 이미지·레이블을 지우지 않아 더 작은 수로 재생성하면 이전 파일이 남는다. 학습 디렉터리 이름도 중복 시 자동 변경될 수 있다. 고정 메시지 대신 실제 데이터 목록과 실행이 기록한 저장 경로를 기준으로 해석해야 한다.
 
@@ -211,7 +211,7 @@ Install ultralytics: pip install ultralytics
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     공백이 들어간 식별자와 정의되지 않은 Example 3·입력 변수 때문에 실행 가능한 시험이 아니다. 이 예제에는 자체 PyTorch 모델 forward가 없다. 이미지와 레이블 수·파일 대응·클래스 범위·좌표의 유효성·분할 격리·다시 생성할 때 남는 파일·실제 저장 경로를 확인하는 명세가 적절하다. 아래 조각은 기존 자리 표시자로만 읽는다.
 

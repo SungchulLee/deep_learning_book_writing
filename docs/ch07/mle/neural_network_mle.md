@@ -579,7 +579,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     선형 계층은 $1\to50$, $50\to50$, $50\to1$이다. 각각 $50+50=100$, $2500+50=2550$, $50+1=51$개이므로 총 2701개다. ReLU에는 파라미터가 없다.
 
 ---
@@ -591,7 +591,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     두 모델의 정규분포 상수 항과 합·평균 방식, 분산 가정을 일치시키고 같은 독립 검증 데이터에서 계산한다. 서로 다른 상수를 생략한 로스 숫자나 학습 로스만으로 모델 우열을 판단하지 않는다.
 
 ---
@@ -603,7 +603,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     출력 분산은 가정한 조건부 관측 잡음의 크기다. 평균 함수의 추정 불확실성과는 다르며, 모델 오지정이나 분포 변화도 자동으로 포함하지 않는다. 새 데이터에서 구간의 포함률과 보정을 확인해야 한다.
 
 ---
@@ -615,7 +615,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     고정되어 있던 레이어들을 다음으로 바꾼다.
     ```python
     self.layers = nn.ModuleList()

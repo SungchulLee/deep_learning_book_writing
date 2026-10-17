@@ -66,7 +66,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     배치별로 $(T,S)$이고 배치를 포함하면 $(B,T,S)$로 나타낼 수 있다. 각 출력 위치의 행이 유효한 입력 위치에 대한 웨이트를 담는다. 패딩된 출력 위치는 평가에서 별도로 제외해야 한다.
 
 ---
@@ -78,7 +78,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     아니다. 그 위치도 소프트맥스 분모에 들어가 유효 위치의 웨이트를 줄일 수 있다. 점수 단계에서 제외해야 한다. 모든 위치가 패딩인 경우에는 별도의 처리가 필요하다.
 
 ---
@@ -90,7 +90,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     웨이트는 값 벡터와 함께 출력을 만든다. 값의 크기와 내용, 이후 레이어와 다른 경로도 영향을 준다. 큰 웨이트가 곧 그 토큰을 제거했을 때의 성능 변화나 인과적 기여를 뜻하지는 않는다.
 
 ---
@@ -102,7 +102,7 @@ with detailed comments, examples, and exercises.
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
     ```python
     def test_tutorial 09():

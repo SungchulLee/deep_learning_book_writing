@@ -121,7 +121,7 @@ head.bias            requires_grad=True  grad_is_None=False
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -141,7 +141,7 @@ head.bias            requires_grad=True  grad_is_None=False
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     입력에 `requires_grad=True`를 주고 계산 기록을 유지하면 동결된 인코더를 거쳐 입력으로 경사가 전달될 수 있다. 파라미터 동결은 그 파라미터의 새로운 경사 계산을 제외하는 것이며 인코더 전체를 `no_grad()`로 감싸는 것과 다르다.
 
 ---
@@ -154,7 +154,7 @@ head.bias            requires_grad=True  grad_is_None=False
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

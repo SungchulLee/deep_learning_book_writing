@@ -365,7 +365,7 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import numpy as np, torch
 
@@ -405,7 +405,7 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import numpy as np, torch
 
@@ -454,7 +454,7 @@ NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 �
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

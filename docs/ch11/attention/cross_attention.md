@@ -293,7 +293,7 @@ EncoderDecoderAttention은 셀프 어텐션, 크로스 어텐션과 피드포워
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     이 모듈에는 선형 레이어가 네 개 있다.
 
     - `query_proj`: $256 \times 256 + 256 = 65{,}792$
@@ -312,7 +312,7 @@ EncoderDecoderAttention은 셀프 어텐션, 크로스 어텐션과 피드포워
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     쿼리의 출처와 키·값의 출처가 같은 시퀀스이면 크로스 어텐션이 셀프 어텐션이 된다. 코드에서 `self.self_attention(decoder_input, decoder_input, self_attn_mask)`은 디코더의 은닉 상태를 쿼리와 key_value 인자에 모두 넘긴다. 곧 쿼리와 키와 값이 모두 같은 텐서에서 저마다의 투영 행렬을 거쳐 나온다. 수식은 표준 멀티헤드 셀프 어텐션과 똑같다. 디코더의 자리마다 (마스크가 허락하는 한) 다른 모든 자리에 주목한다. 전용 셀프 어텐션 모듈과의 차이는 개념뿐이다. 이 클래스는 쿼리와 key_value가 서로 다른 곳에서 오는 일반적인 경우를 위해 설계되었지만 셀프 어텐션도 그 특수한 경우로 자연스럽게 다룬다.
 
 ---
@@ -324,7 +324,7 @@ EncoderDecoderAttention은 셀프 어텐션, 크로스 어텐션과 피드포워
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import matplotlib.pyplot as plt
 

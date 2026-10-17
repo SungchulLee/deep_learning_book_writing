@@ -54,7 +54,7 @@ self.eval은 드롭아웃을 끄고 no_grad는 경사 기록을 끈다. 샘플�
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     model = GPTModel(vocab_size=100, d_model=128, num_heads=4,
                      num_layers=2, d_ff=256)
@@ -75,7 +75,7 @@ self.eval은 드롭아웃을 끄고 no_grad는 경사 기록을 끈다. 샘플�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     저장된 표보다 입력이 길면 슬라이스는 표의 끝에서 멈추고, 입력 임베딩과 더할 때 위치 축이 달라 모양 오류가 난다. 범위 밖 위치를 직접 인덱싱하는 오류와 다르다. 아래 방식은 최근 context_window개만 넘겨 길이를 제한하지만 오래된 정보를 버리고 위치를 매번 0부터 다시 배정한다. 원래 긴 문맥 계산과 동등하지 않으며 디코더의 축·마스크 문제도 별도로 해결해야 한다.
     ```python
     def generate(self, start_tokens, max_len=50, temperature=1.0,
@@ -101,7 +101,7 @@ self.eval은 드롭아웃을 끄고 no_grad는 경사 기록을 끈다. 샘플�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     def generate_top_k(self, start_tokens, max_len=50, k=50, temperature=1.0):
         self.eval()

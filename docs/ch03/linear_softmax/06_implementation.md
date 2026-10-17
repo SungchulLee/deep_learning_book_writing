@@ -323,7 +323,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     | 고리 | 줄 |
     |---|---|
     | 선형 모델 | `nn.Linear(28 * 28, 10)` |
@@ -352,7 +352,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     올바른 순서는 **지우고 → 계산하고 → 갱신한다**이다.
 
     | 잘못된 순서 | 무엇이 일어나는가 |
@@ -378,7 +378,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     이 실행에서는 첫 에포크의 여러 미니배치 갱신으로 큰 개선이 나타났다. 볼록성은 나쁜 국소 최소점이 없다는 뜻이지만, 개선 속도나 초기 정확도를 직접 결정하지는 않는다. 경사 노름의 감소와 로스의 변화는 관측된 학습 과정의 피처로 읽어야 한다.
 
     볼록한 골짜기에서는 멀리 있을 때 그래디언트가 크고 가까워지면 작아진다. 첫 에포크에
@@ -404,7 +404,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     conf = torch.zeros(10, 10, dtype=torch.long)
     for t, p in zip(y_test, pred):
@@ -441,7 +441,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
     대각선을 지우고 가장 큰 값을 찾는다.
 
     ```python
@@ -473,7 +473,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 6 풀이"
+??? success "풀이"
     | | 학습 | 시험 | 차이 |
     |---|---|---|---|
     | 10 에포크 | 92.8% 안팎 | 92.42% | 0.4%p |
@@ -509,7 +509,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 7 풀이"
+??? success "풀이"
     ```python
     wrong = (pred != y_test).nonzero().squeeze()
     for idx in wrong[:12]:
@@ -544,7 +544,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 8 풀이"
+??? success "풀이"
     **이 모델에서는 하는 일이 없다.** `train()`과 `eval()`이 바꾸는 것은 레이어마다의
     `self.training` 표시뿐이고, 그 표시를 실제로 보는 레이어는 드롭아웃과 각종 정규화
     레이어다. 이 모델은 `nn.Flatten`과 `nn.Linear`뿐이므로 어느 쪽이든 계산이 같다.
@@ -581,7 +581,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 9 풀이"
+??? success "풀이"
     정확도의 차이와 오차의 비를 함께 보자.
 
     | | 정확도 | 오차 | 오차의 비 |
@@ -619,7 +619,7 @@ Final Test Accuracy: 92.35%
 
 </div>
 
-??? success "연습문제 10 풀이"
+??? success "풀이"
     이 절과 앞 다섯 쪽의 실험이 이미 답을 거의 다 준다.
 
     **소용없는 것** — 모두 실제로 재어 확인했다.

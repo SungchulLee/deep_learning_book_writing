@@ -513,7 +513,7 @@ RGB와 flow를 결합하는 이유와 RGB 시간 모델이 불가능하다는 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     RGB의 외형과 명시적으로 추정한 이동량이 상호 보완적인 입력이 될 수 있다. 그러나 RGB도 여러 프레임의3D CNN·순환·attention으로 시간 관계를 배울 수 있다. 두 가지의 성능 이점은 같은 조건의 실험으로 확인해야 한다.
 
@@ -528,7 +528,7 @@ TemporalStream이 전체 사전 학습 웨이트를 쓰는가? 첫 필터의 복
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     나머지 ResNet은 무작위 초기값이고 첫 필터만 RGB 사전 필터에서 가져온다. 채널 평균을 복제하고2L로 나누어 동일 채널 입력의 합성 응답은 원 RGB 필터의 평균과 같다. 원 RGB 합 응답을 보존한다고 설명하지 않는다.
 
@@ -543,7 +543,7 @@ FeatureFusionTwoStream의 두 연결 문제를 설명하라.
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     TemporalStream에 features속성이 없어 호출이 실패한다. RGB 비디오 피처도B×T×2048이므로B×2048흐름 피처와 곧바로 연결할 수 없다. 명시적인 시간 피처 추출과 RGB 시간 요약·정렬이 필요하다.
 
@@ -558,7 +558,7 @@ FeatureFusionTwoStream의 두 연결 문제를 설명하라.
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     flow를 이미 계산한 입력으로 받으므로 OpenCV 과정에는 역전파하지 않는다. 실제 RGB 로짓 웨이트는sigmoid0.4≈0.599다. 모델의train모드·장치·Fimport와 목표 텐서의 정의도 별도로 맞춰야 한다.
 

@@ -238,7 +238,7 @@ values, preds = logits.max(dim=1)      # preds 가 예측 라벨이다
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -290,7 +290,7 @@ values, preds = logits.max(dim=1)      # preds 가 예측 라벨이다
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -348,7 +348,7 @@ values, preds = logits.max(dim=1)      # preds 가 예측 라벨이다
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

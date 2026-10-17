@@ -159,7 +159,7 @@ predict는 no_grad를 쓰지만 eval로 전환하지 않는다. 모델이 train 
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     웨이트768×9와 bias9를 합해6921개다. 전체 모델 수는 사전 학습 인코더의 파라메터를 추가해야 한다. 모델 이름·설정에 따라 달라지며 tokenizer는 뉴럴 넷트웍 파라메터가 아니다.
 
@@ -174,7 +174,7 @@ predict는 no_grad를 쓰지만 eval로 전환하지 않는다. 모델이 train 
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     현재 dropout은 인코더 출력 피처 뒤에 있다. predict의 no_grad는 eval 전환이 아니어서 train 모드이면 dropout이 남을 수 있다. 내부 attention dropout과 피처 dropout의 위치를 구분한다.
 
@@ -189,7 +189,7 @@ predict의 토큰·정수 ID 목록을 곧바로 개체 span으로 볼 수 없�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     특수 토큰 제외·서브워드 정렬·id2label·BIO 검사와 원문 offset 복원이 없다. 잘린 문서의 뒤 구간도 처리하지 않는다. 출력 annotation의 미수입 Tuple과 실제 정수 반환도 현재 템플릿의 한계다.
 
@@ -204,7 +204,7 @@ predict의 토큰·정수 ID 목록을 곧바로 개체 span으로 볼 수 없�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     YourBlock이 정의되어 있지 않으며 인코더의 hidden 크기·레이어 구조·웨이트 이름·사전 학습 호환성을 맞춰야 한다. 라이브러리 설정과 모델 로드 폴리시를 정하고 새 구조를 평가해야 한다. 단순 모듈 등록이 사전 학습·NER 학습을 자동 완성하지 않는다.
 

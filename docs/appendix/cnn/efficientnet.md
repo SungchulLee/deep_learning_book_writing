@@ -105,7 +105,7 @@ MBConv(손전화 뒤집힌 목 컨볼루션) 덩이가 EfficientNet의 기초 �
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     깊이 곱값: $d = \alpha^\phi = 1.2^2 = 1.44$. 너비 곱값: $w = \beta^\phi = 1.1^2 = 1.21$. 결 곱값: $r = \gamma^\phi = 1.15^2 = 1.3225$. 따져 보면 $\alpha \cdot \beta^2 \cdot \gamma^2 = 1.2 \times 1.21 \times 1.3225 \approx 1.919 \approx 2$이다. 그러므로 $\phi = 2$이면 밑 모델에 비교하여 켜가 약 $1.44 \times$, 클래스가 $1.21 \times$ 너르고, 입력의 결이 $1.32 \times$ 크다.
 
 ---
@@ -117,7 +117,7 @@ MBConv 덩이가 마지막 되비춤에 또 다른 깊이별 컨볼루션이 아
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $1 \times 1$ 되비춤은 넓힌 리프리젠테이션을 곧지 않은 활성화 없이 더 낮은 차수로 눌러 담는 "선형 목" 노릇을 한다. 이는 일부러 그런 것이다. 넓힌 밭(클래스 6배)이 깊이별 컨볼루션으로 결끼리의 넉넉한 주고받음을 담고, 되비춤이 그 결을 곧게 아우른다. 여기에 곧지 않은 활성화를 더하면 MobileNetV2 글이 보인 대로 낮은 차수의 목에서 소식이 무너진다. 목 차수에서 깊이별 컨볼루션을 쓰면 이미 눌러 담긴 차수에서 클래스마다 따로 자리를 거를 뿐이라, $1 \times 1$ 컨볼루션이 주는 클래스끼리 섞기를 놓친다.
 
 ---
@@ -129,7 +129,7 @@ MBConv 덩이가 마지막 되비춤에 또 다른 깊이별 컨볼루션이 아
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     class MBConvSE(nn.Module):
         def __init__(self, in_channels, out_channels, expand_ratio=6, stride=1, se_ratio=0.25):

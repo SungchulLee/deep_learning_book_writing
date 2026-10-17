@@ -537,7 +537,7 @@ def train_with_noise_injection(
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     입력 잡음은 모델에 보여 주는 입력을, 웨이트 잡음은 예측 함수를 계산할 파라메터를, 경사 잡음은 갱신에 사용하는 방향을 바꾼다. 서로 다른 목적이나 학습 궤적을 만들며 모두 일반화 개선이나 베이즈 추론을 자동 보장하는 것은 아니다.
 
 ---
@@ -549,7 +549,7 @@ def train_with_noise_injection(
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     충분히 매끄러운 로스에서 $\mathbb{E}[L(w+\epsilon)]\approx L(w)+(\sigma^2/2)\operatorname{tr}H(w)$이다. 이는 곡률 항으로 일반적으로 $\|w\|^2$에 비례하지 않는다. 선형 회귀의 웨이트 잡음은 제곱 오차에 입력 노름에 따른 상수를 더하므로 L2 패널티를 만들지 않는다. 선형 제곱 오차에서 L2와 정확히 연결되는 것은 독립 등방 **입력** 잡음이다.
 
 ---
@@ -561,7 +561,7 @@ Neelakantan 등(2015)의 일정 $\sigma_t^2 = \eta/(1+t)^\gamma$을 쓰는 그�
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     for t, (x, y) in enumerate(dataloader):
         loss = criterion(model(x), y)
@@ -581,7 +581,7 @@ Neelakantan 등(2015)의 일정 $\sigma_t^2 = \eta/(1+t)^\gamma$을 쓰는 그�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     해당 과제에서 레이블을 보존할 잡음 종류와 범위를 정하고, 잡음 없는 기준과 같은 데이터 분할·예산으로 비교한다. 목표한 섭동에 대한 강건성과 원래 분포의 성능을 모두 평가한다. 입력 잡음이 레이블 오류나 파국적 망각을 해결한다고 가정하지 않는다.
 
 ## 정리하며

@@ -389,7 +389,7 @@ Class counts: [5037 2996 1967]
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     어떤 정규화 상수에 대해 $\log p(y=k|\mathbf{x}) = \mathbf{w}_k^\top\mathbf{x} + c$이라 가정하자. 그러면 $p(y=k|\mathbf{x}) = \frac{e^{\mathbf{w}_k^\top\mathbf{x}}}{\sum_{j=1}^K e^{\mathbf{w}_j^\top\mathbf{x}}}$이며, 이것이 소프트맥스 함수이다. 이는 자연 파라메터가 $\eta_k = \mathbf{w}_k^\top\mathbf{x}$인 범주형 분포의 지수족 형태에서 따라 나온다.
 
 ---
@@ -401,7 +401,7 @@ Class counts: [5037 2996 1967]
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     $$
     \text{softmax}(\mathbf{z}+c)_k = \frac{e^{z_k+c}}{\sum_j e^{z_j+c}} = \frac{e^c e^{z_k}}{e^c \sum_j e^{z_j}} = \frac{e^{z_k}}{\sum_j e^{z_j}} = \text{softmax}(\mathbf{z})_k
     $$
@@ -417,7 +417,7 @@ Class counts: [5037 2996 1967]
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     $$
     \frac{\partial p_i}{\partial z_j} = p_i(\delta_{ij} - p_j)
     $$
@@ -435,7 +435,7 @@ Class counts: [5037 2996 1967]
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     import torch
     z = torch.tensor([2.0, 1.0, 0.1])

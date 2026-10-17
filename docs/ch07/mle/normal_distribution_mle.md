@@ -304,7 +304,7 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     분산 MLE는 분모가 $n$이므로 `unbiased=False`의 표준편차가 그 제곱근을 준다. 로그 표준편차는 지수변환으로 양수 제약을 만족시킨다. 이는 불편 추정이나 최적화 수렴을 자동 보장하는 설정은 아니다.
 
 ---
@@ -316,7 +316,7 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     비어 있지 않은 유한한 실수 관측을 요구한다. 관측이 하나이거나 모든 값이 같으면 분산이 0으로 접근하는 퇴화가 생긴다. 결측값과 무한대, 상수 표본을 구분해 처리하고 단순히 `float32` 여부만 검사하지 않는다.
 
 ---
@@ -328,7 +328,7 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     해석적 MLE와 수치 결과의 차이는 최적화·수치 오차를 살피는 기준이다. 해석적 MLE와 생성 규칙의 참값의 차이는 유한 표본의 변동을 포함한다. 표본을 다시 뽑지 않고 반복 횟수만 늘린다고 표본 변동까지 제거되지는 않는다.
 
 ---
@@ -340,7 +340,7 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     경계 조건을 두루 시험하는 함수를 만든다.
     ```python
     def test_normal distribution mle():

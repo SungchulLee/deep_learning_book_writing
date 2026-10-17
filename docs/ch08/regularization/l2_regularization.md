@@ -700,7 +700,7 @@ def l2_regularization_weights_only(model, lambda_l2):
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     일반 SGD는 $w^+=(1-2\eta\lambda)w-\eta\nabla L$이므로 감쇠 계수 $2\lambda$에 대응한다. Adam에 L2를 결합하면 패널티 경사도 적응형 적률 추정에 참여한다. AdamW는 감쇠를 그 변환과 분리하므로 같은 L2 목적의 Adam 갱신과 일반적으로 다르다.
 
 ---
@@ -712,7 +712,7 @@ L2 패널티의 가우시안 사전 해석에서 데이터 로스의 집계 방�
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     분산 $s^2$의 독립 가우시안 사전은 $\|w\|^2/(2s^2)$의 음의 로그 사전을 준다. 합 NLL에서는 계수가 $1/(2s^2)$이며, 평균 NLL로 전체 MAP 목적을 나누면 $1/(2ms^2)$이다. 관측 분산이나 MSE의 상수배도 대응 계수에 영향을 준다.
 
 ---
@@ -724,7 +724,7 @@ L2가 희소성을 직접 유도하지 않는 이유와 계수가 정확히 0일
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     L2는 0에서 매끄럽고 경사가 $2\lambda w$이므로 L1처럼 0을 선호하는 부분미분 구간이 없다. 그러나 단일 직교 피처가 목표와 직교하면 릿지 계수 $x^\top y/(x^\top x+a)$가 정확히 0이다. 따라서 결코 0이 되지 않는다는 주장은 틀리다.
 
 ---
@@ -736,7 +736,7 @@ PyTorch에서 `weight_decay` 파라메터를 쓰는 방법과 패널티를 직�
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     ```python
     # 방법 1: weight_decay
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)

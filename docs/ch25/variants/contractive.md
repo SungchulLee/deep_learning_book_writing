@@ -292,7 +292,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
 
     학습 목적에서 수축 항의 비중을 높이지만 유한 최적화·표본 외 성능의 단조 변화는 보장하지 않는다. 동일 조건에서 복원, 실제 야코비안 제곱 노름과 유한 잡음 변화율을 나누어 측정한다. 코드 스케일 축소만으로 낮아진 민감도가 의미 있는 안정성인지도 확인한다.
 
@@ -307,7 +307,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
 
     연결 영역 전체에서 야코비안이 0인 미분 가능한 인코더는 상수다. 고정 상수 출력의 제곱 오차 최적값은 데이터 평균이다. 그러나 패널티는 유한 표본에서 측정하고 디코더 스케일 리워드도 가능하므로 λ를 키우는 학습이 반드시 이 극한에 도달한다고 할 수 없다. 최적해 존재·웨이트 제약과 최적화 조건이 필요하다.
 
@@ -322,7 +322,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
 
     배치 독립 모델에서 각 입력의 그래디언트는 코드 축 편미분을 합한 Jᵀ1이다. 그 제곱에는 서로 다른 코드 행의 교차항이 있어 Σ_j||J_j||²와 다르다. 본문의 성분별 루프나 적절한 벡터화·확률적 노름 추정을 사용해야 한다. 입력 x와 encoder 정의도 필요하다.
 
@@ -343,7 +343,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
 
     입력 변화에 대한 코드 민감도 대신 코드 변화에 대한 복원 민감도를 제한한다. 디코더 함수가 국소적으로 천천히 바뀌도록 유도할 수 있지만 코드 분포가 어디에 놓이는지는 정하지 않는다. 빈 잠재 구간의 의미나 샘플 생성 품질을 이것만으로 보장하지 않는다.
 
@@ -358,7 +358,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 </div>
 
-??? success "연습문제 5 풀이"
+??? success "풀이"
 
     단일 선형 인코더 f(x)=Wx에서는 J_f=W라 제곱 프로베니우스 패널티가 해당 W의 L2와 같다. 비선형·다층에서는 입력과 활성화 미분에 의존해 달라진다. 여러 레이어의 웨이트 각각을 줄이는 것과 합성 야코비안을 줄이는 것은 다르며 AdamW 등 decoupled 감쇠와 L2 로스도 구분한다.
 
@@ -373,7 +373,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 </div>
 
-??? success "연습문제 6 풀이"
+??? success "풀이"
 
     그 지점의 학습된 코드가 민감한 입력 방향과 크기를 알 수 있다. 하지만 코드 스케일과 패널티에 의존하므로 큰 방향이 자동으로 참 접공간, 개수가 내재 차원이라는 결론은 성립하지 않는다. 데이터 변화·모델·λ와 함께 안정성을 평가한다.
 
@@ -388,7 +388,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 </div>
 
-??? success "연습문제 7 풀이"
+??? success "풀이"
 
     비확장은 Lipschitz 상수 1, 수축은 전 영역에서 하나의 상수 c<1로 제한되는 성질이다. 평균 제곱 야코비안이 작아도 일부 점·방향의 큰 변화율이 남을 수 있다. 평균 실측값 0.538만으로 전역 수축을 증명할 수 없다.
 
@@ -403,7 +403,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 </div>
 
-??? success "연습문제 8 풀이"
+??? success "풀이"
 
     재구성은 학습된 코드에서의 출력만 제약하고 디코더의 모든 위치·방향을 제약하지 않는다. 작은 코드 스케일을 큰 디코더 웨이트로 리워드하는 자유도도 남는다. 웨이트·디코더 민감도 정규화가 필요한지는 목적과 보류 성능에 따라 검토한다.
 
@@ -418,7 +418,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 </div>
 
-??? success "연습문제 9 풀이"
+??? success "풀이"
 
     L=L_rec+λΩ이면 ∇L_rec=−λ∇Ω다. 가중된 두 벡터가 상쇄한다는 뜻이며 둘 다 0일 수도 있다. 최적화가 그 정지점에 도달했다는 보장은 별개다. 서로 다른 λ 실행 사이 로스 변화의 유한 비율이 반드시 λ와 같다는 뜻도 아니다.
 
@@ -433,7 +433,7 @@ CAE 적용 여부를 판단할 평가 기준을 설명하라.
 
 </div>
 
-??? success "연습문제 10 풀이"
+??? success "풀이"
 
     표현 민감도를 직접 제어할 필요와 계산·메모리 예산을 확인한다. 복원·후속 태스크·코드 스케일과 잡음 변화율을 보류 데이터에서 비교한다. DAE와 정확히 같은 효과라거나 CAE 특이값이 내재 차원을 자동으로 알려 준다고 가정하지 않는다. 각 구현의 비용과 실제 목표에 맞는 효과를 측정한다.
 

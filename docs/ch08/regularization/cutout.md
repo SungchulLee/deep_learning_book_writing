@@ -544,7 +544,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     컷아웃은 입력 이미지에서 크기가 $L \times L$인 정사각형 영역을 무작위로 골라 0(또는 평균 화소값)으로 채운다. 그 영역은 이미지 경계 바깥까지 뻗을 수 있다. 핵심 하이퍼파라미터는 조각의 크기 $L$이며, CIFAR-10에서는 보통 16(이미지 크기의 절반)이다.
 
 ---
@@ -556,7 +556,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     class Cutout:
         def __init__(self, length):
@@ -581,7 +581,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     둘 다 표현의 일부를 무작위로 가린다. 드롭아웃은 개별 뉴런을, 컷아웃은 공간 영역을 가린다. 컷아웃은 공간 상관 때문에 개별 화소에 대한 드롭아웃이 너무 잘게 쪼개지는 이미지를 위해 설계되었다. 컷아웃은 뉴럴 넷트웍이 부분적인 관측에서 배우도록 강제하여 가림에 대한 견고성을 높인다.
 
 ---
@@ -593,7 +593,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
 </div>
 
-??? success "연습문제 4 풀이"
+??? success "풀이"
     픽셀 길이와 이미지 대비 면적, 객체 크기와 위치를 함께 본다. 해상도 비율만으로 크기를 정하면 작은 객체를 완전히 지울 수 있다. 여러 크기·확률을 검증하고 가려진 뒤에도 원래 레이블이 합리적인지 확인한다. 224 해상도에서 길이 112가 항상 적절한 것은 아니다.
 
 ## 정리하며

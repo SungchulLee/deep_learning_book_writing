@@ -175,7 +175,7 @@ torch.tensor(s.to_numpy(dtype="float32"))        # 넘파이에서 맞춘다
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import pandas as pd, torch
 
@@ -220,7 +220,7 @@ df2 = pd.DataFrame({"a": [1, 2, 3],   "b": ["x", "y", "z"]})
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     ```python
     import pandas as pd, torch
 
@@ -279,7 +279,7 @@ s2 = pd.Series([1, 2, None], dtype="Int64")      # 대문자 I
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import pandas as pd, numpy as np, torch
 

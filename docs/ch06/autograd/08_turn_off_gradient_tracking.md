@@ -83,7 +83,7 @@ element 0 of tensors does not require grad and does not have a grad_fn
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     import torch
 
@@ -103,7 +103,7 @@ element 0 of tensors does not require grad and does not have a grad_fn
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     아니다. 기록이 켜져 있고 다른 입력이 경사를 요구하면 그 입력에 대한 경로는 기록될 수 있다. 또한 `requires_grad=False`는 이전 `.grad`를 지우지 않으므로 학습 중 파라미터를 동결할 때 남은 경사도 정리해야 한다.
 
 ---
@@ -116,7 +116,7 @@ element 0 of tensors does not require grad and does not have a grad_fn
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     import torch
 

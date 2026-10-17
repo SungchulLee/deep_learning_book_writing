@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 1 풀이"
+??? success "풀이"
     ```python
     model = BERTClassifier(vocab_size=10000, num_classes=5)
     x = torch.randint(0, 10000, (4, 32))  # batch=4, seq_len=32
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 2 풀이"
+??? success "풀이"
     이 모델은 사전 학습되지 않았으므로 첫 토큰이 이미 문장 요약을 배웠다고 가정하면 안 된다. 분류 로스를 통해 그 역할을 학습하도록 구성한다. 평균 풀링은 PAD를 제외한 유효 토큰 수로 나누고 빈 입력 폴리시를 정해야 한다. 같은 데이터 분할과 학습 예산에서 검증 성능을 비교한다.
 
 ---
@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
 </div>
 
-??? success "연습문제 3 풀이"
+??? success "풀이"
     ```python
     self.classifier = nn.Sequential(
         nn.Linear(d_model, d_model),
