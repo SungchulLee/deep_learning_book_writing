@@ -78,14 +78,25 @@ $$
       = \operatorname*{arg\,min}_k \left( -2\,x^{\top}\overline{x}_k + \lVert \overline{x}_k \rVert^2 \right)
     $$
 
-    이다. 이제 양쪽에 $-\tfrac{1}{2}$을 곱한다. **음수를 곱하므로 최소가 최대로 뒤집힌다.**
+    이다. 여기서 **양수** $2$로 나눈다. 양수로 나누는 것은 최솟값의 위치를 바꾸지 않으므로 **최소화가 그대로 최소화로 남는다.**
+
+    $$
+    \widehat{y}(x)
+      = \operatorname*{arg\,min}_k \underbrace{\left( -x^{\top}\overline{x}_k + \tfrac{1}{2}\lVert \overline{x}_k \rVert^2 \right)}_{x^{\top} v_k \,+\, c_k}
+    $$
+
+    곧 $v_k = -\overline{x}_k$, $c_k = \tfrac{1}{2}\lVert \overline{x}_k \rVert^2$인 **$x$의 일차식을 최소로 만드는 규칙**이다. 여기까지는 거리를 재던 방향 그대로다.
+
+    마지막으로 **부호를 뒤집는다.** 음수를 곱하는 것이므로 이번에는 최소가 최대로 바뀐다.
 
     $$
     \widehat{y}(x)
       = \operatorname*{arg\,max}_k \left( x^{\top}\overline{x}_k - \tfrac{1}{2}\lVert \overline{x}_k \rVert^2 \right)
     $$
 
-    $w_k = \overline{x}_k$, $b_k = -\tfrac{1}{2}\lVert \overline{x}_k \rVert^2$로 두면 괄호 안이 정확히 $x^{\top} w_k + b_k$다. $\square$
+    $w_k = -v_k = \overline{x}_k$, $b_k = -c_k = -\tfrac{1}{2}\lVert \overline{x}_k \rVert^2$로 두면 괄호 안이 정확히 $x^{\top} w_k + b_k$다. $\square$
+
+    두 꼴은 **부호 하나 차이**이고 고르는 클래스는 언제나 같다. 작게 만들 것을 재면 $v_k$·$c_k$ 쪽이고, 크게 만들 것(로짓)을 재면 $w_k$·$b_k$ 쪽이다. 뒤의 모델들이 모두 **로짓을 내놓고 가장 큰 것을 고르므로**, 이 절은 뒤쪽 꼴로 적어 둔다.
 
 곧 템플릿 학습은 **웨이트를 경사 하강법으로 학습하는 대신 클래스 평균으로 못박아 둔 선형 레이어** 하나다. 꼴이 선형 분류기와 같고 다른 것은 계수를 정하는 방법뿐이다.
 
