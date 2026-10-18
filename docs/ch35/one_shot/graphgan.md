@@ -338,7 +338,7 @@ class GraphGAN:
 
         graphs = []
         for b in range(num_graphs):
-            # 외톨이 마디를 없앤다
+            # 외톨이 절를 없앤다
             degrees = adj[b].sum(dim=1)
             active = degrees > 0
             if active.sum() < 2:

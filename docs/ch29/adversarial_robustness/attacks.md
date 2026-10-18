@@ -1131,7 +1131,7 @@ def main():
                                            download=True, transform=transform)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True)
     
-    # 미리 익힌 모델을 불러온다(앞 마디의 익히기 코드를 쓴다고 본다)
+    # 미리 익힌 모델을 불러온다(앞 절의 익히기 코드를 쓴다고 본다)
     model = SimpleCNN()
     # model.load_state_dict(torch.load('mnist_cnn.pth'))
     model.eval()

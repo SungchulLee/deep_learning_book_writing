@@ -56,7 +56,7 @@
           - num:         홑값
           - grad:        쌓인 그래디언트(.backward()이 채운다)
           - depends_on:  어버이 NumberWithGrad 객체의 목록
-          - creation_op: 이 마디를 만든 셈을 가리키는 글자열 표
+          - creation_op: 이 절를 만든 셈을 가리키는 글자열 표
         """
 
         def __init__(
@@ -130,7 +130,7 @@
             """셈 그래프를 따라 그래디언트를 되부르며 퍼뜨린다.
 
             사슬 법칙을 쓴다:  dL/dx = dL/dy * dy/dx
-            여기서 y은 이 마디의 값이고 x은 어버이의 값이다.
+            여기서 y은 이 절의 값이고 x은 어버이의 값이다.
             """
             if backward_grad is None:
                 # 역전파의 뿌리 — 출력의 자기 자신에 대한 경사는 1이다

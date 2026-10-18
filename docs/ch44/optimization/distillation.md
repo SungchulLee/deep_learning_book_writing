@@ -1100,7 +1100,7 @@ def evaluate_distillation_agreement(teacher: nn.Module,
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 마디에서 다룬 다듬기 재주들을 맞음 로스, 추론 빨라짐, 짜기의 번거로움으로 비교하여 트레이드오프를 밝혀라.
+이 절에서 다룬 다듬기 재주들을 맞음 로스, 추론 빨라짐, 짜기의 번거로움으로 비교하여 트레이드오프를 밝혀라.
 
 </div>
 

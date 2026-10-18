@@ -39,7 +39,7 @@ class SumTree:
         self.size = 0
 
     def _propagate(self, idx: int, change: float):
-        """잎이 바뀐 뒤 어버이 마디를 고친다."""
+        """잎이 바뀐 뒤 어버이 절를 고친다."""
         parent = (idx - 1) // 2
         self.tree[parent] += change
         if parent != 0:

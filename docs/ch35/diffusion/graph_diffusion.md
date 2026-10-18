@@ -313,7 +313,7 @@ class ContinuousGraphDiffusion(nn.Module):
             adj_b = (adj_t[b] > 0).float()
             adj_b = torch.triu(adj_b, diagonal=1)
             adj_b = adj_b + adj_b.t()
-            # 외톨이 마디를 없앤다
+            # 외톨이 절를 없앤다
             active = adj_b.sum(1) > 0
             if active.sum() < 2:
                 active[:2] = True

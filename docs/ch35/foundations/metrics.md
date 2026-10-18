@@ -153,7 +153,7 @@ def spectral_distribution(
 ) -> np.ndarray:
     """고르게 맞춘 라플라스의 고윳값 분포를 셈한다."""
     degree = adj.sum(dim=1)
-    # 외톨이 마디를 다룬다
+    # 외톨이 절를 다룬다
     degree_inv_sqrt = torch.zeros_like(degree)
     mask = degree > 0
     degree_inv_sqrt[mask] = 1.0 / torch.sqrt(degree[mask])
