@@ -30,3 +30,11 @@ experiments/ch04_10ep/
 # 시험지와 풀이. 이 저장소는 공개되어 있으므로 올라가면 그대로 유출이다.
 # 폴더 이름만으로는 git을 막지 못한다 — `git add -A` 한 번이면 스테이징된다.
 exam_papers_do_not_push/
+
+# 그 폴더를 묶거나 베낀 것도 함께 막는다. 끝의 `/` 는 디렉터리만 맞으므로
+# exam_papers_do_not_push.zip 같은 파일은 위 한 줄로 걸리지 않는다.
+exam_papers_do_not_push*
+*midterm*.pdf
+*midterm*.html
+*_exam.zip
+*_exam_*.zip
