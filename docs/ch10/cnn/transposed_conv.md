@@ -778,7 +778,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-(가) 전치 컨볼루션과 (나) 바이리니어 보간 뒤 컨볼루션으로 업샘플링 모듈을 각각 구현하고, 출력 크기·파라메터 수·겹침의 고르기를 비교하여라.
+(a) 전치 컨볼루션과 (b) 바이리니어 보간 뒤 컨볼루션으로 업샘플링 모듈을 각각 구현하고, 출력 크기·파라메터 수·겹침의 고르기를 비교하여라.
 
 </div>
 
@@ -791,16 +791,16 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
     x = torch.randn(1, 64, 16, 16)
 
-    # 방법 (가): 전치 컨볼루션 — 상향 표본화 필터까지 배운다
+    # 방법 (a): 전치 컨볼루션 — 상향 표본화 필터까지 배운다
     up_a = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1)
 
-    # 방법 (나): 쌍선형 보간 뒤 컨볼루션 — 상향 표본화는 고정, 컨볼루션만 배운다
+    # 방법 (b): 쌍선형 보간 뒤 컨볼루션 — 상향 표본화는 고정, 컨볼루션만 배운다
     up_b = nn.Sequential(
         nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
         nn.Conv2d(64, 32, kernel_size=3, padding=1)
     )
 
-    for name, m in [("(가) ConvTranspose", up_a), ("(나) Bilinear+Conv", up_b)]:
+    for name, m in [("(a) ConvTranspose", up_a), ("(b) Bilinear+Conv", up_b)]:
         out = m(x)
         print(f"{name:<22}: → {tuple(out.shape)}, "
               f"params {sum(p.numel() for p in m.parameters()):,}")
@@ -809,18 +809,18 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
     ones = torch.ones(1, 1, 8, 8)
     counts_a = nn.functional.conv_transpose2d(
         ones, torch.ones(1, 1, 4, 4), stride=2, padding=1).squeeze()
-    print(f"(가) 받은 횟수 — 안쪽 최소 {counts_a[1:-1, 1:-1].min():.0f}, "
+    print(f"(a) 받은 횟수 — 안쪽 최소 {counts_a[1:-1, 1:-1].min():.0f}, "
           f"최대 {counts_a[1:-1, 1:-1].max():.0f}")
-    print("(나) 받은 횟수 — 보간은 모든 자리를 똑같이 채우므로 고르다")
+    print("(b) 받은 횟수 — 보간은 모든 자리를 똑같이 채우므로 고르다")
     ```
 
     **출력:**
 
     ```
-    (가) ConvTranspose     : → (1, 32, 32, 32), params 32,800
-    (나) Bilinear+Conv     : → (1, 32, 32, 32), params 18,464
-    (가) 받은 횟수 — 안쪽 최소 4, 최대 4
-    (나) 받은 횟수 — 보간은 모든 자리를 똑같이 채우므로 고르다
+    (a) ConvTranspose     : → (1, 32, 32, 32), params 32,800
+    (b) Bilinear+Conv     : → (1, 32, 32, 32), params 18,464
+    (a) 받은 횟수 — 안쪽 최소 4, 최대 4
+    (b) 받은 횟수 — 보간은 모든 자리를 똑같이 채우므로 고르다
     ```
 
     두 구성은 같은 공간 크기를 내지만 커널 크기가 달라 파라메터가 32800개와 18464개이다. 차이를 단순히 업샘플링 필터의 학습 여부로 설명할 수는 없다. 겹침 시각화는 입력·웨이트를 모두 1로 두었을 때의 기하학적 비교이고 실제 생성 품질의 평가가 아니다. 구조 선택은 목표 품질과 장치에서의 지연·메모리를 기준으로 비교한다.

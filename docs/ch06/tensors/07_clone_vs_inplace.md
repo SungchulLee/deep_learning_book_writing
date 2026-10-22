@@ -474,19 +474,19 @@ copy  = base.clone()
 아래 세 가지를 모두 돌려 보라. 하나는 오류 없이 넘어가고 둘은 `RuntimeError`를 낸다.
 
 ```python
-# (가) 곱셈의 출력을 고친다
+# (a) 곱셈의 출력을 고친다
 a = torch.tensor([1., 2., 3.], requires_grad=True); b = a * 2
 b[0] = 99.; b.sum().backward()
 
-# (나) exp의 출력을 고친다
+# (b) exp의 출력을 고친다
 a = torch.tensor([1., 2., 3.], requires_grad=True); b = a.exp()
 b[0] = 99.; b.sum().backward()
 
-# (다) 잎 텐서를 고친다
+# (c) 잎 텐서를 고친다
 w = torch.tensor([1., 2.], requires_grad=True); w[0] = 5.
 ```
 
-(가)에서 `a.grad`가 무엇이 되는지 확인하고, **오류가 나지 않는 쪽이 왜 더 조심할 자리인지** 설명하라. 그리고 (가)와 (나)가 갈리는 까닭을 밝혀라.
+(a)에서 `a.grad`가 무엇이 되는지 확인하고, **오류가 나지 않는 쪽이 왜 더 조심할 자리인지** 설명하라. 그리고 (a)와 (b)가 갈리는 까닭을 밝혀라.
 
 </div>
 
@@ -498,7 +498,7 @@ w = torch.tensor([1., 2.], requires_grad=True); w[0] = 5.
     b = a * 2
     b[0] = 99.
     b.sum().backward()
-    print("(가) a.grad:", a.grad)
+    print("(a) a.grad:", a.grad)
 
     a = torch.tensor([1., 2., 3.], requires_grad=True)
     b = a.exp()
@@ -506,28 +506,28 @@ w = torch.tensor([1., 2.], requires_grad=True); w[0] = 5.
         b[0] = 99.
         b.sum().backward()
     except RuntimeError as e:
-        print("(나)", str(e)[:96])
+        print("(b)", str(e)[:96])
 
     w = torch.tensor([1., 2.], requires_grad=True)
     try:
         w[0] = 5.
     except RuntimeError as e:
-        print("(다)", str(e)[:96])
+        print("(c)", str(e)[:96])
     ```
 
     ```
-    (가) a.grad: tensor([0., 2., 2.])
-    (나) one of the variables needed for gradient computation has been modified by an inpl
-    (다) a view of a leaf Variable that requires grad is being used in an in-place operatio
+    (a) a.grad: tensor([0., 2., 2.])
+    (b) one of the variables needed for gradient computation has been modified by an inpl
+    (c) a view of a leaf Variable that requires grad is being used in an in-place operatio
     ```
 
-    **(가)와 (나)가 갈리는 까닭은 역전파에 무엇이 필요한가다.** $y = 2x$의 도함수는
+    **(a)와 (b)가 갈리는 까닭은 역전파에 무엇이 필요한가다.** $y = 2x$의 도함수는
     2라는 상수이므로, 역전파에 출력값이 필요하지 않다. 그래서 출력을 고쳐도 PyTorch가
     막을 이유가 없다. 반면 $y = e^x$의 도함수는 $e^x$, 곧 **출력 그 자체**다. 그래서
     `exp`는 출력을 저장해 두고 역전파에서 다시 꺼내 쓰는데, 그 값이 99로 바뀌어 있으면
     경사를 계산할 수가 없다. 그러므로 막는다.
 
-    **조심할 자리는 (가)다.** `a.grad`가 `[0., 2., 2.]`인데, 첫 원소가 2가 아니라 0이다.
+    **조심할 자리는 (a)다.** `a.grad`가 `[0., 2., 2.]`인데, 첫 원소가 2가 아니라 0이다.
     이것은 PyTorch가 틀린 것이 아니다. `b[0] = 99`로 덮어쓴 뒤의 합은 `a[0]`에 더 이상
     의존하지 않으므로 0이 **맞다.** 틀린 것은 내가 미분하려던 함수가 바뀌었다는 사실을
     모르고 있다는 점이다.
@@ -536,7 +536,7 @@ w = torch.tensor([1., 2.], requires_grad=True); w[0] = 5.
     PyTorch가 알려 주니 오히려 다행이고, 넘어가는 경우에는 경사가 달라졌다는 표시가
     어디에도 남지 않는다.
 
-    (다)는 가장 흔한 실수다. 모델의 웨이트는 잎 텐서이므로 `w[0] = 5.`처럼 직접 고칠
+    (c)는 가장 흔한 실수다. 모델의 웨이트는 잎 텐서이므로 `w[0] = 5.`처럼 직접 고칠
     수 없다. 갱신은 `with torch.no_grad():` 안에서 하거나 옵티마이저에 맡긴다.
 
 ## 정리하며

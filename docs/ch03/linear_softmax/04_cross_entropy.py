@@ -156,20 +156,20 @@ print("=" * 64)
 
 with torch.no_grad():
     logp = torch.log_softmax(model(Xte), dim=1)
-    # (가) 로그 가능도: 참 클래스의 로그 확률을 모두 더한다
+    # (a) 로그 가능도: 참 클래스의 로그 확률을 모두 더한다
     ll = logp[torch.arange(len(yte)), yte].sum().item()
-    # (나) 교차 엔트로피: 원-핫 표적과의 교차 엔트로피를 평균낸다
+    # (b) 교차 엔트로피: 원-핫 표적과의 교차 엔트로피를 평균낸다
     onehot = torch.zeros(len(yte), 10)
     onehot[torch.arange(len(yte)), yte] = 1.0
     ce = -(onehot * logp).sum(1).mean().item()
-    # (다) PyTorch의 손실 함수
+    # (c) PyTorch의 손실 함수
     ce_torch = crit(model(Xte), yte).item()
 
-print(f"  (가) 로그 가능도 sum(log p_t)     = {ll:.6f}")
-print(f"  (나) 교차 엔트로피 -mean(q . log p) = {ce:.6f}")
-print(f"  (다) nn.CrossEntropyLoss           = {ce_torch:.6f}")
-print(f"\n  -(가)/n = {-ll/len(yte):.6f}   <- (나)와 같아야 한다")
-print(f"  (나)와 (다)의 차이 = {abs(ce - ce_torch):.2e}")
+print(f"  (a) 로그 가능도 sum(log p_t)     = {ll:.6f}")
+print(f"  (b) 교차 엔트로피 -mean(q . log p) = {ce:.6f}")
+print(f"  (c) nn.CrossEntropyLoss           = {ce_torch:.6f}")
+print(f"\n  -(a)/n = {-ll/len(yte):.6f}   <- (b)와 같아야 한다")
+print(f"  (b)와 (c)의 차이 = {abs(ce - ce_torch):.2e}")
 print("\n  셋이 같은 수다. 부호를 뒤집고 표본 수로 나눈 것뿐이므로,")
 print("  가능도를 가장 크게 하는 매개변수가 곧 손실을 가장 작게 한다.")
 

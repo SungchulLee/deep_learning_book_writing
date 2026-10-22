@@ -707,11 +707,11 @@ assert pred.shape == tgt.shape, (pred.shape, tgt.shape)
     고침은 **내가 무엇을 하려 했는지**에 달려 있다. 모양만 맞추는 문제가 아니다.
 
     ```python
-    # (가) 길이 5가 맞다면 — 행 넷에 길이 5인 벡터를 더하려던 것
+    # (a) 길이 5가 맞다면 — 행 넷에 길이 5인 벡터를 더하려던 것
     x = torch.randn(3, 5)
     print((x + torch.randn(5)).shape)
 
-    # (나) 길이 3이 맞다면 — 행마다 다른 수 하나를 더하려던 것
+    # (b) 길이 3이 맞다면 — 행마다 다른 수 하나를 더하려던 것
     y = torch.randn(3, 4)
     print((y + torch.randn(3).unsqueeze(1)).shape)
     ```
@@ -721,7 +721,7 @@ assert pred.shape == tgt.shape, (pred.shape, tgt.shape)
     torch.Size([3, 4])
     ```
 
-    (가)는 벡터를 **행마다** 더하고 (나)는 **열마다** 더한다. 둘은 전혀 다른 계산이다.
+    (a)는 벡터를 **행마다** 더하고 (b)는 **열마다** 더한다. 둘은 전혀 다른 계산이다.
     그래서 "모양을 맞추면 된다"고 아무 쪽이나 고르면 오류는 사라지지만 계산이 틀린다.
 
 ---
@@ -733,16 +733,16 @@ assert pred.shape == tgt.shape, (pred.shape, tgt.shape)
 아래 둘은 오류가 나지 않는다. 그런데 둘 다 뜻과 다르다.
 
 ```python
-# (가) 모델 출력과 정답
+# (a) 모델 출력과 정답
 pred = torch.randn(32, 1); tgt = torch.randn(32)
 diff = pred - tgt
 
-# (나) 행마다 평균을 뺀다
+# (b) 행마다 평균을 뺀다
 x = torch.arange(25.).reshape(5, 5)
 centered = x - x.mean(1)
 ```
 
-(가)에서 `diff`의 모양을 확인하고 `F.mse_loss(pred, tgt)`가 올바른 값과 얼마나 다른지 재어라. (나)에서는 `x`를 `(4, 5)`로 바꾸면 무슨 일이 생기는지 확인하고, **정사각일 때 오류가 나지 않는 것이 왜 더 나쁜지** 설명하라.
+(a)에서 `diff`의 모양을 확인하고 `F.mse_loss(pred, tgt)`가 올바른 값과 얼마나 다른지 재어라. (b)에서는 `x`를 `(4, 5)`로 바꾸면 무슨 일이 생기는지 확인하고, **정사각일 때 오류가 나지 않는 것이 왜 더 나쁜지** 설명하라.
 
 </div>
 

@@ -1,6 +1,6 @@
 # Longformer
 
-Longformer는 2020년 글 "Longformer: The Long-Document Transformer"에서 나왔다. - 온전한 O(S^2) 어텐션을 다음으로 갈음한다: (가) 미닫이 창 그 자리 어텐션(O(S * 창)) (나) 골라 쓰는 두루 어텐션 단어(예: [CLS], 물음 단어).
+Longformer는 2020년 글 "Longformer: The Long-Document Transformer"에서 나왔다. - 온전한 O(S^2) 어텐션을 다음으로 갈음한다: (a) 미닫이 창 그 자리 어텐션(O(S * 창)) (b) 골라 쓰는 두루 어텐션 단어(예: [CLS], 물음 단어).
 
 여기 구현은 Longformer를 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -14,8 +14,8 @@ Longformer - 긴 글월 변환기
 지은이: 이즈 벨타기, 매슈 피터스, 아르만 코한
 핵심 깨침:
   - 온전한 O(S^2) 어텐션을 다음으로 갈음한다:
-      (가) 미닫이 창 그 자리 어텐션 (O(S * window))
-      (나) 골라 쓰는 두루 어텐션 낱말(예: [CLS], 물음 낱말)
+      (a) 미닫이 창 그 자리 어텐션 (O(S * window))
+      (b) 골라 쓰는 두루 어텐션 낱말(예: [CLS], 물음 낱말)
 
 두루마리: appendix/transformers/longformer.py
 눈여겨볼 것: *그 자리 어텐션*(창을 쓰는 셀프 어텐션)을 배우기 위해 짜 본 것이다.

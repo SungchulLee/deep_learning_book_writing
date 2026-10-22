@@ -70,7 +70,7 @@ $$\hat{F}v = \nabla_\theta \left[(\nabla_\theta \bar{D}_\text{KL})^\top v\right]
 
 1. 가장 큰 스텝을 계산한다: $\alpha_\text{최대} = \sqrt{\frac{2\delta}{s^\top \hat{F} s}}$
 2. $k = 0, 1, 2, \ldots$에 대해 $\alpha = \alpha_\text{최대} \cdot \beta^k$을 꾀한다
-3. (가) 쿨백-라이블러 매임과 (나) 대리 목표의 나아짐을 함께 채우는 첫 $\alpha$을 받아들인다
+3. (a) 쿨백-라이블러 매임과 (b) 대리 목표의 나아짐을 함께 채우는 첫 $\alpha$을 받아들인다
 
 ---
 
