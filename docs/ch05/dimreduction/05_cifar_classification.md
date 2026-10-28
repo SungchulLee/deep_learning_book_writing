@@ -39,7 +39,9 @@
 | VGG16 fc7 | 4,096 | **84.93%** | — | — |
 
 !!! note "작은 차이를 해석할 때"
-    4.1절의 시드 범위는 원시 화소 분류기의 기록이다. 다른 표현 위에 학습한 탐침의 불확실성에 그대로 적용할 수는 없다. 아래 단일 실행의 작은 차이는 반복 실험 없이 우열이나 동등성으로 단정하지 않는다.
+    아래의 탐침은 모두 시드 하나로 잰 것이라 저마다의 흔들림을 모른다. 그래서 작은 차이를 판정할 때는 [4.1절](../../ch04/01_two_ladders.md)이 원시 화소에서 시드 다섯 개로 재어 둔 스프레드를 **어림자로 빌려 쓴다** — 선형 탐침에 2.11, MLP 탐침에 1.73이다.
+
+    빌려 쓰는 자라는 것을 잊지 말아야 한다. 탐침의 구조는 같지만 들어가는 표현이 다르므로 흔들림의 크기도 다를 수 있다. 그 자보다 작은 차이는 "우열을 가릴 수 없다"로 읽고, 우열이나 동등성을 확정하려면 탐침을 여러 시드로 다시 재야 한다.
 
 ### 코드
 
@@ -120,27 +122,6 @@ def report(tag, Ztr, Zte, kinds=("linear", "mlp")):
         print(f"    {tag:16s} {kind:6s} {acc:.2f}%  머리 파라메터 {n:,}", flush=True)
 
 
-# === 스텝1: PCA — 학습이 없다 ===============================================
-print("\n=== PCA ===")
-mu = Xtr.mean(0, keepdim=True)
-Xc = Xtr - mu
-cov = (Xc.T @ Xc) / (Xc.shape[0] - 1)          # (3072, 3072)
-
-# torch.linalg.eigh는 이 크기에서 실패하는 빌드가 있다(LAPACK 작업공간 문제).
-# numpy의 경로를 float64로 쓰면 안정적이며, 어차피 한 번만 계산한다
-ev, evec = np.linalg.eigh(cov.double().numpy())
-evals = torch.from_numpy(np.ascontiguousarray(ev[::-1])).float()
-evecs = torch.from_numpy(np.ascontiguousarray(evec[:, ::-1])).float()
-
-for k in (16, 64, 256):
-    V = evecs[:, :k]
-    Ztr, Zte = (Xtr - mu) @ V, (Xte - mu) @ V
-    mse = ((Xte - (Zte @ V.T + mu)) ** 2).mean().item()
-    var = (evals[:k].sum() / evals.sum()).item()
-    print(f"  PCA-{k}: 설명 분산 {100 * var:.1f}%  복원 MSE {mse:.5f}")
-    report(f"PCA-{k}", Ztr, Zte)
-
-
 # === 오토인코더 공통 =======================================================
 def train_ae(model, X):
     """되살리기만 배운다. 라벨은 한 번도 쓰지 않는다."""
@@ -184,37 +165,58 @@ class AE(nn.Module):
         self.enc, self.dec = enc, dec
 
 
-# === 스텝2: 선형 AE — 활성화가 없다 =========================================
-print("\n=== 선형 AE (부호 64) ===")
-m = train_ae(AE(nn.Linear(3072, 64), nn.Linear(64, 3072)), Xtr)
-print(f"  시험 MSE {test_mse(m, Xte):.5f}  "
-      f"인코더 파라메터 {sum(q.numel() for q in m.enc.parameters()):,}")
-report("선형 AE-64", encode(m, Xtr), encode(m, Xte))
+if __name__ == "__main__":
+  # === 스텝1: PCA — 학습이 없다 ===============================================
+  print("\n=== PCA ===")
+  mu = Xtr.mean(0, keepdim=True)
+  Xc = Xtr - mu
+  cov = (Xc.T @ Xc) / (Xc.shape[0] - 1)          # (3072, 3072)
+
+  # torch.linalg.eigh는 이 크기에서 실패하는 빌드가 있다(LAPACK 작업공간 문제).
+  # numpy의 경로를 float64로 쓰면 안정적이며, 어차피 한 번만 계산한다
+  ev, evec = np.linalg.eigh(cov.double().numpy())
+  evals = torch.from_numpy(np.ascontiguousarray(ev[::-1])).float()
+  evecs = torch.from_numpy(np.ascontiguousarray(evec[:, ::-1])).float()
+
+  for k in (16, 64, 256):
+      V = evecs[:, :k]
+      Ztr, Zte = (Xtr - mu) @ V, (Xte - mu) @ V
+      mse = ((Xte - (Zte @ V.T + mu)) ** 2).mean().item()
+      var = (evals[:k].sum() / evals.sum()).item()
+      print(f"  PCA-{k}: 설명 분산 {100 * var:.1f}%  복원 MSE {mse:.5f}")
+      report(f"PCA-{k}", Ztr, Zte)
+
+  # === 스텝2: 선형 AE — 활성화가 없다 =========================================
+  print("\n=== 선형 AE (부호 64) ===")
+  m = train_ae(AE(nn.Linear(3072, 64), nn.Linear(64, 3072)), Xtr)
+  print(f"  시험 MSE {test_mse(m, Xte):.5f}  "
+        f"인코더 파라메터 {sum(q.numel() for q in m.enc.parameters()):,}")
+  report("선형 AE-64", encode(m, Xtr), encode(m, Xte))
 
 
-# === 스텝3: 깊은 AE — 은닉 레이어와 ReLU를 넣는다 ================================
-print("\n=== 깊은 AE (부호 64) ===")
-m = train_ae(AE(nn.Sequential(nn.Linear(3072, 512), nn.ReLU(), nn.Linear(512, 64)),
-                nn.Sequential(nn.Linear(64, 512), nn.ReLU(), nn.Linear(512, 3072))), Xtr)
-print(f"  시험 MSE {test_mse(m, Xte):.5f}  "
-      f"인코더 파라메터 {sum(q.numel() for q in m.enc.parameters()):,}")
-report("깊은 AE-64", encode(m, Xtr), encode(m, Xte))
+  # === 스텝3: 깊은 AE — 은닉 레이어와 ReLU를 넣는다 ================================
+  print("\n=== 깊은 AE (부호 64) ===")
+  m = train_ae(AE(nn.Sequential(nn.Linear(3072, 512), nn.ReLU(), nn.Linear(512, 64)),
+                  nn.Sequential(nn.Linear(64, 512), nn.ReLU(), nn.Linear(512, 3072))), Xtr)
+  print(f"  시험 MSE {test_mse(m, Xte):.5f}  "
+        f"인코더 파라메터 {sum(q.numel() for q in m.enc.parameters()):,}")
+  report("깊은 AE-64", encode(m, Xtr), encode(m, Xte))
 
 
-# === 스텝4: conv AE — 납작하게 펴지 않는다 ==================================
-print("\n=== conv AE (병목 32x8x8 = 2048) ===")
-m = train_ae(AE(nn.Sequential(
-                    nn.Conv2d(3, 16, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
-                    nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2)),
-                nn.Sequential(
-                    nn.ConvTranspose2d(32, 16, 2, stride=2), nn.ReLU(),
-                    nn.ConvTranspose2d(16, 3, 2, stride=2))), Xtr_img)
-print(f"  시험 MSE {test_mse(m, Xte_img):.5f}  "
-      f"인코더 파라메터 {sum(q.numel() for q in m.enc.parameters()):,}")
+  # === 스텝4: conv AE — 납작하게 펴지 않는다 ==================================
+  print("\n=== conv AE (병목 32x8x8 = 2048) ===")
+  m = train_ae(AE(nn.Sequential(
+                      nn.Conv2d(3, 16, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+                      nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2)),
+                  nn.Sequential(
+                      nn.ConvTranspose2d(32, 16, 2, stride=2), nn.ReLU(),
+                      nn.ConvTranspose2d(16, 3, 2, stride=2))), Xtr_img)
+  print(f"  시험 MSE {test_mse(m, Xte_img):.5f}  "
+        f"인코더 파라메터 {sum(q.numel() for q in m.enc.parameters()):,}")
 
-Ztr, Zte = encode(m, Xtr_img), encode(m, Xte_img)          # (N, 32, 8, 8)
-report("conv AE 납작하게", Ztr.flatten(1), Zte.flatten(1), kinds=("mlp",))
-report("conv AE 공간으로", Ztr, Zte, kinds=("cnn",))
+  Ztr, Zte = encode(m, Xtr_img), encode(m, Xte_img)          # (N, 32, 8, 8)
+  report("conv AE 납작하게", Ztr.flatten(1), Zte.flatten(1), kinds=("mlp",))
+  report("conv AE 공간으로", Ztr, Zte, kinds=("cnn",))
 ```
 
 **출력:**
@@ -301,7 +303,7 @@ X_hat = Z @ V.T + mu                            # 되살리기
 | PCA-64 | 86.5% | 0.1337 | 196,608 | 38.36% | 50.22% |
 | PCA-256 | 95.8% | 0.0416 | 786,432 | 40.42% | 52.37% |
 
-**PCA-64를 보라.** 3,072개를 64개로 줄였으니 48분의 1인데, 두 탐침 모두 원시 화소와 스프레드 안에서 같다(선형은 +1.18, MLP는 −0.72이고 자는 2.11과 1.73이다 — 부호가 서로 엇갈린다는 것부터가 둘이 갈리지 않는다는 뜻이다). **48배로 줄이는 것이 공짜다.**
+**PCA-64를 보라.** 3,072개를 64개로 줄였으니 48분의 1인데, 두 탐침 모두 원시 화소와 **빌려 온 자 안에서** 같다(선형은 +1.18, MLP는 −0.72이고 자는 2.11과 1.73이다 — 부호가 서로 엇갈린다는 것부터가 둘이 갈리지 않는다는 뜻이다). **48배로 줄이는 것이 공짜다.**
 
 그런데 그림을 보면 PCA-64는 눈에 띄게 뭉개져 있다. 자동차인 줄은 알겠지만 원본과는 한참 다르다. PCA-16은 아예 알아볼 수 없는 얼룩인데도 41.79%를 맞힌다(우연은 10%다).
 
@@ -329,7 +331,7 @@ dec = nn.Linear(64, 3072)
 
 **같은 것을 찾았다.** 복원 MSE가 2.4% 차이이고 탐침은 둘 다 스프레드 안이다. 놀랄 일이 아니라 **당연한 일**이다. 활성화가 없는 오토인코더가 찾을 수 있는 최선은 선형 부분공간이고, 제곱오차를 가장 작게 만드는 $k$차원 선형 부분공간은 PCA가 주는 것이기 때문이다. 경사 하강법은 `eigh`가 곧장 계산하는 답을 270초에 걸쳐 더듬어 찾은 계산이다.
 
-같은 학습 데이터와 차원 조건에서 PCA는 최적 선형 복원오차를 준다. 그러나 이 표의 시험 MSE가 PCA보다 낮다고 해서 곧바로 구현 오류라고 판단할 수는 없다. 시험 오차에는 일반화 차이가 포함된다.
+정리가 못박는 것은 **학습 데이터에서** 같은 차원의 선형 복원오차이고, 표의 값은 시험 집합에서 쟀다. 그래서 두 수의 작은 차이를 미수렴 하나로 설명할 수는 없다. 거꾸로 선형 AE가 PCA보다 **낮게** 나오는 경우라면 무엇을 의심해야 하는지는 연습문제 1이 다룬다.
 
 ### 두 사다리의 스텝2가 갈라진다
 
@@ -405,7 +407,7 @@ dec = nn.Sequential(
 | PCA-256 | 256 | 12배 | 0.0416 | 786,432 |
 | conv AE | 2,048 | 1.5배 | **0.0361** | **5,088** |
 
-**인코더가 154배 작다.** 웨이트 공유 덕이며, [4.6절](../../ch04/03_vgg16_transfer.md) 연습문제 2에서 잰 것과 같은 효과다.
+**인코더가 154배 작다.** 웨이트 공유 덕이며, [4.6절 연습문제 6](../../ch04/03_vgg16_transfer.md)이 그 기제를 적어 둔다 — 완전 연결 레이어는 파라메터 하나를 한 번 쓰고, 컨볼루션은 같은 웨이트를 자리마다 다시 쓴다.
 
 다만 공정하게 적어 둔다. conv AE는 2,048개를 남기므로 **압축률이 1.5배뿐이다.** PCA-256보다 수를 여덟 배 많이 쥐고 있으니, 차원당으로 따지면 복원이 더 좋다고 말할 수 없다. 이 스텝이 이긴 것은 **파라메터**이지 압축률이 아니다.
 
@@ -436,7 +438,7 @@ dec = nn.Sequential(
 | 화소를 그냥 CNN에 넣기 ([4.1절](../../ch04/01_two_ladders.md) 스텝4) | **72.58%** |
 | VGG16 전이 ([4.6절](../../ch04/03_vgg16_transfer.md) 스텝5) | **84.93%** |
 
-**아무것도 하지 않는 것보다 나쁘다.** 라벨 없이 표현을 배우려고 한 네 스텝이, 화소를 그대로 컨볼루션에 넣는 것보다 13.17%포인트 못하다.
+**아무것도 하지 않는 것보다 나쁘다.** 라벨 없이 표현을 배우려고 한 네 스텝이, 화소를 그대로 컨볼루션에 넣는 것보다 13.97%포인트 못하다.
 
 까닭은 목표가 어긋나 있기 때문이다. 되살리기를 잘하려면 **화소 분산이 큰 것**을 지켜야 한다. 그것은 대개 배경의 넓은 색면과 큰 밝기 변화다. 가르기를 잘하려면 **클래스를 나누는 것**을 지켜야 하는데, 그것은 분산이 작은 자리에 숨어 있을 수 있다. 오토인코더는 그런 것을 먼저 버린다.
 
