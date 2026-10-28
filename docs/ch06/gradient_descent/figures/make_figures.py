@@ -198,7 +198,80 @@ def main():
     make_cauchy()
     make_contours()
     make_lr()
+    make_convexity()
 
 
 if __name__ == "__main__":
     main()
+
+
+def make_convexity():
+    """볼록 집합·볼록 함수와 그 반례. 아스키 그림을 대신한다."""
+    fig, axes = plt.subplots(1, 4, figsize=(10.4, 2.9))
+
+    # --- 1. 볼록 집합 ---
+    ax = axes[0]
+    th = np.linspace(0, 2 * np.pi, 200)
+    ax.fill(1.6 * np.cos(th), 1.1 * np.sin(th), color=INK, alpha=0.12)
+    ax.plot(1.6 * np.cos(th), 1.1 * np.sin(th), color=INK, lw=1.1)
+    p, q = (-1.0, -0.55), (1.1, 0.6)
+    ax.plot([p[0], q[0]], [p[1], q[1]], "-", color=ACCENT, lw=1.6, zorder=3)
+    ax.plot(*zip(p, q), "o", color=ACCENT, ms=5, zorder=4)
+    ax.set_title("convex set", fontsize=9.5, weight="bold", color=INK, pad=6)
+    ax.text(0, -1.52, "the segment stays inside", ha="center", fontsize=7.5,
+            color=INK)
+    ax.set_ylim(-1.85, 1.35)
+
+    # --- 2. 볼록하지 않은 집합 (ㄱ 자 모양) ---
+    ax = axes[1]
+    poly = np.array([[0, 0], [2, 0], [2, 0.9], [0.9, 0.9], [0.9, 2], [0, 2]])
+    ax.fill(poly[:, 0], poly[:, 1], color=INK, alpha=0.12)
+    ax.plot(np.append(poly[:, 0], poly[0, 0]),
+            np.append(poly[:, 1], poly[0, 1]), color=INK, lw=1.1)
+    p, q = (1.75, 0.45), (0.45, 1.75)
+    ax.plot([p[0], q[0]], [p[1], q[1]], "-", color=ACCENT, lw=1.6, zorder=3)
+    ax.plot(*zip(p, q), "o", color=ACCENT, ms=5, zorder=4)
+    ax.set_title("not convex", fontsize=9.5, weight="bold", color=INK, pad=6)
+    ax.text(1.0, -0.42, "part of it steps outside", ha="center", fontsize=7.5,
+            color=INK)
+    ax.set_xlim(-0.35, 2.35)
+    ax.set_ylim(-0.75, 2.35)
+
+    for ax in axes[:2]:
+        ax.set_aspect("equal")
+        ax.set_axis_off()
+
+    # --- 3. 볼록 함수와 현 ---
+    ax = axes[2]
+    x = np.linspace(-2, 2, 300)
+    ax.plot(x, x ** 2, color=INK, lw=1.3)
+    a, b = -1.5, 1.2
+    ax.plot([a, b], [a ** 2, b ** 2], "-", color=ACCENT, lw=1.6, zorder=3)
+    ax.plot([a, b], [a ** 2, b ** 2], "o", color=ACCENT, ms=5, zorder=4)
+    ax.set_title("convex: chord above", fontsize=9.5, weight="bold",
+                 color=INK, pad=6)
+
+    # --- 4. 볼록하지 않은 함수와 현 ---
+    ax = axes[3]
+    x = np.linspace(-2.1, 2.1, 400)
+    y = x ** 4 - 3 * x ** 2
+    ax.plot(x, y, color=INK, lw=1.3)
+    a, b = -1.6, 1.6
+    ax.plot([a, b], [a ** 4 - 3 * a ** 2, b ** 4 - 3 * b ** 2], "-",
+            color=ACCENT, lw=1.6, zorder=3)
+    ax.plot([a, b], [a ** 4 - 3 * a ** 2, b ** 4 - 3 * b ** 2], "o",
+            color=ACCENT, ms=5, zorder=4)
+    ax.set_title("not convex: chord cuts under", fontsize=9.5, weight="bold",
+                 color=INK, pad=6)
+
+    for ax in axes[2:]:
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "convexity.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("wrote convexity.svg")
