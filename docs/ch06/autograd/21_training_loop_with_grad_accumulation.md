@@ -1,59 +1,165 @@
-# 경사 누적을 사용하는 학습 루프
+# 경사 누적 학습 루프 — 나머지가 생길 때
 
-마이크로배치 두 개마다 한 번 업데이트하는 학습 루프를 살펴본다. 역전파 횟수와 옵티마이저 단계 수를 구분한다.
+「경사 누적」에서 `mean` 로스를 조각 수로 나누라고 했다. 그 규칙에 단서가 둘
+붙는다. 둘 다 **데이터 수가 딱 안 떨어질 때** 생기고, 둘 다 오류를 내지 않는다.
+
+- **남는 마이크로배치** — 누적 수로 안 나눠떨어지면 마지막 몇 개의 경사가
+  조용히 버려진다
+- **고르지 않은 조각** — 마지막 조각이 짧은데 같은 $1/k$를 곱하면 전체 배치와
+  **다른 경사**가 나온다
+
+$N = 14$, 배치 3, 누적 2로 재어 본다. 14는 3으로도 6으로도 안 떨어지므로 둘 다
+일어난다.
 
 ## 1. 코드
 
 ```python
-"""그래디언트를 쌓는 학습 루프."""
+"""경사를 쌓는 학습 루프 — 나머지가 생길 때.
+
+「경사 누적」에서 `mean` 로스를 조각 수로 나누라고 했다. 그 규칙에
+단서가 둘 붙는다. 데이터 수가 딱 안 떨어질 때 생기는 일이다.
+
+- **남는 마이크로배치** — 누적 수로 안 나눠떨어지면 마지막 몇 개의
+  경사가 조용히 버려진다
+- **고르지 않은 조각** — 마지막 조각이 짧은데 같은 1/k 를 곱하면
+  전체 배치와 다른 경사가 된다
+
+둘 다 오류를 내지 않는다. 그래서 이 쪽에서 재어 본다.
+
+실행: python 21_training_loop_with_grad_accumulation.py
+"""
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
+N, D, BATCH, ACC = 14, 4, 3, 2      # 14 는 3 으로도 6 으로도 안 떨어진다
+
+
+def setup():
+    torch.manual_seed(0)
+    return torch.randn(N, D), torch.randn(N, 1), torch.randn(D, 1)
+
+
+def fresh(W0):
+    torch.manual_seed(0)
+    m = nn.Linear(D, 1)
+    with torch.no_grad():
+        m.weight.copy_(W0.view(1, D))
+    return m
+
 
 # ========================================================================
-# 메인
+# 1. 루프의 뼈대
 # ========================================================================
+
+def skeleton():
+    header("1. 누적 루프의 뼈대")
+    print("  for 마이크로배치:")
+    print("      로스 = criterion(...) / ACC")
+    print("      로스.backward()")
+    print("      if 마이크로배치 번호 % ACC == 0:")
+    print("          opt.step(); opt.zero_grad()")
+    print(f"  N={N}, 배치 {BATCH} -> 마이크로배치 {-(-N // BATCH)}개")
+    print(f"  누적 {ACC} 로 묶으면 {-(-N // BATCH) // ACC}번 걷고 "
+          f"{-(-N // BATCH) % ACC}개가 남는다")
+
+
+# ========================================================================
+# 2. 남는 마이크로배치
+# ========================================================================
+
+def leftover():
+    header("2. 남는 마이크로배치")
+    X, Y, W0 = setup()
+    for label, handle_tail in (("마지막을 버린다", False),
+                               ("마지막도 걷는다", True)):
+        m = fresh(W0)
+        opt = torch.optim.SGD(m.parameters(), lr=0.1)
+        micro = steps = 0
+        for i in range(0, N, BATCH):
+            (F.mse_loss(m(X[i:i + BATCH]), Y[i:i + BATCH]) / ACC).backward()
+            micro += 1
+            if micro % ACC == 0:
+                opt.step()
+                opt.zero_grad()
+                steps += 1
+        if micro % ACC and handle_tail:
+            opt.step()
+            opt.zero_grad()
+            steps += 1
+        print(f"  {label:16s} 마이크로배치 {micro}개  step {steps}번  "
+              f"w[:2] {[round(v, 6) for v in m.weight.detach().flatten()[:2].tolist()]}")
+    print("  버리는 쪽은 마지막 조각의 경사가 통째로 사라진다")
+    print("  에폭마다 같은 자리가 빠지므로, 그 표본들은 영영 덜 배운다")
+
+
+# ========================================================================
+# 3. 고르지 않은 조각에 1/k 를 곱하면
+# ========================================================================
+
+def uneven():
+    header("3. 조각 크기가 고르지 않을 때")
+    X, Y, W0 = setup()
+    sizes = [len(X[i:i + BATCH]) for i in range(0, N, BATCH)]
+    print("  조각 크기:", sizes)
+    print(f"  마지막이 {sizes[-1]}개뿐인데 1/{len(sizes)} 를 똑같이 곱한다면?")
+
+    m = fresh(W0)
+    F.mse_loss(m(X), Y).backward()
+    exact = m.weight.grad.flatten().clone()
+
+    for label, mode in (("1/조각수", "count"), ("표본수 비례", "size")):
+        m2 = fresh(W0)
+        for i in range(0, N, BATCH):
+            xb, yb = X[i:i + BATCH], Y[i:i + BATCH]
+            w = 1 / len(sizes) if mode == "count" else len(xb) / N
+            (F.mse_loss(m2(xb), yb) * w).backward()
+        g = m2.weight.grad.flatten()
+        print(f"  {label:12s} 전체 배치와 같은가 {torch.allclose(g, exact, atol=1e-6)}"
+              f"   가장 큰 차 {(g - exact).abs().max():.6f}")
+    print("  조각이 고르면 둘이 같다. 고르지 않으면 표본수로 가중해야 한다")
+
+
+# ========================================================================
+# 4. 제대로 적은 루프
+# ========================================================================
+
+def correct_loop():
+    header("4. 제대로 적은 루프")
+    X, Y, W0 = setup()
+    m = fresh(W0)
+    opt = torch.optim.SGD(m.parameters(), lr=0.1)
+
+    micro = steps = seen = 0
+    pending = 0
+    for i in range(0, N, BATCH):
+        xb, yb = X[i:i + BATCH], Y[i:i + BATCH]
+        (F.mse_loss(m(xb), yb) * (len(xb) / N)).backward()   # 표본수로 가중
+        micro += 1
+        pending += len(xb)
+        seen += len(xb)
+        if micro % ACC == 0 or seen == N:                    # 마지막도 걷는다
+            opt.step()
+            opt.zero_grad()
+            steps += 1
+            pending = 0
+    print(f"  마이크로배치 {micro}개  step {steps}번  남은 것 {pending}개")
+    print(f"  w[:2] {[round(v, 6) for v in m.weight.detach().flatten()[:2].tolist()]}")
+    print("  seen == N 조건 하나로 나머지를 챙긴다")
+    print("  가중치를 len(xb)/N 로 두면 한 에폭이 전체 배치 한 걸음과 같아진다")
+
 
 def main():
+    skeleton()
+    leftover()
+    uneven()
+    correct_loop()
 
-    torch.manual_seed(5)
-
-    model = nn.Linear(4, 1)
-    opt = torch.optim.SGD(model.parameters(), lr=0.05)
-
-    # 표본 N개의 가짜 데이터셋(피처 4개, 목표 1개)
-    N = 12
-    X = torch.randn(N, 4)
-    y = torch.randn(N, 1)
-
-    batch_size = 3
-    accumulation_steps = 2  # effective batch size = batch_size * accumulation_steps = 6
-
-    for epoch in range(2):
-        opt.zero_grad(set_to_none=True)
-        running_loss = 0.0
-
-        for step in range(0, N, batch_size):
-            xb = X[step : step + batch_size]
-            yb = y[step : step + batch_size]
-
-            # 순전파
-            pred = model(xb)
-            loss = nn.functional.mse_loss(pred, yb, reduction="mean")
-
-            # 누적된 경사가 전체 배치 평균 로스와 맞도록 로스 크기를 조정한다
-            (loss / accumulation_steps).backward()
-            running_loss += loss.item()
-
-            # "accumulation_steps"개의 마이크로배치 후에만 웨이트를 갱신한다
-            if ((step // batch_size) + 1) % accumulation_steps == 0:
-                opt.step()                     # apply one update
-                opt.zero_grad(set_to_none=True)  # clear grads for next accumulation
-
-        # 관찰을 위해 (마이크로배치당) 평균 로스를 보고한다
-        print(f"Epoch {epoch}: avg loss per microbatch = {running_loss / (N / batch_size):.6f}")
-
-    # 최종 학습된 파라메터 출력(detach()로 평범한 텐서로 만든다)
-    print("Final model weights:\n", {n: p.detach() for n, p in model.named_parameters()})
 
 if __name__ == "__main__":
     main()
@@ -62,72 +168,249 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-Epoch 0: avg loss per microbatch = 2.736446
-Epoch 1: avg loss per microbatch = 2.008073
-Final model weights:
- {'weight': tensor([[ 0.1366, -0.4661,  0.2192, -0.1120]]), 'bias': tensor([0.4167])}
+=== 1. 누적 루프의 뼈대 ===
+  for 마이크로배치:
+      로스 = criterion(...) / ACC
+      로스.backward()
+      if 마이크로배치 번호 % ACC == 0:
+          opt.step(); opt.zero_grad()
+  N=14, 배치 3 -> 마이크로배치 5개
+  누적 2 로 묶으면 2번 걷고 1개가 남는다
+
+=== 2. 남는 마이크로배치 ===
+  마지막을 버린다         마이크로배치 5개  step 2번  w[:2] [0.296894, -0.065658]
+  마지막도 걷는다         마이크로배치 5개  step 3번  w[:2] [0.199234, -0.010484]
+  버리는 쪽은 마지막 조각의 경사가 통째로 사라진다
+  에폭마다 같은 자리가 빠지므로, 그 표본들은 영영 덜 배운다
+
+=== 3. 조각 크기가 고르지 않을 때 ===
+  조각 크기: [3, 3, 3, 3, 2]
+  마지막이 2개뿐인데 1/5 를 똑같이 곱한다면?
+  1/조각수        전체 배치와 같은가 False   가장 큰 차 0.167252
+  표본수 비례       전체 배치와 같은가 True   가장 큰 차 0.000000
+  조각이 고르면 둘이 같다. 고르지 않으면 표본수로 가중해야 한다
+
+=== 4. 제대로 적은 루프 ===
+  마이크로배치 5개  step 3번  남은 것 0개
+  w[:2] [0.183782, -0.400689]
+  seen == N 조건 하나로 나머지를 챙긴다
+  가중치를 len(xb)/N 로 두면 한 에폭이 전체 배치 한 걸음과 같아진다
 ```
 
-## 2. 논의
+## 2. 남는 마이크로배치
 
-### 누적 구간별 처리
+```
+마지막을 버린다   마이크로배치 5개  step 2번  w[:2] [0.296894, -0.065658]
+마지막도 걷는다   마이크로배치 5개  step 3번  w[:2] [0.199234, -0.010484]
+```
 
-표본 12개를 크기 3의 마이크로배치 네 개로 처리한다. 각 로스를 2로 나누어 역전파하고, 두 번째와 네 번째 마이크로배치 뒤에 업데이트한다. 따라서 한 에포크의 역전파는 네 번, 옵티마이저 단계는 두 번이다. 경사 초기화는 에포크 시작과 각 업데이트 직후에 수행한다.
+마이크로배치가 5개인데 2개씩 묶으면 **1개가 남는다.** 흔한 꼴의 루프는
 
-### 마지막에 남는 배치 처리
+```python
+if micro % ACC == 0:
+    opt.step(); opt.zero_grad()
+```
 
-이 예제에서는 마이크로배치 수가 누적 횟수로 나누어떨어진다. 일반적인 데이터에서는 마지막 누적 구간이 짧을 수 있으므로, 남은 경사도 업데이트하고 실제 표본 수에 맞춰 로스 스케일을 정해야 한다. 그렇지 않으면 마지막 표본을 반영하지 않거나 경사를 과소평가할 수 있다.
+이므로 남은 1개는 `step()`을 못 만나고, 그 경사는 다음 에폭의 첫 묶음에
+섞이거나(지우지 않았다면) 그냥 사라진다.
 
-출력의 평균 로스는 스케일을 나누기 전 마이크로배치 로스를 기록한 것이다. 경사 계산용 로스와 보고용 로스를 분리하면 누적 횟수가 바뀌어도 지표를 해석하기 쉽다. 이 평균에는 학습 도중 서로 다른 파라미터에서 계산한 로스가 섞여 있다.
+가중치가 0.2969와 0.1992로 **눈에 띄게 다르다.** 버린 쪽이 틀린 것이고,
+오류는 안 난다.
+
+그리고 섞지 않으면 **에폭마다 같은 표본**이 빠진다. 연습문제 2에서 그 자리를
+본다.
+
+## 3. 고르지 않은 조각에 $1/k$를 곱하면
+
+```
+조각 크기: [3, 3, 3, 3, 2]
+
+1/조각수      전체 배치와 같은가 False   가장 큰 차 0.167252
+표본수 비례    전체 배치와 같은가 True    가장 큰 차 0.000000
+```
+
+마지막 조각이 2개뿐인데 다른 조각과 **같은 $1/5$**를 곱하면, 그 두 표본이
+제 몫보다 1.5배 무겁게 들어간다. 전체 배치의 경사와 0.167 어긋난다.
+
+$\dfrac{|\text{조각}|}{N}$로 가중하면 **정확히 0** 차이로 맞는다.
+
+$$
+\sum_j \frac{n_j}{N} \cdot \frac{1}{n_j}\sum_{i \in j} \ell_i
+= \frac{1}{N}\sum_i \ell_i
+$$
+
+조각 평균에 조각 크기를 곱하면 조각 합이 되고, 그것들을 더해 $N$으로 나누면
+전체 평균이다. **$1/k$는 조각이 고를 때만 이것과 같아진다.**
+
+> 조각이 고르면(즉 `drop_last=True`이면) $n_j = N/k$이므로
+> $n_j/N = 1/k$다. 그래서 흔한 조언 "로스를 누적 수로 나눠라"가 대개 맞는
+> 것이고, 안 맞는 자리가 정확히 마지막 조각이다.
+
+## 4. 제대로 적은 루프
+
+```python
+for xb, yb in loader:
+    (criterion(model(xb), yb) * (len(xb) / N)).backward()
+    micro += 1
+    seen += len(xb)
+    if micro % ACC == 0 or seen == N:        # 마지막도 챙긴다
+        opt.step()
+        opt.zero_grad()
+```
+
+```
+마이크로배치 5개  step 3번  남은 것 0개
+```
+
+두 군데를 고쳤다. **가중치를 `len(xb) / N`로** 두고, **`seen == N` 조건을
+`or`로 더해** 마지막 묶음도 걷게 했다.
+
+이렇게 하면 한 에폭이 **전체 배치 한 걸음과 정확히 같은 방향**으로 간다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-SGD 대신 Adam 옵티마이저를 쓰도록 코드를 수정하라. 100 에포크에 걸친 수렴 속도를 비교하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+`DataLoader`의 `drop_last`가 이 문제를 어떻게 바꾸는가? 켜고 끄고 조각 크기와
+본 표본 수를 세어라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    # Adam은 적응적 러닝레이트와 모멘텀 덕분에 보통 SGD보다
-    # 빠르게 수렴한다. 다만 Adam의 최적 러닝레이트는
-    # 보통 SGD보다 작다.
+    from torch.utils.data import TensorDataset, DataLoader
+
+    ds = TensorDataset(X, Y)
+    for last in (False, True):
+        dl = DataLoader(ds, batch_size=BATCH, drop_last=last)
+        sizes = [len(xb) for xb, _ in dl]
+        print(f"  drop_last={last!s:5s} 조각 {len(sizes)}개 크기 {sizes}  "
+              f"본 표본 {sum(sizes)}/{N}")
     ```
 
----
+    ```
+      drop_last=False 조각 5개 크기 [3, 3, 3, 3, 2]  본 표본 14/14
+      drop_last=True  조각 4개 크기 [3, 3, 3, 3]  본 표본 12/14
+    ```
 
+    **`drop_last=True`가 3절의 문제를 없앤다.** 조각이 전부 3개로 고르니
+    $1/k$와 `len(xb)/N`이 같아진다.
+
+    대신 **표본 두 개를 아예 안 본다.** 14개 중 12개만 학습에 쓴다.
+
+    그래서 둘의 거래가 이렇게 된다.
+
+    | | 얻는 것 | 잃는 것 |
+    |---|---|---|
+    | `drop_last=True` | 조각이 고르다, 코드가 단순하다 | 매 에폭 일부 표본 |
+    | `drop_last=False` | 전부 본다 | 가중치와 나머지를 챙겨야 한다 |
+
+    데이터가 많으면 앞쪽이 흔하다 — 1%도 안 되는 표본을 잃을 뿐이고,
+    배치 정규화도 조각 크기가 고른 쪽을 좋아한다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-학습 루프에서 `optimizer.zero_grad()`를 없애면 어떤 일이 생기는가? 실험해 보고 학습 로스에 미치는 영향을 설명하라.
-
-</div>
-
-??? success "풀이"
-    업데이트 사이에 경사를 초기화하지 않으면 서로 다른 파라미터에서 계산한 이전 경사까지 누적된다. 따라서 현재 로스의 경사만 사용하는 학습 규칙과 달라지고, 진동이나 발산을 일으킬 수 있다. 경사끼리 상쇄될 수도 있으므로 크기가 항상 증가하거나 반드시 발산하는 것은 아니다. 의도적인 경사 누적에서는 정해진 여러 마이크로배치를 처리한 뒤 한 번 업데이트하고 경사를 초기화한다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff med" title="중간"></span>
-옵티마이저에 L2 정규화(웨이트 감쇠)를 추가하고 그것이 최종 파라메터 값에 어떤 영향을 주는지 관찰하라.
+`drop_last=True`로 버려지는 표본이 **에폭마다 같은가?** 셔플을 켜고 끄고
+확인하라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
-    # weight_decay는 로스에 L2 벌점항 lambda * ||w||^2을 더한다.
-    # 이는 웨이트를 작게 유도하여 과적합을 막을 수 있다.
-    # 최종 웨이트의 크기가 조금 더 작아진다.
+    X = torch.arange(N).float().unsqueeze(1)
+    ds = TensorDataset(X, torch.zeros(N, 1))
+
+    print("셔플 없이")
+    dl = DataLoader(ds, batch_size=3, drop_last=True, shuffle=False)
+    for e in range(3):
+        seen = torch.cat([xb[:, 0] for xb, _ in dl])
+        print(f"  에폭 {e + 1}  못 본 표본",
+              sorted(set(range(N)) - {int(v) for v in seen}))
+
+    print("셔플을 켜면")
+    g = torch.Generator().manual_seed(0)
+    dl2 = DataLoader(ds, batch_size=3, drop_last=True, shuffle=True, generator=g)
+    for e in range(3):
+        seen = torch.cat([xb[:, 0] for xb, _ in dl2])
+        print(f"  에폭 {e + 1}  못 본 표본",
+              sorted(set(range(N)) - {int(v) for v in seen}))
     ```
 
-## 정리하며
+    ```
+    셔플 없이
+      에폭 1  못 본 표본 [12, 13]
+      에폭 2  못 본 표본 [12, 13]
+      에폭 3  못 본 표본 [12, 13]
+    셔플을 켜면
+      에폭 1  못 본 표본 [5, 8]
+      에폭 2  못 본 표본 [0, 10]
+      에폭 3  못 본 표본 [1, 6]
+    ```
 
-경사 누적에서는 역전파, 업데이트, 기록의 단위를 각각 정한다. 마지막 누적 구간의 처리와 로스의 분모도 빠뜨리지 않는다.
+    **셔플이 없으면 12번과 13번이 영영 학습에 안 들어간다.** 백 에폭을 돌려도
+    그 둘은 한 번도 안 본다.
+
+    셔플을 켜면 매 에폭 다른 둘이 빠지므로, 길게 보면 모든 표본이 거의 같은
+    횟수만큼 들어간다. $14/14 \times (12/14)$의 비율로 줄어들 뿐이다.
+
+    그래서 **`drop_last=True`는 `shuffle=True`와 한 짝**이다. 학습 로더에
+    셔플을 켜는 까닭이 경사의 잡음을 바꾸는 것만이 아니라 여기에도 있다.
+
+    평가 로더에서는 `drop_last=False`여야 한다. 평가는 **모든 표본을 봐야**
+    하고, 조각 크기가 고르지 않아도 가중 평균을 내면 된다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+스케줄러를 `micro % ACC == 0` 안이 아니라 **마이크로배치마다** 부르면 어떻게
+되는가? `StepLR`로 세 에폭을 돌려 러닝레이트를 찍어 보라.
+
+</div>
+
+??? success "풀이"
+    ```python
+    for label, inside in (("step 마다", True), ("마이크로배치마다", False)):
+        m = fresh(W0)
+        opt = torch.optim.SGD(m.parameters(), lr=0.1)
+        sched = torch.optim.lr_scheduler.StepLR(opt, step_size=2, gamma=0.5)
+        micro, lrs = 0, []
+        for _ in range(3):
+            for i in range(0, N, BATCH):
+                xb, yb = X[i:i + BATCH], Y[i:i + BATCH]
+                (F.mse_loss(m(xb), yb) * (len(xb) / N)).backward()
+                micro += 1
+                if micro % ACC == 0:
+                    opt.step(); opt.zero_grad()
+                    if inside:
+                        sched.step(); lrs.append(opt.param_groups[0]["lr"])
+                if not inside:
+                    sched.step(); lrs.append(opt.param_groups[0]["lr"])
+        print(f"  {label:16s}", [round(v, 5) for v in lrs])
+    ```
+
+    ```
+      step 마다         [0.1, 0.05, 0.05, 0.025, 0.025, 0.0125, 0.0125]
+      마이크로배치마다    [0.1, 0.05, 0.05, 0.025, 0.025, 0.0125, 0.0125,
+                        0.00625, 0.00625, 0.00313, 0.00313, 0.00156,
+                        0.00156, 0.00078, 0.00078]
+    ```
+
+    **두 배 빨리 줄어든다.** 세 에폭 끝에 0.0125여야 할 러닝레이트가
+    0.00078이다 — 열여섯 배 작다.
+
+    까닭은 셈이 그대로다. 마이크로배치가 15번, 걸음이 7번이므로 스케줄러를
+    마이크로배치마다 부르면 **두 배 넘게** 진행한다. 누적 수가 8이라면 여덟
+    배가 된다.
+
+    그래서 규칙이 하나 더 붙는다. **스케줄러는 `opt.step()`과 같은 자리에
+    둔다.** 둘은 한 짝이고, 그 짝을 떼어 놓으면 스케줄이 설정과 다른 속도로
+    간다.
+
+    같은 이야기가 로그와 조기 종료에도 걸린다. "1000 스텝마다 저장"이라고 적은
+    코드가 누적을 켠 순간 **$k$배 자주** 저장하게 된다.
