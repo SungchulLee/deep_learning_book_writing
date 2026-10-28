@@ -18,7 +18,7 @@ $A^\\top$ 을 곱하는 것**이다.
 $v$ 가 $(m,)$ 이면, 결과는 $x$ 와 같은 $(n,)$ 이어야 한다.
 $(m, n)$ 과 $(m,)$ 으로 $(n,)$ 을 만드는 길은 $A^\\top v$ 뿐이다.
 
-실행: python 23_vector_backward_linear_case_1.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 

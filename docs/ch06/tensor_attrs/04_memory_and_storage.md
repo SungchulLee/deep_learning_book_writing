@@ -23,7 +23,7 @@
   막는 쓰기와 막지 않는 쓰기가 갈린다
 - 모양이 같고 보폭만 다른 또 한 가지 — 메모리 형식(channels_last)
 
-실행: python 04_memory_and_storage.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import time
 

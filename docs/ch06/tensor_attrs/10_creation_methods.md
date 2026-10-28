@@ -21,7 +21,7 @@
   개수를 내가 정하려면 `linspace` 다
 - `*_like` 는 dtype 과 device 는 따라가고 `requires_grad` 는 안 따라간다
 
-실행: python 10_creation_methods.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import numpy as np
 import torch

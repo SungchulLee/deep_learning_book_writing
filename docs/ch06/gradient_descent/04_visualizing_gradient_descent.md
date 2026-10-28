@@ -137,7 +137,7 @@ $$\log_{10}|w_t - 3| = t\log_{10}|1-2\eta| + \log_{10}|w_0 - 3|$$
 
 그림은 figures/ 에 SVG 로 갈무리한다.
 
-실행: python 04_visualizing_gradient_descent.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 from pathlib import Path
 

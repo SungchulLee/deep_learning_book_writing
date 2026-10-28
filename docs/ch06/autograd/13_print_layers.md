@@ -28,7 +28,7 @@
 세 번째가 자주 잊힌다. 파라미터 수를 세면 버퍼는 빠지는데, 저장
 파일에는 들어간다.
 
-실행: python 13_print_layers.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

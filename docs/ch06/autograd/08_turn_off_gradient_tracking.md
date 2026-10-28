@@ -21,7 +21,7 @@
 - **얼린 층도 경사를 지나보낸다.** 쌓지 않을 뿐이다. 그래서 중간 층을
   얼려도 그 앞 층은 멀쩡히 배운다
 
-실행: python 08_turn_off_gradient_tracking.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

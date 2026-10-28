@@ -176,7 +176,7 @@ MNIST를 읽으므로 저장소 뿌리에서 돌린다. 이 기계(mps)에서 �
 
 저장소 뿌리에서 돌린다 (./data).
 
-실행: python 01_neural_network_mnist.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import numpy as np
 import torch

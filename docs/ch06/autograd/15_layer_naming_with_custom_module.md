@@ -24,7 +24,7 @@
 레이어에 이름 붙이기」와 같다. 다른 것은 **그 사이에 무엇을 끼워 넣을
 수 있느냐**다.
 
-실행: python 15_layer_naming_with_custom_module.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

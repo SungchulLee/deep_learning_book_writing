@@ -24,7 +24,7 @@
 그리고 `detach_()` 에는 함정이 하나 있다. 이미 역전파가 저장해 둔
 텐서를 제자리에서 끊어 버리면, 뒤에 `backward()` 가 터진다.
 
-실행: python 09_detach_vs_detach_.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 

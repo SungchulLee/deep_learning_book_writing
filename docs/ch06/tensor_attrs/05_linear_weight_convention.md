@@ -25,7 +25,7 @@ $Y = XW^\top$ 로 적는다.
 - 경사 셋의 값: dW = g^T x, db = sum g, dx = g W
 - 앞쪽 축은 몇 개여도 된다
 
-실행: python 05_linear_weight_convention.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import time
 

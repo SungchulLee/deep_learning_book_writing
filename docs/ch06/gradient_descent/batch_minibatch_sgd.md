@@ -321,7 +321,7 @@ $B = 1$이 $B = 10000$보다 약 500배 느리다. 그런데 갱신 횟수는 10
 - 섞지 않으면 어떻게 되는가
 - 같은 계산량에서 B 를 바꾸면 어디에 닿는가
 
-실행: python batch_minibatch_sgd.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import numpy as np
 import torch

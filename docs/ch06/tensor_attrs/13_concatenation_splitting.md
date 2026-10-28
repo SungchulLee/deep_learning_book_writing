@@ -27,7 +27,7 @@
 나누는 쪽에서 조심할 것이 하나 더 있다. **`chunk(k)` 가 언제나 k 덩이를
 주지는 않는다.** 요청보다 적게 나오는 자리가 있다.
 
-실행: python 13_concatenation_splitting.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 

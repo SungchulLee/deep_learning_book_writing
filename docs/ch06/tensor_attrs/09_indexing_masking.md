@@ -32,7 +32,7 @@
 가지도 셈한다.** 그래서 0 으로 나눈 다음 가리는 것만으로는 역전파의
 NaN 을 막지 못한다.
 
-실행: python 09_indexing_masking.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 

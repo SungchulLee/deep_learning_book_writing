@@ -32,7 +32,7 @@
 앞의 것만 보면 러닝레이트를 k 배 해야 하고(선형 규칙), 뒤의 것까지
 보면 sqrt(k) 배가 맞다는 주장이 나온다. 재어 본다.
 
-실행: python 20_why_gradient_scaling_matters.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import math
 

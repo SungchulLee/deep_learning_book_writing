@@ -28,7 +28,7 @@
 한다. 뒤이어 `.to()` 가 언제 같은 객체를 돌려주는지와, `T`·`mT`·`H`
 가 2차원에서만 셋이 같은 것을 본다.
 
-실행: python 03_shape_dtype_device.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import warnings
 

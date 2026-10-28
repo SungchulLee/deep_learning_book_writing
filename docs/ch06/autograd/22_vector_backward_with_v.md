@@ -29,7 +29,7 @@ grad can be implicitly created only for scalar outputs
 계산한다. 야코비 전체가 필요하면 v 를 바꿔 가며 여러 번 불러야 하고,
 그 값을 이 쪽에서 잰다.
 
-실행: python 22_vector_backward_with_v.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import time
 

@@ -6,12 +6,11 @@
 - 지어낸 수를 넣지 않는다. 꼴만 옮긴 그림에는 schematic 이라 적는다
 - SVG, fonttype='path', transparent
 
-`learning_rate.py` 의 탐색기가 MNIST 를 읽으므로 **저장소 뿌리에서** 돌린다.
+러닝레이트 탐색기가 MNIST 를 읽으므로 **저장소 뿌리에서** 돌린다.
 갈무리는 이 파일이 있는 자리에 하므로 어디서 돌리든 그림은 제자리에 간다.
 
 실행: python docs/ch06/gradient_descent/figures/make_figures.py
 """
-import sys
 from pathlib import Path
 
 import matplotlib
@@ -24,7 +23,6 @@ import numpy as np
 from matplotlib.patches import FancyArrowPatch
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent))      # learning_rate.py 를 읽으려고
 
 INK = "#2f3337"
 ACCENT = "#8a4b2a"
@@ -137,10 +135,44 @@ def make_contours():
     print("wrote contours_gradients.svg")
 
 
-def make_lr():
-    """러닝레이트 두 장. 수는 learning_rate.py 가 찍는 것과 같은 계산이다."""
-    import learning_rate as LR                      # noqa: N814
+def lr_range_test():
+    """러닝레이트 탐색기. 「러닝레이트와 이동 폭」 쪽 3절과 같은 계산이다.
 
+    그 쪽의 코드와 여기가 따로 있는 까닭은, 쪽은 수를 찍고 여기는 그림을
+    그리기 때문이다. 씨앗과 걸음 수가 같아 두 곳의 수가 일치한다.
+    """
+    import torch
+    import torch.nn as nn
+    from torchvision import datasets, transforms
+
+    dev = "mps" if torch.backends.mps.is_available() else "cpu"
+    tf = transforms.Compose([transforms.ToTensor(),
+                             transforms.Normalize((0.1307,), (0.3081,))])
+    train = datasets.MNIST("./data", train=True, download=False, transform=tf)
+    X = torch.stack([train[i][0] for i in range(1000)]).view(1000, -1).to(dev)
+    Y = torch.tensor([train[i][1] for i in range(1000)]).to(dev)
+
+    def fresh():
+        torch.manual_seed(0)
+        return nn.Sequential(nn.Linear(784, 128), nn.ReLU(),
+                             nn.Linear(128, 10)).to(dev)
+
+    lrs, losses = np.logspace(-6, 1, 40), []
+    for lr in lrs:
+        m = fresh()
+        opt = torch.optim.SGD(m.parameters(), lr=float(lr))
+        for _ in range(20):
+            opt.zero_grad()
+            loss = nn.functional.cross_entropy(m(X), Y)
+            loss.backward()
+            opt.step()
+        losses.append(float(loss.item()))
+    start = float(nn.functional.cross_entropy(fresh()(X), Y).item())
+    return lrs, losses, start
+
+
+def make_lr():
+    """러닝레이트 두 장."""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.6, 3.5))
 
     # --- 왼쪽: L = (w-3)^2 위의 걸음, 러닝레이트 넷 ---
@@ -165,7 +197,7 @@ def make_lr():
     ax1.legend(fontsize=7.5, frameon=False, loc="upper center", ncol=2)
 
     # --- 오른쪽: 러닝레이트 탐색기 곡선 ---
-    lrs, losses, start = LR.lr_finder()
+    lrs, losses, start = lr_range_test()
     ax2.semilogx(lrs, losses, "o-", color=ACCENT, ms=3.4, lw=1.2, zorder=3)
     ax2.axhline(start, color=INK, ls="--", lw=0.8, alpha=0.6, zorder=2)
     ax2.text(1.3e-6, start + 0.07, "loss before training", fontsize=7.5,
@@ -194,15 +226,177 @@ def make_lr():
     print("wrote learning_rate.svg")
 
 
-def main():
-    make_cauchy()
-    make_contours()
-    make_lr()
-    make_convexity()
+# ========================================================================
+# 「경사 하강법 시각화」 쪽의 그림 셋
+#
+# 쪽에는 수를 찍는 코드가 실려 있고, 그리는 코드는 CLAUDE.md 가 정한 대로
+# 여기에 둔다. 두 곳의 계산이 같아 그림의 수와 쪽의 수가 일치한다.
+# ========================================================================
+
+COLORS = ["#2f6f4e", "#8a4b2a", "#8a2a4b", "#2a4b8a"]
 
 
-if __name__ == "__main__":
-    main()
+def _runs_1d():
+    return {lr: run_1d(lr) for lr in (0.1, 0.5, 0.9, 1.1)}
+
+
+def _two_dim_path():
+    import torch
+    torch.manual_seed(42)
+    N = 50
+    x = torch.linspace(0, 10, N)
+    y = 3 * x + 2 + torch.randn(N)
+
+    def path(center, lr, steps=60, start=(0.0, 0.0)):
+        xx = x - x.mean() if center else x
+        w, b = start
+        out = [(w, b)]
+        for _ in range(steps):
+            pred = w * xx + b
+            gw = float((2 * xx * (pred - y)).mean())
+            gb = float((2 * (pred - y)).mean())
+            w, b = w - lr * gw, b - lr * gb
+            out.append((w, b))
+        return np.array(out), xx
+
+    return path, x, y, N
+
+
+def _curve_rows():
+    rows = {}
+    for lr, tag in ((0.02, "eta = 0.02  (slow)"), (0.5, "eta = 0.5   (exact)"),
+                    (0.97, "eta = 0.97  (near bound)")):
+        rows[tag] = (run_1d(lr, steps=100) - 3) ** 2
+    return rows
+
+
+def run_1d(lr, steps=30, w0=7.0):
+    """L(w) = (w-3)^2,  dL/dw = 2(w-3)."""
+    w, traj = w0, [w0]
+    for _ in range(steps):
+        w = w - lr * 2 * (w - 3)
+        traj.append(w)
+    return np.array(traj)
+
+
+def figure_1d(runs):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.8, 3.5))
+
+    # eta = 0.1 과 0.9 의 |오차| 는 정확히 같아서 로그 판에서 겹친다.
+    # 뒤에 그리는 쪽을 점선 + 빈 네모로 두어야 둘 다 보인다.
+    styles = {0.1: ("o-", 3, 1.6), 0.5: ("o-", 3, 1.1),
+              0.9: ("s--", 4.5, 1.1), 1.1: ("o-", 3, 1.1)}
+    for (lr, t), c in zip(runs.items(), COLORS):
+        st, ms, lw = styles[lr]
+        ax1.plot(t[:16], st, color=c, ms=ms, lw=lw, mfc="none",
+                 label=f"eta = {lr}")
+        err = np.abs(t - 3)
+        err[err < 1e-16] = 1e-16            # 로그 축에 0 을 못 찍는다
+        ax2.semilogy(err, st, color=c, ms=ms, lw=lw, mfc="none",
+                     label=f"eta = {lr}")
+
+    ax1.axhline(3, color=INK, ls="--", lw=0.8, alpha=0.6)
+    ax1.set_ylim(-3, 12)
+    ax1.set_xlabel("step", fontsize=9)
+    ax1.set_ylabel("w", fontsize=9)
+    ax1.set_title("linear axis: w per step", fontsize=9.5, weight="bold",
+                  color=INK, pad=7)
+    ax1.legend(fontsize=7.5, frameon=False, ncol=2)
+
+    ax2.set_ylim(1e-10, 1e3)
+    ax2.set_xlabel("step", fontsize=9)
+    ax2.set_ylabel("|w - 3|  (log)", fontsize=9)
+    ax2.set_title("log axis: the rate becomes a slope", fontsize=9.5,
+                  weight="bold", color=INK, pad=7)
+    ax2.legend(fontsize=7.5, frameon=False, ncol=2)
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+    fig.tight_layout()
+    fig.savefig(HERE / "gd_1d.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("wrote gd_1d.svg")
+
+
+# ========================================================================
+# 2. 로그 축의 기울기가 수렴률이다
+# ========================================================================
+
+
+def figure_2d(path, x, y, N):
+    import torch
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.0, 3.8))
+    for ax, center, title in (
+            (axes[0], False, "x as is  (condition number 137)"),
+            (axes[1], True, "x centered  (condition number 8.7)")):
+        p, xx = path(center, 0.01)
+        A = torch.stack([xx, torch.ones(N)], 1)
+        sol = torch.linalg.lstsq(A, y.unsqueeze(1)).solution.flatten().numpy()
+
+        lo_w, hi_w = min(p[:, 0].min(), sol[0]) - 0.6, max(p[:, 0].max(), sol[0]) + 0.6
+        lo_b, hi_b = min(p[:, 1].min(), sol[1]) - 1.2, max(p[:, 1].max(), sol[1]) + 1.2
+        W, B = np.meshgrid(np.linspace(lo_w, hi_w, 200),
+                           np.linspace(lo_b, hi_b, 200))
+        xn, yn = xx.numpy(), y.numpy()
+        Z = np.mean((W[..., None] * xn + B[..., None] - yn) ** 2, axis=-1)
+        # 등고선 높이를 경로가 지나간 로스에서 뽑는다. 그러지 않으면
+        # 선들이 일이 벌어지지 않는 자리에 몰린다.
+        along = np.mean((p[:, 0:1] * xn + p[:, 1:2] - yn) ** 2, axis=1)
+        lv = np.unique(np.geomspace(max(along.min(), Z.min() + 1e-6),
+                                    along.max(), 12))
+        ax.contour(W, B, Z, levels=lv,
+                   colors=INK, linewidths=0.6, alpha=0.55, zorder=1)
+        ax.plot(p[:, 0], p[:, 1], "o-", color=COLORS[1], ms=2.6, lw=1.0,
+                zorder=3)
+        ax.plot([sol[0]], [sol[1]], "*", color=INK, ms=11, zorder=4)
+        ax.set_xlabel("w (slope)", fontsize=9)
+        ax.set_ylabel("b (intercept)", fontsize=9)
+        ax.set_title(title, fontsize=9.5, weight="bold", color=INK, pad=7)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+    fig.tight_layout()
+    fig.savefig(HERE / "gd_2d.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("wrote gd_2d.svg")
+
+
+# ========================================================================
+# 4. 로스 곡선이 가리는 것
+# ========================================================================
+
+
+def figure_curve(rows):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.8, 3.4))
+    for (lab, ls), c in zip(rows.items(), COLORS):
+        ax1.plot(ls, color=c, lw=1.4, label=lab)
+        v = np.maximum(ls, 1e-16)
+        ax2.semilogy(v, color=c, lw=1.4, label=lab)
+    ax1.set_ylim(-1, 20)
+    ax1.set_xlabel("step", fontsize=9)
+    ax1.set_ylabel("loss", fontsize=9)
+    ax1.set_title("linear axis: all three look done", fontsize=9.5,
+                  weight="bold", color=INK, pad=7)
+    ax2.set_xlabel("step", fontsize=9)
+    ax2.set_ylabel("loss (log)", fontsize=9)
+    ax2.set_title("log axis: they are nothing alike", fontsize=9.5,
+                  weight="bold", color=INK, pad=7)
+    for ax in (ax1, ax2):
+        ax.legend(fontsize=7.5, frameon=False)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+    fig.tight_layout()
+    fig.savefig(HERE / "gd_curves.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("wrote gd_curves.svg")
+
 
 
 def make_convexity():
@@ -275,3 +469,17 @@ def make_convexity():
     fig.savefig(HERE / "convexity.svg", transparent=True, bbox_inches="tight")
     plt.close(fig)
     print("wrote convexity.svg")
+
+
+def main():
+    make_cauchy()
+    make_contours()
+    make_lr()
+    make_convexity()
+    figure_1d(_runs_1d())
+    figure_2d(*_two_dim_path())
+    figure_curve(_curve_rows())
+
+
+if __name__ == "__main__":
+    main()

@@ -29,7 +29,7 @@
 - 그래프: 순전파가 세운 길과 거기 저장된 중간값. `retain_graph` 가 맡는다
 - 경사: 잎에 쌓이는 값. `zero_grad()` 가 맡는다
 
-실행: python 03_retain_graph.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 

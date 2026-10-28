@@ -24,7 +24,7 @@
 
 앞의 둘은 터져 주니 고치면 끝이다. 셋째가 조용하다.
 
-실행: python 12_converting_to_numpy.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import numpy as np
 import torch

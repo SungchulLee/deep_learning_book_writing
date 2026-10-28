@@ -360,7 +360,7 @@ $$\theta_{j,t+1} = \theta_{j,t} - \frac{\eta}{\sqrt{v_{j,t}} + \epsilon} \cdot m
 
 MNIST 를 쓰는 부분은 저장소 뿌리에서 돌리는 것을 전제로 한다 (./data).
 
-실행: python learning_rate.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import math
 

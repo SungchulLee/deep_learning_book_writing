@@ -24,7 +24,7 @@ MNIST 숫자 분류기를 처음부터 끝까지 짠다. 그러나 이 쪽의 �
 그래서 바르게 돌린 다음, 네 가지로 고장을 내고 어느 고장이 숫자에
 나타나는지 본다.
 
-실행: python 28_real_world_example.py   (repo 뿌리에서, ./data 를 읽는다)
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다 (repo 뿌리에서, ./data 를 읽는다)
 """
 import torch
 import torch.nn as nn

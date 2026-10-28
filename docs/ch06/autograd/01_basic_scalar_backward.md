@@ -28,7 +28,7 @@ $L = \\sum_i x_i^2$ 하나를 끝까지 따라가며 네 가지를 가른다.
 잎이 아닌 텐서는 역전파에 참여하면서도 `.grad` 를 받지 않는다.
 받고 싶으면 `retain_grad()` 로 부탁해야 한다.
 
-실행: python 01_basic_scalar_backward.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import warnings
 

@@ -174,7 +174,7 @@ $R^2$는 절대적인 좋음이 아니라 **평균만 찍는 모델에 견준 �
 - 지표 넷(MSE, RMSE, MAE, R^2)이 각각 무엇을 말하는가
 - 잔차 그림이 무엇을 잡아내는가
 
-실행: python 03_simple_linear_regression.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

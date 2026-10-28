@@ -23,7 +23,7 @@ SGD · 모멘텀 · Adam 을 차례로 손으로 짜서 파이토치 것과 견�
 셋 다 소수점 끝까지 맞으면, 옵티마이저가 마법이 아니라는 것이
 확인된 셈이다.
 
-실행: python 11_optimizer_like_updates.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import warnings
 

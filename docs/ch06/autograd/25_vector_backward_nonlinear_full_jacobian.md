@@ -27,7 +27,7 @@ $$
 의 야코비를 세 가지로 구해 서로 견준다 — VJP 를 모아서, `torch.func`
 으로, 그리고 수치 미분으로.
 
-실행: python 25_vector_backward_nonlinear_full_jacobian.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import math
 

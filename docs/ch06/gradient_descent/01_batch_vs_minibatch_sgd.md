@@ -164,7 +164,7 @@
 이 쪽은 셋을 차례로 고치고, 고칠 때마다 결론이 어떻게 바뀌는지 본다.
 개념은 「배치, 미니배치, 확률적 경사 하강법」 쪽에서 다룬다.
 
-실행: python 01_batch_vs_minibatch_sgd.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import numpy as np
 import torch

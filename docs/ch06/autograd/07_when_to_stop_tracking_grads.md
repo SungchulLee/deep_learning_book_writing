@@ -27,7 +27,7 @@
 | `t.detach()`            | 새 텐서를 만든다 | 원본은 그대로 |
 | `with torch.inference_mode()` | 기록 + 버전 관리까지 | **못 되돌린다** |
 
-실행: python 07_when_to_stop_tracking_grads.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

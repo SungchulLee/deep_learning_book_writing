@@ -23,7 +23,7 @@
 - 아예 얼리지 않고 **층마다 다른 러닝레이트**를 주는 길
 - 둘을 견주면 어느 쪽이 무엇에 쓸모 있는가
 
-실행: python 16_freeze_and_unfreeze_parameters.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

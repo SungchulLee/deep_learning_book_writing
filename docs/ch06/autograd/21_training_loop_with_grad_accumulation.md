@@ -26,7 +26,7 @@ $N = 14$, 배치 3, 누적 2로 재어 본다. 14는 3으로도 6으로도 안 �
 
 둘 다 오류를 내지 않는다. 그래서 이 쪽에서 재어 본다.
 
-실행: python 21_training_loop_with_grad_accumulation.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

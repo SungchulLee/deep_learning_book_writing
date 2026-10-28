@@ -370,7 +370,7 @@ $$\mathbf{x}_{t+1} = \mathbf{x}_t - \eta \frac{\nabla f}{\|\nabla f\|}$$
 - "가장 가파름" 은 길이를 어떻게 재느냐에 딸려 있다 (L2 / L1 / L-inf)
 - 경사 클리핑은 방향을 지키는가
 
-실행: python steepest_direction.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import numpy as np
 import torch

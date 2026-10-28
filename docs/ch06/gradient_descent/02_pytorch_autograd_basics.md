@@ -182,7 +182,7 @@ with torch.no_grad():            opt.step()
 - 왜 지워야 하는가 (지우지 않으면 무엇이 일어나는가)
 - no_grad 와 detach 는 각각 무엇을 하는가
 
-실행: python 02_pytorch_autograd_basics.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import numpy as np
 import torch

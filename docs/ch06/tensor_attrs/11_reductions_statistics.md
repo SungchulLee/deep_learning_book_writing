@@ -21,7 +21,7 @@
 - `std` 의 기본값은 `correction=1`, 곧 **불편 추정량**이다
 - `median` 은 짝수 개일 때 가운데 둘을 평균내지 **않는다**
 
-실행: python 11_reductions_statistics.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 

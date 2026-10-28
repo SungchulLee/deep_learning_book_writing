@@ -20,7 +20,7 @@
 역전파를 여러 번 해야 하므로 시간이 는다. 두 축을 재어, 조각 수를
 어떻게 고를지 가늠해 본다.
 
-실행: python 19_gradient_accumulation_for_large_batches.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import time
 

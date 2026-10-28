@@ -22,7 +22,7 @@
 - **역행렬을 구해 곱하지 말고 `solve` 를 쓴다.** 그리고 float32 에서
   믿을 수 있는 자릿수는 **조건수가 정한다**
 
-실행: python 14_matrix_operations.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import math
 import time

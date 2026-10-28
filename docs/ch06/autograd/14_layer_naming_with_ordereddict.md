@@ -18,7 +18,7 @@
 보기 좋으라고 하는 일이 아니다. 번호는 **층을 하나 끼워 넣는 순간
 전부 밀리고**, 그러면 옛 체크포인트를 못 읽는다.
 
-실행: python 14_layer_naming_with_ordereddict.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 from collections import OrderedDict
 

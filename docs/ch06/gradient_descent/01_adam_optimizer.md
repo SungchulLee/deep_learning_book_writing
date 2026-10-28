@@ -186,7 +186,7 @@ Adam 을 설명하는 글은 많지만 대개 식을 적고 끝난다. 식을 �
 
 개념과 유도는 ch09 의 Adam 쪽에서 다룬다.
 
-실행: python 01_adam_optimizer.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import math
 

@@ -477,8 +477,7 @@ y = checkpoint(expensive_layer, x, use_reentrant=False)
 위의 표는 후진 모드가 $O(T)$, 전진 모드가 $O(n \cdot T)$라고 적는다. 파라미터가
 4,225개면 4,225배 차이가 나야 한다는 말이다. 재어 보면 **60배**다.
 
-셈이 틀린 것이 아니라 **상수가 숨어 있다.** 아래 코드는 이 쪽 옆의
-`gradient_computation.py`에 있다.
+셈이 틀린 것이 아니라 **상수가 숨어 있다.** 아래 코드가 그것을 재어 본다.
 
 ```python
 """전진 모드와 후진 모드 — 셈으로 말고 재어 본다.
@@ -492,7 +491,7 @@ y = checkpoint(expensive_layer, x, use_reentrant=False)
 
 그래도 자릿수가 같고, 방향을 뒤집으면 **정확히 거꾸로** 뒤집힌다.
 
-실행: python gradient_computation.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import time
 

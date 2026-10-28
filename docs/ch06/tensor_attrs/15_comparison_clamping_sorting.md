@@ -19,7 +19,7 @@
   거르는 조건을 어떻게 적느냐에 따라 NaN 이 남기도 하고 빠지기도 한다
 - **`clamp` 의 경사는 범위 밖에서 0 이다.** 자른 자리는 학습이 멈춘다
 
-실행: python 15_comparison_clamping_sorting.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 

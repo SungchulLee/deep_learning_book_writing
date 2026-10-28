@@ -27,7 +27,7 @@
 - "no_grad 가 텐서의 requires_grad 를 끈다" — 안 끈다. 블록 안에서
   **만드는** 것에만 영향을 준다
 
-실행: python 10_with_torch_no_grad.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

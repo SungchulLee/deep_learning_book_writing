@@ -22,7 +22,7 @@
 - backward 를 두 번 부르면 터지는 그래프와 안 터지는 그래프가 있다
 - no_grad 없이 잎을 제자리에서 고치면 막힌다
 
-실행: python 01_autograd_related.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import textwrap
 import unicodedata

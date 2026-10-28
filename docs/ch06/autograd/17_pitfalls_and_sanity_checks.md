@@ -33,7 +33,7 @@
 4. 경사가 0 이 아닌가
 5. 옵티마이저가 그 파라미터를 들고 있는가
 
-실행: python 17_pitfalls_and_sanity_checks.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

@@ -32,7 +32,7 @@
 범위가 갈리는 자리가 함정이다. 옵티마이저에 일부만 넘겼다면
 `opt.zero_grad()` 는 나머지를 **안 지운다.**
 
-실행: python 18_three_ways_to_zero_gradients.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import inspect
 

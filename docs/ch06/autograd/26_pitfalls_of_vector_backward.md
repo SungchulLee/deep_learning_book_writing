@@ -30,7 +30,7 @@
 - v 에 requires_grad 를 켜면 (아무 일도 안 일어난다)
 - v 의 자료형이 다르면 (말없이 맞춰 준다)
 
-실행: python 26_pitfalls_of_vector_backward.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 

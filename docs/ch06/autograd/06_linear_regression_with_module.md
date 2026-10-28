@@ -27,7 +27,7 @@
 편해지는 것은 분명한데, **셈이 그대로인지**는 따로 물어야 한다.
 이 쪽은 두 길을 나란히 돌려 소수점까지 견준다.
 
-실행: python 06_linear_regression_with_module.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import torch
 import torch.nn as nn

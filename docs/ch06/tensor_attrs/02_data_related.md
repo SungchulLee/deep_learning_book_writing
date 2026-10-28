@@ -28,7 +28,7 @@
 `detach()` 는 그래프를 끊고 저장소는 남긴다. 그리고 `.data` 는 둘 다
 남긴 채로 autograd 의 검사만 지나간다 — 그래서 가장 위험하다.
 
-실행: python 02_data_related.py
+실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
 import numpy as np
 import torch
