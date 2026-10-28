@@ -1,598 +1,670 @@
-# 배치 크기에 따른 경사 하강법 비교
+# 배치와 미니배치 SGD — 공정하게 견주기
 
-같은 선형 회귀 데이터를 전체 배치, 표본 하나, 미니배치로 처리한다. 에포크당 업데이트 수와 기록된 로스의 차이를 중심으로 비교한다.
+세 가지 경사 하강법을 코드로 견주는 일은 쉽다. 세 루프를 돌리고 로스를 찍으면 된다. **공정하게** 견주는 일은 쉽지 않다.
 
-## 1. 코드
+개념은 [배치, 미니배치, 확률적 경사 하강법](batch_minibatch_sgd.md)에서 다룬다. 이 쪽은 견줌 자체를 다룬다. 흔한 비교 코드가 어디서 어긋나는지 보이고, 하나씩 고쳐 가며 **고칠 때마다 결론이 어떻게 바뀌는지** 본다.
+
+세 군데가 어긋난다.
+
+1. 모델을 따로 만들어 **출발점이 다르다**
+2. 에폭 수를 맞춰 **갱신 횟수가 다르다**
+3. 에폭 도중의 로스를 평균 내어 **서로 다른 파라메터의 값을 섞는다**
+
+---
+
+## 1. 흔한 꼴
+
+세 방식을 30에폭씩 돌리고 마지막 에폭의 평균 로스를 적는다. 거의 모든 비교 코드가 이렇게 생겼다.
+
+```
+  방식           갱신 횟수   마지막 에폭 평균 로스
+  배치 GD            30               5.934709
+  미니배치 32        960               0.243297
+  SGD             30000               0.278469
+```
+
+이 표만 보면 미니배치가 가장 좋고 배치 GD는 쓸모없어 보인다. 그런데 **세 줄이 서로 다른 세 가지를 재고 있다.** 하나씩 고친다.
+
+---
+
+## 2. 고침 하나 — 같은 출발점
+
+세 모델을 따로 만들면 초기 웨이트가 다르다. 비볼록 문제라면 결과가 아예 갈릴 수 있고, 볼록한 이 문제에서도 30에폭 같은 짧은 학습에서는 출발점이 결과를 좌우한다.
+
+같은 씨앗으로 만든 **하나의 초기 모델** 에서 셋 모두 출발시킨다. 그리고 에폭 평균과 나란히, 에폭이 끝난 뒤 **같은 전체 자료에서 다시 잰 로스** 를 함께 적는다.
+
+```
+  초기 전체 로스 18.767525
+  방식           갱신 횟수   에폭 평균     에폭 끝 전체 로스
+  배치 GD            30     5.750341         5.525724
+  미니배치 32        960     0.243297         0.246214
+  SGD             30000     0.278469         0.267440
+    배치 GD    차이 0.224617  (4.1%)
+    미니배치 32 차이 0.002918  (1.2%)
+    SGD        차이 0.011029  (4.1%)
+```
+
+두 열이 다르다. 배치 GD에서 4.1%, SGD에서 4.1% 차이다. **어느 쪽을 적느냐로 비교의 결론이 달라질 수 있다.**
+
+---
+
+## 3. 고침 둘 — 에폭 평균은 모델의 성능이 아니다
+
+왜 두 값이 다른지 SGD의 처음 다섯 에폭을 들여다본다.
+
+```
+  에폭   에폭 평균      에폭 끝 전체 로스    차이
+     0     0.765651           0.311302   +0.454349
+     1     0.280980           0.267180   +0.013800
+     2     0.280024           0.283106   -0.003082
+     3     0.282069           0.278478   +0.003591
+     4     0.282032           0.269172   +0.012860
+```
+
+첫 에폭에서 **+0.45** 로 크게 벌어진다. 에폭 평균에는 에폭 **도중** 의 파라메터로 잰 값들이 섞여 있는데, 학습 초기에는 그 자리들이 에폭 끝보다 한참 나쁘기 때문이다.
+
+수렴한 뒤에는 부호가 뒤섞인다(에폭 2는 $-0.003$이다). 더 이상 한 방향으로 움직이지 않으므로 평균이 위로도 아래로도 어긋난다.
+
+배치 크기별로 이 어긋남을 재면 이렇다.
+
+```
+  배치    에폭 평균     전체 로스    어긋남
+  1         0.278469    0.267440  +0.011029
+  8         0.251207    0.247602  +0.003604
+  32        0.243297    0.246214  -0.002918
+  128       0.247582    0.247203  +0.000379
+  전체        5.750341    5.525724  +0.224617
+```
+
+배치 1에서 128로 갈수록 어긋남이 0.011에서 0.0004로 준다. 에폭 안에서 덜 움직이기 때문이다.
+
+그런데 **배치 GD가 +0.22로 가장 크다.** 거꾸로 보이지만 까닭이 다르다. 에폭에 갱신이 한 번뿐이라 "평균"이 곧 **에폭 처음** 파라메터의 로스다. 정확히 한 걸음 뒤처진 값이고, 아직 최적점에서 멀어 한 걸음의 이득이 크다.
+
+!!! warning "셋 다 같은 병이다"
+    에폭 평균은 **에폭 끝 모델의 성능이 아니다.** 학습 중에 공짜로 얻어지므로 쓰기 편하고, 추세를 보는 데는 충분하다. 다만 숫자를 보고하거나 모델을 고를 때는 **에폭이 끝난 뒤 같은 자료에서 다시 재야** 한다.
+
+---
+
+## 4. 고침 셋 — 무엇을 맞출 것인가
+
+갱신 횟수를 맞춰 본다. 미니배치 32로 30에폭 할 때가 960걸음이므로 거기에 맞춘다.
+
+```
+  배치   에폭    갱신 횟수   전체 로스     본 표본 수
+  1          1       1000     0.311302         1000
+  8          8       1000     0.247437         8000
+  32        30        960     0.246214        30000
+  128      120        960     0.246100       120000
+  전체       960        960     0.246098       960000
+```
+
+갱신 횟수를 맞추고 나니 **결론이 뒤집힌다.** 배치 GD가 0.246098로 가장 좋다. 1절에서 꼴찌였던 바로 그 방식이다.
+
+그런데 마지막 열을 보라. 배치 GD는 960번 갱신하려고 자료를 **960번** 훑었다. 배치 1은 1,000개만 보고 그쳤다. 계산량이 960배 차이다.
+
+**갱신 횟수와 계산량을 동시에 맞출 수는 없다.** 배치 크기를 바꾸는 것이 곧 그 둘의 교환비를 바꾸는 일이기 때문이다. 이것이 배치 크기 비교의 본질이고, 어떤 비교 코드도 이 긴장을 없앨 수 없다. **무엇을 맞췄는지 밝히는 것** 이 할 수 있는 전부다.
+
+---
+
+## 5. 계산량을 맞추면
+
+이번에는 본 표본 수를 고정한다. 모두 30에폭 = 표본 처리 30,000회다. 씨앗 다섯 개로 퍼짐도 함께 잰다.
+
+```
+  배치    전체 로스 평균   퍼짐                  갱신 횟수
+  1           0.268835   0.261268~0.279031      30000
+  8           0.247063   0.246708~0.247602       3750
+  32          0.246200   0.246144~0.246250        960
+  128         0.247271   0.247146~0.247363        240
+  전체          5.796442   5.473050~6.329079         30
+  정규방정식의 최소 로스 0.246098
+```
+
+**가장 좋은 것이 가운데다.** 배치 32가 0.246200으로 최소 로스 0.246098에 $10^{-4}$까지 닿았다.
+
+양 끝이 지는 까닭이 서로 다르다.
+
+- **배치 전체** — 30걸음뿐이라 5.80에 머문다. 아직 내려가는 중이다
+- **배치 1** — 30,000번을 걷고도 0.2688이다. 경사가 너무 시끄러워 최솟값 **둘레를 맴돈다**
+
+퍼짐을 보면 두 번째가 분명해진다. 배치 1의 퍼짐 0.2613~0.2790은 배치 32의 0.246144~0.246250보다 **200배 넓다.** 고정 러닝레이트에서 SGD가 수렴하지 않고 최솟값 주위의 일정 반경을 떠돈다는 말의 구체적인 뜻이 이것이다.
+
+---
+
+## 6. 옵티마이저를 바꾸면
+
+```
+  옵티마이저         lr       전체 로스 평균   퍼짐
+  SGD                0.01         0.246200   0.246144~0.246250
+  SGD(momentum=0.9)  0.01         0.252163   0.248949~0.254684
+  Adam               0.01         0.246264   0.246183~0.246380
+  Adam               0.001        6.763684   6.083761~7.869726
+```
+
+같은 $\eta = 0.01$에서 셋이 **사실상 같은 자리** 에 닿는다. 모멘텀 쪽이 오히려 조금 나쁘다.
+
+그런데 Adam의 흔한 기본값 $\eta = 0.001$은 6.76으로 한참 못 미친다. 960번의 갱신으로는 그 걸음 폭이 모자라서다.
+
+**"Adam이 SGD보다 빠르다"는 러닝레이트에 딸린 말이다.** 각자의 러닝레이트를 따로 맞춰 주지 않고 비교하면, 옵티마이저가 아니라 러닝레이트를 견준 것이 된다. 이 쪽에서 고친 세 가지와 같은 종류의 어긋남이다.
+
+---
+
+## 7. 전체 코드와 출력
 
 ```python
+"""배치 · 미니배치 · SGD 를 공정하게 견주기.
+
+셋을 견주는 코드는 흔하지만, 공정하게 견주는 코드는 드물다. 흔히
+세 군데서 어긋난다.
+
+1. 모델을 따로 만들어 **출발점이 다르다**
+2. 에폭 수를 맞춰 **갱신 횟수가 다르다**
+3. 에폭 도중의 로스를 평균 내어 **서로 다른 파라메터의 값을 섞는다**
+
+이 쪽은 셋을 차례로 고치고, 고칠 때마다 결론이 어떻게 바뀌는지 본다.
+개념은 「배치, 미니배치, 확률적 경사 하강법」 쪽에서 다룬다.
+
+실행: python 01_batch_vs_minibatch_sgd.py
 """
-================================================================================
-2단계 - 보기 1: 배치, 작은 배치, 확률 경사 하강법
-================================================================================
-
-학습 목표:
-- 경사 하강법의 여러 클래스를 이해한다
-- 배치 경사 하강법, 작은 배치 경사 하강법, SGD을 견준다
-- PyTorch의 DataLoader과 배치 만들기를 배운다
-- 클래스 사이의 맞바꿈을 이해한다
-
-어려움: ⭐⭐ 가운데 수준
-
-걸리는 때: 35~45분
-
-PREREQUISITES:
-- 1단계 보기를 마쳤을 것
-- 기본 경사 하강법을 이해하고 있을 것
-
-================================================================================
-"""
-
+import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import TensorDataset, DataLoader
-import numpy as np
-import matplotlib.pyplot as plt
-import time
 
-print("="*80)
-print("BATCH vs MINI-BATCH vs STOCHASTIC GRADIENT DESCENT")
-print("="*80)
-
-# ============================================================================
-# 1부: 변형들 이해하기
-# ============================================================================
-print("\n" + "="*80)
-print("PART 1: WHAT ARE THE VARIANTS?")
-print("="*80)
-
-print("""
-경사 하강법의 여러 클래스:
---------------------------
-
-1. 배치 경사 하강법(배치 GD)
-   - 루프마다 학습 데이터를 모두 쓴다
-   - 온 데이터셋에 대해 그래디언트를 계산한다
-   - 그래디언트가 가장 맞지만 데이터가 크면 느리다
-   
-   Pseudocode:
-   for epoch in epochs:
-       gradient = compute_gradient(all_data)
-       parameters -= lr * gradient
-
-2. 확률 경사 하강법(SGD)
-   - 루프마다 마구잡이 표본 하나를 쓴다
-   - 루프마다 훨씬 빠르다
-   - 그래디언트가 잡음 섞이지만 그 자리 골짜기를 벗어날 수 있다
-   
-   Pseudocode:
-   for epoch in epochs:
-       for sample in shuffle(data):
-           gradient = compute_gradient(sample)
-           parameters -= lr * gradient
-
-3. 작은 배치 경사 하강법(작은 배치 GD)
-   - 데이터를 작은 배치로 나누어 쓴다
-   - 배치 GD과 SGD 사이의 고른 자리
-   - 참으로 가장 흔하다(보기: batch_size=32, 64, 128)
-   
-   Pseudocode:
-   for epoch in epochs:
-       for batch in create_batches(data, batch_size):
-           gradient = compute_gradient(batch)
-           parameters -= lr * gradient
-""")
-
-# ============================================================================
-# 2부: 데이터셋 만들기
-# ============================================================================
-print("\n" + "="*80)
-print("PART 2: DATASET PREPARATION")
-print("="*80)
-
-torch.manual_seed(42)
-np.random.seed(42)
-
-# 차이를 보기 위한 더 큰 데이터셋
-n_samples = 1000
-X_numpy = np.random.randn(n_samples, 1) * 2
-y_numpy = 3 * X_numpy + 2 + np.random.randn(n_samples, 1) * 0.5
-
-X = torch.from_numpy(X_numpy).float()
-y = torch.from_numpy(y_numpy).float()
-
-print(f"Dataset: {n_samples} samples")
-print(f"True relationship: y = 3x + 2")
-
-# ============================================================================
-# 3부: 모델 정의
-# ============================================================================
-
-class SimpleLinearModel(nn.Module):
-    def __init__(self):
-        super(SimpleLinearModel, self).__init__()
-        self.linear = nn.Linear(1, 1)
-    
-    def forward(self, x):
-        return self.linear(x)
-
-# ============================================================================
-# 4부: 각 변형을 위한 학습 함수
-# ============================================================================
-
-def train_batch_gd(X, y, n_epochs, lr):
-    """배치 경사 하강법 - 데이터를 한꺼번에 모두 쓴다"""
-    model = SimpleLinearModel()
-    criterion = nn.MSELoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-    
-    loss_history = []
-    start_time = time.time()
-    
-    for epoch in range(n_epochs):
-        # 한 번의 순전파에 데이터 전체를 쓴다
-        y_pred = model(X)
-        loss = criterion(y_pred, y)
-        
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        
-        loss_history.append(loss.item())
-    
-    training_time = time.time() - start_time
-    return model, loss_history, training_time
+N, D = 1000, 10
+LR = 0.01
 
 
-def train_sgd(X, y, n_epochs, lr):
-    """확률 경사 하강법 - 한 번에 표본 하나"""
-    model = SimpleLinearModel()
-    criterion = nn.MSELoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-    
-    loss_history = []
-    start_time = time.time()
-    n_samples = X.shape[0]
-    
-    for epoch in range(n_epochs):
-        # 에폭마다 데이터 섞기
-        indices = torch.randperm(n_samples)
-        
-        # 한 번에 표본 하나씩 처리
-        epoch_losses = []
-        for i in indices:
-            X_sample = X[i:i+1]  # Keep dimension (1, 1)
-            y_sample = y[i:i+1]
-            
-            y_pred = model(X_sample)
-            loss = criterion(y_pred, y_sample)
-            
-            optimizer.zero_grad()
+def header(title):
+    print(f"\n=== {title} ===")
+
+
+def make_data(seed=0):
+    torch.manual_seed(seed)
+    X = torch.randn(N, D)
+    w = torch.randn(D, 1)
+    Y = X @ w + 2.0 + 0.5 * torch.randn(N, 1)
+    return X, Y
+
+
+X, Y = make_data()
+
+
+def fresh_model(seed=7):
+    """모든 견줌이 **같은 출발점** 에서 시작하게 한다."""
+    torch.manual_seed(seed)
+    return nn.Linear(D, 1)
+
+
+def full_loss(model):
+    """에폭이 끝난 뒤 같은 전체 자료에서 다시 잰다."""
+    with torch.no_grad():
+        return nn.functional.mse_loss(model(X), Y).item()
+
+
+def run(batch, epochs, lr=LR, seed=7, data_seed=0):
+    model = fresh_model(seed)
+    opt = torch.optim.SGD(model.parameters(), lr=lr)
+    g = torch.Generator().manual_seed(data_seed)
+    mixed, honest, steps = [], [], 0
+    for _ in range(epochs):
+        perm = torch.randperm(N, generator=g)
+        seen = []
+        for i in range(0, N, batch):
+            idx = perm[i:i + batch]
+            opt.zero_grad()
+            loss = nn.functional.mse_loss(model(X[idx]), Y[idx])
             loss.backward()
-            optimizer.step()
-            
-            epoch_losses.append(loss.item())
-        
-        # 이 에폭의 평균 로스 기록
-        loss_history.append(np.mean(epoch_losses))
-    
-    training_time = time.time() - start_time
-    return model, loss_history, training_time
+            opt.step()
+            seen.append(loss.item())       # 갱신 **전** 파라메터에서 잰 값
+            steps += 1
+        mixed.append(float(np.mean(seen)))  # 서로 다른 파라메터의 값을 섞는다
+        honest.append(full_loss(model))     # 에폭 끝 파라메터에서 다시 잰 값
+    return model, mixed, honest, steps
 
 
-def train_minibatch_gd(X, y, n_epochs, lr, batch_size):
-    """작은 배치 경사 하강법 - 작은 배치를 쓴다"""
-    model = SimpleLinearModel()
-    criterion = nn.MSELoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-    
-    # 자동 배치 구성을 위한 DataLoader 생성
-    dataset = TensorDataset(X, y)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    
-    loss_history = []
-    start_time = time.time()
-    
-    for epoch in range(n_epochs):
-        epoch_losses = []
-        
-        # 미니배치를 순회한다
-        for X_batch, y_batch in dataloader:
-            y_pred = model(X_batch)
-            loss = criterion(y_pred, y_batch)
-            
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            
-            epoch_losses.append(loss.item())
-        
-        # 이 에폭의 평균 로스 기록
-        loss_history.append(np.mean(epoch_losses))
-    
-    training_time = time.time() - start_time
-    return model, loss_history, training_time
+# ========================================================================
+# 1. 흔한 꼴 — 세 군데가 어긋난 견줌
+# ========================================================================
 
-# ============================================================================
-# 5부: 세 가지 변형 모두로 학습하기
-# ============================================================================
-print("\n" + "="*80)
-print("PART 5: COMPARING ALL VARIANTS")
-print("="*80)
+def unfair():
+    header("1. 흔한 꼴: 에폭을 맞추고 에폭 평균 로스를 적는다")
+    print("  (모델도 따로 만들어 출발점이 다르다)")
+    print("  방식           갱신 횟수   마지막 에폭 평균 로스")
+    out = {}
+    for batch, lab in ((N, "배치 GD   "), (32, "미니배치 32"), (1, "SGD       ")):
+        torch.manual_seed(batch)                   # 일부러 씨앗을 다르게
+        m = nn.Linear(D, 1)
+        opt = torch.optim.SGD(m.parameters(), lr=LR)
+        g = torch.Generator().manual_seed(0)
+        steps = 0
+        for _ in range(30):
+            perm = torch.randperm(N, generator=g)
+            seen = []
+            for i in range(0, N, batch):
+                idx = perm[i:i + batch]
+                opt.zero_grad()
+                loss = nn.functional.mse_loss(m(X[idx]), Y[idx])
+                loss.backward()
+                opt.step()
+                seen.append(loss.item())
+                steps += 1
+            last = float(np.mean(seen))
+        out[lab] = last
+        print(f"  {lab}   {steps:>8}   {last:>20.6f}")
+    print("  이 표만 보면 SGD 가 압도적으로 좋아 보인다")
+    print("  그런데 세 줄이 서로 다른 세 가지를 재고 있다")
 
-n_epochs = 50
-learning_rate = 0.01
-batch_size = 32
 
-print("Training with different variants...")
-print(f"Epochs: {n_epochs}, Learning rate: {learning_rate}\n")
+# ========================================================================
+# 2. 첫째를 고친다 — 같은 출발점
+# ========================================================================
 
-# 배치 경사 하강법 학습
-print("1. Training with Batch GD (all 1000 samples at once)...")
-model_batch, loss_batch, time_batch = train_batch_gd(X, y, n_epochs, learning_rate)
-print(f"   ✓ Completed in {time_batch:.3f} seconds")
+def same_start():
+    header("2. 고침 (1): 같은 출발점에서 시작한다")
+    m0 = fresh_model()
+    print(f"  세 방식 모두 같은 초기 모델에서 출발한다")
+    print(f"  초기 전체 로스 {full_loss(m0):.6f}")
+    print("  방식           갱신 횟수   에폭 평균     에폭 끝 전체 로스")
+    res = {}
+    for batch, lab in ((N, "배치 GD   "), (32, "미니배치 32"), (1, "SGD       ")):
+        _, mixed, honest, steps = run(batch, 30)
+        res[lab] = (steps, mixed[-1], honest[-1])
+        print(f"  {lab}   {steps:>8}   {mixed[-1]:10.6f}   {honest[-1]:14.6f}")
+    print("  에폭 평균과 전체 로스가 다르다. 특히 SGD 에서 크게 벌어진다")
+    for lab, (s, mx, hn) in res.items():
+        print(f"    {lab} 차이 {abs(mx-hn):.6f}  ({abs(mx-hn)/hn*100:.1f}%)")
+    return res
 
-# SGD 학습
-print("2. Training with SGD (1 sample at a time)...")
-model_sgd, loss_sgd, time_sgd = train_sgd(X, y, n_epochs, learning_rate)
-print(f"   ✓ Completed in {time_sgd:.3f} seconds")
 
-# 미니배치 경사 하강법 학습
-print(f"3. Training with Mini-batch GD (batch_size={batch_size})...")
-model_minibatch, loss_minibatch, time_minibatch = train_minibatch_gd(
-    X, y, n_epochs, learning_rate, batch_size
-)
-print(f"   ✓ Completed in {time_minibatch:.3f} seconds")
+# ========================================================================
+# 3. 둘째를 고친다 — 섞인 평균 대신 정직한 로스
+# ========================================================================
 
-# ============================================================================
-# 6부: 결과 비교
-# ============================================================================
-print("\n" + "="*80)
-print("PART 6: COMPARISON RESULTS")
-print("="*80)
+def why_mixed_lies():
+    header("3. 고침 (2): 에폭 평균이 왜 거짓말을 하는가")
+    _, mixed, honest, _ = run(1, 30)
+    print("  SGD 의 처음 다섯 에폭")
+    print("  에폭   에폭 평균      에폭 끝 전체 로스    차이")
+    for e in range(5):
+        print(f"  {e:>4}   {mixed[e]:10.6f}   {honest[e]:16.6f}   "
+              f"{mixed[e]-honest[e]:+.6f}")
+    print("  첫 에폭에서 +0.45 로 크게 벌어진다. 에폭 **도중** 의 파라메터로")
+    print("  잰 값들이 섞여 있고, 학습 초기에는 그 자리들이 에폭 끝보다")
+    print("  한참 나쁘기 때문이다")
+    print("  수렴한 뒤에는 부호가 뒤섞인다 (에폭 2 는 -0.003 이다) — 더 이상")
+    print("  한 방향으로 움직이지 않으므로 평균이 위도 아래도 될 수 있다")
 
-print("\nTraining Time Comparison:")
-print(f"  Batch GD:      {time_batch:.3f}s")
-print(f"  SGD:           {time_sgd:.3f}s")
-print(f"  Mini-batch GD: {time_minibatch:.3f}s")
+    print("\n  배치별로 그 어긋남을 잰다 (30 에폭째)")
+    print("  배치    에폭 평균     전체 로스    어긋남")
+    for batch in (1, 8, 32, 128, N):
+        _, mx, hn, _ = run(batch, 30)
+        lab = "전체" if batch == N else str(batch)
+        print(f"  {lab:<6}  {mx[-1]:10.6f}  {hn[-1]:10.6f}  "
+              f"{mx[-1]-hn[-1]:+.6f}")
+    print("  배치 1 에서 8, 32, 128 로 갈수록 어긋남이 준다 (0.011 -> 0.0004)")
+    print("  에폭 안에서 덜 움직이기 때문이다")
+    print("  그런데 배치 GD 가 +0.22 로 가장 크다. 거꾸로 보이지만 까닭이")
+    print("  다르다 — 에폭에 갱신이 한 번뿐이라 '평균' 이 곧 **에폭 처음**")
+    print("  파라메터의 로스다. 정확히 한 걸음 뒤처진 값이고, 아직 멀리")
+    print("  있어 한 걸음의 이득이 크다. 셋 다 같은 병이다: 에폭 평균은")
+    print("  에폭 끝 모델의 성능이 아니다")
 
-print("\nFinal Loss:")
-print(f"  Batch GD:      {loss_batch[-1]:.6f}")
-print(f"  SGD:           {loss_sgd[-1]:.6f}")
-print(f"  Mini-batch GD: {loss_minibatch[-1]:.6f}")
 
-print("\nLearned Parameters:")
-for name, model in [("Batch", model_batch), ("SGD", model_sgd), ("Mini-batch", model_minibatch)]:
-    w = model.linear.weight.item()
-    b = model.linear.bias.item()
-    print(f"  {name:11s}: w={w:.4f}, b={b:.4f}")
-print(f"  {'True':11s}: w=3.0000, b=2.0000")
+# ========================================================================
+# 4. 셋째를 고친다 — 갱신 횟수를 맞춘다
+# ========================================================================
 
-# ============================================================================
-# 7부: 시각화
-# ============================================================================
-print("\n" + "="*80)
-print("VISUALIZATION")
-print("="*80)
+def same_updates():
+    header("4. 고침 (3): 갱신 횟수를 맞춘다")
+    target = 960                      # 미니배치 32 로 30 에폭 할 때의 걸음 수
+    print(f"  모두 약 {target} 번 갱신하도록 에폭을 조절한다")
+    print("  배치   에폭    갱신 횟수   전체 로스     본 표본 수")
+    for batch in (1, 8, 32, 128, N):
+        per_epoch = -(-N // batch)
+        epochs = max(1, round(target / per_epoch))
+        _, _, honest, steps = run(batch, epochs)
+        lab = "전체" if batch == N else str(batch)
+        print(f"  {lab:<5}  {epochs:>5}  {steps:>9}   {honest[-1]:10.6f}   "
+              f"{epochs*N:>10}")
+    print("  이제 '갱신 횟수' 열이 거의 같다. 대신 '본 표본 수' 가 어긋난다")
+    print("  배치 GD 는 960 번 갱신하려고 자료를 960 번 훑어야 한다")
+    print("  둘을 동시에 맞출 수는 없다 — 이것이 배치 크기 견줌의 본질이다")
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-# 그림 1: 로스 곡선(선형 축)
-axes[0, 0].plot(loss_batch, label='Batch GD', linewidth=2)
-axes[0, 0].plot(loss_sgd, label='SGD', linewidth=2, alpha=0.7)
-axes[0, 0].plot(loss_minibatch, label='Mini-batch GD', linewidth=2)
-axes[0, 0].set_xlabel('Epoch')
-axes[0, 0].set_ylabel('Loss')
-axes[0, 0].set_title('Loss Convergence (Linear Scale)')
-axes[0, 0].legend()
-axes[0, 0].grid(True, alpha=0.3)
+# ========================================================================
+# 5. 계산량을 맞추면
+# ========================================================================
 
-# 그림 2: 로스 곡선(로그 축)
-axes[0, 1].plot(loss_batch, label='Batch GD', linewidth=2)
-axes[0, 1].plot(loss_sgd, label='SGD', linewidth=2, alpha=0.7)
-axes[0, 1].plot(loss_minibatch, label='Mini-batch GD', linewidth=2)
-axes[0, 1].set_xlabel('Epoch')
-axes[0, 1].set_ylabel('Loss')
-axes[0, 1].set_title('Loss Convergence (Log Scale)')
-axes[0, 1].set_yscale('log')
-axes[0, 1].legend()
-axes[0, 1].grid(True, alpha=0.3)
+def same_compute():
+    header("5. 계산량(본 표본 수)을 맞추면")
+    print("  모두 30 에폭 = 표본 처리 30000 회로 고정하고 씨앗 5개")
+    print("  배치    전체 로스 평균   퍼짐                  갱신 횟수")
+    for batch in (1, 8, 32, 128, N):
+        vals, steps = [], 0
+        for s in range(5):
+            _, _, honest, steps = run(batch, 30, seed=s, data_seed=s)
+            vals.append(honest[-1])
+        lab = "전체" if batch == N else str(batch)
+        print(f"  {lab:<6}  {np.mean(vals):12.6f}   "
+              f"{min(vals):.6f}~{max(vals):.6f}   {steps:>8}")
+    A = torch.cat([X, torch.ones(N, 1)], 1)
+    sol = torch.linalg.lstsq(A, Y).solution
+    print(f"  정규방정식의 최소 로스 {((A @ sol - Y) ** 2).mean().item():.6f}")
+    print("  가장 좋은 것은 양 끝이 아니라 가운데의 배치 32 다 (0.246200)")
+    print("  — 최소 로스 0.246098 에 1e-4 까지 닿았다")
+    print("  배치 전체는 30 걸음뿐이라 5.80 에 머물고, 배치 1 은 30000 번을")
+    print("  걷고도 0.2688 이다. 경사가 시끄러워 최솟값 둘레를 맴돈다")
+    print("  퍼짐을 보라 — 배치 1 은 0.2613~0.2790 으로 배치 32 의")
+    print("  0.246144~0.246250 보다 200 배 넓다. 고정 lr 의 대가다")
 
-# 그림 3: 학습 시간 비교
-methods = ['Batch GD', 'SGD', 'Mini-batch']
-times = [time_batch, time_sgd, time_minibatch]
-colors = ['blue', 'orange', 'green']
-axes[1, 0].bar(methods, times, color=colors, alpha=0.7)
-axes[1, 0].set_ylabel('Training Time (seconds)')
-axes[1, 0].set_title('Training Time Comparison')
-axes[1, 0].grid(True, alpha=0.3, axis='y')
 
-# 그림 4: 로스의 분산(매끄러움)
-axes[1, 1].plot(loss_sgd[-20:], 'o-', label='SGD (last 20 epochs)', linewidth=2)
-axes[1, 1].plot(loss_minibatch[-20:], 's-', label='Mini-batch (last 20 epochs)', linewidth=2)
-axes[1, 1].plot(loss_batch[-20:], '^-', label='Batch (last 20 epochs)', linewidth=2)
-axes[1, 1].set_xlabel('Last 20 Epochs')
-axes[1, 1].set_ylabel('Loss')
-axes[1, 1].set_title('Loss Stability (Zoomed In)')
-axes[1, 1].legend()
-axes[1, 1].grid(True, alpha=0.3)
+# ========================================================================
+# 6. 옵티마이저를 바꾸면
+# ========================================================================
 
-plt.tight_layout()
-plt.savefig('batch_comparison.png', dpi=150)
-print("\n✓ Plot saved as 'batch_comparison.png'")
-print("\nClose the plot window to continue...")
-plt.show()
+def optimizers():
+    header("6. SGD 대신 Adam 을 쓰면")
+    print("  배치 32, 30 에폭, 씨앗 5개")
+    print("  옵티마이저         lr       전체 로스 평균   퍼짐")
+    for name, make, lr in (
+            ("SGD              ", torch.optim.SGD, 0.01),
+            ("SGD(momentum=0.9)", lambda p, lr: torch.optim.SGD(
+                p, lr=lr, momentum=0.9), 0.01),
+            ("Adam             ", torch.optim.Adam, 0.01),
+            ("Adam             ", torch.optim.Adam, 0.001)):
+        vals = []
+        for s in range(5):
+            m = fresh_model(s)
+            opt = make(m.parameters(), lr)
+            g = torch.Generator().manual_seed(s)
+            for _ in range(30):
+                perm = torch.randperm(N, generator=g)
+                for i in range(0, N, 32):
+                    idx = perm[i:i + 32]
+                    opt.zero_grad()
+                    nn.functional.mse_loss(m(X[idx]), Y[idx]).backward()
+                    opt.step()
+            vals.append(full_loss(m))
+        print(f"  {name}  {lr:<7}  {np.mean(vals):12.6f}   "
+              f"{min(vals):.6f}~{max(vals):.6f}")
+    print("  'Adam 이 SGD 보다 빠르다' 는 러닝레이트에 딸린 말이다")
+    print("  같은 lr = 0.01 에서는 셋이 사실상 같은 자리에 닿는다")
+    print("  (0.246200 / 0.252163 / 0.246264 — 모멘텀 쪽이 오히려 조금 나쁘다)")
+    print("  Adam 의 흔한 기본값 lr = 0.001 은 6.76 으로 한참 못 미친다 —")
+    print("  960 번의 갱신으로는 그 걸음 폭이 모자란다")
+    print("  옵티마이저를 견주려면 각자의 러닝레이트를 따로 맞춰 주어야 하고,")
+    print("  그 전의 비교는 옵티마이저가 아니라 lr 을 견준 것이다")
 
-# ============================================================================
-# 8부: 핵심 요점
-# ============================================================================
-print("\n" + "="*80)
-print("KEY TAKEAWAYS")
-print("="*80)
-print("""
-1. BATCH GD:
-   ✓ 가장 든든하고 매끄럽게 모여든다
-   ✗ 데이터가 크면 느리다
-   ✗ 기억 자리를 많이 쓴다
-   ✗ 그 자리 골짜기에 갇힐 수 있다
-   
-2. STOCHASTIC GD:
-   ✓ 에폭마다 학습이 빠르다
-   ✓ 얕은 그 자리 골짜기를 벗어날 수 있다
-   ✗ 그래디언트가 잡음 섞이고 모여듦이 들쭉날쭉하다
-   ✗ 딱 맞는 골짜기에 닿지 못할 수 있다
-   
-3. 작은 배치 GD: (둘의 좋은 점을 다 가진다!)
-   ✓ 속도와 든든함이 고루 좋다
-   ✓ GPU의 나란한 셈을 쓸 수 있다
-   ✓ 두루 잘 미친다
-   → 참으로 가장 흔히 쓴다!
 
-배치 크기 고르기:
-- 너무 작으면(보기: 1~8) 잡음이 많고 더디게 모여든다
-- 너무 크면(보기: 512 넘게) 기억 자리 탈이 생기고 일반화이 나빠진다
-- 알맞은 자리: 16, 32, 64, 128(GPU이 잘 들도록 2의 거듭제곱)
-
-손에 잡히는 권함:
-• 기본으로 batch_size=32이나 64인 작은 배치 GD을 써라
-• 기억 자리가 넉넉하고 속도가 필요하면 배치 크기를 키워라
-• 지나치게 맞춰지거나 일반화를 높이려면 배치 크기를 줄여라
-• 여러 배치 크기를 써 보아라. 이것도 초파라메터다!
-""")
-
-print("="*80)
-print("EXPERIMENTS TO TRY")
-print("="*80)
-print("""
-1. 여러 배치 크기: 8, 16, 64, 128, 256
-   - 모여듦에 어떤 영향을 주는가?
-   - 학습 때는 어떠한가?
-
-2. 더 큰 데이터셋(표본 10,000개)
-   - 이제는 어느 클래스가 가장 빠른가?
-
-3. 클래스마다 다른 러닝레이트
-   - SGD에는 더 작은 러닝레이트가 필요할 수 있다
-   - 배치 GD은 더 큰 러닝레이트로도 될 수 있다
-
-4. 여세를 더해 보아라(다음 보기다!)
-   - optimizer = torch.optim.SGD(..., momentum=0.9)
-""")
-print("="*80)
+def main():
+    unfair()
+    same_start()
+    why_mixed_lies()
+    same_updates()
+    same_compute()
+    optimizers()
 
 
 if __name__ == "__main__":
-    pass
+    main()
 ```
 
-??? note "전체 출력 (143줄)"
+??? note "전체 출력 (92줄)"
 
     ```
-    ================================================================================
-    BATCH vs MINI-BATCH vs STOCHASTIC GRADIENT DESCENT
-    ================================================================================
+    === 1. 흔한 꼴: 에폭을 맞추고 에폭 평균 로스를 적는다 ===
+      (모델도 따로 만들어 출발점이 다르다)
+      방식           갱신 횟수   마지막 에폭 평균 로스
+      배치 GD            30               5.934709
+      미니배치 32        960               0.243297
+      SGD             30000               0.278469
+      이 표만 보면 SGD 가 압도적으로 좋아 보인다
+      그런데 세 줄이 서로 다른 세 가지를 재고 있다
 
-    ================================================================================
-    PART 1: WHAT ARE THE VARIANTS?
-    ================================================================================
+    === 2. 고침 (1): 같은 출발점에서 시작한다 ===
+      세 방식 모두 같은 초기 모델에서 출발한다
+      초기 전체 로스 18.767525
+      방식           갱신 횟수   에폭 평균     에폭 끝 전체 로스
+      배치 GD            30     5.750341         5.525724
+      미니배치 32        960     0.243297         0.246214
+      SGD             30000     0.278469         0.267440
+      에폭 평균과 전체 로스가 다르다. 특히 SGD 에서 크게 벌어진다
+        배치 GD    차이 0.224617  (4.1%)
+        미니배치 32 차이 0.002918  (1.2%)
+        SGD        차이 0.011029  (4.1%)
 
-    경사 하강법의 여러 클래스:
-    --------------------------
+    === 3. 고침 (2): 에폭 평균이 왜 거짓말을 하는가 ===
+      SGD 의 처음 다섯 에폭
+      에폭   에폭 평균      에폭 끝 전체 로스    차이
+         0     0.765651           0.311302   +0.454349
+         1     0.280980           0.267180   +0.013800
+         2     0.280024           0.283106   -0.003082
+         3     0.282069           0.278478   +0.003591
+         4     0.282032           0.269172   +0.012860
+      첫 에폭에서 +0.45 로 크게 벌어진다. 에폭 **도중** 의 파라메터로
+      잰 값들이 섞여 있고, 학습 초기에는 그 자리들이 에폭 끝보다
+      한참 나쁘기 때문이다
+      수렴한 뒤에는 부호가 뒤섞인다 (에폭 2 는 -0.003 이다) — 더 이상
+      한 방향으로 움직이지 않으므로 평균이 위도 아래도 될 수 있다
 
-    1. 배치 경사 하강법(배치 GD)
-       - 루프마다 학습 데이터를 모두 쓴다
-       - 온 데이터셋에 대해 그래디언트를 계산한다
-       - 그래디언트가 가장 맞지만 데이터가 크면 느리다
-       
-       Pseudocode:
-       for epoch in epochs:
-           gradient = compute_gradient(all_data)
-           parameters -= lr * gradient
+      배치별로 그 어긋남을 잰다 (30 에폭째)
+      배치    에폭 평균     전체 로스    어긋남
+      1         0.278469    0.267440  +0.011029
+      8         0.251207    0.247602  +0.003604
+      32        0.243297    0.246214  -0.002918
+      128       0.247582    0.247203  +0.000379
+      전체        5.750341    5.525724  +0.224617
+      배치 1 에서 8, 32, 128 로 갈수록 어긋남이 준다 (0.011 -> 0.0004)
+      에폭 안에서 덜 움직이기 때문이다
+      그런데 배치 GD 가 +0.22 로 가장 크다. 거꾸로 보이지만 까닭이
+      다르다 — 에폭에 갱신이 한 번뿐이라 '평균' 이 곧 **에폭 처음**
+      파라메터의 로스다. 정확히 한 걸음 뒤처진 값이고, 아직 멀리
+      있어 한 걸음의 이득이 크다. 셋 다 같은 병이다: 에폭 평균은
+      에폭 끝 모델의 성능이 아니다
 
-    2. 확률 경사 하강법(SGD)
-       - 루프마다 마구잡이 표본 하나를 쓴다
-       - 루프마다 훨씬 빠르다
-       - 그래디언트가 잡음 섞이지만 그 자리 골짜기를 벗어날 수 있다
-       
-       Pseudocode:
-       for epoch in epochs:
-           for sample in shuffle(data):
-               gradient = compute_gradient(sample)
-               parameters -= lr * gradient
+    === 4. 고침 (3): 갱신 횟수를 맞춘다 ===
+      모두 약 960 번 갱신하도록 에폭을 조절한다
+      배치   에폭    갱신 횟수   전체 로스     본 표본 수
+      1          1       1000     0.311302         1000
+      8          8       1000     0.247437         8000
+      32        30        960     0.246214        30000
+      128      120        960     0.246100       120000
+      전체       960        960     0.246098       960000
+      이제 '갱신 횟수' 열이 거의 같다. 대신 '본 표본 수' 가 어긋난다
+      배치 GD 는 960 번 갱신하려고 자료를 960 번 훑어야 한다
+      둘을 동시에 맞출 수는 없다 — 이것이 배치 크기 견줌의 본질이다
 
-    3. 작은 배치 경사 하강법(작은 배치 GD)
-       - 데이터를 작은 배치로 나누어 쓴다
-       - 배치 GD과 SGD 사이의 고른 자리
-       - 참으로 가장 흔하다(보기: batch_size=32, 64, 128)
-       
-       Pseudocode:
-       for epoch in epochs:
-           for batch in create_batches(data, batch_size):
-               gradient = compute_gradient(batch)
-               parameters -= lr * gradient
+    === 5. 계산량(본 표본 수)을 맞추면 ===
+      모두 30 에폭 = 표본 처리 30000 회로 고정하고 씨앗 5개
+      배치    전체 로스 평균   퍼짐                  갱신 횟수
+      1           0.268835   0.261268~0.279031      30000
+      8           0.247063   0.246708~0.247602       3750
+      32          0.246200   0.246144~0.246250        960
+      128         0.247271   0.247146~0.247363        240
+      전체          5.796442   5.473050~6.329079         30
+      정규방정식의 최소 로스 0.246098
+      가장 좋은 것은 양 끝이 아니라 가운데의 배치 32 다 (0.246200)
+      — 최소 로스 0.246098 에 1e-4 까지 닿았다
+      배치 전체는 30 걸음뿐이라 5.80 에 머물고, 배치 1 은 30000 번을
+      걷고도 0.2688 이다. 경사가 시끄러워 최솟값 둘레를 맴돈다
+      퍼짐을 보라 — 배치 1 은 0.2613~0.2790 으로 배치 32 의
+      0.246144~0.246250 보다 200 배 넓다. 고정 lr 의 대가다
 
-
-    ================================================================================
-    PART 2: DATASET PREPARATION
-    ================================================================================
-    Dataset: 1000 samples
-    True relationship: y = 3x + 2
-
-    ================================================================================
-    PART 5: COMPARING ALL VARIANTS
-    ================================================================================
-    Training with different variants...
-    Epochs: 50, Learning rate: 0.01
-
-    1. Training with Batch GD (all 1000 samples at once)...
-       ✓ Completed in 0.030 seconds
-    2. Training with SGD (1 sample at a time)...
-       ✓ Completed in 26.771 seconds
-    3. Training with Mini-batch GD (batch_size=32)...
-       ✓ Completed in 3.210 seconds
-
-    ================================================================================
-    PART 6: COMPARISON RESULTS
-    ================================================================================
-
-    Training Time Comparison:
-      Batch GD:      0.030s
-      SGD:           26.771s
-      Mini-batch GD: 3.210s
-
-    Final Loss:
-      Batch GD:      0.446686
-      SGD:           0.262440
-      Mini-batch GD: 0.247880
-
-    Learned Parameters:
-      Batch      : w=2.9540, b=1.6070
-      SGD        : w=3.0021, b=2.1055
-      Mini-batch : w=2.9841, b=2.0357
-      True       : w=3.0000, b=2.0000
-
-    ================================================================================
-    VISUALIZATION
-    ================================================================================
-
-    ✓ Plot saved as 'batch_comparison.png'
-
-    Close the plot window to continue...
-
-    ================================================================================
-    KEY TAKEAWAYS
-    ================================================================================
-
-    1. BATCH GD:
-       ✓ 가장 든든하고 매끄럽게 모여든다
-       ✗ 데이터가 크면 느리다
-       ✗ 기억 자리를 많이 쓴다
-       ✗ 그 자리 골짜기에 갇힐 수 있다
-       
-    2. STOCHASTIC GD:
-       ✓ 에폭마다 학습이 빠르다
-       ✓ 얕은 그 자리 골짜기를 벗어날 수 있다
-       ✗ 그래디언트가 잡음 섞이고 모여듦이 들쭉날쭉하다
-       ✗ 딱 맞는 골짜기에 닿지 못할 수 있다
-       
-    3. 작은 배치 GD: (둘의 좋은 점을 다 가진다!)
-       ✓ 속도와 든든함이 고루 좋다
-       ✓ GPU의 나란한 셈을 쓸 수 있다
-       ✓ 두루 잘 미친다
-       → 참으로 가장 흔히 쓴다!
-
-    배치 크기 고르기:
-    - 너무 작으면(보기: 1~8) 잡음이 많고 더디게 모여든다
-    - 너무 크면(보기: 512 넘게) 기억 자리 탈이 생기고 일반화이 나빠진다
-    - 알맞은 자리: 16, 32, 64, 128(GPU이 잘 들도록 2의 거듭제곱)
-
-    손에 잡히는 권함:
-    • 기본으로 batch_size=32이나 64인 작은 배치 GD을 써라
-    • 기억 자리가 넉넉하고 속도가 필요하면 배치 크기를 키워라
-    • 지나치게 맞춰지거나 일반화를 높이려면 배치 크기를 줄여라
-    • 여러 배치 크기를 써 보아라. 이것도 초파라메터다!
-
-    ================================================================================
-    EXPERIMENTS TO TRY
-    ================================================================================
-
-    1. 여러 배치 크기: 8, 16, 64, 128, 256
-       - 모여듦에 어떤 영향을 주는가?
-       - 학습 때는 어떠한가?
-
-    2. 더 큰 데이터셋(표본 10,000개)
-       - 이제는 어느 클래스가 가장 빠른가?
-
-    3. 클래스마다 다른 러닝레이트
-       - SGD에는 더 작은 러닝레이트가 필요할 수 있다
-       - 배치 GD은 더 큰 러닝레이트로도 될 수 있다
-
-    4. 여세를 더해 보아라(다음 보기다!)
-       - optimizer = torch.optim.SGD(..., momentum=0.9)
-
-    ================================================================================
+    === 6. SGD 대신 Adam 을 쓰면 ===
+      배치 32, 30 에폭, 씨앗 5개
+      옵티마이저         lr       전체 로스 평균   퍼짐
+      SGD                0.01         0.246200   0.246144~0.246250
+      SGD(momentum=0.9)  0.01         0.252163   0.248949~0.254684
+      Adam               0.01         0.246264   0.246183~0.246380
+      Adam               0.001        6.763684   6.083761~7.869726
+      'Adam 이 SGD 보다 빠르다' 는 러닝레이트에 딸린 말이다
+      같은 lr = 0.01 에서는 셋이 사실상 같은 자리에 닿는다
+      (0.246200 / 0.252163 / 0.246264 — 모멘텀 쪽이 오히려 조금 나쁘다)
+      Adam 의 흔한 기본값 lr = 0.001 은 6.76 으로 한참 못 미친다 —
+      960 번의 갱신으로는 그 걸음 폭이 모자란다
+      옵티마이저를 견주려면 각자의 러닝레이트를 따로 맞춰 주어야 하고,
+      그 전의 비교는 옵티마이저가 아니라 lr 을 견준 것이다
     ```
 
-
-## 2. 논의
-
-### 배치 크기가 바꾸는 것
-
-전체 배치 학습은 한 에포크에 한 번, 표본 단위 SGD는 표본 수만큼, 미니배치는 배치 수만큼 업데이트한다. 모두 `torch.optim.SGD`를 사용할 수 있다. 옵티마이저 클래스 이름이 입력 배치 크기를 결정하는 것은 아니다.
-
-### 로스 곡선과 시간 비교의 조건
-
-전체 배치의 기록은 한 파라미터 상태에서 구한 전체 로스다. 표본·미니배치 방식의 에포크 평균에는 에포크 도중 서로 다른 파라미터에서 계산한 로스가 섞여 있다. 마지막 배치가 짧으면 배치 평균들의 단순 평균은 표본 평균과도 다르다. 공정한 최종 성능 비교에는 에포크 종료 후 같은 전체 데이터에서 로스를 다시 평가하는 기준이 유용하다.
-
-각 함수는 모델을 새로 만들므로 초기값이 동일하게 맞춰진 비교는 아니다. 같은 에포크 수라도 업데이트 횟수가 다르고, 측정 시간도 하드웨어와 데이터 처리 비용에 영향을 받는다. 따라서 제공된 곡선과 시간은 해당 설정의 예시이며 특정 배치 크기의 보편적인 우열을 보여주지 않는다.
+---
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-SGD 대신 Adam 옵티마이저를 쓰도록 코드를 수정하라. 100 에포크에 걸친 수렴 속도를 비교하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+본문 1절의 표에서 세 줄이 "서로 다른 세 가지를 재고 있다"고 했다. 어긋난 세 가지를 짚고, 그중 하나만 고쳤을 때 남는 문제가 무엇인지 말하라.
 
 </div>
 
 ??? success "풀이"
-    ```python
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    # Adam은 적응적 러닝레이트와 모멘텀 덕분에 보통 SGD보다
-    # 빠르게 수렴한다. 다만 Adam의 최적 러닝레이트는
-    # 보통 SGD보다 작다.
-    ```
+    **어긋난 셋.**
+
+    1. **출발점이 다르다.** 모델을 세 번 따로 만들었으므로 초기 웨이트가 다르다. 짧은 학습에서는 이것만으로 결과가 갈린다
+    2. **갱신 횟수가 다르다.** 30에폭이 배치 GD에 30걸음, 미니배치에 960걸음, SGD에 30,000걸음이다. 1,000배 차이다
+    3. **재는 수가 다르다.** "마지막 에폭 평균"은 배치 GD에서 한 번 잰 값이고 SGD에서 1,000번 잰 값의 평균이다. 게다가 그 1,000번은 모두 다른 파라메터에서 잰 것이다
+
+    **하나만 고치면.** 가령 (1)만 고쳐 같은 출발점을 쓰면 본문 2절의 표가 되는데, (2)와 (3)이 남아 있으므로 여전히 결론을 믿을 수 없다. 실제로 2절에서 미니배치가 이기고 4절에서 배치 GD가 이긴다 — (2)를 고치자 결론이 뒤집혔다.
+
+    **그러니 "고치면 공정해진다"가 아니라 "무엇을 맞췄는지 밝혀야 한다"가 결론이다.** 4절에서 본 대로 갱신 횟수와 계산량은 동시에 맞출 수 없으므로, 모든 조건을 맞춘 완벽한 비교라는 것은 없다.
 
 ---
-
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-학습 루프에서 `optimizer.zero_grad()`를 없애면 어떤 일이 생기는가? 실험해 보고 학습 로스에 미치는 영향을 설명하라.
-
-</div>
-
-??? success "풀이"
-    업데이트 사이에 경사를 초기화하지 않으면 서로 다른 파라미터에서 계산한 이전 경사까지 누적된다. 따라서 현재 로스의 경사만 사용하는 학습 규칙과 달라지고, 진동이나 발산을 일으킬 수 있다. 경사끼리 상쇄될 수도 있으므로 크기가 항상 증가하거나 반드시 발산하는 것은 아니다. 의도적인 경사 누적에서는 정해진 여러 마이크로배치를 처리한 뒤 한 번 업데이트하고 경사를 초기화한다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff med" title="중간"></span>
-옵티마이저에 L2 정규화(웨이트 감쇠)를 추가하고 그것이 최종 파라메터 값에 어떤 영향을 주는지 관찰하라.
+학습 루프에서 `optimizer.zero_grad()`를 없애면 어떻게 되는가? 배치 32와 배치 전체 두 경우를 모두 재고, 결과가 다른 까닭을 설명하라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
-    # weight_decay는 로스에 L2 벌점항 lambda * ||w||^2을 더한다.
-    # 이는 웨이트를 작게 유도하여 과적합을 막을 수 있다.
-    # 최종 웨이트의 크기가 조금 더 작아진다.
+    import numpy as np
+    import torch
+    import torch.nn as nn
+
+    for batch in (32, 1000):
+        for clear in (True, False):
+            m = fresh()                       # 본문과 같은 초기 모델
+            o = torch.optim.SGD(m.parameters(), lr=0.01)
+            g = torch.Generator().manual_seed(0)
+            for _ in range(30):
+                perm = torch.randperm(1000, generator=g)
+                for i in range(0, 1000, batch):
+                    idx = perm[i:i + batch]
+                    if clear:
+                        o.zero_grad()
+                    nn.functional.mse_loss(m(X[idx]), Y[idx]).backward()
+                    o.step()
+            lab = "지운다  " if clear else "안 지운다"
+            print(f"  배치 {batch:<5} {lab}  30 에폭 뒤 전체 로스 "
+                  f"{full_loss(m):.6e}")
     ```
+
+    ```
+      배치 32    지운다    30 에폭 뒤 전체 로스 2.462142e-01
+      배치 32    안 지운다  30 에폭 뒤 전체 로스 3.402135e+02
+      배치 1000  지운다    30 에폭 뒤 전체 로스 5.525724e+00
+      배치 1000  안 지운다  30 에폭 뒤 전체 로스 2.476794e+00
+    ```
+
+    **두 경우가 반대로 나온다.**
+
+    배치 32에서는 0.246이 340으로 **1,400배 나빠진다.** 에폭에 31번 갱신하므로 경사가 계속 쌓이고, 쌓인 경사가 실효 걸음 폭을 끝없이 키운다. 사실상 발산이다.
+
+    배치 전체에서는 5.53이 2.48로 **오히려 좋아진다.** 에폭에 갱신이 한 번뿐이라 30걸음 동안 경사가 30번 누적되는데, 이것이 실효 러닝레이트를 키우는 역할을 한다. 그리고 본문 5절에서 보았듯 배치 GD는 30걸음으로는 **한참 모자란** 상태였다. 걸음이 커진 것이 마침 도움이 되었다.
+
+    **읽을 것.** 지우지 않는 것은 걸음 폭을 제어 불가능하게 키우는 일이다. 그것이 도움이 되는지 해가 되는지는 지금 걸음이 모자란지 넘치는지에 달려 있다. **도움이 되는 경우가 더 고약하다** — 버그가 성능 향상으로 위장되어 오래 남는다.
+
+    누적 자체는 버그가 아니다. 의도적으로 쓸 때는 정해진 수의 마이크로배치를 처리한 뒤 **한 번 갱신하고 지운다.** 차이는 지우느냐가 아니라 **언제 지우느냐** 다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff med" title="중간"></span>
+본문 3절의 "에폭 평균과 전체 로스의 어긋남"이 러닝레이트에 따라 어떻게 달라지는가? 재어 보고, 어긋남이 가장 큰 자리가 어디인지 설명하라.
+
+</div>
+
+??? success "풀이"
+    ```
+      배치 32, 30 에폭.  어긋남 = 에폭 평균 - 에폭 끝 전체 로스
+      lr 0.001   첫 에폭 평균   17.3891 vs 전체   16.4916 (어긋남  +0.8975)   마지막 0.625706 vs 0.608166 (+0.017540)
+      lr 0.01    첫 에폭 평균   10.6359 vs 전체    5.1766 (어긋남  +5.4593)   마지막 0.243297 vs 0.246214 (-0.002918)
+      lr 0.05    첫 에폭 평균    3.2291 vs 전체    0.2707 (어긋남  +2.9585)   마지막 0.248968 vs 0.249184 (-0.000216)
+      lr 0.1     첫 에폭 평균    1.8433 vs 전체    0.2744 (어긋남  +1.5690)   마지막 0.256239 vs 0.255970 (+0.000268)
+    ```
+
+    **러닝레이트에 단조롭지 않다.** $\eta = 0.01$에서 $+5.46$으로 가장 크고, 더 키우면 오히려 준다.
+
+    까닭은 어긋남이 "에폭 **동안** 얼마나 움직였는가"를 재기 때문이다.
+
+    - $\eta = 0.001$은 에폭 동안 거의 안 움직인다. 평균 낼 값들이 다 비슷하니 어긋남이 작다($+0.90$)
+    - $\eta = 0.01$은 에폭 동안 16.5에서 5.2까지 크게 움직인다. 섞이는 값들의 폭이 가장 넓다($+5.46$)
+    - $\eta = 0.05$와 $0.1$은 **첫 몇 걸음 만에** 0.27까지 내려간다. 에폭의 나머지는 이미 바닥이라 평균이 다시 작아진다($+2.96$, $+1.57$)
+
+    마지막 에폭 열을 보면 네 경우 모두 어긋남이 $10^{-2}$ 아래이고 부호도 뒤섞인다. **수렴한 뒤에는 둘이 거의 같다.**
+
+    **그러니 어긋남이 문제가 되는 것은 학습 초기뿐이다.** 그런데 하이퍼파라메터를 고르느라 몇 에폭만 돌려 보고 판단하는 일이 흔하고, 하필 그 구간이 어긋남이 가장 큰 구간이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
+"무엇을 맞출 것인가"에 세 가지 답이 있다 — 에폭 수, 갱신 횟수, 걸린 시간. 셋 모두로 재어 보고, 기준에 따라 승자가 바뀌는지 확인하라. 논문이나 보고서에서 이 선택을 어떻게 다루어야 하는가?
+
+</div>
+
+??? success "풀이"
+    ```
+      (가) 에폭 30 으로 맞춤
+        배치 1     로스 0.285790  갱신  30000
+        배치 32    로스 0.246225  갱신    960
+        배치 1000  로스 5.525724  갱신     30
+      (나) 갱신 960 으로 맞춤
+        배치 1     로스 0.287417  갱신   1000
+        배치 32    로스 0.246225  갱신    960
+        배치 1000  로스 0.246098  갱신    960
+      (다) 걸린 시간을 비슷하게 맞춤
+        배치 1     로스 0.276968  갱신   2000  (시간 91 ms)
+        배치 32    로스 0.246151  갱신   1920  (시간 89 ms)
+        배치 1000  로스 0.246098  갱신   2000  (시간 126 ms)
+    ```
+
+    **승자가 바뀐다.**
+
+    - **(가) 에폭을 맞추면** 배치 32가 이긴다(0.2462). 배치 1000은 5.53으로 꼴찌다
+    - **(나) 갱신을 맞추면** 배치 1000이 이긴다(0.246098, 정규방정식의 최소값 그 자체다). 1절에서 꼴찌였던 방식이다
+    - **(다) 시간을 맞추면** 역시 배치 1000이 이긴다
+
+    배치 1만 세 기준 모두에서 진다. 갱신이 가장 많은데도 그렇다 — 5절에서 본 잡음 때문이다.
+
+    **(가)가 가장 흔한 기준이고 가장 오해를 부른다.** 에폭은 자료를 몇 번 훑었는지일 뿐 계산량도 학습량도 아니다. 배치를 16배 키우면서 에폭을 그대로 두면 갱신 횟수를 16분의 1로 줄인 것이고, 그 결과를 배치 크기 탓으로 돌리게 된다.
+
+    **보고할 때의 규칙 셋.**
+
+    1. **무엇을 맞췄는지 반드시 적는다.** "30에폭"만 적으면 독자가 갱신 횟수를 모른다. 갱신 횟수와 본 표본 수를 함께 적는다
+    2. **가능하면 둘 이상의 기준으로 적는다.** 위 세 표가 모두 참이고 서로 다른 질문에 답한다. 하나만 고르는 것은 질문을 고르는 일이다
+    3. **어느 기준이 그 상황에 맞는지 밝힌다.** GPU 시간이 제약이면 (다)가, 같은 자료로 몇 번 돌릴 수 있는지가 제약이면 (가)가, 알고리즘 자체를 견주는 것이면 (나)가 맞다
+
+    그리고 (다)에는 단서가 하나 더 있다. 시간은 하드웨어·구현·자료 적재 비용에 딸린 값이라 다른 기계에서 재현되지 않는다. 위 표의 배치 1000이 2,000걸음에 126 ms인 반면 배치 32는 1,920걸음에 89 ms인데, 이 비는 GPU에서 전혀 다르게 나온다.
+
+---
 
 ## 정리하며
 
-배치 크기는 경사 추정뿐 아니라 업데이트 횟수와 실행 비용을 바꾼다. 비교할 때는 초기값, 평가 기준, 처리 표본 수와 업데이트 수를 함께 맞춘다.
+1. **흔한 비교 코드는 세 군데가 어긋나 있다**: 출발점, 갱신 횟수, 재는 수
+2. **에폭 평균은 에폭 끝 모델의 성능이 아니다**: 첫 에폭에서 $+0.45$까지 벌어진다. 보고할 수는 전체 자료에서 다시 잰다
+3. **배치 GD의 에폭 평균은 정확히 한 걸음 뒤처진 값이다**: 평균 낼 것이 하나뿐이라 그렇고, 그래서 어긋남이 가장 크다
+4. **갱신 횟수와 계산량은 동시에 맞출 수 없다**: 배치 크기를 바꾸는 것이 곧 그 교환비를 바꾸는 일이다
+5. **기준을 바꾸면 승자가 바뀐다**: 에폭을 맞추면 배치 32, 갱신을 맞추면 배치 1000이 이긴다. 1절에서 꼴찌였던 방식이다
+6. **같은 계산량에서는 가운데가 이긴다**: 배치 전체는 걸음이 모자라고 배치 1은 잡음으로 맴돈다. 퍼짐이 200배 차이다
+7. **옵티마이저 비교에도 같은 함정이 있다**: 같은 $\eta=0.01$에서 SGD와 Adam이 같은 자리에 닿는다. 러닝레이트를 각자 맞추지 않은 비교는 옵티마이저가 아니라 러닝레이트를 견준 것이다
+
+**참고 문헌**
+
+- Bottou, L., Curtis, F., & Nocedal, J. (2018). Optimization Methods for Large-Scale Machine Learning. *SIAM Review*, 60(2).
+- Shallue, C. J., et al. (2019). Measuring the Effects of Data Parallelism on Neural Network Training. *JMLR*, 20(112).
+- Choi, D., et al. (2019). On Empirical Comparisons of Optimizers for Deep Learning. arXiv:1910.05446.
