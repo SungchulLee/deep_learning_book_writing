@@ -6,8 +6,14 @@
 - 지어낸 수를 넣지 않는다. 꼴만 옮긴 그림에는 schematic 이라 적는다
 - SVG, fonttype='path', transparent
 
-실행: python make_figures.py
+`learning_rate.py` 의 탐색기가 MNIST 를 읽으므로 **저장소 뿌리에서** 돌린다.
+갈무리는 이 파일이 있는 자리에 하므로 어디서 돌리든 그림은 제자리에 간다.
+
+실행: python docs/ch06/gradient_descent/figures/make_figures.py
 """
+import sys
+from pathlib import Path
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -16,6 +22,9 @@ matplotlib.rcParams["svg.fonttype"] = "path"
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import FancyArrowPatch
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))      # learning_rate.py 를 읽으려고
 
 INK = "#2f3337"
 ACCENT = "#8a4b2a"
@@ -71,7 +80,7 @@ def make_cauchy():
              "schematic - not Cauchy's own figure; his 1847 note carries no diagram",
              ha="center", fontsize=8, style="italic", color=INK)
     fig.tight_layout(rect=(0, 0.05, 1, 1))
-    fig.savefig("cauchy_1847.svg", transparent=True, bbox_inches="tight")
+    fig.savefig(HERE / "cauchy_1847.svg", transparent=True, bbox_inches="tight")
     plt.close(fig)
     print("wrote cauchy_1847.svg")
 
@@ -122,12 +131,74 @@ def make_contours():
         s.set_color(INK); s.set_linewidth(0.7)
 
     fig.tight_layout()
-    fig.savefig("contours_gradients.svg", transparent=True,
+    fig.savefig(HERE / "contours_gradients.svg", transparent=True,
                 bbox_inches="tight")
     plt.close(fig)
     print("wrote contours_gradients.svg")
 
 
-if __name__ == "__main__":
+def make_lr():
+    """러닝레이트 두 장. 수는 learning_rate.py 가 찍는 것과 같은 계산이다."""
+    import learning_rate as LR                      # noqa: N814
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.6, 3.5))
+
+    # --- 왼쪽: L = (w-3)^2 위의 걸음, 러닝레이트 넷 ---
+    w = np.linspace(-2.5, 8.5, 300)
+    ax1.plot(w, (w - 3) ** 2, color=INK, lw=0.9, alpha=0.6, zorder=1)
+    colors = ["#2f6f4e", "#8a4b2a", "#8a2a4b", "#2a4b8a"]
+    for (eta, c) in zip((0.1, 0.5, 0.9, 1.1), colors):
+        x, traj = 7.0, [7.0]
+        for _ in range(12):
+            x = x - eta * 2 * (x - 3)
+            traj.append(x)
+        traj = np.array(traj)
+        ax1.plot(traj, (traj - 3) ** 2, "o-", color=c, ms=3.4, lw=1.1,
+                 label=f"eta = {eta}", zorder=3)
+    ax1.axvline(3, color=INK, ls="--", lw=0.8, alpha=0.5, zorder=2)
+    ax1.set_ylim(-1.5, 30)
+    ax1.set_xlim(-2.5, 8.5)
+    ax1.set_xlabel("w", fontsize=9)
+    ax1.set_ylabel("loss", fontsize=9)
+    ax1.set_title("L(w) = (w - 3)^2, 12 steps from w = 7",
+                  fontsize=9.5, weight="bold", color=INK, pad=7)
+    ax1.legend(fontsize=7.5, frameon=False, loc="upper center", ncol=2)
+
+    # --- 오른쪽: 러닝레이트 탐색기 곡선 ---
+    lrs, losses, start = LR.lr_finder()
+    ax2.semilogx(lrs, losses, "o-", color=ACCENT, ms=3.4, lw=1.2, zorder=3)
+    ax2.axhline(start, color=INK, ls="--", lw=0.8, alpha=0.6, zorder=2)
+    ax2.text(1.3e-6, start + 0.07, "loss before training", fontsize=7.5,
+             color=INK)
+    best = int(np.argmin(losses))
+    ax2.plot([lrs[best]], [losses[best]], "o", color=INK, ms=6, zorder=4)
+    ax2.annotate(f"best  lr = {lrs[best]:.2f}",
+                 xy=(lrs[best], losses[best]),
+                 xytext=(lrs[best] * 0.03, losses[best] + 0.55),
+                 fontsize=8, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.8))
+    ax2.set_xlabel("learning rate (log scale)", fontsize=9)
+    ax2.set_ylabel("loss after 20 steps", fontsize=9)
+    ax2.set_title("LR range test, MNIST 1000 images",
+                  fontsize=9.5, weight="bold", color=INK, pad=7)
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "learning_rate.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("wrote learning_rate.svg")
+
+
+def main():
     make_cauchy()
     make_contours()
+    make_lr()
+
+
+if __name__ == "__main__":
+    main()
