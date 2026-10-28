@@ -1,86 +1,189 @@
-# 최소 학습 단계
+# 최소 학습 단계 — 다섯 걸음이 왜 그 순서인가
 
-세 개의 데이터로 직선 모델을 세 번 업데이트한다. 작은 루프 안에서 순전파, 로스, 경사 초기화, 역전파, 파라미터 업데이트의 관계를 확인한다.
+점 세 개로 직선 하나를 맞춘다. 데이터가 작아 걸음마다 무슨 일이 일어나는지 전부
+찍어 볼 수 있다.
+
+학습 루프 한 바퀴는 언제나 이 다섯이다.
+
+1. **순전파** — 예측을 만든다
+2. **로스** — 얼마나 틀렸는지 홑값으로 적는다
+3. **경사 지우기** — 지난 걸음의 경사를 없앤다
+4. **역전파** — 경사를 채운다
+5. **갱신** — `no_grad` 안에서 파라미터를 고친다
+
+3번이 4번 **앞**에 오는 것이 중요하다. 뒤에 두면 방금 구한 경사를 지우게 되고,
+그러면 모델이 **한 걸음도 움직이지 않는다.** 3절에서 그 장면을 본다.
 
 ## 1. 코드
 
 ```python
-"""작은 학습 스텝."""
+"""가장 작은 학습 루프 — 다섯 걸음이 왜 그 순서인가.
+
+점 세 개로 직선 하나를 맞춘다. 데이터가 작아 걸음마다 무슨 일이
+일어나는지 전부 찍어 볼 수 있다.
+
+루프 한 바퀴는 언제나 이 다섯이다.
+
+1. 순전파 — 예측을 만든다
+2. 로스 — 얼마나 틀렸는지 홑값으로 적는다
+3. 경사 지우기 — 지난 걸음의 경사를 없앤다
+4. 역전파 — 경사를 채운다
+5. 갱신 — no_grad 안에서 파라미터를 고친다
+
+3번이 4번 **앞**에 오는 것이 중요하다. 뒤에 두면 방금 구한 경사를
+지우게 된다.
+
+실행: python 04_mini_training_step.py
+"""
 import torch
 
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
+X = torch.tensor([[-1.0], [0.0], [1.0]])
+Y = torch.tensor([[1.0], [0.0], [-1.0]])      # 참값은 w=-1, b=0
+
+
 # ========================================================================
-# 메인
+# 1. 한 바퀴를 하나씩 찍어 본다
 # ========================================================================
 
-def main():
+def one_step():
+    header("1. 한 바퀴")
+    torch.manual_seed(0)
+    w = torch.randn(1, requires_grad=True)
+    b = torch.zeros(1, requires_grad=True)
+    print(f"  처음  w={w.item():+.4f}  b={b.item():+.4f}")
+
+    y_hat = X * w + b                                  # 1. 순전파
+    loss = ((y_hat - Y) ** 2).mean()                   # 2. 로스
+    print(f"  예측  {[round(v, 4) for v in y_hat.flatten().tolist()]}")
+    print(f"  참값  {[round(v, 4) for v in Y.flatten().tolist()]}")
+    print(f"  로스  {loss.item():.6f}")
+
+    print(f"  지우기 전 w.grad = {w.grad}")            # 3. 지우기
+    if w.grad is not None:
+        w.grad.zero_()
+    loss.backward()                                    # 4. 역전파
+    print(f"  역전파 뒤 w.grad = {w.grad.item():+.6f}  b.grad = {b.grad.item():+.6f}")
+
+    # 손으로: dL/dw = (2/n) * sum (y_hat - y) * x
+    hand_w = (2 * (y_hat.detach() - Y) * X).mean()
+    hand_b = (2 * (y_hat.detach() - Y)).mean()
+    print(f"  손으로    w.grad = {hand_w.item():+.6f}  b.grad = {hand_b.item():+.6f}")
+
+    with torch.no_grad():                              # 5. 갱신
+        w -= 0.1 * w.grad
+        b -= 0.1 * b.grad
+    print(f"  갱신 뒤  w={w.item():+.4f}  b={b.item():+.4f}")
+
+
+# ========================================================================
+# 2. 세 걸음 돌려 본다
+# ========================================================================
+
+def three_steps():
+    header("2. 세 걸음")
+    torch.manual_seed(0)
+    w = torch.randn(1, requires_grad=True)
+    b = torch.zeros(1, requires_grad=True)
+    for step in range(1, 4):
+        loss = ((X * w + b - Y) ** 2).mean()
+        if w.grad is not None:
+            w.grad.zero_()
+            b.grad.zero_()
+        loss.backward()
+        with torch.no_grad():
+            w -= 0.1 * w.grad
+            b -= 0.1 * b.grad
+        print(f"  {step}걸음  로스 {loss.item():.6f}  "
+              f"w {w.item():+.4f}  b {b.item():+.4f}")
+    print("  참값은 w=-1, b=0 이다. 로스가 줄고 w 가 -1 쪽으로 간다")
+
+
+# ========================================================================
+# 3. 지우기를 역전파 뒤에 두면
+# ========================================================================
+
+def wrong_order():
+    header("3. 지우기를 역전파 뒤에 두면")
+    for label, clear_first in (("지우고 역전파", True), ("역전파하고 지우기", False)):
+        torch.manual_seed(0)
+        w = torch.randn(1, requires_grad=True)
+        for _ in range(3):
+            loss = ((X * w - Y) ** 2).mean()
+            if clear_first and w.grad is not None:
+                w.grad.zero_()
+            loss.backward()
+            if not clear_first:
+                w.grad.zero_()          # 방금 구한 경사를 지운다
+            with torch.no_grad():
+                w -= 0.1 * w.grad
+        print(f"  {label:18s} 세 걸음 뒤 w = {w.item():+.6f}")
+    print("  뒤에 두면 w 가 처음 값에서 꼼짝도 하지 않는다")
+
+
+# ========================================================================
+# 4. no_grad 를 빼면
+# ========================================================================
+
+def without_no_grad():
+    header("4. no_grad 를 빼면")
+    torch.manual_seed(0)
+    w = torch.randn(1, requires_grad=True)
+    ((X * w - Y) ** 2).mean().backward()
+    try:
+        w -= 0.1 * w.grad
+    except RuntimeError as e:
+        print("  w -= ... 를 그냥 쓰면:", str(e).splitlines()[0])
+    with torch.no_grad():
+        w -= 0.1 * w.grad
+    print("  no_grad 안에서는 된다. w =", round(w.item(), 6))
+    print("  갱신은 학습의 일부가 아니라 학습 바깥의 일이다")
+    print("  그래서 그래프에 기록하지 않는다")
+
+
+# ========================================================================
+# 5. 옵티마이저가 대신해 준다
+# ========================================================================
+
+def with_optimizer():
+    header("5. 옵티마이저로 적으면")
+    torch.manual_seed(0)
+    w = torch.randn(1, requires_grad=True)
+    b = torch.zeros(1, requires_grad=True)
+    opt = torch.optim.SGD([w, b], lr=0.1)
+    for _ in range(3):
+        opt.zero_grad()
+        ((X * w + b - Y) ** 2).mean().backward()
+        opt.step()
+    print(f"  옵티마이저로  w {w.item():+.6f}  b {b.item():+.6f}")
 
     torch.manual_seed(0)
-
-    # 아주 작은 데이터셋: 선형 회귀 장난감 예제
-    # 입출력 쌍: x ∈ {-1, 0, 1}, 목표 y ∈ {1, 0, -1}
-    x = torch.tensor([[-1.0], [0.0], [1.0]])  # shape (3,1)
-    y = torch.tensor([[1.0], [0.0], [-1.0]])  # shape (3,1)
-
-    # 학습 가능한 파라메터(잎 텐서).
-    # 잎 텐서는 사용자가 requires_grad=True로 만든 텐서이다.
-    # autograd가 이들에 대한 경사를 직접 계산한다.
-    w = torch.randn(1, requires_grad=True)  # dtype is torch.float32 by default
-    b = torch.zeros(1, requires_grad=True)  # dtype is torch.float32 by default
-
-    lr = 0.1
-    for step in range(3):
-        # ---------------- 순전파 ----------------
-        y_hat = x * w + b                     # linear model, shape (3,1)
-        loss = torch.mean((y_hat - y) ** 2)   # mean squared error (scalar)
-        # 참고:
-        #   - loss는 0차원 텐서(스칼라 텐서)이다.
-        #   - loss.grad_fn = <MeanBackward0>이다. 그 이유는
-        #     계산 그래프의 평균 연산으로 만들어졌기 때문이다.
-        #   - grad_fn은 다음을 계산할 줄 아는 함수를 가리킨다.
-        #     이 텐서의 부모에 대한 경사를 계산하는 함수를 가리킨다.
-        #   - (w, b 같은) 잎 텐서는 grad_fn=None이다.
-
-        # ---------------- 역전파 ----------------
-        # 경사는 기본적으로 누적되므로 먼저 예전 경사를 지운다.
-        # 경사를 0이 아니라 None으로 되돌리려면 (제자리인) .zero_()를 쓴다.
-        # 경사를 0이 아니라 None으로 만드는 것이 zero_()의 기본 동작이다.
-        # PyTorch에는 .zero()가 없다(.zero_()만 있다).
-        if w.grad is not None: w.grad.zero_()
-        if b.grad is not None: b.grad.zero_()
-        print(f"{w.grad = }")
-
-        # 계산 그래프를 훑으며 d(loss)/dw와 d(loss)/db를 계산한다
-        # loss.backward() → grad_fn → 부모 텐서 → 연쇄 법칙의 순서로 이루어진다.
-        loss.backward()
-
-        # ---------------- 파라메터 갱신 ----------------
-        # 중요: autograd가 기록하지 않도록 torch.no_grad()로 감싼다
-        # 이 제자리 갱신들을 계산 그래프에 기록하지 않도록 한다.
+    w2 = torch.randn(1, requires_grad=True)
+    b2 = torch.zeros(1, requires_grad=True)
+    for _ in range(3):
+        if w2.grad is not None:
+            w2.grad.zero_()
+            b2.grad.zero_()
+        ((X * w2 + b2 - Y) ** 2).mean().backward()
         with torch.no_grad():
-            w -= lr * w.grad
-            b -= lr * b.grad
+            w2 -= 0.1 * w2.grad
+            b2 -= 0.1 * b2.grad
+    print(f"  손으로        w {w2.item():+.6f}  b {b2.item():+.6f}")
+    print("  같은가:", torch.allclose(w, w2) and torch.allclose(b, b2))
+    print("  opt.zero_grad() 가 3번, opt.step() 이 5번을 맡는다")
 
-        # ---------------- 기록 ----------------
-        # 왜 .item()인가? 이유는:
-        #   - loss, w, b는 텐서이다(모양이 []인 스칼라).
-        #   - 텐서를 그대로 출력하면 "tensor(..., grad_fn=...)"이 보인다.
-        #   - .item()은 순수한 파이썬 실수를 뽑아내므로 다음과 같은 형식 지정이
-        #     :.6f나 :.4f가 오류 없이 동작한다.
-        print(f"step {step}: loss={loss.item():.6f} | w={w.item():.4f} | b={b.item():.4f}")
 
-    # 최종 학습된 파라메터
-    print("Final params:", {"w": w.item(), "b": b.item()})
-    # - loss.item()에 관하여:
-    #   * loss.item()은 **CPU의 파이썬 실수를 반환한다**. `loss`가 GPU/MPS에 있으면
-    #     .item()을 호출하면 **장치→호스트 복사와 동기화 장벽** 이 발생한다
-    #     (`loss`를 만들어 내는 앞선 GPU 연산이 모두 끝날 때까지 호스트가 기다린다).
-    #   * 이는 GPU 파이프라인을 멈추게 하므로, 빡빡한 학습 루프에서는 **
-    #     매 단계마다 .item()을 호출하는 것을 피하는** 편이 낫다. 다음을 권한다:
-    #       - 기록 빈도를 줄인다(예: k 단계마다).
-    #       - 텐서 값을 누적해 두었다가 성능이 중요한 구간 밖에서 `.detach().cpu()`를 호출한다.
-    #       - 평균을 낼 때는 이따금 동기화한 **뒤** 누적합을 CPU 실수로 유지한다.
-    #   * 파이썬 실수가 정말로 필요할 때에만 .item()을 쓴다(출력, 조기 종료 판정 등).
-    #     다만 그것이 만드는 동기화 지점에 유의해야 한다.
+def main():
+    one_step()
+    three_steps()
+    wrong_order()
+    without_no_grad()
+    with_optimizer()
+
 
 if __name__ == "__main__":
     main()
@@ -89,82 +192,261 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-w.grad = None
-step 0: loss=4.304441 | w=1.2022 | b=0.0000
-w.grad = tensor([0.])
-step 1: loss=3.233113 | w=0.9086 | b=0.0000
-w.grad = tensor([0.])
-step 2: loss=2.428427 | w=0.6541 | b=0.0000
-Final params: {'w': 0.6540943384170532, 'b': 0.0}
+=== 1. 한 바퀴 ===
+  처음  w=+1.5410  b=+0.0000
+  예측  [-1.541, 0.0, 1.541]
+  참값  [1.0, 0.0, -1.0]
+  로스  4.304441
+  지우기 전 w.grad = None
+  역전파 뒤 w.grad = +3.387995  b.grad = +0.000000
+  손으로    w.grad = +3.387995  b.grad = +0.000000
+  갱신 뒤  w=+1.2022  b=+0.0000
+
+=== 2. 세 걸음 ===
+  1걸음  로스 4.304441  w +1.2022  b +0.0000
+  2걸음  로스 3.233113  w +0.9086  b +0.0000
+  3걸음  로스 2.428427  w +0.6541  b +0.0000
+  참값은 w=-1, b=0 이다. 로스가 줄고 w 가 -1 쪽으로 간다
+
+=== 3. 지우기를 역전파 뒤에 두면 ===
+  지우고 역전파            세 걸음 뒤 w = +0.654094
+  역전파하고 지우기          세 걸음 뒤 w = +1.540996
+  뒤에 두면 w 가 처음 값에서 꼼짝도 하지 않는다
+
+=== 4. no_grad 를 빼면 ===
+  w -= ... 를 그냥 쓰면: a leaf Variable that requires grad is being used in an in-place operation.
+  no_grad 안에서는 된다. w = 1.202197
+  갱신은 학습의 일부가 아니라 학습 바깥의 일이다
+  그래서 그래프에 기록하지 않는다
+
+=== 5. 옵티마이저로 적으면 ===
+  옵티마이저로  w +0.654094  b +0.000000
+  손으로        w +0.654094  b +0.000000
+  같은가: True
+  opt.zero_grad() 가 3번, opt.step() 이 5번을 맡는다
 ```
 
-## 2. 논의
+## 2. 한 바퀴를 손으로 따라가기
 
-### 모델과 로스
+```
+처음  w=+1.5410  b=+0.0000
+예측  [-1.541, 0.0, 1.541]
+참값  [1.0, 0.0, -1.0]
+로스  4.304441
+```
 
-데이터는 $y=-x$를 따르며 모델은 $\hat y=wx+b$이다. 평균제곱오차를 줄이면 그래디언트 $w$는 -1, 절편 $b$는 0에 가까워지는 방향으로 학습된다. 세 번의 업데이트는 절차를 보여주기 위한 횟수이며, 수렴을 보장하는 설정은 아니다.
+$x \in \{-1, 0, 1\}$에 대해 $y \in \{1, 0, -1\}$이므로 참값은 $w = -1$, $b = 0$이다.
+처음 $w$가 $+1.54$이니 예측이 부호부터 반대다.
 
-### 한 단계의 흐름
+```
+역전파 뒤 w.grad = +3.387995   b.grad = +0.000000
+손으로    w.grad = +3.387995   b.grad = +0.000000
+```
 
-현재 파라미터로 예측과 로스를 계산한 뒤 이전 `.grad`를 지우고 `loss.backward()`를 호출한다. 이어서 `torch.no_grad()` 안에서 $w\leftarrow w-\eta\,\partial L/\partial w$와 같은 규칙으로 값을 바꾼다. 업데이트 연산을 기록하지 않아도 다음 순전파에서는 다시 경사를 추적한다.
+손으로 센 값과 맞는다. $L = \frac{1}{n}\sum(\hat{y} - y)^2$이므로
 
-출력의 로스는 업데이트 직전에 계산한 값이고, 같은 줄의 파라미터는 업데이트 후 값이다. 따라서 두 값이 정확히 같은 시점의 모델을 나타내는 것은 아니다. 역전파 전의 `w.grad` 출력은 첫 단계에서는 `None`, 이후에는 초기화된 경사를 보여준다.
+$$
+\frac{\partial L}{\partial w} = \frac{2}{n}\sum (\hat{y}_i - y_i)\, x_i, \qquad
+\frac{\partial L}{\partial b} = \frac{2}{n}\sum (\hat{y}_i - y_i)
+$$
+
+$b$의 경사가 정확히 0인 것은 우연이 아니다. 데이터가 원점을 기준으로 대칭이라
+오차의 합이 0이기 때문이다. 그래서 `b`는 세 걸음 내내 0에 머문다.
+
+## 3. 경사를 지우는 자리가 역전파 **앞**이다
+
+```
+지우고 역전파        세 걸음 뒤 w = +0.654094
+역전파하고 지우기     세 걸음 뒤 w = +1.540996
+```
+
+둘째 줄의 `+1.540996`은 **처음 값 그대로**다. 세 걸음을 돌았는데 조금도 움직이지
+않았다.
+
+까닭은 뻔하다. 역전파가 `w.grad`를 채워 놓았는데 그것을 지우고 나서 걸으니,
+걸음이 언제나 0이다. 로스는 계속 계산되고 오류도 안 나므로, **학습이 안 되는데
+돌아가기는 한다.**
+
+> 이 버그는 로스 곡선이 평평한 직선으로 나오는 것으로 드러난다. 학습이 안 될 때
+> 러닝레이트나 모델을 의심하기 전에 **순서부터** 볼 자리다.
+
+## 4. 갱신에 `no_grad`가 필요한 까닭
+
+```
+w -= ... 를 그냥 쓰면: a leaf Variable that requires grad is being used
+                      in an in-place operation.
+```
+
+`w`는 잎이고 미분이 따라붙어 있다. 그 값을 제자리에서 바꾸면 이미 쌓아 둔 그래프가
+가리키는 값과 달라지므로 파이토치가 막는다.
+
+`torch.no_grad()` 안에서는 이 검사를 넘긴다. 그래도 되는 까닭은 **갱신이 학습의
+일부가 아니라 학습 바깥의 일**이기 때문이다. $w \leftarrow w - \eta \nabla w$를
+다시 미분할 일은 없다. 그러니 기록할 까닭도 없다.
+
+`no_grad`를 안 쓰고 새 텐서를 만드는 길도 있다 — `w = w - 0.1 * w.grad`. 그런데
+이러면 `w`가 **잎이 아니게 되어** 다음 걸음에서 `.grad`를 못 받는다. 그래서
+제자리 갱신이 맞고, 제자리 갱신이려면 `no_grad`가 필요하다.
+
+## 5. 옵티마이저는 3번과 5번을 맡는다
+
+```
+옵티마이저로  w +0.654094  b +0.000000
+손으로        w +0.654094  b +0.000000
+같은가: True
+```
+
+소수점 여섯째 자리까지 같다. `torch.optim.SGD`가 하는 일은 손으로 적은 그
+두 줄이 전부다.
+
+```python
+opt.zero_grad()     # 3. 경사 지우기
+loss.backward()     # 4. 역전파
+opt.step()          # 5. no_grad 안에서 갱신
+```
+
+옵티마이저를 쓰는 값은 **파라미터가 많아질 때** 나온다. 모델 하나에 텐서가
+수백 개인데 일일이 `if p.grad is not None: p.grad.zero_()`를 적을 수는 없다.
+그리고 모멘텀이나 Adam처럼 **상태를 들고 있어야 하는** 갱신은 손으로 적기
+어렵다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
+2절에서 `b.grad`가 정확히 0이었다. 데이터를 $y \in \{2, 1, 0\}$으로 바꾸면
+어떻게 되는가? **먼저 짐작하고** 확인하라.
 
 </div>
 
 ??? success "풀이"
-    ```python
-    import torch
+    참값이 달라진다. $x \in \{-1, 0, 1\}$에 $y \in \{2, 1, 0\}$이면 $w = -1$,
+    $b = 1$인 직선이다. 이제 $b$가 0이 아니므로 경사도 0이 아닐 것이다.
 
-    x = torch.tensor(3.0, requires_grad=True)
-    f = x**3 - 2*x**2 + x
-    f.backward()
-    print(x.grad)  # f'(x) = 3x^2 - 4x + 1 = 27 - 12 + 1 = 16.0
+    ```python
+    X = torch.tensor([[-1.0], [0.0], [1.0]])
+    for name, Y in (("y = [1, 0, -1]", torch.tensor([[1.0], [0.0], [-1.0]])),
+                    ("y = [2, 1,  0]", torch.tensor([[2.0], [1.0], [0.0]]))):
+        torch.manual_seed(0)
+        w = torch.randn(1, requires_grad=True)
+        b = torch.zeros(1, requires_grad=True)
+        ((X * w + b - Y) ** 2).mean().backward()
+        print(f"  {name}  w.grad {w.grad.item():+.6f}  b.grad {b.grad.item():+.6f}")
     ```
 
----
+    ```
+      y = [1, 0, -1]  w.grad +3.387995  b.grad +0.000000
+      y = [2, 1,  0]  w.grad +3.387995  b.grad -2.000000
+    ```
 
+    **`w.grad`는 그대로이고 `b.grad`만 달라졌다.**
+
+    $y$ 전체를 1씩 올린 것은 직선을 위로 평행이동한 것이므로 **기울기에 대한
+    요구는 바뀌지 않는다.** 그래서 $\partial L/\partial w$가 같다.
+
+    $b$ 쪽은 $\frac{2}{n}\sum(\hat y_i - y_i)$인데, 예측이 그대로인 채 목표만
+    1씩 올라갔으니 오차 평균이 $-1$이 되어 경사가 $-2$다. 음수이므로 $b$를
+    **올리는** 방향으로 움직인다 — 맞는 방향이다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-학습 루프에서 경사 초기화와 파라미터 업데이트를 각각 언제 수행하는가? 업데이트에 `no_grad()`를 사용하는 이유는 무엇인가?
-
-</div>
-
-??? success "풀이"
-    현재 업데이트 단위의 첫 역전파 전에 이전 경사를 지우고, 필요한 경사를 계산한 뒤 파라미터를 바꾼다. 일반적인 학습에서 업데이트 자체를 기록하지 않도록 `no_grad()`를 사용한다. 이후 반복의 순전파는 갱신된 파라미터로 새로 수행한다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+4절에서 `w = w - 0.1 * w.grad`로 적으면 `w`가 잎이 아니게 된다고 했다. 확인하고,
+**두 번째 걸음에서 무슨 일이 나는지** 보라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
+    X = torch.tensor([[-1.0], [0.0], [1.0]])
+    Y = torch.tensor([[1.0], [0.0], [-1.0]])
+    torch.manual_seed(0)
+    w = torch.randn(1, requires_grad=True)
+    print(f"  처음   is_leaf={w.is_leaf}  requires_grad={w.requires_grad}")
 
-    w = torch.tensor(2.0, requires_grad=True)
-    for i in range(3):
-        loss = (w ** 2).sum()
-        loss.backward()
-        print(f'After backward {i+1}: w.grad = {w.grad}')
-    # 출력: 4.0, 8.0, 12.0
-    # 경사가 누적된다. 매 backward가 기존 경사에 2*w = 4.0을 더한다.
+    ((X * w - Y) ** 2).mean().backward()
+    w = w - 0.1 * w.grad                    # 새 텐서를 만든다
+    print(f"  갱신 뒤 is_leaf={w.is_leaf}  requires_grad={w.requires_grad}")
+
+    ((X * w - Y) ** 2).mean().backward()
+    print(f"  두 번째 걸음의 w.grad = {w.grad}")
     ```
 
-## 정리하며
+    ```
+      처음   is_leaf=True  requires_grad=True
+      갱신 뒤 is_leaf=False  requires_grad=True
+      두 번째 걸음의 w.grad = None
+    ```
 
-학습 단계는 현재 파라미터의 로스를 미분하고 그 경사로 값을 바꾸는 과정이다. 로스와 파라미터를 기록할 때는 업데이트 전후의 시점을 구분한다.
+    **`w.grad`가 `None`이다.** 그런데 오류는 나지 않는다.
+
+    `w = w - 0.1 * w.grad`가 새 텐서를 만들었고, 그것은 연산의 결과이므로 잎이
+    아니다. 「스칼라 로스의 역전파」에서 본 대로 잎이 아니면 `.grad`를 받지
+    않는다.
+
+    그러니 두 번째 걸음에서 `w -= 0.1 * w.grad`를 하려 하면 `None`에 곱하기를
+    시도해 `TypeError`로 터지거나, 옵티마이저를 쓴다면 **그 파라미터를 조용히
+    건너뛴다.** 옵티마이저는 처음에 넘겨받은 텐서 객체를 들고 있는데, 이제 `w`라는
+    이름은 다른 객체를 가리키고 있기 때문이다.
+
+    이것이 파라미터 갱신을 **반드시 제자리로** 해야 하는 까닭이다. 그리고 제자리
+    갱신은 잎에 막혀 있으므로 `no_grad`가 필요하다. 둘이 맞물려 있다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+3절에서 순서를 틀리면 모델이 안 움직였다. 그런데 **옵티마이저를 쓰면서** 같은
+실수를 하면 어떻게 되는가? `opt.zero_grad()`를 `opt.step()` **뒤에** 두는 경우와
+`loss.backward()` 뒤에 두는 경우를 각각 보라.
+
+</div>
+
+??? success "풀이"
+    ```python
+    X = torch.tensor([[-1.0], [0.0], [1.0]])
+    Y = torch.tensor([[1.0], [0.0], [-1.0]])
+
+    def run(where):
+        torch.manual_seed(0)
+        w = torch.randn(1, requires_grad=True)
+        opt = torch.optim.SGD([w], lr=0.1)
+        for _ in range(3):
+            if where == "앞":
+                opt.zero_grad()
+            ((X * w - Y) ** 2).mean().backward()
+            if where == "역전파 뒤":
+                opt.zero_grad()
+            opt.step()
+            if where == "step 뒤":
+                opt.zero_grad()
+        return w.item()
+
+    for where in ("앞", "역전파 뒤", "step 뒤"):
+        print(f"  zero_grad 를 {where:10s} 에 두면  w = {run(where):+.6f}")
+    ```
+
+    ```
+      zero_grad 를 앞          에 두면  w = +0.654094
+      zero_grad 를 역전파 뒤      에 두면  w = +1.540996
+      zero_grad 를 step 뒤     에 두면  w = +0.654094
+    ```
+
+    세 가지 가운데 **둘은 맞고 하나는 틀린다.**
+
+    - **앞에 두기** — 맞다. 가장 흔한 꼴이다
+    - **`step()` 뒤에 두기** — 맞다. 다음 바퀴가 시작될 때는 이미 비어 있으니
+      "앞에 두기"와 같은 일이다
+    - **역전파 뒤에 두기** — 틀린다. 방금 구한 경사를 지우고 걸으므로 `step()`이
+      아무것도 안 한다
+
+    `step()` 뒤에 두는 꼴도 자주 보이고, 결과가 같다. 다만 **루프 바깥에서
+    `backward()`를 한 번 더 부르는 코드**가 섞이면 앞에 두는 쪽이 안전하다 —
+    "걷기 직전에 비어 있음을 보장한다"가 더 지키기 쉬운 약속이기 때문이다.
+
+    그리고 틀린 경우가 **오류 없이 조용히** 지나간다는 점이 이 문제의 요점이다.
+    `w`가 처음 값 그대로인 것을 눈으로 확인하지 않으면 모른다.
