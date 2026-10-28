@@ -120,6 +120,29 @@
    읽히게 한다. */
 .md-typeset .exbox,
 .md-typeset .probox,
+/* 「그림으로 보는 AI」 — 이 쪽의 생각이 실제로 어디서 처음 나왔는지,
+   그 자리를 그림으로 보이는 상자다. ~/Documents/book/high_school_math 의
+   「그림으로 보는 수학」에서 꼴을 가져왔다.
+
+   책이 증명하는 것(보라)도 독자가 손대는 것(초록)도 아닌 세 번째 갈래라
+   색을 따로 준다. 오래된 종이를 떠올리도록 호박빛을 쓰고, 테두리를 점선으로
+   둘러 「인용해 온 옛 물건」이라는 느낌을 준다.
+
+   그림은 사진을 빌려 오지 않고 **이 책의 그림체로 직접 그린다.** 장치나
+   실험 배치는 자유 이미지를 기대하기 어렵고, 형식만 빌려 다시 그리면
+   라이선스 문제가 없으면서 「무엇이 거기 있었는가」는 그대로 전해진다
+   (그 책의 「지폐·묘비·기념물은 직접 그린다」와 같은 규칙이다). */
+.md-typeset .storybox {
+    margin: 1.8em 0;
+    padding: 0.1rem 0.8rem;
+    border: 0.08rem dashed rgba(176, 124, 44, 0.55);
+    border-radius: 0.1rem;
+    background-color: rgba(176, 124, 44, 0.035);
+}
+
+.md-typeset .storybox > :first-child { margin-top: 0.6rem; }
+.md-typeset .storybox > :last-child { margin-bottom: 0.6rem; }
+
 .md-typeset .drillbox {
     margin: 1.6em 0;
     padding: 0.1rem 0.8rem;

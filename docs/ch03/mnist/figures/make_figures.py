@@ -428,8 +428,74 @@ def _runs(x, mask):
     return out
 
 
+def draw_hubel_wiesel():
+    """허블과 비셀의 1958~59년 실험 배치를 이 책의 그림체로 다시 그린다.
+
+    사진을 빌려 오지 않고 형식만 빌린다. 오른쪽의 울음 간격은 꼴만 옮긴
+    것이고 기록된 수가 아니므로, 그림 안에 그렇게 적어 둔다.
+    """
+    from matplotlib.patches import Rectangle, FancyArrowPatch, Circle
+    INK = "#2b2b2b"
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(10.5, 4.0),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # === 왼쪽: 장치 =============================================================
+    axL.set_xlim(0, 10); axL.set_ylim(0, 7.4); axL.axis("off")
+    axL.add_patch(Rectangle((0.3, 1.5), 2.4, 4.4, fill=False, ec=INK, lw=1.4))
+    axL.text(1.5, 6.15, "screen", ha="center", fontsize=9, color=INK)
+    axL.plot([1.2, 1.8], [2.6, 5.0], color=INK, lw=3.2, solid_capstyle="round")
+    axL.text(1.5, 1.05, "moving bar", ha="center", fontsize=8.5, color=INK)
+
+    axL.add_patch(Rectangle((3.6, 3.0), 1.5, 1.5, fill=False, ec=INK, lw=1.4))
+    axL.text(4.35, 2.55, "projector", ha="center", fontsize=8.5, color=INK)
+    axL.add_patch(FancyArrowPatch((3.55, 3.75), (2.8, 3.75), arrowstyle="-|>",
+                                  mutation_scale=11, color=INK, lw=1.1))
+
+    cx, cy = 7.0, 3.75
+    axL.add_patch(Circle((cx, cy), 0.95, fill=False, ec=INK, lw=1.4))
+    axL.add_patch(Circle((cx - 0.82, cy + 0.12), 0.26, fill=False, ec=INK, lw=1.2))
+    axL.text(cx, cy - 1.45, "cat, anaesthetised", ha="center", fontsize=8.5, color=INK)
+    axL.plot([cx + 0.55, cx + 1.9], [cy + 0.6, cy + 1.75], color=INK, lw=1.2)
+    axL.plot([cx + 0.45, cx + 0.78], [cy + 0.52, cy + 0.82], color=INK, lw=2.6)
+    axL.text(cx + 2.0, cy + 1.95, "electrode in V1", ha="left", fontsize=8.5, color=INK)
+
+    t = np.linspace(0, 1, 400)
+    spk = np.zeros_like(t)
+    for c in (0.18, 0.30, 0.37, 0.52, 0.60, 0.71, 0.83):
+        spk += np.exp(-((t - c) / 0.004) ** 2)
+    axL.plot(1.5 + 7.0 * t, 0.45 + 0.55 * spk, color=INK, lw=0.9)
+    axL.plot([1.5, 8.5], [0.45, 0.45], color=INK, lw=0.7)
+
+    # === 오른쪽: 방향에 따른 반응 ===============================================
+    axR.set_xlim(0, 10); axR.set_ylim(0, 7.4); axR.axis("off")
+    axR.text(5.0, 6.9, "same cell, different bar angles", ha="center",
+             fontsize=9.5, color=INK)
+    angles = [90, 45, 0]
+    rates = [9, 4, 1]
+    for row, (ang, n) in enumerate(zip(angles, rates)):
+        y = 5.3 - row * 2.0
+        axR.add_patch(Rectangle((0.4, y - 0.8), 1.6, 1.6, fill=False, ec=INK, lw=1.1))
+        a = np.deg2rad(ang)
+        axR.plot([1.2 - 0.6 * np.cos(a), 1.2 + 0.6 * np.cos(a)],
+                 [y - 0.6 * np.sin(a), y + 0.6 * np.sin(a)],
+                 color=INK, lw=3.0, solid_capstyle="round")
+        axR.plot([2.6, 9.4], [y - 0.75, y - 0.75], color=INK, lw=0.7)
+        rng = np.random.default_rng(row)
+        pos = np.sort(rng.uniform(0.12, 0.88, n))
+        for c in pos:
+            x = 2.6 + 6.8 * c
+            axR.plot([x, x], [y - 0.75, y - 0.75 + 0.95], color=INK, lw=1.0)
+    axR.text(5.0, 0.35, "schematic - not recorded counts", ha="center",
+             fontsize=8, color=INK, style="italic")
+
+    fig.subplots_adjust(left=0.01, right=0.97, top=0.98, bottom=0.02, wspace=0.08)
+    return fig
+
+
 # ================================================================================
 if __name__ == "__main__":
+    save(draw_hubel_wiesel(), "hubel_wiesel.svg")
+
     draw_activations()
     print("wrote activations.svg")
 
