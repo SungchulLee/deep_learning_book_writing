@@ -1,609 +1,500 @@
-# 생성 방법
+# 생성 방법 — 베끼는 것, 나눠 쓰는 것, 아무것도 안 하는 것
 
-텐서를 만드는 함수마다 복사·메모리 공유·기본 자료형 규칙이 다르다. 원본과 독립적인 값이 필요한지, 저장소를 공유해도 되는지를 먼저 정한다.
+텐서를 만드는 함수가 많지만 외울 것은 몇 가지뿐이고, 그중 둘은 모르면 조용히
+틀리는 종류다.
+
+- `tensor`는 **베끼고** `as_tensor`·`from_numpy`는 **나눠 쓴다**
+- `empty`는 **아무것도 하지 않는다**. 그 자리에 있던 값이 그대로 나온다
+- `arange`는 끝을 뺀다고 적혀 있지만 **들어오는 자리가 있다**
+- `*_like`는 `dtype`과 `device`는 따라가고 `requires_grad`는 안 따라간다
 
 ## 1. 코드
 
 ```python
-#!/usr/bin/env python3
-"""
-텐서 만들기와 초기화 방법.
+"""텐서를 만드는 길들 — 베끼는 것, 나눠 쓰는 것, 아무것도 안 하는 것.
 
-Covers:
-- 기본 생성기: torch.tensor, torch.as_tensor, torch.from_numpy
-- 상수 텐서: zeros, ones, full, empty
-- 항등과 대각: eye, diag
-- 마구잡이 텐서: rand, randn, randint, randperm
-- 범위 텐서: arange, linspace, logspace
-- 모양을 본뜨는 생성기: zeros_like, ones_like 따위
-- 기기와 데이터 클래스 밝히기
-"""
+만드는 함수가 많지만 외울 것은 몇 가지뿐이다.
 
-import torch
+- `tensor` 는 베끼고 `as_tensor`·`from_numpy` 는 나눠 쓴다
+- `empty` 는 **아무것도 하지 않는다**. 그 자리에 있던 값이 그대로 나온다
+- `arange` 는 끝을 뺀다고 적혀 있지만 부동소수점 때문에 들어오는 자리가 있다.
+  개수를 내가 정하려면 `linspace` 다
+- `*_like` 는 dtype 과 device 는 따라가고 `requires_grad` 는 안 따라간다
+
+실행: python 10_creation_methods.py
+"""
 import numpy as np
+import torch
+
+
+def header(title):
+    print(f"\n=== {title} ===")
+
 
 # ========================================================================
-# 메인
+# 1. 베끼는가 나눠 쓰는가
 # ========================================================================
 
-def header(title: str):
-    print("\n" + "=" * 80)
-    print(title)
-    print("=" * 80)
+def copy_or_share():
+    header("1. tensor / as_tensor / from_numpy")
+    arr = np.array([[1, 2], [3, 4]])
+    for name, fn in (("torch.tensor", torch.tensor),
+                     ("torch.as_tensor", torch.as_tensor),
+                     ("torch.from_numpy", torch.from_numpy)):
+        t = fn(arr)
+        print(f"  {name:18s} dtype {str(t.dtype):12s} "
+              f"메모리 공유 {np.shares_memory(arr, t.numpy())}")
+    arr[0, 0] = 999
+    print("  배열을 999 로 고친 뒤")
+    print("    torch.tensor 로 만든 것  :", torch.tensor([[1, 2], [3, 4]])[0, 0].item(),
+          "(미리 베꼈다)")
+    print("    torch.as_tensor 로 만든 것:", torch.as_tensor(arr)[0, 0].item())
+
+    f32 = np.array([[1.0, 2.0]], dtype=np.float32)
+    shared = np.shares_memory(f32, torch.as_tensor(f32, dtype=torch.float64).numpy())
+    print("  as_tensor 에 dtype 을 바꿔 달라면 공유:", shared,
+          "— 바꾸려면 베낄 수밖에 없다")
+
+
+# ========================================================================
+# 2. empty 는 아무것도 하지 않는다
+# ========================================================================
+
+def empty_is_garbage():
+    header("2. empty 가 주는 것")
+    a = torch.empty(5)
+    print("  갓 잡은 empty(5):", a.tolist())
+    print("  0 처럼 보인다. 운영체제가 새 쪽을 0 으로 비워 주기 때문이다")
+
+    dirty = torch.empty(1000)
+    dirty.fill_(12345.0)       # 그 자리를 더럽혀 놓고
+    del dirty                  # 놓아 준다
+    b = torch.empty(1000)      # 같은 자리를 다시 받는다
+    print("  더럽힌 뒤 다시 잡은 empty(1000) 의 앞 다섯:",
+          [round(v, 1) for v in b[:5].tolist()])
+    print("  0 이 아닌 칸:", int((b != 0).sum()), "/ 1000")
+    print("  방금 놓아 준 내 데이터가 그대로 나온다")
+    print("  그러니 empty 로 만든 텐서는 반드시 채우고 나서 읽어야 한다")
+
+
+# ========================================================================
+# 3. 값을 정해 만들기
+# ========================================================================
+
+def constants():
+    header("3. 값을 정해 만들기")
+    print("  zeros(2,3)      :", torch.zeros(2, 3).flatten().tolist())
+    print("  ones(2,3)       :", torch.ones(2, 3).flatten().tolist())
+    print("  full((2,3), 7.5):", torch.full((2, 3), 7.5).flatten().tolist())
+    print("  eye(3)          :", torch.eye(3).tolist())
+    print("  eye(2,4) 정사각이 아니어도:", torch.eye(2, 4).tolist())
+
+    v = torch.tensor([1.0, 2.0, 3.0])
+    print("  diag(벡터) 는 행렬을 만든다:", torch.diag(v).shape)
+    m = torch.arange(9).reshape(3, 3)
+    print("  diag(행렬) 은 대각을 뽑는다:", torch.diag(m).tolist())
+    print("  diag(행렬, 1) 한 칸 위  :", torch.diag(m, 1).tolist())
+    print("  같은 이름인데 입력 차원에 따라 하는 일이 반대다")
+
+
+# ========================================================================
+# 4. 수열 — arange 와 linspace
+# ========================================================================
+
+def sequences():
+    header("4. arange 와 linspace")
+    for a, b, s in ((0, 1, 0.1), (0, 0.3, 0.1), (1, 1.3, 0.1)):
+        r = torch.arange(a, b, s)
+        inc = abs(r[-1].item() - b) < 1e-6
+        print(f"  arange({a}, {b}, {s}) -> {r.numel()}개  "
+              f"끝값 {b} 가 들어갔는가: {inc}")
+    print("  셋 다 폭이 같은데 마지막만 끝값을 넣었다")
+    print("  (1.3-1)/0.1 이 부동소수점에서 3.0000000000000004 가 되기 때문이다")
+    print("  linspace(1, 1.2, 3):", torch.linspace(1, 1.2, 3).tolist())
+    print("  linspace 는 개수를 내가 적으므로 이런 일이 없다")
+
+    r64 = torch.arange(0, 1, 0.1, dtype=torch.float64)
+    print("  그리고 값 자체도 정확하지 않다")
+    print("    arange(0,1,0.1)[3] =", repr(r64[3].item()))
+    print("    == 0.3 인가:", r64[3].item() == 0.3)
+
+
+# ========================================================================
+# 5. 난수 — 그리고 씨앗
+# ========================================================================
+
+def randoms():
+    header("5. 난수")
+    torch.manual_seed(42)
+    print("  rand(2,3)   [0,1) 고른분포:",
+          [round(v, 4) for v in torch.rand(2, 3).flatten().tolist()])
+    print("  randn(2,3)  N(0,1)       :",
+          [round(v, 4) for v in torch.randn(2, 3).flatten().tolist()])
+    print("  randint(0,10,(5,))       :", torch.randint(0, 10, (5,)).tolist())
+    print("  randperm(8)              :", torch.randperm(8).tolist())
+
+    torch.manual_seed(42)
+    first = torch.rand(3)
+    torch.manual_seed(42)
+    print("  같은 씨앗으로 두 번:", torch.equal(first, torch.rand(3)))
+
+    g = torch.Generator().manual_seed(7)
+    print("  Generator 를 따로 두면:",
+          [round(v, 4) for v in torch.rand(3, generator=g).tolist()])
+    print("  전역 씨앗을 건드리지 않고 재현할 수 있다")
+
+
+# ========================================================================
+# 6. _like 는 어디까지 따라가는가
+# ========================================================================
+
+def like_family():
+    header("6. *_like")
+    tpl = torch.randn(3, 4, dtype=torch.float64, requires_grad=True)
+    z = torch.zeros_like(tpl)
+    print(f"  본   dtype {tpl.dtype} device {tpl.device} "
+          f"requires_grad {tpl.requires_grad}")
+    print(f"  like dtype {z.dtype} device {z.device} "
+          f"requires_grad {z.requires_grad}")
+    print("  dtype 과 device 는 따라가고 requires_grad 는 안 따라간다")
+    print("  dtype 만 바꿔 달라고 할 수도 있다:",
+          torch.zeros_like(tpl, dtype=torch.int32).dtype)
+
+
+# ========================================================================
+# 7. 장치와 requires_grad
+# ========================================================================
+
+def device_and_grad():
+    header("7. 만들 때 정하는 것")
+    dev = ("cuda" if torch.cuda.is_available()
+           else "mps" if torch.backends.mps.is_available() else "cpu")
+    t = torch.randn(2, 2, device=dev)
+    print(f"  device='{dev}' 로 바로 만들기:", t.device)
+    print("  만들고 나서 옮기면 한 번 더 베낀다 — 처음부터 거기서 만드는 편이 낫다")
+    x = torch.randn(2, 2, requires_grad=True)
+    print("  requires_grad=True 로 만들기:", x.requires_grad, " 잎인가:", x.is_leaf)
+
 
 def main():
-    torch.manual_seed(42)
+    copy_or_share()
+    empty_is_garbage()
+    constants()
+    sequences()
+    randoms()
+    like_family()
+    device_and_grad()
 
-    # -------------------------------------------------------------------------
-    header("torch.tensor: creates copy from data")
-    data = [[1, 2], [3, 4]]
-    t = torch.tensor(data)
-    print("torch.tensor(data):\n", t)
-    print("dtype:", t.dtype, "| device:", t.device)
-    
-    # dtype 지정
-    t_float = torch.tensor(data, dtype=torch.float64)
-    print("With dtype=float64:", t_float.dtype)
-
-    # -------------------------------------------------------------------------
-    header("torch.as_tensor: may share memory with input")
-    np_array = np.array([[1, 2], [3, 4]])
-    t = torch.as_tensor(np_array)  # Shares memory if possible
-    print("torch.as_tensor(numpy):\n", t)
-    
-    # 수정이 양쪽에 영향을 준다
-    np_array[0, 0] = 999
-    print("After modifying numpy, torch tensor:", t[0, 0].item())
-
-    # -------------------------------------------------------------------------
-    header("torch.from_numpy: shares memory with numpy")
-    np_array = np.array([1.0, 2.0, 3.0])
-    t = torch.from_numpy(np_array)
-    print("torch.from_numpy:", t)
-    print("Shares memory:", np.shares_memory(np_array, t.numpy()))
-
-    # -------------------------------------------------------------------------
-    header("torch.zeros: all zeros")
-    z = torch.zeros(3, 4)
-    print("zeros(3, 4):\n", z)
-    
-    # dtype과 device 지정
-    z_int = torch.zeros(2, 3, dtype=torch.int64)
-    print("zeros with dtype=int64:\n", z_int)
-
-    # -------------------------------------------------------------------------
-    header("torch.ones: all ones")
-    o = torch.ones(2, 3)
-    print("ones(2, 3):\n", o)
-
-    # -------------------------------------------------------------------------
-    header("torch.full: fill with specific value")
-    f = torch.full((3, 3), fill_value=7.5)
-    print("full((3,3), 7.5):\n", f)
-
-    # -------------------------------------------------------------------------
-    header("torch.empty: uninitialized memory (fast but random values)")
-    e = torch.empty(2, 3)
-    print("empty(2, 3) (uninitialized):\n", e)
-    print("⚠️  Values are random - don't rely on them!")
-
-    # -------------------------------------------------------------------------
-    header("torch.eye: identity matrix")
-    eye = torch.eye(4)
-    print("eye(4):\n", eye)
-    
-    # 정사각이 아닌 단위 행렬
-    eye_rect = torch.eye(3, 5)
-    print("eye(3, 5):\n", eye_rect)
-
-    # -------------------------------------------------------------------------
-    header("torch.diag: create diagonal matrix or extract diagonal")
-    # 벡터로 대각 행렬 만들기
-    v = torch.tensor([1., 2., 3., 4.])
-    diag_mat = torch.diag(v)
-    print("diag(vector):\n", diag_mat)
-    
-    # 행렬에서 대각 성분 뽑아내기
-    mat = torch.randn(4, 4)
-    diagonal = torch.diag(mat)
-    print("diag(matrix):", diagonal)
-    
-    # 어긋난 대각선
-    upper_diag = torch.diag(mat, diagonal=1)  # One above main diagonal
-    print("Upper diagonal:", upper_diag)
-
-    # -------------------------------------------------------------------------
-    header("torch.arange: sequence like Python range")
-    seq = torch.arange(10)
-    print("arange(10):", seq)
-    
-    seq2 = torch.arange(2, 10, 2)  # start, end, step
-    print("arange(2, 10, 2):", seq2)
-    
-    seq3 = torch.arange(0, 1, 0.1)  # Float steps
-    print("arange(0, 1, 0.1):", seq3)
-
-    # -------------------------------------------------------------------------
-    header("torch.linspace: linearly spaced values")
-    lin = torch.linspace(0, 10, steps=11)
-    print("linspace(0, 10, 11):", lin)
-    
-    # 범위를 그릴 때 유용하다
-    x = torch.linspace(-3.14, 3.14, steps=7)
-    print("linspace(-π, π, 7):", x)
-
-    # -------------------------------------------------------------------------
-    header("torch.logspace: logarithmically spaced values")
-    log = torch.logspace(0, 3, steps=4)  # 10^0 to 10^3
-    print("logspace(0, 3, 4):", log)
-    print("Exponentially increasing: 10^0, 10^1, 10^2, 10^3")
-
-    # -------------------------------------------------------------------------
-    header("torch.rand: uniform [0, 1)")
-    r = torch.rand(3, 4)
-    print("rand(3, 4):\n", r)
-    print("Range: [0, 1)")
-
-    # -------------------------------------------------------------------------
-    header("torch.randn: standard normal N(0, 1)")
-    rn = torch.randn(3, 4)
-    print("randn(3, 4):\n", rn)
-    print("Distribution: N(0, 1)")
-    
-    # 사용자 지정 평균과 표준편차
-    custom = torch.randn(1000) * 2.5 + 10  # N(10, 2.5^2)
-    print(f"Custom N(10, 2.5): mean={custom.mean():.2f}, std={custom.std():.2f}")
-
-    # -------------------------------------------------------------------------
-    header("torch.randint: random integers")
-    ri = torch.randint(low=0, high=10, size=(3, 4))
-    print("randint(0, 10, (3,4)):\n", ri)
-    print("Range: [0, 10)")
-
-    # -------------------------------------------------------------------------
-    header("torch.randperm: random permutation")
-    perm = torch.randperm(10)
-    print("randperm(10):", perm)
-    print("Useful for shuffling indices")
-
-    # -------------------------------------------------------------------------
-    header("torch.multinomial: sample from multinomial distribution")
-    # 확률 웨이트(합이 1일 필요는 없다)
-    weights = torch.tensor([1., 2., 3., 4.])  # Higher numbers = more likely
-    samples = torch.multinomial(weights, num_samples=10, replacement=True)
-    print("Weights:", weights)
-    print("Samples:", samples)
-    print("Higher indices (3) should appear more often")
-
-    # -------------------------------------------------------------------------
-    header("_like constructors: same shape as another tensor")
-    template = torch.randn(3, 4)
-    print("Template shape:", template.shape)
-    
-    z = torch.zeros_like(template)
-    print("zeros_like:", z.shape, z.dtype)
-    
-    o = torch.ones_like(template)
-    print("ones_like:", o.shape, o.dtype)
-    
-    r = torch.rand_like(template)
-    print("rand_like:", r.shape, r.dtype)
-    
-    # dtype을 덮어쓸 수 있다
-    z_int = torch.zeros_like(template, dtype=torch.int32)
-    print("zeros_like with dtype override:", z_int.dtype)
-
-    # -------------------------------------------------------------------------
-    header("Device specification")
-    cpu_tensor = torch.randn(3, 3, device='cpu')
-    print("CPU tensor device:", cpu_tensor.device)
-    
-    if torch.cuda.is_available():
-        gpu_tensor = torch.randn(3, 3, device='cuda')
-        print("GPU tensor device:", gpu_tensor.device)
-        
-        # 장치 간 전송
-        moved = cpu_tensor.to('cuda')
-        print("Moved to GPU:", moved.device)
-    else:
-        print("CUDA not available, skipping GPU examples")
-
-    # -------------------------------------------------------------------------
-    header("requires_grad specification")
-    # autograd를 켠 텐서 만들기
-    x = torch.randn(3, 4, requires_grad=True)
-    print("requires_grad:", x.requires_grad)
-    print("is_leaf:", x.is_leaf)
-    
-    # 생성 후에 설정할 수도 있다
-    y = torch.randn(3, 4)
-    y.requires_grad_(True)
-    print("Set requires_grad after:", y.requires_grad)
-
-    # -------------------------------------------------------------------------
-    header("torch.empty_like vs torch.zeros_like performance")
-    import time
-    
-    large_template = torch.randn(1000, 1000)
-    
-    # empty_like가 더 빠르다(초기화가 없다)
-    start = time.time()
-    for _ in range(1000):
-        _ = torch.empty_like(large_template)
-    empty_time = time.time() - start
-    
-    start = time.time()
-    for _ in range(1000):
-        _ = torch.zeros_like(large_template)
-    zeros_time = time.time() - start
-    
-    print(f"empty_like: {empty_time:.4f}s")
-    print(f"zeros_like: {zeros_time:.4f}s")
-    print(f"Speedup: {zeros_time/empty_time:.2f}x")
-    print("⚠️  Use empty only when you'll immediately overwrite values")
-
-    # -------------------------------------------------------------------------
-    header("Complex number tensors")
-    # 복소수 텐서 만들기
-    real = torch.tensor([1., 2., 3.])
-    imag = torch.tensor([4., 5., 6.])
-    c = torch.complex(real, imag)
-    print("Complex tensor:", c)
-    print("dtype:", c.dtype)
-    
-    # 직접 생성
-    c2 = torch.tensor([1+2j, 3+4j, 5+6j])
-    print("Direct complex:", c2)
-
-    # -------------------------------------------------------------------------
-    header("Sparse tensors (briefly)")
-    # 희소 COO 텐서 만들기
-    indices = torch.tensor([[0, 1, 2], [1, 0, 2]])  # (row, col) indices
-    values = torch.tensor([3., 4., 5.])
-    sparse = torch.sparse_coo_tensor(indices, values, (3, 3))
-    print("Sparse tensor:\n", sparse)
-    print("Dense representation:\n", sparse.to_dense())
-
-    # -------------------------------------------------------------------------
-    header("Cloning and copying")
-    original = torch.randn(3, 3)
-    
-    # clone()은 복사본을 만든다
-    copy = original.clone()
-    print("Shares storage (clone):", original.untyped_storage().data_ptr() == copy.untyped_storage().data_ptr())
-    
-    # 경사가 없는 복사본을 만들려면 detach().clone()
-    x = torch.randn(3, requires_grad=True)
-    y = x.detach().clone()
-    print("Detached clone requires_grad:", y.requires_grad)
-
-    # -------------------------------------------------------------------------
-    header("Quick reference: creation functions")
-    print("\nZero-value tensors:")
-    print("  torch.zeros(shape)           - All zeros")
-    print("  torch.zeros_like(tensor)     - Zeros with same shape")
-    
-    print("\nOne-value tensors:")
-    print("  torch.ones(shape)            - All ones")
-    print("  torch.ones_like(tensor)      - Ones with same shape")
-    print("  torch.full(shape, value)     - All same value")
-    
-    print("\nRandom tensors:")
-    print("  torch.rand(shape)            - Uniform [0, 1)")
-    print("  torch.randn(shape)           - Normal N(0, 1)")
-    print("  torch.randint(low, high, sz) - Random integers")
-    print("  torch.randperm(n)            - Random permutation")
-    
-    print("\nSequential tensors:")
-    print("  torch.arange(start, end, step) - Like Python range")
-    print("  torch.linspace(start, end, n)  - n evenly spaced")
-    print("  torch.logspace(start, end, n)  - n log-spaced")
-    
-    print("\nStructured tensors:")
-    print("  torch.eye(n)                 - Identity matrix")
-    print("  torch.diag(vector)           - Diagonal matrix")
-    
-    print("\nFrom data:")
-    print("  torch.tensor(data)           - Copy from list/array")
-    print("  torch.from_numpy(array)      - Share memory with numpy")
-    print("  torch.as_tensor(data)        - Share memory if possible")
 
 if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (232줄)"
+**출력:**
 
-    ```
+```
+=== 1. tensor / as_tensor / from_numpy ===
+  torch.tensor       dtype torch.int64  메모리 공유 False
+  torch.as_tensor    dtype torch.int64  메모리 공유 True
+  torch.from_numpy   dtype torch.int64  메모리 공유 True
+  배열을 999 로 고친 뒤
+    torch.tensor 로 만든 것  : 1 (미리 베꼈다)
+    torch.as_tensor 로 만든 것: 999
+  as_tensor 에 dtype 을 바꿔 달라면 공유: False — 바꾸려면 베낄 수밖에 없다
 
-    ================================================================================
-    torch.tensor: creates copy from data
-    ================================================================================
-    torch.tensor(data):
-     tensor([[1, 2],
-            [3, 4]])
-    dtype: torch.int64 | device: cpu
-    With dtype=float64: torch.float64
+=== 2. empty 가 주는 것 ===
+  갓 잡은 empty(5): [0.0, 0.0, 0.0, 0.0, 0.0]
+  0 처럼 보인다. 운영체제가 새 쪽을 0 으로 비워 주기 때문이다
+  더럽힌 뒤 다시 잡은 empty(1000) 의 앞 다섯: [12345.0, 12345.0, 12345.0, 12345.0, 12345.0]
+  0 이 아닌 칸: 1000 / 1000
+  방금 놓아 준 내 데이터가 그대로 나온다
+  그러니 empty 로 만든 텐서는 반드시 채우고 나서 읽어야 한다
 
-    ================================================================================
-    torch.as_tensor: may share memory with input
-    ================================================================================
-    torch.as_tensor(numpy):
-     tensor([[1, 2],
-            [3, 4]])
-    After modifying numpy, torch tensor: 999
+=== 3. 값을 정해 만들기 ===
+  zeros(2,3)      : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  ones(2,3)       : [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  full((2,3), 7.5): [7.5, 7.5, 7.5, 7.5, 7.5, 7.5]
+  eye(3)          : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+  eye(2,4) 정사각이 아니어도: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]]
+  diag(벡터) 는 행렬을 만든다: torch.Size([3, 3])
+  diag(행렬) 은 대각을 뽑는다: [0, 4, 8]
+  diag(행렬, 1) 한 칸 위  : [1, 5]
+  같은 이름인데 입력 차원에 따라 하는 일이 반대다
 
-    ================================================================================
-    torch.from_numpy: shares memory with numpy
-    ================================================================================
-    torch.from_numpy: tensor([1., 2., 3.], dtype=torch.float64)
-    Shares memory: True
+=== 4. arange 와 linspace ===
+  arange(0, 1, 0.1) -> 10개  끝값 1 가 들어갔는가: False
+  arange(0, 0.3, 0.1) -> 3개  끝값 0.3 가 들어갔는가: False
+  arange(1, 1.3, 0.1) -> 4개  끝값 1.3 가 들어갔는가: True
+  셋 다 폭이 같은데 마지막만 끝값을 넣었다
+  (1.3-1)/0.1 이 부동소수점에서 3.0000000000000004 가 되기 때문이다
+  linspace(1, 1.2, 3): [1.0, 1.100000023841858, 1.2000000476837158]
+  linspace 는 개수를 내가 적으므로 이런 일이 없다
+  그리고 값 자체도 정확하지 않다
+    arange(0,1,0.1)[3] = 0.30000000000000004
+    == 0.3 인가: False
 
-    ================================================================================
-    torch.zeros: all zeros
-    ================================================================================
-    zeros(3, 4):
-     tensor([[0., 0., 0., 0.],
-            [0., 0., 0., 0.],
-            [0., 0., 0., 0.]])
-    zeros with dtype=int64:
-     tensor([[0, 0, 0],
-            [0, 0, 0]])
+=== 5. 난수 ===
+  rand(2,3)   [0,1) 고른분포: [0.8823, 0.915, 0.3829, 0.9593, 0.3904, 0.6009]
+  randn(2,3)  N(0,1)       : [1.1561, 0.3965, -2.4661, 0.3623, 0.3765, -0.1808]
+  randint(0,10,(5,))       : [7, 6, 9, 6, 3]
+  randperm(8)              : [7, 4, 3, 1, 5, 6, 0, 2]
+  같은 씨앗으로 두 번: True
+  Generator 를 따로 두면: [0.5349, 0.1988, 0.6592]
+  전역 씨앗을 건드리지 않고 재현할 수 있다
 
-    ================================================================================
-    torch.ones: all ones
-    ================================================================================
-    ones(2, 3):
-     tensor([[1., 1., 1.],
-            [1., 1., 1.]])
+=== 6. *_like ===
+  본   dtype torch.float64 device cpu requires_grad True
+  like dtype torch.float64 device cpu requires_grad False
+  dtype 과 device 는 따라가고 requires_grad 는 안 따라간다
+  dtype 만 바꿔 달라고 할 수도 있다: torch.int32
 
-    ================================================================================
-    torch.full: fill with specific value
-    ================================================================================
-    full((3,3), 7.5):
-     tensor([[7.5000, 7.5000, 7.5000],
-            [7.5000, 7.5000, 7.5000],
-            [7.5000, 7.5000, 7.5000]])
+=== 7. 만들 때 정하는 것 ===
+  device='mps' 로 바로 만들기: mps:0
+  만들고 나서 옮기면 한 번 더 베낀다 — 처음부터 거기서 만드는 편이 낫다
+  requires_grad=True 로 만들기: True  잎인가: True
+```
 
-    ================================================================================
-    torch.empty: uninitialized memory (fast but random values)
-    ================================================================================
-    empty(2, 3) (uninitialized):
-     tensor([[0., 0., 0.],
-            [0., 0., 0.]])
-    ⚠️  Values are random - don't rely on them!
+## 2. 베끼는가 나눠 쓰는가
 
-    ================================================================================
-    torch.eye: identity matrix
-    ================================================================================
-    eye(4):
-     tensor([[1., 0., 0., 0.],
-            [0., 1., 0., 0.],
-            [0., 0., 1., 0.],
-            [0., 0., 0., 1.]])
-    eye(3, 5):
-     tensor([[1., 0., 0., 0., 0.],
-            [0., 1., 0., 0., 0.],
-            [0., 0., 1., 0., 0.]])
+| | dtype | 메모리 공유 |
+|---|---|---|
+| `torch.tensor(arr)` | 그대로 | **False** — 베낀다 |
+| `torch.as_tensor(arr)` | 그대로 | **True** |
+| `torch.from_numpy(arr)` | 그대로 | **True** |
 
-    ================================================================================
-    torch.diag: create diagonal matrix or extract diagonal
-    ================================================================================
-    diag(vector):
-     tensor([[1., 0., 0., 0.],
-            [0., 2., 0., 0.],
-            [0., 0., 3., 0.],
-            [0., 0., 0., 4.]])
-    diag(matrix): tensor([ 1.9269, -1.2345, -0.3925,  0.7624])
-    Upper diagonal: tensor([ 1.4873, -0.0431, -1.4036])
+고르는 기준은 **그 배열을 뒤에 또 건드릴 작정인가**다. 전처리 버퍼를 돌려 쓰는
+코드라면 `as_tensor`로 넘긴 텐서가 조용히 바뀐다. 한 번 만들고 버리는 배열이라면
+공유가 공짜다.
 
-    ================================================================================
-    torch.arange: sequence like Python range
-    ================================================================================
-    arange(10): tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-    arange(2, 10, 2): tensor([2, 4, 6, 8])
-    arange(0, 1, 0.1): tensor([0.0000, 0.1000, 0.2000, 0.3000, 0.4000, 0.5000, 0.6000, 0.7000, 0.8000,
-            0.9000])
+`as_tensor`에 `dtype`을 바꿔 달라고 하면 공유가 깨진다. 당연하다 — 자료형을 바꾸려면
+값을 새로 적어야 한다. 그래서 `as_tensor(arr, dtype=torch.float32)`는 이름과 달리
+`tensor`와 같은 일을 한다.
 
-    ================================================================================
-    torch.linspace: linearly spaced values
-    ================================================================================
-    linspace(0, 10, 11): tensor([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.])
-    linspace(-π, π, 7): tensor([-3.1400e+00, -2.0933e+00, -1.0467e+00, -1.1921e-07,  1.0467e+00,
-             2.0933e+00,  3.1400e+00])
+## 3. `empty`는 아무것도 하지 않는다
 
-    ================================================================================
-    torch.logspace: logarithmically spaced values
-    ================================================================================
-    logspace(0, 3, 4): tensor([   1.,   10.,  100., 1000.])
-    Exponentially increasing: 10^0, 10^1, 10^2, 10^3
+```
+갓 잡은 empty(5): [0.0, 0.0, 0.0, 0.0, 0.0]
+```
 
-    ================================================================================
-    torch.rand: uniform [0, 1)
-    ================================================================================
-    rand(3, 4):
-     tensor([[0.8854, 0.5739, 0.2666, 0.6274],
-            [0.2696, 0.4414, 0.2969, 0.8317],
-            [0.1053, 0.2695, 0.3588, 0.1994]])
-    Range: [0, 1)
+0처럼 보인다. 그래서 "`empty`는 0을 준다"고 오해하기 쉽다. 운영체제가 **새로 주는
+메모리 쪽을 0으로 비워서** 건네기 때문에 그렇게 보이는 것뿐이다.
 
-    ================================================================================
-    torch.randn: standard normal N(0, 1)
-    ================================================================================
-    randn(3, 4):
-     tensor([[-0.9890,  0.9580,  1.3221,  0.8172],
-            [-0.7658, -0.7506,  1.3525,  0.6863],
-            [-0.3278,  0.7950,  0.2815,  0.0562]])
-    Distribution: N(0, 1)
-    Custom N(10, 2.5): mean=10.07, std=2.40
+같은 자리를 더럽혀 놓고 다시 받아 보면 정체가 드러난다.
 
-    ================================================================================
-    torch.randint: random integers
-    ================================================================================
-    randint(0, 10, (3,4)):
-     tensor([[0, 8, 2, 5],
-            [3, 2, 6, 6],
-            [3, 4, 9, 4]])
-    Range: [0, 10)
+```
+더럽힌 뒤 다시 잡은 empty(1000) 의 앞 다섯: [12345.0, 12345.0, ...]
+0 이 아닌 칸: 1000 / 1000
+```
 
-    ================================================================================
-    torch.randperm: random permutation
-    ================================================================================
-    randperm(10): tensor([0, 6, 1, 9, 7, 3, 2, 5, 4, 8])
-    Useful for shuffling indices
+**방금 놓아 준 내 데이터가 그대로 나온다.** `empty`는 자리만 잡아 주고 값은 건드리지
+않는다. 그러니 `empty`로 만든 텐서는 **반드시 채우고 나서 읽어야** 한다.
 
-    ================================================================================
-    torch.multinomial: sample from multinomial distribution
-    ================================================================================
-    Weights: tensor([1., 2., 3., 4.])
-    Samples: tensor([0, 1, 2, 1, 1, 3, 2, 3, 2, 0])
-    Higher indices (3) should appear more often
+> 그래서 `empty`의 결과는 **쪽에 실을 수 없다.** 돌릴 때마다 다른 값이 나오므로
+> 찍어 둔 숫자가 독자의 화면에 그대로 나올 까닭이 없다. 위에서 12345가 나온 것은
+> 바로 앞 줄에서 그 자리를 그 값으로 채웠다 놓아 주었기 때문이고, 그렇게 **무엇이
+> 들어갈지 정해 둔 경우에만** 보일 수 있다.
 
-    ================================================================================
-    _like constructors: same shape as another tensor
-    ================================================================================
-    Template shape: torch.Size([3, 4])
-    zeros_like: torch.Size([3, 4]) torch.float32
-    ones_like: torch.Size([3, 4]) torch.float32
-    rand_like: torch.Size([3, 4]) torch.float32
-    zeros_like with dtype override: torch.int32
+## 4. 같은 이름, 반대 일 — `diag`
 
-    ================================================================================
-    Device specification
-    ================================================================================
-    CPU tensor device: cpu
-    CUDA not available, skipping GPU examples
+```
+diag(벡터) 는 행렬을 만든다: torch.Size([3, 3])
+diag(행렬) 은 대각을 뽑는다: [0, 4, 8]
+diag(행렬, 1) 한 칸 위  : [1, 5]
+```
 
-    ================================================================================
-    requires_grad specification
-    ================================================================================
-    requires_grad: True
-    is_leaf: True
-    Set requires_grad after: True
+`torch.diag`는 **입력 차원에 따라 하는 일이 반대**다. 1차원을 주면 그것을 대각에
+놓은 행렬을 만들고, 2차원을 주면 대각을 뽑아 1차원으로 준다. 헷갈리면
+`torch.diagflat`(언제나 만든다)과 `torch.diagonal`(언제나 뽑는다)로 적는다.
 
-    ================================================================================
-    torch.empty_like vs torch.zeros_like performance
-    ================================================================================
-    empty_like: 0.0018s
-    zeros_like: 0.1779s
-    Speedup: 98.33x
-    ⚠️  Use empty only when you'll immediately overwrite values
+## 5. `arange`는 끝을 뺀다 — 다만 언제나는 아니다
 
-    ================================================================================
-    Complex number tensors
-    ================================================================================
-    Complex tensor: tensor([1.+4.j, 2.+5.j, 3.+6.j])
-    dtype: torch.complex64
-    Direct complex: tensor([1.+2.j, 3.+4.j, 5.+6.j])
+```
+arange(0, 1,   0.1) -> 10개  끝값 1   가 들어갔는가: False
+arange(0, 0.3, 0.1) ->  3개  끝값 0.3 가 들어갔는가: False
+arange(1, 1.3, 0.1) ->  4개  끝값 1.3 가 들어갔는가: True
+```
 
-    ================================================================================
-    Sparse tensors (briefly)
-    ================================================================================
-    Sparse tensor:
-     tensor(indices=tensor([[0, 1, 2],
-                           [1, 0, 2]]),
-           values=tensor([3., 4., 5.]),
-           size=(3, 3), nnz=3, layout=torch.sparse_coo)
-    Dense representation:
-     tensor([[0., 3., 0.],
-            [4., 0., 0.],
-            [0., 0., 5.]])
+셋 다 폭이 0.3 또는 1.0이고 간격이 같은데, **마지막만 끝값을 넣었다.**
 
-    ================================================================================
-    Cloning and copying
-    ================================================================================
-    Shares storage (clone): False
-    Detached clone requires_grad: False
+까닭은 `arange`가 개수를 $\lceil (\text{end} - \text{start}) / \text{step} \rceil$로
+셈하기 때문이다. $1.3 - 1$이 부동소수점에서 정확히 $0.3$이 아니라
+$0.30000000000000004$이고, 이것을 $0.1$로 나누면 $3.0000000000000004$가 되어
+올림하면 **4**가 된다.
 
-    ================================================================================
-    Quick reference: creation functions
-    ================================================================================
+그리고 값 자체도 정확하지 않다.
 
-    Zero-value tensors:
-      torch.zeros(shape)           - All zeros
-      torch.zeros_like(tensor)     - Zeros with same shape
+```
+arange(0,1,0.1)[3] = 0.30000000000000004
+== 0.3 인가: False
+```
 
-    One-value tensors:
-      torch.ones(shape)            - All ones
-      torch.ones_like(tensor)      - Ones with same shape
-      torch.full(shape, value)     - All same value
+그래서 규칙은 이렇다. **정수 간격이면 `arange`, 실수 간격이면 `linspace`.**
+`linspace`는 개수를 내가 적으므로 몇 개가 나올지 세어 볼 필요가 없고, 끝값도
+반드시 들어간다.
 
-    Random tensors:
-      torch.rand(shape)            - Uniform [0, 1)
-      torch.randn(shape)           - Normal N(0, 1)
-      torch.randint(low, high, sz) - Random integers
-      torch.randperm(n)            - Random permutation
+## 6. `*_like`는 어디까지 따라가는가
 
-    Sequential tensors:
-      torch.arange(start, end, step) - Like Python range
-      torch.linspace(start, end, n)  - n evenly spaced
-      torch.logspace(start, end, n)  - n log-spaced
+```
+본   dtype float64  device cpu  requires_grad True
+like dtype float64  device cpu  requires_grad False
+```
 
-    Structured tensors:
-      torch.eye(n)                 - Identity matrix
-      torch.diag(vector)           - Diagonal matrix
+`dtype`과 `device`는 따라가고 **`requires_grad`는 안 따라간다.** 대개 이것이 원하는
+바다 — `zeros_like(w)`로 만든 것은 보통 버퍼나 마스크이지 학습할 파라미터가
+아니다.
 
-    From data:
-      torch.tensor(data)           - Copy from list/array
-      torch.from_numpy(array)      - Share memory with numpy
-      torch.as_tensor(data)        - Share memory if possible
-    ```
-## 2. 논의
+`*_like`를 쓰는 진짜 값은 **장치를 안 틀린다**는 데 있다. 모델이 GPU에 있을 때
+`torch.zeros(x.shape)`로 만들면 CPU에 생겨 바로 터지지만, `torch.zeros_like(x)`는
+언제나 `x`가 있는 곳에 생긴다.
 
-`torch.tensor`는 입력 값을 복사하고, `from_numpy`는 지원되는 CPU 배열과 저장소를 공유한다. `as_tensor`도 가능한 경우 공유하지만 자료형이나 장치를 바꾸면 복사할 수 있다. 기존 텐서를 감싼다고 항상 새 그래프의 잎이 되는 것은 아니다.
+## 7. 만들 때 정하는 것
 
-팩토리 함수는 `dtype`과 `device`를 명시하면 생성 위치와 자료형을 분명히 할 수 있다. `empty`는 읽기 전에 쓸 모든 원소를 초기화해야 한다. `*_like`는 기준 텐서의 모양·자료형·장치를 따르되 지정한 옵션으로 바꿀 수 있다.
+```python
+torch.randn(2, 2, device=dev)        # 처음부터 거기서 만든다
+torch.randn(2, 2).to(dev)            # 만들고 옮긴다 — 한 번 더 베낀다
+```
+
+둘은 같은 결과를 주지만 뒤의 것은 CPU에 한 번 만들고 복사한다. 큰 텐서에서는
+그 복사가 아깝고, 「GPU 연산」에서 본 전송 비용이 그대로 붙는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-NumPy 배열을 만들고 `torch.from_numpy()`로 PyTorch 텐서로 변환한 뒤, 원래 배열을 수정하여 텐서도 함께 바뀌는지 확인하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+$3 \times 3$ 영행렬을 여섯 가지로 만들어라. 값은 모두 같은가? **`dtype`도 모두
+같은가?**
 
 </div>
 
 ??? success "풀이"
     ```python
-    import numpy as np
-    arr = np.array([1.0, 2.0, 3.0])
-    t = torch.from_numpy(arr)
-    arr[0] = 99.0
-    print(t)  # tensor([99.,  2.,  3.]) -- shared memory
+    ways = (("torch.zeros(3,3)", lambda: torch.zeros(3, 3)),
+            ("torch.full((3,3),0.)", lambda: torch.full((3, 3), 0.)),
+            ("torch.empty(3,3).zero_()", lambda: torch.empty(3, 3).zero_()),
+            ("torch.zeros_like(torch.ones(3,3))",
+             lambda: torch.zeros_like(torch.ones(3, 3))),
+            ("torch.tensor([[0.]*3]*3)", lambda: torch.tensor([[0.] * 3] * 3)),
+            ("torch.arange(9).reshape(3,3)*0",
+             lambda: torch.arange(9).reshape(3, 3) * 0))
+    for n, f in ways:
+        t = f()
+        print(f"  {n:36s} dtype {t.dtype}  모두 0 {bool((t == 0).all())}")
     ```
 
----
+    ```
+      torch.zeros(3,3)                     dtype torch.float32  모두 0 True
+      torch.full((3,3),0.)                 dtype torch.float32  모두 0 True
+      torch.empty(3,3).zero_()             dtype torch.float32  모두 0 True
+      torch.zeros_like(torch.ones(3,3))    dtype torch.float32  모두 0 True
+      torch.tensor([[0.]*3]*3)             dtype torch.float32  모두 0 True
+      torch.arange(9).reshape(3,3)*0       dtype torch.int64  모두 0 True
+    ```
 
+    값은 여섯 다 같은데 **마지막 하나만 `int64`**다. `arange`는 정수를 주고, 거기에
+    0을 곱해도 정수다.
+
+    이것이 조용히 틀리는 자리다. 영행렬을 만들어 모델에 넣으면 「형상, 자료형,
+    장치」에서 본 `mat1 and mat2 must have the same dtype`가 나거나, 더 나쁘게는
+    정수 나눗셈으로 바뀌어 값이 잘린다. 만드는 길이 여럿일 때는 `dtype`을 한 번
+    찍어 보는 편이 싸다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-`torch.as_tensor()`가 언제 데이터를 복사하고 언제 메모리를 공유하는지 설명하라. 어떤 조건에서 복사가 일어나는가?
-
-</div>
-
-??? success "풀이"
-    지원되는 NumPy 배열에서 요청한 자료형과 CPU 장치가 같으면 저장소를 공유한다. 읽기 전용 배열도 공유할 수 있지만 쓰기는 정의되지 않는다. 음수 스트라이드는 자동 복사가 아니라 오류가 날 수 있어 명시적 복사가 필요하다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff hard" title="어려움"></span>
-`requires_grad=True`인 텐서에 `.numpy()`를 호출하면 오류가 나는 이유는 무엇인가? 올바른 변환 방법을 보여라.
+`empty`는 채우지 않으니 `zeros`보다 빠를 것이다. 얼마나 빠른지 재고, **`empty`로
+만들어 0으로 채우면** 어떻게 되는지도 재어라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    x = torch.randn(3, requires_grad=True)
-    # x.numpy()  # 오류: 경사가 필요한 텐서에는 numpy()를 호출할 수 없다
-    x_np = x.detach().cpu().numpy()  # Correct: detach from graph first
+    import time
+
+    def spread(fn, rep=9):
+        ts = []
+        for _ in range(rep):
+            t0 = time.perf_counter(); fn(); ts.append(time.perf_counter() - t0)
+        return min(ts) * 1e3, max(ts) * 1e3
+
+    for n in (10 ** 6, 10 ** 7):
+        z = spread(lambda: torch.zeros(n))
+        e = spread(lambda: torch.empty(n))
+        ef = spread(lambda: torch.empty(n).fill_(0.0))
+        print(f"  {n:>9,}개  zeros {z[0]:6.3f}~{z[1]:6.3f}   "
+              f"empty {e[0]:6.3f}~{e[1]:6.3f}   "
+              f"empty+fill_ {ef[0]:6.3f}~{ef[1]:6.3f} ms")
     ```
 
-    NumPy에는 autograd 체계가 없으므로, 추적 중인 텐서의 뷰를 노출하면 경사 계산을 망가뜨리는 변경이 일어날 수 있다. `.detach()`는 텐서를 계산 그래프에서 떼어낸다.
+    ```
+      1,000,000개  zeros  0.087~ 0.350   empty  0.025~ 0.030   empty+fill_  0.157~ 0.193 ms
+      10,000,000개  zeros  1.067~ 1.608   empty  0.108~ 0.110   empty+fill_  1.060~ 1.711 ms
+    ```
 
-## 정리하며
+    `empty` 혼자는 1천만 개에서 **열 배 가까이 빠르다**(0.108 대 1.067 ms). 자리만
+    잡고 아무것도 안 적으니 크기와 거의 무관하다.
 
-텐서를 만드는 함수마다 복사·메모리 공유·기본 자료형 규칙이 다르다. 원본과 독립적인 값이 필요한지, 저장소를 공유해도 되는지를 먼저 정한다.
+    그런데 `empty` 뒤에 `fill_(0)`을 붙이면 **`zeros`와 같아진다**(1.060 대 1.067).
+    당연하다 — 결국 1천만 칸에 0을 적는 일을 하기 때문이다.
+
+    그래서 `empty`가 버는 것은 **채우지 않을 때만** 생긴다. 바로 뒤에 다른 값으로
+    덮어쓸 자리(출력 버퍼 같은 것)라면 공짜고, 0이 필요한 자리라면 `zeros`를 쓰는
+    편이 짧고 안전하다. 「연산」에서 본 `out=` 인자가 쓰이는 자리가 앞의 경우다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+`torch.manual_seed`를 부르면 재현된다고 한다. 그런데 **코드 사이에 난수를 하나
+더 뽑는 줄이 끼어들면** 뒤의 값이 달라진다. 확인하고, `torch.Generator`로 그것을
+막아라. 이 차이가 왜 실제로 문제가 되는지 적어라.
+
+</div>
+
+??? success "풀이"
+    ```python
+    torch.manual_seed(0)
+    a = torch.rand(2)
+    noise = torch.rand(2)       # 사이에 난수가 하나 끼었다
+    b = torch.rand(2)
+
+    torch.manual_seed(0)
+    a2 = torch.rand(2)
+    b2 = torch.rand(2)          # 끼지 않았다
+    print("  사이에 난수가 끼면 b 가 달라지는가:", not torch.equal(b, b2))
+
+    g1 = torch.Generator().manual_seed(0)
+    g2 = torch.Generator().manual_seed(0)
+    x1 = torch.rand(2, generator=g1)
+    _ = torch.rand(100)         # 전역을 아무리 써도
+    x2 = torch.rand(2, generator=g2)
+    print("  Generator 를 쓰면 전역을 써도 같은가:", torch.equal(x1, x2))
+    ```
+
+    ```
+      사이에 난수가 끼면 b 가 달라지는가: True
+      Generator 를 쓰면 전역을 써도 같은가: True
+    ```
+
+    전역 씨앗은 **난수를 뽑는 순서 전체**를 정한다. 그래서 `manual_seed(0)`이
+    보장하는 것은 "프로그램을 처음부터 똑같이 돌리면 똑같다"일 뿐, 중간의 어느
+    값 하나가 고정되는 것이 아니다.
+
+    실제로 걸리는 자리가 여럿이다.
+
+    - **드롭아웃을 켜고 끄면** 뽑는 난수의 개수가 달라져, 그 뒤의 가중치
+      초기화나 데이터 섞기가 전부 밀린다. 두 모델을 견주려던 것인데 데이터
+      순서까지 달라진다.
+    - **디버깅하려고 `print`에 `torch.rand`를 하나 끼워 넣으면** 그 뒤가 전부
+      바뀐다. 고치려고 넣은 줄이 재현을 깬다.
+    - **에폭 수를 바꾸면** 다음 실행의 섞기가 달라진다.
+
+    `torch.Generator`를 따로 만들어 그 자리에만 넘기면 전역과 끊어진다. 위에서
+    전역 난수를 100개 뽑아도 `g2`의 값은 그대로였다.
+
+    파이토치의 `DataLoader`가 `generator=` 인자를 받는 것이 이 까닭이고,
+    「데이터 적재」에서 일꾼마다 씨앗을 따로 주어야 했던 것도 같은 이야기다.
+    **재현을 원하면 씨앗 하나가 아니라 난수의 출처를 나누어야 한다.**
