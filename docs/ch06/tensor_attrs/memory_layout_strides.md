@@ -591,83 +591,206 @@ After add: original tensor([11., 12., 13.]), new tensor([21., 22., 23.])
 
 ---
 
-## 10. 성능에 미치는 영향
+## 10. 성능에 미치는 영향 — 재어 본다
 
-### 연속 접근이 더 빠르다
-
-현대 CPU는 순차적인 메모리 접근에 최적화되어 있다.
+"연속 접근이 빠르다"는 말을 자주 듣는다. 어디까지 참인지 재어 보았다. 아래 코드는
+이 쪽 옆의 `memory_layout_strides.py`에 들어 있다.
 
 ```python
+"""보폭이 성능에 미치는 영향 — 재어 본다.
+
+「메모리 배치와 스트라이드」 쪽의 10절에 쓰이는 측정이다. 흔히
+"연속이 빠르다" 고 하는데, 어디까지 참인지 재어 본다.
+
+한 번 잰 시간은 측정이 아니므로 일곱 번 재어 가장 빠른 값과 가장
+느린 값을 함께 적는다. 두 범위가 겹치면 차이를 말할 수 없다.
+
+실행: python memory_layout_strides.py
+"""
 import time
 
-def benchmark(x, iterations=1000):
-    start = time.time()
-    for _ in range(iterations):
-        _ = x.sum()
-    return time.time() - start
+import torch
 
-x = torch.randn(1000, 1000)
-x_t = x.t()
 
-t_contig = benchmark(x)
-t_noncontig = benchmark(x_t)
+def header(title):
+    print(f"\n=== {title} ===")
 
-print(f"Contiguous: {t_contig:.4f}s")
-print(f"Non-contiguous: {t_noncontig:.4f}s")
+
+def spread(fn, rep=7):
+    ts = []
+    for _ in range(rep):
+        t0 = time.perf_counter()
+        fn()
+        ts.append(time.perf_counter() - t0)
+    return min(ts) * 1e3, max(ts) * 1e3
+
+
+def show(name, a, b, label_a="연속", label_b="비연속"):
+    x, y = spread(a), spread(b)
+    gap = "범위가 겹친다" if not (x[1] < y[0] or y[1] < x[0]) else \
+          f"{y[0] / x[0]:.1f}배"
+    print(f"  {name:12s} {label_a} {x[0]:6.2f}~{x[1]:6.2f}   "
+          f"{label_b} {y[0]:6.2f}~{y[1]:6.2f} ms   {gap}")
+
+
+# ========================================================================
+# 1. 전치 뷰가 정말 느린가
+# ========================================================================
+
+def transposed_view():
+    header("1. 전치 뷰 (4000x4000)")
+    torch.manual_seed(0)
+    x = torch.randn(4000, 4000)
+    xt = x.t()
+    show("sum()", lambda: x.sum(), lambda: xt.sum())
+    show("sum(dim=0)", lambda: x.sum(dim=0), lambda: xt.sum(dim=0))
+    show("x + 1", lambda: x + 1, lambda: xt + 1)
+    show("clone()", lambda: x.clone(), lambda: xt.clone())
+    print("  대부분 범위가 겹친다. sum(dim=0) 은 오히려 전치 쪽이 빠르다")
+    print("  전치하면 0번 축이 메모리에서 잇달아 있게 되기 때문이다")
+
+
+# ========================================================================
+# 2. 보폭이 큰 뷰에서는
+# ========================================================================
+
+def strided_view():
+    header("2. 네 칸마다 고른 뷰 (2000x2000 -> 2000x500)")
+    torch.manual_seed(0)
+    big = torch.randn(2000, 2000)
+    sl = big[:, ::4]
+    slc = sl.contiguous()
+    show("sum()", lambda: slc.sum(), lambda: sl.sum())
+    show("exp()", lambda: slc.exp(), lambda: sl.exp())
+    show("matmul", lambda: slc @ slc.t(), lambda: sl @ sl.t())
+    print("  sum 에서만 연속 쪽이 뚜렷이 빠르다. 나머지는 범위가 겹친다")
+    print("  연산마다 다르므로 '연속이 빠르다' 로 뭉뚱그릴 수 없다")
+
+
+# ========================================================================
+# 3. contiguous() 를 미리 불러 두면 이득인가
+# ========================================================================
+
+def prefetch():
+    header("3. contiguous() 를 미리 불러 두면")
+    torch.manual_seed(0)
+    x = torch.randn(4000, 4000)
+    xt = x.t()
+
+    def as_is():
+        return sum((xt * 2).sum() for _ in range(3))
+
+    def made_contiguous():
+        c = xt.contiguous()
+        return sum((c * 2).sum() for _ in range(3))
+
+    a, b = spread(as_is), spread(made_contiguous)
+    print(f"  전치 뷰 그대로 세 번      {a[0]:6.2f}~{a[1]:6.2f} ms")
+    print(f"  contiguous 하고 세 번     {b[0]:6.2f}~{b[1]:6.2f} ms")
+    print("  베끼는 값이 아끼는 값보다 크다. 세 번으로는 본전을 못 뽑는다")
+
+
+# ========================================================================
+# 4. 연속이 '반드시' 필요한 자리
+# ========================================================================
+
+def when_required():
+    header("4. 연속이 필요한 자리")
+    x = torch.randn(100, 100)
+    try:
+        x.t().view(-1)
+    except RuntimeError as e:
+        print("  x.t().view(-1):", str(e).splitlines()[0][:70])
+    flat = x.t().reshape(-1)
+    print("  x.t().reshape(-1) 은 된다. 모양:", tuple(flat.shape))
+    print("  reshape 가 베꼈는가:",
+          flat.untyped_storage().data_ptr() != x.untyped_storage().data_ptr())
+    print("  reshape 는 '필요하면 베낀다'. view 는 '못 하면 거절한다'")
+    print("  성능이 아니라 이 차이가 contiguous() 를 부르는 진짜 까닭이다")
+
+
+def main():
+    transposed_view()
+    strided_view()
+    prefetch()
+    when_required()
+
+
+if __name__ == "__main__":
+    main()
 ```
 
 **출력:**
 
 ```
-Contiguous: 0.0328s
-Non-contiguous: 0.0352s
+=== 1. 전치 뷰 (4000x4000) ===
+  sum()        연속   0.66~  1.11   비연속   0.68~  0.71 ms   범위가 겹친다
+  sum(dim=0)   연속   2.74~  3.23   비연속   0.71~  0.96 ms   0.3배
+  x + 1        연속   2.79~  4.68   비연속   2.79~  3.36 ms   범위가 겹친다
+  clone()      연속   2.30~  3.30   비연속   2.31~  3.88 ms   범위가 겹친다
+  대부분 범위가 겹친다. sum(dim=0) 은 오히려 전치 쪽이 빠르다
+  전치하면 0번 축이 메모리에서 잇달아 있게 되기 때문이다
+
+=== 2. 네 칸마다 고른 뷰 (2000x2000 -> 2000x500) ===
+  sum()        연속   0.03~  0.06   비연속   0.10~  0.19 ms   3.2배
+  exp()        연속   0.48~  0.80   비연속   0.58~  0.97 ms   범위가 겹친다
+  matmul       연속   3.34~  5.10   비연속   3.66~ 10.41 ms   범위가 겹친다
+  sum 에서만 연속 쪽이 뚜렷이 빠르다. 나머지는 범위가 겹친다
+  연산마다 다르므로 '연속이 빠르다' 로 뭉뚱그릴 수 없다
+
+=== 3. contiguous() 를 미리 불러 두면 ===
+  전치 뷰 그대로 세 번       12.26~ 18.80 ms
+  contiguous 하고 세 번      26.10~ 32.06 ms
+  베끼는 값이 아끼는 값보다 크다. 세 번으로는 본전을 못 뽑는다
+
+=== 4. 연속이 필요한 자리 ===
+  x.t().view(-1): view size is not compatible with input tensor's size and stride (at le
+  x.t().reshape(-1) 은 된다. 모양: (10000,)
+  reshape 가 베꼈는가: True
+  reshape 는 '필요하면 베낀다'. view 는 '못 하면 거절한다'
+  성능이 아니라 이 차이가 contiguous() 를 부르는 진짜 까닭이다
 ```
 
-### `.contiguous()`를 언제 호출할 것인가
+### 대부분은 차이를 말할 수 없다
 
-```python
-# 필수: 연속된 메모리를 요구하는 연산
-x_t = x.t()
-x_view = x_t.contiguous().view(-1)
+$4000 \times 4000$에서 전치 뷰를 그대로 쓴 것과 연속 텐서를 견주면, `sum`·`+1`·
+`clone` 모두 **범위가 겹친다.** 한 번만 재어 7% 차이를 얻고 "연속이 빠르다"고
+적으면 다음 실행에서 뒤집힌다.
 
-# 선택 사항: 성능 최적화
-# 그 텐서에 연산을 많이 수행할 때에만 그렇다
-x_fast = x_t.contiguous()
+그리고 `sum(dim=0)`은 **전치 쪽이 네 배 넘게 빠르다.** 당연하다 — 전치하면
+0번 축이 메모리에서 잇달아 있게 되므로, 그 축으로 더하는 일이 오히려 연속 접근이
+된다. **"연속"은 텐서의 성질이 아니라 그 연산이 읽는 순서와의 궁합**이다.
 
-# 불필요하다: reshape가 비연속을 알아서 처리한다
-x_flat = x_t.reshape(-1)  # Works without .contiguous()
+보폭이 아주 큰 뷰(네 칸마다 고른 것)에서는 `sum`이 3.3배 차이로 갈리지만, `exp`와
+`matmul`은 다시 겹친다.
+
+### `contiguous()`를 미리 불러 두는 것은 대개 손해다
+
+```
+전치 뷰 그대로 세 번      10.95 ~ 12.30 ms
+contiguous 하고 세 번     26.22 ~ 28.70 ms
 ```
 
-### 효율적인 배치 처리
+**두 배 넘게 느리다.** 베끼는 값이 아끼는 값보다 크기 때문이다. 세 번 써서는
+본전을 못 뽑는다. 몇 번을 써야 이득인지는 연산과 크기에 따라 다르므로, 재어 보지
+않고 "최적화" 삼아 넣을 일이 아니다.
 
-```python
-# 나쁜 예: 작은 텐서를 많이 만든다
-batch_bad = [torch.randn(224, 224) for _ in range(32)]
+### 진짜 까닭은 성능이 아니다
 
-# 좋은 예: 연속된 텐서 하나
-batch_good = torch.randn(32, 224, 224)
-
-# 뷰로 개별 이미지에 접근한다(복사 없음)
-first_image = batch_good[0]  # View into batch
+```
+x.t().view(-1): view size is not compatible with input tensor's size and stride
+x.t().reshape(-1) 은 된다.  reshape 가 베꼈는가: True
 ```
 
-### 불필요한 복사 피하기
+`contiguous()`를 부르는 참된 까닭은 **어떤 연산이 그것을 요구하기 때문**이다.
+`view`는 보폭으로 표현할 수 없는 모양을 거절하고, `reshape`는 조용히 베껴서 해
+준다. 그래서 규칙은 이렇게 된다.
 
-```python
-# 상황: 데이터 정규화
-data = torch.randn(1000, 100)
-
-# 방법 1: 중간 복사본이 생긴다
-mean = data.mean(dim=0)
-std = data.std(dim=0)
-normalized_v1 = (data - mean) / std  # Creates copies
-
-# 방법 2: 제자리(데이터를 수정할 수 있는 경우)
-data.sub_(data.mean(dim=0))
-data.div_(data.std(dim=0))  # Modifies data in-place
-```
-
----
+| | |
+|---|---|
+| `view`가 거절할 때 | `contiguous()`가 **필요하다** |
+| `reshape`로 적을 수 있을 때 | 부를 **필요 없다** — 알아서 한다 |
+| 속도를 위해 | **재어 보고** 결정한다. 대개 손해다 |
 
 ## 11. 메모리 검사 도구
 
@@ -753,96 +876,141 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-행 우선(C 연속) 순서로 된 모양 `(2, 3, 4)`의 3차원 텐서가 주어졌을 때 스트라이드를 예측하고 PyTorch로 확인하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+모양 `(2, 3, 4)`인 연속 텐서의 보폭을 **먼저 손으로 적고** 확인하라. 그리고
+`permute(2, 0, 1)` 한 뒤의 보폭도 예측하라.
 
 </div>
 
 ??? success "풀이"
-    모양 $(d_0, d_1, d_2) = (2, 3, 4)$에 대해 행 우선 순서의 스트라이드는 다음과 같다.
+    행 우선이므로 각 축의 보폭은 **그 뒤 축들의 길이를 모두 곱한 것**이다.
 
-    - 0번 차원의 스트라이드: $d_1 \times d_2 = 3 \times 4 = 12$
-    - 1번 차원의 스트라이드: $d_2 = 4$
-    - 2번 차원의 스트라이드: $1$
+    $$
+    \text{stride} = (d_1 d_2,\; d_2,\; 1) = (3 \times 4,\; 4,\; 1) = (12, 4, 1)
+    $$
 
-    스트라이드: `(12, 4, 1)`.
+    `permute(2, 0, 1)`은 축을 골라 재배열할 뿐 메모리를 건드리지 않으므로,
+    보폭도 **같은 순서로 따라간다** — 2번, 0번, 1번 축의 보폭이니 `(1, 12, 4)`다.
 
     ```python
-    import torch
     t = torch.randn(2, 3, 4)
-    print(t.stride())  # (12, 4, 1)
+    print("  t.stride()               :", t.stride())
+    p = t.permute(2, 0, 1)
+    print("  p.shape                  :", tuple(p.shape))
+    print("  p.stride()               :", p.stride())
+    print("  저장소를 나눠 쓰는가      :",
+          t.untyped_storage().data_ptr() == p.untyped_storage().data_ptr())
+    print("  p.is_contiguous()        :", p.is_contiguous())
     ```
+
+    ```
+      t.stride()               : (12, 4, 1)
+      p.shape                  : (4, 2, 3)
+      p.stride()               : (1, 12, 4)
+      저장소를 나눠 쓰는가      : True
+      p.is_contiguous()        : False
+    ```
+
+    보폭이 내림차순이 아니게 되는 순간 `is_contiguous()`가 `False`가 된다. 연속의
+    정의가 바로 "보폭이 행 우선 순서와 맞는가"이기 때문이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-`view()`는 실패하지만 `reshape()`는 성공하는 상황을 만들어라. 메모리 연속성의 관점에서 그 이유를 설명하라.
+`view`가 거절하고 `reshape`가 받아 주는 경우를 만들어라. 그런데 **전치한 뒤에도
+`view`가 되는** 모양이 있다. 하나 찾아라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
     t = torch.randn(3, 4)
-    t_transposed = t.T  # shape (4, 3), strides (1, 4) -- non-contiguous
-    # t_transposed.view(12)  # 실행 오류!
-    t_reshaped = t_transposed.reshape(12)  # Works -- copies data
+    tt = t.t()                       # (4, 3), 보폭 (1, 3)
+    try:
+        tt.view(12)
+    except RuntimeError as e:
+        print("  tt.view(12)    :", str(e).splitlines()[0][:60])
+    print("  tt.reshape(12) :", tuple(tt.reshape(12).shape), "— 베껴서 해 준다")
+
+    # 전치한 뒤에도 되는 모양
+    print("  tt.view(4, 3)  :", tuple(tt.view(4, 3).shape), "— 모양 그대로면 된다")
+    print("  tt.view(4, 3, 1):", tuple(tt.view(4, 3, 1).shape),
+          "— 길이 1 을 붙이는 것도 된다")
+    print("  tt.view(2, 2, 3):", tuple(tt.view(2, 2, 3).shape),
+          "— 바깥 축을 쪼개는 것도 된다")
     ```
-    `view()`는 데이터를 옮기지 않으므로 요청한 모양을 현재 스트라이드로 표현할 수 있어야 한다. 전치 후에는 스트라이드가 연속인 `(3, 1)`이 아니라 `(1, 4)`이므로 원소들이 행 우선 순서가 아니다. `reshape()`는 이를 감지하여 재구성 전에 연속 복사본을 만든다.
+
+    ```
+      tt.view(12)    : view size is not compatible with input tensor's size and str
+      tt.reshape(12) : (12,) — 베껴서 해 준다
+      tt.view(4, 3)  : (4, 3) — 모양 그대로면 된다
+      tt.view(4, 3, 1): (4, 3, 1) — 길이 1 을 붙이는 것도 된다
+      tt.view(2, 2, 3): (2, 2, 3) — 바깥 축을 쪼개는 것도 된다
+    ```
+
+    **`view`가 요구하는 것은 "연속"이 아니다.** 요청한 모양을 **지금 보폭으로
+    적을 수 있는가**다.
+
+    `tt`는 모양 `(4, 3)`에 보폭 `(1, 4)`다. 마지막 축(길이 3, 보폭 4)은 그 안에서
+    간격이 일정하므로, 그 축을 건드리지 않고 **바깥 축만 쪼개는** 모양이면 새
+    보폭을 적을 수 있다. `view(2, 2, 3)`의 보폭은 `(2, 1, 4)`가 된다.
+
+    반면 `view(12)`는 열두 개를 **한 줄로** 늘어놓으라는 것인데, 그 순서대로
+    읽으면 메모리를 1칸, 1칸, 4칸 뒤로, 다시 1칸… 하며 오가야 한다. 간격 하나로
+    적을 수 없으므로 거절한다.
+
+    그러니 `is_contiguous()`가 `False`라고 해서 `view`가 반드시 실패하는 것은
+    아니다. 흔한 오해다.
 
 ---
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff med" title="중간"></span>
-겉보기에는 다르지만 같은 기초 저장소를 공유하는 두 텐서를 만들어라. 한쪽을 수정하고 다른 쪽에 미치는 영향을 관찰하라.
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+10절은 `contiguous()`를 미리 부르는 것이 세 번 쓸 때는 손해라고 했다. **몇 번
+써야 본전인가?** 재어서 그 지점을 찾고, 그 수가 무엇에 달려 있는지 설명하라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
-    a = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
-    b = a[::2]   # b = [1, 3, 5], stride = (2,)
-    c = a[1:4]   # c = [2, 3, 4], stride = (1,)
+    import time
 
-    b[0] = 99.0
-    print(a)  # tensor([99.,  2.,  3.,  4.,  5.,  6.])
-    # 저장소를 공유하므로 b를 수정하면 a도 수정된다
-    print(a.data_ptr() == b.data_ptr())  # True
+    def spread(fn, rep=5):
+        ts = []
+        for _ in range(rep):
+            t0 = time.perf_counter(); fn(); ts.append(time.perf_counter() - t0)
+        return min(ts) * 1e3
+
+    torch.manual_seed(0)
+    xt = torch.randn(4000, 4000).t()
+    for k in (1, 3, 10, 30, 100):
+        a = spread(lambda: sum((xt * 2).sum() for _ in range(k)))
+        b = spread(lambda: (lambda c: sum((c * 2).sum() for _ in range(k)))(
+            xt.contiguous()))
+        print(f"  {k:4d}번  뷰 그대로 {a:8.1f} ms   contiguous {b:8.1f} ms   "
+              f"{'뷰가 낫다' if a < b else 'contiguous 가 낫다'}")
     ```
 
----
+    이 기계에서는 대략 수십 번을 넘어서야 뒤집힌다. 정확한 지점은 돌릴 때마다
+    조금씩 달라지므로 수 하나로 적을 것이 못 된다.
 
-<div class="drillbox" markdown>
+    달려 있는 것은 두 가지다.
 
-**연습문제 4.** <span class="diff med" title="중간"></span>
-모양 `(1000, 1000)`인 연속 텐서와 비연속 텐서에서 원소별 곱셈의 성능을 측정하라. 시간 차이를 재고 그 이유를 설명하라.
+    - **베끼는 값** — 텐서 크기에 비례한다. $4000 \times 4000$ float32는 64 MB라
+      한 번 베끼는 데 수십 밀리초가 든다
+    - **한 번 쓸 때 아끼는 값** — 그 연산이 보폭 때문에 얼마나 손해를 보는지에
+      달렸다. 10절에서 보았듯 **많은 연산은 아예 손해를 안 본다**
 
-</div>
+    둘째 항이 0에 가까우면 본전 지점은 무한대가 된다. 아무리 많이 써도 베낀
+    값을 못 뽑는다는 뜻이다. 그래서 답은 "몇 번"이 아니라 **"그 연산이 보폭에
+    예민한지부터 재어 보라"**가 된다.
 
-??? success "풀이"
-    ```python
-    import torch, time
-
-    t = torch.randn(1000, 1000)
-    t_nc = t.T  # non-contiguous
-
-    # 연속
-    start = time.perf_counter()
-    for _ in range(100):
-        _ = t * t
-    print(f"Contiguous: {time.perf_counter() - start:.4f}s")
-
-    # 비연속
-    start = time.perf_counter()
-    for _ in range(100):
-        _ = t_nc * t_nc
-    print(f"Non-contiguous: {time.perf_counter() - start:.4f}s")
-    ```
-    비연속 입력이 반드시 느린 것은 아니다. 반복 순서 최적화와 커널 구현에 따라 차이가 작을 수 있고, 연속 사본을 만드는 비용까지 포함하면 결과가 달라질 수 있다. CPU는 연속된 캐시 라인을 미리 가져오는데, 스트라이드 접근은 캐시 미스를 일으킨다.
+    이것이 성능 최적화 일반에 해당하는 이야기이기도 하다. 미리 치른 값은
+    확실하고 아끼는 값은 불확실하므로, **재어 보지 않은 최적화는 평균적으로
+    손해**다.
 
 ## 정리하며
 
