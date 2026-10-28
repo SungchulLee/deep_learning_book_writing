@@ -6,6 +6,9 @@ make_figures.py - 5장의 그림을 만든다
 만드는 그림:
     pca_reconstructions.svg   MNIST를 주성분 2, 16, 32, 64개로 줄였다 되살린 모습.
                               2개로는 읽을 수 없고 64개로는 거의 원본이다
+    ae_linear_descent.svg     선형 AE가 100 에포크에 걸쳐 PCA의 바닥까지 내려가는
+                              곡선과, 그 끝에서 나온 복원. 이 그림만 모델을 직접
+                              학습하므로 혼자 5분쯤 걸린다
 
 그림 규칙(CLAUDE.md):
     - SVG로 저장하고 svg.fonttype='path'로 글자를 외곽선으로 만든다
@@ -297,15 +300,127 @@ def fig_class_share():
     print("wrote class_share.svg")
 
 
+# === 그림 6: 경사 하강법이 PCA의 바닥까지 내려간다 ==========================
+# 다른 그림과 달리 학습해 둔 .pt를 읽지 않고 여기서 직접 학습한다. 에포크마다의
+# 시험 MSE는 저장된 웨이트에서 되살릴 수 없기 때문이다.
+SEED, BATCH, LR, AE_EPOCHS = 42, 100, 1e-3, 100
+
+
+def train_linear_ae(k, Xtr, Xte, device):
+    """선형 AE를 학습하면서 에포크마다 시험 MSE를 잰다.
+
+    씨앗은 초기화 **앞**에 둔다. 뒤에 두면 nn.Linear의 초깃값이 씨앗 밖에
+    남아 곡선이 돌릴 때마다 달라진다.
+    """
+    import torch.nn.functional as F
+    import torch.optim as optim
+    from torch.utils.data import DataLoader, TensorDataset
+
+    torch.manual_seed(SEED)
+    model = LinearAE(k).to(device)
+    opt = optim.Adam(model.parameters(), lr=LR)
+    g = torch.Generator().manual_seed(SEED)
+    loader = DataLoader(TensorDataset(Xtr), batch_size=BATCH, shuffle=True, generator=g)
+
+    @torch.no_grad()
+    def test_mse():
+        model.eval()
+        tot = 0.0
+        for i in range(0, len(Xte), 1000):
+            xb = Xte[i:i + 1000].to(device)
+            tot += ((model(xb) - xb) ** 2).mean().item() * len(xb)
+        return tot / len(Xte)
+
+    curve = [test_mse()]                      # 에포크 0 = 아직 한 걸음도 딛기 전
+    for _ in range(AE_EPOCHS):
+        model.train()
+        for (xb,) in loader:
+            xb = xb.to(device)
+            opt.zero_grad()
+            F.mse_loss(model(xb), xb).backward()
+            opt.step()
+        curve.append(test_mse())
+    return model.eval().cpu(), curve
+
+
+def fig_ae_linear_descent():
+    """위는 에포크마다의 시험 MSE, 아래는 100 에포크 끝에서 나온 복원.
+
+    위 칸의 요점은 **점선에 가 닿는다**는 것이다. 점선은 PCA가 eigh 한 번으로
+    셈한 값이고, 실선은 경사 하강법이 그 값을 더듬어 찾아간 자취다.
+
+    아래 칸의 요점은 **PCA 줄과 AE 줄이 구별되지 않는다**는 것이다. 부호 2에서
+    두 줄이 같은 숫자를 같은 모양으로 망가뜨리는 것까지 같다.
+    """
+    (Xtr, _), (Xte, yte) = load_flat()
+    mu, evecs, _ = pca_basis(Xtr)
+    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+    trained, floors = {}, {}
+    for k in (64, 2):
+        V = evecs[:, :k]
+        floors[k] = (((((Xte - mu) @ V) @ V.T + mu) - Xte) ** 2).mean().item()
+        trained[k] = train_linear_ae(k, Xtr, Xte, device)
+        print(f"  k={k:2d}  epoch 100 {trained[k][1][-1]:.5f}   "
+              f"PCA floor {floors[k]:.5f}")
+
+    fig = plt.figure(figsize=(11.0, 8.4))
+    gs_top = fig.add_gridspec(1, 2, left=0.075, right=0.985, top=0.955, bottom=0.650,
+                              wspace=0.20)
+    gs_bot = fig.add_gridspec(5, 10, left=0.170, right=0.985, top=0.575, bottom=0.015,
+                              wspace=0.06, hspace=0.10)
+
+    # --- 위: 내려가는 곡선과 PCA의 바닥 -----------------------------------
+    # y축은 바닥에 바싹 붙여 자른다. 0부터 그리면 둘 다 1 에포크 만에 납작해져
+    # "그 뒤로도 떨고 있다"가 보이지 않는다. 에포크 0(학습 전)은 눈금 밖이다.
+    panels = [(64, "tab:blue", (0.0940, 0.1270)),
+              (2, "tab:orange", (0.5840, 0.7050))]
+    for col, (k, color, ylim) in enumerate(panels):
+        ax = fig.add_subplot(gs_top[col])
+        curve = trained[k][1]
+        ax.plot(range(1, len(curve)), curve[1:], color=color, lw=1.7,
+                label=f"AE_Linear-{k}, gradient descent")
+        ax.axhline(floors[k], color="black", lw=1.1, ls="--",
+                   label=f"PCA-{k} floor (eigh) = {floors[k]:.5f}")
+        ax.set_xlim(0, AE_EPOCHS); ax.set_ylim(*ylim)
+        ax.set_xlabel("epoch", fontsize=10)
+        ax.set_ylabel("test reconstruction MSE", fontsize=10)
+        ax.legend(fontsize=9, frameon=False, loc="upper right")
+        ax.spines[["top", "right"]].set_visible(False)
+
+    # --- 아래: 그 끝에서 나온 복원 ----------------------------------------
+    idx = [int((yte == d).nonzero()[0]) for d in range(10)]
+    x_flat = Xte[idx]
+    V64, V2 = evecs[:, :64], evecs[:, :2]
+    with torch.no_grad():
+        rows = [("input", x_flat),
+                ("PCA-64", ((x_flat - mu) @ V64) @ V64.T + mu),
+                ("AE_Linear-64", trained[64][0](x_flat)),
+                ("PCA-2", ((x_flat - mu) @ V2) @ V2.T + mu),
+                ("AE_Linear-2", trained[2][0](x_flat))]
+    for r, (label, imgs) in enumerate(rows):
+        for c in range(10):
+            a = fig.add_subplot(gs_bot[r, c])
+            show(a, imgs[c])
+            if c == 0:
+                a.text(-0.18, 0.5, label, transform=a.transAxes,
+                       ha="right", va="center", fontsize=9)
+
+    fig.savefig("ae_linear_descent.svg", transparent=True)
+    plt.close(fig)
+    print("wrote ae_linear_descent.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
     fig_latent_2d()
     fig_ae_vs_vae_2d()
     fig_class_share()
+    fig_ae_linear_descent()
 
 
-# === 그림 6: 네 모델이 만들어 낸 표본 =======================================
+# === 그림 7: 네 모델이 만들어 낸 표본 =======================================
 @torch.no_grad()
 def fig_samples():
     """AE, VAE, GAN, DCGAN, DDPM이 뽑아 낸 그림을 나란히 둔다.
