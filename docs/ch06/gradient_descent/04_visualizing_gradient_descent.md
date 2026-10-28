@@ -1,473 +1,617 @@
-# 경사 하강법의 이동 경로 시각화
+# 경사 하강법을 그림으로 보기
 
-일차원 이차 함수와 두 파라미터 선형 회귀에서 경사 하강법의 경로를 읽는다. 러닝레이트가 수렴, 진동, 발산을 어떻게 바꾸는지 수식과 연결한다.
+경사 하강법을 그린 그림은 흔하다. 대개 로스 곡선 하나이고, 그 곡선은 "로스가 내려간다"를 보여 준다. 그런데 그것은 이미 아는 사실이다.
 
-## 1. 코드
+이 쪽은 **무엇을 어떤 축에 그리면 무엇이 보이는가** 를 다룬다. 같은 학습을 세 가지 방식으로 그려 보면, 하나는 아무것도 못 보여 주고 하나는 수렴 속도를 숫자로 읽게 해 주며 하나는 로스 곡선이 뭉개 버린 구조를 드러낸다.
+
+---
+
+## 1. 선형 축과 로그 축
+
+$L(w) = (w-3)^2$에서 $w_0 = 7$로 출발한다. 오차가 매 걸음 $(1-2\eta)$배가 되므로 네 러닝레이트의 운명을 미리 알 수 있다.
+
+```
+  eta    1-2*eta   30 걸음 뒤 |w-3|      판정
+  0.1      +0.80       4.951760e-03   수렴
+  0.5      +0.00       0.000000e+00   한 걸음에 끝
+  0.9      -0.80       4.951760e-03   수렴
+  1.1      -1.20       9.495053e+02   발산
+```
+
+**$\eta = 0.1$과 $\eta = 0.9$의 30걸음 뒤 오차가 같은 수다.** 소수점 아래 끝까지 4.951760e-03이다. $1-2\eta$가 각각 $+0.8$과 $-0.8$로 부호만 다르기 때문이다.
+
+이 사실이 두 그림에서 어떻게 보이는지가 이 쪽의 핵심이다.
+
+![왼쪽 그림은 걸음마다의 가중치를 선형 축에 그린 것으로, 0.1은 위에서 매끄럽게 내려오고 0.9는 목표를 사이에 두고 좌우로 튕기며 1.1은 진폭이 점점 커진다. 오른쪽 그림은 목표와의 거리를 로그 축에 그린 것으로, 0.1의 선 위에 0.9의 점선이 정확히 포개져 있고 1.1만 반대로 올라간다.](figures/gd_1d.svg)
+
+**왼쪽 — 선형 축.** 두 경로가 전혀 다르게 생겼다. 초록($\eta=0.1$)은 위에서 매끄럽게 내려오고 자주($\eta=0.9$)는 목표를 사이에 두고 좌우로 튕긴다. 이것만 보면 "매끄러운 쪽이 더 좋다"고 생각하게 된다.
+
+**오른쪽 — 로그 축.** 두 선이 **포개진다.** 자주를 점선으로 그려야 둘 다 보일 정도다. 같은 속도라는 뜻이다.
+
+선형 축이 보여 주는 것은 **가는 모양** 이고, 로그 축이 보여 주는 것은 **속도** 다. 둘은 다른 질문이다.
+
+---
+
+## 2. 로그 축의 기울기가 곧 수렴률이다
+
+로그 축의 직선이 그냥 보기 좋은 것이 아니다. **기울기에 수렴률이 들어 있다.**
+
+$|w_t - 3| = |1-2\eta|^t\,|w_0 - 3|$의 양변에 상용로그를 취하면
+
+$$\log_{10}|w_t - 3| = t\log_{10}|1-2\eta| + \log_{10}|w_0 - 3|$$
+
+이다. $t$에 대한 직선이고 **기울기가 $\log_{10}|1-2\eta|$** 다. 재어 본다.
+
+```
+  eta    잰 기울기      log10|1-2*eta|    차이
+  0.1       -0.096910       -0.096910  1.94e-16
+  0.5    (한 걸음에 끝나 직선이 없다)
+  0.9       -0.096910       -0.096910  1.39e-16
+```
+
+여섯 자리까지 같다. 그리고 두 기울기가 서로도 같다 — 그래서 그림에서 포개진다.
+
+**실무에서 쓸 수 있는 방법이 여기서 나온다.** 로그 축의 로스 곡선에서 직선 구간의 기울기를 자로 재면 "한 걸음에 몇 배씩 주는지"를 바로 읽을 수 있다. 기울기가 $-0.0969$면 한 걸음에 $10^{-0.0969} = 0.8$배다. 거기서 목표 정밀도까지 몇 걸음이 더 필요한지 계산할 수 있다.
+
+선형 축에서는 이것이 불가능하다. 곡선이 금세 바닥에 붙어 기울기를 읽을 수가 없다.
+
+---
+
+## 3. 파라메터 공간의 경로
+
+파라메터가 둘이면 **경로 자체를 그릴 수 있다.** 선형 회귀의 $w$와 $b$를 두 축으로 놓고 등고선 위에 60걸음을 찍는다.
+
+```
+  그대로   조건수   136.6   최적해 (2.9956, 2.1176)
+           출발 거리  3.6685 -> 60 걸음 뒤  1.2193  (남은 비율 0.3324)
+  중심화   조건수     8.7   최적해 (2.9956, 17.0957)
+           출발 거리 17.3561 -> 60 걸음 뒤  5.0869  (남은 비율 0.2931)
+```
+
+!!! note "두 줄을 거리로 직접 견주면 안 된다"
+    중심화하면 **절편의 뜻이 바뀐다.** 원래 $b$는 $x=0$에서의 값이고, 중심화한 $b$는 $x=\bar{x}=5$에서의 값이라 최적해가 2.12에서 17.10으로 옮겨 간다. 출발점 $(0,0)$에서의 거리도 3.67과 17.36으로 다르다. 그래서 **남은 비율** 로 견주었다.
+
+![두 장의 등고선 그림. 왼쪽은 x를 그대로 쓴 경우로 등고선이 비스듬히 길게 늘어나 있고, 경로가 기울기 축을 따라 거의 수평으로 달려간 뒤 절편 축을 따라 천천히 기어올라 최적점에 못 미친 채 멈춘다. 오른쪽은 x를 중심화한 경우로 등고선이 덜 찌그러져 있고 경로가 비슷한 모양을 그리지만 최적점 쪽으로 더 많이 올라간다.](figures/gd_2d.svg)
+
+두 판이 **비슷하게 생겼다.** 그것이 이 그림이 말해 주는 바다.
+
+둘 다 같은 병을 앓는다. $w$ 쪽으로는 몇 걸음 만에 3.0 근처에 가 놓고, $b$ 쪽으로는 60걸음을 써도 최적점에 못 닿는다. **빠른 방향과 느린 방향이 따로 있다.**
+
+중심화가 조건수를 136.6에서 8.7로 줄였는데도 60걸음에서는 차이가 크지 않다(0.3324 대 0.2931). 조건수가 정하는 것은 **끝까지 가는 데 드는 걸음 수** 이고, 그 차이는 더 뒤에서 벌어진다([선형 회귀 쪽](03_simple_linear_regression.md) 연습문제 3에서 1,000걸음에 150배로 갈라지는 것을 잰다).
+
+**이것이 파라메터 공간의 경로를 그리는 까닭이다.** 로스 곡선은 두 방향을 수 하나로 뭉개 놓는다. "로스가 0.96에서 멈췄다"만 보면 $w$는 다 왔고 $b$만 못 왔다는 사실이 보이지 않는다.
+
+---
+
+## 4. 로스 곡선이 가리는 것
+
+세 설정을 로스 곡선으로만 보면 어떻게 되는지 본다.
+
+```
+  설정              10 걸음 로스   30 걸음 로스   100 걸음 로스
+  느림 (eta=0.02)       7.072039      1.381637   4.553723e-03
+  딱 맞음(eta=0.5)       0.000000      0.000000   0.000000e+00
+  거의 경계(0.97)       4.641700      0.390653   6.756017e-05
+```
+
+![두 장의 로스 곡선. 왼쪽은 선형 축으로, 세 곡선이 모두 처음 몇십 걸음 만에 바닥에 붙어 그 뒤로는 구별되지 않는다. 오른쪽은 같은 자료를 로그 축에 그린 것으로, 세 곡선이 기울기가 서로 다른 직선으로 갈라지고 한 곡선은 첫 걸음에 바닥까지 떨어진다.](figures/gd_curves.svg)
+
+**왼쪽 — 선형 축.** 60걸음쯤부터 세 곡선이 전부 바닥에 붙어 있다. 거기서 학습을 멈추고 "수렴했다"고 판단하면 셋 중 어느 것을 골랐는지가 보이지 않는다.
+
+**오른쪽 — 로그 축.** 전혀 다른 그림이다. $\eta=0.5$는 첫 걸음에 바닥까지 떨어지고, 나머지 둘은 기울기가 다른 직선으로 갈라진다. 100걸음에서 $4.55\times10^{-3}$과 $6.76\times10^{-5}$로 **67배** 차이다.
+
+**로스 곡선은 로그 축으로 그린다.** 선형 축은 학습의 첫 몇 퍼센트만 보여 주고 나머지를 전부 버린다. 그리고 최적화에서 흥미로운 일은 대개 그 "나머지"에서 일어난다.
+
+---
+
+## 5. 무엇을 그릴지 고르는 법
+
+| 보고 싶은 것 | 그릴 것 |
+|---|---|
+| 학습이 되고 있는가 | 로스 대 걸음, **로그 축** |
+| 얼마나 빠른가 | 같은 그림의 직선 구간 기울기 |
+| 러닝레이트가 큰가 작은가 | 파라메터 대 걸음, 선형 축 (튕기는지 본다) |
+| 왜 느린가 | 파라메터 공간의 경로 (빠른 방향·느린 방향) |
+| 모델의 꼴이 맞는가 | 잔차 대 입력 ([선형 회귀 쪽](03_simple_linear_regression.md) 6절) |
+
+그리고 어느 그림이든 **축 범위 밖으로 나간 경로는 잘린다.** 1절의 $\eta=1.1$은 왼쪽 판에서 위아래로 뚫고 나가 있어, 눈으로는 "심하게 진동하지만 어쩌면 수렴할지도"처럼 보인다. 수로는 30걸음 뒤 949.5로 명백히 발산이다. **그림으로 판정하지 말고 수로 판정한다.**
+
+---
+
+## 6. 전체 코드와 출력
+
+그림 셋을 만드는 코드이기도 하다. `figures/`에 SVG로 갈무리한다.
 
 ```python
+"""경사 하강법을 그림으로 보기 — 무엇을 어떤 축에 그릴 것인가.
+
+경사 하강법을 그린 그림은 흔하지만, 대개 '로스가 내려간다' 는 것만
+보여 주고 끝난다. 그것은 이미 아는 사실이다.
+
+이 쪽은 **축을 어떻게 고르면 무엇이 보이는가** 를 다룬다.
+
+- 로그 축으로 바꾸면 수렴률이 직선의 기울기로 드러난다
+- 선형 축은 첫 몇 걸음 뒤를 전부 가린다
+- 파라메터 공간의 경로는 조건수를 눈으로 보여 준다
+- 로스 곡선만으로는 발산과 느린 수렴을 가릴 수 없다
+
+그림은 figures/ 에 SVG 로 갈무리한다.
+
+실행: python 04_visualizing_gradient_descent.py
 """
-================================================================================
-1단계 - 보기 4: 움직이는 경사 하강법을 그림으로 보기
-================================================================================
+from pathlib import Path
 
-학습 목표:
-- 경사 하강법으로 가장 좋게 하는 모습을 눈으로 본다
-- 로스 지형을 이해한다
-- 러닝레이트가 미치는 영향을 살펴본다
-- 모여드는 길을 그림으로 본다
+import matplotlib
 
-어려움: ⭐ 첫스텝
+matplotlib.use("Agg")
+matplotlib.rcParams["svg.fonttype"] = "path"
 
-걸리는 때: 25~35분
-
-================================================================================
-"""
-
-import torch
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from IPython.display import HTML
+import numpy as np
+import torch
 
-print("="*80)
-print("VISUALIZING GRADIENT DESCENT")
-print("="*80)
+FIG = Path(__file__).resolve().parent / "figures"
+INK = "#2f3337"
+COLORS = ["#2f6f4e", "#8a4b2a", "#8a2a4b", "#2a4b8a"]
 
-# ============================================================================
-# 1부: 간단한 1차원 로스 함수
-# ============================================================================
-print("\n" + "="*80)
-print("PART 1: 1D QUADRATIC LOSS FUNCTION")
-print("="*80)
 
-# 로스 함수 정의: L(w) = (w - 3)²
-def loss_fn(w):
-    return (w - 3) ** 2
+def header(title):
+    print(f"\n=== {title} ===")
 
-def gradient_fn(w):
-    return 2 * (w - 3)
 
-# 로스 함수 시각화
-w_vals = np.linspace(-2, 8, 100)
-loss_vals = [(w - 3) ** 2 for w in w_vals]
+# ========================================================================
+# 1. 1차원 — 네 러닝레이트
+# ========================================================================
 
-plt.figure(figsize=(10, 6))
-plt.plot(w_vals, loss_vals, 'b-', linewidth=2, label='Loss function')
-plt.axvline(x=3, color='r', linestyle='--', label='Minimum (w=3)')
-plt.xlabel('Weight (w)', fontsize=12)
-plt.ylabel('Loss', fontsize=12)
-plt.title('Loss Landscape: L(w) = (w - 3)²', fontsize=14, fontweight='bold')
-plt.legend()
-plt.grid(True, alpha=0.3)
-plt.savefig('loss_landscape_1d.png', dpi=150)
-print("\n✓ Loss landscape visualization saved")
-plt.show()
+def run_1d(lr, steps=30, w0=7.0):
+    """L(w) = (w-3)^2,  dL/dw = 2(w-3)."""
+    w, traj = w0, [w0]
+    for _ in range(steps):
+        w = w - lr * 2 * (w - 3)
+        traj.append(w)
+    return np.array(traj)
 
-# ============================================================================
-# 2부: 서로 다른 러닝레이트로 경사 하강법 수행하기
-# ============================================================================
-print("\n" + "="*80)
-print("PART 2: EFFECT OF LEARNING RATE")
-print("="*80)
 
-def run_gradient_descent(w_init, lr, n_steps):
-    """경사 하강법을 돌리고 지나온 자취를 돌려준다"""
-    w = w_init
-    trajectory = [w]
-    
-    for _ in range(n_steps):
-        grad = gradient_fn(w)
-        w = w - lr * grad
-        trajectory.append(w)
-    
-    return trajectory
+def one_dim():
+    header("1. L(w) = (w-3)^2 에서 네 러닝레이트")
+    print("  오차가 매 걸음 (1 - 2*eta) 배가 된다")
+    print("  eta    1-2*eta   30 걸음 뒤 |w-3|      판정")
+    runs = {}
+    for lr in (0.1, 0.5, 0.9, 1.1):
+        t = run_1d(lr)
+        runs[lr] = t
+        err = abs(t[-1] - 3)
+        shown = f"{err:.6e}" if err < 1e30 else "넘침"
+        verdict = ("한 걸음에 끝" if abs(1 - 2 * lr) < 1e-12
+                   else "수렴" if abs(1 - 2 * lr) < 1 else "발산")
+        print(f"  {lr:<6} {1-2*lr:+7.2f}   {shown:>16}   {verdict}")
 
-# 서로 다른 러닝레이트 시도
-learning_rates = [0.1, 0.5, 0.9, 1.1]
-w_init = 7.0
-n_steps = 15
+    print("\n  0.1 과 0.9 는 |1-2*eta| 가 둘 다 0.8 이다")
+    print(f"  30 걸음 뒤 오차:  0.1 -> {abs(runs[0.1][-1]-3):.6e}")
+    print(f"                    0.9 -> {abs(runs[0.9][-1]-3):.6e}")
+    print("  같은 수다. 가는 모양만 다르고 속도는 같다")
+    print("  그림에서 이것은 로그 축으로 보아야 드러난다 —")
+    print("  선형 축에서는 둘 다 '금세 0 에 붙는 선' 으로만 보인다")
+    return runs
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-axes = axes.flatten()
 
-for idx, lr in enumerate(learning_rates):
-    trajectory = run_gradient_descent(w_init, lr, n_steps)
-    loss_trajectory = [loss_fn(w) for w in trajectory]
-    
-    ax = axes[idx]
-    
-    # 로스 지형 그리기
-    ax.plot(w_vals, loss_vals, 'gray', linewidth=1, alpha=0.5)
-    
-    # 궤적 그리기
-    ax.plot(trajectory, loss_trajectory, 'ro-', linewidth=2, markersize=6)
-    ax.plot(trajectory[0], loss_trajectory[0], 'go', markersize=12, label='Start')
-    ax.plot(trajectory[-1], loss_trajectory[-1], 'r*', markersize=15, label='End')
-    
-    ax.axvline(x=3, color='blue', linestyle='--', alpha=0.5, label='Optimum')
-    ax.set_xlabel('Weight (w)')
-    ax.set_ylabel('Loss')
-    ax.set_title(f'Learning Rate = {lr}')
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    ax.set_ylim(-1, 20)
-    
-    # 주석 추가
-    final_w = trajectory[-1]
-    if abs(final_w - 3) < 0.5:
-        status = "✓ Converged"
-        color = 'green'
-    elif abs(final_w) > 10:
-        status = "✗ Diverged"
-        color = 'red'
-    else:
-        status = "⚠ Oscillating"
-        color = 'orange'
-    
-    ax.text(0.05, 0.95, status, transform=ax.transAxes,
-            fontsize=12, fontweight='bold', color=color,
-            verticalalignment='top')
+def figure_1d(runs):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.8, 3.5))
 
-plt.tight_layout()
-plt.savefig('learning_rate_effect.png', dpi=150)
-print("\n✓ Learning rate comparison saved")
-plt.show()
+    # eta = 0.1 과 0.9 의 |오차| 는 정확히 같아서 로그 판에서 겹친다.
+    # 뒤에 그리는 쪽을 점선 + 빈 네모로 두어야 둘 다 보인다.
+    styles = {0.1: ("o-", 3, 1.6), 0.5: ("o-", 3, 1.1),
+              0.9: ("s--", 4.5, 1.1), 1.1: ("o-", 3, 1.1)}
+    for (lr, t), c in zip(runs.items(), COLORS):
+        st, ms, lw = styles[lr]
+        ax1.plot(t[:16], st, color=c, ms=ms, lw=lw, mfc="none",
+                 label=f"eta = {lr}")
+        err = np.abs(t - 3)
+        err[err < 1e-16] = 1e-16            # 로그 축에 0 을 못 찍는다
+        ax2.semilogy(err, st, color=c, ms=ms, lw=lw, mfc="none",
+                     label=f"eta = {lr}")
 
-# ============================================================================
-# 3부: 2차원 로스 곡면
-# ============================================================================
-print("\n" + "="*80)
-print("PART 3: 2D LOSS SURFACE VISUALIZATION")
-print("="*80)
+    ax1.axhline(3, color=INK, ls="--", lw=0.8, alpha=0.6)
+    ax1.set_ylim(-3, 12)
+    ax1.set_xlabel("step", fontsize=9)
+    ax1.set_ylabel("w", fontsize=9)
+    ax1.set_title("linear axis: w per step", fontsize=9.5, weight="bold",
+                  color=INK, pad=7)
+    ax1.legend(fontsize=7.5, frameon=False, ncol=2)
 
-# 선형 회귀를 위한 합성 데이터 생성
-torch.manual_seed(42)
-X_data = torch.randn(50, 1) * 2
-y_data = 3 * X_data + 2 + torch.randn(50, 1) * 0.5
+    ax2.set_ylim(1e-10, 1e3)
+    ax2.set_xlabel("step", fontsize=9)
+    ax2.set_ylabel("|w - 3|  (log)", fontsize=9)
+    ax2.set_title("log axis: the rate becomes a slope", fontsize=9.5,
+                  weight="bold", color=INK, pad=7)
+    ax2.legend(fontsize=7.5, frameon=False, ncol=2)
 
-def compute_loss_2d(w, b):
-    """주어진 w과 b에 대해 MSE 로스를 계산한다"""
-    y_pred = w * X_data + b
-    loss = torch.mean((y_pred - y_data) ** 2)
-    return loss.item()
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+    fig.tight_layout()
+    fig.savefig(FIG / "gd_1d.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  figures/gd_1d.svg 를 썼다")
 
-# 로스 곡면을 위한 격자 생성
-w_range = np.linspace(1, 5, 50)
-b_range = np.linspace(0, 4, 50)
-W, B = np.meshgrid(w_range, b_range)
 
-# 각 점에서의 로스 계산
-Z = np.zeros_like(W)
-for i in range(W.shape[0]):
-    for j in range(W.shape[1]):
-        Z[i, j] = compute_loss_2d(W[i, j], B[i, j])
+# ========================================================================
+# 2. 로그 축의 기울기가 수렴률이다
+# ========================================================================
 
-# PyTorch로 경사 하강법 실행
-w = torch.tensor(1.5, requires_grad=True)
-b = torch.tensor(0.5, requires_grad=True)
-learning_rate = 0.1
-n_steps = 30
+def log_slope(runs):
+    header("2. 로그 축의 기울기를 재어 본다")
+    print("  |w_t - 3| = |1-2*eta|^t |w_0 - 3| 이므로")
+    print("  log10|w_t - 3| 는 t 에 대해 직선이고 기울기가 log10|1-2*eta| 다")
+    print("  eta    잰 기울기      log10|1-2*eta|    차이")
+    for lr in (0.1, 0.5, 0.9):
+        if abs(1 - 2 * lr) < 1e-12:
+            print(f"  {lr:<6} (한 걸음에 끝나 직선이 없다)")
+            continue
+        t = run_1d(lr, steps=30)
+        err = np.abs(t - 3)
+        k = np.arange(5, 26)
+        slope = np.polyfit(k, np.log10(err[k]), 1)[0]
+        want = np.log10(abs(1 - 2 * lr))
+        print(f"  {lr:<6} {slope:+12.6f}  {want:+14.6f}  "
+              f"{abs(slope-want):.2e}")
+    print("  두 기울기가 소수점 아래 여섯 자리까지 같다. 그림의 로그 판에서")
+    print("  0.1 의 선과 0.9 의 선은 나란한 정도가 아니라 **포개진다** —")
+    print("  그래서 0.9 를 점선으로 그려야 둘 다 보인다")
+    print("  선형 판에서는 둘이 전혀 다르게 생겼다. 하나는 매끄럽게 내려오고")
+    print("  하나는 좌우로 튕긴다. 같은 속도라는 것을 거기서는 알 수 없다")
 
-# 궤적 저장
-trajectory = [(w.item(), b.item())]
 
-for step in range(n_steps):
-    # 순전파
-    y_pred = w * X_data + b
-    loss = torch.mean((y_pred - y_data) ** 2)
-    
-    # 역전파
-    if w.grad is not None:
-        w.grad.zero_()
-    if b.grad is not None:
-        b.grad.zero_()
-    loss.backward()
-    
-    # 갱신
-    with torch.no_grad():
-        w -= learning_rate * w.grad
-        b -= learning_rate * b.grad
-    
-    trajectory.append((w.item(), b.item()))
+# ========================================================================
+# 3. 두 파라메터 — 경로가 조건수를 보여 준다
+# ========================================================================
 
-# 그림
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+def two_dim():
+    header("3. 파라메터 공간의 경로 (선형 회귀)")
+    torch.manual_seed(42)
+    N = 50
+    x = torch.linspace(0, 10, N)
+    y = 3 * x + 2 + torch.randn(N)
 
-# 등고선 그림
-contour = ax1.contour(W, B, Z, levels=20, cmap='viridis')
-ax1.clabel(contour, inline=True, fontsize=8)
+    def path(center, lr, steps=60, start=(0.0, 0.0)):
+        xx = x - x.mean() if center else x
+        w, b = start
+        out = [(w, b)]
+        for _ in range(steps):
+            pred = w * xx + b
+            gw = float((2 * xx * (pred - y)).mean())
+            gb = float((2 * (pred - y)).mean())
+            w, b = w - lr * gw, b - lr * gb
+            out.append((w, b))
+        return np.array(out), xx
 
-# 궤적 그리기
-w_traj = [p[0] for p in trajectory]
-b_traj = [p[1] for p in trajectory]
-ax1.plot(w_traj, b_traj, 'r.-', linewidth=2, markersize=8, label='GD path')
-ax1.plot(w_traj[0], b_traj[0], 'go', markersize=12, label='Start')
-ax1.plot(w_traj[-1], b_traj[-1], 'r*', markersize=15, label='End')
-ax1.plot(3, 2, 'b*', markersize=15, label='True optimum')
+    ratios, kappas = {}, {}
+    for center, lab in ((False, "그대로  "), (True, "중심화  ")):
+        A = torch.stack([x - x.mean() if center else x, torch.ones(N)], 1)
+        sol = torch.linalg.lstsq(A, y.unsqueeze(1)).solution.flatten()
+        H = 2 * (A.T @ A) / N
+        ev = torch.linalg.eigvalsh(H)
+        p, _ = path(center, 0.01)
+        d0 = np.linalg.norm(p[0] - sol.numpy())
+        d = np.linalg.norm(p[-1] - sol.numpy())
+        ratios[center], kappas[center] = d / d0, float(ev[1] / ev[0])
+        print(f"  {lab} 조건수 {ev[1]/ev[0]:7.1f}   최적해 "
+              f"({sol[0]:.4f}, {sol[1]:.4f})")
+        print(f"           출발 거리 {d0:7.4f} -> 60 걸음 뒤 {d:7.4f}  "
+              f"(남은 비율 {d/d0:.4f})")
+    print("  중심화하면 절편의 뜻이 바뀌어(x=0 이 아니라 x=xbar 에서의 값)")
+    print("  출발 거리가 달라진다. 그러니 남은 비율로 견주어야 한다")
+    print(f"  {ratios[False]:.4f} 대 {ratios[True]:.4f} — 중심화 쪽이 더 많이")
+    print(f"  줄였다. 조건수 {kappas[False]:.1f} 대 {kappas[True]:.1f} 이 그 까닭이다")
+    print("  다만 60 걸음에서의 차이는 크지 않다. 조건수가 정하는 것은")
+    print("  끝까지 가는 데 드는 걸음 수이고, 그 차이는 더 뒤에 벌어진다")
+    print("  그림의 두 판이 비슷해 보이는 것도 그 때문이다. 둘 다 같은")
+    print("  병을 앓는다 — w 쪽으로는 몇 걸음에 가 놓고 b 쪽으로는 60")
+    print("  걸음을 써도 못 닿는다. 빠른 방향과 느린 방향이 따로 있다")
+    print("  이것이 파라메터 공간의 경로를 그리는 까닭이다. 로스 곡선은")
+    print("  두 방향을 하나의 수로 뭉개 놓아 이 구조를 보여 주지 못한다")
 
-ax1.set_xlabel('Weight (w)', fontsize=12)
-ax1.set_ylabel('Bias (b)', fontsize=12)
-ax1.set_title('Loss Surface and Optimization Path', fontsize=14, fontweight='bold')
-ax1.legend()
-ax1.grid(True, alpha=0.3)
+    return path, x, y, N
 
-# 3차원 곡면 그림
-from mpl_toolkits.mplot3d import Axes3D
-ax2 = fig.add_subplot(122, projection='3d')
-ax2.plot_surface(W, B, Z, cmap='viridis', alpha=0.7)
 
-# 궤적을 3차원으로 그리기
-z_traj = [compute_loss_2d(w, b) for w, b in trajectory]
-ax2.plot(w_traj, b_traj, z_traj, 'r.-', linewidth=2, markersize=8)
+def figure_2d(path, x, y, N):
+    fig, axes = plt.subplots(1, 2, figsize=(9.0, 3.8))
+    for ax, center, title in (
+            (axes[0], False, "x as is  (condition number 137)"),
+            (axes[1], True, "x centered  (condition number 8.7)")):
+        p, xx = path(center, 0.01)
+        A = torch.stack([xx, torch.ones(N)], 1)
+        sol = torch.linalg.lstsq(A, y.unsqueeze(1)).solution.flatten().numpy()
 
-ax2.set_xlabel('Weight (w)')
-ax2.set_ylabel('Bias (b)')
-ax2.set_zlabel('Loss')
-ax2.set_title('3D Loss Surface', fontsize=14, fontweight='bold')
+        lo_w, hi_w = min(p[:, 0].min(), sol[0]) - 0.6, max(p[:, 0].max(), sol[0]) + 0.6
+        lo_b, hi_b = min(p[:, 1].min(), sol[1]) - 1.2, max(p[:, 1].max(), sol[1]) + 1.2
+        W, B = np.meshgrid(np.linspace(lo_w, hi_w, 200),
+                           np.linspace(lo_b, hi_b, 200))
+        xn, yn = xx.numpy(), y.numpy()
+        Z = np.mean((W[..., None] * xn + B[..., None] - yn) ** 2, axis=-1)
+        # 등고선 높이를 경로가 지나간 로스에서 뽑는다. 그러지 않으면
+        # 선들이 일이 벌어지지 않는 자리에 몰린다.
+        along = np.mean((p[:, 0:1] * xn + p[:, 1:2] - yn) ** 2, axis=1)
+        lv = np.unique(np.geomspace(max(along.min(), Z.min() + 1e-6),
+                                    along.max(), 12))
+        ax.contour(W, B, Z, levels=lv,
+                   colors=INK, linewidths=0.6, alpha=0.55, zorder=1)
+        ax.plot(p[:, 0], p[:, 1], "o-", color=COLORS[1], ms=2.6, lw=1.0,
+                zorder=3)
+        ax.plot([sol[0]], [sol[1]], "*", color=INK, ms=11, zorder=4)
+        ax.set_xlabel("w (slope)", fontsize=9)
+        ax.set_ylabel("b (intercept)", fontsize=9)
+        ax.set_title(title, fontsize=9.5, weight="bold", color=INK, pad=7)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+    fig.tight_layout()
+    fig.savefig(FIG / "gd_2d.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  figures/gd_2d.svg 를 썼다")
 
-plt.tight_layout()
-plt.savefig('loss_surface_2d.png', dpi=150)
-print("\n✓ 2D loss surface visualization saved")
-plt.show()
 
-# ============================================================================
-# 4부: 수렴 분석
-# ============================================================================
-print("\n" + "="*80)
-print("PART 4: CONVERGENCE ANALYSIS")
-print("="*80)
+# ========================================================================
+# 4. 로스 곡선이 가리는 것
+# ========================================================================
 
-# 반복에 따른 최적점까지의 거리 계산
-distances = [np.sqrt((w - 3)**2 + (b - 2)**2) for w, b in trajectory]
-losses = [compute_loss_2d(w, b) for w, b in trajectory]
+def what_the_curve_hides():
+    header("4. 로스 곡선만 보면 가려지는 것")
+    print("  세 설정을 로스 곡선으로만 보면 모두 '잘 내려간다' 로 보인다")
+    print("  설정              10 걸음 로스   30 걸음 로스   100 걸음 로스")
+    rows = {}
+    for lr, lab, tag in ((0.02, "느림 (eta=0.02) ", "eta = 0.02  (slow)"),
+                         (0.5, "딱 맞음(eta=0.5) ", "eta = 0.5   (exact)"),
+                         (0.97, "거의 경계(0.97) ", "eta = 0.97  (near bound)")):
+        t = run_1d(lr, steps=100)
+        ls = (t - 3) ** 2
+        rows[tag] = ls          # 그림의 범례로 쓰므로 아스키라야 한다
+        print(f"  {lab}  {ls[10]:12.6f}  {ls[30]:12.6f}  {ls[100]:13.6e}")
+    print("  10 걸음에서 느린 쪽 7.07 과 거의 경계 쪽 4.64 는 둘 다 '아직")
+    print("  내려가는 중' 으로 보인다. 30 걸음에서 1.38 과 0.39 다")
+    print("  100 걸음에서 4.55e-03 과 6.76e-05 로 67 배 갈린다")
+    print("  선형 축에서는 이 셋이 모두 바닥에 붙어 구별되지 않는다 —")
+    print("  0.001 과 0.00001 이 눈으로 같은 자리다")
+    print("  로그 축으로 바꾸면 세 직선의 기울기가 서로 다르게 드러난다")
+    return rows
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
-# 최적점까지의 거리
-ax1.plot(distances, 'b-', linewidth=2, marker='o')
-ax1.set_xlabel('Iteration', fontsize=12)
-ax1.set_ylabel('Distance to Optimum', fontsize=12)
-ax1.set_title('Convergence: Distance to Optimal Parameters', fontsize=14, fontweight='bold')
-ax1.grid(True, alpha=0.3)
-ax1.set_yscale('log')
+def figure_curve(rows):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.8, 3.4))
+    for (lab, ls), c in zip(rows.items(), COLORS):
+        ax1.plot(ls, color=c, lw=1.4, label=lab)
+        v = np.maximum(ls, 1e-16)
+        ax2.semilogy(v, color=c, lw=1.4, label=lab)
+    ax1.set_ylim(-1, 20)
+    ax1.set_xlabel("step", fontsize=9)
+    ax1.set_ylabel("loss", fontsize=9)
+    ax1.set_title("linear axis: all three look done", fontsize=9.5,
+                  weight="bold", color=INK, pad=7)
+    ax2.set_xlabel("step", fontsize=9)
+    ax2.set_ylabel("loss (log)", fontsize=9)
+    ax2.set_title("log axis: they are nothing alike", fontsize=9.5,
+                  weight="bold", color=INK, pad=7)
+    for ax in (ax1, ax2):
+        ax.legend(fontsize=7.5, frameon=False)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+    fig.tight_layout()
+    fig.savefig(FIG / "gd_curves.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("  figures/gd_curves.svg 를 썼다")
 
-# 반복에 따른 로스
-ax2.plot(losses, 'g-', linewidth=2, marker='s')
-ax2.set_xlabel('Iteration', fontsize=12)
-ax2.set_ylabel('Loss', fontsize=12)
-ax2.set_title('Loss Reduction Over Iterations', fontsize=14, fontweight='bold')
-ax2.grid(True, alpha=0.3)
-ax2.set_yscale('log')
 
-plt.tight_layout()
-plt.savefig('convergence_analysis.png', dpi=150)
-print("\n✓ Convergence analysis saved")
-plt.show()
-
-print(f"\nFinal parameters: w={w.item():.4f}, b={b.item():.4f}")
-print(f"True parameters:  w=3.0000, b=2.0000")
-print(f"Final loss: {losses[-1]:.6f}")
-
-# ============================================================================
-# 핵심 요점
-# ============================================================================
-print("\n" + "="*80)
-print("KEY TAKEAWAYS")
-print("="*80)
-print("""
-1. 러닝레이트가 종요롭다.
-   • 너무 작으면 더디게 모여든다
-   • 너무 크면 흔들리거나 퍼져 나간다
-   • 알맞으면 매끄럽고 빠르게 모여든다
-
-2. 로스 지형은 복잡할 수 있다.
-   • 1차원: 단순한 포물선
-   • 2차원 넘게: 골짜기, 능선, 안장점
-   • 깊은 망: 차원이 아주 높다!
-
-3. 경사 하강법은 가장 가파르게 내려가는 길을 따른다.
-   • 늘 내리막으로 간다
-   • 바닥에 닿기까지 여러 스텝이 들 수 있다
-   • 길은 비롯한 자리와 러닝레이트에 달렸다
-
-4. 모여드는지 지켜볼 수 있다.
-   • 로스가 때가 갈수록 줄어야 한다
-   • 가장 좋은 자리까지의 거리가 줄어야 한다
-   • 파라메터가 자리를 잡아야 한다
-
-5. 그림으로 보면 이해에 도움이 된다.
-   • 경사 하강법이 무엇을 하는지 본다
-   • 최적화의 탈을 잡는다
-   • 좋은 초파라메터를 고른다
-""")
-
-print("="*80)
-print("CONGRATULATIONS!")
-print("="*80)
-print("""
-1단계를 마쳤다! 이제 다음을 이해한다.
-✓ 경사 하강법이 어떻게 도는가
-✓ PyTorch의 자동 미분
-✓ 뉴럴 넷트웍 익히기
-✓ 최적화를 그림으로 보기
-
-2단계로 갈 채비가 되었는가? 작은 배치, 여세를 비롯해 더 배워 보자!
-""")
-print("="*80)
+def main():
+    FIG.mkdir(exist_ok=True)
+    runs = one_dim()
+    figure_1d(runs)
+    log_slope(runs)
+    path, x, y, N = two_dim()
+    figure_2d(path, x, y, N)
+    rows = what_the_curve_hides()
+    figure_curve(rows)
 
 
 if __name__ == "__main__":
-    pass
+    main()
 ```
 
 **출력:**
 
 ```
-================================================================================
-VISUALIZING GRADIENT DESCENT
-================================================================================
+=== 1. L(w) = (w-3)^2 에서 네 러닝레이트 ===
+  오차가 매 걸음 (1 - 2*eta) 배가 된다
+  eta    1-2*eta   30 걸음 뒤 |w-3|      판정
+  0.1      +0.80       4.951760e-03   수렴
+  0.5      +0.00       0.000000e+00   한 걸음에 끝
+  0.9      -0.80       4.951760e-03   수렴
+  1.1      -1.20       9.495053e+02   발산
 
-================================================================================
-PART 1: 1D QUADRATIC LOSS FUNCTION
-================================================================================
+  0.1 과 0.9 는 |1-2*eta| 가 둘 다 0.8 이다
+  30 걸음 뒤 오차:  0.1 -> 4.951760e-03
+                    0.9 -> 4.951760e-03
+  같은 수다. 가는 모양만 다르고 속도는 같다
+  그림에서 이것은 로그 축으로 보아야 드러난다 —
+  선형 축에서는 둘 다 '금세 0 에 붙는 선' 으로만 보인다
+  figures/gd_1d.svg 를 썼다
 
-✓ Loss landscape visualization saved
+=== 2. 로그 축의 기울기를 재어 본다 ===
+  |w_t - 3| = |1-2*eta|^t |w_0 - 3| 이므로
+  log10|w_t - 3| 는 t 에 대해 직선이고 기울기가 log10|1-2*eta| 다
+  eta    잰 기울기      log10|1-2*eta|    차이
+  0.1       -0.096910       -0.096910  1.94e-16
+  0.5    (한 걸음에 끝나 직선이 없다)
+  0.9       -0.096910       -0.096910  1.39e-16
+  두 기울기가 소수점 아래 여섯 자리까지 같다. 그림의 로그 판에서
+  0.1 의 선과 0.9 의 선은 나란한 정도가 아니라 **포개진다** —
+  그래서 0.9 를 점선으로 그려야 둘 다 보인다
+  선형 판에서는 둘이 전혀 다르게 생겼다. 하나는 매끄럽게 내려오고
+  하나는 좌우로 튕긴다. 같은 속도라는 것을 거기서는 알 수 없다
 
-================================================================================
-PART 2: EFFECT OF LEARNING RATE
-================================================================================
+=== 3. 파라메터 공간의 경로 (선형 회귀) ===
+  그대로   조건수   136.6   최적해 (2.9956, 2.1176)
+           출발 거리  3.6685 -> 60 걸음 뒤  1.2193  (남은 비율 0.3324)
+  중심화   조건수     8.7   최적해 (2.9956, 17.0957)
+           출발 거리 17.3561 -> 60 걸음 뒤  5.0869  (남은 비율 0.2931)
+  중심화하면 절편의 뜻이 바뀌어(x=0 이 아니라 x=xbar 에서의 값)
+  출발 거리가 달라진다. 그러니 남은 비율로 견주어야 한다
+  0.3324 대 0.2931 — 중심화 쪽이 더 많이
+  줄였다. 조건수 136.6 대 8.7 이 그 까닭이다
+  다만 60 걸음에서의 차이는 크지 않다. 조건수가 정하는 것은
+  끝까지 가는 데 드는 걸음 수이고, 그 차이는 더 뒤에 벌어진다
+  그림의 두 판이 비슷해 보이는 것도 그 때문이다. 둘 다 같은
+  병을 앓는다 — w 쪽으로는 몇 걸음에 가 놓고 b 쪽으로는 60
+  걸음을 써도 못 닿는다. 빠른 방향과 느린 방향이 따로 있다
+  이것이 파라메터 공간의 경로를 그리는 까닭이다. 로스 곡선은
+  두 방향을 하나의 수로 뭉개 놓아 이 구조를 보여 주지 못한다
+  figures/gd_2d.svg 를 썼다
 
-✓ Learning rate comparison saved
-
-================================================================================
-PART 3: 2D LOSS SURFACE VISUALIZATION
-================================================================================
-
-✓ 2D loss surface visualization saved
-
-================================================================================
-PART 4: CONVERGENCE ANALYSIS
-================================================================================
-
-✓ Convergence analysis saved
-
-Final parameters: w=2.9988, b=2.0850
-True parameters:  w=3.0000, b=2.0000
-Final loss: 0.211161
-
-================================================================================
-KEY TAKEAWAYS
-================================================================================
-
-1. 러닝레이트가 종요롭다.
-   • 너무 작으면 더디게 모여든다
-   • 너무 크면 흔들리거나 퍼져 나간다
-   • 알맞으면 매끄럽고 빠르게 모여든다
-
-2. 로스 지형은 복잡할 수 있다.
-   • 1차원: 단순한 포물선
-   • 2차원 넘게: 골짜기, 능선, 안장점
-   • 깊은 망: 차원이 아주 높다!
-
-3. 경사 하강법은 가장 가파르게 내려가는 길을 따른다.
-   • 늘 내리막으로 간다
-   • 바닥에 닿기까지 여러 스텝이 들 수 있다
-   • 길은 비롯한 자리와 러닝레이트에 달렸다
-
-4. 모여드는지 지켜볼 수 있다.
-   • 로스가 때가 갈수록 줄어야 한다
-   • 가장 좋은 자리까지의 거리가 줄어야 한다
-   • 파라메터가 자리를 잡아야 한다
-
-5. 그림으로 보면 이해에 도움이 된다.
-   • 경사 하강법이 무엇을 하는지 본다
-   • 최적화의 탈을 잡는다
-   • 좋은 초파라메터를 고른다
-
-================================================================================
-CONGRATULATIONS!
-================================================================================
-
-1단계를 마쳤다! 이제 다음을 이해한다.
-✓ 경사 하강법이 어떻게 도는가
-✓ PyTorch의 자동 미분
-✓ 뉴럴 넷트웍 익히기
-✓ 최적화를 그림으로 보기
-
-2단계로 갈 채비가 되었는가? 작은 배치, 여세를 비롯해 더 배워 보자!
-
-================================================================================
+=== 4. 로스 곡선만 보면 가려지는 것 ===
+  세 설정을 로스 곡선으로만 보면 모두 '잘 내려간다' 로 보인다
+  설정              10 걸음 로스   30 걸음 로스   100 걸음 로스
+  느림 (eta=0.02)       7.072039      1.381637   4.553723e-03
+  딱 맞음(eta=0.5)       0.000000      0.000000   0.000000e+00
+  거의 경계(0.97)       4.641700      0.390653   6.756017e-05
+  10 걸음에서 느린 쪽 7.07 과 거의 경계 쪽 4.64 는 둘 다 '아직
+  내려가는 중' 으로 보인다. 30 걸음에서 1.38 과 0.39 다
+  100 걸음에서 4.55e-03 과 6.76e-05 로 67 배 갈린다
+  선형 축에서는 이 셋이 모두 바닥에 붙어 구별되지 않는다 —
+  0.001 과 0.00001 이 눈으로 같은 자리다
+  로그 축으로 바꾸면 세 직선의 기울기가 서로 다르게 드러난다
+  figures/gd_curves.svg 를 썼다
 ```
 
-## 2. 논의
-
-### 일차원 예제의 정확한 기준
-
-$L(w)=(w-3)^2$에서는 $w_{t+1}-3=(1-2\eta)(w_t-3)$이다. 따라서 $0<\eta<1$이면 수렴한다. 러닝레이트 0.1은 한쪽에서 접근하고, 0.5는 한 번에 최솟값에 도달하며, 0.9는 양쪽을 오가면서 수렴한다. 1.1은 진동 폭이 커지며 발산한다.
-
-그림의 상태 표시는 유한한 반복 뒤의 거리로 분류한 것이다. 진동한다는 사실만으로 비수렴이라고 판단하면 안 된다. 또한 축 범위 밖으로 벗어난 경로는 그림에서 잘릴 수 있으므로 로스와 파라미터 수치도 함께 살펴본다.
-
-### 두 파라미터의 경로
-
-선형 회귀의 웨이트 $w$와 절편 $b$를 축으로 두면 등고선은 같은 로스를 주는 조합을 나타낸다. 음의 경사는 현재 지점에서 로스를 가장 빠르게 줄이는 국소 방향이며, 최솟값까지의 직선 방향과 항상 같지는 않다.
-
-코드의 거리 지표는 표본 로스의 실제 최적해가 아니라 데이터 생성 규칙 $(3,2)$까지의 거리를 사용한다. 잡음과 유한 표본 때문에 학습 로스의 최적점이 이 지점과 다를 수 있다. 따라서 이 거리가 0에 가까워지는지만으로 수렴을 판단하지 않는다.
+---
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
+어떤 로스 곡선을 로그 축에 그렸더니 직선 구간의 기울기가 $-0.05$였다(상용로그, $x$축은 걸음). (a) 한 걸음에 로스가 몇 배가 되는가? (b) 로스를 100분의 1로 줄이려면 몇 걸음이 더 필요한가?
 
 </div>
 
 ??? success "풀이"
-    ```python
-    import torch
+    (a) 기울기가 $-0.05$라는 것은 한 걸음에 $\log_{10}(\text{로스})$가 0.05씩 준다는 뜻이다. 따라서 한 걸음에
 
-    x = torch.tensor(3.0, requires_grad=True)
-    f = x**3 - 2*x**2 + x
-    f.backward()
-    print(x.grad)  # f'(x) = 3x^2 - 4x + 1 = 27 - 12 + 1 = 16.0
-    ```
+    $$10^{-0.05} \approx 0.891$$
+
+    배가 된다. 걸음마다 약 11%씩 준다.
+
+    (b) 100분의 1은 $\log_{10}$으로 $-2$다. 기울기가 $-0.05$이므로
+
+    $$\frac{-2}{-0.05} = 40\ \text{걸음}$$
+
+    이다.
+
+    **로그 축이 유용한 까닭이 이것이다.** 직선이면 자만 대면 "앞으로 얼마나 더 돌려야 하는지"가 나온다. 선형 축에서는 같은 곡선이 바닥에 붙어 있어 아무것도 읽을 수 없다.
+
+    다만 직선이 **계속 직선일 때만** 쓸 수 있는 셈이다. 실제 학습에서는 평평해지거나 꺾이는 일이 흔하므로, 외삽한 걸음 수는 하한으로 보아야 한다.
 
 ---
-
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-제곱합처럼 저장된 중간값이 필요한 로스에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+본문 1절에서 $\eta = 0.5$의 30걸음 뒤 오차가 정확히 `0.000000e+00`이었다. 로그 축에 이 값을 그리려 하면 어떤 문제가 생기는가? 코드가 어떻게 피했는지 찾아보고, 다른 방법도 생각해 보라.
 
 </div>
 
 ??? success "풀이"
-    기본 역전파는 사용을 마친 저장 텐서를 해제한다. 같은 그래프의 두 번째 역전파에 이 값들이 필요하면 `RuntimeError`가 발생한다. 저장 텐서가 필요 없는 단순 연산은 반복 호출이 가능할 수도 있으므로 모든 그래프에서 반드시 오류가 나는 것은 아니다. 첫 호출의 `retain_graph=True`는 필요한 중간 결과를 보존해 재사용을 가능하게 하지만 그만큼 메모리를 더 오래 사용한다. `.grad` 초기화는 이 보존 여부와 별개의 작업이다.
+    $\log(0) = -\infty$이므로 로그 축에 0을 찍을 수 없다. matplotlib은 그 점을 조용히 버리고, 그러면 선이 끊기거나 아예 사라진다.
+
+    코드는 이렇게 피했다.
+
+    ```python
+    err = np.abs(t - 3)
+    err[err < 1e-16] = 1e-16            # 로그 축에 0 을 못 찍는다
+    ```
+
+    바닥을 $10^{-16}$으로 깔아 둔 것이다. 그림에서 $\eta=0.5$의 선이 첫 걸음에 아래로 수직 낙하하는 것이 이 때문이다.
+
+    **다른 방법들.**
+
+    - **`symlog` 축을 쓴다.** 0 근처에서는 선형, 멀어지면 로그로 바뀌는 축이다. 0을 그대로 찍을 수 있지만 축을 읽기가 까다롭다
+    - **작은 값을 더한다.** `np.log10(err + 1e-16)`. 결과는 비슷하지만, 바닥으로 깎는 쪽이 원래 값에 손을 대지 않으므로 더 정직하다
+    - **아예 그리지 않는다.** 정확히 수렴한 경우는 "1걸음에 수렴"이라고 적는 편이 그림보다 분명하다
+
+    **어느 쪽을 고르든 바닥값을 그림이나 설명에 밝혀야 한다.** 밝히지 않으면 $10^{-16}$이 실제로 도달한 정밀도처럼 읽힌다. float32를 쓰는 학습에서는 $10^{-7}$ 아래가 이미 의미 없는 수인데도 그림에는 그럴듯한 직선으로 나온다.
 
 ---
-
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+본문 4절의 $\eta = 0.97$이 $\eta = 0.02$보다 100걸음에서 67배 낮은 로스를 준다. 그렇다면 0.97이 더 좋은 러닝레이트인가? 수렴 경계와 함께 판단하라.
 
 </div>
 
 ??? success "풀이"
-    ```python
-    import torch
+    $L(w) = (w-3)^2$의 수렴 조건은 $|1-2\eta| < 1$, 곧 $0 < \eta < 1$이다.
 
-    w = torch.tensor(2.0, requires_grad=True)
-    for i in range(3):
-        loss = (w ** 2).sum()
-        loss.backward()
-        print(f'After backward {i+1}: w.grad = {w.grad}')
-    # 출력: 4.0, 8.0, 12.0
-    # 경사가 누적된다. 매 backward가 기존 경사에 2*w = 4.0을 더한다.
-    ```
+    - $\eta = 0.02$: $1-2\eta = +0.96$. 한 걸음에 4%씩 준다
+    - $\eta = 0.97$: $1-2\eta = -0.94$. 한 걸음에 6%씩 준다(부호가 바뀌며)
+
+    **이 문제에서는 0.97이 실제로 더 빠르다.** 67배 차이가 그것이다.
+
+    그러나 0.97을 고르는 것은 나쁜 선택이다. 경계가 1.0이므로 **여유가 3%뿐** 이다. 문제가 조금만 달라져도 — 자료를 더 모아 곡률이 커지거나, 입력의 척도가 바뀌거나, 미니배치라 경사가 흔들리면 — 바로 경계를 넘는다.
+
+    0.02 역시 좋은 선택이 아니다. 최적값 0.5에서 25배나 떨어져 있다.
+
+    **읽을 것은 이렇다. 로스 곡선의 높낮이만으로 러닝레이트를 고르면 안 된다.** 경계에 바짝 붙은 값이 짧은 실험에서는 가장 좋아 보이기 쉽다. 고를 때는 성능과 **여유** 를 함께 본다. $\eta = 0.5$가 좋은 까닭은 빨라서이기도 하지만 양쪽 경계(0과 1)에서 가장 멀어서이기도 하다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
+본문 3절의 그림에서 두 경로가 모두 "오른쪽으로 달린 뒤 위로 기어오르는" 모양이었다. 이 모양이 헤세 행렬의 고유벡터와 어떤 관계인지 설명하고, 경로가 꺾이는 지점이 무엇을 뜻하는지 말하라.
+
+</div>
+
+??? success "풀이"
+    이차 로스에서 오차 $e_t = \theta_t - \theta^*$는 갱신마다
+
+    $$e_{t+1} = (I - \eta H)\,e_t$$
+
+    를 따른다. $H$의 고유분해를 $H = \sum_i \lambda_i v_i v_i^\top$라 하면, 오차를 고유벡터로 분해한 성분 $c_i = v_i^\top e_t$ 각각이 **서로 섞이지 않고 따로** 간다.
+
+    $$c_i^{(t)} = (1-\eta\lambda_i)^t\, c_i^{(0)}$$
+
+    곧 $d$차원 문제가 $d$개의 1차원 문제로 쪼개진다. 1절에서 본 $(1-2\eta)^t$가 각 고유방향마다 하나씩 있는 셈이다.
+
+    **경로의 모양이 여기서 나온다.** 큰 고윳값 $\lambda_{\max} = 68.5$ 방향은 $(1 - 0.01 \times 68.5) = 0.315$배씩 주므로 **몇 걸음 만에 사라진다.** 작은 고윳값 $\lambda_{\min} = 0.496$ 방향은 $(1 - 0.01 \times 0.496) = 0.995$배씩이라 **거의 안 준다.**
+
+    그래서 경로가 두 토막이 된다.
+
+    1. **처음 몇 걸음** — 큰 고윳값 성분이 빠르게 죽는다. 이 방향이 대체로 $w$ 축에 가까우므로 경로가 오른쪽으로 달린다
+    2. **꺾인 뒤** — 큰 성분은 이미 0에 가깝고 작은 성분만 남는다. 남은 성분의 고유벡터 방향으로 천천히 기어간다
+
+    **꺾이는 지점이 뜻하는 것.** 그 자리에서 빠른 방향의 오차가 느린 방향의 오차보다 작아진다. 그 뒤로는 **움직이는 방향이 거의 고정된다** — 가장 작은 고윳값의 고유벡터 방향이다. 그림에서 경로가 거의 직선으로 기어오르는 구간이 그것이다.
+
+    수렴 속도를 정하는 것도 이 뒤쪽 구간이다. 전체 수렴률이 $\max_i |1-\eta\lambda_i|$인 까닭이 여기 있다 — 가장 늦게 죽는 성분이 전부를 기다리게 만든다.
+
+    **실무에서 이 모양을 보면 할 일.** 로스가 빠르게 떨어지다가 갑자기 평평해지면 대개 모델이 수렴한 것이 아니라 이 꺾임에 들어선 것이다. 러닝레이트를 키우는 것은 답이 아니다 — 큰 고윳값 방향이 $|1-\eta\lambda_{\max}| > 1$이 되어 터진다. 조건수를 줄이거나(입력 정규화), 방향마다 걸음을 다르게 주거나(Adam), 관성을 쓰는(모멘텀) 쪽이 답이다.
+
+---
 
 ## 정리하며
 
-경로 그림은 러닝레이트와 곡률의 상호작용을 보여준다. 진동 여부와 수렴 여부, 생성 규칙까지의 거리와 표본 로스의 최적성을 구분해 읽는다.
+1. **선형 축은 모양을, 로그 축은 속도를 보여 준다**: $\eta=0.1$과 $0.9$는 선형 축에서 전혀 달라 보이지만 로그 축에서는 포개진다
+2. **로그 축의 기울기가 곧 수렴률이다**: 잰 기울기 $-0.096910$이 $\log_{10}|1-2\eta|$와 여섯 자리까지 같고, 거기서 앞으로 몇 걸음이 더 필요한지가 나온다
+3. **로스 곡선은 로그 축으로 그린다**: 선형 축에서는 100걸음의 67배 차이가 전부 바닥에 붙어 보이지 않는다
+4. **파라메터 공간의 경로는 로스 곡선이 뭉갠 구조를 드러낸다**: $w$는 다 왔고 $b$만 못 왔다는 사실은 로스 하나로는 알 수 없다
+5. **경로가 꺾이는 곳이 빠른 방향이 죽은 지점이다**: 그 뒤로는 가장 작은 고윳값의 고유벡터 방향으로만 기어간다
+6. **그림으로 판정하지 말고 수로 판정한다**: 축 밖으로 나간 경로는 잘려서, 발산이 "심한 진동"처럼 보인다
+7. **로그 축에 0을 찍을 수 없다**: 바닥값을 깔았다면 그 값을 반드시 밝힌다. 안 그러면 $10^{-16}$이 도달한 정밀도처럼 읽힌다
+
+**참고 문헌**
+
+- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*, Chapter 8.
+- Li, H., et al. (2018). Visualizing the loss landscape of neural nets. *NeurIPS*.
