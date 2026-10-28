@@ -162,26 +162,27 @@ def train_vae(k, beta, cond):
     return m.eval()
 
 
-# === 부호 64에서 beta 만 바꾸어 가며 ========================================
-for beta in (0.5, 1.0, 4.0):
-    m = train_vae(64, beta=beta, cond=False)
+if __name__ == "__main__":
+  # === 부호 64에서 beta 만 바꾸어 가며 ========================================
+  for beta in (0.5, 1.0, 4.0):
+      m = train_vae(64, beta=beta, cond=False)
 
-    with torch.no_grad():
-        rec = torch.cat([m.decode(m.encode(Xte[i:i + 1000].to(device))[0]).cpu()
-                         for i in range(0, len(Xte), 1000)])
-        g = torch.Generator().manual_seed(SEED)
-        z = torch.randn(N_SAMPLE, 64, generator=g)
-        s = torch.cat([m.decode(z[i:i + 1000].to(device)).cpu()
-                       for i in range(0, N_SAMPLE, 1000)])
+      with torch.no_grad():
+          rec = torch.cat([m.decode(m.encode(Xte[i:i + 1000].to(device))[0]).cpu()
+                           for i in range(0, len(Xte), 1000)])
+          g = torch.Generator().manual_seed(SEED)
+          z = torch.randn(N_SAMPLE, 64, generator=g)
+          s = torch.cat([m.decode(z[i:i + 1000].to(device)).cpu()
+                         for i in range(0, N_SAMPLE, 1000)])
 
-    pred = judge_probs(rec).argmax(1)
-    ident = 100.0 * (pred == yte).float().mean()
-    conf, bal, _ = sample_stats(s)
-    # 3절이 "확인해야 한다"고 적어 둔 셋째 자
-    div = within_class_var(to01(s), judge_probs(s).argmax(1)) / REAL_VAR
-    print(f"  vae64_beta{beta}  복원 {((rec - Xte) ** 2).mean():.5f}  "
-          f"정체 {ident:.2f}%  확신도 {conf:.3f}  고름 {bal:.3f}  "
-          f"클래스 안 다양함 {div:.3f}")
+      pred = judge_probs(rec).argmax(1)
+      ident = 100.0 * (pred == yte).float().mean()
+      conf, bal, _ = sample_stats(s)
+      # 3절이 "확인해야 한다"고 적어 둔 셋째 자
+      div = within_class_var(to01(s), judge_probs(s).argmax(1)) / REAL_VAR
+      print(f"  vae64_beta{beta}  복원 {((rec - Xte) ** 2).mean():.5f}  "
+            f"정체 {ident:.2f}%  확신도 {conf:.3f}  고름 {bal:.3f}  "
+            f"클래스 안 다양함 {div:.3f}")
 ```
 
 **출력:**

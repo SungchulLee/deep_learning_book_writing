@@ -150,40 +150,41 @@ def train_vae(k, beta, cond):
     return m.eval()
 
 
-# === 라벨을 인코더와 디코더 양쪽에 넣는다 ===================================
-for k in (2, 64):
-    m = train_vae(k, beta=1.0, cond=True)
+if __name__ == "__main__":
+  # === 라벨을 인코더와 디코더 양쪽에 넣는다 ===================================
+  for k in (2, 64):
+      m = train_vae(k, beta=1.0, cond=True)
 
-    with torch.no_grad():
-        # 복원: 진짜 라벨을 함께 준다 (그래서 정체가 부풀려진다)
-        rec = torch.cat([
-            m.decode(m.encode(Xte[i:i + 1000].to(device),
-                              onehot(yte[i:i + 1000]).to(device))[0],
-                     onehot(yte[i:i + 1000]).to(device)).cpu()
-            for i in range(0, len(Xte), 1000)])
+      with torch.no_grad():
+          # 복원: 진짜 라벨을 함께 준다 (그래서 정체가 부풀려진다)
+          rec = torch.cat([
+              m.decode(m.encode(Xte[i:i + 1000].to(device),
+                                onehot(yte[i:i + 1000]).to(device))[0],
+                       onehot(yte[i:i + 1000]).to(device)).cpu()
+              for i in range(0, len(Xte), 1000)])
 
-        # 만들기: 열 가지를 고루 요청하고, 그대로 나왔는지 심판에게 묻는다
-        g = torch.Generator().manual_seed(SEED)
-        z = torch.randn(N_SAMPLE, k, generator=g)
-        want = torch.arange(N_SAMPLE) % 10
-        c = onehot(want)
-        s = torch.cat([m.decode(z[i:i + 1000].to(device),
-                                c[i:i + 1000].to(device)).cpu()
-                       for i in range(0, N_SAMPLE, 1000)])
+          # 만들기: 열 가지를 고루 요청하고, 그대로 나왔는지 심판에게 묻는다
+          g = torch.Generator().manual_seed(SEED)
+          z = torch.randn(N_SAMPLE, k, generator=g)
+          want = torch.arange(N_SAMPLE) % 10
+          c = onehot(want)
+          s = torch.cat([m.decode(z[i:i + 1000].to(device),
+                                  c[i:i + 1000].to(device)).cpu()
+                         for i in range(0, N_SAMPLE, 1000)])
 
-    got = judge_probs(s).argmax(1)
-    cond_acc = 100.0 * (got == want).float().mean()
-    # 클래스 안 다양함 — 3절이 "확인해야 한다"고 적어 둔 자다
-    div = within_class_var(to01(s), got) / REAL_VAR
-    # 정체와 고름도 함께 찍는다. 3절이 이 두 수를 읽지 말라고 말하기 위해서다
-    ident = 100.0 * (judge_probs(rec).argmax(1) == yte).float().mean()
-    conf, bal, _ = sample_stats(s)
-    tag = f"cvae{k}"
-    # 확신도도 찍는다. 절 첫 쪽의 표가 이 값을 인용하므로, 어느 쪽에서도
-    # 찍지 않으면 읽는 이가 그 수를 다시 얻을 길이 없다
-    print(f"  {tag:7s} 복원 {((rec - Xte) ** 2).mean():.5f}  "
-          f"조건 정확도 {cond_acc:.2f}%  정체 {ident:.2f}%  "
-          f"확신도 {conf:.3f}  고름 {bal:.3f}  클래스 안 다양함 {div:.3f}")
+      got = judge_probs(s).argmax(1)
+      cond_acc = 100.0 * (got == want).float().mean()
+      # 클래스 안 다양함 — 3절이 "확인해야 한다"고 적어 둔 자다
+      div = within_class_var(to01(s), got) / REAL_VAR
+      # 정체와 고름도 함께 찍는다. 3절이 이 두 수를 읽지 말라고 말하기 위해서다
+      ident = 100.0 * (judge_probs(rec).argmax(1) == yte).float().mean()
+      conf, bal, _ = sample_stats(s)
+      tag = f"cvae{k}"
+      # 확신도도 찍는다. 절 첫 쪽의 표가 이 값을 인용하므로, 어느 쪽에서도
+      # 찍지 않으면 읽는 이가 그 수를 다시 얻을 길이 없다
+      print(f"  {tag:7s} 복원 {((rec - Xte) ** 2).mean():.5f}  "
+            f"조건 정확도 {cond_acc:.2f}%  정체 {ident:.2f}%  "
+            f"확신도 {conf:.3f}  고름 {bal:.3f}  클래스 안 다양함 {div:.3f}")
 ```
 
 **출력:**

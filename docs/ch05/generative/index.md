@@ -108,53 +108,54 @@ def evaluate(samples_pm1, tag):
           f"최대몫 {share.max():.3f}  클래스안 다양함 {wv / REAL_VAR:.3f}", flush=True)
 
 
-# === 앞 절 모델을 새 자로 다시 잰다 =========================================
-class MLPAE(nn.Module):
-    def __init__(self, k):
-        super().__init__()
-        self.enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU(), nn.Linear(256, k))
-        self.dec = nn.Sequential(nn.Linear(k, 256), nn.ReLU(), nn.Linear(256, 784))
+if __name__ == "__main__":
+  # === 앞 절 모델을 새 자로 다시 잰다 =========================================
+  class MLPAE(nn.Module):
+      def __init__(self, k):
+          super().__init__()
+          self.enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU(), nn.Linear(256, k))
+          self.dec = nn.Sequential(nn.Linear(k, 256), nn.ReLU(), nn.Linear(256, 784))
 
 
-class VAEModel(nn.Module):
-    def __init__(self, k):
-        super().__init__()
-        self.enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU())
-        self.mu = nn.Linear(256, k); self.logvar = nn.Linear(256, k)
-        self.dec = nn.Sequential(nn.Linear(k, 256), nn.ReLU(), nn.Linear(256, 784))
+  class VAEModel(nn.Module):
+      def __init__(self, k):
+          super().__init__()
+          self.enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU())
+          self.mu = nn.Linear(256, k); self.logvar = nn.Linear(256, k)
+          self.dec = nn.Sequential(nn.Linear(k, 256), nn.ReLU(), nn.Linear(256, 784))
 
 
-def judge_space_to_pm1(x):
-    """앞 절 모델은 심판 정규화 공간에서 내놓는다. [0,1]로 자른 뒤 [-1,1]로."""
-    return ((x * JS + JM).clamp(0, 1) * 2) - 1
+  def judge_space_to_pm1(x):
+      """앞 절 모델은 심판 정규화 공간에서 내놓는다. [0,1]로 자른 뒤 [-1,1]로."""
+      return ((x * JS + JM).clamp(0, 1) * 2) - 1
 
 
-print(f"진짜 자료의 클래스 안 화소 분산 {REAL_VAR:.5f}  (기준선 = 1.00)")
-print("\n=== 앞 절 모델을 새 자로 ===")
+  print(f"진짜 자료의 클래스 안 화소 분산 {REAL_VAR:.5f}  (기준선 = 1.00)")
+  print("\n=== 앞 절 모델을 새 자로 ===")
 
-Xte_j = ((Xte + 1) / 2 - JM) / JS               # 앞 절 모델이 기대하는 공간
+  Xte_j = ((Xte + 1) / 2 - JM) / JS               # 앞 절 모델이 기대하는 공간
 
-# 오토인코더 — 뽑을 앞분포가 없으므로 부호의 평균과 표준편차를 재어 쓴다
-ae = MLPAE(64).to(device)
-ae.load_state_dict(torch.load("mnist_ae_mlp64.pt", weights_only=True)); ae.eval()
-with torch.no_grad():
-    zr = torch.cat([ae.enc(Xte_j.flatten(1)[i:i + 1000].to(device)).cpu()
-                    for i in range(0, len(Xte), 1000)])
-    g = torch.Generator().manual_seed(SEED)
-    z = torch.randn(N_SAMPLE, 64, generator=g) * zr.std(0) + zr.mean(0)
-    s = torch.cat([ae.dec(z[i:i + 1000].to(device)).cpu()
-                   for i in range(0, N_SAMPLE, 1000)])
-evaluate(judge_space_to_pm1(s).reshape(-1, 1, 28, 28), "AE_MLP-64")
+  # 오토인코더 — 뽑을 앞분포가 없으므로 부호의 평균과 표준편차를 재어 쓴다
+  ae = MLPAE(64).to(device)
+  ae.load_state_dict(torch.load("mnist_ae_mlp64.pt", weights_only=True)); ae.eval()
+  with torch.no_grad():
+      zr = torch.cat([ae.enc(Xte_j.flatten(1)[i:i + 1000].to(device)).cpu()
+                      for i in range(0, len(Xte), 1000)])
+      g = torch.Generator().manual_seed(SEED)
+      z = torch.randn(N_SAMPLE, 64, generator=g) * zr.std(0) + zr.mean(0)
+      s = torch.cat([ae.dec(z[i:i + 1000].to(device)).cpu()
+                     for i in range(0, N_SAMPLE, 1000)])
+  evaluate(judge_space_to_pm1(s).reshape(-1, 1, 28, 28), "AE_MLP-64")
 
-# VAE — 앞분포 N(0, I)에서 그냥 뽑는다
-v = VAEModel(64).to(device)
-v.load_state_dict(torch.load("mnist_vae64_beta1.0.pt", weights_only=True)); v.eval()
-with torch.no_grad():
-    g = torch.Generator().manual_seed(SEED)
-    z = torch.randn(N_SAMPLE, 64, generator=g)
-    s = torch.cat([v.dec(z[i:i + 1000].to(device)).cpu()
-                   for i in range(0, N_SAMPLE, 1000)])
-evaluate(judge_space_to_pm1(s).reshape(-1, 1, 28, 28), "VAE-64")
+  # VAE — 앞분포 N(0, I)에서 그냥 뽑는다
+  v = VAEModel(64).to(device)
+  v.load_state_dict(torch.load("mnist_vae64_beta1.0.pt", weights_only=True)); v.eval()
+  with torch.no_grad():
+      g = torch.Generator().manual_seed(SEED)
+      z = torch.randn(N_SAMPLE, 64, generator=g)
+      s = torch.cat([v.dec(z[i:i + 1000].to(device)).cpu()
+                     for i in range(0, N_SAMPLE, 1000)])
+  evaluate(judge_space_to_pm1(s).reshape(-1, 1, 28, 28), "VAE-64")
 ```
 
 **출력:**
