@@ -339,6 +339,65 @@ def fig_vgg16_layers():
     print("  vgg16_layers.svg")
 
 
+def draw_imagenet_labour():
+    """ILSVRC 우승 오차의 꺾임과, 이 절이 얼려 쓰는 수가 어디서 왔는지.
+
+    「그림으로 보는 AI」 상자의 그림이다. 사진을 빌려 오지 않고 이 책의
+    그림체로 그린다 — 규칙은 CLAUDE.md 의 그 항에 적어 두었다.
+    """
+    from matplotlib.patches import FancyArrowPatch, Rectangle
+    INK = "#2b2b2b"
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.0, 4.2),
+                                   gridspec_kw={"width_ratios": [1, 1.25]})
+
+    # === 왼쪽: 우승 오차 =========================================================
+    years = [2010, 2011, 2012]
+    err = [28.2, 25.0, 15.3]
+    axL.plot(years[:2], err[:2], marker="o", ms=5, color=INK, lw=1.3)
+    axL.plot(years[1:], err[1:], color="crimson", lw=1.6)
+    axL.plot(years[1], err[1], marker="o", ms=5, color=INK)      # 2011도 손으로 만든 피처다
+    axL.plot(years[2], err[2], marker="o", ms=5, color="crimson")
+    for x, y in zip(years, err):
+        axL.text(x, y + 1.5, f"{y}%", ha="center", fontsize=9, color=INK)
+    axL.text(2010.5, 31.5, "hand-designed features", ha="center", fontsize=8.4, color=INK)
+    axL.text(2012, 11.0, "deep CNN", ha="center", fontsize=8.6, color="crimson")
+    axL.set_xticks(years); axL.set_xlim(2009.6, 2012.5); axL.set_ylim(8, 34)
+    axL.set_ylabel("ILSVRC top-5 error", fontsize=9, color=INK)
+    axL.tick_params(labelsize=8.5, colors=INK)
+    for s in ("top", "right"): axL.spines[s].set_visible(False)
+    for s in ("left", "bottom"): axL.spines[s].set_color(INK)
+
+    # === 오른쪽: 그 수가 어디서 왔는가 ==========================================
+    axR.set_xlim(0, 10); axR.set_ylim(0, 10); axR.axis("off")
+    rows = [
+        (8.9, "49,000 workers in 167 countries"),
+        (8.1, "July 2008 - April 2010"),
+        (7.3, "160M candidate images screened"),
+        (6.5, "each kept image labelled three times"),
+    ]
+    for y, s in rows:
+        axR.text(0.3, y, s, fontsize=8.8, color=INK)
+    axR.plot([0.2, 9.8], [5.95, 5.95], color=INK, lw=0.7)
+
+    axR.text(0.3, 5.25, "ILSVRC subset", fontsize=8.8, color=INK, style="italic")
+    axR.text(0.3, 4.55, "1,281,167 images,  1,000 classes", fontsize=8.8, color=INK)
+
+    axR.add_patch(FancyArrowPatch((5.0, 4.15), (5.0, 3.35), arrowstyle="-|>",
+                                  mutation_scale=11, color=INK, lw=1.1))
+    axR.add_patch(Rectangle((0.3, 2.0), 9.4, 1.25, fill=False, ec=INK, lw=1.3))
+    axR.text(5.0, 2.62, "VGG16 backbone:  134,260,544 frozen numbers",
+             ha="center", va="center", fontsize=9.2, color=INK)
+
+    axR.add_patch(FancyArrowPatch((5.0, 1.85), (5.0, 1.15), arrowstyle="-|>",
+                                  mutation_scale=11, color=INK, lw=1.1))
+    axR.text(5.0, 0.75, "this page learns 40,970", ha="center", fontsize=9.2,
+             color="crimson")
+    axR.text(5.0, 0.2, "0.03% of the model", ha="center", fontsize=8.4, color=INK)
+
+    fig.subplots_adjust(left=0.08, right=0.99, top=0.96, bottom=0.1, wspace=0.18)
+    return fig
+
+
 if __name__ == "__main__":
     fig_class_mean_templates()
     fig_vgg16_conv1()
