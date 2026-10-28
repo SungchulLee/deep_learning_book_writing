@@ -1,345 +1,334 @@
-# 메모리 관리 - 메모리 사용 최적화
+# 기억 자리 다루기 — 무엇이 자리를 잡고 있는가
 
-학습 메모리는 파라미터뿐 아니라 경사, 옵티마이저 상태, 역전파용 엑티베이션에도 사용된다. 뷰와 사본, 추적 제어, 엑티베이션 체크포인팅이 각각 어떤 비용을 바꾸는지 살펴본다.
+텐서 하나가 잡는 자리는 셈으로 나온다. 그런데 학습 중에 터지는 것은 대개 텐서가 아니라 **역전파가 쥐고 있는 중간값**이다. 이 쪽은 그 둘을 가르고, 자리를 줄이는 두 가지 — 그래디언트 쌓기와 체크포인트 — 가 무엇을 값으로 치르는지 **재어 본다.**
 
 ## 1. 코드
 
 ```python
-"""튜토리얼 25: 기억 자리 다루기 - 기억 자리 씀씀이 다듬기"""
+"""튜토리얼 25: 기억 자리 다루기 — 무엇이 자리를 잡고 있는가."""
+import time
+
 import torch
 import torch.nn as nn
-# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
-# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+from torch.utils.checkpoint import checkpoint
+
 torch.manual_seed(0)
 
-# ========================================================================
-# 메인
-# ========================================================================
 
-def header(title): print(f"\n{'='*70}\n{title}\n{'='*70}")
+def header(title):
+    print(f"\n{'='*70}\n{title}\n{'='*70}")
+
+
+class Deep(nn.Module):
+    """같은 블록을 n 번 쌓은 것. 체크포인트를 켜고 끌 수 있다."""
+
+    def __init__(self, n=16, width=256):
+        super().__init__()
+        self.blocks = nn.ModuleList(
+            [nn.Sequential(nn.Linear(width, width), nn.ReLU()) for _ in range(n)])
+
+    def forward(self, x, every=0):
+        for i, b in enumerate(self.blocks):
+            use = every and (i % every == 0)
+            x = checkpoint(b, x, use_reentrant=False) if use else b(x)
+        return x
+
+
+def saved_kb(net, x, every):
+    """역전파가 끝날 때까지 **저장해 둔** 텐서의 크기를 센다."""
+    sizes = []
+    with torch.autograd.graph.saved_tensors_hooks(
+            lambda t: (sizes.append(t.numel()), t)[1], lambda t: t):
+        net(x, every=every).sum().backward()
+    return sum(sizes) * 4 / 1024
+
+
+def ms(net, x, every, reps=5):
+    for _ in range(2):
+        net(x, every=every).sum().backward()      # 데우기
+    t0 = time.perf_counter()
+    for _ in range(reps):
+        net.zero_grad()
+        net(x, every=every).sum().backward()
+    return (time.perf_counter() - t0) / reps * 1e3
+
 
 def main():
-    header("1. Understanding Memory Usage")
+    header("1. 텐서 하나가 잡는 자리는 셈으로 나온다")
     x = torch.randn(1000, 1000)
-    memory_bytes = x.element_size() * x.nelement()
-    memory_mb = memory_bytes / (1024 ** 2)
-    print(f"Tensor shape: {x.shape}")
-    print(f"Element size: {x.element_size()} bytes")
-    print(f"Number of elements: {x.nelement()}")
-    print(f"Total memory: {memory_mb:.2f} MB")
-    
-    header("2. In-place Operations Save Memory")
+    print(f"모양 {tuple(x.shape)}  원소 {x.nelement():,}개  하나당 {x.element_size()} 바이트")
+    print(f"= {x.element_size() * x.nelement() / 1024**2:.2f} MB")
+    print(f"float16 이면 {torch.randn(1000, 1000, dtype=torch.float16).element_size() * x.nelement() / 1024**2:.2f} MB")
+
+    header("2. 제자리 연산은 새 자리를 잡지 않는다")
     x = torch.randn(1000, 1000)
-    # data_ptr()가 돌려주는 번지 값은 돌릴 때마다, 기계마다 다르다. 그래서 번지
-    # 자체는 싣지 않고, 뜻이 있는 것 — 같은 저장소를 쓰는가 — 만 견주어 찍는다
-    x_storage = x.data_ptr()
-    first = x[0, 0].item()
+    ptr, first = x.data_ptr(), x[0, 0].item()
+    y = x + 1
+    print(f"x + 1   -> 같은 저장소인가 {y.data_ptr() == ptr}   x 가 바뀌었나 {x[0,0].item() != first}")
+    x.add_(1)
+    print(f"x.add_(1) -> 같은 저장소인가 {x.data_ptr() == ptr}   x 가 바뀌었나 {x[0,0].item() != first}")
 
-    y = x + 1  # Creates new tensor
-    print(f"x + 1 -> same object as x?    {y is x}")
-    print(f"x + 1 -> same storage as x?   {y.data_ptr() == x_storage}")
-    print(f"x left unchanged by x + 1?    {x[0, 0].item() == first}")
-
-    x.add_(1)  # In-place operation
-    print(f"x.add_(1) -> same storage?    {x.data_ptr() == x_storage}")
-    print(f"x changed in place?           {abs(x[0, 0].item() - (first + 1)) < 1e-6}")
-    print("In-place operations modify tensor without creating a copy!")
-    
-    header("3. Detaching from Computation Graph")
+    header("3. 그래프를 들고 있는 것이 자리를 잡는다")
     x = torch.randn(100, 100, requires_grad=True)
     y = x ** 2
-    print(f"y requires_grad: {y.requires_grad}")
-    print(f"y has grad_fn: {y.grad_fn is not None}")
-    
-    z = y.detach()
-    print(f"\nAfter detach:")
-    print(f"z requires_grad: {z.requires_grad}")
-    print(f"z has grad_fn: {z.grad_fn is not None}")
-    print("Detach removes from computation graph, saves memory!")
-    
-    header("4. Using torch.no_grad()")
-    model = nn.Linear(1000, 1000)
-    x = torch.randn(100, 1000)
-    
-    print("During inference, use no_grad to save memory:")
+    print(f"y            requires_grad {y.requires_grad}  grad_fn {y.grad_fn is not None}")
+    print(f"y.detach()   requires_grad {y.detach().requires_grad}  grad_fn {y.detach().grad_fn is not None}")
     with torch.no_grad():
-        output = model(x)
-    print(f"Output requires_grad: {output.requires_grad}")
-    print("No gradients computed or stored!")
-    
-    header("5. Gradient Accumulation")
-    print("""
-    Instead of:
-        batch_size = 128  # 기억 자리가 모자랄 수 있다!
-        
-    그래디언트 쌓기를 쓴다.
-        batch_size = 32
-        accumulation_steps = 4  # 실제 배치 크기 = 128
-        
-    for i, (x, y) in enumerate(dataloader):
-        output = model(x)
-        loss = criterion(output, y) / accumulation_steps
-        loss.backward()
-        
-        if (i + 1) % accumulation_steps == 0:
-            optimizer.step()
-            optimizer.zero_grad()
-    """)
-    
-    header("6. Checkpoint Activations")
-    print("""
-    아주 깊은 망에는 그래디언트 되짚음 저장을 쓴다.
-    
-    from torch.utils.checkpoint import checkpoint
-    
-    class DeepModel(nn.Module):
-        def forward(self, x):
-            # 메모리를 위해 계산을 희생한다
-            x = checkpoint(self.layer1, x)
-            x = checkpoint(self.layer2, x)
-            x = checkpoint(self.layer3, x)
-            return x
-    
-    셈을 30% 더 하는 대신 기억 자리를 10분의 1로 줄인다!
-    """)
-    
-    header("7. Empty Cache (GPU)")
-    if torch.cuda.is_available():
-        print(f"Allocated: {torch.cuda.memory_allocated()/1e6:.2f} MB")
-        x = torch.randn(1000, 1000, device='cuda')
-        print(f"After allocation: {torch.cuda.memory_allocated()/1e6:.2f} MB")
-        del x
-        torch.cuda.empty_cache()
-        print(f"After cache clear: {torch.cuda.memory_allocated()/1e6:.2f} MB")
-    else:
-        print("torch.cuda.empty_cache() - Releases cached GPU memory")
-    
-    header("8. Memory Profiling")
-    print("""
-    PyTorch의 기억 자리 살피개를 쓴다.
-    
-    from torch.profiler import profile, ProfilerActivity
-    
-    with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-                 profile_memory=True) as prof:
-        model(input)
-    
-    print(prof.key_averages().table(sort_by="self_cuda_memory_usage"))
-    """)
-    
-    header("9. Best Practices Summary")
-    print("""
-    기억 자리 다듬기 요령:
-    
-    1. 추론 때는 torch.no_grad()을 써라
-    2. 그래디언트가 필요 없으면 .detach()을 불러라
-    3. 안전할 때는 제자리 셈(_)을 써라
-    4. 실제 배치 크기를 키우려면 그래디언트를 쌓아라
-    5. 섞인 촘촘함 익히기를 써라(튜토리얼 24을 보아라)
-    6. 다 쓴 큰 텐서는 지워라: del x
-    7. GPU 저장을 비워라: torch.cuda.empty_cache()
-    8. 깊은 망에는 그래디언트 되짚음 저장을 써라
-    9. 기억 자리 씀씀이를 살펴 목을 찾아라
-    10. 배치 크기나 모델 크기를 줄이는 것도 생각해 보아라
-    """)
+        z = x ** 2
+    print(f"no_grad 안   requires_grad {z.requires_grad}  grad_fn {z.grad_fn is not None}")
+
+    header("4. 그래디언트 쌓기는 같은 값을 준다")
+    m = nn.Linear(8, 1)
+    X, y = torch.randn(32, 8), torch.randn(32, 1)
+    m.zero_grad()
+    nn.MSELoss()(m(X), y).backward()
+    full = m.weight.grad.clone()
+    m.zero_grad()
+    for i in range(4):
+        (nn.MSELoss()(m(X[i*8:(i+1)*8]), y[i*8:(i+1)*8]) / 4).backward()
+    acc = m.weight.grad.clone()
+    print(f"32 를 한 번에  {full[0, :3].tolist()}")
+    print(f"8 씩 네 번     {acc[0, :3].tolist()}")
+    print(f"같은가 {torch.allclose(full, acc, atol=1e-6)}   가장 큰 차이 {(full-acc).abs().max():.2e}")
+    print("로스를 쌓는 횟수로 나누어 두는 것이 조건이다. 안 나누면 네 배가 된다.")
+
+    header("5. 체크포인트 — 자리를 셈으로 바꾼다")
+    net = Deep()
+    x = torch.randn(64, 256, requires_grad=True)
+    base_kb, base_ms = saved_kb(net, x, 0), ms(net, x, 0)
+    print(f"{'체크포인트':>14}{'저장 KB':>10}{'자리':>9}{'ms':>9}{'셈':>9}")
+    print(f"{'안 쓴다':>14}{base_kb:>10.0f}{'1.0배':>9}{base_ms:>9.2f}{'1.0배':>9}")
+    for every, name in [(4, "네 블록마다"), (2, "두 블록마다"), (1, "모든 블록")]:
+        k, t = saved_kb(net, x, every), ms(net, x, every)
+        print(f"{name:>14}{k:>10.0f}{base_kb/k:>8.1f}배{t:>9.2f}{t/base_ms:>8.1f}배")
+
+    header("6. 그 값은 모델 크기에 딸려 있다")
+    print("5절의 '모든 블록'을 너비와 배치를 키워 가며 다시 잰다.")
+    print(f"{'너비':>7}{'배치':>7}{'그냥 ms':>12}{'체크포인트 ms':>16}{'셈':>9}")
+    for w, b in [(256, 64), (1024, 256), (2048, 512)]:
+        torch.manual_seed(0)
+        n2 = Deep(width=w)
+        x2 = torch.randn(b, w, requires_grad=True)
+        a, c = ms(n2, x2, 0, reps=3), ms(n2, x2, 1, reps=3)
+        print(f"{w:>7}{b:>7}{a:>12.2f}{c:>16.2f}{c/a:>8.2f}배")
+
 
 if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (114줄)"
+**출력:**
 
-    ```
+```
+======================================================================
+1. 텐서 하나가 잡는 자리는 셈으로 나온다
+======================================================================
+모양 (1000, 1000)  원소 1,000,000개  하나당 4 바이트
+= 3.81 MB
+float16 이면 1.91 MB
 
-    ======================================================================
-    1. Understanding Memory Usage
-    ======================================================================
-    Tensor shape: torch.Size([1000, 1000])
-    Element size: 4 bytes
-    Number of elements: 1000000
-    Total memory: 3.81 MB
+======================================================================
+2. 제자리 연산은 새 자리를 잡지 않는다
+======================================================================
+x + 1   -> 같은 저장소인가 False   x 가 바뀌었나 False
+x.add_(1) -> 같은 저장소인가 True   x 가 바뀌었나 True
 
-    ======================================================================
-    2. In-place Operations Save Memory
-    ======================================================================
-    x + 1 -> same object as x?    False
-    x + 1 -> same storage as x?   False
-    x left unchanged by x + 1?    True
-    x.add_(1) -> same storage?    True
-    x changed in place?           True
-    In-place operations modify tensor without creating a copy!
+======================================================================
+3. 그래프를 들고 있는 것이 자리를 잡는다
+======================================================================
+y            requires_grad True  grad_fn True
+y.detach()   requires_grad False  grad_fn False
+no_grad 안   requires_grad False  grad_fn False
 
-    ======================================================================
-    3. Detaching from Computation Graph
-    ======================================================================
-    y requires_grad: True
-    y has grad_fn: True
+======================================================================
+4. 그래디언트 쌓기는 같은 값을 준다
+======================================================================
+32 를 한 번에  [-0.44626450538635254, 0.12163355946540833, 0.7158703207969666]
+8 씩 네 번     [-0.4462644159793854, 0.12163357436656952, 0.7158703804016113]
+같은가 True   가장 큰 차이 8.94e-08
+로스를 쌓는 횟수로 나누어 두는 것이 조건이다. 안 나누면 네 배가 된다.
 
-    After detach:
-    z requires_grad: False
-    z has grad_fn: False
-    Detach removes from computation graph, saves memory!
+======================================================================
+5. 체크포인트 — 자리를 셈으로 바꾼다
+======================================================================
+         체크포인트     저장 KB       자리       ms        셈
+          안 쓴다      6144     1.0배     1.30     1.0배
+        네 블록마다      4864     1.3배     1.93     1.5배
+        두 블록마다      3584     1.7배     2.67     2.1배
+         모든 블록      1024     6.0배     3.66     2.8배
 
-    ======================================================================
-    4. Using torch.no_grad()
-    ======================================================================
-    During inference, use no_grad to save memory:
-    Output requires_grad: False
-    No gradients computed or stored!
+======================================================================
+6. 그 값은 모델 크기에 딸려 있다
+======================================================================
+5절의 '모든 블록'을 너비와 배치를 키워 가며 다시 잰다.
+     너비     배치       그냥 ms        체크포인트 ms        셈
+    256     64        1.38            4.52    3.28배
+   1024    256       34.16           38.03    1.11배
+   2048    512      208.11          282.61    1.36배
+```
 
-    ======================================================================
-    5. Gradient Accumulation
-    ======================================================================
+## 2. 자리를 잡는 것은 둘이다
 
-        Instead of:
-            batch_size = 128  # 기억 자리가 모자랄 수 있다!
+**값**과 **그래프**다.
 
-        그래디언트 쌓기를 쓴다.
-            batch_size = 32
-            accumulation_steps = 4  # 실제 배치 크기 = 128
+1절의 $1000 \times 1000$ 텐서는 3.81 MB다 — 원소 수 곱하기 원소 하나의 크기이고, `float16`으로 두면 정확히 반이다. 여기까지는 셈이다.
 
-        for i, (x, y) in enumerate(dataloader):
-            output = model(x)
-            loss = criterion(output, y) / accumulation_steps
-            loss.backward()
+3절이 보이는 것이 나머지다. `y = x ** 2`는 값만 들고 있는 것이 아니라 **역전파에 쓸 길**을 함께 들고 있다(`grad_fn`). 그 길에 매달린 중간값들이 풀려나지 않는 한 자리가 비지 않는다. `detach()`는 그 길을 끊은 사본을 주고, `no_grad()`는 애초에 길을 만들지 않는다.
 
-            if (i + 1) % accumulation_steps == 0:
-                optimizer.step()
-                optimizer.zero_grad()
+그래서 추론할 때 `no_grad()`를 쓰는 까닭이 속도만이 아니다. **쌓지 않은 그래프는 자리를 잡지 않는다.**
 
+## 3. 그래디언트 쌓기는 어림이 아니다
 
-    ======================================================================
-    6. Checkpoint Activations
-    ======================================================================
+배치 32가 들어가지 않으면 8씩 네 번 돌리고 그래디언트를 더한다. 흔히 "비슷한 효과"라고 말하지만 4절이 보이듯 **같은 값**이다.
 
-        아주 깊은 망에는 그래디언트 되짚음 저장을 쓴다.
+| | 첫 세 성분 |
+|---|---|
+| 32를 한 번에 | $-0.44626450,\ 0.12163356,\ 0.71587032$ |
+| 8씩 네 번 | $-0.44626442,\ 0.12163357,\ 0.71587038$ |
 
-        from torch.utils.checkpoint import checkpoint
+가장 큰 차이가 $8.9 \times 10^{-8}$로 `float32`의 반올림 수준이다. 까닭은 간단하다 — 평균의 그래디언트는 그래디언트의 평균이고, `.backward()`가 `.grad`에 **더하기**로 쌓기 때문이다.
 
-        class DeepModel(nn.Module):
-            def forward(self, x):
-                # 메모리를 위해 계산을 희생한다
-                x = checkpoint(self.layer1, x)
-                x = checkpoint(self.layer2, x)
-                x = checkpoint(self.layer3, x)
-                return x
+**조건이 하나 있다.** 로스를 쌓는 횟수로 나누어 두어야 한다. 안 나누면 네 조각의 평균이 아니라 합이 되어 그래디언트가 네 배가 되고, 러닝레이트를 네 배로 키운 것과 같아진다.
 
-        셈을 30% 더 하는 대신 기억 자리를 10분의 1로 줄인다!
+## 4. 체크포인트는 자리를 셈으로 바꾼다
 
+중간값을 들고 있지 않고 **필요할 때 다시 셈한다.** 5절이 그 맞바꿈을 잰다.
 
-    ======================================================================
-    7. Empty Cache (GPU)
-    ======================================================================
-    torch.cuda.empty_cache() - Releases cached GPU memory
+| 체크포인트 | 저장 KB | 자리 | ms | 셈 |
+|---|---|---|---|---|
+| 안 쓴다 | 6144 | 1.0배 | 1.30 | 1.0배 |
+| 네 블록마다 | 4864 | 1.3배 | 1.93 | 1.5배 |
+| 두 블록마다 | 3584 | 1.7배 | 2.67 | 2.1배 |
+| 모든 블록 | **1024** | **6.0배** | 3.66 | **2.8배** |
 
-    ======================================================================
-    8. Memory Profiling
-    ======================================================================
+자리는 6배로 줄고 셈은 2.8배로 는다. **공짜가 아니고, 값이 싸지도 않다.**
 
-        PyTorch의 기억 자리 살피개를 쓴다.
+## 5. 그런데 그 값은 모델 크기에 딸려 있다
 
-        from torch.profiler import profile, ProfilerActivity
+체크포인트를 두고 흔히 "셈을 30%쯤 더 하는 대신 자리를 크게 줄인다"고 말한다. 4절의 2.8배와 맞지 않는다. 6절이 같은 측정을 너비와 배치를 키워 가며 되풀이한다.
 
-        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-                     profile_memory=True) as prof:
-            model(input)
+| 너비 | 배치 | 그냥 | 체크포인트 | 셈 |
+|---|---|---|---|---|
+| 256 | 64 | 1.38 ms | 4.52 ms | **3.28배** |
+| 1024 | 256 | 34.16 ms | 38.03 ms | **1.11배** |
+| 2048 | 512 | 208.11 ms | 282.61 ms | **1.36배** |
 
-        print(prof.key_averages().table(sort_by="self_cuda_memory_usage"))
+**크기가 커지면 그 어림이 맞는다.** 작은 모델에서 3.28배가 나오는 까닭은 다시 셈하는 비용보다 **다시 부르는 비용**이 크기 때문이다 — 레이어 하나를 돌리는 데 드는 고정 비용(파이썬 호출, 디스패치)이 실제 곱셈보다 크면, 다시 셈하는 일은 거의 전부가 그 고정 비용이다.
 
-
-    ======================================================================
-    9. Best Practices Summary
-    ======================================================================
-
-        기억 자리 다듬기 요령:
-
-        1. 추론 때는 torch.no_grad()을 써라
-        2. 그래디언트가 필요 없으면 .detach()을 불러라
-        3. 안전할 때는 제자리 셈(_)을 써라
-        4. 실제 배치 크기를 키우려면 그래디언트를 쌓아라
-        5. 섞인 촘촘함 익히기를 써라(튜토리얼 24을 보아라)
-        6. 다 쓴 큰 텐서는 지워라: del x
-        7. GPU 저장을 비워라: torch.cuda.empty_cache()
-        8. 깊은 망에는 그래디언트 되짚음 저장을 써라
-        9. 기억 자리 씀씀이를 살펴 목을 찾아라
-        10. 배치 크기나 모델 크기를 줄이는 것도 생각해 보아라
-
-    ```
-
-
-## 2. 논의
-
-### 텐서 크기와 실제 사용량
-
-`element_size() * nelement()`는 텐서 원소가 차지하는 논리적 바이트 수다. 실제 프로세스 메모리에는 저장 공간 공유, 할당기 관리와 다른 객체의 비용도 포함된다. 뷰를 여러 개 만들었다고 이 논리적 크기들을 모두 더해 실제 사용량으로 볼 수는 없다.
-
-예제는 `x + 1`과 `x.add_(1)`의 주소를 비교한다. 전자는 새 결과를 만들고, 후자는 기존 값을 수정한다. 다만 제자리 연산은 원래 값이 필요한 역전파와 충돌할 수 있으며, 항상 큰 메모리 절약을 주는 최적화는 아니다.
-
-### 그래프와 저장 공간의 수명
-
-`detach()`는 분리된 텐서를 반환하지만 원래 텐서와 저장 공간을 공유한다. 원래 결과나 그래프를 다른 곳에서 계속 참조하면 그것만으로 그래프 메모리가 해제되지는 않는다. 기록용 로스는 `loss.item()`처럼 그래프와 독립적인 값으로 저장하고, 추론은 `no_grad()`로 불필요한 기록을 줄인다.
-
-### 재계산과 CUDA 캐시
-
-엑티베이션 체크포인팅은 일부 중간값을 저장하는 대신 역전파 때 다시 계산해 메모리와 계산량을 교환한다. 코드에 적힌 절약 비율이나 추가 시간은 일반적인 보장값이 아니며 모델별로 측정해야 한다. 현재 API에서는 `use_reentrant` 선택에 따라 동작 조건도 달라지므로 사용 버전의 규칙을 확인한다.
-
-CUDA의 `memory_allocated()`는 살아 있는 텐서의 할당량, `memory_reserved()`는 캐시 할당기가 확보한 메모리를 나타낸다. `empty_cache()`는 사용하지 않는 캐시를 반환하며 참조 중인 텐서를 지우지 않는다. 따라서 호출 직후 할당량이 줄어들지 않아도 이상한 것은 아니다. 프로파일러는 비용이 큰 연산을 찾는 데 사용하되 CPU와 CUDA 실행 환경의 차이를 고려한다.
+여기에 읽을 것이 하나 있다. **장난감 크기에서 재고 "체크포인트는 세 배 느리다"고 적으면 틀린다.** 쓸 자리는 자리가 모자랄 만큼 큰 모델인데, 바로 그 크기에서 값이 싸진다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
+4절은 로스를 쌓는 횟수로 나눈다. **나누지 않으면** 그래디언트가 어떻게 되는가? 재어 보고, 그것이 러닝레이트와 어떤 관계인지 말하라.
 
 </div>
 
 ??? success "풀이"
-    ```python
-    import torch
+    정확히 **쌓은 횟수 배**가 된다.
 
-    x = torch.tensor(3.0, requires_grad=True)
-    f = x**3 - 2*x**2 + x
-    f.backward()
-    print(x.grad)  # f'(x) = 3x^2 - 4x + 1 = 27 - 12 + 1 = 16.0
+    ```python
+    import torch, torch.nn as nn
+    torch.manual_seed(0)
+
+    m = nn.Linear(8, 1)
+    X, y = torch.randn(32, 8), torch.randn(32, 1)
+
+    m.zero_grad(); nn.MSELoss()(m(X), y).backward()
+    full = m.weight.grad.clone()
+
+    for div in (4, 1):
+        m.zero_grad()
+        for i in range(4):
+            loss = nn.MSELoss()(m(X[i*8:(i+1)*8]), y[i*8:(i+1)*8]) / div
+            loss.backward()
+        r = (m.weight.grad / full)
+        print(f"÷{div} 로 쌓으면 한 번에 잰 것의 {r.mean():.4f} 배")
     ```
 
----
+    ```
+    ÷4 로 쌓으면 한 번에 잰 것의 1.0000 배
+    ÷1 로 쌓으면 한 번에 잰 것의 4.0000 배
+    ```
 
+    **나누지 않으면 네 배다.** 그리고 그 네 배는 러닝레이트를 네 배로 키운 것과 **구별되지 않는다** — 옵티마이저가 보는 것은 `.grad` 하나뿐이기 때문이다.
+
+    그래서 이 실수는 조용하다. 터지지 않고, 로스도 내려간다. 다만 적어 둔 러닝레이트가 실제 러닝레이트가 아니게 되고, 쌓는 횟수를 바꾸면 학습률이 함께 바뀐다. 쌓는 횟수를 실험 변수로 두었다면 결과를 읽을 수 없게 된다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-제곱합처럼 저장된 중간값이 필요한 로스에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+3절은 `detach()`와 `no_grad()`가 둘 다 `grad_fn`을 없앤다고 보였다. 그렇다면 둘은 같은 것인가? **자리를 잡는 관점에서** 무엇이 다른지 밝혀라.
 
 </div>
 
 ??? success "풀이"
-    기본 역전파는 사용을 마친 저장 텐서를 해제한다. 같은 그래프의 두 번째 역전파에 이 값들이 필요하면 `RuntimeError`가 발생한다. 저장 텐서가 필요 없는 단순 연산은 반복 호출이 가능할 수도 있으므로 모든 그래프에서 반드시 오류가 나는 것은 아니다. 첫 호출의 `retain_graph=True`는 필요한 중간 결과를 보존해 재사용을 가능하게 하지만 그만큼 메모리를 더 오래 사용한다. `.grad` 초기화는 이 보존 여부와 별개의 작업이다.
+    같지 않다. **`detach()`는 이미 쌓은 그래프를 끊고, `no_grad()`는 쌓지 않는다.**
 
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
-
-</div>
-
-??? success "풀이"
     ```python
     import torch
 
-    w = torch.tensor(2.0, requires_grad=True)
-    for i in range(3):
-        loss = (w ** 2).sum()
-        loss.backward()
-        print(f'After backward {i+1}: w.grad = {w.grad}')
-    # 출력: 4.0, 8.0, 12.0
-    # 경사가 누적된다. 매 backward가 기존 경사에 2*w = 4.0을 더한다.
+    x = torch.randn(1000, 1000, requires_grad=True)
+
+    sizes = []
+    with torch.autograd.graph.saved_tensors_hooks(
+            lambda t: (sizes.append(t.numel()), t)[1], lambda t: t):
+        y = (x ** 2).sin().exp()          # 중간값이 쌓인다
+        z = y.detach()                    # 끊는 것은 z 뿐이다
+        y.sum().backward()
+    print(f"detach 를 써도 쌓인 중간값 {sum(sizes)*4/1024:.0f} KB")
+
+    sizes = []
+    with torch.autograd.graph.saved_tensors_hooks(
+            lambda t: (sizes.append(t.numel()), t)[1], lambda t: t):
+        with torch.no_grad():
+            y = (x ** 2).sin().exp()
+    print(f"no_grad 안에서 쌓인 중간값 {sum(sizes)*4/1024:.0f} KB")
     ```
+
+    ```
+    detach 를 써도 쌓인 중간값 11719 KB
+    no_grad 안에서 쌓인 중간값 0 KB
+    ```
+
+    **`detach()`를 불러도 그 앞에서 쌓인 것은 이미 쌓여 있다.** 끊어진 사본을 하나 더 얻을 뿐이고, 원래 텐서가 살아 있는 한 그래프도 산다.
+
+    그러므로 추론에서 자리를 아끼려면 `no_grad()`(또는 `inference_mode()`)가 답이고, `detach()`는 **그래프를 흘려보내고 싶지 않은 한 지점**에 쓰는 물건이다 — 이를테면 타깃 넷트웍의 출력처럼 그래디언트가 거슬러 올라가면 안 되는 자리다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+5절은 체크포인트를 **모든 블록**에 걸면 자리가 6배 줄고 셈이 2.8배 는다고 했다. 네 블록마다 걸면 자리가 1.3배밖에 줄지 않는데 셈은 1.5배 는다 — **자리보다 셈이 더 는다.** 이 설정이 손해인가? 어떤 경우에 그래도 쓸 만한지 말하라.
+
+</div>
+
+??? success "풀이"
+    비만 보면 손해로 보이지만, **고르는 기준이 비가 아니다.**
+
+    자리는 **넘치느냐 아니냐**의 문제다. 가진 것이 5 GB인데 모델이 6 GB를 쓰면 학습이 아예 돌지 않는다. 1.3배만 줄여도 4.6 GB가 되어 **돌아간다.** 이때 1.5배 느려지는 것은 치를 만한 값이다 — 돌지 않던 것이 도니까.
+
+    반대로 자리가 넉넉하면 1.3배를 줄일 까닭이 없다. 그러므로 읽는 법은 이렇다.
+
+    | 형편 | 고를 것 |
+    |---|---|
+    | 자리가 넉넉하다 | 쓰지 않는다 |
+    | 조금 모자란다 | 일부 블록에만 — 넘치지 않을 만큼만 |
+    | 많이 모자란다 | 모든 블록에 |
+
+    **값을 가장 적게 치르면서 넘치지 않는 자리**를 고르는 것이고, 비가 1을 넘는지는 그 판단에 들어오지 않는다.
+
+    덧붙여 5절의 수가 **모델의 어느 쪽을 체크포인트하느냐**에 따라서도 달라진다. 활성화가 큰 레이어(넓은 쪽, 배치가 큰 쪽)를 고르면 같은 셈 비용으로 자리를 더 줄인다. 블록을 고르게 건너뛰며 거는 것은 가장 단순한 규칙일 뿐 가장 좋은 규칙은 아니다.
 
 ## 정리하며
 
-메모리를 줄이려면 살아 있는 텐서와 그래프 참조부터 확인한다. 복사 감소, 추적 제어, 엑티베이션 재계산과 캐시 정리는 서로 다른 역할을 한다.
+자리를 잡는 것은 **값과 그래프**이고, 줄이는 길도 그 둘에 하나씩 있다. 값 쪽은 자료형(`float16`이면 반)과 배치 크기이고, 그래프 쪽은 `no_grad`·`detach`·체크포인트다.
+
+둘을 줄이는 두 수법은 성격이 다르다. **그래디언트 쌓기는 공짜다** — 같은 값을 주고 스텝 수만 늘어난다(단, 쌓는 횟수로 나눌 것). **체크포인트는 값을 치른다** — 자리 6배에 셈 2.8배였다가, 모델이 커지면 1.1~1.4배로 싸진다.
+
+그 마지막 줄이 이 쪽에서 가장 조심할 자리다. **장난감 크기에서 잰 값으로 큰 모델을 판단하면 안 된다.** 체크포인트를 쓸 자리는 자리가 모자랄 만큼 큰 모델이고, 값은 바로 그 크기에서 싸진다.
