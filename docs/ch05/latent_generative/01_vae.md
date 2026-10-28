@@ -146,7 +146,8 @@ def train_vae(k, beta, cond):
 
 
 # === 부호 2와 64에서 각각 ===================================================
-for k in (2, 64):
+if __name__ == "__main__":
+  for k in (2, 64):
     m = train_vae(k, beta=1.0, cond=False)
 
     with torch.no_grad():
