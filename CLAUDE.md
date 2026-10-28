@@ -45,10 +45,12 @@ book_name/
         ├── index.md
         └── section_name/
             ├── topic.md
-            ├── topic.py
-            ├── module/__init__.py
-            └── figures/
+            └── figures/make_figures.py
 ```
+
+**No `.py` beside a page.** A page's whole program and whole output live in its
+`.md`; see "Add a Python example" below. `figures/make_figures.py` is the only
+`.py` to create under `docs/` — a few grandfathered exceptions are listed there.
 
 ## Agent Commands (Quick Reference)
 
@@ -104,11 +106,8 @@ git commit -m "update: <name>"
 
 Nav hierarchy: **Parts → Chapters → Sections → Pages**. Nav entries point to `.md` files.
 
-> **`.py` files are not in nav** — none of the ones under `docs/` are, and new ones should not
-> be added. They sit beside the `.md` that embeds the same code, and mkdocs copies them verbatim
-> into `site/`, so each is already reachable by URL
-> (`/ch03/linear_softmax/03_mle.py`) as a downloadable companion. Putting one in nav would
-> render it as a page of its own, which is not what they are for.
+> **Nothing but `.md` goes in nav.** The `figures/make_figures.py` scripts are build tooling,
+> not pages; mkdocs copies them into `site/` and that is fine, but they are never navigated.
 
 ```yaml
 nav:
@@ -299,17 +298,32 @@ the box styles live in `docs/stylesheets/extra.css`.
 ## Common Tasks
 
 ### Add a new section
-1. Create `docs/chapter_name/section_name/` with `.md`/`.py` files
-2. Add nav entries to `mkdocs.yml` for the `.md` files (`.py` files are not navigated —
-   see Navigation Structure)
+1. Create `docs/chapter_name/section_name/` with `.md` files
+2. Add nav entries to `mkdocs.yml` for them
 
 ### Add a new chapter
 1. Create `docs/chapter_name/` with `index.md` and section subdirectories
 2. Add chapter block to `mkdocs.yml` under the correct Part
 
 ### Add a Python example
-1. Create `.py` in the relevant section directory — **no nav entry**; it is served automatically
-2. Educational style: module docstring, `# ===` dividers, `if __name__ == "__main__":` guard
-3. Embed the same code in the page's `.md` with its real output below it, so the page can be
-   read without running anything. Paths inside the script are relative to the repo root
-   (`./data/...`), which is where it is meant to be run from.
+
+**The code goes in the `.md`. Do not create a `.py` beside the page.**
+
+1. Put the **whole** program in one `python` block and the **whole** output it produced in
+   the block below it, so the page can be read without running anything.
+2. Educational style still applies: module docstring, `# ===` dividers,
+   `if __name__ == "__main__":` guard. The listing should be a real program, not a fragment.
+3. Paths inside it are relative to the repo root (`./data/...`), which is where it is meant
+   to be run from. Say so in the docstring when it matters. Do **not** write
+   `실행: python topic.py` — there is no such file; write
+   `실행: 이 쪽의 코드를 파일로 갈무리해 돌린다`.
+
+Why: a sibling `.py` and its page drift apart, and the page is the artifact. It has already
+happened here — `b12724e1` retermed the markdown and left the extracted copies printing the
+old words. `verify_outputs.py` only reads the `.md`, so the drift is invisible to CI.
+
+> **Legacy.** 43 pages in ch08–ch40 still have a `.py` beside them, because other pages
+> `import` them as shared modules (`from adam_optimizer import Adam`, `import cnn_utils as
+> utils`); 51 pages depend on them and they cannot simply be deleted. Treat them as
+> grandfathered — do not add more, and do not delete one without inlining it into every page
+> that imports it.
