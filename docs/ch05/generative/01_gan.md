@@ -138,32 +138,33 @@ def sample(G, n=N_SAMPLE):
                           for i in range(0, n, 1000)])
 
 
-# === 생성기도 판별기도 촘촘한 레이어다 — VAE와 같은 구조 ======================
-class GMLP(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(ZDIM, 256), nn.LeakyReLU(0.2),
-            nn.Linear(256, 512), nn.LeakyReLU(0.2),
-            nn.Linear(512, 784), nn.Tanh())
+if __name__ == "__main__":
+  # === 생성기도 판별기도 촘촘한 레이어다 — VAE와 같은 구조 ======================
+  class GMLP(nn.Module):
+      def __init__(self):
+          super().__init__()
+          self.net = nn.Sequential(
+              nn.Linear(ZDIM, 256), nn.LeakyReLU(0.2),
+              nn.Linear(256, 512), nn.LeakyReLU(0.2),
+              nn.Linear(512, 784), nn.Tanh())
 
-    def forward(self, z):
-        return self.net(z).reshape(-1, 1, 28, 28)
-
-
-class DMLP(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Flatten(), nn.Linear(784, 512), nn.LeakyReLU(0.2),
-            nn.Linear(512, 256), nn.LeakyReLU(0.2), nn.Linear(256, 1))
-
-    def forward(self, x):
-        return self.net(x)
+      def forward(self, z):
+          return self.net(z).reshape(-1, 1, 28, 28)
 
 
-G = train_gan(GMLP, DMLP, "gan_mlp")
-evaluate(sample(G), "gan_mlp")
+  class DMLP(nn.Module):
+      def __init__(self):
+          super().__init__()
+          self.net = nn.Sequential(
+              nn.Flatten(), nn.Linear(784, 512), nn.LeakyReLU(0.2),
+              nn.Linear(512, 256), nn.LeakyReLU(0.2), nn.Linear(256, 1))
+
+      def forward(self, x):
+          return self.net(x)
+
+
+  G = train_gan(GMLP, DMLP, "gan_mlp")
+  evaluate(sample(G), "gan_mlp")
 ```
 
 **출력:**
@@ -193,7 +194,17 @@ evaluate(sample(G), "gan_mlp")
 
 **클래스 안 다양함이 0.628에서 0.953으로 뛴다.** 진짜 MNIST의 클래스 내 화소 분산 대비 0.953이다. 확신도도 0.758에서 0.908로 오른다.
 
-서로 다른 VAE와 MLP GAN 학습 설정을 비교한 값이다.
+다만 **이 줄은 시드 하나의 값이고, 그 가운데 운이 좋은 쪽이다.** [절 소개](index.md) 5절이 같은 모델을 시드 다섯 개로 다시 학습해 재어 두었다.
+
+| GAN (MLP), 다섯 벌 | 범위 | 평균 |
+|---|---|---|
+| 확신도 | 0.903~0.911 | 0.908 |
+| 클래스 균형도 | 0.913~0.937 | — |
+| 클래스 안 다양함 | **0.831~0.905** | **0.878** |
+
+0.953은 그 범위 **밖**이다. 그러므로 "0.953으로 뛴다"는 **"0.88 언저리로 뛴다"**로 읽어야 하고, 뛴다는 것 자체는 그대로다 — VAE의 범위가 0.621~0.630이라 두 범위가 0.2만큼 떨어져 있다.
+
+이 표의 VAE 줄과 GAN 줄은 학습 설정도 다르다([절 소개](index.md) 2절). 로스만 바꾼 대조가 아니므로 차이를 로스 하나의 몫으로 읽어서는 안 된다.
 
 VAE 줄의 0.758과 0.887은 [5.2절](../latent_generative/01_vae.md)이 적은 0.769, 0.877과 다르다. 이 절이 모든 줄을 $[0, 1]$로 자른 뒤 재기 때문이며, 까닭은 [절 소개](index.md)에 적어 두었다. **이 표 안에서만 견주어야 한다.**
 
@@ -232,7 +243,7 @@ GAN의 로스에는 목표 그림이 없다. 판별기는 흐릿한 그림을 **
 
 이론상 균형점은 $D = 2\ln 2 \approx 1.386$, $G = \ln 2 \approx 0.693$이다. 판별기가 진짜와 가짜를 구별하지 못해 둘 다 0.5를 내놓는 상태다.
 
-10 에포크에서 판별기가 앞서다가(0.589) 되돌아와 균형 가까이 갔다(1.037).
+10 에포크에서 판별기가 앞서다가(0.589) 되돌아왔다. 다만 **되돌아온 것은 판별기 쪽뿐이다** — $L_D$는 1.037로 균형 1.386에 꽤 다가섰지만 $L_G$는 1.310으로 균형 0.693의 1.89배다. 연습문제 3이 이 두 수에서 $D$의 출력을 거꾸로 짚어 본다.
 
 !!! warning "지은이가 여기서 틀렸다"
     이 실험을 돌리면서 10 에포크의 $D = 0.589$를 보고 "판별기가 이기고 있으니 곧 무너질 것"이라 적었다. 20 에포크에서 되돌아왔다. 세 점으로 추세를 말하지 말라는 [4.1절 연습문제 5](../../ch04/01_two_ladders.md)의 경고를 또 어긴 것이다.
