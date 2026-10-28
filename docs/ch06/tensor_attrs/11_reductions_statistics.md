@@ -1,661 +1,487 @@
-# 축약과 통계
+# 축약과 통계 — 어느 축이 접히는가
 
-합·평균·분산은 여러 원소를 줄이는 연산이다. 무엇을 줄이는지 나타내는 `dim`과 줄인 축을 남기는 `keepdim`이 결과의 의미와 모양을 정한다.
+`sum`·`mean`·`std`는 축 하나를 접어 없앤다. 쓰기는 쉬운데 조용히 틀리는 자리가
+셋 있다.
+
+- **`keepdim`을 빼면** 뒤의 브로드캐스팅이 어긋난다. 모양이 안 맞으면 터져 주지만
+  **정사각이면 터지지 않고 엉뚱한 축에서 뺀다**
+- **`std`의 기본값**은 `correction=1`, 곧 불편 추정량이다. numpy는 반대다
+- **`median`**은 짝수 개일 때 가운데 둘을 평균내지 않는다
 
 ## 1. 코드
 
 ```python
-#!/usr/bin/env python3
-"""
-줄이는 셈과 통계 함수.
+"""축약과 통계 — 어느 축이 접히는가, 그리고 약속이 다른 자리들.
 
-Covers:
-- 기본 줄이기: sum, prod, mean, std, var
-- 최소/최대 셈: min, max, argmin, argmax, aminmax
-- dim 파라메터로 차원별 줄이기
-- 차원을 지키는 keepdim
-- 분위수와 백분위수
-- 노름: norm, dist
-- 논리 줄이기: all, any
-- 세기 셈: numel, count_nonzero
-"""
+`sum`·`mean`·`std` 는 축 하나를 접어 없앤다. 쓰기는 쉬운데 두 군데서
+조용히 틀린다.
 
+- `keepdim` 을 빼면 뒤의 브로드캐스팅이 어긋난다. 모양이 안 맞으면
+  터져 주지만 **정사각이면 터지지 않고 엉뚱한 축에서 뺀다**
+- `std` 의 기본값은 `correction=1`, 곧 **불편 추정량**이다
+- `median` 은 짝수 개일 때 가운데 둘을 평균내지 **않는다**
+
+실행: python 11_reductions_statistics.py
+"""
 import torch
 
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
 # ========================================================================
-# 메인
+# 1. dim 은 '접을 축' 이다
 # ========================================================================
 
-def header(title: str):
-    print("\n" + "=" * 80)
-    print(title)
-    print("=" * 80)
+def which_axis():
+    header("1. dim 은 접을 축이다")
+    x = torch.tensor([[1.0, 2.0, 3.0],
+                      [4.0, 5.0, 6.0],
+                      [7.0, 8.0, 9.0]])
+    print("x =");  print(x)
+    print("  x.sum()        =", x.sum().item(), " (다 접는다)")
+    print("  x.sum(dim=0)   =", x.sum(dim=0).tolist(), " 모양",
+          tuple(x.sum(dim=0).shape), " 0번 축이 사라졌다")
+    print("  x.sum(dim=1)   =", x.sum(dim=1).tolist(), " 모양",
+          tuple(x.sum(dim=1).shape), " 1번 축이 사라졌다")
+    y = torch.randn(2, 3, 4)
+    print("  (2,3,4).sum(dim=(0,2)) 모양:",
+          tuple(y.sum(dim=(0, 2)).shape), " 두 축을 한꺼번에")
+    print("  헷갈리면 '남는 축' 을 보면 된다 — dim 에 적은 축이 없어진다")
 
-def main():
-    torch.manual_seed(42)
 
-    # -------------------------------------------------------------------------
-    header("Basic reductions: sum, mean, prod")
+# ========================================================================
+# 2. keepdim 을 빼면
+# ========================================================================
+
+def keepdim_matters():
+    header("2. keepdim")
+    torch.manual_seed(0)
     x = torch.randn(3, 4)
-    print("x:\n", x)
-    
-    print("sum:", x.sum().item())
-    print("mean:", x.mean().item())
-    print("prod (product):", x.prod().item())
+    print("  (3,4) 에서")
+    print("    mean(dim=1).shape         :", tuple(x.mean(dim=1).shape))
+    print("    mean(dim=1, keepdim).shape:",
+          tuple(x.mean(dim=1, keepdim=True).shape))
+    try:
+        x - x.mean(dim=1)
+    except RuntimeError as e:
+        print("    x - mean(dim=1) :", str(e).splitlines()[0][:62])
+    print("    여기서는 터져 주어 바로 안다")
 
-    # -------------------------------------------------------------------------
-    header("Dimension-wise reductions")
-    x = torch.tensor([[1., 2., 3.],
-                      [4., 5., 6.],
-                      [7., 8., 9.]])
-    print("x:\n", x)
-    
-    # 0번 차원을 따라 합(행을 접는다)
-    sum_dim0 = x.sum(dim=0)
-    print("sum(dim=0):", sum_dim0)  # [12, 15, 18]
-    print("  Result shape:", sum_dim0.shape)  # (3,)
-    
-    # 1번 차원을 따라 합(열을 접는다)
-    sum_dim1 = x.sum(dim=1)
-    print("sum(dim=1):", sum_dim1)  # [6, 15, 24]
-    print("  Result shape:", sum_dim1.shape)  # (3,)
+    sq = torch.randn(4, 4)                      # 정사각이면
+    wrong = sq - sq.mean(dim=1)                 # 터지지 않는다
+    right = sq - sq.mean(dim=1, keepdim=True)
+    print("  (4,4) 정사각에서는")
+    print("    터지지 않는다. 모양:", tuple(wrong.shape))
+    print("    두 결과가 같은가:", torch.allclose(wrong, right))
+    print("    바른 쪽 행 평균:", [round(v, 6) for v in right.mean(dim=1).tolist()])
+    print("    틀린 쪽 행 평균:", [round(v, 6) for v in wrong.mean(dim=1).tolist()])
+    print("    행을 가운데로 옮기려 했는데 열에서 뺀 셈이 되었다")
 
-    # -------------------------------------------------------------------------
-    header("keepdim: preserve reduced dimensions as size 1")
-    x = torch.randn(3, 4, 5)
-    print("x.shape:", x.shape)
-    
-    # keepdim 없이(기본값)
-    mean_no_keep = x.mean(dim=1)
-    print("mean(dim=1).shape:", mean_no_keep.shape)  # (3, 5)
-    
-    # keepdim 사용
-    mean_keep = x.mean(dim=1, keepdim=True)
-    print("mean(dim=1, keepdim=True).shape:", mean_keep.shape)  # (3, 1, 5)
-    
-    # 브로드캐스팅에 유용하다
-    normalized = x - mean_keep  # Broadcasts correctly
-    print("Normalized shape:", normalized.shape)  # (3, 4, 5)
 
-    # -------------------------------------------------------------------------
-    header("Multiple dimension reductions")
-    x = torch.randn(2, 3, 4, 5)
-    print("x.shape:", x.shape)
-    
-    # 여러 차원에 걸쳐 축약
-    mean_multi = x.mean(dim=(1, 3))
-    print("mean(dim=(1,3)).shape:", mean_multi.shape)  # (2, 4)
-    
-    mean_multi_keep = x.mean(dim=(1, 3), keepdim=True)
-    print("mean(dim=(1,3), keepdim=True).shape:", mean_multi_keep.shape)  # (2, 1, 4, 1)
+# ========================================================================
+# 3. std 의 correction
+# ========================================================================
 
-    # -------------------------------------------------------------------------
-    header("Standard deviation and variance")
-    x = torch.randn(100)
-    
-    print("std:", x.std().item())
-    print("var:", x.var().item())
-    print("Relation: var = std²:", x.var().item(), "≈", (x.std() ** 2).item())
-    
-    # 불편 추정량과 바이어스 추정량
-    print("\nBiased (default, Bessel correction):")
-    print("  std(correction=1):", x.std(correction=1).item())
-    print("Unbiased:")
-    print("  std(correction=0):", x.std(correction=0).item())
+def correction():
+    header("3. std 의 기본값은 불편 추정량이다")
+    x = torch.tensor([1.0, 2.0, 3.0, 4.0])
+    n = x.numel()
+    ss = ((x - x.mean()) ** 2).sum()
+    print("  손으로 sqrt(SS/n)     (편향) =", round((ss / n).sqrt().item(), 6))
+    print("  손으로 sqrt(SS/(n-1)) (불편) =", round((ss / (n - 1)).sqrt().item(), 6))
+    print("  x.std()             =", round(x.std().item(), 6), " <- 기본값")
+    print("  x.std(correction=1) =", round(x.std(correction=1).item(), 6))
+    print("  x.std(correction=0) =", round(x.std(correction=0).item(), 6))
+    print("  correction 은 분모에서 빼는 수다. 1 이 베셀 보정이고 기본값이다")
+    print("  numpy 의 np.std 는 기본이 ddof=0 — 반대다")
+    print("  var 도 같다:", round(x.var().item(), 6), "=",
+          round((x.std() ** 2).item(), 6))
 
-    # -------------------------------------------------------------------------
-    header("Min and max operations")
+
+# ========================================================================
+# 4. median 과 비김
+# ========================================================================
+
+def median_and_ties():
+    header("4. median 과 비김")
+    e = torch.tensor([1.0, 2.0, 3.0, 4.0])
+    print("  [1,2,3,4] 의")
+    print("    torch.median()   =", e.median().item(), " <- 가운데 둘 중 아래쪽")
+    print("    quantile(0.5)    =", e.quantile(0.5).item(), " <- 둘의 평균")
+    print("  numpy 와 파이썬 statistics 는 2.5 를 준다")
+    print("  median 은 실제로 있는 값을 돌려주겠다는 약속이다")
+
+    t = torch.tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
+    v, i = t.mode()
+    print("  [3,1,4,1,5,9,2,6,5] 의 mode =", v.item(), " 자리", i.item())
+    print("    1 과 5 가 둘 다 두 번 나오는데 하나만 돌려준다")
+    a = torch.tensor([1.0, 3.0, 3.0, 2.0])
+    print("  [1,3,3,2].argmax() =", a.argmax().item(), " <- 비기면 첫 자리")
+
+
+# ========================================================================
+# 5. 자주 쓰는 축약들
+# ========================================================================
+
+def the_rest():
+    header("5. 나머지")
+    torch.manual_seed(0)
     x = torch.randn(3, 4)
-    print("x:\n", x)
-    
-    print("min:", x.min().item())
-    print("max:", x.max().item())
-    
-    # 차원별 min/max는 값과 인덱스를 함께 반환한다
-    min_vals, min_indices = x.min(dim=1)
-    print("min(dim=1) values:", min_vals)
-    print("min(dim=1) indices:", min_indices)
-    
-    max_vals, max_indices = x.max(dim=1)
-    print("max(dim=1) values:", max_vals)
-    print("max(dim=1) indices:", max_indices)
+    mx, idx = x.max(dim=1)
+    print("  max(dim=1) 는 값과 자리를 같이 준다:",
+          [round(v, 4) for v in mx.tolist()], idx.tolist())
+    print("  min/max 를 dim 없이 부르면 값만:", round(x.max().item(), 4))
+    lo, hi = x.aminmax()
+    print("  aminmax() 한 번에:", round(lo.item(), 4), round(hi.item(), 4))
 
-    # -------------------------------------------------------------------------
-    header("argmin and argmax: just the indices")
-    x = torch.randn(3, 4)
-    print("x:\n", x)
-    
-    # 펼친 뒤 전역 argmin/argmax 찾기
-    print("argmin (global):", x.argmin().item())
-    print("argmax (global):", x.argmax().item())
-    
-    # 차원별
-    print("argmin(dim=1):", x.argmin(dim=1))
-    print("argmax(dim=1):", x.argmax(dim=1))
+    b = torch.tensor([True, True, False])
+    print("  all / any            :", b.all().item(), b.any().item())
+    print("  numel / count_nonzero:", x.numel(),
+          torch.count_nonzero(x > 0).item())
+    print("  norm(2) 과 손으로     :", round(x.norm().item(), 6),
+          round((x ** 2).sum().sqrt().item(), 6))
+    c = torch.tensor([1, 2, 3, 4])
+    print("  cumsum               :", c.cumsum(0).tolist())
+    print("  bincount             :",
+          torch.bincount(torch.tensor([1, 2, 3, 2, 1, 2, 3])).tolist())
+    print("    자리가 곧 값이라 나타나지 않은 0 도 칸을 차지한다")
 
-    # -------------------------------------------------------------------------
-    header("aminmax: min and max together")
-    x = torch.randn(3, 4)
-    min_val, max_val = x.aminmax()
-    print("aminmax:", min_val.item(), max_val.item())
-    
-    # 차원별
-    min_vals, max_vals = x.aminmax(dim=1)
-    print("aminmax(dim=1):")
-    print("  mins:", min_vals)
-    print("  maxs:", max_vals)
 
-    # -------------------------------------------------------------------------
-    header("Quantiles and percentiles")
-    x = torch.randn(1000)
-    
-    # 중앙값(50번째 백분위수)
-    median = x.median()
-    print("median:", median.item())
-    
-    # 특정 분위수
-    q25 = x.quantile(0.25)
-    q75 = x.quantile(0.75)
-    print("25th percentile:", q25.item())
-    print("75th percentile:", q75.item())
-    print("IQR:", (q75 - q25).item())
-    
-    # 여러 분위수를 한 번에
-    quantiles = x.quantile(torch.tensor([0.1, 0.5, 0.9]))
-    print("10th, 50th, 90th percentiles:", quantiles)
+# ========================================================================
+# 6. 배치 정규화처럼 접기
+# ========================================================================
 
-    # -------------------------------------------------------------------------
-    header("Norms and distances")
-    x = torch.tensor([3., 4.])
-    
-    # L2 노름(유클리드)
-    l2 = x.norm(p=2)
-    print("L2 norm:", l2.item(), "(expect 5.0)")
-    
-    # L1 노름(맨해튼)
-    l1 = x.norm(p=1)
-    print("L1 norm:", l1.item())
-    
-    # 무한대 노름(절댓값의 최댓값)
-    linf = x.norm(p=float('inf'))
-    print("L∞ norm:", linf.item())
-    
-    # 행렬 노름
-    A = torch.randn(3, 4)
-    frobenius = A.norm(p='fro')
-    print("Frobenius norm:", frobenius.item())
-
-    # 핵 노름(nuclear) — 특잇값의 합이다. 프로베니우스는 특잇값의
-    # 제곱합의 제곱근이므로, 핵 노름이 늘 프로베니우스보다 크거나 같다.
-    nuclear = A.norm(p='nuc')
-    print("Nuclear norm:", nuclear.item())
-    print("핵 >= 프로베니우스:", nuclear.item() >= frobenius.item())
-    
-    # 두 텐서 사이의 거리
-    y = torch.tensor([6., 8.])
-    dist = torch.dist(x, y, p=2)  # L2 distance
-    print("Distance between vectors:", dist.item())
-
-    # -------------------------------------------------------------------------
-    header("Logical reductions: all, any")
-    x = torch.tensor([[True, True, True],
-                      [True, False, True],
-                      [False, False, False]])
-    print("x:\n", x)
-    
-    print("all() (all True):", x.all().item())
-    print("any() (any True):", x.any().item())
-    
-    # 차원별
-    print("all(dim=1):", x.all(dim=1))
-    print("any(dim=1):", x.any(dim=1))
-    
-    # 실용적 용도: 조건 확인
-    values = torch.randn(5)
-    print("\nvalues:", values)
-    all_positive = (values > 0).all()
-    any_positive = (values > 0).any()
-    print("All positive:", all_positive.item())
-    print("Any positive:", any_positive.item())
-
-    # -------------------------------------------------------------------------
-    header("Counting operations")
-    x = torch.tensor([[1, 0, 3], [0, 0, 6], [7, 8, 0]])
-    print("x:\n", x)
-    
-    # 전체 원소 개수
-    print("numel (total elements):", x.numel())
-    
-    # 0이 아닌 원소 세기
-    print("count_nonzero:", torch.count_nonzero(x).item())
-    
-    # 차원별로 세기
-    print("count_nonzero(dim=0):", torch.count_nonzero(x, dim=0))
-    print("count_nonzero(dim=1):", torch.count_nonzero(x, dim=1))
-
-    # -------------------------------------------------------------------------
-    header("Cumulative operations")
-    x = torch.tensor([1., 2., 3., 4., 5.])
-    print("x:", x)
-    
-    # 누적 합
-    cumsum = x.cumsum(dim=0)
-    print("cumsum:", cumsum)  # [1, 3, 6, 10, 15]
-    
-    # 누적 곱
-    cumprod = x.cumprod(dim=0)
-    print("cumprod:", cumprod)  # [1, 2, 6, 24, 120]
-    
-    # 2차원 예제
-    mat = torch.tensor([[1., 2., 3.],
-                        [4., 5., 6.]])
-    print("\nmat:\n", mat)
-    print("cumsum(dim=0):\n", mat.cumsum(dim=0))
-    print("cumsum(dim=1):\n", mat.cumsum(dim=1))
-
-    # -------------------------------------------------------------------------
-    header("Mode and unique values")
-    x = torch.tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    print("x:", x)
-    
-    # 가장 흔한 값(최빈값)
-    mode_val, mode_idx = x.mode()
-    print("mode value:", mode_val.item())
-    print("mode index:", mode_idx.item())
-    
-    # 서로 다른 값들
-    unique = torch.unique(x)
-    print("unique values:", unique)
-    
-    # 서로 다른 값과 그 개수
-    unique_vals, counts = torch.unique(x, return_counts=True)
-    print("unique with counts:")
-    for val, count in zip(unique_vals, counts):
-        print(f"  {val.item()}: {count.item()} times")
-
-    # bincount — 음이 아닌 정수를 셀 때는 unique보다 간편하다.
-    # 값 자체가 자리 번호가 되므로, 나타나지 않은 값은 0으로 채워진다.
-    # 그래서 길이가 max(x)+1이 되고, 자리와 값이 맞아떨어진다.
-    counts_int = torch.bincount(torch.tensor([1, 2, 3, 2, 1, 2, 3]))
-    print("bincount:", counts_int)       # 0은 0번, 1은 2번, 2는 3번, 3은 2번
-    print("길이 = max+1 :", len(counts_int))
-    # unique는 나타난 값만 돌려주므로 자리와 값이 어긋난다. 라벨을 세어
-    # 부류별 개수를 얻을 때 bincount가 곧바로 쓰이는 까닭이다.
-
-    # -------------------------------------------------------------------------
-    header("Batch statistics example: normalizing batches")
-    # 이미지 배치: (배치, 채널, 높이, 너비)
-    batch = torch.randn(4, 3, 32, 32)
-    print("Batch shape:", batch.shape)
-    
-    # 채널별 평균과 표준편차 계산(배치와 공간 차원에 걸쳐)
-    # 축약할 차원: 0(배치), 2(높이), 3(너비)
+def batch_stats():
+    header("6. 채널별 통계")
+    torch.manual_seed(0)
+    batch = torch.randn(4, 3, 8, 8)          # (N, C, H, W)
     mean = batch.mean(dim=(0, 2, 3), keepdim=True)
     std = batch.std(dim=(0, 2, 3), keepdim=True)
-    print("Mean shape:", mean.shape)  # (1, 3, 1, 1)
-    print("Std shape:", std.shape)    # (1, 3, 1, 1)
-    
-    # 정규화
-    normalized = (batch - mean) / (std + 1e-5)
-    print("Normalized shape:", normalized.shape)
-    print("Normalized mean ≈ 0:", normalized.mean(dim=(0, 2, 3)))
-    print("Normalized std ≈ 1:", normalized.std(dim=(0, 2, 3)))
+    print("  batch.shape:", tuple(batch.shape))
+    print("  mean.shape :", tuple(mean.shape), " 채널만 남는다")
+    normed = (batch - mean) / (std + 1e-5)
+    print("  정규화 뒤 채널 평균:",
+          [round(v, 6) for v in normed.mean(dim=(0, 2, 3)).tolist()])
+    print("  정규화 뒤 채널 표준편차:",
+          [round(v, 6) for v in normed.std(dim=(0, 2, 3)).tolist()])
+    print("  1 에서 조금 모자란다 — 분모에 더한 1e-5 때문이다")
 
-    # -------------------------------------------------------------------------
-    header("Statistical summary function")
-    def summarize(tensor, name="tensor"):
-        """텐서의 통계 간추림을 찍는다."""
-        print(f"\n{name}:")
-        print(f"  Shape: {tensor.shape}")
-        print(f"  dtype: {tensor.dtype}")
-        print(f"  Min: {tensor.min().item():.4f}")
-        print(f"  Max: {tensor.max().item():.4f}")
-        print(f"  Mean: {tensor.mean().item():.4f}")
-        print(f"  Std: {tensor.std().item():.4f}")
-        print(f"  Median: {tensor.median().item():.4f}")
-    
-    x = torch.randn(100, 50)
-    summarize(x, "Random matrix")
 
-    # -------------------------------------------------------------------------
-    header("Quick reference: reduction operations")
-    print("\nBasic statistics:")
-    print("  .sum()     - Sum of all elements")
-    print("  .mean()    - Average of all elements")
-    print("  .std()     - Standard deviation")
-    print("  .var()     - Variance")
-    print("  .prod()    - Product of all elements")
-    
-    print("\nExtrema:")
-    print("  .min()     - Minimum value (+ index if dim specified)")
-    print("  .max()     - Maximum value (+ index if dim specified)")
-    print("  .argmin()  - Index of minimum")
-    print("  .argmax()  - Index of maximum")
-    print("  .aminmax() - Min and max together")
-    
-    print("\nDistribution:")
-    print("  .median()  - Median value")
-    print("  .quantile(q) - q-th quantile")
-    print("  .mode()    - Most frequent value")
-    
-    print("\nNorms:")
-    print("  .norm(p)   - p-norm (p=1, 2, inf, 'fro', 'nuc')")
-    print("  torch.dist(a, b, p) - Distance between tensors")
+def main():
+    which_axis()
+    keepdim_matters()
+    correction()
+    median_and_ties()
+    the_rest()
+    batch_stats()
 
-    print("\nCounting:")
-    print("  torch.unique(x, return_counts=True) - Distinct values and counts")
-    print("  torch.bincount(x) - Counts per value, indexed by value")
-    
-    print("\nLogical:")
-    print("  .all()     - True if all elements True")
-    print("  .any()     - True if any element True")
-    print("  torch.count_nonzero() - Count non-zero elements")
-    
-    print("\nCumulative:")
-    print("  .cumsum(dim) - Cumulative sum")
-    print("  .cumprod(dim) - Cumulative product")
-    
-    print("\nNote: Most operations support dim and keepdim parameters")
 
 if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (232줄)"
+**출력:**
 
-    ```
+```
+=== 1. dim 은 접을 축이다 ===
+x =
+tensor([[1., 2., 3.],
+        [4., 5., 6.],
+        [7., 8., 9.]])
+  x.sum()        = 45.0  (다 접는다)
+  x.sum(dim=0)   = [12.0, 15.0, 18.0]  모양 (3,)  0번 축이 사라졌다
+  x.sum(dim=1)   = [6.0, 15.0, 24.0]  모양 (3,)  1번 축이 사라졌다
+  (2,3,4).sum(dim=(0,2)) 모양: (3,)  두 축을 한꺼번에
+  헷갈리면 '남는 축' 을 보면 된다 — dim 에 적은 축이 없어진다
 
-    ================================================================================
-    Basic reductions: sum, mean, prod
-    ================================================================================
-    x:
-     tensor([[ 0.3367,  0.1288,  0.2345,  0.2303],
-            [-1.1229, -0.1863,  2.2082, -0.6380],
-            [ 0.4617,  0.2674,  0.5349,  0.8094]])
-    sum: 3.264584541320801
-    mean: 0.2720487117767334
-    prod (product): -3.6888061003992334e-05
+=== 2. keepdim ===
+  (3,4) 에서
+    mean(dim=1).shape         : (3,)
+    mean(dim=1, keepdim).shape: (3, 1)
+    x - mean(dim=1) : The size of tensor a (4) must match the size of tensor b (3) a
+    여기서는 터져 주어 바로 안다
+  (4,4) 정사각에서는
+    터지지 않는다. 모양: (4, 4)
+    두 결과가 같은가: False
+    바른 쪽 행 평균: [0.0, 0.0, 0.0, 0.0]
+    틀린 쪽 행 평균: [0.248552, -0.060033, 0.805917, -0.994435]
+    행을 가운데로 옮기려 했는데 열에서 뺀 셈이 되었다
 
-    ================================================================================
-    Dimension-wise reductions
-    ================================================================================
-    x:
-     tensor([[1., 2., 3.],
-            [4., 5., 6.],
-            [7., 8., 9.]])
-    sum(dim=0): tensor([12., 15., 18.])
-      Result shape: torch.Size([3])
-    sum(dim=1): tensor([ 6., 15., 24.])
-      Result shape: torch.Size([3])
+=== 3. std 의 기본값은 불편 추정량이다 ===
+  손으로 sqrt(SS/n)     (편향) = 1.118034
+  손으로 sqrt(SS/(n-1)) (불편) = 1.290994
+  x.std()             = 1.290994  <- 기본값
+  x.std(correction=1) = 1.290994
+  x.std(correction=0) = 1.118034
+  correction 은 분모에서 빼는 수다. 1 이 베셀 보정이고 기본값이다
+  numpy 의 np.std 는 기본이 ddof=0 — 반대다
+  var 도 같다: 1.666667 = 1.666667
 
-    ================================================================================
-    keepdim: preserve reduced dimensions as size 1
-    ================================================================================
-    x.shape: torch.Size([3, 4, 5])
-    mean(dim=1).shape: torch.Size([3, 5])
-    mean(dim=1, keepdim=True).shape: torch.Size([3, 1, 5])
-    Normalized shape: torch.Size([3, 4, 5])
+=== 4. median 과 비김 ===
+  [1,2,3,4] 의
+    torch.median()   = 2.0  <- 가운데 둘 중 아래쪽
+    quantile(0.5)    = 2.5  <- 둘의 평균
+  numpy 와 파이썬 statistics 는 2.5 를 준다
+  median 은 실제로 있는 값을 돌려주겠다는 약속이다
+  [3,1,4,1,5,9,2,6,5] 의 mode = 1  자리 3
+    1 과 5 가 둘 다 두 번 나오는데 하나만 돌려준다
+  [1,3,3,2].argmax() = 1  <- 비기면 첫 자리
 
-    ================================================================================
-    Multiple dimension reductions
-    ================================================================================
-    x.shape: torch.Size([2, 3, 4, 5])
-    mean(dim=(1,3)).shape: torch.Size([2, 4])
-    mean(dim=(1,3), keepdim=True).shape: torch.Size([2, 1, 4, 1])
+=== 5. 나머지 ===
+  max(dim=1) 는 값과 자리를 같이 준다: [1.541, 0.838, 0.182] [0, 3, 3]
+  min/max 를 dim 없이 부르면 값만: 1.541
+  aminmax() 한 번에: -2.1788 1.541
+  all / any            : False True
+  numel / count_nonzero: 12 5
+  norm(2) 과 손으로     : 3.549277 3.549277
+  cumsum               : [1, 3, 6, 10]
+  bincount             : [0, 2, 3, 2]
+    자리가 곧 값이라 나타나지 않은 0 도 칸을 차지한다
 
-    ================================================================================
-    Standard deviation and variance
-    ================================================================================
-    std: 0.8983126878738403
-    var: 0.8069656491279602
-    Relation: var = std²: 0.8069656491279602 ≈ 0.806965708732605
+=== 6. 채널별 통계 ===
+  batch.shape: (4, 3, 8, 8)
+  mean.shape : (1, 3, 1, 1)  채널만 남는다
+  정규화 뒤 채널 평균: [-0.0, -0.0, 0.0]
+  정규화 뒤 채널 표준편차: [0.99999, 0.99999, 0.99999]
+  1 에서 조금 모자란다 — 분모에 더한 1e-5 때문이다
+```
 
-    Biased (default, Bessel correction):
-      std(correction=1): 0.8983126878738403
-    Unbiased:
-      std(correction=0): 0.8938098549842834
+## 2. `dim`은 "접을 축"이다
 
-    ================================================================================
-    Min and max operations
-    ================================================================================
-    x:
-     tensor([[ 0.2545,  0.0662, -1.2704,  0.6674],
-            [-1.0002, -0.0244,  0.2497, -1.7517],
-            [-0.1309,  1.4378, -0.1544, -0.2853]])
-    min: -1.7517130374908447
-    max: 1.437826156616211
-    min(dim=1) values: tensor([-1.2704, -1.7517, -0.2853])
-    min(dim=1) indices: tensor([2, 3, 3])
-    max(dim=1) values: tensor([0.6674, 0.2497, 1.4378])
-    max(dim=1) indices: tensor([3, 2, 1])
+```
+x.sum(dim=0) = [12, 15, 18]   모양 (3,)   0번 축이 사라졌다
+x.sum(dim=1) = [6, 15, 24]    모양 (3,)   1번 축이 사라졌다
+```
 
-    ================================================================================
-    argmin and argmax: just the indices
-    ================================================================================
-    x:
-     tensor([[-0.1389, -0.8561, -0.5364, -1.0440],
-            [ 1.2561,  0.4627, -0.3151,  0.5482],
-            [ 0.0369, -0.8128,  0.0121, -0.6397]])
-    argmin (global): 3
-    argmax (global): 4
-    argmin(dim=1): tensor([3, 2, 1])
-    argmax(dim=1): tensor([0, 0, 0])
+둘 다 결과가 `(3,)`이라 헷갈리기 쉬운데, **`dim`에 적은 축이 없어진다**고 읽으면
+된다. `(2,3,4)`에서 `dim=(0,2)`로 접으면 1번 축만 남아 `(3,)`이 된다.
 
-    ================================================================================
-    aminmax: min and max together
-    ================================================================================
-    aminmax: -1.7989355325698853 1.8586984872817993
-    aminmax(dim=1):
-      mins: tensor([-0.5964, -1.7989, -0.6021])
-      maxs: tensor([0.7355, 1.8587, 0.6732])
+외우기보다 **남는 축을 보는** 편이 빠르다. 채널별 통계를 내고 싶으면 채널 축만
+남겨야 하므로 나머지를 다 적는다 — `dim=(0, 2, 3)`.
 
-    ================================================================================
-    Quantiles and percentiles
-    ================================================================================
-    median: -0.014654344879090786
-    25th percentile: -0.6737703680992126
-    75th percentile: 0.7074064016342163
-    IQR: 1.3811767101287842
-    10th, 50th, 90th percentiles: tensor([-1.3014, -0.0146,  1.3046])
+## 3. `keepdim`을 빼면 정사각에서 조용히 틀린다
 
-    ================================================================================
-    Norms and distances
-    ================================================================================
-    L2 norm: 5.0 (expect 5.0)
-    L1 norm: 7.0
-    L∞ norm: 4.0
-    Frobenius norm: 2.696213722229004
-    Nuclear norm: 4.021577835083008
-    핵 >= 프로베니우스: True
-    Distance between vectors: 5.0
+행마다 평균을 빼 가운데로 옮기는 흔한 코드를 생각해 보자.
 
-    ================================================================================
-    Logical reductions: all, any
-    ================================================================================
-    x:
-     tensor([[ True,  True,  True],
-            [ True, False,  True],
-            [False, False, False]])
-    all() (all True): False
-    any() (any True): True
-    all(dim=1): tensor([ True, False, False])
-    any(dim=1): tensor([ True,  True, False])
+```python
+x - x.mean(dim=1)              # keepdim 없이
+```
 
-    values: tensor([-0.3302,  0.6592,  0.8909, -0.7871, -0.1409])
-    All positive: False
-    Any positive: True
+`(3, 4)`에서는 터진다. `mean(dim=1)`이 `(3,)`인데 `x`의 마지막 축은 4라서 맞지
+않는다.
 
-    ================================================================================
-    Counting operations
-    ================================================================================
-    x:
-     tensor([[1, 0, 3],
-            [0, 0, 6],
-            [7, 8, 0]])
-    numel (total elements): 9
-    count_nonzero: 5
-    count_nonzero(dim=0): tensor([2, 1, 2])
-    count_nonzero(dim=1): tensor([2, 1, 2])
+```
+The size of tensor a (4) must match the size of tensor b (3)
+```
 
-    ================================================================================
-    Cumulative operations
-    ================================================================================
-    x: tensor([1., 2., 3., 4., 5.])
-    cumsum: tensor([ 1.,  3.,  6., 10., 15.])
-    cumprod: tensor([  1.,   2.,   6.,  24., 120.])
+그런데 **정사각이면 터지지 않는다.**
 
-    mat:
-     tensor([[1., 2., 3.],
-            [4., 5., 6.]])
-    cumsum(dim=0):
-     tensor([[1., 2., 3.],
-            [5., 7., 9.]])
-    cumsum(dim=1):
-     tensor([[ 1.,  3.,  6.],
-            [ 4.,  9., 15.]])
+```
+(4,4) 정사각에서는
+  터지지 않는다. 모양: (4, 4)
+  두 결과가 같은가: False
+  바른 쪽 행 평균: [0.0, 0.0, 0.0, 0.0]
+  틀린 쪽 행 평균: [-0.621345, -0.103309, 0.048584, 0.676069]
+```
 
-    ================================================================================
-    Mode and unique values
-    ================================================================================
-    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    mode value: 1
-    mode index: 3
-    unique values: tensor([1, 2, 3, 4, 5, 6, 9])
-    unique with counts:
-      1: 2 times
-      2: 1 times
-      3: 1 times
-      4: 1 times
-      5: 2 times
-      6: 1 times
-      9: 1 times
-    bincount: tensor([0, 2, 3, 2])
-    길이 = max+1 : 4
+행을 가운데로 옮기려 했으니 행 평균이 0이어야 하는데, 0이 아니다. `(4,)`짜리
+평균이 **마지막 축에 맞춰져** 열에서 빼 버렸다.
 
-    ================================================================================
-    Batch statistics example: normalizing batches
-    ================================================================================
-    Batch shape: torch.Size([4, 3, 32, 32])
-    Mean shape: torch.Size([1, 3, 1, 1])
-    Std shape: torch.Size([1, 3, 1, 1])
-    Normalized shape: torch.Size([4, 3, 32, 32])
-    Normalized mean ≈ 0: tensor([ 7.4506e-09,  1.1409e-08, -1.3271e-08])
-    Normalized std ≈ 1: tensor([1.0000, 1.0000, 1.0000])
+「형상, 자료형, 장치」의 `A @ B.T`와 똑같은 모양의 함정이다. **정사각에서만
+조용하다.** 그래서 `keepdim=True`는 모양을 맞추려는 장식이 아니라, 접은 축이
+어디였는지를 **잊지 않기 위한 표시**다.
 
-    ================================================================================
-    Statistical summary function
-    ================================================================================
+## 4. `std`의 기본값은 불편 추정량이다
 
-    Random matrix:
-      Shape: torch.Size([100, 50])
-      dtype: torch.float32
-      Min: -4.5905
-      Max: 3.7069
-      Mean: 0.0070
-      Std: 1.0168
-      Median: 0.0181
+$[1, 2, 3, 4]$로 확인하면 이렇다.
 
-    ================================================================================
-    Quick reference: reduction operations
-    ================================================================================
+| | 식 | 값 |
+|---|---|---|
+| 편향 | $\sqrt{SS/n}$ | 1.118034 |
+| 불편 | $\sqrt{SS/(n-1)}$ | 1.290994 |
+| `x.std()` | 기본값 | **1.290994** |
+| `x.std(correction=1)` | | 1.290994 |
+| `x.std(correction=0)` | | 1.118034 |
 
-    Basic statistics:
-      .sum()     - Sum of all elements
-      .mean()    - Average of all elements
-      .std()     - Standard deviation
-      .var()     - Variance
-      .prod()    - Product of all elements
+`correction`은 **분모에서 빼는 수**다. 1이 베셀 보정이고 그것이 기본값이므로,
+파이토치의 `std()`는 **불편 추정량**이다.
 
-    Extrema:
-      .min()     - Minimum value (+ index if dim specified)
-      .max()     - Maximum value (+ index if dim specified)
-      .argmin()  - Index of minimum
-      .argmax()  - Index of maximum
-      .aminmax() - Min and max together
+여기서 걸리는 것은 numpy와 반대라는 점이다. `np.std`의 기본값은 `ddof=0`, 곧
+편향 추정량이다. 같은 데이터를 두 라이브러리로 재면 다른 수가 나오고, $n$이
+작을수록 차이가 크다. 논문의 표준편차를 재현하려는데 안 맞을 때 먼저 볼 자리다.
 
-    Distribution:
-      .median()  - Median value
-      .quantile(q) - q-th quantile
-      .mode()    - Most frequent value
+## 5. `median`은 평균내지 않는다
 
-    Norms:
-      .norm(p)   - p-norm (p=1, 2, inf, 'fro', 'nuc')
-      torch.dist(a, b, p) - Distance between tensors
+```
+[1,2,3,4] 의
+  torch.median() = 2.0    <- 가운데 둘 중 아래쪽
+  quantile(0.5)  = 2.5    <- 둘의 평균
+```
 
-    Counting:
-      torch.unique(x, return_counts=True) - Distinct values and counts
-      torch.bincount(x) - Counts per value, indexed by value
+numpy와 파이썬 `statistics`는 2.5를 준다. 파이토치만 2.0이다.
 
-    Logical:
-      .all()     - True if all elements True
-      .any()     - True if any element True
-      torch.count_nonzero() - Count non-zero elements
+틀린 것이 아니라 **다른 약속**이다. `torch.median`은 "데이터에 실제로 있는 값을
+돌려준다"를 지킨다. 그래서 정수 텐서에서도 정수가 나오고, 자료형이 바뀌지
+않는다. 평균을 원하면 `quantile(0.5)`를 쓴다.
 
-    Cumulative:
-      .cumsum(dim) - Cumulative sum
-      .cumprod(dim) - Cumulative product
+비기는 자리도 약속이 필요하다.
 
-    Note: Most operations support dim and keepdim parameters
-    ```
-## 2. 논의
+| | 비기면 |
+|---|---|
+| `mode()` | 하나만 돌려준다 (위 예에서 1과 5가 둘 다 두 번인데 1) |
+| `argmax()` | **첫 자리**를 돌려준다 |
 
-`sum`과 `mean`의 `dim`을 생략하면 전체 원소를 줄인다. 축을 지정하면 다른 축은 유지하며, `keepdim=True`는 축약한 축의 길이를 1로 남겨 원본과 다시 계산하기 쉽게 한다. 항상 필요한 옵션은 아니며 후속 모양에 맞춰 선택한다.
+`argmax`가 첫 자리라는 것은 분류에서 쓸모가 있다. 로짓이 완전히 같은 두 클래스가
+있으면 언제나 번호가 작은 쪽이 뽑히므로, 적어도 **재현은 된다.**
 
-평균은 정수 입력을 그대로 처리하지 못할 수 있으므로 적절한 실수형으로 바꾼다. 분산·표준편차는 `correction`에 따라 분모가 달라진다. 표본 수가 보정량 이하인 경우에는 NaN 등 유효하지 않은 결과가 나올 수 있다. NaN을 포함하는 데이터의 처리는 일반 축약과 NaN 전용 축약에서 다르다.
+## 6. 채널별 통계
+
+```
+batch.shape: (4, 3, 8, 8)
+mean.shape : (1, 3, 1, 1)   채널만 남는다
+정규화 뒤 채널 평균:     [-0.0, -0.0, 0.0]
+정규화 뒤 채널 표준편차: [0.99999, 0.99999, 0.99999]
+```
+
+배치 정규화가 하는 일이 이 두 줄이다. 표준편차가 1이 아니라 0.99999인 것은
+분모에 더한 `1e-5` 때문이고, 0으로 나누는 것을 막으려고 일부러 넣은 값이다.
+
+`keepdim=True`가 여기서 필수다. `(1,3,1,1)`이라야 `(4,3,8,8)`과 브로드캐스팅되어
+채널마다 제 평균이 빠진다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-모양이 $(3, 1, 5)$와 $(4, 5)$인 텐서가 주어졌을 때 덧셈 후의 출력 모양을 구하고 PyTorch로 확인하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+`torch.arange(24).reshape(2, 3, 4)`를 `dim`을 바꿔 가며 더하면 결과 모양이 어떻게
+되는가? `None`, `0`, `1`, `2`, `(0,1)`, `(1,2)`에 대해 **먼저 적고** 확인하라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
-    a = torch.randn(3, 1, 5)
-    b = torch.randn(4, 5)
-    c = a + b
-    print(c.shape)  # torch.Size([3, 4, 5])
-    # b는 암묵적으로 (1, 4, 5)가 되고, 그다음 둘 다 (3, 4, 5)로 브로드캐스팅된다.
+    x = torch.arange(24).reshape(2, 3, 4).float()
+    for d in (None, 0, 1, 2, (0, 1), (1, 2)):
+        r = x.sum() if d is None else x.sum(dim=d)
+        print(f"  dim={str(d):8s} -> 모양 {tuple(r.shape)}")
     ```
 
----
+    ```
+      dim=None     -> 모양 ()
+      dim=0        -> 모양 (3, 4)
+      dim=1        -> 모양 (2, 4)
+      dim=2        -> 모양 (2, 3)
+      dim=(0, 1)   -> 모양 (4,)
+      dim=(1, 2)   -> 모양 (2,)
+    ```
 
+    규칙이 하나다. **적은 축을 모양에서 지우면 된다.** `(2,3,4)`에서 0을 지우면
+    `(3,4)`, `(0,1)`을 지우면 `(4,)`. `dim=None`이면 다 지워 0차원이 남는다.
+
+    0차원 `()`은 스칼라다. 모양이 비어 있지 `None`이 아니며, `.item()`으로 파이썬
+    수를 꺼낼 수 있다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-모양이 $(3, 4)$와 $(5,)$인 텐서의 덧계산이 실패하는 이유를 설명하라. 이 불일치를 고치는 서로 다른 두 가지 방법을 제안하라.
-
-</div>
-
-??? success "풀이"
-    마지막 차원이 4와 5인데 서로 같지도 않고 1도 아니다. 해결 1: 벡터를 열에 맞도록 바꾼다. 예를 들어 $(4,)$ 벡터를 쓴다. 해결 2: 벡터를 $(5, 1)$로 바꾸고 행렬을 $(5, 4)$로 바꾸어 올바른 축을 따라 브로드캐스팅이 되게 한다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff easy" title="쉬움"></span>
-`torch.outer`를 쓰지 않고 브로드캐스팅으로 두 벡터 $a = [1, 2, 3]$과 $b = [4, 5]$의 외적을 계산하라.
+`(N, C, H, W)` 배치에서 **채널별**·**표본별**·**자리별** 평균을 각각 구하려면
+`dim`에 무엇을 적어야 하는가? 셋 다 `keepdim=True`로 구해 `(b - m)`이 되는지
+확인하라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    a = torch.tensor([1., 2., 3.]).unsqueeze(1)  # (3, 1)
-    b = torch.tensor([4., 5.]).unsqueeze(0)       # (1, 2)
-    outer = a * b  # (3, 2)
-    print(outer)
-    # tensor([[ 4.,  5.],
-    #         [ 8., 10.],
-    #         [12., 15.]])
+    b = torch.randn(4, 3, 8, 8)
+    for name, dims in (("채널별 (0,2,3)", (0, 2, 3)),
+                       ("표본별 (1,2,3)", (1, 2, 3)),
+                       ("자리별 (0,1)", (0, 1))):
+        m = b.mean(dim=dims, keepdim=True)
+        print(f"  {name:16s} mean.shape {tuple(m.shape)}  "
+              f"(b-m).shape {tuple((b - m).shape)}")
     ```
 
-## 정리하며
+    ```
+      채널별 (0,2,3)      mean.shape (1, 3, 1, 1)  (b-m).shape (4, 3, 8, 8)
+      표본별 (1,2,3)      mean.shape (4, 1, 1, 1)  (b-m).shape (4, 3, 8, 8)
+      자리별 (0,1)        mean.shape (1, 1, 8, 8)  (b-m).shape (4, 3, 8, 8)
+    ```
 
-합·평균·분산은 여러 원소를 줄이는 연산이다. 무엇을 줄이는지 나타내는 `dim`과 줄인 축을 남기는 `keepdim`이 결과의 의미와 모양을 정한다.
+    **남기고 싶은 축만 빼고 전부 적는다.** 채널을 남기려면 `(0,2,3)`, 표본을
+    남기려면 `(1,2,3)`이다.
+
+    셋이 서로 다른 정규화에 해당한다.
+
+    | 남긴 축 | 무엇인가 |
+    |---|---|
+    | 채널 | **배치 정규화** — 채널마다 통계를 낸다 |
+    | 표본 | **층 정규화**에 가깝다 — 표본마다 제 통계로 맞춘다 |
+    | 자리 | 화소 자리마다 — 영상에서는 잘 안 쓴다 |
+
+    `keepdim=True` 덕분에 셋 다 `(4,3,8,8)`로 브로드캐스팅된다. 빼면 모양이
+    돌아오는지 확인하는 것이 `dim`을 제대로 적었는지 보는 가장 빠른 길이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+float32는 유효숫자가 24비트뿐이다. 1000 근처의 수 20만 개를 더하면 오차가 쌓일
+것 같다. **차례대로 더한 것**과 `torch.sum`을 float64 참값과 견주어라. 결과를
+어떻게 설명하겠는가?
+
+</div>
+
+??? success "풀이"
+    ```python
+    import numpy as np
+
+    torch.manual_seed(0)
+    v = torch.rand(200000, dtype=torch.float32) + 1000.0
+    exact = float(v.numpy().astype(np.float64).sum())
+
+    s = np.float32(0.0)                       # float32 누산기 하나로 차례대로
+    for x in v.numpy():
+        s = np.float32(s + x)
+
+    print(f"  차례대로 (float32 누산기) {float(s):16.3f}")
+    print(f"  torch.sum               {float(v.sum()):16.3f}")
+    print(f"  float64 참값             {exact:16.3f}")
+    print(f"  차례대로 상대오차 {abs(float(s) - exact) / exact:.2e}")
+    print(f"  torch.sum 상대오차 {abs(float(v.sum()) - exact) / exact:.2e}")
+    ```
+
+    ```
+      차례대로 (float32 누산기)    200534704.000
+      torch.sum                  200100160.000
+      float64 참값                200100163.508
+      차례대로 상대오차 2.17e-03
+      torch.sum 상대오차 1.75e-08
+    ```
+
+    **짐작한 오차는 실제로 생긴다 — 차례대로 더하면.** 참값이 2억 100만인데
+    차례대로 더한 값은 2억 53만이다. **43만이나 크다.**
+
+    까닭은 누산기가 커질수록 더하는 수가 상대적으로 작아지기 때문이다. 누산기가
+    $2 \times 10^8$쯤 되면 float32의 간격이 16 정도인데 거기에 1000을 더하면
+    반올림으로 밀려 올라간다. 2억 번 가까이 그러면 쌓인다.
+
+    그런데 **`torch.sum`은 다섯 자릿수나 정확하다**(1.75e-08). 차례대로 더하지
+    않기 때문이다. 파이토치는 **짝지어 더하기**(pairwise summation)를 쓴다 —
+    덩어리로 나누어 각각 더한 다음 그 결과들을 다시 더하는 식이라, 누산기가
+    한없이 커지지 않는다. 오차가 $O(n)$ 대신 $O(\log n)$으로 는다.
+
+    여기서 가져갈 것이 둘이다.
+
+    첫째, **걱정은 맞았는데 이미 해결되어 있었다.** 라이브러리 함수를 손으로 짠
+    루프로 바꾸면 이런 것을 잃는다. `for`로 합을 구하지 말아야 할 까닭이 속도만은
+    아니다.
+
+    둘째, 그래도 안전한 쪽을 원하면 **누산 자료형을 올리면 된다.**
+    `v.sum(dtype=torch.float64)`는 입력이 float32여도 float64로 더한다. 로스를
+    모으거나 평가 지표를 쌓을 때 쓸 만하다.
