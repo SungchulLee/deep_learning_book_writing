@@ -1,717 +1,530 @@
-# 행렬 연산
+# 행렬 연산 — 어느 것을 쓰고 무엇을 믿을 수 있는가
 
-행렬 곱은 원소별 곱과 다른 축을 결합한다. 벡터·행렬·배치 행렬에서 입력 차원을 구별하면 `matmul`·`mm`·`bmm`를 정확히 선택할 수 있다.
+행렬곱 하나를 적는 길이 여럿이다. `*`, `@`, `mm`, `bmm`, `matmul`, `einsum`.
+선형대수 함수도 스무 가지가 넘는다. 그런데 **쓰다가 틀리는 자리**는 몇 군데로
+좁혀진다.
+
+- `*`는 원소별, `@`는 행렬곱이다. **정사각에서는 둘 다 터지지 않고** 다른 답을 준다
+- `matmul`은 브로드캐스팅하고 `mm`·`bmm`은 모양을 꼭 맞춰야 한다
+- **역행렬을 구해 곱하지 말고 `solve`를 쓴다**
+- float32에서 믿을 수 있는 자릿수는 **조건수가 정한다**
 
 ## 1. 코드
 
 ```python
-#!/usr/bin/env python3
-"""
-행렬 셈과 선형대수.
+"""행렬 연산 — 어느 것을 쓰고 무엇을 믿을 수 있는가.
 
-Covers:
-- 행렬 곱: matmul (@), mm, bmm
-- 원소별 곱: mul (*)
-- 벡터 셈: dot, cross, outer
-- 복잡한 셈을 위한 einsum
-- 배치 행렬 셈
-- 선형대수: inv, det, solve, eig
-- 행렬 쪼개기: SVD, QR, 촐레스키
+행렬곱 하나를 적는 길이 여럿이고(`*`, `@`, `mm`, `bmm`, `matmul`,
+`einsum`) 선형대수 함수도 여럿이다. 외울 것은 세 가지다.
+
+- `*` 는 원소별, `@` 는 행렬곱이다. 둘 다 터지지 않고 다른 답을 줄 수 있다
+- `matmul` 은 브로드캐스팅하고 `mm`·`bmm` 은 모양을 꼭 맞춰야 한다
+- **역행렬을 구해 곱하지 말고 `solve` 를 쓴다.** 그리고 float32 에서
+  믿을 수 있는 자릿수는 **조건수가 정한다**
+
+실행: python 14_matrix_operations.py
 """
+import math
+import time
 
 import torch
+import torch.nn.functional as F
+
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
+def spread(fn, rep=7):
+    ts = []
+    for _ in range(rep):
+        t0 = time.perf_counter()
+        fn()
+        ts.append(time.perf_counter() - t0)
+    return min(ts) * 1e3, max(ts) * 1e3
+
 
 # ========================================================================
-# 메인
+# 1. * 와 @
 # ========================================================================
 
-def header(title: str):
-    print("\n" + "=" * 80)
-    print(title)
-    print("=" * 80)
+def elementwise_vs_matmul():
+    header("1. * 와 @")
+    a = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+    b = torch.tensor([[5.0, 6.0], [7.0, 8.0]])
+    print("  a * b (원소별):", (a * b).flatten().tolist())
+    print("  a @ b (행렬곱):", (a @ b).flatten().tolist())
+    print("  정사각이라 모양이 같아 터지지 않는다. 값만 다르다")
+    print("  a.mul(b) 와 a.matmul(b) 로도 적는다")
+
+    v = torch.tensor([1.0, 2.0])
+    print("  행렬 @ 벡터:", (a @ v).tolist(), " 모양", tuple((a @ v).shape))
+    print("  벡터 @ 벡터 (내적):", torch.dot(v, v).item(), "=", (v @ v).item())
+    print("  바깥곱 outer:", torch.outer(v, v).flatten().tolist())
+
+
+# ========================================================================
+# 2. mm / bmm / matmul 이 받는 모양
+# ========================================================================
+
+def which_matmul():
+    header("2. mm / bmm / matmul")
+    A2, B2 = torch.randn(3, 4), torch.randn(4, 5)
+    A3, B3 = torch.randn(2, 3, 4), torch.randn(2, 4, 5)
+    cases = (("mm    (2D,2D)", torch.mm, (A2, B2)),
+             ("mm    (3D,3D)", torch.mm, (A3, B3)),
+             ("bmm   (3D,3D)", torch.bmm, (A3, B3)),
+             ("bmm   (2D,2D)", torch.bmm, (A2, B2)),
+             ("matmul(2D,2D)", torch.matmul, (A2, B2)),
+             ("matmul(3D,3D)", torch.matmul, (A3, B3)),
+             ("matmul(3D,2D)", torch.matmul, (A3, B2)))
+    for name, fn, args in cases:
+        try:
+            print(f"  {name} -> {tuple(fn(*args).shape)}")
+        except RuntimeError as e:
+            print(f"  {name} -> {str(e).splitlines()[0][:44]}")
+    print("  @ 는 matmul 이다. 브로드캐스팅까지 해 주므로 보통 이것만 쓰면 된다")
+
+
+# ========================================================================
+# 3. 어텐션에 1/sqrt(d) 가 붙는 까닭
+# ========================================================================
+
+def why_scale():
+    header("3. 어텐션의 1/sqrt(d)")
+    torch.manual_seed(0)
+    for d in (8, 64, 512):
+        Q, K = torch.randn(1, 10, d), torch.randn(1, 10, d)
+        s = Q @ K.transpose(-2, -1)
+        for label, sc in (("조정 없이  ", s), ("1/sqrt(d) 로", s / math.sqrt(d))):
+            p = F.softmax(sc, dim=-1)
+            ent = -(p * p.clamp_min(1e-12).log()).sum(-1).mean()
+            print(f"  d={d:4d} {label} 점수 표준편차 {sc.std():6.3f}  "
+                  f"최대 확률 {p.max(dim=-1).values.mean():.4f}  "
+                  f"엔트로피 {ent:.4f}")
+    print("  조정 없이 d 가 크면 softmax 가 한 자리에 쏠린다")
+    print("  Q·K 는 d 개를 더한 값이라 표준편차가 sqrt(d) 로 자란다")
+    print("  그래서 sqrt(d) 로 나누면 d 와 무관하게 1 쯤에서 머문다")
+
+
+# ========================================================================
+# 4. 역행렬을 구해 곱하지 않는다
+# ========================================================================
+
+def solve_not_inverse():
+    header("4. inv 로 풀기 vs solve")
+    torch.manual_seed(0)
+    n = 500
+    A = torch.randn(n, n)
+    A = A @ A.t() + n * torch.eye(n)          # 대칭이고 잘 조건지어진 것
+    b = torch.randn(n, 1)
+    exact = torch.linalg.solve(A.double(), b.double())
+    for name, x in (("inv(A) @ b ", torch.linalg.inv(A) @ b),
+                    ("solve(A, b)", torch.linalg.solve(A, b))):
+        err = (x.double() - exact).abs().max().item()
+        print(f"  {name}  참값과의 차 {err:.3e}")
+    t1 = spread(lambda: torch.linalg.inv(A) @ b)
+    t2 = spread(lambda: torch.linalg.solve(A, b))
+    print(f"  inv(A) @ b   {t1[0]:6.2f} ~ {t1[1]:6.2f} ms")
+    print(f"  solve(A, b)  {t2[0]:6.2f} ~ {t2[1]:6.2f} ms")
+    print("  잘 조건지어진 행렬에서는 정확도가 비슷하고 solve 가 빠르다")
+    print("  나쁘게 조건지어지면 정확도도 갈린다 — 다음 절")
+
+
+# ========================================================================
+# 5. 조건수가 믿을 자릿수를 정한다
+# ========================================================================
+
+def conditioning():
+    header("5. 조건수")
+    torch.manual_seed(0)
+    Q, _ = torch.linalg.qr(torch.randn(50, 50))
+    for c in (1e1, 1e4, 1e7):
+        d = torch.logspace(0, math.log10(c), 50)
+        M = Q @ torch.diag(d) @ Q.t()
+        err = (M @ torch.linalg.inv(M) - torch.eye(50)).abs().max().item()
+        print(f"  조건수 {c:7.0e}  A @ inv(A) 가 I 에서 벗어난 최대 {err:.3e}")
+    print("  float32 는 유효숫자가 약 7 자리다")
+    print("  조건수가 10^k 면 그중 k 자리를 잃는다고 보면 맞는다")
+    print("  조건수 10^7 이면 남는 자리가 없어 4% 가까이 어긋난다")
+
+
+# ========================================================================
+# 6. einsum — 하나로 다 적는다
+# ========================================================================
+
+def einsum_demo():
+    header("6. einsum")
+    torch.manual_seed(0)
+    A, B = torch.randn(3, 4), torch.randn(4, 5)
+    v, w = torch.randn(3), torch.randn(3)
+    T = torch.randn(2, 3, 4)
+    U = torch.randn(2, 4, 5)
+    checks = (
+        ("내적      i,i->  ", torch.einsum("i,i->", v, w), torch.dot(v, w)),
+        ("바깥곱    i,j->ij", torch.einsum("i,j->ij", v, v), torch.outer(v, v)),
+        ("행렬곱    ik,kj->ij", torch.einsum("ik,kj->ij", A, B), A @ B),
+        ("전치      ij->ji", torch.einsum("ij->ji", A), A.t()),
+        ("대각합    ii->", torch.einsum("ii->", torch.eye(4)), torch.tensor(4.0)),
+        ("배치곱    bik,bkj->bij", torch.einsum("bik,bkj->bij", T, U), T @ U),
+    )
+    for name, got, want in checks:
+        print(f"  {name:22s} 같은가: {torch.allclose(got, want, atol=1e-5)}")
+    print("  첨자에 없는 글자는 더해서 없앤다 — 그것이 규칙 전부다")
+
+
+# ========================================================================
+# 7. 분해와 나머지
+# ========================================================================
+
+def decompositions():
+    header("7. 분해들")
+    torch.manual_seed(0)
+    A = torch.randn(4, 3)
+    U, S, Vh = torch.linalg.svd(A, full_matrices=False)
+    print("  SVD   A = U S Vh 로 되돌아오는가:",
+          torch.allclose(U @ torch.diag(S) @ Vh, A, atol=1e-5))
+    print("    특이값:", [round(v, 4) for v in S.tolist()])
+    Q, R = torch.linalg.qr(A)
+    print("  QR    A = Q R 로 되돌아오는가:",
+          torch.allclose(Q @ R, A, atol=1e-5))
+    P = torch.randn(3, 3); P = P @ P.t() + 3 * torch.eye(3)
+    L = torch.linalg.cholesky(P)
+    print("  촐레스키 L @ L.T 로 되돌아오는가:",
+          torch.allclose(L @ L.t(), P, atol=1e-4))
+    print("  rank:", torch.linalg.matrix_rank(A).item(),
+          " det(3x3):", round(torch.linalg.det(P).item(), 4),
+          " trace:", round(torch.trace(P).item(), 4))
+    print("  trace 는 대각의 합이다:",
+          round(torch.diag(P).sum().item(), 4))
+
 
 def main():
-    torch.manual_seed(42)
+    elementwise_vs_matmul()
+    which_matmul()
+    why_scale()
+    solve_not_inverse()
+    conditioning()
+    einsum_demo()
+    decompositions()
 
-    # -------------------------------------------------------------------------
-    header("Element-wise multiplication: * or mul()")
-    a = torch.tensor([[1., 2.], [3., 4.]])
-    b = torch.tensor([[5., 6.], [7., 8.]])
-    
-    element_wise = a * b  # Element-wise (Hadamard product)
-    print("a:\n", a)
-    print("b:\n", b)
-    print("a * b (element-wise):\n", element_wise)
-
-    # -------------------------------------------------------------------------
-    header("Matrix multiplication: @ or matmul()")
-    a = torch.tensor([[1., 2.], [3., 4.]])  # (2, 2)
-    b = torch.tensor([[5., 6.], [7., 8.]])  # (2, 2)
-    
-    mat_mul = a @ b  # Matrix multiplication
-    print("a @ b (matrix multiplication):\n", mat_mul)
-    
-    # matmul()로도 된다
-    mat_mul2 = torch.matmul(a, b)
-    print("torch.matmul(a, b):\n", mat_mul2)
-    print("Equal:", torch.allclose(mat_mul, mat_mul2))
-
-    # -------------------------------------------------------------------------
-    header("Matrix-vector multiplication")
-    A = torch.randn(3, 4)  # Matrix
-    x = torch.randn(4)     # Vector
-    
-    result = A @ x  # Matrix-vector product
-    print("A.shape:", A.shape)
-    print("x.shape:", x.shape)
-    print("(A @ x).shape:", result.shape)  # (3,)
-    
-    # mv()로도 된다
-    result2 = torch.mv(A, x)
-    print("torch.mv(A, x).shape:", result2.shape)
-
-    # -------------------------------------------------------------------------
-    header("Vector dot product")
-    a = torch.tensor([1., 2., 3.])
-    b = torch.tensor([4., 5., 6.])
-    
-    dot_product = torch.dot(a, b)
-    print("a:", a)
-    print("b:", b)
-    print("dot(a, b):", dot_product.item())
-    print("Manual: 1*4 + 2*5 + 3*6 =", 1*4 + 2*5 + 3*6)
-
-    # -------------------------------------------------------------------------
-    header("Matrix multiplication: mm() for 2D only")
-    a = torch.randn(3, 4)
-    b = torch.randn(4, 5)
-    
-    # mm()은 정확히 2차원 텐서를 요구한다
-    result = torch.mm(a, b)
-    print("mm(a, b).shape:", result.shape)  # (3, 5)
-    
-    # matmul()이 더 유연하다
-    result2 = torch.matmul(a, b)
-    print("matmul(a, b).shape:", result2.shape)
-
-    # -------------------------------------------------------------------------
-    header("Batch matrix multiplication: bmm()")
-    # 행렬 곱의 배치
-    batch_a = torch.randn(10, 3, 4)  # 10 matrices of (3, 4)
-    batch_b = torch.randn(10, 4, 5)  # 10 matrices of (4, 5)
-    
-    result = torch.bmm(batch_a, batch_b)
-    print("bmm(batch_a, batch_b).shape:", result.shape)  # (10, 3, 5)
-    
-    # matmul()도 브로드캐스팅으로 이를 처리한다
-    result2 = batch_a @ batch_b
-    print("batch_a @ batch_b shape:", result2.shape)
-
-    # -------------------------------------------------------------------------
-    header("Broadcasting with matmul")
-    # matmul은 배치 차원을 브로드캐스팅한다
-    a = torch.randn(5, 3, 4)    # 5 batches
-    b = torch.randn(4, 2)       # Single matrix
-    
-    # b가 배치 차원에 걸쳐 브로드캐스팅된다
-    result = a @ b
-    print("a.shape:", a.shape)
-    print("b.shape:", b.shape)
-    print("(a @ b).shape:", result.shape)  # (5, 3, 2)
-    
-    # 더 복잡한 브로드캐스팅
-    a = torch.randn(2, 1, 3, 4)
-    b = torch.randn(1, 5, 4, 2)
-    result = a @ b
-    print("\nComplex broadcasting:")
-    print("a.shape:", a.shape)
-    print("b.shape:", b.shape)
-    print("(a @ b).shape:", result.shape)  # (2, 5, 3, 2)
-
-    # -------------------------------------------------------------------------
-    header("Outer product")
-    a = torch.tensor([1., 2., 3.])
-    b = torch.tensor([4., 5., 6., 7.])
-    
-    outer = torch.outer(a, b)
-    print("a:", a)
-    print("b:", b)
-    print("outer(a, b):\n", outer)
-    print("Shape:", outer.shape)  # (3, 4)
-
-    # -------------------------------------------------------------------------
-    header("Cross product (3D vectors only)")
-    a = torch.tensor([1., 0., 0.])
-    b = torch.tensor([0., 1., 0.])
-    
-    cross = torch.cross(a, b)
-    print("a:", a)
-    print("b:", b)
-    print("cross(a, b):", cross)  # Should be [0, 0, 1]
-
-    # -------------------------------------------------------------------------
-    header("einsum: Einstein summation notation")
-    # 행렬 곱
-    a = torch.randn(3, 4)
-    b = torch.randn(4, 5)
-    
-    # 'ik,kj->ij'는 k에 대해 더한다는 뜻이다
-    result = torch.einsum('ik,kj->ij', a, b)
-    print("einsum matrix multiply:")
-    print("  'ik,kj->ij'")
-    print("  a.shape:", a.shape)
-    print("  b.shape:", b.shape)
-    print("  result.shape:", result.shape)  # (3, 5)
-    
-    # 배치 행렬 곱
-    a = torch.randn(10, 3, 4)
-    b = torch.randn(10, 4, 5)
-    result = torch.einsum('bik,bkj->bij', a, b)
-    print("\nBatch matmul: 'bik,bkj->bij'")
-    print("  result.shape:", result.shape)  # (10, 3, 5)
-    
-    # 전치
-    a = torch.randn(3, 4)
-    result = torch.einsum('ij->ji', a)
-    print("\nTranspose: 'ij->ji'")
-    print("  a.shape:", a.shape)
-    print("  result.shape:", result.shape)  # (4, 3)
-    
-    # 대각합
-    a = torch.randn(5, 5)
-    trace = torch.einsum('ii->', a)
-    print("\nTrace: 'ii->'")
-    print("  result:", trace.item())
-    
-    # 배치 대각합
-    a = torch.randn(10, 5, 5)
-    traces = torch.einsum('bii->b', a)
-    print("\nBatch trace: 'bii->b'")
-    print("  result.shape:", traces.shape)  # (10,)
-
-    # -------------------------------------------------------------------------
-    header("Matrix power")
-    a = torch.tensor([[1., 2.], [3., 4.]])
-    
-    # 행렬 제곱
-    a_squared = torch.linalg.matrix_power(a, 2)
-    print("a:\n", a)
-    print("a²:\n", a_squared)
-    print("Check: a @ a:\n", a @ a)
-
-    # -------------------------------------------------------------------------
-    header("Matrix inverse")
-    a = torch.tensor([[1., 2.], [3., 4.]])
-    
-    # 역행렬 계산
-    a_inv = torch.linalg.inv(a)
-    print("a:\n", a)
-    print("inv(a):\n", a_inv)
-    
-    # 확인: A @ A^(-1) = I
-    identity = a @ a_inv
-    print("a @ inv(a) (should be I):\n", identity)
-
-    # -------------------------------------------------------------------------
-    header("Determinant")
-    a = torch.tensor([[1., 2.], [3., 4.]])
-    det = torch.linalg.det(a)
-    print("a:\n", a)
-    print("det(a):", det.item())
-    print("Manual: 1*4 - 2*3 =", 1*4 - 2*3)
-
-    # -------------------------------------------------------------------------
-    header("Solving linear systems: Ax = b")
-    A = torch.tensor([[3., 1.], [1., 2.]], dtype=torch.float32)
-    b = torch.tensor([[9.], [8.]], dtype=torch.float32)
-    
-    # x에 대해 풀기
-    x = torch.linalg.solve(A, b)
-    print("A:\n", A)
-    print("b:\n", b)
-    print("Solution x:\n", x)
-    
-    # 확인: A @ x = b
-    result = A @ x
-    print("Verify A @ x:\n", result)
-    print("Close to b:", torch.allclose(result, b))
-
-    # -------------------------------------------------------------------------
-    header("Eigenvalues and eigenvectors")
-    A = torch.tensor([[4., -2.], [1., 1.]], dtype=torch.float32)
-    
-    # 고윳값과 고유벡터 계산
-    eigenvalues, eigenvectors = torch.linalg.eig(A)
-    print("A:\n", A)
-    print("Eigenvalues:", eigenvalues)
-    print("Eigenvectors:\n", eigenvectors)
-
-    # -------------------------------------------------------------------------
-    header("Singular Value Decomposition (SVD)")
-    A = torch.randn(5, 3)
-    
-    # A = U @ S @ V^T
-    U, S, Vh = torch.linalg.svd(A, full_matrices=False)
-    print("A.shape:", A.shape)
-    print("U.shape:", U.shape)  # (5, 3)
-    print("S.shape:", S.shape)  # (3,)
-    print("Vh.shape:", Vh.shape)  # (3, 3)
-    
-    # 복원
-    S_mat = torch.diag(S)
-    A_reconstructed = U @ S_mat @ Vh
-    print("Reconstruction error:", (A - A_reconstructed).abs().max().item())
-
-    # -------------------------------------------------------------------------
-    header("QR decomposition")
-    A = torch.randn(5, 3)
-    
-    # A = Q @ R
-    Q, R = torch.linalg.qr(A)
-    print("A.shape:", A.shape)
-    print("Q.shape:", Q.shape)  # (5, 3)
-    print("R.shape:", R.shape)  # (3, 3)
-    
-    # Q는 직교행렬이다: Q^T @ Q = I
-    orthogonal_check = Q.t() @ Q
-    print("Q^T @ Q (should be I):\n", orthogonal_check)
-
-    # -------------------------------------------------------------------------
-    header("Cholesky decomposition")
-    # 양의 정부호 행렬에 대해: A = L @ L^T
-    A = torch.tensor([[4., 2.], [2., 3.]], dtype=torch.float32)
-    
-    L = torch.linalg.cholesky(A)
-    print("A:\n", A)
-    print("L (lower triangular):\n", L)
-    
-    # 복원
-    A_reconstructed = L @ L.t()
-    print("L @ L^T:\n", A_reconstructed)
-
-    # -------------------------------------------------------------------------
-    header("Matrix rank and condition number")
-    A = torch.randn(5, 3)
-    
-    rank = torch.linalg.matrix_rank(A)
-    print("A.shape:", A.shape)
-    print("Rank:", rank.item())
-    
-    # 조건수(가장 큰 특이값과 가장 작은 특이값의 비)
-    cond = torch.linalg.cond(A)
-    print("Condition number:", cond.item())
-
-    # -------------------------------------------------------------------------
-    header("Trace (sum of diagonal elements)")
-    A = torch.randn(4, 4)
-    
-    trace = torch.trace(A)
-    print("Trace:", trace.item())
-    
-    # 대각 성분의 합이기도 하다
-    diag = torch.diag(A)
-    trace2 = diag.sum()
-    print("Sum of diagonal:", trace2.item())
-    print("Equal:", torch.allclose(trace, trace2))
-
-    # -------------------------------------------------------------------------
-    header("Practical: attention mechanism")
-    # 단순화한 어텐션: Q @ K^T @ V
-    Q = torch.randn(8, 10, 64)  # (batch, seq, dim)
-    K = torch.randn(8, 10, 64)
-    V = torch.randn(8, 10, 64)
-    
-    # 어텐션 점수: Q @ K^T
-    scores = Q @ K.transpose(-2, -1)  # (8, 10, 10)
-    print("Attention scores shape:", scores.shape)
-    
-    # 소프트맥스를 적용하고 값과 곱한다
-    import torch.nn.functional as F
-    attn_weights = F.softmax(scores, dim=-1)
-    output = attn_weights @ V  # (8, 10, 64)
-    print("Attention output shape:", output.shape)
-
-    # -------------------------------------------------------------------------
-    header("Practical: batch linear transformation")
-    # 같은 행렬로 벡터 배치를 변환
-    x = torch.randn(100, 512)  # Batch of 100 vectors
-    W = torch.randn(512, 256)  # Weight matrix
-    b = torch.randn(256)       # Bias
-    
-    # 선형 변환
-    output = x @ W + b
-    print("Input shape:", x.shape)
-    print("Weight shape:", W.shape)
-    print("Output shape:", output.shape)  # (100, 256)
-
-    # -------------------------------------------------------------------------
-    header("Quick reference: matrix operations")
-    print("\nMultiplication:")
-    print("  * or mul()     - Element-wise multiplication")
-    print("  @ or matmul()  - Matrix multiplication (flexible)")
-    print("  mm()           - Matrix multiply (2D only)")
-    print("  mv()           - Matrix-vector multiply")
-    print("  bmm()          - Batch matrix multiply")
-    
-    print("\nVector operations:")
-    print("  dot()          - Dot product")
-    print("  cross()        - Cross product (3D)")
-    print("  outer()        - Outer product")
-    
-    print("\nAdvanced:")
-    print("  einsum()       - Einstein summation")
-    
-    print("\nLinear algebra:")
-    print("  linalg.inv()   - Matrix inverse")
-    print("  linalg.det()   - Determinant")
-    print("  linalg.solve() - Solve Ax=b")
-    print("  linalg.eig()   - Eigenvalues/vectors")
-    print("  trace()        - Sum of diagonal")
-    
-    print("\nDecompositions:")
-    print("  linalg.svd()   - Singular value decomposition")
-    print("  linalg.qr()    - QR decomposition")
-    print("  linalg.cholesky() - Cholesky decomposition")
-    
-    print("\nTips:")
-    print("  - Use @ for clean matrix multiplication")
-    print("  - matmul broadcasts, mm/bmm don't")
-    print("  - einsum is powerful but can be slower")
-    print("  - For large matrices, check numerical stability")
 
 if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (264줄)"
+**출력:**
 
-    ```
+```
+=== 1. * 와 @ ===
+  a * b (원소별): [5.0, 12.0, 21.0, 32.0]
+  a @ b (행렬곱): [19.0, 22.0, 43.0, 50.0]
+  정사각이라 모양이 같아 터지지 않는다. 값만 다르다
+  a.mul(b) 와 a.matmul(b) 로도 적는다
+  행렬 @ 벡터: [5.0, 11.0]  모양 (2,)
+  벡터 @ 벡터 (내적): 5.0 = 5.0
+  바깥곱 outer: [1.0, 2.0, 2.0, 4.0]
 
-    ================================================================================
-    Element-wise multiplication: * or mul()
-    ================================================================================
-    a:
-     tensor([[1., 2.],
-            [3., 4.]])
-    b:
-     tensor([[5., 6.],
-            [7., 8.]])
-    a * b (element-wise):
-     tensor([[ 5., 12.],
-            [21., 32.]])
+=== 2. mm / bmm / matmul ===
+  mm    (2D,2D) -> (3, 5)
+  mm    (3D,3D) -> self must be a matrix
+  bmm   (3D,3D) -> (2, 3, 5)
+  bmm   (2D,2D) -> batch1 must be a 3D tensor
+  matmul(2D,2D) -> (3, 5)
+  matmul(3D,3D) -> (2, 3, 5)
+  matmul(3D,2D) -> (2, 3, 5)
+  @ 는 matmul 이다. 브로드캐스팅까지 해 주므로 보통 이것만 쓰면 된다
 
-    ================================================================================
-    Matrix multiplication: @ or matmul()
-    ================================================================================
-    a @ b (matrix multiplication):
-     tensor([[19., 22.],
-            [43., 50.]])
-    torch.matmul(a, b):
-     tensor([[19., 22.],
-            [43., 50.]])
-    Equal: True
+=== 3. 어텐션의 1/sqrt(d) ===
+  d=   8 조정 없이   점수 표준편차  2.462  최대 확률 0.5630  엔트로피 1.2362
+  d=   8 1/sqrt(d) 로 점수 표준편차  0.870  최대 확률 0.2694  엔트로피 2.0312
+  d=  64 조정 없이   점수 표준편차  8.453  최대 확률 0.9043  엔트로피 0.2353
+  d=  64 1/sqrt(d) 로 점수 표준편차  1.057  최대 확률 0.3526  엔트로피 1.8558
+  d= 512 조정 없이   점수 표준편차 19.955  최대 확률 0.9722  엔트로피 0.0651
+  d= 512 1/sqrt(d) 로 점수 표준편차  0.882  최대 확률 0.2584  엔트로피 2.0592
+  조정 없이 d 가 크면 softmax 가 한 자리에 쏠린다
+  Q·K 는 d 개를 더한 값이라 표준편차가 sqrt(d) 로 자란다
+  그래서 sqrt(d) 로 나누면 d 와 무관하게 1 쯤에서 머문다
 
-    ================================================================================
-    Matrix-vector multiplication
-    ================================================================================
-    A.shape: torch.Size([3, 4])
-    x.shape: torch.Size([4])
-    (A @ x).shape: torch.Size([3])
-    torch.mv(A, x).shape: torch.Size([3])
+=== 4. inv 로 풀기 vs solve ===
+  inv(A) @ b   참값과의 차 3.862e-09
+  solve(A, b)  참값과의 차 3.754e-09
+  inv(A) @ b     0.86 ~   0.89 ms
+  solve(A, b)    0.45 ~   0.46 ms
+  잘 조건지어진 행렬에서는 정확도가 비슷하고 solve 가 빠르다
+  나쁘게 조건지어지면 정확도도 갈린다 — 다음 절
 
-    ================================================================================
-    Vector dot product
-    ================================================================================
-    a: tensor([1., 2., 3.])
-    b: tensor([4., 5., 6.])
-    dot(a, b): 32.0
-    Manual: 1*4 + 2*5 + 3*6 = 32
+=== 5. 조건수 ===
+  조건수   1e+01  A @ inv(A) 가 I 에서 벗어난 최대 1.073e-06
+  조건수   1e+04  A @ inv(A) 가 I 에서 벗어난 최대 6.044e-05
+  조건수   1e+07  A @ inv(A) 가 I 에서 벗어난 최대 3.854e-02
+  float32 는 유효숫자가 약 7 자리다
+  조건수가 10^k 면 그중 k 자리를 잃는다고 보면 맞는다
+  조건수 10^7 이면 남는 자리가 없어 4% 가까이 어긋난다
 
-    ================================================================================
-    Matrix multiplication: mm() for 2D only
-    ================================================================================
-    mm(a, b).shape: torch.Size([3, 5])
-    matmul(a, b).shape: torch.Size([3, 5])
+=== 6. einsum ===
+  내적      i,i->          같은가: True
+  바깥곱    i,j->ij         같은가: True
+  행렬곱    ik,kj->ij       같은가: True
+  전치      ij->ji         같은가: True
+  대각합    ii->            같은가: True
+  배치곱    bik,bkj->bij    같은가: True
+  첨자에 없는 글자는 더해서 없앤다 — 그것이 규칙 전부다
 
-    ================================================================================
-    Batch matrix multiplication: bmm()
-    ================================================================================
-    bmm(batch_a, batch_b).shape: torch.Size([10, 3, 5])
-    batch_a @ batch_b shape: torch.Size([10, 3, 5])
+=== 7. 분해들 ===
+  SVD   A = U S Vh 로 되돌아오는가: True
+    특이값: [3.2245, 1.4537, 0.2943]
+  QR    A = Q R 로 되돌아오는가: True
+  촐레스키 L @ L.T 로 되돌아오는가: True
+  rank: 3  det(3x3): 115.589  trace: 15.7779
+  trace 는 대각의 합이다: 15.7779
+```
 
-    ================================================================================
-    Broadcasting with matmul
-    ================================================================================
-    a.shape: torch.Size([5, 3, 4])
-    b.shape: torch.Size([4, 2])
-    (a @ b).shape: torch.Size([5, 3, 2])
+## 2. `*`와 `@`는 정사각에서 둘 다 통과한다
 
-    Complex broadcasting:
-    a.shape: torch.Size([2, 1, 3, 4])
-    b.shape: torch.Size([1, 5, 4, 2])
-    (a @ b).shape: torch.Size([2, 5, 3, 2])
+```
+a * b (원소별): [5.0, 12.0, 21.0, 32.0]
+a @ b (행렬곱): [19.0, 22.0, 43.0, 50.0]
+```
 
-    ================================================================================
-    Outer product
-    ================================================================================
-    a: tensor([1., 2., 3.])
-    b: tensor([4., 5., 6., 7.])
-    outer(a, b):
-     tensor([[ 4.,  5.,  6.,  7.],
-            [ 8., 10., 12., 14.],
-            [12., 15., 18., 21.]])
-    Shape: torch.Size([3, 4])
+$2 \times 2$ 둘이라 **모양이 같으므로 어느 쪽도 터지지 않는다.** 값만 다르다.
+이것이 오타 하나가 조용히 지나가는 자리다 — 직사각형이었다면 `*`가 바로 터졌을
+것이다.
 
-    ================================================================================
-    Cross product (3D vectors only)
-    ================================================================================
-    a: tensor([1., 0., 0.])
-    b: tensor([0., 1., 0.])
-    cross(a, b): tensor([0., 0., 1.])
+벡터가 섞이면 `@`가 알아서 맞춘다. `행렬 @ 벡터`는 행렬-벡터 곱이고
+`벡터 @ 벡터`는 내적이다. 바깥곱을 원하면 `torch.outer`를 따로 불러야 한다.
 
-    ================================================================================
-    einsum: Einstein summation notation
-    ================================================================================
-    einsum matrix multiply:
-      'ik,kj->ij'
-      a.shape: torch.Size([3, 4])
-      b.shape: torch.Size([4, 5])
-      result.shape: torch.Size([3, 5])
+## 3. `mm` / `bmm` / `matmul`
 
-    Batch matmul: 'bik,bkj->bij'
-      result.shape: torch.Size([10, 3, 5])
+| | 2D, 2D | 3D, 3D | 3D, 2D |
+|---|---|---|---|
+| `mm` | `(3,5)` | `self must be a matrix` | — |
+| `bmm` | `batch1 must be a 3D tensor` | `(2,3,5)` | — |
+| `matmul` (= `@`) | `(3,5)` | `(2,3,5)` | **`(2,3,5)`** |
 
-    Transpose: 'ij->ji'
-      a.shape: torch.Size([3, 4])
-      result.shape: torch.Size([4, 3])
+`matmul`만 **브로드캐스팅**한다. `(2,3,4) @ (4,5)`에서 두 번째 것을 배치마다 다시
+쓴다. 그래서 보통은 `@`만 쓰면 되고, `mm`·`bmm`은 "여기서는 반드시 2차원(또는
+3차원)이어야 한다"고 못 박고 싶을 때 쓴다.
 
-    Trace: 'ii->'
-      result: 1.3307507038116455
+## 4. 어텐션의 $1/\sqrt{d}$
 
-    Batch trace: 'bii->b'
-      result.shape: torch.Size([10])
+| $d$ | | 점수 표준편차 | 최대 확률 | 엔트로피 |
+|---|---|---|---|---|
+| 8 | 조정 없이 | 2.462 | 0.5630 | 1.2362 |
+| 8 | $1/\sqrt{d}$ | 0.870 | 0.2694 | 2.0312 |
+| 64 | 조정 없이 | 8.453 | 0.9043 | 0.2353 |
+| 64 | $1/\sqrt{d}$ | 1.057 | 0.3526 | 1.8558 |
+| 512 | 조정 없이 | **19.955** | **0.9722** | **0.0651** |
+| 512 | $1/\sqrt{d}$ | 0.882 | 0.2584 | 2.0592 |
 
-    ================================================================================
-    Matrix power
-    ================================================================================
-    a:
-     tensor([[1., 2.],
-            [3., 4.]])
-    a²:
-     tensor([[ 7., 10.],
-            [15., 22.]])
-    Check: a @ a:
-     tensor([[ 7., 10.],
-            [15., 22.]])
+$d = 512$에서 조정을 빼면 한 자리가 확률 0.97을 가져가고 엔트로피가 0.065로
+주저앉는다. **어텐션이 사실상 한 곳만 보게 된다.**
 
-    ================================================================================
-    Matrix inverse
-    ================================================================================
-    a:
-     tensor([[1., 2.],
-            [3., 4.]])
-    inv(a):
-     tensor([[-2.0000,  1.0000],
-            [ 1.5000, -0.5000]])
-    a @ inv(a) (should be I):
-     tensor([[1., 0.],
-            [0., 1.]])
+까닭은 간단한 셈이다. $q \cdot k = \sum_{i=1}^{d} q_i k_i$는 평균 0, 분산 1짜리
+항 $d$개의 합이므로 표준편차가 $\sqrt{d}$로 자란다. 측정값이 그대로다 —
+$\sqrt{512} \approx 22.6$이고 잰 값이 19.955다.
 
-    ================================================================================
-    Determinant
-    ================================================================================
-    a:
-     tensor([[1., 2.],
-            [3., 4.]])
-    det(a): -2.0
-    Manual: 1*4 - 2*3 = -2
+소프트맥스는 입력 차이가 몇만 되어도 포화하므로, 표준편차 20짜리 점수를 넣으면
+가장 큰 것만 남는다. $\sqrt{d}$로 나누면 $d$와 무관하게 1 근처에 머문다 —
+표의 0.870 / 1.057 / 0.882가 그것이다.
 
-    ================================================================================
-    Solving linear systems: Ax = b
-    ================================================================================
-    A:
-     tensor([[3., 1.],
-            [1., 2.]])
-    b:
-     tensor([[9.],
-            [8.]])
-    Solution x:
-     tensor([[2.],
-            [3.]])
-    Verify A @ x:
-     tensor([[9.],
-            [8.]])
-    Close to b: True
+> 포화가 왜 나쁜가. 소프트맥스가 한 자리에 쏠리면 **경사도 거의 0**이 된다.
+> 「제자리 연산」에서 본 것처럼 $\sigma'$가 출력으로 적히기 때문이다. 학습 초반에
+> 어텐션이 굳어 버리면 거기서 못 빠져나온다.
 
-    ================================================================================
-    Eigenvalues and eigenvectors
-    ================================================================================
-    A:
-     tensor([[ 4., -2.],
-            [ 1.,  1.]])
-    Eigenvalues: tensor([3.+0.j, 2.+0.j])
-    Eigenvectors:
-     tensor([[0.8944+0.j, 0.7071+0.j],
-            [0.4472+0.j, 0.7071+0.j]])
+## 5. 역행렬을 구해 곱하지 않는다
 
-    ================================================================================
-    Singular Value Decomposition (SVD)
-    ================================================================================
-    A.shape: torch.Size([5, 3])
-    U.shape: torch.Size([5, 3])
-    S.shape: torch.Size([3])
-    Vh.shape: torch.Size([3, 3])
-    Reconstruction error: 7.152557373046875e-07
+```
+inv(A) @ b    참값과의 차 3.862e-09     0.86 ~ 0.88 ms
+solve(A, b)   참값과의 차 3.754e-09     0.45 ~ 0.46 ms
+```
 
-    ================================================================================
-    QR decomposition
-    ================================================================================
-    A.shape: torch.Size([5, 3])
-    Q.shape: torch.Size([5, 3])
-    R.shape: torch.Size([3, 3])
-    Q^T @ Q (should be I):
-     tensor([[ 1.0000e+00, -1.1481e-08,  4.6591e-08],
-            [-1.1481e-08,  1.0000e+00, -9.1405e-08],
-            [ 4.6591e-08, -9.1405e-08,  1.0000e+00]])
+잘 조건지어진 $500 \times 500$에서는 **정확도가 거의 같고 `solve`가 두 배
+빠르다.** 역행렬을 통째로 구하는 것은 $n$개의 연립방정식을 푸는 일이라, 하나만
+풀면 될 때 $n$배의 일을 하는 셈이다.
 
-    ================================================================================
-    Cholesky decomposition
-    ================================================================================
-    A:
-     tensor([[4., 2.],
-            [2., 3.]])
-    L (lower triangular):
-     tensor([[2.0000, 0.0000],
-            [1.0000, 1.4142]])
-    L @ L^T:
-     tensor([[4., 2.],
-            [2., 3.]])
+정확도까지 갈리는 것은 조건이 나빠질 때다. 연습문제 3에서 잰다.
 
-    ================================================================================
-    Matrix rank and condition number
-    ================================================================================
-    A.shape: torch.Size([5, 3])
-    Rank: 3
-    Condition number: 4.5633673667907715
+## 6. 조건수가 믿을 자릿수를 정한다
 
-    ================================================================================
-    Trace (sum of diagonal elements)
-    ================================================================================
-    Trace: -3.5180656909942627
-    Sum of diagonal: -3.5180656909942627
-    Equal: True
+```
+조건수 1e+01   A @ inv(A) 가 I 에서 벗어난 최대 1.073e-06
+조건수 1e+04                                   6.044e-05
+조건수 1e+07                                   3.854e-02
+```
 
-    ================================================================================
-    Practical: attention mechanism
-    ================================================================================
-    Attention scores shape: torch.Size([8, 10, 10])
-    Attention output shape: torch.Size([8, 10, 64])
+**float32의 유효숫자는 약 7자리**($2^{-24} \approx 6 \times 10^{-8}$)다. 조건수가
+$10^k$이면 그중 $k$자리를 잃는다. 그러니 조건수 $10^7$이면 남는 자리가 없고,
+실제로 $A A^{-1}$이 단위행렬에서 **4% 가까이** 벗어난다.
 
-    ================================================================================
-    Practical: batch linear transformation
-    ================================================================================
-    Input shape: torch.Size([100, 512])
-    Weight shape: torch.Size([512, 256])
-    Output shape: torch.Size([100, 256])
+이것은 파이토치의 흠이 아니라 **그 행렬로 할 수 있는 일의 한계**다. 고치려면
+자료형을 올리거나(연습문제 3), 애초에 조건을 좋게 만들어야 한다 — 정규화를
+넣거나, $A^\top A$ 대신 QR·SVD로 푸는 식이다.
 
-    ================================================================================
-    Quick reference: matrix operations
-    ================================================================================
+> 최소제곱을 $(X^\top X)^{-1} X^\top y$로 푸는 코드를 자주 보는데,
+> $X^\top X$의 조건수는 $X$의 조건수의 **제곱**이다. 잃는 자릿수가 두 배가 된다.
+> `torch.linalg.lstsq`는 그렇게 풀지 않는다.
 
-    Multiplication:
-      * or mul()     - Element-wise multiplication
-      @ or matmul()  - Matrix multiplication (flexible)
-      mm()           - Matrix multiply (2D only)
-      mv()           - Matrix-vector multiply
-      bmm()          - Batch matrix multiply
+## 7. `einsum`은 규칙이 하나다
 
-    Vector operations:
-      dot()          - Dot product
-      cross()        - Cross product (3D)
-      outer()        - Outer product
+```
+내적      i,i->          True
+바깥곱    i,j->ij        True
+행렬곱    ik,kj->ij      True
+전치      ij->ji         True
+대각합    ii->           True
+배치곱    bik,bkj->bij   True
+```
 
-    Advanced:
-      einsum()       - Einstein summation
+여섯 가지가 전부 같은 표기로 적히고, 전부 전용 함수와 같은 답을 준다.
 
-    Linear algebra:
-      linalg.inv()   - Matrix inverse
-      linalg.det()   - Determinant
-      linalg.solve() - Solve Ax=b
-      linalg.eig()   - Eigenvalues/vectors
-      trace()        - Sum of diagonal
+규칙은 하나다. **화살표 오른쪽에 없는 글자는 더해서 없앤다.** `ik,kj->ij`에서
+`k`가 사라졌으니 `k`에 대해 더한다 — 그것이 행렬곱이다. `ii->`는 같은 글자를 두
+번 써서 대각을 고른 다음 더한 것이니 대각합이다.
 
-    Decompositions:
-      linalg.svd()   - Singular value decomposition
-      linalg.qr()    - QR decomposition
-      linalg.cholesky() - Cholesky decomposition
+축이 셋 넘게 얽히는 곳(어텐션, 텐서 수축)에서는 `permute`와 `reshape`를 늘어놓는
+것보다 `einsum` 한 줄이 읽기 쉽다. 다만 **빠르다는 보장은 없다** — 전용 커널이
+있는 연산은 그쪽이 빠른 경우가 많다.
 
-    Tips:
-      - Use @ for clean matrix multiplication
-      - matmul broadcasts, mm/bmm don't
-      - einsum is powerful but can be slower
-      - For large matrices, check numerical stability
-    ```
+## 8. 분해들
 
+```
+SVD   A = U S Vh 로 되돌아오는가: True    특이값: [3.2245, 1.4537, 0.2943]
+QR    A = Q R 로 되돌아오는가: True
+촐레스키 L @ L.T 로 되돌아오는가: True
+```
 
-## 2. 논의
+세 분해 모두 되돌려 원래 행렬이 나오는지 확인했다. **분해를 쓸 때 가장 먼저
+할 일이 이 확인**이다 — 인자 순서나 `full_matrices` 같은 옵션을 잘못 주면 모양은
+맞는데 값이 다른 것이 나온다.
 
-`*`는 대응 원소를 곱하고 `@` 또는 `matmul`은 안쪽 차원을 축약한다. `mm`은 2차원 행렬 두 개, `bmm`은 배치 크기가 같은 3차원 텐서 두 개를 받는다. `bmm`은 배치 브로드캐스팅을 하지 않는다.
-
-`matmul`은 1차원 입력을 벡터로 처리하고 앞쪽 배치 축은 브로드캐스팅한다. `outer`는 두 1차원 벡터의 모든 쌍을 곱한다. 선형계 풀이에서는 역행렬을 명시적으로 만들기보다 `solve` 등 목적에 맞는 연산을 사용하고 특이성·조건수를 고려한다.
+특이값은 조건수와 바로 이어진다. 조건수가 가장 큰 특이값 나누기 가장 작은
+특이값이므로, 위 행렬은 $3.2245 / 0.2943 \approx 11$로 아주 좋다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-모양이 $(3, 1, 5)$와 $(4, 5)$인 텐서가 주어졌을 때 덧셈 후의 출력 모양을 구하고 PyTorch로 확인하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+`a`가 `(2,3)`, `b`가 `(3,2)`일 때 `a * b`와 `a @ b` 중 무엇이 되는가? `a * a`와
+`a @ a`는 어떤가? 넷을 **먼저 적고** 확인하라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
-    a = torch.randn(3, 1, 5)
-    b = torch.randn(4, 5)
-    c = a + b
-    print(c.shape)  # torch.Size([3, 4, 5])
-    # b는 암묵적으로 (1, 4, 5)가 되고, 그다음 둘 다 (3, 4, 5)로 브로드캐스팅된다.
+    a, b = torch.ones(2, 3), torch.ones(3, 2)
+    for name, f in (("a * b", lambda: a * b), ("a @ b", lambda: a @ b),
+                    ("a * a", lambda: a * a), ("a @ a", lambda: a @ a)):
+        try:
+            print(f"  {name} -> {tuple(f().shape)}")
+        except RuntimeError as e:
+            print(f"  {name} -> {str(e).splitlines()[0][:60]}")
     ```
 
----
+    ```
+      a * b -> The size of tensor a (3) must match the size of tensor b (2)
+      a @ b -> (2, 2)
+      a * a -> (2, 3)
+      a @ a -> mat1 and mat2 shapes cannot be multiplied (2x3 and 2x3)
+    ```
 
+    **정확히 엇갈린다.** `*`가 되는 자리에서 `@`가 안 되고, `@`가 되는 자리에서
+    `*`가 안 된다.
+
+    `*`는 모양이 같아야 하고(또는 브로드캐스팅되어야 하고), `@`는 안쪽 차원이
+    맞물려야 한다. 요구가 반대이므로 직사각형에서는 **오타가 반드시 터진다.**
+
+    그래서 2절의 정사각 경우가 특별한 것이다. $n \times n$에서는 둘 다 통과하고
+    값만 달라지므로, 오타가 끝까지 살아남는다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-모양이 $(3, 4)$와 $(5,)$인 텐서의 덧계산이 실패하는 이유를 설명하라. 이 불일치를 고치는 서로 다른 두 가지 방법을 제안하라.
-
-</div>
-
-??? success "풀이"
-    마지막 차원이 4와 5인데 서로 같지도 않고 1도 아니다. 해결 1: 벡터를 열에 맞도록 바꾼다. 예를 들어 $(4,)$ 벡터를 쓴다. 해결 2: 벡터를 $(5, 1)$로 바꾸고 행렬을 $(5, 4)$로 바꾸어 올바른 축을 따라 브로드캐스팅이 되게 한다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff easy" title="쉬움"></span>
-`torch.outer`를 쓰지 않고 브로드캐스팅으로 두 벡터 $a = [1, 2, 3]$과 $b = [4, 5]$의 외적을 계산하라.
+멀티헤드 어텐션의 점수를 `einsum`으로 적어라. `Q`와 `K`가
+`(배치, 헤드, 길이, 차원)`일 때 점수는 `(배치, 헤드, 길이, 길이)`다.
+`@`로 적은 것과 같은지 확인하라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    a = torch.tensor([1., 2., 3.]).unsqueeze(1)  # (3, 1)
-    b = torch.tensor([4., 5.]).unsqueeze(0)       # (1, 2)
-    outer = a * b  # (3, 2)
-    print(outer)
-    # tensor([[ 4.,  5.],
-    #         [ 8., 10.],
-    #         [12., 15.]])
+    torch.manual_seed(0)
+    B, H, L, D = 2, 4, 6, 16
+    Q, K = torch.randn(B, H, L, D), torch.randn(B, H, L, D)
+
+    by_matmul = Q @ K.transpose(-2, -1)
+    by_einsum = torch.einsum("bhid,bhjd->bhij", Q, K)
+    print("  모양:", tuple(by_einsum.shape))
+    print("  같은가:", torch.allclose(by_matmul, by_einsum, atol=1e-5))
     ```
 
-## 정리하며
+    ```
+      모양: (2, 4, 6, 6)
+      같은가: True
+    ```
 
-행렬 곱은 원소별 곱과 다른 축을 결합한다. 벡터·행렬·배치 행렬에서 입력 차원을 구별하면 `matmul`·`mm`·`bmm`를 정확히 선택할 수 있다.
+    첨자를 읽으면 식이 그대로 보인다. `bhid,bhjd->bhij`에서 **`d`가 오른쪽에
+    없으므로 `d`에 대해 더한다.** 그것이 $q_i \cdot k_j$다. `b`와 `h`는 양쪽에
+    그대로 있으니 배치 축으로 남는다.
+
+    `@`로 적으려면 `K.transpose(-2, -1)`을 기억해야 하는데, `einsum`은 `i`와 `j`를
+    다른 글자로 쓰는 것만으로 전치가 표현된다. **축이 넷인 곳에서 `einsum`이
+    읽기 쉬운 까닭**이 이것이다.
+
+    다만 「형상, 자료형, 장치」에서 본 `.T`와 `.mT` 혼동은 `einsum`에서는 아예
+    일어나지 않는다. 축을 번호가 아니라 이름으로 가리키기 때문이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+6절은 조건수가 $10^7$이면 float32가 4%쯤 틀린다고 했다. $10^{10}$이면 어떻게
+되는가? 같은 문제를 float64로 풀면 얼마나 나아지는가? 둘을 재고, **언제 자료형을
+올려야 하는지** 적어라.
+
+</div>
+
+??? success "풀이"
+    ```python
+    import math
+
+    torch.manual_seed(0)
+    Q, _ = torch.linalg.qr(torch.randn(50, 50, dtype=torch.float64))
+    for c in (1e4, 1e7, 1e10):
+        d = torch.logspace(0, math.log10(c), 50, dtype=torch.float64)
+        M = Q @ torch.diag(d) @ Q.t()
+        b = torch.randn(50, 1, dtype=torch.float64)
+        exact = torch.linalg.solve(M, b)
+        x32 = torch.linalg.solve(M.float(), b.float()).double()
+        r32 = ((x32 - exact).norm() / exact.norm()).item()
+        print(f"  조건수 {c:7.0e}  float32 상대오차 {r32:.3e}")
+    ```
+
+    ```
+      조건수   1e+04  float32 상대오차 3.483e-05
+      조건수   1e+07  float32 상대오차 1.560e-02
+      조건수   1e+10  float32 상대오차 1.051e+00
+    ```
+
+    조건수 $10^{10}$에서 상대오차가 **1.051**이다. 100%가 넘는다 — 답이 참값과
+    같은 크기만큼 틀렸다는 뜻이고, **아무 뜻도 없는 수**가 나온 것이다.
+
+    규칙이 그대로 들어맞는다. float32의 7자리에서 조건수의 지수만큼 빼면
+    $7 - 4 = 3$자리(오차 $10^{-5}$), $7 - 7 = 0$자리(오차 $10^{-2}$),
+    $7 - 10 < 0$자리(오차 $10^{0}$)다.
+
+    float64는 유효숫자가 약 16자리이므로 조건수 $10^{10}$에서도 6자리가 남는다.
+    같은 문제를 float64로 풀면 답이 멀쩡하다.
+
+    **언제 올려야 하는가.** 딥러닝의 본체(합성곱, 행렬곱, 경사)는 올릴 일이 거의
+    없다. 조건수가 그렇게 나쁘지 않고, 경사 하강 자체가 근사이므로 7자리면
+    넉넉하다. 「혼합 정밀도」에서 본 것처럼 오히려 내리는 쪽이 이득이다.
+
+    올려야 하는 자리는 **선형대수를 직접 푸는 곳**이다. 공분산 행렬을 뒤집거나,
+    최소제곱을 정규방정식으로 풀거나, 가우스 과정의 커널 행렬을 촐레스키
+    분해하는 곳 — 모두 조건수가 쉽게 $10^8$을 넘는다. 그런 곳은 float64로
+    풀고 결과만 float32로 내리는 것이 보통이다.
