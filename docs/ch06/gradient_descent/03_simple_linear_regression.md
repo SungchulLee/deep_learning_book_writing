@@ -1,586 +1,642 @@
-# PyTorch로 학습하는 선형 회귀
+# 단순 선형 회귀
 
-잡음이 있는 일차원 데이터에 웨이트와 절편을 가진 회귀 모델을 적합한다. 학습 곡선뿐 아니라 잔차와 회귀 지표의 의미도 확인한다.
+앞 두 쪽은 파라메터가 하나였고 갱신도 손으로 적었다. 여기서는 기울기와 절편 **둘** 을 배우고, 모델은 `nn.Linear`에, 갱신은 `torch.optim`에 맡긴다. 실무에서 쓰는 꼴이다.
 
-## 1. 코드
+자료는 $y = 3x + 2 + \varepsilon$이다. 참값을 알고 시작하지만, 이 쪽의 요점은 거기에 있지 않다. **경사 하강법이 찾아 주는 것은 $(3, 2)$가 아니다.** 무엇을 찾아 주는지, 그리고 찾았는지를 무엇으로 판정하는지가 이 쪽의 내용이다.
+
+---
+
+## 1. 자료와 모델
+
+```
+  표본 100개,  생성 규칙 y = 3.0x + 2.0 + N(0, 1.0^2)
+  X 모양 (100, 1),  Y 모양 (100, 1)
+  X 범위 0.00 ~ 10.00
+  nn.Linear(1, 1) 의 파라메터
+    weight   모양 (1, 1)  처음 값 [-0.007486820220947266]
+    bias     모양 (1,)  처음 값 [0.5364435911178589]
+```
+
+입력과 정답이 모두 $(N, 1)$이다. 2차원으로 맞추는 것이 `nn.Linear`의 규약이고, $(N,)$으로 주면 브로드캐스팅이 조용히 $(N, N)$을 만들어 로스가 엉뚱해진다.
+
+`nn.Linear(1, 1)`은 `weight`와 `bias`를 자동으로 만든다. 앞 쪽에서 손으로 만들던 두 텐서다.
+
+---
+
+## 2. 정답을 먼저 구해 둔다
+
+선형 회귀에는 **닫힌 해** 가 있다. 정규방정식을 풀면 반복 없이 최적해가 나온다.
+
+```
+  최소제곱 해   w = 2.994105,  b = 2.089242
+  그때의 MSE    0.962903
+  자료를 만든 값  w = 3.0,  b = 2.0
+  차이          dw = -0.005895,  db = +0.089242
+```
+
+**생성 규칙의 $(3, 2)$와 같지 않다.** 잡음이 섞인 100개로 추정했기 때문이다. 절편 쪽이 0.089나 어긋나 있다.
+
+이 점을 먼저 못 박아 두는 것이 중요하다. 경사 하강법을 1만 걸음 돌려도 $(3, 2)$에는 닿지 않는다. 닿아야 할 곳은 $(2.994105, 2.089242)$다. 학습이 잘되고 있는지는 **이 해와 견주어** 판정해야 한다.
+
+!!! note "닫힌 해가 있는데 왜 경사 하강법을 쓰는가"
+    여기서는 쓸 필요가 없다. 이 쪽에서 쓰는 까닭은 **답을 아는 문제에서 알고리즘을 점검** 하기 위해서다. 실제로 닫힌 해는 모델이 파라메터에 대해 선형일 때만 있고, 파라메터가 많으면 $(A^\top A)^{-1}$을 구하는 값이 $O(d^3)$으로 커진다. 뉴럴 넷트웍에는 둘 다 해당하지 않는다.
+
+---
+
+## 3. 학습
+
+```
+  에폭    로스(갱신 전)    w          b
+      0     351.817902   2.158960   0.867659
+    200       1.003134   3.053671   1.693086
+    400       0.968399   3.016122   1.942812
+    600       0.963654   3.002243   2.035117
+    800       0.963006   2.997113   2.069235
+    999       0.962917   2.995222   2.081809
+```
+
+!!! warning "한 줄의 세 수가 같은 시점의 것이 아니다"
+    로스는 **갱신 전** 값이고 $w$와 $b$는 **갱신 후** 값이다. 루프가 로스를 먼저 계산하고 그 경사로 갱신한 다음 찍기 때문이다. 에폭 0의 로스 351.8은 $w = 2.159$에서 잰 값이 아니라 초기값 $w = -0.007$에서 잰 값이다.
+
+    대수롭지 않아 보이지만, 로스 곡선과 파라메터 곡선을 같은 축에 겹쳐 그릴 때 한 칸 어긋난다.
+
+$w$는 200에폭에 이미 3.054로 거의 자리를 잡았는데 $b$는 1.693으로 한참 아래에 있다. 999에폭에서도 2.082로 목표 2.089에 못 미친다. **왜 절편만 느린가.**
+
+---
+
+## 4. 닿은 곳과 정규방정식의 해
+
+```
+  경사 하강법   w = 2.995222,  b = 2.081809,  MSE = 0.962917
+  정규방정식    w = 2.994105,  b = 2.089242,  MSE = 0.962903
+  차이          dw = +1.12e-03,  db = -7.43e-03,  dMSE = +1.41e-05
+```
+
+1,000걸음 뒤 MSE가 $1.4 \times 10^{-5}$ 차이로 사실상 같다. 그런데 $b$의 오차가 $w$의 **일곱 배** 다.
+
+까닭은 곡면의 모양에 있다.
+
+```
+  헤세의 고윳값 0.4964, 68.5070  조건수 138.0
+  수렴률 (k-1)/(k+1) = 0.985612 — 한 걸음에 이만큼만 준다
+```
+
+조건수가 **138** 이다. [러닝레이트 쪽](learning_rate.md) 2절대로, 아무리 러닝레이트를 잘 골라도 한 걸음에 오차가 0.9856배로밖에 줄지 않는다. 1,000걸음이면 $0.9856^{1000} \approx 5 \times 10^{-7}$이지만, 느린 쪽 방향이 거의 절편이므로 절편이 끝까지 끌려온다.
+
+조건수가 큰 까닭도 분명하다. $x$가 0에서 10까지라 평균이 5다. 기울기를 조금 키우면 절편을 내려서 거의 메울 수 있다 — $w$와 $b$가 강하게 상관되어 있다. 중심화하면 이 상관이 사라진다.
+
+```
+  X 를 중심화하면 (x - 5.00) 어떻게 되는지 본다
+  중심화 뒤 고윳값 2.0000, 17.0034  조건수 8.5
+```
+
+**138에서 8.5로, 열여섯 배 줄었다.** 입력을 중심화하는 것이 얼마나 값싼 이득인지 보여 준다. 연습문제 3에서 실제 수렴 속도를 잰다.
+
+---
+
+## 5. 지표 넷
+
+```
+  MSE    0.962917   단위가 y 의 제곱이다
+  RMSE   0.981283   y 와 같은 단위 — '평균 이만큼 틀린다'
+  MAE    0.814841   역시 y 의 단위. 큰 오차에 덜 민감하다
+  R^2    0.987523   단위가 없다. 1 이면 완벽
+  자료의 잡음 표준편차가 1.0 였다. RMSE 가 그 언저리다
+  RMSE >= MAE 는 언제나 참이다 (여기서는 1.204 배)
+```
+
+**RMSE 0.981이 잡음의 표준편차 1.0과 거의 같다.** 이것이 좋은 신호다. 모델이 설명할 수 있는 것은 다 설명했고 남은 것은 잡음뿐이라는 뜻이다. RMSE가 이보다 크게 나왔다면 아직 배울 것이 남은 것이고, 크게 작게 나왔다면 과적합을 의심해야 한다.
+
+$\text{RMSE} \geq \text{MAE}$는 항상 참이다(젠센 부등식). 둘의 비가 크면 **몇 개의 큰 오차** 가 있다는 뜻이다. 여기서는 1.204로, 정규분포 잡음에서 기대되는 $\sqrt{\pi/2} \approx 1.253$에 가깝다.
+
+### $R^2$가 재는 것
+
+```
+  R^2 는 '평균만 찍는 모델' 을 기준으로 삼는다
+    평균만 찍을 때의 MSE = 77.177637
+    우리 모델의 MSE      = 0.962917
+    1 - 비 = 0.987523  — R^2 와 같다
+```
+
+$R^2$는 절대적인 좋음이 아니라 **평균만 찍는 모델에 견준 비** 다. 그래서 기준이 좋아지면 같은 모델의 $R^2$가 떨어진다.
+
+```
+  R^2 가 큰 것에 속지 말 것 — x 범위를 좁히면
+    x in [0,10]  표본 100개  RMSE 0.9813  R^2 +0.9875
+    x in [0,3]  표본  30개  RMSE 1.1003  R^2 +0.8696
+    x in [4,5]  표본  10개  RMSE 1.1954  R^2 +0.2368
+```
+
+**같은 모델** 인데 $R^2$가 0.988에서 0.237로 떨어진다. RMSE는 0.98에서 1.20으로 거의 그대로다.
+
+모델이 나빠진 것이 아니다. $x$ 범위가 좁아지면 $y$의 변동도 작아지므로 "평균만 찍기"가 쉬워지고, 그래서 견주는 기준이 높아진 것이다. **$R^2$는 자료에 딸린 수이지 모델에만 딸린 수가 아니다.** 다른 자료에서 잰 $R^2$끼리 견주면 안 된다.
+
+---
+
+## 6. 잔차가 잡아내는 것
+
+지표 하나로는 **모델의 꼴이 맞는지** 를 알 수 없다. 잔차를 $x$에 대해 보아야 한다.
+
+```
+  (가) 정말 직선인 자료
+    RMSE 0.9813   R^2 0.9875
+    구간별 잔차 평균 +0.122  -0.249  +0.334  -0.211  +0.035
+  (나) 사실은 이차인 자료
+    RMSE 2.2260   R^2 0.9388
+    구간별 잔차 평균 -2.203  +1.138  +1.939  +1.445  -2.214
+```
+
+**$R^2$만 보면 둘 다 괜찮아 보인다.** 0.988과 0.939다.
+
+구간별 잔차 평균을 보면 갈린다. (가)는 $+, -, +, -, +$로 부호가 뒤섞여 있고 크기도 0.33을 넘지 않는다. **구조가 없다** — 남은 것이 잡음이라는 뜻이다.
+
+(나)는 $-, +, +, +, -$다. 양끝에서 과소 예측하고 가운데에서 과대 예측한다. 크기도 2.2까지 간다. 직선을 포물선에 맞추면 반드시 이 모양이 나온다. **잔차에 구조가 남아 있으면 모델의 꼴이 틀린 것이다.**
+
+이것이 잔차 그림을 그리는 까닭이다. $R^2$ 하나는 이 차이를 전혀 말해 주지 않는다.
+
+!!! note "이 쪽의 지표는 학습에 쓴 자료에서 잰 것이다"
+    따로 떼어 둔 자료에서 잰 값이 아니므로 **일반화 성능이 아니다.** 선형 모델에 파라메터가 둘뿐이라 100개 자료를 외울 수는 없지만, 그래도 두 값은 같은 것이 아니다. 새 $x$에 대한 예측을 생성 규칙 $3x+2$와 견주는 것도 마찬가지다 — 규칙을 알고 있기에 할 수 있는 일이고 현실에서는 그 규칙이 없다.
+
+---
+
+## 7. 전체 코드와 출력
 
 ```python
+"""단순 선형 회귀 — nn.Module 과 옵티마이저로.
+
+앞 두 쪽은 파라메터가 하나였다. 여기서는 기울기와 절편 둘을 배우고,
+`nn.Linear` 와 `torch.optim` 에 맡긴다. 자료는 y = 3x + 2 + 잡음 이다.
+
+재어 볼 것은 넷이다.
+
+- 경사 하강법이 닿는 곳이 정규방정식의 해와 같은가
+- 그 해가 자료를 만든 규칙(3, 2)과 같은가 — 다르다. 얼마나 다른가
+- 지표 넷(MSE, RMSE, MAE, R^2)이 각각 무엇을 말하는가
+- 잔차 그림이 무엇을 잡아내는가
+
+실행: python 03_simple_linear_regression.py
 """
-================================================================================
-1단계 - 보기 3: PyTorch로 하는 단순 선형 회귀
-================================================================================
-
-학습 목표:
-- 경사 하강법을 참 회귀 문제에 쓴다
-- 코드를 더 잘 짜려고 PyTorch의 nn.Module을 쓴다
-- 학습 루프와 따짐 루프를 짠다
-- 모델의 예측을 그림으로 본다
-
-어려움: ⭐ 첫스텝
-
-걸리는 때: 30~40분
-
-PREREQUISITES:
-- 보기 01과 02을 마쳤을 것
-- 선형 회귀를 기본으로 이해하고 있을 것
-
-================================================================================
-"""
-
 import torch
 import torch.nn as nn
-import numpy as np
-import matplotlib.pyplot as plt
 
-print("="*80)
-print("LINEAR REGRESSION WITH PYTORCH")
-print("="*80)
-
-# ============================================================================
-# 1부: 현실적인 데이터셋 만들기
-# ============================================================================
-print("\n" + "="*80)
-print("PART 1: DATASET CREATION")
-print("="*80)
-
-# 재현성을 위한 난수 시드 설정
 torch.manual_seed(42)
-np.random.seed(42)
 
-# 합성 데이터 생성: y = 3x + 2 + 잡음
-n_samples = 100
-X_numpy = np.random.rand(n_samples, 1) * 10  # Random x values from 0 to 10
-y_numpy = 3 * X_numpy + 2 + np.random.randn(n_samples, 1) * 2  # Add noise
+N = 100
+TRUE_W, TRUE_B, NOISE = 3.0, 2.0, 1.0
 
-# PyTorch 텐서로 변환
-X = torch.from_numpy(X_numpy).float()
-y = torch.from_numpy(y_numpy).float()
-
-print(f"Dataset size: {n_samples} samples")
-print(f"X shape: {X.shape}  (n_samples, n_features)")
-print(f"y shape: {y.shape}  (n_samples, 1)")
-print(f"\nTrue relationship: y = 3*x + 2")
-print("Goal: Learn this relationship from noisy data")
-
-# ============================================================================
-# 2부: nn.Module로 모델 정의하기(실무적인 방법)
-# ============================================================================
-print("\n" + "="*80)
-print("PART 2: MODEL DEFINITION")
-print("="*80)
-
-class LinearRegressionModel(nn.Module):
-    """
-    선형 회귀 모델: y = wx + b
-    
-    이것이 PyTorch에서 모델을 매기는 방식이다.
-    Benefits:
-    - 파라메터를 절로 다룬다
-    - 넓히기 쉽다
-    - PyTorch 최적화기와 맞물린다
-    - 깔끔하고 짜임새 있는 코드
-    """
-    
-    def __init__(self, input_dim, output_dim):
-        """
-        모델 파라메터의 초기화한다
-        
-        Args:
-            input_dim: 입력 피처의 수
-            output_dim: 출력 값의 수
-        """
-        super(LinearRegressionModel, self).__init__()
-        
-        # 선형 레이어 정의: y = wx + b
-        # 이것이 requires_grad=True인 웨이트(w)와 바이어스(b)을 만든다
-        self.linear = nn.Linear(input_dim, output_dim)
-        
-        print(f"Created linear layer: {input_dim} inputs → {output_dim} outputs")
-    
-    def forward(self, x):
-        """
-        순전파: 예측을 계산한다
-        
-        Args:
-            x: 모양이 (batch_size, input_dim)인 입력 텐서
-        
-        Returns:
-            predictions: 모양이 (batch_size, output_dim)인 출력 텐서
-        """
-        return self.linear(x)
+X = torch.linspace(0, 10, N).unsqueeze(1)
+Y = TRUE_W * X + TRUE_B + NOISE * torch.randn(N, 1)
 
 
-# 모델 인스턴스 생성
-input_dim = 1   # Single feature (x)
-output_dim = 1  # Single output (y)
-model = LinearRegressionModel(input_dim, output_dim)
+def header(title):
+    print(f"\n=== {title} ===")
 
-print(f"\nModel architecture:")
-print(model)
 
-# 초기 파라메터 출력
-print(f"\nInitial parameters:")
-for name, param in model.named_parameters():
-    print(f"  {name}: {param.data.numpy().flatten()}")
+# ========================================================================
+# 1. 자료와 모델
+# ========================================================================
 
-# ============================================================================
-# 3부: 로스 함수와 최적화기 정의
-# ============================================================================
-print("\n" + "="*80)
-print("PART 3: LOSS FUNCTION & OPTIMIZER")
-print("="*80)
+def setup():
+    header("1. 자료와 모델")
+    print(f"  표본 {N}개,  생성 규칙 y = {TRUE_W}x + {TRUE_B} + N(0, {NOISE}^2)")
+    print(f"  X 모양 {tuple(X.shape)},  Y 모양 {tuple(Y.shape)}")
+    print(f"  X 범위 {X.min():.2f} ~ {X.max():.2f}")
 
-# 로스 함수: 평균제곱오차
-criterion = nn.MSELoss()
-print("Loss function: MSE (Mean Squared Error)")
-print("  L = (1/N) * Σ(y_pred - y_true)²")
+    torch.manual_seed(0)
+    model = nn.Linear(1, 1)
+    print(f"  nn.Linear(1, 1) 의 파라메터")
+    for name, p in model.named_parameters():
+        print(f"    {name:<8} 모양 {tuple(p.shape)}  처음 값 "
+              f"{p.detach().flatten().tolist()}")
+    print("  weight 가 기울기, bias 가 절편이다. 둘 다 배운다")
+    return model
 
-# 최적화기: 확률적 경사 하강법
-learning_rate = 0.01
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-print(f"\nOptimizer: SGD (Stochastic Gradient Descent)")
-print(f"  Learning rate: {learning_rate}")
-print(f"  Optimizing: {sum(p.numel() for p in model.parameters())} parameters")
 
-# ============================================================================
-# 4부: 학습 루프
-# ============================================================================
-print("\n" + "="*80)
-print("PART 4: TRAINING")
-print("="*80)
+# ========================================================================
+# 2. 정답을 먼저 구해 둔다
+# ========================================================================
 
-n_epochs = 100
-loss_history = []
+def closed_form():
+    header("2. 정규방정식 — 경사 하강법이 닿아야 할 곳")
+    A = torch.cat([X, torch.ones(N, 1)], 1)
+    sol = torch.linalg.lstsq(A, Y).solution.flatten()
+    best = ((A @ sol.unsqueeze(1) - Y) ** 2).mean().item()
+    print(f"  최소제곱 해   w = {sol[0]:.6f},  b = {sol[1]:.6f}")
+    print(f"  그때의 MSE    {best:.6f}")
+    print(f"  자료를 만든 값  w = {TRUE_W},  b = {TRUE_B}")
+    print(f"  차이          dw = {sol[0]-TRUE_W:+.6f},  "
+          f"db = {sol[1]-TRUE_B:+.6f}")
+    print("  같지 않다. 잡음이 섞인 100개로 추정했기 때문이다")
+    print("  경사 하강법이 찾아야 하는 것은 (3, 2) 가 아니라 이 해다")
+    return sol, best
 
-print("Epoch |   Loss    | Weight  | Bias")
-print("-" * 45)
 
-for epoch in range(n_epochs):
-    # -------------------------
-    # 표준적인 학습 단계:
-    # -------------------------
-    
-    # 1. 순전파
-    y_pred = model(X)
-    
-    # 2. 로스 계산
-    loss = criterion(y_pred, y)
-    
-    # 3. 경사 초기화(중요!)
-    optimizer.zero_grad()
-    
-    # 4. 역전파(경사 계산)
-    loss.backward()
-    
-    # 5. 파라메터 갱신
-    optimizer.step()
-    
-    # 그림을 그리기 위해 로스를 저장
-    loss_history.append(loss.item())
-    
-    # 진행 상황 출력
-    if (epoch + 1) % 10 == 0:
-        weight = model.linear.weight.item()
-        bias = model.linear.bias.item()
-        print(f"{epoch+1:4d}  | {loss.item():9.4f} | {weight:7.4f} | {bias:6.4f}")
+# ========================================================================
+# 3. 학습
+# ========================================================================
 
-print("-" * 45)
+def train(model, epochs=1000, lr=0.01):
+    header("3. 학습 (전체 배치, lr = 0.01)")
+    opt = torch.optim.SGD(model.parameters(), lr=lr)
+    print("  에폭    로스(갱신 전)    w          b")
+    for e in range(epochs):
+        loss = nn.functional.mse_loss(model(X), Y)
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+        if e % 200 == 0 or e == epochs - 1:
+            print(f"  {e:>5}   {loss.item():12.6f}  "
+                  f"{model.weight.item():9.6f}  {model.bias.item():9.6f}")
+    print("  로스는 갱신 전, w 와 b 는 갱신 후 값이다 — 같은 줄의 세 수가")
+    print("  같은 시점의 것이 아니다")
+    return model
 
-# ============================================================================
-# 5부: 학습된 모델 평가
-# ============================================================================
-print("\n" + "="*80)
-print("PART 5: EVALUATION")
-print("="*80)
 
-# 최종 파라메터 얻기
-final_weight = model.linear.weight.item()
-final_bias = model.linear.bias.item()
+def compare(model, sol, best):
+    header("4. 닿은 곳과 정규방정식의 해")
+    w, b = model.weight.item(), model.bias.item()
+    mse = nn.functional.mse_loss(model(X), Y).item()
+    print(f"  경사 하강법   w = {w:.6f},  b = {b:.6f},  MSE = {mse:.6f}")
+    print(f"  정규방정식    w = {sol[0]:.6f},  b = {sol[1]:.6f},  "
+          f"MSE = {best:.6f}")
+    print(f"  차이          dw = {w-sol[0].item():+.2e},  "
+          f"db = {b-sol[1].item():+.2e},  dMSE = {mse-best:+.2e}")
+    print("  b 쪽이 w 쪽보다 한참 덜 수렴했다. 조건수 때문이다")
 
-print(f"Learned equation: y = {final_weight:.4f}*x + {final_bias:.4f}")
-print(f"True equation:    y = 3.0000*x + 2.0000")
-print(f"\nParameter errors:")
-print(f"  Weight error: {abs(final_weight - 3.0):.4f}")
-print(f"  Bias error:   {abs(final_bias - 2.0):.4f}")
+    # 조건수를 직접 구해 본다
+    A = torch.cat([X, torch.ones(N, 1)], 1)
+    H = 2 * (A.T @ A) / N
+    ev = torch.linalg.eigvalsh(H)
+    print(f"  헤세의 고윳값 {ev[0]:.4f}, {ev[1]:.4f}  "
+          f"조건수 {ev[1]/ev[0]:.1f}")
+    print(f"  수렴률 (k-1)/(k+1) = "
+          f"{(ev[1]/ev[0]-1)/(ev[1]/ev[0]+1):.6f} — 한 걸음에 이만큼만 준다")
+    print(f"  X 를 중심화하면 (x - {X.mean():.2f}) 어떻게 되는지 본다")
+    Ac = torch.cat([X - X.mean(), torch.ones(N, 1)], 1)
+    Hc = 2 * (Ac.T @ Ac) / N
+    evc = torch.linalg.eigvalsh(Hc)
+    print(f"  중심화 뒤 고윳값 {evc[0]:.4f}, {evc[1]:.4f}  "
+          f"조건수 {evc[1]/evc[0]:.1f}")
+    print("  x 와 1 의 상관이 사라져 조건수가 크게 준다")
 
-# 테스트 데이터에 대한 예측
-model.eval()  # Set model to evaluation mode (important for some layers)
-with torch.no_grad():  # Don't track gradients during evaluation
-    # 몇 개의 점에서 시험
-    x_test = torch.tensor([[2.0], [5.0], [8.0]])
-    y_test_pred = model(x_test)
-    
-    print("\nTest predictions:")
-    for i, x_val in enumerate(x_test):
-        pred = y_test_pred[i].item()
-        true = 3 * x_val.item() + 2
-        print(f"  x = {x_val.item():.1f} → predicted: {pred:.2f}, true: {true:.2f}")
 
-# ============================================================================
-# 6부: 시각화
-# ============================================================================
-print("\n" + "="*80)
-print("VISUALIZATION")
-print("="*80)
+# ========================================================================
+# 5. 지표 넷
+# ========================================================================
 
-fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+def metrics(model):
+    header("5. 지표 넷이 각각 말하는 것")
+    with torch.no_grad():
+        pred = model(X)
+        res = (pred - Y).flatten()
+    mse = (res ** 2).mean().item()
+    rmse = mse ** 0.5
+    mae = res.abs().mean().item()
+    ss_res = (res ** 2).sum().item()
+    ss_tot = ((Y - Y.mean()) ** 2).sum().item()
+    r2 = 1 - ss_res / ss_tot
+    print(f"  MSE   {mse:9.6f}   단위가 y 의 제곱이다")
+    print(f"  RMSE  {rmse:9.6f}   y 와 같은 단위 — '평균 이만큼 틀린다'")
+    print(f"  MAE   {mae:9.6f}   역시 y 의 단위. 큰 오차에 덜 민감하다")
+    print(f"  R^2   {r2:9.6f}   단위가 없다. 1 이면 완벽")
+    print(f"  자료의 잡음 표준편차가 {NOISE} 였다. RMSE 가 그 언저리다")
+    print(f"  RMSE >= MAE 는 언제나 참이다 (여기서는 {rmse/mae:.3f} 배)")
+    print(f"  R^2 는 '평균만 찍는 모델' 을 기준으로 삼는다")
+    print(f"    평균만 찍을 때의 MSE = {ss_tot/N:.6f}")
+    print(f"    우리 모델의 MSE      = {mse:.6f}")
+    print(f"    1 - 비 = {1 - mse/(ss_tot/N):.6f}  — R^2 와 같다")
 
-# 그림 1: 학습 로스
-axes[0].plot(loss_history, 'b-', linewidth=2)
-axes[0].set_xlabel('Epoch', fontsize=12)
-axes[0].set_ylabel('Loss (MSE)', fontsize=12)
-axes[0].set_title('Training Loss Over Time', fontsize=14, fontweight='bold')
-axes[0].grid(True, alpha=0.3)
+    print("\n  R^2 가 큰 것에 속지 말 것 — x 범위를 좁히면")
+    for lo, hi in ((0, 10), (0, 3), (4, 5)):
+        m = (X.flatten() >= lo) & (X.flatten() <= hi)
+        with torch.no_grad():
+            r = (model(X[m]) - Y[m]).flatten()
+        tot = ((Y[m] - Y[m].mean()) ** 2).sum().item()
+        print(f"    x in [{lo},{hi}]  표본 {int(m.sum()):>3}개  "
+              f"RMSE {(r**2).mean().item()**0.5:.4f}  "
+              f"R^2 {1 - (r**2).sum().item()/tot:+.4f}")
+    print("  RMSE 는 거의 그대로인데 R^2 는 무너진다. 모델이 나빠진 것이")
+    print("  아니라 견주는 기준(평균만 찍기)이 좋아져서다")
 
-# 그림 2: 데이터와 적합된 직선
-axes[1].scatter(X.numpy(), y.numpy(), alpha=0.5, label='Training data')
-x_line = torch.linspace(0, 10, 100).reshape(-1, 1)
-with torch.no_grad():
-    y_line = model(x_line)
-axes[1].plot(x_line.numpy(), y_line.numpy(), 'r-', linewidth=2, 
-             label=f'Fitted line (y={final_weight:.2f}x+{final_bias:.2f})')
-axes[1].plot(x_line.numpy(), 3*x_line.numpy()+2, 'g--', linewidth=2, 
-             label='True line (y=3x+2)', alpha=0.7)
-axes[1].set_xlabel('x', fontsize=12)
-axes[1].set_ylabel('y', fontsize=12)
-axes[1].set_title('Linear Regression Fit', fontsize=14, fontweight='bold')
-axes[1].legend()
-axes[1].grid(True, alpha=0.3)
 
-# 그림 3: 잔차(오차)
-with torch.no_grad():
-    y_pred_all = model(X)
-    residuals = (y - y_pred_all).numpy()
-axes[2].scatter(X.numpy(), residuals, alpha=0.5)
-axes[2].axhline(y=0, color='r', linestyle='--', linewidth=2)
-axes[2].set_xlabel('x', fontsize=12)
-axes[2].set_ylabel('Residual (y_true - y_pred)', fontsize=12)
-axes[2].set_title('Residual Plot', fontsize=14, fontweight='bold')
-axes[2].grid(True, alpha=0.3)
+# ========================================================================
+# 6. 잔차가 무엇을 잡아내는가
+# ========================================================================
 
-plt.tight_layout()
-plt.savefig('linear_regression.png', dpi=150)
-print("\n✓ Plot saved as 'linear_regression.png'")
-print("\nClose the plot window to continue...")
-plt.show()
+def residuals():
+    header("6. 잔차 — 직선으로 충분한지 가려낸다")
+    A = torch.cat([X, torch.ones(N, 1)], 1)
 
-# ============================================================================
-# 7부: 지표 계산
-# ============================================================================
-print("\n" + "="*80)
-print("PART 7: PERFORMANCE METRICS")
-print("="*80)
+    def fit_and_report(Yd, label):
+        sol = torch.linalg.lstsq(A, Yd).solution
+        res = (A @ sol - Yd).flatten()
+        # 구간별 잔차 평균 — 구조가 있으면 여기서 드러난다
+        bins = []
+        for i in range(5):
+            m = (X.flatten() >= i * 2) & (X.flatten() < (i + 1) * 2 + 1e-9)
+            bins.append(res[m].mean().item())
+        print(f"  {label}")
+        print(f"    RMSE {(res**2).mean().item()**0.5:.4f}   "
+              f"R^2 {1 - (res**2).sum().item()/((Yd-Yd.mean())**2).sum().item():.4f}")
+        print("    구간별 잔차 평균 " +
+              "  ".join(f"{v:+.3f}" for v in bins))
+        return bins
 
-with torch.no_grad():
-    y_pred_all = model(X)
-    
-    # 평균제곱오차(MSE)
-    mse = criterion(y_pred_all, y).item()
-    
-    # 평균제곱근오차(RMSE)
-    rmse = np.sqrt(mse)
-    
-    # 평균절대오차(MAE)
-    mae = torch.mean(torch.abs(y_pred_all - y)).item()
-    
-    # 결정계수(R²)
-    ss_res = torch.sum((y - y_pred_all) ** 2).item()
-    ss_tot = torch.sum((y - torch.mean(y)) ** 2).item()
-    r2_score = 1 - (ss_res / ss_tot)
+    b1 = fit_and_report(Y, "(가) 정말 직선인 자료")
+    torch.manual_seed(1)
+    Y2 = 0.3 * X ** 2 + NOISE * torch.randn(N, 1)
+    b2 = fit_and_report(Y2, "(나) 사실은 이차인 자료")
 
-print(f"MSE (Mean Squared Error):      {mse:.4f}")
-print(f"RMSE (Root Mean Squared Error): {rmse:.4f}")
-print(f"MAE (Mean Absolute Error):     {mae:.4f}")
-print(f"R² Score:                      {r2_score:.4f}")
-print("\nInterpretation:")
-print(f"  - RMSE of {rmse:.2f} means predictions are off by ±{rmse:.2f} on average")
-print(f"  - R² of {r2_score:.4f} means model explains {r2_score*100:.2f}% of variance")
+    print(f"  (가) 의 구간별 잔차는 부호가 뒤섞여 있다 "
+          f"(최대 {max(abs(v) for v in b1):.3f})")
+    print(f"  (나) 는 -, +, +, +, - 로 뚜렷한 곡선 꼴이다 "
+          f"(최대 {max(abs(v) for v in b2):.3f})")
+    print("  (나) 의 R^2 도 높게 나온다. R^2 만 보면 못 잡아낸다")
+    print("  잔차를 x 에 대해 그려 보아야 보인다 — 그것이 잔차 그림이다")
 
-# ============================================================================
-# 8부: 핵심 요점
-# ============================================================================
-print("\n" + "="*80)
-print("KEY TAKEAWAYS")
-print("="*80)
-print("""
-1. nn.Module이 모델을 매기는 여느 방식이다
-   - nn.Module을 물려받는다
-   - __init__()에서 레이어를 매긴다
-   - forward() 방법을 짠다
 
-2. 학습 루프에는 여느 스텝 다섯이 있다.
-   1. 순전파:      y_pred = model(X)
-   2. 로스 계산:      loss = criterion(y_pred, y)
-   3. 기울기 0으로:    optimizer.zero_grad()
-   4. 역전파:     loss.backward()
-   5. 파라메터 고치기: optimizer.step()
-
-3. 따질 때는 model.eval()과 torch.no_grad()을 써라
-   - 어떤 레이어(드롭아웃, 배치 정규화)을 끈다
-   - 그래디언트를 좇지 않아 기억 자리를 아낀다
-
-4. 여러 자를 쓰면 더 잘 따질 수 있다
-   - MSE: 큰 오차를 더 크게 벌한다
-   - MAE: 모든 오차를 똑같이 다룬다
-   - R²: 설명된 분산의 몫을 잰다
-
-5. 잔차 그림이 탈을 짚어내는 데 도움이 된다
-   - 마구잡이로 흩어져 있으면 잘 맞은 것이다
-   - 무늬가 보이면 비선형 모델이 필요할 수 있다
-""")
-
-# ============================================================================
-# 9부: 해 볼 만한 실험
-# ============================================================================
-print("\n" + "="*80)
-print("EXPERIMENTS TO TRY")
-print("="*80)
-print("""
-1. 여러 러닝레이트:
-   - Try lr = 0.001, 0.1, 0.5
-   - 모여드는 속도와 든든함을 살펴보아라
-
-2. 학습 데이터 늘리기:
-   - n_samples을 1000으로 키운다
-   - 모델이 더 잘 맞는가?
-
-3. 잡음 늘리기:
-   - 데이터를 만들 때 잡음을 키운다
-   - R² 점수에 어떤 영향을 주는가?
-
-4. 여러 최적화기:
-   - SGD을 Adam으로 갈음한다: torch.optim.Adam(...)
-   - 모여드는 모습을 견준다
-
-5. 모델 저장하고 불러오기:
-   - torch.save(model.state_dict(), 'model.pth')
-   - model.load_state_dict(torch.load('model.pth'))
-""")
-print("="*80)
+def main():
+    model = setup()
+    sol, best = closed_form()
+    train(model)
+    compare(model, sol, best)
+    metrics(model)
+    residuals()
 
 
 if __name__ == "__main__":
-    pass
+    main()
 ```
 
-??? note "전체 출력 (145줄)"
+**출력:**
 
-    ```
-    ================================================================================
-    LINEAR REGRESSION WITH PYTORCH
-    ================================================================================
+```
+=== 1. 자료와 모델 ===
+  표본 100개,  생성 규칙 y = 3.0x + 2.0 + N(0, 1.0^2)
+  X 모양 (100, 1),  Y 모양 (100, 1)
+  X 범위 0.00 ~ 10.00
+  nn.Linear(1, 1) 의 파라메터
+    weight   모양 (1, 1)  처음 값 [-0.007486820220947266]
+    bias     모양 (1,)  처음 값 [0.5364435911178589]
+  weight 가 기울기, bias 가 절편이다. 둘 다 배운다
 
-    ================================================================================
-    PART 1: DATASET CREATION
-    ================================================================================
-    Dataset size: 100 samples
-    X shape: torch.Size([100, 1])  (n_samples, n_features)
-    y shape: torch.Size([100, 1])  (n_samples, 1)
+=== 2. 정규방정식 — 경사 하강법이 닿아야 할 곳 ===
+  최소제곱 해   w = 2.994105,  b = 2.089242
+  그때의 MSE    0.962903
+  자료를 만든 값  w = 3.0,  b = 2.0
+  차이          dw = -0.005895,  db = +0.089242
+  같지 않다. 잡음이 섞인 100개로 추정했기 때문이다
+  경사 하강법이 찾아야 하는 것은 (3, 2) 가 아니라 이 해다
 
-    True relationship: y = 3*x + 2
-    Goal: Learn this relationship from noisy data
+=== 3. 학습 (전체 배치, lr = 0.01) ===
+  에폭    로스(갱신 전)    w          b
+      0     351.817902   2.158960   0.867659
+    200       1.003134   3.053671   1.693086
+    400       0.968399   3.016122   1.942812
+    600       0.963654   3.002243   2.035117
+    800       0.963006   2.997113   2.069235
+    999       0.962917   2.995222   2.081809
+  로스는 갱신 전, w 와 b 는 갱신 후 값이다 — 같은 줄의 세 수가
+  같은 시점의 것이 아니다
 
-    ================================================================================
-    PART 2: MODEL DEFINITION
-    ================================================================================
-    Created linear layer: 1 inputs → 1 outputs
+=== 4. 닿은 곳과 정규방정식의 해 ===
+  경사 하강법   w = 2.995222,  b = 2.081809,  MSE = 0.962917
+  정규방정식    w = 2.994105,  b = 2.089242,  MSE = 0.962903
+  차이          dw = +1.12e-03,  db = -7.43e-03,  dMSE = +1.41e-05
+  b 쪽이 w 쪽보다 한참 덜 수렴했다. 조건수 때문이다
+  헤세의 고윳값 0.4964, 68.5070  조건수 138.0
+  수렴률 (k-1)/(k+1) = 0.985612 — 한 걸음에 이만큼만 준다
+  X 를 중심화하면 (x - 5.00) 어떻게 되는지 본다
+  중심화 뒤 고윳값 2.0000, 17.0034  조건수 8.5
+  x 와 1 의 상관이 사라져 조건수가 크게 준다
 
-    Model architecture:
-    LinearRegressionModel(
-      (linear): Linear(in_features=1, out_features=1, bias=True)
-    )
+=== 5. 지표 넷이 각각 말하는 것 ===
+  MSE    0.962917   단위가 y 의 제곱이다
+  RMSE   0.981283   y 와 같은 단위 — '평균 이만큼 틀린다'
+  MAE    0.814841   역시 y 의 단위. 큰 오차에 덜 민감하다
+  R^2    0.987523   단위가 없다. 1 이면 완벽
+  자료의 잡음 표준편차가 1.0 였다. RMSE 가 그 언저리다
+  RMSE >= MAE 는 언제나 참이다 (여기서는 1.204 배)
+  R^2 는 '평균만 찍는 모델' 을 기준으로 삼는다
+    평균만 찍을 때의 MSE = 77.177637
+    우리 모델의 MSE      = 0.962917
+    1 - 비 = 0.987523  — R^2 와 같다
 
-    Initial parameters:
-      linear.weight: [0.7645385]
-      linear.bias: [0.8300079]
+  R^2 가 큰 것에 속지 말 것 — x 범위를 좁히면
+    x in [0,10]  표본 100개  RMSE 0.9813  R^2 +0.9875
+    x in [0,3]  표본  30개  RMSE 1.1003  R^2 +0.8696
+    x in [4,5]  표본  10개  RMSE 1.1954  R^2 +0.2368
+  RMSE 는 거의 그대로인데 R^2 는 무너진다. 모델이 나빠진 것이
+  아니라 견주는 기준(평균만 찍기)이 좋아져서다
 
-    ================================================================================
-    PART 3: LOSS FUNCTION & OPTIMIZER
-    ================================================================================
-    Loss function: MSE (Mean Squared Error)
-      L = (1/N) * Σ(y_pred - y_true)²
+=== 6. 잔차 — 직선으로 충분한지 가려낸다 ===
+  (가) 정말 직선인 자료
+    RMSE 0.9813   R^2 0.9875
+    구간별 잔차 평균 +0.122  -0.249  +0.334  -0.211  +0.035
+  (나) 사실은 이차인 자료
+    RMSE 2.2260   R^2 0.9388
+    구간별 잔차 평균 -2.203  +1.138  +1.939  +1.445  -2.214
+  (가) 의 구간별 잔차는 부호가 뒤섞여 있다 (최대 0.334)
+  (나) 는 -, +, +, +, - 로 뚜렷한 곡선 꼴이다 (최대 2.214)
+  (나) 의 R^2 도 높게 나온다. R^2 만 보면 못 잡아낸다
+  잔차를 x 에 대해 그려 보아야 보인다 — 그것이 잔차 그림이다
+```
 
-    Optimizer: SGD (Stochastic Gradient Descent)
-      Learning rate: 0.01
-      Optimizing: 2 parameters
-
-    ================================================================================
-    PART 4: TRAINING
-    ================================================================================
-    Epoch |   Loss    | Weight  | Bias
-    ---------------------------------------------
-      10  |    3.6222 |  3.0884 | 1.2559
-      20  |    3.5805 |  3.0788 | 1.3195
-      30  |    3.5432 |  3.0695 | 1.3796
-      40  |    3.5098 |  3.0608 | 1.4364
-      50  |    3.4800 |  3.0525 | 1.4902
-      60  |    3.4533 |  3.0447 | 1.5410
-      70  |    3.4294 |  3.0373 | 1.5891
-      80  |    3.4080 |  3.0303 | 1.6347
-      90  |    3.3889 |  3.0237 | 1.6777
-     100  |    3.3718 |  3.0174 | 1.7184
-    ---------------------------------------------
-
-    ================================================================================
-    PART 5: EVALUATION
-    ================================================================================
-    Learned equation: y = 3.0174*x + 1.7184
-    True equation:    y = 3.0000*x + 2.0000
-
-    Parameter errors:
-      Weight error: 0.0174
-      Bias error:   0.2816
-
-    Test predictions:
-      x = 2.0 → predicted: 7.75, true: 8.00
-      x = 5.0 → predicted: 16.81, true: 17.00
-      x = 8.0 → predicted: 25.86, true: 26.00
-
-    ================================================================================
-    VISUALIZATION
-    ================================================================================
-
-    ✓ Plot saved as 'linear_regression.png'
-
-    Close the plot window to continue...
-
-    ================================================================================
-    PART 7: PERFORMANCE METRICS
-    ================================================================================
-    MSE (Mean Squared Error):      3.3702
-    RMSE (Root Mean Squared Error): 1.8358
-    MAE (Mean Absolute Error):     1.4712
-    R² Score:                      0.9564
-
-    Interpretation:
-      - RMSE of 1.84 means predictions are off by ±1.84 on average
-      - R² of 0.9564 means model explains 95.64% of variance
-
-    ================================================================================
-    KEY TAKEAWAYS
-    ================================================================================
-
-    1. nn.Module이 모델을 매기는 여느 방식이다
-       - nn.Module을 물려받는다
-       - __init__()에서 레이어를 매긴다
-       - forward() 방법을 짠다
-
-    2. 학습 루프에는 여느 스텝 다섯이 있다.
-       1. 순전파:      y_pred = model(X)
-       2. 로스 계산:      loss = criterion(y_pred, y)
-       3. 기울기 0으로:    optimizer.zero_grad()
-       4. 역전파:     loss.backward()
-       5. 파라메터 고치기: optimizer.step()
-
-    3. 따질 때는 model.eval()과 torch.no_grad()을 써라
-       - 어떤 레이어(드롭아웃, 배치 정규화)을 끈다
-       - 그래디언트를 좇지 않아 기억 자리를 아낀다
-
-    4. 여러 자를 쓰면 더 잘 따질 수 있다
-       - MSE: 큰 오차를 더 크게 벌한다
-       - MAE: 모든 오차를 똑같이 다룬다
-       - R²: 설명된 분산의 몫을 잰다
-
-    5. 잔차 그림이 탈을 짚어내는 데 도움이 된다
-       - 마구잡이로 흩어져 있으면 잘 맞은 것이다
-       - 무늬가 보이면 비선형 모델이 필요할 수 있다
-
-
-    ================================================================================
-    EXPERIMENTS TO TRY
-    ================================================================================
-
-    1. 여러 러닝레이트:
-       - Try lr = 0.001, 0.1, 0.5
-       - 모여드는 속도와 든든함을 살펴보아라
-
-    2. 학습 데이터 늘리기:
-       - n_samples을 1000으로 키운다
-       - 모델이 더 잘 맞는가?
-
-    3. 잡음 늘리기:
-       - 데이터를 만들 때 잡음을 키운다
-       - R² 점수에 어떤 영향을 주는가?
-
-    4. 여러 최적화기:
-       - SGD을 Adam으로 갈음한다: torch.optim.Adam(...)
-       - 모여드는 모습을 견준다
-
-    5. 모델 저장하고 불러오기:
-       - torch.save(model.state_dict(), 'model.pth')
-       - model.load_state_dict(torch.load('model.pth'))
-
-    ================================================================================
-    ```
-
-
-## 2. 논의
-
-### 모델과 데이터의 모양
-
-데이터 생성 규칙은 $y=3x+2+\epsilon$이며 `nn.Linear(1, 1)`이 그래디언트와 절편을 학습한다. 입력, 정답, 예측은 모두 $(N,1)$이다. 평균제곱오차를 최소화하는 표본의 해는 잡음 때문에 생성 규칙의 계수와 정확히 같지 않을 수 있다.
-
-### 학습과 지표
-
-전체 데이터를 사용해 한 에포크에 한 번 SGD 업데이트를 수행한다. 출력의 로스는 업데이트 전, 웨이트와 절편은 업데이트 후 값이다. 마지막에 다시 계산한 MSE와 RMSE, MAE, $R^2$는 최종 파라미터의 지표다. RMSE와 MAE는 정답과 같은 단위를 가지며 MSE는 단위를 제곱한 값이다.
-
-잔차 그래프는 입력 구간별 바이어스나 오차 구조를 살펴보는 데 사용한다. 이 예제의 지표는 학습에 사용한 데이터에서 계산하므로 별도 테스트 성능으로 해석하지 않는다. 몇 개의 입력을 생성 규칙과 비교하는 출력 역시 독립적인 테스트셋 평가를 대신하지 않는다.
+---
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
+본문 5절에서 평균만 찍는 모델의 MSE가 77.178이었다. 이 수가 무엇인지 설명하고, $R^2 = 0$인 모델과 $R^2 < 0$인 모델이 각각 어떤 모델인지 말하라.
 
 </div>
 
 ??? success "풀이"
-    ```python
-    import torch
+    평균만 찍는 모델의 MSE는 $\frac{1}{N}\sum_i (y_i - \bar{y})^2$이고, 이것은 $y$의 **분산** 이다. 자료가 $y = 3x + 2 + \varepsilon$에서 $x \in [0,10]$이므로 $y$가 2에서 32까지 퍼져 있고, 그 분산이 77.178이다.
 
-    x = torch.tensor(3.0, requires_grad=True)
-    f = x**3 - 2*x**2 + x
-    f.backward()
-    print(x.grad)  # f'(x) = 3x^2 - 4x + 1 = 27 - 12 + 1 = 16.0
-    ```
+    $R^2 = 1 - \dfrac{\text{모델의 MSE}}{y\text{의 분산}}$이므로
+
+    - **$R^2 = 0$**: 모델의 MSE가 $y$의 분산과 같다. 곧 **평균만 찍는 것과 똑같이** 한다
+    - **$R^2 < 0$**: 모델의 MSE가 $y$의 분산보다 크다. 곧 **평균만 찍는 것보다 못한다**
+
+    $R^2$가 음수일 수 있다는 점이 흔히 잊힌다. 이름에 제곱이 들어 있어 음수가 될 수 없을 것 같지만, 그것은 상관계수의 제곱으로 정의하던 옛 맥락의 흔적이다. 최소제곱으로 **절편까지 함께** 맞춘 선형 모델이라면 $R^2 \geq 0$이 보장되지만, 다른 자료에서 학습한 모델을 가져다 쓰거나 절편을 뺀 모델에서는 음수가 나온다.
 
 ---
-
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-제곱합처럼 저장된 중간값이 필요한 로스에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+본문 3절의 표에서 로스는 갱신 전, 파라메터는 갱신 후 값이었다. 둘을 같은 시점으로 맞추려면 루프를 어떻게 고쳐야 하는가? 두 방법을 적고 각각의 장단점을 말하라.
 
 </div>
 
 ??? success "풀이"
-    기본 역전파는 사용을 마친 저장 텐서를 해제한다. 같은 그래프의 두 번째 역전파에 이 값들이 필요하면 `RuntimeError`가 발생한다. 저장 텐서가 필요 없는 단순 연산은 반복 호출이 가능할 수도 있으므로 모든 그래프에서 반드시 오류가 나는 것은 아니다. 첫 호출의 `retain_graph=True`는 필요한 중간 결과를 보존해 재사용을 가능하게 하지만 그만큼 메모리를 더 오래 사용한다. `.grad` 초기화는 이 보존 여부와 별개의 작업이다.
+    루프가 이렇게 생겼다.
+
+    ```python
+    loss = mse(model(X), Y)     # w_t 에서 잰 로스
+    opt.zero_grad()
+    loss.backward()
+    opt.step()                  # w_{t+1} 이 된다
+    print(loss, model.weight)   # <- 로스는 w_t, 웨이트는 w_{t+1}
+    ```
+
+    **방법 1 — 갱신 전에 찍는다.**
+
+    ```python
+    loss = mse(model(X), Y)
+    print(loss.item(), model.weight.item())   # 둘 다 w_t
+    opt.zero_grad(); loss.backward(); opt.step()
+    ```
+
+    값이 공짜다. 다만 마지막 갱신 뒤의 로스는 영영 찍히지 않으므로, 루프가 끝난 뒤 한 번 더 계산해야 최종 상태를 알 수 있다.
+
+    **방법 2 — 갱신 뒤에 다시 잰다.**
+
+    ```python
+    opt.zero_grad()
+    mse(model(X), Y).backward()
+    opt.step()
+    with torch.no_grad():
+        print(mse(model(X), Y).item(), model.weight.item())   # 둘 다 w_{t+1}
+    ```
+
+    순전파를 **한 번 더** 해야 하므로 에폭당 값이 대략 1.5배다(역전파가 순전파의 두 배쯤이므로). 큰 모델에서는 무시할 수 없다.
+
+    **실무에서는 방법 1을 쓰고 어긋남을 알고 있는 쪽** 이 보통이다. 다만 로스가 거의 평평해진 뒤에는 한 걸음 차이가 보이지 않으므로, 어긋남이 문제가 되는 것은 학습 초기의 가파른 구간뿐이다.
 
 ---
-
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+본문 4절은 $x$를 중심화하면 조건수가 138에서 8.5로 준다고 했다. 실제로 수렴이 빨라지는지 재어라.
 
 </div>
 
 ??? success "풀이"
     ```python
     import torch
+    import torch.nn as nn
 
-    w = torch.tensor(2.0, requires_grad=True)
-    for i in range(3):
-        loss = (w ** 2).sum()
-        loss.backward()
-        print(f'After backward {i+1}: w.grad = {w.grad}')
-    # 출력: 4.0, 8.0, 12.0
-    # 경사가 누적된다. 매 backward가 기존 경사에 2*w = 4.0을 더한다.
+    torch.manual_seed(42)
+    N = 100
+    X = torch.linspace(0, 10, N).unsqueeze(1)
+    Y = 3 * X + 2 + torch.randn(N, 1)
+
+    def run(center, steps, lr=0.01):
+        Xc = X - X.mean() if center else X
+        torch.manual_seed(0)
+        m = nn.Linear(1, 1)
+        o = torch.optim.SGD(m.parameters(), lr=lr)
+        for _ in range(steps):
+            o.zero_grad()
+            nn.functional.mse_loss(m(Xc), Y).backward()
+            o.step()
+        A = torch.cat([Xc, torch.ones(N, 1)], 1)
+        sol = torch.linalg.lstsq(A, Y).solution.flatten()
+        got = torch.tensor([m.weight.item(), m.bias.item()])
+        return nn.functional.mse_loss(m(Xc), Y).item(), (got - sol).norm().item()
+
+    for c in (False, True):
+        for st in (200, 1000, 5000):
+            mse, d = run(c, st)
+            print(f"  중심화 {str(c):<6} {st:>5} 걸음  MSE {mse:.8f}  "
+                  f"최적해와 거리 {d:.2e}")
     ```
+
+    ```
+      중심화 False    200 걸음  MSE 1.00313413  최적해와 거리 4.03e-01
+      중심화 False   1000 걸음  MSE 0.96291703  최적해와 거리 7.52e-03
+      중심화 False   5000 걸음  MSE 0.96290296  최적해와 거리 2.72e-05
+      중심화 True     200 걸음  MSE 1.04735720  최적해와 거리 2.91e-01
+      중심화 True    1000 걸음  MSE 0.96290296  최적해와 거리 4.77e-05
+      중심화 True    5000 걸음  MSE 0.96290296  최적해와 거리 4.77e-05
+    ```
+
+    **1,000걸음에서 갈린다.** 중심화하지 않으면 최적해와 $7.5 \times 10^{-3}$ 떨어져 있고, 중심화하면 $4.8 \times 10^{-5}$다. **150배 차이** 다.
+
+    더 분명한 읽기는 이렇다. 중심화한 쪽은 1,000걸음에서 이미 수렴을 마쳤다(5,000걸음의 값이 똑같다). 중심화하지 않은 쪽은 5,000걸음을 써야 그 정밀도의 언저리에 온다. **대략 다섯 배의 걸음이 든다.**
+
+    200걸음에서는 중심화한 쪽의 MSE가 오히려 조금 높다(1.047 대 1.003). 초기값이 달라 출발 지점이 다르기 때문이고, 몇백 걸음 안의 순서는 조건수가 아니라 출발점이 정한다. 조건수는 **끝까지 가는 데 드는 걸음 수** 를 정한다.
+
+    주의할 점 하나. 중심화하면 **절편의 뜻이 바뀐다.** 원래 모델의 $b$는 $x = 0$에서의 값이고, 중심화한 모델의 $b$는 $x = \bar{x} = 5$에서의 값이다. 위 코드가 중심화한 쪽의 정규방정식을 따로 푸는 까닭이 그것이다. 예측할 때도 같은 $\bar{x}$를 빼 주어야 한다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
+본문 2절에서 최소제곱 해 $(2.994, 2.089)$가 생성 규칙 $(3, 2)$와 달랐다. 잡음의 크기를 바꿔 가며 이 흔들림이 얼마나 되는지 재고, 이론값과 맞춰라. 왜 절편 쪽이 더 많이 흔들리는가?
+
+</div>
+
+??? success "풀이"
+    최소제곱 추정량의 분산은 교과서 공식이 있다. $S_{xx} = \sum_i (x_i - \bar{x})^2$라 두면
+
+    $$\text{Var}(\hat{w}) = \frac{\sigma^2}{S_{xx}}, \qquad \text{Var}(\hat{b}) = \sigma^2\left(\frac{1}{n} + \frac{\bar{x}^2}{S_{xx}}\right)$$
+
+    이다. 재어 본다.
+
+    ```python
+    import numpy as np
+    import torch
+
+    N = 100
+    A = torch.cat([torch.linspace(0, 10, N).unsqueeze(1), torch.ones(N, 1)], 1)
+    x = A[:, 0].numpy()
+    Sxx = ((x - x.mean()) ** 2).sum()
+
+    for noise in (0.5, 1.0, 4.0):
+        ws, bs = [], []
+        g = torch.Generator().manual_seed(0)
+        for _ in range(2000):
+            Yn = 3 * A[:, :1] + 2 + noise * torch.randn(N, 1, generator=g)
+            s = torch.linalg.lstsq(A, Yn).solution.flatten()
+            ws.append(s[0].item())
+            bs.append(s[1].item())
+        ws, bs = np.array(ws), np.array(bs)
+        print(f"  잡음 {noise:<5} w 표준편차 잰값 {ws.std(ddof=1):.5f} "
+              f"이론 {noise / np.sqrt(Sxx):.5f}   "
+              f"b 표준편차 잰값 {bs.std(ddof=1):.5f} "
+              f"이론 {noise * np.sqrt(1 / N + x.mean() ** 2 / Sxx):.5f}")
+    ```
+
+    ```
+      잡음 0.5   w 표준편차 잰값 0.01762 이론 0.01715   b 표준편차 잰값 0.10129 이론 0.09925
+      잡음 1.0   w 표준편차 잰값 0.03523 이론 0.03430   b 표준편차 잰값 0.20258 이론 0.19851
+      잡음 4.0   w 표준편차 잰값 0.14093 이론 0.13719   b 표준편차 잰값 0.81032 이론 0.79404
+    ```
+
+    잰 값과 이론값이 3% 안에서 맞는다. 그리고 둘 다 잡음 $\sigma$에 **정비례** 한다 — 0.5에서 4.0으로 여덟 배 키우니 표준편차도 여덟 배다.
+
+    **절편이 더 흔들리는 까닭.** 두 분산의 비는
+
+    $$\frac{\text{Var}(\hat{b})}{\text{Var}(\hat{w})} = \frac{S_{xx}}{n} + \bar{x}^2$$
+
+    이고, 여기서 $\bar{x} = 5$다. $\bar{x}^2 = 25$라는 항이 지배하므로 절편의 표준편차가 기울기의 대략 $\sqrt{25 + \cdots} \approx 5.8$배다(측정값 $0.20258/0.03523 = 5.75$).
+
+    기하학적으로 보면 분명하다. 절편은 $x = 0$에서의 값인데, 자료가 $x \in [0, 10]$에 퍼져 있으므로 $x = 0$은 자료 더미의 **가장자리** 다. 직선이 자료 더미를 축으로 조금만 기울어도 가장자리에서는 크게 움직인다.
+
+    **$\bar{x} = 0$이면 그 항이 사라진다.** 연습문제 3의 중심화가 조건수만 고친 것이 아니라 절편 추정의 분산도 최소로 만든 것이다. 같은 $\bar{x}^2/S_{xx}$ 항이 두 곳에 나타난다.
+
+    본문 2절의 측정값과도 맞는다. $\sigma = 1$에서 $\hat{w}$의 오차가 $-0.0059$(표준편차 0.0343의 0.17배), $\hat{b}$의 오차가 $+0.0892$(표준편차 0.1985의 0.45배)였다. 둘 다 한 표준편차 안이다.
+
+---
 
 ## 정리하며
 
-회귀 결과는 계수, 로스 곡선, 잔차, 평가 지표를 함께 읽는다. 표본 추정값과 생성 규칙, 학습 성능과 새 데이터 성능을 구분한다.
+1. **경사 하강법이 찾아 주는 것은 생성 규칙이 아니라 그 자료의 최소제곱 해다**: $(3, 2)$가 아니라 $(2.994105, 2.089242)$이고, 학습의 성패는 그 해와 견주어 판정한다
+2. **절편이 기울기보다 늦게 수렴한다**: 조건수가 138이기 때문이고, $x$를 중심화하면 8.5로 떨어져 걸음이 다섯 배 적게 든다
+3. **로스와 파라메터는 한 걸음 어긋나 찍힌다**: 로스는 갱신 전, 파라메터는 갱신 후다
+4. **RMSE가 잡음의 표준편차 언저리면 좋은 신호다**: 0.981 대 1.0. 더 크면 덜 배운 것이고 더 작으면 외운 것이다
+5. **$R^2$는 모델에만 딸린 수가 아니다**: 같은 모델이 $x$ 범위에 따라 0.988에서 0.237까지 간다. 다른 자료에서 잰 $R^2$끼리 견주면 안 된다
+6. **$R^2$는 모델의 꼴이 틀린 것을 못 잡아낸다**: 직선을 포물선에 맞춰도 0.939가 나온다. 잔차의 구간별 평균이 $-,+,+,+,-$로 구조를 드러낸다
+7. **추정의 흔들림은 잡음에 정비례한다**: 절편 쪽이 기울기 쪽의 5.75배 흔들리고, 그 비가 $\bar{x}^2$에서 나온다
+
+**참고 문헌**
+
+- Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning*, Chapter 3.
+- Seber, G., & Lee, A. (2003). *Linear Regression Analysis*, Chapter 3.
