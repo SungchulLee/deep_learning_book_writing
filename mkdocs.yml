@@ -117,7 +117,7 @@ nav:
         - AE_MLP: ch05/dimreduction/03_ae_mlp.md
         - AE_CNN: ch05/dimreduction/04_ae_cnn.md
         - CIFAR-10 분류에 써 보면: ch05/dimreduction/05_cifar_classification.md
-        - 부호를 아무 데서나 뽑으면: ch05/dimreduction/06_sampling.md
+        - 잠재 표현을 아무 데서나 뽑으면: ch05/dimreduction/06_sampling.md
       - 5.2 잠재공간 생성모델:
         - "개요": ch05/latent_generative/index.md
         - VAE: ch05/latent_generative/01_vae.md

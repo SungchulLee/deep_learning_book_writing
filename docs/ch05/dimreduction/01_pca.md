@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
   for k in (2, 16, 32, 64):
     V = evecs[:, :k]                            # 위에서 k개
-    Z = (Xte - mu) @ V                          # 부호로 줄이기
+    Z = (Xte - mu) @ V                          # 잠재 표현으로 줄이기
     rec = Z @ V.T + mu                          # 되살리기
     mse = ((Xte - rec) ** 2).mean().item()
     var = (evals[:k].sum() / evals.sum()).item()

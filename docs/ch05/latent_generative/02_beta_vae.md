@@ -111,7 +111,7 @@ REAL_VAR = within_class_var(to01(Xte), yte)        # 진짜 MNIST를 1로 둔다
 
 
 class VAE(nn.Module):
-    """부호를 점이 아니라 분포로 내놓는다. n_cond>0이면 조건부(cVAE)."""
+    """잠재 표현을 점이 아니라 분포로 내놓는다. n_cond>0이면 조건부(cVAE)."""
 
     def __init__(self, k, n_cond=0):
         super().__init__()
@@ -163,7 +163,7 @@ def train_vae(k, beta, cond):
 
 
 if __name__ == "__main__":
-  # === 부호 64에서 beta 만 바꾸어 가며 ========================================
+  # === 잠재 차원 64에서 beta 만 바꾸어 가며 ========================================
   for beta in (0.5, 1.0, 4.0):
       m = train_vae(64, beta=beta, cond=False)
 
