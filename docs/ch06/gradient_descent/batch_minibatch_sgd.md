@@ -1,489 +1,775 @@
 # 배치, 미니배치, 확률적 경사 하강법
 
-표본이 수천 개 또는 수백만 개인 데이터셋으로 학습할 때, 매 반복마다 데이터셋 전체에 대한 경사를 계산하는 것은 계산 비용이 크다. 이 절에서는 **각 경사 갱신에 데이터를 얼마나 쓰는가** 에서 차이가 나는 경사 하강법의 세 가지 근본적인 변형을 살펴본다.
+경사 하강법의 한 걸음을 떼려면 경사가 있어야 하고, 경사를 구하려면 표본을 보아야 한다. **몇 개를 보고 한 걸음을 뗄 것인가** — 이 하나의 선택이 세 가지 이름을 만든다.
 
-미니배치 경사 하강법이 뉴럴 넷트웍 학습의 사실상 표준이 되었으므로, 이 변형들을 이해하는 것은 실용적인 기계학습에 필수적이다.
+| 변형 | 배치 크기 | 경사 |
+|---|---|---|
+| **배치 경사 하강법** | $N$(전체) | 정확하다 |
+| **확률적 경사 하강법(SGD)** | 1 | 잡음이 매우 많다 |
+| **미니배치 경사 하강법** | $B$ | 그 사이 |
+
+흔한 요약은 "크면 안정적이고 느리다, 작으면 시끄럽고 빠르다"이다. 이 쪽은 그 요약의 조각들을 하나씩 떼어 재어 본다. 몇 개는 맞고, 몇 개는 단서가 빠져 있고, 하나는 틀렸다.
 
 ---
 
-## 1. 세 가지 변형
+## 1. 세 가지를 식으로
 
-### 개요
-
-| 변형 | 배치 크기 | 경사 계산 |
-|---------|------------|---------------------|
-| **배치 경사 하강법** | $N$(데이터셋 전체) | 정확한 경사 |
-| **확률적 경사 하강법(SGD)** | 1(표본 하나) | 잡음이 매우 많은 추정 |
-| **미니배치 경사 하강법** | $B$(보통 16-256) | 균형 잡힌 추정 |
-
-### 수학적 정식화
-
-표본 $N$개에 대한 로스 함수는 다음과 같다.
+표본 $N$개에 대한 로스는
 
 $$L(\theta) = \frac{1}{N}\sum_{i=1}^{N} \ell(\theta; x_i, y_i)$$
 
-**배치 경사 하강법**(전체 경사):
+이다. 세 변형은 이 합을 얼마나 떼어 쓰느냐만 다르다.
+
+**배치 경사 하강법** — 전부 쓴다.
 
 $$\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{N}\sum_{i=1}^{N} \nabla_\theta \ell(\theta_t; x_i, y_i)$$
 
-**확률적 경사 하강법**(표본 하나):
+**확률적 경사 하강법** — 하나만 쓴다. $i_t$는 무작위로 뽑는다.
 
 $$\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta \ell(\theta_t; x_{i_t}, y_{i_t})$$
 
-여기서 $i_t$는 무작위로 추출된다.
-
-**미니배치 경사 하강법**(크기 $B$인 배치):
+**미니배치 경사 하강법** — $B$개를 뽑아 쓴다.
 
 $$\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{B}\sum_{j \in \mathcal{B}_t} \nabla_\theta \ell(\theta_t; x_j, y_j)$$
 
-여기서 $\mathcal{B}_t$는 무작위로 추출된 미니배치다.
+세 식 모두 **기댓값은 같다.** 무작위로 뽑는 한 미니배치 경사는 전체 경사의 불편추정량이다(연습문제 4에서 보인다). 다른 것은 **흩어짐** 뿐이다.
 
 ---
 
-## 2. 배치 경사 하강법
+## 2. 분산이 정말 $1/B$로 주는가
 
-### 알고리즘
+<div class="thmbox" markdown>
 
-```python
-def batch_gradient_descent(X, y, model, criterion, 
-                           learning_rate, n_epochs):
-    """
-    배치 경사 하강법: 루프마다 데이터를 모두 쓴다
-    """
-    for epoch in range(n_epochs):
-        # 전체 데이터셋에 대한 순전파
-        y_pred = model(X)
-        
-        # 모든 표본에 대한 로스 계산
-        loss = criterion(y_pred, y)
-        
-        # 모든 표본에 대한 경사 계산
-        loss.backward()
-        
-        # 파라메터 갱신
-        with torch.no_grad():
-            for param in model.parameters():
-                param -= learning_rate * param.grad
-        
-        # 경사 초기화
-        model.zero_grad()
-    
-    return model
+### 정리 1. 미니배치 경사의 분산 { .thm }
+
+표본 하나짜리 경사의 분산을 $\sigma^2$이라 하자. 크기 $B$의 미니배치를 **복원 추출** 하면
+
+$$\text{Var}[\hat{g}_B] = \frac{\sigma^2}{B}$$
+
+이고, 크기 $N$의 유한 모집단에서 **비복원 추출** 하면
+
+$$\text{Var}[\hat{g}_B] = \frac{\sigma^2}{B} \cdot \frac{N - B}{N - 1}$$
+
+이다. 특히 $B = N$이면 비복원 추출의 분산이 정확히 0이다.
+
+</div>
+
+식만 보면 둘째 꼴의 보정항이 군더더기처럼 보인다. 재어 보면 그렇지 않다.
+
+```
+  표본 1024개,  전체 경사 노름 8.702856
+  표본 하나 경사의 분산 합 sigma^2 = 693.196777
+
+  B      잰 분산      sigma^2/B     비     비복원 보정값
+  1       686.575928   693.196777   0.990   693.196777
+  2       344.852844   346.598389   0.995   346.259583
+  4       175.238007   173.299194   1.011   172.790986
+  16       43.443024    43.324799   1.003    42.689538
+  64       10.073803    10.831200   0.930    10.164176
+  256       2.036043     2.707800   0.752     2.032835
+  512       0.675826     1.353900   0.499     0.677612
+  1024      0.000000     0.676950   0.000     0.000000
 ```
 
-### 피처
+$B$가 작을 때는 네 번째 열의 비가 1에 가깝다. **$\sigma^2/B$가 잘 맞는다.**
 
-**장점:**
+$B$가 $N$에 가까워지면서 비가 무너진다. $B = 512$에서 0.499다. 절반으로 빗나갔다. 그런데 마지막 열의 보정값 0.677612를 보라 — 잰 값 0.675826과 네 자리까지 맞는다.
 
-- 로스의 **정확한 경사** 를 계산한다
-- 경사 추출에 따른 잡음이 없다. 안정성은 러닝레이트와 곡률에 달려 있다
-- 적절한 러닝레이트 등 조건을 만족하는 볼록 문제에서는 수렴 보장을 활용할 수 있다
+$B = N = 1024$에서는 잰 분산이 **정확히 0** 이다. 당연하다. 1,024개 중 1,024개를 비복원으로 뽑으면 언제나 같은 집합이고, 늘 전체 경사가 나온다.
 
-**단점:**
+!!! note "실무에서 보정항은 대개 무시해도 된다"
+    `DataLoader`는 에폭마다 전체를 섞어 쪼개므로 비복원 추출이다. 그러나 보통 $B \ll N$이라($B = 64$, $N = 60000$이면 $B/N \approx 0.001$) 보정 인자가 0.999다. **$B$가 $N$에 가까울 때만** 신경 쓰면 된다.
 
-- 큰 데이터셋에서는 계산 비용이 크다
-- 한 번에 처리하면 메모리가 많이 든다. 나누어 경사를 누적할 수도 있다
-- 얕은 국소 최솟값을 벗어날 수 없다
-- 한 업데이트에 전체 데이터를 처리한다(에포크당 한 번)
+### 이 표에서 읽을 것 하나 더
 
-### 쓰기 좋은 경우
+$B$를 1에서 2로 키우면 분산이 686에서 345로 **341만큼** 준다. 512에서 1024로 키우면 0.676에서 0으로 **0.676만큼** 준다. 같은 "두 배"인데 얻는 것이 500배 차이다.
 
-- 작은 데이터셋($N < 1000$)
-- 정확한 경사가 중요한 문제
-- 볼록 최적화 문제
-- 메모리가 제약이 되지 않을 때
+$1/B$ 곡선이 빠르게 평평해지기 때문이다. **배치를 키워 얻는 안정성에는 뚜렷한 수확 체감이 있다.** 배치 512를 1024로 늘리면서 메모리를 두 배 쓰는 것이 분산 면에서 거의 아무것도 사 주지 않는다는 뜻이다.
 
 ---
 
-## 3. 확률적 경사 하강법(SGD)
+## 3. 경사 누적 — 어디까지 같은가
 
-### 알고리즘
+메모리가 모자라 큰 배치를 한 번에 못 돌릴 때, 작은 배치 여러 번의 경사를 **쌓아** 한 번에 걷는다. 정말 같은가.
 
-```python
-def stochastic_gradient_descent(X, y, model, criterion,
-                                 learning_rate, n_epochs):
-    """
-    확률 경사 하강법: 루프마다 표본 하나를 쓴다
-    """
-    n_samples = X.shape[0]
-    
-    for epoch in range(n_epochs):
-        # 각 에폭 시작 때 데이터 섞기
-        indices = torch.randperm(n_samples)
-        
-        for i in indices:
-            # 표본 하나 선택
-            X_sample = X[i:i+1]
-            y_sample = y[i:i+1]
-            
-            # 표본 하나에 대한 순전파
-            y_pred = model(X_sample)
-            
-            # 표본 하나에 대한 로스 계산
-            loss = criterion(y_pred, y_sample)
-            
-            # 역전파
-            loss.backward()
-            
-            # 파라메터 갱신
-            with torch.no_grad():
-                for param in model.parameters():
-                    param -= learning_rate * param.grad
-            
-            model.zero_grad()
-    
-    return model
+```
+  배치 256 한 번의 경사 노름 5.65274286
+   128 씩  2번 쌓고 k 로 나눔  최대 차이 1.669e-06  같은가 True
+    64 씩  4번 쌓고 k 로 나눔  최대 차이 9.537e-07  같은가 True
+    32 씩  8번 쌓고 k 로 나눔  최대 차이 9.537e-07  같은가 True
+     8 씩 32번 쌓고 k 로 나눔  최대 차이 8.345e-07  같은가 True
+  32 씩 8번 쌓고 나누지 않음        노름 45.22194290  = 8.0 배
 ```
 
-### 피처
+같다. 차이가 $10^{-6}$ 자리이고 float32의 반올림이다.
 
-**장점:**
+마지막 줄이 가장 흔한 실수다. **`reduction="mean"` 로스를 쓰면 쪼갠 수 $k$로 나누어야 한다.** 안 나누면 경사가 정확히 $k$배가 되고, 이것은 러닝레이트를 $k$배 키운 것과 같다. 배치 크기를 바꾸지 않았다고 생각하는 사이에 러닝레이트가 여덟 배가 되어 있다.
 
-- 반복 하나가 매우 빠르다
-- 국소 최솟값을 벗어날 수 있다(잡음이 탐색을 돕는다)
-- 온라인 학습이 가능하다(데이터가 도착하는 대로 처리)
-- 메모리 사용량이 적다
+### 그런데 단서가 있다
 
-**단점:**
+```
+  BatchNorm 이 끼면
+   128 씩 쌓기 vs 256 한 번:  최대 차이 0.012970  같은가 False
+    32 씩 쌓기 vs 256 한 번:  최대 차이 0.082360  같은가 False
+```
 
-- 경사 추정에 잡음이 매우 많다
-- 수렴이 불규칙하다(분산이 크다)
-- 정확한 최솟값에 수렴하지 않을 수 있다
-- 배치 축의 병렬성을 활용하기 어렵다. 표본 내부 연산의 병렬성은 사용할 수 있다
+BatchNorm은 **배치 안에서** 평균과 분산을 낸다. 256개를 32개씩 쪼개면 여덟 개의 서로 다른 통계가 나오므로 결과가 달라진다. 쪼갤수록 차이가 커진다(0.013 → 0.082).
 
-### 잡음과 탐색의 절충
-
-SGD의 표본 경사는 전체 학습 로스의 경사와 차이가 있다. 고정한 파라미터에서 표본을 균등하게 추출하면 이 차이의 기댓값은 0이다.
-
-$$\nabla_\theta \ell(\theta; x_i, y_i) = \nabla_\theta L(\theta) + \epsilon_i$$
-
-여기서 $\epsilon_i$는 표본 하나만 쓰는 데서 오는 "잡음"이다.
-
-경사 잡음은 정류점 주변을 탐색하거나 해의 선택에 영향을 줄 수 있다. 그러나 탈출이나 더 나은 일반화를 항상 보장하지 않으며, 러닝레이트와 잡음의 방향·크기에 따라 수렴을 방해할 수도 있다.
-
-이 효과는 표본 단위 SGD뿐 아니라 미니배치 경사에도 나타난다. 실무에서 “SGD”는 미니배치 방식까지 포함하는 이름으로 자주 사용한다.
+그러니 "경사 누적은 큰 배치와 똑같다"는 말에는 **"배치에 의존하는 레이어가 없다면"** 이라는 단서가 붙는다. BatchNorm, 일부 대조 학습 로스, 배치 안에서 정규화하는 모든 것이 여기 걸린다. 같은 이유로 `GroupNorm`이나 `LayerNorm`은 걸리지 않는다.
 
 ---
 
-## 4. 미니배치 경사 하강법
+## 4. 마지막 자투리 배치
 
-### 알고리즘
+$N$이 $B$로 나누어떨어지지 않으면 마지막 배치가 짧아진다.
 
-```python
-def minibatch_gradient_descent(X, y, model, criterion,
-                                learning_rate, n_epochs, batch_size):
-    """
-    작은 배치 경사 하강법: 둘의 좋은 점을 다 가진다
-    """
-    # 자동 배치 구성을 위한 DataLoader 생성
-    dataset = TensorDataset(X, y)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    
-    for epoch in range(n_epochs):
-        for X_batch, y_batch in dataloader:
-            # 미니배치에 대한 순전파
-            y_pred = model(X_batch)
-            
-            # 미니배치에 대한 로스 계산
-            loss = criterion(y_pred, y_batch)
-            
-            # 역전파
-            loss.backward()
-            
-            # 파라메터 갱신
-            with torch.no_grad():
-                for param in model.parameters():
-                    param -= learning_rate * param.grad
-            
-            model.zero_grad()
-    
-    return model
+```
+  drop_last=False: 배치 32개, 마지막은 8개
+  drop_last=True : 배치 31개, 버리는 표본 8개
+  5 에폭 뒤 두 해의 거리 0.038656
+  본 표본 수 5000 vs 4960  (차이 40)
 ```
 
-### PyTorch DataLoader
+5에폭 뒤 두 해가 0.039만큼 떨어졌다. 작지만 0은 아니다.
 
-```python
-from torch.utils.data import TensorDataset, DataLoader
+자투리 배치가 나쁜 까닭은 표본이 적어 그 한 걸음이 유난히 시끄럽기 때문이다. 2절의 표로 말하면, 8개짜리 배치의 분산이 32개짜리의 네 배다.
 
-# 데이터셋 생성
-dataset = TensorDataset(X, y)
+더 사나운 경우도 있다.
 
-# 미니배치를 쓰는 DataLoader 생성
-train_loader = DataLoader(
-    dataset,
-    batch_size=64,        # Mini-batch size
-    shuffle=True,         # Shuffle each epoch
-    # num_workers 를 0으로 둔다. 1 이상이면 맥과 윈도가 일꾼 프로세스를
-    # **새로 띄우며**(spawn) 이 각본을 처음부터 다시 읽는다. 맨 바깥에서 자료를
-    # 돌리고 있으면 일꾼이 또 일꾼을 띄워 끝내 죽는다. 1 이상을 쓰려면 돌리는
-    # 부분을 모두 `if __name__ == "__main__":` 안으로 넣어야 한다.
-    num_workers=0,        # Parallel data loading
-    pin_memory=True       # Faster GPU transfer
-)
-
-# 학습 루프
-for epoch in range(n_epochs):
-    for X_batch, y_batch in train_loader:
-        # 미니배치에 대한 학습 단계
-        ...
+```
+  표본 하나짜리 배치가 생기면 BatchNorm 이 터지므로 조심한다
+  nn.BatchNorm1d 에 1개를 넣으면: Expected more than 1 value per channel when training, got 
 ```
 
-### 피처
-
-**장점:**
-
-- 경사의 정확도와 계산량 사이의 균형을 잡는다
-- GPU 병렬성을 효율적으로 활용한다
-- 적당한 잡음(탐색에 충분하되 지나치지 않다)
-- 실제 문제에 가장 실용적이다
-
-**단점:**
-
-- batch_size라는 하이퍼파라미터가 생긴다
-- 경사가 여전히 (정확한 값이 아닌) 추정값이다
-- 배치 통계가 달라질 수 있다(BatchNorm에 영향을 준다)
+$N \bmod B = 1$이면 마지막 배치가 표본 하나뿐이고, BatchNorm이 분산을 낼 수 없어 예외를 던진다. **학습이 몇 시간 돌다가 에폭 끝에서 죽는다.** `drop_last=True`가 이 문제를 깔끔히 없애 준다.
 
 ---
 
-## 5. 비교
+## 5. 섞기
 
-### 수렴 양상
+### 자료에 순서가 있을 때
+
+라벨별로 몰아 놓은 자료를 섞지 않고 쓰면 어떻게 되는지 재어 본다.
 
 ```
-Loss
-  │
-  │╲  Batch GD (smooth)
-  │ ╲__________
-  │
-  │╱╲
-  │  ╲╱╲╱╲_____  Mini-batch GD (moderate noise)
-  │
-  │╱╲╱╲
-  │   ╲╱╲╱╲╱╲_  SGD (noisy)
-  │
-  └──────────────────→ Iterations
+  표본 1000개, 라벨 4종이 250개씩 차례로 쌓여 있다
+  앞 10개의 라벨: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  씨앗 5개의 평균과 퍼짐을 적는다
+  섞기 True   10 에폭 뒤 정확도 평균  76.40%   퍼짐  66.50~ 83.90
+  섞기 False  10 에폭 뒤 정확도 평균  52.72%   퍼짐  51.50~ 54.50
 ```
 
-### 계산량 비교
+76.40%와 52.72%, 퍼짐이 겹치지 않으므로 실제 차이다.
 
-표본 $N=10{,}000$개를 한 번씩 처리하고 마지막 짧은 배치도 포함한다고 하자. 미니배치는 $\lceil N/64\rceil=157$번 업데이트하며 마지막 배치에는 표본 16개가 있다. 아래 하드웨어 활용도는 전형적인 경향이며 작업에 따라 다르다.
+까닭은 단순하다. $B = 32$이고 같은 라벨이 250개씩 붙어 있으므로 **거의 모든 배치가 한 라벨뿐** 이다. 그 배치에서 모델이 배우는 것은 "지금 본 라벨을 찍어라"이고, 다음 배치에서 그것을 잊는다. 에폭이 끝날 때는 마지막으로 본 라벨 쪽으로 치우쳐 있다.
 
-| 지표 | 배치 GD | SGD | 미니배치($B=64$) |
-|--------|----------|-----|-------------------|
-| 갱신당 표본 수 | 10,000 | 1 | 64 |
-| 에포크당 업데이트 횟수 | 1 | 10,000 | 157 |
-| 단계당 메모리 | 많음 | 적음 | 중간 |
-| GPU 활용도 | 좋음 | 나쁨 | 매우 좋음 |
-| 경사의 분산 | 0 | 매우 큼 | 중간 |
+### 자료가 이미 섞여 있을 때
 
-### 경험적 예제
-
-```python
-import time
-
-# 준비
-n_samples = 10000
-X = torch.randn(n_samples, 10)
-y = torch.randn(n_samples, 1)
-
-# 10 에폭에 대한 시간 비교
-# 결과는 하드웨어에 따라 달라진다
-
-# 배치 경사 하강법
-# 시간: 약 0.3초, 최종 로스: 1.0012
-
-# SGD(표본 1개)
-# 시간: 약 45초, 최종 로스: 1.0089
-
-# 미니배치(batch_size=64)
-# 시간: 약 0.8초, 최종 로스: 1.0015
 ```
+  라벨이 이미 섞여 있는 자료였다면
+  섞기 True   10 에폭 뒤 정확도 평균  69.80%   퍼짐  47.70~ 87.50
+  섞기 False  10 에폭 뒤 정확도 평균  80.64%   퍼짐  79.30~ 81.70
+```
+
+이번에는 섞은 쪽의 평균이 **더 낮다.** 그러나 퍼짐을 보라. 47.70~87.50으로 40%p가 넘고 두 줄의 퍼짐이 겹친다. **차이를 말할 수 없다.**
+
+여기서 큰 것은 섞기가 아니라 씨앗이다. 이것이 "한 번 돌린 결과는 측정이 아니다"의 구체적인 보기다. 만약 씨앗 하나만 돌려 80.64% 대 69.80%를 보았다면 "섞으면 나빠진다"는 결론을 내렸을 것이다.
+
+**섞기가 중요한 까닭은 자료에 순서가 있을 때다.** 그리고 자료에 순서가 있는지는 대개 눈으로 확인하기 전에는 모른다. 그러니 기본으로 켜 둔다.
 
 ---
 
-## 6. 배치 크기 선택
+## 6. 같은 계산량에서 $B$를 바꾸면
 
-### 일반적인 지침
+배치 크기를 비교할 때 가장 흔한 실수가 **에폭 수를 맞추고 비교하는 것** 이다. 에폭을 맞추면 큰 배치 쪽의 갱신 횟수가 줄어들어, 배치 크기가 아니라 학습량을 비교하게 된다([러닝레이트 쪽](learning_rate.md)에서 이 함정에 걸린 측정을 하나 다룬다).
 
-| 배치 크기 | 용도 |
-|------------|----------|
-| 1 | 순수 SGD(실무에서는 거의 쓰지 않는다) |
-| 8-32 | 메모리가 제한적이고 일반화가 좋다 |
-| 64-256 | 흔한 기본 범위 |
-| 512-2048 | 대규모 학습. 러닝레이트 조정이 필요하다 |
-| 4096+ | 분산 학습(세심한 조정 필요) |
+여기서는 **표본 처리 횟수** 를 고정한다. 모든 줄이 같은 계산량을 쓴다.
 
-### 선택에 영향을 주는 요인
-
-1. **GPU 메모리**: 배치가 클수록 메모리가 더 필요하다
-2. **일반화**: 배치가 작을수록 일반화가 잘되는 경우가 많다
-3. **수렴 속도**: 배치가 크면 더 큰 러닝레이트를 쓸 수 있다
-4. **하드웨어 효율**: 배치 크기와 텐서 크기에 따라 커널 효율이 달라지므로 실제 처리량을 측정한다
-
-### 배치 크기 후보
-
-```python
-# 좋은 예: 하드웨어 효율을 위한 2의 거듭제곱
-batch_sizes = [16, 32, 64, 128, 256, 512]
-
-# 피할 것: 임의의 크기
-# batch_size = 100  # 덜 효율적이다
 ```
+  예산: 표본 처리 30720회 = 30 에폭,  씨앗 5개
+  정규방정식의 최소 로스 0.255236
+
+  B      갱신 횟수   로스 평균    퍼짐              최솟값과 차이
+  1          30720   0.273312   0.267894~0.281034   +0.018076
+  8           3840   0.256219   0.255863~0.256800   +0.000983
+  32           960   0.255256   0.255249~0.255264   +0.000020
+  128          240   0.256625   0.256436~0.256934   +0.001389
+  1024          30   5.470176   4.792851~6.385507   +5.214940
+```
+
+**가장 좋은 것이 양 끝이 아니라 가운데다.** $B = 32$가 최솟값과 $2 \times 10^{-5}$ 차이로 사실상 도달했다.
+
+양 끝이 지는 까닭이 서로 다르다.
+
+- **$B = 1024$는 걸음이 모자라다.** 예산 전부를 써도 30번밖에 못 걷는다. 최솟값에서 5.21이나 떨어져 있다
+- **$B = 1$은 걸음이 넘치는데도 못 내려간다.** 30,720번을 걸었는데 0.018만큼 위에 머문다. 경사가 너무 시끄러워 최솟값 **둘레를 맴돈다**
+
+이 두 번째 것이 중요하다. 고정 러닝레이트에서 SGD는 최솟값에 수렴하지 않고 그 둘레의 일정한 반경 안을 떠돈다. 반경은 러닝레이트와 경사 분산에 비례한다. 그래서 $B=1$의 퍼짐(0.2679~0.2810)이 $B=32$의 퍼짐(0.255249~0.255264)보다 1,000배 넓다.
+
+!!! warning "이 표는 '작은 배치가 좋다'는 말이 아니다"
+    러닝레이트를 고정한 채 $B$만 바꾸었다. $B$를 키우면서 러닝레이트도 함께 키우면 표가 달라진다. 말할 수 있는 것은 **갱신 횟수와 경사 잡음이 맞서는 절충점이 있다** 는 것과, 여기서는 그 점이 $B = 32$였다는 것뿐이다.
 
 ---
 
-## 7. 경사 분산 분석
+## 7. 걸리는 시간
 
-### 분산 감소
+```
+  표본 10000개, 2층 MLP, 한 에폭을 다섯 번 재어 최솟값과 최댓값
+  B        갱신 횟수
+  (시간은 다음 줄에 따로 적는다 — 기계마다 다르기 때문이다)
+  1            10000
+      걸린 시간 631.7~645.8 ms
+  8             1250
+      걸린 시간 81.4~86.8 ms
+  32             313
+      걸린 시간 23.7~24.2 ms
+  64             157
+      걸린 시간 12.9~12.9 ms
+  128             79
+      걸린 시간 6.9~7.0 ms
+  1024            10
+      걸린 시간 1.8~3.0 ms
+  10000            1
+      걸린 시간 1.1~1.3 ms
+```
 
-고정된 파라미터에서 독립적인 복원 추출을 가정하면 미니배치 평균 경사의 성분별 분산(또는 공분산 행렬)은 다음과 같다.
+$B = 1$이 $B = 10000$보다 약 500배 느리다. 그런데 갱신 횟수는 10,000배 차이다. **시간이 갱신 횟수에 비례하지 않는다.**
 
-$$\text{Var}[\nabla_\theta L_B] = \frac{\sigma^2}{B}$$
+작은 배치에서는 한 걸음에 드는 값이 행렬 계산이 아니라 **파이썬 루프, 커널 호출, 옵티마이저 관리** 에 쓰인다. 표본 하나를 더 넣는 비용은 거의 공짜이고, 걸음을 하나 더 떼는 비용이 비싸다. 이것이 미니배치가 두 극단 모두를 이기는 실질적인 까닭이다.
 
-여기서 $\sigma^2$은 표본 하나에 대한 경사의 분산이다.
+### "2의 거듭제곱을 써라"는 맞는 말인가
 
-**함의:**
+```
+  2의 거듭제곱이 정말 빠른가 (CPU)
+  견주려면 갱신 횟수가 같아야 하므로 이웃한 크기끼리만 본다
+  --- 128 둘레 ---
+  B = 127    갱신  79회
+      걸린 시간 6.5~7.0 ms
+  B = 128    갱신  79회  <- 2의 거듭제곱
+      걸린 시간 6.5~6.7 ms
+  B = 129    갱신  78회
+      걸린 시간 6.5~7.3 ms
+  --- 256 둘레 ---
+  B = 255    갱신  40회
+      걸린 시간 4.1~4.1 ms
+  B = 256    갱신  40회  <- 2의 거듭제곱
+      걸린 시간 4.1~4.1 ms
+  B = 257    갱신  39회
+      걸린 시간 4.1~4.1 ms
+```
 
-- 복원 추출에서는 배치 크기를 두 배로 하면 분산이 절반이 된다.
-- 유한한 데이터셋에서 비복원 추출하면 분산에 $(N-B)/(N-1)$의 보정 인자가 붙는다. $B=N$이면 전체 경사여서 추출 분산이 0이다.
-- $1/B$에 따른 감소는 큰 배치로 갈수록 추가 표본당 감소량이 작아지는 관계를 나타낸다.
+세 값의 퍼짐이 서로 겹친다. **이 기계의 CPU에서는 차이가 없다.**
 
-### 잡음과 일반화
+조언 자체가 틀린 것은 아니다. GPU의 텐서 코어가 특정 타일 크기에 맞춰 설계되어 있어, 거기서는 차이가 나는 경우가 있다. 다만 그 조언은 **특정 하드웨어에 대한 이야기** 이고, 재어 보지 않고 옮겨 적을 말이 아니다. 배치 크기를 127에서 128로 바꾸느라 들이는 수고가 이 기계에서는 0을 산다.
 
-연구에 따르면 작은 배치에서 오는 경사 잡음은 다음으로 이어질 수 있다.
-
-- 더 평평한 최솟값(더 나은 일반화)
-- 암묵적 정규화
-- 뾰족한 국소 최솟값에서의 탈출
-
-Keskar 등의 연구는 특정 실험에서 배치 크기, 해의 날카로움, 일반화 사이의 관계를 분석한다. 이를 모든 모델에서 작은 배치가 우월하다는 보장으로 해석해서는 안 된다.
+!!! note "시간을 견줄 때 갱신 횟수를 맞춰야 한다"
+    처음에 이 측정을 64, 100, 128, 200, 256으로 했더니 $B = 100$이 $B = 64$보다 빨랐다. 2의 거듭제곱이 느리다는 뜻이 아니라, 100이 64보다 갱신을 덜 해서였다. 이웃한 크기끼리만 견주어야 한다.
 
 ---
 
-## 8. 구현 세부 사항
+## 8. 배치 크기 고르기
 
-### 섞기
+재어 본 것들을 모으면 이렇게 된다.
 
-**왜 섞는가?**
+| 배치 크기 | 쓸 만한 자리 | 이 쪽에서 본 근거 |
+|---|---|---|
+| 1 | 거의 쓰지 않는다 | 7절 — 500배 느리다. 6절 — 잡음으로 못 내려간다 |
+| 8–32 | 메모리가 빠듯할 때 | 6절 — 이 문제에서 32가 가장 좋았다 |
+| 64–256 | 흔한 기본값 | 2절 — 분산이 이미 충분히 작다 |
+| 512+ | 대규모 학습 | 2절 — 분산 이득은 거의 없다. 러닝레이트 조정이 함께 필요하다 |
 
-- 순서에 의존하는 패턴을 학습하는 것을 막는다
-- 각 미니배치가 대표성을 갖도록 한다
-- 일반화를 개선한다
+고를 때 함께 볼 것들.
 
-```python
-# PyTorch가 섞기를 자동으로 처리한다
-DataLoader(dataset, shuffle=True)
+1. **메모리** — 대개 상한을 여기가 정한다
+2. **갱신 횟수** — 6절대로 이것이 수렴을 지배한다. 배치를 키우면 에폭을 늘려야 한다
+3. **배치에 의존하는 레이어** — BatchNorm이 있으면 배치가 작을 때 통계가 불안해진다
+4. **실제 처리량** — 7절대로 재어 보고 정한다
 
-# 직접 섞기
-indices = torch.randperm(len(dataset))
-shuffled_data = data[indices]
-```
+### 잡음과 일반화에 대해
 
-### 마지막 배치 처리하기
+작은 배치의 경사 잡음이 평평한 최솟값을 찾게 해 일반화에 좋다는 이야기가 널리 퍼져 있다. Keskar 등의 실험이 배치 크기와 해의 날카로움, 일반화 사이의 관계를 보고했다.
 
-$N$이 $B$로 나누어떨어지지 않을 때 쓴다.
+이것을 **"작은 배치가 언제나 더 잘 일반화한다"로 읽으면 안 된다.** 보고된 것은 특정 모델과 자료에서의 관계이고, 날카로움을 재는 방법 자체가 4절에서 본 척도 대칭 때문에 논쟁거리다([볼록과 비볼록](convex_nonconvex.md) 연습문제 3을 보라 — 함수를 바꾸지 않고 파라메터 노름을 13배 바꿀 수 있다).
 
-```python
-# 선택 1: 채워지지 않은 배치를 버린다
-DataLoader(dataset, batch_size=64, drop_last=True)
-
-# 선택 2: 채워지지 않은 배치를 유지한다(기본값)
-DataLoader(dataset, batch_size=64, drop_last=False)
-```
-
-### 경사 누적
-
-제한된 메모리로 더 큰 배치 크기를 흉내 낸다.
-
-```python
-accumulation_steps = 4
-effective_batch_size = batch_size * accumulation_steps
-
-for i, (X_batch, y_batch) in enumerate(train_loader):
-    y_pred = model(X_batch)
-    loss = criterion(y_pred, y_batch) / accumulation_steps
-    loss.backward()
-    
-    if (i + 1) % accumulation_steps == 0:
-        optimizer.step()
-        optimizer.zero_grad()
-```
+연습문제 5에서 이 이야기의 가장 단순한 판을 직접 재어 본다. 결과가 기대와 다르게 나온다.
 
 ---
 
-## 9. 실용적인 학습 루프
+## 9. 다른 주제와의 연결
 
-### 완전한 예제
+- **러닝레이트와 배치 크기**: [러닝레이트와 이동 폭](learning_rate.md)의 선형 비례 규칙
+- **코드로 보는 비교**: [배치와 미니배치 SGD](01_batch_vs_minibatch_sgd.md)
+- **경사 누적**: [경사 누적](../autograd/02_gradient_accumulation.md)에서 더 자세히 다룬다
+- **옵티마이저**: [Adam 옵티마이저](../../ch09/optimizers/adam.md)
+
+---
+
+## 10. 전체 코드와 출력
+
+지금까지 인용한 수는 모두 아래 한 프로그램에서 나온 것이다. 시간을 재는 7절은 기계에 따라 달라진다.
 
 ```python
+"""배치 · 미니배치 · SGD — 셋이 실제로 무엇을 바꾸는가.
+
+배치 크기에 대한 설명은 대개 "크면 안정적이고 느리다, 작으면 시끄럽고
+빠르다" 로 끝난다. 이 쪽은 그 말의 각 조각을 따로 재어 본다.
+
+- 분산이 정말 1/B 로 주는가 (유한 모집단 보정까지)
+- B = N 이면 추출 분산이 정말 0 인가
+- 경사 누적이 큰 배치와 정말 같은가 (어디까지 같은가)
+- 마지막 자투리 배치가 무엇을 바꾸는가
+- 섞지 않으면 어떻게 되는가
+- 같은 계산량에서 B 를 바꾸면 어디에 닿는가
+
+실행: python batch_minibatch_sgd.py
+"""
+import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
 
-# 모델
-model = nn.Sequential(
-    nn.Linear(10, 64),
-    nn.ReLU(),
-    nn.Linear(64, 1)
-)
 
-# 데이터
-X_train = torch.randn(1000, 10)
-y_train = torch.randn(1000, 1)
-train_dataset = TensorDataset(X_train, y_train)
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+def header(title):
+    print(f"\n=== {title} ===")
 
-# 학습 준비
-criterion = nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
-# 학습 루프
-n_epochs = 100
-for epoch in range(n_epochs):
-    epoch_loss = 0.0
-    
-    for X_batch, y_batch in train_loader:
-        # 순전파
-        y_pred = model(X_batch)
-        loss = criterion(y_pred, y_batch)
-        
-        # 역전파
-        optimizer.zero_grad()
-        loss.backward()
-        
-        # 갱신
-        optimizer.step()
-        
-        epoch_loss += loss.item()
-    
-    avg_loss = epoch_loss / len(train_loader)
-    if (epoch + 1) % 10 == 0:
-        print(f"Epoch {epoch+1}: Loss = {avg_loss:.4f}")
+def make_data(n=1024, d=8, seed=0):
+    torch.manual_seed(seed)
+    X = torch.randn(n, d)
+    w = torch.randn(d, 1)
+    Y = X @ w + 0.5 * torch.randn(n, 1)
+    return X, Y
+
+
+# ========================================================================
+# 1. 분산이 1/B 로 주는가
+# ========================================================================
+
+def variance_law():
+    header("1. 미니배치 경사의 분산")
+    X, Y = make_data()
+    N = len(X)
+    w = torch.zeros(8, 1, requires_grad=True)
+
+    # 표본 하나짜리 경사를 전부 구해 둔다 (로스는 제곱오차)
+    with torch.no_grad():
+        per = 2 * X.unsqueeze(2) * (X @ w - Y).unsqueeze(1)   # (N, d, 1)
+        per = per.squeeze(2)
+        full = per.mean(0)
+        sigma2 = per.var(0, correction=1).sum().item()        # 성분별 분산의 합
+
+    print(f"  표본 {N}개,  전체 경사 노름 {full.norm():.6f}")
+    print(f"  표본 하나 경사의 분산 합 sigma^2 = {sigma2:.6f}")
+
+    g = torch.Generator().manual_seed(0)
+    print("\n  B      잰 분산      sigma^2/B     비     비복원 보정값")
+    for B in (1, 2, 4, 16, 64, 256, 512, 1024):
+        draws = []
+        for _ in range(4000):
+            idx = torch.randperm(N, generator=g)[:B]          # 비복원
+            draws.append(per[idx].mean(0))
+        v = torch.stack(draws).var(0, correction=1).sum().item()
+        pred = sigma2 / B
+        corr = pred * (N - B) / (N - 1)
+        print(f"  {B:<6} {v:11.6f}  {pred:11.6f}  {v/pred:6.3f}  "
+              f"{corr:11.6f}")
+    print("  B 가 작을 때는 잰 값이 sigma^2/B 와 맞는다")
+    print("  B 가 N 에 가까워지면 비복원 보정값 쪽이 맞는다")
+    print("  B = N 이면 뽑을 것이 하나뿐이라 분산이 정확히 0 이다")
+
+
+# ========================================================================
+# 2. 경사 누적이 큰 배치와 같은가
+# ========================================================================
+
+def accumulation():
+    header("2. 경사 누적 vs 한 번에 큰 배치")
+    X, Y = make_data(n=256)
+
+    def big_batch():
+        torch.manual_seed(1)
+        m = nn.Linear(8, 1)
+        nn.functional.mse_loss(m(X), Y).backward()
+        return torch.cat([p.grad.flatten() for p in m.parameters()])
+
+    def accumulate(micro, divide):
+        torch.manual_seed(1)
+        m = nn.Linear(8, 1)
+        k = 256 // micro
+        for i in range(k):
+            s = slice(i * micro, (i + 1) * micro)
+            loss = nn.functional.mse_loss(m(X[s]), Y[s])
+            (loss / k if divide else loss).backward()
+        return torch.cat([p.grad.flatten() for p in m.parameters()])
+
+    ref = big_batch()
+    print(f"  배치 256 한 번의 경사 노름 {ref.norm():.8f}")
+    for micro in (128, 64, 32, 8):
+        got = accumulate(micro, divide=True)
+        print(f"  {micro:>4} 씩 {256//micro:>2}번 쌓고 k 로 나눔  "
+              f"최대 차이 {(got-ref).abs().max():.3e}  "
+              f"같은가 {torch.allclose(got, ref, atol=1e-6)}")
+    bad = accumulate(32, divide=False)
+    print(f"  32 씩 8번 쌓고 나누지 않음        노름 {bad.norm():.8f}  "
+          f"= {bad.norm()/ref.norm():.1f} 배")
+    print("  mean 로스를 쓰면 쪼갠 수로 나누어야 한다. 안 나누면 k 배가 된다")
+
+    # BatchNorm 이 있으면 어떻게 되는가
+    print("\n  BatchNorm 이 끼면")
+    Xb = torch.randn(256, 8)
+    Yb = torch.randn(256, 1)
+
+    def with_bn(micro):
+        torch.manual_seed(2)
+        m = nn.Sequential(nn.Linear(8, 8), nn.BatchNorm1d(8), nn.Linear(8, 1))
+        k = 256 // micro
+        for i in range(k):
+            s = slice(i * micro, (i + 1) * micro)
+            nn.functional.mse_loss(m(Xb[s]), Yb[s]).div(k).backward()
+        return torch.cat([p.grad.flatten() for p in m.parameters()])
+
+    r = with_bn(256)
+    for micro in (128, 32):
+        got = with_bn(micro)
+        print(f"  {micro:>4} 씩 쌓기 vs 256 한 번:  최대 차이 "
+              f"{(got-r).abs().max():.6f}  같은가 "
+              f"{torch.allclose(got, r, atol=1e-6)}")
+    print("  BatchNorm 은 배치 안에서 통계를 내므로 쪼개면 달라진다")
+    print("  경사 누적이 '큰 배치와 똑같다' 는 말에는 이 단서가 붙는다")
+
+
+# ========================================================================
+# 3. 마지막 자투리 배치
+# ========================================================================
+
+def last_batch():
+    header("3. 마지막 자투리 배치 (N=1000, B=32)")
+    N, B = 1000, 32
+    k_keep = -(-N // B)
+    print(f"  drop_last=False: 배치 {k_keep}개, 마지막은 {N - (k_keep-1)*B}개")
+    print(f"  drop_last=True : 배치 {N // B}개, 버리는 표본 {N % B}개")
+
+    X, Y = make_data(n=N, d=4)
+    w0 = torch.zeros(4, 1)
+
+    def run(drop):
+        w = w0.clone().requires_grad_(True)
+        g = torch.Generator().manual_seed(0)
+        seen = 0
+        for _ in range(5):
+            perm = torch.randperm(N, generator=g)
+            stop = (N // B) * B if drop else N
+            for i in range(0, stop, B):
+                idx = perm[i:i + B]
+                if w.grad is not None:
+                    w.grad = None
+                ((X[idx] @ w - Y[idx]) ** 2).mean().backward()
+                with torch.no_grad():
+                    w -= 0.05 * w.grad
+                seen += len(idx)
+        return w.detach(), seen
+
+    a, sa = run(False)
+    b, sb = run(True)
+    print(f"  5 에폭 뒤 두 해의 거리 {(a-b).norm():.6f}")
+    print(f"  본 표본 수 {sa} vs {sb}  (차이 {sa-sb})")
+    print("  자투리 배치는 표본 수가 적어 경사가 더 시끄럽다")
+    print("  표본 하나짜리 배치가 생기면 BatchNorm 이 터지므로 조심한다")
+    try:
+        bn = nn.BatchNorm1d(4)
+        bn(torch.randn(1, 4))
+    except ValueError as e:
+        print("  nn.BatchNorm1d 에 1개를 넣으면:", str(e)[:58])
+
+
+# ========================================================================
+# 4. 섞지 않으면
+# ========================================================================
+
+def shuffling():
+    header("4. 섞기 — 자료가 정렬되어 있을 때")
+    torch.manual_seed(0)
+    # 라벨별로 몰아 놓은 자료
+    n_per = 250
+    X = torch.cat([torch.randn(n_per, 2) + torch.tensor([float(c), 0.0]) * 3
+                   for c in range(4)])
+    Y = torch.cat([torch.full((n_per,), c) for c in range(4)])
+    print(f"  표본 {len(X)}개, 라벨 4종이 250개씩 차례로 쌓여 있다")
+    print(f"  앞 10개의 라벨: {Y[:10].tolist()}")
+
+    def run(shuffle, seed=1, epochs=10, B=32):
+        torch.manual_seed(seed)
+        m = nn.Sequential(nn.Linear(2, 32), nn.ReLU(), nn.Linear(32, 4))
+        o = torch.optim.SGD(m.parameters(), lr=0.1)
+        g = torch.Generator().manual_seed(seed)
+        for _ in range(epochs):
+            perm = (torch.randperm(len(X), generator=g) if shuffle
+                    else torch.arange(len(X)))
+            for i in range(0, len(X), B):
+                idx = perm[i:i + B]
+                o.zero_grad()
+                nn.functional.cross_entropy(m(X[idx]), Y[idx]).backward()
+                o.step()
+        with torch.no_grad():
+            acc = (m(X).argmax(1) == Y).float().mean().item() * 100
+            loss = nn.functional.cross_entropy(m(X), Y).item()
+        return acc, loss
+
+    print("  씨앗 5개의 평균과 퍼짐을 적는다")
+    for shuffle in (True, False):
+        v = [run(shuffle, seed=s)[0] for s in range(5)]
+        print(f"  섞기 {str(shuffle):<6} 10 에폭 뒤 정확도 평균 "
+              f"{np.mean(v):6.2f}%   퍼짐 {min(v):6.2f}~{max(v):6.2f}")
+    print("  섞지 않으면 한 배치가 한 라벨뿐이라 '지금 본 라벨' 로만 민다")
+    print("  매번 마지막 라벨 쪽으로 치우친 채 에폭이 끝난다")
+
+    print("\n  라벨이 이미 섞여 있는 자료였다면")
+    g = torch.Generator().manual_seed(7)
+    pm = torch.randperm(len(X), generator=g)
+    X, Y = X[pm], Y[pm]
+    for shuffle in (True, False):
+        v = [run(shuffle, seed=s)[0] for s in range(5)]
+        print(f"  섞기 {str(shuffle):<6} 10 에폭 뒤 정확도 평균 "
+              f"{np.mean(v):6.2f}%   퍼짐 {min(v):6.2f}~{max(v):6.2f}")
+    print("  이번에는 섞은 쪽이 오히려 평균이 낮다. 그러나 퍼짐을 보라 —")
+    print("  47.70~87.50 으로 40%p 가 넘는다. 두 줄의 퍼짐이 겹치므로")
+    print("  차이를 말할 수 없다. 여기서 큰 것은 섞기가 아니라 씨앗이다")
+    print("  섞기가 중요한 까닭은 '자료에 순서가 있을 때' 다. 위 표에서는")
+    print("  52.72% 대 76.40% 로 퍼짐이 겹치지 않았다")
+
+
+# ========================================================================
+# 5. 같은 계산량에서 B 를 바꾸면
+# ========================================================================
+
+def equal_compute():
+    header("5. 같은 계산량 (표본 처리 횟수 고정) 에서 B 바꾸기")
+    X, Y = make_data(n=1024, d=8)
+    budget = 1024 * 30                       # 30 에폭어치 표본 처리
+    print(f"  예산: 표본 처리 {budget}회 = 30 에폭,  씨앗 5개")
+
+    # 참 최솟값
+    Xb = torch.cat([X, torch.ones(len(X), 1)], 1)
+    opt = torch.linalg.lstsq(Xb, Y).solution
+    best = ((Xb @ opt - Y) ** 2).mean().item()
+    print(f"  정규방정식의 최소 로스 {best:.6f}")
+
+    print("\n  B      갱신 횟수   로스 평균    퍼짐              최솟값과 차이")
+    for B in (1, 8, 32, 128, 1024):
+        outs = []
+        for seed in range(5):
+            torch.manual_seed(seed)
+            m = nn.Linear(8, 1)
+            o = torch.optim.SGD(m.parameters(), lr=0.01)
+            g = torch.Generator().manual_seed(seed)
+            used, steps = 0, 0
+            while used < budget:
+                perm = torch.randperm(len(X), generator=g)
+                for i in range(0, len(X), B):
+                    idx = perm[i:i + B]
+                    o.zero_grad()
+                    nn.functional.mse_loss(m(X[idx]), Y[idx]).backward()
+                    o.step()
+                    used += len(idx)
+                    steps += 1
+                    if used >= budget:
+                        break
+            with torch.no_grad():
+                outs.append(nn.functional.mse_loss(m(X), Y).item())
+        print(f"  {B:<6} {steps:>9}   {np.mean(outs):.6f}   "
+              f"{min(outs):.6f}~{max(outs):.6f}   {np.mean(outs)-best:+.6f}")
+    print("  가장 좋은 것은 양 끝이 아니라 가운데의 B = 32 다")
+    print("  B = 1024 는 30 번밖에 못 걸어 최솟값에서 5.2 나 떨어져 있고,")
+    print("  B = 1 은 30720 번을 걸었는데도 0.018 만큼 위에 머문다 —")
+    print("  경사가 시끄러워 최솟값 둘레를 맴돌기 때문이다 (고정 lr 이다)")
+    print("  '작은 배치가 좋다' 도 '큰 배치가 좋다' 도 아니다. 갱신 횟수와")
+    print("  경사 잡음이 맞서는 절충점이 있고, 여기서는 B = 32 였다")
+
+
+# ========================================================================
+# 6. 걸리는 시간 — 2의 거듭제곱이 정말 빠른가
+# ========================================================================
+
+def timing():
+    header("6. 에폭당 걸리는 시간")
+    import time
+
+    X, Y = make_data(n=10000, d=10)
+    torch.manual_seed(0)
+    model = nn.Sequential(nn.Linear(10, 64), nn.ReLU(), nn.Linear(64, 1))
+
+    def one_epoch(B):
+        o = torch.optim.SGD(model.parameters(), lr=0.001)
+        for i in range(0, len(X), B):
+            o.zero_grad()
+            nn.functional.mse_loss(model(X[i:i + B]), Y[i:i + B]).backward()
+            o.step()
+
+    def best_of(B, rep=5):
+        ts = []
+        for _ in range(rep):
+            t0 = time.perf_counter()
+            one_epoch(B)
+            ts.append(time.perf_counter() - t0)
+        return min(ts), max(ts)
+
+    one_epoch(64)                              # 몸풀기
+    print("  표본 10000개, 2층 MLP, 한 에폭을 다섯 번 재어 최솟값과 최댓값")
+    print("  B        갱신 횟수")
+    print("  (시간은 다음 줄에 따로 적는다 — 기계마다 다르기 때문이다)")
+    for B in (1, 8, 32, 64, 128, 1024, 10000):
+        lo, hi = best_of(B, rep=3 if B == 1 else 5)
+        print(f"  {B:<8} {-(-len(X)//B):>9}")
+        print(f"      걸린 시간 {lo*1e3:.1f}~{hi*1e3:.1f} ms")
+    print("  갱신 횟수가 1 만 배 차이인데 시간은 그만큼 벌어지지 않는다")
+    print("  작은 배치에서는 파이썬 루프와 커널 호출이 값을 지배한다")
+
+    print("\n  2의 거듭제곱이 정말 빠른가 (CPU)")
+    print("  견주려면 갱신 횟수가 같아야 하므로 이웃한 크기끼리만 본다")
+    for trio in ((127, 128, 129), (255, 256, 257)):
+        print(f"  --- {trio[1]} 둘레 ---")
+        for B in trio:
+            lo, hi = best_of(B)
+            mark = "  <- 2의 거듭제곱" if B & (B - 1) == 0 else ""
+            print(f"  B = {B:<6} 갱신 {-(-len(X)//B):>3}회{mark}")
+            print(f"      걸린 시간 {lo*1e3:.1f}~{hi*1e3:.1f} ms")
+    print("  세 값의 퍼짐이 서로 겹친다. 이 기계의 CPU 에서는 차이가 없다")
+    print("  '2의 거듭제곱을 써라' 는 조언은 GPU 의 타일 크기에서 온 것이고,")
+    print("  쓰는 기계에서 직접 재어 보지 않고 옮겨 적을 말이 아니다")
+
+
+def main():
+    variance_law()
+    accumulation()
+    last_batch()
+    shuffling()
+    equal_compute()
+    timing()
+
+
+if __name__ == "__main__":
+    main()
 ```
 
-**출력:**
+??? note "전체 출력 (116줄)"
 
-```
-Epoch 10: Loss = 0.9586
-Epoch 20: Loss = 0.9700
-Epoch 30: Loss = 0.9207
-Epoch 40: Loss = 0.9245
-Epoch 50: Loss = 0.8965
-Epoch 60: Loss = 0.8759
-Epoch 70: Loss = 0.8802
-Epoch 80: Loss = 0.8812
-Epoch 90: Loss = 0.8559
-Epoch 100: Loss = 0.8418
-```
+    ```
+    === 1. 미니배치 경사의 분산 ===
+      표본 1024개,  전체 경사 노름 8.702856
+      표본 하나 경사의 분산 합 sigma^2 = 693.196777
 
----
+      B      잰 분산      sigma^2/B     비     비복원 보정값
+      1       686.575928   693.196777   0.990   693.196777
+      2       344.852844   346.598389   0.995   346.259583
+      4       175.238007   173.299194   1.011   172.790986
+      16       43.443024    43.324799   1.003    42.689538
+      64       10.073803    10.831200   0.930    10.164176
+      256       2.036043     2.707800   0.752     2.032835
+      512       0.675826     1.353900   0.499     0.677612
+      1024      0.000000     0.676950   0.000     0.000000
+      B 가 작을 때는 잰 값이 sigma^2/B 와 맞는다
+      B 가 N 에 가까워지면 비복원 보정값 쪽이 맞는다
+      B = N 이면 뽑을 것이 하나뿐이라 분산이 정확히 0 이다
 
-## 10. 다른 주제와의 연결
+    === 2. 경사 누적 vs 한 번에 큰 배치 ===
+      배치 256 한 번의 경사 노름 5.65274286
+       128 씩  2번 쌓고 k 로 나눔  최대 차이 1.669e-06  같은가 True
+        64 씩  4번 쌓고 k 로 나눔  최대 차이 9.537e-07  같은가 True
+        32 씩  8번 쌓고 k 로 나눔  최대 차이 9.537e-07  같은가 True
+         8 씩 32번 쌓고 k 로 나눔  최대 차이 8.345e-07  같은가 True
+      32 씩 8번 쌓고 나누지 않음        노름 45.22194290  = 8.0 배
+      mean 로스를 쓰면 쪼갠 수로 나누어야 한다. 안 나누면 k 배가 된다
 
-- **러닝레이트**: 배치 크기와 상호작용한다. [러닝레이트](learning_rate.md) 참고
-- **모멘텀**: 실효 잡음을 줄인다. [고전적 모멘텀](../../ch09/optimizers/momentum.md) 참고
-- **배치 정규화**: 통계가 배치 크기에 의존한다. 배치 정규화 참고
-- **분산 학습**: 배치 크기를 세심하게 조정해야 한다
+      BatchNorm 이 끼면
+       128 씩 쌓기 vs 256 한 번:  최대 차이 0.012970  같은가 False
+        32 씩 쌓기 vs 256 한 번:  최대 차이 0.082360  같은가 False
+      BatchNorm 은 배치 안에서 통계를 내므로 쪼개면 달라진다
+      경사 누적이 '큰 배치와 똑같다' 는 말에는 이 단서가 붙는다
+
+    === 3. 마지막 자투리 배치 (N=1000, B=32) ===
+      drop_last=False: 배치 32개, 마지막은 8개
+      drop_last=True : 배치 31개, 버리는 표본 8개
+      5 에폭 뒤 두 해의 거리 0.038656
+      본 표본 수 5000 vs 4960  (차이 40)
+      자투리 배치는 표본 수가 적어 경사가 더 시끄럽다
+      표본 하나짜리 배치가 생기면 BatchNorm 이 터지므로 조심한다
+      nn.BatchNorm1d 에 1개를 넣으면: Expected more than 1 value per channel when training, got 
+
+    === 4. 섞기 — 자료가 정렬되어 있을 때 ===
+      표본 1000개, 라벨 4종이 250개씩 차례로 쌓여 있다
+      앞 10개의 라벨: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      씨앗 5개의 평균과 퍼짐을 적는다
+      섞기 True   10 에폭 뒤 정확도 평균  76.40%   퍼짐  66.50~ 83.90
+      섞기 False  10 에폭 뒤 정확도 평균  52.72%   퍼짐  51.50~ 54.50
+      섞지 않으면 한 배치가 한 라벨뿐이라 '지금 본 라벨' 로만 민다
+      매번 마지막 라벨 쪽으로 치우친 채 에폭이 끝난다
+
+      라벨이 이미 섞여 있는 자료였다면
+      섞기 True   10 에폭 뒤 정확도 평균  69.80%   퍼짐  47.70~ 87.50
+      섞기 False  10 에폭 뒤 정확도 평균  80.64%   퍼짐  79.30~ 81.70
+      이번에는 섞은 쪽이 오히려 평균이 낮다. 그러나 퍼짐을 보라 —
+      47.70~87.50 으로 40%p 가 넘는다. 두 줄의 퍼짐이 겹치므로
+      차이를 말할 수 없다. 여기서 큰 것은 섞기가 아니라 씨앗이다
+      섞기가 중요한 까닭은 '자료에 순서가 있을 때' 다. 위 표에서는
+      52.72% 대 76.40% 로 퍼짐이 겹치지 않았다
+
+    === 5. 같은 계산량 (표본 처리 횟수 고정) 에서 B 바꾸기 ===
+      예산: 표본 처리 30720회 = 30 에폭,  씨앗 5개
+      정규방정식의 최소 로스 0.255236
+
+      B      갱신 횟수   로스 평균    퍼짐              최솟값과 차이
+      1          30720   0.273312   0.267894~0.281034   +0.018076
+      8           3840   0.256219   0.255863~0.256800   +0.000983
+      32           960   0.255256   0.255249~0.255264   +0.000020
+      128          240   0.256625   0.256436~0.256934   +0.001389
+      1024          30   5.470176   4.792851~6.385507   +5.214940
+      가장 좋은 것은 양 끝이 아니라 가운데의 B = 32 다
+      B = 1024 는 30 번밖에 못 걸어 최솟값에서 5.2 나 떨어져 있고,
+      B = 1 은 30720 번을 걸었는데도 0.018 만큼 위에 머문다 —
+      경사가 시끄러워 최솟값 둘레를 맴돌기 때문이다 (고정 lr 이다)
+      '작은 배치가 좋다' 도 '큰 배치가 좋다' 도 아니다. 갱신 횟수와
+      경사 잡음이 맞서는 절충점이 있고, 여기서는 B = 32 였다
+
+    === 6. 에폭당 걸리는 시간 ===
+      표본 10000개, 2층 MLP, 한 에폭을 다섯 번 재어 최솟값과 최댓값
+      B        갱신 횟수
+      (시간은 다음 줄에 따로 적는다 — 기계마다 다르기 때문이다)
+      1            10000
+          걸린 시간 595.9~602.8 ms
+      8             1250
+          걸린 시간 78.7~79.5 ms
+      32             313
+          걸린 시간 22.1~22.7 ms
+      64             157
+          걸린 시간 11.9~12.0 ms
+      128             79
+          걸린 시간 6.5~6.8 ms
+      1024            10
+          걸린 시간 1.6~2.2 ms
+      10000            1
+          걸린 시간 1.2~1.6 ms
+      갱신 횟수가 1 만 배 차이인데 시간은 그만큼 벌어지지 않는다
+      작은 배치에서는 파이썬 루프와 커널 호출이 값을 지배한다
+
+      2의 거듭제곱이 정말 빠른가 (CPU)
+      견주려면 갱신 횟수가 같아야 하므로 이웃한 크기끼리만 본다
+      --- 128 둘레 ---
+      B = 127    갱신  79회
+          걸린 시간 6.5~7.0 ms
+      B = 128    갱신  79회  <- 2의 거듭제곱
+          걸린 시간 6.5~6.7 ms
+      B = 129    갱신  78회
+          걸린 시간 6.5~7.3 ms
+      --- 256 둘레 ---
+      B = 255    갱신  40회
+          걸린 시간 4.1~4.1 ms
+      B = 256    갱신  40회  <- 2의 거듭제곱
+          걸린 시간 4.1~4.1 ms
+      B = 257    갱신  39회
+          걸린 시간 4.1~4.1 ms
+      세 값의 퍼짐이 서로 겹친다. 이 기계의 CPU 에서는 차이가 없다
+      '2의 거듭제곱을 써라' 는 조언은 GPU 의 타일 크기에서 온 것이고,
+      쓰는 기계에서 직접 재어 보지 않고 옮겨 적을 말이 아니다
+    ```
 
 ---
 
@@ -491,88 +777,213 @@ Epoch 100: Loss = 0.8418
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-표본이 $N = 1000$개인 데이터셋에 대해 배치 경사 하강법($B = N$), 미니배치 경사 하강법($B = 32$), SGD($B = 1$)의 에포크당 경사 계산 횟수를 비교하라. 어느 쪽이 에포크당 파라메터 갱신을 더 많이 하는가?
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+표본이 $N = 1000$개일 때 배치 경사 하강법($B = N$), 미니배치($B = 32$), SGD($B = 1$)의 에폭당 경사 계산 횟수와 파라메터 갱신 횟수를 각각 구하라. `drop_last=False`라고 하자.
 
 </div>
 
 ??? success "풀이"
-    배치 경사 하강법: 1000개 표본 전체로 경사 계산 1회, 파라메터 갱신 1회.
+    | 방법 | 배치 수 | 갱신 횟수 | 마지막 배치 크기 |
+    |---|---|---|---|
+    | $B = 1000$ | 1 | 1 | 1000 |
+    | $B = 32$ | $\lceil 1000/32 \rceil = 32$ | 32 | $1000 - 31 \times 32 = 8$ |
+    | $B = 1$ | 1000 | 1000 | 1 |
 
-    미니배치 경사 하강법($B=32$): $\lceil 1000/32 \rceil = 32$회 경사 계산, 32회 파라메터 갱신.
+    세 경우 모두 **표본 하나당 경사를 한 번씩** 계산한다. 곧 에폭당 표본 수준의 계산량은 1,000으로 같다. 다른 것은 그 계산을 몇 덩어리로 묶어 몇 번 걷느냐다.
 
-    SGD($B=1$): 1000회 경사 계산, 1000회 파라메터 갱신.
-
-    SGD가 에포크당 가장 많이 갱신하지만(1000회) 각 갱신이 잡음이 매우 많은 경사 추정을 쓴다. 미니배치 경사 하강법이 균형을 잡는다. 에포크당 32회 갱신하며 앞의 31개 배치는 표본 32개, 마지막 배치는 표본 8개의 경사를 사용한다.
+    $B = 32$의 마지막 배치가 8개뿐이라는 점을 눈여겨보라. 본문 4절이 이 배치를 다룬다. 만약 $N = 993$이었다면 $993 - 31 \times 32 = 1$로 마지막 배치가 표본 하나가 되고, BatchNorm이 있으면 그 자리에서 예외가 난다.
 
 ---
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff hard" title="어려움"></span>
-미니배치 경사의 기댓값이 전체 배치 경사와 같음을 증명하라. 그런 다음 배치 크기를 $B$라 할 때 분산이 $O(1/B)$로 감소함을 보여라.
-
-</div>
-
-??? success "풀이"
-    표본 $i$에 대해 $g_i = \nabla_\theta \ell(x_i, \theta)$라 하자. 미니배치 경사는 $i_j$가 균등하게 추출될 때 $\hat{g} = \frac{1}{B}\sum_{j=1}^B g_{i_j}$이다.
-
-    $\mathbb{E}[\hat{g}] = \frac{1}{B}\sum_{j=1}^B \mathbb{E}[g_{i_j}] = \frac{1}{B} \cdot B \cdot \frac{1}{N}\sum_{i=1}^N g_i = \bar{g}$이며 이것이 전체 배치 경사이다.
-
-    분산은 (복원 추출을 가정하면) $\sigma^2 = \text{Var}(g_i)$일 때 $\text{Var}(\hat{g}) = \frac{1}{B^2}\sum_{j=1}^B \text{Var}(g_{i_j}) = \frac{\sigma^2}{B}$이다. 이로써 $O(1/B)$의 분산 감소가 확인된다. $\square$
-
----
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff hard" title="어려움"></span>
-물리적 배치 크기 32로 실효 배치 크기 256을 흉내 내는 경사 누적을 구현하라. 파라메터 갱신이 일치함을 확인하라.
+**연습문제 2.** <span class="diff med" title="중간"></span>
+본문 2절은 **비복원** 추출을 재었다. **복원** 추출로 다시 재면 보정항이 사라지고 $\sigma^2/B$가 모든 $B$에서 맞는가? $B = N$에서 두 추출이 어떻게 갈리는지 확인하라.
 
 </div>
 
 ??? success "풀이"
     ```python
     import torch
-    import torch.nn as nn
 
-    model = nn.Linear(10, 1)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
-    accumulation_steps = 8  # 32 * 8 = 256
+    torch.manual_seed(0)
+    X = torch.randn(1024, 8)
+    w = torch.randn(8, 1)
+    Y = X @ w + 0.5 * torch.randn(1024, 1)
+    per = (2 * X.unsqueeze(2)
+           * (X @ torch.zeros(8, 1) - Y).unsqueeze(1)).squeeze(2)
 
-    for i, (x, y) in enumerate(dataloader):  # dataloader has batch_size=32
-        loss = nn.MSELoss()(model(x), y) / accumulation_steps
-        loss.backward()  # gradients accumulate
-        if (i + 1) % accumulation_steps == 0:
-            optimizer.step()
-            optimizer.zero_grad()
+    N = 1024
+    s2 = per.var(0, correction=1).sum().item()
+    g = torch.Generator().manual_seed(0)
+    print(f"  sigma^2 = {s2:.6f}")
+    print("  B      복원 추출     sigma^2/B     비복원 추출    보정값")
+    for B in (16, 256, 512, 1024):
+        wr = torch.stack([per[torch.randint(N, (B,), generator=g)].mean(0)
+                          for _ in range(4000)]).var(0, correction=1).sum()
+        wo = torch.stack([per[torch.randperm(N, generator=g)[:B]].mean(0)
+                          for _ in range(4000)]).var(0, correction=1).sum()
+        print(f"  {B:<6} {wr:11.6f}  {s2/B:11.6f}  {wo:12.6f}  "
+              f"{s2/B*(N-B)/(N-1):10.6f}")
     ```
-    크기가 같은 마이크로배치 8개를 같은 파라미터에서 계산하고 각 평균 로스를 8로 나누면 전체 평균 경사를 얻는다. BatchNorm이나 확률적 연산이 있으면 큰 배치 실행과 차이가 생길 수 있다. 마지막 누적 구간이 짧으면 남은 경사 처리와 스케일도 조정해야 한다.
+
+    ```
+      sigma^2 = 693.196777
+      B      복원 추출     sigma^2/B     비복원 추출    보정값
+      16       42.794949    43.324799     42.238338   42.689538
+      256       2.677892     2.707800      2.023681    2.032835
+      512       1.382665     1.353900      0.677349    0.677612
+      1024      0.678780     0.676950      0.000000    0.000000
+    ```
+
+    복원 추출 열이 $\sigma^2/B$ 열과 **모든 $B$에서** 맞는다. 보정항이 없다.
+
+    $B = N = 1024$가 두 추출을 가장 선명하게 가른다. 복원은 0.6788로 $\sigma^2/N = 0.6770$과 맞고, 비복원은 **정확히 0** 이다.
+
+    까닭은 이렇다. 복원 추출로 1,024개를 뽑으면 어떤 표본은 두 번 들어가고 어떤 표본은 빠진다. 그래서 뽑을 때마다 다른 경사가 나온다. 비복원으로 1,024개를 뽑으면 언제나 전체 집합이라 늘 같은 경사다.
+
+    실무에서 쓰는 `DataLoader(shuffle=True)`는 **비복원** 이다. 한 에폭 안에서 모든 표본을 정확히 한 번씩 본다.
 
 ---
 
 <div class="drillbox" markdown>
 
-**연습문제 4.** <span class="diff med" title="중간"></span>
-배치 경사 하강법이 갇히는 뾰족한 국소 최솟값을 미니배치 SGD가 벗어날 수 있는 이유를 설명하라. 답을 경사 추정의 잡음과 연결하라.
+**연습문제 3.** <span class="diff med" title="중간"></span>
+$N = 1000$, $B = 32$에서 `drop_last`를 켠 경우와 끈 경우의 배치 수, 본 표본 수, 5에폭 뒤 파라메터의 차이를 재어라. 어느 쪽을 쓰겠는가?
 
 </div>
 
 ??? success "풀이"
-    고정한 파라미터에서 미니배치 경사는 $\hat g=\bar g+\epsilon$으로 표현할 수 있다. 전체 경사가 0이어도 개별 배치 경사가 0이 아니면 업데이트가 발생해 주변으로 이동할 수 있다. 다만 잡음의 방향과 크기, 러닝레이트, 로스 장벽에 따라 탈출 여부가 달라진다. 평평한 해가 항상 일반화에 더 좋다거나, 전체 배치 방법이 모든 뾰족한 최솟값에 갇힌다고 단정할 수는 없다.
+    본문 4절의 측정이 그것이다. 결과를 다시 적는다.
+
+    ```
+      drop_last=False: 배치 32개, 마지막은 8개
+      drop_last=True : 배치 31개, 버리는 표본 8개
+      5 에폭 뒤 두 해의 거리 0.038656
+      본 표본 수 5000 vs 4960  (차이 40)
+    ```
+
+    5에폭에 표본 40개, 곧 전체의 0.8%를 덜 본다. 파라메터는 0.039만큼 떨어졌다.
+
+    **고르는 기준은 이렇다.**
+
+    `drop_last=True`를 쓸 자리 — BatchNorm이 있을 때(4절의 예외), 배치 크기가 고정이어야 하는 컴파일 환경, 자투리가 전체에서 큰 비중일 때($N = 100$, $B = 64$면 자투리가 36개로 36%다).
+
+    `drop_last=False`를 쓸 자리 — 자료가 적어 한 표본도 아까울 때, 그리고 **평가할 때는 언제나.** 평가에서 자투리를 버리면 일부 표본을 아예 채점하지 않게 되어, 보고하는 정확도가 전체에 대한 것이 아니게 된다. 이것은 조용히 틀린 수를 만든다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
+미니배치 경사의 기댓값이 전체 경사와 같음을 보여라. 이어서 복원 추출일 때 분산이 $\sigma^2/B$임을 보이고, 비복원 추출에서 보정 인자 $\frac{N-B}{N-1}$이 어디서 나오는지 설명하라.
+
+</div>
+
+??? success "풀이"
+    표본 $i$의 경사를 $g_i = \nabla_\theta \ell(\theta; x_i, y_i)$, 전체 경사를 $\bar{g} = \frac{1}{N}\sum_i g_i$라 하자.
+
+    **기댓값.** $i_1, \ldots, i_B$를 $\{1,\ldots,N\}$에서 균등하게 뽑으면 각 $j$에 대해 $\mathbb{E}[g_{i_j}] = \frac{1}{N}\sum_{i=1}^N g_i = \bar{g}$이므로
+
+    $$\mathbb{E}[\hat{g}] = \frac{1}{B}\sum_{j=1}^B \mathbb{E}[g_{i_j}] = \frac{1}{B} \cdot B\bar{g} = \bar{g}$$
+
+    이다. 복원이든 비복원이든 **각 $j$의 주변분포가 균등하면** 성립하므로 둘 다 불편이다.
+
+    **복원 추출의 분산.** 뽑기들이 독립이므로 분산이 더해진다.
+
+    $$\text{Var}[\hat{g}] = \frac{1}{B^2}\sum_{j=1}^B \text{Var}[g_{i_j}] = \frac{1}{B^2} \cdot B\sigma^2 = \frac{\sigma^2}{B}$$
+
+    **비복원 추출의 보정.** 이제 뽑기들이 독립이 아니다. 공분산 항이 살아난다.
+
+    $$\text{Var}[\hat{g}] = \frac{1}{B^2}\left(B\sigma^2 + B(B-1)\,\text{Cov}[g_{i_1}, g_{i_2}]\right)$$
+
+    공분산을 구하려면 $B = N$인 극단을 보는 것이 빠르다. 그때 $\hat{g} = \bar{g}$로 상수이므로 분산이 0이어야 한다.
+
+    $$0 = \frac{1}{N^2}\left(N\sigma^2 + N(N-1)\,\text{Cov}\right) \quad\Longrightarrow\quad \text{Cov} = -\frac{\sigma^2}{N-1}$$
+
+    **공분산이 음수** 라는 점이 핵심이다. 이미 평균보다 큰 표본을 뽑았다면 남은 것들은 평균보다 작은 쪽으로 기울어 있다. 이것을 넣으면
+
+    $$\text{Var}[\hat{g}] = \frac{\sigma^2}{B} + \frac{B-1}{B}\cdot\left(-\frac{\sigma^2}{N-1}\right) = \frac{\sigma^2}{B}\cdot\frac{N-B}{N-1}$$
+
+    이다. $\square$
+
+    $B \ll N$이면 보정 인자가 1에 가깝고($B/N = 0.001$이면 0.999), $B = N$이면 0이 된다. 본문 2절의 표가 이 두 극단 사이를 지나가는 모습이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 5.** <span class="diff hard" title="어려움"></span>
+"작은 배치의 경사 잡음이 뾰족한 최솟값에서 탈출시켜 준다"는 이야기를 가장 단순한 판에서 재어 보라. 뾰족한 우물과 넓은 우물이 하나씩 있는 1차원 함수를 만들고, 뾰족한 쪽에서 출발해 잡음의 크기를 키워 가며 어디에 끝나는지 세어라.
+
+</div>
+
+??? success "풀이"
+    ```python
+    import numpy as np
+
+    # x = -1 에 뾰족한 우물(곡률 400), x = +1 에 넓은 우물(곡률 4)
+    def df(x):
+        return np.where(x < 0, 400 * (x + 1), 4 * (x - 1))
+
+    rng = np.random.default_rng(0)
+    print("  잡음 크기   뾰족한 쪽에 남은 횟수(100번 중)")
+    for s in (10, 50, 100, 200, 300, 500, 1000):
+        ends = []
+        for _ in range(100):
+            x = -1.0
+            for _ in range(2000):
+                x = x - 0.002 * (df(np.array(x)).item()
+                                 + s * rng.standard_normal())
+            ends.append(x)
+        ends = np.array(ends)
+        print(f"  {s:<11} {(ends < 0).sum():>13}     "
+              f"끝난 자리 평균 {ends.mean():+.4f}")
+    ```
+
+    ```
+      잡음 크기   뾰족한 쪽에 남은 횟수(100번 중)
+      10                    100     끝난 자리 평균 -1.0018
+      50                    100     끝난 자리 평균 -0.9920
+      100                   100     끝난 자리 평균 -1.0029
+      200                    91     끝난 자리 평균 -0.6139
+      300                    42     끝난 자리 평균 +1.3670
+      500                    28     끝난 자리 평균 +4.6270
+      1000                   15     끝난 자리 평균 +11.3677
+    ```
+
+    **이야기가 재현되지 않는다.**
+
+    잡음이 100까지는 100번 모두 뾰족한 우물에 남는다. 200에서 흔들리기 시작하고 300에서 절반 넘게 떠난다. 여기까지는 "잡음이 탈출시킨다"처럼 보인다.
+
+    그런데 **끝난 자리 평균** 열을 보라. 잡음 300에서 +1.37, 500에서 +4.63, 1000에서 +11.37이다. 넓은 우물의 바닥은 $x = +1$인데 평균이 11까지 날아갔다. 떠난 점들이 **넓은 우물에 자리 잡은 것이 아니라 지형 밖으로 튕겨 나간 것** 이다.
+
+    곧 이 설정에는 "뾰족한 데서는 나오고 넓은 데는 머무는" 창이 없다. 뾰족한 우물을 벗어날 만큼 잡음을 키우면 그 잡음이 넓은 우물도 붙들지 못한다.
+
+    **그러면 널리 인용되는 이야기는 무엇인가.** 두 가지가 다르다.
+
+    - 여기서 더한 것은 **등방성** 잡음이다. 크기가 어디서나 같다. 실제 SGD의 잡음은 경사의 표본 분산에서 나오므로 **자리마다 크기와 방향이 다르고**, 로스 지형의 곡률과 상관되어 있다. 날카로운 방향에서 잡음도 크다는 구조가 이야기의 핵심인데 이 모형에는 그것이 없다
+    - 실제 학습에서는 러닝레이트가 줄어들고 걸음 수가 훨씬 많다. 여기서는 2,000걸음에 고정 러닝레이트다
+
+    이 연습문제의 교훈은 "그 이야기가 틀렸다"가 아니라, **가장 단순한 판에서 재면 재현되지 않으므로 그 이야기를 인용할 때 어떤 구조에 기대고 있는지 알아야 한다** 는 것이다. 본문 8절이 그 이야기를 조심스럽게 적은 까닭이 여기 있다.
+
+---
 
 ## 정리하며
 
-1. **배치 경사 하강법**: 정확한 경사, 느림, 안정적인 수렴
-2. **SGD**: 빠른 반복, 잡음이 많음, 좋은 탐색
-3. **미니배치**: 최선의 절충이며 실무의 표준
-4. **배치 크기가 중요하다**: 속도, 메모리, 일반화에 영향을 준다
-5. **DataLoader를 쓴다**: 배치 구성, 섞기, 병렬화를 처리해 준다
-6. **32-64로 시작한다**: 대부분의 문제에 합리적인 기본값
-7. **경사 잡음의 효과를 확인한다**: 탐색과 일반화에 영향을 주지만 이점은 문제에 따라 다르다
+1. **셋의 차이는 기댓값이 아니라 흩어짐이다**: 무작위로 뽑는 한 미니배치 경사는 늘 불편추정량이다
+2. **분산은 $\sigma^2/B$지만 $B$가 $N$에 가까우면 보정이 필요하다**: $B = 512$, $N = 1024$에서 단순한 식이 두 배 빗나갔고 보정값은 네 자리까지 맞았다
+3. **배치를 키워 얻는 안정성에는 수확 체감이 있다**: 1→2는 분산을 341 줄이고 512→1024는 0.68 줄인다
+4. **경사 누적은 큰 배치와 같다 — 단, $k$로 나누고 BatchNorm이 없을 때**: 안 나누면 러닝레이트를 $k$배 키운 것이 되고, BatchNorm이 있으면 0.082만큼 어긋난다
+5. **자투리 배치는 시끄럽고, 표본 하나가 되면 BatchNorm이 죽는다**
+6. **섞기는 자료에 순서가 있을 때 결정적이다**: 52.72% 대 76.40%. 이미 섞인 자료에서는 씨앗의 퍼짐이 섞기의 효과보다 컸다
+7. **같은 계산량에서는 양 끝이 모두 진다**: $B=1024$는 30걸음뿐이라 못 가고, $B=1$은 30,720걸음을 걷고도 잡음 때문에 최솟값 둘레를 맴돈다. 여기서는 $B=32$가 최적이었다
+8. **시간은 갱신 횟수에 비례하지 않는다**: 갱신이 10,000배인데 시간은 500배다. 작은 배치에서는 걸음 자체가 비싸다
+9. **"2의 거듭제곱"은 이 기계에서 0을 산다**: 127/128/129가 모두 겹쳤다. 하드웨어마다 재어 볼 말이다
 
 **참고 문헌**
 
-- Bottou, L. (2010). Large-scale machine learning with stochastic gradient descent. COMPSTAT.
-- Keskar, N. S., et al. (2017). On large-batch training for deep learning: Generalization gap and sharp minima. ICLR.
-- Smith, S. L., et al. (2018). Don't decay the learning rate, increase the batch size. ICLR.
-- Goyal, P., et al. (2017). Accurate, large minibatch SGD: Training ImageNet in 1 hour.
+- Bottou, L., Curtis, F., & Nocedal, J. (2018). Optimization Methods for Large-Scale Machine Learning. *SIAM Review*, 60(2).
+- Keskar, N. S., et al. (2017). On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima. *ICLR*.
+- Dinh, L., et al. (2017). Sharp Minima Can Generalize For Deep Nets. *ICML*.
+- Smith, S. L., et al. (2018). Don't Decay the Learning Rate, Increase the Batch Size. *ICLR*.
