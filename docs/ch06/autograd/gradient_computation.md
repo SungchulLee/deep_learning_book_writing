@@ -450,7 +450,229 @@ y = checkpoint(expensive_layer, x, use_reentrant=False)
 
 ---
 
-## 6. 전체 야코비안 계산하기
+## 6. 셈을 재어 본다
+
+위의 표는 후진 모드가 $O(T)$, 전진 모드가 $O(n \cdot T)$라고 적는다. 파라미터가
+4,225개면 4,225배 차이가 나야 한다는 말이다. 재어 보면 **60배**다.
+
+셈이 틀린 것이 아니라 **상수가 숨어 있다.** 아래 코드는 이 쪽 옆의
+`gradient_computation.py`에 있다.
+
+```python
+"""전진 모드와 후진 모드 — 셈으로 말고 재어 본다.
+
+본문의 표는 후진 모드가 $O(T)$, 전진 모드가 $O(n \\cdot T)$ 라고
+적는다. 파라미터가 4,225 개면 4,225 배 차이가 나야 한다는 말이다.
+
+재어 보면 55 배다. 셈이 틀린 것이 아니라 **상수가 숨어 있다.**
+전진 모드도 한 번에 여러 방향을 묶어 처리하므로 통과 횟수만큼
+곱해지지 않는다.
+
+그래도 자릿수가 같고, 방향을 뒤집으면 **정확히 거꾸로** 뒤집힌다.
+
+실행: python gradient_computation.py
+"""
+import time
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.func import functional_call, jacfwd, jacrev
+
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
+def timeit(fn, rep=3):
+    fn()                                   # 예열
+    ts = []
+    for _ in range(rep):
+        t0 = time.perf_counter()
+        fn()
+        ts.append(time.perf_counter() - t0)
+    return min(ts) * 1e3
+
+
+# ========================================================================
+# 1. 딥러닝의 꼴 — 입력 많고 출력 하나
+# ========================================================================
+
+def deep_learning_shape():
+    header("1. 파라미터는 많고 로스는 하나")
+    torch.manual_seed(0)
+    net = nn.Sequential(nn.Linear(64, 64), nn.Tanh(), nn.Linear(64, 1))
+    n_param = sum(p.numel() for p in net.parameters())
+    x, y = torch.randn(8, 64), torch.randn(8, 1)
+    params = {k: v.detach() for k, v in net.named_parameters()}
+
+    def loss_fn(p):
+        return F.mse_loss(functional_call(net, p, (x,)), y)
+
+    rev = timeit(lambda: jacrev(loss_fn)(params))
+    fwd = timeit(lambda: jacfwd(loss_fn)(params))
+    print(f"  파라미터 {n_param:,}개, 로스는 홑값 하나")
+    print(f"  jacrev (후진) {rev:8.2f} ms")
+    print(f"  jacfwd (전진) {fwd:8.2f} ms")
+    print(f"  전진이 {fwd / rev:.0f} 배 느리다")
+    print(f"  표의 셈으로는 {n_param:,} 배여야 하는데 {fwd / rev:.0f} 배다")
+    print("  전진 모드도 여러 방향을 묶어 처리하므로 통과 횟수만큼 안 곱해진다")
+
+
+# ========================================================================
+# 2. 거꾸로 — 입력 하나에 출력 많기
+# ========================================================================
+
+def the_other_shape():
+    header("2. 거꾸로 뒤집으면")
+    torch.manual_seed(0)
+    A = torch.randn(2048, 1)
+
+    def h(t):
+        return (A @ t.view(1, 1)).squeeze(1).tanh()
+
+    xin = torch.randn(1)
+    rev = timeit(lambda: jacrev(h)(xin))
+    fwd = timeit(lambda: jacfwd(h)(xin))
+    print(f"  입력 1 개 -> 출력 2048 개")
+    print(f"  jacrev (후진) {rev:8.2f} ms")
+    print(f"  jacfwd (전진) {fwd:8.2f} ms")
+    print(f"  이번에는 전진이 {rev / fwd:.0f} 배 빠르다")
+    print("  고르는 기준은 라이브러리가 아니라 함수의 모양이다")
+
+
+# ========================================================================
+# 3. 후진 모드가 치르는 값 — 활성값을 들고 있어야 한다
+# ========================================================================
+
+def the_memory_cost():
+    header("3. 후진 모드가 치르는 값")
+    torch.manual_seed(0)
+    net = nn.Sequential(*[nn.Sequential(nn.Linear(256, 256), nn.ReLU())
+                          for _ in range(8)])
+    x = torch.randn(64, 256)
+    with torch.no_grad():
+        no_graph = net(x)
+    with_graph = net(x)
+    print("  no_grad 로 돌린 결과 grad_fn :", no_graph.grad_fn)
+    print("  그냥 돌린 결과 grad_fn       :",
+          type(with_graph.grad_fn).__name__)
+    act = 64 * 256 * 4 * 8 * 2 / 1e6
+    par = sum(p.numel() * 4 for p in net.parameters()) / 1e6
+    print(f"  파라미터 {par:.2f} MB   층마다 저장되는 활성값 대략 {act:.2f} MB")
+    print("  전진 모드는 활성값을 안 들고 있어도 된다 — 앞으로만 가니까")
+    print("  후진 모드의 속도는 공짜가 아니라 메모리와 바꾼 것이다")
+
+
+# ========================================================================
+# 4. 야코비를 모으는 두 방향
+# ========================================================================
+
+def two_directions():
+    header("4. 야코비를 줄로 모으기 vs 열로 모으기")
+
+    def f(t):
+        return torch.stack([t[0] ** 2, t[0] * t[1], t[1] ** 2])
+
+    x = torch.tensor([1.0, 2.0])
+    print("  f: R^2 -> R^3,  야코비는 3x2")
+    print("  jacrev (줄 단위, 출력 3 번):")
+    for r in jacrev(f)(x).tolist():
+        print("    ", [round(v, 4) for v in r])
+    print("  jacfwd (열 단위, 입력 2 번):")
+    for r in jacfwd(f)(x).tolist():
+        print("    ", [round(v, 4) for v in r])
+    print("  같은가:", torch.allclose(jacrev(f)(x), jacfwd(f)(x)))
+    print("  손으로: [[2x, 0], [y, x], [0, 2y]] = [[2,0],[2,1],[0,4]]")
+    print("  출력 3 > 입력 2 이므로 여기서는 전진이 한 번 덜 돈다")
+
+
+def main():
+    deep_learning_shape()
+    the_other_shape()
+    the_memory_cost()
+    two_directions()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+**출력:**
+
+```
+=== 1. 파라미터는 많고 로스는 하나 ===
+  파라미터 4,225개, 로스는 홑값 하나
+  jacrev (후진)     0.24 ms
+  jacfwd (전진)    14.62 ms
+  전진이 60 배 느리다
+  표의 셈으로는 4,225 배여야 하는데 60 배다
+  전진 모드도 여러 방향을 묶어 처리하므로 통과 횟수만큼 안 곱해진다
+
+=== 2. 거꾸로 뒤집으면 ===
+  입력 1 개 -> 출력 2048 개
+  jacrev (후진)     5.42 ms
+  jacfwd (전진)     0.11 ms
+  이번에는 전진이 48 배 빠르다
+  고르는 기준은 라이브러리가 아니라 함수의 모양이다
+
+=== 3. 후진 모드가 치르는 값 ===
+  no_grad 로 돌린 결과 grad_fn : None
+  그냥 돌린 결과 grad_fn       : ReluBackward0
+  파라미터 2.11 MB   층마다 저장되는 활성값 대략 1.05 MB
+  전진 모드는 활성값을 안 들고 있어도 된다 — 앞으로만 가니까
+  후진 모드의 속도는 공짜가 아니라 메모리와 바꾼 것이다
+
+=== 4. 야코비를 줄로 모으기 vs 열로 모으기 ===
+  f: R^2 -> R^3,  야코비는 3x2
+  jacrev (줄 단위, 출력 3 번):
+     [2.0, 0.0]
+     [2.0, 1.0]
+     [0.0, 4.0]
+  jacfwd (열 단위, 입력 2 번):
+     [2.0, 0.0]
+     [2.0, 1.0]
+     [0.0, 4.0]
+  같은가: True
+  손으로: [[2x, 0], [y, x], [0, 2y]] = [[2,0],[2,1],[0,4]]
+  출력 3 > 입력 2 이므로 여기서는 전진이 한 번 덜 돈다
+```
+
+### 읽기
+
+```
+파라미터 4,225개, 로스는 홑값 하나
+jacrev (후진)     0.24 ms
+jacfwd (전진)    14.62 ms      전진이 60 배 느리다
+
+입력 1 개 -> 출력 2048 개
+jacrev (후진)     5.42 ms
+jacfwd (전진)     0.11 ms      전진이 48 배 빠르다
+```
+
+**방향이 정확히 뒤집힌다.** 같은 두 함수가 함수의 모양에 따라 60배 손해를 보기도
+하고 48배 이득을 보기도 한다.
+
+$n$배가 아니라 60배인 까닭은 전진 모드가 **여러 방향을 묶어** 처리하기 때문이다.
+통과 횟수가 $n$이어도 각 통과가 통째로 되풀이되는 것은 아니다. 그래도 자릿수의
+이야기는 맞는다 — 파라미터가 수백만 개인 실제 모델에서는 전진 모드로 학습하는
+것이 불가능하다.
+
+### 후진 모드가 치르는 값
+
+```
+파라미터 2.11 MB   층마다 저장되는 활성값 대략 1.05 MB
+```
+
+후진 모드가 빠른 것은 공짜가 아니다. **역전파가 쓸 중간값을 들고 있어야** 한다.
+전진 모드는 앞으로만 가므로 그럴 필요가 없다.
+
+「경사 추적을 멈추는 시점」에서 `no_grad`가 아끼는 메모리가 바로 이것이고,
+위 출력의 `grad_fn: None`이 그 표시다.
+
+---
+
+## 7. 전체 야코비안 계산하기
 
 ### `torch.autograd.functional.jacobian` 사용하기
 
@@ -563,7 +785,7 @@ tensor([[-0.8323, -0.4161],
 
 ---
 
-## 7. 주요 속성과 메서드
+## 8. 주요 속성과 메서드
 
 | 속성 / 메서드 | 설명 |
 |--------------------|-------------|
@@ -582,72 +804,149 @@ tensor([[-0.8323, -0.4161],
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-점 $(1, 2)$에서 함수 $f(x_1, x_2) = (x_1^2 + x_2, x_1 x_2^3)$의 야코비안 행렬을 계산하라. 그런 다음 $\bar{y} = (1, 1)$에 대한 VJP를 계산하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+$f(x_1, x_2) = (x_1^2, x_1 x_2, x_2^2)$의 $3 \times 2$ 야코비안을 손으로 적고
+`jacrev`와 `jacfwd`로 각각 확인하라. 둘이 같은가?
 
 </div>
 
 ??? success "풀이"
-    야코비안은 다음과 같다.
-
     $$
-    J = \begin{bmatrix} \frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} \\ \frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} \end{bmatrix} = \begin{bmatrix} 2x_1 & 1 \\ x_2^3 & 3x_1 x_2^2 \end{bmatrix}
+    J = \begin{bmatrix}
+    2x_1 & 0 \\ x_2 & x_1 \\ 0 & 2x_2
+    \end{bmatrix}
+    \;\xrightarrow{(1,2)}\;
+    \begin{bmatrix} 2 & 0 \\ 2 & 1 \\ 0 & 4 \end{bmatrix}
     $$
 
-    $(1, 2)$에서 $J = \begin{bmatrix} 2 & 1 \\ 8 & 12 \end{bmatrix}$이다.
+    ```python
+    from torch.func import jacrev, jacfwd
 
-    VJP는 $J^T \bar{y} = \begin{bmatrix} 2 & 8 \\ 1 & 12 \end{bmatrix} \begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 10 \\ 13 \end{bmatrix}$이다.
+    def f(t):
+        return torch.stack([t[0] ** 2, t[0] * t[1], t[1] ** 2])
+
+    x = torch.tensor([1.0, 2.0])
+    print("  jacrev:", jacrev(f)(x).tolist())
+    print("  jacfwd:", jacfwd(f)(x).tolist())
+    print("  같은가:", torch.allclose(jacrev(f)(x), jacfwd(f)(x)))
+    ```
+
+    ```
+      jacrev: [[2.0, 0.0], [2.0, 1.0], [0.0, 4.0]]
+      jacfwd: [[2.0, 0.0], [2.0, 1.0], [0.0, 4.0]]
+      같은가: True
+    ```
+
+    **값은 같고 구하는 길만 다르다.** `jacrev`는 출력 3개에 대해 VJP를 세 번,
+    `jacfwd`는 입력 2개에 대해 JVP를 두 번 부른다.
+
+    출력(3)이 입력(2)보다 많으니 **여기서는 전진이 한 번 덜 돈다.** 6절에서
+    본 규칙 그대로다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-뉴럴 넷트웍 학습에서 전진 모드보다 후진 모드 자동 미분이 선호되는 이유를 설명하라. 어떤 상황에서 전진 모드가 더 효율적인가?
+점 $(1, 2)$에서 $f(x_1, x_2) = (x_1^2 + x_2,\ x_1 x_2^3)$의 야코비안을 구하고,
+$\bar{y} = (1, 1)$에 대한 VJP를 **손으로 셈한 뒤** 확인하라.
 
 </div>
 
 ??? success "풀이"
-    후진 모드 자동 미분은 역전파 한 번으로 스칼라 로스의 $n$개 파라메터 전부에 대한 경사를 계산하며, 연산 횟수를 $T$라 할 때 비용이 $O(T)$이다. 전진 모드는 파라메터마다 한 번씩 총 $n$번의 통과가 필요하다.
+    $$
+    J = \begin{bmatrix} 2x_1 & 1 \\ x_2^3 & 3x_1 x_2^2 \end{bmatrix}
+    \;\xrightarrow{(1,2)}\;
+    \begin{bmatrix} 2 & 1 \\ 8 & 12 \end{bmatrix},
+    \qquad
+    J^\top \bar{y} = \begin{bmatrix} 2 & 8 \\ 1 & 12 \end{bmatrix}
+    \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+    = \begin{bmatrix} 10 \\ 13 \end{bmatrix}
+    $$
 
-    뉴럴 넷트웍은 파라메터가 수백만 개지만 로스는 스칼라 하나이므로 후진 모드가 압도적으로 효율적이다. 전진 모드는 입력이 아주 적고 출력이 많은 함수의 야코비안을 계산할 때 선호된다. 전진 모드는 입력 차원마다 한 번씩만 통과하면 되기 때문이다.
+    ```python
+    def f(t):
+        return torch.stack([t[0] ** 2 + t[1], t[0] * t[1] ** 3])
+
+    x = torch.tensor([1.0, 2.0], requires_grad=True)
+    y = f(x)
+    y.backward(torch.tensor([1.0, 1.0]))
+    print("  야코비:", jacrev(f)(x.detach()).tolist())
+    print("  VJP   :", x.grad.tolist())
+    ```
+
+    ```
+      야코비: [[2.0, 1.0], [8.0, 12.0]]
+      VJP   : [10.0, 13.0]
+    ```
+
+    손으로 센 것과 맞는다.
+
+    VJP가 $J^\top \bar{y}$이지 $J \bar{y}$가 아니라는 것을 모양으로도 확인할 수
+    있다. $J$가 $2 \times 2$라 여기서는 둘 다 되지만, $J$가 $3 \times 2$였다면
+    $J\bar{y}$는 모양이 안 맞는다. 「선형 사상의 VJP」에서 본 그 점검이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-`torch.autograd.functional.jacobian`을 사용하여 $f(x_1, x_2) = (x_1^2, x_1 x_2, x_2^2)$의 전체 $3 \times 2$ 야코비안을 계산하는 PyTorch 코드를 작성하라.
+6절에서 전진 모드가 60배 느렸다. **파라미터 수를 바꿔 가며** 그 배수가 어떻게
+변하는지 재고, 이론의 $O(n)$과 견주어라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
-    from torch.autograd.functional import jacobian
+    import time
+    from torch.func import functional_call, jacfwd, jacrev
 
-    def f(x):
-        return torch.stack([x[0]**2, x[0]*x[1], x[1]**2])
+    def timeit(fn, rep=3):
+        fn()
+        ts = []
+        for _ in range(rep):
+            t0 = time.perf_counter(); fn(); ts.append(time.perf_counter() - t0)
+        return min(ts) * 1e3
 
-    x = torch.tensor([1.0, 2.0])
-    J = jacobian(f, x)
-    print(J)
-    # tensor([[2., 0.],
-    #         [2., 1.],
-    #         [0., 4.]])
+    print(f"  {'폭':>5} {'파라미터':>10} {'후진 ms':>9} {'전진 ms':>9} {'배수':>7}")
+    for width in (8, 16, 32, 64):
+        torch.manual_seed(0)
+        net = nn.Sequential(nn.Linear(width, width), nn.Tanh(),
+                            nn.Linear(width, 1))
+        n = sum(p.numel() for p in net.parameters())
+        x, y = torch.randn(8, width), torch.randn(8, 1)
+        params = {k: v.detach() for k, v in net.named_parameters()}
+
+        def loss_fn(p):
+            return F.mse_loss(functional_call(net, p, (x,)), y)
+
+        r = timeit(lambda: jacrev(loss_fn)(params))
+        f = timeit(lambda: jacfwd(loss_fn)(params))
+        print(f"  {width:>5} {n:>10,} {r:>9.2f} {f:>9.2f} {f / r:>7.1f}")
     ```
 
----
+    ```
+         폭     파라미터    후진 ms    전진 ms      배수
+          8         81      0.23      0.33     1.4
+         16        289      0.22      0.57     2.6
+         32      1,089      0.22      1.78     8.2
+         64      4,225      0.24     14.72    61.8
+    ```
 
-<div class="drillbox" markdown>
+    **후진 쪽은 거의 일정하고(0.22~0.24 ms) 전진 쪽만 자란다.** 그것이 표가
+    말하는 바다 — 후진은 $O(T)$, 전진은 $O(n \cdot T)$.
 
-**연습문제 4.** <span class="diff med" title="중간"></span>
-어떤 학생이 사이에 `optimizer.zero_grad()`를 호출하지 않고 `loss.backward()`를 연달아 두 번 썼다. `.grad` 속성에는 어떤 일이 생기며, PyTorch에서 이 동작이 기본값인 이유는 무엇인가?
+    배수를 보면 1.4 → 2.6 → 8.2 → 61.8이다. 파라미터가 네 배가 될 때마다
+    대략 두 배, 세 배, 일곱 배씩 는다. **$n$에 비례하지는 않지만 $n$과 함께
+    자라고, 커질수록 가팔라진다.**
 
-</div>
+    $n$에 못 미치는 까닭은 6절에서 적은 대로다. 그리고 작은 모델에서는 고정
+    비용이 섞여 있어 배수가 더 눌린다 — 폭 8에서는 1.4배뿐이다.
 
-??? success "풀이"
-    같은 그래프를 두 번 역전파하려면 저장 텐서가 해제되지 않도록 유지하거나 순전파를 새로 해야 한다. 역전파가 성공하면 `.grad`에는 두 그래디언트가 더해진다. `zero_grad`는 누적값을 지울 뿐 그래프를 복원하지 않는다. 여러 배치의 그래디언트를 모을 때는 파라메터를 고정한 채 적절한 표본 수로 스케일을 맞춰야 큰 배치 평균을 흉내 낼 수 있다.
+    실제 모델로 외삽하면 뜻이 분명해진다. 파라미터가 백만 개면 이 추세로도
+    수천 배이고, 그것이 **전진 모드로는 학습이 불가능하다**는 말의 내용이다.
+    전진 모드가 쓰이는 자리는 입력이 적은 민감도 분석이나, 후진 모드와 섞어
+    쓰는 고차 미분이다.
 
 ## 정리하며
 
