@@ -411,6 +411,81 @@ def fig_ae_linear_descent():
     print("wrote ae_linear_descent.svg")
 
 
+# === 그림 7: 부호 하나를 열 가지 라벨에 걸어 본다 ===========================
+class JudgeCNN(nn.Module):
+    """3장에서 학습해 둔 심판. 만든 그림이 어느 숫자로 읽히는지 묻는다."""
+
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+def show_boxed(ax, flat, boxed):
+    """show()와 같되, 테두리를 두를 수 있다."""
+    img = (flat.reshape(28, 28) * STD + MEAN).clamp(0, 1)
+    ax.imshow(img, cmap="gray", vmin=0, vmax=1)
+    ax.set_xticks([]); ax.set_yticks([])
+    for sp in ax.spines.values():
+        sp.set_visible(bool(boxed))
+        if boxed:
+            sp.set_color("#e8384f"); sp.set_linewidth(2.0)
+
+
+@torch.no_grad()
+def fig_cvae_label_sweep(n_code=8):
+    """줄마다 부호 하나를 쥐고, 열 가지 라벨을 차례로 걸어 복호한다.
+
+    cVAE-2는 한 줄이 한 가지 필체로 열 가지 숫자를 써 낸다 — 라벨이 정체를
+    맡고 부호는 모양만 맡았다는 뜻이다. cVAE-64는 줄마다 **좋아하는 숫자**가
+    있어 라벨을 걸어도 그리로 돌아간다.
+
+    부호는 03_cvae.md 4절이 잰 2,000개 가운데 앞에서부터 n_code개다. 고르지
+    않았다는 뜻이며, 같은 씨앗(11)을 쓰므로 그 절의 수와 같은 표본이다.
+    """
+    judge = JudgeCNN()
+    judge.load_state_dict(torch.load(f"{MODELS}/mnist_judge.pt",
+                                     map_location="cpu", weights_only=True))
+    judge.eval()
+
+    fig = plt.figure(figsize=(13.6, 6.1))
+    for col, k in enumerate((2, 64)):
+        m = VAEModel(k, 10)
+        m.load_state_dict(torch.load(f"{MODELS}/mnist_cvae{k}.pt",
+                                     map_location="cpu", weights_only=True))
+        m.eval()
+
+        g = torch.Generator().manual_seed(11)          # 4절과 같은 씨앗
+        z = torch.randn(2000, k, generator=g)[:n_code]
+
+        left = 0.045 + col * 0.495
+        gs = fig.add_gridspec(n_code, 10, left=left, right=left + 0.445,
+                              top=0.885, bottom=0.075, wspace=0.06, hspace=0.06)
+        for r in range(n_code):
+            for lab in range(10):
+                c = torch.zeros(1, 10); c[0, lab] = 1.0
+                x = m.dec(torch.cat([z[r:r + 1], c], 1))
+                read = int(judge(x.reshape(1, 1, 28, 28)).argmax(1))
+                ax = fig.add_subplot(gs[r, lab])
+                show_boxed(ax, x[0], read != lab)
+                if r == 0:
+                    ax.set_title(str(lab), fontsize=9, pad=4)
+        fig.text(left + 0.2225, 0.945, f"cVAE-{k}", ha="center", fontsize=12)
+    fig.text(0.5, 0.028, "each row is one code z, swept across all ten requested labels"
+             "   (red box = the judge read something else)",
+             ha="center", fontsize=9)
+    fig.savefig("cvae_label_sweep.svg", transparent=True)
+    plt.close(fig)
+    print("wrote cvae_label_sweep.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -418,9 +493,10 @@ if __name__ == "__main__":
     fig_ae_vs_vae_2d()
     fig_class_share()
     fig_ae_linear_descent()
+    fig_cvae_label_sweep()
 
 
-# === 그림 7: 네 모델이 만들어 낸 표본 =======================================
+# === 그림 8: 네 모델이 만들어 낸 표본 =======================================
 @torch.no_grad()
 def fig_samples():
     """AE, VAE, GAN, DCGAN, DDPM이 뽑아 낸 그림을 나란히 둔다.
