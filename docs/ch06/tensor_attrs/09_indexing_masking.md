@@ -1,545 +1,614 @@
-# 인덱싱과 마스킹
+# 불리언 마스킹과 where — 뷰로 오는 것과 베껴 오는 것
 
-조건으로 원소를 모으는 마스킹과 두 후보 중 하나를 고르는 `where`는 결과 모양이 다르다. 읽기와 대입에서 메모리 공유 규칙도 달라진다.
+텐서에서 일부를 꺼내는 길이 여럿인데, 크게 두 갈래로 갈린다.
+
+| | 결과 |
+|---|---|
+| 자르기 `a[1:3, 2:4]`, `a[::2]` | **뷰** — 고치면 원본이 바뀐다 |
+| 참거짓 가리기 `a[a > 0]` | **베낌** — 고쳐도 원본은 그대로다 |
+| 정수 배열 `a[[0, 2]]` | **베낌** |
+
+읽을 때는 둘이 똑같아 보인다. 고치려 할 때에야 갈린다. 그런데 **대입은 또
+다르다** — `a[mask] = 0`은 베낀 것에 쓰는 것이 아니라 원본을 고친다. 같은 꼴을
+오른쪽에 쓰느냐 왼쪽에 쓰느냐로 뜻이 바뀐다.
+
+마지막 두 절이 이 쪽에서 가장 비싼 값이다. **`torch.where`는 고르지 않은 가지도
+셈한다.** 그래서 0으로 나눈 다음 가리는 것만으로는 역전파의 NaN을 막지 못한다.
 
 ## 1. 코드
 
 ```python
-#!/usr/bin/env python3
-"""
-앞선 자리 잡기, 자르기, 가리기 셈.
+"""자리 잡기와 가리기 — 뷰로 오는 것과 베껴 오는 것.
 
-Covers:
-- 기본 자르기와 앞선 자리 잡기 견주기
-- 참거짓 가리기(조건에 따라 고르기)
-- 정수 배열로 자리 잡기(멋진 자리 잡기)
-- 조건 셈을 위한 torch.where
-- masked_fill, masked_select, masked_scatter
-- 너그러운 자리 잡기를 위한 줄임표(...)
-- 보기와 베낌의 다름
-"""
+텐서에서 일부를 꺼내는 길이 여럿이고, 크게 두 갈래로 갈린다.
 
+- **자르기**(`a[1:3, 2:4]`, `a[::2]`)는 **뷰**다. 고치면 원본이 바뀐다
+- **참거짓 가리기**와 **정수 배열 자리 잡기**는 **베낀다**. 고쳐도 원본은 그대로다
+
+읽을 때는 둘이 같아 보이므로, 고치려 할 때에야 갈린다. 그런데 대입은
+또 다르다 — `a[mask] = 0` 은 베낀 것에 쓰는 것이 아니라 원본을 고친다.
+
+마지막 절이 이 쪽에서 가장 비싼 값이다. `torch.where` 는 **고르지 않은
+가지도 셈한다.** 그래서 0 으로 나눈 다음 가리는 것만으로는 역전파의
+NaN 을 막지 못한다.
+
+실행: python 09_indexing_masking.py
+"""
 import torch
 
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
+def shares(a, b):
+    return a.untyped_storage().data_ptr() == b.untyped_storage().data_ptr()
+
+
 # ========================================================================
-# 메인
+# 1. 자르기는 뷰다
 # ========================================================================
 
-def header(title: str):
-    print("\n" + "=" * 80)
-    print(title)
-    print("=" * 80)
+def slicing_is_a_view():
+    header("1. 자르기는 뷰다")
+    a = torch.arange(20).reshape(4, 5)
+    print("a =");  print(a)
+    v = a[1:3, 2:4]
+    print("  a[1:3, 2:4] =");  print(v)
+    print("  저장소를 나눠 쓰는가:", shares(a, v))
+    v[0, 0] = 999
+    print("  뷰를 999 로 고친 뒤 a[1,2] =", a[1, 2].item())
+
+    step = a[::2, ::2]
+    print("  건너뛰며 자른 a[::2, ::2] 도 뷰인가:", shares(a, step),
+          " 보폭", step.stride())
+
+
+# ========================================================================
+# 2. 가리기는 베낀다 — 읽을 때는
+# ========================================================================
+
+def masking_copies():
+    header("2. 참거짓으로 가려 읽으면 베낀다")
+    a = torch.tensor([1, -2, 3, -4, 5, -6])
+    mask = a > 0
+    picked = a[mask]
+    print("  a      =", a.tolist())
+    print("  a > 0  =", mask.tolist())
+    print("  a[mask]=", picked.tolist(), " 모양", tuple(picked.shape))
+    print("  저장소를 나눠 쓰는가:", shares(a, picked))
+    picked[0] = 100
+    print("  꺼낸 것을 100 으로 고친 뒤 a =", a.tolist(), "(그대로다)")
+
+    idx = torch.tensor([0, 2, 4])
+    print("  정수 배열로 고른 a[[0,2,4]] 도 베끼는가:",
+          not shares(a, a[idx]))
+    print("  가려 읽으면 몇 개가 나올지 모르므로 뷰로 만들 수 없다")
+
+
+# ========================================================================
+# 3. 대입은 다르다
+# ========================================================================
+
+def masked_assignment():
+    header("3. 가려서 대입하면 원본을 고친다")
+    a = torch.tensor([1, -2, 3, -4, 5, -6])
+    before = a.data_ptr()
+    a[a < 0] = 0
+    print("  a[a < 0] = 0  ->", a.tolist())
+    print("  같은 메모리인가:", a.data_ptr() == before)
+    print("  읽기는 베끼고 쓰기는 제자리다 — 같은 꼴인데 갈린다")
+
+    b = torch.arange(10).float()
+    b[(b > 3) & (b < 7)] = -1
+    print("  & 와 | 로 조건을 묶는다:", b.tolist())
+    print("  and / or 가 아니라 & / | 다. 파이썬 연산자는 텐서에 못 쓴다")
+
+
+# ========================================================================
+# 4. 고르는 길들
+# ========================================================================
+
+def selecting():
+    header("4. 고르는 길들")
+    a = torch.arange(12).reshape(3, 4)
+    print("a =");  print(a)
+
+    r = torch.tensor([0, 2, 1])
+    c = torch.tensor([1, 3, 2])
+    print("  a[r, c] 짝으로 골라 (0,1),(2,3),(1,2):", a[r, c].tolist())
+    print("  a[[0,2]] 행 통째로:", a[torch.tensor([0, 2])].tolist())
+    print("  a[:, [1,3]] 열 통째로:", a[:, torch.tensor([1, 3])].tolist())
+
+    rr = torch.tensor([[0], [1], [2]])      # (3,1)
+    cc = torch.tensor([[0, 2]])             # (1,2)
+    print("  브로드캐스팅으로 격자:", a[rr, cc].tolist())
+
+    print("  masked_select :", a.masked_select(a > 7).tolist())
+    print("  nonzero       :", a.nonzero().shape, "(자리의 좌표)")
+    ri, ci = torch.where(a > 9)
+    print("  where(조건) 하나만 주면 좌표:", ri.tolist(), ci.tolist())
+
+
+# ========================================================================
+# 5. 자리 더하기와 줄임표
+# ========================================================================
+
+def shapes_and_ellipsis():
+    header("5. None 과 줄임표")
+    a = torch.randn(3, 4)
+    print("  a.shape          :", tuple(a.shape))
+    print("  a[None].shape    :", tuple(a[None].shape), "= unsqueeze(0)")
+    print("  a[:, None].shape :", tuple(a[:, None].shape))
+    print("  a[..., None].shape:", tuple(a[..., None].shape), "= unsqueeze(-1)")
+
+    big = torch.randn(2, 3, 4, 5, 6)
+    print("  big.shape        :", tuple(big.shape))
+    print("  big[..., 0]      :", tuple(big[..., 0].shape))
+    print("  big[0, ..., 2]   :", tuple(big[0, ..., 2].shape))
+    print("  줄임표는 '남은 축 전부' 라서 차원 수가 바뀌어도 안 고쳐도 된다")
+
+
+# ========================================================================
+# 6. where 는 고르지 않은 가지도 셈한다
+# ========================================================================
+
+def where_computes_both():
+    header("6. where 는 양쪽을 다 셈한다")
+    x = torch.tensor([0.0, 1.0, 2.0], requires_grad=True)
+    y = torch.where(x > 0, 1.0 / x, torch.zeros_like(x))
+    print("  torch.where(x > 0, 1/x, 0)")
+    print("    순전파:", y.tolist(), " <- 0 자리가 잘 가려졌다")
+    y.sum().backward()
+    print("    x.grad:", x.grad.tolist(), " <- NaN 이 새어 나온다")
+    print("  1/x 는 가려지기 전에 이미 계산되었고, 그 미분도 그래프에 남았다")
+
+    x2 = torch.tensor([0.0, 1.0, 2.0], requires_grad=True)
+    denom = torch.where(x2 > 0, x2, torch.ones_like(x2))   # 분모를 먼저 고친다
+    y2 = torch.where(x2 > 0, 1.0 / denom, torch.zeros_like(x2))
+    y2.sum().backward()
+    print("  분모를 먼저 안전하게 바꾸면")
+    print("    순전파:", y2.tolist())
+    print("    x.grad:", x2.grad.tolist(), " <- 깨끗하다")
+
+
+# ========================================================================
+# 7. 어텐션 마스크 — 쓸모와 함정
+# ========================================================================
+
+def attention_mask():
+    header("7. 어텐션 마스크")
+    torch.manual_seed(0)
+    s = torch.randn(1, 4, requires_grad=True)
+    m = torch.tensor([[False, False, True, True]])
+    p = torch.softmax(s.masked_fill(m, float("-inf")), dim=-1)
+    print("  일부만 가리면 softmax:", [round(v, 4) for v in p[0].tolist()])
+    print("    가린 자리가 정확히 0 이 된다 — exp(-inf) = 0")
+
+    s2 = torch.randn(1, 4, requires_grad=True)
+    m2 = torch.ones(1, 4, dtype=torch.bool)
+    p2 = torch.softmax(s2.masked_fill(m2, float("-inf")), dim=-1)
+    print("  한 줄을 통째로 가리면:", p2[0].tolist())
+    print("    전부 -inf 라 분모가 0 이 되어 NaN 이다")
+    print("    길이가 0 인 문장이 배치에 섞이면 여기서 터진다")
+
+    causal = torch.triu(torch.ones(4, 4), diagonal=1).bool()
+    print("  인과 마스크(위쪽 삼각):")
+    for row in causal.tolist():
+        print("   ", " ".join("X" if v else "." for v in row))
+
 
 def main():
-    torch.manual_seed(0)
+    slicing_is_a_view()
+    masking_copies()
+    masked_assignment()
+    selecting()
+    shapes_and_ellipsis()
+    where_computes_both()
+    attention_mask()
 
-    # -------------------------------------------------------------------------
-    header("Basic slicing (creates views)")
-    a = torch.arange(20).reshape(4, 5)
-    print("a:\n", a)
-    
-    view = a[1:3, 2:4]  # Slice rows 1-2, cols 2-3
-    print("view = a[1:3, 2:4]:\n", view)
-    print("Is view (shares storage):", a.untyped_storage().data_ptr() == view.untyped_storage().data_ptr())
-    
-    # 뷰를 수정하면 원본이 바뀐다
-    view[0, 0] = 999
-    print("After view[0,0]=999, a[1,2]:", a[1, 2].item())
-
-    # -------------------------------------------------------------------------
-    header("Boolean masking (fancy indexing - creates copies)")
-    a = torch.tensor([1, -2, 3, -4, 5, -6])
-    print("a:", a)
-    
-    # 불리언 마스크 만들기
-    mask = a > 0
-    print("mask (a > 0):", mask)
-    
-    # 마스크로 인덱싱(1차원 텐서를 반환하며 뷰가 아니라 복사본이다)
-    positive = a[mask]
-    print("a[mask] (positives):", positive)
-    
-    # 수정해도 원본에 영향이 없다(복사본이기 때문이다)
-    positive[0] = 100
-    print("After positive[0]=100, a:", a)
-
-    # -------------------------------------------------------------------------
-    header("Boolean mask assignment (in-place modification)")
-    a = torch.tensor([1, -2, 3, -4, 5, -6])
-    print("Before: a:", a)
-    
-    a[a < 0] = 0  # Set all negative values to 0
-    print("After a[a < 0] = 0:", a)
-    
-    # &(and)와 |(or)로 여러 조건 결합
-    b = torch.randn(10)
-    print("\nb:", b)
-    b[(b > -0.5) & (b < 0.5)] = 0  # Set small values to 0
-    print("After clipping to zero:", b)
-
-    # -------------------------------------------------------------------------
-    header("torch.where for conditional selection")
-    a = torch.randn(5)
-    b = torch.randn(5)
-    print("a:", a)
-    print("b:", b)
-    
-    # a>0인 곳은 a에서, 그 밖에는 b에서 선택
-    result = torch.where(a > 0, a, b)
-    print("where(a > 0, a, b):", result)
-    
-    # 스칼라를 쓸 수도 있다
-    clamped = torch.where(a > 0, a, torch.tensor(0.0))
-    print("Clamp negatives to 0:", clamped)
-
-    # -------------------------------------------------------------------------
-    header("Integer array indexing (fancy indexing)")
-    a = torch.arange(12).reshape(3, 4)
-    print("a:\n", a)
-    
-    # 정수 텐서로 인덱싱
-    row_idx = torch.tensor([0, 2, 1])
-    col_idx = torch.tensor([1, 3, 2])
-    
-    # 이것은 a[0,1], a[2,3], a[1,2]를 선택한다
-    selected = a[row_idx, col_idx]
-    print("a[row_idx, col_idx]:", selected)
-    
-    # 특정 원소를 모을 때 쓸 수 있다
-    rows = torch.tensor([0, 0, 1, 1, 2, 2])
-    cols = torch.tensor([0, 1, 2, 3, 0, 1])
-    gathered = a[rows, cols]
-    print("Gathered elements:", gathered)
-
-    # -------------------------------------------------------------------------
-    header("Advanced indexing with broadcasting")
-    a = torch.arange(12).reshape(3, 4)
-    print("a:\n", a)
-    
-    # 행 전체 선택
-    row_indices = torch.tensor([0, 2])
-    selected_rows = a[row_indices]  # Shape: (2, 4)
-    print("a[row_indices]:\n", selected_rows)
-    
-    # 열 전체 선택(첫 차원에 :가 필요하다)
-    col_indices = torch.tensor([1, 3])
-    selected_cols = a[:, col_indices]  # Shape: (3, 2)
-    print("a[:, col_indices]:\n", selected_cols)
-    
-    # 브로드캐스팅을 이용한 2차원 인덱싱
-    row_idx = torch.tensor([[0], [1], [2]])  # (3, 1)
-    col_idx = torch.tensor([[0, 2]])          # (1, 2)
-    # 브로드캐스팅되어 (0,0), (0,2), (1,0), (1,2), (2,0), (2,2)를 선택한다
-    subgrid = a[row_idx, col_idx]  # Shape: (3, 2)
-    print("Broadcasted 2D indexing:\n", subgrid)
-
-    # -------------------------------------------------------------------------
-    header("masked_fill: fill values based on mask")
-    a = torch.randn(3, 4)
-    print("a:\n", a)
-    
-    mask = a > 0
-    filled = a.masked_fill(mask, value=-999)
-    print("masked_fill(a > 0, -999):\n", filled)
-    
-    # 제자리 버전
-    a.masked_fill_(a.abs() < 0.5, value=0)
-    print("After masking small values in-place:\n", a)
-
-    # -------------------------------------------------------------------------
-    header("masked_select: extract values matching mask")
-    a = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    print("a:\n", a)
-    
-    mask = a > 4
-    print("mask (a > 4):\n", mask)
-    
-    selected = a.masked_select(mask)
-    print("masked_select:", selected)
-
-    # -------------------------------------------------------------------------
-    header("masked_scatter: scatter values based on mask")
-    a = torch.zeros(3, 4)
-    mask = torch.tensor([[True, False, True, False],
-                         [False, True, False, True],
-                         [True, True, False, False]])
-    # dtype을 맞추어야 한다. a는 torch.zeros라 float32인데
-    # torch.arange(1, 7)은 int64라, 그대로 넣으면
-    # "expected self and source to have same dtypes" 오류가 난다
-    source = torch.arange(1, 7, dtype=torch.float32)  # Values to scatter
-    
-    result = a.masked_scatter(mask, source)
-    print("mask:\n", mask)
-    print("source:", source)
-    print("masked_scatter result:\n", result)
-
-    # -------------------------------------------------------------------------
-    header("Ellipsis (...) for flexible multi-dimensional indexing")
-    a = torch.randn(2, 3, 4, 5, 6)
-    print("a.shape:", a.shape)
-    
-    # ...은 필요한 만큼 :로 확장된다
-    slice1 = a[..., 0]        # Same as a[:, :, :, :, 0]
-    print("a[..., 0].shape:", slice1.shape)
-    
-    slice2 = a[0, ..., 2]     # Same as a[0, :, :, :, 2]
-    print("a[0, ..., 2].shape:", slice2.shape)
-    
-    slice3 = a[..., 1:3, :]   # Same as a[:, :, :, 1:3, :]
-    print("a[..., 1:3, :].shape:", slice3.shape)
-
-    # -------------------------------------------------------------------------
-    header("None/newaxis for adding dimensions")
-    a = torch.randn(3, 4)
-    print("a.shape:", a.shape)
-    
-    expanded1 = a[None, :, :]     # Same as a.unsqueeze(0)
-    print("a[None, :, :].shape:", expanded1.shape)
-    
-    expanded2 = a[:, None, :]     # Add dimension in middle
-    print("a[:, None, :].shape:", expanded2.shape)
-    
-    expanded3 = a[:, :, None]     # Same as a.unsqueeze(2)
-    print("a[:, :, None].shape:", expanded3.shape)
-
-    # -------------------------------------------------------------------------
-    header("Combining slicing and masking")
-    a = torch.randn(4, 5)
-    print("a:\n", a)
-    
-    # 먼저 슬라이싱하고 그다음 마스킹
-    submatrix = a[1:3, :]      # Rows 1-2, all columns
-    positive_in_sub = submatrix[submatrix > 0]
-    print("Positive values in rows 1-2:", positive_in_sub)
-    
-    # 특정 행 마스킹
-    row_mask = torch.tensor([True, False, True, False])
-    masked_rows = a[row_mask]
-    print("Masked rows (0 and 2):\n", masked_rows)
-
-    # -------------------------------------------------------------------------
-    header("nonzero and where for finding indices")
-    a = torch.tensor([[0, 1, 0], [2, 0, 3], [0, 4, 0]])
-    print("a:\n", a)
-    
-    # 0이 아닌 원소의 인덱스 얻기
-    indices = a.nonzero()
-    print("nonzero() indices:\n", indices)
-    
-    # 대안: torch.where는 인덱스 튜플을 반환한다
-    row_idx, col_idx = torch.where(a > 0)
-    print("where(a > 0) row indices:", row_idx)
-    print("where(a > 0) col indices:", col_idx)
-    
-    # 인덱스로 원소에 접근
-    values = a[row_idx, col_idx]
-    print("Values at those indices:", values)
-
-    # -------------------------------------------------------------------------
-    header("View vs copy: when does indexing copy?")
-    a = torch.arange(12).reshape(3, 4)
-    
-    # 기본 슬라이싱 → 뷰
-    view = a[1:3, 2:4]
-    print("Basic slice is view:", a.untyped_storage().data_ptr() == view.untyped_storage().data_ptr())
-    
-    # 불리언 인덱싱 → 복사본
-    mask = a > 5
-    copy1 = a[mask]
-    print("Boolean indexing is copy:", a.untyped_storage().data_ptr() != copy1.untyped_storage().data_ptr())
-    
-    # 정수 배열 인덱싱 → 복사본
-    indices = torch.tensor([0, 2])
-    copy2 = a[indices]
-    print("Integer array indexing is copy:", a.untyped_storage().data_ptr() != copy2.untyped_storage().data_ptr())
-    
-    # 스트라이드 슬라이싱 → 뷰
-    view2 = a[::2, ::2]
-    print("Step slicing is view:", a.untyped_storage().data_ptr() == view2.untyped_storage().data_ptr())
-
-    # -------------------------------------------------------------------------
-    header("Practical example: attention masking")
-    # 어텐션 점수 흉내 내기(batch=2, heads=1, seq_len=4)
-    scores = torch.randn(2, 1, 4, 4)
-    print("Attention scores shape:", scores.shape)
-    
-    # 인과 마스크 만들기(하삼각)
-    mask = torch.triu(torch.ones(4, 4), diagonal=1).bool()
-    print("Causal mask:\n", mask)
-    
-    # 마스크 적용(미래 위치를 -inf로 설정)
-    scores.masked_fill_(mask, float('-inf'))
-    print("Masked scores (first batch):\n", scores[0, 0])
-
-    # -------------------------------------------------------------------------
-    header("Practical example: data filtering")
-    # 피처와 레이블을 가진 데이터셋
-    data = torch.randn(100, 5)      # 100 samples, 5 features
-    labels = torch.randint(0, 3, (100,))  # 3 classes
-    
-    # 클래스 1의 표본만 선택
-    class_1_mask = labels == 1
-    class_1_data = data[class_1_mask]
-    print(f"Total samples: {len(data)}, Class 1 samples: {len(class_1_data)}")
-    
-    # 첫 번째 피처가 0보다 큰 표본 선택
-    feature_mask = data[:, 0] > 0
-    filtered_data = data[feature_mask]
-    print(f"Samples with feature[0] > 0: {len(filtered_data)}")
 
 if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (186줄)"
+**출력:**
 
-    ```
+```
 
-    ================================================================================
-    Basic slicing (creates views)
-    ================================================================================
-    a:
-     tensor([[ 0,  1,  2,  3,  4],
-            [ 5,  6,  7,  8,  9],
-            [10, 11, 12, 13, 14],
-            [15, 16, 17, 18, 19]])
-    view = a[1:3, 2:4]:
-     tensor([[ 7,  8],
-            [12, 13]])
-    Is view (shares storage): True
-    After view[0,0]=999, a[1,2]: 999
+=== 1. 자르기는 뷰다 ===
+a =
+tensor([[ 0,  1,  2,  3,  4],
+        [ 5,  6,  7,  8,  9],
+        [10, 11, 12, 13, 14],
+        [15, 16, 17, 18, 19]])
+  a[1:3, 2:4] =
+tensor([[ 7,  8],
+        [12, 13]])
+  저장소를 나눠 쓰는가: True
+  뷰를 999 로 고친 뒤 a[1,2] = 999
+  건너뛰며 자른 a[::2, ::2] 도 뷰인가: True  보폭 (10, 2)
 
-    ================================================================================
-    Boolean masking (fancy indexing - creates copies)
-    ================================================================================
-    a: tensor([ 1, -2,  3, -4,  5, -6])
-    mask (a > 0): tensor([ True, False,  True, False,  True, False])
-    a[mask] (positives): tensor([1, 3, 5])
-    After positive[0]=100, a: tensor([ 1, -2,  3, -4,  5, -6])
+=== 2. 참거짓으로 가려 읽으면 베낀다 ===
+  a      = [1, -2, 3, -4, 5, -6]
+  a > 0  = [True, False, True, False, True, False]
+  a[mask]= [1, 3, 5]  모양 (3,)
+  저장소를 나눠 쓰는가: False
+  꺼낸 것을 100 으로 고친 뒤 a = [1, -2, 3, -4, 5, -6] (그대로다)
+  정수 배열로 고른 a[[0,2,4]] 도 베끼는가: True
+  가려 읽으면 몇 개가 나올지 모르므로 뷰로 만들 수 없다
 
-    ================================================================================
-    Boolean mask assignment (in-place modification)
-    ================================================================================
-    Before: a: tensor([ 1, -2,  3, -4,  5, -6])
-    After a[a < 0] = 0: tensor([1, 0, 3, 0, 5, 0])
+=== 3. 가려서 대입하면 원본을 고친다 ===
+  a[a < 0] = 0  -> [1, 0, 3, 0, 5, 0]
+  같은 메모리인가: True
+  읽기는 베끼고 쓰기는 제자리다 — 같은 꼴인데 갈린다
+  & 와 | 로 조건을 묶는다: [0.0, 1.0, 2.0, 3.0, -1.0, -1.0, -1.0, 7.0, 8.0, 9.0]
+  and / or 가 아니라 & / | 다. 파이썬 연산자는 텐서에 못 쓴다
 
-    b: tensor([ 1.5410, -0.2934, -2.1788,  0.5684, -1.0845, -1.3986,  0.4033,  0.8380,
-            -0.7193, -0.4033])
-    After clipping to zero: tensor([ 1.5410,  0.0000, -2.1788,  0.5684, -1.0845, -1.3986,  0.0000,  0.8380,
-            -0.7193,  0.0000])
+=== 4. 고르는 길들 ===
+a =
+tensor([[ 0,  1,  2,  3],
+        [ 4,  5,  6,  7],
+        [ 8,  9, 10, 11]])
+  a[r, c] 짝으로 골라 (0,1),(2,3),(1,2): [1, 11, 6]
+  a[[0,2]] 행 통째로: [[0, 1, 2, 3], [8, 9, 10, 11]]
+  a[:, [1,3]] 열 통째로: [[1, 3], [5, 7], [9, 11]]
+  브로드캐스팅으로 격자: [[0, 2], [4, 6], [8, 10]]
+  masked_select : [8, 9, 10, 11]
+  nonzero       : torch.Size([11, 2]) (자리의 좌표)
+  where(조건) 하나만 주면 좌표: [2, 2] [2, 3]
 
-    ================================================================================
-    torch.where for conditional selection
-    ================================================================================
-    a: tensor([-0.5966,  0.1820, -0.8567,  1.1006, -1.0712])
-    b: tensor([ 0.1227, -0.5663,  0.3731, -0.8920, -1.5091])
-    where(a > 0, a, b): tensor([ 0.1227,  0.1820,  0.3731,  1.1006, -1.5091])
-    Clamp negatives to 0: tensor([0.0000, 0.1820, 0.0000, 1.1006, 0.0000])
+=== 5. None 과 줄임표 ===
+  a.shape          : (3, 4)
+  a[None].shape    : (1, 3, 4) = unsqueeze(0)
+  a[:, None].shape : (3, 1, 4)
+  a[..., None].shape: (3, 4, 1) = unsqueeze(-1)
+  big.shape        : (2, 3, 4, 5, 6)
+  big[..., 0]      : (2, 3, 4, 5)
+  big[0, ..., 2]   : (3, 4, 5)
+  줄임표는 '남은 축 전부' 라서 차원 수가 바뀌어도 안 고쳐도 된다
 
-    ================================================================================
-    Integer array indexing (fancy indexing)
-    ================================================================================
-    a:
-     tensor([[ 0,  1,  2,  3],
-            [ 4,  5,  6,  7],
-            [ 8,  9, 10, 11]])
-    a[row_idx, col_idx]: tensor([ 1, 11,  6])
-    Gathered elements: tensor([0, 1, 6, 7, 8, 9])
+=== 6. where 는 양쪽을 다 셈한다 ===
+  torch.where(x > 0, 1/x, 0)
+    순전파: [0.0, 1.0, 0.5]  <- 0 자리가 잘 가려졌다
+    x.grad: [nan, -1.0, -0.25]  <- NaN 이 새어 나온다
+  1/x 는 가려지기 전에 이미 계산되었고, 그 미분도 그래프에 남았다
+  분모를 먼저 안전하게 바꾸면
+    순전파: [0.0, 1.0, 0.5]
+    x.grad: [0.0, -1.0, -0.25]  <- 깨끗하다
 
-    ================================================================================
-    Advanced indexing with broadcasting
-    ================================================================================
-    a:
-     tensor([[ 0,  1,  2,  3],
-            [ 4,  5,  6,  7],
-            [ 8,  9, 10, 11]])
-    a[row_indices]:
-     tensor([[ 0,  1,  2,  3],
-            [ 8,  9, 10, 11]])
-    a[:, col_indices]:
-     tensor([[ 1,  3],
-            [ 5,  7],
-            [ 9, 11]])
-    Broadcasted 2D indexing:
-     tensor([[ 0,  2],
-            [ 4,  6],
-            [ 8, 10]])
+=== 7. 어텐션 마스크 ===
+  일부만 가리면 softmax: [0.8623, 0.1377, 0.0, 0.0]
+    가린 자리가 정확히 0 이 된다 — exp(-inf) = 0
+  한 줄을 통째로 가리면: [nan, nan, nan, nan]
+    전부 -inf 라 분모가 0 이 되어 NaN 이다
+    길이가 0 인 문장이 배치에 섞이면 여기서 터진다
+  인과 마스크(위쪽 삼각):
+    . X X X
+    . . X X
+    . . . X
+    . . . .
+```
 
-    ================================================================================
-    masked_fill: fill values based on mask
-    ================================================================================
-    a:
-     tensor([[ 0.3704,  1.4565,  0.9398,  0.7748],
-            [ 0.1919,  1.2638, -1.2904, -0.7911],
-            [-0.0209, -0.7185,  0.5186, -1.3125]])
-    masked_fill(a > 0, -999):
-     tensor([[-9.9900e+02, -9.9900e+02, -9.9900e+02, -9.9900e+02],
-            [-9.9900e+02, -9.9900e+02, -1.2904e+00, -7.9110e-01],
-            [-2.0879e-02, -7.1848e-01, -9.9900e+02, -1.3125e+00]])
-    After masking small values in-place:
-     tensor([[ 0.0000,  1.4565,  0.9398,  0.7748],
-            [ 0.0000,  1.2638, -1.2904, -0.7911],
-            [ 0.0000, -0.7185,  0.5186, -1.3125]])
+## 2. 자르기는 뷰, 가리기는 베낌
 
-    ================================================================================
-    masked_select: extract values matching mask
-    ================================================================================
-    a:
-     tensor([[1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9]])
-    mask (a > 4):
-     tensor([[False, False, False],
-            [False,  True,  True],
-            [ True,  True,  True]])
-    masked_select: tensor([5, 6, 7, 8, 9])
+```
+a[1:3, 2:4]  저장소를 나눠 쓰는가: True
+뷰를 999 로 고친 뒤 a[1,2] = 999
 
-    ================================================================================
-    masked_scatter: scatter values based on mask
-    ================================================================================
-    mask:
-     tensor([[ True, False,  True, False],
-            [False,  True, False,  True],
-            [ True,  True, False, False]])
-    source: tensor([1., 2., 3., 4., 5., 6.])
-    masked_scatter result:
-     tensor([[1., 0., 2., 0.],
-            [0., 3., 0., 4.],
-            [5., 6., 0., 0.]])
+a[a > 0]     저장소를 나눠 쓰는가: False
+꺼낸 것을 100 으로 고친 뒤 a = [1, -2, 3, -4, 5, -6] (그대로다)
+```
 
-    ================================================================================
-    Ellipsis (...) for flexible multi-dimensional indexing
-    ================================================================================
-    a.shape: torch.Size([2, 3, 4, 5, 6])
-    a[..., 0].shape: torch.Size([2, 3, 4, 5])
-    a[0, ..., 2].shape: torch.Size([3, 4, 5])
-    a[..., 1:3, :].shape: torch.Size([2, 3, 4, 2, 6])
+건너뛰며 자르는 `a[::2, ::2]`도 뷰다. 보폭이 `(10, 2)`로 바뀔 뿐 메모리는 그대로
+쓴다. 「메모리 배치와 스트라이드」에서 본 그대로다.
 
-    ================================================================================
-    None/newaxis for adding dimensions
-    ================================================================================
-    a.shape: torch.Size([3, 4])
-    a[None, :, :].shape: torch.Size([1, 3, 4])
-    a[:, None, :].shape: torch.Size([3, 1, 4])
-    a[:, :, None].shape: torch.Size([3, 4, 1])
+가리기가 뷰가 될 수 없는 까닭은 분명하다. **몇 개가 나올지 미리 모르고, 나오는
+자리도 고르지 않다.** 보폭 하나로는 "3번, 7번, 11번 칸"을 가리킬 수 없다. 그러니
+새 자리를 잡아 모아 담는 수밖에 없다.
 
-    ================================================================================
-    Combining slicing and masking
-    ================================================================================
-    a:
-     tensor([[-0.4357,  1.1028, -0.7690, -0.1290, -1.2753],
-            [-0.3720, -0.8974, -0.6870, -1.0655,  0.4026],
-            [-0.4052, -0.5834, -0.5422,  1.1510,  1.6095],
-            [-0.7387,  0.6800, -0.7692, -0.0729, -1.4433]])
-    Positive values in rows 1-2: tensor([0.4026, 1.1510, 1.6095])
-    Masked rows (0 and 2):
-     tensor([[-0.4357,  1.1028, -0.7690, -0.1290, -1.2753],
-            [-0.4052, -0.5834, -0.5422,  1.1510,  1.6095]])
+정수 배열로 고르는 `a[[0, 2]]`도 같은 까닭으로 베낀다. 행 두 개가 메모리에 떨어져
+있어도 상관없이 골라야 하기 때문이다.
 
-    ================================================================================
-    nonzero and where for finding indices
-    ================================================================================
-    a:
-     tensor([[0, 1, 0],
-            [2, 0, 3],
-            [0, 4, 0]])
-    nonzero() indices:
-     tensor([[0, 1],
-            [1, 0],
-            [1, 2],
-            [2, 1]])
-    where(a > 0) row indices: tensor([0, 1, 1, 2])
-    where(a > 0) col indices: tensor([1, 0, 2, 1])
-    Values at those indices: tensor([1, 2, 3, 4])
+## 3. 읽기는 베끼고 쓰기는 제자리다
 
-    ================================================================================
-    View vs copy: when does indexing copy?
-    ================================================================================
-    Basic slice is view: True
-    Boolean indexing is copy: True
-    Integer array indexing is copy: True
-    Step slicing is view: True
+```
+a[a < 0] = 0  ->  [1, 0, 3, 0, 5, 0]
+같은 메모리인가: True
+```
 
-    ================================================================================
-    Practical example: attention masking
-    ================================================================================
-    Attention scores shape: torch.Size([2, 1, 4, 4])
-    Causal mask:
-     tensor([[False,  True,  True,  True],
-            [False, False,  True,  True],
-            [False, False, False,  True],
-            [False, False, False, False]])
-    Masked scores (first batch):
-     tensor([[-0.3850,    -inf,    -inf,    -inf],
-            [-1.2152, -0.1696,    -inf,    -inf],
-            [ 1.5435,  0.9686, -1.5552,    -inf],
-            [-0.0613,  1.3391, -1.0589,  0.4159]])
+`a[a < 0]`을 **읽으면** 새 텐서가 나온다. 그런데 거기에 **대입하면** `a`가 제자리에서
+바뀐다. 파이썬이 `a[mask] = 0`을 `a.__setitem__(mask, 0)`으로 바꿔 부르기 때문이다 —
+꺼낸 사본에 쓰는 것이 아니라 처음부터 다른 일이다.
 
-    ================================================================================
-    Practical example: data filtering
-    ================================================================================
-    Total samples: 100, Class 1 samples: 32
-    Samples with feature[0] > 0: 49
-    ```
-## 2. 논의
+그래서 이렇게는 안 된다.
 
-`x[mask]`는 참인 위치의 값을 모아 사본을 만든다. 기본 슬라이싱은 뷰이므로 그 결과를 수정할 때의 영향이 다르다. 다만 `x[mask]=...`처럼 직접 대입하면 원본을 수정한다.
+```python
+sub = a[a < 0]      # 사본이 나온다
+sub[:] = 0          # 사본만 바뀐다. a 는 그대로다
+```
 
-`torch.where(condition,a,b)`는 세 입력을 브로드캐스팅해 위치마다 후보를 선택한다. 파이썬 조건문처럼 선택되지 않을 가지의 계산을 생략하지 않는다. 따라서 0으로 나누는 식을 미리 만든 뒤 `where`로 가리는 것만으로 역전파의 NaN을 막을 수는 없다.
+조건을 묶을 때 쓰는 것은 `and`/`or`가 아니라 `&`/`|`다. 파이썬의 `and`는 양쪽을
+참거짓 하나로 보려 하는데 텐서는 그렇게 줄여지지 않아 터진다. 그리고 `&`는 우선
+순위가 비교 연산자보다 높으므로 **괄호가 필요하다** — `(b > 3) & (b < 7)`.
+
+## 4. 고르는 길들
+
+| 쓰는 꼴 | 하는 일 |
+|---|---|
+| `a[r, c]` | 좌표 **짝**으로 고른다 — `(0,1), (2,3), (1,2)` → `[1, 11, 6]` |
+| `a[[0, 2]]` | 0번과 2번 **행 통째로** |
+| `a[:, [1, 3]]` | 1번과 3번 **열 통째로** |
+| `a[rr, cc]` (브로드캐스팅) | 행 벡터와 열 벡터가 만나 **격자**를 고른다 |
+| `a.masked_select(mask)` | `a[mask]`와 같다 |
+| `a.nonzero()` | 값이 아니라 **자리의 좌표**를 돌려준다 |
+| `torch.where(조건)` | 인자 하나만 주면 축마다 좌표를 묶어 돌려준다 |
+
+첫 줄이 헷갈리는 자리다. `a[r, c]`에서 `r`과 `c`가 둘 다 길이 3인 벡터면 **행 3개
+× 열 3개 = 9개를 고르는 것이 아니라 짝지어 3개**를 고른다. 격자가 필요하면
+브로드캐스팅이 되도록 모양을 `(3,1)`과 `(1,2)`로 맞춰 주어야 한다.
+
+## 5. `None`과 줄임표
+
+```
+a[None].shape     : (1, 3, 4)   = unsqueeze(0)
+a[:, None].shape  : (3, 1, 4)
+a[..., None].shape: (3, 4, 1)   = unsqueeze(-1)
+```
+
+`None`은 그 자리에 길이 1인 축을 끼운다. `unsqueeze`와 같은 일인데, 여러 자리를
+한 번에 다룰 때 읽기 쉽다.
+
+줄임표 `...`는 **남은 축 전부**를 뜻한다.
+
+```
+big.shape      : (2, 3, 4, 5, 6)
+big[..., 0]    : (2, 3, 4, 5)
+big[0, ..., 2] : (3, 4, 5)
+```
+
+`big[:, :, :, :, 0]`이라고 적어도 같지만, 차원 수가 바뀌면 고쳐야 한다. `...`로
+적어 두면 안 고쳐도 된다. 마지막 축을 다루는 코드가 `[..., -1]`로 적히는 것이
+이 까닭이다.
+
+## 6. `where`는 양쪽을 다 셈한다
+
+이것이 이 쪽에서 가장 조심할 자리다.
+
+```python
+y = torch.where(x > 0, 1.0 / x, torch.zeros_like(x))
+```
+
+$x = 0$인 자리를 가려 두었으니 안전해 보인다. 순전파는 실제로 멀쩡하다.
+
+```
+순전파: [0.0, 1.0, 0.5]     <- 0 자리가 잘 가려졌다
+x.grad: [nan, -1.0, -0.25]  <- NaN 이 새어 나온다
+```
+
+**역전파에서 NaN이 나온다.** `torch.where`는 파이썬의 `if`가 아니다. 조건을 보고
+한쪽만 계산하는 것이 아니라, **`1.0 / x`를 세 자리 모두에 대해 먼저 계산해 놓고**
+그중에서 고른다. $1/0 = \infty$가 이미 만들어졌고 그 미분 $-1/x^2$도 그래프에
+남아 있으므로, 고르지 않은 자리의 미분이 그대로 올라온다.
+
+고치는 법은 **가리기 전에 입력을 안전하게 만드는 것**이다.
+
+```python
+denom = torch.where(x > 0, x, torch.ones_like(x))   # 분모를 먼저 고친다
+y = torch.where(x > 0, 1.0 / denom, torch.zeros_like(x))
+```
+
+```
+순전파: [0.0, 1.0, 0.5]
+x.grad: [0.0, -1.0, -0.25]  <- 깨끗하다
+```
+
+순전파 결과는 똑같다. 달라진 것은 **$1/0$이 애초에 만들어지지 않았다**는 것뿐이다.
+연습문제 3에서 이 규칙이 `log`와 `sqrt`에도 그대로 적용되는지 확인한다.
+
+## 7. 어텐션 마스크 — 쓸모와 함정
+
+트랜스포머에서 가리기를 쓰는 꼴이 이것이다. 가릴 자리에 $-\infty$를 넣고
+소프트맥스를 통과시키면 $e^{-\infty} = 0$이라 그 자리의 확률이 정확히 0이 된다.
+
+```
+일부만 가리면 softmax: [0.8623, 0.1377, 0.0, 0.0]
+```
+
+깔끔하다. 그런데 **한 줄을 통째로 가리면** 무너진다.
+
+```
+한 줄을 통째로 가리면: [nan, nan, nan, nan]
+```
+
+전부 $-\infty$이므로 소프트맥스의 분모 $\sum e^{s_i}$가 0이 되고, $0/0$이 된다.
+길이가 0인 문장이 배치에 하나라도 섞이면 여기서 NaN이 나고, 그 NaN이 역전파를
+타고 모델 전체로 번진다.
+
+6절과 같은 모양의 함정이다. **가리는 것은 이미 계산된 값을 고르는 일이지, 계산을
+안 하게 만드는 일이 아니다.**
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-모양이 $(3, 1, 5)$와 $(4, 5)$인 텐서가 주어졌을 때 덧셈 후의 출력 모양을 구하고 PyTorch로 확인하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+다음 여덟 가지가 뷰인지 베낀 것인지 가려라. `a = torch.arange(12).reshape(3, 4)`로
+놓고 `a[1:3]`, `a[:, 1:3]`, `a[::2]`, `a[1]`, `a[a > 5]`, `a[[0, 2]]`, `a.t()`,
+`a[..., None]`.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
-    a = torch.randn(3, 1, 5)
-    b = torch.randn(4, 5)
-    c = a + b
-    print(c.shape)  # torch.Size([3, 4, 5])
-    # b는 암묵적으로 (1, 4, 5)가 되고, 그다음 둘 다 (3, 4, 5)로 브로드캐스팅된다.
+    a = torch.arange(12).reshape(3, 4)
+
+    def shares(x, y):
+        return x.untyped_storage().data_ptr() == y.untyped_storage().data_ptr()
+
+    cases = (("a[1:3]", lambda t: t[1:3]),
+             ("a[:, 1:3]", lambda t: t[:, 1:3]),
+             ("a[::2]", lambda t: t[::2]),
+             ("a[1]", lambda t: t[1]),
+             ("a[a > 5]", lambda t: t[t > 5]),
+             ("a[[0, 2]]", lambda t: t[torch.tensor([0, 2])]),
+             ("a.t()", lambda t: t.t()),
+             ("a[..., None]", lambda t: t[..., None]))
+    for name, fn in cases:
+        r = fn(a)
+        print(f"  {name:14s} {'뷰  ' if shares(a, r) else '베낌'}  모양 {tuple(r.shape)}")
     ```
 
----
+    ```
+      a[1:3]         뷰    모양 (2, 4)
+      a[:, 1:3]      뷰    모양 (3, 2)
+      a[::2]         뷰    모양 (2, 4)
+      a[1]           뷰    모양 (4,)
+      a[a > 5]       베낌  모양 (6,)
+      a[[0, 2]]      베낌  모양 (2, 4)
+      a.t()          뷰    모양 (4, 3)
+      a[..., None]   뷰    모양 (3, 4, 1)
+    ```
 
+    **여덟 중 여섯이 뷰다.** 베끼는 것은 참거짓 가리기와 정수 배열 자리 잡기
+    둘뿐이다.
+
+    가르는 기준이 보인다. 꺼내는 자리가 **일정한 간격으로 놓여 있으면** 보폭으로
+    적을 수 있으니 뷰가 된다. `a[1]`은 한 행이니 잇달아 있고, `a[::2]`는 두 칸씩
+    건너뛰고, `a.t()`는 보폭을 바꿔 쓴 것이다.
+
+    `a[[0, 2]]`가 베끼는 것이 조금 아쉽다. 0번과 2번 행은 사실 간격이 고른데도
+    베낀다. 인덱스가 `[0, 2]`인지 `[0, 2, 1]`인지 미리 알 수 없으므로 일반적인
+    길로 처리하기 때문이다. 간격이 고른 것이 분명하면 `a[::2]`로 적어야 공짜다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-모양이 $(3, 4)$와 $(5,)$인 텐서의 덧계산이 실패하는 이유를 설명하라. 이 불일치를 고치는 서로 다른 두 가지 방법을 제안하라.
-
-</div>
-
-??? success "풀이"
-    마지막 차원이 4와 5인데 서로 같지도 않고 1도 아니다. 해결 1: 벡터를 열에 맞도록 바꾼다. 예를 들어 $(4,)$ 벡터를 쓴다. 해결 2: 벡터를 $(5, 1)$로 바꾸고 행렬을 $(5, 4)$로 바꾸어 올바른 축을 따라 브로드캐스팅이 되게 한다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff easy" title="쉬움"></span>
-`torch.outer`를 쓰지 않고 브로드캐스팅으로 두 벡터 $a = [1, 2, 3]$과 $b = [4, 5]$의 외적을 계산하라.
+길이가 제각각인 문장 넷을 길이 4로 맞춰 배치에 담았다. 길이가 `[3, 1, 4, 0]`일 때
+패딩 자리를 가리는 마스크를 만들고 소프트맥스를 통과시켜라. 7절에서 본 일이
+일어날 것이다. 어떻게 피하겠는가?
 
 </div>
 
 ??? success "풀이"
     ```python
-    a = torch.tensor([1., 2., 3.]).unsqueeze(1)  # (3, 1)
-    b = torch.tensor([4., 5.]).unsqueeze(0)       # (1, 2)
-    outer = a * b  # (3, 2)
-    print(outer)
-    # tensor([[ 4.,  5.],
-    #         [ 8., 10.],
-    #         [12., 15.]])
+    lengths = torch.tensor([3, 1, 4, 0])
+    L = 4
+    pad = torch.arange(L)[None, :] >= lengths[:, None]   # 브로드캐스팅으로 한 번에
+    torch.manual_seed(0)
+    scores = torch.randn(4, L)
+    p = torch.softmax(scores.masked_fill(pad, float("-inf")), dim=-1)
+    for row in p.tolist():
+        print("   ", [round(v, 4) for v in row])
+
+    # 빈 줄은 첫 칸만 열어 준다
+    safe = pad.clone()
+    safe[pad.all(dim=-1), 0] = False
+    p2 = torch.softmax(scores.masked_fill(safe, float("-inf")), dim=-1)
+    for row in p2.tolist():
+        print("   ", [round(v, 4) for v in row])
     ```
 
-## 정리하며
+    ```
+      패딩 마스크(X 가 가릴 자리)
+        . . . X
+        . X X X
+        . . . .
+        X X X X
 
-조건으로 원소를 모으는 마스킹과 두 후보 중 하나를 고르는 `where`는 결과 모양이 다르다. 읽기와 대입에서 메모리 공유 규칙도 달라진다.
+      [0.2287, 0.2227, 0.5487, 0.0]
+      [1.0, 0.0, 0.0, 0.0]
+      [0.3107, 0.0636, 0.3194, 0.3063]
+      [nan, nan, nan, nan]      <- 길이 0
+
+      빈 줄의 첫 칸만 열어 주면
+      [0.2287, 0.2227, 0.5487, 0.0]
+      [1.0, 0.0, 0.0, 0.0]
+      [0.3107, 0.0636, 0.3194, 0.3063]
+      [1.0, 0.0, 0.0, 0.0]
+    ```
+
+    마스크를 만드는 한 줄이 먼저 볼 만하다. `arange(L)[None, :] >= lengths[:, None]`은
+    `(1,4)`와 `(4,1)`을 브로드캐스팅해 `(4,4)`를 만든다. 루프 없이 "자리 번호가 그
+    줄의 길이 이상이면 패딩"을 그대로 적은 것이다.
+
+    길이 0인 넷째 줄이 전부 NaN이다. 고치는 길은 **빈 줄의 아무 칸이나 하나를
+    열어 두는 것**이다. 그러면 소프트맥스가 그 칸에 확률 1을 주고 NaN이 사라진다.
+    어차피 그 줄의 결과는 로스에서 빼야 하므로 어느 칸을 열든 상관없다.
+
+    더 나은 길은 애초에 빈 문장을 배치에 안 넣는 것이다. 다만 데이터가 큰 곳에서는
+    빈 줄 하나가 섞여 들어 학습 전체를 NaN으로 만드는 일이 실제로 생기므로,
+    방어를 한 줄 넣어 두는 쪽이 싸다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+6절은 `1/x`에서 NaN이 새는 것을 보였다. $\log x$와 $\sqrt{x}$에서도 같은 일이
+나는가? 셋을 한 틀로 확인하고, 고치는 **일반적인 꼴**을 적어라.
+
+</div>
+
+??? success "풀이"
+    ```python
+    for name, fn in (("1/x", lambda t: 1.0 / t),
+                     ("log(x)", lambda t: t.log()),
+                     ("sqrt(x)", lambda t: t.sqrt())):
+        x = torch.tensor([0.0, 1.0, 4.0], requires_grad=True)
+        y = torch.where(x > 0, fn(x), torch.zeros_like(x))
+        y.sum().backward()
+        print(f"  where(x>0, {name:8s}, 0)   x.grad "
+              f"{[round(v, 3) if v == v else 'nan' for v in x.grad.tolist()]}")
+
+    for name, fn in (("1/x", lambda t: 1.0 / t),
+                     ("log(x)", lambda t: t.log()),
+                     ("sqrt(x)", lambda t: t.sqrt())):
+        x = torch.tensor([0.0, 1.0, 4.0], requires_grad=True)
+        xs = torch.where(x > 0, x, torch.ones_like(x))   # 입력을 먼저 고친다
+        y = torch.where(x > 0, fn(xs), torch.zeros_like(x))
+        y.sum().backward()
+        print(f"  입력을 먼저 고치면 {name:8s} x.grad "
+              f"{[round(v, 3) for v in x.grad.tolist()]}")
+    ```
+
+    ```
+      where(x>0, 1/x     , 0)   x.grad ['nan', -1.0, -0.062]
+      where(x>0, log(x)  , 0)   x.grad ['nan', 1.0, 0.25]
+      where(x>0, sqrt(x) , 0)   x.grad ['nan', 0.5, 0.25]
+
+      입력을 먼저 고치면 1/x      x.grad [0.0, -1.0, -0.062]
+      입력을 먼저 고치면 log(x)   x.grad [0.0, 1.0, 0.25]
+      입력을 먼저 고치면 sqrt(x)  x.grad [0.0, 0.5, 0.25]
+    ```
+
+    **셋 다 같다.** 세 함수 모두 $x = 0$에서 도함수가 발산하므로
+    ($-1/x^2$, $1/x$, $1/(2\sqrt{x})$), 가려 두었어도 그 자리의 미분이 NaN으로
+    올라온다.
+
+    그러니 일반적인 꼴은 이렇게 적힌다.
+
+    ```python
+    # 틀림 — 출력을 가린다
+    y = torch.where(cond, f(x), fallback)
+
+    # 맞음 — 입력을 먼저 안전하게 만든다
+    x_safe = torch.where(cond, x, safe_value)
+    y = torch.where(cond, f(x_safe), fallback)
+    ```
+
+    `where`를 **두 번** 쓰는 것이 핵심이다. 안쪽 것이 $f$가 위험한 값을 아예
+    보지 못하게 막고, 바깥 것이 결과를 고른다. 흔히 "double where 트릭"이라
+    부른다.
+
+    더 간단한 길이 있을 때도 많다. $\log$라면 `torch.log(x + eps)`, 나눗셈이라면
+    `x / (d + eps)`처럼 작은 수를 더하는 것이다. 다만 `eps`를 더하면 **순전파
+    값도 조금 달라지므로**, 결과가 정확히 0이어야 하는 자리에서는 `where`를 두 번
+    쓰는 쪽이 맞다.
+
+    이 함정이 알아채기 어려운 까닭도 적어 둘 만하다. 순전파 값은 세 경우 모두
+    멀쩡했다. 로스를 찍어 보아도 정상이고, 학습이 몇 걸음 돌아가다 파라미터가
+    통째로 NaN이 되고 나서야 알게 된다. 그래서 NaN을 쫓을 때는 로스가 아니라
+    **경사**를 먼저 보아야 한다.
