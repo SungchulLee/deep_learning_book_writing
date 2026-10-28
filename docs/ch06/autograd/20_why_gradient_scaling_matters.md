@@ -1,83 +1,152 @@
-# 경사 스케일 조정이 필요한 이유
+# 배치를 키우면 러닝레이트를 어떻게 해야 하는가
 
-동일한 초기 웨이트에서 전체 배치의 경사와 두 마이크로배치의 누적 경사를 비교한다. 평균 로스를 그대로 더했을 때 생기는 배율 차이를 확인한다.
+「경사 누적」에서 `mean` 로스를 조각 수로 나누어야 한다는 것을 보았다. 그것은
+**같은 경사를 만들기 위한** 조정이었다 — 배치가 실제로 커진 것이 아니다.
+
+이 쪽은 다른 물음이다. 실효 배치를 **정말로** 키웠을 때 러닝레이트를 어떻게
+할 것인가. 경사의 **크기는 그대로**인데(평균이니까) 두 가지가 달라진다.
+
+| | 어떻게 되는가 | 어느 방향 |
+|---|---|---|
+| 에폭당 걸음 수 | 배치가 $k$배면 $1/k$배 | 러닝레이트를 **키워야** |
+| 경사의 잡음 | $1/\sqrt{k}$배 | 더 큰 걸음을 **견딜 수 있다** |
+
+앞의 것만 보면 $k$배(선형 규칙), 뒤의 것까지 보면 $\sqrt{k}$배가 맞다는 주장이
+나온다. 셋을 나란히 재어 본다.
 
 ## 1. 코드
 
 ```python
-"""그래디언트 척도 잡기가 왜 종요로운가."""
+"""배치를 키우면 러닝레이트를 어떻게 해야 하는가.
+
+「경사 누적」에서 `mean` 로스를 조각 수로 나누어야 한다는 것을 보았다.
+그것은 **같은 경사를 만들기 위한** 조정이었다.
+
+이 쪽은 다른 물음이다. 실효 배치를 **정말로 키웠을 때** 러닝레이트를
+어떻게 할 것인가. 경사의 크기는 그대로인데(평균이니까) 두 가지가
+달라진다.
+
+- **에폭당 걸음 수가 줄어든다** — 배치가 두 배면 걸음이 절반
+- **경사의 잡음이 줄어든다** — 표본이 많으면 추정이 정확해진다
+
+앞의 것만 보면 러닝레이트를 k 배 해야 하고(선형 규칙), 뒤의 것까지
+보면 sqrt(k) 배가 맞다는 주장이 나온다. 재어 본다.
+
+실행: python 20_why_gradient_scaling_matters.py
+"""
+import math
+
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
+N, D = 2048, 16
+BASE_B, BASE_LR = 32, 0.05
+
+
+def make_data(seed=0):
+    torch.manual_seed(seed)
+    X = torch.randn(N, D)
+    W = torch.randn(D, 1)
+    return X, X @ W + 0.1 * torch.randn(N, 1)
+
+
+def train(X, Y, batch, lr, epochs=4, seed=0):
+    torch.manual_seed(seed)
+    m = nn.Linear(D, 1)
+    opt = torch.optim.SGD(m.parameters(), lr=lr)
+    for _ in range(epochs):
+        perm = torch.randperm(N)
+        for i in range(0, N, batch):
+            idx = perm[i:i + batch]
+            opt.zero_grad()
+            F.mse_loss(m(X[idx]), Y[idx]).backward()
+            opt.step()
+    return F.mse_loss(m(X), Y).item()
+
 
 # ========================================================================
-# 메인
+# 1. 배치가 크면 걸음이 준다
 # ========================================================================
+
+def fewer_steps():
+    header("1. 에폭당 걸음 수")
+    for b in (32, 64, 128, 256, 512):
+        print(f"  배치 {b:4d}  에폭당 걸음 {N // b:3d}번  "
+              f"4 에폭이면 {4 * (N // b):4d}번")
+    print("  같은 데이터를 보는데 걷는 횟수가 열여섯 배 차이 난다")
+
+
+# ========================================================================
+# 2. 경사의 잡음은 줄어든다
+# ========================================================================
+
+def less_noise():
+    header("2. 배치와 경사의 잡음")
+    X, Y = make_data()
+    torch.manual_seed(0)
+    m = nn.Linear(D, 1)
+    for b in (8, 32, 128, 512, N):
+        gs = []
+        for t in range(16):
+            torch.manual_seed(100 + t)
+            idx = torch.randperm(N)[:b]
+            m.zero_grad()
+            F.mse_loss(m(X[idx]), Y[idx]).backward()
+            gs.append(m.weight.grad.flatten().clone())
+        G = torch.stack(gs)
+        spread = G.std(dim=0).mean().item()
+        size = G.mean(dim=0).norm().item()
+        print(f"  배치 {b:4d}  경사 크기 {size:7.4f}  표본마다 흔들림 {spread:7.4f}"
+              f"  비 {spread / size:6.3f}")
+    print("  크기는 그대로고 흔들림만 준다 — 평균이라 그렇다")
+    print("  흔들림이 1/sqrt(배치) 로 줄어드는 것이 sqrt 규칙의 근거다")
+
+
+# ========================================================================
+# 3. 세 가지 조정을 견준다
+# ========================================================================
+
+def three_rules():
+    header("3. 러닝레이트를 어떻게 할 것인가")
+    X, Y = make_data()
+    print(f"  기준: 배치 {BASE_B}, lr {BASE_LR}  ->"
+          f" {train(X, Y, BASE_B, BASE_LR):.6f}")
+    print(f"  {'배치':>5s}  {'그대로':>22s}  {'선형 k배':>22s}  {'sqrt k배':>22s}")
+    for b in (32, 64, 128, 256, 512):
+        k = b / BASE_B
+        cells = []
+        for lr in (BASE_LR, BASE_LR * k, BASE_LR * math.sqrt(k)):
+            cells.append(f"lr={lr:5.3f} {train(X, Y, b, lr):9.6f}")
+        print(f"  {b:5d}  " + "  ".join(f"{c:>22s}" for c in cells))
+
+
+# ========================================================================
+# 4. 읽기
+# ========================================================================
+
+def reading():
+    header("4. 무엇이 보이는가")
+    print("  그대로 두면 배치 256 부터 무너진다 — 걸음이 모자라서다")
+    print("  선형 k배는 256 까지 버티고 512 에서 나빠진다 — 걸음이 너무 커서다")
+    print("  sqrt k배는 끝까지 같은 자리에 닿는다")
+    print("  이 문제에서는 sqrt 쪽이 이겼다. 다만 조건이 붙는다")
+    print("    - 이 로스는 볼록하고 잡음이 작다")
+    print("    - 큰 딥러닝 모델에서는 선형 규칙이 더 잘 듣는다고 알려져 있다")
+    print("    - 어느 쪽이든 '안 바꾸는 것' 보다는 낫다")
+
 
 def main():
+    fewer_steps()
+    less_noise()
+    three_rules()
+    reading()
 
-    torch.manual_seed(3)
-
-    modelA = nn.Linear(3, 1, bias=False)
-    modelB = nn.Linear(3, 1, bias=False)
-
-    # 두 모델이 같은 지점에서 출발하도록 동일한 웨이트를 복사한다
-    with torch.no_grad():
-        modelB.weight.copy_(modelA.weight)
-
-    X = torch.randn(4, 3)
-    y = torch.randn(4, 1)
-
-    # -- 기준선: 전체 배치 평균 로스 → 참조 경사
-    # 전체 배치에 대해 loss = MSE(X→y, reduction="mean")의 경사를 계산한다.
-    # 마이크로배치 누적을 이 "정답"과 비교할 것이다.
-    pred_full = modelA(X)
-    loss_full = nn.functional.mse_loss(pred_full, y, reduction="mean")
-    loss_full.backward()
-
-    # param.grad에 관하여:
-    # - modelA.weight.grad는 autograd가 할당한 *경사 버퍼 텐서* 이다.
-    # - 순전파 그래프의 일부가 아니다(requires_grad=False, grad_fn=None).
-    # - 따라서 추적을 피하기 위해 .detach()가 필요하지는 않다. 이미 추적되지 않는다.
-    # - 다만 이후에 경사를 바꾸거나 지우기 전에 안정적인 스냅숏을 남기려면 복제가 유용하다.
-    #   (예: opt.zero_grad(set_to_none=True)는 grad를 None으로 만들고, 이후 backward()가 덮어쓴다.)
-    #
-    # 선택지:
-    #   grad_full = modelA.weight.grad.clone()                # 충분하다(어차피 추적되지 않는다)
-    #   grad_full = modelA.weight.grad.detach().clone()       # 이것도 괜찮다. 추가 .detach()는 불필요하다(방어적 코딩)
-    #   grad_full = modelA.weight.grad.detach()               # 저장소를 공유한다. 이후 grad가 바뀌면 위험하다
-    grad_full = modelA.weight.grad.detach().clone()
-
-    # -- modelB에 대한 마이크로배치 누적
-    modelB.zero_grad(set_to_none=True)
-    mb1 = (X[:2], y[:2])
-    mb2 = (X[2:], y[2:])
-
-    # (i) 잘못된 방법: 마이크로배치마다 **평균** 로스를 역전파하고 그냥 누적한다.
-    # 직관: 각 마이크로배치의 평균은 이미 자기 크기로 나뉘어 있다.
-    # 이런 경사 둘을 누적하면 전체 배치 평균 경사의 약 두 배가 된다(절반씩 같을 때).
-    # 그래서 결과가 너무 커진다(여기서는 약 2배).
-    pred1 = modelB(mb1[0])
-    loss1 = nn.functional.mse_loss(pred1, mb1[1], reduction="mean")
-    loss1.backward()  # grads accumulate → already too big
-    pred2 = modelB(mb2[0])
-    loss2 = nn.functional.mse_loss(pred2, mb2[1], reduction="mean")
-    loss2.backward()  # accumulates again → now ≈ 2× full-batch mean grad
-    wrong_grad = modelB.weight.grad.detach().clone()  # snapshot for fair comparison
-
-    # (ii) 올바른 방법: 각 마이크로배치의 평균 로스에 1 / (마이크로배치 개수)를 곱한다.
-    # 마이크로배치가 K개일 때 마이크로배치마다 (loss_mean / K)를 역전파한다.
-    # 그러면 누적된 경사가 전체 배치 평균 로스의 경사와 일치한다.
-    modelB.zero_grad(set_to_none=True)
-    pred1 = modelB(mb1[0])
-    (nn.functional.mse_loss(pred1, mb1[1], reduction="mean") / 2).backward()
-    pred2 = modelB(mb2[0])
-    (nn.functional.mse_loss(pred2, mb2[1], reduction="mean") / 2).backward()
-    right_grad = modelB.weight.grad.detach().clone()  # safe snapshot again
-
-    print("Full-batch grad:\n", grad_full)
-    print("Accumulated grad (WRONG, unscaled):\n", wrong_grad)
-    print("Accumulated grad (RIGHT, scaled):\n", right_grad)
-    print("max |full - right|:", (grad_full - right_grad).abs().max().item())
 
 if __name__ == "__main__":
     main()
@@ -86,82 +155,250 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-Full-batch grad:
- tensor([[-0.7326, -2.7886,  0.2189]])
-Accumulated grad (WRONG, unscaled):
- tensor([[-1.4653, -5.5773,  0.4379]])
-Accumulated grad (RIGHT, scaled):
- tensor([[-0.7326, -2.7886,  0.2189]])
-max |full - right|: 5.960464477539063e-08
+=== 1. 에폭당 걸음 수 ===
+  배치   32  에폭당 걸음  64번  4 에폭이면  256번
+  배치   64  에폭당 걸음  32번  4 에폭이면  128번
+  배치  128  에폭당 걸음  16번  4 에폭이면   64번
+  배치  256  에폭당 걸음   8번  4 에폭이면   32번
+  배치  512  에폭당 걸음   4번  4 에폭이면   16번
+  같은 데이터를 보는데 걷는 횟수가 열여섯 배 차이 난다
+
+=== 2. 배치와 경사의 잡음 ===
+  배치    8  경사 크기  9.3937  표본마다 흔들림  3.2639  비  0.347
+  배치   32  경사 크기  9.9579  표본마다 흔들림  1.8499  비  0.186
+  배치  128  경사 크기 10.6477  표본마다 흔들림  0.9664  비  0.091
+  배치  512  경사 크기 11.0757  표본마다 흔들림  0.4676  비  0.042
+  배치 2048  경사 크기 10.9422  표본마다 흔들림  0.0000  비  0.000
+  크기는 그대로고 흔들림만 준다 — 평균이라 그렇다
+  흔들림이 1/sqrt(배치) 로 줄어드는 것이 sqrt 규칙의 근거다
+
+=== 3. 러닝레이트를 어떻게 할 것인가 ===
+  기준: 배치 32, lr 0.05  -> 0.009760
+     배치                     그대로                   선형 k배                 sqrt k배
+     32      lr=0.050  0.009760      lr=0.050  0.009760      lr=0.050  0.009760
+     64      lr=0.050  0.009688      lr=0.100  0.009775      lr=0.071  0.009714
+    128      lr=0.050  0.009786      lr=0.200  0.009794      lr=0.100  0.009689
+    256      lr=0.050  0.066415      lr=0.400  0.009827      lr=0.141  0.009678
+    512      lr=0.050  1.321642      lr=0.800  0.018453      lr=0.200  0.009684
+
+=== 4. 무엇이 보이는가 ===
+  그대로 두면 배치 256 부터 무너진다 — 걸음이 모자라서다
+  선형 k배는 256 까지 버티고 512 에서 나빠진다 — 걸음이 너무 커서다
+  sqrt k배는 끝까지 같은 자리에 닿는다
+  이 문제에서는 sqrt 쪽이 이겼다. 다만 조건이 붙는다
+    - 이 로스는 볼록하고 잡음이 작다
+    - 큰 딥러닝 모델에서는 선형 규칙이 더 잘 듣는다고 알려져 있다
+    - 어느 쪽이든 '안 바꾸는 것' 보다는 낫다
 ```
 
-## 2. 논의
+## 2. 걸음이 줄어든다
 
-### 비교 조건 고정하기
+```
+배치   32  에폭당 걸음  64번   4 에폭이면  256번
+배치  512  에폭당 걸음   4번   4 에폭이면   16번
+```
 
-두 선형 모델의 웨이트를 같게 복사하고, 같은 데이터에서 업데이트 없이 경사만 계산한다. 그래야 차이가 초기값이나 파라미터 변화가 아니라 로스의 스케일에서 비롯되는지 판단할 수 있다.
+같은 데이터를 네 번 보는데 걷는 횟수가 **열여섯 배** 차이 난다. 러닝레이트가
+같으면 큰 배치 쪽이 훨씬 덜 움직인다 — 그것만으로도 덜 배운다.
 
-### 두 평균의 합은 전체 평균의 두 배
+## 3. 잡음만 줄어든다
 
-크기가 같은 두 마이크로배치의 평균 로스를 $L_1,L_2$라 하면 전체 로스는 $(L_1+L_2)/2$이다. 두 로스를 나누지 않고 역전파하면 $\nabla L_1+\nabla L_2$가 쌓여 전체 경사의 두 배가 된다. 각 로스를 2로 나누면 전체 배치의 평균 경사와 맞는다.
+| 배치 | 경사 크기 | 표본마다 흔들림 | 비 |
+|---|---|---|---|
+| 8 | 9.3937 | 3.2639 | 0.347 |
+| 32 | 9.9579 | 1.8499 | 0.186 |
+| 128 | 10.6477 | 0.9664 | 0.091 |
+| 512 | 11.0757 | 0.4676 | 0.042 |
+| 2048 (전체) | 10.9422 | 0.0000 | 0.000 |
 
-단순 SGD에서는 이 배율이 러닝레이트를 두 배로 한 효과를 내지만, Adam이나 경사 클리핑까지 포함한 모든 업데이트가 같은 방식으로 변하는 것은 아니다. 여기서 말하는 스케일 조정은 배치 평균을 맞추는 작업이며, 혼합 정밀도에서 언더플로를 줄이기 위한 `GradScaler`와 목적이 다르다.
+**크기는 거의 그대로이고 흔들림만 준다.** 로스가 평균이므로 기댓값이 배치
+크기와 무관하기 때문이다.
+
+비가 0.347 → 0.186 → 0.091 → 0.042로, 배치가 네 배 될 때마다 **거의 정확히
+절반**이 된다. $1/\sqrt{k}$다. 전체 배치에서는 흔들림이 0이다 — 뽑을 것이
+없으니 매번 같은 경사가 나온다.
+
+이것이 sqrt 규칙의 근거다. 잡음이 절반이면 두 배 큰 걸음을 걸어도 같은 만큼
+흔들린다.
+
+## 4. 세 가지를 견주면
+
+| 배치 | 그대로 (lr 0.05) | 선형 $k$배 | $\sqrt{k}$배 |
+|---|---|---|---|
+| 32 | 0.009760 | 0.009760 | 0.009760 |
+| 64 | 0.009688 | 0.009775 | 0.009714 |
+| 128 | 0.009786 | 0.009794 | 0.009689 |
+| 256 | **0.066415** | 0.009827 | 0.009678 |
+| 512 | **1.321642** | **0.018453** | **0.009684** |
+
+세 가지가 다르게 무너진다.
+
+- **그대로 두면** 256부터 무너지고 512에서 1.32다. 백 배 이상 나쁘다.
+  **걸음이 모자라서**다 — 네 걸음으로는 어디도 못 간다
+- **선형 $k$배**는 256까지 버티고 512에서 두 배 나빠진다. 이제 **걸음이 너무
+  커서**다
+- **$\sqrt{k}$배**는 끝까지 0.0097 언저리에 닿는다
+
+> 이 문제에서 $\sqrt{k}$가 이겼다는 것을 일반 법칙으로 읽으면 안 된다. 이
+> 로스는 **볼록하고 잡음이 작다.** 큰 영상 모델에서는 선형 규칙이 더 잘 듣는
+> 것으로 알려져 있고, 실제로 ImageNet을 큰 배치로 학습하는 작업들이 선형
+> 규칙에 워밍업을 붙여 쓴다.
+>
+> 확실한 것은 하나다. **안 바꾸는 것보다는 어느 쪽이든 낫다.** 배치를 바꾸면서
+> 러닝레이트를 그대로 두는 것이 가장 나쁘다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
+배치를 $k$배 키우고 러닝레이트도 $k$배 하면, **한 에폭 동안 파라미터가 움직이는
+총 거리**는 어떻게 되는가? 걸음 수와 걸음 크기로 셈해 보라.
 
 </div>
 
 ??? success "풀이"
-    ```python
-    import torch
+    셈이 간단하다. 배치를 $k$배 하면
 
-    x = torch.tensor(3.0, requires_grad=True)
-    f = x**3 - 2*x**2 + x
-    f.backward()
-    print(x.grad)  # f'(x) = 3x^2 - 4x + 1 = 27 - 12 + 1 = 16.0
+    - 걸음 수: $1/k$배
+    - 걸음 크기: 러닝레이트를 $k$배 했으므로 $k$배 (경사 크기는 그대로)
+
+    곱하면 **1배** — 총 거리가 같다.
+
+    ```python
+    X, Y = make_data()
+    for b in (32, 128, 512):
+        k = b / 32
+        torch.manual_seed(0)
+        m = nn.Linear(D, 1)
+        start = m.weight.detach().clone()
+        opt = torch.optim.SGD(m.parameters(), lr=0.05 * k)
+        moved = 0.0
+        perm = torch.randperm(N)
+        for i in range(0, N, b):
+            prev = m.weight.detach().clone()
+            idx = perm[i:i + b]
+            opt.zero_grad(); F.mse_loss(m(X[idx]), Y[idx]).backward(); opt.step()
+            moved += (m.weight.detach() - prev).norm().item()
+        print(f"  배치 {b:4d}  걸음 {N // b:3d}번  "
+              f"움직인 길이 합 {moved:7.4f}  "
+              f"처음에서의 거리 {(m.weight.detach() - start).norm():7.4f}")
     ```
 
----
+    ```
+      배치   32  걸음  64번  움직인 길이 합   7.3213  처음에서의 거리  5.7478
+      배치  128  걸음  16번  움직인 길이 합   6.4124  처음에서의 거리  5.7552
+      배치  512  걸음   4번  움직인 길이 합  18.6414  처음에서의 거리  5.4709
+    ```
 
+    **처음에서의 거리가 셋 다 5.5~5.8로 거의 같다.** 선형 규칙이 노리는 것이
+    이것이다 — 한 에폭에 같은 만큼 이동하게 만든다.
+
+    "움직인 길이 합"은 짐작과 다르게 나왔다. 32와 128은 7.3과 6.4로 비슷한데
+    **512가 18.6으로 훌쩍 크다.** 네 걸음뿐인데 걸음마다 lr이 0.8이라 한 번에
+    크게 지나쳤다 되돌아오기를 했기 때문이다.
+
+    그러니 "큰 배치가 곧은 길로 간다"는 말은 **걸음이 적당할 때만** 참이다.
+    걸음을 $k$배로 키워 놓으면 그 큰 걸음이 또 다른 지그재그를 만든다. 4절에서
+    선형 규칙이 512에서 무너진 것과 같은 장면을 다른 각도로 본 셈이다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-크기가 같은 두 마이크로배치의 평균 로스를 나누지 않고 누적하면 전체 배치 경사와 어떤 차이가 나는가?
-
-</div>
-
-??? success "풀이"
-    전체 평균 로스는 두 배치 평균의 절반이므로 나누지 않고 더한 경사는 전체 경사의 두 배다. 각 로스를 2로 나누면 같은 스케일이 된다. 배치 크기가 다르면 실제 평균 대상 원소 수로 가중해야 한다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+3절의 잡음 비가 $1/\sqrt{b}$를 정말 따르는가? 배치를 네 배씩 키우며 비가
+절반이 되는지 확인하라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
-
-    w = torch.tensor(2.0, requires_grad=True)
-    for i in range(3):
-        loss = (w ** 2).sum()
-        loss.backward()
-        print(f'After backward {i+1}: w.grad = {w.grad}')
-    # 출력: 4.0, 8.0, 12.0
-    # 경사가 누적된다. 매 backward가 기존 경사에 2*w = 4.0을 더한다.
+    torch.manual_seed(0)
+    m = nn.Linear(D, 1)
+    prev = None
+    for b in (8, 32, 128, 512):
+        gs = []
+        for t in range(32):
+            torch.manual_seed(100 + t)
+            idx = torch.randperm(N)[:b]
+            m.zero_grad()
+            F.mse_loss(m(X[idx]), Y[idx]).backward()
+            gs.append(m.weight.grad.flatten().clone())
+        G = torch.stack(gs)
+        r = (G.std(0).mean() / G.mean(0).norm()).item()
+        note = "" if prev is None else f"  앞의 {prev / r:.2f}배 작아짐"
+        print(f"  배치 {b:4d}  잡음비 {r:.4f}{note}")
+        prev = r
     ```
 
-## 정리하며
+    ```
+      배치    8  잡음비 0.3436
+      배치   32  잡음비 0.1787  앞의 1.92배 작아짐
+      배치  128  잡음비 0.0894  앞의 2.00배 작아짐
+      배치  512  잡음비 0.0404  앞의 2.21배 작아짐
+    ```
 
-누적 경사를 비교하려면 초기 파라미터와 로스의 평균 기준을 맞춘다. 마이크로배치 평균을 그대로 더하면 유효 러닝레이트가 의도와 달라질 수 있다.
+    **1.92, 2.00, 2.21** — $\sqrt{4} = 2$ 둘레에서 흔들린다.
+
+    표본 32개로 잰 값이라 그 자체가 잡음을 품고 있다. 더 많이 재면 2에 더
+    붙겠지만, 지금도 법칙이 보일 만큼은 맞는다.
+
+    이것이 통계에서 가장 흔한 꼴이다. 「완전한 선형 회귀」 연습문제 2에서 표본
+    수와 추정 오차가 같은 관계였다. **독립인 것을 $n$개 평균내면 흔들림이
+    $\sqrt{n}$에 반비례해 줄어든다.**
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+4절에서 선형 규칙이 배치 512에서 무너졌다(0.0185). **워밍업**을 붙이면
+나아지는가? 처음 몇 걸음 동안 러닝레이트를 0에서부터 올려 보라.
+
+</div>
+
+??? success "풀이"
+    ```python
+    def train_warm(batch, lr, epochs=4, warmup=0, seed=0):
+        torch.manual_seed(seed)
+        m = nn.Linear(D, 1)
+        opt = torch.optim.SGD(m.parameters(), lr=lr)
+        step = 0
+        for _ in range(epochs):
+            perm = torch.randperm(N)
+            for i in range(0, N, batch):
+                step += 1
+                cur = lr * min(1.0, step / warmup) if warmup else lr
+                for g in opt.param_groups:
+                    g["lr"] = cur
+                idx = perm[i:i + batch]
+                opt.zero_grad()
+                F.mse_loss(m(X[idx]), Y[idx]).backward()
+                opt.step()
+        return F.mse_loss(m(X), Y).item()
+
+    for wu in (0, 2, 4, 8):
+        print(f"  워밍업 {wu:2d} 걸음  마지막 로스 {train_warm(512, 0.8, warmup=wu):.6f}")
+    ```
+
+    ```
+      워밍업  0 걸음  마지막 로스 0.018453
+      워밍업  2 걸음  마지막 로스 0.013331
+      워밍업  4 걸음  마지막 로스 0.011875
+      워밍업  8 걸음  마지막 로스 0.011976
+    ```
+
+    **나아진다.** 0.0185에서 0.0119로, 거의 sqrt 규칙(0.0097) 가까이 간다.
+
+    까닭은 **초반의 경사가 가장 크기 때문**이다. 무작위 초기값에서 출발하면
+    첫 몇 걸음의 경사가 유난히 크고, 거기에 큰 러닝레이트를 곱하면 지나친다.
+    충분히 가까워진 뒤에는 같은 러닝레이트가 안전하다.
+
+    워밍업 8걸음이 4걸음보다 조금 나쁜 것도 보아 둘 만하다. 전체가 16걸음뿐이라
+    **절반을 워밍업에 쓰면 제 속도로 걷는 구간이 모자란다.** 워밍업 길이도
+    공짜가 아니다.
+
+    실전에서는 전체 걸음의 1~5% 정도를 쓴다. 큰 배치로 ImageNet을 학습하는
+    작업들이 선형 규칙 + 몇 에폭 워밍업을 함께 쓰는 까닭이 여기 있다 —
+    둘이 한 짝이다.
