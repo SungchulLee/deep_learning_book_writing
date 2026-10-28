@@ -1,714 +1,484 @@
-# 비교, 범위 제한, 정렬
+# 비교, 범위 제한, 정렬 — NaN이 섞이면 달라지는 것들
 
-비교는 참·거짓을 만들고, 범위 제한은 값을 바꾸며, 정렬은 값의 순서와 위치를 반환한다. 비슷한 이름의 함수가 묻는 질문을 구별한다.
+비교 연산자는 참거짓 텐서를 주고, 정렬은 값과 자리를 같이 준다. 거기까지는
+짐작대로다. 조심할 자리가 둘이다.
+
+- **NaN은 어느 비교에도 참이 아니다.** `x > 0`도 `x < 0`도 거짓이라, 거르는
+  조건을 **어떻게 적느냐에 따라** NaN이 남기도 하고 빠지기도 한다
+- **`clamp`의 경사는 범위 밖에서 0이다.** 자른 자리는 학습이 멈춘다
 
 ## 1. 코드
 
 ```python
-#!/usr/bin/env python3
-"""
-견주기, 조건 셈, 줄 세우기, 고르기.
+"""비교, 범위 제한, 정렬 — NaN 이 섞이면 달라지는 것들.
 
-Covers:
-- 견주기 셈: ==, !=, <, <=, >, >=
-- 논리 셈: &, |, ~
-- 조건에 따라 고르는 torch.where
-- 제한하기: clamp, clip
-- 줄 세우기: sort, argsort
-- 위 k개 고르기: topk, kthvalue
-- 원소 찾기: eq, ne, lt, le, gt, ge
-- isnan, isinf, isfinite 살피기
-"""
+비교 연산자는 참거짓 텐서를 돌려주고, 정렬은 값과 자리를 같이 준다.
+여기까지는 짐작대로다. 조심할 자리가 둘이다.
 
+- **NaN 은 어느 비교에도 참이 아니다.** `x > 0` 도 `x < 0` 도 거짓이라,
+  거르는 조건을 어떻게 적느냐에 따라 NaN 이 남기도 하고 빠지기도 한다
+- **`clamp` 의 경사는 범위 밖에서 0 이다.** 자른 자리는 학습이 멈춘다
+
+실행: python 15_comparison_clamping_sorting.py
+"""
 import torch
 
+NAN = float("nan")
+INF = float("inf")
+
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
 # ========================================================================
-# 메인
+# 1. 비교는 참거짓 텐서를 준다
 # ========================================================================
 
-def header(title: str):
-    print("\n" + "=" * 80)
-    print(title)
-    print("=" * 80)
+def comparisons():
+    header("1. 비교 연산자")
+    a = torch.tensor([1, 5, 3, 5])
+    b = torch.tensor([2, 4, 3, 5])
+    print("  a =", a.tolist(), "  b =", b.tolist())
+    print("  a > b  :", (a > b).tolist(), " dtype", (a > b).dtype)
+    print("  a == b :", (a == b).tolist())
+    print("  a >= 3 :", (a >= 3).tolist(), " 스칼라와도 된다")
+    print("  (a > b).sum() =", (a > b).sum().item(), " <- 참을 센다")
+    print("  & | ~ 로 묶는다:", ((a > 2) & (a < 5)).tolist())
+    print("  and/or/not 는 못 쓴다. 텐서를 참거짓 하나로 줄일 수 없어서다")
+    print("  torch.equal(a, b) 는 통째로 비교해 하나를 준다:",
+          torch.equal(a, b))
+
+
+# ========================================================================
+# 2. NaN 은 어느 비교에도 참이 아니다
+# ========================================================================
+
+def nan_comparisons():
+    header("2. NaN 과 비교")
+    print("  nan == nan :", (torch.tensor(NAN) == torch.tensor(NAN)).item())
+    x = torch.tensor([1.0, NAN, 3.0])
+    print("  x =", x.tolist())
+    print("  x > 0 :", (x > 0).tolist())
+    print("  x < 0 :", (x < 0).tolist(), " <- 둘 다 거짓이다")
+    print("  x[x > 0]    :", x[x > 0].tolist(), " <- NaN 이 조용히 빠진다")
+    print("  x[~(x <= 0)]:", x[~(x <= 0)].tolist(), " <- 부정하면 남는다")
+    print("  같은 뜻으로 적은 두 조건이 다른 답을 준다")
+    print("  NaN 을 찾으려면 isnan 을 써야 한다:", torch.isnan(x).tolist())
+
+    s = torch.tensor([1.0, NAN, INF, -INF])
+    print("  isfinite:", torch.isfinite(s).tolist())
+    print("  isinf   :", torch.isinf(s).tolist())
+
+
+# ========================================================================
+# 3. 정렬과 극값에서의 NaN
+# ========================================================================
+
+def nan_in_sorting():
+    header("3. 정렬과 극값에서의 NaN")
+    y = torch.tensor([3.0, NAN, 1.0, 2.0])
+    print("  y =", y.tolist())
+    print("  sort().values :", y.sort().values.tolist(), " <- 맨 뒤로 간다")
+    print("  max()         :", y.max().item(), " <- 번져 나온다")
+    print("  argmax()      :", y.argmax().item(), " <- NaN 자리를 가리킨다")
+    print("  maximum(y, 0) :", torch.maximum(y, torch.zeros(4)).tolist())
+    print("  nanmean / nansum 은 건너뛴다:",
+          torch.tensor([1.0, NAN, 3.0]).nanmean().item(),
+          torch.tensor([1.0, NAN, 3.0]).nansum().item())
+    print("  max 와 argmax 가 어긋나 보이지만 둘 다 NaN 자리를 말하고 있다")
+
+
+# ========================================================================
+# 4. clamp 의 경사는 밖에서 0 이다
+# ========================================================================
+
+def clamping():
+    header("4. clamp")
+    x = torch.tensor([-3.0, -0.5, 0.5, 3.0])
+    print("  x            :", x.tolist())
+    print("  clamp(-1, 1) :", x.clamp(-1, 1).tolist())
+    print("  clamp(min=0) :", x.clamp(min=0).tolist(), " = relu")
+    print("  clip 은 clamp 의 다른 이름:", torch.equal(x.clip(-1, 1),
+                                                 x.clamp(-1, 1)))
+
+    v = torch.tensor([-3.0, -0.5, 0.5, 3.0], requires_grad=True)
+    v.clamp(-1, 1).sum().backward()
+    print("  clamp 의 경사:", v.grad.tolist())
+    print("  잘린 자리는 0 이다 — 그 원소는 더 이상 배우지 않는다")
+    print("  활성값을 clamp 로 묶으면 ReLU 의 죽은 뉴런과 같은 일이 난다")
+
+
+# ========================================================================
+# 5. 정렬 · topk · kthvalue
+# ========================================================================
+
+def sorting():
+    header("5. 정렬과 고르기")
+    t = torch.tensor([3.0, 1.0, 4.0, 1.0, 5.0])
+    v, i = t.sort()
+    print("  sort        값:", v.tolist(), " 자리:", i.tolist())
+    print("  sort(내림차순):", t.sort(descending=True).values.tolist())
+    print("  argsort     :", t.argsort().tolist(), " = sort 의 자리만")
+    print("  정렬한 값은 t[argsort] 와 같은가:",
+          torch.equal(t[t.argsort()], t.sort().values))
+
+    tv, ti = t.topk(2)
+    print("  topk(2)     값:", tv.tolist(), " 자리:", ti.tolist())
+    print("  topk(2, largest=False):", t.topk(2, largest=False).values.tolist())
+    print("  kthvalue(2) 두 번째로 작은 값:", t.kthvalue(2).values.item())
+
+    m = torch.tensor([[3.0, 1.0], [2.0, 4.0]])
+    print("  2차원은 축을 고른다 sort(dim=0):",
+          m.sort(dim=0).values.flatten().tolist())
+
+
+# ========================================================================
+# 6. 가까운가 — allclose 의 식
+# ========================================================================
+
+def closeness():
+    header("6. allclose")
+    a = torch.tensor([1.0, 2.0, 3.0])
+    print("  기본값은 rtol=1e-5, atol=1e-8")
+    print("  판정식은 |a - b| <= atol + rtol * |b| 다")
+    for d in (1e-4, 1e-5, 1e-6):
+        b = a + d
+        bound = 1e-8 + 1e-5 * b.abs()
+        print(f"  차이 {d:.0e}  |a-b| {d:.1e} vs 한계 {bound.min():.1e}~"
+              f"{bound.max():.1e}  allclose {torch.allclose(a, b)}")
+    print("  rtol 이 상대 오차라 큰 값일수록 너그러워진다")
+    print("  0 근처를 견줄 때는 atol 을 손으로 올려야 한다")
+    z = torch.zeros(3)
+    print("  allclose(0, 1e-7) :", torch.allclose(z, z + 1e-7))
+    print("  allclose(0, 1e-7, atol=1e-6):",
+          torch.allclose(z, z + 1e-7, atol=1e-6))
+    print("  NaN 은 기본으로 같지 않다:",
+          torch.allclose(torch.tensor([NAN]), torch.tensor([NAN])))
+    print("  equal_nan=True 로 바꿀 수 있다:",
+          torch.allclose(torch.tensor([NAN]), torch.tensor([NAN]),
+                         equal_nan=True))
+
 
 def main():
-    torch.manual_seed(42)
+    comparisons()
+    nan_comparisons()
+    nan_in_sorting()
+    clamping()
+    sorting()
+    closeness()
 
-    # -------------------------------------------------------------------------
-    header("Basic comparison operators")
-    a = torch.tensor([1, 2, 3, 4, 5])
-    b = torch.tensor([1, 1, 3, 5, 5])
-    
-    print("a:", a)
-    print("b:", b)
-    print("a == b:", a == b)
-    print("a != b:", a != b)
-    print("a < b:", a < b)
-    print("a <= b:", a <= b)
-    print("a > b:", a > b)
-    print("a >= b:", a >= b)
-
-    # -------------------------------------------------------------------------
-    header("Comparison with scalars")
-    x = torch.randn(5)
-    print("x:", x)
-    print("x > 0:", x > 0)
-    print("x <= 0.5:", x <= 0.5)
-    print("x == 0:", x == 0)
-
-    # -------------------------------------------------------------------------
-    header("Element-wise comparison functions")
-    a = torch.tensor([1., 2., 3.])
-    b = torch.tensor([2., 2., 2.])
-    
-    print("torch.eq(a, b):", torch.eq(a, b))  # Equal
-    print("torch.ne(a, b):", torch.ne(a, b))  # Not equal
-    print("torch.lt(a, b):", torch.lt(a, b))  # Less than
-    print("torch.le(a, b):", torch.le(a, b))  # Less or equal
-    print("torch.gt(a, b):", torch.gt(a, b))  # Greater than
-    print("torch.ge(a, b):", torch.ge(a, b))  # Greater or equal
-
-    # -------------------------------------------------------------------------
-    header("Logical operators: &, |, ~ (and, or, not)")
-    a = torch.tensor([True, True, False, False])
-    b = torch.tensor([True, False, True, False])
-    
-    print("a:", a)
-    print("b:", b)
-    print("a & b (and):", a & b)
-    print("a | b (or):", a | b)
-    print("~a (not):", ~a)
-    
-    # 조건 결합
-    x = torch.randn(10)
-    print("\nx:", x)
-    in_range = (x > -0.5) & (x < 0.5)
-    print("In range [-0.5, 0.5]:", in_range)
-    print("Values:", x[in_range])
-
-    # -------------------------------------------------------------------------
-    header("torch.where: conditional selection")
-    condition = torch.tensor([True, False, True, False])
-    a = torch.tensor([1, 2, 3, 4])
-    b = torch.tensor([10, 20, 30, 40])
-    
-    # 조건이 참인 곳은 a에서, 그 밖에는 b에서 선택
-    result = torch.where(condition, a, b)
-    print("condition:", condition)
-    print("a:", a)
-    print("b:", b)
-    print("where(condition, a, b):", result)
-    
-    # 브로드캐스팅 사용
-    x = torch.randn(5)
-    result = torch.where(x > 0, x, torch.tensor(0.))
-    print("\nx:", x)
-    print("ReLU (x if x>0 else 0):", result)
-
-    # -------------------------------------------------------------------------
-    header("clamp: limit values to range")
-    x = torch.tensor([-2., -1., 0., 1., 2., 3., 4.])
-    print("x:", x)
-    
-    # [0, 2]로 범위 제한
-    clamped = torch.clamp(x, min=0, max=2)
-    print("clamp(0, 2):", clamped)
-    
-    # 최솟값만
-    clamped_min = torch.clamp(x, min=0)
-    print("clamp(min=0):", clamped_min)
-    
-    # 최댓값만
-    clamped_max = torch.clamp(x, max=2)
-    print("clamp(max=2):", clamped_max)
-    
-    # 제자리 버전
-    x_copy = x.clone()
-    x_copy.clamp_(0, 2)
-    print("After clamp_(0, 2):", x_copy)
-
-    # -------------------------------------------------------------------------
-    header("clip: alias for clamp")
-    x = torch.randn(5)
-    clipped = torch.clip(x, -1, 1)
-    clamped = torch.clamp(x, -1, 1)
-    print("clip and clamp are identical:", torch.allclose(clipped, clamped))
-
-    # -------------------------------------------------------------------------
-    header("sort: sort values along dimension")
-    x = torch.tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    print("x:", x)
-    
-    # 오름차순 정렬(기본값)
-    sorted_vals, sorted_indices = torch.sort(x)
-    print("Sorted values:", sorted_vals)
-    print("Sorted indices:", sorted_indices)
-    
-    # 내림차순 정렬
-    sorted_desc, indices_desc = torch.sort(x, descending=True)
-    print("Sorted descending:", sorted_desc)
-    
-    # 2차원 정렬
-    mat = torch.randint(0, 10, (3, 4))
-    print("\nMatrix:\n", mat)
-    sorted_rows, _ = torch.sort(mat, dim=1)
-    print("Sorted rows:\n", sorted_rows)
-    sorted_cols, _ = torch.sort(mat, dim=0)
-    print("Sorted columns:\n", sorted_cols)
-
-    # -------------------------------------------------------------------------
-    header("argsort: indices that would sort the tensor")
-    x = torch.tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    print("x:", x)
-    
-    indices = torch.argsort(x)
-    print("argsort:", indices)
-    
-    # 인덱스로 정렬
-    sorted_x = x[indices]
-    print("x[argsort]:", sorted_x)
-    
-    # 내림차순
-    indices_desc = torch.argsort(x, descending=True)
-    print("argsort(descending):", indices_desc)
-
-    # -------------------------------------------------------------------------
-    header("topk: k largest (or smallest) elements")
-    x = torch.tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    print("x:", x)
-    
-    # 상위 3개 값
-    top_vals, top_indices = torch.topk(x, k=3)
-    print("Top 3 values:", top_vals)
-    print("Top 3 indices:", top_indices)
-    
-    # 하위 3개(가장 작은 값들)
-    bottom_vals, bottom_indices = torch.topk(x, k=3, largest=False)
-    print("Bottom 3 values:", bottom_vals)
-    print("Bottom 3 indices:", bottom_indices)
-    
-    # 2차원 topk
-    mat = torch.randint(0, 10, (3, 5))
-    print("\nMatrix:\n", mat)
-    top_vals, top_indices = torch.topk(mat, k=2, dim=1)
-    print("Top 2 per row:\n", top_vals)
-
-    # -------------------------------------------------------------------------
-    header("kthvalue: k-th smallest element")
-    x = torch.tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    print("x:", x)
-    
-    # 다섯 번째로 작은 값(원소가 9개일 때의 중앙값)
-    kth_val, kth_idx = torch.kthvalue(x, k=5)
-    print("5th smallest value:", kth_val.item())
-    print("5th smallest index:", kth_idx.item())
-
-    # -------------------------------------------------------------------------
-    header("Checking for special values: nan, inf")
-    x = torch.tensor([1., float('nan'), 3., float('inf'), -float('inf')])
-    print("x:", x)
-    
-    print("isnan:", torch.isnan(x))
-    print("isinf:", torch.isinf(x))
-    print("isfinite:", torch.isfinite(x))
-    print("isposinf:", torch.isposinf(x))
-    print("isneginf:", torch.isneginf(x))
-    
-    # 특수한 값 세기
-    print("Number of NaNs:", torch.isnan(x).sum().item())
-    print("Number of infs:", torch.isinf(x).sum().item())
-
-    # -------------------------------------------------------------------------
-    header("allclose and isclose: approximate equality")
-    a = torch.tensor([1.0, 2.0, 3.0])
-    b = torch.tensor([1.0001, 2.0001, 3.0001])
-    
-    print("a:", a)
-    print("b:", b)
-    print("a == b:", (a == b).all().item())
-    print("allclose (default tol):", torch.allclose(a, b))
-    print("allclose (strict tol):", torch.allclose(a, b, atol=1e-5, rtol=1e-5))
-    
-    # 원소별 확인
-    close = torch.isclose(a, b)
-    print("isclose:", close)
-
-    # -------------------------------------------------------------------------
-    header("equal: exact equality of all elements")
-    a = torch.tensor([1, 2, 3])
-    b = torch.tensor([1, 2, 3])
-    c = torch.tensor([1, 2, 4])
-    
-    print("equal(a, b):", torch.equal(a, b))
-    print("equal(a, c):", torch.equal(a, c))
-
-    # -------------------------------------------------------------------------
-    header("maximum and minimum: element-wise max/min of two tensors")
-    a = torch.tensor([1, 5, 3, 7])
-    b = torch.tensor([4, 2, 6, 1])
-    
-    print("a:", a)
-    print("b:", b)
-    print("maximum(a, b):", torch.maximum(a, b))
-    print("minimum(a, b):", torch.minimum(a, b))
-
-    # -------------------------------------------------------------------------
-    header("Practical: filtering with conditions")
-    # 온도 데이터
-    temps = torch.tensor([15.5, 18.2, 22.1, 19.8, 25.3, 28.7, 23.4])
-    print("Temperatures:", temps)
-    
-    # 적당한 범위 찾기
-    comfortable = (temps >= 18) & (temps <= 25)
-    print("Comfortable days:", comfortable)
-    print("Comfortable temps:", temps[comfortable])
-    
-    # 개수
-    print("Number of comfortable days:", comfortable.sum().item())
-
-    # -------------------------------------------------------------------------
-    header("Practical: outlier detection")
-    data = torch.randn(100)
-    
-    # 표준편차 2배를 넘는 값을 이상치로 정의한다
-    mean = data.mean()
-    std = data.std()
-    
-    outliers = (data < mean - 2*std) | (data > mean + 2*std)
-    print("Total points:", len(data))
-    print("Outliers:", outliers.sum().item())
-    print("Outlier percentage:", f"{100*outliers.float().mean():.1f}%")
-
-    # -------------------------------------------------------------------------
-    header("Practical: top-k accuracy")
-    # 모델 예측과 목표값 흉내 내기
-    logits = torch.randn(10, 5)  # 10 samples, 5 classes
-    targets = torch.randint(0, 5, (10,))
-    
-    print("Logits shape:", logits.shape)
-    print("Targets:", targets)
-    
-    # 상위 1개 정확도
-    pred_top1 = logits.argmax(dim=1)
-    top1_acc = (pred_top1 == targets).float().mean()
-    print("Top-1 accuracy:", f"{100*top1_acc:.1f}%")
-    
-    # 상위 3개 정확도
-    _, pred_top3 = logits.topk(k=3, dim=1)
-    top3_acc = (pred_top3 == targets.unsqueeze(1)).any(dim=1).float().mean()
-    print("Top-3 accuracy:", f"{100*top3_acc:.1f}%")
-
-    # -------------------------------------------------------------------------
-    header("Practical: thresholding")
-    # 이미지 형태의 데이터
-    image = torch.rand(5, 5)
-    print("Image:\n", image)
-    
-    # 0.5를 기준으로 이진화
-    binary = (image > 0.5).float()
-    print("Binary (threshold=0.5):\n", binary)
-    
-    # 부드러운 임계 처리(clamp)
-    threshold = 0.3
-    soft = torch.where(image > threshold, 
-                       image - threshold, 
-                       torch.zeros_like(image))
-    print("Soft threshold (0.3):\n", soft)
-
-    # -------------------------------------------------------------------------
-    header("Practical: NaN handling")
-    data = torch.tensor([1., 2., float('nan'), 4., float('nan'), 6.])
-    print("Data with NaNs:", data)
-    
-    # NaN을 유효한 값들의 평균으로 대체
-    valid_mask = ~torch.isnan(data)
-    mean_val = data[valid_mask].mean()
-    cleaned = torch.where(torch.isnan(data), mean_val, data)
-    print("After replacing NaNs with mean:", cleaned)
-    
-    # 또는 NaN을 제거한다
-    clean_data = data[~torch.isnan(data)]
-    print("After removing NaNs:", clean_data)
-
-    # -------------------------------------------------------------------------
-    header("Practical: ranking")
-    scores = torch.tensor([85, 92, 78, 95, 88, 92, 70])
-    print("Scores:", scores)
-    
-    # 순위 얻기(1부터 시작. 점수가 높을수록 순위 번호가 작다)
-    sorted_scores, indices = torch.sort(scores, descending=True)
-    ranks = torch.zeros_like(scores)
-    ranks[indices] = torch.arange(1, len(scores) + 1)
-    print("Ranks:", ranks)
-    print("(1 = highest, 7 = lowest)")
-
-    # -------------------------------------------------------------------------
-    header("Quick reference: comparisons and selection")
-    print("\nComparison operators:")
-    print("  ==, !=, <, <=, >, >=  - Element-wise comparison")
-    print("  torch.eq, ne, lt, le, gt, ge - Functional forms")
-    
-    print("\nLogical operators:")
-    print("  &, |, ~               - Logical and, or, not")
-    print("  torch.logical_and/or/not/xor - Functional forms")
-    
-    print("\nConditional selection:")
-    print("  torch.where(cond, a, b) - Select from a or b based on condition")
-    
-    print("\nClamping:")
-    print("  torch.clamp(x, min, max) - Limit values to range")
-    print("  torch.clip(x, min, max)  - Alias for clamp")
-    
-    print("\nSorting:")
-    print("  torch.sort(x)         - Sort values and return indices")
-    print("  torch.argsort(x)      - Indices that would sort")
-    
-    print("\nSelection:")
-    print("  torch.topk(x, k)      - Top k values/indices")
-    print("  torch.kthvalue(x, k)  - k-th smallest value")
-    
-    print("\nSpecial value checks:")
-    print("  torch.isnan(x)        - Check for NaN")
-    print("  torch.isinf(x)        - Check for infinity")
-    print("  torch.isfinite(x)     - Check for finite values")
-    
-    print("\nEquality checks:")
-    print("  torch.equal(a, b)     - Exact equality")
-    print("  torch.allclose(a, b)  - Approximate equality")
-    print("  torch.isclose(a, b)   - Element-wise approximate equality")
-    
-    print("\nElement-wise max/min:")
-    print("  torch.maximum(a, b)   - Element-wise maximum")
-    print("  torch.minimum(a, b)   - Element-wise minimum")
 
 if __name__ == "__main__":
     main()
 ```
 
-??? note "전체 출력 (259줄)"
+**출력:**
 
-    ```
+```
+=== 1. 비교 연산자 ===
+  a = [1, 5, 3, 5]   b = [2, 4, 3, 5]
+  a > b  : [False, True, False, False]  dtype torch.bool
+  a == b : [False, False, True, True]
+  a >= 3 : [False, True, True, True]  스칼라와도 된다
+  (a > b).sum() = 1  <- 참을 센다
+  & | ~ 로 묶는다: [False, False, True, False]
+  and/or/not 는 못 쓴다. 텐서를 참거짓 하나로 줄일 수 없어서다
+  torch.equal(a, b) 는 통째로 비교해 하나를 준다: False
 
-    ================================================================================
-    Basic comparison operators
-    ================================================================================
-    a: tensor([1, 2, 3, 4, 5])
-    b: tensor([1, 1, 3, 5, 5])
-    a == b: tensor([ True, False,  True, False,  True])
-    a != b: tensor([False,  True, False,  True, False])
-    a < b: tensor([False, False, False,  True, False])
-    a <= b: tensor([ True, False,  True,  True,  True])
-    a > b: tensor([False,  True, False, False, False])
-    a >= b: tensor([ True,  True,  True, False,  True])
+=== 2. NaN 과 비교 ===
+  nan == nan : False
+  x = [1.0, nan, 3.0]
+  x > 0 : [True, False, True]
+  x < 0 : [False, False, False]  <- 둘 다 거짓이다
+  x[x > 0]    : [1.0, 3.0]  <- NaN 이 조용히 빠진다
+  x[~(x <= 0)]: [1.0, nan, 3.0]  <- 부정하면 남는다
+  같은 뜻으로 적은 두 조건이 다른 답을 준다
+  NaN 을 찾으려면 isnan 을 써야 한다: [False, True, False]
+  isfinite: [True, False, False, False]
+  isinf   : [False, False, True, True]
 
-    ================================================================================
-    Comparison with scalars
-    ================================================================================
-    x: tensor([ 0.3367,  0.1288,  0.2345,  0.2303, -1.1229])
-    x > 0: tensor([ True,  True,  True,  True, False])
-    x <= 0.5: tensor([True, True, True, True, True])
-    x == 0: tensor([False, False, False, False, False])
+=== 3. 정렬과 극값에서의 NaN ===
+  y = [3.0, nan, 1.0, 2.0]
+  sort().values : [1.0, 2.0, 3.0, nan]  <- 맨 뒤로 간다
+  max()         : nan  <- 번져 나온다
+  argmax()      : 1  <- NaN 자리를 가리킨다
+  maximum(y, 0) : [3.0, nan, 1.0, 2.0]
+  nanmean / nansum 은 건너뛴다: 2.0 4.0
+  max 와 argmax 가 어긋나 보이지만 둘 다 NaN 자리를 말하고 있다
 
-    ================================================================================
-    Element-wise comparison functions
-    ================================================================================
-    torch.eq(a, b): tensor([False,  True, False])
-    torch.ne(a, b): tensor([ True, False,  True])
-    torch.lt(a, b): tensor([ True, False, False])
-    torch.le(a, b): tensor([ True,  True, False])
-    torch.gt(a, b): tensor([False, False,  True])
-    torch.ge(a, b): tensor([False,  True,  True])
+=== 4. clamp ===
+  x            : [-3.0, -0.5, 0.5, 3.0]
+  clamp(-1, 1) : [-1.0, -0.5, 0.5, 1.0]
+  clamp(min=0) : [0.0, 0.0, 0.5, 3.0]  = relu
+  clip 은 clamp 의 다른 이름: True
+  clamp 의 경사: [0.0, 1.0, 1.0, 0.0]
+  잘린 자리는 0 이다 — 그 원소는 더 이상 배우지 않는다
+  활성값을 clamp 로 묶으면 ReLU 의 죽은 뉴런과 같은 일이 난다
 
-    ================================================================================
-    Logical operators: &, |, ~ (and, or, not)
-    ================================================================================
-    a: tensor([ True,  True, False, False])
-    b: tensor([ True, False,  True, False])
-    a & b (and): tensor([ True, False, False, False])
-    a | b (or): tensor([ True,  True,  True, False])
-    ~a (not): tensor([False, False,  True,  True])
+=== 5. 정렬과 고르기 ===
+  sort        값: [1.0, 1.0, 3.0, 4.0, 5.0]  자리: [1, 3, 0, 2, 4]
+  sort(내림차순): [5.0, 4.0, 3.0, 1.0, 1.0]
+  argsort     : [1, 3, 0, 2, 4]  = sort 의 자리만
+  정렬한 값은 t[argsort] 와 같은가: True
+  topk(2)     값: [5.0, 4.0]  자리: [4, 2]
+  topk(2, largest=False): [1.0, 1.0]
+  kthvalue(2) 두 번째로 작은 값: 1.0
+  2차원은 축을 고른다 sort(dim=0): [2.0, 1.0, 3.0, 4.0]
 
-    x: tensor([-0.1863,  2.2082, -0.6380,  0.4617,  0.2674,  0.5349,  0.8094,  1.1103,
-            -1.6898, -0.9890])
-    In range [-0.5, 0.5]: tensor([ True, False, False,  True,  True, False, False, False, False, False])
-    Values: tensor([-0.1863,  0.4617,  0.2674])
+=== 6. allclose ===
+  기본값은 rtol=1e-5, atol=1e-8
+  판정식은 |a - b| <= atol + rtol * |b| 다
+  차이 1e-04  |a-b| 1.0e-04 vs 한계 1.0e-05~3.0e-05  allclose False
+  차이 1e-05  |a-b| 1.0e-05 vs 한계 1.0e-05~3.0e-05  allclose False
+  차이 1e-06  |a-b| 1.0e-06 vs 한계 1.0e-05~3.0e-05  allclose True
+  rtol 이 상대 오차라 큰 값일수록 너그러워진다
+  0 근처를 견줄 때는 atol 을 손으로 올려야 한다
+  allclose(0, 1e-7) : False
+  allclose(0, 1e-7, atol=1e-6): True
+  NaN 은 기본으로 같지 않다: False
+  equal_nan=True 로 바꿀 수 있다: True
+```
 
-    ================================================================================
-    torch.where: conditional selection
-    ================================================================================
-    condition: tensor([ True, False,  True, False])
-    a: tensor([1, 2, 3, 4])
-    b: tensor([10, 20, 30, 40])
-    where(condition, a, b): tensor([ 1, 20,  3, 40])
+## 2. 비교는 참거짓 텐서를 준다
 
-    x: tensor([ 0.9580,  1.3221,  0.8172, -0.7658, -0.7506])
-    ReLU (x if x>0 else 0): tensor([0.9580, 1.3221, 0.8172, 0.0000, 0.0000])
+```
+a > b  : [False, True, False, False]  dtype torch.bool
+(a > b).sum() = 1
+```
 
-    ================================================================================
-    clamp: limit values to range
-    ================================================================================
-    x: tensor([-2., -1.,  0.,  1.,  2.,  3.,  4.])
-    clamp(0, 2): tensor([0., 0., 0., 1., 2., 2., 2.])
-    clamp(min=0): tensor([0., 0., 0., 1., 2., 3., 4.])
-    clamp(max=2): tensor([-2., -1.,  0.,  1.,  2.,  2.,  2.])
-    After clamp_(0, 2): tensor([0., 0., 0., 1., 2., 2., 2.])
+결과가 `torch.bool`이므로 `.sum()`으로 세거나 색인에 그대로 쓸 수 있다. 조건을
+묶을 때는 **`&`·`|`·`~`**이고 `and`·`or`·`not`은 못 쓴다 — 파이썬 연산자는 피연산자를
+참거짓 하나로 줄이려 하는데 텐서는 줄여지지 않는다.
 
-    ================================================================================
-    clip: alias for clamp
-    ================================================================================
-    clip and clamp are identical: True
+`torch.equal`은 다르다. 원소별이 아니라 **통째로** 비교해 파이썬 `bool` 하나를
+준다. 모양이 다르면 그냥 `False`이고 터지지 않는다.
 
-    ================================================================================
-    sort: sort values along dimension
-    ================================================================================
-    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    Sorted values: tensor([1, 1, 2, 3, 4, 5, 5, 6, 9])
-    Sorted indices: tensor([1, 3, 6, 0, 2, 4, 8, 7, 5])
-    Sorted descending: tensor([9, 6, 5, 5, 4, 3, 2, 1, 1])
+## 3. NaN은 어느 비교에도 참이 아니다
 
-    Matrix:
-     tensor([[0, 9, 6, 9],
-            [5, 4, 8, 8],
-            [6, 0, 0, 0]])
-    Sorted rows:
-     tensor([[0, 6, 9, 9],
-            [4, 5, 8, 8],
-            [0, 0, 0, 6]])
-    Sorted columns:
-     tensor([[0, 0, 0, 0],
-            [5, 4, 6, 8],
-            [6, 9, 8, 9]])
+```
+nan == nan : False
+x > 0 : [True, False, True]
+x < 0 : [False, False, False]
+```
 
-    ================================================================================
-    argsort: indices that would sort the tensor
-    ================================================================================
-    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    argsort: tensor([1, 3, 6, 0, 2, 4, 8, 7, 5])
-    x[argsort]: tensor([1, 1, 2, 3, 4, 5, 5, 6, 9])
-    argsort(descending): tensor([5, 7, 8, 4, 2, 0, 6, 3, 1])
+둘 다 거짓이다. IEEE 754가 그렇게 정해 두었다 — NaN은 "수가 아니"므로 크다고도
+작다고도 할 수 없다.
 
-    ================================================================================
-    topk: k largest (or smallest) elements
-    ================================================================================
-    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    Top 3 values: tensor([9, 6, 5])
-    Top 3 indices: tensor([5, 7, 8])
-    Bottom 3 values: tensor([1, 1, 2])
-    Bottom 3 indices: tensor([1, 3, 6])
+여기서 조용한 사고가 난다.
 
-    Matrix:
-     tensor([[0, 1, 3, 0, 1],
-            [1, 7, 9, 4, 3],
-            [8, 9, 3, 7, 8]])
-    Top 2 per row:
-     tensor([[3, 1],
-            [9, 7],
-            [9, 8]])
+```
+x[x > 0]     : [1.0, 3.0]        <- NaN 이 빠졌다
+x[~(x <= 0)] : [1.0, nan, 3.0]   <- NaN 이 남았다
+```
 
-    ================================================================================
-    kthvalue: k-th smallest element
-    ================================================================================
-    x: tensor([3, 1, 4, 1, 5, 9, 2, 6, 5])
-    5th smallest value: 4
-    5th smallest index: 2
+**"0보다 큰 것만 고른다"를 두 가지로 적었는데 답이 다르다.** 수학적으로는 같은
+조건인데, NaN에서 둘 다 거짓이므로 긍정형은 NaN을 떨구고 부정형은 NaN을 살린다.
 
-    ================================================================================
-    Checking for special values: nan, inf
-    ================================================================================
-    x: tensor([1., nan, 3., inf, -inf])
-    isnan: tensor([False,  True, False, False, False])
-    isinf: tensor([False, False, False,  True,  True])
-    isfinite: tensor([ True, False,  True, False, False])
-    isposinf: tensor([False, False, False,  True, False])
-    isneginf: tensor([False, False, False, False,  True])
-    Number of NaNs: 1
-    Number of infs: 2
+그래서 데이터에 NaN이 있을 수 있다면 **거르는 조건에 NaN 처리를 명시적으로**
+적어야 한다. `torch.isnan`이 그것을 위해 있다.
 
-    ================================================================================
-    allclose and isclose: approximate equality
-    ================================================================================
-    a: tensor([1., 2., 3.])
-    b: tensor([1.0001, 2.0001, 3.0001])
-    a == b: False
-    allclose (default tol): False
-    allclose (strict tol): False
-    isclose: tensor([False, False, False])
+## 4. 정렬과 극값에서의 NaN
 
-    ================================================================================
-    equal: exact equality of all elements
-    ================================================================================
-    equal(a, b): True
-    equal(a, c): False
+| | 결과 |
+|---|---|
+| `sort().values` | `[1.0, 2.0, 3.0, nan]` — 맨 뒤로 |
+| `max()` | `nan` — 번져 나온다 |
+| `argmax()` | `1` — NaN 자리를 가리킨다 |
+| `maximum(y, 0)` | `[3.0, nan, 1.0, 2.0]` — 번진다 |
+| `nanmean` / `nansum` | 건너뛴다 |
 
-    ================================================================================
-    maximum and minimum: element-wise max/min of two tensors
-    ================================================================================
-    a: tensor([1, 5, 3, 7])
-    b: tensor([4, 2, 6, 1])
-    maximum(a, b): tensor([4, 5, 6, 7])
-    minimum(a, b): tensor([1, 2, 3, 1])
+`max()`가 `nan`을 주고 `argmax()`가 NaN의 자리를 주는 것은 어긋난 것이 아니라
+**둘 다 같은 말**을 하고 있는 것이다. 다만 분류에서 `argmax`로 예측 클래스를
+뽑는 코드라면, 로짓에 NaN이 하나 생기는 순간 **언제나 그 클래스를 예측하게**
+된다. 정확도가 갑자기 한 클래스로 쏠리면 의심할 자리다.
 
-    ================================================================================
-    Practical: filtering with conditions
-    ================================================================================
-    Temperatures: tensor([15.5000, 18.2000, 22.1000, 19.8000, 25.3000, 28.7000, 23.4000])
-    Comfortable days: tensor([False,  True,  True,  True, False, False,  True])
-    Comfortable temps: tensor([18.2000, 22.1000, 19.8000, 23.4000])
-    Number of comfortable days: 4
+## 5. `clamp`의 경사는 밖에서 0이다
 
-    ================================================================================
-    Practical: outlier detection
-    ================================================================================
-    Total points: 100
-    Outliers: 3
-    Outlier percentage: 3.0%
+```
+x            : [-3.0, -0.5, 0.5, 3.0]
+clamp(-1, 1) : [-1.0, -0.5, 0.5, 1.0]
+clamp 의 경사: [0.0, 1.0, 1.0, 0.0]
+```
 
-    ================================================================================
-    Practical: top-k accuracy
-    ================================================================================
-    Logits shape: torch.Size([10, 5])
-    Targets: tensor([3, 4, 2, 2, 1, 3, 2, 0, 3, 2])
-    Top-1 accuracy: 10.0%
-    Top-3 accuracy: 70.0%
+잘린 두 자리의 경사가 **0**이다. 당연하다 — 그 구간에서 출력이 상수이므로
+미분이 0이다.
 
-    ================================================================================
-    Practical: thresholding
-    ================================================================================
-    Image:
-     tensor([[0.0036, 0.8104, 0.8741, 0.9729, 0.3821],
-            [0.0892, 0.6124, 0.7762, 0.0023, 0.3865],
-            [0.2003, 0.4563, 0.2539, 0.2956, 0.3413],
-            [0.0248, 0.9103, 0.9192, 0.4216, 0.4431],
-            [0.2959, 0.0485, 0.0134, 0.6858, 0.2255]])
-    Binary (threshold=0.5):
-     tensor([[0., 1., 1., 1., 0.],
-            [0., 1., 1., 0., 0.],
-            [0., 0., 0., 0., 0.],
-            [0., 1., 1., 0., 0.],
-            [0., 0., 0., 1., 0.]])
-    Soft threshold (0.3):
-     tensor([[0.0000, 0.5104, 0.5741, 0.6729, 0.0821],
-            [0.0000, 0.3124, 0.4762, 0.0000, 0.0865],
-            [0.0000, 0.1563, 0.0000, 0.0000, 0.0413],
-            [0.0000, 0.6103, 0.6192, 0.1216, 0.1431],
-            [0.0000, 0.0000, 0.0000, 0.3858, 0.0000]])
+그런데 이것이 뜻하는 바가 크다. 활성값을 `clamp`로 묶어 두면 **범위를 벗어난
+원소는 더 이상 배우지 않는다.** 벗어난 채로 굳어 있으면 영영 돌아오지 못한다.
+`clamp(min=0)`이 곧 ReLU이고, ReLU의 "죽은 뉴런"이 바로 이 현상이다.
 
-    ================================================================================
-    Practical: NaN handling
-    ================================================================================
-    Data with NaNs: tensor([1., 2., nan, 4., nan, 6.])
-    After replacing NaNs with mean: tensor([1.0000, 2.0000, 3.2500, 4.0000, 3.2500, 6.0000])
-    After removing NaNs: tensor([1., 2., 4., 6.])
+`clamp`를 써도 되는 자리와 안 되는 자리가 갈린다.
 
-    ================================================================================
-    Practical: ranking
-    ================================================================================
-    Scores: tensor([85, 92, 78, 95, 88, 92, 70])
-    Ranks: tensor([5, 2, 6, 1, 4, 3, 7])
-    (1 = highest, 7 = lowest)
+| | |
+|---|---|
+| 출력을 범위에 맞출 때 (확률, 픽셀값) | 괜찮다 — 거기서 더 배울 것이 없다 |
+| 중간 활성값을 안정시키려 할 때 | 위험하다 — 경사가 끊긴다 |
+| 경사 자체를 자를 때 | **쓰면 안 된다** — 연습문제 3 |
 
-    ================================================================================
-    Quick reference: comparisons and selection
-    ================================================================================
+## 6. `allclose`의 판정식
 
-    Comparison operators:
-      ==, !=, <, <=, >, >=  - Element-wise comparison
-      torch.eq, ne, lt, le, gt, ge - Functional forms
+```
+|a - b| <= atol + rtol * |b|          (기본 rtol=1e-5, atol=1e-8)
+```
 
-    Logical operators:
-      &, |, ~               - Logical and, or, not
-      torch.logical_and/or/not/xor - Functional forms
+```
+차이 1e-04  한계 1.0e-05~3.0e-05  allclose False
+차이 1e-05  한계 1.0e-05~3.0e-05  allclose False
+차이 1e-06  한계 1.0e-05~3.0e-05  allclose True
+```
 
-    Conditional selection:
-      torch.where(cond, a, b) - Select from a or b based on condition
+한계가 원소마다 다른 것을 보아 두자. `rtol`이 **상대** 오차라 `|b|`가 클수록
+너그러워진다. 그래서 1e-5 차이가 값 1에서는 걸리고 값 3에서는 통과할 수 있다.
 
-    Clamping:
-      torch.clamp(x, min, max) - Limit values to range
-      torch.clip(x, min, max)  - Alias for clamp
+0 근처에서는 `rtol`이 아무 일도 못 하므로 `atol`만 남는다.
 
-    Sorting:
-      torch.sort(x)         - Sort values and return indices
-      torch.argsort(x)      - Indices that would sort
+```
+allclose(0, 1e-7)              : False
+allclose(0, 1e-7, atol=1e-6)   : True
+```
 
-    Selection:
-      torch.topk(x, k)      - Top k values/indices
-      torch.kthvalue(x, k)  - k-th smallest value
+기본 `atol`이 1e-8이라 1e-7도 거른다. **0에 가까운 값을 견줄 때는 `atol`을
+손으로 올려야** 한다.
 
-    Special value checks:
-      torch.isnan(x)        - Check for NaN
-      torch.isinf(x)        - Check for infinity
-      torch.isfinite(x)     - Check for finite values
-
-    Equality checks:
-      torch.equal(a, b)     - Exact equality
-      torch.allclose(a, b)  - Approximate equality
-      torch.isclose(a, b)   - Element-wise approximate equality
-
-    Element-wise max/min:
-      torch.maximum(a, b)   - Element-wise maximum
-      torch.minimum(a, b)   - Element-wise minimum
-    ```
-
-
-## 2. 논의
-
-원소별 비교는 브로드캐스팅된 불리언 텐서를 반환한다. `equal`은 같은 모양과 같은 원소값을 검사하지만 자료형 동일성까지 요구하지 않으며, `allclose`는 허용오차 안의 수치 일치를 검사한다.
-
-`clamp`는 주어진 범위 밖의 값을 경계로 제한하므로 로스나 그래디언트의 의미도 달라질 수 있다. `sort`는 정렬 값과 원래 인덱스를 함께 반환하고 `argsort`는 인덱스만 반환한다. `topk`의 동점 인덱스 순서가 항상 안정적이라고 가정하지 않는다.
+NaN은 기본으로 같지 않다고 본다. `equal_nan=True`를 주면 NaN끼리 같다고 친다 —
+저장했다 불러온 텐서를 견줄 때 쓸 일이 있다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-모양이 $(3, 1, 5)$와 $(4, 5)$인 텐서가 주어졌을 때 덧셈 후의 출력 모양을 구하고 PyTorch로 확인하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+점수 텐서에서 **80점 이상인 사람 수**와 **그 사람들의 평균**을 구하라.
+`scores = torch.tensor([85., 92., 78., 95., 88., 70.])`.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
-    a = torch.randn(3, 1, 5)
-    b = torch.randn(4, 5)
-    c = a + b
-    print(c.shape)  # torch.Size([3, 4, 5])
-    # b는 암묵적으로 (1, 4, 5)가 되고, 그다음 둘 다 (3, 4, 5)로 브로드캐스팅된다.
+    scores = torch.tensor([85., 92., 78., 95., 88., 70.])
+    mask = scores >= 80
+    print("  마스크 :", mask.tolist(), " dtype", mask.dtype)
+    print("  몇 명  :", mask.sum().item())
+    print("  평균   :", scores[mask].mean().item())
+    print("  비율   :", mask.float().mean().item())
     ```
 
----
+    ```
+      마스크 : [True, True, False, True, True, False]  dtype torch.bool
+      몇 명  : 4
+      평균   : 90.0
+      비율   : 0.6666666865348816
+    ```
 
+    `mask.sum()`이 개수이고 **`mask.float().mean()`이 비율**이다. 참거짓을 0과 1로
+    바꿔 평균내면 비율이 되므로, 정확도를 구하는 코드가 거의 언제나 이 꼴이다 —
+    `(pred == target).float().mean()`.
+
+    `.float()`를 빼먹으면 어떻게 되는가. `bool` 텐서에 `.mean()`을 부르면 「축약과
+    통계」에서 본 것처럼 `mean(): could not infer output dtype`로 거절한다.
+    다행히 터져 주는 쪽이다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-모양이 $(3, 4)$와 $(5,)$인 텐서의 덧계산이 실패하는 이유를 설명하라. 이 불일치를 고치는 서로 다른 두 가지 방법을 제안하라.
-
-</div>
-
-??? success "풀이"
-    마지막 차원이 4와 5인데 서로 같지도 않고 1도 아니다. 해결 1: 벡터를 열에 맞도록 바꾼다. 예를 들어 $(4,)$ 벡터를 쓴다. 해결 2: 벡터를 $(5, 1)$로 바꾸고 행렬을 $(5, 4)$로 바꾸어 올바른 축을 따라 브로드캐스팅이 되게 한다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff easy" title="쉬움"></span>
-`torch.outer`를 쓰지 않고 브로드캐스팅으로 두 벡터 $a = [1, 2, 3]$과 $b = [4, 5]$의 외적을 계산하라.
+NaN이 섞인 데이터에서 "양수만" 고르려 한다. `x[x > 0]`과 `x[~(x <= 0)]`이 다른
+답을 준다. 어느 쪽이 맞는가? **NaN을 명시적으로 다루는** 세 번째 방법을 적고,
+평균을 구하는 세 가지 길을 견주어라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    a = torch.tensor([1., 2., 3.]).unsqueeze(1)  # (3, 1)
-    b = torch.tensor([4., 5.]).unsqueeze(0)       # (1, 2)
-    outer = a * b  # (3, 2)
-    print(outer)
-    # tensor([[ 4.,  5.],
-    #         [ 8., 10.],
-    #         [12., 15.]])
+    x = torch.tensor([1.0, float("nan"), 3.0, -2.0])
+    print("  x[x > 0]      :", x[x > 0].tolist())
+    print("  x[~(x <= 0)]  :", x[~(x <= 0)].tolist())
+    print("  x[(x > 0) & ~torch.isnan(x)] :",
+          x[(x > 0) & ~torch.isnan(x)].tolist())
+    print("  평균 세 가지")
+    print("    x.mean()           :", x.mean().item())
+    print("    x.nanmean()        :", x.nanmean().item())
+    print("    x[~torch.isnan(x)].mean():", x[~torch.isnan(x)].mean().item())
     ```
 
-## 정리하며
+    ```
+      x[x > 0]      : [1.0, 3.0]
+      x[~(x <= 0)]  : [1.0, nan, 3.0]
+      x[(x > 0) & ~torch.isnan(x)] : [1.0, 3.0]
+      평균 세 가지
+        x.mean()           : nan
+        x.nanmean()        : 0.6666666865348816
+        x[~torch.isnan(x)].mean(): 0.6666666865348816
+    ```
 
-비교는 참·거짓을 만들고, 범위 제한은 값을 바꾸며, 정렬은 값의 순서와 위치를 반환한다. 비슷한 이름의 함수가 묻는 질문을 구별한다.
+    **둘 중 어느 쪽도 "맞다"고 할 수 없다.** 묻지 않은 것을 각자 다르게
+    정했을 뿐이다. `x > 0`은 NaN을 버리고 `~(x <= 0)`은 남긴다. 어느 쪽을 원하는지
+    코드에 적혀 있지 않은 것이 문제다.
+
+    세 번째 꼴 `(x > 0) & ~torch.isnan(x)`은 **뜻이 적혀 있다.** 길지만 읽는
+    사람이 의도를 묻지 않아도 된다.
+
+    평균 쪽도 같다. `mean()`은 NaN 하나에 전부 오염되고, `nanmean()`은 건너뛴다.
+    `nanmean`이 "NaN을 빼고 센다"는 것을 **이름으로** 말해 주므로, 손으로
+    마스킹하는 것보다 낫다. 다만 전부 NaN인 줄에서는 `nanmean`도 NaN을 준다 —
+    나눌 것이 없기 때문이다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+경사가 너무 클 때 `grad.clamp_(-1, 1)`로 자르면 안 될까? 자르기 전후의 **방향**을
+견주고, `clip_grad_norm_`과 무엇이 다른지 보여라.
+
+</div>
+
+??? success "풀이"
+    ```python
+    def cos(a, b):
+        return (a @ b / (a.norm() * b.norm())).item()
+
+    g = torch.tensor([10.0, 0.1, -0.05, 3.0])
+    byclamp = g.clamp(-1, 1)
+    bynorm = g / g.norm()
+    print("  원래 경사  :", [round(v, 4) for v in g.tolist()])
+    print("  clamp(-1,1):", [round(v, 4) for v in byclamp.tolist()])
+    print("  노름 1 로  :", [round(v, 4) for v in bynorm.tolist()])
+    print("  원래 방향과의 코사인  clamp:", round(cos(g, byclamp), 4),
+          "  노름 자르기:", round(cos(g, bynorm), 4))
+    ```
+
+    ```
+      원래 경사  : [10.0, 0.1, -0.05, 3.0]
+      clamp(-1,1): [1.0, 0.1, -0.05, 1.0]
+      노름 1 로  : [0.9578, 0.0096, -0.0048, 0.2873]
+      원래 방향과의 코사인  clamp: 0.8785   노름 자르기: 1.0
+    ```
+
+    **`clamp`는 방향을 바꾼다.** 코사인이 0.8785이니 원래 경사와 28도쯤
+    틀어졌다. 10과 3이 둘 다 1로 잘리면서 **원래 3배 차이였던 두 성분이 같아졌기**
+    때문이다. 크기만 줄이려 했는데 "어느 쪽으로 갈지"까지 바꿔 버렸다.
+
+    노름으로 나누면 모든 성분이 같은 비율로 줄어 **방향이 정확히 보존된다**
+    (코사인 1.0). 이것이 `torch.nn.utils.clip_grad_norm_`이 하는 일이다 — 전체
+    노름이 한계를 넘으면 그 비율만큼 전부를 줄인다.
+
+    실제 모델에서도 같다.
+
+    ```python
+    m = nn.Linear(10, 10)
+    m(torch.randn(4, 10) * 50).pow(2).sum().backward()
+    before = torch.cat([p.grad.flatten() for p in m.parameters()]).clone()
+    torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0)
+    after = torch.cat([p.grad.flatten() for p in m.parameters()])
+    # 노름 61859.09 -> 1.0000   방향 코사인 1.000000
+    ```
+
+    노름이 6만에서 1로 줄었는데 방향 코사인은 1.000000이다.
+
+    5절의 표에 "경사 자체를 자를 때는 `clamp`를 쓰면 안 된다"고 적은 까닭이
+    이것이다. 경사 하강은 **방향을 따라가는** 방법이고, 크기는 러닝레이트가
+    맡는다. 크기를 조절하려다 방향을 흔들면 러닝레이트를 아무리 맞춰도 소용이
+    없다.
