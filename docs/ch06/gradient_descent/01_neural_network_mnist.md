@@ -1,758 +1,718 @@
-# MNIST 숫자 분류 뉴럴 넷트웍
-
-실제 MNIST 데이터를 학습·검증·테스트 용도로 나누고 다층 퍼셉트론을 학습하는 흐름을 살펴본다. 로스와 정확도, 평가 모드의 역할을 연결한다.
-
-## 1. 코드
-
-??? note "코드 (510줄)"
-
-    ```python
-    """
-    ================================================================================
-    4단계 - 과제 1: MNIST 숫자 분류를 위한 뉴럴 넷트웍
-    ================================================================================
-
-    학습 목표:
-    - 온전한 뉴럴 넷트웍을 밑바닥부터 짓는다
-    - 참 세상의 데이터셋(MNIST)으로 익힌다
-    - 학습/검증/시험 나누기를 제대로 짠다
-    - 배운 경사 하강법 개념을 모두 쓴다
-    - 정확도 95%를 넘긴다
-
-    어려움: ⭐⭐⭐⭐ 과제
-
-    걸리는 때: 60~90분
-
-    PREREQUISITES:
-    - 1~3단계를 마쳤을 것
-    - 뉴럴 넷트웍을 이해하고 있을 것
-    - PyTorch에 익숙할 것
-
-    과제 밝힘:
-    --------------------
-    MNIST은 손글씨 숫자(0~9) 70,000개의 데이터셋이다.
-    - 학습 배치: 그림 60,000장
-    - 시험 배치: 그림 10,000장
-    - 그림 크기: 28x28 잿빛
-    - 일: 그림마다 10클래스(0~9) 가운데 하나로 가른다
-
-    기계 학습의 대표 척도 문제다!
-
-    ================================================================================
-    """
-
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-    from torch.utils.data import DataLoader, random_split
-    from torchvision import datasets, transforms
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import time
-
-    print("="*80)
-    print("MNIST DIGIT CLASSIFICATION WITH NEURAL NETWORKS")
-    print("="*80)
-
-    # 재현성을 위한 난수 시드 설정
-    torch.manual_seed(42)
-    np.random.seed(42)
-
-    # ============================================================================
-    # 1부: 데이터 적재와 전처리
-    # ============================================================================
-    print("\n" + "="*80)
-    print("PART 1: LOADING MNIST DATASET")
-    print("="*80)
-
-    # 변환 정의
-    # mean=0.1307, std=0.3081로 정규화(MNIST 통계)
-    transform = transforms.Compose([
-        transforms.ToTensor(),  # Convert PIL Image to tensor
-        transforms.Normalize((0.1307,), (0.3081,))  # Normalize
-    ])
-
-    # 학습 데이터 내려받아 불러오기
-    print("Downloading MNIST dataset (this may take a minute)...")
-    train_dataset = datasets.MNIST(
-        root='./data', 
-        train=True, 
-        download=True, 
-        transform=transform
-    )
-
-    # 테스트 데이터 내려받아 불러오기
-    test_dataset = datasets.MNIST(
-        root='./data', 
-        train=False, 
-        download=True, 
-        transform=transform
-    )
-
-    # 학습 데이터에서 검증 집합 분리
-    train_size = int(0.8 * len(train_dataset))  # 80% for training
-    val_size = len(train_dataset) - train_size  # 20% for validation
-
-    train_dataset, val_dataset = random_split(
-        train_dataset, 
-        [train_size, val_size],
-        generator=torch.Generator().manual_seed(42)
-    )
-
-    print(f"\n✓ Dataset loaded successfully!")
-    print(f"  Training samples:   {len(train_dataset):,}")
-    print(f"  Validation samples: {len(val_dataset):,}")
-    print(f"  Test samples:       {len(test_dataset):,}")
-
-    # 데이터 로더 생성
-    batch_size = 64
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
-    print(f"\nBatch size: {batch_size}")
-    print(f"Batches per epoch: {len(train_loader)}")
-
-    # ============================================================================
-    # 2부: 예시 데이터 시각화
-    # ============================================================================
-    print("\n" + "="*80)
-    print("PART 2: VISUALIZING SAMPLE DATA")
-    print("="*80)
-
-    # 학습 데이터 한 배치 가져오기
-    examples = iter(train_loader)
-    example_data, example_targets = next(examples)
-
-    print(f"\nBatch shape: {example_data.shape}")  # (batch_size, 1, 28, 28)
-    print(f"Labels shape: {example_targets.shape}")  # (batch_size,)
-
-    # 처음 이미지 10개 그리기
-    fig, axes = plt.subplots(2, 5, figsize=(12, 5))
-    axes = axes.flatten()
-
-    for i in range(10):
-        img = example_data[i].squeeze()  # Remove channel dimension
-        label = example_targets[i].item()
-
-        axes[i].imshow(img, cmap='gray')
-        axes[i].set_title(f'Label: {label}')
-        axes[i].axis('off')
-
-    plt.tight_layout()
-    plt.savefig('mnist_samples.png', dpi=150)
-    print("\n✓ Sample images saved as 'mnist_samples.png'")
-
-    # ============================================================================
-    # 3부: 뉴럴 넷트웍 구조 정의
-    # ============================================================================
-    print("\n" + "="*80)
-    print("PART 3: NEURAL NETWORK ARCHITECTURE")
-    print("="*80)
-
-    class MNISTNet(nn.Module):
-        """
-        MNIST 분류를 위한 뉴럴 넷트웍
-
-        Architecture:
-        - 입력: 28x28 = 피처 784개
-        - 은닉 레이어 1: 뉴런 128개 + ReLU
-        - 은닉 레이어 2: 뉴런 64개 + ReLU
-        - 출력 레이어: 뉴런 10개(숫자마다 하나)
-        """
-
-        def __init__(self):
-            super(MNISTNet, self).__init__()
-
-            # 입력 레이어: 784(28x28) → 128
-            self.fc1 = nn.Linear(28 * 28, 128)
-
-            # 은닉 레이어: 128 → 64
-            self.fc2 = nn.Linear(128, 64)
-
-            # 출력 레이어: 64 → 10(클래스 0-9)
-            self.fc3 = nn.Linear(64, 10)
-
-            # 정칙화를 위한 드롭아웃(과적합을 막는다)
-            self.dropout = nn.Dropout(0.2)
-
-        def forward(self, x):
-            """
-            망을 지나는 순전파
-
-            Args:
-                x: 모양이 (batch_size, 1, 28, 28)인 입력 텐서
-
-            Returns:
-                output: 모양이 (batch_size, 10)인 로짓
-            """
-            # 이미지 펼치기: (배치, 1, 28, 28) → (배치, 784)
-            x = x.view(-1, 28 * 28)
-
-            # ReLU 활성화를 쓰는 은닉 레이어 1
-            x = self.fc1(x)
-            x = F.relu(x)
-            x = self.dropout(x)
-
-            # ReLU 활성화를 쓰는 은닉 레이어 2
-            x = self.fc2(x)
-            x = F.relu(x)
-            x = self.dropout(x)
-
-            # 출력 레이어(활성화 없음 - CrossEntropyLoss를 쓸 것이다)
-            x = self.fc3(x)
-
-            return x
-
-    # 모델 생성
-    model = MNISTNet()
-
-    # 파라메터 개수 세기
-    total_params = sum(p.numel() for p in model.parameters())
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-
-    print("\nModel Architecture:")
-    print(model)
-    print(f"\nTotal parameters: {total_params:,}")
-    print(f"Trainable parameters: {trainable_params:,}")
-
-    # ============================================================================
-    # 4부: 학습 준비
-    # ============================================================================
-    print("\n" + "="*80)
-    print("PART 4: TRAINING CONFIGURATION")
-    print("="*80)
-
-    # 로스 함수: 분류를 위한 CrossEntropyLoss
-    # LogSoftmax와 NLLLoss를 결합한다
-    criterion = nn.CrossEntropyLoss()
-
-    # 최적화기: Adam(3단계에서 즐겨 쓰던 것!)
-    learning_rate = 0.001
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-    # 러닝레이트 스케줄러: 검증 로스가 정체되면 러닝레이트를 줄인다
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, 
-        mode='min', 
-        factor=0.5, 
-        patience=3, 
-        verbose=True
-    )
-
-    print(f"Loss function: CrossEntropyLoss")
-    print(f"Optimizer: Adam")
-    print(f"Learning rate: {learning_rate}")
-    print(f"Scheduler: ReduceLROnPlateau")
-
-    # ============================================================================
-    # 5부: 학습 함수와 검증 함수
-    # ============================================================================
-
-    def train_epoch(model, train_loader, criterion, optimizer):
-        """한 에폭 익힌다"""
-        model.train()  # Set model to training mode
-
-        total_loss = 0
-        correct = 0
-        total = 0
-
-        for batch_idx, (data, target) in enumerate(train_loader):
-            # 순전파
-            output = model(data)
-            loss = criterion(output, target)
-
-            # 역전파
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            # 통계
-            total_loss += loss.item()
-            _, predicted = torch.max(output.data, 1)
-            total += target.size(0)
-            correct += (predicted == target).sum().item()
-
-        avg_loss = total_loss / len(train_loader)
-        accuracy = 100 * correct / total
-
-        return avg_loss, accuracy
-
-
-    def validate(model, val_loader, criterion):
-        """모델을 다진다"""
-        model.eval()  # Set model to evaluation mode
-
-        total_loss = 0
-        correct = 0
-        total = 0
-
-        with torch.no_grad():  # No gradients needed
-            for data, target in val_loader:
-                output = model(data)
-                loss = criterion(output, target)
-
-                total_loss += loss.item()
-                _, predicted = torch.max(output.data, 1)
-                total += target.size(0)
-                correct += (predicted == target).sum().item()
-
-        avg_loss = total_loss / len(val_loader)
-        accuracy = 100 * correct / total
-
-        return avg_loss, accuracy
-
-    # ============================================================================
-    # 6부: 학습 루프
-    # ============================================================================
-    print("\n" + "="*80)
-    print("PART 6: TRAINING")
-    print("="*80)
-
-    n_epochs = 15
-
-    # 이력 추적
-    train_losses = []
-    train_accuracies = []
-    val_losses = []
-    val_accuracies = []
-
-    print(f"\nTraining for {n_epochs} epochs...")
-    print("-" * 80)
-    print(f"{'Epoch':>5} | {'Train Loss':>10} | {'Train Acc':>10} | {'Val Loss':>10} | {'Val Acc':>10} | {'Time':>7}")
-    print("-" * 80)
-
-    start_time = time.time()
-
-    for epoch in range(n_epochs):
-        epoch_start = time.time()
-
-        # 학습
-        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer)
-
-        # 검증
-        val_loss, val_acc = validate(model, val_loader, criterion)
-
-        # 러닝레이트 스케줄링
-        scheduler.step(val_loss)
-
-        # 이력 저장
-        train_losses.append(train_loss)
-        train_accuracies.append(train_acc)
-        val_losses.append(val_loss)
-        val_accuracies.append(val_acc)
-
-        epoch_time = time.time() - epoch_start
-
-        print(f"{epoch+1:5d} | {train_loss:10.4f} | {train_acc:9.2f}% | {val_loss:10.4f} | {val_acc:9.2f}% | {epoch_time:6.1f}s")
-
-    total_time = time.time() - start_time
-    print("-" * 80)
-    print(f"Training completed in {total_time:.1f}s ({total_time/n_epochs:.1f}s per epoch)")
-
-    # ============================================================================
-    # 7부: 테스트 집합 평가
-    # ============================================================================
-    print("\n" + "="*80)
-    print("PART 7: FINAL EVALUATION ON TEST SET")
-    print("="*80)
-
-    test_loss, test_acc = validate(model, test_loader, criterion)
-
-    print(f"\nTest Set Results:")
-    print(f"  Loss: {test_loss:.4f}")
-    print(f"  Accuracy: {test_acc:.2f}%")
-
-    if test_acc > 95:
-        print("\n🎉 Congratulations! You achieved >95% accuracy!")
-    elif test_acc > 90:
-        print("\n✓ Good job! Try tuning hyperparameters to reach 95%")
-    else:
-        print("\n→ Try training longer or adjusting the architecture")
-
-    # ============================================================================
-    # 8부: 시각화
-    # ============================================================================
-    print("\n" + "="*80)
-    print("VISUALIZATION")
-    print("="*80)
-
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-
-    # 그림 1: 로스 곡선
-    axes[0, 0].plot(train_losses, label='Train', linewidth=2)
-    axes[0, 0].plot(val_losses, label='Validation', linewidth=2)
-    axes[0, 0].set_xlabel('Epoch')
-    axes[0, 0].set_ylabel('Loss')
-    axes[0, 0].set_title('Training and Validation Loss')
-    axes[0, 0].legend()
-    axes[0, 0].grid(True, alpha=0.3)
-
-    # 그림 2: 정확도 곡선
-    axes[0, 1].plot(train_accuracies, label='Train', linewidth=2)
-    axes[0, 1].plot(val_accuracies, label='Validation', linewidth=2)
-    axes[0, 1].set_xlabel('Epoch')
-    axes[0, 1].set_ylabel('Accuracy (%)')
-    axes[0, 1].set_title('Training and Validation Accuracy')
-    axes[0, 1].legend()
-    axes[0, 1].grid(True, alpha=0.3)
-
-    # 그림 3: 예측 표본
-    model.eval()
-    examples = iter(test_loader)
-    example_data, example_targets = next(examples)
+# MNIST 뉴럴 넷트웍 — 전체 파이프라인
 
+앞 쪽들은 조각을 하나씩 다루었다. 경사, 러닝레이트, 배치 크기, 옵티마이저. 이 쪽은 처음부터 끝까지 한 번 돌린다. 자료를 나누고, 모델을 세우고, 학습하고, 재고, 보고한다.
+
+조각을 아는 것과 파이프라인을 세우는 것은 다른 일이다. **파이프라인에서만 생기는 실수** 들이 있고, 그 대부분은 예외를 던지지 않는다. 조용히 틀린 수를 만들 뿐이다. 이 쪽은 그런 자리를 하나씩 재어 본다.
+
+---
+
+## 1. 자료를 셋으로 나눈다
+
+```
+  MNIST 학습셋 60000 장을 48000 / 12000 으로 나눴다
+  학습 48000,  검증 12000,  테스트 10000
+  장치 mps
+  학습 라벨 분포(%)  9.7 10.8  9.8  9.5  9.8  9.2 10.4 10.7  9.7 10.4   최소 9.2 최대 10.8
+  검증 라벨 분포(%)  9.7 11.5 10.7  9.3 10.5  8.5 10.7  9.0 10.7  9.5   최소 8.5 최대 11.5
+  테스트 라벨 분포(%)  7.6 11.4  9.0 10.8 10.4  9.4  9.2 11.8  9.2 11.2   최소 7.6 최대 11.8
+```
+
+**셋이 각각 다른 일을 한다.**
+
+- **학습셋** — 파라메터를 갱신한다
+- **검증셋** — 설정을 고른다(러닝레이트, 에폭 수, 모델 크기). 여기서 고르는 행위가 곧 검증셋에 맞추는 일이므로, 여기서 잰 수는 최종 성능이 아니다
+- **테스트셋** — 다 끝난 뒤 **한 번만** 본다
+
+무작위로 나누었는데 라벨 분포가 고르다. 9%에서 11% 사이다. 표본이 많기 때문이고, 자료가 적거나 라벨이 치우쳐 있으면 층화 추출을 해야 한다.
+
+!!! note "테스트셋이 더 울퉁불퉁하다"
+    7.6%에서 11.8%로 폭이 더 넓다. MNIST 테스트셋이 원래 그렇게 생겼다(여기서는 20장마다 하나씩 세어 본 것이라 그 자체로도 표본 오차가 있다). 테스트셋은 주어진 것이므로 고를 수 없고, 그래서 클래스별 정확도를 따로 보는 편이 안전하다.
+
+---
+
+## 2. 모델과 학습
+
+모델은 784 → 128 → 64 → 10이고 은닉 레이어에 ReLU와 Dropout을 둔다. **마지막에 Softmax를 붙이지 않는다** — `CrossEntropyLoss`가 로짓을 받기 때문이다(연습문제 1에서 붙이면 어떻게 되는지 잰다).
+
+```
+  에폭   학습 배치평균   검증 로스   검증 정확도   그때의 lr
+     0   0.4144        0.1832       94.78%     0.1000
+     1   0.2259        0.1678       95.17%     0.1000
+     2   0.1952        0.1534       95.64%     0.1000
+     3   0.1816        0.1475       95.90%     0.1000
+     4   0.1661        0.1407       96.24%     0.1000
+     5   0.1540        0.1259       96.69%     0.1000
+     6   0.1440        0.1215       96.83%     0.1000
+     7   0.1389        0.1237       96.92%     0.1000
+```
+
+에폭 7에서 **검증 로스가 올라갔는데(0.1215 → 0.1237) 정확도는 올라갔다**(96.83% → 96.92%). 둘이 늘 같은 방향은 아니다. 로스는 확신의 정도까지 보고 정확도는 맞았는지만 보기 때문이다. 어느 쪽으로 모델을 고를지는 미리 정해 두어야 한다.
+
+---
+
+## 3. `model.train()`과 `model.eval()`
+
+```
+  eval()  로스 0.1237   정확도 96.92%
+  train() 로스 0.1906   정확도 95.31%
+  차이          +0.0669            -1.61%p
+```
+
+**같은 모델, 같은 자료인데 1.61%p 다르다.** `eval()`을 빼먹으면 이만큼 낮게 보고하게 된다.
+
+더 고약한 것은 재현되지 않는다는 점이다.
+
+```
+  train() 모드는 돌릴 때마다 답이 달라진다
+    1번째   로스 0.1899   정확도 95.26%
+    2번째   로스 0.1805   정확도 95.38%
+    3번째   로스 0.1900   정확도 95.34%
+```
+
+Dropout이 매번 다른 유닛을 끄기 때문이다. 평가를 두 번 하면 다른 수가 나오는데, 그 폭(95.26~95.38)이 실제 모델 간 차이와 비슷한 크기라 눈치채기 어렵다.
+
+```
+  Dropout 을 끈 모델이라면 두 모드가 같은가
+    p_drop=0.0:  eval 94.77%   train 94.77%   차이 0.0000%p
+```
+
+`p_drop=0`이면 두 모드가 **완전히** 같다. 이 모델에는 BatchNorm이 없어 Dropout만이 모드에 반응하기 때문이다. BatchNorm이 있으면 `p_drop=0`이어도 갈린다 — 학습 모드에서는 배치 통계를, 평가 모드에서는 누적 통계를 쓴다.
+
+!!! warning "`no_grad()`는 모드가 아니다"
+    `torch.no_grad()`는 경사 기록을 끌 뿐 **모델의 행동을 바꾸지 않는다.** Dropout은 여전히 켜져 있다. 평가에는 둘 다 필요하다 — `model.eval()`로 행동을 바꾸고 `no_grad()`로 메모리를 아낀다.
+
+---
+
+## 4. "배치 평균의 평균"은 참 평균이 아니다
+
+학습 로스를 적는 방법이 둘이다.
+
+- **(가)** 배치마다의 평균 로스를 모아 다시 평균 낸다 — 거의 모든 학습 루프가 이렇게 한다
+- **(나)** 로스의 합을 모아 전체 표본 수로 나눈다 — 참 평균
+
+```
+  배치 128   배치수  375  마지막  128장  (가) 0.16292799  (나) 0.16292799  차이 0.00e+00
+  배치 127   배치수  378  마지막  121장  (가) 0.16291818  (나) 0.16292799  차이 9.81e-06
+  배치 1000  배치수   48  마지막 1000장  (가) 0.16292799  (나) 0.16292799  차이 6.38e-10
+```
+
+나누어떨어지면 둘이 같다. 배치 127에서만 $9.8\times10^{-6}$ 벌어진다. **마지막 121장짜리 배치가 128장짜리와 같은 무게로 평균에 들어가기** 때문이다.
+
+크기는 작다. $10^{-5}$ 자리이고 네 자리까지 보고한다면 보이지도 않는다. 그래도 알아 둘 값어치가 있다 — 자료가 적고 마지막 배치가 짧으면 커지고, 그때는 어느 쪽으로 쟀는지 밝혀야 한다.
+
+**정확도에는 이 문제가 없다.** 맞힌 수를 전체 수로 나누면 그만이라 배치 경계와 무관하다.
+
+---
+
+## 5. 한 번 돌린 결과는 측정이 아니다
+
+```
+  씨앗   검증 정확도   테스트 정확도   둘의 차
+     0       96.92%         96.85%    -0.07%p
+     1       96.54%         96.62%    +0.08%p
+     2       96.70%         96.78%    +0.08%p
+     3       97.54%         97.44%    -0.10%p
+     4       97.33%         97.53%    +0.20%p
+  검증   평균 97.01%  퍼짐 96.54~97.54
+  테스트 평균 97.04%  퍼짐 96.62~97.53
+```
+
+**같은 코드를 씨앗만 바꿔 돌렸는데 1%p 흩어진다.** 96.54%에서 97.54%다.
+
+이것이 뜻하는 바는 분명하다. 어떤 변경을 하고 정확도가 0.5%p 올랐다면, **그것은 아무 일도 하지 않았을 때의 변동 범위 안이다.** 씨앗을 여럿 돌려 퍼짐을 함께 보고하지 않으면 그 0.5%p가 무엇인지 알 수 없다.
+
+### 검증셋으로 고르고 테스트셋으로 보고한다
+
+```
+  검증으로 고르면 씨앗 3 를 고른다 (검증 97.54%)
+  그 씨앗의 테스트 정확도는 97.44% 이고,
+  다섯의 테스트 평균은 97.04% 다
+  차이 +0.40%p
+```
+
+검증 정확도가 가장 높은 것을 고르면 테스트에서 97.44%를 얻는다. 평균보다 **0.40%p 높다.**
+
+이것이 공짜 이득이 아니다. 다섯 중 검증에서 가장 운이 좋았던 것을 고른 것이고, 그 운의 일부가 테스트에도 묻어 왔다. 만약 검증 점수를 최종 성능으로 보고했다면 97.54%라고 적었을 텐데 실제는 97.44%다.
+
+고를 것이 다섯이라 차이가 0.1%p지만, **수백 가지 설정을 검증셋으로 뒤지면 이 차이가 커진다.** 그래서 테스트셋을 따로 두고 한 번만 본다.
+
+---
+
+## 6. 스케줄러가 한 일
+
+```
+  스케줄러 켬  검증 정확도 평균 96.72%  퍼짐 96.54~96.92
+              마지막 씨앗의 에폭별 lr: 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000
+  스케줄러 끔  검증 정확도 평균 96.72%  퍼짐 96.54~96.92
+              마지막 씨앗의 에폭별 lr: 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000
+```
+
+두 줄이 평균도 퍼짐도 **완전히 같다.** `ReduceLROnPlateau`가 **한 번도 켜지지 않았기** 때문이다. 러닝레이트가 여덟 에폭 내내 0.1이다.
+
+2절의 표를 보면 까닭이 보인다. 검증 로스가 0.1832에서 0.1215까지 계속 내려갔다. `patience=1`이므로 두 에폭 연속 나빠져야 줄이는데 그런 일이 없었다.
+
+**스케줄러를 코드에 넣었다고 일하는 것이 아니다.** 러닝레이트를 함께 기록해 실제로 켜졌는지 확인해야 한다. 그러지 않으면 "스케줄러를 써서 좋아졌다"고 적게 되고, 실제로는 아무 일도 없었다.
+
+---
+
+## 7. 전체 코드와 출력
+
+MNIST를 읽으므로 저장소 뿌리에서 돌린다. 이 기계(mps)에서 약 5분이 걸린다.
+
+```python
+"""MNIST 전체 파이프라인 — 이 장에서 배운 것을 한자리에.
+
+앞 쪽들은 조각을 하나씩 다루었다. 이 쪽은 처음부터 끝까지 한 번
+돌린다. 자료를 나누고, 모델을 세우고, 학습하고, 재고, 보고한다.
+
+조각을 아는 것과 파이프라인을 세우는 것은 다른 일이고, 그 차이가
+드러나는 자리를 재어 본다.
+
+- 검증셋과 테스트셋은 왜 따로 있는가 (수로 보면)
+- model.train() 과 model.eval() 이 실제로 바꾸는 것
+- '배치 평균의 평균' 과 참 평균이 얼마나 다른가
+- 한 번 돌린 결과는 측정이 아니다 (씨앗을 바꾸면)
+- 스케줄러가 실제로 한 일
+
+저장소 뿌리에서 돌린다 (./data).
+
+실행: python 01_neural_network_mnist.py
+"""
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, random_split
+from torchvision import datasets, transforms
+
+DEV = "mps" if torch.backends.mps.is_available() else "cpu"
+BATCH = 128
+
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
+def load():
+    tf = transforms.Compose([transforms.ToTensor(),
+                             transforms.Normalize((0.1307,), (0.3081,))])
+    train_full = datasets.MNIST("./data", train=True, download=False,
+                                transform=tf)
+    test = datasets.MNIST("./data", train=False, download=False, transform=tf)
+    g = torch.Generator().manual_seed(0)
+    train, val = random_split(train_full, [48000, 12000], generator=g)
+    return train, val, test
+
+
+TRAIN, VAL, TEST = load()
+
+
+class Net(nn.Module):
+    def __init__(self, p_drop=0.2):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(784, 128), nn.ReLU(), nn.Dropout(p_drop),
+            nn.Linear(128, 64), nn.ReLU(), nn.Dropout(p_drop),
+            nn.Linear(64, 10),                 # 로짓. Softmax 를 붙이지 않는다
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+def evaluate(model, loader, train_mode=False):
+    """로스를 **표본 수로 가중해** 더한다. 배치 평균의 평균이 아니다."""
+    model.train() if train_mode else model.eval()
+    tot_loss, correct, n = 0.0, 0, 0
     with torch.no_grad():
-        output = model(example_data)
-        _, predictions = torch.max(output, 1)
-
-    # 처음 테스트 예제 6개 보여주기
-    for i in range(6):
-        ax = axes[1, i//3]
-
-        if i < 3:
-            idx = i
-        else:
-            idx = i + 3
-
-        img = example_data[idx].squeeze()
-        true_label = example_targets[idx].item()
-        pred_label = predictions[idx].item()
-
-        color = 'green' if true_label == pred_label else 'red'
-
-        if i < 3:
-            ax.imshow(img, cmap='gray')
-            ax.set_title(f'True: {true_label}, Pred: {pred_label}', color=color)
-            ax.axis('off')
-
-    # 그림 4: 혼동 시각화
-    axes[1, 1].text(0.5, 0.5, 
-                    f'Test Accuracy\n{test_acc:.2f}%\n\nTest Loss\n{test_loss:.4f}',
-                    horizontalalignment='center',
-                    verticalalignment='center',
-                    fontsize=20,
-                    transform=axes[1, 1].transAxes)
-    axes[1, 1].axis('off')
-
-    plt.tight_layout()
-    plt.savefig('mnist_results.png', dpi=150)
-    print("\n✓ Results saved as 'mnist_results.png'")
-    print("\nClose the plot window to continue...")
-    plt.show()
-
-    # ============================================================================
-    # 9부: 모델 저장
-    # ============================================================================
-    print("\n" + "="*80)
-    print("SAVING MODEL")
-    print("="*80)
-
-    # 모델 웨이트 저장
-    torch.save(model.state_dict(), 'mnist_model.pth')
-    print("\n✓ Model saved as 'mnist_model.pth'")
-
-    print("\nTo load the model later:")
-    print("  model = MNISTNet()")
-    print("  model.load_state_dict(torch.load('mnist_model.pth'))")
-    print("  model.eval()")
-
-    # ============================================================================
-    # 10부: 핵심 요점
-    # ============================================================================
-    print("\n" + "="*80)
-    print("KEY TAKEAWAYS")
-    print("="*80)
-    print("""
-    1. 온전한 기계 학습 흐름:
-       ✓ 데이터 불러오기와 미리 다듬기
-       ✓ 학습/검증/시험 나누기
-       ✓ 모델 매기기
-       ✓ 제대로 따지는 학습 루프
-       ✓ 그림으로 보기와 모델 저장
-
-    2. 좋은 버릇:
-       • 초파라메터를 손볼 때는 늘 검증 배치를 써라
-       • 마지막으로 따질 때까지 시험 배치에 손대지 마라
-       • 정칙화에는 드롭아웃을 써라
-       • 러닝레이트 짜기를 넣어라
-       • 나중에 쓰도록 모델을 저장하라
-
-    3. 움직이는 경사 하강법:
-       • Adam 최적화기는 빨리 모여든다
-       • DataLoader로 하는 배치 학습
-       • 자동 미분이 복잡한 망을 다룬다
-       • 1~3단계의 모든 개념이 여기 쓰였다!
-
-    4. 좋은 성능 이루기:
-       • MNIST에서 정확도 95% 넘기기는 이룰 수 있다
-       • 구조를 제대로 꾸미는 일이 종요롭다
-       • 초파라메터를 손보면 결과가 나아진다
-       • 흔히 더 익히면 도움이 된다(어느 선까지는)
-
-    5. 다음 스텝:
-       • 여러 구조를 써 보아라(레이어를 늘리거나 줄여서)
-       • 초파라메터를 이리저리 바꾸어 보아라
-       • 성능을 높이려면 컨볼루션 레이어를 더하라
-       • 다른 데이터셋도 써 보아라(패션 MNIST, CIFAR-10)
-    """)
-
-    print("="*80)
-    print("🎉 CONGRATULATIONS!")
-    print("="*80)
-    print("""
-    온전한 뉴럴 넷트웍 과제를 마쳤다!
-
-    이제 다음을 할 수 있다.
-    ✓ 참 데이터셋을 불러오고 미리 다듬기
-    ✓ PyTorch로 뉴럴 넷트웍 짓기
-    ✓ 경사 하강법으로 모델 익히기
-    ✓ 결과를 따지고 그림으로 보기
-    ✓ 익힌 모델을 저장하고 불러오기
-
-    이것이 깊은 학습의 바탕이다!
-    """)
-    print("="*80)
+        for x, y in loader:
+            x, y = x.to(DEV), y.to(DEV)
+            out = model(x)
+            tot_loss += nn.functional.cross_entropy(
+                out, y, reduction="sum").item()
+            correct += (out.argmax(1) == y).sum().item()
+            n += len(y)
+    return tot_loss / n, correct / n * 100
 
 
-    if __name__ == "__main__":
-        pass
+# ========================================================================
+# 1. 자료를 셋으로 나눈다
+# ========================================================================
+
+def splits():
+    header("1. 학습 / 검증 / 테스트")
+    print(f"  MNIST 학습셋 60000 장을 48000 / 12000 으로 나눴다")
+    print(f"  학습 {len(TRAIN)},  검증 {len(VAL)},  테스트 {len(TEST)}")
+    print(f"  장치 {DEV}")
+
+    # 라벨 분포가 고르게 갈렸는지 확인한다
+    def counts(ds):
+        ys = torch.tensor([ds[i][1] for i in range(0, len(ds), 20)])
+        return torch.bincount(ys, minlength=10).float() / len(ys) * 100
+
+    for name, ds in (("학습", TRAIN), ("검증", VAL), ("테스트", TEST)):
+        c = counts(ds)
+        print(f"  {name} 라벨 분포(%) " +
+              " ".join(f"{v:4.1f}" for v in c) +
+              f"   최소 {c.min():.1f} 최대 {c.max():.1f}")
+    print("  무작위로 나누었는데도 분포가 고르다. 표본이 많기 때문이다")
+    print("  자료가 적거나 라벨이 치우쳐 있으면 층화 추출을 해야 한다")
+
+
+# ========================================================================
+# 2. 학습
+# ========================================================================
+
+def train_once(seed, epochs=8, lr=0.1, use_sched=True, p_drop=0.2,
+               verbose=False):
+    torch.manual_seed(seed)
+    model = Net(p_drop).to(DEV)
+    opt = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9)
+    sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        opt, mode="min", factor=0.5, patience=1)
+    g = torch.Generator().manual_seed(seed)
+    tl = DataLoader(TRAIN, batch_size=BATCH, shuffle=True, generator=g)
+    vl = DataLoader(VAL, batch_size=512)
+
+    hist = []
+    for ep in range(epochs):
+        model.train()
+        batch_means = []
+        for x, y in tl:
+            x, y = x.to(DEV), y.to(DEV)
+            opt.zero_grad()
+            loss = nn.functional.cross_entropy(model(x), y)
+            loss.backward()
+            opt.step()
+            batch_means.append(loss.item())
+        vloss, vacc = evaluate(model, vl)
+        if use_sched:
+            sched.step(vloss)
+        hist.append({"ep": ep, "batch_mean": float(np.mean(batch_means)),
+                     "vloss": vloss, "vacc": vacc,
+                     "lr": opt.param_groups[0]["lr"]})
+        if verbose:
+            print(f"  {ep:>4}   {hist[-1]['batch_mean']:.4f}        "
+                  f"{vloss:.4f}      {vacc:6.2f}%     {hist[-1]['lr']:.4f}")
+    return model, hist
+
+
+def training():
+    header("2. 학습 (8 에폭, SGD+모멘텀 0.9, lr 0.1, ReduceLROnPlateau)")
+    print("  에폭   학습 배치평균   검증 로스   검증 정확도   그때의 lr")
+    model, hist = train_once(0, verbose=True)
+    return model, hist
+
+
+# ========================================================================
+# 3. train() 과 eval() 이 바꾸는 것
+# ========================================================================
+
+def modes(model):
+    header("3. model.train() vs model.eval()")
+    vl = DataLoader(VAL, batch_size=512)
+    el, ea = evaluate(model, vl, train_mode=False)
+    tl_, ta = evaluate(model, vl, train_mode=True)
+    print(f"  eval()  로스 {el:.4f}   정확도 {ea:.2f}%")
+    print(f"  train() 로스 {tl_:.4f}   정확도 {ta:.2f}%")
+    print(f"  차이          {tl_-el:+.4f}            {ta-ea:+.2f}%p")
+    print("  같은 모델, 같은 자료인데 다르다. Dropout 이 켜져 있기 때문이다")
+
+    print("\n  train() 모드는 돌릴 때마다 답이 달라진다")
+    for i in range(3):
+        torch.manual_seed(100 + i)
+        l, a = evaluate(model, vl, train_mode=True)
+        print(f"    {i+1}번째   로스 {l:.4f}   정확도 {a:.2f}%")
+    print("  eval() 을 빼먹으면 재현되지 않는 평가를 하게 된다")
+
+    print("\n  Dropout 을 끈 모델이라면 두 모드가 같은가")
+    m2, _ = train_once(0, epochs=1, p_drop=0.0)
+    a1 = evaluate(m2, vl, train_mode=False)
+    a2 = evaluate(m2, vl, train_mode=True)
+    print(f"    p_drop=0.0:  eval {a1[1]:.2f}%   train {a2[1]:.2f}%   "
+          f"차이 {abs(a1[1]-a2[1]):.4f}%p")
+    print("  같다. 이 모델에는 BatchNorm 이 없어 Dropout 만이 모드에 반응한다")
+    print("  no_grad() 는 모드와 다른 일을 한다 — 기록을 끌 뿐 행동을 안 바꾼다")
+
+
+# ========================================================================
+# 4. '배치 평균의 평균' 은 참 평균이 아니다
+# ========================================================================
+
+def mean_of_means(hist):
+    header("4. 배치 평균의 평균 vs 표본 가중 평균")
+    print("  학습 로스를 적는 두 방법이 있다")
+    print("   (가) 배치마다의 평균 로스를 모아 다시 평균 낸다 (흔한 방법)")
+    print("   (나) 로스의 합을 모아 전체 표본 수로 나눈다 (참 평균)")
+
+    n_full = len(TRAIN)
+    n_batches = -(-n_full // BATCH)
+    print(f"\n  학습셋 {n_full}장, 배치 {BATCH} -> 배치 {n_batches}개")
+    print(f"  마지막 배치 크기 {n_full - (n_batches-1)*BATCH}")
+    print("  48000 = 128 * 375 이라 딱 떨어진다. 그러면 (가) 와 (나) 가 같다")
+
+    print("\n  일부러 나누어떨어지지 않게 해 본다 (배치 127)")
+    g = torch.Generator().manual_seed(0)
+    model, _ = train_once(0, epochs=1)
+    for bs in (128, 127, 1000):
+        dl = DataLoader(TRAIN, batch_size=bs)
+        model.eval()
+        means, tot, n = [], 0.0, 0
+        with torch.no_grad():
+            for x, y in dl:
+                x, y = x.to(DEV), y.to(DEV)
+                out = model(x)
+                means.append(nn.functional.cross_entropy(out, y).item())
+                tot += nn.functional.cross_entropy(
+                    out, y, reduction="sum").item()
+                n += len(y)
+        last = n_full - (len(means) - 1) * bs
+        print(f"  배치 {bs:<5} 배치수 {len(means):>4}  마지막 {last:>4}장  "
+              f"(가) {np.mean(means):.8f}  (나) {tot/n:.8f}  "
+              f"차이 {abs(np.mean(means)-tot/n):.2e}")
+    print("  나누어떨어지면 차이가 0 이거나(128) 부동소수점 자리다(1000).")
+    print("  127 에서만 9.8e-06 으로 뜬다 — 마지막 121장짜리 배치가 128장짜리와")
+    print("  같은 무게로 평균에 들어가기 때문이다")
+    print("  크기는 작다. 그래도 적을 때는 어느 쪽인지 밝히는 편이 낫다")
+    print("  정확도는 이 문제가 없다 — 맞힌 수를 전체 수로 나누면 그만이다")
+
+
+# ========================================================================
+# 5. 한 번 돌린 결과는 측정이 아니다
+# ========================================================================
+
+def spread():
+    header("5. 씨앗을 바꾸면 (5번)")
+    vl = DataLoader(VAL, batch_size=512)
+    tl = DataLoader(TEST, batch_size=512)
+    vaccs, taccs = [], []
+    print("  씨앗   검증 정확도   테스트 정확도   둘의 차")
+    for s in range(5):
+        m, h = train_once(s)
+        _, va = evaluate(m, vl)
+        _, ta = evaluate(m, tl)
+        vaccs.append(va)
+        taccs.append(ta)
+        print(f"  {s:>4}   {va:9.2f}%   {ta:11.2f}%   {ta-va:+6.2f}%p")
+    print(f"  검증   평균 {np.mean(vaccs):.2f}%  "
+          f"퍼짐 {min(vaccs):.2f}~{max(vaccs):.2f}")
+    print(f"  테스트 평균 {np.mean(taccs):.2f}%  "
+          f"퍼짐 {min(taccs):.2f}~{max(taccs):.2f}")
+    print("  퍼짐이 이만큼 있다. 두 설정의 차이가 이보다 작으면 차이가 아니다")
+
+    best = int(np.argmax(vaccs))
+    print(f"\n  검증으로 고르면 씨앗 {best} 를 고른다 "
+          f"(검증 {vaccs[best]:.2f}%)")
+    print(f"  그 씨앗의 테스트 정확도는 {taccs[best]:.2f}% 이고,")
+    print(f"  다섯의 테스트 평균은 {np.mean(taccs):.2f}% 다")
+    print(f"  차이 {taccs[best]-np.mean(taccs):+.2f}%p — 검증으로 고르는 행위")
+    print("  자체가 검증셋에 맞추는 일이다. 그래서 테스트셋이 따로 있다")
+    print("  검증셋으로 고르고 테스트셋으로 한 번만 보고한다")
+
+
+# ========================================================================
+# 6. 스케줄러가 한 일
+# ========================================================================
+
+def scheduler_effect():
+    header("6. ReduceLROnPlateau 가 한 일")
+    vl = DataLoader(VAL, batch_size=512)
+    for use in (True, False):
+        accs = []
+        for s in range(3):
+            m, h = train_once(s, use_sched=use)
+            accs.append(evaluate(m, vl)[1])
+        lrs = [r["lr"] for r in h]
+        lab = "스케줄러 켬" if use else "스케줄러 끔"
+        print(f"  {lab}  검증 정확도 평균 {np.mean(accs):.2f}%  "
+              f"퍼짐 {min(accs):.2f}~{max(accs):.2f}")
+        print(f"              마지막 씨앗의 에폭별 lr: " +
+              " ".join(f"{v:.4f}" for v in lrs))
+    print("  두 줄이 평균도 퍼짐도 완전히 같다. 스케줄러가 **한 번도 켜지지**")
+    print("  않았기 때문이다 — lr 이 여덟 에폭 내내 0.1 이다")
+    print("  검증 로스가 8 에폭 동안 계속 내려가서 plateau 가 없었다")
+    print("  스케줄러를 넣었다고 일하는 것이 아니다. lr 기록을 함께 찍어")
+    print("  실제로 켜졌는지 확인해야 한다")
+
+
+def main():
+    splits()
+    model, hist = training()
+    modes(model)
+    mean_of_means(hist)
+    spread()
+    scheduler_effect()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+??? note "전체 출력 (85줄)"
+
+    ```
+    === 1. 학습 / 검증 / 테스트 ===
+      MNIST 학습셋 60000 장을 48000 / 12000 으로 나눴다
+      학습 48000,  검증 12000,  테스트 10000
+      장치 mps
+      학습 라벨 분포(%)  9.7 10.8  9.8  9.5  9.8  9.2 10.4 10.7  9.7 10.4   최소 9.2 최대 10.8
+      검증 라벨 분포(%)  9.7 11.5 10.7  9.3 10.5  8.5 10.7  9.0 10.7  9.5   최소 8.5 최대 11.5
+      테스트 라벨 분포(%)  7.6 11.4  9.0 10.8 10.4  9.4  9.2 11.8  9.2 11.2   최소 7.6 최대 11.8
+      무작위로 나누었는데도 분포가 고르다. 표본이 많기 때문이다
+      자료가 적거나 라벨이 치우쳐 있으면 층화 추출을 해야 한다
+
+    === 2. 학습 (8 에폭, SGD+모멘텀 0.9, lr 0.1, ReduceLROnPlateau) ===
+      에폭   학습 배치평균   검증 로스   검증 정확도   그때의 lr
+         0   0.4144        0.1832       94.78%     0.1000
+         1   0.2259        0.1678       95.17%     0.1000
+         2   0.1952        0.1534       95.64%     0.1000
+         3   0.1816        0.1475       95.90%     0.1000
+         4   0.1661        0.1407       96.24%     0.1000
+         5   0.1540        0.1259       96.69%     0.1000
+         6   0.1440        0.1215       96.83%     0.1000
+         7   0.1389        0.1237       96.92%     0.1000
+
+    === 3. model.train() vs model.eval() ===
+      eval()  로스 0.1237   정확도 96.92%
+      train() 로스 0.1906   정확도 95.31%
+      차이          +0.0669            -1.61%p
+      같은 모델, 같은 자료인데 다르다. Dropout 이 켜져 있기 때문이다
+
+      train() 모드는 돌릴 때마다 답이 달라진다
+        1번째   로스 0.1899   정확도 95.26%
+        2번째   로스 0.1805   정확도 95.38%
+        3번째   로스 0.1900   정확도 95.34%
+      eval() 을 빼먹으면 재현되지 않는 평가를 하게 된다
+
+      Dropout 을 끈 모델이라면 두 모드가 같은가
+        p_drop=0.0:  eval 94.77%   train 94.77%   차이 0.0000%p
+      같다. 이 모델에는 BatchNorm 이 없어 Dropout 만이 모드에 반응한다
+      no_grad() 는 모드와 다른 일을 한다 — 기록을 끌 뿐 행동을 안 바꾼다
+
+    === 4. 배치 평균의 평균 vs 표본 가중 평균 ===
+      학습 로스를 적는 두 방법이 있다
+       (가) 배치마다의 평균 로스를 모아 다시 평균 낸다 (흔한 방법)
+       (나) 로스의 합을 모아 전체 표본 수로 나눈다 (참 평균)
+
+      학습셋 48000장, 배치 128 -> 배치 375개
+      마지막 배치 크기 128
+      48000 = 128 * 375 이라 딱 떨어진다. 그러면 (가) 와 (나) 가 같다
+
+      일부러 나누어떨어지지 않게 해 본다 (배치 127)
+      배치 128   배치수  375  마지막  128장  (가) 0.16292799  (나) 0.16292799  차이 0.00e+00
+      배치 127   배치수  378  마지막  121장  (가) 0.16291818  (나) 0.16292799  차이 9.81e-06
+      배치 1000  배치수   48  마지막 1000장  (가) 0.16292799  (나) 0.16292799  차이 6.38e-10
+      나누어떨어지면 차이가 0 이거나(128) 부동소수점 자리다(1000).
+      127 에서만 9.8e-06 으로 뜬다 — 마지막 121장짜리 배치가 128장짜리와
+      같은 무게로 평균에 들어가기 때문이다
+      크기는 작다. 그래도 적을 때는 어느 쪽인지 밝히는 편이 낫다
+      정확도는 이 문제가 없다 — 맞힌 수를 전체 수로 나누면 그만이다
+
+    === 5. 씨앗을 바꾸면 (5번) ===
+      씨앗   검증 정확도   테스트 정확도   둘의 차
+         0       96.92%         96.85%    -0.07%p
+         1       96.54%         96.62%    +0.08%p
+         2       96.70%         96.78%    +0.08%p
+         3       97.54%         97.44%    -0.10%p
+         4       97.33%         97.53%    +0.20%p
+      검증   평균 97.01%  퍼짐 96.54~97.54
+      테스트 평균 97.04%  퍼짐 96.62~97.53
+      퍼짐이 이만큼 있다. 두 설정의 차이가 이보다 작으면 차이가 아니다
+
+      검증으로 고르면 씨앗 3 를 고른다 (검증 97.54%)
+      그 씨앗의 테스트 정확도는 97.44% 이고,
+      다섯의 테스트 평균은 97.04% 다
+      차이 +0.40%p — 검증으로 고르는 행위
+      자체가 검증셋에 맞추는 일이다. 그래서 테스트셋이 따로 있다
+      검증셋으로 고르고 테스트셋으로 한 번만 보고한다
+
+    === 6. ReduceLROnPlateau 가 한 일 ===
+      스케줄러 켬  검증 정확도 평균 96.72%  퍼짐 96.54~96.92
+                  마지막 씨앗의 에폭별 lr: 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000
+      스케줄러 끔  검증 정확도 평균 96.72%  퍼짐 96.54~96.92
+                  마지막 씨앗의 에폭별 lr: 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000 0.1000
+      두 줄이 평균도 퍼짐도 완전히 같다. 스케줄러가 **한 번도 켜지지**
+      않았기 때문이다 — lr 이 여덟 에폭 내내 0.1 이다
+      검증 로스가 8 에폭 동안 계속 내려가서 plateau 가 없었다
+      스케줄러를 넣었다고 일하는 것이 아니다. lr 기록을 함께 찍어
+      실제로 켜졌는지 확인해야 한다
     ```
 
-
-??? note "전체 출력 (156줄)"
-
-    ```
-    ================================================================================
-    MNIST DIGIT CLASSIFICATION WITH NEURAL NETWORKS
-    ================================================================================
-
-    ================================================================================
-    PART 1: LOADING MNIST DATASET
-    ================================================================================
-    Downloading MNIST dataset (this may take a minute)...
-
-    ✓ Dataset loaded successfully!
-      Training samples:   48,000
-      Validation samples: 12,000
-      Test samples:       10,000
-
-    Batch size: 64
-    Batches per epoch: 750
-
-    ================================================================================
-    PART 2: VISUALIZING SAMPLE DATA
-    ================================================================================
-
-    Batch shape: torch.Size([64, 1, 28, 28])
-    Labels shape: torch.Size([64])
-
-    ✓ Sample images saved as 'mnist_samples.png'
-
-    ================================================================================
-    PART 3: NEURAL NETWORK ARCHITECTURE
-    ================================================================================
-
-    Model Architecture:
-    MNISTNet(
-      (fc1): Linear(in_features=784, out_features=128, bias=True)
-      (fc2): Linear(in_features=128, out_features=64, bias=True)
-      (fc3): Linear(in_features=64, out_features=10, bias=True)
-      (dropout): Dropout(p=0.2, inplace=False)
-    )
-
-    Total parameters: 109,386
-    Trainable parameters: 109,386
-
-    ================================================================================
-    PART 4: TRAINING CONFIGURATION
-    ================================================================================
-    Loss function: CrossEntropyLoss
-    Optimizer: Adam
-    Learning rate: 0.001
-    Scheduler: ReduceLROnPlateau
-
-    ================================================================================
-    PART 6: TRAINING
-    ================================================================================
-
-    Training for 15 epochs...
-    --------------------------------------------------------------------------------
-    Epoch | Train Loss |  Train Acc |   Val Loss |    Val Acc |    Time
-    --------------------------------------------------------------------------------
-        1 |     0.3745 |     88.75% |     0.1792 |     94.57% |   55.5s
-        2 |     0.1803 |     94.59% |     0.1279 |     96.13% |   64.5s
-        3 |     0.1395 |     95.82% |     0.1064 |     96.64% |   66.3s
-        4 |     0.1161 |     96.50% |     0.1002 |     97.03% |   65.3s
-        5 |     0.1019 |     96.82% |     0.1002 |     97.08% |   65.1s
-        6 |     0.0939 |     97.03% |     0.0997 |     97.12% |   73.1s
-        7 |     0.0845 |     97.39% |     0.0977 |     97.18% |   66.7s
-        8 |     0.0773 |     97.51% |     0.0880 |     97.58% |   78.0s
-        9 |     0.0743 |     97.62% |     0.0879 |     97.58% |   75.0s
-       10 |     0.0730 |     97.74% |     0.0945 |     97.42% |   71.6s
-       11 |     0.0636 |     97.97% |     0.0834 |     97.67% |   67.5s
-       12 |     0.0613 |     98.01% |     0.0924 |     97.35% |   72.9s
-       13 |     0.0613 |     98.05% |     0.0851 |     97.62% |   63.5s
-       14 |     0.0576 |     98.15% |     0.0888 |     97.59% |   59.5s
-       15 |     0.0576 |     98.18% |     0.0889 |     97.72% |   49.8s
-    --------------------------------------------------------------------------------
-    Training completed in 994.5s (66.3s per epoch)
-
-    ================================================================================
-    PART 7: FINAL EVALUATION ON TEST SET
-    ================================================================================
-
-    Test Set Results:
-      Loss: 0.0886
-      Accuracy: 97.68%
-
-    🎉 Congratulations! You achieved >95% accuracy!
-
-    ================================================================================
-    VISUALIZATION
-    ================================================================================
-
-    ✓ Results saved as 'mnist_results.png'
-
-    Close the plot window to continue...
-
-    ================================================================================
-    SAVING MODEL
-    ================================================================================
-
-    ✓ Model saved as 'mnist_model.pth'
-
-    To load the model later:
-      model = MNISTNet()
-      model.load_state_dict(torch.load('mnist_model.pth'))
-      model.eval()
-
-    ================================================================================
-    KEY TAKEAWAYS
-    ================================================================================
-
-    1. 온전한 기계 학습 흐름:
-       ✓ 데이터 불러오기와 미리 다듬기
-       ✓ 학습/검증/시험 나누기
-       ✓ 모델 매기기
-       ✓ 제대로 따지는 학습 루프
-       ✓ 그림으로 보기와 모델 저장
-
-    2. 좋은 버릇:
-       • 초파라메터를 손볼 때는 늘 검증 배치를 써라
-       • 마지막으로 따질 때까지 시험 배치에 손대지 마라
-       • 정칙화에는 드롭아웃을 써라
-       • 러닝레이트 짜기를 넣어라
-       • 나중에 쓰도록 모델을 저장하라
-
-    3. 움직이는 경사 하강법:
-       • Adam 최적화기는 빨리 모여든다
-       • DataLoader로 하는 배치 학습
-       • 자동 미분이 복잡한 망을 다룬다
-       • 1~3단계의 모든 개념이 여기 쓰였다!
-
-    4. 좋은 성능 이루기:
-       • MNIST에서 정확도 95% 넘기기는 이룰 수 있다
-       • 구조를 제대로 꾸미는 일이 종요롭다
-       • 초파라메터를 손보면 결과가 나아진다
-       • 흔히 더 익히면 도움이 된다(어느 선까지는)
-
-    5. 다음 스텝:
-       • 여러 구조를 써 보아라(레이어를 늘리거나 줄여서)
-       • 초파라메터를 이리저리 바꾸어 보아라
-       • 성능을 높이려면 컨볼루션 레이어를 더하라
-       • 다른 데이터셋도 써 보아라(패션 MNIST, CIFAR-10)
-
-    ================================================================================
-    🎉 CONGRATULATIONS!
-    ================================================================================
-
-    온전한 뉴럴 넷트웍 과제를 마쳤다!
-
-    이제 다음을 할 수 있다.
-    ✓ 참 데이터셋을 불러오고 미리 다듬기
-    ✓ PyTorch로 뉴럴 넷트웍 짓기
-    ✓ 경사 하강법으로 모델 익히기
-    ✓ 결과를 따지고 그림으로 보기
-    ✓ 익힌 모델을 저장하고 불러오기
-
-    이것이 깊은 학습의 바탕이다!
-
-    ================================================================================
-    ```
-
-
-## 2. 논의
-
-### 데이터와 모델의 연결
-
-정규화한 $28\times28$ 이미지를 길이 784의 벡터로 펼친 뒤 128, 64개의 은닉 유닛과 10개 출력으로 변환한다. 은닉 레이어에는 ReLU와 Dropout을 사용한다. 마지막 출력은 확률로 변환하지 않은 로짓이다. `CrossEntropyLoss`는 이 로짓과 정수 클래스 정답을 받아 로스를 계산하므로 모델 끝에 Softmax를 덧붙일 필요가 없다.
-
-### 학습·검증·테스트의 역할
-
-MNIST 학습셋을 다시 학습용 80%, 검증용 20%로 나눈다. 학습셋은 파라미터 업데이트에, 검증셋은 학습 상태 확인과 `ReduceLROnPlateau`의 러닝레이트 조정에 사용한다. 별도 테스트셋은 최종 성능을 평가하는 용도이며 반복적인 설정 선택에 사용하지 않는다.
-
-학습에서는 `model.train()`, 검증에서는 `model.eval()`로 Dropout 동작을 전환한다. 검증의 `no_grad()`는 경사 기록을 끄는 별도 역할이다. 클래스 예측은 로짓의 최댓값 위치로 정하며 정확도는 맞힌 표본 수를 전체 표본 수로 나눈다.
-
-### 지표와 제공 코드의 해석
-
-코드는 배치 평균 로스를 배치 개수로 나누어 보고한다. 마지막 배치가 짧으면 표본 수로 가중한 전체 평균과 조금 다를 수 있다. 정확도는 표본 수를 기준으로 계산한다. 제공 코드에는 버전에 따라 달라진 스케줄러 인수가 포함될 수 있으며, 기록된 출력은 원래 실행 환경의 예시다. 이 절의 그림과 출력만으로 다른 환경에서 같은 수치가 재현된다고 가정하지 않는다.
+---
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
+모델 끝에 `nn.Softmax(dim=1)`을 붙이고 `CrossEntropyLoss`를 그대로 쓰면 어떻게 되는가? 로스와 경사를 재어 보라.
 
 </div>
 
 ??? success "풀이"
     ```python
     import torch
+    import torch.nn as nn
 
-    x = torch.tensor(3.0, requires_grad=True)
-    f = x**3 - 2*x**2 + x
-    f.backward()
-    print(x.grad)  # f'(x) = 3x^2 - 4x + 1 = 27 - 12 + 1 = 16.0
+    torch.manual_seed(0)
+    logits = torch.randn(4, 10) * 3
+    y = torch.tensor([1, 3, 5, 7])
+
+    print(f"  로짓 그대로 CrossEntropyLoss  "
+          f"{nn.functional.cross_entropy(logits, y).item():.6f}")
+    sm = torch.softmax(logits, 1)
+    print(f"  Softmax 붙이고 CrossEntropyLoss "
+          f"{nn.functional.cross_entropy(sm, y).item():.6f}")
+
+    l1 = logits.clone().requires_grad_(True)
+    nn.functional.cross_entropy(l1, y).backward()
+    l2 = logits.clone().requires_grad_(True)
+    nn.functional.cross_entropy(torch.softmax(l2, 1), y).backward()
+    print(f"  경사 노름  올바름 {l1.grad.norm():.6f}   "
+          f"Softmax 덧붙임 {l2.grad.norm():.6f}  "
+          f"({l2.grad.norm() / l1.grad.norm():.4f} 배)")
     ```
 
----
+    ```
+      로짓 그대로 CrossEntropyLoss  5.418520
+      Softmax 붙이고 CrossEntropyLoss 2.318047
+      올바른 짝: log_softmax + nll   5.418520
+      경사 노름  올바름 0.573800   Softmax 덧붙임 0.070368  (0.1226 배)
+    ```
 
+    **로스가 5.42에서 2.32로 좋아 보인다.** 이것이 이 버그의 고약한 점이다. 수가 나빠지면 바로 알아챌 텐데 오히려 좋아진다.
+
+    `CrossEntropyLoss`는 내부에서 `log_softmax`를 적용한다. Softmax를 이미 적용한 값에 다시 적용하면 **Softmax를 두 번** 한 셈이다. 두 번째 Softmax의 입력이 $[0,1]$ 범위라 출력이 거의 균등해지고, 그래서 로스가 $\ln 10 = 2.303$ 근처로 눌린다.
+
+    **진짜 피해는 경사에 있다.** 노름이 0.1226배, 곧 **8분의 1** 이다. 학습이 여덟 배 느려진다. 그리고 로스가 2.3 근처에 눌려 있으니 "수렴이 느린데 로스는 그럭저럭"으로 보여서 원인을 찾기 어렵다.
+
+    고치는 길은 둘이다 — 모델 끝에서 Softmax를 **빼거나**, 그대로 두고 로스를 `NLLLoss`로 바꾸되 `Softmax` 대신 `LogSoftmax`를 쓰거나. 위 코드의 셋째 줄이 그 짝이 로짓 + `CrossEntropyLoss`와 같은 값을 준다는 것을 보여 준다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-제곱합처럼 저장된 중간값이 필요한 로스에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
+Dropout 비율을 0, 0.2, 0.5로 바꾸어 재어라. 씨앗을 여럿 쓰고 퍼짐을 함께 보고하라.
 
 </div>
 
 ??? success "풀이"
-    기본 역전파는 사용을 마친 저장 텐서를 해제한다. 같은 그래프의 두 번째 역전파에 이 값들이 필요하면 `RuntimeError`가 발생한다. 저장 텐서가 필요 없는 단순 연산은 반복 호출이 가능할 수도 있으므로 모든 그래프에서 반드시 오류가 나는 것은 아니다. 첫 호출의 `retain_graph=True`는 필요한 중간 결과를 보존해 재사용을 가능하게 하지만 그만큼 메모리를 더 오래 사용한다. `.grad` 초기화는 이 보존 여부와 별개의 작업이다.
+    ```
+      p_drop   검증 정확도 평균   퍼짐
+      0.0              96.41%   95.88~96.70
+      0.2              96.23%   95.90~96.63
+      0.5              92.93%   92.62~93.19
+    ```
+
+    (4에폭, 씨앗 3개)
+
+    **0.0과 0.2의 퍼짐이 거의 완전히 겹친다**(95.88~96.70과 95.90~96.63). 차이를 말할 수 없다. 평균만 보면 Dropout을 **끈** 쪽이 0.18%p 높지만 그것도 잡음 안이다.
+
+    0.5는 92.93%로 명백히 나쁘다. 퍼짐이 겹치지 않는다.
+
+    **본문 모델이 `p_drop=0.2`를 쓰는 것이 이 측정으로 정당화되지 않는다.** 4에폭에서는 과적합이 일어나지 않아 정규화할 것이 없기 때문이다. 5절의 8에폭 학습에서도 검증 로스가 끝까지 내려갔다 — 아직 외우는 단계에 들어서지 않았다.
+
+    Dropout이 값어치를 하려면 **과적합이 실제로 일어나야** 한다. 에폭을 50~100으로 늘리거나 학습셋을 1,000장으로 줄여 보면 그림이 달라질 것이다. 지금 설정에서 Dropout은 학습을 느리게 만드는 역할만 하고 있다.
+
+    이것이 "좋다고 알려진 기법"을 재어 보지 않고 넣을 때 생기는 일이다.
 
 ---
-
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+`transforms.Normalize((0.1307,), (0.3081,))`를 빼면 어떻게 되는가? 두 경우의 픽셀 값 범위도 함께 보라.
+
+</div>
+
+??? success "풀이"
+    ```
+      정규화    검증 정확도 평균   퍼짐
+      True             96.23%   95.90~96.63
+      False            96.91%   96.84~97.05
+      정규화 함: 값 범위 -0.424~2.809  평균 -0.1005
+      정규화 안 함: 값 범위 0.000~0.996  평균 +0.0997
+    ```
+
+    **정규화를 뺀 쪽이 더 좋다.** 96.91% 대 96.23%이고 퍼짐이 겹치지 않는다(96.84~97.05와 95.90~96.63).
+
+    예상과 반대일 것이다. 까닭은 **MNIST 픽셀이 이미 $[0,1]$에 들어 있다** 는 데 있다. `ToTensor()`가 이미 255로 나누어 주므로 척도가 정상이다. 거기에 `Normalize`를 걸면 범위가 $[-0.42, 2.81]$로 **세 배 넓어진다.** 입력이 커지면 첫 레이어의 경사도 커지고, $\eta = 0.1$에서는 그것이 과했다.
+
+    [러닝레이트 쪽](learning_rate.md) 연습문제 2에서 본 그대로다 — 입력의 척도를 바꾸면 러닝레이트도 다시 골라야 한다. 정규화와 러닝레이트를 **따로** 고르면 이런 일이 난다.
+
+    **그러니 "정규화는 빼도 된다"가 결론이 아니다.** 두 결론은 이렇다.
+
+    - MNIST처럼 이미 척도가 고른 자료에서는 정규화의 이득이 작고, 러닝레이트를 다시 맞추지 않으면 손해일 수도 있다
+    - 특징마다 단위가 제각각인 자료(키와 몸무게와 소득)에서는 이야기가 전혀 다르다. 거기서는 정규화가 선택이 아니다
+
+    `(0.1307, 0.3081)`이라는 수 자체도 확인해 둘 값어치가 있다. MNIST 학습셋 전체의 평균과 표준편차이고, **테스트셋의 값이 아니다.** 테스트셋으로 구한 통계를 쓰면 그 자체가 누수다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 4.** <span class="diff hard" title="어려움"></span>
+검증셋까지 학습에 쓰고 그 검증셋으로 성능을 보고하면 얼마나 부풀려지는가? 테스트셋과 함께 재어 그 차이를 설명하라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
+    from torch.utils.data import ConcatDataset
 
-    w = torch.tensor(2.0, requires_grad=True)
-    for i in range(3):
-        loss = (w ** 2).sum()
-        loss.backward()
-        print(f'After backward {i+1}: w.grad = {w.grad}')
-    # 출력: 4.0, 8.0, 12.0
-    # 경사가 누적된다. 매 backward가 기존 경사에 2*w = 4.0을 더한다.
+    BOTH = ConcatDataset([TRAIN, VAL])          # 48000 + 12000
+
+    for lab, tr in (("학습셋만 (48000)", TRAIN), ("학습+검증 (60000)", BOTH)):
+        va = [ev(train(tr, s), val_loader) for s in range(3)]
+        ta = [ev(train(tr, s), test_loader) for s in range(3)]
+        print(f"  {lab}  {np.mean(va):.2f}%   {np.mean(ta):.2f}%   "
+              f"{np.mean(va) - np.mean(ta):+.2f}%p")
     ```
+
+    ```
+      학습에 쓴 것         검증 정확도   테스트 정확도   차
+      학습셋만 (48000)         96.23%         96.01%    +0.22%p
+      학습+검증 (60000)        97.23%         96.38%    +0.85%p
+    ```
+
+    **두 줄을 세로로 읽으면 안 되고 가로로 읽어야 한다.**
+
+    검증 정확도만 보면 96.23%에서 97.23%로 **1.00%p 올랐다.** "자료를 더 썼더니 좋아졌다"로 읽힌다.
+
+    그런데 테스트 정확도는 96.01%에서 96.38%로 **0.37%p** 올랐을 뿐이다. 진짜 이득은 그만큼이고, 자료를 25% 더 쓴 대가로는 그럴듯하다.
+
+    나머지 0.63%p는 어디서 왔는가. **검증셋을 학습에 썼으므로 그 자료를 모델이 이미 본 것이다.** 마지막 열이 그것을 드러낸다 — 검증과 테스트의 차이가 0.22%p에서 0.85%p로 네 배가 되었다.
+
+    **이 실수가 위험한 까닭.** 어디서도 예외가 나지 않고, 수가 **좋아지고**, 그 수가 보고서에 적힌다. 실제 배포에서 0.63%p 낮게 나와야 비로소 드러난다.
+
+    실무에서 실제로 일어나는 꼴들은 이렇다.
+
+    - 전처리 통계(평균·표준편차·스케일러)를 **나누기 전에** 전체 자료로 구한다
+    - 시계열을 무작위로 나누어 미래의 표본이 학습셋에 들어간다
+    - 중복된 표본이 양쪽에 나뉘어 들어간다
+    - 설정을 수백 가지 시도하면서 매번 검증셋으로 고른다(느린 누수다)
+
+    마지막 것은 본문 5절에서 이미 보았다. 다섯 중 하나만 골라도 0.40%p가 묻어 왔다.
+
+    **쓸 수 있는 규칙.** 검증셋을 학습에 쓰는 것 자체가 나쁜 것은 아니다 — 설정을 다 고른 뒤 전체 자료로 다시 학습하는 것은 흔하고 합당한 절차다. 다만 그렇게 했다면 **검증 점수를 보고해서는 안 된다.** 보고할 수는 테스트셋의 수뿐이고, 그것도 한 번만 본다.
+
+---
 
 ## 정리하며
 
-분류 파이프라인에서는 로짓과 로스의 입력 조건, 데이터 분할의 용도, 학습·평가 모드를 함께 관리한다. 테스트 성능은 학습 로스와 구분해 평가한다.
+1. **셋은 각각 다른 일을 한다**: 학습셋은 갱신, 검증셋은 고르기, 테스트셋은 마지막 한 번
+2. **`eval()`을 빼먹으면 1.61%p 낮게, 그리고 재현되지 않게 보고한다**: Dropout이 매번 다른 유닛을 끈다. `no_grad()`는 이것을 고쳐 주지 않는다
+3. **배치 평균의 평균은 나누어떨어지지 않을 때만 틀린다**: 여기서는 $10^{-5}$ 자리다. 정확도에는 이 문제가 없다
+4. **씨앗만 바꿔도 1%p 흩어진다**: 96.54%에서 97.54%. 이보다 작은 개선은 개선이 아니다
+5. **검증으로 고르는 것만으로 0.40%p가 묻어 온다**: 다섯 중 하나를 골랐을 뿐인데도 그렇다
+6. **스케줄러는 넣었다고 켜지지 않는다**: 여덟 에폭 내내 lr이 0.1이었고 켠 쪽과 끈 쪽의 결과가 완전히 같았다. lr을 함께 기록해 확인한다
+7. **Softmax를 덧붙이면 로스는 좋아 보이고 경사는 8분의 1이 된다**: 나빠지는 버그보다 좋아지는 버그가 오래 간다
+8. **Dropout 0.2는 이 설정에서 값어치를 못 했다**: 0.0과 퍼짐이 겹친다. 과적합이 없으면 정규화할 것도 없다
+9. **정규화도 재어 보고 넣는다**: MNIST에서는 빼는 쪽이 0.68%p 높았다. 척도를 바꾸면 러닝레이트도 다시 골라야 하기 때문이다
+
+**참고 문헌**
+
+- LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). Gradient-based learning applied to document recognition. *Proceedings of the IEEE*, 86(11).
+- Srivastava, N., et al. (2014). Dropout: A Simple Way to Prevent Neural Networks from Overfitting. *JMLR*, 15.
+- Kaufman, S., et al. (2012). Leakage in Data Mining. *ACM TKDD*, 6(4).
