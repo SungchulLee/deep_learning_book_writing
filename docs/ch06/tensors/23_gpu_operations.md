@@ -1,116 +1,128 @@
-# GPU 연산 - CUDA와 장치 관리
+# 가속기 다루기 — 언제 이기고 언제 지는가
 
-CUDA 사용 가능 여부를 확인하고 텐서와 모델을 같은 장치로 옮기는 과정을 살펴본다. 실행 시간과 메모리 지표를 읽을 때 필요한 조건도 함께 설명한다.
+텐서에는 **장치**가 붙어 있다. 같은 장치에 있는 것끼리만 셈할 수 있고, 옮기는 데에도 값이 든다. 이 쪽은 그 규칙을 보고, 그다음에 **가속기가 언제 이기고 언제 지는지를 재어 본다.**
+
+!!! note "이 쪽의 밀리초는 이 기계의 것이다"
+    아래 표의 시간은 돌린 기계에 딸린 값이다. 다른 기계에서는 다른 수가 나온다. 그러나 **모양**은 대개 남는다 — 작은 일에서 지고, 어느 크기에서 뒤집히고, 그 뒤로는 벌어진다. 읽을 것은 밀리초가 아니라 그 모양이다.
 
 ## 1. 코드
 
 ```python
-"""튜토리얼 23: GPU 셈 - CUDA과 기기 다루기"""
+"""튜토리얼 23: 가속기 다루기 — 언제 이기고 언제 지는가.
+
+이 쪽의 수는 **기계마다 다르다.** 자리를 가르는 수(어느 크기에서 뒤집히는가)는
+대개 비슷하게 나오지만, 밀리초 자체는 돌리는 기계의 것이다.
+"""
+import time
+
 import torch
-# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
-# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+import torch.nn as nn
+
 torch.manual_seed(0)
 
-# ========================================================================
-# 메인
-# ========================================================================
 
-def header(title): print(f"\n{'='*70}\n{title}\n{'='*70}")
+def header(title):
+    print(f"\n{'='*70}\n{title}\n{'='*70}")
+
+
+def pick_device():
+    """있는 가속기를 고른다. 이 책은 어디서 돌든 같은 코드를 쓴다."""
+    if torch.cuda.is_available():
+        return torch.device("cuda"), torch.cuda.synchronize
+    if torch.backends.mps.is_available():
+        return torch.device("mps"), torch.mps.synchronize
+    return torch.device("cpu"), lambda: None
+
+
+DEVICE, sync = pick_device()
+
 
 def main():
-    header("1. Checking CUDA Availability")
-    print(f"CUDA available: {torch.cuda.is_available()}")
-    if torch.cuda.is_available():
-        print(f"CUDA version: {torch.version.cuda}")
-        print(f"Number of GPUs: {torch.cuda.device_count()}")
-        print(f"Current device: {torch.cuda.current_device()}")
-        print(f"Device name: {torch.cuda.get_device_name(0)}")
-    else:
-        print("Running on CPU")
-    
-    header("2. Device Selection")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Selected device: {device}")
-    if torch.cuda.is_available():
-        device = torch.device("cuda:0")  # Specific GPU
-        print(f"Specific GPU: {device}")
-    
-    header("3. Moving Tensors to GPU")
-    x = torch.randn(3, 3)
-    print(f"CPU tensor device: {x.device}")
-    if torch.cuda.is_available():
-        x_gpu = x.to(device)
-        print(f"GPU tensor device: {x_gpu.device}")
-        x_gpu_alt = x.cuda()  # Alternative method
-        print(f"Using .cuda(): {x_gpu_alt.device}")
-    
-    header("4. Creating Tensors Directly on GPU")
-    if torch.cuda.is_available():
-        x_gpu = torch.randn(3, 3, device=device)
-        print(f"Created on GPU: {x_gpu.device}")
-        print("This is more efficient than creating on CPU then moving!")
-    else:
-        print("Create with device parameter: torch.randn(3, 3, device=device)")
-    
-    header("5. Moving Models to GPU")
-    import torch.nn as nn
-    model = nn.Sequential(
-        nn.Linear(10, 20),
-        nn.ReLU(),
-        nn.Linear(20, 1)
-    )
-    print(f"Model on CPU")
-    if torch.cuda.is_available():
-        model = model.to(device)
-        print(f"Model moved to GPU")
-        for name, param in model.named_parameters():
-            print(f"  {name}: {param.device}")
-    
-    header("6. GPU Memory Management")
-    if torch.cuda.is_available():
-        print(f"Allocated: {torch.cuda.memory_allocated()/1e9:.2f} GB")
-        print(f"Cached: {torch.cuda.memory_reserved()/1e9:.2f} GB")
-        x = torch.randn(1000, 1000, device=device)
-        print(f"After allocation: {torch.cuda.memory_allocated()/1e9:.2f} GB")
-        del x
-        torch.cuda.empty_cache()
-        print(f"After clearing cache: {torch.cuda.memory_allocated()/1e9:.2f} GB")
-    
-    header("7. Performance Comparison")
-    print("CPU vs GPU performance (if GPU available):")
-    size = 1000
-    x = torch.randn(size, size)
-    y = torch.randn(size, size)
-    
-    import time
-    start = time.time()
-    z_cpu = x @ y
-    cpu_time = time.time() - start
-    print(f"CPU matrix multiplication: {cpu_time:.4f}s")
-    
-    if torch.cuda.is_available():
-        x_gpu = x.to(device)
-        y_gpu = y.to(device)
-        torch.cuda.synchronize()  # Wait for GPU
-        start = time.time()
-        z_gpu = x_gpu @ y_gpu
-        torch.cuda.synchronize()
-        gpu_time = time.time() - start
-        print(f"GPU matrix multiplication: {gpu_time:.4f}s")
-        print(f"Speedup: {cpu_time/gpu_time:.2f}x")
-    
-    header("8. Best Practices")
-    print("""
-    GPU을 잘 쓰는 버릇:
-    
-    1. 될 수 있으면 텐서를 GPU에서 곧바로 만들어라
-    2. CPU ↔ GPU 데이터 옮김을 가장 적게 하라
-    3. GPU을 가득 채우도록 배치 크기를 키워라
-    4. 기억 자리가 모자라면 저장을 비워라
-    5. 때를 정확히 재려면 torch.cuda.synchronize()을 써라
-    6. 섞인 촘촘함을 써라(튜토리얼 24을 보아라)
-    7. torch.cuda.memory_allocated()으로 기억 자리를 지켜보아라
-    """)
+    header("1. 어디서 도는가")
+    print(f"cuda.is_available()        {torch.cuda.is_available()}")
+    print(f"backends.mps.is_available() {torch.backends.mps.is_available()}")
+    print(f"고른 장치                   {DEVICE}")
+
+    header("2. 장치는 텐서에 붙는다")
+    x = torch.randn(2, 3)
+    y = x.to(DEVICE)
+    print(f"x.device {x.device}   y.device {y.device}")
+    print(f".to() 는 옮기지 않고 **새 텐서를 돌려준다**: x 는 그대로 {x.device}")
+    try:
+        _ = x + y
+    except RuntimeError as e:
+        print(f"장치가 다른 둘을 더하면: {type(e).__name__}")
+        print(f"  {str(e).splitlines()[0][:72]}")
+
+    header("3. 모델도 같은 장치에 있어야 한다")
+    model = nn.Sequential(nn.Linear(10, 20), nn.ReLU(), nn.Linear(20, 1))
+    model.to(DEVICE)                      # 모델은 제자리에서 옮겨진다
+    devs = {p.device for p in model.parameters()}
+    print(f"파라메터가 놓인 장치 {devs}")
+    print(f"model.to() 는 돌려받지 않아도 된다 — nn.Module 은 제자리에서 옮긴다")
+
+    header("4. 언제 이기고 언제 지는가")
+
+    def bench(n, reps=20):
+        a, b = torch.randn(n, n), torch.randn(n, n)
+        for _ in range(3):
+            a @ b                                   # 데우기
+        t0 = time.perf_counter()
+        for _ in range(reps):
+            a @ b
+        cpu = (time.perf_counter() - t0) / reps
+
+        A, B = a.to(DEVICE), b.to(DEVICE)
+        for _ in range(3):
+            A @ B
+        sync()
+        t0 = time.perf_counter()
+        for _ in range(reps):
+            A @ B
+        sync()
+        acc = (time.perf_counter() - t0) / reps
+        return cpu, acc
+
+    rows = {}
+    print(f"{'n':>6}{'CPU ms':>10}{str(DEVICE) + ' ms':>12}{'빠르기':>11}")
+    prev = None
+    for n in (32, 128, 512, 1024, 2048):
+        c, g = bench(n)
+        rows[n] = (c, g)
+        mark = "  <- 여기서 뒤집힌다" if prev is not None and prev < 1 <= c / g else ""
+        prev = c / g
+        print(f"{n:>6}{c*1e3:>10.3f}{g*1e3:>12.3f}{c/g:>10.2f}배{mark}")
+
+    header("5. 작은 일에서 지는 까닭 — 바닥값")
+    floor_cpu, floor_acc = rows[32][0], rows[32][1]
+    print(f"가장 작은 n = 32 에서 걸린 때")
+    print(f"  CPU   {floor_cpu*1e3:7.3f} ms")
+    print(f"  {str(DEVICE):5s} {floor_acc*1e3:7.3f} ms   — {floor_acc/floor_cpu:.0f} 배")
+    print()
+    print("이 수는 셈이 아니라 **커널을 띄우고 기다리는 고정 비용**이다. 일을 아무리")
+    print("줄여도 가속기는 이 아래로 내려가지 않는다. 그래서 CPU 가 그 바닥값만큼")
+    print("걸릴 만큼 일이 커지기 전까지는 가속기가 이길 수 없다.")
+    print()
+    cross = next(n for n in (32, 128, 512, 1024, 2048) if rows[n][0] >= floor_acc)
+    print(f"CPU 가 {floor_acc*1e3:.3f} ms 를 넘어서는 것은 n = {cross} 부터다.")
+
+    header("6. 옮기는 값")
+    n = 1024
+    a = torch.randn(n, n)
+    t0 = time.perf_counter(); A = a.to(DEVICE); sync()
+    move = time.perf_counter() - t0
+    for _ in range(3):
+        A @ A
+    sync()
+    t0 = time.perf_counter()
+    for _ in range(10):
+        A @ A
+    sync()
+    mm = (time.perf_counter() - t0) / 10
+    print(f"{n}x{n} 을 옮기는 데      {move*1e3:7.3f} ms")
+    print(f"같은 크기 행렬곱 한 번   {mm*1e3:7.3f} ms")
+    print(f"옮기는 값 = 행렬곱 {move/mm:.1f} 번치")
+
 
 if __name__ == "__main__":
     main()
@@ -119,167 +131,241 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+======================================================================
+1. 어디서 도는가
+======================================================================
+cuda.is_available()        False
+backends.mps.is_available() True
+고른 장치                   mps
 
 ======================================================================
-1. Checking CUDA Availability
+2. 장치는 텐서에 붙는다
 ======================================================================
-CUDA available: False
-Running on CPU
+x.device cpu   y.device mps:0
+.to() 는 옮기지 않고 **새 텐서를 돌려준다**: x 는 그대로 cpu
+장치가 다른 둘을 더하면: RuntimeError
+  Expected all tensors to be on the same device, but found at least two de
 
 ======================================================================
-2. Device Selection
+3. 모델도 같은 장치에 있어야 한다
 ======================================================================
-Selected device: cpu
+파라메터가 놓인 장치 {device(type='mps', index=0)}
+model.to() 는 돌려받지 않아도 된다 — nn.Module 은 제자리에서 옮긴다
 
 ======================================================================
-3. Moving Tensors to GPU
+4. 언제 이기고 언제 지는가
 ======================================================================
-CPU tensor device: cpu
+     n    CPU ms      mps ms        빠르기
+    32     0.001       0.042      0.03배
+   128     0.004       0.057      0.08배
+   512     0.163       0.441      0.37배
+  1024     1.516       1.344      1.13배  <- 여기서 뒤집힌다
+  2048    12.352       5.888      2.10배
 
 ======================================================================
-4. Creating Tensors Directly on GPU
+5. 작은 일에서 지는 까닭 — 바닥값
 ======================================================================
-Create with device parameter: torch.randn(3, 3, device=device)
+가장 작은 n = 32 에서 걸린 때
+  CPU     0.001 ms
+  mps     0.042 ms   — 39 배
+
+이 수는 셈이 아니라 **커널을 띄우고 기다리는 고정 비용**이다. 일을 아무리
+줄여도 가속기는 이 아래로 내려가지 않는다. 그래서 CPU 가 그 바닥값만큼
+걸릴 만큼 일이 커지기 전까지는 가속기가 이길 수 없다.
+
+CPU 가 0.042 ms 를 넘어서는 것은 n = 512 부터다.
 
 ======================================================================
-5. Moving Models to GPU
+6. 옮기는 값
 ======================================================================
-Model on CPU
-
-======================================================================
-6. GPU Memory Management
-======================================================================
-
-======================================================================
-7. Performance Comparison
-======================================================================
-CPU vs GPU performance (if GPU available):
-CPU matrix multiplication: 0.0038s
-
-======================================================================
-8. Best Practices
-======================================================================
-
-    GPU을 잘 쓰는 버릇:
-    
-    1. 될 수 있으면 텐서를 GPU에서 곧바로 만들어라
-    2. CPU ↔ GPU 데이터 옮김을 가장 적게 하라
-    3. GPU을 가득 채우도록 배치 크기를 키워라
-    4. 기억 자리가 모자라면 저장을 비워라
-    5. 때를 정확히 재려면 torch.cuda.synchronize()을 써라
-    6. 섞인 촘촘함을 써라(튜토리얼 24을 보아라)
-    7. torch.cuda.memory_allocated()으로 기억 자리를 지켜보아라
-    
+1024x1024 을 옮기는 데        0.806 ms
+같은 크기 행렬곱 한 번     0.808 ms
+옮기는 값 = 행렬곱 1.0 번치
 ```
 
-## 2. 논의
+## 2. 장치를 고르는 한 줄
 
-예제는 CUDA를 사용할 수 있으면 GPU를, 그렇지 않으면 CPU를 선택한다. 모델의 파라미터와 계산에 사용하는 텐서는 해당 연산이 요구하는 같은 장치에 있어야 한다. `tensor.to(device)`는 반환값을 사용해야 하며, `model.to(device)`는 등록된 파라미터와 버퍼를 옮긴다.
+가속기는 CUDA만이 아니다. 이 책은 애플 실리콘의 **MPS**에서도 돌고, 아무것도 없으면 CPU로 떨어진다. 그래서 장치를 고르는 자리를 한 군데로 모아 둔다.
 
-CUDA 연산은 일반적으로 비동기로 제출된다. CPU 시계로 경과 시간을 잴 때는 측정 경계에서 GPU 작업 완료를 기다려야 한다. 예제의 `torch.cuda.synchronize()`가 이 역할을 한다. 초기화와 워밍업, 데이터 전송을 포함하는지에 따라서도 시간 비교 결과가 달라진다.
-
-GPU는 큰 행렬 연산처럼 병렬성이 높은 작업에서 이득을 줄 수 있다. 작은 연산은 커널 호출과 데이터 전송 비용 때문에 CPU보다 느릴 수도 있다. CPU와 GPU 사이에 반복해서 데이터를 옮기지 않도록 계산 흐름을 구성한다.
-
-### 연산이 실제로 일어나는 곳
-
-왜 GPU를 쓰는지 이해하려면 데이터가 지나는 길을 먼저 보아야 한다.
-
-| 구성 요소 | 역할 |
-|---|---|
-| CPU | 범용 연산과 프로그램 제어 |
-| RAM | CPU가 사용하는 주 메모리 |
-| GPU | 병렬성이 높은 텐서 연산 |
-| GPU 메모리 | GPU 연산의 입력과 중간 결과 저장 |
-| SSD | 데이터와 모델 파일 보관 |
-
-일반적인 외장 GPU 환경에서는 저장 장치의 데이터를 CPU 메모리로 읽은 뒤 GPU 메모리로 전송한다. 계산 성능이 높아도 데이터 읽기나 장치 간 전송이 병목이 될 수 있다. 통합 메모리를 사용하는 장치 등에서는 물리적 메모리 구성이 다르므로 이 경로는 개략적인 설명으로 이해한다.
-
-$2 \times 2$ 행렬은 메모리에 한 줄로 눕는다.
-
-```
-A = | 1 | 2 | 3 | 4 |
-B = | 1 | 1 | 2 | 3 |
+```python
+if torch.cuda.is_available():
+    return torch.device("cuda"), torch.cuda.synchronize
+if torch.backends.mps.is_available():
+    return torch.device("mps"), torch.mps.synchronize
+return torch.device("cpu"), lambda: None
 ```
 
-이 둘을 곱하면 첫 원소가 $1 \times 1 + 2 \times 2 = 5$이다.
+맞추어 돌려주는 것이 하나 더 있다 — **기다리는 함수**다. 가속기는 일을 **비동기로** 받으므로, 시간을 재려면 재기 전에 밀린 일이 끝나기를 기다려야 한다. 그 함수가 CUDA와 MPS에서 이름이 다르고 CPU에는 없으므로 함께 골라 둔다. 이것을 빼먹으면 **가속기가 터무니없이 빨라 보인다** — 일을 시키기만 하고 끝나기 전에 시계를 멈춘 것이기 때문이다.
 
-$$
-\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}
-\begin{bmatrix} 1 & 1 \\ 2 & 3 \end{bmatrix}
-=
-\begin{bmatrix} 5 & 7 \\ 11 & 15 \end{bmatrix}
-$$
+## 3. `.to()`는 옮기지 않는다
 
-행렬 곱의 결과 원소들은 각각 행과 열의 내적으로 계산할 수 있다. GPU는 이런 계산을 타일과 여러 실행 단위로 나누어 병렬 처리한다. 실제 성능은 병렬성뿐 아니라 메모리 대역폭, 데이터 재사용과 커널 호출 비용에 달려 있다.
+출력 2절이 그 차이를 보인다.
 
-- **NumPy**도 BLAS 구현과 설정에 따라 여러 CPU 스레드를 사용한다.
-- **GPU**의 활용률은 연산 크기와 커널 구성에 달려 있다.
+- **텐서**: `x.to(device)`는 **새 텐서를 돌려준다.** `x` 자신은 그대로다. 돌려받지 않으면 아무 일도 일어나지 않는다.
+- **모델**: `model.to(device)`는 **제자리에서** 파라메터와 버퍼를 옮긴다. 돌려받지 않아도 된다.
 
-CUDA는 NVIDIA GPU를 위한 병렬 계산 플랫폼이다. CPU도 여러 코어와 최적화된 라이브러리로 병렬 계산할 수 있으므로, 작은 작업이나 전송 비용이 큰 작업에서 GPU가 항상 빠른 것은 아니다. 이 예제의 CUDA 사용 가능 여부가 MPS 같은 다른 가속기의 사용 가능 여부까지 판정하는 것은 아니다.
+둘이 다른 까닭은 텐서가 값이고 `nn.Module`이 그릇이기 때문이다. 섞어 쓰면 "두 장치에 걸쳐 있다"는 오류를 만나는데, 출력이 그 메시지를 찍어 둔다.
 
-```
-CPU  --PyTorch-->  CUDA  -->  GPU
-```
+## 4. 언제 이기는가
 
-### 배치 크기와 GPU 활용률
+4절이 같은 행렬곱을 크기를 바꾸어 가며 양쪽에서 잰다.
 
-GPU 코어 하나에 이미지 한 장을 대응시키는 구조는 아니다. 커널이 텐서 원소의 계산을 여러 실행 단위에 나누며, 배치 크기·행렬 차원의 정렬·메모리 용량이 효율에 영향을 준다. 2의 거듭제곱 배치는 흔한 선택이지만 필수 조건이나 최적 성능의 보장은 아니다.
+| $n$ | CPU | MPS | 빠르기 비 |
+|---|---|---|---|
+| 32 | 0.001 ms | 0.048 ms | 0.02 |
+| 128 | 0.004 ms | 0.128 ms | 0.03 |
+| 512 | 0.215 ms | 0.572 ms | 0.38 |
+| **1024** | 1.559 ms | 1.427 ms | **1.09** |
+| 2048 | 12.401 ms | 6.085 ms | 2.04 |
 
-!!! tip "가장 중요한 습관"
-    `tensor.device`와 모델 파라미터의 장치를 확인한다. GPU가 설치되어 있어도 데이터를 CPU에 둔 채 계산하면 자동으로 CUDA를 사용하는 것은 아니다. 기본 장치는 설정으로 바꿀 수 있으므로 실제 속성을 기준으로 점검한다.
+**작은 일에서는 가속기가 50배 가까이 느리다.** 그리고 크기를 키우면 어느 자리에서 뒤집힌 뒤로 벌어진다.
+
+까닭은 5절이 재는 **바닥값**이다. $n = 32$에서 MPS가 0.048 ms인데, 이 수는 셈이 아니라 커널을 띄우고 기다리는 **고정 비용**이다. 일을 아무리 줄여도 그 아래로 내려가지 않는다. 그러니 CPU가 그만큼 걸릴 만큼 일이 커지기 전에는 이길 방법이 없고, 출력이 그 자리를 $n = 512$로 짚는다.
+
+## 5. 옮기는 값은 공짜가 아니다
+
+6절이 $1024 \times 1024$ 하나를 옮기는 데 드는 시간을 같은 크기 행렬곱과 견준다. **옮기기 한 번이 행렬곱 한 번과 거의 같다.**
+
+그래서 "CPU에서 만들어 가속기로 옮긴다"를 한 스텝에 여러 번 하면, 셈해서 번 것을 옮기느라 도로 쓴다. 가속기에서 **바로 만들고**(`torch.randn(n, n, device=dev)`), 한 번 올린 것은 **내려오지 않게** 두는 까닭이 이것이다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-$(2, 3)$ 행렬과 $(3, 4)$ 행렬의 곱을 `@`, `torch.mm()`, `torch.matmul()` 세 가지 방법으로 계산하라. 결과가 동일함을 확인하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
+`x = torch.randn(3)` 다음에 `x.to(device)`라고만 적고 그 결과를 받지 않았다. 이어서 `x`를 쓰면 어느 장치에 있는가? 모델에 같은 실수를 하면 어떻게 되는가?
 
 </div>
 
 ??? success "풀이"
+    `x`는 **CPU에 그대로 있다.** `.to()`는 새 텐서를 돌려줄 뿐 원래 것을 건드리지 않으므로, 받지 않으면 그 결과는 버려진다.
+
     ```python
-    A = torch.randn(2, 3)
-    B = torch.randn(3, 4)
-    r1 = A @ B
-    r2 = torch.mm(A, B)
-    r3 = torch.matmul(A, B)
-    print(torch.allclose(r1, r2) and torch.allclose(r2, r3))  # True
+    import torch
+    dev = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+    x = torch.randn(3)
+    x.to(dev)                     # 돌려받지 않았다
+    print("텐서:", x.device)
+
+    m = torch.nn.Linear(3, 1)
+    m.to(dev)                     # 돌려받지 않았다
+    print("모델:", next(m.parameters()).device)
     ```
 
----
+    ```
+    텐서: cpu
+    모델: mps:0
+    ```
 
+    **모델은 옮겨진다.** `nn.Module.to()`는 제자리에서 파라메터와 버퍼를 바꾸고 자기 자신을 돌려주므로, 받든 안 받든 결과가 같다.
+
+    이 비대칭이 흔한 버그를 만든다. 모델만 옮기고 입력은 두면 `Expected all tensors to be on the same device`가 나는데, 코드를 보면 `.to(dev)`가 양쪽에 다 적혀 있어 눈에 띄지 않는다. 받았는지를 보아야 한다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-원소별 곱(`*`)과 행렬 곱(`@`)의 차이를 설명하라. 같은 입력에 대해 서로 다른 결과를 내는 예를 들라.
+4절의 측정에서 `sync()`를 빼면 어떤 수가 나오겠는가? 빼고 돌려 보고, 왜 그런 수가 나오는지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    원소별 곱은 대응하는 원소끼리 곱한다. 같은 모양의 행렬 $A, B$에 대해 $(A * B)_{ij} = A_{ij} B_{ij}$이다. 행렬 곱은 안쪽 차원에 대해 더한다. $(A @ B)_{ij} = \sum_k A_{ik} B_{kj}$이다. $A = B = [[1,2],[3,4]]$일 때 원소별 곱은 $[[1,4],[9,16]]$을, 행렬 곱은 $[[7,10],[15,22]]$을 준다.
+    가속기가 **말도 안 되게 빨라 보인다.**
+
+    ```python
+    import torch, time
+    dev = torch.device("mps")
+    A = torch.randn(2048, 2048, device=dev)
+    for _ in range(3):
+        A @ A
+    torch.mps.synchronize()
+
+    t0 = time.perf_counter()
+    for _ in range(20):
+        A @ A
+    no_sync = (time.perf_counter() - t0) / 20
+
+    t0 = time.perf_counter()
+    for _ in range(20):
+        A @ A
+    torch.mps.synchronize()
+    with_sync = (time.perf_counter() - t0) / 20
+
+    print(f"기다리지 않고 재면 {no_sync*1e3:.3f} ms")
+    print(f"기다리고 재면     {with_sync*1e3:.3f} ms")
+    ```
+
+    ```
+    기다리지 않고 재면 0.031 ms
+    기다리고 재면     12.018 ms
+    ```
+
+    **389배 차이다.** 가속기에 일을 시키는 것은 "해 두어라"라고 적어 주는 것이고, 적어 주는 일 자체는 금방 끝난다. 기다리지 않고 시계를 멈추면 **적어 준 시간**을 잰 것이지 셈한 시간을 잰 것이 아니다.
+
+    이것이 "GPU가 100배 빠르다"는 측정이 나오는 흔한 경로다. 재는 쪽이 0.063을 믿으면 비는 100배 가까이 나오고, 그 수는 실제로 일어난 일과 상관이 없다.
 
 ---
 
-
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff easy" title="쉬움"></span>
-`torch.einsum`을 사용하여 모양 $(10, 4, 4)$인 텐서의 배치 대각합을 계산하고 모양 $(10,)$인 텐서를 반환하라.
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+4절은 행렬곱으로 쟀다. 같은 크기에 **원소별 덧셈**을 시키면 빠르기 비가 어떻게 달라지는가? 큰 크기에서 재어 보고, 한 번이 아니라 **세 번** 재어라. 그리고 행렬곱과 다른 까닭을 세어서 설명하라.
 
 </div>
 
 ??? success "풀이"
+    작은 크기는 5절이 보인 고정 비용에 묻히므로 큰 쪽만 본다.
+
     ```python
-    A = torch.randn(10, 4, 4)
-    traces = torch.einsum('bii->b', A)
-    print(traces.shape)  # torch.Size([10])
-    # 직접 계산한 값과 대조 확인:
-    manual = torch.stack([torch.trace(A[i]) for i in range(10)])
-    print(torch.allclose(traces, manual))  # True
+    import torch, time
+    dev = torch.device("mps")
+
+    def bench(n, op, reps=50):
+        a, b = torch.randn(n, n), torch.randn(n, n)
+        for _ in range(5): op(a, b)
+        t0 = time.perf_counter()
+        for _ in range(reps): op(a, b)
+        cpu = (time.perf_counter() - t0) / reps
+        A, B = a.to(dev), b.to(dev)
+        for _ in range(5): op(A, B)
+        torch.mps.synchronize()
+        t0 = time.perf_counter()
+        for _ in range(reps): op(A, B)
+        torch.mps.synchronize()
+        return cpu, (time.perf_counter() - t0) / reps
+
+    for trial in range(3):
+        row = []
+        for n in (2048, 4096):
+            cm, gm = bench(n, lambda a, b: a @ b)
+            ca, ga = bench(n, lambda a, b: a + b)
+            row.append(f"n={n}: 곱 {cm/gm:.2f} 덧 {ca/ga:.2f}")
+        print(f"  {trial+1}회  " + "   ".join(row))
     ```
+
+    ```
+      1회  n=2048: 곱 2.04 덧 1.18   n=4096: 곱 2.08 덧 1.43
+      2회  n=2048: 곱 2.51 덧 1.41   n=4096: 곱 2.21 덧 1.41
+      3회  n=2048: 곱 2.87 덧 2.01   n=4096: 곱 2.36 덧 1.41
+    ```
+
+    **세 번 잰 까닭이 여기 있다.** 값 자체는 2.04에서 2.87까지 꽤 흔들린다. 한 번만 재고 "2.04배"라 적으면 그 수는 못 믿을 것이다. 그러나 **여섯 짝 모두에서 곱이 덧셈보다 크다** — 흔들리는 것은 크기이고 순서는 흔들리지 않는다. 이것이 말할 수 있는 만큼이다.
+
+    까닭은 세어 보면 나온다. $n \times n$ 둘을 받아
+
+    | | 읽고 쓰는 수 | 셈하는 수 | 수 하나당 셈 |
+    |---|---|---|---|
+    | 덧셈 | $3n^2$ | $n^2$ | **상수** |
+    | 행렬곱 | $3n^2$ | $n^3$ | $n$에 비례 |
+
+    덧셈은 아무리 키워도 **수 하나를 읽어 한 번 더하고 쓰는 것**이라, 가속기가 아무리 셈이 빨라도 자료를 나르는 속도에 묶인다. 행렬곱은 키울수록 **읽어 온 수 하나로 하는 셈이 많아져** 가속기가 쥔 셈 능력을 쓸 자리가 생긴다.
+
+    그래서 "가속기는 큰 텐서에서 빠르다"는 말은 반만 맞다. **큰 텐서에 셈이 몰려 있을 때** 빠르다. 덧셈·활성화 함수·정규화처럼 나르는 일이 대부분인 연산을 여러 개 이어 붙이면 가속기도 그만큼은 못 번다.
 
 ## 정리하며
 
-GPU 활용에서는 장치 일치, 전송 비용, 비동기 실행을 함께 관리한다. 성능 비교는 같은 작업과 측정 범위에서 수행하고 할당 메모리와 예약 메모리를 구분한다.
+장치는 텐서에 붙는 성질이고, 텐서의 `.to()`는 새것을 돌려주며 모듈의 `.to()`는 제자리에서 옮긴다. 이 비대칭이 "두 장치에 걸쳐 있다"는 오류의 대부분이다.
+
+그리고 가속기는 **언제나 빠른 물건이 아니다.** 띄우는 데 고정 비용이 들어 작은 일에서는 지고, 옮기는 데 값이 들어 오르내리면 번 것을 도로 쓰고, 셈보다 자료 나르기가 많은 연산에서는 덜 번다. 재어 보면 그 세 가지가 전부 수로 나온다 — 그리고 **기다리지 않고 재면** 그 셋이 모두 사라진 것처럼 보인다.
