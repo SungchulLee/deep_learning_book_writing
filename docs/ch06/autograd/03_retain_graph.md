@@ -1,62 +1,149 @@
-# 계산 그래프 재사용
+# 계산 그래프 재사용 — 무엇이 해제되고 무엇이 남는가
 
-같은 로스를 두 번 역전파하는 경우와, 로스를 새로 계산해 역전파하는 경우를 비교한다. 경사 초기화와 그래프 보존은 서로 다른 문제다.
+`backward()`를 두 번 부르면 터진다고 흔히 말한다. 정확하지 않다. 터지는 그래프가
+있고 **안 터지는 그래프가 있다.**
+
+터지는 까닭은 그래프가 사라져서가 아니라 **역전파가 저장해 둔 중간값이
+해제되어서**다. 저장할 것이 없는 연산은 두 번 걸어도 멀쩡하다.
+
+그리고 이 쪽에서 가장 자주 섞이는 것이 하나 더 있다. `retain_graph`는 경사를
+지우는 일과 **아무 상관이 없다.**
+
+| | 무엇을 맡는가 |
+|---|---|
+| `retain_graph=True` | 순전파가 세운 길과 **저장된 중간값** |
+| `zero_grad()` · `.grad.zero_()` | 잎에 쌓인 **경사 값** |
 
 ## 1. 코드
 
 ```python
-"""그래프를 남긴다."""
+"""계산 그래프 재사용 — 무엇이 해제되고 무엇이 남는가.
+
+`backward()` 를 두 번 부르면 터진다고 흔히 말한다. 정확히는
+**역전파가 저장해 둔 중간값이 해제되어** 터지는 것이고, 저장할 것이
+없는 그래프는 두 번 불러도 멀쩡하다.
+
+`retain_graph=True` 는 그 중간값을 남겨 달라는 부탁이다. 경사를
+지우는 일과는 아무 상관이 없다 — 흔히 섞이는 자리다.
+
+- 그래프: 순전파가 세운 길과 거기 저장된 중간값. `retain_graph` 가 맡는다
+- 경사: 잎에 쌓이는 값. `zero_grad()` 가 맡는다
+
+실행: python 03_retain_graph.py
+"""
 import torch
 
+
+def header(title):
+    print(f"\n=== {title} ===")
+
+
 # ========================================================================
-# 메인
+# 1. 두 번 부르면 터지는 그래프와 안 터지는 그래프
 # ========================================================================
+
+def twice():
+    header("1. 두 번 부르면")
+    builders = (("x.sum()", lambda t: t.sum(), "저장할 것이 없다"),
+                ("(x**2).sum()", lambda t: (t ** 2).sum(), "x 를 저장한다"),
+                ("x.exp().sum()", lambda t: t.exp().sum(), "exp(x) 를 저장한다"))
+    for expr, build, why in builders:
+        x = torch.tensor([1.0, 2.0], requires_grad=True)
+        y = build(x)
+        y.backward()
+        try:
+            y.backward()
+            print(f"  {expr:14s} 두 번째도 된다   ({why})")
+        except RuntimeError as e:
+            print(f"  {expr:14s} {str(e).splitlines()[0][:40]}...  ({why})")
+    print("  '그래프가 사라져서' 가 아니라 '저장해 둔 값이 해제되어서' 다")
+
+
+# ========================================================================
+# 2. retain_graph 가 하는 일
+# ========================================================================
+
+def retaining():
+    header("2. retain_graph=True")
+    torch.manual_seed(0)
+    x = torch.randn(3, requires_grad=True)
+    loss = (x ** 2).sum()
+    loss.backward(retain_graph=True)
+    print("  1번째 뒤 x.grad :", [round(v, 4) for v in x.grad.tolist()])
+    loss.backward()                       # 남겨 둔 그래프를 다시 쓴다
+    print("  2번째 뒤 x.grad :", [round(v, 4) for v in x.grad.tolist()])
+    print("  2x 가 두 번 더해져 4x 가 되었다")
+    print("  손으로 4x        :", [round(v, 4) for v in (4 * x.detach()).tolist()])
+    try:
+        loss.backward()                   # 이번에는 안 남겼으므로
+    except RuntimeError as e:
+        print("  3번째:", str(e).splitlines()[0][:56])
+    print("  마지막 역전파에는 retain_graph 를 주지 않는 것이 보통이다")
+
+
+# ========================================================================
+# 3. 그래프와 경사는 다른 것이다
+# ========================================================================
+
+def graph_is_not_grad():
+    header("3. 섞이는 자리")
+    torch.manual_seed(0)
+    x = torch.randn(3, requires_grad=True)
+
+    loss = (x ** 2).sum()
+    loss.backward(retain_graph=True)
+    first = x.grad.clone()
+    x.grad.zero_()                        # 경사만 지운다
+    loss.backward()                       # 그래프는 아직 살아 있다
+    print("  경사를 지워도 그래프는 그대로:",
+          torch.allclose(first, x.grad))
+    print("  retain_graph 는 그래프를, zero_() 는 경사를 맡는다")
+
+    x.grad.zero_()
+    fresh = (x ** 2).sum()                # 순전파를 다시 하면
+    fresh.backward()                      # 새 그래프라 retain 이 필요 없다
+    print("  순전파를 다시 하면 새 그래프가 생긴다:",
+          torch.allclose(first, x.grad))
+    print("  학습 루프가 이렇게 돈다. 그래서 retain_graph 가 거의 필요 없다")
+
+
+# ========================================================================
+# 4. 정말 필요한 두 자리
+# ========================================================================
+
+def when_needed():
+    header("4. 정말 필요한 두 자리")
+
+    # (가) 한 번의 순전파에서 나온 로스 둘을 따로 역전파할 때
+    x = torch.tensor([1.0, 2.0], requires_grad=True)
+    h = x * 3                              # 둘이 함께 쓰는 중간값
+    a = (h ** 2).sum()
+    b = h.abs().sum()
+    a.backward(retain_graph=True)          # h 를 b 도 써야 한다
+    b.backward()
+    print("  (가) 로스 둘을 따로:", [round(v, 4) for v in x.grad.tolist()])
+    y = torch.tensor([1.0, 2.0], requires_grad=True)
+    g = y * 3
+    ((g ** 2).sum() + g.abs().sum()).backward()
+    print("       합쳐서 한 번  :", [round(v, 4) for v in y.grad.tolist()])
+    print("       같다. 다만 따로 부르려면 retain_graph 가 필요하다")
+
+    # (나) 경사의 경사 — create_graph 가 retain_graph 를 켠다
+    z = torch.tensor([2.0], requires_grad=True)
+    first, = torch.autograd.grad((z ** 3).sum(), z, create_graph=True)
+    second, = torch.autograd.grad(first.sum(), z)
+    print("  (나) f = z^3, z = 2")
+    print("       1차 도함수 3z^2 =", first.item(), " 손으로", 3 * 2 ** 2)
+    print("       2차 도함수 6z   =", second.item(), " 손으로", 6 * 2)
+    print("       create_graph=True 는 retain_graph 까지 켜 준다")
+
 
 def main():
+    twice()
+    retaining()
+    graph_is_not_grad()
+    when_needed()
 
-    torch.manual_seed(0)
-
-    x = torch.randn(3, requires_grad=True)
-    print("x:", x)
-
-    # 계산 그래프를 한 번만 만든다(loss = 제곱합).
-    loss = (x ** 2).sum()
-
-    # 첫 번째 역전파: 경사를 계산하여 x.grad를 채운다.
-    # retain_graph=True는 사용 후에도 그래프를 해제하지 말라고 PyTorch에 알린다.
-    # 이렇게 하면 같은 그래프에 대해 역전파를 또 할 수 있다.
-    loss.backward(retain_graph=True)
-    print("After 1st backward, x.grad:", x.grad)
-
-    # 같은 그래프에 대한 두 번째 역전파(여기서 새 순전파는 없다).
-    # 위에서 그래프를 유지했으므로 이 호출은 유효하다.
-    # 여기서는 retain_graph=False(기본값)이므로 이 두 번째 역전파 후에
-    # 그래프가 해제되어 다시 쓸 수 없게 된다.
-    # 경사는 기본적으로 x.grad에 누적된다.
-    loss.backward()
-    print("After 2nd backward (accumulated), x.grad:", x.grad)
-
-    # 다음 계산 전에 깨끗한 상태를 보기 위해 경사를 지운다.
-    # 중요:
-    #   - PyTorch 텐서는 제자리로 동작하는 .zero_()를 제공한다.
-    #   - 텐서에는 .zero() 메서드가 없다. 호출하면 AttributeError가 난다.
-    #   - 끝에 붙는 밑줄(_) 관례: 그 연산이 텐서를 변경한다는 뜻이다.
-    #   - 이것이 경사를 초기화하는 표준적이고 관용적인 방법이다.
-    x.grad.zero_()
-    print("After zero_, x.grad:", x.grad)
-
-    # 새로운 순전파: 완전히 새 계산 그래프를 만든다.
-    # 이제 역전파가 0에서 시작해 경사를 다시 계산한다.
-    loss = (x ** 2).sum()
-    loss.backward()
-    print("After 3rd backward (from zero), x.grad:", x.grad)
-
-    # 참고:
-    #   - 모델의 모든 파라메터 경사를 한 번에 초기화하려면
-    #     optimizer.zero_grad()를 쓴다.
-    #   - optimizer.zero_grad(set_to_none=True)는 경사를 0이 아니라 None으로 만든다.
-    #     이렇게 하면 메모리를 아끼고 미묘한 누적 문제를 피할 수 있다.
-    #   - 다만 텐서별로 직접 지울 때는 언제나 .zero_()를 쓴다.
 
 if __name__ == "__main__":
     main()
@@ -65,80 +152,250 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-x: tensor([ 1.5410, -0.2934, -2.1788], requires_grad=True)
-After 1st backward, x.grad: tensor([ 3.0820, -0.5869, -4.3576])
-After 2nd backward (accumulated), x.grad: tensor([ 6.1640, -1.1737, -8.7152])
-After zero_, x.grad: tensor([0., 0., 0.])
-After 3rd backward (from zero), x.grad: tensor([ 3.0820, -0.5869, -4.3576])
+=== 1. 두 번 부르면 ===
+  x.sum()        두 번째도 된다   (저장할 것이 없다)
+  (x**2).sum()   Trying to backward through the graph a s...  (x 를 저장한다)
+  x.exp().sum()  Trying to backward through the graph a s...  (exp(x) 를 저장한다)
+  '그래프가 사라져서' 가 아니라 '저장해 둔 값이 해제되어서' 다
+
+=== 2. retain_graph=True ===
+  1번째 뒤 x.grad : [3.082, -0.5869, -4.3576]
+  2번째 뒤 x.grad : [6.164, -1.1737, -8.7152]
+  2x 가 두 번 더해져 4x 가 되었다
+  손으로 4x        : [6.164, -1.1737, -8.7152]
+  3번째: Trying to backward through the graph a second time (or d
+  마지막 역전파에는 retain_graph 를 주지 않는 것이 보통이다
+
+=== 3. 섞이는 자리 ===
+  경사를 지워도 그래프는 그대로: True
+  retain_graph 는 그래프를, zero_() 는 경사를 맡는다
+  순전파를 다시 하면 새 그래프가 생긴다: True
+  학습 루프가 이렇게 돈다. 그래서 retain_graph 가 거의 필요 없다
+
+=== 4. 정말 필요한 두 자리 ===
+  (가) 로스 둘을 따로: [21.0, 39.0]
+       합쳐서 한 번  : [21.0, 39.0]
+       같다. 다만 따로 부르려면 retain_graph 가 필요하다
+  (나) f = z^3, z = 2
+       1차 도함수 3z^2 = 12.0  손으로 12
+       2차 도함수 6z   = 12.0  손으로 12
+       create_graph=True 는 retain_graph 까지 켜 준다
 ```
 
-## 2. 논의
+## 2. 터지는 그래프와 안 터지는 그래프
 
-### 역전파에 필요한 중간 결과 보존하기
+| 식 | 두 번째 `backward()` | 까닭 |
+|---|---|---|
+| `x.sum()` | **된다** | 저장할 것이 없다 |
+| `(x**2).sum()` | `RuntimeError` | `x`를 저장해 둔다 |
+| `x.exp().sum()` | `RuntimeError` | `exp(x)`를 저장해 둔다 |
 
-제곱합의 역전파에는 순전파에서 얻은 값이 필요하다. 기본 역전파는 사용을 마친 저장 텐서를 해제하므로, 같은 로스로 다시 역전파하면 필요한 값이 없어 오류가 발생할 수 있다. 첫 호출에 `retain_graph=True`를 주면 두 번째 호출에도 필요한 중간 결과를 유지한다. 이는 모든 그래프 메타데이터가 즉시 사라진다는 뜻은 아니다.
+$\frac{d}{dx}x^2 = 2x$를 계산하려면 $x$가 있어야 하고, $\frac{d}{dx}e^x = e^x$를
+계산하려면 $e^x$가 있어야 한다. 첫 역전파가 끝나면 파이토치는 그 버퍼를 놓아
+준다 — 보통은 다시 쓸 일이 없으니 메모리를 돌려주는 것이 맞다.
 
-### 그래프 보존은 경사를 초기화하지 않는다
+반면 `sum`의 미분은 1이라 아무것도 필요 없다. 그래서 두 번째도 그냥 된다.
 
-예제의 첫 역전파는 $2x$를 저장하고, 두 번째 역전파는 같은 경사를 더해 $4x$를 만든다. `x.grad.zero_()`는 이 누적값만 지운다. 이미 해제된 중간 결과를 복원하지는 않는다. 세 번째 역전파에서는 제곱합을 새로 계산해 새로운 그래프를 만든다.
+**"같은 코드가 어떤 식에서는 터지고 어떤 식에서는 안 터진다"**는 것이 여기서
+나온다. 오류 메시지만 보고 `retain_graph=True`를 붙이기 전에, 왜 그 값이
+필요한지를 보는 편이 낫다.
 
-일반적인 학습에서는 파라미터가 바뀔 때마다 순전파와 로스를 다시 계산한다. 이전 로스를 보존해 재사용하면 새 파라미터에서의 로스를 계산하는 작업을 대신할 수 없다. 그래프 보존은 같은 순전파에 여러 미분이 필요한 경우에 한정해 사용한다.
+## 3. `retain_graph=True`
+
+```
+1번째 뒤 x.grad : [3.082, -0.5869, -4.3576]
+2번째 뒤 x.grad : [6.164, -1.1737, -8.7152]
+손으로 4x        : [6.164, -1.1737, -8.7152]
+```
+
+같은 그래프를 두 번 걸었으므로 $2x$가 두 번 더해져 $4x$가 되었다. **경사가
+쌓이는 것은 그래프를 남긴 것과 별개**이고, 지우고 싶으면 따로 지워야 한다.
+
+세 번째는 터진다. 두 번째 호출에 `retain_graph`를 주지 않았기 때문이다. 그래서
+여러 번 걸을 때는 **마지막 호출에만 빼는** 것이 보통이다 — 그래야 버퍼가 제때
+풀린다.
+
+## 4. 섞이는 자리
+
+```
+경사를 지워도 그래프는 그대로: True
+순전파를 다시 하면 새 그래프가 생긴다: True
+```
+
+`x.grad.zero_()`를 불러도 그래프는 살아 있다. 둘은 다른 것을 가리킨다.
+
+그리고 둘째 줄이 **학습 루프에서 `retain_graph`가 거의 필요 없는 까닭**이다.
+루프는 걸음마다 순전파를 다시 하고, 그때마다 새 그래프가 생긴다. 지난 그래프는
+쓸 일이 없으니 놓아 주는 것이 맞다.
+
+> `backward()`가 두 번째 호출에서 터진다고 `retain_graph=True`를 붙이는 것은
+> 대개 **잘못된 고침**이다. 진짜 문제는 순전파를 다시 해야 할 자리에서 안 하고
+> 있는 것이고, 붙여 두면 터지지는 않으면서 메모리를 걸음마다 더 쥔다.
+
+## 5. 정말 필요한 두 자리
+
+```
+(가) 로스 둘을 따로: [21.0, 39.0]
+     합쳐서 한 번  : [21.0, 39.0]
+
+(나) f = z^3, z = 2
+     1차 도함수 3z^2 = 12.0   손으로 12
+     2차 도함수 6z   = 12.0   손으로 12
+```
+
+**(가) 한 번의 순전파에서 나온 로스 둘을 따로 역전파할 때.** 둘이 같은 중간값
+`h`를 쓰므로 첫 역전파가 그것을 놓아 주면 안 된다. 다만 합쳐서 한 번 부르면
+같은 답이 나오고 더 빠르다 — 따로 불러야 하는 것은 로스마다 다른 파라미터에
+경사를 보낼 때다.
+
+**(나) 경사의 경사를 구할 때.** $f = z^3$에서 1차가 $3z^2 = 12$, 2차가 $6z = 12$로
+둘 다 손으로 센 값과 맞는다. 여기서는 `create_graph=True`를 썼는데, 그것이
+`retain_graph`까지 켜 준다 — 경사 자체를 미분하려면 경사를 만든 그래프가
+살아 있어야 하기 때문이다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-함수 $f(x) = x^3 - 2x^2 + x$를 생각하자. PyTorch autograd를 사용하여 $f'(3)$을 계산하라.
+`y = x.sin().sum()`과 `y = x.sum().sin()`은 둘 다 홑값이다. 어느 쪽이 두 번
+`backward()`할 수 있는가? **먼저 짐작하고** 확인하라.
 
 </div>
 
 ??? success "풀이"
-    ```python
-    import torch
+    짐작의 근거는 2절이다. 역전파가 **무엇을 저장해야 하는지** 보면 된다.
 
-    x = torch.tensor(3.0, requires_grad=True)
-    f = x**3 - 2*x**2 + x
-    f.backward()
-    print(x.grad)  # f'(x) = 3x^2 - 4x + 1 = 27 - 12 + 1 = 16.0
+    - `x.sin().sum()`: $\frac{d}{dx}\sin x = \cos x$이므로 **$x$를 저장**해야 한다
+    - `x.sum().sin()`: 먼저 더해 홑값을 만든 다음 $\sin$을 취한다. 저장되는 것은
+      **0차원 스칼라** 하나뿐이다
+
+    ```python
+    for expr, build in (("x.sin().sum()", lambda t: t.sin().sum()),
+                        ("x.sum().sin()", lambda t: t.sum().sin())):
+        x = torch.tensor([1.0, 2.0], requires_grad=True)
+        y = build(x)
+        y.backward()
+        try:
+            y.backward()
+            print(f"  {expr:14s} 두 번째도 된다")
+        except RuntimeError as e:
+            print(f"  {expr:14s} {str(e).splitlines()[0][:38]}...")
     ```
 
----
+    ```
+      x.sin().sum()  Trying to backward through the graph a...
+      x.sum().sin()  Trying to backward through the graph a...
+    ```
 
+    **둘 다 터진다.** 짐작이 반만 맞았다.
+
+    `x.sum().sin()`도 $\cos(\sum x)$를 계산하려면 $\sum x$가 있어야 하므로 저장할
+    것이 있다. 크기가 작을 뿐(스칼라 하나) 저장은 저장이다.
+
+    그래서 2절의 `x.sum()`이 통과한 것은 **저장할 것이 전혀 없는 아주 드문
+    경우**였다. 실제 모델에서 두 번 `backward()`가 그냥 되는 일은 거의 없다고
+    보아야 한다.
+
+---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-제곱합처럼 저장된 중간값이 필요한 로스에서 `retain_graph=True` 없이 같은 그래프에 `.backward()`를 두 번 호출하면 오류가 나는 이유를 설명하라. `retain_graph=True`는 메모리 사용량에 어떤 영향을 주는가?
-
-</div>
-
-??? success "풀이"
-    기본 역전파는 사용을 마친 저장 텐서를 해제한다. 같은 그래프의 두 번째 역전파에 이 값들이 필요하면 `RuntimeError`가 발생한다. 저장 텐서가 필요 없는 단순 연산은 반복 호출이 가능할 수도 있으므로 모든 그래프에서 반드시 오류가 나는 것은 아니다. 첫 호출의 `retain_graph=True`는 필요한 중간 결과를 보존해 재사용을 가능하게 하지만 그만큼 메모리를 더 오래 사용한다. `.grad` 초기화는 이 보존 여부와 별개의 작업이다.
-
----
-
-
-<div class="drillbox" markdown>
-
-**연습문제 3.** <span class="diff med" title="중간"></span>
-잎 텐서 `w`를 만들고, 반복마다 같은 식으로 로스를 새로 계산하라. 경사를 초기화하지 않고 `.backward()`를 세 번 호출하며 매번 `w.grad`를 출력하라. 관찰된 값을 설명하라.
+`retain_graph=True`를 쓰지 않고 같은 경사를 두 번 얻으려면 어떻게 하는가? 두
+방법의 결과가 같은지 확인하고, 어느 쪽이 나은지 적어라.
 
 </div>
 
 ??? success "풀이"
     ```python
-    import torch
+    torch.manual_seed(0)
+    x = torch.randn(3, requires_grad=True)
 
-    w = torch.tensor(2.0, requires_grad=True)
-    for i in range(3):
-        loss = (w ** 2).sum()
-        loss.backward()
-        print(f'After backward {i+1}: w.grad = {w.grad}')
-    # 출력: 4.0, 8.0, 12.0
-    # 경사가 누적된다. 매 backward가 기존 경사에 2*w = 4.0을 더한다.
+    loss = (x ** 2).sum()                     # 방법 1: 그래프를 남긴다
+    loss.backward(retain_graph=True)
+    loss.backward()
+    way1 = x.grad.clone()
+
+    x.grad = None
+    for _ in range(2):                        # 방법 2: 순전파를 다시 한다
+        (x ** 2).sum().backward()
+    way2 = x.grad.clone()
+
+    print("  retain_graph :", [round(v, 4) for v in way1.tolist()])
+    print("  다시 순전파   :", [round(v, 4) for v in way2.tolist()])
+    print("  같은가        :", torch.allclose(way1, way2))
     ```
 
-## 정리하며
+    ```
+      retain_graph : [6.164, -1.1737, -8.7152]
+      다시 순전파   : [6.164, -1.1737, -8.7152]
+      같은가        : True
+    ```
 
-`retain_graph`는 역전파용 중간 결과를 보존하고, 경사 초기화는 `.grad`의 누적값을 지운다. 새 파라미터에서 학습을 이어가려면 새 순전파가 필요하다.
+    결과가 같다. 가르는 것은 **무엇을 아끼느냐**다.
+
+    | | 아끼는 것 | 치르는 것 |
+    |---|---|---|
+    | `retain_graph` | 순전파를 다시 안 한다 | 중간값을 계속 들고 있다 |
+    | 다시 순전파 | 메모리를 놓아 준다 | 순전파를 한 번 더 한다 |
+
+    이것은 「메모리 관리」의 **그래디언트 체크포인팅과 정확히 같은 거래**다.
+    메모리와 계산을 맞바꾸는 것이고, 어느 쪽이 나은지는 어느 쪽이 모자라느냐에
+    달렸다.
+
+    파라미터가 바뀌지 않았다면 두 방법의 결과가 같지만, **바뀌었다면 다르다.**
+    `retain_graph`는 옛 순전파의 값으로 계산하고 다시 순전파하는 쪽은 새 값으로
+    계산한다. 학습 루프 한가운데서는 거의 언제나 뒤쪽이 맞다.
+
+---
+
+<div class="drillbox" markdown>
+
+**연습문제 3.** <span class="diff hard" title="어려움"></span>
+$f(x) = x^3$의 2차 도함수를 `create_graph=True`로 구했다. **3차 도함수**도 구할
+수 있는가? 그리고 `create_graph` 없이 2차를 구하려 하면 어떻게 되는가?
+
+</div>
+
+??? success "풀이"
+    ```python
+    z = torch.tensor([2.0], requires_grad=True)
+    g1, = torch.autograd.grad((z ** 3).sum(), z, create_graph=True)
+    g2, = torch.autograd.grad(g1.sum(), z, create_graph=True)
+    g3, = torch.autograd.grad(g2.sum(), z)
+    print(f"  f=z^3, z=2     1차 {g1.item():5.1f} (3z^2={3*4})")
+    print(f"                 2차 {g2.item():5.1f} (6z  ={6*2})")
+    print(f"                 3차 {g3.item():5.1f} (6   =6)")
+
+    w = torch.tensor([2.0], requires_grad=True)
+    h1, = torch.autograd.grad((w ** 3).sum(), w)      # create_graph 없이
+    print("  create_graph 없이 1차:", h1.item(),
+          " requires_grad:", h1.requires_grad)
+    try:
+        torch.autograd.grad(h1.sum(), w)
+    except RuntimeError as e:
+        print("  그 1차를 다시 미분하면:", str(e).splitlines()[0][:58])
+    ```
+
+    ```
+      f=z^3, z=2     1차  12.0 (3z^2=12)
+                     2차  12.0 (6z  =12)
+                     3차   6.0 (6   =6)
+      create_graph 없이 1차: 12.0  requires_grad: False
+      그 1차를 다시 미분하면: element 0 of tensors does not require grad and does not ha
+    ```
+
+    **3차까지 간다.** 몇 번이든 된다 — `create_graph=True`를 계속 켜 두면
+    경사를 만드는 과정 자체가 다시 그래프로 기록되기 때문이다.
+
+    `create_graph` 없이 구한 1차는 `requires_grad=False`인 **그냥 숫자**다.
+    값은 12로 맞지만 그것이 어디서 왔는지에 대한 기록이 없으므로, 다시 미분하려
+    하면 「스칼라 로스의 역전파」 연습문제 2에서 본 것과 같은 거절이 나온다.
+
+    고차 미분이 실제로 쓰이는 자리가 있다. 메타 학습(MAML)에서 "한 걸음 학습한
+    뒤의 성능"을 미분할 때, WGAN-GP 같은 경사 벌칙에서 경사의 크기를 로스에 넣을
+    때가 그렇다. 둘 다 **경사를 다시 미분**하므로 `create_graph=True`가 필수다.
+
+    값이 싸지는 않다. 경사를 만드는 그래프까지 들고 있어야 하므로 메모리가 대략
+    두 배가 되고, 역전파가 한 겹 더 깊어진다.
