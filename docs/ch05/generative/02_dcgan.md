@@ -129,39 +129,40 @@ def sample(G, n=N_SAMPLE):
                           for i in range(0, n, 1000)])
 
 
-# === 촘촘한 레이어를 컨볼루션으로 바꾼다 ==========================================
-class GConv(nn.Module):
-    """작은 피처 맵에서 시작해 전치 컨볼루션으로 두 번 키운다."""
+if __name__ == "__main__":
+  # === 촘촘한 레이어를 컨볼루션으로 바꾼다 ==========================================
+  class GConv(nn.Module):
+      """작은 피처 맵에서 시작해 전치 컨볼루션으로 두 번 키운다."""
 
-    def __init__(self):
-        super().__init__()
-        self.fc = nn.Sequential(nn.Linear(ZDIM, 128 * 7 * 7),
-                                nn.BatchNorm1d(128 * 7 * 7), nn.ReLU())
-        self.net = nn.Sequential(
-            nn.ConvTranspose2d(128, 64, 4, 2, 1),
-            nn.BatchNorm2d(64), nn.ReLU(),                      # 7 -> 14
-            nn.ConvTranspose2d(64, 1, 4, 2, 1), nn.Tanh())      # 14 -> 28
+      def __init__(self):
+          super().__init__()
+          self.fc = nn.Sequential(nn.Linear(ZDIM, 128 * 7 * 7),
+                                  nn.BatchNorm1d(128 * 7 * 7), nn.ReLU())
+          self.net = nn.Sequential(
+              nn.ConvTranspose2d(128, 64, 4, 2, 1),
+              nn.BatchNorm2d(64), nn.ReLU(),                      # 7 -> 14
+              nn.ConvTranspose2d(64, 1, 4, 2, 1), nn.Tanh())      # 14 -> 28
 
-    def forward(self, z):
-        return self.net(self.fc(z).reshape(-1, 128, 7, 7))
-
-
-class DConv(nn.Module):
-    """3장의 CNN과 하는 일이 거의 같다. 그림을 받아 수 하나를 내놓는다."""
-
-    def __init__(self):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Conv2d(1, 64, 4, 2, 1), nn.LeakyReLU(0.2),                        # 28 -> 14
-            nn.Conv2d(64, 128, 4, 2, 1), nn.BatchNorm2d(128), nn.LeakyReLU(0.2), # 14 -> 7
-            nn.Flatten(), nn.Linear(128 * 7 * 7, 1))
-
-    def forward(self, x):
-        return self.net(x)
+      def forward(self, z):
+          return self.net(self.fc(z).reshape(-1, 128, 7, 7))
 
 
-G = train_gan(GConv, DConv, "dcgan")
-evaluate(sample(G), "dcgan")
+  class DConv(nn.Module):
+      """3장의 CNN과 하는 일이 거의 같다. 그림을 받아 수 하나를 내놓는다."""
+
+      def __init__(self):
+          super().__init__()
+          self.net = nn.Sequential(
+              nn.Conv2d(1, 64, 4, 2, 1), nn.LeakyReLU(0.2),                        # 28 -> 14
+              nn.Conv2d(64, 128, 4, 2, 1), nn.BatchNorm2d(128), nn.LeakyReLU(0.2), # 14 -> 7
+              nn.Flatten(), nn.Linear(128 * 7 * 7, 1))
+
+      def forward(self, x):
+          return self.net(x)
+
+
+  G = train_gan(GConv, DConv, "dcgan")
+  evaluate(sample(G), "dcgan")
 ```
 
 **출력:**
@@ -188,7 +189,16 @@ evaluate(sample(G), "dcgan")
 | [GAN (MLP)](01_gan.md) | 0.908 | 0.945 | 0.953 | 202초 |
 | **DCGAN** | 0.909 | **0.970** | **1.085** | 948초 |
 
-이 실행에서는 평균 확신도가 비슷하고 클래스 균형도와 클래스 내 화소 분산 비율이 높아졌다. 0.908이 심판 확신도의 상한은 아니며, 확신도만으로 그림의 잡음과 형태를 모두 평가할 수는 없다.
+**확신도는 비긴다**(0.908 대 0.909). 갈리는 것은 나머지 둘이다.
+
+다만 이 표는 시드 하나이고, **두 칸이 저마다의 다섯 벌 범위 밖에 있다** — GAN 의 다양함 0.953(범위 0.831~0.905)과 DCGAN 의 확신도 0.909(범위 0.899~0.906)다. [절 소개](index.md) 5절의 범위로 다시 적으면 이렇다.
+
+| 다섯 벌 | 확신도 | 클래스 균형도 | 클래스 안 다양함 |
+|---|---|---|---|
+| [GAN (MLP)](01_gan.md) | 0.903~0.911 | 0.913~0.937 | 0.831~0.905 (평균 0.878) |
+| **DCGAN** | 0.899~0.906 | **0.966~0.978** | **1.055~1.121** (평균 1.084) |
+
+**결론은 흔들리지 않고 오히려 세진다.** 확신도는 범위가 겹쳐 비기는 것이 맞고, 클래스 안 다양함의 앞섬은 시드 하나로 보면 0.132인데 다섯 벌 평균으로 보면 **0.206**으로 더 벌어진다. 0.953이 유난히 잘 뽑힌 한 벌이었기 때문이다.
 
 학습 시간이 4.7배라는 점도 적어 둔다. 전치 컨볼루션이 비싸다. 완전 연결 레이어는 한 번의 행렬 곱으로 784개의 화소를 한꺼번에 내놓지만, 전치 컨볼루션은 화소마다 이웃을 훑으며 $7 \to 14 \to 28$로 두 번 키운다. 게다가 판별기 쪽도 함께 컨볼루션이 되었으니 매 스텝마다 두 배로 문다.
 
@@ -226,7 +236,7 @@ MLP 쪽은 균형점($D \approx 1.386$)으로 되돌아갔다. DCGAN은 처음�
 
 ## 4. 사다리의 끝
 
-[5.1절](../dimreduction/index.md)부터 여덟 모델을 걸어 왔다.
+[5.1절](../dimreduction/index.md)부터 아홉 모델을 걸어 왔다.
 
 | | 모델 | 새로 할 수 있게 된 일 |
 |---|---|---|
