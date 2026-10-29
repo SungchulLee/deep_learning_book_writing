@@ -384,7 +384,104 @@ def make_pearson_hotelling():
     print("wrote pearson_hotelling.svg")
 
 
+# === 그림으로 보는 AI: Oja 1982 의 규칙을 이 쪽의 자료에 =======================
+#
+# Oja 는 신경세포가 입력 **상관**행렬 E[xx^T] 의 으뜸 고유벡터로 간다고 보였다.
+# 그것이 공분산의 으뜸 고유벡터, 곧 제1주성분이 되는 것은 자료의 평균이 0 일
+# 때뿐이다. 그래서 중심화한 자료와 원자료에 같은 규칙을 돌려 나란히 그린다.
+# 수는 모두 여기서 실제로 돌려 얻는다 — 그림에 적어 넣는 수는 지어내지 않는다.
+
+def oja_rule(data, gamma=0.002, passes=60, seed=0):
+    """m <- m + gamma * eta * (x - eta * m),  eta = m^T x.  명시적 정규화 없음."""
+    g = torch.Generator().manual_seed(seed)
+    m = torch.randn(2, generator=g)
+    m = m / m.norm()
+    angles = []
+    for _ in range(passes):
+        for i in torch.randperm(len(data), generator=g):
+            x = data[i]
+            eta = torch.dot(m, x)
+            m = m + gamma * eta * (x - eta * m)
+        angles.append(torch.rad2deg(torch.atan2(m[1], m[0])).item() % 180)
+    return m, angles
+
+
+def make_oja():
+    torch.manual_seed(42)                 # 쪽의 코드와 같은 씨앗, 같은 자료
+    n = 150
+    mean_true = torch.tensor([2.0, -1.0])
+    cov_true = torch.tensor([[3.0, 2.2], [2.2, 2.0]])
+    X = mean_true + torch.randn(n, 2) @ torch.linalg.cholesky(cov_true).T
+    mu = X.mean(dim=0, keepdim=True)
+    Xc = X - mu
+
+    pc1 = torch.linalg.svd(Xc, full_matrices=False)[2].T[:, 0]
+    svd_deg = torch.rad2deg(torch.atan2(pc1[1], pc1[0])).item() % 180
+
+    _, ang_c = oja_rule(Xc)
+    m_r, ang_r = oja_rule(X)
+    deg_c, deg_r = ang_c[-1], ang_r[-1]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.2, 4.3))
+
+    # --- 왼쪽: 자료와 두 방향 ---------------------------------------------
+    ax1.scatter(X[:, 0], X[:, 1], s=13, color=INK, alpha=0.32,
+                edgecolors="none")
+    cx, cy = mu[0, 0].item(), mu[0, 1].item()
+
+    t = np.linspace(-5.2, 5.2, 2)
+    r_c = np.radians(deg_c)
+    ax1.plot(cx + t * np.cos(r_c), cy + t * np.sin(r_c), color=ACCENT,
+             linewidth=2.2, label=f"centered: {deg_c:.2f} deg")
+    r_r = np.radians(deg_r)
+    ax1.plot(t * np.cos(r_r) * 1.6, t * np.sin(r_r) * 1.6, color="#2d6a8f",
+             linewidth=2.2, linestyle="--", label=f"raw: {deg_r:.2f} deg")
+
+    ax1.plot([cx], [cy], marker="o", color=ACCENT, markersize=7,
+             markeredgecolor="white", markeredgewidth=1.2, zorder=5)
+    ax1.annotate("mean", (cx, cy), textcoords="offset points",
+                 xytext=(9, 7), fontsize=8, color=ACCENT)
+    ax1.plot([0], [0], marker="x", color="#2d6a8f", markersize=8,
+             markeredgewidth=2, zorder=5)
+    ax1.annotate("origin", (0, 0), textcoords="offset points",
+                 xytext=(-42, -4), fontsize=8, color="#2d6a8f")
+
+    ax1.set_title("same rule, two data sets", fontsize=10, color=INK)
+    ax1.set_xlabel("x1", fontsize=9)
+    ax1.set_ylabel("x2", fontsize=9)
+    ax1.legend(fontsize=8, loc="upper left", framealpha=0.9)
+    ax1.set_aspect("equal")
+    ax1.grid(alpha=0.12)
+
+    # --- 오른쪽: 지나간 각 -------------------------------------------------
+    steps = np.arange(1, len(ang_c) + 1)
+    ax2.axhline(svd_deg, color=INK, linestyle=":", linewidth=1.3)
+    ax2.annotate(f"SVD: {svd_deg:.2f} deg", (len(ang_c) * 0.52, svd_deg),
+                 textcoords="offset points", xytext=(0, 6), fontsize=8.5,
+                 color=INK)
+    ax2.plot(steps, ang_c, color=ACCENT, linewidth=1.8, label="centered")
+    ax2.plot(steps, ang_r, color="#2d6a8f", linewidth=1.8, linestyle="--",
+             label="raw")
+    ax2.set_xlabel("pass over the 150 points", fontsize=9)
+    ax2.set_ylabel("angle of m  (deg)", fontsize=9)
+    ax2.set_title("no normalization step anywhere", fontsize=10, color=INK)
+    ax2.legend(fontsize=8, loc="center right", framealpha=0.9)
+    ax2.grid(alpha=0.12)
+    ax2.set_ylim(0, 50)
+
+    fig.text(0.5, -0.04,
+             f"Oja's rule, gamma = 0.002.  |m| ends at {m_r.norm():.4f} "
+             f"although the rule never normalizes.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "oja_rule.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote oja_rule.svg   centered {deg_c:.2f}  raw {deg_r:.2f}  "
+          f"svd {svd_deg:.2f}")
+
+
 def main():
+    make_oja()
     make_pearson_hotelling()
     make_whiten()
     make_angle_loss()
