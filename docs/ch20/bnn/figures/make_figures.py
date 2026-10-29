@@ -114,5 +114,78 @@ def width_limit():
           f"{scaled[-1]:.3f} at H={Hs[-1]}   sqrt-law ratio sd {ratio.std():.4f}")
 
 
+
+
+# === 그림으로 보는 AI: 웨이트 하나에 수 하나 대신 분포 하나 ===================
+#
+# 블런델 일행(2015)의 생각은 간단하다 — 모든 웨이트를 수 대신 분포로 둔다.
+# 그 값은 파라메터 수가 두 배가 되는 것으로 치른다. 그림의 D 는 직접 센다.
+
+def weights_as_distributions():
+    layers = [2, 3, 1]
+    D = sum(a * b + b for a, b in zip(layers[:-1], layers[1:]))
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.0, 3.9))
+
+    def draw_net(ax, distributional):
+        pos = {}
+        for li, nl in enumerate(layers):
+            for ni in range(nl):
+                pos[(li, ni)] = (li * 2.4, ni - (nl - 1) / 2)
+        for li in range(len(layers) - 1):
+            for a in range(layers[li]):
+                for b in range(layers[li + 1]):
+                    x0, y0 = pos[(li, a)]
+                    x1, y1 = pos[(li + 1, b)]
+                    ax.plot([x0, x1], [y0, y1], color=INK, alpha=0.3,
+                            linewidth=0.9, zorder=1)
+                    mx, my = (x0 + x1) / 2, (y0 + y1) / 2
+                    if distributional:
+                        t = np.linspace(-1, 1, 40)
+                        ax.plot(mx + t * 0.42,
+                                my + 0.30 * np.exp(-(t * 2.1) ** 2),
+                                color=ACCENT, linewidth=1.5, zorder=3)
+                        ax.plot([mx - 0.42, mx + 0.42], [my, my],
+                                color=ACCENT, linewidth=0.7, alpha=0.6,
+                                zorder=3)
+                    else:
+                        ax.plot([mx], [my], marker="o", color=INK,
+                                markersize=4.5, zorder=3)
+        for (li, ni), (x, y) in pos.items():
+            ax.add_patch(plt.Circle((x, y), 0.19, facecolor="white",
+                                    edgecolor=INK, linewidth=1.1, zorder=4))
+        ax.set_xlim(-0.7, 5.1)
+        ax.set_ylim(-2.0, 1.8)
+        ax.set_aspect("equal")
+        ax.axis("off")
+
+    draw_net(ax1, False)
+    ax1.set_title("one number per weight", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.text(2.2, -1.5, f"{D} numbers to learn", ha="center", fontsize=9,
+             color=INK)
+    ax1.text(2.2, -1.76, "(weights and biases; biases not drawn)",
+             ha="center", fontsize=7, color=INK, alpha=0.65)
+
+    draw_net(ax2, True)
+    ax2.set_title("one distribution per weight", fontsize=10, color=ACCENT,
+                  weight="bold")
+    ax2.text(2.2, -1.5, f"{2 * D} numbers to learn", ha="center",
+             fontsize=9, color=ACCENT)
+    ax2.text(2.2, -1.76, "(a mean and a scale for each of the same 13)",
+             ha="center", fontsize=7, color=ACCENT, alpha=0.8)
+
+    fig.text(0.5, -0.02,
+             "Hinton and Van Camp 1993  ->  Graves 2011  ->  Blundell et al. "
+             "2015.  the price is exactly double.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "weights_as_distributions.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote weights_as_distributions.svg   D={D}  2D={2*D}")
+
+
 if __name__ == "__main__":
     width_limit()
+    weights_as_distributions()
