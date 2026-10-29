@@ -275,7 +275,129 @@ def crowding():
     print(f"wrote crowding.svg   (triangle gaps all {d[0]:.6f})")
 
 
+# === 그림으로 보는 AI: 풀던 문제를 내려가는 문제로 바꾸면 ======================
+#
+# 왼쪽은 두 수(手)의 꼴만 그린 것이다 — 토거슨은 풀고, 크러스컬은 내려간다.
+# 오른쪽은 **실제로 재어** 그린다. 이 쪽의 자료(씨앗 42, 200개의 3차원 점)에
+# 같은 stress 를 일곱 군데에서 내려가 보고 닿은 값을 찍는다.
+
+def kruskal_descent():
+    import numpy as np
+    import torch
+    from scipy.spatial.distance import pdist, squareform
+
+    np.random.seed(42)                    # 쪽의 코드와 같은 씨앗
+    X = np.random.randn(200, 3)
+    D = squareform(pdist(X))
+
+    n = D.shape[0]
+    H = np.eye(n) - np.ones((n, n)) / n
+    B = -0.5 * H @ (D ** 2) @ H
+    w, V = np.linalg.eigh(B)
+    idx = np.argsort(w)[::-1]
+    cl = V[:, idx[:2]] @ np.diag(np.sqrt(np.maximum(w[idx[:2]], 0)))
+
+    D_t = torch.tensor(D, dtype=torch.float32)
+    mask = torch.triu(torch.ones_like(D_t), diagonal=1) > 0
+
+    def descend(Y0, steps=600, lr=0.05):
+        Y = torch.tensor(Y0, dtype=torch.float32, requires_grad=True)
+        opt = torch.optim.Adam([Y], lr=lr)
+        for _ in range(steps):
+            opt.zero_grad()
+            s = ((D_t[mask] - torch.cdist(Y, Y)[mask]) ** 2).sum()
+            s.backward()
+            opt.step()
+        with torch.no_grad():
+            return ((D_t[mask] - torch.cdist(Y, Y)[mask]) ** 2).sum().item()
+
+    s_cl = descend(cl)
+    rs = np.random.default_rng(0)
+    s_rand = [descend(rs.standard_normal((200, 2)) * cl.std())
+              for _ in range(6)]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.0),
+                                   gridspec_kw={"width_ratios": [1, 1.25]})
+
+    # --- 왼쪽: 두 수 (꼴만) -------------------------------------------------
+    ax1.text(0.5, 0.93, "1952  Torgerson", ha="center", fontsize=9.5,
+             color=INK, weight="bold")
+    ax1.annotate("", xy=(0.80, 0.78), xytext=(0.20, 0.78),
+                 arrowprops=dict(arrowstyle="->", color=INK, linewidth=2.0))
+    ax1.text(0.5, 0.70, "solve it. one shot, one answer.",
+             ha="center", fontsize=8.2, color=INK, alpha=0.85)
+
+    ax1.text(0.5, 0.50, "1964  Kruskal", ha="center", fontsize=9.5,
+             color=ACCENT, weight="bold")
+    t = np.linspace(0.04, 0.96, 300)
+    land = (0.20 + 0.075 * np.sin(2.1 * np.pi * t + 0.6)
+            + 0.050 * np.sin(4.3 * np.pi * t))
+    ax1.plot(t, land, color=ACCENT, linewidth=1.8)
+
+    # 공은 반드시 **실제 골짜기**에 놓는다 — 봉우리에 얹으면 그림이 거짓말을 한다
+    dips = [i for i in range(1, len(t) - 1)
+            if land[i] < land[i - 1] and land[i] < land[i + 1]]
+    assert len(dips) >= 2, "골짜기가 둘은 있어야 한다"
+    for i, col in zip(dips[:2], (INK, ACCENT)):
+        ax1.plot([t[i]], [land[i] + 0.016], marker="o", color=col,
+                 markersize=9, markeredgecolor="white", markeredgewidth=1.3,
+                 zorder=4)
+        top = t[i] - 0.085
+        ax1.annotate("", xy=(t[i] - 0.015, land[i] + 0.055),
+                     xytext=(top, land[np.argmin(np.abs(t - top))] + 0.085),
+                     arrowprops=dict(arrowstyle="->", color=col, lw=1.1,
+                                     alpha=0.75))
+
+    ax1.text(0.5, 0.045, "define badness, then walk downhill.\n"
+                         "where you start decides where you stop.",
+             ha="center", fontsize=8.2, color=INK, alpha=0.85)
+    ax1.text(0.95, 0.335, "schematic", ha="right", fontsize=6.5,
+             color=INK, alpha=0.5, style="italic")
+    ax1.set_xlim(-0.02, 1.0)
+    ax1.set_ylim(-0.02, 1.02)
+    ax1.axis("off")
+
+    # --- 오른쪽: 실제로 닿은 자리 ------------------------------------------
+    ax2.scatter(s_rand, [1] * 6, s=85, color=INK, alpha=0.6, zorder=3,
+                label="random start")
+    ax2.scatter([s_cl], [1], s=150, color=ACCENT, marker="D", zorder=4,
+                label="classical MDS start\n(what the page's code uses)")
+    ax2.set_yticks([])
+    ax2.set_ylim(0.75, 1.5)
+    ax2.set_xlabel("stress reached after 600 Adam steps", fontsize=9)
+    ax2.set_title("seven starts, the same stress", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.annotate(f"{min(s_rand):.0f}", xy=(min(s_rand), 1), xytext=(0, 26),
+                 textcoords="offset points", ha="center", fontsize=8.5,
+                 color=INK)
+    ax2.annotate(f"{max(s_rand):.0f}", xy=(max(s_rand), 1), xytext=(0, 26),
+                 textcoords="offset points", ha="center", fontsize=8.5,
+                 color=INK)
+    ax2.annotate(f"{s_cl:.0f}", xy=(s_cl, 1), xytext=(0, -30),
+                 textcoords="offset points", ha="center", fontsize=8.5,
+                 color=ACCENT, weight="bold")
+    ax2.legend(fontsize=7.8, loc="upper center", framealpha=0.9)
+    ax2.grid(alpha=0.13, axis="x")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    n_better = sum(1 for s in s_rand if s < s_cl)
+    fig.text(0.5, -0.04,
+             f"{n_better} of the 6 random starts end lower than the "
+             f"classical one. measured here, not assumed.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "kruskal_descent.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote kruskal_descent.svg   classical {s_cl:.3f}   "
+          f"random {min(s_rand):.3f}-{max(s_rand):.3f}   better: {n_better}/6")
+
+
 if __name__ == "__main__":
     page_2323()
     ekman_colors()
     crowding()
+    kruskal_descent()
