@@ -121,5 +121,97 @@ def dbscan_knobs():
           f"knee {knees[4]:.4f} -> {knees[10]:.4f}")
 
 
+# === 그림으로 보는 AI: 이름을 준 알고리즘과 실제로 도는 알고리즘 ==============
+#
+# MacQueen 1967 이 "k-means" 라는 이름을 지었지만 그의 것은 점 하나마다 중심을
+# 곧바로 고치는 온라인 방식이다. 그래서 **점의 순서를 탄다.** 같은 초기 중심을
+# 주고 순서만 섞어 재면 답이 크게 흔들린다. Lloyd 의 일괄 방식은 꿈쩍 않는다.
+
+def _macqueen(X, k, init_seed, passes, order_seed):
+    """MacQueen 1967 의 온라인 갱신. 중심은 달리는 평균으로 고친다."""
+    rs = np.random.default_rng(init_seed)
+    C = X[rs.choice(len(X), k, replace=False)].astype(float).copy()
+    n = np.ones(k)
+    for p in range(passes):
+        order = np.random.default_rng(order_seed + p).permutation(len(X))
+        for i in order:
+            x = X[i]
+            j = int(((C - x) ** 2).sum(1).argmin())
+            n[j] += 1
+            C[j] += (x - C[j]) / n[j]
+    return C
+
+
+def _inertia(X, C):
+    return ((X[:, None, :] - C[None, :, :]) ** 2).sum(-1).min(1).sum()
+
+
+def kmeans_two_parents():
+    from sklearn.cluster import KMeans
+    from sklearn.datasets import make_blobs
+
+    np.random.seed(42)                   # 쪽의 코드와 같은 씨앗
+    X, _ = make_blobs(n_samples=500, centers=5,
+                      cluster_std=[1.0, 0.7, 1.2, 0.9, 1.5], random_state=42)
+    K = 5
+
+    lloyd = KMeans(n_clusters=K, random_state=42, n_init=10).fit(X).inertia_
+
+    N = 40                                # 섞는 횟수
+    one = [_inertia(X, _macqueen(X, K, 0, 1, 1000 + 7 * s)) for s in range(N)]
+
+    passes = [1, 2, 5, 10, 20]
+    lo, hi = [], []
+    for p in passes:
+        v = [_inertia(X, _macqueen(X, K, 0, p, 1000 + 7 * s))
+             for s in range(12)]
+        lo.append(min(v))
+        hi.append(max(v))
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.0))
+
+    # --- 왼쪽: 순서만 바꿔도 답이 흔들린다 ---------------------------------
+    ax1.hist(one, bins=18, color=ACCENT, alpha=0.75, edgecolor="white",
+             linewidth=0.6)
+    ax1.axvline(lloyd, color=INK, linewidth=2.0)
+    ax1.annotate(f"Lloyd: {lloyd:.0f}\nsame for every ordering",
+                 xy=(lloyd, N * 0.17), xytext=(lloyd + 230, N * 0.26),
+                 fontsize=8.5, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax1.set_xlabel("inertia after one pass", fontsize=9)
+    ax1.set_ylabel(f"how many of {N} orderings", fontsize=9)
+    ax1.set_title("same starting centres, shuffled order", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.grid(alpha=0.13)
+    style(ax1)
+
+    # --- 오른쪽: 더 훑어도 폭이 줄지 않는다 --------------------------------
+    ax2.fill_between(passes, lo, hi, color=ACCENT, alpha=0.22,
+                     label="MacQueen, range over 12 orderings")
+    ax2.plot(passes, lo, "o-", color=ACCENT, linewidth=1.8, ms=5)
+    ax2.plot(passes, hi, "o-", color=ACCENT, linewidth=1.8, ms=5)
+    ax2.axhline(lloyd, color=INK, linewidth=2.0, label=f"Lloyd ({lloyd:.0f})")
+    ax2.set_xlabel("passes over the 500 points", fontsize=9)
+    ax2.set_ylabel("inertia", fontsize=9)
+    ax2.set_title("more passes do not close the spread", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.set_xticks(passes)
+    ax2.legend(fontsize=8, loc="center right", framealpha=0.9)
+    ax2.grid(alpha=0.13)
+    style(ax2)
+
+    fig.text(0.5, -0.04,
+             "the best MacQueen runs reach Lloyd's answer; the worst never "
+             "do, and nothing but the order of the points separates them.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "kmeans_two_parents.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote kmeans_two_parents.svg   lloyd {lloyd:.2f}   "
+          f"macqueen 1 pass {min(one):.0f}-{max(one):.0f}")
+
+
 if __name__ == "__main__":
     dbscan_knobs()
+    kmeans_two_parents()
