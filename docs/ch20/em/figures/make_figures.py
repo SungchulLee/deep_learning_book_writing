@@ -22,6 +22,7 @@ from scipy.stats import multivariate_normal
 HERE = Path(__file__).resolve().parent
 INK = "#2f3337"
 ACCENT = "#8a4b2a"
+COOL = "#2d6a8f"
 
 
 def style(ax):
@@ -202,6 +203,101 @@ def unbounded_likelihood():
           f"crosses at {cross:.0e}")
 
 
+
+
+# === 그림으로 보는 AI: 조건부 분산 V 를 버리면 ================================
+#
+# 3절이 "m_i m_i^T 만 사용하면 조건부 분산 V 를 버려 정확한 E 단계가 아니다"
+# 라고 적어 두었다. 그 "정확하지 않다"가 무엇을 뜻하는지 인자 분석으로 잰다.
+# 수는 전부 여기서 돌려 얻는다.
+
+def dropping_V():
+    rng = np.random.default_rng(0)
+    N, d = 400, 5
+    W_true = np.array([[1.6], [-1.1], [0.9], [1.3], [-0.7]])
+    Psi_true = np.array([0.35, 0.55, 0.25, 0.45, 0.60])
+    Z = rng.standard_normal((N, 1))
+    X = Z @ W_true.T + rng.standard_normal((N, d)) * np.sqrt(Psi_true)
+    Xc = X - X.mean(0)
+
+    def loglik(W, Psi):
+        C = W @ W.T + np.diag(Psi)
+        _, ld = np.linalg.slogdet(C)
+        Ci = np.linalg.inv(C)
+        return -0.5 * (N * ld + np.einsum('ij,jk,ik->', Xc, Ci, Xc)
+                       + N * d * np.log(2 * np.pi))
+
+    def run(keep_V, iters=120, seed=5):
+        r = np.random.default_rng(seed)
+        W = r.standard_normal((d, 1)) * 0.3
+        Psi = np.ones(d)
+        hist = []
+        for _ in range(iters):
+            Pi = 1.0 / Psi
+            V = 1.0 / (1.0 + (W[:, 0] ** 2 * Pi).sum())
+            m = (Xc * (W[:, 0] * Pi)).sum(1) * V
+            Ezz = (V + m ** 2) if keep_V else (m ** 2)
+            hist.append(loglik(W, Psi))
+            W = ((Xc * m[:, None]).sum(0) / Ezz.sum())[:, None]
+            Psi = np.maximum(((Xc ** 2).sum(0)
+                              - W[:, 0] * (Xc * m[:, None]).sum(0)) / N, 1e-8)
+        V_end = 1.0 / (1.0 + (W[:, 0] ** 2 / Psi).sum())
+        return np.array(hist), Psi, V_end
+
+    h_ok, Psi_ok, V_ok = run(True)
+    h_no, Psi_no, _ = run(False)
+    v_ok = int((np.diff(h_ok) < -1e-6).sum())
+    v_no = int((np.diff(h_no) < -1e-6).sum())
+    assert v_ok == 0 and v_no > 0, "정확한 E 단계만 단조여야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.2))
+
+    ax1.plot(h_ok, color=ACCENT, linewidth=2.1,
+             label=f"keeps V   ({v_ok} violations)")
+    ax1.plot(h_no, color=INK, linewidth=1.9, linestyle="--",
+             label=f"drops V   ({v_no} violations)")
+    ax1.set_xlabel("EM iteration", fontsize=9)
+    ax1.set_ylabel("log-likelihood", fontsize=9)
+    ax1.set_title("the guarantee is the first thing to go", fontsize=9.8,
+                  color=INK, weight="bold")
+    ax1.set_ylim(min(h_ok[2], h_no[2]) - 60, max(h_ok.max(), h_no.max()) + 40)
+    ax1.legend(fontsize=8.4, framealpha=0.92, loc="lower right")
+    ax1.grid(alpha=0.13)
+    style(ax1)
+    ax1.text(0.97, 0.40, f"ends {h_ok[-1] - h_no[-1]:+.1f} apart",
+             transform=ax1.transAxes, va="top", ha="right", fontsize=8.4,
+             color=ACCENT)
+
+    xs = np.arange(d)
+    w = 0.27
+    ax2.bar(xs - w, Psi_true, w, color=COOL, alpha=0.9, label="true")
+    ax2.bar(xs, Psi_ok, w, color=ACCENT, alpha=0.9, label="keeps V")
+    ax2.bar(xs + w, Psi_no, w, color=INK, alpha=0.75, label="drops V")
+    ax2.set_xticks(xs)
+    ax2.set_xticklabels([f"d{i+1}" for i in xs], fontsize=8.5)
+    ax2.set_ylabel("estimated noise variance", fontsize=9)
+    ax2.set_title("and the estimates follow", fontsize=9.8, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8.4, framealpha=0.92)
+    ax2.grid(alpha=0.13, axis="y")
+    style(ax2)
+    ax2.annotate(f"collapsed to {Psi_no[0]:.3f}", xy=(0 + w, Psi_no[0]),
+                 xytext=(10, 44), textcoords="offset points", fontsize=8,
+                 color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+
+    fig.text(0.5, -0.03,
+             f"V was only {V_ok:.3f} here. dropping it still cost the "
+             f"monotonicity and one whole variance.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "dropping_V.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote dropping_V.svg   violations {v_ok} vs {v_no}   "
+          f"gap {h_ok[-1]-h_no[-1]:+.1f}   Psi1 {Psi_no[0]:.4f}")
+
+
 if __name__ == "__main__":
     monotone_but_not_global()
     unbounded_likelihood()
+    dropping_V()
