@@ -224,6 +224,86 @@ def ising_dimensions():
     plt.close(fig)
     print(f"wrote ising_dimensions.svg   Tc = {TC_2D:.4f}")
 
+
+
+# === 그림으로 보는 AI: 사라지는 것이 둘인데, 사라지려면 조건이 있다 ============
+#
+# 스코어 매칭에서 Z 가 사라지는 것은 로그를 x 로 미분하기 때문이고,
+# **모르는 자료 스코어**까지 사라지는 것은 부분적분 때문이다 (Hyvarinen 2005,
+# 정리 1). 부분적분이 성립하려면 경계항이 0 이어야 한다 — 그 논문 각주 1 의
+# 조건이다. 조건이 맞는 경우와 깨지는 경우를 나란히 재어 보인다.
+
+def score_matching_boundary():
+    rng = np.random.default_rng(0)
+
+    # --- 조건이 맞는 경우: 실수 전체의 가우시안 --------------------------
+    mu_t, s_t = 1.3, 0.8
+    x = rng.normal(mu_t, s_t, 200_000)
+    mus = np.linspace(0.3, 2.3, 400)
+    s2 = s_t ** 2
+    J_mu = np.array([np.mean(-1 / s2 + 0.5 * ((x - m) / s2) ** 2) for m in mus])
+    mu_hat = mus[np.argmin(J_mu)]
+
+    # --- 깨지는 경우: 반직선의 지수분포 ----------------------------------
+    lam_t = 2.0
+    lams = np.linspace(0.0, 4.0, 400)
+    J_lam = 0.5 * lams ** 2            # psi = -lam 상수, dpsi/dy = 0
+    lam_hat = lams[np.argmin(J_lam)]
+
+    assert abs(mu_hat - mu_t) < 0.02, f"가우시안은 맞아야 한다: {mu_hat:.3f}"
+    assert lam_hat < 1e-9, f"지수분포는 0 으로 무너져야 한다: {lam_hat}"
+    assert np.all(np.diff(J_lam) > 0), "J 가 단조증가여야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1))
+
+    ax1.plot(mus, J_mu, color=ACCENT, linewidth=2.2)
+    ax1.axvline(mu_t, color=INK, linestyle="--", linewidth=1.2, alpha=0.75)
+    ax1.plot([mu_hat], [J_mu.min()], "o", color=ACCENT, ms=9,
+             markeredgecolor="white", markeredgewidth=1.3, zorder=4)
+    ax1.annotate(f"minimum at {mu_hat:.3f}\ntrue value {mu_t}",
+                 xy=(mu_hat, J_mu.min()), xytext=(mu_hat + 0.26,
+                                                  J_mu.min() + 0.33 * J_mu.ptp()),
+                 fontsize=8.4, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax1.set_xlabel("mu", fontsize=9)
+    ax1.set_ylabel("score matching objective", fontsize=9)
+    ax1.set_title("Gaussian on the whole line - it works", fontsize=10,
+                  color=INK, weight="bold")
+
+    ax2.plot(lams, J_lam, color=ACCENT, linewidth=2.2)
+    ax2.axvline(lam_t, color=INK, linestyle="--", linewidth=1.2, alpha=0.75)
+    ax2.plot([lam_hat], [J_lam.min()], "o", color=ACCENT, ms=9,
+             markeredgecolor="white", markeredgewidth=1.3, zorder=4)
+    ax2.annotate("minimum at 0", xy=(lam_hat, J_lam.min()),
+                 xytext=(0.45, 2.1), fontsize=8.6, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9))
+    ax2.annotate(f"true lambda = {lam_t:.0f}", xy=(lam_t, 1.2),
+                 xytext=(lam_t + 0.25, 1.0), fontsize=8.6, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax2.set_xlabel("lambda", fontsize=9)
+    ax2.set_ylabel("score matching objective", fontsize=9)
+    ax2.set_title("exponential on a half line - it does not", fontsize=10,
+                  color=INK, weight="bold")
+
+    for ax in (ax1, ax2):
+        ax.grid(alpha=0.13)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "the trick needs p(x) psi(x) to vanish at the boundary. "
+             "on the half line it does not, and the estimate collapses.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "score_matching_boundary.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote score_matching_boundary.svg   mu_hat={mu_hat:.4f}  "
+          f"lam_hat={lam_hat:.4f}")
+
 if __name__ == "__main__":
     cd_bias()
     ising_dimensions()
+    score_matching_boundary()
