@@ -827,7 +827,92 @@ def memory_order():
           f"contig {t_con:.3f}")
 
 
+# === 그림으로 보는 AI: 섀넌이 포갠 두 세계와 그 값 ============================
+#
+# 왼쪽은 섀넌이 1937 년에 포갠 것 — 스위치 두 개를 잇따라 놓은 회로와 불의
+# 두 값 대수가 같은 것이라는 관찰. 꼴만 옮긴 것이라 그림 안에 적는다.
+# 오른쪽은 그 포갬이 오늘 물리는 자리. 파이썬이 실제로 어떻게 묶는지는
+# 그리는 코드가 ast 로 직접 확인한 뒤에만 그린다.
+
+def shannon_precedence():
+    import ast
+
+    # 그림이 주장하는 것을 먼저 확인한다
+    bad = ast.parse("a == 1 & b == 1", mode="eval").body
+    assert isinstance(bad, ast.Compare) and len(bad.ops) == 2, \
+        "체인 비교로 묶이지 않으면 이 그림의 이야기가 성립하지 않는다"
+    good = ast.parse("(a == 1) & (b == 1)", mode="eval").body
+    assert isinstance(good, ast.BinOp) and isinstance(good.op, ast.BitAnd)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.0),
+                                   gridspec_kw={"width_ratios": [1, 1.25]})
+
+    # --- 왼쪽: 회로와 대수가 같다 ------------------------------------------
+    y = 0.70
+    ax1.plot([0.08, 0.26], [y, y], color=INK, linewidth=1.6)
+    ax1.plot([0.26, 0.36], [y, y + 0.09], color=ACCENT, linewidth=2.0)
+    ax1.plot([0.36, 0.44], [y, y], color=INK, linewidth=1.6)
+    ax1.plot([0.44, 0.54], [y, y + 0.09], color=ACCENT, linewidth=2.0)
+    ax1.plot([0.54, 0.72], [y, y], color=INK, linewidth=1.6)
+    for x, lab in ((0.31, "A"), (0.49, "B")):
+        ax1.text(x, y - 0.09, lab, ha="center", fontsize=10, color=ACCENT,
+                 weight="bold")
+    ax1.text(0.40, y + 0.20, "two switches in series", ha="center",
+             fontsize=8.6, color=INK)
+
+    ax1.text(0.40, 0.42, "A  AND  B", ha="center", fontsize=12, color=ACCENT,
+             family="monospace", weight="bold")
+    rows = [("0", "0", "0"), ("0", "1", "0"), ("1", "0", "0"), ("1", "1", "1")]
+    for i, (p, q, r) in enumerate(rows):
+        ax1.text(0.40, 0.30 - i * 0.062, f"{p}   {q}   |   {r}", ha="center",
+                 fontsize=8.6, color=INK, family="monospace")
+    ax1.text(0.40, 0.035, "schematic", ha="center", fontsize=6.4, color=INK,
+             alpha=0.55, style="italic")
+    ax1.set_title("Shannon, MIT, 1937", fontsize=10, color=INK, weight="bold")
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0.02, 1.0)
+    ax1.axis("off")
+
+    # --- 오른쪽: 그 유산이 물리는 자리 -------------------------------------
+    ax2.text(0.5, 0.93, "what you wrote", ha="center", fontsize=9,
+             color=INK, style="italic")
+    ax2.text(0.5, 0.82, "a == 1 & b == 1", ha="center", fontsize=13,
+             color=INK, family="monospace")
+
+    ax2.annotate("", xy=(0.5, 0.70), xytext=(0.5, 0.77),
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.4))
+    ax2.text(0.5, 0.60, "a == (1 & b) == 1", ha="center", fontsize=13,
+             color=ACCENT, family="monospace", weight="bold")
+    ax2.text(0.5, 0.50, "a chained comparison -\n& binds tighter than ==",
+             ha="center", va="top", fontsize=8.4, color=ACCENT)
+
+    ax2.plot([0.08, 0.92], [0.34, 0.34], color=INK, linewidth=0.7,
+             alpha=0.35)
+    ax2.text(0.5, 0.26, "what you meant", ha="center", fontsize=9,
+             color=INK, style="italic")
+    ax2.text(0.5, 0.15, "(a == 1) & (b == 1)", ha="center", fontsize=13,
+             color=INK, family="monospace")
+    ax2.text(0.5, 0.04, "the error blames the tensor, not the brackets",
+             ha="center", fontsize=8.4, color=INK, alpha=0.8)
+    ax2.set_title("the inheritance, today", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+    ax2.axis("off")
+
+    fig.text(0.5, -0.03,
+             "logic and bit-twiddling became one set of operators, and they "
+             "still bind like arithmetic.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "shannon_precedence.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote shannon_precedence.svg   (ast confirms the chained compare)")
+
+
 if __name__ == "__main__":
+    shannon_precedence()
     memory_order()
     tensor_word()
     arange_promise()
