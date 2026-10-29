@@ -593,7 +593,65 @@ def make_sklearn_timeline():
     print("wrote sklearn_timeline.svg")
 
 
+# === 그림으로 보는 AI: 1964 년의 지름길 =======================================
+#
+# 윗길(phi 를 만들어 내적한다)은 아무도 가지 않는다. 아랫길(커널을 바로 셈한다)
+# 만 간다. 그 지름길이 1964 년 모스크바에서 "포텐셜 함수"라는 이름으로 나왔다.
+
+def make_kernel_shortcut():
+    fig, ax = plt.subplots(figsize=(9.4, 3.9))
+
+    box = dict(boxstyle="round,pad=0.42", linewidth=1.1)
+
+    ax.text(0.5, 1.4, "x,  x'", ha="center", va="center", fontsize=11,
+            color=INK, bbox=dict(facecolor="white", edgecolor=INK, **box))
+    ax.text(9.5, 1.4, "<phi(x), phi(x')>", ha="center", va="center",
+            fontsize=11, color=INK,
+            bbox=dict(facecolor="white", edgecolor=INK, **box))
+
+    # --- 윗길: 가지 않는 길 -------------------------------------------------
+    ax.text(5.0, 2.65, "phi(x)  in a space that may be\nenormous, or infinite",
+            ha="center", va="center", fontsize=9, color=INK, alpha=0.55,
+            bbox=dict(facecolor="white", edgecolor=INK, alpha=0.45, **box))
+    ax.annotate("", xy=(3.6, 2.45), xytext=(0.9, 1.75),
+                arrowprops=dict(arrowstyle="->", color=INK, alpha=0.4,
+                                linewidth=1.1, linestyle="--",
+                                connectionstyle="arc3,rad=0.25"))
+    ax.annotate("", xy=(9.2, 1.75), xytext=(6.4, 2.45),
+                arrowprops=dict(arrowstyle="->", color=INK, alpha=0.4,
+                                linewidth=1.1, linestyle="--",
+                                connectionstyle="arc3,rad=0.25"))
+    ax.text(5.0, 3.35, "nobody goes this way", ha="center", fontsize=8.5,
+            color=INK, alpha=0.5, style="italic")
+
+    # --- 아랫길: 지름길 -----------------------------------------------------
+    ax.annotate("", xy=(8.4, 1.15), xytext=(1.6, 1.15),
+                arrowprops=dict(arrowstyle="->", color=ACCENT, linewidth=2.3,
+                                connectionstyle="arc3,rad=0.26"))
+    ax.text(5.0, 0.42, "k(x, x')", ha="center", va="center", fontsize=12,
+            color=ACCENT, family="monospace",
+            bbox=dict(facecolor="white", edgecolor=ACCENT, **box))
+    ax.text(5.0, -0.30, "one number, computed directly",
+            ha="center", fontsize=8.5, color=ACCENT)
+
+    ax.text(5.0, -1.15,
+            "Aizerman, Braverman and Rozonoer called it a potential "
+            "function - Moscow, 1964.\n"
+            "Scholkopf, Smola and Muller brought it to PCA in 1998.",
+            ha="center", fontsize=8.5, color=INK, style="italic")
+
+    ax.set_xlim(-0.6, 10.6)
+    ax.set_ylim(-1.6, 3.7)
+    ax.axis("off")
+    fig.tight_layout()
+    fig.savefig(HERE / "kernel_shortcut.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote kernel_shortcut.svg")
+
+
 def main():
+    make_kernel_shortcut()
     make_sklearn_timeline()
     make_ensembles()
     make_oja()
