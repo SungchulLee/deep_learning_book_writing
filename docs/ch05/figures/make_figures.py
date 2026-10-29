@@ -665,6 +665,51 @@ def fig_quality_vs_cost():
     print("wrote quality_vs_cost.svg")
 
 
+# === 그림 12: GAN과 DCGAN이 만든 그림 ======================================
+def _grid(ax, samples, n=8):
+    """[-1, 1] 범위의 (N,1,28,28)을 n x n 한 장으로 이어 붙여 그린다."""
+    im = samples[:n * n, 0]
+    canvas = torch.cat([torch.cat([im[r * n + c] for c in range(n)], 1)
+                        for r in range(n)], 0)
+    ax.imshow((canvas + 1) / 2, cmap="gray", vmin=0, vmax=1)
+    ax.axis("off")
+
+
+def fig_gan_samples():
+    """5.3절이 만든 표본. 학습해 둔 생성기에서 뽑아 저장한 것을 읽어 쓴다."""
+    s = torch.load(f"{MODELS}/mnist_gan_samples.pt", map_location="cpu",
+                   weights_only=True)
+    fig, ax = plt.subplots(figsize=(5.6, 5.6))
+    _grid(ax, s)
+    fig.subplots_adjust(left=0.005, right=0.995, top=0.995, bottom=0.005)
+    fig.savefig("gan_samples.svg", transparent=True)
+    plt.close(fig)
+    print("wrote gan_samples.svg")
+
+
+def fig_gan_vs_dcgan():
+    """두 구조가 만든 표본을 나란히 둔다.
+
+    두 표본은 같은 씨앗(7)의 같은 z 64개를 넣어 얻은 것이다. 다만 **칸마다
+    짝이 맞지는 않는다** — 따로 학습한 두 생성기는 같은 z를 서로 다른 숫자로
+    보내므로, 견줄 것은 칸 대 칸이 아니라 획의 결이다.
+    """
+    g = torch.load(f"{MODELS}/mnist_gan_samples.pt", map_location="cpu",
+                   weights_only=True)
+    d = torch.load(f"{MODELS}/mnist_dcgan_samples.pt", map_location="cpu",
+                   weights_only=True)
+    fig, axes = plt.subplots(1, 2, figsize=(11.0, 5.75))
+    for ax, s, title in ((axes[0], g, "GAN  (MLP generator)"),
+                         (axes[1], d, "DCGAN  (conv generator)")):
+        _grid(ax, s)
+        ax.set_title(title, fontsize=11, pad=6)
+    fig.subplots_adjust(left=0.005, right=0.995, top=0.945, bottom=0.005,
+                        wspace=0.04)
+    fig.savefig("gan_vs_dcgan.svg", transparent=True)
+    plt.close(fig)
+    print("wrote gan_vs_dcgan.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -677,6 +722,8 @@ if __name__ == "__main__":
     fig_forward_diffusion()
     fig_kl_tradeoff()
     fig_quality_vs_cost()
+    fig_gan_samples()
+    fig_gan_vs_dcgan()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
