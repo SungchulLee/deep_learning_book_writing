@@ -18,6 +18,28 @@ J_f의 크기는 k×d이고 프로베니우스 제곱 노름은 모든 입력·�
 
 두 방법은 안정적인 표현을 추구하는 관련 아이디어지만 같은 로스의 정확한 구현은 아니다. 잡음 생성과 추가 학습도 계산 비용이며 DAE가 “공짜로 같은 패널티”를 계산하는 것은 아니다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 지은이들이 바로 이 구분을 하려고 만들었다
+
+수축 오토인코더는 2011년에 살라 리파이(Salah Rifai)·파스칼 뱅상(Pascal Vincent)·자비에 뮐러(Xavier Muller)·자비에 글로로(Xavier Glorot)·요슈아 벤지오(Yoshua Bengio)가 몬트리올 대학에서 내놓았다. 제목에 이미 의도가 적혀 있다 — 「수축 오토인코더: 피처 추출에서의 **명시적** 불변성」. 디노이징 오토인코더가 잡음을 뿌려 **확률적으로** 얻던 안정성을, 미분을 직접 벌하는 식으로 **해석적으로** 적어 보자는 것이었다.
+
+위 문단이 두 방법을 조심스럽게 갈라 놓은 것은 과장이 아니다. **원 논문이 바로 그 구분을 하려고 쓰였다.** 지은이들의 말 그대로다.
+
+> "CAEs explicitly encourage robustness of **representation** f(x), whereas DAEs encourages robustness of **reconstruction** (g∘f)(x)."
+
+![왼쪽은 x에서 인코더 f를 거쳐 잠재 표현 z로, 다시 디코더 g를 거쳐 복원으로 이어지는 길을 그린 그림이다. x에서 z까지만 덮는 짧은 선에는 CAE가 벌하는 구간, 곧 표현의 야코비안이라고 적혀 있고, x에서 복원까지 덮는 긴 선에는 작은 잡음의 DAE를 펼치면 나오는 구간, 곧 재구성의 야코비안이라고 적혀 있다. 오른쪽은 막대 둘로 두 야코비안 노름을 실제로 잰 것으로 표현 쪽이 0.112, 재구성 쪽이 2.916이다.](figures/two_jacobians.svg)
+
+그리고 위 문단이 "추가 가정 없이 σ²‖J_f‖²_F로 바꿀 수 없다"고 한 대목도 논문이 먼저 적어 두었다. 아주 작은 가산 가우시안 잡음의 극한에서 DAE의 확률적 기준을 펼치면 나오는 항은 **재구성의 야코비안** ‖J_{g∘f}‖²_F이지 CAE가 벌하는 **표현의 야코비안** ‖J_f‖²_F가 아니라는 것이다.
+
+두 수가 정말 다른지 작은 오토인코더 하나를 학습해 재어 보면, 표현 쪽이 0.112이고 재구성 쪽이 2.916이다. 한쪽을 벌하는 것이 다른 쪽을 벌하는 일이 아님을 보이기에는 충분하다. 다만 이것은 **한 번 학습한 한 모델의 수**이므로 26배라는 비율 자체를 일반적인 값으로 옮기면 안 된다.
+
+**그러면 어느 쪽이 나은가는 무엇을 쓸 것인지에 달렸다.** 논문도 그렇게 답한다 — "Since we will use only the encoder part for classification, robustness of the extracted features appears more important than robustness of the reconstruction." 인코더만 떼어 쓸 작정이면 표현의 안정성이 중요하고, 복원 자체가 목적이면 그 주장은 그대로 옮겨지지 않는다. 1절이 λ가 크면 쓸모 있는 차이까지 버린다고 적어 둔 것, 6절이 수축과 기하의 해석에 선을 긋는 것도 같은 자리에서 나온다.
+
+_확인한 곳 — S. Rifai, P. Vincent, X. Muller, X. Glorot, Y. Bengio, "Contractive Auto-Encoders: Explicit Invariance During Feature Extraction", *Proc. ICML '11*. 인용한 세 구절은 초록과 「Relationship with denoising auto-encoders」 절에서 가져왔다. 오른쪽 판의 두 수는 그림을 그리는 코드가 작은 오토인코더를 직접 학습해 표본 128개에서 잰 것이다._
+
+</div>
+
 ## 3. 인코더와 야코비안 계산
 
 ```python
