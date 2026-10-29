@@ -192,6 +192,85 @@ def eight_schools():
           f"full A {full[0]:.2f} E {full[4]:.2f}")
 
 
+# === 그림으로 보는 AI: 교환가능성이 깨지면 누가 대가를 치르는가 ==============
+#
+# 교환가능성이 성립하면 부분 풀링이 모두를 조금씩 돕는다. 한 그룹만 딴 데서
+# 왔다면 **그 그룹이 홀로 크게 손해**를 보고 나머지는 거의 이득이 없다.
+# 부분 풀링에 참 tau 를 알려 주는 유리한 조건에서도 그렇다.
+
+def exchangeability():
+    rng = np.random.default_rng(0)
+    K, n, sig, tau, R = 10, 8, 1.0, 1.0, 4000
+
+    def trial(outlier):
+        th = rng.normal(0, tau, K)
+        if outlier:
+            th[0] = 8.0                      # 한 그룹만 전혀 다른 데서 왔다
+        y = th[:, None] + rng.normal(0, sig, (K, n))
+        ybar = y.mean(1)
+        se2 = sig ** 2 / n
+        w = tau ** 2 / (tau ** 2 + se2)      # 참 tau 를 알려 준다 (유리하게)
+        pp = ybar.mean() + w * (ybar - ybar.mean())
+        return np.abs(ybar - th), np.abs(pp - th)
+
+    out = {}
+    for key in (False, True):
+        a = np.array([trial(key) for _ in range(R)])
+        out[key] = (a[:, 0, :], a[:, 1, :])
+
+    ex_np, ex_pp = out[False]
+    od_np, od_pp = out[True]
+
+    # 그림이 제 주장을 확인한다
+    assert ex_pp.mean() < ex_np.mean(), "교환가능하면 풀링이 도와야 한다"
+    assert od_pp[:, 0].mean() > od_np[:, 0].mean() * 2, "딴 그룹은 크게 손해"
+    assert od_pp[:, 1:].mean() < od_np[:, 1:].mean(), "나머지는 조금 이득"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1), sharey=True)
+    for ax, (a_np, a_pp), title, first in (
+            (ax1, (ex_np, ex_pp), "all groups exchangeable", "group 1"),
+            (ax2, (od_np, od_pp), "one group came from elsewhere",
+             "the odd group")):
+        labels = [first, "the other nine"]   # 왼쪽 판에는 '딴' 그룹이 없다
+        npv = [a_np[:, 0].mean(), a_np[:, 1:].mean()]
+        ppv = [a_pp[:, 0].mean(), a_pp[:, 1:].mean()]
+        xp = np.arange(2)
+        ax.bar(xp - 0.19, npv, 0.36, color=MUTED, alpha=0.85,
+               label="no pooling")
+        ax.bar(xp + 0.19, ppv, 0.36, color=ACCENT, alpha=0.85,
+               label="partial pooling")
+        for x, (a, b) in enumerate(zip(npv, ppv)):
+            ax.text(x - 0.19, a + 0.015, f"{a:.3f}", ha="center",
+                    fontsize=8.2, color=INK)
+            ax.text(x + 0.19, b + 0.015, f"{b:.3f}", ha="center",
+                    fontsize=8.2, color=ACCENT,
+                    weight="bold" if b > a else "normal")
+        ax.set_xticks(xp)
+        ax.set_xticklabels(labels, fontsize=9)
+        ax.set_title(title, fontsize=10, color=INK, weight="bold")
+        ax.grid(alpha=0.12, axis="y")
+        ax.tick_params(labelsize=8, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+    ax1.set_ylabel("mean absolute error", fontsize=9.5)
+    ax1.legend(fontsize=8.4, loc="upper left", framealpha=0.93)
+    ax1.set_ylim(0, 0.95)
+
+    fig.text(0.5, -0.04,
+             f"{R:,} runs, {K} groups of {n}. partial pooling was even given "
+             f"the true tau, which flatters it.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "exchangeability.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote exchangeability.svg   odd {od_np[:,0].mean():.3f}->"
+          f"{od_pp[:,0].mean():.3f}   rest {od_np[:,1:].mean():.3f}->"
+          f"{od_pp[:,1:].mean():.3f}")
+
+
 if __name__ == "__main__":
     robbins()
     eight_schools()
+    exchangeability()
