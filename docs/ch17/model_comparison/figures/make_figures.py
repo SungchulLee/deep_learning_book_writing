@@ -94,5 +94,80 @@ def lindley():
     print(f"wrote lindley.svg   BF01 {bf01[0]:.3f} -> {bf01[-1]:.1f}")
 
 
+# === 그림으로 보는 AI: 자료를 안 건드리고 사전분포만 넓히면 ===================
+#
+# Bartlett 1957 의 지적. 자료를 고정해 둔 채 H1 사전분포의 폭 tau 만 키우면
+# BF01 이 tau 에 비례해 끝없이 자란다. "정보를 넣지 않으려고" 넓게 편 사전분포가
+# 가장 세게 H0 를 지지하게 된다. 부적절 사전분포에서는 아예 정의되지 않는다.
+
+def bartlett():
+    n, sig, z = 100, 1.0, stats.norm.ppf(0.975)
+    xbar = z * sig / np.sqrt(n)
+    taus = np.logspace(-3, 6, 4000)
+    r = n * taus ** 2 / sig ** 2
+    bf01 = np.sqrt(1 + r) * np.exp(-z ** 2 / 2 * r / (1 + r))
+
+    i = int(np.argmin(bf01))
+    tau_best, bf_best = taus[i], bf01[i]
+
+    # 그림이 제 주장을 확인한다. 처음 쓴 "단조증가" 가정은 **틀렸고**
+    # assert 가 잡아냈다 — tau -> 0 이면 H1 이 H0 로 무너져 BF01 이 1 로 간다.
+    assert abs(bf01[0] - 1.0) < 1e-3, "tau->0 이면 BF01 은 1 로 가야 한다"
+    assert np.all(np.diff(bf01[i:]) > 0), "최솟값 뒤로는 단조증가"
+    assert bf01[-1] / bf_best > 1e5, "끝없이 자란다는 말이 보여야 한다"
+    big = taus > 1e3
+    slope = np.polyfit(np.log(taus[big]), np.log(bf01[big]), 1)[0]
+    assert abs(slope - 1.0) < 0.02, f"큰 tau 에서 기울기가 1 이어야 한다 {slope}"
+
+    fig, ax = plt.subplots(figsize=(8.6, 4.7))
+
+    for lo, hi, lab in JEFFREYS:
+        ax.axhspan(lo, hi, color=ACCENT, alpha=0.055)
+        ax.axhline(lo, color=ACCENT, linewidth=0.7, alpha=0.45)
+        ax.text(taus[0] * 1.6, (lo * min(hi, 3e6)) ** 0.5, lab, fontsize=7.6,
+                color=ACCENT, va="center", ha="left", alpha=0.95)
+
+    ax.axhline(1.0, color=INK, linewidth=1.2, linestyle=":")
+    ax.loglog(taus, bf01, color=INK, linewidth=2.2, zorder=4)
+
+    ax.plot([tau_best], [bf_best], marker="o", color=MUTED, ms=9, zorder=6,
+            markeredgecolor="white", markeredgewidth=1.2)
+    ax.annotate(f"best H1 can ever do: {bf_best:.3f}\n"
+                f"at width {tau_best:.3f}",
+                xy=(tau_best, bf_best), xytext=(26, 30),
+                textcoords="offset points", fontsize=8.4, color=MUTED,
+                arrowprops=dict(arrowstyle="->", color=MUTED, lw=0.9))
+
+    for t in (1.0, 1e3, 1e6):
+        b = float(np.exp(np.interp(np.log(t), np.log(taus), np.log(bf01))))
+        ax.plot([t], [b], marker="o", color=ACCENT, ms=7, zorder=5,
+                markeredgecolor="white", markeredgewidth=1.1)
+        ax.annotate(f"{b:,.0f}" if b >= 100 else f"{b:,.2f}",
+                    xy=(t, b), xytext=(6, -13), textcoords="offset points",
+                    fontsize=8.4, color=INK)
+
+    ax.set_xlabel("width of the prior under H1", fontsize=9.5)
+    ax.set_ylabel("Bayes factor for the null", fontsize=9.5)
+    ax.set_title("the data never changed", fontsize=10.5, color=INK,
+                 weight="bold", pad=8)
+    ax.set_ylim(0.3, 3e6)
+    ax.grid(alpha=0.12, which="both")
+    ax.tick_params(labelsize=8, colors=INK)
+    for sp in ax.spines.values():
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"n = {n} and p = 0.0500 throughout. the observed effect is "
+             f"{xbar:.3f}; the most favourable width sits near it.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "bartlett.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote bartlett.svg   min BF01 {bf_best:.4f} at tau {tau_best:.4f}"
+          f"   -> {bf01[-1]:,.0f}   xbar {xbar:.4f}")
+
+
 if __name__ == "__main__":
     lindley()
+    bartlett()
