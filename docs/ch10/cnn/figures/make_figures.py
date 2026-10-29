@@ -11,12 +11,26 @@
   rf_strategies.svg           receptive_field.md 4절 — 커널·깊이·팽창 세 전략
   depthwise_decomposition.svg depthwise_separable.md 4절 — 표준 대 깊이별+점별
   advanced_training_curve.svg 07_cifar10_advanced.md 2.3절 — 열네 에포크의 정체
+  mnist_balance_and_scale.svg 01_mnist_dataset.md 4·5절 — 부류 균형과 두 눈금
+  fashion_class_means.svg     02_fashion_mnist_dataset.md 연습문제 2 — 밝기 차례
+  cifar10_class_colour.svg    03_cifar10_dataset.md 연습문제 3 — 부류별 채널 평균
+  fashion_classifier_errors.svg 05_fashion_mnist_classifier.md 2.1절 — 오류의 자리
+  binary_pair_curves.svg      08_binary_classification.md 4절 — 45개 쌍의 학습 곡선
+  feature_map_depths.svg      feature_maps.md 5절 — 세 깊이의 피처 맵
+  conv1d_sliding.svg          conv1d.md 1절 — 시퀀스 위를 미끄러지는 커널
+  cifar10_basic_per_class.svg 06_cifar10_basic.md 2.2절 — 부류별 재현율
 
 그림에 적는 수는 모두 쪽의 코드·출력에서 확인한 것이다. check_numbers() 가
 그 확인을 다시 돌린다.
 
 실행: python docs/ch10/cnn/figures/make_figures.py
       python docs/ch10/cnn/figures/make_figures.py --png   ← 눈으로 볼 PNG 도 함께
+      python docs/ch10/cnn/figures/make_figures.py rf_strategies   ← 그 하나만
+
+이름을 주지 않으면 모두 다시 그린다. 내용이 한 점도 바뀌지 않아도 SVG 안의
+타임스탬프와 클립 경로 id 는 바뀌므로, 손댈 그림의 이름만 주는 편이 낫다.
+데이터셋에서 바로 재는 그림(mnist_·fashion_·cifar10_class_)은 저장소 뿌리의
+./data 에 MNIST·FashionMNIST·CIFAR-10 이 이미 있어야 한다. 내려받지 않는다.
 """
 import sys
 from pathlib import Path
@@ -768,6 +782,565 @@ def make_advanced_training_curve():
     save(fig, "advanced_training_curve")
 
 
+# === 데이터셋 쪽 그림의 공통 도구 =================================
+#     01·02·03 쪽의 그림은 지어낸 수가 아니라 저장소 뿌리의 ./data 에 있는
+#     진짜 데이터셋에서 바로 잰다. 쪽의 코드가 읽는 바로 그 경로다.
+#     잰 값이 쪽에 실린 수와 어긋나면 그리기 전에 assert 가 먼저 걸린다.
+
+DATA = HERE.parents[3] / "data"
+
+CH_R, CH_G, CH_B = "#b3453a", "#4a8a4a", "#3a6fb3"      # RGB 세 채널
+
+
+def load_train_set(name):
+    """쪽의 코드와 같은 학습 집합을 읽는다. 내려받지는 않는다."""
+    from torchvision import datasets
+
+    return getattr(datasets, name)(root=str(DATA), train=True, download=False)
+
+
+def image_axes(ax):
+    """눈금은 지우되 축은 남긴다 — 맨 왼쪽 칸에 이름을 붙여야 한다."""
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for s in ax.spines.values():
+        s.set_visible(False)
+
+
+def row_label(ax, text):
+    ax.set_ylabel(text, fontsize=8.5, color=INK, rotation=0,
+                  ha="right", va="center", labelpad=6)
+
+
+# === 그림. MNIST: 고르기는 해도 똑같지는 않다, 그리고 눈금 ========
+#     01_mnist_dataset.md 4·5절과 연습문제 1·4.
+#     막대의 수는 4절 출력의 부류 분포 표, 평균 0.1307 과 표준편차 0.3081 은
+#     연습문제 4 의 값이다. 모두 학습셋에서 다시 재어 맞는지 확인한다.
+
+MNIST_COUNTS = (5923, 6742, 5958, 6131, 5842, 5421, 5918, 6265, 5851, 5949)
+MNIST_RAW_MEAN, MNIST_RAW_STD = 0.1307, 0.3081
+
+
+def make_mnist_balance_and_scale():
+    import numpy as np
+    import torch
+
+    ds = load_train_set("MNIST")
+    x = ds.data.float() / 255.0            # ToTensor() 와 같은 [0, 1] 눈금
+    counts = tuple(torch.bincount(ds.targets, minlength=10).tolist())
+    assert counts == MNIST_COUNTS, counts
+    assert f"{x.mean():.4f}" == f"{MNIST_RAW_MEAN:.4f}", x.mean()
+    assert f"{x.std(unbiased=False):.4f}" == f"{MNIST_RAW_STD:.4f}", x.std()
+
+    total = sum(counts)
+    assert total == 60000
+    zero_share = 100.0 * (x == 0).double().mean().item()
+
+    # 부류마다 학습셋에서 처음 나오는 한 장. 난수를 쓰지 않으므로 씨앗도 없다.
+    first = [int((ds.targets == d).nonzero()[0, 0]) for d in range(10)]
+
+    nbins = 80
+    hist = torch.histc(x, bins=nbins, min=0.0, max=1.0).numpy()
+    raw_centers = (np.arange(nbins) + 0.5) / nbins
+    centers = 2 * raw_centers - 1          # 같은 막대를 [-1, 1] 눈금에 얹는다
+    mean_n = 2 * MNIST_RAW_MEAN - 1
+    std_n = 2 * MNIST_RAW_STD
+
+    fig = plt.figure(figsize=(9.6, 7.6))
+    gs = fig.add_gridspec(3, 10, height_ratios=[0.55, 1.25, 1.75],
+                          hspace=0.62, wspace=0.1,
+                          left=0.105, right=0.98, top=0.95, bottom=0.085)
+
+    # --- 위: 부류마다 한 장 ---
+    for d in range(10):
+        ax = fig.add_subplot(gs[0, d])
+        ax.imshow(x[first[d]].numpy(), cmap="gray", vmin=0, vmax=1)
+        image_axes(ax)
+        if d == 0:
+            row_label(ax, "one image")
+
+    # --- 가운데: 부류별 장 수 ---
+    axb = fig.add_subplot(gs[1, :])
+    colors = [ACCENT if c == max(counts) else COOL if c == min(counts) else FILL
+              for c in counts]
+    axb.bar(range(10), counts, color=colors, edgecolor=INK, lw=0.7, width=0.72,
+            zorder=3)
+    axb.axhline(total / 10, color=MUTED, ls="--", lw=0.9, zorder=2)
+    for d, c in enumerate(counts):
+        axb.text(d, c + 110, f"{c:,}", fontsize=7.5, color=INK, ha="center",
+                 va="bottom")
+    axb.set_ylim(0, 7900)
+    axb.set_xlim(-0.62, 9.62)
+    axb.set_xticks(range(10))
+    axb.set_ylabel("training images", fontsize=9, color=INK)
+    axb.set_xlabel("digit", fontsize=9, color=INK)
+    axb.set_title(f"digit 1 has {max(counts):,} images (11.24%) and digit 5 has "
+                  f"{min(counts):,} (9.04%) - a spread of "
+                  f"{max(counts) - min(counts):,}\n"
+                  f"dashed line: {total // 10:,} = exactly balanced",
+                  fontsize=9, color=INK, loc="left")
+    style(axb)
+
+    # --- 아래: 같은 화소를 두 자로 잰다 ---
+    axh = fig.add_subplot(gs[2, :])
+    axh.fill_between(centers, 1.0, hist, step="mid", color=FILL_COOL, zorder=2)
+    axh.step(centers, hist, where="mid", color=COOL, lw=1.1, zorder=3)
+    axh.set_yscale("log")
+    axh.set_ylim(3e2, 2e8)
+    axh.set_xlim(-1.03, 1.03)
+    axh.axvline(mean_n, color=ACCENT, lw=1.4, zorder=4)
+    axh.axvline(0.0, color=MUTED, lw=1.0, ls=":", zorder=4)
+    axh.text(mean_n - 0.022, 3.0e3, f"mean {mean_n:.4f}", fontsize=8.5,
+             color=ACCENT, ha="right", va="bottom", rotation=90)
+    axh.text(0.03, 1.1e3, "0 on the normalized scale", fontsize=8,
+             color=MUTED, ha="left", va="bottom")
+    axh.text(0.995, 0.95,
+             f"the same {total * 784:,} pixels, counted once and labelled "
+             f"twice.\nNormalize((0.5,), (0.5,)) changes the ruler, not the "
+             f"shape:\nmean {MNIST_RAW_MEAN} -> {mean_n:.4f},  "
+             f"std {MNIST_RAW_STD} -> {std_n:.4f}.\n"
+             f"Neither is the standardized mean 0, std 1.",
+             transform=axh.transAxes, fontsize=8.5, color=INK, ha="right",
+             va="top")
+    axh.annotate(f"{zero_share:.1f}% of all pixels are exactly background",
+                 xy=(-0.99, 3.4e7), xytext=(-0.70, 5.5e6), fontsize=8,
+                 color=COOL, ha="left", va="center",
+                 arrowprops=dict(arrowstyle="-", color=COOL, lw=0.8))
+    axh.set_ylabel("pixels (log scale)", fontsize=9, color=INK)
+    axh.set_xlabel("pixel value after Normalize((0.5,), (0.5,)):  [-1, 1]",
+                   fontsize=9, color=INK)
+    style(axh)
+    sec = axh.secondary_xaxis("top", functions=(lambda v: v / 2 + 0.5,
+                                                lambda u: 2 * u - 1))
+    sec.set_xlabel("raw pixel value after ToTensor():  [0, 1]", fontsize=9,
+                   color=INK)
+    sec.tick_params(labelsize=8, colors=INK)
+    sec.spines["top"].set_color(INK)
+    sec.spines["top"].set_linewidth(0.7)
+
+    save(fig, "mnist_balance_and_scale")
+
+
+# === 그림. Fashion-MNIST: 밝기 차례와 평균 이미지 =================
+#     02_fashion_mnist_dataset.md 연습문제 2 의 표를 그림으로 읽는다.
+#     부류마다 6,000장을 평균한 이미지를 밝은 쪽부터 늘어놓았다.
+
+FASHION_NAMES = ("T-shirt/top", "Trouser", "Pullover", "Dress", "Coat",
+                 "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot")
+FASHION_MEAN_NORM = (-0.3488, -0.5542, -0.2466, -0.4822, -0.2293,
+                     -0.7265, -0.3364, -0.6646, -0.2929, -0.3976)
+
+
+def make_fashion_class_means():
+    import torch
+
+    ds = load_train_set("FashionMNIST")
+    x = ds.data.float() / 255.0
+    y = ds.targets
+    counts = torch.bincount(y, minlength=10).tolist()
+    assert counts == [6000] * 10, counts
+
+    means = []
+    mean_imgs = []
+    for c in range(10):
+        sel = x[y == c]
+        mean_imgs.append(sel.mean(dim=0).numpy())
+        means.append((sel.mean() * 2 - 1).item())        # [-1, 1] 눈금
+    for c, v in enumerate(means):
+        assert f"{v:.4f}" == f"{FASHION_MEAN_NORM[c]:.4f}", (c, v)
+
+    first = [int((y == c).nonzero()[0, 0]) for c in range(10)]
+    order = sorted(range(10), key=lambda c: -means[c])   # 밝은 쪽부터
+
+    base = -0.80
+    fig = plt.figure(figsize=(9.8, 6.9))
+    gs = fig.add_gridspec(3, 10, height_ratios=[0.9, 0.9, 1.75],
+                          hspace=0.16, wspace=0.1,
+                          left=0.125, right=0.98, top=0.86, bottom=0.185)
+
+    for k, c in enumerate(order):
+        ax = fig.add_subplot(gs[0, k])
+        ax.imshow(x[first[c]].numpy(), cmap="gray", vmin=0, vmax=1)
+        image_axes(ax)
+        if k == 0:
+            row_label(ax, "one image")
+
+        ax = fig.add_subplot(gs[1, k])
+        ax.imshow(mean_imgs[c], cmap="gray", vmin=0, vmax=1)
+        image_axes(ax)
+        if k == 0:
+            row_label(ax, "mean of 6,000")
+
+    axb = fig.add_subplot(gs[2, :])
+    vals = [means[c] for c in order]
+    axb.bar(range(10), [v - base for v in vals], bottom=base, width=0.72,
+            color=FILL, edgecolor=INK, lw=0.7, zorder=3)
+    for k, v in enumerate(vals):
+        axb.text(k, v + 0.012, f"{v:.4f}", fontsize=7.5, color=INK,
+                 ha="center", va="bottom")
+    axb.set_ylim(base, -0.13)
+    axb.set_xlim(-0.5, 9.5)                  # 위 두 줄의 칸과 자리를 맞춘다
+    axb.set_xticks(range(10))
+    axb.set_xticklabels([FASHION_NAMES[c] for c in order], fontsize=8,
+                        rotation=30, ha="right")
+    axb.set_ylabel("class mean pixel value,\nthe [-1, 1] scale the loader "
+                   "returns", fontsize=9, color=INK)
+    axb.grid(axis="y", alpha=0.25, lw=0.6, zorder=1)
+    style(axb)
+
+    fig.suptitle("Fashion-MNIST: every class has exactly 6,000 training "
+                 "images, ordered brightest to darkest\nbrighter means the "
+                 "garment covers more of the 28x28 frame - Trouser is dark "
+                 "because it is narrow, not because it is small",
+                 fontsize=9.5, color=INK, x=0.105, ha="left", y=0.98,
+                 va="top")
+
+    save(fig, "fashion_class_means")
+
+
+# === 그림. CIFAR-10: 부류마다 다른 색 ============================
+#     03_cifar10_dataset.md 연습문제 3 의 두 표(데이터셋 채널 평균과
+#     부류별 채널 평균)를 그림으로 읽는다. 차례도 그 표와 같다.
+
+CIFAR_NAMES = ("airplane", "automobile", "bird", "cat", "deer", "dog",
+               "frog", "horse", "ship", "truck")
+CIFAR_SET_MEAN = (0.4914, 0.4822, 0.4465)
+CIFAR_CLASS_RGB = {                      # 연습문제 3 의 표, [0, 1] 눈금
+    "airplane": (0.5257, 0.5603, 0.5889),
+    "ship": (0.4902, 0.5254, 0.5547),
+    "truck": (0.4987, 0.4853, 0.4781),
+    "bird": (0.4893, 0.4915, 0.4240),
+    "horse": (0.5020, 0.4799, 0.4169),
+    "dog": (0.4999, 0.4646, 0.4165),
+    "automobile": (0.4712, 0.4545, 0.4472),
+    "cat": (0.4955, 0.4564, 0.4155),
+    "deer": (0.4716, 0.4652, 0.3782),
+    "frog": (0.4701, 0.4384, 0.3452),
+}
+
+
+def make_cifar10_class_colour():
+    import torch
+
+    ds = load_train_set("CIFAR10")
+    x = torch.tensor(ds.data).float() / 255.0        # (50000, 32, 32, 3)
+    y = torch.tensor(ds.targets)
+    counts = torch.bincount(y, minlength=10).tolist()
+    assert counts == [5000] * 10, counts
+    set_mean = x.mean(dim=(0, 1, 2))
+    for ch in range(3):
+        assert f"{set_mean[ch]:.4f}" == f"{CIFAR_SET_MEAN[ch]:.4f}", set_mean
+
+    rgb = {}
+    mean_imgs = {}
+    for c in range(10):
+        sel = x[y == c]
+        mean_imgs[CIFAR_NAMES[c]] = sel.mean(dim=0).numpy()
+        m = sel.mean(dim=(0, 1, 2))
+        rgb[CIFAR_NAMES[c]] = tuple(round(float(v), 4) for v in m)
+        for ch in range(3):
+            assert f"{m[ch]:.4f}" == f"{CIFAR_CLASS_RGB[CIFAR_NAMES[c]][ch]:.4f}", \
+                (CIFAR_NAMES[c], m)
+
+    first = {CIFAR_NAMES[c]: int((y == c).nonzero()[0, 0]) for c in range(10)}
+    order = sorted(CIFAR_NAMES, key=lambda n: -sum(rgb[n]) / 3)
+    assert order[0] == "airplane" and order[-1] == "frog", order
+
+    fig = plt.figure(figsize=(10.2, 6.9))
+    gs = fig.add_gridspec(3, 10, height_ratios=[0.9, 0.9, 1.9],
+                          hspace=0.16, wspace=0.1,
+                          left=0.1, right=0.86, top=0.87, bottom=0.175)
+
+    for k, name in enumerate(order):
+        ax = fig.add_subplot(gs[0, k])
+        ax.imshow(x[first[name]].numpy())
+        image_axes(ax)
+        if k == 0:
+            row_label(ax, "one image")
+
+        ax = fig.add_subplot(gs[1, k])
+        ax.imshow(mean_imgs[name].clip(0, 1))
+        image_axes(ax)
+        if k == 0:
+            row_label(ax, "mean of 5,000")
+
+    axb = fig.add_subplot(gs[2, :])
+    w = 0.26
+    for ch, (color, label) in enumerate(((CH_R, "R"), (CH_G, "G"),
+                                         (CH_B, "B"))):
+        axb.bar([k + (ch - 1) * w for k in range(10)],
+                [rgb[n][ch] for n in order], width=w, color=color,
+                edgecolor="none", zorder=3, label=label)
+        axb.axhline(CIFAR_SET_MEAN[ch], color=color, ls="--", lw=0.8,
+                    alpha=0.8, zorder=2)
+        axb.text(9.62, CIFAR_SET_MEAN[ch], f" dataset {label} "
+                 f"{CIFAR_SET_MEAN[ch]:.4f}", fontsize=7.5, color=color,
+                 ha="left", va="center")
+    axb.set_ylim(0.32, 0.615)
+    axb.set_xlim(-0.5, 9.5)                  # 위 두 줄의 칸과 자리를 맞춘다
+    axb.set_xticks(range(10))
+    axb.set_xticklabels(order, fontsize=8, rotation=30, ha="right")
+    axb.set_ylabel("class mean per channel, [0, 1] scale", fontsize=9,
+                   color=INK)
+    axb.grid(axis="y", alpha=0.25, lw=0.6, zorder=1)
+    style(axb)
+    for k, name in enumerate(order):
+        if rgb[name][2] > rgb[name][0]:
+            axb.text(k, max(rgb[name]) + 0.008, "B > R", fontsize=8,
+                     color=CH_B, ha="center", va="bottom")
+    axb.legend(loc="upper right", fontsize=8, frameon=False, ncol=3,
+               bbox_to_anchor=(1.0, 1.02))
+
+    fig.suptitle("CIFAR-10: 5,000 training images per class, ordered by "
+                 "overall brightness\nthe mean of 5,000 keeps only what the "
+                 "class has in common - sky for airplane, sea for ship",
+                 fontsize=9.5, color=INK, x=0.1, ha="left", y=0.98, va="top")
+
+    save(fig, "cifar10_class_colour")
+
+
+# === 그림. 틀린 1,416건은 어디에 있는가 ===========================
+#     05_fashion_mnist_classifier.md 2.1절. 부류별 정확도 열 줄과
+#     셔츠의 451건 갈래는 모두 그 절에 실린 수다.
+
+FMC_CLASS_ACC = (("Shirt", 54.90), ("Pullover", 74.00), ("T-shirt/top", 82.70),
+                ("Coat", 82.80), ("Dress", 87.80), ("Sneaker", 93.80),
+                ("Sandal", 94.00), ("Ankle boot", 95.00), ("Bag", 96.40),
+                ("Trouser", 97.00))
+FMC_SLEEVED = ("Shirt", "Pullover", "T-shirt/top", "Coat")
+FMC_SHIRT_ERRORS = (("T-shirt/top", 185), ("Coat", 123), ("Pullover", 92),
+                   ("the other six", 51))
+FMC_TEST_CORRECT, FMC_TEST_TOTAL = 8584, 10000
+FMC_ERRORS_AMONG_TOPS = 878
+
+
+def make_fashion_classifier_errors():
+    errors = FMC_TEST_TOTAL - FMC_TEST_CORRECT
+    per_class = [round((100.0 - a) / 100.0 * 1000) for _, a in FMC_CLASS_ACC]
+    assert sum(per_class) == errors, (sum(per_class), errors)
+    shirt_errors = round((100.0 - FMC_CLASS_ACC[0][1]) / 100.0 * 1000)
+    assert sum(v for _, v in FMC_SHIRT_ERRORS) == shirt_errors
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.5),
+                                   gridspec_kw={"width_ratios": [1.45, 1]})
+
+    # --- 왼쪽: 부류별 테스트 정확도 ---
+    names = [n for n, _ in FMC_CLASS_ACC][::-1]
+    accs = [a for _, a in FMC_CLASS_ACC][::-1]
+    colors = [ACCENT if n in FMC_SLEEVED else COOL for n in names]
+    ax1.barh(range(10), accs, color=colors, edgecolor="none", height=0.68,
+             zorder=3)
+    for k, (n, a) in enumerate(zip(names, accs)):
+        ax1.text(a + 0.7, k, f"{a:.2f}%", fontsize=8, color=INK, ha="left",
+                 va="center")
+    ax1.axvline(100.0 * FMC_TEST_CORRECT / FMC_TEST_TOTAL, color=MUTED, ls="--",
+                lw=0.9, zorder=2)
+    ax1.text(100.0 * FMC_TEST_CORRECT / FMC_TEST_TOTAL - 0.8, -0.75,
+             "overall 85.84%", fontsize=8, color=MUTED, ha="right", va="center")
+    ax1.set_yticks(range(10))
+    ax1.set_yticklabels(names, fontsize=8.5)
+    ax1.set_xlim(50, 104)
+    ax1.set_ylim(-1.1, 9.8)
+    ax1.set_xlabel("test accuracy (%), 1,000 images per class", fontsize=9,
+                   color=INK)
+    ax1.grid(axis="x", alpha=0.25, lw=0.6, zorder=1)
+    style(ax1)
+    ax1.set_title(f"the four worst classes are the four sleeved upper-body "
+                  f"garments;\n{FMC_ERRORS_AMONG_TOPS} of the {errors:,} errors "
+                  f"are confusions among just those four",
+                  fontsize=9, color=INK, loc="left")
+
+    # --- 오른쪽: 셔츠가 틀린 451건의 갈래 ---
+    labels = [n for n, _ in FMC_SHIRT_ERRORS][::-1]
+    vals = [v for _, v in FMC_SHIRT_ERRORS][::-1]
+    cols = [MUTED if n == "the other six" else ACCENT for n in labels]
+    ax2.barh(range(4), vals, color=cols, edgecolor="none", height=0.6,
+             zorder=3)
+    for k, v in enumerate(vals):
+        ax2.text(v + 4, k, f"{v}", fontsize=8.5, color=INK, ha="left",
+                 va="center")
+    ax2.set_yticks(range(4))
+    ax2.set_yticklabels(labels, fontsize=8.5)
+    ax2.set_xlim(0, 215)
+    ax2.set_ylim(-0.9, 3.8)
+    ax2.set_xlabel("misclassified Shirt images", fontsize=9, color=INK)
+    ax2.grid(axis="x", alpha=0.25, lw=0.6, zorder=1)
+    style(ax2)
+    share = 100.0 * sum(v for _, v in FMC_SHIRT_ERRORS[:3]) / shirt_errors
+    ax2.set_title(f"Shirt gets {FMC_CLASS_ACC[0][1]:.2f}% right; of its "
+                  f"{shirt_errors} errors\n"
+                  f"{sum(v for _, v in FMC_SHIRT_ERRORS[:3])} "
+                  f"({share:.1f}%) land on another sleeved top",
+                  fontsize=9, color=INK, loc="left")
+
+    fig.tight_layout()
+    save(fig, "fashion_classifier_errors")
+
+
+# === 그림. 45개 쌍의 학습 곡선 =====================================
+#     08_binary_classification.md 4절이 그리는 10x10 격자다. 곡선의 값은
+#     그 쪽 출력 블록의 "loss ..." 줄 45개를 그대로 옮긴 것이고, 로그 축과
+#     1e-6..1 범위도 그 절의 코드가 정한 그대로다.
+
+BINARY_TRACES = {
+    (0, 1): (0.032393, 0.003089, 0.003016, 0.001516, 0.002052, 0.001460, 0.000663, 0.000379, 0.000167, 0.000173),
+    (0, 2): (0.078485, 0.013402, 0.008397, 0.004665, 0.002318, 0.001945, 0.001911, 0.001372, 0.001321, 0.000380),
+    (0, 3): (0.070485, 0.007552, 0.004139, 0.002698, 0.001764, 0.001243, 0.001368, 0.000467, 0.000150, 0.000060),
+    (0, 4): (0.047532, 0.007825, 0.004021, 0.002596, 0.002723, 0.000973, 0.000249, 0.000064, 0.000042, 0.000031),
+    (0, 5): (0.073260, 0.012755, 0.006494, 0.006198, 0.003700, 0.002488, 0.001917, 0.000809, 0.000318, 0.000120),
+    (0, 6): (0.061560, 0.013753, 0.010517, 0.005914, 0.006262, 0.004419, 0.003179, 0.003779, 0.005392, 0.002538),
+    (0, 7): (0.052641, 0.005469, 0.002517, 0.001655, 0.000467, 0.000182, 0.000078, 0.000056, 0.000038, 0.000027),
+    (0, 8): (0.074121, 0.014819, 0.008427, 0.007036, 0.006231, 0.002896, 0.002482, 0.001359, 0.000388, 0.000331),
+    (0, 9): (0.058303, 0.012442, 0.008701, 0.005904, 0.003238, 0.003320, 0.001578, 0.001470, 0.000560, 0.000282),
+    (1, 2): (0.068073, 0.017471, 0.011291, 0.007909, 0.006300, 0.004940, 0.004322, 0.003362, 0.003808, 0.002363),
+    (1, 3): (0.071319, 0.010101, 0.005260, 0.001650, 0.001511, 0.000474, 0.000316, 0.001043, 0.000716, 0.000190),
+    (1, 4): (0.057436, 0.009861, 0.007417, 0.005261, 0.003698, 0.002675, 0.002744, 0.002641, 0.001686, 0.000841),
+    (1, 5): (0.054885, 0.007360, 0.002723, 0.001425, 0.000732, 0.000257, 0.000208, 0.000204, 0.000068, 0.000039),
+    (1, 6): (0.049770, 0.004099, 0.002481, 0.001179, 0.001512, 0.002893, 0.000254, 0.000607, 0.000178, 0.000109),
+    (1, 7): (0.054830, 0.013194, 0.008910, 0.006940, 0.005725, 0.006865, 0.003627, 0.005104, 0.003393, 0.002791),
+    (1, 8): (0.066208, 0.011110, 0.009450, 0.006240, 0.004005, 0.005848, 0.002219, 0.002448, 0.001730, 0.001350),
+    (1, 9): (0.054709, 0.010092, 0.007295, 0.004359, 0.003470, 0.002395, 0.001196, 0.001245, 0.000952, 0.000278),
+    (2, 3): (0.113350, 0.028250, 0.017437, 0.010322, 0.007409, 0.007396, 0.003248, 0.002638, 0.001094, 0.000447),
+    (2, 4): (0.073368, 0.009565, 0.006013, 0.003859, 0.003054, 0.002395, 0.001703, 0.000742, 0.000600, 0.000235),
+    (2, 5): (0.085433, 0.007024, 0.002854, 0.002211, 0.000707, 0.000307, 0.000153, 0.000077, 0.000058, 0.000045),
+    (2, 6): (0.076312, 0.005438, 0.004194, 0.001228, 0.001365, 0.000855, 0.000173, 0.000081, 0.000055, 0.000041),
+    (2, 7): (0.080861, 0.025920, 0.016630, 0.013734, 0.011873, 0.009500, 0.006444, 0.005753, 0.004876, 0.002274),
+    (2, 8): (0.098119, 0.023497, 0.015144, 0.009260, 0.006888, 0.005188, 0.002386, 0.003505, 0.002843, 0.002161),
+    (2, 9): (0.080824, 0.016877, 0.009033, 0.005474, 0.003561, 0.002405, 0.001732, 0.002453, 0.000231, 0.000115),
+    (3, 4): (0.072044, 0.009092, 0.004500, 0.002301, 0.000816, 0.001016, 0.001715, 0.000114, 0.000051, 0.000039),
+    (3, 5): (0.144390, 0.026336, 0.019941, 0.013380, 0.009353, 0.008643, 0.006654, 0.006307, 0.006818, 0.005721),
+    (3, 6): (0.066734, 0.005208, 0.001998, 0.001815, 0.000295, 0.000133, 0.000112, 0.000055, 0.000037, 0.000027),
+    (3, 7): (0.077247, 0.018474, 0.010298, 0.006538, 0.005074, 0.005717, 0.003410, 0.002085, 0.000605, 0.000321),
+    (3, 8): (0.124614, 0.022258, 0.009254, 0.006004, 0.006049, 0.002417, 0.002951, 0.001656, 0.003333, 0.000490),
+    (3, 9): (0.092637, 0.019176, 0.009591, 0.007668, 0.005028, 0.002828, 0.002053, 0.003086, 0.001437, 0.000527),
+    (4, 5): (0.068632, 0.005336, 0.004062, 0.002554, 0.000734, 0.003479, 0.001493, 0.000212, 0.000054, 0.000040),
+    (4, 6): (0.064811, 0.008751, 0.005402, 0.003171, 0.003521, 0.001235, 0.002065, 0.001083, 0.000283, 0.000122),
+    (4, 7): (0.077894, 0.012509, 0.006790, 0.005120, 0.003373, 0.003196, 0.002933, 0.001995, 0.001194, 0.001113),
+    (4, 8): (0.077317, 0.014525, 0.010547, 0.007649, 0.004974, 0.005211, 0.004546, 0.002613, 0.001150, 0.000553),
+    (4, 9): (0.183971, 0.029795, 0.021497, 0.017828, 0.015283, 0.013028, 0.011840, 0.010084, 0.011959, 0.008196),
+    (5, 6): (0.086559, 0.021631, 0.013369, 0.010868, 0.006288, 0.004952, 0.006677, 0.002231, 0.001246, 0.002496),
+    (5, 7): (0.068226, 0.008000, 0.003909, 0.002315, 0.001305, 0.001413, 0.000582, 0.000204, 0.000072, 0.000042),
+    (5, 8): (0.116046, 0.024139, 0.015555, 0.012343, 0.009408, 0.009304, 0.006778, 0.004849, 0.003911, 0.004137),
+    (5, 9): (0.100244, 0.020203, 0.013908, 0.009291, 0.007315, 0.005887, 0.005138, 0.002646, 0.002069, 0.001494),
+    (6, 7): (0.036739, 0.002392, 0.001053, 0.000200, 0.000083, 0.000253, 0.000541, 0.000028, 0.000012, 0.000009),
+    (6, 8): (0.097057, 0.018833, 0.012004, 0.007634, 0.006091, 0.005165, 0.004591, 0.002729, 0.001113, 0.000708),
+    (6, 9): (0.061716, 0.005549, 0.003213, 0.001560, 0.000886, 0.000486, 0.000101, 0.000058, 0.000046, 0.000040),
+    (7, 8): (0.098721, 0.012813, 0.011696, 0.006185, 0.006317, 0.003999, 0.003304, 0.001973, 0.001203, 0.001310),
+    (7, 9): (0.133957, 0.025467, 0.017293, 0.012486, 0.009580, 0.007802, 0.006302, 0.005175, 0.004225, 0.001813),
+    (8, 9): (0.108190, 0.024777, 0.016567, 0.013194, 0.011417, 0.009197, 0.005796, 0.004172, 0.003013, 0.002990),
+}
+BINARY_YLIM = (1e-6, 1.0)        # 4절 코드의 set_ylim
+BINARY_TICKS = (1e-5, 1e-3, 1e-1)
+
+
+def _pair_panel(ax, trace, color):
+    ax.plot(range(1, len(trace) + 1), trace, color=color, lw=1.2, zorder=3)
+    ax.set_yscale("log")
+    ax.set_ylim(*BINARY_YLIM)
+    ax.set_xlim(0.4, 10.6)
+    ax.set_yticks(BINARY_TICKS)
+    ax.set_xticks([])
+    ax.set_yticklabels([])
+    ax.tick_params(length=0)
+    ax.grid(axis="y", alpha=0.3, lw=0.5, zorder=1)
+    for s in ax.spines.values():
+        s.set_color(MUTED)
+        s.set_linewidth(0.5)
+
+
+def make_binary_pair_curves():
+    finals = {p: t[-1] for p, t in BINARY_TRACES.items()}
+    hardest = max(finals, key=finals.get)
+    easiest = min(finals, key=finals.get)
+    assert hardest == (4, 9) and easiest == (6, 7)
+    rising = sum(1 for t in BINARY_TRACES.values()
+                 if any(b > a for a, b in zip(t, t[1:])))
+
+    fig = plt.figure(figsize=(10.6, 12.2))
+    gs = fig.add_gridspec(11, 10, height_ratios=[1] * 10 + [2.2],
+                          hspace=0.3, wspace=0.18,
+                          left=0.075, right=0.975, top=0.9, bottom=0.055)
+
+    for i in range(10):
+        for j in range(10):
+            if i == j:
+                continue
+            ax = fig.add_subplot(gs[i, j])
+            pair = (min(i, j), max(i, j))
+            # 위 삼각형은 빨강, 아래 삼각형은 같은 자취를 파랑으로 되비친 것이다
+            _pair_panel(ax, BINARY_TRACES[pair], "#c0392b" if i < j else COOL)
+            if pair in (hardest, easiest):
+                for s in ax.spines.values():
+                    s.set_color(ACCENT)
+                    s.set_linewidth(1.4)
+            if i == 0:                       # 맨 윗줄에 열 이름
+                ax.set_title(str(j), fontsize=10, color=INK, pad=4)
+            if j == 0:                       # 맨 왼쪽 줄에 행 이름
+                ax.set_ylabel(str(i), fontsize=10, color=INK, rotation=0,
+                              ha="right", va="center", labelpad=7)
+        # 대각선은 같은 숫자끼리라 문제가 없다. 그 자리에 숫자를 적어 두면
+        # 행 이름과 열 이름 노릇을 한꺼번에 한다.
+        axd = fig.add_subplot(gs[i, i])
+        axd.set_axis_off()
+        axd.text(0.5, 0.5, str(i), fontsize=15, color=MUTED, ha="center",
+                 va="center", transform=axd.transAxes)
+
+    # --- 아래 왼쪽: 눈금을 읽는 자 겸 양 끝 두 쌍 ---
+    axk = fig.add_subplot(gs[10, 0:5])
+    axk.plot(range(1, 11), BINARY_TRACES[hardest], color="#c0392b", lw=1.6,
+             marker="o", ms=3.2,
+             label=f"{hardest[0]} vs {hardest[1]} (hardest, "
+                   f"{finals[hardest]:.6f})")
+    axk.plot(range(1, 11), BINARY_TRACES[easiest], color=COOL, lw=1.6,
+             marker="s", ms=3.2,
+             label=f"{easiest[0]} vs {easiest[1]} (easiest, "
+                   f"{finals[easiest]:.6f})")
+    axk.set_yscale("log")
+    axk.set_ylim(*BINARY_YLIM)
+    axk.set_xlim(0.4, 10.6)
+    axk.set_xticks(range(1, 11))
+    axk.set_yticks((1e-6, 1e-4, 1e-2, 1.0))
+    axk.set_xlabel("epoch", fontsize=9, color=INK)
+    axk.set_ylabel("average training loss", fontsize=9, color=INK)
+    axk.grid(alpha=0.25, lw=0.6)
+    axk.legend(fontsize=8, frameon=False, loc="lower left")
+    style(axk)
+    axk.set_title("what one panel above holds", fontsize=9, color=INK,
+                  loc="left")
+
+    # --- 아래 오른쪽: 45개 쌍의 마지막 로스 ---
+    axd = fig.add_subplot(gs[10, 6:10])
+    vals = sorted(finals.values())
+    axd.plot(vals, [0] * 45, "o", color=COOL, ms=5, alpha=0.6, mec="none")
+    for pair, mark, dy in ((hardest, "o", 1), (easiest, "s", 1)):
+        axd.plot([finals[pair]], [0], mark, color=ACCENT, ms=6, mec="none")
+        axd.annotate(f"{pair[0]} vs {pair[1]}\n{finals[pair]:.6f}",
+                     xy=(finals[pair], 0), xytext=(finals[pair], 0.55),
+                     fontsize=8, color=ACCENT, ha="center", va="bottom",
+                     arrowprops=dict(arrowstyle="-", color=ACCENT, lw=0.8))
+    axd.set_xscale("log")
+    axd.set_xlim(5e-6, 2e-2)
+    axd.set_ylim(-0.6, 1.6)
+    axd.set_yticks([])
+    axd.set_xlabel("final-epoch loss of all 45 pairs (log scale)", fontsize=9,
+                   color=INK)
+    axd.spines["left"].set_visible(False)
+    axd.grid(axis="x", alpha=0.25, lw=0.6)
+    style(axd)
+    axd.set_title("every pair is easy, and the spread inside them still runs "
+                  "over three orders of magnitude",
+                  fontsize=9, color=INK, loc="left")
+
+    fig.suptitle("MNIST binary classification: 45 pairs, 10 epochs each, "
+                 "loss on a log axis from 1e-6 to 1\n"
+                 "row i, column j is the pair i vs j; the lower triangle "
+                 f"mirrors the upper one, so 45 runs fill 90 panels; "
+                 f"{rising} of the 45 traces rise at least once",
+                 fontsize=10, color=INK, x=0.075, ha="left", y=0.975)
+
+    save(fig, "binary_pair_curves")
+
+
 # === 그림에 적은 수를 다시 확인한다 ===============================
 
 
@@ -836,15 +1409,445 @@ def check_numbers():
     assert round(EPOCH_LOG[1][2] - EPOCH_LOG[0][2], 2) == 15.98
     assert round(LR0 * GAMMA ** 8, 7) == 0.0005765
     assert f"{LR0 * GAMMA ** 13:.8f}" == "0.00009689"
+
+    # --- mnist_balance_and_scale: 01_mnist_dataset.md 4·5절 ---
+    assert sum(MNIST_COUNTS) == 60000
+    assert f"{100 * max(MNIST_COUNTS) / 60000:.2f}" == "11.24"   # 숫자 1
+    assert f"{100 * min(MNIST_COUNTS) / 60000:.2f}" == "9.04"    # 숫자 5
+    assert max(MNIST_COUNTS) - min(MNIST_COUNTS) == 1321
+    # 연습문제 1 의 되돌리기: 2 x 0.1307 - 1 = -0.7386
+    assert f"{2 * MNIST_RAW_MEAN - 1:.4f}" == "-0.7386"
+    assert f"{2 * MNIST_RAW_STD:.4f}" == "0.6162"
+
+    # --- fashion_class_means: 02_fashion_mnist_dataset.md 연습문제 2 ---
+    assert len(FASHION_NAMES) == len(FASHION_MEAN_NORM) == 10
+    bright = sorted(zip(FASHION_MEAN_NORM, FASHION_NAMES), reverse=True)
+    assert bright[0] == (-0.2293, "Coat"), bright[0]
+    assert bright[-1] == (-0.7265, "Sandal"), bright[-1]
+
+    # --- cifar10_class_colour: 03_cifar10_dataset.md 연습문제 3 ---
+    assert set(CIFAR_CLASS_RGB) == set(CIFAR_NAMES)
+    blue = [n for n, (r, _, b) in CIFAR_CLASS_RGB.items() if b > r]
+    assert sorted(blue) == ["airplane", "ship"], blue
+    ranked = sorted(CIFAR_CLASS_RGB, key=lambda n: -sum(CIFAR_CLASS_RGB[n]) / 3)
+    assert ranked[0] == "airplane" and ranked[-1] == "frog", ranked
+
+    # --- fashion_classifier_errors: 05_fashion_mnist_classifier.md 2.1절 ---
+    assert len(FMC_CLASS_ACC) == 10
+    errs = [round((100 - a) / 100 * 1000) for _, a in FMC_CLASS_ACC]
+    assert sum(errs) == FMC_TEST_TOTAL - FMC_TEST_CORRECT == 1416
+    assert errs[0] == 451                                   # 셔츠
+    assert sum(v for _, v in FMC_SHIRT_ERRORS) == 451
+    assert sum(v for _, v in FMC_SHIRT_ERRORS[:3]) == 400
+    assert f"{100 * 400 / 451:.1f}" == "88.7"
+    assert f"{100 * FMC_ERRORS_AMONG_TOPS / 1416:.1f}" == "62.0"
+    assert [n for n, _ in FMC_CLASS_ACC[:4]] == list(FMC_SLEEVED)
+
+    # --- binary_pair_curves: 08_binary_classification.md 4·5절 ---
+    assert len(BINARY_TRACES) == 45
+    assert all(len(t) == 10 for t in BINARY_TRACES.values())
+    fin = {p: t[-1] for p, t in BINARY_TRACES.items()}
+    assert max(fin, key=fin.get) == (4, 9) and max(fin.values()) == 0.008196
+    assert min(fin, key=fin.get) == (6, 7) and min(fin.values()) == 0.000009
+    assert sum(1 for t in BINARY_TRACES.values()
+               if any(b > a for a, b in zip(t, t[1:]))) == 29
     print("numbers check out")
 
 
+
+
+# === 그림 8. 깊이에 따라 달라지는 피처 맵 ==========================
+#     feature_maps.md 5절. 모델은 그 쪽 3절의 named_model 을 글자 그대로
+#     다시 세운 것이고, 웨이트는 학습하지 않은 무작위 초기값이다
+#     (torch.manual_seed(0)). 입력은 CIFAR-10 시험셋 1번 이미지다.
+
+FM_SEED = 0
+FM_INDEX = 1                      # CIFAR-10 test[1] — 'ship'
+FM_TAPS = ("relu1_1", "relu2_2", "relu3_2")
+FM_NCHAN = 6                      # 깊이마다 앞에서 여섯 채널
+
+
+def _vgg_feature_extractor():
+    """feature_maps.md 3절의 named_model 과 같은 레이어·같은 이름이다."""
+    import torch
+    import torch.nn as nn
+
+    torch.manual_seed(FM_SEED)
+    layers = [
+        nn.Conv2d(3, 64, 3, padding=1), nn.ReLU(inplace=True),
+        nn.Conv2d(64, 64, 3, padding=1), nn.ReLU(inplace=True),
+        nn.MaxPool2d(2, 2),
+        nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(inplace=True),
+        nn.Conv2d(128, 128, 3, padding=1), nn.ReLU(inplace=True),
+        nn.MaxPool2d(2, 2),
+        nn.Conv2d(128, 256, 3, padding=1), nn.ReLU(inplace=True),
+        nn.Conv2d(256, 256, 3, padding=1), nn.ReLU(inplace=True),
+        nn.MaxPool2d(2, 2),
+    ]
+    names = ["conv1_1", "relu1_1", "conv1_2", "relu1_2", "pool1",
+             "conv2_1", "relu2_1", "conv2_2", "relu2_2", "pool2",
+             "conv3_1", "relu3_1", "conv3_2", "relu3_2", "pool3"]
+    model = nn.Sequential()
+    for name, layer in zip(names, layers):
+        model.add_module(name, layer)
+    return model.eval()
+
+
+def _feature_maps():
+    """세 깊이의 피처 맵을 훅으로 받아 온다. 쪽 5절의 훅 코드 그대로다."""
+    import torch
+    from torchvision import datasets, transforms
+
+    root = HERE.parents[3] / "data"
+    ds = datasets.CIFAR10(root=str(root), train=False, download=False,
+                          transform=transforms.ToTensor())
+    classes = ("plane", "car", "bird", "cat", "deer",
+               "dog", "frog", "horse", "ship", "truck")
+    image, label = ds[FM_INDEX]
+
+    model = _vgg_feature_extractor()
+    taken = {}
+
+    def hook(name):
+        def fn(module, inp, out):
+            taken[name] = out.detach().clone()
+        return fn
+
+    handles = [getattr(model, n).register_forward_hook(hook(n))
+               for n in FM_TAPS]
+    with torch.no_grad():
+        model(image.unsqueeze(0))
+    for h in handles:
+        h.remove()
+
+    return image, classes[label], {n: taken[n][0] for n in FM_TAPS}
+
+
+def make_feature_map_depths():
+    image, class_name, feats = _feature_maps()
+
+    # 그림에 적을 수 — 모두 위에서 계산한 텐서에서 바로 읽는다
+    shapes = {n: tuple(feats[n].shape) for n in FM_TAPS}
+    dead = {n: int((feats[n].amax((1, 2)) - feats[n].amin((1, 2)) == 0).sum())
+            for n in FM_TAPS}
+    assert shapes == {"relu1_1": (64, 32, 32),
+                      "relu2_2": (128, 16, 16),
+                      "relu3_2": (256, 8, 8)}, shapes
+    assert class_name == "ship", class_name
+
+    fig = plt.figure(figsize=(9.6, 6.1))
+    gs = fig.add_gridspec(4, FM_NCHAN + 1, height_ratios=[1.25, 1, 1, 1],
+                          width_ratios=[1.35] + [1] * FM_NCHAN,
+                          hspace=0.38, wspace=0.12)
+
+    # --- 맨 위: 입력 한 장 ---
+    ax0 = fig.add_subplot(gs[0, 0])
+    ax0.imshow(image.permute(1, 2, 0).numpy())
+    ax0.set_xticks([])
+    ax0.set_yticks([])
+    for s in ax0.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.8)
+    ax0.set_title(f"input  3 x 32 x 32\nCIFAR-10 test[{FM_INDEX}], '{class_name}'",
+                  fontsize=8.5, color=INK)
+
+    ax_note = fig.add_subplot(gs[0, 1:])
+    ax_note.set_axis_off()
+    ax_note.text(
+        0.0, 0.92,
+        "The stack is the one built in section 3, with no training at all:\n"
+        f"every weight is the PyTorch default initialisation under "
+        f"torch.manual_seed({FM_SEED}).\n"
+        "So read the three rows below for geometry, not for meaning - the grid\n"
+        "gets coarser, the channel count grows, and more channels fall silent.\n"
+        "Each panel is scaled on its own (viridis, min to max), exactly as the\n"
+        "page's visualize_feature_maps() does with a bare imshow.",
+        fontsize=8.2, color=MUTED, ha="left", va="top", linespacing=1.5)
+
+    # --- 아래 세 줄: 깊이마다 채널 여섯 ---
+    for r, name in enumerate(FM_TAPS):
+        f = feats[name]
+        c, h, w = f.shape
+        axl = fig.add_subplot(gs[r + 1, 0])
+        axl.set_axis_off()
+        axl.text(1.0, 0.56, f"{name}\n{c} x {h} x {w}", fontsize=9,
+                 color=ACCENT if r == 0 else INK, ha="right", va="center",
+                 family="monospace", weight="bold", linespacing=1.6)
+        axl.text(1.0, 0.14, f"{dead[name]} of {c} channels\nare all zero",
+                 fontsize=7.8, color=MUTED, ha="right", va="center",
+                 linespacing=1.5)
+
+        for j in range(FM_NCHAN):
+            ax = fig.add_subplot(gs[r + 1, j + 1])
+            panel = f[j].numpy()
+            ax.imshow(panel, cmap="viridis", interpolation="nearest")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            for s in ax.spines.values():
+                s.set_color(MUTED)
+                s.set_linewidth(0.5)
+            ax.set_title(f"ch {j}", fontsize=7.5, color=INK, pad=2.5)
+            if panel.max() == panel.min():
+                ax.text(0.5, 0.5, "all zero", transform=ax.transAxes,
+                        ha="center", va="center", fontsize=7,
+                        color="#ffffff")
+
+    save(fig, "feature_map_depths")
+
+
+# === 그림 9. 1차원에서 미끄러지는 커널 =============================
+#     conv1d.md 1절. 왼쪽은 그 절의 손 계산 x = [1,2,3,4,5],
+#     w = [1,0,-1] 그대로이고, 오른쪽은 그림 코드가 식으로 정의한
+#     길이 32짜리 신호에 같은 커널을 돌린 것이다.
+
+C1D_X = [1.0, 2.0, 3.0, 4.0, 5.0]
+C1D_W = [1.0, 0.0, -1.0]
+C1D_N = 32
+C1D_SLOPE = 0.03
+C1D_LO, C1D_HI = 8, 20
+
+
+def conv1d_valid(x, w):
+    """conv1d.md 1절의 y[i] = sum_j x[i+j] w[j]. 커널을 뒤집지 않는다."""
+    k = len(w)
+    return [sum(x[i + j] * w[j] for j in range(k))
+            for i in range(len(x) - k + 1)]
+
+
+def _c1d_step_signal():
+    """x[i] = slope*i + (1 if lo <= i < hi else 0). 그림 안에 그대로 적는다."""
+    return [C1D_SLOPE * i + (1.0 if C1D_LO <= i < C1D_HI else 0.0)
+            for i in range(C1D_N)]
+
+
+def make_conv1d_sliding():
+    y_small = conv1d_valid(C1D_X, C1D_W)
+    assert y_small == [-2.0, -2.0, -2.0], y_small      # 1절의 출력
+    assert len(y_small) == len(C1D_X) - len(C1D_W) + 1
+
+    xs = _c1d_step_signal()
+    ys = conv1d_valid(xs, C1D_W)
+    assert len(ys) == C1D_N - 2 == 30
+    # 평평한 구간에서는 x[i] - x[i+2] = -2*slope 로 일정하다
+    assert abs(ys[0] - (-2 * C1D_SLOPE)) < 1e-12, ys[0]
+    i_dn, i_up = ys.index(min(ys)), ys.index(max(ys))
+    assert i_dn in (C1D_LO - 2, C1D_LO - 1), i_dn
+    assert i_up in (C1D_HI - 2, C1D_HI - 1), i_up
+
+    fig, axes = plt.subplots(2, 2, figsize=(10.4, 5.6), sharex="col",
+                             gridspec_kw={"width_ratios": [1, 1.5],
+                                          "hspace": 0.28, "wspace": 0.22})
+    (ax_a, ax_b), (ax_c, ax_d) = axes
+
+    # --- (a) 1절의 다섯 표본 위를 미끄러지는 창 ---
+    ax_a.stem(range(len(C1D_X)), C1D_X, linefmt="-", markerfmt="o",
+              basefmt=" ")
+    for art, col in ((ax_a.lines[0], COOL),):
+        art.set_color(col)
+    for coll in ax_a.containers:
+        coll.markerline.set_color(COOL)
+        coll.markerline.set_markersize(5)
+        coll.stemlines.set_color(COOL)
+        coll.stemlines.set_linewidth(1.4)
+
+    wins = ((0, ACCENT, "-", 1.9), (1, "#b2763f", (0, (4, 2)), 1.4),
+            (2, MUTED, (0, (1.6, 1.8)), 1.4))
+    for start, col, ls, lw in wins:
+        inset = 0.10 * start
+        ax_a.add_patch(Rectangle((start - 0.45 + inset, 0.18 + inset),
+                                 2.9 - 2 * inset, 5.5 - 2 * inset,
+                                 fc="none", ec=col, lw=lw, ls=ls, zorder=4))
+        ax_a.text(start + 1.0, 5.85 + 0.62 * start, f"window {start}",
+                  ha="center", va="bottom", fontsize=7.5, color=col)
+    for i, v in enumerate(C1D_X):
+        ax_a.text(i + 0.17, v, f"{v:.0f}", ha="left", va="center",
+                  fontsize=8.5, color=COOL, family="monospace")
+    for j, wv in enumerate(C1D_W):
+        ax_a.text(j, -0.55, f"{wv:+.0f}", ha="center", va="top",
+                  fontsize=9, color=ACCENT, family="monospace")
+    ax_a.text(1.0, -1.45, "the three kernel taps, window 0", ha="center",
+              va="top", fontsize=7.5, color=ACCENT)
+    ax_a.set_ylim(-2.4, 8.2)
+    ax_a.set_ylabel("x[i]", fontsize=9, color=INK)
+    ax_a.set_title("(a) the five samples of section 1\n"
+                   "x = [1, 2, 3, 4, 5],  w = [1, 0, -1]",
+                   fontsize=9, color=INK, loc="left")
+    style(ax_a)
+
+    # --- (c) 그 출력 세 개 ---
+    for i, v in enumerate(y_small):
+        ax_c.plot([i, i], [0, v], color=ACCENT, lw=1.8, zorder=3)
+        ax_c.plot([i], [v], marker="o", ms=5.5, color=ACCENT, zorder=4)
+        ax_c.text(i, v - 0.25, f"{v:.0f}", ha="center", va="top",
+                  fontsize=9, color=ACCENT, family="monospace")
+    ax_c.axhline(0, color=INK, lw=0.7)
+    ax_c.set_xticks(range(len(C1D_X)))
+    ax_c.set_xlim(-0.7, 4.7)
+    ax_c.set_ylim(-4.6, 1.0)
+    ax_c.set_xlabel("position along the sequence", fontsize=9, color=INK)
+    ax_c.set_ylabel("y[i]", fontsize=9, color=ACCENT)
+    ax_c.text(-0.6, 0.55,
+              "no padding: 5 - 3 + 1 = 3 outputs",
+              ha="left", va="bottom", fontsize=8, color=MUTED)
+    ax_c.text(-0.6, -3.55,
+              "y[i] sits at its window's first tap,\n"
+              "as in y[i] = sum_j x[i+j] w[j]",
+              ha="left", va="top", fontsize=8, color=MUTED)
+    style(ax_c)
+
+    # --- (b) 같은 커널, 긴 신호 ---
+    ax_b.step(range(C1D_N), xs, where="mid", color=COOL, lw=1.6, zorder=3)
+    ax_b.plot(range(C1D_N), xs, marker="o", ms=2.6, ls="none", color=COOL,
+              zorder=4)
+    for start in (C1D_LO - 2, C1D_HI - 2):
+        ax_b.add_patch(Rectangle((start - 0.45, -0.14), 2.9, 1.92, fc="none",
+                                 ec=ACCENT, lw=1.5, zorder=5))
+    ax_b.text((C1D_LO + C1D_HI) / 2 - 1.0, 1.98,
+              "the two windows that straddle a step", ha="center",
+              va="bottom", fontsize=8, color=ACCENT)
+    ax_b.set_ylim(-0.4, 2.45)
+    ax_b.set_ylabel("x[i]", fontsize=9, color=INK)
+    ax_b.set_title("(b) the same kernel on a longer signal\n"
+                   f"x[i] = {C1D_SLOPE}*i + (1 if {C1D_LO} <= i < {C1D_HI} "
+                   f"else 0),  i = 0..{C1D_N - 1}",
+                   fontsize=9, color=INK, loc="left")
+    style(ax_b)
+
+    # --- (d) 그 출력 ---
+    ax_d.axhline(0, color=INK, lw=0.7)
+    ax_d.plot(range(len(ys)), ys, color=ACCENT, lw=1.5, marker="o", ms=3.0,
+              zorder=3)
+    ax_d.axhline(-2 * C1D_SLOPE, color=MUTED, lw=0.9, ls=":", zorder=2)
+    ax_d.annotate(f"on the flat stretches x[i] - x[i+2] = -2 x {C1D_SLOPE} "
+                  f"= {-2 * C1D_SLOPE:.2f},\nnot 0 - the slow drift never "
+                  "leaves the output",
+                  xy=(13, -2 * C1D_SLOPE), xytext=(13.5, 1.88), fontsize=8,
+                  color=MUTED, ha="center", va="center",
+                  arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.8))
+    ax_d.annotate(f"step up at i = {C1D_LO}\ny = {min(ys):.2f}",
+                  xy=(i_dn, min(ys)), xytext=(2.5, -1.35), fontsize=8,
+                  color=ACCENT, ha="center", va="center",
+                  arrowprops=dict(arrowstyle="-", color=ACCENT, lw=0.8))
+    ax_d.annotate(f"step down at i = {C1D_HI}\ny = +{max(ys):.2f}",
+                  xy=(i_up, max(ys)), xytext=(26.0, 1.18), fontsize=8,
+                  color=ACCENT, ha="center", va="center",
+                  arrowprops=dict(arrowstyle="-", color=ACCENT, lw=0.8))
+    ax_d.set_xlim(-1.0, C1D_N)
+    ax_d.set_ylim(-1.95, 2.45)
+    ax_d.set_xlabel("position along the sequence (time)", fontsize=9,
+                    color=INK)
+    ax_d.set_ylabel("y[i]", fontsize=9, color=ACCENT)
+    ax_d.text(C1D_N - 0.5, -1.85,
+              f"{C1D_N} - 3 + 1 = {len(ys)} outputs",
+              ha="right", va="bottom", fontsize=8, color=MUTED,
+              family="monospace")
+    style(ax_d)
+
+    fig.tight_layout()
+    save(fig, "conv1d_sliding")
+
+
+# === 그림 10. 10.70% 가 가리고 있는 것 ==============================
+#     06_cifar10_basic.md 1절과 2.2절의 출력 블록을 그대로 옮긴 것이다.
+
+CIFAR_CLASSES = ("plane", "car", "bird", "cat", "deer",
+                 "dog", "frog", "horse", "ship", "truck")
+# (부류별 맞힌 장 수) — 부류마다 시험 이미지가 1,000장씩이다
+BASE_CORRECT = (0, 0, 0, 90, 0, 0, 980, 0, 0, 0)        # 1절 출력
+MOM_CORRECT = (410, 556, 185, 260, 261, 261, 603, 550, 576, 445)  # 2.2절 출력
+PER_CLASS = 1000
+
+
+def make_cifar10_basic_per_class():
+    base = [100.0 * c / PER_CLASS for c in BASE_CORRECT]
+    mom = [100.0 * c / PER_CLASS for c in MOM_CORRECT]
+    acc_base = 100.0 * sum(BASE_CORRECT) / (10 * PER_CLASS)
+    acc_mom = 100.0 * sum(MOM_CORRECT) / (10 * PER_CLASS)
+    assert round(acc_base, 2) == 10.70, acc_base       # 1절 마지막 줄
+    assert round(acc_mom, 2) == 41.07, acc_mom         # 2.2절 둘째 줄
+    assert round(acc_mom - acc_base, 2) == 30.37
+    assert sum(1 for v in base if v == 0.0) == 8
+    assert (min(mom), max(mom)) == (18.5, 60.3)
+
+    fig, ax = plt.subplots(figsize=(9.4, 4.6))
+    idx = range(10)
+    width = 0.38
+
+    ax.bar([i - width / 2 for i in idx], base, width, color=MUTED,
+           edgecolor=INK, lw=0.6, zorder=3,
+           label=f"momentum = 0.0  (overall {acc_base:.2f}%)")
+    ax.bar([i + width / 2 for i in idx], mom, width, color=FILL,
+           edgecolor=ACCENT, lw=1.0, zorder=3,
+           label=f"momentum = 0.9  (overall {acc_mom:.2f}%)")
+
+    ax.hlines(acc_base, -0.75, 9.45, color=MUTED, lw=1.0, ls="--", zorder=2)
+    ax.hlines(acc_mom, -0.75, 9.45, color=ACCENT, lw=1.0, ls="--", zorder=2)
+    ax.text(9.6, acc_base, f"{acc_base:.2f}%", fontsize=8, color=MUTED,
+            va="center", ha="left", family="monospace")
+    ax.text(9.6, acc_mom, f"{acc_mom:.2f}%", fontsize=8, color=ACCENT,
+            va="center", ha="left", family="monospace")
+
+    for i, v in enumerate(base):
+        if v > 0:
+            ax.text(i - width / 2, v + 1.5, f"{v:.0f}", ha="center",
+                    va="bottom", fontsize=7.5, color=INK,
+                    family="monospace")
+    ax.text(2.0, 72.0,
+            "eight of the ten classes are never once correct;\n"
+            "the 10.70% is almost entirely 980 frogs",
+            fontsize=8.5, color=INK, ha="center", va="center")
+    ax.annotate("", xy=(6 - width / 2, 94.0), xytext=(3.4, 76.5),
+                arrowprops=dict(arrowstyle="-|>", color=INK, lw=0.9,
+                                mutation_scale=10))
+
+    ax.set_xticks(list(idx))
+    ax.set_xticklabels(CIFAR_CLASSES, fontsize=8.5)
+    ax.set_ylim(0, 105)
+    ax.set_xlim(-0.75, 10.65)
+    ax.set_ylabel("per-class recall (%)", fontsize=9, color=INK)
+    ax.set_title("SimpleCNN, seed 0, 5 epochs - same 62,006 parameters, "
+                 "one word of difference in the optimiser",
+                 fontsize=9.5, color=INK, loc="left")
+    ax.legend(fontsize=8.5, loc="upper left", frameon=False)
+    ax.grid(axis="y", alpha=0.25, lw=0.6, zorder=0)
+    style(ax)
+
+    fig.tight_layout()
+    save(fig, "cifar10_basic_per_class")
+
+
+# === 모두 그린다 ==================================================
+#     그림 함수는 이 블록보다 **위에** 두어야 한다. 모듈은 위에서 아래로
+#     실행되므로 아래에 정의한 함수는 여기에서 아직 이름이 없다.
+
+
+FIGURES = {
+    "convolution_sliding": make_convolution_sliding,
+    "transposed_conv_steps": make_transposed_conv_steps,
+    "dilated_vs_downsample": make_dilated_vs_downsample,
+    "gridding_coverage": make_gridding_coverage,
+    "rf_strategies": make_rf_strategies,
+    "depthwise_decomposition": make_depthwise_decomposition,
+    "advanced_training_curve": make_advanced_training_curve,
+    "feature_map_depths": make_feature_map_depths,
+    "conv1d_sliding": make_conv1d_sliding,
+    "cifar10_basic_per_class": make_cifar10_basic_per_class,
+    "mnist_balance_and_scale": make_mnist_balance_and_scale,
+    "fashion_class_means": make_fashion_class_means,
+    "cifar10_class_colour": make_cifar10_class_colour,
+    "fashion_classifier_errors": make_fashion_classifier_errors,
+    "binary_pair_curves": make_binary_pair_curves,
+}
+
+
 if __name__ == "__main__":
+    # 이름을 주면 그 그림만 다시 그린다. 전부 다시 그리면 손대지 않은 SVG 도
+    # 타임스탬프와 클립 경로 id 만 바뀐 채 diff 에 끼어든다.
+    #   python docs/ch10/cnn/figures/make_figures.py mnist_balance_and_scale --png
+    wanted = [a for a in sys.argv[1:] if not a.startswith("--")]
+    unknown = [w for w in wanted if w not in FIGURES]
+    assert not unknown, unknown
     check_numbers()
-    make_convolution_sliding()
-    make_transposed_conv_steps()
-    make_dilated_vs_downsample()
-    make_gridding_coverage()
-    make_rf_strategies()
-    make_depthwise_decomposition()
-    make_advanced_training_curve()
+    for name, draw in FIGURES.items():
+        if not wanted or name in wanted:
+            draw()
