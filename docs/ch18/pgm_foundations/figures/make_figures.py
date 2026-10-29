@@ -158,5 +158,93 @@ def positivity_wall():
           f"{max(v1, v2):.1e}   zeros {n_zero}/16")
 
 
+# === 그림으로 보는 AI: 충돌자를 조건으로 두면 =================================
+#
+# 독립인 두 병 A, B 를 만들고, 둘 다 입원 확률을 높이게 한다 (A -> H <- B).
+# 모집단 오즈비는 1 인데 입원한 사람만 보면 1 보다 한참 아래로 내려간다.
+# 입원 유발력을 키워 가며 재서, 치우침이 **정도의 문제**임을 보인다.
+
+def berkson():
+    rng = np.random.default_rng(0)
+    n = 3_000_000
+    A = rng.random(n) < 0.10
+    B = rng.random(n) < 0.10
+    u = rng.random(n)
+
+    def odds_ratio(a, b):
+        n11 = int((a & b).sum()); n10 = int((a & ~b).sum())
+        n01 = int((~a & b).sum()); n00 = int((~a & ~b).sum())
+        return (n11 * n00) / (n10 * n01) if n10 and n01 else float("nan")
+
+    or_pop = odds_ratio(A, B)
+    assert abs(or_pop - 1.0) < 0.02, f"모집단에서 독립이 아니다: {or_pop}"
+
+    strengths = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    ors, rates = [], []
+    for s in strengths:
+        H = u < (0.02 + s * A + s * B)
+        ors.append(odds_ratio(A[H], B[H]))
+        rates.append(float(H.mean()))
+    assert ors[-1] < 0.2, f"치우침이 나타나지 않았다: {ors[-1]}"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.0),
+                                   gridspec_kw={"width_ratios": [1, 1.25]})
+
+    # --- 왼쪽: 충돌자 ------------------------------------------------------
+    pos = {"A": (0.20, 0.72), "B": (0.80, 0.72), "H": (0.50, 0.36)}
+    for src in ("A", "B"):
+        ax1.annotate("", xy=(pos["H"][0] + (-0.07 if src == "A" else 0.07),
+                             pos["H"][1] + 0.055),
+                     xytext=pos[src],
+                     arrowprops=dict(arrowstyle="->", color=INK, linewidth=1.8))
+    labels = {"A": "disease A", "B": "disease B", "H": "admitted"}
+    for k, (x, y) in pos.items():
+        ax1.add_patch(plt.Circle((x, y), 0.072, facecolor="white",
+                                 edgecolor=ACCENT if k == "H" else INK,
+                                 linewidth=1.8, zorder=3))
+        ax1.text(x, y, k, ha="center", va="center", fontsize=11, color=INK,
+                 zorder=4)
+        ax1.text(x, y - 0.115, labels[k], ha="center", fontsize=8,
+                 color=INK, alpha=0.8)
+    ax1.text(0.5, 0.93, "a collider", ha="center", fontsize=9.6, color=INK,
+             weight="bold")
+    ax1.text(0.5, 0.13, "A and B independent\n"
+                        "until you look only at H = 1",
+             ha="center", va="center", fontsize=8.8, color=ACCENT)
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0.02, 1.0)
+    ax1.axis("off")
+
+    # --- 오른쪽: 재어 보면 -------------------------------------------------
+    ax2.axhline(1.0, color=INK, linestyle="--", linewidth=1.3)
+    ax2.text(0.58, 0.72, f"population odds ratio {or_pop:.2f}", fontsize=8.4,
+             color=INK, ha="right")
+    ax2.plot(strengths, ors, "o-", color=ACCENT, linewidth=2.0, ms=6)
+    ax2.annotate(f"{ors[-1]:.3f}", xy=(strengths[-1], ors[-1]),
+                 xytext=(-6, 16), textcoords="offset points", fontsize=9,
+                 color=ACCENT, ha="right")
+    ax2.set_yscale("log")
+    ax2.set_xlabel("how strongly each disease drives admission", fontsize=9)
+    ax2.set_ylabel("odds ratio among the admitted", fontsize=9)
+    ax2.set_title("the same two independent diseases", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.grid(alpha=0.13, which="both")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "3,000,000 people, A and B built independent. "
+             "nothing about them changes - only who is looked at.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "berkson.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote berkson.svg   population OR {or_pop:.3f}   "
+          f"admitted OR {ors[1]:.3f} -> {ors[-1]:.3f}")
+
+
 if __name__ == "__main__":
     positivity_wall()
+    berkson()
