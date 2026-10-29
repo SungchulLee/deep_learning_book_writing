@@ -29,6 +29,32 @@ KNN은 웨이트를 반복적으로 최적화하지 않고 학습 데이터를 �
 - **차원의 저주**: 고차원에서는 점들 사이의 거리가 거의 균일해져 최근접 이웃 질의가 정보를 주지 못한다. 이는 뉴럴 넷트웍으로 저차원 표현을 학습해야 하는 핵심 동기이다.
 - **계산 비용**: 완전 탐색은 질의당 $O(nd)$가 든다. 트리 구조(KD 트리, Ball 트리)는 저차원에서 이를 $O(d \log n)$으로 줄이지만 고차원에서는 성능이 떨어진다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 가장 가까운 이웃 하나에 절반이 들어 있다
+
+이 방법은 학회지가 아니라 **군 기술 보고서**에서 나왔다. 1951년 2월, 텍사스 랜돌프 필드의 미 공군 항공의학교에서 에벌린 픽스(Evelyn Fix)와 조지프 호지스(Joseph Hodges)가 쓴 「Discriminatory analysis, nonparametric discrimination」이다. 과제 번호 21-49-004, 계약 번호 AF41(128)-31까지 붙은 내부 문서였고 정식으로 실리지 않았다.
+
+열여섯 해 뒤 토머스 커버(Thomas Cover)와 피터 하트(Peter Hart)가 이 규칙이 **얼마나 좋은지**를 증명했다. 베이즈 오차를 $R^*$라 할 때, 표본이 무한히 많아지면 최근접 이웃 하나만 보는 규칙의 오차 $R$이 이 사이에 갇힌다.
+
+$$
+R^* \;\le\; R \;\le\; 2R^*
+$$
+
+논문의 문장이 이 결과를 잘 요약한다 — "the probability of error of the nearest neighbor rule is bounded above by twice the Bayes probability of error. In this sense, it may be said that **half the classification information in an infinite sample set is contained in the nearest neighbor**."
+
+베이즈 오차를 정확히 아는 문제를 만들어 재면 이렇다.
+
+![가로축이 학습 점 수(로그 눈금), 세로축이 시험 오차인 그림. 베이즈 오차 0.1587과 그 두 배인 0.3173이 가로 점선 둘로 그어져 복도를 이루고, 그 사이가 옅게 칠해져 있다. 1-NN 의 측정값이 오차 막대와 함께 그려져 있는데 점 백 개에서 이미 0.225 근처에 올라앉아 그 뒤로는 평평하며, 이론이 예측한 0.2251 점선과 겹친다.](figures/cover_hart.svg)
+
+이론이 맞는다. 측정한 1-NN 오차는 $2R^*=0.3173$ 아래에 머물고, 예측된 점근값 0.2251에 가 앉는다. 그리고 눈에 띄는 것이 하나 더 있다 — **점 100개에서 이미 거기에 닿는다.** 점을 200배로 늘려도 더 나아지지 않는다. 이웃 하나가 가진 정보는 일찍 다 쓰이고, 남은 절반은 아무리 자료를 모아도 $k$를 키우거나 다른 방법으로 가져와야 한다.
+
+**다만 이 복도는 표본이 무한할 때의 이야기이고, 무엇보다 이웃이 정말 가까울 때의 이야기다.** 증명은 표본이 쌓이면 최근접 이웃이 질의점으로 수렴한다는 데 기댄다. 위에 적은 **차원의 저주** 항이 무너뜨리는 것이 바로 그 전제다. 거리가 고르게 비슷해지면 "가장 가까운" 점이 가깝지 않고, 그러면 $2R^*$라는 약속도 함께 사라진다. 이 그림이 2차원에서 그려졌다는 사실이 그림의 일부다.
+
+_확인한 곳 — E. Fix, J. L. Hodges, Jr., "Discriminatory analysis, nonparametric discrimination", USAF School of Aviation Medicine, Randolph Field, Tex., Project 21-49-004, Rept. 4, Contract AF41(128)-31, February 1951 — 서지 사항은 아래 커버·하트 논문의 참고문헌에서 옮겼다. T. M. Cover, P. E. Hart, "Nearest Neighbor Pattern Classification", *IEEE Transactions on Information Theory* **13**(1), 21–27 (1967); 인용한 문장은 서론이다. 그림의 수는 그림을 그리는 코드가 직접 재어 얻는다._
+
+</div>
+
 ---
 
 ## 3. 예제
