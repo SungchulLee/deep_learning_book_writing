@@ -64,10 +64,14 @@ def identity(flat):
     return 100.0 * (pred == yte).float().mean().item()
 
 
-def train_ae(model, X):
-    """되살리기만 배운다. 라벨은 한 번도 쓰지 않는다."""
+def train_ae(cls, k, X):
+    """되살리기만 배운다. 라벨은 한 번도 쓰지 않는다.
+
+    씨앗은 모델을 **만들기 전에** 뿌린다. 만들어 둔 모델을 받는 꼴로 쓰면
+    초깃값이 씨앗 밖에 남아 돌릴 때마다 수가 달라진다.
+    """
     torch.manual_seed(SEED)
-    model = model.to(device)
+    model = cls(k).to(device)
     opt = optim.Adam(model.parameters(), lr=LR)
     g = torch.Generator().manual_seed(SEED)
     loader = DataLoader(TensorDataset(X), batch_size=BATCH, shuffle=True, generator=g)
@@ -100,7 +104,7 @@ class MLPAE(nn.Module):
 
 if __name__ == "__main__":
   for k in (64, 2):
-    m = train_ae(MLPAE(k), Xtr)
+    m = train_ae(MLPAE, k, Xtr)
     rec = reconstruct(m, Xte)
     enc_p = sum(p.numel() for p in m.enc.parameters())
     print(f"  ae_mlp{k:<2d}  복원 MSE {((rec - Xte) ** 2).mean():.5f}  "
@@ -275,7 +279,7 @@ MSE로는 28% 나아졌을 뿐인데 **숫자 정체는 두 배 가까이 올랐
     | | 12배 | 48배 |
     |---|---|---|
     | **MNIST** | PCA 0.0953 → AE 0.0546, **−43%** | PCA 0.28296, AE **없음** |
-    | **CIFAR-10** | PCA 0.0416, AE **없음** | PCA 0.1337 → AE 0.1341, **+0.3%** |
+    | **CIFAR-10** | PCA 0.0416, AE **없음** | PCA 0.1337 → AE 0.1343, **+0.4%** |
 
     곧 **대각선 두 칸만 채워져 있다.** 그리고 그 두 칸은 데이터와 압축률이 **함께** 달라진 칸이다. 그래서 −43%와 +0.3%의 차이를 데이터 탓이라 할 수도, 압축률 탓이라 할 수도 있다. 본문이 "가를 수 없다"고 적은 것이 정확하다.
 
