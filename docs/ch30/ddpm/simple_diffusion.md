@@ -16,13 +16,221 @@
     import numpy as np
     import torch
     import torch.nn as nn
-    from diffusion_utils import (
-        cosine_beta_schedule,
-        get_diffusion_parameters,
-        forward_diffusion,
-        get_loss
-    )
     from tqdm import tqdm
+
+    # ============================================================================
+    # 「확산 유틸」 쪽의 함수들 — 예전에는 diffusion_utils.py 에서 읽어 왔다
+    # ============================================================================
+
+    def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
+        """
+        코사인 잡음 차례표를 만든다(선형보다 나아진 것).
+
+        왜 코사인인가?
+        -----------
+        - 퍼지는 내내 더 매끄럽게 나아간다
+        - 끝에서 덜 과감하다
+        - 신호 대 잡음비를 더 잘 지킨다
+        - 그림 만들어 내기 품질이 높다
+
+        수학 뜻매김:
+        ------------------------
+        f(t) = cos((t/T + s)/(1 + s) · π/2)²
+        ᾱ_t = f(t)/f(0)
+        β_t = 1 - (ᾱ_t/ᾱ_{t-1})
+
+        코사인은 ᾱ_t이 줄어드는 매끄러운 S자 곡선을 만든다.
+        치우침 's'이 가장자리에서 수치가 흔들리는 것을 막는다.
+
+        좋은 점:
+        ---------
+        1. 매끄러운 옮아감: 걸음마다 비슷한 양의 잡음을 없앤다
+        2. 더 나은 기울기: 때 걸음에 걸쳐 배움 신호가 고르다
+        3. 흠이 적다: 갑작스러운 바뀜이 덜하다
+        4. 겪어 본 성공: 최고 수준의 모델이 이것을 쓴다
+
+        참고: "Improved Denoising Diffusion Probabilistic Models"
+                   (니콜 & 다리왈, 2021)
+
+        인수:
+            timesteps: 온 확산 걸음
+            s: 작은 치우침(기본값 0.008. 처음에 β_t ≈ 0이 되는 것을 막는다)
+
+        반환값:
+            betas: 꼴 (timesteps,)인 텐서이며 매끄럽게 늘어난다
+        """
+        # 때 어깨수를 만든다(차이를 셈하려면 T+1개 점이 필요하다)
+        steps = timesteps + 1
+        x = torch.linspace(0, timesteps, steps)
+
+        # 코사인 함수로 ᾱ_t을 셈한다
+        t_normalized = (x / timesteps + s) / (1 + s)
+        alphas_cumprod = torch.cos(t_normalized * torch.pi * 0.5) ** 2
+        alphas_cumprod = alphas_cumprod / alphas_cumprod[0]  # ᾱ_0=1이 되게 고르게 맞춘다
+
+        # ᾱ_t에서 β_t을 셈한다: β_t = 1 - (ᾱ_t/ᾱ_{t-1})
+        betas = 1 - (alphas_cumprod[1:] / alphas_cumprod[:-1])
+
+        # 수치의 안정을 위해 자른다
+        return torch.clip(betas, 0.0001, 0.9999)
+
+
+    def get_diffusion_parameters(betas: torch.Tensor) -> dict:
+        """
+        확산에 필요한 수학 상수를 모두 미리 셈한다.
+
+        왜 미리 셈하는가?
+        ---------------
+        익힐 때 이 값이 거듭 든다. 한 번만 셈하면 O(T)이고,
+        되풀이마다 O(T) 대신 O(1) 찾아보기 → 엄청나게 빨라진다!
+
+        T=1000, 되돌이 1만 번이면 셈 1000번 + 찾아보기 1만 번 대 셈 1000만 번이다
+
+        이끌어 낸 값:
+        -------------------
+        α_t = 1 - β_t                    (남는 신호)
+        ᾱ_t = ∏_{i=1}^t α_i             (쌓은 신호)
+        √ᾱ_t, √(1-ᾱ_t)                  (앞 확산 계수)
+        1/√α_t                           (뒤 확산 잣대)
+        σ_t² = β_t(1-ᾱ_{t-1})/(1-ᾱ_t)  (사후 흩어짐)
+
+        인수:
+            betas: β 일정, 꼴 (T,)
+
+        반환값:
+            미리 셈한 매개변수를 모두 담은 사전:
+            - 'betas': β_t 값
+            - 'alphas': α_t = 1 - β_t
+            - 'alphas_cumprod': ᾱ_t (쌓은 곱)
+            - 'alphas_cumprod_prev': ᾱ_{t-1} (한 칸 옮김)
+            - 'sqrt_alphas_cumprod': √ᾱ_t (자료 계수)
+            - 'sqrt_one_minus_alphas_cumprod': √(1-ᾱ_t) (잡음 계수)
+            - 'sqrt_recip_alphas': 1/√α_t (뒤 잣대)
+            - 'posterior_variance': σ_t² (뒤 잡음)
+        """
+        # α_t = 1 - β_t(걸음마다 남는 신호)
+        alphas = 1.0 - betas
+
+        # ᾱ_t = ∏ α_i(쌓인 신호 - 핵심 양이다!)
+        alphas_cumprod = torch.cumprod(alphas, dim=0)
+        # 성질: 줄어들고 ≈1에서 시작해 ≈0에서 끝난다
+
+        # ᾱ_{t-1}(ᾱ_0 = 1이므로 앞에 1.0을 붙인다)
+        alphas_cumprod_prev = torch.cat([torch.ones(1), alphas_cumprod[:-1]])
+
+        # 앞 확산 계수: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
+        sqrt_alphas_cumprod = torch.sqrt(alphas_cumprod)
+        sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - alphas_cumprod)
+
+        # 뒤 확산 잣수 맞추기: μ = 1/√α_t·(...)
+        sqrt_recip_alphas = torch.sqrt(1.0 / alphas)
+
+        # 사후 흩어짐: 뒤로 갈 때 잡음을 얼마나 더할지
+        posterior_variance = betas * (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod)
+
+        return {
+            'betas': betas,
+            'alphas': alphas,
+            'alphas_cumprod': alphas_cumprod,
+            'alphas_cumprod_prev': alphas_cumprod_prev,
+            'sqrt_alphas_cumprod': sqrt_alphas_cumprod,
+            'sqrt_one_minus_alphas_cumprod': sqrt_one_minus_alphas_cumprod,
+            'sqrt_recip_alphas': sqrt_recip_alphas,
+            'posterior_variance': posterior_variance,
+        }
+
+
+    def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
+                         sqrt_alphas_cumprod: torch.Tensor,
+                         sqrt_one_minus_alphas_cumprod: torch.Tensor) -> torch.Tensor:
+        """
+        앞 확산을 쓴다: 깨끗한 자료에 잡음을 더한다.
+
+        식:
+        --------
+        x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε
+
+        풀이:
+        ---------------
+        자료와 잡음의 무게 실은 합:
+        - t=0:   ᾱ_0=1    → x_0 = x_0 (잡음 없음)
+        - t=50:  ᾱ_50≈0.6 → 자료 60% + 잡음 80%(크기 기준)
+        - t=100: ᾱ_100≈0.3 → 자료 30% + 잡음 95%
+        - t→∞:   ᾱ_∞→0   → 순수 잡음
+
+        왜 제곱근인가?
+        -----------------
+        흩어짐 지킴: √ᾱ_t² + √(1-ᾱ_t)² = 1
+        x_t의 흩어짐이 x_0과 같게 한다!
+
+        인수:
+            x_0: 깨끗한 자료, 꼴 (batch_size, *data_dims)
+            t: 때 걸음, 꼴 (batch_size,)
+            noise: 정규 잡음 ε ~ N(0,I)이며 x_0과 같은 꼴
+            sqrt_alphas_cumprod: 미리 셈한 √ᾱ_t, 꼴 (T,)
+            sqrt_one_minus_alphas_cumprod: 미리 셈한 √(1-ᾱ_t), 꼴 (T,)
+
+        반환값:
+            x_t: 때 걸음 t의 잡음 섞인 자료
+        """
+        # 표본마다 때 걸음의 계수를 뽑고 퍼뜨리기에 맞게 꼴을 바꾼다
+        sqrt_alpha_t = extract(sqrt_alphas_cumprod, t, x_0.shape)
+        sqrt_one_minus_alpha_t = extract(sqrt_one_minus_alphas_cumprod, t, x_0.shape)
+
+        # 앞 확산 공식을 쓴다
+        return sqrt_alpha_t * x_0 + sqrt_one_minus_alpha_t * noise
+
+
+    def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
+                diffusion_params: dict, noise: torch.Tensor = None) -> torch.Tensor:
+        """
+        확산 모델의 익히기 손실을 셈한다.
+
+        DDPM 익힘 목표:
+        ------------------------
+        L_simple = E_{t,x_0,ε}[||ε - ε_θ(x_t,t)||²]
+
+        x_t을 만들려 더한 바로 그 잡음을 모델이 헤아리기를 바란다.
+
+        왜 잡음을 헤아리는가?
+        ------------------
+        - 잡음은 멈춰 있다: 모든 때 걸음에서 N(0,I)이다
+        - t에 걸쳐 배움 목표가 고르다
+        - 겪어 보니 표본의 좋음이 가장 높다
+        - 요즘 확산 모델의 여느 방식이다
+
+        마구잡이 때 걸음 뽑기:
+        -------------------------
+        고갱이 솜씨: 배치마다 [0,T-1]에서 t을 고르게 뽑는다
+        → 모델이 모든 잡음 수준에서 잡음 없애는 법을 배운다
+        → 특정 때 걸음에 지나치게 맞춰지는 것을 막는다
+
+        인수:
+            model: 익힐 잡음 없애기 모델
+            x_0: 깨끗한 자료의 배치, 꼴 (batch_size, *data_dims)
+            t: 마구잡이 때 걸음, 꼴 (batch_size,)
+            diffusion_params: 미리 셈한 상수
+            noise: 미리 만든 잡음(골라 쓴다. None이면 여기서 만든다)
+
+        반환값:
+            뒤먹임 퍼뜨리기를 위한 낱값 평균 제곱 어긋남 손실
+        """
+        # 잡음이 주어지지 않으면 만든다
+        if noise is None:
+            noise = torch.randn_like(x_0)
+
+        # 앞 확산을 쓴다: 아는 잡음으로 x_t을 만든다
+        x_t = forward_diffusion(
+            x_0, t, noise,
+            diffusion_params['sqrt_alphas_cumprod'],
+            diffusion_params['sqrt_one_minus_alphas_cumprod']
+        )
+
+        # 모델이 잡음을 헤아린다
+        predicted_noise = model(x_t, t)
+
+        # 헤아린 잡음과 실제 잡음 사이의 평균 제곱 어긋남 손실을 셈한다
+        return nn.functional.mse_loss(predicted_noise, noise)
 
     # ============================================================================
     # 핵심 개념: 확산 모델
