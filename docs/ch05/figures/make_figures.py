@@ -582,6 +582,42 @@ def fig_forward_diffusion(T=1000):
     print("wrote forward_diffusion.svg")
 
 
+# === 그림 10: KL 항이 무엇을 사고 무엇을 파는가 =============================
+def fig_kl_tradeoff():
+    """5.2 개요의 '미리 보는 결과' 표를 손잡이 하나의 자취로 보인다.
+
+    가로가 복원 MSE, 세로가 표본 클래스 균형도다. beta를 키우면 오른쪽 위로
+    움직인다 — 되살리기를 팔아 커버리지를 산다. 확신도는 거의 그대로여서
+    점 옆에 숫자로만 적는다. 학습이 필요 없다. 표에 실린 값 그대로다.
+    """
+    # (label, 복원 MSE, 클래스 균형도, 확신도)
+    pts = [("AE  (no KL)",       0.0546, 0.541, 0.777),
+           (r"VAE  $\beta$=1",   0.0750, 0.877, 0.769),
+           (r"$\beta$-VAE  $\beta$=4", 0.1351, 0.950, 0.794)]
+
+    fig, ax = plt.subplots(figsize=(7.6, 4.6))
+    xs = [q[1] for q in pts]; ys = [q[2] for q in pts]
+    ax.plot(xs, ys, color="0.75", lw=1.2, zorder=1)          # 손잡이의 자취
+    for (lab, x, y, conf), col in zip(pts, ("#777777", "tab:blue", "tab:orange")):
+        ax.scatter(x, y, s=95, color=col, zorder=3)
+        ax.annotate(f"{lab}\nconfidence {conf:.3f}", (x, y),
+                    textcoords="offset points", xytext=(11, -16),
+                    fontsize=9, color=col)
+    # 자취 자체가 방향을 보이므로 화살표는 끝에 하나만 둔다
+    ax.annotate("", xy=(0.1351, 0.950), xytext=(0.0750, 0.877),
+                arrowprops=dict(arrowstyle="-|>", color="0.6", lw=1.2))
+    ax.text(0.0545, 0.72, "larger  " + r"$\beta$", fontsize=9.5, color="0.4",
+            rotation=62, rotation_mode="anchor")
+    ax.set_xlabel("reconstruction MSE   (left is better)", fontsize=10)
+    ax.set_ylabel("sample class balance   (up is better)", fontsize=10)
+    ax.set_xlim(0.03, 0.175); ax.set_ylim(0.47, 1.02)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.11, right=0.985, top=0.96, bottom=0.135)
+    fig.savefig("kl_tradeoff.svg", transparent=True)
+    plt.close(fig)
+    print("wrote kl_tradeoff.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -592,6 +628,7 @@ if __name__ == "__main__":
     fig_cvae_label_sweep()
     fig_two_rulers()
     fig_forward_diffusion()
+    fig_kl_tradeoff()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
