@@ -92,6 +92,26 @@ salt-and-pepper 분기는 확률 `noise_factor/2`로 1, 같은 확률로 0을 �
 
 확률 분기에는 0≤noise_factor≤1, 가우시안 표준편차에는 비음수 조건을 정해야 한다. 같은 숫자 0.3이라도 표준편차와 오염 확률은 서로 다른 세기다. 알 수 없는 `noise_type`에는 명시적인 오류 대신 `None`이 반환되므로 호출 조건을 검증해야 한다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 처음 쓴 잡음은 가우시안이 아니었다
+
+디노이징 오토인코더는 2008년에 파스칼 뱅상(Pascal Vincent)·위고 라로셸(Hugo Larochelle)·요슈아 벤지오(Yoshua Bengio)·피에르앙투안 망자골(Pierre-Antoine Manzagol)이 내놓았다. 출발점은 잡음 제거가 아니라 **좋은 표현이란 무엇인가**라는 물음이었다. 논문의 가설은 한 줄이다 — "partially destroyed inputs should yield almost the same representation", 입력을 일부 부숴도 같은 표현이 나와야 한다. 근거로 든 것도 사람이었다. 가려지거나 망가진 그림을 알아보는 능력이 그 증거라는 것이다.
+
+그 "부수기"가 위 세 분기 가운데 어느 것이었는지가 이 상자의 요점이다.
+
+![네 판으로 된 그림. 맨 왼쪽은 깨끗한 숫자 모양이고, 다음은 가우시안 잡음을 더해 자른 것으로 바탕이 얼룩덜룩하며, 다음은 소금후추 잡음으로 검은 점과 흰 점이 흩어져 있고, 맨 오른쪽은 마스킹으로 획의 일부가 지워져 있으며 호박색 테두리로 강조되어 있다. 아래에 뱅상 등이 쓴 것은 맨 오른쪽이라고 적혀 있다.](figures/corruption_kinds.svg)
+
+원 논문이 쓴 것은 맨 오른쪽, **마스킹**이다. 그대로 옮기면 "for each input x, a fixed number νd of components are chosen at random, and their value is forced to 0" — 성분 가운데 νd개를 골라 **0으로 지우고** 나머지는 건드리지 않는다. 지워진 자리의 정보는 그 표본에서 완전히 사라지고, 오토인코더는 그 자리를 **메우도록**("fill-in") 학습된다. 가우시안 잡음처럼 값을 흔드는 것이 아니라 **없애는** 것이다.
+
+위 `dropout` 분기가 가장 가깝지만 똑같지는 않다. 이 쪽 코드는 픽셀마다 확률 `noise_factor`로 독립해 0을 만들므로 지워지는 개수가 이항분포를 따라 표본마다 달라진다. 원 논문은 개수를 **νd개로 고정**했다. 기댓값은 같고 분산이 다르다.
+
+**다만 논문이 내놓은 증거는 이 쪽이 재는 것과 다르다.** 초록이 말하는 성과는 "the surprising advantage of corrupting the input of autoencoders on a **pattern classification benchmark** suite" — 복원 그림의 품질이 아니라 **뒤따르는 분류 성능**이었다. 디노이징은 표현을 얻기 위한 수단이었지 목적이 아니었다. 바로 아래 4절이 적어 둔 대로 이 쪽 코드는 PSNR도 분류 정확도도 재지 않으므로, 여기서 나온 복원 그림으로 "DAE가 더 좋은 표현을 준다"는 원 논문의 주장을 확인한 것은 아니다.
+
+_확인한 곳 — P. Vincent, H. Larochelle, Y. Bengio, P.-A. Manzagol, "Extracting and Composing Robust Features with Denoising Autoencoders", *Proc. ICML '08*, 1096–1103. 인용한 세 구절은 초록과 1절, 2.3절에서 가져왔다. 그림의 숫자는 꼴만 그린 것이고 MNIST 표본이 아니다._
+
+</div>
+
 ## 4. 평가 코드가 포함하지 않는 것
 
 본 코드는 20에포크 학습만 하고 테스트 로더, PSNR 계산과 비교 표를 만들지 않는다. 고정된 dB 개선이나 다른 잡음으로의 일반화 순위를 측정한 것으로 설명하지 않는다.
