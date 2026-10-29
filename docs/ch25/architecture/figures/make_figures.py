@@ -207,6 +207,60 @@ def corruption_kinds():
     print("wrote corruption_kinds.svg")
 
 
+# === 그림으로 보는 AI: 고르지 않은 겹침 =======================================
+#
+# 전치 컨볼루션의 웨이트를 전부 1 로 두고 1 을 넣으면, 출력값이 곧 그 자리에
+# **몇 번 더해졌는가**가 된다. 커널이 stride 로 나누어떨어지지 않으면 이 수가
+# 자리마다 달라진다 — Odena 등이 "uneven overlap" 이라 부른 것이다.
+
+def uneven_overlap():
+    def counts(k, s, n=7):
+        ct = nn.ConvTranspose2d(1, 1, kernel_size=k, stride=s, bias=False)
+        with torch.no_grad():
+            ct.weight.fill_(1.0)
+            return ct(torch.ones(1, 1, n, n))[0, 0].numpy()[3:9, 3:9]
+
+    cases = [
+        (3, 2, "k=3, s=2", "3 is not divisible by 2"),
+        (4, 2, "k=4, s=2", "4 is divisible by 2"),
+        (2, 2, "k=2, s=2", "2 is divisible by 2"),
+    ]
+
+    fig, axes = plt.subplots(1, 3, figsize=(10.6, 3.8))
+    for ax, (k, s, title, note) in zip(axes, cases):
+        c = counts(k, s)
+        uneven = len(set(c.flatten().tolist())) > 1
+        ax.imshow(c, cmap="pink_r", vmin=0, vmax=5)
+        for i in range(c.shape[0]):
+            for j in range(c.shape[1]):
+                ax.text(j, i, f"{c[i, j]:.0f}", ha="center", va="center",
+                        fontsize=10, color=INK,
+                        weight="bold" if uneven else "normal")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        col = ACCENT if uneven else INK
+        ax.set_title(f"{title}\n{note}", fontsize=9.5, color=col,
+                     weight="bold")
+        for sp in ax.spines.values():
+            sp.set_color(col)
+            sp.set_linewidth(1.8 if uneven else 0.8)
+        ax.set_xlabel("1, 2 and 4 in one map" if uneven else "every cell the same",
+                      fontsize=8.6, color=col)
+
+    fig.text(0.5, -0.09,
+             "how many times each output cell gets written, with all weights "
+             "set to 1.\n"
+             "an even kernel is not the point - 2 and 4 are both fine. "
+             "divisibility by the stride is.",
+             ha="center", fontsize=8.3, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "uneven_overlap.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote uneven_overlap.svg  k3s2 uneven, k4s2 and k2s2 even")
+
+
 if __name__ == "__main__":
     same_plane_other_axes()
     corruption_kinds()
+    uneven_overlap()
