@@ -409,6 +409,7 @@ if __name__ == "__main__":
     map_not_invariant()
     two_intervals()
     thompson_1933()
+    james_stein()
 
 
 # === 그림으로 보는 AI: 1933년의 동기를 그대로 재어 본다 =======================
@@ -471,3 +472,78 @@ def thompson_1933():
     plt.close(fig)
     print(f"wrote thompson_1933.svg   mean {bad.mean():.1f}  "
           f"range {bad.min()}-{bad.max()}")
+
+
+# === 그림으로 보는 AI: 차원 3 에서 갑자기 생기는 경계 =========================
+#
+# Stein 1956 / James-Stein 1961. k >= 3 이면 표본값(최대우도)이 비허용적이다.
+# k = 1, 2 에서는 수축 인자가 0 이라 두 추정량이 **완전히 같고**, k = 3 부터
+# 갈라진다. 경계가 눈에 보이도록 두 곡선을 함께 그린다.
+
+def james_stein():
+    rng = np.random.default_rng(0)
+    R = 20000
+    ks = [1, 2, 3, 4, 6, 10, 20, 50]
+    e_mle, e_js, win = [], [], []
+    for k in ks:
+        mu = np.full((R, k), 2.0 / np.sqrt(k))
+        x = mu + rng.normal(0, 1, size=(R, k))
+        em = ((x - mu) ** 2).sum(1)
+        if k > 2:
+            s2 = (x ** 2).sum(1)
+            sh = np.maximum(0.0, 1 - (k - 2) / np.where(s2 > 0, s2, 1e-12))
+            js = x * sh[:, None]
+        else:
+            js = x
+        ej = ((js - mu) ** 2).sum(1)
+        e_mle.append(em.mean()); e_js.append(ej.mean())
+        win.append(float(np.mean(ej < em)))
+
+    # 그림이 제 주장을 확인한다 — 경계가 정확히 k = 3 에 있다
+    assert abs(e_js[0] - e_mle[0]) < 1e-12, "k=1 에서는 완전히 같아야 한다"
+    assert abs(e_js[1] - e_mle[1]) < 1e-12, "k=2 에서도 완전히 같아야 한다"
+    assert e_js[2] < e_mle[2] * 0.95, "k=3 부터 갈라져야 한다"
+    assert e_js[-1] < e_mle[-1] * 0.2, "큰 k 에서는 크게 벌어져야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1))
+
+    ax1.plot(ks, e_mle, "s--", color=INK, linewidth=2.0, ms=6,
+             label="the sample mean")
+    ax1.plot(ks, e_js, "o-", color=ACCENT, linewidth=2.0, ms=6,
+             label="James-Stein")
+    ax1.axvline(3, color=MUTED, linewidth=1.3, linestyle=":")
+    ax1.text(3, max(e_mle) * 0.93, " k = 3", fontsize=9, color=MUTED)
+    ax1.set_xlabel("number of means estimated at once", fontsize=9.5)
+    ax1.set_ylabel("total squared error", fontsize=9.5)
+    ax1.set_title("one estimator stops growing", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8.6, loc="upper left", framealpha=0.92)
+
+    ax2.plot(ks, win, "o-", color=ACCENT, linewidth=2.0, ms=6)
+    ax2.axhline(0.5, color=INK, linestyle=":", linewidth=1.1)
+    ax2.axvline(3, color=MUTED, linewidth=1.3, linestyle=":")
+    ax2.set_xlabel("number of means estimated at once", fontsize=9.5)
+    ax2.set_ylabel("runs where James-Stein wins", fontsize=9.5)
+    ax2.set_title("nothing at all below 3", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.set_ylim(-0.04, 1.06)
+    ax2.annotate(f"{win[2]:.3f}", xy=(3, win[2]), xytext=(10, -16),
+                 textcoords="offset points", fontsize=8.6, color=ACCENT)
+
+    for ax in (ax1, ax2):
+        ax.grid(alpha=0.12)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"{R:,} repetitions per point. at k = 1 and 2 the two estimators "
+             f"are identical, not merely close.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "james_stein.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote james_stein.svg   k=3 {e_mle[2]:.3f}->{e_js[2]:.3f}  "
+          f"k=50 {e_mle[-1]:.2f}->{e_js[-1]:.2f}")
