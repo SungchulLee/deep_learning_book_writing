@@ -595,8 +595,7 @@ nav:
     - "25 차원 축소":
       - "장 개요": ch24/index.md
       - 25.1 주성분 분석:
-        - "주성분 분석의 기초": ch24/pca/pca_fundamentals.md
-        - "주성분 분석 유도": ch24/pca/pca_derivation.md
+        - "주성분 분석": ch24/pca/pca_fundamentals.md
         - "커널 PCA": ch24/pca/kernel_pca.md
         - 2차원 주성분 분석 NumPy: ch24/pca/01_pca_2d_numpy.md
         - 2차원 주성분 분석 sklearn: ch24/pca/02_pca_2d_sklearn.md

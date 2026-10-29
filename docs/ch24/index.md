@@ -4,8 +4,7 @@
 
 ## 1. PCA의 수학과 구현
 
-- [PCA의 기초](pca/pca_fundamentals.md): 중심화, 로딩과 점수, 설명 분산과 재구성 오차
-- [PCA 유도](pca/pca_derivation.md): 분산 최대화와 오차 최소화의 동등성, SVD와 해의 유일성
+- [주성분 분석](pca/pca_fundamentals.md): 중심화와 로딩·점수부터 분산 최대화와 재구성 오차 최소화의 동등성까지. 세 정리의 증명은 접어 두었다
 - [커널 PCA](pca/kernel_pca.md): 피처 공간의 중심화, 고윳값 정규화와 프리이미지 문제
 - [NumPy 2차원 예제](pca/01_pca_2d_numpy.md): SVD로 방향을 구하고 투영·재구성하기
 - [scikit-learn 2차원 예제](pca/02_pca_2d_sklearn.md): 적합·변환과 분산 속성, whitening과 평가 누출
