@@ -710,6 +710,37 @@ def fig_gan_vs_dcgan():
     print("wrote gan_vs_dcgan.svg")
 
 
+# === 그림 13: 스텝을 줄여도 같은 그림이 나오는가 ============================
+def fig_ddim_steps():
+    """같은 z에서 스텝 수만 바꾸어 뽑은 것을 줄마다 늘어놓는다.
+
+    sample_ddim이 안에서 씨앗을 고정하므로 네 줄은 **같은 z**에서 출발한다.
+    그래서 여기서는 칸끼리 짝이 맞고, 달라진 것은 스텝 수뿐이다. 100에서
+    20까지는 같은 숫자가 거의 그대로 나오고 10에서야 획이 뭉개지기 시작한다.
+    """
+    d = torch.load(f"{MODELS}/mnist_ddim_steps.pt", map_location="cpu",
+                   weights_only=True)
+    steps = [100, 50, 20, 10]
+    conf = {100: 0.924, 50: 0.923, 20: 0.916, 10: 0.904}   # 쪽의 출력 블록에서
+    n = d[100].shape[0]
+
+    fig, axes = plt.subplots(len(steps), n, figsize=(10.4, 5.5))
+    for r, s in enumerate(steps):
+        im = d[s]
+        for c in range(n):
+            ax = axes[r, c]
+            ax.imshow((im[c, 0] + 1) / 2, cmap="gray", vmin=0, vmax=1)
+            ax.axis("off")
+        axes[r, 0].text(-0.14, 0.5, f"{s} steps\nconf {conf[s]:.3f}",
+                        transform=axes[r, 0].transAxes, ha="right",
+                        va="center", fontsize=9)
+    fig.subplots_adjust(left=0.135, right=0.995, top=0.99, bottom=0.01,
+                        wspace=0.06, hspace=0.08)
+    fig.savefig("ddim_steps.svg", transparent=True)
+    plt.close(fig)
+    print("wrote ddim_steps.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -724,6 +755,7 @@ if __name__ == "__main__":
     fig_quality_vs_cost()
     fig_gan_samples()
     fig_gan_vs_dcgan()
+    fig_ddim_steps()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
