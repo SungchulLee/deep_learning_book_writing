@@ -190,6 +190,99 @@ def arange_promise():
           f"int {bad_int}/{n_int}")
 
 
+# === 그림으로 보는 AI: 로스 스케일링이 막는 것 ================================
+#
+# 왼쪽은 세 자료형의 표현 범위다 — bfloat16 의 범위가 float32 와 **같다**는 것이
+# 눈에 보여야 한다. 오른쪽은 작은 신경망의 실제 그래디언트를 재어, float16 의
+# 최소 정상수 아래로 떨어지는 비율이 스케일에 따라 어떻게 변하는지 보인다.
+# 수는 전부 여기서 돌려 얻는다.
+
+def loss_scaling():
+    import torch
+
+    f16 = torch.finfo(torch.float16)
+    bf16 = torch.finfo(torch.bfloat16)
+    f32 = torch.finfo(torch.float32)
+
+    torch.manual_seed(0)
+    net = torch.nn.Sequential(
+        torch.nn.Linear(256, 256), torch.nn.ReLU(),
+        torch.nn.Linear(256, 256), torch.nn.ReLU(),
+        torch.nn.Linear(256, 10))
+    x = torch.randn(512, 256)
+    y = torch.randint(0, 10, (512,))
+    torch.nn.functional.cross_entropy(net(x), y).backward()
+    g = torch.cat([p.grad.flatten() for p in net.parameters()])
+    g = g[g != 0].abs()
+    lg = np.log10(g.numpy())
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.2),
+                                   gridspec_kw={"width_ratios": [1, 1.2]})
+
+    # --- 왼쪽: 세 자료형의 범위 --------------------------------------------
+    fmts = [("float32", f32.tiny, f32.max, INK),
+            ("bfloat16", bf16.tiny, bf16.max, MUTED),
+            ("float16", f16.tiny, f16.max, ACCENT)]
+    for k, (name, lo, hi, col) in enumerate(fmts):
+        y0 = 2 - k
+        ax1.plot([np.log10(lo), np.log10(hi)], [y0, y0], color=col,
+                 linewidth=9, solid_capstyle="butt", alpha=0.85)
+        ax1.text(0, y0 + 0.30, name, ha="center", fontsize=9.5, color=col,
+                 weight="bold")
+        ax1.text(np.log10(lo), y0 - 0.34, f"1e{int(np.log10(lo))}",
+                 ha="center", fontsize=7.6, color=INK, alpha=0.8)
+        ax1.text(np.log10(hi), y0 - 0.34, f"1e{int(np.log10(hi))}",
+                 ha="center", fontsize=7.6, color=INK, alpha=0.8)
+    ax1.set_xlim(-44, 44)
+    ax1.set_ylim(-0.9, 2.75)
+    ax1.set_yticks([])
+    ax1.set_xlabel("magnitude  (log10)", fontsize=9)
+    ax1.set_title("bfloat16 has float32's range", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.tick_params(labelsize=8, colors=INK)
+    for s in ax1.spines.values():
+        s.set_visible(False)
+    ax1.axhline(-0.55, color=INK, linewidth=0.6, alpha=0.3)
+
+    # --- 오른쪽: 실제 그래디언트가 어디에 있는가 ----------------------------
+    floor = np.log10(f16.tiny)
+    ax2.hist(lg, bins=70, color=INK, alpha=0.30, label="gradients as they are")
+    ax2.hist(lg + np.log10(8), bins=70, color=ACCENT, alpha=0.45,
+             label="after scaling by 8")
+    ax2.axvline(floor, color=ACCENT, linestyle="--", linewidth=1.6)
+    ax2.text(floor - 0.12, ax2.get_ylim()[1] * 0.80,
+             "float16 smallest normal  ", fontsize=8.2, color=ACCENT,
+             va="top", ha="right")
+
+    lost = [(s, (g * s < f16.tiny).float().mean().item()) for s in (1, 8, 1024)]
+    txt = "\n".join(f"scale {s:>5} ->  {p*100:5.2f}% lost" for s, p in lost)
+    ax2.text(0.015, 0.60, txt, transform=ax2.transAxes, fontsize=8.6,
+             color=INK, family="monospace", va="top",
+             bbox=dict(boxstyle="round,pad=0.45", facecolor="white",
+                       edgecolor=INK, alpha=0.92))
+    ax2.set_xlabel("gradient magnitude  (log10)", fontsize=9)
+    ax2.set_ylabel("count", fontsize=9)
+    ax2.set_title("what falls off the bottom", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8, loc="upper right", framealpha=0.9)
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "one small network, one backward pass. scaling does not make "
+             "gradients bigger - it moves them into range.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "loss_scaling.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote loss_scaling.svg   lost at 1x {lost[0][1]*100:.2f}%   "
+          f"at 8x {lost[1][1]*100:.2f}%")
+
+
 if __name__ == "__main__":
     tensor_word()
     arange_promise()
+    loss_scaling()
