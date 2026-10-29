@@ -154,5 +154,76 @@ def cd_bias():
           f"k-recovery {cos_k[0]:.3f} -> {cos_k[-1]:.3f}")
 
 
+
+
+# === 그림으로 보는 AI: 한 차원에서 본 것을 세 차원으로 옮겨 적은 일 ============
+#
+# 1925 이징: 1 차원 사슬에는 유한 온도에서 자발 자화가 없다 — 옳다.
+# 그리고 논문 끝에 3 차원도 그러리라 **추측**했다 — 틀렸다.
+# 1944 온사거가 2 차원을 정확히 풀어 전이가 있음을 보였다.
+# 두 곡선 모두 닫힌 식이 있으므로 지어낼 것 없이 그대로 그린다.
+
+TC_2D = 2.0 / np.log(1.0 + np.sqrt(2.0))      # 온사거의 임계 온도
+
+
+def _onsager_m(T):
+    """2 차원 정사각 격자의 자발 자화 (온사거). T >= Tc 에서는 0."""
+    T = np.asarray(T, dtype=float)
+    m = np.zeros_like(T)
+    low = T < TC_2D
+    m[low] = (1.0 - np.sinh(2.0 / T[low]) ** -4) ** 0.125
+    return m
+
+
+def ising_dimensions():
+    T = np.linspace(0.4, 4.0, 700)
+    m2 = _onsager_m(T)
+    m1 = np.zeros_like(T)                      # 1 차원: 모든 T>0 에서 0
+
+    assert m2[0] > 0.999, "T->0 에서 2 차원은 포화해야 한다"
+    assert m2[T >= TC_2D].max() == 0.0, "Tc 위에서는 0 이어야 한다"
+    assert m2[(T > 2.0) & (T < TC_2D)].min() > 0.0, "Tc 아래에서는 양수여야 한다"
+
+    fig, ax = plt.subplots(figsize=(7.2, 4.3))
+
+    ax.plot(T, m2, color=ACCENT, linewidth=2.4,
+            label="two dimensions  (Onsager, 1944)")
+    ax.plot(T, m1, color=MUTED, linewidth=2.4, linestyle="--",
+            label="one dimension  (Ising, 1925)")
+    ax.axvline(TC_2D, color=INK, linestyle=":", linewidth=1.2, alpha=0.7)
+    ax.annotate(f"Tc = {TC_2D:.3f}", xy=(TC_2D, 0.52),
+                xytext=(TC_2D + 0.34, 0.60), fontsize=8.6, color=INK,
+                arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+
+    ax.text(0.62, 0.17, "flat at zero, at every\ntemperature above zero",
+            fontsize=8.4, color=MUTED)
+    ax.text(2.75, 0.30,
+            "Ising solved the line, found\nno transition, and supposed\n"
+            "three dimensions behaved\nthe same way.",
+            fontsize=8.4, color=INK, alpha=0.9)
+
+    ax.set_xlabel("temperature", fontsize=9)
+    ax.set_ylabel("spontaneous magnetisation", fontsize=9)
+    ax.set_title("the same model, one dimension apart", fontsize=10.5,
+                 color=INK, weight="bold", pad=9)
+    ax.set_xlim(0.4, 4.0)
+    ax.set_ylim(-0.03, 1.08)
+    ax.legend(fontsize=8.6, loc="upper right", framealpha=0.92)
+    ax.grid(alpha=0.13)
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "both curves are closed-form, not simulated.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "ising_dimensions.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote ising_dimensions.svg   Tc = {TC_2D:.4f}")
+
 if __name__ == "__main__":
     cd_bias()
+    ising_dimensions()
