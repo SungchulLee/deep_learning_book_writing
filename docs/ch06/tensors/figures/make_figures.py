@@ -282,7 +282,87 @@ def loss_scaling():
           f"at 8x {lost[1][1]*100:.2f}%")
 
 
+# === 그림으로 보는 AI: 공식이 없어서 반복해야 한다 ============================
+#
+# 고윳값은 특성다항식의 근인데, 5차부터는 근호로 적는 일반 공식이 없다
+# (아벨-루피니). 그래서 eig 는 **식을 세워 푸는 것이 아니라 반복해서 다가간다.**
+# 오른쪽은 x^5 - x - 1 (갈루아 군이 S5 라 근호로 안 풀리는 고전적 보기) 의
+# 동반행렬을 만들어 torch 로 직접 근을 구하고 잔차를 잰다.
+
+def no_formula():
+    import torch
+
+    # --- x^5 - x - 1 의 동반행렬 -------------------------------------------
+    coef = [1, 0, 0, 0, -1, -1]
+    C = torch.zeros(5, 5)
+    C[0, :] = torch.tensor([-c for c in coef[1:]]) / coef[0]
+    C[1:, :-1] = torch.eye(4)
+    ev = torch.linalg.eigvals(C)
+    res = max(abs(complex(z) ** 5 - complex(z) - 1) for z in ev)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.1),
+                                   gridspec_kw={"width_ratios": [1.05, 1]})
+
+    # --- 왼쪽: 어디까지 공식이 있는가 ---------------------------------------
+    items = [("2", "the quadratic formula", True),
+             ("3", "Cardano, 1545", True),
+             ("4", "Ferrari, 1540s", True),
+             ("5", "no formula exists", False),
+             ("6 and up", "no formula exists", False)]
+    for k, (deg, note, has) in enumerate(items):
+        y = 0.86 - k * 0.165
+        col = INK if has else ACCENT
+        ax1.text(0.17, y, f"degree {deg}", fontsize=10, color=col,
+                 ha="right", weight="bold" if not has else "normal")
+        ax1.text(0.24, y, "v" if has else "x", fontsize=11, color=col,
+                 family="monospace", weight="bold")
+        ax1.text(0.34, y, note, fontsize=9, color=col,
+                 style="italic" if not has else "normal")
+    ax1.plot([0.03, 0.99], [0.86 - 2.5 * 0.165, 0.86 - 2.5 * 0.165],
+             color=ACCENT, linewidth=1.2, linestyle="--")
+    ax1.text(0.5, 0.055,
+             "Ruffini 1799 (with gaps), Abel 1824 (complete),\n"
+             "Galois 1832: which equations are solvable at all.",
+             ha="center", fontsize=8.4, color=INK)
+    ax1.set_title("how far the formulas go", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0, 1)
+    ax1.axis("off")
+
+    # --- 오른쪽: 그래도 답은 나온다 ----------------------------------------
+    th = np.linspace(0, 2 * np.pi, 200)
+    ax2.plot(np.cos(th), np.sin(th), color=INK, linewidth=0.6, alpha=0.25)
+    ax2.axhline(0, color=INK, linewidth=0.6, alpha=0.3)
+    ax2.axvline(0, color=INK, linewidth=0.6, alpha=0.3)
+    ax2.scatter([z.real.item() for z in ev], [z.imag.item() for z in ev],
+                s=85, color=ACCENT, zorder=4, edgecolors="white",
+                linewidths=1.2)
+    ax2.set_xlabel("real", fontsize=9)
+    ax2.set_ylabel("imaginary", fontsize=9)
+    ax2.set_title("torch.linalg.eigvals finds them anyway", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.text(0.5, -0.30,
+             f"roots of  x^5 - x - 1\n"
+             f"largest residual {res:.1e}  -  not zero",
+             transform=ax2.transAxes, ha="center", va="top", fontsize=8.6,
+             color=ACCENT)
+    ax2.set_aspect("equal")
+    ax2.grid(alpha=0.12)
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "no_formula.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote no_formula.svg   residual {res:.3e}")
+
+
 if __name__ == "__main__":
     tensor_word()
     arange_promise()
     loss_scaling()
+    no_formula()
