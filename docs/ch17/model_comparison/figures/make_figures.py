@@ -168,6 +168,104 @@ def bartlett():
           f"   -> {bf01[-1]:,.0f}   xbar {xbar:.4f}")
 
 
+# === 그림으로 보는 AI: 두 기준은 서로 다른 시험을 친다 ========================
+#
+# BIC 는 "참 모형을 고르는" 일에 일관적(consistent)이라 n 이 커지면 적중률이
+# 1 로 간다. AIC 는 그렇지 않다 — 과적합 확률이 0 으로 가지 않는다. 이것은
+# AIC 의 결함이 아니라 **목표가 다르기 때문**이다. 수는 모두 여기서 셈한다.
+
+def aic_bic():
+    rng = np.random.default_rng(0)
+    TRUE, MAXD, R = 3, 8, 400
+    ns = [30, 100, 400, 2000, 10000]
+
+    def sel(n):
+        a = np.zeros(MAXD + 1)
+        b = np.zeros(MAXD + 1)
+        for _ in range(R):
+            x = rng.uniform(-2, 2, n)
+            y = (1 - 0.5 * x + 0.3 * x ** 2 + 0.4 * x ** 3
+                 + rng.normal(0, 1.0, n))
+            ai, bi = [], []
+            for d in range(MAXD + 1):
+                X = np.vander(x, d + 1)
+                be = np.linalg.lstsq(X, y, rcond=None)[0]
+                rss = float(((y - X @ be) ** 2).sum())
+                k = d + 2
+                ll = -n / 2 * (np.log(2 * np.pi * rss / n) + 1)
+                ai.append(-2 * ll + 2 * k)
+                bi.append(-2 * ll + k * np.log(n))
+            a[int(np.argmin(ai))] += 1
+            b[int(np.argmin(bi))] += 1
+        return a / R, b / R
+
+    hit_a, over_a, hit_b, over_b = [], [], [], []
+    for n in ns:
+        a, b = sel(n)
+        hit_a.append(a[TRUE]); over_a.append(a[TRUE + 1:].sum())
+        hit_b.append(b[TRUE]); over_b.append(b[TRUE + 1:].sum())
+
+    # 그림이 제 주장을 확인한다
+    assert hit_b[-1] > 0.99, "BIC 는 큰 n 에서 참 차수로 수렴해야 한다"
+    assert over_b[-1] < 0.01, "BIC 의 과적합은 0 으로 가야 한다"
+    assert over_a[-1] > 0.15, "AIC 의 과적합은 0 으로 가지 않는다"
+    assert hit_a[-1] < 0.85, "AIC 는 1 로 수렴하지 않는다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1), sharex=True)
+
+    ax1.semilogx(ns, hit_b, "o-", color=MUTED, linewidth=2.0, ms=6,
+                 label="BIC")
+    ax1.semilogx(ns, hit_a, "s--", color=ACCENT, linewidth=2.0, ms=6,
+                 label="AIC")
+    ax1.axhline(1.0, color=INK, linestyle=":", linewidth=1.1)
+    ax1.set_ylabel("picks the true degree", fontsize=9.5)
+    ax1.set_title("does it find the true model?", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.set_ylim(0, 1.08)
+    ax1.legend(fontsize=8.6, loc="lower right", framealpha=0.92)
+    ax1.annotate(f"{hit_b[-1]:.3f}", xy=(ns[-1], hit_b[-1]),
+                 xytext=(-30, -16), textcoords="offset points",
+                 fontsize=8.6, color=MUTED)
+    ax1.annotate(f"{hit_a[-1]:.3f}", xy=(ns[-1], hit_a[-1]),
+                 xytext=(-30, -16), textcoords="offset points",
+                 fontsize=8.6, color=ACCENT)
+
+    ax2.semilogx(ns, over_b, "o-", color=MUTED, linewidth=2.0, ms=6,
+                 label="BIC")
+    ax2.semilogx(ns, over_a, "s--", color=ACCENT, linewidth=2.0, ms=6,
+                 label="AIC")
+    ax2.axhline(0.0, color=INK, linestyle=":", linewidth=1.1)
+    ax2.set_ylabel("picks too many terms", fontsize=9.5)
+    ax2.set_title("and when it is wrong?", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.set_ylim(-0.02, 0.42)
+    ax2.annotate(f"still {over_a[-1]:.3f}", xy=(ns[-1], over_a[-1]),
+                 xytext=(-62, 8), textcoords="offset points", fontsize=8.6,
+                 color=ACCENT)
+    ax2.annotate(f"{over_b[-1]:.3f}", xy=(ns[-1], over_b[-1]),
+                 xytext=(-30, 10), textcoords="offset points", fontsize=8.6,
+                 color=MUTED)
+
+    for ax in (ax1, ax2):
+        ax.set_xlabel("sample size", fontsize=9.5)
+        ax.grid(alpha=0.12, which="both")
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"true degree 3, {R} repetitions per point. "
+             f"AIC's overfitting does not go away - it was never trying to.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "aic_bic.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote aic_bic.svg   hit AIC {hit_a[-1]:.3f} BIC {hit_b[-1]:.3f}  "
+          f"over AIC {over_a[-1]:.3f} BIC {over_b[-1]:.3f}")
+
+
 if __name__ == "__main__":
     lindley()
     bartlett()
+    aic_bic()
