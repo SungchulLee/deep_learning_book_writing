@@ -126,5 +126,82 @@ def monotone_but_not_global():
           f"spread {finals.max() - finals.min():.3f}")
 
 
+
+
+# === 그림으로 보는 AI: 최대 우도인데 최대가 없다 ==============================
+#
+# 성분 하나의 평균을 관측점에 붙이고 그 분산을 줄이면 로그 우도가 -log(sigma)
+# 로 끝없이 자란다. 십년자리마다 +ln10 = +2.303 이다. 분산을 묶으면 반대로
+# 내려간다. 수는 모두 여기서 직접 셈한다.
+
+def _gmm_ll(x, mu, sig, w):
+    comp = np.array([wk * np.exp(-0.5 * ((x - mk) / sk) ** 2)
+                     / (np.sqrt(2 * np.pi) * sk)
+                     for mk, sk, wk in zip(mu, sig, w)])
+    return np.log(comp.sum(0) + 1e-300).sum()
+
+
+def unbounded_likelihood():
+    rng = np.random.default_rng(0)
+    x = np.concatenate([rng.normal(-2, 1, 60), rng.normal(2, 1, 60)])
+    x0, xm, xs = x[0], x.mean(), x.std()
+
+    es = np.arange(0, -61, -2.0)
+    sig = 10.0 ** es
+    free = np.array([_gmm_ll(x, [x0, xm], [s, xs], [.5, .5]) for s in sig])
+    tied = np.array([_gmm_ll(x, [x0, xm], [s, s], [.5, .5]) for s in sig])
+
+    # 기울기가 십년자리마다 ln10 인가 (멀리서)
+    slope = (free[-1] - free[-6]) / (es[-6] - es[-1])
+    assert abs(slope - np.log(10)) < 1e-6, "기울기가 -log(sigma) 여야 한다"
+    base = free[0]
+    cross = sig[np.argmax(free > base)]
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.4))
+    ax.plot(-es, free, "-", color=ACCENT, linewidth=2.2,
+            label="each component its own variance")
+    ax.plot(-es, tied, "--", color=INK, linewidth=1.9,
+            label="one shared variance")
+    ax.axhline(base, color=INK, linestyle=":", linewidth=1.1, alpha=0.7)
+    ax.annotate(f"value at sigma = 1", xy=(3, base), xytext=(6, 14),
+                textcoords="offset points", fontsize=8, color=INK, alpha=0.8)
+    ax.annotate(f"crosses it at sigma = {cross:.0e},\nand keeps going",
+                xy=(-np.log10(cross), base), xytext=(-78, 44),
+                textcoords="offset points", ha="center", fontsize=8.2,
+                color=ACCENT,
+                arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9))
+    ax.text(0.97, 0.10, f"slope {slope:.3f} per decade  (= ln 10)",
+            transform=ax.transAxes, ha="right", fontsize=8.4, color=ACCENT)
+
+    ax.set_xlabel("how far the variance is driven down  "
+                  "(decades below 1)", fontsize=9)
+    ax.set_ylabel("log-likelihood", fontsize=9)
+    ax.set_title("pin one mean to a data point and shrink its variance",
+                 fontsize=10, color=INK, weight="bold")
+    # 묶은 쪽은 곧바로 바닥을 뚫고 내려간다. 보이는 데까지만 두고 간 곳을 적는다.
+    ax.set_ylim(base - 220, free.max() + 30)
+    deep = tied[np.argmin(np.abs(-es - 4))]
+    ax.annotate(f"off the bottom:\n{deep:,.0f} at 4 decades",
+                xy=(4, base - 200), xytext=(34, 28),
+                textcoords="offset points", fontsize=8, color=INK,
+                arrowprops=dict(arrowstyle="->", color=INK, lw=0.9,
+                                alpha=0.8))
+    ax.legend(fontsize=8.4, framealpha=0.92, loc="lower left")
+    ax.grid(alpha=0.13)
+    style(ax)
+
+    fig.text(0.5, -0.04,
+             "there is no maximum to find. the useful estimate is a local "
+             "one, not the largest.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "unbounded_likelihood.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote unbounded_likelihood.svg   slope {slope:.4f}  "
+          f"crosses at {cross:.0e}")
+
+
 if __name__ == "__main__":
     monotone_but_not_global()
+    unbounded_likelihood()
