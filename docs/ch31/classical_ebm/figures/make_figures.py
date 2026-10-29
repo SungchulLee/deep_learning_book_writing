@@ -234,6 +234,109 @@ def restriction_buys():
     plt.close(fig)
     print(f"wrote restriction_buys.svg   KL = {kl:.4f}   maxcorr = {rmax:.3f}")
 
+
+
+# === 그림으로 보는 AI: 규칙은 단순한데 값은 비싸다 =============================
+#
+# AHS 1985 의 학습 규칙은 **상관 둘의 차**뿐이고 결합마다 제 두 단위만 보면 된다.
+# 그런데 그 둘이 모두 **평형 평균**이라, 갱신 한 번마다 사슬을 충분히 돌려야 한다.
+# 작은 BM 에서 정확한 값을 전부 열거해 놓고, 깁스 표본 수를 바꿔 가며 재어 본다.
+
+def bm_price():
+    import itertools
+
+    rng = np.random.default_rng(0)
+    n, nvis = 10, 6
+    S = np.array(list(itertools.product([-1, 1], repeat=n)), dtype=float)
+    W = rng.normal(0, 0.35, (n, n))
+    W = (W + W.T) / 2
+    np.fill_diagonal(W, 0.0)
+
+    E = -0.5 * np.einsum("si,ij,sj->s", S, W, S)
+    p = np.exp(-E - (-E).min())
+    p /= p.sum()
+    exact_neg = np.einsum("s,si,sj->ij", p, S, S)
+
+    vclamp = S[rng.integers(len(S))][:nvis]
+    mask = (S[:, :nvis] == vclamp).all(1)
+    pc = p[mask] / p[mask].sum()
+    exact_pos = np.einsum("s,si,sj->ij", pc, S[mask], S[mask])
+    g = exact_pos - exact_neg
+    iu = np.triu_indices(n, 1)
+
+    def gibbs(nsamp, burn, rr, clamp=None):
+        s = rr.choice([-1.0, 1.0], n)
+        acc = np.zeros((n, n))
+        for t in range(burn + nsamp):
+            for i in range(n):
+                if clamp is not None and i < nvis:
+                    s[i] = clamp[i]
+                    continue
+                s[i] = 1.0 if rr.random() < 1 / (1 + np.exp(-2 * (W[i] @ s))) \
+                    else -1.0
+            if t >= burn:
+                acc += np.outer(s, s)
+        return acc / nsamp
+
+    counts = (50, 200, 1000, 5000)
+    err, sign = [], []
+    for ns in counts:
+        es, ss = [], []
+        for r in range(8):
+            rr = np.random.default_rng(100 + r)
+            gh = gibbs(ns, 50, rr, clamp=vclamp) - gibbs(ns, 50, rr)
+            es.append(np.linalg.norm(gh[iu] - g[iu]) / np.linalg.norm(g[iu]))
+            ss.append((np.sign(gh[iu]) == np.sign(g[iu])).mean())
+        err.append(float(np.mean(es)))
+        sign.append(float(np.mean(ss)))
+
+    assert err[0] > err[-1], "표본을 늘리면 오차가 줄어야 한다"
+    assert sign[0] < 0.9, f"짧은 사슬에서는 부호부터 틀려야 한다: {sign[0]:.3f}"
+    assert sign[-1] > 0.97, "길게 돌리면 부호는 맞아야 한다"
+
+    fig, ax = plt.subplots(figsize=(6.6, 4.2))
+    ax2 = ax.twinx()
+
+    l1 = ax.semilogx(counts, err, "o-", color=ACCENT, ms=6, linewidth=2.0,
+                     label="relative error of the update")
+    l2 = ax2.semilogx(counts, [s * 100 for s in sign], "s--", color=MUTED,
+                      ms=6, linewidth=2.0,
+                      label="weights pushed the right way")
+
+    ax.set_xlabel("Gibbs samples per phase, per single weight update",
+                  fontsize=9)
+    ax.set_ylabel("relative error", fontsize=9, color=ACCENT)
+    ax2.set_ylabel("correct sign  (%)", fontsize=9, color=MUTED)
+    ax.set_ylim(0, max(err) * 1.25)
+    ax2.set_ylim(80, 101)
+    ax.tick_params(labelsize=8, colors=INK)
+    ax2.tick_params(labelsize=8, colors=INK)
+    ax.grid(alpha=0.13, which="both")
+
+    ax2.annotate(f"{(1-sign[0])*100:.0f}% of weights move\nthe wrong way",
+                 xy=(counts[0], sign[0] * 100),
+                 xytext=(170, 83.5), fontsize=8.4, color=MUTED,
+                 arrowprops=dict(arrowstyle="->", color=MUTED, lw=0.9))
+
+    ax.set_title("the rule is two correlations. the price is equilibrium.",
+                 fontsize=10, color=INK, weight="bold", pad=9)
+    ax.legend(handles=l1 + l2, fontsize=8.2, loc="center right",
+              framealpha=0.92)
+    for s_ in list(ax.spines.values()) + list(ax2.spines.values()):
+        s_.set_color(INK)
+        s_.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"{n} units ({nvis} visible), exact values enumerated over all "
+             f"{2**n:,} states.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "bm_price.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote bm_price.svg   err {err[0]:.3f}->{err[-1]:.3f}   "
+          f"sign {sign[0]:.3f}->{sign[-1]:.3f}")
+
 if __name__ == "__main__":
     capacity_two_questions()
     restriction_buys()
+    bm_price()
