@@ -14,17 +14,190 @@
 """
 
 import numpy as np
-import sys
+
 
 # ========================================================================
-# 메인
+# 견줄 최적화기 셋 — 직접 구현한 것이다
 # ========================================================================
 
+class Adam:
+    """
+    Adam 최적화기의 구현.
+    
+    매개변수:
+    -----------
+    learning_rate : float, 기본값=0.001
+        매개변수 갱신의 걸음 크기
+    beta1 : float, 기본값=0.9
+        일차 모멘트 추정값의 지수 감쇠율
+    beta2 : float, 기본값=0.999
+        이차 모멘트 추정값의 지수 감쇠율
+    epsilon : float, 기본값=1e-8
+        수치 안정성을 위한 작은 상수
+    """
+    
+    def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
+        self.learning_rate = learning_rate
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.epsilon = epsilon
+        
+        # 상태 변수
+        self.m = {}  # 일차 모멘트 벡터 (기울기의 평균)
+        self.v = {}  # 이차 모멘트 벡터 (기울기의 분산)
+        self.t = 0   # 시각
+    
+    def update(self, params, grads):
+        """
+        Adam 알고리즘으로 매개변수를 갱신한다.
+        
+        매개변수:
+        -----------
+        params : dict
+            갱신할 매개변수의 사전
+        grads : dict
+            매개변수별 기울기의 사전
+        
+        반환값:
+        --------
+        dict : 갱신된 매개변수
+        """
+        self.t += 1
+        
+        updated_params = {}
+        
+        for key in params.keys():
+            # 모멘트 벡터가 없으면 초기화
+            if key not in self.m:
+                self.m[key] = np.zeros_like(params[key])
+                self.v[key] = np.zeros_like(params[key])
+            
+            # 치우친 일차 모멘트 추정값 갱신
+            self.m[key] = self.beta1 * self.m[key] + (1 - self.beta1) * grads[key]
+            
+            # 치우친 이차 원시 모멘트 추정값 갱신
+            self.v[key] = self.beta2 * self.v[key] + (1 - self.beta2) * (grads[key] ** 2)
+            
+            # 편향을 보정한 일차 모멘트 추정값 계산
+            m_hat = self.m[key] / (1 - self.beta1 ** self.t)
+            
+            # 편향을 보정한 이차 원시 모멘트 추정값 계산
+            v_hat = self.v[key] / (1 - self.beta2 ** self.t)
+            
+            # 매개변수 갱신
+            updated_params[key] = params[key] - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
+        
+        return updated_params
 
-# 우리가 만든 최적화기 구현 가져오기
-from adam_optimizer import Adam
-from rmsprop_optimizer import RMSprop
-from adagrad_optimizer import AdaGrad
+
+class RMSprop:
+    """
+    RMSprop 최적화기의 구현.
+    
+    매개변수:
+    -----------
+    learning_rate : float, 기본값=0.001
+        매개변수 갱신의 걸음 크기
+    rho : float, 기본값=0.9
+        기울기 제곱의 이동 평균에 대한 감쇠율
+    epsilon : float, 기본값=1e-8
+        수치 안정성을 위한 작은 상수
+    """
+    
+    def __init__(self, learning_rate=0.001, rho=0.9, epsilon=1e-8):
+        self.learning_rate = learning_rate
+        self.rho = rho
+        self.epsilon = epsilon
+        
+        # 상태 변수
+        self.cache = {}  # 기울기 제곱의 이동 평균
+    
+    def update(self, params, grads):
+        """
+        RMSprop 알고리즘으로 매개변수를 갱신한다.
+        
+        매개변수:
+        -----------
+        params : dict
+            갱신할 매개변수의 사전
+        grads : dict
+            매개변수별 기울기의 사전
+        
+        반환값:
+        --------
+        dict : 갱신된 매개변수
+        """
+        updated_params = {}
+        
+        for key in params.keys():
+            # 캐시가 없으면 초기화
+            if key not in self.cache:
+                self.cache[key] = np.zeros_like(params[key])
+            
+            # 기울기 제곱의 이동 평균 갱신
+            self.cache[key] = self.rho * self.cache[key] + (1 - self.rho) * (grads[key] ** 2)
+            
+            # 매개변수 갱신
+            # 학습률을 이동 평균의 제곱근으로 나눈다
+            updated_params[key] = params[key] - self.learning_rate * grads[key] / (np.sqrt(self.cache[key]) + self.epsilon)
+        
+        return updated_params
+
+
+class AdaGrad:
+    """
+    AdaGrad 최적화기의 구현.
+    
+    매개변수:
+    -----------
+    learning_rate : float, 기본값=0.01
+        처음 학습률 (전역 걸음 크기)
+    epsilon : float, 기본값=1e-8
+        수치 안정성을 위한 작은 상수
+    """
+    
+    def __init__(self, learning_rate=0.01, epsilon=1e-8):
+        self.learning_rate = learning_rate
+        self.epsilon = epsilon
+        
+        # 상태 변수
+        self.cache = {}  # 누적된 기울기 제곱의 합
+    
+    def update(self, params, grads):
+        """
+        AdaGrad 알고리즘으로 매개변수를 갱신한다.
+        
+        매개변수:
+        -----------
+        params : dict
+            갱신할 매개변수의 사전
+        grads : dict
+            매개변수별 기울기의 사전
+        
+        반환값:
+        --------
+        dict : 갱신된 매개변수
+        """
+        updated_params = {}
+        
+        for key in params.keys():
+            # 캐시가 없으면 초기화
+            if key not in self.cache:
+                self.cache[key] = np.zeros_like(params[key])
+            
+            # 기울기 제곱 누적
+            self.cache[key] += grads[key] ** 2
+            
+            # 매개변수 갱신
+            # 학습률을 누적된 기울기 제곱의 제곱근으로 나눈다
+            updated_params[key] = params[key] - self.learning_rate * grads[key] / (np.sqrt(self.cache[key]) + self.epsilon)
+        
+        return updated_params
+
+
+# ========================================================================
+# 시험
+# ========================================================================
 
 
 def test_simple_quadratic():
