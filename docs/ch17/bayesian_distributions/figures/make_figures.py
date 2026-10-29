@@ -199,6 +199,111 @@ def rng_jitter(m):
     return np.random.default_rng(7).uniform(0.15, 0.85, m)
 
 
+# === 그림으로 보는 AI: 라플라스 근사가 듣는 자리와 안 듣는 자리 ==============
+#
+# 로지스틱 우도에는 켤레 사전분포가 없으므로 최빈값에 가우시안을 맞춘다.
+# 자료가 넉넉하면 거의 완벽하다. 자료가 분리되면 사후분포가 한쪽으로 쏠려
+# 가우시안이 **0 과 음수까지 품는 구간**을 내놓는다 — 결론이 달라진다.
+
+def laplace_limits():
+    from scipy import optimize
+
+    tau = 3.0
+
+    def analyse(x, y, lo_g, hi_g):
+        def nlp(b):
+            return -(np.sum(y * b * x - np.log1p(np.exp(b * x)))
+                     - b ** 2 / (2 * tau ** 2))
+        bhat = optimize.minimize_scalar(nlp, bounds=(-40, 40),
+                                        method="bounded").x
+        h = 1e-4
+        H = (nlp(bhat + h) - 2 * nlp(bhat) + nlp(bhat - h)) / h ** 2
+        sd = 1 / np.sqrt(H)
+        g = np.linspace(lo_g, hi_g, 400001)
+        lp = np.array([-nlp(b) for b in g])
+        lp -= lp.max()
+        P = np.exp(lp)
+        P /= np.trapz(P, g)
+        m = np.trapz(g * P, g)
+        s = np.sqrt(np.trapz((g - m) ** 2 * P, g))
+        skew = np.trapz((g - m) ** 3 * P, g) / s ** 3
+        c = np.cumsum(P)
+        c /= c[-1]
+        ex = (g[np.searchsorted(c, 0.025)], g[np.searchsorted(c, 0.975)])
+        la = (bhat - 1.96 * sd, bhat + 1.96 * sd)
+        mask = (g > la[0]) & (g < la[1])
+        held = np.trapz(P[mask], g[mask])
+        return dict(g=g, P=P, bhat=bhat, sd=sd, ex=ex, la=la, held=held,
+                    skew=skew)
+
+    rng = np.random.default_rng(0)
+    xa = rng.normal(0, 1, 200)
+    ya = (rng.random(200) < 1 / (1 + np.exp(-1.5 * xa))).astype(float)
+    A = analyse(xa, ya, -1, 4)
+
+    xb = np.array([-2., -1.5, -1., -0.8, 0.8, 1., 1.5, 2.])
+    yb = np.array([0, 0, 0, 0, 1, 1, 1, 1.])
+    B = analyse(xb, yb, -5, 40)
+
+    # 그림이 제 주장을 확인한다
+    assert A["held"] > 0.94, "자료가 넉넉하면 라플라스가 잘 맞아야 한다"
+    assert B["la"][0] < 0 < B["ex"][0], "분리되면 라플라스 구간만 0 을 품는다"
+    assert B["skew"] > 0.5, "분리된 사후분포는 한쪽으로 쏠려 있다"
+
+    fig, axes = plt.subplots(1, 2, figsize=(10.8, 4.2))
+    for ax, D, title, xlim in (
+            (axes[0], A, "200 points, well mixed", (-0.5, 3.5)),
+            (axes[1], B, "8 points, perfectly separated", (-3, 14))):
+        ax.fill_between(D["g"], 0, D["P"], color=ACCENT, alpha=0.25,
+                        label="exact posterior")
+        ax.plot(D["g"], D["P"], color=ACCENT, linewidth=1.6)
+        gauss = (np.exp(-0.5 * ((D["g"] - D["bhat"]) / D["sd"]) ** 2)
+                 / (D["sd"] * np.sqrt(2 * np.pi)))
+        ax.plot(D["g"], gauss, color=INK, linewidth=1.9, linestyle="--",
+                label="Laplace approximation")
+        top = max(D["P"].max(), gauss.max())
+        for k, (iv, col, lab) in enumerate(
+                ((D["ex"], ACCENT, "exact 95%"),
+                 (D["la"], INK, "Laplace 95%"))):
+            yy = top * (1.12 - 0.09 * k)
+            ax.plot(iv, [yy, yy], color=col, linewidth=4.5,
+                    solid_capstyle="butt")
+            ax.text(iv[1], yy, f"  {lab} [{iv[0]:.2f}, {iv[1]:.2f}]",
+                    fontsize=7.8, color=col, va="center")
+        ax.axvline(0, color=MUTED, linewidth=1.2, linestyle=":")
+        ax.set_xlabel("coefficient", fontsize=9.5)
+        ax.set_title(title, fontsize=10, color=INK, weight="bold")
+        ax.set_xlim(*xlim)
+        ax.set_ylim(0, top * 1.32)
+        ax.grid(alpha=0.12)
+        ax.tick_params(labelsize=8, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+        ax.text(0.03, 0.74,
+                f"its 95% interval really holds {D['held']:.3f}",
+                transform=ax.transAxes, fontsize=8.4, color=INK)
+    axes[0].set_ylabel("density", fontsize=9.5)
+    axes[0].legend(fontsize=8.2, loc="upper right", framealpha=0.92)
+    axes[1].text(0.03, 0.64, "and it reaches past zero",
+                 transform=axes[1].transAxes, fontsize=8.4, color=MUTED,
+                 weight="bold")
+
+    fig.text(0.5, -0.04,
+             "a mode and a curvature cannot see a skewed posterior. "
+             "on the right the two intervals disagree about whether the "
+             "coefficient is positive at all.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "laplace_limits.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote laplace_limits.svg   plentiful holds {A['held']:.4f}   "
+          f"separated holds {B['held']:.4f}  la {B['la'][0]:.2f} vs "
+          f"exact {B['ex'][0]:.2f}")
+
+
 if __name__ == "__main__":
     kriging_variance()
     ridge_is_a_prior()
+    laplace_limits()
