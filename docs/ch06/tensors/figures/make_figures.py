@@ -542,6 +542,76 @@ def shuffling():
           f"shuffled {cos_sh.mean():.3f}   err {err_no:.1e} / {err_sh:.1e}")
 
 
+# === 그림으로 보는 AI: 네 번째 관계 ===========================================
+#
+# IEEE 754 는 두 수 사이에 **네** 가지 관계를 둔다 — 작다, 같다, 크다, 그리고
+# **차례 없음(unordered)**. nan 이 끼면 늘 넷째다. 삼분법을 가정하고 쓴 알고리즘
+# (정렬·이분 탐색·중복 제거) 은 그 자리에서 조용히 어긋난다.
+# 오른쪽의 정렬 결과는 그릴 때마다 실제로 돌려 얻는다.
+
+def fourth_relation():
+    nan = float("nan")
+    a = [3.0, nan, 1.0, 2.0]
+    b = [1.0, nan, 3.0, 2.0]
+    sa, sb = sorted(a), sorted(b)
+
+    def fmt(xs):
+        return "[" + ", ".join("nan" if x != x else f"{x:.0f}" for x in xs) + "]"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 3.9),
+                                   gridspec_kw={"width_ratios": [1, 1.1]})
+
+    # --- 왼쪽: 관계가 셋이 아니라 넷이다 -----------------------------------
+    rels = [("a < b", INK), ("a = b", INK), ("a > b", INK),
+            ("unordered", ACCENT)]
+    for k, (name, col) in enumerate(rels):
+        x = 0.5
+        y = 0.80 - k * 0.165
+        ax1.add_patch(plt.Rectangle((0.16, y - 0.056), 0.68, 0.112,
+                                    facecolor=col, alpha=0.12 if k < 3 else 0.2,
+                                    edgecolor=col, linewidth=1.0))
+        ax1.text(x, y, name, ha="center", va="center", fontsize=10.5,
+                 color=col, family="monospace",
+                 weight="bold" if k == 3 else "normal")
+    ax1.text(0.5, 0.95, "IEEE 754 allows four, not three", ha="center",
+             fontsize=9.2, color=INK, style="italic")
+    ax1.text(0.5, 0.10,
+             "any comparison with nan lands in the fourth,\n"
+             "including nan against itself.",
+             ha="center", va="center", fontsize=8.6, color=ACCENT)
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0, 1.04)
+    ax1.axis("off")
+
+    # --- 오른쪽: 삼분법을 믿은 정렬이 하는 일 -------------------------------
+    rows = [("sorted(", fmt(a), ")", fmt(sa), sa == sorted(x for x in sa)),
+            ("sorted(", fmt(b), ")", fmt(sb), None)]
+    ax2.text(0.5, 0.92, "Python's sort assumes three", ha="center",
+             fontsize=9.2, color=INK, style="italic")
+    for k, (pre, src, post, out, _) in enumerate(rows):
+        y = 0.66 - k * 0.30
+        ax2.text(0.04, y, f"{pre}{src}{post}", fontsize=10, color=INK,
+                 family="monospace", va="center")
+        ax2.text(0.04, y - 0.125, f"   -> {out}", fontsize=10, color=ACCENT,
+                 family="monospace", va="center")
+    ax2.text(0.5, 0.07,
+             "same four values, different order in,\n"
+             "and the first result is not sorted at all.",
+             ha="center", va="center", fontsize=8.6, color=INK)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1.04)
+    ax2.axis("off")
+
+    fig.text(0.5, -0.02,
+             "no exception, no warning. the list just comes back wrong.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "fourth_relation.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote fourth_relation.svg   {fmt(a)} -> {fmt(sa)}")
+
+
 if __name__ == "__main__":
     tensor_word()
     arange_promise()
@@ -549,3 +619,4 @@ if __name__ == "__main__":
     no_formula()
     buffer_protocol()
     shuffling()
+    fourth_relation()
