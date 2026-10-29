@@ -198,6 +198,70 @@ def model_free():
           f"err {errs[0]:.2f} -> {errs[-1]:.2f}")
 
 
+# === 그림으로 보는 AI: 공로가 뒤로 기어가는 속도 ==============================
+#
+# 길이 10 복도. 끝에서만 리워드 1 이 온다. TD(0) 은 한 에피소드에 한 칸씩만
+# 뒤로 밀어 주므로 시작 상태에 닿기까지 **열 번**이 걸린다. 몬테카를로는
+# 첫 판에 바로 닿는다. 민스키가 1961 년에 이름 붙인 그 문제의 모습이다.
+
+def credit_crawl():
+    N, ALPHA, N_EP = 10, 0.5, 40
+
+    def run(bootstrap):
+        V = np.zeros(N + 1)
+        hist = []
+        for _ in range(N_EP):
+            for i in range(N):
+                r = 1.0 if i == N - 1 else 0.0
+                if bootstrap:                       # TD(0)
+                    target = r + (0.0 if i == N - 1 else V[i + 1])
+                else:                               # 몬테카를로
+                    target = 1.0
+                V[i] += ALPHA * (target - V[i])
+            hist.append(float(V[0]))
+        return np.array(hist)
+
+    td, mc = run(True), run(False)
+    first_td = int(np.argmax(td > 1e-9)) + 1
+    first_mc = int(np.argmax(mc > 1e-9)) + 1
+    assert first_td == N, f"한 칸씩 기어가지 않았다: {first_td} vs {N}"
+    assert first_mc == 1, f"몬테카를로가 첫 판에 닿지 않았다: {first_mc}"
+
+    e = np.arange(1, N_EP + 1)
+    fig, ax = plt.subplots(figsize=(7.8, 4.3))
+    ax.plot(e, mc, "s--", color=INK, linewidth=1.8, ms=4,
+            label="Monte Carlo: the whole return, at once")
+    ax.plot(e, td, "o-", color=ACCENT, linewidth=2.2, ms=4,
+            label="TD(0): one step of credit per episode")
+    ax.axvline(N, color=ACCENT, linestyle=":", linewidth=1.2)
+    ax.annotate(f"the reward first reaches\nthe start on episode {first_td}",
+                xy=(N, 0.0), xytext=(N + 2.5, 0.30), fontsize=8.8,
+                color=ACCENT,
+                arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.0))
+    ax.set_xlabel("episodes", fontsize=9.5)
+    ax.set_ylabel("value learned for the starting state", fontsize=9.5)
+    ax.set_title(f"a corridor of {N}, rewarded only at the end",
+                 fontsize=10.5, color=INK, weight="bold")
+    ax.legend(fontsize=8.6, loc="center right", framealpha=0.92)
+    ax.grid(alpha=0.13)
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "this walk is deterministic, so Monte Carlo has no variance to "
+             "pay here. that is what makes it look free.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "credit_crawl.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote credit_crawl.svg   TD reaches start on episode "
+          f"{first_td}, MC on {first_mc}")
+
+
 if __name__ == "__main__":
     contraction()
     model_free()
+    credit_crawl()
