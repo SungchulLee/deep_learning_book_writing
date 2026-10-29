@@ -50,7 +50,7 @@ book_name/
 
 **No `.py` beside a page.** A page's whole program and whole output live in its
 `.md`; see "Add a Python example" below. `figures/make_figures.py` is the only
-`.py` to create under `docs/` — a few grandfathered exceptions are listed there.
+`.py` to create under `docs/`.
 
 ## Agent Commands (Quick Reference)
 
@@ -322,8 +322,11 @@ Why: a sibling `.py` and its page drift apart, and the page is the artifact. It 
 happened here — `b12724e1` retermed the markdown and left the extracted copies printing the
 old words. `verify_outputs.py` only reads the `.md`, so the drift is invisible to CI.
 
-> **Legacy.** 43 pages in ch08–ch40 still have a `.py` beside them, because other pages
-> `import` them as shared modules (`from adam_optimizer import Adam`, `import cnn_utils as
-> utils`); 51 pages depend on them and they cannot simply be deleted. Treat them as
-> grandfathered — do not add more, and do not delete one without inlining it into every page
-> that imports it.
+> **No page has a `.py` beside it any more.** The 43 that other pages used to `import` as
+> shared modules were inlined into their importers and removed. If you find yourself wanting
+> a module two pages share, put the code in both — duplication across pages is the price of
+> each page standing alone, and it is the price this book pays.
+
+Separate from all of this, a few directories hold genuine importable packages with no page of
+their own (`ch26/training/models/vae.py`, `ch12/pretrained_models/utils/positional_encoding.py`,
+`*/\_\_init\_\_.py`). Those are libraries, not page companions, and are out of scope here.
