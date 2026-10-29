@@ -612,6 +612,112 @@ def fourth_relation():
     print(f"wrote fourth_relation.svg   {fmt(a)} -> {fmt(sa)}")
 
 
+# === 그림으로 보는 AI: 싼 그래디언트와 비싼 야코비안 ==========================
+#
+# 바우어-슈트라센 1983 은 **비스칼라 복잡도** L 에 대해 L(f, 모든 편미분) <= 3L(f)
+# 를 보였다. 재는 잣대가 벽시계가 아니므로 왼쪽 판에 그렇게 적어 둔다 — 여기서
+# 보이려는 것은 상수 3 자체가 아니라 **파라메터를 늘려도 비가 늘지 않는다**는 것.
+# 오른쪽은 출력이 벡터가 되면 줄 수만큼 든다는 것. 둘 다 직접 잰다.
+
+def cheap_gradient():
+    import time
+
+    import torch
+
+    def bench(fn, reps=120, rounds=7):
+        """최소값을 쓴다 — 벽시계는 위로만 튄다."""
+        for _ in range(20):
+            fn()
+        best = None
+        for _ in range(rounds):
+            t0 = time.perf_counter()
+            for _ in range(reps):
+                fn()
+            t = (time.perf_counter() - t0) / reps * 1e3
+            best = t if best is None else min(best, t)
+        return best
+
+    torch.manual_seed(0)
+    pars, ratio = [], []
+    for h in (64, 256, 1024, 4096):
+        net = torch.nn.Sequential(torch.nn.Linear(256, h), torch.nn.Tanh(),
+                                  torch.nn.Linear(h, 1))
+        x = torch.randn(512, 256)
+
+        def ev():                      # 그래프를 만들지 않고 값만
+            with torch.no_grad():
+                net(x).sum()
+
+        def gr():                      # 값과 **모든** 편미분
+            net.zero_grad(set_to_none=True)
+            net(x).sum().backward()
+
+        pars.append(sum(p.numel() for p in net.parameters()))
+        ratio.append(bench(gr) / bench(ev))
+
+    ms, jac = [], []
+    for m in (1, 2, 4, 8, 16, 32):
+        nt = torch.nn.Sequential(torch.nn.Linear(64, 128), torch.nn.Tanh(),
+                                 torch.nn.Linear(128, m))
+        xv = torch.randn(1, 64)
+        ms.append(m)
+        jac.append(bench(
+            lambda: torch.autograd.functional.jacobian(lambda z: nt(z), xv),
+            reps=15, rounds=3))
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1))
+
+    # --- 왼쪽: 비가 늘지 않는다 --------------------------------------------
+    ax1.semilogx(pars, ratio, "o-", color=ACCENT, linewidth=2.0, ms=6)
+    ax1.axhline(3, color=INK, linestyle="--", linewidth=1.2, alpha=0.65)
+    ax1.text(pars[0], 3.08, "  the constant 3 in the theorem", fontsize=8,
+             color=INK, alpha=0.8)
+    ax1.set_xlabel("number of parameters", fontsize=9)
+    ax1.set_ylabel("cost of all gradients / cost of the value",
+                   fontsize=9)
+    ax1.set_title("scalar output: the ratio does not grow", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.set_ylim(0, max(4.2, max(ratio) * 1.25))
+    ax1.grid(alpha=0.13, which="both")
+    ax1.text(0.5, 0.055,
+             "wall clock is not the theorem's measure -\n"
+             "the flatness is the point, not the number",
+             transform=ax1.transAxes, ha="center", fontsize=7.8,
+             color=INK, alpha=0.75, style="italic")
+
+    # --- 오른쪽: 줄마다 한 번씩 -------------------------------------------
+    ax2.plot(ms, jac, "o-", color=ACCENT, linewidth=2.0, ms=6,
+             label="measured")
+    # m 배의 기준선은 고정 비용까지 m 번 세므로 쓰지 않는다. 직선을 맞춘다.
+    slope, intercept = np.polyfit(ms, jac, 1)
+    ax2.plot(ms, [slope * m + intercept for m in ms], ":", color=INK,
+             linewidth=1.4,
+             label=f"straight line, {slope*1000:.0f} us per row")
+    ax2.set_xlabel("size of the output", fontsize=9)
+    ax2.set_ylabel("time for the full jacobian (ms)", fontsize=9)
+    ax2.set_title("vector output: you pay per row", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8.2, loc="upper left", framealpha=0.9)
+    ax2.grid(alpha=0.13)
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "one backward pass hands back every partial derivative at once - "
+             "but only when the output is one number.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "cheap_gradient.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote cheap_gradient.svg   ratios "
+          f"{[round(r,2) for r in ratio]}   jac {jac[0]:.3f}->{jac[-1]:.3f}ms")
+
+
 if __name__ == "__main__":
     tensor_word()
     arange_promise()
@@ -620,3 +726,4 @@ if __name__ == "__main__":
     buffer_protocol()
     shuffling()
     fourth_relation()
+    cheap_gradient()
