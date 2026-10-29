@@ -21,14 +21,182 @@ Fashion-MNIST 데이터셋으로 CNN 학습시키기
 
 import torch.nn as nn
 import torch.optim as optim
-import cnn_utils as utils
+import argparse
+import torch
+import torch.nn.functional as F
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+
+# --- cnn_utils 에서 이 쪽이 쓰는 것만 ---
+def parse_args():
+    parser = argparse.ArgumentParser(description='PyTorch CNN Training')
+    parser.add_argument('--batch-size', type=int, default=64)
+    parser.add_argument('--test-batch-size', type=int, default=1000)
+    parser.add_argument('--epochs', type=int, default=14)
+    parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--momentum', type=float, default=0.5)
+    parser.add_argument('--gamma', type=float, default=0.7)
+    parser.add_argument('--no-cuda', action='store_true', default=False)
+    parser.add_argument('--no-mps', action='store_true', default=False)
+    parser.add_argument('--dry-run', action='store_true', default=False)
+    parser.add_argument('--seed', type=int, default=1)
+    parser.add_argument('--log-interval', type=int, default=10)
+    parser.add_argument('--save-model', action='store_true', default=False)
+    parser.add_argument('--path', type=str, default='./model.pth')
+    args = parser.parse_args()
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    use_mps = not args.no_mps and torch.backends.mps.is_available()
+    if use_cuda:
+        args.device = torch.device("cuda")
+    elif use_mps:
+        args.device = torch.device("mps")
+    else:
+        args.device = torch.device("cpu")
+    return args
+
+
+def set_seed(seed=1):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def load_data(train_kwargs, test_kwargs, fashion_mnist=False, cifar10=False):
+    if cifar10:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+        test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    else:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        dataset_class = datasets.FashionMNIST if fashion_mnist else datasets.MNIST
+        train_dataset = dataset_class(root='./data', train=True, download=True, transform=transform)
+        test_dataset = dataset_class(root='./data', train=False, download=True, transform=transform)
+    train_loader = DataLoader(train_dataset, **train_kwargs)
+    test_loader = DataLoader(test_dataset, **test_kwargs)
+    return train_loader, test_loader
+
+
+class CNN(nn.Module):
+    """MNIST와 Fashion-MNIST를 위한 기본 CNN."""
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.dropout1 = nn.Dropout(0.25)
+        self.dropout2 = nn.Dropout(0.5)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.dropout1(self.pool(F.relu(self.conv1(x))))
+        x = self.dropout1(self.pool(F.relu(self.conv2(x))))
+        x = x.view(-1, 64 * 7 * 7)
+        x = self.dropout2(F.relu(self.fc1(x)))
+        x = self.fc2(x)
+        return x
+
+
+def train(model, train_loader, loss_fn, optimizer, scheduler, device, epochs, log_interval=10, dry_run=False):
+    model.train()
+    for epoch in range(1, epochs + 1):
+        running_loss, correct, total = 0.0, 0, 0
+        for batch_idx, (data, target) in enumerate(train_loader):
+            data, target = data.to(device), target.to(device)
+            optimizer.zero_grad()
+            output = model(data)
+            loss = loss_fn(output, target)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+            _, predicted = output.max(1)
+            total += target.size(0)
+            correct += predicted.eq(target).sum().item()
+            if batch_idx % log_interval == 0:
+                print(f'Epoch: {epoch}/{epochs} [{batch_idx * len(data)}/{len(train_loader.dataset)} '
+                      f'({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}')
+            if dry_run:
+                break
+        epoch_acc = 100. * correct / total
+        print(f'Epoch {epoch}: Avg Loss: {running_loss / len(train_loader):.4f}, Acc: {epoch_acc:.2f}%\n')
+        scheduler.step()
+
+
+def compute_accuracy(model, test_loader, device):
+    model.eval()
+    correct, total = 0, 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            _, predicted = output.max(1)
+            total += target.size(0)
+            correct += predicted.eq(target).sum().item()
+    accuracy = 100. * correct / total
+    print(f'Test Accuracy: {correct}/{total} ({accuracy:.2f}%)')
+    return accuracy
+
+
+def show_batch_or_ten_images_with_label_and_predict(test_loader, model, device,
+                                                      classes=None, n=10, cifar10=False):
+    model.eval()
+    images, labels = next(iter(test_loader))
+    images, labels = images.to(device), labels.to(device)
+    with torch.no_grad():
+        outputs = model(images)
+        _, predictions = outputs.max(1)
+    images, labels, predictions = images.cpu(), labels.cpu(), predictions.cpu()
+    n_display = min(n, len(images))
+    cols = min(5, n_display)
+    rows = (n_display + cols - 1) // cols
+    fig, axes = plt.subplots(rows, cols, figsize=(2*cols, 2*rows))
+    if n_display == 1:
+        axes = [axes]
+    else:
+        axes = axes.flatten()
+    for idx in range(n_display):
+        ax = axes[idx]
+        img = images[idx]
+        if cifar10:
+            img = (img / 2 + 0.5).permute(1, 2, 0)
+            ax.imshow(img.numpy())
+        else:
+            img = img.squeeze() / 2 + 0.5
+            ax.imshow(img.numpy(), cmap='gray')
+        true_label = labels[idx].item()
+        pred_label = predictions[idx].item()
+        title = f'True: {classes[true_label]}\nPred: {classes[pred_label]}' if classes else f'True: {true_label}\nPred: {pred_label}'
+        color = 'green' if true_label == pred_label else 'red'
+        ax.set_title(title, fontsize=8, color=color)
+        ax.axis('off')
+    for idx in range(n_display, len(axes)):
+        axes[idx].axis('off')
+    plt.tight_layout()
+    plt.show()
+
+
+def save_model(model, path):
+    torch.save(model.state_dict(), path)
+    print(f"Model saved to {path}")
 
 # =============================================================================
 # 설정
 # =============================================================================
 
-cfg = utils.parse_args()
-utils.set_seed(seed=cfg.seed)
+cfg = parse_args()
+set_seed(seed=cfg.seed)
 
 FASHION_LABELS = ("T-shirt/top", "Trouser", "Pullover", "Dress", "Coat",
                   "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot")
@@ -44,7 +212,7 @@ FASHION_LABELS = ("T-shirt/top", "Trouser", "Pullover", "Dress", "Coat",
 # - 이미지마다: 28x28 회색조 (채널 1개)
 train_kwargs = {'batch_size': cfg.batch_size, 'shuffle': True}
 test_kwargs = {'batch_size': cfg.test_batch_size, 'shuffle': False}
-trainloader, testloader = utils.load_data(
+trainloader, testloader = load_data(
     train_kwargs, test_kwargs, fashion_mnist=True
 )
 
@@ -52,11 +220,11 @@ trainloader, testloader = utils.load_data(
 # 모델 준비
 # =============================================================================
 
-# utils.CNN 은 3x3 필터 32장과 64장을 쓰는 컨볼루션 레이어 둘에 완전 연결 레이어 둘을
+# CNN 은 3x3 필터 32장과 64장을 쓰는 컨볼루션 레이어 둘에 완전 연결 레이어 둘을
 # 얹은 것으로, ch03/mnist/04_cnn.md 의 구조와 같다. 파라메터는 모두
 # 421,642개인데 그 가운데 fc1 하나가 3136 x 128 + 128 = 401,536개, 곧
 # 95.2%를 차지한다.
-model = utils.CNN().to(cfg.device)
+model = CNN().to(cfg.device)
 loss_ftn = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=cfg.lr, momentum=cfg.momentum)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=cfg.gamma)
@@ -65,7 +233,7 @@ scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=cfg.gamma)
 # 학습
 # =============================================================================
 
-utils.train(
+train(
     model, trainloader, loss_ftn, optimizer, scheduler,
     cfg.device, cfg.epochs, cfg.log_interval, cfg.dry_run
 )
@@ -77,17 +245,17 @@ utils.train(
 # 시험 집합 첫 배치에서 10장을 골라 참값과 예측을 나란히 그린다. 맞으면
 # 제목이 초록, 틀리면 빨강이다. 그림 창에만 뜨고 표준 출력에는 아무것도
 # 남기지 않으므로, 아래 출력 블록에는 이 줄의 자취가 없다.
-utils.show_batch_or_ten_images_with_label_and_predict(
+show_batch_or_ten_images_with_label_and_predict(
     testloader, model, cfg.device, classes=FASHION_LABELS, n=10
 )
 # compute_accuracy 가 안에서 이미 'Test Accuracy: 8584/10000 (85.84%)' 를
 # 찍고 값을 돌려준다. 바로 아래 print 는 그 돌려받은 값을 다시 찍는 것이라,
 # 출력 끝에 같은 수가 두 줄 나온다. 잘못이 아니라 겹친 것이다.
-test_accuracy = utils.compute_accuracy(model, testloader, cfg.device)
+test_accuracy = compute_accuracy(model, testloader, cfg.device)
 print(f"Test Accuracy: {test_accuracy:.2f}%")
 
 if cfg.save_model:
-    utils.save_model(model, cfg.path)
+    save_model(model, cfg.path)
 
 
 if __name__ == "__main__":
@@ -1620,7 +1788,7 @@ MNIST 예제는 Adam으로 10에포크 학습하고 이 예제는 모멘텀 SGD�
 
     # 아래는 모델과 최적화기를 갓 만든 자리에서 돌린다는 전제다. 위에서
     # 14세대를 이미 돌린 model 을 그대로 쓰면 학습 이력이 섞인다.
-    model = utils.CNN().to(cfg.device)
+    model = CNN().to(cfg.device)
     optimizer = optim.SGD(model.parameters(), lr=cfg.lr, momentum=cfg.momentum)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=cfg.gamma)
 
@@ -1647,7 +1815,7 @@ MNIST 예제는 Adam으로 10에포크 학습하고 이 예제는 모멘텀 SGD�
 
         # 검증 집합으로 평가한다 (시험 집합이 아니다). compute_accuracy 는
         # 어느 적재기를 주든 'Test Accuracy:' 라고 찍으니 화면에 속지 말 것.
-        val_acc = utils.compute_accuracy(model, val_loader, cfg.device)
+        val_acc = compute_accuracy(model, val_loader, cfg.device)
 
         if val_acc > best_acc:
             best_acc = val_acc

@@ -31,7 +31,71 @@ MNIST 데이터셋 시각화
 """
 
 import matplotlib.pyplot as plt
-import cnn_utils as utils
+import argparse
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import numpy as np
+import random
+
+# --- cnn_utils 에서 이 쪽이 쓰는 것만 ---
+def parse_args():
+    parser = argparse.ArgumentParser(description='PyTorch CNN Training')
+    parser.add_argument('--batch-size', type=int, default=64)
+    parser.add_argument('--test-batch-size', type=int, default=1000)
+    parser.add_argument('--epochs', type=int, default=14)
+    parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--momentum', type=float, default=0.5)
+    parser.add_argument('--gamma', type=float, default=0.7)
+    parser.add_argument('--no-cuda', action='store_true', default=False)
+    parser.add_argument('--no-mps', action='store_true', default=False)
+    parser.add_argument('--dry-run', action='store_true', default=False)
+    parser.add_argument('--seed', type=int, default=1)
+    parser.add_argument('--log-interval', type=int, default=10)
+    parser.add_argument('--save-model', action='store_true', default=False)
+    parser.add_argument('--path', type=str, default='./model.pth')
+    args = parser.parse_args()
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    use_mps = not args.no_mps and torch.backends.mps.is_available()
+    if use_cuda:
+        args.device = torch.device("cuda")
+    elif use_mps:
+        args.device = torch.device("mps")
+    else:
+        args.device = torch.device("cpu")
+    return args
+
+
+def set_seed(seed=1):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def load_data(train_kwargs, test_kwargs, fashion_mnist=False, cifar10=False):
+    if cifar10:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+        test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    else:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        dataset_class = datasets.FashionMNIST if fashion_mnist else datasets.MNIST
+        train_dataset = dataset_class(root='./data', train=True, download=True, transform=transform)
+        test_dataset = dataset_class(root='./data', train=False, download=True, transform=transform)
+    train_loader = DataLoader(train_dataset, **train_kwargs)
+    test_loader = DataLoader(test_dataset, **test_kwargs)
+    return train_loader, test_loader
 
 # =============================================================================
 # 1절: 설정과 준비
@@ -43,7 +107,7 @@ print("=" * 70)
 
 # 명령줄 인자 구문 분석
 # 기본 설정(배치 크기, 씨앗 등)을 불러온다
-cfg = utils.parse_args()
+cfg = parse_args()
 
 print("\nConfiguration:")
 print(f"  Learning rate: {cfg.lr}")
@@ -54,7 +118,7 @@ print(f"  Device: {cfg.device}")
 
 # 재현성을 위해 난수 씨앗 고정
 # 실행할 때마다 같은 결과가 나오도록 한다
-utils.set_seed(seed=cfg.seed)
+set_seed(seed=cfg.seed)
 print(f"\nRandom seed set to {cfg.seed} for reproducibility")
 
 # =============================================================================
@@ -74,7 +138,7 @@ test_kwargs = {'batch_size': cfg.test_batch_size, 'shuffle': False}
 # - 시험 집합: 이미지 10,000장
 # - 이미지마다: 28x28 회색조 (채널 1개)
 # - 부류: 10개 (숫자 0-9)
-trainloader, testloader = utils.load_data(train_kwargs, test_kwargs)
+trainloader, testloader = load_data(train_kwargs, test_kwargs)
 
 print("\nDataset loaded successfully!")
 print(f"  Training batches: {len(trainloader)}")

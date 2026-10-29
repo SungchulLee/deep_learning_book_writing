@@ -27,7 +27,71 @@ CIFAR-10(캐나다 고등 연구원):
 """
 
 import matplotlib.pyplot as plt
-import cnn_utils as utils
+import argparse
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import numpy as np
+import random
+
+# --- cnn_utils 에서 이 쪽이 쓰는 것만 ---
+def parse_args():
+    parser = argparse.ArgumentParser(description='PyTorch CNN Training')
+    parser.add_argument('--batch-size', type=int, default=64)
+    parser.add_argument('--test-batch-size', type=int, default=1000)
+    parser.add_argument('--epochs', type=int, default=14)
+    parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--momentum', type=float, default=0.5)
+    parser.add_argument('--gamma', type=float, default=0.7)
+    parser.add_argument('--no-cuda', action='store_true', default=False)
+    parser.add_argument('--no-mps', action='store_true', default=False)
+    parser.add_argument('--dry-run', action='store_true', default=False)
+    parser.add_argument('--seed', type=int, default=1)
+    parser.add_argument('--log-interval', type=int, default=10)
+    parser.add_argument('--save-model', action='store_true', default=False)
+    parser.add_argument('--path', type=str, default='./model.pth')
+    args = parser.parse_args()
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    use_mps = not args.no_mps and torch.backends.mps.is_available()
+    if use_cuda:
+        args.device = torch.device("cuda")
+    elif use_mps:
+        args.device = torch.device("mps")
+    else:
+        args.device = torch.device("cpu")
+    return args
+
+
+def set_seed(seed=1):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def load_data(train_kwargs, test_kwargs, fashion_mnist=False, cifar10=False):
+    if cifar10:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+        test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    else:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        dataset_class = datasets.FashionMNIST if fashion_mnist else datasets.MNIST
+        train_dataset = dataset_class(root='./data', train=True, download=True, transform=transform)
+        test_dataset = dataset_class(root='./data', train=False, download=True, transform=transform)
+    train_loader = DataLoader(train_dataset, **train_kwargs)
+    test_loader = DataLoader(test_dataset, **test_kwargs)
+    return train_loader, test_loader
 
 # =============================================================================
 # 1절: CIFAR-10 부류 이름표
@@ -42,8 +106,8 @@ CIFAR10_LABELS = {
 # 2절: 설정과 데이터 적재
 # =============================================================================
 
-cfg = utils.parse_args()
-utils.set_seed(seed=cfg.seed)
+cfg = parse_args()
+set_seed(seed=cfg.seed)
 
 train_kwargs = {'batch_size': cfg.batch_size, 'shuffle': True}
 test_kwargs = {'batch_size': cfg.test_batch_size, 'shuffle': False}
@@ -52,7 +116,7 @@ test_kwargs = {'batch_size': cfg.test_batch_size, 'shuffle': False}
 # - 학습 집합: 이미지 50,000장 (부류마다 5,000장)
 # - 시험 집합: 이미지 10,000장 (부류마다 1,000장)
 # - 이미지마다: 32x32 RGB (채널 3개)
-trainloader, testloader = utils.load_data(
+trainloader, testloader = load_data(
     train_kwargs, test_kwargs, cifar10=True
 )
 
@@ -166,7 +230,7 @@ MNIST에서 CIFAR-10으로 넘어가면 컴퓨터 비전의 근본적인 어려�
 
 자연 사진에는 배경·가림·조명·자세와 크기의 변화가 있다. 이 책의 예제에 기록된 MNIST 99.21%, Fashion-MNIST 85.84%, CIFAR-10 심화 CNN 54.82%는 서로 다른 학습 설정에서 얻은 값이다. 구조, 옵티마이저와 에포크 수도 달라 데이터셋 난이도만의 인과 효과로 해석하거나 각 데이터셋의 달성 가능한 성능으로 취급할 수 없다.
 
-정규화 방식은 세 채널로 넓혀진다. `cnn_utils.py`의 `load_data`는 `Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))`를 써서 채널마다 따로 평균 0.5와 표준편차 0.5로 나누므로, 모든 픽셀 값이 $[-1, 1]$으로 옮겨 간다. 화면에 보이려면 역변환 $(x / 2 + 0.5)$으로 $[0, 1]$ 범위를 되찾아야 한다. 여기에 더해 축을 옮기는 일이 하나 더 붙는다. matplotlib은 $(H, W)$ 또는 $(H, W, C)$를 받는데 PyTorch 텐서는 $(C, H, W)$이다. 회색조 쪽에서는 $C = 1$이라 `.squeeze()`로 길이 1짜리 채널 축을 떨어뜨리면 그대로 $(H, W)$가 되어 축을 옮길 일이 없었다. 여기서는 $C = 3$이라 짜낼 축이 없고, `.permute(1, 2, 0)`이 실제로 축의 차례를 바꾸어 $(3, 32, 32)$를 $(32, 32, 3)$으로 만든다. 회색조 쪽의 `.squeeze()`를 "자리 바꾸기"로 잘못 읽고 오면 이 차이를 놓치게 된다.
+정규화 방식은 세 채널로 넓혀진다. 위 `load_data`는 `Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))`를 써서 채널마다 따로 평균 0.5와 표준편차 0.5로 나누므로, 모든 픽셀 값이 $[-1, 1]$으로 옮겨 간다. 화면에 보이려면 역변환 $(x / 2 + 0.5)$으로 $[0, 1]$ 범위를 되찾아야 한다. 여기에 더해 축을 옮기는 일이 하나 더 붙는다. matplotlib은 $(H, W)$ 또는 $(H, W, C)$를 받는데 PyTorch 텐서는 $(C, H, W)$이다. 회색조 쪽에서는 $C = 1$이라 `.squeeze()`로 길이 1짜리 채널 축을 떨어뜨리면 그대로 $(H, W)$가 되어 축을 옮길 일이 없었다. 여기서는 $C = 3$이라 짜낼 축이 없고, `.permute(1, 2, 0)`이 실제로 축의 차례를 바꾸어 $(3, 32, 32)$를 $(32, 32, 3)$으로 만든다. 회색조 쪽의 `.squeeze()`를 "자리 바꾸기"로 잘못 읽고 오면 이 차이를 놓치게 된다.
 
 ## 연습문제
 

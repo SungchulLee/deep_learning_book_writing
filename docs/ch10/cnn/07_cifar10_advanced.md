@@ -19,10 +19,180 @@ CNN_CIFAR10은 컨볼루션 레이어 네 개와 완전 연결 레이어 두 개
 
 import torch.nn as nn
 import torch.optim as optim
-import cnn_utils as utils
+import argparse
+import torch
+import torch.nn.functional as F
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
+import numpy as np
+import random
 
-cfg = utils.parse_args()
-utils.set_seed(seed=cfg.seed)     # 기본값 1 — 아래 출력은 이 씨앗 하나의 것이다
+# --- cnn_utils 에서 이 쪽이 쓰는 것만 ---
+def parse_args():
+    parser = argparse.ArgumentParser(description='PyTorch CNN Training')
+    parser.add_argument('--batch-size', type=int, default=64)
+    parser.add_argument('--test-batch-size', type=int, default=1000)
+    parser.add_argument('--epochs', type=int, default=14)
+    parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--momentum', type=float, default=0.5)
+    parser.add_argument('--gamma', type=float, default=0.7)
+    parser.add_argument('--no-cuda', action='store_true', default=False)
+    parser.add_argument('--no-mps', action='store_true', default=False)
+    parser.add_argument('--dry-run', action='store_true', default=False)
+    parser.add_argument('--seed', type=int, default=1)
+    parser.add_argument('--log-interval', type=int, default=10)
+    parser.add_argument('--save-model', action='store_true', default=False)
+    parser.add_argument('--path', type=str, default='./model.pth')
+    args = parser.parse_args()
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    use_mps = not args.no_mps and torch.backends.mps.is_available()
+    if use_cuda:
+        args.device = torch.device("cuda")
+    elif use_mps:
+        args.device = torch.device("mps")
+    else:
+        args.device = torch.device("cpu")
+    return args
+
+
+def set_seed(seed=1):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def load_data(train_kwargs, test_kwargs, fashion_mnist=False, cifar10=False):
+    if cifar10:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+        test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    else:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        dataset_class = datasets.FashionMNIST if fashion_mnist else datasets.MNIST
+        train_dataset = dataset_class(root='./data', train=True, download=True, transform=transform)
+        test_dataset = dataset_class(root='./data', train=False, download=True, transform=transform)
+    train_loader = DataLoader(train_dataset, **train_kwargs)
+    test_loader = DataLoader(test_dataset, **test_kwargs)
+    return train_loader, test_loader
+
+
+class CNN_CIFAR10(nn.Module):
+    """CIFAR-10을 위한 심화 CNN."""
+    def __init__(self):
+        super(CNN_CIFAR10, self).__init__()
+        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 32, 3, padding=1)
+        self.conv3 = nn.Conv2d(32, 64, 3, padding=1)
+        self.conv4 = nn.Conv2d(64, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.dropout1 = nn.Dropout(0.25)
+        self.dropout2 = nn.Dropout(0.5)
+        self.fc1 = nn.Linear(64 * 8 * 8, 512)
+        self.fc2 = nn.Linear(512, 10)
+
+    def forward(self, x):
+        x = self.dropout1(self.pool(F.relu(self.conv2(F.relu(self.conv1(x))))))
+        x = self.dropout1(self.pool(F.relu(self.conv4(F.relu(self.conv3(x))))))
+        x = x.view(-1, 64 * 8 * 8)
+        x = self.dropout2(F.relu(self.fc1(x)))
+        x = self.fc2(x)
+        return x
+
+
+def train(model, train_loader, loss_fn, optimizer, scheduler, device, epochs, log_interval=10, dry_run=False):
+    model.train()
+    for epoch in range(1, epochs + 1):
+        running_loss, correct, total = 0.0, 0, 0
+        for batch_idx, (data, target) in enumerate(train_loader):
+            data, target = data.to(device), target.to(device)
+            optimizer.zero_grad()
+            output = model(data)
+            loss = loss_fn(output, target)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+            _, predicted = output.max(1)
+            total += target.size(0)
+            correct += predicted.eq(target).sum().item()
+            if batch_idx % log_interval == 0:
+                print(f'Epoch: {epoch}/{epochs} [{batch_idx * len(data)}/{len(train_loader.dataset)} '
+                      f'({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}')
+            if dry_run:
+                break
+        epoch_acc = 100. * correct / total
+        print(f'Epoch {epoch}: Avg Loss: {running_loss / len(train_loader):.4f}, Acc: {epoch_acc:.2f}%\n')
+        scheduler.step()
+
+
+def compute_accuracy(model, test_loader, device):
+    model.eval()
+    correct, total = 0, 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            _, predicted = output.max(1)
+            total += target.size(0)
+            correct += predicted.eq(target).sum().item()
+    accuracy = 100. * correct / total
+    print(f'Test Accuracy: {correct}/{total} ({accuracy:.2f}%)')
+    return accuracy
+
+
+def show_batch_or_ten_images_with_label_and_predict(test_loader, model, device,
+                                                      classes=None, n=10, cifar10=False):
+    model.eval()
+    images, labels = next(iter(test_loader))
+    images, labels = images.to(device), labels.to(device)
+    with torch.no_grad():
+        outputs = model(images)
+        _, predictions = outputs.max(1)
+    images, labels, predictions = images.cpu(), labels.cpu(), predictions.cpu()
+    n_display = min(n, len(images))
+    cols = min(5, n_display)
+    rows = (n_display + cols - 1) // cols
+    fig, axes = plt.subplots(rows, cols, figsize=(2*cols, 2*rows))
+    if n_display == 1:
+        axes = [axes]
+    else:
+        axes = axes.flatten()
+    for idx in range(n_display):
+        ax = axes[idx]
+        img = images[idx]
+        if cifar10:
+            img = (img / 2 + 0.5).permute(1, 2, 0)
+            ax.imshow(img.numpy())
+        else:
+            img = img.squeeze() / 2 + 0.5
+            ax.imshow(img.numpy(), cmap='gray')
+        true_label = labels[idx].item()
+        pred_label = predictions[idx].item()
+        title = f'True: {classes[true_label]}\nPred: {classes[pred_label]}' if classes else f'True: {true_label}\nPred: {pred_label}'
+        color = 'green' if true_label == pred_label else 'red'
+        ax.set_title(title, fontsize=8, color=color)
+        ax.axis('off')
+    for idx in range(n_display, len(axes)):
+        axes[idx].axis('off')
+    plt.tight_layout()
+    plt.show()
+
+
+def save_model(model, path):
+    torch.save(model.state_dict(), path)
+    print(f"Model saved to {path}")
+
+cfg = parse_args()
+set_seed(seed=cfg.seed)     # 기본값 1 — 아래 출력은 이 씨앗 하나의 것이다
 
 CIFAR10_CLASSES = ('plane', 'car', 'bird', 'cat', 'deer',
                    'dog', 'frog', 'horse', 'ship', 'truck')
@@ -35,14 +205,14 @@ CIFAR10_CLASSES = ('plane', 'car', 'bird', 'cat', 'deer',
 # 그래서 세대마다 마지막 줄이 50000 이 아니라 49920 에서 끝난다.
 train_kwargs = {'batch_size': cfg.batch_size, 'shuffle': True}
 test_kwargs = {'batch_size': cfg.test_batch_size, 'shuffle': False}
-trainloader, testloader = utils.load_data(train_kwargs, test_kwargs, cifar10=True)
+trainloader, testloader = load_data(train_kwargs, test_kwargs, cifar10=True)
 
 # 모델 준비
 # CNN_CIFAR10 은 컨볼루션 넷(32, 32, 64, 64) 뒤에 완전 연결 레이어 둘(512, 10)을 둔다.
 # conv1 896 + conv2 9,248 + conv3 18,496 + conv4 36,928
 #   + fc1 2,097,664 + fc2 5,130 = 2,168,362 이고,
 # 이 가운데 fc1 하나가 96.74%를 차지한다 (2.2절).
-model = utils.CNN_CIFAR10().to(cfg.device)
+model = CNN_CIFAR10().to(cfg.device)
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Total parameters: {total_params:,}")
 
@@ -57,12 +227,12 @@ scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=cfg.gamma)
 # 시험 배치의 앞 열 장을 2 × 5 격자로 그린다. 아직 학습하지 않은 웨이트라
 # 예측은 무작위에 가깝다. plt.show() 로 창에만 가므로 아래 출력 블록에는
 # 아무 자국도 남지 않는다.
-utils.show_batch_or_ten_images_with_label_and_predict(
+show_batch_or_ten_images_with_label_and_predict(
     testloader, model, cfg.device, classes=CIFAR10_CLASSES, n=10, cifar10=True
 )
 
 # 학습
-utils.train(
+train(
     model, trainloader, loss_ftn, optimizer, scheduler,
     cfg.device, cfg.epochs, cfg.log_interval, cfg.dry_run
 )
@@ -70,15 +240,15 @@ utils.train(
 # 학습 후
 # 학습이 끝난 웨이트로 같은 열 장을 다시 그린다. 앞뒤 두 그림을 견주면
 # 무엇이 달라졌는지 눈으로 볼 수 있다. 이것도 출력에는 남지 않는다.
-utils.show_batch_or_ten_images_with_label_and_predict(
+show_batch_or_ten_images_with_label_and_predict(
     testloader, model, cfg.device, classes=CIFAR10_CLASSES, n=10, cifar10=True
 )
 # compute_accuracy 는 'Test Accuracy: 5482/10000 (54.82%)' 를 스스로 찍고
 # 값도 돌려준다. 그래서 아래 print 와 합쳐 Test Accuracy 줄이 두 번 나온다.
-test_accuracy = utils.compute_accuracy(model, testloader, cfg.device)
+test_accuracy = compute_accuracy(model, testloader, cfg.device)
 
 if cfg.save_model:
-    utils.save_model(model, cfg.path)
+    save_model(model, cfg.path)
 
 print(f"Test Accuracy: {test_accuracy:.2f}%")
 

@@ -33,7 +33,71 @@ Fashion-MNIST는 MNIST를 대신하는 더 까다로운 요즘 데이터셋이�
 """
 
 import matplotlib.pyplot as plt
-import cnn_utils as utils
+import argparse
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import numpy as np
+import random
+
+# --- cnn_utils 에서 이 쪽이 쓰는 것만 ---
+def parse_args():
+    parser = argparse.ArgumentParser(description='PyTorch CNN Training')
+    parser.add_argument('--batch-size', type=int, default=64)
+    parser.add_argument('--test-batch-size', type=int, default=1000)
+    parser.add_argument('--epochs', type=int, default=14)
+    parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--momentum', type=float, default=0.5)
+    parser.add_argument('--gamma', type=float, default=0.7)
+    parser.add_argument('--no-cuda', action='store_true', default=False)
+    parser.add_argument('--no-mps', action='store_true', default=False)
+    parser.add_argument('--dry-run', action='store_true', default=False)
+    parser.add_argument('--seed', type=int, default=1)
+    parser.add_argument('--log-interval', type=int, default=10)
+    parser.add_argument('--save-model', action='store_true', default=False)
+    parser.add_argument('--path', type=str, default='./model.pth')
+    args = parser.parse_args()
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    use_mps = not args.no_mps and torch.backends.mps.is_available()
+    if use_cuda:
+        args.device = torch.device("cuda")
+    elif use_mps:
+        args.device = torch.device("mps")
+    else:
+        args.device = torch.device("cpu")
+    return args
+
+
+def set_seed(seed=1):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def load_data(train_kwargs, test_kwargs, fashion_mnist=False, cifar10=False):
+    if cifar10:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+        test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    else:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        dataset_class = datasets.FashionMNIST if fashion_mnist else datasets.MNIST
+        train_dataset = dataset_class(root='./data', train=True, download=True, transform=transform)
+        test_dataset = dataset_class(root='./data', train=False, download=True, transform=transform)
+    train_loader = DataLoader(train_dataset, **train_kwargs)
+    test_loader = DataLoader(test_dataset, **test_kwargs)
+    return train_loader, test_loader
 
 # =============================================================================
 # 1절: Fashion-MNIST 부류 이름표
@@ -65,8 +129,8 @@ for idx, name in FASHION_MNIST_LABELS.items():
 # 2절: 설정과 데이터 적재
 # =============================================================================
 
-cfg = utils.parse_args()
-utils.set_seed(seed=cfg.seed)
+cfg = parse_args()
+set_seed(seed=cfg.seed)
 
 train_kwargs = {'batch_size': cfg.batch_size, 'shuffle': True}
 test_kwargs = {'batch_size': cfg.test_batch_size, 'shuffle': False}
@@ -76,7 +140,7 @@ test_kwargs = {'batch_size': cfg.test_batch_size, 'shuffle': False}
 # - 학습 집합: 이미지 60,000장 (부류마다 6,000장)
 # - 시험 집합: 이미지 10,000장 (부류마다 1,000장)
 # - 이미지마다: 28x28 회색조 (채널 1개)
-trainloader, testloader = utils.load_data(
+trainloader, testloader = load_data(
     train_kwargs, test_kwargs, fashion_mnist=True
 )
 

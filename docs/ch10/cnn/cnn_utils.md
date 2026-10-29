@@ -1,12 +1,12 @@
 # CNN 유틸리티
 
-cnn_utils.py는 데이터 로딩, CNN 두 종류, 학습·평가와 시각화·저장을 공통 함수로 묶은 모듈이다. [MNIST 데이터셋](01_mnist_dataset.md), [Fashion-MNIST 데이터셋](02_fashion_mnist_dataset.md), [CIFAR-10 데이터셋](03_cifar10_dataset.md), [Fashion-MNIST 분류기](05_fashion_mnist_classifier.md)와 [CIFAR-10 심화](07_cifar10_advanced.md)에서 사용한다. 함수의 입력 규약과 상태 변경을 이해하면 호출하는 예제들의 동작도 확인할 수 있다.
+데이터 적재, CNN 두 종류, 학습·평가와 시각화·저장을 한자리에 모아 둔 쪽이다. [MNIST 데이터셋](01_mnist_dataset.md), [Fashion-MNIST 데이터셋](02_fashion_mnist_dataset.md), [CIFAR-10 데이터셋](03_cifar10_dataset.md), [Fashion-MNIST 분류기](05_fashion_mnist_classifier.md)와 [CIFAR-10 심화](07_cifar10_advanced.md)에서 사용한다. 함수의 입력 규약과 상태 변경을 이해하면 호출하는 예제들의 동작도 확인할 수 있다.
 
 ## 1. 코드
 
 ```python
 """
-cnn_utils.py
+공통 함수 모음
 ============
 CNN 실습을 위한 종합 유틸리티 모듈
 
@@ -256,7 +256,7 @@ if __name__ == "__main__":
 ```python
 """cnn_utils 점검 - 이 모듈을 들여오는 쪽들이 기대는 약속을 확인한다.
 
-이 코드는 모듈에 들어 있지 않다. cnn_utils.py 를 그대로 두고 바깥에서
+이 코드는 위 1절의 정의를 그대로 두고 바깥에서
 불러 보는 점검용 스크립트다.
 """
 
@@ -264,23 +264,21 @@ import inspect
 
 import torch
 
-import cnn_utils as utils
-
 # =============================================================================
 # 1절: load_data 의 서명과 세 클래스
 # =============================================================================
-# 다섯 쪽이 이 함수 하나를 부른다. 서명이 바뀌면 다섯 쪽이 함께 깨지므로
-# 여기에 찍어 둔다.
-print("load_data", inspect.signature(utils.load_data))
+# 다섯 쪽이 저마다 이 함수를 싣고 있다. 서명을 여기에 찍어 두어
+# 쪽들이 같은 꼴을 쓰는지 한눈에 보이게 한다.
+print("load_data", inspect.signature(load_data))
 
 train_kwargs = {'batch_size': 64, 'shuffle': True}
 test_kwargs = {'batch_size': 1000, 'shuffle': False}
 
-utils.set_seed(1)
+set_seed(1)
 for name, flag in [("MNIST", {}),
                    ("Fashion-MNIST", {"fashion_mnist": True}),
                    ("CIFAR-10", {"cifar10": True})]:
-    trainloader, testloader = utils.load_data(train_kwargs, test_kwargs, **flag)
+    trainloader, testloader = load_data(train_kwargs, test_kwargs, **flag)
     images, _ = next(iter(trainloader))
     print(f"{name:13s} train {len(trainloader.dataset):5d}  test {len(testloader.dataset):5d}  "
           f"batch {tuple(images.shape)}  range [{images.min():.1f}, {images.max():.1f}]")
@@ -292,8 +290,8 @@ for name, flag in [("MNIST", {}),
 #   CNN         : 28 -> 14 -> 7,  64 x 7 x 7 = 3136
 #   CNN_CIFAR10 : 32 -> 16 -> 8,  64 x 8 x 8 = 4096
 print()
-for model_class, shape in [(utils.CNN, (2, 1, 28, 28)),
-                           (utils.CNN_CIFAR10, (2, 3, 32, 32))]:
+for model_class, shape in [(CNN, (2, 1, 28, 28)),
+                           (CNN_CIFAR10, (2, 3, 32, 32))]:
     model = model_class()
     output = model(torch.zeros(shape))
     n_param = sum(p.numel() for p in model.parameters())
@@ -304,9 +302,9 @@ for model_class, shape in [(utils.CNN, (2, 1, 28, 28)),
 # 3절: set_seed 가 정말 되풀이되는가
 # =============================================================================
 print()
-utils.set_seed(1)
+set_seed(1)
 a = torch.randn(3)
-utils.set_seed(1)
+set_seed(1)
 b = torch.randn(3)
 print("set_seed(1) twice ->", torch.equal(a, b), [f"{v:.4f}" for v in a.tolist()])
 ```
@@ -394,7 +392,7 @@ train은 시작할 때 train()을, compute_accuracy는 eval()을 호출한다. �
     CIFAR-10이 돌아온다. `load_data`는 `if cifar10:` 가지를 먼저 보고 그 안에서 CIFAR-10 두 집합을 만든 뒤 함수를 빠져나가므로, `fashion_mnist`는 읽히지도 않는다.
 
     ```python
-    trainloader, _ = utils.load_data({'batch_size': 4}, {'batch_size': 4},
+    trainloader, _ = load_data({'batch_size': 4}, {'batch_size': 4},
                                      fashion_mnist=True, cifar10=True)
     print(type(trainloader.dataset).__name__, len(trainloader.dataset))
     ```
