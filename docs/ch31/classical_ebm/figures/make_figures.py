@@ -124,5 +124,116 @@ def capacity_two_questions():
           f"perfect(400)@0.138 = {perf[400][ic]:.3f}")
 
 
+
+
+# === 그림으로 보는 AI: 제한이 사 주는 것과 사 주지 않는 것 =====================
+#
+# 이분 제한은 **조건부** 독립을 정확히 만들어 준다. 그러나 주변분포 p(v) 는
+# 여전히 독립이 아니다 — 그 쪽 2 절이 적어 둔 그대로다. 가시 10 개면 1,024 개
+# 상태를 전부 더해 p(v) 를 정확히 구할 수 있으므로 그 말을 수로 보인다.
+
+def restriction_buys():
+    import itertools
+
+    rng = np.random.default_rng(3)
+    nv, nh = 10, 5
+    V = np.array(list(itertools.product([0, 1], repeat=nv)), dtype=float)
+    W = rng.normal(0, 1.2, (nh, nv))
+    a = rng.normal(0, 0.4, nv)
+    b = rng.normal(0, 0.4, nh)
+
+    free = -(V @ a) - np.logaddexp(0.0, V @ W.T + b).sum(1)
+    p = np.exp(-free - (-free).max())
+    p /= p.sum()
+
+    marg = (V * p[:, None]).sum(0)
+    q = np.prod(np.where(V == 1, marg, 1 - marg), axis=1)
+    kl = float((p * np.log(p / q)).sum())
+
+    C = np.cov(V.T, aweights=p)
+    sd = np.sqrt(np.diag(C))
+    R = C / np.outer(sd, sd)
+    np.fill_diagonal(R, 0.0)
+    rmax = float(np.abs(R).max())
+
+    # --- 조건부 독립은 **정확히** 성립하는지도 확인한다 --------------------
+    h0 = rng.integers(0, 2, size=nh).astype(float)
+    pv_given_h = 1.0 / (1.0 + np.exp(-(a + h0 @ W)))
+    joint = np.prod(np.where(V == 1, pv_given_h, 1 - pv_given_h), axis=1)
+    assert abs(joint.sum() - 1.0) < 1e-10, "조건부는 곱으로 정확히 분해돼야 한다"
+    assert kl > 1e-3, f"주변분포는 독립이 아니어야 한다: {kl}"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.1),
+                                   gridspec_kw={"width_ratios": [1, 1.15]})
+
+    # --- 왼쪽: 무엇을 지웠는가 --------------------------------------------
+    vx = np.linspace(0.12, 0.88, 6)
+    hx = np.linspace(0.26, 0.74, 3)
+    for i in vx:
+        for j in hx:
+            ax1.plot([i, j], [0.70, 0.30], color=INK, linewidth=0.6,
+                     alpha=0.30, zorder=1)
+    ax1.scatter(vx, [0.70] * 6, s=150, color=ACCENT, zorder=3,
+                edgecolors="white", linewidths=1.2)
+    ax1.scatter(hx, [0.30] * 3, s=150, color=MUTED, zorder=3,
+                edgecolors="white", linewidths=1.2)
+    for y, lab, col in ((0.70, "visible", ACCENT), (0.30, "hidden", MUTED)):
+        ax1.text(0.5, y + 0.105, lab, fontsize=9, color=col, va="center",
+                 ha="center", weight="bold")
+
+    # 지운 연결을 점선으로 표시한다
+    ax1.plot([vx[1], vx[2]], [0.70, 0.70], color=INK, linewidth=1.4,
+             linestyle=":", alpha=0.6)
+    ax1.plot([hx[0], hx[1]], [0.30, 0.30], color=INK, linewidth=1.4,
+             linestyle=":", alpha=0.6)
+    ax1.text(0.5, 0.95, "no visible-visible, no hidden-hidden",
+             ha="center", fontsize=8.6, color=INK, style="italic")
+    ax1.text(0.5, 0.12,
+             "fix one layer and the other\nfactorises exactly.",
+             ha="center", fontsize=8.8, color=INK)
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0.03, 1.00)
+    ax1.axis("off")
+    ax1.set_title("what the restriction removes", fontsize=10, color=INK,
+                  weight="bold")
+
+    # --- 오른쪽: 그래도 주변분포는 독립이 아니다 ---------------------------
+    ax2.loglog(q, p, "o", color=ACCENT, ms=2.6, alpha=0.45,
+               rasterized=True)          # 1,024 점을 벡터로 두면 SVG 가 커진다
+    lim = [min(q.min(), p.min()) * 0.7, max(q.max(), p.max()) * 1.4]
+    ax2.plot(lim, lim, color=INK, linestyle="--", linewidth=1.2)
+    ax2.text(0.97, 0.06,
+             "if the visible units were independent,\n"
+             "every point would sit on the line",
+             transform=ax2.transAxes, ha="right", va="bottom",
+             fontsize=8.2, color=INK, alpha=0.85)
+    ax2.set_xlim(lim)
+    ax2.set_ylim(lim)
+    ax2.set_xlabel("product of the marginals", fontsize=9)
+    ax2.set_ylabel("true p(v)", fontsize=9)
+    ax2.set_title("but the marginal is not factorial", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.text(0.035, 0.955,
+             f"KL = {kl:.3f} nats\nlargest pair |corr| = {rmax:.3f}",
+             transform=ax2.transAxes, va="top", fontsize=8.6, color=INK,
+             bbox=dict(boxstyle="round,pad=0.42", facecolor="white",
+                       edgecolor=INK, alpha=0.92))
+    ax2.grid(alpha=0.13, which="both")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             f"all {len(V):,} visible states summed exactly, "
+             f"{nv} visible and {nh} hidden units.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "restriction_buys.svg", transparent=True,
+                bbox_inches="tight", dpi=150)
+    plt.close(fig)
+    print(f"wrote restriction_buys.svg   KL = {kl:.4f}   maxcorr = {rmax:.3f}")
+
 if __name__ == "__main__":
     capacity_two_questions()
+    restriction_buys()
