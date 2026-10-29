@@ -300,7 +300,92 @@ def make_angle_loss():
     print("wrote angle_loss.svg")
 
 
+
+
+# ========================================================================
+# 「그림으로 보는 AI 7」 — 피어슨과 호텔링이 같은 선을 두 이름으로 불렀다
+#
+# 쪽의 정리 2 가 말하는 등식을 한 장에 담는다. 왼쪽은 피어슨의 물음
+# (거리를 가장 작게), 오른쪽은 호텔링 쪽의 물음(퍼짐을 가장 크게).
+# 수는 모두 직접 계산한 값이고, 자료는 이 절의 다른 쪽들과 같다.
+# ========================================================================
+
+def make_pearson_hotelling():
+    rng = np.random.default_rng(42)
+    n = 150
+    X = rng.multivariate_normal([2.0, -1.0],
+                                [[3.0, 2.2], [2.2, 2.0]], size=n)
+    mu = X.mean(axis=0)
+    Xc = X - mu
+    U, S, Vt = np.linalg.svd(Xc, full_matrices=False)
+    v = Vt.T[:, 0]
+
+    z = Xc @ v                       # 투영 점수
+    proj = np.outer(z, v) + mu       # 축 위의 자리
+    resid = X - proj
+
+    # 정리 2 의 두 항 — 합이 전체 분산이다
+    spread = (z ** 2).sum() / (n - 1)
+    leftover = (resid ** 2).sum() / (n - 1)
+    total = (Xc ** 2).sum() / (n - 1)
+
+    t = np.linspace(-3.2, 3.2, 2)
+    axis = mu + np.outer(t * S[0] / np.sqrt(n), v)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.2, 4.0))
+
+    # --- 왼쪽: 거리를 가장 작게 (피어슨) ---
+    ax1.scatter(X[:, 0], X[:, 1], s=16, alpha=0.5, color="#2a4b8a",
+                linewidths=0, zorder=2)
+    for i in range(0, n, 3):
+        ax1.plot([X[i, 0], proj[i, 0]], [X[i, 1], proj[i, 1]],
+                 color="#8a2a4b", lw=0.9, alpha=0.75, zorder=3)
+    ax1.plot(axis[:, 0], axis[:, 1], color=INK, lw=1.8, zorder=4)
+    ax1.set_title("1901  Pearson\nmake these distances small",
+                  fontsize=10, weight="bold", color=INK, pad=8)
+    ax1.text(0.03, 0.03, f"sum of squares / (n-1)\n= {leftover:.3f}",
+             transform=ax1.transAxes, fontsize=8.5, family="monospace",
+             color="#8a2a4b",
+             bbox=dict(fc="white", ec="none", alpha=0.85, pad=2.5))
+
+    # --- 오른쪽: 퍼짐을 가장 크게 (호텔링) ---
+    ax2.scatter(X[:, 0], X[:, 1], s=16, alpha=0.16, color="#2a4b8a",
+                linewidths=0, zorder=2)
+    ax2.plot(axis[:, 0], axis[:, 1], color=INK, lw=1.8, zorder=3)
+    ax2.scatter(proj[:, 0], proj[:, 1], s=16, alpha=0.8, color="#2f6f4e",
+                marker="|", linewidths=1.1, zorder=4)
+    lo, hi = mu + np.outer([z.min(), z.max()], v)
+    ax2.annotate("", xy=tuple(hi), xytext=tuple(lo),
+                 arrowprops=dict(arrowstyle="<|-|>", color="#2f6f4e", lw=1.4))
+    ax2.set_title("1933  Hotelling\nmake this spread big",
+                  fontsize=10, weight="bold", color=INK, pad=8)
+    ax2.text(0.03, 0.03, f"variance of the marks\n= {spread:.3f}",
+             transform=ax2.transAxes, fontsize=8.5, family="monospace",
+             color="#2f6f4e",
+             bbox=dict(fc="white", ec="none", alpha=0.85, pad=2.5))
+
+    for ax in (ax1, ax2):
+        ax.set_aspect("equal")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for s_ in ax.spines.values():
+            s_.set_color(INK)
+            s_.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"{spread:.3f} + {leftover:.3f} = {total:.3f}. The total is "
+             f"fixed, so making one big IS making the other small - "
+             f"one line, two questions",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "pearson_hotelling.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote pearson_hotelling.svg")
+
+
 def main():
+    make_pearson_hotelling()
     make_whiten()
     make_angle_loss()
     X, y, mu, V, evr = fit()
@@ -308,6 +393,7 @@ def main():
     make_eigendigits(mu, V)
     make_reconstruction(X, mu, V, evr)
     make_scores(X, y, mu, V, evr)
+
 
 
 
