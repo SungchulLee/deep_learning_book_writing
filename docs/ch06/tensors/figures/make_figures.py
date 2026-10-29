@@ -452,9 +452,100 @@ def buffer_protocol():
           f"copy {copy[-1]:.0f}us")
 
 
+# === 그림으로 보는 AI: 섞는 것이 실제로 사 주는 것 ============================
+#
+# 흔한 설명은 "섞어야 그래디언트가 불편(unbiased)이 된다" 인데, 재어 보면
+# **에포크 평균은 섞든 안 섞든 같다** — 한 에포크면 어느 쪽이든 모든 표본을
+# 꼭 한 번씩 보기 때문이다. 섞어서 달라지는 것은 **한 걸음 한 걸음**이다.
+# 두 가지를 다 재어 나란히 그린다.
+
+def shuffling():
+    import torch
+    import torch.nn.functional as F
+
+    torch.manual_seed(0)
+    n, d, C, B = 2000, 20, 5, 50
+    X = torch.randn(n, d)
+    y = torch.arange(n) % C
+    X += F.one_hot(y, C).float() @ torch.randn(C, d) * 1.5
+    order = torch.argsort(y)                    # 레이블 순으로 정렬해 둔다
+    Xs, ys = X[order], y[order]
+    W = torch.zeros(d, C, requires_grad=True)
+
+    def grad(xb, yb):
+        if W.grad is not None:
+            W.grad = None
+        F.cross_entropy(xb @ W, yb).backward()
+        return W.grad.flatten().clone()
+
+    full = grad(Xs, ys)
+
+    def sweep(Xd, yd):
+        gs = [grad(Xd[i:i + B], yd[i:i + B]) for i in range(0, n, B)]
+        cos = [F.cosine_similarity(g, full, dim=0).item() for g in gs]
+        err = (torch.stack(gs).mean(0) - full).norm() / full.norm()
+        return np.array(cos), err.item()
+
+    p = torch.randperm(n)
+    cos_no, err_no = sweep(Xs, ys)
+    cos_sh, err_sh = sweep(Xs[p], ys[p])
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1),
+                                   gridspec_kw={"width_ratios": [1.3, 1]})
+
+    # --- 왼쪽: 한 걸음 한 걸음은 전혀 다르다 -------------------------------
+    k = np.arange(1, len(cos_no) + 1)
+    ax1.plot(k, cos_sh, "o-", color=ACCENT, ms=3.4, linewidth=1.3,
+             label=f"shuffle=True   mean {cos_sh.mean():.3f}")
+    ax1.plot(k, cos_no, "s-", color=INK, ms=3.4, linewidth=1.3, alpha=0.75,
+             label=f"sorted by label   mean {cos_no.mean():.3f}")
+    ax1.axhline(1.0, color=INK, linestyle=":", linewidth=1.0, alpha=0.5)
+    ax1.text(len(cos_no) * 0.5, 1.012, "the full gradient", fontsize=7.8,
+             color=INK, alpha=0.7, ha="center")
+    ax1.set_xlabel("batch within one epoch", fontsize=9)
+    ax1.set_ylabel("cosine with the full gradient", fontsize=9)
+    ax1.set_title("every single step", fontsize=10, color=INK, weight="bold")
+    ax1.set_ylim(0, 1.09)
+    ax1.legend(fontsize=8, loc="lower right", framealpha=0.9)
+    ax1.grid(alpha=0.13)
+
+    # --- 오른쪽: 그런데 에포크 평균은 같다 ---------------------------------
+    ax2.bar([0, 1], [err_no, err_sh], color=[INK, ACCENT], width=0.5,
+            alpha=0.85)
+    ax2.set_yscale("log")
+    ax2.set_xticks([0, 1])
+    ax2.set_xticklabels(["sorted", "shuffled"], fontsize=9)
+    ax2.set_ylabel("relative error of the epoch mean", fontsize=9)
+    ax2.set_title("but averaged over the epoch", fontsize=10, color=INK,
+                  weight="bold")
+    for x, v in ((0, err_no), (1, err_sh)):
+        ax2.text(x, v * 1.5, f"{v:.0e}", ha="center", fontsize=9, color=INK)
+    ax2.set_ylim(err_no * 0.02, err_no * 60)
+    ax2.text(0.5, err_no * 14, "the same either way", ha="center",
+             fontsize=8.6, color=ACCENT, style="italic")
+    ax2.grid(alpha=0.13, axis="y")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "shuffling does not buy an unbiased epoch - it buys a usable "
+             "step.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "shuffling.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote shuffling.svg   cos sorted {cos_no.mean():.3f} "
+          f"shuffled {cos_sh.mean():.3f}   err {err_no:.1e} / {err_sh:.1e}")
+
+
 if __name__ == "__main__":
     tensor_word()
     arange_promise()
     loss_scaling()
     no_formula()
     buffer_protocol()
+    shuffling()
