@@ -650,7 +650,82 @@ def make_kernel_shortcut():
     print("wrote kernel_shortcut.svg")
 
 
+# === 그림으로 보는 AI: AtA 를 만들면 조건수가 제곱된다 ========================
+#
+# Golub-Kahan 1965 의 요지를 수로 보인다. 수는 모두 여기서 실제로 돌려 얻는다.
+# 왼쪽은 이 쪽의 자료 — 조건수가 4.810 에서 23.137 로, 꼭 제곱이 된다.
+# 오른쪽은 조건수를 키워 가며 가장 작은 특잇값의 상대오차를 잰 것이다.
+
+def make_condition_squaring():
+    rng = np.random.default_rng(42)
+    n = 150
+    X = rng.multivariate_normal([2.0, -1.0], [[3.0, 2.2], [2.2, 2.0]], size=n)
+    Xc = X - X.mean(axis=0)
+    c_a = np.linalg.cond(Xc)
+    c_ata = np.linalg.cond(Xc.T @ Xc)
+
+    conds, e_svd, e_ata = [], [], []
+    for k in (1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10):
+        true_s = np.linspace(1.0, 1.0 / k, 6)
+        rs = np.random.default_rng(0)
+        Q1, _ = np.linalg.qr(rs.standard_normal((60, 6)))
+        Q2, _ = np.linalg.qr(rs.standard_normal((6, 6)))
+        A = Q1 @ np.diag(true_s) @ Q2.T
+        s1 = np.linalg.svd(A, compute_uv=False)
+        s2 = np.sqrt(np.clip(np.linalg.eigvalsh(A.T @ A)[::-1], 0, None))
+        conds.append(k)
+        e_svd.append(abs(s1[-1] - true_s[-1]) / true_s[-1])
+        e_ata.append(abs(s2[-1] - true_s[-1]) / true_s[-1])
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.2, 4.0))
+
+    # --- 왼쪽: 이 쪽의 자료에서는 아무 일도 안 일어난다 ----------------------
+    ax1.bar([0, 1], [c_a, c_ata], color=[INK, ACCENT], width=0.52, alpha=0.85)
+    ax1.set_xticks([0, 1])
+    ax1.set_xticklabels(["cond(Xc)\nthe svd route",
+                         "cond(Xc.T @ Xc)\nthe covariance route"], fontsize=8.5)
+    for x, v in ((0, c_a), (1, c_ata)):
+        ax1.text(x, v + 0.8, f"{v:.3f}", ha="center", fontsize=9.5,
+                 color=INK, weight="bold")
+    ax1.text(0.5, c_ata * 0.56, f"{c_a:.3f} squared\nis {c_a**2:.3f}",
+             ha="center", fontsize=9, color=ACCENT, style="italic")
+    ax1.set_ylim(0, c_ata * 1.28)
+    ax1.set_title("this page's data", fontsize=10, color=INK, weight="bold")
+    ax1.set_ylabel("condition number", fontsize=9)
+    style(ax1)
+    ax1.text(0.5, -0.30, "both routes agree to 16 digits here",
+             ha="center", fontsize=8.5, color=INK, alpha=0.8,
+             transform=ax1.transAxes)
+
+    # --- 오른쪽: 조건수를 키우면 -------------------------------------------
+    ax2.loglog(conds, np.maximum(e_svd, 1e-17), "o-", color=INK,
+               linewidth=1.8, ms=4.5, label="np.linalg.svd(Xc)")
+    ax2.loglog(conds, np.maximum(e_ata, 1e-17), "s--", color=ACCENT,
+               linewidth=1.8, ms=4.5, label="eigvalsh(Xc.T @ Xc)")
+    ax2.axhline(1.0, color=INK, linestyle=":", linewidth=1.0, alpha=0.6)
+    ax2.text(1.1e4, 2.2, "100% error", fontsize=8, color=INK, alpha=0.7)
+    ax2.annotate(f"off by {e_ata[-1]:.0f}x",
+                 xy=(conds[-1], e_ata[-1]), xytext=(-72, -4),
+                 textcoords="offset points", fontsize=8.5, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9))
+    ax2.set_xlabel("condition number of the matrix", fontsize=9)
+    ax2.set_ylabel("relative error, smallest singular value", fontsize=9)
+    ax2.set_title("push it and one route breaks", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8, loc="upper left", framealpha=0.9)
+    ax2.grid(alpha=0.13, which="both")
+    style(ax2)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "condition_squaring.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote condition_squaring.svg   cond {c_a:.3f} -> {c_ata:.3f}   "
+          f"worst AtA error {e_ata[-1]:.1f}")
+
+
 def main():
+    make_condition_squaring()
     make_kernel_shortcut()
     make_sklearn_timeline()
     make_ensembles()
