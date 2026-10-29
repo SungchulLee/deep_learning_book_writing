@@ -308,7 +308,103 @@ def map_not_invariant():
           f"logit MAP back {map_phi_back:.4f}   mean {post.mean():.4f}")
 
 
+# === 그림으로 보는 AI: 두 구간은 서로의 시험을 통과하지 못한다 ================
+#
+# 신용구간은 "자료를 고정했을 때 그 안에 있을 확률 0.95" 를 지키고,
+# 신뢰구간은 "theta 가 무엇이든 포함률이 0.95 아래로 안 떨어진다" 를 지킨다.
+# 각자 제 시험은 통과하고 상대의 시험은 떨어진다. 수는 모두 여기서 셈한다.
+
+def two_intervals():
+    n = 10
+
+    def cred(x):
+        po = stats.beta(x + 1, n - x + 1)
+        return po.ppf(0.025), po.ppf(0.975)
+
+    def cp(x):
+        lo = 0.0 if x == 0 else stats.beta(x, n - x + 1).ppf(0.025)
+        hi = 1.0 if x == n else stats.beta(x + 1, n - x).ppf(0.975)
+        return lo, hi
+
+    grid = np.linspace(0.01, 0.99, 99)
+
+    def coverage(f):
+        out = []
+        for t in grid:
+            pm = stats.binom(n, t).pmf(np.arange(n + 1))
+            out.append(sum(pm[x] for x in range(n + 1)
+                           if f(x)[0] <= t <= f(x)[1]))
+        return np.array(out)
+
+    cov_b, cov_f = coverage(cred), coverage(cp)
+
+    # 그림이 제 주장을 확인한다 — 하나는 0.95 아래로 떨어지고 하나는 안 떨어진다
+    assert cov_b.min() < 0.95, "신용구간은 포함률이 떨어져야 이야기가 선다"
+    assert cov_f.min() >= 0.95, "Clopper-Pearson 은 0.95 아래로 안 떨어진다"
+
+    x = 2
+    po = stats.beta(x + 1, n - x + 1)
+    ib, ifz = cred(x), cp(x)
+    pb = po.cdf(ib[1]) - po.cdf(ib[0])
+    pf = po.cdf(ifz[1]) - po.cdf(ifz[0])
+    assert abs(pb - 0.95) < 1e-9, "신용구간의 사후확률은 정확히 0.95"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.1),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # --- 왼쪽: theta 를 훑으며 포함률 ---------------------------------------
+    ax1.axhline(0.95, color=INK, linestyle=":", linewidth=1.3)
+    ax1.plot(grid, cov_b, color=ACCENT, linewidth=1.9,
+             label=f"credible, uniform prior   min {cov_b.min():.3f}")
+    ax1.plot(grid, cov_f, color=MUTED, linewidth=1.9, linestyle="--",
+             label=f"Clopper-Pearson   min {cov_f.min():.3f}")
+    ax1.set_xlabel("the true theta", fontsize=9)
+    ax1.set_ylabel("frequentist coverage", fontsize=9)
+    ax1.set_title("Neyman's test: sweep theta", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.set_ylim(0.78, 1.01)
+    ax1.set_yticks([0.80, 0.85, 0.90, 0.95, 1.00])   # 약속한 0.95 를 눈금으로
+    ax1.legend(fontsize=8, loc="lower right", framealpha=0.92)
+    ax1.grid(alpha=0.12)
+
+    # --- 오른쪽: 자료를 고정했을 때 ----------------------------------------
+    xs = np.linspace(0, 1, 800)
+    ax2.plot(xs, po.pdf(xs), color=INK, linewidth=1.8)
+    for k, (lab, iv, pp, col) in enumerate(
+            (("credible", ib, pb, ACCENT),
+             ("Clopper-Pearson", ifz, pf, MUTED))):
+        y = po.pdf(po.mean()) * (0.30 - 0.11 * k)
+        ax2.plot(iv, [y, y], color=col, linewidth=5, solid_capstyle="butt",
+                 alpha=0.85)
+        ax2.text(iv[1] + 0.02, y, f"  {lab}\n  posterior prob {pp:.4f}",
+                 va="center", fontsize=8.2, color=col)
+    ax2.set_xlabel("theta", fontsize=9)
+    ax2.set_ylabel("posterior density", fontsize=9)
+    ax2.set_title(f"the Bayesian test: fix the data  ({x} of {n})",
+                  fontsize=10, color=INK, weight="bold")
+    ax2.set_xlim(0, 1)
+    ax2.grid(alpha=0.12)
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "each one passes its own test and fails the other's. "
+             "they are answers to different questions.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "two_intervals.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote two_intervals.svg   cov min {cov_b.min():.3f} / "
+          f"{cov_f.min():.3f}   post {pb:.4f} / {pf:.4f}")
+
+
 if __name__ == "__main__":
     bayes_table()
     conjugate_limit()
     map_not_invariant()
+    two_intervals()
