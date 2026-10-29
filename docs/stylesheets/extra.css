@@ -174,3 +174,26 @@
 
 .md-typeset .success > .admonition-title::before,
 .md-typeset .success > summary::before { background-color: #2e9e4f; }
+
+/* ── 넘치는 디스플레이 수식에 가로 스크롤 ──────────────────────────
+   MathJax 는 넘치는 수식을 줄바꿈하지 않는다. 감싸개에 가로 스크롤을
+   주지 않으면 오른쪽 끝이 그냥 잘려 나간다 (t_{n-1} 이 t_{n- 로).
+   인라인 수식(span)은 본문과 함께 흐르므로 건드리지 않는다.
+   지금 이 책에는 200자가 넘는 디스플레이 수식이 107개 있다. */
+.md-typeset div.arithmatex {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.2rem;   /* 스크롤바가 아래첨자를 가리지 않도록 */
+}
+
+/* ── 상자와 그 바로 아래 증명·풀이를 한 덩어리로 ──────────────────
+   정리 상자 뒤에 접은 증명이 오고 문항 상자 뒤에 풀이가 온다. 기본
+   여백이면 둘이 떨어져 보여 딸린 것이 아니라 다음 이야기처럼 읽힌다. */
+.md-typeset .thmbox + details,
+.md-typeset .exbox + details,
+.md-typeset .probox + details,
+.md-typeset .drillbox + details,
+.md-typeset .defn + details,
+.md-typeset details.proof {
+    margin-top: 0.8em;
+}
