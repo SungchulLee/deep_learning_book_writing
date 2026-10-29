@@ -201,6 +201,108 @@ def reverse_optimization():
           f"{w_hist.min()*100:.1f}-{w_hist.max()*100:.1f}%")
 
 
+# === 그림으로 보는 AI: 국면이 없어도 필터는 국면을 본다 ======================
+#
+# Hamilton 1989. 국면은 관측되지 않으므로 확률로 **추론**한다. 그런데 국면이
+# 하나도 없는 자료를 넣어도 필터는 확신에 찬 전환을 수십 번 선언한다.
+# 확신의 정도는 국면이 있을 때보다 오히려 **조금 높다.**
+
+def regime_illusion():
+    mus = np.array([-0.02, 0.01])
+    sd = 0.04
+    P = np.array([[0.90, 0.10], [0.05, 0.95]])
+    T, R = 400, 200
+
+    def hamilton(y):
+        f = np.zeros(len(y))
+        p = np.full(2, 0.5)
+        for t, yt in enumerate(y):
+            pred = P.T @ p
+            lik = np.exp(-0.5 * ((yt - mus) / sd) ** 2) / sd
+            post = pred * lik
+            post /= post.sum()
+            f[t] = post[0]
+            p = post
+        return f
+
+    def draw_regime(rng):
+        s = np.zeros(T, int)
+        for t in range(1, T):
+            s[t] = 0 if rng.random() < P[s[t - 1], 0] else 1
+        return mus[s] + rng.normal(0, sd, T), s
+
+    def draw_flat(rng):
+        return np.full(T, 0.004) + rng.normal(0, sd, T), None
+
+    stats_ = {}
+    for key, gen in (("regime", draw_regime), ("flat", draw_flat)):
+        rng = np.random.default_rng(0)
+        sw, conf, true_sw = [], [], []
+        for _ in range(R):
+            y, s = gen(rng)
+            f = hamilton(y)
+            call = (f > 0.5).astype(int)
+            sw.append(int((np.diff(call) != 0).sum()))
+            conf.append(float(np.mean((f > 0.8) | (f < 0.2))))
+            true_sw.append(0 if s is None else int((np.diff(s) != 0).sum()))
+        stats_[key] = (np.mean(sw), np.mean(conf), np.mean(true_sw))
+
+    # 그림이 제 주장을 확인한다
+    assert stats_["flat"][0] > 20, "국면이 없어도 전환을 많이 선언한다"
+    assert stats_["flat"][1] >= stats_["regime"][1] * 0.9, \
+        "확신의 정도가 국면이 있을 때와 비슷하거나 높다"
+
+    rng = np.random.default_rng(0)
+    y1, s1 = draw_regime(rng)
+    rng = np.random.default_rng(0)
+    y2, _ = draw_flat(rng)
+    f1, f2 = hamilton(y1), hamilton(y2)
+
+    fig, axes = plt.subplots(2, 1, figsize=(9.2, 5.4), sharex=True)
+    for ax, f, s, title, key in (
+            (axes[0], f1, s1, "data that really does switch regime",
+             "regime"),
+            (axes[1], f2, None, "data with no regimes at all - one mean "
+             "throughout", "flat")):
+        if s is not None:
+            ax.fill_between(np.arange(T), 0, 1, where=(s == 0),
+                            color=MUTED, alpha=0.16, step="mid",
+                            label="the true bad regime")
+        ax.plot(f, color=ACCENT, linewidth=1.3)
+        ax.axhline(0.5, color=INK, linestyle=":", linewidth=1.0)
+        ax.set_ylim(-0.02, 1.02)
+        ax.set_ylabel("filtered P(bad)", fontsize=9)
+        ax.set_title(title, fontsize=10, color=INK, weight="bold")
+        m_sw, m_cf, m_true = stats_[key]
+        ax.text(0.985, 0.93,
+                f"declares {m_sw:.1f} switches   (truth: {m_true:.1f})\n"
+                f"confident {m_cf*100:.1f}% of the time",
+                transform=ax.transAxes, ha="right", va="top", fontsize=8.2,
+                color=INK,
+                bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
+                          edgecolor=INK, alpha=0.9))
+        if s is not None:
+            ax.legend(fontsize=7.8, loc="lower right", framealpha=0.9)
+        ax.tick_params(labelsize=8, colors=INK)
+        ax.grid(alpha=0.12)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+    axes[1].set_xlabel("period", fontsize=9.5)
+
+    fig.text(0.5, -0.03,
+             f"averages over {R} runs of {T} periods. the lower panel has no "
+             f"regimes to find, and the filter is no less sure of itself.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "regime_illusion.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote regime_illusion.svg   regime {stats_['regime']}   "
+          f"flat {stats_['flat']}")
+
+
 if __name__ == "__main__":
     error_maximization()
     reverse_optimization()
+    regime_illusion()
