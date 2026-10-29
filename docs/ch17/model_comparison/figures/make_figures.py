@@ -265,7 +265,96 @@ def aic_bic():
           f"over AIC {over_a[-1]:.3f} BIC {over_b[-1]:.3f}")
 
 
+# === 그림으로 보는 AI: 표본을 늘려도 낫지 않는 어림자 ========================
+#
+# Newton-Raftery 1994 의 조화평균 어림자. 이론상 일치추정량이지만 분산이
+# 무한이라 **표본을 백 배 늘려도 제자리**다. 켤레 모형이라 정확한 값을 알고
+# 있으므로 얼마나 빗나가는지 그대로 보인다. 늘 위로 치우친다.
+
+def harmonic_mean():
+    from scipy.special import betaln, comb
+
+    rng = np.random.default_rng(0)
+    n, x, a, b = 20, 12, 1.0, 1.0
+    exact = comb(n, x) * np.exp(betaln(a + x, b + n - x) - betaln(a, b))
+    post = stats.beta(a + x, b + n - x)
+
+    M = 2 * 10 ** 6
+    idx = np.unique(np.logspace(2, np.log10(M), 160).astype(int))
+    traces = []
+    for _ in range(5):
+        th = post.rvs(M, random_state=rng)
+        lik = stats.binom(n, th).pmf(x)
+        run = 1 / (np.cumsum(1 / lik) / np.arange(1, M + 1))
+        traces.append(run[idx - 1])
+
+    # 확산 사전분포에서는 훨씬 심하다
+    rng2 = np.random.default_rng(1)
+    N, tau = 20, 50.0
+    y = rng2.normal(0, 1, N)
+    S = np.eye(N) + tau ** 2 * np.ones((N, N))
+    exact2 = stats.multivariate_normal(np.zeros(N), S).pdf(y)
+    vp = 1 / (N + 1 / tau ** 2)
+    mp = vp * y.sum()
+    M2 = 10 ** 6
+    idx2 = np.unique(np.logspace(2, np.log10(M2), 160).astype(int))
+    traces2 = []
+    for _ in range(5):
+        th = rng2.normal(mp, np.sqrt(vp), M2)
+        ll = (-0.5 * ((y[None, :] - th[:, None]) ** 2).sum(1)
+              - N / 2 * np.log(2 * np.pi))
+        run = 1 / (np.cumsum(np.exp(-ll)) / np.arange(1, M2 + 1))
+        traces2.append(run[idx2 - 1])
+
+    # 그림이 제 주장을 확인한다 — 끝까지 위로 치우쳐 있고 안 가라앉는다
+    ends = np.array([t[-1] for t in traces])
+    ends2 = np.array([t[-1] for t in traces2])
+    assert np.all(ends > exact * 1.1), "쉬운 경우에도 10% 넘게 위로 치우친다"
+    assert np.all(ends2 > exact2 * 10), "확산 사전에서는 열 배 넘게 빗나간다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.2))
+
+    for ax, idxs, trs, ex, title, ratio in (
+            (ax1, idx, traces, exact, "a tame conjugate problem", False),
+            (ax2, idx2, traces2, exact2, "the same thing, diffuse prior",
+             True)):
+        for t in trs:
+            ax.loglog(idxs, t, color=ACCENT, linewidth=1.3, alpha=0.75)
+        ax.axhline(ex, color=INK, linewidth=2.0)
+        ax.text(idxs[0], ex, " the exact value", fontsize=8.6, color=INK,
+                va="top")
+        ax.set_xlabel("posterior samples used", fontsize=9.5)
+        ax.set_title(title, fontsize=10, color=INK, weight="bold")
+        ax.grid(alpha=0.12, which="both")
+        ax.tick_params(labelsize=8, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+        end = np.mean([t[-1] for t in trs])
+        ax.text(0.97, 0.96,
+                f"{end/ex:.0f}x too high" if ratio
+                else f"{(end/ex-1)*100:.0f}% too high",
+                transform=ax.transAxes, ha="right", va="top", fontsize=9.6,
+                color=ACCENT, weight="bold",
+                bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
+                          edgecolor=ACCENT, alpha=0.92))
+
+    ax1.set_ylabel("harmonic mean estimate", fontsize=9.5)
+
+    fig.text(0.5, -0.04,
+             "five independent runs each. a hundredfold increase in samples "
+             "does not bring the lines down.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "harmonic_mean.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote harmonic_mean.svg   tame {ends.mean()/exact:.3f}x   "
+          f"diffuse {ends2.mean()/exact2:.1f}x")
+
+
 if __name__ == "__main__":
     lindley()
     bartlett()
     aic_bic()
+    harmonic_mean()
