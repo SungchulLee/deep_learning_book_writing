@@ -486,6 +486,54 @@ def fig_cvae_label_sweep(n_code=8):
     print("wrote cvae_label_sweep.svg")
 
 
+# === 그림 8: 두 자가 네 스텝을 어떻게 줄 세우는가 ===========================
+def fig_two_rulers():
+    """5.1 개요의 두 표를 하나의 평면에 놓는다.
+
+    그 절의 요점은 "재는 자가 둘이다"이다. 가로가 복원 MSE, 세로가 숫자 정체이고
+    둘은 같은 순서를 주지 않는다. 잠재 차원 64에서는 네 점이 세로로 거의 붙은 채
+    가로로만 벌어지고(MSE는 네 배 차이, 정체는 0.7%포인트), 2에서는 두 축이
+    함께 움직인다.
+
+    수는 각 쪽에서 재어 개요 표에 실린 값 그대로다. 학습이 필요 없다.
+    """
+    # (name, MSE, identity, label dx, dy, ha) — PCA와 AE_Linear는 거의 같은 자리에
+    # 떨어진다. 그것이 이 절의 주장이므로 겹침을 숨기지 않고 라벨만 위아래로 가른다.
+    rows64 = [("PCA",       0.0953, 97.81, -9, -13, "right"),
+              ("AE_Linear", 0.0958, 97.83,  9,   5, "left"),
+              ("AE_MLP",    0.0546, 98.51,  9,  -4, "left"),
+              ("AE_CNN",    0.0243, 98.52,  9,  -4, "left")]
+    rows2 = [("PCA",       0.5865, 35.66, -9, -13, "right"),
+             ("AE_Linear", 0.5867, 35.54,  9,   4, "left"),
+             ("AE_MLP",    0.4223, 70.13,  9,  -4, "left"),
+             ("AE_CNN",    0.4742, 61.78,  9,  -4, "left")]
+    JUDGE = 98.83                      # 원본을 심판에 넣은 값
+
+    colors = {"PCA": "#777777", "AE_Linear": "tab:blue",
+              "AE_MLP": "tab:orange", "AE_CNN": "tab:green"}
+    fig, axes = plt.subplots(1, 2, figsize=(11.6, 4.6))
+    for ax, rows, k, ylim in ((axes[0], rows64, 64, (97.3, 99.15)),
+                              (axes[1], rows2, 2, (28, 78))):
+        for name, mse, acc, dx, dy, ha in rows:
+            ax.scatter(mse, acc, s=72, color=colors[name], zorder=3)
+            ax.annotate(name, (mse, acc), textcoords="offset points",
+                        xytext=(dx, dy), fontsize=9, color=colors[name], ha=ha)
+        if k == 64:                     # 천장은 64 쪽에서만 눈금 안에 들어온다
+            ax.axhline(JUDGE, color="black", lw=1, ls="--")
+            ax.text(0.99, JUDGE + 0.03, "original 98.83%", transform=
+                    ax.get_yaxis_transform(), fontsize=8, ha="right", va="bottom")
+        ax.set_xlabel("reconstruction MSE   (left is better)", fontsize=10)
+        ax.set_ylabel("read as the same digit (%)", fontsize=10)
+        ax.set_title(f"latent dimension {k}", fontsize=11)
+        ax.set_ylim(*ylim)
+        ax.margins(x=0.30)
+        ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.065, right=0.985, top=0.91, bottom=0.135, wspace=0.24)
+    fig.savefig("two_rulers.svg", transparent=True)
+    plt.close(fig)
+    print("wrote two_rulers.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -494,6 +542,7 @@ if __name__ == "__main__":
     fig_class_share()
     fig_ae_linear_descent()
     fig_cvae_label_sweep()
+    fig_two_rulers()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
