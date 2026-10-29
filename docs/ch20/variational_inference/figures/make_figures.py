@@ -431,9 +431,68 @@ def convex_duality():
           f"{len(lams)} lambdas")
 
 
+
+# === 그림으로 보는 AI: 가장 가파른 쪽은 어디인가 ==============================
+#
+# 쪽의 식 그대로 — 평균 블록의 자연경사는 S grad_m L 이다.
+# 목표가 N(mu, Sigma) 이고 S = Sigma 로 고정하면 자연경사 걸음이
+# m <- m + (mu - m) 이 되어 조건수와 무관하게 한 걸음에 닿는다.
+# 보통 경사는 안정 조건 때문에 조건수에 따라 걸음 수가 는다. 직접 센다.
+
+def natural_gradient():
+    def steps(cond, which, tol=1e-6, max_it=400000):
+        Sigma = np.diag([1.0, 1.0 / cond])
+        Prec = np.linalg.inv(Sigma)
+        mu = np.array([1.0, 1.0])
+        m = np.zeros(2)
+        eta = 1.0 if which == "natural" else 1.0 / np.linalg.eigvalsh(Prec).max()
+        for t in range(1, max_it + 1):
+            g = -Prec @ (m - mu)
+            m = m + eta * ((Sigma @ g) if which == "natural" else g)
+            if np.linalg.norm(m - mu) < tol:
+                return t
+        return max_it
+
+    conds = np.array([1, 10, 100, 1000, 10000])
+    plain = np.array([steps(c, "plain") for c in conds])
+    nat = np.array([steps(c, "natural") for c in conds])
+    assert np.all(nat == 1), "자연경사는 한 걸음에 닿아야 한다"
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.3))
+    ax.loglog(conds, plain, "-o", color=INK, linewidth=2.1, ms=5.5,
+              label="ordinary gradient")
+    ax.loglog(conds, nat, "-s", color=ACCENT, linewidth=2.3, ms=6,
+              label="natural gradient,  S grad_m L")
+    ax.set_xlabel("condition number of the target covariance", fontsize=9)
+    ax.set_ylabel("steps to reach the mean", fontsize=9)
+    ax.set_title("the steepest direction is not the obvious one",
+                 fontsize=10, color=INK, weight="bold")
+    ax.legend(fontsize=8.6, framealpha=0.92, loc="upper left")
+    ax.grid(alpha=0.13, which="both")
+    style(ax)
+    ax.annotate(f"{plain[-1]:,} steps", xy=(conds[-1], plain[-1]),
+                xytext=(-12, -26), textcoords="offset points", ha="right",
+                fontsize=8.4, color=INK)
+    ax.annotate("1 step, every time", xy=(conds[-1], nat[-1]),
+                xytext=(-12, 24), textcoords="offset points", ha="right",
+                fontsize=8.4, color=ACCENT,
+                arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9))
+
+    fig.text(0.5, -0.04,
+             "with S fixed to the target covariance. knowing that covariance "
+             "is of course the thing you did not have.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "natural_gradient.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote natural_gradient.svg   plain {plain}   natural {nat}")
+
+
 if __name__ == "__main__":
     mean_field_shrinks()
     gradient_variance()
     em_staircase()
     amortization_tradeoff()
     convex_duality()
+    natural_gradient()
