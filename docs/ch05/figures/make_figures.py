@@ -534,6 +534,54 @@ def fig_two_rulers():
     print("wrote two_rulers.svg")
 
 
+# === 그림 9: 앞으로 가는 흐름과 그 일정 =====================================
+def fig_forward_diffusion(T=1000):
+    """5.4절의 앞 흐름을 그림으로 보인다. 학습한 모델이 필요 없다.
+
+    x_t = sqrt(abar_t) x_0 + sqrt(1 - abar_t) eps 이므로 어느 t든 한 번에 간다.
+    아래 칸이 요점이다 — 일정이 선형이라고 해서 보이는 것이 고르게 바뀌지는
+    않는다. t=400에서 신호 계수가 이미 0.44이고 t=800에서는 0.039이라, 1,000
+    스텝 가운데 뒤쪽 수백 스텝은 이미 잡음인 것을 더 흔들 뿐이다.
+    """
+    (_, _), (Xte, yte) = load_flat()
+    betas = torch.linspace(1e-4, 0.02, T)          # 5.4절 코드와 같은 일정
+    abar = torch.cumprod(1.0 - betas, 0)
+    ts = [0, 50, 100, 200, 300, 400, 600, 800, T - 1]
+    digits = [7, 3]                                 # 획이 다른 둘
+
+    g = torch.Generator().manual_seed(0)
+    fig = plt.figure(figsize=(11.4, 5.4))
+    gs_img = fig.add_gridspec(len(digits), len(ts), left=0.055, right=0.985,
+                              top=0.955, bottom=0.50, wspace=0.07, hspace=0.07)
+    for r, d in enumerate(digits):
+        x0 = Xte[int((yte == d).nonzero()[0])]
+        eps = torch.randn(784, generator=g)         # 한 줄에 같은 잡음을 쓴다
+        for c, tt in enumerate(ts):
+            xt = abar[tt].sqrt() * x0 + (1 - abar[tt]).sqrt() * eps
+            ax = fig.add_subplot(gs_img[r, c])
+            show(ax, xt)
+            if r == 0:
+                ax.set_title(f"t={tt}", fontsize=9, pad=4)
+
+    ax = fig.add_subplot(fig.add_gridspec(1, 1, left=0.055, right=0.985,
+                                          top=0.42, bottom=0.10)[0])
+    tt = torch.arange(T)
+    ax.plot(tt, abar.sqrt(), color="tab:blue", lw=1.8,
+            label=r"signal  $\sqrt{\bar\alpha_t}$")
+    ax.plot(tt, (1 - abar).sqrt(), color="tab:red", lw=1.8,
+            label=r"noise  $\sqrt{1-\bar\alpha_t}$")
+    for x in ts:
+        ax.axvline(x, color="0.8", lw=0.8, zorder=0)
+    ax.set_xlim(0, T - 1); ax.set_ylim(0, 1.05)
+    ax.set_xlabel("t", fontsize=10)
+    ax.set_ylabel("mixing coefficient", fontsize=10)
+    ax.legend(fontsize=9, frameon=False, loc="center right")
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.savefig("forward_diffusion.svg", transparent=True)
+    plt.close(fig)
+    print("wrote forward_diffusion.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -543,6 +591,7 @@ if __name__ == "__main__":
     fig_ae_linear_descent()
     fig_cvae_label_sweep()
     fig_two_rulers()
+    fig_forward_diffusion()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
