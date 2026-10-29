@@ -1,29 +1,33 @@
 # PyTorch로 MNIST에 PCA 적용하기
 
-이 예제는 MNIST 학습 이미지 60,000개를 784차원 벡터로 펴고 PCA 성분 50개로 표현한다. 전체 SVD로 분산을 계산하고 같은 학습 데이터를 재구성한다. 본 코드에는 이미지나 고유숫자 시각화가 없으며 관련 그림은 연습문제에서 다룬다.
+이 예제는 MNIST 학습 이미지 60,000개를 784차원 벡터로 펴고 PCA 성분 50개로 표현한다. 전체 SVD로 분산을 계산하고 같은 학습 데이터를 재구성한다.
 
-## 1. 예제 코드와 보존된 출력
+성분이 50개면 82.5%를 남기고 재구성 MSE가 0.011793이라는 말은, 그것만 읽어서는 좋은지 나쁜지 알 수 없다. 이 쪽은 같은 계산을 그림으로도 보인다 — **버린 17.5%가 눈에 어떻게 보이는지** 를 봐야 그 수가 뜻을 갖는다.
+
+## 1. 예제 코드와 출력
 
 ```python
 """MNIST 주성분 분석 PyTorch."""
-import torch
-import matplotlib.pyplot as plt
-import numpy as np
-from torchvision import datasets, transforms
 import time
+
+import torch
+from torchvision import datasets, transforms
 
 n_components = 50
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# === MNIST 불러오기 ==============================================================
+# === MNIST 불러오기 =====================================================
 transform = transforms.Compose([transforms.ToTensor()])
-train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False)
+train_dataset = datasets.MNIST(root='./data', train=True, download=True,
+                               transform=transform)
+train_loader = torch.utils.data.DataLoader(train_dataset,
+                                           batch_size=len(train_dataset),
+                                           shuffle=False)
 X, y = next(iter(train_loader))
 X = X.view(X.shape[0], -1).to(device)
 y = y.to(device)
 
-# === 가운데 맞추고 특잇값 쪼개기 셈하기 ==================================================
+# === 가운데 맞추고 특잇값 쪼개기 ==========================================
 mu = X.mean(dim=0, keepdim=True)
 X_centered = X - mu
 
@@ -32,64 +36,37 @@ U, S, Vt = torch.linalg.svd(X_centered, full_matrices=False)
 elapsed_time = time.time() - start_time
 V = Vt.T
 
-# === 흩어짐 살피기 =======================================================
+# === 흩어짐 살피기 ======================================================
 explained_variance = (S ** 2) / (X.shape[0] - 1)
 explained_variance_ratio = explained_variance / explained_variance.sum()
 cumulative_variance = explained_variance_ratio[:n_components].sum().item() * 100
 
-# === 차원 줄이기와 다시 세우기 =============================
+# === 차원 줄이기와 다시 세우기 ============================================
 V_k = V[:, :n_components]
 scores = X_centered @ V_k
 X_reconstructed = scores @ V_k.T + mu
 reconstruction_error = ((X - X_reconstructed) ** 2).mean().item()
 
-print(f"SVD computed in {elapsed_time:.2f}s on {device}")
+print(f"X shape: {tuple(X.shape)}  ->  scores {tuple(scores.shape)}")
 print(f"{n_components} components explain {cumulative_variance:.1f}% of variance")
-print(f"Compression ratio: {X.shape[1]/n_components:.1f}x")
+print(f"Coordinate ratio: {X.shape[1] / n_components:.1f}x")
 print(f"Reconstruction MSE: {reconstruction_error:.6f}")
-
-if __name__ == "__main__":
-    pass
+print(f"SVD on {device} took {elapsed_time:.2f}s")
 ```
 
+**출력:**
+
 ```
-Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
-
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
-Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
-
-Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
-
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
-Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
-
-Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
-
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw/t10k-images-idx3-ubyte.gz
-Extracting ./data/MNIST/raw/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw
-
-Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
-Failed to download (trying next):
-HTTP Error 404: Not Found
-
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz to ./data/MNIST/raw/t10k-labels-idx1-ubyte.gz
-Extracting ./data/MNIST/raw/t10k-labels-idx1-ubyte.gz to ./data/MNIST/raw
-
-SVD computed in 1.15s on cpu
+X shape: (60000, 784)  ->  scores (60000, 50)
 50 components explain 82.5% of variance
-Compression ratio: 15.7x
+Coordinate ratio: 15.7x
 Reconstruction MSE: 0.011793
+SVD on cpu took 1.68s
 ```
+
+처음 돌릴 때는 위 출력 앞에 MNIST 내려받기 기록이 함께 찍힌다. `./data` 에 이미 있으면 다섯 줄뿐이다.
+
+마지막 줄의 시간은 이 기계의 기록이다. 6절에서 왜 그 수를 옮겨 적으면 안 되는지 다룬다.
 
 ## 2. 데이터와 행렬 모양
 
@@ -103,6 +80,12 @@ Reconstruction MSE: 0.011793
 
 고윳값은 s_j²/(n−1)이고 비율은 그 값의 전체 합으로 나눈다. 보존된 출력에서는 50개가 약 82.5%의 학습 분산을 설명한다. 이는 해당 전처리에서의 결과이며 분류 정보의 82.5%나 데이터의 내재 차원이 50이라는 뜻은 아니다.
 
+![왼쪽은 성분 번호에 따른 설명 분산 비율을 로그 눈금으로 그린 것으로, 첫 성분이 가장 높고 백 번째까지 거의 곧게 떨어진다. 오른쪽은 누적 설명 분산으로, 성분이 쉰 개일 때 0.825, 백쉰네 개일 때 0.95에 이르고 그 뒤로는 거의 평평하다.](figures/variance.svg)
+
+왼쪽 판이 82.5%의 출처다. 첫 성분 하나가 9.7%를 가져가고 뒤로 갈수록 로그 눈금에서 거의 곧게 떨어진다. **팔꿈치가 또렷하지 않다** — 어디서 끊어도 되는 자연스러운 자리가 없다는 뜻이고, 그래서 50이라는 수는 발견된 것이 아니라 **고른** 것이다.
+
+오른쪽 판에서 95%를 남기려면 154개가 든다. 82.5%에서 95%로 12.5%p를 더 얻는 데 성분이 세 배 든다.
+
 ## 4. 좌표 감소와 재구성 오차
 
 출력의 `Compression ratio`는 784/50=15.68이라는 **좌표 개수 비율**이다. 같은 dtype의 표본 좌표 저장량은 줄지만 기저와 평균도 저장해야 하며, 원래 uint8 이미지와 float32 점수의 비교에는 원소당 바이트 차이도 반영해야 한다. 이미지 압축 파일의 배율로 그대로 해석하지 않는다.
@@ -113,9 +96,27 @@ $$\operatorname{MSE}=\frac{n-1}{n\cdot784}\sum_{j>50}\lambda_j.$$
 
 보존된 값 0.011793의 제곱근은 약 0.1086이다. 이는 픽셀별 제곱 오차의 제곱근(RMSE)이지 평균 절대 오차나 10.86%의 픽셀이 틀렸다는 뜻이 아니다. 다른 전처리와 오차 척도에서는 직접 비교할 수 없다.
 
+0.011793이라는 수만으로는 좋은지 알 수 없다. 같은 재구성을 그림으로 보면 이렇다.
+
+![세 줄에 걸쳐 숫자 1, 3, 5를 원본과 함께 성분 수를 하나, 다섯, 스물, 쉰, 백쉰넷, 칠백여든넷으로 늘려 가며 되살린 그림. 성분이 하나일 때는 흐릿한 덩어리이고, 스물이면 숫자를 알아볼 수 있으며, 쉰이면 또렷하지만 바탕에 얼룩이 남고, 백쉰넷부터는 원본과 거의 구별되지 않는다.](figures/reconstruction.svg)
+
+**$k=1$ 은 평균에 방향 하나를 더한 것뿐이라 세 숫자가 서로 비슷해 보인다.** $k=20$ 이면 무슨 숫자인지 읽을 수 있고, 이 쪽이 쓰는 $k=50$ 에서는 획이 또렷하지만 바탕에 얼룩이 남는다. **그 얼룩이 버린 17.5%다.** $k=154$(95%)에서 얼룩이 거의 사라진다.
+
+여기서 "82.5%를 남겼다"가 "82.5%만큼 비슷하다"가 아니라는 것이 보인다. 분산의 비율과 눈에 보이는 품질은 서로 다른 축이다.
+
 ## 5. 시각화와 분류 평가의 범위
 
-앞 두 점수로 시각화하면 남긴 부분의 구조만 보인다. 2차원에서 겹친 점이 원래 공간에서도 구분 불가능하다는 결론은 성립하지 않는다. 낮은 분산의 방향이 분류에 중요할 수도 있다. 개별 주성분을 이미지로 표시한 고유숫자는 평균에 더하고 빼는 변화 방향이며 특정 숫자나 하나의 의미만 나타낼 필요가 없다.
+주성분 자체를 28×28로 되돌려 그린 것이 고유숫자다.
+
+![맨 왼쪽은 학습 자료의 평균 이미지로 여러 숫자가 겹친 흐릿한 덩어리다. 그 오른쪽으로 첫째부터 열한째 주성분을 빨강과 파랑의 두 색으로 그렸고, 색이 반대인 두 영역이 짝을 이루며 획이 있는 자리와 없는 자리를 나눈다.](figures/eigendigits.svg)
+
+**PC1 이 0 처럼 보이지만 0 을 뜻하지 않는다.** 주성분은 평균에 **더하고 빼는 방향**이고, 빨강과 파랑은 부호가 반대라는 표시일 뿐이다. 점수가 양수인 표본은 빨강 쪽으로, 음수인 표본은 파랑 쪽으로 평균에서 움직인다. 하나의 성분이 숫자 하나나 뜻 하나에 대응할 까닭이 없다.
+
+앞 두 점수로 흩뿌려 보면 이렇다.
+
+![첫째와 둘째 점수를 두 축으로 삼아 삼천 개 표본을 숫자별 색으로 흩뿌린 그림. 왼쪽 위에 한 무리가 뚜렷이 떨어져 있고 나머지 숫자들은 가운데에서 서로 크게 겹쳐 있다.](figures/scores_2d.svg)
+
+1(주황)만 또렷이 떨어져 있고 나머지는 뭉쳐 있다. 그러나 **이 두 축이 가진 것은 16.8%뿐이다.** 2차원에서 겹친 점이 원래 784차원에서도 구분 불가능하다는 결론은 성립하지 않는다. 낮은 분산의 방향이 분류에 중요할 수도 있다.
 
 연습문제의 로지스틱 회귀는 각 표현을 학습한 **같은 데이터에 점수화**한다. 테스트 정확도나 일반화 비교가 아니고 학습 시간도 측정하지 않는다. 분류용 성분 수는 독립 검증 구간에서 선택하고 PCA 적합도 학습 구간 안에서 수행한다. 오토인코더와 비교하려면 같은 데이터 분할·정규화·병목 차원과 평가 조건을 맞춘다.
 
