@@ -507,9 +507,100 @@ def recon_vs_likelihood():
           f"worst ll step {ll_worst_down:+.3f} vs gain {ll_gain:+.3f}  "
           f"disagree {both}/{len(rec_a)-1}")
 
+
+
+# === 그림으로 보는 AI: 이산화가 물려받지 못하는 것 ============================
+#
+# 그 쪽 3 절이 "유한 이산화의 추가 바이어스도 있다" 고 적어 둔 그 바이어스를,
+# 닫힌 식이 있는 한 경우에서 정확히 보인다. 목표가 N(0,1) 이면 쪽의 관례
+# x <- x - h*gradE + sqrt(2h)*xi 는 AR(1) 이고 정상분산이 1/(1-h/2) 다.
+# h=2 에서 발산하는데, 로버츠-트위디 1996 이 gamma*h>2 에서 transient 임을
+# 증명한 자리와 같다.
+
+def ula_bias():
+    rng = np.random.default_rng(0)
+
+    hs = np.array([0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 1.5])
+    theory = 1.0 / (1.0 - hs / 2.0)
+    meas = []
+    for h in hs:
+        x = np.zeros(60_000)
+        for _ in range(4000):
+            x = x - h * x + np.sqrt(2 * h) * rng.normal(size=x.shape)
+        meas.append(float(x.var()))
+    meas = np.array(meas)
+
+    # 발산 경계
+    traj = {}
+    for h in (1.99, 2.05):
+        x = np.zeros(2000)
+        path = []
+        for _ in range(400):
+            x = x - h * x + np.sqrt(2 * h) * rng.normal(size=x.shape)
+            with np.errstate(over="ignore", invalid="ignore"):
+                path.append(float(np.nanmax(np.abs(x))))
+        traj[h] = np.array(path)
+
+    assert np.allclose(meas, theory, rtol=0.03), (
+        f"닫힌 식과 실측이 맞아야 한다: {meas} vs {theory}")
+    assert traj[1.99][-1] < 1e3, "h<2 는 머물러야 한다"
+    assert traj[2.05][-1] > 1e6 or not np.isfinite(traj[2.05][-1]), (
+        "h>2 는 발산해야 한다")
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1))
+
+    hh = np.linspace(0.005, 1.95, 300)
+    ax1.plot(hh, 1.0 / (1.0 - hh / 2.0), color=ACCENT, linewidth=2.2,
+             label="exact:  1 / (1 - h/2)")
+    ax1.plot(hs, meas, "o", color=INK, ms=6, zorder=4,
+             label="measured")
+    ax1.axhline(1.0, color=INK, linestyle="--", linewidth=1.2, alpha=0.7)
+    ax1.text(2.10, 1.03, "the target", fontsize=8.2, color=INK,
+             alpha=0.8, ha="right")
+    ax1.axvline(2.0, color=MUTED, linestyle=":", linewidth=1.4)
+    ax1.annotate("this page's h = 0.01\n(0.5% too wide)", xy=(0.01, 1.005),
+                 xytext=(0.34, 1.95), fontsize=8.3, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax1.set_xlabel("step size h", fontsize=9)
+    ax1.set_ylabel("stationary variance", fontsize=9)
+    ax1.set_title("the chain settles, but not on the target", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.set_xlim(0, 2.15)
+    ax1.set_ylim(0.9, 4.4)
+    ax1.legend(fontsize=8.4, loc="upper left", framealpha=0.92)
+    ax1.grid(alpha=0.13)
+
+    for h, col, lab in ((1.99, ACCENT, "h = 1.99"), (2.05, MUTED, "h = 2.05")):
+        y = np.clip(traj[h], 1e-3, 1e300)
+        ax2.semilogy(np.arange(len(y)), y, color=col, linewidth=1.8,
+                     label=lab)
+    ax2.set_xlabel("step", fontsize=9)
+    ax2.set_ylabel("largest |x| in the ensemble", fontsize=9)
+    ax2.set_title("and above h = 2 it leaves altogether", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.legend(fontsize=8.6, loc="upper left", framealpha=0.92)
+    ax2.grid(alpha=0.13, which="both")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s_ in ax.spines.values():
+            s_.set_color(INK)
+            s_.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "target is N(0,1), so gamma = 1 and Roberts and Tweedie's "
+             "transience condition gamma*h > 2 lands exactly on the pole.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "ula_bias.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote ula_bias.svg   h=0.01 -> {theory[0]:.4f}   "
+          f"h=1.5 -> {theory[-1]:.3f}   1.99 ok, 2.05 diverges")
+
 if __name__ == "__main__":
     cd_bias()
     ising_dimensions()
     score_matching_boundary()
     partition_overlap()
     recon_vs_likelihood()
+    ula_bias()
