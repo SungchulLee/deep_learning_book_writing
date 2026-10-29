@@ -112,5 +112,95 @@ def error_maximization():
           f"eq {s_eq:.3f}  beat {beat:.3f}  maxw {np.mean(mx):.3f}")
 
 
+# === 그림으로 보는 AI: 시장에 기대수익을 물어보는 대신 거꾸로 읽는다 =========
+#
+# Black-Litterman 의 출발점은 역최적화다. 수익을 예측하는 대신 **시가총액
+# 비중이 최적이 되려면 기대수익이 얼마여야 하는가**를 거꾸로 푼다. 그 값을
+# 다시 넣으면 시장 비중이 그대로 나온다 (기계 정밀도까지). 과거 표본평균을
+# 넣으면 비중이 폭주한다.
+
+def reverse_optimization():
+    rng = np.random.default_rng(3)
+    N, T, delta = 6, 60, 2.5
+    names = ["A", "B", "C", "D", "E", "F"]
+    w_mkt = np.array([.35, .22, .16, .12, .09, .06])
+    S = np.full((N, N), 0.0012)
+    np.fill_diagonal(S, 0.0040)
+
+    pi = delta * S @ w_mkt                     # 시장이 함축하는 기대수익
+    X = np.full(N, 0.008) + rng.normal(0, 1, (T, N)) @ np.linalg.cholesky(S).T
+    mh = X.mean(0)                             # 과거 표본평균
+
+    def weights(mu):
+        return np.linalg.solve(delta * S, mu)
+
+    w_back, w_hist = weights(pi), weights(mh)
+
+    # 그림이 제 주장을 확인한다
+    assert np.abs(w_back - w_mkt).max() < 1e-12, "되먹이면 시장 비중이 나온다"
+    assert np.abs(w_hist).max() > 1.0, "표본평균을 넣으면 비중이 폭주한다"
+    assert (w_hist < 0).sum() >= 1, "공매도가 나타난다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.2))
+
+    xp = np.arange(N)
+    ax1.bar(xp - 0.19, pi * 1200, 0.36, color=MUTED, alpha=0.88,
+            label="implied by the market")
+    ax1.bar(xp + 0.19, mh * 1200, 0.36, color=ACCENT, alpha=0.88,
+            label="historical sample mean")
+    ax1.axhline(0.008 * 1200, color=INK, linestyle=":", linewidth=1.4)
+    ax1.text(N - 0.5, 0.008 * 1200, " the truth, equal for all",
+             fontsize=7.8, color=INK, va="bottom", ha="right")
+    ax1.set_xticks(xp)
+    ax1.set_xticklabels(names, fontsize=9)
+    ax1.set_ylabel("expected return, annualised (%)", fontsize=9.5)
+    ax1.set_title("two ways to fill the same input", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8.2, loc="upper left", framealpha=0.93)
+    ax1.grid(alpha=0.12, axis="y")
+
+    ax2.bar(xp - 0.19, w_back * 100, 0.36, color=MUTED, alpha=0.88,
+            label="feed the implied returns back")
+    ax2.bar(xp + 0.19, w_hist * 100, 0.36, color=ACCENT, alpha=0.88,
+            label="feed the sample means")
+    ax2.plot(xp - 0.19, w_mkt * 100, "k_", ms=16, mew=2.2,
+             label="the market weights")
+    ax2.axhline(0, color=INK, linewidth=1.2)
+    ax2.set_xticks(xp)
+    ax2.set_xticklabels(names, fontsize=9)
+    ax2.set_ylabel("portfolio weight (%)", fontsize=9.5)
+    ax2.set_title("what the optimiser then does", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8.2, loc="upper left", framealpha=0.93)
+    ax2.grid(alpha=0.12, axis="y")
+    ax2.set_ylim(min(w_hist.min() * 100 - 20, -55),
+                 max(w_hist.max() * 100 + 35, 130))
+    ax2.text(0.97, 0.04,
+             f"largest difference from the market weights: "
+             f"{np.abs(w_back - w_mkt).max():.0e}",
+             transform=ax2.transAxes, ha="right", fontsize=7.8, color=MUTED)
+
+    for ax in (ax1, ax2):
+        ax.set_xlabel("asset", fontsize=9.5)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "every asset truly has the same expected return. the market's "
+             "implied numbers stay tame; the sample means do not.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "reverse_optimization.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote reverse_optimization.svg   implied "
+          f"{pi.min()*1200:.2f}-{pi.max()*1200:.2f}%  sample "
+          f"{mh.min()*1200:.2f}-{mh.max()*1200:.2f}%  weights "
+          f"{w_hist.min()*100:.1f}-{w_hist.max()*100:.1f}%")
+
+
 if __name__ == "__main__":
     error_maximization()
+    reverse_optimization()
