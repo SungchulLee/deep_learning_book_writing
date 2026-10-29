@@ -408,3 +408,66 @@ if __name__ == "__main__":
     conjugate_limit()
     map_not_invariant()
     two_intervals()
+    thompson_1933()
+
+
+# === 그림으로 보는 AI: 1933년의 동기를 그대로 재어 본다 =======================
+#
+# Thompson 1933 은 임상시험을 두고 쓴 글이다 — 나쁜 치료를 받는 환자 수를
+# 줄이자는 것. 그 동기를 그대로 재면, 반반 배정 500명이 62명 언저리로 준다.
+# 다만 **흩어짐이 크다**(8-411). 평균의 이야기이지 한 번의 보장이 아니다.
+
+def thompson_1933():
+    rng = np.random.default_rng(0)
+    pA, pB, N, R = 0.30, 0.45, 1000, 600
+
+    def run():
+        a, b, bad = np.ones(2), np.ones(2), 0
+        for _ in range(N):
+            k = int(np.argmax(rng.beta(a, b)))
+            r = rng.random() < (pA if k == 0 else pB)
+            a[k] += r
+            b[k] += 1 - r
+            bad += (k == 0)
+        return bad
+
+    bad = np.array([run() for _ in range(R)])
+    fixed = N // 2
+
+    assert bad.mean() < fixed * 0.25, "톰프슨이 훨씬 적게 배정해야 한다"
+    assert bad.max() > fixed * 0.5, "그래도 나쁜 판이 나온다는 것을 보여야 한다"
+
+    fig, ax = plt.subplots(figsize=(8.6, 4.3))
+    ax.hist(bad, bins=46, color=ACCENT, alpha=0.75, edgecolor="white",
+            linewidth=0.5)
+    ax.axvline(fixed, color=INK, linewidth=2.0)
+    ax.text(fixed, ax.get_ylim()[1] * 0.93, "  fixed 50/50 split", fontsize=9,
+            color=INK, va="top")
+    ax.axvline(bad.mean(), color=MUTED, linewidth=2.0, linestyle="--")
+    ax.text(bad.mean(), ax.get_ylim()[1] * 0.70,
+            f"  Thompson mean {bad.mean():.0f}", fontsize=9, color=MUTED,
+            va="top")
+    ax.annotate(f"worst of {R} runs: {bad.max()}",
+                xy=(bad.max(), 2), xytext=(-150, 46),
+                textcoords="offset points", fontsize=8.4, color=INK,
+                arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax.set_xlabel(f"patients given the worse treatment, out of {N}",
+                  fontsize=9.5)
+    ax.set_ylabel("runs", fontsize=9.5)
+    ax.set_title("what Thompson was trying to reduce", fontsize=10.5,
+                 color=INK, weight="bold", pad=8)
+    ax.grid(alpha=0.12)
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+    fig.text(0.5, -0.04,
+             f"success rates {pA} and {pB}, {R} simulated trials. "
+             f"the spread is the point: {bad.min()} to {bad.max()}.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "thompson_1933.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote thompson_1933.svg   mean {bad.mean():.1f}  "
+          f"range {bad.min()}-{bad.max()}")
