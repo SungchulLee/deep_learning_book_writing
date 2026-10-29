@@ -64,10 +64,14 @@ def identity(flat):
     return 100.0 * (pred == yte).float().mean().item()
 
 
-def train_ae(model, X):
-    """되살리기만 배운다. 라벨은 한 번도 쓰지 않는다."""
+def train_ae(cls, k, X):
+    """되살리기만 배운다. 라벨은 한 번도 쓰지 않는다.
+
+    씨앗은 모델을 **만들기 전에** 뿌린다. 만들어 둔 모델을 받는 꼴로 쓰면
+    초깃값이 씨앗 밖에 남아 돌릴 때마다 수가 달라진다.
+    """
     torch.manual_seed(SEED)
-    model = model.to(device)
+    model = cls(k).to(device)
     opt = optim.Adam(model.parameters(), lr=LR)
     g = torch.Generator().manual_seed(SEED)
     loader = DataLoader(TensorDataset(X), batch_size=BATCH, shuffle=True, generator=g)
@@ -109,7 +113,7 @@ class ConvAE(nn.Module):
 if __name__ == "__main__":
   for k in (64, 2):
     # 컨볼루션은 펼치지 않은 (N, 1, 28, 28)을 받는다
-    m = train_ae(ConvAE(k), Xtr_img)
+    m = train_ae(ConvAE, k, Xtr_img)
     rec = reconstruct(m, Xte_img)
     enc_p = sum(p.numel() for p in m.enc.parameters())
     print(f"  ae_conv{k:<2d}  복원 MSE {((rec - Xte_img) ** 2).mean():.5f}  "
