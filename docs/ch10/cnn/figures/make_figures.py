@@ -8,12 +8,17 @@
   transposed_conv_steps.svg   transposed_conv.md 2절 — 0 끼우기 / 덧대기 / 보통 컨볼루션
   dilated_vs_downsample.svg   dilated_convolutions.md 6절 — 두 경로의 해상도
   gridding_coverage.svg       dilated_convolutions.md 5절 — d=2,2 와 d=1,2,4 의 덮개
+  rf_strategies.svg           receptive_field.md 4절 — 커널·깊이·팽창 세 전략
+  depthwise_decomposition.svg depthwise_separable.md 4절 — 표준 대 깊이별+점별
+  advanced_training_curve.svg 07_cifar10_advanced.md 2.3절 — 열네 에포크의 정체
 
 그림에 적는 수는 모두 쪽의 코드·출력에서 확인한 것이다. check_numbers() 가
 그 확인을 다시 돌린다.
 
 실행: python docs/ch10/cnn/figures/make_figures.py
+      python docs/ch10/cnn/figures/make_figures.py --png   ← 눈으로 볼 PNG 도 함께
 """
+import sys
 from pathlib import Path
 
 import matplotlib
@@ -420,6 +425,349 @@ def make_gridding_coverage():
     print("wrote gridding_coverage.svg")
 
 
+# === 선그래프용 공통 도구 =========================================
+
+
+def style(ax):
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+
+def save(fig, name):
+    fig.savefig(HERE / f"{name}.svg", transparent=True, bbox_inches="tight")
+    if "--png" in sys.argv:          # 글자가 겹치지 않는지 눈으로 보려고 쓴다
+        fig.savefig(HERE / f"{name}.png", transparent=False, dpi=170,
+                    bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    print(f"wrote {name}.svg")
+
+
+# === 그림 5. 리셉티브 필드를 넓히는 세 전략 ========================
+#     receptive_field.md 4절. 점이든 선이든 모두 그 쪽 3절의
+#     compute_receptive_field() 를 그대로 돌려 얻은 값이다.
+
+
+def compute_receptive_field(layers):
+    """receptive_field.md 3절의 함수와 글자 그대로 같다."""
+    rf = 1
+    jump = 1
+    for layer in layers:
+        k = layer.get("kernel", 1)
+        s = layer.get("stride", 1)
+        d = layer.get("dilation", 1)
+        k_eff = d * (k - 1) + 1
+        rf = rf + (k_eff - 1) * jump
+        jump = jump * s
+    return rf, jump
+
+
+def _deeper(n):                      # 전략 2: 3x3 을 더 쌓는다
+    return [{"kernel": 3, "stride": 1} for _ in range(n)]
+
+
+def _wider(n):                       # 전략 1: 커널을 7x7 로 키운다
+    return [{"kernel": 7, "stride": 1} for _ in range(n)]
+
+
+def _dilated(n):                     # 전략 4: 팽창률을 1,2,4,8,... 로 키운다
+    return [{"kernel": 3, "stride": 1, "dilation": 2 ** i} for i in range(n)]
+
+
+def weight_proxy(layers):
+    """쪽의 compare_architectures() 가 쓰는 파라메터 대용치 — k^2 의 합."""
+    return sum(layer.get("kernel", 1) ** 2 for layer in layers)
+
+
+DEPTHS = list(range(0, 11))
+
+STRATEGIES = (
+    ("more 3x3 layers (k=3, d=1)", _deeper, COOL, "o", "-"),
+    ("larger kernel (k=7, d=1)", _wider, MUTED, "s", "--"),
+    ("dilation d = 1, 2, 4, 8, ... (k=3)", _dilated, ACCENT, "^", "-"),
+)
+
+
+def make_rf_strategies():
+    curves = {name: [compute_receptive_field(build(n))[0] for n in DEPTHS]
+              for name, build, _, _, _ in STRATEGIES}
+    costs = {name: [weight_proxy(build(n)) for n in DEPTHS]
+             for name, build, _, _, _ in STRATEGIES}
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.3))
+
+    # --- 왼쪽: 깊이에 대한 리셉티브 필드 ---
+    for name, build, color, marker, ls in STRATEGIES:
+        ax1.plot(DEPTHS, curves[name], color=color, lw=1.7, ls=ls,
+                 marker=marker, ms=4.2, label=name, zorder=3)
+
+    ax1.set_yscale("log")
+    ax1.set_xlabel("number of stacked layers", fontsize=9, color=INK)
+    ax1.set_ylabel("receptive field width (px)", fontsize=9, color=INK)
+    ax1.set_xticks(DEPTHS)
+    ax1.set_yticks([1, 3, 10, 30, 100, 300, 1000, 3000])
+    ax1.set_yticklabels(["1", "3", "10", "30", "100", "300", "1000", "3000"])
+    ax1.set_ylim(0.8, 6000)
+    ax1.grid(alpha=0.25, lw=0.6, zorder=0)
+    ax1.legend(fontsize=8, loc="upper left", frameon=False)
+    style(ax1)
+
+    d5 = {name: curves[name][5] for name, *_ in STRATEGIES}
+    rf5_dil = d5["dilation d = 1, 2, 4, 8, ... (k=3)"]
+    rf5_std = d5["more 3x3 layers (k=3, d=1)"]
+    ax1.annotate(f"5 layers: RF {rf5_dil}\n"
+                 f"({rf5_dil / rf5_std:.1f}x the k=3 stack)",
+                 xy=(5, rf5_dil), xytext=(5.4, 700), fontsize=8, color=ACCENT,
+                 ha="left",
+                 arrowprops=dict(arrowstyle="-", color=ACCENT, lw=0.8))
+    ax1.annotate(f"5 layers: RF {d5['more 3x3 layers (k=3, d=1)']}",
+                 xy=(5, d5["more 3x3 layers (k=3, d=1)"]),
+                 xytext=(5.4, 2.0), fontsize=8, color=COOL, ha="left",
+                 arrowprops=dict(arrowstyle="-", color=COOL, lw=0.8))
+    ax1.annotate(f"10 layers: RF {curves['more 3x3 layers (k=3, d=1)'][10]}",
+                 xy=(10, curves["more 3x3 layers (k=3, d=1)"][10]),
+                 xytext=(8.2, 4.4), fontsize=8, color=COOL, ha="left",
+                 arrowprops=dict(arrowstyle="-", color=COOL, lw=0.8))
+    ax1.set_title("(a) how fast the width grows", fontsize=9.5, color=INK,
+                  loc="left")
+
+    # --- 오른쪽: 그 폭에 치르는 웨이트 값 ---
+    for name, build, color, marker, ls in STRATEGIES:
+        ax2.plot(costs[name][1:], curves[name][1:], color=color, lw=1.7,
+                 ls=ls, marker=marker, ms=4.2, label=name, zorder=3)
+
+    ax2.set_yscale("log")
+    ax2.set_xlabel("sum of k^2 over the stack (the page's weight proxy)",
+                   fontsize=9, color=INK)
+    ax2.set_ylabel("receptive field width (px)", fontsize=9, color=INK)
+    ax2.set_yticks([3, 10, 30, 100, 300, 1000, 3000])
+    ax2.set_yticklabels(["3", "10", "30", "100", "300", "1000", "3000"])
+    ax2.set_ylim(2.0, 6000)
+    ax2.grid(alpha=0.25, lw=0.6, zorder=0)
+    style(ax2)
+    c10 = costs["more 3x3 layers (k=3, d=1)"][10]
+    lo10 = curves["more 3x3 layers (k=3, d=1)"][10]
+    hi10 = curves["dilation d = 1, 2, 4, 8, ... (k=3)"][10]
+    assert c10 == costs["dilation d = 1, 2, 4, 8, ... (k=3)"][10]
+    ax2.plot([c10, c10], [lo10, hi10], color=INK, lw=0.9, ls=":", zorder=2)
+    ax2.annotate(f"the same {c10} weights, ten layers of k=3:\n"
+                 f"RF {lo10} without dilation, RF {hi10} with",
+                 xy=(c10, 220), xytext=(125, 220), fontsize=8, color=INK,
+                 ha="left", va="center",
+                 arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.8))
+    ax2.annotate("k=7 pays 49 weights a layer\nfor a width k=3 reaches too",
+                 xy=(costs["larger kernel (k=7, d=1)"][4],
+                     curves["larger kernel (k=7, d=1)"][4]),
+                 xytext=(170, 60), fontsize=8, color=MUTED, ha="left",
+                 va="center",
+                 arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.8))
+    ax2.set_title("(b) what that width costs in weights", fontsize=9.5,
+                  color=INK, loc="left")
+
+    fig.tight_layout()
+    save(fig, "rf_strategies")
+
+
+# === 그림 6. 표준 컨볼루션을 깊이별과 점별로 쪼갠다 ================
+#     depthwise_separable.md 4절. 셈은 모두 그 절의 식에서 나온다.
+
+DS_CIN, DS_COUT, DS_K = 64, 128, 3
+
+
+def ds_counts(c_in=DS_CIN, c_out=DS_COUT, k=DS_K):
+    """4절 표의 웨이트 수와 바이어스 수를 식 그대로 센다."""
+    std_w = c_in * c_out * k * k
+    dw_w = c_in * k * k
+    pw_w = c_in * c_out
+    return {
+        "std_w": std_w, "std_b": c_out,
+        "dw_w": dw_w, "dw_b": c_in,
+        "pw_w": pw_w, "pw_b": c_out,
+        "sep_w": dw_w + pw_w,
+        "sep_b": c_in + c_out,
+    }
+
+
+def make_depthwise_decomposition():
+    n = ds_counts()
+    ratio_w = n["std_w"] / n["sep_w"]
+    ratio_p = (n["std_w"] + n["std_b"]) / (n["sep_w"] + n["sep_b"])
+
+    fig, ax = plt.subplots(figsize=(9.8, 5.4))
+
+    H = 32          # 4절 코드가 쓰는 입력 크기
+    UNIT = 1.0 / 80.0
+
+    def tensor(x, y, c, label, color=INK, fc="none"):
+        h = c * UNIT
+        ax.add_patch(Rectangle((x, y - h / 2), 0.62, h, fc=fc, ec=color,
+                               lw=1.2, zorder=2))
+        ax.text(x + 0.31, y + h / 2 + 0.11, label, ha="center", va="bottom",
+                fontsize=8, family="monospace", color=color)
+        return x + 0.62
+
+    def op(x, y, width, title, shape, count, color):
+        ax.add_patch(FancyArrowPatch((x + 0.12, y), (x + width - 0.12, y),
+                                     arrowstyle="-|>", mutation_scale=12,
+                                     color=color, lw=1.4, zorder=2))
+        ax.text(x + width / 2, y + 0.16, title, ha="center", va="bottom",
+                fontsize=8.5, color=color, weight="bold")
+        ax.text(x + width / 2, y - 0.17, shape, ha="center", va="top",
+                fontsize=8, color=color, family="monospace")
+        ax.text(x + width / 2, y - 0.46, count, ha="center", va="top",
+                fontsize=9, color=color, family="monospace")
+
+    # --- 위: 표준 컨볼루션 ---
+    ytop = 1.75
+    x = tensor(0.0, ytop, DS_CIN, f"{DS_CIN} x {H} x {H}", INK, FILL)
+    op(x, ytop, 3.4, "Standard conv",
+       f"{DS_COUT} x {DS_CIN} x {DS_K} x {DS_K}",
+       f"{n['std_w']:,} weights", INK)
+    tensor(x + 3.4, ytop, DS_COUT, f"{DS_COUT} x {H} x {H}", INK, FILL)
+    caption(ax, -0.15, ytop, "standard", fontsize=10, weight="bold",
+            color=INK, ha="right")
+
+    # --- 아래: 깊이별 + 점별 ---
+    ybot = -1.35
+    x = tensor(0.0, ybot, DS_CIN, f"{DS_CIN} x {H} x {H}", ACCENT, FILL)
+    op(x, ybot, 1.7, "Depthwise 3x3", f"{DS_CIN} x 1 x {DS_K} x {DS_K}",
+       f"{n['dw_w']:,}", ACCENT)
+    x = tensor(x + 1.7, ybot, DS_CIN, f"{DS_CIN} x {H} x {H}", ACCENT, FILL)
+    op(x, ybot, 1.7, "Pointwise 1x1", f"{DS_COUT} x {DS_CIN} x 1 x 1",
+       f"{n['pw_w']:,}", ACCENT)
+    tensor(x + 1.7, ybot, DS_COUT, f"{DS_COUT} x {H} x {H}", ACCENT, FILL)
+    caption(ax, -0.15, ybot, "depthwise\nseparable", fontsize=10,
+            weight="bold", color=ACCENT, ha="right")
+    caption(ax, 2.63, ybot - 1.05,
+            f"{n['dw_w']:,} + {n['pw_w']:,} = {n['sep_w']:,} weights",
+            fontsize=9.5, family="monospace", color=ACCENT)
+
+    # --- 비 ---
+    caption(ax, 2.63, 0.38,
+            f"{n['std_w']:,} / {n['sep_w']:,} = {ratio_w:.2f}x",
+            fontsize=12.5, family="monospace", color=ACCENT, weight="bold")
+    caption(ax, 2.63, -0.06,
+            f"1 / (1/{DS_COUT} + 1/{DS_K}^2) = {ratio_w:.2f}",
+            fontsize=9, family="monospace", color=MUTED)
+
+    caption(ax, 2.63, ybot - 1.52,
+            "weights only (bias=False, as in section 4). With PyTorch's default "
+            f"bias=True the layer totals are\n{n['std_w'] + n['std_b']:,} and "
+            f"{n['sep_w'] + n['sep_b']:,}, and the ratio falls to "
+            f"{ratio_p:.2f}x - the {n['sep_b']} extra biases do not shrink.",
+            fontsize=8.5, color=MUTED, ha="center", va="top")
+
+    ax.set_xlim(-1.6, 5.5)
+    ax.set_ylim(-3.6, 3.0)
+    ax.set_axis_off()
+    fig.tight_layout()
+    save(fig, "depthwise_decomposition")
+
+
+# === 그림 7. 열네 에포크가 어디서 멈추는가 =========================
+#     07_cifar10_advanced.md 2.3절의 표를 그대로 옮긴 것이다.
+#     (그 표 자체가 1절 출력의 "Epoch k: Avg Loss ..., Acc ..." 줄이다)
+
+EPOCH_LOG = [
+    # (에포크, 평균 로스, 학습 정확도 %)
+    (1, 2.1525, 20.22),
+    (2, 1.7721, 36.20),
+    (3, 1.5800, 42.64),
+    (4, 1.4875, 46.11),
+    (5, 1.4361, 47.99),
+    (6, 1.4026, 49.36),
+    (7, 1.3820, 50.19),
+    (8, 1.3681, 50.84),
+    (9, 1.3520, 51.31),
+    (10, 1.3478, 51.21),
+    (11, 1.3417, 51.75),
+    (12, 1.3349, 52.03),
+    (13, 1.3348, 51.99),
+    (14, 1.3331, 51.99),
+]
+LR0, GAMMA = 0.01, 0.7          # 1절의 --lr 과 --gamma 기본값
+TEST_ACC = 54.82                # 1절 마지막 줄
+PLATEAU_FROM = 9                # 2.3절이 짚는 자리
+
+
+def make_advanced_training_curve():
+    ep = [e for e, _, _ in EPOCH_LOG]
+    loss = [l for _, l, _ in EPOCH_LOG]
+    acc = [a for _, _, a in EPOCH_LOG]
+    lr = [LR0 * GAMMA ** (e - 1) for e in ep]
+
+    tail = [a for e, _, a in EPOCH_LOG if e >= PLATEAU_FROM]
+    lo, hi = min(tail), max(tail)
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8.0, 6.2), sharex=True,
+                                   gridspec_kw={"height_ratios": [1, 1.25]})
+
+    for ax in (ax1, ax2):
+        ax.axvspan(PLATEAU_FROM - 0.3, 14.3, color=FILL, zorder=0)
+
+    # --- 위: 평균 로스 ---
+    ax1.plot(ep, loss, color=ACCENT, lw=1.8, marker="o", ms=4.5, zorder=3)
+    ax1.set_ylabel("average training loss", fontsize=9, color=INK)
+    ax1.set_ylim(1.2, 2.3)
+    ax1.grid(alpha=0.25, lw=0.6, zorder=1)
+    ax1.annotate(f"{loss[0]:.4f} -> {loss[-1]:.4f}\nbut {loss[8]:.4f} -> "
+                 f"{loss[-1]:.4f} over the last six",
+                 xy=(13, loss[12]), xytext=(7.0, 1.78), fontsize=8,
+                 color=ACCENT, ha="left", va="center",
+                 arrowprops=dict(arrowstyle="-", color=ACCENT, lw=0.8))
+    style(ax1)
+
+    # --- 아래: 학습 정확도와 러닝레이트 ---
+    ax2.plot(ep, acc, color=COOL, lw=1.8, marker="o", ms=4.5, zorder=4,
+             label="train accuracy")
+    ax2.hlines([lo, hi], PLATEAU_FROM - 0.3, 14.3, color=COOL, lw=0.8,
+               ls=":", zorder=2)
+    ax2.set_ylabel("train accuracy (%)", fontsize=9, color=COOL)
+    ax2.set_xlabel("epoch", fontsize=9, color=INK)
+    ax2.set_ylim(15, 60)
+    ax2.set_xticks(ep)
+    ax2.set_xlim(0.4, 14.6)
+    ax2.grid(alpha=0.25, lw=0.6, zorder=1)
+    style(ax2)
+    ax2.tick_params(axis="y", colors=COOL)
+
+    ax2.annotate(f"+{acc[1] - acc[0]:.2f}%p", xy=(2, acc[1]),
+                 xytext=(2.3, 28.5), fontsize=8.5, color=COOL, ha="left",
+                 va="center",
+                 arrowprops=dict(arrowstyle="-", color=COOL, lw=0.8))
+    ax2.annotate(f"epochs {PLATEAU_FROM}-14 stay inside a "
+                 f"{hi - lo:.2f}%p band\n({lo:.2f}% to {hi:.2f}%)",
+                 xy=(11.5, hi), xytext=(6.1, 40.5), fontsize=8.5, color=COOL,
+                 ha="left", va="center",
+                 arrowprops=dict(arrowstyle="-", color=COOL, lw=0.8))
+
+    ax3 = ax2.twinx()
+    ax3.plot(ep, lr, color=MUTED, lw=1.5, ls="--", marker="s", ms=3.4,
+             zorder=3)
+    ax3.set_yscale("log")
+    ax3.set_ylabel("learning rate (log scale)", fontsize=9, color=MUTED)
+    ax3.set_ylim(5e-5, 3e-2)
+    ax3.tick_params(axis="y", labelsize=8, colors=MUTED)
+    ax3.spines["top"].set_visible(False)
+    ax3.spines["right"].set_color(MUTED)
+    ax3.spines["right"].set_linewidth(0.7)
+    ax3.annotate(f"lr = {LR0} x {GAMMA}^(k-1), stepped every epoch\n"
+                 f"epoch 9: {lr[8]:.6f}   epoch 14: {lr[13]:.8f}",
+                 xy=(9, lr[8]), xytext=(3.3, 1.25e-4), fontsize=8,
+                 color=MUTED, ha="left", va="center",
+                 arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.8))
+
+    ax1.set_title(f"CNN_CIFAR10, seed 1, 14 epochs - test accuracy "
+                  f"{TEST_ACC}% at the end", fontsize=9.5, color=INK,
+                  loc="left")
+
+    fig.tight_layout()
+    save(fig, "advanced_training_curve")
+
+
 # === 그림에 적은 수를 다시 확인한다 ===============================
 
 
@@ -454,6 +802,40 @@ def check_numbers():
     assert reachable((2, 2))[-1] - reachable((2, 2))[0] + 1 == 9
     assert len(reachable((1, 2, 4))) == 15
     assert reachable((1, 2, 4))[-1] - reachable((1, 2, 4))[0] + 1 == 15
+
+    # --- rf_strategies: receptive_field.md 가 찍은 값과 맞는지 ---
+    # 3절 compare_receptive_fields() 출력: 표준 5레이어 11, 팽창 5레이어 63
+    assert compute_receptive_field(_deeper(5))[0] == 11
+    assert compute_receptive_field(_dilated(5))[0] == 63
+    assert round(63 / 11, 1) == 5.7
+    # 연습문제 3: 표준 10레이어 21
+    assert compute_receptive_field(_deeper(10))[0] == 21
+    # 2절의 닫힌 식 r_L = 1 + L(k-1) 과도 맞는다
+    for L in range(11):
+        assert compute_receptive_field(_deeper(L))[0] == 1 + 2 * L
+        assert compute_receptive_field(_wider(L))[0] == 1 + 6 * L
+        assert compute_receptive_field(_dilated(L))[0] == 1 + 2 * (2 ** L - 1)
+    # 6절 compare_architectures() 의 파라메터 대용치
+    assert weight_proxy(_dilated(5)) == 45
+
+    # --- depthwise_decomposition: depthwise_separable.md 4·8절 ---
+    n = ds_counts()
+    assert (n["std_w"], n["dw_w"], n["pw_w"]) == (73728, 576, 8192)
+    assert n["sep_w"] == 8768                       # 4절 출력
+    assert round(n["std_w"] / n["sep_w"], 2) == 8.41
+    assert n["std_w"] + n["std_b"] == 73856         # 8절 출력
+    assert n["sep_w"] + n["sep_b"] == 8960          # 8절 출력
+    assert round((n["std_w"] + n["std_b"]) / (n["sep_w"] + n["sep_b"]), 2) == 8.24
+    assert round(1 / (1 / 128 + 1 / 9), 2) == 8.41  # 4절의 닫힌 식
+
+    # --- advanced_training_curve: 07_cifar10_advanced.md 2.3절 ---
+    assert len(EPOCH_LOG) == 14
+    tail = [a for e, _, a in EPOCH_LOG if e >= PLATEAU_FROM]
+    assert (min(tail), max(tail)) == (51.21, 52.03)
+    assert round(max(tail) - min(tail), 2) == 0.82
+    assert round(EPOCH_LOG[1][2] - EPOCH_LOG[0][2], 2) == 15.98
+    assert round(LR0 * GAMMA ** 8, 7) == 0.0005765
+    assert f"{LR0 * GAMMA ** 13:.8f}" == "0.00009689"
     print("numbers check out")
 
 
@@ -463,3 +845,6 @@ if __name__ == "__main__":
     make_transposed_conv_steps()
     make_dilated_vs_downsample()
     make_gridding_coverage()
+    make_rf_strategies()
+    make_depthwise_decomposition()
+    make_advanced_training_curve()
