@@ -303,7 +303,92 @@ def score_matching_boundary():
     print(f"wrote score_matching_boundary.svg   mu_hat={mu_hat:.4f}  "
           f"lam_hat={lam_hat:.4f}")
 
+
+
+# === 그림으로 보는 AI: Z 는 "상태를 모두 더한 것"이라는 뜻이다 ================
+#
+# 그 쪽 3 절이 "겹침이 나쁘면 소수 웨이트가 지배해 분산이 커진다" 고 적어 둔
+# 것을 수로 보인다. 목표는 정규화 안 한 exp(-|x|^2/2) 라 참 Z=(2pi)^{d/2} 를
+# 정확히 아는 경우이고, 제안은 폭만 1.5 배로 어긋난 가우시안이다.
+# 추정값보다 **유효표본수가 먼저** 무너진다는 것이 요점이다.
+
+def partition_overlap():
+    s, N = 1.5, 200_000
+    dims = (1, 2, 5, 10, 20, 50, 80, 120, 200)
+    ratio, ess, top = [], [], []
+    for d in dims:
+        rr, ee, tt = [], [], []
+        for r in range(5):
+            rng = np.random.default_rng(r)
+            x = rng.normal(0, s, (N, d))
+            lw = (-0.5 * (x ** 2).sum(1)) - (
+                -0.5 * (x ** 2).sum(1) / s ** 2
+                - d * np.log(s * np.sqrt(2 * np.pi)))
+            m = lw.max()
+            w = np.exp(lw - m)
+            rr.append(np.exp(m) * w.mean() / (2 * np.pi) ** (d / 2))
+            ee.append(w.sum() ** 2 / (w ** 2).sum())
+            tt.append(w.max() / w.sum())
+        ratio.append(np.array(rr))
+        ess.append(float(np.mean(ee)))
+        top.append(float(np.mean(tt)))
+
+    med = np.array([r.mean() for r in ratio])
+    lo = np.array([r.min() for r in ratio])
+    hi = np.array([r.max() for r in ratio])
+
+    assert abs(med[0] - 1.0) < 0.02, "낮은 차원에서는 맞아야 한다"
+    assert med[-1] < 0.05, f"높은 차원에서는 무너져야 한다: {med[-1]}"
+    assert ess[-1] < 10, f"유효표본수가 무너져야 한다: {ess[-1]}"
+    assert ess[0] > 1e5, "낮은 차원에서는 표본이 거의 다 살아야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1), sharex=True)
+
+    ax1.fill_between(dims, lo, hi, color=ACCENT, alpha=0.18)
+    ax1.semilogy(dims, med, "o-", color=ACCENT, ms=5.5, linewidth=2.0)
+    ax1.axhline(1.0, color=INK, linestyle="--", linewidth=1.2, alpha=0.75)
+    ax1.text(1.5, 1.25, "truth", fontsize=8.2, color=INK, alpha=0.8)
+    ax1.set_xlabel("dimension", fontsize=9)
+    ax1.set_ylabel("estimated Z  /  true Z", fontsize=9)
+    ax1.set_title("the estimate looks fine, then it is not", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.annotate(f"off by {1/med[-1]:.0f}x", xy=(dims[-1], med[-1]),
+                 xytext=(96, med[-1] * 9), fontsize=8.5, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9))
+
+    ax2.semilogy(dims, ess, "s-", color=MUTED, ms=5.5, linewidth=2.0)
+    ax2.axhline(N, color=INK, linestyle="--", linewidth=1.2, alpha=0.75)
+    ax2.text(1.5, N * 1.25, f"all {N:,} draws", fontsize=8.2, color=INK,
+             alpha=0.8)
+    ax2.set_xlabel("dimension", fontsize=9)
+    ax2.set_ylabel("effective sample size", fontsize=9)
+    ax2.set_title("but this collapsed first", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.annotate(f"{ess[-1]:.1f} of {N:,}\nlargest weight {top[-1]*100:.0f}%",
+                 xy=(dims[-1], ess[-1]), xytext=(84, ess[-1] * 14),
+                 fontsize=8.5, color=MUTED,
+                 arrowprops=dict(arrowstyle="->", color=MUTED, lw=0.9))
+
+    for ax in (ax1, ax2):
+        ax.grid(alpha=0.13, which="both")
+        ax.tick_params(labelsize=8, colors=INK)
+        for s_ in ax.spines.values():
+            s_.set_color(INK)
+            s_.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "target with a known Z, proposal only 1.5x too wide. "
+             "band is the spread over 5 runs.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "partition_overlap.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote partition_overlap.svg   ratio {med[0]:.3f}->{med[-1]:.4f}   "
+          f"ESS {ess[0]:.0f}->{ess[-1]:.1f}")
+
 if __name__ == "__main__":
     cd_bias()
     ising_dimensions()
     score_matching_boundary()
+    partition_overlap()
