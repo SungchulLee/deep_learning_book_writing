@@ -410,6 +410,7 @@ if __name__ == "__main__":
     two_intervals()
     thompson_1933()
     james_stein()
+    efron_morris()
 
 
 # === 그림으로 보는 AI: 1933년의 동기를 그대로 재어 본다 =======================
@@ -547,3 +548,79 @@ def james_stein():
     plt.close(fig)
     print(f"wrote james_stein.svg   k=3 {e_mle[2]:.3f}->{e_js[2]:.3f}  "
           f"k=50 {e_mle[-1]:.2f}->{e_js[-1]:.2f}")
+
+
+# === 그림으로 보는 AI: 그 유명한 야구 결과는 한 번의 추출이다 =================
+#
+# Efron-Morris 1975 는 1970년 시즌 첫 45타석, 선수 18명으로 수축이 16/18 에서
+# 더 가깝고 총 제곱오차가 원값의 1/3 미만이라고 보고했다. 같은 **설계**를
+# 되풀이해 시늉하면 전형적인 판은 그보다 덜 극적이고, 더러 지기도 한다.
+# 원 자료를 구하지 못했으므로 그림은 시늉이며, 그 사실을 그림 안에 적는다.
+
+def efron_morris():
+    rng = np.random.default_rng(1970)
+    P, AB, R, GRAND = 18, 45, 4000, 0.265
+    ratio, closer = [], []
+    for _ in range(R):
+        theta = rng.beta(GRAND * 90, (1 - GRAND) * 90, P)
+        y = rng.binomial(AB, theta) / AB
+        m, = (y.mean(),)
+        sh = max(0.0, 1 - (P - 3) * (m * (1 - m) / AB) / ((y - m) ** 2).sum())
+        js = m + sh * (y - m)
+        ratio.append(((js - theta) ** 2).sum() / ((y - theta) ** 2).sum())
+        closer.append(int((np.abs(js - theta) < np.abs(y - theta)).sum()))
+    ratio = np.array(ratio)
+    closer = np.array(closer)
+
+    lose = float(np.mean(ratio > 1))
+    assert ratio.mean() < 0.7, "수축이 평균적으로는 뚜렷이 나아야 한다"
+    assert lose > 0.0, "지는 판이 있다는 것이 이 그림의 요점이다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1))
+
+    ax1.hist(ratio, bins=60, color=ACCENT, alpha=0.75, edgecolor="white",
+             linewidth=0.4)
+    ax1.axvline(1.0, color=INK, linewidth=1.8)
+    ax1.text(1.0, ax1.get_ylim()[1] * 0.95, "  shrinkage loses", fontsize=8.6,
+             color=INK, va="top")
+    ax1.axvline(1 / 3, color=MUTED, linewidth=1.8, linestyle="--")
+    ax1.text(1 / 3, ax1.get_ylim()[1] * 0.72,
+             " the 1975 paper\n reported below this", fontsize=8.2,
+             color=MUTED, va="top")
+    ax1.set_xlabel("total squared error, shrunk / raw", fontsize=9.5)
+    ax1.set_ylabel("simulated seasons", fontsize=9.5)
+    ax1.set_title(f"median {np.median(ratio):.3f}", fontsize=10, color=INK,
+                  weight="bold")
+
+    ax2.hist(closer, bins=np.arange(-0.5, P + 1.5), color=ACCENT, alpha=0.75,
+             edgecolor="white", linewidth=0.5)
+    ax2.axvline(16, color=MUTED, linewidth=1.8, linestyle="--")
+    ax2.text(16, ax2.get_ylim()[1] * 0.95, " 16 of 18\n in 1970",
+             fontsize=8.4, color=MUTED, va="top", ha="right")
+    ax2.axvline(closer.mean(), color=INK, linewidth=1.8)
+    ax2.text(closer.mean(), ax2.get_ylim()[1] * 0.60,
+             f" typical {closer.mean():.1f}", fontsize=8.6, color=INK,
+             va="top")
+    ax2.set_xlabel(f"players the shrunk estimate got closer, of {P}",
+                   fontsize=9.5)
+    ax2.set_ylabel("simulated seasons", fontsize=9.5)
+    ax2.set_title("one season is one draw", fontsize=10, color=INK,
+                  weight="bold")
+
+    for ax in (ax1, ax2):
+        ax.grid(alpha=0.12)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"simulation of the 1975 design, not the original data. "
+             f"shrinkage loses outright in {lose*100:.1f}% of seasons.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "efron_morris.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote efron_morris.svg   ratio med {np.median(ratio):.3f}  "
+          f"closer {closer.mean():.1f}/18  loses {lose*100:.1f}%")
