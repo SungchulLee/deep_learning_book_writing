@@ -387,8 +387,129 @@ def partition_overlap():
     print(f"wrote partition_overlap.svg   ratio {med[0]:.3f}->{med[-1]:.4f}   "
           f"ESS {ess[0]:.0f}->{ess[-1]:.1f}")
 
+
+
+# === 그림으로 보는 AI: 재구성 오차는 매끄럽고, 우도는 그렇지 않다 ==============
+#
+# 힌턴 2010 의 실천 지침이 재구성 오차를 "a very poor measure of the progress
+# of learning" 이라 적고 "Use it but don't trust it" 로 닫는다. 가시 12 개면
+# 4,096 상태를 전부 더해 **정확한** 로그 우도를 셈할 수 있으므로, 둘을 나란히
+# 기록해 정말 어긋나는지 본다.
+
+def recon_vs_likelihood():
+    import itertools
+
+    rng = np.random.default_rng(0)
+    nv, nh = 12, 8
+    V = np.array(list(itertools.product([0, 1], repeat=nv)), dtype=float)
+
+    def sig(x):
+        return 1.0 / (1.0 + np.exp(-x))
+
+    def free(X, W, b, c):
+        return -(X @ b) - np.logaddexp(0.0, X @ W + c).sum(1)
+
+    def exact_ll(W, b, c, D):
+        logZ = np.logaddexp.reduce(-free(V, W, b, c))
+        return float(np.mean(-free(D, W, b, c) - logZ))
+
+    base = rng.integers(0, 2, size=(4, nv)).astype(float)
+    D = np.repeat(base, 80, axis=0)
+    D = (D + (rng.random(D.shape) < 0.05)) % 2
+
+    W = rng.normal(0, 0.01, (nv, nh))
+    b = np.zeros(nv)
+    c = np.zeros(nh)
+    lr = 0.5
+
+    eps, rec, ll, wn = [], [], [], []
+    for ep in range(1, 1201):
+        idx = rng.permutation(len(D))
+        for s in range(0, len(D), 20):
+            v0 = D[idx[s:s + 20]]
+            ph0 = sig(v0 @ W + c)
+            h0 = (rng.random(ph0.shape) < ph0).astype(float)
+            v1 = (rng.random((len(v0), nv)) < sig(h0 @ W.T + b)).astype(float)
+            ph1 = sig(v1 @ W + c)
+            W += lr * (v0.T @ ph0 - v1.T @ ph1) / len(v0)
+            b += lr * (v0 - v1).mean(0)
+            c += lr * (ph0 - ph1).mean(0)
+        if ep % 20 == 0:
+            vr = sig(sig(D @ W + c) @ W.T + b)
+            eps.append(ep)
+            rec.append(float(np.mean((D - vr) ** 2)))
+            ll.append(exact_ll(W, b, c, D))
+            wn.append(float(np.abs(W).mean()))
+
+    rec_a, ll_a = np.array(rec), np.array(ll)
+    worst = int(np.argmin(np.diff(ll_a))) + 1        # 우도가 가장 크게 꺾인 자리
+
+    rec_gain = rec_a[0] - rec_a[-1]
+    rec_worst_up = float(np.diff(rec_a).max())
+    ll_gain = ll_a[-1] - ll_a[0]
+    ll_worst_down = float(np.diff(ll_a).min())
+    both = int(np.sum((np.diff(rec_a) < 0) & (np.diff(ll_a) < 0)))
+
+    # --- 그림이 주장하는 바를 그림이 스스로 확인한다 ----------------------
+    # 재구성 오차는 **단조가 아니다** — 성기게 찍으면 그렇게 보일 뿐이다.
+    # 참인 대비는 뒷걸음의 **크기**다.
+    assert rec_gain > 0, "재구성 오차는 전체적으로 줄어야 한다"
+    assert rec_worst_up / rec_gain < 0.15, (
+        f"재구성 오차의 뒷걸음은 작아야 한다: {rec_worst_up/rec_gain:.2f}")
+    assert abs(ll_worst_down) > ll_gain, (
+        f"우도의 한 번 하락이 전체 상승보다 커야 한다: "
+        f"{ll_worst_down:.3f} vs {ll_gain:.3f}")
+    assert both > len(rec_a) // 5, (
+        f"둘이 어긋나는 구간이 충분해야 한다: {both}")
+    assert wn[-1] > 2 * wn[0], "웨이트가 자라야 한다 (혼합이 느려지는 기제)"
+
+    fig, ax = plt.subplots(figsize=(8.0, 4.4))
+    ax2 = ax.twinx()
+
+    l1 = ax.plot(eps, rec, color=ACCENT, linewidth=2.2,
+                 label="reconstruction error  (what the loop logs)")
+    l2 = ax2.plot(eps, ll, color=MUTED, linewidth=1.6, alpha=0.9,
+                  label="exact log-likelihood  (all 4,096 states)")
+
+    ax2.plot([eps[worst]], [ll[worst]], "o", color=MUTED, ms=9,
+             markeredgecolor="white", markeredgewidth=1.3, zorder=5)
+    ax2.annotate(f"one step costs {abs(ll_worst_down):.2f} nats -\n"
+                 f"more than the whole run gained",
+                 xy=(eps[worst], ll[worst]),
+                 xytext=(eps[worst] - 620, ll[worst] + 0.30),
+                 fontsize=8.4, color=MUTED,
+                 arrowprops=dict(arrowstyle="->", color=MUTED, lw=1.0))
+
+    ax.set_xlabel("epoch", fontsize=9)
+    ax.set_ylabel("reconstruction error", fontsize=9, color=ACCENT)
+    ax2.set_ylabel("exact log-likelihood", fontsize=9, color=MUTED)
+    ax.set_title("one of these curves is reassuring. it is not the one that "
+                 "matters.", fontsize=10, color=INK, weight="bold", pad=9)
+    ax.grid(alpha=0.13)
+    ax.legend(handles=l1 + l2, fontsize=8.2, loc="center right",
+              framealpha=0.93)
+    ax.tick_params(labelsize=8, colors=INK)
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s_ in list(ax.spines.values()) + list(ax2.spines.values()):
+        s_.set_color(INK)
+        s_.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"in {both} of {len(rec_a)-1} intervals the logged error improves "
+             f"while the likelihood gets worse.  mean |W| grows "
+             f"{wn[0]:.2f} -> {wn[-1]:.2f}.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "recon_vs_likelihood.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote recon_vs_likelihood.svg   recon {rec[0]:.4f}->{rec[-1]:.4f}  "
+          f"worst ll step {ll_worst_down:+.3f} vs gain {ll_gain:+.3f}  "
+          f"disagree {both}/{len(rec_a)-1}")
+
 if __name__ == "__main__":
     cd_bias()
     ising_dimensions()
     score_matching_boundary()
     partition_overlap()
+    recon_vs_likelihood()
