@@ -297,7 +297,104 @@ def dropping_V():
           f"gap {h_ok[-1]-h_no[-1]:+.1f}   Psi1 {Psi_no[0]:.4f}")
 
 
+
+
+# === 그림으로 보는 AI: 정리 1 이 덮는 변형과 덮지 않는 변형 ===================
+#
+# DLR 1977 3절은 GEM 을 정의하고(식 3.5: Q 를 **올리기만** 하면 된다)
+# 정리 1 을 GEM 에 대해 증명한다. 그래서 부분 M 단계도 단조다.
+# 반대로 Q 를 표본으로 근사하는 MCEM 은 그 조건 밖이다. 직접 잰다.
+
+def which_variants_are_covered():
+    from scipy.stats import norm
+
+    rng = np.random.default_rng(0)
+    x = np.concatenate([rng.normal(-2, 1, 100), rng.normal(2.2, 1, 100)])
+    N, SIG, W = len(x), 1.0, 0.5
+
+    def loglik(mu):
+        return np.log(W * norm.pdf(x, mu[0], SIG)
+                      + W * norm.pdf(x, mu[1], SIG)).sum()
+
+    def resp(mu):
+        lj = np.column_stack([np.log(W) + norm.logpdf(x, m, SIG) for m in mu])
+        m_ = lj.max(1, keepdims=True)
+        R = np.exp(lj - m_)
+        return R / R.sum(1, keepdims=True)
+
+    def run(kind, iters=60, step=0.3, S=4, seed=1):
+        r = np.random.default_rng(seed)
+        mu = np.array([-0.3, 0.4])
+        hist = []
+        for _ in range(iters):
+            hist.append(loglik(mu))
+            R = resp(mu)
+            if kind == "EM":
+                mu = (R * x[:, None]).sum(0) / R.sum(0)
+            elif kind == "GEM":
+                target = (R * x[:, None]).sum(0) / R.sum(0)
+                mu = mu + step * (target - mu)
+            else:
+                Z = (r.random((N, S))[:, :, None]
+                     < np.cumsum(R, 1)[:, None, :]).argmax(2)
+                Rh = np.stack([(Z == k).mean(1) for k in range(2)], 1)
+                mu = (Rh * x[:, None]).sum(0) / np.maximum(Rh.sum(0), 1e-9)
+        return np.array(hist)
+
+    runs = {k: run(k) for k in ("EM", "GEM", "MCEM")}
+    viol = {k: int((np.diff(h) < -1e-9).sum()) for k, h in runs.items()}
+    assert viol["EM"] == 0 and viol["GEM"] == 0 and viol["MCEM"] > 0, \
+        "정리 1 은 GEM 까지 덮고 MCEM 은 덮지 않는다"
+
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.3),
+                                  gridspec_kw={"width_ratios": [1.15, 1]})
+    styles = {"EM": (ACCENT, "-", 2.2), "GEM": (COOL, "-", 2.0),
+              "MCEM": (INK, "--", 1.7)}
+    labs = {"EM": "EM  (full M step)",
+            "GEM": "GEM  (M step only 30% of the way)",
+            "MCEM": "MCEM  (Q from 4 samples)"}
+    for k, h in runs.items():
+        c, ls, lw = styles[k]
+        ax.plot(h, color=c, linestyle=ls, linewidth=lw,
+                label=f"{labs[k]}   -  {viol[k]} decreases")
+    ax.set_xlabel("iteration", fontsize=9)
+    ax.set_ylabel("observed log-likelihood", fontsize=9)
+    ax.set_title("the 1977 theorem already covered the first variant",
+                 fontsize=9.6, color=INK, weight="bold")
+    ax.legend(fontsize=8.0, framealpha=0.92, loc="lower right")
+    ax.grid(alpha=0.13)
+    style(ax)
+
+    # --- 오른쪽: 평평해진 뒤를 확대해야 MCEM 의 출렁임이 보인다 -------------
+    lo = 20
+    for k, h in runs.items():
+        c, ls, lw = styles[k]
+        ax2.plot(np.arange(lo, len(h)), h[lo:], color=c, linestyle=ls,
+                 linewidth=lw)
+    seg = np.concatenate([runs[k][lo:] for k in runs])
+    pad = (seg.max() - seg.min()) * 0.25 + 1e-9
+    ax2.set_ylim(seg.min() - pad, seg.max() + pad)
+    ax2.set_xlabel("iteration (zoomed on the plateau)", fontsize=9)
+    ax2.set_title("where the guarantee shows", fontsize=9.6, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13)
+    style(ax2)
+    ax2.text(0.5, 0.06,
+             "EM and GEM are flat here. MCEM is not.",
+             transform=ax2.transAxes, ha="center", fontsize=8.4, color=INK)
+
+    fig.text(0.5, -0.03,
+             "increasing Q is enough. estimating Q is not the same thing.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "em_variants.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote em_variants.svg   violations {viol}")
+
+
 if __name__ == "__main__":
     monotone_but_not_global()
     unbounded_likelihood()
     dropping_V()
+    which_variants_are_covered()
