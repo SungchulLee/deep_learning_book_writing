@@ -1006,7 +1006,57 @@ def summation_order():
           f"spread {max(rel)-min(rel):.2e}")
 
 
+# === 그림으로 보는 AI: 알고리즘은 그대로인데 증명이 바뀐 내력 =================
+#
+# 애덤은 수렴 증명과 함께 나왔고, 2018 년에 그 증명이 틀렸음이 밝혀졌으며,
+# 고치려고 내놓은 AMSGrad 의 증명도 뒤에 문제가 지적되었다. **알고리즘은 한
+# 번도 바뀌지 않았다** — 바뀐 것은 그것을 두고 할 수 있는 말이다.
+#
+# 반례를 이 자리에서 재현하지는 못했다(온라인 후회에 관한 결과라 마지막
+# 반복값만 보아서는 드러나지 않는다). 그래서 그림은 수를 주장하지 않고
+# 내력만 그린다.
+
+def adam_proof():
+    fig, ax = plt.subplots(figsize=(9.8, 3.6))
+
+    steps = [
+        ("Adam", "published with\na convergence proof", INK),
+        ("2018", "the proof assumes a property\nAdam does not have", ACCENT),
+        ("AMSGrad", "proposed as the fix,\nwith its own proof", INK),
+        ("later", "that proof is\nquestioned too", ACCENT),
+    ]
+    xs = [0.5, 3.4, 6.3, 9.2]
+    ax.annotate("", xy=(10.0, 1.0), xytext=(0.0, 1.0),
+                arrowprops=dict(arrowstyle="->", color=INK, linewidth=1.3))
+    for x, (head, body, col) in zip(xs, steps):
+        ax.plot([x], [1.0], marker="o", color=col, markersize=10,
+                markeredgecolor="white", markeredgewidth=1.6, zorder=5)
+        ax.text(x, 1.26, head, ha="center", fontsize=10.5, color=col,
+                weight="bold")
+        ax.text(x, 0.82, body, ha="center", va="top", fontsize=8.4,
+                color=INK, alpha=0.9)
+
+    ax.add_patch(plt.Rectangle((-0.35, 0.18), 10.7, 0.30, facecolor=ACCENT,
+                               alpha=0.12, edgecolor=ACCENT, linewidth=1.0))
+    ax.text(5.0, 0.33, "the algorithm never changed",
+            ha="center", va="center", fontsize=10, color=ACCENT,
+            weight="bold")
+
+    ax.set_xlim(-0.7, 10.7)
+    ax.set_ylim(0.05, 1.55)
+    ax.axis("off")
+    fig.text(0.5, -0.02,
+             "what changed is what could be claimed about it.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "adam_proof.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote adam_proof.svg")
+
+
 if __name__ == "__main__":
+    adam_proof()
     summation_order()
     shannon_precedence()
     memory_order()
