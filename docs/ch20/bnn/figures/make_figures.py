@@ -186,6 +186,113 @@ def weights_as_distributions():
     print(f"wrote weights_as_distributions.svg   D={D}  2D={2*D}")
 
 
+
+
+# === 그림으로 보는 AI: 증거는 복잡함에 제동을 건다 ============================
+#
+# 맥케이(1992)의 증거 틀이 오컴의 면도날을 저절로 담는다는 주장을 잰다.
+# 가우스 선형 모델이라 로그 주변우도에 닫힌 식이 있다.
+# 한 번만 돌리면 씨앗 하나의 우연을 보여 주게 되므로 30 개 씨앗으로 잰다.
+
+_TRUE_DEG, _NOISE, _NOBS = 3, 0.25, 14
+_ALPHA, _MAXDEG, _SEEDS = 1.0, 10, 30
+
+
+def _evidence_curve(seed):
+    rng = np.random.default_rng(seed)
+    x = np.sort(rng.uniform(-1, 1, _NOBS))
+    y = (0.6 * x ** 3 - 0.9 * x ** 2 + 0.2 * x + 0.3
+         + rng.normal(0, _NOISE, _NOBS))
+    beta = 1.0 / _NOISE ** 2
+    ev, mse = [], []
+    for d in range(_MAXDEG):
+        Phi = np.vander(x, d + 1, increasing=True)
+        M = d + 1
+        A = _ALPHA * np.eye(M) + beta * Phi.T @ Phi
+        mN = beta * np.linalg.solve(A, Phi.T @ y)
+        E = beta / 2 * np.sum((y - Phi @ mN) ** 2) + _ALPHA / 2 * mN @ mN
+        _, ldA = np.linalg.slogdet(A)
+        ev.append(M / 2 * np.log(_ALPHA) + _NOBS / 2 * np.log(beta)
+                  - E - ldA / 2 - _NOBS / 2 * np.log(2 * np.pi))
+        mse.append(np.mean((y - Phi @ mN) ** 2))
+    return np.array(ev), np.array(mse)
+
+
+def evidence_brakes():
+    curves = [_evidence_curve(s) for s in range(_SEEDS)]
+    evs = np.array([c[0] for c in curves])
+    mses = np.array([c[1] for c in curves])
+    picks = evs.argmax(axis=1)
+    deg = np.arange(_MAXDEG)
+
+    frac_le = (picks <= _TRUE_DEG).mean()
+    # 사전분포가 있으므로 MAP 적합이고, 씨앗 하나하나는 아주 조금 출렁일 수
+    # 있다(여기서 가장 큰 증가가 1e-3 이하). 중앙값 곡선은 단조 감소다.
+    med_mse = np.median(mses, axis=0)
+    assert np.all(np.diff(med_mse) <= 1e-12), "훈련 오차 중앙값은 단조 감소여야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.2))
+
+    # --- 왼쪽: 30 개 씨앗의 띠 ---------------------------------------------
+    ev_c = evs - evs.max(axis=1, keepdims=True)        # 씨앗마다 최고점을 0 으로
+    lo, md, hi = np.percentile(ev_c, [10, 50, 90], axis=0)
+    ax1.fill_between(deg, lo, hi, color=ACCENT, alpha=0.18,
+                     label="log evidence, 10-90% of 30 seeds")
+    ax1.plot(deg, md, "-o", color=ACCENT, linewidth=2.1, ms=4.5,
+             label="median log evidence")
+    ax1.axvline(_TRUE_DEG, color=INK, linestyle=":", linewidth=1.2, alpha=0.75)
+    ax1.annotate("true degree", xy=(_TRUE_DEG, md.max()),
+                 xytext=(9, -16), textcoords="offset points", fontsize=8,
+                 color=INK)
+    ax1.set_xlabel("polynomial degree", fontsize=9)
+    ax1.set_ylabel("log evidence, relative to each seed's best", fontsize=8.8)
+    ax1.set_title("the evidence stops paying for complexity", fontsize=9.8,
+                  color=INK, weight="bold")
+
+    axb = ax1.twinx()
+    axb.plot(deg, med_mse, "--s", color=COOL, linewidth=1.8,
+             ms=4, label="median training MSE")
+    axb.set_ylabel("training MSE", fontsize=9, color=COOL)
+    axb.tick_params(labelsize=8, colors=COOL)
+    h1, l1 = ax1.get_legend_handles_labels()
+    h2, l2 = axb.get_legend_handles_labels()
+    ax1.legend(h1 + h2, l1 + l2, fontsize=7.6, framealpha=0.92,
+               loc="lower right")
+    ax1.grid(alpha=0.13)
+    style(ax1)
+
+    # --- 오른쪽: 실제로 고른 차수 ------------------------------------------
+    counts = np.bincount(picks, minlength=_MAXDEG)
+    ax2.bar(deg, counts, color=[ACCENT if d <= _TRUE_DEG else INK
+                                for d in deg], alpha=0.85)
+    ax2.axvline(_TRUE_DEG, color=INK, linestyle=":", linewidth=1.2, alpha=0.75)
+    ax2.set_xlabel("degree the evidence picked", fontsize=9)
+    ax2.set_ylabel(f"out of {_SEEDS} seeds", fontsize=9)
+    ax2.set_title("but it is not an oracle", fontsize=9.8, color=INK,
+                  weight="bold")
+    ax2.set_xticks(deg)
+    ax2.grid(alpha=0.13, axis="y")
+    style(ax2)
+    ax2.text(0.97, 0.95,
+             f"picks <= {_TRUE_DEG}:  {frac_le*100:.0f}%\n"
+             f"most common:  {np.argmax(counts)}\n"
+             f"true degree:  {_TRUE_DEG}",
+             transform=ax2.transAxes, ha="right", va="top", fontsize=8.2,
+             color=INK)
+
+    fig.text(0.5, -0.03,
+             "training error always wants more. the evidence does not - but "
+             "it tends to stop one short.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "evidence_brakes.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote evidence_brakes.svg   <=3: {frac_le*100:.0f}%   "
+          f"mode {np.argmax(counts)}   true {_TRUE_DEG}")
+
+
 if __name__ == "__main__":
     width_limit()
     weights_as_distributions()
+    evidence_brakes()
