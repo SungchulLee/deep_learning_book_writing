@@ -101,5 +101,95 @@ def tensor_word():
     print("wrote tensor_word.svg")
 
 
+# === 그림으로 보는 AI: 반열린 구간을 고른 까닭과 그 약속이 깨지는 자리 ==========
+#
+# 왼쪽은 EWD831 의 네 규약을 그대로 그린다 — 2,3,...,12 를 적는 네 가지 방법.
+# 오른쪽은 **실제로 세어** 그린다. torch.arange 를 실수 조합 2,301 개와 정수
+# 조합 9,481 개에 돌려 개수가 정확한 답과 어긋나는 자리를 찍는다.
+
+def arange_promise():
+    import torch
+    from fractions import Fraction
+
+    # --- 실수 조합을 전부 돌려 어긋나는 자리를 모은다 ----------------------
+    xs, ys = [], []
+    n_float = 0
+    for i in range(1, 60):
+        for j in range(1, 40):
+            stop, step = i / 10.0, j / 100.0
+            n_float += 1
+            exact = int(-(-Fraction(i, 10) // Fraction(j, 100)))
+            if len(torch.arange(0.0, stop, step)) != exact:
+                xs.append(stop)
+                ys.append(step)
+    n_int = sum(1 for n in range(1, 500) for s in range(1, 20))
+    bad_int = sum(1 for n in range(1, 500) for s in range(1, 20)
+                  if len(torch.arange(0, n, s)) != -(-n // s))
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.2),
+                                   gridspec_kw={"width_ratios": [1, 1.15]})
+
+    # --- 왼쪽: EWD831 의 네 규약 -------------------------------------------
+    rows = [("a)", "2 <= i < 13", True), ("b)", "1 <  i <= 12", False),
+            ("c)", "2 <= i <= 12", False), ("d)", "1 <  i < 13", False)]
+    for k, (tag, expr, win) in enumerate(rows):
+        y = 0.80 - k * 0.165
+        col = ACCENT if win else INK
+        ax1.text(0.08, y, tag, fontsize=9.5, color=col,
+                 weight="bold" if win else "normal")
+        ax1.text(0.22, y, expr, fontsize=11, color=col, family="monospace",
+                 weight="bold" if win else "normal")
+        if win:
+            ax1.add_patch(plt.Rectangle((0.04, y - 0.052), 0.92, 0.105,
+                                        facecolor=ACCENT, alpha=0.12,
+                                        edgecolor=ACCENT, linewidth=0.9))
+            ax1.text(0.98, y, "13 - 2 = 11 = the length", fontsize=7.8,
+                     color=ACCENT, ha="right", style="italic")
+    ax1.text(0.5, 0.95, "four ways to write  2, 3, ... , 12", ha="center",
+             fontsize=9, color=INK, style="italic")
+    ax1.text(0.5, 0.10,
+             "Dijkstra picks a).  the point of it is that\n"
+             "the gap between the bounds IS the count.",
+             ha="center", va="center", fontsize=8.6, color=INK)
+    ax1.set_title("EWD831,  11 August 1982", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0, 1.04)
+    ax1.axis("off")
+
+    # --- 오른쪽: 그 약속이 깨지는 자리 --------------------------------------
+    ax2.scatter(xs, ys, s=46, color=ACCENT, marker="x", linewidths=1.6,
+                zorder=3)
+    ax2.set_xlabel("stop", fontsize=9)
+    ax2.set_ylabel("step", fontsize=9)
+    ax2.set_title("where torch.arange miscounts", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13)
+    ax2.set_ylim(top=max(ys) * 1.38)   # 통계 상자가 점을 가리지 않게
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+    ax2.text(0.98, 0.95,
+             f"{len(xs)} of {n_float:,} float pairs\n"
+             f"{bad_int} of {n_int:,} integer pairs",
+             transform=ax2.transAxes, ha="right", va="top", fontsize=8.6,
+             color=INK,
+             bbox=dict(boxstyle="round,pad=0.45", facecolor="white",
+                       edgecolor=INK, alpha=0.9))
+
+    fig.text(0.5, -0.03,
+             "rare enough to miss, common enough to hit. "
+             "with integer steps it never happens.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "arange_promise.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote arange_promise.svg   float {len(xs)}/{n_float}   "
+          f"int {bad_int}/{n_int}")
+
+
 if __name__ == "__main__":
     tensor_word()
+    arange_promise()
