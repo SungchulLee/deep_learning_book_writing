@@ -524,6 +524,47 @@ def get_cutmix_training_pipeline(image_size=32):
 배치마다 컷믹스와 믹스업 중 하나를 무작위로 고르는 것이 흔한 관행이다.
 
 ```python
+# 「믹스업」 쪽의 함수다. 예전에는 옆의 mixup.py 에서 읽어 왔다.
+def mixup_data(x: torch.Tensor, y: torch.Tensor, 
+               alpha: float = 0.2) -> tuple:
+    """
+    데이터 배치에 믹스업을 적용한다.
+    
+    인수:
+        x: 입력 배치, 모양 (batch_size, ...)
+        y: 레이블(클래스 인덱스), 모양 (batch_size,)
+        alpha: 베타분포의 매개변수. 클수록 더 많이 섞인다.
+        
+    반환값:
+        mixed_x: 섞인 입력
+        y_a: 원래 레이블
+        y_b: 순열을 적용한 레이블
+        lam: 혼합 계수
+    """
+    # Beta(alpha, alpha)에서 섞는 비율을 뽑는다. 대칭이라 평균은 늘 0.5지만
+    # 모양이 alpha에 달렸다. alpha가 작으면(0.2 따위) 0이나 1 가까이 몰려
+    # "거의 원본"인 표본이 많아지고, alpha가 1이면 균등분포가 되어
+    # 절반씩 섞인 표본이 많아진다
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1.0   # 믹스업을 끈 것과 같다
+
+    batch_size = x.size(0)
+    # 새 배치를 따로 불러오지 않고 같은 배치를 뒤섞어 제 자신과 짝짓는다.
+    # 데이터 로더를 건드리지 않아도 되므로 어디에나 끼워 넣기 쉽다
+    index = torch.randperm(batch_size, device=x.device)
+
+    # 입력은 여기서 바로 섞는다
+    mixed_x = lam * x + (1 - lam) * x[index]
+    # 레이블은 섞지 않고 두 벌을 그대로 돌려준다. 분류에서는 y가
+    # 클래스 번호(정수)라 lam*y_a + (1-lam)*y_b 가 뜻이 없기 때문이다.
+    # 대신 아래 mixup_criterion에서 손실을 그 비율로 섞는다
+    y_a, y_b = y, y[index]
+
+    return mixed_x, y_a, y_b, lam
+
+
 def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2, 
                      cutmix_prob=0.5):
     """
@@ -535,7 +576,6 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
     if np.random.random() < cutmix_prob:
         return cutmix_data(x, y, alpha=cutmix_alpha)
     else:
-        from mixup import mixup_data  # mixup.md 참고
         return mixup_data(x, y, alpha=mixup_alpha)
 ```
 

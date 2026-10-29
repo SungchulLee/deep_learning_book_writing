@@ -119,7 +119,486 @@ def evaluate_with_multiple_runs(model, data, labels, n_way, k_shot, n_query, n_e
     반환값:
         mean_accuracy, confidence_interval, all_accuracies
     """
-    from data_loader import create_episode
+from torch.utils.data import Dataset, DataLoader
+from collections import defaultdict
+import torch.nn as nn
+import torch.nn.functional as F
+
+# --- data_loader ---
+"""
+소수 예시 학습을 위한 에피소드 데이터 로더
+
+소수 예시 학습의 학습과 평가에 쓸 에피소드(과제)를 만든다.
+에피소드마다 부류 N개에서 뽑은 받침 집합과 물음 집합으로 이루어진다.
+"""
+
+
+# ========================================================================
+# 메인
+# ========================================================================
+
+
+class EpisodicDataset(Dataset):
+    """
+    소수 예시 학습용 에피소드를 만들어 내는 데이터셋.
+    
+    에피소드마다 받침 집합과 물음 집합을 갖춘 N-갈래 K-예시 과제이다.
+    """
+    def __init__(self, data, labels, n_way, k_shot, n_query, n_episodes):
+        """
+        인수:
+            data: (N, *input_shape) - 쓸 수 있는 모든 데이터
+            labels: (N,) - 모든 데이터의 이름표
+            n_way: 에피소드마다의 부류 개수
+            k_shot: 부류마다의 받침 보기 개수
+            n_query: 부류마다의 물음 보기 개수
+            n_episodes: 만들어 낼 에피소드 개수
+        """
+        self.data = data
+        self.labels = labels
+        self.n_way = n_way
+        self.k_shot = k_shot
+        self.n_query = n_query
+        self.n_episodes = n_episodes
+        
+        # 부류별로 데이터를 정리한다
+        self.classes = torch.unique(labels).tolist()
+        self.class_to_indices = defaultdict(list)
+        for idx, label in enumerate(labels):
+            self.class_to_indices[label.item()].append(idx)
+    
+    def __len__(self):
+        return self.n_episodes
+    
+    def __getitem__(self, idx):
+        """
+        에피소드 하나를 만든다.
+        
+        반환값:
+            support_set: (n_way * k_shot, *input_shape)
+            support_labels: (n_way * k_shot,)
+            query_set: (n_way * n_query, *input_shape)
+            query_labels: (n_way * n_query,)
+        """
+        # n_way개의 부류를 아무렇게나 고른다
+        episode_classes = np.random.choice(self.classes, self.n_way, replace=False)
+        
+        support_data = []
+        support_labels = []
+        query_data = []
+        query_labels = []
+        
+        for class_idx, class_label in enumerate(episode_classes):
+            # 이 부류의 모든 첨자를 얻는다
+            class_indices = self.class_to_indices[class_label]
+            
+            # k_shot + n_query개의 보기를 뽑는다
+            selected_indices = np.random.choice(
+                class_indices,
+                self.k_shot + self.n_query,
+                replace=False
+            )
+            
+            # 받침과 물음으로 쪼갠다
+            support_indices = selected_indices[:self.k_shot]
+            query_indices = selected_indices[self.k_shot:]
+            
+            # 받침 집합에 더한다
+            support_data.append(self.data[support_indices])
+            support_labels.extend([class_idx] * self.k_shot)
+            
+            # 물음 집합에 더한다
+            query_data.append(self.data[query_indices])
+            query_labels.extend([class_idx] * self.n_query)
+        
+        # 모든 부류를 이어 붙인다
+        support_set = torch.cat(support_data, dim=0)
+        support_labels = torch.tensor(support_labels)
+        query_set = torch.cat(query_data, dim=0)
+        query_labels = torch.tensor(query_labels)
+        
+        return support_set, support_labels, query_set, query_labels
+
+
+class MiniImageNetLoader:
+    """
+    mini-ImageNet이나 비슷한 데이터셋을 위한 데이터 로더.
+    에피소드 방식 소수 예시 학습을 위해 데이터를 정리한다.
+    """
+    def __init__(self, data_path=None):
+        self.data_path = data_path
+        # 실제로는 여기서 진짜 데이터셋을 불러온다
+        # 지금은 흉내 데이터를 만든다
+    
+    def get_dataloader(self, split='train', n_way=5, k_shot=5, n_query=15, n_episodes=100, batch_size=4):
+        """
+        에피소드 데이터 로더를 만든다.
+        
+        인수:
+            split: 'train', 'val' 또는 'test'
+            n_way: 에피소드마다의 부류 개수
+            k_shot: 부류마다의 받침 보기 개수
+            n_query: 부류마다의 물음 보기 개수
+            n_episodes: 에피소드 개수
+            batch_size: 배치 크기(배치마다의 에피소드 개수)
+        """
+        # 데이터를 불러온다(보기용 흉내 데이터)
+        if split == 'train':
+            n_classes = 64
+        elif split == 'val':
+            n_classes = 16
+        else:  # 시험
+            n_classes = 20
+
+        # 갈래마다 k_shot + n_query 보다 넉넉히 두어야 에피소드를 뽑을 수 있다.
+        # 표본 수를 먼저 못박고 이름표를 randint로 뿌리면, 어떤 갈래는 모자라서
+        # "Cannot take a larger sample than population" 이 난다.
+        per_class = k_shot + n_query + 5
+        n_samples = n_classes * per_class
+
+        # 임시 데이터 만들기
+        data = torch.randn(n_samples, 3, 84, 84)  # 표준 mini-ImageNet 크기
+        labels = torch.arange(n_classes).repeat_interleave(per_class)
+        
+        # 에피소드 데이터셋을 만든다
+        dataset = EpisodicDataset(data, labels, n_way, k_shot, n_query, n_episodes)
+        
+        # 데이터로더를 만든다
+        dataloader = DataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=0  # 간단하게 하려고 0으로 둔다
+        )
+        
+        return dataloader
+
+
+class OmniglotLoader:
+    """
+    Omniglot 데이터셋(손으로 쓴 글자)을 위한 데이터 로더.
+    소수 예시 학습의 표준 잣대.
+    """
+    def __init__(self, data_path=None):
+        self.data_path = data_path
+    
+    def get_dataloader(self, split='train', n_way=5, k_shot=1, n_query=15, n_episodes=100):
+        """
+        Omniglot용 에피소드 데이터 로더를 만든다.
+        """
+        # 데이터를 불러온다(보기용 흉내)
+        # 참 Omniglot은 갈래가 1200개이지만, 흉내 자료로 그만큼 만들면
+        # 쓸데없이 커진다. 갈래 수를 줄이고 갈래마다 넉넉히 둔다.
+        if split == 'train':
+            n_classes = 60   # 참 바탕 집합은 1200개이다
+        else:
+            n_classes = 20   # 참 평가 집합은 423개이다
+
+        per_class = k_shot + n_query + 5
+        n_samples = n_classes * per_class
+
+        # 흉내 데이터를 만든다(28x28 흑백 그림)
+        data = torch.randn(n_samples, 1, 28, 28)
+        labels = torch.arange(n_classes).repeat_interleave(per_class)
+        
+        # 에피소드 데이터셋을 만든다
+        dataset = EpisodicDataset(data, labels, n_way, k_shot, n_query, n_episodes)
+        
+        return DataLoader(dataset, batch_size=1, shuffle=True)
+
+
+def create_episode(data, labels, n_way, k_shot, n_query):
+    """
+    데이터에서 에피소드 하나를 만드는 도움 함수.
+    
+    인수:
+        data: (N, *input_shape) - 모든 데이터
+        labels: (N,) - 모든 이름표
+        n_way: 부류 개수
+        k_shot: 부류마다의 받침 보기
+        n_query: 부류마다의 물음 보기
+    
+    반환값:
+        support_set, support_labels, query_set, query_labels
+    """
+    # 서로 다른 부류를 얻는다
+    unique_classes = torch.unique(labels)
+    
+    # n_way개의 부류를 뽑는다
+    episode_classes = unique_classes[torch.randperm(len(unique_classes))[:n_way]]
+    
+    support_data = []
+    support_labels = []
+    query_data = []
+    query_labels = []
+    
+    for class_idx, class_label in enumerate(episode_classes):
+        # 이 부류의 첨자를 얻는다
+        class_mask = (labels == class_label)
+        class_data = data[class_mask]
+        
+        # 뒤섞고 쪼갠다
+        perm = torch.randperm(len(class_data))
+        support_indices = perm[:k_shot]
+        query_indices = perm[k_shot:k_shot + n_query]
+        
+        # 집합에 더한다
+        support_data.append(class_data[support_indices])
+        support_labels.extend([class_idx] * k_shot)
+        query_data.append(class_data[query_indices])
+        query_labels.extend([class_idx] * n_query)
+    
+    support_set = torch.cat(support_data, dim=0)
+    support_labels = torch.tensor(support_labels)
+    query_set = torch.cat(query_data, dim=0)
+    query_labels = torch.tensor(query_labels)
+    
+    return support_set, support_labels, query_set, query_labels
+
+
+# 사용 예
+if __name__ == "__main__":
+    # 보기 1: 에피소드 데이터셋 만들기
+    n_samples = 500
+    n_classes = 20
+    
+    # 흉내 데이터(28x28 흑백 그림)
+    data = torch.randn(n_samples, 1, 28, 28)
+    # randint로 이름표를 뿌리면 갈래마다 개수가 들쭉날쭉해져서, 어떤 갈래는
+    # k_shot + n_query 보다 적어진다. 갈래마다 똑같이 나누어 준다.
+    labels = torch.arange(n_classes).repeat_interleave(n_samples // n_classes)
+    
+    # 에피소드 데이터셋을 만든다(5-갈래 1-예시)
+    dataset = EpisodicDataset(
+        data=data,
+        labels=labels,
+        n_way=5,
+        k_shot=1,
+        n_query=15,
+        n_episodes=100
+    )
+    
+    # 에피소드 하나를 얻는다
+    support_set, support_labels, query_set, query_labels = dataset[0]
+    print(f"Support set shape: {support_set.shape}")  # (5, 1, 28, 28)
+    print(f"Support labels: {support_labels}")
+    print(f"Query set shape: {query_set.shape}")  # (75, 1, 28, 28)
+    print(f"Query labels: {query_labels}")
+    
+    # 보기 2: 데이터 로더 쓰기
+    dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+    
+    for batch_idx, batch in enumerate(dataloader):
+        support_sets, support_label_sets, query_sets, query_label_sets = batch
+        print(f"\nBatch {batch_idx}:")
+        print(f"Support sets shape: {support_sets.shape}")  # (4, 5, 1, 28, 28)
+        print(f"Query sets shape: {query_sets.shape}")  # (4, 75, 1, 28, 28)
+        
+        if batch_idx == 0:
+            break
+    
+    # 보기 3: Mini-ImageNet 로더
+    mini_loader = MiniImageNetLoader()
+    train_loader = mini_loader.get_dataloader(
+        split='train',
+        n_way=5,
+        k_shot=5,
+        n_query=15,
+        n_episodes=100,
+        batch_size=4
+    )
+    
+    for batch in train_loader:
+        support, support_labels, query, query_labels = batch
+        print(f"\nMini-ImageNet batch:")
+        print(f"Support shape: {support.shape}")
+        print(f"Query shape: {query.shape}")
+        break
+
+
+# --- prototypical_networks ---
+"""
+소수 예시 학습을 위한 원형 망
+
+참고: Snell 외, "Prototypical Networks for Few-shot Learning" (2017)
+
+핵심 생각: 받침 보기의 묻힘을 평균 내어 부류마다 원형 표현을 셈한 다음,
+그 원형까지의 거리를 바탕으로
+물음을 가려낸다.
+"""
+
+
+# ========================================================================
+# 메인
+# ========================================================================
+
+
+class ConvEncoder(nn.Module):
+    """
+    그림을 묻는 단순한 4층 합성곱 인코더.
+    소수 예시 학습 논문에서 흔히 쓴다.
+    """
+    def __init__(self, input_channels=1, hidden_dim=64, output_dim=64):
+        super(ConvEncoder, self).__init__()
+        
+        self.encoder = nn.Sequential(
+            self._conv_block(input_channels, hidden_dim),
+            self._conv_block(hidden_dim, hidden_dim),
+            self._conv_block(hidden_dim, hidden_dim),
+            self._conv_block(hidden_dim, output_dim),
+        )
+        
+    def _conv_block(self, in_channels, out_channels):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, 3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+    
+    def forward(self, x):
+        x = self.encoder(x)
+        return x.view(x.size(0), -1)
+
+
+class PrototypicalNetwork(nn.Module):
+    """
+    N-갈래 K-예시 분류를 위한 원형 망.
+    
+    인수:
+        encoder: 입력을 특징 공간에 묻는 신경망
+    """
+    def __init__(self, encoder):
+        super(PrototypicalNetwork, self).__init__()
+        self.encoder = encoder
+    
+    def forward(self, support, support_labels, query):
+        """
+        인수:
+            support: (n_support, *input_shape) - 받침 집합 보기
+            support_labels: (n_support,) - 받침 집합의 이름표
+            query: (n_query, *input_shape) - 가려낼 물음 보기
+        
+        반환값:
+            logits: (n_query, n_classes) - 가려내기 로짓
+        """
+        # 모든 보기를 묻는다
+        n_classes = len(torch.unique(support_labels))
+        n_support = support.shape[0]
+        n_query = query.shape[0]
+        
+        # 효율적인 부호화를 위해 받침과 물음을 이어 붙인다
+        all_examples = torch.cat([support, query], dim=0)
+        embeddings = self.encoder(all_examples)
+        
+        # 다시 받침과 물음으로 쪼갠다
+        support_embeddings = embeddings[:n_support]
+        query_embeddings = embeddings[n_support:]
+        
+        # 부류마다 원형을 셈한다
+        prototypes = self._compute_prototypes(support_embeddings, support_labels, n_classes)
+        
+        # 물음에서 원형까지의 거리를 셈한다
+        logits = self._compute_logits(query_embeddings, prototypes)
+        
+        return logits
+    
+    def _compute_prototypes(self, embeddings, labels, n_classes):
+        """
+        받침 묻힘의 평균으로 부류마다 원형을 셈한다.
+        """
+        prototypes = []
+        for c in range(n_classes):
+            # 부류 c의 받침 보기를 모두 찾는다
+            class_mask = (labels == c)
+            class_embeddings = embeddings[class_mask]
+            # 평균(원형)을 셈한다
+            prototype = class_embeddings.mean(dim=0)
+            prototypes.append(prototype)
+        
+        return torch.stack(prototypes)
+    
+    def _compute_logits(self, query_embeddings, prototypes):
+        """
+        물음에서 원형까지의 유클리드 거리 제곱의 음수를 셈한다.
+        거리의 음수가 로짓 노릇을 한다(가까울수록 확률이 높다).
+        """
+        # 퍼뜨리기를 위해 차원을 늘린다
+        # query: (n_query, 1, embedding_dim)
+        # prototypes: (1, n_classes, embedding_dim)
+        query_expanded = query_embeddings.unsqueeze(1)
+        prototypes_expanded = prototypes.unsqueeze(0)
+        
+        # 유클리드 거리의 제곱을 셈한다
+        distances = torch.sum((query_expanded - prototypes_expanded) ** 2, dim=2)
+        
+        # 거리의 음수를 로짓으로 낸다
+        return -distances
+
+
+def train_step(model, support, support_labels, query, query_labels, optimizer):
+    """
+    원형 망의 학습 걸음 하나.
+    """
+    model.train()
+    optimizer.zero_grad()
+    
+    # 순전파
+    logits = model(support, support_labels, query)
+    
+    # 손실을 계산한다
+    loss = F.cross_entropy(logits, query_labels)
+    
+    # 역전파
+    loss.backward()
+    optimizer.step()
+    
+    # 정확도를 계산한다
+    predictions = torch.argmax(logits, dim=1)
+    accuracy = (predictions == query_labels).float().mean()
+    
+    return loss.item(), accuracy.item()
+
+
+def evaluate(model, support, support_labels, query, query_labels):
+    """
+    소수 예시 과제에서 모델을 평가한다.
+    """
+    model.eval()
+    with torch.no_grad():
+        logits = model(support, support_labels, query)
+        loss = F.cross_entropy(logits, query_labels)
+        predictions = torch.argmax(logits, dim=1)
+        accuracy = (predictions == query_labels).float().mean()
+    
+    return loss.item(), accuracy.item()
+
+
+# 사용 예
+if __name__ == "__main__":
+    # 모델 생성
+    encoder = ConvEncoder(input_channels=1, hidden_dim=64, output_dim=64)
+    model = PrototypicalNetwork(encoder)
+    
+    # 5-갈래 1-예시 과제 보기
+    n_way = 5
+    k_shot = 1
+    n_query = 15
+    
+    # 흉내 데이터(batch_size, channels, height, width)
+    support = torch.randn(n_way * k_shot, 1, 28, 28)
+    support_labels = torch.arange(n_way).repeat_interleave(k_shot)
+    query = torch.randn(n_query, 1, 28, 28)
+    query_labels = torch.randint(0, n_way, (n_query,))
+    
+    # 순전파
+    logits = model(support, support_labels, query)
+    print(f"Logits shape: {logits.shape}")  # (15, 5)이어야 한다
+    
+    # 학습 보기
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    loss, acc = train_step(model, support, support_labels, query, query_labels, optimizer)
+    print(f"Loss: {loss:.4f}, Accuracy: {acc:.4f}")
     
     model.eval()
     accuracies = []
@@ -153,7 +632,6 @@ def evaluate_cross_domain(model, source_data, source_labels, target_data, target
     model.eval()
     accuracies = []
     
-    from data_loader import create_episode
     
     with torch.no_grad():
         for _ in range(n_episodes):
@@ -297,8 +775,6 @@ def print_evaluation_results(mean_acc, ci, n_episodes):
 
 # 사용 예
 if __name__ == "__main__":
-    from prototypical_networks import PrototypicalNetwork, ConvEncoder
-    from data_loader import create_episode
     
     # 임시 데이터 만들기
     n_samples = 500
