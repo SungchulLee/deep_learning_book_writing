@@ -11,9 +11,690 @@ ViT의 순전파·패치·어텐션, 모델 크기와 전이 학습 설정을 �
 """
 
 import torch
-from vit_model import create_vit_tiny, create_vit_base, VisionTransformer
-from cnn_vs_vit import SimpleCNN, HybridCNNViT
-from visualizations import AttentionVisualizer, visualize_patch_embedding
+import torch.nn as nn
+import numpy as np
+import matplotlib.pyplot as plt
+from typing import Tuple, List, Optional
+import cv2
+import torch.nn.functional as F
+from typing import Tuple
+
+# --- cnn_vs_vit ---
+class SimpleCNN(nn.Module):
+    """견주기 위한 전통적인 합성곱 신경망 구조."""
+    def __init__(self, n_classes: int = 10):
+        super().__init__()
+        
+        self.features = nn.Sequential(
+            # 블록 1: 224 → 112
+            nn.Conv2d(3, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2),
+            
+            # 블록 2: 112 → 56
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2),
+            
+            # 블록 3: 56 → 28
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2),
+            
+            # 블록 4: 28 → 14
+            nn.Conv2d(256, 512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2),
+        )
+        
+        self.classifier = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten(),
+            nn.Linear(512, 256),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(256, n_classes)
+        )
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.features(x)
+        return self.classifier(x)
+
+
+class HybridCNNViT(nn.Module):
+    """합성곱 밑동 + 트랜스포머 — 둘을 섞은 모형.
+
+    비전 트랜스포머는 그림을 16x16 조각으로 잘라 곧바로 선형 사영한다.
+    조각 안쪽을 볼 장치가 없으므로 가장자리나 결 같은 낮은 수준의 무늬를
+    처음부터 어텐션으로 배워야 하고, 그래서 자료가 많이 든다.
+
+    섞은 모형은 앞쪽 몇 겹을 합성곱으로 둔다. 합성곱이 낮은 수준의 무늬를
+    맡고, 그 위에서 어텐션이 먼 관계를 맡는다. 조각을 자르는 일도
+    합성곱의 stride가 대신하므로 따로 자를 필요가 없다.
+
+    224x224 -> (stride 4, 4번) -> 14x14 = 196 토큰, ViT-Base와 같은 수다.
+    """
+
+    def __init__(self, n_classes: int = 10, embed_dim: int = 192,
+                 depth: int = 4, num_heads: int = 3):
+        super().__init__()
+        # 합성곱 밑동. 네 번 반으로 줄여 224 -> 14
+        self.stem = nn.Sequential(
+            nn.Conv2d(3, 32, 3, stride=2, padding=1), nn.BatchNorm2d(32), nn.ReLU(inplace=True),
+            nn.Conv2d(32, 64, 3, stride=2, padding=1), nn.BatchNorm2d(64), nn.ReLU(inplace=True),
+            nn.Conv2d(64, 128, 3, stride=2, padding=1), nn.BatchNorm2d(128), nn.ReLU(inplace=True),
+            nn.Conv2d(128, embed_dim, 3, stride=2, padding=1), nn.BatchNorm2d(embed_dim), nn.ReLU(inplace=True),
+        )
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+        self.pos_embed = nn.Parameter(torch.zeros(1, 14 * 14 + 1, embed_dim))
+        nn.init.trunc_normal_(self.cls_token, std=0.02)
+        nn.init.trunc_normal_(self.pos_embed, std=0.02)
+
+        layer = nn.TransformerEncoderLayer(
+            d_model=embed_dim, nhead=num_heads, dim_feedforward=embed_dim * 4,
+            dropout=0.1, activation="gelu", batch_first=True, norm_first=True)
+        self.encoder = nn.TransformerEncoder(layer, num_layers=depth)
+        self.norm = nn.LayerNorm(embed_dim)
+        self.head = nn.Linear(embed_dim, n_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        B = x.shape[0]
+        x = self.stem(x)                       # (B, embed_dim, 14, 14)
+        x = x.flatten(2).transpose(1, 2)       # (B, 196, embed_dim) — 조각 자르기를 대신한다
+        cls = self.cls_token.expand(B, -1, -1)
+        x = torch.cat([cls, x], dim=1) + self.pos_embed[:, : x.shape[1] + 1]
+        x = self.encoder(x)
+        return self.head(self.norm(x[:, 0]))   # 맨 앞 토큰 하나로 가른다
+
+
+# --- visualizations ---
+"""
+비전 트랜스포머를 위한 시각화 도구
+비전 트랜스포머가 합성곱 신경망과 어떻게 다르게 그림을 처리하는지 이해하도록 돕는다
+"""
+
+
+# ========================================================================
+# 메인
+# ========================================================================
+
+
+class AttentionVisualizer:
+    """
+    비전 트랜스포머의 주의 지도를 그려 본다.
+    모형이 그림의 어느 부분에 집중하는지 보인다.
+    """
+    
+    def __init__(self, model: nn.Module, device: str = "cuda"):
+        self.model = model.to(device)
+        self.device = device
+        self.attention_maps = []
+        
+        # 주의를 붙잡으려고 후크를 등록한다
+        self._register_hooks()
+    
+    def _register_hooks(self):
+        """주의 가중치를 붙잡으려고 앞먹임 후크를 등록한다"""
+        
+        def hook_fn(module, input, output):
+            # MultiHeadAttention에서 주의 가중치를 붙잡는다
+            if hasattr(module, 'attn'):
+                self.attention_maps.append(module.attn.detach().cpu())
+        
+        # 모든 트랜스포머 블록에 후크를 등록한다
+        for block in self.model.blocks:
+            block.attn.register_forward_hook(
+                lambda m, i, o: self.attention_maps.append(
+                    m.attn if hasattr(m, 'attn') else None
+                )
+            )
+    
+    def get_attention_maps(self, image: torch.Tensor) -> List[torch.Tensor]:
+        """
+        그림의 주의 지도를 뽑아낸다.
+        
+        인수:
+            image: (1, 3, H, W) 텐서
+        반환값:
+            층마다의 주의 지도 목록
+        """
+        self.attention_maps = []
+        self.model.eval()
+        
+        with torch.no_grad():
+            _ = self.model(image.to(self.device))
+        
+        return self.attention_maps
+    
+    def visualize_attention(self, 
+                          image: torch.Tensor,
+                          layer_idx: int = -1,
+                          head_idx: Optional[int] = None,
+                          save_path: Optional[str] = None):
+        """
+        그림 위에 겹친 주의 지도를 그려 본다.
+        
+        인수:
+            image: 입력 그림 텐서 (1, 3, H, W)
+            layer_idx: 어느 트랜스포머 층을 그릴지
+            head_idx: 어느 주의 머리를 그릴지(None이면 모두 평균)
+            save_path: 그림을 저장할 경로
+        """
+        # 주의 지도를 얻는다
+        attn_maps = self.get_attention_maps(image)
+        
+        if len(attn_maps) == 0:
+            print("No attention maps captured!")
+            return
+        
+        # 층을 고른다
+        attn = attn_maps[layer_idx]  # (batch, heads, seq_len, seq_len)
+        
+        # 따로 정하지 않으면 머리에 걸쳐 평균 낸다
+        if head_idx is None:
+            attn = attn.mean(dim=1)  # (batch, seq_len, seq_len)
+        else:
+            attn = attn[:, head_idx]  # (batch, seq_len, seq_len)
+        
+        # CLS 토큰에서 모든 조각으로 가는 주의를 얻는다
+        attn = attn[0, 0, 1:]  # (n_patches,)
+        
+        # 공간 격자로 꼴을 바꾼다
+        n_patches = int(np.sqrt(len(attn)))
+        attn = attn.reshape(n_patches, n_patches).numpy()
+        
+        # 그림을 마련한다
+        img = image[0].permute(1, 2, 0).cpu().numpy()
+        img = (img - img.min()) / (img.max() - img.min())
+        
+        # 주의 지도를 그림 크기로 바꾼다
+        attn_resized = cv2.resize(attn, (img.shape[1], img.shape[0]))
+        attn_resized = (attn_resized - attn_resized.min()) / (attn_resized.max() - attn_resized.min())
+        
+        # 시각화 만들기
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+        
+        # 원래 이미지
+        axes[0].imshow(img)
+        axes[0].set_title("Original Image")
+        axes[0].axis('off')
+        
+        # 주의 지도
+        axes[1].imshow(attn_resized, cmap='jet')
+        axes[1].set_title(f"Attention Map (Layer {layer_idx})")
+        axes[1].axis('off')
+        
+        # 겹쳐 놓기
+        axes[2].imshow(img)
+        axes[2].imshow(attn_resized, cmap='jet', alpha=0.5)
+        axes[2].set_title("Attention Overlay")
+        axes[2].axis('off')
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, bbox_inches='tight', dpi=150)
+            print(f"Saved visualization to {save_path}")
+        else:
+            plt.show()
+
+
+def visualize_patch_embedding(image: torch.Tensor, 
+                             patch_size: int = 16,
+                             save_path: Optional[str] = None):
+    """
+    그림이 조각으로 어떻게 나뉘는지 그려 본다.
+    이어진 그림에서 띄엄띄엄한 토큰으로 잇는 다리를 보인다.
+    """
+    # 넘파이로 바꾼다
+    img = image[0].permute(1, 2, 0).cpu().numpy()
+    img = (img - img.min()) / (img.max() - img.min())
+    
+    H, W = img.shape[:2]
+    n_patches_h = H // patch_size
+    n_patches_w = W // patch_size
+    
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+    
+    # 원래 이미지
+    axes[0].imshow(img)
+    axes[0].set_title("Original Image")
+    axes[0].axis('off')
+    
+    # 조각 격자를 얹은 그림
+    axes[1].imshow(img)
+    
+    # 격자를 그린다
+    for i in range(n_patches_h + 1):
+        axes[1].axhline(y=i*patch_size, color='red', linewidth=2)
+    for j in range(n_patches_w + 1):
+        axes[1].axvline(x=j*patch_size, color='red', linewidth=2)
+    
+    axes[1].set_title(f"Patches ({n_patches_h}×{n_patches_w} = {n_patches_h*n_patches_w} tokens)")
+    axes[1].axis('off')
+    
+    plt.tight_layout()
+    
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight', dpi=150)
+        print(f"Saved to {save_path}")
+    else:
+        plt.show()
+
+
+def compare_receptive_fields():
+    """
+    합성곱 신경망과 비전 트랜스포머가 받는 영역의 차이를 그려 본다.
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    
+    # 합성곱 신경망이 받는 영역
+    axes[0].set_xlim(0, 10)
+    axes[0].set_ylim(0, 10)
+    
+    # 위계를 이루는 수용 영역을 그린다
+    colors = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral']
+    sizes = [8, 6, 4, 2]
+    
+    for i, (size, color) in enumerate(zip(sizes, colors)):
+        circle = plt.Circle((5, 5), size/2, color=color, alpha=0.5, 
+                          label=f'Layer {i+1}')
+        axes[0].add_patch(circle)
+    
+    axes[0].plot(5, 5, 'ro', markersize=10, label='Target pixel')
+    axes[0].set_aspect('equal')
+    axes[0].set_title('CNN: Hierarchical Local Receptive Field')
+    axes[0].legend(loc='upper right')
+    axes[0].grid(True, alpha=0.3)
+    
+    # 비전 트랜스포머가 받는 영역
+    axes[1].set_xlim(0, 10)
+    axes[1].set_ylim(0, 10)
+    
+    # 그림 전체에 대한 주의를 그린다
+    rect = plt.Rectangle((0, 0), 10, 10, color='lightblue', 
+                         alpha=0.3, label='Global attention')
+    axes[1].add_patch(rect)
+    
+    # 조각 격자를 그린다
+    for i in range(4):
+        for j in range(4):
+            x, y = i * 2.5, j * 2.5
+            rect = plt.Rectangle((x, y), 2.5, 2.5, 
+                               fill=False, edgecolor='red', linewidth=2)
+            axes[1].add_patch(rect)
+            
+            # 가운데 조각에서 나가는 주의 선을 그린다
+            if i == 1 and j == 1:
+                axes[1].plot(x+1.25, y+1.25, 'ro', markersize=10)
+            else:
+                axes[1].plot([1.25*2.5, x+1.25], [1.25*2.5, y+1.25], 
+                           'b-', alpha=0.3, linewidth=1)
+    
+    axes[1].set_aspect('equal')
+    axes[1].set_title('ViT: Global Self-Attention from Layer 1')
+    axes[1].legend(loc='upper right')
+    axes[1].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig('receptive_fields_comparison.png', dpi=150, bbox_inches='tight')
+    print("Saved receptive field comparison to 'receptive_fields_comparison.png'")
+
+
+def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
+    """
+    비전 트랜스포머에서 쓰는 위치 인코딩을 그려 본다.
+    자리 정보가 어떻게 담기는지 보인다.
+    """
+    # 위치 임베딩을 만든다
+    pos_embed = torch.randn(1, n_patches, embed_dim)
+    
+    # 열지도로 그린다
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    
+    # 위치 임베딩을 그린다
+    im1 = axes[0].imshow(pos_embed[0].T, aspect='auto', cmap='coolwarm')
+    axes[0].set_xlabel('Patch Position')
+    axes[0].set_ylabel('Embedding Dimension')
+    axes[0].set_title('Learned Positional Embeddings')
+    plt.colorbar(im1, ax=axes[0])
+    
+    # 자리 사이의 비슷함을 셈한다
+    pos_embed_norm = pos_embed / pos_embed.norm(dim=-1, keepdim=True)
+    similarity = (pos_embed_norm[0] @ pos_embed_norm[0].T).numpy()
+    
+    im2 = axes[1].imshow(similarity, cmap='viridis')
+    axes[1].set_xlabel('Patch Position')
+    axes[1].set_ylabel('Patch Position')
+    axes[1].set_title('Positional Similarity Matrix')
+    plt.colorbar(im2, ax=axes[1])
+    
+    plt.tight_layout()
+    plt.savefig('positional_encoding.png', dpi=150, bbox_inches='tight')
+    print("Saved positional encoding visualization to 'positional_encoding.png'")
+
+
+def plot_training_comparison(cnn_history: dict, vit_history: dict):
+    """
+    합성곱 신경망과 비전 트랜스포머를 견주는 학습 곡선을 그린다.
+    """
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    
+    epochs_cnn = range(1, len(cnn_history['train_loss']) + 1)
+    epochs_vit = range(1, len(vit_history['train_loss']) + 1)
+    
+    # 학습 손실
+    axes[0, 0].plot(epochs_cnn, cnn_history['train_loss'], 'b-', label='CNN')
+    axes[0, 0].plot(epochs_vit, vit_history['train_loss'], 'r-', label='ViT')
+    axes[0, 0].set_xlabel('Epoch')
+    axes[0, 0].set_ylabel('Loss')
+    axes[0, 0].set_title('Training Loss')
+    axes[0, 0].legend()
+    axes[0, 0].grid(True, alpha=0.3)
+    
+    # 검증 손실
+    axes[0, 1].plot(epochs_cnn, cnn_history['val_loss'], 'b-', label='CNN')
+    axes[0, 1].plot(epochs_vit, vit_history['val_loss'], 'r-', label='ViT')
+    axes[0, 1].set_xlabel('Epoch')
+    axes[0, 1].set_ylabel('Loss')
+    axes[0, 1].set_title('Validation Loss')
+    axes[0, 1].legend()
+    axes[0, 1].grid(True, alpha=0.3)
+    
+    # 학습 정확도
+    axes[1, 0].plot(epochs_cnn, cnn_history['train_acc'], 'b-', label='CNN')
+    axes[1, 0].plot(epochs_vit, vit_history['train_acc'], 'r-', label='ViT')
+    axes[1, 0].set_xlabel('Epoch')
+    axes[1, 0].set_ylabel('Accuracy (%)')
+    axes[1, 0].set_title('Training Accuracy')
+    axes[1, 0].legend()
+    axes[1, 0].grid(True, alpha=0.3)
+    
+    # 검증 정확도
+    axes[1, 1].plot(epochs_cnn, cnn_history['val_acc'], 'b-', label='CNN')
+    axes[1, 1].plot(epochs_vit, vit_history['val_acc'], 'r-', label='ViT')
+    axes[1, 1].set_xlabel('Epoch')
+    axes[1, 1].set_ylabel('Accuracy (%)')
+    axes[1, 1].set_title('Validation Accuracy')
+    axes[1, 1].legend()
+    axes[1, 1].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig('training_comparison.png', dpi=150, bbox_inches='tight')
+    print("Saved training comparison to 'training_comparison.png'")
+
+
+if __name__ == "__main__":
+    print("Generating visualizations...")
+    
+    # 개념을 보여 주는 그림을 만든다
+    compare_receptive_fields()
+    visualize_positional_encoding()
+    
+    print("\nVisualization utilities ready!")
+    print("Use AttentionVisualizer class to visualize attention maps on actual images.")
+
+
+# --- vit_model ---
+"""
+비전 트랜스포머(ViT) 구현
+이미지 분류에서 합성곱 신경망과 트랜스포머를 잇는다
+"""
+
+
+# ========================================================================
+# 메인
+# ========================================================================
+
+
+class PatchEmbedding(nn.Module):
+    """
+    그림을 조각으로 바꾸고 임베딩으로 사영한다.
+    합성곱 신경망 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
+    """
+    def __init__(self, img_size: int = 224, patch_size: int = 16, 
+                 in_channels: int = 3, embed_dim: int = 768):
+        super().__init__()
+        self.img_size = img_size
+        self.patch_size = patch_size
+        self.n_patches = (img_size // patch_size) ** 2
+        
+        # 편 조각의 선형 사영 (합성곱 신경망의 합성곱과 비슷하다)
+        self.proj = nn.Conv2d(in_channels, embed_dim, 
+                             kernel_size=patch_size, stride=patch_size)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        인수:
+            x: (batch_size, channels, height, width)
+        반환값:
+            (batch_size, n_patches, embed_dim)
+        """
+        x = self.proj(x)  # (B, embed_dim, H/P, W/P)
+        x = x.flatten(2)  # (B, embed_dim, n_patches)
+        x = x.transpose(1, 2)  # (B, n_patches, embed_dim)
+        return x
+
+
+class MultiHeadAttention(nn.Module):
+    """
+    트랜스포머에서 온 다중 머리 자기 주의 얼개.
+    모형이 그림의 여러 부분에 한꺼번에 주의하게 해 준다.
+    """
+    def __init__(self, embed_dim: int = 768, n_heads: int = 12, dropout: float = 0.1):
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.n_heads = n_heads
+        self.head_dim = embed_dim // n_heads
+        self.scale = self.head_dim ** -0.5
+        
+        assert embed_dim % n_heads == 0, "embed_dim must be divisible by n_heads"
+        
+        self.qkv = nn.Linear(embed_dim, embed_dim * 3)
+        self.proj = nn.Linear(embed_dim, embed_dim)
+        self.dropout = nn.Dropout(dropout)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        인수:
+            x: (batch_size, seq_len, embed_dim)
+        반환값:
+            (batch_size, seq_len, embed_dim)
+        """
+        B, N, C = x.shape
+        
+        # Q, K, V를 만든다
+        qkv = self.qkv(x).reshape(B, N, 3, self.n_heads, self.head_dim)
+        qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, B, n_heads, N, head_dim)
+        q, k, v = qkv[0], qkv[1], qkv[2]
+        
+        # 주의 점수
+        attn = (q @ k.transpose(-2, -1)) * self.scale
+        attn = attn.softmax(dim=-1)
+        attn = self.dropout(attn)
+        
+        # 값에 어텐션 적용
+        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        x = self.proj(x)
+        x = self.dropout(x)
+        
+        return x
+
+
+class MLP(nn.Module):
+    """
+    트랜스포머 블록에서 쓰는 순전파 신경망.
+    비선형성과 특징 변환을 준다.
+    """
+    def __init__(self, embed_dim: int = 768, mlp_ratio: int = 4, dropout: float = 0.1):
+        super().__init__()
+        hidden_dim = embed_dim * mlp_ratio
+        self.fc1 = nn.Linear(embed_dim, hidden_dim)
+        self.act = nn.GELU()
+        self.fc2 = nn.Linear(hidden_dim, embed_dim)
+        self.dropout = nn.Dropout(dropout)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.fc1(x)
+        x = self.act(x)
+        x = self.dropout(x)
+        x = self.fc2(x)
+        x = self.dropout(x)
+        return x
+
+
+class TransformerBlock(nn.Module):
+    """
+    자기 주의와 다층 퍼셉트론을 갖춘 표준 트랜스포머 인코더 블록.
+    """
+    def __init__(self, embed_dim: int = 768, n_heads: int = 12, 
+                 mlp_ratio: int = 4, dropout: float = 0.1):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(embed_dim)
+        self.attn = MultiHeadAttention(embed_dim, n_heads, dropout)
+        self.norm2 = nn.LayerNorm(embed_dim)
+        self.mlp = MLP(embed_dim, mlp_ratio, dropout)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # 잔차 연결을 곁들인 주의
+        x = x + self.attn(self.norm1(x))
+        # 잔차 연결을 곁들인 다층 퍼셉트론
+        x = x + self.mlp(self.norm2(x))
+        return x
+
+
+class VisionTransformer(nn.Module):
+    """
+    비전 트랜스포머(ViT) 모형.
+    
+    핵심 혁신:
+    1. 그림을 조각의 수열로 다룬다
+    2. (본디 자연어 처리에서 온) 트랜스포머 인코더를 이미지 분류에 쓴다
+    3. 합성곱 신경망 방식의 입력 처리와 트랜스포머 구조를 잇는다
+    """
+    def __init__(self, 
+                 img_size: int = 224,
+                 patch_size: int = 16,
+                 in_channels: int = 3,
+                 n_classes: int = 1000,
+                 embed_dim: int = 768,
+                 depth: int = 12,
+                 n_heads: int = 12,
+                 mlp_ratio: int = 4,
+                 dropout: float = 0.1):
+        super().__init__()
+        
+        # 조각 임베딩 층 (그림에서 토큰으로 잇는 다리)
+        self.patch_embed = PatchEmbedding(img_size, patch_size, in_channels, embed_dim)
+        n_patches = self.patch_embed.n_patches
+        
+        # 분류 토큰 (학습되며 수열 앞에 붙인다)
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+        
+        # 위치 임베딩 (학습되는 것)
+        self.pos_embed = nn.Parameter(torch.zeros(1, n_patches + 1, embed_dim))
+        self.pos_drop = nn.Dropout(dropout)
+        
+        # 트랜스포머 인코더 블록
+        self.blocks = nn.ModuleList([
+            TransformerBlock(embed_dim, n_heads, mlp_ratio, dropout)
+            for _ in range(depth)
+        ])
+        
+        # 분류 머리
+        self.norm = nn.LayerNorm(embed_dim)
+        self.head = nn.Linear(embed_dim, n_classes)
+        
+        # 가중치 초기화
+        nn.init.trunc_normal_(self.cls_token, std=0.02)
+        nn.init.trunc_normal_(self.pos_embed, std=0.02)
+        self.apply(self._init_weights)
+        
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            nn.init.trunc_normal_(m.weight, std=0.02)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.constant_(m.bias, 0)
+            nn.init.constant_(m.weight, 1.0)
+            
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        인수:
+            x: (batch_size, channels, height, width)
+        반환값:
+            (batch_size, n_classes)
+        """
+        B = x.shape[0]
+        
+        # 그림을 조각 임베딩으로 바꾼다
+        x = self.patch_embed(x)  # (B, n_patches, embed_dim)
+        
+        # 분류 토큰을 앞에 붙인다
+        cls_tokens = self.cls_token.expand(B, -1, -1)
+        x = torch.cat([cls_tokens, x], dim=1)  # (B, n_patches + 1, embed_dim)
+        
+        # 위치 임베딩을 더한다
+        x = x + self.pos_embed
+        x = self.pos_drop(x)
+        
+        # 트랜스포머 블록을 적용한다
+        for block in self.blocks:
+            x = block(x)
+            
+        # 분류 토큰으로 분류한다
+        x = self.norm(x)
+        cls_token_final = x[:, 0]  # 분류 토큰만 쓴다
+        x = self.head(cls_token_final)
+        
+        return x
+
+
+def create_vit_tiny(n_classes: int = 1000) -> VisionTransformer:
+    """ViT-Tiny: 매개변수 500만"""
+    return VisionTransformer(
+        img_size=224, patch_size=16, embed_dim=192, 
+        depth=12, n_heads=3, n_classes=n_classes
+    )
+
+
+def create_vit_small(n_classes: int = 1000) -> VisionTransformer:
+    """ViT-Small: 매개변수 2200만"""
+    return VisionTransformer(
+        img_size=224, patch_size=16, embed_dim=384,
+        depth=12, n_heads=6, n_classes=n_classes
+    )
+
+
+def create_vit_base(n_classes: int = 1000) -> VisionTransformer:
+    """ViT-Base: 매개변수 8600만"""
+    return VisionTransformer(
+        img_size=224, patch_size=16, embed_dim=768,
+        depth=12, n_heads=12, n_classes=n_classes
+    )
+
+
+def create_vit_large(n_classes: int = 1000) -> VisionTransformer:
+    """ViT-Large: 매개변수 3억 700만"""
+    return VisionTransformer(
+        img_size=224, patch_size=16, embed_dim=1024,
+        depth=24, n_heads=16, n_classes=n_classes
+    )
+
+
+if __name__ == "__main__":
+    # 사용 예
+    model = create_vit_base(n_classes=10)
+    x = torch.randn(2, 3, 224, 224)
+    output = model(x)
+    print(f"Input shape: {x.shape}")
+    print(f"Output shape: {output.shape}")
+    print(f"Number of parameters: {sum(p.numel() for p in model.parameters()):,}")
 
 # ========================================================================
 # 메인
@@ -89,7 +770,6 @@ def example_3_patch_visualization():
     print("Example 3: Visualizing Patch Embeddings")
     print("="*60 + "\n")
     
-    from vit_model import PatchEmbedding
     
     # 조각 임베딩 레이어를 만든다
     patch_embed = PatchEmbedding(
@@ -126,7 +806,6 @@ def example_4_attention_mechanism():
     print("Example 4: Self-Attention Mechanism")
     print("="*60 + "\n")
     
-    from vit_model import MultiHeadAttention
     
     # 어텐션 모듈 만들기
     attention = MultiHeadAttention(embed_dim=384, n_heads=6)
@@ -198,7 +877,6 @@ def example_6_model_variants():
     print("Example 6: ViT Model Variants")
     print("="*60 + "\n")
     
-    from vit_model import create_vit_tiny, create_vit_small, create_vit_base, create_vit_large
     
     models = {
         "ViT-Tiny": create_vit_tiny,

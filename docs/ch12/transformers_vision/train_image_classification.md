@@ -9,7 +9,79 @@ ViT를 생성하고 무작위 이미지 배치의 순전파 모양을 확인한�
 이미지 분류로 비전 트랜스포머 학습하기
 """
 import torch
-from vision_transformer import VisionTransformer
+import torch.nn as nn
+
+# --- patch_embedding ---
+"""
+비전 트랜스포머를 위한 그림 조각 임베딩
+"""
+
+# ========================================================================
+# 메인
+# ========================================================================
+
+class PatchEmbedding(nn.Module):
+    def __init__(self, img_size=224, patch_size=16, in_channels=3, embed_dim=768):
+        super().__init__()
+        self.img_size = img_size
+        self.patch_size = patch_size
+        self.n_patches = (img_size // patch_size) ** 2
+        
+        self.proj = nn.Conv2d(in_channels, embed_dim, kernel_size=patch_size, stride=patch_size)
+    
+    def forward(self, x):
+        # x: [B, C, H, W]
+        x = self.proj(x)  # [B, embed_dim, H/P, W/P]
+        x = x.flatten(2)  # [B, embed_dim, n_patches]
+        x = x.transpose(1, 2)  # [B, n_patches, embed_dim]
+        return x
+
+
+# --- vision_transformer ---
+"""
+비전 트랜스포머 (ViT)
+"""
+
+# ========================================================================
+# 메인
+# ========================================================================
+
+class VisionTransformer(nn.Module):
+    def __init__(self, img_size=224, patch_size=16, num_classes=1000, d_model=768, 
+                 num_heads=12, num_layers=12):
+        super().__init__()
+        self.patch_embed = PatchEmbedding(img_size, patch_size, embed_dim=d_model)
+        
+        # 분류 토큰과 자리 임베딩
+        self.cls_token = nn.Parameter(torch.randn(1, 1, d_model))
+        self.pos_embed = nn.Parameter(torch.randn(1, self.patch_embed.n_patches + 1, d_model))
+        
+        # 트랜스포머 인코더
+        encoder_layer = nn.TransformerEncoderLayer(d_model, num_heads, dim_feedforward=d_model*4)
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers)
+        
+        # 분류 머리
+        self.classifier = nn.Linear(d_model, num_classes)
+    
+    def forward(self, x):
+        # 조각 임베딩
+        x = self.patch_embed(x)  # [B, n_patches, d_model]
+        
+        # 분류 토큰을 더한다
+        cls_tokens = self.cls_token.expand(x.size(0), -1, -1)
+        x = torch.cat([cls_tokens, x], dim=1)
+        
+        # 자리 임베딩을 더한다
+        x = x + self.pos_embed
+        
+        # 트랜스포머
+        x = x.transpose(0, 1)  # [seq, batch, dim]
+        x = self.transformer(x)
+        x = x.transpose(0, 1)  # [batch, seq, dim]
+        
+        # 분류
+        cls_output = x[:, 0]
+        return self.classifier(cls_output)
 
 # ========================================================================
 # 메인

@@ -1,16 +1,15 @@
 # 시연
 무작위 입력에 셀프 어텐션을 적용해 출력과 웨이트의 모양을 살펴보는 데모다. 학습·언어 이해나 번역 품질을 평가하는 예제는 아니다.
 
-!!! note "모듈 경로와 생성자 인터페이스 확인"
-    이 폴더에는 self_attention.py가 없어 가져오기 경로를 정해야 한다. 아래 경로 예시는 [앞 장의 모듈](../../ch11/attention/self_attention.md)을 가리키지만 그 SelfAttention은 heads 인수를 받지 않는다.
+!!! note "어느 SelfAttention 인가"
+    이 데모는 `SelfAttention(embed_size, heads=1)`로 부른다. `heads`를 받는 것은
+    이 장의 [셀프 어텐션 코드](self_attention.md)에 있는 클래스이고,
+    [앞 장의 것](../../ch11/attention/self_attention.md)은 그 인수를 받지 않는다.
+    이름이 같아도 인터페이스가 다르므로 섞어 쓸 수 없다.
 
-    이 장의 [셀프 어텐션 코드](self_attention.md)에 있는 클래스는 heads를 받지만 두 인터페이스를 그대로 혼용할 수 없다. 보존된 데모가 경로 설정만으로 완성된다고 해석하지 않는다.
-
-    ```python
-    import sys
-    sys.path.append("../../ch11/attention")   # self_attention.py가 있는 곳
-    from self_attention import SelfAttention
-    ```
+    예전에는 이 쪽이 앞 장의 파일을 `sys.path`로 찾아 읽어 왔는데, 그것은 `heads`를
+    받지 않는 쪽이라 애초에 맞지 않는 짝이었다. 지금은 이 장의 클래스를 아래
+    프로그램 안에 함께 싣는다.
 
 ## 1. 코드
 
@@ -18,8 +17,48 @@
 """
 자기 주의 데모
 """
+import math
+
 import torch
-from self_attention import SelfAttention
+import torch.nn as nn
+
+
+class SelfAttention(nn.Module):
+    """자기 주의 구조의 커널"""
+    def __init__(self, embed_size, heads=1):
+        super().__init__()
+        self.embed_size = embed_size
+        self.heads = heads
+        self.head_dim = embed_size // heads
+        
+        assert self.head_dim * heads == embed_size, "Embed size must be divisible by heads"
+        
+        self.query = nn.Linear(embed_size, embed_size)
+        self.key = nn.Linear(embed_size, embed_size)
+        self.value = nn.Linear(embed_size, embed_size)
+        self.fc_out = nn.Linear(embed_size, embed_size)
+    
+    def forward(self, x, mask=None):
+        N, seq_len, _ = x.shape
+        
+        Q = self.query(x)
+        K = self.key(x)
+        V = self.value(x)
+        
+        # 스케일 조정 내적 주의
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.head_dim)
+        
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        
+        attention_weights = torch.softmax(scores, dim=-1)
+        out = torch.matmul(attention_weights, V)
+        
+        return self.fc_out(out), attention_weights
+
+
+if __name__ == "__main__":
+    pass
 
 # ========================================================================
 # 메인
@@ -46,6 +85,16 @@ def demo():
 
 if __name__ == '__main__':
     demo()
+```
+
+**출력:**
+
+```
+Input shape: torch.Size([2, 10, 64])
+Output shape: torch.Size([2, 10, 64])
+Attention weights shape: torch.Size([2, 10, 10])
+
+✓ Self-attention demo complete!
 ```
 
 ## 2. 논의
