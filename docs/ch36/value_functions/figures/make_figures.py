@@ -6,6 +6,9 @@
 
 자료를 읽지 않으므로 어디서 돌려도 된다.
 
+**다 그리는 데 100 초쯤 걸린다** — model_free() 가 씨앗 여덟 개로 Q 학습을
+백만 걸음까지 돌리기 때문이다. 멈춘 것이 아니다.
+
 실행: python docs/ch36/value_functions/figures/make_figures.py
 """
 from pathlib import Path
