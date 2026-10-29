@@ -618,6 +618,53 @@ def fig_kl_tradeoff():
     print("wrote kl_tradeoff.svg")
 
 
+# === 그림 11: 품질은 순전파로 산다 ==========================================
+def fig_quality_vs_cost():
+    """5장 개요의 마지막 표를 값(순전파)에 대해 그린다.
+
+    가로는 표본 한 장에 드는 순전파 횟수이고 로그 눈금이다. 네 모델이 1에
+    모여 있고 DDPM만 1,000에 있다. DDIM이 10에서 그 품질을 거의 되찾는 것이
+    이 장의 마지막 이야기다. 오른쪽 칸의 점선은 진짜 MNIST의 1.00이다.
+
+    표에 실린 값 그대로이며 학습이 필요 없다.
+    """
+    # (label, 순전파, 확신도, 클래스 안 다양함, dy_conf, dy_div)
+    # 마지막 두 수는 왼쪽·오른쪽 칸의 라벨 세로 어긋냄이다. 두 칸에서 위아래
+    # 순서가 뒤집히는 짝(AE/VAE)이 있어 칸마다 따로 준다.
+    rows = [("AE",      1, 0.737, 0.640, -15,   7),
+            ("VAE",     1, 0.758, 0.628,   7, -16),
+            ("GAN",     1, 0.908, 0.953, -15, -16),
+            ("DCGAN",   1, 0.909, 1.085,   7,   7),
+            ("DDPM", 1000, 0.940, 1.047,   7,   7),
+            ("DDIM-10", 10, 0.904, 0.979,   7, -16)]
+    col = {"AE": "#777777", "VAE": "tab:blue", "GAN": "tab:green",
+           "DCGAN": "tab:olive", "DDPM": "tab:red", "DDIM-10": "tab:orange"}
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.4, 4.4))
+    for ax, j, ylab, ylim in ((axes[0], 2, "judge confidence", (0.70, 0.98)),
+                              (axes[1], 3, "within-class variety", (0.55, 1.16))):
+        for r in rows:
+            name, n, conf, div = r[0], r[1], r[2], r[3]
+            y = r[j]
+            dy = r[4] if j == 2 else r[5]
+            ax.scatter(n, y, s=85, color=col[name], zorder=3)
+            ax.annotate(name, (n, y), textcoords="offset points",
+                        xytext=(9, dy), fontsize=9, color=col[name])
+        if j == 3:
+            ax.axhline(1.00, color="black", lw=1, ls="--")
+            ax.text(1.05, 1.005, "real MNIST 1.00", fontsize=8, va="bottom")
+        ax.set_xscale("log")
+        ax.set_xlim(0.6, 3000)
+        ax.set_ylim(*ylim)
+        ax.set_xlabel("forward passes per sample   (log)", fontsize=10)
+        ax.set_ylabel(ylab, fontsize=10)
+        ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.07, right=0.985, top=0.96, bottom=0.145, wspace=0.22)
+    fig.savefig("quality_vs_cost.svg", transparent=True)
+    plt.close(fig)
+    print("wrote quality_vs_cost.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -629,6 +676,7 @@ if __name__ == "__main__":
     fig_two_rulers()
     fig_forward_diffusion()
     fig_kl_tradeoff()
+    fig_quality_vs_cost()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
