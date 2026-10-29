@@ -212,6 +212,95 @@ def kmeans_two_parents():
           f"macqueen 1 pass {min(one):.0f}-{max(one):.0f}")
 
 
+# === 그림으로 보는 AI: EM 이 올리는 그 값에는 꼭대기가 없다 ==================
+#
+# Dempster 외 1977 의 정리 1 은 EM 이 매 걸음 우도를 올린다고 말한다. 그런데
+# 혼합 정규의 우도는 **위로 유계가 아니다** — 성분 하나를 점 하나에 얹고
+# 분산을 줄이면 끝없이 커진다. sklearn 의 reg_covar 가 그 바닥을 받치고 있다.
+
+def gmm_no_summit():
+    import warnings
+    from sklearn.mixture import GaussianMixture
+    from sklearn.datasets import make_blobs
+
+    warnings.filterwarnings("ignore")
+    X, _ = make_blobs(n_samples=300, centers=3, cluster_std=1.0,
+                      random_state=42)
+
+    ks = [1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30]
+    ll, bic = [], []
+    for k in ks:
+        g = GaussianMixture(n_components=k, reg_covar=1e-6, n_init=10,
+                            random_state=0, max_iter=1000).fit(X)
+        ll.append(g.score(X))
+        bic.append(g.bic(X))
+
+    rcs = [1e-2, 1e-4, 1e-6, 1e-8, 1e-10, 1e-12, 1e-14]
+    ll_rc, pinned = [], []
+    for rc in rcs:
+        g = GaussianMixture(n_components=20, reg_covar=rc, n_init=10,
+                            random_state=0, max_iter=1000).fit(X)
+        ll_rc.append(g.score(X))
+        pinned.append(np.linalg.eigvalsh(g.covariances_).min() <= rc * 1.5)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.2))
+
+    # --- 왼쪽: k 를 늘리면 우도는 계속 오른다, BIC 만 바닥을 가진다 ---------
+    ax1.plot(ks, ll, "o-", color=ACCENT, linewidth=2.0, ms=5,
+             label="log-likelihood")
+    ax1.set_xlabel("number of components k", fontsize=9.5)
+    ax1.set_ylabel("mean log-likelihood", fontsize=9.5, color=ACCENT)
+    ax1.tick_params(axis="y", labelcolor=ACCENT)
+    ax1.annotate("never turns over", xy=(30, ll[-1]), xytext=(14, -5.1),
+                 fontsize=8.5, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9))
+
+    axb = ax1.twinx()
+    axb.plot(ks, bic, "s--", color=BLUE, linewidth=1.8, ms=4.5,
+             label="BIC")
+    kbest = ks[int(np.argmin(bic))]
+    axb.plot([kbest], [min(bic)], "*", color=BLUE, ms=15, zorder=5)
+    axb.annotate(f"BIC bottoms at k = {kbest}", xy=(kbest, min(bic)),
+                 xytext=(kbest + 11.5, min(bic) + 25), fontsize=8.5,
+                 color=BLUE,
+                 arrowprops=dict(arrowstyle="->", color=BLUE, lw=0.9))
+    axb.set_ylabel("BIC", fontsize=9.5, color=BLUE)
+    axb.tick_params(axis="y", labelcolor=BLUE, labelsize=8)
+
+    ax1.set_title("the fit alone can never pick k", fontsize=10.5,
+                  color=INK, weight="bold")
+    ax1.grid(alpha=0.13)
+    style(ax1)
+
+    # --- 오른쪽: 바닥을 낮추면 우도가 따라 올라간다 ------------------------
+    ax2.semilogx(rcs, ll_rc, "o-", color=ACCENT, linewidth=2.0, ms=6)
+    ax2.invert_xaxis()
+    ax2.set_xlabel("reg_covar, the floor under the covariances", fontsize=9.5)
+    ax2.set_ylabel("mean log-likelihood at k = 20", fontsize=9.5)
+    ax2.set_title("lower the floor, gain more likelihood",
+                  fontsize=10.5, color=INK, weight="bold")
+    ax2.annotate(f"every component that collapses\n"
+                 f"is resting on this floor\n"
+                 f"({sum(pinned)} of {len(rcs)} runs)",
+                 xy=(rcs[-2], ll_rc[-2]), xytext=(1e-4, -3.60),
+                 fontsize=8.5, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax2.grid(alpha=0.13, which="both")
+    style(ax2)
+
+    fig.text(0.5, -0.05,
+             "sklearn's default floor is 1e-6. it is not a numerical "
+             "nicety - without it there is nothing to converge to.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "gmm_no_summit.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote gmm_no_summit.svg   ll {ll[0]:.3f}->{ll[-1]:.3f}   "
+          f"bic min at k={kbest}   ll@k20 {ll_rc[0]:.3f}->{ll_rc[-1]:.3f}")
+
+
 if __name__ == "__main__":
     dbscan_knobs()
     kmeans_two_parents()
+    gmm_no_summit()
