@@ -1,0 +1,212 @@
+"""26장 구조 절 쪽들의 그림.
+
+규칙은 CLAUDE.md 의 Figures 항에 적어 둔 대로다.
+- SVG, fonttype='path', transparent
+- 글자는 모두 아스키 (matplotlib 기본 폰트에 한글이 없다)
+
+**체크포인트를 읽지 않는다.** 필요한 학습은 이 스크립트 안에서 씨앗을 박고
+처음부터 돌린다. 그래야 그림에 적힌 수를 언제든 다시 만들 수 있다.
+
+실행: python docs/ch25/architecture/figures/make_figures.py
+"""
+from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
+matplotlib.rcParams["svg.fonttype"] = "path"
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn as nn
+
+HERE = Path(__file__).resolve().parent
+INK = "#2f3337"
+ACCENT = "#8a4b2a"
+BLUE = "#2d6a8f"
+
+
+def style(ax):
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+
+# === 그림으로 보는 AI: 같은 평면, 다른 축 =====================================
+#
+# Bourlard-Kamp 1988 의 주장을 수로 보인다. 선형 AE 의 웨이트는 주부분공간을
+# 펼치지만 로딩 벡터와 같지 않다. 부분공간(주각)과 축(각도)을 따로 잰다.
+
+def _train_linear_ae(Xc, k, seed=0, steps=6000, lr=0.01):
+    """활성화도 바이어스도 없는 AE. 자료는 이미 중심화되어 있다."""
+    torch.manual_seed(seed)
+    enc = nn.Linear(Xc.shape[1], k, bias=False)
+    dec = nn.Linear(k, Xc.shape[1], bias=False)
+    opt = torch.optim.Adam(list(enc.parameters()) + list(dec.parameters()), lr=lr)
+    Xt = torch.tensor(Xc)
+    for _ in range(steps):
+        opt.zero_grad()
+        loss = ((dec(enc(Xt)) - Xt) ** 2).sum(1).mean()
+        loss.backward()
+        opt.step()
+    with torch.no_grad():
+        err = ((dec(enc(Xt)) - Xt) ** 2).sum(1).mean().item()
+    return enc.weight.detach().numpy(), err
+
+
+def _principal_angles(A, B):
+    Qa = np.linalg.qr(A.T)[0]
+    Qb = np.linalg.qr(B.T)[0]
+    s = np.linalg.svd(Qa.T @ Qb, compute_uv=False)
+    return np.degrees(np.arccos(np.clip(s, -1, 1)))
+
+
+def same_plane_other_axes():
+    rng = np.random.default_rng(0)
+    n = 800
+    lat = rng.normal(size=(n, 2)) * np.array([3.0, 1.4])
+    basis = np.linalg.qr(rng.normal(size=(3, 3)))[0][:, :2]
+    X = lat @ basis.T + rng.normal(scale=0.25, size=(n, 3))
+    X = (X - X.mean(0)).astype(np.float32)
+
+    U, S, Vt = np.linalg.svd(X, full_matrices=False)
+    V = Vt[:2]
+    err_pca = ((X - (X @ V.T) @ V) ** 2).sum(1).mean()
+    W, err_ae = _train_linear_ae(X, 2)
+    ang = _principal_angles(W, V)
+
+    Z_pca = X @ V.T
+    Z_ae = X @ W.T
+    r_pca = np.corrcoef(Z_pca.T)[0, 1]
+    r_ae = np.corrcoef(Z_ae.T)[0, 1]
+
+    # 평면 위에서 보기 위해 PCA 기저로 좌표를 잡는다
+    Wp = np.stack([V @ w for w in W])          # AE 축을 평면 좌표로
+    Wp = np.stack([w / np.linalg.norm(w) for w in Wp])
+
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(11.6, 3.9))
+
+    # --- 1. 같은 평면 위의 두 축 ------------------------------------------
+    ax1.scatter(Z_pca[:, 0], Z_pca[:, 1], s=7, color=INK, alpha=0.18,
+                edgecolors="none", rasterized=True)
+    L = 5.2
+    for j, (lab, col, sty) in enumerate(
+            [("PCA axis", BLUE, "-"), ("AE axis", ACCENT, "--")]):
+        for i in range(2):
+            v = np.array([1.0, 0.0]) if i == 0 else np.array([0.0, 1.0])
+            if j == 1:
+                v = Wp[i]
+            ax1.plot([-L * v[0], L * v[0]], [-L * v[1], L * v[1]],
+                     color=col, linewidth=2.0, linestyle=sty,
+                     label=lab if i == 0 else None, zorder=3)
+    ax1.set_title("the same plane", fontsize=10, color=INK, weight="bold")
+    # 각도는 축 **밖**에 적는다 — 안에 두면 AE 축선 위에 겹친다
+    ax1.set_xlabel(f"principal angles between the two subspaces:\n"
+                   f"{ang[0]:.4f} and {ang[1]:.4f} deg",
+                   fontsize=8.3, color=INK)
+    ax1.legend(fontsize=8, loc="upper right", framealpha=0.9)
+    ax1.set_aspect("equal")
+    ax1.set_xlim(-6, 6)
+    ax1.set_ylim(-6, 6)
+    style(ax1)
+
+    # 두 판이 같은 눈금이라야 기울기를 눈으로 견줄 수 있다.
+    # 가로세로를 따로 잡는다 — 억지로 정사각형을 만들면 빈 자리만 넓어진다.
+    xl = 1.06 * max(np.abs(Z_pca[:, 0]).max(), np.abs(Z_ae[:, 0]).max())
+    yl = 1.06 * max(np.abs(Z_pca[:, 1]).max(), np.abs(Z_ae[:, 1]).max())
+
+    # --- 2. PCA 점수 -------------------------------------------------------
+    ax2.scatter(Z_pca[:, 0], Z_pca[:, 1], s=8, color=BLUE, alpha=0.30,
+                edgecolors="none", rasterized=True)
+    ax2.set_title(f"PCA scores:  r = {r_pca:+.6f}", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.set_xlabel("score 1", fontsize=8.5)
+    ax2.set_ylabel("score 2", fontsize=8.5)
+
+    # --- 3. AE 잠재 --------------------------------------------------------
+    ax3.scatter(Z_ae[:, 0], Z_ae[:, 1], s=8, color=ACCENT, alpha=0.30,
+                edgecolors="none", rasterized=True)
+    ax3.set_title(f"AE latent:  r = {r_ae:+.6f}", fontsize=10, color=INK,
+                  weight="bold")
+    ax3.set_xlabel("latent 1", fontsize=8.5)
+    ax3.set_ylabel("latent 2", fontsize=8.5)
+
+    for ax in (ax2, ax3):
+        ax.set_aspect("equal")
+        ax.set_xlim(-xl, xl)
+        ax.set_ylim(-yl, yl)
+        style(ax)
+
+    fig.text(0.5, -0.10,
+             f"same reconstruction error ({err_pca:.8f} vs {err_ae:.8f}) and "
+             f"the same plane -\nbut the axes are turned, and the latent "
+             f"coordinates are not uncorrelated.",
+             ha="center", fontsize=8.3, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "same_plane_other_axes.svg", transparent=True,
+                bbox_inches="tight", dpi=150)
+    plt.close(fig)
+    print(f"wrote same_plane_other_axes.svg  pca {err_pca:.8f} ae {err_ae:.8f} "
+          f"angles {ang[0]:.4f}/{ang[1]:.4f} r_pca {r_pca:+.6f} r_ae {r_ae:+.6f}")
+
+
+# === 그림으로 보는 AI: 원래 디노이징 잡음은 가우시안이 아니었다 ================
+#
+# Vincent 2008 은 성분 몇 개를 골라 **0 으로 지웠다** (masking noise).
+# 이 쪽 3절의 세 분기 가운데 dropout 분기가 그것이다.
+
+def corruption_kinds():
+    rng = np.random.default_rng(7)
+    img = np.zeros((28, 28))
+    img[6:22, 12:16] = 1.0                      # 숫자 1 비슷한 획
+    img[18:22, 8:20] = 1.0
+
+    nu = 0.3
+    gauss = np.clip(img + rng.normal(scale=nu, size=img.shape), 0, 1)
+    sp = img.copy()
+    m = rng.random(img.shape)
+    sp[m < nu / 2] = 1.0
+    sp[(m >= nu / 2) & (m < nu)] = 0.0
+    mask = img.copy()
+    mask[rng.random(img.shape) < nu] = 0.0
+
+    panels = [
+        (img, "clean", ""),
+        (gauss, "gaussian", "add noise, then clip"),
+        (sp, "salt and pepper", "force to 1 or to 0"),
+        (mask, "masking", "force a fraction to 0"),
+    ]
+    fig, axes = plt.subplots(1, 4, figsize=(10.0, 3.0))
+    for ax, (im, title, note) in zip(axes, panels):
+        ax.imshow(im, cmap="gray_r", vmin=0, vmax=1)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_title(title, fontsize=9.5, color=INK, weight="bold", pad=6)
+        ax.text(13.5, 31.5, note, ha="center", fontsize=7.6, color=INK,
+                alpha=0.85)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+    axes[3].set_title("masking", fontsize=9.5, color=ACCENT, weight="bold",
+                      pad=6)
+    for s in axes[3].spines.values():
+        s.set_color(ACCENT)
+        s.set_linewidth(1.8)
+
+    fig.text(0.5, -0.20,
+             "Vincent et al. 2008 used the one on the right: a fixed number of "
+             "components chosen at random and forced to 0.\n"
+             "schematic digit - not an MNIST sample.",
+             ha="center", fontsize=8.3, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "corruption_kinds.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote corruption_kinds.svg")
+
+
+if __name__ == "__main__":
+    same_plane_other_axes()
+    corruption_kinds()
