@@ -15,6 +15,8 @@
 
 선형 회귀는 예측값이 파라미터에 대해 선형인 모델이다. 정규 방정식과 경사 하강법을 비교하고, 피처 변환과 정규화가 추정에 미치는 영향을 살펴본다.
 
+텐서와 자동 미분 자체는 [7장 PyTorch 기초](../ch06/index.md)가 다룬다. 여기서는 그것을 회귀에 쓴다.
+
 - [선형 회귀](linear_regression/linear_regression.md): 모델, 로스와 확률적 해석
 - [해석적 해](linear_regression/closed_form.md): 최소제곱 문제와 행렬 표현
 - [경사 하강법](linear_regression/gd_solution.md): 반복 업데이트와 러닝레이트

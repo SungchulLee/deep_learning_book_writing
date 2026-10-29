@@ -245,7 +245,6 @@ nav:
         - "가우시안 혼합 EM": ch07/mle/mixture_of_gaussians_em.md
         - 뉴럴 넷트웍 MLE: ch07/mle/neural_network_mle.md
       - 8.2 선형 회귀:
-        - PyTorch 기초: ch07/linear_regression/01_pytorch_basics.md
         - NumPy로 만드는 선형 회귀: ch07/linear_regression/02_linear_regression_numpy.md
         - PyTorch로 직접 계산하는 선형 회귀: ch07/linear_regression/03_linear_regression_manual_pytorch.md
         - Autograd로 만드는 선형 회귀: ch07/linear_regression/04_linear_regression_autograd.md
