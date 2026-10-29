@@ -77,7 +77,7 @@ if __name__ == "__main__":
     print(f"Discriminator Parameters: {sum(p.numel() for p in model.discriminator.parameters()):,}")
 ```
 
-기본 생성기는 `(B,100)` 잠재 벡터를 128→256→512→1,024→784의 선형 레이어로 확장하고 `(B,1,28,28)`로 바꾼다. 중간 256·512·1,024차원에 BatchNorm1d,각 은닉 레이어에 LeakyReLU를 사용하며 마지막 Tanh는 출력 범위를 −1~1로 제한한다.
+기본 생성기는 `(B,100)` 잠재 표현을 128→256→512→1,024→784의 선형 레이어로 확장하고 `(B,1,28,28)`로 바꾼다. 중간 256·512·1,024차원에 BatchNorm1d,각 은닉 레이어에 LeakyReLU를 사용하며 마지막 Tanh는 출력 범위를 −1~1로 제한한다.
 
 판별기는 입력 이미지를 펼쳐 784→512→256→1로 줄이고 Sigmoid 확률을 반환한다. 이는 BCELoss를 사용하는 예시와 맞는 계약이며 BCEWithLogitsLoss에는 마지막 Sigmoid 없는 logits 출력이 필요하다. 실제 자료도 생성기 범위·전처리와 맞춰야 한다.
 
