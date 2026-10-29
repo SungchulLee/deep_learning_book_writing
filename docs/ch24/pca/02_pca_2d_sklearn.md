@@ -96,6 +96,22 @@ whiten=True  점수의 공분산
 
 예측 평가에서는 학습 데이터에만 적합한 PCA로 검증·테스트 데이터를 변환한다. 교차 검증은 전처리와 분류기를 Pipeline으로 묶어 폴드 안에서 적합한다. 전체 데이터에 PCA를 먼저 적합하면 레이블을 사용하지 않아도 평가 데이터의 구조가 학습에 들어간다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 세 줄짜리 PCA는 한 사람의 여름 과제에서 나왔다
+
+이 쪽이 PCA를 부르는 데 쓴 것은 세 줄이다. 그 세 줄 뒤에 있는 라이브러리는 2007년 여름, 교토 대학에서 음성 신호 처리를 하던 대학원생 다비드 쿠르나포(David Cournapeau)가 구글 서머 오브 코드 과제로 시작한 것이다. SciPy 위에 기계학습 모듈을 얹어 보자는 것이었고, 이름도 SciPy Toolkits의 작명법을 따라 `scikits.learn`이었다.
+
+![왼쪽에서 오른쪽으로 이어지는 시간선. 2007년에는 구글 서머 오브 코드, 교토의 대학원생 한 사람, 음성 신호 처리라고 적혀 있고 이름은 scikits.learn이다. 2010년 2월 1일에는 첫 공개 배포와 INRIA의 연구자 네 사람이라고 적혀 있고 이름은 scikit-learn이다. 오른쪽 끝은 이 쪽으로, PCA를 부르는 세 줄이 적혀 있다.](figures/sklearn_timeline.svg)
+
+첫 공개 배포는 2010년 2월 1일, 프랑스 INRIA의 파비안 페드레고사(Fabian Pedregosa)·가엘 바로코(Gaël Varoquaux)·알렉상드르 그람포르(Alexandre Gramfort)·뱅상 미셸(Vincent Michel)이 프로젝트를 이어받은 뒤였다. 이름에서 `s` 하나가 빠져 지금의 `scikit-learn`이 되었다.
+
+**그런데 짧다는 것이 공짜는 아니다.** 바로 위 문단이 경고한 그 누출을 보자. 전체 자료에 먼저 적합하는 잘못된 길은 `fit_transform(X)` **한 번**이고, 폴드 안에서 적합하는 옳은 길은 `Pipeline`으로 묶어 `cross_val_score`에 넘기는 **여러 줄**이다. 쓰기 쉬운 쪽이 틀린 쪽이다. 잘 만든 API는 할 수 있는 일을 늘려 주지만 **무엇이 기본값인지까지 정해 주지는 않으며**, 어느 쪽이 짧은가가 사람들이 실제로 하는 일을 적잖이 정한다. 이 쪽의 `fit_transform(X)` 한 줄이 괜찮은 것은 여기서 예측 성능을 재지 않기 때문이고, 재는 순간 그 한 줄은 더 이상 쓸 수 없다.
+
+_확인한 곳 — scikit-learn 공식 문서의 [About us](https://scikit-learn.org/stable/about.html) 에 적힌 내력. 2007년 David Cournapeau 의 Google Summer of Code 과제로 시작했고, 2010년 2월 1일 INRIA 의 네 사람이 첫 공개 배포를 했다._
+
+</div>
+
 ## 연습문제
 
 <div class="drillbox" markdown>

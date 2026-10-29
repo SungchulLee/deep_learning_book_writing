@@ -549,7 +549,52 @@ def make_ensembles():
     print("wrote ensembles.svg")
 
 
+# === 그림으로 보는 AI: scikit-learn 이 어디서 왔는가 ==========================
+#
+# 확인한 것만 적는다 — 2007 년 Google Summer of Code, 교토 대학의 대학원생
+# 한 사람, 본디 이름은 scikits.learn (SciPy Toolkits 의 작명법). 첫 공개 배포는
+# 2010 년 2 월 1 일, INRIA 의 네 사람.
+
+def make_sklearn_timeline():
+    fig, ax = plt.subplots(figsize=(9.6, 2.9))
+
+    ax.annotate("", xy=(9.7, 1.0), xytext=(0.3, 1.0),
+                arrowprops=dict(arrowstyle="->", color=INK, linewidth=1.3))
+
+    marks = [
+        (1.3, "2007",
+         "Google Summer of Code\none graduate student, Kyoto\nworking on audio signal processing",
+         "scikits.learn"),
+        (5.0, "1 Feb 2010",
+         "first public release\nfour researchers at INRIA\ntake over the project",
+         "scikit-learn"),
+        (8.6, "this page",
+         "PCA(n_components=1)\n.fit_transform(X)\nthree lines",
+         ""),
+    ]
+    for x, when, what, name in marks:
+        ax.plot([x], [1.0], marker="o", color=ACCENT, markersize=9,
+                markeredgecolor="white", markeredgewidth=1.5, zorder=5)
+        ax.text(x, 1.22, when, ha="center", fontsize=9.5, weight="bold",
+                color=INK)
+        ax.text(x, 0.82, what, ha="center", va="top", fontsize=7.8,
+                color=INK, alpha=0.9)
+        if name:
+            ax.text(x, 0.30, name, ha="center", fontsize=8.5,
+                    family="monospace", color=ACCENT)
+
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0.1, 1.5)
+    ax.axis("off")
+    fig.tight_layout()
+    fig.savefig(HERE / "sklearn_timeline.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote sklearn_timeline.svg")
+
+
 def main():
+    make_sklearn_timeline()
     make_ensembles()
     make_oja()
     make_pearson_hotelling()
