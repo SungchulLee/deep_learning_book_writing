@@ -616,6 +616,76 @@ def efron_morris():
     print(f"wrote efron_morris.svg   ratio med {np.median(ratio):.3f}  "
           f"closer {closer.mean():.1f}/18  loses {lose*100:.1f}%")
 
+# === 그림으로 보는 AI: "분산을 안다" 는 가정의 값 =============================
+#
+# 잡음 분산을 안다고 두면 켤레 갱신이 되고 구간이 정규 분위수로 나온다.
+# 실제로는 모르면서 추정값을 대입하면 구간이 **너무 좁아진다** — n=5 에서
+# 95% 구간이 실제로 담는 것은 85% 다. 분산을 적분해 없애면 t 분포가 나온다.
+
+def known_variance():
+    rng = np.random.default_rng(0)
+    p, R, SIG = 2, 20000, 1.0
+    ns = [5, 8, 12, 20, 50, 200]
+    plug, tcov = [], []
+    for n in ns:
+        a = b_ = 0
+        for _ in range(R):
+            X = np.c_[np.ones(n), rng.normal(0, 1, n)]
+            beta = np.array([1., 2.])
+            y = X @ beta + rng.normal(0, SIG, n)
+            XtXi = np.linalg.inv(X.T @ X)
+            bh = XtXi @ X.T @ y
+            r = y - X @ bh
+            se = np.sqrt((r @ r) / (n - p) * XtXi[1, 1])
+            a += abs(bh[1] - beta[1]) < 1.96 * se
+            b_ += abs(bh[1] - beta[1]) < stats.t.ppf(.975, n - p) * se
+        plug.append(a / R)
+        tcov.append(b_ / R)
+
+    # 그림이 제 주장을 확인한다
+    assert plug[0] < 0.90, "작은 n 에서 대입 구간은 뚜렷이 모자라야 한다"
+    assert all(abs(t - 0.95) < 0.01 for t in tcov), "t 쪽은 어느 n 에서나 맞는다"
+    assert abs(plug[-1] - 0.95) < 0.01, "큰 n 에서는 차이가 사라진다"
+
+    fig, ax = plt.subplots(figsize=(8.4, 4.5))
+    ax.axhline(0.95, color=INK, linestyle=":", linewidth=1.4)
+    ax.semilogx(ns, tcov, "o-", color=MUTED, linewidth=2.1, ms=7,
+                label="integrate the variance out  (Student's t)")
+    ax.semilogx(ns, plug, "s--", color=ACCENT, linewidth=2.1, ms=7,
+                label="assume it known, plug in an estimate")
+    for n, v in zip(ns, plug):
+        if n in (ns[0], ns[1], ns[3]):
+            ax.annotate(f"{v:.3f}", xy=(n, v), xytext=(4, -15),
+                        textcoords="offset points", fontsize=8.6,
+                        color=ACCENT)
+    ax.annotate(f"{tcov[0]:.3f}", xy=(ns[0], tcov[0]), xytext=(4, 8),
+                textcoords="offset points", fontsize=8.6, color=MUTED)
+    ax.set_xlabel("sample size", fontsize=9.5)
+    ax.set_ylabel("what the 95% interval really holds", fontsize=9.5)
+    ax.set_title("the price of the convenient assumption", fontsize=10.5,
+                 color=INK, weight="bold", pad=8)
+    ax.set_ylim(0.83, 0.97)
+    ax.set_xticks(ns)
+    ax.set_xticklabels([str(n) for n in ns])
+    ax.legend(fontsize=8.6, loc="lower right", framealpha=0.93)
+    ax.grid(alpha=0.12, which="both")
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"{R:,} runs per point. the gap closes as data accumulate and "
+             f"bites hardest exactly where data are scarce.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "known_variance.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote known_variance.svg   n=5 plug {plug[0]:.4f} t {tcov[0]:.4f}"
+          f"   n=200 plug {plug[-1]:.4f}")
+
+
 if __name__ == "__main__":
     bayes_table()
     conjugate_limit()
@@ -624,3 +694,4 @@ if __name__ == "__main__":
     thompson_1933()
     james_stein()
     efron_morris()
+    known_variance()
