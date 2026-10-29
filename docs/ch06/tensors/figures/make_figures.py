@@ -911,7 +911,103 @@ def shannon_precedence():
     print("wrote shannon_precedence.svg   (ast confirms the chained compare)")
 
 
+# === 그림으로 보는 AI: 더하는 차례가 답을 바꾼다 ==============================
+#
+# 왼쪽은 카핸이 1965 년에 적은 보정의 꼴 — 반올림으로 잃은 아랫자리를 따로
+# 들고 다니다가 다음 번에 돌려준다. 꼴만 옮긴 것이라 그림 안에 적는다.
+# 오른쪽은 **직접 잰다**: 같은 수 천만 개를 차례만 바꿔 더해 본다.
+#
+# 처음 세운 가설("float32 는 2^24 에서 멈춘다")은 재어 보니 **재현되지 않았다.**
+# torch 의 합은 차례대로 쌓지 않고 쌍으로 묶어 더하기 때문이다. 그래서 그림은
+# 멈춤이 아니라 **차례에 따라 답이 흔들리는 것**을 보인다.
+
+def summation_order():
+    import torch
+
+    torch.manual_seed(0)
+
+    # 큰 수 하나에 작은 수 천만 개
+    v = torch.cat([torch.tensor([1e8]), torch.ones(10_000_000)]).float()
+    exact = 1e8 + 10_000_000
+    got = v.sum().item()
+    assert got != exact, "이 그림은 float32 합이 참값과 다르다는 것을 보인다"
+
+    # 같은 수, 차례만 바꿔 여러 번
+    x = (torch.randn(4_000_000) * torch.exp(torch.randn(4_000_000) * 6)).float()
+    ref = x.double().sum().item()
+    sums = [x.sum().item()]
+    for k in range(19):
+        g = torch.Generator().manual_seed(k)
+        sums.append(x[torch.randperm(len(x), generator=g)].sum().item())
+    rel = [(s - ref) / abs(ref) for s in sums]
+    assert len(set(sums)) > 1, "차례를 바꿔도 답이 같으면 이 그림의 이야기가 없다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.0),
+                                   gridspec_kw={"width_ratios": [1, 1.2]})
+
+    # --- 왼쪽: 카핸의 보정 -------------------------------------------------
+    ax1.text(0.5, 0.92, "add one number", ha="center", fontsize=9,
+             color=INK, style="italic")
+    ax1.add_patch(plt.Rectangle((0.10, 0.63), 0.80, 0.17, facecolor=ACCENT,
+                                alpha=0.13, edgecolor=ACCENT, linewidth=1.0))
+    ax1.text(0.5, 0.715, "total  +  x", ha="center", va="center",
+             fontsize=12, color=INK, family="monospace")
+
+    ax1.annotate("", xy=(0.30, 0.50), xytext=(0.42, 0.60),
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=1.2))
+    ax1.annotate("", xy=(0.70, 0.50), xytext=(0.58, 0.60),
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.6))
+    ax1.text(0.26, 0.43, "what fits", ha="center", fontsize=8.6, color=INK)
+    ax1.text(0.74, 0.43, "what fell off\nthe bottom", ha="center",
+             fontsize=8.6, color=ACCENT)
+
+    ax1.add_patch(plt.Rectangle((0.52, 0.20), 0.40, 0.15, facecolor=ACCENT,
+                                alpha=0.20, edgecolor=ACCENT, linewidth=1.1))
+    ax1.text(0.72, 0.275, "keep it", ha="center", va="center", fontsize=10,
+             color=ACCENT, weight="bold")
+    ax1.annotate("", xy=(0.88, 0.63), xytext=(0.92, 0.35),
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.3,
+                                 connectionstyle="arc3,rad=-0.4"))
+    ax1.text(0.5, 0.07, "give it back on the next addition", ha="center",
+             fontsize=8.4, color=INK, alpha=0.85)
+    ax1.text(0.97, 0.955, "schematic", ha="right", fontsize=6.4, color=INK,
+             alpha=0.55, style="italic")
+    ax1.set_title("Kahan, one page, 1965", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0, 1.0)
+    ax1.axis("off")
+
+    # --- 오른쪽: 같은 수, 스무 가지 차례 ------------------------------------
+    ax2.axhline(0, color=INK, linestyle="--", linewidth=1.2)
+    ax2.text(len(rel) * 0.5, 0, "  float64", fontsize=8.4, color=INK,
+             va="bottom", ha="center")
+    ax2.plot(range(1, len(rel) + 1), [r * 1e7 for r in rel], "o",
+             color=ACCENT, ms=6)
+    ax2.set_xlabel("the same 4,000,000 numbers, in 20 orders", fontsize=9)
+    ax2.set_ylabel("error vs float64   (parts per 10 million)", fontsize=9)
+    ax2.set_title("float32 gives a different answer each time", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.grid(alpha=0.13)
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             f"and 1e8 plus ten million ones comes back {got:,.0f}, "
+             f"not {exact:,.0f}.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "summation_order.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote summation_order.svg   big-sum {got:,.0f} vs {exact:,.0f}   "
+          f"spread {max(rel)-min(rel):.2e}")
+
+
 if __name__ == "__main__":
+    summation_order()
     shannon_precedence()
     memory_order()
     tensor_word()
