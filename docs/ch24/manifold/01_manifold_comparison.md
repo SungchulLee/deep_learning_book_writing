@@ -127,6 +127,26 @@ Done. Three PNG files saved.
 
 여기 `MDS`는 고전 MDS의 그람 행렬 분해와 다르다. 유클리드 거리의 **고전** MDS와 PCA 점수가 같다는 결과를 이 계량 MDS에 그대로 적용하지 않는다. Isomap은 연결된 이웃 그래프가 실제 매니폴드 이웃을 잘 반영해야 하며, LLE도 이웃의 국소 기하와 수치 안정성에 영향을 받는다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 두 방법은 같은 쪽에서 만났다
+
+위 표의 가운데 두 줄, Isomap과 LLE는 같은 해에 나온 정도가 아니다. **같은 호의 같은 쪽**에서 만났다. 2000년 12월 22일에 나온 *Science* 290권이고, Isomap은 2319쪽에서 시작해 2323쪽에서 끝나며 LLE는 바로 그 2323쪽에서 시작한다. 종이 한 장을 둘이 나눠 썼다.
+
+![Science 290권 2323쪽의 짜임. 위는 Isomap 논문의 끝으로 감사의 말과 접수 날짜가 있고, 아래는 LLE 논문의 제목이 시작된다. 쪽 번호 2323이 맨 아래에 있다.](figures/page_2323.svg)
+
+겹친 것은 우연이 아니다. Isomap의 감사의 말에 이렇게 적혀 있다.
+
+> "We thank Y. LeCun for making available the MNIST database and **S. Roweis and L. Saul for sharing related unpublished work.**"
+
+두 팀은 서로의 원고를 미리 보았다. 그런데 **어느 쪽도 다른 쪽을 참고문헌으로 달지 못했다** — Isomap이 원고를 낸 것이 2000년 8월 10일이고 그때 LLE는 아직 나오지 않은 글이었다. Isomap의 번호 붙은 참고문헌 44개 어디에도 Roweis와 Saul은 없다. 둘이 서로를 알고 있었다는 자취는 인쇄된 지면에서 저 감사의 말 한 줄뿐이다.
+
+그래서 이 표의 네 줄은 각자 따로 떠오른 네 생각이 아니다. 적어도 가운데 두 줄은 같은 문제를 같은 때에, 서로 아는 채로 푼 두 답이다. **다만 그 사실은 둘 중 무엇이 나은지를 조금도 말해 주지 않는다.** 출발점이 같았다고 같은 데이터에서 같은 그림을 주지는 않으며, 아래 5절에서 보듯 이 쪽의 코드는 이웃 겹침도 신뢰도도 계산하지 않는다. 우열은 여기서 가려지지 않는다.
+
+_확인한 곳 — J. B. Tenenbaum, V. de Silva, J. C. Langford, "A Global Geometric Framework for Nonlinear Dimensionality Reduction", *Science* **290**, 2319–2323 (2000년 12월 22일) 의 감사의 말과 참고문헌. S. T. Roweis, L. K. Saul, "Nonlinear Dimensionality Reduction by Locally Linear Embedding", 같은 호 2323–2326쪽._
+
+</div>
+
 ## 3. 비교 데이터와 전처리
 
 스위스 롤은 표본 1,500개와 잡음 0.2를 사용하고 색은 롤을 따라가는 위치다. 색이 연속적으로 이어지는지와 근처 점이 잘 보존되는지를 함께 살핀다. Isomap과 LLE의 기본 이웃 수는 10이다.
