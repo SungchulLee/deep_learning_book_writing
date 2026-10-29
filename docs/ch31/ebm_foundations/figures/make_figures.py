@@ -597,6 +597,80 @@ def ula_bias():
     print(f"wrote ula_bias.svg   h=0.01 -> {theory[0]:.4f}   "
           f"h=1.5 -> {theory[-1]:.3f}   1.99 ok, 2.05 diverges")
 
+
+
+# === 그림으로 보는 AI: 가장 높은 밀도의 점을 모델은 뽑지 않는다 ===============
+#
+# 그 쪽 2 절이 "고차원에서는 밀도와 질량이 집중되는 영역이 다를 수 있다" 고
+# 적어 두었다. N(0, I_d) 는 그것을 정확히 셈할 수 있는 경우다 — 밀도의 최대는
+# 원점인데 질량은 반지름 sqrt(d) 의 껍질에 몰린다.
+
+def density_vs_typicality():
+    rng = np.random.default_rng(0)
+    dims = (1, 2, 10, 100, 784)
+    n = 20_000
+
+    radii, drops = {}, []
+    for d in dims:
+        x = rng.normal(size=(n, d))
+        r = np.linalg.norm(x, axis=1)
+        radii[d] = r
+        drops.append(float(np.median(-0.5 * r ** 2)))   # 원점 대비 로그밀도
+
+    r784 = radii[784]
+    assert abs(np.median(r784) - np.sqrt(784)) < 0.5, "껍질이 sqrt(d) 에 있어야 한다"
+    assert r784.min() > 20, f"원점 근처 표본이 없어야 한다: min |x| = {r784.min():.1f}"
+    assert drops[-1] < -300, f"로그밀도 차가 커야 한다: {drops[-1]:.1f}"
+    assert drops[0] > -1, "낮은 차원에서는 차이가 작아야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1),
+                                   gridspec_kw={"width_ratios": [1.2, 1]})
+
+    cols = plt.cm.copper(np.linspace(0.15, 0.78, len(dims)))
+    for d, c in zip(dims, cols):
+        ax1.hist(radii[d], bins=90, density=True, histtype="step",
+                 linewidth=1.9, color=c, label=f"d = {d}")
+    ax1.axvline(0, color=ACCENT, linestyle="--", linewidth=1.6)
+    ax1.annotate("the single highest-density\npoint sits here, at the origin",
+                 xy=(0, 0.14), xytext=(4.5, 0.30), fontsize=8.3, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.0))
+    ax1.set_xlabel("distance from the origin", fontsize=9)
+    ax1.set_ylabel("density of samples", fontsize=9)
+    ax1.set_title("where the samples actually are", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.set_xlim(-1.5, 34)
+    ax1.legend(fontsize=8.2, loc="upper right", framealpha=0.92)
+
+    ax2.plot(dims, [-d for d in drops], "o-", color=ACCENT, ms=6,
+             linewidth=2.0)
+    ax2.set_xscale("log")
+    ax2.set_yscale("log")
+    ax2.set_xlabel("dimension", fontsize=9)
+    ax2.set_ylabel("nats below the maximum", fontsize=9)
+    ax2.set_title("how far a typical sample is from the peak",
+                  fontsize=10, color=INK, weight="bold")
+    ax2.annotate(f"{-drops[-1]:.0f} nats at d = 784", xy=(784, -drops[-1]),
+                 xytext=(1.6, -drops[-1] * 0.30), fontsize=8.4, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax2.grid(alpha=0.13, which="both")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"at d = 784 none of {n:,} draws came within "
+             f"{r784.min():.0f} of the origin.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "density_vs_typicality.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote density_vs_typicality.svg   d=784 median |x| "
+          f"{np.median(r784):.1f}, min {r784.min():.1f}, drop {drops[-1]:.0f}")
+
 if __name__ == "__main__":
     cd_bias()
     ising_dimensions()
@@ -604,3 +678,4 @@ if __name__ == "__main__":
     partition_overlap()
     recon_vs_likelihood()
     ula_bias()
+    density_vs_typicality()
