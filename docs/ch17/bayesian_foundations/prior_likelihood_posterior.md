@@ -54,6 +54,32 @@ $$
 !!! note "쓰임새"
     비례식은 정규화 가능한 사후분포의 형태를 정한다. MAP처럼 밀도의 최댓값만 필요할 때는 θ와 무관한 주변 우도를 계산하지 않아도 된다. 다만 적분이 유한하고 양수인지, 최댓값이 존재하는지는 별도로 확인해야 한다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 베이즈는 위의 식을 쓴 적이 없다
+
+위 정리에 그의 이름이 붙어 있지만, 토머스 베이즈(Thomas Bayes)가 남긴 글에는 저런 꼴의 식이 없다. 사전분포·우도·사후분포라는 말도 없다. 그는 이 글을 **발표하지도 않았다.**
+
+세상에 나온 경위가 제목에 그대로 적혀 있다 — "By the late Rev. Mr. Bayes, communicated by Mr. Price". 1763년 12월 23일에 낭독된 그 글은 친구 리처드 프라이스(Richard Price)가 보낸 편지에 담겨 있었고, 편지는 이렇게 시작한다. "I now send you an essay which I have found among the papers of our deceased friend Mr. Bayes." 죽은 벗의 서류 더미에서 찾아낸 글이라는 뜻이다. 베이즈가 직접 쓴 머리말은 빠지고 프라이스의 머리말이 그 자리에 들어갔다.
+
+그리고 글이 내건 문제는 식이 아니라 이것이었다.
+
+> "Given the number of times in which an unknown event has happened and failed: Required the chance that the probability of its happening in a single trial lies somewhere **between any two degrees of probability that can be named.**"
+
+곧 **두 점 사이에 있을 확률**을 구하라는 것이다. 오늘 말로 하면 신용구간이고, 이 장의 [베이즈 신용구간](credible_intervals.md) 쪽이 셈하는 바로 그 양이다.
+
+![왼쪽은 베이즈가 둔 장치를 그린 것이다. 네 꼭짓점이 A, B, C, D 인 정사각 판 위에 공 W 가 멈춰 있고, 그 자리를 지나 변 AD 에 나란한 세로선 os 가 그어져 있다. 공을 열두 번 던져 선 왼쪽에 다섯 개, 오른쪽에 일곱 개가 떨어졌고 왼쪽 구간에 사건 M 이라고 적혀 있다. 아래에 1763년의 Postulate 1 이며 원문에 billiard 라는 낱말은 한 번도 나오지 않는다고 적혀 있다. 오른쪽은 그 결과로 얻는 사후분포 곡선으로, 0.4 와 0.8 사이가 칠해져 있고 그 넓이가 0.573 이라고 적혀 있다.](figures/bayes_table.svg)
+
+장치도 흔히 전해지는 것과 다르다. 글의 Postulate 1 은 "Suppose the **square table or plane** ABCD to be so made and levelled…" 로 시작한다. **당구대가 아니다** — 원문에 `billiard` 라는 낱말은 한 번도 나오지 않는다. 뒷사람들이 이야기를 옮기면서 붙인 것이다. 공 W 를 먼저 굴려 변 AD 에 나란한 선 os 를 긋고, 공 O 를 n 번 굴려 AD 와 os 사이에 떨어진 횟수를 센다. 그림은 그 설정을 그대로 돌린 것이다.
+
+지금 우리가 쓰는 일반적인 꼴은 **라플라스**의 것이다. 피에르시몽 라플라스(Pierre-Simon Laplace)는 베이즈의 글을 모른 채 1774년에 「사건으로부터 원인의 확률에 관한 논문」을 내며 원인이 몇 개든 쓸 수 있는 꼴로 적었고, 프라이스가 파리에 온 1781년에야 베이즈의 글을 알게 되었다.
+
+**그리고 베이즈의 균등 사전분포는 "모르니까 균등"이 아니었다.** Postulate 1 을 다시 보면 판이 "so made and levelled" 하다고, 곧 **평평하게 만들어졌다**고 적혀 있다. 공이 어디에 멈출지 균등한 것은 무지의 표현이 아니라 **장치에 대한 물리적 사실**이다. 아래 2절이 사전분포를 고르는 일을 따로 다루는 까닭이 여기에 있다 — 베이즈에게는 사전분포를 정당화해 주는 판이 있었고, 우리가 다루는 문제에는 대개 그런 판이 없다.
+
+_확인한 곳 — 원문 "LII. An Essay towards solving a Problem in the Doctrine of Chances", *Philosophical Transactions* (1763년 12월 23일 낭독) 을 내려받아 확인했다. 인용한 PROBLEM 문장과 Postulate 1, 프라이스의 편지 첫 문장이 모두 그 글에 있고, `billiard` 는 0 번 나온다. 라플라스의 1774년 독립 발견과 1781년에야 베이즈의 글을 접한 경위는 2차 문헌에서 확인했다. 오른쪽 그림의 수는 그림을 그리는 코드가 직접 셈하며, 칠한 넓이가 그 확률과 같은지 스스로 확인한 뒤에만 그린다._
+
+</div>
+
 ## 2. 사전분포
 
 **정의 2.** [정보를 담은 사전분포과 담지 않은 사전분포]
