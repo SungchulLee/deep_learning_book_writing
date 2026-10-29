@@ -34,6 +34,28 @@ $$\operatorname{ELBO}(x)=\mathbb E_{q_\phi}\log p_\psi(x\mid z)
 
 정규 사전과 EBM 사전을 동시에 붙일 때도 두 밀도의 곱인지, 혼합인지, 잔차 에너지 보정인지 구성을 정해야 한다. 생성기가 빠르다는 사실만으로 EBM 사전의 정확한 샘플을 곧바로 얻지는 못한다. 우도·꼬리 표현력·안정성이 개선되는지는 같은 학습 예산에서 평가해야 한다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 1985년의 규칙이 잠재공간에서 다시 나타난다
+
+왜 사전분포를 **배우려** 하는가. 표준정규는 공짜이고 샘플링도 쉬운데 말이다.
+
+까닭은 인코더가 자료를 실제로 어디에 두는지를 보면 드러난다. 자료에 무리가 여럿이면 모든 $x$ 의 사후를 평균한 **집계 사후**도 봉우리가 여럿이 되는데, 표준정규는 가운데가 가장 두껍다. 두 분포가 어긋나는 만큼이 그대로 손해다.
+
+![가로축이 잠재좌표인 그림이다. 집계 사후는 봉우리 셋을 가진 곡선이고 표준정규 사전은 가운데 하나뿐인 종 모양이다. 봉우리 사이의 골짜기에서 사전만 두꺼운 영역이 따로 칠해져 있고, 사전 표본의 30퍼센트가 그 자리에 떨어진다고 적혀 있다.](figures/prior_hole.svg)
+
+봉우리 **사이**가 문제다. 집계 사후가 거의 0인 그 골짜기에서 표준정규는 여전히 두껍다. 세어 보면 $N(0,1)$ 표본의 **29.6%** 가 집계 사후 밀도의 하위 1% 아래 영역에 떨어진다. 인코더가 한 번도 쓴 적 없는 좌표를 디코더에 넣고 있는 셈이고, 두 분포의 KL은 1.97나트다. 학습을 아무리 잘해도 **사전과 인코더가 서로 다른 곳을 가리키고 있으면** 생성 품질이 거기서 샌다.
+
+위 식의 EBM 사전은 그 자리를 메우자는 것이다. 2020년에 팡보(Bo Pang)와 동료들이 낸 「Learning Latent Space Energy-Based Prior Model」은 이것을 분명하게 적는다 — 보통 잠재벡터에 두는 것은 "a **non-informative** prior distribution, such as uniform or isotropic Gaussian"이고, 대신 "an **informative** prior model"을 배울 수 있으며, 그것은 "the philosophy of **empirical Bayes** where the prior model is learned from the observed data"를 따른다는 것이다.
+
+**그런데 그 사전을 어떻게 배우는가가 이 장을 한 바퀴 돌아오게 한다.** 같은 글이 갱신 규칙을 이렇게 적는다 — 파라메터는 "the difference between $z$ inferred from empirical observation $x$, and $z$ sampled from the current prior"로 갱신된다. 자료 쪽에서 뽑은 표본의 통계에서 모델 쪽에서 뽑은 표본의 통계를 뺀다. [볼츠만 기계](../classical_ebm/boltzmann_machines.md) 쪽에서 본 1985년의 그 규칙이고, 바뀐 것은 무대가 픽셀에서 잠재공간으로 옮겨졌다는 것뿐이다.
+
+**그래서 값도 함께 따라온다.** 그 쪽에서 보았듯 두 통계를 **따로** 추정해 빼는 구조는 양쪽의 잡음을 함께 들여온다. 바로 위 문단이 "생성기가 빠르다는 사실만으로 EBM 사전의 정확한 샘플을 곧바로 얻지는 못한다"고 적은 것이 그 말이고, 잠재공간이 저차원이라 사슬이 잘 섞인다는 것은 **비용이 줄었다는 뜻이지 없어졌다는 뜻이 아니다.** 같은 학습 예산에서 재어 보라는 단서가 붙는 까닭이 여기에 있다.
+
+_확인한 곳 — B. Pang, T. Han, E. Nijkamp, S.-C. Zhu, Y. N. Wu, "Learning Latent Space Energy-Based Prior Model", arXiv:2006.08205 (NeurIPS 2020). 인용한 세 대목은 모두 그 글의 도입부와 학습 규칙 서술이다. 그림의 수는 그림을 그리는 코드가 봉우리 셋인 집계 사후를 두고 직접 재어 얻는다._
+
+</div>
+
 ## 4. 생성기와의 협력·적대적 결합
 
 [MCMC teaching](https://ojs.aaai.org/index.php/AAAI/article/view/11834)은 생성기 결과로 사슬을 시작하고 수정된 결과를 같은 잠재값의 생성기 목표로 사용한다. 에너지 모델은 데이터와 수정 표본의 에너지 차이를 학습한다. 이는 생성기가 평균 에너지만 최소화하는 방식과 다른 목적이다.

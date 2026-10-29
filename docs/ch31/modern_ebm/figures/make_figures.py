@@ -145,5 +145,81 @@ def barrier():
           f"tempered {cr_t} ({frac_t:.3f}), swaps {swaps}")
 
 
+# === 그림으로 보는 AI: 사전분포에 난 구멍 ====================================
+#
+# 그 쪽 3 절이 EBM 사전을 왜 쓰는지 설명하기 전에, 표준정규 사전으로 무엇이
+# 모자란지를 보인다. 인코더가 자료를 여러 무리로 보내면 **집계 사후**는
+# 봉우리가 여럿인데 N(0,1) 은 가운데가 가장 두껍다. 그 어긋남을 수로 잰다.
+
+LAT_C = np.array([-2.5, 0.2, 2.6])
+LAT_W = np.array([0.40, 0.25, 0.35])
+LAT_SD = 0.35
+
+
+def _agg_pdf(z):
+    return sum(w * np.exp(-0.5 * ((z - c) / LAT_SD) ** 2)
+               / (LAT_SD * np.sqrt(2 * np.pi))
+               for w, c in zip(LAT_W, LAT_C))
+
+
+def prior_hole():
+    rng = np.random.default_rng(0)
+    n = 200_000
+    comp = rng.choice(3, size=n, p=LAT_W)
+    agg = LAT_C[comp] + LAT_SD * rng.normal(size=n)
+    prior = rng.normal(size=n)
+
+    thr = float(np.quantile(_agg_pdf(agg), 0.01))
+    hole = float(np.mean(_agg_pdf(prior) < thr))
+    kl = float(np.mean(np.log(_agg_pdf(agg)
+                              / (np.exp(-0.5 * agg ** 2) / np.sqrt(2 * np.pi)))))
+
+    assert hole > 0.2, f"구멍이 뚜렷해야 한다: {hole:.3f}"
+    assert kl > 1.0, f"두 분포가 충분히 달라야 한다: {kl:.3f}"
+
+    grid = np.linspace(-4.2, 4.6, 900)
+    ga = _agg_pdf(grid)
+    gn = np.exp(-0.5 * grid ** 2) / np.sqrt(2 * np.pi)
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.3))
+    ax.plot(grid, ga, color=ACCENT, linewidth=2.3,
+            label="aggregate posterior  (where the encoder puts things)")
+    ax.plot(grid, gn, color=MUTED, linewidth=2.3, linestyle="--",
+            label="N(0, 1) prior  (where we sample from)")
+    bad = ga < thr
+    ax.fill_between(grid, 0, gn, where=bad, color=MUTED, alpha=0.30)
+    ax.fill_between(grid, 0, ga, color=ACCENT, alpha=0.10)
+
+    ax.annotate(f"{hole*100:.0f}% of prior draws land here -\n"
+                f"latent space the encoder never used",
+                xy=(0.9, gn[np.argmin(np.abs(grid - 0.9))] * 0.55),
+                xytext=(1.45, 0.47), fontsize=8.5, color=MUTED,
+                arrowprops=dict(arrowstyle="->", color=MUTED, lw=1.0))
+
+    ax.set_xlabel("latent coordinate z", fontsize=9)
+    ax.set_ylabel("density", fontsize=9)
+    ax.set_title("the prior puts its mass where the data is not",
+                 fontsize=10.5, color=INK, weight="bold", pad=9)
+    ax.legend(fontsize=8.4, loc="upper left", framealpha=0.93)
+    ax.grid(alpha=0.13)
+    ax.set_ylim(0, max(ga.max(), gn.max()) * 1.25)
+    ax.tick_params(labelsize=8, colors=INK)
+    for s_ in ax.spines.values():
+        s_.set_color(INK)
+        s_.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"KL(aggregate || N(0,1)) = {kl:.2f} nats. "
+             f"the shaded prior mass decodes from coordinates the encoder "
+             f"never produced.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "prior_hole.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote prior_hole.svg   hole {hole*100:.1f}%   KL {kl:.3f}")
+
+
 if __name__ == "__main__":
     barrier()
+    prior_hole()
