@@ -7,7 +7,6 @@
 ```python
 """2차원 주성분 분석 Sklearn."""
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
 # === 만든 2차원 자료 묶음 만들기 ==========================================
@@ -18,46 +17,58 @@ cov_true = np.array([[3.0, 2.2],
                      [2.2, 2.0]])
 X = rng.multivariate_normal(mean_true, cov_true, size=n)
 
-# === scikit-learn으로 주성분 분석 맞추기 ==============================================
+# === scikit-learn으로 주성분 분석 맞추기 ===================================
 pca = PCA(n_components=1)
 scores_1d = pca.fit_transform(X)
 X_recon = pca.inverse_transform(scores_1d)
 
-mu = pca.mean_
-pc1 = pca.components_[0]
-var_ratio = pca.explained_variance_ratio_[0]
 reconstruction_error = np.mean((X - X_recon) ** 2)
 
-# === 그려 보기 ===========================================================
-score_std = scores_1d.std()
-t = np.linspace(-4.0 * score_std, 4.0 * score_std, 2)
-axis_pts = mu + np.outer(t, pc1)
+# === 변환기가 들고 있는 것 =================================================
+print(f"mean_                   {pca.mean_}")
+print(f"components_ shape       {pca.components_.shape}   (성분 x 피처)")
+print(f"components_[0]          {pca.components_[0]}")
+print(f"explained_variance_     {pca.explained_variance_}")
+print(f"explained_variance_ratio_ {pca.explained_variance_ratio_}")
+print(f"Reconstruction MSE      {reconstruction_error:.6f}")
 
-fig, ax = plt.subplots(figsize=(8, 6))
-ax.scatter(X[:, 0], X[:, 1], s=25, alpha=0.6, color='C0', label="Original points", zorder=2)
-ax.scatter(X_recon[:, 0], X_recon[:, 1], s=18, alpha=0.9, marker="x", color='C1',
-           label="Projection (1D->2D)", zorder=3)
-step = max(1, n // 40)
-for i in range(0, n, step):
-    ax.plot([X[i, 0], X_recon[i, 0]], [X[i, 1], X_recon[i, 1]],
-            color='gray', linewidth=0.8, alpha=0.6, zorder=1)
-ax.plot(axis_pts[:, 0], axis_pts[:, 1], color='C2', linewidth=2.0,
-        label="Principal axis (PC1)", zorder=4)
-ax.scatter([mu[0]], [mu[1]], s=70, edgecolor="k", facecolor="none",
-           linewidth=2, label="Mean", zorder=5)
-ax.set_title(f"PCA (sklearn): 2D -> 1D (Explained Var: {var_ratio:.2%})")
-ax.set_xlabel("x_1")
-ax.set_ylabel("x_2")
-ax.axis("equal")
-ax.legend(loc="best", framealpha=0.9, fontsize=9)
-ax.grid(True, linestyle="--", alpha=0.3)
-plt.tight_layout()
-plt.savefig('pca_2d_to_1d_sklearn.png', dpi=150, bbox_inches='tight')
-plt.show()
+# 비율의 분모는 '남긴 성분의 합' 이 아니라 '전체 분산' 이다 — 3절
+full = PCA(n_components=2).fit(X)
+print(f"\n성분 둘을 다 남기면 비율의 합 {full.explained_variance_ratio_.sum():.6f}")
+print(f"하나만 남겨도 분모는 그대로라 비율은 {pca.explained_variance_ratio_[0]:.6f}")
 
-if __name__ == "__main__":
-    pass
+# === whiten 은 무엇을 바꾸는가 — 4절 ======================================
+Z = PCA(n_components=2, whiten=False).fit_transform(X)
+W = PCA(n_components=2, whiten=True).fit_transform(X)
+np.set_printoptions(precision=3, suppress=True)
+print(f"\nwhiten=False 점수의 공분산\n{np.cov(Z.T)}")
+print(f"whiten=True  점수의 공분산\n{np.cov(W.T)}")
 ```
+
+**출력:**
+
+```
+mean_                   [ 2.05164101 -0.99877953]
+components_ shape       (1, 2)   (성분 x 피처)
+components_[0]          [-0.79255817 -0.60979632]
+explained_variance_     [4.46577868]
+explained_variance_ratio_ [0.95857024]
+Reconstruction MSE      0.095863
+
+성분 둘을 다 남기면 비율의 합 1.000000
+하나만 남겨도 분모는 그대로라 비율은 0.958570
+
+whiten=False 점수의 공분산
+[[4.466 0.   ]
+ [0.    0.193]]
+whiten=True  점수의 공분산
+[[ 1. -0.]
+ [-0.  1.]]
+```
+
+재구성 MSE 0.095863은 [NumPy 쪽](01_pca_2d_numpy.md)의 값과 **자릿수까지 같다.** 같은 씨앗, 같은 자료, 같은 계산이기 때문이다. 다른 것은 그 계산을 누가 들고 있느냐뿐이다 — 여기서는 `pca` 객체가 평균과 방향을 기억한다.
+
+`components_[0]`이 음수인 것은 부호 자유다. 방향을 뒤집어도 점수가 함께 뒤집혀 재구성은 같다.
 
 ## 2. 적합·변환·재구성
 
@@ -75,7 +86,9 @@ if __name__ == "__main__":
 
 0과 1 사이의 실수 `n_components`는 지원되는 분해 설정에서 목표 누적 분산을 넘는 성분 수를 선택한다. 필요한 수는 학습 데이터와 전처리에 따라 달라지므로 적합된 변환기와 실제 `n_components_`를 함께 관리한다.
 
-`whiten=True`는 남긴 점수를 고윳값 제곱근으로 나누어 학습 표본 공분산이 단위 행렬이 되도록 한다. 양의 분산 성분이 전제이며 작은 고윳값의 잡음을 증폭할 수 있다. 원래 방향별 분산 차이를 없애는 것이므로 후속 작업에서 유용한지는 검증한다. `inverse_transform`은 적용한 스케일도 되돌린다.
+![세 판으로 나뉜 그림. 왼쪽은 원래 자료로 점들이 기울어진 타원을 이룬다. 가운데는 whiten 없이 주성분 좌표로 옮긴 것으로 타원이 가로축에 나란해졌지만 여전히 납작하다. 오른쪽은 whiten 을 켠 것으로 점들이 둥글게 퍼져 있다. 판마다 표본 공분산이 함께 적혀 있다.](figures/whitening.svg)
+
+그림의 세 판이 출력의 세 공분산이다. 가운데에서 **돌리고**(비대각 원소가 0이 된다), 오른쪽에서 **축마다 나눈다**(대각 원소가 1이 된다). `whiten=True`는 남긴 점수를 고윳값 제곱근으로 나누어 학습 표본 공분산이 단위 행렬이 되도록 한다. 양의 분산 성분이 전제이며 작은 고윳값의 잡음을 증폭할 수 있다. 원래 방향별 분산 차이를 없애는 것이므로 후속 작업에서 유용한지는 검증한다. `inverse_transform`은 적용한 스케일도 되돌린다.
 
 ## 5. 분해 방법과 평가
 

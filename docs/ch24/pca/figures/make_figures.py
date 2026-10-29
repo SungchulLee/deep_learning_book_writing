@@ -186,12 +186,129 @@ def make_scores(X, y, mu, V, evr):
     print("wrote scores_2d.svg")
 
 
+
+
+# ========================================================================
+# 「sklearn」 쪽 — whiten 이 하는 일
+#
+# 그 쪽 4절은 "whiten=True 는 학습 표본 공분산이 단위 행렬이 되도록 한다"
+# 고 적어 두었다. 수로만 적혀 있어 그림으로 보인다.
+# ========================================================================
+
+def make_whiten():
+    from sklearn.decomposition import PCA
+
+    rng = np.random.default_rng(42)
+    n = 150
+    X = rng.multivariate_normal([2.0, -1.0],
+                                [[3.0, 2.2], [2.2, 2.0]], size=n)
+
+    Z = PCA(n_components=2, whiten=False).fit_transform(X)
+    W = PCA(n_components=2, whiten=True).fit_transform(X)
+
+    fig, axes = plt.subplots(1, 3, figsize=(9.6, 3.5))
+    for ax, data, title in (
+            (axes[0], X, "original x"),
+            (axes[1], Z, "PCA scores  (whiten=False)"),
+            (axes[2], W, "PCA scores  (whiten=True)")):
+        ax.scatter(data[:, 0], data[:, 1], s=14, alpha=0.5, color="#2a4b8a",
+                   linewidths=0)
+        c = np.cov(data.T)
+        ax.set_title(title, fontsize=9.5, weight="bold", color=INK, pad=7)
+        # 제목 아래에 적으면 가운데 판에서 넘쳐 나간다. 판 바깥 위에 둔다.
+        ax.text(0.5, 1.30,
+                f"cov = [{c[0,0]:.2f} {c[0,1]:.2f} ; "
+                f"{c[1,0]:.2f} {c[1,1]:.2f}]",
+                transform=ax.transAxes, ha="center", va="bottom",
+                fontsize=7.5, family="monospace", color=ACCENT)
+        ax.axhline(0, color=INK, lw=0.6, alpha=0.4)
+        ax.axvline(0, color=INK, lw=0.6, alpha=0.4)
+        ax.set_aspect("equal")
+        style(ax)
+    fig.text(0.5, -0.03,
+             "rotate, then divide each axis by its standard deviation - "
+             "whitening makes the sample covariance the identity",
+             ha="center", fontsize=8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "whitening.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("wrote whitening.svg")
+
+
+# ========================================================================
+# 「PyTorch」 쪽 — 재구성 오차를 방향의 함수로 보면
+#
+# 그 쪽 5절은 "재구성 오차의 그래디언트는 오차가 가장 빠르게 증가하는
+# 방향" 이라고 적는다. 1차원 투영이라 방향을 각도 하나로 적을 수 있어
+# 그 로스 지형을 통째로 그릴 수 있다.
+# ========================================================================
+
+def make_angle_loss():
+    torch.manual_seed(42)
+    n = 150
+    cov = torch.tensor([[3.0, 2.2], [2.2, 2.0]])
+    L = torch.linalg.cholesky(cov)
+    X = torch.tensor([2.0, -1.0]) + torch.randn(n, 2) @ L.T
+    Xc = X - X.mean(0, keepdim=True)
+
+    U, S, Vh = torch.linalg.svd(Xc, full_matrices=False)
+    pc1 = Vh.T[:, 0]
+    best = float(torch.atan2(pc1[1], pc1[0]))
+
+    th = torch.linspace(-np.pi / 2, np.pi / 2, 721)
+    err = []
+    for t in th:                       # 각 방향으로 투영했을 때의 MSE
+        v = torch.stack([torch.cos(t), torch.sin(t)])
+        err.append(((Xc - torch.outer(Xc @ v, v)) ** 2).mean().item())
+    err = np.array(err)
+    thn = th.numpy()
+    b = best if best > -np.pi / 2 else best + np.pi
+
+    fig, ax = plt.subplots(figsize=(6.4, 3.6))
+    ax.plot(np.degrees(thn), err, color=ACCENT, lw=1.6)
+    ax.plot([np.degrees(b)], [err.min()], "o", color=INK, ms=6, zorder=4)
+    ax.annotate(f"SVD answer\n{np.degrees(b):.1f} deg",
+                xy=(np.degrees(b), err.min()),
+                xytext=(np.degrees(b) + 22, err.min() + 0.28), fontsize=8.5,
+                color=INK,
+                arrowprops=dict(arrowstyle="->", color=INK, lw=0.8))
+    # 최솟값 왼쪽의 내리막 한 점. 거기서 기울기 g 는 음수이므로,
+    # **기울기 방향** 으로 가면 theta 가 줄고 오차는 늘어난다.
+    i = int(np.argmin(np.abs(thn - (b - 0.6))))
+    g = (err[i + 1] - err[i - 1]) / (np.degrees(thn[i + 1] - thn[i - 1]))
+    dx = -16.0                                   # 기울기가 음수 -> 왼쪽
+    ax.annotate("", xy=(np.degrees(thn[i]) + dx, err[i] + dx * g),
+                xytext=(np.degrees(thn[i]), err[i]),
+                arrowprops=dict(arrowstyle="-|>", color="#8a2a4b", lw=1.6))
+    ax.plot([np.degrees(thn[i])], [err[i]], "o", color="#8a2a4b", ms=4,
+            zorder=4)
+    ax.text(np.degrees(thn[i]) + dx - 2, err[i] + dx * g + 0.10,
+            "gradient points UP", fontsize=8, color="#8a2a4b", ha="right")
+    ax.set_xlabel("projection direction (degrees)", fontsize=9)
+    ax.set_ylabel("reconstruction MSE", fontsize=9)
+    ax.set_title("one direction, one number - the whole loss landscape",
+                 fontsize=9.5, weight="bold", color=INK, pad=7)
+    style(ax)
+    fig.text(0.5, -0.04,
+             "autograd would walk DOWN this curve; the SVD jumps to the "
+             "bottom in one step",
+             ha="center", fontsize=8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "angle_loss.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote angle_loss.svg")
+
+
 def main():
+    make_whiten()
+    make_angle_loss()
     X, y, mu, V, evr = fit()
     make_variance(evr)
     make_eigendigits(mu, V)
     make_reconstruction(X, mu, V, evr)
     make_scores(X, y, mu, V, evr)
+
 
 
 if __name__ == "__main__":

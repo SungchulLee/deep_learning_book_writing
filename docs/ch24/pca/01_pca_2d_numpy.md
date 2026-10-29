@@ -6,8 +6,8 @@
 
 ```python
 """2차원 주성분 분석 NumPy."""
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 # === 만든 2차원 자료 묶음 만들기 ==========================================
 rng = np.random.default_rng(42)
@@ -17,56 +17,109 @@ cov_true = np.array([[3.0, 2.2],
                      [2.2, 2.0]])
 X = rng.multivariate_normal(mean_true, cov_true, size=n)
 
-# === 자료의 가운데 맞추기 ========================================================
+# === 자료의 가운데 맞추기 ==================================================
 mu = X.mean(axis=0)
 Xc = X - mu
 
-# === 특잇값 쪼개기로 주성분 분석 셈하기 ====================================================
+# === 특잇값 쪼개기로 주성분 분석 셈하기 ======================================
 U, S, Vt = np.linalg.svd(Xc, full_matrices=False)
 V = Vt.T
 pc1 = V[:, 0]
 
 explained_variance = (S ** 2) / (n - 1)
-total_variance = explained_variance.sum()
-variance_ratios = explained_variance / total_variance
+variance_ratios = explained_variance / explained_variance.sum()
 
-# === 차원 줄이기(2차원 -> 1차원) ====================================
+# === 차원 줄이기(2차원 -> 1차원)와 다시 세우기 ===============================
 scores_1d = Xc @ pc1
-
-# === 다시 세우기(1차원 -> 2차원) ==============================================
 X_recon = np.outer(scores_1d, pc1) + mu
 reconstruction_error = np.mean((X - X_recon) ** 2)
 
-# === 그려 보기 ===========================================================
+print(f"PC1 explains {variance_ratios[0]:.1%} of variance")
+print(f"Reconstruction MSE: {reconstruction_error:.6f}")
+
+# 4절의 식 MSE = (n-1) * lambda_2 / (2n) 을 수로 확인한다
+lam2 = explained_variance[1]
+print(f"  (n-1) * lambda2 / (2n) = {(n - 1) * lam2 / (2 * n):.6f}")
+
+# 잔차가 정말 주축에 직교하는가 — 3절의 주장
+residual = X - X_recon
+print(f"max |residual . pc1| = {np.abs(residual @ pc1).max():.2e}")
+
+# === 주성분과 y 회귀는 다른 선이다 ==========================================
+slope, intercept = np.polyfit(X[:, 0], X[:, 1], 1)
+pca_slope = pc1[1] / pc1[0]
+print(f"PC1 slope      {pca_slope:.4f}")
+print(f"y-on-x slope   {slope:.4f}")
+
+# === 그려 보기 =============================================================
 t = np.linspace(-4.0, 4.0, 2)
 axis_pts = mu + np.outer(t * S[0] / np.sqrt(n), pc1)
+xs = np.array([X[:, 0].min(), X[:, 0].max()])
 
-fig, ax = plt.subplots(figsize=(8, 6))
-ax.scatter(X[:, 0], X[:, 1], s=25, alpha=0.6, color='C0', label="Original points", zorder=2)
-ax.scatter(X_recon[:, 0], X_recon[:, 1], s=18, alpha=0.9, marker="x", color='C1',
-           label="Projection (1D->2D)", zorder=3)
-step = max(1, n // 40)
-for i in range(0, n, step):
-    ax.plot([X[i, 0], X_recon[i, 0]], [X[i, 1], X_recon[i, 1]],
-            color='gray', linewidth=0.8, alpha=0.6, zorder=1)
-ax.plot(axis_pts[:, 0], axis_pts[:, 1], color='C2', linewidth=2.0,
-        label="Principal axis (PC1)", zorder=4)
-ax.scatter([mu[0]], [mu[1]], s=70, edgecolor="k", facecolor="none",
-           linewidth=2, label="Mean", zorder=5)
-ax.set_title(f"PCA: 2D -> 1D Projection and Reconstruction\n"
-             f"(PC1 explains {variance_ratios[0]:.1%} of variance)")
-ax.set_xlabel("x_1")
-ax.set_ylabel("x_2")
-ax.axis("equal")
-ax.legend(loc="best", framealpha=0.9)
-ax.grid(True, linestyle="--", alpha=0.3)
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.4, 4.2))
+
+# 왼쪽: 투영과 재구성
+ax1.scatter(X[:, 0], X[:, 1], s=18, alpha=0.55, color="#2a4b8a",
+            label="original", zorder=2)
+ax1.scatter(X_recon[:, 0], X_recon[:, 1], s=14, alpha=0.9, marker="x",
+            color="#8a4b2a", label="projected", zorder=3)
+for i in range(0, n, max(1, n // 40)):
+    ax1.plot([X[i, 0], X_recon[i, 0]], [X[i, 1], X_recon[i, 1]],
+             color="gray", lw=0.7, alpha=0.6, zorder=1)
+ax1.plot(axis_pts[:, 0], axis_pts[:, 1], color="#2f6f4e", lw=1.8,
+         label="PC1", zorder=4)
+ax1.scatter([mu[0]], [mu[1]], s=55, edgecolor="k", facecolor="none", lw=1.5,
+            label="mean", zorder=5)
+ax1.set_title(f"project onto PC1 ({variance_ratios[0]:.1%} of variance)",
+              fontsize=9.5, weight="bold", pad=7)
+
+# 오른쪽: 두 선이 무엇을 줄이는지
+ax2.scatter(X[:, 0], X[:, 1], s=18, alpha=0.35, color="#2a4b8a", zorder=2)
+xs_line = np.array([X[:, 0].min() - 0.5, X[:, 0].max() + 0.5])
+ax2.plot(xs_line, mu[1] + pca_slope * (xs_line - mu[0]), color="#2f6f4e",
+         lw=1.8, label=f"PC1  (slope {pca_slope:.2f})", zorder=4)
+ax2.plot(xs_line, slope * xs_line + intercept, color="#8a2a4b", lw=1.8,
+         ls="--", label=f"y on x  (slope {slope:.2f})", zorder=4)
+
+# 같은 점들에 두 가지 잔차를 함께 그린다 — 줄이려는 것이 서로 다르다
+show = np.argsort(-np.abs(residual @ V[:, 1]))[:14]      # 많이 떨어진 점들
+for i in show:
+    ax2.plot([X[i, 0], X_recon[i, 0]], [X[i, 1], X_recon[i, 1]],
+             color="#2f6f4e", lw=1.3, alpha=0.9, zorder=3)
+    ax2.plot([X[i, 0], X[i, 0]], [X[i, 1], slope * X[i, 0] + intercept],
+             color="#8a2a4b", lw=1.3, alpha=0.9, ls=":", zorder=3)
+ax2.set_title("green: perpendicular distance (PCA)\n"
+              "red: vertical distance (regression)",
+              fontsize=9.5, weight="bold", pad=7)
+
+for ax in (ax1, ax2):
+    ax.set_xlabel("x_1", fontsize=9)
+    ax.set_ylabel("x_2", fontsize=9)
+    ax.axis("equal")
+    ax.legend(loc="best", fontsize=8, framealpha=0.9)
+    ax.grid(True, ls="--", alpha=0.25)
+    ax.tick_params(labelsize=8)
+
 plt.tight_layout()
-plt.savefig('pca_2d_to_1d_demo.png', dpi=150, bbox_inches='tight')
-plt.show()
-
-if __name__ == "__main__":
-    pass
+plt.savefig("pca_2d_numpy.svg", transparent=True, bbox_inches="tight")
 ```
+
+**출력:**
+
+```
+PC1 explains 95.9% of variance
+Reconstruction MSE: 0.095863
+  (n-1) * lambda2 / (2n) = 0.095863
+max |residual . pc1| = 1.03e-15
+PC1 slope      0.7694
+y-on-x slope   0.7178
+```
+
+![왼쪽 그림은 기울어진 타원으로 퍼진 점들과 그 가운데를 지나는 주축, 그리고 각 점에서 주축으로 수직으로 내려 그은 짧은 선들이다. 오른쪽 그림은 같은 점들 위에 주축과 y 회귀선을 함께 그린 것으로, 두 선이 거의 겹치지만 기울기가 다르고 같은 점들에서 주축까지는 수직으로, 회귀선까지는 세로로 선이 내려가 있다.](figures/pca_2d_numpy.svg)
+
+왼쪽이 투영이다. 파란 점에서 주축으로 **수직으로** 내려온 자리가 재구성이고, 그 회색 선의 길이가 잃어버린 것이다. 출력의 `max |residual . pc1|`이 $10^{-15}$인 것이 "수직"의 수치적 확인이다.
+
+오른쪽이 3절의 요점이다. 두 선의 기울기가 0.7694와 0.7178로 다르다. **PCA는 초록색 수직 거리를, 회귀는 빨간색 세로 거리를 줄인다.** 이 자료는 상관이 높아 두 선이 가깝지만, 줄이는 대상이 다르므로 같은 선이 될 까닭이 없다.
 
 ## 2. 데이터 생성과 SVD
 

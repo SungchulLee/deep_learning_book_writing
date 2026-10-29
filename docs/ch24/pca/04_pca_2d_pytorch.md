@@ -6,22 +6,21 @@
 
 ```python
 """2차원 주성분 분석 PyTorch."""
-import torch
-import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 torch.manual_seed(42)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 n = 150
 
-# === 촐레스키로 자료 만들기 =============================================
+# === 촐레스키로 자료 만들기 ================================================
 mean_true = torch.tensor([2.0, -1.0], device=device)
 cov_true = torch.tensor([[3.0, 2.2], [2.2, 2.0]], device=device)
 L = torch.linalg.cholesky(cov_true)
 Z = torch.randn(n, 2, device=device)
 X = mean_true + Z @ L.T
 
-# === 가운데 맞추고 특잇값 쪼개기 셈하기 ==================================================
+# === 가운데 맞추고 특잇값 쪼개기 셈하기 ======================================
 mu = X.mean(dim=0, keepdim=True)
 X_centered = X - mu
 U, S, Vh = torch.linalg.svd(X_centered, full_matrices=False)
@@ -31,7 +30,7 @@ pc1 = V[:, 0]
 explained_variance = (S ** 2) / (n - 1)
 variance_ratios = explained_variance / explained_variance.sum()
 
-# === 쏘고 다시 세우기 =================================================
+# === 쏘고 다시 세우기 ======================================================
 scores_1d = X_centered @ pc1
 X_recon = torch.outer(scores_1d, pc1) + mu
 reconstruction_error = ((X - X_recon) ** 2).mean()
@@ -39,13 +38,44 @@ reconstruction_error = ((X - X_recon) ** 2).mean()
 print(f"PC1 explains {variance_ratios[0].item():.1%} of variance")
 print(f"Reconstruction MSE: {reconstruction_error.item():.6f}")
 
-if __name__ == "__main__":
-    pass
+# === 방향을 각도 하나로 적으면 로스를 미분할 수 있다 — 5절 =====================
+# 1차원 투영이라 방향이 각도 하나다. 그 각도로 오차를 미분해 본다.
+theta = torch.tensor([0.0], requires_grad=True)
+
+
+def mse_at(t):
+    v = torch.cat([torch.cos(t), torch.sin(t)])
+    return ((X_centered - torch.outer(X_centered @ v, v)) ** 2).mean()
+
+
+mse_at(theta).backward()
+best = torch.atan2(pc1[1], pc1[0])
+print(f"\ntheta = 0 에서  MSE {mse_at(torch.tensor([0.0])).item():.6f}"
+      f"   d(MSE)/d(theta) {theta.grad.item():+.6f}")
+print(f"기울기가 음수이므로 theta 를 **키워야** 오차가 준다")
+print(f"SVD 가 주는 답   {torch.rad2deg(best).item() % 180:.2f} deg")
+
+# 경사를 따라 걸어가면 같은 곳에 닿는가
+t = torch.tensor([0.0], requires_grad=True)
+opt = torch.optim.SGD([t], lr=0.05)
+for _ in range(200):
+    opt.zero_grad()
+    mse_at(t).backward()
+    opt.step()
+print(f"경사로 200 걸음   {torch.rad2deg(t.detach()).item() % 180:.2f} deg"
+      f"   MSE {mse_at(t.detach()).item():.6f}")
 ```
+
+**출력:**
 
 ```
 PC1 explains 96.1% of variance
 Reconstruction MSE: 0.104872
+
+theta = 0 에서  MSE 1.088178   d(MSE)/d(theta) -2.402110
+기울기가 음수이므로 theta 를 **키워야** 오차가 준다
+SVD 가 주는 답   39.31 deg
+경사로 200 걸음   39.31 deg   MSE 0.104872
 ```
 
 ## 2. 촐레스키 분해로 표본 생성하기
@@ -70,7 +100,13 @@ PyTorch와 NumPy 결과 차이는 dtype뿐 아니라 서로 다른 입력 표본
 
 미리 구한 PCA 기저를 고정하고 입력만 투영할 때는 행렬곱을 미분하면 된다. 입력 묶음에서 기저를 다시 구하는 과정까지 미분하면 모든 표본이 기저 추정에 영향을 준다. 개별 특이벡터의 비유일성과 스펙트럼 간격을 고려해야 한다.
 
-재구성 오차의 그래디언트는 오차가 가장 빠르게 **증가**하는 방향이다. 감소 방향은 음의 그래디언트다. 고정된 최적 투영에서 잔차 방향에 비례하고, 매끄럽고 유일한 최적 부분공간을 재추정하는 로스도 적절한 조건에서 포락선 정리로 같은 잔차 식을 얻을 수 있다. 임의로 정의한 기저 의존 로스까지 이 해석이 성립하는 것은 아니다. [PyTorch SVD 문서](https://docs.pytorch.org/docs/stable/generated/torch.linalg.svd.html)의 그래디언트 조건도 확인한다.
+1차원 투영에서는 방향이 **각도 하나**다. 그래서 로스 지형을 통째로 그릴 수 있다.
+
+![가로축이 투영 방향의 각도, 세로축이 재구성 MSE 인 곡선. 완만한 골짜기 하나가 있고 바닥에 SVD 가 주는 답 39.3도가 점으로 찍혀 있다. 골짜기 왼쪽 내리막의 한 점에서 왼쪽 위를 향한 화살표가 그려져 있고 그 옆에 기울기가 위를 가리킨다고 적혀 있다.](figures/angle_loss.svg)
+
+출력의 세 줄이 이 그림의 세 자리다. $\theta=0$ 에서 MSE 1.088이고 기울기가 $-2.402$ 다 — **음수이므로 $\theta$ 를 키워야 오차가 준다.** 경사로 200걸음을 걸으면 39.31도, MSE 0.104872에 닿는다. **SVD 가 한 번에 주는 답과 소수점까지 같다.**
+
+그림의 화살표가 가리키는 쪽이 오차가 **늘어나는** 쪽이다. 재구성 오차의 그래디언트는 오차가 가장 빠르게 **증가**하는 방향이고, 감소 방향은 음의 그래디언트다. 경사 하강법이 그 반대로 걷는 까닭이다. 고정된 최적 투영에서 잔차 방향에 비례하고, 매끄럽고 유일한 최적 부분공간을 재추정하는 로스도 적절한 조건에서 포락선 정리로 같은 잔차 식을 얻을 수 있다. 임의로 정의한 기저 의존 로스까지 이 해석이 성립하는 것은 아니다. [PyTorch SVD 문서](https://docs.pytorch.org/docs/stable/generated/torch.linalg.svd.html)의 그래디언트 조건도 확인한다.
 
 ## 연습문제
 
