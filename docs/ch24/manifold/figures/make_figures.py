@@ -209,7 +209,73 @@ def ekman_colors():
     plt.close(fig)
 
 
+# === 그림으로 보는 AI: 비좁음 문제와 꼬리가 두꺼운 분포 =======================
+#
+# m 차원에서 서로 같은 거리에 놓을 수 있는 점은 많아야 m+1 개다 (정단체).
+# 그래서 2 차원에서는 셋이 끝이고 10 차원에서는 열하나가 된다. 줄이는 쪽에
+# 자리가 모자란다는 것이 비좁음(crowding) 문제다.
+# 오른쪽의 두 밀도는 실제로 셈해 그린다.
+
+def crowding():
+    import numpy as np
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.0, 4.0))
+
+    # --- 왼쪽: 2 차원에서는 셋이 끝이다 -------------------------------------
+    ang = np.radians([90, 210, 330])
+    pts = np.c_[np.cos(ang), np.sin(ang)]
+    d = [np.linalg.norm(pts[i] - pts[j]) for i, j in ((0, 1), (1, 2), (0, 2))]
+    assert np.allclose(d, d[0]), "세 거리가 같아야 한다"
+
+    for i, j in ((0, 1), (1, 2), (0, 2)):
+        ax1.plot(*zip(pts[i], pts[j]), color=ACCENT, linewidth=1.8,
+                 zorder=1)
+    ax1.scatter(pts[:, 0], pts[:, 1], s=130, color=INK, zorder=3)
+    ax1.text(0.0, -0.12, f"all three gaps\nequal ({d[0]:.3f})", ha="center",
+             va="center", fontsize=8.5, color=ACCENT)
+    ax1.text(0, 1.55, "2 dimensions: 3 points at most",
+             ha="center", fontsize=10, color=INK, weight="bold")
+    ax1.text(0, -1.62,
+             "10 dimensions: 11 points can do it.\n"
+             "the map has nowhere to put the other 8.",
+             ha="center", fontsize=9, color=INK)
+    ax1.set_xlim(-1.9, 1.9)
+    ax1.set_ylim(-2.1, 1.9)
+    ax1.set_aspect("equal")
+    ax1.axis("off")
+
+    # --- 오른쪽: 꼬리를 두껍게 ---------------------------------------------
+    x = np.linspace(-6, 6, 600)
+    gauss = np.exp(-x ** 2 / 2) / np.sqrt(2 * np.pi)
+    cauchy = 1 / (np.pi * (1 + x ** 2))        # t, 자유도 1
+    ax2.plot(x, gauss, color=INK, linewidth=1.9, label="Gaussian (SNE)")
+    ax2.plot(x, cauchy, color=ACCENT, linewidth=2.2,
+             label="Student t, 1 d.o.f. (t-SNE)")
+    ax2.fill_between(x, gauss, cauchy, where=(cauchy > gauss),
+                     color=ACCENT, alpha=0.13)
+    ax2.annotate("the heavy tail is\nroom for the crowd",
+                 xy=(3.6, cauchy[np.argmin(np.abs(x - 3.6))]),
+                 xytext=(1.5, 0.19), fontsize=8.5, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.0))
+    ax2.set_xlabel("distance in the map", fontsize=9)
+    ax2.set_ylabel("weight given to a pair", fontsize=9)
+    ax2.set_title("why a t-distribution, not a Gaussian", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.legend(fontsize=8.5, framealpha=0.9)
+    ax2.set_ylim(0, 0.45)
+    ax2.grid(alpha=0.12)
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "crowding.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote crowding.svg   (triangle gaps all {d[0]:.6f})")
+
+
 if __name__ == "__main__":
     page_2323()
     ekman_colors()
-    print("page_2323.svg  ekman_colors.svg")
+    crowding()
