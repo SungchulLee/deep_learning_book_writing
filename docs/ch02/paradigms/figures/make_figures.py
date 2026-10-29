@@ -217,7 +217,65 @@ def more_data_curves():
           f"nb {nb[0]:.4f}->{nb[-1]:.4f}")
 
 
+# === 그림으로 보는 AI: 군집이 없는 자료에도 팔꿈치는 생긴다 ==================
+#
+# 정리 3 은 J 가 k 에 대해 단조 감소한다고 말한다. 팔꿈치법은 그 곡선이 꺾이는
+# 자리를 고르자는 요령인데, **군집이 전혀 없는 균일 잡음**에도 꺾임이 보인다.
+
+def elbow_on_noise():
+    from sklearn.cluster import KMeans
+    from sklearn.datasets import make_blobs
+
+    ks = list(range(1, 11))
+    cases = []
+    Xb, _ = make_blobs(n_samples=600, centers=3, cluster_std=1.0,
+                       random_state=42)
+    cases.append(("three real clusters", Xb, 3))
+    Xn = np.random.default_rng(0).uniform(0, 1, (600, 2))
+    cases.append(("uniform noise - no clusters at all", Xn, None))
+
+    fig, axes = plt.subplots(1, 2, figsize=(10.6, 4.2))
+    for ax, (title, X, truth) in zip(axes, cases):
+        J = np.array([KMeans(n_clusters=k, n_init=10,
+                             random_state=0).fit(X).inertia_ for k in ks])
+        drop = (J[:-1] - J[1:]) / J[:-1] * 100
+        # 줄어드는 폭이 가장 크게 꺾이는 자리를 "팔꿈치"로 읽는다
+        # drop[i] 는 k=i+1 -> k=i+2 의 감소폭이므로, 꺾이는 자리의 k 는 i+2 다
+        elbow = int(np.argmax(drop[:-1] - drop[1:])) + 2
+
+        ax.plot(ks, J / J[0], "o-", color=ACCENT, linewidth=2.0, ms=5.5)
+        ax.axvline(elbow, color=INK, linestyle=":", linewidth=1.2, alpha=0.8)
+        ax.annotate(f"the rule reads k = {elbow}", xy=(elbow, J[elbow - 1] / J[0]),
+                    xytext=(elbow + 1.1, 0.55), fontsize=8.8, color=INK,
+                    arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+        if truth:
+            ax.text(0.97, 0.93, f"true k = {truth}", transform=ax.transAxes,
+                    ha="right", fontsize=9, color=BLUE, weight="bold")
+        else:
+            ax.text(0.97, 0.93, "there is no true k", transform=ax.transAxes,
+                    ha="right", fontsize=9, color=BLUE, weight="bold")
+        ax.set_xlabel("k", fontsize=9.5)
+        ax.set_xticks(ks)
+        ax.set_ylim(0, 1.05)
+        ax.set_title(title, fontsize=10.5, color=INK, weight="bold")
+        ax.grid(alpha=0.13)
+        style(ax)
+    axes[0].set_ylabel("within-cluster sum of squares\n(scaled to J at k=1)",
+                       fontsize=9.5)
+
+    fig.text(0.5, -0.04,
+             "the curve bends on the right as convincingly as on the left. "
+             "a bend is not evidence that groups exist.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "elbow_on_noise.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote elbow_on_noise.svg")
+
+
 if __name__ == "__main__":
     bellman_dates()
     bias_variance_depends_on_n()
     more_data_curves()
+    elbow_on_noise()
