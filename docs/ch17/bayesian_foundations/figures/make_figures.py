@@ -233,6 +233,82 @@ def conjugate_limit():
           f"prior {d_mix:.4f} vs {d_one:.4f}   post {p_mix:.4f} vs {p_one:.4f}")
 
 
+# === 그림으로 보는 AI: 최빈값은 좌표를 타고 평균은 분포의 성질이다 =============
+#
+# Beta(3,7) 사후분포에서 theta 좌표의 MAP 은 (a-1)/(a+b-2) = 0.25 다.
+# 로그오즈 좌표로 옮겨 최대점을 찾고 되돌리면 a/(a+b) = 0.30 — 사후평균이다.
+# 같은 분포, 다른 좌표, 다른 "가장 그럴듯한 값". 둘 다 정확히 맞아떨어진다.
+
+def map_not_invariant():
+    a, b = 3.0, 7.0
+    post = stats.beta(a, b)
+    map_theta = (a - 1) / (a + b - 2)
+    map_phi_back = a / (a + b)          # 로그오즈 좌표 MAP 을 되돌린 값
+
+    # 그림이 제 주장을 스스로 확인한다
+    th = np.linspace(1e-6, 1 - 1e-6, 2000001)
+    assert abs(th[np.argmax(post.pdf(th))] - map_theta) < 1e-5, "theta MAP"
+    logit = np.log(th / (1 - th))
+    dens_phi = post.pdf(th) * th * (1 - th)      # 야코비안
+    assert abs(th[np.argmax(dens_phi)] - map_phi_back) < 1e-5, "logit MAP"
+    assert abs(post.mean() - map_phi_back) < 1e-12, "되돌린 값 = 사후평균"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0))
+
+    xs = np.linspace(0, 1, 800)
+    ax1.plot(xs, post.pdf(xs), color=INK, linewidth=2.0)
+    ax1.axvline(map_theta, color=ACCENT, linewidth=1.8)
+    ax1.plot([map_theta], [post.pdf(map_theta)], marker="o", color=ACCENT,
+             markersize=9, markeredgecolor="white", markeredgewidth=1.2,
+             zorder=5)
+    ax1.text(map_theta, post.pdf(map_theta) * 1.04, f"  {map_theta:.2f}",
+             fontsize=11, color=ACCENT, weight="bold", ha="left")
+    ax1.set_xlabel("theta", fontsize=9)
+    ax1.set_ylabel("density", fontsize=9)
+    ax1.set_title("in theta", fontsize=10, color=INK, weight="bold")
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0, post.pdf(map_theta) * 1.22)
+
+    ph = np.linspace(-6, 4, 800)
+    t_of_p = 1 / (1 + np.exp(-ph))
+    dp = post.pdf(t_of_p) * t_of_p * (1 - t_of_p)
+    map_phi = np.log(map_phi_back / (1 - map_phi_back))
+    ax2.plot(ph, dp, color=INK, linewidth=2.0)
+    ax2.axvline(map_phi, color=ACCENT, linewidth=1.8)
+    peak = post.pdf(map_phi_back) * map_phi_back * (1 - map_phi_back)
+    ax2.plot([map_phi], [peak], marker="o", color=ACCENT, markersize=9,
+             markeredgecolor="white", markeredgewidth=1.2, zorder=5)
+    ax2.text(map_phi, peak * 1.04,
+             f"  {map_phi:.2f}   ->  theta = {map_phi_back:.2f}",
+             fontsize=10.5, color=ACCENT, weight="bold", ha="left")
+    ax2.set_xlabel("log odds  log(theta / (1 - theta))", fontsize=9)
+    ax2.set_ylabel("density", fontsize=9)
+    ax2.set_title("the same posterior, in log odds", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.set_xlim(-6, 4)
+    ax2.set_ylim(0, peak * 1.22)
+
+    for ax in (ax1, ax2):
+        ax.grid(alpha=0.12)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             f"one posterior, two coordinates, two most-probable values: "
+             f"{map_theta:.2f} and {map_phi_back:.2f}.  "
+             f"nothing was approximated.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "map_not_invariant.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote map_not_invariant.svg   theta MAP {map_theta:.4f}   "
+          f"logit MAP back {map_phi_back:.4f}   mean {post.mean():.4f}")
+
+
 if __name__ == "__main__":
     bayes_table()
     conjugate_limit()
+    map_not_invariant()
