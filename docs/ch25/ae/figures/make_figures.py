@@ -139,5 +139,95 @@ def encoder_problem():
     print("codes:", [''.join(map(str, r)) for r in rounded])
 
 
+# === 그림으로 보는 AI: 같은 패널티, 다른 코드 =================================
+#
+# 베르누이 KL 희소성도 L1 도 **유닛별 평균**만 본다. 그래서 평균이 같으면
+# 전혀 다른 두 코드에 같은 값을 매긴다. 쪽의 3절이 적어 둔 말을 수로 보인다.
+
+RHO, N_SAMP, N_UNIT = 0.05, 200, 40
+
+
+def _kl_penalty(h):
+    r = np.clip(h.mean(0), 1e-12, 1 - 1e-12)
+    return float((RHO * np.log(RHO / r)
+                  + (1 - RHO) * np.log((1 - RHO) / (1 - r))).sum())
+
+
+def _hoyer(h):
+    """1 이면 완전히 성기고 0 이면 고르다."""
+    x = h.flatten()
+    m = x.size
+    return float((np.sqrt(m) - np.abs(x).sum() / np.sqrt((x ** 2).sum()))
+                 / (np.sqrt(m) - 1))
+
+
+def same_penalty_other_code():
+    rng = np.random.default_rng(0)
+
+    # A: 유닛마다 정확히 10/200 자리만 1 -> 유닛별 평균이 꼭 0.05
+    A = np.zeros((N_SAMP, N_UNIT))
+    for j in range(N_UNIT):
+        A[rng.choice(N_SAMP, int(RHO * N_SAMP), replace=False), j] = 1.0
+    B = np.full((N_SAMP, N_UNIT), RHO)        # 모든 자리가 0.05
+
+    rows = [("mean activation", f"{A.mean():.4f}", f"{B.mean():.4f}", True),
+            ("KL penalty", f"{_kl_penalty(A):.1e}", f"{_kl_penalty(B):.1e}",
+             True),
+            ("L1 of activations", f"{np.abs(A).mean():.4f}",
+             f"{np.abs(B).mean():.4f}", True),
+            ("cells that are exactly 0", f"{(A == 0).mean():.0%}",
+             f"{(B == 0).mean():.0%}", False),
+            ("Hoyer sparsity", f"{_hoyer(A):.3f}", f"{_hoyer(B):.3f}", False)]
+
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(11.6, 4.1),
+                                        gridspec_kw={"width_ratios":
+                                                     [1, 1, 1.5]})
+
+    for ax, h, title in ((ax1, A, "A:  a few units fire, hard"),
+                         (ax2, B, "B:  every unit, always, a little")):
+        ax.imshow(h[:60], cmap="gray_r", vmin=0, vmax=1, aspect="auto",
+                  interpolation="nearest")
+        ax.set_title(title, fontsize=9.5, color=INK, weight="bold")
+        ax.set_xlabel("40 latent units", fontsize=8.5)
+        ax.set_ylabel("60 of 200 samples", fontsize=8.5)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.8)
+
+    ax3.axis("off")
+    ax3.text(0.03, 0.95, "what the two penalties see", fontsize=9.5,
+             color=INK, weight="bold", transform=ax3.transAxes)
+    ax3.text(0.60, 0.865, "A", fontsize=9, color=INK, weight="bold",
+             ha="center", transform=ax3.transAxes)
+    ax3.text(0.86, 0.865, "B", fontsize=9, color=INK, weight="bold",
+             ha="center", transform=ax3.transAxes)
+    for i, (lab, va, vb, same) in enumerate(rows):
+        y = 0.77 - i * 0.135
+        col = ACCENT if same else INK
+        ax3.text(0.03, y, lab, fontsize=8.4, color=col,
+                 transform=ax3.transAxes)
+        ax3.text(0.60, y, va, fontsize=8.6, color=col, ha="center",
+                 family="monospace", transform=ax3.transAxes)
+        ax3.text(0.86, y, vb, fontsize=8.6, color=col, ha="center",
+                 family="monospace", transform=ax3.transAxes)
+        if same:
+            ax3.plot([0.50, 0.96], [y - 0.028, y - 0.028], color=ACCENT,
+                     lw=0.6, alpha=0.45, transform=ax3.transAxes)
+    ax3.text(0.03, 0.055, "amber rows are identical.\n"
+                          "the penalties cannot tell these two apart.",
+             fontsize=8.4, color=ACCENT, style="italic",
+             transform=ax3.transAxes)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "same_penalty_other_code.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote same_penalty_other_code.svg  KL {_kl_penalty(A):.2e} vs "
+          f"{_kl_penalty(B):.2e}   hoyer {_hoyer(A):.3f} vs {_hoyer(B):.3f}")
+
+
 if __name__ == "__main__":
     encoder_problem()
+    same_penalty_other_code()
