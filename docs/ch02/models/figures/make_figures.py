@@ -198,6 +198,92 @@ def svm_what_matters():
           f"gap sv-only {e1:.3e}   rest-only {e2:.3e}")
 
 
+# === 그림으로 보는 AI: 따로 자란 두 갈래가 고른 두 불순도 ====================
+#
+# CART(Breiman 외 1984)는 지니를, Quinlan 의 ID3/C4.5 는 엔트로피를 골랐다.
+# 따로 한 선택이 결과를 가르는지 이 쪽의 자료로 잰다. 가르지 않는다 —
+# 두 측도의 차이가 폴드 사이의 흔들림보다 작다.
+
+def gini_vs_entropy():
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.datasets import make_classification
+    from sklearn.model_selection import train_test_split, cross_val_score
+
+    X, y = make_classification(n_samples=500, n_features=10, n_informative=5,
+                               random_state=42)
+    X_tr, _, y_tr, _ = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    depths = list(range(1, 13))
+    gm, gs, em, es = [], [], [], []
+    for d in depths:
+        g = cross_val_score(DecisionTreeClassifier(
+            max_depth=d, criterion="gini", random_state=42), X_tr, y_tr, cv=5)
+        e = cross_val_score(DecisionTreeClassifier(
+            max_depth=d, criterion="entropy", random_state=42),
+            X_tr, y_tr, cv=5)
+        gm.append(g.mean()); gs.append(g.std())
+        em.append(e.mean()); es.append(e.std())
+    gm, gs, em, es = map(np.array, (gm, gs, em, es))
+
+    ga, ea = [], []
+    for s in range(30):
+        Xs, ys = make_classification(n_samples=500, n_features=10,
+                                     n_informative=5, random_state=s)
+        ga.append(cross_val_score(DecisionTreeClassifier(
+            max_depth=5, criterion="gini", random_state=0), Xs, ys, cv=5).mean())
+        ea.append(cross_val_score(DecisionTreeClassifier(
+            max_depth=5, criterion="entropy", random_state=0), Xs, ys, cv=5).mean())
+    ga, ea = np.array(ga), np.array(ea)
+    wins_g = int((ga > ea).sum()); wins_e = int((ea > ga).sum())
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.2))
+
+    # --- 왼쪽: 깊이마다 재도 띠가 겹친다 ----------------------------------
+    ax1.fill_between(depths, gm - gs, gm + gs, color=ACCENT, alpha=0.16)
+    ax1.fill_between(depths, em - es, em + es, color=BLUE, alpha=0.16)
+    ax1.plot(depths, gm, "o-", color=ACCENT, linewidth=1.9, ms=4.5,
+             label="Gini  (CART, 1984)")
+    ax1.plot(depths, em, "s--", color=BLUE, linewidth=1.9, ms=4.5,
+             label="entropy  (ID3 / C4.5)")
+    ax1.set_xlabel("max_depth", fontsize=9.5)
+    ax1.set_ylabel("5-fold CV accuracy", fontsize=9.5)
+    ax1.set_title("bands are the fold-to-fold spread", fontsize=10.5,
+                  color=INK, weight="bold")
+    ax1.legend(fontsize=8.5, loc="lower right", framealpha=0.92)
+    ax1.grid(alpha=0.13)
+    style(ax1)
+
+    # --- 오른쪽: 문제를 바꿔 가며 맞붙여도 ---------------------------------
+    lo = min(ga.min(), ea.min()) - 0.02
+    hi = max(ga.max(), ea.max()) + 0.02
+    ax2.plot([lo, hi], [lo, hi], color=INK, linewidth=1.0, linestyle=":")
+    ax2.scatter(ga, ea, s=42, color=ACCENT, alpha=0.8, edgecolors="white",
+                linewidth=0.7, zorder=3)
+    ax2.set_xlim(lo, hi); ax2.set_ylim(lo, hi)
+    ax2.set_xlabel("Gini accuracy", fontsize=9.5)
+    ax2.set_ylabel("entropy accuracy", fontsize=9.5)
+    ax2.set_title(f"30 different problems: {wins_g} - {wins_e}",
+                  fontsize=10.5, color=INK, weight="bold")
+    ax2.text(0.04, 0.93, "above the line = entropy won", fontsize=8,
+             color=INK, alpha=0.75, transform=ax2.transAxes)
+    ax2.text(0.37, 0.05, "below = Gini won", fontsize=8, color=INK,
+             alpha=0.75, transform=ax2.transAxes)
+    ax2.grid(alpha=0.13)
+    style(ax2)
+
+    fig.text(0.5, -0.04,
+             "the gap between the two criteria is smaller than the spread "
+             "within either one. p = 0.25 for the head-to-head.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "gini_vs_entropy.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote gini_vs_entropy.svg   {wins_g}-{wins_e}   "
+          f"max gap {np.abs(gm-em).max():.4f}   typical spread {gs.mean():.4f}")
+
+
 if __name__ == "__main__":
     cover_hart_corridor()
     svm_what_matters()
+    gini_vs_entropy()
