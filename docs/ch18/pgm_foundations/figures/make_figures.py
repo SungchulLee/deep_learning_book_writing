@@ -245,6 +245,93 @@ def berkson():
           f"admitted OR {ors[1]:.3f} -> {ors[-1]:.3f}")
 
 
+# === 그림으로 보는 AI: 화살표는 자료가 정해 주지 않는다 =======================
+#
+# 사슬 X->Y->Z 에서 만든 결합분포를 네 가지 DAG 로 적합해 본다. 사슬·포크·
+# 뒤집은 사슬 셋은 **같은 분포**를 돌려주고(KL 이 기계 오차), 충돌점만 다르다.
+# v-구조가 같은 DAG 끼리는 관측 자료로 구별되지 않는다는 뜻이다.
+
+def arrows_undetermined():
+    pX = np.array([0.7, 0.3])
+    pY_X = np.array([[0.8, 0.2], [0.35, 0.65]])
+    pZ_Y = np.array([[0.9, 0.1], [0.25, 0.75]])
+    P = np.zeros((2, 2, 2))
+    for x, y, z in itertools.product((0, 1), repeat=3):
+        P[x, y, z] = pX[x] * pY_X[x, y] * pZ_Y[y, z]
+    assert abs(P.sum() - 1) < 1e-12, "참 분포가 1 로 안 더해진다"
+
+    def fit(parents):
+        Q = np.ones((2, 2, 2))
+        for v, pa in parents.items():
+            drop = tuple(i for i in range(3) if i != v and i not in pa)
+            jv = P.sum(axis=drop) if drop else P.copy()
+            ax = sorted([v] + list(pa))
+            mp = jv.sum(axis=ax.index(v), keepdims=True)
+            cond = np.divide(jv, mp, out=np.zeros_like(jv), where=mp > 0)
+            shape = [1, 1, 1]
+            for a in ax:
+                shape[a] = 2
+            Q = Q * cond.reshape(shape)
+        return Q / Q.sum()
+
+    def kl(p, q):
+        m = p > 0
+        return float((p[m] * np.log(p[m] / np.clip(q[m], 1e-300, None))).sum())
+
+    dags = [
+        ("X -> Y -> Z", {0: (), 1: (0,), 2: (1,)}, [(0, 1), (1, 2)]),
+        ("X <- Y -> Z", {1: (), 0: (1,), 2: (1,)}, [(1, 0), (1, 2)]),
+        ("X <- Y <- Z", {2: (), 1: (2,), 0: (1,)}, [(2, 1), (1, 0)]),
+        ("X -> Y <- Z", {0: (), 2: (), 1: (0, 2)}, [(0, 1), (2, 1)]),
+    ]
+    kls = [kl(P, fit(pa)) for _, pa, _ in dags]
+    assert max(abs(k) for k in kls[:3]) < 1e-12, "셋이 같지 않다"
+    assert kls[3] > 1e-3, "충돌점이 구별되지 않는다"
+
+    fig, axes = plt.subplots(1, 4, figsize=(11.0, 3.5))
+    xs = {0: 0.16, 1: 0.50, 2: 0.84}
+    for ax, (name, _, arcs), k in zip(axes, dags, kls):
+        same = abs(k) < 1e-12
+        for a, b in arcs:
+            d = 0.10 if xs[b] > xs[a] else -0.10
+            ax.annotate("", xy=(xs[b] - d, 0.60), xytext=(xs[a] + d, 0.60),
+                        arrowprops=dict(arrowstyle="->", color=INK,
+                                        linewidth=1.7))
+        for i, lab in enumerate("XYZ"):
+            ax.add_patch(plt.Circle((xs[i], 0.60), 0.085, facecolor="white",
+                                    edgecolor=INK, linewidth=1.5, zorder=3))
+            ax.text(xs[i], 0.60, lab, ha="center", va="center", fontsize=10,
+                    color=INK, zorder=4)
+        ax.text(0.5, 0.90, name, ha="center", fontsize=9.6, color=INK,
+                family="monospace")
+        ax.text(0.5, 0.30, "KL to the data", ha="center", fontsize=7.8,
+                color=INK, alpha=0.75)
+        ax.text(0.5, 0.17, "0" if same else f"{k:.3f}", ha="center",
+                fontsize=13 if same else 12,
+                color=ACCENT if not same else INK, weight="bold")
+        ax.text(0.5, 0.02,
+                "indistinguishable" if same else "distinguishable",
+                ha="center", fontsize=8.2,
+                color=INK if same else ACCENT,
+                style="italic" if same else "normal",
+                weight="normal" if same else "bold")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(-0.03, 1.0)
+        ax.axis("off")
+
+    fig.text(0.5, -0.04,
+             "the first three fit the very same distribution to machine "
+             "precision. only the collider differs.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "arrows_undetermined.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote arrows_undetermined.svg   KLs "
+          f"{[f'{k:.1e}' for k in kls]}")
+
+
 if __name__ == "__main__":
     positivity_wall()
     berkson()
+    arrows_undetermined()
