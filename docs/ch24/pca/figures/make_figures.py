@@ -480,7 +480,77 @@ def make_oja():
           f"svd {svd_deg:.2f}")
 
 
+# === 그림으로 보는 AI: 고유그림이 누구에게서 나왔는가 ==========================
+#
+# 같은 셈을 1987 년에는 얼굴에 했다. 다른 것은 셈이 아니라 **모아 놓은 무리**다.
+# 두 수치는 확인한 것만 적는다 — 1987: 115 장, 128x128 = 16,384 픽셀.
+# 이 쪽: 60,000 장, 28x28 = 784 픽셀. 줄인 뒤의 차원은 이 쪽의 출력에서 온다.
+
+def make_ensembles():
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.0, 3.9))
+
+    def grid(ax, rows, cols, w, h, x0, y0, color, alpha=0.55):
+        for r in range(rows):
+            for c in range(cols):
+                ax.add_patch(plt.Rectangle((x0 + c * w * 1.25,
+                                            y0 - r * h * 1.35),
+                                           w, h, facecolor=color,
+                                           alpha=alpha, edgecolor="none"))
+
+    # --- 1987 — 네모 115 개가 사진 115 장이다 (5 x 23 = 115) ------------------
+    grid(ax1, 5, 23, 0.028, 0.045, 0.04, 0.72, "#2d6a8f")
+    ax1.text(0.5, 0.41, "one square = one picture", fontsize=7,
+             color=INK, ha="center", alpha=0.7)
+    ax1.text(0.5, 0.86, "1987", fontsize=11, color=INK, ha="center",
+             weight="bold")
+    ax1.text(0.5, 0.80, "Sirovich and Kirby, eigenpictures", fontsize=8.5,
+             color=INK, ha="center", style="italic")
+    ax1.text(0.5, 0.29, "115 pictures\n128 x 128 = 16,384 numbers each",
+             fontsize=9, color=INK, ha="center")
+    ax1.text(0.5, 0.11,
+             '"a relatively homogeneous population\n'
+             'of smooth-skinned Caucasian males"\n'
+             "- undergraduates at one university",
+             fontsize=8, color=ACCENT, ha="center", style="italic")
+
+    # --- 이 쪽 — 같은 자리에 훨씬 촘촘하게. 눈금을 그림에 적는다 --------------
+    # 네모 2,000 개를 따로 그리면 SVG 가 0.5MB 가 된다. 한 장의 래스터로 깐다.
+    cell = np.zeros((20 * 3, 100 * 3))
+    cell[::3, :] = 1
+    cell[:, ::3] = 1
+    ax2.imshow(1 - cell, cmap="pink_r", vmin=0, vmax=1.9,
+               extent=(0.04, 0.04 + 100 * 0.0058 * 1.25, 0.458, 0.765),
+               aspect="auto", interpolation="nearest", zorder=2)
+    ax2.text(0.5, 0.41, "one square = 30 images", fontsize=7,
+             color=INK, ha="center", alpha=0.7)
+    ax2.text(0.5, 0.86, "this page", fontsize=11, color=INK, ha="center",
+             weight="bold")
+    ax2.text(0.5, 0.80, "MNIST, eigendigits", fontsize=8.5, color=INK,
+             ha="center", style="italic")
+    ax2.text(0.5, 0.29, "60,000 images\n28 x 28 = 784 numbers each",
+             fontsize=9, color=INK, ha="center")
+    ax2.text(0.5, 0.11,
+             "two groups of writers:\n"
+             "Census Bureau employees\nand high school students",
+             fontsize=8, color=ACCENT, ha="center", style="italic")
+
+    for ax in (ax1, ax2):
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0.03, 1.0)
+        ax.axis("off")
+
+    fig.text(0.5, -0.02,
+             "the arithmetic is the same. the basis is a property of the "
+             "ensemble, not of faces or of digits.",
+             ha="center", fontsize=9, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "ensembles.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("wrote ensembles.svg")
+
+
 def main():
+    make_ensembles()
     make_oja()
     make_pearson_hotelling()
     make_whiten()
