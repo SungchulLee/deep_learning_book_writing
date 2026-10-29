@@ -99,6 +99,117 @@ def page_2323():
     plt.close(fig)
 
 
+# === 그림으로 보는 AI: 에크만 1954 의 색 실험 =================================
+#
+# 자극은 파장 하나 — 434 에서 674 nm 까지 곧은 선이다. 그런데 사람의 판단을
+# 늘어놓으면 두 축이 필요하고, 두 끝이 되돌아와 거의 만난다.
+#
+# 원 논문의 14x14 평점 행렬을 구하지 못했으므로 **배치를 셈하지 않았다.**
+# 그림 안에 그렇게 적는다 (CLAUDE.md: 지어낸 수를 그림에 넣지 않는다).
+# 검증한 것만 글자로 적는다 — 색 14 개, 434-674 nm, 31 명, 0-4 의 다섯 눈금.
+
+def _wl_to_rgb(wl):
+    """파장(nm)을 눈에 보이는 색으로 어림한다 (Dan Bruton 의 흔한 어림식)."""
+    if wl < 440:
+        r, g, b = -(wl - 440) / (440 - 380), 0.0, 1.0
+    elif wl < 490:
+        r, g, b = 0.0, (wl - 440) / (490 - 440), 1.0
+    elif wl < 510:
+        r, g, b = 0.0, 1.0, -(wl - 510) / (510 - 490)
+    elif wl < 580:
+        r, g, b = (wl - 510) / (580 - 510), 1.0, 0.0
+    elif wl < 645:
+        r, g, b = 1.0, -(wl - 645) / (645 - 580), 0.0
+    else:
+        r, g, b = 1.0, 0.0, 0.0
+    if wl > 700:
+        f = 0.3 + 0.7 * (780 - wl) / (780 - 700)
+    elif wl < 420:
+        f = 0.3 + 0.7 * (wl - 380) / (420 - 380)
+    else:
+        f = 1.0
+    return tuple(min(1.0, max(0.0, c * f)) ** 0.8 for c in (r, g, b))
+
+
+def ekman_colors():
+    import numpy as np
+
+    lo, hi, k = 434, 674, 14
+    wls = np.linspace(lo, hi, k)
+
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(11.2, 3.9))
+
+    # --- 1. 물어본 것 ------------------------------------------------------
+    ax1.add_patch(plt.Rectangle((0.12, 0.60), 0.33, 0.26,
+                                facecolor=_wl_to_rgb(472), edgecolor=INK,
+                                linewidth=0.8))
+    ax1.add_patch(plt.Rectangle((0.55, 0.60), 0.33, 0.26,
+                                facecolor=_wl_to_rgb(504), edgecolor=INK,
+                                linewidth=0.8))
+    ax1.text(0.5, 0.50, "how similar?", ha="center", fontsize=9.5,
+             color=INK, style="italic")
+    for i in range(5):
+        x = 0.14 + i * 0.18
+        ax1.add_patch(plt.Circle((x, 0.33), 0.028, facecolor="white",
+                                 edgecolor=INK, linewidth=0.9))
+        ax1.text(x, 0.33, str(i), ha="center", va="center", fontsize=7.5,
+                 color=INK)
+    ax1.text(0.14, 0.22, "no\nsimilarity", ha="center", fontsize=6.8,
+             color=INK, alpha=0.8)
+    ax1.text(0.86, 0.22, "identical", ha="center", fontsize=6.8,
+             color=INK, alpha=0.8)
+    ax1.text(0.5, 0.06, "31 subjects, all 91 pairs of 14 colors",
+             ha="center", fontsize=8, color=ACCENT)
+    ax1.set_title("what was measured", fontsize=10, color=INK)
+
+    # --- 2. 자극은 곧은 선 --------------------------------------------------
+    for i, wl in enumerate(np.linspace(lo, hi, 240)):
+        ax2.add_patch(plt.Rectangle((i / 240, 0.45), 1 / 240 + 0.002, 0.17,
+                                    facecolor=_wl_to_rgb(wl), linewidth=0))
+    ax2.add_patch(plt.Rectangle((0, 0.45), 1.0, 0.17, facecolor="none",
+                                edgecolor=INK, linewidth=0.8))
+    ax2.annotate("", xy=(1.0, 0.33), xytext=(0.0, 0.33),
+                 arrowprops=dict(arrowstyle="->", color=INK, linewidth=1.1))
+    ax2.text(0.0, 0.24, f"{lo} nm", fontsize=8, color=INK, ha="left")
+    ax2.text(1.0, 0.24, f"{hi} nm", fontsize=8, color=INK, ha="right")
+    ax2.text(0.5, 0.10, "one number. the ends are\nas far apart as it gets.",
+             ha="center", fontsize=8, color=INK, alpha=0.85)
+    ax2.set_title("the light", fontsize=10, color=INK)
+
+    # --- 3. 판단은 되돌아온다 -----------------------------------------------
+    gap = np.radians(38)
+    ang = np.linspace(np.pi / 2 - gap / 2, -3 * np.pi / 2 + gap / 2, k)
+    for a, wl in zip(ang, wls):
+        ax3.add_patch(plt.Circle((0.5 + 0.33 * np.cos(a),
+                                  0.5 + 0.33 * np.sin(a)), 0.052,
+                                 facecolor=_wl_to_rgb(wl), edgecolor=INK,
+                                 linewidth=0.7))
+    ax3.annotate("", xy=(0.5 + 0.33 * np.cos(ang[-1]),
+                         0.5 + 0.33 * np.sin(ang[-1]) + 0.085),
+                 xytext=(0.5 + 0.33 * np.cos(ang[0]),
+                         0.5 + 0.33 * np.sin(ang[0]) + 0.085),
+                 arrowprops=dict(arrowstyle="<->", color=ACCENT,
+                                 linewidth=1.3,
+                                 connectionstyle="arc3,rad=-0.45"))
+    ax3.text(0.5, 0.95, "the two ends come back", ha="center", fontsize=8,
+             color=ACCENT)
+    ax3.text(0.5, 0.47, "two axes\nare needed", ha="center", va="center",
+             fontsize=8.5, color=INK, alpha=0.85)
+    ax3.text(0.5, 0.02, "schematic - layout not computed\nfrom the original ratings",
+             ha="center", fontsize=6.6, color=INK, alpha=0.6, style="italic")
+    ax3.set_title("the judgments", fontsize=10, color=INK)
+
+    for ax in (ax1, ax2, ax3):
+        ax.set_xlim(-0.03, 1.03)
+        ax.set_ylim(0, 1.0)
+        ax.axis("off")
+    fig.tight_layout()
+    fig.savefig(HERE / "ekman_colors.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     page_2323()
-    print("page_2323.svg")
+    ekman_colors()
+    print("page_2323.svg  ekman_colors.svg")
