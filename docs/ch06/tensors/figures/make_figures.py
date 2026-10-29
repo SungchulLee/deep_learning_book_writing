@@ -1055,7 +1055,98 @@ def adam_proof():
     print("wrote adam_proof.svg")
 
 
+# === 그림으로 보는 AI: 체크포인트는 자료가 아니라 프로그램이다 ================
+#
+# torch.save 가 만든 .pt 안의 data.pkl 을 pickletools 로 뜯어 보면 **명령 목록**
+# 이다. GLOBAL 은 "이 이름을 찾아라", REDUCE 는 "그것을 불러라" 이고, 둘이 있는
+# 한 읽는 일과 실행하는 일이 갈라지지 않는다. 수는 전부 여기서 직접 센다.
+
+def checkpoint_is_a_program():
+    import collections
+    import io
+    import pickletools
+    import re
+    import tempfile
+    import zipfile
+    from pathlib import Path as _P
+
+    import torch
+
+    torch.manual_seed(0)
+    layer = torch.nn.Linear(3, 2)
+    n_numbers = sum(p.numel() for p in layer.parameters())
+    with tempfile.TemporaryDirectory() as d:
+        f = _P(d) / "sd.pt"
+        torch.save(layer.state_dict(), f)
+        z = zipfile.ZipFile(f)
+        raw = z.read([n for n in z.namelist() if n.endswith("data.pkl")][0])
+
+    out = io.StringIO()
+    pickletools.dis(raw, out)
+    lines = [l.rstrip() for l in out.getvalue().splitlines()]
+    ops = [m.group(1) for l in lines
+           if (m := re.match(r"\s*\d+:\s+\S+\s+([A-Z_0-9]+)", l))]
+    cnt = collections.Counter(ops)
+    call_ops = {k: cnt[k] for k in ("GLOBAL", "STACK_GLOBAL", "REDUCE",
+                                    "BUILD", "INST", "OBJ") if cnt.get(k)}
+    assert call_ops, "이름을 찾아 부르는 명령이 없으면 이 그림의 이야기가 없다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.0),
+                                   gridspec_kw={"width_ratios": [1.45, 1]})
+
+    # --- 왼쪽: 실제 명령 목록 ----------------------------------------------
+    show = lines[:9]
+    for i, l in enumerate(show):
+        hot = any(k in l for k in ("GLOBAL", "REDUCE", "BUILD"))
+        ax1.text(0.02, 0.86 - i * 0.096, l[:52], fontsize=8.6,
+                 family="monospace", color=ACCENT if hot else INK,
+                 weight="bold" if hot else "normal", va="center")
+        if hot:
+            ax1.add_patch(plt.Rectangle((0.0, 0.86 - i * 0.096 - 0.040),
+                                        1.0, 0.080, facecolor=ACCENT,
+                                        alpha=0.11, edgecolor="none"))
+    ax1.text(0.02, 0.02, "...", fontsize=9, family="monospace", color=INK,
+             alpha=0.6)
+    ax1.set_title("inside the .pt file", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(-0.02, 0.96)
+    ax1.axis("off")
+
+    # --- 오른쪽: 세어 보면 --------------------------------------------------
+    ax2.text(0.5, 0.88, f"{n_numbers} numbers saved", ha="center",
+             fontsize=10, color=INK)
+    ax2.annotate("", xy=(0.5, 0.70), xytext=(0.5, 0.80),
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=1.3))
+    ax2.text(0.5, 0.60, f"{len(ops)}", ha="center", fontsize=30,
+             color=ACCENT, weight="bold")
+    ax2.text(0.5, 0.47, "instructions", ha="center", fontsize=10,
+             color=ACCENT)
+
+    y = 0.33
+    ax2.text(0.5, y, "   ".join(f"{k} x{v}" for k, v in call_ops.items()),
+             ha="center", fontsize=9, family="monospace", color=INK)
+    ax2.text(0.5, 0.21, "GLOBAL: find this name\nREDUCE: call it",
+             ha="center", va="top", fontsize=8.6, color=ACCENT)
+    ax2.text(0.5, 0.03,
+             "you cannot check it without running it",
+             ha="center", fontsize=8.8, color=INK, style="italic")
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+    ax2.axis("off")
+    ax2.set_title("counted, not asserted", fontsize=10, color=INK,
+                  weight="bold")
+
+    fig.tight_layout()
+    fig.savefig(HERE / "checkpoint_program.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote checkpoint_program.svg   {n_numbers} numbers -> "
+          f"{len(ops)} ops, {call_ops}")
+
+
 if __name__ == "__main__":
+    checkpoint_is_a_program()
     adam_proof()
     summation_order()
     shannon_precedence()
