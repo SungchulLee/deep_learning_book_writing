@@ -246,6 +246,86 @@ def gradient_variance():
           f"opt: reparam {v_opt['reparam']:.4f} vs score+bl {v_opt['score_bl']:.2e}")
 
 
+
+
+# === 그림으로 보는 AI: 두 단계가 한 함수를 번갈아 오른다 ======================
+#
+# 닐과 힌턴(1998)의 눈으로 EM 을 보면 F(q, theta) 하나뿐이고 E 단계는 q 에 대해,
+# M 단계는 theta 에 대해 그것을 최대화한다. 간격이 곧 KL 이고 E 단계가 0 으로
+# 만든다. 수는 여기서 직접 돌려 얻는다.
+
+def em_staircase():
+    from scipy.stats import norm
+
+    rng = np.random.default_rng(1)
+    x = np.concatenate([rng.normal(-2, 1, 80), rng.normal(2.5, 1, 80)])
+    SIG, W = 1.0, 0.5
+
+    def loglik(mu):
+        return np.log(W * norm.pdf(x, mu[0], SIG)
+                      + W * norm.pdf(x, mu[1], SIG)).sum()
+
+    def free_energy(R, mu):
+        lj = np.column_stack([np.log(W) + norm.logpdf(x, m, SIG) for m in mu])
+        return (R * lj).sum() - (R * np.log(R + 1e-300)).sum()
+
+    mu = np.array([-0.5, 0.6])
+    lls, els, kinds = [], [], []
+    for _ in range(4):
+        lj = np.column_stack([np.log(W) + norm.logpdf(x, m, SIG) for m in mu])
+        m_ = lj.max(1, keepdims=True)
+        R = np.exp(lj - m_)
+        R /= R.sum(1, keepdims=True)
+        lls.append(loglik(mu)); els.append(free_energy(R, mu)); kinds.append("E")
+        mu = (R * x[:, None]).sum(0) / R.sum(0)
+        lls.append(loglik(mu)); els.append(free_energy(R, mu)); kinds.append("M")
+
+    lls, els = np.array(lls), np.array(els)
+    gaps = lls - els
+    e_gaps = gaps[[i for i, k in enumerate(kinds) if k == "E"]]
+    assert np.all(np.abs(e_gaps) < 1e-9), "E 단계 뒤에는 간격이 0 이어야 한다"
+
+    t = np.arange(len(lls))
+    fig, ax = plt.subplots(figsize=(8.4, 4.5))
+    ax.plot(t, lls, "-", color=INK, linewidth=2.1, label="log p(x)  (the evidence)")
+    ax.plot(t, els, "-", color=ACCENT, linewidth=2.1,
+            label="F(q, theta)  (the bound)")
+    for i, k in enumerate(kinds):
+        ax.plot([i], [els[i]], marker="o" if k == "E" else "s",
+                color=ACCENT, markersize=6, zorder=4)
+        if gaps[i] > 0.05:
+            ax.annotate("", xy=(i, lls[i]), xytext=(i, els[i]),
+                        arrowprops=dict(arrowstyle="<->", color=COOL, lw=1.3))
+            ax.text(i + 0.14, (lls[i] + els[i]) / 2, f"KL = {gaps[i]:.1f}",
+                    fontsize=8, color=COOL, va="center")
+    ax.set_xticks(t)
+    ax.set_xticklabels(kinds, fontsize=8.5)
+    ax.set_xlabel("E step closes the gap, M step raises the bound", fontsize=9)
+    ax.set_ylabel("value", fontsize=9)
+    ax.set_title("one function, two coordinates", fontsize=10, color=INK,
+                 weight="bold")
+    ax.legend(fontsize=8.6, framealpha=0.92, loc="lower right")
+    ax.grid(alpha=0.13)
+    style(ax)
+    ax.text(0.98, 0.42,
+            f"after every E step\nthe gap is 0\n"
+            f"(largest seen {np.abs(e_gaps).max():.0e})",
+            transform=ax.transAxes, va="top", ha="right", fontsize=8.2,
+            color=ACCENT)
+
+    fig.text(0.5, -0.03,
+             "the bound touches the evidence only where the E step put it. "
+             "a tight bound at one theta says nothing at the next.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "em_staircase.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote em_staircase.svg   max E-step gap {np.abs(e_gaps).max():.1e}  "
+          f"first M gap {gaps[1]:.2f}")
+
+
 if __name__ == "__main__":
     mean_field_shrinks()
     gradient_variance()
+    em_staircase()
