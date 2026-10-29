@@ -260,7 +260,63 @@ def uneven_overlap():
     print("wrote uneven_overlap.svg  k3s2 uneven, k4s2 and k2s2 even")
 
 
+# === 그림으로 보는 AI: BCE 를 우도로 읽으면 적분이 1 이 아니다 ================
+#
+# lam^x (1-lam)^(1-x) 를 x in [0,1] 에서 적분하면 (1-2lam)/log((1-lam)/lam) 이고
+# lam=0.5 에서 극한이 0.5 다. 어디서도 1 이 되지 않는다. 더 중요한 것은 이 값이
+# **lam 에 따라 달라진다**는 점이라, 상수로 치고 무시할 수가 없다.
+
+def bce_not_a_density():
+    lam = np.linspace(1e-4, 1 - 1e-4, 2000)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        integral = (1 - 2 * lam) / np.log((1 - lam) / lam)
+    integral[np.abs(lam - 0.5) < 1e-9] = 0.5
+
+    fig, ax = plt.subplots(figsize=(7.4, 4.2))
+    ax.plot(lam, integral, color=ACCENT, lw=2.2)
+    ax.axhline(1.0, color=INK, ls="--", lw=1.3)
+    ax.text(0.5, 1.02, "what a density has to integrate to", ha="center",
+            fontsize=8.6, color=INK)
+
+    for v in (0.01, 0.5, 0.99):
+        y = 0.5 if v == 0.5 else (1 - 2 * v) / np.log((1 - v) / v)
+        ax.plot([v], [y], "o", color=INK, ms=6, zorder=5)
+        ax.annotate(f"{y:.3f}", xy=(v, y), xytext=(0, -16),
+                    textcoords="offset points", ha="center", fontsize=8.6,
+                    color=INK)
+
+    ax.fill_between(lam, integral, 1.0, color=ACCENT, alpha=0.10)
+    ax.text(0.5, 0.74, "the missing mass", ha="center", fontsize=9,
+            color=ACCENT, style="italic")
+
+    ax.set_xlabel("lambda, the value the decoder predicts for a pixel",
+                  fontsize=9)
+    ax.set_ylabel("integral over x in [0, 1]", fontsize=9)
+    ax.set_title("BCE read as a likelihood, on grey pixels", fontsize=10.5,
+                 color=INK, weight="bold", pad=8)
+    ax.set_ylim(0, 1.16)
+    ax.set_xlim(0, 1)
+    ax.grid(alpha=0.13)
+    ax.tick_params(labelsize=8.5, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "it never reaches 1, and it changes with lambda - so it is not a "
+             "constant that drops out of the gradient.\n"
+             "on genuinely binary targets the question does not arise.",
+             ha="center", fontsize=8.3, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "bce_not_a_density.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote bce_not_a_density.svg  at 0.5 -> 0.500, "
+          f"at 0.01 -> {(1-0.02)/np.log(0.99/0.01):.3f}")
+
+
 if __name__ == "__main__":
     same_plane_other_axes()
     corruption_kinds()
     uneven_overlap()
+    bce_not_a_density()
