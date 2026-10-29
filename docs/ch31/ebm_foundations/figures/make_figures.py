@@ -764,6 +764,87 @@ def warm_start():
           f"{cold_w[i25]:.4f}   k=1600: {warm_w[-1]:.4f} vs {cold_w[-1]:.4f}")
 
 
+# === 그림으로 보는 AI: 불편한 추정량에 로그를 씌우면 =========================
+#
+# 그 쪽 3 절이 "Zhat 는 불편할 수 있어도 log Zhat 는 일반적으로 바이어스된다"
+# 고 적어 두었다. 기준 흐름이 N(0,1) 이고 보정이 a(x-shift)^2 이면 Z 를
+# 가우스 적분으로 **정확히** 알 수 있으므로 두 주장을 모두 수로 확인할 수 있다.
+
+Z_A, Z_SHIFT = 0.5, 2.0
+
+
+def jensen_gap():
+    rng = np.random.default_rng(0)
+    z_exact = np.exp(-Z_A * Z_SHIFT ** 2 / (1 + 2 * Z_A)) / np.sqrt(1 + 2 * Z_A)
+    log_z = float(np.log(z_exact))
+
+    Ms = (2, 5, 10, 50, 200, 1000)
+    mean_z, mean_logz = [], []
+    for M in Ms:
+        zs, lzs = [], []
+        for _ in range(4000):
+            x = rng.normal(size=M)
+            w = np.exp(-Z_A * (x - Z_SHIFT) ** 2)
+            zs.append(w.mean())
+            lzs.append(np.log(w.mean()))
+        mean_z.append(float(np.mean(zs)))
+        mean_logz.append(float(np.mean(lzs)))
+    mean_z, mean_logz = np.array(mean_z), np.array(mean_logz)
+
+    # --- 그림이 주장하는 바를 그림이 스스로 확인한다 ----------------------
+    assert np.all(np.abs(mean_z - z_exact) / z_exact < 0.02), (
+        f"Zhat 는 모든 M 에서 불편해야 한다: {mean_z}")
+    assert np.all(mean_logz < log_z), "log Zhat 는 늘 아래로 치우쳐야 한다"
+    assert mean_logz[0] < log_z - 0.3, "작은 M 에서 치우침이 뚜렷해야 한다"
+    assert abs(mean_logz[-1] - log_z) < 0.02, "큰 M 에서는 사라져야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1))
+
+    ax1.semilogx(Ms, mean_z, "o-", color=ACCENT, ms=6, linewidth=2.0,
+                 label="mean of Zhat")
+    ax1.axhline(z_exact, color=INK, linestyle="--", linewidth=1.4,
+                label="true Z")
+    ax1.set_xlabel("importance samples M", fontsize=9)
+    ax1.set_ylabel("Zhat", fontsize=9)
+    ax1.set_title("Zhat is unbiased at every M", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.set_ylim(z_exact * 0.97, z_exact * 1.03)
+    ax1.legend(fontsize=8.5, loc="lower right", framealpha=0.92)
+
+    ax2.semilogx(Ms, mean_logz, "o-", color=ACCENT, ms=6, linewidth=2.0,
+                 label="mean of log Zhat")
+    ax2.axhline(log_z, color=INK, linestyle="--", linewidth=1.4,
+                label="true log Z")
+    ax2.fill_between(Ms, mean_logz, log_z, color=ACCENT, alpha=0.14)
+    ax2.annotate(f"{log_z - mean_logz[0]:.2f} nats low at M = 2",
+                 xy=(2, mean_logz[0]), xytext=(9.0, mean_logz[0] + 0.07),
+                 fontsize=8.5, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.0))
+    ax2.set_xlabel("importance samples M", fontsize=9)
+    ax2.set_ylabel("log Zhat", fontsize=9)
+    ax2.set_title("log Zhat is not - and always low", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.legend(fontsize=8.5, loc="lower right", framealpha=0.92)
+
+    for ax in (ax1, ax2):
+        ax.grid(alpha=0.13, which="both")
+        ax.tick_params(labelsize=8, colors=INK)
+        for s_ in ax.spines.values():
+            s_.set_color(INK)
+            s_.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "log p subtracts log Z, so a log Z that reads low makes the "
+             "model look better than it is.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "jensen_gap.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote jensen_gap.svg   logZ {log_z:.4f}; "
+          f"E[log Zhat] {mean_logz[0]:.4f} (M=2) -> {mean_logz[-1]:.4f} (M=1000)")
+
+
 if __name__ == "__main__":
     cd_bias()
     ising_dimensions()
@@ -773,3 +854,4 @@ if __name__ == "__main__":
     ula_bias()
     density_vs_typicality()
     warm_start()
+    jensen_gap()
