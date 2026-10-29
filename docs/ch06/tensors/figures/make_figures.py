@@ -361,8 +361,100 @@ def no_formula():
     print(f"wrote no_formula.svg   residual {res:.3e}")
 
 
+# === 그림으로 보는 AI: 서로 모르는 두 라이브러리가 같은 메모리를 보는 법 =======
+#
+# 왼쪽은 PEP 3118 이 표준으로 정한 것 — 메모리 덩어리를 가리키는 포인터만이
+# 아니라 자료형·모양·스트라이드까지 함께 알려 준다. 그래서 numpy 와 torch 가
+# 서로를 몰라도 같은 덩어리를 읽을 수 있다.
+# 오른쪽은 **직접 재어** 그린다. 공유는 크기와 무관하고 복사는 크기에 비례한다.
+
+def buffer_protocol():
+    import time
+
+    import numpy as np
+    import torch
+
+    def bench(fn, reps):
+        for _ in range(20):
+            fn()                                  # 워밍업 — 첫 호출은 느리다
+        t0 = time.perf_counter()
+        for _ in range(reps):
+            fn()
+        return (time.perf_counter() - t0) / reps * 1e6
+
+    ns = [10 ** 4, 10 ** 5, 10 ** 6, 10 ** 7]
+    share, copy = [], []
+    for n in ns:
+        a = np.random.rand(n)
+        share.append(bench(lambda: torch.from_numpy(a), 200))
+        copy.append(bench(lambda: torch.tensor(a), 30))
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1),
+                                   gridspec_kw={"width_ratios": [1, 1.1]})
+
+    # --- 왼쪽: 무엇을 표준으로 정했는가 -------------------------------------
+    ax1.add_patch(plt.Rectangle((0.28, 0.34), 0.44, 0.20, facecolor=ACCENT,
+                                alpha=0.16, edgecolor=ACCENT, linewidth=1.2))
+    ax1.text(0.50, 0.44, "one block of memory", ha="center", va="center",
+             fontsize=9.5, color=INK)
+
+    for x, name in ((0.14, "numpy"), (0.86, "torch")):
+        ax1.add_patch(plt.Rectangle((x - 0.12, 0.72), 0.24, 0.14,
+                                    facecolor="white", edgecolor=INK,
+                                    linewidth=1.1))
+        ax1.text(x, 0.79, name, ha="center", va="center", fontsize=9.5,
+                 color=INK, family="monospace")
+        ax1.annotate("", xy=(0.5 - np.sign(0.5 - x) * 0.21, 0.545),
+                     xytext=(x, 0.715),
+                     arrowprops=dict(arrowstyle="->", color=INK,
+                                     linewidth=1.3))
+
+    ax1.text(0.5, 0.235, "the protocol also carries", ha="center",
+             fontsize=8.2, color=INK, alpha=0.8)
+    ax1.text(0.5, 0.135, "format   shape   strides", ha="center",
+             fontsize=10, color=ACCENT, family="monospace")
+    ax1.text(0.5, 0.035, "without those it is just a pointer and a length",
+             ha="center", fontsize=7.8, color=INK, alpha=0.7, style="italic")
+    ax1.set_title("PEP 3118,  2006", fontsize=10, color=INK, weight="bold")
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0, 1)
+    ax1.axis("off")
+
+    # --- 오른쪽: 공유는 크기를 타지 않는다 ---------------------------------
+    ax2.loglog(ns, copy, "s--", color=INK, linewidth=1.8, ms=5.5,
+               label="torch.tensor(a)   copies")
+    ax2.loglog(ns, share, "o-", color=ACCENT, linewidth=2.0, ms=5.5,
+               label="torch.from_numpy(a)   shares")
+    ax2.annotate(f"{copy[-1]/share[-1]:,.0f}x apart",
+                 xy=(ns[-1], copy[-1]), xytext=(-96, -16),
+                 textcoords="offset points", fontsize=8.6, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax2.set_xlabel("number of elements", fontsize=9)
+    ax2.set_ylabel("microseconds per call", fontsize=9)
+    ax2.set_title("one of these reads the data", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8.2, loc="upper left", framealpha=0.9)
+    ax2.grid(alpha=0.13, which="both")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "measured on this machine, warmed up first. the flat line is the "
+             "whole point - sharing never touches the data.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "buffer_protocol.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote buffer_protocol.svg   share {share[-1]:.2f}us  "
+          f"copy {copy[-1]:.0f}us")
+
+
 if __name__ == "__main__":
     tensor_word()
     arange_promise()
     loss_scaling()
     no_formula()
+    buffer_protocol()
