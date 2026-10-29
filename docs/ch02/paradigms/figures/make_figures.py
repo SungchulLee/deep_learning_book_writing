@@ -145,6 +145,79 @@ def bias_variance_depends_on_n():
           f"  n=200 {store[200][1][-1]:.5f}  ratio {ratio:.0f}")
 
 
+# === 그림으로 보는 AI: 자료를 늘리면 모두가 같이 좋아지는가 ==================
+#
+# Banko-Brill 2001 의 그림을 베껴 그리지 않는다. 그 대신 **같은 물음**을 여기서
+# 직접 돌려 본다 — 자료를 열 배씩 늘릴 때 학습기들이 어떻게 갈라지는가.
+
+def more_data_curves():
+    import warnings
+    from sklearn.datasets import make_classification
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.linear_model import Perceptron, LogisticRegression
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.model_selection import train_test_split
+
+    warnings.filterwarnings("ignore")
+    X, y = make_classification(n_samples=40000, n_features=30,
+                               n_informative=12, n_redundant=6,
+                               class_sep=0.8, flip_y=0.03, random_state=0)
+    Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=8000,
+                                          random_state=0)
+
+    learners = [
+        ("memory-based (kNN)", lambda: KNeighborsClassifier(n_neighbors=5),
+         ACCENT, "o-"),
+        ("logistic", lambda: LogisticRegression(max_iter=2000), BLUE, "s--"),
+        ("naive bayes", lambda: GaussianNB(), "#7a8b6f", "^--"),
+        ("perceptron", lambda: Perceptron(max_iter=1000, tol=1e-3,
+                                          random_state=0), "#9a8f80", "v--"),
+    ]
+    sizes = [100, 300, 1000, 3000, 10000, 32000]
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.6))
+    curves = {}
+    for name, mk, col, fmt in learners:
+        acc = []
+        for n in sizes:
+            reps = [mk().fit(Xtr[i], ytr[i]).score(Xte, yte)
+                    for i in (np.random.default_rng(r).choice(
+                        len(Xtr), n, replace=False) for r in range(3))]
+            acc.append(float(np.mean(reps)))
+        curves[name] = acc
+        ax.semilogx(sizes, acc, fmt, color=col, linewidth=1.9, ms=5,
+                    label=name)
+
+    top = curves["memory-based (kNN)"]
+    ax.annotate(f"still climbing at 32,000\n{top[0]:.3f} -> {top[-1]:.3f}",
+                xy=(sizes[-1], top[-1]), xytext=(1700, 0.805),
+                fontsize=8.5, color=ACCENT,
+                arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9))
+    nb = curves["naive bayes"]
+    ax.annotate("flat from about 3,000 on", xy=(10000, nb[4]),
+                xytext=(220, 0.645), fontsize=8.5, color="#5f6b58",
+                arrowprops=dict(arrowstyle="->", color="#5f6b58", lw=0.9))
+
+    ax.set_xlabel("training examples (log scale)", fontsize=9.5)
+    ax.set_ylabel("test accuracy", fontsize=9.5)
+    ax.set_title("more data does not lift every learner alike",
+                 fontsize=10.5, color=INK, weight="bold", pad=8)
+    ax.legend(fontsize=8.5, loc="upper left", framealpha=0.92)
+    ax.grid(alpha=0.13, which="both")
+    style(ax)
+
+    fig.text(0.5, -0.04,
+             "run here, not copied from the 2001 paper. the ranking happened "
+             "to hold at every size on this problem.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "more_data.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote more_data.svg   knn {top[0]:.4f}->{top[-1]:.4f}   "
+          f"nb {nb[0]:.4f}->{nb[-1]:.4f}")
+
+
 if __name__ == "__main__":
     bellman_dates()
     bias_variance_depends_on_n()
+    more_data_curves()
