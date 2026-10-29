@@ -292,7 +292,108 @@ def evidence_brakes():
           f"mode {np.argmax(counts)}   true {_TRUE_DEG}")
 
 
+
+
+# === 그림으로 보는 AI: 웨이트는 멀고 함수는 같다 ==============================
+#
+# 헥트닐슨(1990)이 보인 대칭 — 은닉 유닛 자리바꿈과(tanh 가 홀함수이므로)
+# 부호 뒤집기는 입출력 함수를 바꾸지 않는다. 직접 옮겨 보고 두 거리를 잰다.
+
+def weight_space_symmetry():
+    from math import factorial
+
+    rng = np.random.default_rng(0)
+    H, D = 6, 3
+    W1 = rng.standard_normal((H, D))
+    b1 = rng.standard_normal(H)
+    w2 = rng.standard_normal(H)
+    b2 = 0.4
+
+    def f(X, A, c, v):
+        return np.tanh(X @ A.T + c) @ v + b2
+
+    def vec(A, c, v):
+        return np.concatenate([A.ravel(), c, v])
+
+    X = rng.standard_normal((500, D))
+    p = rng.permutation(H)
+    s = rng.choice([-1, 1], H)
+
+    variants = [
+        ("original", W1, b1, w2),
+        ("permuted", W1[p], b1[p], w2[p]),
+        ("signs flipped", W1 * s[:, None], b1 * s, w2 * s),
+        ("both", (W1 * s[:, None])[p], (b1 * s)[p], (w2 * s)[p]),
+    ]
+    y0 = f(X, W1, b1, w2)
+    th0 = vec(W1, b1, w2)
+    wdist, fdist = [], []
+    for _, A, c, v in variants:
+        wdist.append(np.linalg.norm(vec(A, c, v) - th0))
+        fdist.append(np.abs(f(X, A, c, v) - y0).max())
+    assert max(fdist) < 1e-12, "대칭 변환은 함수를 바꾸지 않아야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.2))
+
+    # --- 왼쪽: 한 줄을 따라 그린 함수 넷 ------------------------------------
+    t = np.linspace(-3, 3, 300)
+    direction = rng.standard_normal(D)
+    direction /= np.linalg.norm(direction)
+    Xline = t[:, None] * direction
+    styles = [("-", ACCENT, 3.4), ("--", INK, 2.0), (":", COOL, 2.0),
+              ("-.", "#6b8f2d", 1.6)]
+    for (name, A, c, v), (ls, col, lw) in zip(variants, styles):
+        ax1.plot(t, f(Xline, A, c, v), ls, color=col, linewidth=lw,
+                 label=name)
+    ax1.set_xlabel("position along a line through input space", fontsize=8.8)
+    ax1.set_ylabel("network output", fontsize=9)
+    ax1.set_title("four different weight vectors", fontsize=9.8, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8.2, framealpha=0.92)
+    ax1.grid(alpha=0.13)
+    style(ax1)
+
+    # --- 오른쪽: 두 거리 ----------------------------------------------------
+    idx = np.arange(1, 4)
+    w = 0.34
+    ax2.bar(idx - w / 2, [wdist[i] for i in idx], w, color=INK, alpha=0.85,
+            label="distance in weight space")
+    ax2.bar(idx + w / 2, [max(fdist[i], 1e-18) for i in idx], w,
+            color=ACCENT, alpha=0.9, label="largest change in output")
+    ax2.set_yscale("log")
+    ax2.set_ylim(1e-18, 1e3)
+    ax2.set_xticks(idx)
+    ax2.set_xticklabels([variants[i][0] for i in idx], fontsize=8.5)
+    ax2.set_ylabel("size (log)", fontsize=9)
+    ax2.set_title("far apart, and identical", fontsize=9.8, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8.2, framealpha=0.92, loc="upper right")
+    ax2.grid(alpha=0.13, axis="y", which="major")
+    style(ax2)
+    # 정확히 0 이면 로그 축에 막대가 안 그려진다 — 빠진 것이 아니라고 적어 둔다
+    for i in idx:
+        if fdist[i] == 0.0:
+            ax2.annotate("exactly 0\n(no bar to draw)", xy=(i + w / 2, 1e-17),
+                         xytext=(0, 30), textcoords="offset points",
+                         ha="center", fontsize=7.6, color=ACCENT,
+                         arrowprops=dict(arrowstyle="->", color=ACCENT,
+                                         lw=0.8))
+
+    n_sym = factorial(H) * 2 ** H
+    fig.text(0.5, -0.04,
+             f"with {H} hidden units at least {factorial(H)} x 2^{H} = "
+             f"{n_sym:,} weight vectors give this one function.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "weight_symmetry.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote weight_symmetry.svg   max |df| {max(fdist):.1e}   "
+          f"weight dists {np.round(wdist[1:],2)}   symmetries {n_sym:,}")
+
+
 if __name__ == "__main__":
     width_limit()
     weights_as_distributions()
     evidence_brakes()
+    weight_space_symmetry()
