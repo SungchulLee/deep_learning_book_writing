@@ -331,7 +331,70 @@ def arrows_undetermined():
           f"{[f'{k:.1e}' for k in kls]}")
 
 
+# === 그림으로 보는 AI: 버리는 쪽과 웨이트를 다는 쪽 ===========================
+#
+# 숨은 원인 C 와 자식 k 개. 증거는 "자식이 모두 1" 이라 k 를 키우면 P(e) 가 준다.
+# 기각 샘플링이 건지는 표본은 P(e) 를 따라 무너지는데, 우도 가중의 유효 표본
+# 수는 N*P(C) 언저리에서 **멈춘다** — 증거가 드문 것과는 상관이 없다.
+
+def sampling_yield():
+    rng = np.random.default_rng(0)
+    N = 400_000
+    pC, p1, p0 = 0.05, 0.80, 0.10
+    ks = [2, 4, 6, 8, 10, 12, 14]
+
+    accepted, ess_list, pes = [], [], []
+    for k in ks:
+        C = rng.random(N) < pC
+        ch = rng.random((N, k)) < np.where(C[:, None], p1, p0)
+        acc = ch.all(axis=1)
+        w = np.where(C, p1, p0) ** k
+        accepted.append(int(acc.sum()))
+        ess_list.append(float(w.sum() ** 2 / (w ** 2).sum()))
+        pes.append(float(acc.mean()))
+
+    assert accepted[0] / accepted[-1] > 5, "기각 쪽이 충분히 무너지지 않았다"
+    assert ess_list[-1] / accepted[-1] > 5, "두 곡선이 갈라지지 않았다"
+
+    fig, ax = plt.subplots(figsize=(7.6, 4.4))
+    ax.loglog(pes, accepted, "s--", color=INK, linewidth=1.9, ms=6,
+              label="rejection: samples kept")
+    ax.loglog(pes, ess_list, "o-", color=ACCENT, linewidth=2.2, ms=6,
+              label="likelihood weighting: effective sample size")
+    ax.axhline(N * pC, color=ACCENT, linestyle=":", linewidth=1.2, alpha=0.8)
+    ax.text(pes[0] * 0.92, N * pC * 1.22, f"N x P(C) = {int(N*pC):,}",
+            fontsize=8.4, color=ACCENT, ha="right")
+
+    ax.annotate(f"{accepted[-1]:,} left", xy=(pes[-1], accepted[-1]),
+                xytext=(10, 6), textcoords="offset points", fontsize=8.6,
+                color=INK)
+    ax.set_xlabel("P(e)  -  the evidence getting rarer, right to left",
+                  fontsize=9)
+    ax.set_ylabel("usable samples out of 400,000", fontsize=9)
+    ax.set_title("one of them notices that the evidence is rare",
+                 fontsize=10.5, color=INK, weight="bold")
+    ax.invert_xaxis()
+    ax.legend(fontsize=8.4, loc="lower left", framealpha=0.92)
+    ax.grid(alpha=0.13, which="both")
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "weighting holds up here. its ceiling is set by P(C), not by "
+             "P(e) - so what to watch is the weights, not the evidence.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "sampling_yield.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote sampling_yield.svg   accepted {accepted[0]:,} -> "
+          f"{accepted[-1]:,}   ess {ess_list[0]:,.0f} -> {ess_list[-1]:,.0f}")
+
+
 if __name__ == "__main__":
     positivity_wall()
     berkson()
     arrows_undetermined()
+    sampling_yield()
