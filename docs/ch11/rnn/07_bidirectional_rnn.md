@@ -15,7 +15,6 @@
 
 import torch
 import torch.nn as nn
-import rnn_utils
 
 # ========================================================================
 # 메인

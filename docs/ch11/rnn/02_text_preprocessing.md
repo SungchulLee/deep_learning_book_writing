@@ -22,7 +22,50 @@ import torch
 import torch.nn as nn
 import numpy as np
 from collections import Counter
-import rnn_utils
+
+# --- rnn_utils 에서 이 쪽이 쓰는 것만 ---
+class Vocabulary:
+    """텍스트 데이터의 어휘를 만들고 관리하기"""
+    def __init__(self):
+        self.word2idx = {'<PAD>': 0, '<UNK>': 1, '<SOS>': 2, '<EOS>': 3}
+        self.idx2word = {0: '<PAD>', 1: '<UNK>', 2: '<SOS>', 3: '<EOS>'}
+        self.word_count = {}
+        self.n_words = 4
+    
+    def add_sentence(self, sentence):
+        for word in sentence.split():
+            self.add_word(word)
+    
+    def add_word(self, word):
+        if word not in self.word2idx:
+            self.word2idx[word] = self.n_words
+            self.idx2word[self.n_words] = word
+            self.word_count[word] = 1
+            self.n_words += 1
+        else:
+            self.word_count[word] += 1
+    
+    def __len__(self):
+        return self.n_words
+
+
+def tokenize(text):
+    """간단한 토큰 나누개"""
+    return text.lower().split()
+
+
+def text_to_sequence(text, vocab, max_length=None):
+    """텍스트를 색인의 순차열로 바꾸기"""
+    tokens = tokenize(text)
+    sequence = [vocab.word2idx.get(word, vocab.word2idx['<UNK>']) for word in tokens]
+    
+    if max_length:
+        if len(sequence) < max_length:
+            sequence += [vocab.word2idx['<PAD>']] * (max_length - len(sequence))
+        else:
+            sequence = sequence[:max_length]
+    
+    return sequence
 
 print("=" * 70)
 print("Text Preprocessing for RNNs")
@@ -61,7 +104,7 @@ print("SECTION 2: Building Vocabulary")
 print("=" * 70)
 
 # 어휘 만들기
-vocab = rnn_utils.Vocabulary()
+vocab = Vocabulary()
 for text in texts:
     vocab.add_sentence(text.lower())
 
@@ -87,7 +130,7 @@ print("=" * 70)
 print("\nConverting texts to sequences of indices:")
 sequences = []
 for text in texts:
-    seq = rnn_utils.text_to_sequence(text, vocab)
+    seq = text_to_sequence(text, vocab)
     sequences.append(seq)
     print(f"\n'{text}'")
     print(f"  → {seq}")
@@ -106,7 +149,7 @@ padded_sequences = []
 
 print(f"\nPadding all sequences to length {max_len}:")
 for text in texts:
-    seq = rnn_utils.text_to_sequence(text, vocab, max_length=max_len)
+    seq = text_to_sequence(text, vocab, max_length=max_len)
     padded_sequences.append(seq)
     print(f"\n'{text}'")
     print(f"  Padded: {seq}")
