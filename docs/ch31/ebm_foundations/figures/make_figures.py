@@ -671,6 +671,99 @@ def density_vs_typicality():
     print(f"wrote density_vs_typicality.svg   d=784 median |x| "
           f"{np.median(r784):.1f}, min {r784.min():.1f}, drop {drops[-1]:.0f}")
 
+# === 그림으로 보는 AI: 생성기가 사 주는 것은 평형이 아니라 걸음 수다 ==========
+#
+# 협력 학습의 요지는 사슬을 **쓸 만한 자리에서** 시작한다는 것이다. 그 이득이
+# 어디까지인지 재어 본다 — 목표가 봉우리 둘인 1 차원이면 1 차 바서슈타인
+# 거리를 정렬만으로 정확히 셈할 수 있다.
+
+MU = np.array([-2.0, 2.0])
+SD = 0.5
+
+
+def _mix_grad(x):
+    a = np.exp(-0.5 * ((x - MU[0]) / SD) ** 2)
+    b = np.exp(-0.5 * ((x - MU[1]) / SD) ** 2)
+    return (a * (x - MU[0]) / SD ** 2
+            + b * (x - MU[1]) / SD ** 2) / (a + b + 1e-300)
+
+
+def _langevin_mix(x, k, rng, h=0.01):
+    for _ in range(k):
+        x = x - h * _mix_grad(x) + np.sqrt(2 * h) * rng.normal(size=x.shape)
+    return x
+
+
+def warm_start():
+    n = 20_000
+    ks = (0, 5, 10, 25, 50, 100, 200, 400, 800, 1600)
+    cold_w, warm_w = [], []
+    for k in ks:
+        cs, ws = [], []
+        for seed in range(4):
+            rng = np.random.default_rng(seed)
+            true = np.where(rng.random(n) < 0.5, MU[0], MU[1]) \
+                + SD * rng.normal(size=n)
+            cold = rng.uniform(-5, 5, n)
+            warm = np.where(rng.random(n) < 0.5, MU[0], MU[1]) \
+                + 1.2 * rng.normal(size=n)
+            if k:
+                cold = _langevin_mix(cold, k, rng)
+                warm = _langevin_mix(warm, k, rng)
+            ts = np.sort(true)
+            cs.append(float(np.mean(np.abs(np.sort(cold) - ts))))
+            ws.append(float(np.mean(np.abs(np.sort(warm) - ts))))
+        cold_w.append(float(np.mean(cs)))
+        warm_w.append(float(np.mean(ws)))
+
+    cold_w, warm_w = np.array(cold_w), np.array(warm_w)
+    i25 = ks.index(25)
+
+    # --- 그림이 주장하는 바를 그림이 스스로 확인한다 ----------------------
+    assert warm_w[0] < cold_w[0], "생성기 출발이 처음부터 가까워야 한다"
+    assert warm_w[i25] < 0.6 * cold_w[i25], (
+        f"짧은 사슬에서 뚜렷이 나아야 한다: {warm_w[i25]:.3f} vs {cold_w[i25]:.3f}")
+    assert warm_w[-1] > cold_w[-1] * 0.8, "긴 사슬에서는 이점이 사라져야 한다"
+
+    fig, ax = plt.subplots(figsize=(7.4, 4.3))
+    xs = np.array([max(k, 2) for k in ks], dtype=float)
+    ax.loglog(xs, cold_w, "s--", color=MUTED, ms=6, linewidth=2.0,
+              label="start from noise")
+    ax.loglog(xs, warm_w, "o-", color=ACCENT, ms=6, linewidth=2.2,
+              label="start from a generator")
+
+    ax.annotate("short chains:\nthe generator is worth about 2x",
+                xy=(xs[i25], warm_w[i25]), xytext=(2.6, 0.030),
+                fontsize=8.4, color=ACCENT,
+                arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.0))
+    ax.annotate("long chains:\nthe advantage is gone",
+                xy=(xs[-1], warm_w[-1]), xytext=(150, 0.33),
+                fontsize=8.4, color=INK,
+                arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+
+    ax.set_xlabel("Langevin steps k  (k = 0 plotted at 2)", fontsize=9)
+    ax.set_ylabel("Wasserstein-1 distance to the target", fontsize=9)
+    ax.set_title("a good start buys steps, not equilibrium", fontsize=10.5,
+                 color=INK, weight="bold", pad=9)
+    ax.legend(fontsize=8.6, loc="lower left", framealpha=0.93)
+    ax.grid(alpha=0.13, which="both")
+    ax.tick_params(labelsize=8, colors=INK)
+    for s_ in ax.spines.values():
+        s_.set_color(INK)
+        s_.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "two-mode target in one dimension, so the distance is exact. "
+             "averaged over 4 seeds.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "warm_start.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote warm_start.svg   k=25: warm {warm_w[i25]:.4f} vs cold "
+          f"{cold_w[i25]:.4f}   k=1600: {warm_w[-1]:.4f} vs {cold_w[-1]:.4f}")
+
+
 if __name__ == "__main__":
     cd_bias()
     ising_dimensions()
@@ -679,3 +772,4 @@ if __name__ == "__main__":
     recon_vs_likelihood()
     ula_bias()
     density_vs_typicality()
+    warm_start()
