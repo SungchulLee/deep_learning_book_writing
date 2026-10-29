@@ -374,8 +374,66 @@ def amortization_tradeoff():
     print(f"wrote amortization.svg   encoder {enc}  crossover N {cross:.0f}")
 
 
+
+
+# === 그림으로 보는 AI: 변분이라는 말이 어디서 왔는가 ==========================
+#
+# 조던 일행(1999)은 변분 변환을 **볼록 쌍대성**으로 세웠다. 오목한 log 는
+# 접선들의 아래끝(infimum)으로 적을 수 있다 — log x <= lambda*x - log lambda - 1,
+# 등호는 lambda = 1/x 에서만. 하한 하나가 아니라 **하한의 가족**이고, 변분
+# 파라메터를 고른다는 것은 그 가족에서 한 줄을 고른다는 뜻이다.
+
+def convex_duality():
+    x = np.linspace(0.12, 6.0, 400)
+    lams = [0.25, 0.5, 1.0, 2.0]
+
+    fig, ax = plt.subplots(figsize=(7.6, 4.4))
+    ax.plot(x, np.log(x), color=INK, linewidth=2.4, label="log x", zorder=5)
+
+    for i, lam in enumerate(lams):
+        bound = lam * x - np.log(lam) - 1.0
+        touch = 1.0 / lam
+        gap = (lam * touch - np.log(lam) - 1.0) - np.log(touch)
+        assert abs(gap) < 1e-12, "접점에서 등호여야 한다"
+        ax.plot(x, bound, "--", color=ACCENT, linewidth=1.5,
+                alpha=0.45 + 0.13 * i,
+                label="a family of bounds" if i == 0 else None)
+        ax.plot([touch], [np.log(touch)], marker="o", color=ACCENT,
+                markersize=6, markeredgecolor="white", markeredgewidth=1.1,
+                zorder=6)
+        ax.annotate(f"{lam:g}", xy=(touch, np.log(touch)), xytext=(3, -13),
+                    textcoords="offset points", fontsize=7.6, color=ACCENT)
+
+    ax.set_xlim(0, 6)
+    ax.set_ylim(-2.6, 2.6)
+    ax.set_xlabel("x", fontsize=9)
+    ax.set_ylabel("value", fontsize=9)
+    ax.set_title("every tangent is a bound; one of them is tight",
+                 fontsize=10, color=INK, weight="bold")
+    ax.legend(fontsize=8.4, framealpha=0.92, loc="lower right")
+    ax.grid(alpha=0.13)
+    style(ax)
+    ax.text(0.03, 0.96,
+            "log x  <=  lambda x - log lambda - 1,\n"
+            "equality only at lambda = 1/x",
+            transform=ax.transAxes, va="top", fontsize=8.4, color=ACCENT,
+            family="monospace")
+
+    fig.text(0.5, -0.03,
+             "choosing a variational parameter is choosing a line. the "
+             "bound is exact only where it touches.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "convex_duality.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote convex_duality.svg   tangency checked for "
+          f"{len(lams)} lambdas")
+
+
 if __name__ == "__main__":
     mean_field_shrinks()
     gradient_variance()
     em_staircase()
     amortization_tradeoff()
+    convex_duality()
