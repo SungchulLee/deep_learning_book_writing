@@ -424,7 +424,7 @@ for name, param in model.named_parameters():
 
 <div class="storybox" markdown>
 
-**그림으로 보는 AI 6.** 역전파는 반올림 오차를 좇다가 나왔다
+**그림으로 보는 AI 1.** 역전파는 반올림 오차를 좇다가 나왔다
 
 1970년, 헬싱키 대학교의 석사 논문 한 편이 나온다. 제목은 「알고리즘의 누적 반올림 오차를 국소 반올림 오차의 테일러 전개로 나타내기」(*Algoritmin kumulatiivinen pyöristysvirhe yksittäisten pyöristysvirheiden Taylor-kehitelmänä*)다. 쓴 사람은 세포 리나인마다.
 

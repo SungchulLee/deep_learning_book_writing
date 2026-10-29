@@ -161,7 +161,7 @@ $$\mathbf{x}_{t+1} = \mathbf{x}_t - \eta \nabla f(\mathbf{x}_t)$$
 
 <div class="storybox" markdown>
 
-**그림으로 보는 AI 5.** 코시가 연립방정식을 풀려다
+**그림으로 보는 AI 1.** 코시가 연립방정식을 풀려다
 
 1847년, 오귀스탱 루이 코시가 프랑스 과학원 회보에 세 쪽짜리 짧은 글을 싣는다. 제목은 「연립방정식 계의 해법에 관한 일반적 방법」(*Méthode générale pour la résolution des systèmes d'équations simultanées*)이다.
 
