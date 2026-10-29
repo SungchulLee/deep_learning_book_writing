@@ -263,7 +263,62 @@ def fig_shortcut_two_shapes():
     print("wrote shortcut_two_shapes.svg")
 
 
+# === 그림 4: 스템 하나가 해상도를 어디까지 삼키는가 =========================
+def fig_stem_resolution():
+    """같은 ResNet-18에 스템만 바꾸었을 때 단계별로 남는 공간 크기.
+
+    파라메터는 0.07%밖에 다르지 않은데(7x7 스템 9,408개, 3x3 스템 1,728개)
+    32x32 입력에서 남는 크기는 한 축마다 네 배씩 어긋나고, ImageNet 스템 쪽은
+    마지막 단계에서 1x1까지 줄어든다. 그 자리에서는 전역 평균 풀링이 한
+    위치만 모은다. 크기는 모두 쪽의 크기 공식으로 다시 셈한 값이다.
+    """
+    def out(h, k, p, s):
+        return (h + 2 * p - k) // s + 1
+
+    cifar = [32] + [32 // 2 ** i for i in range(1, 4)]
+    after = out(out(32, 7, 3, 2), 3, 1, 2)             # 32 -> 16 -> 8
+    imnet = [after] + [after // 2 ** i for i in range(1, 4)]
+    assert cifar == [32, 16, 8, 4] and imnet == [8, 4, 2, 1]
+    assert 7 * 7 * 3 * 64 - 3 * 3 * 3 * 64 == 7680
+
+    fig, ax = plt.subplots(figsize=(10.0, 4.4))
+    rows = [("cifar stem  3x3 / 1", cifar, "tab:blue", 1.55),
+            ("imagenet stem  7x7 / 2 + pool", imnet, SKIP, 0.0)]
+    unit = 0.030                                        # 화소 하나의 그림 단위
+    x0, dx = 2.75, 1.42
+    for lab, sizes, col, y0 in rows:
+        ax.text(0.04, y0, lab, ha="left", va="center", fontsize=9.5, color=col)
+        for i, s_ in enumerate(sizes):
+            x = x0 + i * dx
+            side = s_ * unit
+            ax.add_patch(plt.Rectangle((x - side / 2, y0 - side / 2), side, side,
+                                       facecolor=col, alpha=0.22,
+                                       edgecolor=col, lw=1.3, zorder=3))
+            ax.text(x, y0 - side / 2 - 0.22, f"{s_}x{s_}", ha="center",
+                    fontsize=9, color=col)
+            if i < 3:
+                ax.annotate("", xy=(x + dx - side / 2 - 0.08, y0),
+                            xytext=(x + side / 2 + 0.08, y0),
+                            arrowprops=dict(arrowstyle="->", color="0.65", lw=1.0))
+    for i in range(4):
+        ax.text(x0 + i * dx, 2.55, f"stage {i + 1}", ha="center", fontsize=9,
+                color="0.4")
+    ax.text(x0 + 3 * dx, -0.62, "global average pooling\ncombines one position",
+            ha="center", va="top", fontsize=8.5, color=SKIP)
+    ax.text(4.3, 3.05,
+            "same ResNet-18, 11.18 M parameters either way - the two stems "
+            "differ by 7,680 weights, 0.07%",
+            ha="center", fontsize=9)
+    ax.set_xlim(0, 8.3); ax.set_ylim(-1.35, 3.35)
+    ax.axis("off")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    fig.savefig("stem_resolution.svg", transparent=True)
+    plt.close(fig)
+    print("wrote stem_resolution.svg")
+
+
 if __name__ == "__main__":
     fig_residual_vs_plain()
     fig_pre_vs_post_activation()
     fig_shortcut_two_shapes()
+    fig_stem_resolution()
