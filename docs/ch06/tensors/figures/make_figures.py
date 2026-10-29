@@ -718,7 +718,117 @@ def cheap_gradient():
           f"{[round(r,2) for r in ratio]}   jac {jac[0]:.3f}->{jac[-1]:.3f}ms")
 
 
+# === 그림으로 보는 AI: 줄 먼저냐 칸 먼저냐 ====================================
+#
+# 왼쪽은 같은 행렬을 메모리에 담는 두 차례 — 줄 먼저(C·NumPy·PyTorch)와
+# 칸 먼저(포트란·BLAS·LAPACK). 고른 쪽이 무엇이 연속인지를 정한다.
+# 오른쪽은 **직접 잰다**: 같은 자료 같은 셈인데 방향만 다를 때의 값, 그리고
+# 연속으로 만드는 값. 수는 전부 여기서 돌려 얻는다.
+
+def memory_order():
+    import time
+
+    import torch
+
+    def bench(fn, reps=40, rounds=5):
+        for _ in range(10):
+            fn()
+        best = None
+        for _ in range(rounds):
+            t0 = time.perf_counter()
+            for _ in range(reps):
+                fn()
+            t = (time.perf_counter() - t0) / reps * 1e3
+            best = t if best is None else min(best, t)
+        return best
+
+    torch.manual_seed(0)
+    n = 4096
+    a = torch.randn(n, n)
+    b = a.T
+    assert a.untyped_storage().data_ptr() == b.untyped_storage().data_ptr(), \
+        "전치가 저장소를 공유해야 이 그림의 이야기가 성립한다"
+    assert not b.is_contiguous()
+
+    t_row = bench(lambda: a.sum(dim=1))
+    t_col = bench(lambda: a.sum(dim=0))
+    t_con = bench(lambda: b.contiguous(), reps=10, rounds=3)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.0),
+                                   gridspec_kw={"width_ratios": [1.25, 1]})
+
+    # --- 왼쪽: 같은 행렬, 두 가지 차례 -------------------------------------
+    vals = [[1, 2, 3], [4, 5, 6]]
+    row_major = [1, 2, 3, 4, 5, 6]
+    col_major = [1, 4, 2, 5, 3, 6]
+
+    for r in range(2):
+        for c in range(3):
+            ax1.add_patch(plt.Rectangle((0.06 + c * 0.11, 0.70 - r * 0.13),
+                                        0.10, 0.12, facecolor=ACCENT,
+                                        alpha=0.14, edgecolor=ACCENT,
+                                        linewidth=0.9))
+            ax1.text(0.11 + c * 0.11, 0.76 - r * 0.13, str(vals[r][c]),
+                     ha="center", va="center", fontsize=10, color=INK)
+    ax1.text(0.225, 0.90, "the matrix", ha="center", fontsize=9, color=INK,
+             style="italic")
+
+    for k, (name, seq, col, y) in enumerate(
+            (("row-major   C, NumPy, PyTorch", row_major, ACCENT, 0.36),
+             ("column-major   Fortran, BLAS, LAPACK", col_major, MUTED, 0.11))):
+        ax1.text(0.03, y + 0.155, name, fontsize=8.6, color=col,
+                 weight="bold")
+        for i, v in enumerate(seq):
+            ax1.add_patch(plt.Rectangle((0.03 + i * 0.095, y), 0.088, 0.105,
+                                        facecolor=col, alpha=0.14,
+                                        edgecolor=col, linewidth=0.9))
+            ax1.text(0.074 + i * 0.095, y + 0.052, str(v), ha="center",
+                     va="center", fontsize=10, color=INK)
+        ax1.annotate("", xy=(0.62, y + 0.052), xytext=(0.03, y + 0.052),
+                     arrowprops=dict(arrowstyle="-", color=col, lw=0.0))
+    ax1.text(0.70, 0.41, "one block of memory,\nread in two orders",
+             fontsize=8.4, color=INK, alpha=0.85, va="center")
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0.03, 1.0)
+    ax1.axis("off")
+    ax1.set_title("the same six numbers", fontsize=10, color=INK,
+                  weight="bold")
+
+    # --- 오른쪽: 고른 차례가 무엇을 값으로 매기는가 ------------------------
+    labels = ["sum(dim=1)\nalong memory", "sum(dim=0)\nacross it",
+              ".contiguous()\non the transpose"]
+    vals_t = [t_row, t_col, t_con]
+    ax2.bar(range(3), vals_t, color=[ACCENT, INK, INK], width=0.55,
+            alpha=0.85)
+    for i, v in enumerate(vals_t):
+        ax2.text(i, v + max(vals_t) * 0.025, f"{v:.2f} ms", ha="center",
+                 fontsize=9, color=INK)
+    ax2.set_xticks(range(3))
+    ax2.set_xticklabels(labels, fontsize=8)
+    ax2.set_ylabel("milliseconds", fontsize=9)
+    ax2.set_ylim(0, max(vals_t) * 1.2)
+    ax2.set_title(f"4096 x 4096, same data", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.06,
+             f"striding the wrong way costs {t_col/t_row:.1f}x. making it "
+             f"contiguous costs {t_con/t_row:.0f} sums.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "memory_order.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote memory_order.svg   row {t_row:.3f} col {t_col:.3f} "
+          f"contig {t_con:.3f}")
+
+
 if __name__ == "__main__":
+    memory_order()
     tensor_word()
     arange_promise()
     loss_scaling()
