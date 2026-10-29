@@ -52,6 +52,32 @@ $$\ell(\theta_{t+1})\geq\mathcal L(q_t,\theta_{t+1})\geq\mathcal L(q_t,\theta_t)
 
 제약 없는 GMM은 성분 공분산이 붕괴하면서 우도가 무한히 커질 수 있어, 필요한 유계성과 콤팩트성부터 실패할 수 있다. 따라서 우도 증가, 유한 최적해의 존재, 정상점 수렴, 파라메터 수렴을 각각 확인한다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 이름이 붙기 전에 정리가 먼저 있었다
+
+EM이라는 이름은 1977년에 생겼다. 하버드의 아서 템프스터(Arthur Dempster)·낸 레어드(Nan Laird)와 교육평가원의 도널드 루빈(Donald Rubin)이 《왕립통계학회지 B》에 실은 글이고, 이름의 유래는 글 첫머리에 그대로 적혀 있다.
+
+> "Since each iteration of the algorithm consists of an expectation step followed by a maximization step **we call it the EM algorithm.**"
+
+재미있는 것은 세 사람이 **새로 만들었다고 말하지 않았다**는 점이다. 같은 글 3쪽에서 이렇게 적는다 — "The EM algorithm has been proposed many times in special circumstances." 하틀리(1958)가 다항분포 예제 셋을 이미 다뤘고, 이론의 일부는 "특수한 예제들의 문헌 속에 묻혀 있었다(has remained buried in the literature of special examples)"고 했다. 그 가운데 가장 뼈아픈 한 줄이 바움(Baum) 일행의 1970년 논문을 두고 한 말이다.
+
+> "Lemma 1 and its consequence Theorem 1 were presented by Baum et al. (1970) in an unusual special case, but **apparently without recognition of the broad generality of their argument.**"
+
+바움 일행은 은닉 마르코프 모델에서 쓰려고 그 정리를 이미 증명해 두었다. 오늘 바움–웰치 알고리즘이라 부르는 것이다. 정리를 가지고 있었지만 그것이 얼마나 넓게 통하는지를 알아보지 못했고, 1977년의 기여는 새 정리가 아니라 **그 일반성을 알아본 것**이었다.
+
+그렇다면 그 정리가 말하는 것은 정확히 무엇인가. 논문 3절의 표현으로 "successive iterations always increase the likelihood, and that convergence implies a stationary point". 성분 다섯이 겹치는 자료에 EM을 열두 군데에서 돌려 보면 이렇다.
+
+![왼쪽은 EM 반복 횟수에 따른 관측 로그 우도 곡선 열둘로, 모두 한 번도 내려가지 않고 올라가며 서로 다른 높이에서 평평해진다. 한 걸음의 최소 변화량이 양수라고 적혀 있다. 오른쪽은 열두 번의 실행이 최종적으로 멈춘 로그 우도 값을 가로축에 찍은 것으로, 열두 점이 모두 다른 자리에 있고 가장 낮은 값과 높은 값이 9.49 떨어져 있다.](figures/em_monotone.svg)
+
+왼쪽이 정리다. 열두 번을 합쳐 1,428걸음 동안 로그 우도가 내려간 적이 **한 번도 없고**, 가장 작았던 한 걸음도 $+1.4\times10^{-3}$ 으로 양수다. 1977년의 보장은 이렇게 정확히 지켜진다.
+
+**오른쪽이 그 정리가 말하지 않는 것이다.** 열두 번이 **모두 다른 자리**에서 멈추고, 가장 좋은 끝과 가장 나쁜 끝이 9.49 떨어져 있다. 위 문단이 "이 사실만으로 파라메터열의 수렴이나 극한점의 정상성, 전역 최대 여부까지 따라오지는 않는다"고 적어 둔 그대로다. 매 걸음 올라간다는 말과 올라가서 닿을 곳이 정해져 있다는 말은 다르며, EM이 주는 것은 앞의 것뿐이다. 7절이 초기값을 여러 개 두라고 하는 까닭이 여기 있다.
+
+_확인한 곳 — A. P. Dempster, N. M. Laird, D. B. Rubin, "Maximum Likelihood from Incomplete Data via the EM Algorithm", *Journal of the Royal Statistical Society, Series B* **39**(1), 1–38 (1977). 이름 붙인 대목은 1절, 선행 연구를 적은 대목은 3쪽, 바움 일행에 대한 평은 보조정리 1 뒤에 있다. 그림의 수는 그림을 그리는 코드가 직접 돌려 얻으며, 단조 증가가 깨지면 코드가 멈추도록 해 두었다._
+
+</div>
+
 ## 5. 전역 최적성과 수축 조건
 
 볼록한 영역에서 ℓ이 오목하면 적절한 최적성 조건을 만족하는 점은 전역 최대점이다. 엄격한 오목성은 최대점이 존재할 때 유일성을 준다. 열린 영역에서 최대값이 경계로 달아나는 경우처럼 존재 자체는 따로 확인해야 한다.
