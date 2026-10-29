@@ -8,6 +8,28 @@
 
 모든 VI가 관측별 독립 최적화 문제로 분해되는 것은 아니다. 여기서는 조건부로 분리되는 지역 잠재변수와 고정된 전역 모델을 기준으로 비교한다. 새 관측에도 인코더를 적용할 수 있지만 훈련 분포 밖에서의 정확성이나 일반화가 자동으로 보장되지는 않는다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 추론을 푸는 대신 외워 두기
+
+$\lambda=f_\psi(x)$ 를 배워 두자는 이 절의 생각은 VAE보다 열여덟 해 앞선다. 1995년 피터 다얀(Peter Dayan)·제프리 힌턴·래드퍼드 닐·리처드 제멜(Richard Zemel)이 《뉴럴 컴퓨테이션》에 쓴 「헬름홀츠 기계」다. 그 글이 자기 장치를 설명한 대목이 이 절의 첫 문단과 거의 같은 말이다.
+
+> "uses an **explicit recognition model which has its own parameters** rather than performing recognition by an iterative process involving only the parameters of the generative model, allowing recognition to occur **swiftly in a single pass**."
+
+이름이 헬름홀츠인 까닭은 지각을 "분석을 통한 합성(analysis by synthesis)"으로 본 데 있다 — 엉성한 생성모델이 더 나은 인식모델을 가르치고, 엉성한 인식모델이 다시 더 나은 생성모델을 가르친다. 2013년 킹마와 벨링이 같은 것을 "recognition model"이라 부르며 리파라메리제이션과 묶은 것이 오늘의 인코더다.
+
+무엇을 아낀 것인지는 세어 보면 분명하다.
+
+![가로축이 관측 수 N, 세로축이 들고 있어야 할 변분 파라메터 수인 로그 그래프. 관측마다 따로 두는 쪽은 4N으로 곧게 올라가고, 인코더 하나로 하는 쪽은 N과 무관하게 1,604에서 평평하다. 두 선이 N이 401일 때 만난다고 적혀 있다.](figures/amortization.svg)
+
+잠재 차원이 2이고 은닉 64짜리 인코더 하나라면 들고 있을 수가 1,604개다. **$N$ 이 얼마든 1,604개다.** 관측마다 $\lambda$ 를 따로 두면 $4N$ 개라서 $N=401$ 에서 두 쪽이 만나고, 백만 관측이면 400만 대 1,604가 된다. 게다가 새 $x$ 가 오면 최적화를 다시 도는 대신 순전파 한 번이면 된다.
+
+**그런데 아낀 것은 저장과 속도이지 근사의 질이 아니다.** 바로 아래 2절이 그 값을 식으로 갈라 적는다 — $\log p_\theta(x)-L_x(f_\psi(x);\theta)$ 는 분포족 때문에 생기는 근사 차이에 **상각 차이** $L_x^\star-L_x(f_\psi(x);\theta)$ 가 더해진 것이다. 관측마다 따로 풀었다면 없었을 차이가 인코더를 쓰기로 한 대가로 새로 생긴다. 인코더가 $x$ 마다의 최적 $\lambda^\star(x)$ 를 정확히 맞힐 이유가 없기 때문이고, 위 문단이 적어 둔 대로 훈련 분포 밖에서는 더욱 그렇다. 1,604라는 수에는 그 차이가 들어 있지 않다.
+
+_확인한 곳 — P. Dayan, G. E. Hinton, R. M. Neal, R. S. Zemel, "The Helmholtz Machine", *Neural Computation* **7**(5), 889–904 (1995). 인용한 문장은 인식모델을 설명하는 대목이다. 같은 해 G. E. Hinton, P. Dayan, B. J. Frey, R. M. Neal 의 wake-sleep 알고리즘이 *Science* 에 함께 나왔다. D. P. Kingma, M. Welling, arXiv:1312.6114 (2013) 이 같은 장치를 recognition model 이라 부른다. 그림의 두 수는 그림을 그리는 코드가 직접 센다._
+
+</div>
+
 ## 2. 근사 차이와 상각 차이
 
 같은 θ와 같은 분포족에서 Lₓ★=sup_λ Lₓ(λ;θ)라고 정의하면 다음처럼 나눌 수 있다.

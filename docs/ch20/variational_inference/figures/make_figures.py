@@ -325,7 +325,57 @@ def em_staircase():
           f"first M gap {gaps[1]:.2f}")
 
 
+
+
+# === 그림으로 보는 AI: 관측마다 풀 것인가, 한 번 배워 둘 것인가 ===============
+#
+# 개별 추론은 관측마다 lambda 를 따로 들고 있어야 한다 — 2N 개.
+# 상각 추론은 인코더 하나로 끝난다 — N 과 무관한 고정 크기.
+# 두 수를 직접 세어 그린다.
+
+def amortization_tradeoff():
+    d_lat, d_in, hid = 2, 20, 64
+    enc = d_in * hid + hid + hid * (2 * d_lat) + 2 * d_lat   # 작은 인코더 하나
+    Ns = np.logspace(1, 6, 60)
+    per_obs = 2 * d_lat * Ns
+
+    cross = enc / (2 * d_lat)
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.3))
+    ax.loglog(Ns, per_obs, "-", color=INK, linewidth=2.1,
+              label=f"per-observation: {2*d_lat}N numbers")
+    ax.axhline(enc, color=ACCENT, linewidth=2.1, linestyle="--",
+               label=f"one encoder: {enc:,} numbers, whatever N is")
+    ax.axvline(cross, color=INK, linestyle=":", linewidth=1.0, alpha=0.6)
+    ax.annotate(f"they cross at\nN = {cross:,.0f}",
+                xy=(cross, enc), xytext=(26, -46),
+                textcoords="offset points", fontsize=8.4, color=INK,
+                arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax.set_xlabel("number of observations N", fontsize=9)
+    ax.set_ylabel("variational parameters to carry (log)", fontsize=9)
+    ax.set_title("what amortization actually buys", fontsize=10, color=INK,
+                 weight="bold")
+    ax.legend(fontsize=8.4, framealpha=0.92, loc="upper left")
+    ax.grid(alpha=0.13, which="both")
+    style(ax)
+    ax.text(0.97, 0.08,
+            "a latent of 2, an encoder of one hidden layer of 64",
+            transform=ax.transAxes, ha="right", fontsize=7.8, color=INK,
+            alpha=0.7)
+
+    fig.text(0.5, -0.04,
+             "the saving is in what you store and how fast a new x is "
+             "handled - not in how good the approximation is.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "amortization.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote amortization.svg   encoder {enc}  crossover N {cross:.0f}")
+
+
 if __name__ == "__main__":
     mean_field_shrinks()
     gradient_variance()
     em_staircase()
+    amortization_tradeoff()
