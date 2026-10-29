@@ -114,5 +114,64 @@ def lambda_sweep():
           f"vs TD(0) {gain_td:.3f}x   vs MC {gain_mc:.3f}x")
 
 
+# === 그림으로 보는 AI: 자격이라는 말이 어디서 왔는가 ==========================
+#
+# 같은 상태를 거듭 들렀을 때 쌓는 추적과 바꿔 치는 추적이 어떻게 갈리는지
+# 직접 셈해 그린다. 1972 년 클로프의 "자격" 은 시냅스가 **한동안만** 고칠
+# 수 있는 상태로 남는다는 뜻이었고, 바꿔 치는 쪽이 그 그림에 가깝다.
+
+def trace_classes():
+    lam, gam = 0.9, 1.0
+    visits = [1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    acc, rep = [], []
+    a = r = 0.0
+    for v in visits:
+        a = gam * lam * a + (1 if v else 0)
+        r = 1.0 if v else gam * lam * r
+        acc.append(a)
+        rep.append(r)
+
+    assert max(acc) > 1.0, "쌓는 추적이 1 을 넘지 않았다"
+    assert max(rep) <= 1.0 + 1e-12, "바꿔 치는 추적이 1 을 넘었다"
+
+    t = np.arange(len(visits))
+    fig, ax = plt.subplots(figsize=(7.8, 4.2))
+    for i, v in enumerate(visits):
+        if v:
+            ax.axvline(i, color=INK, alpha=0.16, linewidth=6)
+    ax.plot(t, acc, "o-", color=ACCENT, linewidth=2.2, ms=5,
+            label="accumulating trace")
+    ax.plot(t, rep, "s--", color=INK, linewidth=1.9, ms=5,
+            label="replacing trace")
+    ax.axhline(1.0, color=INK, linestyle=":", linewidth=1.0, alpha=0.6)
+    ax.annotate(f"peaks at {max(acc):.2f}", xy=(int(np.argmax(acc)), max(acc)),
+                xytext=(12, -6), textcoords="offset points", fontsize=8.6,
+                color=ACCENT)
+    ax.text(0.2, 1.06, "shaded columns are visits", fontsize=8.2, color=INK,
+            alpha=0.75)
+    ax.set_xlabel("time step", fontsize=9.5)
+    ax.set_ylabel("eligibility of that one state", fontsize=9.5)
+    ax.set_title("two ways to stay eligible", fontsize=10.5, color=INK,
+                 weight="bold")
+    ax.legend(fontsize=8.6, framealpha=0.92)
+    ax.grid(alpha=0.13)
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"lambda {lam}. revisiting pushes one of them above 1 and leaves "
+             "the other at 1.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "trace_classes.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote trace_classes.svg   accumulating peak {max(acc):.3f}   "
+          f"replacing peak {max(rep):.3f}")
+
+
 if __name__ == "__main__":
     lambda_sweep()
+    trace_classes()
