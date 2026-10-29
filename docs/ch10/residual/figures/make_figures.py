@@ -175,6 +175,95 @@ def fig_pre_vs_post_activation():
     print("wrote pre_vs_post_activation.svg")
 
 
+# === 그림 3: 지름길의 두 모습 ===============================================
+def _tensor(ax, x, y, label, color="#555555", w=1.25, h=0.30):
+    ax.add_patch(FancyBboxPatch((x - w / 2, y - h / 2), w, h,
+                                boxstyle="round,pad=0.02", linewidth=1.0,
+                                edgecolor=color, facecolor=BOX, zorder=3))
+    ax.text(x, y, label, ha="center", va="center", fontsize=8.5, zorder=4)
+
+
+def fig_shortcut_two_shapes():
+    """모양이 맞으면 지름길이 공짜이고, 어긋나면 값을 치른다.
+
+    수는 모두 쪽이 적은 것이다. 항등 블록은 18C^2+4C로 C=64에서 73,984개,
+    투영 블록은 221,696 + 8,448 = 230,144개다. 그림 스크립트가 nn.Conv2d와
+    nn.BatchNorm2d로 다시 세어 같은 값이 나오는지 확인한다.
+    """
+    import torch.nn as nn
+
+    def count(cin, cout, s):
+        mods = [nn.Conv2d(cin, cout, 3, s, 1, bias=False), nn.BatchNorm2d(cout),
+                nn.Conv2d(cout, cout, 3, 1, 1, bias=False), nn.BatchNorm2d(cout)]
+        main = sum(q.numel() for m in mods for q in m.parameters())
+        proj = 0
+        if s != 1 or cin != cout:
+            sc = nn.Sequential(nn.Conv2d(cin, cout, 1, s, bias=False),
+                               nn.BatchNorm2d(cout))
+            proj = sum(q.numel() for q in sc.parameters())
+        return main, proj
+
+    m_id, p_id = count(64, 64, 1)
+    m_pr, p_pr = count(64, 128, 2)
+    assert (m_id, p_id) == (73984, 0) and (m_pr, p_pr) == (221696, 8448)
+
+    panels = [("shapes match", "32x32x64", "32x32x64", m_id, p_id,
+               "identity - no parameters", "#777777"),
+              ("shapes differ", "32x32x64", "16x16x128", m_pr, p_pr,
+               "1x1 conv + BN", SKIP)]
+
+    fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.6))
+    for ax, (title, shin, shout, main, proj, sclab, col) in zip(axes, panels):
+        _tensor(ax, 0, 0.0, shin)
+        for i, lab in enumerate(["Conv 3x3", "BatchNorm", "ReLU",
+                                 "Conv 3x3", "BatchNorm"]):
+            _box(ax, -(i + 1) * 0.62, lab, w=1.25)
+        y_add = -3.95
+        _down(ax, -0.15, -0.62 + 0.15)
+        for i in range(5):
+            y = -(i + 1) * 0.62
+            _down(ax, y - 0.15, (y - 0.62 + 0.15) if i < 4 else y_add + 0.14)
+
+        xr = 1.5
+        ax.add_patch(FancyArrowPatch((0.05, 0.0), (xr, 0.0), arrowstyle="-",
+                                     color=col, lw=2.0, zorder=2))
+        if proj:                            # 투영 지름길은 상자를 하나 지난다
+            ax.add_patch(FancyBboxPatch((xr - 0.62, -2.1), 1.24, 0.34,
+                                        boxstyle="round,pad=0.02", linewidth=1.4,
+                                        edgecolor=col, facecolor="#fde7dc", zorder=3))
+            ax.text(xr, -1.93, sclab, ha="center", va="center", fontsize=8.5, zorder=4)
+            ax.add_patch(FancyArrowPatch((xr, 0.0), (xr, -1.76), arrowstyle="-",
+                                         color=col, lw=2.0, zorder=2))
+            ax.add_patch(FancyArrowPatch((xr, -2.1 - 0.17), (xr, y_add),
+                                         arrowstyle="-", color=col, lw=2.0, zorder=2))
+            ax.text(xr + 0.12, -2.6, f"{proj:,} params", fontsize=8.5, color=col)
+        else:
+            ax.add_patch(FancyArrowPatch((xr, 0.0), (xr, y_add), arrowstyle="-",
+                                         color=col, lw=2.0, zorder=2))
+            ax.text(xr + 0.12, -2.0, sclab, fontsize=8.5, color=col)
+        ax.add_patch(FancyArrowPatch((xr, y_add), (0.15, y_add), arrowstyle="-|>",
+                                     mutation_scale=12, color=col, lw=2.0, zorder=2))
+        ax.add_patch(plt.Circle((0, y_add), 0.13, facecolor="white",
+                                edgecolor="#555555", lw=1.0, zorder=4))
+        ax.text(0, y_add, "+", ha="center", va="center", fontsize=12, zorder=5)
+        _down(ax, y_add - 0.14, -4.45 + 0.16)
+        _box(ax, -4.45, "ReLU", w=1.25)
+        _down(ax, -4.45 - 0.16, -4.95 + 0.16)
+        _tensor(ax, 0, -4.95, shout)
+
+        ax.set_title(f"{title}   ({shin} -> {shout})", fontsize=10.5, pad=8)
+        ax.text(0.1, -5.7, f"block total  {main + proj:,} parameters",
+                ha="center", fontsize=9.5)
+        ax.set_xlim(-1.35, 3.3)
+        ax.set_ylim(-6.1, 0.45)
+        ax.axis("off")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.93, bottom=0.02, wspace=0.03)
+    fig.savefig("shortcut_two_shapes.svg", transparent=True)
+    plt.close(fig)
+    print("wrote shortcut_two_shapes.svg")
+
+
 if __name__ == "__main__":
     fig_residual_vs_plain()
     fig_pre_vs_post_activation()
+    fig_shortcut_two_shapes()
