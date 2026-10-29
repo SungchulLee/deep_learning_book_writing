@@ -115,5 +115,89 @@ def cover_hart_corridor():
           f"measured {mean[-1]:.4f}  ceiling {2*r_star:.4f}")
 
 
+# === 그림으로 보는 AI: 버려도 되는 점과 버리면 안 되는 점 =====================
+#
+# 1992년 초록의 말로 "supporting patterns" 만 있으면 해가 그대로다. 이 쪽의
+# 자료로 확인한다. 서포트 벡터만 남기면 결정함수가 거의 그대로이고, 나머지만
+# 남기면 크게 움직인다.
+#
+# 주의: gamma="scale" 은 넣어 준 자료의 분산으로 다시 셈한다. 부분집합으로
+# 다시 학습하면 모형 자체가 바뀌어 버려 비교가 성립하지 않는다. 그래서
+# gamma 를 전체 학습 집합에서 한 번 셈해 못박고 쓴다.
+
+def svm_what_matters():
+    from sklearn.svm import SVC
+    from sklearn.datasets import make_classification
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    X, y = make_classification(n_samples=500, n_features=10, random_state=42)
+    X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2,
+                                              random_state=42)
+    sc = StandardScaler()
+    X_tr_s = sc.fit_transform(X_tr)
+    X_te_s = sc.transform(X_te)
+
+    g = 1.0 / (X_tr_s.shape[1] * X_tr_s.var())      # 못박은 gamma
+    full = SVC(kernel="rbf", C=1.0, gamma=g).fit(X_tr_s, y_tr)
+    sv = full.support_
+    non = np.setdiff1d(np.arange(len(X_tr_s)), sv)
+
+    only = SVC(kernel="rbf", C=1.0, gamma=g).fit(X_tr_s[sv], y_tr[sv])
+    alt = SVC(kernel="rbf", C=1.0, gamma=g).fit(X_tr_s[non], y_tr[non])
+
+    d0 = full.decision_function(X_te_s)
+    d1 = only.decision_function(X_te_s)
+    d2 = alt.decision_function(X_te_s)
+    e1, e2 = np.abs(d0 - d1).max(), np.abs(d0 - d2).max()
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.2))
+
+    # --- 왼쪽: 무엇을 버렸는가 --------------------------------------------
+    ax1.barh([1], [len(sv)], color=ACCENT, height=0.5,
+             label=f"supporting patterns ({len(sv)})")
+    ax1.barh([1], [len(non)], left=[len(sv)], color="#cfc8bd", height=0.5,
+             label=f"the rest ({len(non)})")
+    ax1.set_yticks([])
+    ax1.set_xlim(0, len(X_tr_s))
+    ax1.set_xlabel("training points", fontsize=9.5)
+    ax1.set_title(f"{len(non)} of {len(X_tr_s)} can go",
+                  fontsize=10.5, color=INK, weight="bold")
+    ax1.legend(fontsize=8.5, loc="lower center", framealpha=0.9)
+    ax1.text(len(sv) / 2, 1, f"{len(sv)/len(X_tr_s)*100:.0f}%", ha="center",
+             va="center", fontsize=11, color="white", weight="bold")
+    ax1.set_ylim(0.5, 1.5)
+    style(ax1)
+
+    # --- 오른쪽: 경계가 움직였는가 ----------------------------------------
+    lim = [min(d0.min(), d2.min()) - 0.2, max(d0.max(), d2.max()) + 0.2]
+    ax2.plot(lim, lim, color=INK, linewidth=0.9, linestyle=":", zorder=1)
+    ax2.scatter(d0, d2, s=26, color="#8c8880", alpha=0.75, zorder=2,
+                label=f"keep only the rest   (max gap {e2:.2f})")
+    ax2.scatter(d0, d1, s=26, color=ACCENT, zorder=3,
+                label=f"keep only the {len(sv)}   (max gap {e1:.5f})")
+    ax2.set_xlabel("decision value, trained on all 400", fontsize=9.5)
+    ax2.set_ylabel("decision value, retrained on a subset", fontsize=9.5)
+    ax2.set_title("one subset keeps the boundary, one does not",
+                  fontsize=10.5, color=INK, weight="bold")
+    ax2.legend(fontsize=8, loc="upper left", framealpha=0.92)
+    ax2.set_xlim(lim)
+    ax2.set_ylim(lim)
+    ax2.grid(alpha=0.13)
+    style(ax2)
+
+    fig.text(0.5, -0.04,
+             "gamma is pinned to the full training set - sklearn's "
+             "gamma='scale' would otherwise be recomputed and change the model.",
+             ha="center", fontsize=8.2, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "svm_supporting.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote svm_supporting.svg   sv {len(sv)}/{len(X_tr_s)}   "
+          f"gap sv-only {e1:.3e}   rest-only {e2:.3e}")
+
+
 if __name__ == "__main__":
     cover_hart_corridor()
+    svm_what_matters()
