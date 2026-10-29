@@ -136,5 +136,103 @@ def bayes_table():
     print(f"wrote bayes_table.svg   p={p} q={q}  P({lo},{hi})={prob:.4f}")
 
 
+# === 그림으로 보는 AI: 켤레족이 말할 수 없는 믿음 =============================
+#
+# "0.2 쯤이거나 0.8 쯤이다" 는 믿음을 베타 하나로는 적을 수 없다. 평균과 분산을
+# 맞춘 베타는 **안쪽 봉우리가 아예 없고** 끝에서 발산한다 — 곧 "거의 늘 앞면
+# 이거나 거의 늘 뒷면" 이라는 다른 믿음이다. 수는 모두 여기서 셈한다.
+
+def conjugate_limit():
+    from scipy.special import betaln
+
+    w, A, B = 0.5, (2.0, 8.0), (8.0, 2.0)
+
+    def mix_pdf(x, P1, P2, ww):
+        return ww * stats.beta(*P1).pdf(x) + (1 - ww) * stats.beta(*P2).pdf(x)
+
+    def mix_cdf(x, P1, P2, ww):
+        return ww * stats.beta(*P1).cdf(x) + (1 - ww) * stats.beta(*P2).cdf(x)
+
+    m1, v1 = stats.beta(*A).mean(), stats.beta(*A).var()
+    m2, v2 = stats.beta(*B).mean(), stats.beta(*B).var()
+    mean = w * m1 + (1 - w) * m2
+    var = w * (v1 + m1 ** 2) + (1 - w) * (v2 + m2 ** 2) - mean ** 2
+    k = mean * (1 - mean) / var - 1
+    a, b = mean * k, (1 - mean) * k
+    single = stats.beta(a, b)
+
+    # 그림이 제 주장을 확인한다 — 평균과 분산이 정말 같은가
+    assert abs(single.mean() - mean) < 1e-9, "평균이 안 맞는다"
+    assert abs(single.var() - var) < 1e-9, "분산이 안 맞는다"
+
+    # 그리고 안쪽 봉우리가 정말 없는가
+    xs = np.linspace(1e-4, 1 - 1e-4, 20001)
+    def interior_modes(y):
+        return [xs[i] for i in range(1, len(xs) - 1)
+                if y[i] > y[i - 1] and y[i] > y[i + 1]]
+    assert len(interior_modes(mix_pdf(xs, A, B, w))) == 2, "혼합은 봉우리 둘"
+    assert len(interior_modes(single.pdf(xs))) == 0, "단일 베타는 안쪽 봉우리 없음"
+
+    def deterministic(cdf):
+        return cdf(0.05) + (1 - cdf(0.95))
+
+    d_mix = deterministic(lambda x: mix_cdf(x, A, B, w))
+    d_one = deterministic(single.cdf)
+
+    h, n = 1, 4
+    def lml(P):
+        return betaln(P[0] + h, P[1] + n - h) - betaln(*P)
+    w1 = w * np.exp(lml(A))
+    w2 = (1 - w) * np.exp(lml(B))
+    w1, w2 = w1 / (w1 + w2), w2 / (w1 + w2)
+    A2, B2 = (A[0] + h, A[1] + n - h), (B[0] + h, B[1] + n - h)
+    p_mix = deterministic(lambda x: mix_cdf(x, A2, B2, w1))
+    p_one = deterministic(stats.beta(a + h, b + n - h).cdf)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1), sharey=True)
+
+    for ax, (P1, P2, ww), one, title, dm, do in (
+            (ax1, (A, B, w), single, "the belief", d_mix, d_one),
+            (ax2, (A2, B2, w1), stats.beta(a + h, b + n - h),
+             f"after {h} head in {n}", p_mix, p_one)):
+        ax.plot(xs, mix_pdf(xs, P1, P2, ww), color=ACCENT, linewidth=2.1,
+                label="mixture of two Betas")
+        ax.plot(xs, one.pdf(xs), color=INK, linewidth=1.9, linestyle="--",
+                label="one Beta, same mean and variance" if ax is ax1
+                else "one Beta")
+        ax.axvspan(0, 0.05, color=MUTED, alpha=0.13)
+        ax.axvspan(0.95, 1, color=MUTED, alpha=0.13)
+        ax.set_title(title, fontsize=10, color=INK, weight="bold")
+        ax.set_xlabel("the unknown chance", fontsize=9)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 3.6)
+        ax.grid(alpha=0.12)
+        ax.legend(fontsize=7.8, loc="upper center", framealpha=0.9)
+        ax.text(0.5, 0.40,
+                f"P(below 0.05 or above 0.95)\n"
+                f"mixture {dm:.4f}      one Beta {do:.4f}",
+                transform=ax.transAxes, ha="center", fontsize=8.4,
+                color=INK,
+                bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
+                          edgecolor=INK, alpha=0.9))
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    ax1.set_ylabel("density", fontsize=9)
+    fig.text(0.5, -0.03,
+             f"identical mean ({mean:.3f}) and variance ({var:.4f}). "
+             f"the shaded ends are where they disagree.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "conjugate_limit.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote conjugate_limit.svg   Beta({a:.3f},{b:.3f})  "
+          f"prior {d_mix:.4f} vs {d_one:.4f}   post {p_mix:.4f} vs {p_one:.4f}")
+
+
 if __name__ == "__main__":
     bayes_table()
+    conjugate_limit()
