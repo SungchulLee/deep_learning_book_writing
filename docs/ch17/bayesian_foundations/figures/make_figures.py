@@ -403,15 +403,6 @@ def two_intervals():
           f"{cov_f.min():.3f}   post {pb:.4f} / {pf:.4f}")
 
 
-if __name__ == "__main__":
-    bayes_table()
-    conjugate_limit()
-    map_not_invariant()
-    two_intervals()
-    thompson_1933()
-    james_stein()
-    efron_morris()
-
 
 # === 그림으로 보는 AI: 1933년의 동기를 그대로 재어 본다 =======================
 #
@@ -624,3 +615,12 @@ def efron_morris():
     plt.close(fig)
     print(f"wrote efron_morris.svg   ratio med {np.median(ratio):.3f}  "
           f"closer {closer.mean():.1f}/18  loses {lose*100:.1f}%")
+
+if __name__ == "__main__":
+    bayes_table()
+    conjugate_limit()
+    map_not_invariant()
+    two_intervals()
+    thompson_1933()
+    james_stein()
+    efron_morris()
