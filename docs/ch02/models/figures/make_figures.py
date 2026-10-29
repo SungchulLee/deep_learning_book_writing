@@ -283,7 +283,83 @@ def gini_vs_entropy():
           f"max gap {np.abs(gm-em).max():.4f}   typical spread {gs.mean():.4f}")
 
 
+# === 그림으로 보는 AI: 가우스가 고른 가정이 무엇을 사 주는가 ==================
+#
+# 최소제곱이 좋은 것은 오차가 정규분포일 때다. 그 가정을 조금 깨면 어떻게 되는지
+# 잰다. 참 기울기 2.0 을 알고 있으니 오차를 정확히 잴 수 있다.
+
+def least_squares_assumption():
+    from scipy.optimize import minimize
+
+    TRUE_A, TRUE_B = 2.0, 1.0
+    n, REP = 60, 300
+
+    def _ls(x, y):
+        return np.linalg.lstsq(np.c_[x, np.ones_like(x)], y, rcond=None)[0]
+
+    def _lad(x, y):
+        X = np.c_[x, np.ones_like(x)]
+        return minimize(lambda p: np.abs(y - X @ p).sum(), _ls(x, y),
+                        method="Nelder-Mead",
+                        options=dict(xatol=1e-8, fatol=1e-8,
+                                     maxiter=5000)).x
+
+    def run(kind):
+        a, b = [], []
+        for r in range(REP):
+            rng = np.random.default_rng(r)
+            x = rng.uniform(-3, 3, n)
+            noise = rng.standard_normal(n)
+            if kind == "contam":
+                k = max(1, int(0.05 * n))
+                idx = rng.choice(n, k, replace=False)
+                noise[idx] += rng.choice([-1, 1], k) * rng.uniform(12, 25, k)
+            y = TRUE_A * x + TRUE_B + noise
+            a.append(abs(_ls(x, y)[0] - TRUE_A))
+            b.append(abs(_lad(x, y)[0] - TRUE_A))
+        return np.array(a), np.array(b)
+
+    fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.2), sharey=True)
+    titles = ["errors exactly Gaussian",
+              "5% of points are outliers"]
+    for ax, kind, title in zip(axes, ("gauss", "contam"), titles):
+        a, b = run(kind)
+        bp = ax.boxplot([a, b], labels=["least\nsquares",
+                                             "least absolute\ndeviations"],
+                        widths=0.45, patch_artist=True, showfliers=False)
+        for patch, col in zip(bp["boxes"], (ACCENT, BLUE)):
+            patch.set_facecolor(col)
+            patch.set_alpha(0.45)
+        for med in bp["medians"]:
+            med.set_color(INK)
+            med.set_linewidth(1.6)
+        ax.set_title(title, fontsize=10.5, color=INK, weight="bold")
+        ax.annotate(f"{np.median(a):.4f}", xy=(1, np.median(a)),
+                    xytext=(16, 7), textcoords="offset points",
+                    fontsize=8.5, color=ACCENT, weight="bold")
+        ax.annotate(f"{np.median(b):.4f}", xy=(2, np.median(b)),
+                    xytext=(16, 7), textcoords="offset points",
+                    fontsize=8.5, color=BLUE, weight="bold")
+        win = (a < b).mean() * 100
+        ax.set_xlabel(f"least squares wins {win:.0f}% of runs", fontsize=9)
+        ax.grid(alpha=0.13, axis="y")
+        style(ax)
+    axes[0].set_ylabel("error in the fitted slope", fontsize=9.5)
+    axes[0].set_ylim(0, 0.45)
+
+    fig.text(0.5, -0.05,
+             "same true line (slope 2.0), same 60 points, 300 runs. only the "
+             "shape of the noise changes.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "ls_assumption.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote ls_assumption.svg")
+
+
 if __name__ == "__main__":
     cover_hart_corridor()
     svm_what_matters()
     gini_vs_entropy()
+    least_squares_assumption()
