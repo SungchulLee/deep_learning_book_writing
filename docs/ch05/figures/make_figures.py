@@ -938,6 +938,71 @@ def fig_diffusion_attention(T=1000):
     print(f"wrote diffusion_attention.svg  (first 100 steps: {head:.1f}% vs 10%)")
 
 
+def fig_gan_saturation():
+    """유명한 식과 실제로 돌아가는 식이 생성기에 주는 힌트의 세기.
+
+    왼쪽은 꼴이다. 판별기가 가짜에 매기는 점수 D 에 대해 기울기 크기가
+    버려진 식은 D, 쓰이는 식은 1 - D 라 둘의 비가 정확히 D / (1 - D) 다.
+    D = 0.5 에서만 둘이 같다.
+
+    오른쪽 막대는 **이 쪽의 로스 표**에서 되짚은 것이다. 이 쪽 코드가
+    `bce(D(fake), ones)` 를 쓰므로 L_G = -log D 이고, 에포크 평균을
+    되짚으면 D 의 기하평균이 나온다. 논문에 실린 수가 아니다.
+    """
+    d = np.linspace(1e-3, 0.999, 600)
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.2, 4.6),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # --- 왼쪽: 힌트의 세기 --------------------------------------------------
+    axL.plot(d, d, color="#b91c1c", lw=2.1,
+             label="the famous equation (abandoned in sec. 3)")
+    axL.plot(d, 1 - d, color="tab:green", lw=2.1,
+             label="the one this page runs")
+    axL.axvline(0.5, color="0.6", lw=1.0, ls=":")
+    axL.plot([0.5], [0.5], "o", color="0.35", ms=7, zorder=4)
+    axL.annotate("they are equally strong\nonly at the balance point",
+                 xy=(0.5, 0.5), xytext=(0.60, 0.80), fontsize=9.5, color="0.35",
+                 arrowprops=dict(arrowstyle="->", color="0.5", lw=1.0))
+    axL.annotate("judge is sure it is fake:\nthe forger gets almost no hint",
+                 xy=(0.05, 0.05), xytext=(0.53, 0.26), fontsize=9.5,
+                 color="#b91c1c", ha="center",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.1))
+    axL.set_xlabel("D - the score the judge gives a fake picture", fontsize=10)
+    axL.set_ylabel("how strong a hint the forger gets", fontsize=10)
+    axL.set_xlim(0, 1); axL.set_ylim(0, 1.05)
+    axL.legend(fontsize=9.3, frameon=False, loc="upper center")
+    axL.set_title("the shape", fontsize=11)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    # --- 오른쪽: 이 쪽의 네 에포크 -------------------------------------------
+    eps = [(1, 1.687), (10, 2.607), (20, 1.360), (30, 1.310)]
+    labs = [f"epoch {e}" for e, _ in eps]
+    vals = [(1 - np.exp(-lg)) / np.exp(-lg) for _, lg in eps]
+    cols = ["0.65", "#b91c1c", "0.65", "0.65"]
+    bars = axR.bar(labs, vals, color=cols, width=0.62)
+    for b, v in zip(bars, vals):
+        axR.text(b.get_x() + b.get_width() / 2, v + 0.35, f"{v:.1f}x",
+                 ha="center", fontsize=10)
+    axR.axhline(1.0, color="0.4", lw=1.1, ls="--")
+    axR.text(3.45, 1.45, "1x = no difference", ha="right", fontsize=9,
+             color="0.4")
+    axR.text(1, 16.6, "the epoch this page marks\nas the judge pulling ahead",
+             ha="center", va="top", fontsize=9.3, color="#b91c1c")
+    axR.set_ylim(0, 17)
+    axR.set_ylabel("how much fainter the hint\nwould have been", fontsize=10)
+    axR.set_title("this page's own run", fontsize=11)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.text(0.5, 0.015, "right panel: read back out of this page's L_G column "
+             "- not a number from the paper.",
+             ha="center", fontsize=8.5, color="0.45")
+    fig.subplots_adjust(left=0.065, right=0.985, top=0.92, bottom=0.175,
+                        wspace=0.27)
+    fig.savefig("gan_saturation.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote gan_saturation.svg  (epoch 10: {vals[1]:.1f}x fainter)")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -957,6 +1022,7 @@ if __name__ == "__main__":
     fig_step2_two_ladders()
     fig_pearson_two_lines()
     fig_diffusion_attention()
+    fig_gan_saturation()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
