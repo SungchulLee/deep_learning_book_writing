@@ -1355,7 +1355,96 @@ def checkpoint_tradeoff():
           f"time {[round(t,2) for t in tim]}  best={best}")
 
 
+# === 그림으로 보는 AI: 겹침을 다루는 세 가지 길 ===============================
+#
+# 포트란은 **금지**하고(언어 규칙), C 는 **허락**한 뒤 restrict 로 약속받고,
+# PyTorch 는 허락한 채 **버전을 세어 잡는다.** 왼쪽은 그 셋, 오른쪽은 실제로
+# 돌려 본 버전 세기. 같은 add_ 인데 저장 뒤에 했느냐가 갈림이다.
+
+def aliasing_three_ways():
+    import torch
+
+    def trial(modify_after_save):
+        x = torch.ones(3, requires_grad=True)
+        y = x * 2
+        if not modify_after_save:
+            y.add_(1)
+        z = (y * y).sum()              # 여기서 y 가 저장된다
+        v_save = y._version
+        if modify_after_save:
+            y.add_(1)
+        try:
+            z.backward()
+            return v_save, y._version, True
+        except RuntimeError:
+            return v_save, y._version, False
+
+    before = trial(False)
+    after = trial(True)
+    assert before[2] and not after[2], \
+        "저장 전/후가 갈리지 않으면 이 그림의 이야기가 없다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.0),
+                                   gridspec_kw={"width_ratios": [1.1, 1]})
+
+    # --- 왼쪽: 세 가지 길 ---------------------------------------------------
+    ways = [
+        ("Fortran", "the language forbids it", "arguments never alias", INK),
+        ("C", "allowed by default", "restrict is a promise you make", INK),
+        ("PyTorch", "allowed, and watched", "a counter catches the one\n"
+                                            "case that would corrupt a gradient",
+         ACCENT),
+    ]
+    for k, (name, rule, note, col) in enumerate(ways):
+        y = 0.80 - k * 0.30
+        ax1.add_patch(plt.Rectangle((0.03, y - 0.115), 0.94, 0.235,
+                                    facecolor=col,
+                                    alpha=0.17 if col is ACCENT else 0.07,
+                                    edgecolor=col, linewidth=1.0))
+        ax1.text(0.09, y + 0.055, name, fontsize=11, color=col,
+                 weight="bold", va="center")
+        ax1.text(0.09, y - 0.045, rule, fontsize=9, color=INK, va="center")
+        ax1.text(0.95, y, note, fontsize=8.2, color=col, ha="right",
+                 va="center", style="italic")
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0.08, 1.0)
+    ax1.axis("off")
+    ax1.set_title("three answers to the same hazard", fontsize=10,
+                  color=INK, weight="bold")
+
+    # --- 오른쪽: 실제로 잰 버전 세기 ---------------------------------------
+    ax2.text(0.5, 0.93, "the same  y.add_(1)", ha="center", fontsize=10.5,
+             color=INK, family="monospace")
+    rows = [("changed before saving", before, "runs"),
+            ("changed after saving", after, "raises")]
+    for k, (lab, (v0, v1, ok), word) in enumerate(rows):
+        y = 0.63 - k * 0.33
+        col = INK if ok else ACCENT
+        ax2.add_patch(plt.Rectangle((0.03, y - 0.105), 0.94, 0.225,
+                                    facecolor=col, alpha=0.10,
+                                    edgecolor=col, linewidth=1.0))
+        ax2.text(0.08, y + 0.055, lab, fontsize=9.2, color=INK, va="center")
+        ax2.text(0.08, y - 0.045, f"version {v0} at save  ->  {v1} at backward",
+                 fontsize=8.6, color=INK, family="monospace", va="center")
+        ax2.text(0.93, y, word, fontsize=11, color=col, ha="right",
+                 va="center", weight="bold")
+    ax2.text(0.5, 0.045, "nothing is forbidden. the difference is\n"
+                         "whether the number moved.",
+             ha="center", va="center", fontsize=8.6, color=INK)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+    ax2.axis("off")
+    ax2.set_title("measured here", fontsize=10, color=INK, weight="bold")
+
+    fig.tight_layout()
+    fig.savefig(HERE / "aliasing_three_ways.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote aliasing_three_ways.svg   before={before} after={after}")
+
+
 if __name__ == "__main__":
+    aliasing_three_ways()
     checkpoint_tradeoff()
     amdahl_ceiling()
     checkpoint_is_a_program()
