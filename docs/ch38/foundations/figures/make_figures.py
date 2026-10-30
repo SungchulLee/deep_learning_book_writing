@@ -344,7 +344,121 @@ def compatible_not_accurate():
           f"{err_c:.4f}   incompat {a_i:.3f}deg err {err_i:.4f}")
 
 
+# === 그림으로 보는 AI: 가우스 폴리시의 sigma 가 스스로 좁아진다 ===============
+#
+# 윌리엄스 8.2 절이 적은 대로, sigma 는 "그 y 가 다시 나오기 쉽게" 움직인다.
+# 평균 가까이에서 좋은 값이 나오면 좁아지고, 멀리서 나오면 넓어진다.
+# 그리고 r 이 늘 양수인데 베이스라인이 없으면 탐색이 너무 일찍 닫힌다.
+# 씨앗 스무 개를 돌려 **퍼짐과 함께** 보고한다 — 강화학습 수는 흔들린다.
+
+def gaussian_sigma_closes():
+    PEAK, T, LR, SEEDS = 3.0, 30000, 2e-3, 20
+
+    def run(use_baseline, seed):
+        rng = np.random.default_rng(seed)
+        mu, sig, b = 0.0, 1.0, 0.0
+        ever = False
+        for _ in range(T):
+            y = rng.normal(mu, sig)
+            r = float(np.exp(-0.5 * (y - PEAK) ** 2))   # 늘 양수
+            adv = r - (b if use_baseline else 0.0)
+            if use_baseline:
+                b += 0.01 * (r - b)
+            # sigma 가 작아지면 1/sigma^2 이 터지므로 스텝을 묶는다
+            mu += LR * float(np.clip(adv * (y - mu) / sig ** 2, -10, 10))
+            sig += LR * float(np.clip(
+                adv * ((y - mu) ** 2 - sig ** 2) / sig ** 3, -10, 10))
+            sig = float(np.clip(sig, 1e-3, 10.0))
+            if not ever and abs(mu - PEAK) < 0.5:
+                ever = True
+        return mu, sig, ever
+
+    out = {}
+    for lab, ub in (("no baseline", False), ("with a baseline", True)):
+        rows = [run(ub, s) for s in range(SEEDS)]
+        mus = np.array([m for m, _, _ in rows])
+        sgs = np.array([s for _, s, _ in rows])
+        ever = int(sum(e for _, _, e in rows))
+        stay = int((np.abs(mus - PEAK) < 0.5).sum())
+        out[lab] = (mus, sgs, ever, stay)
+
+    (m0, s0, e0, k0) = out["no baseline"]
+    (m1, s1, e1, k1) = out["with a baseline"]
+    # 이 그림의 요지 — 베이스라인 없이는 머물지 못한다
+    assert e0 == SEEDS and e1 == SEEDS, "양쪽 다 한 번은 닿아야 비교가 된다"
+    assert k1 > k0, "베이스라인 쪽이 더 많이 머물러야 이 그림이 성립한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.2),
+                                   gridspec_kw={"width_ratios": [1, 1.2]})
+
+    # --- 왼쪽: sigma 가 움직이는 규칙 (윌리엄스 8.2) -----------------------
+    xs = np.linspace(-3.2, 3.2, 300)
+    ax1.plot(xs, np.exp(-0.5 * xs ** 2), color=INK, linewidth=1.8)
+    ax1.axvspan(-1, 1, color=ACCENT, alpha=0.11)
+    ax1.text(0, 0.52, "within one sigma", ha="center", fontsize=8.4,
+             color=ACCENT)
+    ax1.annotate("good point here\n-> narrow", xy=(0.55, 0.86),
+                 xytext=(0.0, 1.14), textcoords="data", ha="center",
+                 fontsize=8.5, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.1))
+    ax1.annotate("good point here\n-> broaden", xy=(2.25, 0.08),
+                 xytext=(2.35, 0.62), textcoords="data", ha="center",
+                 fontsize=8.5, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=1.1))
+    ax1.set_ylim(0, 1.42)
+    ax1.set_xlabel("sampled action, in units of sigma from the mean",
+                   fontsize=9)
+    ax1.set_yticks([])
+    ax1.set_title("how sigma moves", fontsize=10, color=INK, weight="bold")
+    ax1.tick_params(labelsize=8.5, colors=INK)
+    for sp in ax1.spines.values():
+        sp.set_visible(False)
+    ax1.text(0.5, -0.30, "sigma always changes so the sampled action\n"
+                         "becomes more likely to happen again.",
+             transform=ax1.transAxes, ha="center", va="top", fontsize=8.3,
+             color=INK, alpha=0.9)
+
+    # --- 오른쪽: 씨앗 스무 개가 어디서 멈췄나 -------------------------------
+    ax2.axhline(PEAK, color=INK, linestyle="--", linewidth=1.4)
+    ax2.text(0.5, PEAK + 0.16, "the peak", fontsize=8.6, color=INK)
+    rng = np.random.default_rng(7)
+    for k, (lab, mus, col) in enumerate(((f"no baseline\n{k0} of {SEEDS} stay",
+                                          m0, ACCENT),
+                                         (f"with a baseline\n{k1} of {SEEDS} stay",
+                                          m1, MUTED))):
+        xj = k + 1 + rng.uniform(-0.13, 0.13, len(mus))
+        ax2.plot(xj, mus, "o", color=col, ms=7, alpha=0.75,
+                 markeredgecolor="white", markeredgewidth=0.8)
+    ax2.set_xticks([1, 2])
+    ax2.set_xticklabels([f"no baseline\n{k0} of {SEEDS} stay",
+                         f"with a baseline\n{k1} of {SEEDS} stay"],
+                        fontsize=8.8)
+    ax2.set_ylabel("where the mean ended up", fontsize=9.5)
+    ax2.set_xlim(0.4, 2.6)
+    ax2.set_title(f"every run reached the peak at least once "
+                  f"({e0}/{SEEDS} and {e1}/{SEEDS})",
+                  fontsize=9.6, color=INK, weight="bold")
+    ax2.grid(alpha=0.13, axis="y")
+    ax2.tick_params(labelsize=8.5, colors=INK)
+    for sp in ax2.spines.values():
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             "reward is positive everywhere, so without a baseline every "
+             "sample reinforces itself.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "gaussian_sigma.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote gaussian_sigma.svg   no-baseline stay {k0}/{SEEDS} "
+          f"sigma~{np.median(s0):.4f}   baseline stay {k1}/{SEEDS} "
+          f"sigma~{np.median(s1):.4f}")
+
+
 if __name__ == "__main__":
     baseline_not_the_mean()
     theorem_one_promises()
     compatible_not_accurate()
+    gaussian_sigma_closes()
